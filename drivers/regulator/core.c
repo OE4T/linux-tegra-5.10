@@ -1098,7 +1098,7 @@ static void print_constraints(struct regulator_dev *rdev)
 	if (!count)
 		scnprintf(buf, len, "no parameters");
 
-	rdev_dbg(rdev, "%s\n", buf);
+	rdev_info(rdev, "%s\n", buf);
 
 	if ((constraints->min_uV != constraints->max_uV) &&
 	    !regulator_ops_is_valid(rdev, REGULATOR_CHANGE_VOLTAGE))
@@ -2367,6 +2367,7 @@ static int _regulator_do_enable(struct regulator_dev *rdev)
 	}
 
 	trace_regulator_enable(rdev_get_name(rdev));
+	_notifier_call_chain(rdev, REGULATOR_EVENT_PRE_ENABLE, NULL);
 
 	if (rdev->desc->off_on_delay) {
 		/* if needed, keep a distance of off_on_delay from last time
@@ -2416,6 +2417,12 @@ static int _regulator_do_enable(struct regulator_dev *rdev)
 	_regulator_enable_delay(delay);
 
 	trace_regulator_enable_complete(rdev_get_name(rdev));
+
+	if (rdev->desc->ops->post_enable) {
+		ret = rdev->desc->ops->post_enable(rdev);
+		if (ret < 0)
+			return ret;
+	}
 
 	return 0;
 }
@@ -2593,6 +2600,12 @@ static int _regulator_do_disable(struct regulator_dev *rdev)
 		rdev->last_off_jiffy = jiffies;
 
 	trace_regulator_disable_complete(rdev_get_name(rdev));
+
+	if (rdev->desc->ops->post_disable) {
+		ret = rdev->desc->ops->post_disable(rdev);
+		if (ret < 0)
+			return ret;
+	}
 
 	return 0;
 }
@@ -3236,6 +3249,10 @@ static int _regulator_do_set_voltage(struct regulator_dev *rdev,
 			return old_selector;
 	}
 
+	if (_regulator_is_enabled(rdev))
+		_notifier_call_chain(rdev, REGULATOR_EVENT_OUT_PRECHANGE,
+				     NULL);
+
 	if (ops->set_voltage) {
 		ret = _regulator_call_set_voltage(rdev, min_uV, max_uV,
 						  &selector);
@@ -3314,6 +3331,10 @@ static int _regulator_do_set_voltage(struct regulator_dev *rdev,
 	}
 
 out:
+	if (_regulator_is_enabled(rdev))
+		_notifier_call_chain(rdev, REGULATOR_EVENT_OUT_POSTCHANGE,
+				     NULL);
+
 	trace_regulator_set_voltage_complete(rdev_get_name(rdev), best_val);
 
 	return ret;
@@ -4122,6 +4143,37 @@ int regulator_get_voltage(struct regulator *regulator)
 	return ret;
 }
 EXPORT_SYMBOL_GPL(regulator_get_voltage);
+
+/**
+ * regulator_get_constraint_voltages - get platform specific constraint voltage,
+ * @regulator: regulator source
+ * @min_uV: Minimum microvolts.
+ * @max_uV: Maximum microvolts.
+ *
+ * This returns the current regulator voltage in uV.
+ *
+ * NOTE: If the regulator is disabled it will return the voltage value. This
+ * function should not be used to determine regulator state.
+ */
+
+int regulator_get_constraint_voltages(struct regulator *regulator,
+	int *min_uV, int *max_uV)
+{
+	struct regulator_dev *rdev = regulator->rdev;
+
+	if (rdev->desc && rdev->desc->fixed_uV && rdev->desc->n_voltages == 1) {
+		*min_uV = rdev->desc->fixed_uV;
+		*max_uV = rdev->desc->fixed_uV;
+		return 0;
+	}
+	if (rdev->constraints) {
+		*min_uV = rdev->constraints->min_uV;
+		*max_uV = rdev->constraints->max_uV;
+		return 0;
+	}
+	return -EINVAL;
+}
+EXPORT_SYMBOL_GPL(regulator_get_constraint_voltages);
 
 /**
  * regulator_set_current_limit - set regulator output current limit

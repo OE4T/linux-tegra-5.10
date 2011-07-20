@@ -102,6 +102,10 @@ struct regmap;
  *                      Data passed is old voltage cast to (void *).
  * PRE_DISABLE    Regulator is about to be disabled
  * ABORT_DISABLE  Regulator disable failed for some reason
+ * PRE_ENABLE     Regulator is to be enabled
+ * ENABLE         Regulator was enabled
+ * OUT_PRECHANGE  Regulator is enabled and its voltage is to be changed
+ * OUT_POSTCHANGE Regulator is enabled and its voltage was changed
  *
  * NOTE: These events can be OR'ed together when passed into handler.
  */
@@ -119,7 +123,9 @@ struct regmap;
 #define REGULATOR_EVENT_PRE_DISABLE		0x400
 #define REGULATOR_EVENT_ABORT_DISABLE		0x800
 #define REGULATOR_EVENT_ENABLE			0x1000
-
+#define REGULATOR_EVENT_PRE_ENABLE		0x2000
+#define REGULATOR_EVENT_OUT_PRECHANGE		0x4000
+#define REGULATOR_EVENT_OUT_POSTCHANGE		0x8000
 /*
  * Regulator errors that can be queried using regulator_get_error_flags
  *
@@ -251,6 +257,8 @@ int regulator_set_voltage_time(struct regulator *regulator,
 int regulator_set_sleep_voltage(struct regulator *regulator,
 				int min_uV, int max_uV);
 int regulator_get_voltage(struct regulator *regulator);
+int regulator_get_constraint_voltages(struct regulator *regulator,
+	int *min_uV, int *max_uV);
 int regulator_sync_voltage(struct regulator *regulator);
 int regulator_set_current_limit(struct regulator *regulator,
 			       int min_uA, int max_uA);
