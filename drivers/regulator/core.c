@@ -94,6 +94,8 @@ struct regulator_supply_alias {
 
 static int _regulator_is_enabled(struct regulator_dev *rdev);
 static int _regulator_disable(struct regulator *regulator);
+static int _regulator_enable(struct regulator *rdev);
+static int _regulator_get_enable_time(struct regulator_dev *rdev);
 static int _regulator_get_current_limit(struct regulator_dev *rdev);
 static unsigned int _regulator_get_mode(struct regulator_dev *rdev);
 static int _notifier_call_chain(struct regulator_dev *rdev,
@@ -608,6 +610,20 @@ out:
 	return count;
 }
 
+/* dynamic regulator control mode switching constraint check */
+static int regulator_check_control(struct regulator_dev *rdev)
+{
+	if (!rdev->constraints) {
+		rdev_err(rdev, "no constraints\n");
+		return -ENODEV;
+	}
+	if (!(rdev->constraints->valid_ops_mask & REGULATOR_CHANGE_CONTROL)) {
+		rdev_err(rdev, "operation not allowed\n");
+		return -EPERM;
+	}
+	return 0;
+}
+
 static ssize_t regulator_uV_show(struct device *dev,
 				struct device_attribute *attr, char *buf)
 {
@@ -693,7 +709,65 @@ static ssize_t regulator_state_show(struct device *dev,
 
 	return ret;
 }
-static DEVICE_ATTR(state, 0444, regulator_state_show, NULL);
+
+static ssize_t regulator_state_set(struct device *dev,
+		   struct device_attribute *attr, const char *buf, size_t count)
+{
+	struct regulator_dev *rdev = dev_get_drvdata(dev);
+	int ret;
+	bool enabled;
+
+	if ((*buf == 'E') || (*buf == 'e'))
+		enabled = true;
+	else if ((*buf == 'D') || (*buf == 'd'))
+		enabled = false;
+	else
+		return -EINVAL;
+
+	if ((_regulator_is_enabled(rdev) && enabled) ||
+		(!_regulator_is_enabled(rdev) && !enabled))
+		return count;
+
+	regulator_lock(rdev);
+	if (enabled) {
+		int delay = 0;
+		if (!rdev->desc->ops->enable) {
+			ret = -EINVAL;
+			goto end;
+		}
+		ret = _regulator_get_enable_time(rdev);
+		if (ret >= 0)
+			delay = ret;
+		ret = rdev->desc->ops->enable(rdev);
+		if (ret < 0) {
+			rdev_warn(rdev, "enable() failed: %d\n", ret);
+			goto end;
+		}
+		if (delay >= 1000) {
+			mdelay(delay / 1000);
+			udelay(delay % 1000);
+		} else if (delay) {
+			udelay(delay);
+		}
+	} else {
+		if (!rdev->desc->ops->disable) {
+			ret = -EINVAL;
+			goto end;
+		}
+		ret = rdev->desc->ops->disable(rdev);
+		if (ret < 0) {
+			rdev_warn(rdev, "disable() failed: %d\n", ret);
+			goto end;
+		}
+	}
+
+end:
+	regulator_unlock(rdev);
+	if (ret < 0)
+		return ret;
+	return count;
+}
+static DEVICE_ATTR(state, 0644, regulator_state_show, regulator_state_set);
 
 static ssize_t regulator_status_show(struct device *dev,
 				   struct device_attribute *attr, char *buf)
@@ -2115,6 +2189,12 @@ static void _regulator_put(struct regulator *regulator)
 	WARN_ON(regulator->enable_count);
 
 	rdev = regulator->rdev;
+
+	/* Disable regulator if it is enabled because of this client */
+	regulator_lock(rdev);
+	if (regulator->use_count)
+		_regulator_disable(regulator);
+	regulator_unlock(rdev);
 
 	debugfs_remove_recursive(regulator->debugfs);
 
@@ -4554,6 +4634,75 @@ int regulator_allow_bypass(struct regulator *regulator, bool enable)
 	return ret;
 }
 EXPORT_SYMBOL_GPL(regulator_allow_bypass);
+
+/*
+ * regulator_set_control_mode - set regulator control mode
+ * @regulator: regulator source
+ * @mode: control mode - one of the REGULATOR_CONTROL_MODE constants
+ *
+ * Set regulator control mode to regulate the regulator output.
+ *
+ * NOTE: Regulator system constraints must be set for this regulator before
+ * calling this function otherwise this call will fail.
+ */
+int regulator_set_control_mode(struct regulator *regulator, unsigned int mode)
+{
+	struct regulator_dev *rdev = regulator->rdev;
+	int ret;
+	int regulator_curr_mode;
+
+	regulator_lock(rdev);
+
+	/* sanity check */
+	if (!rdev->desc->ops->set_control_mode) {
+		ret = -EINVAL;
+		goto out;
+	}
+
+	/* return if the same mode is requested */
+	if (rdev->desc->ops->get_control_mode) {
+		regulator_curr_mode = rdev->desc->ops->get_control_mode(rdev);
+		if (regulator_curr_mode == mode) {
+			ret = 0;
+			goto out;
+		}
+	}
+
+	/* constraints check */
+	ret = regulator_check_control(rdev);
+	if (ret < 0)
+		goto out;
+
+	ret = rdev->desc->ops->set_control_mode(rdev, mode);
+out:
+	regulator_unlock(rdev);
+	return ret;
+}
+EXPORT_SYMBOL_GPL(regulator_set_control_mode);
+
+/**
+ * regulator_get_control_mode - get regulator control mode
+ * @regulator: regulator source
+ *
+ * Get the current regulator control mode.
+ */
+unsigned int regulator_get_control_mode(struct regulator *regulator)
+{
+	struct regulator_dev *rdev = regulator->rdev;
+	int ret = -EINVAL;
+
+	regulator_lock(rdev);
+
+	/* sanity check */
+	if (!rdev->desc->ops->get_control_mode)
+		goto out;
+
+	ret = rdev->desc->ops->get_control_mode(rdev);
+out:
+	regulator_unlock(rdev);
+	return ret;
+}
+EXPORT_SYMBOL_GPL(regulator_get_control_mode);
 
 /**
  * regulator_register_notifier - register regulator event notifier
