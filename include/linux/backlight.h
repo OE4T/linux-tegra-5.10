@@ -135,6 +135,7 @@ static inline int backlight_update_status(struct backlight_device *bd)
 
 	return ret;
 }
+extern struct backlight_device *get_backlight_device_by_name(char *name);
 
 /**
  * backlight_enable - Enable backlight

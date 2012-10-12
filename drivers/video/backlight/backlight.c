@@ -38,6 +38,23 @@ static const char *const backlight_scale_types[] = {
 	[BACKLIGHT_SCALE_NON_LINEAR]	= "non-linear",
 };
 
+struct backlight_device *get_backlight_device_by_name(char *name)
+{
+	struct list_head *ptr;
+	struct backlight_device *entry = NULL;
+
+	mutex_lock(&backlight_dev_list_mutex);
+	list_for_each(ptr, &backlight_dev_list) {
+		entry = list_entry(ptr, struct backlight_device, entry);
+		if (strcmp(dev_name(&entry->dev), name) == 0)
+			return entry;
+	}
+	mutex_unlock(&backlight_dev_list_mutex);
+
+	return entry;
+}
+EXPORT_SYMBOL(get_backlight_device_by_name);
+
 #if defined(CONFIG_FB) || (defined(CONFIG_FB_MODULE) && \
 			   defined(CONFIG_BACKLIGHT_CLASS_DEVICE_MODULE))
 /* This callback gets called when something important happens inside a
