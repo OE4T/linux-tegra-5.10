@@ -259,6 +259,54 @@ passive_show(struct device *dev, struct device_attribute *attr,
 }
 
 static ssize_t
+passive_delay_store(struct device *dev, struct device_attribute *attr,
+		    const char *buf, size_t count)
+{
+	struct thermal_zone_device *tz = to_thermal_zone(dev);
+	int passive_delay;
+
+	if (!sscanf(buf, "%d\n", &passive_delay))
+		return -EINVAL;
+
+	tz->passive_delay = passive_delay;
+	thermal_zone_device_update(tz, THERMAL_EVENT_UNSPECIFIED);
+	return count;
+}
+
+static ssize_t
+passive_delay_show(struct device *dev, struct device_attribute *attr,
+		   char *buf)
+{
+	struct thermal_zone_device *tz = to_thermal_zone(dev);
+
+	return sprintf(buf, "%d\n", tz->passive_delay);
+}
+
+static ssize_t
+polling_delay_store(struct device *dev, struct device_attribute *attr,
+		    const char *buf, size_t count)
+{
+	struct thermal_zone_device *tz = to_thermal_zone(dev);
+	int polling_delay;
+
+	if (!sscanf(buf, "%d\n", &polling_delay))
+		return -EINVAL;
+
+	tz->polling_delay = polling_delay;
+	thermal_zone_device_update(tz, THERMAL_EVENT_UNSPECIFIED);
+	return count;
+}
+
+static ssize_t
+polling_delay_show(struct device *dev, struct device_attribute *attr,
+		   char *buf)
+{
+	struct thermal_zone_device *tz = to_thermal_zone(dev);
+
+	return sprintf(buf, "%d\n", tz->polling_delay);
+}
+
+static ssize_t
 policy_store(struct device *dev, struct device_attribute *attr,
 	     const char *buf, size_t count)
 {
@@ -399,6 +447,8 @@ static DEVICE_ATTR_RO(temp);
 static DEVICE_ATTR_RW(policy);
 static DEVICE_ATTR_RO(available_policies);
 static DEVICE_ATTR_RW(sustainable_power);
+static DEVICE_ATTR_RW(passive_delay);
+static DEVICE_ATTR_RW(polling_delay);
 
 /* These thermal zone device attributes are created based on conditions */
 static DEVICE_ATTR_RW(mode);
@@ -414,6 +464,8 @@ static struct attribute *thermal_zone_dev_attrs[] = {
 	&dev_attr_policy.attr,
 	&dev_attr_available_policies.attr,
 	&dev_attr_sustainable_power.attr,
+	&dev_attr_passive_delay.attr,
+	&dev_attr_polling_delay.attr,
 	&dev_attr_k_po.attr,
 	&dev_attr_k_pu.attr,
 	&dev_attr_k_i.attr,
