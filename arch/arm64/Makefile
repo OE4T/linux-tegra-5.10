@@ -127,10 +127,9 @@ core-$(CONFIG_EFI_STUB) += $(objtree)/drivers/firmware/efi/libstub/lib.a
 boot		:= arch/arm64/boot
 KBUILD_IMAGE	:= $(boot)/Image.gz
 
-all:	Image.gz
+all:	Image.gz zImage
 
-
-Image: vmlinux
+Image zImage: vmlinux
 	$(Q)$(MAKE) $(build)=$(boot) $(boot)/$@
 
 Image.%: Image

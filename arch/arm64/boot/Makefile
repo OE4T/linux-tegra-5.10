@@ -16,7 +16,7 @@
 
 OBJCOPYFLAGS_Image :=-O binary -R .note -R .note.gnu.build-id -R .comment -S
 
-targets := Image Image.gz
+targets := Image Image.gz zImage
 
 $(obj)/Image: vmlinux FORCE
 	$(call if_changed,objcopy)
@@ -35,6 +35,9 @@ $(obj)/Image.lzma: $(obj)/Image FORCE
 
 $(obj)/Image.lzo: $(obj)/Image FORCE
 	$(call if_changed,lzo)
+
+$(obj)/zImage: $(obj)/Image FORCE
+	$(call if_changed,gzip)
 
 install:
 	$(CONFIG_SHELL) $(srctree)/$(src)/install.sh $(KERNELRELEASE) \
