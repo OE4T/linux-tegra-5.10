@@ -1340,6 +1340,19 @@ static int set_machine_constraints(struct regulator_dev *rdev,
 		drms_uA_update(rdev);
 	}
 
+	if (rdev->constraints->sleep_mode) {
+		if (!ops->set_sleep_mode) {
+			rdev_err(rdev, "no set_sleep_mode operation\n");
+			return -EINVAL;
+		}
+
+		ret = ops->set_sleep_mode(rdev, rdev->constraints->sleep_mode);
+		if (ret < 0) {
+			rdev_err(rdev, "failed to set sleep mode: %d\n", ret);
+			return ret;
+		}
+	}
+
 	if ((rdev->constraints->ramp_delay || rdev->constraints->ramp_disable)
 		&& ops->set_ramp_delay) {
 		ret = ops->set_ramp_delay(rdev, rdev->constraints->ramp_delay);
