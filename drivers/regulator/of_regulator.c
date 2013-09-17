@@ -46,6 +46,9 @@ static int of_get_regulation_constraints(struct device *dev,
 	if (!of_property_read_u32(np, "regulator-max-microvolt", &pval))
 		constraints->max_uV = pval;
 
+	if (!of_property_read_u32(np, "regulator-init-microvolt", &pval))
+		constraints->init_uV = pval;
+
 	/* Voltage change possible? */
 	if (constraints->min_uV != constraints->max_uV)
 		constraints->valid_ops_mask |= REGULATOR_CHANGE_VOLTAGE;

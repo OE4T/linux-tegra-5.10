@@ -30,6 +30,9 @@ properties:
   regulator-max-microamp:
     description: largest current consumers may set
 
+  regulator-init-microvolt:
+    description: Initial microvolt need to be set during registration
+
   regulator-input-current-limit-microamp:
     description: maximum input current regulator allows
 
