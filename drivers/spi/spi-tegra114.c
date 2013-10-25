@@ -1029,6 +1029,34 @@ static void tegra_spi_dump_regs(struct tegra_spi_data *tspi)
 		tegra_spi_readl(tspi, SPI_FIFO_STATUS));
 }
 
+static  int tegra_spi_cs_low(struct spi_device *spi, bool state)
+{
+	struct tegra_spi_data *tspi = spi_controller_get_devdata(spi->master);
+	int ret;
+	unsigned long val;
+	unsigned long flags;
+
+	ret = pm_runtime_get_sync(tspi->dev);
+	if (ret < 0) {
+		dev_err(tspi->dev, "pm runtime failed, e = %d\n", ret);
+		return ret;
+	}
+
+	spin_lock_irqsave(&tspi->lock, flags);
+	if (!(spi->mode & SPI_CS_HIGH)) {
+		val = tegra_spi_readl(tspi, SPI_COMMAND1);
+		if (state)
+			val &= ~SPI_CS_POL_INACTIVE(spi->chip_select);
+		else
+			val |= SPI_CS_POL_INACTIVE(spi->chip_select);
+		tegra_spi_writel(tspi, val, SPI_COMMAND1);
+	}
+
+	spin_unlock_irqrestore(&tspi->lock, flags);
+	pm_runtime_put(tspi->dev);
+	return 0;
+}
+
 static int tegra_spi_transfer_one_message(struct spi_master *master,
 			struct spi_message *msg)
 {
@@ -1330,6 +1358,7 @@ static int tegra_spi_probe(struct platform_device *pdev)
 	bus_num = of_alias_get_id(pdev->dev.of_node, "spi");
 	if (bus_num >= 0)
 		master->bus_num = bus_num;
+	master->spi_cs_low = tegra_spi_cs_low;
 
 	tspi->master = master;
 	tspi->dev = &pdev->dev;
