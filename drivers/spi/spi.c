@@ -3652,6 +3652,29 @@ int spi_write_then_read(struct spi_device *spi,
 }
 EXPORT_SYMBOL_GPL(spi_write_then_read);
 
+/**
+ * spi_cs_low - set chip select pin state
+ * @spi: device for which chip select pin state to be set
+ * state: if true chip select pin will be kept low else high
+ *
+ * The return value is zero for success, else
+ * errno status code.
+ */
+int spi_cs_low(struct spi_device *spi, bool state)
+{
+	struct spi_controller *ctrl = spi->master;
+	int ret = 0;
+
+	mutex_lock(&ctrl->bus_lock_mutex);
+
+	if (ctrl->spi_cs_low)
+		ret = ctrl->spi_cs_low(spi, state);
+
+	mutex_unlock(&ctrl->bus_lock_mutex);
+	return ret;
+}
+EXPORT_SYMBOL_GPL(spi_cs_low);
+
 /*-------------------------------------------------------------------------*/
 
 #if IS_ENABLED(CONFIG_OF)

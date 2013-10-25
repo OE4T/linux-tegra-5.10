@@ -604,6 +604,7 @@ struct spi_controller {
 	void			*dummy_tx;
 
 	int (*fw_translate_cs)(struct spi_controller *ctlr, unsigned cs);
+	int (*spi_cs_low)(struct spi_device *spi, bool state);
 };
 
 static inline void *spi_controller_get_devdata(struct spi_controller *ctlr)
@@ -1394,6 +1395,13 @@ of_find_spi_device_by_node(struct device_node *node)
 }
 
 #endif /* IS_ENABLED(CONFIG_OF) */
+
+/**
+ * spi_cs_low - set chip select pin state
+ * @spi: device for which chip select pin state to be set
+ * state: if true chip select pin will be kept low else high
+ */
+extern int spi_cs_low(struct spi_device *spi, bool state);
 
 /* Compatibility layer */
 #define spi_master			spi_controller
