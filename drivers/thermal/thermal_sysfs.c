@@ -542,7 +542,7 @@ static const struct attribute_group *thermal_zone_attribute_groups[] = {
  *
  * Return: 0 on success, the proper error value otherwise.
  */
-static int create_trip_attrs(struct thermal_zone_device *tz, int mask)
+static int create_trip_attrs(struct thermal_zone_device *tz, u64 mask)
 {
 	struct attribute **attrs;
 	int indx;
@@ -605,7 +605,7 @@ static int create_trip_attrs(struct thermal_zone_device *tz, int mask)
 		tz->trip_temp_attrs[indx].attr.attr.mode = S_IRUGO;
 		tz->trip_temp_attrs[indx].attr.show = trip_point_temp_show;
 		if (IS_ENABLED(CONFIG_THERMAL_WRITABLE_TRIPS) &&
-		    mask & (1 << indx)) {
+		    mask & (1ULL << indx)) {
 			tz->trip_temp_attrs[indx].attr.attr.mode |= S_IWUSR;
 			tz->trip_temp_attrs[indx].attr.store =
 							trip_point_temp_store;
@@ -657,7 +657,7 @@ static void destroy_trip_attrs(struct thermal_zone_device *tz)
 }
 
 int thermal_zone_create_device_groups(struct thermal_zone_device *tz,
-				      int mask)
+				      u64 mask)
 {
 	const struct attribute_group **groups;
 	int i, size, result;

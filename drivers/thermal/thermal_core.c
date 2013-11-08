@@ -1025,7 +1025,7 @@ void print_bind_err_msg(struct thermal_zone_device *tz,
 		tz->type, cdev->type, ret);
 }
 
-static void __bind(struct thermal_zone_device *tz, int mask,
+static void __bind(struct thermal_zone_device *tz, u64 mask,
 		   struct thermal_cooling_device *cdev,
 		   unsigned long *limits,
 		   unsigned int weight)
@@ -1033,7 +1033,7 @@ static void __bind(struct thermal_zone_device *tz, int mask,
 	int i, ret;
 
 	for (i = 0; i < tz->trips; i++) {
-		if (mask & (1 << i)) {
+		if (mask & (1ULL << i)) {
 			unsigned long upper, lower;
 
 			upper = THERMAL_NO_LIMIT;
@@ -1261,13 +1261,13 @@ devm_thermal_of_cooling_device_register(struct device *dev,
 }
 EXPORT_SYMBOL_GPL(devm_thermal_of_cooling_device_register);
 
-static void __unbind(struct thermal_zone_device *tz, int mask,
+static void __unbind(struct thermal_zone_device *tz, u64 mask,
 		     struct thermal_cooling_device *cdev)
 {
 	int i;
 
 	for (i = 0; i < tz->trips; i++)
-		if (mask & (1 << i))
+		if (mask & (1ULL << i))
 			thermal_zone_unbind_cooling_device(tz, i, cdev);
 }
 
@@ -1392,7 +1392,7 @@ exit:
  * IS_ERR*() helpers.
  */
 struct thermal_zone_device *
-thermal_zone_device_register(const char *type, int trips, int mask,
+thermal_zone_device_register(const char *type, int trips, u64 mask,
 			     void *devdata, struct thermal_zone_device_ops *ops,
 			     struct thermal_zone_params *tzp, int passive_delay,
 			     int polling_delay)
