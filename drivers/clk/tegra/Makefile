@@ -5,3 +5,4 @@ obj-$(CONFIG_NV_TEGRA_BPMP)	+= clk-tegra-bpmp.o
 obj-$(CONFIG_NV_TEGRA_BPMP)	+= clk-fake.o
 obj-$(CONFIG_TEGRA_AON)		+= tegra-aon-clk.o
 obj-y				+= clk-skipper.o
+obj-y				+= clk-cbus-shared.o
