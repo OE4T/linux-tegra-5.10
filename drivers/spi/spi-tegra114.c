@@ -1614,8 +1614,9 @@ static int tegra_spi_probe(struct platform_device *pdev)
 	reset_control_assert(tspi->rst);
 	udelay(2);
 	reset_control_deassert(tspi->rst);
-	tspi->def_command1_reg  = SPI_M_S;
 	tspi->def_command1_reg |= SPI_CS_SEL(tspi->def_chip_select);
+	tegra_spi_writel(tspi, tspi->def_command1_reg, SPI_COMMAND1);
+	tspi->def_command1_reg  = SPI_M_S | SPI_LSBYTE_FE;
 	tegra_spi_writel(tspi, tspi->def_command1_reg, SPI_COMMAND1);
 	tspi->spi_cs_timing1 = tegra_spi_readl(tspi, SPI_CS_TIMING1);
 	tspi->spi_cs_timing2 = tegra_spi_readl(tspi, SPI_CS_TIMING2);
