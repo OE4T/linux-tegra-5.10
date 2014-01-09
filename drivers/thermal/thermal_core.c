@@ -1452,6 +1452,37 @@ exit:
 }
 EXPORT_SYMBOL_GPL(thermal_zone_get_zone_by_name);
 
+/**
+* thermal_zone_get_zone_by_node() - search for a zone and returns its ref
+* @node: device node of the thermal zone
+*
+* When thermal zone is found with the passed device node, returns a reference
+* to it.
+*
+* Return: On success returns a reference to an unique thermal zone with
+* matching device node, an ERR_PTR otherwise (-EINVAL for invalid
+* paramenters, -ENODEV for not found).
+*/
+struct thermal_zone_device *
+thermal_zone_get_zone_by_node(struct device_node *node)
+{
+	struct thermal_zone_device *pos = NULL, *ref = ERR_PTR(-ENODEV);
+
+	if (!node)
+		return ERR_PTR(-EINVAL);
+
+	mutex_lock(&thermal_list_lock);
+	list_for_each_entry(pos, &thermal_tz_list, node)
+		if (node == pos->np) {
+			ref = pos;
+			break;
+		}
+	mutex_unlock(&thermal_list_lock);
+
+	return ref;
+}
+EXPORT_SYMBOL_GPL(thermal_zone_get_zone_by_node);
+
 static int thermal_pm_notify(struct notifier_block *nb,
 			     unsigned long mode, void *_unused)
 {

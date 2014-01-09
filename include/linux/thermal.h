@@ -166,6 +166,7 @@ struct thermal_zone_device {
 	int id;
 	char type[THERMAL_NAME_LENGTH];
 	struct device device;
+	struct device_node *np;
 	struct attribute_group trips_attribute_group;
 	struct thermal_attr *trip_temp_attrs;
 	struct thermal_attr *trip_type_attrs;
@@ -410,6 +411,8 @@ devm_thermal_of_cooling_device_register(struct device *dev,
 				const struct thermal_cooling_device_ops *ops);
 void thermal_cooling_device_unregister(struct thermal_cooling_device *);
 struct thermal_zone_device *thermal_zone_get_zone_by_name(const char *name);
+struct thermal_zone_device *
+thermal_zone_get_zone_by_node(struct device_node *node);
 int thermal_zone_get_temp(struct thermal_zone_device *tz, int *temp);
 int thermal_zone_get_slope(struct thermal_zone_device *tz);
 int thermal_zone_get_offset(struct thermal_zone_device *tz);
@@ -447,6 +450,9 @@ static inline void thermal_cooling_device_unregister(
 { }
 static inline struct thermal_zone_device *thermal_zone_get_zone_by_name(
 		const char *name)
+{ return ERR_PTR(-ENODEV); }
+static inline struct thermal_zone_device *thermal_zone_get_zone_by_node(
+		struct device_node *node)
 { return ERR_PTR(-ENODEV); }
 static inline int thermal_zone_get_temp(
 		struct thermal_zone_device *tz, int *temp)
