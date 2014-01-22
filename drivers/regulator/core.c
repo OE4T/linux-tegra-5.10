@@ -740,7 +740,7 @@ static ssize_t regulator_state_set(struct device *dev,
 		   struct device_attribute *attr, const char *buf, size_t count)
 {
 	struct regulator_dev *rdev = dev_get_drvdata(dev);
-	int ret;
+	int ret = 0;
 	bool enabled;
 
 	if ((*buf == 'E') || (*buf == 'e'))
@@ -757,18 +757,26 @@ static ssize_t regulator_state_set(struct device *dev,
 	regulator_lock(rdev);
 	if (enabled) {
 		int delay = 0;
-		if (!rdev->desc->ops->enable) {
+		if (!rdev->desc->ops->enable && !rdev->ena_pin) {
+			rdev_warn(rdev, "Ops not supported\n");
 			ret = -EINVAL;
 			goto end;
 		}
 		ret = _regulator_get_enable_time(rdev);
 		if (ret >= 0)
 			delay = ret;
-		ret = rdev->desc->ops->enable(rdev);
-		if (ret < 0) {
-			rdev_warn(rdev, "enable() failed: %d\n", ret);
-			goto end;
+
+		if (rdev->ena_pin) {
+			gpiod_set_value_cansleep(rdev->ena_pin->gpiod, 1);
+			rdev->ena_gpio_state = 1;
+		} else if (rdev->desc->ops->enable) {
+			ret = rdev->desc->ops->enable(rdev);
+			if (ret < 0) {
+				rdev_warn(rdev, "enable() failed: %d\n", ret);
+				goto end;
+			}
 		}
+
 		if (delay >= 1000) {
 			mdelay(delay / 1000);
 			udelay(delay % 1000);
@@ -776,14 +784,21 @@ static ssize_t regulator_state_set(struct device *dev,
 			udelay(delay);
 		}
 	} else {
-		if (!rdev->desc->ops->disable) {
+		if (!rdev->desc->ops->disable && !rdev->ena_pin) {
+			rdev_warn(rdev, "Ops not supported\n");
 			ret = -EINVAL;
 			goto end;
 		}
-		ret = rdev->desc->ops->disable(rdev);
-		if (ret < 0) {
-			rdev_warn(rdev, "disable() failed: %d\n", ret);
-			goto end;
+
+		if (rdev->ena_pin) {
+			gpiod_set_value_cansleep(rdev->ena_pin->gpiod, 0);
+			rdev->ena_gpio_state = 0;
+		} else if (rdev->desc->ops->disable) {
+			ret = rdev->desc->ops->disable(rdev);
+			if (ret < 0) {
+				rdev_warn(rdev, "disable() failed: %d\n", ret);
+				goto end;
+			}
 		}
 	}
 
