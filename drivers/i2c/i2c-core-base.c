@@ -722,6 +722,20 @@ int i2c_dev_irq_from_resources(const struct resource *resources,
 	return 0;
 }
 
+void i2c_shutdown_adapter(struct i2c_adapter *adapter)
+{
+	i2c_lock_bus(adapter, I2C_LOCK_ROOT_ADAPTER);
+	adapter->cancel_xfer_on_shutdown = true;
+	i2c_unlock_bus(adapter, I2C_LOCK_ROOT_ADAPTER);
+}
+EXPORT_SYMBOL_GPL(i2c_shutdown_adapter);
+
+void i2c_shutdown_clear_adapter(struct i2c_adapter *adapter)
+{
+	adapter->cancel_xfer_on_shutdown = false;
+}
+EXPORT_SYMBOL_GPL(i2c_shutdown_clear_adapter);
+
 /**
  * i2c_new_client_device - instantiate an i2c device
  * @adap: the adapter managing the device
@@ -1979,7 +1993,10 @@ int i2c_transfer(struct i2c_adapter *adap, struct i2c_msg *msgs, int num)
 	if (ret)
 		return ret;
 
-	ret = __i2c_transfer(adap, msgs, num);
+	if (!adap->cancel_xfer_on_shutdown)
+		ret = __i2c_transfer(adap, msgs, num);
+	else
+		ret = -EPERM;
 	i2c_unlock_bus(adap, I2C_LOCK_SEGMENT);
 
 	return ret;

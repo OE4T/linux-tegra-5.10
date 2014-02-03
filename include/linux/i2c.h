@@ -702,6 +702,7 @@ struct i2c_adapter {
 #define I2C_ALF_IS_SUSPENDED		0
 #define I2C_ALF_SUSPEND_REPORTED	1
 
+	bool cancel_xfer_on_shutdown;
 	int nr;
 	char name[48];
 	struct completion dev_released;
@@ -817,6 +818,9 @@ static inline void i2c_mark_adapter_resumed(struct i2c_adapter *adap)
 	clear_bit(I2C_ALF_IS_SUSPENDED, &adap->locked_flags);
 	i2c_unlock_bus(adap, I2C_LOCK_ROOT_ADAPTER);
 }
+
+void i2c_shutdown_adapter(struct i2c_adapter *adapter);
+void i2c_shutdown_clear_adapter(struct i2c_adapter *adapter);
 
 /* i2c adapter classes (bitmask) */
 #define I2C_CLASS_HWMON		(1<<0)	/* lm_sensors, ... */
