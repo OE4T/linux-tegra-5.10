@@ -5,6 +5,7 @@
  *
  * Copyright (C) 2011 Samsung Electronics
  *	MyungJoo Ham <myungjoo.ham@samsung.com>
+ * Copyright (c) 2014, NVIDIA CORPORATION.  All rights reserved.
  */
 
 #ifndef __LINUX_DEVFREQ_H__
@@ -48,6 +49,8 @@ struct devfreq_governor;
  *			own protocol with private_data. However, because
  *			this is governor-specific, a governor using this
  *			will be only compatible with devices aware of it.
+ * @busy:		The current status of the device; True if the
+ *			device is busy, false if it is not.
  */
 struct devfreq_dev_status {
 	/* both since the last measure */
@@ -55,6 +58,7 @@ struct devfreq_dev_status {
 	unsigned long busy_time;
 	unsigned long current_frequency;
 	void *private_data;
+	bool busy;
 };
 
 /*
