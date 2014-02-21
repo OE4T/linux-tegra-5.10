@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-only
 /*
- * Copyright (C) 2016 NVIDIA CORPORATION, All Rights Reserved.
+ * Copyright (C) 2016-2020 NVIDIA CORPORATION, All Rights Reserved.
  */
 #include <linux/module.h>
 #include <linux/clk.h>
@@ -10,6 +10,7 @@
 #include <linux/platform_device.h>
 #include <linux/pm_runtime.h>
 #include <linux/slab.h>
+#include <linux/irqchip/tegra-agic.h>
 
 struct gic_clk_data {
 	unsigned int num_clocks;
@@ -21,6 +22,53 @@ struct gic_chip_pm {
 	const struct gic_clk_data *clk_data;
 	struct clk_bulk_data *clks;
 };
+
+static struct gic_chip_data *tegra_agic;
+
+bool tegra_agic_irq_is_pending(int irq)
+{
+	if (WARN_ON(!tegra_agic))
+		return false;
+
+	return gic_irq_is_pending(tegra_agic, irq);
+}
+EXPORT_SYMBOL_GPL(tegra_agic_irq_is_pending);
+
+void tegra_agic_clear_pending(int irq)
+{
+	if (WARN_ON(!tegra_agic))
+		return;
+
+	return gic_clear_pending(tegra_agic, irq);
+}
+EXPORT_SYMBOL_GPL(tegra_agic_clear_pending);
+
+bool tegra_agic_irq_is_active(int irq)
+{
+	if (WARN_ON(!tegra_agic))
+		return false;
+
+	return gic_irq_is_active(tegra_agic, irq);
+}
+EXPORT_SYMBOL_GPL(tegra_agic_irq_is_active);
+
+void tegra_agic_clear_active(int irq)
+{
+	if (WARN_ON(!tegra_agic))
+		return;
+
+	return gic_clear_active(tegra_agic, irq);
+}
+EXPORT_SYMBOL_GPL(tegra_agic_clear_active);
+
+int tegra_agic_route_interrupt(int irq, enum tegra_agic_cpu cpu)
+{
+	if (WARN_ON(!tegra_agic))
+		return -EINVAL;
+
+	return gic_route_interrupt(tegra_agic, irq, cpu);
+}
+EXPORT_SYMBOL_GPL(tegra_agic_route_interrupt);
 
 static int gic_runtime_resume(struct device *dev)
 {
@@ -67,7 +115,8 @@ static int gic_runtime_suspend(struct device *dev)
 static int gic_probe(struct platform_device *pdev)
 {
 	struct device *dev = &pdev->dev;
-	const struct gic_clk_data *data;
+	const struct gic_data *data;
+	const struct gic_clk_data *clk_data;
 	struct gic_chip_pm *chip_pm;
 	int ret, irq, i;
 
@@ -76,6 +125,8 @@ static int gic_probe(struct platform_device *pdev)
 		dev_err(&pdev->dev, "no device match found\n");
 		return -ENODEV;
 	}
+
+	clk_data = data->clk_data;
 
 	chip_pm = devm_kzalloc(dev, sizeof(*chip_pm), GFP_KERNEL);
 	if (!chip_pm)
@@ -87,19 +138,19 @@ static int gic_probe(struct platform_device *pdev)
 		return -EINVAL;
 	}
 
-	chip_pm->clks = devm_kcalloc(dev, data->num_clocks,
+	chip_pm->clks = devm_kcalloc(dev, clk_data->num_clocks,
 				     sizeof(*chip_pm->clks), GFP_KERNEL);
 	if (!chip_pm->clks)
 		return -ENOMEM;
 
-	for (i = 0; i < data->num_clocks; i++)
-		chip_pm->clks[i].id = data->clocks[i];
+	for (i = 0; i < clk_data->num_clocks; i++)
+		chip_pm->clks[i].id = clk_data->clocks[i];
 
-	ret = devm_clk_bulk_get(dev, data->num_clocks, chip_pm->clks);
+	ret = devm_clk_bulk_get(dev, clk_data->num_clocks, chip_pm->clks);
 	if (ret)
 		goto irq_dispose;
 
-	chip_pm->clk_data = data;
+	chip_pm->clk_data = clk_data;
 	dev_set_drvdata(dev, chip_pm);
 
 	pm_runtime_enable(dev);
@@ -113,6 +164,10 @@ static int gic_probe(struct platform_device *pdev)
 		goto rpm_put;
 
 	pm_runtime_put(dev);
+
+	if (of_device_is_compatible(dev->of_node, "nvidia,tegra210-agic") ||
+	    of_device_is_compatible(dev->of_node, "nvidia,tegra186-agic"))
+		tegra_agic = chip_pm->chip_data;
 
 	dev_info(dev, "GIC IRQ controller registered\n");
 
@@ -144,8 +199,23 @@ static const struct gic_clk_data gic400_data = {
 	.clocks = gic400_clocks,
 };
 
+
+static const struct gic_data agic_t18x_data = {
+	.clk_data = &gic400_data,
+	.supports_routing = true,
+	.num_interfaces = MAX_AGIC_T18x_INTERFACES,
+};
+
+static const struct gic_data agic_t21x_data = {
+	.clk_data = &gic400_data,
+	.supports_routing = true,
+	.num_interfaces = MAX_AGIC_T210_INTERFACES,
+};
+
+
 static const struct of_device_id gic_match[] = {
-	{ .compatible = "nvidia,tegra210-agic",	.data = &gic400_data },
+	{ .compatible = "nvidia,tegra186-agic",	.data = &agic_t18x_data },
+	{ .compatible = "nvidia,tegra210-agic",	.data = &agic_t21x_data },
 	{},
 };
 MODULE_DEVICE_TABLE(of, gic_match);
