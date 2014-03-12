@@ -733,6 +733,7 @@ EXPORT_SYMBOL_GPL(i2c_shutdown_adapter);
 void i2c_shutdown_clear_adapter(struct i2c_adapter *adapter)
 {
 	adapter->cancel_xfer_on_shutdown = false;
+	adapter->atomic_xfer_only = true;
 }
 EXPORT_SYMBOL_GPL(i2c_shutdown_clear_adapter);
 

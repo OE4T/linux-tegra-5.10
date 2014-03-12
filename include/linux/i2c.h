@@ -702,6 +702,8 @@ struct i2c_adapter {
 #define I2C_ALF_IS_SUSPENDED		0
 #define I2C_ALF_SUSPEND_REPORTED	1
 
+	bool atomic_xfer_only;
+
 	bool cancel_xfer_on_shutdown;
 	int nr;
 	char name[48];
