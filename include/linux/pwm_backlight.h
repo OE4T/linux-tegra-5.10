@@ -19,7 +19,6 @@
 
 #include <linux/backlight.h>
 
-
 struct pwm_bl_data {
 	struct pwm_device	*pwm;
 	struct device		*dev;
@@ -31,6 +30,8 @@ struct pwm_bl_data {
 	struct gpio_desc	*enable_gpio;
 	unsigned int		scale;
 	bool			legacy;
+	unsigned int            post_pwm_on_delay;
+	unsigned int            pwm_off_delay;
 	unsigned int		pwm_gpio;
 	int			(*notify)(struct device *,
 					  int brightness);
@@ -38,6 +39,15 @@ struct pwm_bl_data {
 					int brightness);
 	int			(*check_fb)(struct device *, struct fb_info *);
 	void			(*exit)(struct device *);
+};
+
+struct pwm_bl_data_dt_ops {
+	int (*init)(struct device *dev);
+	int (*notify)(struct device *, int brightness);
+	void (*notify_after)(struct device *, int brightness);
+	int (*check_fb)(struct device *, struct fb_info *);
+	void (*exit)(struct device *);
+	const char *blnode_compatible;
 };
 
 struct platform_pwm_backlight_data {
