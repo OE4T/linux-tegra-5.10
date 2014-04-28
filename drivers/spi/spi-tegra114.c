@@ -153,7 +153,7 @@
 #define DATA_DIR_TX				(1 << 0)
 #define DATA_DIR_RX				(1 << 1)
 
-#define SPI_DMA_TIMEOUT				(msecs_to_jiffies(1000))
+#define SPI_DMA_TIMEOUT				(msecs_to_jiffies(10000))
 #define DEFAULT_SPI_DMA_BUF_LEN			(16*1024)
 #define TX_FIFO_EMPTY_COUNT_MAX			SPI_TX_FIFO_EMPTY_COUNT(0x40)
 #define RX_FIFO_FULL_COUNT_ZERO			SPI_RX_FIFO_FULL_COUNT(0)
@@ -162,6 +162,7 @@
 #define SPI_SPEED_TAP_DELAY_MARGIN		35000000
 #define SPI_DEFAULT_RX_TAP_DELAY		10
 #define SPI_DEFAULT_TX_TAP_DELAY		0
+#define SPI_FIFO_FLUSH_MAX_DELAY		2000
 
 
 struct tegra_spi_soc_data {
@@ -282,10 +283,11 @@ static void tegra_spi_clear_status(struct tegra_spi_data *tspi)
 	tegra_spi_writel(tspi, val, SPI_TRANS_STATUS);
 
 	/* Clear fifo status error if any */
-	val = tegra_spi_readl(tspi, SPI_FIFO_STATUS);
-	if (val & SPI_ERR)
+	if (tspi->status_reg & SPI_ERR) {
 		tegra_spi_writel(tspi, SPI_ERR | SPI_FIFO_ERROR,
-				SPI_FIFO_STATUS);
+				 SPI_FIFO_STATUS);
+		tspi->status_reg = tegra_spi_readl(tspi, SPI_FIFO_STATUS);
+	}
 }
 
 static unsigned tegra_spi_calculate_curr_xfer_param(
@@ -334,7 +336,7 @@ static unsigned tegra_spi_fill_tx_fifo_from_client_txbuf(
 	unsigned fifo_words_left;
 	u8 *tx_buf = (u8 *)t->tx_buf + tspi->cur_tx_pos;
 
-	fifo_status = tegra_spi_readl(tspi, SPI_FIFO_STATUS);
+	fifo_status = tspi->status_reg;
 	tx_empty_count = SPI_TX_FIFO_EMPTY_COUNT(fifo_status);
 
 	if (tspi->is_packed) {
@@ -384,7 +386,7 @@ static unsigned int tegra_spi_read_rx_fifo_to_client_rxbuf(
 	unsigned len;
 	u8 *rx_buf = (u8 *)t->rx_buf + tspi->cur_rx_pos;
 
-	fifo_status = tegra_spi_readl(tspi, SPI_FIFO_STATUS);
+	fifo_status = tspi->status_reg;
 	rx_full_count = SPI_RX_FIFO_FULL_COUNT(fifo_status);
 	if (tspi->is_packed) {
 		len = tspi->curr_dma_words * tspi->bytes_per_word;
@@ -541,27 +543,29 @@ static int tegra_spi_start_rx_dma(struct tegra_spi_data *tspi, int len)
 	return 0;
 }
 
-static int tegra_spi_flush_fifos(struct tegra_spi_data *tspi)
+static int tegra_spi_clear_fifo(struct tegra_spi_data *tspi)
 {
-	unsigned long timeout = jiffies + HZ;
-	u32 status;
+	unsigned long status;
+	int cnt = SPI_FIFO_FLUSH_MAX_DELAY;
 
-	status = tegra_spi_readl(tspi, SPI_FIFO_STATUS);
+	/* Make sure that Rx and Tx fifo are empty */
+	status = tspi->status_reg;
 	if ((status & SPI_FIFO_EMPTY) != SPI_FIFO_EMPTY) {
-		status |= SPI_RX_FIFO_FLUSH | SPI_TX_FIFO_FLUSH;
+		/* flush the fifo */
+		status |= (SPI_RX_FIFO_FLUSH | SPI_TX_FIFO_FLUSH);
 		tegra_spi_writel(tspi, status, SPI_FIFO_STATUS);
-		while ((status & SPI_FIFO_EMPTY) != SPI_FIFO_EMPTY) {
+		do {
 			status = tegra_spi_readl(tspi, SPI_FIFO_STATUS);
-			if (time_after(jiffies, timeout)) {
-				dev_err(tspi->dev,
-					"timeout waiting for fifo flush\n");
-				return -EIO;
+			if ((status & SPI_FIFO_EMPTY) == SPI_FIFO_EMPTY) {
+				tspi->status_reg = status;
+				return 0;
 			}
-
 			udelay(1);
-		}
+		} while (cnt--);
+		dev_err(tspi->dev,
+			"Rx/Tx fifo are not empty status 0x%08lx\n", status);
+		return -EIO;
 	}
-
 	return 0;
 }
 
@@ -573,6 +577,11 @@ static int tegra_spi_start_dma_based_transfer(
 	int ret = 0;
 	u8 dma_burst;
 	struct dma_slave_config dma_sconfig = {0};
+
+	/* Make sure that Rx and Tx fifo are empty */
+	ret = tegra_spi_clear_fifo(tspi);
+	if (ret != 0)
+		return ret;
 
 	val = SPI_DMA_BLK_SET(tspi->curr_dma_words - 1);
 	tegra_spi_writel(tspi, val, SPI_DMA_BLK);
@@ -664,6 +673,11 @@ static int tegra_spi_start_cpu_based_transfer(
 {
 	u32 val;
 	unsigned cur_words;
+	int ret;
+
+	ret = tegra_spi_clear_fifo(tspi);
+	if (ret != 0)
+		return ret;
 
 	if (tspi->cur_direction & DATA_DIR_TX)
 		cur_words = tegra_spi_fill_tx_fifo_from_client_txbuf(tspi, t);
@@ -860,6 +874,7 @@ static u32 tegra_spi_setup_transfer_one(struct spi_device *spi,
 	tspi->curr_xfer = t;
 
 	if (is_first_of_msg) {
+		tspi->status_reg = tegra_spi_readl(tspi, SPI_FIFO_STATUS);
 		tegra_spi_clear_status(tspi);
 
 		command1 = tspi->def_command1_reg;
@@ -997,9 +1012,6 @@ static int tegra_spi_start_transfer_one(struct spi_device *spi,
 	dev_dbg(tspi->dev, "The def 0x%x and written 0x%x\n",
 		tspi->def_command1_reg, (unsigned)command1);
 
-	ret = tegra_spi_flush_fifos(tspi);
-	if (ret < 0)
-		return ret;
 	if (total_fifo_words > SPI_FIFO_DEPTH)
 		ret = tegra_spi_start_dma_based_transfer(tspi, t);
 	else
@@ -1234,12 +1246,12 @@ static int tegra_spi_transfer_one_message(struct spi_controller *ctrl,
 				dmaengine_terminate_all(tspi->rx_dma_chan);
 			ret = -EIO;
 			tegra_spi_dump_regs(tspi);
-			tegra_spi_flush_fifos(tspi);
 			reset_control_assert(tspi->rst);
 			udelay(2);
 			reset_control_deassert(tspi->rst);
 			tspi->last_used_cs = ctrl->num_chipselect + 1;
 			tegra_spi_set_intr_mask(tspi);
+			tegra_spi_clear_fifo(tspi);
 			goto complete_xfer;
 		}
 
@@ -1289,13 +1301,13 @@ static irqreturn_t handle_cpu_based_xfer(struct tegra_spi_data *tspi)
 		dev_err(tspi->dev, "CpuXfer 0x%08x:0x%08x\n",
 			tspi->command1_reg, tspi->dma_control_reg);
 		tegra_spi_dump_regs(tspi);
-		tegra_spi_flush_fifos(tspi);
 		complete(&tspi->xfer_completion);
 		spin_unlock_irqrestore(&tspi->lock, flags);
 		reset_control_assert(tspi->rst);
 		udelay(2);
 		reset_control_deassert(tspi->rst);
 		tegra_spi_set_intr_mask(tspi);
+		tegra_spi_clear_fifo(tspi);
 		return IRQ_HANDLED;
 	}
 
@@ -1365,13 +1377,13 @@ static irqreturn_t handle_dma_based_xfer(struct tegra_spi_data *tspi)
 		dev_err(tspi->dev, "DmaXfer 0x%08x:0x%08x\n",
 			tspi->command1_reg, tspi->dma_control_reg);
 		tegra_spi_dump_regs(tspi);
-		tegra_spi_flush_fifos(tspi);
 		complete(&tspi->xfer_completion);
 		spin_unlock_irqrestore(&tspi->lock, flags);
 		reset_control_assert(tspi->rst);
 		udelay(2);
 		reset_control_deassert(tspi->rst);
 		tegra_spi_set_intr_mask(tspi);
+		tegra_spi_clear_fifo(tspi);
 		return IRQ_HANDLED;
 	}
 
