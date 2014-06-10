@@ -3504,6 +3504,69 @@ static int regulator_limit_voltage_step(struct regulator_dev *rdev,
 	return 0;
 }
 
+/**
+ * regulator_set_sleep_voltage - set regulator output voltage on sleep mode
+ * @regulator: regulator source
+ * @min_uV: Minimum required voltage in uV
+ * @max_uV: Maximum acceptable voltage in uV
+ */
+int regulator_set_sleep_voltage(struct regulator *regulator,
+		int min_uV, int max_uV)
+{
+	struct regulator_dev *rdev = regulator->rdev;
+	struct ww_acquire_ctx ww_ctx;
+	int ret = 0;
+	int sel;
+
+#ifdef CONFIG_REGULATOR_DUMMY
+	if (!strcmp(rdev->desc->name, "dummy")) {
+		rdev_info(rdev,
+			"regulator is dummy, skipping voltage change...\n");
+		return ret;
+	}
+#endif
+
+	regulator_lock_dependent(rdev, &ww_ctx);
+
+	/* sanity check */
+	if (!rdev->desc->ops->set_sleep_voltage_sel) {
+		ret = -EINVAL;
+		goto out;
+	}
+
+	/* constraints check */
+	ret = regulator_check_voltage(rdev, &min_uV, &max_uV);
+	if (ret < 0)
+		goto out;
+
+	if (rdev->desc->ops->map_voltage) {
+		sel = rdev->desc->ops->map_voltage(rdev, min_uV, max_uV);
+	} else {
+		if (rdev->desc->ops->list_voltage ==
+			    regulator_list_voltage_linear)
+			sel = regulator_map_voltage_linear(rdev,
+						min_uV, max_uV);
+		else
+			sel = regulator_map_voltage_iterate(rdev,
+						min_uV, max_uV);
+	}
+
+	if (sel >= 0) {
+		int best_val;
+		best_val = rdev->desc->ops->list_voltage(rdev, sel);
+		if (min_uV <= best_val && max_uV >= best_val)
+			ret = rdev->desc->ops->set_sleep_voltage_sel(rdev, sel);
+		else
+			ret = -EINVAL;
+	} else {
+		ret = sel;
+	}
+out:
+	regulator_unlock_dependent(rdev, &ww_ctx);
+	return ret;
+}
+EXPORT_SYMBOL_GPL(regulator_set_sleep_voltage);
+
 static int regulator_get_optimal_voltage(struct regulator_dev *rdev,
 					 int *current_uV,
 					 int *min_uV, int *max_uV,
@@ -4247,6 +4310,32 @@ int regulator_get_error_flags(struct regulator *regulator,
 	return _regulator_get_error_flags(regulator->rdev, flags);
 }
 EXPORT_SYMBOL_GPL(regulator_get_error_flags);
+
+/**
+ * regulator_set_sleep_mode - set regulator sleep mode
+ * @regulator: regulator source
+ * @mode: operating mode - one of the REGULATOR_MODE constants
+ */
+int regulator_set_sleep_mode(struct regulator *regulator, unsigned int mode)
+{
+	struct regulator_dev *rdev = regulator->rdev;
+	struct ww_acquire_ctx ww_ctx;
+	int ret;
+
+	regulator_lock_dependent(rdev, &ww_ctx);
+
+	/* sanity check */
+	if (!rdev->desc->ops->set_sleep_mode) {
+		ret = -EINVAL;
+		goto out;
+	}
+
+	ret = rdev->desc->ops->set_sleep_mode(rdev, mode);
+out:
+	regulator_unlock_dependent(rdev, &ww_ctx);
+	return ret;
+}
+EXPORT_SYMBOL_GPL(regulator_set_sleep_mode);
 
 /**
  * regulator_set_load - set regulator load
