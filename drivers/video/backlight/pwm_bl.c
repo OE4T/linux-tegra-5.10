@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-only
 /*
+ * Copyright (c) 2013-2014, NVIDIA CORPORATION, All rights reserved.
+ *
  * Simple PWM based backlight control, board code has to setup
  * 1) pin configuration so PWM waveforms can output
  * 2) platform_data being correctly configured
@@ -19,27 +21,6 @@
 #include <linux/pwm_backlight.h>
 #include <linux/regulator/consumer.h>
 #include <linux/slab.h>
-
-struct pwm_bl_data {
-	struct pwm_device	*pwm;
-	struct device		*dev;
-	unsigned int		lth_brightness;
-	unsigned int		*levels;
-	bool			enabled;
-	struct regulator	*power_supply;
-	struct gpio_desc	*enable_gpio;
-	unsigned int		scale;
-	bool			legacy;
-	unsigned int		post_pwm_on_delay;
-	unsigned int		pwm_off_delay;
-	unsigned int		pwm_gpio;
-	int			(*notify)(struct device *,
-					  int brightness);
-	void			(*notify_after)(struct device *,
-					int brightness);
-	int			(*check_fb)(struct device *, struct fb_info *);
-	void			(*exit)(struct device *);
-};
 
 static void pwm_backlight_power_on(struct pwm_bl_data *pb)
 {
@@ -487,6 +468,7 @@ static int pwm_backlight_probe(struct platform_device *pdev)
 
 	pb->notify = data->notify;
 	pb->notify_after = data->notify_after;
+	pb->bl_measured = data->bl_measured;
 	pb->check_fb = data->check_fb;
 	pb->exit = data->exit;
 	pb->dev = &pdev->dev;
@@ -637,6 +619,7 @@ static int pwm_backlight_probe(struct platform_device *pdev)
 		data->dft_brightness = data->max_brightness;
 	}
 
+	platform_set_drvdata(pdev, bl);
 	bl->props.brightness = data->dft_brightness;
 	bl->props.power = pwm_backlight_initial_power_state(pb);
 	backlight_update_status(bl);
@@ -644,7 +627,6 @@ static int pwm_backlight_probe(struct platform_device *pdev)
 	if (gpio_is_valid(pb->pwm_gpio))
 		gpio_free(pb->pwm_gpio);
 
-	platform_set_drvdata(pdev, bl);
 	return 0;
 
 err_alloc:
