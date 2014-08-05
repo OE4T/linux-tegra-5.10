@@ -124,6 +124,7 @@ struct thermal_instance {
 
 int thermal_register_governor(struct thermal_governor *);
 void thermal_unregister_governor(struct thermal_governor *);
+struct thermal_governor *thermal_find_governor(const char *name);
 void thermal_zone_device_rebind_exception(struct thermal_zone_device *,
 					  const char *, size_t);
 void thermal_zone_device_unbind_exception(struct thermal_zone_device *,

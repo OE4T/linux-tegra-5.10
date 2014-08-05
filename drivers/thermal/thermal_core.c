@@ -50,7 +50,7 @@ static struct thermal_governor *def_governor;
  * the thermal core and by the thermal governor code.
  */
 
-static struct thermal_governor *__find_governor(const char *name)
+struct thermal_governor *thermal_find_governor(const char *name)
 {
 	struct thermal_governor *pos;
 
@@ -128,7 +128,7 @@ int thermal_register_governor(struct thermal_governor *governor)
 	mutex_lock(&thermal_governor_lock);
 
 	err = -EBUSY;
-	if (!__find_governor(governor->name)) {
+	if (!thermal_find_governor(governor->name)) {
 		bool match_default;
 
 		err = 0;
@@ -179,7 +179,7 @@ void thermal_unregister_governor(struct thermal_governor *governor)
 
 	mutex_lock(&thermal_governor_lock);
 
-	if (!__find_governor(governor->name))
+	if (!thermal_find_governor(governor->name))
 		goto exit;
 
 	mutex_lock(&thermal_list_lock);
@@ -205,7 +205,7 @@ int thermal_zone_device_set_policy(struct thermal_zone_device *tz,
 	mutex_lock(&thermal_governor_lock);
 	mutex_lock(&tz->lock);
 
-	gov = __find_governor(strim(policy));
+	gov = thermal_find_governor(strim(policy));
 	if (!gov)
 		goto exit;
 
@@ -1480,7 +1480,7 @@ thermal_zone_device_register(const char *type, int trips, u64 mask,
 	mutex_lock(&thermal_governor_lock);
 
 	if (tz->tzp) {
-		governor = __find_governor(tz->tzp->governor_name);
+		governor = thermal_find_governor(tz->tzp->governor_name);
 		/*
 		 * This situation can arise if a governor is not enabled from a config
 		 * file but is used in the device tree
