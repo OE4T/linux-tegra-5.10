@@ -31,6 +31,8 @@ struct tegra_dfll_soc_data {
 	unsigned long max_freq;
 	const struct cvb_table *cvb;
 	struct rail_alignment alignment;
+	unsigned int min_millivolts;
+	unsigned int tune_high_min_millivolts;
 
 	void (*init_clock_trimmers)(void);
 	void (*set_clock_trimmers_high)(void);
@@ -44,5 +46,6 @@ int tegra_dfll_runtime_suspend(struct device *dev);
 int tegra_dfll_runtime_resume(struct device *dev);
 int tegra_dfll_suspend(struct device *dev);
 int tegra_dfll_resume(struct device *dev);
+int tegra_dfll_resume_tuning(struct device *dev);
 
 #endif /* __DRIVERS_CLK_TEGRA_CLK_DFLL_H */
