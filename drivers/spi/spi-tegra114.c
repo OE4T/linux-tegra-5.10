@@ -58,6 +58,7 @@
 #define SPI_CONTROL_MODE_3			(3 << 28)
 #define SPI_CONTROL_MODE_MASK			(3 << 28)
 #define SPI_MODE_SEL(x)				(((x) & 0x3) << 28)
+#define SPI_MODE_VAL(x)				(((x) >> 28) & 0x3)
 #define SPI_M_S					(1 << 30)
 #define SPI_PIO					(1 << 31)
 
@@ -207,6 +208,7 @@ struct tegra_spi_data {
 	u32					spi_cs_timing1;
 	u32					spi_cs_timing2;
 	u8					last_used_cs;
+	u8					def_chip_select;
 
 	struct completion			xfer_completion;
 	struct spi_transfer			*curr_xfer;
@@ -817,7 +819,9 @@ static u32 tegra_spi_setup_transfer_one(struct spi_device *spi,
 				tegra_spi_writel(tspi, command1, SPI_COMMAND1);
 			tspi->cs_control = NULL;
 		} else
-			tegra_spi_writel(tspi, command1, SPI_COMMAND1);
+			if (SPI_MODE_VAL(command1) !=
+			    SPI_MODE_VAL(tspi->def_command1_reg))
+				tegra_spi_writel(tspi, command1, SPI_COMMAND1);
 
 		/* GPIO based chip select control */
 		if (spi->cs_gpiod)
@@ -977,6 +981,8 @@ static int tegra_spi_setup(struct spi_device *spi)
 		val &= ~SPI_CS_POL_INACTIVE(spi->chip_select);
 	else
 		val |= SPI_CS_POL_INACTIVE(spi->chip_select);
+	if (tspi->def_chip_select == spi->chip_select)
+		val |= SPI_MODE_SEL(spi->mode & 0x3);
 	tspi->def_command1_reg = val;
 	tegra_spi_writel(tspi, tspi->def_command1_reg, SPI_COMMAND1);
 	spin_unlock_irqrestore(&tspi->lock, flags);
@@ -1300,10 +1306,37 @@ static irqreturn_t tegra_spi_isr(int irq, void *context_data)
 
 static void tegra_spi_parse_dt(struct tegra_spi_data *tspi)
 {
+	const unsigned int *prop;
 	struct device_node *np = tspi->dev->of_node;
+	struct device_node *nc = NULL;
+	struct device_node *found_nc = NULL;
+	int len;
+	int ret;
 
 	if (of_find_property(np, "nvidia,clock-always-on", NULL))
 		tspi->clock_always_on = true;
+
+	/*
+	 * Last child node or first node which has property as default-cs will
+	 * become the default. When no client is defined, default chipselect
+	 * is zero.
+	 */
+	tspi->def_chip_select = 0;
+
+	for_each_available_child_of_node(np, nc) {
+		found_nc = nc;
+		ret = of_property_read_bool(nc, "nvidia,default-chipselect");
+		if (ret)
+			break;
+	}
+	if (found_nc) {
+		prop = of_get_property(found_nc, "reg", &len);
+		if (!prop || len < sizeof(*prop))
+			dev_err(tspi->dev, "%s has no reg property\n",
+				found_nc->full_name);
+		else
+			tspi->def_chip_select = be32_to_cpup(prop);
+	}
 }
 
 static struct tegra_spi_soc_data tegra114_spi_soc_data = {
@@ -1447,6 +1480,7 @@ static int tegra_spi_probe(struct platform_device *pdev)
 	udelay(2);
 	reset_control_deassert(tspi->rst);
 	tspi->def_command1_reg  = SPI_M_S;
+	tspi->def_command1_reg |= SPI_CS_SEL(tspi->def_chip_select);
 	tegra_spi_writel(tspi, tspi->def_command1_reg, SPI_COMMAND1);
 	tspi->spi_cs_timing1 = tegra_spi_readl(tspi, SPI_CS_TIMING1);
 	tspi->spi_cs_timing2 = tegra_spi_readl(tspi, SPI_CS_TIMING2);
