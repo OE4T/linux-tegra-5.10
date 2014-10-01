@@ -768,6 +768,11 @@ config SPI_TEGRA114
 	  is different than the older SoCs SPI controller and also register interface
 	  get changed with this controller.
 
+config SPI_TEGRA124_SLAVE
+	tristate "Nvidia Tegra124 SPI Slave Controller"
+	help
+	  SPI slave driver for Nvidia Tegra124 and later soc SPI Controller interface.
+
 config SPI_TEGRA20_SFLASH
 	tristate "Nvidia Tegra20 Serial flash Controller"
 	depends on ARCH_TEGRA || COMPILE_TEST
