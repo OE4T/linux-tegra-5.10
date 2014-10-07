@@ -74,5 +74,6 @@ int tegra_dfll_runtime_resume(struct device *dev);
 int tegra_dfll_suspend(struct device *dev);
 int tegra_dfll_resume(struct device *dev);
 int tegra_dfll_resume_tuning(struct device *dev);
+int tegra_dfll_resume_on_dfll(struct device *dev);
 
 #endif /* __DRIVERS_CLK_TEGRA_CLK_DFLL_H */

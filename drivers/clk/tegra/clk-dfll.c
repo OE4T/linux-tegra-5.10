@@ -367,6 +367,7 @@ struct tegra_dfll {
 	unsigned long			out_rate_max;
 
 	enum dfll_ctrl_mode		mode;
+	enum dfll_ctrl_mode		resume_mode;
 	enum dfll_tune_range		tune_range;
 	struct dentry			*debugfs_dir;
 	struct clk_hw			dfll_clk_hw;
@@ -1070,6 +1071,7 @@ static void dfll_set_mode(struct tegra_dfll *td,
 		dfll_writel(td, val, DFLL_CC4_HVC);
 	}
 	dfll_wmb(td);
+	udelay(1);
 }
 
 /*
@@ -2149,17 +2151,16 @@ static int dfll_enable(struct tegra_dfll *td)
 }
 
 /**
- * tegra_dfll_lock - switch from open-loop to closed-loop mode
+ * _dfll_lock - switch from open-loop to closed-loop mode
  * @td: DFLL instance
  *
  * Switch from OPEN_LOOP state to CLOSED_LOOP state. Returns 0 upon success,
  * -EINVAL if the DFLL's target rate hasn't been set yet, or -EPERM if the
  * DFLL is not currently in open-loop mode.
  */
-static int dfll_lock(struct tegra_dfll *td)
+static int _dfll_lock(struct tegra_dfll *td)
 {
 	struct dfll_rate_req *req = &td->last_req;
-	unsigned long flags;
 
 	switch (td->mode) {
 	case DFLL_CLOSED_LOOP:
@@ -2171,8 +2172,6 @@ static int dfll_lock(struct tegra_dfll *td)
 				__func__);
 			return -EINVAL;
 		}
-
-		spin_lock_irqsave(&td->lock, flags);
 
 		if (td->pmu_if == TEGRA_DFLL_PMU_PWM)
 			dfll_pwm_set_output_enabled(td, true);
@@ -2189,8 +2188,6 @@ static int dfll_lock(struct tegra_dfll *td)
 		dfll_set_force_output_enabled(td, false);
 		calibration_timer_update(td);
 
-		spin_unlock_irqrestore(&td->lock, flags);
-
 		return 0;
 
 	default:
@@ -2202,19 +2199,16 @@ static int dfll_lock(struct tegra_dfll *td)
 }
 
 /**
- * tegra_dfll_unlock - switch from closed-loop to open-loop mode
+ * _dfll_unlock - switch from closed-loop to open-loop mode
  * @td: DFLL instance
  *
  * Switch from CLOSED_LOOP state to OPEN_LOOP state. Returns 0 upon success,
  * or -EPERM if the DFLL is not currently in open-loop mode.
  */
-static int dfll_unlock(struct tegra_dfll *td)
+static int _dfll_unlock(struct tegra_dfll *td)
 {
-	unsigned long flags;
-
 	switch (td->mode) {
 	case DFLL_CLOSED_LOOP:
-		spin_lock_irqsave(&td->lock, flags);
 		dfll_set_open_loop_config(td);
 		dfll_set_mode(td, DFLL_OPEN_LOOP);
 		if (td->pmu_if == TEGRA_DFLL_PMU_PWM)
@@ -2222,7 +2216,6 @@ static int dfll_unlock(struct tegra_dfll *td)
 		else
 			dfll_i2c_set_output_enabled(td, false);
 
-		spin_unlock_irqrestore(&td->lock, flags);
 		return 0;
 
 	case DFLL_OPEN_LOOP:
@@ -2234,6 +2227,34 @@ static int dfll_unlock(struct tegra_dfll *td)
 			__func__, mode_name[td->mode]);
 		return -EPERM;
 	}
+}
+
+static int dfll_lock(struct tegra_dfll *td)
+{
+	int ret;
+	unsigned long flags;
+
+	spin_lock_irqsave(&td->lock, flags);
+
+	ret = _dfll_lock(td);
+
+	spin_unlock_irqrestore(&td->lock, flags);
+
+	return ret;
+}
+
+static int dfll_unlock(struct tegra_dfll *td)
+{
+	int ret;
+	unsigned long flags;
+
+	spin_lock_irqsave(&td->lock, flags);
+
+	ret = _dfll_unlock(td);
+
+	spin_unlock_irqrestore(&td->lock, flags);
+
+	return ret;
 }
 
 /*
@@ -3618,6 +3639,26 @@ int tegra_dfll_suspend(struct device *dev)
 		return -EBUSY;
 	}
 
+	if (td->mode <= DFLL_DISABLED)
+		return 0;
+
+	td->thermal_cap_index =
+		tegra_dfll_count_thermal_states(td, TEGRA_DFLL_THERMAL_CAP);
+	td->thermal_floor_index = 0;
+	set_dvco_rate_min(td, &td->last_req);
+
+	td->resume_mode = td->mode;
+	switch (td->mode) {
+	case DFLL_CLOSED_LOOP:
+		dfll_set_close_loop_config(td, &td->last_req);
+		dfll_set_frequency_request(td, &td->last_req);
+
+		_dfll_unlock(td);
+		break;
+	default:
+		break;
+	}
+
 	reset_control_assert(td->dvco_rst);
 
 	return 0;
@@ -3653,9 +3694,33 @@ int tegra_dfll_resume(struct device *dev)
 
 	pm_runtime_put_sync(td->dev);
 
+	/* Restore last request and mode up to open loop */
+	switch (td->resume_mode) {
+	case DFLL_CLOSED_LOOP:
+	case DFLL_OPEN_LOOP:
+		dfll_set_mode(td, DFLL_OPEN_LOOP);
+		if (td->pmu_if == TEGRA_DFLL_PMU_I2C)
+			dfll_i2c_set_output_enabled(td, false);
+		break;
+	default:
+		break;
+	}
+
 	return 0;
 }
 EXPORT_SYMBOL(tegra_dfll_resume);
+
+int tegra_dfll_resume_on_dfll(struct device *dev)
+{
+	struct tegra_dfll *td = dev_get_drvdata(dev);
+
+	if (td->resume_mode == DFLL_CLOSED_LOOP)
+		_dfll_lock(td);
+	td->resume_mode = DFLL_DISABLED;
+
+	return 0;
+}
+EXPORT_SYMBOL(tegra_dfll_resume_on_dfll);
 
 /**
  * read_dt_param - helper function for reading required parameters from the DT
