@@ -1546,6 +1546,10 @@ static void tegra_spi_parse_dt(struct tegra_spi_data *tspi)
 				 &tspi->ctrl->max_speed_hz))
 		tspi->ctrl->max_speed_hz = 25000000; /* 25MHz */
 
+	if (of_property_read_u32(np, "nvidia,maximum-dma-buffer-size",
+				 &tspi->dma_buf_size))
+		tspi->dma_buf_size = DEFAULT_SPI_DMA_BUF_LEN;
+
 	/*
 	 * Last child node or first node which has property as default-cs will
 	 * become the default. When no client is defined, default chipselect
@@ -1678,7 +1682,6 @@ static int tegra_spi_probe(struct platform_device *pdev)
 	}
 
 	tspi->max_buf_size = SPI_FIFO_DEPTH << 2;
-	tspi->dma_buf_size = DEFAULT_SPI_DMA_BUF_LEN;
 	tspi->min_div = 0;
 
 	ret = tegra_spi_init_dma_param(tspi, true);
