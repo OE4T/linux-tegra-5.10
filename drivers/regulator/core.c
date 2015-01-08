@@ -1651,6 +1651,8 @@ static struct regulator *create_regulator(struct regulator_dev *rdev,
 		debugfs_create_file("constraint_flags", 0444,
 				    regulator->debugfs, regulator,
 				    &constraint_flags_fops);
+		debugfs_create_u32("enable_count", 0444, regulator->debugfs,
+				   &regulator->use_count);
 	}
 
 	/*
@@ -4914,6 +4916,8 @@ static void rdev_init_debugfs(struct regulator_dev *rdev)
 	struct device *parent = rdev->dev.parent;
 	const char *rname = rdev_get_name(rdev);
 	char name[NAME_MAX];
+	char parent_reg[REG_STR_SIZE];
+	int size;
 
 	/* Avoid duplicate debugfs directory names */
 	if (parent && rname == rdev->desc->name) {
@@ -4926,6 +4930,17 @@ static void rdev_init_debugfs(struct regulator_dev *rdev)
 	if (!rdev->debugfs) {
 		rdev_warn(rdev, "Failed to create debugfs directory\n");
 		return;
+	}
+
+	size = scnprintf(parent_reg, REG_STR_SIZE, "/sys/class/regulator/%s",
+			dev_name(&rdev->dev));
+	if (size >= REG_STR_SIZE) {
+		rdev_warn(rdev, "Symlink path is more than string size\n");
+	} else {
+		rdev->pdebugfs = debugfs_create_symlink("regulator",
+						rdev->debugfs, parent_reg);
+		if (!rdev->pdebugfs)
+			rdev_warn(rdev, "Failed to create parent debugfs\n");
 	}
 
 	debugfs_create_u32("use_count", 0444, rdev->debugfs,
@@ -5292,8 +5307,10 @@ regulator_register(const struct regulator_desc *regulator_desc,
 		    (unsigned long) atomic_inc_return(&regulator_no));
 
 	/* set regulator constraints */
-	if (init_data)
+	if (init_data) {
 		constraints = &init_data->constraints;
+		rdev->machine_constraints = true;
+	}
 
 	if (init_data && init_data->supply_regulator)
 		rdev->supply_name = init_data->supply_regulator;
@@ -5798,7 +5815,147 @@ static int regulator_summary_show(struct seq_file *s, void *data)
 	return 0;
 }
 DEFINE_SHOW_ATTRIBUTE(regulator_summary);
-#endif /* CONFIG_DEBUG_FS */
+
+static int rails_power_tree(struct device *dev, void *data)
+{
+	struct regulator_dev *rdev = dev_to_rdev(dev);
+	struct regulator_dev *in_r;
+	struct regulator *supply;
+	struct regulator *consumer;
+	struct seq_file *s = data;
+	int on;
+	struct ww_acquire_ctx ww_ctx;
+
+	regulator_lock_dependent(rdev, &ww_ctx);
+
+	seq_printf(s, "----%s (%s)----\n", dev_name(&rdev->dev),
+					rdev_get_name(rdev));
+	supply =  rdev->supply;
+	if (supply) {
+		in_r = supply->rdev;
+		seq_printf(s, "\tInput Supply: %s\n",
+					dev_name(&in_r->dev));
+		}
+	if (list_empty(&rdev->consumer_list))
+		seq_puts(s, "\tNo Consumer List:\n");
+	else
+		seq_puts(s, "\tConsumer List:\n");
+	list_for_each_entry(consumer, &rdev->consumer_list, list) {
+		seq_printf(s, "\t\t%s: %s [%u:%u:%u]\n",
+			consumer->supply_name,
+			(consumer->use_count) ? "ON" : "OFF",
+			consumer->voltage[PM_SUSPEND_ON].min_uV, consumer->uA_load,
+			consumer->voltage[PM_SUSPEND_ON].max_uV);
+	}
+	on = (rdev->use_count) || (rdev->machine_constraints &&
+					rdev->constraints->always_on);
+	seq_printf(s, "\tStates: %s\n", (on) ? "ON" : "OFF");
+	seq_printf(s, "\t\tOpen Count: %u\n", rdev->open_count);
+	seq_printf(s, "\t\tEnable Count: %u\n", rdev->use_count);
+	if (!rdev->machine_constraints) {
+		seq_puts(s, "\tNo machine constraints:\n");
+		regulator_unlock_dependent(rdev, &ww_ctx);
+		return 0;
+	}
+	seq_puts(s, "\tMachine Constraints:\n");
+	seq_printf(s, "\t\tMin Microvolt: %d\n",
+						rdev->constraints->min_uV);
+	seq_printf(s, "\t\tMax Microvolt: %d\n",
+						rdev->constraints->max_uV);
+	seq_printf(s, "\t\tAlways ON: %u\n",
+						rdev->constraints->always_on);
+	seq_printf(s, "\t\tBoot ON: %u\n", rdev->constraints->boot_on);
+	seq_printf(s, "\t\tEnable Time: %d\n",
+					_regulator_get_enable_time(rdev));
+	seq_printf(s, "\t\tRamp Delay: %u\n",
+					rdev->constraints->ramp_delay);
+
+	regulator_unlock_dependent(rdev, &ww_ctx);
+
+	return 0;
+}
+
+static int list_power_tree(struct seq_file *s, void *unused)
+{
+	return class_for_each_device(&regulator_class, NULL, s,
+				rails_power_tree);
+}
+
+static int get_rails_state(struct device *dev, void *data)
+{
+	struct regulator_dev *rdev = dev_to_rdev(dev);
+	struct seq_file *s = data;
+	int on;
+
+	mutex_lock(&regulator_list_mutex);
+
+	seq_printf(s, "%s (%s): ", dev_name(&rdev->dev), rdev_get_name(rdev));
+	on = (rdev->use_count) || (rdev->machine_constraints &&
+				rdev->constraints->always_on);
+	seq_printf(s, "%s", (on) ? "ON" : "OFF");
+	seq_printf(s, "(%u) ", rdev->use_count);
+	if (rdev->machine_constraints && rdev->constraints->always_on)
+		seq_puts(s, "Always ON\n");
+	else
+		seq_puts(s, "\n");
+	mutex_unlock(&regulator_list_mutex);
+
+	return 0;
+}
+
+static int list_rail_states(struct seq_file *s, void *unused)
+{
+	return class_for_each_device(&regulator_class, NULL, s,
+				get_rails_state);
+}
+
+static int get_rails_voltage(struct device *dev, void *data)
+{
+	struct regulator_dev *rdev = dev_to_rdev(dev);
+	struct seq_file *s = data;
+	int ret;
+	struct ww_acquire_ctx ww_ctx;
+
+	regulator_lock_dependent(rdev, &ww_ctx);
+
+	ret = regulator_get_voltage_rdev(rdev);
+	seq_printf(s, "%s (%s): ", dev_name(&rdev->dev), rdev_get_name(rdev));
+	if (ret < 0)
+		seq_printf(s, "Error %d\n", ret);
+	else
+		seq_printf(s, "%d uV\n", ret);
+
+	regulator_unlock_dependent(rdev, &ww_ctx);
+
+	return 0;
+}
+
+static int list_rail_voltages(struct seq_file *s, void *unused)
+{
+	return class_for_each_device(&regulator_class, NULL, s,
+				get_rails_voltage);
+}
+
+#define SINGLE_DEBUG_FS_RW(_name, _rfun)				\
+static int _name##_open_file(struct inode *inode, struct file *file)	\
+{									\
+	return single_open(file, _rfun, inode->i_private);		\
+}									\
+									\
+static const struct file_operations _name##_fops = {			\
+	.open = _name##_open_file,					\
+	.read = seq_read,						\
+	.llseek = seq_lseek,						\
+	.release = single_release,					\
+}
+#else
+#define SINGLE_DEBUG_FS_RW(_name, _rfun)				\
+static const struct file_operations _name##_fops = {}
+#endif
+
+SINGLE_DEBUG_FS_RW(power_tree, list_power_tree);
+SINGLE_DEBUG_FS_RW(rail_states, list_rail_states);
+SINGLE_DEBUG_FS_RW(rail_voltages, list_rail_voltages);
 
 static int __init regulator_init(void)
 {
@@ -5816,6 +5973,15 @@ static int __init regulator_init(void)
 
 	debugfs_create_file("regulator_summary", 0444, debugfs_root,
 			    NULL, &regulator_summary_fops);
+
+	debugfs_create_file("power_tree", 0444, debugfs_root, NULL,
+			    &power_tree_fops);
+
+	debugfs_create_file("rail_states", 0444, debugfs_root, NULL,
+			    &rail_states_fops);
+
+	debugfs_create_file("rail_voltages", 0444, debugfs_root, NULL,
+			    &rail_voltages_fops);
 #endif
 	regulator_dummy_init();
 
