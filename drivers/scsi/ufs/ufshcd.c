@@ -36,8 +36,11 @@
 
 /* NOP OUT retries waiting for NOP IN response */
 #define NOP_OUT_RETRIES    10
-/* Timeout after 30 msecs if NOP OUT hangs without response */
-#define NOP_OUT_TIMEOUT    30 /* msecs */
+/* Fix me: Need to fineTune the Value on silicon
+ * Timeout after 100 msecs if NOP OUT hangs without response
+ */
+
+#define NOP_OUT_TIMEOUT    100 /* msecs */
 
 /* Query request retries */
 #define QUERY_REQ_RETRIES 3
