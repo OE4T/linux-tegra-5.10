@@ -367,6 +367,7 @@ struct tegra_clk_pll_params {
 #define TEGRA_MDIV_NEW BIT(11)
 #define TEGRA_PLLMB BIT(12)
 #define TEGRA_PLL_VCO_OUT BIT(13)
+#define TEGRA_PLLDP BIT(14)
 
 /**
  * struct tegra_clk_pll - Tegra PLL clock
@@ -953,5 +954,21 @@ struct clk *tegra210_clk_register_emc(struct device_node *np,
 
 /* Include downstream header at the end as it quotes func or struct above */
 #include "clk-tegra.h"
+
+#ifdef CONFIG_PM_SLEEP
+void tegra_clk_pll_resume(struct clk *c, unsigned long rate);
+void tegra_clk_pllcx_resume(struct clk *c, unsigned long rate);
+void tegra_clk_pllxc_resume(struct clk *c, unsigned long rate);
+void tegra_clk_pllre_vco_resume(struct clk *c, unsigned long rate);
+void tegra_clk_pllu_resume(struct clk *c, unsigned long rate);
+void tegra_clk_pllss_resume(struct clk *c, unsigned long rate);
+void tegra_clk_divider_resume(struct clk *c, unsigned long rate);
+void tegra_clk_pll_out_resume(struct clk *clk, unsigned long rate);
+void tegra_clk_plle_tegra210_resume(struct clk *c);
+void tegra_clk_sync_state_pllcx(struct clk *c);
+void tegra_clk_sync_state_iddq(struct clk *c);
+void tegra_clk_sync_state_pll(struct clk *c);
+void tegra_clk_sync_state_pll_out(struct clk *clk);
+#endif
 
 #endif /* TEGRA_CLK_H */
