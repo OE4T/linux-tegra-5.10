@@ -17,6 +17,8 @@
 #include <linux/regulator/consumer.h>
 #include <soc/tegra/fuse.h>
 
+#include <dt-bindings/thermal/tegra210-dfll-trips.h>
+
 #include "clk.h"
 #include "clk-dfll.h"
 
@@ -25,6 +27,7 @@ struct dfll_fcpu_data {
 	unsigned int cpu_max_freq_table_size;
 	const struct cvb_table *cpu_cvb_tables;
 	unsigned int cpu_cvb_tables_size;
+	const struct thermal_table *cpu_thermal_table;
 };
 
 /* Maximum CPU frequency, indexed by CPU speedo id */
@@ -493,6 +496,36 @@ static struct cvb_table tegra210_cpu_cvb_tables[] = {
 	},
 };
 
+static struct thermal_tv tegra210_thermal_floor_table[] = {
+	{TEGRA210_DFLL_THERMAL_FLOOR_0 / 1000, 950},
+	{TEGRA210_DFLL_THERMAL_FLOOR_4 / 1000,   0},
+};
+
+static const struct thermal_tv tegra210_thermal_cap_table[] = {
+	{TEGRA210_DFLL_THERMAL_CAP_NOCAP / 1000, INT_MAX},
+	{TEGRA210_DFLL_THERMAL_CAP_0 / 1000, 1170},
+	{TEGRA210_DFLL_THERMAL_CAP_1 / 1000, 1132},
+};
+
+static const struct thermal_tv tegra210_thermal_cap_ucm2_table[] = {
+	{TEGRA210_DFLL_THERMAL_CAP_NOCAP / 1000, INT_MAX},
+	{TEGRA210_DFLL_THERMAL_CAP_0 / 1000, 1162},
+	{TEGRA210_DFLL_THERMAL_CAP_1 / 1000, 1090},
+};
+
+static const struct thermal_table tegra210_cpu_thermal_table = {
+	.thermal_floor_table = tegra210_thermal_floor_table,
+	.thermal_floor_table_size = ARRAY_SIZE(tegra210_thermal_floor_table),
+	.coefficients = { {800000, 0, 0}, 0, 0, 0 },
+	.speedo_scale = 100,
+	.voltage_scale = 1000,
+	.temp_scale = 10,
+	.thermal_cap_table = tegra210_thermal_cap_table,
+	.thermal_cap_table_size = ARRAY_SIZE(tegra210_thermal_cap_table),
+	.thermal_cap_ucm2_table = tegra210_thermal_cap_ucm2_table,
+	.thermal_cap_ucm2_table_size = ARRAY_SIZE(tegra210_thermal_cap_ucm2_table),
+};
+
 static const struct dfll_fcpu_data tegra124_dfll_fcpu_data = {
 	.cpu_max_freq_table = tegra124_cpu_max_freq_table,
 	.cpu_max_freq_table_size = ARRAY_SIZE(tegra124_cpu_max_freq_table),
@@ -505,6 +538,7 @@ static const struct dfll_fcpu_data tegra210_dfll_fcpu_data = {
 	.cpu_max_freq_table_size = ARRAY_SIZE(tegra210_cpu_max_freq_table),
 	.cpu_cvb_tables = tegra210_cpu_cvb_tables,
 	.cpu_cvb_tables_size = ARRAY_SIZE(tegra210_cpu_cvb_tables),
+	.cpu_thermal_table = &tegra210_cpu_thermal_table
 };
 
 static const struct of_device_id tegra124_dfll_fcpu_of_match[] = {
@@ -555,11 +589,14 @@ static int tegra124_dfll_fcpu_probe(struct platform_device *pdev)
 	struct tegra_dfll_soc_data *soc;
 	const struct dfll_fcpu_data *fcpu_data;
 	struct rail_alignment align;
+	const struct thermal_table *thermal;
+	bool ucm2;
 
 	fcpu_data = of_device_get_match_data(&pdev->dev);
 	if (!fcpu_data)
 		return -ENODEV;
 
+	ucm2 = tegra_sku_info.ucm == TEGRA_UCM2;
 	process_id = tegra_sku_info.cpu_process_id;
 	speedo_id = tegra_sku_info.cpu_speedo_id;
 	speedo_value = tegra_sku_info.cpu_speedo_value;
@@ -605,6 +642,26 @@ static int tegra124_dfll_fcpu_probe(struct platform_device *pdev)
 
 	soc->tune_high_min_millivolts =
 		soc->cvb->cpu_dfll_data.tune_high_min_millivolts;
+
+	thermal = fcpu_data->cpu_thermal_table;
+	err = tegra_cvb_build_thermal_table(thermal, speedo_value,
+						soc->min_millivolts);
+	if (err < 0) {
+		pr_warn("couldn't build thermal floor table\n");
+	} else {
+		soc->thermal_floor_table = thermal->thermal_floor_table;
+		soc->thermal_floor_table_size = thermal->thermal_floor_table_size;
+	}
+
+	if (thermal && thermal->thermal_cap_table && !ucm2) {
+		soc->thermal_cap_table = thermal->thermal_cap_table;
+		soc->thermal_cap_table_size = thermal->thermal_cap_table_size;
+	} else if (thermal && thermal->thermal_cap_ucm2_table && ucm2) {
+		soc->thermal_cap_table = thermal->thermal_cap_ucm2_table;
+		soc->thermal_cap_table_size = thermal->thermal_cap_ucm2_table_size;
+	} else {
+		pr_warn("couldn't get thermal cap table\n");
+	}
 
 	err = tegra_dfll_register(pdev, soc);
 	if (err < 0) {
