@@ -2610,6 +2610,8 @@ static int handle_tx_event(struct xhci_hcd *xhci,
 		if (!ep_seg) {
 			if (!ep->skip ||
 			    !usb_endpoint_xfer_isoc(&td->urb->ep->desc)) {
+				static bool printit = true;
+				static unsigned long lastprint;
 				/* Some host controllers give a spurious
 				 * successful event after a short transfer.
 				 * Ignore it.
@@ -2620,14 +2622,23 @@ static int handle_tx_event(struct xhci_hcd *xhci,
 					goto cleanup;
 				}
 				/* HC is busted, give up! */
-				xhci_err(xhci,
+				if (!printit &&
+					time_is_before_jiffies(lastprint))
+					printit = true;
+
+				if (printit) {
+					xhci_err_ratelimited(xhci,
 					"ERROR Transfer event TRB DMA ptr not "
 					"part of current TD ep_index %d "
 					"comp_code %u\n", ep_index,
 					trb_comp_code);
-				trb_in_td(xhci, ep_ring->deq_seg,
+					printit = false;
+					lastprint = jiffies +
+						msecs_to_jiffies(5000);
+					trb_in_td(xhci, ep_ring->deq_seg,
 					  ep_ring->dequeue, td->last_trb,
 					  ep_trb_dma, true);
+				}
 				return -ESHUTDOWN;
 			}
 

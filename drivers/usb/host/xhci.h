@@ -4,6 +4,7 @@
  * xHCI host controller driver
  *
  * Copyright (C) 2008 Intel Corp.
+ * Copyright (c) 2018-2020 NVIDIA CORPORATION.  All rights reserved.
  *
  * Author: Sarah Sharp
  * Some code borrowed from the Linux EHCI driver.
@@ -1937,6 +1938,8 @@ static inline struct usb_hcd *xhci_to_hcd(struct xhci_hcd *xhci)
 	dev_dbg(xhci_to_hcd(xhci)->self.controller , fmt , ## args)
 #define xhci_err(xhci, fmt, args...) \
 	dev_err(xhci_to_hcd(xhci)->self.controller , fmt , ## args)
+#define xhci_err_ratelimited(xhci, fmt, args...) \
+	dev_err_ratelimited(xhci_to_hcd(xhci)->self.controller, fmt, ## args)
 #define xhci_warn(xhci, fmt, args...) \
 	dev_warn(xhci_to_hcd(xhci)->self.controller , fmt , ## args)
 #define xhci_warn_ratelimited(xhci, fmt, args...) \
