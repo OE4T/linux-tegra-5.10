@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-only
 /*
- * Copyright (c) 2012-2014 NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2012-2020 NVIDIA CORPORATION.  All rights reserved.
  */
 
 #include <linux/io.h>
@@ -683,6 +683,44 @@ static void tegra210_ape_mbist_war(struct tegra210_domain_mbist_war *mbist)
 	writel_relaxed(ovre, clk_base + LVL2_CLK_GATE_OVRE);
 	fence_udelay(1, clk_base);
 }
+
+void tegra210_csi_source_from_brick(void)
+{
+	u32 val;
+	unsigned long flags = 0;
+	struct clk *plld = clks[TEGRA210_CLK_PLL_D];
+
+	if (!IS_ERR_OR_NULL(plld))
+		spin_lock_irqsave(to_clk_pll(__clk_get_hw(plld))->lock, flags);
+
+	val = readl_relaxed(clk_base + PLLD_BASE);
+	val &= ~PLLD_BASE_CSI_CLKSOURCE;
+	writel_relaxed(val, clk_base + PLLD_BASE);
+
+	if (!IS_ERR_OR_NULL(plld))
+		spin_unlock_irqrestore(to_clk_pll(__clk_get_hw(plld))->lock,
+				       flags);
+}
+EXPORT_SYMBOL_GPL(tegra210_csi_source_from_brick);
+
+void tegra210_csi_source_from_plld(void)
+{
+	u32 val;
+	unsigned long flags = 0;
+	struct clk *plld = clks[TEGRA210_CLK_PLL_D];
+
+	if (!IS_ERR_OR_NULL(plld))
+		spin_lock_irqsave(to_clk_pll(__clk_get_hw(plld))->lock, flags);
+
+	val = readl_relaxed(clk_base + PLLD_BASE);
+	val |= PLLD_BASE_CSI_CLKSOURCE;
+	writel_relaxed(val, clk_base + PLLD_BASE);
+
+	if (!IS_ERR_OR_NULL(plld))
+		spin_unlock_irqrestore(to_clk_pll(__clk_get_hw(plld))->lock,
+				       flags);
+}
+EXPORT_SYMBOL_GPL(tegra210_csi_source_from_plld);
 
 static inline void _pll_misc_chk_default(void __iomem *base,
 					struct tegra_clk_pll_params *params,
@@ -3059,11 +3097,6 @@ static __init void tegra210_periph_clk_init(struct device_node *np,
 					      1, 17, 207);
 	clks[TEGRA210_CLK_DPAUX1] = clk;
 
-	/* pll_d_dsi_out */
-	clk = clk_register_gate(NULL, "pll_d_dsi_out", "pll_d_out0", 0,
-				clk_base + PLLD_MISC0, 21, 0, &pll_d_lock);
-	clks[TEGRA210_CLK_PLL_D_DSI_OUT] = clk;
-
 	/* dsia */
 	clk = tegra_clk_register_periph_gate("dsia", "pll_d_dsi_out", 0,
 					     clk_base, 0, 48,
@@ -3278,6 +3311,11 @@ static void __init tegra210_pll_init(void __iomem *clk_base,
 					CLK_SET_RATE_PARENT, 1, 2);
 	clk_register_clkdev(clk, "pll_d_out0", NULL);
 	clks[TEGRA210_CLK_PLL_D_OUT0] = clk;
+
+	/* PLL_D_DSI_OUT */
+	clk = clk_register_gate(NULL, "pll_d_dsi_out", "pll_d_out0", 0,
+				clk_base + PLLD_MISC0, 21, 0, &pll_d_lock);
+	clks[TEGRA210_CLK_PLL_D_DSI_OUT] = clk;
 
 	/* PLLRE */
 	clk = tegra_clk_register_pllre_tegra210("pll_re_vco", "pll_ref",

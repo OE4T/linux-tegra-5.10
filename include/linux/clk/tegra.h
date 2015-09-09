@@ -170,4 +170,7 @@ int tegra210_clk_emc_attach(struct clk *clk,
 			    struct tegra210_clk_emc_provider *provider);
 void tegra210_clk_emc_detach(struct clk *clk);
 
+extern void tegra210_csi_source_from_brick(void);
+extern void tegra210_csi_source_from_plld(void);
+
 #endif /* __LINUX_CLK_TEGRA_H_ */
