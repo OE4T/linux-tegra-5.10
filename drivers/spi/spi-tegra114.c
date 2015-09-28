@@ -1380,6 +1380,7 @@ static int tegra_spi_transfer_one_message(struct spi_controller *ctrl,
 	int gval = 1;
 	bool skip = false;
 	int single_xfer;
+	u32 cmd1 = 0;
 
 	msg->status = 0;
 	msg->actual_length = 0;
@@ -1389,7 +1390,6 @@ static int tegra_spi_transfer_one_message(struct spi_controller *ctrl,
 
 	single_xfer = list_is_singular(&msg->transfers);
 	list_for_each_entry(xfer, &msg->transfers, transfer_list) {
-		u32 cmd1;
 
 		reinit_completion(&tspi->xfer_completion);
 
@@ -1471,6 +1471,21 @@ complete_xfer:
 	}
 	ret = 0;
 exit:
+	/* CS de-assert is required before clock goes to it's default state. */
+	cmd1 = tegra_spi_readl(tspi, SPI_COMMAND1);
+	if (!tspi->is_hw_based_cs) {
+		if (spi->mode & SPI_CS_HIGH) {
+			/* Active high. Reset the value to make it deactive */
+			cmd1 &= ~SPI_CS_SW_VAL;
+		} else {
+			/* Active low. Set the value to make it deactive */
+			cmd1 |= SPI_CS_SW_VAL;
+		}
+	}
+
+	tegra_spi_writel(tspi, cmd1, SPI_COMMAND1);
+	tegra_spi_writel(tspi, tspi->def_command1_reg, SPI_COMMAND1);
+
 	msg->status = ret;
 	spi_finalize_current_message(ctrl);
 	return ret;
