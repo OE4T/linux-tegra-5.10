@@ -141,6 +141,7 @@ struct tegra_uart_port {
 	int					configured_rate;
 	bool					use_rx_pio;
 	bool					use_tx_pio;
+	bool                                    is_hw_flow_enabled;
 };
 
 static void tegra_uart_start_next_tx(struct tegra_uart_port *tup);
@@ -728,14 +729,14 @@ static void tegra_uart_rx_dma_complete(void *args)
 	}
 
 	/* Deactivate flow control to stop sender */
-	if (tup->rts_active)
+	if (tup->rts_active && tup->is_hw_flow_enabled)
 		set_rts(tup, false);
 
 	tegra_uart_rx_buffer_push(tup, 0);
 	tegra_uart_start_rx_dma(tup);
 
 	/* Activate flow control to start transfer */
-	if (tup->rts_active)
+	if (tup->rts_active && tup->is_hw_flow_enabled)
 		set_rts(tup, true);
 
 done:
@@ -747,7 +748,7 @@ static void tegra_uart_handle_rx_dma(struct tegra_uart_port *tup)
 	struct dma_tx_state state;
 
 	/* Deactivate flow control to stop sender */
-	if (tup->rts_active)
+	if (tup->rts_active && tup->is_hw_flow_enabled)
 		set_rts(tup, false);
 
 	dmaengine_terminate_all(tup->rx_dma_chan);
@@ -755,7 +756,7 @@ static void tegra_uart_handle_rx_dma(struct tegra_uart_port *tup)
 	tegra_uart_rx_buffer_push(tup, state.residue);
 	tegra_uart_start_rx_dma(tup);
 
-	if (tup->rts_active)
+	if (tup->rts_active && tup->is_hw_flow_enabled)
 		set_rts(tup, true);
 }
 
@@ -807,11 +808,17 @@ static void do_handle_rx_pio(struct tegra_uart_port *tup)
 	struct tty_struct *tty = tty_port_tty_get(&tup->uport.state->port);
 	struct tty_port *port = &tup->uport.state->port;
 
+	if (tup->rts_active && tup->is_hw_flow_enabled)
+		set_rts(tup, false);
+
 	tegra_uart_handle_rx_pio(tup, port);
 	if (tty) {
 		tty_flip_buffer_push(port);
 		tty_kref_put(tty);
 	}
+
+	if (tup->rts_active)
+		set_rts(tup, true);
 }
 
 static irqreturn_t tegra_uart_isr(int irq, void *data)
@@ -889,7 +896,7 @@ static void tegra_uart_stop_rx(struct uart_port *u)
 	struct dma_tx_state state;
 	unsigned long ier;
 
-	if (tup->rts_active)
+	if (tup->rts_active && tup->is_hw_flow_enabled)
 		set_rts(tup, false);
 
 	if (!tup->rx_in_progress)
@@ -1352,13 +1359,15 @@ static void tegra_uart_set_termios(struct uart_port *u,
 		tup->mcr_shadow |= TEGRA_UART_MCR_CTS_EN;
 		tup->mcr_shadow &= ~TEGRA_UART_MCR_RTS_EN;
 		tegra_uart_write(tup, tup->mcr_shadow, UART_MCR);
+		tup->is_hw_flow_enabled = true;
 		/* if top layer has asked to set rts active then do so here */
-		if (tup->rts_active)
+		if (tup->rts_active && tup->is_hw_flow_enabled)
 			set_rts(tup, true);
 	} else {
 		tup->mcr_shadow &= ~TEGRA_UART_MCR_CTS_EN;
 		tup->mcr_shadow &= ~TEGRA_UART_MCR_RTS_EN;
 		tegra_uart_write(tup, tup->mcr_shadow, UART_MCR);
+		tup->is_hw_flow_enabled = false;
 	}
 
 	/* update the port timeout based on new settings */
