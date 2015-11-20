@@ -43,6 +43,7 @@
 #include <linux/percpu.h>
 #include <linux/thread_info.h>
 #include <linux/prctl.h>
+#include <linux/console.h>
 
 #include <asm/alternative.h>
 #include <asm/arch_gicv3.h>
@@ -159,6 +160,7 @@ void machine_halt(void)
 {
 	local_irq_disable();
 	smp_send_stop();
+	console_unlock();
 	while (1);
 }
 
@@ -172,6 +174,7 @@ void machine_power_off(void)
 {
 	local_irq_disable();
 	smp_send_stop();
+	console_unlock();
 	if (pm_power_off)
 		pm_power_off();
 }
@@ -190,6 +193,7 @@ void machine_restart(char *cmd)
 	/* Disable interrupts first */
 	local_irq_disable();
 	smp_send_stop();
+	console_unlock();
 
 	/*
 	 * UpdateCapsule() depends on the system being reset via
