@@ -2783,10 +2783,27 @@ static unsigned int hda_set_power_state(struct hda_codec *codec,
 
 	/* this delay seems necessary to avoid click noise at power-down */
 	if (power_state == AC_PWRST_D3) {
+#ifndef CONFIG_SND_HDA_PLATFORM_NVIDIA_TEGRA
 		if (codec->depop_delay < 0)
 			msleep(codec_has_epss(codec) ? 10 : 100);
 		else if (codec->depop_delay > 0)
 			msleep(codec->depop_delay);
+#else
+		int pcm, hda_active = 0;
+
+		for (pcm = 0; pcm < codec->num_pcms; pcm++) {
+			struct hda_pcm *cpcm = &codec->pcm_info[pcm];
+
+			if (!cpcm->pcm)
+				continue;
+			if (cpcm->pcm->streams[0].substream_opened ||
+			    cpcm->pcm->streams[1].substream_opened) {
+				hda_active = 1;
+				break;
+			}
+		}
+		msleep(codec->epss || !hda_active ? 10 : 100);
+#endif
 		flags = HDA_RW_NO_RESPONSE_FALLBACK;
 	}
 
