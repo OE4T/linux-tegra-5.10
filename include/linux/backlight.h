@@ -52,8 +52,18 @@ enum backlight_scale {
 	BACKLIGHT_SCALE_NON_LINEAR,
 };
 
+enum backlight_device_notification {
+	BACKLIGHT_DEVICE_PRE_BRIGHTNESS_CHANGE,
+	BACKLIGHT_DEVICE_POST_BRIGHTNESS_CHANGE,
+};
+
 struct backlight_device;
 struct fb_info;
+
+struct backlight_device_brightness_info {
+	struct device *dev;
+	int brightness;
+};
 
 struct backlight_ops {
 	unsigned int options;
@@ -113,6 +123,9 @@ struct backlight_device {
 	/* The framebuffer notifier block */
 	struct notifier_block fb_notif;
 
+	/* Notifier for backlight status update */
+	struct blocking_notifier_head notifier;
+
 	/* list entry of all registered backlight devices */
 	struct list_head entry;
 
@@ -136,6 +149,8 @@ static inline int backlight_update_status(struct backlight_device *bd)
 	return ret;
 }
 extern struct backlight_device *get_backlight_device_by_name(char *name);
+extern struct backlight_device *get_backlight_device_by_node(
+		struct device_node *np);
 
 /**
  * backlight_enable - Enable backlight
@@ -195,6 +210,14 @@ extern int backlight_register_notifier(struct notifier_block *nb);
 extern int backlight_unregister_notifier(struct notifier_block *nb);
 extern struct backlight_device *backlight_device_get_by_type(enum backlight_type type);
 extern int backlight_device_set_brightness(struct backlight_device *bd, unsigned long brightness);
+
+extern int backlight_device_register_notifier(struct backlight_device *bd,
+		struct notifier_block *nb);
+extern int backlight_device_unregister_notifier(struct backlight_device *bd,
+		struct notifier_block *nb);
+
+extern int backlight_device_notifier_call_chain(struct backlight_device *bd,
+		unsigned long event, void *data);
 
 #define to_backlight_device(obj) container_of(obj, struct backlight_device, dev)
 
