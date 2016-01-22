@@ -60,4 +60,6 @@ static inline bool acpi_psci_present(void) { return false; }
 static inline bool acpi_psci_use_hvc(void) {return false; }
 #endif
 
+extern void (*psci_handle_reboot_cmd)(const char *cmd);
+
 #endif /* __LINUX_PSCI_H */
