@@ -729,6 +729,7 @@ static void tegra_uart_rx_dma_complete(void *args)
 	unsigned long flags;
 	struct dma_tx_state state;
 	enum dma_status status;
+	struct dma_async_tx_descriptor *prev_rx_dma_desc;
 
 	spin_lock_irqsave(&u->lock, flags);
 
@@ -738,6 +739,7 @@ static void tegra_uart_rx_dma_complete(void *args)
 		dev_dbg(tup->uport.dev, "RX DMA is in progress\n");
 		goto done;
 	}
+	prev_rx_dma_desc = tup->rx_dma_desc;
 
 	/* Deactivate flow control to stop sender */
 	if (tup->rts_active && tup->is_hw_flow_enabled)
@@ -746,6 +748,7 @@ static void tegra_uart_rx_dma_complete(void *args)
 	tup->rx_dma_active = false;
 	tegra_uart_rx_buffer_push(tup, 0);
 	tegra_uart_start_rx_dma(tup);
+	async_tx_ack(prev_rx_dma_desc);
 
 	/* Activate flow control to start transfer */
 	if (tup->rts_active && tup->is_hw_flow_enabled)
@@ -758,6 +761,7 @@ done:
 static void tegra_uart_terminate_rx_dma(struct tegra_uart_port *tup)
 {
 	struct dma_tx_state state;
+	struct dma_async_tx_descriptor *prev_rx_dma_desc;
 
 	if (!tup->rx_dma_chan) {
 		dev_err(tup->uport.dev, "No rx dma channel\n");
@@ -771,8 +775,9 @@ static void tegra_uart_terminate_rx_dma(struct tegra_uart_port *tup)
 
 	dmaengine_terminate_all(tup->rx_dma_chan);
 	dmaengine_tx_status(tup->rx_dma_chan, tup->rx_cookie, &state);
-
+	prev_rx_dma_desc = tup->rx_dma_desc;
 	tegra_uart_rx_buffer_push(tup, state.residue);
+	async_tx_ack(prev_rx_dma_desc);
 	tup->rx_dma_active = false;
 }
 
