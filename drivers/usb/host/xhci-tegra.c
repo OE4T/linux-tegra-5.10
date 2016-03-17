@@ -1903,6 +1903,19 @@ static void tegra_xusb_deinit_usb_phy(struct tegra_xusb *tegra)
 			otg_set_host(tegra->usbphy[i]->otg, NULL);
 }
 
+static void tegra_xusb_enable_eu3s(struct tegra_xusb *tegra)
+{
+	struct xhci_hcd *xhci;
+	u32 value;
+
+	xhci = hcd_to_xhci(tegra->hcd);
+
+	/* Enable EU3S bit of USBCMD */
+	value = readl(&xhci->op_regs->command);
+	value |= CMD_PM_INDEX;
+	writel(value, &xhci->op_regs->command);
+}
+
 static int tegra_xusb_probe(struct platform_device *pdev)
 {
 	struct tegra_xusb *tegra;
@@ -2220,6 +2233,8 @@ static int tegra_xusb_probe(struct platform_device *pdev)
 		dev_err(&pdev->dev, "failed to init USB PHY: %d\n", err);
 		goto remove_usb3;
 	}
+
+	tegra_xusb_enable_eu3s(tegra);
 
 	return 0;
 
