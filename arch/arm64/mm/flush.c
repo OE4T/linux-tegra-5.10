@@ -51,6 +51,11 @@ void copy_to_user_page(struct vm_area_struct *vma, struct page *page,
 	flush_ptrace_access(vma, page, uaddr, dst, len);
 }
 
+void __clean_dcache_page(struct page *page)
+{
+	__clean_dcache_area_pou(page_address(page), PAGE_SIZE);
+}
+
 void __sync_icache_dcache(pte_t pte)
 {
 	struct page *page = pte_page(pte);
@@ -93,3 +98,8 @@ void arch_invalidate_pmem(void *addr, size_t size)
 }
 EXPORT_SYMBOL_GPL(arch_invalidate_pmem);
 #endif
+EXPORT_SYMBOL(flush_cache_all);
+EXPORT_SYMBOL(__flush_dcache_all);
+EXPORT_SYMBOL(__clean_dcache_all);
+EXPORT_SYMBOL(__clean_dcache_louis);
+EXPORT_SYMBOL(__clean_dcache_page);

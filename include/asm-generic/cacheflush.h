@@ -11,11 +11,6 @@ struct address_space;
  * The cache doesn't need to be flushed when TLB entries change when
  * the cache is mapped to physical memory, not virtual memory
  */
-#ifndef flush_cache_all
-static inline void flush_cache_all(void)
-{
-}
-#endif
 
 #ifndef flush_cache_mm
 static inline void flush_cache_mm(struct mm_struct *mm)
