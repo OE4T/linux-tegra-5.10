@@ -4946,7 +4946,7 @@ static int calculate_max_exit_latency(struct usb_device *udev,
 }
 
 /* Returns the USB3 hub-encoded value for the U1/U2 timeout. */
-static int xhci_enable_usb3_lpm_timeout(struct usb_hcd *hcd,
+int xhci_enable_usb3_lpm_timeout(struct usb_hcd *hcd,
 			struct usb_device *udev, enum usb3_link_state state)
 {
 	struct xhci_hcd	*xhci;

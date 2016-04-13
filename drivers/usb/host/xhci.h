@@ -2143,6 +2143,8 @@ void xhci_set_link_state(struct xhci_hcd *xhci, struct xhci_port *port,
 				u32 link_state);
 void xhci_test_and_clear_bit(struct xhci_hcd *xhci, struct xhci_port *port,
 				u32 port_bit);
+int xhci_enable_usb3_lpm_timeout(struct usb_hcd *hcd,
+			struct usb_device *udev, enum usb3_link_state state);
 int xhci_hub_control(struct usb_hcd *hcd, u16 typeReq, u16 wValue, u16 wIndex,
 		char *buf, u16 wLength);
 int xhci_hub_status_data(struct usb_hcd *hcd, char *buf);
