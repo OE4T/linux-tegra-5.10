@@ -33,6 +33,7 @@ struct pwm_bl_data {
 	unsigned int            post_pwm_on_delay;
 	unsigned int            pwm_off_delay;
 	unsigned int		pwm_gpio;
+	u8			*bl_measured;
 	int			(*notify)(struct device *,
 					  int brightness);
 	void			(*notify_after)(struct device *,
