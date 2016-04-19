@@ -714,6 +714,7 @@ struct i2c_adapter {
 	const struct i2c_adapter_quirks *quirks;
 
 	struct irq_domain *host_notify_domain;
+	unsigned long bus_clk_rate;
 };
 #define to_i2c_adapter(d) container_of(d, struct i2c_adapter, dev)
 
