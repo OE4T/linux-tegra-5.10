@@ -2,7 +2,7 @@
 /*
  * Maxim MAX77620 Regulator driver
  *
- * Copyright (c) 2016-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Author: Mallikarjun Kasoju <mkasoju@nvidia.com>
  *	Laxman Dewangan <ldewangan@nvidia.com>
@@ -915,7 +915,17 @@ static struct platform_driver max77620_regulator_driver = {
 	},
 };
 
-module_platform_driver(max77620_regulator_driver);
+static int __init max77620_regulator_init(void)
+{
+	return platform_driver_register(&max77620_regulator_driver);
+}
+subsys_initcall(max77620_regulator_init);
+
+static void __exit max77620_reg_exit(void)
+{
+	platform_driver_unregister(&max77620_regulator_driver);
+}
+module_exit(max77620_reg_exit);
 
 MODULE_DESCRIPTION("MAX77620/MAX20024 regulator driver");
 MODULE_AUTHOR("Mallikarjun Kasoju <mkasoju@nvidia.com>");
