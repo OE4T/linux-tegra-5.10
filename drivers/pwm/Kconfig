@@ -8,4 +8,14 @@ config PWM_TEGRA_TACHOMETER
 	  output for speed is PWM signal.
 
 	  This driver support the Tachometer driver in PWM framework.
+
+config PWM_TEGRA_DFLL
+	tristate "NVIDIA Tegra DFLL PWM support"
+	depends on ARCH_TEGRA
+	help
+	  PWM driver support for the Tegra DFLL module found on NVIDIA
+	  Tegra SoCs.
+
+	  To compile this driver as a module, choose M here: the module
+	  will be called pwm-tegra-dfll.
 endif
