@@ -2194,6 +2194,7 @@ static int process_isoc_td(struct xhci_hcd *xhci, struct xhci_td *td,
 		frame->status = -EPROTO;
 		break;
 	case COMP_USB_TRANSACTION_ERROR:
+		xhci->xhci_ereport.comp_tx_err++;
 		frame->status = -EPROTO;
 		if (ep_trb != td->last_trb)
 			return 0;
@@ -2514,6 +2515,7 @@ check_soft_try:
 			xhci_endpoint_soft_retry(xhci,
 						slot_id, ep_index + 1, false);
 		}
+		xhci->xhci_ereport.comp_tx_err++;
 		xhci_dbg(xhci, "Transfer error for slot %u ep %u on endpoint\n",
 			 slot_id, ep_index);
 		status = -EPROTO;

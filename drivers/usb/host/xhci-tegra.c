@@ -570,6 +570,39 @@ static ssize_t fw_version_show(struct device *dev, char *buf, size_t size)
 		(header->build_log == LOG_MEMORY) ? "debug" : "release");
 }
 
+static bool xhci_err_init;
+static ssize_t show_xhci_stats(struct device *dev,
+		struct device_attribute *attr, char *buf) {
+	struct tegra_xusb *tegra = NULL;
+	struct xhci_hcd *xhci = NULL;
+	ssize_t ret;
+
+	if (dev != NULL)
+		tegra = dev_get_drvdata(dev);
+
+	if (tegra != NULL) {
+		xhci = hcd_to_xhci(tegra->hcd);
+		ret =  snprintf(buf, PAGE_SIZE, "comp_tx_err:%u\nversion:%u\n",
+			xhci->xhci_ereport.comp_tx_err,
+			xhci->xhci_ereport.version);
+	} else
+		ret = snprintf(buf, PAGE_SIZE, "comp_tx_err:0\nversion:0\n");
+
+	return ret;
+}
+
+static DEVICE_ATTR(xhci_stats, 0444, show_xhci_stats, NULL);
+
+static struct attribute *tegra_sysfs_entries_errs[] = {
+	&dev_attr_xhci_stats.attr,
+	NULL,
+};
+
+static struct attribute_group tegra_sysfs_group_errors = {
+	.name = "xhci-stats",
+	.attrs = tegra_sysfs_entries_errs,
+};
+
 static inline u32 fpci_readl(struct tegra_xusb *tegra, unsigned int offset)
 {
 	return readl(tegra->fpci_base + offset);
@@ -2219,6 +2252,27 @@ static void tegra_xusb_enable_eu3s(struct tegra_xusb *tegra)
 	writel(value, &xhci->op_regs->command);
 }
 
+static int tegra_sysfs_register(struct platform_device *pdev)
+{
+	int ret = 0;
+	struct device *dev = NULL;
+
+	if (pdev != NULL)
+		dev = &pdev->dev;
+
+	if (!xhci_err_init && dev != NULL) {
+		ret = sysfs_create_group(&dev->kobj, &tegra_sysfs_group_errors);
+		xhci_err_init = true;
+	}
+
+	if (ret) {
+		pr_err("%s: failed to create tegra sysfs group %s\n",
+			__func__, tegra_sysfs_group_errors.name);
+	}
+
+	return ret;
+}
+
 static int tegra_xusb_probe(struct platform_device *pdev)
 {
 	struct tegra_xusb *tegra;
@@ -2469,6 +2523,7 @@ static int tegra_xusb_probe(struct platform_device *pdev)
 	}
 
 	tegra_xusb_debugfs_init(tegra);
+	tegra_sysfs_register(pdev);
 
 	err = tegra_xusb_request_firmware(tegra);
 	if (err < 0) {
@@ -2642,6 +2697,12 @@ static int tegra_xusb_remove(struct platform_device *pdev)
 {
 	struct tegra_xusb *tegra = platform_get_drvdata(pdev);
 	struct xhci_hcd *xhci = hcd_to_xhci(tegra->hcd);
+	struct device *dev = &pdev->dev;
+
+	if (xhci_err_init && dev != NULL) {
+		sysfs_remove_group(&dev->kobj, &tegra_sysfs_group_errors);
+		xhci_err_init = false;
+	}
 
 	if (tegra->emc_boost_enabled)
 		tegra_xusb_boost_emc_deinit(tegra);

@@ -1732,6 +1732,11 @@ struct xhci_hub {
 	u8			min_rev;
 };
 
+struct xhci_err_cnt {
+	unsigned int version;
+	unsigned int comp_tx_err;
+};
+
 /* There is one xhci_hcd structure per controller */
 struct xhci_hcd {
 	struct usb_hcd *main_hcd;
@@ -1904,6 +1909,8 @@ struct xhci_hcd {
 	struct list_head	regset_list;
 
 	void			*dbc;
+	/* Error collecting struct for sysfs */
+	struct xhci_err_cnt xhci_ereport;
 	/* platform-specific data -- must come last */
 	unsigned long		priv[] __aligned(sizeof(s64));
 };
