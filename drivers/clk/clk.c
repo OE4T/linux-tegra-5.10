@@ -750,6 +750,17 @@ bool clk_hw_is_enabled(const struct clk_hw *hw)
 }
 EXPORT_SYMBOL_GPL(clk_hw_is_enabled);
 
+int __clk_hw_enable(struct clk_hw *hw)
+{
+	return hw->core->ops->enable(hw);
+}
+
+int __clk_hw_set_rate(struct clk_hw *hw, unsigned long rate,
+		      unsigned long parent_rate)
+{
+	return hw->core->ops->set_rate(hw, rate, parent_rate);
+}
+
 bool __clk_is_enabled(struct clk *clk)
 {
 	if (!clk)
