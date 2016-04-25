@@ -14,3 +14,25 @@ config TEGRA_PROC_POWER_MODEL
 	  collating various chip specific data including voltage,
 	  frequency, and number of cores. This driver is used by
 	  various other drivers including EDP.
+
+config TEGRA_DVFS
+	bool
+	depends on ARCH_TEGRA
+	select PM_OPP
+	help
+	  This adds Tegra DVFS support. There could be several power
+	  rails involved and there might be rails dependency based
+	  on different SoCs, this config enable the generic DVFS
+	  library needed by each SoCs DVFS files.
+
+	  If in doubt, say N.
+
+config TEGRA_210_DVFS
+	bool "Tegra210 DVFS support"
+	depends on ARCH_TEGRA_210_SOC
+	select TEGRA_DVFS
+	help
+	  This enable Tegra210 DVFS functionality, it implements SoC
+	  specific initialization code to be invoked by probe function
+	  defined in generic Tegra DVFS driver, so while enabled it
+	  needs the config TEGRA_DVFS to be enabled as well.
