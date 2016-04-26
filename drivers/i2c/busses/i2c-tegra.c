@@ -106,6 +106,8 @@
 
 #define I2C_CONFIG_LOAD_TIMEOUT			1000000
 
+#define I2C_MASTER_RESET_CONTROL		0x0A8
+
 #define I2C_MST_FIFO_CONTROL			0x0b4
 #define I2C_MST_FIFO_CONTROL_RX_FLUSH		BIT(0)
 #define I2C_MST_FIFO_CONTROL_TX_FLUSH		BIT(1)
@@ -135,6 +137,7 @@
  * MAX PIO len is 20 bytes excluding packet header.
  */
 #define I2C_PIO_MODE_MAX_LEN			32
+
 
 /*
  * msg_end_type: The bus control which need to be send at end of transfer.
@@ -205,6 +208,7 @@ struct tegra_i2c_hw_feature {
 	u16 clk_divisor_fast_plus_mode;
 	bool has_multi_master_mode;
 	bool has_slcg_override_reg;
+	bool has_sw_reset_reg;
 	bool has_mst_fifo;
 	const struct i2c_adapter_quirks *quirks;
 	bool supports_bus_clear;
@@ -273,6 +277,7 @@ struct tegra_i2c_dev {
 	bool is_multimaster_mode;
 	/* xfer_lock: lock to serialize transfer submission and processing */
 	spinlock_t xfer_lock;
+	bool is_periph_reset_done;
 	struct dma_chan *tx_dma_chan;
 	struct dma_chan *rx_dma_chan;
 	dma_addr_t dma_phys;
@@ -714,10 +719,22 @@ static int tegra_i2c_init(struct tegra_i2c_dev *i2c_dev, bool clk_reinit)
 	u32 tsu_thd;
 	u8 tlow, thigh;
 
+	if (i2c_dev->hw->has_sw_reset_reg) {
+		if (i2c_dev->is_periph_reset_done) {
+			/* If already controller reset is done through */
+			/* clock reset control register, then use SW reset */
+			i2c_writel(i2c_dev, 1, I2C_MASTER_RESET_CONTROL);
+			udelay(2);
+			i2c_writel(i2c_dev, 0, I2C_MASTER_RESET_CONTROL);
+			goto skip_periph_reset;
+		}
+	}
 	reset_control_assert(i2c_dev->rst);
 	udelay(2);
 	reset_control_deassert(i2c_dev->rst);
+	i2c_dev->is_periph_reset_done = true;
 
+skip_periph_reset:
 	if (i2c_dev->is_dvc)
 		tegra_dvc_init(i2c_dev);
 
@@ -1326,6 +1343,7 @@ static const struct tegra_i2c_hw_feature tegra20_i2c_hw = {
 	.has_config_load_reg = false,
 	.has_multi_master_mode = false,
 	.has_slcg_override_reg = false,
+	.has_sw_reset_reg = false,
 	.has_mst_fifo = false,
 	.quirks = &tegra_i2c_quirks,
 	.supports_bus_clear = false,
@@ -1351,6 +1369,7 @@ static const struct tegra_i2c_hw_feature tegra30_i2c_hw = {
 	.has_config_load_reg = false,
 	.has_multi_master_mode = false,
 	.has_slcg_override_reg = false,
+	.has_sw_reset_reg = false,
 	.has_mst_fifo = false,
 	.quirks = &tegra_i2c_quirks,
 	.supports_bus_clear = false,
@@ -1376,6 +1395,7 @@ static const struct tegra_i2c_hw_feature tegra114_i2c_hw = {
 	.has_config_load_reg = false,
 	.has_multi_master_mode = false,
 	.has_slcg_override_reg = false,
+	.has_sw_reset_reg = false,
 	.has_mst_fifo = false,
 	.quirks = &tegra_i2c_quirks,
 	.supports_bus_clear = true,
@@ -1401,6 +1421,7 @@ static const struct tegra_i2c_hw_feature tegra124_i2c_hw = {
 	.has_config_load_reg = true,
 	.has_multi_master_mode = false,
 	.has_slcg_override_reg = true,
+	.has_sw_reset_reg = false,
 	.has_mst_fifo = false,
 	.quirks = &tegra_i2c_quirks,
 	.supports_bus_clear = true,
@@ -1426,6 +1447,7 @@ static const struct tegra_i2c_hw_feature tegra210_i2c_hw = {
 	.has_config_load_reg = true,
 	.has_multi_master_mode = false,
 	.has_slcg_override_reg = true,
+	.has_sw_reset_reg = false,
 	.has_mst_fifo = false,
 	.quirks = &tegra_i2c_quirks,
 	.supports_bus_clear = true,
@@ -1451,6 +1473,7 @@ static const struct tegra_i2c_hw_feature tegra186_i2c_hw = {
 	.has_config_load_reg = true,
 	.has_multi_master_mode = false,
 	.has_slcg_override_reg = true,
+	.has_sw_reset_reg = true,
 	.has_mst_fifo = false,
 	.quirks = &tegra_i2c_quirks,
 	.supports_bus_clear = true,
@@ -1476,6 +1499,7 @@ static const struct tegra_i2c_hw_feature tegra194_i2c_hw = {
 	.has_config_load_reg = true,
 	.has_multi_master_mode = true,
 	.has_slcg_override_reg = true,
+	.has_sw_reset_reg = true,
 	.has_mst_fifo = true,
 	.quirks = &tegra194_i2c_quirks,
 	.supports_bus_clear = true,
