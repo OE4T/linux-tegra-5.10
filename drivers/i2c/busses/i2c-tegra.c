@@ -1229,11 +1229,8 @@ unlock:
 		return -EAGAIN;
 	}
 
-	if (i2c_dev->msg_err == I2C_ERR_NO_ACK) {
-		if (msg->flags & I2C_M_IGNORE_NAK)
-			return 0;
+	if (i2c_dev->msg_err == I2C_ERR_NO_ACK)
 		return -EREMOTEIO;
-	}
 
 	return -EIO;
 }
