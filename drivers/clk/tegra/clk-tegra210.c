@@ -35,6 +35,7 @@
 #define CLK_SOURCE_SOR1 0x410
 #define CLK_SOURCE_SOR0 0x414
 #define CLK_SOURCE_APE 0x6c0
+#define CLK_SOURCE_VI 0x148
 
 #define CLK_SOURCE_LA 0x1f8
 #define CLK_SOURCE_SDMMC2 0x154
@@ -323,6 +324,7 @@ static DEFINE_SPINLOCK(sor1_lock);
 static DEFINE_SPINLOCK(emc_lock);
 static DEFINE_MUTEX(lvl2_ovr_lock);
 static DEFINE_SPINLOCK(la_lock);
+static DEFINE_SPINLOCK(vi_lock);
 
 /* possible OSC frequencies in Hz */
 static unsigned long tegra210_input_freq[] = {
@@ -3352,6 +3354,9 @@ static struct tegra_periph_init_data tegra210_periph[] = {
 			      tegra_clk_sor1_out, NULL, 0, &sor1_lock),
 };
 
+static const char * const mux_vi_visensor_pd2vi[] = { "vi", "pd2vi", "vi_sensor" };
+static u32 mux_vi_visensor_pd2vi_idx[] = {  [0] = 0, [1] = 1, [2] = 3 };
+
 static const char * const mux_ape[] = {
 	"pll_a_out0", "pll_c4_out0", "pll_c", "pll_c4_out1", "pll_p",
 	"pll_c4_out2", "clk_m"
@@ -3368,6 +3373,8 @@ static __init void tegra210_periph_clk_init(struct device_node *np,
 					    struct tegra_clk_pll_params *pllp_params)
 {
 	struct clk *clk;
+	struct clk_hw *hw;
+	struct tegra_clk_periph *periph_clk;
 	unsigned int i;
 
 	/* xusb_ss_div2 */
@@ -3386,6 +3393,20 @@ static __init void tegra210_periph_clk_init(struct device_node *np,
 	clk = tegra_clk_register_periph_fixed("dpaux1", "sor_safe", 0, clk_base,
 					      1, 17, 207);
 	clks[TEGRA210_CLK_DPAUX1] = clk;
+
+	clk = tegra_clk_register_sync_source("pd2vi", ULONG_MAX);
+	clks[TEGRA210_CLK_PD2VI] = clk;
+
+	clk = clk_register_mux_table(NULL, "vi_output", mux_vi_visensor_pd2vi,
+				     ARRAY_SIZE(mux_vi_visensor_pd2vi), 0,
+				     clk_base + CLK_SOURCE_VI, 24, 2, 0,
+				     mux_vi_visensor_pd2vi_idx, &vi_lock);
+	clks[TEGRA210_CLK_VI_OUTPUT] = clk;
+
+	/* pll_d_dsi_out */
+	clk = clk_register_gate(NULL, "pll_d_dsi_out", "pll_d_out0", 0,
+				clk_base + PLLD_MISC0, 21, 0, &pll_d_lock);
+	clks[TEGRA210_CLK_PLL_D_DSI_OUT] = clk;
 
 	/* dsia */
 	clk = tegra_clk_register_periph_gate("dsia", "pll_d_dsi_out", 0,
@@ -3473,6 +3494,10 @@ static __init void tegra210_periph_clk_init(struct device_node *np,
 	clk = tegra_clk_register_periph("ape", mux_ape, ARRAY_SIZE(mux_ape),
 					&tegra_ape, clk_base, CLK_SOURCE_APE, 0);
 	clks[TEGRA210_CLK_APE] = clk;
+
+	hw = __clk_get_hw(clks[TEGRA210_CLK_VI]);
+	periph_clk = to_clk_periph(hw);
+	periph_clk->mux.lock = &vi_lock;
 }
 
 static void __init tegra210_pll_init(void __iomem *clk_base,
