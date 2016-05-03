@@ -121,15 +121,17 @@ static inline unsigned long arch_local_irq_save(void)
  */
 static inline void arch_local_irq_restore(unsigned long flags)
 {
-	asm volatile(ALTERNATIVE(
-		"msr	daif, %0",
-		__msr_s(SYS_ICC_PMR_EL1, "%0"),
-		ARM64_HAS_IRQ_PRIO_MASKING)
-		:
-		: "r" (flags)
-		: "memory");
+	if (!arch_irqs_disabled_flags(flags)) {
+		asm volatile(ALTERNATIVE(
+			"msr	daifclr, #2		// arch_local_irq_enable",
+			__msr_s(SYS_ICC_PMR_EL1, "%0"),
+			ARM64_HAS_IRQ_PRIO_MASKING)
+			:
+			: "r" ((unsigned long) GIC_PRIO_IRQON)
+			: "memory");
 
-	pmr_sync();
+		pmr_sync();
+	}
 }
 
 #endif /* __ASM_IRQFLAGS_H */
