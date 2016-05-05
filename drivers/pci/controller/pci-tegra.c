@@ -3276,6 +3276,8 @@ static int tegra_pcie_probe(struct platform_device *pdev)
 		goto pm_runtime_put;
 	}
 
+	pci_add_flags(PCI_REASSIGN_ALL_BUS);
+
 	host->busnr = bus->start;
 	host->dev.parent = &pdev->dev;
 	host->ops = &tegra_pcie_ops;
