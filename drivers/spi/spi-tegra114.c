@@ -159,9 +159,14 @@
 #define RX_FIFO_FULL_COUNT_ZERO			SPI_RX_FIFO_FULL_COUNT(0)
 #define MAX_HOLD_CYCLES				16
 #define SPI_DEFAULT_SPEED			25000000
+#define SPI_SPEED_TAP_DELAY_MARGIN		35000000
+#define SPI_DEFAULT_RX_TAP_DELAY		10
+#define SPI_DEFAULT_TX_TAP_DELAY		0
+
 
 struct tegra_spi_soc_data {
 	bool has_intr_mask_reg;
+	bool set_rx_tap_delay;
 };
 
 struct tegra_spi_client_data {
@@ -795,18 +800,47 @@ static int tegra_spi_set_hw_cs_timing(struct spi_device *spi,
 	return 0;
 }
 
+static void tegra_spi_set_cmd2(struct spi_device *spi, u32 speed)
+{
+	struct tegra_spi_data *tspi = spi_controller_get_devdata(spi->master);
+	struct tegra_spi_client_data *cdata = spi->controller_data;
+	u32 command2_reg = 0;
+	u32 tx_tap = 0;
+	u32 rx_tap = 0;
+
+	/* Avoid write to register for transfers to last used device */
+	if (tspi->last_used_cs == spi->chip_select)
+		return;
+
+	if (cdata && cdata->rx_clk_tap_delay)
+		rx_tap = cdata->rx_clk_tap_delay;
+	else if (speed > SPI_SPEED_TAP_DELAY_MARGIN)
+		rx_tap = SPI_DEFAULT_RX_TAP_DELAY;
+
+	if (cdata && cdata->tx_clk_tap_delay)
+		tx_tap = cdata->tx_clk_tap_delay;
+	else
+		tx_tap = SPI_DEFAULT_TX_TAP_DELAY;
+
+	command2_reg = SPI_TX_TAP_DELAY(tx_tap) |
+		       SPI_RX_TAP_DELAY(rx_tap);
+
+	if (tspi->soc_data->set_rx_tap_delay)
+		if (command2_reg != tspi->def_command2_reg)
+			tegra_spi_writel(tspi, command2_reg, SPI_COMMAND2);
+	tspi->last_used_cs = spi->chip_select;
+}
+
 static u32 tegra_spi_setup_transfer_one(struct spi_device *spi,
 					struct spi_transfer *t,
 					bool is_first_of_msg,
 					bool is_single_xfer)
 {
 	struct tegra_spi_data *tspi = spi_controller_get_devdata(spi->master);
-	struct tegra_spi_client_data *cdata = spi->controller_data;
 	u32 speed = t->speed_hz;
 	u8 bits_per_word = t->bits_per_word;
-	u32 command1, command2;
+	u32 command1;
 	int req_mode;
-	u32 tx_tap = 0, rx_tap = 0;
 
 	if (speed != tspi->cur_speed) {
 		clk_set_rate(tspi->clk, speed);
@@ -871,18 +905,8 @@ static u32 tegra_spi_setup_transfer_one(struct spi_device *spi,
 				command1 &= ~SPI_CS_SW_VAL;
 		}
 
-		if (tspi->last_used_cs != spi->chip_select) {
-			if (cdata && cdata->tx_clk_tap_delay)
-				tx_tap = cdata->tx_clk_tap_delay;
-			if (cdata && cdata->rx_clk_tap_delay)
-				rx_tap = cdata->rx_clk_tap_delay;
-			command2 = SPI_TX_TAP_DELAY(tx_tap) |
-				   SPI_RX_TAP_DELAY(rx_tap);
-			if (command2 != tspi->def_command2_reg)
-				tegra_spi_writel(tspi, command2, SPI_COMMAND2);
-			tspi->last_used_cs = spi->chip_select;
-		}
 
+		tegra_spi_set_cmd2(spi, speed);
 	} else {
 		command1 = tspi->command1_reg;
 		command1 &= ~SPI_BIT_LENGTH(~0);
@@ -942,7 +966,7 @@ static struct tegra_spi_client_data
 	*tegra_spi_parse_cdata_dt(struct spi_device *spi)
 {
 	struct tegra_spi_client_data *cdata;
-	struct device_node *slave_np;
+	struct device_node *slave_np, *data_np;
 
 	slave_np = spi->dev.of_node;
 	if (!slave_np) {
@@ -958,6 +982,26 @@ static struct tegra_spi_client_data
 			     &cdata->tx_clk_tap_delay);
 	of_property_read_u32(slave_np, "nvidia,rx-clk-tap-delay",
 			     &cdata->rx_clk_tap_delay);
+
+	data_np = of_get_child_by_name(slave_np, "controller-data");
+	if (!data_np) {
+		dev_dbg(&spi->dev, "child node 'controller-data' not found\n");
+		return NULL;
+	}
+
+	cdata = kzalloc(sizeof(*cdata), GFP_KERNEL);
+	if (!cdata) {
+		of_node_put(data_np);
+		return NULL;
+	}
+
+	of_property_read_u32(data_np, "nvidia,rx-clk-tap-delay",
+			     &cdata->rx_clk_tap_delay);
+	of_property_read_u32(data_np, "nvidia,tx-clk-tap-delay",
+			     &cdata->tx_clk_tap_delay);
+
+	of_node_put(data_np);
+
 	return cdata;
 }
 
@@ -1366,18 +1410,22 @@ static void tegra_spi_parse_dt(struct tegra_spi_data *tspi)
 
 static struct tegra_spi_soc_data tegra114_spi_soc_data = {
 	.has_intr_mask_reg = false,
+	.set_rx_tap_delay = false,
 };
 
 static struct tegra_spi_soc_data tegra124_spi_soc_data = {
 	.has_intr_mask_reg = false,
+	.set_rx_tap_delay = true,
 };
 
 static struct tegra_spi_soc_data tegra210_spi_soc_data = {
 	.has_intr_mask_reg = true,
+	.set_rx_tap_delay = false,
 };
 
 static struct tegra_spi_soc_data tegra186_spi_soc_data = {
 	.has_intr_mask_reg = true,
+	.set_rx_tap_delay = false,
 };
 
 static const struct of_device_id tegra_spi_of_match[] = {
