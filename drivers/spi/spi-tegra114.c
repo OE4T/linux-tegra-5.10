@@ -90,8 +90,6 @@
 #define SPI_SET_CYCLES_BETWEEN_PACKETS(reg, cs, val)		\
 		(reg = (((val) & 0x1F) << ((cs) * 8)) |		\
 			((reg) & ~(0x1F << ((cs) * 8))))
-#define MAX_SETUP_HOLD_CYCLES			16
-#define MAX_INACTIVE_CYCLES			32
 
 #define SPI_TRANS_STATUS			0x010
 #define SPI_BLK_CNT(val)			(((val) >> 0) & 0xFFFF)
@@ -183,6 +181,7 @@ struct tegra_spi_client_data {
 	int cs_hold_clk_count;
 	int tx_clk_tap_delay;
 	int rx_clk_tap_delay;
+	int cs_inactive_cycles;
 };
 
 struct tegra_spi_data {
@@ -772,61 +771,6 @@ static void tegra_spi_deinit_dma_param(struct tegra_spi_data *tspi,
 	dma_release_channel(dma_chan);
 }
 
-static int tegra_spi_set_hw_cs_timing(struct spi_device *spi,
-				      struct spi_delay *setup,
-				      struct spi_delay *hold,
-				      struct spi_delay *inactive)
-{
-	struct tegra_spi_data *tspi = spi_master_get_devdata(spi->master);
-	u8 setup_dly, hold_dly, inactive_dly;
-	u32 setup_hold;
-	u32 spi_cs_timing;
-	u32 inactive_cycles;
-	u8 cs_state;
-
-	if ((setup && setup->unit != SPI_DELAY_UNIT_SCK) ||
-	    (hold && hold->unit != SPI_DELAY_UNIT_SCK) ||
-	    (inactive && inactive->unit != SPI_DELAY_UNIT_SCK)) {
-		dev_err(&spi->dev,
-			"Invalid delay unit %d, should be SPI_DELAY_UNIT_SCK\n",
-			SPI_DELAY_UNIT_SCK);
-		return -EINVAL;
-	}
-
-	setup_dly = setup ? setup->value : 0;
-	hold_dly = hold ? hold->value : 0;
-	inactive_dly = inactive ? inactive->value : 0;
-
-	setup_dly = min_t(u8, setup_dly, MAX_SETUP_HOLD_CYCLES);
-	hold_dly = min_t(u8, hold_dly, MAX_SETUP_HOLD_CYCLES);
-	if (setup_dly && hold_dly) {
-		setup_hold = SPI_SETUP_HOLD(setup_dly - 1, hold_dly - 1);
-		spi_cs_timing = SPI_CS_SETUP_HOLD(tspi->spi_cs_timing1,
-						  spi->chip_select,
-						  setup_hold);
-		if (tspi->spi_cs_timing1 != spi_cs_timing) {
-			tspi->spi_cs_timing1 = spi_cs_timing;
-			tegra_spi_writel(tspi, spi_cs_timing, SPI_CS_TIMING1);
-		}
-	}
-
-	inactive_cycles = min_t(u8, inactive_dly, MAX_INACTIVE_CYCLES);
-	if (inactive_cycles)
-		inactive_cycles--;
-	cs_state = inactive_cycles ? 0 : 1;
-	spi_cs_timing = tspi->spi_cs_timing2;
-	SPI_SET_CS_ACTIVE_BETWEEN_PACKETS(spi_cs_timing, spi->chip_select,
-					  cs_state);
-	SPI_SET_CYCLES_BETWEEN_PACKETS(spi_cs_timing, spi->chip_select,
-				       inactive_cycles);
-	if (tspi->spi_cs_timing2 != spi_cs_timing) {
-		tspi->spi_cs_timing2 = spi_cs_timing;
-		tegra_spi_writel(tspi, spi_cs_timing, SPI_CS_TIMING2);
-	}
-
-	return 0;
-}
-
 static void tegra_spi_set_cmd2(struct spi_device *spi, u32 speed)
 {
 	struct tegra_spi_data *tspi = spi_controller_get_devdata(spi->master);
@@ -1068,6 +1012,20 @@ static u32 tegra_spi_setup_transfer_one(struct spi_device *spi,
 
 
 		tegra_spi_set_cmd2(spi, speed);
+
+		if (cdata && cdata->cs_inactive_cycles) {
+			u32 spi_cs_timing2 = 0;
+			u32 inactive_cycles;
+
+			SPI_SET_CS_ACTIVE_BETWEEN_PACKETS(spi_cs_timing2,
+							  spi->chip_select,
+							  0);
+			inactive_cycles = min(cdata->cs_inactive_cycles, 32);
+			SPI_SET_CYCLES_BETWEEN_PACKETS(spi_cs_timing2,
+						       spi->chip_select,
+						       inactive_cycles);
+			tegra_spi_writel(tspi, spi_cs_timing2, SPI_CS_TIMING2);
+		}
 	} else {
 		command1 = tspi->command1_reg;
 		command1 &= ~SPI_BIT_LENGTH(~0);
@@ -1166,6 +1124,8 @@ static struct tegra_spi_client_data
 			     &cdata->rx_clk_tap_delay);
 	of_property_read_u32(data_np, "nvidia,tx-clk-tap-delay",
 			     &cdata->tx_clk_tap_delay);
+	of_property_read_u32(data_np, "nvidia,cs-inactive-cycles",
+			     &cdata->cs_inactive_cycles);
 
 	of_node_put(data_np);
 
@@ -1688,7 +1648,6 @@ static int tegra_spi_probe(struct platform_device *pdev)
 	ctrl->setup = tegra_spi_setup;
 	ctrl->cleanup = tegra_spi_cleanup;
 	ctrl->transfer_one_message = tegra_spi_transfer_one_message;
-	ctrl->set_cs_timing = tegra_spi_set_hw_cs_timing;
 	ctrl->num_chipselect = MAX_CHIP_SELECT;
 	ctrl->auto_runtime_pm = true;
 	bus_num = of_alias_get_id(pdev->dev.of_node, "spi");
