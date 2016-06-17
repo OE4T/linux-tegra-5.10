@@ -2068,6 +2068,8 @@ static void of_register_spi_devices(struct spi_controller *ctlr)
 	for_each_available_child_of_node(ctlr->dev.of_node, nc) {
 		if (of_node_test_and_set_flag(nc, OF_POPULATED))
 			continue;
+		if (!strcmp(nc->name, "prod-settings"))
+			continue;
 		spi = of_register_spi_device(ctlr, nc);
 		if (IS_ERR(spi)) {
 			dev_warn(&ctlr->dev,

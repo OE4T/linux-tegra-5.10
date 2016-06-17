@@ -23,6 +23,7 @@
 #include <linux/of_device.h>
 #include <linux/reset.h>
 #include <linux/spi/spi.h>
+#include <linux/tegra_prod.h>
 
 #define SPI_COMMAND1				0x000
 #define SPI_BIT_LENGTH(x)			(((x) & 0x1f) << 0)
@@ -239,6 +240,7 @@ struct tegra_spi_data {
 	dma_addr_t				tx_dma_phys;
 	struct dma_async_tx_descriptor		*tx_dma_desc;
 	const struct tegra_spi_soc_data		*soc_data;
+	struct tegra_prod			*prod_list;
 };
 
 static int tegra_spi_runtime_suspend(struct device *dev);
@@ -827,27 +829,37 @@ static void tegra_spi_set_cmd2(struct spi_device *spi, u32 speed)
 	u32 command2_reg = 0;
 	u32 tx_tap = 0;
 	u32 rx_tap = 0;
+	int ret;
+	char prod_name[15];
 
 	/* Avoid write to register for transfers to last used device */
 	if (tspi->last_used_cs == spi->chip_select)
 		return;
 
-	if (cdata && cdata->rx_clk_tap_delay)
-		rx_tap = cdata->rx_clk_tap_delay;
-	else if (speed > SPI_SPEED_TAP_DELAY_MARGIN)
-		rx_tap = SPI_DEFAULT_RX_TAP_DELAY;
+	if (tspi->prod_list) {
+		sprintf(prod_name, "prod_c_cs%d", spi->chip_select);
+		ret = tegra_prod_set_by_name(&tspi->base, prod_name,
+					     tspi->prod_list);
+		ret = tegra_prod_set_by_name(&tspi->base, "prod",
+					     tspi->prod_list);
+	} else {
+		if (cdata && cdata->rx_clk_tap_delay)
+			rx_tap = cdata->rx_clk_tap_delay;
+		else if (speed > SPI_SPEED_TAP_DELAY_MARGIN)
+			rx_tap = SPI_DEFAULT_RX_TAP_DELAY;
 
-	if (cdata && cdata->tx_clk_tap_delay)
-		tx_tap = cdata->tx_clk_tap_delay;
-	else
-		tx_tap = SPI_DEFAULT_TX_TAP_DELAY;
+		if (cdata && cdata->tx_clk_tap_delay)
+			tx_tap = cdata->tx_clk_tap_delay;
+		else
+			tx_tap = SPI_DEFAULT_TX_TAP_DELAY;
 
-	command2_reg = SPI_TX_TAP_DELAY(tx_tap) |
-		       SPI_RX_TAP_DELAY(rx_tap);
+		command2_reg = SPI_TX_TAP_DELAY(tx_tap) |
+			       SPI_RX_TAP_DELAY(rx_tap);
 
-	if (tspi->soc_data->set_rx_tap_delay)
-		if (command2_reg != tspi->def_command2_reg)
-			tegra_spi_writel(tspi, command2_reg, SPI_COMMAND2);
+		if (tspi->soc_data->set_rx_tap_delay)
+			if (command2_reg != tspi->def_command2_reg)
+				tegra_spi_writel(tspi, command2_reg, SPI_COMMAND2);
+	}
 	tspi->last_used_cs = spi->chip_select;
 }
 
@@ -1558,6 +1570,8 @@ static void tegra_spi_parse_dt(struct tegra_spi_data *tspi)
 	tspi->def_chip_select = 0;
 
 	for_each_available_child_of_node(np, nc) {
+		if (!strcmp(nc->name, "prod-settings"))
+			continue;
 		found_nc = nc;
 		ret = of_property_read_bool(nc, "nvidia,default-chipselect");
 		if (ret)
@@ -1645,6 +1659,13 @@ static int tegra_spi_probe(struct platform_device *pdev)
 
 	tspi->ctrl = ctrl;
 	tspi->dev = &pdev->dev;
+
+	tspi->prod_list = devm_tegra_prod_get(tspi->dev);
+	if (IS_ERR(tspi->prod_list)) {
+		dev_dbg(&pdev->dev, "Prod settings list not initialized\n");
+		tspi->prod_list = NULL;
+	}
+
 	spin_lock_init(&tspi->lock);
 
 	tspi->soc_data = of_device_get_match_data(&pdev->dev);
