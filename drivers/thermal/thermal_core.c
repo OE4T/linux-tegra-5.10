@@ -396,6 +396,8 @@ static void handle_critical_trips(struct thermal_zone_device *tz,
 			 * orderly_poweroff failure
 			 */
 			thermal_emergency_poweroff();
+			tz->passive_delay = 0;
+			tz->polling_delay = 0;
 			orderly_poweroff(true);
 			power_off_triggered = true;
 		}
