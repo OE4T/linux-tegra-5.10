@@ -7,6 +7,7 @@
  * Copyright (c) 2007 Nokia Siemens Networks
  * Copyright (c) 2008 Herbert Xu <herbert@gondor.apana.org.au>
  * Copyright (c) 2019 Google LLC
+ * Copyright (c) 2016-2020, NVIDIA Corporation. All Rights Reserved.
  *
  * Updated RFC4106 AES-GCM testing.
  *    Authors: Aidan O'Mahony (aidan.o.mahony@intel.com)
@@ -55,16 +56,6 @@ MODULE_PARM_DESC(fuzz_iterations, "number of fuzz test iterations");
 DEFINE_PER_CPU(bool, crypto_simd_disabled_for_test);
 EXPORT_PER_CPU_SYMBOL_GPL(crypto_simd_disabled_for_test);
 #endif
-
-#ifdef CONFIG_CRYPTO_MANAGER_DISABLE_TESTS
-
-/* a perfect nop */
-int alg_test(const char *driver, const char *alg, u32 type, u32 mask)
-{
-	return 0;
-}
-
-#else
 
 #include "testmgr.h"
 
@@ -5257,7 +5248,4 @@ notest:
 non_fips_alg:
 	return -EINVAL;
 }
-
-#endif /* CONFIG_CRYPTO_MANAGER_DISABLE_TESTS */
-
 EXPORT_SYMBOL_GPL(alg_test);

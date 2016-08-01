@@ -8,6 +8,7 @@
  * Copyright (c) 2002 James Morris <jmorris@intercode.com.au>
  * Copyright (c) 2002 Jean-Francois Dive <jef@linuxbe.org>
  * Copyright (c) 2007 Nokia Siemens Networks
+ * Copyright (c) 2016-2020, NVIDIA Corporation. All Rights Reserved.
  *
  * Updated RFC4106 AES-GCM testing.
  *    Authors: Aidan O'Mahony (aidan.o.mahony@intel.com)
@@ -1728,12 +1729,7 @@ static int do_test(const char *alg, u32 type, u32 mask, int m, u32 num_mb)
 	case 10:
 		ret += tcrypt_test("ecb(aes)");
 		ret += tcrypt_test("cbc(aes)");
-		ret += tcrypt_test("lrw(aes)");
-		ret += tcrypt_test("xts(aes)");
 		ret += tcrypt_test("ctr(aes)");
-		ret += tcrypt_test("rfc3686(ctr(aes))");
-		ret += tcrypt_test("ofb(aes)");
-		ret += tcrypt_test("cfb(aes)");
 		break;
 
 	case 11:
@@ -1845,6 +1841,9 @@ static int do_test(const char *alg, u32 type, u32 mask, int m, u32 num_mb)
 
 	case 35:
 		ret += tcrypt_test("gcm(aes)");
+		ret += tcrypt_test("lrw(aes)");
+		ret += tcrypt_test("xts(aes)");
+		ret += tcrypt_test("rfc3686(ctr(aes))");
 		break;
 
 	case 36:
@@ -3040,16 +3039,6 @@ static int __init tcrypt_mod_init(void)
 	} else {
 		pr_debug("all tests passed\n");
 	}
-
-	/* We intentionaly return -EAGAIN to prevent keeping the module,
-	 * unless we're running in fips mode. It does all its work from
-	 * init() and doesn't offer any runtime functionality, but in
-	 * the fips case, checking for a successful load is helpful.
-	 * => we don't need it in the memory, do we?
-	 *                                        -- mludvig
-	 */
-	if (!fips_enabled)
-		err = -EAGAIN;
 
 err_free_tv:
 	for (i = 0; i < TVMEMSIZE && tvmem[i]; i++)
