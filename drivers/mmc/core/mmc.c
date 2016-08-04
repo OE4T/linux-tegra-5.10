@@ -791,6 +791,9 @@ MMC_DEV_ATTR(rel_sectors, "%#x\n", card->ext_csd.rel_sectors);
 MMC_DEV_ATTR(ocr, "0x%08x\n", card->ocr);
 MMC_DEV_ATTR(rca, "0x%04x\n", card->rca);
 MMC_DEV_ATTR(cmdq_en, "%d\n", card->ext_csd.cmdq_en);
+MMC_DEV_ATTR(bkops_status, "%u\n", card->ext_csd.raw_bkops_status);
+MMC_DEV_ATTR(hpi_support, "%u\n", card->ext_csd.hpi);
+MMC_DEV_ATTR(power_on_notify, "%u\n", card->ext_csd.power_off_notification);
 
 static ssize_t mmc_fwrev_show(struct device *dev,
 			      struct device_attribute *attr,
@@ -849,6 +852,9 @@ static struct attribute *mmc_std_attrs[] = {
 	&dev_attr_rca.attr,
 	&dev_attr_dsr.attr,
 	&dev_attr_cmdq_en.attr,
+	&dev_attr_bkops_status.attr,
+	&dev_attr_hpi_support.attr,
+	&dev_attr_power_on_notify.attr,
 	NULL,
 };
 ATTRIBUTE_GROUPS(mmc_std);
