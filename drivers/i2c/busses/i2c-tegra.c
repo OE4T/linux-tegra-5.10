@@ -230,6 +230,7 @@ struct tegra_i2c_hw_feature {
 	u32 setup_hold_time_fast_fast_plus_mode;
 	u32 setup_hold_time_hs_mode;
 	bool has_interface_timing_reg;
+	bool has_slcg_support;
 };
 
 /**
@@ -1429,6 +1430,7 @@ static const struct tegra_i2c_hw_feature tegra20_i2c_hw = {
 	.quirks = &tegra_i2c_quirks,
 	.supports_bus_clear = false,
 	.has_reg_write_buffering = true,
+	.has_slcg_support = false,
 	.has_apb_dma = true,
 	.tlow_std_mode = 0x4,
 	.thigh_std_mode = 0x2,
@@ -1457,6 +1459,7 @@ static const struct tegra_i2c_hw_feature tegra30_i2c_hw = {
 	.quirks = &tegra_i2c_quirks,
 	.supports_bus_clear = false,
 	.has_reg_write_buffering = true,
+	.has_slcg_support = false,
 	.has_apb_dma = true,
 	.tlow_std_mode = 0x4,
 	.thigh_std_mode = 0x2,
@@ -1485,6 +1488,7 @@ static const struct tegra_i2c_hw_feature tegra114_i2c_hw = {
 	.quirks = &tegra_i2c_quirks,
 	.supports_bus_clear = true,
 	.has_reg_write_buffering = true,
+	.has_slcg_support = false,
 	.has_apb_dma = true,
 	.tlow_std_mode = 0x4,
 	.thigh_std_mode = 0x2,
@@ -1513,6 +1517,7 @@ static const struct tegra_i2c_hw_feature tegra124_i2c_hw = {
 	.quirks = &tegra_i2c_quirks,
 	.supports_bus_clear = true,
 	.has_reg_write_buffering = true,
+	.has_slcg_support = false,
 	.has_apb_dma = true,
 	.tlow_std_mode = 0x4,
 	.thigh_std_mode = 0x2,
@@ -1541,6 +1546,7 @@ static const struct tegra_i2c_hw_feature tegra210_i2c_hw = {
 	.quirks = &tegra_i2c_quirks,
 	.supports_bus_clear = true,
 	.has_reg_write_buffering = true,
+	.has_slcg_support = false,
 	.has_apb_dma = true,
 	.tlow_std_mode = 0x4,
 	.thigh_std_mode = 0x2,
@@ -1569,6 +1575,7 @@ static const struct tegra_i2c_hw_feature tegra186_i2c_hw = {
 	.quirks = &tegra_i2c_quirks,
 	.supports_bus_clear = true,
 	.has_reg_write_buffering = false,
+	.has_slcg_support = true,
 	.has_apb_dma = false,
 	.tlow_std_mode = 0x4,
 	.thigh_std_mode = 0x3,
@@ -1597,6 +1604,7 @@ static const struct tegra_i2c_hw_feature tegra194_i2c_hw = {
 	.quirks = &tegra194_i2c_quirks,
 	.supports_bus_clear = true,
 	.has_reg_write_buffering = false,
+	.has_slcg_support = true,
 	.has_apb_dma = false,
 	.tlow_std_mode = 0x8,
 	.thigh_std_mode = 0x7,
@@ -1739,7 +1747,7 @@ static int tegra_i2c_probe(struct platform_device *pdev)
 		goto unprepare_div_clk;
 	}
 
-	if (i2c_dev->is_multimaster_mode)
+	if (i2c_dev->is_multimaster_mode || i2c_dev->hw->has_slcg_support)
 		i2c_dev->is_clkon_always = true;
 
 	if (i2c_dev->is_clkon_always) {
