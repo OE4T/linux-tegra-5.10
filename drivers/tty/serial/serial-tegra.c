@@ -154,6 +154,7 @@ struct tegra_uart_port {
 	struct timer_list			error_timer;
 	int					error_timer_timeout_jiffies;
 	struct dentry				*debugfs;
+	bool					early_printk_console_instance;
 };
 
 static void tegra_uart_start_next_tx(struct tegra_uart_port *tup);
@@ -1661,6 +1662,8 @@ static int tegra_uart_parse_dt(struct platform_device *pdev,
 		dev_info(&pdev->dev, "Rx buffer throttling enabled\n");
 
 	tup->rt_flush = of_property_read_bool(np, "rt-flush");
+	tup->early_printk_console_instance = of_property_read_bool(np,
+			"early-print-console-channel");
 
 	n_entries = of_property_count_u32_elems(np, "nvidia,adjust-baud-rates");
 	if (n_entries > 0) {
@@ -1883,6 +1886,12 @@ static int tegra_uart_probe(struct platform_device *pdev)
 	if (IS_ERR(tup->rst)) {
 		dev_err(&pdev->dev, "Couldn't get the reset\n");
 		return PTR_ERR(tup->rst);
+	}
+
+	if (!tup->early_printk_console_instance) {
+		reset_control_assert(tup->rst);
+		udelay(10);
+		reset_control_deassert(tup->rst);
 	}
 
 	parent_clk = devm_clk_get(&pdev->dev, "parent");
