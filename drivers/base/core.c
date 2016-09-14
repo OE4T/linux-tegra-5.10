@@ -2422,6 +2422,7 @@ void device_initialize(struct device *dev)
 	INIT_LIST_HEAD(&dev->links.defer_hook);
 	dev->links.status = DL_DEV_NO_DRIVER;
 	dev->context_dev = false;
+	dev->no_dmabuf_defer_unmap = 0;
 }
 EXPORT_SYMBOL_GPL(device_initialize);
 

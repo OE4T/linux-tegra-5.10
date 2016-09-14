@@ -40,6 +40,37 @@ static struct dma_buf_list db_list;
 
 static struct mutex context_dev_lock;
 
+/*
+ * once this flag is set, no device
+ * should be able to disable its defer unmapping feature.
+ * Using this flag avoids unnecessary complex ref counting
+ * and locking that could make the defer unmapping feature
+ * complex.
+ */
+static bool dmabuf_stop_disabling_defer_unmapping;
+
+/**
+ * dma_buf_disable_defer_unmapping - Set device specific data to disable
+ * defer unmapping for that specific device. Once disabled, defer unmapping
+ * cannot be enabled again.
+ *
+ * @device	[in]	Device for which the defer unmapping need to be
+ *			disabled.
+ */
+int dma_buf_disable_defer_unmapping(struct device *device)
+{
+	if (!IS_ENABLED(CONFIG_DMABUF_DEFERRED_UNMAPPING))
+		return 0;
+
+	if (dmabuf_stop_disabling_defer_unmapping)
+		return -EINVAL;
+
+	device->no_dmabuf_defer_unmap = 1;
+
+	return 0;
+}
+EXPORT_SYMBOL(dma_buf_disable_defer_unmapping);
+
 static bool dmabuf_can_defer_unmap(struct dma_buf *dmabuf,
 		struct device *device)
 {
@@ -49,7 +80,7 @@ static bool dmabuf_can_defer_unmap(struct dma_buf *dmabuf,
 	if (!(dmabuf->flags & DMABUF_CAN_DEFER_UNMAP))
 		return false;
 
-	return true;
+	return !device->no_dmabuf_defer_unmap;
 }
 
 static void dma_buf_release_attachment(struct dma_buf_attachment *attach)
@@ -600,6 +631,8 @@ struct dma_buf *dma_buf_export(const struct dma_buf_export_info *exp_info)
 	struct file *file;
 	size_t alloc_size = sizeof(struct dma_buf);
 	int ret;
+
+	dmabuf_stop_disabling_defer_unmapping = true;
 
 	if (!exp_info->resv)
 		alloc_size += sizeof(struct dma_resv);
