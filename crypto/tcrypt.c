@@ -1602,7 +1602,10 @@ static unsigned int acipher_speed(const char *algo, int enc,
 	struct crypto_skcipher *tfm;
 	u8 keysize = CUSTOMIZED_ACIPHER_SPEED_TEST_KEY_SIZE;
 	u32 blocksize = customized_blocks[bsize];
-	char key[32] = { 0x0, 0x1, 0x2, 0x3, 0x4, 0x5, 0x6, 0x7, 0x8, 0x9, 0xa,
+	char key[64] = { 0x0, 0x1, 0x2, 0x3, 0x4, 0x5, 0x6, 0x7, 0x8, 0x9, 0xa,
+		0xb, 0xc, 0xd, 0xe, 0xf, 0xf, 0xe, 0xd, 0xc, 0xb, 0xa, 0x9, 0x8,
+		0x7, 0x6, 0x5, 0x4, 0x3, 0x2, 0x1, 0x0,
+			 0x0, 0x1, 0x2, 0x3, 0x4, 0x5, 0x6, 0x7, 0x8, 0x9, 0xa,
 		0xb, 0xc, 0xd, 0xe, 0xf, 0xf, 0xe, 0xd, 0xc, 0xb, 0xa, 0x9, 0x8,
 		0x7, 0x6, 0x5, 0x4, 0x3, 0x2, 0x1, 0x0 };
 	struct timespec before, after;
@@ -1612,6 +1615,9 @@ static unsigned int acipher_speed(const char *algo, int enc,
 	unsigned long bytes_tested = blocks_to_test * blocksize;
 	unsigned long bytes_per_ms = 0;
 	u32 val = 0;
+
+	if (!strcmp(algo, "xts(aes)"))
+		keysize = keysize * 2;
 
 	atomic_set(&atomic_counter, 0);
 
@@ -1758,12 +1764,12 @@ static int customized_test_acipher_speed(const char *algo, unsigned int bsize,
 		target_dec_speed = CUSTOMIZED_ACIPHER_SPEED_TEST_TARGET_DECRYPT_SPEED;
 
 	for (i = 0; i < no_runs; i++) {
-		speed = acipher_speed("cbc(aes)", ENCRYPT, bsize, bcnt);
+		speed = acipher_speed(algo, ENCRYPT, bsize, bcnt);
 		if (speed < 0)
 			return 1;
 		if (max_enc_speed < speed)
 			max_enc_speed = speed;
-		speed = acipher_speed("cbc(aes)", DECRYPT, bsize, bcnt);
+		speed = acipher_speed(algo, DECRYPT, bsize, bcnt);
 		if (speed < 0)
 			return 1;
 		if (max_dec_speed < speed)
@@ -2028,6 +2034,7 @@ static int do_test(const char *alg, u32 type, u32 mask, int m, u32 num_mb)
 		ret += tcrypt_test("ecb(aes)");
 		ret += tcrypt_test("cbc(aes)");
 		ret += tcrypt_test("ctr(aes)");
+		ret += tcrypt_test("ofb(aes)");
 		break;
 
 	case 11:
@@ -2140,7 +2147,6 @@ static int do_test(const char *alg, u32 type, u32 mask, int m, u32 num_mb)
 	case 35:
 		ret += tcrypt_test("gcm(aes)");
 		ret += tcrypt_test("lrw(aes)");
-		ret += tcrypt_test("xts(aes)");
 		ret += tcrypt_test("rfc3686(ctr(aes))");
 		break;
 
@@ -2214,6 +2220,22 @@ static int do_test(const char *alg, u32 type, u32 mask, int m, u32 num_mb)
 
 	case 54:
 		ret += tcrypt_test("streebog512");
+		break;
+
+	case 55:
+		ret += tcrypt_test("ecdh");
+		break;
+
+	case 56:
+		ret += tcrypt_test("xts(aes)");
+		break;
+
+	case 57:
+		ret += tcrypt_test("dh");
+		break;
+
+	case 58:
+		ret += tcrypt_test("eddsa");
 		break;
 
 	case 100:
@@ -3121,7 +3143,32 @@ static int do_test(const char *alg, u32 type, u32 mask, int m, u32 num_mb)
 		break;
 
 	case 555:
-		if (customized_test_acipher_speed("cbc(aes)", bsize, bcnt, enc_target, dec_target))
+		if (customized_test_acipher_speed("cbc(aes)", bsize, bcnt,
+			enc_target, dec_target))
+			return -EIO;
+		break;
+
+	case 556:
+		if (customized_test_acipher_speed("xts(aes)", bsize, bcnt,
+			enc_target, dec_target))
+			return -EIO;
+		break;
+
+	case 557:
+		if (customized_test_acipher_speed("ctr(aes)", bsize, bcnt,
+			enc_target, dec_target))
+			return -EIO;
+		break;
+
+	case 558:
+		if (customized_test_acipher_speed("ecb(aes)", bsize, bcnt,
+			enc_target, dec_target))
+			return -EIO;
+		break;
+
+	case 559:
+		if (customized_test_acipher_speed("gcm(aes)", bsize, bcnt,
+			enc_target, dec_target))
 			return -EIO;
 		break;
 
