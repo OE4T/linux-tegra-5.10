@@ -234,4 +234,7 @@ static inline void tegra_pmc_enter_suspend_mode(enum tegra_suspend_mode mode)
 
 #endif /* CONFIG_SOC_TEGRA_PMC */
 
+void tegra_pmc_fuse_control_ps18_latch_set(void);
+void tegra_pmc_fuse_control_ps18_latch_clear(void);
+
 #endif /* __SOC_TEGRA_PMC_H__ */

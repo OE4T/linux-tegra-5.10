@@ -142,6 +142,11 @@
 #define  TEGRA_SMC_PMC_READ	0xaa
 #define  TEGRA_SMC_PMC_WRITE	0xbb
 
+/* t210 specific address */
+#define PMC_FUSE_CTRL                   0x450
+#define PMC_FUSE_CTRL_PS18_LATCH_SET    (1 << 8)
+#define PMC_FUSE_CTRL_PS18_LATCH_CLEAR  (1 << 9)
+
 struct tegra_powergate {
 	struct generic_pm_domain genpd;
 	struct tegra_pmc *pmc;
@@ -214,6 +219,7 @@ struct tegra_pmc_soc {
 	bool needs_mbist_war;
 	bool has_impl_33v_pwr;
 	bool maybe_tz_only;
+	bool has_ps18;
 
 	const struct tegra_io_pad_soc *io_pads;
 	unsigned int num_io_pads;
@@ -1416,6 +1422,40 @@ int tegra_io_rail_power_off(unsigned int id)
 }
 EXPORT_SYMBOL(tegra_io_rail_power_off);
 
+void tegra_pmc_fuse_control_ps18_latch_set(void)
+{
+	u32 val;
+
+	if (!pmc->soc->has_ps18)
+		return;
+
+	val = tegra_pmc_readl(pmc, PMC_FUSE_CTRL);
+	val &= ~(PMC_FUSE_CTRL_PS18_LATCH_CLEAR);
+	tegra_pmc_writel(pmc, val, PMC_FUSE_CTRL);
+	mdelay(1);
+	val |= PMC_FUSE_CTRL_PS18_LATCH_SET;
+	tegra_pmc_writel(pmc, val, PMC_FUSE_CTRL);
+	mdelay(1);
+}
+EXPORT_SYMBOL(tegra_pmc_fuse_control_ps18_latch_set);
+
+void tegra_pmc_fuse_control_ps18_latch_clear(void)
+{
+	u32 val;
+
+	if (!pmc->soc->has_ps18)
+		return;
+
+	val = tegra_pmc_readl(pmc, PMC_FUSE_CTRL);
+	val &= ~(PMC_FUSE_CTRL_PS18_LATCH_SET);
+	tegra_pmc_writel(pmc, val, PMC_FUSE_CTRL);
+	mdelay(1);
+	val |= PMC_FUSE_CTRL_PS18_LATCH_CLEAR;
+	tegra_pmc_writel(pmc, val, PMC_FUSE_CTRL);
+	mdelay(1);
+}
+EXPORT_SYMBOL(tegra_pmc_fuse_control_ps18_latch_clear);
+
 #ifdef CONFIG_PM_SLEEP
 enum tegra_suspend_mode tegra_pmc_get_suspend_mode(void)
 {
@@ -2559,6 +2599,7 @@ static const struct tegra_pmc_soc tegra210_pmc_soc = {
 	.num_reset_sources = ARRAY_SIZE(tegra210_reset_sources),
 	.reset_levels = NULL,
 	.num_reset_levels = 0,
+	.has_ps18 = true,
 };
 
 #define TEGRA186_IO_PAD_TABLE(_pad)					     \
