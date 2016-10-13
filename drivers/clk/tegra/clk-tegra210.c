@@ -4023,6 +4023,8 @@ static struct syscore_ops tegra_clk_syscore_ops = {
 #ifdef CONFIG_PM_SLEEP
 	.suspend = tegra210_clk_suspend,
 	.resume = tegra210_clk_resume,
+	.save = tegra210_clk_suspend,
+	.restore = tegra210_clk_resume,
 #endif
 };
 
