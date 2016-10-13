@@ -21,9 +21,18 @@
 #include <linux/pinctrl/pinconf.h>
 #include <linux/slab.h>
 
+#include <soc/tegra/fuse.h>
+
 #include "../core.h"
 #include "../pinctrl-utils.h"
 #include "pinctrl-tegra.h"
+
+#define EMMC2_PAD_CFGPADCTRL_OFFSET	0x1C8
+#define EMMC4_PAD_CFGPADCTRL_OFFSET	0x1E0
+
+#define EMMC_PARKING_BIT		0xE
+#define EMMC_DPD_PARKING(x)		(x << EMMC_PARKING_BIT)
+#define EMMC_PARKING_SET		0x1FFF
 
 static inline u32 pmx_readl(struct tegra_pmx *pmx, u32 bank, u32 reg)
 {
@@ -763,6 +772,20 @@ static int tegra_pinctrl_resume(struct device *dev)
 	readl_relaxed(pmx->regs[0]);
 	/* wait for pinctrl register read to complete */
 	rmb();
+
+	if (tegra_get_chip_id() == TEGRA210) {
+		u32 val;
+
+		/* Clear parking bit for EMMC IO brick pads */
+		val = pmx_readl(pmx, 0, EMMC2_PAD_CFGPADCTRL_OFFSET);
+		val &= ~(EMMC_DPD_PARKING(EMMC_PARKING_SET));
+		pmx_writel(pmx, val, 0, EMMC2_PAD_CFGPADCTRL_OFFSET);
+
+		val = pmx_readl(pmx, 0, EMMC4_PAD_CFGPADCTRL_OFFSET);
+		val &= ~(EMMC_DPD_PARKING(EMMC_PARKING_SET));
+		pmx_writel(pmx, val, 0, EMMC4_PAD_CFGPADCTRL_OFFSET);
+	}
+
 	return 0;
 }
 
