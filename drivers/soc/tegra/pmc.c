@@ -181,6 +181,9 @@
 #define  TEGRA_SMC_PMC_READ	0xaa
 #define  TEGRA_SMC_PMC_WRITE	0xbb
 
+/* Scratch 250: Bootrom i2c command base */
+#define PMC_BR_COMMAND_BASE		0x908
+
 /* USB2 SLEEPWALK registers */
 #define UTMIP(_port, _offset1, _offset2) \
 		(((_port) <= 2) ? (_offset1) : (_offset2))
@@ -393,6 +396,10 @@ static const struct pmc_clk_init_data tegra_pmc_clks_data[] = {
 };
 
 static DEFINE_SPINLOCK(pwr_lock);
+
+#ifdef CONFIG_TEGRA210_BOOTROM_PMC
+extern int tegra210_boorom_pmc_init(struct device *dev);
+#endif
 
 struct tegra_powergate {
 	struct generic_pm_domain genpd;
@@ -1020,6 +1027,22 @@ u32 tegra_pmc_get_se_context_buffer_address(void)
 	return tegra_pmc_readl(pmc, PMC_SCRATCH43);
 }
 EXPORT_SYMBOL(tegra_pmc_get_se_context_buffer_address);
+
+void tegra_pmc_write_bootrom_command(u32 command_offset, unsigned long val)
+{
+	tegra_pmc_writel(pmc, val, command_offset + PMC_BR_COMMAND_BASE);
+}
+EXPORT_SYMBOL(tegra_pmc_write_bootrom_command);
+
+void tegra_pmc_reset_system(void)
+{
+	u32 val;
+
+	val = tegra_pmc_readl(pmc, PMC_CNTRL);
+	val |= 0x10;
+	tegra_pmc_writel(pmc, val, PMC_CNTRL);
+}
+EXPORT_SYMBOL(tegra_pmc_reset_system);
 
 /* T210 USB2 SLEEPWALK APIs */
 int tegra_pmc_utmi_phy_enable_sleepwalk(int port, enum usb_device_speed speed,
@@ -3649,6 +3672,12 @@ static int tegra_pmc_probe(struct platform_device *pdev)
 
 	tegra_pmc_clock_register(pmc, pdev->dev.of_node);
 	platform_set_drvdata(pdev, pmc);
+
+#ifdef CONFIG_TEGRA210_BOOTROM_PMC
+	err = tegra210_boorom_pmc_init(&pdev->dev);
+	if (err < 0)
+		pr_err("ERROR: Bootrom PMC config failed: %d\n", err);
+#endif
 
 	/* handle PMC reboot reason with PSCI */
 	if (!pmc->soc->skip_arm_pm_restart && arm_pm_restart)

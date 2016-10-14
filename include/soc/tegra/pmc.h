@@ -1,7 +1,7 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
 /*
  * Copyright (c) 2010 Google, Inc
- * Copyright (c) 2014-2020 NVIDIA Corporation
+ * Copyright (c) 2014-2020, NVIDIA CORPORATION. All rights reserved.
  *
  * Author:
  *	Colin Cross <ccross@google.com>
@@ -275,4 +275,8 @@ bool tegra_pmc_is_halt_in_fiq(void);
 
 void tegra_pmc_sata_pwrgt_update(unsigned long mask, unsigned long val);
 unsigned long tegra_pmc_sata_pwrgt_get(void);
+
+void tegra_pmc_write_bootrom_command(u32 command_offset, unsigned long val);
+void tegra_pmc_reset_system(void);
+
 #endif /* __SOC_TEGRA_PMC_H__ */
