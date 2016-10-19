@@ -2653,6 +2653,7 @@ static int gpiod_request_commit(struct gpio_desc *desc, const char *label)
 	struct gpio_chip	*chip = desc->gdev->chip;
 	int			ret;
 	unsigned long		flags;
+	bool			hogged = false;
 	unsigned		offset;
 
 	if (label) {
@@ -2671,12 +2672,19 @@ static int gpiod_request_commit(struct gpio_desc *desc, const char *label)
 		desc_set_label(desc, label ? : "?");
 		ret = 0;
 	} else {
-		kfree_const(label);
-		ret = -EBUSY;
-		goto done;
+		if (test_bit(FLAG_IS_HOGGED, &desc->flags)) {
+			hogged = true;
+			desc_set_label(desc, label ? : "?");
+			clear_bit(FLAG_IS_HOGGED, &desc->flags);
+			ret = 0;
+		} else {
+			kfree_const(label);
+			ret = -EBUSY;
+			goto done;
+		}
 	}
 
-	if (chip->request) {
+	if (chip->request && !hogged) {
 		/* chip->request may sleep */
 		spin_unlock_irqrestore(&gpio_lock, flags);
 		offset = gpio_chip_hwgpio(desc);
