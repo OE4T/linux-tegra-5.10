@@ -642,6 +642,10 @@ static void __init of_parse_and_init_cpus(void)
 	for_each_of_cpu_node(dn) {
 		u64 hwid = of_get_cpu_mpidr(dn);
 
+		/* Check to see if the cpu is disabled */
+		if (!of_device_is_available(dn))
+			goto next;
+
 		if (hwid == INVALID_HWID)
 			goto next;
 
