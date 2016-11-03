@@ -20,11 +20,14 @@
 
 #include "clk.h"
 
+#define SUPER_CCLKG_DIVIDER		0x36c
+
 /* Global data of Tegra CPU CAR ops */
 static struct tegra_cpu_car_ops dummy_car_ops;
 struct tegra_cpu_car_ops *tegra_cpu_car_ops = &dummy_car_ops;
 
 int *periph_clk_enb_refcnt;
+bool has_ccplex_therm_control;
 static int periph_banks;
 static u32 *periph_state_ctx;
 static struct clk **clks;
@@ -220,6 +223,25 @@ static int tegra_clk_periph_ctx_init(int banks)
 
 	return 0;
 }
+
+int tegra_super_cdiv_use_therm_controls(bool enable)
+{
+	u32 val;
+
+	if (!has_ccplex_therm_control)
+		return -EINVAL;
+
+	val = readl(clk_base + SUPER_CCLKG_DIVIDER);
+	if (enable)
+		val |= BIT(30);
+	else
+		val &= ~BIT(30);
+
+	writel(val, clk_base + SUPER_CCLKG_DIVIDER);
+
+	return 0;
+}
+EXPORT_SYMBOL_GPL(tegra_super_cdiv_use_therm_controls);
 
 struct clk ** __init tegra_clk_init(void __iomem *regs, int num, int banks)
 {

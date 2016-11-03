@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
 	/*
- * Copyright (c) 2012, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2012-2020, NVIDIA CORPORATION.  All rights reserved.
  */
 
 #ifndef __TEGRA_CLK_H
@@ -87,6 +87,7 @@ struct tegra_clk_sync_source {
 
 extern const struct clk_ops tegra_clk_sync_source_ops;
 extern int *periph_clk_enb_refcnt;
+extern bool has_ccplex_therm_control;
 
 struct clk *tegra_clk_register_sync_source(const char *name,
 					   unsigned long max_rate);

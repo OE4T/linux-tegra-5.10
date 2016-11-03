@@ -169,6 +169,7 @@ struct tegra210_clk_emc_provider {
 int tegra210_clk_emc_attach(struct clk *clk,
 			    struct tegra210_clk_emc_provider *provider);
 void tegra210_clk_emc_detach(struct clk *clk);
+int tegra_super_cdiv_use_therm_controls(bool);
 
 extern void tegra210_csi_source_from_brick(void);
 extern void tegra210_csi_source_from_plld(void);
