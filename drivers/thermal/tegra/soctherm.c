@@ -19,6 +19,7 @@
 #include <linux/debugfs.h>
 #include <linux/bitops.h>
 #include <linux/clk.h>
+#include <linux/clk/tegra.h>
 #include <linux/delay.h>
 #include <linux/err.h>
 #include <linux/interrupt.h>
@@ -331,7 +332,6 @@ struct tegra_soctherm {
 	struct clk *clock_tsensor;
 	struct clk *clock_soctherm;
 	void __iomem *regs;
-	void __iomem *clk_regs;
 	void __iomem *ccroc_regs;
 
 	int thermal_irq;
@@ -2000,9 +2000,7 @@ static void tegra_soctherm_throttle(struct device *dev)
 	} else {
 		writel(v, ts->regs + THROT_GLOBAL_CFG);
 
-		v = readl(ts->clk_regs + CAR_SUPER_CCLKG_DIVIDER);
-		v = REG_SET_MASK(v, CDIVG_USE_THERM_CONTROLS_MASK, 1);
-		writel(v, ts->clk_regs + CAR_SUPER_CCLKG_DIVIDER);
+		tegra_super_cdiv_use_therm_controls(true);
 	}
 
 	/* initialize stats collection */
@@ -2152,15 +2150,7 @@ static int tegra_soctherm_probe(struct platform_device *pdev)
 		return PTR_ERR(tegra->regs);
 	}
 
-	if (!tegra->soc->use_ccroc) {
-		res = platform_get_resource_byname(pdev, IORESOURCE_MEM,
-						   "car-reg");
-		tegra->clk_regs = devm_ioremap_resource(&pdev->dev, res);
-		if (IS_ERR(tegra->clk_regs)) {
-			dev_err(&pdev->dev, "can't get car clk registers");
-			return PTR_ERR(tegra->clk_regs);
-		}
-	} else {
+	if (tegra->soc->use_ccroc) {
 		res = platform_get_resource_byname(pdev, IORESOURCE_MEM,
 						   "ccroc-reg");
 		tegra->ccroc_regs = devm_ioremap_resource(&pdev->dev, res);
