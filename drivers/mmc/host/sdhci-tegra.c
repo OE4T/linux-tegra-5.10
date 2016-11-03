@@ -35,6 +35,8 @@
 #include <linux/gpio/consumer.h>
 #include <linux/ktime.h>
 #include <linux/tegra_prod.h>
+#include <linux/debugfs.h>
+#include <linux/stat.h>
 
 #include "sdhci-pltfm.h"
 #include "cqhci.h"
@@ -226,6 +228,8 @@ struct sdhci_tegra {
 	u8 uhs_mask;
 	bool force_non_rem_rescan;
 };
+
+static void sdhci_tegra_debugfs_init(struct sdhci_host *host);
 
 static u16 tegra_sdhci_readw(struct sdhci_host *host, int reg)
 {
@@ -2058,6 +2062,9 @@ static int sdhci_tegra_probe(struct platform_device *pdev)
 	if (rc)
 		goto err_add_host;
 
+	/* Initialize debugfs */
+	sdhci_tegra_debugfs_init(host);
+
 	return 0;
 
 err_add_host:
@@ -2141,6 +2148,35 @@ disable_clk:
 	return ret;
 }
 #endif
+
+static void sdhci_tegra_debugfs_init(struct sdhci_host *host)
+{
+	struct sdhci_pltfm_host *pltfm_host = sdhci_priv(host);
+	struct sdhci_tegra *tegra_host = sdhci_pltfm_priv(pltfm_host);
+	struct dentry *sdhcidir, *clkdir, *retval;
+
+	sdhcidir = debugfs_create_dir(dev_name(mmc_dev(host->mmc)), NULL);
+	if (!sdhcidir) {
+		dev_err(mmc_dev(host->mmc), "Failed to create debugfs\n");
+		return;
+	}
+
+	/* Create clock debugfs dir under sdhci debugfs dir */
+	clkdir = debugfs_create_dir("clock_data", sdhcidir);
+	if (!clkdir)
+		goto err;
+
+	retval = debugfs_create_ulong("curr_clk_rate", S_IRUGO, clkdir,
+		&tegra_host->curr_clk_rate);
+	if (!retval)
+		goto err;
+
+	return;
+err:
+	debugfs_remove_recursive(sdhcidir);
+	sdhcidir = NULL;
+	return;
+}
 
 static SIMPLE_DEV_PM_OPS(sdhci_tegra_dev_pm_ops, sdhci_tegra_suspend,
 			 sdhci_tegra_resume);
