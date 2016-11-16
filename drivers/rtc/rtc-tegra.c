@@ -22,6 +22,7 @@
 #include <linux/rtc/rtc-tegra.h>
 #define CREATE_TRACE_POINTS
 #include <trace/events/tegra_rtc.h>
+#include <asm/mach/time.h>
 
 /* Set to 1 = busy every eight 32 kHz clocks during copy of sec+msec to AHB. */
 #define TEGRA_RTC_REG_BUSY			0x004
@@ -470,9 +471,25 @@ err_out:
 	return -ENOMEM;
 }
 
+/*
+ * tegra_read_persistent_clock - Return time from a persistent clock.
+ *
+ * Reads the time from a source which isn't disabled during PM, the
+ * 32k sync timer.  Convert the cycles elapsed since last read into
+ * nsecs and adds to a monotonically increasing timespec.
+ * Care must be taken that this funciton is not called while the
+ * tegra_rtc driver could be executing to avoid race conditions
+ * on the RTC shadow register
+ */
+static void tegra_rtc_read_persistent_clock(struct timespec64 *ts)
+{
+	ts->tv_nsec = NSEC_PER_MSEC * readl(tegra_rtc_dev->base + RTC_MILLISECONDS);
+	ts->tv_sec = readl(tegra_rtc_dev->base + RTC_SHADOW_SECONDS);
+}
+
 static struct tegra_rtc_chip_data t18x_rtc_cdata = {
 	.has_clock = false,
-	.follow_tsc = true,
+	.follow_tsc = false,
 };
 
 static struct tegra_rtc_chip_data tegra_rtc_cdata = {
@@ -616,6 +633,7 @@ static int tegra_rtc_probe(struct platform_device *pdev)
 		pr_err("%s: Can't init debugfs", __func__);
 		return ret;
 	}
+	register_persistent_clock(tegra_rtc_read_persistent_clock);
 
 	dev_notice(&pdev->dev, "Tegra internal Real Time Clock\n");
 
