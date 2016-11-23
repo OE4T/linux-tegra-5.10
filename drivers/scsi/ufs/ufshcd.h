@@ -544,6 +544,10 @@ enum ufshcd_quirks {
 	 * auto-hibernate capability but it doesn't work.
 	 */
 	UFSHCD_QUIRK_BROKEN_AUTO_HIBERN8		= 1 << 11,
+	/*
+	 * This quirk needs to be enabled if BKOPS feature has to be enabled
+	 */
+	UFSHCD_QUIRK_ENABLE_BKOPS			= 1 << 12,
 };
 
 enum ufshcd_caps {
