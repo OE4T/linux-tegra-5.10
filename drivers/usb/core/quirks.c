@@ -401,6 +401,9 @@ static const struct usb_device_id usb_quirk_list[] = {
 	/* SmartThings Link V1 CDC Serial Port */
 	{ USB_DEVICE(0x2EB1, 0x0100), .driver_info = USB_QUIRK_RESET_RESUME },
 
+	/* Silicon Labs CDC Serial Port */
+	{ USB_DEVICE(0x10C4, 0x0003), .driver_info = USB_QUIRK_RESET_RESUME },
+
 	/* Realtek hub in Dell WD19 (Type-C) */
 	{ USB_DEVICE(0x0bda, 0x0487), .driver_info = USB_QUIRK_NO_LPM },
 
