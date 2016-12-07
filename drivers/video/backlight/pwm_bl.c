@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-only
 /*
- * Copyright (c) 2013-2014, NVIDIA CORPORATION, All rights reserved.
+ * Copyright (c) 2013-2016, NVIDIA CORPORATION, All rights reserved.
  *
  * Simple PWM based backlight control, board code has to setup
  * 1) pin configuration so PWM waveforms can output
@@ -556,6 +556,7 @@ static int pwm_backlight_probe(struct platform_device *pdev)
 
 	if (np) {
 		struct pwm_bl_data_dt_ops *pops;
+		tegra_pwm_bl_ops_register(&pdev->dev);
 		pops = (struct pwm_bl_data_dt_ops *)platform_get_drvdata(pdev);
 		memset(&defdata, 0, sizeof(defdata));
 		if (pops) {
