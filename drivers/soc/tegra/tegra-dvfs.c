@@ -1386,6 +1386,16 @@ int tegra_dvfs_rail_power_down(struct dvfs_rail *rail)
 	return regulator_disable(rail->reg);
 }
 
+unsigned long tegra_dvfs_get_fmax_at_vmin_safe_t(struct clk *c)
+{
+	struct dvfs *d = tegra_clk_to_dvfs(c);
+
+	if (!d)
+		return 0;
+
+	return d->fmax_at_vmin_safe_t;
+}
+
 /*
  * Validate rail thermal floors/caps, and get its size.
  * Valid floors/caps:
