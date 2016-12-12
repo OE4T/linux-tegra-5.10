@@ -1992,7 +1992,8 @@ static struct clk_core *clk_propagate_rate_change(struct clk_core *core,
 	struct clk_core *child, *tmp_clk, *fail_clk = NULL;
 	int ret = NOTIFY_DONE;
 
-	if (core->rate == core->new_rate)
+	if ((core->rate == core->new_rate) &&
+	    !(core->flags & CLK_SET_RATE_NOCACHE))
 		return NULL;
 
 	if (core->notifier_count) {
@@ -2097,7 +2098,8 @@ static void clk_change_rate(struct clk_core *core)
 	if (core->flags & CLK_OPS_PARENT_ENABLE)
 		clk_core_disable_unprepare(parent);
 
-	if (core->notifier_count && old_rate != core->rate)
+	if (core->notifier_count && ((old_rate != core->rate) ||
+				     (core->flags & CLK_SET_RATE_NOCACHE)))
 		__clk_notify(core, POST_RATE_CHANGE, old_rate, core->rate);
 
 	if (core->flags & CLK_RECALC_NEW_RATES)
@@ -2220,10 +2222,10 @@ err:
  */
 int clk_set_rate(struct clk *clk, unsigned long rate)
 {
-	int ret;
+	int ret = 0;
 
 	if (!clk)
-		return 0;
+		return ret;
 
 	/* prevent racing with updates to the clock topology */
 	clk_prepare_lock();
@@ -2236,6 +2238,15 @@ int clk_set_rate(struct clk *clk, unsigned long rate)
 	if (clk->exclusive_count)
 		clk_core_rate_protect(clk->core);
 
+	if (!clk->core || !(clk->core->flags & CLK_SET_RATE_NOCACHE)) {
+		/* bail early if nothing to do */
+		if (rate == clk_core_get_rate_nolock(clk->core))
+			goto out;
+	}
+
+	ret = clk_core_set_rate_nolock(clk->core, rate);
+
+out:
 	clk_prepare_unlock();
 
 	return ret;
@@ -2391,6 +2402,32 @@ int clk_set_max_rate(struct clk *clk, unsigned long rate)
 	return clk_set_rate_range(clk, clk->min_rate, rate);
 }
 EXPORT_SYMBOL_GPL(clk_set_max_rate);
+
+/**
+ * clk_set_rate_nocache - set a clock rate regardless of the cached rate
+ *
+ * @clk: clock source
+ * @rate: desired maximum clock rate in Hz, inclusive
+ *
+ * Returns success (0) or negative errno.
+ */
+int clk_set_rate_nocache(struct clk *clk, unsigned long rate)
+{
+	int ret;
+
+	if (!clk)
+		return 0;
+
+        /* prevent racing with updates to the clock topology */
+	clk_prepare_lock();
+
+	ret = clk_core_set_rate_nolock(clk->core, rate);
+
+	clk_prepare_unlock();
+
+	return ret;
+}
+EXPORT_SYMBOL_GPL(clk_set_rate_nocache);
 
 /**
  * clk_get_parent - return the parent of a clk

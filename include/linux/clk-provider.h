@@ -32,6 +32,7 @@
 #define CLK_OPS_PARENT_ENABLE	BIT(12)
 /* duty cycle call may be forwarded to the parent clock */
 #define CLK_DUTY_CYCLE_PARENT	BIT(13)
+#define CLK_SET_RATE_NOCACHE	BIT(14) /* do not check cached clk rate */
 
 struct clk;
 struct clk_hw;
