@@ -62,6 +62,8 @@ static unsigned int sec;
 static unsigned long dsize;
 static unsigned int bsize;
 static unsigned int bcnt;
+static unsigned int enc_target;
+static unsigned int dec_target;
 static char *alg = NULL;
 static u32 type;
 static u32 mask;
@@ -1549,6 +1551,9 @@ out:
 		CUSTOMIZED_ACIPHER_SPEED_TEST_BLOCK_SIZE)
 #define CUSTOMIZED_ACIPHER_SPEED_TEST_KEY_SIZE 16
 #define CUSTOMIZED_ACIPHER_SPEED_TEST_MAX_OUTSTANDING_BLOCKS 1024
+#define CUSTOMIZED_ACIPHER_SPEED_TEST_NO_RUNS 5
+#define CUSTOMIZED_ACIPHER_SPEED_TEST_TARGET_ENCRYPT_SPEED 280
+#define CUSTOMIZED_ACIPHER_SPEED_TEST_TARGET_DECRYPT_SPEED 300
 
 static atomic_t atomic_counter;
 
@@ -1589,10 +1594,10 @@ static unsigned int customized_blocks[] = {
 		1024 * 64
 };
 
-static void customized_test_acipher_speed(const char *algo, int enc,
-					unsigned int bsize, unsigned int bcnt)
+static unsigned int acipher_speed(const char *algo, int enc,
+				unsigned int bsize, unsigned int bcnt)
 {
-	unsigned int ret, k;
+	unsigned int ret, k, perf = 0;
 	const char *e;
 	struct crypto_skcipher *tfm;
 	u8 keysize = CUSTOMIZED_ACIPHER_SPEED_TEST_KEY_SIZE;
@@ -1605,7 +1610,7 @@ static void customized_test_acipher_speed(const char *algo, int enc,
 	unsigned long blocks_to_test =
 		CUSTOMIZED_ACIPHER_SPEED_TEST_BLOCK_AMOUNT * bcnt;
 	unsigned long bytes_tested = blocks_to_test * blocksize;
-	unsigned long bytes_per_ms;
+	unsigned long bytes_per_ms = 0;
 	u32 val = 0;
 
 	atomic_set(&atomic_counter, 0);
@@ -1622,7 +1627,7 @@ static void customized_test_acipher_speed(const char *algo, int enc,
 	if (IS_ERR(tfm)) {
 		pr_err("failed to load transform for %s: %ld\n", algo,
 				PTR_ERR(tfm));
-		return;
+		return PTR_ERR(tfm);
 	}
 
 	pr_info("testing speed of async %s (%s) %s\n", algo,
@@ -1706,7 +1711,7 @@ static void customized_test_acipher_speed(const char *algo, int enc,
 			/* error */
 		default:
 			pr_err("error detected\n");
-			return;
+			return ret;
 		}
 	}
 
@@ -1724,11 +1729,59 @@ static void customized_test_acipher_speed(const char *algo, int enc,
 		bytes_tested % 1024);
 
 	bytes_per_ms = bytes_tested / diff_in_ms;
+	perf = (bytes_per_ms * 1000) / (1024 * 1024);
 	pr_info("Test speed: %ld.%03ld(MB/s)\n",
 		(bytes_per_ms * 1000) / (1024 * 1024),
 		((bytes_per_ms * 1000) / 1024) % 1024);
 out:
 	crypto_free_skcipher(tfm);
+
+	return perf;
+}
+
+static int customized_test_acipher_speed(const char *algo, unsigned int bsize,
+		unsigned int bcnt, unsigned int enc_target, unsigned int dec_target)
+{
+	int i, no_runs, target_enc_speed, target_dec_speed;
+	int max_enc_speed = 0, max_dec_speed = 0, speed;
+
+	no_runs = CUSTOMIZED_ACIPHER_SPEED_TEST_NO_RUNS;
+
+	if (enc_target)
+		target_enc_speed = enc_target;
+	else
+		target_enc_speed = CUSTOMIZED_ACIPHER_SPEED_TEST_TARGET_ENCRYPT_SPEED;
+
+	if (dec_target)
+		target_dec_speed = dec_target;
+	else
+		target_dec_speed = CUSTOMIZED_ACIPHER_SPEED_TEST_TARGET_DECRYPT_SPEED;
+
+	for (i = 0; i < no_runs; i++) {
+		speed = acipher_speed("cbc(aes)", ENCRYPT, bsize, bcnt);
+		if (speed < 0)
+			return 1;
+		if (max_enc_speed < speed)
+			max_enc_speed = speed;
+		speed = acipher_speed("cbc(aes)", DECRYPT, bsize, bcnt);
+		if (speed < 0)
+			return 1;
+		if (max_dec_speed < speed)
+			max_dec_speed = speed;
+	}
+
+	pr_info("Target Encrypt speed: %d(MB/s) Decrypt speed: %d(MB/s)\n",
+		target_enc_speed, target_dec_speed);
+	pr_info("Test Encrypt speed: %d(MB/s) Decrypt speed: %d(MB/s)\n",
+		max_enc_speed, max_dec_speed);
+
+	if (max_enc_speed >= target_enc_speed &&
+		       max_dec_speed >= target_dec_speed)
+		return 0;
+	else {
+		pr_err("AES Encrypt/Decrypt target performance is not met\n");
+		return 1;
+	}
 }
 
 static void test_skcipher_speed(const char *algo, int enc, unsigned int secs,
@@ -3068,8 +3121,8 @@ static int do_test(const char *alg, u32 type, u32 mask, int m, u32 num_mb)
 		break;
 
 	case 555:
-		customized_test_acipher_speed("cbc(aes)", ENCRYPT, bsize, bcnt);
-		customized_test_acipher_speed("cbc(aes)", DECRYPT, bsize, bcnt);
+		if (customized_test_acipher_speed("cbc(aes)", bsize, bcnt, enc_target, dec_target))
+			return -EIO;
 		break;
 
 	case 600:
@@ -3345,6 +3398,8 @@ module_param(sec, uint, 0);
 module_param(dsize, ulong, 0);
 module_param(bsize, uint, 0);
 module_param(bcnt, uint, 0);
+module_param(enc_target, uint, 0);
+module_param(dec_target, uint, 0);
 /* When this parameter (sec) is not supplied,
  * it calculates in CPU cycles instead
 */
