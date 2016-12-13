@@ -147,8 +147,7 @@
 #define TEGRA210_CLK_SATA 124
 #define TEGRA210_CLK_HDA 125
 /* 126 */
-/* 127 */
-
+#define TEGRA210_CLK_SE 127
 #define TEGRA210_CLK_HDA2HDMI 128
 /* 129 */
 /* 130 */
