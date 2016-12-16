@@ -475,6 +475,20 @@ int tty_ldisc_receive_buf(struct tty_ldisc *ld, const unsigned char *p,
 }
 EXPORT_SYMBOL_GPL(tty_ldisc_receive_buf);
 
+int tty_buffer_get_level(struct tty_port *port)
+{
+	struct tty_bufhead *buf = &port->buf;
+	int level_percent = 0;
+	int maximum_size = 65536;
+
+	mutex_lock(&buf->lock);
+	level_percent = (buf->current_data_count * 100) / maximum_size;
+	mutex_unlock(&buf->lock);
+
+	return level_percent;
+}
+EXPORT_SYMBOL(tty_buffer_get_level);
+
 static int
 receive_buf(struct tty_port *port, struct tty_buffer *head, int count)
 {
@@ -541,6 +555,11 @@ static void flush_to_ldisc(struct work_struct *work)
 		if (!count)
 			break;
 		head->read += count;
+
+		if (buf->current_data_count >= count)
+			buf->current_data_count -= count;
+		else
+			buf->current_data_count = 0;
 	}
 
 	mutex_unlock(&buf->lock);
@@ -619,6 +638,7 @@ void tty_buffer_init(struct tty_port *port)
 	atomic_set(&buf->priority, 0);
 	INIT_WORK(&buf->work, flush_to_ldisc);
 	buf->mem_limit = TTYB_DEFAULT_MEM_LIMIT;
+	buf->current_data_count = 0;
 }
 
 /**
