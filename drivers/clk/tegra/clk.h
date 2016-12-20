@@ -914,6 +914,16 @@ void tegra_clk_periph_suspend(void);
 void tegra_clk_periph_resume(void);
 
 
+struct tegra_pto_table {
+	int clk_id;
+	int divider;
+	u32 pto_id;
+	u32 presel_value;
+	u32 presel_reg;
+	u32 presel_mask;
+};
+void tegra_register_ptos(struct tegra_pto_table *ptodefs, int num_pto_defs);
+
 /* Combined read fence with delay */
 #define fence_udelay(delay, reg)	\
 	do {				\
