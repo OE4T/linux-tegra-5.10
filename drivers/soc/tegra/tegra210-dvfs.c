@@ -1124,6 +1124,8 @@ static int get_core_speedo_mv(void)
 
 	switch (tegra_sku_info.soc_process_id) {
 	case 0:
+		if (tegra_sku_info.soc_speedo_id == 1)
+			return 1100;
 		if (speedo_rev <= 1)
 			return 1000;
 
