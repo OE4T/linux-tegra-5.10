@@ -154,7 +154,7 @@ static const struct of_device_id apbmisc_match[] __initconst = {
 	{},
 };
 
-void __init tegra_init_revision(void)
+void tegra_init_revision(void)
 {
 	u8 chip_id, minor_rev;
 
