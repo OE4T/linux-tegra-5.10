@@ -36,6 +36,7 @@
 #include <linux/err.h>
 #include <linux/i2c.h>
 #include <linux/io.h>
+#include <linux/iopoll.h>
 #include <linux/kernel.h>
 #include <linux/module.h>
 #include <linux/of.h>
@@ -47,6 +48,7 @@
 #include <linux/reset.h>
 #include <linux/seq_file.h>
 #include <linux/spinlock.h>
+#include <linux/uaccess.h>
 
 #include "clk-dfll.h"
 
@@ -167,6 +169,7 @@
 #define DFLL_INTR_MIN_MASK		0x1
 #define DFLL_INTR_MAX_MASK		0x2
 
+#define DFLL_CC4_HVC			0x74
 /*
  * Integrated I2C controller registers - relative to td->i2c_controller_base
  */
@@ -1506,6 +1509,43 @@ static void dfll_unregister_clk(struct tegra_dfll *td)
 	td->dfll_clk = NULL;
 }
 
+static int dfll_wait_monitor_data(struct tegra_dfll *td, u32 *reg)
+{
+	int sample_period;
+
+	sample_period = DIV_ROUND_UP(1000000, td->sample_rate);
+
+	return readl_relaxed_poll_timeout(td->base + DFLL_MONITOR_DATA, *reg,
+					  *reg & DFLL_MONITOR_DATA_NEW_MASK, 1,
+					  sample_period * 2);
+}
+
+/*
+ * Reading monitor data concurrently with the update may render intermediate
+ * (neither "old" nor "new") values. Synchronization with the "rising edge"
+ * of DATA_NEW makes it very unlikely, but still possible. Use simple filter:
+ * compare 2 consecutive readings for data consistency within 2 LSb range.
+ * Return error otherwise. On the platform that does not allow to use DATA_NEW
+ * at all check for consistency of consecutive reads is the only protection.
+ */
+static int dfll_get_monitor_data(struct tegra_dfll *td, u32 *reg)
+{
+	u32 val;
+
+	dfll_wait_monitor_data(td, reg);
+	*reg &= DFLL_MONITOR_DATA_VAL_MASK;
+
+	val = dfll_readl(td, DFLL_MONITOR_DATA) & DFLL_MONITOR_DATA_VAL_MASK;
+	if (abs(*reg - val) <= 2)
+		return 0;
+
+	*reg = dfll_readl(td, DFLL_MONITOR_DATA) & DFLL_MONITOR_DATA_VAL_MASK;
+	if (abs(*reg - val) <= 2)
+		return 0;
+
+	return -EINVAL;
+}
+
 /*
  * Debugfs interface
  */
@@ -1546,22 +1586,27 @@ static u64 dfll_read_monitor_rate(struct tegra_dfll *td)
 {
 	u32 v, s;
 	u64 pre_scaler_rate, post_scaler_rate;
+	unsigned long flags;
 
 	if (!dfll_is_running(td))
 		return 0;
 
-	v = dfll_readl(td, DFLL_MONITOR_DATA);
-	v = (v & DFLL_MONITOR_DATA_VAL_MASK) >> DFLL_MONITOR_DATA_VAL_SHIFT;
+	spin_lock_irqsave(&td->lock, flags);
+
+	dfll_set_monitor_mode(td, DFLL_FREQ);
+	dfll_get_monitor_data(td, &v);
 	pre_scaler_rate = dfll_calc_monitored_rate(v, td->ref_rate);
 
 	s = dfll_readl(td, DFLL_FREQ_REQ);
 	s = (s & DFLL_FREQ_REQ_SCALE_MASK) >> DFLL_FREQ_REQ_SCALE_SHIFT;
 	post_scaler_rate = dfll_scale_dvco_rate(s, pre_scaler_rate);
 
+	spin_unlock_irqrestore(&td->lock, flags);
+
 	return post_scaler_rate;
 }
 
-static int attr_enable_get(void *data, u64 *val)
+static int enable_get(void *data, u64 *val)
 {
 	struct tegra_dfll *td = data;
 
@@ -1569,16 +1614,15 @@ static int attr_enable_get(void *data, u64 *val)
 
 	return 0;
 }
-static int attr_enable_set(void *data, u64 val)
+static int enable_set(void *data, u64 val)
 {
 	struct tegra_dfll *td = data;
 
 	return val ? dfll_enable(td) : dfll_disable(td);
 }
-DEFINE_DEBUGFS_ATTRIBUTE(enable_fops, attr_enable_get, attr_enable_set,
-			 "%llu\n");
+DEFINE_DEBUGFS_ATTRIBUTE(enable_fops, enable_get, enable_set, "%llu\n");
 
-static int attr_lock_get(void *data, u64 *val)
+static int lock_get(void *data, u64 *val)
 {
 	struct tegra_dfll *td = data;
 
@@ -1586,15 +1630,15 @@ static int attr_lock_get(void *data, u64 *val)
 
 	return 0;
 }
-static int attr_lock_set(void *data, u64 val)
+static int lock_set(void *data, u64 val)
 {
 	struct tegra_dfll *td = data;
 
 	return val ? dfll_lock(td) :  dfll_unlock(td);
 }
-DEFINE_DEBUGFS_ATTRIBUTE(lock_fops, attr_lock_get, attr_lock_set, "%llu\n");
+DEFINE_DEBUGFS_ATTRIBUTE(lock_fops, lock_get, lock_set, "%llu\n");
 
-static int attr_rate_get(void *data, u64 *val)
+static int rate_get(void *data, u64 *val)
 {
 	struct tegra_dfll *td = data;
 
@@ -1603,15 +1647,105 @@ static int attr_rate_get(void *data, u64 *val)
 	return 0;
 }
 
-static int attr_rate_set(void *data, u64 val)
+static int rate_set(void *data, u64 val)
 {
 	struct tegra_dfll *td = data;
 
 	return dfll_request_rate(td, val);
 }
-DEFINE_DEBUGFS_ATTRIBUTE(rate_fops, attr_rate_get, attr_rate_set, "%llu\n");
+DEFINE_DEBUGFS_ATTRIBUTE(rate_fops, rate_get, rate_set, "%llu\n");
 
-static int attr_registers_show(struct seq_file *s, void *data)
+static int dvco_rate_min_get(void *data, u64 *val)
+{
+	struct tegra_dfll *td = data;
+
+	*val = td->dvco_rate_min;
+
+	return 0;
+}
+DEFINE_SIMPLE_ATTRIBUTE(dvco_rate_min_fops, dvco_rate_min_get, NULL, "%llu\n");
+
+static int vmin_get(void *data, u64 *val)
+{
+	struct tegra_dfll *td = data;
+
+	*val = td->lut_uv[td->lut_min] / 1000;
+
+	return 0;
+}
+DEFINE_SIMPLE_ATTRIBUTE(vmin_fops, vmin_get, NULL, "%llu\n");
+
+static int vmax_get(void *data, u64 *val)
+{
+	struct tegra_dfll *td = data;
+
+	*val = td->lut_uv[td->lut_max] / 1000;
+
+	return 0;
+}
+DEFINE_SIMPLE_ATTRIBUTE(vmax_fops, vmax_get, NULL, "%llu\n");
+
+static int output_get(void *data, u64 *val)
+{
+	struct tegra_dfll *td = data;
+	u32 reg;
+	unsigned long flags;
+
+	spin_lock_irqsave(&td->lock, flags);
+
+	reg = dfll_readl(td, DFLL_OUTPUT_FORCE);
+	if (reg & DFLL_OUTPUT_FORCE_ENABLE) {
+		*val = td->lut_uv[reg & DFLL_OUTPUT_FORCE_VALUE_MASK] / 1000;
+		goto out;
+	}
+
+	dfll_set_monitor_mode(td, DFLL_OUTPUT_VALUE);
+	dfll_get_monitor_data(td, &reg);
+
+	*val = td->lut_uv[reg] / 1000;
+
+out:
+	spin_unlock_irqrestore(&td->lock, flags);
+
+	return 0;
+}
+DEFINE_SIMPLE_ATTRIBUTE(output_fops, output_get, NULL, "%llu\n");
+
+static int fout_mv_get(void *data, u64 *val)
+{
+	struct tegra_dfll *td = data;
+	u32 reg;
+
+	reg = dfll_readl(td, DFLL_OUTPUT_FORCE);
+	*val = td->lut_uv[reg & DFLL_OUTPUT_FORCE_VALUE_MASK] / 1000;
+
+	return 0;
+}
+
+static int fout_mv_set(void *data, u64 val)
+{
+	struct tegra_dfll *td = data;
+	unsigned long flags;
+
+	spin_lock_irqsave(&td->lock, flags);
+
+	if (val) {
+		u8 out_value;
+
+		out_value = find_mv_out_cap(td, val);
+		dfll_set_force_output_value(td, out_value);
+		dfll_set_force_output_enabled(td, true);
+	} else {
+		dfll_set_force_output_enabled(td, false);
+	}
+
+	spin_unlock_irqrestore(&td->lock, flags);
+
+	return 0;
+}
+DEFINE_SIMPLE_ATTRIBUTE(fout_mv_fops, fout_mv_get, fout_mv_set, "%llu\n");
+
+static int registers_show(struct seq_file *s, void *data)
 {
 	u32 val, offs;
 	struct tegra_dfll *td = s->private;
@@ -1636,6 +1770,14 @@ static int attr_registers_show(struct seq_file *s, void *data)
 		seq_printf(s, "[0x%02x] = 0x%08x\n", offs,
 			   dfll_i2c_readl(td, offs));
 
+	seq_puts(s, "\nOVERRIDE REGISTERS:\n");
+	offs = DFLL_CC4_HVC;
+	if (td->pmu_if == TEGRA_DFLL_PMU_I2C)
+		val = dfll_i2c_readl(td, offs);
+	else
+		val = dfll_readl(td, offs);
+	seq_printf(s, "[0x%02x] = 0x%08x\n", offs, val);
+
 	if (td->pmu_if == TEGRA_DFLL_PMU_I2C) {
 		seq_puts(s, "\nINTEGRATED I2C CONTROLLER REGISTERS:\n");
 		offs = DFLL_I2C_CLK_DIVISOR;
@@ -1653,23 +1795,96 @@ static int attr_registers_show(struct seq_file *s, void *data)
 	return 0;
 }
 
-DEFINE_SHOW_ATTRIBUTE(attr_registers);
-
-static void dfll_debug_init(struct tegra_dfll *td)
+static ssize_t registers_write(struct file *file,
+	const char __user *userbuf, size_t count, loff_t *ppos)
 {
-	struct dentry *root;
+	char buf[80];
+	u32 offs;
+	u32 val;
+	struct tegra_dfll *td = file->f_path.dentry->d_inode->i_private;
+	unsigned long flags;
+
+	if (sizeof(buf) <= count)
+		return -EINVAL;
+
+	if (copy_from_user(buf, userbuf, count))
+		return -EFAULT;
+
+	/*
+	 * terminate buffer and trim - white spaces may be appended
+	 * at the end when invoked from shell command line
+	 */
+	buf[count] = '\0';
+	strim(buf);
+
+	if (sscanf(buf, "[0x%x] = 0x%x", &offs, &val) != 2)
+		return -EINVAL;
+
+	if (offs >= 0x400)
+		return -EINVAL;
+
+	clk_enable(td->soc_clk);
+	spin_lock_irqsave(&td->lock, flags);
+	dfll_writel(td, val, offs & (~0x3));
+	spin_unlock_irqrestore(&td->lock, flags);
+	clk_disable(td->soc_clk);
+
+	return count;
+}
+
+static int registers_open(struct inode *inode, struct file *file)
+{
+	return single_open(file, registers_show, inode->i_private);
+}
+
+static const struct file_operations registers_fops = {
+	.open		= registers_open,
+	.read		= seq_read,
+	.write		= registers_write,
+	.llseek		= seq_lseek,
+	.release	= single_release,
+};
+
+static struct {
+	char				*name;
+	umode_t				mode;
+	const struct file_operations	*fops;
+} dfll_debugfs_nodes[] = {
+	{ "enable", 0644, &enable_fops },
+	{ "lock", 0644, &lock_fops },
+	{ "force_out_mv", 0644, &fout_mv_fops },
+	{ "rate", 0444, &rate_fops },
+	{ "dvco_rate_min", 0444, &dvco_rate_min_fops },
+	{ "registers", 0444, &registers_fops },
+	{ "vmin_mv", 0444, &vmin_fops },
+	{ "vmax_mv", 0444, &vmax_fops },
+	{ "output_mv", 0444, &output_fops },
+};
+
+static int dfll_debug_init(struct tegra_dfll *td)
+{
+	int i;
 
 	if (!td || (td->mode == DFLL_UNINITIALIZED))
-		return;
+		return 0;
 
-	root = debugfs_create_dir("tegra_dfll_fcpu", NULL);
-	td->debugfs_dir = root;
+	td->debugfs_dir = debugfs_create_dir("tegra_dfll_fcpu", NULL);
+	if (!td->debugfs_dir)
+		return -ENOMEM;
 
-	debugfs_create_file_unsafe("enable", 0644, root, td,
-				   &enable_fops);
-	debugfs_create_file_unsafe("lock", 0444, root, td, &lock_fops);
-	debugfs_create_file_unsafe("rate", 0444, root, td, &rate_fops);
-	debugfs_create_file("registers", 0444, root, td, &attr_registers_fops);
+	for (i = 0; i < ARRAY_SIZE(dfll_debugfs_nodes); i++) {
+		if (!debugfs_create_file(dfll_debugfs_nodes[i].name,
+					 dfll_debugfs_nodes[i].mode,
+					 td->debugfs_dir, td,
+					 dfll_debugfs_nodes[i].fops))
+			goto err_out;
+	}
+
+	debugfs_create_symlink("monitor", td->debugfs_dir, "rate");
+	debugfs_create_symlink("dvco_rate", td->debugfs_dir, "dvco_rate_min");
+err_out:
+	debugfs_remove_recursive(td->debugfs_dir);
+	return -ENOMEM;
 }
 
 #else
