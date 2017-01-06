@@ -420,6 +420,7 @@ struct tegra_pmc_regs {
 	unsigned int rst_level_shift;
 	unsigned int rst_level_mask;
 	unsigned int ramdump_ctl_status;
+	unsigned int sata_pwrgt_0;
 };
 
 struct tegra_wake_event {
@@ -1768,6 +1769,23 @@ static void tegra_powergate_remove_all(struct device_node *parent)
 
 	of_node_put(np);
 }
+
+/* SATA power gate control */
+void tegra_pmc_sata_pwrgt_update(unsigned long mask, unsigned long val)
+{
+	unsigned long flags;
+
+	spin_lock_irqsave(&pwr_lock, flags);
+	tegra_pmc_register_update(pmc->soc->regs->sata_pwrgt_0, mask, val);
+	spin_unlock_irqrestore(&pwr_lock, flags);
+}
+EXPORT_SYMBOL(tegra_pmc_sata_pwrgt_update);
+
+unsigned long tegra_pmc_sata_pwrgt_get(void)
+{
+	return tegra_pmc_readl(pmc, pmc->soc->regs->sata_pwrgt_0);
+}
+EXPORT_SYMBOL(tegra_pmc_sata_pwrgt_get);
 
 static const struct tegra_io_pad_soc *
 tegra_io_pad_find(struct tegra_pmc *pmc, enum tegra_io_pad id)
@@ -3971,6 +3989,7 @@ static const struct tegra_pmc_regs tegra186_pmc_regs = {
 	.rst_level_shift = 0x0,
 	.rst_level_mask = 0x3,
 	.ramdump_ctl_status = 0x10c,
+	.sata_pwrgt_0 = 0x68,
 };
 
 static void tegra186_pmc_setup_irq_polarity(struct tegra_pmc *pmc,
@@ -4120,6 +4139,7 @@ static const struct tegra_pmc_regs tegra194_pmc_regs = {
 	.rst_level_shift = 0x0,
 	.rst_level_mask = 0x3,
 	.ramdump_ctl_status = 0x10c,
+	.sata_pwrgt_0 = 0x8,
 };
 
 static const char * const tegra194_reset_sources[] = {
