@@ -85,6 +85,11 @@
 
 #define PMC_PWR_DET_VALUE		0xe4
 
+/* address T186 specific */
+#define TEGRA_PMC_FUSE_CTRL		0x100
+#define PMC_FUSE_CTRL_ENABLE_REDIRECTION	(1 << 0)
+#define PMC_FUSE_CTRL_DISABLE_REDIRECTION	(1 << 1)
+
 #define PMC_SCRATCH41			0x140
 
 #define PMC_SENSOR_CTRL			0x1b0
@@ -220,6 +225,7 @@ struct tegra_pmc_soc {
 	bool has_impl_33v_pwr;
 	bool maybe_tz_only;
 	bool has_ps18;
+	bool has_fuse_mirroring_sticky_bit;
 
 	const struct tegra_io_pad_soc *io_pads;
 	unsigned int num_io_pads;
@@ -1422,6 +1428,36 @@ int tegra_io_rail_power_off(unsigned int id)
 }
 EXPORT_SYMBOL(tegra_io_rail_power_off);
 
+void tegra_pmc_fuse_disable_mirroring(void)
+{
+	u32 val;
+
+	val = tegra_pmc_readl(pmc, TEGRA_PMC_FUSE_CTRL);
+	if (val & PMC_FUSE_CTRL_ENABLE_REDIRECTION) {
+		if (pmc->soc->has_fuse_mirroring_sticky_bit)
+			val &= ~PMC_FUSE_CTRL_ENABLE_REDIRECTION;
+		else
+			val = PMC_FUSE_CTRL_DISABLE_REDIRECTION;
+		tegra_pmc_writel(pmc, val, TEGRA_PMC_FUSE_CTRL);
+	}
+}
+EXPORT_SYMBOL(tegra_pmc_fuse_disable_mirroring);
+
+void tegra_pmc_fuse_enable_mirroring(void)
+{
+	u32 val;
+
+	val = tegra_pmc_readl(pmc, TEGRA_PMC_FUSE_CTRL);
+	if (!(val & PMC_FUSE_CTRL_ENABLE_REDIRECTION)) {
+		if (pmc->soc->has_fuse_mirroring_sticky_bit)
+			val |= PMC_FUSE_CTRL_ENABLE_REDIRECTION;
+		else
+			val = PMC_FUSE_CTRL_ENABLE_REDIRECTION;
+		tegra_pmc_writel(pmc, val, TEGRA_PMC_FUSE_CTRL);
+	}
+}
+EXPORT_SYMBOL(tegra_pmc_fuse_enable_mirroring);
+
 void tegra_pmc_fuse_control_ps18_latch_set(void)
 {
 	u32 val;
@@ -2600,6 +2636,7 @@ static const struct tegra_pmc_soc tegra210_pmc_soc = {
 	.reset_levels = NULL,
 	.num_reset_levels = 0,
 	.has_ps18 = true,
+	.has_fuse_mirroring_sticky_bit = false,
 };
 
 #define TEGRA186_IO_PAD_TABLE(_pad)					     \
@@ -2714,6 +2751,7 @@ static const struct tegra_pmc_soc tegra186_pmc_soc = {
 	.needs_mbist_war = false,
 	.has_impl_33v_pwr = true,
 	.maybe_tz_only = false,
+	.has_fuse_mirroring_sticky_bit = true,
 	.num_io_pads = ARRAY_SIZE(tegra186_io_pads),
 	.io_pads = tegra186_io_pads,
 	.num_pin_descs = ARRAY_SIZE(tegra186_pin_descs),
