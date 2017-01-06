@@ -1770,6 +1770,28 @@ static void tegra_powergate_remove_all(struct device_node *parent)
 	of_node_put(np);
 }
 
+int tegra_pmc_clear_reboot_reason(u32 reason)
+{
+	u32 val;
+
+	val = readl_relaxed(pmc->scratch + pmc->soc->regs->scratch0);
+	val &= ~reason;
+	writel_relaxed(val, pmc->scratch + pmc->soc->regs->scratch0);
+	return 0;
+}
+EXPORT_SYMBOL(tegra_pmc_clear_reboot_reason);
+
+int tegra_pmc_set_reboot_reason(u32 reason)
+{
+	u32 val;
+
+	val = readl_relaxed(pmc->scratch + pmc->soc->regs->scratch0);
+	val |= reason;
+	writel_relaxed(val, pmc->scratch + pmc->soc->regs->scratch0);
+	return 0;
+}
+EXPORT_SYMBOL(tegra_pmc_set_reboot_reason);
+
 /* SATA power gate control */
 void tegra_pmc_sata_pwrgt_update(unsigned long mask, unsigned long val)
 {

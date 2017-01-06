@@ -184,6 +184,9 @@ int tegra_pmc_utmi_phy_disable_sleepwalk(int port);
 int tegra_pmc_hsic_phy_enable_sleepwalk(int port);
 int tegra_pmc_hsic_phy_disable_sleepwalk(int port);
 
+int tegra_pmc_set_reboot_reason(u32 reboot_reason);
+int tegra_pmc_clear_reboot_reason(u32 reboot_reason);
+
 #else
 static inline int tegra_powergate_power_on(unsigned int id)
 {
@@ -238,6 +241,16 @@ static inline void tegra_pmc_set_suspend_mode(enum tegra_suspend_mode mode)
 
 static inline void tegra_pmc_enter_suspend_mode(enum tegra_suspend_mode mode)
 {
+}
+
+static inline int tegra_pmc_set_reboot_reason(u32 reboot_reason)
+{
+	return -ENOTSUPP;
+}
+
+static inline int tegra_pmc_clear_reboot_reason(u32 reboot_reason)
+{
+	return -ENOTSUPP;
 }
 
 #endif /* CONFIG_SOC_TEGRA_PMC */
