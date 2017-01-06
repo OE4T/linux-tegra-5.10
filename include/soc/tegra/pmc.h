@@ -258,4 +258,5 @@ static inline enum tegra_suspend_mode tegra_pmc_get_suspend_mode(void)
 
 int tegra_pmc_save_se_context_buffer_address(u32 add);
 u32 tegra_pmc_get_se_context_buffer_address(void);
+bool tegra_pmc_is_halt_in_fiq(void);
 #endif /* __SOC_TEGRA_PMC_H__ */

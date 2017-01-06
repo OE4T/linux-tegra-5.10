@@ -46,6 +46,7 @@
 #include <linux/spinlock.h>
 #include <linux/notifier.h>
 #include <linux/regulator/consumer.h>
+#include <linux/uaccess.h>
 
 #include <soc/tegra/common.h>
 #include <soc/tegra/fuse.h>
@@ -156,6 +157,8 @@
 #define  PMC_SCRATCH55_I2CSLV1_SHIFT	0
 
 #define GPU_RG_CNTRL			0x2d4
+
+#define PMC_IMPL_HALT_IN_FIQ_MASK	BIT(28)
 
 /* Tegra186 and later */
 #define WAKE_AOWAKE_CNTRL(x) (0x000 + ((x) << 2))
@@ -416,6 +419,7 @@ struct tegra_pmc_regs {
 	unsigned int rst_source_mask;
 	unsigned int rst_level_shift;
 	unsigned int rst_level_mask;
+	unsigned int ramdump_ctl_status;
 };
 
 struct tegra_wake_event {
@@ -2465,6 +2469,31 @@ static int tegra_pmc_pinctrl_init(struct tegra_pmc *pmc)
 	return 0;
 }
 
+static void tegra_pmc_show_reset_status(void)
+{
+	u32 val, rst_src, rst_lvl;
+
+	val = tegra_pmc_readl(pmc, pmc->soc->regs->rst_status);
+	rst_src = (val & pmc->soc->regs->rst_source_mask) >>
+		pmc->soc->regs->rst_source_shift;
+	rst_lvl = (val & pmc->soc->regs->rst_level_mask) >>
+		pmc->soc->regs->rst_level_shift;
+
+	if (rst_src >= pmc->soc->num_reset_sources)
+		pr_info("### PMC reset source: UNKNOWN\n");
+	else
+		pr_info("### PMC reset source: %s\n",
+			pmc->soc->reset_sources[rst_src]);
+
+	if (rst_lvl >= pmc->soc->num_reset_levels)
+		pr_info("### PMC reset level: UNKNOWN\n");
+	else
+		pr_info("### PMC reset level: %s\n",
+			pmc->soc->reset_levels[rst_lvl]);
+
+	pr_info("### PMC reset status reg: 0x%x\n", val);
+}
+
 static ssize_t reset_reason_show(struct device *dev,
 				 struct device_attribute *attr, char *buf)
 {
@@ -2519,6 +2548,180 @@ static void tegra_pmc_reset_sysfs_init(struct tegra_pmc *pmc)
 				 "failed to create attr \"reset_level\": %d\n",
 				 err);
 	}
+}
+
+#ifdef CONFIG_DEBUG_FS
+struct tegra_pmc_scratch_export_info {
+	const char **reg_names;
+	u32 *reg_offset;
+	int cnt_reg_offset;
+	int cnt_reg_names;
+};
+static struct tegra_pmc_scratch_export_info scratch_info;
+
+static inline u32 tegra_pmc_debug_scratch_readl(u32 reg)
+{
+	return readl(pmc->scratch + reg);
+}
+
+static inline void tegra_pmc_debug_scratch_writel(u32 val, u32 reg)
+{
+	writel(val, pmc->scratch + reg);
+}
+
+static ssize_t tegra_pmc_debug_scratch_reg_read(struct file *file,
+						char __user *user_buf,
+						size_t count, loff_t *ppos)
+{
+	char buf[64] = {};
+	unsigned char *dfsname = file->f_path.dentry->d_iname;
+	ssize_t ret;
+	u32 value;
+	int id;
+
+	for (id = 0; id < scratch_info.cnt_reg_offset; id++) {
+		if (!strcmp(dfsname, scratch_info.reg_names[id]))
+			break;
+	}
+
+	if (id == scratch_info.cnt_reg_offset)
+		return -EINVAL;
+
+	value = tegra_pmc_debug_scratch_readl(scratch_info.reg_offset[id]);
+	ret = snprintf(buf, sizeof(buf), "Reg: 0x%x : Value: 0x%x\n",
+				scratch_info.reg_offset[id], value);
+
+	return simple_read_from_buffer(user_buf, count, ppos, buf, ret);
+}
+
+static ssize_t tegra_pmc_debug_scratch_reg_write(struct file *file,
+						 const char __user *user_buf,
+						 size_t count, loff_t *ppos)
+{
+	char buf[64] = { };
+	unsigned char *dfsname = file->f_path.dentry->d_iname;
+	ssize_t buf_size;
+	u32 value = 0;
+	int id;
+
+	for (id = 0; id < scratch_info.cnt_reg_offset; id++) {
+		if (!strcmp(dfsname, scratch_info.reg_names[id]))
+			break;
+	}
+	if (id == scratch_info.cnt_reg_offset)
+		return -EINVAL;
+
+	buf_size = min(count, (sizeof(buf) - 1));
+	if (copy_from_user(buf, user_buf, buf_size))
+		return -EFAULT;
+
+	if (!sscanf(buf, "%x\n", &value))
+		return -EINVAL;
+
+	pr_info("PMC reg: 0x%x Value: 0x%x\n", scratch_info.reg_offset[id], value);
+	tegra_pmc_debug_scratch_writel(value, scratch_info.reg_offset[id]);
+
+	return count;
+}
+
+static const struct file_operations pmc_debugfs_fops = {
+	.open		= simple_open,
+	.write		= tegra_pmc_debug_scratch_reg_write,
+	.read		= tegra_pmc_debug_scratch_reg_read,
+};
+
+static int tegra_pmc_debug_scratch_reg_init(struct tegra_pmc *pmc)
+{
+	struct device_node *np = pmc->dev->of_node;
+	const char *srname;
+	struct property *prop;
+	int count, i;
+	int ret;
+	int cnt_reg_names, cnt_reg_offset;
+	struct dentry *dbgfs_root;
+
+	cnt_reg_offset = of_property_count_u32_elems(np,
+					"export-pmc-scratch-reg-offset");
+	if (cnt_reg_offset <= 0) {
+		dev_info(pmc->dev, "scratch reg offset dts data not present\n");
+		return -EINVAL;
+	}
+
+	scratch_info.cnt_reg_offset = cnt_reg_offset;
+
+	cnt_reg_names = of_property_count_strings(np,
+				"export-pmc-scratch-reg-name");
+	if (cnt_reg_names < 0 || (cnt_reg_offset != cnt_reg_names)) {
+		dev_info(pmc->dev, "reg offset and names count not matching\n");
+		return -EINVAL;
+	}
+
+	scratch_info.cnt_reg_names = cnt_reg_names;
+	scratch_info.reg_names = devm_kzalloc(pmc->dev, (cnt_reg_offset + 1) *
+					   sizeof(*scratch_info.reg_names),
+					   GFP_KERNEL);
+	if (!scratch_info.reg_names)
+		return -ENOMEM;
+
+	count = 0;
+	of_property_for_each_string(np, "export-pmc-scratch-reg-name",
+				    prop, srname)
+		scratch_info.reg_names[count++] = srname;
+
+	scratch_info.reg_names[count] = NULL;
+
+	scratch_info.reg_offset = devm_kzalloc(pmc->dev, sizeof(u32) *
+					    cnt_reg_offset, GFP_KERNEL);
+	if (!scratch_info.reg_offset)
+		return -ENOMEM;
+
+	ret = of_property_read_u32_array(np, "export-pmc-scratch-reg-offset",
+					 scratch_info.reg_offset, cnt_reg_offset);
+	if (ret < 0)
+		return -ENODEV;
+
+	dbgfs_root = debugfs_create_dir("PMC", NULL);
+	if (!dbgfs_root) {
+		dev_info(pmc->dev, "PMC:Failed to create debugfs dir\n");
+		return -ENOMEM;
+	}
+
+	for (i = 0; i < cnt_reg_offset; i++) {
+		debugfs_create_file(scratch_info.reg_names[i], S_IRUGO | S_IWUSR,
+				    dbgfs_root, NULL, &pmc_debugfs_fops);
+		dev_info(pmc->dev, "create /sys/kernel/debug/%s/%s\n",
+			 dbgfs_root->d_name.name, scratch_info.reg_names[i]);
+	}
+
+	return 0;
+}
+
+#else
+static int tegra_pmc_debug_scratch_reg_init(struct tegra_pmc *pmc)
+{
+	return 0;
+}
+#endif
+
+#ifndef CONFIG_TEGRA186_PMC
+bool tegra_pmc_is_halt_in_fiq(void)
+{
+	return !!(PMC_IMPL_HALT_IN_FIQ_MASK &
+		tegra_pmc_readl(pmc, pmc->soc->regs->ramdump_ctl_status));
+}
+EXPORT_SYMBOL(tegra_pmc_is_halt_in_fiq);
+#endif
+
+static void tegra_pmc_halt_in_fiq_init(struct tegra_pmc *pmc)
+{
+	struct device_node *np = pmc->dev->of_node;
+
+	if (!of_property_read_bool(np, "nvidia,enable-halt-in-fiq"))
+		return;
+
+	tegra_pmc_register_update(pmc->soc->regs->ramdump_ctl_status,
+				  PMC_IMPL_HALT_IN_FIQ_MASK,
+				  PMC_IMPL_HALT_IN_FIQ_MASK);
 }
 
 static int tegra_pmc_irq_translate(struct irq_domain *domain,
@@ -3174,6 +3377,12 @@ static int tegra_pmc_probe(struct platform_device *pdev)
 
 	tegra_pmc_init_tsense_reset(pmc);
 
+	tegra_pmc_halt_in_fiq_init(pmc);
+
+	tegra_pmc_debug_scratch_reg_init(pmc);
+
+	tegra_pmc_show_reset_status();
+
 	tegra_pmc_reset_sysfs_init(pmc);
 
 	if (IS_ENABLED(CONFIG_DEBUG_FS)) {
@@ -3761,6 +3970,7 @@ static const struct tegra_pmc_regs tegra186_pmc_regs = {
 	.rst_source_mask = 0x3c,
 	.rst_level_shift = 0x0,
 	.rst_level_mask = 0x3,
+	.ramdump_ctl_status = 0x10c,
 };
 
 static void tegra186_pmc_setup_irq_polarity(struct tegra_pmc *pmc,
@@ -3909,6 +4119,7 @@ static const struct tegra_pmc_regs tegra194_pmc_regs = {
 	.rst_source_mask = 0x7c,
 	.rst_level_shift = 0x0,
 	.rst_level_mask = 0x3,
+	.ramdump_ctl_status = 0x10c,
 };
 
 static const char * const tegra194_reset_sources[] = {
