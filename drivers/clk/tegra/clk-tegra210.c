@@ -3639,8 +3639,8 @@ static __init void tegra210_shared_clk_init(char *sclk_high_clk)
 	clks[TEGRA210_CLK_SBUS] = clk;
 	sbus_cbus = to_clk_cbus_shared(__clk_get_hw(clk));
 
-	clk = tegra_clk_register_shared_master("gbus", "gpu", 0,
-						12000000, 1300000000);
+	clk = tegra_clk_register_gbus("gbus", "gpcclk", 0,
+					12000000, 1300000000);
 	clks[TEGRA210_CLK_GBUS] = clk;
 
 	clk = tegra_clk_register_shared_master("host1x_master", "host1x", 0,
