@@ -494,6 +494,9 @@ struct tegra_pmc_soc {
 	const struct pmc_clk_init_data *pmc_clks_data;
 	unsigned int num_pmc_clks;
 	bool has_blink_output;
+	bool skip_power_gate_debug_fs_init;
+	bool skip_restart_register;
+	bool skip_arm_pm_restart;
 };
 
 struct tegra_io_pad_regulator {
@@ -1526,6 +1529,9 @@ DEFINE_SHOW_ATTRIBUTE(powergate);
 
 static int tegra_powergate_debugfs_init(void)
 {
+	if (pmc->soc->skip_power_gate_debug_fs_init)
+		return 0;
+
 	pmc->debugfs = debugfs_create_file("powergate", S_IRUGO, NULL, NULL,
 					   &powergate_fops);
 	if (!pmc->debugfs)
@@ -3176,11 +3182,13 @@ static int tegra_pmc_probe(struct platform_device *pdev)
 			goto cleanup_sysfs;
 	}
 
-	err = register_restart_handler(&tegra_pmc_restart_handler);
-	if (err) {
-		dev_err(&pdev->dev, "unable to register restart handler, %d\n",
-			err);
-		goto cleanup_debugfs;
+	if (!pmc->soc->skip_restart_register) {
+		err = register_restart_handler(&tegra_pmc_restart_handler);
+		if (err) {
+			dev_err(&pdev->dev, "unable to register restart handler, %d\n",
+				err);
+			goto cleanup_debugfs;
+		}
 	}
 
 	err = tegra_pmc_pinctrl_init(pmc);
@@ -3204,7 +3212,7 @@ static int tegra_pmc_probe(struct platform_device *pdev)
 	platform_set_drvdata(pdev, pmc);
 
 	/* handle PMC reboot reason with PSCI */
-	if (arm_pm_restart)
+	if (!pmc->soc->skip_arm_pm_restart && arm_pm_restart)
 		psci_handle_reboot_cmd = tegra_pmc_program_reboot_reason;
 
 	return 0;
@@ -3688,6 +3696,9 @@ static const struct tegra_pmc_soc tegra210_pmc_soc = {
 	.pmc_clks_data = tegra_pmc_clks_data,
 	.num_pmc_clks = ARRAY_SIZE(tegra_pmc_clks_data),
 	.has_blink_output = true,
+	.skip_power_gate_debug_fs_init = false,
+	.skip_restart_register = false,
+	.skip_arm_pm_restart = false,
 };
 
 #define TEGRA186_IO_PAD_TABLE(_pad)                                          \
@@ -3822,6 +3833,9 @@ static const struct tegra_pmc_soc tegra186_pmc_soc = {
 	.pmc_clks_data = NULL,
 	.num_pmc_clks = 0,
 	.has_blink_output = false,
+	.skip_power_gate_debug_fs_init = true,
+	.skip_restart_register = true,
+	.skip_arm_pm_restart = true,
 };
 
 #define TEGRA194_IO_PAD_TABLE(_pad)                                              \
@@ -3955,6 +3969,9 @@ static const struct tegra_pmc_soc tegra194_pmc_soc = {
 	.pmc_clks_data = NULL,
 	.num_pmc_clks = 0,
 	.has_blink_output = false,
+	.skip_power_gate_debug_fs_init = true,
+	.skip_restart_register = true,
+	.skip_arm_pm_restart = true,
 };
 
 static const struct of_device_id tegra_pmc_match[] = {
