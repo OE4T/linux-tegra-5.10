@@ -420,6 +420,7 @@ struct tegra_io_pad_soc {
 	const char *name;
 	unsigned int io_power;
 	enum tegra_dpd_reg reg_index;
+	bool bdsdmem_cfc;
 };
 
 struct tegra_pmc_regs {
@@ -3800,6 +3801,7 @@ static const u8 tegra124_cpu_powergates[] = {
 		.voltage = (_voltage),				\
 		.name	= (_name),				\
 		.io_power	= (_iopower),			\
+		.bdsdmem_cfc	= (false),			\
 	})
 
 #define TEGRA_IO_PIN_DESC(_id, _dpd, _voltage, _name, _iopower)	\
@@ -4585,8 +4587,9 @@ static int tegra_pmc_io_rail_change_notify_cb(struct notifier_block *nb,
 	const struct tegra_io_pad_soc *pad;
 	unsigned long flags;
 
-	if (!((event & REGULATOR_EVENT_ENABLE) ||
-	      (event & REGULATOR_EVENT_PRE_DISABLE)))
+	if (!(event & (REGULATOR_EVENT_ENABLE |
+		       REGULATOR_EVENT_PRE_DISABLE |
+		       REGULATOR_EVENT_DISABLE)))
 		return NOTIFY_OK;
 
 	tip_reg = container_of(nb, struct tegra_io_pad_regulator, nb);
@@ -4594,11 +4597,19 @@ static int tegra_pmc_io_rail_change_notify_cb(struct notifier_block *nb,
 
 	spin_lock_irqsave(&pwr_lock, flags);
 
-	if (event & REGULATOR_EVENT_ENABLE)
-		pmc_iopower_enable(pad);
+	if (pad->bdsdmem_cfc) {
+		if (event & REGULATOR_EVENT_ENABLE)
+			pmc_iopower_enable(pad);
 
-	if (event & REGULATOR_EVENT_PRE_DISABLE)
-		pmc_iopower_disable(pad);
+		if (event & REGULATOR_EVENT_DISABLE)
+			pmc_iopower_disable(pad);
+	} else {
+		if (event & REGULATOR_EVENT_ENABLE)
+			pmc_iopower_enable(pad);
+
+		if (event & REGULATOR_EVENT_PRE_DISABLE)
+			pmc_iopower_disable(pad);
+	}
 
 	dev_dbg(pmc->dev, "tegra-iopower: %s: event 0x%08lx state: %d\n",
 		pad->name, event, pmc_iopower_get_status(pad));
