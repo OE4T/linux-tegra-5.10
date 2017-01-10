@@ -311,6 +311,12 @@
 /* 280 */
 #define TEGRA210_CLK_SOR0_LVDS 281 /* deprecated */
 #define TEGRA210_CLK_SOR0_OUT 281
+/*
+ * TEGRA210_CLK_QSPI_OUT is used by downstream DTBs, though being overlapped
+ * with the two SOR0 clocks above, yet those two SOR0 clocks are used by the
+ * upstream DTBs only. So reusing the same number for TEGRA210_CLK_QSPI_OUT.
+ */
+#define TEGRA210_CLK_QSPI_OUT 281
 #define TEGRA210_CLK_SOR1_OUT 282
 /* 283 */
 #define TEGRA210_CLK_XUSB_HOST_SRC 284

@@ -3265,6 +3265,10 @@ static __init void tegra210_periph_clk_init(struct device_node *np,
 
 	/* mc */
 	tegra210_clk_register_mc("mc", "emc");
+
+	clk = clk_register_divider(NULL, "qspi_out", "qspi", 0,
+				   clk_base + 0x6c4, 8, 1, 0, NULL);
+	clks[TEGRA210_CLK_QSPI_OUT] = clk;
 }
 
 static void __init tegra210_pll_init(void __iomem *clk_base,
