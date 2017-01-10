@@ -29,10 +29,13 @@ static const char *tegra_revision_name[TEGRA_REVISION_MAX] = {
 	[TEGRA_REVISION_A01]     = "A01",
 	[TEGRA_REVISION_A01q]    = "A01q",
 	[TEGRA_REVISION_A02]     = "A02",
+	[TEGRA_REVISION_A02p]	 = "A02p",
 	[TEGRA_REVISION_A03]     = "A03",
-	[TEGRA_REVISION_A03p]    = "A03 prime",
+	[TEGRA_REVISION_A03p]    = "A03p",
 	[TEGRA_REVISION_A04]     = "A04",
 	[TEGRA_REVISION_A04p]     = "A04p",
+	[TEGRA_REVISION_QT]     = "QT",
+	[TEGRA_REVISION_SIM]     = "SIM",
 };
 
 static const struct of_device_id car_match[] __initconst = {
