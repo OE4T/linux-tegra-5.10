@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-only
 /*
- * Copyright (c) 2013-2016, NVIDIA CORPORATION, All rights reserved.
+ * Copyright (c) 2013-2017, NVIDIA CORPORATION, All rights reserved.
  *
  * Simple PWM based backlight control, board code has to setup
  * 1) pin configuration so PWM waveforms can output
@@ -327,9 +327,10 @@ static int pwm_backlight_parse_dt(struct device *dev,
 			size = sizeof(*data->levels) * item_counts;
 
 		data->levels = devm_kzalloc(dev, size, GFP_KERNEL);
-		if (!data->levels)
+		if (!data->levels) {
 			ret = -ENOMEM;
 			goto fail_parse_dt;
+		}
 
 		ret = of_property_read_u32_array(bl_node,
 						 "brightness-levels",
