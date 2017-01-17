@@ -2115,6 +2115,13 @@ static void clk_change_rate(struct clk_core *core)
 		(void)clk_calc_new_rates(core, core->new_rate);
 
 	/*
+	 * Allow children to be aware that next set rate operation is triggered
+	 * by downward rate propagation, rather than direct set rate on itself.
+	 */
+	if (core->notifier_count)
+		__clk_notify(core, PRE_SUBTREE_CHANGE, old_rate, core->rate);
+
+	/*
 	 * Use safe iteration, as change_rate can actually swap parents
 	 * for certain clock types.
 	 */
@@ -2124,6 +2131,9 @@ static void clk_change_rate(struct clk_core *core)
 			continue;
 		clk_change_rate(child);
 	}
+
+	if (core->notifier_count)
+		__clk_notify(core, POST_SUBTREE_CHANGE, old_rate, core->rate);
 
 	/* handle the new child who might not be in core->children yet */
 	if (core->new_child)
