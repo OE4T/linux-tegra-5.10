@@ -1427,6 +1427,7 @@ static void handle_cmd_completion(struct xhci_hcd *xhci,
 	cmd = list_first_entry(&xhci->cmd_list, struct xhci_command, cmd_list);
 
 	cancel_delayed_work(&xhci->cmd_timer);
+	pm_runtime_put(xhci->main_hcd->self.controller);
 
 	cmd_comp_code = GET_COMP_CODE(le32_to_cpu(event->status));
 
@@ -1518,6 +1519,7 @@ static void handle_cmd_completion(struct xhci_hcd *xhci,
 		xhci->current_cmd = list_first_entry(&cmd->cmd_list,
 						struct xhci_command, cmd_list);
 		xhci_mod_cmd_timer(xhci, XHCI_CMD_DEFAULT_TIMEOUT);
+		pm_runtime_get(xhci->main_hcd->self.controller);
 	} else if (xhci->current_cmd == cmd) {
 		xhci->current_cmd = NULL;
 	}
@@ -4060,6 +4062,7 @@ static int queue_command(struct xhci_hcd *xhci, struct xhci_command *cmd,
 	/* if there are no other commands queued we start the timeout timer */
 	if (list_empty(&xhci->cmd_list)) {
 		xhci->current_cmd = cmd;
+		pm_runtime_get(xhci->main_hcd->self.controller);
 		xhci_mod_cmd_timer(xhci, XHCI_CMD_DEFAULT_TIMEOUT);
 	}
 
