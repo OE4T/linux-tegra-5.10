@@ -690,6 +690,11 @@ struct ufs_hba {
 	bool is_irq_enabled;
 	enum ufs_ref_clk_freq dev_ref_clk_freq;
 
+	/*
+	 * Enable this quirk to support UFS WLUNS
+	 */
+	#define UFSHCD_QUIRK_ENABLE_WLUNS			UFS_BIT(8)
+
 	unsigned int quirks;	/* Deviations from standard UFSHCI spec. */
 
 	/* Device deviations from standard UFS device spec. */
