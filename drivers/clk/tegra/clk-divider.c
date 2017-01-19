@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-only
 /*
- * Copyright (c) 2012, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2012-2020, NVIDIA CORPORATION.  All rights reserved.
  */
 
 #include <linux/clk.h>
@@ -80,7 +80,10 @@ static int clk_frac_div_determine_rate(struct clk_hw *hw,
 
 	mul = get_mul(divider);
 
-	req->rate =  DIV_ROUND_UP(output_rate * mul, div + mul);
+	if (divider->flags & TEGRA_DIVIDER_ROUND_UP)
+		req->rate =  DIV_ROUND_UP(output_rate * mul, div + mul);
+	else
+		req->rate =  output_rate * mul / (div + mul);
 
 	return 0;
 }
