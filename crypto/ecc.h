@@ -1,6 +1,7 @@
 /*
  * Copyright (c) 2013, Kenneth MacKay
  * All rights reserved.
+ * Copyright (c) 2017-2020, NVIDIA Corporation. All Rights Reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -29,9 +30,9 @@
 /* One digit is u64 qword. */
 #define ECC_CURVE_NIST_P192_DIGITS  3
 #define ECC_CURVE_NIST_P256_DIGITS  4
-#define ECC_MAX_DIGITS             (512 / 64)
+#include <crypto/ecc.h>
 
-#define ECC_DIGITS_TO_BYTES_SHIFT 3
+#include "ecc_curve_defs.h"
 
 /**
  * struct ecc_point - elliptic curve point in affine coordinates
@@ -71,7 +72,7 @@ struct ecc_curve {
 };
 
 /**
- * ecc_is_key_valid() - Validate a given ECDH private key
+ * ecc_is_key_valid() - Validate a given ECC private key
  *
  * @curve_id:		id representing the curve to use
  * @ndigits:		curve's number of digits
@@ -110,25 +111,6 @@ int ecc_gen_privkey(unsigned int curve_id, unsigned int ndigits, u64 *privkey);
  */
 int ecc_make_pub_key(const unsigned int curve_id, unsigned int ndigits,
 		     const u64 *private_key, u64 *public_key);
-
-/**
- * crypto_ecdh_shared_secret() - Compute a shared secret
- *
- * @curve_id:		id representing the curve to use
- * @ndigits:		curve's number of digits
- * @private_key:	private key of part A
- * @public_key:		public key of counterpart B
- * @secret:		buffer for storing the calculated shared secret
- *
- * Note: It is recommended that you hash the result of crypto_ecdh_shared_secret
- * before using it for symmetric encryption or HMAC.
- *
- * Returns 0 if the shared secret was generated successfully, a negative value
- * if an error occurred.
- */
-int crypto_ecdh_shared_secret(unsigned int curve_id, unsigned int ndigits,
-			      const u64 *private_key, const u64 *public_key,
-			      u64 *secret);
 
 /**
  * ecc_is_pubkey_valid_partial() - Partial public key validation
@@ -242,4 +224,4 @@ void ecc_point_mult_shamir(const struct ecc_point *result,
 			   const u64 *x, const struct ecc_point *p,
 			   const u64 *y, const struct ecc_point *q,
 			   const struct ecc_curve *curve);
-#endif
+#endif /* _CRYPTO_ECC_H */

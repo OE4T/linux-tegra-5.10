@@ -2,6 +2,7 @@
 /* ECDH key-agreement protocol
  *
  * Copyright (c) 2016, Intel Corporation
+ * Copyright (c) 2017-2020, NVIDIA Corporation. All Rights Reserved.
  * Authors: Salvator Benedetto <salvatore.benedetto@intel.com>
  */
 
@@ -10,7 +11,8 @@
 #include <crypto/kpp.h>
 #include <crypto/ecdh.h>
 #include <linux/scatterlist.h>
-#include "ecc.h"
+
+#include "ecc_ecdh.h"
 
 struct ecdh_ctx {
 	unsigned int curve_id;
