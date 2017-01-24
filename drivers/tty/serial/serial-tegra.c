@@ -34,6 +34,7 @@
 #include <linux/tty.h>
 #include <linux/tty_flip.h>
 #include <linux/timer.h>
+#include <linux/kthread.h>
 
 #define TEGRA_UART_TYPE				"TEGRA_UART"
 #define TX_EMPTY_STATUS				(UART_LSR_TEMT | UART_LSR_THRE)
@@ -147,6 +148,7 @@ struct tegra_uart_port {
 	struct timer_list			timer;
 	int					timer_timeout_jiffies;
 	bool					enable_rx_buffer_throttle;
+	bool					rt_flush;
 };
 
 static void tegra_uart_start_next_tx(struct tegra_uart_port *tup);
@@ -1557,6 +1559,8 @@ static int tegra_uart_parse_dt(struct platform_device *pdev,
 	if (tup->enable_rx_buffer_throttle)
 		dev_info(&pdev->dev, "Rx buffer throttling enabled\n");
 
+	tup->rt_flush = of_property_read_bool(np, "rt-flush");
+
 	n_entries = of_property_count_u32_elems(np, "nvidia,adjust-baud-rates");
 	if (n_entries > 0) {
 		tup->n_adjustable_baud_rates = n_entries / 3;
@@ -1733,6 +1737,7 @@ static int tegra_uart_probe(struct platform_device *pdev)
 		return ret;
 	u->irq = ret;
 	u->regshift = 2;
+	u->rt_flush = tup->rt_flush;
 	ret = uart_add_one_port(&tegra_uart_driver, u);
 	if (ret < 0) {
 		dev_err(&pdev->dev, "Failed to add uart port, err %d\n", ret);
