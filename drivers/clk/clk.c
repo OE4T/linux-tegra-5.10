@@ -3294,11 +3294,11 @@ static void clk_summary_show_one(struct seq_file *s, struct clk_core *c,
 {
 	int phase;
 
-	seq_printf(s, "%*s%-*s %7d %8d %8d %11lu %10lu ",
+	seq_printf(s, "%*s%-*s %7d %8d %8d %11lu %11lu %10lu ",
 		   level * 3 + 1, "",
-		   30 - level * 3, c->name,
+		   48 - level * 3, c->name,
 		   c->enable_count, c->prepare_count, c->protect_count,
-		   clk_core_get_rate_recalc(c),
+		   clk_core_get_rate_recalc(c), c->req_rate,
 		   clk_core_get_accuracy_recalc(c));
 
 	phase = clk_core_get_phase(c);
@@ -3331,8 +3331,8 @@ static int clk_summary_show(struct seq_file *s, void *data)
 	struct clk_core *c;
 	struct hlist_head **lists = (struct hlist_head **)s->private;
 
-	seq_puts(s, "                                 enable  prepare  protect                                duty\n");
-	seq_puts(s, "   clock                          count    count    count        rate   accuracy phase  cycle\n");
+	seq_puts(s, "                                 enable  prepare  protect                                           duty\n");
+	seq_puts(s, "   clock                          count    count    count        rate    req_rate   accuracy phase  cycle\n");
 	seq_puts(s, "---------------------------------------------------------------------------------------------\n");
 
 	clk_prepare_lock();
@@ -3360,6 +3360,7 @@ static void clk_dump_one(struct seq_file *s, struct clk_core *c, int level)
 	seq_printf(s, "\"prepare_count\": %d,", c->prepare_count);
 	seq_printf(s, "\"protect_count\": %d,", c->protect_count);
 	seq_printf(s, "\"rate\": %lu,", clk_core_get_rate_recalc(c));
+	seq_printf(s, "\"req_rate\": %lu,", c->req_rate);
 	seq_printf(s, "\"min_rate\": %lu,", min_rate);
 	seq_printf(s, "\"max_rate\": %lu,", max_rate);
 	seq_printf(s, "\"accuracy\": %lu,", clk_core_get_accuracy_recalc(c));
