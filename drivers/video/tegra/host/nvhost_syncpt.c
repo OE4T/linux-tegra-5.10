@@ -609,7 +609,7 @@ void nvhost_mutex_unlock(struct nvhost_syncpt *sp, int idx)
 	atomic_dec(&sp->lock_counts[idx]);
 }
 
-#ifdef CONFIG_TEGRA_GRHOST_SYNC
+#if IS_ENABLED(CONFIG_TEGRA_GRHOST_SYNC) && IS_ENABLED(CONFIG_SYNC)
 struct nvhost_sync_timeline *nvhost_syncpt_timeline(struct nvhost_syncpt *sp,
 		int idx)
 {
@@ -1121,7 +1121,7 @@ int nvhost_syncpt_init(struct platform_device *dev,
 		kzalloc(sizeof(atomic_t) * nvhost_syncpt_nb_mlocks(sp),
 			GFP_KERNEL);
 	sp->ref = kzalloc(sizeof(atomic_t) * nb_pts, GFP_KERNEL);
-#ifdef CONFIG_TEGRA_GRHOST_SYNC
+#if defined(CONFIG_TEGRA_GRHOST_SYNC) && defined(CONFIG_SYNC)
 	sp->timeline = kzalloc(sizeof(struct nvhost_sync_timeline *) *
 			nb_pts, GFP_KERNEL);
 	if (!sp->timeline) {
@@ -1194,7 +1194,7 @@ int nvhost_syncpt_init(struct platform_device *dev,
 		sp->last_used_by[i] = NULL;
 		atomic_set(&sp->ref[i], 0);
 
-#ifdef CONFIG_TEGRA_GRHOST_SYNC
+#if defined(CONFIG_TEGRA_GRHOST_SYNC) && defined(CONFIG_SYNC)
 		sp->timeline[i] = nvhost_sync_timeline_create(sp, i);
 		if (!sp->timeline[i]) {
 			err = -ENOMEM;
@@ -1203,7 +1203,7 @@ int nvhost_syncpt_init(struct platform_device *dev,
 #endif
 	}
 
-#ifdef CONFIG_TEGRA_GRHOST_SYNC
+#if defined(CONFIG_TEGRA_GRHOST_SYNC) && defined(CONFIG_SYNC)
 	err = nvhost_syncpt_timeline_attr(host, sp, &sp->invalid_min_attr,
 					  &sp->invalid_max_attr,
 					  &sp->invalid_name_attr,
@@ -1237,7 +1237,7 @@ fail:
 
 static void nvhost_syncpt_deinit_timeline(struct nvhost_syncpt *sp)
 {
-#ifdef CONFIG_TEGRA_GRHOST_SYNC
+#if defined(CONFIG_TEGRA_GRHOST_SYNC) && defined(CONFIG_SYNC)
 	int i;
 	for (i = 0; i < nvhost_syncpt_nb_hw_pts(sp); i++) {
 		if (sp->timeline && sp->timeline[i]) {
@@ -1437,7 +1437,7 @@ EXPORT_SYMBOL(nvhost_syncpt_wait_timeout_ext);
 int nvhost_syncpt_create_fence_single_ext(struct platform_device *dev,
 	u32 id, u32 thresh, const char *name, int *fence_fd)
 {
-#ifdef CONFIG_TEGRA_GRHOST_SYNC
+#if defined(CONFIG_TEGRA_GRHOST_SYNC)
 	struct nvhost_ctrl_sync_fence_info pts = {id, thresh};
 
 	if (id == NVSYNCPT_INVALID) {
@@ -1445,7 +1445,7 @@ int nvhost_syncpt_create_fence_single_ext(struct platform_device *dev,
 		return -EINVAL;
 	}
 
-	return nvhost_sync_create_fence_fd(dev, &pts, 1, name, fence_fd);
+	return nvhost_fence_create_fd(dev, &pts, 1, name, fence_fd);
 #else
 	return -EINVAL;
 #endif

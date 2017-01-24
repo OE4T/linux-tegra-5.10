@@ -52,6 +52,7 @@ struct nvhost_sync_pt;
 enum nvdev_fence_kind;
 struct nvdev_fence;
 struct sync_pt;
+struct dma_fence;
 
 #define NVHOST_MODULE_MAX_CLOCKS		8
 #define NVHOST_MODULE_MAX_SYNCPTS		16
@@ -829,33 +830,124 @@ nvhost_client_request_firmware(struct platform_device *dev,
 }
 #endif
 
+struct nvhost_fence;
+
 #ifdef CONFIG_TEGRA_GRHOST_SYNC
-struct sync_fence *nvhost_sync_create_fence(
+
+int nvhost_fence_foreach_pt(
+	struct nvhost_fence *fence,
+	int (*iter)(struct nvhost_ctrl_sync_fence_info, void *),
+	void *data);
+
+struct nvhost_fence *nvhost_fence_create(
 		struct platform_device *pdev,
 		struct nvhost_ctrl_sync_fence_info *pts,
 		u32 num_pts,
 		const char *name);
+int nvhost_fence_create_fd(
+		struct platform_device *pdev,
+		struct nvhost_ctrl_sync_fence_info *pts,
+		u32 num_pts,
+		const char *name,
+		s32 *fence_fd);
+
+struct nvhost_fence *nvhost_fence_get(int fd);
+int nvhost_fence_num_pts(struct nvhost_fence *fence);
+void nvhost_fence_put(struct nvhost_fence *fence);
+
+#if !defined(CONFIG_SYNC)
+int nvhost_dma_fence_unpack(struct dma_fence *fence, u32 *id, u32 *threshold);
+bool nvhost_dma_fence_is_waitable(struct dma_fence *fence);
+#endif
+
+#if defined(CONFIG_SYNC)
+struct sync_fence *nvhost_sync_fdget(int fd);
+int nvhost_sync_num_pts(struct sync_fence *fence);
+struct sync_fence *nvhost_sync_create_fence(struct platform_device *pdev,
+		struct nvhost_ctrl_sync_fence_info *pts,
+				u32 num_pts, const char *name);
 int nvhost_sync_create_fence_fd(
 		struct platform_device *pdev,
 		struct nvhost_ctrl_sync_fence_info *pts,
 		u32 num_pts,
 		const char *name,
 		s32 *fence_fd);
-struct sync_fence *nvhost_sync_fdget(int fd);
-int nvhost_sync_num_pts(struct sync_fence *fence);
-struct sync_pt *nvhost_sync_pt_from_fence_index(
-		struct sync_fence *fence,
-		u32 index);
-u32 nvhost_sync_pt_id(struct sync_pt *pt);
-u32 nvhost_sync_pt_thresh(struct sync_pt *pt);
 int nvhost_sync_fence_set_name(int fence_fd, const char *name);
+u32 nvhost_sync_pt_id(struct sync_pt *__pt);
+u32 nvhost_sync_pt_thresh(struct sync_pt *__pt);
+struct sync_pt *nvhost_sync_pt_from_fence_index(struct sync_fence *fence,
+                u32 sync_pt_index);
+#endif
 
 #else
-static inline struct sync_fence *nvhost_sync_create_fence(
+
+static inline int nvhost_fence_foreach_pt(
+	struct nvhost_fence *fence,
+	int (*iter)(struct nvhost_ctrl_sync_fence_info, void *d),
+	void *d)
+{
+	return -ENOTSUPP;
+}
+
+static inline struct nvhost_fence *nvhost_create_fence(
 		struct platform_device *pdev,
 		struct nvhost_ctrl_sync_fence_info *pts,
 		u32 num_pts,
 		const char *name)
+{
+	return ERR_PTR(-EINVAL);
+}
+
+static inline int nvhost_fence_create_fd(
+		struct platform_device *pdev,
+		struct nvhost_ctrl_sync_fence_info *pts,
+		u32 num_pts,
+		const char *name,
+		s32 *fence_fd)
+{
+	return -EINVAL;
+}
+
+static inline struct nvhost_fence *nvhost_fence_get(int fd)
+{
+	return NULL;
+}
+
+static inline int nvhost_fence_num_pts(struct nvhost_fence *fence)
+{
+	return 0;
+}
+
+static inline void nvhost_fence_put(struct nvhost_fence *fence)
+{
+}
+
+#if !defined(CONFIG_SYNC)
+static inline int nvhost_dma_fence_unpack(struct dma_fence *fence, u32 *id,
+					  u32 *threshold)
+{
+	return -EINVAL;
+}
+static inline bool nvhost_dma_fence_is_waitable(struct dma_fence *fence)
+{
+	return false;
+}
+#endif
+
+#if defined(CONFIG_SYNC)
+static inline struct sync_fence *nvhost_sync_fdget(int fd)
+{
+	return NULL;
+}
+
+static inline int nvhost_sync_num_pts(struct sync_fence *fence)
+{
+	return 0;
+}
+
+static inline struct sync_fence *nvhost_sync_create_fence(struct platform_device *pdev,
+		struct nvhost_ctrl_sync_fence_info *pts,
+				u32 num_pts, const char *name)
 {
 	return ERR_PTR(-EINVAL);
 }
@@ -870,37 +962,28 @@ static inline int nvhost_sync_create_fence_fd(
 	return -EINVAL;
 }
 
-static inline struct sync_fence *nvhost_sync_fdget(int fd)
-{
-	return NULL;
-}
-
-struct sync_pt *nvhost_sync_pt_from_fence_index(
-		struct sync_fence *fence,
-		u32 index);
-{
-	return NULL;
-}
-
-static inline int nvhost_sync_num_pts(struct sync_fence *fence)
-{
-	return 0;
-}
-
-static inline u32 nvhost_sync_pt_id(struct sync_pt *pt)
-{
-	return NVSYNCPT_INVALID;
-}
-
-static inline u32 nvhost_sync_pt_thresh(struct sync_pt *pt)
-{
-	return 0;
-}
-
 static inline int nvhost_sync_fence_set_name(int fence_fd, const char *name)
 {
 	return -EINVAL;
 }
+
+static inline u32 nvhost_sync_pt_id(struct sync_pt *__pt)
+{
+	return 0;
+}
+
+static inline u32 nvhost_sync_pt_thresh(struct sync_pt *__pt)
+{
+	return 0;
+}
+
+static inline struct sync_pt *nvhost_sync_pt_from_fence_index(
+                struct sync_fence *fence, u32 sync_pt_index)
+{
+	return NULL;
+}
+
+#endif
 
 #endif
 

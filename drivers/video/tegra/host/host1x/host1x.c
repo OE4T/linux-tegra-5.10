@@ -290,7 +290,7 @@ static int nvhost_ioctl_ctrl_sync_fence_create(struct nvhost_ctrl_userctx *ctx,
 		}
 	}
 
-	err = nvhost_sync_create_fence_fd(ctx->dev->dev, pts, args->num_pts,
+	err = nvhost_fence_create_fd(ctx->dev->dev, pts, args->num_pts,
 					  name, &args->fence_fd);
 out:
 	kfree(pts);
@@ -305,7 +305,7 @@ static int nvhost_ioctl_ctrl_sync_fence_set_name(
 	struct nvhost_ctrl_userctx *ctx,
 	struct nvhost_ctrl_sync_fence_name_args *args)
 {
-#ifdef CONFIG_TEGRA_GRHOST_SYNC
+#if IS_ENABLED(CONFIG_TEGRA_GRHOST_SYNC) && IS_ENABLED(CONFIG_SYNC)
 	int err;
 	char name[32];
 	const char __user *args_name =

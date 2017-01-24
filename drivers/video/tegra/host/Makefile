@@ -50,9 +50,14 @@ obj-$(CONFIG_TEGRA_GRHOST) += t186/
 endif
 
 obj-$(CONFIG_TEGRA_GRHOST_NVCSI) += nvcsi/
-obj-$(CONFIG_TEGRA_GRHOST_SYNC) += nvhost_sync.o
 obj-$(CONFIG_ARCH_TEGRA_18x_SOC) += vi/
 obj-$(CONFIG_TEGRA_GRHOST_VHOST) += vhost/
+
+ifeq ($(CONFIG_SYNC),y)
+obj-$(CONFIG_TEGRA_GRHOST_SYNC) += nvhost_sync.o
+else
+obj-$(CONFIG_TEGRA_GRHOST_SYNC) += nvhost_sync_v2.o nvhost_sync_compat.o
+endif
 
 ifdef CONFIG_TEGRA_T19X_GRHOST
 

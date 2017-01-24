@@ -314,50 +314,6 @@ static const struct sync_timeline_ops nvhost_sync_timeline_ops = {
 	.platform_debug_dump = nvhost_sync_platform_debug_dump
 };
 
-#if LINUX_VERSION_CODE < KERNEL_VERSION(3, 18, 0)
-struct sync_fence *nvhost_sync_fdget(int fd)
-{
-	struct sync_fence *fence = sync_fence_fdget(fd);
-	struct sync_pt *spt;
-	struct sync_timeline *t;
-
-	if (!fence)
-		return fence;
-
-	list_for_each_entry(spt, &fence->pt_list_head, pt_list) {
-		t = spt->parent;
-		if (t->ops != &nvhost_sync_timeline_ops) {
-			sync_fence_put(fence);
-			return NULL;
-		}
-	}
-
-	return fence;
-}
-EXPORT_SYMBOL(nvhost_sync_fdget);
-
-int nvhost_sync_num_pts(struct sync_fence *fence)
-{
-	int num = 0;
-	struct list_head *pos;
-
-	list_for_each(pos, &fence->pt_list_head) {
-		num++;
-	}
-	return num;
-}
-EXPORT_SYMBOL(nvhost_sync_num_pts);
-
-struct sync_pt *nvhost_sync_pt_from_fence_index(struct sync_fence *fence,
-		u32 sync_pt_index)
-{
-	/* Not supported */
-	return NULL;
-}
-EXPORT_SYMBOL(nvhost_sync_pt_from_fence_index);
-
-#else /* LINUX_VERSION_CODE */
-
 struct sync_fence *nvhost_sync_fdget(int fd)
 {
 	struct sync_fence *fence = sync_fence_fdget(fd);
@@ -391,29 +347,32 @@ struct sync_fence *nvhost_sync_fdget(int fd)
 }
 EXPORT_SYMBOL(nvhost_sync_fdget);
 
+struct sync_pt *nvhost_sync_pt_from_fence_index(struct sync_fence *fence,
+                u32 sync_pt_index)
+{
+        if (sync_pt_index < fence->num_fences) {
+#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 13, 0)
+                struct dma_fence *pt = fence->cbs[sync_pt_index].sync_pt;
+#else
+                struct fence *pt = fence->cbs[sync_pt_index].sync_pt;
+#endif
+                return sync_pt_from_fence(pt);
+        } else {
+                return NULL;
+        }
+}
+EXPORT_SYMBOL(nvhost_sync_pt_from_fence_index);
+
+struct nvhost_fence *nvhost_fence_get(int fd)
+{
+	return (struct nvhost_fence *)nvhost_sync_fdget(fd);
+}
+
 int nvhost_sync_num_pts(struct sync_fence *fence)
 {
 	return fence->num_fences;
 }
 EXPORT_SYMBOL(nvhost_sync_num_pts);
-
-struct sync_pt *nvhost_sync_pt_from_fence_index(struct sync_fence *fence,
-		u32 sync_pt_index)
-{
-	if (sync_pt_index < fence->num_fences) {
-#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 13, 0)
-		struct dma_fence *pt = fence->cbs[sync_pt_index].sync_pt;
-#else
-		struct fence *pt = fence->cbs[sync_pt_index].sync_pt;
-#endif
-		return sync_pt_from_fence(pt);
-	} else {
-		return NULL;
-	}
-}
-EXPORT_SYMBOL(nvhost_sync_pt_from_fence_index);
-
-#endif /* end if LINUX_VERSION_CODE */
 
 u32 nvhost_sync_pt_id(struct sync_pt *__pt)
 {
@@ -428,6 +387,31 @@ u32 nvhost_sync_pt_thresh(struct sync_pt *__pt)
 	return pt->thresh;
 }
 EXPORT_SYMBOL(nvhost_sync_pt_thresh);
+
+int nvhost_fence_foreach_pt(
+	struct nvhost_fence *fence,
+	int (*iter)(struct nvhost_ctrl_sync_fence_info, void *),
+	void *data)
+{
+	struct nvhost_ctrl_sync_fence_info info;
+	struct sync_fence *f = (struct sync_fence *)fence;
+	int err;
+	int i;
+
+	for (i = 0; i < f->num_fences; ++i) {
+		struct sync_pt *pt = sync_pt_from_fence(f->cbs[i].sync_pt);
+		struct nvhost_sync_pt *npt = to_nvhost_sync_pt(pt);
+
+		info.id = npt->obj->id;
+		info.thresh = npt->thresh;
+
+		err = iter(info, data);
+		if (err)
+			return err;
+	}
+
+	return 0;
+}
 
 /* Public API */
 
@@ -511,6 +495,14 @@ int nvhost_sync_create_fence_fd(struct platform_device *pdev,
 }
 EXPORT_SYMBOL(nvhost_sync_create_fence_fd);
 
+int nvhost_fence_create_fd(struct platform_device *pdev,
+		struct nvhost_ctrl_sync_fence_info *pts,
+		u32 num_pts, const char *name, int *fence_fd)
+{
+    return nvhost_sync_create_fence_fd(pdev, pts, num_pts, name, fence_fd);
+}
+EXPORT_SYMBOL(nvhost_fence_create_fd);
+
 struct sync_fence *nvhost_sync_create_fence(struct platform_device *pdev,
 		struct nvhost_ctrl_sync_fence_info *pts,
 		u32 num_pts, const char *name)
@@ -583,3 +575,15 @@ err:
 }
 EXPORT_SYMBOL(nvhost_sync_create_fence);
 
+struct nvhost_fence *nvhost_fence_create(struct platform_device *pdev,
+		struct nvhost_ctrl_sync_fence_info *pts,
+		u32 num_pts, const char *name)
+{
+	return (struct nvhost_fence *)
+		nvhost_sync_create_fence(pdev, pts, num_pts, name);
+}
+
+void nvhost_fence_put(struct nvhost_fence *fence)
+{
+	sync_fence_put((struct sync_fence *)fence);
+}

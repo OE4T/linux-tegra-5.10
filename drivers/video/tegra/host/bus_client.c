@@ -746,7 +746,7 @@ static int submit_deliver_fences(struct nvhost_submit_args *args,
 			pts[i].thresh = get_job_fence(job, i);
 		}
 
-		err = nvhost_sync_create_fence_fd(ctx->pdev,
+		err = nvhost_fence_create_fd(ctx->pdev,
 				pts, args->num_syncpt_incrs, "fence",
 				&args->fence);
 		kfree(pts);

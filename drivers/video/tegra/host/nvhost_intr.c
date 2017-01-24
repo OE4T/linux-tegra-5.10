@@ -26,6 +26,10 @@
 #include "nvhost_sync.h"
 #endif
 
+#if IS_ENABLED(CONFIG_SYNC_FILE) && !IS_ENABLED(CONFIG_SYNC)
+#include <linux/dma-fence.h>
+#endif
+
 #include <linux/interrupt.h>
 #include <linux/slab.h>
 #include <linux/irq.h>
@@ -209,9 +213,16 @@ static void action_wakeup_interruptible(struct nvhost_waitlist *waiter)
 static void action_signal_sync_pt(struct nvhost_waitlist *waiter)
 {
 #ifdef CONFIG_TEGRA_GRHOST_SYNC
+#if IS_ENABLED(CONFIG_SYNC)
 	struct nvhost_sync_pt *pt = waiter->data;
 	ktime_t time = timespec_to_ktime(waiter->isr_recv.ts);
 	nvhost_sync_pt_signal(pt, ktime_to_ns(time));
+#elif IS_ENABLED(CONFIG_SYNC_FILE)
+	struct dma_fence *fence = waiter->data;
+
+	dma_fence_signal(fence);
+	dma_fence_put(fence);
+#endif
 #endif
 }
 
