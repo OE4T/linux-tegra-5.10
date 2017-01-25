@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-only
 /*
- * Copyright (c) 2012, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2012-2020, NVIDIA CORPORATION.  All rights reserved.
  */
 
 #include <linux/kernel.h>
@@ -9,6 +9,7 @@
 #include <linux/err.h>
 #include <linux/slab.h>
 #include <linux/clk-provider.h>
+#include <soc/tegra/tegra-dvfs.h>
 
 #include "clk.h"
 
@@ -141,6 +142,16 @@ static const struct clk_ops tegra_clk_super_mux_ops = {
 	.restore_context = clk_super_mux_restore_context,
 };
 
+static int clk_super_prepare(struct clk_hw *hw)
+{
+	return tegra_dvfs_set_rate(hw->clk, clk_hw_get_rate(hw));
+}
+
+static void clk_super_unprepare(struct clk_hw *hw)
+{
+	tegra_dvfs_set_rate(hw->clk, 0);
+}
+
 static int clk_super_determine_rate(struct clk_hw *hw,
 				    struct clk_rate_request *req)
 {
@@ -195,6 +206,8 @@ const struct clk_ops tegra_clk_super_ops = {
 	.determine_rate = clk_super_determine_rate,
 	.recalc_rate = clk_super_recalc_rate,
 	.restore_context = clk_super_restore_context,
+	.prepare = clk_super_prepare,
+	.unprepare = clk_super_unprepare,
 };
 
 struct clk *tegra_clk_register_super_mux(const char *name,

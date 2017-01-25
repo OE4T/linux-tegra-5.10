@@ -10,6 +10,7 @@
 #include <linux/clk.h>
 #include <linux/clk-provider.h>
 #include <linux/clk/tegra.h>
+#include <soc/tegra/tegra-dvfs.h>
 
 #include "clk.h"
 
@@ -1094,6 +1095,16 @@ static void tegra_clk_pll_restore_context(struct clk_hw *hw)
 		clk_pll_enable(hw);
 }
 
+static int clk_pll_prepare(struct clk_hw *hw)
+{
+	return tegra_dvfs_set_rate(hw->clk, clk_hw_get_rate(hw));
+}
+
+static void clk_pll_unprepare(struct clk_hw *hw)
+{
+	tegra_dvfs_set_rate(hw->clk, 0);
+}
+
 const struct clk_ops tegra_clk_pll_ops = {
 	.is_enabled = clk_pll_is_enabled,
 	.enable = clk_pll_enable,
@@ -1102,6 +1113,8 @@ const struct clk_ops tegra_clk_pll_ops = {
 	.determine_rate = clk_pll_determine_rate,
 	.set_rate = clk_pll_set_rate,
 	.restore_context = tegra_clk_pll_restore_context,
+	.prepare = clk_pll_prepare,
+	.unprepare = clk_pll_unprepare,
 };
 
 const struct clk_ops tegra_clk_plle_ops = {
@@ -1109,6 +1122,8 @@ const struct clk_ops tegra_clk_plle_ops = {
 	.is_enabled = clk_pll_is_enabled,
 	.disable = clk_pll_disable,
 	.enable = clk_plle_enable,
+	.prepare = clk_pll_prepare,
+	.unprepare = clk_pll_unprepare,
 };
 
 /*
@@ -2090,6 +2105,8 @@ static const struct clk_ops tegra_clk_pllxc_ops = {
 	.recalc_rate = clk_pll_recalc_rate,
 	.determine_rate = clk_pll_ramp_determine_rate,
 	.set_rate = clk_pllxc_set_rate,
+	.prepare = clk_pll_prepare,
+	.unprepare = clk_pll_unprepare,
 };
 
 static const struct clk_ops tegra_clk_pllc_ops = {
@@ -2099,6 +2116,8 @@ static const struct clk_ops tegra_clk_pllc_ops = {
 	.recalc_rate = clk_pll_recalc_rate,
 	.determine_rate = clk_pll_ramp_determine_rate,
 	.set_rate = clk_pllc_set_rate,
+	.prepare = clk_pll_prepare,
+	.unprepare = clk_pll_unprepare,
 };
 
 static const struct clk_ops tegra_clk_pllre_ops = {
@@ -2108,6 +2127,8 @@ static const struct clk_ops tegra_clk_pllre_ops = {
 	.recalc_rate = clk_pllre_recalc_rate,
 	.determine_rate = clk_pllre_determine_rate,
 	.set_rate = clk_pllre_set_rate,
+	.prepare = clk_pll_prepare,
+	.unprepare = clk_pll_unprepare,
 };
 
 static const struct clk_ops tegra_clk_plle_tegra114_ops = {
@@ -2115,6 +2136,8 @@ static const struct clk_ops tegra_clk_plle_tegra114_ops = {
 	.enable = clk_plle_tegra114_enable,
 	.disable = clk_plle_tegra114_disable,
 	.recalc_rate = clk_pll_recalc_rate,
+	.prepare = clk_pll_prepare,
+	.unprepare = clk_pll_unprepare,
 };
 
 static const struct clk_ops tegra_clk_pllu_tegra114_ops = {
@@ -2412,6 +2435,8 @@ static const struct clk_ops tegra_clk_pllss_ops = {
 	.determine_rate = clk_pll_ramp_determine_rate,
 	.set_rate = clk_pllxc_set_rate,
 	.restore_context = tegra_clk_pll_restore_context,
+	.prepare = clk_pll_prepare,
+	.unprepare = clk_pll_unprepare,
 };
 
 static void _pllss_set_defaults(struct tegra_clk_pll *pll)
