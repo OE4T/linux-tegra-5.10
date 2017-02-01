@@ -5063,6 +5063,12 @@ out:
 	return err;
 }
 
+static inline int ufshcd_get_ref_clk_value(struct ufs_hba *hba, u32 *value)
+{
+	return ufshcd_query_attr(hba, UPIU_QUERY_OPCODE_READ_ATTR,
+			QUERY_ATTR_IDN_REF_CLK_FREQ, 0, 0, value);
+}
+
 /**
  * ufshcd_enable_auto_bkops - Allow device managed BKOPS
  * @hba: per-adapter instance
@@ -7496,6 +7502,7 @@ static int ufshcd_probe_hba(struct ufs_hba *hba, bool async)
 	ufshcd_set_ufs_dev_active(hba);
 	ufshcd_force_reset_auto_bkops(hba);
 	hba->wlun_dev_clr_ua = true;
+	ufshcd_get_ref_clk_value(hba, &hba->init_prefetch_data.ref_clk_freq);
 
 	/* Gear up to HS gear if supported */
 	if (hba->max_pwr_info.is_valid) {

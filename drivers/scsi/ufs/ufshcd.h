@@ -426,6 +426,17 @@ struct ufs_clk_scaling {
 	bool is_suspended;
 };
 
+/**
+ * struct ufs_init_prefetch - contains data that is pre-fetched once during
+ * initialization
+ * @icc_level: icc level which was read during initialization
+ * @ref_clk_freq: ref clk freq which was read during initialization
+ */
+struct ufs_init_prefetch {
+	u32 icc_level;
+	u32 ref_clk_freq;
+};
+
 #define UFS_ERR_REG_HIST_LENGTH 8
 /**
  * struct ufs_err_reg_hist - keeps history of errors
