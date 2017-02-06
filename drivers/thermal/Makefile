@@ -4,6 +4,7 @@
 #
 
 GCOV_PROFILE := y
+subdir-ccflags-y += -Werror
 
 obj-$(CONFIG_THERMAL)		+= thermal_sys.o
 thermal_sys-y			+= thermal_core.o thermal_sysfs.o \
