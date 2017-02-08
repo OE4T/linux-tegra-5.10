@@ -8,7 +8,7 @@
 
 #include <linux/of.h>
 #include <linux/of_clk.h>
-
+#include<asm/io.h>
 /*
  * flags used across common struct clk.  these flags should only affect the
  * top-level framework.  custom flags for dealing with hardware specifics
@@ -1385,5 +1385,17 @@ static inline int of_clk_detect_critical(struct device_node *np, int index,
 #endif /* CONFIG_OF */
 
 void clk_gate_restore_context(struct clk_hw *hw);
+
+#ifdef CONFIG_DEBUG_FS
+struct dentry *__clk_debugfs_add_file(struct clk *clk, char *name,
+		umode_t mode, void *data, const struct file_operations *fops);
+#else
+static inline struct dentry *__clk_debugfs_add_file(struct clk *clk, char *name,
+		umode_t mode, void *data, const struct file_operations *fops)
+{ return NULL; }
+static inline struct dentry *clk_debugfs_add_file(struct clk_hw *hw, char *name,
+		umode_t mode, void *data, const struct file_operations *fops)
+{ return NULL; }
+#endif
 
 #endif /* CLK_PROVIDER_H */
