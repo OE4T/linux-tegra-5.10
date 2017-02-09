@@ -923,6 +923,10 @@ struct tegra_pto_table {
 	u32 presel_mask;
 };
 void tegra_register_ptos(struct tegra_pto_table *ptodefs, int num_pto_defs);
+void tegra_register_pto(struct clk *clk, struct tegra_pto_table *ptodef);
+
+/* add some extra nodes to debugfs */
+void tegra_clk_debugfs_add(struct clk *clk);
 
 /* Combined read fence with delay */
 #define fence_udelay(delay, reg)	\
