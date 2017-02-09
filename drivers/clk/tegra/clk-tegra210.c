@@ -3476,8 +3476,10 @@ static __init void tegra210_periph_clk_init(struct device_node *np,
 	tegra_periph_clk_init(clk_base, pmc_base, tegra210_clks, pllp_params);
 
 	/* emc */
-	clk = tegra210_clk_register_emc(np, clk_base);
-	clks[TEGRA210_CLK_EMC] = clk;
+	if (!t210b01) {
+		clk = tegra210_clk_register_emc(np, clk_base);
+		clks[TEGRA210_CLK_EMC] = clk;
+	}
 
 	/* mc */
 	tegra210_clk_register_mc("mc", "emc");
@@ -3540,6 +3542,9 @@ static void __init tegra210_pll_init(void __iomem *clk_base,
 	clk_register_clkdev(clk, "pll_c3", NULL);
 	clks[TEGRA210_CLK_PLL_C3] = clk;
 
+	if (t210b01)
+		goto skip_pllms;
+
 	/* PLLM */
 	clk = tegra_clk_register_pllm("pll_m", "osc", clk_base, pmc,
 			     CLK_SET_RATE_GATE, &pll_m_params, NULL);
@@ -3564,6 +3569,7 @@ static void __init tegra210_pll_init(void __iomem *clk_base,
 	clk_register_clkdev(clk, "pll_mb_ud", NULL);
 	clks[TEGRA210_CLK_PLL_MB_UD] = clk;
 
+skip_pllms:
 	/* PLLP_UD */
 	clk = clk_register_fixed_factor(NULL, "pll_p_ud", "pll_p",
 					0, 1, 1);
