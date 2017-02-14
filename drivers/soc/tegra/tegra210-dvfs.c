@@ -75,9 +75,6 @@ static struct dvfs_rail tegra210_dvfs_rail_vdd_core = {
 	.is_ready = false,
 };
 
-static struct dvfs_therm_limits gpu_therm_floors[MAX_THERMAL_LIMITS];
-static struct dvfs_therm_limits gpu_therm_caps[MAX_THERMAL_LIMITS];
-
 static struct dvfs_rail tegra210_dvfs_rail_vdd_gpu = {
 	.reg_id = "vdd-gpu",
 	.max_millivolts = 1300,
@@ -90,8 +87,6 @@ static struct dvfs_rail tegra210_dvfs_rail_vdd_gpu = {
 		.bin_uv = 10000, /* 10mV */
 	},
 	.in_band_pm = true,
-	.therm_floors = gpu_therm_floors,
-	.therm_caps = gpu_therm_caps,
 };
 
 static struct dvfs_rail *tegra210_dvfs_rails[] = {
@@ -1483,7 +1478,7 @@ static int init_gpu_rail_thermal_scaling(struct device_node *node,
 	int thermal_ranges;
 	struct device_node *cdev_node;
 
-	cdev_node = of_find_compatible_node(node, NULL,
+	cdev_node = of_find_compatible_node(NULL, NULL,
 				"nvidia,tegra210-rail-scaling-cdev");
 
 	rail->vts_of_node = cdev_node;
@@ -1492,7 +1487,7 @@ static int init_gpu_rail_thermal_scaling(struct device_node *node,
 		return 1;
 
 	thermal_ranges = of_parse_dvfs_rail_cdev_trips(cdev_node,
-		&rail->vts_trips_table[0], &rail->therm_floors[0],
+		&rail->vts_trips_table[0], &rail->vts_floors_table[0],
 		&rail->alignment, true);
 
 	if (thermal_ranges <= 0)
@@ -1654,7 +1649,7 @@ static int set_gpu_dvfs_data(struct device_node *node, unsigned long max_freq,
 	 * Apply fixed thermal floor for each temperature range
 	 */
 	for (j = 0; j < thermal_ranges; j++) {
-		mv = max(min_mv, rail->therm_floors_table[j]);
+		mv = max(min_mv, (int)rail->vts_floors_table[j].mv);
 		gpu_vmin[j] = tegra_round_voltage(mv, align, true);
 	}
 
