@@ -2323,7 +2323,7 @@ static int tegra_soctherm_probe(struct platform_device *pdev)
 							 &tegra_of_thermal_ops);
 		if (IS_ERR(z)) {
 			err = PTR_ERR(z);
-			dev_err(&pdev->dev, "failed to register sensor: %d\n",
+			dev_info(&pdev->dev, "failed to register sensor: %d\n",
 				err);
 			continue;
 		}
