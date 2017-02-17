@@ -397,7 +397,7 @@ static int hda_tegra_create(struct snd_card *card,
 	if (err < 0)
 		return err;
 
-	chip->bus.needs_damn_long_delay = 1;
+	chip->bus.needs_damn_long_delay = 0;
 
 	err = snd_device_new(card, SNDRV_DEV_LOWLEVEL, chip, &ops);
 	if (err < 0) {
