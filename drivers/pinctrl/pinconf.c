@@ -367,6 +367,72 @@ static int pinconf_groups_show(struct seq_file *s, void *what)
 DEFINE_SHOW_ATTRIBUTE(pinconf_pins);
 DEFINE_SHOW_ATTRIBUTE(pinconf_groups);
 
+#define MAX_NAME_LEN 15
+
+struct dbg_cfg {
+	enum pinctrl_map_type map_type;
+	char dev_name[MAX_NAME_LEN + 1];
+	char state_name[MAX_NAME_LEN + 1];
+	char pin_name[MAX_NAME_LEN + 1];
+};
+
+/*
+ * Goal is to keep this structure as global in order to simply read the
+ * pinconf-config file after a write to check config is as expected
+ */
+static struct dbg_cfg pinconf_dbg_conf;
+
+static int pinconf_pin_prop_show(struct seq_file *s, void *d)
+{
+	struct pinctrl_dev *pctldev = s->private;
+	const struct pinctrl_ops *pctlops = pctldev->desc->pctlops;
+	unsigned int ngroups = pctlops->get_groups_count(pctldev);
+	struct dbg_cfg *dbg = &pinconf_dbg_conf;
+	unsigned int selector = 0;
+	unsigned int l;
+
+	while (selector < ngroups) {
+		const char *gname = pctlops->get_group_name(pctldev, selector);
+
+		l = strlen(gname);
+		if (strncasecmp(gname, dbg->pin_name, l) == 0) {
+			seq_printf(s, "PinName: %s", dbg->pin_name);
+			seq_puts(s, "Pin Properties:");
+			pinconf_dump_group(pctldev, s, selector, gname);
+			seq_puts(s, "\n");
+			return 0;
+		}
+		selector++;
+	}
+
+	seq_puts(s, "Incorrect Pin Name!\n");
+	return 0;
+}
+
+static ssize_t pinconf_pin_prop_write(struct file *s,
+		const char __user *user_buf, size_t count, loff_t *ppos)
+{
+	struct dbg_cfg *dbg = &pinconf_dbg_conf;
+
+	if (copy_from_user(dbg->pin_name, user_buf, sizeof(dbg->pin_name)))
+		return -EFAULT;
+	return count;
+}
+
+static int pinconf_pin_prop_open(struct inode *inode, struct file *file)
+{
+	return single_open(file, pinconf_pin_prop_show, inode->i_private);
+}
+
+static const struct file_operations pinconf_get_pin_prop_fops = {
+	.open = pinconf_pin_prop_open,
+	.write = pinconf_pin_prop_write,
+	.read = seq_read,
+	.llseek = seq_lseek,
+	.release = single_release,
+	.owner = THIS_MODULE,
+};
+
 void pinconf_init_device_debugfs(struct dentry *devroot,
 			 struct pinctrl_dev *pctldev)
 {
@@ -374,6 +440,8 @@ void pinconf_init_device_debugfs(struct dentry *devroot,
 			    devroot, pctldev, &pinconf_pins_fops);
 	debugfs_create_file("pinconf-groups", S_IFREG | S_IRUGO,
 			    devroot, pctldev, &pinconf_groups_fops);
+	debugfs_create_file("pinconf-pin-prop", 0664,
+			    devroot, pctldev, &pinconf_get_pin_prop_fops);
 }
 
 #endif
