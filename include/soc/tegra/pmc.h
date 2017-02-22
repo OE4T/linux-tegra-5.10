@@ -12,6 +12,7 @@
 
 #include <linux/reboot.h>
 #include <linux/usb/ch9.h>
+#include <linux/pinctrl/pinctrl.h>
 
 #include <soc/tegra/pm.h>
 
@@ -274,6 +275,14 @@ static inline enum tegra_suspend_mode tegra_pmc_get_suspend_mode(void)
 	return TEGRA_SUSPEND_NONE;
 }
 #endif
+
+void tegra_io_pad_pinconf_dbg_show(struct pinctrl_dev *pctldev,
+				struct seq_file *s, unsigned int pin);
+int tegra_pmc_nvcsi_brick_getstatus(const char *pad_name);
+int tegra_pmc_nvcsi_ab_brick_dpd_enable(void);
+int tegra_pmc_nvcsi_cdef_brick_dpd_enable(void);
+int tegra_pmc_nvcsi_ab_brick_dpd_disable(void);
+int tegra_pmc_nvcsi_cdef_brick_dpd_disable(void);
 
 int tegra_pmc_save_se_context_buffer_address(u32 add);
 u32 tegra_pmc_get_se_context_buffer_address(void);

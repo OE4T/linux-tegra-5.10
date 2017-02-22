@@ -71,6 +71,10 @@ properties:
     $ref: /schemas/types.yaml#/definitions/flag
     description: Core power request active-high.
 
+  nvidia,core-pwr-req-active-high:
+    $ref: /schemas/types.yaml#/definitions/flag
+    description: Same as nvidia,core-power-req-active-high.
+
   nvidia,sys-clock-req-active-high:
     $ref: /schemas/types.yaml#/definitions/flag
     description: System clock request active-high.

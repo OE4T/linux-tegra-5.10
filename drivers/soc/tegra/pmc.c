@@ -727,6 +727,18 @@ static struct tegra_pmc *pmc = &(struct tegra_pmc) {
 	.suspend_mode = TEGRA_SUSPEND_NONE,
 };
 
+static const char * const nvcsi_ab_bricks_pads[] = {
+	"csia",
+	"csib",
+};
+
+static const char * const nvcsi_cdef_bricks_pads[] = {
+	"csic",
+	"csid",
+	"csie",
+	"csif",
+};
+
 static inline struct tegra_powergate *
 to_powergate(struct generic_pm_domain *domain)
 {
@@ -2044,6 +2056,39 @@ static void tegra_io_pad_unprepare(struct tegra_pmc *pmc)
 		tegra_pmc_writel(pmc, DPD_SAMPLE_DISABLE, DPD_SAMPLE);
 }
 
+static const struct tegra_io_pad_soc *tegra_pmc_get_pad_by_name(
+				const char *pad_name)
+{
+	unsigned int i;
+
+	for (i = 0; i < pmc->soc->num_io_pads; ++i) {
+		if (!strcmp(pad_name, pmc->soc->io_pads[i].name))
+			return &pmc->soc->io_pads[i];
+	}
+
+	return NULL;
+}
+
+static int tegra_pmc_get_dpd_masks_by_names(const char * const *io_pads,
+					    int n_iopads, u32 *mask)
+{
+	const struct tegra_io_pad_soc *pad;
+	int i;
+
+	*mask = 0;
+
+	for (i = 0; i < n_iopads; i++) {
+		pad = tegra_pmc_get_pad_by_name(io_pads[i]);
+		if (!pad) {
+			dev_err(pmc->dev, "IO pad %s not found\n", io_pads[i]);
+			return -EINVAL;
+		}
+		*mask |= BIT(pad->dpd % 32);
+	}
+
+	return 0;
+}
+
 /**
  * tegra_io_pad_power_enable() - enable power to I/O pad
  * @id: Tegra I/O pad ID for which to enable power
@@ -2467,6 +2512,98 @@ void tegra_pmc_enter_suspend_mode(enum tegra_suspend_mode mode)
 }
 #endif
 
+int tegra_pmc_nvcsi_brick_getstatus(const char *pad_name)
+{
+	const struct tegra_io_pad_soc *pad;
+	u32 value;
+
+	pad = tegra_pmc_get_pad_by_name(pad_name);
+	if (!pad) {
+		dev_err(pmc->dev, "IO Pad %s not found\n", pad_name);
+		return -EINVAL;
+	}
+
+	if (pad->dpd < 32)
+		value = tegra_pmc_readl(pmc, pmc->soc->regs->dpd_status);
+	else
+		value = tegra_pmc_readl(pmc, pmc->soc->regs->dpd2_status);
+
+	return !!(value & BIT(pad->dpd % 32));
+}
+EXPORT_SYMBOL(tegra_pmc_nvcsi_brick_getstatus);
+
+int tegra_pmc_nvcsi_ab_brick_dpd_enable(void)
+{
+	u32 pad_mask;
+	int ret;
+
+	ret = tegra_pmc_get_dpd_masks_by_names(nvcsi_ab_bricks_pads,
+					ARRAY_SIZE(nvcsi_ab_bricks_pads),
+					&pad_mask);
+	if (ret < 0)
+		return ret;
+
+	tegra_pmc_writel(pmc, IO_DPD_REQ_CODE_ON | pad_mask,
+			pmc->soc->regs->dpd_req);
+
+	return 0;
+}
+EXPORT_SYMBOL(tegra_pmc_nvcsi_ab_brick_dpd_enable);
+
+int tegra_pmc_nvcsi_ab_brick_dpd_disable(void)
+{
+	u32 pad_mask;
+	int ret;
+
+	ret = tegra_pmc_get_dpd_masks_by_names(nvcsi_ab_bricks_pads,
+					ARRAY_SIZE(nvcsi_ab_bricks_pads),
+					&pad_mask);
+	if (ret < 0)
+		return ret;
+
+	tegra_pmc_writel(pmc, IO_DPD_REQ_CODE_OFF | pad_mask,
+			pmc->soc->regs->dpd_req);
+
+	return 0;
+}
+EXPORT_SYMBOL(tegra_pmc_nvcsi_ab_brick_dpd_disable);
+
+int tegra_pmc_nvcsi_cdef_brick_dpd_enable(void)
+{
+	u32 pad_mask;
+	int ret;
+
+	ret = tegra_pmc_get_dpd_masks_by_names(nvcsi_cdef_bricks_pads,
+					ARRAY_SIZE(nvcsi_cdef_bricks_pads),
+					&pad_mask);
+	if (ret < 0)
+		return ret;
+
+	tegra_pmc_writel(pmc, IO_DPD_REQ_CODE_ON | pad_mask,
+			pmc->soc->regs->dpd2_req);
+
+	return 0;
+}
+EXPORT_SYMBOL(tegra_pmc_nvcsi_cdef_brick_dpd_enable);
+
+int tegra_pmc_nvcsi_cdef_brick_dpd_disable(void)
+{
+	u32 pad_mask = 0;
+	int ret;
+
+	ret = tegra_pmc_get_dpd_masks_by_names(nvcsi_cdef_bricks_pads,
+					ARRAY_SIZE(nvcsi_cdef_bricks_pads),
+					&pad_mask);
+	if (ret < 0)
+		return ret;
+
+	tegra_pmc_writel(pmc, IO_DPD_REQ_CODE_OFF | pad_mask,
+			pmc->soc->regs->dpd2_req);
+
+	return 0;
+}
+EXPORT_SYMBOL(tegra_pmc_nvcsi_cdef_brick_dpd_disable);
+
 /* PMC Bootrom commands */
 static int tegra_pmc_parse_bootrom_cmd(struct device *dev,
 				       struct device_node *np,
@@ -2516,8 +2653,12 @@ static int tegra_pmc_parse_bootrom_cmd(struct device *dev,
 			     &bcommands->command_retry_count);
 	of_property_read_u32(np, "nvidia,delay-between-commands-us",
 			     &bcommands->delay_between_commands);
-	of_property_read_u32(np, "nvidia,wait-before-start-bus-clear-us",
-			     &bcommands->wait_before_bus_clear);
+
+	ret = of_property_read_u32(np, "nvidia,wait-before-start-bus-clear-us",
+				&bcommands->wait_before_bus_clear);
+	if (ret < 0)
+		of_property_read_u32(np, "nvidia,wait-start-bus-clear-us",
+				&bcommands->wait_before_bus_clear);
 
 	nblock = 0;
 	for_each_available_child_of_node(np, child) {
@@ -2932,8 +3073,10 @@ static int tegra_pmc_parse_dt(struct tegra_pmc *pmc, struct device_node *np)
 	pmc->core_off_time = value;
 
 	pmc->corereq_high = of_property_read_bool(np,
-				"nvidia,core-power-req-active-high");
-
+				"nvidia,core-pwr-req-active-high");
+	if (!pmc->corereq_high)
+		pmc->corereq_high = of_property_read_bool(np,
+					"nvidia,core-power-req-active-high");
 	pmc->sysclkreq_high = of_property_read_bool(np,
 				"nvidia,sys-clock-req-active-high");
 
@@ -3196,6 +3339,7 @@ static int tegra_io_pad_pinconf_set(struct pinctrl_dev *pctl_dev,
 static const struct pinconf_ops tegra_io_pad_pinconf_ops = {
 	.pin_config_get = tegra_io_pad_pinconf_get,
 	.pin_config_set = tegra_io_pad_pinconf_set,
+	.pin_config_dbg_show = tegra_io_pad_pinconf_dbg_show,
 	.is_generic = true,
 };
 
@@ -3203,6 +3347,50 @@ static struct pinctrl_desc tegra_pmc_pctl_desc = {
 	.pctlops = &tegra_io_pad_pinctrl_ops,
 	.confops = &tegra_io_pad_pinconf_ops,
 };
+
+#ifdef CONFIG_DEBUG_FS
+void tegra_io_pad_pinconf_dbg_show(struct pinctrl_dev *pctldev,
+					struct seq_file *s,
+					unsigned int pin)
+{
+	unsigned long config = 0;
+	u16 param, param_val;
+	int ret;
+	int i;
+
+	for (i = 0; i < tegra_pmc_pctl_desc.num_custom_params; ++i) {
+		param = tegra_pmc_pctl_desc.custom_params[i].param;
+		config = pinconf_to_config_packed(param, 0);
+		ret = tegra_io_pad_pinconf_get(pctldev, pin, &config);
+		if (ret < 0)
+			continue;
+		param_val = pinconf_to_config_argument(config);
+		switch (param) {
+		case PIN_CONFIG_POWER_SOURCE:
+			if (param_val == TEGRA_IO_PAD_VOLTAGE_1V2)
+				seq_puts(s, "\n\t\tPad voltage 1200000uV");
+			else if (param_val == TEGRA_IO_PAD_VOLTAGE_1V8)
+				seq_puts(s, "\n\t\tPad voltage 1800000uV");
+			else
+				seq_puts(s, "\n\t\tPad voltage 3300000uV");
+			break;
+
+		case PIN_CONFIG_DYNAMIC_VOLTAGE_SWITCH:
+			seq_printf(s, "\n\t\tSwitching voltage: %s",
+				 (param_val) ? "Enable" : "Disable");
+			break;
+		default:
+			break;
+		}
+	}
+}
+#else
+void tegra_io_pad_pinconf_dbg_show(struct pinctrl_dev *pctldev,
+				struct seq_file *s,
+				unsigned int pin)
+{
+}
+#endif
 
 static int tegra_pmc_pinctrl_init(struct tegra_pmc *pmc)
 {
@@ -4768,7 +4956,8 @@ static const u8 tegra210_cpu_powergates[] = {
 	_pad(TEGRA_IO_PAD_USB1,        10,       UINT_MAX, "usb1", UINT_MAX),        \
 	_pad(TEGRA_IO_PAD_USB2,        11,       UINT_MAX, "usb2", UINT_MAX),        \
 	_pad(TEGRA_IO_PAD_USB3,        18,       UINT_MAX, "usb3", UINT_MAX),        \
-	_pad(TEGRA_IO_PAD_USB_BIAS,    12,       UINT_MAX, "usb-bias", UINT_MAX)
+	_pad(TEGRA_IO_PAD_USB_BIAS,    12,       UINT_MAX, "usb-bias", UINT_MAX),    \
+	_pad(TEGRA_IO_PAD_SYS_DDC,     UINT_MAX, 0,        "sys", UINT_MAX)
 
 static const struct tegra_io_pad_soc tegra210_io_pads[] = {
 	TEGRA210_IO_PAD_TABLE(TEGRA_IO_PAD)
@@ -5774,6 +5963,50 @@ skip_pad_config:
 	return 0;
 }
 
+#ifdef CONFIG_DEBUG_FS
+static int io_pad_show(struct seq_file *s, void *data)
+{
+	unsigned int i;
+
+	for (i = 0; i < pmc->soc->num_io_pads; i++) {
+		const struct tegra_io_pad_soc *pad = &pmc->soc->io_pads[i];
+		seq_printf(s, "%16s: id = %d, dpd = %2d, v = %2d io_power = %2d ",
+			pad->name, pad->id, pad->dpd, pad->voltage,
+			pad->io_power);
+		seq_printf(s, "bds = %d volt_reg = %d dpd_reg_index = %d ",
+			pad->bdsdmem_cfc, pad->volt_reg, pad->reg_index);
+	}
+
+	return 0;
+}
+
+static int io_pad_open(struct inode *inode, struct file *file)
+{
+	return single_open(file, io_pad_show, inode->i_private);
+}
+
+static const struct file_operations io_pad_fops = {
+	.open = io_pad_open,
+	.read = seq_read,
+	.llseek = seq_lseek,
+	.release = single_release,
+};
+
+static void tegra_pmc_io_pad_debugfs_init(struct device *dev)
+{
+	struct dentry *d;
+
+	d = debugfs_create_file("tegra-pmc-io-pads", S_IRUGO, NULL, NULL,
+				&io_pad_fops);
+	if (!d)
+		dev_err(dev, "Error in creating the debugFS for pmc-io-pad\n");
+}
+#else
+static void tegra_pmc_io_pad_debugfs_init(struct device *dev)
+{
+}
+#endif
+
 static int tegra_pmc_iopower_probe(struct platform_device *pdev)
 {
 	struct device *dev = &pdev->dev;
@@ -5803,6 +6036,7 @@ static int tegra_pmc_iopower_probe(struct platform_device *pdev)
 	}
 
 	dev_info(dev, "NO_IOPOWER setting 0x%x\n", pwrio_disabled_mask);
+	tegra_pmc_io_pad_debugfs_init(dev);
 	return 0;
 }
 
