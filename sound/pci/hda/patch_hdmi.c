@@ -59,6 +59,11 @@ MODULE_PARM_DESC(static_hdmi_pcm, "Don't restrict PCM parameters per ELD info");
 #define is_tegra21x(codec)  ((codec)->core.vendor_id == 0x10de0029)
 #define is_tegra_18x_sor0(codec)  ((codec)->core.vendor_id == 0x10de002d)
 #define is_tegra_18x_sor1(codec)  ((codec)->core.vendor_id == 0x10de002e)
+#define is_tegra_19x_sor2(codec)  ((codec)->core.vendor_id == 0x10de002f)
+#define is_tegra_19x_sor3(codec)  ((codec)->core.vendor_id == 0x10de0030)
+#define is_tegra_hdmi(codec) (is_tegra21x(codec) \
+				|| is_tegra_18x_sor0(codec) || is_tegra_18x_sor1(codec) \
+				|| is_tegra_19x_sor2(codec) || is_tegra_19x_sor3(codec))
 
 struct hdmi_spec_per_cvt {
 	hda_nid_t cvt_nid;
@@ -212,7 +217,7 @@ struct dp_audio_infoframe {
 	u8 type; /* 0x84 */
 	u8 len;  /* 0x1b */
 	u8 ver;  /* 0x11 << 2 */
-#ifdef CONFIG_SND_HDA_TEGRA
+#if IS_ENABLED(CONFIG_SND_HDA_TEGRA)
 	u8 checksum;
 #endif
 	u8 CC02_CT47;	/* match with HDMI infoframe from this on */
@@ -890,10 +895,7 @@ static int hdmi_pin_hbr_setup(struct hda_codec *codec, hda_nid_t pin_nid,
 
 	/* Assuming the HW supports HBR for Tegra HDMI */
 	if ((snd_hda_query_pin_caps(codec, pin_nid) & AC_PINCAP_HBR) ||
-		((codec)->core.vendor_id == 0x10de0029) ||
-		((codec)->core.vendor_id == 0x10de002d) ||
-		((codec)->core.vendor_id == 0x10de002e) ||
-		((codec)->core.vendor_id == 0x10de0028)) {
+		is_tegra_hdmi(codec)) {
 		pinctl = snd_hda_codec_read(codec, pin_nid, 0,
 					    AC_VERB_GET_PIN_WIDGET_CONTROL, 0);
 
@@ -2264,8 +2266,7 @@ static int generic_hdmi_init_per_pins(struct hda_codec *codec)
 	struct hdmi_spec *spec = codec->spec;
 	int pin_idx;
 
-	if ((is_tegra21x(codec) || is_tegra_18x_sor0(codec)
-			|| is_tegra_18x_sor1(codec)))
+	if (is_tegra_hdmi(codec))
 		snd_hda_codec_write(codec, 4, 0,
 				    AC_VERB_SET_DIGI_CONVERT_1, 0x11);
 
