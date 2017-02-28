@@ -279,4 +279,7 @@ unsigned long tegra_pmc_sata_pwrgt_get(void);
 void tegra_pmc_write_bootrom_command(u32 command_offset, unsigned long val);
 void tegra_pmc_reset_system(void);
 
+int tegra_pmc_pwm_blink_enable(void);
+int tegra_pmc_pwm_blink_disable(void);
+int tegra_pmc_pwm_blink_config(int duty_ns, int period_ns);
 #endif /* __SOC_TEGRA_PMC_H__ */

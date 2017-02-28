@@ -2699,6 +2699,58 @@ static int tegra_pmc_init_boorom_cmds(struct device *dev)
 	return 0;
 }
 
+int tegra_pmc_pwm_blink_enable(void)
+{
+	tegra_pmc_register_update(PMC_DPD_PADS_ORIDE,
+				BIT(PMC_DPD_PADS_ORIDE_BLINK),
+				BIT(PMC_DPD_PADS_ORIDE_BLINK));
+
+	tegra_pmc_register_update(PMC_CNTRL, BIT(PMC_CNTRL_BLINK_EN),
+				  BIT(PMC_CNTRL_BLINK_EN));
+	return 0;
+}
+EXPORT_SYMBOL(tegra_pmc_pwm_blink_enable);
+
+int tegra_pmc_pwm_blink_disable(void)
+{
+	tegra_pmc_register_update(PMC_CNTRL, BIT(PMC_CNTRL_BLINK_EN),
+				  0);
+
+	tegra_pmc_register_update(PMC_DPD_PADS_ORIDE,
+				BIT(PMC_DPD_PADS_ORIDE_BLINK), 0);
+	return 0;
+}
+EXPORT_SYMBOL(tegra_pmc_pwm_blink_disable);
+
+int tegra_pmc_pwm_blink_config(int duty_ns, int period_ns)
+{
+	int data_on;
+	int data_off;
+	u32 val;
+
+	tegra_pmc_register_update(PMC_CNTRL,
+				BIT(PMC_CNTRL_BLINK_EN), 0);
+	udelay(64);
+
+	/* 16 x 32768 Hz = 1000000000/(32768*16) = 488281ns */
+	data_on = (duty_ns - 30517) / 488281;
+	data_off = (period_ns - duty_ns - 30517) / 488281;
+
+	if (data_off > 0xFFFF)
+		data_off = 0xFFFF;
+
+	if (data_on > 0x7FFF)
+		data_on = 0x7FFF;
+
+	val = (data_off << 16) | BIT(15) | data_on;
+	tegra_pmc_writel(pmc, val, PMC_BLINK_TIMER);
+	udelay(64);
+	tegra_pmc_register_update(PMC_CNTRL,
+				BIT(PMC_CNTRL_BLINK_EN), 1);
+	return 0;
+}
+EXPORT_SYMBOL(tegra_pmc_pwm_blink_config);
+
 static int tegra_pmc_parse_dt(struct tegra_pmc *pmc, struct device_node *np)
 {
 	u32 value, values[2];
