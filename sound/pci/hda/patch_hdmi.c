@@ -56,6 +56,10 @@ MODULE_PARM_DESC(static_hdmi_pcm, "Don't restrict PCM parameters per ELD info");
 #define is_cherryview(codec) ((codec)->core.vendor_id == 0x80862883)
 #define is_valleyview_plus(codec) (is_valleyview(codec) || is_cherryview(codec))
 
+#define is_tegra21x(codec)  ((codec)->core.vendor_id == 0x10de0029)
+#define is_tegra_18x_sor0(codec)  ((codec)->core.vendor_id == 0x10de002d)
+#define is_tegra_18x_sor1(codec)  ((codec)->core.vendor_id == 0x10de002e)
+
 struct hdmi_spec_per_cvt {
 	hda_nid_t cvt_nid;
 	int assigned;
@@ -884,7 +888,12 @@ static int hdmi_pin_hbr_setup(struct hda_codec *codec, hda_nid_t pin_nid,
 {
 	int pinctl, new_pinctl;
 
-	if (snd_hda_query_pin_caps(codec, pin_nid) & AC_PINCAP_HBR) {
+	/* Assuming the HW supports HBR for Tegra HDMI */
+	if ((snd_hda_query_pin_caps(codec, pin_nid) & AC_PINCAP_HBR) ||
+		((codec)->core.vendor_id == 0x10de0029) ||
+		((codec)->core.vendor_id == 0x10de002d) ||
+		((codec)->core.vendor_id == 0x10de002e) ||
+		((codec)->core.vendor_id == 0x10de0028)) {
 		pinctl = snd_hda_codec_read(codec, pin_nid, 0,
 					    AC_VERB_GET_PIN_WIDGET_CONTROL, 0);
 
@@ -1542,11 +1551,11 @@ static bool hdmi_present_sense_via_verbs(struct hdmi_spec_per_pin *per_pin,
 		if (spec->ops.pin_get_eld(codec, pin_nid, eld->eld_buffer,
 						     &eld->eld_size) < 0)
 			eld->eld_valid = false;
-		else {
-			if (snd_hdmi_parse_eld(codec, &eld->info, eld->eld_buffer,
+
+		if (snd_hdmi_parse_eld(codec, &eld->info, eld->eld_buffer,
 						    eld->eld_size) < 0)
-				eld->eld_valid = false;
-		}
+			eld->eld_valid = false;
+
 		if (!eld->eld_valid && repoll)
 			do_repoll = true;
 	}
@@ -1972,6 +1981,7 @@ static int hdmi_pcm_close(struct hda_pcm_stream *hinfo,
 		if (snd_BUG_ON(pcm_idx < 0))
 			return -EINVAL;
 		cvt_idx = cvt_nid_to_cvt_index(codec, hinfo->nid);
+
 		if (snd_BUG_ON(cvt_idx < 0))
 			return -EINVAL;
 		per_cvt = get_cvt(spec, cvt_idx);
@@ -2253,6 +2263,11 @@ static int generic_hdmi_init_per_pins(struct hda_codec *codec)
 {
 	struct hdmi_spec *spec = codec->spec;
 	int pin_idx;
+
+	if ((is_tegra21x(codec) || is_tegra_18x_sor0(codec)
+			|| is_tegra_18x_sor1(codec)))
+		snd_hda_codec_write(codec, 4, 0,
+				    AC_VERB_SET_DIGI_CONVERT_1, 0x11);
 
 	for (pin_idx = 0; pin_idx < spec->num_pins; pin_idx++) {
 		struct hdmi_spec_per_pin *per_pin = get_pin(spec, pin_idx);

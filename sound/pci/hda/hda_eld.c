@@ -246,6 +246,7 @@ static void hdmi_update_short_audio_desc(struct hda_codec *codec,
 	a->max_bitrate = 0;
 
 	a->format = GRAB_BITS(buf, 0, 3, 4);
+	codec->recv_dec_cap |= (1 << a->format);
 	switch (a->format) {
 	case AUDIO_CODING_TYPE_REF_STREAM_HEADER:
 		codec_info(codec, "HDMI: audio coding type 0 not expected\n");
@@ -256,6 +257,10 @@ static void hdmi_update_short_audio_desc(struct hda_codec *codec,
 		for (i = 0; i < 3; i++)
 			if (val & (1 << i))
 				a->sample_bits |= cea_sample_sizes[i + 1];
+
+		codec->max_pcm_channels =
+				a->channels > codec->max_pcm_channels ?
+				a->channels : codec->max_pcm_channels;
 		break;
 
 	case AUDIO_CODING_TYPE_AC3:
@@ -347,6 +352,8 @@ int snd_hdmi_parse_eld(struct hda_codec *codec, struct parsed_hdmi_eld *e,
 	} else
 		strlcpy(e->monitor_name, buf + ELD_FIXED_BYTES, mnl + 1);
 
+	codec->recv_dec_cap = 0;
+	codec->max_pcm_channels = 0;
 	for (i = 0; i < e->sad_count; i++) {
 		if (ELD_FIXED_BYTES + mnl + 3 * (i + 1) > size) {
 			codec_info(codec, "HDMI: out of range SAD %d\n", i);
