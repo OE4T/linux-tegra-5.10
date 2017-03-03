@@ -1738,7 +1738,7 @@ int nvadsp_os_start(void)
 	priv.num_start++;
 #if defined(CONFIG_TEGRA_ADSP_FILEIO)
 	if (!drv_data->adspff_init) {
-		ret = adspff_init();
+		ret = adspff_init(priv.pdev);
 		if (!ret)
 			drv_data->adspff_init = true;
 	}

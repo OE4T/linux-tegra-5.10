@@ -245,7 +245,7 @@ int adsp_cpustat_exit(struct platform_device *pdev);
 #endif
 
 #if defined(CONFIG_TEGRA_ADSP_FILEIO)
-int adspff_init(void);
+int adspff_init(struct platform_device *pdev);
 void adspff_exit(void);
 #endif
 
