@@ -221,6 +221,8 @@ struct tegra_i2c_hw_feature {
 	const struct i2c_adapter_quirks *quirks;
 	bool supports_bus_clear;
 	bool has_reg_write_buffering;
+	bool has_slcg_support;
+	bool has_hs_mode_support;
 	bool has_apb_dma;
 	u8 tlow_std_mode;
 	u8 thigh_std_mode;
@@ -230,7 +232,6 @@ struct tegra_i2c_hw_feature {
 	u32 setup_hold_time_fast_fast_plus_mode;
 	u32 setup_hold_time_hs_mode;
 	bool has_interface_timing_reg;
-	bool has_slcg_support;
 };
 
 /**
@@ -1432,6 +1433,7 @@ static const struct tegra_i2c_hw_feature tegra20_i2c_hw = {
 	.supports_bus_clear = false,
 	.has_reg_write_buffering = true,
 	.has_slcg_support = false,
+	.has_hs_mode_support = false,
 	.has_apb_dma = true,
 	.tlow_std_mode = 0x4,
 	.thigh_std_mode = 0x2,
@@ -1461,6 +1463,7 @@ static const struct tegra_i2c_hw_feature tegra30_i2c_hw = {
 	.supports_bus_clear = false,
 	.has_reg_write_buffering = true,
 	.has_slcg_support = false,
+	.has_hs_mode_support = false,
 	.has_apb_dma = true,
 	.tlow_std_mode = 0x4,
 	.thigh_std_mode = 0x2,
@@ -1490,6 +1493,7 @@ static const struct tegra_i2c_hw_feature tegra114_i2c_hw = {
 	.supports_bus_clear = true,
 	.has_reg_write_buffering = true,
 	.has_slcg_support = false,
+	.has_hs_mode_support = false,
 	.has_apb_dma = true,
 	.tlow_std_mode = 0x4,
 	.thigh_std_mode = 0x2,
@@ -1519,6 +1523,7 @@ static const struct tegra_i2c_hw_feature tegra124_i2c_hw = {
 	.supports_bus_clear = true,
 	.has_reg_write_buffering = true,
 	.has_slcg_support = false,
+	.has_hs_mode_support = false,
 	.has_apb_dma = true,
 	.tlow_std_mode = 0x4,
 	.thigh_std_mode = 0x2,
@@ -1548,6 +1553,7 @@ static const struct tegra_i2c_hw_feature tegra210_i2c_hw = {
 	.supports_bus_clear = true,
 	.has_reg_write_buffering = true,
 	.has_slcg_support = false,
+	.has_hs_mode_support = false,
 	.has_apb_dma = true,
 	.tlow_std_mode = 0x4,
 	.thigh_std_mode = 0x2,
@@ -1577,6 +1583,7 @@ static const struct tegra_i2c_hw_feature tegra186_i2c_hw = {
 	.supports_bus_clear = true,
 	.has_reg_write_buffering = false,
 	.has_slcg_support = true,
+	.has_hs_mode_support = false,
 	.has_apb_dma = false,
 	.tlow_std_mode = 0x4,
 	.thigh_std_mode = 0x3,
@@ -1606,6 +1613,7 @@ static const struct tegra_i2c_hw_feature tegra194_i2c_hw = {
 	.supports_bus_clear = true,
 	.has_reg_write_buffering = false,
 	.has_slcg_support = true,
+	.has_hs_mode_support = true,
 	.has_apb_dma = false,
 	.tlow_std_mode = 0x8,
 	.thigh_std_mode = 0x7,
@@ -1687,6 +1695,17 @@ static int tegra_i2c_probe(struct platform_device *pdev)
 	i2c_dev->hw = of_device_get_match_data(&pdev->dev);
 	i2c_dev->is_dvc = of_device_is_compatible(pdev->dev.of_node,
 						  "nvidia,tegra20-i2c-dvc");
+	if ((i2c_dev->bus_clk_rate == I2C_HS_MODE) &&
+			!i2c_dev->hw->has_hs_mode_support) {
+		dev_info(i2c_dev->dev, "HS mode not supported\n");
+		i2c_dev->bus_clk_rate = 100000; /* default clock rate */
+	}
+
+	if (i2c_dev->is_multimaster_mode &&
+			!i2c_dev->hw->has_multi_master_mode) {
+		dev_info(i2c_dev->dev, "multi-master mode not supported\n");
+		i2c_dev->is_multimaster_mode = false;
+	}
 	i2c_dev->adapter.quirks = i2c_dev->hw->quirks;
 	i2c_dev->dma_buf_size = i2c_dev->adapter.quirks->max_write_len +
 				I2C_PACKET_HEADER_SIZE;
