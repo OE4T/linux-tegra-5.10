@@ -61,6 +61,8 @@ static inline int of_mm_gpiochip_add(struct device_node *np,
 }
 extern void of_mm_gpiochip_remove(struct of_mm_gpio_chip *mm_gc);
 
+extern int of_gpiochip_suspend(struct gpio_chip *gc);
+
 #else /* CONFIG_OF_GPIO */
 
 /* Drivers may not strictly depend on the GPIO support, so let them link. */
@@ -71,6 +73,11 @@ static inline int of_get_named_gpio_flags(struct device_node *np,
 		*flags = 0;
 
 	return -ENOSYS;
+}
+
+static inline int of_gpiochip_suspend(struct gpio_chip *gc)
+{
+	return 0;
 }
 
 #endif /* CONFIG_OF_GPIO */
@@ -143,11 +150,6 @@ static inline int of_get_named_gpio(struct device_node *np,
 static inline int of_get_gpio(struct device_node *np, int index)
 {
 	return of_get_gpio_flags(np, index, NULL);
-}
-
-static inline int of_gpiochip_suspend(struct gpio_chip *gc)
-{
-	return 0;
 }
 
 #endif /* __LINUX_OF_GPIO_H */
