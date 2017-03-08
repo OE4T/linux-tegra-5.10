@@ -10,7 +10,9 @@
 #include <linux/irq.h>
 #include <linux/module.h>
 #include <linux/of_device.h>
+#include <linux/gpio/consumer.h>
 #include <linux/platform_device.h>
+#include <linux/of_gpio.h>
 
 #include <dt-bindings/gpio/tegra186-gpio.h>
 #include <dt-bindings/gpio/tegra194-gpio.h>
@@ -173,6 +175,13 @@ struct tegra_gpio_soc {
 	int gte_npins;
 };
 
+struct tegra_gpio_saved_register {
+	bool restore_needed;
+	u32 val;
+	u32 conf;
+	u32 out;
+};
+
 struct tegra_gpio {
 	struct gpio_chip gpio;
 	struct irq_chip intc;
@@ -186,6 +195,7 @@ struct tegra_gpio {
 	void __iomem *secure;
 	void __iomem *base;
 	void __iomem *gte_regs;
+	struct tegra_gpio_saved_register *gpio_rval;
 };
 
 /*************************** GTE related code ********************/
@@ -195,7 +205,6 @@ struct tegra_gte_info {
 	uint32_t slice;
 	uint32_t slice_bit;
 };
-
 
 /* Structure to maintain all information about the AON GPIOs
  * that can be supported
@@ -471,6 +480,30 @@ static int tegra186_gpio_direction_output(struct gpio_chip *chip,
 	writel(value, base + TEGRA186_GPIO_ENABLE_CONFIG);
 
 	return 0;
+}
+
+static int tegra_gpio_suspend_configure(struct gpio_chip *chip, unsigned offset,
+					enum gpiod_flags dflags)
+{
+	struct tegra_gpio *gpio = gpiochip_get_data(chip);
+	struct tegra_gpio_saved_register *regs;
+	void __iomem *base;
+
+	base = tegra186_gpio_get_base(gpio, offset);
+	if (WARN_ON(base == NULL))
+		return -EINVAL;
+
+	regs = &gpio->gpio_rval[offset];
+	regs->conf = readl(base + TEGRA186_GPIO_ENABLE_CONFIG),
+	regs->out = readl(base + TEGRA186_GPIO_OUTPUT_CONTROL),
+	regs->val = readl(base + TEGRA186_GPIO_OUTPUT_VALUE),
+	regs->restore_needed = true;
+
+	if (dflags & GPIOD_FLAGS_BIT_DIR_OUT)
+		return tegra186_gpio_direction_output(chip, offset,
+					dflags & GPIOD_FLAGS_BIT_DIR_VAL);
+
+	return tegra186_gpio_direction_input(chip, offset);
 }
 
 static int tegra_gpio_timestamp_control(struct gpio_chip *chip, unsigned offset,
@@ -846,6 +879,11 @@ static int tegra186_gpio_probe(struct platform_device *pdev)
 	if (IS_ERR(gpio->base))
 		return PTR_ERR(gpio->base);
 
+	gpio->gpio_rval = devm_kzalloc(&pdev->dev, gpio->soc->num_ports * 8 *
+				      sizeof(*gpio->gpio_rval), GFP_KERNEL);
+	if (!gpio->gpio_rval)
+		return -ENOMEM;
+
 	np = pdev->dev.of_node;
 	if (!np) {
 		dev_err(&pdev->dev, "No valid device node, probe failed\n");
@@ -899,6 +937,7 @@ static int tegra186_gpio_probe(struct platform_device *pdev)
 	gpio->gpio.set_config = tegra186_gpio_set_config;
 	gpio->gpio.timestamp_control = tegra_gpio_timestamp_control;
 	gpio->gpio.timestamp_read = tegra_gpio_timestamp_read;
+	gpio->gpio.suspend_configure = tegra_gpio_suspend_configure;
 
 	gpio->gpio.base = -1;
 
@@ -975,6 +1014,50 @@ static int tegra186_gpio_probe(struct platform_device *pdev)
 
 	return 0;
 }
+
+#ifdef CONFIG_PM_SLEEP
+static int tegra_gpio_resume_early(struct device *dev)
+{
+	struct tegra_gpio *gpio = dev_get_drvdata(dev);
+	struct tegra_gpio_saved_register *regs;
+	unsigned offset = 0U;
+	void __iomem *base;
+	int i;
+
+	base = tegra186_gpio_get_base(gpio, offset);
+	if (WARN_ON(base == NULL))
+		return -EINVAL;
+
+	for (i = 0; i < gpio->gpio.ngpio; i++) {
+		regs = &gpio->gpio_rval[i];
+		if (!regs->restore_needed)
+			continue;
+
+		regs->restore_needed = false;
+
+		writel(regs->val,  base + TEGRA186_GPIO_OUTPUT_VALUE);
+		writel(regs->out,  base + TEGRA186_GPIO_OUTPUT_CONTROL);
+		writel(regs->conf, base + TEGRA186_GPIO_ENABLE_CONFIG);
+	}
+
+	return 0;
+}
+
+static int tegra_gpio_suspend_late(struct device *dev)
+{
+	struct tegra_gpio *gpio = dev_get_drvdata(dev);
+
+	return of_gpiochip_suspend(&gpio->gpio);
+}
+
+static const struct dev_pm_ops tegra_gpio_pm = {
+	.suspend_late = tegra_gpio_suspend_late,
+	.resume_early = tegra_gpio_resume_early,
+};
+#define TEGRA_GPIO_PM		&tegra_gpio_pm
+#else
+#define TEGRA_GPIO_PM		NULL
+#endif
 
 static int tegra186_gpio_remove(struct platform_device *pdev)
 {
@@ -1137,6 +1220,7 @@ static struct platform_driver tegra186_gpio_driver = {
 	.driver = {
 		.name = "tegra186-gpio",
 		.of_match_table = tegra186_gpio_of_match,
+		.pm = TEGRA_GPIO_PM,
 	},
 	.probe = tegra186_gpio_probe,
 	.remove = tegra186_gpio_remove,
