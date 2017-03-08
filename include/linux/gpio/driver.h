@@ -372,6 +372,10 @@ struct gpio_chip {
 	int			(*set_config)(struct gpio_chip *chip,
 					      unsigned offset,
 					      unsigned long config);
+	int			(*suspend_configure)(struct gpio_chip *chip,
+						     unsigned offset,
+						     enum gpiod_flags dflags);
+
 	int			(*to_irq)(struct gpio_chip *chip,
 						unsigned offset);
 
