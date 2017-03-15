@@ -28,7 +28,6 @@
 #include <linux/slab.h>
 #include <linux/workqueue.h>
 #include <linux/gpio.h>
-#include <linux/extcon.h>
 #include <linux/of.h>
 #include <linux/of_gpio.h>
 #include <linux/spinlock.h>
@@ -62,6 +61,8 @@ struct gpio_extcon_platform_data {
 	int cable_detect_delay;
 	int init_state;
 	bool wakeup_source;
+	int cable_id;
+	bool has_extcon_none_state;
 };
 
 struct gpio_extcon_info {
@@ -75,8 +76,9 @@ struct gpio_extcon_info {
 	int *gpio_curr_state;
 	struct gpio_extcon_platform_data *pdata;
 	struct wakeup_source wake_lock;
-	int cable_detect_jiffies;
 	bool wakeup_source;
+	int last_cstate;
+	unsigned int wakeup_cables;
 };
 
 static void gpio_extcon_scan_work(struct work_struct *work)
@@ -87,10 +89,16 @@ static void gpio_extcon_scan_work(struct work_struct *work)
 					struct gpio_extcon_info, work);
 	int gstate = 0;
 	int i;
-	unsigned int id = EXTCON_NONE;
+
+	/* skip update as it's already done in state_store through sysfs */
+	if (gpex->last_cstate != gpex->edev->state) {
+		gpex->last_cstate = gpex->edev->state;
+		return;
+	}
 
 	for (i = 0; i < gpex->pdata->n_gpio; ++i) {
 		state = gpio_get_value_cansleep(gpex->pdata->gpios[i].gpio);
+
 		if (state)
 			gstate |= BIT(i);
 	}
@@ -98,7 +106,7 @@ static void gpio_extcon_scan_work(struct work_struct *work)
 	for (i = 0; i < gpex->pdata->n_cable_states; ++i) {
 		if (gpex->pdata->cable_states[i].gstate == gstate) {
 			cstate = gpex->pdata->cable_states[i].cstate;
-			id = cstate;
+			gpex->pdata->cable_id = cstate;
 			break;
 		}
 	}
@@ -108,8 +116,46 @@ static void gpio_extcon_scan_work(struct work_struct *work)
 		cstate = 0;
 	}
 
-	dev_info(gpex->dev, "Cable state %d\n", cstate);
-	extcon_set_state_sync(gpex->edev, id, cstate);
+	/*
+	 * Do default/general cable state overwrite
+	 *
+	 * The rule is:
+	 * When last cable state is either EXTCON_USB_HOST or EXTCON_USB,
+	 * any change of cable state should only be "disconnect" state
+	 * (EXTCON_NONE).
+	 *
+	 * We override the state change only when the last state is host cable
+	 * (EXTCON_USB_HOST). Because when ID becomes floating, VBUS is still
+	 * supplied by host mode driver so VBUS detection GPIO will indicate
+	 * we switch to device mode (EXTCON_USB), which is not possible
+	 * physically and logically. We should move to disconnect state instead.
+	 *
+	 * Possible state transition:
+	 *
+	 * (host mode) <-> (disconnect/no cable) <-> (device mode)
+	 *
+	 * In cstate value:
+	 * 0x2 <-> 0x0 <-> 0x1
+	 */
+	if (gpex->last_cstate != cstate) {
+		if (gpex->pdata->has_extcon_none_state &&
+		    gpex->last_cstate == EXTCON_USB_HOST) {
+			cstate = EXTCON_NONE;
+			gpex->pdata->cable_id = cstate;
+		}
+
+		if (gpex->last_cstate)
+			extcon_set_state_sync(gpex->edev, gpex->last_cstate, 0);
+
+		gpex->last_cstate = cstate;
+	}
+
+	dev_info(gpex->dev, "Cable state:%d, cable id:%d\n",
+			!!cstate, gpex->pdata->cable_id);
+	if (!gpex->pdata->cable_id)
+		return;
+
+	extcon_set_state_sync(gpex->edev, gpex->pdata->cable_id, !!cstate);
 }
 
 static void gpio_extcon_notifier_timer(struct timer_list *t)
@@ -118,7 +164,8 @@ static void gpio_extcon_notifier_timer(struct timer_list *t)
 
 	/*take wakelock to complete cable detection */
 	if (!(gpex->wake_lock.active))
-		__pm_wakeup_event(&gpex->wake_lock, gpex->cable_detect_jiffies);
+		__pm_wakeup_event(&gpex->wake_lock,
+				  gpex->pdata->cable_detect_delay);
 
 	schedule_delayed_work(&gpex->work, gpex->gpio_scan_work_jiffies);
 }
@@ -150,16 +197,15 @@ static struct gpio_extcon_platform_data *of_get_platform_data(
 	if (!pdata)
 		return ERR_PTR(-ENOMEM);
 
-	of_property_read_string(np, "label", &pdata->name);
-	if (!pdata->name)
-		of_property_read_string(np, "extcon-gpio,name", &pdata->name);
-	if (!pdata->name)
+	ret = of_property_read_string(np, "label", &pdata->name);
+	if ((ret < 0) || !pdata->name)
+		ret = of_property_read_string(np, "extcon-gpio,name", &pdata->name);
+	if ((ret < 0) || !pdata->name)
 		pdata->name = np->name;
 
 	n_gpio = of_gpio_named_count(np, "gpios");
 	if (n_gpio < 1) {
-		ret = of_property_read_u32(np, "cable-connected-on-boot",
-					   &pval);
+		ret = of_property_read_u32(np, "cable-connected-on-boot", &pval);
 		pdata->init_state = (!ret) ? pval : -1;
 		goto parse_cable_names;
 	}
@@ -223,8 +269,11 @@ static struct gpio_extcon_platform_data *of_get_platform_data(
 
 		ret = of_property_read_u32_index(np, "extcon-gpio,cable-states",
 				count * 2 + 1, &pval);
-		if (!ret)
+		if (!ret) {
 			pdata->cable_states[count].cstate = pval;
+			if (pval == EXTCON_NONE)
+				pdata->has_extcon_none_state = true;
+		}
 	}
 
 parse_cable_names:
@@ -260,8 +309,7 @@ static int gpio_extcon_probe(struct platform_device *pdev)
 	if (!pdata && pdev->dev.of_node) {
 		pdata = of_get_platform_data(pdev);
 		if (IS_ERR(pdata)) {
-			dev_err(&pdev->dev, "extcon probe failed: %ld\n",
-				PTR_ERR(pdata));
+			dev_err(&pdev->dev, "extcon probe failed: %ld\n", PTR_ERR(pdata));
 			return PTR_ERR(pdata);
 		}
 	}
@@ -280,7 +328,7 @@ static int gpio_extcon_probe(struct platform_device *pdev)
 
 	gpex->dev = &pdev->dev;
 	gpex->edev = devm_extcon_dev_allocate(&pdev->dev,
-					      pdata->out_cable_name);
+						pdata->out_cable_name);
 	if (IS_ERR(gpex->edev)) {
 		dev_err(&pdev->dev, "failed to allocate extcon device\n");
 		return -ENOMEM;
@@ -290,8 +338,6 @@ static int gpio_extcon_probe(struct platform_device *pdev)
 	gpex->debounce_jiffies = msecs_to_jiffies(pdata->debounce);
 	gpex->gpio_scan_work_jiffies = msecs_to_jiffies(
 						pdata->wait_for_gpio_scan);
-	gpex->cable_detect_jiffies =
-			msecs_to_jiffies(pdata->cable_detect_delay);
 	gpex->wakeup_source = pdata->wakeup_source;
 	gpex->pdata = pdata;
 	spin_lock_init(&gpex->lock);
@@ -369,12 +415,15 @@ static int gpio_extcon_remove(struct platform_device *pdev)
 static int gpio_extcon_suspend(struct device *dev)
 {
 	struct gpio_extcon_info *gpex = dev_get_drvdata(dev);
-	int i;
+	int i, ret;
 
 	cancel_delayed_work_sync(&gpex->work);
 	if (device_may_wakeup(gpex->dev)) {
-		for (i = 0; i < gpex->pdata->n_gpio; ++i)
-			enable_irq_wake(gpex->pdata->gpios[i].irq);
+		for (i = 0; i < gpex->pdata->n_gpio; ++i) {
+			ret = enable_irq_wake(gpex->pdata->gpios[i].irq);
+			if (!ret)
+				gpex->wakeup_cables |= BIT(i);
+		}
 	}
 
 	return 0;
@@ -386,8 +435,13 @@ static int gpio_extcon_resume(struct device *dev)
 	int i;
 
 	if (device_may_wakeup(gpex->dev)) {
-		for (i = 0; i < gpex->pdata->n_gpio; ++i)
+		for (i = 0; i < gpex->pdata->n_gpio; ++i) {
+			if ((gpex->wakeup_cables & BIT(i)) == 0)
+				continue;
+			gpex->wakeup_cables &= ~BIT(i);
+
 			disable_irq_wake(gpex->pdata->gpios[i].irq);
+		}
 	}
 	gpio_extcon_scan_work(&gpex->work.work);
 
