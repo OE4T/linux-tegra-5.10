@@ -1724,7 +1724,7 @@ static void fuse_writepage_end(struct fuse_conn *fc, struct fuse_args *args,
 	spin_lock(&fi->lock);
 	rb_erase(&wpa->writepages_entry, &fi->writepages);
 	while (wpa->next) {
-		struct fuse_conn *fc = get_fuse_conn(inode);
+		struct fuse_conn *temp_fc = get_fuse_conn(inode);
 		struct fuse_write_in *inarg = &wpa->ia.write.in;
 		struct fuse_writepage_args *next = wpa->next;
 
@@ -1756,7 +1756,7 @@ static void fuse_writepage_end(struct fuse_conn *fc, struct fuse_args *args,
 		 * no invocations of fuse_writepage_end() while we're in
 		 * fuse_set_nowrite..fuse_release_nowrite section.
 		 */
-		fuse_send_writepage(fc, next, inarg->offset + inarg->size);
+		fuse_send_writepage(temp_fc, next, inarg->offset + inarg->size);
 	}
 	fi->writectr--;
 	fuse_writepage_finish(fc, wpa);
