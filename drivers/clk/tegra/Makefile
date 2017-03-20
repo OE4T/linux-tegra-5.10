@@ -7,3 +7,4 @@ obj-$(CONFIG_TEGRA_AON)		+= tegra-aon-clk.o
 obj-y				+= clk-skipper.o
 obj-y				+= clk-cbus-shared.o
 obj-y				+= clk-tegra-shared.o
+obj-$(CONFIG_ARCH_TEGRA_210_SOC)	+= clk-tegra210b01.o
