@@ -2,7 +2,7 @@
 /*
  * Maxim MAX77620 Watchdog Driver
  *
- * Copyright (C) 2016 NVIDIA CORPORATION. All rights reserved.
+ * Copyright (C) 2016-2020 NVIDIA CORPORATION. All rights reserved.
  *
  * Author: Laxman Dewangan <ldewangan@nvidia.com>
  */
@@ -13,6 +13,7 @@
 #include <linux/module.h>
 #include <linux/mod_devicetable.h>
 #include <linux/mfd/max77620.h>
+#include <linux/of.h>
 #include <linux/platform_device.h>
 #include <linux/regmap.h>
 #include <linux/slab.h>
@@ -112,8 +113,13 @@ static int max77620_wdt_probe(struct platform_device *pdev)
 	struct device *dev = &pdev->dev;
 	struct max77620_wdt *wdt;
 	struct watchdog_device *wdt_dev;
+	struct device_node *np;
 	unsigned int regval;
 	int ret;
+
+	np = of_get_child_by_name(pdev->dev.parent->of_node, "watchdog");
+	if (np && !of_device_is_available(np))
+		return -ENODEV;
 
 	wdt = devm_kzalloc(dev, sizeof(*wdt), GFP_KERNEL);
 	if (!wdt)
