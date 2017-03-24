@@ -25,8 +25,6 @@
 #include <linux/regulator/driver.h>
 #include <linux/regulator/machine.h>
 
-#define max77812_rails(_name)	"max77812-"#_name
-
 #define MAX77812_REG_RSET		0x00
 #define MAX77812_REG_INT_SRC		0x01
 #define MAX77812_REG_INT_SRC_M		0x02
@@ -47,6 +45,7 @@
 #define MAX77812_REG_GPI_DEB2		0x11
 #define MAX77812_REG_GPI_PD_CTRL	0x12
 #define MAX77812_REG_PROT_CFG		0x13
+#define MAX77812_REG_VERSION		0x14
 #define MAX77812_REG_I2C_CFG		0x15
 #define MAX77812_REG_BUCK_INT		0x20
 #define MAX77812_REG_BUCK_INT_M		0x21
@@ -63,19 +62,26 @@
 #define MAX77812_REG_M2_VOUT_S		0x2C
 #define MAX77812_REG_M3_VOUT_S		0x2D
 #define MAX77812_REG_M4_VOUT_S		0x2E
-#define MAX77812_REG_M1_CGF		0x2F
-#define MAX77812_REG_M2_CGF		0x30
-#define MAX77812_REG_M3_CGF		0x31
-#define MAX77812_REG_M4_CGF		0x32
+#define MAX77812_REG_M1_CFG		0x2F
+#define MAX77812_REG_M2_CFG		0x30
+#define MAX77812_REG_M3_CFG		0x31
+#define MAX77812_REG_M4_CFG		0x32
 #define MAX77812_REG_GLB_CFG1		0x33
 #define MAX77812_REG_GLB_CFG2		0x34
-#define MAX77812_REG_MAX		0x35
+#define MAX77812_REG_GLB_CFG3		0x35
+#define MAX77812_REG_GLB_CFG4		0x36
+#define MAX77812_REG_GLB_CFG5		0x37
+#define MAX77812_REG_GLB_CFG6		0x38
+#define MAX77812_REG_GLB_CFG7		0x39
+#define MAX77812_REG_GLB_CFG8		0x3A
+#define MAX77812_REG_PROT_ACCESS	0xFD
+#define MAX77812_REG_MAX		0xFE
 
 #define MAX77812_REG_EN_CTRL_MASK(n)		BIT(n)
 #define MAX77812_START_SLEW_RATE_MASK		0x07
 #define MAX77812_SHDN_SLEW_RATE_MASK		0x70
-#define MAX77812_RAMPDOWN_SLEW_RATE_MASK	0x07
-#define MAX77812_RAMPUP_SLEW_RATE_MASK		0x70
+#define MAX77812_RAMPUP_SLEW_RATE_MASK		0x07
+#define MAX77812_RAMPDOWN_SLEW_RATE_MASK	0x70
 #define MAX77812_SLEW_RATE_SHIFT		4
 
 #define MAX77812_OP_ACTIVE_DISCHARGE_MASK		BIT(7)
@@ -84,6 +90,9 @@
 #define MAX77812_FORCED_PWM_MASK			BIT(1)
 #define MAX77812_SLEW_RATE_CNTRL_MASK			BIT(0)
 #define MAX77812_START_SHD_DELAY_MASK			0x1F
+#define MAX77812_VERSION_MASK		0x07
+#define MAX77812_ES2_VERSION		0x04
+#define MAX77812_QS_VERSION		0x05
 
 #define MAX77812_VOUT_MASK		0xFF
 #define MAX77812_VOUT_N_VOLTAGE		0xFF
@@ -91,11 +100,19 @@
 #define MAX77812_VOUT_VMAX		1525000
 #define MAX77812_VOUT_STEP		5000
 
-#define MAX77812_REGULATOR_ID_M1	0
-#define MAX77812_REGULATOR_ID_M2	1
-#define MAX77812_REGULATOR_ID_M3	2
-#define MAX77812_REGULATOR_ID_M4	3
-#define MAX77812_MAX_REGULATORS		4
+#define MAX77812_PHASE4_I2C_ADD		0x30
+#define MAX77812_PHASE31_I2C_ADD	0x31
+#define MAX77812_PHASE22_I2C_ADD	0x32
+#define MAX77812_PHASE211_I2C_ADD	0x33
+#define MAX77812_PHASE1_I2C_ADD		0x34
+
+enum {
+	MAX77812_REG_ID_M1,
+	MAX77812_REG_ID_M2,
+	MAX77812_REG_ID_M3,
+	MAX77812_REG_ID_M4,
+	MAX77812_ID_RG_MAX,
+};
 
 static unsigned int slew_rate_table[] = {
 	1250, 2500, 5000, 10000, 20000, 40000, 60000,
@@ -107,7 +124,6 @@ static unsigned int peak_current_limit[] = {
 };
 
 struct max77812_reg_pdata {
-	struct regulator_init_data *ridata;
 	int peak_current_limit;
 	int switching_freq;
 	bool disable_active_discharge;
@@ -119,48 +135,17 @@ struct max77812_reg_pdata {
 struct max77812_regulator {
 	struct device *dev;
 	struct regmap *rmap;
-	struct regulator_desc *rdesc[MAX77812_MAX_REGULATORS];
-	struct max77812_reg_pdata reg_pdata[MAX77812_MAX_REGULATORS];
-	struct regulator_dev *rdev[MAX77812_MAX_REGULATORS];
+	struct regulator_desc *rdesc[MAX77812_ID_RG_MAX];
+	struct max77812_reg_pdata reg_pdata[MAX77812_ID_RG_MAX];
+	struct regulator_dev *rdev[MAX77812_ID_RG_MAX];
 	u32 ramp_up_slew_rate;
 	u32 ramp_down_slew_rate;
 	u32 shutdown_slew_rate;
 	u32 softstart_slew_rate;
 };
 
-static int max77812_regulator_enable(struct regulator_dev *rdev)
-{
-	struct max77812_regulator *max77812 = rdev_get_drvdata(rdev);
-	int ret;
-
-	ret = regmap_update_bits(max77812->rmap, rdev->desc->enable_reg,
-			rdev->desc->enable_mask,
-			rdev->desc->enable_mask);
-	if (ret < 0) {
-		dev_err(max77812->dev, "Regulator enable failed: %d\n", ret);
-		return ret;
-	}
-
-	return ret;
-}
-
-static int max77812_regulator_disable(struct regulator_dev *rdev)
-{
-	struct max77812_regulator *max77812 = rdev_get_drvdata(rdev);
-	int ret;
-
-	ret = regmap_update_bits(max77812->rmap, rdev->desc->enable_reg,
-				rdev->desc->enable_mask, 0);
-	if (ret < 0) {
-		dev_err(max77812->dev, "Regulator disable failed: %d\n", ret);
-		return ret;
-	}
-
-	return ret;
-}
-
 static u8 max77802_slew_rate_to_reg(const unsigned int sr_limits[],
-			u8 cnt, unsigned int slew_rate)
+				    u8 cnt, unsigned int slew_rate)
 {
 	int i;
 
@@ -177,6 +162,7 @@ static int max77812_reg_init(struct max77812_regulator *max77812)
 	u8 slew_rate = 0;
 	u8 rampdelay = 0;
 	u8 mask = 0;
+	unsigned int val;
 	int ret;
 
 	if (max77812->softstart_slew_rate) {
@@ -196,8 +182,8 @@ static int max77812_reg_init(struct max77812_regulator *max77812)
 
 	if (slew_rate && mask) {
 		ret = regmap_update_bits(max77812->rmap,
-					MAX77812_REG_GLB_CFG1,
-					mask, slew_rate);
+					 MAX77812_REG_GLB_CFG1,
+					 mask, slew_rate);
 		if (ret < 0) {
 			dev_err(max77812->dev,
 				"slew rate cfg1 update failed %d\n", ret);
@@ -234,7 +220,64 @@ static int max77812_reg_init(struct max77812_regulator *max77812)
 		}
 	}
 
+	ret = regmap_read(max77812->rmap, MAX77812_REG_VERSION, &val);
+	if (ret < 0) {
+		dev_err(max77812->dev, "version reg read failed:%d\n", ret);
+		return ret;
+	}
+
+	/* Bit[2:0] = 100b -> ES2 Bit[2:0] = 101b -> QS version */
+	dev_info(max77812->dev, "MAX77812 Version OTP:0x%02X\n", val);
+
+	if ((val & MAX77812_VERSION_MASK) == MAX77812_ES2_VERSION) {
+		ret = regmap_write(max77812->rmap,
+				   MAX77812_REG_PROT_ACCESS, 0x5A);
+		if (ret < 0)
+			goto error;
+
+		ret = regmap_read(max77812->rmap,
+				  MAX77812_REG_PROT_ACCESS, &val);
+		if (ret < 0)
+			goto error;
+
+		if (val != 0x5A) {
+			dev_err(max77812->dev, "prot register unlock failed\n");
+			return -EINVAL;
+		}
+
+		ret = regmap_write(max77812->rmap, MAX77812_REG_GLB_CFG5, 0x3E);
+		if (ret < 0)
+			goto error;
+
+		ret = regmap_write(max77812->rmap, MAX77812_REG_GLB_CFG6, 0x90);
+		if (ret < 0)
+			goto error;
+
+		ret = regmap_write(max77812->rmap, MAX77812_REG_GLB_CFG8, 0x3A);
+		if (ret < 0)
+			goto error;
+
+		ret = regmap_write(max77812->rmap,
+				   MAX77812_REG_PROT_ACCESS, 0x0);
+		if (ret < 0)
+			goto error;
+
+		ret = regmap_read(max77812->rmap,
+				  MAX77812_REG_PROT_ACCESS, &val);
+		if (ret < 0)
+			goto error;
+
+		if (val) {
+			dev_err(max77812->dev, "protect registers lock failed\n");
+			return -EINVAL;
+		}
+	}
+
 	return 0;
+
+error:
+	dev_err(max77812->dev, "protect register access failed %d\n", ret);
+	return ret;
 }
 
 static int max77812_config_init(struct max77812_regulator *max77812, int id)
@@ -284,17 +327,17 @@ static int max77812_config_init(struct max77812_regulator *max77812, int id)
 	}
 
 	switch (id) {
-	case MAX77812_REGULATOR_ID_M1:
-		reg_addr = MAX77812_REG_M1_CGF;
+	case MAX77812_REG_ID_M1:
+		reg_addr = MAX77812_REG_M1_CFG;
 		break;
-	case MAX77812_REGULATOR_ID_M2:
-		reg_addr = MAX77812_REG_M2_CGF;
+	case MAX77812_REG_ID_M2:
+		reg_addr = MAX77812_REG_M2_CFG;
 		break;
-	case MAX77812_REGULATOR_ID_M3:
-		reg_addr = MAX77812_REG_M3_CGF;
+	case MAX77812_REG_ID_M3:
+		reg_addr = MAX77812_REG_M3_CFG;
 		break;
-	case MAX77812_REGULATOR_ID_M4:
-		reg_addr = MAX77812_REG_M4_CGF;
+	case MAX77812_REG_ID_M4:
+		reg_addr = MAX77812_REG_M4_CFG;
 		break;
 	}
 
@@ -339,22 +382,24 @@ static int max77812_of_parse_cb(struct device_node *np,
 }
 
 static struct regulator_ops max77812_regulator_ops = {
-	.enable = max77812_regulator_enable,
-	.disable = max77812_regulator_disable,
+	.enable = regulator_enable_regmap,
+	.disable = regulator_disable_regmap,
+	.is_enabled = regulator_is_enabled_regmap,
 	.list_voltage = regulator_list_voltage_linear,
 	.map_voltage = regulator_map_voltage_linear,
 	.get_voltage_sel = regulator_get_voltage_sel_regmap,
 	.set_voltage_sel = regulator_set_voltage_sel_regmap,
+	.set_voltage_time_sel = regulator_set_voltage_time_sel,
 };
 
 #define MAX77812_REGULATOR_DESC(_id, _name, _en_bit)		\
-	[MAX77812_REGULATOR_ID_##_id] = {		\
-		.name = max77812_rails(_name),		\
+	[MAX77812_REG_ID_##_id] = {		\
+		.name = "max77812-"#_name,		\
 		.of_match = of_match_ptr(#_name),		\
 		.regulators_node = of_match_ptr("regulators"),	\
 		.of_parse_cb = max77812_of_parse_cb,		\
 		.supply_name = "vin",			\
-		.id = MAX77812_REGULATOR_ID_##_id,	\
+		.id = MAX77812_REG_ID_##_id,	\
 		.ops = &max77812_regulator_ops,		\
 		.n_voltages = MAX77812_VOUT_N_VOLTAGE,	\
 		.min_uV = MAX77812_VOUT_VMIN,		\
@@ -368,7 +413,7 @@ static struct regulator_ops max77812_regulator_ops = {
 		.owner = THIS_MODULE,			\
 	}
 
-static struct regulator_desc max77812_regs_desc[MAX77812_MAX_REGULATORS] = {
+static struct regulator_desc max77812_regs_desc[MAX77812_ID_RG_MAX] = {
 	MAX77812_REGULATOR_DESC(M1, m1vout, 0),
 	MAX77812_REGULATOR_DESC(M2, m2vout, 2),
 	MAX77812_REGULATOR_DESC(M3, m3vout, 4),
@@ -376,7 +421,7 @@ static struct regulator_desc max77812_regs_desc[MAX77812_MAX_REGULATORS] = {
 };
 
 static int max77812_reg_parse_dt(struct device *dev,
-		struct max77812_regulator *max77812_regs)
+				 struct max77812_regulator *max77812_regs)
 {
 	struct device_node *np = dev->of_node;
 	u32 pval;
@@ -389,14 +434,20 @@ static int max77812_reg_parse_dt(struct device *dev,
 	ret = of_property_read_u32(np, "maxim,ramp-down-slew-rate", &pval);
 	if (!ret)
 		max77812_regs->ramp_down_slew_rate = pval;
-
-	ret = of_property_read_u32(np, "maxim,shutdown-slew-rate", &pval);
-	if (!ret)
-		max77812_regs->shutdown_slew_rate = pval;
+	else
+		max77812_regs->ramp_down_slew_rate =
+					max77812_regs->ramp_up_slew_rate;
 
 	ret = of_property_read_u32(np, "maxim,soft-start-slew-rate", &pval);
 	if (!ret)
 		max77812_regs->softstart_slew_rate = pval;
+
+	ret = of_property_read_u32(np, "maxim,shutdown-slew-rate", &pval);
+	if (!ret)
+		max77812_regs->shutdown_slew_rate = pval;
+	else
+		 max77812_regs->shutdown_slew_rate =
+					max77812_regs->softstart_slew_rate;
 
 	return 0;
 }
@@ -409,14 +460,15 @@ static const struct regmap_config max77812_regmap_config = {
 };
 
 static int max77812_probe(struct i2c_client *client,
-			const struct i2c_device_id *client_id)
+			  const struct i2c_device_id *client_id)
 {
 	struct device *dev = &client->dev;
 	struct max77812_reg_pdata *rpdata;
 	struct regulator_config config = { };
-	struct regulator_desc *rdesc;
+	struct regulator_desc *max77812_rdesc[MAX77812_ID_RG_MAX];
 	struct max77812_regulator *max77812;
-	int id;
+	unsigned short addr = client->addr;
+	int id, max_regs = 0;
 	int ret;
 
 	max77812 = devm_kzalloc(dev, sizeof(*max77812), GFP_KERNEL);
@@ -445,24 +497,64 @@ static int max77812_probe(struct i2c_client *client,
 		return ret;
 	}
 
-	for (id = 0; id < MAX77812_MAX_REGULATORS; ++id) {
-		rdesc = &max77812_regs_desc[id];
-		max77812->rdesc[id] = rdesc;
+	switch (addr) {
+	case MAX77812_PHASE4_I2C_ADD:
+		max77812_rdesc[0] = &max77812_regs_desc[MAX77812_REG_ID_M1];
+		max_regs = 1;
+		break;
+	case MAX77812_PHASE31_I2C_ADD:
+		max77812_rdesc[0] = &max77812_regs_desc[MAX77812_REG_ID_M1];
+		max77812_rdesc[1] = &max77812_regs_desc[MAX77812_REG_ID_M4];
+		max_regs = 2;
+		break;
+	case MAX77812_PHASE22_I2C_ADD:
+		max77812_rdesc[0] = &max77812_regs_desc[MAX77812_REG_ID_M1];
+		max77812_rdesc[1] = &max77812_regs_desc[MAX77812_REG_ID_M3];
+		max_regs = 2;
+		break;
+	case MAX77812_PHASE211_I2C_ADD:
+		max77812_rdesc[0] = &max77812_regs_desc[MAX77812_REG_ID_M1];
+		max77812_rdesc[1] = &max77812_regs_desc[MAX77812_REG_ID_M3];
+		max77812_rdesc[2] = &max77812_regs_desc[MAX77812_REG_ID_M4];
+		max_regs = 3;
+		break;
+	case MAX77812_PHASE1_I2C_ADD:
+		max77812_rdesc[0] = &max77812_regs_desc[MAX77812_REG_ID_M1];
+		max77812_rdesc[1] = &max77812_regs_desc[MAX77812_REG_ID_M2];
+		max77812_rdesc[2] = &max77812_regs_desc[MAX77812_REG_ID_M3];
+		max77812_rdesc[3] = &max77812_regs_desc[MAX77812_REG_ID_M4];
+		max_regs = 4;
+		break;
+	default:
+		dev_err(dev, "I2C address invalid: 0x%02x\n", addr);
+		ret = -EINVAL;
+		break;
+	}
+
+	for (id = 0; id < max_regs; ++id) {
+		max77812->rdesc[id] = max77812_rdesc[id];
 		rpdata = &max77812->reg_pdata[id];
 
 		config.regmap = max77812->rmap;
 		config.dev = dev;
-		config.init_data = rpdata->ridata;
 		config.driver_data = max77812;
 
 		max77812->rdev[id] = devm_regulator_register(dev,
-					rdesc, &config);
+					max77812->rdesc[id], &config);
 		if (IS_ERR(max77812->rdev[id])) {
 			ret = PTR_ERR(max77812->rdev[id]);
 			dev_err(dev, "regulator %s register failed: %d\n",
-						rdesc->name, ret);
+				max77812->rdesc[id]->name, ret);
 			return ret;
 		}
+
+		if (!max77812->rdev[id]->constraints->enable_time)
+			max77812->rdev[id]->constraints->enable_time =
+					max77812->softstart_slew_rate;
+
+		 if (!max77812->rdev[id]->constraints->ramp_delay)
+			max77812->rdev[id]->constraints->ramp_delay =
+					max77812->ramp_up_slew_rate;
 	}
 
 	return 0;
@@ -490,6 +582,6 @@ static struct i2c_driver max77812_i2c_driver = {
 };
 module_i2c_driver(max77812_i2c_driver);
 
+MODULE_DESCRIPTION("max77812 regulator driver");
 MODULE_AUTHOR("Venkat Reddy Talla <vreddytalla@nvidia.com>");
 MODULE_LICENSE("GPL v2");
-MODULE_DESCRIPTION("max77812 regulator driver");
