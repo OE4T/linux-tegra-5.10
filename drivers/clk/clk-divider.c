@@ -351,6 +351,11 @@ long divider_round_rate_parent(struct clk_hw *hw, struct clk_hw *parent,
 
 	div = clk_divider_bestdiv(hw, parent, rate, prate, table, width, flags);
 
+	if (!div) {
+		WARN(1, "%s: %s: Zero divisor\n", __func__, clk_hw_get_name(hw));
+		return *prate;
+	}
+
 	return DIV_ROUND_UP_ULL((u64)*prate, div);
 }
 EXPORT_SYMBOL_GPL(divider_round_rate_parent);
@@ -370,6 +375,11 @@ long divider_ro_round_rate_parent(struct clk_hw *hw, struct clk_hw *parent,
 			return -EINVAL;
 
 		*prate = clk_hw_round_rate(parent, rate * div);
+	}
+
+	if (!div) {
+		WARN(1, "%s: %s: Zero divisor\n", __func__, clk_hw_get_name(hw));
+		return *prate;
 	}
 
 	return DIV_ROUND_UP_ULL((u64)*prate, div);
