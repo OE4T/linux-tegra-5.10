@@ -1560,7 +1560,7 @@ static bool dfll_one_shot_calibrate_floors(struct tegra_dfll *td)
 	enum dfll_tune_range range = td->tune_range;
 
 	if (!(td->cfg_flags & DFLL_ONE_SHOT_CALIBRATE) ||
-	    (td->mode != DFLL_CLOSED_LOOP))
+	    (td->mode != DFLL_CLOSED_LOOP) || timekeeping_suspended)
 		return ret;
 
 	/* Don't calibrate in range transition */
