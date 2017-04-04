@@ -26,15 +26,17 @@
 #include <linux/spinlock.h>
 #include <linux/sysfs.h>
 
+#define EEPROM_SIZE	(64 * 1024)
+
 struct eeprom_data {
 	struct bin_attribute bin;
 	spinlock_t buffer_lock;
-	u16 buffer_idx;
+	u32 buffer_idx;
 	u16 address_mask;
 	u8 num_address_bytes;
 	u8 idx_write_cnt;
 	bool read_only;
-	u8 buffer[];
+	u8 *buffer;
 };
 
 #define I2C_SLAVE_BYTELEN GENMASK(15, 0)
@@ -69,7 +71,7 @@ static int i2c_slave_eeprom_slave_cb(struct i2c_client *client,
 		fallthrough;
 	case I2C_SLAVE_READ_REQUESTED:
 		spin_lock(&eeprom->buffer_lock);
-		*val = eeprom->buffer[eeprom->buffer_idx & eeprom->address_mask];
+		*val = eeprom->buffer[eeprom->buffer_idx++ & eeprom->address_mask];
 		spin_unlock(&eeprom->buffer_lock);
 		/*
 		 * Do not increment buffer_idx here, because we don't know if
@@ -149,6 +151,10 @@ static int i2c_slave_eeprom_probe(struct i2c_client *client, const struct i2c_de
 
 	eeprom = devm_kzalloc(&client->dev, sizeof(struct eeprom_data) + size, GFP_KERNEL);
 	if (!eeprom)
+		return -ENOMEM;
+
+	eeprom->buffer = devm_kzalloc(&client->dev, EEPROM_SIZE, GFP_KERNEL);
+	if (!eeprom->buffer)
 		return -ENOMEM;
 
 	eeprom->num_address_bytes = flag_addr16 ? 2 : 1;
