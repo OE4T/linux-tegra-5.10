@@ -318,6 +318,9 @@
 #define PMC_FUSE_CTRL                   0x450
 #define PMC_FUSE_CTRL_PS18_LATCH_SET    (1 << 8)
 #define PMC_FUSE_CTRL_PS18_LATCH_CLEAR  (1 << 9)
+
+#define PMC_SCRATCH43		0x22c
+
 struct pmc_clk {
 	struct clk_hw	hw;
 	unsigned long	offs;
@@ -964,6 +967,20 @@ static int tegra_genpd_power_off(struct generic_pm_domain *domain)
 
 	return err;
 }
+
+int tegra_pmc_save_se_context_buffer_address(u32 add)
+{
+	tegra_pmc_writel(pmc, add, PMC_SCRATCH43);
+
+	return 0;
+}
+EXPORT_SYMBOL(tegra_pmc_save_se_context_buffer_address);
+
+u32 tegra_pmc_get_se_context_buffer_address(void)
+{
+	return tegra_pmc_readl(pmc, PMC_SCRATCH43);
+}
+EXPORT_SYMBOL(tegra_pmc_get_se_context_buffer_address);
 
 /* T210 USB2 SLEEPWALK APIs */
 int tegra_pmc_utmi_phy_enable_sleepwalk(int port, enum usb_device_speed speed,
