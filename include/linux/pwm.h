@@ -54,12 +54,14 @@ enum {
  * @duty_cycle: PWM duty cycle (in nanoseconds)
  * @polarity: PWM polarity
  * @enabled: PWM enabled status
+ * @capture_win_len: Window length for captureing PWM signal.
  */
 struct pwm_state {
 	unsigned int period;
 	unsigned int duty_cycle;
 	enum pwm_polarity polarity;
 	bool enabled;
+	unsigned int capture_win_len;
 };
 
 /**
@@ -142,6 +144,25 @@ static inline enum pwm_polarity pwm_get_polarity(const struct pwm_device *pwm)
 	pwm_get_state(pwm, &state);
 
 	return state.polarity;
+}
+
+static inline int pwm_set_capture_window_length(struct pwm_device *pwm,
+						int win_len)
+{
+	if (pwm)
+		pwm->state.capture_win_len = win_len;
+
+	return 0;
+}
+
+static inline unsigned int pwm_get_capture_window_length(
+					const struct pwm_device *pwm)
+{
+	struct pwm_state state;
+
+	pwm_get_state(pwm, &state);
+
+	return state.capture_win_len;
 }
 
 static inline void pwm_get_args(const struct pwm_device *pwm,
@@ -250,6 +271,7 @@ pwm_set_relative_duty_cycle(struct pwm_state *state, unsigned int duty_cycle,
  * @get_state: get the current PWM state. This function is only
  *	       called once per PWM device when the PWM chip is
  *	       registered.
+ * @set_capture_window_length: Set PWM capture window length.
  * @owner: helps prevent removal of modules exporting active PWMs
  * @config: configure duty cycles and period length for this PWM
  * @set_polarity: configure the polarity of this PWM
@@ -265,6 +287,9 @@ struct pwm_ops {
 		     const struct pwm_state *state);
 	void (*get_state)(struct pwm_chip *chip, struct pwm_device *pwm,
 			  struct pwm_state *state);
+	int (*set_capture_window_length)(struct pwm_chip *chip,
+					 struct pwm_device *pwm,
+					 int window_length);
 	struct module *owner;
 
 	/* Only used by legacy drivers */
@@ -306,10 +331,12 @@ struct pwm_chip {
  * struct pwm_capture - PWM capture data
  * @period: period of the PWM signal (in nanoseconds)
  * @duty_cycle: duty cycle of the PWM signal (in nanoseconds)
+ * @rpm: Revolution per minute.
  */
 struct pwm_capture {
 	unsigned int period;
 	unsigned int duty_cycle;
+	unsigned int rpm;
 };
 
 #if IS_ENABLED(CONFIG_PWM)
@@ -617,5 +644,25 @@ static inline void pwmchip_sysfs_unexport(struct pwm_chip *chip)
 {
 }
 #endif /* CONFIG_PWM_SYSFS */
+
+/**
+ * pwm_get_rpm(): Get PWM RPM.
+ * @pwm: PWM device
+ *
+ * Read PWM signal and return RPM value.
+ *
+ * Returns positive integer for valid RPM else negative error.
+ */
+static inline int pwm_get_rpm(struct pwm_device *pwm)
+{
+	struct pwm_capture result;
+	int err;
+
+	err = pwm_capture(pwm, &result, 0);
+	if (err < 0)
+		return err;
+
+	return result.rpm;
+}
 
 #endif /* __LINUX_PWM_H */

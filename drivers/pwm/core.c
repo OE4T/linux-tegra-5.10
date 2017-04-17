@@ -522,6 +522,18 @@ int pwm_apply_state(struct pwm_device *pwm, const struct pwm_state *state)
 
 			pwm->state.enabled = state->enabled;
 		}
+
+		if (state->capture_win_len != pwm->state.capture_win_len) {
+			if (!pwm->chip->ops->set_capture_window_length)
+				return -ENOTSUPP;
+
+			err = pwm->chip->ops->set_ramp_time(
+					pwm->chip, pwm, state->capture_win_len);
+			if (err)
+				return err;
+
+			pwm->state.capture_win_len = state->capture_win_len;
+		}
 	}
 
 	return 0;
