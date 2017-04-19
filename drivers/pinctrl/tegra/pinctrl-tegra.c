@@ -95,6 +95,7 @@ static const struct cfg_param {
 	{"nvidia,slew-rate-rising",	TEGRA_PINCONF_PARAM_SLEW_RATE_RISING},
 	{"nvidia,drive-type",		TEGRA_PINCONF_PARAM_DRIVE_TYPE},
 	{"nvidia,func",			TEGRA_PINCONF_PARAM_FUNCTION},
+	{"nvidia,pad-power",		TEGRA_PINCONF_PARAM_PAD_POWER},
 };
 
 static int tegra_pinctrl_dt_subnode_to_map(struct pinctrl_dev *pctldev,
@@ -446,6 +447,12 @@ static int tegra_pinconf_reg(struct tegra_pmx *pmx,
 		*reg = g->mux_reg;
 		*bit = g->mux_bit;
 		*width = 2;
+		break;
+	case TEGRA_PINCONF_PARAM_PAD_POWER:
+		*bank = g->pad_bank;
+		*reg = g->pad_reg;
+		*bit = g->pad_bit;
+		*width = 1;
 		break;
 	default:
 		dev_err(pmx->dev, "Invalid config param %04x\n", param);

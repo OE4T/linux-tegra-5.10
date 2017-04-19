@@ -53,6 +53,8 @@ enum tegra_pinconf_param {
 	TEGRA_PINCONF_PARAM_DRIVE_TYPE,
 	/* argument: pinmux settings */
 	TEGRA_PINCONF_PARAM_FUNCTION,
+	/* argument: Boolean */
+	TEGRA_PINCONF_PARAM_PAD_POWER,
 };
 
 enum tegra_pinconf_pull {
@@ -123,6 +125,9 @@ struct tegra_function {
  * @lpdr_bit:		Base driver enabling bit.
  * @drvtype_bit:	Drive type register bit.
  * @parked_bitmask:	Parked register mask. 0 if unsupported.
+ * @pad_bank:		Register bank for the PAD control.
+ * @pad_reg:		Register address for PAD control.
+ * @pad_bit:		PAD control bit.
  *
  * -1 in a *_reg field means that feature is unsupported for this group.
  * *_bank and *_reg values are irrelevant when *_reg is -1.
@@ -144,10 +149,12 @@ struct tegra_pingroup {
 	s32 pupd_reg;
 	s32 tri_reg;
 	s32 drv_reg;
+	s32 pad_reg;
 	u32 mux_bank:2;
 	u32 pupd_bank:2;
 	u32 tri_bank:2;
 	u32 drv_bank:2;
+	u32 pad_bank:2;
 	s32 mux_bit:6;
 	s32 pupd_bit:6;
 	s32 tri_bit:6;
@@ -170,6 +177,7 @@ struct tegra_pingroup {
 	s32 drvup_width:6;
 	s32 slwr_width:6;
 	s32 slwf_width:6;
+	s32 pad_bit:6;
 	u32 parked_bitmask;
 };
 
