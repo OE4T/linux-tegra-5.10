@@ -11,6 +11,13 @@ config ARM_GIC
 	select GENERIC_IRQ_MULTI_HANDLER
 	select GENERIC_IRQ_EFFECTIVE_AFF_MASK
 
+config FIQ
+	bool "Enable FIQ"
+	default n
+	help
+	  Enable fiq interrupts to be enabled on gics which allow control
+	  fiqs in the kernel space
+
 config ARM_GIC_PM
 	bool
 	depends on PM
