@@ -121,6 +121,7 @@ static int tegra_clk_rst_assert(struct reset_controller_dev *rcdev,
 	if (id < periph_banks * 32) {
 		writel_relaxed(BIT(id % 32),
 			       clk_base + periph_regs[id / 32].rst_set_reg);
+		fence_udelay(2, clk_base);
 		return 0;
 	} else if (id < periph_banks * 32 + num_special_reset) {
 		return special_reset_assert(id);
@@ -135,6 +136,7 @@ static int tegra_clk_rst_deassert(struct reset_controller_dev *rcdev,
 	if (id < periph_banks * 32) {
 		writel_relaxed(BIT(id % 32),
 			       clk_base + periph_regs[id / 32].rst_clr_reg);
+		fence_udelay(2, clk_base);
 		return 0;
 	} else if (id < periph_banks * 32 + num_special_reset) {
 		return special_reset_deassert(id);
@@ -152,7 +154,7 @@ static int tegra_clk_rst_reset(struct reset_controller_dev *rcdev,
 	if (err)
 		return err;
 
-	udelay(1);
+	udelay(5);
 
 	return tegra_clk_rst_deassert(rcdev, id);
 }

@@ -96,7 +96,7 @@ static int clk_super_set_parent(struct clk_hw *hw, u8 index)
 
 		val ^= SUPER_LP_DIV2_BYPASS;
 		writel_relaxed(val, mux->reg);
-		udelay(2);
+		fence_udelay(2, mux->reg);
 
 		if (index == mux->div2_index)
 			index = mux->pllx_index;
@@ -111,7 +111,7 @@ static int clk_super_set_parent(struct clk_hw *hw, u8 index)
 	val |= (index & (super_state_to_src_mask(mux))) << shift;
 
 	writel_relaxed(val, mux->reg);
-	udelay(2);
+	fence_udelay(2, mux->reg);
 
 	/* disable PLLP branches to CPU if not used */
 	if ((mux->flags & TEGRA210_CPU_CLK) &&
