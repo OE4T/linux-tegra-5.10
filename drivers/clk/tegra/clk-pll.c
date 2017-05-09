@@ -383,13 +383,14 @@ static void _clk_pll_enable(struct clk_hw *hw)
 		val = pll_readl(pll->params->iddq_reg, pll);
 		val &= ~BIT(pll->params->iddq_bit_idx);
 		pll_writel(val, pll->params->iddq_reg, pll);
-		udelay(5);
+		fence_udelay(5, pll->clk_base);
 	}
 
 	if (pll->params->reset_reg) {
 		val = pll_readl(pll->params->reset_reg, pll);
 		val &= ~BIT(pll->params->reset_bit_idx);
 		pll_writel(val, pll->params->reset_reg, pll);
+		fence_udelay(1, pll->clk_base);
 	}
 
 	clk_pll_enable_lock(pll);
@@ -401,6 +402,7 @@ static void _clk_pll_enable(struct clk_hw *hw)
 		val &= ~PLL_BASE_BYPASS;
 	val |= PLL_BASE_ENABLE;
 	pll_writel_base(val, pll);
+	fence_udelay(1, pll->clk_base);
 
 	clk_pll_sdm_reset(pll, false);
 
@@ -408,6 +410,7 @@ static void _clk_pll_enable(struct clk_hw *hw)
 		val = readl_relaxed(pll->pmc + PMC_PLLP_WB0_OVERRIDE);
 		val |= PMC_PLLP_WB0_OVERRIDE_PLLM_ENABLE;
 		writel_relaxed(val, pll->pmc + PMC_PLLP_WB0_OVERRIDE);
+		fence_udelay(1, pll->pmc);
 	}
 }
 
@@ -421,24 +424,27 @@ static void _clk_pll_disable(struct clk_hw *hw)
 		val &= ~PLL_BASE_BYPASS;
 	val &= ~PLL_BASE_ENABLE;
 	pll_writel_base(val, pll);
+	fence_udelay(1, pll->clk_base);
 
 	if (pll->params->flags & TEGRA_PLLM) {
 		val = readl_relaxed(pll->pmc + PMC_PLLP_WB0_OVERRIDE);
 		val &= ~PMC_PLLP_WB0_OVERRIDE_PLLM_ENABLE;
 		writel_relaxed(val, pll->pmc + PMC_PLLP_WB0_OVERRIDE);
+		fence_udelay(1, pll->pmc);
 	}
 
 	if (pll->params->reset_reg) {
 		val = pll_readl(pll->params->reset_reg, pll);
 		val |= BIT(pll->params->reset_bit_idx);
 		pll_writel(val, pll->params->reset_reg, pll);
+		fence_udelay(1, pll->clk_base);
 	}
 
 	if (pll->params->iddq_reg) {
 		val = pll_readl(pll->params->iddq_reg, pll);
 		val |= BIT(pll->params->iddq_bit_idx);
 		pll_writel(val, pll->params->iddq_reg, pll);
-		udelay(2);
+		fence_udelay(2, pll->clk_base);
 	}
 }
 
@@ -449,6 +455,7 @@ static void pll_clk_start_ss(struct tegra_clk_pll *pll)
 
 		val |= pll->params->ssc_ctrl_en_mask;
 		pll_writel(val, pll->params->ssc_ctrl_reg, pll);
+		fence_udelay(1, pll->clk_base);
 	}
 }
 
@@ -459,6 +466,7 @@ static void pll_clk_stop_ss(struct tegra_clk_pll *pll)
 
 		val &= ~pll->params->ssc_ctrl_en_mask;
 		pll_writel(val, pll->params->ssc_ctrl_reg, pll);
+		fence_udelay(1, pll->clk_base);
 	}
 }
 
@@ -695,6 +703,8 @@ static void _update_pll_mnp(struct tegra_clk_pll *pll,
 		val |= (cfg->m << div_nmp->override_divm_shift) |
 			(cfg->n << div_nmp->override_divn_shift);
 		pll_override_writel(val, params->pmc_divnm_reg, pll);
+
+		fence_udelay(1, pll->pmc);
 	} else {
 		val = pll_readl_base(pll);
 
@@ -708,6 +718,8 @@ static void _update_pll_mnp(struct tegra_clk_pll *pll,
 		pll_writel_base(val, pll);
 
 		clk_pll_set_sdm_data(&pll->hw, cfg);
+
+		fence_udelay(1, pll->clk_base);
 	}
 }
 
@@ -1438,10 +1450,11 @@ static void _pllcx_strobe(struct tegra_clk_pll *pll)
 	val = pll_readl_misc(pll);
 	val |= PLLCX_MISC_STROBE;
 	pll_writel_misc(val, pll);
-	udelay(2);
+	fence_udelay(2, pll->clk_base);
 
 	val &= ~PLLCX_MISC_STROBE;
 	pll_writel_misc(val, pll);
+	fence_udelay(2, pll->clk_base);
 }
 
 static int clk_pllc_enable(struct clk_hw *hw)
@@ -1458,12 +1471,12 @@ static int clk_pllc_enable(struct clk_hw *hw)
 		spin_lock_irqsave(pll->lock, flags);
 
 	_clk_pll_enable(hw);
-	udelay(2);
+	fence_udelay(2, pll->clk_base);
 
 	val = pll_readl_misc(pll);
 	val &= ~PLLCX_MISC_RESET;
 	pll_writel_misc(val, pll);
-	udelay(2);
+	fence_udelay(2, pll->clk_base);
 
 	_pllcx_strobe(pll);
 
@@ -1485,7 +1498,7 @@ static void _clk_pllc_disable(struct clk_hw *hw)
 	val = pll_readl_misc(pll);
 	val |= PLLCX_MISC_RESET;
 	pll_writel_misc(val, pll);
-	udelay(2);
+	fence_udelay(2, pll->clk_base);
 }
 
 static void clk_pllc_disable(struct clk_hw *hw)
@@ -1687,7 +1700,7 @@ static int clk_plle_tegra114_enable(struct clk_hw *hw)
 	val |= PLLE_AUX_ENABLE_SWCTL;
 	val &= ~PLLE_AUX_SEQ_ENABLE;
 	pll_writel(val, pll->params->aux_reg, pll);
-	udelay(1);
+	fence_udelay(1, pll->clk_base);
 
 	val = pll_readl_misc(pll);
 	val |= PLLE_MISC_LOCK_ENABLE;
@@ -1696,7 +1709,7 @@ static int clk_plle_tegra114_enable(struct clk_hw *hw)
 	val |= PLLE_MISC_PLLE_PTS;
 	val &= ~(PLLE_MISC_VREG_BG_CTRL_MASK | PLLE_MISC_VREG_CTRL_MASK);
 	pll_writel_misc(val, pll);
-	udelay(5);
+	fence_udelay(5, pll->clk_base);
 
 	val = pll_readl(PLLE_SS_CTRL, pll);
 	val |= PLLE_SS_DISABLE;
@@ -1710,7 +1723,7 @@ static int clk_plle_tegra114_enable(struct clk_hw *hw)
 	val |= sel.n << divn_shift(pll);
 	val |= sel.cpcon << PLLE_BASE_DIVCML_SHIFT;
 	pll_writel_base(val, pll);
-	udelay(1);
+	fence_udelay(1, pll->clk_base);
 
 	_clk_pll_enable(hw);
 	ret = clk_pll_wait_for_lock(pll);
@@ -1725,10 +1738,10 @@ static int clk_plle_tegra114_enable(struct clk_hw *hw)
 	pll_writel(val, PLLE_SS_CTRL, pll);
 	val &= ~(PLLE_SS_CNTL_SSC_BYP | PLLE_SS_CNTL_BYPASS_SS);
 	pll_writel(val, PLLE_SS_CTRL, pll);
-	udelay(1);
+	fence_udelay(1, pll->clk_base);
 	val &= ~PLLE_SS_CNTL_INTERP_RESET;
 	pll_writel(val, PLLE_SS_CTRL, pll);
-	udelay(1);
+	fence_udelay(1, pll->clk_base);
 
 	/* Enable HW control of XUSB brick PLL */
 	val = pll_readl_misc(pll);
@@ -1739,7 +1752,7 @@ static int clk_plle_tegra114_enable(struct clk_hw *hw)
 	val |= (PLLE_AUX_USE_LOCKDET | PLLE_AUX_SEQ_START_STATE);
 	val &= ~(PLLE_AUX_ENABLE_SWCTL | PLLE_AUX_SS_SWCTL);
 	pll_writel(val, pll->params->aux_reg, pll);
-	udelay(1);
+	fence_udelay(1, pll->clk_base);
 	val |= PLLE_AUX_SEQ_ENABLE;
 	pll_writel(val, pll->params->aux_reg, pll);
 
@@ -1749,7 +1762,7 @@ static int clk_plle_tegra114_enable(struct clk_hw *hw)
 	val &= ~(XUSBIO_PLL_CFG0_CLK_ENABLE_SWCTL |
 		 XUSBIO_PLL_CFG0_PADPLL_RESET_SWCTL);
 	pll_writel(val, XUSBIO_PLL_CFG0, pll);
-	udelay(1);
+	fence_udelay(1, pll->clk_base);
 	val |= XUSBIO_PLL_CFG0_SEQ_ENABLE;
 	pll_writel(val, XUSBIO_PLL_CFG0, pll);
 
@@ -1760,7 +1773,7 @@ static int clk_plle_tegra114_enable(struct clk_hw *hw)
 	val |= SATA_PLL_CFG0_SEQ_START_STATE;
 	pll_writel(val, SATA_PLL_CFG0, pll);
 
-	udelay(1);
+	fence_udelay(1, pll->clk_base);
 
 	val = pll_readl(SATA_PLL_CFG0, pll);
 	val |= SATA_PLL_CFG0_SEQ_ENABLE;
@@ -1787,7 +1800,7 @@ static void clk_plle_tegra114_disable(struct clk_hw *hw)
 	val = pll_readl_misc(pll);
 	val |= PLLE_MISC_IDDQ_SW_CTRL | PLLE_MISC_IDDQ_SW_VALUE;
 	pll_writel_misc(val, pll);
-	udelay(1);
+	fence_udelay(1, pll->clk_base);
 
 	if (pll->lock)
 		spin_unlock_irqrestore(pll->lock, flags);
@@ -2568,7 +2581,7 @@ static int clk_plle_tegra210_enable(struct clk_hw *hw)
 	val |= PLLE_MISC_PLLE_PTS;
 	val &= ~(PLLE_MISC_VREG_BG_CTRL_MASK | PLLE_MISC_VREG_CTRL_MASK);
 	pll_writel_misc(val, pll);
-	udelay(5);
+	fence_udelay(5, pll->clk_base);
 
 	val = pll_readl(PLLE_SS_CTRL, pll);
 	val |= PLLE_SS_DISABLE;
@@ -2582,7 +2595,7 @@ static int clk_plle_tegra210_enable(struct clk_hw *hw)
 	val |= sel.n << divn_shift(pll);
 	val |= sel.cpcon << PLLE_BASE_DIVCML_SHIFT;
 	pll_writel_base(val, pll);
-	udelay(1);
+	fence_udelay(1, pll->clk_base);
 
 	val = pll_readl_base(pll);
 	val |= PLLE_BASE_ENABLE;
@@ -2603,10 +2616,10 @@ static int clk_plle_tegra210_enable(struct clk_hw *hw)
 	pll_writel(val, PLLE_SS_CTRL, pll);
 	val &= ~(PLLE_SS_CNTL_SSC_BYP | PLLE_SS_CNTL_BYPASS_SS);
 	pll_writel(val, PLLE_SS_CTRL, pll);
-	udelay(1);
+	fence_udelay(1, pll->clk_base);
 	val &= ~PLLE_SS_CNTL_INTERP_RESET;
 	pll_writel(val, PLLE_SS_CTRL, pll);
-	udelay(1);
+	fence_udelay(1, pll->clk_base);
 
 out:
 	if (pll->lock)
@@ -2640,7 +2653,7 @@ static void clk_plle_tegra210_disable(struct clk_hw *hw)
 	val = pll_readl_misc(pll);
 	val |= PLLE_MISC_IDDQ_SW_CTRL | PLLE_MISC_IDDQ_SW_VALUE;
 	pll_writel_misc(val, pll);
-	udelay(1);
+	fence_udelay(1, pll->clk_base);
 
 out:
 	if (pll->lock)
