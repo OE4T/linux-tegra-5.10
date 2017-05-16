@@ -97,6 +97,15 @@ void syscore_resume(void)
 		"Interrupts enabled before system core resume.\n");
 
 	list_for_each_entry(ops, &syscore_ops_list, node)
+		if (ops->early_resume) {
+			if (initcall_debug)
+				pr_info("PM: Calling %pF\n", ops->early_resume);
+			ops->early_resume();
+			WARN_ONCE(!irqs_disabled(),
+				"Interrupts enabled after %pF\n",
+				ops->early_resume);
+		}
+	list_for_each_entry(ops, &syscore_ops_list, node)
 		if (ops->resume) {
 			pm_pr_dbg("Calling %pS\n", ops->resume);
 			ops->resume();
