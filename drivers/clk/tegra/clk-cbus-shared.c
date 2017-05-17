@@ -528,6 +528,11 @@ static unsigned long clk_shared_recalc_rate(struct clk_hw *hw,
 	if (shared->u.shared_bus_user.mode == SHARED_CEILING)
 		return shared->u.shared_bus_user.rate;
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 14, 0)
+	if (!clk_hw_get_parent(clk_hw_get_parent(hw)))
+		return shared->u.shared_bus_user.rate;
+#endif
+
 	if (shared->u.shared_bus_user.client &&
 	    (~shared->flags & TEGRA_SHARED_BUS_RACE_TO_SLEEP)) {
 		/* FIXME: for clocks with clients that can be divided down */
@@ -1292,8 +1297,15 @@ static struct tegra_clk_cbus_shared *tegra_clk_init_shared(const char *name,
 	shared->u.shared_bus_user.mode = mode;
 	if (mode == SHARED_CEILING)
 		shared->u.shared_bus_user.rate = parent_cbus->max_rate;
-	else
+	else {
 		shared->u.shared_bus_user.rate = clk_get_rate(parent_clk);
+#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 14, 0)
+		/* If bus parent is not registered yet set default rate */
+		if (!clk_get_parent(parent_clk))
+			shared->u.shared_bus_user.rate =
+				parent_cbus->users_default_rate;
+#endif
+	}
 
 	shared->flags = flags;
 
