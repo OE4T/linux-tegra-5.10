@@ -4129,6 +4129,16 @@ static struct tegra_clk_init_table init_table[] __initdata = {
  */
 static void __init tegra210_clock_apply_init_table(void)
 {
+	struct clk *emc = __clk_lookup("emc");
+
+	/* Enable EMC out-of-table to allow either CAR or BPMP provider in DT */
+	if (!emc) {
+		WARN(1, "Failed to find emc clock\n");
+	} else {
+		if (clk_prepare_enable(emc))
+			WARN(1, "Failed to enable emc clock\n");
+	}
+
 	if (t210b01)
 		tegra210b01_clock_table_init(clks);
 	else
