@@ -84,6 +84,8 @@ struct backlight_properties {
 	int fb_blank;
 	/* Backlight type */
 	enum backlight_type type;
+	/* Denotes if backlight supports low-persistence (read-only) */
+	bool low_persistence_capable;
 	/* Flags used to signal drivers of state changes */
 	unsigned int state;
 	/* Type of the brightness scale (linear, non-linear, ...) */
@@ -91,6 +93,7 @@ struct backlight_properties {
 
 #define BL_CORE_SUSPENDED	(1 << 0)	/* backlight is suspended */
 #define BL_CORE_FBBLANK		(1 << 1)	/* backlight is under an fb blank event */
+#define BL_CORE_LPMODE		(1 << 2)	/* backlight is in low-persistence mode */
 
 };
 
