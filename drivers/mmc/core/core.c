@@ -2262,7 +2262,8 @@ int mmc_detect_card_removed(struct mmc_host *host)
 	if (!card)
 		return 1;
 
-	if (!mmc_card_is_removable(host))
+	if (!mmc_card_is_removable(host) &&
+		!(host->caps2 & MMC_CAP2_FORCE_RESCAN))
 		return 0;
 
 	ret = mmc_card_removed(card);
