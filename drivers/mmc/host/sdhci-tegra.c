@@ -224,6 +224,7 @@ struct sdhci_tegra {
 	u8 tuned_tap_delay;
 	struct tegra_prod *prods;
 	u8 uhs_mask;
+	bool force_non_rem_rescan;
 };
 
 static u16 tegra_sdhci_readw(struct sdhci_host *host, int reg)
@@ -1107,6 +1108,10 @@ static void tegra_sdhci_parse_dt(struct sdhci_host *host)
 
 	device_property_read_u32(host->mmc->parent, "uhs-mask",
 				(u32 *)&tegra_host->uhs_mask);
+
+	tegra_host->force_non_rem_rescan =
+		device_property_read_bool(host->mmc->parent,
+		"force-non-removable-rescan");
 }
 
 static void tegra_sdhci_set_clock(struct sdhci_host *host, unsigned int clock)
@@ -2046,6 +2051,8 @@ static int sdhci_tegra_probe(struct platform_device *pdev)
 		goto err_rst_get;
 
 	usleep_range(2000, 4000);
+	if (tegra_host->force_non_rem_rescan)
+		host->mmc->caps2 |= MMC_CAP2_FORCE_RESCAN;
 
 	rc = sdhci_tegra_add_host(host);
 	if (rc)
