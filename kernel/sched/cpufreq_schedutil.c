@@ -18,6 +18,7 @@
 struct sugov_tunables {
 	struct gov_attr_set	attr_set;
 	unsigned int		rate_limit_us;
+	unsigned long		iowait_boost_max;
 };
 
 struct sugov_policy {
@@ -345,6 +346,7 @@ static void sugov_iowait_boost(struct sugov_cpu *sg_cpu, u64 time,
 			       unsigned int flags)
 {
 	bool set_iowait_boost = flags & SCHED_CPUFREQ_IOWAIT;
+	unsigned long boost_max = sg_cpu->sg_policy->tunables->iowait_boost_max;
 
 	/* Reset boost if the CPU appears to have been idle enough */
 	if (sg_cpu->iowait_boost &&
@@ -363,7 +365,7 @@ static void sugov_iowait_boost(struct sugov_cpu *sg_cpu, u64 time,
 	/* Double the boost at each request */
 	if (sg_cpu->iowait_boost) {
 		sg_cpu->iowait_boost =
-			min_t(unsigned int, sg_cpu->iowait_boost << 1, SCHED_CAPACITY_SCALE);
+			min_t(unsigned int, sg_cpu->iowait_boost << 1, boost_max);
 		return;
 	}
 
@@ -394,6 +396,7 @@ static unsigned long sugov_iowait_apply(struct sugov_cpu *sg_cpu, u64 time,
 					unsigned long util, unsigned long max)
 {
 	unsigned long boost;
+	unsigned long boost_max = sg_cpu->sg_policy->tunables->iowait_boost_max;
 
 	/* No boost currently required */
 	if (!sg_cpu->iowait_boost)
@@ -420,6 +423,7 @@ static unsigned long sugov_iowait_apply(struct sugov_cpu *sg_cpu, u64 time,
 	 * @util is already in capacity scale; convert iowait_boost
 	 * into the same scale so we can compare.
 	 */
+	max = min_t(unsigned long, max, boost_max);
 	boost = (sg_cpu->iowait_boost * max) >> SCHED_CAPACITY_SHIFT;
 	return max(boost, util);
 }
@@ -618,10 +622,36 @@ rate_limit_us_store(struct gov_attr_set *attr_set, const char *buf, size_t count
 
 static struct governor_attr rate_limit_us = __ATTR_RW(rate_limit_us);
 
+static ssize_t iowait_boost_max_show(struct gov_attr_set *attr_set, char *buf)
+{
+	struct sugov_tunables *tunables = to_sugov_tunables(attr_set);
+
+	return sprintf(buf, "%lu\n", tunables->iowait_boost_max);
+}
+
+static ssize_t iowait_boost_max_store(struct gov_attr_set *attr_set,
+				  const char *buf, size_t count)
+{
+	struct sugov_tunables *tunables = to_sugov_tunables(attr_set);
+	unsigned long iowait_boost_max;
+
+	if (kstrtoul(buf, 10, &iowait_boost_max))
+		return -EINVAL;
+
+	tunables->iowait_boost_max = iowait_boost_max;
+
+	return count;
+}
+
+static struct governor_attr iowait_boost_max = __ATTR_RW(iowait_boost_max);
+
 static struct attribute *sugov_attrs[] = {
 	&rate_limit_us.attr,
+	&iowait_boost_max.attr,
 	NULL
 };
+
+
 ATTRIBUTE_GROUPS(sugov);
 
 static struct kobj_type sugov_tunables_ktype = {
@@ -842,6 +872,7 @@ static int sugov_start(struct cpufreq_policy *policy)
 	sg_policy->limits_changed		= false;
 	sg_policy->need_freq_update		= false;
 	sg_policy->cached_raw_freq		= 0;
+	sg_policy->tunables->iowait_boost_max	= SCHED_CAPACITY_SCALE;
 
 	for_each_cpu(cpu, policy->cpus) {
 		struct sugov_cpu *sg_cpu = &per_cpu(sugov_cpu, cpu);
