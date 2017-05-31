@@ -28,6 +28,8 @@ struct tegra_cpu_car_ops *tegra_cpu_car_ops = &dummy_car_ops;
 
 int *periph_clk_enb_refcnt;
 bool has_ccplex_therm_control;
+bool div1_5_not_allowed;
+
 static int periph_banks;
 static u32 *periph_state_ctx;
 static struct clk **clks;
