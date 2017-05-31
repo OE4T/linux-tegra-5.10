@@ -2678,6 +2678,10 @@ static struct tegra_devclk devclks[] __initdata = {
 	{ .con_id = "pll_c4_out2", .dt_id = TEGRA210_CLK_PLL_C4_OUT2 },
 	{ .con_id = "pll_c4_out3", .dt_id = TEGRA210_CLK_PLL_C4_OUT3 },
 	{ .con_id = "dpaux", .dt_id = TEGRA210_CLK_DPAUX },
+	{ .con_id = "clk72mhz", .dt_id = TEGRA210_CLK_CLK72MHZ },
+	{ .con_id = "maud", .dt_id = TEGRA210_CLK_MAUD },
+	{ .con_id = "sdmmc_legacy", .dt_id = TEGRA210_CLK_SDMMC_LEGACY },
+	{ .con_id = "i2cslow", .dt_id = TEGRA210_CLK_I2CSLOW },
 };
 
 static struct tegra_audio_clk_info tegra210_audio_plls[] = {
