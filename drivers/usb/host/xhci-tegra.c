@@ -56,6 +56,8 @@ MODULE_PARM_DESC(max_burst_war_enable, "Max burst WAR");
 #define XUSB_CFG_16				0x040
 #define XUSB_CFG_24				0x060
 #define XUSB_CFG_AXI_CFG			0x0f8
+#define XUSB_CFG_ARU_C11PAGESEL			0x404
+#define  XUSB_HSP0				BIT(12)
 #define XUSB_CFG_ARU_C11_CSBRANGE		0x41c
 #define XUSB_CFG_ARU_CONTEXT			0x43c
 #define XUSB_CFG_ARU_CONTEXT_HS_PLS		0x478
@@ -63,6 +65,8 @@ MODULE_PARM_DESC(max_burst_war_enable, "Max burst WAR");
 #define XUSB_CFG_ARU_CONTEXT_HSFS_SPEED		0x480
 #define XUSB_CFG_ARU_CONTEXT_HSFS_PP		0x484
 #define XUSB_CFG_ARU_FW_SCRATCH                 0x440
+#define XUSB_CFG_HSPX_CORE_CTRL			0x600
+#define  XUSB_HSIC_PLLCLK_VLD			BIT(24)
 #define XUSB_CFG_CSB_BASE_ADDR			0x800
 
 /* FPCI mailbox registers */
@@ -321,6 +325,7 @@ struct tegra_xusb_soc {
 	bool has_ipfs;
 	bool lpm_support;
 	bool otg_reset_sspi;
+	bool disable_hsic_wake;
 };
 
 struct tegra_xusb_context {
@@ -1016,6 +1021,23 @@ static void tegra_xusb_debugfs_deinit(struct tegra_xusb *tegra)
 
 	debugfs_remove(tegra->debugfs_dir);
 	tegra->debugfs_dir = NULL;
+}
+
+static void tegra_xusb_disable_hsic_wake(struct tegra_xusb *tegra)
+{
+	u32 reg;
+
+	reg = fpci_readl(tegra, XUSB_CFG_ARU_C11PAGESEL);
+	reg |= XUSB_HSP0;
+	fpci_writel(tegra, reg, XUSB_CFG_ARU_C11PAGESEL);
+
+	reg = fpci_readl(tegra, XUSB_CFG_HSPX_CORE_CTRL);
+	reg &= ~XUSB_HSIC_PLLCLK_VLD;
+	fpci_writel(tegra, reg, XUSB_CFG_HSPX_CORE_CTRL);
+
+	reg = fpci_readl(tegra, XUSB_CFG_ARU_C11PAGESEL);
+	reg &= ~XUSB_HSP0;
+	fpci_writel(tegra, reg, XUSB_CFG_ARU_C11PAGESEL);
 }
 
 static int tegra_xusb_set_ss_clk(struct tegra_xusb *tegra,
@@ -2325,6 +2347,9 @@ static int tegra_xusb_probe(struct platform_device *pdev)
 
 	tegra_xusb_config(tegra);
 
+	if (tegra->soc->disable_hsic_wake)
+		tegra_xusb_disable_hsic_wake(tegra);
+
 	err = tegra_xusb_load_firmware(tegra);
 	if (err < 0) {
 		dev_err(&pdev->dev, "failed to load firmware: %d\n", err);
@@ -2662,6 +2687,10 @@ static int tegra_xusb_exit_elpg(struct tegra_xusb *tegra, bool wakeup)
 	}
 
 	tegra_xusb_config(tegra);
+
+	if (tegra->soc->disable_hsic_wake)
+		tegra_xusb_disable_hsic_wake(tegra);
+
 	tegra_xusb_restore_context(tegra);
 
 	err = tegra_xusb_load_firmware(tegra);
@@ -2815,6 +2844,7 @@ static const struct tegra_xusb_soc tegra124_soc = {
 	.scale_ss_clock = true,
 	.has_ipfs = true,
 	.otg_reset_sspi = false,
+	.disable_hsic_wake = false,
 	.mbox = {
 		.cmd = 0xe4,
 		.data_in = 0xe8,
@@ -2852,6 +2882,7 @@ static const struct tegra_xusb_soc tegra210_soc = {
 	.scale_ss_clock = false,
 	.has_ipfs = true,
 	.otg_reset_sspi = true,
+	.disable_hsic_wake = false,
 	.mbox = {
 		.cmd = 0xe4,
 		.data_in = 0xe8,
@@ -2890,6 +2921,7 @@ static const struct tegra_xusb_soc tegra210b01_soc = {
 	.scale_ss_clock = false,
 	.has_ipfs = true,
 	.otg_reset_sspi = true,
+	.disable_hsic_wake = true,
 	.mbox = {
 		.cmd = 0xe4,
 		.data_in = 0xe8,
@@ -2931,6 +2963,7 @@ static const struct tegra_xusb_soc tegra186_soc = {
 	.scale_ss_clock = false,
 	.has_ipfs = false,
 	.otg_reset_sspi = false,
+	.disable_hsic_wake = false,
 	.mbox = {
 		.cmd = 0xe4,
 		.data_in = 0xe8,
@@ -2962,6 +2995,7 @@ static const struct tegra_xusb_soc tegra194_soc = {
 	.scale_ss_clock = false,
 	.has_ipfs = false,
 	.otg_reset_sspi = false,
+	.disable_hsic_wake = false,
 	.mbox = {
 		.cmd = 0x68,
 		.data_in = 0x6c,
