@@ -770,6 +770,19 @@ static int tegra_i2c_init(struct tegra_i2c_dev *i2c_dev, bool clk_reinit)
 	u32 tsu_thd;
 	u8 tlow, thigh;
 
+	if (!pm_runtime_enabled(i2c_dev->dev)) {
+		err = tegra_i2c_runtime_resume(i2c_dev->dev);
+		if (err < 0) {
+			dev_err(i2c_dev->dev, "runtime resume fail =%d\n", err);
+			return err;
+		}
+	} else {
+		err = pm_runtime_get_sync(i2c_dev->dev);
+		if (err < 0) {
+			dev_err(i2c_dev->dev, "runtime get sync resume fail :%d\n", err);
+			return err;
+		}
+	}
 	if (i2c_dev->hw->has_sw_reset_reg) {
 		if (i2c_dev->is_periph_reset_done) {
 			/* If already controller reset is done through */
@@ -853,7 +866,7 @@ skip_periph_reset:
 		if (err) {
 			dev_err(i2c_dev->dev,
 				"failed changing clock rate: %d\n", err);
-			return err;
+			goto exit;
 		}
 	}
 
@@ -868,21 +881,26 @@ skip_periph_reset:
 
 	err = tegra_i2c_flush_fifos(i2c_dev);
 	if (err)
-		return err;
+		goto exit;
 
 	if (i2c_dev->is_multimaster_mode && i2c_dev->hw->has_slcg_override_reg)
 		i2c_writel(i2c_dev, I2C_MST_CORE_CLKEN_OVR, I2C_CLKEN_OVERRIDE);
 
 	err = tegra_i2c_wait_for_config_load(i2c_dev);
 	if (err)
-		return err;
+		goto exit;
 
 	if (i2c_dev->irq_disabled) {
 		i2c_dev->irq_disabled = false;
 		enable_irq(i2c_dev->irq);
 	}
 
-	return 0;
+exit:
+	if (!pm_runtime_enabled(i2c_dev->dev))
+		tegra_i2c_runtime_suspend(i2c_dev->dev);
+	else
+		pm_runtime_put(i2c_dev->dev);
+	return err;
 }
 
 static int tegra_i2c_disable_packet_mode(struct tegra_i2c_dev *i2c_dev)
@@ -1335,10 +1353,18 @@ static int tegra_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg msgs[],
 	int i;
 	int ret;
 
-	ret = pm_runtime_get_sync(i2c_dev->dev);
-	if (ret < 0) {
-		dev_err(i2c_dev->dev, "runtime resume failed %d\n", ret);
-		return ret;
+	if (!pm_runtime_enabled(i2c_dev->dev)) {
+		ret = tegra_i2c_runtime_resume(i2c_dev->dev);
+		if (ret < 0) {
+			dev_err(i2c_dev->dev, "runtime resume fail =%d\n", ret);
+			return ret;
+		}
+	} else {
+		ret = pm_runtime_get_sync(i2c_dev->dev);
+		if (ret < 0) {
+			dev_err(i2c_dev->dev, "runtime get sync resume fail %d\n", ret);
+			return ret;
+		}
 	}
 
 	for (i = 0; i < num; i++) {
@@ -1355,7 +1381,10 @@ static int tegra_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg msgs[],
 			break;
 	}
 
-	pm_runtime_put(i2c_dev->dev);
+	if (!pm_runtime_enabled(i2c_dev->dev))
+		tegra_i2c_runtime_suspend(i2c_dev->dev);
+	else
+		pm_runtime_put(i2c_dev->dev);
 
 	return ret ?: i;
 }
