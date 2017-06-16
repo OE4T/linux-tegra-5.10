@@ -2900,6 +2900,7 @@ static struct tegra_pto_table ptodefs[] = {
 	{ .clk_id = TEGRA210_CLK_PLL_RE_VCO, .divider = 2, .pto_id = 271, .presel_reg = PLLRE_MISC0, .presel_value = BIT(26), .presel_mask = BIT(26) },
 
 	{ .clk_id = TEGRA210_CLK_CCLK_G, .divider = 1,  .pto_id = 18, },
+	{ .clk_id = TEGRA210_CLK_EMC, .divider = 1,  .pto_id = 36, },
 };
 
 static const unsigned int nvjpg_slcg_clkids[] = { TEGRA210_CLK_NVDEC };
