@@ -36,6 +36,8 @@ enum tegra_pinconf_param {
 	/* argument: Boolean */
 	TEGRA_PINCONF_PARAM_RCV_SEL,
 	/* argument: Boolean */
+	TEGRA_PINCONF_PARAM_LOOPBACK,
+	/* argument: Boolean */
 	TEGRA_PINCONF_PARAM_HIGH_SPEED_MODE,
 	/* argument: Boolean */
 	TEGRA_PINCONF_PARAM_SCHMITT,
@@ -128,6 +130,9 @@ struct tegra_function {
  * @pad_bank:		Register bank for the PAD control.
  * @pad_reg:		Register address for PAD control.
  * @pad_bit:		PAD control bit.
+ * @lpbk_bank:		Register bank for the Loopback control.
+ * @lpbk_reg:		Register address for Loopback control.
+ * @lpbk_bit:		Loopback register bit
  *
  * -1 in a *_reg field means that feature is unsupported for this group.
  * *_bank and *_reg values are irrelevant when *_reg is -1.
@@ -150,11 +155,13 @@ struct tegra_pingroup {
 	s32 tri_reg;
 	s32 drv_reg;
 	s32 pad_reg;
+	s32 lpbk_reg;
 	u32 mux_bank:2;
 	u32 pupd_bank:2;
 	u32 tri_bank:2;
 	u32 drv_bank:2;
 	u32 pad_bank:2;
+	u32 lpbk_bank:2;
 	s32 mux_bit:6;
 	s32 pupd_bit:6;
 	s32 tri_bit:6;
@@ -173,6 +180,7 @@ struct tegra_pingroup {
 	s32 slwf_bit:6;
 	s32 lpdr_bit:6;
 	s32 drvtype_bit:6;
+	s32 lpbk_bit:6;
 	s32 drvdn_width:6;
 	s32 drvup_width:6;
 	s32 slwr_width:6;
