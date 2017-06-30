@@ -23,6 +23,7 @@
 #include "ufshcd-crypto.h"
 #include <asm/unaligned.h>
 #include <linux/blkdev.h>
+#include <uapi/scsi/ufs/ioctl.h>
 
 #define CREATE_TRACE_POINTS
 #include <trace/events/ufs.h>
@@ -233,7 +234,8 @@ static int ufshcd_wb_buf_flush_disable(struct ufs_hba *hba);
 static int ufshcd_wb_ctrl(struct ufs_hba *hba, bool enable);
 static int ufshcd_wb_toggle_flush_during_h8(struct ufs_hba *hba, bool set);
 static inline void ufshcd_wb_toggle_flush(struct ufs_hba *hba, bool enable);
-
+static int ufshcd_set_dev_pwr_mode(struct ufs_hba *hba,
+				     enum ufs_dev_pwr_mode pwr_mode);
 static inline bool ufshcd_valid_tag(struct ufs_hba *hba, int tag)
 {
 	return tag >= 0 && tag < hba->nutrs;
@@ -6945,7 +6947,8 @@ static int ufshcd_scsi_add_wlus(struct ufs_hba *hba)
 {
 	int ret = 0;
 	struct scsi_device *sdev_rpmb;
-	struct scsi_device *sdev_boot;
+
+	/* Note: boot WLU is not added currently*/
 
 	if (!(hba->quirks & UFSHCD_QUIRK_ENABLE_WLUNS))
 		return 0;
@@ -6969,14 +6972,6 @@ static int ufshcd_scsi_add_wlus(struct ufs_hba *hba)
 	ufshcd_blk_pm_runtime_init(sdev_rpmb);
 	scsi_device_put(sdev_rpmb);
 
-	sdev_boot = __scsi_add_device(hba->host, 0, 0,
-		ufshcd_upiu_wlun_to_scsi_wlun(UFS_UPIU_BOOT_WLUN), NULL);
-	if (IS_ERR(sdev_boot)) {
-		dev_err(hba->dev, "%s: BOOT WLUN not found\n", __func__);
-	} else {
-		ufshcd_blk_pm_runtime_init(sdev_boot);
-		scsi_device_put(sdev_boot);
-	}
 	goto out;
 
 remove_sdev_ufs_device:
@@ -7655,6 +7650,217 @@ out:
 }
 EXPORT_SYMBOL(ufshcd_rescan);
 
+
+static int ufshcd_query_ioctl(struct ufs_hba *hba, void __user *buf)
+{
+	struct ufs_ioc_query_req *ioctl_req;
+	int err = 0;
+	bool flag = 0;
+	u32 attr = 0;
+	u8 *desc = NULL, index;
+	int data_len = 0;
+	u8 flag_u8;
+
+	ioctl_req = devm_kzalloc(hba->dev, sizeof(struct ufs_ioc_query_req),
+		GFP_KERNEL);
+	if (ioctl_req == NULL) {
+		err = -ENOMEM;
+		goto out;
+	}
+
+	/* Copy the user buffer to kernel buffer */
+	err = copy_from_user(ioctl_req, buf, sizeof(struct ufs_ioc_query_req));
+	if (err) {
+		err = -ENOMEM;
+		goto out_release_mem;
+	}
+
+	if ((ioctl_req->buf_size != 0) && (ioctl_req->buffer == NULL)) {
+		err = -EINVAL;
+		goto out_release_mem;
+	}
+
+	switch (ioctl_req->opcode) {
+	case UPIU_QUERY_OPCODE_READ_DESC:
+		if (ioctl_req->idn >= QUERY_DESC_IDN_MAX) {
+			err = -EINVAL;
+			goto out_release_mem;
+		}
+
+		data_len = min_t(int, QUERY_DESC_MAX_SIZE, ioctl_req->buf_size);
+		desc = devm_kzalloc(hba->dev, data_len, GFP_KERNEL);
+		if (desc == NULL) {
+			err = -ENOMEM;
+			goto out_release_mem;
+		}
+
+		err = __ufshcd_query_descriptor(hba, ioctl_req->opcode,
+			ioctl_req->idn, ioctl_req->index, ioctl_req->selector,
+			desc, &data_len);
+		if (!err) {
+			err = copy_to_user(ioctl_req->buffer, desc, data_len);
+			ioctl_req->buf_size = data_len;
+		}
+
+		devm_kfree(hba->dev, desc);
+		break;
+
+	case UPIU_QUERY_OPCODE_WRITE_DESC:
+		if (ioctl_req->idn >= QUERY_DESC_IDN_MAX) {
+			err = -EINVAL;
+			goto out_release_mem;
+		}
+
+		data_len = min_t(int, QUERY_DESC_MAX_SIZE, ioctl_req->buf_size);
+		desc = devm_kzalloc(hba->dev, data_len, GFP_KERNEL);
+		if (desc == NULL) {
+			err = -ENOMEM;
+			goto out_release_mem;
+		}
+
+		err = copy_from_user(desc, ioctl_req->buffer, data_len);
+		if (!err) {
+			err = __ufshcd_query_descriptor(hba, ioctl_req->opcode,
+				ioctl_req->idn, ioctl_req->index,
+				ioctl_req->selector, desc, &data_len);
+			ioctl_req->buf_size = data_len;
+		}
+
+		devm_kfree(hba->dev, desc);
+		break;
+
+	case UPIU_QUERY_OPCODE_READ_ATTR:
+		if (ioctl_req->idn >= QUERY_ATTR_IDN_MAX) {
+			err = -EINVAL;
+			goto out_release_mem;
+		}
+
+		if (ioctl_req->buf_size != sizeof(u32)) {
+			err = -EINVAL;
+			goto out_release_mem;
+		}
+
+		err = ufshcd_query_attr(hba, ioctl_req->opcode, ioctl_req->idn,
+			ioctl_req->index, ioctl_req->selector, &attr);
+		if (!err)
+			err = copy_to_user(ioctl_req->buffer, (void *)&attr,
+				sizeof(u32));
+		break;
+
+	case UPIU_QUERY_OPCODE_WRITE_ATTR:
+		if (ioctl_req->idn > QUERY_ATTR_IDN_MAX) {
+			err = -EINVAL;
+			goto out_release_mem;
+		}
+
+		if (ioctl_req->buf_size != sizeof(u32)) {
+			err = -EINVAL;
+			goto out_release_mem;
+		}
+
+		err = copy_from_user((void *)&attr, ioctl_req->buffer,
+			sizeof(u32));
+		if (!err)
+			err = ufshcd_query_attr(hba, ioctl_req->opcode,
+				ioctl_req->idn,	ioctl_req->index,
+				ioctl_req->selector, &attr);
+		break;
+
+	case UPIU_QUERY_OPCODE_READ_FLAG:
+		if (ioctl_req->idn > QUERY_FLAG_IDN_MAX) {
+			err = -EINVAL;
+			goto out_release_mem;
+		}
+
+		if (ioctl_req->buf_size != sizeof(u8)) {
+			err = -EINVAL;
+			goto out_release_mem;
+		}
+
+		index = ufshcd_wb_get_query_index(hba);
+		err = ufshcd_query_flag(hba, ioctl_req->opcode, ioctl_req->idn, index,
+			&flag);
+		if (!err) {
+			flag_u8 = (u8)flag;
+			err = copy_to_user(ioctl_req->buffer, (void *)&flag_u8,
+				sizeof(u8));
+		}
+
+		break;
+
+	case UPIU_QUERY_OPCODE_SET_FLAG:
+	case UPIU_QUERY_OPCODE_CLEAR_FLAG:
+	case UPIU_QUERY_OPCODE_TOGGLE_FLAG:
+		if (ioctl_req->idn > QUERY_FLAG_IDN_MAX) {
+			err = -EINVAL;
+			goto out_release_mem;
+		}
+
+		index = ufshcd_wb_get_query_index(hba);
+		err = ufshcd_query_flag(hba, ioctl_req->opcode,	ioctl_req->idn, index,
+			NULL);
+		break;
+
+	}
+
+	if (!err)
+		err = copy_to_user(buf, ioctl_req, sizeof(*ioctl_req));
+
+out_release_mem:
+	devm_kfree(hba->dev, ioctl_req);
+out:
+	return err;
+}
+
+static int ufshcd_set_power_mode_ioctl(struct ufs_hba *hba, void __user *buf)
+{
+	int err = 0;
+	uint32_t pwr_mode;
+
+	/* Copy the user buffer to kernel buffer */
+	err = copy_from_user(&pwr_mode, buf, sizeof(uint32_t));
+	if (err) {
+		err = -ENOMEM;
+		goto out;
+	}
+
+	if (pwr_mode > UFS_POWERDOWN_PWR_MODE) {
+		err = -EINVAL;
+		goto out;
+	}
+
+	err = ufshcd_set_dev_pwr_mode(hba, (enum ufs_dev_pwr_mode)pwr_mode);
+
+out:
+	return err;
+}
+
+static int ufshcd_ioctl(struct scsi_device *dev, unsigned int cmd, void __user *buf)
+{
+	struct ufs_hba *hba = shost_priv(dev->host);
+	int err = 0;
+
+	switch (cmd) {
+	case UFS_IOCTL_QUERY:
+		pm_runtime_get_sync(hba->dev);
+		err = ufshcd_query_ioctl(hba, buf);
+		pm_runtime_put_sync(hba->dev);
+		break;
+
+	case UFS_IOCTL_SET_POWER_MODE:
+		pm_runtime_get_sync(hba->dev);
+		err = ufshcd_set_power_mode_ioctl(hba, buf);
+		pm_runtime_put_sync(hba->dev);
+		break;
+
+	default:
+		err = -EINVAL;
+		break;
+	}
+
+	return err;
+}
+
 /**
  * ufshcd_async_scan - asynchronous execution for probing hba
  * @data: data pointer to pass to this function
@@ -7712,6 +7918,10 @@ static struct scsi_host_template ufshcd_driver_template = {
 	.eh_abort_handler	= ufshcd_abort,
 	.eh_device_reset_handler = ufshcd_eh_device_reset_handler,
 	.eh_host_reset_handler   = ufshcd_eh_host_reset_handler,
+	.ioctl			= ufshcd_ioctl,
+#ifdef CONFIG_COMPAT
+	.compat_ioctl		= ufshcd_ioctl,
+#endif
 	.this_id		= -1,
 	.sg_tablesize		= SG_ALL,
 	.cmd_per_lun		= UFSHCD_CMD_PER_LUN,

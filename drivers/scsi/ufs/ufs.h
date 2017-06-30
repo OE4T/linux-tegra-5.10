@@ -2,6 +2,7 @@
 /*
  * Universal Flash Storage Host controller driver
  * Copyright (C) 2011-2013 Samsung India Software Operations
+ * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Authors:
  *	Santosh Yaraganavi <santosh.sy@samsung.com>
@@ -122,6 +123,7 @@ enum flag_idn {
 	QUERY_FLAG_IDN_WB_EN                            = 0x0E,
 	QUERY_FLAG_IDN_WB_BUFF_FLUSH_EN                 = 0x0F,
 	QUERY_FLAG_IDN_WB_BUFF_FLUSH_DURING_HIBERN8     = 0x10,
+	QUERY_FLAG_IDN_MAX				= 0x20,
 };
 
 /* Attribute idn for Query requests */
@@ -154,6 +156,7 @@ enum attr_idn {
 	QUERY_ATTR_IDN_AVAIL_WB_BUFF_SIZE       = 0x1D,
 	QUERY_ATTR_IDN_WB_BUFF_LIFE_TIME_EST    = 0x1E,
 	QUERY_ATTR_IDN_CURR_WB_BUFF_SIZE        = 0x1F,
+	QUERY_ATTR_IDN_MAX			= 0x30,
 };
 
 /* Descriptor idn for Query requests */
@@ -168,6 +171,7 @@ enum desc_idn {
 	QUERY_DESC_IDN_GEOMETRY		= 0x7,
 	QUERY_DESC_IDN_POWER		= 0x8,
 	QUERY_DESC_IDN_HEALTH           = 0x9,
+	QUERY_DESC_IDN_DEVICE_HEALTH	= 0xA,
 	QUERY_DESC_IDN_MAX,
 };
 
