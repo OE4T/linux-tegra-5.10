@@ -37,7 +37,7 @@ union i2c_smbus_data;
 struct i2c_board_info;
 enum i2c_slave_event;
 typedef int (*i2c_slave_cb_t)(struct i2c_client *client,
-			      enum i2c_slave_event event, u8 *val);
+			      enum i2c_slave_event event, void *buf);
 
 /* I2C Frequency Modes */
 #define I2C_MAX_STANDARD_MODE_FREQ	100000
@@ -337,6 +337,7 @@ struct i2c_client {
 	struct list_head detected;
 #if IS_ENABLED(CONFIG_I2C_SLAVE)
 	i2c_slave_cb_t slave_cb;	/* callback for slave mode	*/
+	u32 buffer_size;		/* slave buffer size */
 #endif
 };
 #define to_i2c_client(d) container_of(d, struct i2c_client, dev)
@@ -370,7 +371,17 @@ enum i2c_slave_event {
 	I2C_SLAVE_WRITE_REQUESTED,
 	I2C_SLAVE_READ_PROCESSED,
 	I2C_SLAVE_WRITE_RECEIVED,
+	I2C_SLAVE_READ_BUFFER_REQUESTED,
+	I2C_SLAVE_WRITE_BUFFER_REQUESTED,
+	I2C_SLAVE_READ_BUFFER_PROCESSED,
+	I2C_SLAVE_WRITE_BUFFER_RECEIVED,
+	I2C_SLAVE_READ_BUFFER_COUNT,
 	I2C_SLAVE_STOP,
+};
+
+struct i2c_slave_data {
+	u8 *buf;
+	u32 size;
 };
 
 int i2c_slave_register(struct i2c_client *client, i2c_slave_cb_t slave_cb);
@@ -378,7 +389,7 @@ int i2c_slave_unregister(struct i2c_client *client);
 bool i2c_detect_slave_mode(struct device *dev);
 
 static inline int i2c_slave_event(struct i2c_client *client,
-				  enum i2c_slave_event event, u8 *val)
+				  enum i2c_slave_event event, void *val)
 {
 	return client->slave_cb(client, event, val);
 }
