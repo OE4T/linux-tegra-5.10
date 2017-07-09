@@ -857,6 +857,11 @@ config SPI_TEGRA124_SLAVE
 	help
 	  SPI slave driver for Nvidia Tegra124 and later soc SPI Controller interface.
 
+config SPI_TEGRA194_SLAVE
+	tristate "Nvidia Tegra194 SPI controller slave continuous pause mode driver"
+	help
+	  SPI slave continuous pause mode driver for Nvidia Tegra SOC.
+
 config SPI_TEGRA20_SFLASH
 	tristate "Nvidia Tegra20 Serial flash Controller"
 	depends on ARCH_TEGRA || COMPILE_TEST
