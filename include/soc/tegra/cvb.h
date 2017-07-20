@@ -65,6 +65,7 @@ struct cvb_table {
 	struct cvb_table_freq_entry entries[MAX_DVFS_FREQS];
 	struct cvb_cpu_dfll_data cpu_dfll_data;
 	struct cvb_coefficients vmin_coefficients;
+	const char *cvb_version;
 };
 
 const struct cvb_table *
