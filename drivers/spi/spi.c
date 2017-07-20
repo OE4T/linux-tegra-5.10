@@ -4051,6 +4051,40 @@ int spi_cs_low(struct spi_device *spi, bool state)
 }
 EXPORT_SYMBOL_GPL(spi_cs_low);
 
+/* spi_start_controller - start the controller independently
+ * for spi slave continuous mode use case.
+ */
+int spi_start_controller(struct spi_device *spi, struct spi_transfer *t)
+{
+	struct spi_controller *ctrl = spi->master;
+	int ret = 0;
+
+	mutex_lock(&ctrl->bus_lock_mutex);
+
+	if (ctrl->start_controller)
+		ret = ctrl->start_controller(spi, t);
+
+	mutex_unlock(&ctrl->bus_lock_mutex);
+	return ret;
+}
+EXPORT_SYMBOL_GPL(spi_start_controller);
+
+/* spi_stop_controller - stop the controller independently
+ * for spi slave continuous mode use case.
+ */
+void spi_stop_controller(struct spi_device *spi)
+{
+	struct spi_controller *ctrl = spi->master;
+
+	mutex_lock(&ctrl->bus_lock_mutex);
+
+	if (ctrl->stop_controller)
+		ctrl->stop_controller(spi);
+
+	mutex_unlock(&ctrl->bus_lock_mutex);
+}
+EXPORT_SYMBOL_GPL(spi_stop_controller);
+
 /*-------------------------------------------------------------------------*/
 
 #if IS_ENABLED(CONFIG_OF)

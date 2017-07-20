@@ -659,7 +659,6 @@ struct spi_controller {
 
 	int (*fw_translate_cs)(struct spi_controller *ctlr, unsigned cs);
 	int (*spi_cs_low)(struct spi_device *spi, bool state);
-
 	/*
 	 * Driver sets this field to indicate it is able to snapshot SPI
 	 * transfers (needed e.g. for reading the time of POSIX clocks)
@@ -668,6 +667,9 @@ struct spi_controller {
 
 	/* Interrupt enable state during PTP system timestamping */
 	unsigned long		irq_flags;
+	int (*start_controller)(struct spi_device *spi,
+				struct spi_transfer *transfer);
+	void (*stop_controller)(struct spi_device *spi);
 };
 
 static inline void *spi_controller_get_devdata(struct spi_controller *ctlr)
@@ -1540,6 +1542,9 @@ of_find_spi_device_by_node(struct device_node *node)
  * state: if true chip select pin will be kept low else high
  */
 extern int spi_cs_low(struct spi_device *spi, bool state);
+extern int spi_start_controller(struct spi_device *spi,
+				struct spi_transfer *t);
+extern void spi_stop_controller(struct spi_device *spi);
 
 /* Compatibility layer */
 #define spi_master			spi_controller
