@@ -146,6 +146,9 @@ struct spi_ioc_transfer {
 #define SPI_IOC_RD_MODE32		_IOR(SPI_IOC_MAGIC, 5, __u32)
 #define SPI_IOC_WR_MODE32		_IOW(SPI_IOC_MAGIC, 5, __u32)
 
+/* SPI continuous mode start/stop */
+#define SPI_IOC_WR_START_CTRL		_IOW(SPI_IOC_MAGIC, 6, char[SPI_MSGSIZE(1)])
+#define SPI_IOC_STOP_CTRL		_IOR(SPI_IOC_MAGIC, 6, __u8)
 
 
 #endif /* SPIDEV_H */
