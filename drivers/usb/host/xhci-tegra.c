@@ -2911,12 +2911,14 @@ static void tegra_xhci_endpoint_soft_retry(struct usb_hcd *hcd,
 }
 
 #ifdef CONFIG_PM_SLEEP
-static bool xhci_hub_ports_suspended(struct xhci_hub *hub)
+static bool xhci_hub_ports_suspended(struct tegra_xusb *tegra, struct xhci_hub *hub)
 {
+	struct xhci_hcd *xhci = hcd_to_xhci(tegra->hcd);
 	struct device *dev = hub->hcd->self.controller;
 	bool status = true;
 	unsigned int i;
 	u32 value;
+	unsigned long flags;
 
 	for (i = 0; i < hub->num_ports; i++) {
 		value = readl(hub->ports[i]->addr);
@@ -2924,9 +2926,32 @@ static bool xhci_hub_ports_suspended(struct xhci_hub *hub)
 			continue;
 
 		if ((value & PORT_PLS_MASK) != XDEV_U3) {
-			dev_info(dev, "%u-%u isn't suspended: %#010x\n",
-				 hub->hcd->self.busnum, i + 1, value);
 			status = false;
+			if (XHCI_IS_T210(tegra) &&
+				DEV_SUPERSPEED(value)) {
+				unsigned long end = jiffies + msecs_to_jiffies(200);
+
+				while (time_before(jiffies, end)) {
+					if ((value & PORT_PLS_MASK) == XDEV_RESUME)
+						break;
+					spin_unlock_irqrestore(&xhci->lock, flags);
+					msleep(20);
+					spin_lock_irqsave(&xhci->lock, flags);
+
+					value = readl(hub->ports[i]->addr);
+					if ((value & PORT_PLS_MASK) == XDEV_U3) {
+						dev_info(dev, "%u-%u is suspended: %#010x\n",
+							hub->hcd->self.busnum, i + 1, value);
+						status = true;
+						break;
+					}
+				}
+			}
+
+			if (!status) {
+				dev_info(dev, "%u-%u isn't suspended: %#010x\n",
+					 hub->hcd->self.busnum, i + 1, value);
+			}
 		}
 	}
 
@@ -2950,8 +2975,8 @@ static int tegra_xusb_check_ports(struct tegra_xusb *tegra)
 
 	spin_lock_irqsave(&xhci->lock, flags);
 
-	if (!xhci_hub_ports_suspended(&xhci->usb2_rhub) ||
-	    !xhci_hub_ports_suspended(&xhci->usb3_rhub))
+	if (!xhci_hub_ports_suspended(tegra, &xhci->usb2_rhub) ||
+	    !xhci_hub_ports_suspended(tegra, &xhci->usb3_rhub))
 		err = -EBUSY;
 
 	spin_unlock_irqrestore(&xhci->lock, flags);
