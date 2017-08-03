@@ -2536,9 +2536,14 @@ static int tegra_xusb_check_ports(struct tegra_xusb *tegra)
 {
 	struct xhci_hcd *xhci = hcd_to_xhci(tegra->hcd);
 	unsigned long flags;
+	u32 usbcmd;
 	int err = 0;
 
 	spin_lock_irqsave(&xhci->lock, flags);
+
+	usbcmd = readl(&xhci->op_regs->command);
+	usbcmd &= ~CMD_EIE;
+	writel(usbcmd, &xhci->op_regs->command);
 
 	if (!xhci_hub_ports_suspended(&xhci->usb2_rhub) ||
 	    !xhci_hub_ports_suspended(&xhci->usb3_rhub))
@@ -2586,18 +2591,18 @@ static void tegra_xusb_restore_context(struct tegra_xusb *tegra)
 static int tegra_xusb_enter_elpg(struct tegra_xusb *tegra, bool wakeup)
 {
 	struct xhci_hcd *xhci = hcd_to_xhci(tegra->hcd);
-	int err;
+	int err = 0;
 
 	err = tegra_xusb_check_ports(tegra);
 	if (err < 0) {
 		dev_err(tegra->dev, "not all ports suspended: %d\n", err);
-		return err;
+		goto out;
 	}
 
 	err = xhci_suspend(xhci, wakeup);
 	if (err < 0) {
 		dev_err(tegra->dev, "failed to suspend XHCI: %d\n", err);
-		return err;
+		goto out;
 	}
 
 	tegra_xusb_save_context(tegra);
@@ -2616,13 +2621,32 @@ static int tegra_xusb_enter_elpg(struct tegra_xusb *tegra, bool wakeup)
 
 	tegra_xusb_clk_disable(tegra);
 
-	return 0;
+out:
+	if (!err)
+		dev_info(tegra->dev, "entering ELPG done\n");
+	else {
+		unsigned long flags;
+		u32 usbcmd;
+
+		spin_lock_irqsave(&xhci->lock, flags);
+
+		usbcmd = readl(&xhci->op_regs->command);
+		usbcmd |= CMD_EIE;
+		writel(usbcmd, &xhci->op_regs->command);
+
+		spin_unlock_irqrestore(&xhci->lock, flags);
+
+		dev_info(tegra->dev, "entering ELPG failed\n");
+	}
+
+	return err;
 }
 
 static int tegra_xusb_exit_elpg(struct tegra_xusb *tegra, bool wakeup)
 {
 	struct xhci_hcd *xhci = hcd_to_xhci(tegra->hcd);
 	int err;
+	u32 usbcmd;
 
 	err = tegra_xusb_clk_enable(tegra);
 	if (err < 0) {
@@ -2656,6 +2680,10 @@ static int tegra_xusb_exit_elpg(struct tegra_xusb *tegra, bool wakeup)
 		dev_err(tegra->dev, "failed to resume XHCI: %d\n", err);
 		goto disable_phy;
 	}
+
+	usbcmd = readl(&xhci->op_regs->command);
+	usbcmd |= CMD_EIE;
+	writel(usbcmd, &xhci->op_regs->command);
 
 	return 0;
 
