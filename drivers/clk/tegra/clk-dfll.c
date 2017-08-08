@@ -891,9 +891,7 @@ static enum hrtimer_restart dfll_tune_timer_cb(struct hrtimer *timer)
 	} else if (td->tune_range == DFLL_TUNE_WAIT_PMIC) {
 		dfll_tune_high(td);
 	}
-
-	pr_debug("%s: dvco tuning state %d last uv %u\n", __func__,
-		 td->tune_range, td->lut_uv[READ_LAST_I2C_VAL(td)]);
+	pr_debug("%s: dvco tuning state %d\n", __func__, td->tune_range);
 
 	spin_unlock_irqrestore(&td->lock, flags);
 
@@ -949,7 +947,7 @@ static unsigned long get_dvco_rate_above(struct tegra_dfll *td, u8 out_min)
 			return rate;
 	}
 
-	return rate;
+	return rate ? --rate : 0;
 }
 
 /**
@@ -981,6 +979,7 @@ static void set_dvco_rate_min(struct tegra_dfll *td, struct dfll_rate_req *req)
 
 	/* round minimum rate to request unit (ref_rate/2) boundary */
 	td->dvco_rate_min = ROUND_DVCO_MIN_RATE(rate, td->ref_rate);
+	pr_debug("%s: dvco rate min = %lu\n", __func__, td->dvco_rate_min);
 
 	/* set symmetrical calibration boundaries */
 	td->calibration_range_min = td->dvco_rate_min > range ?
@@ -1838,8 +1837,11 @@ static int dfll_calculate_rate_request(struct tegra_dfll *td,
 	req->mult_bits = val;
 	req->dvco_target_rate = MULT_TO_DVCO_RATE(req->mult_bits, td->ref_rate);
 	req->lut_index = find_lut_index_for_rate(td, req->dvco_target_rate);
-	if (req->lut_index < 0)
+	if (req->lut_index < 0) {
+		pr_debug("%s: dvco target %lu is too high\n", __func__,
+			 req->dvco_target_rate);
 		return req->lut_index;
+	}
 
 	return 0;
 }
