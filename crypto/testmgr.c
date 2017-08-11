@@ -1135,7 +1135,12 @@ static int check_hash_result(const char *type,
 	if (memcmp(result, vec->digest, digestsize) != 0) {
 		pr_err("alg: %s: %s test failed (wrong result) on test vector %s, cfg=\"%s\"\n",
 		       type, driver, vec_name, cfg->name);
+		hexdump(result, digestsize);
 		return -EINVAL;
+	} else {
+		pr_info("alg: %s: %s test passed on test vector %s, cfg=\"%s\"\n",
+		       type, driver, vec_name, cfg->name);
+		hexdump(result, digestsize);
 	}
 	if (!testmgr_is_poison(&result[digestsize], TESTMGR_POISON_LEN)) {
 		pr_err("alg: %s: %s overran result buffer on test vector %s, cfg=\"%s\"\n",
@@ -2836,6 +2841,9 @@ static int test_skcipher_vec_cfg(const char *driver, int enc,
 		pr_err("alg: skcipher: %s %s test failed (wrong result) on test vector %s, cfg=\"%s\"\n",
 		       driver, op, vec_name, cfg->name);
 		return err;
+	} else {
+		pr_info("alg: skcipher: %s %s test passed on test vector %s, cfg=\"%s\"\n",
+		       driver, op, vec_name, cfg->name);
 	}
 
 	/* If applicable, check that the algorithm generated the correct IV */
@@ -3863,7 +3871,6 @@ static int do_test_kpp(struct crypto_kpp *tfm, const struct kpp_testvec *vec,
 		       alg);
 		err = -EINVAL;
 	}
-
 free_all:
 	kfree(a_ss);
 	kfree(input_buf);
@@ -3886,6 +3893,9 @@ static int test_kpp(struct crypto_kpp *tfm, const char *alg,
 			pr_err("alg: %s: test failed on vector %d, err=%d\n",
 			       alg, i + 1, ret);
 			return ret;
+		} else {
+			pr_info("alg: %s: test passed on vector %d\n",
+				alg, i + 1);
 		}
 	}
 	return 0;
