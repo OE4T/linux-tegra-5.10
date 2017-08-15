@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-only
 /*
- * Copyright (c) 2012, 2013, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2012, 2013-2020, NVIDIA CORPORATION.  All rights reserved.
  */
 
 #include <linux/io.h>
@@ -903,6 +903,9 @@ static void __init periph_clk_init(void __iomem *clk_base,
 		bank = get_reg_bank(data->periph.gate.clk_num);
 		if (!bank)
 			continue;
+
+		if (tegra_clks[data->clk_id].use_integer_div)
+			data->periph.divider.flags |= TEGRA_DIVIDER_INT;
 
 		data->periph.gate.regs = bank;
 		clk = tegra_clk_register_periph_data(clk_base, data);
