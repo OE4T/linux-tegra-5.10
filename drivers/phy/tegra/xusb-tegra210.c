@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-only
 /*
- * Copyright (c) 2014, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-19, NVIDIA CORPORATION.  All rights reserved.
  * Copyright (C) 2015 Google, Inc.
  */
 
@@ -1405,7 +1405,7 @@ static const struct tegra_xusb_pad_soc tegra210_hsic_pad = {
 
 static const char *tegra210_pcie_functions[] = {
 	"pcie-x1",
-	"usb3-ss",
+	"xusb",
 	"sata",
 	"pcie-x4",
 };
@@ -1929,14 +1929,14 @@ static const struct tegra_xusb_lane_map tegra210_usb3_map[] = {
 	{ 2, "pcie", 0 },
 	{ 2, "pcie", 3 },
 	{ 3, "pcie", 4 },
-	{ 3, "pcie", 4 },
+	{ 3, "sata", 0 },
 	{ 0, NULL,   0 }
 };
 
 static struct tegra_xusb_lane *
 tegra210_usb3_port_map(struct tegra_xusb_port *port)
 {
-	return tegra_xusb_port_find_lane(port, tegra210_usb3_map, "usb3-ss");
+	return tegra_xusb_port_find_lane(port, tegra210_usb3_map, "xusb");
 }
 
 static const struct tegra_xusb_port_ops tegra210_usb3_port_ops = {
