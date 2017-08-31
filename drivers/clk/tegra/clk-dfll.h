@@ -44,6 +44,11 @@ struct tegra_dfll_soc_data {
 	unsigned int min_millivolts;
 	unsigned int tune_high_min_millivolts;
 
+	u32 tune0_low;
+	u32 tune0_high;
+	u32 tune1_low;
+	u32 tune1_high;
+	unsigned int tune_high_margin_millivolts;
 	void (*init_clock_trimmers)(void);
 	void (*set_clock_trimmers_high)(void);
 	void (*set_clock_trimmers_low)(void);
