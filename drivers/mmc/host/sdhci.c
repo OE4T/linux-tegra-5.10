@@ -1806,7 +1806,7 @@ EXPORT_SYMBOL_GPL(sdhci_set_power_noreg);
 void sdhci_set_power(struct sdhci_host *host, unsigned char mode,
 		     unsigned short vdd)
 {
-	if (IS_ERR(host->mmc->supply.vmmc))
+	if (IS_ERR_OR_NULL(host->mmc->supply.vmmc))
 		sdhci_set_power_noreg(host, mode, vdd);
 	else
 		sdhci_set_power_reg(host, mode, vdd);
@@ -4148,7 +4148,7 @@ int sdhci_setup_host(struct sdhci_host *host)
 		mmc->caps2 |= MMC_CAP2_HS400;
 
 	if ((mmc->caps2 & MMC_CAP2_HSX00_1_2V) &&
-	    (IS_ERR(mmc->supply.vqmmc) ||
+	    (IS_ERR_OR_NULL(mmc->supply.vqmmc) ||
 	     !regulator_is_supported_voltage(mmc->supply.vqmmc, 1100000,
 					     1300000)))
 		mmc->caps2 &= ~MMC_CAP2_HSX00_1_2V;
@@ -4194,7 +4194,7 @@ int sdhci_setup_host(struct sdhci_host *host)
 	 * value.
 	 */
 	max_current_caps = sdhci_readl(host, SDHCI_MAX_CURRENT);
-	if (!max_current_caps && !IS_ERR(mmc->supply.vmmc)) {
+	if (!max_current_caps && !IS_ERR_OR_NULL(mmc->supply.vmmc)) {
 		int curr = regulator_get_current_limit(mmc->supply.vmmc);
 		if (curr > 0) {
 
@@ -4343,7 +4343,7 @@ int sdhci_setup_host(struct sdhci_host *host)
 	return 0;
 
 unreg:
-	if (!IS_ERR(mmc->supply.vqmmc))
+	if (!IS_ERR_OR_NULL(mmc->supply.vqmmc))
 		regulator_disable(mmc->supply.vqmmc);
 undma:
 	if (host->align_buffer)
@@ -4493,7 +4493,7 @@ void sdhci_remove_host(struct sdhci_host *host, int dead)
 
 	destroy_workqueue(host->complete_wq);
 
-	if (!IS_ERR(mmc->supply.vqmmc))
+	if (!IS_ERR_OR_NULL(mmc->supply.vqmmc))
 		regulator_disable(mmc->supply.vqmmc);
 
 	if (host->align_buffer)
