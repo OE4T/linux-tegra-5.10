@@ -287,6 +287,66 @@ static int tegra_pinctrl_set_mux(struct pinctrl_dev *pctldev,
 	return 0;
 }
 
+static int tegra_pinctrl_gpio_save_config(struct pinctrl_dev *pctldev,
+					  struct pinctrl_gpio_range *range,
+					  unsigned offset)
+{
+	struct tegra_pmx *pmx = pinctrl_dev_get_drvdata(pctldev);
+	const struct tegra_pingroup *g;
+	unsigned group, num_pins;
+	const unsigned *pins;
+	int ret;
+
+	for (group = 0; group < pmx->soc->ngroups; ++group) {
+		ret = tegra_pinctrl_get_group_pins(pctldev, group, &pins, &num_pins);
+		if (ret < 0 || num_pins != 1)
+			continue;
+		if (offset ==  pins[0])
+			break;
+	}
+
+	if (group == pmx->soc->ngroups) {
+		dev_err(pctldev->dev, "Pingroup not found for pin %u\n", offset);
+		return -EINVAL;
+	}
+
+	g = &pmx->soc->groups[group];
+	if (g->mux_reg >= 0)
+		pmx->gpio_conf[offset] = pmx_readl(pmx, g->mux_bank, g->mux_reg);
+
+	return 0;
+}
+
+static int tegra_pinctrl_gpio_restore_config(struct pinctrl_dev *pctldev,
+					     struct pinctrl_gpio_range *range,
+					     unsigned offset)
+{
+	struct tegra_pmx *pmx = pinctrl_dev_get_drvdata(pctldev);
+	const struct tegra_pingroup *g;
+	unsigned group, num_pins;
+	const unsigned *pins;
+	int ret;
+
+	for (group = 0; group < pmx->soc->ngroups; ++group) {
+		ret = tegra_pinctrl_get_group_pins(pctldev, group, &pins, &num_pins);
+		if (ret < 0 || num_pins != 1)
+			continue;
+		if (offset == pins[0])
+			break;
+	}
+
+	if (group == pmx->soc->ngroups) {
+		dev_err(pctldev->dev, "Pingroup not found for pin %u\n", offset);
+		return -EINVAL;
+	}
+
+	g = &pmx->soc->groups[group];
+	if (g->mux_reg >= 0)
+		pmx_writel(pmx, pmx->gpio_conf[offset], g->mux_bank, g->mux_reg);
+
+	return 0;
+}
+
 static int tegra_pinctrl_gpio_request_enable(struct pinctrl_dev *pctldev,
 					     struct pinctrl_gpio_range *range,
 					     unsigned int offset)
@@ -338,6 +398,8 @@ static const struct pinmux_ops tegra_pinmux_ops = {
 	.set_mux = tegra_pinctrl_set_mux,
 	.gpio_request_enable = tegra_pinctrl_gpio_request_enable,
 	.gpio_disable_free = tegra_pinctrl_gpio_disable_free,
+	.gpio_save_config = tegra_pinctrl_gpio_save_config,
+	.gpio_restore_config = tegra_pinctrl_gpio_restore_config,
 };
 
 static int tegra_pinconf_reg(struct tegra_pmx *pmx,
@@ -887,6 +949,10 @@ int tegra_pinctrl_probe(struct platform_device *pdev,
 	pmx->backup_regs = devm_kzalloc(&pdev->dev, backup_regs_size,
 					GFP_KERNEL);
 	if (!pmx->backup_regs)
+		return -ENOMEM;
+
+	pmx->gpio_conf = devm_kzalloc(&pdev->dev, backup_regs_size, GFP_KERNEL);
+	if (!pmx->gpio_conf)
 		return -ENOMEM;
 
 	for (i = 0; i < pmx->nbanks; i++) {

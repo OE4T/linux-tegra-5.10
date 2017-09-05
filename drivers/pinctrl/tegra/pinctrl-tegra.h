@@ -18,6 +18,7 @@ struct tegra_pmx {
 	int nbanks;
 	void __iomem **regs;
 	u32 *backup_regs;
+	u32 *gpio_conf;
 };
 
 enum tegra_pinconf_param {
