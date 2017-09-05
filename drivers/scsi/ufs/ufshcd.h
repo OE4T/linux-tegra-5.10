@@ -1167,4 +1167,8 @@ static inline u8 ufshcd_scsi_to_upiu_lun(unsigned int scsi_lun)
 int ufshcd_dump_regs(struct ufs_hba *hba, size_t offset, size_t len,
 		     const char *prefix);
 
+int ufshcd_get_refclk_value(struct ufs_hba *hba, u32 *value);
+int ufshcd_set_refclk_value(struct ufs_hba *hba, u32 *value);
+int ufshcd_get_config_desc_lock(struct ufs_hba *hba, u32 *value);
+int ufshcd_set_config_desc(struct ufs_hba *hba, u8 *desc_buf);
 #endif /* End of Header */
