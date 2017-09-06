@@ -4,6 +4,11 @@
  *
  * Copyright (C) 2003,2004 Hewlett-Packard Company
  *
+ * Copyright (c) 2017, NVIDIA CORPORATION, All rights reserved.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 as
+ * published by the Free Software Foundation.
  */
 
 #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
@@ -306,6 +311,15 @@ static ssize_t low_persistence_store(struct device *dev,
 }
 static DEVICE_ATTR_RW(low_persistence);
 
+static ssize_t low_persistence_capable_show(struct device *dev,
+		struct device_attribute *attr, char *buf)
+{
+	struct backlight_device *bd = to_backlight_device(dev);
+
+	return sprintf(buf, "%d\n", bd->props.low_persistence_capable);
+}
+static DEVICE_ATTR_RO(low_persistence_capable);
+
 static ssize_t type_show(struct device *dev, struct device_attribute *attr,
 		char *buf)
 {
@@ -398,6 +412,7 @@ static struct attribute *bl_device_attrs[] = {
 	&dev_attr_bl_power.attr,
 	&dev_attr_brightness.attr,
 	&dev_attr_low_persistence.attr,
+	&dev_attr_low_persistence_capable.attr,
 	&dev_attr_actual_brightness.attr,
 	&dev_attr_max_brightness.attr,
 	&dev_attr_scale.attr,
