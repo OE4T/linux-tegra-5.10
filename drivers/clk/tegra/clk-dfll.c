@@ -29,6 +29,7 @@
  */
 
 #include <linux/clk.h>
+#include <linux/clkdev.h>
 #include <linux/clk-provider.h>
 #include <linux/debugfs.h>
 #include <linux/delay.h>
@@ -50,6 +51,7 @@
 #include <linux/spinlock.h>
 #include <linux/uaccess.h>
 
+#include "clk.h"
 #include "clk-dfll.h"
 
 /*
@@ -2365,6 +2367,9 @@ static int dfll_register_clk(struct tegra_dfll *td)
 		return ret;
 	}
 
+	clk_register_clkdev(td->dfll_clk, td->output_clock_name,
+			    "tegra-clk-debug");
+
 	return 0;
 }
 
@@ -3982,6 +3987,7 @@ int tegra_dfll_register(struct platform_device *pdev,
 	td->one_shot_invalid_time = DFLL_ONE_SHOT_INVALID_TIME;
 
 	dfll_debug_init(td);
+	tegra_clk_debugfs_add(td->dfll_clk);
 
 	tegra_dfll_dev = td;
 
