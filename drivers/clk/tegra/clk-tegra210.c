@@ -2549,6 +2549,71 @@ static struct tegra_clk tegra210_clks[tegra_clk_max] __initdata = {
 	[tegra_clk_adsp] = { .dt_id = TEGRA210_CLK_ADSP, .present = true },
 	[tegra_clk_adsp_neon] = { .dt_id = TEGRA210_CLK_ADSP_NEON, .present = true },
 	[tegra_clk_se_8] = { .dt_id = TEGRA210_CLK_SE, .present = true },
+	[tegra_clk_cap_c2bus] = { .dt_id = TEGRA210_CLK_CAP_C2BUS, .present = true },
+	[tegra_clk_cap_vcore_c2bus] = { .dt_id = TEGRA210_CLK_CAP_VCORE_C2BUS, .present = true },
+	[tegra_clk_cap_throttle_c2bus] = { .dt_id = TEGRA210_CLK_CAP_THROTTLE_C2BUS, .present = true },
+	[tegra_clk_floor_c2bus] = { .dt_id = TEGRA210_CLK_FLOOR_C2BUS, .present = true },
+	[tegra_clk_override_c2bus] = { .dt_id = TEGRA210_CLK_OVERRIDE_C2BUS, .present = true },
+	[tegra_clk_edp_c2bus] = { .dt_id = TEGRA210_CLK_EDP_C2BUS, .present = true },
+	[tegra_clk_cap_c3bus] = { .dt_id = TEGRA210_CLK_CAP_C3BUS, .present = true },
+	[tegra_clk_cap_vcore_c3bus] = { .dt_id = TEGRA210_CLK_CAP_VCORE_C3BUS, .present = true },
+	[tegra_clk_cap_throttle_c3bus] = { .dt_id = TEGRA210_CLK_CAP_THROTTLE_C3BUS, .present = true },
+	[tegra_clk_floor_c3bus] = { .dt_id = TEGRA210_CLK_FLOOR_C3BUS, .present = true },
+	[tegra_clk_override_c3bus] = { .dt_id = TEGRA210_CLK_OVERRIDE_C3BUS, .present = true },
+	[tegra_clk_avp_sclk] = { .dt_id = TEGRA210_CLK_AVP_SCLK, .present = true },
+	[tegra_clk_bsea_sclk] = { .dt_id = TEGRA210_CLK_BSEA_SCLK, .present = true },
+	[tegra_clk_usbd_sclk] = { .dt_id = TEGRA210_CLK_USBD_SCLK, .present = true },
+	[tegra_clk_usb1_sclk] = { .dt_id = TEGRA210_CLK_USB1_SCLK, .present = true },
+	[tegra_clk_usb2_sclk] = { .dt_id = TEGRA210_CLK_USB2_SCLK, .present = true },
+	[tegra_clk_wake_sclk] = { .dt_id = TEGRA210_CLK_WAKE_SCLK, .present = true },
+	[tegra_clk_camera_sclk] = { .dt_id = TEGRA210_CLK_CAMERA_SCLK, .present = true },
+	[tegra_clk_mon_avp] = { .dt_id = TEGRA210_CLK_MON_AVP, .present = true },
+	[tegra_clk_cap_sclk] = { .dt_id = TEGRA210_CLK_CAP_SCLK, .present = true },
+	[tegra_clk_cap_vcore_sclk] = { .dt_id = TEGRA210_CLK_CAP_VCORE_SCLK, .present = true },
+	[tegra_clk_cap_throttle_sclk] = { .dt_id = TEGRA210_CLK_CAP_THROTTLE_SCLK, .present = true },
+	[tegra_clk_floor_sclk] = { .dt_id = TEGRA210_CLK_FLOOR_SCLK, .present = true },
+	[tegra_clk_override_sclk] = { .dt_id = TEGRA210_CLK_OVERRIDE_SCLK, .present = true },
+	[tegra_clk_sbc1_sclk] = { .dt_id = TEGRA210_CLK_SBC1_SCLK, .present = true },
+	[tegra_clk_sbc2_sclk] = { .dt_id = TEGRA210_CLK_SBC2_SCLK, .present = true },
+	[tegra_clk_sbc3_sclk] = { .dt_id = TEGRA210_CLK_SBC3_SCLK, .present = true },
+	[tegra_clk_sbc4_sclk] = { .dt_id = TEGRA210_CLK_SBC4_SCLK, .present = true },
+	[tegra_clk_qspi_sclk] = { .dt_id = TEGRA210_CLK_QSPI_SCLK, .present = true },
+	[tegra_clk_boot_apb_sclk] = { .dt_id = TEGRA210_CLK_BOOT_APB_SCLK, .present = true },
+	[tegra_clk_gm20b_gbus] = { .dt_id = TEGRA210_CLK_GM20B_GBUS, .present = true },
+	[tegra_clk_cap_gbus] = { .dt_id = TEGRA210_CLK_CAP_GBUS, .present = true },
+	[tegra_clk_edp_gbus] = { .dt_id = TEGRA210_CLK_EDP_GBUS, .present = true },
+	[tegra_clk_cap_vgpu_gbus] = { .dt_id = TEGRA210_CLK_CAP_VGPU_GBUS, .present = true },
+	[tegra_clk_cap_throttle_gbus] = { .dt_id = TEGRA210_CLK_CAP_THROTTLE_GBUS, .present = true },
+	[tegra_clk_cap_profile_gbus] = { .dt_id = TEGRA210_CLK_CAP_PROFILE_GBUS, .present = true },
+	[tegra_clk_override_gbus] = { .dt_id = TEGRA210_CLK_OVERRIDE_GBUS, .present = true },
+	[tegra_clk_floor_gbus] = { .dt_id = TEGRA210_CLK_FLOOR_GBUS, .present = true },
+	[tegra_clk_floor_profile_gbus] = { .dt_id = TEGRA210_CLK_FLOOR_PROFILE_GBUS, .present = true },
+	[tegra_clk_nv_host1x] = { .dt_id = TEGRA210_CLK_NV_HOST1X, .present = true },
+	[tegra_clk_vi_host1x] = { .dt_id = TEGRA210_CLK_VI_HOST1X, .present = true },
+	[tegra_clk_vii2c_host1x] = { .dt_id = TEGRA210_CLK_VII2C_HOST1X, .present = true },
+	[tegra_clk_cap_host1x] = { .dt_id = TEGRA210_CLK_CAP_HOST1X, .present = true },
+	[tegra_clk_cap_vcore_host1x] = { .dt_id = TEGRA210_CLK_CAP_VCORE_HOST1X, .present = true },
+	[tegra_clk_floor_host1x] = { .dt_id = TEGRA210_CLK_FLOOR_HOST1X, .present = true },
+	[tegra_clk_override_host1x] = { .dt_id = TEGRA210_CLK_OVERRIDE_HOST1X, .present = true },
+	[tegra_clk_cpu_mselect] = { .dt_id = TEGRA210_CLK_CPU_MSELECT, .present = true },
+	[tegra_clk_pcie_mselect] = { .dt_id = TEGRA210_CLK_PCIE_MSELECT, .present = true },
+	[tegra_clk_cap_vcore_mselect] = { .dt_id = TEGRA210_CLK_CAP_VCORE_MSELECT, .present = true },
+	[tegra_clk_override_mselect] = { .dt_id = TEGRA210_CLK_OVERRIDE_MSELECT, .present = true },
+	[tegra_clk_adma_ape] = { .dt_id = TEGRA210_CLK_ADMA_APE, .present = true },
+	[tegra_clk_adsp_ape] = { .dt_id = TEGRA210_CLK_ADSP_APE, .present = true },
+	[tegra_clk_xbar_ape] = { .dt_id = TEGRA210_CLK_XBAR_APE, .present = true },
+	[tegra_clk_cap_vcore_ape] = { .dt_id = TEGRA210_CLK_CAP_VCORE_APE, .present = true },
+	[tegra_clk_override_ape] = { .dt_id = TEGRA210_CLK_OVERRIDE_APE, .present = true },
+	[tegra_clk_adsp_cpu_abus] = { .dt_id = TEGRA210_CLK_ADSP_CPU_ABUS, .present = false },
+	[tegra_clk_cap_vcore_abus] = { .dt_id = TEGRA210_CLK_CAP_VCORE_ABUS, .present = false },
+	[tegra_clk_override_abus] = { .dt_id = TEGRA210_CLK_OVERRIDE_ABUS, .present = false },
+	[tegra_clk_sclk_skipper] = { .dt_id = TEGRA210_CLK_SCLK_SKIPPER, .present = true },
+	[tegra_clk_sdmmc4_ahb_sclk] = { .dt_id = TEGRA210_CLK_SDMMC4_AHB_SCLK, .present = true },
+	[tegra_clk_vcm_sclk] = { .dt_id = TEGRA210_CLK_VCM_SCLK, .present = true },
+	[tegra_clk_vcm_ahb_sclk] = { .dt_id = TEGRA210_CLK_VCM_AHB_SCLK, .present = true },
+	[tegra_clk_vcm_apb_sclk] = { .dt_id = TEGRA210_CLK_VCM_APB_SCLK, .present = true },
+	[tegra_clk_pll_a1] = { .dt_id = TEGRA210_CLK_PLL_A1, .present = true },
+	[tegra_clk_vic_floor_cbus] = { .dt_id = TEGRA210_CLK_VIC_FLOOR_CBUS, .present = true },
 };
 
 static struct tegra_devclk devclks[] __initdata = {
@@ -3411,7 +3476,125 @@ static void __init tegra210_pll_init(void __iomem *clk_base,
 					CLK_SET_RATE_PARENT, 1, 2);
 	clk_register_clkdev(clk, "pll_p_out2", NULL);
 	clks[TEGRA210_CLK_PLL_P_OUT2] = clk;
+}
 
+static const char *cbus_parents[] = { "c2bus", "c3bus", "isp.cbus", "vi.cbus", "cbus" };
+
+static __init void tegra210_shared_clk_init(char *sclk_high_clk)
+{
+	struct clk *clk;
+	struct tegra_clk_cbus_shared *sbus_cbus;
+
+	clk_set_rate(clks[TEGRA210_CLK_PLL_C4], pll_c4_vco_params.fixed_rate);
+	clk_set_rate(clks[TEGRA210_CLK_PLL_C4_OUT3], pll_c4_vco_params.fixed_rate);
+
+	clk = tegra_clk_register_cbus("c2bus", "pll_c2", 0, "pll_p", 0,
+					1000000000);
+	clk_register_clkdev(clk, "c2bus", NULL);
+	clks[TEGRA210_CLK_C2BUS] = clk;
+
+	clk = tegra_clk_register_cbus("c3bus", "pll_c3", 0, "pll_p", 0,
+					1000000000);
+	clk_register_clkdev(clk, "c3bus", NULL);
+	clks[TEGRA210_CLK_C3BUS] = clk;
+
+	clk = tegra_clk_register_shared("vic03.cbus", &cbus_parents[0], 1, 0,
+					0, "vic03");
+	clks[TEGRA210_CLK_VIC03_CBUS] = clk;
+
+	clk = tegra_clk_register_shared("nvjpg.cbus", &cbus_parents[0], 1, 0,
+					0, "nvjpg");
+	clks[TEGRA210_CLK_NVJPG_CBUS] = clk;
+
+	clk = tegra_clk_register_shared("se.cbus", &cbus_parents[0], 1, 0,
+					0, "se");
+	clks[TEGRA210_CLK_SE_CBUS] = clk;
+
+	clk = tegra_clk_register_shared("tsecb.cbus", &cbus_parents[0], 1, 0,
+					0, "tsecb");
+	clks[TEGRA210_CLK_TSECB_CBUS] = clk;
+
+	clk = tegra_clk_register_shared("nvenc.cbus", &cbus_parents[1], 1, 0,
+					0, "nvenc");
+	clks[TEGRA210_CLK_NVENC_CBUS] = clk;
+
+	clk = tegra_clk_register_shared("nvdec.cbus", &cbus_parents[1], 1, 0,
+					0, "nvdec");
+	clks[TEGRA210_CLK_NVDEC_CBUS] = clk;
+
+	if (clks[TEGRA210_CLK_SCLK_SKIPPER]) {
+		clk = clks[TEGRA210_CLK_SCLK_SKIPPER];
+		clk = tegra_clk_register_sbus_cmplx("sbus", __clk_get_name(clk),
+				"sclk_mux", "sclk", 0, "pclk", "hclk", "pll_p",
+				sclk_high_clk, 204000000, 12000000, 408000000);
+	} else {
+                clk = tegra_clk_register_sbus_cmplx("sbus", "sclk", "sclk_mux",
+                                NULL, 0, "pclk", "hclk", sclk_high_clk,
+                                "pll_c_out1", 204000000, 12000000,
+                                408000000);
+        }
+
+	clk_register_clkdev(clk, "sbus", NULL);
+	clks[TEGRA210_CLK_SBUS] = clk;
+	sbus_cbus = to_clk_cbus_shared(__clk_get_hw(clk));
+
+	clk = tegra_clk_register_shared_master("gbus", "gpu", 0,
+						12000000, 1300000000);
+	clks[TEGRA210_CLK_GBUS] = clk;
+
+	clk = tegra_clk_register_shared_master("host1x_master", "host1x", 0,
+						12000000, 600000000);
+	clks[TEGRA210_CLK_HOST1X_MASTER] = clk;
+
+	clk = tegra_clk_register_shared_master("mselect_master", "mselect", 0,
+						12000000, 408000000);
+	clks[TEGRA210_CLK_MSELECT_MASTER] = clk;
+
+	clk = tegra_clk_register_shared_master("ape_master", "ape", 0,
+						12000000, 408000000);
+	clks[TEGRA210_CLK_APE_MASTER] = clk;
+
+	clk = tegra_clk_register_cbus("cbus", "pll_c", 0, "pll_p", 0,
+					1000000000);
+	clk_register_clkdev(clk, "cbus", NULL);
+	clks[TEGRA210_CLK_CBUS] = clk;
+
+	clk = tegra_clk_register_shared_connect("vi.cbus", &cbus_parents[4],
+						1, 0, 0, "vi");
+	clks[TEGRA210_CLK_VI_CBUS] = clk;
+
+	clk = tegra_clk_register_shared_connect("isp.cbus", &cbus_parents[4],
+						1, 0, 0, "isp");
+	clks[TEGRA210_CLK_ISP_CBUS] = clk;
+
+	clk = tegra_clk_register_shared("ispa.isp.cbus", &cbus_parents[2], 1, 0,
+					0, "ispa");
+	clks[TEGRA210_CLK_ISPA_ISP_CBUS] = clk;
+
+	clk = tegra_clk_register_shared("ispb.isp.cbus", &cbus_parents[2], 1, 0,
+					0, "ispb");
+	clks[TEGRA210_CLK_ISPB_ISP_CBUS] = clk;
+
+	clk = tegra_clk_register_shared("vi_v4l2.cbus", &cbus_parents[3], 1, 0,
+					0, "vi");
+	clks[TEGRA210_CLK_VI_V4L2_CBUS] = clk;
+
+	clk = tegra_clk_register_shared("vi_bypass.cbus", &cbus_parents[3], 1, 0,
+					0, "vi");
+	clks[TEGRA210_CLK_VI_BYPASS_CBUS] = clk;
+
+	clk = tegra_clk_register_cascade_master("ahb.sclk", "sbus", NULL, 0);
+
+	clks[TEGRA210_CLK_AHB_SCLK] = clk;
+	sbus_cbus->u.system.ahb_bus = __clk_get_hw(clk);
+
+	clk = tegra_clk_register_cascade_master("apb.sclk", "ahb.sclk",
+						"sbus", 0);
+
+	clks[TEGRA210_CLK_APB_SCLK] = clk;
+	sbus_cbus->u.system.apb_bus = __clk_get_hw(clk);
+
+	tegra_shared_clk_init(tegra210_clks);
 }
 
 /* Tegra210 CPU clock and reset control functions */
@@ -3806,6 +3989,8 @@ static void __init tegra210_clock_init(struct device_node *np)
 				  &pll_x_params);
 	tegra_init_special_resets(2, tegra210_reset_assert,
 				  tegra210_reset_deassert);
+
+	tegra210_shared_clk_init(sclk_high_clk);
 
 	tegra_add_of_provider(np, of_clk_src_onecell_get);
 	tegra_register_devclks(devclks, ARRAY_SIZE(devclks));
