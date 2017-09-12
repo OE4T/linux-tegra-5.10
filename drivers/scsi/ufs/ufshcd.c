@@ -4315,6 +4315,7 @@ static inline void ufshcd_hba_stop(struct ufs_hba *hba)
 	unsigned long flags;
 	int err;
 
+	ufshcd_vops_hce_disable_notify(hba, PRE_CHANGE);
 	/*
 	 * Obtain the host lock to prevent that the controller is disabled
 	 * while the UFS interrupt handler is active on another CPU.
