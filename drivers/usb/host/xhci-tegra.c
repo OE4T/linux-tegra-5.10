@@ -138,6 +138,12 @@ MODULE_PARM_DESC(max_burst_war_enable, "Max burst WAR");
 
 #define IMEM_BLOCK_SIZE				256
 
+/* Device ID */
+#define XHCI_DEVICE_ID_T210 0x0fad
+
+#define XHCI_IS_T210(t) (t->soc ? \
+		(t->soc->device_id == XHCI_DEVICE_ID_T210) : false)
+
 #define FW_IOCTL_LOG_DEQUEUE_LOW        (4)
 #define FW_IOCTL_LOG_DEQUEUE_HIGH       (5)
 #define FW_IOCTL_DATA_SHIFT             (0)
@@ -289,6 +295,7 @@ struct tegra_xusb_context_soc {
 };
 
 struct tegra_xusb_soc {
+	u16 device_id;
 	const char *firmware;
 	const char * const *supply_names;
 	unsigned int num_supplies;
@@ -1200,6 +1207,14 @@ static void tegra_xusb_mbox_handle(struct tegra_xusb *tegra,
 								     enable);
 			if (err < 0)
 				break;
+
+			if (XHCI_IS_T210(tegra) && !enable) {
+				/*
+				 * Add this delay to increase stability of
+				 * directing U3.
+				 */
+				usleep_range(500, 1000);
+			}
 		}
 
 		if (err < 0) {
@@ -2632,6 +2647,7 @@ static const struct tegra_xusb_phy_type tegra210_phy_types[] = {
 };
 
 static const struct tegra_xusb_soc tegra210_soc = {
+	.device_id = XHCI_DEVICE_ID_T210,
 	.firmware = "nvidia/tegra210/xusb.bin",
 	.supply_names = tegra210_supply_names,
 	.num_supplies = ARRAY_SIZE(tegra210_supply_names),
@@ -2669,6 +2685,7 @@ static const struct tegra_xusb_phy_type tegra210b01_phy_types[] = {
 };
 
 static const struct tegra_xusb_soc tegra210b01_soc = {
+	.device_id = XHCI_DEVICE_ID_T210,
 	.firmware = "nvidia/tegra210b01/xusb.bin",
 	.supply_names = tegra210b01_supply_names,
 	.num_supplies = ARRAY_SIZE(tegra210b01_supply_names),
