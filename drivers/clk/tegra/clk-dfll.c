@@ -45,6 +45,7 @@
 #include <linux/regulator/consumer.h>
 #include <linux/reset.h>
 #include <linux/seq_file.h>
+#include <linux/spinlock.h>
 
 #include "clk-dfll.h"
 
@@ -289,7 +290,7 @@ struct tegra_dfll {
 	u32				force_mode;
 	u32				cf;
 	u32				ci;
-	u32				cg;
+	s32				cg;
 	bool				cg_scale;
 
 	/* I2C interface parameters */
@@ -310,6 +311,9 @@ struct tegra_dfll {
 	struct pinctrl_state		*pwm_enable_state;
 	struct pinctrl_state		*pwm_disable_state;
 	u32				reg_init_uV;
+
+	/* spinlock protecting register accesses */
+	spinlock_t			lock;
 };
 
 #define clk_hw_to_dfll(_hw) container_of(_hw, struct tegra_dfll, dfll_clk_hw)
@@ -677,10 +681,10 @@ static void dfll_load_i2c_lut(struct tegra_dfll *td)
 	u32 val;
 
 	for (i = 0; i < MAX_DFLL_VOLTAGES; i++) {
-		if (i < td->lut_min)
-			lut_index = td->lut_min;
-		else if (i > td->lut_max)
-			lut_index = td->lut_max;
+		if (i < td->lut_bottom)
+			lut_index = td->lut_bottom;
+		else if (i > td->lut_size - 1)
+			lut_index = td->lut_size - 1;
 		else
 			lut_index = i;
 
@@ -812,6 +816,28 @@ static int find_lut_index_for_rate(struct tegra_dfll *td, unsigned long rate)
 }
 
 /**
+ * find_mv_out_cap - find the out_map index with voltage >= @mv
+ * @td: DFLL instance
+ * @mv: millivolts
+ *
+ * Find the lut index with voltage greater than or equal to @mv,
+ * and return it.  If all of the voltages in out_map are less than
+ * @mv, then return the lut index * corresponding to the highest
+ * possible voltage, even though it's less than @mv.
+ */
+static u8 find_mv_out_cap(struct tegra_dfll *td, int mv)
+{
+	u8 i;
+
+	for (i = td->lut_bottom; i < td->lut_size; i++) {
+		if (lut_index_to_uv(td, i) >= mv * 1000)
+			return i;
+	}
+
+	return i - 1;	/* maximum possible output */
+}
+
+/**
  * dfll_calculate_rate_request - calculate DFLL parameters for a given rate
  * @td: DFLL instance
  * @req: DFLL-rate-request structure
@@ -911,6 +937,7 @@ static int dfll_request_rate(struct tegra_dfll *td, unsigned long rate)
 {
 	int ret;
 	struct dfll_rate_req req;
+	unsigned long flags;
 
 	if (td->mode == DFLL_UNINITIALIZED) {
 		dev_err(td->dev, "%s: Cannot set DFLL rate in %s mode\n",
@@ -925,8 +952,11 @@ static int dfll_request_rate(struct tegra_dfll *td, unsigned long rate)
 	td->last_unrounded_rate = rate;
 	td->last_req = req;
 
-	if (td->mode == DFLL_CLOSED_LOOP)
+	if (td->mode == DFLL_CLOSED_LOOP) {
+		spin_lock_irqsave(&td->lock, flags);
 		dfll_set_frequency_request(td, &td->last_req);
+		spin_unlock_irqrestore(&td->lock, flags);
+	}
 
 	return 0;
 }
@@ -944,13 +974,18 @@ static int dfll_request_rate(struct tegra_dfll *td, unsigned long rate)
  */
 static int dfll_disable(struct tegra_dfll *td)
 {
+	unsigned long flags;
+
 	if (td->mode != DFLL_OPEN_LOOP) {
 		dev_err(td->dev, "cannot disable DFLL in %s mode\n",
 			mode_name[td->mode]);
 		return -EINVAL;
 	}
 
+	spin_lock_irqsave(&td->lock, flags);
 	dfll_set_mode(td, DFLL_DISABLED);
+	spin_unlock_irqrestore(&td->lock, flags);
+
 	pm_runtime_put_sync(td->dev);
 
 	return 0;
@@ -965,6 +1000,8 @@ static int dfll_disable(struct tegra_dfll *td)
  */
 static int dfll_enable(struct tegra_dfll *td)
 {
+	unsigned long flags;
+
 	if (td->mode != DFLL_DISABLED) {
 		dev_err(td->dev, "cannot enable DFLL in %s mode\n",
 			mode_name[td->mode]);
@@ -972,7 +1009,10 @@ static int dfll_enable(struct tegra_dfll *td)
 	}
 
 	pm_runtime_get_sync(td->dev);
+
+	spin_lock_irqsave(&td->lock, flags);
 	dfll_set_mode(td, DFLL_OPEN_LOOP);
+	spin_unlock_irqrestore(&td->lock, flags);
 
 	return 0;
 }
@@ -1014,6 +1054,7 @@ static void dfll_set_open_loop_config(struct tegra_dfll *td)
 static int dfll_lock(struct tegra_dfll *td)
 {
 	struct dfll_rate_req *req = &td->last_req;
+	unsigned long flags;
 
 	switch (td->mode) {
 	case DFLL_CLOSED_LOOP:
@@ -1031,9 +1072,12 @@ static int dfll_lock(struct tegra_dfll *td)
 		else
 			dfll_i2c_set_output_enabled(td, true);
 
+		spin_lock_irqsave(&td->lock, flags);
 		dfll_set_mode(td, DFLL_CLOSED_LOOP);
 		dfll_set_frequency_request(td, req);
 		dfll_set_force_output_enabled(td, false);
+		spin_unlock_irqrestore(&td->lock, flags);
+
 		return 0;
 
 	default:
@@ -1053,14 +1097,19 @@ static int dfll_lock(struct tegra_dfll *td)
  */
 static int dfll_unlock(struct tegra_dfll *td)
 {
+	unsigned long flags;
+
 	switch (td->mode) {
 	case DFLL_CLOSED_LOOP:
+		spin_lock_irqsave(&td->lock, flags);
 		dfll_set_open_loop_config(td);
 		dfll_set_mode(td, DFLL_OPEN_LOOP);
 		if (td->pmu_if == TEGRA_DFLL_PMU_PWM)
 			dfll_pwm_set_output_enabled(td, false);
 		else
 			dfll_i2c_set_output_enabled(td, false);
+
+		spin_unlock_irqrestore(&td->lock, flags);
 		return 0;
 
 	case DFLL_OPEN_LOOP:
@@ -1323,6 +1372,9 @@ static int attr_registers_show(struct seq_file *s, void *data)
 {
 	u32 val, offs;
 	struct tegra_dfll *td = s->private;
+	unsigned long flags;
+
+	spin_lock_irqsave(&td->lock, flags);
 
 	seq_puts(s, "CONTROL REGISTERS:\n");
 	for (offs = 0; offs <= DFLL_MONITOR_DATA; offs += 4) {
@@ -1352,6 +1404,8 @@ static int attr_registers_show(struct seq_file *s, void *data)
 			seq_printf(s, "[0x%02x] = 0x%08x\n", offs,
 				   __raw_readl(td->lut_base + offs));
 	}
+
+	spin_unlock_irqrestore(&td->lock, flags);
 
 	return 0;
 }
@@ -2044,6 +2098,8 @@ int tegra_dfll_register(struct platform_device *pdev,
 	ret = dfll_init(td);
 	if (ret)
 		return ret;
+
+	spin_lock_init(&td->lock);
 
 	ret = dfll_register_clk(td);
 	if (ret) {
