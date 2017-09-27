@@ -335,6 +335,21 @@ static bool pllm_clk_is_gated_by_pmc(struct tegra_clk_pll *pll)
 	      !(val & PMC_PLLP_WB0_OVERRIDE_PLLM_ENABLE);
 }
 
+static void clk_pll_sdm_reset(struct tegra_clk_pll *pll, bool assert)
+{
+	u32 val;
+
+	if (!pll->params->sdm_ctrl_reg)
+		return;
+
+	if (pll->params->sdm_ctrl_reset_mask) {
+		val = pll_readl_sdm_ctrl(pll);
+		val = assert ? val | pll->params->sdm_ctrl_reset_mask :
+			val & ~pll->params->sdm_ctrl_reset_mask;
+		pll_writel_sdm_ctrl(val, pll);
+	}
+}
+
 static int clk_pll_is_enabled(struct clk_hw *hw)
 {
 	struct tegra_clk_pll *pll = to_clk_pll(hw);
@@ -376,11 +391,15 @@ static void _clk_pll_enable(struct clk_hw *hw)
 
 	clk_pll_enable_lock(pll);
 
+	clk_pll_sdm_reset(pll, true);
+
 	val = pll_readl_base(pll);
 	if (pll->params->flags & TEGRA_PLL_BYPASS)
 		val &= ~PLL_BASE_BYPASS;
 	val |= PLL_BASE_ENABLE;
 	pll_writel_base(val, pll);
+
+	clk_pll_sdm_reset(pll, false);
 
 	if (pll->params->flags & TEGRA_PLLM) {
 		val = readl_relaxed(pll->pmc + PMC_PLLP_WB0_OVERRIDE);
