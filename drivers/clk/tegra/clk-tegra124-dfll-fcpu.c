@@ -603,6 +603,9 @@ static int tegra124_dfll_fcpu_probe(struct platform_device *pdev)
 		return PTR_ERR(soc->cvb);
 	}
 
+	soc->tune_high_min_millivolts =
+		soc->cvb->cpu_dfll_data.tune_high_min_millivolts;
+
 	err = tegra_dfll_register(pdev, soc);
 	if (err < 0) {
 		tegra_cvb_remove_opp_table(soc->dev, soc->cvb, soc->max_freq);
