@@ -137,10 +137,11 @@ void tty_buffer_free_all(struct tty_port *port)
 	tty_buffer_reset(&buf->sentinel, 0);
 	buf->head = &buf->sentinel;
 	buf->tail = &buf->sentinel;
-
 	still_used = atomic_xchg(&buf->mem_used, 0);
 	WARN(still_used != freed, "we still have not freed %d bytes!",
 			still_used - freed);
+
+	atomic_set(&buf->current_data_count, 0);
 }
 
 /**
@@ -481,9 +482,8 @@ int tty_buffer_get_level(struct tty_port *port)
 	int level_percent = 0;
 	int maximum_size = 65536;
 
-	mutex_lock(&buf->lock);
-	level_percent = (buf->current_data_count * 100) / maximum_size;
-	mutex_unlock(&buf->lock);
+	level_percent = (atomic_read(&buf->current_data_count)
+			* 100) / maximum_size;
 
 	return level_percent;
 }
@@ -494,9 +494,7 @@ int tty_buffer_get_count(struct tty_port *port)
 	struct tty_bufhead *buf = &port->buf;
 	int level_percent = 0;
 
-	mutex_lock(&buf->lock);
-	level_percent = buf->current_data_count;
-	mutex_unlock(&buf->lock);
+	level_percent = atomic_read(&buf->current_data_count);
 
 	return level_percent;
 }
@@ -542,6 +540,7 @@ static void flush_to_ldisc(struct work_struct *work)
 		struct tty_buffer *head = buf->head;
 		struct tty_buffer *next;
 		int count;
+		int remain_count;
 
 		/* Ldisc or user is trying to gain exclusive access */
 		if (atomic_read(&buf->priority))
@@ -569,10 +568,12 @@ static void flush_to_ldisc(struct work_struct *work)
 			break;
 		head->read += count;
 
-		if (buf->current_data_count >= count)
-			buf->current_data_count -= count;
+		remain_count = atomic_read(&buf->current_data_count);
+		if (remain_count >= count)
+			atomic_set(&buf->current_data_count,
+				   (remain_count - count));
 		else
-			buf->current_data_count = 0;
+			atomic_set(&buf->current_data_count, 0);
 	}
 
 	mutex_unlock(&buf->lock);
@@ -651,7 +652,7 @@ void tty_buffer_init(struct tty_port *port)
 	atomic_set(&buf->priority, 0);
 	INIT_WORK(&buf->work, flush_to_ldisc);
 	buf->mem_limit = TTYB_DEFAULT_MEM_LIMIT;
-	buf->current_data_count = 0;
+	atomic_set(&buf->current_data_count, 0);
 }
 
 /**
