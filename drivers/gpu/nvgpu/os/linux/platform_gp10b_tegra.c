@@ -491,6 +491,7 @@ struct gk20a_platform gp10b_tegra_platform = {
 	.soc_name = "tegra18x",
 
 	.unified_memory = true,
+	.unify_address_spaces = true,
 	.dma_mask = DMA_BIT_MASK(36),
 
 	.ltc_streamid = TEGRA_SID_GPUB,
