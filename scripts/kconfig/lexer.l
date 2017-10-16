@@ -93,6 +93,8 @@ n	[A-Za-z0-9_-]
 \\\n			/* escaped new line */
 \n			return T_EOL;
 "allnoconfig_y"		return T_ALLNOCONFIG_Y;
+"append_menu"	return T_APPEND_MENU;
+"append_choice"	return T_APPEND_CHOICE;
 "bool"			return T_BOOL;
 "choice"		return T_CHOICE;
 "comment"		return T_COMMENT;
