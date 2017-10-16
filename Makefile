@@ -5,6 +5,16 @@ SUBLEVEL = 0
 EXTRAVERSION =
 NAME = Kleptomaniac Octopus
 
+ifeq ($(KERNEL_OVERLAYS),)
+KERNEL_OVERLAYS :=
+KERNEL_OVERLAYS += $(CURDIR)/../nvidia
+KERNEL_OVERLAYS += $(CURDIR)/../nvgpu
+else
+override KERNEL_OVERLAYS := $(subst :, ,$(KERNEL_OVERLAYS))
+endif
+override KERNEL_OVERLAYS := $(abspath $(KERNEL_OVERLAYS))
+export KERNEL_OVERLAYS
+
 # *DOCUMENTATION*
 # To see a list of typical targets execute "make help"
 # More info can be located in ./README
@@ -236,6 +246,7 @@ endif
 
 objtree		:= .
 VPATH		:= $(srctree)
+VPATH		+= $(foreach overlay,$(KERNEL_OVERLAYS),:$(overlay))
 
 export building_out_of_srctree srctree objtree VPATH
 
