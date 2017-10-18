@@ -136,12 +136,6 @@ static void clk_super_mux_restore_context(struct clk_hw *hw)
 	clk_super_set_parent(hw, parent_id);
 }
 
-static const struct clk_ops tegra_clk_super_mux_ops = {
-	.get_parent = clk_super_get_parent,
-	.set_parent = clk_super_set_parent,
-	.restore_context = clk_super_mux_restore_context,
-};
-
 static int clk_super_prepare(struct clk_hw *hw)
 {
 	return tegra_dvfs_set_rate(hw->clk, clk_hw_get_rate(hw));
@@ -151,6 +145,14 @@ static void clk_super_unprepare(struct clk_hw *hw)
 {
 	tegra_dvfs_set_rate(hw->clk, 0);
 }
+
+const struct clk_ops tegra_clk_super_mux_ops = {
+	.get_parent = clk_super_get_parent,
+	.set_parent = clk_super_set_parent,
+	.restore_context = clk_super_mux_restore_context,
+	.prepare = clk_super_prepare,
+	.unprepare = clk_super_unprepare,
+};
 
 static int clk_super_determine_rate(struct clk_hw *hw,
 				    struct clk_rate_request *req)
