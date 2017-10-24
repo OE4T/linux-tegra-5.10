@@ -3790,7 +3790,7 @@ static __init void tegra210_shared_clk_init(char *sclk_high_clk)
 
 	clk = tegra_clk_register_cbus("abus", "pll_a1",
 				      TEGRA_SHARED_BUS_RETENTION | TEGRA_SHARED_BUS_ROUND_PASS_THRU,
-				      "pll_p", 38400000, t210b01 ? 1200000000 : 844800000);
+				      "pll_p_out_adsp", 38400000, t210b01 ? 1200000000 : 844800000);
 	clks[TEGRA210_CLK_ABUS] = clk;
 
 	if (clks[TEGRA210_CLK_SCLK_SKIPPER]) {
