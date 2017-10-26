@@ -333,7 +333,7 @@ static unsigned long tegra210_input_freq[] = {
 };
 
 static const char * const aclk_parents[] = {
-	"pll_a1", "pll_c", "pll_p", "pll_a_out0", "pll_c2", "pll_c3",
+	"pll_a1", "pll_c", "pll_p_out_adsp", "pll_a_out0", "pll_c2", "pll_c3",
 	"clk_m"
 };
 
