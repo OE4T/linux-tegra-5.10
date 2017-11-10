@@ -14,6 +14,7 @@ Kernel Build System
     kconfig
     makefiles
     modules
+    overlays
 
     headers_install
 
