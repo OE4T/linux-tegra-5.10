@@ -197,6 +197,8 @@
 #define RP_L1_PM_SUBSTATES_1_CTL	0xc04
 #define  RP_L1_PM_SUBSTATES_1_CTL_PWR_OFF_DLY_MASK	0x1fff
 #define  RP_L1_PM_SUBSTATES_1_CTL_PWR_OFF_DLY		0x26
+#define  RP_L1SS_1_CTL_CLKREQ_ASSERTED_DLY_MASK		(0x1ff << 13)
+#define  RP_L1SS_1_CTL_CLKREQ_ASSERTED_DLY		(0x27 << 13)
 
 #define RP_L1_PM_SUBSTATES_2_CTL	0xc08
 #define  RP_L1_PM_SUBSTATES_2_CTL_T_L1_2_DLY_MASK	0x1fff
@@ -386,6 +388,7 @@ struct tegra_pcie_soc {
 	bool enable_wrap;
 	bool has_aspm_l1;
 	bool has_aspm_l1ss;
+	bool l1ss_rp_wake_fixup;
 	struct {
 		struct {
 			u32 rp_ectl_2_r1;
@@ -894,6 +897,17 @@ static void tegra_pcie_apply_sw_fixup(struct tegra_pcie_port *port)
 		value &= ~RP_L1_PM_SUBSTATES_2_CTL_MICROSECOND_COMP_MASK;
 		value |= RP_L1_PM_SUBSTATES_2_CTL_MICROSECOND_COMP;
 		writel(value, port->base + RP_L1_PM_SUBSTATES_2_CTL);
+	}
+
+	if (soc->l1ss_rp_wake_fixup) {
+		/*
+		 * Set CLKREQ asserted delay greater than Power_Off
+		 * time (2us) to avoid RP wakeup in L1.2.ENTRY
+		 */
+		value = readl(port->base + RP_L1_PM_SUBSTATES_1_CTL);
+		value &= ~RP_L1SS_1_CTL_CLKREQ_ASSERTED_DLY_MASK;
+		value |= RP_L1SS_1_CTL_CLKREQ_ASSERTED_DLY;
+		writel(value, port->base + RP_L1_PM_SUBSTATES_1_CTL);
 	}
 }
 
@@ -2730,6 +2744,7 @@ static const struct tegra_pcie_soc tegra20_pcie = {
 	.enable_wrap = false,
 	.has_aspm_l1 = false,
 	.has_aspm_l1ss = false,
+	.l1ss_rp_wake_fixup = false,
 	.ectl.enable = false,
 };
 
@@ -2763,6 +2778,7 @@ static const struct tegra_pcie_soc tegra30_pcie = {
 	.enable_wrap = false,
 	.has_aspm_l1 = true,
 	.has_aspm_l1ss = false,
+	.l1ss_rp_wake_fixup = false,
 	.ectl.enable = false,
 };
 
@@ -2790,6 +2806,7 @@ static const struct tegra_pcie_soc tegra124_pcie = {
 	.enable_wrap = false,
 	.has_aspm_l1 = true,
 	.has_aspm_l1ss = false,
+	.l1ss_rp_wake_fixup = false,
 	.ectl.enable = false,
 };
 
@@ -2817,6 +2834,7 @@ static const struct tegra_pcie_soc tegra210_pcie = {
 	.enable_wrap = true,
 	.has_aspm_l1 = true,
 	.has_aspm_l1ss = true,
+	.l1ss_rp_wake_fixup = true,
 	.ectl = {
 		.regs = {
 			.rp_ectl_2_r1 = 0x0000000f,
@@ -2862,6 +2880,7 @@ static const struct tegra_pcie_soc tegra186_pcie = {
 	.enable_wrap = false,
 	.has_aspm_l1 = true,
 	.has_aspm_l1ss = true,
+	.l1ss_rp_wake_fixup = false,
 	.ectl.enable = false,
 };
 
