@@ -185,9 +185,44 @@
 #define RP_PRIV_XP_DL		0x00000494
 #define  RP_PRIV_XP_DL_GEN2_UPD_FC_TSHOLD	(0x1ff << 1)
 
+#define RP_L1_PM_SUBSTATES_CTL		0xc00
+#define  RP_L1_PM_SUBSTATES_CTL_CM_RTIME_MASK		(0xff << 8)
+#define  RP_L1_PM_SUBSTATES_CTL_CM_RTIME_SHIFT		8
+#define  RP_L1_PM_SUBSTATES_CTL_T_PWRN_SCL_MASK		(0x3 << 16)
+#define  RP_L1_PM_SUBSTATES_CTL_T_PWRN_SCL_SHIFT	16
+#define  RP_L1_PM_SUBSTATES_CTL_T_PWRN_VAL_MASK		(0x1f << 19)
+#define  RP_L1_PM_SUBSTATES_CTL_T_PWRN_VAL_SHIFT	19
+#define  RP_L1_PM_SUBSTATES_CTL_HIDE_CAP		(0x1 << 24)
+
+#define RP_L1_PM_SUBSTATES_1_CTL	0xc04
+#define  RP_L1_PM_SUBSTATES_1_CTL_PWR_OFF_DLY_MASK	0x1fff
+#define  RP_L1_PM_SUBSTATES_1_CTL_PWR_OFF_DLY		0x26
+
+#define RP_L1_PM_SUBSTATES_2_CTL	0xc08
+#define  RP_L1_PM_SUBSTATES_2_CTL_T_L1_2_DLY_MASK	0x1fff
+#define  RP_L1_PM_SUBSTATES_2_CTL_T_L1_2_DLY		0x4d
+#define  RP_L1_PM_SUBSTATES_2_CTL_MICROSECOND_MASK	(0xff << 13)
+#define  RP_L1_PM_SUBSTATES_2_CTL_MICROSECOND		(0x13 << 13)
+#define  RP_L1_PM_SUBSTATES_2_CTL_MICROSECOND_COMP_MASK	(0xf << 21)
+#define  RP_L1_PM_SUBSTATES_2_CTL_MICROSECOND_COMP	(0x2 << 21)
+
 #define RP_RX_HDR_LIMIT		0x00000e00
 #define  RP_RX_HDR_LIMIT_PW_MASK	(0xff << 8)
 #define  RP_RX_HDR_LIMIT_PW		(0x0e << 8)
+
+#define RP_TIMEOUT0		0xe24
+#define  RP_TIMEOUT0_PAD_PWRUP_MASK		0xff
+#define  RP_TIMEOUT0_PAD_PWRUP			0xa
+#define  RP_TIMEOUT0_PAD_PWRUP_CM_MASK		0xffff00
+#define  RP_TIMEOUT0_PAD_PWRUP_CM		(0x180 << 8)
+#define  RP_TIMEOUT0_PAD_SPDCHNG_GEN2_MASK	(0xff << 24)
+#define  RP_TIMEOUT0_PAD_SPDCHNG_GEN2		(0xa << 24)
+
+#define RP_TIMEOUT1		0xe28
+#define  RP_TIMEOUT1_RCVRY_SPD_SUCCESS_EIDLE_MASK	(0xff << 16)
+#define  RP_TIMEOUT1_RCVRY_SPD_SUCCESS_EIDLE		(0x10 << 16)
+#define  RP_TIMEOUT1_RCVRY_SPD_UNSUCCESS_EIDLE_MASK	(0xff << 24)
+#define  RP_TIMEOUT1_RCVRY_SPD_UNSUCCESS_EIDLE		(0x74 << 24)
 
 #define RP_ECTL_2_R1	0x00000e84
 #define  RP_ECTL_2_R1_RX_CTLE_1C_MASK		0xffff
@@ -223,6 +258,15 @@
 
 #define RP_VEND_XP1	0xf04
 #define  RP_VEND_XP1_LINK_PVT_CTL_L1_ASPM_SUPPORT	(1 << 21)
+
+
+#define RP_XP_REF	0xf30
+#define  RP_XP_REF_MICROSECOND_LIMIT_MASK	0xff
+#define  RP_XP_REF_MICROSECOND_LIMIT		0x14
+#define  RP_XP_REF_MICROSECOND_ENABLE		(1 << 8)
+#define  RP_XP_REF_CPL_TO_OVERRIDE		(1 << 13)
+#define  RP_XP_REF_CPL_TO_CUSTOM_VALUE_MASK	(0x1ffff << 14)
+#define  RP_XP_REF_CPL_TO_CUSTOM_VALUE		(0x1770 << 14)
 
 #define RP_VEND_CTL0	0x00000f44
 #define  RP_VEND_CTL0_DSK_RST_PULSE_WIDTH_MASK	(0xf << 12)
@@ -341,6 +385,7 @@ struct tegra_pcie_soc {
 	bool has_cache_bars;
 	bool enable_wrap;
 	bool has_aspm_l1;
+	bool has_aspm_l1ss;
 	struct {
 		struct {
 			u32 rp_ectl_2_r1;
@@ -794,6 +839,62 @@ static void tegra_pcie_apply_sw_fixup(struct tegra_pcie_port *port)
 
 	if (soc->enable_wrap)
 		tegra_pcie_enable_wrap();
+
+	if (soc->has_aspm_l1ss) {
+		/* Set port Common_Mode_Restore_Time to 30us */
+		value = readl(port->base + RP_L1_PM_SUBSTATES_CTL);
+		value &= ~RP_L1_PM_SUBSTATES_CTL_CM_RTIME_MASK;
+		value |= (0x1E << RP_L1_PM_SUBSTATES_CTL_CM_RTIME_SHIFT);
+		writel(value, port->base + RP_L1_PM_SUBSTATES_CTL);
+
+		/* set port T_POWER_ON to 70us */
+		value = readl(port->base + RP_L1_PM_SUBSTATES_CTL);
+		value &= ~(RP_L1_PM_SUBSTATES_CTL_T_PWRN_SCL_MASK |
+				RP_L1_PM_SUBSTATES_CTL_T_PWRN_VAL_MASK);
+		value |= (1 << RP_L1_PM_SUBSTATES_CTL_T_PWRN_SCL_SHIFT) |
+			(7 << RP_L1_PM_SUBSTATES_CTL_T_PWRN_VAL_SHIFT);
+		writel(value, port->base + RP_L1_PM_SUBSTATES_CTL);
+
+		/* Following is based on clk_m being 19.2 MHz */
+		value = readl(port->base + RP_TIMEOUT0);
+		value &= ~RP_TIMEOUT0_PAD_PWRUP_MASK;
+		value |= RP_TIMEOUT0_PAD_PWRUP;
+		value &= ~RP_TIMEOUT0_PAD_PWRUP_CM_MASK;
+		value |= RP_TIMEOUT0_PAD_PWRUP_CM;
+		value &= ~RP_TIMEOUT0_PAD_SPDCHNG_GEN2_MASK;
+		value |= RP_TIMEOUT0_PAD_SPDCHNG_GEN2;
+		writel(value, port->base + RP_TIMEOUT0);
+
+		value = readl(port->base + RP_TIMEOUT1);
+		value &= ~RP_TIMEOUT1_RCVRY_SPD_SUCCESS_EIDLE_MASK;
+		value |= RP_TIMEOUT1_RCVRY_SPD_SUCCESS_EIDLE;
+		value &= ~RP_TIMEOUT1_RCVRY_SPD_UNSUCCESS_EIDLE_MASK;
+		value |= RP_TIMEOUT1_RCVRY_SPD_UNSUCCESS_EIDLE;
+		writel(value, port->base + RP_TIMEOUT1);
+
+		value = readl(port->base + RP_XP_REF);
+		value &= ~RP_XP_REF_MICROSECOND_LIMIT_MASK;
+		value |= RP_XP_REF_MICROSECOND_LIMIT;
+		value |= RP_XP_REF_MICROSECOND_ENABLE;
+		value |= RP_XP_REF_CPL_TO_OVERRIDE;
+		value &= ~RP_XP_REF_CPL_TO_CUSTOM_VALUE_MASK;
+		value |= RP_XP_REF_CPL_TO_CUSTOM_VALUE;
+		writel(value, port->base + RP_XP_REF);
+
+		value = readl(port->base + RP_L1_PM_SUBSTATES_1_CTL);
+		value &= ~RP_L1_PM_SUBSTATES_1_CTL_PWR_OFF_DLY_MASK;
+		value |= RP_L1_PM_SUBSTATES_1_CTL_PWR_OFF_DLY;
+		writel(value, port->base + RP_L1_PM_SUBSTATES_1_CTL);
+
+		value = readl(port->base + RP_L1_PM_SUBSTATES_2_CTL);
+		value &= ~RP_L1_PM_SUBSTATES_2_CTL_T_L1_2_DLY_MASK;
+		value |= RP_L1_PM_SUBSTATES_2_CTL_T_L1_2_DLY;
+		value &= ~RP_L1_PM_SUBSTATES_2_CTL_MICROSECOND_MASK;
+		value |= RP_L1_PM_SUBSTATES_2_CTL_MICROSECOND;
+		value &= ~RP_L1_PM_SUBSTATES_2_CTL_MICROSECOND_COMP_MASK;
+		value |= RP_L1_PM_SUBSTATES_2_CTL_MICROSECOND_COMP;
+		writel(value, port->base + RP_L1_PM_SUBSTATES_2_CTL);
+	}
 }
 
 static void tegra_pcie_port_enable(struct tegra_pcie_port *port)
@@ -2628,6 +2729,7 @@ static const struct tegra_pcie_soc tegra20_pcie = {
 	.has_cache_bars = true,
 	.enable_wrap = false,
 	.has_aspm_l1 = false,
+	.has_aspm_l1ss = false,
 	.ectl.enable = false,
 };
 
@@ -2660,6 +2762,7 @@ static const struct tegra_pcie_soc tegra30_pcie = {
 	.has_cache_bars = false,
 	.enable_wrap = false,
 	.has_aspm_l1 = true,
+	.has_aspm_l1ss = false,
 	.ectl.enable = false,
 };
 
@@ -2686,6 +2789,7 @@ static const struct tegra_pcie_soc tegra124_pcie = {
 	.has_cache_bars = false,
 	.enable_wrap = false,
 	.has_aspm_l1 = true,
+	.has_aspm_l1ss = false,
 	.ectl.enable = false,
 };
 
@@ -2712,6 +2816,7 @@ static const struct tegra_pcie_soc tegra210_pcie = {
 	.has_cache_bars = false,
 	.enable_wrap = true,
 	.has_aspm_l1 = true,
+	.has_aspm_l1ss = true,
 	.ectl = {
 		.regs = {
 			.rp_ectl_2_r1 = 0x0000000f,
@@ -2756,6 +2861,7 @@ static const struct tegra_pcie_soc tegra186_pcie = {
 	.has_cache_bars = false,
 	.enable_wrap = false,
 	.has_aspm_l1 = true,
+	.has_aspm_l1ss = true,
 	.ectl.enable = false,
 };
 
