@@ -221,6 +221,9 @@
 #define  RP_VEND_XP_OPPORTUNISTIC_UPDATEFC	(1 << 28)
 #define  RP_VEND_XP_UPDATE_FC_THRESHOLD_MASK	(0xff << 18)
 
+#define RP_VEND_XP1	0xf04
+#define  RP_VEND_XP1_LINK_PVT_CTL_L1_ASPM_SUPPORT	(1 << 21)
+
 #define RP_VEND_CTL0	0x00000f44
 #define  RP_VEND_CTL0_DSK_RST_PULSE_WIDTH_MASK	(0xf << 12)
 #define  RP_VEND_CTL0_DSK_RST_PULSE_WIDTH	(0x9 << 12)
@@ -328,6 +331,7 @@ struct tegra_pcie_soc {
 	bool update_fc_timer;
 	bool has_cache_bars;
 	bool enable_wrap;
+	bool has_aspm_l1;
 	struct {
 		struct {
 			u32 rp_ectl_2_r1;
@@ -639,6 +643,13 @@ static void tegra_pcie_enable_rp_features(struct tegra_pcie_port *port)
 	}
 
 	writel(value, port->base + RP_PRIV_MISC);
+
+	if (soc->has_aspm_l1) {
+		/* Advertise ASPM-L1 state capability*/
+		value = readl(port->base + RP_VEND_XP1);
+		value |= RP_VEND_XP1_LINK_PVT_CTL_L1_ASPM_SUPPORT;
+		writel(value, port->base + RP_VEND_XP1);
+	}
 }
 
 static void tegra_pcie_program_ectl_settings(struct tegra_pcie_port *port)
@@ -2596,6 +2607,7 @@ static const struct tegra_pcie_soc tegra20_pcie = {
 	.update_fc_timer = false,
 	.has_cache_bars = true,
 	.enable_wrap = false,
+	.has_aspm_l1 = false,
 	.ectl.enable = false,
 };
 
@@ -2627,6 +2639,7 @@ static const struct tegra_pcie_soc tegra30_pcie = {
 	.update_fc_timer = false,
 	.has_cache_bars = false,
 	.enable_wrap = false,
+	.has_aspm_l1 = true,
 	.ectl.enable = false,
 };
 
@@ -2652,6 +2665,7 @@ static const struct tegra_pcie_soc tegra124_pcie = {
 	.update_fc_timer = false,
 	.has_cache_bars = false,
 	.enable_wrap = false,
+	.has_aspm_l1 = true,
 	.ectl.enable = false,
 };
 
@@ -2677,6 +2691,7 @@ static const struct tegra_pcie_soc tegra210_pcie = {
 	.update_fc_timer = true,
 	.has_cache_bars = false,
 	.enable_wrap = true,
+	.has_aspm_l1 = true,
 	.ectl = {
 		.regs = {
 			.rp_ectl_2_r1 = 0x0000000f,
@@ -2720,6 +2735,7 @@ static const struct tegra_pcie_soc tegra186_pcie = {
 	.update_fc_timer = false,
 	.has_cache_bars = false,
 	.enable_wrap = false,
+	.has_aspm_l1 = true,
 	.ectl.enable = false,
 };
 
