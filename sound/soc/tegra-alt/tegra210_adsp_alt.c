@@ -134,6 +134,7 @@ struct tegra210_adsp_app {
 	uint32_t priority; /* Valid for only APM app */
 	uint32_t min_adsp_clock; /* Min ADSP clock required in MHz */
 	uint32_t input_mode; /* APM input mode */
+	bool secure_mode; /* APM secure mode */
 	struct tegra210_adsp_app_read_data read_data;
 	spinlock_t lock;
 	void *private_data;
@@ -730,6 +731,19 @@ static int tegra210_adsp_send_state_msg(struct tegra210_adsp_app *app,
 	/* state; DFS will thereafter find appropriate rate      */
 	if ((state == nvfx_state_active) && (app->override_freq_work != NULL))
 		schedule_work(app->override_freq_work);
+
+	return tegra210_adsp_send_msg(app, &apm_msg, flags);
+}
+
+static int tegra210_adsp_send_secure_state_msg(struct tegra210_adsp_app *app,
+						uint32_t flags)
+{
+	apm_msg_t apm_msg;
+
+	apm_msg.msgq_msg.size = MSGQ_MSG_WSIZE(nvfx_set_state_params_t);
+	apm_msg.msg.call_params.size = sizeof(nvfx_set_state_params_t);
+	apm_msg.msg.call_params.method = nvfx_method_set_apr_params;
+	apm_msg.msg.state_params.state = app->secure_mode;
 
 	return tegra210_adsp_send_msg(app, &apm_msg, flags);
 }
@@ -1447,6 +1461,13 @@ static int tegra210_adsp_compr_set_params(struct snd_compr_stream *cstream,
 		return ret;
 	}
 
+	/* Send secure mode msg */
+	ret = tegra210_adsp_send_secure_state_msg(prtd->fe_apm,
+			TEGRA210_ADSP_MSG_FLAG_SEND);
+	if (ret < 0)
+		dev_err(prtd->dev, "Failed to set secure state.");
+
+
 	memcpy(&prtd->codec, &params->codec, sizeof(struct snd_codec));
 	return 0;
 }
@@ -1787,6 +1808,12 @@ static int tegra210_adsp_pcm_hw_params(struct snd_pcm_substream *substream,
 			TEGRA210_ADSP_MSG_FLAG_SEND);
 	if (ret < 0)
 		return ret;
+
+	/* Send secure mode msg */
+	ret = tegra210_adsp_send_secure_state_msg(prtd->fe_apm,
+			TEGRA210_ADSP_MSG_FLAG_SEND);
+	if (ret < 0)
+		dev_err(prtd->dev, "Failed to set secure state.");
 
 	snd_pcm_set_runtime_buffer(substream, &substream->dma_buffer);
 	return 0;
@@ -4993,6 +5020,8 @@ static int tegra210_adsp_apm_get(struct snd_kcontrol *kcontrol,
 		ucontrol->value.integer.value[0] = app->min_adsp_clock;
 	} else if (strstr(kcontrol->id.name, "Input Mode")) {
 		ucontrol->value.integer.value[0] = app->input_mode;
+	} else if (strstr(kcontrol->id.name, "Secure Mode")) {
+		ucontrol->value.integer.value[0] = app->secure_mode;
 	}
 	return 0;
 }
@@ -5017,6 +5046,12 @@ static int tegra210_adsp_apm_put(struct snd_kcontrol *kcontrol,
 	/* Controls here may execute whether or not APM is initialized */
 	if (strstr(kcontrol->id.name, "Min ADSP Clock")) {
 		app->min_adsp_clock = ucontrol->value.integer.value[0];
+		return 0;
+	}
+
+	/* Controls here may execute whether or not APM is initialized */
+	if (strstr(kcontrol->id.name, "Secure Mode")) {
+		app->secure_mode = ucontrol->value.integer.value[0];
 		return 0;
 	}
 
@@ -5289,6 +5324,7 @@ static struct snd_kcontrol_new tegra210_adsp_controls[] = {
 	APM_CONTROL("Priority", APM_PRIORITY_MAX),
 	APM_CONTROL("Min ADSP Clock", INT_MAX),
 	APM_CONTROL("Input Mode", INT_MAX),
+	APM_CONTROL("Secure Mode", 1),
 #ifdef CONFIG_SND_SOC_TEGRA_VIRT_IVC_COMM
 	SWITCH_CONTROL("MS_ENT", 1),
 	SWITCH_CONTROL("MS_PH_PHONE", 2),
@@ -5481,6 +5517,7 @@ static int tegra210_adsp_audio_platform_probe(struct platform_device *pdev)
 		adsp->apps[i].reg = i;
 		adsp->apps[i].priority = 0;
 		adsp->apps[i].min_adsp_clock = 0;
+		adsp->apps[i].secure_mode = false;
 		adsp->apps[i].input_mode = NVFX_APM_INPUT_MODE_PUSH;
 	}
 
