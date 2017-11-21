@@ -150,6 +150,9 @@ enum {
 	nvfx_method_reset = 0,
 	nvfx_method_set_state,
 	nvfx_method_flush,
+	nvfx_method_read_params,
+	nvfx_method_error_event,
+	nvfx_method_set_apr_params,
 
 	nvfx_method_external_start = 65536,
 
