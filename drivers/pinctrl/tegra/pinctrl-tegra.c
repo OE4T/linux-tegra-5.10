@@ -751,8 +751,12 @@ const struct dev_pm_ops tegra_pinctrl_pm = {
 
 static bool tegra_pinctrl_gpio_node_has_range(struct tegra_pmx *pmx)
 {
+	struct device *dev = pmx->dev;
 	struct device_node *np;
 	bool has_prop = false;
+
+	if (of_property_read_bool(dev->of_node, "#gpio-range-cells"))
+		return true;
 
 	np = of_find_compatible_node(NULL, NULL, pmx->soc->gpio_compatible);
 	if (!np)
