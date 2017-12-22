@@ -596,6 +596,7 @@ struct tegra_pmc_soc {
 	bool has_bootrom_command;
 	bool has_misc_base_address;
 	int misc_base_reg_index;
+	bool sata_power_gate_in_misc;
 	bool skip_fuse_mirroring_logic;
 	bool has_reorg_hw_dpd_reg_impl;
 	bool has_usb_sleepwalk;
@@ -824,6 +825,17 @@ static void tegra_pmc_misc_writel(struct tegra_pmc *pmc, u32 value,
 				unsigned long offset)
 {
 	writel(value, pmc->misc + offset);
+}
+
+static void tegra_pmc_misc_register_update(int offset,
+					unsigned long mask,
+					unsigned long val)
+{
+	u32 pmc_reg;
+
+	pmc_reg = tegra_pmc_misc_readl(pmc, offset);
+	pmc_reg = (pmc_reg & ~mask) | (val & mask);
+	tegra_pmc_misc_writel(pmc, pmc_reg, offset);
 }
 
 /*
@@ -1941,14 +1953,20 @@ void tegra_pmc_sata_pwrgt_update(unsigned long mask, unsigned long val)
 	unsigned long flags;
 
 	spin_lock_irqsave(&pwr_lock, flags);
-	tegra_pmc_register_update(pmc->soc->regs->sata_pwrgt_0, mask, val);
+	if (pmc->soc->sata_power_gate_in_misc)
+		tegra_pmc_misc_register_update(pmc->soc->regs->sata_pwrgt_0, mask, val);
+	else
+		tegra_pmc_register_update(pmc->soc->regs->sata_pwrgt_0, mask, val);
 	spin_unlock_irqrestore(&pwr_lock, flags);
 }
 EXPORT_SYMBOL(tegra_pmc_sata_pwrgt_update);
 
 unsigned long tegra_pmc_sata_pwrgt_get(void)
 {
-	return tegra_pmc_readl(pmc, pmc->soc->regs->sata_pwrgt_0);
+	if (pmc->soc->sata_power_gate_in_misc)
+		return tegra_pmc_misc_readl(pmc, pmc->soc->regs->sata_pwrgt_0);
+	else
+		return tegra_pmc_readl(pmc, pmc->soc->regs->sata_pwrgt_0);
 }
 EXPORT_SYMBOL(tegra_pmc_sata_pwrgt_get);
 
@@ -3077,6 +3095,7 @@ static int tegra_pmc_parse_dt(struct tegra_pmc *pmc, struct device_node *np)
 	if (!pmc->corereq_high)
 		pmc->corereq_high = of_property_read_bool(np,
 					"nvidia,core-power-req-active-high");
+
 	pmc->sysclkreq_high = of_property_read_bool(np,
 				"nvidia,sys-clock-req-active-high");
 
@@ -3407,6 +3426,7 @@ static int tegra_pmc_pinctrl_init(struct tegra_pmc *pmc)
 		return -ENOMEM;
 	}
 
+	pmc->voltage_switch_restriction_enabled = false;
 	tegra_pmc_pctl_desc.name = dev_name(pmc->dev);
 	tegra_pmc_pctl_desc.pins = pmc->soc->pin_descs;
 	tegra_pmc_pctl_desc.npins = pmc->soc->num_pin_descs;
@@ -3672,14 +3692,12 @@ static int tegra_pmc_debug_scratch_reg_init(struct tegra_pmc *pmc)
 }
 #endif
 
-#ifndef CONFIG_TEGRA186_PMC
 bool tegra_pmc_is_halt_in_fiq(void)
 {
 	return !!(PMC_IMPL_HALT_IN_FIQ_MASK &
 		tegra_pmc_readl(pmc, pmc->soc->regs->ramdump_ctl_status));
 }
 EXPORT_SYMBOL(tegra_pmc_is_halt_in_fiq);
-#endif
 
 static void tegra_pmc_halt_in_fiq_init(struct tegra_pmc *pmc)
 {
@@ -5007,6 +5025,7 @@ static const struct tegra_pmc_soc tegra210_pmc_soc = {
 	.has_bootrom_command = true,
 	.has_misc_base_address = false,
 	.misc_base_reg_index = -1,
+	.sata_power_gate_in_misc = false,
 	.skip_fuse_mirroring_logic = false,
 	.has_reorg_hw_dpd_reg_impl = false,
 };
@@ -5149,6 +5168,7 @@ static const struct tegra_pmc_soc tegra210b01_pmc_soc = {
 	.has_bootrom_command = true,
 	.has_misc_base_address = false,
 	.misc_base_reg_index = -1,
+	.sata_power_gate_in_misc = false,
 	.skip_fuse_mirroring_logic = false,
 	.has_reorg_hw_dpd_reg_impl = false,
 	.has_usb_sleepwalk = true,
@@ -5352,79 +5372,80 @@ static const struct tegra_pmc_soc tegra186_pmc_soc = {
 	.has_ps18 = true,
 	.has_misc_base_address = false,
 	.misc_base_reg_index = -1,
+	.sata_power_gate_in_misc = false,
 	.skip_fuse_mirroring_logic = false,
 	.has_reorg_hw_dpd_reg_impl = false,
 	.has_usb_sleepwalk = false,
 };
 
-#define TEGRA194_IO_PAD(_id, _dpd, _voltage, _name)             \
+#define TEGRA194_IO_PAD(_id, _dpd, _voltage, _v_reg, _name)     \
         ((struct tegra_io_pad_soc) {                            \
                 .id     = (_id),                                \
                 .dpd    = (_dpd),                               \
                 .voltage = (_voltage),                          \
-                .volt_reg	= (E_33V),                      \
+                .volt_reg	= (_v_reg),                     \
                 .name   = (_name),                              \
                 .io_power       = (UINT_MAX),                   \
                 .bdsdmem_cfc    = (false),                      \
         })
 
-#define TEGRA194_IO_PIN_DESC(_id, _dpd, _voltage, _name) \
-        ((struct pinctrl_pin_desc) {                            \
-                .number = (_id),                                \
-                .name   = (_name)                               \
+#define TEGRA194_IO_PIN_DESC(_id, _dpd, _voltage, _v_reg, _name) \
+        ((struct pinctrl_pin_desc) {                             \
+                .number = (_id),                                 \
+                .name   = (_name)                                \
         })
 
-#define TEGRA194_IO_PAD_TABLE(_pad)                                             \
-	/*   .id                          .dpd      .voltage  .name    */       \
-	_pad(TEGRA_IO_PAD_CSIA,           0,        UINT_MAX, "csia"),          \
-	_pad(TEGRA_IO_PAD_CSIB,           1,        UINT_MAX, "csib"),          \
-	_pad(TEGRA_IO_PAD_MIPI_BIAS,      3,        UINT_MAX, "mipi-bias"),     \
-	_pad(TEGRA_IO_PAD_PEX_CLK_BIAS,   4,        UINT_MAX, "pex-clk-bias"),  \
-	_pad(TEGRA_IO_PAD_PEX_CLK3,       5,        UINT_MAX, "pex-clk3"),      \
-	_pad(TEGRA_IO_PAD_PEX_CLK2,       6,        UINT_MAX, "pex-clk2"),      \
-	_pad(TEGRA_IO_PAD_PEX_CLK1,       7,        UINT_MAX, "pex-clk1"),      \
-	_pad(TEGRA_IO_PAD_EQOS,           8,        UINT_MAX, "eqos"),          \
-	_pad(TEGRA_IO_PAD_PEX_CLK_2_BIAS, 9,        UINT_MAX, "pex-clk-2-bias"),\
-	_pad(TEGRA_IO_PAD_PEX_CLK_2,      10,       UINT_MAX, "pex-clk-2"),     \
-	_pad(TEGRA_IO_PAD_DAP3,           11,       UINT_MAX, "dap3"),          \
-	_pad(TEGRA_IO_PAD_DAP5,           12,       UINT_MAX, "dap5"),          \
-	_pad(TEGRA_IO_PAD_UART,           14,       UINT_MAX, "uart"),          \
-	_pad(TEGRA_IO_PAD_PWR_CTL,        15,       UINT_MAX, "pwr-ctl"),       \
-	_pad(TEGRA_IO_PAD_SOC_GPIO53,     16,       UINT_MAX, "soc-gpio53"),    \
-	_pad(TEGRA_IO_PAD_AUDIO,          17,       UINT_MAX, "audio"),         \
-	_pad(TEGRA_IO_PAD_GP_PWM2,        18,       UINT_MAX, "gp-pwm2"),       \
-	_pad(TEGRA_IO_PAD_GP_PWM3,        19,       UINT_MAX, "gp-pwm3"),       \
-	_pad(TEGRA_IO_PAD_SOC_GPIO12,     20,       UINT_MAX, "soc-gpio12"),    \
-	_pad(TEGRA_IO_PAD_SOC_GPIO13,     21,       UINT_MAX, "soc-gpio13"),    \
-	_pad(TEGRA_IO_PAD_SOC_GPIO10,     22,       UINT_MAX, "soc-gpio10"),    \
-	_pad(TEGRA_IO_PAD_UART4,          23,       UINT_MAX, "uart4"),         \
-	_pad(TEGRA_IO_PAD_UART5,          24,       UINT_MAX, "uart5"),         \
-	_pad(TEGRA_IO_PAD_DBG,            25,       UINT_MAX, "dbg"),           \
-	_pad(TEGRA_IO_PAD_HDMI_DP3,       26,       UINT_MAX, "hdmi-dp3"),      \
-	_pad(TEGRA_IO_PAD_HDMI_DP2,       27,       UINT_MAX, "hdmi-dp2"),      \
-	_pad(TEGRA_IO_PAD_HDMI_DP0,       28,       UINT_MAX, "hdmi-dp0"),      \
-	_pad(TEGRA_IO_PAD_HDMI_DP1,       29,       UINT_MAX, "hdmi-dp1"),      \
-	_pad(TEGRA_IO_PAD_PEX_CNTRL,      32,       UINT_MAX, "pex-cntrl"),     \
-	_pad(TEGRA_IO_PAD_PEX_CTL2,       33,       UINT_MAX, "pex-ctl2"),      \
-	_pad(TEGRA_IO_PAD_PEX_L0_RST_N,   34,       UINT_MAX, "pex-l0-rst"),    \
-	_pad(TEGRA_IO_PAD_PEX_L1_RST_N,   35,       UINT_MAX, "pex-l1-rst"),    \
-	_pad(TEGRA_IO_PAD_SDMMC4,         36,       UINT_MAX, "sdmmc4"),        \
-	_pad(TEGRA_IO_PAD_PEX_L5_RST_N,   37,       UINT_MAX, "pex-l5-rst"),    \
-	_pad(TEGRA_IO_PAD_CAM,            38,       UINT_MAX, "cam"),           \
-	_pad(TEGRA_IO_PAD_CSIC,           43,       UINT_MAX, "csic"),          \
-	_pad(TEGRA_IO_PAD_CSID,           44,       UINT_MAX, "csid"),          \
-	_pad(TEGRA_IO_PAD_CSIE,           45,       UINT_MAX, "csie"),          \
-	_pad(TEGRA_IO_PAD_CSIF,           46,       UINT_MAX, "csif"),          \
-	_pad(TEGRA_IO_PAD_SPI,            47,       UINT_MAX, "spi"),           \
-	_pad(TEGRA_IO_PAD_UFS,            49,       UINT_MAX, "ufs"),           \
-	_pad(TEGRA_IO_PAD_CSIG,           50,       UINT_MAX, "csig"),          \
-	_pad(TEGRA_IO_PAD_CSIH,           51,       UINT_MAX, "csih"),          \
-	_pad(TEGRA_IO_PAD_EDP,            53,       UINT_MAX, "edp"),           \
-	_pad(TEGRA_IO_PAD_SDMMC1_HV,      55,       4,        "sdmmc1-hv"),     \
-	_pad(TEGRA_IO_PAD_SDMMC3_HV,      56,       6,        "sdmmc3-hv"),     \
-	_pad(TEGRA_IO_PAD_CONN,           60,       UINT_MAX, "conn"),          \
-	_pad(TEGRA_IO_PAD_AUDIO_HV,       61,       1,        "audio-hv"),      \
-	_pad(TEGRA_IO_PAD_AO_HV,          UINT_MAX, 0,        "ao-hv")
+#define TEGRA194_IO_PAD_TABLE(_pad)                                                    \
+	/*   .id                          .dpd      .voltage  .voltage_reg .name */    \
+	_pad(TEGRA_IO_PAD_CSIA,           0,        UINT_MAX, INVAL, "csia"),          \
+	_pad(TEGRA_IO_PAD_CSIB,           1,        UINT_MAX, INVAL, "csib"),          \
+	_pad(TEGRA_IO_PAD_MIPI_BIAS,      3,        UINT_MAX, INVAL, "mipi-bias"),     \
+	_pad(TEGRA_IO_PAD_PEX_CLK_BIAS,   4,        UINT_MAX, INVAL, "pex-clk-bias"),  \
+	_pad(TEGRA_IO_PAD_PEX_CLK3,       5,        UINT_MAX, INVAL, "pex-clk3"),      \
+	_pad(TEGRA_IO_PAD_PEX_CLK2,       6,        UINT_MAX, INVAL, "pex-clk2"),      \
+	_pad(TEGRA_IO_PAD_PEX_CLK1,       7,        UINT_MAX, INVAL, "pex-clk1"),      \
+	_pad(TEGRA_IO_PAD_EQOS,           8,        UINT_MAX, INVAL, "eqos"),          \
+	_pad(TEGRA_IO_PAD_PEX_CLK_2_BIAS, 9,        UINT_MAX, INVAL, "pex-clk-2-bias"),\
+	_pad(TEGRA_IO_PAD_PEX_CLK_2,      10,       UINT_MAX, INVAL, "pex-clk-2"),     \
+	_pad(TEGRA_IO_PAD_DAP3,           11,       UINT_MAX, INVAL, "dap3"),          \
+	_pad(TEGRA_IO_PAD_DAP5,           12,       UINT_MAX, INVAL, "dap5"),          \
+	_pad(TEGRA_IO_PAD_UART,           14,       UINT_MAX, INVAL, "uart"),          \
+	_pad(TEGRA_IO_PAD_PWR_CTL,        15,       UINT_MAX, INVAL, "pwr-ctl"),       \
+	_pad(TEGRA_IO_PAD_SOC_GPIO53,     16,       UINT_MAX, INVAL, "soc-gpio53"),    \
+	_pad(TEGRA_IO_PAD_AUDIO,          17,       UINT_MAX, INVAL, "audio"),         \
+	_pad(TEGRA_IO_PAD_GP_PWM2,        18,       UINT_MAX, INVAL, "gp-pwm2"),       \
+	_pad(TEGRA_IO_PAD_GP_PWM3,        19,       UINT_MAX, INVAL, "gp-pwm3"),       \
+	_pad(TEGRA_IO_PAD_SOC_GPIO12,     20,       UINT_MAX, INVAL, "soc-gpio12"),    \
+	_pad(TEGRA_IO_PAD_SOC_GPIO13,     21,       UINT_MAX, INVAL, "soc-gpio13"),    \
+	_pad(TEGRA_IO_PAD_SOC_GPIO10,     22,       UINT_MAX, INVAL, "soc-gpio10"),    \
+	_pad(TEGRA_IO_PAD_UART4,          23,       UINT_MAX, INVAL, "uart4"),         \
+	_pad(TEGRA_IO_PAD_UART5,          24,       UINT_MAX, INVAL, "uart5"),         \
+	_pad(TEGRA_IO_PAD_DBG,            25,       4,        E_18V, "dbg"),           \
+	_pad(TEGRA_IO_PAD_HDMI_DP3,       26,       UINT_MAX, INVAL, "hdmi-dp3"),      \
+	_pad(TEGRA_IO_PAD_HDMI_DP2,       27,       UINT_MAX, INVAL, "hdmi-dp2"),      \
+	_pad(TEGRA_IO_PAD_HDMI_DP0,       28,       UINT_MAX, INVAL, "hdmi-dp0"),      \
+	_pad(TEGRA_IO_PAD_HDMI_DP1,       29,       UINT_MAX, INVAL, "hdmi-dp1"),      \
+	_pad(TEGRA_IO_PAD_PEX_CNTRL,      32,       UINT_MAX, INVAL, "pex-cntrl"),     \
+	_pad(TEGRA_IO_PAD_PEX_CTL2,       33,       UINT_MAX, INVAL, "pex-ctl2"),      \
+	_pad(TEGRA_IO_PAD_PEX_L0_RST_N,   34,       UINT_MAX, INVAL, "pex-l0-rst"),    \
+	_pad(TEGRA_IO_PAD_PEX_L1_RST_N,   35,       UINT_MAX, INVAL, "pex-l1-rst"),    \
+	_pad(TEGRA_IO_PAD_SDMMC4,         36,       UINT_MAX, INVAL, "sdmmc4"),        \
+	_pad(TEGRA_IO_PAD_PEX_L5_RST_N,   37,       UINT_MAX, INVAL, "pex-l5-rst"),    \
+	_pad(TEGRA_IO_PAD_CAM,            38,       UINT_MAX, INVAL, "cam"),           \
+	_pad(TEGRA_IO_PAD_CSIC,           43,       UINT_MAX, INVAL, "csic"),          \
+	_pad(TEGRA_IO_PAD_CSID,           44,       UINT_MAX, INVAL, "csid"),          \
+	_pad(TEGRA_IO_PAD_CSIE,           45,       UINT_MAX, INVAL, "csie"),          \
+	_pad(TEGRA_IO_PAD_CSIF,           46,       UINT_MAX, INVAL, "csif"),          \
+	_pad(TEGRA_IO_PAD_SPI,            47,       5,        E_18V, "spi"),           \
+	_pad(TEGRA_IO_PAD_UFS,            49,       1,        E_18V, "ufs"),           \
+	_pad(TEGRA_IO_PAD_CSIG,           50,       UINT_MAX, INVAL, "csig"),          \
+	_pad(TEGRA_IO_PAD_CSIH,           51,       UINT_MAX, INVAL, "csih"),          \
+	_pad(TEGRA_IO_PAD_EDP,            53,       UINT_MAX, INVAL, "edp"),           \
+	_pad(TEGRA_IO_PAD_SDMMC1_HV,      55,       4,        E_33V, "sdmmc1-hv"),     \
+	_pad(TEGRA_IO_PAD_SDMMC3_HV,      56,       6,        E_33V, "sdmmc3-hv"),     \
+	_pad(TEGRA_IO_PAD_CONN,           60,       UINT_MAX, INVAL, "conn"),          \
+	_pad(TEGRA_IO_PAD_AUDIO_HV,       61,       1,        E_33V, "audio-hv"),      \
+	_pad(TEGRA_IO_PAD_AO_HV,          UINT_MAX, 0,        E_33V, "ao-hv")
 
 static const struct tegra_io_pad_soc tegra194_io_pads[] = {
 	TEGRA194_IO_PAD_TABLE(TEGRA194_IO_PAD)
@@ -5514,6 +5535,7 @@ static const struct tegra_pmc_soc tegra194_pmc_soc = {
 	.has_ps18 = true,
 	.has_misc_base_address = true,
 	.misc_base_reg_index = 4,
+	.sata_power_gate_in_misc = true,
 	.skip_fuse_mirroring_logic = false,
 	.has_reorg_hw_dpd_reg_impl = false,
 	.has_usb_sleepwalk = false,
