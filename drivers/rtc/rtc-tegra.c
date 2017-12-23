@@ -77,6 +77,7 @@ struct tegra_rtc_info {
 	void __iomem *base; /* NULL if not initialized */
 	int irq; /* alarm and periodic IRQ */
 	spinlock_t lock;
+	bool is_tegra_rtc_suspended;
 };
 
 static struct tegra_rtc_info *tegra_rtc_dev;
@@ -344,6 +345,10 @@ static irqreturn_t tegra_rtc_irq_handler(int irq, void *data)
 	}
 
 	rtc_update_irq(info->rtc, 1, RTC_IRQF | RTC_UF);
+
+	/* If we are in suspend state and we get an RTC interrupt, wake up */
+	if (device_may_wakeup(dev) && info->is_tegra_rtc_suspended)
+		pm_wakeup_event(dev, 0);
 
 	return IRQ_HANDLED;
 }
@@ -649,6 +654,8 @@ static int tegra_rtc_suspend(struct device *dev)
 	if (alarm_period || alarm_period_msec || device_may_wakeup(dev))
 		enable_irq_wake(info->irq);
 
+	info->is_tegra_rtc_suspended = true;
+
 	return 0;
 }
 
@@ -662,6 +669,8 @@ static int tegra_rtc_resume(struct device *dev)
 	/* alarms were left on as a wake source, turn them off */
 	if (alarm_period || alarm_period_msec || device_may_wakeup(dev))
 		disable_irq_wake(info->irq);
+
+	info->is_tegra_rtc_suspended = false;
 
 	return 0;
 }
