@@ -64,7 +64,7 @@ static bool tegra_channel_verify_focuser(struct tegra_channel *chan)
 	 * add an array when more focusers are available, this logic is
 	 * not needed once the focuser is bound to sensor channel
 	 */
-	focuser = strnstr(chan->video.name, "lc898212", sizeof(chan->video.name));
+	focuser = strnstr(chan->video->name, "lc898212", sizeof(chan->video->name));
 
 	return (focuser != NULL);
 }
@@ -380,12 +380,12 @@ void release_buffer(struct tegra_channel *chan,
 		 * and first captured frame release to user-space.
 		 */
 		frame_arrived_ts = ktime_to_ms(ktime_get());
-		dev_dbg(&chan->video.dev,
+		dev_dbg(&chan->video->dev,
 			"%s: capture init latency is %lld ms\n",
 			__func__, (frame_arrived_ts - queue_init_ts));
 	}
 
-	dev_dbg(&chan->video.dev,
+	dev_dbg(&chan->video->dev,
 		"%s: release buf[%p] frame[%d] to user-space\n",
 		__func__, buf, chan->sequence);
 	vb2_buffer_done(&vbuf->vb2_buf, buf->state);
@@ -481,7 +481,7 @@ void free_ring_buffers(struct tegra_channel *chan, int frames)
 			 * frame release to user-space.
 			 */
 			frame_arrived_ts = ktime_to_ms(ktime_get());
-			dev_dbg(&chan->video.dev,
+			dev_dbg(&chan->video->dev,
 				"%s: capture init latency is %lld ms\n",
 				__func__, (frame_arrived_ts - queue_init_ts));
 		}
@@ -989,15 +989,14 @@ static const struct vb2_ops tegra_channel_queue_qops = {
 static int
 tegra_channel_querycap(struct file *file, void *fh, struct v4l2_capability *cap)
 {
-	struct v4l2_fh *vfh = file->private_data;
-	struct tegra_channel *chan = to_tegra_channel(vfh->vdev);
+	struct tegra_channel *chan = video_drvdata(file);
 
 	cap->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING;
 	cap->device_caps |= V4L2_CAP_EXT_PIX_FORMAT;
 	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
 
 	strlcpy(cap->driver, "tegra-video", sizeof(cap->driver));
-	strlcpy(cap->card, chan->video.name, sizeof(cap->card));
+	strlcpy(cap->card, chan->video->name, sizeof(cap->card));
 	snprintf(cap->bus_info, sizeof(cap->bus_info), "platform:%s:%u",
 		 dev_name(chan->vi->dev), chan->port[0]);
 
@@ -1008,8 +1007,7 @@ static int
 tegra_channel_enum_framesizes(struct file *file, void *fh,
 			      struct v4l2_frmsizeenum *sizes)
 {
-	struct v4l2_fh *vfh = file->private_data;
-	struct tegra_channel *chan = to_tegra_channel(vfh->vdev);
+	struct tegra_channel *chan = video_drvdata(file);
 	struct v4l2_subdev *sd = chan->subdev_on_csi;
 	struct v4l2_subdev_frame_size_enum fse;
 	int ret = 0;
@@ -1035,8 +1033,7 @@ static int
 tegra_channel_enum_frameintervals(struct file *file, void *fh,
 			      struct v4l2_frmivalenum *intervals)
 {
-	struct v4l2_fh *vfh = file->private_data;
-	struct tegra_channel *chan = to_tegra_channel(vfh->vdev);
+	struct tegra_channel *chan = video_drvdata(file);
 	struct v4l2_subdev *sd = chan->subdev_on_csi;
 	struct v4l2_subdev_frame_interval_enum fie;
 	int ret = 0;
@@ -1064,8 +1061,7 @@ tegra_channel_enum_frameintervals(struct file *file, void *fh,
 static int
 tegra_channel_enum_format(struct file *file, void *fh, struct v4l2_fmtdesc *f)
 {
-	struct v4l2_fh *vfh = file->private_data;
-	struct tegra_channel *chan = to_tegra_channel(vfh->vdev);
+	struct tegra_channel *chan = video_drvdata(file);
 	unsigned int index = 0, i;
 	unsigned long *fmts_bitmap = chan->fmts_bitmap;
 
@@ -1084,8 +1080,7 @@ tegra_channel_enum_format(struct file *file, void *fh, struct v4l2_fmtdesc *f)
 static int
 tegra_channel_g_edid(struct file *file, void *fh, struct v4l2_edid *edid)
 {
-	struct v4l2_fh *vfh = file->private_data;
-	struct tegra_channel *chan = to_tegra_channel(vfh->vdev);
+	struct tegra_channel *chan = video_drvdata(file);
 	struct v4l2_subdev *sd = chan->subdev_on_csi;
 
 	if (!v4l2_subdev_has_op(sd, pad, get_edid))
@@ -1097,8 +1092,7 @@ tegra_channel_g_edid(struct file *file, void *fh, struct v4l2_edid *edid)
 static int
 tegra_channel_s_edid(struct file *file, void *fh, struct v4l2_edid *edid)
 {
-	struct v4l2_fh *vfh = file->private_data;
-	struct tegra_channel *chan = to_tegra_channel(vfh->vdev);
+	struct tegra_channel *chan = video_drvdata(file);
 	struct v4l2_subdev *sd = chan->subdev_on_csi;
 
 	if (!v4l2_subdev_has_op(sd, pad, set_edid))
@@ -1111,13 +1105,12 @@ static int
 tegra_channel_g_dv_timings(struct file *file, void *fh,
 		struct v4l2_dv_timings *timings)
 {
-	struct v4l2_fh *vfh = file->private_data;
-	struct tegra_channel *chan = to_tegra_channel(vfh->vdev);
+	struct tegra_channel *chan = video_drvdata(file);
 
 	if (!v4l2_subdev_has_op(chan->subdev_on_csi, video, g_dv_timings))
 		return -ENOTTY;
 
-	return v4l2_device_call_until_err(chan->video.v4l2_dev,
+	return v4l2_device_call_until_err(chan->video->v4l2_dev,
 			chan->grp_id, video, g_dv_timings, timings);
 }
 
@@ -1125,8 +1118,7 @@ static int
 tegra_channel_s_dv_timings(struct file *file, void *fh,
 		struct v4l2_dv_timings *timings)
 {
-	struct v4l2_fh *vfh = file->private_data;
-	struct tegra_channel *chan = to_tegra_channel(vfh->vdev);
+	struct tegra_channel *chan = video_drvdata(file);
 	struct v4l2_bt_timings *bt = &timings->bt;
 	struct v4l2_dv_timings curr_timings;
 	int ret;
@@ -1144,7 +1136,7 @@ tegra_channel_s_dv_timings(struct file *file, void *fh,
 	if (vb2_is_busy(&chan->queue))
 		return -EBUSY;
 
-	ret = v4l2_device_call_until_err(chan->video.v4l2_dev,
+	ret = v4l2_device_call_until_err(chan->video->v4l2_dev,
 			chan->grp_id, video, s_dv_timings, timings);
 
 	if (!ret)
@@ -1161,13 +1153,12 @@ static int
 tegra_channel_query_dv_timings(struct file *file, void *fh,
 		struct v4l2_dv_timings *timings)
 {
-	struct v4l2_fh *vfh = file->private_data;
-	struct tegra_channel *chan = to_tegra_channel(vfh->vdev);
+	struct tegra_channel *chan = video_drvdata(file);
 
 	if (!v4l2_subdev_has_op(chan->subdev_on_csi, video, query_dv_timings))
 		return -ENOTTY;
 
-	return v4l2_device_call_until_err(chan->video.v4l2_dev,
+	return v4l2_device_call_until_err(chan->video->v4l2_dev,
 			chan->grp_id, video, query_dv_timings, timings);
 }
 
@@ -1175,8 +1166,7 @@ static int
 tegra_channel_enum_dv_timings(struct file *file, void *fh,
 		struct v4l2_enum_dv_timings *timings)
 {
-	struct v4l2_fh *vfh = file->private_data;
-	struct tegra_channel *chan = to_tegra_channel(vfh->vdev);
+	struct tegra_channel *chan = video_drvdata(file);
 	struct v4l2_subdev *sd = chan->subdev_on_csi;
 
 	if (!v4l2_subdev_has_op(sd, pad, enum_dv_timings))
@@ -1189,8 +1179,7 @@ static int
 tegra_channel_dv_timings_cap(struct file *file, void *fh,
 		struct v4l2_dv_timings_cap *cap)
 {
-	struct v4l2_fh *vfh = file->private_data;
-	struct tegra_channel *chan = to_tegra_channel(vfh->vdev);
+	struct tegra_channel *chan = video_drvdata(file);
 	struct v4l2_subdev *sd = chan->subdev_on_csi;
 
 	if (!v4l2_subdev_has_op(sd, pad, dv_timings_cap))
@@ -1209,9 +1198,9 @@ int tegra_channel_s_ctrl(struct v4l2_ctrl *ctrl)
 		if (switch_ctrl_qmenu[ctrl->val] == SWITCH_ON)
 			chan->bypass = true;
 		else if (chan->vi->bypass) {
-			dev_dbg(&chan->video.dev,
+			dev_dbg(&chan->video->dev,
 				"can't disable bypass mode\n");
-			dev_dbg(&chan->video.dev,
+			dev_dbg(&chan->video->dev,
 				"because the VI/CSI is in bypass mode\n");
 			chan->bypass = true;
 		} else
@@ -1227,11 +1216,11 @@ int tegra_channel_s_ctrl(struct v4l2_ctrl *ctrl)
 				break;
 			if (switch_ctrl_qmenu[ctrl->val] == SWITCH_ON) {
 				s_data->override_enable = true;
-				dev_dbg(&chan->video.dev,
+				dev_dbg(&chan->video->dev,
 					"enable override control\n");
 			} else {
 				s_data->override_enable = false;
-				dev_dbg(&chan->video.dev,
+				dev_dbg(&chan->video->dev,
 					"disable override control\n");
 			}
 		}
@@ -1254,7 +1243,7 @@ int tegra_channel_s_ctrl(struct v4l2_ctrl *ctrl)
 		chan->low_latency = ctrl->val;
 		break;
 	default:
-		dev_err(&chan->video.dev, "%s: Invalid ctrl %u\n",
+		dev_err(&chan->video->dev, "%s: Invalid ctrl %u\n",
 			__func__, ctrl->id);
 		return -EINVAL;
 	}
@@ -1726,7 +1715,8 @@ static void tegra_channel_populate_dev_info(struct tegra_camera_dev_info *cdev,
 
 void tegra_channel_remove_subdevices(struct tegra_channel *chan)
 {
-	video_unregister_device(&chan->video);
+	video_unregister_device(chan->video);
+	chan->video = NULL;
 	chan->num_subdevs = 0;
 	chan->subdev_on_csi = NULL;
 }
@@ -1757,7 +1747,7 @@ int tegra_channel_init_subdevices(struct tegra_channel *chan)
 	chan->is_slvsec = (strstr(sd->name, "slvs") != NULL) ? 1 : 0;
 
 	/* Add subdev name to this video dev name with vi-output tag*/
-	snprintf(chan->video.name, sizeof(chan->video.name), "%s, %s",
+	snprintf(chan->video->name, sizeof(chan->video->name), "%s, %s",
 		"vi-output", sd->name);
 	sd->grp_id = grp_id;
 	chan->grp_id = grp_id;
@@ -1780,7 +1770,7 @@ int tegra_channel_init_subdevices(struct tegra_channel *chan)
 		sd->grp_id = grp_id;
 		chan->subdev[num_sd++] = sd;
 		/* Add subdev name to this video dev name with vi-output tag*/
-		snprintf(chan->video.name, sizeof(chan->video.name), "%s, %s",
+		snprintf(chan->video->name, sizeof(chan->video->name), "%s, %s",
 			"vi-output", sd->name);
 
 		index = pad->index - 1;
@@ -1862,8 +1852,7 @@ static int
 tegra_channel_get_format(struct file *file, void *fh,
 			struct v4l2_format *format)
 {
-	struct v4l2_fh *vfh = file->private_data;
-	struct tegra_channel *chan = to_tegra_channel(vfh->vdev);
+	struct tegra_channel *chan = video_drvdata(file);
 	struct v4l2_pix_format *pix = &format->fmt.pix;
 
 	*pix = chan->format;
@@ -1912,8 +1901,7 @@ static int
 tegra_channel_try_format(struct file *file, void *fh,
 			struct v4l2_format *format)
 {
-	struct v4l2_fh *vfh = file->private_data;
-	struct tegra_channel *chan = to_tegra_channel(vfh->vdev);
+	struct tegra_channel *chan = video_drvdata(file);
 
 	return  __tegra_channel_try_format(chan, &format->fmt.pix);
 }
@@ -1959,8 +1947,7 @@ static int
 tegra_channel_set_format(struct file *file, void *fh,
 			struct v4l2_format *format)
 {
-	struct v4l2_fh *vfh = file->private_data;
-	struct tegra_channel *chan = to_tegra_channel(vfh->vdev);
+	struct tegra_channel *chan = video_drvdata(file);
 	int ret = 0;
 
 	/* get the suppod format by try_fmt */
@@ -1987,15 +1974,14 @@ static int tegra_channel_subscribe_event(struct v4l2_fh *fh,
 static int
 tegra_channel_enum_input(struct file *file, void *fh, struct v4l2_input *inp)
 {
-	struct v4l2_fh *vfh = file->private_data;
-	struct tegra_channel *chan = to_tegra_channel(vfh->vdev);
+	struct tegra_channel *chan = video_drvdata(file);
 	struct v4l2_subdev *sd_on_csi = chan->subdev_on_csi;
 	int ret;
 
 	if (inp->index)
 		return -EINVAL;
 
-	ret = v4l2_device_call_until_err(chan->video.v4l2_dev,
+	ret = v4l2_device_call_until_err(chan->video->v4l2_dev,
 			chan->grp_id, video, g_input_status, &inp->status);
 
 	if (ret == -ENODEV || sd_on_csi == NULL)
@@ -2030,10 +2016,9 @@ static int tegra_channel_s_input(struct file *file, void *priv, unsigned int i)
 
 static int tegra_channel_log_status(struct file *file, void *priv)
 {
-	struct v4l2_fh *vfh = file->private_data;
-	struct tegra_channel *chan = to_tegra_channel(vfh->vdev);
+	struct tegra_channel *chan = video_drvdata(file);
 
-	v4l2_device_call_all(chan->video.v4l2_dev,
+	v4l2_device_call_all(chan->video->v4l2_dev,
 		chan->grp_id, core, log_status);
 	return 0;
 }
@@ -2041,8 +2026,7 @@ static int tegra_channel_log_status(struct file *file, void *priv)
 static long tegra_channel_default_ioctl(struct file *file, void *fh,
 			bool use_prio, unsigned int cmd, void *arg)
 {
-	struct v4l2_fh *vfh = file->private_data;
-	struct tegra_channel *chan = to_tegra_channel(vfh->vdev);
+	struct tegra_channel *chan = video_drvdata(file);
 	struct tegra_mc_vi *vi = chan->vi;
 	long ret = 0;
 
@@ -2113,7 +2097,7 @@ static int tegra_channel_open(struct file *fp)
 {
 	int ret;
 	struct video_device *vdev = video_devdata(fp);
-	struct tegra_channel *chan = video_get_drvdata(vdev);
+	struct tegra_channel *chan = video_drvdata(fp);
 	struct tegra_mc_vi *vi;
 	struct tegra_csi_device *csi;
 
@@ -2155,7 +2139,7 @@ static int tegra_channel_close(struct file *fp)
 {
 	int ret = 0;
 	struct video_device *vdev = video_devdata(fp);
-	struct tegra_channel *chan = video_get_drvdata(vdev);
+	struct tegra_channel *chan = video_drvdata(fp);
 	struct tegra_mc_vi *vi = chan->vi;
 	bool is_singular;
 
@@ -2238,6 +2222,60 @@ static int tegra_channel_csi_init(struct tegra_channel *chan)
 	return ret;
 }
 
+int tegra_channel_init_video(struct tegra_channel *chan)
+{
+	struct tegra_mc_vi *vi = chan->vi;
+	int ret = 0;
+
+	if (chan->video) {
+		dev_err(&chan->video->dev, "video device already allocated\n");
+		return 0;
+	}
+
+	chan->video = video_device_alloc();
+
+	/* Initialize the media entity... */
+	chan->pad.flags = MEDIA_PAD_FL_SINK;
+	ret = tegra_media_entity_init(&chan->video->entity, 1,
+					&chan->pad, false, false);
+	if (ret < 0) {
+		video_device_release(chan->video);
+		dev_err(&chan->video->dev, "failed to init video entity\n");
+		return ret;
+	}
+
+	/* init control handler */
+	ret = v4l2_ctrl_handler_init(&chan->ctrl_handler, MAX_CID_CONTROLS);
+	if (chan->ctrl_handler.error) {
+		dev_err(&chan->video->dev, "failed to init control handler\n");
+		goto ctrl_init_error;
+	}
+
+	/* init video node... */
+	chan->video->fops = &tegra_channel_fops;
+	chan->video->v4l2_dev = &vi->v4l2_dev;
+	chan->video->queue = &chan->queue;
+	snprintf(chan->video->name, sizeof(chan->video->name), "%s-%s-%u",
+		dev_name(vi->dev), chan->pg_mode ? "tpg" : "output",
+		chan->pg_mode ? (chan->id - vi->num_channels) : chan->port[0]);
+	chan->video->vfl_type = VFL_TYPE_GRABBER;
+	chan->video->vfl_dir = VFL_DIR_RX;
+	chan->video->release = video_device_release_empty;
+	chan->video->ioctl_ops = &tegra_channel_ioctl_ops;
+	chan->video->ctrl_handler = &chan->ctrl_handler;
+	chan->video->lock = &chan->video_lock;
+
+	video_set_drvdata(chan->video, chan);
+
+	return ret;
+
+ctrl_init_error:
+	video_device_release(chan->video);
+	media_entity_cleanup(&chan->video->entity);
+	v4l2_ctrl_handler_free(&chan->ctrl_handler);
+	return ret;
+}
+
 int tegra_channel_init(struct tegra_channel *chan)
 {
 	int ret;
@@ -2281,38 +2319,6 @@ int tegra_channel_init(struct tegra_channel *chan)
 				&chan->fmtinfo->bpp, 0);
 
 	chan->buffer_offset[0] = 0;
-
-	/* Initialize the media entity... */
-	chan->pad.flags = MEDIA_PAD_FL_SINK;
-	ret = tegra_media_entity_init(&chan->video.entity, 1,
-					&chan->pad, false, false);
-	if (ret < 0) {
-		dev_err(&chan->video.dev, "failed to init video entity\n");
-		return ret;
-	}
-
-	/* init control handler */
-	ret = v4l2_ctrl_handler_init(&chan->ctrl_handler, MAX_CID_CONTROLS);
-	if (chan->ctrl_handler.error) {
-		dev_err(&chan->video.dev, "failed to init control handler\n");
-		goto ctrl_init_error;
-	}
-
-	/* init video node... */
-	chan->video.fops = &tegra_channel_fops;
-	chan->video.v4l2_dev = &vi->v4l2_dev;
-	chan->video.queue = &chan->queue;
-	snprintf(chan->video.name, sizeof(chan->video.name), "%s-%s-%u",
-		dev_name(vi->dev), chan->pg_mode ? "tpg" : "output",
-		chan->pg_mode ? (chan->id - vi->num_channels) : chan->port[0]);
-	chan->video.vfl_type = VFL_TYPE_GRABBER;
-	chan->video.vfl_dir = VFL_DIR_RX;
-	chan->video.release = video_device_release_empty;
-	chan->video.ioctl_ops = &tegra_channel_ioctl_ops;
-	chan->video.ctrl_handler = &chan->ctrl_handler;
-	chan->video.lock = &chan->video_lock;
-
-	video_set_drvdata(&chan->video, chan);
 
 #if defined(CONFIG_VIDEOBUF2_DMA_CONTIG)
 	/* get the buffers queue... */
@@ -2360,9 +2366,15 @@ vb2_queue_error:
 vb2_init_error:
 #endif
 	v4l2_ctrl_handler_free(&chan->ctrl_handler);
-ctrl_init_error:
-	media_entity_cleanup(&chan->video.entity);
 	return ret;
+}
+
+
+int tegra_channel_cleanup_video(struct tegra_channel *chan)
+{
+	v4l2_ctrl_handler_free(&chan->ctrl_handler);
+	media_entity_cleanup(&chan->video->entity);
+	return 0;
 }
 
 int tegra_channel_cleanup(struct tegra_channel *chan)
@@ -2388,8 +2400,6 @@ int tegra_channel_cleanup(struct tegra_channel *chan)
 
 	tegra_camera_device_unregister(chan);
 
-	media_entity_cleanup(&chan->video.entity);
-
 	return 0;
 }
 
@@ -2398,8 +2408,8 @@ void tegra_vi_channels_unregister(struct tegra_mc_vi *vi)
 	struct tegra_channel *it;
 
 	list_for_each_entry(it, &vi->vi_chans, list) {
-		if (it->video.cdev != NULL)
-		      video_unregister_device(&it->video);
+		if (it->video->cdev != NULL)
+			video_unregister_device(it->video);
 	}
 }
 
