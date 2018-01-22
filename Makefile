@@ -1260,7 +1260,7 @@ ifneq ($(dtstree),)
 
 PHONY += dtbs dtbs_install dt_binding_check
 dtbs dtbs_check: include/config/kernel.release scripts_dtc
-	$(Q)$(MAKE) $(build)=$(dtstree)
+	$(Q)$(MAKE) $(build)=$(dtstree) dtbs
 
 dtbs_check: export CHECK_DTBS=1
 dtbs_check: dt_binding_check
