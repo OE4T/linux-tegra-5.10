@@ -2166,6 +2166,11 @@ static void sdhci_tegra_debugfs_init(struct sdhci_host *host)
 	if (!clkdir)
 		goto err;
 
+	retval = debugfs_create_bool("slcg_status", S_IRUGO, clkdir,
+				     &tegra_host->slcg_status);
+	if (!retval)
+		goto err;
+
 	retval = debugfs_create_ulong("curr_clk_rate", S_IRUGO, clkdir,
 		&tegra_host->curr_clk_rate);
 	if (!retval)
