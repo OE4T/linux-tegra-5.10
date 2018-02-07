@@ -221,6 +221,14 @@ static int tegra_fuse_probe(struct platform_device *pdev)
 			goto restore;
 	}
 
+	if (of_property_read_bool(pdev->dev.of_node, "nvidia,clock-always-on")) {
+		err = clk_prepare_enable(fuse->clk);
+		if (err < 0) {
+			dev_err(fuse->dev, "failed to enable FUSE clock: %d\n", err);
+			goto restore;
+		}
+	}
+
 	memset(&nvmem, 0, sizeof(nvmem));
 	nvmem.dev = &pdev->dev;
 	nvmem.name = "fuse";
