@@ -4201,6 +4201,25 @@ int xhci_queue_stop_endpoint(struct xhci_hcd *xhci, struct xhci_command *cmd,
 	u32 trb_ep_index = EP_ID_FOR_TRB(ep_index);
 	u32 type = TRB_TYPE(TRB_STOP_RING);
 	u32 trb_suspend = SUSPEND_PORT_FOR_TRB(suspend);
+	bool disable_u0_ts1_detect = false;
+	struct xhci_ring *ep_ring;
+
+	if (xhci->shared_hcd->driver->is_u0_ts1_detect_disabled)
+		disable_u0_ts1_detect =
+			xhci->shared_hcd->driver->is_u0_ts1_detect_disabled(
+					xhci->shared_hcd);
+
+	if (disable_u0_ts1_detect) {
+		ep_ring = xhci_triad_to_transfer_ring(xhci, slot_id,
+			ep_index, 0);
+
+		if (ep_ring && ep_ring->soft_try) {
+			xhci_dbg(xhci, "stop soft retry\n");
+			ep_ring->soft_try = false;
+			xhci_endpoint_soft_retry(xhci,
+				slot_id, ep_index + 1, false);
+		}
+	}
 
 	return queue_command(xhci, cmd, 0, 0, 0,
 			trb_slot_id | trb_ep_index | type | trb_suspend, false);
