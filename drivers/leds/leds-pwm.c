@@ -22,6 +22,7 @@ struct led_pwm {
 	const char	*name;
 	u8		active_low;
 	unsigned int	max_brightness;
+	unsigned int	default_brightness;
 };
 
 struct led_pwm_data {
@@ -65,7 +66,8 @@ static int led_pwm_add(struct device *dev, struct led_pwm_priv *priv,
 
 	led_data->active_low = led->active_low;
 	led_data->cdev.name = led->name;
-	led_data->cdev.brightness = LED_OFF;
+	led_data->cdev.brightness = led->default_brightness ?
+				led->default_brightness : LED_OFF;
 	led_data->cdev.max_brightness = led->max_brightness;
 	led_data->cdev.flags = LED_CORE_SUSPENDRESUME;
 
@@ -119,6 +121,8 @@ static int led_pwm_create_fwnode(struct device *dev, struct led_pwm_priv *priv)
 							   "active-low");
 		fwnode_property_read_u32(fwnode, "max-brightness",
 					 &led.max_brightness);
+		fwnode_property_read_u32(fwnode, "default-brightness",
+				     &led.default_brightness);
 
 		ret = led_pwm_add(dev, priv, &led, fwnode);
 		if (ret) {
