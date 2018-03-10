@@ -69,6 +69,10 @@
  * at least read-only at lesser-privileged levels).
  */
 #define DMA_ATTR_PRIVILEGED		(1UL << 9)
+/*
+ * DMA_ATTR_SKIP_IOVA_GAP: This tells the DMA-mapping subsystem to skip gap pages
+ */
+#define DMA_ATTR_SKIP_IOVA_GAP		(1UL << 10)
 
 /*
  * DMA_ATTR_READ_ONLY: for DMA memory allocations, attempt to map
@@ -80,6 +84,12 @@
 
 /* DMA_ATTR_WRITE_ONLY: This tells the DMA-mapping subsystem to map as write-only */
 #define DMA_ATTR_WRITE_ONLY	(1UL << 13)
+
+/*
+ * DMA_ATTR_ALLOC_EXACT_SIZE: This tells the DMA-mapping subsystem to allocate
+ * the exact number of pages
+ */
+#define DMA_ATTR_ALLOC_EXACT_SIZE	(1UL << 14)
 
 /*
  * A dma_addr_t can hold any valid DMA or bus address for the platform.
@@ -862,7 +872,8 @@ static inline int dma_get_cache_alignment(void)
 }
 
 /* flags for the coherent memory api */
-#define DMA_MEMORY_NOMAP		0x01
+#define DMA_MEMORY_EXCLUSIVE		0x01
+#define DMA_MEMORY_NOMAP		0x02
 
 #ifdef CONFIG_DMA_DECLARE_COHERENT
 int dma_declare_coherent_memory(struct device *dev, phys_addr_t phys_addr,
