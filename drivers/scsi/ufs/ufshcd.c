@@ -7784,6 +7784,7 @@ static int ufshcd_probe_hba(struct ufs_hba *hba, bool async)
 	int ret;
 	unsigned long flags;
 	ktime_t start = ktime_get();
+	u32 ref_clk;
 
 	ret = ufshcd_link_startup(hba);
 	if (ret)
@@ -7822,6 +7823,15 @@ static int ufshcd_probe_hba(struct ufs_hba *hba, bool async)
 	ufshcd_force_reset_auto_bkops(hba);
 	hba->wlun_dev_clr_ua = true;
 	ufshcd_get_ref_clk_value(hba, &hba->init_prefetch_data.ref_clk_freq);
+	dev_info(hba->dev, "default ref_clk_freq = %u\n",
+		 hba->init_prefetch_data.ref_clk_freq);
+	if (hba->init_prefetch_data.ref_clk_freq != 0) {
+		ref_clk = 0;
+		ufshcd_set_refclk_value(hba, &ref_clk);
+		ufshcd_get_ref_clk_value(hba, &hba->init_prefetch_data.ref_clk_freq);
+		dev_info(hba->dev, "Configured ref_clk_freq = %u\n",
+			 hba->init_prefetch_data.ref_clk_freq);
+	}
 
 	/* Gear up to HS gear if supported */
 	if (hba->max_pwr_info.is_valid) {
