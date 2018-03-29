@@ -281,6 +281,8 @@ struct rc_map *rc_map_get(const char *name);
 #define RC_MAP_NORWOOD                   "rc-norwood"
 #define RC_MAP_NPGTECH                   "rc-npgtech"
 #define RC_MAP_ODROID                    "rc-odroid"
+#define RC_MAP_NVIDIA                    "rc-nvidia"
+#define RC_MAP_NVIDIA_NEC                "rc-nvidia-nec"
 #define RC_MAP_PCTV_SEDNA                "rc-pctv-sedna"
 #define RC_MAP_PINNACLE_COLOR            "rc-pinnacle-color"
 #define RC_MAP_PINNACLE_GREY             "rc-pinnacle-grey"
