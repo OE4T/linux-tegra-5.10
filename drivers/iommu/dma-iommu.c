@@ -388,14 +388,24 @@ static int dma_info_to_prot(enum dma_data_direction dir, bool coherent,
 
 	switch (dir) {
 	case DMA_BIDIRECTIONAL:
-		return prot | IOMMU_READ | IOMMU_WRITE;
+		prot |= IOMMU_READ | IOMMU_WRITE;
+		break;
 	case DMA_TO_DEVICE:
-		return prot | IOMMU_READ;
+		prot |= IOMMU_READ;
+		break;
 	case DMA_FROM_DEVICE:
-		return prot | IOMMU_WRITE;
+		prot |= IOMMU_WRITE;
+		break;
 	default:
 		return 0;
 	}
+
+	if (dma_get_attr(DMA_ATTR_READ_ONLY, (unsigned long)attrs))
+		prot &= ~IOMMU_WRITE;
+	else if (dma_get_attr(DMA_ATTR_WRITE_ONLY, (unsigned long)attrs))
+		prot &= ~IOMMU_READ;
+
+	return prot;
 }
 
 dma_addr_t __iommu_dma_alloc_iova(struct iommu_domain *domain,

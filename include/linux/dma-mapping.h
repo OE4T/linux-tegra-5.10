@@ -13,6 +13,7 @@
 #include <linux/scatterlist.h>
 #include <linux/bug.h>
 #include <linux/mem_encrypt.h>
+#include <linux/dma-attrs.h>
 
 /**
  * List of possible attributes associated with a DMA mapping. The semantics
@@ -77,11 +78,8 @@
  */
 #define DMA_ATTR_READ_ONLY	(1UL << 10)
 
-/*
- * DMA_ATTR_ALLOC_EXACT_SIZE: This tells the DMA-mapping subsystem to allocate
- * the exact number of pages
- */
-#define DMA_ATTR_ALLOC_EXACT_SIZE	(1UL << 14)
+/* DMA_ATTR_WRITE_ONLY: This tells the DMA-mapping subsystem to map as write-only */
+#define DMA_ATTR_WRITE_ONLY	(1UL << 13)
 
 /*
  * A dma_addr_t can hold any valid DMA or bus address for the platform.
