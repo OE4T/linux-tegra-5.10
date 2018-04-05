@@ -8941,6 +8941,10 @@ int ufshcd_init(struct ufs_hba *hba, void __iomem *mmio_base, unsigned int irq)
 		goto free_tmf_queue;
 	}
 
+	/* If UFS device/card not present then skip ufs scan */
+	if (!hba->card_present)
+		return 0;
+
 	/*
 	 * Set the default power management level for runtime and system PM.
 	 * Default power saving mode is to keep UFS link in Hibern8 state

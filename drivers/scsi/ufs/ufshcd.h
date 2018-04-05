@@ -748,6 +748,7 @@ struct ufs_hba {
 	bool wb_buf_flush_enabled;
 	bool wb_enabled;
 	struct delayed_work rpm_dev_flush_recheck_work;
+	bool card_present;
 };
 
 /* Returns true if clocks can be gated. Otherwise false */
