@@ -7550,6 +7550,86 @@ out:
 	return ret;
 }
 
+int ufshcd_rescan(struct ufs_hba *hba)
+{
+	int ret = 0;
+
+	if (hba->card_present) {
+		dev_info(hba->dev, "UFS card inserted\n");
+		pm_runtime_get_sync(hba->dev);
+
+		/* Make sure clocks are enabled before accessing controller */
+		ret = ufshcd_setup_clocks(hba, true);
+		if (ret) {
+			dev_err(hba->dev, "%s: failed to set clks, ret: %d\n",
+				__func__, ret);
+			goto out;
+		}
+
+		/* enable host irq as host controller would be active soon */
+		ret = ufshcd_enable_irq(hba);
+		if (ret) {
+			dev_err(hba->dev, "%s: irq enable failed, ret: %d\n",
+				__func__, ret);
+			goto disable_clks;
+		}
+
+		/* Enable UFS and MPhy clocks */
+		if (hba->vops && hba->vops->set_ufs_mphy_clocks) {
+			ret = hba->vops->set_ufs_mphy_clocks(hba, true);
+			if (ret)
+				goto disable_irqs_clks;
+		}
+
+		ret = ufshcd_hba_enable(hba);
+		if (ret) {
+			dev_err(hba->dev, "%s: controller init failed,ret:%d\n",
+				__func__, ret);
+			goto disable_irqs_clks;
+		}
+
+		ufshcd_set_ufs_dev_active(hba);
+
+		ret = ufshcd_probe_hba(hba);
+		if (!ret && (hba->ufshcd_state != UFSHCD_STATE_OPERATIONAL)) {
+			ret = -EIO;
+			dev_err(hba->dev, "%s: Host init failed %d\n",
+				__func__, ret);
+			goto disable_irqs_clks;
+		}
+		ufshcd_enable_intr(hba, UFSHCD_ENABLE_INTRS);
+	} else {
+		/* disable interrupts */
+		ufshcd_disable_intr(hba, hba->intr_mask);
+
+		ufshcd_hba_stop(hba, true);
+
+		/* Disable UFS and MPhy clocks */
+		if (hba->vops && hba->vops->set_ufs_mphy_clocks)
+			ret = hba->vops->set_ufs_mphy_clocks(hba, false);
+
+		ufshcd_disable_irq(hba);
+
+		ufshcd_setup_clocks(hba, false);
+
+		pm_runtime_put_sync(hba->dev);
+
+		dev_info(hba->dev, "UFS card removed\n");
+	}
+
+	return ret;
+
+disable_irqs_clks:
+	hba->vops->set_ufs_mphy_clocks(hba, false);
+	ufshcd_disable_irq(hba);
+disable_clks:
+	ufshcd_setup_clocks(hba, false);
+out:
+	pm_runtime_put_sync(hba->dev);
+	return ret;
+}
+EXPORT_SYMBOL(ufshcd_rescan);
+
 /**
  * ufshcd_async_scan - asynchronous execution for probing hba
  * @data: data pointer to pass to this function

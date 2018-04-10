@@ -350,6 +350,7 @@ struct ufs_hba_variant_ops {
 	void	(*config_scaling_param)(struct ufs_hba *hba,
 					struct devfreq_dev_profile *profile,
 					void *data);
+	int	(*set_ufs_mphy_clocks)(struct ufs_hba *, bool);
 };
 
 /* clock gating state  */
