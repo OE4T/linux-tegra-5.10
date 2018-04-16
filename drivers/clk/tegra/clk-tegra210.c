@@ -320,6 +320,7 @@ static DEFINE_SPINLOCK(sor0_lock);
 static DEFINE_SPINLOCK(sor1_lock);
 static DEFINE_SPINLOCK(emc_lock);
 static DEFINE_MUTEX(lvl2_ovr_lock);
+static DEFINE_SPINLOCK(la_lock);
 
 /* possible OSC frequencies in Hz */
 static unsigned long tegra210_input_freq[] = {
@@ -3205,6 +3206,16 @@ static const char * const sor0_out_parents[] = {
 	"sor_safe", "sor0_pad_clkout",
 };
 
+static const char *mux_la[] = {
+        "pll_p", "pll_c2", "pll_c", "pll_c3", "pll_re_out1", "pll_a1", "clk_m", "pll_c4_out0"
+};
+static u32 mux_la_idx[] = {
+        [0] = 0, [1] = 1, [2] = 2, [3] = 3, [4] = 4, [5] = 5, [6] = 6, [7] = 7,
+};
+static struct tegra_clk_periph tegra210_la =
+        TEGRA_CLK_PERIPH(30, 3, 0, 0, 8, 1, 1, 76, TEGRA_PERIPH_ON_APB,
+                         mux_la_idx, &la_lock);
+
 static const char * const sor1_parents[] = {
 	"pll_p", "pll_d_out0", "pll_d2_out0", "clk_m",
 };
@@ -3267,13 +3278,6 @@ static struct tegra_periph_init_data tegra210_periph[] = {
 			      tegra_clk_sor1_out, NULL, 0, &sor1_lock),
 };
 
-static const char * const la_parents[] = {
-	"pll_p", "pll_c2", "pll_c", "pll_c3", "pll_re_out1", "pll_a1", "clk_m", "pll_c4_out0"
-};
-
-static struct tegra_clk_periph tegra210_la =
-	TEGRA_CLK_PERIPH(29, 7, 9, 0, 8, 1, TEGRA_DIVIDER_ROUND_UP, 76, 0, NULL, NULL);
-
 static __init void tegra210_periph_clk_init(struct device_node *np,
 					    void __iomem *clk_base,
 					    void __iomem *pmc_base,
@@ -3319,9 +3323,8 @@ static __init void tegra210_periph_clk_init(struct device_node *np,
 	clks[TEGRA210_CLK_CSI_TPG] = clk;
 
 	/* la */
-	clk = tegra_clk_register_periph("la", la_parents,
-			ARRAY_SIZE(la_parents), &tegra210_la, clk_base,
-			CLK_SOURCE_LA, 0);
+	clk = tegra_clk_register_periph("la", mux_la, ARRAY_SIZE(mux_la),
+				&tegra210_la, clk_base,	CLK_SOURCE_LA, 0);
 	clks[TEGRA210_CLK_LA] = clk;
 
 	/* cml0 */
