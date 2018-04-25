@@ -690,6 +690,47 @@ static int azx_pcm_mmap(struct snd_pcm_substream *substream,
 	return snd_pcm_lib_default_mmap(substream, area);
 }
 
+/* Instead of silence buffer, use a non-zero buffer of very low amplitude and
+ * frequency. This is done because some receivers enter low power mode with
+ * silence data which causes initial part of next valid audio to get cut off */
+static int azx_pcm_silence(struct snd_pcm_substream *substream,
+		int channel, unsigned long pos, unsigned long bytes)
+{
+	static unsigned int silence_frame_cnt = 0;
+	const int inject_freq_ms = 200;
+	int16_t *buf16 = (int16_t *)((char *)substream->runtime->dma_area + pos);
+	int32_t *buf32 = (int32_t *)((char *)substream->runtime->dma_area + pos);
+	int j;
+
+	memset(buf16, 0, bytes);
+	silence_frame_cnt +=  bytes_to_frames(substream->runtime, bytes);
+
+	if (silence_frame_cnt >= ((substream->runtime->rate / 1000) * inject_freq_ms)) {
+		if (substream->runtime->format == SNDRV_PCM_FORMAT_S32_LE) {
+			for (j = 0; j < substream->runtime->channels; j++)
+				*buf32++ = 1;
+			for (j = 0; j < substream->runtime->channels; j++)
+				*buf32++ = 0;
+			for (j = 0; j < substream->runtime->channels; j++)
+				*buf32++ = -1;
+			for (j = 0; j < substream->runtime->channels; j++)
+				*buf32++ = 0;
+		} else {
+			for (j = 0; j < substream->runtime->channels; j++)
+				*buf16++ = 1;
+			for (j = 0; j < substream->runtime->channels; j++)
+				*buf16++ = 0;
+			for (j = 0; j < substream->runtime->channels; j++)
+				*buf16++ = -1;
+			for (j = 0; j < substream->runtime->channels; j++)
+				*buf16++ = 0;
+		}
+		silence_frame_cnt = 0;
+	}
+
+	return 0;
+}
+
 static const struct snd_pcm_ops azx_pcm_ops = {
 	.open = azx_pcm_open,
 	.close = azx_pcm_close,
@@ -702,6 +743,7 @@ static const struct snd_pcm_ops azx_pcm_ops = {
 	.get_time_info =  azx_get_time_info,
 	.mmap = azx_pcm_mmap,
 	.page = snd_pcm_sgbuf_ops_page,
+	.fill_silence = azx_pcm_silence,
 };
 
 static void azx_pcm_free(struct snd_pcm *pcm)
