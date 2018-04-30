@@ -170,6 +170,26 @@ static const struct __extcon_info {
 		.id = EXTCON_DISP_HMD,
 		.name = "HMD",
 	},
+	[EXTCON_DISP_AUDIO_AUX0] = {
+		.type = EXTCON_TYPE_DISP,
+		.id = EXTCON_DISP_AUDIO_AUX0,
+		.name = "AUDIO_AUX0",
+	},
+	[EXTCON_DISP_AUDIO_AUX1] = {
+		.type = EXTCON_TYPE_DISP,
+		.id = EXTCON_DISP_AUDIO_AUX1,
+		.name = "AUDIO_AUX1",
+	},
+	[EXTCON_DISP_AUDIO_AUX2] = {
+		.type = EXTCON_TYPE_DISP,
+		.id = EXTCON_DISP_AUDIO_AUX2,
+		.name = "AUDIO_AUX2",
+	},
+	[EXTCON_DISP_AUDIO_AUX3] = {
+		.type = EXTCON_TYPE_DISP,
+		.id = EXTCON_DISP_AUDIO_AUX3,
+		.name = "AUDIO_AUX3",
+	},
 
 	/* Miscellaneous external connector */
 	[EXTCON_DOCK] = {
