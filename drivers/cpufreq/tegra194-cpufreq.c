@@ -76,6 +76,7 @@ struct tegra_bwmgr_client {
 
 static struct cpu_emc_mapping *cpu_emc_map_ptr;
 static bool tegra_hypervisor_mode;
+static int cpufreq_single_policy;
 
 static void get_cpu_cluster(void *cluster)
 {
@@ -225,9 +226,13 @@ static int tegra194_cpufreq_init(struct cpufreq_policy *policy)
 	/* boot freq */
 	policy->cur = tegra194_get_speed_common(policy->cpu, US_DELAY_MIN);
 
-	/* set same policy for all cpus in a cluster */
-	for (cpu = (cl * 2); cpu < ((cl + 1) * 2); cpu++)
-		cpumask_set_cpu(cpu, policy->cpus);
+	if (cpufreq_single_policy)
+		cpumask_copy(policy->cpus, cpu_possible_mask);
+	else {
+		/* set same policy for all cpus in a cluster */
+		for (cpu = (cl * 2); cpu < ((cl + 1) * 2); cpu++)
+			cpumask_set_cpu(cpu, policy->cpus);
+	}
 
 	policy->freq_table = data->tables[cl];
 	policy->cpuinfo.transition_latency = TEGRA_CPUFREQ_TRANSITION_LATENCY;
@@ -389,6 +394,17 @@ init_freq_table(struct platform_device *pdev, struct tegra_bpmp *bpmp,
 	return freq_table;
 }
 
+static bool tegra_cpufreq_single_policy(struct device_node *dn)
+{
+	struct property *prop;
+
+	prop = of_find_property(dn, "cpufreq_single_policy", NULL);
+	if (prop)
+		return 1;
+	else
+		return 0;
+}
+
 static int tegra194_cpufreq_probe(struct platform_device *pdev)
 {
 	struct tegra194_cpufreq_data *data;
@@ -400,6 +416,8 @@ static int tegra194_cpufreq_probe(struct platform_device *pdev)
 	cpu_emc_map_ptr = tegra_cpufreq_cpu_emc_map_dt_init(dn);
 	if (!cpu_emc_map_ptr)
 		dev_info(&pdev->dev, "cpu_emc_map not present\n");
+
+	cpufreq_single_policy = tegra_cpufreq_single_policy(dn);
 
 	data = devm_kzalloc(&pdev->dev, sizeof(*data), GFP_KERNEL);
 	if (!data) {
