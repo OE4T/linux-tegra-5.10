@@ -21,3 +21,4 @@ subdir-ccflags-y += -Werror
 subdir-ccflags-y += -I$(srctree)/drivers/platform/tegra/include
 
 obj-y                                   += tegra-safety-build.o
+obj-y                                   += tegra-hv-mode.o

@@ -103,6 +103,9 @@ extern u32 tegra_get_sku_id(void);
 extern enum tegra_revision tegra_chip_get_revision(void);
 extern bool is_t210b01_sku(void);
 
+/* check if in hypervisor mode */
+bool is_tegra_hypervisor_mode(void);
+
 /* check if safety build */
 bool is_tegra_safety_build(void);
 
