@@ -47,6 +47,9 @@
 #include <linux/arm-smmu-debug.h>
 #endif
 
+#define CREATE_TRACE_POINTS
+#include <trace/events/arm_smmu.h>
+
 /*
  * Apparently, some Qualcomm arm64 platforms which appear to expose their SMMU
  * global register space are still, in fact, using a hypervisor to mediate it
@@ -307,6 +310,12 @@ static void arm_smmu_tlb_sync_context(struct arm_smmu_domain *smmu_domain)
 static void arm_smmu_tlb_inv_context_s1(void *cookie)
 {
 	struct arm_smmu_domain *smmu_domain = cookie;
+	u64 time_before = 0;
+
+#ifdef CONFIG_TRACEPOINTS
+	if (static_key_false(&__tracepoint_arm_smmu_tlb_inv_context.key))
+		time_before = local_clock();
+#endif
 	/*
 	 * The TLBI write may be relaxed, so ensure that PTEs cleared by the
 	 * current CPU are visible beforehand.
@@ -315,17 +324,31 @@ static void arm_smmu_tlb_inv_context_s1(void *cookie)
 	arm_smmu_cb_write(smmu_domain->smmu, smmu_domain->cfg.cbndx,
 			  ARM_SMMU_CB_S1_TLBIASID, smmu_domain->cfg.asid);
 	arm_smmu_tlb_sync_context(smmu_domain);
+
+	if (time_before)
+		trace_arm_smmu_tlb_inv_context(time_before,
+						smmu_domain->cfg.cbndx);
 }
 
 static void arm_smmu_tlb_inv_context_s2(void *cookie)
 {
 	struct arm_smmu_domain *smmu_domain = cookie;
 	struct arm_smmu_device *smmu = smmu_domain->smmu;
+	u64 time_before = 0;
+
+#ifdef CONFIG_TRACEPOINTS
+	if (static_key_false(&__tracepoint_arm_smmu_tlb_inv_context.key))
+		time_before = local_clock();
+#endif
 
 	/* See above */
 	wmb();
 	arm_smmu_gr0_write(smmu, ARM_SMMU_GR0_TLBIVMID, smmu_domain->cfg.vmid);
 	arm_smmu_tlb_sync_global(smmu);
+
+	if (time_before)
+		trace_arm_smmu_tlb_inv_context(time_before,
+						smmu_domain->cfg.cbndx);
 }
 
 static void arm_smmu_tlb_inv_range_s1(unsigned long iova, size_t size,
@@ -335,6 +358,12 @@ static void arm_smmu_tlb_inv_range_s1(unsigned long iova, size_t size,
 	struct arm_smmu_device *smmu = smmu_domain->smmu;
 	struct arm_smmu_cfg *cfg = &smmu_domain->cfg;
 	int idx = cfg->cbndx;
+	u64 time_before = 0;
+
+#ifdef CONFIG_TRACEPOINTS
+	if (static_key_false(&__tracepoint_arm_smmu_tlb_inv_range.key))
+		time_before = local_clock();
+#endif
 
 	if (smmu->features & ARM_SMMU_FEAT_COHERENT_WALK)
 		wmb();
@@ -354,6 +383,10 @@ static void arm_smmu_tlb_inv_range_s1(unsigned long iova, size_t size,
 			iova += granule >> 12;
 		} while (size -= granule);
 	}
+
+	if (time_before)
+		trace_arm_smmu_tlb_inv_range(time_before, cfg->cbndx,
+			iova, size);
 }
 
 static void arm_smmu_tlb_inv_range_s2(unsigned long iova, size_t size,
@@ -1233,15 +1266,25 @@ static int arm_smmu_map(struct iommu_domain *domain, unsigned long iova,
 {
 	struct io_pgtable_ops *ops = to_smmu_domain(domain)->pgtbl_ops;
 	struct arm_smmu_device *smmu = to_smmu_domain(domain)->smmu;
+	u64 time_before = 0;
 	int ret;
 
 	if (!ops)
 		return -ENODEV;
 
+#ifdef CONFIG_TRACEPOINTS
+	if (static_key_false(&__tracepoint_arm_smmu_handle_mapping.key))
+		time_before = local_clock();
+#endif
+
 	arm_smmu_rpm_get(smmu);
 	ret = ops->map(ops, iova, paddr, size, prot);
 	arm_smmu_rpm_put(smmu);
 
+	if (time_before)
+		trace_arm_smmu_handle_mapping(time_before,
+				to_smmu_domain(domain)->cfg.cbndx, iova, paddr,
+				size, prot);
 	return ret;
 }
 
@@ -1250,15 +1293,25 @@ static size_t arm_smmu_unmap(struct iommu_domain *domain, unsigned long iova,
 {
 	struct io_pgtable_ops *ops = to_smmu_domain(domain)->pgtbl_ops;
 	struct arm_smmu_device *smmu = to_smmu_domain(domain)->smmu;
+	u64 time_before = 0;
 	size_t ret;
 
 	if (!ops)
 		return 0;
 
+#ifdef CONFIG_TRACEPOINTS
+	if (static_key_false(&__tracepoint_arm_smmu_handle_mapping.key))
+		time_before = local_clock();
+#endif
+
 	arm_smmu_rpm_get(smmu);
 	ret = ops->unmap(ops, iova, size, gather);
 	arm_smmu_rpm_put(smmu);
 
+	if (time_before)
+		trace_arm_smmu_handle_mapping(time_before,
+				to_smmu_domain(domain)->cfg.cbndx, iova, 0,
+				size, 0);
 	return ret;
 }
 
