@@ -109,7 +109,7 @@ static void nvgpu_vm_free_entries(struct vm_gk20a *vm,
 	struct gk20a *g = vm->mm->g;
 	int i;
 
-	nvgpu_pd_cache_free_direct(g, pdb);
+	nvgpu_pd_free(vm, pdb);
 
 	if (pdb->entries == NULL) {
 		return;
@@ -521,7 +521,7 @@ clean_up_allocators:
 	}
 clean_up_page_tables:
 	/* Cleans up nvgpu_gmmu_init_page_table() */
-	nvgpu_pd_cache_free_direct(g, &vm->pdb);
+	nvgpu_pd_free(vm, &vm->pdb);
 clean_up_vgpu_vm:
 #ifdef CONFIG_TEGRA_GR_VIRTUALIZATION
 	if (g->is_virtual)

@@ -194,13 +194,16 @@ int nvgpu_gmmu_init_page_table(struct vm_gk20a *vm)
 	};
 
 	/*
-	 * PDB size here must be one page so that its address is page size
+	 * PDB size here must be at least 4096 bytes so that its address is 4K
 	 * aligned. Although lower PDE tables can be aligned at 256B boundaries
-	 * the main PDB must be page aligned.
+	 * the PDB must be 4K aligned.
+	 *
+	 * Currently PAGE_SIZE is used, even when 64K, to work around an issue
+	 * with the PDB TLB invalidate code not being pd_cache aware yet.
 	 */
 	pdb_size = ALIGN(pd_size(&vm->mmu_levels[0], &attrs), PAGE_SIZE);
 
-	err = nvgpu_pd_cache_alloc_direct(vm->mm->g, &vm->pdb, pdb_size);
+	err = nvgpu_pd_alloc(vm, &vm->pdb, pdb_size);
 	if (WARN_ON(err != 0)) {
 		return err;
 	}
@@ -217,7 +220,7 @@ int nvgpu_gmmu_init_page_table(struct vm_gk20a *vm)
 /*
  * Return the _physical_ address of a page directory.
  */
-static u64 nvgpu_pde_phys_addr(struct gk20a *g, struct nvgpu_gmmu_pd *pd)
+u64 nvgpu_pde_gpu_addr(struct gk20a *g, struct nvgpu_gmmu_pd *pd)
 {
 	u64 page_addr;
 
@@ -434,7 +437,7 @@ static int __set_pd_level(struct vm_gk20a *vm,
 		 * target addr is the real physical address we are aiming for.
 		 */
 		target_addr = (next_pd != NULL) ?
-			nvgpu_pde_phys_addr(g, next_pd) :
+			nvgpu_pde_gpu_addr(g, next_pd) :
 			phys_addr;
 
 		l->update_entry(vm, l,

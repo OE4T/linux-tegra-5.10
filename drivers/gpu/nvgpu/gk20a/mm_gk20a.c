@@ -364,7 +364,7 @@ int gk20a_vm_bind_channel(struct vm_gk20a *vm, struct channel_gk20a *ch)
 void gk20a_mm_init_pdb(struct gk20a *g, struct nvgpu_mem *inst_block,
 		struct vm_gk20a *vm)
 {
-	u64 pdb_addr = nvgpu_mem_get_addr(g, vm->pdb.mem);
+	u64 pdb_addr = nvgpu_pde_gpu_addr(g, &vm->pdb);
 	u32 pdb_addr_lo = u64_lo32(pdb_addr >> ram_in_base_shift_v());
 	u32 pdb_addr_hi = u64_hi32(pdb_addr);
 

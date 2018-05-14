@@ -36,11 +36,14 @@
 /**
  * DOC: PD cache
  *
- * In the name of saving memory with the many sub-page sized PD levels in Pascal
- * and beyond a way of packing PD tables together is necessary. This code here
- * does just that. If a PD table only requires 1024 bytes, then it is possible
- * to have 4 of these PDs in one page. This is even more pronounced for 256 byte
- * PD tables.
+ * To save memory when using sub-page sized PD levels in Pascal and beyond a way
+ * of packing PD tables together is necessary. If a PD table only requires 1024
+ * bytes, then it is possible to have 4 of these PDs in one page. This is even
+ * more pronounced for 256 byte PD tables.
+ *
+ * This also matters for page directories on any chip when using a 64K page
+ * granule. Having 4K PDs packed into a 64K page saves a bunch of memory. Even
+ * more so for the 256B PDs on Pascal+.
  *
  * The pd cache is basially just a slab allocator. Each instance of the nvgpu
  * driver makes one of these structs:
@@ -68,11 +71,81 @@
  * size is page size or larger and choose the correct allocation scheme - either
  * from the PD cache or directly. Similarly nvgpu_pd_free() will free a PD
  * allocated by nvgpu_pd_alloc().
- *
- * Since the top level PD (the PDB) is a page aligned pointer but less than a
- * page size the direct functions must be used for allocating PDBs. Otherwise
- * there would be alignment issues for the PDBs when they get packed.
  */
+
+/*
+ * Minimum size of a cache. The number of different caches in the nvgpu_pd_cache
+ * structure is of course depending on this. The MIN_SHIFT define is the right
+ * number of bits to shift to determine which list to use in the array of lists.
+ */
+#define NVGPU_PD_CACHE_MIN		256U
+#define NVGPU_PD_CACHE_MIN_SHIFT	9U
+#if PAGE_SIZE == 4096
+#define NVGPU_PD_CACHE_COUNT		4U
+#elif PAGE_SIZE == 65536
+#define NVGPU_PD_CACHE_COUNT		8U
+#else
+#error "Unsupported page size."
+#endif
+
+struct nvgpu_pd_mem_entry {
+	struct nvgpu_mem		mem;
+
+	/*
+	 * Size of the page directories (not the mem). alloc_map is a bitmap
+	 * showing which PDs have been allocated. The size of mem will always
+	 * be one page. pd_size will always be a power of 2.
+	 */
+	u32				pd_size;
+	DECLARE_BITMAP(alloc_map, PAGE_SIZE / NVGPU_PD_CACHE_MIN);
+	u32				allocs;
+
+	struct nvgpu_list_node		list_entry;
+	struct nvgpu_rbtree_node	tree_entry;
+};
+
+static inline struct nvgpu_pd_mem_entry *
+nvgpu_pd_mem_entry_from_list_entry(struct nvgpu_list_node *node)
+{
+	return (struct nvgpu_pd_mem_entry *)
+		((uintptr_t)node -
+		 offsetof(struct nvgpu_pd_mem_entry, list_entry));
+};
+
+static inline struct nvgpu_pd_mem_entry *
+nvgpu_pd_mem_entry_from_tree_entry(struct nvgpu_rbtree_node *node)
+{
+	return (struct nvgpu_pd_mem_entry *)
+		((uintptr_t)node -
+		 offsetof(struct nvgpu_pd_mem_entry, tree_entry));
+};
+
+/*
+ * A cache for allocating PD memory from. This enables smaller PDs to be packed
+ * into single pages.
+ *
+ * This is fairly complex so see the documentation in pd_cache.c for a full
+ * description of how this is organized.
+ */
+struct nvgpu_pd_cache {
+	/*
+	 * Array of lists of full nvgpu_pd_mem_entries and partially full (or
+	 * empty) nvgpu_pd_mem_entries.
+	 */
+	struct nvgpu_list_node		 full[NVGPU_PD_CACHE_COUNT];
+	struct nvgpu_list_node		 partial[NVGPU_PD_CACHE_COUNT];
+
+	/*
+	 * Tree of all allocated struct nvgpu_mem's for fast look up.
+	 */
+	struct nvgpu_rbtree_node	*mem_tree;
+
+	/*
+	 * All access to the cache much be locked. This protects the lists and
+	 * the rb tree.
+	 */
+	struct nvgpu_mutex		 lock;
+};
 
 static u32 nvgpu_pd_cache_nr(u32 bytes)
 {
@@ -80,11 +153,9 @@ static u32 nvgpu_pd_cache_nr(u32 bytes)
 			((unsigned long)NVGPU_PD_CACHE_MIN_SHIFT - 1UL));
 }
 
-static u32 nvgpu_pd_cache_get_mask(struct nvgpu_pd_mem_entry *pentry)
+static u32 nvgpu_pd_cache_get_nr_entries(struct nvgpu_pd_mem_entry *pentry)
 {
-	u32 mask_offset = 1 << (PAGE_SIZE / pentry->pd_size);
-
-	return mask_offset - 1U;
+	return PAGE_SIZE / pentry->pd_size;
 }
 
 int nvgpu_pd_cache_init(struct gk20a *g)
@@ -123,6 +194,7 @@ int nvgpu_pd_cache_init(struct gk20a *g)
 	}
 
 	g->mm.pd_cache = cache;
+
 	pd_dbg(g, "PD cache initialized!");
 
 	return 0;
@@ -151,8 +223,8 @@ void nvgpu_pd_cache_fini(struct gk20a *g)
  * Note: this does not need the cache lock since it does not modify any of the
  * PD cache data structures.
  */
-int nvgpu_pd_cache_alloc_direct(struct gk20a *g,
-				struct nvgpu_gmmu_pd *pd, u32 bytes)
+static int nvgpu_pd_cache_alloc_direct(struct gk20a *g,
+				       struct nvgpu_gmmu_pd *pd, u32 bytes)
 {
 	int err;
 	unsigned long flags = 0;
@@ -225,7 +297,8 @@ static int nvgpu_pd_cache_alloc_new(struct gk20a *g,
 	 * This allocates the very first PD table in the set of tables in this
 	 * nvgpu_pd_mem_entry.
 	 */
-	pentry->alloc_map = 1;
+	set_bit(0, pentry->alloc_map);
+	pentry->allocs = 1;
 
 	/*
 	 * Now update the nvgpu_gmmu_pd to reflect this allocation.
@@ -247,22 +320,24 @@ static int nvgpu_pd_cache_alloc_from_partial(struct gk20a *g,
 {
 	unsigned long bit_offs;
 	u32 mem_offs;
-	u32 pentry_mask = nvgpu_pd_cache_get_mask(pentry);
+	u32 nr_bits = nvgpu_pd_cache_get_nr_entries(pentry);
 
 	/*
 	 * Find and allocate an open PD.
 	 */
-	bit_offs = ffz(pentry->alloc_map);
+	bit_offs = find_first_zero_bit(pentry->alloc_map, nr_bits);
 	mem_offs = bit_offs * pentry->pd_size;
 
+	pd_dbg(g, "PD-Alloc [C]   Partial: offs=%lu nr_bits=%d src=0x%p",
+	       bit_offs, nr_bits, pentry);
+
 	/* Bit map full. Somethings wrong. */
-	if (WARN_ON(bit_offs >= ffz(pentry_mask))) {
+	if (WARN_ON(bit_offs >= nr_bits)) {
 		return -ENOMEM;
 	}
 
-	pentry->alloc_map |= BIT64(bit_offs);
-
-	pd_dbg(g, "PD-Alloc [C]   Partial: offs=%lu", bit_offs);
+	set_bit((int)bit_offs, pentry->alloc_map);
+	pentry->allocs += 1U;
 
 	/*
 	 * First update the pd.
@@ -274,7 +349,7 @@ static int nvgpu_pd_cache_alloc_from_partial(struct gk20a *g,
 	/*
 	 * Now make sure the pentry is in the correct list (full vs partial).
 	 */
-	if ((pentry->alloc_map & pentry_mask) == pentry_mask) {
+	if (pentry->allocs >= nr_bits) {
 		pd_dbg(g, "Adding pentry to full list!");
 		nvgpu_list_del(&pentry->list_entry);
 		nvgpu_list_add(&pentry->list_entry,
@@ -369,7 +444,8 @@ int nvgpu_pd_alloc(struct vm_gk20a *vm, struct nvgpu_gmmu_pd *pd, u32 bytes)
 	return err;
 }
 
-void nvgpu_pd_cache_free_direct(struct gk20a *g, struct nvgpu_gmmu_pd *pd)
+static void nvgpu_pd_cache_free_direct(struct gk20a *g,
+				       struct nvgpu_gmmu_pd *pd)
 {
 	pd_dbg(g, "PD-Free  [D] 0x%p", pd->mem);
 
@@ -397,13 +473,13 @@ static void nvgpu_pd_cache_do_free(struct gk20a *g,
 				   struct nvgpu_pd_mem_entry *pentry,
 				   struct nvgpu_gmmu_pd *pd)
 {
-	u32 index = pd->mem_offs / pentry->pd_size;
-	u32 bit = 1 << index;
+	u32 bit = pd->mem_offs / pentry->pd_size;
 
 	/* Mark entry as free. */
-	pentry->alloc_map &= ~bit;
+	clear_bit((int)bit, pentry->alloc_map);
+	pentry->allocs -= 1U;
 
-	if (pentry->alloc_map & nvgpu_pd_cache_get_mask(pentry)) {
+	if (pentry->allocs > 0U) {
 		/*
 		 * Partially full still. If it was already on the partial list
 		 * this just re-adds it.
