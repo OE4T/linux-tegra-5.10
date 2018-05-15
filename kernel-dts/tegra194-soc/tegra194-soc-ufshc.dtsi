@@ -36,7 +36,8 @@
 		interrupts = < 0 44 0x04 >;
 		iommus = <&smmu TEGRA_SID_UFSHC>;
 		dma-coherent;
-		clocks = <&bpmp_clks TEGRA194_CLK_MPHY_CORE_PLL_FIXED>,
+		clocks = <&bpmp_clks TEGRA194_CLK_PLLREFE_VCOOUT>,
+				<&bpmp_clks TEGRA194_CLK_MPHY_CORE_PLL_FIXED>,
 				<&bpmp_clks TEGRA194_CLK_MPHY_L0_TX_SYMB>,
 				<&bpmp_clks TEGRA194_CLK_MPHY_TX_1MHZ_REF> ,
 				<&bpmp_clks TEGRA194_CLK_MPHY_L0_RX_ANA>,
@@ -50,12 +51,13 @@
 				<&bpmp_clks TEGRA194_CLK_CLK_M>,
 				<&bpmp_clks TEGRA194_CLK_MPHY_FORCE_LS_MODE>,
 				<&bpmp_clks TEGRA194_CLK_UPHY_PLL3>;
-		clock-names = "mphy_core_pll_fixed", "mphy_l0_tx_symb",
-				"mphy_tx_1mhz_ref", "mphy_l0_rx_ana",
-				"mphy_l0_rx_symb", "mphy_l0_tx_ls_3xbit",
-				"mphy_l0_rx_ls_bit", "mphy_l1_rx_ana",
-				"ufshc", "ufsdev_ref", "pll_p", "clk_m",
-				"mphy_force_ls_mode", "uphy_pll3";
+		clock-names = "pllrefe_vcoout", "mphy_core_pll_fixed",
+				"mphy_l0_tx_symb", "mphy_tx_1mhz_ref",
+				"mphy_l0_rx_ana", "mphy_l0_rx_symb",
+				"mphy_l0_tx_ls_3xbit", "mphy_l0_rx_ls_bit",
+				"mphy_l1_rx_ana", "ufshc", "ufsdev_ref",
+				"pll_p", "clk_m", "mphy_force_ls_mode",
+				"uphy_pll3";
 		resets = <&bpmp_resets TEGRA194_RESET_MPHY_L0_RX>,
 				<&bpmp_resets TEGRA194_RESET_MPHY_L0_TX>,
 				<&bpmp_resets TEGRA194_RESET_MPHY_L1_RX>,
