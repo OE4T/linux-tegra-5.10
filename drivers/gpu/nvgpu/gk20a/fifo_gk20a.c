@@ -3685,8 +3685,8 @@ int gk20a_fifo_wait_engine_idle(struct gk20a *g)
 {
 	struct nvgpu_timeout timeout;
 	u32 delay = GR_IDLE_CHECK_DEFAULT;
-	int ret = -ETIMEDOUT;
-	u32 i, host_num_engines;
+	int ret = 0;
+	u32 i, host_num_engines, status;
 
 	nvgpu_log_fn(g, " ");
 
@@ -3697,8 +3697,9 @@ int gk20a_fifo_wait_engine_idle(struct gk20a *g)
 			   NVGPU_TIMER_CPU_TIMER);
 
 	for (i = 0; i < host_num_engines; i++) {
+		ret = -ETIMEDOUT;
 		do {
-			u32 status = gk20a_readl(g, fifo_engine_status_r(i));
+			status = gk20a_readl(g, fifo_engine_status_r(i));
 			if (fifo_engine_status_engine_v(status) ==
 				fifo_engine_status_engine_idle_v()) {
 				ret = 0;
@@ -3711,7 +3712,12 @@ int gk20a_fifo_wait_engine_idle(struct gk20a *g)
 		} while (nvgpu_timeout_expired(&timeout) == 0);
 
 		if (ret != 0) {
-			nvgpu_log_info(g, "cannot idle engine %u", i);
+			/* possible causes:
+			 * check register settings programmed in hal set by
+			 * elcg_init_idle_filters and init_therm_setup_hw
+			 */
+			nvgpu_err(g, "cannot idle engine: %u "
+					"engine_status: 0x%08x", i, status);
 			break;
 		}
 	}
