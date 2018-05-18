@@ -28,6 +28,7 @@
 #include <linux/reset.h>
 #include <linux/slab.h>
 #include <linux/uaccess.h>
+#include <linux/tegra-firmwares.h>
 #include <linux/usb/otg.h>
 #include <linux/usb/phy.h>
 #include <linux/usb/role.h>
@@ -425,6 +426,7 @@ struct tegra_xusb {
 	bool emc_boost_enabled;
 	bool emc_boosted;
 	bool restore_emc_work_scheduled;
+	struct device *fwdev;
 };
 
 static struct hc_driver __read_mostly tegra_xhci_hc_driver;
@@ -538,6 +540,31 @@ static void tegra_xusb_boost_emc_deinit(struct tegra_xusb *tegra)
 
 	cancel_work_sync(&tegra->boost_emcfreq_work);
 	cancel_delayed_work_sync(&tegra->restore_emcfreq_work);
+}
+
+/* sysfs node for fw check*/
+static ssize_t fw_version_show(struct device *dev, char *buf, size_t size)
+{
+	struct tegra_xusb *tegra = dev_get_drvdata(dev);
+	struct tegra_xusb_fw_header *header = NULL;
+	time64_t timestamp;
+	struct tm time;
+
+	if (!tegra)
+		return scnprintf(buf, size, "device is not available\n");
+
+	header = (struct tegra_xusb_fw_header *)tegra->fw.virt;
+
+	timestamp = le32_to_cpu(header->fwimg_created_time);
+	time64_to_tm(timestamp, 0, &time);
+
+	return scnprintf(buf, size,
+		"Firmware timestamp: %ld-%02d-%02d %02d:%02d:%02d UTC, Version: %2x.%02x %s\n",
+		time.tm_year + 1900, time.tm_mon + 1, time.tm_mday,
+		time.tm_hour, time.tm_min, time.tm_sec,
+		FW_MAJOR_VERSION(header->version_id),
+		FW_MINOR_VERSION(header->version_id),
+		(header->build_log == LOG_MEMORY) ? "debug" : "release");
 }
 
 static inline u32 fpci_readl(struct tegra_xusb *tegra, unsigned int offset)
@@ -2408,6 +2435,11 @@ static int tegra_xusb_probe(struct platform_device *pdev)
 		goto remove_usb3;
 	}
 
+	tegra->fwdev = devm_tegrafw_register(&pdev->dev, NULL,
+			TFW_NORMAL, fw_version_show, NULL);
+	if (IS_ERR(tegra->fwdev))
+		dev_warn(&pdev->dev, "cannot register firmware reader");
+
 	err = devm_request_threaded_irq(&pdev->dev, tegra->mbox_irq,
 					tegra_xusb_mbox_irq,
 					tegra_xusb_mbox_thread,
@@ -2515,6 +2547,9 @@ static int tegra_xusb_remove(struct platform_device *pdev)
 	xhci->shared_hcd = NULL;
 	usb_remove_hcd(tegra->hcd);
 	usb_put_hcd(tegra->hcd);
+
+	if (!IS_ERR(tegra->fwdev))
+		devm_tegrafw_unregister(&pdev->dev, tegra->fwdev);
 
 	dma_free_coherent(&pdev->dev, tegra->fw.size, tegra->fw.virt,
 			  tegra->fw.phys);
