@@ -2524,7 +2524,6 @@ static struct tegra_clk tegra210_clks[tegra_clk_max] __initdata = {
 	[tegra_clk_nvdec] = { .dt_id = TEGRA210_CLK_NVDEC, .present = true },
 	[tegra_clk_nvenc] = { .dt_id = TEGRA210_CLK_NVENC, .present = true },
 	[tegra_clk_nvjpg] = { .dt_id = TEGRA210_CLK_NVJPG, .present = true },
-	[tegra_clk_pll_c4_out0] = { .dt_id = TEGRA210_CLK_PLL_C4_OUT0, .present = true },
 	[tegra_clk_pll_c4_out1] = { .dt_id = TEGRA210_CLK_PLL_C4_OUT1, .present = true },
 	[tegra_clk_pll_c4_out2] = { .dt_id = TEGRA210_CLK_PLL_C4_OUT2, .present = true },
 	[tegra_clk_pll_c4_out3] = { .dt_id = TEGRA210_CLK_PLL_C4_OUT3, .present = true },
@@ -3424,13 +3423,6 @@ static void __init tegra210_pll_init(void __iomem *clk_base,
 	clk_register_clkdev(clk, "pll_c4_vco", NULL);
 	clks[TEGRA210_CLK_PLL_C4] = clk;
 
-	/* PLLC4_OUT0 */
-	clk = clk_register_divider_table(NULL, "pll_c4_out0", "pll_c4_vco", 0,
-					 clk_base + PLLC4_BASE, 19, 4, 0,
-					 pll_vco_post_div_table, NULL);
-	clk_register_clkdev(clk, "pll_c4_out0", NULL);
-	clks[TEGRA210_CLK_PLL_C4_OUT0] = clk;
-
 	/* PLLC4_OUT1 */
 	clk = clk_register_fixed_factor(NULL, "pll_c4_out1", "pll_c4_vco",
 					CLK_SET_RATE_PARENT, 1, 3);
@@ -3595,6 +3587,56 @@ static __init void tegra210_shared_clk_init(char *sclk_high_clk)
 	sbus_cbus->u.system.apb_bus = __clk_get_hw(clk);
 
 	tegra_shared_clk_init(tegra210_clks);
+}
+
+static char *tegra210_determine_pllc4_rate(void)
+{
+	struct device_node *node;
+	u32 val;
+	int out0_ratio, i;
+	unsigned long sdmmc_max_rate = 0;
+	struct clk *clk;
+	char *sclk_high_clk;
+
+	for_each_compatible_node(node, NULL, "nvidia,tegra210-sdhci") {
+		if (!of_device_is_available(node))
+			continue;
+
+		if (!of_property_read_u32(node, "max-clk-limit", &val)
+			&& val > sdmmc_max_rate)
+			sdmmc_max_rate = val;
+	}
+
+	switch (sdmmc_max_rate) {
+		case 266000000:
+			sclk_high_clk = "pll_c4_out1";
+			pll_c4_vco_params.fixed_rate = 798000000;
+			out0_ratio = 4;
+			break;
+		default:
+			sclk_high_clk = "pll_c4_out3";
+			pll_c4_vco_params.fixed_rate = 1000000000;
+			out0_ratio = 1;
+			break;
+	}
+
+	pll_c4_vco_params.fixed_rate /= pll_ref_freq;
+	pll_c4_vco_params.fixed_rate *= pll_ref_freq;
+	pll_c4_vco_params.flags |= TEGRA_PLL_FIXED;
+
+	val = readl(clk_base + PLLC4_BASE);
+	for (i = 0; i < ARRAY_SIZE(pll_vco_post_div_table); i++)
+		if (pll_vco_post_div_table[i].div >= out0_ratio)
+			break;
+	val &= ~GENMASK(23, 19);
+	val |= pll_vco_post_div_table[i].val << 19;
+	writel(val, clk_base + PLLC4_BASE);
+
+	clk = clk_register_fixed_factor(NULL, "pll_c4_out0", "pll_c4_vco", 0,
+					1, pll_vco_post_div_table[i].div);
+	clks[TEGRA210_CLK_PLL_C4_OUT0] = clk;
+
+	return sclk_high_clk;
 }
 
 /* Tegra210 CPU clock and reset control functions */
@@ -3914,6 +3956,7 @@ static void tegra210_mbist_clk_init(void)
 static void __init tegra210_clock_init(struct device_node *np)
 {
 	struct device_node *node;
+	char *sclk_high_clk;
 	u32 value, clk_m_div;
 
 	clk_base = of_iomap(np, 0);
@@ -3966,6 +4009,8 @@ static void __init tegra210_clock_init(struct device_node *np)
 			       ARRAY_SIZE(tegra210_input_freq), clk_m_div,
 			       &osc_freq, &pll_ref_freq) < 0)
 		return;
+
+	sclk_high_clk = tegra210_determine_pllc4_rate();
 
 	tegra_fixed_clk_init(tegra210_clks);
 	tegra210_pll_init(clk_base, pmc_base);
