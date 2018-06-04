@@ -2708,8 +2708,7 @@ static int v4l_enum_freq_bands(const struct v4l2_ioctl_ops *ops,
 		p->capability = m.capability | V4L2_TUNER_CAP_FREQ_BANDS;
 		p->rangelow = m.rangelow;
 		p->rangehigh = m.rangehigh;
-		p->modulation = (type == V4L2_TUNER_RADIO) ?
-			V4L2_BAND_MODULATION_FM : V4L2_BAND_MODULATION_VSB;
+		p->modulation = V4L2_BAND_MODULATION_FM;
 		return 0;
 	}
 	return -ENOTTY;
@@ -2918,11 +2917,10 @@ void v4l_printk_ioctl(const char *prefix, unsigned int cmd)
 	}
 
 	switch (_IOC_DIR(cmd)) {
-	case _IOC_NONE:              dir = "--"; break;
 	case _IOC_READ:              dir = "r-"; break;
 	case _IOC_WRITE:             dir = "-w"; break;
 	case _IOC_READ | _IOC_WRITE: dir = "rw"; break;
-	default:                     dir = "*ERR*"; break;
+	default:                     dir = "--"; break;
 	}
 	pr_cont("%s ioctl '%c', dir=%s, #%d (0x%08x)",
 		type, _IOC_TYPE(cmd), dir, _IOC_NR(cmd), cmd);
@@ -2993,6 +2991,7 @@ static long __video_do_ioctl(struct file *file,
 				goto done;
 		}
 	} else {
+		memset(&default_info, 0, sizeof(struct v4l2_ioctl_info));
 		default_info.ioctl = cmd;
 		default_info.flags = 0;
 		default_info.debug = v4l_print_default;
