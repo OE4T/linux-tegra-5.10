@@ -299,6 +299,7 @@ struct tegra_i2c_dev {
 	u32 low_clock_count;
 	u32 high_clock_count;
 	struct tegra_prod *prod_list;
+	bool is_clkon_always;
 };
 
 static void dvc_writel(struct tegra_i2c_dev *i2c_dev, u32 val,
@@ -1385,6 +1386,9 @@ static void tegra_i2c_parse_dt(struct tegra_i2c_dev *i2c_dev)
 	ret = of_property_read_u32(np, "nvidia,hs-master-code", &prop);
 	if (!ret)
 		i2c_dev->hs_master_code = prop;
+
+	i2c_dev->is_clkon_always = of_property_read_bool(np,
+			"nvidia,clock-always-on");
 }
 
 static const struct i2c_algorithm tegra_i2c_algo = {
@@ -1735,7 +1739,10 @@ static int tegra_i2c_probe(struct platform_device *pdev)
 		goto unprepare_div_clk;
 	}
 
-	if (i2c_dev->is_multimaster_mode) {
+	if (i2c_dev->is_multimaster_mode)
+		i2c_dev->is_clkon_always = true;
+
+	if (i2c_dev->is_clkon_always) {
 		ret = clk_enable(i2c_dev->div_clk);
 		if (ret < 0) {
 			dev_err(i2c_dev->dev, "div_clk enable failed %d\n",
@@ -1786,7 +1793,7 @@ release_dma:
 	tegra_i2c_release_dma(i2c_dev);
 
 disable_div_clk:
-	if (i2c_dev->is_multimaster_mode)
+	if (i2c_dev->is_clkon_always)
 		clk_disable(i2c_dev->div_clk);
 
 disable_rpm:
@@ -1810,7 +1817,7 @@ static int tegra_i2c_remove(struct platform_device *pdev)
 
 	i2c_del_adapter(&i2c_dev->adapter);
 
-	if (i2c_dev->is_multimaster_mode)
+	if (i2c_dev->is_clkon_always)
 		clk_disable(i2c_dev->div_clk);
 
 	pm_runtime_disable(&pdev->dev);
@@ -1829,8 +1836,10 @@ static int __maybe_unused tegra_i2c_suspend(struct device *dev)
 {
 	struct tegra_i2c_dev *i2c_dev = dev_get_drvdata(dev);
 
-	i2c_mark_adapter_suspended(&i2c_dev->adapter);
+	if (i2c_dev->is_clkon_always)
+		clk_disable(i2c_dev->div_clk);
 
+	i2c_mark_adapter_suspended(&i2c_dev->adapter);
 	return 0;
 }
 
@@ -1851,8 +1860,16 @@ static int __maybe_unused tegra_i2c_resume(struct device *dev)
 	if (err)
 		return err;
 
-	i2c_mark_adapter_resumed(&i2c_dev->adapter);
+	if (i2c_dev->is_clkon_always) {
+		err = clk_enable(i2c_dev->div_clk);
+		if (err < 0) {
+			dev_err(i2c_dev->dev, "clock enable failed %d\n",
+				err);
+			return err;
+		}
+	}
 
+	i2c_mark_adapter_resumed(&i2c_dev->adapter);
 	return 0;
 }
 
