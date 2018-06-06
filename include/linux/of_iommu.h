@@ -32,4 +32,6 @@ static inline const struct iommu_ops *of_iommu_configure(struct device *dev,
 
 #endif	/* CONFIG_OF_IOMMU */
 
+void of_get_iommu_resv_regions(struct device *dev, struct list_head *head);
+
 #endif /* __OF_IOMMU_H */

@@ -2,11 +2,12 @@
 /*
  * OF helpers for IOMMU
  *
- * Copyright (c) 2012, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2012-2020, NVIDIA CORPORATION.  All rights reserved.
  */
 
 #include <linux/export.h>
 #include <linux/iommu.h>
+#include <linux/dma-iommu.h>
 #include <linux/limits.h>
 #include <linux/of.h>
 #include <linux/of_iommu.h>
@@ -15,6 +16,52 @@
 #include <linux/fsl/mc.h>
 
 #define NO_IOMMU	1
+
+static const struct of_device_id __iommu_of_table_sentinel
+	__used __section(__iommu_of_table_end);
+
+
+void of_get_iommu_resv_regions(struct device *dev, struct list_head *head)
+{
+	struct device_node *dn = dev->of_node;
+	int total_values, i, ret;
+
+	total_values = of_property_count_elems_of_size(dn, "iommu-resv-regions",
+							sizeof(u64));
+	if (total_values % 2 != 0) {
+		dev_warn(dev,
+			"iommu-resv-regions must be pairs of <start size>\n");
+		return;
+	}
+
+	for (i = 0; i < total_values; i += 2) {
+		u64 size, start;
+		struct iommu_resv_region *resv;
+
+		ret = of_property_read_u64_index(dn, "iommu-resv-regions",
+							i, &start);
+		if (ret)
+			return;
+
+		ret = of_property_read_u64_index(dn, "iommu-resv-regions",
+							i + 1, &size);
+		if (ret)
+			return;
+
+		/* If there is overflow, replace size with max possible size */
+		if (start + size < start) {
+			size = (~0x0) - start;
+		}
+		resv = iommu_alloc_resv_region(start, size, 0,
+						IOMMU_RESV_RESERVED);
+		if (!resv)
+			continue;
+
+		list_add_tail(&resv->list, head);
+	}
+
+	return;
+}
 
 /**
  * of_get_dma_window - Parse *dma-window property and returns 0 if found.
