@@ -229,7 +229,7 @@ static int reset_control_array_deassert(struct reset_control_array *resets)
 {
 	int ret, i;
 
-	for (i = 0; i < resets->num_rstcs; i++) {
+	for (i = resets->num_rstcs - 1; i >= 0; i--) {
 		ret = reset_control_deassert(resets->rstc[i]);
 		if (ret)
 			goto err;
@@ -238,7 +238,7 @@ static int reset_control_array_deassert(struct reset_control_array *resets)
 	return 0;
 
 err:
-	while (i--)
+	while (++i < resets->num_rstcs)
 		reset_control_assert(resets->rstc[i]);
 	return ret;
 }
