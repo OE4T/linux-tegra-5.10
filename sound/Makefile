@@ -2,6 +2,8 @@
 # Makefile for the Linux sound card driver
 #
 
+subdir-ccflags-y += -Werror
+
 obj-$(CONFIG_SOUND) += soundcore.o
 obj-$(CONFIG_DMASOUND) += oss/dmasound/
 obj-$(CONFIG_SND) += core/ i2c/ drivers/ isa/ pci/ ppc/ arm/ sh/ synth/ usb/ \
