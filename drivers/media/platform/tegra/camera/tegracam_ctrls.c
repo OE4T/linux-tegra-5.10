@@ -79,6 +79,17 @@ static struct v4l2_ctrl_config ctrl_cfg_list[] = {
 	},
 	{
 		.ops = &tegracam_ctrl_ops,
+		.id = TEGRA_CAMERA_CID_EXPOSURE_SHORT,
+		.name = "Exposure Short",
+		.type = V4L2_CTRL_TYPE_INTEGER64,
+		.flags = V4L2_CTRL_FLAG_SLIDER,
+		.min = CTRL_U64_MIN,
+		.max = CTRL_U64_MAX,
+		.def = CTRL_U64_MIN,
+		.step = 1,
+	},
+	{
+		.ops = &tegracam_ctrl_ops,
 		.id = TEGRA_CAMERA_CID_FRAME_RATE,
 		.name = "Frame Rate",
 		.type = V4L2_CTRL_TYPE_INTEGER64,
@@ -140,6 +151,16 @@ static struct v4l2_ctrl_config ctrl_cfg_list[] = {
 		.menu_skip_mask = 0,
 		.def = 0,
 		.qmenu_int = switch_ctrl_qmenu,
+	},
+	{
+		.ops = &tegracam_ctrl_ops,
+		.id = TEGRA_CAMERA_CID_OTP_DATA,
+		.name = "OTP Data",
+		.type = V4L2_CTRL_TYPE_STRING,
+		.flags = V4L2_CTRL_FLAG_READ_ONLY,
+		.min = 0,
+		.max = CTRL_MAX_STR_SIZE,
+		.step = 2,
 	},
 };
 
@@ -226,6 +247,9 @@ static int tegracam_set_ctrls(struct tegracam_ctrl_handler *handler,
 		break;
 	case TEGRA_CAMERA_CID_EXPOSURE:
 		err = ops->set_exposure(tc_dev, *ctrl->p_new.p_s64);
+		break;
+	case TEGRA_CAMERA_CID_EXPOSURE_SHORT:
+		err = ops->set_exposure_short(tc_dev, *ctrl->p_new.p_s64);
 		break;
 	case TEGRA_CAMERA_CID_GROUP_HOLD:
 		err = ops->set_group_hold(tc_dev, ctrl->val);
@@ -438,6 +462,7 @@ int tegracam_init_ctrl_ranges_by_mode(
 				ctrlprops->default_framerate);
 			break;
 		case TEGRA_CAMERA_CID_EXPOSURE:
+		case TEGRA_CAMERA_CID_EXPOSURE_SHORT:
 			err = v4l2_ctrl_modify_range(ctrl,
 				ctrlprops->min_exp_time.val,
 				ctrlprops->max_exp_time.val,
@@ -473,13 +498,12 @@ int tegracam_ctrl_handler_init(struct tegracam_ctrl_handler *handler)
 	int i, j;
 	int err = 0;
 
-	v4l2_ctrl_handler_init(&handler->ctrl_handler, numctrls);
+	err = v4l2_ctrl_handler_init(&handler->ctrl_handler, numctrls);
 
 	for (i = 0, j = 0; i < numctrls; i++) {
 		u32 cid = i < ops->numctrls ? cids[i] : tegracam_def_cids[j++];
 		int index = tegracam_get_ctrl_index(cid);
 		int size = 0;
-
 		if (index >= ARRAY_SIZE(ctrl_cfg_list)) {
 			dev_err(dev, "unsupported control in the list\n");
 			return -ENOTTY;
@@ -494,7 +518,6 @@ int tegracam_ctrl_handler_init(struct tegracam_ctrl_handler *handler)
 			}
 			ctrl_cfg->max = size;
 		}
-
 		ctrl = v4l2_ctrl_new_custom(&handler->ctrl_handler,
 			ctrl_cfg, NULL);
 		if (ctrl == NULL) {
@@ -536,7 +559,6 @@ int tegracam_ctrl_handler_init(struct tegracam_ctrl_handler *handler)
 		dev_err(dev, "Error %d updating control ranges\n", err);
 		goto error;
 	}
-
 	return 0;
 error:
 	v4l2_ctrl_handler_free(&handler->ctrl_handler);

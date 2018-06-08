@@ -90,6 +90,7 @@ struct camera_common_pdata {
 	bool has_eeprom;
 	bool v_flip;
 	bool h_mirror;
+	unsigned int fuse_id_addr;
 };
 
 struct camera_common_eeprom_data {
@@ -190,6 +191,7 @@ struct tegracam_ctrl_ops {
 	bool is_blob_supported;
 	int (*set_gain)(struct tegracam_device *tc_dev, s64 val);
 	int (*set_exposure)(struct tegracam_device *tc_dev, s64 val);
+	int (*set_exposure_short)(struct tegracam_device *tc_dev, s64 val);
 	int (*set_frame_rate)(struct tegracam_device *tc_dev, s64 val);
 	int (*set_group_hold)(struct tegracam_device *tc_dev, bool val);
 	int (*fill_string_ctrl)(struct tegracam_device *tc_dev,
