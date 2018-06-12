@@ -337,6 +337,11 @@ struct dfll_rate_req {
 	u8 scale_bits;
 };
 
+struct dfll_fv_table {
+	unsigned long rate;
+	int uv;
+};
+
 struct tegra_dfll {
 	struct device			*dev;
 	struct tegra_dfll_soc_data	*soc;
@@ -390,6 +395,8 @@ struct tegra_dfll {
 	unsigned			lut[MAX_DFLL_VOLTAGES];
 	unsigned long			lut_uv[MAX_DFLL_VOLTAGES];
 	int				lut_size;
+	struct dfll_fv_table		fv_table[MAX_DFLL_VOLTAGES];
+	int				fv_table_size;
 	u8				lut_bottom, lut_min, lut_max, lut_safe;
 	u8				lut_force_min;
 
@@ -452,6 +459,7 @@ static const char * const mode_name[] = {
 };
 
 static void dfll_load_i2c_lut(struct tegra_dfll *td);
+static int find_voltage_for_rate(struct tegra_dfll *td, unsigned long *rate);
 static u8 find_mv_out_cap(struct tegra_dfll *td, int mv);
 static u8 find_mv_out_floor(struct tegra_dfll *td, int mv);
 
@@ -1774,6 +1782,35 @@ static void dfll_init_out_if(struct tegra_dfll *td)
  */
 
 /**
+ * find_voltage_for_rate - determine voltage for given DFLL rate
+ * @td: DFLL instance
+ * @rate: clock rate
+ *
+ * This function is used to simulate the call to
+ * dev_pm_opp_find_freq_ceil() and dev_pm_opp_get_voltage() in sequence
+ * and free to be invoked in atomic context. The rate will be rounded to
+ * the closest ceil freq. Return -ERANGE if the given rate is out of range.
+ * Otherwise returns the voltage corresponding to the rounded freq.
+ *
+ */
+static int find_voltage_for_rate(struct tegra_dfll *td, unsigned long *rate)
+{
+	int i;
+
+	if (!rate)
+		return -EINVAL;
+
+	for (i = 0; i < td->fv_table_size; i++) {
+		if (td->fv_table[i].rate >= *rate) {
+			*rate = td->fv_table[i].rate;
+			return td->fv_table[i].uv;
+		}
+	}
+
+	return -ERANGE;
+}
+
+/**
  * find_lut_index_for_rate - determine I2C LUT index for given DFLL rate
  * @td: DFLL instance
  * @rate: clock rate
@@ -1785,16 +1822,13 @@ static void dfll_init_out_if(struct tegra_dfll *td)
  */
 static int find_lut_index_for_rate(struct tegra_dfll *td, unsigned long rate)
 {
-	struct dev_pm_opp *opp;
 	int i, align_step;
 
-	opp = dev_pm_opp_find_freq_ceil(td->soc->dev, &rate);
-	if (IS_ERR(opp))
-		return PTR_ERR(opp);
+	align_step = find_voltage_for_rate(td, &rate);
+	if (align_step <= 0)
+		return -ENOENT;
 
-	align_step = dev_pm_opp_get_voltage(opp) / td->soc->alignment.step_uv;
-	dev_pm_opp_put(opp);
-
+	align_step /= td->soc->alignment.step_uv;
 	for (i = td->lut_bottom; i < td->lut_size; i++) {
 		if ((td->lut_uv[i] / td->soc->alignment.step_uv) >= align_step)
 			return i;
@@ -2901,17 +2935,38 @@ out:
 
 static int dfll_build_lut(struct tegra_dfll *td)
 {
-	unsigned long rate, v_max;
+	unsigned long rate, rate_max, v_max, v_opp;
 	struct dev_pm_opp *opp;
+	int i;
 
-	rate = ULONG_MAX;
-	opp = dev_pm_opp_find_freq_floor(td->soc->dev, &rate);
+	rate_max = ULONG_MAX;
+	opp = dev_pm_opp_find_freq_floor(td->soc->dev, &rate_max);
 	if (IS_ERR(opp)) {
 		dev_err(td->dev, "couldn't get vmax opp, empty opp table?\n");
 		return -EINVAL;
 	}
 	v_max = dev_pm_opp_get_voltage(opp);
 	dev_pm_opp_put(opp);
+
+	/* Cache OPP table */
+	for (i = 0, rate = 0; i < MAX_DFLL_VOLTAGES; i++, rate++) {
+		opp = dev_pm_opp_find_freq_ceil(td->soc->dev, &rate);
+		if (IS_ERR(opp)) {
+			dev_err(td->dev, "couldn't get opp for rate %lu\n", rate);
+			return -EINVAL;
+		}
+		v_opp = dev_pm_opp_get_voltage(opp);
+		dev_pm_opp_put(opp);
+
+		td->fv_table[i].rate = rate;
+		td->fv_table[i].uv = v_opp;
+
+		if (rate >= rate_max) {
+			i++;
+			break;
+		}
+	}
+	td->fv_table_size = i;
 
 	if (td->pmu_if == TEGRA_DFLL_PMU_PWM)
 		return dfll_build_pwm_lut(td, v_max);
