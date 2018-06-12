@@ -10,6 +10,7 @@
 #include <linux/err.h>
 #include <linux/clk-provider.h>
 #include <linux/clk.h>
+#include <soc/tegra/tegra-dvfs.h>
 
 #include "clk.h"
 
