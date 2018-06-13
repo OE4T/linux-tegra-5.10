@@ -227,6 +227,11 @@ struct fb_bitfield {
 #define FB_VMODE_INTERLACED	0x0001	/* interlaced	*/
 #define FB_VMODE_DOUBLE		0x0002	/* double scan */
 #define FB_VMODE_ODD_FLD_FIRST	0x0004	/* interlaced: top line first */
+
+#define FB_VMODE_SCAN_MASK	(FB_VMODE_NONINTERLACED | \
+				 FB_VMODE_INTERLACED | FB_VMODE_DOUBLE | \
+				 FB_VMODE_ODD_FLD_FIRST)
+
 #define FB_VMODE_Y420		0x0008	/* YCrCb 4:2:0 also supported or
 					 * select YCrCb 4:2:0 if setting mode
 					 */
@@ -238,7 +243,25 @@ struct fb_bitfield {
 
 #define FB_VMODE_SET_YUV_MASK	(FB_VMODE_Y420 | FB_VMODE_Y422 | \
 				 FB_VMODE_Y24 | FB_VMODE_Y30)
-#define FB_VMODE_MASK		0x03ff
+
+#define FB_VMODE_YUV_MASK	(FB_VMODE_Y420_ONLY | FB_VMODE_SET_YUV_MASK)
+
+/* extended colorimetry */
+#define FB_VMODE_EC_ENABLE	0x400
+#define FB_VMODE_EC_SHIFT	11
+#define FB_VMODE_EC_MASK	(0xf << FB_VMODE_EC_SHIFT)
+#define FB_VMODE_EC_XVYCC601	((0x0 << FB_VMODE_EC_SHIFT) & FB_VMODE_EC_MASK)
+#define FB_VMODE_EC_XVYCC709	((0x1 << FB_VMODE_EC_SHIFT) & FB_VMODE_EC_MASK)
+#define FB_VMODE_EC_SYCC601	((0x2 << FB_VMODE_EC_SHIFT) & FB_VMODE_EC_MASK)
+#define FB_VMODE_EC_ADOBE_YCC601	((0x3 << FB_VMODE_EC_SHIFT) & \
+					FB_VMODE_EC_MASK)
+#define FB_VMODE_EC_ADOBE_RGB	((0x4 << FB_VMODE_EC_SHIFT) & FB_VMODE_EC_MASK)
+#define FB_VMODE_EC_BT2020_CYCC	((0x5 << FB_VMODE_EC_SHIFT) & \
+					FB_VMODE_EC_MASK)
+#define FB_VMODE_EC_BT2020_YCC_RGB	((0x6 << FB_VMODE_EC_SHIFT) & \
+					FB_VMODE_EC_MASK)
+
+#define FB_VMODE_MASK		0x7fff
 
 #define FB_VMODE_YWRAP		0x10000	/* ywrap instead of panning     */
 #define FB_VMODE_SMOOTH_XPAN	0x20000	/* smooth xpan possible (internally used) */
