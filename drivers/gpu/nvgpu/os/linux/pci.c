@@ -39,6 +39,7 @@
 #include "platform_gk20a.h"
 
 #include "pci.h"
+#include "pci_power.h"
 #include "pci_usermode.h"
 
 #include "driver_common.h"
@@ -806,6 +807,12 @@ static int nvgpu_pci_probe(struct pci_dev *pdev,
 		}
 	}
 
+	err = nvgpu_pci_add_pci_power(pdev);
+	if (err) {
+		nvgpu_err(g, "add pci power failed (%d).", err);
+		goto err_free_irq;
+	}
+
 	return 0;
 
 err_free_irq:
@@ -831,6 +838,9 @@ static void nvgpu_pci_remove(struct pci_dev *pdev)
 	/* no support yet for unbind if DGPU is in VGPU mode */
 	if (gk20a_gpu_is_virtual(dev))
 		return;
+
+	err = nvgpu_pci_clear_pci_power(dev_name(dev));
+	WARN(err, "gpu failed to clear pci power");
 
 	err = nvgpu_nvlink_deinit(g);
 	WARN(err, "gpu failed to remove nvlink");
@@ -882,11 +892,27 @@ int __init nvgpu_pci_init(void)
 	if (ret)
 		return ret;
 
-	return pci_register_driver(&nvgpu_pci_driver);
+	ret = pci_register_driver(&nvgpu_pci_driver);
+	if (ret)
+		goto driver_fail;
+
+	ret = nvgpu_pci_power_init(&nvgpu_pci_driver);
+	if (ret)
+		goto power_init_fail;
+
+	return 0;
+
+power_init_fail:
+	pci_unregister_driver(&nvgpu_pci_driver);
+driver_fail:
+	class_unregister(&nvgpu_pci_class);
+	return ret;
 }
 
 void __exit nvgpu_pci_exit(void)
 {
+	nvgpu_pci_power_exit(&nvgpu_pci_driver);
 	pci_unregister_driver(&nvgpu_pci_driver);
 	class_unregister(&nvgpu_pci_class);
+	nvgpu_pci_power_cleanup();
 }

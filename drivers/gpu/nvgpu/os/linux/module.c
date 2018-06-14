@@ -1100,6 +1100,38 @@ static int gk20a_pm_deinit(struct device *dev)
 	return 0;
 }
 
+int nvgpu_start_gpu_idle(struct gk20a *g)
+{
+	struct nvgpu_os_linux *l = nvgpu_os_linux_from_gk20a(g);
+
+	down_write(&l->busy_lock);
+
+	/*
+	 * Set NVGPU_DRIVER_IS_DYING to avoid gpu being marked
+	 * busy to submit new work to gpu.
+	 */
+	__nvgpu_set_enabled(g, NVGPU_DRIVER_IS_DYING, true);
+
+	up_write(&l->busy_lock);
+
+	return 0;
+}
+
+int nvgpu_wait_for_gpu_idle(struct gk20a *g)
+{
+	int ret = 0;
+
+	ret = gk20a_wait_for_idle(g);
+	if (ret) {
+		nvgpu_err(g, "failed in wait for idle");
+		goto out;
+	}
+
+	nvgpu_wait_for_deferred_interrupts(g);
+out:
+	return ret;
+}
+
 /*
  * Start the process for unloading the driver. Set NVGPU_DRIVER_IS_DYING.
  */

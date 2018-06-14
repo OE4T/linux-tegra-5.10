@@ -153,6 +153,7 @@ endif
 
 nvgpu-$(CONFIG_GK20A_PCI) += \
 	os/linux/pci.o \
+	os/linux/pci_power.o \
 	os/linux/pci_usermode.o
 
 nvgpu-$(CONFIG_TEGRA_GK20A_NVHOST) += \

@@ -23,6 +23,8 @@ void gk20a_remove_support(struct gk20a *g);
 void gk20a_driver_start_unload(struct gk20a *g);
 int nvgpu_quiesce(struct gk20a *g);
 int nvgpu_remove(struct device *dev, struct class *class);
+int nvgpu_start_gpu_idle(struct gk20a *g);
+int nvgpu_wait_for_gpu_idle(struct gk20a *g);
 void nvgpu_free_irq(struct gk20a *g);
 struct device_node *nvgpu_get_node(struct gk20a *g);
 void __iomem *nvgpu_devm_ioremap_resource(struct platform_device *dev, int i,

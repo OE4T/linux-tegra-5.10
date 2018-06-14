@@ -35,6 +35,23 @@ struct secure_page_buffer {
 	size_t used;
 };
 
+enum {
+	PCI_GPIO_VBAT_PWR_ON,
+	PCI_GPIO_PRSNT2,
+	PCI_GPIO_PRSNT1,
+	PCI_GPIO_PWR_ON,
+	PCI_GPIO_PG,
+	PCI_GPIO_MAX,
+};
+
+struct nvgpu_pci_gpios {
+	int gpios[PCI_GPIO_MAX];
+};
+
+/* delays in milliseconds (ms) */
+#define PCI_VBAR_PWR_ON_DELAY_MS	15
+#define PCI_PWR_ON_DELAY_MS		150
+
 struct gk20a_platform {
 	/* Populated by the gk20a driver before probing the platform. */
 	struct gk20a *g;
