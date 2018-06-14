@@ -23,17 +23,27 @@
 static const struct of_device_id __iommu_of_table_sentinel
 	__used __section(__iommu_of_table_end);
 
-
-void of_get_iommu_resv_regions(struct device *dev, struct list_head *head)
+/*
+ * Parses &prop_name from the DT node &resv_node, then
+ * creates and adds a resv regions with a &type and &prot
+ * status.
+ *
+ * The DT property at &prop_name must be in start, size pairs
+ * of u64 values.
+*/
+static void parse_resv_regions(struct device_node *resv_node,
+					struct list_head *head,
+					char *prop_name,
+					int prot,
+					enum iommu_resv_type type)
 {
-	struct device_node *dn = dev->of_node;
 	int total_values, i, ret;
 
-	total_values = of_property_count_elems_of_size(dn, "iommu-resv-regions",
-							sizeof(u64));
+	total_values = of_property_count_elems_of_size(resv_node,
+			prop_name,
+			sizeof(u64));
 	if (total_values % 2 != 0) {
-		dev_warn(dev,
-			"iommu-resv-regions must be pairs of <start size>\n");
+		pr_warn("iommu-region props must be pairs of <start size>\n");
 		return;
 	}
 
@@ -41,26 +51,53 @@ void of_get_iommu_resv_regions(struct device *dev, struct list_head *head)
 		u64 size, start;
 		struct iommu_resv_region *resv;
 
-		ret = of_property_read_u64_index(dn, "iommu-resv-regions",
-							i, &start);
+		ret = of_property_read_u64_index(resv_node, prop_name,
+				i, &start);
 		if (ret)
 			return;
 
-		ret = of_property_read_u64_index(dn, "iommu-resv-regions",
-							i + 1, &size);
+		ret = of_property_read_u64_index(resv_node, prop_name,
+				i + 1, &size);
 		if (ret)
 			return;
+
+		if (start == 0 && size == 0)
+			continue;
 
 		/* If there is overflow, replace size with max possible size */
 		if (start + size < start) {
 			size = (~0x0) - start;
 		}
-		resv = iommu_alloc_resv_region(start, size, 0,
-						IOMMU_RESV_RESERVED);
+		resv = iommu_alloc_resv_region(start, size,
+				prot,
+				type);
 		if (!resv)
 			continue;
 
 		list_add_tail(&resv->list, head);
+	}
+}
+
+void of_get_iommu_resv_regions(struct device *dev, struct list_head *head)
+{
+	parse_resv_regions(dev->of_node, head, "iommu-resv-regions", 0,
+					IOMMU_RESV_RESERVED);
+}
+
+
+void of_get_iommu_direct_regions(struct device *dev, struct list_head *head)
+{
+	struct device_node *dn = dev->of_node;
+	struct device_node *dm_node;
+	int phandle_index = 0;
+
+	dm_node = of_parse_phandle(dn, "iommu-direct-regions", phandle_index++);
+	while (dm_node != NULL) {
+		parse_resv_regions(dm_node, head, "reg",
+						IOMMU_READ | IOMMU_WRITE,
+						IOMMU_RESV_DIRECT);
+		dm_node = of_parse_phandle(dn, "iommu-direct-regions",
+							phandle_index++);
 	}
 
 	return;
