@@ -44,7 +44,7 @@ static struct rc_map_list nvidia_map = {
 	.map = {
 			.scan = foster_table,
 			.size = ARRAY_SIZE(foster_table),
-			.rc_type = RC_BIT_SONY12,
+			.rc_proto = RC_PROTO_SONY12,
 			.name = RC_MAP_NVIDIA,
 	}
 };
