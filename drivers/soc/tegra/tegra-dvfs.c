@@ -2121,17 +2121,18 @@ static int rail_stats_save_to_buf(char *buf, int len)
 		dvfs_rail_stats_update(rail, -1, ktime_get());
 
 		str += scnprintf(str, end - str, "%-12d %-10llu\n", 0,
-			cputime64_to_clock_t(msecs_to_jiffies(
+			jiffies_64_to_clock_t(msecs_to_jiffies(
 				ktime_to_ms(rail->stats.time_at_mv[0]))));
 
 		for (i = 1; i <= DVFS_RAIL_STATS_TOP_BIN; i++) {
 			ktime_t ktime_zero = ktime_set(0, 0);
-			if (ktime_equal(rail->stats.time_at_mv[i], ktime_zero))
+			if (ktime_compare(rail->stats.time_at_mv[i], ktime_zero)
+					  == 0)
 				continue;
 			str += scnprintf(str, end - str, "%-12d %-10llu\n",
 				rail->min_millivolts +
 				(i - 1) * rail->stats.bin_uv / 1000,
-				cputime64_to_clock_t(msecs_to_jiffies(
+				jiffies_64_to_clock_t(msecs_to_jiffies(
 					ktime_to_ms(rail->stats.time_at_mv[i])))
 			);
 		}
