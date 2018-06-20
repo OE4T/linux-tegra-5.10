@@ -1609,7 +1609,7 @@ static int of_parse_dvfs_rail_cdev_trips(struct device_node *node,
 		struct dvfs_therm_limits *therm_limits_ucm2_table,
 		struct rail_alignment *align, bool up)
 {
-	struct of_phandle_iter iter;
+	struct of_phandle_iterator iter;
 	int cells_num, i = 0, t;
 
 	/* 1 cell per trip-point, if constraint is specified */
