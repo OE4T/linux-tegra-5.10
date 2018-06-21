@@ -196,7 +196,7 @@ static void nvgpu_sim_esc_readl(struct gk20a *g,
 	*sim_msg_param(g, 0) = index;
 	*sim_msg_param(g, 4) = sizeof(u32);
 	data_offset = roundup(pathlen + 1, sizeof(u32));
-	*sim_msg_param(g, 8) = data_offset;
+	*sim_msg_param(g, 8) = data_offset + 0xc;
 	strcpy((char *)sim_msg_param(g, 0xc), path);
 
 	err = issue_rpc_and_wait(g);
