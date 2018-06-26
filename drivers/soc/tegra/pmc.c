@@ -721,6 +721,9 @@ struct tegra_pmc {
 	bool *allow_dynamic_switch;
 	bool voltage_switch_restriction_enabled;
 	struct tegra_prod *tprod;
+
+	struct tegra_powergate *nvjpg_pg;
+	struct tegra_powergate *nvdec_pg;
 };
 
 static struct tegra_pmc *pmc = &(struct tegra_pmc) {
@@ -1839,6 +1842,12 @@ static int tegra_powergate_add(struct tegra_pmc *pmc, struct device_node *np)
 		goto remove_genpd;
 	}
 
+	if (pg->id == TEGRA_POWERGATE_NVJPG)
+		pmc->nvjpg_pg = pg;
+
+	if (pg->id == TEGRA_POWERGATE_NVDEC)
+		pmc->nvdec_pg = pg;
+
 	dev_dbg(dev, "added PM domain %s\n", pg->genpd.name);
 
 	return 0;
@@ -1883,6 +1892,11 @@ static int tegra_powergate_init(struct tegra_pmc *pmc,
 	}
 
 	of_node_put(np);
+
+	/* Add NVDEC to sub-domain of NVJPG */
+	if (pmc->nvjpg_pg && pmc->nvdec_pg)
+		pm_genpd_add_subdomain(&pmc->nvjpg_pg->genpd,
+				&pmc->nvdec_pg->genpd);
 
 	return err;
 }
