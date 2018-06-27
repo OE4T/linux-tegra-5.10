@@ -2206,8 +2206,14 @@ static int tegra210x_init_dvfs(struct device *dev, bool cpu_lp_init)
 		}
 
 		ret = regulator_get_constraint_voltages(reg, &min_uV, &max_uV);
-		if (!ret)
-			vdd_dvfs_rails[i]->alignment.offset_uv = min_uV;
+		if (ret || (!min_uV && !max_uV))
+		{
+			pr_info("tegra_dvfs: Unable to get rail constraints of %s rail, defering probe\n",
+				vdd_dvfs_rails[i]->reg_id);
+			return -EPROBE_DEFER;
+		}
+
+		vdd_dvfs_rails[i]->alignment.offset_uv = min_uV;
 
 		step_uv = regulator_get_linear_step(reg); /* 1st try get step */
 		if (!step_uv && !ret) {    /* if no step, try to calculate it */
