@@ -192,6 +192,7 @@ config FB_BACKLIGHT
 config FB_MODE_HELPERS
 	bool "Enable Video Mode Handling Helpers"
 	depends on FB
+	default y
 	---help---
 	  This enables functions for handling video modes using the
 	  Generalized Timing Formula and the EDID parser. A few drivers rely
