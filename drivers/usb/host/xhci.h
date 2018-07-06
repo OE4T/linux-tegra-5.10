@@ -2081,6 +2081,7 @@ int xhci_alloc_tt_info(struct xhci_hcd *xhci,
 		struct xhci_virt_device *virt_dev,
 		struct usb_device *hdev,
 		struct usb_tt *tt, gfp_t mem_flags);
+int xhci_update_device(struct usb_hcd *hcd, struct usb_device *udev);
 int xhci_add_endpoint(struct usb_hcd *hcd, struct usb_device *udev, struct usb_host_endpoint *ep);
 
 /* xHCI ring, segment, TRB, and TD functions */

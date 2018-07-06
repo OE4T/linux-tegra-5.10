@@ -4519,7 +4519,7 @@ static int xhci_check_usb2_port_capability(struct xhci_hcd *xhci, int port,
 	return 0;
 }
 
-static int xhci_update_device(struct usb_hcd *hcd, struct usb_device *udev)
+int xhci_update_device(struct usb_hcd *hcd, struct usb_device *udev)
 {
 	struct xhci_hcd	*xhci = hcd_to_xhci(hcd);
 	int		portnum = udev->portnum - 1;
@@ -4545,6 +4545,8 @@ static int xhci_update_device(struct usb_hcd *hcd, struct usb_device *udev)
 
 	return 0;
 }
+EXPORT_SYMBOL_GPL(xhci_update_device);
+
 
 /*---------------------- USB 3.0 Link PM functions ------------------------*/
 
@@ -4999,10 +5001,12 @@ static int xhci_set_usb2_hardware_lpm(struct usb_hcd *hcd,
 	return 0;
 }
 
-static int xhci_update_device(struct usb_hcd *hcd, struct usb_device *udev)
+int xhci_update_device(struct usb_hcd *hcd, struct usb_device *udev)
 {
 	return 0;
 }
+EXPORT_SYMBOL_GPL(xhci_update_device);
+
 
 static int xhci_enable_usb3_lpm_timeout(struct usb_hcd *hcd,
 			struct usb_device *udev, enum usb3_link_state state)
