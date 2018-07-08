@@ -64,6 +64,7 @@
 #include <linux/swait.h>
 #include <linux/syscalls.h>
 #include <linux/task_work.h>
+#include <linux/tegra_profiler.h>
 #include <linux/tsacct_kern.h>
 
 #include <asm/tlb.h>
