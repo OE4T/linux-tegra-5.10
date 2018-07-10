@@ -215,7 +215,7 @@ static struct gk20a_platform nvgpu_pci_device[] = {
 	.run_preos = true,
 	.has_syncpoints = true,
 	},
-	{ /* SKU 0x1e3f */
+	{ /* SKU 0x1ebf */
 	/* ptimer src frequency in hz */
 	.ptimer_src_freq	= 31250000,
 
@@ -316,7 +316,7 @@ static struct pci_device_id nvgpu_pci_table[] = {
 		.driver_data = 3,
 	},
 	{
-		PCI_DEVICE(PCI_VENDOR_ID_NVIDIA, 0x1e3f),
+		PCI_DEVICE(PCI_VENDOR_ID_NVIDIA, 0x1ebf),
 		.class = PCI_BASE_CLASS_DISPLAY << 16,
 		.class_mask = 0xff << 16,
 		.driver_data = 4,
