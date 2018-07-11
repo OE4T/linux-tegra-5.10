@@ -1,4 +1,7 @@
 # SPDX-License-Identifier: GPL-2.0
+
+GCOV_PROFILE := y
+
 asflags-y				+= -march=armv7-a
 
 obj-y                                   += io.o
