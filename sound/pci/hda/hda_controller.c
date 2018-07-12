@@ -691,41 +691,34 @@ static int azx_pcm_mmap(struct snd_pcm_substream *substream,
 }
 
 /* Instead of silence buffer, use a non-zero buffer of very low amplitude and
- * frequency. This is done because some receivers enter low power mode with
- * silence data which causes initial part of next valid audio to get cut off */
+ * very high frequency, so that it's out of human audible range. This is done
+ * because some receivers enter low power mode with silence data which causes
+ * initial part of next valid audio to get cut off
+ */
 static int azx_pcm_silence(struct snd_pcm_substream *substream,
 		int channel, unsigned long pos, unsigned long bytes)
 {
-	static unsigned int silence_frame_cnt = 0;
-	const int inject_freq_ms = 200;
-	int16_t *buf16 = (int16_t *)((char *)substream->runtime->dma_area + pos);
-	int32_t *buf32 = (int32_t *)((char *)substream->runtime->dma_area + pos);
-	int j;
+	static int idle_sample_value = 1;
+	int16_t *buf16 =
+		(int16_t *)((char *)substream->runtime->dma_area + pos);
+	int32_t *buf32 =
+		(int32_t *)((char *)substream->runtime->dma_area + pos);
+	int i, j;
 
-	memset(buf16, 0, bytes);
-	silence_frame_cnt +=  bytes_to_frames(substream->runtime, bytes);
+	snd_pcm_uframes_t count = bytes_to_frames(substream->runtime, bytes);
 
-	if (silence_frame_cnt >= ((substream->runtime->rate / 1000) * inject_freq_ms)) {
-		if (substream->runtime->format == SNDRV_PCM_FORMAT_S32_LE) {
+	if (substream->runtime->format == SNDRV_PCM_FORMAT_S32_LE) {
+		for (i = 0; i < count; i++) {
 			for (j = 0; j < substream->runtime->channels; j++)
-				*buf32++ = 1;
-			for (j = 0; j < substream->runtime->channels; j++)
-				*buf32++ = 0;
-			for (j = 0; j < substream->runtime->channels; j++)
-				*buf32++ = -1;
-			for (j = 0; j < substream->runtime->channels; j++)
-				*buf32++ = 0;
-		} else {
-			for (j = 0; j < substream->runtime->channels; j++)
-				*buf16++ = 1;
-			for (j = 0; j < substream->runtime->channels; j++)
-				*buf16++ = 0;
-			for (j = 0; j < substream->runtime->channels; j++)
-				*buf16++ = -1;
-			for (j = 0; j < substream->runtime->channels; j++)
-				*buf16++ = 0;
+				*buf32++ = idle_sample_value;
+			idle_sample_value = -idle_sample_value;
 		}
-		silence_frame_cnt = 0;
+	} else {
+		for (i = 0; i < count; i++) {
+			for (j = 0; j < substream->runtime->channels; j++)
+				*buf16++ = idle_sample_value;
+			idle_sample_value = -idle_sample_value;
+		}
 	}
 
 	return 0;
