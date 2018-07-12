@@ -36,6 +36,15 @@
 #define FUSE_PDI0			0x300
 #define FUSE_PDI1			0x304
 
+#define FUSE_IP_DISABLE_0			0x4b0
+#define FUSE_IP_DISABLE_0_NVLINK_MASK		0x10
+
+#define FUSE_UCODE_MINION_REV_0			0x4d4
+#define FUSE_UCODE_MINION_REV_0_MASK		0x7
+
+#define FUSE_SECURE_MINION_DEBUG_DIS_0		0x4d8
+#define FUSE_SECURE_MINION_DEBUG_DIS_0_MASK	0x1
+
 #ifndef __ASSEMBLY__
 
 #include <linux/of.h>
