@@ -2548,8 +2548,6 @@ static struct tegra_clk tegra210_clks[tegra_clk_max] __initdata = {
 	[tegra_clk_dpaux1] = { .dt_id = TEGRA210_CLK_DPAUX1, .present = true },
 	[tegra_clk_sor0] = { .dt_id = TEGRA210_CLK_SOR0, .present = true },
 	[tegra_clk_sor0_out] = { .dt_id = TEGRA210_CLK_SOR0_OUT, .present = true },
-	[tegra_clk_sor1] = { .dt_id = TEGRA210_CLK_SOR1, .present = true },
-	[tegra_clk_sor1_out] = { .dt_id = TEGRA210_CLK_SOR1_OUT, .present = true },
 	[tegra_clk_gpu] = { .dt_id = TEGRA210_CLK_GPU, .present = true },
 	[tegra_clk_pll_g_ref] = { .dt_id = TEGRA210_CLK_PLL_G_REF, .present = true, },
 	[tegra_clk_uartb_8] = { .dt_id = TEGRA210_CLK_UARTB, .present = true },
@@ -3317,12 +3315,6 @@ static struct tegra_clk_periph tegra210_la =
         TEGRA_CLK_PERIPH(30, 3, 0, 0, 8, 1, 1, 76, TEGRA_PERIPH_ON_APB,
                          mux_la_idx, &la_lock);
 
-static const char * const sor1_parents[] = {
-	"pll_p", "pll_d_out0", "pll_d2_out0", "clk_m",
-};
-
-static u32 sor1_parents_idx[] = { 0, 2, 5, 6 };
-
 static const struct clk_div_table mc_div_table_tegra210[] = {
 	{ .val = 0, .div = 2 },
 	{ .val = 1, .div = 4 },
@@ -3344,17 +3336,6 @@ static void tegra210_clk_register_mc(const char *name,
 	clks[TEGRA210_CLK_MC] = clk;
 }
 
-static const char * const sor1_out_parents[] = {
-	/*
-	 * Bit 0 of the mux selects sor1_pad_clkout, irrespective of bit 1, so
-	 * the sor1_pad_clkout parent appears twice in the list below. This is
-	 * merely to support clk_get_parent() if firmware happened to set
-	 * these bits to 0b11. While not an invalid setting, code should
-	 * always set the bits to 0b01 to select sor1_pad_clkout.
-	 */
-	"sor_safe", "sor1_pad_clkout", "sor1_out", "sor1_pad_clkout",
-};
-
 static struct tegra_periph_init_data tegra210_periph[] = {
 	/*
 	 * On Tegra210, the sor0 clock doesn't have a mux it bitfield 31:29,
@@ -3368,16 +3349,20 @@ static struct tegra_periph_init_data tegra210_periph[] = {
 			      CLK_SOURCE_SOR0, 14, 0x1, 0, 0, 0, 0,
 			      0, 0, TEGRA_PERIPH_NO_GATE, tegra_clk_sor0_out,
 			      NULL, 0, &sor0_lock),
-	TEGRA_INIT_DATA_TABLE("sor1", NULL, NULL, sor1_parents,
-			      CLK_SOURCE_SOR1, 29, 0x7, 0, 0, 8, 1,
-			      TEGRA_DIVIDER_ROUND_UP, 183, 0,
-			      tegra_clk_sor1, sor1_parents_idx, 0,
-			      &sor1_lock),
-	TEGRA_INIT_DATA_TABLE("sor1_out", NULL, NULL, sor1_out_parents,
-			      CLK_SOURCE_SOR1, 14, 0x3, 0, 0, 0, 0,
-			      0, 0, TEGRA_PERIPH_NO_GATE,
-			      tegra_clk_sor1_out, NULL, 0, &sor1_lock),
 };
+
+static const char * const mux_sorsafe_sor1brick_sor1mux[] = { "sor_safe", "sor1_brick", "sor1_mux"};
+
+static const char * const mux_sor1[] = { "pll_p", "pll_d_out0", "pll_d2_out0", "clk_m" };
+static u32 mux_sor1_idx[] = { [0] = 0, [1] = 2, [2] = 5, [3] = 6 };
+
+static struct tegra_clk_periph tegra_sor1 =
+	TEGRA_CLK_PERIPH(14, 3, 0, 0, 0, 0, 0, 183, 0, NULL, &sor1_lock);
+
+static struct tegra_clk_periph tegra_sor1_mux =
+	TEGRA_CLK_PERIPH(29, 7, 0, 0, 7, 1, TEGRA_DIVIDER_ROUND_UP |
+			 TEGRA_DIVIDER_INT, 0, TEGRA_PERIPH_NO_GATE,
+			 mux_sor1_idx, &sor1_lock);
 
 static const char * const mux_vi_visensor_pd2vi[] = { "vi", "pd2vi", "vi_sensor" };
 static u32 mux_vi_visensor_pd2vi_idx[] = {  [0] = 0, [1] = 1, [2] = 3 };
@@ -3418,6 +3403,21 @@ static __init void tegra210_periph_clk_init(struct device_node *np,
 	clk = tegra_clk_register_periph_fixed("dpaux1", "sor_safe", 0, clk_base,
 					      1, 17, 207);
 	clks[TEGRA210_CLK_DPAUX1] = clk;
+
+	clk = tegra_clk_register_periph_nodiv("sor1", mux_sorsafe_sor1brick_sor1mux,
+			       ARRAY_SIZE(mux_sorsafe_sor1brick_sor1mux), &tegra_sor1,
+			       clk_base, CLK_SOURCE_SOR1);
+
+	clks[TEGRA210_CLK_SOR1] = clk;
+
+	clk = tegra_clk_register_periph("sor1_mux", mux_sor1,
+					ARRAY_SIZE(mux_sor1), &tegra_sor1_mux,
+					clk_base, CLK_SOURCE_SOR1, 0);
+
+	clks[TEGRA210_CLK_SOR1_MUX] = clk;
+
+	clk = tegra_clk_register_sync_source("sor1_brick", ULONG_MAX);
+	clks[TEGRA210_CLK_SOR1_BRICK] = clk;
 
 	clk = tegra_clk_register_sync_source("pd2vi", ULONG_MAX);
 	clks[TEGRA210_CLK_PD2VI] = clk;

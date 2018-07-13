@@ -103,6 +103,7 @@
 #define CLK_SOURCE_XUSB_SS_SRC 0x610
 #define CLK_SOURCE_XUSB_DEV_SRC 0x60c
 #define CLK_SOURCE_ISP 0x144
+#define CLK_SOURCE_SOR1 0x410
 #define CLK_SOURCE_SOR0 0x414
 #define CLK_SOURCE_DPAUX 0x418
 #define CLK_SOURCE_ENTROPY 0x628
@@ -276,6 +277,7 @@
 static DEFINE_SPINLOCK(PLLP_OUTA_lock);
 static DEFINE_SPINLOCK(PLLP_OUTB_lock);
 static DEFINE_SPINLOCK(PLLP_OUTC_lock);
+static DEFINE_SPINLOCK(sor1_lock);
 
 #define MUX_I2S_SPDIF(_id)						\
 static const char *mux_pllaout0_##_id##_2x_pllp_clkm[] = { "pll_a_out0", \
@@ -585,7 +587,24 @@ static u32 mux_pllp_plld_plld2_clkm_idx[] = {
 	[0] = 0, [1] = 2, [2] = 5, [3] = 6
 };
 
-static const char *mux_pllp_pllre_clkm[] = {
+static const char * const mux_plldp_sor1_out[] = {
+	"pll_dp", "clk_sor1_out"
+};
+#define mux_plldp_sor1_out_idx NULL
+
+static const char * const mux_sor_safe_sor1_brick_sor1_out[] = {
+	/*
+	 * Bit 0 of the mux selects sor1_brick, irrespective of bit 1, so the
+	 * sor1_brick parent appears twice in the list below. This is merely
+	 * to support clk_get_parent() if firmware happened to set these bits
+	 * to 0b11. While not an invalid setting, code should always set the
+	 * bits to 0b01 to select sor1_brick.
+	 */
+	"clk_m", "sor1_brick", "sor1_out", "sor1_brick"
+};
+#define mux_sor_safe_sor1_brick_sor1_out_idx NULL
+
+static const char * const mux_pllp_pllre_clkm[] = {
 	"pll_p", "pll_re_out1", "clk_m"
 };
 
@@ -764,6 +783,9 @@ static struct tegra_periph_init_data periph_clks[] = {
 	MUX8("nvenc", mux_pllc2_c_c3_pllp_plla1_clkm, CLK_SOURCE_NVENC, 219, 0, tegra_clk_nvenc),
 	MUX8("nvdec", mux_pllc2_c_c3_pllp_plla1_clkm, CLK_SOURCE_NVDEC, 194, 0, tegra_clk_nvdec),
 	MUX8("nvjpg", mux_pllc2_c_c3_pllp_plla1_clkm, CLK_SOURCE_NVJPG, 195, 0, tegra_clk_nvjpg),
+	MUX8_NOGATE_LOCK("sor1_out", mux_pllp_plld_plld2_clkm, CLK_SOURCE_SOR1, tegra_clk_sor1_out, &sor1_lock),
+	NODIV("sor1_brick", mux_plldp_sor1_out, CLK_SOURCE_SOR1, 14, MASK(1), 183, 0, tegra_clk_sor1_brick, &sor1_lock),
+	NODIV("sor1", mux_sor_safe_sor1_brick_sor1_out, CLK_SOURCE_SOR1, 15, MASK(1), 183, 0, tegra_clk_sor1, &sor1_lock),
 	MUX8("sdmmc_legacy", mux_pllp_out3_clkm_pllp_pllc4, CLK_SOURCE_SDMMC_LEGACY, 193, TEGRA_PERIPH_ON_APB | TEGRA_PERIPH_NO_RESET, tegra_clk_sdmmc_legacy),
 	MUX8("qspi", mux_pllp_pllc_pllc_out1_pllc4_out2_pllc4_out1_clkm_pllc4_out0, CLK_SOURCE_QSPI, 211, TEGRA_PERIPH_ON_APB, tegra_clk_qspi),
 	I2C("vii2c", mux_pllp_pllc_clkm, CLK_SOURCE_VI_I2C, 208, tegra_clk_vi_i2c),
