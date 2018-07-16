@@ -247,6 +247,15 @@
 #define  RP_PRIV_MISC_TMS_CLK_CLAMP_THRESHOLD		(0xf << 24)
 #define  RP_PRIV_MISC_TMS_CLK_CLAMP_ENABLE		(1 << 31)
 
+#define RP_VEND_XP_PAD_PWRDN	0x00000f50
+#define  RP_VEND_XP_PAD_PWRDN_L1_EN			(1 << 0)
+#define  RP_VEND_XP_PAD_PWRDN_DYNAMIC_EN		(1 << 1)
+#define  RP_VEND_XP_PAD_PWRDN_DISABLED_EN		(1 << 2)
+#define  RP_VEND_XP_PAD_PWRDN_L1_CLKREQ_EN		(1 << 15)
+#define  RP_VEND_XP_PAD_PWRDN_SLEEP_MODE_DYNAMIC_L1PP	(3 << 5)
+#define  RP_VEND_XP_PAD_PWRDN_SLEEP_MODE_L1_L1PP	(3 << 3)
+#define  RP_VEND_XP_PAD_PWRDN_SLEEP_MODE_L1_CLKREQ_L1PP	(3 << 16)
+
 #define RP_LINK_CONTROL_STATUS			0x00000090
 #define  RP_LINK_CONTROL_STATUS_DL_LINK_ACTIVE	0x20000000
 #define  RP_LINK_CONTROL_STATUS_LINKSTAT_MASK	0x3fff0000
@@ -649,6 +658,17 @@ static void tegra_pcie_enable_rp_features(struct tegra_pcie_port *port)
 		value = readl(port->base + RP_VEND_XP1);
 		value |= RP_VEND_XP1_LINK_PVT_CTL_L1_ASPM_SUPPORT;
 		writel(value, port->base + RP_VEND_XP1);
+
+		/* Power saving configuration for L1 sleep/idle */
+		value = readl(port->base + RP_VEND_XP_PAD_PWRDN);
+		value |= RP_VEND_XP_PAD_PWRDN_DISABLED_EN;
+		value |= RP_VEND_XP_PAD_PWRDN_DYNAMIC_EN;
+		value |= RP_VEND_XP_PAD_PWRDN_L1_EN;
+		value |= RP_VEND_XP_PAD_PWRDN_L1_CLKREQ_EN;
+		value |= RP_VEND_XP_PAD_PWRDN_SLEEP_MODE_DYNAMIC_L1PP;
+		value |= RP_VEND_XP_PAD_PWRDN_SLEEP_MODE_L1_L1PP;
+		value |= RP_VEND_XP_PAD_PWRDN_SLEEP_MODE_L1_CLKREQ_L1PP;
+		writel(value, port->base + RP_VEND_XP_PAD_PWRDN);
 	}
 }
 
