@@ -172,6 +172,13 @@ Required properties for Tegra124 and later:
   number of lanes in the nvidia,num-lanes property. Entries are of the form
   "pcie-N": where N ranges from 0 to the value specified in nvidia,num-lanes.
 
+Optional properties:
+- nvidia,disable-aspm-states: Controls advertisement of ASPM states.
+    bit-0 set to '1' : disables advertisement of ASPM-L0s
+    bit-1 set to '1' : disables advertisement of ASPM-L1, L1.1 and L1.2
+    bit-2 set to '1' : disables advertisement of ASPM-L1.1
+    bit-3 set to '1' : disables advertisement of ASPM-L1.2
+
 Examples:
 =========
 
