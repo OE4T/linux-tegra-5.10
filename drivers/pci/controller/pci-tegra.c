@@ -178,7 +178,9 @@
 
 #define AFI_PLLE_CONTROL		0x160
 #define  AFI_PLLE_CONTROL_BYPASS_PADS2PLLE_CONTROL (1 << 9)
+#define  AFI_PLLE_CONTROL_BYPASS_PCIE2PLLE_CONTROL (1 << 8)
 #define  AFI_PLLE_CONTROL_PADS2PLLE_CONTROL_EN (1 << 1)
+#define  AFI_PLLE_CONTROL_PCIE2PLLE_CONTROL_EN (1 << 0)
 
 #define AFI_PEXBIAS_CTRL_0		0x168
 
@@ -922,7 +924,7 @@ static void tegra_pcie_port_enable(struct tegra_pcie_port *port)
 	value |= AFI_PEX_CTRL_REFCLK_EN;
 
 	if (soc->has_pex_clkreq_en)
-		value |= AFI_PEX_CTRL_CLKREQ_EN;
+		value &= ~AFI_PEX_CTRL_CLKREQ_EN;
 
 	value |= AFI_PEX_CTRL_OVERRIDE_EN;
 
@@ -1360,10 +1362,12 @@ static void tegra_pcie_enable_controller(struct tegra_pcie *pcie)
 	unsigned long value;
 
 	/* enable PLL power down */
-	if (pcie->phy) {
+	if (soc->has_aspm_l1ss) {
 		value = afi_readl(pcie, AFI_PLLE_CONTROL);
 		value &= ~AFI_PLLE_CONTROL_BYPASS_PADS2PLLE_CONTROL;
 		value |= AFI_PLLE_CONTROL_PADS2PLLE_CONTROL_EN;
+		value &= ~AFI_PLLE_CONTROL_BYPASS_PCIE2PLLE_CONTROL;
+		value |= AFI_PLLE_CONTROL_PCIE2PLLE_CONTROL_EN;
 		afi_writel(pcie, value, AFI_PLLE_CONTROL);
 	}
 
