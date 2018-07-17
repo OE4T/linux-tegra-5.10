@@ -463,6 +463,7 @@ struct tegra_pcie_port {
 	unsigned int index;
 	unsigned int lanes;
 	unsigned int aspm_state;
+	bool supports_clkreq;
 
 	int n_gpios;
 	int *gpios;
@@ -781,6 +782,13 @@ static void tegra_pcie_enable_rp_features(struct tegra_pcie_port *port)
 			disable_aspm_l11(port);
 		if (port->aspm_state & 0x8)
 			disable_aspm_l12(port);
+
+		/* Disable L1SS capability if CLKREQ# is not present */
+		if (!port->supports_clkreq) {
+			value = readl(port->base + RP_L1_PM_SUBSTATES_CTL);
+			value |= RP_L1_PM_SUBSTATES_CTL_HIDE_CAP;
+			writel(value, port->base + RP_L1_PM_SUBSTATES_CTL);
+		}
 	}
 }
 
@@ -985,8 +993,12 @@ static void tegra_pcie_port_enable(struct tegra_pcie_port *port)
 	value = afi_readl(port->pcie, ctrl);
 	value |= AFI_PEX_CTRL_REFCLK_EN;
 
-	if (soc->has_pex_clkreq_en)
-		value &= ~AFI_PEX_CTRL_CLKREQ_EN;
+	if (soc->has_pex_clkreq_en) {
+		if (port->supports_clkreq)
+			value &= ~AFI_PEX_CTRL_CLKREQ_EN;
+		else
+			value |= AFI_PEX_CTRL_CLKREQ_EN;
+	}
 
 	value |= AFI_PEX_CTRL_OVERRIDE_EN;
 
@@ -1428,6 +1440,14 @@ static void tegra_pcie_enable_controller(struct tegra_pcie *pcie)
 		value = afi_readl(pcie, AFI_PLLE_CONTROL);
 		value &= ~AFI_PLLE_CONTROL_BYPASS_PADS2PLLE_CONTROL;
 		value |= AFI_PLLE_CONTROL_PADS2PLLE_CONTROL_EN;
+
+		list_for_each_entry(port, &pcie->ports, list) {
+			if (!port->supports_clkreq) {
+				value &= ~AFI_PLLE_CONTROL_PADS2PLLE_CONTROL_EN;
+				break;
+			}
+		}
+
 		value &= ~AFI_PLLE_CONTROL_BYPASS_PCIE2PLLE_CONTROL;
 		value |= AFI_PLLE_CONTROL_PCIE2PLLE_CONTROL_EN;
 		afi_writel(pcie, value, AFI_PLLE_CONTROL);
@@ -2612,6 +2632,9 @@ static int tegra_pcie_parse_dt(struct tegra_pcie *pcie)
 					   &rp->aspm_state);
 		if (err < 0)
 			rp->aspm_state = 0;
+
+		rp->supports_clkreq = of_property_read_bool(port,
+							    "supports-clkreq");
 
 		list_add_tail(&rp->list, &pcie->ports);
 	}
