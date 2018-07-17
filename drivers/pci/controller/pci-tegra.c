@@ -188,6 +188,10 @@
 #define  RP_PRIV_XP_DL_GEN2_UPD_FC_TSHOLD	(0x1ff << 1)
 
 #define RP_L1_PM_SUBSTATES_CTL		0xc00
+#define  RP_L1_PM_SUBSTATES_CTL_PCI_PM_L1_2		(0x1 << 0)
+#define  RP_L1_PM_SUBSTATES_CTL_PCI_PM_L1_1		(0x1 << 1)
+#define  RP_L1_PM_SUBSTATES_CTL_ASPM_L1_2		(0x1 << 2)
+#define  RP_L1_PM_SUBSTATES_CTL_ASPM_L1_1		(0x1 << 3)
 #define  RP_L1_PM_SUBSTATES_CTL_CM_RTIME_MASK		(0xff << 8)
 #define  RP_L1_PM_SUBSTATES_CTL_CM_RTIME_SHIFT		8
 #define  RP_L1_PM_SUBSTATES_CTL_T_PWRN_SCL_MASK		(0x3 << 16)
@@ -261,6 +265,7 @@
 #define  RP_VEND_XP_UPDATE_FC_THRESHOLD_MASK	(0xff << 18)
 
 #define RP_VEND_XP1	0xf04
+#define  RP_VEND_XP1_LINK_PVT_CTL_IGNORE_L0S		(1 << 23)
 #define  RP_VEND_XP1_LINK_PVT_CTL_L1_ASPM_SUPPORT	(1 << 21)
 
 
@@ -309,6 +314,8 @@
 #define  RP_LINK_CONTROL_STATUS_LINKSTAT_MASK	0x3fff0000
 
 #define RP_LINK_CONTROL_STATUS_2		0x000000b0
+
+#define RP_L1_PM_SUBSTATES_CAP	0x144
 
 #define PADS_CTL_SEL		0x0000009c
 
@@ -455,6 +462,7 @@ struct tegra_pcie_port {
 	void __iomem *base;
 	unsigned int index;
 	unsigned int lanes;
+	unsigned int aspm_state;
 
 	int n_gpios;
 	int *gpios;
@@ -666,6 +674,44 @@ static void tegra_pcie_port_reset(struct tegra_pcie_port *port)
 	}
 }
 
+static void disable_aspm_l0s(struct tegra_pcie_port *port)
+{
+	u32 val = 0;
+
+	val = readl(port->base + RP_VEND_XP1);
+	val |= RP_VEND_XP1_LINK_PVT_CTL_IGNORE_L0S;
+	writel(val, port->base + RP_VEND_XP1);
+}
+
+static void disable_aspm_l10(struct tegra_pcie_port *port)
+{
+	u32 val = 0;
+
+	val = readl(port->base + RP_VEND_XP1);
+	val &= ~RP_VEND_XP1_LINK_PVT_CTL_L1_ASPM_SUPPORT;
+	writel(val, port->base + RP_VEND_XP1);
+}
+
+static void disable_aspm_l11(struct tegra_pcie_port *port)
+{
+	u32 val = 0;
+
+	val = readl(port->base + RP_L1_PM_SUBSTATES_CTL);
+	val &= ~RP_L1_PM_SUBSTATES_CTL_PCI_PM_L1_1;
+	val &= ~RP_L1_PM_SUBSTATES_CTL_ASPM_L1_1;
+	writel(val, port->base + RP_L1_PM_SUBSTATES_CTL);
+}
+
+static void disable_aspm_l12(struct tegra_pcie_port *port)
+{
+	u32 val = 0;
+
+	val = readl(port->base + RP_L1_PM_SUBSTATES_CTL);
+	val &= ~RP_L1_PM_SUBSTATES_CTL_PCI_PM_L1_2;
+	val &= ~RP_L1_PM_SUBSTATES_CTL_ASPM_L1_2;
+	writel(val, port->base + RP_L1_PM_SUBSTATES_CTL);
+}
+
 static void tegra_pcie_enable_rp_features(struct tegra_pcie_port *port)
 {
 	const struct tegra_pcie_soc *soc = port->pcie->soc;
@@ -719,6 +765,22 @@ static void tegra_pcie_enable_rp_features(struct tegra_pcie_port *port)
 		value |= RP_VEND_XP_PAD_PWRDN_SLEEP_MODE_L1_L1PP;
 		value |= RP_VEND_XP_PAD_PWRDN_SLEEP_MODE_L1_CLKREQ_L1PP;
 		writel(value, port->base + RP_VEND_XP_PAD_PWRDN);
+
+		if (port->aspm_state & 0x1)
+			disable_aspm_l0s(port);
+		if (port->aspm_state & 0x2)
+			disable_aspm_l10(port);
+	}
+
+	if (soc->has_aspm_l1ss) {
+		if (port->aspm_state & 0x2) {
+			disable_aspm_l11(port);
+			disable_aspm_l12(port);
+		}
+		if (port->aspm_state & 0x4)
+			disable_aspm_l11(port);
+		if (port->aspm_state & 0x8)
+			disable_aspm_l12(port);
 	}
 }
 
@@ -2545,6 +2607,11 @@ static int tegra_pcie_parse_dt(struct tegra_pcie *pcie)
 				}
 			}
 		}
+
+		err = of_property_read_u32(port, "nvidia,disable-aspm-states",
+					   &rp->aspm_state);
+		if (err < 0)
+			rp->aspm_state = 0;
 
 		list_add_tail(&rp->list, &pcie->ports);
 	}
