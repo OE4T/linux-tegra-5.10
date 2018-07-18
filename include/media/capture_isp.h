@@ -45,6 +45,8 @@ struct isp_capture_setup {
 	uint32_t isp_program_queue_depth;
 	uint32_t isp_program_request_size;
 	uint32_t isp_program_mem;
+	uint32_t error_mask_correctable;
+	uint32_t error_mask_uncorrectable;
 } __ISP_CAPTURE_ALIGN;
 
 struct isp_capture_info {

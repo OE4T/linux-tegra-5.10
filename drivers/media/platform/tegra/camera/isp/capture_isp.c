@@ -555,6 +555,9 @@ int isp_capture_setup(struct tegra_isp_channel *chan,
 	config->progress_sp = capture->progress_sp;
 	config->stats_progress_sp = capture->stats_progress_sp;
 
+	config->error_mask_correctable = setup->error_mask_correctable;
+	config->error_mask_uncorrectable = setup->error_mask_uncorrectable;
+
 #ifdef HAVE_ISP_GOS_TABLES
 	dev_dbg(chan->isp_dev, "%u GoS tables configured.\n",
 		capture->num_gos_tables);
