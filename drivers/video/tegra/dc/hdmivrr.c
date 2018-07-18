@@ -1,7 +1,7 @@
 /*
  * hdmivrr.c: hdmi vrr interface.
  *
- * Copyright (c) 2015-2018, NVIDIA CORPORATION, All rights reserved.
+ * Copyright (c) 2015-2019, NVIDIA CORPORATION, All rights reserved.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -772,7 +772,7 @@ int tegra_hdmi_vrr_init(struct tegra_hdmi *hdmi)
 		.addr = 0x37,
 	};
 
-	if (!hdmi || !hdmi->dc || !hdmi->dc->out || !hdmi->dc->out->vrr) {
+	if (!hdmi || !hdmi->dc || !hdmi->dc->out) {
 		err = -ENODEV;
 		goto fail;
 	}
