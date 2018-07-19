@@ -34,6 +34,9 @@
 #include <linux/phy/phy.h>
 #include <linux/pinctrl/consumer.h>
 #include <linux/platform_device.h>
+#if IS_ENABLED(CONFIG_TEGRA_BWMGR)
+#include <linux/platform/tegra/emc_bwmgr.h>
+#endif
 #include <linux/reset.h>
 #include <linux/sizes.h>
 #include <linux/slab.h>
@@ -312,6 +315,8 @@
 #define RP_LINK_CONTROL_STATUS			0x00000090
 #define  RP_LINK_CONTROL_STATUS_DL_LINK_ACTIVE	0x20000000
 #define  RP_LINK_CONTROL_STATUS_LINKSTAT_MASK	0x3fff0000
+#define  RP_LINK_CONTROL_STATUS_NEG_LINK_WIDTH	(0x3f << 20)
+#define  RP_LINK_CONTROL_STATUS_LINK_SPEED	(0xf << 16)
 
 #define RP_LINK_CONTROL_STATUS_2		0x000000b0
 
@@ -372,6 +377,11 @@ struct tegra_pcie_port_soc {
 	} pme;
 };
 
+struct pcie_dvfs {
+	u32 afi_clk;
+	u32 emc_clk;
+};
+
 struct tegra_pcie_soc {
 	unsigned int num_ports;
 	const struct tegra_pcie_port_soc *ports;
@@ -398,6 +408,9 @@ struct tegra_pcie_soc {
 	bool has_aspm_l1;
 	bool has_aspm_l1ss;
 	bool l1ss_rp_wake_fixup;
+	bool dvfs_mselect;
+	bool dvfs_afi;
+	struct pcie_dvfs dfs_tbl[10][2];
 	struct {
 		struct {
 			u32 rp_ectl_2_r1;
@@ -436,6 +449,10 @@ struct tegra_pcie {
 	struct reset_control *pex_rst;
 	struct reset_control *afi_rst;
 	struct reset_control *pcie_xrst;
+
+#if IS_ENABLED(CONFIG_TEGRA_BWMGR)
+	struct tegra_bwmgr_client *emc_bwmgr;
+#endif
 
 	bool legacy_phy;
 	struct phy *phy;
@@ -2767,6 +2784,76 @@ static void tegra_pcie_change_link_speed(struct tegra_pcie *pcie)
 	}
 }
 
+static int tegra_pcie_scale_freq(struct tegra_pcie *pcie)
+{
+	struct tegra_pcie_port *port, *tmp;
+	const struct tegra_pcie_soc *soc = pcie->soc;
+	int err = 0;
+	u32 val = 0;
+	u32 active_lanes = 0;
+	bool is_gen2 = false;
+
+	list_for_each_entry_safe(port, tmp, &pcie->ports, list) {
+		val = readl(port->base + RP_LINK_CONTROL_STATUS);
+		active_lanes += ((val &
+					RP_LINK_CONTROL_STATUS_NEG_LINK_WIDTH) >> 20);
+		if (((val & RP_LINK_CONTROL_STATUS_LINK_SPEED) >> 16) == 2)
+			is_gen2 = true;
+	}
+
+	if (soc->dvfs_mselect) {
+		struct clk *mselect_clk;
+
+		active_lanes = 0;
+		dev_dbg(pcie->dev, "mselect_clk is set @ %u\n",
+				soc->dfs_tbl[active_lanes][is_gen2].afi_clk);
+		mselect_clk = devm_clk_get(pcie->dev, "mselect");
+		if (IS_ERR(mselect_clk)) {
+			dev_err(pcie->dev, "mselect clk_get failed: %ld\n",
+					PTR_ERR(mselect_clk));
+			return PTR_ERR(mselect_clk);
+		}
+		err = clk_set_rate(mselect_clk,
+				soc->dfs_tbl[active_lanes][is_gen2].afi_clk);
+		if (err) {
+			dev_err(pcie->dev,
+					"setting mselect clk to %u failed : %d\n",
+					soc->dfs_tbl[active_lanes][is_gen2].afi_clk,
+					err);
+			return err;
+		}
+	}
+
+	if (soc->dvfs_afi) {
+		dev_dbg(pcie->dev, "afi_clk is set @ %u\n",
+				soc->dfs_tbl[active_lanes][is_gen2].afi_clk);
+		err = clk_set_rate(devm_clk_get(pcie->dev, "afi"),
+				soc->dfs_tbl[active_lanes][is_gen2].afi_clk);
+		if (err) {
+			dev_err(pcie->dev,
+					"setting afi clk to %u failed : %d\n",
+					soc->dfs_tbl[active_lanes][is_gen2].afi_clk,
+					err);
+			return err;
+		}
+	}
+
+	dev_dbg(pcie->dev, "emc_clk is set @ %u\n",
+			soc->dfs_tbl[active_lanes][is_gen2].emc_clk);
+#if IS_ENABLED(CONFIG_TEGRA_BWMGR)
+	err = tegra_bwmgr_set_emc(pcie->emc_bwmgr,
+			soc->dfs_tbl[active_lanes][is_gen2].emc_clk,
+			TEGRA_BWMGR_SET_EMC_FLOOR);
+	if (err < 0) {
+		dev_err(pcie->dev, "setting emc clk to %u failed : %d\n",
+				soc->dfs_tbl[active_lanes][is_gen2].emc_clk, err);
+		return err;
+	}
+#endif
+
+	return err;
+}
+
 static int tegra_pcie_mxm_pwr_init(struct tegra_pcie_port *port)
 {
 	mdelay(100);
@@ -2804,6 +2891,8 @@ static void tegra_pcie_enable_ports(struct tegra_pcie *pcie)
 
 	if (pcie->soc->has_gen2)
 		tegra_pcie_change_link_speed(pcie);
+
+	tegra_pcie_scale_freq(pcie);
 }
 
 static void tegra_pcie_disable_ports(struct tegra_pcie *pcie)
@@ -2844,6 +2933,8 @@ static const struct tegra_pcie_soc tegra20_pcie = {
 	.has_aspm_l1 = false,
 	.has_aspm_l1ss = false,
 	.l1ss_rp_wake_fixup = false,
+	.dvfs_mselect = false,
+	.dvfs_afi = false,
 	.ectl.enable = false,
 };
 
@@ -2878,6 +2969,8 @@ static const struct tegra_pcie_soc tegra30_pcie = {
 	.has_aspm_l1 = true,
 	.has_aspm_l1ss = false,
 	.l1ss_rp_wake_fixup = false,
+	.dvfs_mselect = false,
+	.dvfs_afi = false,
 	.ectl.enable = false,
 };
 
@@ -2906,6 +2999,8 @@ static const struct tegra_pcie_soc tegra124_pcie = {
 	.has_aspm_l1 = true,
 	.has_aspm_l1ss = false,
 	.l1ss_rp_wake_fixup = false,
+	.dvfs_mselect = false,
+	.dvfs_afi = false,
 	.ectl.enable = false,
 };
 
@@ -2934,6 +3029,10 @@ static const struct tegra_pcie_soc tegra210_pcie = {
 	.has_aspm_l1 = true,
 	.has_aspm_l1ss = true,
 	.l1ss_rp_wake_fixup = true,
+	.dvfs_mselect = true,
+	.dvfs_afi = false,
+	.dfs_tbl = {
+		{{204000000, 102000000}, {408000000, 528000000} } },
 	.ectl = {
 		.regs = {
 			.rp_ectl_2_r1 = 0x0000000f,
@@ -2980,6 +3079,15 @@ static const struct tegra_pcie_soc tegra186_pcie = {
 	.has_aspm_l1 = true,
 	.has_aspm_l1ss = true,
 	.l1ss_rp_wake_fixup = false,
+	.dvfs_mselect = false,
+	.dvfs_afi = true,
+	.dfs_tbl = {
+		{{0, 0}, {0, 0} },
+		{{102000000, 480000000}, {102000000, 480000000} },
+		{{102000000, 480000000}, {204000000, 480000000} },
+		{{102000000, 480000000}, {204000000, 480000000} },
+		{{204000000, 480000000}, {408000000, 480000000} },
+		{{204000000, 480000000}, {408000000, 640000000} } },
 	.ectl.enable = false,
 };
 
@@ -3128,6 +3236,12 @@ static int tegra_pcie_probe(struct platform_device *pdev)
 	INIT_LIST_HEAD(&pcie->ports);
 	pcie->dev = dev;
 
+#if IS_ENABLED(CONFIG_TEGRA_BWMGR)
+	pcie->emc_bwmgr = tegra_bwmgr_register(TEGRA_BWMGR_CLIENT_PCIE);
+	if (!pcie->emc_bwmgr)
+		dev_err(dev, "couldn't register with EMC BwMgr\n");
+#endif
+
 	err = pci_parse_request_of_pci_ranges(dev, &host->windows, NULL, &bus);
 	if (err) {
 		dev_err(dev, "Getting bridge resources failed\n");
@@ -3211,6 +3325,11 @@ static int tegra_pcie_remove(struct platform_device *pdev)
 
 	if (IS_ENABLED(CONFIG_DEBUG_FS))
 		tegra_pcie_debugfs_exit(pcie);
+
+#if IS_ENABLED(CONFIG_TEGRA_BWMGR)
+	tegra_bwmgr_set_emc(pcie->emc_bwmgr, 0, TEGRA_BWMGR_SET_EMC_FLOOR);
+	tegra_bwmgr_unregister(pcie->emc_bwmgr);
+#endif
 
 	pci_stop_root_bus(host->bus);
 	pci_remove_root_bus(host->bus);
