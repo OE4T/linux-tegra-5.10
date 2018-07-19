@@ -327,6 +327,7 @@ struct tegra_pcie_soc {
 	bool raw_violation_fixup;
 	bool update_fc_timer;
 	bool has_cache_bars;
+	bool enable_wrap;
 	struct {
 		struct {
 			u32 rp_ectl_2_r1;
@@ -686,6 +687,26 @@ static void tegra_pcie_program_ectl_settings(struct tegra_pcie_port *port)
 	writel(value, port->base + RP_ECTL_6_R2);
 }
 
+static void tegra_pcie_enable_wrap(void)
+{
+	u32 val;
+	void __iomem *msel_base;
+
+#define MSELECT_CONFIG_BASE     0x50060000
+#define MSELECT_CONFIG_WRAP_TO_INCR_SLAVE1      BIT(28)
+#define MSELECT_CONFIG_ERR_RESP_EN_SLAVE1       BIT(24)
+
+	/* Config MSELECT to support wrap trans for normal NC & GRE mapping */
+	msel_base = ioremap(MSELECT_CONFIG_BASE, 4);
+	val = readl(msel_base);
+	/* Enable WRAP_TO_INCR_SLAVE1 */
+	val |= MSELECT_CONFIG_WRAP_TO_INCR_SLAVE1;
+	/* Disable ERR_RESP_EN_SLAVE1 */
+	val &= ~MSELECT_CONFIG_ERR_RESP_EN_SLAVE1;
+	writel(val, msel_base);
+	iounmap(msel_base);
+}
+
 static void tegra_pcie_apply_sw_fixup(struct tegra_pcie_port *port)
 {
 	const struct tegra_pcie_soc *soc = port->pcie->soc;
@@ -737,6 +758,9 @@ static void tegra_pcie_apply_sw_fixup(struct tegra_pcie_port *port)
 	value &= ~PCI_EXP_LNKSTA_CLS;
 	value |= PCI_EXP_LNKSTA_CLS_2_5GB;
 	writel(value, port->base + RP_LINK_CONTROL_STATUS_2);
+
+	if (soc->enable_wrap)
+		tegra_pcie_enable_wrap();
 }
 
 static void tegra_pcie_port_enable(struct tegra_pcie_port *port)
@@ -2554,6 +2578,7 @@ static const struct tegra_pcie_soc tegra20_pcie = {
 	.raw_violation_fixup = false,
 	.update_fc_timer = false,
 	.has_cache_bars = true,
+	.enable_wrap = false,
 	.ectl.enable = false,
 };
 
@@ -2584,6 +2609,7 @@ static const struct tegra_pcie_soc tegra30_pcie = {
 	.raw_violation_fixup = false,
 	.update_fc_timer = false,
 	.has_cache_bars = false,
+	.enable_wrap = false,
 	.ectl.enable = false,
 };
 
@@ -2608,6 +2634,7 @@ static const struct tegra_pcie_soc tegra124_pcie = {
 	.raw_violation_fixup = true,
 	.update_fc_timer = false,
 	.has_cache_bars = false,
+	.enable_wrap = false,
 	.ectl.enable = false,
 };
 
@@ -2632,6 +2659,7 @@ static const struct tegra_pcie_soc tegra210_pcie = {
 	.raw_violation_fixup = false,
 	.update_fc_timer = true,
 	.has_cache_bars = false,
+	.enable_wrap = true,
 	.ectl = {
 		.regs = {
 			.rp_ectl_2_r1 = 0x0000000f,
@@ -2674,6 +2702,7 @@ static const struct tegra_pcie_soc tegra186_pcie = {
 	.raw_violation_fixup = false,
 	.update_fc_timer = false,
 	.has_cache_bars = false,
+	.enable_wrap = false,
 	.ectl.enable = false,
 };
 
