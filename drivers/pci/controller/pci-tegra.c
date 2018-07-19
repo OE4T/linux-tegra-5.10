@@ -221,6 +221,9 @@
 #define  RP_RX_HDR_LIMIT_PW_MASK	(0xff << 8)
 #define  RP_RX_HDR_LIMIT_PW		(0x0e << 8)
 
+#define RP_ECTL_1_R1	0xe8a
+#define  RP_ECTL_1_R1_TX_DRV_AMP_1C_MASK	0x3f
+
 #define RP_TIMEOUT0		0xe24
 #define  RP_TIMEOUT0_PAD_PWRUP_MASK		0xff
 #define  RP_TIMEOUT0_PAD_PWRUP			0xa
@@ -247,6 +250,9 @@
 
 #define RP_ECTL_6_R1	0x00000e94
 #define  RP_ECTL_6_R1_RX_EQ_CTRL_H_1C_MASK	0xffffffff
+
+#define RP_ECTL_1_R2	0xea0
+#define  RP_ECTL_1_R2_TX_DRV_AMP_1C_MASK	0x3f
 
 #define RP_ECTL_2_R2	0x00000ea4
 #define  RP_ECTL_2_R2_RX_CTLE_1C_MASK	0xffff
@@ -413,10 +419,12 @@ struct tegra_pcie_soc {
 	struct pcie_dvfs dfs_tbl[10][2];
 	struct {
 		struct {
+			u32 rp_ectl_1_r1;
 			u32 rp_ectl_2_r1;
 			u32 rp_ectl_4_r1;
 			u32 rp_ectl_5_r1;
 			u32 rp_ectl_6_r1;
+			u32 rp_ectl_1_r2;
 			u32 rp_ectl_2_r2;
 			u32 rp_ectl_4_r2;
 			u32 rp_ectl_5_r2;
@@ -814,6 +822,11 @@ static void tegra_pcie_program_ectl_settings(struct tegra_pcie_port *port)
 	const struct tegra_pcie_soc *soc = port->pcie->soc;
 	u32 value;
 
+	value = readl(port->base + RP_ECTL_1_R1);
+	value &= ~RP_ECTL_1_R1_TX_DRV_AMP_1C_MASK;
+	value |= soc->ectl.regs.rp_ectl_1_r1;
+	writel(value, port->base + RP_ECTL_1_R1);
+
 	value = readl(port->base + RP_ECTL_2_R1);
 	value &= ~RP_ECTL_2_R1_RX_CTLE_1C_MASK;
 	value |= soc->ectl.regs.rp_ectl_2_r1;
@@ -834,6 +847,11 @@ static void tegra_pcie_program_ectl_settings(struct tegra_pcie_port *port)
 	value &= ~RP_ECTL_6_R1_RX_EQ_CTRL_H_1C_MASK;
 	value |= soc->ectl.regs.rp_ectl_6_r1;
 	writel(value, port->base + RP_ECTL_6_R1);
+
+	value = readl(port->base + RP_ECTL_1_R2);
+	value &= ~RP_ECTL_1_R2_TX_DRV_AMP_1C_MASK;
+	value |= soc->ectl.regs.rp_ectl_1_r2;
+	writel(value, port->base + RP_ECTL_1_R2);
 
 	value = readl(port->base + RP_ECTL_2_R2);
 	value &= ~RP_ECTL_2_R2_RX_CTLE_1C_MASK;
@@ -2233,6 +2251,10 @@ static int tegra_pcie_get_xbar_config(struct tegra_pcie *pcie, u32 lanes,
 			*xbar = AFI_PCIE_CONFIG_SM2TMS0_XBAR_CONFIG_211;
 			return 0;
 		}
+	} else if (of_device_is_compatible(np, "nvidia,tegra210b01-pcie")) {
+		dev_info(dev, "4x1, 1x1 configuration\n");
+		*xbar = AFI_PCIE_CONFIG_SM2TMS0_XBAR_CONFIG_X4_X1;
+		return 0;
 	} else if (of_device_is_compatible(np, "nvidia,tegra124-pcie") ||
 		   of_device_is_compatible(np, "nvidia,tegra210-pcie")) {
 		switch (lanes) {
@@ -3035,14 +3057,62 @@ static const struct tegra_pcie_soc tegra210_pcie = {
 		{{204000000, 102000000}, {408000000, 528000000} } },
 	.ectl = {
 		.regs = {
+			.rp_ectl_1_r1 = 0x0000001f,
 			.rp_ectl_2_r1 = 0x0000000f,
 			.rp_ectl_4_r1 = 0x00000067,
 			.rp_ectl_5_r1 = 0x55010000,
 			.rp_ectl_6_r1 = 0x00000001,
+			.rp_ectl_1_r2 = 0x0000001f,
 			.rp_ectl_2_r2 = 0x0000008f,
 			.rp_ectl_4_r2 = 0x000000c7,
 			.rp_ectl_5_r2 = 0x55010000,
 			.rp_ectl_6_r2 = 0x00000001,
+		},
+		.enable = true,
+	},
+};
+
+static const struct tegra_pcie_soc tegra210b01_pcie = {
+	.num_ports = 2,
+	.ports = tegra20_pcie_ports,
+	.msi_base_shift = 8,
+	.pads_pll_ctl = PADS_PLL_CTL_TEGRA30,
+	.tx_ref_sel = PADS_PLL_CTL_TXCLKREF_BUF_EN,
+	.pads_refclk_cfg0 = 0x90b890b8,
+	/* FC threshold is bit[25:18] */
+	.update_fc_threshold = 0x01800000,
+	.has_pex_clkreq_en = true,
+	.has_pex_bias_ctrl = true,
+	.has_intr_prsnt_sense = true,
+	.has_cml_clk = true,
+	.has_gen2 = true,
+	.force_pca_enable = true,
+	.program_uphy = true,
+	.update_clamp_threshold = false,
+	.program_deskew_time = true,
+	.raw_violation_fixup = false,
+	.update_fc_timer = true,
+	.has_cache_bars = false,
+	.enable_wrap = false,
+	.has_aspm_l1 = true,
+	.has_aspm_l1ss = true,
+	.l1ss_rp_wake_fixup = true,
+	.dvfs_mselect = true,
+	.dvfs_afi = false,
+	.dfs_tbl = {
+		{{204000000, 102000000}, {408000000, 528000000} } },
+	.ectl = {
+		.regs = {
+			.rp_ectl_1_r1 = 0x00000027,
+			.rp_ectl_2_r1 = 0x0000000f,
+			.rp_ectl_4_r1 = 0x00000067,
+			.rp_ectl_5_r1 = 0x00000000,
+			.rp_ectl_6_r1 = 0x00000000,
+			.rp_ectl_1_r2 = 0x00000027,
+			.rp_ectl_2_r2 = 0x0000008f,
+			.rp_ectl_4_r2 = 0x000000c7,
+			.rp_ectl_5_r2 = 0x00000000,
+			.rp_ectl_6_r2 = 0x00000000,
 		},
 		.enable = true,
 	},
@@ -3093,6 +3163,7 @@ static const struct tegra_pcie_soc tegra186_pcie = {
 
 static const struct of_device_id tegra_pcie_of_match[] = {
 	{ .compatible = "nvidia,tegra186-pcie", .data = &tegra186_pcie },
+	{ .compatible = "nvidia,tegra210b01-pcie", .data = &tegra210b01_pcie },
 	{ .compatible = "nvidia,tegra210-pcie", .data = &tegra210_pcie },
 	{ .compatible = "nvidia,tegra124-pcie", .data = &tegra124_pcie },
 	{ .compatible = "nvidia,tegra30-pcie", .data = &tegra30_pcie },
