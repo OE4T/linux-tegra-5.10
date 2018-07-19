@@ -147,6 +147,9 @@ Power supplies for Tegra186:
   - vddio-pexctl-aud-supply: Power supply for PCIe side band signals. Must
     supply 1.8 V.
 
+Optional properties:
+- nvidia,wake-gpio: Part of connector, used for wake up from mem sleep
+
 Root ports are defined as subnodes of the PCIe controller node.
 
 Required properties:
