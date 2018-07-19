@@ -378,6 +378,8 @@ struct tegra_pcie {
 	struct regulator_bulk_data *supplies;
 	unsigned int num_supplies;
 
+	int pex_wake;
+
 	const struct tegra_pcie_soc *soc;
 	struct dentry *debugfs;
 };
@@ -2219,6 +2221,21 @@ static int tegra_pcie_parse_dt(struct tegra_pcie *pcie)
 	unsigned int lane = 0;
 	int err;
 
+	pcie->pex_wake = of_get_named_gpio(np, "nvidia,wake-gpio", 0);
+	if (gpio_is_valid(pcie->pex_wake)) {
+		err = devm_gpio_request(dev, pcie->pex_wake, "pex_wake");
+		if (err < 0) {
+			dev_err(dev, "pex_wake gpio request failed: %d\n", err);
+			return err;
+		}
+		err = gpio_direction_input(pcie->pex_wake);
+		if (err < 0) {
+			dev_err(dev, "pex_wake set gpio dir input failed: %d\n",
+				err);
+			return err;
+		}
+	}
+
 	/* parse root ports */
 	for_each_child_of_node(np, port) {
 		struct tegra_pcie_port *rp;
@@ -2911,6 +2928,8 @@ static int tegra_pcie_probe(struct platform_device *pdev)
 			dev_err(dev, "failed to setup debugfs: %d\n", err);
 	}
 
+	device_init_wakeup(dev, true);
+
 	return 0;
 
 pm_runtime_put:
@@ -2927,6 +2946,8 @@ static int tegra_pcie_remove(struct platform_device *pdev)
 	struct tegra_pcie *pcie = platform_get_drvdata(pdev);
 	struct pci_host_bridge *host = pci_host_bridge_from_priv(pcie);
 	struct tegra_pcie_port *port, *tmp;
+
+	device_init_wakeup(&pdev->dev, false);
 
 	if (IS_ENABLED(CONFIG_DEBUG_FS))
 		tegra_pcie_debugfs_exit(pcie);
@@ -3040,10 +3061,32 @@ poweroff:
 	return err;
 }
 
+static int tegra_pcie_suspend_late(struct device *dev)
+{
+	struct tegra_pcie *pcie = dev_get_drvdata(dev);
+
+	if (gpio_is_valid(pcie->pex_wake))
+		enable_irq_wake(gpio_to_irq(pcie->pex_wake));
+
+	return 0;
+}
+
+static int tegra_pcie_resume_early(struct device *dev)
+{
+	struct tegra_pcie *pcie = dev_get_drvdata(dev);
+
+	if (gpio_is_valid(pcie->pex_wake))
+		disable_irq_wake(gpio_to_irq(pcie->pex_wake));
+
+	return 0;
+}
+
 static const struct dev_pm_ops tegra_pcie_pm_ops = {
 	SET_RUNTIME_PM_OPS(tegra_pcie_pm_suspend, tegra_pcie_pm_resume, NULL)
 	SET_NOIRQ_SYSTEM_SLEEP_PM_OPS(tegra_pcie_pm_suspend,
 				      tegra_pcie_pm_resume)
+	SET_LATE_SYSTEM_SLEEP_PM_OPS(tegra_pcie_suspend_late,
+				     tegra_pcie_resume_early)
 };
 
 static struct platform_driver tegra_pcie_driver = {
