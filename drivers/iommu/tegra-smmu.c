@@ -526,21 +526,24 @@ static int tegra_smmu_attach_dev(struct iommu_domain *domain,
 	for (index = 0; index < fwspec->num_ids; index++) {
 		err = tegra_smmu_as_prepare(smmu, as);
 		if (err)
-			goto disable;
-
-		tegra_smmu_enable(smmu, fwspec->ids[index], as);
+			goto unprepare;
 	}
 
 	if (index == 0)
 		return -ENODEV;
 
+	err = iommu_create_device_direct_mappings(domain, dev);
+	if (err)
+		dev_err(dev, "Direct mappings failed: %d\n", err);
+
+	for (index = 0; index < fwspec->num_ids; index++)
+		tegra_smmu_enable(smmu, fwspec->ids[index], as);
+
 	return 0;
 
-disable:
-	while (index--) {
-		tegra_smmu_disable(smmu, fwspec->ids[index], as->id);
+unprepare:
+	while (index--)
 		tegra_smmu_as_unprepare(smmu, as);
-	}
 
 	return err;
 }
@@ -980,6 +983,7 @@ static void tegra_smmu_get_resv_regions(struct device *dev,
 	list_add_tail(&region->list, head);
 
 	of_get_iommu_resv_regions(dev, head);
+	of_get_iommu_direct_regions(dev, head);
 
 	iommu_dma_get_resv_regions(dev, head);
 }
