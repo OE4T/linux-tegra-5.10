@@ -2634,6 +2634,21 @@ static int tegra_dc_get_cap_quant_info(struct tegra_dc_ext_user *user,
 	return ret;
 }
 
+static void tegra_dc_get_cap_dv_info(struct tegra_dc_ext_user *user,
+				struct tegra_dc_ext_dv_caps *dv_cap_info)
+{
+	struct tegra_dc *dc = user->ext->dc;
+	struct tegra_edid *dc_edid = dc->edid;
+
+	/* Currently only dc->edid has this info. In future,
+	 * we have to provide info for non-edid interfaces
+	 * in the device tree.
+	 */
+	if (dc_edid)
+		tegra_edid_get_ex_dv_cap_info(dc_edid, dv_cap_info);
+
+}
+
 static int tegra_dc_get_caps(struct tegra_dc_ext_user *user,
 				struct tegra_dc_ext_caps *caps,
 				int nr_elements)
@@ -2666,6 +2681,24 @@ static int tegra_dc_get_caps(struct tegra_dc_ext_user *user,
 				sizeof(quant_cap_info))) {
 				return -EFAULT;
 			}
+			break;
+		}
+		case TEGRA_DC_EXT_CAP_TYPE_DV_SINK:
+		{
+			struct tegra_dc_ext_dv_caps *dv_cap_info;
+
+			dv_cap_info = kzalloc(sizeof(*dv_cap_info),
+				GFP_KERNEL);
+
+			tegra_dc_get_cap_dv_info(user, dv_cap_info);
+
+			if (copy_to_user((void __user *)(uintptr_t)
+				caps[i].data, dv_cap_info,
+				sizeof(*dv_cap_info))) {
+				kfree(dv_cap_info);
+				return -EFAULT;
+			}
+			kfree(dv_cap_info);
 			break;
 		}
 		default:

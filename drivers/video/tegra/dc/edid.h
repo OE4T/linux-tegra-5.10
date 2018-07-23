@@ -178,6 +178,10 @@ struct tegra_edid_hdmi_eld {
 	u8	sad[ELD_MAX_SAD_BYTES];
 };
 
+#define IEEE_CEA861_DV_ID 0x00D046
+#define TEGRA_DC_DV_VSVDB_V1_12B_SIZE 0x0B
+#define TEGRA_DC_DV_VSVDB_V1_15B_SIZE 0x0E
+
 struct tegra_edid *tegra_edid_create(struct tegra_dc *dc,
 	i2c_transfer_func_t func);
 void tegra_edid_destroy(struct tegra_edid *edid);
@@ -191,6 +195,9 @@ bool tegra_edid_is_rgb_quantization_selectable(struct tegra_edid *edid);
 bool tegra_edid_is_yuv_quantization_selectable(struct tegra_edid *edid);
 int tegra_edid_get_ex_quant_cap_info(struct tegra_edid *edid,
 				struct tegra_dc_ext_quant_caps *hdr_quant_info);
+void tegra_edid_get_ex_dv_cap_info(struct tegra_edid *edid,
+				struct tegra_dc_ext_dv_caps *dv_cap_info);
+u16 tegra_edid_get_quant_cap(struct tegra_edid *edid);
 u16 tegra_edid_get_max_clk_rate(struct tegra_edid *edid);
 bool tegra_edid_is_scdc_present(struct tegra_edid *edid);
 bool tegra_edid_is_420db_present(struct tegra_edid *edid);

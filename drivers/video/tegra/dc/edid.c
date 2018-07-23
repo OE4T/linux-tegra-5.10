@@ -32,6 +32,7 @@
 struct tegra_edid_pvt {
 	struct kref			refcnt;
 	struct tegra_edid_hdmi_eld	eld;
+	struct tegra_dc_ext_dv_caps	dv_caps;
 	bool				support_stereo;
 	bool				support_underscan;
 	bool				support_audio;
@@ -289,6 +290,109 @@ int tegra_edid_read_block(struct tegra_edid *edid, int block, u8 *data)
 	return 0;
 }
 
+static void tegra_edid_parse_dv_caps(struct tegra_edid_pvt *edid,
+			const u8 *ptr)
+{
+	u32 dv_ieee_id = ((ptr[2]) | (ptr[3] << 8) | (ptr[4] << 16));
+	u32 dv_vsvdb_ver, dv_vsvdb_size;
+	struct tegra_dc_ext_dv_caps_vsvdb_v0 *v0;
+	struct tegra_dc_ext_dv_caps_vsvdb_v1_15b *v1_15b;
+	struct tegra_dc_ext_dv_caps_vsvdb_v1_12b *v1_12b;
+	struct tegra_dc_ext_dv_caps_vsvdb_v2 *v2;
+
+	if (dv_ieee_id != IEEE_CEA861_DV_ID) {
+		/* This VSVDB is not for DV */
+		return;
+	}
+
+	dv_vsvdb_ver = ((ptr[5] & 0xe0) >> 5);
+	dv_vsvdb_size = (ptr[0] & 0x1f);
+
+	/* Check version bits and populate dv caps accordingly.*/
+	switch (dv_vsvdb_ver) {
+	case 0:
+		/* version 0 */
+		edid->dv_caps.vsvdb_ver = TEGRA_DC_DV_VSVDB_V0;
+		v0 = &edid->dv_caps.v0;
+		v0->dm_version = ptr[21];
+		v0->supports_YUV422_12bit = (ptr[5] & 0x1);
+		v0->supports_2160p60hz = ((ptr[5] & 0x2) >> 1);
+		v0->supports_global_dimming = ((ptr[5] & 0x4) >> 2);
+		v0->target_min_pq = ((ptr[19] << 4) | ((ptr[18] & 0xf0) >> 4));
+		v0->target_max_pq = ((ptr[20] << 4) | (ptr[18] & 0x0f));
+		v0->cc_red_x = ((ptr[7] << 4) | ((ptr[6] & 0xf0) >> 4));
+		v0->cc_red_y = ((ptr[8] << 4) | (ptr[16] & 0x0f));
+		v0->cc_green_x = ((ptr[10] << 4) | ((ptr[9] & 0xf0) >> 4));
+		v0->cc_green_y = ((ptr[11] << 4) | (ptr[9] & 0x0f));
+		v0->cc_blue_x = ((ptr[13] << 4) | ((ptr[12] & 0xf0) >> 4));
+		v0->cc_blue_y = ((ptr[14] << 4) | (ptr[12] & 0x0f));
+		v0->cc_white_x = ((ptr[16] << 4) | ((ptr[15] & 0xf0) >> 4));
+		v0->cc_white_y = ((ptr[17] << 4) | (ptr[15] & 0x0f));
+		break;
+	case 1:
+		/* version 1, check size for differentiating*/
+		if (dv_vsvdb_size == TEGRA_DC_DV_VSVDB_V1_15B_SIZE) {
+			/* version 1, 15 byte */
+			edid->dv_caps.vsvdb_ver = TEGRA_DC_DV_VSVDB_V1_15B;
+			v1_15b = &edid->dv_caps.v1_15b;
+			v1_15b->supports_YUV422_12bit = (ptr[5] & 0x1);
+			v1_15b->supports_2160p60hz = ((ptr[5] & 0x2) >> 1);
+			v1_15b->dm_version = ((ptr[5] & 0x1c) >> 2);
+			v1_15b->supports_global_dimming = (ptr[6] & 0x1);
+			v1_15b->target_max_luminance = ((ptr[6] & 0xfe) >> 1);
+			v1_15b->colorimetry = (ptr[7] & 0x1);
+			v1_15b->target_min_luminance = ((ptr[7] & 0xfe) >> 1);
+			v1_15b->cc_red_x = ptr[9];
+			v1_15b->cc_red_y = ptr[10];
+			v1_15b->cc_green_x = ptr[11];
+			v1_15b->cc_green_y = ptr[12];
+			v1_15b->cc_blue_x = ptr[13];
+			v1_15b->cc_blue_y = ptr[14];
+		} else if (dv_vsvdb_size == TEGRA_DC_DV_VSVDB_V1_12B_SIZE) {
+			/* version 1, 12 byte */
+			edid->dv_caps.vsvdb_ver = TEGRA_DC_DV_VSVDB_V1_12B;
+			v1_12b = &edid->dv_caps.v1_12b;
+			v1_12b->supports_YUV422_12bit = (ptr[5] & 0x1);
+			v1_12b->supports_2160p60hz = ((ptr[5] & 0x2) >> 1);
+			v1_12b->dm_version = ((ptr[5] & 0x1c) >> 2);
+			v1_12b->supports_global_dimming = (ptr[6] & 0x1);
+			v1_12b->target_max_luminance = ((ptr[6] & 0xfe) >> 1);
+			v1_12b->colorimetry = (ptr[7] & 0x1);
+			v1_12b->target_min_luminance = ((ptr[7] & 0xfe) >> 1);
+			v1_12b->cc_red_x = 0xA0 | ((ptr[11] & 0xf8) >> 3);
+			v1_12b->cc_red_y = 0x40 | (((ptr[11] & 0x7) << 2) |
+				((ptr[10] & 0x1) << 1) | (ptr[9] & 0x1));
+			v1_12b->cc_green_x = 0x00 | ((ptr[9] & 0xfe) >> 1);
+			v1_12b->cc_green_y = 0x80 | ((ptr[10] & 0xfe) >> 1);
+			v1_12b->cc_blue_x = 0x20 | ((ptr[8] & 0xe0) >> 5);
+			v1_12b->cc_blue_y = 0x08 | ((ptr[8] & 0x1c) >> 2);
+			v1_12b->low_latency = (ptr[8] & 0x3);
+		}
+		break;
+	case 2:
+		/* version 2 */
+		edid->dv_caps.vsvdb_ver = TEGRA_DC_DV_VSVDB_V2;
+		v2 = &edid->dv_caps.v2;
+		v2->dm_version = ((ptr[5] & 0x1c) >> 2);
+		v2->supports_backlight_control = ((ptr[5] & 0x2) >> 1);
+		v2->supports_YUV422_12bit = (ptr[5] & 0x1);
+		v2->supports_global_dimming = ((ptr[6] & 0x4) >> 2);
+		v2->backlt_min_luma = (ptr[6] & 0x3);
+		v2->target_max_pq_v2 = ((ptr[7] & 0xf8) >> 3);
+		v2->target_min_pq_v2 = ((ptr[6] & 0xf8) >> 3);
+		v2->interface_supported_by_sink = (ptr[7] & 0x3);
+		v2->cc_red_x = 0xA0 | ((ptr[10] & 0xf8) >> 3);
+		v2->cc_red_y = 0x40 | ((ptr[11] & 0xf8) >> 3);
+		v2->cc_green_x = 0x00 | ((ptr[8] & 0xfe) >> 1);
+		v2->cc_green_y = 0x80 | ((ptr[9] & 0xfe) >> 1);
+		v2->cc_blue_x = 0x20 | (ptr[10] & 0x07);
+		v2->cc_blue_y = 0x08 | (ptr[11] & 0x07);
+		v2->supports_10b_12b_444 =
+			((ptr[8] & 0x1 << 1) | (ptr[9] & 0x1));
+		break;
+	}
+}
+
 static int tegra_edid_parse_ext_block(const u8 *raw, int idx,
 			       struct tegra_edid_pvt *edid)
 {
@@ -495,6 +599,9 @@ static int tegra_edid_parse_ext_block(const u8 *raw, int idx,
 					edid->hdr_desired_max_luma = ptr[4];
 				}
 				break;
+			case CEA_DATA_BLOCK_EXT_VSVDB:
+				tegra_edid_parse_dv_caps(edid, ptr);
+				break;
 			};
 
 			len++;
@@ -611,6 +718,22 @@ int tegra_edid_get_ex_hdr_cap_info(struct tegra_edid *edid,
 			edid->data->hdr_desired_min_luma;
 
 	return ret;
+}
+
+void tegra_edid_get_ex_dv_cap_info(struct tegra_edid *edid,
+			struct tegra_dc_ext_dv_caps *dv_cap_info)
+{
+	if (!edid || !edid->data) {
+		pr_warn("%s: edid invalid\n", __func__);
+		return;
+	}
+
+	if (edid->data->dv_caps.vsvdb_ver == TEGRA_DC_DV_VSVDB_NONE)
+		return;
+
+	memcpy(dv_cap_info, &edid->data->dv_caps,
+		sizeof(struct tegra_dc_ext_dv_caps));
+
 }
 
 inline bool tegra_edid_is_rgb_quantization_selectable(struct tegra_edid *edid)
