@@ -1817,6 +1817,11 @@ static void tegra_pcie_pme_turnoff(struct tegra_pcie_port *port)
 	val = afi_readl(pcie, AFI_PCIE_PME);
 	val &= ~(0x1 << soc->ports[port->index].pme.turnoff_bit);
 	afi_writel(pcie, val, AFI_PCIE_PME);
+
+	/* PCIe link is in L2, bypass CLKREQ# control over PLLE power down */
+	val = afi_readl(pcie, AFI_PLLE_CONTROL);
+	val |= AFI_PLLE_CONTROL_BYPASS_PADS2PLLE_CONTROL;
+	afi_writel(pcie, val, AFI_PLLE_CONTROL);
 }
 
 static int tegra_msi_alloc(struct tegra_msi *chip)
