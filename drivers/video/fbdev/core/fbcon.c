@@ -943,7 +943,7 @@ static int var_to_display(struct fbcon_display *disp,
 	disp->transp = var->transp;
 	disp->rotate = var->rotate;
 	disp->mode = fb_match_mode(var, &info->modelist);
-	if (disp->mode == NULL)
+	if (WARN_ON(disp->mode == NULL))
 		/* This should not happen */
 		return -EINVAL;
 	return 0;
