@@ -196,6 +196,9 @@ static int camrtc_ivc_dbg_full_frame_xact(
 	struct camrtc_debug *crd = tegra_ivc_channel_get_drvdata(ch);
 	int ret;
 
+	if (req == NULL || resp == NULL)
+		return -ENOMEM;
+
 	if (timeout == 0)
 		timeout = crd->parameters.completion_timeout;
 
@@ -457,6 +460,80 @@ static int camrtc_dbgfs_show_freertos_state(struct seq_file *file, void *data)
 
 DEFINE_SEQ_FOPS(camrtc_dbgfs_fops_freertos_state,
 		camrtc_dbgfs_show_freertos_state);
+
+static int camrtc_dbgfs_show_memstat(struct seq_file *file, void *data)
+{
+	struct tegra_ivc_channel *ch = file->private;
+	struct camrtc_dbg_request req = {
+		.req_type = CAMRTC_REQ_GET_MEM_USAGE,
+	};
+	struct camrtc_dbg_response resp;
+	int ret = 0;
+
+	ret = camrtc_ivc_dbg_xact(ch, &req, &resp, 0);
+	if (ret == 0) {
+		const struct camrtc_dbg_mem_usage *m = &resp.data.mem_usage;
+		uint32_t total = m->text + m->bss + m->data + m->heap +
+			m->stack + m->free_mem;
+
+#define K(x) (((x) + 1023) / 1024)
+		seq_printf(file, "%7s %7s %7s %7s %7s %7s %7s\n",
+			"text", "bss", "data", "heap", "sys", "free", "TOTAL");
+		seq_printf(file, "%7u\t%7u\t%7u\t%7u\t%7u\t%7u\t%7u\n",
+			m->text, m->bss, m->data, m->heap, m->stack, m->free_mem, total);
+		seq_printf(file, "%7u\t%7u\t%7u\t%7u\t%7u\t%7u\t%7u (in kilobytes)\n",
+			K(m->text), K(m->bss), K(m->data), K(m->heap),
+			K(m->stack), K(m->free_mem), K(total));
+	}
+
+	return ret;
+}
+
+DEFINE_SEQ_FOPS(camrtc_dbgfs_fops_memstat, camrtc_dbgfs_show_memstat);
+
+static int camrtc_dbgfs_show_irqstat(struct seq_file *file, void *data)
+{
+	int ret = -ENOMSG;
+#ifdef CAMRTC_REQ_GET_IRQ_STAT
+	struct tegra_ivc_channel *ch = file->private;
+	struct camrtc_dbg_request req = {
+		.req_type = CAMRTC_REQ_GET_IRQ_STAT,
+	};
+	void *mem = kzalloc(ch->ivc.frame_size, GFP_KERNEL | __GFP_ZERO);
+	struct camrtc_dbg_response *resp = mem;
+	const struct camrtc_dbg_irq_stat *stat = &resp->data.irq_stat;
+	uint32_t i;
+	uint32_t max_runtime = 0;
+
+	ret = camrtc_ivc_dbg_full_frame_xact(ch, &req, sizeof(req),
+			resp, ch->ivc.frame_size, 0);
+	if (ret != 0)
+		goto done;
+
+	seq_printf(file, "Irq#\tCount\tRuntime\tMax rt\tName\n");
+
+	for (i = 0; i < stat->n_irq; i++) {
+		seq_printf(file, "%u\t%u\t%llu\t%u\t%.*s\n",
+			stat->irqs[i].irq_num,
+			stat->irqs[i].num_called,
+			stat->irqs[i].runtime,
+			stat->irqs[i].max_runtime,
+			(int)sizeof(stat->irqs[i].name), stat->irqs[i].name);
+
+		if (max_runtime < stat->irqs[i].max_runtime)
+			max_runtime = stat->irqs[i].max_runtime;
+	}
+
+	seq_printf(file, "-\t%llu\t%llu\t%u\t%s\n", stat->total_called,
+		stat->total_runtime, max_runtime, "total");
+
+done:
+	kfree(mem);
+#endif
+	return ret;
+}
+
+DEFINE_SEQ_FOPS(camrtc_dbgfs_fops_irqstat, camrtc_dbgfs_show_irqstat);
 
 static size_t camrtc_dbgfs_get_max_test_size(
 	const struct tegra_ivc_channel *ch)
@@ -1405,6 +1482,13 @@ static int camrtc_debug_populate(struct tegra_ivc_channel *ch)
 		goto error;
 	if (!debugfs_create_file("forced-reset-restore", 0400, dir, ch,
 			&camrtc_dbgfs_fops_forced_reset_restore))
+		goto error;
+
+	if (!debugfs_create_file("irqstat", 0444, dir, ch,
+			&camrtc_dbgfs_fops_irqstat))
+		goto error;
+	if (!debugfs_create_file("memstat", 0444, dir, ch,
+			&camrtc_dbgfs_fops_memstat))
 		goto error;
 
 	dir = debugfs_create_dir("mods", crd->root);
