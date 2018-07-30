@@ -66,26 +66,6 @@
 	 * iommus node are deleted for ISO-Clients which are
 	 * nvdisplay, vi and vi-thi */
 	host1x {
-		nvdisplay@15200000 {
-			/delete-property/ iommus;
-			/delete-property/ iso-smmu;
-		};
-
-		nvdisplay@15210000 {
-			/delete-property/ iommus;
-			/delete-property/ iso-smmu;
-		};
-
-		nvdisplay@15220000 {
-			/delete-property/ iommus;
-			/delete-property/ iso-smmu;
-		};
-
-		nvdisplay@15230000 {
-			/delete-property/ iommus;
-			/delete-property/ iso-smmu;
-		};
-
 		vi: vi@15c10000 {
                         /delete-property/ iommus;
                         /delete-property/ iso-smmu;
