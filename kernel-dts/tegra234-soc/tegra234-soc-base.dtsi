@@ -572,12 +572,13 @@
 		};
 	};
 
-	intc: interrupt-controller@3881000 {
-		compatible = "arm,cortex-a15-gic";
+	intc: interrupt-controller@f400000 {
+		compatible = "arm,gic-v3";
 		#interrupt-cells = <3>;
+		#redistributor-regions = <1>;
 		interrupt-controller;
-		reg = <0x0 0x03881000 0x0 0x00001000
-		       0x0 0x03882000 0x0 0x00002000>;
+		reg = <0x0 0x0f400000 0x0 0x00010000    /* GICD */
+		       0x0 0x0f440000 0x0 0x00200000>;  /* GICR CPU 0-15 */
 		status = "disabled";
 	};
 
