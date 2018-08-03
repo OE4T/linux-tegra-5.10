@@ -126,6 +126,8 @@ struct tegra_dc_ext_flip_data {
 	u8 flags;
 	struct tegra_dc_hdr hdr_data;
 	struct tegra_dc_ext_avi avi_info;
+	struct tegra_dc_ext_dv dv_data;
+	bool dv_cache_dirty;
 	bool hdr_cache_dirty;
 	bool avi_cache_dirty;
 	bool imp_dirty;
@@ -1209,6 +1211,10 @@ static void tegra_dc_ext_flip_worker(struct kthread_work *work)
 	if (dc->enabled && !skip_flip) {
 		tegra_dc_set_hdr(dc, &data->hdr_data, data->hdr_cache_dirty);
 
+		if (data->dv_cache_dirty)
+			if (dc->out_ops && dc->out_ops->set_dv)
+				dc->out_ops->set_dv(dc, &data->dv_data);
+
 		dc->blanked = false;
 		if (dc->out_ops && dc->out_ops->vrr_enable)
 				dc->out_ops->vrr_enable(dc,
@@ -1783,6 +1789,17 @@ static int tegra_dc_ext_read_user_data(struct tegra_dc_ext_flip_data *data,
 				= udata->avi_color_components;
 			kdata->avi_color_quant = udata->avi_color_quant;
 			data->avi_cache_dirty = true;
+			break;
+		}
+		case TEGRA_DC_EXT_FLIP_USER_DATA_DV_DATA:
+		{
+			struct tegra_dc_ext_dv *kdata =
+				&data->dv_data;
+			struct tegra_dc_ext_dv *udata =
+				&flip_user_data[i].dv_info;
+
+			kdata->dv_signal = udata->dv_signal;
+			data->dv_cache_dirty = true;
 			break;
 		}
 		case TEGRA_DC_EXT_FLIP_USER_DATA_IMP_TAG:

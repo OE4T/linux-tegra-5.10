@@ -788,6 +788,52 @@ u16 tegra_edid_get_max_clk_rate(struct tegra_edid *edid)
 	return 0;
 }
 
+bool tegra_edid_require_dv_vsif(struct tegra_edid *edid)
+{
+	if (!edid || !edid->data) {
+		pr_warn("edid invalid\n");
+		return false;
+	}
+
+	return ((edid->data->dv_caps.vsvdb_ver == TEGRA_DC_DV_VSVDB_V1_12B) ||
+		(edid->data->dv_caps.vsvdb_ver == TEGRA_DC_DV_VSVDB_V2));
+}
+
+bool tegra_edid_support_dv_ll(struct tegra_edid *edid)
+{
+	if (!edid || !edid->data) {
+		pr_warn("edid invalid\n");
+		return false;
+	}
+
+	if (((edid->data->dv_caps.vsvdb_ver == TEGRA_DC_DV_VSVDB_V1_12B) &&
+	     (edid->data->dv_caps.v1_12b.low_latency == 0x1)) ||
+	    (edid->data->dv_caps.vsvdb_ver == TEGRA_DC_DV_VSVDB_V2))
+		return true;
+	else
+		return false;
+}
+
+bool tegra_edid_support_dv_std_422(struct tegra_edid *edid)
+{
+	if (!edid || !edid->data) {
+		pr_warn("edid invalid\n");
+		return false;
+	}
+
+	if (((edid->data->dv_caps.vsvdb_ver == TEGRA_DC_DV_VSVDB_V0) &&
+	     (edid->data->dv_caps.v0.supports_YUV422_12bit)) ||
+	    ((edid->data->dv_caps.vsvdb_ver == TEGRA_DC_DV_VSVDB_V1_15B) &&
+	     (edid->data->dv_caps.v1_15b.supports_YUV422_12bit)) ||
+	    ((edid->data->dv_caps.vsvdb_ver == TEGRA_DC_DV_VSVDB_V1_12B) &&
+	     (edid->data->dv_caps.v1_12b.supports_YUV422_12bit)) ||
+	    ((edid->data->dv_caps.vsvdb_ver == TEGRA_DC_DV_VSVDB_V2) &&
+	     (edid->data->dv_caps.v2.supports_YUV422_12bit)))
+		return true;
+	else
+		return false;
+}
+
 bool tegra_edid_is_scdc_present(struct tegra_edid *edid)
 {
 	if (tegra_platform_is_vdk())

@@ -121,6 +121,8 @@ struct tegra_dc_out_ops {
 	int (*set_avi)(struct tegra_dc *dc, struct tegra_dc_ext_avi *avi);
 	/* Configure controller for hdr infoframe update */
 	int (*set_hdr)(struct tegra_dc *dc);
+	/* Configure controller for dv infofrmae update */
+	int (*set_dv)(struct tegra_dc *dc, struct tegra_dc_ext_dv *dv);
 	/* shutdown the serial interface */
 	void (*shutdown_interface)(struct tegra_dc *dc);
 	u32 (*get_crc)(struct tegra_dc *dc);

@@ -2369,6 +2369,92 @@ static void tegra_hdmi_vendor_infoframe(struct tegra_hdmi *hdmi)
 #undef HDMI_INFOFRAME_LEN_VENDOR_LLC
 }
 
+static void tegra_hdmi_dv_infoframe_update(struct tegra_hdmi *hdmi)
+{
+	struct hdmi_dv_infoframe *dv = &hdmi->dv;
+
+	memset(&hdmi->dv, 0, sizeof(hdmi->dv));
+
+	/* PB1 - PB3 */
+	dv->oui = DV_IEEE_LLC_OUI;
+
+	/* PB4 */
+	if (hdmi->hdmi_dv_signal == TEGRA_DC_EXT_DV_SIGNAL_NONE)
+		dv->dolby_vision_signal = 0;
+	else
+		dv->dolby_vision_signal = 1;
+
+	if (hdmi->hdmi_dv_signal == TEGRA_DC_EXT_DV_SIGNAL_LOW_LATENCY)
+		dv->low_latency = 1;
+	else
+		dv->low_latency = 0;
+
+	dv->res1 = 0;
+
+	/* PB5 */
+	dv->eff_tmax_pq_high = 0;
+	dv->res2 = 0;
+	dv->auxilary_md_present = 0;
+	dv->backlight_ctrl_md_present = 0;
+
+	/* PB6 */
+	dv->eff_tmax_pq_low = 0;
+
+	/* PB7 */
+	dv->auxilary_run_mode = 0;
+
+	/* PB8 */
+	dv->auxilary_run_version = 0;
+
+	/* PB9 */
+	dv->auxilary_debug = 0;
+}
+
+static void tegra_hdmi_dv_infoframe(struct tegra_hdmi *hdmi)
+{
+	struct tegra_dc_sor_data *sor = hdmi->sor;
+
+	/* disable/stop vsi/dv infoframe before configuring */
+	tegra_sor_writel(sor, NV_SOR_HDMI_VSI_INFOFRAME_CTRL, 0);
+
+	if (hdmi->hdmi_dv_signal == TEGRA_DC_EXT_DV_SIGNAL_NONE) {
+		/*
+		 * Dolby Vision signal is turned off, as stopped sending VSIF,
+		 * send default VSIF.
+		 */
+		tegra_hdmi_vendor_infoframe(hdmi);
+		return;
+	}
+
+	if (tegra_edid_require_dv_vsif(hdmi->edid)) {
+		/* Dolby Vision VSVDB v1-12 byte and v2 version need Dolby VSIF
+		 * to be send continuously.
+		 */
+		tegra_hdmi_dv_infoframe_update(hdmi);
+
+		tegra_hdmi_infoframe_pkt_write(hdmi,
+			NV_SOR_HDMI_VSI_INFOFRAME_HEADER,
+			HDMI_INFOFRAME_TYPE_DV,
+			HDMI_INFOFRAME_VS_DV,
+			HDMI_INFOFRAME_LEN_DV,
+			&hdmi->dv, sizeof(hdmi->dv),
+			false);
+
+		/* Send infoframe every frame, checksum hw generated */
+		tegra_sor_writel(sor, NV_SOR_HDMI_VSI_INFOFRAME_CTRL,
+			NV_SOR_HDMI_VSI_INFOFRAME_CTRL_ENABLE_YES |
+			NV_SOR_HDMI_VSI_INFOFRAME_CTRL_OTHER_DISABLE |
+			NV_SOR_HDMI_VSI_INFOFRAME_CTRL_SINGLE_DISABLE |
+			NV_SOR_HDMI_VSI_INFOFRAME_CTRL_CHECKSUM_ENABLE);
+	} else {
+		/*
+		 * Dolby Vision VSVDB v0 and v1-15 byte version need HDMI 1.4b
+		 * VSIF to be send continuously.
+		 */
+		tegra_hdmi_vendor_infoframe(hdmi);
+	}
+}
+
 static void tegra_hdmi_hdr_infoframe_update(struct tegra_hdmi *hdmi)
 {
 	struct hdmi_hdr_infoframe *hdr = &hdmi->hdr;
@@ -2888,7 +2974,7 @@ static int tegra_hdmi_controller_enable(struct tegra_hdmi *hdmi)
 	 * */
 	if (hdmi->edid) {
 		tegra_hdmi_avi_infoframe(hdmi);
-		tegra_hdmi_vendor_infoframe(hdmi);
+		tegra_hdmi_dv_infoframe(hdmi);
 		tegra_hdmi_spd_infoframe(hdmi);
 	}
 
@@ -3364,6 +3450,21 @@ static void tegra_dc_hdmi_resume(struct tegra_dc *dc)
 				msecs_to_jiffies(HDMI_HPD_DEBOUNCE_DELAY_MS));
 
 	wait_for_completion(&dc->hpd_complete);
+}
+
+static int tegra_dc_hdmi_set_dv(struct tegra_dc *dc, struct tegra_dc_ext_dv *dv)
+{
+	u16 ret = 0;
+	struct tegra_hdmi *hdmi = tegra_dc_get_outdata(dc);
+
+	if (hdmi->hdmi_dv_signal == dv->dv_signal)
+		return ret;
+
+	/* update hdmi dv signal with requested value */
+	hdmi->hdmi_dv_signal = dv->dv_signal;
+	tegra_hdmi_dv_infoframe(hdmi);
+
+	return ret;
 }
 
 static int tegra_dc_hdmi_set_hdr(struct tegra_dc *dc)
@@ -3943,6 +4044,7 @@ struct tegra_dc_out_ops tegra_dc_hdmi2_0_ops = {
 	.vrr_update_monspecs = tegra_hdmivrr_update_monspecs,
 	.set_hdr = tegra_dc_hdmi_set_hdr,
 	.set_avi = tegra_dc_hdmi_set_avi,
+	.set_dv = tegra_dc_hdmi_set_dv,
 	.postpoweron = tegra_dc_hdmi_postpoweron,
 	.shutdown_interface = tegra_dc_hdmi_sor_sleep,
 	.get_crc = tegra_dc_hdmi_sor_crc_check,

@@ -43,6 +43,8 @@ enum {
 	HDMI_INFOFRAME_TYPE_AUDIO = 0x84,
 	HDMI_INFOFRAME_TYPE_MPEG_SRC = 0x85,
 	HDMI_INFOFRAME_TYPE_HDR = 0x87,
+	/* DV infoframe type same as vendor. Adding just for clarity */
+	HDMI_INFOFRAME_TYPE_DV = 0x81,
 };
 
 enum {
@@ -52,6 +54,7 @@ enum {
 	HDMI_INFOFRAME_VS_AUDIO = 0x1,
 	HDMI_INFOFRAME_VS_MPEG_SRC = 0x1,
 	HDMI_INFOFRAME_VS_HDR = 0x1,
+	HDMI_INFOFRAME_VS_DV = 0x1,
 };
 
 /* excluding checksum and header bytes */
@@ -62,6 +65,7 @@ enum {
 	HDMI_INFOFRAME_LEN_AUDIO = 10,
 	HDMI_INFOFRAME_LEN_MPEG_SRC = 10,
 	HDMI_INFOFRAME_LEN_HDR = 26,
+	HDMI_INFOFRAME_LEN_DV = 27,
 };
 
 enum {
@@ -396,6 +400,50 @@ struct hdmi_vendor_infoframe {
 	u32 ext_data_3d:4;
 } __packed;
 
+
+#define DV_IEEE_LLC_OUI		(0x00D046)
+
+/* all fields little endian */
+struct hdmi_dv_infoframe {
+	/* PB0 */
+	u32 csum:8;
+
+	/* PB1, PB2, PB3 */
+	u32 oui:24;	/* organizationally unique identifier */
+
+	/* PB4 */
+	u32 low_latency:1;
+	u32 dolby_vision_signal:1;
+	u32 res1:6;
+
+	/* PB5 */
+	u32 eff_tmax_pq_high:4;
+	u32 res2:2;
+	u32 auxilary_md_present:1;
+	u32 backlight_ctrl_md_present:1;
+
+	/* PB6 */
+	u32 eff_tmax_pq_low:8;
+
+	/* PB7 */
+	u32 auxilary_run_mode:8;
+
+	/* PB8 */
+	u32 auxilary_run_version:8;
+
+	/* PB9 */
+	u32 auxilary_debug:8;
+
+	/*PB10-PB27*/
+	u32 res3:32;
+	u32 res4:32;
+	u32 res5:32;
+	u32 res6:32;
+	u32 res7:32;
+	u32 res8:32;
+	u32 res9:32;
+} __packed;
+
 enum {
 	TEGRA_HDMI_SAFE_CLK = 1,
 	TEGRA_HDMI_BRICK_CLK = 2,
@@ -422,7 +470,9 @@ struct tegra_hdmi {
 	struct tegra_hdmi_out *pdata;
 	struct hdmi_avi_infoframe avi;
 	struct hdmi_hdr_infoframe hdr;
+	struct hdmi_dv_infoframe dv;
 	struct hdmi_spd_infoframe spd;
+	u8 hdmi_dv_signal;
 	bool enabled;
 	atomic_t clock_refcount;
 
