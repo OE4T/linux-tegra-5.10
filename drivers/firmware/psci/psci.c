@@ -290,6 +290,9 @@ static int psci_suspend_finisher(unsigned long state)
 {
 	u32 power_state = state;
 
+	if (extended_ops.make_power_state)
+		power_state = extended_ops.make_power_state(power_state);
+
 	return psci_ops.cpu_suspend(power_state, __pa_symbol(cpu_resume));
 }
 
@@ -297,8 +300,11 @@ int psci_cpu_suspend_enter(u32 state)
 {
 	int ret;
 
-	if (!psci_power_state_loses_context(state))
+	if (!psci_power_state_loses_context(state)) {
+		if (extended_ops.make_power_state)
+			state = extended_ops.make_power_state(state);
 		ret = psci_ops.cpu_suspend(state, 0);
+	}
 	else
 		ret = cpu_suspend(state, psci_suspend_finisher);
 
