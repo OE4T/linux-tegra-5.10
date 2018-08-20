@@ -1,7 +1,7 @@
 /*
 * sor_regs.h: sor register definitions.
 *
-* Copyright (c) 2011-2018, NVIDIA CORPORATION, All rights reserved.
+* Copyright (c) 2011-2019, NVIDIA CORPORATION, All rights reserved.
 *
 * This software is licensed under the terms of the GNU General Public
 * License version 2, as published by the Free Software Foundation, and
@@ -1075,6 +1075,8 @@
 #define NV_SOR_HDMI_AVI_INFOFRAME_HEADER			0xa1
 #define NV_SOR_HDMI_AVI_INFOFRAME_SUBPACK0_LOW			0xa2
 #define NV_SOR_HDMI_AVI_INFOFRAME_SUBPACK0_HIGH			0xa3
+#define NV_SOR_HDMI_AVI_INFOFRAME_SUBPACK1_LOW_0		0xa4
+#define NV_SOR_HDMI_AVI_INFOFRAME_SUBPACK1_HIGH_0		0xa5
 #define NV_SOR_HDMI_AVI_INFOFRAME_CTRL				0x9f
 #define NV_SOR_HDMI_AVI_INFOFRAME_CTRL_CHECKSUM_ENABLE		(1 << 9)
 #define NV_SOR_HDMI_AVI_INFOFRAME_CTRL_CHECKSUM_DISABLE		(0 << 9)

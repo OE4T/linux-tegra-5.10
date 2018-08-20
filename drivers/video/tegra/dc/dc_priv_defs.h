@@ -4,7 +4,7 @@
  * Copyright (C) 2010 Google, Inc.
  * Author: Erik Gilling <konkers@android.com>
  *
- * Copyright (c) 2010-2018, NVIDIA CORPORATION, All rights reserved.
+ * Copyright (c) 2010-2019, NVIDIA CORPORATION, All rights reserved.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -121,6 +121,9 @@ struct tegra_dc_out_ops {
 	bool (*hpd_state)(struct tegra_dc *dc);
 	/* Configure controller to receive hotplug events */
 	int (*hotplug_init)(struct tegra_dc *dc);
+	/* Configure controller for avi infoframe update */
+	int (*set_avi)(struct tegra_dc *dc, struct tegra_dc_ext_avi *avi);
+	/* Configure controller for hdr infoframe update */
 	int (*set_hdr)(struct tegra_dc *dc);
 	/* shutdown the serial interface */
 	void (*shutdown_interface)(struct tegra_dc *dc);

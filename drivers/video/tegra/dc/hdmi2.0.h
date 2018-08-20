@@ -1,7 +1,7 @@
 /*
  * hdmi2.0.h: hdmi2.0 driver.
  *
- * Copyright (c) 2014-2018, NVIDIA CORPORATION, All rights reserved.
+ * Copyright (c) 2014-2019, NVIDIA CORPORATION, All rights reserved.
  * Author: Animesh Kishore <ankishore@nvidia.com>
  *
  * This software is licensed under the terms of the GNU General Public
@@ -435,6 +435,8 @@ struct tegra_hdmi {
 	u8 edid_src;
 	struct fb_monspecs mon_spec;
 	bool mon_spec_valid;
+
+	u8 avi_colorimetry;
 
 	struct tegra_edid *edid;
 	struct i2c_client *ddc_i2c_client;
