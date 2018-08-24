@@ -52,6 +52,8 @@
 #define FBMON_FIX_INPUT   2
 #define FBMON_FIX_TIMINGS 3
 
+#define FBMON_MAX_SVD_SIZE 256
+
 #ifdef CONFIG_FB_MODE_HELPERS
 struct broken_edid {
 	u8  manufacturer[4];
@@ -1133,7 +1135,7 @@ void fb_edid_add_monspecs(unsigned char *edid, struct fb_monspecs *specs)
 	struct fb_videomode *m;
 	struct hdmi_vendor_block hvd = {0};
 	int num = 0, i, j, hdmi_num = 0;
-	u8 svd[64] = {0}, y420_svd[31] = {0}, y420_support_bitmap[31] = {0};
+	u8 svd[FBMON_MAX_SVD_SIZE] = {0}, y420_svd[31] = {0}, y420_support_bitmap[31] = {0};
 	u8 edt[(128 - 4) / DETAILED_TIMING_DESCRIPTION_SIZE] = {0};
 	u8 pos = 4, svd_n = 0, y420_svd_n = 0, y420_support_bitmap_n = 0;
 	bool y420_support_full = false;
