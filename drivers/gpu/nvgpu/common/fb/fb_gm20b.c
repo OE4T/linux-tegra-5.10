@@ -256,7 +256,7 @@ static int gm20b_fb_vpr_info_fetch_wait(struct gk20a *g,
 			return 0;
 		}
 
-	} while (!nvgpu_timeout_expired(&timeout));
+	} while (nvgpu_timeout_expired(&timeout) == 0);
 
 	return -ETIMEDOUT;
 }

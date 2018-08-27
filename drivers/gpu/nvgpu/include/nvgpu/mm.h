@@ -57,9 +57,9 @@ struct mmu_fault_info {
 	u32	fault_type;
 	u32	access_type;
 	u32	protected_mode;
-	u32	replayable_fault;
+	bool	replayable_fault;
 	u32	replay_fault_en;
-	u32	valid;
+	bool	valid;
 	u32	faulted_pbdma;
 	u32	faulted_engine;
 	u32	faulted_subid;

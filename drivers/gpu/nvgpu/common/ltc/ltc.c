@@ -43,7 +43,7 @@ int nvgpu_init_ltc_support(struct gk20a *g)
 
 void nvgpu_ltc_sync_enabled(struct gk20a *g)
 {
-	if (!g->ops.ltc.set_enabled) {
+	if (g->ops.ltc.set_enabled == NULL) {
 		return;
 	}
 

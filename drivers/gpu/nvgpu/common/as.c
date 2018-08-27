@@ -60,15 +60,15 @@ static int gk20a_vm_alloc_share(struct gk20a_as_share *as_share,
 
 	nvgpu_log_fn(g, " ");
 
-	if (big_page_size == 0) {
+	if (big_page_size == 0U) {
 		big_page_size = g->ops.mm.get_default_big_page_size();
 	} else {
 		if (!is_power_of_2(big_page_size)) {
 			return -EINVAL;
 		}
 
-		if (!(big_page_size &
-                      nvgpu_mm_get_available_big_page_sizes(g))) {
+		if ((big_page_size &
+		     nvgpu_mm_get_available_big_page_sizes(g)) == 0U) {
 			return -EINVAL;
 		}
 	}
@@ -80,7 +80,7 @@ static int gk20a_vm_alloc_share(struct gk20a_as_share *as_share,
 			   mm->channel.kernel_size,
 			   mm->channel.user_size + mm->channel.kernel_size,
 			   !mm->disable_bigpage, userspace_managed, name);
-	if (!vm) {
+	if (vm == NULL) {
 		return -ENOMEM;
 	}
 
@@ -100,13 +100,13 @@ int gk20a_as_alloc_share(struct gk20a *g,
 
 	nvgpu_log_fn(g, " ");
 	g = gk20a_get(g);
-	if (!g) {
+	if (g == NULL) {
 		return -ENODEV;
 	}
 
 	*out = NULL;
 	as_share = nvgpu_kzalloc(g, sizeof(*as_share));
-	if (!as_share) {
+	if (as_share == NULL) {
 		return -ENOMEM;
 	}
 

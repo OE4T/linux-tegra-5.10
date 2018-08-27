@@ -342,8 +342,8 @@ void gv11b_fb_fault_buf_set_state_hw(struct gk20a *g,
 		fault_status = g->ops.fb.read_mmu_fault_status(g);
 
 		do {
-			if (!(fault_status &
-                              fb_mmu_fault_status_busy_true_f())) {
+			if ((fault_status &
+			     fb_mmu_fault_status_busy_true_f()) == 0U) {
 				break;
 			}
 			/*
@@ -356,8 +356,8 @@ void gv11b_fb_fault_buf_set_state_hw(struct gk20a *g,
 
 			nvgpu_usleep_range(delay, delay * 2);
 			delay = min_t(u32, delay << 1, GR_IDLE_CHECK_MAX);
-		} while (!nvgpu_timeout_expired_msg(&timeout,
-				"fault status busy set"));
+		} while (nvgpu_timeout_expired_msg(&timeout,
+				"fault status busy set") == 0);
 	}
 }
 
@@ -438,10 +438,10 @@ void gv11b_handle_l2tlb_ecc_isr(struct gk20a *g, u32 ecc_status)
 		fb_mmu_l2tlb_ecc_status_uncorrected_err_total_counter_overflow_m();
 
 	/* clear the interrupt */
-	if ((corrected_delta > 0) || corrected_overflow) {
+	if ((corrected_delta > 0U) || (corrected_overflow != 0U)) {
 		gk20a_writel(g, fb_mmu_l2tlb_ecc_corrected_err_count_r(), 0);
 	}
-	if ((uncorrected_delta > 0) || uncorrected_overflow) {
+	if ((uncorrected_delta > 0U) || (uncorrected_overflow != 0U)) {
 		gk20a_writel(g, fb_mmu_l2tlb_ecc_uncorrected_err_count_r(), 0);
 	}
 
@@ -470,7 +470,7 @@ void gv11b_handle_l2tlb_ecc_isr(struct gk20a *g, u32 ecc_status)
              fb_mmu_l2tlb_ecc_status_uncorrected_err_l2tlb_sa_data_m()) != 0U) {
 		nvgpu_log(g, gpu_dbg_intr, "uncorrected ecc sa data error");
 	}
-	if (corrected_overflow || uncorrected_overflow) {
+	if ((corrected_overflow != 0U) || (uncorrected_overflow != 0U)) {
 		nvgpu_info(g, "mmu l2tlb ecc counter overflow!");
 	}
 
@@ -505,10 +505,10 @@ void gv11b_handle_hubtlb_ecc_isr(struct gk20a *g, u32 ecc_status)
 		fb_mmu_hubtlb_ecc_status_uncorrected_err_total_counter_overflow_m();
 
 	/* clear the interrupt */
-	if ((corrected_delta > 0) || corrected_overflow) {
+	if ((corrected_delta > 0U) || (corrected_overflow != 0U)) {
 		gk20a_writel(g, fb_mmu_hubtlb_ecc_corrected_err_count_r(), 0);
 	}
-	if ((uncorrected_delta > 0) || uncorrected_overflow) {
+	if ((uncorrected_delta > 0U) || (uncorrected_overflow != 0U)) {
 		gk20a_writel(g, fb_mmu_hubtlb_ecc_uncorrected_err_count_r(), 0);
 	}
 
@@ -537,7 +537,7 @@ void gv11b_handle_hubtlb_ecc_isr(struct gk20a *g, u32 ecc_status)
 	     fb_mmu_hubtlb_ecc_status_uncorrected_err_sa_data_m()) != 0U) {
 		nvgpu_log(g, gpu_dbg_intr, "uncorrected ecc sa data error");
 	}
-	if (corrected_overflow || uncorrected_overflow) {
+	if ((corrected_overflow != 0U) || (uncorrected_overflow != 0U)) {
 		nvgpu_info(g, "mmu hubtlb ecc counter overflow!");
 	}
 
@@ -572,10 +572,10 @@ void gv11b_handle_fillunit_ecc_isr(struct gk20a *g, u32 ecc_status)
 		fb_mmu_fillunit_ecc_status_uncorrected_err_total_counter_overflow_m();
 
 	/* clear the interrupt */
-	if ((corrected_delta > 0) || corrected_overflow) {
+	if ((corrected_delta > 0U) || (corrected_overflow != 0U)) {
 		gk20a_writel(g, fb_mmu_fillunit_ecc_corrected_err_count_r(), 0);
 	}
-	if ((uncorrected_delta > 0) || uncorrected_overflow) {
+	if ((uncorrected_delta > 0U) || (uncorrected_overflow != 0U)) {
 		gk20a_writel(g, fb_mmu_fillunit_ecc_uncorrected_err_count_r(), 0);
 	}
 
@@ -613,7 +613,7 @@ void gv11b_handle_fillunit_ecc_isr(struct gk20a *g, u32 ecc_status)
 		nvgpu_log(g, gpu_dbg_intr, "uncorrected ecc pde0 data error");
 	}
 
-	if (corrected_overflow || uncorrected_overflow) {
+	if ((corrected_overflow != 0U) || (uncorrected_overflow != 0U)) {
 		nvgpu_info(g, "mmu fillunit ecc counter overflow!");
 	}
 
@@ -666,7 +666,7 @@ static void gv11b_fb_parse_mmfault(struct mmu_fault_info *mmfault)
 static void gv11b_fb_print_fault_info(struct gk20a *g,
 			 struct mmu_fault_info *mmfault)
 {
-	if (mmfault && mmfault->valid) {
+	if (mmfault != NULL && mmfault->valid) {
 		nvgpu_err(g, "[MMU FAULT] "
 			"mmu engine id:  %d, "
 			"ch id:  %d, "
@@ -804,7 +804,8 @@ static void gv11b_fb_copy_from_hw_fault_buf(struct gk20a *g,
 	mmfault->client_id =
 		 gmmu_fault_buf_entry_client_v(rd32_val);
 	mmfault->replayable_fault =
-		gmmu_fault_buf_entry_replayable_fault_v(rd32_val);
+		(gmmu_fault_buf_entry_replayable_fault_v(rd32_val) ==
+			gmmu_fault_buf_entry_replayable_fault_true_v());
 
 	mmfault->fault_type =
 		 gmmu_fault_buf_entry_fault_type_v(rd32_val);
@@ -822,7 +823,8 @@ static void gv11b_fb_copy_from_hw_fault_buf(struct gk20a *g,
 	mmfault->replay_fault_en =
 		gmmu_fault_buf_entry_replayable_fault_en_v(rd32_val);
 
-	mmfault->valid = gmmu_fault_buf_entry_valid_v(rd32_val);
+	mmfault->valid = (gmmu_fault_buf_entry_valid_v(rd32_val) ==
+				gmmu_fault_buf_entry_valid_true_v());
 
 	rd32_val = nvgpu_mem_rd32(g, mem, offset +
 			gmmu_fault_buf_entry_fault_type_w());
@@ -856,8 +858,8 @@ static void gv11b_fb_handle_mmu_fault_common(struct gk20a *g,
 		/* CE page faults are not reported as replayable */
 		nvgpu_log(g, gpu_dbg_intr, "CE Faulted");
 		err = gv11b_fb_fix_page_fault(g, mmfault);
-		if (mmfault->refch &&
-			(u32)mmfault->refch->tsgid != FIFO_INVAL_TSG_ID) {
+		if ((mmfault->refch != NULL) &&
+		    ((u32)mmfault->refch->tsgid != FIFO_INVAL_TSG_ID)) {
 			gv11b_fifo_reset_pbdma_and_eng_faulted(g,
 				&g->fifo.tsg[mmfault->refch->tsgid],
 				mmfault->faulted_pbdma,
@@ -1086,7 +1088,7 @@ static void gv11b_mm_copy_from_fault_snap_reg(struct gk20a *g,
 
 	memset(mmfault, 0, sizeof(*mmfault));
 
-	if (!(fault_status & fb_mmu_fault_status_valid_set_f())) {
+	if ((fault_status & fb_mmu_fault_status_valid_set_f()) == 0U) {
 
 		nvgpu_log(g, gpu_dbg_intr, "mmu fault status valid not set");
 		return;
@@ -1131,7 +1133,7 @@ static void gv11b_mm_copy_from_fault_snap_reg(struct gk20a *g,
 	reg_val = g->ops.fb.read_mmu_fault_info(g);
 	mmfault->fault_type = fb_mmu_fault_info_fault_type_v(reg_val);
 	mmfault->replayable_fault =
-			 fb_mmu_fault_info_replayable_fault_v(reg_val);
+			(fb_mmu_fault_info_replayable_fault_v(reg_val) == 1U);
 	mmfault->client_id = fb_mmu_fault_info_client_v(reg_val);
 	mmfault->access_type = fb_mmu_fault_info_access_type_v(reg_val);
 	mmfault->client_type = fb_mmu_fault_info_client_type_v(reg_val);
@@ -1141,7 +1143,7 @@ static void gv11b_mm_copy_from_fault_snap_reg(struct gk20a *g,
 	mmfault->replay_fault_en =
 			fb_mmu_fault_info_replayable_fault_en_v(reg_val);
 
-	mmfault->valid = fb_mmu_fault_info_valid_v(reg_val);
+	mmfault->valid = (fb_mmu_fault_info_valid_v(reg_val) == 1U);
 
 	fault_status &= ~(fb_mmu_fault_status_valid_m());
 	g->ops.fb.write_mmu_fault_status(g, fault_status);
@@ -1304,7 +1306,7 @@ void gv11b_fb_handle_replayable_mmu_fault(struct gk20a *g)
 {
 	u32 fault_status = gk20a_readl(g, fb_mmu_fault_status_r());
 
-	if (!(fault_status & fb_mmu_fault_status_replayable_m())) {
+	if ((fault_status & fb_mmu_fault_status_replayable_m()) == 0U) {
 		return;
 	}
 
@@ -1473,8 +1475,8 @@ int gv11b_fb_mmu_invalidate_replay(struct gk20a *g,
 			break;
 		}
 		nvgpu_udelay(5);
-	} while (!nvgpu_timeout_expired_msg(&timeout,
-			    "invalidate replay failed on 0x%llx"));
+	} while (nvgpu_timeout_expired_msg(&timeout,
+			    "invalidate replay failed on 0x%llx") == 0);
 	if (err != 0) {
 		nvgpu_err(g, "invalidate replay timedout");
 	}

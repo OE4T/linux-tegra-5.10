@@ -38,7 +38,7 @@ int nvgpu_flcn_wait_idle(struct nvgpu_falcon *flcn)
 	struct nvgpu_timeout timeout;
 	u32 idle_stat;
 
-	if (!flcn_ops->is_falcon_idle) {
+	if (flcn_ops->is_falcon_idle == NULL) {
 		nvgpu_warn(g, "Invalid op on falcon 0x%x ", flcn->flcn_id);
 		return -EINVAL;
 	}
@@ -79,7 +79,7 @@ int nvgpu_flcn_mem_scrub_wait(struct nvgpu_falcon *flcn)
 			goto exit;
 		}
 		nvgpu_udelay(MEM_SCRUBBING_TIMEOUT_DEFAULT);
-	} while (!nvgpu_timeout_expired(&timeout));
+	} while (nvgpu_timeout_expired(&timeout) == 0);
 
 	if (nvgpu_timeout_peek_expired(&timeout)) {
 		status = -ETIMEDOUT;
@@ -95,7 +95,7 @@ int nvgpu_flcn_reset(struct nvgpu_falcon *flcn)
 
 	if (flcn->flcn_ops.reset != NULL) {
 		status = flcn->flcn_ops.reset(flcn);
-		if (!status) {
+		if (status == 0) {
 			status = nvgpu_flcn_mem_scrub_wait(flcn);
                 }
 	} else {
@@ -165,7 +165,7 @@ int nvgpu_flcn_wait_for_halt(struct nvgpu_falcon *flcn, unsigned int timeout)
 		}
 
 		nvgpu_udelay(10);
-	} while (!nvgpu_timeout_expired(&to));
+	} while (nvgpu_timeout_expired(&to) == 0);
 
 	if (nvgpu_timeout_peek_expired(&to)) {
 		status = -EBUSY;
@@ -182,7 +182,7 @@ int nvgpu_flcn_clear_halt_intr_status(struct nvgpu_falcon *flcn,
 	struct nvgpu_timeout to;
 	int status = 0;
 
-	if (!flcn_ops->clear_halt_interrupt_status) {
+	if (flcn_ops->clear_halt_interrupt_status == NULL) {
 		nvgpu_warn(flcn->g, "Invalid op on falcon 0x%x ",
 			flcn->flcn_id);
 		return -EINVAL;
@@ -195,7 +195,7 @@ int nvgpu_flcn_clear_halt_intr_status(struct nvgpu_falcon *flcn,
 		}
 
 		nvgpu_udelay(1);
-	} while (!nvgpu_timeout_expired(&to));
+	} while (nvgpu_timeout_expired(&to) == 0);
 
 	if (nvgpu_timeout_peek_expired(&to)) {
 		status = -EBUSY;
@@ -309,9 +309,10 @@ static void nvgpu_flcn_print_mem(struct nvgpu_falcon *flcn, u32 src,
 
 	total_block_read = size >> 8;
 	do {
-		byte_read_count = total_block_read ? sizeof(buff) : size;
+		byte_read_count =
+			(total_block_read != 0U) ? sizeof(buff) : size;
 
-		if (!byte_read_count) {
+		if (byte_read_count == 0U) {
 			break;
 		}
 

@@ -81,7 +81,7 @@ u32 gk20a_bus_set_bar0_window(struct gk20a *g, struct nvgpu_mem *mem,
 			bufbase + nvgpu_sgt_get_phys(g, sgt, sgl),
 			nvgpu_sgt_get_length(sgt, sgl));
 
-	WARN_ON(!bufbase);
+	WARN_ON(bufbase == 0ULL);
 
 	if (g->mm.pramin_window != win) {
 		gk20a_writel(g, bus_bar0_window_r(), win);

@@ -51,15 +51,18 @@ static int nvgpu_submit_prepare_syncs(struct channel_gk20a *c,
 	bool new_sync_created = false;
 	int wait_fence_fd = -1;
 	int err = 0;
-	bool need_wfi = !(flags & NVGPU_SUBMIT_FLAGS_SUPPRESS_WFI);
+	bool need_wfi = (flags & NVGPU_SUBMIT_FLAGS_SUPPRESS_WFI) == 0U;
 	bool pre_alloc_enabled = channel_gk20a_is_prealloc_enabled(c);
 	struct nvgpu_channel_sync_syncpt *sync_syncpt = NULL;
+	bool fence_get = (flags & NVGPU_SUBMIT_FLAGS_FENCE_GET) != 0U;
+	bool sync_fence = (flags & NVGPU_SUBMIT_FLAGS_SYNC_FENCE) != 0U;
+	bool fence_wait = (flags & NVGPU_SUBMIT_FLAGS_FENCE_WAIT) != 0U;
 
 	if (g->aggressive_sync_destroy_thresh) {
 		nvgpu_mutex_acquire(&c->sync_lock);
-		if (!c->sync) {
+		if (c->sync == NULL) {
 			c->sync = nvgpu_channel_sync_create(c, false);
-			if (!c->sync) {
+			if (c->sync == NULL) {
 				err = -ENOMEM;
 				nvgpu_mutex_release(&c->sync_lock);
 				goto fail;
@@ -70,7 +73,7 @@ static int nvgpu_submit_prepare_syncs(struct channel_gk20a *c,
 		nvgpu_mutex_release(&c->sync_lock);
 	}
 
-	if (g->ops.fifo.resetup_ramfc && new_sync_created) {
+	if ((g->ops.fifo.resetup_ramfc != NULL) && new_sync_created) {
 		err = g->ops.fifo.resetup_ramfc(c);
 		if (err != 0) {
 			goto fail;
@@ -81,7 +84,7 @@ static int nvgpu_submit_prepare_syncs(struct channel_gk20a *c,
 	 * Optionally insert syncpt/semaphore wait in the beginning of gpfifo
 	 * submission when user requested and the wait hasn't expired.
 	 */
-	if (flags & NVGPU_SUBMIT_FLAGS_FENCE_WAIT) {
+	if (fence_wait) {
 		u32 max_wait_cmds = c->deterministic ? 1U : 0U;
 
 		if (!pre_alloc_enabled) {
@@ -89,12 +92,12 @@ static int nvgpu_submit_prepare_syncs(struct channel_gk20a *c,
 				sizeof(struct priv_cmd_entry));
 		}
 
-		if (!job->wait_cmd) {
+		if (job->wait_cmd == NULL) {
 			err = -ENOMEM;
 			goto fail;
 		}
 
-		if (flags & NVGPU_SUBMIT_FLAGS_SYNC_FENCE) {
+		if (sync_fence) {
 			wait_fence_fd = fence->id;
 			err = nvgpu_channel_sync_wait_fence_fd(c->sync,
 				wait_fence_fd, job->wait_cmd, max_wait_cmds);
@@ -118,8 +121,7 @@ static int nvgpu_submit_prepare_syncs(struct channel_gk20a *c,
 		}
 	}
 
-	if ((flags & NVGPU_SUBMIT_FLAGS_FENCE_GET) &&
-	    (flags & NVGPU_SUBMIT_FLAGS_SYNC_FENCE)) {
+	if (fence_get && sync_fence) {
 		need_sync_fence = true;
 	}
 
@@ -129,7 +131,7 @@ static int nvgpu_submit_prepare_syncs(struct channel_gk20a *c,
 	 * sync_pt/semaphore PB is added to the GPFIFO later on in submit.
 	 */
 	job->post_fence = gk20a_alloc_fence(c);
-	if (!job->post_fence) {
+	if (job->post_fence == NULL) {
 		err = -ENOMEM;
 		goto clean_up_wait_cmd;
 	}
@@ -137,12 +139,12 @@ static int nvgpu_submit_prepare_syncs(struct channel_gk20a *c,
 		job->incr_cmd = nvgpu_kzalloc(g, sizeof(struct priv_cmd_entry));
 	}
 
-	if (!job->incr_cmd) {
+	if (job->incr_cmd == NULL) {
 		err = -ENOMEM;
 		goto clean_up_post_fence;
 	}
 
-	if (flags & NVGPU_SUBMIT_FLAGS_FENCE_GET) {
+	if (fence_get) {
 		err = nvgpu_channel_sync_incr_user(c->sync,
 			wait_fence_fd, job->incr_cmd,
 			job->post_fence, need_wfi, need_sync_fence,
@@ -282,7 +284,7 @@ static int nvgpu_submit_append_gpfifo(struct channel_gk20a *c,
 	struct gk20a *g = c->g;
 	int err;
 
-	if (!kern_gpfifo && !c->gpfifo.pipe) {
+	if ((kern_gpfifo == NULL) && (c->gpfifo.pipe == NULL)) {
 		/*
 		 * This path (from userspace to sysmem) is special in order to
 		 * avoid two copies unnecessarily (from user to pipe, then from
@@ -293,7 +295,7 @@ static int nvgpu_submit_append_gpfifo(struct channel_gk20a *c,
 		if (err != 0) {
 			return err;
 		}
-	} else if (!kern_gpfifo) {
+	} else if (kern_gpfifo == NULL) {
 		/* from userspace to vidmem, use the common path */
 		err = g->os_channel.copy_user_gpfifo(c->gpfifo.pipe, userdata,
 				0, num_entries);
@@ -335,11 +337,13 @@ static int nvgpu_submit_channel_gpfifo(struct channel_gk20a *c,
 	 * and one for post fence. */
 	const u32 extra_entries = 2U;
 	bool skip_buffer_refcounting = (flags &
-			NVGPU_SUBMIT_FLAGS_SKIP_BUFFER_REFCOUNTING);
+			NVGPU_SUBMIT_FLAGS_SKIP_BUFFER_REFCOUNTING) != 0U;
 	int err = 0;
 	bool need_job_tracking;
 	bool need_deferred_cleanup = false;
-
+	bool fence_wait = (flags & NVGPU_SUBMIT_FLAGS_FENCE_WAIT) != 0U;
+	bool fence_get = (flags & NVGPU_SUBMIT_FLAGS_FENCE_GET) != 0U;
+	bool sync_fence = (flags & NVGPU_SUBMIT_FLAGS_SYNC_FENCE) != 0U;
 	if (nvgpu_is_enabled(g, NVGPU_DRIVER_IS_DYING)) {
 		return -ENODEV;
 	}
@@ -365,9 +369,7 @@ static int nvgpu_submit_channel_gpfifo(struct channel_gk20a *c,
 		return -ENOMEM;
 	}
 
-	if ((flags & (NVGPU_SUBMIT_FLAGS_FENCE_WAIT |
-		      NVGPU_SUBMIT_FLAGS_FENCE_GET)) &&
-	    !fence) {
+	if ((fence_wait || fence_get) && (fence == NULL)) {
 		return -EINVAL;
 	}
 
@@ -397,12 +399,12 @@ static int nvgpu_submit_channel_gpfifo(struct channel_gk20a *c,
 	 * required and a fast submit can be done (ie. only need to write
 	 * out userspace GPFIFO entries and update GP_PUT).
 	 */
-	need_job_tracking = (flags & NVGPU_SUBMIT_FLAGS_FENCE_WAIT) ||
-			(flags & NVGPU_SUBMIT_FLAGS_FENCE_GET) ||
+	need_job_tracking = (fence_wait ||
+			fence_get ||
 			c->timeout.enabled ||
 			(nvgpu_is_enabled(g, NVGPU_CAN_RAILGATE)
 			 && !c->deterministic) ||
-			!skip_buffer_refcounting;
+			!skip_buffer_refcounting);
 
 	if (need_job_tracking) {
 		bool need_sync_framework = false;
@@ -417,9 +419,8 @@ static int nvgpu_submit_channel_gpfifo(struct channel_gk20a *c,
 		}
 
 		need_sync_framework =
-			nvgpu_channel_sync_needs_os_fence_framework(g) ||
-			(flags & NVGPU_SUBMIT_FLAGS_SYNC_FENCE &&
-			 flags & NVGPU_SUBMIT_FLAGS_FENCE_GET);
+			(nvgpu_channel_sync_needs_os_fence_framework(g) ||
+			 (sync_fence && fence_get));
 
 		/*
 		 * Deferred clean-up is necessary for any of the following

@@ -36,6 +36,8 @@
 int gp10b_fuse_check_priv_security(struct gk20a *g)
 {
 	u32 gcplex_config;
+	bool is_wpr_enabled = false;
+	bool is_auto_fetch_disable = false;
 
 	if (nvgpu_is_enabled(g, NVGPU_IS_FMODEL)) {
 		__nvgpu_set_enabled(g, NVGPU_SEC_PRIVSECURITY, false);
@@ -58,10 +60,11 @@ int gp10b_fuse_check_priv_security(struct gk20a *g)
 		 */
 		__nvgpu_set_enabled(g, NVGPU_SEC_PRIVSECURITY, true);
 		__nvgpu_set_enabled(g, NVGPU_SEC_SECUREGPCCS, true);
-		if ((gcplex_config &
-			 GCPLEX_CONFIG_WPR_ENABLED_MASK) &&
-			!(gcplex_config &
-				GCPLEX_CONFIG_VPR_AUTO_FETCH_DISABLE_MASK)) {
+		is_wpr_enabled =
+			(gcplex_config & GCPLEX_CONFIG_WPR_ENABLED_MASK) != 0U;
+		is_auto_fetch_disable =
+			(gcplex_config & GCPLEX_CONFIG_VPR_AUTO_FETCH_DISABLE_MASK) != 0U;
+		if (is_wpr_enabled && !is_auto_fetch_disable) {
 			if (gk20a_readl(g, fuse_opt_sec_debug_en_r())) {
 				nvgpu_log(g, gpu_dbg_info,
 						"gcplex_config = 0x%08x, "

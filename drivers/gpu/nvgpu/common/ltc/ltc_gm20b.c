@@ -174,11 +174,11 @@ int gm20b_ltc_cbc_ctrl(struct gk20a *g, enum gk20a_cbc_op op,
 						   NVGPU_TIMER_RETRY_TIMER);
 				do {
 					val = gk20a_readl(g, ctrl1);
-					if (!(val & hw_op)) {
+					if ((val & hw_op) == 0U) {
 						break;
 					}
 					nvgpu_udelay(5);
-				} while (!nvgpu_timeout_expired(&timeout));
+				} while (nvgpu_timeout_expired(&timeout) == 0);
 
 				if (nvgpu_timeout_peek_expired(&timeout)) {
 					nvgpu_err(g, "comp tag clear timeout");
@@ -284,6 +284,8 @@ void gm20b_flush_ltc(struct gk20a *g)
 	struct nvgpu_timeout timeout;
 	unsigned int ltc;
 	u32 ltc_stride = nvgpu_get_litter_value(g, GPU_LIT_LTC_STRIDE);
+	bool is_clean_pending_set = false;
+	bool is_invalidate_pending_set = false;
 
 	/* Clean... */
 	nvgpu_writel_check(g, ltc_ltcs_ltss_tstg_cmgmt1_r(),
@@ -321,10 +323,11 @@ void gm20b_flush_ltc(struct gk20a *g)
 			int cmgmt1 = ltc_ltc0_ltss_tstg_cmgmt1_r() +
 				     ltc * ltc_stride;
 			op_pending = gk20a_readl(g, cmgmt1);
-		} while ((op_pending &
-			  ltc_ltc0_ltss_tstg_cmgmt1_clean_pending_f()) &&
-			 !nvgpu_timeout_expired_msg(&timeout,
-						    "L2 flush timeout!"));
+			is_clean_pending_set = (op_pending &
+				ltc_ltc0_ltss_tstg_cmgmt1_clean_pending_f()) != 0U;
+		} while (is_clean_pending_set &&
+			(nvgpu_timeout_expired_msg(&timeout,
+					"L2 flush timeout!") == 0));
 	}
 
 	/* And invalidate. */
@@ -346,10 +349,11 @@ void gm20b_flush_ltc(struct gk20a *g)
 			int cmgmt0 = ltc_ltc0_ltss_tstg_cmgmt0_r() +
 				     ltc * ltc_stride;
 			op_pending = gk20a_readl(g, cmgmt0);
-		} while ((op_pending &
-			  ltc_ltc0_ltss_tstg_cmgmt0_invalidate_pending_f()) &&
-			 !nvgpu_timeout_expired_msg(&timeout,
-						    "L2 flush timeout!"));
+			is_invalidate_pending_set = (op_pending &
+				ltc_ltc0_ltss_tstg_cmgmt0_invalidate_pending_f()) != 0U;
+		} while (is_invalidate_pending_set &&
+			(nvgpu_timeout_expired_msg(&timeout,
+					"L2 flush timeout!") == 0));
 	}
 }
 

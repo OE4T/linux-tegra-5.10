@@ -150,7 +150,7 @@ int gv100_fb_memory_unlock(struct gk20a *g)
 	} else {
 		mem_unlock_fw = nvgpu_request_firmware(g, MEM_UNLOCK_DBG_BIN, 0);
 	}
-	if (!mem_unlock_fw) {
+	if (mem_unlock_fw == NULL) {
 		nvgpu_err(g, "mem unlock ucode get fail");
 		err = -ENOENT;
 		goto exit;

@@ -33,7 +33,7 @@ int nvgpu_init_enabled_flags(struct gk20a *g)
 	g->enabled_flags = nvgpu_kzalloc(g,
 					 BITS_TO_LONGS(NVGPU_MAX_ENABLED_BITS) *
 					 sizeof(unsigned long));
-	if (!g->enabled_flags) {
+	if (g->enabled_flags == NULL) {
 		return -ENOMEM;
 	}
 
