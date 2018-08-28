@@ -1312,7 +1312,7 @@ static irqreturn_t tegra_spi_isr(int irq, void *context_data)
 
 static void tegra_spi_parse_dt(struct tegra_spi_data *tspi)
 {
-	const unsigned int *prop;
+	const __be32 *prop;
 	struct device_node *np = tspi->dev->of_node;
 	struct device_node *nc = NULL;
 	struct device_node *found_nc = NULL;
