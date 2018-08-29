@@ -157,8 +157,13 @@
 #define PA_INITIAL_ADAPT       0x01
 #define PA_NO_ADAPT            0x03
 
+#define PA_SCRAMBLING		0x1585
+#define PA_PEERSCRAMBLING	0x155B
+
 #define PA_TACTIVATE_TIME_UNIT_US	10
 #define PA_HIBERN8_TIME_UNIT_US		100
+
+#define SCREN			0x1
 
 /*Other attributes*/
 #define VS_MPHYCFGUPDT		0xD085
