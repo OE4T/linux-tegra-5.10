@@ -333,6 +333,7 @@ struct nvhost_device_data t19_nvdec_info = {
 	.engine_can_cg		= true,
 	.can_powergate		= true,
 	.isolate_contexts	= true,
+	.enable_timestamps	= flcn_enable_timestamps,
 };
 
 struct nvhost_device_data t19_nvdec1_info = {
@@ -367,6 +368,7 @@ struct nvhost_device_data t19_nvdec1_info = {
 	.engine_can_cg		= true,
 	.can_powergate		= true,
 	.isolate_contexts	= true,
+	.enable_timestamps	= flcn_enable_timestamps,
 };
 #endif
 
