@@ -352,7 +352,7 @@ channel_gk20a_from_worker_item(struct nvgpu_list_node *node)
 
 static inline bool gk20a_channel_as_bound(struct channel_gk20a *ch)
 {
-	return !!ch->vm;
+	return (ch->vm != NULL);
 }
 int channel_gk20a_commit_va(struct channel_gk20a *c);
 int gk20a_init_channel_support(struct gk20a *g, u32 chid);

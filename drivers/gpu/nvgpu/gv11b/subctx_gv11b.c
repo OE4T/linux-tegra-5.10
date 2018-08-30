@@ -77,7 +77,7 @@ int gv11b_alloc_subctx_header(struct channel_gk20a *c)
 					0, /* not GPU-cacheable */
 					gk20a_mem_flag_none, true,
 					ctxheader->aperture);
-		if (!ctxheader->gpu_va) {
+		if (ctxheader->gpu_va == 0ULL) {
 			nvgpu_err(g, "failed to map ctx header");
 			nvgpu_dma_free(g, ctxheader);
 			return -ENOMEM;
@@ -105,7 +105,7 @@ int gv11b_update_subctx_header(struct channel_gk20a *c, u64 gpu_va)
 	struct nvgpu_gr_ctx *gr_ctx;
 
 	tsg = tsg_gk20a_from_ch(c);
-	if (!tsg) {
+	if (tsg == NULL) {
 		return -EINVAL;
 	}
 

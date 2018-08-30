@@ -326,12 +326,12 @@ void gv11b_pmu_handle_ext_irq(struct gk20a *g, u32 intr0)
 				pwr_pmu_falcon_ecc_status_corrected_err_total_counter_overflow_m();
 
 			/* clear the interrupt */
-			if ((intr1 & pwr_pmu_ecc_intr_status_corrected_m()) ||
-							corrected_overflow) {
+			if (((intr1 & pwr_pmu_ecc_intr_status_corrected_m()) != 0U) ||
+							(corrected_overflow != 0U)) {
 				gk20a_writel(g, pwr_pmu_falcon_ecc_corrected_err_count_r(), 0);
 			}
-			if ((intr1 & pwr_pmu_ecc_intr_status_uncorrected_m()) ||
-							uncorrected_overflow) {
+			if (((intr1 & pwr_pmu_ecc_intr_status_uncorrected_m()) != 0U) ||
+							(uncorrected_overflow != 0U)) {
 				gk20a_writel(g,
 					pwr_pmu_falcon_ecc_uncorrected_err_count_r(), 0);
 			}
@@ -370,7 +370,7 @@ void gv11b_pmu_handle_ext_irq(struct gk20a *g, u32 intr0)
 					"dmem ecc error uncorrected");
 			}
 
-			if (corrected_overflow || uncorrected_overflow) {
+			if ((corrected_overflow != 0U) || (uncorrected_overflow != 0U)) {
 				nvgpu_info(g, "ecc counter overflow!");
 			}
 

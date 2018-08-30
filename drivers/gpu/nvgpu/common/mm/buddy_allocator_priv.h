@@ -77,9 +77,9 @@ nvgpu_buddy_from_rbtree_node(struct nvgpu_rbtree_node *node)
 };
 
 #define __buddy_flag_ops(flag, flag_up)					\
-	static inline int buddy_is_ ## flag(struct nvgpu_buddy *b)	\
+	static inline bool buddy_is_ ## flag(struct nvgpu_buddy *b)	\
 	{								\
-		return b->flags & BALLOC_BUDDY_ ## flag_up;		\
+		return (b->flags & BALLOC_BUDDY_ ## flag_up) != 0U;		\
 	}								\
 	static inline void buddy_set_ ## flag(struct nvgpu_buddy *b)	\
 	{								\
@@ -91,15 +91,15 @@ nvgpu_buddy_from_rbtree_node(struct nvgpu_rbtree_node *node)
 	}
 
 /*
- * int  buddy_is_alloced(struct nvgpu_buddy *b);
+ * bool buddy_is_alloced(struct nvgpu_buddy *b);
  * void buddy_set_alloced(struct nvgpu_buddy *b);
  * void buddy_clr_alloced(struct nvgpu_buddy *b);
  *
- * int  buddy_is_split(struct nvgpu_buddy *b);
+ * bool buddy_is_split(struct nvgpu_buddy *b);
  * void buddy_set_split(struct nvgpu_buddy *b);
  * void buddy_clr_split(struct nvgpu_buddy *b);
  *
- * int  buddy_is_in_list(struct nvgpu_buddy *b);
+ * bool buddy_is_in_list(struct nvgpu_buddy *b);
  * void buddy_set_in_list(struct nvgpu_buddy *b);
  * void buddy_clr_in_list(struct nvgpu_buddy *b);
  */

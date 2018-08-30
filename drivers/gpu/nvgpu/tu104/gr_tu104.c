@@ -171,7 +171,7 @@ int gr_tu104_map_global_ctx_buffers(struct gk20a *g,
 	nvgpu_log_fn(g, " ");
 
 	tsg = tsg_gk20a_from_ch(ch);
-	if (!tsg) {
+	if (tsg == NULL) {
 		return -EINVAL;
 	}
 
@@ -183,7 +183,7 @@ int gr_tu104_map_global_ctx_buffers(struct gk20a *g,
 	mem = &gr->global_ctx_buffer[RTV_CIRCULAR_BUFFER].mem;
 	gpu_va = nvgpu_gmmu_map(ch_vm, mem, mem->size, 0,
 			gk20a_mem_flag_none, true, mem->aperture);
-	if (!gpu_va) {
+	if (gpu_va == 0ULL) {
 		return -ENOMEM;
 	}
 
@@ -234,7 +234,7 @@ int gr_tu104_commit_global_ctx_buffers(struct gk20a *g,
 	}
 
 	tsg = tsg_gk20a_from_ch(ch);
-	if (!tsg) {
+	if (tsg == NULL) {
 		return -EINVAL;
 	}
 
@@ -279,7 +279,7 @@ void gr_tu104_cb_size_default(struct gk20a *g)
 {
 	struct gr_gk20a *gr = &g->gr;
 
-	if (!gr->attrib_cb_default_size) {
+	if (gr->attrib_cb_default_size == 0U) {
 		gr->attrib_cb_default_size =
 			gr_gpc0_ppc0_cbm_beta_cb_size_v_default_v();
 	}

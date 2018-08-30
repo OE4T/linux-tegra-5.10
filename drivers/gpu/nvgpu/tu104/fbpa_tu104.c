@@ -90,7 +90,7 @@ void tu104_fbpa_handle_intr(struct gk20a *g, u32 fbpa_id)
 	offset = nvgpu_get_litter_value(g, GPU_LIT_FBPA_STRIDE) * fbpa_id;
 
 	status = gk20a_readl(g, offset + fbpa_0_intr_status_r());
-	if (!(status & (ecc_subp0_mask | ecc_subp1_mask))) {
+	if ((status & (ecc_subp0_mask | ecc_subp1_mask)) == 0U) {
 		nvgpu_err(g, "unknown interrupt fbpa %u status %08x",
 				fbpa_id, status);
 		return;

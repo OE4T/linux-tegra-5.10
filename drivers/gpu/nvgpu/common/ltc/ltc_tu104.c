@@ -199,11 +199,11 @@ int ltc_tu104_cbc_ctrl(struct gk20a *g, enum gk20a_cbc_op op,
 						   NVGPU_TIMER_RETRY_TIMER);
 				do {
 					val = nvgpu_readl(g, ctrl1);
-					if (!(val & hw_op)) {
+					if ((val & hw_op) == 0U) {
 						break;
 					}
 					nvgpu_udelay(5);
-				} while (!nvgpu_timeout_expired(&timeout));
+				} while (nvgpu_timeout_expired(&timeout) == 0);
 
 				if (nvgpu_timeout_peek_expired(&timeout) != 0) {
 					nvgpu_err(g, "comp tag clear timeout");

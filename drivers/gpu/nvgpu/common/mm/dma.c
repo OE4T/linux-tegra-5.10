@@ -138,7 +138,7 @@ int nvgpu_dma_alloc_map_flags_sys(struct vm_gk20a *vm, unsigned long flags,
 	mem->gpu_va = nvgpu_gmmu_map(vm, mem, size, 0,
 				     gk20a_mem_flag_none, false,
 				     mem->aperture);
-	if (!mem->gpu_va) {
+	if (mem->gpu_va == 0ULL) {
 		err = -ENOMEM;
 		goto fail_free;
 	}
@@ -169,7 +169,7 @@ int nvgpu_dma_alloc_map_flags_vid(struct vm_gk20a *vm, unsigned long flags,
 	mem->gpu_va = nvgpu_gmmu_map(vm, mem, size, 0,
 				     gk20a_mem_flag_none, false,
 				     mem->aperture);
-	if (!mem->gpu_va) {
+	if (mem->gpu_va == 0ULL) {
 		err = -ENOMEM;
 		goto fail_free;
 	}

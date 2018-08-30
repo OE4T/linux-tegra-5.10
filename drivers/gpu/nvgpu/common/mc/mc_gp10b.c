@@ -144,7 +144,8 @@ void mc_gp10b_isr_stall(struct gk20a *g)
 			g->ops.mc.is_intr_nvlink_pending(g, mc_intr_0)) {
 		g->ops.nvlink.isr(g);
 	}
-	if (mc_intr_0 & mc_intr_pfb_pending_f() && g->ops.mc.fbpa_isr) {
+	if ((mc_intr_0 & mc_intr_pfb_pending_f()) != 0U &&
+			(g->ops.mc.fbpa_isr != NULL)) {
 		g->ops.mc.fbpa_isr(g);
 	}
 

@@ -101,8 +101,8 @@ int gm20b_fb_tlb_invalidate(struct gk20a *g, struct nvgpu_mem *pdb)
 			break;
 		}
 		nvgpu_udelay(2);
-	} while (!nvgpu_timeout_expired_msg(&timeout,
-					 "wait mmu fifo space"));
+	} while (nvgpu_timeout_expired_msg(&timeout,
+					 "wait mmu fifo space") == 0);
 
 	if (nvgpu_timeout_peek_expired(&timeout) != 0) {
 		err = -ETIMEDOUT;
@@ -129,8 +129,8 @@ int gm20b_fb_tlb_invalidate(struct gk20a *g, struct nvgpu_mem *pdb)
 			break;
 		}
 		nvgpu_udelay(2);
-	} while (!nvgpu_timeout_expired_msg(&timeout,
-					 "wait mmu invalidate"));
+	} while (nvgpu_timeout_expired_msg(&timeout,
+					 "wait mmu invalidate") == 0);
 
 	trace_gk20a_mm_tlb_invalidate_done(g->name);
 

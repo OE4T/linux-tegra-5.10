@@ -165,7 +165,7 @@ int tu104_fifo_runlist_wait_pending(struct gk20a *g, u32 runlist_id)
 
 		nvgpu_usleep_range(delay, delay * 2);
 		delay = min_t(u32, delay << 1, GR_IDLE_CHECK_MAX);
-	} while (!nvgpu_timeout_expired(&timeout));
+	} while (nvgpu_timeout_expired(&timeout) == 0);
 
 	return ret;
 }

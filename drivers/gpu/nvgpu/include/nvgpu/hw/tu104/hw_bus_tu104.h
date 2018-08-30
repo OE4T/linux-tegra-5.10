@@ -172,9 +172,17 @@ static inline u32 bus_bind_status_bar2_pending_v(u32 r)
 {
 	return (r >> 2U) & 0x1U;
 }
+static inline u32 bus_bind_status_bar2_pending_empty_v(void)
+{
+	return 0x00000000U;
+}
 static inline u32 bus_bind_status_bar2_pending_empty_f(void)
 {
 	return 0x0U;
+}
+static inline u32 bus_bind_status_bar2_pending_busy_v(void)
+{
+	return 0x00000001U;
 }
 static inline u32 bus_bind_status_bar2_pending_busy_f(void)
 {
@@ -184,9 +192,17 @@ static inline u32 bus_bind_status_bar2_outstanding_v(u32 r)
 {
 	return (r >> 3U) & 0x1U;
 }
+static inline u32 bus_bind_status_bar2_outstanding_false_v(void)
+{
+	return 0x00000000U;
+}
 static inline u32 bus_bind_status_bar2_outstanding_false_f(void)
 {
 	return 0x0U;
+}
+static inline u32 bus_bind_status_bar2_outstanding_true_v(void)
+{
+	return 0x00000001U;
 }
 static inline u32 bus_bind_status_bar2_outstanding_true_f(void)
 {

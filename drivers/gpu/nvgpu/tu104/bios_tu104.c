@@ -59,7 +59,7 @@ int tu104_bios_verify_devinit(struct gk20a *g)
 		}
 
 		nvgpu_udelay(NV_DEVINIT_VERIFY_TIMEOUT_DELAY_US);
-	} while (!nvgpu_timeout_expired(&timeout));
+	} while (nvgpu_timeout_expired(&timeout) == 0);
 
 	return -ETIMEDOUT;
 }

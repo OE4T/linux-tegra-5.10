@@ -404,7 +404,7 @@ void mc_tu104_fbpa_isr(struct gk20a *g)
 	num_fbpas = nvgpu_get_litter_value(g, GPU_LIT_NUM_FBPAS);
 
 	for (i = 0u; i < num_fbpas; i++) {
-		if (!(fbpas & (1 << i))) {
+		if ((fbpas & BIT32(i)) == 0U) {
 			continue;
 		}
 		g->ops.fb.handle_fbpa_intr(g, i);

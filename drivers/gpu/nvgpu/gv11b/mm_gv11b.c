@@ -55,7 +55,7 @@ void gv11b_init_inst_block(struct nvgpu_mem *inst_block,
 
 	g->ops.mm.init_pdb(g, inst_block, vm);
 
-	if (big_page_size && g->ops.mm.set_big_page_size) {
+	if ((big_page_size != 0U) && (g->ops.mm.set_big_page_size != NULL)) {
 		g->ops.mm.set_big_page_size(g, inst_block, big_page_size);
 	}
 
@@ -225,7 +225,7 @@ void gv11b_mm_l2_flush(struct gk20a *g, bool invalidate)
 u64 gv11b_gpu_phys_addr(struct gk20a *g,
 			       struct nvgpu_gmmu_attrs *attrs, u64 phys)
 {
-	if (attrs && attrs->l3_alloc) {
+	if ((attrs != NULL) && attrs->l3_alloc) {
 		return phys | NVGPU_L3_ALLOC_BIT;
 	}
 

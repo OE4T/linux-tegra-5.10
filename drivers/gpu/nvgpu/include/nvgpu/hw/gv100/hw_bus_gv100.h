@@ -56,6 +56,8 @@
 #ifndef NVGPU_HW_BUS_GV100_H
 #define NVGPU_HW_BUS_GV100_H
 
+#include <nvgpu/types.h>
+
 static inline u32 bus_sw_scratch_r(u32 i)
 {
 	return 0x00001580U + i*4U;
@@ -172,9 +174,17 @@ static inline u32 bus_bind_status_bar2_pending_v(u32 r)
 {
 	return (r >> 2U) & 0x1U;
 }
+static inline u32 bus_bind_status_bar2_pending_empty_v(void)
+{
+	return 0x00000000U;
+}
 static inline u32 bus_bind_status_bar2_pending_empty_f(void)
 {
 	return 0x0U;
+}
+static inline u32 bus_bind_status_bar2_pending_busy_v(void)
+{
+	return 0x00000001U;
 }
 static inline u32 bus_bind_status_bar2_pending_busy_f(void)
 {
@@ -184,9 +194,17 @@ static inline u32 bus_bind_status_bar2_outstanding_v(u32 r)
 {
 	return (r >> 3U) & 0x1U;
 }
+static inline u32 bus_bind_status_bar2_outstanding_false_v(void)
+{
+	return 0x00000000U;
+}
 static inline u32 bus_bind_status_bar2_outstanding_false_f(void)
 {
 	return 0x0U;
+}
+static inline u32 bus_bind_status_bar2_outstanding_true_v(void)
+{
+	return 0x00000001U;
 }
 static inline u32 bus_bind_status_bar2_outstanding_true_f(void)
 {
@@ -198,15 +216,15 @@ static inline u32 bus_intr_0_r(void)
 }
 static inline u32 bus_intr_0_pri_squash_m(void)
 {
-	return 0x1U << 1U;
+	return U32(0x1U) << 1U;
 }
 static inline u32 bus_intr_0_pri_fecserr_m(void)
 {
-	return 0x1U << 2U;
+	return U32(0x1U) << 2U;
 }
 static inline u32 bus_intr_0_pri_timeout_m(void)
 {
-	return 0x1U << 3U;
+	return U32(0x1U) << 3U;
 }
 static inline u32 bus_intr_en_0_r(void)
 {
@@ -214,14 +232,14 @@ static inline u32 bus_intr_en_0_r(void)
 }
 static inline u32 bus_intr_en_0_pri_squash_m(void)
 {
-	return 0x1U << 1U;
+	return U32(0x1U) << 1U;
 }
 static inline u32 bus_intr_en_0_pri_fecserr_m(void)
 {
-	return 0x1U << 2U;
+	return U32(0x1U) << 2U;
 }
 static inline u32 bus_intr_en_0_pri_timeout_m(void)
 {
-	return 0x1U << 3U;
+	return U32(0x1U) << 3U;
 }
 #endif

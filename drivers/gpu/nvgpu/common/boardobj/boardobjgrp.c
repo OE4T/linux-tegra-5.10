@@ -256,7 +256,7 @@ int boardobjgrp_pmucmd_pmuinithandle_impl(struct gk20a *g,
 		goto boardobjgrp_pmucmd_pmuinithandle_exit;
 	}
 
-	if (!pcmd->fbsize) {
+	if (pcmd->fbsize == 0U) {
 		goto boardobjgrp_pmucmd_pmuinithandle_exit;
 	}
 
@@ -294,7 +294,7 @@ int boardobjgrp_pmuinithandle_impl(struct gk20a *g,
 
 	/* If the GRP_SET CMD has not been allocated, nothing left to do. */
 	if ((g->ops.pmu_ver.boardobj.is_boardobjgrp_pmucmd_id_valid(g,
-			pboardobjgrp, &pboardobjgrp->pmu.set))||
+			pboardobjgrp, &pboardobjgrp->pmu.set) != 0)||
 		(BOARDOBJGRP_IS_EMPTY(pboardobjgrp))) {
 		goto boardobjgrp_pmuinithandle_exit;
 	}

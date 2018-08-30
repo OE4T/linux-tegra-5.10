@@ -147,11 +147,11 @@ void gv11b_ltc_lts_isr(struct gk20a *g, unsigned int ltc, unsigned int slice)
 			ltc_ltc0_lts0_l2_cache_ecc_status_uncorrected_err_total_counter_overflow_m();
 
 		/* clear the interrupt */
-		if ((corrected_delta > 0U) || corrected_overflow) {
+		if ((corrected_delta > 0U) || (corrected_overflow != 0U)) {
 			nvgpu_writel_check(g,
 				ltc_ltc0_lts0_l2_cache_ecc_corrected_err_count_r() + offset, 0);
 		}
-		if ((uncorrected_delta > 0U) || uncorrected_overflow) {
+		if ((uncorrected_delta > 0U) || (uncorrected_overflow !=0U)) {
 			nvgpu_writel_check(g,
 				ltc_ltc0_lts0_l2_cache_ecc_uncorrected_err_count_r() + offset, 0);
 		}
@@ -192,7 +192,7 @@ void gv11b_ltc_lts_isr(struct gk20a *g, unsigned int ltc, unsigned int slice)
 			nvgpu_log(g, gpu_dbg_intr, "dstg ecc error uncorrected");
 		}
 
-		if (corrected_overflow || uncorrected_overflow) {
+		if ((corrected_overflow != 0U) || (uncorrected_overflow != 0U)) {
 			nvgpu_info(g, "ecc counter overflow!");
 		}
 

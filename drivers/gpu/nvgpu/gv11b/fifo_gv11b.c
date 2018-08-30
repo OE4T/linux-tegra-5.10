@@ -352,10 +352,11 @@ void gv11b_dump_channel_status_ramfc(struct gk20a *g,
 			info->refs,
 			info->deterministic ? ", deterministic" : "");
 	gk20a_debug_output(o, "channel status: %s in use %s %s\n",
-			ccsr_channel_enable_v(info->channel_reg) ? "" : "not",
+			(ccsr_channel_enable_v(info->channel_reg) ==
+			 ccsr_channel_enable_in_use_v()) ? "" : "not",
 			gk20a_decode_ccsr_chan_status(status),
-			ccsr_channel_busy_v(info->channel_reg) ?
-				"busy" : "not busy");
+			(ccsr_channel_busy_v(info->channel_reg) ==
+			 ccsr_channel_busy_true_v()) ? "busy" : "not busy");
 	gk20a_debug_output(o,
 			"RAMFC : TOP: %016llx PUT: %016llx GET: %016llx "
 			"FETCH: %016llx\n"
@@ -398,11 +399,11 @@ void gv11b_dump_eng_status(struct gk20a *g,
 		gk20a_debug_output(o,
 			"id: %d (%s), next_id: %d (%s), ctx status: %s ",
 			fifo_engine_status_id_v(status),
-			fifo_engine_status_id_type_v(status) ?
-				"tsg" : "channel",
+			(fifo_engine_status_id_type_v(status) ==
+			 fifo_engine_status_id_type_tsgid_v()) ? "tsg" : "channel",
 			fifo_engine_status_next_id_v(status),
-			fifo_engine_status_next_id_type_v(status) ?
-				"tsg" : "channel",
+			(fifo_engine_status_next_id_type_v(status) ==
+			 fifo_engine_status_next_id_type_tsgid_v()) ? "tsg" : "channel",
 			gk20a_decode_pbdma_chan_eng_ctx_status(ctx_status));
 
 		if (fifo_engine_status_eng_reload_v(status) != 0U) {
@@ -518,7 +519,7 @@ static int gv11b_fifo_poll_pbdma_chan_status(struct gk20a *g, u32 id,
 		nvgpu_usleep_range(delay, delay * 2);
 		delay = min_t(unsigned long,
 				delay << 1, GR_IDLE_CHECK_MAX);
-	} while (!nvgpu_timeout_expired(&timeout));
+	} while (nvgpu_timeout_expired(&timeout) == 0);
 
 	if (ret != 0) {
 		nvgpu_err(g, "preempt timeout pbdma: %u pbdma_stat: %u "
@@ -596,7 +597,7 @@ static int gv11b_fifo_poll_eng_ctx_status(struct gk20a *g, u32 id,
 			/* Eng save hasn't started yet. Continue polling */
 			if (eng_intr_pending != 0U) {
 				/* if eng intr, stop polling */
-				*reset_eng_bitmask |= BIT(act_eng_id);
+				*reset_eng_bitmask |= BIT32(act_eng_id);
 				ret = 0;
 				break;
 			}
@@ -609,7 +610,7 @@ static int gv11b_fifo_poll_eng_ctx_status(struct gk20a *g, u32 id,
 			if (id == fifo_engine_status_id_v(eng_stat)) {
 				if (eng_intr_pending != 0U) {
 					/* preemption will not finish */
-					*reset_eng_bitmask |= BIT(act_eng_id);
+					*reset_eng_bitmask |= BIT32(act_eng_id);
 					ret = 0;
 					break;
 				}
@@ -625,7 +626,7 @@ static int gv11b_fifo_poll_eng_ctx_status(struct gk20a *g, u32 id,
 			if (id == fifo_engine_status_next_id_v(eng_stat)) {
 				if (eng_intr_pending != 0U) {
 					/* preemption will not finish */
-					*reset_eng_bitmask |= BIT(act_eng_id);
+					*reset_eng_bitmask |= BIT32(act_eng_id);
 					ret = 0;
 					break;
 				}
@@ -643,7 +644,7 @@ static int gv11b_fifo_poll_eng_ctx_status(struct gk20a *g, u32 id,
 		nvgpu_usleep_range(delay, delay * 2);
 		delay = min_t(unsigned long,
 				delay << 1, GR_IDLE_CHECK_MAX);
-	} while (!nvgpu_timeout_expired(&timeout));
+	} while (nvgpu_timeout_expired(&timeout) == 0);
 
 	if (ret != 0) {
 		/*
@@ -655,7 +656,7 @@ static int gv11b_fifo_poll_eng_ctx_status(struct gk20a *g, u32 id,
 		*/
 		nvgpu_err(g, "preempt timeout eng: %u ctx_stat: %u tsgid: %u",
 			act_eng_id, ctx_stat, id);
-		*reset_eng_bitmask |= BIT(act_eng_id);
+		*reset_eng_bitmask |= BIT32(act_eng_id);
 	}
 
 	return ret;
@@ -707,7 +708,7 @@ void gv11b_fifo_reset_pbdma_and_eng_faulted(struct gk20a *g,
 			struct tsg_gk20a *tsg,
 			u32 faulted_pbdma, u32 faulted_engine)
 {
-	if (!tsg) {
+	if (tsg == NULL) {
 		return;
 	}
 
@@ -741,9 +742,9 @@ static u32 gv11b_fifo_get_runlists_mask(struct gk20a *g, u32 act_eng_bitmask,
 		}
 	}
 
-	if (rc_type == RC_TYPE_MMU_FAULT && mmfault) {
+	if ((rc_type == RC_TYPE_MMU_FAULT) && (mmfault != NULL)) {
 		if (mmfault->faulted_pbdma != FIFO_INVAL_PBDMA_ID) {
-			pbdma_bitmask = BIT(mmfault->faulted_pbdma);
+			pbdma_bitmask = BIT32(mmfault->faulted_pbdma);
 		}
 
 		for (rlid = 0; rlid < f->max_runlists; rlid++) {
@@ -902,7 +903,7 @@ int gv11b_fifo_preempt_tsg(struct gk20a *g, u32 tsgid)
 
 	ret = __locked_fifo_preempt(g, tsgid, true);
 
-	if (!mutex_ret) {
+	if (mutex_ret == 0U) {
 		nvgpu_pmu_mutex_release(&g->pmu, PMU_MUTEX_ID_FIFO, &token);
 	}
 
@@ -976,7 +977,7 @@ static void gv11b_fifo_locked_abort_runlist_active_tsgs(struct gk20a *g,
 
 	for (rlid = 0; rlid < g->fifo.max_runlists;
 						 rlid++) {
-		if (!(runlists_mask & BIT(rlid))) {
+		if ((runlists_mask & BIT32(rlid)) == 0U) {
 			continue;
 		}
 		nvgpu_log(g, gpu_dbg_info, "abort runlist id %d",
@@ -1017,7 +1018,7 @@ static void gv11b_fifo_locked_abort_runlist_active_tsgs(struct gk20a *g,
 			nvgpu_log(g, gpu_dbg_info, "aborted tsg id %lu", tsgid);
 		}
 	}
-	if (!mutex_ret) {
+	if (mutex_ret == 0U) {
 		nvgpu_pmu_mutex_release(&g->pmu, PMU_MUTEX_ID_FIFO, &token);
 	}
 }
@@ -1172,15 +1173,15 @@ void gv11b_fifo_teardown_ch_tsg(struct gk20a *g, u32 act_eng_bitmask,
 	for (rlid = 0; rlid < g->fifo.max_runlists; rlid++) {
 
 		runlist = &g->fifo.runlist_info[rlid];
-		if ((runlists_mask & BIT(rlid)) &&
-					runlist->reset_eng_bitmask) {
+		if (((runlists_mask & BIT32(rlid)) != 0U) &&
+		    (runlist->reset_eng_bitmask != 0U)) {
 
 			unsigned long __reset_eng_bitmask =
 				 runlist->reset_eng_bitmask;
 
 			for_each_set_bit(engine_id, &__reset_eng_bitmask,
 							g->fifo.max_engines) {
-				if (tsg &&
+				if ((tsg != NULL) &&
 					 gk20a_fifo_should_defer_engine_reset(g,
 					engine_id, client_type, false)) {
 
@@ -1581,7 +1582,7 @@ bool gv11b_fifo_handle_ctxsw_timeout(struct gk20a *g, u32 fifo_intr)
 	const char *info_status_str;
 
 
-	if (!(fifo_intr & fifo_intr_0_ctxsw_timeout_pending_f())) {
+	if ((fifo_intr & fifo_intr_0_ctxsw_timeout_pending_f()) == 0U) {
 		return ret;
 	}
 
@@ -1633,8 +1634,8 @@ bool gv11b_fifo_handle_ctxsw_timeout(struct gk20a *g, u32 fifo_intr)
 
 				/* Cancel all channels' timeout */
 				gk20a_channel_timeout_restart_all_channels(g);
-				gk20a_fifo_recover(g, BIT(active_eng_id), tsgid,
-						true, true, verbose,
+				gk20a_fifo_recover(g, BIT32(active_eng_id),
+						tsgid, true, true, verbose,
 						RC_TYPE_CTXSW_TIMEOUT);
 			} else {
 				nvgpu_log_info(g,
@@ -1705,8 +1706,8 @@ unsigned int gv11b_fifo_handle_pbdma_intr_1(struct gk20a *g,
 	u32 pbdma_intr_1_current = gk20a_readl(g, pbdma_intr_1_r(pbdma_id));
 
 	/* minimize race with the gpu clearing the pending interrupt */
-	if (!(pbdma_intr_1_current &
-			pbdma_intr_1_ctxnotvalid_pending_f())) {
+	if ((pbdma_intr_1_current &
+	     pbdma_intr_1_ctxnotvalid_pending_f()) == 0U) {
 		pbdma_intr_1 &= ~pbdma_intr_1_ctxnotvalid_pending_f();
 	}
 

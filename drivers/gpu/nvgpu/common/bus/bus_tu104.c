@@ -56,14 +56,16 @@ int bus_tu104_bar2_bind(struct gk20a *g, struct nvgpu_mem *bar2_inst)
 	do {
 		u32 val = nvgpu_func_readl(g,
 				func_priv_bind_status_r());
-		u32 pending = bus_bind_status_bar2_pending_v(val);
-		u32 outstanding = bus_bind_status_bar2_outstanding_v(val);
+		bool pending = (bus_bind_status_bar2_pending_v(val) ==
+				bus_bind_status_bar2_pending_busy_v());
+		bool outstanding = (bus_bind_status_bar2_outstanding_v(val) ==
+				  bus_bind_status_bar2_outstanding_true_v());
 		if (!pending && !outstanding) {
 			break;
 		}
 
 		nvgpu_udelay(5);
-	} while (!nvgpu_timeout_expired(&timeout));
+	} while (nvgpu_timeout_expired(&timeout) == 0);
 
 	if (nvgpu_timeout_peek_expired(&timeout) != 0) {
 		err = -EINVAL;

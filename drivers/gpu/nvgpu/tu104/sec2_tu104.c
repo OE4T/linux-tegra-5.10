@@ -387,7 +387,7 @@ void tu104_sec2_isr(struct gk20a *g)
 	intr = gk20a_readl(g, psec_falcon_irqstat_r());
 
 	intr = gk20a_readl(g, psec_falcon_irqstat_r()) & mask;
-	if (!intr) {
+	if (intr == 0U) {
 		gk20a_writel(g, psec_falcon_irqsclr_r(), intr);
 		nvgpu_mutex_release(&sec2->isr_mutex);
 		return;

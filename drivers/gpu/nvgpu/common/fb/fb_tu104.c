@@ -369,8 +369,8 @@ int fb_tu104_tlb_invalidate(struct gk20a *g, struct nvgpu_mem *pdb)
 			break;
 		}
 		nvgpu_udelay(2);
-	} while (!nvgpu_timeout_expired_msg(&timeout,
-					 "wait mmu invalidate"));
+	} while (nvgpu_timeout_expired_msg(&timeout,
+					 "wait mmu invalidate") == 0);
 
 	trace_gk20a_mm_tlb_invalidate_done(g->name);
 
@@ -413,8 +413,8 @@ int fb_tu104_mmu_invalidate_replay(struct gk20a *g,
 			break;
 		}
 		nvgpu_udelay(5);
-	} while (!nvgpu_timeout_expired_msg(&timeout,
-			    "invalidate replay failed on 0x%llx"));
+	} while (nvgpu_timeout_expired_msg(&timeout,
+			    "invalidate replay failed on 0x%llx") == 0);
 	if (err != 0) {
 		nvgpu_err(g, "invalidate replay timedout");
 	}
@@ -487,7 +487,7 @@ static int tu104_fb_wait_mmu_bind(struct gk20a *g)
 			return 0;
 		}
 		nvgpu_udelay(2);
-	} while (!nvgpu_timeout_expired_msg(&timeout, "mmu bind timedout"));
+	} while (nvgpu_timeout_expired_msg(&timeout, "mmu bind timedout") == 0);
 
 	return -ETIMEDOUT;
 }

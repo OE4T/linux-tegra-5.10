@@ -127,7 +127,7 @@ static int sec2_write_cmd(struct nvgpu_sec2 *sec2,
 	do {
 		err = nvgpu_flcn_queue_push(&g->sec2_flcn, queue, cmd,
 				cmd->hdr.size);
-		if (err == -EAGAIN && !nvgpu_timeout_expired(&timeout)) {
+		if ((err == -EAGAIN) && (nvgpu_timeout_expired(&timeout) == 0)) {
 			nvgpu_usleep_range(1000U, 2000U);
 		} else {
 			break;
@@ -255,7 +255,7 @@ static bool sec2_read_message(struct nvgpu_sec2 *sec2,
 
 	err = nvgpu_flcn_queue_pop(sec2->flcn, queue, &msg->hdr,
 			PMU_MSG_HDR_SIZE, &bytes_read);
-	if (err || bytes_read != PMU_MSG_HDR_SIZE) {
+	if ((err != 0) || (bytes_read != PMU_MSG_HDR_SIZE)) {
 		nvgpu_err(g, "fail to read msg from queue %d", queue->id);
 		*status = err | -EINVAL;
 		goto clean_up;
@@ -272,7 +272,7 @@ static bool sec2_read_message(struct nvgpu_sec2 *sec2,
 		/* read again after rewind */
 		err = nvgpu_flcn_queue_pop(sec2->flcn, queue, &msg->hdr,
 				PMU_MSG_HDR_SIZE, &bytes_read);
-		if (err || bytes_read != PMU_MSG_HDR_SIZE) {
+		if ((err != 0) || (bytes_read != PMU_MSG_HDR_SIZE)) {
 			nvgpu_err(g,
 				"fail to read msg from queue %d", queue->id);
 			*status = err | -EINVAL;
@@ -291,7 +291,7 @@ static bool sec2_read_message(struct nvgpu_sec2 *sec2,
 		read_size = msg->hdr.size - PMU_MSG_HDR_SIZE;
 		err = nvgpu_flcn_queue_pop(sec2->flcn, queue, &msg->msg,
 			read_size, &bytes_read);
-		if (err || bytes_read != read_size) {
+		if ((err != 0) || (bytes_read != read_size)) {
 			nvgpu_err(g,
 				"fail to read msg from queue %d", queue->id);
 			*status = err;
@@ -421,7 +421,7 @@ int nvgpu_sec2_wait_message_cond(struct nvgpu_sec2 *sec2, u32 timeout_ms,
 
 		nvgpu_usleep_range(delay, delay * 2U);
 		delay = min_t(u32, delay << 1U, GR_IDLE_CHECK_MAX);
-	} while (!nvgpu_timeout_expired(&timeout));
+	} while (nvgpu_timeout_expired(&timeout) == 0);
 
 	return -ETIMEDOUT;
 }

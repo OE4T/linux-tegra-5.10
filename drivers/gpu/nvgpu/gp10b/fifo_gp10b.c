@@ -161,12 +161,12 @@ int gp10b_fifo_resetup_ramfc(struct channel_gk20a *c)
 			new_syncpt = -EINVAL;
 		}
 	}
-	if (new_syncpt && new_syncpt != old_syncpt) {
+	if ((new_syncpt != 0U) && (new_syncpt != old_syncpt)) {
 		/* disable channel */
 		gk20a_disable_channel_tsg(c->g, c);
 
 		/* preempt the channel */
-		WARN_ON(gk20a_fifo_preempt(c->g, c));
+		WARN_ON(gk20a_fifo_preempt(c->g, c) != 0);
 
 		v = pbdma_allowed_syncpoints_0_valid_f(1);
 
@@ -217,8 +217,9 @@ void gp10b_device_info_data_parse(struct gk20a *g, u32 table_entry,
 			    << top_device_info_data_pri_base_align_v());
 			nvgpu_log_info(g, "device info: pri_base: %d", *pri_base);
 		}
-		if (fault_id && (top_device_info_data_fault_id_v(table_entry) ==
-		    top_device_info_data_fault_id_valid_v())) {
+		if ((fault_id != NULL) &&
+		    (top_device_info_data_fault_id_v(table_entry) ==
+		     top_device_info_data_fault_id_valid_v())) {
 			*fault_id =
 				 g->ops.fifo.device_info_fault_id(table_entry);
 			nvgpu_log_info(g, "device info: fault_id: %d", *fault_id);

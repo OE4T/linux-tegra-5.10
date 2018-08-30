@@ -59,7 +59,7 @@ int gp10b_init_bar2_vm(struct gk20a *g)
 	mm->bar2.vm = nvgpu_vm_init(g, big_page_size, SZ_4K,
 		mm->bar2.aperture_size - SZ_4K,
 		mm->bar2.aperture_size, false, false, "bar2");
-	if (!mm->bar2.vm) {
+	if (mm->bar2.vm == NULL) {
 		return -ENOMEM;
 	}
 
@@ -292,7 +292,7 @@ static u32 gp10b_get_pde0_pgsz(struct gk20a *g, const struct gk20a_mmu_level *l,
 	u32 i;
 	u32 pgsz = GMMU_NR_PAGE_SIZES;
 
-	if (!pd->mem) {
+	if (pd->mem == NULL) {
 		return pgsz;
 	}
 

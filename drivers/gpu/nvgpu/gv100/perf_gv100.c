@@ -70,7 +70,7 @@ static int gv100_pmu_handle_perf_event(struct gk20a *g, void *pmumsg)
 		nvgpu_cond_signal(&perf_pmu->vfe_init.wq);
 		break;
 	default:
-		WARN_ON(1);
+		WARN_ON(true);
 		break;
 	}
 	return 0;
