@@ -541,6 +541,7 @@ static int tegra_i2c_flush_fifos(struct tegra_i2c_dev *i2c_dev)
 static int tegra_i2c_empty_rx_fifo(struct tegra_i2c_dev *i2c_dev)
 {
 	u32 val;
+	__le32 val_le;
 	int rx_fifo_avail;
 	u8 *buf = i2c_dev->msg_buf;
 	size_t buf_remaining = i2c_dev->msg_buf_remaining;
@@ -583,8 +584,8 @@ static int tegra_i2c_empty_rx_fifo(struct tegra_i2c_dev *i2c_dev)
 		 * in this function.
 		 */
 		val = i2c_readl(i2c_dev, I2C_RX_FIFO);
-		val = cpu_to_le32(val);
-		memcpy(buf, &val, buf_remaining);
+		val_le = cpu_to_le32(val);
+		memcpy(buf, &val_le, buf_remaining);
 		buf_remaining = 0;
 		rx_fifo_avail--;
 	}
@@ -606,6 +607,7 @@ static int tegra_i2c_fill_tx_fifo(struct tegra_i2c_dev *i2c_dev)
 	u8 *buf = i2c_dev->msg_buf;
 	size_t buf_remaining = i2c_dev->msg_buf_remaining;
 	int words_to_transfer;
+	__le32 val_le;
 
 	if (i2c_dev->hw->has_mst_fifo) {
 		val = i2c_readl(i2c_dev, I2C_MST_FIFO_STATUS);
@@ -653,8 +655,8 @@ static int tegra_i2c_fill_tx_fifo(struct tegra_i2c_dev *i2c_dev)
 		 * when (words_to_transfer was > tx_fifo_avail) earlier
 		 * in this function for non-zero words_to_transfer.
 		 */
-		memcpy(&val, buf, buf_remaining);
-		val = le32_to_cpu(val);
+		memcpy(&val_le, buf, buf_remaining);
+		val = le32_to_cpu(val_le);
 
 		/* Again update before writing to FIFO to make sure isr sees. */
 		i2c_dev->msg_buf_remaining = 0;
