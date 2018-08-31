@@ -76,7 +76,7 @@ static int _clk_progs_pmudata_instget(struct gk20a *g,
 
 	/*check whether pmuboardobjgrp has a valid boardobj in index*/
 	if (((u32)BIT(idx) &
-		pgrp_set->hdr.data.super.obj_mask.super.data[0]) == 0) {
+		pgrp_set->hdr.data.super.obj_mask.super.data[0]) == 0U) {
 		return -EINVAL;
 	}
 
@@ -823,8 +823,8 @@ static u32 vfflatten_prog_1x_master(struct gk20a *g,
 		case CTRL_CLK_PROG_1X_SOURCE_PLL:
 			freq_step_size_mhz =
 				p1xmaster->super.source_data.pll.freq_step_size_mhz;
-			step_count = (freq_step_size_mhz == 0) ? 0 :
-				(p1xmaster->super.freq_max_mhz - *pfreqmaxlastmhz - 1) /
+			step_count = (freq_step_size_mhz == 0U) ? 0U :
+				(p1xmaster->super.freq_max_mhz - *pfreqmaxlastmhz - 1U) /
 							freq_step_size_mhz;
 			/* Intentional fall-through.*/
 
@@ -842,7 +842,7 @@ static u32 vfflatten_prog_1x_master(struct gk20a *g,
 				if (status) {
 					goto done;
 				}
-			} while (step_count-- > 0);
+			} while (step_count-- > 0U);
 			break;
 
 		case CTRL_CLK_PROG_1X_SOURCE_FLL:
@@ -886,7 +886,7 @@ static u32 vflookup_prog_1x_master
 	u8 rail
 )
 {
-	int j;
+	u32 j;
 	struct ctrl_clk_clk_prog_1x_master_vf_entry
 		*pvfentry;
 	struct clk_vf_point *pvfpoint;
@@ -895,10 +895,10 @@ static u32 vflookup_prog_1x_master
 	u16 clkmhz;
 	u32 voltuv;
 	u8 slaveentrycount;
-	int i;
+	u32 i;
 	struct ctrl_clk_clk_prog_1x_master_ratio_slave_entry *pslaveents;
 
-	if ((*pclkmhz != 0) && (*pvoltuv != 0)) {
+	if ((*pclkmhz != 0U) && (*pvoltuv != 0U)) {
 		return -EINVAL;
 	}
 
@@ -927,7 +927,7 @@ static u32 vflookup_prog_1x_master
 
 	/*if domain is slave domain and freq is input
 		then derive master clk */
-	if ((slave_clk_domain != NULL) && (*pclkmhz != 0)) {
+	if ((slave_clk_domain != NULL) && (*pclkmhz != 0U)) {
 		if (p1xmaster->super.super.super.implements(g,
 			&p1xmaster->super.super.super,
 			CTRL_CLK_CLK_PROG_TYPE_1X_MASTER_RATIO)) {
@@ -945,7 +945,7 @@ static u32 vflookup_prog_1x_master
 			if (i == slaveentrycount) {
 				return -EINVAL;
 			}
-			clkmhz = (clkmhz * 100)/pslaveents->ratio;
+			clkmhz = (clkmhz * 100U)/pslaveents->ratio;
 		} else {
 			/* only support ratio for now */
 			return -EINVAL;
@@ -953,7 +953,7 @@ static u32 vflookup_prog_1x_master
 	}
 
 	/* if both volt and clks are zero simply print*/
-	if ((*pvoltuv == 0) && (*pclkmhz == 0)) {
+	if ((*pvoltuv == 0U) && (*pclkmhz == 0U)) {
 		for (j = pvfentry->vf_point_idx_first;
 			j <= pvfentry->vf_point_idx_last; j++) {
 			pvfpoint = CLK_CLK_VF_POINT_GET(pclk, j);
@@ -965,7 +965,7 @@ static u32 vflookup_prog_1x_master
 	}
 	/* start looking up f for v for v for f */
 	/* looking for volt? */
-	if (*pvoltuv == 0) {
+	if (*pvoltuv == 0U) {
 		pvfpoint = CLK_CLK_VF_POINT_GET(pclk,
 				pvfentry->vf_point_idx_last);
 		/* above range? */
@@ -1004,7 +1004,7 @@ static u32 vflookup_prog_1x_master
 
 	/*if domain is slave domain and freq was looked up
 		then derive slave clk */
-	if ((slave_clk_domain != NULL) && (*pclkmhz == 0)) {
+	if ((slave_clk_domain != NULL) && (*pclkmhz == 0U)) {
 		if (p1xmaster->super.super.super.implements(g,
 			&p1xmaster->super.super.super,
 			CTRL_CLK_CLK_PROG_TYPE_1X_MASTER_RATIO)) {
@@ -1022,7 +1022,7 @@ static u32 vflookup_prog_1x_master
 			if (i == slaveentrycount) {
 				return -EINVAL;
 			}
-			clkmhz = (clkmhz * pslaveents->ratio)/100;
+			clkmhz = (clkmhz * pslaveents->ratio)/100U;
 		} else {
 			/* only support ratio for now */
 			return -EINVAL;
@@ -1030,7 +1030,7 @@ static u32 vflookup_prog_1x_master
 	}
 	*pclkmhz = clkmhz;
 	*pvoltuv = voltuv;
-	if ((clkmhz == 0) || (voltuv == 0)) {
+	if ((clkmhz == 0U) || (voltuv == 0U)) {
 		return -EINVAL;
 	}
 	return 0;
@@ -1073,11 +1073,11 @@ static u32 getfpoints_prog_1x_master
 
 	pvfentry = (struct ctrl_clk_clk_prog_1x_master_vf_entry *)(
 			(u8 *)pvfentry +
-			(sizeof(struct ctrl_clk_clk_prog_1x_master_vf_entry) *
-			(rail+1)));
+			((u8)sizeof(struct ctrl_clk_clk_prog_1x_master_vf_entry) *
+			(rail+1U)));
 
-	fpointscount = pvfentry->vf_point_idx_last -
-		pvfentry->vf_point_idx_first + 1;
+	fpointscount = (u32)pvfentry->vf_point_idx_last -
+		(u32)pvfentry->vf_point_idx_first + 1U;
 
 	/* if pointer for freq data is NULL simply return count */
 	if (*ppfreqpointsinmhz == NULL) {
@@ -1116,7 +1116,7 @@ static int getslaveclk_prog_1x_master(struct gk20a *g,
 		return -EINVAL;
 	}
 
-	if (masterclkmhz == 0) {
+	if (masterclkmhz == 0U) {
 		return -EINVAL;
 	}
 
@@ -1141,7 +1141,7 @@ static int getslaveclk_prog_1x_master(struct gk20a *g,
 		if (i == slaveentrycount) {
 			return -EINVAL;
 		}
-		*pclkmhz = (masterclkmhz * pslaveents->ratio)/100;
+		*pclkmhz = (masterclkmhz * pslaveents->ratio)/100U;
 	} else {
 		/* only support ratio for now */
 		return -EINVAL;

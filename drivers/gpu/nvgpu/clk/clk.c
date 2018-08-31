@@ -29,8 +29,8 @@
 #include "ctrl/ctrlvolt.h"
 #include "volt/volt.h"
 
-#define BOOT_GPC2CLK_MHZ  2581
-#define BOOT_MCLK_MHZ     3003
+#define BOOT_GPC2CLK_MHZ  2581U
+#define BOOT_MCLK_MHZ     3003U
 
 struct clkrpc_pmucmdhandler_params {
 	struct nv_pmu_clk_rpc *prpccall;
@@ -111,7 +111,7 @@ int clk_pmu_freq_effective_avg_load(struct gk20a *g, bool bload)
 	pmu_wait_message_cond(&g->pmu,
 			gk20a_get_gr_idle_timeout(g),
 			&handler.success, 1);
-	if (handler.success == 0) {
+	if (handler.success == 0U) {
 		nvgpu_err(g, "rpc call to load Effective avg clk domain freq failed");
 		status = -EINVAL;
 	}
@@ -171,7 +171,7 @@ u32 clk_freq_effective_avg(struct gk20a *g, u32  clkDomainMask) {
 	pmu_wait_message_cond(&g->pmu,
 			gk20a_get_gr_idle_timeout(g),
 			&handler.success, 1);
-	if (handler.success == 0) {
+	if (handler.success == 0U) {
 		nvgpu_err(g, "rpc call to get clk frequency average failed");
 		status = -EINVAL;
 		goto done;
@@ -278,7 +278,7 @@ int clk_pmu_freq_controller_load(struct gk20a *g, bool bload, u8 bit_idx)
 			gk20a_get_gr_idle_timeout(g),
 			&handler.success, 1);
 
-	if (handler.success == 0) {
+	if (handler.success == 0U) {
 		nvgpu_err(g, "rpc call to load freq cntlr cal failed");
 		status = -EINVAL;
 	}
@@ -340,7 +340,7 @@ u32 clk_pmu_vin_load(struct gk20a *g)
 			gk20a_get_gr_idle_timeout(g),
 			&handler.success, 1);
 
-	if (handler.success == 0) {
+	if (handler.success == 0U) {
 		nvgpu_err(g, "rpc call to load vin cal failed");
 		status = -EINVAL;
 	}
@@ -360,7 +360,7 @@ u32 nvgpu_clk_vf_change_inject_data_fill_gp10x(struct gk20a *g,
 	vfchange->clk_list.num_domains = 3;
 	vfchange->clk_list.clk_domains[0].clk_domain = CTRL_CLK_DOMAIN_GPC2CLK;
 	vfchange->clk_list.clk_domains[0].clk_freq_khz =
-					setfllclk->gpc2clkmhz * 1000;
+					(u32)setfllclk->gpc2clkmhz * 1000U;
 	vfchange->clk_list.clk_domains[0].clk_flags = 0;
 	vfchange->clk_list.clk_domains[0].current_regime_id =
 		setfllclk->current_regime_id_gpc;
@@ -368,7 +368,7 @@ u32 nvgpu_clk_vf_change_inject_data_fill_gp10x(struct gk20a *g,
 		setfllclk->target_regime_id_gpc;
 	vfchange->clk_list.clk_domains[1].clk_domain = CTRL_CLK_DOMAIN_XBAR2CLK;
 	vfchange->clk_list.clk_domains[1].clk_freq_khz =
-					setfllclk->xbar2clkmhz * 1000;
+					(u32)setfllclk->xbar2clkmhz * 1000U;
 	vfchange->clk_list.clk_domains[1].clk_flags = 0;
 	vfchange->clk_list.clk_domains[1].current_regime_id =
 		setfllclk->current_regime_id_xbar;
@@ -376,7 +376,7 @@ u32 nvgpu_clk_vf_change_inject_data_fill_gp10x(struct gk20a *g,
 		setfllclk->target_regime_id_xbar;
 	vfchange->clk_list.clk_domains[2].clk_domain = CTRL_CLK_DOMAIN_SYS2CLK;
 	vfchange->clk_list.clk_domains[2].clk_freq_khz =
-					setfllclk->sys2clkmhz * 1000;
+					(u32)setfllclk->sys2clkmhz * 1000U;
 	vfchange->clk_list.clk_domains[2].clk_flags = 0;
 	vfchange->clk_list.clk_domains[2].current_regime_id =
 		setfllclk->current_regime_id_sys;
@@ -402,15 +402,15 @@ u32 nvgpu_clk_vf_change_inject_data_fill_gv10x(struct gk20a *g,
 	vfchange->clk_list.num_domains = 4;
 	vfchange->clk_list.clk_domains[0].clk_domain = CTRL_CLK_DOMAIN_GPCCLK;
 	vfchange->clk_list.clk_domains[0].clk_freq_khz =
-			setfllclk->gpc2clkmhz * 1000;
+			(u32)setfllclk->gpc2clkmhz * 1000U;
 
 	vfchange->clk_list.clk_domains[1].clk_domain = CTRL_CLK_DOMAIN_XBARCLK;
 	vfchange->clk_list.clk_domains[1].clk_freq_khz =
-			setfllclk->xbar2clkmhz * 1000;
+			(u32)setfllclk->xbar2clkmhz * 1000U;
 
 	vfchange->clk_list.clk_domains[2].clk_domain = CTRL_CLK_DOMAIN_SYSCLK;
 	vfchange->clk_list.clk_domains[2].clk_freq_khz =
-			setfllclk->sys2clkmhz * 1000;
+			(u32)setfllclk->sys2clkmhz * 1000U;
 
 	vfchange->clk_list.clk_domains[3].clk_domain = CTRL_CLK_DOMAIN_NVDCLK;
 	vfchange->clk_list.clk_domains[3].clk_freq_khz = 855 * 1000;
@@ -438,8 +438,8 @@ static u32 clk_pmu_vf_inject(struct gk20a *g, struct set_fll_clk *setfllclk)
 	memset(&handler, 0, sizeof(struct clkrpc_pmucmdhandler_params));
 	memset(&cmd, 0, sizeof(struct pmu_cmd));
 
-	if ((setfllclk->gpc2clkmhz == 0) || (setfllclk->xbar2clkmhz == 0) ||
-		(setfllclk->sys2clkmhz == 0) || (setfllclk->voltuv == 0)) {
+	if ((setfllclk->gpc2clkmhz == 0U) || (setfllclk->xbar2clkmhz == 0U) ||
+		(setfllclk->sys2clkmhz == 0U) || (setfllclk->voltuv == 0U)) {
 		return -EINVAL;
 	}
 
@@ -488,7 +488,7 @@ static u32 clk_pmu_vf_inject(struct gk20a *g, struct set_fll_clk *setfllclk)
 			gk20a_get_gr_idle_timeout(g),
 			&handler.success, 1);
 
-	if (handler.success == 0) {
+	if (handler.success == 0U) {
 		nvgpu_err(g, "rpc call to inject clock failed");
 		status = -EINVAL;
 	}
@@ -619,7 +619,7 @@ int clk_get_fll_clks(struct gk20a *g, struct set_fll_clk *setfllclk)
 	struct clk_domain_3x_slave *p3xslave;
 	unsigned long slaveidxmask;
 
-	if (setfllclk->gpc2clkmhz == 0) {
+	if (setfllclk->gpc2clkmhz == 0U) {
 		return -EINVAL;
 	}
 
@@ -635,7 +635,7 @@ int clk_get_fll_clks(struct gk20a *g, struct set_fll_clk *setfllclk)
 			}
 			p3xmaster = (struct clk_domain_3x_master *)pdomain;
 			slaveidxmask = p3xmaster->slave_idxs_mask;
-			for_each_set_bit(i, &slaveidxmask, 32) {
+			for_each_set_bit(i, &slaveidxmask, 32U) {
 				p3xslave = (struct clk_domain_3x_slave *)
 						CLK_CLK_DOMAIN_GET(pclk, i);
 				if ((p3xslave->super.super.super.api_domain !=
@@ -707,10 +707,10 @@ static int clk_program_fllclks(struct gk20a *g, struct change_fll_clk *fllclk)
 	if (fllclk->api_clk_domain != CTRL_CLK_DOMAIN_GPCCLK) {
 		return -EINVAL;
 	}
-	if (fllclk->voltuv == 0) {
+	if (fllclk->voltuv == 0U) {
 		return -EINVAL;
 	}
-	if (fllclk->clkmhz == 0) {
+	if (fllclk->clkmhz == 0U) {
 		return -EINVAL;
 	}
 
@@ -729,7 +729,7 @@ static int clk_program_fllclks(struct gk20a *g, struct change_fll_clk *fllclk)
 			}
 			p3xmaster = (struct clk_domain_3x_master *)pdomain;
 			slaveidxmask = p3xmaster->slave_idxs_mask;
-			for_each_set_bit(i, &slaveidxmask, 32) {
+			for_each_set_bit(i, &slaveidxmask, 32U) {
 				p3xslave = (struct clk_domain_3x_slave *)
 						CLK_CLK_DOMAIN_GET(pclk, i);
 				if ((p3xslave->super.super.super.api_domain !=

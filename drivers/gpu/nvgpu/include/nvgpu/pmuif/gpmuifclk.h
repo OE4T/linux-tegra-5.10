@@ -66,12 +66,12 @@ enum nv_pmu_clk_clkwhich {
  * argument for communications between Kernel and PMU via the various generic
  * BOARDOBJGRP interfaces.
  */
-#define NV_PMU_CLK_BOARDOBJGRP_CLASS_ID_CLK_DOMAIN                          0x00
-#define NV_PMU_CLK_BOARDOBJGRP_CLASS_ID_CLK_PROG                            0x01
-#define NV_PMU_CLK_BOARDOBJGRP_CLASS_ID_VIN_DEVICE                          0x02
-#define NV_PMU_CLK_BOARDOBJGRP_CLASS_ID_FLL_DEVICE                          0x03
-#define NV_PMU_CLK_BOARDOBJGRP_CLASS_ID_CLK_VF_POINT                        0x04
-#define NV_PMU_CLK_BOARDOBJGRP_CLASS_ID_CLK_FREQ_CONTROLLER                 0x05
+#define NV_PMU_CLK_BOARDOBJGRP_CLASS_ID_CLK_DOMAIN                         0x00U
+#define NV_PMU_CLK_BOARDOBJGRP_CLASS_ID_CLK_PROG                           0x01U
+#define NV_PMU_CLK_BOARDOBJGRP_CLASS_ID_VIN_DEVICE                         0x02U
+#define NV_PMU_CLK_BOARDOBJGRP_CLASS_ID_FLL_DEVICE                         0x03U
+#define NV_PMU_CLK_BOARDOBJGRP_CLASS_ID_CLK_VF_POINT                       0x04U
+#define NV_PMU_CLK_BOARDOBJGRP_CLASS_ID_CLK_FREQ_CONTROLLER                0x05U
 
 /*!
 * CLK_DOMAIN BOARDOBJGRP Header structure.  Describes global state about the
@@ -365,7 +365,7 @@ union nv_pmu_clk_clk_vf_point_boardobj_get_status_union {
 
 NV_PMU_BOARDOBJ_GRP_GET_STATUS_MAKE_E255(clk, clk_vf_point);
 
-#define NV_PMU_VF_INJECT_MAX_CLOCK_DOMAINS                                  (12)
+#define NV_PMU_VF_INJECT_MAX_CLOCK_DOMAINS                                 (12U)
 
 struct nv_pmu_clk_clk_domain_list {
 	u8 num_domains;
@@ -391,8 +391,8 @@ struct nv_pmu_clk_vf_change_inject_v1 {
 	struct nv_pmu_volt_volt_rail_list_v1 volt_list;
 };
 
-#define NV_NV_PMU_CLK_LOAD_FEATURE_VIN                              (0x00000002)
-#define NV_NV_PMU_CLK_LOAD_ACTION_MASK_VIN_HW_CAL_PROGRAM_YES       (0x00000001)
+#define NV_NV_PMU_CLK_LOAD_FEATURE_VIN                             (0x00000002U)
+#define NV_NV_PMU_CLK_LOAD_ACTION_MASK_VIN_HW_CAL_PROGRAM_YES      (0x00000001U)
 
 struct nv_pmu_clk_load_payload_freq_controllers {
 	struct ctrl_boardobjgrp_mask_e32 load_mask;
@@ -412,10 +412,10 @@ struct nv_pmu_clk_freq_effective_avg {
 };
 
 /* CLK_FREQ_CONTROLLER */
-#define NV_NV_PMU_CLK_LOAD_FEATURE_FREQ_CONTROLLER (0x00000003)
+#define NV_NV_PMU_CLK_LOAD_FEATURE_FREQ_CONTROLLER (0x00000003U)
 
-#define NV_NV_PMU_CLK_LOAD_ACTION_MASK_FREQ_CONTROLLER_CALLBACK_NO  (0x00000000)
-#define NV_NV_PMU_CLK_LOAD_ACTION_MASK_FREQ_CONTROLLER_CALLBACK_YES (0x00000002)
+#define NV_NV_PMU_CLK_LOAD_ACTION_MASK_FREQ_CONTROLLER_CALLBACK_NO (0x00000000U)
+#define NV_NV_PMU_CLK_LOAD_ACTION_MASK_FREQ_CONTROLLER_CALLBACK_YES (0x00000002U)
 
 struct nv_pmu_clk_clk_freq_controller_boardobjgrp_set_header {
 	struct nv_pmu_boardobjgrp_e32  super;
@@ -454,18 +454,18 @@ union nv_pmu_clk_clk_freq_controller_boardobj_set_union {
 
 NV_PMU_BOARDOBJ_GRP_SET_MAKE_E32(clk, clk_freq_controller);
 
-#define NV_NV_PMU_CLK_LOAD_FEATURE_FREQ_EFFECTIVE_AVG               (0x00000004)
-#define NV_NV_PMU_CLK_LOAD_ACTION_MASK_FREQ_EFFECTIVE_AVG_CALLBACK_NO  (0x00000000)
-#define NV_NV_PMU_CLK_LOAD_ACTION_MASK_FREQ_EFFECTIVE_AVG_CALLBACK_YES (0x00000004)
+#define NV_NV_PMU_CLK_LOAD_FEATURE_FREQ_EFFECTIVE_AVG              (0x00000004U)
+#define NV_NV_PMU_CLK_LOAD_ACTION_MASK_FREQ_EFFECTIVE_AVG_CALLBACK_NO  (0x00000000U)
+#define NV_NV_PMU_CLK_LOAD_ACTION_MASK_FREQ_EFFECTIVE_AVG_CALLBACK_YES (0x00000004U)
 
 /* CLK CMD ID definitions.  */
-#define NV_PMU_CLK_CMD_ID_BOARDOBJ_GRP_SET                          (0x00000001)
-#define NV_PMU_CLK_CMD_ID_RPC                                       (0x00000000)
-#define NV_PMU_CLK_CMD_ID_BOARDOBJ_GRP_GET_STATUS                   (0x00000002)
+#define NV_PMU_CLK_CMD_ID_BOARDOBJ_GRP_SET                         (0x00000001U)
+#define NV_PMU_CLK_CMD_ID_RPC                                      (0x00000000U)
+#define NV_PMU_CLK_CMD_ID_BOARDOBJ_GRP_GET_STATUS                  (0x00000002U)
 
-#define NV_PMU_CLK_RPC_ID_LOAD                                      (0x00000001)
-#define NV_PMU_CLK_RPC_ID_CLK_VF_CHANGE_INJECT                      (0x00000000)
-#define NV_PMU_CLK_RPC_ID_CLK_FREQ_EFF_AVG                          (0x00000002)
+#define NV_PMU_CLK_RPC_ID_LOAD                                     (0x00000001U)
+#define NV_PMU_CLK_RPC_ID_CLK_VF_CHANGE_INJECT                     (0x00000000U)
+#define NV_PMU_CLK_RPC_ID_CLK_FREQ_EFF_AVG                         (0x00000002U)
 
 struct nv_pmu_clk_cmd_rpc {
 	u8 cmd_type;
@@ -506,9 +506,9 @@ struct nv_pmu_clk_rpc {
 };
 
 /* CLK MSG ID definitions */
-#define NV_PMU_CLK_MSG_ID_BOARDOBJ_GRP_SET                          (0x00000001)
-#define NV_PMU_CLK_MSG_ID_RPC                                       (0x00000000)
-#define NV_PMU_CLK_MSG_ID_BOARDOBJ_GRP_GET_STATUS                   (0x00000002)
+#define NV_PMU_CLK_MSG_ID_BOARDOBJ_GRP_SET                         (0x00000001U)
+#define NV_PMU_CLK_MSG_ID_RPC                                      (0x00000000U)
+#define NV_PMU_CLK_MSG_ID_BOARDOBJ_GRP_GET_STATUS                  (0x00000002U)
 
 struct nv_pmu_clk_msg_rpc {
 	u8 msg_type;

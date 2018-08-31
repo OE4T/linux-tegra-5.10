@@ -175,7 +175,7 @@ static int _clk_domains_pmudata_instget(struct gk20a *g,
 
 	/*check whether pmuboardobjgrp has a valid boardobj in index*/
 	if (((u32)BIT(idx) &
-		pgrp_set->hdr.data.super.obj_mask.super.data[0]) == 0) {
+		pgrp_set->hdr.data.super.obj_mask.super.data[0]) == 0U) {
 		return -EINVAL;
 	}
 
@@ -492,7 +492,7 @@ static int devinit_get_clocks_table_35(struct gk20a *g,
 		status = boardobjgrp_objinsert(
 				&pclkdomainobjs->super.super,
 				(struct boardobj *)(void*) pclkdomain_dev, index);
-		if (status != 0UL) {
+		if (status != 0) {
 			nvgpu_err(g,
 			"unable to insert clock domain boardobj for %d", index);
 			status = (u32) -EINVAL;
@@ -684,7 +684,7 @@ static int devinit_get_clocks_table_1x(struct gk20a *g,
 		}
 		status = boardobjgrp_objinsert(&pclkdomainobjs->super.super,
 				(struct boardobj *)(void *)pclkdomain_dev, index);
-		if (status != 0UL) {
+		if (status != 0) {
 			nvgpu_err(g,
 			"unable to insert clock domain boardobj for %d", index);
 			status = (u32) -EINVAL;
@@ -888,7 +888,7 @@ static int clkdomaingetslaveclk(struct gk20a *g,
 		return -EINVAL;
 	}
 
-	if (masterclkmhz == 0) {
+	if (masterclkmhz == 0U) {
 		return -EINVAL;
 	}
 
@@ -931,7 +931,7 @@ static int clkdomainvfsearch(struct gk20a *g,
 		return -EINVAL;
 	}
 
-	if ((*pclkmhz != 0) && (*pvoltuv != 0)) {
+	if ((*pclkmhz != 0U) && (*pvoltuv != 0U)) {
 		return -EINVAL;
 	}
 
@@ -968,7 +968,7 @@ static int clkdomainvfsearch(struct gk20a *g,
 		/* if look up has found the V or F value matching to other
 		 exit */
 		if (status == 0) {
-			if (*pclkmhz == 0) {
+			if (*pclkmhz == 0U) {
 				bestclkmhz = clkmhz;
 			} else {
 				bestvoltuv = voltuv;
@@ -977,12 +977,12 @@ static int clkdomainvfsearch(struct gk20a *g,
 		}
 	}
 	/* clk and volt sent as zero to print vf table */
-	if ((*pclkmhz == 0) && (*pvoltuv == 0)) {
+	if ((*pclkmhz == 0U) && (*pvoltuv == 0U)) {
 		status = 0;
 		goto done;
 	}
 	/* atleast one search found a matching value? */
-	if ((bestvoltuv != 0) && (bestclkmhz != 0)) {
+	if ((bestvoltuv != 0U) && (bestclkmhz != 0U)) {
 		*pclkmhz = bestclkmhz;
 		*pvoltuv = bestvoltuv;
 		status = 0;
@@ -1020,7 +1020,7 @@ static u32 clkdomaingetfpoints
 		return -EINVAL;
 	}
 
-	if ((pfreqpointsinmhz == NULL) && (*pfpointscount != 0)) {
+	if ((pfreqpointsinmhz == NULL) && (*pfpointscount != 0U)) {
 		return -EINVAL;
 	}
 
@@ -1074,7 +1074,7 @@ static int clk_domain_pmudatainit_35_prog(struct gk20a *g,
 	nvgpu_log_info(g, " ");
 
 	status = _clk_domain_pmudatainit_3x(g, board_obj_ptr, ppmudata);
-	if (status != 0UL) {
+	if (status != 0) {
 		return status;
 	}
 
@@ -1151,7 +1151,7 @@ static int clk_domain_construct_35_prog(struct gk20a *g,
 
 	ptmpobj->type_mask |= BIT(CTRL_CLK_CLK_DOMAIN_TYPE_3X_PROG);
 	status = clk_domain_construct_3x(g, ppboardobj, size, pargs);
-	if (status != 0UL)
+	if (status != 0)
 	{
 		return (u32) -EINVAL;
 	}
@@ -1245,7 +1245,7 @@ static int _clk_domain_pmudatainit_35_slave(struct gk20a *g,
 	nvgpu_log_info(g, " ");
 
 	status = clk_domain_pmudatainit_35_prog(g, board_obj_ptr, ppmudata);
-	if (status != 0UL) {
+	if (status != 0) {
 		return status;
 	}
 
@@ -1300,7 +1300,7 @@ static int clk_domain_construct_35_slave(struct gk20a *g,
 
 	ptmpobj->type_mask |= BIT(CTRL_CLK_CLK_DOMAIN_TYPE_35_SLAVE);
 	status = clk_domain_construct_35_prog(g, ppboardobj, size, pargs);
-	if (status != 0UL) {
+	if (status != 0) {
 		return (u32) -EINVAL;
 	}
 
@@ -1333,7 +1333,7 @@ static int clk_domain_construct_3x_slave(struct gk20a *g,
 
 	ptmpobj->type_mask |= BIT(CTRL_CLK_CLK_DOMAIN_TYPE_3X_SLAVE);
 	status = clk_domain_construct_3x_prog(g, ppboardobj, size, pargs);
-	if (status != 0UL) {
+	if (status != 0) {
 		return -EINVAL;
 	}
 
@@ -1405,7 +1405,7 @@ static int clk_domain_pmudatainit_35_master(struct gk20a *g,
 	nvgpu_log_info(g, " ");
 
 	status = clk_domain_pmudatainit_35_prog(g, board_obj_ptr, ppmudata);
-	if (status != 0UL) {
+	if (status != 0) {
 		return status;
 	}
 
@@ -1459,7 +1459,7 @@ static int clk_domain_construct_35_master(struct gk20a *g,
 
 	ptmpobj->type_mask |= BIT(CTRL_CLK_CLK_DOMAIN_TYPE_35_MASTER);
 	status = clk_domain_construct_35_prog(g, ppboardobj, size, pargs);
-	if (status != 0UL) {
+	if (status != 0) {
 		return (u32) -EINVAL;
 	}
 

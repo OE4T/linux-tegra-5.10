@@ -28,60 +28,60 @@
 #include "ctrlclkavfs.h"
 #include "ctrlvolt.h"
 
-#define CTRL_CLK_CLK_DELTA_MAX_VOLT_RAILS 4
+#define CTRL_CLK_CLK_DELTA_MAX_VOLT_RAILS 4U
 
 /* valid clock domain values */
-#define CTRL_CLK_DOMAIN_MCLK                                (0x00000010)
-#define CTRL_CLK_DOMAIN_HOSTCLK                             (0x00000020)
-#define CTRL_CLK_DOMAIN_DISPCLK                             (0x00000040)
-#define CTRL_CLK_DOMAIN_GPC2CLK                             (0x00010000)
-#define CTRL_CLK_DOMAIN_XBAR2CLK                            (0x00040000)
-#define CTRL_CLK_DOMAIN_SYS2CLK                             (0x00800000)
-#define CTRL_CLK_DOMAIN_HUB2CLK                             (0x01000000)
-#define CTRL_CLK_DOMAIN_PWRCLK                              (0x00080000)
-#define CTRL_CLK_DOMAIN_NVDCLK                              (0x00100000)
-#define CTRL_CLK_DOMAIN_PCIEGENCLK                          (0x00200000)
+#define CTRL_CLK_DOMAIN_MCLK                                (0x00000010U)
+#define CTRL_CLK_DOMAIN_HOSTCLK                             (0x00000020U)
+#define CTRL_CLK_DOMAIN_DISPCLK                             (0x00000040U)
+#define CTRL_CLK_DOMAIN_GPC2CLK                             (0x00010000U)
+#define CTRL_CLK_DOMAIN_XBAR2CLK                            (0x00040000U)
+#define CTRL_CLK_DOMAIN_SYS2CLK                             (0x00800000U)
+#define CTRL_CLK_DOMAIN_HUB2CLK                             (0x01000000U)
+#define CTRL_CLK_DOMAIN_PWRCLK                              (0x00080000U)
+#define CTRL_CLK_DOMAIN_NVDCLK                              (0x00100000U)
+#define CTRL_CLK_DOMAIN_PCIEGENCLK                          (0x00200000U)
 
-#define CTRL_CLK_DOMAIN_GPCCLK                              (0x00000001)
-#define CTRL_CLK_DOMAIN_XBARCLK                             (0x00000002)
-#define CTRL_CLK_DOMAIN_SYSCLK                              (0x00000004)
-#define CTRL_CLK_DOMAIN_HUBCLK                              (0x00000008)
+#define CTRL_CLK_DOMAIN_GPCCLK                              (0x00000001U)
+#define CTRL_CLK_DOMAIN_XBARCLK                             (0x00000002U)
+#define CTRL_CLK_DOMAIN_SYSCLK                              (0x00000004U)
+#define CTRL_CLK_DOMAIN_HUBCLK                              (0x00000008U)
 
-#define CTRL_CLK_CLK_DOMAIN_TYPE_3X                                  0x01
-#define CTRL_CLK_CLK_DOMAIN_TYPE_3X_FIXED                            0x02
-#define CTRL_CLK_CLK_DOMAIN_TYPE_3X_PROG                             0x03
-#define CTRL_CLK_CLK_DOMAIN_TYPE_3X_MASTER                           0x04
-#define CTRL_CLK_CLK_DOMAIN_TYPE_3X_SLAVE                            0x05
-#define CTRL_CLK_CLK_DOMAIN_TYPE_30_PROG                             0x06
-#define CTRL_CLK_CLK_DOMAIN_TYPE_35_MASTER                           0x07
-#define CTRL_CLK_CLK_DOMAIN_TYPE_35_SLAVE                            0x08
-#define CTRL_CLK_CLK_DOMAIN_TYPE_35_PROG                             0x09
+#define CTRL_CLK_CLK_DOMAIN_TYPE_3X                                  0x01U
+#define CTRL_CLK_CLK_DOMAIN_TYPE_3X_FIXED                            0x02U
+#define CTRL_CLK_CLK_DOMAIN_TYPE_3X_PROG                             0x03U
+#define CTRL_CLK_CLK_DOMAIN_TYPE_3X_MASTER                           0x04U
+#define CTRL_CLK_CLK_DOMAIN_TYPE_3X_SLAVE                            0x05U
+#define CTRL_CLK_CLK_DOMAIN_TYPE_30_PROG                             0x06U
+#define CTRL_CLK_CLK_DOMAIN_TYPE_35_MASTER                           0x07U
+#define CTRL_CLK_CLK_DOMAIN_TYPE_35_SLAVE                            0x08U
+#define CTRL_CLK_CLK_DOMAIN_TYPE_35_PROG                             0x09U
 
-#define CTRL_CLK_CLK_DOMAIN_3X_PROG_ORDERING_INDEX_INVALID 0xFF
-#define CTRL_CLK_CLK_DOMAIN_INDEX_INVALID                           0xFF
+#define CTRL_CLK_CLK_DOMAIN_3X_PROG_ORDERING_INDEX_INVALID     0xFFU
+#define CTRL_CLK_CLK_DOMAIN_INDEX_INVALID                      0xFF
 
-#define CTRL_CLK_CLK_PROG_TYPE_1X                              0x01
-#define CTRL_CLK_CLK_PROG_TYPE_1X_MASTER                       0x02
-#define CTRL_CLK_CLK_PROG_TYPE_1X_MASTER_RATIO                 0x03
-#define CTRL_CLK_CLK_PROG_TYPE_1X_MASTER_TABLE                 0x04
-#define CTRL_CLK_CLK_PROG_TYPE_UNKNOWN                         255
+#define CTRL_CLK_CLK_PROG_TYPE_1X                              0x01U
+#define CTRL_CLK_CLK_PROG_TYPE_1X_MASTER                       0x02U
+#define CTRL_CLK_CLK_PROG_TYPE_1X_MASTER_RATIO                 0x03U
+#define CTRL_CLK_CLK_PROG_TYPE_1X_MASTER_TABLE                 0x04U
+#define CTRL_CLK_CLK_PROG_TYPE_UNKNOWN                         255U
 
 /*!
  * Enumeration of CLK_PROG source types.
  */
-#define CTRL_CLK_PROG_1X_SOURCE_PLL                            0x00
-#define CTRL_CLK_PROG_1X_SOURCE_ONE_SOURCE                     0x01
-#define CTRL_CLK_PROG_1X_SOURCE_FLL                            0x02
-#define CTRL_CLK_PROG_1X_SOURCE_INVALID                        255
+#define CTRL_CLK_PROG_1X_SOURCE_PLL                            0x00U
+#define CTRL_CLK_PROG_1X_SOURCE_ONE_SOURCE                     0x01U
+#define CTRL_CLK_PROG_1X_SOURCE_FLL                            0x02U
+#define CTRL_CLK_PROG_1X_SOURCE_INVALID                        255U
 
-#define CTRL_CLK_CLK_PROG_1X_MASTER_VF_ENTRY_MAX_ENTRIES 4
-#define CTRL_CLK_PROG_1X_MASTER_MAX_SLAVE_ENTRIES 6
+#define CTRL_CLK_CLK_PROG_1X_MASTER_VF_ENTRY_MAX_ENTRIES 4U
+#define CTRL_CLK_PROG_1X_MASTER_MAX_SLAVE_ENTRIES 6U
 
-#define CTRL_CLK_CLK_VF_POINT_IDX_INVALID                      255
+#define CTRL_CLK_CLK_VF_POINT_IDX_INVALID                      255U
 
-#define CTRL_CLK_CLK_VF_POINT_TYPE_FREQ                         0x01
-#define CTRL_CLK_CLK_VF_POINT_TYPE_VOLT                         0x02
-#define CTRL_CLK_CLK_VF_POINT_TYPE_UNKNOWN                      255
+#define CTRL_CLK_CLK_VF_POINT_TYPE_FREQ                        0x01U
+#define CTRL_CLK_CLK_VF_POINT_TYPE_VOLT                        0x02U
+#define CTRL_CLK_CLK_VF_POINT_TYPE_UNKNOWN                     255U
 
 struct ctrl_clk_clk_prog_1x_master_source_fll {
 	u32 base_vfsmooth_volt_uv;

@@ -84,7 +84,7 @@ static int _clk_fll_devgrp_pmudata_instget(struct gk20a *g,
 
 	/*check whether pmuboardobjgrp has a valid boardobj in index*/
 	if (((u32)BIT(idx) &
-		pgrp_set->hdr.data.super.obj_mask.super.data[0]) == 0) {
+		pgrp_set->hdr.data.super.obj_mask.super.data[0]) == 0U) {
 		return -EINVAL;
 	}
 
@@ -105,7 +105,7 @@ static int _clk_fll_devgrp_pmustatus_instget(struct gk20a *g,
 
 	/*check whether pmuboardobjgrp has a valid boardobj in index*/
 	if (((u32)BIT(idx) &
-		pgrp_get_status->hdr.data.super.obj_mask.super.data[0]) == 0) {
+		pgrp_get_status->hdr.data.super.obj_mask.super.data[0]) == 0U) {
 		return -EINVAL;
 	}
 
@@ -367,13 +367,13 @@ done:
 
 u32 nvgpu_clk_get_vbios_clk_domain_gv10x( u32 vbios_domain)
 {
-	if (vbios_domain == 0) {
+	if (vbios_domain == 0U) {
 		return CTRL_CLK_DOMAIN_GPCCLK;
-	} else if (vbios_domain == 1) {
+	} else if (vbios_domain == 1U) {
 		return CTRL_CLK_DOMAIN_XBARCLK;
-	} else if (vbios_domain == 3) {
+	} else if (vbios_domain == 3U) {
 		return CTRL_CLK_DOMAIN_SYSCLK;
-	} else if (vbios_domain == 5) {
+	} else if (vbios_domain == 5U) {
 		return CTRL_CLK_DOMAIN_NVDCLK;
 	}
 	return 0;
@@ -381,11 +381,11 @@ u32 nvgpu_clk_get_vbios_clk_domain_gv10x( u32 vbios_domain)
 
 u32 nvgpu_clk_get_vbios_clk_domain_gp10x( u32 vbios_domain)
 {
-	if (vbios_domain == 0) {
+	if (vbios_domain == 0U) {
 		return CTRL_CLK_DOMAIN_GPC2CLK;
-	} else if (vbios_domain == 1) {
+	} else if (vbios_domain == 1U) {
 		return CTRL_CLK_DOMAIN_XBAR2CLK;
-	} else if (vbios_domain == 3) {
+	} else if (vbios_domain == 3U) {
 		return CTRL_CLK_DOMAIN_SYS2CLK;
 	}
 	return 0;

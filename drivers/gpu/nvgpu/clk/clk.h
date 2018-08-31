@@ -32,10 +32,10 @@
 #include "clk_mclk.h"
 #include "clk_freq_controller.h"
 
-#define NV_PERF_DOMAIN_4X_CLOCK_DOMAIN_SKIP 0x10
-#define NV_PERF_DOMAIN_4X_CLOCK_DOMAIN_MASK 0x1F
-#define NV_PERF_DOMAIN_4X_CLOCK_DOMAIN_SHIFT 0
-#define BOOT_GPCCLK_MHZ 952
+#define NV_PERF_DOMAIN_4X_CLOCK_DOMAIN_SKIP		0x10U
+#define NV_PERF_DOMAIN_4X_CLOCK_DOMAIN_MASK		0x1FU
+#define NV_PERF_DOMAIN_4X_CLOCK_DOMAIN_SHIFT		0U
+#define BOOT_GPCCLK_MHZ					952U
 
 struct gk20a;
 
@@ -78,7 +78,7 @@ struct set_fll_clk {
 		u32 target_regime_id_xbar;
 };
 
-#define NV_PERF_HEADER_4X_CLOCKS_DOMAINS_MAX_NUMCLKS         9
+#define NV_PERF_HEADER_4X_CLOCKS_DOMAINS_MAX_NUMCLKS         9U
 
 struct vbios_clock_domain {
 	u8 clock_type;
@@ -92,32 +92,32 @@ struct vbios_clocks_table_1x_hal_clock_entry {
 	u8 clk_vf_curve_count;
 };
 
-#define NV_PERF_HEADER_4X_CLOCKS_DOMAINS_4_GPC2CLK           0
-#define NV_PERF_HEADER_4X_CLOCKS_DOMAINS_4_XBAR2CLK          1
-#define NV_PERF_HEADER_4X_CLOCKS_DOMAINS_4_DRAMCLK           2
-#define NV_PERF_HEADER_4X_CLOCKS_DOMAINS_4_SYS2CLK           3
-#define NV_PERF_HEADER_4X_CLOCKS_DOMAINS_4_HUB2CLK           4
-#define NV_PERF_HEADER_4X_CLOCKS_DOMAINS_4_MSDCLK            5
-#define NV_PERF_HEADER_4X_CLOCKS_DOMAINS_4_PWRCLK            6
-#define NV_PERF_HEADER_4X_CLOCKS_DOMAINS_4_DISPCLK           7
-#define NV_PERF_HEADER_4X_CLOCKS_DOMAINS_4_NUMCLKS           8
+#define NV_PERF_HEADER_4X_CLOCKS_DOMAINS_4_GPC2CLK           0U
+#define NV_PERF_HEADER_4X_CLOCKS_DOMAINS_4_XBAR2CLK          1U
+#define NV_PERF_HEADER_4X_CLOCKS_DOMAINS_4_DRAMCLK           2U
+#define NV_PERF_HEADER_4X_CLOCKS_DOMAINS_4_SYS2CLK           3U
+#define NV_PERF_HEADER_4X_CLOCKS_DOMAINS_4_HUB2CLK           4U
+#define NV_PERF_HEADER_4X_CLOCKS_DOMAINS_4_MSDCLK            5U
+#define NV_PERF_HEADER_4X_CLOCKS_DOMAINS_4_PWRCLK            6U
+#define NV_PERF_HEADER_4X_CLOCKS_DOMAINS_4_DISPCLK           7U
+#define NV_PERF_HEADER_4X_CLOCKS_DOMAINS_4_NUMCLKS           8U
 
-#define PERF_CLK_MCLK           0
-#define PERF_CLK_DISPCLK        1
-#define PERF_CLK_GPC2CLK        2
-#define PERF_CLK_HOSTCLK        3
-#define PERF_CLK_LTC2CLK        4
-#define PERF_CLK_SYS2CLK        5
-#define PERF_CLK_HUB2CLK        6
-#define PERF_CLK_LEGCLK         7
-#define PERF_CLK_MSDCLK         8
-#define PERF_CLK_XCLK           9
-#define PERF_CLK_PWRCLK         10
-#define PERF_CLK_XBAR2CLK       11
-#define PERF_CLK_PCIEGENCLK     12
-#define PERF_CLK_NUM            13
+#define PERF_CLK_MCLK           0U
+#define PERF_CLK_DISPCLK        1U
+#define PERF_CLK_GPC2CLK        2U
+#define PERF_CLK_HOSTCLK        3U
+#define PERF_CLK_LTC2CLK        4U
+#define PERF_CLK_SYS2CLK        5U
+#define PERF_CLK_HUB2CLK        6U
+#define PERF_CLK_LEGCLK         7U
+#define PERF_CLK_MSDCLK         8U
+#define PERF_CLK_XCLK           9U
+#define PERF_CLK_PWRCLK         10U
+#define PERF_CLK_XBAR2CLK       11U
+#define PERF_CLK_PCIEGENCLK     12U
+#define PERF_CLK_NUM            13U
 
-#define BOOT_GPC2CLK_MHZ  2581
+#define BOOT_GPC2CLK_MHZ	2581U
 
 u32 clk_pmu_vin_load(struct gk20a *g);
 u32 clk_domain_print_vf_table(struct gk20a *g, u32 clkapidomain);
