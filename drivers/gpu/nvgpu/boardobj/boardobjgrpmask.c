@@ -28,7 +28,7 @@
 * Assures that unused bits (size .. (maskDataCount * 32 - 1)) are always zero.
 */
 #define BOARDOBJGRPMASK_NORMALIZE(_pmask)                                      \
-	((_pmask)->data[(_pmask)->maskdatacount-1] &= (_pmask)->lastmaskfilter)
+	((_pmask)->data[(_pmask)->maskdatacount-1U] &= (_pmask)->lastmaskfilter)
 
 u32 boardobjgrpmask_init(struct boardobjgrpmask *mask, u8 bitsize,
 		struct ctrl_boardobjgrp_mask *extmask)
@@ -43,11 +43,11 @@ u32 boardobjgrpmask_init(struct boardobjgrpmask *mask, u8 bitsize,
 
 	mask->bitcount = bitsize;
 	mask->maskdatacount = CTRL_BOARDOBJGRP_MASK_DATA_SIZE(bitsize);
-	mask->lastmaskfilter = bitsize %
+	mask->lastmaskfilter = U32(bitsize) %
 		CTRL_BOARDOBJGRP_MASK_MASK_ELEMENT_BIT_SIZE;
 
-	mask->lastmaskfilter = (mask->lastmaskfilter == 0) ?
-		0xFFFFFFFF : (u32)(BIT(mask->lastmaskfilter) - 1);
+	mask->lastmaskfilter = (mask->lastmaskfilter == 0U) ?
+		0xFFFFFFFFU : (BIT32(mask->lastmaskfilter) - 1U);
 
 	return (extmask == NULL) ?
 		boardobjgrpmask_clr(mask) :
@@ -150,7 +150,7 @@ bool boardobjgrpmask_iszero(struct boardobjgrpmask *mask)
 		return true;
 	}
 	for (index = 0; index < mask->maskdatacount; index++) {
-		if (mask->data[index] != 0) {
+		if (mask->data[index] != 0U) {
 			return false;
 		}
 	}
@@ -188,7 +188,7 @@ u8 boardobjgrpmask_bitidxlowest(struct boardobjgrpmask *mask)
 	for (index = 0; index < mask->maskdatacount; index++) {
 		u32 m = mask->data[index];
 
-		if (m != 0) {
+		if (m != 0U) {
 			LOWESTBITIDX_32(m);
 			result = (u8)m + index *
 			CTRL_BOARDOBJGRP_MASK_MASK_ELEMENT_BIT_SIZE;
@@ -211,7 +211,7 @@ u8 boardobjgrpmask_bitidxhighest(struct boardobjgrpmask *mask)
 	for (index = 0; index < mask->maskdatacount; index++) {
 		u32 m = mask->data[index];
 
-		if (m != 0) {
+		if (m != 0U) {
 			HIGHESTBITIDX_32(m);
 			result = (u8)m + index *
 			CTRL_BOARDOBJGRP_MASK_MASK_ELEMENT_BIT_SIZE;
@@ -297,7 +297,7 @@ bool boardobjgrpmask_bitget(struct boardobjgrpmask *mask, u8 bitidx)
 	index = CTRL_BOARDOBJGRP_MASK_MASK_ELEMENT_INDEX(bitidx);
 	offset = CTRL_BOARDOBJGRP_MASK_MASK_ELEMENT_OFFSET(bitidx);
 
-	return (mask->data[index] & BIT(offset)) != 0;
+	return (mask->data[index] & BIT(offset)) != 0U;
 }
 
 u32 boardobjgrpmask_and(struct boardobjgrpmask *dst,

@@ -83,7 +83,7 @@ bool boardobj_implements_super(struct gk20a *g, struct boardobj *pboardobj,
 {
 	nvgpu_log_info(g, " ");
 
-	return (0 != (pboardobj->type_mask & BIT(type)));
+	return (0U != (pboardobj->type_mask & BIT(type)));
 }
 
 int boardobj_pmudatainit_super(struct gk20a *g, struct boardobj *pboardobj,

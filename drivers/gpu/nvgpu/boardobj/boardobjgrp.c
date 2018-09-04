@@ -493,8 +493,8 @@ int boardobjgrp_pmuset_impl(struct gk20a *g, struct boardobjgrp *pboardobjgrp)
 		return -EINVAL;
 	}
 
-	if ((pcmd->hdrsize == 0) ||
-		(pcmd->entrysize == 0) ||
+	if ((pcmd->hdrsize == 0U) ||
+		(pcmd->entrysize == 0U) ||
 		(pcmd->buf == NULL)) {
 		return -EINVAL;
 	}
@@ -518,7 +518,7 @@ int boardobjgrp_pmuset_impl(struct gk20a *g, struct boardobjgrp *pboardobjgrp)
 	 * alloc mem in vidmem & copy constructed pmu boardobjgrp data from
 	 * sysmem to vidmem
 	 */
-	if (pcmd->surf.vidmem_desc.size == 0) {
+	if (pcmd->surf.vidmem_desc.size == 0U) {
 		nvgpu_pmu_vidmem_surface_alloc(g, &pcmd->surf.vidmem_desc,
 			pcmd->fbsize);
 	}
@@ -615,8 +615,8 @@ boardobjgrp_pmugetstatus_impl(struct gk20a *g, struct boardobjgrp *pboardobjgrp,
 		return -EINVAL;
 	}
 
-	if ((pcmd->hdrsize == 0) ||
-		(pcmd->entrysize == 0) ||
+	if ((pcmd->hdrsize == 0U) ||
+		(pcmd->entrysize == 0U) ||
 		(pcmd->buf == NULL)) {
 		return -EINVAL;
 	}
@@ -633,7 +633,7 @@ boardobjgrp_pmugetstatus_impl(struct gk20a *g, struct boardobjgrp *pboardobjgrp,
 	 * alloc mem in vidmem & copy constructed pmu boardobjgrp data from
 	 * sysmem to vidmem
 	 */
-	if (pcmd->surf.vidmem_desc.size == 0) {
+	if (pcmd->surf.vidmem_desc.size == 0U) {
 		nvgpu_pmu_vidmem_surface_alloc(g, &pcmd->surf.vidmem_desc,
 			pcmd->fbsize);
 	}
@@ -801,7 +801,7 @@ static struct boardobj *boardobjgrp_objgetnext_final(
 
 	/* Search from next element unless first object was requested */
 	index = (*currentindex != CTRL_BOARDOBJ_IDX_INVALID) ?
-		(*currentindex + 1) : 0;
+		(*currentindex + 1U) : 0U;
 
 	/* For the cases below in which we have to return NULL */
 	*currentindex = CTRL_BOARDOBJ_IDX_INVALID;
@@ -920,7 +920,7 @@ static void boardobjgrp_pmucmdhandler(struct gk20a *g, struct pmu_msg *msg,
 		return;
 	}
 
-	if (msg->msg.boardobj.grp_set.flcn_status != 0) {
+	if (msg->msg.boardobj.grp_set.flcn_status != 0U) {
 		nvgpu_err(g,
 			"cmd abort for unit %x class %x cmd id %x status %x",
 			msg->hdr.unit_id, pboardobjgrp->pmu.classid,
@@ -1001,7 +1001,7 @@ static int boardobjgrp_pmucmdsend(struct gk20a *g,
 	pmu_wait_message_cond(&g->pmu,
 			gk20a_get_gr_idle_timeout(g),
 			&handlerparams.success, 1);
-	if (handlerparams.success == 0) {
+	if (handlerparams.success == 0U) {
 		nvgpu_err(g, "could not process cmd");
 		status = -ETIMEDOUT;
 		goto boardobjgrp_pmucmdsend_exit;
