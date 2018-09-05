@@ -121,7 +121,8 @@ static u32 get_interim_pldiv(struct gk20a *g, u32 old_pl, u32 new_pl)
 {
 	u32 pl;
 
-	if ((g->clk.gpc_pll.id == GM20B_GPC_PLL_C1) || (old_pl & new_pl)) {
+	if ((g->clk.gpc_pll.id == GM20B_GPC_PLL_C1) ||
+	    ((old_pl & new_pl) != 0U)) {
 		return 0;
 	}
 
@@ -290,7 +291,7 @@ static int nvgpu_fuse_calib_gpcpll_get_adc(struct gk20a *g,
 		return ret;
 	}
 
-	if (!fuse_get_gpcpll_adc_rev(val)) {
+	if (fuse_get_gpcpll_adc_rev(val) == 0) {
 		return -EINVAL;
 	}
 
@@ -315,12 +316,12 @@ static int clk_config_calibration_params(struct gk20a *g)
 	int slope, offs;
 	struct pll_parms *p = &gpc_pll_params;
 
-	if (!nvgpu_fuse_calib_gpcpll_get_adc(g, &slope, &offs)) {
+	if (nvgpu_fuse_calib_gpcpll_get_adc(g, &slope, &offs) == 0) {
 		p->uvdet_slope = slope;
 		p->uvdet_offs = offs;
 	}
 
-	if (!p->uvdet_slope || !p->uvdet_offs) {
+	if ((p->uvdet_slope == 0) || (p->uvdet_offs == 0)) {
 		/*
 		 * If ADC conversion slope/offset parameters are not fused
 		 * (non-production config), report error, but allow to use
@@ -483,7 +484,7 @@ static int clk_enbale_pll_dvfs(struct gk20a *g)
 	u32 data, cfg = 0;
 	int delay = gpc_pll_params.iddq_exit_delay; /* iddq & calib delay */
 	struct pll_parms *p = &gpc_pll_params;
-	bool calibrated = p->uvdet_slope && p->uvdet_offs;
+	bool calibrated = (p->uvdet_slope != 0) && (p->uvdet_offs != 0);
 
 	/* Enable NA DVFS */
 	data = gk20a_readl(g, trim_sys_gpcpll_dvfs1_r());
@@ -891,7 +892,7 @@ pll_locked:
  *    voltage increases arbitrary.
  */
 static int clk_program_gpc_pll(struct gk20a *g, struct pll *gpll_new,
-			int allow_slide)
+			bool allow_slide)
 {
 	u32 cfg, coeff, data;
 	bool can_slide, pldiv_only;
@@ -916,7 +917,7 @@ static int clk_program_gpc_pll(struct gk20a *g, struct pll *gpll_new,
 
 	/* do NDIV slide if there is no change in M and PL */
 	cfg = gk20a_readl(g, trim_sys_gpcpll_cfg_r());
-	can_slide = allow_slide && trim_sys_gpcpll_cfg_enable_v(cfg);
+	can_slide = allow_slide && (trim_sys_gpcpll_cfg_enable_v(cfg) != 0U);
 
 	if (can_slide && (gpll_new->M == gpll.M) && (gpll_new->PL == gpll.PL)) {
 		return clk_slide_gpc_pll(g, gpll_new);
@@ -1061,7 +1062,7 @@ static void clk_config_pll_safe_dvfs(struct gk20a *g, struct pll *gpll)
 
 /* Change GPCPLL frequency and DVFS detection settings in DVFS mode */
 static int clk_program_na_gpc_pll(struct gk20a *g, struct pll *gpll_new,
-				  int allow_slide)
+				  bool allow_slide)
 {
 	int ret;
 	struct pll gpll_safe;
@@ -1110,7 +1111,7 @@ static int clk_program_na_gpc_pll(struct gk20a *g, struct pll *gpll_new,
 		}
 		clk_config_pll_safe_dvfs(g, &gpll_safe);
 
-		ret = clk_program_gpc_pll(g, &gpll_safe, 1);
+		ret = clk_program_gpc_pll(g, &gpll_safe, true);
 		if (ret) {
 			nvgpu_err(g, "Safe dvfs program fail");
 			return ret;
@@ -1137,10 +1138,10 @@ static int clk_program_na_gpc_pll(struct gk20a *g, struct pll *gpll_new,
 		gpll_new->dvfs.uv_cal / 1000, gpll_new->dvfs.dfs_coeff);
 
 	/* Finally set target rate (with DVFS detection settings already new) */
-	return clk_program_gpc_pll(g, gpll_new, 1);
+	return clk_program_gpc_pll(g, gpll_new, true);
 }
 
-static int clk_disable_gpcpll(struct gk20a *g, int allow_slide)
+static int clk_disable_gpcpll(struct gk20a *g, bool allow_slide)
 {
 	u32 cfg, coeff, throt;
 	struct clk_gk20a *clk = &g->clk;
@@ -1148,7 +1149,7 @@ static int clk_disable_gpcpll(struct gk20a *g, int allow_slide)
 
 	/* slide to VCO min */
 	cfg = gk20a_readl(g, trim_sys_gpcpll_cfg_r());
-	if (allow_slide && trim_sys_gpcpll_cfg_enable_v(cfg)) {
+	if (allow_slide && (trim_sys_gpcpll_cfg_enable_v(cfg) != 0U)) {
 		coeff = gk20a_readl(g, trim_sys_gpcpll_coeff_r());
 		gpll.M = trim_sys_gpcpll_coeff_mdiv_v(coeff);
 		gpll.N = DIV_ROUND_UP(gpll.M * gpc_pll_params.min_vco,
@@ -1210,12 +1211,12 @@ int gm20b_init_clk_setup_sw(struct gk20a *g)
 
 	if (clk->gpc_pll.id == GM20B_GPC_PLL_C1) {
 		gpc_pll_params = gpc_pll_params_c1;
-		if (!clk->pll_poweron_uv) {
+		if (clk->pll_poweron_uv == 0) {
 			clk->pll_poweron_uv = BOOT_GPU_UV_C1;
 		}
 	} else {
 		gpc_pll_params = gpc_pll_params_b1;
-		if (!clk->pll_poweron_uv) {
+		if (clk->pll_poweron_uv == 0) {
 			clk->pll_poweron_uv = BOOT_GPU_UV_B1;
 		}
 	}
@@ -1274,7 +1275,7 @@ fail:
 }
 
 
-static int set_pll_freq(struct gk20a *g, int allow_slide);
+static int set_pll_freq(struct gk20a *g, bool allow_slide);
 static int set_pll_target(struct gk20a *g, u32 freq, u32 old_freq);
 
 int gm20b_clk_prepare(struct clk_gk20a *clk)
@@ -1283,7 +1284,7 @@ int gm20b_clk_prepare(struct clk_gk20a *clk)
 
 	nvgpu_mutex_acquire(&clk->clk_mutex);
 	if (!clk->gpc_pll.enabled && clk->clk_hw_on) {
-		ret = set_pll_freq(clk->g, 1);
+		ret = set_pll_freq(clk->g, true);
 	}
 	nvgpu_mutex_release(&clk->clk_mutex);
 	return ret;
@@ -1293,7 +1294,7 @@ void gm20b_clk_unprepare(struct clk_gk20a *clk)
 {
 	nvgpu_mutex_acquire(&clk->clk_mutex);
 	if (clk->gpc_pll.enabled && clk->clk_hw_on) {
-		clk_disable_gpcpll(clk->g, 1);
+		clk_disable_gpcpll(clk->g, true);
 	}
 	nvgpu_mutex_release(&clk->clk_mutex);
 }
@@ -1317,8 +1318,8 @@ int gm20b_gpcclk_set_rate(struct clk_gk20a *clk, unsigned long rate,
 	nvgpu_mutex_acquire(&clk->clk_mutex);
 	old_freq = clk->gpc_pll.freq;
 	ret = set_pll_target(clk->g, rate_gpu_to_gpc2clk(rate), old_freq);
-	if (!ret && clk->gpc_pll.enabled && clk->clk_hw_on) {
-		ret = set_pll_freq(clk->g, 1);
+	if ((ret == 0) && clk->gpc_pll.enabled && clk->clk_hw_on) {
+		ret = set_pll_freq(clk->g, true);
 	}
 	nvgpu_mutex_release(&clk->clk_mutex);
 
@@ -1381,7 +1382,7 @@ static int gm20b_init_clk_setup_hw(struct gk20a *g)
 
 	/* If not fused, set RAM SVOP PDP data 0x2, and enable fuse override */
 	data = gk20a_readl(g, fuse_ctrl_opt_ram_svop_pdp_r());
-	if (!fuse_ctrl_opt_ram_svop_pdp_data_v(data)) {
+	if (fuse_ctrl_opt_ram_svop_pdp_data_v(data) == 0U) {
 		data = set_field(data, fuse_ctrl_opt_ram_svop_pdp_data_m(),
 			 fuse_ctrl_opt_ram_svop_pdp_data_f(0x2));
 		gk20a_writel(g, fuse_ctrl_opt_ram_svop_pdp_r(), data);
@@ -1427,7 +1428,7 @@ static int set_pll_target(struct gk20a *g, u32 freq, u32 old_freq)
 	return 0;
 }
 
-static int set_pll_freq(struct gk20a *g, int allow_slide)
+static int set_pll_freq(struct gk20a *g, bool allow_slide)
 {
 	struct clk_gk20a *clk = &g->clk;
 	int err = 0;
@@ -1438,17 +1439,17 @@ static int set_pll_freq(struct gk20a *g, int allow_slide)
 	/* If programming with dynamic sliding failed, re-try under bypass */
 	if (clk->gpc_pll.mode == GPC_PLL_MODE_DVFS) {
 		err = clk_program_na_gpc_pll(g, &clk->gpc_pll, allow_slide);
-		if (err && allow_slide) {
-			err = clk_program_na_gpc_pll(g, &clk->gpc_pll, 0);
+		if ((err != 0) && allow_slide) {
+			err = clk_program_na_gpc_pll(g, &clk->gpc_pll, false);
 		}
 	} else {
 		err = clk_program_gpc_pll(g, &clk->gpc_pll, allow_slide);
-		if (err && allow_slide) {
-			err = clk_program_gpc_pll(g, &clk->gpc_pll, 0);
+		if ((err != 0) && allow_slide) {
+			err = clk_program_gpc_pll(g, &clk->gpc_pll, false);
 		}
 	}
 
-	if (!err) {
+	if (err == 0) {
 		clk->gpc_pll.enabled = true;
 		clk->gpc_pll_last = clk->gpc_pll;
 		return 0;
@@ -1487,7 +1488,7 @@ int gm20b_init_clk_support(struct gk20a *g)
 	/* The prev call may not enable PLL if gbus is unbalanced - force it */
 	nvgpu_mutex_acquire(&clk->clk_mutex);
 	if (!clk->gpc_pll.enabled) {
-		err = set_pll_freq(g, 1);
+		err = set_pll_freq(g, true);
 	}
 	nvgpu_mutex_release(&clk->clk_mutex);
 
@@ -1503,7 +1504,7 @@ int gm20b_suspend_clk_support(struct gk20a *g)
 	/* The prev call may not disable PLL if gbus is unbalanced - force it */
 	nvgpu_mutex_acquire(&g->clk.clk_mutex);
 	if (g->clk.gpc_pll.enabled) {
-		ret = clk_disable_gpcpll(g, 1);
+		ret = clk_disable_gpcpll(g, true);
 	}
 	g->clk.clk_hw_on = false;
 	nvgpu_mutex_release(&g->clk.clk_mutex);

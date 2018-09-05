@@ -53,8 +53,8 @@ struct nvgpu_acr;
 
 #define ACR_COMPLETION_TIMEOUT_MS 10000 /*in msec */
 
-#define PMU_SECURE_MODE (0x1)
-#define PMU_LSFM_MANAGED (0x2)
+#define PMU_SECURE_MODE  BIT8(0)
+#define PMU_LSFM_MANAGED BIT8(1)
 
 struct bin_hdr {
 	/* 0x10de */

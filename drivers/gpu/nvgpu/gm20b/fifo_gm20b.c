@@ -120,7 +120,7 @@ void gm20b_fifo_trigger_mmu_fault(struct gk20a *g,
 
 		nvgpu_usleep_range(delay, delay * 2);
 		delay = min_t(u32, delay << 1, GR_IDLE_CHECK_MAX);
-	} while (!nvgpu_timeout_expired(&timeout));
+	} while (nvgpu_timeout_expired(&timeout) == 0);
 
 	if (ret) {
 		nvgpu_err(g, "mmu fault timeout");
@@ -148,7 +148,8 @@ void gm20b_device_info_data_parse(struct gk20a *g,
 				(top_device_info_data_pri_base_v(table_entry)
 				<< top_device_info_data_pri_base_align_v());
 		}
-		if (fault_id && (top_device_info_data_fault_id_v(table_entry) ==
+		if ((fault_id != NULL) &&
+		    (top_device_info_data_fault_id_v(table_entry) ==
 			top_device_info_data_fault_id_valid_v())) {
 			*fault_id =
 			    top_device_info_data_fault_id_enum_v(table_entry);

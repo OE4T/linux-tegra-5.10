@@ -128,7 +128,7 @@ static void pmu_handle_acr_init_wpr_msg(struct gk20a *g, struct pmu_msg *msg,
 	nvgpu_pmu_dbg(g, "reply PMU_ACR_CMD_ID_INIT_WPR_REGION");
 
 	if (msg->msg.acr.acrmsg.errorcode == PMU_ACR_SUCCESS) {
-		g->pmu_lsf_pmu_wpr_init_done = 1;
+		g->pmu_lsf_pmu_wpr_init_done = true;
 	}
 	nvgpu_log_fn(g, "done");
 }
@@ -190,7 +190,7 @@ static int pmu_gm20b_ctx_wait_lsf_ready(struct gk20a *g, u32 timeout_ms,
 			return 0;
 		}
 		nvgpu_udelay(delay);
-	} while (!nvgpu_timeout_expired(&timeout));
+	} while (nvgpu_timeout_expired(&timeout) == 0);
 
 	return -ETIMEDOUT;
 }

@@ -90,7 +90,7 @@ void gr_gm20b_cb_size_default(struct gk20a *g)
 {
 	struct gr_gk20a *gr = &g->gr;
 
-	if (!gr->attrib_cb_default_size) {
+	if (gr->attrib_cb_default_size == 0U) {
 		gr->attrib_cb_default_size =
 			gr_gpc0_ppc0_cbm_beta_cb_size_v_default_v();
 	}
@@ -191,7 +191,7 @@ int gr_gm20b_commit_global_cb_manager(struct gk20a *g,
 	nvgpu_log_fn(g, " ");
 
 	tsg = tsg_gk20a_from_ch(c);
-	if (!tsg) {
+	if (tsg == NULL) {
 		return -EINVAL;
 	}
 
@@ -609,12 +609,13 @@ void gr_gm20b_load_tpc_mask(struct gk20a *g)
 	}
 
 	fuse_tpc_mask = g->ops.gr.get_gpc_tpc_mask(g, 0);
-	if (g->tpc_fs_mask_user && g->tpc_fs_mask_user != fuse_tpc_mask &&
-		fuse_tpc_mask == (0x1U << g->gr.max_tpc_count) - 1U) {
+	if ((g->tpc_fs_mask_user != 0U) &&
+	    (g->tpc_fs_mask_user != fuse_tpc_mask) &&
+	    (fuse_tpc_mask == BIT32(g->gr.max_tpc_count) - 1U)) {
 		u32 val = g->tpc_fs_mask_user;
-		val &= (0x1U << g->gr.max_tpc_count) - 1U;
+		val &= BIT32(g->gr.max_tpc_count) - 1U;
 		/* skip tpc to disable the other tpc cause channel timeout */
-		val = (0x1U << hweight32(val)) - 1U;
+		val = BIT32(hweight32(val)) - 1U;
 		gk20a_writel(g, gr_fe_tpc_fs_r(), val);
 	} else {
 		gk20a_writel(g, gr_fe_tpc_fs_r(), pes_tpc_mask);
@@ -644,7 +645,7 @@ int gr_gm20b_load_smid_config(struct gk20a *g)
 	u32 tpc_index, gpc_index;
 
 	tpc_sm_id = nvgpu_kcalloc(g, gr_cwd_sm_id__size_1_v(), sizeof(u32));
-	if (!tpc_sm_id) {
+	if (tpc_sm_id == NULL) {
 		return -ENOMEM;
 	}
 
@@ -926,7 +927,7 @@ void gr_gm20b_update_ctxsw_preemption_mode(struct gk20a *g,
 	nvgpu_log_fn(g, " ");
 
 	tsg = tsg_gk20a_from_ch(c);
-	if (!tsg) {
+	if (tsg == NULL) {
 		return;
 	}
 
@@ -989,7 +990,7 @@ int gr_gm20b_dump_gr_status_regs(struct gk20a *g,
 		gk20a_readl(g, gr_pri_gpc0_gpccs_gpc_activity3_r()));
 	gk20a_debug_output(o, "NV_PGRAPH_PRI_GPC0_TPC0_TPCCS_TPC_ACTIVITY0: 0x%x\n",
 		gk20a_readl(g, gr_pri_gpc0_tpc0_tpccs_tpc_activity_0_r()));
-	if (gr->gpc_tpc_count && gr->gpc_tpc_count[0] == 2) {
+	if ((gr->gpc_tpc_count != NULL) && (gr->gpc_tpc_count[0] == 2)) {
 		gk20a_debug_output(o, "NV_PGRAPH_PRI_GPC0_TPC1_TPCCS_TPC_ACTIVITY0: 0x%x\n",
 			gk20a_readl(g, gr_pri_gpc0_tpc1_tpccs_tpc_activity_0_r()));
 	}
@@ -1005,7 +1006,7 @@ int gr_gm20b_dump_gr_status_regs(struct gk20a *g,
 		gk20a_readl(g, gr_pri_gpcs_gpccs_gpc_activity_3_r()));
 	gk20a_debug_output(o, "NV_PGRAPH_PRI_GPCS_TPC0_TPCCS_TPC_ACTIVITY0: 0x%x\n",
 		gk20a_readl(g, gr_pri_gpcs_tpc0_tpccs_tpc_activity_0_r()));
-	if (gr->gpc_tpc_count && gr->gpc_tpc_count[0] == 2) {
+	if ((gr->gpc_tpc_count != NULL) && (gr->gpc_tpc_count[0] == 2)) {
 		gk20a_debug_output(o, "NV_PGRAPH_PRI_GPCS_TPC1_TPCCS_TPC_ACTIVITY0: 0x%x\n",
 			gk20a_readl(g, gr_pri_gpcs_tpc1_tpccs_tpc_activity_0_r()));
 	}
@@ -1092,7 +1093,7 @@ int gr_gm20b_update_pc_sampling(struct channel_gk20a *c,
 	nvgpu_log_fn(c->g, " ");
 
 	tsg = tsg_gk20a_from_ch(c);
-	if (!tsg) {
+	if (tsg == NULL) {
 		return -EINVAL;
 	}
 

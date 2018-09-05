@@ -90,7 +90,7 @@ static int pmu_ucode_details(struct gk20a *g, struct flcn_ucode_img *p_img)
 	int err;
 	nvgpu_pmu_dbg(g, "requesting PMU ucode in GM20B\n");
 	pmu_fw = nvgpu_request_firmware(g, GM20B_PMU_UCODE_IMAGE, 0);
-	if (!pmu_fw) {
+	if (pmu_fw == NULL) {
 		nvgpu_err(g, "failed to load pmu ucode!!");
 		return -ENOENT;
 	}
@@ -99,13 +99,13 @@ static int pmu_ucode_details(struct gk20a *g, struct flcn_ucode_img *p_img)
 
 	nvgpu_pmu_dbg(g, "requesting PMU ucode desc in GM20B\n");
 	pmu_desc = nvgpu_request_firmware(g, GM20B_PMU_UCODE_DESC, 0);
-	if (!pmu_desc) {
+	if (pmu_desc == NULL) {
 		nvgpu_err(g, "failed to load pmu ucode desc!!");
 		err = -ENOENT;
 		goto release_img_fw;
 	}
 	pmu_sig = nvgpu_request_firmware(g, GM20B_PMU_UCODE_SIG, 0);
-	if (!pmu_sig) {
+	if (pmu_sig == NULL) {
 		nvgpu_err(g, "failed to load pmu sig!!");
 		err = -ENOENT;
 		goto release_desc;
@@ -121,7 +121,7 @@ static int pmu_ucode_details(struct gk20a *g, struct flcn_ucode_img *p_img)
 	}
 
 	lsf_desc = nvgpu_kzalloc(g, sizeof(struct lsf_ucode_desc));
-	if (!lsf_desc) {
+	if (lsf_desc == NULL) {
 		err = -ENOMEM;
 		goto release_sig;
 	}
@@ -156,12 +156,12 @@ static int fecs_ucode_details(struct gk20a *g, struct flcn_ucode_img *p_img)
 	int err;
 
 	fecs_sig = nvgpu_request_firmware(g, GM20B_FECS_UCODE_SIG, 0);
-	if (!fecs_sig) {
+	if (fecs_sig == NULL) {
 		nvgpu_err(g, "failed to load fecs sig");
 		return -ENOENT;
 	}
 	lsf_desc = nvgpu_kzalloc(g, sizeof(struct lsf_ucode_desc));
-	if (!lsf_desc) {
+	if (lsf_desc == NULL) {
 		err = -ENOMEM;
 		goto rel_sig;
 	}
@@ -228,12 +228,12 @@ static int gpccs_ucode_details(struct gk20a *g, struct flcn_ucode_img *p_img)
 	}
 
 	gpccs_sig = nvgpu_request_firmware(g, T18x_GPCCS_UCODE_SIG, 0);
-	if (!gpccs_sig) {
+	if (gpccs_sig == NULL) {
 		nvgpu_err(g, "failed to load gpccs sig");
 		return -ENOENT;
 	}
 	lsf_desc = nvgpu_kzalloc(g, sizeof(struct lsf_ucode_desc));
-	if (!lsf_desc) {
+	if (lsf_desc == NULL) {
 		err = -ENOMEM;
 		goto rel_sig;
 	}
@@ -371,7 +371,8 @@ int prepare_ucode_blob(struct gk20a *g)
 		goto free_sgt;
 	}
 
-	if (plsfm->managed_flcn_cnt && !g->acr.ucode_blob.cpu_va) {
+	if ((plsfm->managed_flcn_cnt != 0U) &&
+	    (g->acr.ucode_blob.cpu_va == NULL)) {
 		/* Generate WPR requirements*/
 		err = lsf_gen_wpr_requirements(g, plsfm);
 		if (err) {
@@ -397,10 +398,10 @@ free_sgt:
 	return err;
 }
 
-static u8 lsfm_falcon_disabled(struct gk20a *g, struct ls_flcn_mgr *plsfm,
+static bool lsfm_falcon_disabled(struct gk20a *g, struct ls_flcn_mgr *plsfm,
 	u32 falcon_id)
 {
-	return (plsfm->disable_mask >> falcon_id) & 0x1;
+	return ((plsfm->disable_mask >> falcon_id) & 0x1U) != 0U;
 }
 
 /* Discover all managed falcon ucode images */
@@ -442,7 +443,7 @@ static int lsfm_discover_ucode_images(struct gk20a *g,
 	}
 
 	/*Free any ucode image resources if not managing this falcon*/
-	if (!(pmu->pmu_mode & PMU_LSFM_MANAGED)) {
+	if ((pmu->pmu_mode & PMU_LSFM_MANAGED) == 0U) {
 		nvgpu_pmu_dbg(g, "pmu is not LSFM managed\n");
 		lsfm_free_ucode_img_res(g, &ucode_img);
 	}
@@ -719,7 +720,7 @@ static void lsfm_init_wpr_contents(struct gk20a *g, struct ls_flcn_mgr *plsfm,
 
 		/*If this falcon has a boot loader and related args,
 		 * flush them.*/
-		if (!pnode->ucode_img.header) {
+		if (pnode->ucode_img.header == NULL) {
 			/*Populate gen bl and flush to memory*/
 			lsfm_fill_flcn_bl_gen_desc(g, pnode);
 			nvgpu_mem_wr_n(g, ucode,
@@ -970,7 +971,7 @@ static int lsf_gen_wpr_requirements(struct gk20a *g, struct ls_flcn_mgr *plsfm)
 		the boot loader data. The host will then copy the loader desc
 		args to this space within the WPR region (before locking down)
 		and the HS bin will then copy them to DMEM 0 for the loader. */
-		if (!pnode->ucode_img.header) {
+		if (pnode->ucode_img.header == NULL) {
 			/* Track the size for LSB details filled in later
 			 Note that at this point we don't know what kind of i
 			boot loader desc, so we just take the size of the
