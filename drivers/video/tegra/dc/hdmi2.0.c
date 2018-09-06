@@ -683,6 +683,8 @@ static int hdmi_hpd_process_edid_match(struct tegra_hdmi *hdmi, int match)
 					&& !hdmi->dc->vedid && hdmi->enabled) {
 				tegra_nvhdcp_set_plug(hdmi->nvhdcp, false);
 				tegra_nvhdcp_set_plug(hdmi->nvhdcp, true);
+				if (tegra_hdmivrr_setup(hdmi) < 0)
+					dev_info(&hdmi->dc->ndev->dev, "vrr_setup failed");
 			}
 
 			/*
