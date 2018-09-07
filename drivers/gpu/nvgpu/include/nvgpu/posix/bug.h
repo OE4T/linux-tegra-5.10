@@ -32,18 +32,19 @@
 #define BUG()					__bug("")
 #define BUG_ON(cond)				\
 	do {					\
-		if (cond)			\
+		if (cond) {			\
 			BUG();			\
+		}				\
 	} while (0)
 
 #define WARN(cond, msg, arg...)			__warn(cond, msg, ##arg)
 #define WARN_ON(cond)				__warn(cond, "")
 
 #define WARN_ONCE(cond, msg, arg...)		\
-	({static int __warned__ = 0;		\
-	  if (!__warned__) {			\
+	({static bool warn_once_warned = false;	\
+	  if (!warn_once_warned) {		\
 		  WARN(cond, msg, ##arg);	\
-		  __warned__ = 1;		\
+		  warn_once_warned = true;	\
 	  }					\
 	  cond; })
 
