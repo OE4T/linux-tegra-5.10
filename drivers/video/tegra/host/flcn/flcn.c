@@ -478,6 +478,17 @@ int nvhost_flcn_start(struct platform_device *pdev, u32 bootvec)
 	return err;
 }
 
+void flcn_enable_thi_sec(struct platform_device *pdev)
+{
+	host1x_writel(pdev, 0x38, BIT(8));
+}
+
+int nvhost_flcn_finalize_poweron_t186(struct platform_device *pdev)
+{
+	flcn_enable_thi_sec(pdev);
+
+	return nvhost_flcn_finalize_poweron(pdev);
+}
 
 int nvhost_flcn_finalize_poweron(struct platform_device *pdev)
 {

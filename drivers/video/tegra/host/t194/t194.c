@@ -66,23 +66,6 @@
 #include "streamid_regs.c"
 #include "cg_regs.c"
 
-/*
- * TODO: Move following functions to the corresponding files under
- * kernel-3.18 once kernel-t19x gets merged there. Until that
- * happens we can keep these here to avoid extensive amount of
- * added infra
- */
-
-static inline u32 flcn_thi_sec(void)
-{
-	return 0x00000038;
-}
-
-static inline u32 flcn_thi_sec_ch_lock(void)
-{
-	return (1 << 8);
-}
-
 static dma_addr_t nvhost_t194_get_reloc_phys_addr(dma_addr_t phys_addr,
 						  u32 reloc_type)
 {
@@ -91,54 +74,6 @@ static dma_addr_t nvhost_t194_get_reloc_phys_addr(dma_addr_t phys_addr,
 
 	return phys_addr;
 }
-
-#if defined(CONFIG_TEGRA_GRHOST_TSEC)
-static int nvhost_tsec_t194_finalize_poweron(struct platform_device *dev)
-{
-	/* Disable access to non-THI registers through channel */
-	host1x_writel(dev, flcn_thi_sec(), flcn_thi_sec_ch_lock());
-
-	return nvhost_tsec_finalize_poweron(dev);
-}
-#endif
-
-static int nvhost_flcn_t194_finalize_poweron(struct platform_device *dev)
-{
-	/* Disable access to non-THI registers through channel */
-	host1x_writel(dev, flcn_thi_sec(), flcn_thi_sec_ch_lock());
-
-	return nvhost_flcn_finalize_poweron(dev);
-}
-
-#if defined(CONFIG_TEGRA_GRHOST_NVDEC)
-static int nvhost_nvdec_t194_finalize_poweron(struct platform_device *dev)
-{
-	int ret;
-
-	if (!tegra_platform_is_vdk()) {
-		ret = tegra_kfuse_enable_sensing();
-		if (ret)
-			return ret;
-	}
-
-	/* Disable access to non-THI registers through channel */
-	host1x_writel(dev, flcn_thi_sec(), flcn_thi_sec_ch_lock());
-
-	ret = nvhost_nvdec_finalize_poweron(dev);
-	if (ret)
-		tegra_kfuse_disable_sensing();
-
-	return ret;
-}
-
-static int nvhost_nvdec_t194_prepare_poweroff(struct platform_device *dev)
-{
-	if (!tegra_platform_is_vdk())
-		tegra_kfuse_disable_sensing();
-
-	return 0;
-}
-#endif
 
 static struct host1x_device_info host1x04_info = {
 	.nb_channels	= T194_NVHOST_NUMCHANNELS,
@@ -314,7 +249,7 @@ struct nvhost_device_data t19_msenc_info = {
 		 0, TEGRA_BWMGR_SET_EMC_SHARED_BW}
 	},
 	.poweron_reset		= true,
-	.finalize_poweron	= nvhost_flcn_t194_finalize_poweron,
+	.finalize_poweron	= nvhost_flcn_finalize_poweron_t186,
 	.moduleid		= NVHOST_MODULE_MSENC,
 	.num_channels		= 1,
 	.firmware_name		= "nvhost_nvenc070.fw",
@@ -346,7 +281,7 @@ struct nvhost_device_data t19_nvenc1_info = {
 		 0, TEGRA_BWMGR_SET_EMC_SHARED_BW}
 	},
 	.poweron_reset		= true,
-	.finalize_poweron	= nvhost_flcn_t194_finalize_poweron,
+	.finalize_poweron	= nvhost_flcn_finalize_poweron_t186,
 	.moduleid		= NVHOST_MODULE_NVENC1,
 	.num_channels		= 1,
 	.firmware_name		= "nvhost_nvenc070.fw",
@@ -382,8 +317,8 @@ struct nvhost_device_data t19_nvdec_info = {
 		 0, TEGRA_BWMGR_SET_EMC_FLOOR}
 	},
 	.poweron_reset		= true,
-	.finalize_poweron	= nvhost_nvdec_t194_finalize_poweron,
-	.prepare_poweroff	= nvhost_nvdec_t194_prepare_poweroff,
+	.finalize_poweron	= nvhost_nvdec_finalize_poweron_t186,
+	.prepare_poweroff	= nvhost_nvdec_prepare_poweroff_t186,
 	.moduleid		= NVHOST_MODULE_NVDEC,
 	.ctrl_ops		= &tegra_nvdec_ctrl_ops,
 	.num_channels		= 1,
@@ -416,8 +351,8 @@ struct nvhost_device_data t19_nvdec1_info = {
 		 0, TEGRA_BWMGR_SET_EMC_FLOOR}
 	},
 	.poweron_reset		= true,
-	.finalize_poweron	= nvhost_nvdec_t194_finalize_poweron,
-	.prepare_poweroff	= nvhost_nvdec_t194_prepare_poweroff,
+	.finalize_poweron	= nvhost_nvdec_finalize_poweron_t186,
+	.prepare_poweroff	= nvhost_nvdec_prepare_poweroff_t186,
 	.moduleid		= NVHOST_MODULE_NVDEC1,
 	.ctrl_ops		= &tegra_nvdec_ctrl_ops,
 	.num_channels		= 1,
@@ -450,7 +385,7 @@ struct nvhost_device_data t19_nvjpg_info = {
 		 0, TEGRA_BWMGR_SET_EMC_SHARED_BW}
 	},
 	.poweron_reset		= true,
-	.finalize_poweron	= nvhost_flcn_t194_finalize_poweron,
+	.finalize_poweron	= nvhost_flcn_finalize_poweron_t186,
 	.moduleid		= NVHOST_MODULE_NVJPG,
 	.num_channels		= 1,
 	.firmware_name		= "nvhost_nvjpg012.fw",
@@ -486,7 +421,7 @@ struct nvhost_device_data t19_tsec_info = {
 	.keepalive		= true,
 	.moduleid		= NVHOST_MODULE_TSEC,
 	.poweron_reset		= true,
-	.finalize_poweron	= nvhost_tsec_t194_finalize_poweron,
+	.finalize_poweron	= nvhost_tsec_finalize_poweron_t186,
 	.prepare_poweroff	= nvhost_tsec_prepare_poweroff,
 	.serialize		= true,
 	.push_work_done		= true,
@@ -515,7 +450,7 @@ struct nvhost_device_data t19_tsecb_info = {
 	.keepalive		= true,
 	.moduleid               = NVHOST_MODULE_TSECB,
 	.poweron_reset		= true,
-	.finalize_poweron	= nvhost_tsec_t194_finalize_poweron,
+	.finalize_poweron	= nvhost_tsec_finalize_poweron_t186,
 	.prepare_poweroff	= nvhost_tsec_prepare_poweroff,
 	.serialize		= true,
 	.push_work_done		= true,
@@ -543,7 +478,7 @@ struct nvhost_device_data t19_vic_info = {
 	.poweron_reset		= true,
 	.modulemutexes		= {NV_HOST1X_MLOCK_ID_VIC},
 	.class			= NV_GRAPHICS_VIC_CLASS_ID,
-	.finalize_poweron	= nvhost_flcn_t194_finalize_poweron,
+	.finalize_poweron	= nvhost_flcn_finalize_poweron_t186,
 	.prepare_poweroff	= nvhost_flcn_prepare_poweroff,
 	.flcn_isr		= nvhost_flcn_common_isr,
 	.init_class_context	= nvhost_vic_init_context,

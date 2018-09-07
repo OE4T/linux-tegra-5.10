@@ -544,6 +544,13 @@ static int tsec_load_kfuse(struct platform_device *pdev)
 		return -1;
 }
 
+int nvhost_tsec_finalize_poweron_t186(struct platform_device *dev)
+{
+	flcn_enable_thi_sec(dev);
+
+	return nvhost_tsec_finalize_poweron(dev);
+}
+
 int nvhost_tsec_finalize_poweron(struct platform_device *dev)
 {
 	int err = 0;

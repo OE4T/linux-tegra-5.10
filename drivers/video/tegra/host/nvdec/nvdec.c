@@ -38,6 +38,8 @@
 
 #include <linux/platform/tegra/mc.h>
 
+#include <soc/tegra/kfuse.h>
+
 #include "dev.h"
 #include "nvdec.h"
 #include "nvhost_vm.h"
@@ -167,6 +169,40 @@ static int nvhost_nvdec_bl_init(struct platform_device *dev)
 	/* store fw start address for nvdec bl to read */
 	memcpy(&(m[0]->mapped[fb_data_offset]), &shared_data,
 		sizeof(shared_data));
+
+	return 0;
+}
+
+/*
+ * On T186, technically we don't need to keep KFUSE enabled after booting
+ * the engine. However, on T194 we have to, so nicer to share the code
+ * paths.
+ */
+int nvhost_nvdec_finalize_poweron_t186(struct platform_device *dev)
+{
+	int err;
+
+	if (!tegra_platform_is_vdk()) {
+		err = tegra_kfuse_enable_sensing();
+		if (err)
+			return err;
+	}
+
+	flcn_enable_thi_sec(dev);
+
+	err = nvhost_nvdec_finalize_poweron(dev);
+	if (err && !tegra_platform_is_vdk()) {
+		tegra_kfuse_disable_sensing();
+	}
+
+	return err;
+}
+
+int nvhost_nvdec_prepare_poweroff_t186(struct platform_device *dev)
+{
+	if (!tegra_platform_is_vdk()) {
+		tegra_kfuse_disable_sensing();
+	}
 
 	return 0;
 }

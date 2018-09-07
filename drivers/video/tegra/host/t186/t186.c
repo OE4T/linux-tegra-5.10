@@ -21,7 +21,6 @@
 #include <soc/tegra/chip-id.h>
 #include <linux/platform/tegra/emc_bwmgr.h>
 
-#include <soc/tegra/kfuse.h>
 #include <linux/platform/tegra/mc.h>
 
 #include "dev.h"
@@ -51,64 +50,6 @@
 
 #define HOST_EMC_FLOOR 204000000
 #define HOST_NVDEC_EMC_FLOOR 102000000
-
-/*
- * TODO: Move following functions to the corresponding files under
- * kernel-3.18 once kernel-t18x gets merged there. Until that
- * happens we can keep these here to avoid extensive amount of
- * added infra
- */
-
-static inline u32 flcn_thi_sec(void)
-{
-	return 0x00000038;
-}
-
-static inline u32 flcn_thi_sec_ch_lock(void)
-{
-	return (1 << 8);
-}
-
-#if defined(CONFIG_TEGRA_GRHOST_TSEC)
-static int nvhost_tsec_t186_finalize_poweron(struct platform_device *dev)
-{
-	/* Disable access to non-THI registers through channel */
-	host1x_writel(dev, flcn_thi_sec(), flcn_thi_sec_ch_lock());
-
-	return nvhost_tsec_finalize_poweron(dev);
-}
-#endif
-
-#if defined(CONFIG_TEGRA_GRHOST_NVENC) || defined(CONFIG_TEGRA_GRHOST_NVJPG) \
-	    || defined(CONFIG_TEGRA_GRHOST_VIC)
-static int nvhost_flcn_t186_finalize_poweron(struct platform_device *dev)
-{
-	/* Disable access to non-THI registers through channel */
-	host1x_writel(dev, flcn_thi_sec(), flcn_thi_sec_ch_lock());
-
-	return nvhost_flcn_finalize_poweron(dev);
-}
-#endif
-
-#if defined(CONFIG_TEGRA_GRHOST_NVDEC)
-static int nvhost_nvdec_t186_finalize_poweron(struct platform_device *dev)
-{
-	int ret;
-
-	ret = tegra_kfuse_enable_sensing();
-	if (ret)
-		return ret;
-
-	/* Disable access to non-THI registers through channel */
-	host1x_writel(dev, flcn_thi_sec(), flcn_thi_sec_ch_lock());
-
-	ret = nvhost_nvdec_finalize_poweron(dev);
-
-	tegra_kfuse_disable_sensing();
-
-	return ret;
-}
-#endif
 
 static struct host1x_device_info host1x04_info = {
 	.nb_channels	= T186_NVHOST_NUMCHANNELS,
@@ -259,7 +200,7 @@ struct nvhost_device_data t18_msenc_info = {
 	.engine_cg_regs		= t18x_nvenc_gating_registers,
 	.engine_can_cg		= true,
 	.poweron_reset		= true,
-	.finalize_poweron	= nvhost_flcn_t186_finalize_poweron,
+	.finalize_poweron	= nvhost_flcn_finalize_poweron_t186,
 	.moduleid		= NVHOST_MODULE_MSENC,
 	.num_channels		= 1,
 	.firmware_name		= "nvhost_nvenc061.fw",
@@ -292,7 +233,8 @@ struct nvhost_device_data t18_nvdec_info = {
 	.engine_cg_regs		= t18x_nvdec_gating_registers,
 	.engine_can_cg		= true,
 	.poweron_reset		= true,
-	.finalize_poweron	= nvhost_nvdec_t186_finalize_poweron,
+	.finalize_poweron	= nvhost_nvdec_finalize_poweron_t186,
+	.prepare_poweroff	= nvhost_nvdec_prepare_poweroff_t186,
 	.moduleid		= NVHOST_MODULE_NVDEC,
 	.ctrl_ops		= &tegra_nvdec_ctrl_ops,
 	.num_channels		= 1,
@@ -325,7 +267,7 @@ struct nvhost_device_data t18_nvjpg_info = {
 	.engine_cg_regs		= t18x_nvjpg_gating_registers,
 	.engine_can_cg		= true,
 	.poweron_reset		= true,
-	.finalize_poweron	= nvhost_flcn_t186_finalize_poweron,
+	.finalize_poweron	= nvhost_flcn_finalize_poweron_t186,
 	.moduleid		= NVHOST_MODULE_NVJPG,
 	.num_channels		= 1,
 	.firmware_name		= "nvhost_nvjpg011.fw",
@@ -362,7 +304,7 @@ struct nvhost_device_data t18_tsec_info = {
 	.keepalive		= true,
 	.moduleid		= NVHOST_MODULE_TSEC,
 	.poweron_reset		= true,
-	.finalize_poweron	= nvhost_tsec_t186_finalize_poweron,
+	.finalize_poweron	= nvhost_tsec_finalize_poweron_t186,
 	.prepare_poweroff	= nvhost_tsec_prepare_poweroff,
 	.serialize		= 1,
 	.push_work_done		= 1,
@@ -393,7 +335,7 @@ struct nvhost_device_data t18_tsecb_info = {
 	.keepalive		= true,
 	.moduleid		= NVHOST_MODULE_TSECB,
 	.poweron_reset		= true,
-	.finalize_poweron	= nvhost_tsec_t186_finalize_poweron,
+	.finalize_poweron	= nvhost_tsec_finalize_poweron_t186,
 	.prepare_poweroff	= nvhost_tsec_prepare_poweroff,
 	.serialize		= 1,
 	.push_work_done		= 1,
@@ -425,7 +367,7 @@ struct nvhost_device_data t18_vic_info = {
 	.poweron_reset		= true,
 	.modulemutexes		= {NV_HOST1X_MLOCK_ID_VIC},
 	.class			= NV_GRAPHICS_VIC_CLASS_ID,
-	.finalize_poweron	= nvhost_flcn_t186_finalize_poweron,
+	.finalize_poweron	= nvhost_flcn_finalize_poweron_t186,
 	.prepare_poweroff	= nvhost_flcn_prepare_poweroff,
 	.flcn_isr		= nvhost_flcn_common_isr,
 	.init_class_context	= nvhost_vic_init_context,

@@ -27,9 +27,10 @@
 
 extern const struct file_operations tegra_nvdec_ctrl_ops;
 
+int nvhost_nvdec_finalize_poweron_t186(struct platform_device *dev);
+int nvhost_nvdec_prepare_poweroff_t186(struct platform_device *dev);
 int nvhost_nvdec_finalize_poweron(struct platform_device *dev);
 int nvhost_nvdec_prepare_poweroff(struct platform_device *dev);
-int nvhost_nvdec_t210_finalize_poweron(struct platform_device *dev);
 
 /* Would have preferred a static inline here... but we're using this
  * in a place where a constant initializer is required */
