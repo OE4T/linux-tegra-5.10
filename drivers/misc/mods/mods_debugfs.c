@@ -490,14 +490,41 @@ int mods_create_debugfs(struct miscdevice *modsdev)
 {
 #ifdef MODS_HAS_DEBUGFS
 	struct dentry *retval;
+	int err = 0;
 #ifdef CONFIG_TEGRA_DC
 	unsigned int dc_idx;
 	int nheads = tegra_dc_get_numof_dispheads();
+	int client_reg_rc = 0;
+
+	// Check if tegra dc client registration succeeds. This will fail
+	// with ENODEV if given architecture no longer uses tegra_dc
+	// driver. Skip creating display related debugfs nodes
+	bool skip_tegradc_debug_nodes = false;
+	struct tegra_dc_client client;
+
+	memset(&client, 0, sizeof(client));
+
+	client_reg_rc = tegra_dc_register_client(&client);
+	if (client_reg_rc != 0) {
+		if (client_reg_rc == -ENODEV) {
+			skip_tegradc_debug_nodes = true;
+		} else {
+			pr_err("%s: tegra dc client registration failed\n",
+				__func__);
+			return client_reg_rc;
+		}
+	} else {
+		client_reg_rc = tegra_dc_unregister_client(&client);
+		if (client_reg_rc != 0) {
+			pr_err("%s: tegra dc client unregistration failed\n",
+				__func__);
+			return client_reg_rc;
+		}
+	}
 #endif
-	int err = 0;
 
 #ifdef CONFIG_TEGRA_DC
-	if (nheads <= 0) {
+	if (nheads <= 0 && !skip_tegradc_debug_nodes) {
 		pr_err("%s: max heads:%d cannot be negative or zero\n",
 			__func__, nheads);
 		return -EINVAL;
@@ -535,122 +562,132 @@ int mods_create_debugfs(struct miscdevice *modsdev)
 #endif
 
 #ifdef CONFIG_TEGRA_DC
-	for (dc_idx = 0; dc_idx < nheads; dc_idx++) {
-		struct dentry *dc_debugfs_dir;
-		char devname[16];
-		struct tegra_dc *dc = tegra_dc_get_dc(dc_idx);
+	if (!skip_tegradc_debug_nodes) {
+		for (dc_idx = 0; dc_idx < nheads; dc_idx++) {
+			struct dentry *dc_debugfs_dir;
+			char devname[16];
+			struct tegra_dc *dc = tegra_dc_get_dc(dc_idx);
 
-		if (!dc)
-			continue;
+			if (!dc)
+				continue;
 
-		snprintf(devname, sizeof(devname), "tegradc.%d", dc->ctrl_num);
-		dc_debugfs_dir = debugfs_create_dir(devname, mods_debugfs_dir);
+			snprintf(devname, sizeof(devname), "tegradc.%d",
+				 dc->ctrl_num);
+			dc_debugfs_dir = debugfs_create_dir(devname,
+					mods_debugfs_dir);
 
-		if (IS_ERR(dc_debugfs_dir)) {
-			err = -EIO;
-			goto remove_out;
-		}
-
-		retval = debugfs_create_file("window_mask", 0444,
-			dc_debugfs_dir, dc, &mods_dc_window_mask_fops);
-		if (IS_ERR(retval)) {
-			err = -EIO;
-			goto remove_out;
-		}
-		retval = debugfs_create_file("color_formats", 0444,
-			dc_debugfs_dir, dc, &mods_dc_color_formats_fops);
-		if (IS_ERR(retval)) {
-			err = -EIO;
-			goto remove_out;
-		}
-		retval = debugfs_create_file("blend_gen", 0444,
-			dc_debugfs_dir, dc, &mods_dc_blend_gen_fops);
-		if (IS_ERR(retval)) {
-			err = -EIO;
-			goto remove_out;
-		}
-		retval = debugfs_create_file("layout", 0444, dc_debugfs_dir,
-			dc, &mods_dc_layout_fops);
-		if (IS_ERR(retval)) {
-			err = -EIO;
-			goto remove_out;
-		}
-		retval = debugfs_create_file("invert", 0444, dc_debugfs_dir,
-			dc, &mods_dc_invert_fops);
-		if (IS_ERR(retval)) {
-			err = -EIO;
-			goto remove_out;
-		}
-		retval = debugfs_create_file("interlaced", 0444,
-			dc_debugfs_dir, dc, &mods_dc_interlaced_fops);
-		if (IS_ERR(retval)) {
-			err = -EIO;
-			goto remove_out;
-		}
-		retval = debugfs_create_file("scaling", 0444, dc_debugfs_dir,
-			dc, &mods_dc_scaling_fops);
-		if (IS_ERR(retval)) {
-			err = -EIO;
-			goto remove_out;
-		}
-		retval = debugfs_create_file("border_color", 0644,
-			dc_debugfs_dir, dc, &mods_dc_border_fops);
-		if (IS_ERR(retval)) {
-			err = -EIO;
-			goto remove_out;
-		}
-
-		retval = debugfs_create_file("output_color_possible", 0444,
-			dc_debugfs_dir, NULL, &mods_dc_ocp_fops);
-		if (IS_ERR(retval)) {
-			err = -EIO;
-			goto remove_out;
-		}
-		retval = debugfs_create_file("output_color", 0644,
-			dc_debugfs_dir, dc, &mods_dc_oc_fops);
-		if (IS_ERR(retval)) {
-			err = -EIO;
-			goto remove_out;
-		}
-
-		retval = debugfs_create_file("crc_checksum_latched", 0444,
-			dc_debugfs_dir, dc, &mods_dc_crc_latched_fops);
-		if (IS_ERR(retval)) {
-			err = -EIO;
-			goto remove_out;
-		}
-
-		if (dc->out && dc->out->type == TEGRA_DC_OUT_DSI) {
-			struct dentry *dsi_debugfs_dir;
-
-			dsi_debugfs_dir = debugfs_create_dir("dsi",
-				dc_debugfs_dir);
-			if (IS_ERR(dsi_debugfs_dir)) {
+			if (IS_ERR(dc_debugfs_dir)) {
 				err = -EIO;
 				goto remove_out;
 			}
-			retval = debugfs_create_file("ganged", 0444,
-				dsi_debugfs_dir, tegra_dc_get_outdata(dc),
-				&mods_dsi_ganged_fops);
+
+			retval = debugfs_create_file("window_mask", 0444,
+				dc_debugfs_dir, dc,
+				&mods_dc_window_mask_fops);
 			if (IS_ERR(retval)) {
 				err = -EIO;
 				goto remove_out;
 			}
-			retval = debugfs_create_file("instance", 0444,
-				dsi_debugfs_dir, tegra_dc_get_outdata(dc),
-				&mods_dsi_inst_fops);
+			retval = debugfs_create_file("color_formats", 0444,
+				dc_debugfs_dir, dc,
+				&mods_dc_color_formats_fops);
 			if (IS_ERR(retval)) {
 				err = -EIO;
 				goto remove_out;
 			}
-		}
-
-		if (dc->out && dc->out->type == TEGRA_DC_OUT_HDMI) {
-			retval = debugfs_create_file("ddc_bus", 0444,
-				dc_debugfs_dir, dc, &mods_dc_ddc_bus_fops);
+			retval = debugfs_create_file("blend_gen", 0444,
+				dc_debugfs_dir, dc, &mods_dc_blend_gen_fops);
 			if (IS_ERR(retval)) {
 				err = -EIO;
 				goto remove_out;
+			}
+			retval = debugfs_create_file("layout", 0444,
+				 dc_debugfs_dir, dc, &mods_dc_layout_fops);
+			if (IS_ERR(retval)) {
+				err = -EIO;
+				goto remove_out;
+			}
+			retval = debugfs_create_file("invert", 0444,
+				dc_debugfs_dir, dc, &mods_dc_invert_fops);
+			if (IS_ERR(retval)) {
+				err = -EIO;
+				goto remove_out;
+			}
+			retval = debugfs_create_file("interlaced", 0444,
+				dc_debugfs_dir, dc, &mods_dc_interlaced_fops);
+			if (IS_ERR(retval)) {
+				err = -EIO;
+				goto remove_out;
+			}
+			retval = debugfs_create_file("scaling", 0444,
+				dc_debugfs_dir, dc, &mods_dc_scaling_fops);
+			if (IS_ERR(retval)) {
+				err = -EIO;
+				goto remove_out;
+			}
+			retval = debugfs_create_file("border_color", 0644,
+				dc_debugfs_dir, dc, &mods_dc_border_fops);
+			if (IS_ERR(retval)) {
+				err = -EIO;
+				goto remove_out;
+			}
+
+			retval = debugfs_create_file("output_color_possible",
+				0444, dc_debugfs_dir, NULL, &mods_dc_ocp_fops);
+			if (IS_ERR(retval)) {
+				err = -EIO;
+				goto remove_out;
+			}
+			retval = debugfs_create_file("output_color", 0644,
+				dc_debugfs_dir, dc, &mods_dc_oc_fops);
+			if (IS_ERR(retval)) {
+				err = -EIO;
+				goto remove_out;
+			}
+
+			retval = debugfs_create_file("crc_checksum_latched",
+				0444, dc_debugfs_dir, dc,
+				&mods_dc_crc_latched_fops);
+			if (IS_ERR(retval)) {
+				err = -EIO;
+				goto remove_out;
+			}
+
+			if (dc->out && dc->out->type == TEGRA_DC_OUT_DSI) {
+				struct dentry *dsi_debugfs_dir;
+
+				dsi_debugfs_dir = debugfs_create_dir("dsi",
+					dc_debugfs_dir);
+				if (IS_ERR(dsi_debugfs_dir)) {
+					err = -EIO;
+					goto remove_out;
+				}
+				retval = debugfs_create_file("ganged", 0444,
+					dsi_debugfs_dir,
+					tegra_dc_get_outdata(dc),
+					&mods_dsi_ganged_fops);
+				if (IS_ERR(retval)) {
+					err = -EIO;
+					goto remove_out;
+				}
+				retval = debugfs_create_file("instance", 0444,
+					dsi_debugfs_dir,
+					tegra_dc_get_outdata(dc),
+					&mods_dsi_inst_fops);
+				if (IS_ERR(retval)) {
+					err = -EIO;
+					goto remove_out;
+				}
+			}
+
+			if (dc->out && dc->out->type == TEGRA_DC_OUT_HDMI) {
+				retval = debugfs_create_file("ddc_bus", 0444,
+					dc_debugfs_dir, dc,
+					&mods_dc_ddc_bus_fops);
+				if (IS_ERR(retval)) {
+					err = -EIO;
+					goto remove_out;
+				}
 			}
 		}
 	}
