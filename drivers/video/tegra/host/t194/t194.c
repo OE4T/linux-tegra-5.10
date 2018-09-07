@@ -21,7 +21,6 @@
 #include <linux/io.h>
 #include <soc/tegra/chip-id.h>
 #include <linux/platform/tegra/emc_bwmgr.h>
-#include <linux/dma-override.h>
 
 #include <soc/tegra/kfuse.h>
 
@@ -82,16 +81,6 @@ static inline u32 flcn_thi_sec(void)
 static inline u32 flcn_thi_sec_ch_lock(void)
 {
 	return (1 << 8);
-}
-
-static enum dma_data_direction nvhost_t194_get_dma_direction(u32 reloc_type)
-{
-	enum dma_data_direction direction = DMA_BIDIRECTIONAL;
-
-	if (reloc_type == NVHOST_RELOC_TYPE_NVLINK)
-		direction |= DMA_FOR_NVLINK;
-
-	return direction;
 }
 
 static dma_addr_t nvhost_t194_get_reloc_phys_addr(dma_addr_t phys_addr,
@@ -337,7 +326,6 @@ struct nvhost_device_data t19_msenc_info = {
 	.transcfg_val		= 0x20,
 	.bwmgr_client_id	= TEGRA_BWMGR_CLIENT_MSENC,
 	.get_reloc_phys_addr	= nvhost_t194_get_reloc_phys_addr,
-	.get_dma_direction	= nvhost_t194_get_dma_direction,
 	.engine_cg_regs		= t19x_nvenc_gating_registers,
 	.engine_can_cg		= true,
 	.can_powergate		= true,
@@ -369,7 +357,6 @@ struct nvhost_device_data t19_nvenc1_info = {
 	.transcfg_addr		= 0x1844,
 	.transcfg_val		= 0x20,
 	.get_reloc_phys_addr	= nvhost_t194_get_reloc_phys_addr,
-	.get_dma_direction	= nvhost_t194_get_dma_direction,
 	.bwmgr_client_id	= TEGRA_BWMGR_CLIENT_NVENC1,
 	.engine_cg_regs		= t19x_nvenc_gating_registers,
 	.engine_can_cg		= true,
@@ -408,7 +395,6 @@ struct nvhost_device_data t19_nvdec_info = {
 	.transcfg_val		= 0x20,
 	.bwmgr_client_id	= TEGRA_BWMGR_CLIENT_NVDEC,
 	.get_reloc_phys_addr	= nvhost_t194_get_reloc_phys_addr,
-	.get_dma_direction	= nvhost_t194_get_dma_direction,
 	.engine_cg_regs		= t19x_nvdec_gating_registers,
 	.engine_can_cg		= true,
 	.can_powergate		= true,
@@ -442,7 +428,6 @@ struct nvhost_device_data t19_nvdec1_info = {
 	.transcfg_addr		= 0x2c44,
 	.transcfg_val		= 0x20,
 	.get_reloc_phys_addr	= nvhost_t194_get_reloc_phys_addr,
-	.get_dma_direction	= nvhost_t194_get_dma_direction,
 	.bwmgr_client_id	= TEGRA_BWMGR_CLIENT_NVDEC1,
 	.engine_cg_regs		= t19x_nvdec_gating_registers,
 	.engine_can_cg		= true,
@@ -571,7 +556,6 @@ struct nvhost_device_data t19_vic_info = {
 	.transcfg_val		= 0x20,
 	.bwmgr_client_id	= TEGRA_BWMGR_CLIENT_VIC,
 	.get_reloc_phys_addr	= nvhost_t194_get_reloc_phys_addr,
-	.get_dma_direction	= nvhost_t194_get_dma_direction,
 	.module_irq		= 1,
 	.engine_cg_regs		= t19x_vic_gating_registers,
 	.engine_can_cg		= true,
@@ -604,7 +588,6 @@ struct nvhost_device_data t19_pva1_info = {
 	.serialize		= true,
 	.push_work_done		= true,
 	.get_reloc_phys_addr	= nvhost_t194_get_reloc_phys_addr,
-	.get_dma_direction	= nvhost_t194_get_dma_direction,
 	.can_powergate		= true,
 };
 
@@ -630,7 +613,6 @@ struct nvhost_device_data t19_pva0_info = {
 	.poweron_reset		= true,
 	.serialize		= true,
 	.get_reloc_phys_addr	= nvhost_t194_get_reloc_phys_addr,
-	.get_dma_direction	= nvhost_t194_get_dma_direction,
 	.can_powergate		= true,
 };
 #endif
@@ -659,7 +641,6 @@ struct nvhost_device_data t19_nvdla0_info = {
 	.serialize		= true,
 	.ctrl_ops		= &tegra_nvdla_ctrl_ops,
 	.get_reloc_phys_addr	= nvhost_t194_get_reloc_phys_addr,
-	.get_dma_direction	= nvhost_t194_get_dma_direction,
 	.module_irq		= 1,
 	.engine_cg_regs		= t19x_nvdla_gating_registers,
 	.engine_can_cg		= true,
@@ -692,7 +673,6 @@ struct nvhost_device_data t19_nvdla1_info = {
 	.serialize		= true,
 	.ctrl_ops		= &tegra_nvdla_ctrl_ops,
 	.get_reloc_phys_addr	= nvhost_t194_get_reloc_phys_addr,
-	.get_dma_direction	= nvhost_t194_get_dma_direction,
 	.module_irq		= 1,
 	.engine_cg_regs		= t19x_nvdla_gating_registers,
 	.engine_can_cg		= true,

@@ -24,6 +24,7 @@
 #include <linux/vmalloc.h>
 #include <linux/sort.h>
 #include <linux/scatterlist.h>
+#include <linux/dma-override.h>
 #include <trace/events/nvhost.h>
 #include "nvhost_channel.h"
 #include "nvhost_vm.h"
@@ -351,15 +352,14 @@ static int pin_job_mem(struct nvhost_job *job)
 	int i;
 	int count = 0;
 	int result;
-	struct nvhost_device_data *pdata = platform_get_drvdata(job->ch->dev);
 
 	for (i = 0; i < job->num_relocs; i++) {
 		struct nvhost_reloc *reloc = &job->relocarray[i];
 		struct nvhost_reloc_type *type = &job->reloctypearray[i];
 		enum dma_data_direction direction = DMA_BIDIRECTIONAL;
 
-		if (pdata->get_dma_direction)
-			direction = pdata->get_dma_direction(type->reloc_type);
+		if (type->reloc_type == NVHOST_RELOC_TYPE_NVLINK)
+			direction |= DMA_FOR_NVLINK;
 
 		job->pin_ids[count].id = reloc->target;
 		job->pin_ids[count].direction = direction;
