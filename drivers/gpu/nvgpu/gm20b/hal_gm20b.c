@@ -29,6 +29,7 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/channel.h>
 #include <nvgpu/tsg.h>
+#include <nvgpu/perfbuf.h>
 
 #include "common/clock_gating/gm20b_gating_reglist.h"
 #include "common/bus/bus_gm20b.h"
@@ -611,8 +612,6 @@ static const struct gpu_ops gm20b_ops = {
 			nvgpu_check_and_set_context_reservation,
 		.release_profiler_reservation =
 			nvgpu_release_profiler_reservation,
-		.perfbuffer_enable = gk20a_perfbuf_enable_locked,
-		.perfbuffer_disable = gk20a_perfbuf_disable_locked,
 	},
 	.perf = {
 		.enable_membuf = gm20b_perf_enable_membuf,
@@ -622,6 +621,10 @@ static const struct gpu_ops gm20b_ops = {
 		.set_membuf_handled_bytes = gm20b_perf_set_membuf_handled_bytes,
 		.get_membuf_overflow_status =
 			gm20b_perf_get_membuf_overflow_status,
+	},
+	.perfbuf = {
+		.perfbuf_enable = nvgpu_perfbuf_enable_locked,
+		.perfbuf_disable = nvgpu_perfbuf_disable_locked,
 	},
 	.bus = {
 		.init_hw = gk20a_bus_init_hw,
@@ -707,6 +710,7 @@ int gm20b_init_hal(struct gk20a *g)
 	gops->mc = gm20b_ops.mc;
 	gops->dbg_session_ops = gm20b_ops.dbg_session_ops;
 	gops->perf = gm20b_ops.perf;
+	gops->perfbuf = gm20b_ops.perfbuf;
 	gops->debug = gm20b_ops.debug;
 	gops->debugger = gm20b_ops.debugger;
 	gops->bus = gm20b_ops.bus;

@@ -511,8 +511,10 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 			vgpu_check_and_set_context_reservation,
 		.release_profiler_reservation =
 			vgpu_release_profiler_reservation,
-		.perfbuffer_enable = vgpu_perfbuffer_enable,
-		.perfbuffer_disable = vgpu_perfbuffer_disable,
+	},
+	.perfbuf = {
+		.perfbuf_enable = vgpu_perfbuffer_enable,
+		.perfbuf_disable = vgpu_perfbuffer_disable,
 	},
 	.bus = {
 		.init_hw = NULL,
@@ -593,6 +595,7 @@ int vgpu_gp10b_init_hal(struct gk20a *g)
 	gops->debug = vgpu_gp10b_ops.debug;
 	gops->debugger = vgpu_gp10b_ops.debugger;
 	gops->dbg_session_ops = vgpu_gp10b_ops.dbg_session_ops;
+	gops->perfbuf = vgpu_gp10b_ops.perfbuf;
 	gops->bus = vgpu_gp10b_ops.bus;
 	gops->ptimer = vgpu_gp10b_ops.ptimer;
 #if defined(CONFIG_GK20A_CYCLE_STATS)

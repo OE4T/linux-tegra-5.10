@@ -83,7 +83,6 @@
 #include "gp10b/pmu_gp10b.h"
 
 #include "gv11b/css_gr_gv11b.h"
-#include "gv11b/dbg_gpu_gv11b.h"
 #include "gv11b/hal_gv11b.h"
 #include "gv11b/gr_gv11b.h"
 #include "gv11b/gv11b.h"
@@ -117,6 +116,7 @@
 #include <nvgpu/clk_arb.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/channel.h>
+#include <nvgpu/perfbuf.h>
 
 #include <nvgpu/hw/gv100/hw_proj_gv100.h>
 #include <nvgpu/hw/gv100/hw_fifo_gv100.h>
@@ -837,8 +837,6 @@ static const struct gpu_ops gv100_ops = {
 			nvgpu_check_and_set_context_reservation,
 		.release_profiler_reservation =
 			nvgpu_release_profiler_reservation,
-		.perfbuffer_enable = gv11b_perfbuf_enable_locked,
-		.perfbuffer_disable = gv11b_perfbuf_disable_locked,
 	},
 	.perf = {
 		.enable_membuf = gv11b_perf_enable_membuf,
@@ -848,6 +846,10 @@ static const struct gpu_ops gv100_ops = {
 		.set_membuf_handled_bytes = gv11b_perf_set_membuf_handled_bytes,
 		.get_membuf_overflow_status =
 			gv11b_perf_get_membuf_overflow_status,
+	},
+	.perfbuf = {
+		.perfbuf_enable = nvgpu_perfbuf_enable_locked,
+		.perfbuf_disable = nvgpu_perfbuf_disable_locked,
 	},
 	.bus = {
 		.init_hw = gk20a_bus_init_hw,
@@ -985,6 +987,7 @@ int gv100_init_hal(struct gk20a *g)
 	gops->debugger = gv100_ops.debugger;
 	gops->dbg_session_ops = gv100_ops.dbg_session_ops;
 	gops->perf = gv100_ops.perf;
+	gops->perfbuf = gv100_ops.perfbuf;
 	gops->bus = gv100_ops.bus;
 	gops->ptimer = gv100_ops.ptimer;
 #if defined(CONFIG_GK20A_CYCLE_STATS)

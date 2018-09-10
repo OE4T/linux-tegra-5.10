@@ -97,6 +97,7 @@
 #include <nvgpu/clk_arb.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/channel.h>
+#include <nvgpu/perfbuf.h>
 
 #include <nvgpu/hw/gp106/hw_proj_gp106.h>
 #include <nvgpu/hw/gp106/hw_fifo_gp106.h>
@@ -739,8 +740,6 @@ static const struct gpu_ops gp106_ops = {
 			nvgpu_check_and_set_context_reservation,
 		.release_profiler_reservation =
 			nvgpu_release_profiler_reservation,
-		.perfbuffer_enable = gk20a_perfbuf_enable_locked,
-		.perfbuffer_disable = gk20a_perfbuf_disable_locked,
 	},
 	.perf = {
 		.enable_membuf = gm20b_perf_enable_membuf,
@@ -750,6 +749,10 @@ static const struct gpu_ops gp106_ops = {
 		.set_membuf_handled_bytes = gm20b_perf_set_membuf_handled_bytes,
 		.get_membuf_overflow_status =
 			gm20b_perf_get_membuf_overflow_status,
+	},
+	.perfbuf = {
+		.perfbuf_enable = nvgpu_perfbuf_enable_locked,
+		.perfbuf_disable = nvgpu_perfbuf_disable_locked,
 	},
 	.bus = {
 		.init_hw = gk20a_bus_init_hw,
@@ -870,6 +873,7 @@ int gp106_init_hal(struct gk20a *g)
 	gops->debugger = gp106_ops.debugger;
 	gops->dbg_session_ops = gp106_ops.dbg_session_ops;
 	gops->perf = gp106_ops.perf;
+	gops->perfbuf = gp106_ops.perfbuf;
 	gops->bus = gp106_ops.bus;
 	gops->ptimer = gp106_ops.ptimer;
 #if defined(CONFIG_GK20A_CYCLE_STATS)

@@ -38,29 +38,6 @@
 #include "dbg_gpu_gk20a.h"
 #include "regops_gk20a.h"
 
-#include <nvgpu/hw/gk20a/hw_gr_gk20a.h>
-#include <nvgpu/hw/gk20a/hw_perf_gk20a.h>
-
-static void gk20a_perfbuf_reset_streaming(struct gk20a *g)
-{
-	u32 engine_status;
-	u32 num_unread_bytes;
-
-	g->ops.mc.reset(g, g->ops.mc.reset_mask(g, NVGPU_UNIT_PERFMON));
-
-	engine_status = gk20a_readl(g, perf_pmasys_enginestatus_r());
-	WARN_ON(0u ==
-		(engine_status & perf_pmasys_enginestatus_rbufempty_empty_f()));
-
-	gk20a_writel(g, perf_pmasys_control_r(),
-		perf_pmasys_control_membuf_clear_status_doit_f());
-
-	num_unread_bytes = gk20a_readl(g, perf_pmasys_mem_bytes_r());
-	if (num_unread_bytes != 0u) {
-		gk20a_writel(g, perf_pmasys_mem_bump_r(), num_unread_bytes);
-	}
-}
-
 /*
  * API to get first channel from the list of all channels
  * bound to the debug session
@@ -340,80 +317,4 @@ void nvgpu_release_profiler_reservation(struct dbg_session_gk20a *dbg_s,
 	if (prof_obj->ch == NULL) {
 		g->global_profiler_reservation_held = false;
 	}
-}
-
-int gk20a_perfbuf_enable_locked(struct gk20a *g, u64 offset, u32 size)
-{
-	struct mm_gk20a *mm = &g->mm;
-	u32 virt_addr_lo;
-	u32 virt_addr_hi;
-	u32 inst_pa_page;
-	int err;
-
-	err = gk20a_busy(g);
-	if (err) {
-		nvgpu_err(g, "failed to poweron");
-		return err;
-	}
-
-	err = g->ops.mm.alloc_inst_block(g, &mm->perfbuf.inst_block);
-	if (err) {
-		return err;
-	}
-
-	g->ops.mm.init_inst_block(&mm->perfbuf.inst_block, mm->perfbuf.vm, 0);
-
-	gk20a_perfbuf_reset_streaming(g);
-
-	virt_addr_lo = u64_lo32(offset);
-	virt_addr_hi = u64_hi32(offset);
-
-	/* address and size are aligned to 32 bytes, the lowest bits read back
-	 * as zeros */
-	gk20a_writel(g, perf_pmasys_outbase_r(), virt_addr_lo);
-	gk20a_writel(g, perf_pmasys_outbaseupper_r(),
-			perf_pmasys_outbaseupper_ptr_f(virt_addr_hi));
-	gk20a_writel(g, perf_pmasys_outsize_r(), size);
-
-	/* this field is aligned to 4K */
-	inst_pa_page = nvgpu_inst_block_addr(g,	&mm->perfbuf.inst_block) >> 12;
-
-	/* A write to MEM_BLOCK triggers the block bind operation. MEM_BLOCK
-	 * should be written last */
-	gk20a_writel(g, perf_pmasys_mem_block_r(),
-			perf_pmasys_mem_block_base_f(inst_pa_page) |
-		        nvgpu_aperture_mask(g, &mm->perfbuf.inst_block,
-				perf_pmasys_mem_block_target_sys_ncoh_f(),
-				perf_pmasys_mem_block_target_sys_coh_f(),
-				perf_pmasys_mem_block_target_lfb_f()) |
-		        perf_pmasys_mem_block_valid_true_f());
-
-	gk20a_idle(g);
-	return 0;
-}
-
-/* must be called with dbg_sessions_lock held */
-int gk20a_perfbuf_disable_locked(struct gk20a *g)
-{
-	int err = gk20a_busy(g);
-	if (err) {
-		nvgpu_err(g, "failed to poweron");
-		return err;
-	}
-
-	gk20a_perfbuf_reset_streaming(g);
-
-	gk20a_writel(g, perf_pmasys_outbase_r(), 0);
-	gk20a_writel(g, perf_pmasys_outbaseupper_r(),
-			perf_pmasys_outbaseupper_ptr_f(0));
-	gk20a_writel(g, perf_pmasys_outsize_r(), 0);
-
-	gk20a_writel(g, perf_pmasys_mem_block_r(),
-			perf_pmasys_mem_block_base_f(0) |
-			perf_pmasys_mem_block_valid_false_f() |
-			perf_pmasys_mem_block_target_f(0));
-
-	gk20a_idle(g);
-
-	return 0;
 }

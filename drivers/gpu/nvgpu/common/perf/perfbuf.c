@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -19,10 +19,50 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef DBG_GPU_GV11B_H
-#define DBG_GPU_GV11B_H
 
-int gv11b_perfbuf_enable_locked(struct gk20a *g, u64 offset, u32 size);
-int gv11b_perfbuf_disable_locked(struct gk20a *g);
+#include <nvgpu/sizes.h>
+#include <nvgpu/perfbuf.h>
 
-#endif /* DBG_GPU_GV11B_H */
+#include "gk20a/gk20a.h"
+
+int nvgpu_perfbuf_enable_locked(struct gk20a *g, u64 offset, u32 size)
+{
+	struct mm_gk20a *mm = &g->mm;
+	int err;
+
+	err = gk20a_busy(g);
+	if (err) {
+		nvgpu_err(g, "failed to poweron");
+		return err;
+	}
+
+	err = g->ops.mm.alloc_inst_block(g, &mm->perfbuf.inst_block);
+	if (err) {
+		return err;
+	}
+
+	g->ops.mm.init_inst_block(&mm->perfbuf.inst_block, mm->perfbuf.vm, 0);
+
+	g->ops.perf.membuf_reset_streaming(g);
+	g->ops.perf.enable_membuf(g, size, offset, &mm->perfbuf.inst_block);
+
+	gk20a_idle(g);
+
+	return 0;
+}
+
+int nvgpu_perfbuf_disable_locked(struct gk20a *g)
+{
+	int err = gk20a_busy(g);
+	if (err) {
+		nvgpu_err(g, "failed to poweron");
+		return err;
+	}
+
+	g->ops.perf.membuf_reset_streaming(g);
+	g->ops.perf.disable_membuf(g);
+
+	gk20a_idle(g);
+
+	return 0;
+}

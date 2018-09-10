@@ -129,8 +129,6 @@ bool nvgpu_check_and_set_context_reservation(
 				struct dbg_profiler_object_data *prof_obj);
 void nvgpu_release_profiler_reservation(struct dbg_session_gk20a *dbg_s,
 				struct dbg_profiler_object_data *prof_obj);
-int gk20a_perfbuf_enable_locked(struct gk20a *g, u64 offset, u32 size);
-int gk20a_perfbuf_disable_locked(struct gk20a *g);
 
 void nvgpu_dbg_session_post_event(struct dbg_session_gk20a *dbg_s);
 u32 nvgpu_set_powergate_locked(struct dbg_session_gk20a *dbg_s,
