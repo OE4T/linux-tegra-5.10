@@ -59,12 +59,16 @@ unsigned long gp106_clk_measure_freq(struct gk20a *g, u32 api_domain)
 		}
 	}
 
-	if (!c) {
+	if (c == NULL) {
 		return 0;
 	}
 
-	freq_khz = c->is_counter ? c->scale * gp106_get_rate_cntr(g, c) :
-		0; /* TODO: PLL read */
+	/* TODO: PLL read */
+	if (c->is_counter != 0U) {
+		freq_khz = c->scale * gp106_get_rate_cntr(g, c);
+	} else {
+		freq_khz = 0U;
+	}
 
 	/* Convert to HZ */
 	return freq_khz * 1000UL;
@@ -85,14 +89,14 @@ int gp106_init_clk_support(struct gk20a *g)
 	clk->clk_namemap = (struct namemap_cfg *)
 		nvgpu_kzalloc(g, sizeof(struct namemap_cfg) * NUM_NAMEMAPS);
 
-	if (!clk->clk_namemap) {
+	if (clk->clk_namemap == NULL) {
 		nvgpu_mutex_destroy(&clk->clk_mutex);
 		return -ENOMEM;
 	}
 
 	clk->namemap_xlat_table = nvgpu_kcalloc(g, NUM_NAMEMAPS, sizeof(u32));
 
-	if (!clk->namemap_xlat_table) {
+	if (clk->namemap_xlat_table == NULL) {
 		nvgpu_kfree(g, clk->clk_namemap);
 		nvgpu_mutex_destroy(&clk->clk_mutex);
 		return -ENOMEM;
@@ -173,7 +177,9 @@ u32 gp106_get_rate_cntr(struct gk20a *g, struct namemap_cfg *c)
 
 	struct clk_gk20a *clk = &g->clk;
 
-	if (!c || !c->cntr.reg_ctrl_addr || !c->cntr.reg_cntr_addr) {
+	if ((c == NULL) ||
+	    (c->cntr.reg_ctrl_addr == 0U) ||
+	    (c->cntr.reg_cntr_addr == 0U)) {
 		return 0;
 	}
 
@@ -194,9 +200,11 @@ u32 gp106_get_rate_cntr(struct gk20a *g, struct namemap_cfg *c)
 	retries = CLK_DEFAULT_CNTRL_SETTLE_RETRIES;
 	do {
 		nvgpu_udelay(CLK_DEFAULT_CNTRL_SETTLE_USECS);
-	} while ((--retries) && (cntr = gk20a_readl(g, c->cntr.reg_cntr_addr)));
+		cntr = gk20a_readl(g, c->cntr.reg_cntr_addr);
+		retries--;
+	} while ((retries != 0U) && (cntr != 0U));
 
-	if (!retries) {
+	if (retries == 0U) {
 		nvgpu_err(g, "unable to settle counter reset, bailing");
 		goto read_err;
 	}

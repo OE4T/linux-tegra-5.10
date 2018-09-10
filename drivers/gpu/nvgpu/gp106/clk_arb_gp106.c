@@ -63,21 +63,21 @@ int gp106_get_arbiter_clk_range(struct gk20a *g, u32 api_domain,
 
 	p5_info = pstate_get_clk_set_info(g,
 			CTRL_PERF_PSTATE_P5, clkwhich);
-	if (!p5_info) {
+	if (p5_info == NULL) {
 		return -EINVAL;
 	}
 
 	p0_info = pstate_get_clk_set_info(g,
 			CTRL_PERF_PSTATE_P0, clkwhich);
-	if (!p0_info) {
+	if (p0_info == NULL) {
 		return -EINVAL;
 	}
 
 	limit_min_mhz = p5_info->min_mhz;
 	/* WAR for DVCO min */
 	if (api_domain == CTRL_CLK_DOMAIN_GPC2CLK) {
-		if ((pfllobjs->max_min_freq_mhz) &&
-			(pfllobjs->max_min_freq_mhz >= limit_min_mhz)) {
+		if ((pfllobjs->max_min_freq_mhz != 0U) &&
+		    (pfllobjs->max_min_freq_mhz >= limit_min_mhz)) {
 			limit_min_mhz = pfllobjs->max_min_freq_mhz + 1;
 		}
 	}
@@ -109,7 +109,7 @@ int gp106_get_arbiter_clk_default(struct gk20a *g, u32 api_domain,
 
 	p0_info = pstate_get_clk_set_info(g,
 			CTRL_PERF_PSTATE_P0, clkwhich);
-	if (!p0_info) {
+	if (p0_info == NULL) {
 		return -EINVAL;
 	}
 
@@ -133,7 +133,7 @@ int gp106_init_clk_arbiter(struct gk20a *g)
 	}
 
 	arb = nvgpu_kzalloc(g, sizeof(struct nvgpu_clk_arb));
-	if (!arb)
+	if (arb == NULL)
 		return -ENOMEM;
 
 	arb->clk_arb_events_supported = true;
@@ -146,13 +146,13 @@ int gp106_init_clk_arbiter(struct gk20a *g)
 	nvgpu_spinlock_init(&arb->requests_lock);
 
 	arb->mclk_f_points = nvgpu_kcalloc(g, MAX_F_POINTS, sizeof(u16));
-	if (!arb->mclk_f_points) {
+	if (arb->mclk_f_points == NULL) {
 		err = -ENOMEM;
 		goto init_fail;
 	}
 
 	arb->gpc2clk_f_points = nvgpu_kcalloc(g, MAX_F_POINTS, sizeof(u16));
-	if (!arb->gpc2clk_f_points) {
+	if (arb->gpc2clk_f_points == NULL) {
 		err = -ENOMEM;
 		goto init_fail;
 	}
@@ -164,7 +164,7 @@ int gp106_init_clk_arbiter(struct gk20a *g)
 
 		table->gpc2clk_points = nvgpu_kcalloc(g, MAX_F_POINTS,
 			sizeof(struct nvgpu_clk_vf_point));
-		if (!table->gpc2clk_points) {
+		if (table->gpc2clk_points == NULL) {
 			err = -ENOMEM;
 			goto init_fail;
 		}
@@ -172,7 +172,7 @@ int gp106_init_clk_arbiter(struct gk20a *g)
 
 		table->mclk_points = nvgpu_kcalloc(g, MAX_F_POINTS,
 			sizeof(struct nvgpu_clk_vf_point));
-		if (!table->mclk_points) {
+		if (table->mclk_points == NULL) {
 			err = -ENOMEM;
 			goto init_fail;
 		}
@@ -246,7 +246,7 @@ int gp106_init_clk_arbiter(struct gk20a *g)
 		nvgpu_smp_mb();
 		NVGPU_COND_WAIT_INTERRUPTIBLE(&arb->request_wq,
 			nvgpu_atomic_read(&arb->req_nr), 0);
-	} while (!nvgpu_atomic_read(&arb->req_nr));
+	} while (nvgpu_atomic_read(&arb->req_nr) == 0);
 
 
 	return arb->status;
@@ -292,9 +292,10 @@ static u8 nvgpu_clk_arb_find_vf_point(struct nvgpu_clk_arb *arb,
 		/* pointer to table can be updated by callback */
 		nvgpu_smp_rmb();
 
-		if (!table)
+		if (table == NULL)
 			continue;
-		if ((!table->gpc2clk_num_points) || (!table->mclk_num_points)) {
+		if ((table->gpc2clk_num_points == 0U) ||
+		    (table->mclk_num_points == 0U)) {
 			nvgpu_err(arb->g, "found empty table");
 			goto find_exit;
 		}
@@ -377,8 +378,8 @@ recalculate_vf_point:
 		mclk_voltuv = mclk_vf->uvolt;
 		mclk_voltuv_sram = mclk_vf->uvolt_sram;
 
-	} while (!table ||
-		(NV_ACCESS_ONCE(arb->current_vf_table) != table));
+	} while ((table == NULL) ||
+		 (NV_ACCESS_ONCE(arb->current_vf_table) != table));
 
 find_exit:
 	*voltuv = gpc2clk_voltuv > mclk_voltuv ? gpc2clk_voltuv : mclk_voltuv;
@@ -504,13 +505,14 @@ void gp106_clk_arb_run_arbiter_cb(struct nvgpu_clk_arb *arb)
 				/* Query the latest committed request */
 				nvgpu_list_for_each_entry_safe(dev, tmp,
 				 &session->targets, nvgpu_clk_dev, node) {
-					if (!mclk_set && dev->mclk_target_mhz) {
+					if (!mclk_set &&
+					    (dev->mclk_target_mhz != 0U)) {
 						target->mclk =
 							dev->mclk_target_mhz;
 						mclk_set = true;
 					}
 					if (!gpc2clk_set &&
-						dev->gpc2clk_target_mhz) {
+					    (dev->gpc2clk_target_mhz != 0U)) {
 						target->gpc2clk =
 							dev->gpc2clk_target_mhz;
 						gpc2clk_set = true;

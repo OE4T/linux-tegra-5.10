@@ -77,7 +77,7 @@ static void upload_data(struct gk20a *g, u32 dst, u8 *src, u32 size, u8 port)
 int gp106_bios_devinit(struct gk20a *g)
 {
 	int err = 0;
-	int devinit_completed;
+	bool devinit_completed;
 	struct nvgpu_timeout timeout;
 
 	nvgpu_log_fn(g, " ");
@@ -115,12 +115,12 @@ int gp106_bios_devinit(struct gk20a *g)
 				PMU_BOOT_TIMEOUT_DEFAULT,
 			   NVGPU_TIMER_RETRY_TIMER);
 	do {
-		devinit_completed = pwr_falcon_cpuctl_halt_intr_v(
-				gk20a_readl(g, pwr_falcon_cpuctl_r())) &&
-				    top_scratch1_devinit_completed_v(
-				gk20a_readl(g, top_scratch1_r()));
+		devinit_completed = (pwr_falcon_cpuctl_halt_intr_v(
+				gk20a_readl(g, pwr_falcon_cpuctl_r())) != 0U) &&
+				    (top_scratch1_devinit_completed_v(
+				gk20a_readl(g, top_scratch1_r())) != 0U);
 		nvgpu_udelay(PMU_BOOT_TIMEOUT_DEFAULT);
-	} while (!devinit_completed && !nvgpu_timeout_expired(&timeout));
+	} while (!devinit_completed && (nvgpu_timeout_expired(&timeout) == 0));
 
 	if (nvgpu_timeout_peek_expired(&timeout)) {
 		err = -ETIMEDOUT;
@@ -199,7 +199,7 @@ int gp106_bios_init(struct gk20a *g)
 	nvgpu_log_info(g, "reading bios from EEPROM");
 	g->bios.size = BIOS_SIZE;
 	g->bios.data = nvgpu_vmalloc(g, BIOS_SIZE);
-	if (!g->bios.data) {
+	if (g->bios.data == NULL) {
 		return -ENOMEM;
 	}
 
@@ -243,7 +243,7 @@ int gp106_bios_init(struct gk20a *g)
 	}
 
 	if (nvgpu_is_enabled(g, NVGPU_PMU_RUN_PREOS) &&
-	    g->ops.bios.preos) {
+	    (g->ops.bios.preos != NULL)) {
 		err = g->ops.bios.preos(g);
 		if (err) {
 			nvgpu_err(g, "pre-os failed");

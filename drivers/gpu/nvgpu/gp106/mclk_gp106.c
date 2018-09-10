@@ -3086,7 +3086,7 @@ static int mclk_get_memclk_table(struct gk20a *g)
 			(u32)(memclock_table_header.script_list_ptr +
 				script_index * sizeof(u32)));
 
-		if (!script_ptr) {
+		if (script_ptr == 0U) {
 			continue;
 		}
 
@@ -3141,7 +3141,7 @@ static int mclk_get_memclk_table(struct gk20a *g)
 			(u32)(memclock_table_header.cmd_script_list_ptr +
 				cmd_script_index * sizeof(u32)));
 
-		if (!cmd_script_ptr) {
+		if (cmd_script_ptr == 0U) {
 			continue;
 		}
 
@@ -3531,7 +3531,7 @@ static int mclk_debugfs_init(struct gk20a *g)
 			gpu_root,
 			g,
 			&mclk_debug_speed_set_fops);
-	if (!d)
+	if (d == NULL)
 		return -ENOMEM;
 
 	d = debugfs_create_file(
@@ -3540,7 +3540,7 @@ static int mclk_debugfs_init(struct gk20a *g)
 			gpu_root,
 			g,
 			&mclk_switch_stats_fops);
-	if (!d)
+	if (d == NULL)
 		return -ENOMEM;
 
 	return 0;

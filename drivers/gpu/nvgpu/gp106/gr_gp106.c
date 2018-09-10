@@ -129,7 +129,7 @@ void gr_gp106_cb_size_default(struct gk20a *g)
 {
 	struct gr_gk20a *gr = &g->gr;
 
-	if (!gr->attrib_cb_default_size) {
+	if (gr->attrib_cb_default_size == 0U) {
 		gr->attrib_cb_default_size = 0x800;
 	}
 	gr->alpha_cb_default_size =
