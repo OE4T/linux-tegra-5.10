@@ -48,6 +48,7 @@
 #include "common/fuse/fuse_gp10b.h"
 #include "common/mc/mc_gm20b.h"
 #include "common/mc/mc_gp10b.h"
+#include "common/perf/perf_gm20b.h"
 
 #include "gk20a/fifo_gk20a.h"
 #include "gk20a/fecs_trace_gk20a.h"
@@ -675,6 +676,15 @@ static const struct gpu_ops gp10b_ops = {
 		.perfbuffer_enable = gk20a_perfbuf_enable_locked,
 		.perfbuffer_disable = gk20a_perfbuf_disable_locked,
 	},
+	.perf = {
+		.enable_membuf = gm20b_perf_enable_membuf,
+		.disable_membuf = gm20b_perf_disable_membuf,
+		.membuf_reset_streaming = gm20b_perf_membuf_reset_streaming,
+		.get_membuf_pending_bytes = gm20b_perf_get_membuf_pending_bytes,
+		.set_membuf_handled_bytes = gm20b_perf_set_membuf_handled_bytes,
+		.get_membuf_overflow_status =
+			gm20b_perf_get_membuf_overflow_status,
+	},
 	.bus = {
 		.init_hw = gk20a_bus_init_hw,
 		.isr = gk20a_bus_isr,
@@ -757,6 +767,7 @@ int gp10b_init_hal(struct gk20a *g)
 	gops->debug = gp10b_ops.debug;
 	gops->debugger = gp10b_ops.debugger;
 	gops->dbg_session_ops = gp10b_ops.dbg_session_ops;
+	gops->perf = gp10b_ops.perf;
 	gops->bus = gp10b_ops.bus;
 	gops->ptimer = gp10b_ops.ptimer;
 #if defined(CONFIG_GK20A_CYCLE_STATS)

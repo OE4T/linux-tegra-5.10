@@ -75,6 +75,8 @@ srcs :=	os/posix/nvgpu.c \
 	common/therm/therm_gp10b.c \
 	common/therm/therm_gv11b.c \
 	common/therm/therm_gp106.c \
+	common/perf/perf_gm20b.c \
+	common/perf/perf_gv11b.c \
 	common/fuse/fuse_gm20b.c \
 	common/fuse/fuse_gp10b.c \
 	common/fuse/fuse_gp106.c \

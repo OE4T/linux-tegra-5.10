@@ -1199,6 +1199,16 @@ struct gpu_ops {
 		int (*perfbuffer_enable)(struct gk20a *g, u64 offset, u32 size);
 		int (*perfbuffer_disable)(struct gk20a *g);
 	} dbg_session_ops;
+	struct {
+		void (*enable_membuf)(struct gk20a *g, u32 size,
+			u64 buf_addr, struct nvgpu_mem *inst_block);
+		void (*disable_membuf)(struct gk20a *g);
+		void (*membuf_reset_streaming)(struct gk20a *g);
+		u32 (*get_membuf_pending_bytes)(struct gk20a *g);
+		void (*set_membuf_handled_bytes)(struct gk20a *g,
+			u32 entries, u32 entry_size);
+		bool (*get_membuf_overflow_status)(struct gk20a *g);
+	} perf;
 
 	u32 (*get_litter_value)(struct gk20a *g, int value);
 	int (*chip_init_gpu_characteristics)(struct gk20a *g);

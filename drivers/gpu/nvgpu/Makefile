@@ -36,6 +36,8 @@ nvgpu-y += common/bus/bus_gk20a.o \
 	common/fb/fb_gp106.o \
 	common/fb/fb_gv11b.o \
 	common/fb/fb_gv100.o \
+	common/perf/perf_gm20b.o \
+	common/perf/perf_gv11b.o \
 	common/xve/xve_gp106.o \
 	common/therm/therm.o \
 	common/therm/therm_gm20b.o \

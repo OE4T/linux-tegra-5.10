@@ -44,6 +44,7 @@
 #include "common/mc/mc_gm20b.h"
 #include "common/mc/mc_gp10b.h"
 #include "common/mc/mc_gv11b.h"
+#include "common/perf/perf_gv11b.h"
 
 #include "gk20a/fifo_gk20a.h"
 #include "gk20a/fecs_trace_gk20a.h"
@@ -780,6 +781,15 @@ static const struct gpu_ops gv11b_ops = {
 		.perfbuffer_enable = gv11b_perfbuf_enable_locked,
 		.perfbuffer_disable = gv11b_perfbuf_disable_locked,
 	},
+	.perf = {
+		.enable_membuf = gv11b_perf_enable_membuf,
+		.disable_membuf = gv11b_perf_disable_membuf,
+		.membuf_reset_streaming = gv11b_perf_membuf_reset_streaming,
+		.get_membuf_pending_bytes = gv11b_perf_get_membuf_pending_bytes,
+		.set_membuf_handled_bytes = gv11b_perf_set_membuf_handled_bytes,
+		.get_membuf_overflow_status =
+			gv11b_perf_get_membuf_overflow_status,
+	},
 	.bus = {
 		.init_hw = gk20a_bus_init_hw,
 		.isr = gk20a_bus_isr,
@@ -860,6 +870,7 @@ int gv11b_init_hal(struct gk20a *g)
 	gops->debug = gv11b_ops.debug;
 	gops->debugger = gv11b_ops.debugger;
 	gops->dbg_session_ops = gv11b_ops.dbg_session_ops;
+	gops->perf = gv11b_ops.perf;
 	gops->bus = gv11b_ops.bus;
 	gops->ptimer = gv11b_ops.ptimer;
 #if defined(CONFIG_GK20A_CYCLE_STATS)
