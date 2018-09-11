@@ -56,6 +56,7 @@
 #include "module_usermode.h"
 #include "intr.h"
 #include "ioctl.h"
+#include "ioctl_ctrl.h"
 
 #include "os_linux.h"
 #include "os_ops.h"
@@ -75,7 +76,6 @@
 
 #define CREATE_TRACE_POINTS
 #include <trace/events/gk20a.h>
-
 
 struct device_node *nvgpu_get_node(struct gk20a *g)
 {
@@ -260,6 +260,8 @@ int gk20a_pm_finalize_poweron(struct device *dev)
 	if (err)
 		goto done;
 
+	nvgpu_restore_usermode_for_poweron(g);
+
 	/* Enable interrupt workqueue */
 	if (!l->nonstall_work_queue) {
 		l->nonstall_work_queue = alloc_workqueue("%s",
@@ -392,6 +394,7 @@ static int gk20a_pm_prepare_poweroff(struct device *dev)
 	/* Stop CPU from accessing the GPU registers. */
 	gk20a_lockout_registers(g);
 
+	nvgpu_hide_usermode_for_poweroff(g);
 	nvgpu_mutex_release(&g->power_lock);
 	return 0;
 
