@@ -1,5 +1,5 @@
 /*
- * GK20A Cycle stats snapshots support (subsystem for gr_gk20a).
+ * Cycle stats snapshots support
  *
  * Copyright (c) 2015-2018, NVIDIA CORPORATION.  All rights reserved.
  *
@@ -35,11 +35,8 @@
 #include <nvgpu/utils.h>
 #include <nvgpu/channel.h>
 #include <nvgpu/unit.h>
-
-#include "gk20a.h"
-#include "css_gr_gk20a.h"
-
-#include <nvgpu/hw/gk20a/hw_perf_gk20a.h>
+#include <nvgpu/gk20a.h>
+#include <nvgpu/cyclestats_snapshot.h>
 
 /* check client for pointed perfmon ownership */
 #define CONTAINS_PERFMON(cl, pm)				\
@@ -61,48 +58,25 @@
 #define CSS_MAX_PERFMON_IDS	256
 
 /* reports whether the hw queue overflowed */
-bool css_hw_get_overflow_status(struct gk20a *g)
+bool nvgpu_css_get_overflow_status(struct gk20a *g)
 {
-	const u32 st = perf_pmasys_control_membuf_status_overflowed_f();
-	return st == (gk20a_readl(g, perf_pmasys_control_r()) & st);
+	return g->ops.perf.get_membuf_overflow_status(g);
 }
 
 /* returns how many pending snapshot entries are pending */
-u32 css_hw_get_pending_snapshots(struct gk20a *g)
+u32 nvgpu_css_get_pending_snapshots(struct gk20a *g)
 {
-	return gk20a_readl(g, perf_pmasys_mem_bytes_r()) /
+	return g->ops.perf.get_membuf_pending_bytes(g) /
 			sizeof(struct gk20a_cs_snapshot_fifo_entry);
 }
 
 /* informs hw how many snapshots have been processed (frees up fifo space) */
-void css_hw_set_handled_snapshots(struct gk20a *g, u32 done)
+void nvgpu_css_set_handled_snapshots(struct gk20a *g, u32 done)
 {
 	if (done > 0) {
-		gk20a_writel(g, perf_pmasys_mem_bump_r(),
-		     done * sizeof(struct gk20a_cs_snapshot_fifo_entry));
+		g->ops.perf.set_membuf_handled_bytes(g, done,
+			sizeof(struct gk20a_cs_snapshot_fifo_entry));
 	}
-}
-
-/* disable streaming to memory */
-static void css_hw_reset_streaming(struct gk20a *g)
-{
-	u32 engine_status;
-
-	/* reset the perfmon */
-	g->ops.mc.reset(g, g->ops.mc.reset_mask(g, NVGPU_UNIT_PERFMON));
-
-	/* RBUFEMPTY must be set -- otherwise we'll pick up */
-	/* snapshot that have been queued up from earlier   */
-	engine_status = gk20a_readl(g, perf_pmasys_enginestatus_r());
-	WARN_ON(0 == (engine_status
-			& perf_pmasys_enginestatus_rbufempty_empty_f()));
-
-	/* turn off writes */
-	gk20a_writel(g, perf_pmasys_control_r(),
-			perf_pmasys_control_membuf_clear_status_doit_f());
-
-	/* pointing all pending snapshots as handled */
-	css_hw_set_handled_snapshots(g, css_hw_get_pending_snapshots(g));
 }
 
 /*
@@ -127,19 +101,14 @@ static int css_gr_create_shared_data(struct gr_gk20a *gr)
 	return 0;
 }
 
-int css_hw_enable_snapshot(struct channel_gk20a *ch,
+int nvgpu_css_enable_snapshot(struct channel_gk20a *ch,
 				struct gk20a_cs_snapshot_client *cs_client)
 {
 	struct gk20a *g = ch->g;
-	struct mm_gk20a *mm = &g->mm;
 	struct gr_gk20a *gr = &g->gr;
 	struct gk20a_cs_snapshot *data = gr->cs_data;
 	u32 snapshot_size = cs_client->snapshot_size;
 	int ret;
-
-	u32 virt_addr_lo;
-	u32 virt_addr_hi;
-	u32 inst_pa_page;
 
 	if (data->hw_snapshot)
 		return 0;
@@ -168,30 +137,9 @@ int css_hw_enable_snapshot(struct channel_gk20a *ch,
 	data->hw_get = data->hw_snapshot;
 	memset(data->hw_snapshot, 0xff, snapshot_size);
 
-	/* address and size are aligned to 32 bytes, the lowest bits read back
-	 * as zeros */
-	virt_addr_lo = u64_lo32(data->hw_memdesc.gpu_va);
-	virt_addr_hi = u64_hi32(data->hw_memdesc.gpu_va);
-
-	css_hw_reset_streaming(g);
-
-	gk20a_writel(g, perf_pmasys_outbase_r(), virt_addr_lo);
-	gk20a_writel(g, perf_pmasys_outbaseupper_r(),
-			perf_pmasys_outbaseupper_ptr_f(virt_addr_hi));
-	gk20a_writel(g, perf_pmasys_outsize_r(), snapshot_size);
-
-	/* this field is aligned to 4K */
-	inst_pa_page = nvgpu_inst_block_addr(g, &g->mm.hwpm.inst_block) >> 12;
-
-	/* A write to MEM_BLOCK triggers the block bind operation. MEM_BLOCK
-	 * should be written last */
-	gk20a_writel(g, perf_pmasys_mem_block_r(),
-			perf_pmasys_mem_block_base_f(inst_pa_page) |
-		        nvgpu_aperture_mask(g, &mm->hwpm.inst_block,
-				perf_pmasys_mem_block_target_sys_ncoh_f(),
-				perf_pmasys_mem_block_target_sys_coh_f(),
-				perf_pmasys_mem_block_target_lfb_f()) |
-			perf_pmasys_mem_block_valid_true_f());
+	g->ops.perf.membuf_reset_streaming(g);
+	g->ops.perf.enable_membuf(g, snapshot_size, data->hw_memdesc.gpu_va,
+				  &g->mm.hwpm.inst_block);
 
 	nvgpu_log_info(g, "cyclestats: buffer for hardware snapshots enabled\n");
 
@@ -207,7 +155,7 @@ failed_allocation:
 	return ret;
 }
 
-void css_hw_disable_snapshot(struct gr_gk20a *gr)
+void nvgpu_css_disable_snapshot(struct gr_gk20a *gr)
 {
 	struct gk20a *g = gr->g;
 	struct gk20a_cs_snapshot *data = gr->cs_data;
@@ -215,17 +163,8 @@ void css_hw_disable_snapshot(struct gr_gk20a *gr)
 	if (!data->hw_snapshot)
 		return;
 
-	css_hw_reset_streaming(g);
-
-	gk20a_writel(g, perf_pmasys_outbase_r(), 0);
-	gk20a_writel(g, perf_pmasys_outbaseupper_r(),
-			perf_pmasys_outbaseupper_ptr_f(0));
-	gk20a_writel(g, perf_pmasys_outsize_r(), 0);
-
-	gk20a_writel(g, perf_pmasys_mem_block_r(),
-			perf_pmasys_mem_block_base_f(0) |
-			perf_pmasys_mem_block_valid_false_f() |
-			perf_pmasys_mem_block_target_f(0));
+	g->ops.perf.membuf_reset_streaming(g);
+	g->ops.perf.disable_membuf(g);
 
 	nvgpu_dma_unmap_free(g->mm.pmu.vm, &data->hw_memdesc);
 	memset(&data->hw_memdesc, 0, sizeof(data->hw_memdesc));
@@ -249,8 +188,8 @@ static void css_gr_free_shared_data(struct gr_gk20a *gr)
 }
 
 
-struct gk20a_cs_snapshot_client*
-css_gr_search_client(struct nvgpu_list_node *clients, u32 perfmon)
+struct gk20a_cs_snapshot_client *
+nvgpu_css_gr_search_client(struct nvgpu_list_node *clients, u32 perfmon)
 {
 	struct gk20a_cs_snapshot_client *client;
 
@@ -331,7 +270,7 @@ static int css_gr_flush_snapshots(struct channel_gk20a *ch)
 		/* the client selection rate depends from experiment  */
 		/* activity but on Android usually happened 1-2 times */
 		if (!cur) {
-			cur = css_gr_search_client(&css->clients,
+			cur = nvgpu_css_gr_search_client(&css->clients,
 							src->perfmon_id);
 			if (cur) {
 				/* found - setup all required data */
@@ -403,7 +342,7 @@ next_hw_fifo_entry:
 	return 0;
 }
 
-u32 css_gr_allocate_perfmon_ids(struct gk20a_cs_snapshot *data,
+u32 nvgpu_css_allocate_perfmon_ids(struct gk20a_cs_snapshot *data,
 				       u32 count)
 {
 	unsigned long *pids = data->perfmon_ids;
@@ -419,7 +358,7 @@ u32 css_gr_allocate_perfmon_ids(struct gk20a_cs_snapshot *data,
 	return f;
 }
 
-u32 css_gr_release_perfmon_ids(struct gk20a_cs_snapshot *data,
+u32 nvgpu_css_release_perfmon_ids(struct gk20a_cs_snapshot *data,
 				      u32 start,
 				      u32 count)
 {
@@ -617,7 +556,7 @@ void gr_gk20a_free_cyclestats_snapshot_data(struct gk20a *g)
 	nvgpu_mutex_destroy(&gr->cs_lock);
 }
 
-int css_hw_check_data_available(struct channel_gk20a *ch, u32 *pending,
+int nvgpu_css_check_data_available(struct channel_gk20a *ch, u32 *pending,
 					bool *hw_overflow)
 {
 	struct gk20a *g = ch->g;
@@ -627,10 +566,10 @@ int css_hw_check_data_available(struct channel_gk20a *ch, u32 *pending,
 	if (!css->hw_snapshot)
 		return -EINVAL;
 
-	*pending = css_hw_get_pending_snapshots(g);
+	*pending = nvgpu_css_get_pending_snapshots(g);
 	if (!*pending)
 		return 0;
 
-	*hw_overflow = css_hw_get_overflow_status(g);
+	*hw_overflow = nvgpu_css_get_overflow_status(g);
 	return 0;
 }

@@ -15,7 +15,7 @@
 
 #include <linux/fs.h>
 
-#include "gk20a/css_gr_gk20a.h"
+#include <nvgpu/cyclestats_snapshot.h>
 
 struct inode;
 struct file;

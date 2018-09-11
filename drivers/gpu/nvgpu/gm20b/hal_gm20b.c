@@ -30,6 +30,7 @@
 #include <nvgpu/channel.h>
 #include <nvgpu/tsg.h>
 #include <nvgpu/perfbuf.h>
+#include <nvgpu/cyclestats_snapshot.h>
 
 #include "common/clock_gating/gm20b_gating_reglist.h"
 #include "common/bus/bus_gm20b.h"
@@ -48,7 +49,6 @@
 #include "gk20a/dbg_gpu_gk20a.h"
 #include "gk20a/fifo_gk20a.h"
 #include "gk20a/mm_gk20a.h"
-#include "gk20a/css_gr_gk20a.h"
 #include "gk20a/flcn_gk20a.h"
 #include "gk20a/regops_gk20a.h"
 #include "gk20a/pmu_gk20a.h"
@@ -640,14 +640,14 @@ static const struct gpu_ops gm20b_ops = {
 	},
 #if defined(CONFIG_GK20A_CYCLE_STATS)
 	.css = {
-		.enable_snapshot = css_hw_enable_snapshot,
-		.disable_snapshot = css_hw_disable_snapshot,
-		.check_data_available = css_hw_check_data_available,
-		.set_handled_snapshots = css_hw_set_handled_snapshots,
-		.allocate_perfmon_ids = css_gr_allocate_perfmon_ids,
-		.release_perfmon_ids = css_gr_release_perfmon_ids,
-		.get_overflow_status = css_hw_get_overflow_status,
-		.get_pending_snapshots = css_hw_get_pending_snapshots,
+		.enable_snapshot = nvgpu_css_enable_snapshot,
+		.disable_snapshot = nvgpu_css_disable_snapshot,
+		.check_data_available = nvgpu_css_check_data_available,
+		.set_handled_snapshots = nvgpu_css_set_handled_snapshots,
+		.allocate_perfmon_ids = nvgpu_css_allocate_perfmon_ids,
+		.release_perfmon_ids = nvgpu_css_release_perfmon_ids,
+		.get_overflow_status = nvgpu_css_get_overflow_status,
+		.get_pending_snapshots = nvgpu_css_get_pending_snapshots,
 	},
 #endif
 	.falcon = {

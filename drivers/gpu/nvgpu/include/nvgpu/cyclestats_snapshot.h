@@ -1,5 +1,5 @@
 /*
- * GK20A Cycle stats snapshots support (subsystem for gr_gk20a).
+ * Cycle stats snapshots support
  *
  * Copyright (c) 2016-2017, NVIDIA CORPORATION.  All rights reserved.
  *
@@ -22,10 +22,12 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef CSS_GR_GK20A_H
-#define CSS_GR_GK20A_H
+#ifndef CYCLESTATS_SNAPSHOT_H
+#define CYCLESTATS_SNAPSHOT_H
 
+#include <nvgpu/types.h>
 #include <nvgpu/nvgpu_mem.h>
+#include <nvgpu/bug.h>
 #include <nvgpu/list.h>
 
 /* the minimal size of HW buffer - should be enough to avoid HW overflows */
@@ -119,7 +121,7 @@ gk20a_cs_snapshot_client_from_list(struct nvgpu_list_node *node)
 #define CSS_MAX_PERFMON_IDS	256
 
 /* local definitions to avoid hardcodes sizes and shifts */
-#define PM_BITMAP_SIZE	DIV_ROUND_UP(CSS_MAX_PERFMON_IDS, BITS_PER_LONG)
+#define PM_BITMAP_SIZE	((CSS_MAX_PERFMON_IDS + BITS_PER_LONG - 1) / BITS_PER_LONG)
 
 /* cycle stats snapshot control structure for one HW entry and many clients */
 struct gk20a_cs_snapshot {
@@ -132,20 +134,20 @@ struct gk20a_cs_snapshot {
 	struct gk20a_cs_snapshot_fifo_entry	*hw_get;
 };
 
-bool css_hw_get_overflow_status(struct gk20a *g);
-u32 css_hw_get_pending_snapshots(struct gk20a *g);
-void css_hw_set_handled_snapshots(struct gk20a *g, u32 done);
-int css_hw_enable_snapshot(struct channel_gk20a *ch,
+bool nvgpu_css_get_overflow_status(struct gk20a *g);
+u32 nvgpu_css_get_pending_snapshots(struct gk20a *g);
+void nvgpu_css_set_handled_snapshots(struct gk20a *g, u32 done);
+int nvgpu_css_enable_snapshot(struct channel_gk20a *ch,
 				struct gk20a_cs_snapshot_client *cs_client);
-void css_hw_disable_snapshot(struct gr_gk20a *gr);
-u32 css_gr_allocate_perfmon_ids(struct gk20a_cs_snapshot *data,
+void nvgpu_css_disable_snapshot(struct gr_gk20a *gr);
+u32 nvgpu_css_allocate_perfmon_ids(struct gk20a_cs_snapshot *data,
 				       u32 count);
-u32 css_gr_release_perfmon_ids(struct gk20a_cs_snapshot *data,
+u32 nvgpu_css_release_perfmon_ids(struct gk20a_cs_snapshot *data,
 				      u32 start,
 				      u32 count);
-int css_hw_check_data_available(struct channel_gk20a *ch, u32 *pending,
+int nvgpu_css_check_data_available(struct channel_gk20a *ch, u32 *pending,
 					bool *hw_overflow);
-struct gk20a_cs_snapshot_client*
-css_gr_search_client(struct nvgpu_list_node *clients, u32 perfmon);
+struct gk20a_cs_snapshot_client *
+nvgpu_css_gr_search_client(struct nvgpu_list_node *clients, u32 perfmon);
 
-#endif /* CSS_GR_GK20A_H */
+#endif /* CYCLESTATS_SNAPSHOT_H */

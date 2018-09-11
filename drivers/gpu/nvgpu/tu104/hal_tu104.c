@@ -58,7 +58,6 @@
 #include "gk20a/gk20a.h"
 #include "gk20a/fifo_gk20a.h"
 #include "gk20a/fecs_trace_gk20a.h"
-#include "gk20a/css_gr_gk20a.h"
 #include "gk20a/dbg_gpu_gk20a.h"
 #include "gk20a/flcn_gk20a.h"
 #include "gk20a/regops_gk20a.h"
@@ -87,7 +86,6 @@
 #include "gp10b/mm_gp10b.h"
 #include "gp10b/pmu_gp10b.h"
 
-#include "gv11b/css_gr_gv11b.h"
 #include "gv11b/hal_gv11b.h"
 #include "gv11b/gr_gv11b.h"
 #include "gv11b/gv11b.h"
@@ -130,6 +128,7 @@
 #include <nvgpu/clk_arb.h>
 #include <nvgpu/channel.h>
 #include <nvgpu/perfbuf.h>
+#include <nvgpu/cyclestats_snapshot.h>
 
 #include <nvgpu/hw/tu104/hw_proj_tu104.h>
 #include <nvgpu/hw/tu104/hw_fifo_tu104.h>
@@ -844,14 +843,14 @@ static const struct gpu_ops tu104_ops = {
 	},
 #if defined(CONFIG_GK20A_CYCLE_STATS)
 	.css = {
-		.enable_snapshot = gv11b_css_hw_enable_snapshot,
-		.disable_snapshot = gv11b_css_hw_disable_snapshot,
-		.check_data_available = gv11b_css_hw_check_data_available,
-		.set_handled_snapshots = gv11b_css_hw_set_handled_snapshots,
-		.allocate_perfmon_ids = css_gr_allocate_perfmon_ids,
-		.release_perfmon_ids = css_gr_release_perfmon_ids,
-		.get_overflow_status = gv11b_css_hw_get_overflow_status,
-		.get_pending_snapshots = gv11b_css_hw_get_pending_snapshots,
+		.enable_snapshot = nvgpu_css_enable_snapshot,
+		.disable_snapshot = nvgpu_css_disable_snapshot,
+		.check_data_available = nvgpu_css_check_data_available,
+		.set_handled_snapshots = nvgpu_css_set_handled_snapshots,
+		.allocate_perfmon_ids = nvgpu_css_allocate_perfmon_ids,
+		.release_perfmon_ids = nvgpu_css_release_perfmon_ids,
+		.get_overflow_status = nvgpu_css_get_overflow_status,
+		.get_pending_snapshots = nvgpu_css_get_pending_snapshots,
 	},
 #endif
 	.xve = {
