@@ -1613,6 +1613,7 @@ struct gk20a {
 				u32 start, u32 length);
 		int (*alloc_usermode_buffers)(struct channel_gk20a *c,
 			struct nvgpu_setup_bind_args *args);
+		void (*free_usermode_buffers)(struct channel_gk20a *c);
 	} os_channel;
 
 	struct gk20a_scale_profile *scale_profile;
