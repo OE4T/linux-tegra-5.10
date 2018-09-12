@@ -326,16 +326,8 @@ static int tegra_channel_notify_enable(
 	struct tegra_channel *chan, unsigned int index)
 {
 	struct tegra_vi4_syncpts_req req;
-	int i, err;
+	int err;
 
-	chan->vnc_id[index] = -1;
-	for (i = 0; i < MAX_VI_CHANNEL; i++) {
-		chan->vnc[index] = vi_notify_channel_open(i);
-		if (!IS_ERR(chan->vnc[index])) {
-			chan->vnc_id[index] = i;
-			break;
-		}
-	}
 	if (chan->vnc_id[index] < 0) {
 		dev_err(chan->vi->dev, "No VI channel available!\n");
 		return -EFAULT;
@@ -417,14 +409,6 @@ static int tegra_channel_notify_disable(
 	if (err < 0) {
 		dev_err(chan->vi->dev,
 			"VI Notify channel reset failed, err = %d\n", err);
-		if (!ret)
-			ret = err;
-	}
-
-	err = vi_notify_channel_close(chan->vnc_id[index], chan->vnc[index]);
-	if (err < 0) {
-		dev_err(chan->vi->dev,
-			"VI Notify channel close failed, err = %d\n", err);
 		if (!ret)
 			ret = err;
 	}
@@ -931,7 +915,7 @@ static int vi4_channel_start_streaming(struct vb2_queue *vq, u32 count)
 #if LINUX_VERSION_CODE < KERNEL_VERSION(4, 9, 0)
 	struct media_pipeline *pipe = chan->video.entity.pipe;
 #endif
-	int ret = 0, i;
+	int ret = 0, i, chan_idx;
 	unsigned long flags;
 	struct v4l2_subdev *sd;
 	struct device_node *node;
@@ -1013,8 +997,16 @@ static int vi4_channel_start_streaming(struct vb2_queue *vq, u32 count)
 		}
 	}
 
-	for (i = 0; i < chan->valid_ports; i++) {
-		ret = tegra_channel_capture_setup(chan, i);
+	for (chan_idx = 0; chan_idx < chan->valid_ports; chan_idx++) {
+		chan->vnc_id[chan_idx] = -1;
+		for (i = 0; i < MAX_VI_CHANNEL; i++) {
+			chan->vnc[chan_idx] = vi_notify_channel_open(i);
+			if (!IS_ERR(chan->vnc[chan_idx])) {
+				chan->vnc_id[chan_idx] = i;
+				break;
+			}
+		}
+		ret = tegra_channel_capture_setup(chan, chan_idx);
 		if (ret < 0)
 			goto error_capture_setup;
 	}
@@ -1092,6 +1084,7 @@ static int vi4_channel_stop_streaming(struct vb2_queue *vq)
 			vi4_channel_write(chan, chan->vnc_id[i],
 				CHANNEL_COMMAND, LOAD);
 			tegra_channel_notify_disable(chan, i);
+			vi_notify_channel_close(chan->vnc_id[i], chan->vnc[i]);
 		}
 		if (!chan->low_latency) {
 			/* free all the ring buffers */
