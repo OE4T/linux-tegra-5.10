@@ -506,7 +506,8 @@ struct nvgpu_warpstate {
 
 struct gpu_ops;
 int gr_gk20a_load_golden_ctx_image(struct gk20a *g,
-					struct channel_gk20a *c);
+		struct channel_gk20a *c,
+		struct nvgpu_gr_ctx *gr_ctx);
 void gk20a_init_gr(struct gk20a *g);
 int gk20a_init_gr_support(struct gk20a *g);
 int gk20a_enable_gr_hw(struct gk20a *g);

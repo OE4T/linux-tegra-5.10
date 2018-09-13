@@ -1782,11 +1782,10 @@ void gk20a_gr_init_ctxsw_hdr_data(struct gk20a *g,
 
 /* load saved fresh copy of gloden image into channel gr_ctx */
 int gr_gk20a_load_golden_ctx_image(struct gk20a *g,
-					struct channel_gk20a *c)
+					struct channel_gk20a *c,
+					struct nvgpu_gr_ctx *gr_ctx)
 {
 	struct gr_gk20a *gr = &g->gr;
-	struct tsg_gk20a *tsg;
-	struct nvgpu_gr_ctx *gr_ctx;
 	u32 virt_addr_lo;
 	u32 virt_addr_hi;
 	u64 virt_addr = 0;
@@ -1796,12 +1795,6 @@ int gr_gk20a_load_golden_ctx_image(struct gk20a *g,
 
 	nvgpu_log_fn(g, " ");
 
-	tsg = tsg_gk20a_from_ch(c);
-	if (tsg == NULL) {
-		return -EINVAL;
-	}
-
-	gr_ctx = tsg->gr_ctx;
 	mem = &gr_ctx->mem;
 	if (gr->ctx_vars.local_golden_image == NULL) {
 		return -EINVAL;
@@ -2996,7 +2989,7 @@ int gk20a_alloc_obj_ctx(struct channel_gk20a  *c, u32 class_num, u32 flags)
 		}
 
 		/* load golden image */
-		gr_gk20a_load_golden_ctx_image(g, c);
+		gr_gk20a_load_golden_ctx_image(g, c, gr_ctx);
 		if (err != 0) {
 			nvgpu_err(g,
 				"fail to load golden ctx image");
