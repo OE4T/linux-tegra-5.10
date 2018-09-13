@@ -734,22 +734,15 @@ void gr_gk20a_write_pm_ptr(struct gk20a *g,
 		ctxsw_prog_main_image_pm_ptr_o(), va);
 }
 
-static int gr_gk20a_ctx_zcull_setup(struct gk20a *g, struct channel_gk20a *c)
+static int gr_gk20a_ctx_zcull_setup(struct gk20a *g, struct channel_gk20a *c,
+		struct nvgpu_gr_ctx *gr_ctx)
 {
-	struct tsg_gk20a *tsg;
-	struct nvgpu_gr_ctx *gr_ctx = NULL;
 	struct nvgpu_mem *mem = NULL;
 	struct nvgpu_mem *ctxheader = &c->ctx_header;
 	int ret = 0;
 
 	nvgpu_log_fn(g, " ");
 
-	tsg = tsg_gk20a_from_ch(c);
-	if (tsg == NULL) {
-		return -EINVAL;
-	}
-
-	gr_ctx = tsg->gr_ctx;
 	mem = &gr_ctx->mem;
 
 	if (gr_ctx->zcull_ctx.gpu_va == 0ULL &&
@@ -3612,18 +3605,21 @@ int gr_gk20a_bind_ctxsw_zcull(struct gk20a *g, struct gr_gk20a *gr,
 {
 	struct tsg_gk20a *tsg;
 	struct zcull_ctx_desc *zcull_ctx;
+	struct nvgpu_gr_ctx *gr_ctx;
 
 	tsg = tsg_gk20a_from_ch(c);
 	if (tsg == NULL) {
 		return -EINVAL;
 	}
 
-	zcull_ctx = &tsg->gr_ctx->zcull_ctx;
+	gr_ctx = tsg->gr_ctx;
+
+	zcull_ctx = &gr_ctx->zcull_ctx;
 	zcull_ctx->ctx_sw_mode = mode;
 	zcull_ctx->gpu_va = zcull_va;
 
 	/* TBD: don't disable channel in sw method processing */
-	return gr_gk20a_ctx_zcull_setup(g, c);
+	return gr_gk20a_ctx_zcull_setup(g, c, gr_ctx);
 }
 
 int gr_gk20a_get_zcull_info(struct gk20a *g, struct gr_gk20a *gr,
