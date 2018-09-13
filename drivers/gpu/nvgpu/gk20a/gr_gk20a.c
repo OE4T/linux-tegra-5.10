@@ -91,31 +91,17 @@ static int gr_gk20a_init_golden_ctx_image(struct gk20a *g,
 /*elcg init */
 static void gr_gk20a_enable_elcg(struct gk20a *g);
 
-int gr_gk20a_get_ctx_id(struct gk20a *g,
-		struct channel_gk20a *c,
-		u32 *ctx_id)
+u32 gr_gk20a_get_ctx_id(struct gk20a *g, struct nvgpu_mem *ctx_mem)
 {
-	struct tsg_gk20a *tsg;
-	struct nvgpu_gr_ctx *gr_ctx = NULL;
-	struct nvgpu_mem *mem = NULL;
-
-	tsg = tsg_gk20a_from_ch(c);
-	if (tsg == NULL) {
-		return -EINVAL;
-	}
-
-	gr_ctx = tsg->gr_ctx;
-	mem = &gr_ctx->mem;
+	u32 ctx_id;
 
 	/* Channel gr_ctx buffer is gpu cacheable.
 	   Flush and invalidate before cpu update. */
 	g->ops.mm.l2_flush(g, true);
 
-	*ctx_id = nvgpu_mem_rd(g, mem,
-			ctxsw_prog_main_image_context_id_o());
-	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_intr, "ctx_id: 0x%x", *ctx_id);
-
-	return 0;
+	ctx_id = nvgpu_mem_rd(g, ctx_mem, ctxsw_prog_main_image_context_id_o());
+	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_intr, "ctx_id: 0x%x", ctx_id);
+	return ctx_id;
 }
 
 void gk20a_fecs_dump_falcon_stats(struct gk20a *g)

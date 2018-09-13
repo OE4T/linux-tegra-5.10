@@ -699,9 +699,7 @@ int gr_gk20a_ctx_wait_ucode(struct gk20a *g, u32 mailbox_id,
 			    u32 mailbox_ok, u32 opc_fail,
 			    u32 mailbox_fail, bool sleepduringwait);
 
-int gr_gk20a_get_ctx_id(struct gk20a *g,
-		struct channel_gk20a *c,
-		u32 *ctx_id);
+u32 gr_gk20a_get_ctx_id(struct gk20a *g, struct nvgpu_mem *ctx_mem);
 
 u32 gk20a_gr_get_sm_hww_warp_esr(struct gk20a *g, u32 gpc, u32 tpc, u32 sm);
 u32 gk20a_gr_get_sm_hww_global_esr(struct gk20a *g, u32 gpc, u32 tpc, u32 sm);

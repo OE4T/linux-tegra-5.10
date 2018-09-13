@@ -1750,11 +1750,7 @@ int gr_gp10b_set_cilp_preempt_pending(struct gk20a *g,
 	if (!gr_ctx->ctx_id_valid) {
 		nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gpu_dbg | gpu_dbg_intr,
 				"CILP: looking up ctx id");
-		ret = gr_gk20a_get_ctx_id(g, fault_ch, &gr_ctx->ctx_id);
-		if (ret != 0) {
-			nvgpu_err(g, "CILP: error looking up ctx id!");
-			return ret;
-		}
+		gr_ctx->ctx_id = gr_gk20a_get_ctx_id(g, &gr_ctx->mem);
 		gr_ctx->ctx_id_valid = true;
 	}
 
