@@ -168,6 +168,24 @@ union tegra_virtual_se_aes_args {
 		struct tegra_virtual_se_addr
 			dst_addr[TEGRA_HV_VSE_AES_MAX_LL_NUM];
 	} op;
+	struct aes_encdec_w_key {
+		u8 streamid;
+		u8 keyslot;
+		u8 key_length;
+		u8 mode;
+		u8 ivsel;
+		u8 lctr[16];
+		u8 ctr_cntn;
+		u32 data_length;
+		u8 key_flag;
+		u8 keydata[32];
+		u8 src_ll_num;
+		struct tegra_virtual_se_addr
+			src_addr[TEGRA_HV_VSE_AES_MAX_LL_NUM];
+		u8 dst_ll_num;
+		struct tegra_virtual_se_addr
+			dst_addr[TEGRA_HV_VSE_AES_MAX_LL_NUM];
+	} op_w_key;
 	struct aes_cmac {
 		u8 streamid;
 		u8 keyslot;
@@ -301,6 +319,10 @@ struct tegra_virtual_se_aes_context {
 	u32 op_mode;
 	/* Is key slot */
 	bool is_key_slot_allocated;
+	/* Whether key is in memory */
+	bool key_in_mem;
+	/* To store key if is_key_in_mem set */
+	u8 key[32];
 };
 
 enum tegra_virtual_se_aes_op_mode {
@@ -367,19 +389,22 @@ enum tegra_virual_se_aes_iv_type {
 	AES_IV_REG,
 };
 
-#define VIRTUAL_SE_AES_BLOCK_SIZE 16
-#define VIRTUAL_SE_AES_MIN_KEY_SIZE 16
-#define VIRTUAL_SE_AES_MAX_KEY_SIZE 32
-#define VIRTUAL_SE_AES_IV_SIZE 16
-#define VIRTUAL_SE_CMD_AES_ALLOC_KEY 1
-#define VIRTUAL_SE_CMD_AES_RELEASE_KEY 2
-#define VIRTUAL_SE_CMD_AES_SET_KEY 3
-#define VIRTUAL_SE_CMD_AES_ENCRYPT 4
-#define VIRTUAL_SE_CMD_AES_DECRYPT 5
-#define VIRTUAL_SE_CMD_AES_CMAC 6
-#define VIRTUAL_SE_CMD_AES_RNG_DBRG 7
-#define VIRTUAL_SE_CMD_ELP_RNG1_RAND 1
-#define VIRTUAL_SE_CMD_ELP_RNG1_TRNG 2
+#define VIRTUAL_SE_AES_BLOCK_SIZE 			16
+#define VIRTUAL_SE_AES_MIN_KEY_SIZE 		16
+#define VIRTUAL_SE_AES_MAX_KEY_SIZE 		32
+#define VIRTUAL_SE_AES_IV_SIZE 				16
+#define VIRTUAL_SE_CMD_AES_ALLOC_KEY 		1
+#define VIRTUAL_SE_CMD_AES_RELEASE_KEY 		2
+#define VIRTUAL_SE_CMD_AES_SET_KEY 			3
+#define VIRTUAL_SE_CMD_AES_ENCRYPT 			4
+#define VIRTUAL_SE_CMD_AES_DECRYPT 			5
+#define VIRTUAL_SE_CMD_AES_CMAC 			6
+#define VIRTUAL_SE_CMD_AES_RNG_DBRG 		7
+#define VIRTUAL_SE_CMD_AES_ENCRYPT_WITH_KEY	8
+#define VIRTUAL_SE_CMD_AES_DECRYPT_WITH_KEY	9
+
+#define VIRTUAL_SE_CMD_ELP_RNG1_RAND 	1
+#define VIRTUAL_SE_CMD_ELP_RNG1_TRNG 	2
 
 #define VIRTUAL_SE_SHA_HASH_BLOCK_SIZE_512BIT (512 / 8)
 #define VIRTUAL_SE_SHA_HASH_BLOCK_SIZE_1024BIT (1024 / 8)
@@ -414,6 +439,11 @@ enum tegra_virual_se_aes_iv_type {
 #define AES_KEYTBL_TYPE_KEY 1
 #define AES_KEYTBL_TYPE_OIV 2
 #define AES_KEYTBL_TYPE_UIV 4
+
+#define AES_KEY_IN_MEM_OFFSET 16
+#define AES_STORE_KEY_IN_MEM	0x0001
+#define TEGRA_VIRTUAL_SE_KEY_LEN_MASK	0xFFFF
+#define TEGRA_VIRTUAL_SE_RESERVED_KEY_SLOT	14
 
 #define TEGRA_VIRTUAL_SE_AES_IV_SIZE 16
 #define TEGRA_VIRTUAL_SE_AES_LCTR_SIZE 16
@@ -1308,28 +1338,60 @@ void tegra_hv_vse_prpare_cmd(struct tegra_virtual_se_dev *se_dev,
 	struct tegra_virtual_se_aes_context *aes_ctx,
 	struct ablkcipher_request *req)
 {
+	union tegra_virtual_se_aes_args *aes;
+
+	aes = &ivc_tx->args.aes;
 	ivc_tx->engine = req_ctx->engine_id;
-	if (req_ctx->encrypt == true)
-		ivc_tx->cmd = VIRTUAL_SE_CMD_AES_ENCRYPT;
-	else
-		ivc_tx->cmd = VIRTUAL_SE_CMD_AES_DECRYPT;
-
-	ivc_tx->args.aes.op.keyslot = aes_ctx->aes_keyslot;
-	ivc_tx->args.aes.op.key_length = aes_ctx->keylen;
-	ivc_tx->args.aes.op.streamid = se_dev->stream_id;
-	ivc_tx->args.aes.op.mode = req_ctx->op_mode;
-	ivc_tx->args.aes.op.ivsel = AES_ORIGINAL_IV;
-	if (req->info) {
-		memcpy(ivc_tx->args.aes.op.lctr, req->info,
-				TEGRA_VIRTUAL_SE_AES_LCTR_SIZE);
-
-		if (req_ctx->op_mode == AES_CTR)
-			ivc_tx->args.aes.op.ctr_cntn =
-					TEGRA_VIRTUAL_SE_AES_LCTR_CNTN;
-		else if (req_ctx->op_mode == AES_CBC)
-			ivc_tx->args.aes.op.ivsel = AES_IV_REG;
+	if (!aes_ctx->key_in_mem) {
+		if (req_ctx->encrypt == true)
+			ivc_tx->cmd = VIRTUAL_SE_CMD_AES_ENCRYPT;
 		else
-			ivc_tx->args.aes.op.ivsel = AES_ORIGINAL_IV | 0x80;
+			ivc_tx->cmd = VIRTUAL_SE_CMD_AES_DECRYPT;
+
+		aes->op.keyslot = aes_ctx->aes_keyslot;
+		aes->op.key_length = aes_ctx->keylen;
+		aes->op.streamid = se_dev->stream_id;
+		aes->op.mode = req_ctx->op_mode;
+		aes->op.ivsel = AES_ORIGINAL_IV;
+		if (req->info) {
+			memcpy(aes->op.lctr, req->info,
+					TEGRA_VIRTUAL_SE_AES_LCTR_SIZE);
+			if (req_ctx->op_mode == AES_CTR)
+				aes->op.ctr_cntn =
+						TEGRA_VIRTUAL_SE_AES_LCTR_CNTN;
+			else if (req_ctx->op_mode == AES_CBC)
+				aes->op.ivsel = AES_IV_REG;
+			else
+				aes->op.ivsel = AES_ORIGINAL_IV | 0x80;
+		}
+	} else {
+		if (req_ctx->encrypt == true)
+			ivc_tx->cmd = VIRTUAL_SE_CMD_AES_ENCRYPT_WITH_KEY;
+		else
+			ivc_tx->cmd = VIRTUAL_SE_CMD_AES_DECRYPT_WITH_KEY;
+
+		aes->op_w_key.keyslot = aes_ctx->aes_keyslot;
+		aes->op_w_key.key_length = aes_ctx->keylen;
+		aes->op_w_key.streamid = se_dev->stream_id;
+		aes->op_w_key.mode = req_ctx->op_mode;
+		aes->op_w_key.ivsel = AES_ORIGINAL_IV;
+		if (req->info) {
+			memcpy(aes->op_w_key.lctr, req->info,
+					TEGRA_VIRTUAL_SE_AES_LCTR_SIZE);
+			memcpy(aes->op_w_key.keydata,
+				aes_ctx->key, aes_ctx->keylen);
+
+			if (req_ctx->op_mode == AES_CTR)
+				aes->op_w_key.ctr_cntn =
+						TEGRA_VIRTUAL_SE_AES_LCTR_CNTN;
+			else if (req_ctx->op_mode == AES_CBC)
+				aes->op_w_key.ivsel = AES_IV_REG;
+			else
+				aes->op_w_key.ivsel = AES_ORIGINAL_IV | 0x80;
+			/* No need to clear data in key slot*/
+			aes->op_w_key.key_flag = 0;
+		}
+
 	}
 }
 
@@ -1417,7 +1479,7 @@ static void tegra_hv_vse_process_new_req(struct tegra_virtual_se_dev *se_dev)
 	int cur_map_cnt = 0;
 	struct tegra_vse_priv_data *priv = NULL;
 	struct tegra_vse_tag *priv_data_ptr;
-
+	union tegra_virtual_se_aes_args *aes;
 
 	priv = devm_kzalloc(se_dev->dev, sizeof(*priv), GFP_KERNEL);
 	if (!priv) {
@@ -1443,6 +1505,7 @@ static void tegra_hv_vse_process_new_req(struct tegra_virtual_se_dev *se_dev)
 	for (k = 0; k < se_dev->req_cnt; k++) {
 		req = se_dev->reqs[k];
 		ivc_tx = &ivc_req_msg->d[k].tx;
+		aes = &ivc_tx->args.aes;
 		req_ctx = ablkcipher_request_ctx(req);
 		aes_ctx = crypto_ablkcipher_ctx(crypto_ablkcipher_reqtfm(req));
 		if (unlikely(!aes_ctx->is_key_slot_allocated)) {
@@ -1451,13 +1514,23 @@ static void tegra_hv_vse_process_new_req(struct tegra_virtual_se_dev *se_dev)
 			goto exit;
 		}
 		tegra_hv_vse_prpare_cmd(se_dev, ivc_tx, req_ctx, aes_ctx, req);
-		ivc_tx->args.aes.op.src_ll_num = 1;
-		ivc_tx->args.aes.op.dst_ll_num = 1;
-		ivc_tx->args.aes.op.src_addr[0].lo = cur_addr;
-		ivc_tx->args.aes.op.src_addr[0].hi = req->nbytes;
-		ivc_tx->args.aes.op.dst_addr[0].lo = cur_addr;
-		ivc_tx->args.aes.op.dst_addr[0].hi = req->nbytes;
-		ivc_tx->args.aes.op.data_length = req->nbytes;
+		if (!aes_ctx->key_in_mem) {
+			aes->op.src_ll_num = 1;
+			aes->op.dst_ll_num = 1;
+			aes->op.src_addr[0].lo = cur_addr;
+			aes->op.src_addr[0].hi = req->nbytes;
+			aes->op.dst_addr[0].lo = cur_addr;
+			aes->op.dst_addr[0].hi = req->nbytes;
+			aes->op.data_length = req->nbytes;
+		} else {
+			aes->op_w_key.src_ll_num = 1;
+			aes->op_w_key.dst_ll_num = 1;
+			aes->op_w_key.src_addr[0].lo = cur_addr;
+			aes->op_w_key.src_addr[0].hi = req->nbytes;
+			aes->op_w_key.dst_addr[0].lo = cur_addr;
+			aes->op_w_key.dst_addr[0].hi = req->nbytes;
+			aes->op_w_key.data_length = req->nbytes;
+		}
 		cur_map_cnt++;
 		cur_addr += req->nbytes;
 	}
@@ -2568,6 +2641,17 @@ static int tegra_hv_vse_aes_setkey(struct crypto_ablkcipher *tfm,
 
 	if (!ctx)
 		return -EINVAL;
+
+	if (((keylen >> AES_KEY_IN_MEM_OFFSET) == AES_STORE_KEY_IN_MEM)) {
+		/* Store key in context */
+		ctx->key_in_mem = true;
+		ctx->keylen = (keylen & TEGRA_VIRTUAL_SE_KEY_LEN_MASK);
+		ctx->aes_keyslot = TEGRA_VIRTUAL_SE_RESERVED_KEY_SLOT;
+		memcpy(ctx->key, key, ctx->keylen);
+		ctx->is_key_slot_allocated = true;
+		return 0;
+	}
+	ctx->key_in_mem = false;
 
 	priv = devm_kzalloc(se_dev->dev, sizeof(*priv), GFP_KERNEL);
 	if (!priv)
