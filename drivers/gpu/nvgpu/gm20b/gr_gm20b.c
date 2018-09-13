@@ -915,25 +915,16 @@ int gr_gm20b_alloc_gr_ctx(struct gk20a *g,
 }
 
 void gr_gm20b_update_ctxsw_preemption_mode(struct gk20a *g,
-		struct channel_gk20a *c,
-		struct nvgpu_mem *mem)
+		struct nvgpu_gr_ctx *gr_ctx, struct nvgpu_mem *ctxheader)
 {
-	struct tsg_gk20a *tsg;
-	struct nvgpu_gr_ctx *gr_ctx;
 	u32 cta_preempt_option =
 		ctxsw_prog_main_image_preemption_options_control_cta_enabled_f();
 
 	nvgpu_log_fn(g, " ");
 
-	tsg = tsg_gk20a_from_ch(c);
-	if (tsg == NULL) {
-		return;
-	}
-
-	gr_ctx = tsg->gr_ctx;
 	if (gr_ctx->compute_preempt_mode == NVGPU_PREEMPTION_MODE_COMPUTE_CTA) {
 		nvgpu_log_info(g, "CTA: %x", cta_preempt_option);
-		nvgpu_mem_wr(g, mem,
+		nvgpu_mem_wr(g, &gr_ctx->mem,
 				ctxsw_prog_main_image_preemption_options_o(),
 				cta_preempt_option);
 	}

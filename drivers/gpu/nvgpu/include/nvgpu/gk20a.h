@@ -333,8 +333,8 @@ struct gpu_ops {
 				    struct vm_gk20a *vm, struct nvgpu_gr_ctx *gr_ctx);
 		void (*powergate_tpc)(struct gk20a *g);
 		void (*update_ctxsw_preemption_mode)(struct gk20a *g,
-				struct channel_gk20a *c,
-				struct nvgpu_mem *mem);
+				struct nvgpu_gr_ctx *gr_ctx,
+				struct nvgpu_mem *ctxheader);
 		int (*update_smpc_ctxsw_mode)(struct gk20a *g,
 				struct channel_gk20a *c,
 				bool enable);

@@ -1660,12 +1660,9 @@ fail:
 }
 
 void gr_gv11b_update_ctxsw_preemption_mode(struct gk20a *g,
-		struct channel_gk20a *c,
-		struct nvgpu_mem *mem)
+		struct nvgpu_gr_ctx *gr_ctx, struct nvgpu_mem *ctxheader)
 {
-	struct tsg_gk20a *tsg;
-	struct nvgpu_gr_ctx *gr_ctx;
-	struct nvgpu_mem *ctxheader = &c->ctx_header;
+	struct nvgpu_mem *mem = &gr_ctx->mem;
 	u32 gfxp_preempt_option =
 		ctxsw_prog_main_image_graphics_preemption_options_control_gfxp_f();
 	u32 cilp_preempt_option =
@@ -1675,13 +1672,6 @@ void gr_gv11b_update_ctxsw_preemption_mode(struct gk20a *g,
 	int err;
 
 	nvgpu_log_fn(g, " ");
-
-	tsg = tsg_gk20a_from_ch(c);
-	if (tsg == NULL) {
-		return;
-	}
-
-	gr_ctx = tsg->gr_ctx;
 
 	if (gr_ctx->graphics_preempt_mode ==
 					NVGPU_PREEMPTION_MODE_GRAPHICS_GFXP) {

@@ -1852,7 +1852,7 @@ int gr_gk20a_load_golden_ctx_image(struct gk20a *g,
 	nvgpu_mem_wr(g, mem, ctxsw_prog_main_image_misc_options_o(), v);
 
 	if (g->ops.gr.update_ctxsw_preemption_mode != NULL) {
-		g->ops.gr.update_ctxsw_preemption_mode(g, c, mem);
+		g->ops.gr.update_ctxsw_preemption_mode(g, gr_ctx, &c->ctx_header);
 	}
 
 	if (g->ops.gr.update_boosted_ctx != NULL) {

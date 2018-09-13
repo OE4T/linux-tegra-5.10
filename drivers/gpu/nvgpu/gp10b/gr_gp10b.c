@@ -1178,12 +1178,9 @@ void gr_gp10b_dump_ctxsw_stats(struct gk20a *g, struct vm_gk20a *vm,
 }
 
 void gr_gp10b_update_ctxsw_preemption_mode(struct gk20a *g,
-		struct channel_gk20a *c,
-		struct nvgpu_mem *mem)
+		struct nvgpu_gr_ctx *gr_ctx, struct nvgpu_mem *ctxheader)
 {
-	struct tsg_gk20a *tsg;
-	struct nvgpu_gr_ctx *gr_ctx;
-	struct nvgpu_mem *ctxheader = &c->ctx_header;
+	struct nvgpu_mem *mem = &gr_ctx->mem;
 	u32 gfxp_preempt_option =
 		ctxsw_prog_main_image_graphics_preemption_options_control_gfxp_f();
 	u32 cilp_preempt_option =
@@ -1193,13 +1190,6 @@ void gr_gp10b_update_ctxsw_preemption_mode(struct gk20a *g,
 	int err;
 
 	nvgpu_log_fn(g, " ");
-
-	tsg = tsg_gk20a_from_ch(c);
-	if (tsg == NULL) {
-		return;
-	}
-
-	gr_ctx = tsg->gr_ctx;
 
 	if (gr_ctx->graphics_preempt_mode == NVGPU_PREEMPTION_MODE_GRAPHICS_GFXP) {
 		nvgpu_log_info(g, "GfxP: %x", gfxp_preempt_option);
@@ -2251,7 +2241,6 @@ int gr_gp10b_set_preemption_mode(struct channel_gk20a *ch,
 	struct gk20a *g = ch->g;
 	struct tsg_gk20a *tsg;
 	struct vm_gk20a *vm;
-	struct nvgpu_mem *mem;
 	u32 class;
 	int err = 0;
 
@@ -2267,7 +2256,6 @@ int gr_gp10b_set_preemption_mode(struct channel_gk20a *ch,
 
 	vm = tsg->vm;
 	gr_ctx = tsg->gr_ctx;
-	mem = &gr_ctx->mem;
 
 	/* skip setting anything if both modes are already set */
 	if ((graphics_preempt_mode != 0U) &&
@@ -2312,8 +2300,8 @@ int gr_gp10b_set_preemption_mode(struct channel_gk20a *ch,
 	}
 
 	if (g->ops.gr.update_ctxsw_preemption_mode != NULL) {
-		g->ops.gr.update_ctxsw_preemption_mode(ch->g,
-						ch, mem);
+		g->ops.gr.update_ctxsw_preemption_mode(ch->g, gr_ctx,
+				&ch->ctx_header);
 
 		err = gr_gk20a_ctx_patch_write_begin(g, gr_ctx, true);
 		if (err != 0) {
