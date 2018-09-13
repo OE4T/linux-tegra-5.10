@@ -28,6 +28,18 @@
 struct gk20a;
 struct vm_area_struct;
 struct nvgpu_gpu_ctxsw_trace_filter;
+struct tegra_hv_ivm_cookie;
+struct nvgpu_gpu_ctxsw_trace_entry;
+struct nvgpu_ctxsw_ring_header_internal;
+
+struct vgpu_fecs_trace {
+	struct tegra_hv_ivm_cookie *cookie;
+	struct nvgpu_ctxsw_ring_header_internal *header;
+	struct nvgpu_gpu_ctxsw_trace_entry *entries;
+	int num_entries;
+	bool enabled;
+	void *buf;
+};
 
 void vgpu_fecs_trace_data_update(struct gk20a *g);
 int vgpu_fecs_trace_init(struct gk20a *g);
@@ -43,5 +55,6 @@ int vgpu_fecs_trace_max_entries(struct gk20a *g,
 			struct nvgpu_gpu_ctxsw_trace_filter *filter);
 int vgpu_fecs_trace_set_filter(struct gk20a *g,
 			struct nvgpu_gpu_ctxsw_trace_filter *filter);
+struct tegra_hv_ivm_cookie *vgpu_fecs_trace_get_ivm(struct gk20a *g);
 
 #endif /* __FECS_TRACE_VGPU_H */

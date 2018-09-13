@@ -53,6 +53,18 @@ struct nvgpu_gpu_ctxsw_trace_filter {
 	u64 tag_bits[(NVGPU_GPU_CTXSW_FILTER_SIZE + 63) / 64];
 };
 
+/* must be consistent with nvgpu_ctxsw_ring_header */
+struct nvgpu_ctxsw_ring_header_internal {
+	u32 magic;
+	u32 version;
+	u32 num_ents;
+	u32 ent_size;
+	u32 drop_count;	/* excluding filtered out events */
+	u32 write_seqno;
+	u32 write_idx;
+	u32 read_idx;
+};
+
 /*
  * The binary format of 'struct nvgpu_gpu_ctxsw_trace_entry' introduced here
  * should match that of 'struct nvgpu_ctxsw_trace_entry' defined in uapi
