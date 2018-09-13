@@ -442,7 +442,7 @@ clean:
 }
 
 int gk20a_fecs_trace_bind_channel(struct gk20a *g,
-		struct channel_gk20a *ch)
+		struct channel_gk20a *ch, struct nvgpu_gr_ctx *gr_ctx)
 {
 	/*
 	 * map our circ_buf to the context space and store the GPU VA
@@ -452,8 +452,6 @@ int gk20a_fecs_trace_bind_channel(struct gk20a *g,
 	u32 lo;
 	u32 hi;
 	u64 addr;
-	struct tsg_gk20a *tsg;
-	struct nvgpu_gr_ctx *ch_ctx;
 	struct gk20a_fecs_trace *trace = g->fecs_trace;
 	struct nvgpu_mem *mem;
 	u32 context_ptr = gk20a_fecs_trace_fecs_context_ptr(g, ch);
@@ -465,20 +463,13 @@ int gk20a_fecs_trace_bind_channel(struct gk20a *g,
 			ch->chid, context_ptr,
 			nvgpu_inst_block_addr(g, &ch->inst_block));
 
-	tsg = tsg_gk20a_from_ch(ch);
-	if (!tsg)
-		return -EINVAL;
-
-	ch_ctx = tsg->gr_ctx;
-	mem = &ch_ctx->mem;
-
 	if (!trace)
 		return -ENOMEM;
 
 	mem = &g->gr.global_ctx_buffer[FECS_TRACE_BUFFER].mem;
 
 	if (nvgpu_is_enabled(g, NVGPU_FECS_TRACE_VA)) {
-		addr = ch_ctx->global_ctx_buffer_va[FECS_TRACE_BUFFER_VA];
+		addr = gr_ctx->global_ctx_buffer_va[FECS_TRACE_BUFFER_VA];
 		nvgpu_log(g, gpu_dbg_ctxsw, "gpu_va=%llx", addr);
 		aperture_mask = 0;
 	} else {
@@ -495,7 +486,7 @@ int gk20a_fecs_trace_bind_channel(struct gk20a *g,
 	lo = u64_lo32(addr);
 	hi = u64_hi32(addr);
 
-	mem = &ch_ctx->mem;
+	mem = &gr_ctx->mem;
 
 	nvgpu_log(g, gpu_dbg_ctxsw, "addr_hi=%x addr_lo=%x count=%d", hi,
 		lo, GK20A_FECS_TRACE_NUM_RECORDS);

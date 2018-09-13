@@ -929,7 +929,8 @@ struct gpu_ops {
 		int (*disable)(struct gk20a *g);
 		bool (*is_enabled)(struct gk20a *g);
 		int (*reset)(struct gk20a *g);
-		int (*bind_channel)(struct gk20a *g, struct channel_gk20a *ch);
+		int (*bind_channel)(struct gk20a *g, struct channel_gk20a *ch,
+				    struct nvgpu_gr_ctx *gr_ctx);
 		int (*unbind_channel)(struct gk20a *g,
 					struct channel_gk20a *ch);
 		int (*deinit)(struct gk20a *g);
