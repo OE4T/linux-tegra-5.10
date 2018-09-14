@@ -5508,28 +5508,23 @@ static int tegra_dc_init(struct tegra_dc *dc)
 
 	tegra_dc_writel(dc, 0x00000000, DC_DISP_BLEND_BACKGROUND_COLOR);
 
-	if (tegra_dc_is_t21x()) {
-		if (dc->is_cmu_set_bl)
-			_tegra_dc_update_cmu_aligned(dc, &dc->cmu, true);
-		else
-			_tegra_dc_update_cmu(dc, &dc->cmu);
-		dc->is_cmu_set_bl = false;
-	}
+	if (dc->is_cmu_set_bl)
+		_tegra_dc_update_cmu_aligned(dc, &dc->cmu, true);
+	else
+		_tegra_dc_update_cmu(dc, &dc->cmu);
+	dc->is_cmu_set_bl = false;
 
 	tegra_dc_set_color_control(dc);
 	for_each_set_bit(i, &dc->valid_windows,
 			tegra_dc_get_numof_dispwindows()) {
+
 		struct tegra_dc_win *win = tegra_dc_get_window(dc, i);
+
 		tegra_dc_writel(dc, WINDOW_A_SELECT << i,
 				DC_CMD_DISPLAY_WINDOW_HEADER);
-		if (tegra_dc_is_t21x()) {
-			tegra_dc_set_win_csc(dc, &win->win_csc);
-			tegra_dc_set_lut(dc, win);
-		}
-		if (tegra_dc_is_nvdisplay()) {
-			tegra_dc_set_nvdisp_win_csc(dc, &win->nvdisp_win_csc);
-			tegra_dc_set_nvdisp_lut(dc, win);
-		}
+
+		tegra_dc_set_win_csc(dc, &win->win_csc);
+		tegra_dc_set_lut(dc, win);
 		tegra_dc_set_scaling_filter(dc);
 	}
 
