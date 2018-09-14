@@ -60,6 +60,7 @@
 #define FECS_METHOD_WFI_RESTORE 0x80000
 #define FECS_MAILBOX_0_ACK_RESTORE 0x4
 
+#define RUNLIST_APPEND_FAILURE 0xffffffffU
 
 static u32 gk20a_fifo_engines_on_id(struct gk20a *g, u32 id, bool is_tsg);
 
@@ -3322,6 +3323,58 @@ void gk20a_get_ch_runlist_entry(struct channel_gk20a *ch, u32 *runlist)
 	runlist[1] = 0;
 }
 
+static u32 nvgpu_runlist_append_tsg(struct gk20a *g,
+		struct fifo_runlist_info_gk20a *runlist,
+		u32 *runlist_entry,
+		u32 *entries_left,
+		struct tsg_gk20a *tsg)
+{
+	struct fifo_gk20a *f = &g->fifo;
+	u32 runlist_entry_words = f->runlist_entry_size / sizeof(u32);
+	struct channel_gk20a *ch;
+	u32 count = 0;
+
+	if (*entries_left == 0U) {
+		return RUNLIST_APPEND_FAILURE;
+	}
+
+	/* add TSG entry */
+	nvgpu_log_info(g, "add TSG %d to runlist", tsg->tsgid);
+	g->ops.fifo.get_tsg_runlist_entry(tsg, runlist_entry);
+	nvgpu_log_info(g, "tsg rl entries left %d runlist [0] %x [1] %x",
+			*entries_left, runlist_entry[0], runlist_entry[1]);
+	runlist_entry += runlist_entry_words;
+	count++;
+	(*entries_left)--;
+
+	nvgpu_rwsem_down_read(&tsg->ch_list_lock);
+	/* add runnable channels bound to this TSG */
+	nvgpu_list_for_each_entry(ch, &tsg->ch_list,
+			channel_gk20a, ch_entry) {
+		if (!test_bit((int)ch->chid,
+			      runlist->active_channels)) {
+			continue;
+		}
+
+		if (*entries_left == 0U) {
+			nvgpu_rwsem_up_read(&tsg->ch_list_lock);
+			return RUNLIST_APPEND_FAILURE;
+		}
+
+		nvgpu_log_info(g, "add channel %d to runlist",
+			ch->chid);
+		g->ops.fifo.get_ch_runlist_entry(ch, runlist_entry);
+		nvgpu_log_info(g, "rl entries left %d runlist [0] %x [1] %x",
+			*entries_left, runlist_entry[0], runlist_entry[1]);
+		count++;
+		runlist_entry += runlist_entry_words;
+		(*entries_left)--;
+	}
+	nvgpu_rwsem_up_read(&tsg->ch_list_lock);
+
+	return count;
+}
+
 /* recursively construct a runlist with interleaved bare channels and TSGs */
 u32 *gk20a_runlist_construct_locked(struct fifo_gk20a *f,
 				struct fifo_runlist_info_gk20a *runlist,
@@ -3332,11 +3385,9 @@ u32 *gk20a_runlist_construct_locked(struct fifo_gk20a *f,
 				u32 *entries_left)
 {
 	bool last_level = cur_level == NVGPU_FIFO_RUNLIST_INTERLEAVE_LEVEL_HIGH;
-	struct channel_gk20a *ch;
 	bool skip_next = false;
 	unsigned long tsgid;
 	u32 count = 0;
-	u32 runlist_entry_words = f->runlist_entry_size / (u32)sizeof(u32);
 	struct gk20a *g = f->g;
 
 	nvgpu_log_fn(g, " ");
@@ -3345,6 +3396,7 @@ u32 *gk20a_runlist_construct_locked(struct fifo_gk20a *f,
 	   and TSGs before inserting T. */
 	for_each_set_bit(tsgid, runlist->active_tsgs, f->num_channels) {
 		struct tsg_gk20a *tsg = &f->tsg[tsgid];
+		u32 n;
 
 		if (tsg->interleave_level != cur_level) {
 			continue;
@@ -3363,44 +3415,12 @@ u32 *gk20a_runlist_construct_locked(struct fifo_gk20a *f,
 			}
 		}
 
-		if (*entries_left == 0U) {
+		n = nvgpu_runlist_append_tsg(g, runlist, runlist_entry,
+				entries_left, tsg);
+		if (n == RUNLIST_APPEND_FAILURE) {
 			return NULL;
 		}
-
-		/* add TSG entry */
-		nvgpu_log_info(g, "add TSG %d to runlist", tsg->tsgid);
-		f->g->ops.fifo.get_tsg_runlist_entry(tsg, runlist_entry);
-		nvgpu_log_info(g, "tsg runlist count %d runlist [0] %x [1] %x\n",
-				count, runlist_entry[0], runlist_entry[1]);
-		runlist_entry += runlist_entry_words;
-		count++;
-		(*entries_left)--;
-
-		nvgpu_rwsem_down_read(&tsg->ch_list_lock);
-		/* add runnable channels bound to this TSG */
-		nvgpu_list_for_each_entry(ch, &tsg->ch_list,
-				channel_gk20a, ch_entry) {
-			if (!test_bit((int)ch->chid,
-				      runlist->active_channels)) {
-				continue;
-			}
-
-			if (*entries_left == 0U) {
-				nvgpu_rwsem_up_read(&tsg->ch_list_lock);
-				return NULL;
-			}
-
-			nvgpu_log_info(g, "add channel %d to runlist",
-				ch->chid);
-			f->g->ops.fifo.get_ch_runlist_entry(ch, runlist_entry);
-			nvgpu_log_info(g,
-				"run list count %d runlist [0] %x [1] %x\n",
-				count, runlist_entry[0], runlist_entry[1]);
-			count++;
-			runlist_entry += runlist_entry_words;
-			(*entries_left)--;
-		}
-		nvgpu_rwsem_up_read(&tsg->ch_list_lock);
+		count += n;
 	}
 
 	/* append entries from higher level if this level is empty */
