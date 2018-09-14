@@ -1236,6 +1236,9 @@ static int rk3x_i2c_probe(struct platform_device *pdev)
 
 	match = of_match_node(rk3x_i2c_match, np);
 	i2c->soc_data = match->data;
+	if (!match)
+		return -ENODEV;
+	i2c->soc_data = (struct rk3x_i2c_soc_data *)match->data;
 
 	/* use common interface to get I2C timing properties */
 	i2c_parse_fw_timings(&pdev->dev, &i2c->t, true);
