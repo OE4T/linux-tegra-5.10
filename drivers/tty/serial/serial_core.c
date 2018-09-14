@@ -2233,6 +2233,10 @@ int uart_resume_port(struct uart_driver *drv, struct uart_port *uport)
 	mutex_lock(&port->mutex);
 
 	tty_dev = device_find_child(uport->dev, &match, serial_match_port);
+
+	if(!tty_dev)
+		return -ENODEV;
+
 	if (!uport->suspended && device_may_wakeup(tty_dev)) {
 		if (irqd_is_wakeup_set(irq_get_irq_data((uport->irq))))
 			disable_irq_wake(uport->irq);
