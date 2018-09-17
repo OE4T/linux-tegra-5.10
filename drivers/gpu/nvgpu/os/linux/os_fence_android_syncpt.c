@@ -19,6 +19,7 @@
 
 #include <nvgpu/types.h>
 #include <nvgpu/os_fence.h>
+#include <nvgpu/os_fence_syncpts.h>
 #include <nvgpu/linux/os_fence_android.h>
 #include <nvgpu/nvhost.h>
 #include <nvgpu/atomic.h>
@@ -99,7 +100,8 @@ int nvgpu_os_fence_syncpt_create(
 		nvhost_dev, id, thresh, "fence");
 
 	if (IS_ERR(fence)) {
-		nvgpu_err(c->g, "error %d during construction of fence.", (int)PTR_ERR(fence));
+		nvgpu_err(c->g, "error %d during construction of fence.",
+			(int)PTR_ERR(fence));
 		return PTR_ERR(fence);
 	}
 
@@ -120,4 +122,37 @@ int nvgpu_os_fence_syncpt_fdget(struct nvgpu_os_fence *fence_out,
 	nvgpu_os_fence_init(fence_out, c->g, &syncpt_ops, fence);
 
 	return 0;
+}
+
+int nvgpu_os_fence_get_syncpts(
+	struct nvgpu_os_fence_syncpt *fence_syncpt_out,
+	struct nvgpu_os_fence *fence_in)
+{
+	if (fence_in->ops != &syncpt_ops) {
+		return -EINVAL;
+	}
+
+	fence_syncpt_out->fence = fence_in;
+
+	return 0;
+}
+
+u32 nvgpu_os_fence_syncpt_get_num_syncpoints(
+	struct nvgpu_os_fence_syncpt *fence)
+{
+	struct sync_fence *f = nvgpu_get_sync_fence(fence->fence);
+
+	return (u32)f->num_fences;
+}
+
+void nvgpu_os_fence_syncpt_extract_nth_syncpt(
+	struct nvgpu_os_fence_syncpt *fence, u32 n,
+		u32 *syncpt_id, u32 *syncpt_threshold)
+{
+
+	struct sync_fence *f = nvgpu_get_sync_fence(fence->fence);
+	struct sync_pt *pt = sync_pt_from_fence(f->cbs[n].sync_pt);
+
+	*syncpt_id = nvgpu_nvhost_sync_pt_id(pt);
+	*syncpt_threshold = nvgpu_nvhost_sync_pt_thresh(pt);
 }

@@ -18,6 +18,7 @@
 
 #include <nvgpu/types.h>
 #include <nvgpu/os_fence.h>
+#include <nvgpu/os_fence_semas.h>
 #include <nvgpu/linux/os_fence_android.h>
 #include <nvgpu/semaphore.h>
 #include <nvgpu/gk20a.h>
@@ -76,6 +77,37 @@ static const struct nvgpu_os_fence_ops sema_ops = {
 	.drop_ref = nvgpu_os_fence_android_drop_ref,
 	.install_fence = nvgpu_os_fence_android_install_fd,
 };
+
+int nvgpu_os_fence_get_semas(struct nvgpu_os_fence_sema *fence_sema_out,
+	struct nvgpu_os_fence *fence_in)
+{
+	if (fence_in->ops != &sema_ops) {
+		return -EINVAL;
+	}
+
+	fence_sema_out->fence = fence_in;
+
+	return 0;
+}
+
+u32 nvgpu_os_fence_sema_get_num_semaphores(
+	struct nvgpu_os_fence_sema *fence)
+{
+	struct sync_fence *f = nvgpu_get_sync_fence(fence->fence);
+
+	return (u32)f->num_fences;
+}
+
+void nvgpu_os_fence_sema_extract_nth_semaphore(
+	struct nvgpu_os_fence_sema *fence, u32 n,
+		struct nvgpu_semaphore **semaphore_out)
+{
+	struct sync_fence *f = nvgpu_get_sync_fence(fence->fence);
+	struct sync_pt *pt = sync_pt_from_fence(f->cbs[n].sync_pt);
+	struct nvgpu_semaphore *sema = gk20a_sync_pt_sema(pt);
+
+	*semaphore_out = sema;
+}
 
 int nvgpu_os_fence_sema_create(
 	struct nvgpu_os_fence *fence_out,
