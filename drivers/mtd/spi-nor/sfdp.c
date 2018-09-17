@@ -499,6 +499,10 @@ static int spi_nor_parse_bfpt(struct spi_nor *nor,
 
 		params->hwcaps.mask |= rd->hwcaps;
 		cmd = spi_nor_hwcaps_read2cmd(rd->hwcaps);
+
+		if (cmd < 0)
+			return -EINVAL;
+
 		read = &params->reads[cmd];
 		half = bfpt.dwords[rd->settings_dword] >> rd->settings_shift;
 		spi_nor_set_read_settings_from_bfpt(read, half, rd->proto);
