@@ -1346,6 +1346,14 @@ struct gpu_ops {
 	struct {
 		void (*acr_sw_init)(struct gk20a *g, struct nvgpu_acr *acr);
 	} acr;
+	struct {
+		void (*secured_sec2_start)(struct gk20a *g);
+		void (*enable_irq)(struct nvgpu_sec2 *sec2, bool enable);
+		bool (*is_interrupted)(struct nvgpu_sec2 *sec2);
+		void (*isr)(struct gk20a *g);
+		void (*msgq_tail)(struct gk20a *g, struct nvgpu_sec2 *sec2,
+			u32 *tail, bool set);
+	} sec2;
 	void (*semaphore_wakeup)(struct gk20a *g, bool post_events);
 };
 

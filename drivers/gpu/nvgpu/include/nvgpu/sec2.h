@@ -34,6 +34,9 @@
 #include <nvgpu/sec2if/sec2_cmd_if.h>
 #include <nvgpu/sec2if/sec2_if_sec2.h>
 
+#define nvgpu_sec2_dbg(g, fmt, args...) \
+	nvgpu_log(g, gpu_dbg_pmu, fmt, ##args)
+
 #define NVGPU_SEC2_TRACE_BUFSIZE	(32U*1024U)
 
 #define SEC2_MAX_NUM_SEQUENCES	(256U)
@@ -90,8 +93,18 @@ struct nvgpu_sec2 {
 	u32 command_ack;
 };
 
+/* command/message handling methods*/
+int nvgpu_sec2_cmd_post(struct gk20a *g, struct nv_flcn_cmd_sec2 *cmd,
+	struct nv_flcn_msg_sec2 *msg, u32 queue_id, sec2_callback callback,
+	void *cb_param, u32 *seq_desc, unsigned long timeout);
+int nvgpu_sec2_process_message(struct nvgpu_sec2 *sec2);
+int nvgpu_sec2_wait_message_cond(struct nvgpu_sec2 *sec2, u32 timeout_ms,
+	void *var, u8 val);
+
 /* sec2 init */
 int nvgpu_init_sec2_support(struct gk20a *g);
 int nvgpu_sec2_destroy(struct gk20a *g);
+int nvgpu_sec2_queue_init(struct nvgpu_sec2 *sec2, u32 id,
+	struct sec2_init_msg_sec2_init *init);
 
 #endif /* NVGPU_SEC2_H */
