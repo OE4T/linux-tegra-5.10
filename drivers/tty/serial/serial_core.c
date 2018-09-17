@@ -363,6 +363,12 @@ uart_update_timeout(struct uart_port *port, unsigned int cflag,
 	bits = bits * port->fifosize;
 
 	/*
+	 * If B0 rate use 9600 baud
+	 */
+	if (!baud)
+		baud = 9600;
+
+	/*
 	 * Figure the timeout to send the above number of bits.
 	 * Add .02 seconds of slop
 	 */
