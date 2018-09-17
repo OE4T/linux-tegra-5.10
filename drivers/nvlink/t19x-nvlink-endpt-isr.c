@@ -86,23 +86,6 @@ static void nvlipt_config_common_intr(struct tnvlink_dev *tdev)
 			BIT(NVLIPT_INTR_CONTROL_COMMON_NOSTALLENABLE);
 
 	nvlw_nvlipt_writel(tdev, NVLIPT_INTR_CONTROL_COMMON, reg_val);
-
-	reg_val = nvlw_nvlipt_readl(tdev, NVLIPT_ERR_UC_MASK_LINK0);
-	reg_val &= ~BIT(NVLIPT_ERR_UC_MASK_LINK0_UCINTERNAL);
-	nvlw_nvlipt_writel(tdev, NVLIPT_ERR_UC_MASK_LINK0, reg_val);
-
-	reg_val = nvlw_nvlipt_readl(tdev, NVLIPT_ERR_UC_SEVERITY_LINK0);
-	reg_val |= BIT(NVLIPT_ERR_UC_SEVERITY_LINK0_UCINTERNAL);
-	nvlw_nvlipt_writel(tdev, NVLIPT_ERR_UC_SEVERITY_LINK0, reg_val);
-
-	reg_val = nvlw_nvlipt_readl(tdev, NVLIPT_ERR_C_MASK_LINK0);
-	reg_val &= ~BIT(NVLIPT_ERR_C_MASK_LINK0_CINTERNAL);
-	nvlw_nvlipt_writel(tdev, NVLIPT_ERR_C_MASK_LINK0, reg_val);
-
-	reg_val = nvlw_nvlipt_readl(tdev, NVLIPT_ERR_CONTROL_LINK0);
-	reg_val |= BIT(NVLIPT_ERR_CONTROL_LINK0_FATALENABLE) |
-		BIT(NVLIPT_ERR_CONTROL_LINK0_CORRECTABLEENABLE);
-	nvlw_nvlipt_writel(tdev, NVLIPT_ERR_CONTROL_LINK0, reg_val);
 }
 
 /* Initialize MINION common interrupts */
@@ -201,7 +184,32 @@ static void nvlink_enable_tl_interrupts(struct tnvlink_dev *tdev)
 {
 	u32 reg_val = 0;
 
-	/* Enable TLC RX interrupts */
+	/* Enable TLC RX0 error reporting */
+	reg_val = BIT(NVLTLC_RX_ERR_LOG_EN_0_RXDLHDRPARITYERR) |
+		BIT(NVLTLC_RX_ERR_LOG_EN_0_RXDLDATAPARITYERR) |
+		BIT(NVLTLC_RX_ERR_LOG_EN_0_RXDLCTRLPARITYERR) |
+		BIT(NVLTLC_RX_ERR_LOG_EN_0_RXRAMDATAPARITYERR) |
+		BIT(NVLTLC_RX_ERR_LOG_EN_0_RXRAMHDRPARITYERR) |
+		BIT(NVLTLC_RX_ERR_LOG_EN_0_RXINVALIDAEERR) |
+		BIT(NVLTLC_RX_ERR_LOG_EN_0_RXINVALIDBEERR) |
+		BIT(NVLTLC_RX_ERR_LOG_EN_0_RXINVALIDADDRALIGNERR) |
+		BIT(NVLTLC_RX_ERR_LOG_EN_0_RXPKTLENERR) |
+		BIT(NVLTLC_RX_ERR_LOG_EN_0_RSVCMDENCERR) |
+		BIT(NVLTLC_RX_ERR_LOG_EN_0_RSVDATLENENCERR) |
+		BIT(NVLTLC_RX_ERR_LOG_EN_0_RSVADDRTYPEERR) |
+		BIT(NVLTLC_RX_ERR_LOG_EN_0_RSVRSPSTATUSERR) |
+		BIT(NVLTLC_RX_ERR_LOG_EN_0_RSVPKTSTATUSERR) |
+		BIT(NVLTLC_RX_ERR_LOG_EN_0_RSVCACHEATTRPROBEREQERR) |
+		BIT(NVLTLC_RX_ERR_LOG_EN_0_RSVCACHEATTRPROBERSPERR) |
+		BIT(NVLTLC_RX_ERR_LOG_EN_0_DATLENGTATOMICREQMAXERR) |
+		BIT(NVLTLC_RX_ERR_LOG_EN_0_DATLENGTRMWREQMAXERR) |
+		BIT(NVLTLC_RX_ERR_LOG_EN_0_DATLENLTATRRSPMINERR) |
+		BIT(NVLTLC_RX_ERR_LOG_EN_0_INVALIDCACHEATTRPOERR) |
+		BIT(NVLTLC_RX_ERR_LOG_EN_0_INVALIDCRERR) |
+		BIT(NVLTLC_RX_ERR_LOG_EN_0_RXRESPSTATUSTARGETERR) |
+		BIT(NVLTLC_RX_ERR_LOG_EN_0_RXRESPSTATUSUNSUPPORTEDREQUESTERR);
+	nvlw_nvltlc_writel(tdev, NVLTLC_RX_ERR_LOG_EN_0, reg_val);
+
 	reg_val = BIT(NVLTLC_RX_ERR_REPORT_EN_0_RXDLHDRPARITYERR) |
 		BIT(NVLTLC_RX_ERR_REPORT_EN_0_RXDLDATAPARITYERR) |
 		BIT(NVLTLC_RX_ERR_REPORT_EN_0_RXDLCTRLPARITYERR) |
@@ -228,22 +236,77 @@ static void nvlink_enable_tl_interrupts(struct tnvlink_dev *tdev)
 		NVLTLC_RX_ERR_REPORT_EN_0_RXRESPSTATUSUNSUPPORTEDREQUESTERR);
 	nvlw_nvltlc_writel(tdev, NVLTLC_RX_ERR_REPORT_EN_0, reg_val);
 
-	reg_val = 0;
-	reg_val |= NVLTLC_RX_ERR_REPORT_EN_1_RXHDROVFERR_F(0xFF);
-	reg_val |= NVLTLC_RX_ERR_REPORT_EN_1_RXDATAOVFERR_F(0xFF);
-	reg_val |= BIT(NVLTLC_RX_ERR_REPORT_EN_1_STOMPDETERR) |
+	reg_val = BIT(NVLTLC_RX_ERR_CONTAIN_EN_0_RXDLHDRPARITYERR) |
+		BIT(NVLTLC_RX_ERR_CONTAIN_EN_0_RXDLDATAPARITYERR) |
+		BIT(NVLTLC_RX_ERR_CONTAIN_EN_0_RXDLCTRLPARITYERR) |
+		BIT(NVLTLC_RX_ERR_CONTAIN_EN_0_RXRAMDATAPARITYERR) |
+		BIT(NVLTLC_RX_ERR_CONTAIN_EN_0_RXRAMHDRPARITYERR) |
+		BIT(NVLTLC_RX_ERR_CONTAIN_EN_0_RXINVALIDAEERR) |
+		BIT(NVLTLC_RX_ERR_CONTAIN_EN_0_RXINVALIDBEERR) |
+		BIT(NVLTLC_RX_ERR_CONTAIN_EN_0_RXINVALIDADDRALIGNERR) |
+		BIT(NVLTLC_RX_ERR_CONTAIN_EN_0_RXPKTLENERR) |
+		BIT(NVLTLC_RX_ERR_CONTAIN_EN_0_RSVCMDENCERR) |
+		BIT(NVLTLC_RX_ERR_CONTAIN_EN_0_RSVDATLENENCERR) |
+		BIT(NVLTLC_RX_ERR_CONTAIN_EN_0_RSVADDRTYPEERR) |
+		BIT(NVLTLC_RX_ERR_CONTAIN_EN_0_RSVRSPSTATUSERR) |
+		BIT(NVLTLC_RX_ERR_CONTAIN_EN_0_RSVPKTSTATUSERR) |
+		BIT(NVLTLC_RX_ERR_CONTAIN_EN_0_RSVCACHEATTRPROBEREQERR) |
+		BIT(NVLTLC_RX_ERR_CONTAIN_EN_0_RSVCACHEATTRPROBERSPERR) |
+		BIT(NVLTLC_RX_ERR_CONTAIN_EN_0_DATLENGTATOMICREQMAXERR) |
+		BIT(NVLTLC_RX_ERR_CONTAIN_EN_0_DATLENGTRMWREQMAXERR) |
+		BIT(NVLTLC_RX_ERR_CONTAIN_EN_0_DATLENLTATRRSPMINERR) |
+		BIT(NVLTLC_RX_ERR_CONTAIN_EN_0_INVALIDCACHEATTRPOERR) |
+		BIT(NVLTLC_RX_ERR_CONTAIN_EN_0_INVALIDCRERR) |
+		BIT(NVLTLC_RX_ERR_CONTAIN_EN_0_RXRESPSTATUSTARGETERR) |
+		BIT(
+		NVLTLC_RX_ERR_CONTAIN_EN_0_RXRESPSTATUSUNSUPPORTEDREQUESTERR);
+	nvlw_nvltlc_writel(tdev, NVLTLC_RX_ERR_CONTAIN_EN_0, reg_val);
+
+	/* Enable TLC RX1 error reporting */
+	reg_val = NVLTLC_RX_ERR_LOG_EN_1_RXHDROVFERR_F(0xFF) |
+		NVLTLC_RX_ERR_LOG_EN_1_RXDATAOVFERR_F(0xFF) |
+		BIT(NVLTLC_RX_ERR_LOG_EN_1_STOMPDETERR) |
+		BIT(NVLTLC_RX_ERR_LOG_EN_1_RXPOISONERR) |
+		BIT(NVLTLC_RX_ERR_LOG_EN_1_RXUNSUPVCOVFERR) |
+		BIT(NVLTLC_RX_ERR_LOG_EN_1_RXUNSUPNVLINKCREDITRELERR) |
+		BIT(NVLTLC_RX_ERR_LOG_EN_1_RXUNSUPNCISOCCREDITRELERR);
+	nvlw_nvltlc_writel(tdev, NVLTLC_RX_ERR_LOG_EN_1, reg_val);
+
+	reg_val = NVLTLC_RX_ERR_REPORT_EN_1_RXHDROVFERR_F(0xFF) |
+		NVLTLC_RX_ERR_REPORT_EN_1_RXDATAOVFERR_F(0xFF) |
+		BIT(NVLTLC_RX_ERR_REPORT_EN_1_STOMPDETERR) |
 		BIT(NVLTLC_RX_ERR_REPORT_EN_1_RXPOISONERR) |
-		BIT(NVLTLC_RX_ERR_REPORT_EN_1_CORRECTABLEINTERNALERR) |
 		BIT(NVLTLC_RX_ERR_REPORT_EN_1_RXUNSUPVCOVFERR) |
 		BIT(NVLTLC_RX_ERR_REPORT_EN_1_RXUNSUPNVLINKCREDITRELERR) |
 		BIT(NVLTLC_RX_ERR_REPORT_EN_1_RXUNSUPNCISOCCREDITRELERR);
 	nvlw_nvltlc_writel(tdev, NVLTLC_RX_ERR_REPORT_EN_1, reg_val);
 
-	/* Enable TLC TX interrupts */
-	reg_val = 0;
-	reg_val |= NVLTLC_TX_ERR_REPORT_EN_0_TXHDRCREDITOVFERR_F(0xFF);
-	reg_val |= NVLTLC_TX_ERR_REPORT_EN_0_TXDATACREDITOVFERR_F(0xFF);
-	reg_val |= BIT(NVLTLC_TX_ERR_REPORT_EN_0_TXDLCREDITOVFERR) |
+	reg_val = NVLTLC_RX_ERR_CONTAIN_EN_1_RXHDROVFERR_F(0xFF) |
+		NVLTLC_RX_ERR_CONTAIN_EN_1_RXDATAOVFERR_F(0xFF) |
+		BIT(NVLTLC_RX_ERR_CONTAIN_EN_1_STOMPDETERR) |
+		BIT(NVLTLC_RX_ERR_CONTAIN_EN_1_RXPOISONERR) |
+		BIT(NVLTLC_RX_ERR_CONTAIN_EN_1_RXUNSUPVCOVFERR) |
+		BIT(NVLTLC_RX_ERR_CONTAIN_EN_1_RXUNSUPNVLINKCREDITRELERR) |
+		BIT(NVLTLC_RX_ERR_CONTAIN_EN_1_RXUNSUPNCISOCCREDITRELERR);
+	nvlw_nvltlc_writel(tdev, NVLTLC_RX_ERR_CONTAIN_EN_1, reg_val);
+
+	/* Enable TLC TX error reporting */
+	reg_val = NVLTLC_TX_ERR_LOG_EN_0_TXHDRCREDITOVFERR_F(0xFF) |
+		NVLTLC_TX_ERR_LOG_EN_0_TXDATACREDITOVFERR_F(0xFF) |
+		BIT(NVLTLC_TX_ERR_LOG_EN_0_TXDLCREDITOVFERR) |
+		BIT(NVLTLC_TX_ERR_LOG_EN_0_TXDLCREDITPARITYERR) |
+		BIT(NVLTLC_TX_ERR_LOG_EN_0_TXRAMHDRPARITYERR) |
+		BIT(NVLTLC_TX_ERR_LOG_EN_0_TXRAMDATAPARITYERR) |
+		BIT(NVLTLC_TX_ERR_LOG_EN_0_TXUNSUPVCOVFERR) |
+		BIT(NVLTLC_TX_ERR_LOG_EN_0_TXSTOMPDET) |
+		BIT(NVLTLC_TX_ERR_LOG_EN_0_TXPOISONDET) |
+		BIT(NVLTLC_TX_ERR_LOG_EN_0_TARGETERR) |
+		BIT(NVLTLC_TX_ERR_LOG_EN_0_UNSUPPORTEDREQUESTERR);
+	nvlw_nvltlc_writel(tdev, NVLTLC_TX_ERR_LOG_EN_0, reg_val);
+
+	reg_val = NVLTLC_TX_ERR_REPORT_EN_0_TXHDRCREDITOVFERR_F(0xFF) |
+		NVLTLC_TX_ERR_REPORT_EN_0_TXDATACREDITOVFERR_F(0xFF) |
+		BIT(NVLTLC_TX_ERR_REPORT_EN_0_TXDLCREDITOVFERR) |
 		BIT(NVLTLC_TX_ERR_REPORT_EN_0_TXDLCREDITPARITYERR) |
 		BIT(NVLTLC_TX_ERR_REPORT_EN_0_TXRAMHDRPARITYERR) |
 		BIT(NVLTLC_TX_ERR_REPORT_EN_0_TXRAMDATAPARITYERR) |
@@ -253,6 +316,18 @@ static void nvlink_enable_tl_interrupts(struct tnvlink_dev *tdev)
 		BIT(NVLTLC_TX_ERR_REPORT_EN_0_TARGETERR) |
 		BIT(NVLTLC_TX_ERR_REPORT_EN_0_UNSUPPORTEDREQUESTERR);
 	nvlw_nvltlc_writel(tdev, NVLTLC_TX_ERR_REPORT_EN_0, reg_val);
+
+	reg_val = NVLTLC_TX_ERR_CONTAIN_EN_0_TXHDRCREDITOVFERR_F(0xFF) |
+		NVLTLC_TX_ERR_CONTAIN_EN_0_TXDATACREDITOVFERR_F(0xFF) |
+		BIT(NVLTLC_TX_ERR_CONTAIN_EN_0_TXDLCREDITOVFERR) |
+		BIT(NVLTLC_TX_ERR_CONTAIN_EN_0_TXDLCREDITPARITYERR) |
+		BIT(NVLTLC_TX_ERR_CONTAIN_EN_0_TXRAMHDRPARITYERR) |
+		BIT(NVLTLC_TX_ERR_CONTAIN_EN_0_TXUNSUPVCOVFERR) |
+		BIT(NVLTLC_TX_ERR_CONTAIN_EN_0_TXSTOMPDET) |
+		BIT(NVLTLC_TX_ERR_CONTAIN_EN_0_TXPOISONDET) |
+		BIT(NVLTLC_TX_ERR_CONTAIN_EN_0_TARGETERR) |
+		BIT(NVLTLC_TX_ERR_CONTAIN_EN_0_UNSUPPORTEDREQUESTERR);
+	nvlw_nvltlc_writel(tdev, NVLTLC_TX_ERR_CONTAIN_EN_0, reg_val);
 }
 
 static void nvlink_enable_sync2x_interrupts(struct tnvlink_dev *tdev)
@@ -317,6 +392,37 @@ static void nvlink_enable_nvlipt_interrupts(struct tnvlink_dev *tdev)
 	reg_val |= BIT(NVLIPT_INTR_CONTROL_LINK0_STALLENABLE);
 	reg_val |= BIT(NVLIPT_INTR_CONTROL_LINK0_NOSTALLENABLE);
 	nvlw_nvlipt_writel(tdev, NVLIPT_INTR_CONTROL_LINK0, reg_val);
+
+	reg_val = nvlw_nvlipt_readl(tdev, NVLIPT_ERR_UC_MASK_LINK0);
+	reg_val &= ~(BIT(NVLIPT_ERR_UC_MASK_LINK0_DATAPOISONED) |
+		BIT(NVLIPT_ERR_UC_MASK_LINK0_FLOWCONTROL) |
+		BIT(NVLIPT_ERR_UC_MASK_LINK0_TARGETERROR) |
+		BIT(NVLIPT_ERR_UC_MASK_LINK0_RECEIVEROVERFLOW) |
+		BIT(NVLIPT_ERR_UC_MASK_LINK0_MALFORMEDPACKET) |
+		BIT(NVLIPT_ERR_UC_MASK_LINK0_STOMPEDPACKETRECEIVED) |
+		BIT(NVLIPT_ERR_UC_MASK_LINK0_UNSUPPORTEDREQUEST) |
+		BIT(NVLIPT_ERR_UC_MASK_LINK0_UCINTERNAL));
+	nvlw_nvlipt_writel(tdev, NVLIPT_ERR_UC_MASK_LINK0, reg_val);
+
+	reg_val = nvlw_nvlipt_readl(tdev, NVLIPT_ERR_UC_SEVERITY_LINK0);
+	reg_val |= BIT(NVLIPT_ERR_UC_SEVERITY_LINK0_DATAPOISONED) |
+		BIT(NVLIPT_ERR_UC_SEVERITY_LINK0_FLOWCONTROL) |
+		BIT(NVLIPT_ERR_UC_SEVERITY_LINK0_TARGETERROR) |
+		BIT(NVLIPT_ERR_UC_SEVERITY_LINK0_RECEIVEROVERFLOW) |
+		BIT(NVLIPT_ERR_UC_SEVERITY_LINK0_MALFORMEDPACKET) |
+		BIT(NVLIPT_ERR_UC_SEVERITY_LINK0_STOMPEDPACKETRECEIVED) |
+		BIT(NVLIPT_ERR_UC_SEVERITY_LINK0_UNSUPPORTEDREQUEST) |
+		BIT(NVLIPT_ERR_UC_SEVERITY_LINK0_UCINTERNAL);
+	nvlw_nvlipt_writel(tdev, NVLIPT_ERR_UC_SEVERITY_LINK0, reg_val);
+
+	reg_val = nvlw_nvlipt_readl(tdev, NVLIPT_ERR_C_MASK_LINK0);
+	reg_val &= ~BIT(NVLIPT_ERR_C_MASK_LINK0_CINTERNAL);
+	nvlw_nvlipt_writel(tdev, NVLIPT_ERR_C_MASK_LINK0, reg_val);
+
+	reg_val = nvlw_nvlipt_readl(tdev, NVLIPT_ERR_CONTROL_LINK0);
+	reg_val |= BIT(NVLIPT_ERR_CONTROL_LINK0_FATALENABLE) |
+		BIT(NVLIPT_ERR_CONTROL_LINK0_CORRECTABLEENABLE);
+	nvlw_nvlipt_writel(tdev, NVLIPT_ERR_CONTROL_LINK0, reg_val);
 }
 
 /* Enable link interrupts */
@@ -553,17 +659,6 @@ static void nvlink_handle_link_errors(struct tnvlink_dev *tdev,
 				struct nvlink_link_error_masks *err_masks,
 				u64 inforom_mask)
 {
-	/* Ignore injected errors */
-	if (err_masks->tl_injected || err_masks->tlc_rx0_injected ||
-		err_masks->tlc_rx1_injected || err_masks->tlc_tx_injected)
-		nvlink_dbg("Ignoring injected errors for link");
-
-	/* Disable interrupts after fatal errors */
-	if (err_masks->tl || err_masks->tlc_rx0 ||
-		err_masks->tlc_rx1 || err_masks->tlc_tx) {
-		nvlink_disable_tl_interrupts(tdev);
-	}
-
 	if (err_masks->dl)
 		nvlink_disable_dl_interrupts(tdev);
 
@@ -754,652 +849,6 @@ static void nvltlc_get_intr_status(struct tnvlink_dev *tdev,
 	*tlc_rx_err_status1 = nvlw_nvltlc_readl(tdev, NVLTLC_RX_ERR_STATUS_1);
 }
 
-static void nvltlc_service_rx0_intr(struct tnvlink_dev *tdev)
-{
-	u32 intr_status, fatal_mask = 0;
-	u64 inforom_mask = 0;
-	u32 intr_injected_mask = 0;
-	struct nvlink_link_error_masks err_masks = {0};
-
-	intr_status = tdev->tlink.tlc_rx_err_status0;
-
-	if (!intr_status)
-		return;
-
-	/* TODO: Do the below step only if  Error Injection Mode Refcnt state
-	 * set to REFCNT_STATE_ENABLED
-	 */
-	intr_injected_mask = nvlw_nvltlc_readl(tdev, NVLTLC_RX_ERR_INJECT_0);
-
-	if (intr_status & BIT(NVLTLC_RX_ERR_STATUS_0_RXDLHDRPARITYERR)) {
-		nvlink_err("Fatal TLC RX interrupt hit on link");
-		nvlink_err("Receive DL Header Parity Error");
-		fatal_mask |= BIT(NVLTLC_RX_ERR_STATUS_0_RXDLHDRPARITYERR);
-
-		if (!(intr_injected_mask &
-			BIT(NVLTLC_RX_ERR_INJECT_0_RXDLHDRPARITYERR))) {
-			/* log to inforom if not injected */
-			inforom_mask |= BIT(TLC_RX_DL_HDR_PARITY);
-		}
-	}
-
-	if (intr_status & BIT(NVLTLC_RX_ERR_STATUS_0_RXDLDATAPARITYERR)) {
-		nvlink_err("Fatal TLC RX interrupt hit on link");
-		nvlink_err("Receive DL Data Parity Error");
-		fatal_mask |= BIT(NVLTLC_RX_ERR_STATUS_0_RXDLDATAPARITYERR);
-
-		if (!(intr_injected_mask &
-			BIT(NVLTLC_RX_ERR_INJECT_0_RXDLDATAPARITYERR))) {
-			/* log to inforom if not injected */
-			inforom_mask |= BIT(TLC_RX_DL_DATA_PARITY);
-		}
-	}
-
-	if (intr_status & BIT(NVLTLC_RX_ERR_STATUS_0_RXDLCTRLPARITYERR)) {
-		nvlink_err("Fatal TLC RX interrupt hit on link");
-		nvlink_err("Receive DL Control Parity Error");
-		fatal_mask |= BIT(NVLTLC_RX_ERR_STATUS_0_RXDLCTRLPARITYERR);
-
-		if (!(intr_injected_mask &
-			BIT(NVLTLC_RX_ERR_INJECT_0_RXDLCTRLPARITYERR))) {
-			/* log to inforom if not injected */
-			inforom_mask |= BIT(TLC_RX_DL_CTRL_PARITY);
-		}
-	}
-
-	if (intr_status & BIT(NVLTLC_RX_ERR_STATUS_0_RXRAMDATAPARITYERR)) {
-		nvlink_err("Fatal TLC RX interrupt hit on link");
-		nvlink_err("Receive RAM Data Parity Error");
-		fatal_mask |= BIT(NVLTLC_RX_ERR_STATUS_0_RXRAMDATAPARITYERR);
-
-		if (!(intr_injected_mask &
-			BIT(NVLTLC_RX_ERR_INJECT_0_RXRAMDATAPARITYERR))) {
-			/* log to inforom if not injected */
-			inforom_mask |= BIT(TLC_RX_RAM_DATA_PARITY);
-		}
-	}
-
-	if (intr_status & BIT(NVLTLC_RX_ERR_STATUS_0_RXRAMHDRPARITYERR)) {
-		nvlink_err("Fatal TLC RX interrupt hit on link");
-		nvlink_err("Receive RAM Header Parity Error");
-		fatal_mask |= BIT(NVLTLC_RX_ERR_STATUS_0_RXRAMHDRPARITYERR);
-
-		if (!(intr_injected_mask &
-			BIT(NVLTLC_RX_ERR_INJECT_0_RXRAMHDRPARITYERR))) {
-			/* log to inforom if not injected */
-			inforom_mask |= BIT(TLC_RX_RAM_HDR_PARITY);
-		}
-	}
-
-	if (intr_status & BIT(NVLTLC_RX_ERR_STATUS_0_RXINVALIDAEERR)) {
-		nvlink_err("Fatal TLC RX interrupt hit on link");
-		nvlink_err("Receive Invalid AE Flit Received Error");
-		fatal_mask |= BIT(NVLTLC_RX_ERR_STATUS_0_RXINVALIDAEERR);
-
-		if (!(intr_injected_mask &
-			BIT(NVLTLC_RX_ERR_INJECT_0_RXINVALIDAEERR))) {
-			/* log to inforom if not injected */
-			inforom_mask |= BIT(TLC_RX_INVALID_AE_FLIT_RCVD);
-		}
-	}
-
-	if (intr_status & BIT(NVLTLC_RX_ERR_STATUS_0_RXINVALIDBEERR)) {
-		nvlink_err("Fatal TLC RX interrupt hit on link");
-		nvlink_err("Receive Invalid BE Flit Received Error");
-		fatal_mask |= BIT(NVLTLC_RX_ERR_STATUS_0_RXINVALIDBEERR);
-
-		if (!(intr_injected_mask &
-			BIT(NVLTLC_RX_ERR_INJECT_0_RXINVALIDBEERR))) {
-			/* log to inforom if not injected */
-			inforom_mask |= BIT(TLC_RX_INVALID_BE_FLIT_RCVD);
-		}
-	}
-
-	if (intr_status & BIT(NVLTLC_RX_ERR_STATUS_0_RXINVALIDADDRALIGNERR)) {
-		nvlink_err("Fatal TLC RX interrupt hit on link");
-		nvlink_err("Receive Invalid Address Alignment Error");
-		fatal_mask |= BIT(NVLTLC_RX_ERR_STATUS_0_RXINVALIDADDRALIGNERR);
-
-		if (!(intr_injected_mask &
-			BIT(NVLTLC_RX_ERR_INJECT_0_RXINVALIDADDRALIGNERR))) {
-			/* log to inforom if not injected */
-			inforom_mask |= BIT(TLC_RX_INVALID_ADDR_ALIGN);
-		}
-	}
-
-	if (intr_status & BIT(NVLTLC_RX_ERR_STATUS_0_RXPKTLENERR)) {
-		nvlink_err("Fatal TLC RX interrupt hit on link");
-		nvlink_err("Receive Packet Length Error");
-		fatal_mask |= BIT(NVLTLC_RX_ERR_STATUS_0_RXPKTLENERR);
-
-		if (!(intr_injected_mask &
-			BIT(NVLTLC_RX_ERR_INJECT_0_RXPKTLENERR))) {
-			/* log to inforom if not injected */
-			inforom_mask |= BIT(TLC_RX_PKT_LEN);
-		}
-	}
-
-	if (intr_status & BIT(NVLTLC_RX_ERR_STATUS_0_RSVCMDENCERR)) {
-		nvlink_err("Fatal TLC RX interrupt hit on link");
-		nvlink_err("Receive Reserved Command Encoding Error");
-		fatal_mask |= BIT(NVLTLC_RX_ERR_STATUS_0_RSVCMDENCERR);
-
-		if (!(intr_injected_mask &
-			BIT(NVLTLC_RX_ERR_INJECT_0_RSVCMDENCERR))) {
-			/* log to inforom if not injected */
-			inforom_mask |= BIT(TLC_RX_RSVD_CMD_ENC);
-		}
-	}
-
-	if (intr_status & BIT(NVLTLC_RX_ERR_STATUS_0_RSVDATLENENCERR)) {
-		nvlink_err("Fatal TLC RX interrupt hit on link");
-		nvlink_err("Receive Reserved Data Length Encoding Error");
-		fatal_mask |= BIT(NVLTLC_RX_ERR_STATUS_0_RSVDATLENENCERR);
-
-		if (!(intr_injected_mask &
-			BIT(NVLTLC_RX_ERR_INJECT_0_RSVDATLENENCERR))) {
-			/* log to inforom if not injected */
-			inforom_mask |= BIT(TLC_RX_RSVD_DAT_LEN_ENC);
-		}
-	}
-
-	if (intr_status & BIT(NVLTLC_RX_ERR_STATUS_0_RSVADDRTYPEERR)) {
-		nvlink_err("Fatal TLC RX interrupt hit on link");
-		nvlink_err("Receive Reserved Address Type Encoding Error");
-		fatal_mask |= BIT(NVLTLC_RX_ERR_STATUS_0_RSVADDRTYPEERR);
-
-		if (!(intr_injected_mask &
-			BIT(NVLTLC_RX_ERR_INJECT_0_RSVADDRTYPEERR))) {
-			/* log to inforom if not injected */
-			inforom_mask |= BIT(TLC_RX_RSVD_ADDR_TYPE);
-		}
-	}
-
-	if (intr_status & BIT(NVLTLC_RX_ERR_STATUS_0_RSVRSPSTATUSERR)) {
-		nvlink_err("Fatal TLC RX interrupt hit on link");
-		nvlink_err("Receive Reserved RspStatus Encoding Error");
-		fatal_mask |= BIT(NVLTLC_RX_ERR_STATUS_0_RSVRSPSTATUSERR);
-
-		if (!(intr_injected_mask &
-			BIT(NVLTLC_RX_ERR_INJECT_0_RSVRSPSTATUSERR))) {
-			/* log to inforom if not injected */
-			inforom_mask |= BIT(TLC_RX_RSVD_RSP_STATUS);
-		}
-	}
-
-	if (intr_status & BIT(NVLTLC_RX_ERR_STATUS_0_RSVPKTSTATUSERR)) {
-		nvlink_err("Fatal TLC RX interrupt hit on link");
-		nvlink_err("Receive Reserved Packet Status Encoding Error");
-		fatal_mask |= BIT(NVLTLC_RX_ERR_STATUS_0_RSVPKTSTATUSERR);
-
-		if (!(intr_injected_mask &
-			BIT(NVLTLC_RX_ERR_INJECT_0_RSVPKTSTATUSERR))) {
-			/* log to inforom if not injected */
-			inforom_mask |= BIT(TLC_RX_RSVD_PKT_STATUS);
-		}
-	}
-
-	if (intr_status & BIT(NVLTLC_RX_ERR_STATUS_0_RSVCACHEATTRPROBEREQERR)) {
-		nvlink_err("Fatal TLC RX interrupt hit on link");
-		nvlink_err("Receive Reserved Cache Attribute Encoding in Probe"
-				" Request Error");
-		fatal_mask |=
-			BIT(NVLTLC_RX_ERR_STATUS_0_RSVCACHEATTRPROBEREQERR);
-
-		if (!(intr_injected_mask &
-			BIT(NVLTLC_RX_ERR_INJECT_0_RSVCACHEATTRPROBEREQERR))) {
-			/* log to inforom if not injected */
-			inforom_mask |=
-				BIT(TLC_RX_RSVD_CACHE_ATTR_ENC_IN_PROBE_REQ);
-		}
-	}
-
-	if (intr_status & BIT(NVLTLC_RX_ERR_STATUS_0_RSVCACHEATTRPROBERSPERR)) {
-		nvlink_err("Fatal TLC RX interrupt hit on link");
-		nvlink_err("Receive Reserved Cache Attribute Encoding in Probe"
-				" Response Error");
-		fatal_mask |=
-			BIT(NVLTLC_RX_ERR_STATUS_0_RSVCACHEATTRPROBERSPERR);
-
-		if (!(intr_injected_mask &
-			BIT(NVLTLC_RX_ERR_INJECT_0_RSVCACHEATTRPROBERSPERR))) {
-			/* log to inforom if not injected */
-			inforom_mask |=
-				BIT(TLC_RX_RSVD_CACHE_ATTR_ENC_IN_PROBE_RESP);
-		}
-	}
-
-	if (intr_status & BIT(NVLTLC_RX_ERR_STATUS_0_DATLENGTATOMICREQMAXERR)) {
-		nvlink_err("Fatal TLC RX interrupt hit on link");
-		nvlink_err("Receive DatLen is greater than the Atomic Max size"
-				" (128B, 64B for CAS) Error");
-		fatal_mask |=
-			BIT(NVLTLC_RX_ERR_STATUS_0_DATLENGTATOMICREQMAXERR);
-
-		if (!(intr_injected_mask &
-			BIT(NVLTLC_RX_ERR_INJECT_0_DATLENGTATOMICREQMAXERR))) {
-			/* log to inforom if not injected */
-			inforom_mask |=
-				BIT(TLC_RX_DAT_LEN_GT_ATOMIC_REQ_MAX_SIZE);
-		}
-	}
-
-	if (intr_status & BIT(NVLTLC_RX_ERR_STATUS_0_DATLENGTRMWREQMAXERR)) {
-		nvlink_err("Fatal TLC RX interrupt hit on link");
-		nvlink_err("Receive DatLen is greater than the RMW Max size"
-				" (64B) Error");
-		fatal_mask |= BIT(NVLTLC_RX_ERR_STATUS_0_DATLENGTRMWREQMAXERR);
-
-		if (!(intr_injected_mask &
-			BIT(NVLTLC_RX_ERR_INJECT_0_DATLENGTRMWREQMAXERR))) {
-			/* log to inforom if not injected */
-			inforom_mask |= BIT(TLC_RX_DAT_LEN_GT_RMW_REQ_MAX_SIZE);
-		}
-	}
-
-	if (intr_status & BIT(NVLTLC_RX_ERR_STATUS_0_DATLENLTATRRSPMINERR)) {
-		nvlink_err("Fatal TLC RX interrupt hit on link");
-		nvlink_err("Receive DatLen is less than the ATR response size"
-				" (8B) Error");
-		fatal_mask |= BIT(NVLTLC_RX_ERR_STATUS_0_DATLENLTATRRSPMINERR);
-
-		if (!(intr_injected_mask &
-			BIT(NVLTLC_RX_ERR_INJECT_0_DATLENLTATRRSPMINERR))) {
-			/* log to inforom if not injected */
-			inforom_mask |=
-				BIT(TLC_RX_DAT_LEN_LT_ATR_RESP_MIN_SIZE);
-		}
-	}
-
-	if (intr_status & BIT(NVLTLC_RX_ERR_STATUS_0_INVALIDCACHEATTRPOERR)) {
-		nvlink_err("Fatal TLC RX interrupt hit on link");
-		nvlink_err("Receive The CacheAttr field and PO field do not"
-				" agree Error");
-		fatal_mask |= BIT(NVLTLC_RX_ERR_STATUS_0_INVALIDCACHEATTRPOERR);
-
-		if (!(intr_injected_mask &
-			BIT(NVLTLC_RX_ERR_INJECT_0_INVALIDCACHEATTRPOERR))) {
-			/* log to inforom if not injected */
-			inforom_mask |= BIT(TLC_RX_INVALID_PO_FOR_CACHE_ATTR);
-		}
-	}
-
-	if (intr_status & BIT(NVLTLC_RX_ERR_STATUS_0_INVALIDCRERR)) {
-		nvlink_err("Fatal TLC RX interrupt hit on link");
-		nvlink_err("Receive Invalid compressed response Error");
-		fatal_mask |= BIT(NVLTLC_RX_ERR_STATUS_0_INVALIDCRERR);
-
-		if (!(intr_injected_mask &
-			BIT(NVLTLC_RX_ERR_INJECT_0_INVALIDCRERR))) {
-			/* log to inforom if not injected */
-			inforom_mask |= BIT(TLC_RX_INVALID_COMPRESSED_RESP);
-		}
-	}
-
-	if (intr_status & BIT(NVLTLC_RX_ERR_STATUS_0_RXRESPSTATUSTARGETERR)) {
-		nvlink_err("Fatal TLC RX interrupt hit on link");
-		nvlink_err("Receive TE Error in the RspStatus field");
-		fatal_mask |= BIT(NVLTLC_RX_ERR_STATUS_0_RXRESPSTATUSTARGETERR);
-
-		if (!(intr_injected_mask &
-			BIT(NVLTLC_RX_ERR_INJECT_0_RXRESPSTATUSTARGETERR))) {
-			/* log to inforom if not injected */
-			inforom_mask |= BIT(TLC_RX_RESP_STATUS_TARGET);
-		}
-	}
-
-	if (intr_status &
-		BIT(NVLTLC_RX_ERR_STATUS_0_RXRESPSTATUSUNSUPPORTEDREQUESTERR)) {
-		nvlink_err("Fatal TLC RX interrupt hit on link");
-		nvlink_err("Receive UR Error in the RspStatus field");
-		fatal_mask |= BIT(
-		NVLTLC_RX_ERR_STATUS_0_RXRESPSTATUSUNSUPPORTEDREQUESTERR);
-
-		if (!(intr_injected_mask & BIT(
-		NVLTLC_RX_ERR_INJECT_0_RXRESPSTATUSUNSUPPORTEDREQUESTERR))) {
-			/* log to inforom if not injected */
-			inforom_mask |=
-				BIT(TLC_RX_RESP_STATUS_UNSUPPORTED_REQUEST);
-		}
-	}
-
-	if (fatal_mask) {
-		/*
-		 * Handle fatal errors, which may result in disabling of the
-		 * interrupts.
-		 */
-		err_masks.tlc_rx0 = fatal_mask & ~intr_injected_mask;
-		err_masks.tlc_rx0_injected = fatal_mask & intr_injected_mask;
-		nvlink_handle_link_errors(tdev, &err_masks, inforom_mask);
-
-		/* Clear signaled first and then status bits (W1C) */
-		nvlw_nvltlc_writel(tdev, NVLTLC_RX_ERR_FIRST_0, fatal_mask);
-		nvlw_nvltlc_writel(tdev, NVLTLC_RX_ERR_STATUS_0, fatal_mask);
-	}
-}
-
-/* Service TLC RX 1 interrupts */
-static void nvltlc_service_rx1_intr(struct tnvlink_dev *tdev)
-{
-	u32 intr_status, fatal_mask = 0;
-	u64 inforom_mask = 0;
-	u32 intr_injected_mask = 0;
-	int i;
-	struct nvlink_link_error_masks err_masks = {0};
-
-	intr_status = tdev->tlink.tlc_rx_err_status1;
-
-	if (!intr_status)
-		return;
-
-	/* TODO: Do the below step only if  Error Injection Mode Refcnt state
-	 * set to REFCNT_STATE_ENABLED
-	 */
-	intr_injected_mask = nvlw_nvltlc_readl(tdev, NVLTLC_RX_ERR_INJECT_1);
-
-	for (i = 0; i < 8; i++) {
-		if (NVLTLC_RX_ERR_STATUS_1_RXHDROVFERR_V(intr_status) &
-			BIT(i)) {
-			nvlink_err("Fatal TLC RX interrupt hit on link");
-			nvlink_err("Receive Header Overflow Error (VC%d)", i);
-			fatal_mask |=
-				NVLTLC_RX_ERR_STATUS_1_RXHDROVFERR_F(BIT(i));
-
-			if (!(NVLTLC_RX_ERR_INJECT_1_RXHDROVFERR_V(
-				intr_injected_mask) & BIT(i))) {
-				/* log to inforom if not injected */
-				inforom_mask |= BIT(TLC_RX_HDR_OVERFLOW);
-			}
-		}
-
-		if (NVLTLC_RX_ERR_STATUS_1_RXDATAOVFERR_V(intr_status) &
-			BIT(i)) {
-			nvlink_err("Fatal TLC RX interrupt hit on link ");
-			nvlink_err("Receive Data Overflow Error (VC%d)", i);
-			fatal_mask |=
-				NVLTLC_RX_ERR_STATUS_1_RXDATAOVFERR_F(BIT(i));
-
-			if (!(NVLTLC_RX_ERR_INJECT_1_RXDATAOVFERR_V(
-				intr_injected_mask) & BIT(i))) {
-				/* log to inforom if not injected */
-				inforom_mask |= BIT(TLC_RX_DATA_OVERFLOW);
-			}
-		}
-	}
-
-	if (intr_status & BIT(NVLTLC_RX_ERR_STATUS_1_STOMPDETERR)) {
-		nvlink_err("Fatal TLC RX interrupt hit on link");
-		nvlink_err("Receive Stomped Packet Received Error");
-		fatal_mask |= BIT(NVLTLC_RX_ERR_STATUS_1_STOMPDETERR);
-
-		if (!(intr_injected_mask &
-			BIT(NVLTLC_RX_ERR_INJECT_1_STOMPDETERR))) {
-			/* log to inforom if not injected */
-			inforom_mask |= BIT(TLC_RX_STOMPED_PKT_RCVD);
-		}
-	}
-
-	if (intr_status & BIT(NVLTLC_RX_ERR_STATUS_1_RXPOISONERR)) {
-		nvlink_err("Fatal TLC RX interrupt hit on link");
-		nvlink_err("Receive Data Poisoned Packet Received Error");
-		fatal_mask |= BIT(NVLTLC_RX_ERR_STATUS_1_RXPOISONERR);
-
-		if (!(intr_injected_mask &
-			BIT(NVLTLC_RX_ERR_INJECT_1_RXPOISONERR))) {
-			/* log to inforom if not injected */
-			inforom_mask |= BIT(TLC_RX_DATA_POISONED_PKT_RCVD);
-		}
-	}
-
-	if (intr_status & BIT(NVLTLC_RX_ERR_STATUS_1_CORRECTABLEINTERNALERR)) {
-		nvlink_err("Fatal TLC RX interrupt hit on link");
-		nvlink_err("Receive Correctable Internal Error");
-		fatal_mask |=
-			BIT(NVLTLC_RX_ERR_STATUS_1_CORRECTABLEINTERNALERR);
-
-		if (!(intr_injected_mask &
-			BIT(NVLTLC_RX_ERR_INJECT_1_CORRECTABLEINTERNALERR))) {
-			/* log to inforom if not injected */
-			inforom_mask |= BIT(TLC_RX_CORRECTABLE_INTERNAL);
-		}
-	}
-
-	if (intr_status & BIT(NVLTLC_RX_ERR_STATUS_1_RXUNSUPVCOVFERR)) {
-		nvlink_err("Fatal TLC RX interrupt hit on link");
-		nvlink_err("Receive Unsupported VC Overflow Error");
-		fatal_mask |= BIT(NVLTLC_RX_ERR_STATUS_1_RXUNSUPVCOVFERR);
-
-		if (!(intr_injected_mask &
-			BIT(NVLTLC_RX_ERR_INJECT_1_RXUNSUPVCOVFERR))) {
-			/* log to inforom if not injected */
-			inforom_mask |= BIT(TLC_RX_UNSUPPORTED_VC_OVERFLOW);
-		}
-	}
-
-	if (intr_status &
-		BIT(NVLTLC_RX_ERR_STATUS_1_RXUNSUPNVLINKCREDITRELERR)) {
-		nvlink_err("Fatal TLC RX interrupt hit on link");
-		nvlink_err("Receive Unsupported NVLink Credit Release Error");
-		fatal_mask |=
-			BIT(NVLTLC_RX_ERR_STATUS_1_RXUNSUPNVLINKCREDITRELERR);
-
-		if (!(intr_injected_mask & BIT(
-			NVLTLC_RX_ERR_INJECT_1_RXUNSUPNVLINKCREDITRELERR))) {
-			/* log to inforom if not injected */
-			inforom_mask |=
-				BIT(TLC_RX_UNSUPPORTED_NVLINK_CREDIT_RELEASE);
-		}
-	}
-
-	if (intr_status &
-		BIT(NVLTLC_RX_ERR_STATUS_1_RXUNSUPNCISOCCREDITRELERR)) {
-		nvlink_err("Fatal TLC RX interrupt hit on link");
-		nvlink_err("Receive Unsupported NCISOC Credit Release Error");
-		fatal_mask |=
-			BIT(NVLTLC_RX_ERR_STATUS_1_RXUNSUPNCISOCCREDITRELERR);
-
-		if (!(intr_injected_mask & BIT(
-			NVLTLC_RX_ERR_INJECT_1_RXUNSUPNCISOCCREDITRELERR))) {
-			/* log to inforom if not injected */
-			inforom_mask |= BIT(
-				TLC_RX_UNSUPPORTED_NCISOC_CREDIT_RELEASE);
-		}
-	}
-
-	if (fatal_mask != 0) {
-		/* Handle fatal errors, which may result in disabling of the
-		 * interrupts
-		 */
-		err_masks.tlc_rx1 = fatal_mask & ~intr_injected_mask;
-		err_masks.tlc_rx1_injected = fatal_mask & intr_injected_mask;
-		nvlink_handle_link_errors(tdev, &err_masks, inforom_mask);
-
-		/* Clear signaled first and then status bits (W1C) */
-		nvlw_nvltlc_writel(tdev, NVLTLC_RX_ERR_FIRST_1, fatal_mask);
-		nvlw_nvltlc_writel(tdev, NVLTLC_RX_ERR_STATUS_1, fatal_mask);
-	}
-}
-
-static void nvltlc_service_tx_intr(struct tnvlink_dev *tdev)
-{
-	u32 intr_status, fatal_mask = 0;
-	u64 inforom_mask = 0;
-	u32 intr_injected_mask = 0;
-	int i;
-	struct nvlink_link_error_masks err_masks = {0};
-
-	intr_status = tdev->tlink.tlc_tx_err_status0;
-
-	if (!intr_status)
-		return;
-
-	/* TODO: Do the below step only if  Error Injection Mode Refcnt state
-	 * set to REFCNT_STATE_ENABLED
-	 */
-	intr_injected_mask = nvlw_nvltlc_readl(tdev, NVLTLC_TX_ERR_INJECT_0);
-
-	for (i = 0; i < 8; i++) {
-		if (NVLTLC_TX_ERR_STATUS_0_TXHDRCREDITOVFERR_V(intr_status) &
-			BIT(i)) {
-			nvlink_err("Fatal TLC TX interrupt hit on link");
-			nvlink_err("Transmit Header Credit Overflow Error"
-					" (VC%d)", i);
-			fatal_mask |=
-				NVLTLC_TX_ERR_STATUS_0_TXHDRCREDITOVFERR_F(
-				BIT(i));
-
-			if (!(NVLTLC_TX_ERR_INJECT_0_TXHDRCREDITOVFERR_V(
-				intr_injected_mask) & BIT(i))) {
-				/* log to inforom if not injected */
-				inforom_mask |= BIT(TLC_TX_HDR_CREDIT_OVERFLOW);
-			}
-		}
-
-		if (NVLTLC_TX_ERR_STATUS_0_TXDATACREDITOVFERR_V(intr_status) &
-			BIT(i)) {
-			nvlink_err("Fatal TLC TX interrupt hit on link");
-			nvlink_err("Transmit Data Credit Overflow Error"
-					" (VC%d)", i);
-			fatal_mask |=
-				NVLTLC_TX_ERR_STATUS_0_TXDATACREDITOVFERR_F(
-				BIT(i));
-
-			if (!(NVLTLC_TX_ERR_INJECT_0_TXDATACREDITOVFERR_V(
-				intr_injected_mask) & BIT(i))) {
-				/* log to inforom if not injected */
-				inforom_mask |=
-					BIT(TLC_TX_DATA_CREDIT_OVERFLOW);
-			}
-		}
-	}
-
-	if (intr_status & BIT(NVLTLC_TX_ERR_STATUS_0_TXDLCREDITOVFERR)) {
-		nvlink_err("Fatal TLC TX interrupt hit on link");
-		nvlink_err("Transmit DL Replay Credit Overflow Error");
-		fatal_mask |= BIT(NVLTLC_TX_ERR_STATUS_0_TXDLCREDITOVFERR);
-
-		if (!(intr_injected_mask &
-			BIT(NVLTLC_TX_ERR_INJECT_0_TXDLCREDITOVFERR))) {
-			/* log to inforom if not injected */
-			inforom_mask |= BIT(TLC_TX_DL_REPLAY_CREDIT_OVERFLOW);
-		}
-	}
-
-	if (intr_status & BIT(NVLTLC_TX_ERR_STATUS_0_TXDLCREDITPARITYERR)) {
-		nvlink_err("Fatal TLC TX interrupt hit on link ");
-		nvlink_err("Transmit DL Flow Control Interface Parity Error");
-		fatal_mask |= BIT(NVLTLC_TX_ERR_STATUS_0_TXDLCREDITPARITYERR);
-
-		if (!(intr_injected_mask &
-			BIT(NVLTLC_TX_ERR_INJECT_0_TXDLCREDITPARITYERR))) {
-			/* log to inforom if not injected */
-			inforom_mask |= BIT(TLC_TX_DL_FLOW_CONTROL_PARITY);
-		}
-	}
-
-	if (intr_status & BIT(NVLTLC_TX_ERR_STATUS_0_TXRAMHDRPARITYERR)) {
-		nvlink_err("Fatal TLC TX interrupt hit on link");
-		nvlink_err("Transmit RAM Header Parity Error");
-		fatal_mask |= BIT(NVLTLC_TX_ERR_STATUS_0_TXRAMHDRPARITYERR);
-
-		if (!(intr_injected_mask &
-			BIT(NVLTLC_TX_ERR_INJECT_0_TXRAMHDRPARITYERR))) {
-			/* log to inforom if not injected */
-			inforom_mask |= BIT(TLC_TX_RAM_HDR_PARITY);
-		}
-	}
-
-	if (intr_status & BIT(NVLTLC_TX_ERR_STATUS_0_TXRAMDATAPARITYERR)) {
-		nvlink_err("Fatal TLC TX interrupt hit on link");
-		nvlink_err("Transmit RAM Data Parity Error");
-		fatal_mask |= BIT(NVLTLC_TX_ERR_STATUS_0_TXRAMDATAPARITYERR);
-
-		if (!(intr_injected_mask &
-			BIT(NVLTLC_TX_ERR_INJECT_0_TXRAMDATAPARITYERR))) {
-			/* log to inforom if not injected */
-			inforom_mask |= BIT(TLC_TX_RAM_DATA_PARITY);
-		}
-	}
-
-	if (intr_status & BIT(NVLTLC_TX_ERR_STATUS_0_TXUNSUPVCOVFERR)) {
-		nvlink_err("Fatal TLC TX interrupt hit on link");
-		nvlink_err("Transmit Unsupported VC Overflow Error");
-		fatal_mask |= BIT(NVLTLC_TX_ERR_STATUS_0_TXUNSUPVCOVFERR);
-
-		if (!(intr_injected_mask &
-			BIT(NVLTLC_TX_ERR_INJECT_0_TXUNSUPVCOVFERR))) {
-			/* log to inforom if not injected */
-			inforom_mask |= BIT(TLC_TX_UNSUPPORTED_VC_OVERFLOW);
-		}
-	}
-
-	if (intr_status & BIT(NVLTLC_TX_ERR_STATUS_0_TXSTOMPDET)) {
-		nvlink_err("Fatal TLC TX interrupt hit on link");
-		nvlink_err("Transmit Stomped Packet Detected on Transmit from"
-				" NCISOC to NVLink");
-		fatal_mask |= BIT(NVLTLC_TX_ERR_STATUS_0_TXSTOMPDET);
-
-		if (!(intr_injected_mask &
-			BIT(NVLTLC_TX_ERR_INJECT_0_TXSTOMPDET))) {
-			/* log to inforom if not injected */
-			inforom_mask |= BIT(TLC_TX_STOMPED_PKT_SENT);
-		}
-	}
-
-	if (intr_status & BIT(NVLTLC_TX_ERR_STATUS_0_TXPOISONDET)) {
-		nvlink_err("Fatal TLC TX interrupt hit on link");
-		nvlink_err("Transmit Data Poisoned Packet detected on transmit"
-				" from NCISOC to NVLink");
-		fatal_mask |= BIT(NVLTLC_TX_ERR_STATUS_0_TXPOISONDET);
-
-		if (!(intr_injected_mask &
-			BIT(NVLTLC_TX_ERR_INJECT_0_TXPOISONDET))) {
-			/* log to inforom if not injected */
-			inforom_mask |= BIT(TLC_TX_DATA_POISONED_PKT_SENT);
-		}
-	}
-
-	if (intr_status & BIT(NVLTLC_TX_ERR_STATUS_0_TARGETERR)) {
-		nvlink_err("Fatal TLC TX interrupt hit on link");
-		nvlink_err("Transmit Target Error detected in RspStatus");
-		fatal_mask |= BIT(NVLTLC_TX_ERR_STATUS_0_TARGETERR);
-
-		if (!(intr_injected_mask &
-			BIT(NVLTLC_TX_ERR_INJECT_0_TARGETERR))) {
-			/* log to inforom if not injected */
-			inforom_mask |= BIT(TLC_TX_RESP_STATUS_TARGET);
-		}
-	}
-
-	if (intr_status & BIT(NVLTLC_TX_ERR_STATUS_0_UNSUPPORTEDREQUESTERR)) {
-		nvlink_err("Fatal TLC TX interrupt hit on link");
-		nvlink_err("Transmit Unsupported Request detected in"
-				" RspStatus");
-		fatal_mask |= BIT(NVLTLC_TX_ERR_STATUS_0_UNSUPPORTEDREQUESTERR);
-
-		if (!(intr_injected_mask &
-			BIT(NVLTLC_TX_ERR_INJECT_0_UNSUPPORTEDREQUESTERR))) {
-			/* log to inforom if not injected */
-			inforom_mask |=
-				BIT(TLC_TX_RESP_STATUS_UNSUPPORTED_REQUEST);
-		}
-	}
-
-	if (fatal_mask != 0) {
-		/*
-		 * Handle fatal errors, which may result in disabling of the
-		 * interrupts.
-		 */
-		err_masks.tlc_tx = fatal_mask & ~intr_injected_mask;
-		err_masks.tlc_tx_injected = fatal_mask & intr_injected_mask;
-		nvlink_handle_link_errors(tdev, &err_masks, inforom_mask);
-
-		// Clear signaled first and then status bits (W1C)
-		nvlw_nvltlc_writel(tdev, NVLTLC_TX_ERR_FIRST_0, fatal_mask);
-		nvlw_nvltlc_writel(tdev, NVLTLC_TX_ERR_STATUS_0, fatal_mask);
-	}
-}
-
 /* Service NVLIPT interrupts */
 static void nvlink_service_nvlipt_interrupts(struct tnvlink_dev *tdev)
 {
@@ -1428,18 +877,6 @@ static void nvlink_service_nvlipt_interrupts(struct tnvlink_dev *tdev)
 			nvlipt_err_uc_active_bits);
 }
 
-static int nvlink_service_tlc_interrupts(struct tnvlink_dev *tdev)
-{
-	/* TLC RX interrupts (0) */
-	nvltlc_service_rx0_intr(tdev);
-	/* TLC RX interrupts (1) */
-	nvltlc_service_rx1_intr(tdev);
-	/* TLC TX interrupts */
-	nvltlc_service_tx_intr(tdev);
-
-	return 0;
-}
-
 static u32 nvlink_service_link(struct tnvlink_dev *tdev)
 {
 	u32 tlc_tx_err_status0;
@@ -1460,8 +897,6 @@ static u32 nvlink_service_link(struct tnvlink_dev *tdev)
 	tdev->tlink.tlc_rx_err_status1 |= tlc_rx_err_status1;
 
 	nvlink_service_dl_interrupts(tdev, &retrain_from_safe);
-
-	nvlink_service_tlc_interrupts(tdev);
 
 	/* NVLIPT is the IP top level, it goes last */
 	nvlink_service_nvlipt_interrupts(tdev);

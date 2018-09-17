@@ -311,17 +311,6 @@ static void init_tlc_buffers(struct tnvlink_dev *tdev)
 	nvlw_nvltlc_writel(tdev, NVLTLC_TX_CTRL_BUFFER_SZ_VC6, 0xff007f);
 	nvlw_nvltlc_writel(tdev, NVLTLC_TX_CTRL_BUFFER_SZ_VC7, 0xff007f);
 
-	nvlw_nvltlc_writel(tdev, NVLTLC_TX_ERR_LOG_EN_0, 0x3ffffff);
-	nvlw_nvltlc_writel(tdev, NVLTLC_TX_ERR_REPORT_EN_0, 0x3ffffff);
-	nvlw_nvltlc_writel(tdev, NVLTLC_TX_ERR_CONTAIN_EN_0, 0x3ffffff);
-
-	nvlw_nvltlc_writel(tdev, NVLTLC_RX_ERR_LOG_EN_0, 0xffffff);
-	nvlw_nvltlc_writel(tdev, NVLTLC_RX_ERR_REPORT_EN_0, 0xffffff);
-	nvlw_nvltlc_writel(tdev, NVLTLC_RX_ERR_CONTAIN_EN_0, 0xffffff);
-	nvlw_nvltlc_writel(tdev, NVLTLC_RX_ERR_LOG_EN_1, 0x3fffff);
-	nvlw_nvltlc_writel(tdev, NVLTLC_RX_ERR_REPORT_EN_1, 0x3fffff);
-	nvlw_nvltlc_writel(tdev, NVLTLC_RX_ERR_CONTAIN_EN_1, 0x3fffff);
-
 	nvlw_nvltlc_writel(tdev, NVLTLC_TX_CTRL_BUFFER_READY, 0x1);
 	nvlw_nvltlc_writel(tdev, NVLTLC_RX_CTRL_BUFFER_READY, 0x1);
 }
