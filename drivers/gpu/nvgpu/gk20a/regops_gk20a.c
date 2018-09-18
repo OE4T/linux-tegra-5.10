@@ -286,60 +286,60 @@ static bool check_whitelists(struct dbg_session_gk20a *dbg_s,
 
 	if (op->type == REGOP(TYPE_GLOBAL)) {
 		/* search global list */
-		valid = g->ops.regops.get_global_whitelist_ranges &&
-			!!bsearch(&offset,
-			g->ops.regops.get_global_whitelist_ranges(),
-			g->ops.regops.get_global_whitelist_ranges_count(),
-			sizeof(*g->ops.regops.get_global_whitelist_ranges()),
-			regop_bsearch_range_cmp);
+		valid = (g->ops.regops.get_global_whitelist_ranges != NULL) &&
+		        (bsearch(&offset,
+			        g->ops.regops.get_global_whitelist_ranges(),
+			        g->ops.regops.get_global_whitelist_ranges_count(),
+			        sizeof(*g->ops.regops.get_global_whitelist_ranges()),
+			        regop_bsearch_range_cmp) != NULL);
 
 		/* if debug session and channel is bound search context list */
-		if ((!valid) && (!dbg_s->is_profiler && ch)) {
+		if ((!valid) && (!dbg_s->is_profiler) && (ch != NULL)) {
 			/* binary search context list */
-			valid = g->ops.regops.get_context_whitelist_ranges &&
-				!!bsearch(&offset,
-			g->ops.regops.get_context_whitelist_ranges(),
-			g->ops.regops.get_context_whitelist_ranges_count(),
-			sizeof(*g->ops.regops.get_context_whitelist_ranges()),
-			regop_bsearch_range_cmp);
+			valid = (g->ops.regops.get_context_whitelist_ranges != NULL) &&
+			        (bsearch(&offset,
+				        g->ops.regops.get_context_whitelist_ranges(),
+				        g->ops.regops.get_context_whitelist_ranges_count(),
+				        sizeof(*g->ops.regops.get_context_whitelist_ranges()),
+				        regop_bsearch_range_cmp) != NULL);
 		}
 
 		/* if debug session and channel is bound search runcontrol list */
-		if ((!valid) && (!dbg_s->is_profiler && ch)) {
-			valid = g->ops.regops.get_runcontrol_whitelist &&
+		if ((!valid) && (!dbg_s->is_profiler) && (ch != NULL)) {
+			valid = (g->ops.regops.get_runcontrol_whitelist != NULL) &&
 				linear_search(offset,
-				g->ops.regops.get_runcontrol_whitelist(),
-				g->ops.regops.get_runcontrol_whitelist_count());
+					     g->ops.regops.get_runcontrol_whitelist(),
+					     g->ops.regops.get_runcontrol_whitelist_count());
 		}
 	} else if (op->type == REGOP(TYPE_GR_CTX)) {
 		/* it's a context-relative op */
-		if (!ch) {
+		if (ch == NULL) {
 			nvgpu_err(dbg_s->g, "can't perform ctx regop unless bound");
 			op->status = REGOP(STATUS_UNSUPPORTED_OP);
 			return valid;
 		}
 
 		/* binary search context list */
-		valid = g->ops.regops.get_context_whitelist_ranges &&
-			!!bsearch(&offset,
-			g->ops.regops.get_context_whitelist_ranges(),
-			g->ops.regops.get_context_whitelist_ranges_count(),
-			sizeof(*g->ops.regops.get_context_whitelist_ranges()),
-			regop_bsearch_range_cmp);
+		valid = (g->ops.regops.get_context_whitelist_ranges != NULL) &&
+		        (bsearch(&offset,
+			        g->ops.regops.get_context_whitelist_ranges(),
+			        g->ops.regops.get_context_whitelist_ranges_count(),
+			        sizeof(*g->ops.regops.get_context_whitelist_ranges()),
+			        regop_bsearch_range_cmp) != NULL);
 
 		/* if debug session and channel is bound search runcontrol list */
-		if ((!valid) && (!dbg_s->is_profiler && ch)) {
-			valid = g->ops.regops.get_runcontrol_whitelist &&
+		if ((!valid) && (!dbg_s->is_profiler) && (ch != NULL)) {
+			valid = (g->ops.regops.get_runcontrol_whitelist != NULL) &&
 				linear_search(offset,
-				g->ops.regops.get_runcontrol_whitelist(),
-				g->ops.regops.get_runcontrol_whitelist_count());
+					     g->ops.regops.get_runcontrol_whitelist(),
+					     g->ops.regops.get_runcontrol_whitelist_count());
 		}
 
 	} else if (op->type == REGOP(TYPE_GR_CTX_QUAD)) {
-		valid = g->ops.regops.get_qctl_whitelist &&
+		valid = (g->ops.regops.get_qctl_whitelist != NULL) &&
 			linear_search(offset,
-				g->ops.regops.get_qctl_whitelist(),
-				g->ops.regops.get_qctl_whitelist_count());
+				     g->ops.regops.get_qctl_whitelist(),
+				     g->ops.regops.get_qctl_whitelist_count());
 	}
 
 	return valid;
@@ -390,7 +390,7 @@ static int validate_reg_op_offset(struct dbg_session_gk20a *dbg_s,
 				return -EINVAL;
 			}
 		}
-		if (!num_offsets) {
+		if (num_offsets == 0U) {
 			op->status |= REGOP(STATUS_INVALID_OFFSET);
 			return -EINVAL;
 		}
@@ -447,11 +447,11 @@ static bool validate_reg_ops(struct dbg_session_gk20a *dbg_s,
 /* exported for tools like cyclestats, etc */
 bool is_bar0_global_offset_whitelisted_gk20a(struct gk20a *g, u32 offset)
 {
-	bool valid = !!bsearch(&offset,
+	bool valid = bsearch(&offset,
 			g->ops.regops.get_global_whitelist_ranges(),
 			g->ops.regops.get_global_whitelist_ranges_count(),
 			sizeof(*g->ops.regops.get_global_whitelist_ranges()),
-			regop_bsearch_range_cmp);
+			regop_bsearch_range_cmp) != NULL;
 	return valid;
 }
 

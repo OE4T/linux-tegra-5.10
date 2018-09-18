@@ -144,7 +144,7 @@ static void gk20a_ce_delete_gpu_context(struct gk20a_gpu_ctx *ce_ctx)
 	nvgpu_ref_put(&ce_ctx->tsg->refcount, gk20a_tsg_release);
 
 	/* housekeeping on app */
-	if (list->prev && list->next) {
+	if ((list->prev != NULL) && (list->next != NULL)) {
 		nvgpu_list_del(list);
 	}
 
@@ -167,8 +167,8 @@ static inline unsigned int gk20a_ce_get_method_size(int request_operation,
 	while (chunk) {
 		iterations++;
 
-		shift = MAX_CE_ALIGN(chunk) ? __ffs(MAX_CE_ALIGN(chunk)) :
-						MAX_CE_SHIFT;
+		shift = (MAX_CE_ALIGN(chunk) != 0ULL) ?
+				__ffs(MAX_CE_ALIGN(chunk)) : MAX_CE_SHIFT;
 		width = chunk >> shift;
 		height = 1 << shift;
 		width = MAX_CE_ALIGN(width);
@@ -203,7 +203,7 @@ int gk20a_ce_prepare_submit(u64 src_buf,
 
 	/* failure case handling */
 	if ((gk20a_ce_get_method_size(request_operation, size) >
-		max_cmd_buf_size) || (!size) ||
+		max_cmd_buf_size) || (size == 0ULL) ||
 		(request_operation > NVGPU_CE_MEMSET)) {
 		return 0;
 	}
@@ -239,8 +239,8 @@ int gk20a_ce_prepare_submit(u64 src_buf,
 		 * pix per line 2Gb
 		 */
 
-		shift = MAX_CE_ALIGN(chunk) ? __ffs(MAX_CE_ALIGN(chunk)) :
-						MAX_CE_SHIFT;
+		shift = (MAX_CE_ALIGN(chunk) != 0ULL) ?
+				__ffs(MAX_CE_ALIGN(chunk)) : MAX_CE_SHIFT;
 		height = chunk >> shift;
 		width = 1 << shift;
 		height = MAX_CE_ALIGN(height);
@@ -448,7 +448,7 @@ u32 gk20a_ce_create_context(struct gk20a *g,
 	}
 
 	ce_ctx = nvgpu_kzalloc(g, sizeof(*ce_ctx));
-	if (!ce_ctx) {
+	if (ce_ctx == NULL) {
 		return ctx_id;
 	}
 
@@ -466,7 +466,7 @@ u32 gk20a_ce_create_context(struct gk20a *g,
 
 	/* allocate a tsg if needed */
 	ce_ctx->tsg = gk20a_tsg_open(g, nvgpu_current_pid(g));
-	if (!ce_ctx->tsg) {
+	if (ce_ctx->tsg == NULL) {
 		nvgpu_err(g, "ce: gk20a tsg not available");
 		err = -ENOMEM;
 		goto end;
@@ -475,7 +475,7 @@ u32 gk20a_ce_create_context(struct gk20a *g,
 	/* always kernel client needs privileged channel */
 	ce_ctx->ch = gk20a_open_new_channel(g, runlist_id, true,
 				nvgpu_current_pid(g), nvgpu_current_tid(g));
-	if (!ce_ctx->ch) {
+	if (ce_ctx->ch == NULL) {
 		nvgpu_err(g, "ce: gk20a channel not available");
 		err = -ENOMEM;
 		goto end;

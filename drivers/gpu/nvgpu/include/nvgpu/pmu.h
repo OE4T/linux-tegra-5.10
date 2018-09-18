@@ -342,7 +342,7 @@ struct nvgpu_pmu {
 
 	u32 perfmon_query;
 
-	u32 zbc_save_done;
+	bool zbc_save_done;
 
 	u32 stat_dmem_offset[PMU_PG_ELPG_ENGINE_ID_INVALID_ENGINE];
 

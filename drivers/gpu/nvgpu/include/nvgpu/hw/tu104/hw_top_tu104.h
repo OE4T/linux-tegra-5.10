@@ -132,6 +132,10 @@ static inline u32 top_device_info_chain_enable_v(void)
 {
 	return 0x00000001U;
 }
+static inline u32 top_device_info_chain_disable_v(void)
+{
+	return 0x00000000U;
+}
 static inline u32 top_device_info_engine_enum_v(u32 r)
 {
 	return (r >> 26U) & 0xfU;

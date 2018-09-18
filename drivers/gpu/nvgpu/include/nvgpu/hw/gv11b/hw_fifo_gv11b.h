@@ -492,6 +492,10 @@ static inline u32 fifo_engine_status_next_id_type_chid_v(void)
 {
 	return 0x00000000U;
 }
+static inline u32 fifo_engine_status_next_id_type_tsgid_v(void)
+{
+	return 0x00000001U;
+}
 static inline u32 fifo_engine_status_eng_reload_v(u32 r)
 {
 	return (r >> 29U) & 0x1U;
@@ -623,6 +627,10 @@ static inline u32 fifo_pbdma_status_next_id_type_v(u32 r)
 static inline u32 fifo_pbdma_status_next_id_type_chid_v(void)
 {
 	return 0x00000000U;
+}
+static inline u32 fifo_pbdma_status_next_id_type_tsgid_v(void)
+{
+	return 0x00000001U;
 }
 static inline u32 fifo_pbdma_status_chsw_v(u32 r)
 {

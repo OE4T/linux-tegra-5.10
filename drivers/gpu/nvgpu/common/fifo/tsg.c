@@ -218,7 +218,7 @@ int gk20a_tsg_set_runlist_interleave(struct tsg_gk20a *tsg, u32 level)
 	case NVGPU_FIFO_RUNLIST_INTERLEAVE_LEVEL_HIGH:
 		ret = g->ops.fifo.set_runlist_interleave(g, tsg->tsgid,
 							0, level);
-		if (!ret) {
+		if (ret == 0) {
 			tsg->interleave_level = level;
 		}
 		break;
@@ -227,7 +227,7 @@ int gk20a_tsg_set_runlist_interleave(struct tsg_gk20a *tsg, u32 level)
 		break;
 	}
 
-	return ret ? ret : g->ops.fifo.update_runlist(g, tsg->runlist_id, ~0, true, true);
+	return (ret != 0) ? ret : g->ops.fifo.update_runlist(g, tsg->runlist_id, ~0, true, true);
 }
 
 int gk20a_tsg_set_timeslice(struct tsg_gk20a *tsg, u32 timeslice)
@@ -243,7 +243,7 @@ u32 gk20a_tsg_get_timeslice(struct tsg_gk20a *tsg)
 {
 	struct gk20a *g = tsg->g;
 
-	if (!tsg->timeslice_us) {
+	if (tsg->timeslice_us == 0U) {
 		return g->ops.fifo.default_timeslice_us(g);
 	}
 

@@ -287,7 +287,7 @@ int gk20a_pmu_mutex_acquire(struct nvgpu_pmu *pmu, u32 id, u32 *token)
 		return -EINVAL;
 	}
 
-	BUG_ON(!token);
+	BUG_ON(token == NULL);
 	BUG_ON(!PMU_MUTEX_ID_IS_VALID(id));
 	BUG_ON(id > pmu->mutex_cnt);
 
@@ -357,7 +357,7 @@ int gk20a_pmu_mutex_release(struct nvgpu_pmu *pmu, u32 id, u32 *token)
 		return -EINVAL;
 	}
 
-	BUG_ON(!token);
+	BUG_ON(token == NULL);
 	BUG_ON(!PMU_MUTEX_ID_IS_VALID(id));
 	BUG_ON(id > pmu->mutex_cnt);
 
@@ -399,7 +399,7 @@ int gk20a_pmu_queue_head(struct gk20a *g, struct nvgpu_falcon_queue *queue,
 		queue_head_size = g->ops.pmu.pmu_get_queue_head_size();
 	}
 
-	BUG_ON(!head || !queue_head_size);
+	BUG_ON((head == NULL) || (queue_head_size == 0U));
 
 	if (PMU_IS_COMMAND_QUEUE(queue->id)) {
 
@@ -439,7 +439,7 @@ int gk20a_pmu_queue_tail(struct gk20a *g, struct nvgpu_falcon_queue *queue,
 		queue_tail_size = g->ops.pmu.pmu_get_queue_tail_size();
 	}
 
-	BUG_ON(!tail || !queue_tail_size);
+	BUG_ON((tail == NULL) || (queue_tail_size == 0U));
 
 	if (PMU_IS_COMMAND_QUEUE(queue->id)) {
 
@@ -479,7 +479,7 @@ void gk20a_pmu_msgq_tail(struct nvgpu_pmu *pmu, u32 *tail, bool set)
 		queue_tail_size = g->ops.pmu.pmu_get_queue_tail_size();
 	}
 
-	BUG_ON(!tail || !queue_tail_size);
+	BUG_ON((tail == NULL) || (queue_tail_size == 0U));
 
 	if (!set) {
 		*tail = pwr_pmu_msgq_tail_val_v(
@@ -542,7 +542,7 @@ static void pmu_handle_zbc_msg(struct gk20a *g, struct pmu_msg *msg,
 {
 	struct nvgpu_pmu *pmu = param;
 	gk20a_dbg_pmu(g, "reply ZBC_TABLE_UPDATE");
-	pmu->zbc_save_done = 1;
+	pmu->zbc_save_done = true;
 }
 
 void gk20a_pmu_save_zbc(struct gk20a *g, u32 entries)
@@ -551,7 +551,7 @@ void gk20a_pmu_save_zbc(struct gk20a *g, u32 entries)
 	struct pmu_cmd cmd;
 	u32 seq;
 
-	if (!pmu->pmu_ready || !entries || !pmu->zbc_ready) {
+	if (!pmu->pmu_ready || (entries == 0U) || !pmu->zbc_ready) {
 		return;
 	}
 
@@ -561,7 +561,7 @@ void gk20a_pmu_save_zbc(struct gk20a *g, u32 entries)
 	cmd.cmd.zbc.cmd_type = g->pmu_ver_cmd_id_zbc_table_update;
 	cmd.cmd.zbc.entry_mask = ZBC_MASK(entries);
 
-	pmu->zbc_save_done = 0;
+	pmu->zbc_save_done = false;
 
 	gk20a_dbg_pmu(g, "cmd post ZBC_TABLE_UPDATE");
 	nvgpu_pmu_cmd_post(g, &cmd, NULL, NULL, PMU_COMMAND_QUEUE_HPQ,
@@ -702,7 +702,7 @@ void gk20a_pmu_isr(struct gk20a *g)
 	gk20a_dbg_pmu(g, "received falcon interrupt: 0x%08x", intr);
 
 	intr = gk20a_readl(g, pwr_falcon_irqstat_r()) & mask;
-	if (!intr || pmu->pmu_state == PMU_STATE_OFF) {
+	if ((intr == 0U) || (pmu->pmu_state == PMU_STATE_OFF)) {
 		gk20a_writel(g, pwr_falcon_irqsclr_r(), intr);
 		nvgpu_mutex_release(&pmu->isr_mutex);
 		return;

@@ -138,7 +138,7 @@ int gk20a_finalize_poweron(struct gk20a *g)
 	 * Before probing the GPU make sure the GPU's state is cleared. This is
 	 * relevant for rebind operations.
 	 */
-	if (g->ops.xve.reset_gpu && !g->gpu_reset_done) {
+	if ((g->ops.xve.reset_gpu != NULL) && !g->gpu_reset_done) {
 		g->ops.xve.reset_gpu(g);
 		g->gpu_reset_done = true;
 	}
@@ -356,7 +356,8 @@ int gk20a_finalize_poweron(struct gk20a *g)
 		}
 	}
 
-	if (g->ops.pmu_ver.clk.clk_set_boot_clk && nvgpu_is_enabled(g, NVGPU_PMU_PSTATE)) {
+	if ((g->ops.pmu_ver.clk.clk_set_boot_clk != NULL) &&
+			nvgpu_is_enabled(g, NVGPU_PMU_PSTATE)) {
 		g->ops.pmu_ver.clk.clk_set_boot_clk(g);
 	} else {
 		err = nvgpu_clk_arb_init_arbiter(g);
@@ -392,7 +393,8 @@ int gk20a_finalize_poweron(struct gk20a *g)
 	if (g->ops.xve.available_speeds) {
 		u32 speed;
 
-		if (!nvgpu_is_enabled(g, NVGPU_SUPPORT_ASPM) && g->ops.xve.disable_aspm) {
+		if (!nvgpu_is_enabled(g, NVGPU_SUPPORT_ASPM) &&
+				(g->ops.xve.disable_aspm != NULL)) {
 			g->ops.xve.disable_aspm(g);
 		}
 
@@ -446,7 +448,7 @@ int gk20a_wait_for_idle(struct gk20a *g)
 	int wait_length = 150; /* 3 second overall max wait. */
 	int target_usage_count = 0;
 
-	if (!g) {
+	if (g == NULL) {
 		return -ENODEV;
 	}
 
@@ -474,7 +476,7 @@ int gk20a_init_gpu_characteristics(struct gk20a *g)
 		__nvgpu_set_enabled(g, NVGPU_SUPPORT_SYNC_FENCE_FDS, true);
 	}
 
-	if (g->ops.mm.support_sparse && g->ops.mm.support_sparse(g)) {
+	if ((g->ops.mm.support_sparse != NULL) && g->ops.mm.support_sparse(g)) {
 		__nvgpu_set_enabled(g, NVGPU_SUPPORT_SPARSE_ALLOCS, true);
 	}
 
@@ -563,9 +565,9 @@ struct gk20a * __must_check gk20a_get(struct gk20a *g)
 
 	nvgpu_log(g, gpu_dbg_shutdown, "GET: refs currently %d %s",
 		nvgpu_atomic_read(&g->refcount.refcount),
-			success ? "" : "(FAILED)");
+			(success != 0) ? "" : "(FAILED)");
 
-	return success ? g : NULL;
+	return (success != 0) ? g : NULL;
 }
 
 /**

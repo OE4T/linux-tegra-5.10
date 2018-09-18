@@ -86,7 +86,7 @@ inline bool gk20a_fence_is_valid(struct gk20a_fence *f)
 
 int gk20a_fence_install_fd(struct gk20a_fence *f, int fd)
 {
-	if (!f || !gk20a_fence_is_valid(f) ||
+	if ((f == NULL) || !gk20a_fence_is_valid(f) ||
 		!nvgpu_os_fence_is_initialized(&f->os_fence)) {
 			return -EINVAL;
 	}
@@ -99,7 +99,7 @@ int gk20a_fence_install_fd(struct gk20a_fence *f, int fd)
 int gk20a_fence_wait(struct gk20a *g, struct gk20a_fence *f,
 							unsigned long timeout)
 {
-	if (f && gk20a_fence_is_valid(f)) {
+	if ((f != NULL) && gk20a_fence_is_valid(f)) {
 		if (!nvgpu_platform_is_silicon(g)) {
 			timeout = MAX_SCHEDULE_TIMEOUT;
 		}
@@ -110,7 +110,7 @@ int gk20a_fence_wait(struct gk20a *g, struct gk20a_fence *f,
 
 bool gk20a_fence_is_expired(struct gk20a_fence *f)
 {
-	if (f && gk20a_fence_is_valid(f) && f->ops) {
+	if ((f != NULL) && gk20a_fence_is_valid(f) && (f->ops != NULL)) {
 		return f->ops->is_expired(f);
 	} else {
 		return true;
@@ -129,7 +129,7 @@ int gk20a_alloc_fence_pool(struct channel_gk20a *c, unsigned int count)
 		fence_pool = nvgpu_vzalloc(c->g, size);
 	}
 
-	if (!fence_pool) {
+	if (fence_pool == NULL) {
 		return -ENOMEM;
 	}
 
@@ -190,7 +190,7 @@ void gk20a_init_fence(struct gk20a_fence *f,
 		const struct gk20a_fence_ops *ops,
 		struct nvgpu_os_fence os_fence)
 {
-	if (!f) {
+	if (f == NULL) {
 		return;
 	}
 	f->ops = ops;
@@ -233,7 +233,7 @@ int gk20a_fence_from_semaphore(
 	struct gk20a_fence *f = fence_out;
 
 	gk20a_init_fence(f, &nvgpu_semaphore_fence_ops, os_fence);
-	if (!f) {
+	if (f == NULL) {
 		return -EINVAL;
 	}
 

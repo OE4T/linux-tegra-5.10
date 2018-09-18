@@ -114,7 +114,7 @@ int gk20a_init_mm_setup_hw(struct gk20a *g)
 		}
 	}
 
-	if (gk20a_mm_fb_flush(g) || gk20a_mm_fb_flush(g)) {
+	if ((gk20a_mm_fb_flush(g) != 0) || (gk20a_mm_fb_flush(g) != 0)) {
 		return -EBUSY;
 	}
 
@@ -229,8 +229,9 @@ static void __update_pte(struct vm_gk20a *vm,
 		gmmu_pte_kind_f(attrs->kind_v) |
 		gmmu_pte_comptagline_f((u32)(attrs->ctag >> ctag_shift));
 
-	if (attrs->ctag && vm->mm->use_full_comp_tag_line &&
-	    phys_addr & 0x10000) {
+	if ((attrs->ctag != 0ULL) &&
+	     vm->mm->use_full_comp_tag_line &&
+	    ((phys_addr & 0x10000ULL) != 0ULL)) {
 		pte_w[1] |= gmmu_pte_comptagline_f(
 			1 << (gmmu_pte_comptagline_s() - 1));
 	}
@@ -397,7 +398,7 @@ void gk20a_init_inst_block(struct nvgpu_mem *inst_block, struct vm_gk20a *vm,
 	nvgpu_mem_wr32(g, inst_block, ram_in_adr_limit_hi_w(),
 		ram_in_adr_limit_hi_f(u64_hi32(vm->va_limit - 1)));
 
-	if (big_page_size && g->ops.mm.set_big_page_size) {
+	if ((big_page_size != 0U) && (g->ops.mm.set_big_page_size != NULL)) {
 		g->ops.mm.set_big_page_size(g, inst_block, big_page_size);
 	}
 }
@@ -465,7 +466,7 @@ int gk20a_mm_fb_flush(struct gk20a *g)
 		} else {
 			break;
 		}
-	} while (!nvgpu_timeout_expired(&timeout));
+	} while (nvgpu_timeout_expired(&timeout) == 0);
 
 	if (nvgpu_timeout_peek_expired(&timeout)) {
 		if (g->ops.fb.dump_vpr_info) {
@@ -518,7 +519,7 @@ static void gk20a_mm_l2_invalidate_locked(struct gk20a *g)
 		} else {
 			break;
 		}
-	} while (!nvgpu_timeout_expired(&timeout));
+	} while (nvgpu_timeout_expired(&timeout) == 0);
 
 	if (nvgpu_timeout_peek_expired(&timeout)) {
 		nvgpu_warn(g, "l2_system_invalidate too many retries");
@@ -580,8 +581,8 @@ void gk20a_mm_l2_flush(struct gk20a *g, bool invalidate)
 		} else {
 			break;
 		}
-	} while (!nvgpu_timeout_expired_msg(&timeout,
-					 "l2_flush_dirty too many retries"));
+	} while (nvgpu_timeout_expired_msg(&timeout,
+				"l2_flush_dirty too many retries") == 0);
 
 	trace_gk20a_mm_l2_flush_done(g->name);
 
@@ -633,8 +634,8 @@ void gk20a_mm_cbc_clean(struct gk20a *g)
 		} else {
 			break;
 		}
-	} while (!nvgpu_timeout_expired_msg(&timeout,
-					 "l2_clean_comptags too many retries"));
+	} while (nvgpu_timeout_expired_msg(&timeout,
+				"l2_clean_comptags too many retries") == 0);
 
 	nvgpu_mutex_release(&mm->l2_op_lock);
 

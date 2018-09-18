@@ -100,6 +100,10 @@ static inline u32 ccsr_channel_enable_v(u32 r)
 {
 	return (r >> 0U) & 0x1U;
 }
+static inline u32 ccsr_channel_enable_in_use_v(void)
+{
+	return 0x00000001U;
+}
 static inline u32 ccsr_channel_enable_set_f(u32 v)
 {
 	return (v & 0x1U) << 10U;
@@ -159,5 +163,9 @@ static inline u32 ccsr_channel_next_true_v(void)
 static inline u32 ccsr_channel_busy_v(u32 r)
 {
 	return (r >> 28U) & 0x1U;
+}
+static inline u32 ccsr_channel_busy_true_v(void)
+{
+	return 0x00000001U;
 }
 #endif

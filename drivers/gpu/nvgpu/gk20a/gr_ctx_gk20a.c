@@ -38,7 +38,7 @@ static int gr_gk20a_alloc_load_netlist_u32(struct gk20a *g, u32 *src, u32 len,
 			struct u32_list_gk20a *u32_list)
 {
 	u32_list->count = (len + sizeof(u32) - 1) / sizeof(u32);
-	if (!alloc_u32_list_gk20a(g, u32_list)) {
+	if (alloc_u32_list_gk20a(g, u32_list) == NULL) {
 		return -ENOMEM;
 	}
 
@@ -51,7 +51,7 @@ static int gr_gk20a_alloc_load_netlist_av(struct gk20a *g, u32 *src, u32 len,
 			struct av_list_gk20a *av_list)
 {
 	av_list->count = len / sizeof(struct av_gk20a);
-	if (!alloc_av_list_gk20a(g, av_list)) {
+	if (alloc_av_list_gk20a(g, av_list) == NULL) {
 		return -ENOMEM;
 	}
 
@@ -64,7 +64,7 @@ static int gr_gk20a_alloc_load_netlist_av64(struct gk20a *g, u32 *src, u32 len,
 			struct av64_list_gk20a *av64_list)
 {
 	av64_list->count = len / sizeof(struct av64_gk20a);
-	if (!alloc_av64_list_gk20a(g, av64_list)) {
+	if (alloc_av64_list_gk20a(g, av64_list) == NULL) {
 		return -ENOMEM;
 	}
 
@@ -77,7 +77,7 @@ static int gr_gk20a_alloc_load_netlist_aiv(struct gk20a *g, u32 *src, u32 len,
 			struct aiv_list_gk20a *aiv_list)
 {
 	aiv_list->count = len / sizeof(struct aiv_gk20a);
-	if (!alloc_aiv_list_gk20a(g, aiv_list)) {
+	if (alloc_aiv_list_gk20a(g, aiv_list) == NULL) {
 		return -ENOMEM;
 	}
 
@@ -116,7 +116,7 @@ static int gr_gk20a_init_ctx_vars_fw(struct gk20a *g, struct gr_gk20a *gr)
 		}
 
 		netlist_fw = nvgpu_request_firmware(g, name, 0);
-		if (!netlist_fw) {
+		if (netlist_fw == NULL) {
 			nvgpu_warn(g, "failed to load netlist %s", name);
 			continue;
 		}

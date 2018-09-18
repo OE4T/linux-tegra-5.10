@@ -74,7 +74,7 @@ struct nvgpu_os_fence {
 /*
  * This API is used to validate the nvgpu_os_fence
  */
-static inline int nvgpu_os_fence_is_initialized(struct nvgpu_os_fence *fence)
+static inline bool nvgpu_os_fence_is_initialized(struct nvgpu_os_fence *fence)
 {
 	return (fence->ops != NULL);
 }
