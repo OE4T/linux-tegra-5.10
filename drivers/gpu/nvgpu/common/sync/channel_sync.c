@@ -31,6 +31,8 @@
 #include <nvgpu/nvhost.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/os_fence.h>
+#include <nvgpu/os_fence_syncpts.h>
+#include <nvgpu/os_fence_semas.h>
 #include <nvgpu/channel.h>
 #include <nvgpu/channel_sync.h>
 
@@ -47,7 +49,7 @@ struct nvgpu_channel_sync_syncpt {
 	struct nvgpu_mem syncpt_buf;
 };
 
-int channel_sync_syncpt_gen_wait_cmd(struct channel_gk20a *c,
+static int channel_sync_syncpt_gen_wait_cmd(struct channel_gk20a *c,
 	u32 id, u32 thresh, struct priv_cmd_entry *wait_cmd,
 	u32 wait_cmd_size, u32 pos, bool preallocated)
 {
@@ -100,24 +102,67 @@ static int channel_sync_syncpt_wait_raw(struct nvgpu_channel_sync *s,
 }
 
 static int channel_sync_syncpt_wait_fd(struct nvgpu_channel_sync *s, int fd,
-	struct priv_cmd_entry *wait_cmd, int max_wait_cmds)
+	struct priv_cmd_entry *wait_cmd, u32 max_wait_cmds)
 {
 	struct nvgpu_os_fence os_fence = {0};
+	struct nvgpu_os_fence_syncpt os_fence_syncpt = {0};
 	struct nvgpu_channel_sync_syncpt *sp =
 		container_of(s, struct nvgpu_channel_sync_syncpt, ops);
 	struct channel_gk20a *c = sp->c;
 	int err = 0;
+	u32 i, num_fences, wait_cmd_size;
+	u32 syncpt_id = 0U;
+	u32 syncpt_thresh = 0U;
 
 	err = nvgpu_os_fence_fdget(&os_fence, c, fd);
 	if (err != 0) {
 		return -EINVAL;
 	}
 
-	err = os_fence.ops->program_waits(&os_fence,
-		wait_cmd, c, max_wait_cmds);
+	err = nvgpu_os_fence_get_syncpts(&os_fence_syncpt, &os_fence);
+	if (err != 0) {
+		goto cleanup;
+	}
 
+	num_fences = nvgpu_os_fence_syncpt_get_num_syncpoints(&os_fence_syncpt);
+
+	if (num_fences == 0U) {
+		goto cleanup;
+	}
+
+	if ((max_wait_cmds != 0U) && (num_fences > max_wait_cmds)) {
+		err = -EINVAL;
+		goto cleanup;
+	}
+
+	for (i = 0; i < num_fences; i++) {
+		nvgpu_os_fence_syncpt_extract_nth_syncpt(
+			&os_fence_syncpt, i, &syncpt_id, &syncpt_thresh);
+		if ((syncpt_id == 0U) || !nvgpu_nvhost_syncpt_is_valid_pt_ext(
+			c->g->nvhost_dev, syncpt_id)) {
+				err = -EINVAL;
+				goto cleanup;
+		}
+	}
+
+	wait_cmd_size = c->g->ops.fifo.get_syncpt_wait_cmd_size();
+	err = gk20a_channel_alloc_priv_cmdbuf(c,
+		wait_cmd_size * num_fences, wait_cmd);
+	if (err != 0) {
+		nvgpu_err(c->g, "not enough priv cmd buffer space");
+		err = -EINVAL;
+		goto cleanup;
+	}
+
+	for (i = 0; i < num_fences; i++) {
+		nvgpu_os_fence_syncpt_extract_nth_syncpt(
+			&os_fence_syncpt, i, &syncpt_id, &syncpt_thresh);
+		err = channel_sync_syncpt_gen_wait_cmd(c, syncpt_id, 
+			syncpt_thresh, wait_cmd, wait_cmd_size, i, true);
+	}
+
+cleanup:
 	os_fence.ops->drop_ref(&os_fence);
-
 	return err;
 }
 
@@ -388,7 +433,7 @@ static void add_sema_cmd(struct gk20a *g, struct channel_gk20a *c,
 	}
 }
 
-void channel_sync_semaphore_gen_wait_cmd(struct channel_gk20a *c,
+static void channel_sync_semaphore_gen_wait_cmd(struct channel_gk20a *c,
 	struct nvgpu_semaphore *sema, struct priv_cmd_entry *wait_cmd,
 	u32 wait_cmd_size, u32 pos)
 {
@@ -418,25 +463,56 @@ static int channel_sync_semaphore_wait_raw_syncpt(
 
 static int channel_sync_semaphore_wait_fd(
 		struct nvgpu_channel_sync *s, int fd,
-		struct priv_cmd_entry *entry, int max_wait_cmds)
+		struct priv_cmd_entry *entry, u32 max_wait_cmds)
 {
 	struct nvgpu_channel_sync_semaphore *sema =
 		container_of(s, struct nvgpu_channel_sync_semaphore, ops);
 	struct channel_gk20a *c = sema->c;
 
 	struct nvgpu_os_fence os_fence = {0};
+	struct nvgpu_os_fence_sema os_fence_sema = {0};
 	int err;
+	u32 wait_cmd_size, i, num_fences;
+	struct nvgpu_semaphore *semaphore = NULL;
 
 	err = nvgpu_os_fence_fdget(&os_fence, c, fd);
 	if (err != 0) {
 		return err;
 	}
 
-	err = os_fence.ops->program_waits(&os_fence,
-		entry, c, max_wait_cmds);
+	err = nvgpu_os_fence_get_semas(&os_fence_sema, &os_fence);
+	if (err != 0) {
+		goto cleanup;
+	}
 
+	num_fences = nvgpu_os_fence_sema_get_num_semaphores(&os_fence_sema);
+
+	if (num_fences == 0U) {
+		goto cleanup;
+	}
+
+	if ((max_wait_cmds != 0U) && (num_fences > max_wait_cmds)) {
+		err = -EINVAL;
+		goto cleanup;
+	}
+
+	wait_cmd_size = c->g->ops.fifo.get_sema_wait_cmd_size();
+	err = gk20a_channel_alloc_priv_cmdbuf(c,
+		wait_cmd_size * num_fences, entry);
+	if (err != 0) {
+		nvgpu_err(c->g, "not enough priv cmd buffer space");
+		goto cleanup;
+	}
+
+	for (i = 0; i < num_fences; i++) {
+		nvgpu_os_fence_sema_extract_nth_semaphore(
+			&os_fence_sema, i, &semaphore);
+		channel_sync_semaphore_gen_wait_cmd(c, semaphore, entry,
+				wait_cmd_size, i);
+	}
+
+cleanup:
 	os_fence.ops->drop_ref(&os_fence);
-
 	return err;
 }
 

@@ -48,7 +48,7 @@ struct nvgpu_channel_sync {
 	 * Returns a gpu cmdbuf that performs the wait when executed
 	 */
 	int (*wait_fd)(struct nvgpu_channel_sync *s, int fd,
-		       struct priv_cmd_entry *entry, int max_wait_cmds);
+		       struct priv_cmd_entry *entry, u32 max_wait_cmds);
 
 	/* Increment syncpoint/semaphore.
 	 * Returns
@@ -95,14 +95,6 @@ struct nvgpu_channel_sync {
 	/* Free the resources allocated by nvgpu_channel_sync_create. */
 	void (*destroy)(struct nvgpu_channel_sync *s);
 };
-
-void channel_sync_semaphore_gen_wait_cmd(struct channel_gk20a *c,
-	struct nvgpu_semaphore *sema, struct priv_cmd_entry *wait_cmd,
-	u32 wait_cmd_size, u32 pos);
-
-int channel_sync_syncpt_gen_wait_cmd(struct channel_gk20a *c,
-		u32 id, u32 thresh, struct priv_cmd_entry *wait_cmd,
-		u32 wait_cmd_size, u32 pos, bool preallocated);
 
 void nvgpu_channel_sync_destroy(struct nvgpu_channel_sync *sync,
 	bool set_safe_state);

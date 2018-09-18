@@ -80,7 +80,7 @@ static int nvgpu_submit_prepare_syncs(struct channel_gk20a *c,
 	 * submission when user requested and the wait hasn't expired.
 	 */
 	if (flags & NVGPU_SUBMIT_FLAGS_FENCE_WAIT) {
-		int max_wait_cmds = c->deterministic ? 1 : 0;
+		u32 max_wait_cmds = c->deterministic ? 1U : 0U;
 
 		if (!pre_alloc_enabled) {
 			job->wait_cmd = nvgpu_kzalloc(g,

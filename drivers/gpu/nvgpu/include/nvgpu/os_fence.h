@@ -46,15 +46,6 @@ struct nvgpu_os_fence;
  */
 struct nvgpu_os_fence_ops {
 	/*
-	 * This API is used to iterate through multiple fence points within the
-	 * fence and program the pushbuffer method for wait command.
-	 */
-	int (*program_waits)(struct nvgpu_os_fence *s,
-		struct priv_cmd_entry *wait_cmd,
-		struct channel_gk20a *c,
-		int max_wait_cmds);
-
-	/*
 	 * This should be the last operation on the OS fence. The
 	 * OS fence acts as a place-holder for the underlying fence
 	 * implementation e.g. sync_fences. For each construct/fdget call

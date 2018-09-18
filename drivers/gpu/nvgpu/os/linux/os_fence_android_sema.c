@@ -31,49 +31,7 @@
 
 #include "../drivers/staging/android/sync.h"
 
-int nvgpu_os_fence_sema_wait_gen_cmd(struct nvgpu_os_fence *s,
-	struct priv_cmd_entry *wait_cmd,
-	struct channel_gk20a *c,
-	int max_wait_cmds)
-{
-	int err;
-	int wait_cmd_size;
-	int num_wait_cmds;
-	int i;
-	struct nvgpu_semaphore *sema;
-	struct sync_fence *sync_fence = nvgpu_get_sync_fence(s);
-
-	wait_cmd_size = c->g->ops.fifo.get_sema_wait_cmd_size();
-
-	num_wait_cmds = sync_fence->num_fences;
-	if (num_wait_cmds == 0)
-		return 0;
-
-	if (max_wait_cmds && num_wait_cmds > max_wait_cmds)
-		return -EINVAL;
-
-	err = gk20a_channel_alloc_priv_cmdbuf(c,
-		wait_cmd_size * num_wait_cmds,
-		wait_cmd);
-	if (err) {
-		nvgpu_err(c->g, "not enough priv cmd buffer space");
-		return err;
-	}
-
-	for (i = 0; i < num_wait_cmds; i++) {
-		struct sync_pt *pt = sync_pt_from_fence(
-			sync_fence->cbs[i].sync_pt);
-
-		sema = gk20a_sync_pt_sema(pt);
-		channel_sync_semaphore_gen_wait_cmd(c, sema, wait_cmd,
-			wait_cmd_size, i);
-	}
-
-	return 0;
-}
-
 static const struct nvgpu_os_fence_ops sema_ops = {
-	.program_waits = nvgpu_os_fence_sema_wait_gen_cmd,
 	.drop_ref = nvgpu_os_fence_android_drop_ref,
 	.install_fence = nvgpu_os_fence_android_install_fd,
 };
@@ -143,3 +101,4 @@ int nvgpu_os_fence_sema_fdget(struct nvgpu_os_fence *fence_out,
 
 	return 0;
 }
+
