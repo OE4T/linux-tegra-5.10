@@ -20,6 +20,8 @@
 #include <linux/platform_device.h>
 #include <linux/of_gpio.h>
 #include <linux/gpio/consumer.h>
+#include <linux/ktime.h>
+#include <linux/debugfs.h>
 
 #include <nvgpu/lock.h>
 
@@ -29,6 +31,19 @@
 
 #define PCI_DEV_NAME_MAX	64
 
+struct pci_power_stats {
+	u64 power_ons;
+	s64 power_on_lat_ns_min;
+	s64 power_on_lat_ns_max;
+	s64 power_on_lat_ns_avg;
+	u64 power_offs;
+	s64 power_off_lat_ns_min;
+	s64 power_off_lat_ns_max;
+	s64 power_off_lat_ns_avg;
+};
+
+static struct dentry *pci_power_stats_dbgfs_dentry;
+
 struct nvgpu_pci_power {
 	struct	list_head list;
 	struct	nvgpu_mutex mutex;
@@ -36,6 +51,7 @@ struct nvgpu_pci_power {
 	struct	pci_dev *pci_dev;
 	char	pci_dev_name[PCI_DEV_NAME_MAX];
 	void	*pci_cookie;
+	struct	pci_power_stats stats;
 };
 
 static struct list_head nvgpu_pci_power_devs =
@@ -262,6 +278,87 @@ static int nvgpu_assert_pci_pwr_on(struct nvgpu_pci_gpios *pgpios)
 	return 0;
 }
 
+static void nvgpu_update_power_on_stats(struct nvgpu_pci_power *pp, s64 time_ns)
+{
+	struct pci_power_stats *stats = &pp->stats;
+
+	stats->power_ons++;
+
+	if (unlikely(stats->power_on_lat_ns_min == 0)) {
+		stats->power_on_lat_ns_min = time_ns;
+		stats->power_on_lat_ns_max = time_ns;
+		stats->power_on_lat_ns_avg = time_ns;
+		return;
+	}
+
+	if (time_ns < stats->power_on_lat_ns_min)
+		stats->power_on_lat_ns_min = time_ns;
+
+	if (time_ns > stats->power_on_lat_ns_max)
+		stats->power_on_lat_ns_max = time_ns;
+
+	stats->power_on_lat_ns_avg =
+		(stats->power_on_lat_ns_avg + time_ns) >> 1;
+}
+
+static void nvgpu_update_power_off_stats(struct nvgpu_pci_power *pp,
+					 s64 time_ns)
+{
+	struct pci_power_stats *stats = &pp->stats;
+
+	stats->power_offs++;
+
+	if (unlikely(stats->power_off_lat_ns_min == 0)) {
+		stats->power_off_lat_ns_min = time_ns;
+		stats->power_off_lat_ns_max = time_ns;
+		stats->power_off_lat_ns_avg = time_ns;
+		return;
+	}
+
+	if (time_ns < stats->power_off_lat_ns_min)
+		stats->power_off_lat_ns_min = time_ns;
+
+	if (time_ns > stats->power_off_lat_ns_max)
+		stats->power_off_lat_ns_max = time_ns;
+
+	stats->power_off_lat_ns_avg =
+		(stats->power_off_lat_ns_avg + time_ns) >> 1;
+}
+
+#define DBG_POWER_STAT_SEQ_PRINTF(s, stat)	\
+	seq_printf(s, "%20s:%15lld\n", #stat, pp->stats.stat)
+
+static int debugfs_pci_power_stats_show(struct seq_file *s, void *unused)
+{
+	struct nvgpu_pci_power *pp, *tmp_pp;
+
+	list_for_each_entry_safe(pp, tmp_pp, &nvgpu_pci_power_devs, list) {
+		seq_printf(s, "PCI GPU (%s) Power Stats:\n", pp->pci_dev_name);
+		DBG_POWER_STAT_SEQ_PRINTF(s, power_ons);
+		DBG_POWER_STAT_SEQ_PRINTF(s, power_on_lat_ns_min);
+		DBG_POWER_STAT_SEQ_PRINTF(s, power_on_lat_ns_max);
+		DBG_POWER_STAT_SEQ_PRINTF(s, power_on_lat_ns_avg);
+		DBG_POWER_STAT_SEQ_PRINTF(s, power_offs);
+		DBG_POWER_STAT_SEQ_PRINTF(s, power_off_lat_ns_min);
+		DBG_POWER_STAT_SEQ_PRINTF(s, power_off_lat_ns_max);
+		DBG_POWER_STAT_SEQ_PRINTF(s, power_off_lat_ns_avg);
+	}
+
+	return 0;
+}
+
+static int debugfs_pci_power_stats_open(struct inode *i, struct file *f)
+{
+	return single_open(f, debugfs_pci_power_stats_show, &i->i_private);
+}
+
+static const struct file_operations debug_power_stats_fops = {
+	.open		= debugfs_pci_power_stats_open,
+	.read		= seq_read,
+	.llseek		= seq_lseek,
+	.release	= single_release,
+};
+
 #if !IS_ENABLED(CONFIG_PCIE_TEGRA_DW) ||		\
 	!IS_ENABLED(CONFIG_ARCH_TEGRA_19x_SOC) ||	\
 	LINUX_VERSION_CODE < KERNEL_VERSION(4, 9, 0)
@@ -317,6 +414,8 @@ static int nvgpu_pci_gpu_power_on(char *dev_name)
 {
 	struct nvgpu_pci_power *pp;
 	struct nvgpu_pci_gpios *pgpios;
+	ktime_t time_start;
+	s64 time_ns;
 	int ret;
 
 	pp = nvgpu_pci_get_pci_power(dev_name);
@@ -324,6 +423,8 @@ static int nvgpu_pci_gpu_power_on(char *dev_name)
 		pr_err("nvgpu: no pci dev by name: %s\n", dev_name);
 		return -ENODEV;
 	}
+
+	time_start = ktime_get();
 
 	nvgpu_mutex_acquire(&pp->mutex);
 
@@ -362,6 +463,9 @@ static int nvgpu_pci_gpu_power_on(char *dev_name)
 	nvgpu_dump_pci_gpios(pgpios, __func__);
 
 	nvgpu_mutex_release(&pp->mutex);
+
+	time_ns = ktime_to_ns(ktime_sub(ktime_get(), time_start));
+	nvgpu_update_power_on_stats(pp, time_ns);
 	return 0;
 out:
 	nvgpu_mutex_release(&pp->mutex);
@@ -374,6 +478,8 @@ static int nvgpu_pci_gpu_power_off(char *dev_name)
 	struct nvgpu_pci_gpios *pgpios;
 	struct device *dev;
 	struct gk20a *g;
+	ktime_t time_start;
+	s64 time_ns;
 	int ret;
 
 	pp = nvgpu_pci_get_pci_power(dev_name);
@@ -381,6 +487,8 @@ static int nvgpu_pci_gpu_power_off(char *dev_name)
 		pr_err("nvgpu: no pci dev by name: %s\n", dev_name);
 		return -ENODEV;
 	}
+
+	time_start = ktime_get();
 
 	nvgpu_mutex_acquire(&pp->mutex);
 
@@ -427,6 +535,9 @@ static int nvgpu_pci_gpu_power_off(char *dev_name)
 	nvgpu_dump_pci_gpios(pgpios, __func__);
 
 	nvgpu_mutex_release(&pp->mutex);
+
+	time_ns = ktime_to_ns(ktime_sub(ktime_get(), time_start));
+	nvgpu_update_power_off_stats(pp, time_ns);
 	return 0;
 out:
 	nvgpu_mutex_release(&pp->mutex);
@@ -458,14 +569,25 @@ int nvgpu_pci_set_powerstate(char *dev_name, int powerstate)
 int __init nvgpu_pci_power_init(struct pci_driver *nvgpu_pci_driver)
 {
 	struct device_driver *driver = &nvgpu_pci_driver->driver;
+	struct dentry *d;
 	int ret;
 
 	ret = driver_create_file(driver, &driver_attr_probed_gpus);
 	if (ret)
 		goto err_probed_gpus;
 
+	d = debugfs_create_file("tegra_nvgpu_pci_power_stats", 0400,
+				NULL, NULL, &debug_power_stats_fops);
+	if (!d) {
+		ret = -ENOENT;
+		goto err_power_stats;
+	}
+	pci_power_stats_dbgfs_dentry = d;
+
 	return 0;
 
+err_power_stats:
+	driver_remove_file(driver, &driver_attr_probed_gpus);
 err_probed_gpus:
 	return ret;
 }
@@ -473,6 +595,8 @@ err_probed_gpus:
 void __exit nvgpu_pci_power_exit(struct pci_driver *nvgpu_pci_driver)
 {
 	struct device_driver *driver = &nvgpu_pci_driver->driver;
+
+	debugfs_remove(pci_power_stats_dbgfs_dentry);
 
 	driver_remove_file(driver, &driver_attr_probed_gpus);
 }
