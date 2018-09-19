@@ -133,6 +133,22 @@ int nvgpu_pci_clear_pci_power(const char *dev_name)
 	return -ENODEV;
 }
 
+static int nvgpu_pci_parse_dev_name(const char *buf, size_t count, char *name)
+{
+	int domain, bus, device, func;
+	int ret;
+
+	/* DDDD:BB:DD.F for domain:bus:device.function */
+	ret = sscanf(buf, "%x:%x:%x.%x", &domain, &bus, &device, &func);
+	if (ret < 4)
+		return -EINVAL;
+
+	snprintf(name, PCI_DEV_NAME_MAX, "%04x:%02x:%02x.%1x",
+		 domain, bus, device, func);
+
+	return 0;
+}
+
 static char *nvgpu_pci_gpio_name(int g)
 {
 	switch (g) {
@@ -565,6 +581,59 @@ int nvgpu_pci_set_powerstate(char *dev_name, int powerstate)
 	return ret;
 }
 
+static ssize_t poweroff_store(struct device_driver *drv,
+			      const char *buf, size_t count)
+{
+	struct nvgpu_pci_power *pp;
+	char dev_name[PCI_DEV_NAME_MAX];
+	int ret;
+
+	ret = nvgpu_pci_parse_dev_name(buf, count, dev_name);
+	if (ret)
+		return ret;
+
+	pp = nvgpu_pci_get_pci_power(dev_name);
+	if (!pp)
+		return -ENODEV;
+
+	ret = nvgpu_pci_set_powerstate(dev_name, NVGPU_POWER_OFF);
+	if (ret) {
+		pr_err("nvgpu: GPU(%s) POWER OFF failed\n", dev_name);
+		return ret;
+	}
+
+	pr_debug("nvgpu: GPU(%s) POWER OFF done\n", dev_name);
+	return count;
+}
+
+static DRIVER_ATTR_WO(poweroff);
+
+static ssize_t poweron_store(struct device_driver *drv,
+			     const char *buf, size_t count)
+{
+	struct nvgpu_pci_power *pp;
+	char dev_name[PCI_DEV_NAME_MAX];
+	int ret;
+
+	ret = nvgpu_pci_parse_dev_name(buf, count, dev_name);
+	if (ret)
+		return ret;
+
+	pp = nvgpu_pci_get_pci_power(dev_name);
+	if (!pp)
+		return -ENODEV;
+
+	ret = nvgpu_pci_set_powerstate(dev_name, NVGPU_POWER_ON);
+	if (ret) {
+		pr_err("nvgpu: GPU(%s) POWER ON failed\n", dev_name);
+		return ret;
+	}
+
+	pr_debug("nvgpu: GPU(%s) POWER ON done\n", dev_name);
+	return count;
+}
+
+static DRIVER_ATTR_WO(poweron);
 
 int __init nvgpu_pci_power_init(struct pci_driver *nvgpu_pci_driver)
 {
@@ -584,8 +653,21 @@ int __init nvgpu_pci_power_init(struct pci_driver *nvgpu_pci_driver)
 	}
 	pci_power_stats_dbgfs_dentry = d;
 
+	ret = driver_create_file(driver, &driver_attr_poweroff);
+	if (ret)
+		goto err_poweroff;
+
+	ret = driver_create_file(driver, &driver_attr_poweron);
+	if (ret)
+		goto err_poweron;
+
 	return 0;
 
+err_poweron:
+	driver_remove_file(driver, &driver_attr_poweroff);
+err_poweroff:
+	debugfs_remove(d);
+	pci_power_stats_dbgfs_dentry = NULL;
 err_power_stats:
 	driver_remove_file(driver, &driver_attr_probed_gpus);
 err_probed_gpus:
@@ -595,6 +677,9 @@ err_probed_gpus:
 void __exit nvgpu_pci_power_exit(struct pci_driver *nvgpu_pci_driver)
 {
 	struct device_driver *driver = &nvgpu_pci_driver->driver;
+
+	driver_remove_file(driver, &driver_attr_poweroff);
+	driver_remove_file(driver, &driver_attr_poweron);
 
 	debugfs_remove(pci_power_stats_dbgfs_dentry);
 
