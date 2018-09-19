@@ -30,6 +30,7 @@
 #include <nvgpu/io.h>
 #include <nvgpu/utils.h>
 #include <nvgpu/gk20a.h>
+#include <nvgpu/sec2if/sec2_if_cmn.h>
 
 #include "gm20b/mm_gm20b.h"
 #include "gm20b/acr_gm20b.h"
@@ -594,7 +595,7 @@ int lsfm_discover_ucode_images(struct gk20a *g,
 		/* The falon_id is formed by grabbing the static base
 		 * falon_id from the image and adding the
 		 * engine-designated falcon instance.
-                 */
+		 */
 		pmu->pmu_mode |= PMU_SECURE_MODE;
 		falcon_id = ucode_img.lsf_desc->falcon_id +
 			ucode_img.flcn_inst;
@@ -605,7 +606,6 @@ int lsfm_discover_ucode_images(struct gk20a *g,
 				pmu->falcon_id) == 0) {
 				pmu->pmu_mode |= PMU_LSFM_MANAGED;
 			}
-
 			plsfm->managed_flcn_cnt++;
 		} else {
 			gp106_dbg_pmu(g, "id not managed %d\n",
@@ -785,7 +785,15 @@ int gp106_flcn_populate_bl_dmem_desc(struct gk20a *g,
 
 	/* Populate the LOADER_CONFIG state */
 	memset((void *) ldr_cfg, 0, sizeof(struct flcn_bl_dmem_desc_v1));
-	ldr_cfg->ctx_dma = GK20A_PMU_DMAIDX_UCODE;
+
+	if (falconid == LSF_FALCON_ID_SEC2) {
+		addr_code = addr_base + desc->app_start_offset;
+		ldr_cfg->ctx_dma = NV_SEC2_DMAIDX_UCODE;
+		ldr_cfg->non_sec_code_off = desc->app_resident_code_offset;
+	} else {
+		ldr_cfg->ctx_dma = GK20A_PMU_DMAIDX_UCODE;
+	}
+
 	flcn64_set_dma(&ldr_cfg->code_dma_base, addr_code);
 	ldr_cfg->non_sec_code_size = desc->app_resident_code_size;
 	flcn64_set_dma(&ldr_cfg->data_dma_base, addr_data);

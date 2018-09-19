@@ -304,6 +304,19 @@ int nvgpu_init_pmu_support(struct gk20a *g)
 		}
 
 		if (nvgpu_is_enabled(g, NVGPU_SEC_PRIVSECURITY)) {
+
+			if (nvgpu_is_enabled(g, NVGPU_SUPPORT_SEC2_RTOS)) {
+				/* Reset PMU engine */
+				err = nvgpu_flcn_reset(&g->pmu_flcn);
+
+				/* Bootstrap PMU from SEC2 RTOS*/
+				err = nvgpu_sec2_bootstrap_ls_falcons(g, &g->sec2,
+					LSF_FALCON_ID_PMU);
+				if (err != 0) {
+					goto exit;
+				}
+			}
+
 			/*
 			 * clear halt interrupt to avoid PMU-RTOS ucode
 			 * hitting breakpoint due to PMU halt

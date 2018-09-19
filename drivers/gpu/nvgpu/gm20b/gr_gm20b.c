@@ -805,9 +805,16 @@ int gr_gm20b_load_ctxsw_ucode(struct gk20a *g)
 		} else {
 			/* bind WPR VA inst block */
 			gr_gk20a_load_falcon_bind_instblk(g);
-			err = g->ops.pmu.load_lsfalcon_ucode(g,
-				(1 << LSF_FALCON_ID_FECS) |
-				(1 << LSF_FALCON_ID_GPCCS));
+			if (nvgpu_is_enabled(g, NVGPU_SUPPORT_SEC2_RTOS)) {
+				err = nvgpu_sec2_bootstrap_ls_falcons(g, &g->sec2,
+						LSF_FALCON_ID_FECS);
+				err = nvgpu_sec2_bootstrap_ls_falcons(g, &g->sec2,
+						LSF_FALCON_ID_GPCCS);
+			} else {
+				err = g->ops.pmu.load_lsfalcon_ucode(g,
+					(1 << LSF_FALCON_ID_FECS) |
+					(1 << LSF_FALCON_ID_GPCCS));
+			}
 		}
 		if (err) {
 			nvgpu_err(g, "Unable to recover GR falcon");
@@ -829,7 +836,14 @@ int gr_gm20b_load_ctxsw_ucode(struct gk20a *g)
 				falcon_id_mask |= (1 << LSF_FALCON_ID_GPCCS);
 			}
 
-			err = g->ops.pmu.load_lsfalcon_ucode(g, falcon_id_mask);
+			if (nvgpu_is_enabled(g, NVGPU_SUPPORT_SEC2_RTOS)) {
+				err = nvgpu_sec2_bootstrap_ls_falcons(g, &g->sec2,
+						LSF_FALCON_ID_FECS);
+				err = nvgpu_sec2_bootstrap_ls_falcons(g, &g->sec2,
+						LSF_FALCON_ID_GPCCS);
+			} else {
+				err = g->ops.pmu.load_lsfalcon_ucode(g, falcon_id_mask);
+			}
 
 			if (err) {
 				nvgpu_err(g, "Unable to boot GPCCS");

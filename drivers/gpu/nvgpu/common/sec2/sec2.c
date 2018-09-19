@@ -161,7 +161,8 @@ int nvgpu_init_sec2_support(struct gk20a *g)
 	sec2->isr_enabled = true;
 	nvgpu_mutex_release(&sec2->isr_mutex);
 
-	/* TBD - call SEC2 in secure mode to boot RTOS */
+	/* execute SEC2 in secure mode to boot RTOS */
+	g->ops.sec2.secured_sec2_start(g);
 
 exit:
 	return err;
@@ -185,4 +186,88 @@ int nvgpu_sec2_destroy(struct gk20a *g)
 	sec2->sec2_ready = false;
 
 	return 0;
+}
+
+/* Add code below to handle SEC2 RTOS commands */
+/* LSF's bootstrap command */
+static void sec2_handle_lsfm_boot_acr_msg(struct gk20a *g,
+	struct nv_flcn_msg_sec2 *msg,
+	void *param, u32 handle, u32 status)
+{
+	bool *command_ack = param;
+
+	nvgpu_log_fn(g, " ");
+
+	nvgpu_sec2_dbg(g, "reply NV_SEC2_ACR_CMD_ID_BOOTSTRAP_FALCON");
+
+	nvgpu_sec2_dbg(g, "flcn %d: error code = %x",
+		msg->msg.acr.msg_flcn.falcon_id,
+		msg->msg.acr.msg_flcn.error_code);
+
+	*command_ack = true;
+}
+
+static void sec2_load_ls_falcons(struct gk20a *g, struct nvgpu_sec2 *sec2,
+	u32 falcon_id, u32 flags)
+{
+	struct nv_flcn_cmd_sec2 cmd;
+	bool command_ack;
+	u32 seq = 0;
+	int err = 0;
+
+	nvgpu_log_fn(g, " ");
+
+	/* send message to load falcon */
+	memset(&cmd, 0, sizeof(struct nv_flcn_cmd_sec2));
+	cmd.hdr.unit_id = NV_SEC2_UNIT_ACR;
+	cmd.hdr.size = PMU_CMD_HDR_SIZE +
+		sizeof(struct nv_sec2_acr_cmd_bootstrap_falcon);
+
+	cmd.cmd.acr.bootstrap_falcon.cmd_type =
+		NV_SEC2_ACR_CMD_ID_BOOTSTRAP_FALCON;
+	cmd.cmd.acr.bootstrap_falcon.flags = flags;
+	cmd.cmd.acr.bootstrap_falcon.falcon_id = falcon_id;
+
+	nvgpu_sec2_dbg(g, "NV_SEC2_ACR_CMD_ID_BOOTSTRAP_FALCON : %x",
+		falcon_id);
+
+	command_ack = false;
+	err = nvgpu_sec2_cmd_post(g, &cmd, NULL, PMU_COMMAND_QUEUE_HPQ,
+		sec2_handle_lsfm_boot_acr_msg, &command_ack, &seq, ~0);
+	if (err != 0) {
+		nvgpu_err(g, "command post failed");
+	}
+
+	err = nvgpu_sec2_wait_message_cond(sec2, gk20a_get_gr_idle_timeout(g),
+		&command_ack, true);
+	if (err != 0) {
+		nvgpu_err(g, "command ack receive failed");
+	}
+
+	return;
+}
+
+int nvgpu_sec2_bootstrap_ls_falcons(struct gk20a *g, struct nvgpu_sec2 *sec2,
+	u32 falcon_id)
+{
+	int err = 0;
+
+	nvgpu_log_fn(g, " ");
+
+	nvgpu_sec2_dbg(g, "Check SEC2 RTOS is ready else wait");
+	err = nvgpu_sec2_wait_message_cond(&g->sec2, gk20a_get_gr_idle_timeout(g),
+			&g->sec2.sec2_ready, true);
+	if (err != 0){
+		nvgpu_err(g, "SEC2 RTOS not ready yet, failed to bootstrap flcn %d",
+			falcon_id);
+		goto exit;
+	}
+
+	nvgpu_sec2_dbg(g, "LS flcn %d bootstrap, blocked call", falcon_id);
+	sec2_load_ls_falcons(g, sec2, falcon_id,
+		NV_SEC2_ACR_CMD_BOOTSTRAP_FALCON_FLAGS_RESET_YES);
+
+exit:
+	nvgpu_sec2_dbg(g, "Done, err-%x", err);
+	return err;
 }
