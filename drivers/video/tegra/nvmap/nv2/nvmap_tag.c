@@ -34,12 +34,13 @@ struct nvmap_tag_entry *nvmap_search_tag_entry(struct rb_root *root, u32 tag)
 	while (node) {
 		entry = rb_entry(node, struct nvmap_tag_entry, node);
 
-		if (entry->tag > tag)
+		if (entry->tag > tag) {
 			node = node->rb_left;
-		else if (entry->tag < tag)
+		} else if (entry->tag < tag) {
 			node = node->rb_right;
-		else
+		} else {
 			return entry;  /* Found it */
+		}
 	}
 	return NULL;
 }
@@ -58,10 +59,11 @@ static void nvmap_insert_tag_entry(struct rb_root *root,
 	    parent = *link;
 	    entry = rb_entry(parent, struct nvmap_tag_entry, node);
 
-	    if (entry->tag > tag)
+	    if (entry->tag > tag) {
 		link = &parent->rb_left;
-	    else
+	    } else {
 		link = &parent->rb_right;
+	    }
 	}
 
 	/* Put the new node there */
@@ -77,8 +79,9 @@ int nvmap_define_tag(struct nvmap_device *dev, u32 tag,
 	struct nvmap_tag_entry *old;
 
 	new = kzalloc(sizeof(struct nvmap_tag_entry) + len + 1, GFP_KERNEL);
-	if (!new)
+	if (!new) {
 		return -ENOMEM;
+	}
 
 	if (copy_from_user(new + 1, name, len)) {
 		kfree(new);

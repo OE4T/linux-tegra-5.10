@@ -191,37 +191,42 @@ void nvmap_cache_inner_clean_all(void)
 
 void nvmap_cache_inner_maint(unsigned int op, void *vaddr, size_t size)
 {
-	if (op == NVMAP_CACHE_OP_WB_INV)
+	if (op == NVMAP_CACHE_OP_WB_INV) {
 #if LINUX_VERSION_CODE < KERNEL_VERSION(4, 9, 0)
 		__dma_flush_range(vaddr, vaddr + size);
 #else
 		__dma_flush_area(vaddr, size);
 #endif
-	else if (op == NVMAP_CACHE_OP_INV)
+	} else if (op == NVMAP_CACHE_OP_INV) {
 		__dma_map_area(vaddr, size, DMA_FROM_DEVICE);
-	else
+	} else {
 		__dma_map_area(vaddr, size, DMA_TO_DEVICE);
+	}
 }
 
 bool nvmap_cache_can_fast_maint(unsigned long start,
 			unsigned long end, unsigned int op)
 {
-	if (!nvmap_cache_maint_by_set_ways)
+	if (!nvmap_cache_maint_by_set_ways) {
 		return false;
+	}
 
 	if ((op == NVMAP_CACHE_OP_INV) ||
-		((end - start) < cache_maint_inner_threshold))
+		((end - start) < cache_maint_inner_threshold)) {
 		return false;
+	}
+
 	return true;
 }
 
 void nvmap_cache_fast_maint(unsigned int op)
 {
 
-	if (op == NVMAP_CACHE_OP_WB_INV)
+	if (op == NVMAP_CACHE_OP_WB_INV) {
 		nvmap_cache_inner_flush_all();
-	else if (op == NVMAP_CACHE_OP_WB)
+	} else if (op == NVMAP_CACHE_OP_WB) {
 		nvmap_cache_inner_clean_all();
+	}
 }
 
 /*
@@ -243,8 +248,10 @@ int nvmap_cache_maint_phys_range(unsigned int op, phys_addr_t pstart,
 	}
 
 	area = alloc_vm_area(PAGE_SIZE, NULL);
-	if (!area)
+	if (!area) {
 		return -ENOMEM;
+	}
+
 	kaddr = (ulong)area->addr;
 
 	cur_addr = pstart;
@@ -290,24 +297,27 @@ void nvmap_cache_maint_heap_page_outer(struct page **pages,
 
 void nvmap_cache_maint_inner(unsigned int op, void *vaddr, size_t size)
 {
-	if (op == NVMAP_CACHE_OP_WB_INV)
+	if (op == NVMAP_CACHE_OP_WB_INV) {
 #if LINUX_VERSION_CODE < KERNEL_VERSION(4, 9, 0)
 		__dma_flush_range(vaddr, vaddr + size);
 #else
 		__dma_flush_area(vaddr, size);
 #endif
-	else if (op == NVMAP_CACHE_OP_INV)
+	} else if (op == NVMAP_CACHE_OP_INV) {
 		__dma_map_area(vaddr, size, DMA_FROM_DEVICE);
-	else
+	} else {
 		__dma_map_area(vaddr, size, DMA_TO_DEVICE);
+	}
 }
 
 static int cache_inner_threshold_show(struct seq_file *m, void *v)
 {
-	if (nvmap_cache_maint_by_set_ways)
+	if (nvmap_cache_maint_by_set_ways) {
 		seq_printf(m, "%zuB\n", cache_maint_inner_threshold);
-	else
+	} else {
 		seq_printf(m, "%zuB\n", SIZE_MAX);
+	}
+
 	return 0;
 }
 
@@ -325,17 +335,20 @@ static ssize_t cache_inner_threshold_write(struct file *file,
 	char str[] = "0123456789abcdef";
 
 	count = min_t(size_t, strlen(str), count);
-	if (copy_from_user(str, buffer, count))
+	if (copy_from_user(str, buffer, count)) {
 		return -EINVAL;
+	}
 
-	if (!nvmap_cache_maint_by_set_ways)
+	if (!nvmap_cache_maint_by_set_ways) {
 		return -EINVAL;
+	}
 
 	mutex_lock(&p->lock);
 	ret = sscanf(str, "%16zu", &cache_maint_inner_threshold);
 	mutex_unlock(&p->lock);
-	if (ret != 1)
+	if (ret != 1) {
 		return -EINVAL;
+	}
 
 	pr_debug("nvmap:cache_maint_inner_threshold is now :%zuB\n",
 			cache_maint_inner_threshold);
@@ -354,12 +367,14 @@ int nvmap_cache_debugfs_init(struct dentry *nvmap_root)
 {
 	struct dentry *cache_root;
 
-	if (!nvmap_root)
+	if (!nvmap_root) {
 		return -ENODEV;
+	}
 
 	cache_root = debugfs_create_dir("cache", nvmap_root);
-	if (!cache_root)
+	if (!cache_root) {
 		return -ENODEV;
+	}
 
 	if (nvmap_cache_maint_by_set_ways) {
 		debugfs_create_x32("nvmap_cache_maint_by_set_ways",
@@ -367,11 +382,11 @@ int nvmap_cache_debugfs_init(struct dentry *nvmap_root)
 				   cache_root,
 				   &nvmap_cache_maint_by_set_ways);
 
-	debugfs_create_file("cache_maint_inner_threshold",
-			    S_IRUSR | S_IWUSR,
-			    cache_root,
-			    NULL,
-			    &cache_inner_threshold_fops);
+		debugfs_create_file("cache_maint_inner_threshold",
+				S_IRUSR | S_IWUSR,
+				cache_root,
+				NULL,
+				&cache_inner_threshold_fops);
 	}
 
 	debugfs_create_atomic_t("nvmap_disable_vaddr_for_cache_maint",

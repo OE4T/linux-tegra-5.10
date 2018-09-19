@@ -62,8 +62,9 @@ void nvmap_vma_zap(struct list_head *vmas, u64 offset, u64 size)
 
 		vma = vma_list->vma;
 		priv = vma->vm_private_data;
-		if ((offset + size) > (vma->vm_end - vma->vm_start))
+		if ((offset + size) > (vma->vm_end - vma->vm_start)) {
 			vm_size = vma->vm_end - vma->vm_start - offset;
+		}
 
 		if (priv->offs || vma->vm_pgoff) {
 			/* vma mapping starts in the middle of handle memory.
@@ -90,13 +91,15 @@ static int nvmap_vma_list_prot_none(struct nvmap_vma_list *vma_list,
 	vma->vm_flags = vma_list->save_vm_flags;
 	(void)vma_set_page_prot(vma);
 
-	if (!handle_is_dirty)
+	if (!handle_is_dirty) {
 		return 0;
+	}
 
 	err = mprotect_fixup(vma, &prev, vma->vm_start,
 			vma->vm_start + vm_size, VM_NONE);
-	if (err)
+	if (err) {
 		return err;
+	}
 
 	vma->vm_flags = vma_list->save_vm_flags;
 	(void)vma_set_page_prot(vma);
@@ -131,15 +134,18 @@ int nvmap_vma_list_prot(struct nvmap_vma_list *vma_list, u64 offset,
 
 	vm_size = size;
 
-	if ((offset + size) > (vma->vm_end - vma->vm_start))
+	if ((offset + size) > (vma->vm_end - vma->vm_start)) {
 		vm_size = vma->vm_end - vma->vm_start - offset;
+	}
 
 	if ((priv->offs || vma->vm_pgoff) ||
-			(size > (vma->vm_end - vma->vm_start)))
+			(size > (vma->vm_end - vma->vm_start))) {
 		vm_size = vma->vm_end - vma->vm_start;
+	}
 
-	if (vma->vm_mm != current->mm)
+	if (vma->vm_mm != current->mm) {
 		down_write(&vma->vm_mm->mmap_sem);
+	}
 
 	switch (op) {
 		case NVMAP_HANDLE_PROT_NONE:
@@ -155,8 +161,9 @@ int nvmap_vma_list_prot(struct nvmap_vma_list *vma_list, u64 offset,
 			BUG();
 	};
 
-	if (vma->vm_mm != current->mm)
+	if (vma->vm_mm != current->mm) {
 		up_write(&vma->vm_mm->mmap_sem);
+	}
 
 	return err;
 }

@@ -91,16 +91,18 @@ static inline bool nvmap_page_dirty(struct page *page)
 
 static inline bool nvmap_page_mkdirty(struct page **page)
 {
-	if (nvmap_page_dirty(*page))
+	if (nvmap_page_dirty(*page)) {
 		return false;
+	}
 	*page = (struct page *)((unsigned long)*page | 1UL);
 	return true;
 }
 
 static inline bool nvmap_page_mkclean(struct page **page)
 {
-	if (!nvmap_page_dirty(*page))
+	if (!nvmap_page_dirty(*page)) {
 		return false;
+	}
 	*page = (struct page *)((unsigned long)*page & ~1UL);
 	return true;
 }

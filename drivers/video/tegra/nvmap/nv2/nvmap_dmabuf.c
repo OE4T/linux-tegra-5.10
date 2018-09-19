@@ -38,8 +38,9 @@ struct dma_buf *nvmap_dmabuf_from_fd(int fd)
 	struct dma_buf *dmabuf;
 
 	dmabuf = dma_buf_get(fd);
-	if (IS_ERR(dmabuf))
+	if (IS_ERR(dmabuf)) {
 		return dmabuf;
+	}
 	dma_buf_put(dmabuf);
 	return dmabuf;
 }

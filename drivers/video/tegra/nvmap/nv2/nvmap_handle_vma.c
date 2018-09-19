@@ -49,8 +49,9 @@ int nvmap_handle_add_vma(struct nvmap_handle *handle,
 
 	// TODO: Just push this code into the vma code
 	vma_list = kmalloc(sizeof(*vma_list), GFP_KERNEL);
-	if (!vma_list)
+	if (!vma_list) {
 		return -ENOMEM;
+	}
 
 	vma_list->vma = vma;
 	vma_list->pid = current_pid;
@@ -96,8 +97,9 @@ int nvmap_handle_del_vma(struct nvmap_handle *handle,
 	mutex_lock(&handle->lock);
 
 	list_for_each_entry(vma_list, &handle->vmas, list) {
-		if (vma_list->vma != vma)
+		if (vma_list->vma != vma) {
 			continue;
+		}
 		if (atomic_dec_return(&vma_list->ref) == 0) {
 			list_del(&vma_list->list);
 			kfree(vma_list);
@@ -105,8 +107,9 @@ int nvmap_handle_del_vma(struct nvmap_handle *handle,
 		vma_found = true;
 		break;
 	}
-	if (!vma_found)
+	if (!vma_found) {
 		return -EFAULT;
+	}
 
 	mutex_unlock(&handle->lock);
 
@@ -150,8 +153,9 @@ int nvmap_handle_close_vma(struct nvmap_handle *handle)
 
 	nr_page = handle->size >> PAGE_SHIFT;
 
-	if (!handle->heap_pgalloc)
+	if (!handle->heap_pgalloc) {
 		return 0;
+	}
 
 	mutex_lock(&handle->lock);
 
@@ -183,8 +187,9 @@ int nvmap_handle_fault_vma(struct nvmap_handle *handle,
 {
 	struct page *page;
 
-	if (!handle->alloc || offs >= handle->size)
+	if (!handle->alloc || offs >= handle->size) {
 		return VM_FAULT_SIGBUS;
+	}
 
 	if (!handle->heap_pgalloc) {
 		unsigned long pfn;
@@ -199,12 +204,14 @@ int nvmap_handle_fault_vma(struct nvmap_handle *handle,
 	} else {
 
 		offs >>= PAGE_SHIFT;
-		if (atomic_read(&handle->pgalloc.reserved))
+		if (atomic_read(&handle->pgalloc.reserved)) {
 			return VM_FAULT_SIGBUS;
+		}
 		page = nvmap_to_page(handle->pgalloc.pages[offs]);
 
-		if (!nvmap_handle_track_dirty(handle))
+		if (!nvmap_handle_track_dirty(handle)) {
 			goto finish;
+		}
 
 		mutex_lock(&handle->lock);
 		if (nvmap_page_dirty(handle->pgalloc.pages[offs])) {
@@ -228,23 +235,28 @@ bool nvmap_handle_fixup_prot_vma(struct nvmap_handle *handle,
 {
 	struct page *page;
 
-	if (!handle->alloc)
+	if (!handle->alloc) {
 		return false;
+	}
 
-	if ((offs >= handle->size) || !handle->heap_pgalloc)
+	if ((offs >= handle->size) || !handle->heap_pgalloc) {
 		return false;
+	}
 
-	if (atomic_read(&handle->pgalloc.reserved))
+	if (atomic_read(&handle->pgalloc.reserved)) {
 		return false;
+	}
 
-	if (!nvmap_handle_track_dirty(handle))
+	if (!nvmap_handle_track_dirty(handle)) {
 		return true;
+	}
 
 	mutex_lock(&handle->lock);
 
 	offs >>= PAGE_SHIFT;
-	if (nvmap_page_dirty(handle->pgalloc.pages[offs]))
+	if (nvmap_page_dirty(handle->pgalloc.pages[offs])) {
 		goto unlock;
+	}
 
 	page = nvmap_to_page(handle->pgalloc.pages[offs]);
 

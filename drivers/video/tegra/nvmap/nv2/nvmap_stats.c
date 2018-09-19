@@ -29,8 +29,9 @@ static int nvmap_stats_reset(void *data, u64 val)
 	if (val) {
 		atomic64_set(&nvmap_stats.collect, 0);
 		for (i = 0; i < NS_NUM; i++) {
-			if (i == NS_TOTAL)
+			if (i == NS_TOTAL) {
 				continue;
+			}
 			atomic64_set(&nvmap_stats.stats[i], 0);
 		}
 	}
@@ -90,14 +91,16 @@ void nvmap_stats_init(struct dentry *nvmap_debug_root)
 
 void nvmap_stats_inc(enum nvmap_stats_t stat, size_t size)
 {
-	if (atomic64_read(&nvmap_stats.collect) || stat == NS_TOTAL)
+	if (atomic64_read(&nvmap_stats.collect) || stat == NS_TOTAL) {
 		atomic64_add(size, &nvmap_stats.stats[stat]);
+	}
 }
 
 void nvmap_stats_dec(enum nvmap_stats_t stat, size_t size)
 {
-	if (atomic64_read(&nvmap_stats.collect) || stat == NS_TOTAL)
+	if (atomic64_read(&nvmap_stats.collect) || stat == NS_TOTAL) {
 		atomic64_sub(size, &nvmap_stats.stats[stat]);
+	}
 }
 
 u64 nvmap_stats_read(enum nvmap_stats_t stat)

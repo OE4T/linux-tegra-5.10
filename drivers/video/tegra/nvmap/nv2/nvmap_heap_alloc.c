@@ -113,17 +113,20 @@ static struct device *heap_pgalloc_dev(unsigned long type)
 	ret = 0;
 #endif
 
-	if (ret || (type != NVMAP_HEAP_CARVEOUT_VPR))
+	if (ret || (type != NVMAP_HEAP_CARVEOUT_VPR)) {
 		return ERR_PTR(-EINVAL);
+	}
 
 	dma_dev = nvmap_heap_type_to_dev(type);
-	if (IS_ERR(dma_dev))
+	if (IS_ERR(dma_dev)) {
 		return dma_dev;
+	}
 
 	/* TODO: What consequences does this function have? */
 	ret = dma_set_resizable_heap_floor_size(dma_dev, 0);
-	if (ret)
+	if (ret) {
 		return ERR_PTR(ret);
+	}
 	return dma_dev;
 }
 
@@ -135,11 +138,13 @@ static int heap_big_pages_alloc_exact(struct page **pages, int starting_idx,
 
 	page = nvmap_alloc_pages_exact(gfp,
 			num_pages << PAGE_SHIFT);
-	if (!page)
+	if (!page) {
 		return -ENOMEM;
+	}
 
-	for (idx = 0; idx < num_pages; idx++)
+	for (idx = 0; idx < num_pages; idx++) {
 		pages[starting_idx + idx] = nth_page(page, idx);
+	}
 	nvmap_cache_clean_pages(&pages[starting_idx], num_pages);
 
 	return 0;
@@ -161,10 +166,12 @@ static int heap_big_pages_alloc(struct page **pages, int nr_page, gfp_t gfp)
 	/* Try to allocate big pages from page allocator */
 	for (; page_index < nr_page; page_index += pages_per_big_pg) {
 
-		if (pages_per_big_pg < 1)
+		if (pages_per_big_pg < 1) {
 			break;
-		if ((nr_page - page_index) < pages_per_big_pg)
+		}
+		if ((nr_page - page_index) < pages_per_big_pg) {
 			break;
+		}
 
 		err = heap_big_pages_alloc_exact(pages, page_index,
 				gfp_no_reclaim, pages_per_big_pg);
@@ -207,14 +214,16 @@ struct page **nvmap_heap_alloc_iovmm_pages(size_t size, bool contiguous)
 	gfp_t gfp = GFP_NVMAP | __GFP_ZERO;
 
 	pages = nvmap_altalloc(nr_page * sizeof(*pages));
-	if (!pages)
+	if (!pages) {
 		return ERR_PTR(-ENOMEM);
+	}
 
 	if (contiguous) {
 		struct page *page;
 		page = nvmap_alloc_pages_exact(gfp, size);
-		if (!page)
+		if (!page) {
 			goto fail;
+		}
 
 		for (i = 0; i < nr_page; i++)
 			pages[i] = nth_page(page, i);
@@ -228,8 +237,9 @@ struct page **nvmap_heap_alloc_iovmm_pages(size_t size, bool contiguous)
 
 		for (i = page_index; i < nr_page; i++) {
 			pages[i] = nvmap_alloc_pages_exact(gfp, PAGE_SIZE);
-			if (!pages[i])
+			if (!pages[i]) {
 				goto fail;
+			}
 		}
 		nvmap_total_page_allocs += nr_page;
 	}
@@ -241,8 +251,9 @@ struct page **nvmap_heap_alloc_iovmm_pages(size_t size, bool contiguous)
 	 * clients can pass the buffer to hardware as it is without any
 	 * explicit cache maintenance.
 	 */
-	if (page_index < nr_page)
+	if (page_index < nr_page) {
 		nvmap_cache_clean_pages(&pages[page_index], nr_page - page_index);
+	}
 
 	return pages;
 
@@ -262,8 +273,9 @@ struct page **nvmap_heap_alloc_dma_pages(size_t size, unsigned long type)
 	dma_addr_t pa;
 
 	dma_dev = heap_pgalloc_dev(type);
-	if (IS_ERR(dma_dev))
+	if (IS_ERR(dma_dev)) {
 		return ERR_PTR(-EINVAL);
+	}
 
 	dma_set_attr(DMA_ATTR_ALLOC_EXACT_SIZE, __DMA_ATTR(attrs));
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 4, 0)
@@ -272,8 +284,9 @@ struct page **nvmap_heap_alloc_dma_pages(size_t size, unsigned long type)
 
 	pages = dma_alloc_attrs(dma_dev, size, &pa,
 			GFP_KERNEL, __DMA_ATTR(attrs));
-	if (dma_mapping_error(dma_dev, pa))
+	if (dma_mapping_error(dma_dev, pa)) {
 		return ERR_PTR(-ENOMEM);
+	}
 
 	return pages;
 }
@@ -283,8 +296,9 @@ int nvmap_heap_type_is_dma(unsigned long type)
 	struct device *dma_dev;
 
 	dma_dev = heap_pgalloc_dev(type);
-	if (IS_ERR(dma_dev))
+	if (IS_ERR(dma_dev)) {
 		return 0;
+	}
 	return 1;
 }
 
@@ -296,8 +310,9 @@ void nvmap_heap_dealloc_dma_pages(size_t size, unsigned long type,
 	dma_addr_t pa = ~(dma_addr_t)0;
 
 	dma_dev = heap_pgalloc_dev(type);
-	if (IS_ERR(dma_dev))
+	if (IS_ERR(dma_dev)) {
 		return;
+	}
 
 	dma_set_attr(DMA_ATTR_ALLOC_EXACT_SIZE, __DMA_ATTR(attrs));
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 4, 0)
@@ -315,8 +330,9 @@ struct page **nvmap_heap_alloc_from_va(size_t size, ulong vaddr)
 	int ret = 0;
 
 	pages = nvmap_altalloc(nr_page * sizeof(*pages));
-	if (IS_ERR_OR_NULL(pages))
+	if (IS_ERR_OR_NULL(pages)) {
 		return NULL;
+	}
 
 	ret = nvmap_get_user_pages(vaddr & PAGE_MASK, nr_page, pages);
 	if (ret) {
@@ -339,8 +355,9 @@ const unsigned int *nvmap_heap_mask_to_policy(unsigned int heap_mask, int nr_pag
 	 * from no other heap should be allowed.
 	 */
 	for (i = 0; i < ARRAY_SIZE(heap_policy_excl); i++) {
-		if (!(heap_mask & heap_policy_excl[i]))
+		if (!(heap_mask & heap_policy_excl[i])) {
 			continue;
+		}
 
 		if (heap_mask & ~(heap_policy_excl[i])) {
 			pr_err("%s alloc mixes exclusive heap %d and other heaps\n",

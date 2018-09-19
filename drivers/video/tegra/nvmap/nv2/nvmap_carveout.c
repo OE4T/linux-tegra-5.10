@@ -132,8 +132,9 @@ int nvmap_carveout_create(const struct nvmap_platform_carveout *co)
 	node->base = round_up(co->base, PAGE_SIZE);
 	node->size = round_down(co->size -
 				(node->base - co->base), PAGE_SIZE);
-	if (!co->size)
+	if (!co->size) {
 		goto out;
+	}
 
 	node->carveout = nvmap_heap_create(
 			nvmap_dev->dev_user.this_device, co,
@@ -188,8 +189,9 @@ struct device *nvmap_heap_type_to_dev(unsigned long type)
 	for (i = 0; i < nvmap_dev->nr_carveouts; i++) {
 		co_heap = &nvmap_dev->heaps[i];
 
-		if (!(co_heap->heap_bit & type))
+		if (!(co_heap->heap_bit & type)) {
 			continue;
+		}
 
 		return co_heap->carveout->dma_dev;
 	}
@@ -305,12 +307,14 @@ static int heap_block_flush(struct nvmap_heap_block *block, size_t len,
 	int ret = 0;
 
 	if (prot == NVMAP_HANDLE_UNCACHEABLE
-				|| prot == NVMAP_HANDLE_WRITE_COMBINE)
+				|| prot == NVMAP_HANDLE_WRITE_COMBINE) {
 		goto out;
+	}
 
 	ret = nvmap_cache_maint_phys_range(NVMAP_CACHE_OP_WB_INV, phys, end);
-	if (ret)
+	if (ret) {
 		goto out;
+	}
 out:
 	wmb();
 	return ret;
@@ -321,8 +325,9 @@ void nvmap_heap_block_free(struct nvmap_heap_block *b)
 	struct nvmap_heap *h;
 	struct list_block *lb;
 
-	if (!b)
+	if (!b) {
 		return;
+	}
 
 	h = nvmap_block_to_heap(b);
 	mutex_lock(&h->lock);
@@ -340,8 +345,9 @@ void nvmap_heap_block_free(struct nvmap_heap_block *b)
 	 * RAM attached with the HEAP returns error, raise warning.
 	 */
 	if (h->pm_ops.idle) {
-		if (h->pm_ops.idle() < 0)
+		if (h->pm_ops.idle() < 0) {
 			WARN_ON(1);
+		}
 	}
 
 	mutex_unlock(&h->lock);
@@ -369,8 +375,9 @@ static struct nvmap_heap_block *heap_block_alloc(struct nvmap_heap *heap,
 		len = PAGE_ALIGN(len);
 	}
 
-	if (heap->is_ivm)
+	if (heap->is_ivm) {
 		align = max_t(size_t, align, NVMAP_IVM_ALIGNMENT);
+	}
 
 	heap_block = kmem_cache_zalloc(heap_block_cache, GFP_KERNEL);
 	if (!heap_block) {

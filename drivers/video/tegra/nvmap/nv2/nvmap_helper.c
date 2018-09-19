@@ -33,10 +33,11 @@ u32 nvmap_max_handle_count;
 
 void *nvmap_altalloc(size_t len)
 {
-	if (len > PAGELIST_VMALLOC_MIN)
+	if (len > PAGELIST_VMALLOC_MIN) {
 		return vmalloc(len);
-	else
+	} else {
 		return kmalloc(len, GFP_KERNEL);
+	}
 }
 
 struct page **nvmap_alloc_pages(struct page **pg_pages, u32 nr_pages)
@@ -45,11 +46,13 @@ struct page **nvmap_alloc_pages(struct page **pg_pages, u32 nr_pages)
 	int i;
 
 	pages = nvmap_altalloc(sizeof(*pages) * nr_pages);
-	if (!pages)
+	if (!pages) {
 		return NULL;
+	}
 
-	for (i = 0; i < nr_pages; i++)
+	for (i = 0; i < nr_pages; i++) {
 		pages[i] = nvmap_to_page(pg_pages[i]);
+	}
 
 	return pages;
 }
@@ -62,8 +65,9 @@ struct page *nvmap_alloc_pages_exact(gfp_t gfp, size_t size)
 	order = get_order(size);
 	page = alloc_pages(gfp, order);
 
-	if (!page)
+	if (!page) {
 		return NULL;
+	}
 
 	split_page(page, order);
 	e = nth_page(page, (1 << order));
@@ -75,13 +79,15 @@ struct page *nvmap_alloc_pages_exact(gfp_t gfp, size_t size)
 
 void nvmap_altfree(void *ptr, size_t len)
 {
-	if (!ptr)
+	if (!ptr) {
 		return;
+	}
 
-	if (len > PAGELIST_VMALLOC_MIN)
+	if (len > PAGELIST_VMALLOC_MIN) {
 		vfree(ptr);
-	else
+	} else {
 		kfree(ptr);
+	}
 }
 
 int nvmap_get_user_pages(ulong vaddr, int nr_page, struct page **pages)

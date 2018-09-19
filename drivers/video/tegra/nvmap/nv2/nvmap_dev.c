@@ -152,8 +152,9 @@ static void nvmap_pid_get_locked(struct nvmap_device *dev, pid_t pid)
 	}
 
 	p = kzalloc(sizeof(*p), GFP_KERNEL);
-	if (!p)
+	if (!p) {
 		return;
+	}
 
 	snprintf(name, sizeof(name), "%d", pid);
 	p->pid = pid;
@@ -179,12 +180,13 @@ static struct nvmap_pid_data *nvmap_pid_find_locked(struct nvmap_device *dev,
 		struct nvmap_pid_data *p = container_of(node,
 				struct nvmap_pid_data, node);
 
-		if (p->pid > pid)
+		if (p->pid > pid) {
 			node = node->rb_left;
-		else if (p->pid < pid)
+		} else if (p->pid < pid) {
 			node = node->rb_right;
-		else
+		} else {
 			return p;
+		}
 	}
 	return NULL;
 }
@@ -192,8 +194,9 @@ static struct nvmap_pid_data *nvmap_pid_find_locked(struct nvmap_device *dev,
 static void nvmap_pid_put_locked(struct nvmap_device *dev, pid_t pid)
 {
 	struct nvmap_pid_data *p = nvmap_pid_find_locked(dev, pid);
-	if (p)
+	if (p) {
 		kref_put(&p->refcount, nvmap_pid_release_locked);
+	}
 }
 
 static int nvmap_open(struct inode *inode, struct file *filp)
@@ -205,16 +208,18 @@ static int nvmap_open(struct inode *inode, struct file *filp)
 	__attribute__((unused)) struct rlimit old_rlim, new_rlim;
 
 	ret = nonseekable_open(inode, filp);
-	if (unlikely(ret))
+	if (unlikely(ret)) {
 		return ret;
+	}
 
 	BUG_ON(dev != nvmap_dev);
 
 	mutex_lock(&dev->clients_lock);
 
 	client = nvmap_client_create(&dev->clients, "user");
-	if (!client)
+	if (!client) {
 		return -ENOMEM;
+	}
 
 	if (!IS_ERR_OR_NULL(dev->handles_by_pid)) {
 		pid_t pid = nvmap_client_pid(client);
@@ -264,19 +269,24 @@ static long nvmap_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 	int err = 0;
 	void __user *uarg = (void __user *)arg;
 
-	if (_IOC_TYPE(cmd) != NVMAP_IOC_MAGIC)
+	if (_IOC_TYPE(cmd) != NVMAP_IOC_MAGIC) {
 		return -ENOTTY;
+	}
 
-	if (_IOC_NR(cmd) > NVMAP_IOC_MAXNR)
+	if (_IOC_NR(cmd) > NVMAP_IOC_MAXNR) {
 		return -ENOTTY;
+	}
 
-	if (_IOC_DIR(cmd) & _IOC_READ)
+	if (_IOC_DIR(cmd) & _IOC_READ) {
 		err = !access_ok(VERIFY_WRITE, uarg, _IOC_SIZE(cmd));
-	if (!err && (_IOC_DIR(cmd) & _IOC_WRITE))
+	}
+	if (!err && (_IOC_DIR(cmd) & _IOC_WRITE)) {
 		err = !access_ok(VERIFY_READ, uarg, _IOC_SIZE(cmd));
+	}
 
-	if (err)
+	if (err) {
 		return -EFAULT;
+	}
 
 	err = -ENOTTY;
 
@@ -447,10 +457,12 @@ static void nvmap_get_total_mss(u64 *pss, u64 *total, u32 heap_type)
 	struct rb_node *n;
 
 	*total = 0;
-	if (pss)
+	if (pss) {
 		*pss = 0;
-	if (!dev)
+	}
+	if (!dev) {
 		return;
+	}
 
 	spin_lock(&dev->handle_lock);
 
@@ -459,8 +471,9 @@ static void nvmap_get_total_mss(u64 *pss, u64 *total, u32 heap_type)
 		struct nvmap_handle *h = nvmap_handle_from_node(n);
 
 		*total += nvmap_handle_total_mss(h, heap_type);
-		if (pss)
+		if (pss) {
 			*pss += nvmap_handle_total_pss(h, heap_type);
+		}
 
 	}
 
@@ -619,16 +632,18 @@ static int nvmap_debug_handles_by_pid_show(struct seq_file *s, void *unused)
 
 	header.version = 1;
 	ret = seq_write(s, &header, sizeof(header));
-	if (ret < 0)
+	if (ret < 0) {
 		return ret;
+	}
 
 	mutex_lock(&nvmap_dev->clients_lock);
 
 	list_for_each(n, &nvmap_dev->clients) {
 		client = nvmap_client_from_list(n);
 		ret = nvmap_client_show_by_pid(client, s, p->pid);
-		if (ret)
+		if (ret) {
 			break;
+		}
 	}
 
 	mutex_unlock(&nvmap_dev->clients_lock);
@@ -787,14 +802,16 @@ int __init nvmap_probe(struct platform_device *pdev)
 	dev->handles = RB_ROOT;
 
 	if (of_property_read_bool(pdev->dev.of_node,
-				"no-cache-maint-by-set-ways"))
+				"no-cache-maint-by-set-ways")) {
 		nvmap_cache_maint_by_set_ways = 0;
+	}
 
 	nvmap_override_cache_ops();
 #ifdef CONFIG_NVMAP_PAGE_POOLS
 	e = nvmap_page_pool_init(dev);
-	if (e)
+	if (e) {
 		goto fail;
+	}
 #endif
 
 	spin_lock_init(&dev->handle_lock);
@@ -815,8 +832,9 @@ int __init nvmap_probe(struct platform_device *pdev)
 
 	nvmap_debug_root = debugfs_create_dir("nvmap", NULL);
 	nvmap_dev->debug_root = nvmap_debug_root;
-	if (IS_ERR_OR_NULL(nvmap_debug_root))
+	if (IS_ERR_OR_NULL(nvmap_debug_root)) {
 		dev_err(&pdev->dev, "couldn't create debug files\n");
+	}
 
 	debugfs_create_u32("max_handle_count", S_IRUGO,
 			nvmap_debug_root, &nvmap_max_handle_count);
@@ -841,29 +859,33 @@ int __init nvmap_probe(struct platform_device *pdev)
 	platform_set_drvdata(pdev, dev);
 
 	e = nvmap_dmabuf_stash_init();
-	if (e)
+	if (e) {
 		goto fail_heaps;
+	}
 
 	for (i = 0; i < dev->nr_carveouts; i++)
 		if (nvmap_carveout_heap_bit(
 					nvmap_dev_to_carveout(dev, i)) &
-					NVMAP_HEAP_CARVEOUT_GENERIC)
+					NVMAP_HEAP_CARVEOUT_GENERIC) {
 			generic_carveout_present = 1;
+		}
 
 	if (generic_carveout_present) {
-		if (!iommu_present(&platform_bus_type))
+		if (!iommu_present(&platform_bus_type)) {
 			nvmap_convert_iovmm_to_carveout = 1;
-		else if (!of_property_read_bool(pdev->dev.of_node,
-				"dont-convert-iovmm-to-carveout"))
+		} else if (!of_property_read_bool(pdev->dev.of_node,
+				"dont-convert-iovmm-to-carveout")) {
 			nvmap_convert_iovmm_to_carveout = 1;
+		}
 	} else {
 		BUG_ON(!iommu_present(&platform_bus_type));
 		nvmap_convert_carveout_to_iovmm = 1;
 	}
 
 #ifdef CONFIG_NVMAP_PAGE_POOLS
-	if (nvmap_convert_iovmm_to_carveout)
+	if (nvmap_convert_iovmm_to_carveout) {
 		nvmap_page_pool_fini(dev);
+	}
 #endif
 
 	goto finish;
@@ -878,8 +900,9 @@ fail:
 	nvmap_page_pool_fini(nvmap_dev);
 #endif
 	kfree(dev->heaps);
-	if (dev->dev_user.minor != MISC_DYNAMIC_MINOR)
+	if (dev->dev_user.minor != MISC_DYNAMIC_MINOR) {
 		misc_deregister(&dev->dev_user);
+	}
 	nvmap_dev = NULL;
 free_dev:
 	kfree(dev);

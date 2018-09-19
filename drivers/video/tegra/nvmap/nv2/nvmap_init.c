@@ -157,11 +157,13 @@ static struct nvmap_platform_carveout *nvmap_get_carveout_pdata(const char *name
 	     co < nvmap_carveouts + ARRAY_SIZE(nvmap_carveouts); co++) {
 		int i = min_t(int, strcspn(name, "_"), strcspn(name, "-"));
 		/* handle IVM carveouts */
-		if ((co->usage_mask == NVMAP_HEAP_CARVEOUT_IVM) &&  !co->name)
+		if ((co->usage_mask == NVMAP_HEAP_CARVEOUT_IVM) &&  !co->name) {
 			goto found;
+		}
 
-		if (strncmp(co->name, name, i))
+		if (strncmp(co->name, name, i)) {
 			continue;
+		}
 found:
 		co->dma_dev = co->dma_dev ? co->dma_dev : &co->dev;
 		return co;
@@ -176,20 +178,24 @@ int nvmap_register_vidmem_carveout(struct device *dma_dev,
 	struct nvmap_platform_carveout *vidmem_co;
 
 	if (!base || !size || (base != PAGE_ALIGN(base)) ||
-	    (size != PAGE_ALIGN(size)))
+	    (size != PAGE_ALIGN(size))) {
 		return -EINVAL;
+	}
 
 	vidmem_co = nvmap_get_carveout_pdata("vidmem");
-	if (!vidmem_co)
+	if (!vidmem_co) {
 		return -ENODEV;
+	}
 
-	if (vidmem_co->base || vidmem_co->size)
+	if (vidmem_co->base || vidmem_co->size) {
 		return -EEXIST;
+	}
 
 	vidmem_co->base = base;
 	vidmem_co->size = size;
-	if (dma_dev)
+	if (dma_dev) {
 		vidmem_co->dma_dev = dma_dev;
+	}
 	return nvmap_carveout_create(vidmem_co);
 }
 EXPORT_SYMBOL(nvmap_register_vidmem_carveout);
@@ -208,8 +214,9 @@ int __init nvmap_populate_ivm_carveout(struct reserved_mem *rmem)
 	int ret = 0;
 
 	co = nvmap_get_carveout_pdata(rmem->name);
-	if (!co)
+	if (!co) {
 		return -ENOMEM;
+	}
 
 	if (hyp_read_gid(&guestid)) {
 		pr_err("failed to read gid\n");
@@ -304,15 +311,18 @@ static int __init nvmap_co_device_init(struct reserved_mem *rmem,
 	struct nvmap_platform_carveout *co = rmem->priv;
 	int err;
 
-	if (!co)
+	if (!co) {
 		return -ENODEV;
+	}
 
-	if (co->usage_mask == NVMAP_HEAP_CARVEOUT_IVM)
+	if (co->usage_mask == NVMAP_HEAP_CARVEOUT_IVM) {
 		return nvmap_populate_ivm_carveout(rmem);
+	}
 
 	/* if co size is 0, => co is not present. So, skip init. */
-	if (!co->size)
+	if (!co->size) {
 		return 0;
+	}
 
 	if (!co->cma_dev) {
 		err = dma_declare_coherent_memory(co->dma_dev, 0,
@@ -340,17 +350,19 @@ static int __init nvmap_co_device_init(struct reserved_mem *rmem,
 		 * the memblock_remove() API ensures that kmemleak won't scan
 		 * a removed block.
 		 */
-		if (!strncmp(co->name, "vpr", 3))
+		if (!strncmp(co->name, "vpr", 3)) {
 			kmemleak_no_scan(__va(co->base));
+		}
 
 		co->dma_info->cma_dev = co->cma_dev;
 		err = dma_declare_coherent_resizable_cma_memory(
 				co->dma_dev, co->dma_info);
-		if (err)
+		if (err) {
 			dev_err(dev, "%s coherent memory declaration failed\n",
 				     co->name);
-		else
+		} else {
 			co->init_done = true;
+		}
 	}
 	return err;
 }
@@ -359,11 +371,13 @@ static void nvmap_co_device_release(struct reserved_mem *rmem,struct device *dev
 {
 	struct nvmap_platform_carveout *co = rmem->priv;
 
-	if (!co)
+	if (!co) {
 		return;
+	}
 
-	if (co->usage_mask == NVMAP_HEAP_CARVEOUT_IVM)
+	if (co->usage_mask == NVMAP_HEAP_CARVEOUT_IVM) {
 		kfree(co->name);
+	}
 }
 
 static const struct reserved_mem_ops nvmap_co_ops = {
@@ -379,22 +393,25 @@ int __init nvmap_co_setup(struct reserved_mem *rmem)
 	ulong start = sched_clock();
 
 	co = nvmap_get_carveout_pdata(rmem->name);
-	if (!co)
+	if (!co) {
 		return ret;
+	}
 
 	rmem->ops = &nvmap_co_ops;
 	rmem->priv = co;
 
 	/* IVM carveouts */
-	if (!co->name)
+	if (!co->name) {
 		goto finish;
+	}
 
 	co->base = rmem->base;
 	co->size = rmem->size;
 
 	if (!of_get_flat_dt_prop(rmem->fdt_node, "reusable", NULL) ||
-	    of_get_flat_dt_prop(rmem->fdt_node, "no-map", NULL))
+	    of_get_flat_dt_prop(rmem->fdt_node, "no-map", NULL)) {
 		goto skip_cma;
+	}
 
 	WARN_ON(!rmem->base);
 	if (dev_get_cma_area(co->cma_dev)) {
@@ -439,16 +456,18 @@ static int __nvmap_init_legacy(struct device *dev)
 	if (!nvmap_carveouts[1].base) {
 		nvmap_carveouts[1].base = tegra_carveout_start;
 		nvmap_carveouts[1].size = tegra_carveout_size;
-		if (!tegra_vpr_resize)
+		if (!tegra_vpr_resize) {
 			nvmap_carveouts[1].cma_dev = NULL;
+		}
 	}
 
 	/* VPR */
 	if (!nvmap_carveouts[2].base) {
 		nvmap_carveouts[2].base = tegra_vpr_start;
 		nvmap_carveouts[2].size = tegra_vpr_size;
-		if (!tegra_vpr_resize)
+		if (!tegra_vpr_resize) {
 			nvmap_carveouts[2].cma_dev = NULL;
+		}
 	}
 
 	return 0;
@@ -465,20 +484,23 @@ int __init nvmap_init(struct platform_device *pdev)
 
 	if (pdev->dev.of_node) {
 		err = __nvmap_init_dt(pdev);
-		if (err)
+		if (err) {
 			return err;
+		}
 	}
 
 	err = of_reserved_mem_device_init(&pdev->dev);
-	if (err)
+	if (err) {
 		pr_debug("reserved_mem_device_init fails, try legacy init\n");
+	}
 
 	/* try legacy init */
 	if (!nvmap_carveouts[1].init_done) {
 		rmem.priv = &nvmap_carveouts[1];
 		err = nvmap_co_device_init(&rmem, &pdev->dev);
-		if (err)
+		if (err) {
 			goto end;
+		}
 	}
 
 	if (!nvmap_carveouts[2].init_done) {
@@ -508,8 +530,9 @@ static int __init nvmap_init_driver(void)
 	int e = 0;
 
 	e = nvmap_heap_init();
-	if (e)
+	if (e) {
 		goto fail;
+	}
 
 	e = platform_driver_register(&nvmap_driver);
 	if (e) {

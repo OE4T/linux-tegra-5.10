@@ -159,15 +159,17 @@ static void __nvmap_dmabuf_del_stash(struct nvmap_handle_sgt *nvmap_sgt)
 
 static inline bool access_vpr_phys(struct device *dev)
 {
-	if (!device_is_iommuable(dev))
+	if (!device_is_iommuable(dev)) {
 		return true;
+	}
 
 	/*
 	 * Assumes gpu nodes always have DT entry, this is valid as device
 	 * specifying access-vpr-phys will do so through its DT entry.
 	 */
-	if (!dev->of_node)
+	if (!dev->of_node) {
 		return false;
+	}
 
 	return !!of_find_property(dev->of_node, "access-vpr-phys", NULL);
 }
@@ -212,8 +214,9 @@ static void __nvmap_dmabuf_free_sgt_locked(struct nvmap_handle_sgt *nvmap_sgt)
 static void __nvmap_dmabuf_evict_stash_locked(
 			struct nvmap_handle_sgt *nvmap_sgt)
 {
-	if (!list_empty(&nvmap_sgt->stash_entry))
+	if (!list_empty(&nvmap_sgt->stash_entry)) {
 		list_del_init(&nvmap_sgt->stash_entry);
+	}
 }
 
 /*
@@ -268,8 +271,9 @@ static void __nvmap_dmabuf_stash_sgt_locked(struct dma_buf_attachment *attach,
 	pr_debug("Stashing SGT - if necessary.\n");
 	list_for_each_entry(nvmap_sgt, &info->maps, maps_entry) {
 		if (nvmap_sgt->sgt == sgt) {
-			if (!atomic_sub_and_test(1, &nvmap_sgt->refs))
+			if (!atomic_sub_and_test(1, &nvmap_sgt->refs)) {
 				goto done;
+			}
 
 			__nvmap_dmabuf_free_sgt_locked(nvmap_sgt);
 			goto done;
@@ -297,8 +301,9 @@ static struct sg_table *__nvmap_dmabuf_get_sgt_locked(
 
 	pr_debug("Getting SGT from stash.\n");
 	list_for_each_entry(nvmap_sgt, &info->maps, maps_entry) {
-		if (!nvmap_attach_handle_same_asid(attach, nvmap_sgt))
+		if (!nvmap_attach_handle_same_asid(attach, nvmap_sgt)) {
 			continue;
+		}
 
 		/* We have a hit. */
 		pr_debug("Stash hit (%s)!\n", dev_name(attach->dev));
@@ -332,8 +337,9 @@ struct sg_table *_nvmap_dmabuf_map_dma_buf(
 	atomic_inc(h_pin);
 
 	sgt = __nvmap_dmabuf_get_sgt_locked(attach, dir);
-	if (sgt)
+	if (sgt) {
 		goto cache_hit;
+	}
 
 	sgt = __nvmap_sg_table(NULL, info->handle);
 	if (IS_ERR(sgt)) {
@@ -354,8 +360,9 @@ struct sg_table *_nvmap_dmabuf_map_dma_buf(
 		dma_set_attr(DMA_ATTR_SKIP_CPU_SYNC, __DMA_ATTR(attrs));
 		ents = dma_map_sg_attrs(attach->dev, sgt->sgl,
 					sgt->nents, dir, __DMA_ATTR(attrs));
-		if (ents <= 0)
+		if (ents <= 0) {
 			goto err_map;
+		}
 	}
 
 	if (__nvmap_dmabuf_prep_sgt_locked(attach, dir, sgt)) {
@@ -491,8 +498,9 @@ int __nvmap_map(struct nvmap_handle *h, struct vm_area_struct *vma)
 	u32 heap_type;
 
 	h = nvmap_handle_get(h);
-	if (!h)
+	if (!h) {
 		return -EINVAL;
+	}
 
 	heap_type = nvmap_handle_heap_type(h);
 	if (!(heap_type & nvmap_dev->cpu_access_mask)) {

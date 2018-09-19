@@ -83,8 +83,9 @@ static struct color_list *alloc_color_list(u32 nr_pages, u32 nr_colors)
 	u32 nr_u32;
 
 	list = kzalloc(sizeof(struct color_list), GFP_KERNEL);
-	if (!list)
+	if (!list) {
 		return NULL;
+	}
 
 	list->pages = vmalloc(nr_pages * sizeof(struct page *));
 	if (!list->pages) {
@@ -95,8 +96,9 @@ static struct color_list *alloc_color_list(u32 nr_pages, u32 nr_colors)
 	/* Allocate counts, heads, and list with a single allocation */
 	nr_u32 = nr_pages + 2 * nr_colors;
 	temp = vmalloc(nr_u32 * sizeof(u32));
-	if (!temp)
+	if (!temp) {
 		goto fail;
+	}
 
 	memset(&temp[0], 0, 2 * nr_colors *  sizeof(u32));
 	list->counts = &temp[0];
@@ -107,8 +109,9 @@ static struct color_list *alloc_color_list(u32 nr_pages, u32 nr_colors)
 
 	return list;
 fail:
-	if (list->pages)
+	if (list->pages) {
 		vfree(list->pages);
+	}
 	kfree(list);
 	return NULL;
 }
@@ -175,8 +178,9 @@ static struct color_list *init_color_list(struct nvmap_page_pool *pool,
 	gfp_t gfp = GFP_NVMAP | __GFP_ZERO;
 
 	list = alloc_color_list(nr_pages, state->nr_colors);
-	if (!list)
+	if (!list) {
 		return NULL;
+	}
 
 #ifdef CONFIG_NVMAP_PAGE_POOLS
 	/* Allocated page from nvmap page pool if possible */
@@ -185,13 +189,15 @@ static struct color_list *init_color_list(struct nvmap_page_pool *pool,
 	/* Fall back to general page allocator */
 	for (i = page_index; i < nr_pages; i++) {
 		list->pages[i] = nvmap_alloc_pages_exact(gfp, PAGE_SIZE);
-		if (!list->pages[i])
+		if (!list->pages[i]) {
 			goto fail;
+		}
 	}
 	/* Clean the cache for any page that didn't come from the page pool */
-	if (page_index < nr_pages)
+	if (page_index < nr_pages) {
 		nvmap_cache_clean_pages(&list->pages[page_index],
 				  nr_pages - page_index);
+	}
 
 	/* Create linked list of colors and compute the histogram */
 	for (i = 0; i < nr_pages; i++) {
@@ -214,8 +220,9 @@ static void smooth_pages(struct color_list *list, u32 nr_extra, u32 nr_colors)
 	u32 i, j, color, max;
 	u32 counts[NVMAP_MAX_COLORS] = {0};
 
-	if (nr_extra == 0)
+	if (nr_extra == 0) {
 		return;
+	}
 
 	/* Determine which colors need to be freed */
 	for (i = 0; i < nr_extra; i++) {
@@ -323,8 +330,9 @@ int nvmap_color_init(void)
 {
 	u32 chipid = tegra_hidrev_get_chipid(tegra_read_chipid());
 
-	if (chipid == TEGRA194)
+	if (chipid == TEGRA194) {
 		s_nr_colors = 16;
+	}
 	return 0;
 }
 
@@ -348,8 +356,9 @@ int nvmap_color_alloc(struct nvmap_page_pool *pool, u32 nr_pages,
 
 	/* Create lists of each page color */
 	state.list = init_color_list(pool, &state, nr_alloc);
-	if (!state.list)
+	if (!state.list) {
 		return -ENOMEM;
+	}
 
 	/* Smooth out the histogram by freeing over allocated pages */
 	smooth_pages(state.list, nr_alloc - state.nr_colors * nr_tiles,
@@ -358,10 +367,12 @@ int nvmap_color_alloc(struct nvmap_page_pool *pool, u32 nr_pages,
 	max_count = 0;
 	min_count = state.list->counts[0];
 	for (i = 0; i < state.nr_colors; i++) {
-		if (state.list->counts[i] > max_count)
+		if (state.list->counts[i] > max_count) {
 			max_count = state.list->counts[i];
-		if (state.list->counts[i] < min_count)
+		}
+		if (state.list->counts[i] < min_count) {
 			min_count = state.list->counts[i];
+		}
 	}
 
 	/* Compute the number of perfect / imperfect tiles and the maximum
@@ -386,8 +397,9 @@ int nvmap_color_alloc(struct nvmap_page_pool *pool, u32 nr_pages,
 	/* Check if the number of perfect tiles is bound by the color with the
 	 * minimum count
 	 */
-	if (nr_perfect * 2 > min_count)
+	if (nr_perfect * 2 > min_count) {
 		nr_perfect = min_count / 2;
+	}
 
 	nr_imperfect = nr_tiles - nr_perfect;
 

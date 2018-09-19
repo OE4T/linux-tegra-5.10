@@ -75,8 +75,9 @@ static void nvmap_vma_close(struct vm_area_struct *vma)
 	ulong vma_open_count;
 	int err;
 
-	if (!priv)
+	if (!priv) {
 		return;
+	}
 
 	h = priv->handle;
 	BUG_ON(!h);
@@ -92,13 +93,15 @@ static void nvmap_vma_close(struct vm_area_struct *vma)
 	vma_open_count = __atomic_add_unless(&priv->count, -1, 0);
 	if (vma_open_count == 1) {
 		err = nvmap_handle_close_vma(h);
-		if (err)
+		if (err) {
 			WARN(1, "Handle close vma failed");
+		}
 
 		// TODO: There is NO handle_get in vma_open
 		//  This is PROBABLY a bug
-		if (priv->handle)
+		if (priv->handle) {
 			nvmap_handle_put(priv->handle);
+		}
 		vma->vm_private_data = NULL;
 		kfree(priv);
 	}
@@ -114,8 +117,9 @@ static int nvmap_vma_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
 
 	offs = (unsigned long)(vmf_address - vma->vm_start);
 	priv = vma->vm_private_data;
-	if (!priv || !priv->handle)
+	if (!priv || !priv->handle) {
 		return VM_FAULT_SIGBUS;
+	}
 
 	offs += priv->offs;
 	/* if the VMA was split for some reason, vm_pgoff will be the VMA's
@@ -132,8 +136,9 @@ static int nvmap_vma_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
 		return err;
 	}
 
-	if (page)
+	if (page) {
 		get_page(page);
+	}
 	vmf->page = page;
 	return (page) ? 0 : VM_FAULT_SIGBUS;
 }
@@ -163,8 +168,9 @@ static bool nvmap_fixup_prot(struct vm_area_struct *vma,
 	unsigned long offs;
 
 	priv = vma->vm_private_data;
-	if (!priv || !priv->handle)
+	if (!priv || !priv->handle) {
 		return false;
+	}
 
 	offs = pgoff << PAGE_SHIFT;
 	offs += priv->offs;

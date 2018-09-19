@@ -148,8 +148,9 @@ bool nvmap_handle_is_heap(struct nvmap_handle *h)
 
 bool nvmap_handle_track_dirty(struct nvmap_handle *h)
 {
-	if (!h->heap_pgalloc)
+	if (!h->heap_pgalloc) {
 		return false;
+	}
 
 	return h->userflags & (NVMAP_HANDLE_CACHE_SYNC |
 			       NVMAP_HANDLE_CACHE_SYNC_AT_RESERVE);
@@ -161,12 +162,14 @@ struct nvmap_handle *nvmap_handle_from_fd(int fd)
 	struct dma_buf *dmabuf;
 
 	dmabuf = nvmap_dmabuf_from_fd(fd);
-	if (IS_ERR(dmabuf))
+	if (IS_ERR(dmabuf)) {
 		return ERR_CAST(dmabuf);
+	}
 
 	handle = nvmap_dmabuf_to_handle(dmabuf);
-	if (IS_ERR(handle))
+	if (IS_ERR(handle)) {
 		return ERR_CAST(handle);
+	}
 
 	return handle;
 }
@@ -206,8 +209,9 @@ void nvmap_handle_put(struct nvmap_handle *h)
 {
 	int cnt;
 
-	if (WARN_ON(!virt_addr_valid(h)))
+	if (WARN_ON(!virt_addr_valid(h))) {
 		return;
+	}
 	cnt = atomic_dec_return(&h->ref);
 
 	if (WARN_ON(cnt < 0)) {
@@ -224,12 +228,14 @@ struct nvmap_handle *nvmap_handle_create(size_t size)
 	struct nvmap_handle *h;
 	struct nvmap_handle_info *info;
 
-	if (!size)
+	if (!size) {
 		return ERR_PTR(-EINVAL);
+	}
 
 	h = kzalloc(sizeof(*h), GFP_KERNEL);
-	if (!h)
+	if (!h) {
 		return ERR_PTR(-ENOMEM);
+	}
 
 	/* This reference of 1 is the reference the dmabuf has on the handle
 	 * It's removed when the dma_buf is released through
@@ -287,16 +293,18 @@ static void handle_pgalloc_free(struct nvmap_pgalloc *pgalloc, size_t size,
 		pgalloc->pages[i] = nvmap_to_page(pgalloc->pages[i]);
 
 #ifdef CONFIG_NVMAP_PAGE_POOLS
-	if (!from_va)
+	if (!from_va) {
 		page_index = nvmap_page_pool_fill_lots(&nvmap_dev->pool,
 					pgalloc->pages, nr_page);
+	}
 #endif
 
 	for (i = page_index; i < nr_page; i++) {
-		if (from_va)
+		if (from_va) {
 			put_page(pgalloc->pages[i]);
-		else
+		} else {
 			__free_page(pgalloc->pages[i]);
+		}
 	}
 
 	nvmap_altfree(pgalloc->pages, nr_page * sizeof(struct page *));
@@ -304,8 +312,9 @@ static void handle_pgalloc_free(struct nvmap_pgalloc *pgalloc, size_t size,
 
 static void handle_dealloc(struct nvmap_handle *h)
 {
-	if (!h->alloc)
+	if (!h->alloc) {
 		return;
+	}
 
 	nvmap_stats_inc(NS_RELEASE, h->size);
 	nvmap_stats_dec(NS_TOTAL, h->size);
@@ -352,10 +361,11 @@ static void handle_add_to_dev(struct nvmap_handle *h, struct nvmap_device *dev)
 
 		parent = *p;
 		b = rb_entry(parent, struct nvmap_handle, node);
-		if (h > b)
+		if (h > b) {
 			p = &parent->rb_right;
-		else
+		} else {
 			p = &parent->rb_left;
+		}
 	}
 	rb_link_node(&h->node, parent, p);
 	rb_insert_color(&h->node, &dev->handles);
@@ -390,16 +400,18 @@ static int handle_remove_from_dev(struct nvmap_handle *h,
 void nvmap_handle_add_owner(struct nvmap_handle *handle,
 					struct nvmap_client *client)
 {
-	if (!handle->owner)
+	if (!handle->owner) {
 		handle->owner = client;
+	}
 }
 
 void nvmap_handle_destroy(struct nvmap_handle *h)
 {
 	nvmap_dmabufs_free(&h->dmabuf_priv);
 
-	if (handle_remove_from_dev(h, nvmap_dev) != 0)
+	if (handle_remove_from_dev(h, nvmap_dev) != 0) {
 		return;
+	}
 
 	handle_dealloc(h);
 
@@ -429,8 +441,9 @@ static void heap_alloc_and_set_handle(
 		}
 
 		pages = nvmap_heap_alloc_dma_pages(h->size, heap_type);
-		if (IS_ERR_OR_NULL(pages))
+		if (IS_ERR_OR_NULL(pages)) {
 			return;
+		}
 		h->pgalloc.pages = pages;
 		h->pgalloc.contig = 0;
 
@@ -440,8 +453,9 @@ static void heap_alloc_and_set_handle(
 	} else if (nvmap_heap_type_is_iovmm(heap_type)) {
 		pages = nvmap_heap_alloc_iovmm_pages(h->size,
 			h->userflags & NVMAP_HANDLE_PHYS_CONTIG);
-		if (IS_ERR_OR_NULL(pages))
+		if (IS_ERR_OR_NULL(pages)) {
 			return;
+		}
 
 		h->pgalloc.pages = pages;
 		h->pgalloc.contig =
@@ -476,8 +490,9 @@ static void heap_alloc_handle_from_heaps(
 		heap_type = *alloc_policy++;
 		heap_type &= heap_mask;
 
-		if (!heap_type)
+		if (!heap_type) {
 			continue;
+		}
 
 		heap_mask &= ~heap_type;
 
@@ -505,8 +520,9 @@ int nvmap_handle_alloc(
 	int nr_page;
 	int err = -ENOMEM;
 
-	if (!h)
+	if (!h) {
 		return -EINVAL;
+	}
 
 	if (h->alloc) {
 		return -EEXIST;
@@ -517,10 +533,11 @@ int nvmap_handle_alloc(
 
 	nr_page = ((h->size + PAGE_SIZE - 1) >> PAGE_SHIFT);
 	/* Force mapping to uncached for VPR memory. */
-	if (heap_mask & (NVMAP_HEAP_CARVEOUT_VPR | ~nvmap_dev->cpu_access_mask))
+	if (heap_mask & (NVMAP_HEAP_CARVEOUT_VPR | ~nvmap_dev->cpu_access_mask)) {
 		h->flags = NVMAP_HANDLE_UNCACHEABLE;
-	else
+	} else {
 		h->flags = (flags & NVMAP_HANDLE_CACHE_FLAG);
+	}
 	h->align = max_t(size_t, align, L1_CACHE_BYTES);
 
 	alloc_policy = nvmap_heap_mask_to_policy(heap_mask, nr_page);
@@ -562,8 +579,9 @@ int nvmap_handle_alloc_from_va(struct nvmap_handle *h,
 			       unsigned int flags)
 {
 	h = nvmap_handle_get(h);
-	if (!h)
+	if (!h) {
 		return -EINVAL;
+	}
 
 	if (h->alloc) {
 		nvmap_handle_put(h);
@@ -604,11 +622,13 @@ int nvmap_handle_alloc_carveout(struct nvmap_handle *handle,
 		struct nvmap_heap_block *block;
 		co_heap = nvmap_dev_to_carveout(dev, i);
 
-		if (!(nvmap_carveout_heap_bit(co_heap) & type))
+		if (!(nvmap_carveout_heap_bit(co_heap) & type)) {
 			continue;
+		}
 
-		if (type & NVMAP_HEAP_CARVEOUT_IVM)
+		if (type & NVMAP_HEAP_CARVEOUT_IVM) {
 			handle->size = ALIGN(handle->size, NVMAP_IVM_ALIGNMENT);
+		}
 
 		block = nvmap_carveout_alloc(co_heap, start,
 						handle->size,
@@ -652,13 +672,15 @@ int nvmap_handle_alloc_from_ivmid(struct nvmap_handle *handle, u64 ivm_id)
 
 void nvmap_handle_zap(struct nvmap_handle *handle, u64 offset, u64 size)
 {
-	if (!handle->heap_pgalloc)
+	if (!handle->heap_pgalloc) {
 		return;
+	}
 
 	/* if no dirty page is present, no need to zap */
 	if (nvmap_handle_track_dirty(handle)
-			&& !atomic_read(&handle->pgalloc.ndirty))
+			&& !atomic_read(&handle->pgalloc.ndirty)) {
 		return;
+	}
 
 	if (!size) {
 		offset = 0;
@@ -676,15 +698,17 @@ static int handle_cache_maint_heap_page_inner(struct nvmap_handle *handle,
 				unsigned int op,
 				unsigned long start, unsigned long end)
 {
-	if (static_key_false(&nvmap_disable_vaddr_for_cache_maint))
+	if (static_key_false(&nvmap_disable_vaddr_for_cache_maint)) {
 		return 0;
+	}
 
 	if (!handle->vaddr) {
 		/* TODO: We need better naming than mapping and then unmapping */
-		if (nvmap_handle_mmap(handle))
+		if (nvmap_handle_mmap(handle)) {
 			nvmap_handle_munmap(handle, handle->vaddr);
-		else
+		} else {
 			return 1;
+		}
 	}
 	/* Fast inner cache maintenance using single mapping */
 	nvmap_cache_maint_inner(op, handle->vaddr + start, end - start);
@@ -732,21 +756,25 @@ int nvmap_handle_cache_maint(struct nvmap_handle *handle, unsigned long start,
 		return -EPERM;
 	}
 
-	if (!handle || !handle->alloc)
+	if (!handle || !handle->alloc) {
 		return -EFAULT;
+	}
 
 	nvmap_handle_kmap_inc(handle);
 
-	if (op == NVMAP_CACHE_OP_INV)
+	if (op == NVMAP_CACHE_OP_INV) {
 		op = NVMAP_CACHE_OP_WB_INV;
+	}
 
-	if (!end)
+	if (!end) {
 		end = handle->size;
+	}
 
 	wmb();
 	if (handle->flags == NVMAP_HANDLE_UNCACHEABLE ||
-	    handle->flags == NVMAP_HANDLE_WRITE_COMBINE || start == end)
+	    handle->flags == NVMAP_HANDLE_WRITE_COMBINE || start == end) {
 		goto out;
+	}
 
 	if (start > handle->size || end > handle->size) {
 		pr_warn("cache maintenance outside handle\n");
@@ -789,10 +817,11 @@ static void cache_maint_large(struct nvmap_handle **handles, u64 total,
 		}
 	}
 
-	if (op == NVMAP_CACHE_OP_WB)
+	if (op == NVMAP_CACHE_OP_WB) {
 		nvmap_cache_inner_clean_all();
-	else
+	} else {
 		nvmap_cache_inner_flush_all();
+	}
 
 	nvmap_stats_inc(NS_CFLUSH_RQ, total);
 	nvmap_stats_inc(NS_CFLUSH_DONE, thresh);
@@ -813,8 +842,9 @@ static int handles_get_total_cache_size(struct nvmap_handle **handles,
 
 		nvmap_handle_get_cacheability(handles[i], &inner, &outer);
 
-		if (!inner && !outer)
+		if (!inner && !outer) {
 			continue;
+		}
 
 		if ((op == NVMAP_CACHE_OP_WB)
 				&& nvmap_handle_track_dirty(handles[i])) {
@@ -850,18 +880,21 @@ int nvmap_handles_cache_maint(struct nvmap_handle **handles,
 	 * As io-coherency is enabled by default from T194 onwards,
 	 * Don't do cache maint from CPU side. The HW, SCF will do.
 	 */
-	if (tegra_get_chip_id() == TEGRA194)
+	if (tegra_get_chip_id() == TEGRA194) {
 		return 0;
+	}
 
 	WARN(!IS_ENABLED(CONFIG_ARM64),
 		"cache list operation may not function properly");
 
-	if (nvmap_cache_maint_by_set_ways)
+	if (nvmap_cache_maint_by_set_ways) {
 		thresh = cache_maint_inner_threshold;
+	}
 
 	total = handles_get_total_cache_size(handles, sizes, op, nr);
-	if (!total)
+	if (!total) {
 		return 0;
+	}
 
 	/* Full flush in the case the passed list is bigger than our
 	 * threshold. */
@@ -915,8 +948,9 @@ static int handle_write(struct nvmap_handle *h, unsigned long h_offs,
 	ret = copy_from_user(addr, (void *)sys_addr, elem_size);
 #endif
 
-	if (ret)
+	if (ret) {
 		return ret;
+	}
 
 	if (!(h->userflags & NVMAP_HANDLE_CACHE_SYNC_AT_RESERVE))
 		nvmap_handle_cache_maint(h, h_offs, h_offs + elem_size,
@@ -935,14 +969,17 @@ ssize_t nvmap_handle_rw(struct nvmap_handle *h,
 	void *addr;
 	int ret = 0;
 
-	if (!(h->heap_type & nvmap_dev->cpu_access_mask))
+	if (!(h->heap_type & nvmap_dev->cpu_access_mask)) {
 		return -EPERM;
+	}
 
-	if (!elem_size || !count)
+	if (!elem_size || !count) {
 		return -EINVAL;
+	}
 
-	if (!h->alloc)
+	if (!h->alloc) {
 		return -EFAULT;
+	}
 
 	/*
 	 * TODO: Add an english description of this
@@ -957,18 +994,21 @@ ssize_t nvmap_handle_rw(struct nvmap_handle *h,
 		count = 1;
 	}
 
-	if (elem_size > sys_stride || elem_size > h_stride)
+	if (elem_size > sys_stride || elem_size > h_stride) {
 		return -EINVAL;
+	}
 
 	if (elem_size > h->size ||
 			h_offs >= h->size ||
 			h_stride * (count - 1) + elem_size > (h->size - h_offs) ||
-			sys_stride * count > (h->size - h_offs))
+			sys_stride * count > (h->size - h_offs)) {
 		return -EINVAL;
+	}
 
 	if (!h->vaddr) {
-		if (nvmap_handle_mmap(h) == NULL)
+		if (nvmap_handle_mmap(h) == NULL) {
 			return -ENOMEM;
+		}
 		nvmap_handle_munmap(h, h->vaddr);
 	}
 
@@ -989,8 +1029,9 @@ ssize_t nvmap_handle_rw(struct nvmap_handle *h,
 					sys_addr, addr, elem_size);
 		}
 
-		if (ret)
+		if (ret) {
 			break;
+		}
 
 		copied += elem_size;
 		sys_addr += sys_stride;
@@ -998,8 +1039,9 @@ ssize_t nvmap_handle_rw(struct nvmap_handle *h,
 		addr += h_stride;
 	}
 
-	if (ret)
+	if (ret) {
 		return ret;
+	}
 
 	return copied;
 }

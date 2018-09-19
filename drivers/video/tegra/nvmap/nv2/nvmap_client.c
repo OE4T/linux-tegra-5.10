@@ -65,8 +65,9 @@ struct nvmap_client *nvmap_client_create(struct list_head *dev_client_list,
 	struct task_struct *task;
 
 	client = kzalloc(sizeof(*client), GFP_KERNEL);
-	if (!client)
+	if (!client) {
 		return NULL;
+	}
 
 	client->name = name;
 	client->kernel_client = true;
@@ -101,8 +102,9 @@ void nvmap_client_destroy(struct nvmap_client *client)
 {
 	struct rb_node *n;
 
-	if (!client)
+	if (!client) {
 		return;
+	}
 
 	while ((n = rb_first(&client->handle_refs))) {
 		struct nvmap_handle_ref *ref;
@@ -117,8 +119,9 @@ void nvmap_client_destroy(struct nvmap_client *client)
 			nvmap_client_remove_handle(client, ref->handle);
 	}
 
-	if (client->task)
+	if (client->task) {
 		put_task_struct(client->task);
+	}
 
 	trace_nvmap_release(client, client->name);
 	kfree(client);
@@ -146,10 +149,12 @@ pid_t nvmap_client_pid(struct nvmap_client *client)
 
 void nvmap_client_stats_alloc(struct nvmap_client *client, size_t size)
 {
-	if (client->kernel_client)
+	if (client->kernel_client) {
 		nvmap_stats_inc(NS_KALLOC, size);
-	else
+	} else {
 		nvmap_stats_inc(NS_UALLOC, size);
+	}
+
 }
 
 int nvmap_client_add_handle(struct nvmap_client *client,
@@ -181,8 +186,9 @@ void nvmap_client_remove_handle(struct nvmap_client *client,
 	int ref_count;
 
 	ref = nvmap_client_to_handle_ref(client, handle);
-	if (!ref)
+	if (!ref) {
 		return;
+	}
 
 	ref_count = nvmap_handle_ref_put(ref);
 	if (ref_count == 0) {
@@ -241,16 +247,18 @@ void nvmap_client_add_ref(struct nvmap_client *client,
 		struct nvmap_handle_ref *node;
 		parent = *p;
 		node = rb_entry(parent, struct nvmap_handle_ref, node);
-		if (ref->handle > node->handle)
+		if (ref->handle > node->handle) {
 			p = &parent->rb_right;
-		else
+		} else {
 			p = &parent->rb_left;
+		}
 	}
 	rb_link_node(&ref->node, parent, p);
 	rb_insert_color(&ref->node, &client->handle_refs);
 	client->handle_count++;
-	if (client->handle_count > nvmap_max_handle_count)
+	if (client->handle_count > nvmap_max_handle_count) {
 		nvmap_max_handle_count = client->handle_count;
+	}
 
 	client_unlock(client);
 }
@@ -287,11 +295,11 @@ struct nvmap_handle_ref *nvmap_client_to_handle_ref(struct nvmap_client *client,
 		if (ref->handle == handle) {
 			return_ref = ref;
 			break;
-		}
-		else if ((uintptr_t)handle > (uintptr_t)ref->handle)
+		} else if ((uintptr_t)handle > (uintptr_t)ref->handle) {
 			n = n->rb_right;
-		else
+		} else {
 			n = n->rb_left;
+		}
 	}
 
 	client_unlock(client);
@@ -305,11 +313,13 @@ int nvmap_client_create_fd(struct nvmap_client *client)
 	int start_fd = CONFIG_NVMAP_FD_START;
 
 #ifdef CONFIG_NVMAP_DEFER_FD_RECYCLE
-	if (client->next_fd < CONFIG_NVMAP_FD_START)
+	if (client->next_fd < CONFIG_NVMAP_FD_START) {
 		client->next_fd = CONFIG_NVMAP_FD_START;
+	}
 	start_fd = client->next_fd++;
-	if (client->next_fd >= CONFIG_NVMAP_DEFER_FD_RECYCLE_MAX_FD)
+	if (client->next_fd >= CONFIG_NVMAP_DEFER_FD_RECYCLE_MAX_FD) {
 		client->next_fd = CONFIG_NVMAP_FD_START;
+	}
 #endif
 	/* Allocate fd from start_fd(>=1024) onwards to overcome
 	 * __FD_SETSIZE limitation issue for select(),
@@ -325,8 +335,9 @@ int nvmap_client_give_dmabuf_new_fd(struct nvmap_client *client,
 	int fd;
 
 	fd = nvmap_client_create_fd(client);
-	if (fd > 0)
+	if (fd > 0) {
 		nvmap_dmabuf_install_fd(dmabuf, fd);
+	}
 	return fd;
 }
 
@@ -437,8 +448,9 @@ int nvmap_client_show_by_pid(struct nvmap_client *client, struct seq_file *s,
 	struct nvmap_handle *handle;
 	int ret = 0;
 
-	if (client->task->pid != pid)
+	if (client->task->pid != pid) {
 		return 0;
+	}
 
 	client_lock(client);
 
@@ -447,8 +459,9 @@ int nvmap_client_show_by_pid(struct nvmap_client *client, struct seq_file *s,
 		ref = rb_entry(n, struct nvmap_handle_ref, node);
 		handle = ref->handle;
 		ret = nvmap_handle_pid_show(handle, s, client->task->pid);
-		if (ret)
+		if (ret) {
 			break;
+		}
 	}
 
 	client_unlock(client);
@@ -502,23 +515,26 @@ static int procrank_pte_entry(pte_t *pte, unsigned long addr, unsigned long end,
 	struct page *page = NULL;
 	int mapcount;
 
-	if (pte_present(*pte))
+	if (pte_present(*pte)) {
 		page = vm_normal_page(vma, addr, *pte);
-	else if (is_swap_pte(*pte)) {
+	} else if (is_swap_pte(*pte)) {
 		swp_entry_t swpent = pte_to_swp_entry(*pte);
 
-		if (is_migration_entry(swpent))
+		if (is_migration_entry(swpent)) {
 			page = migration_entry_to_page(swpent);
+		}
 	}
 
-	if (!page)
+	if (!page) {
 		return 0;
+	}
 
 	mapcount = page_mapcount(page);
-	if (mapcount >= 2)
+	if (mapcount >= 2) {
 		mss->pss += (PAGE_SIZE << PSS_SHIFT) / mapcount;
-	else
+	} else {
 		mss->pss += (PAGE_SIZE << PSS_SHIFT);
+	}
 
 	return 0;
 }

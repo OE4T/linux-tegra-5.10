@@ -86,8 +86,9 @@ next_page:
 
 		if ((heap_type == NVMAP_HEAP_CARVEOUT_VPR) && handle->heap_pgalloc) {
 			i++;
-			if (i < (handle->size >> PAGE_SHIFT))
+			if (i < (handle->size >> PAGE_SHIFT)) {
 				goto next_page;
+			}
 		}
 	}
 }
@@ -116,8 +117,9 @@ static u64 vma_calc_mss(pid_t client_pid, struct list_head *vmas)
 				total += vma_size;
 
 				overlap_size = end_offset - vma_start_offset;
-				if (overlap_size > 0)
+				if (overlap_size > 0) {
 					total -= overlap_size;
+				}
 				end_offset = vma_start_offset + vma_size;
 			}
 		}
@@ -158,8 +160,9 @@ next_page:
 
 		if ((heap_type == NVMAP_HEAP_CARVEOUT_VPR) && handle->heap_pgalloc) {
 			i++;
-			if (i < (handle->size >> PAGE_SHIFT))
+			if (i < (handle->size >> PAGE_SHIFT)) {
 				goto next_page;
+			}
 		}
 
 		mutex_lock(&handle->lock);
@@ -214,8 +217,9 @@ next_page:
 
 		if ((heap_type == NVMAP_HEAP_CARVEOUT_VPR) && handle->heap_pgalloc) {
 			i++;
-			if (i < (handle->size >> PAGE_SHIFT))
+			if (i < (handle->size >> PAGE_SHIFT)) {
 				goto next_page;
+			}
 		}
 	}
 
@@ -250,8 +254,9 @@ u64 nvmap_handle_procrank_walk(struct nvmap_handle *h, struct mm_walk *walk,
 	struct nvmap_vma_list *tmp;
 	struct procrank_stats *mss = walk->private;
 
-	if (!h || !h->alloc || !h->heap_pgalloc)
+	if (!h || !h->alloc || !h->heap_pgalloc) {
 		return 0;
+	}
 
 	mutex_lock(&h->lock);
 	list_for_each_entry(tmp, &h->vmas, list) {
@@ -273,14 +278,16 @@ u64 nvmap_handle_total_pss(struct nvmap_handle *h, u32 heap_type)
 	int i;
 	u64 pss = 0;
 
-	if (!h || !h->alloc || h->heap_type != heap_type)
+	if (!h || !h->alloc || h->heap_type != heap_type) {
 		return 0;
+	}
 
 	for (i = 0; i < h->size >> PAGE_SHIFT; i++) {
 		struct page *page = nvmap_to_page(h->pgalloc.pages[i]);
 
-		if (page_mapcount(page) > 0)
+		if (page_mapcount(page) > 0) {
 			pss += PAGE_SIZE;
+		}
 	}
 
 	return pss;
@@ -288,8 +295,9 @@ u64 nvmap_handle_total_pss(struct nvmap_handle *h, u32 heap_type)
 
 u64 nvmap_handle_total_mss(struct nvmap_handle *h, u32 heap_type)
 {
-	if (!h || !h->alloc || h->heap_type != heap_type)
+	if (!h || !h->alloc || h->heap_type != heap_type) {
 		return 0;
+	}
 
 	return h->size;
 }
@@ -302,8 +310,9 @@ int nvmap_handle_pid_show(struct nvmap_handle *handle, struct seq_file *s,
 		int i = 0;
 		int ret = 0;
 
-		if (!handle->alloc)
+		if (!handle->alloc) {
 			return 0;
+		}
 
 		mutex_lock(&handle->lock);
 
@@ -325,13 +334,15 @@ next_page:
 		}
 
 		ret = seq_write(s, &entry, sizeof(entry));
-		if (ret < 0)
+		if (ret < 0) {
 			return ret;
+		}
 
 		if ((handle->heap_type == NVMAP_HEAP_CARVEOUT_VPR) && handle->heap_pgalloc) {
 			i++;
-			if (i < (handle->size >> PAGE_SHIFT))
+			if (i < (handle->size >> PAGE_SHIFT)) {
 				goto next_page;
+			}
 		}
 
 		return 0;

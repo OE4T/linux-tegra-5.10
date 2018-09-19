@@ -42,8 +42,9 @@ pgprot_t nvmap_handle_pgprot(struct nvmap_handle *h, pgprot_t prot)
 #endif
 		return pgprot_noncached(prot);
 	}
-	else if (h->flags == NVMAP_HANDLE_WRITE_COMBINE)
+	else if (h->flags == NVMAP_HANDLE_WRITE_COMBINE) {
 		return pgprot_writecombine(prot);
+	}
 	return prot;
 }
 
@@ -55,13 +56,15 @@ static void *handle_pgalloc_mmap(struct nvmap_handle *h)
 	pgprot_t prot = nvmap_handle_pgprot(h, PG_PROT_KERNEL);
 
 	pages = nvmap_alloc_pages(h->pgalloc.pages, h->size >> PAGE_SHIFT);
-	if (!pages)
+	if (!pages) {
 		return NULL;
+	}
 
 	vaddr = vm_map_ram(pages, h->size >> PAGE_SHIFT, -1, prot);
 	nvmap_altfree(pages, (h->size >> PAGE_SHIFT) * sizeof(*pages));
-	if (!vaddr && !h->vaddr)
+	if (!vaddr && !h->vaddr) {
 		return NULL;
+	}
 
 	if (vaddr && atomic_long_cmpxchg(&h->vaddr, 0, (long)vaddr)) {
 		vm_unmap_ram(vaddr, h->size >> PAGE_SHIFT);
@@ -84,8 +87,9 @@ static void *handle_carveout_mmap(struct nvmap_handle *h)
 	adj_size = PAGE_ALIGN(adj_size);
 
 	v = alloc_vm_area(adj_size, NULL);
-	if (!v)
+	if (!v) {
 		return NULL;
+	}
 
 	vaddr = v->addr + (co_base & ~PAGE_MASK);
 	ioremap_page_range((ulong)v->addr, (ulong)v->addr + adj_size,
@@ -107,21 +111,26 @@ void *nvmap_handle_mmap(struct nvmap_handle *h)
 {
 	void *vaddr;
 
-	if (!virt_addr_valid(h))
+	if (!virt_addr_valid(h)) {
 		return NULL;
+	}
 
 	h = nvmap_handle_get(h);
-	if (!h)
+	if (!h) {
 		return NULL;
+	}
 
-	if (!h->alloc)
+	if (!h->alloc) {
 		goto put_handle;
+	}
 
-	if (!(h->heap_type & nvmap_dev->cpu_access_mask))
+	if (!(h->heap_type & nvmap_dev->cpu_access_mask)) {
 		goto put_handle;
+	}
 
-	if (h->vaddr)
+	if (h->vaddr) {
 		return h->vaddr;
+	}
 
 	nvmap_handle_kmap_inc(h);
 
@@ -134,8 +143,9 @@ void *nvmap_handle_mmap(struct nvmap_handle *h)
 	/* leave the handle ref count incremented by 1, so that
 	 * the handle will not be freed while the kernel mapping exists.
 	 * nvmap_handle_put will be called by unmapping this address */
-	if (vaddr)
+	if (vaddr) {
 		return vaddr;
+	}
 
 	/* If we fail to map then set kmaps back to original value */
 	nvmap_handle_kmap_dec(h);
@@ -149,8 +159,9 @@ void nvmap_handle_munmap(struct nvmap_handle *h, void *addr)
 	if (!h || !h->alloc ||
 	    WARN_ON(!virt_addr_valid(h)) ||
 	    WARN_ON(!addr) ||
-	    !(h->heap_type & nvmap_dev->cpu_access_mask))
+	    !(h->heap_type & nvmap_dev->cpu_access_mask)) {
 		return;
+	}
 
 	nvmap_handle_put(h);
 }

@@ -57,8 +57,9 @@ int nvmap_register_cvsram_carveout(struct device *dma_dev,
 	cvsram.pm_ops.idle = idle;
 
 	if (!base || !size || (base != PAGE_ALIGN(base)) ||
-	    (size != PAGE_ALIGN(size)))
+	    (size != PAGE_ALIGN(size))) {
 		return -EINVAL;
+	}
 	cvsram.base = base;
 	cvsram.size = size;
 
@@ -143,16 +144,18 @@ static int __init nvmap_gosmem_device_init(struct reserved_mem *rmem,
 			NULL, idx, &outargs);
 		if (ret < 0) {
 			/* skip empty (null) phandles */
-			if (ret == -ENOENT)
+			if (ret == -ENOENT) {
 				continue;
-			else
+			} else {
 				goto free_cvdev;
+			}
 		}
 		temp = outargs.np;
 
 		cvdev_info[idx].np = of_node_get(temp);
-		if (!cvdev_info[idx].np)
+		if (!cvdev_info[idx].np) {
 			continue;
+		}
 		cvdev_info[idx].count = count;
 		cvdev_info[idx].idx = idx;
 		cvdev_info[idx].sgt =
@@ -174,8 +177,9 @@ static int __init nvmap_gosmem_device_init(struct reserved_mem *rmem,
 	}
 	rmem->priv = &gosmem;
 	ret = rmem_ops->device_init(rmem, dev);
-	if (ret)
+	if (ret) {
 		goto free;
+	}
 	return ret;
 free:
 	sgt = (struct sg_table *)(cvdev_info + count);
@@ -199,8 +203,9 @@ static int __init nvmap_gosmem_setup(struct reserved_mem *rmem)
 
 	rmem->priv = &gosmem;
 	ret = nvmap_co_setup(rmem);
-	if (ret)
+	if (ret) {
 		return ret;
+	}
 
 	rmem->priv = (struct reserved_mem_ops *)rmem->ops;
 	rmem->ops = &gosmem_rmem_ops;
@@ -218,8 +223,9 @@ static int nvmap_gosmem_notifier(struct notifier_block *nb,
 	struct cv_dev_info *gos_owner;
 
 	if ((event != BUS_NOTIFY_BOUND_DRIVER) &&
-		(event != BUS_NOTIFY_UNBIND_DRIVER))
+		(event != BUS_NOTIFY_UNBIND_DRIVER)) {
 		return NOTIFY_DONE;
+	}
 
 	if ((event == BUS_NOTIFY_BOUND_DRIVER) &&
 		nvmap_dev && (dev == nvmap_dev->dev_user.parent)) {
@@ -234,15 +240,17 @@ static int nvmap_gosmem_notifier(struct notifier_block *nb,
 		 * callbacks can safely query the proper version of nvmap
 		 */
 		if (of_match_node((struct of_device_id *)&nvmap_t19x_of_ids,
-				dev->of_node))
+				dev->of_node)) {
 			nvmap_version_t19x = 1;
+		}
 		static_key_slow_inc(&nvmap_updated_cache_config);
 		return NOTIFY_DONE;
 	}
 
 	gos_owner = nvmap_fetch_cv_dev_info(dev);
-	if (!gos_owner)
+	if (!gos_owner) {
 		return NOTIFY_DONE;
+	}
 
 	ret = _dma_declare_coherent_memory(&gos_owner->offset_dev, 0, 0, SZ_256,
 			ffs(sizeof(u32)) - ffs(sizeof(u8)), DMA_MEMORY_NOMAP);
@@ -303,11 +311,13 @@ struct cv_dev_info *nvmap_fetch_cv_dev_info(struct device *dev)
 {
 	int i;
 
-	if (!dev || !cvdev_info || !dev->of_node)
+	if (!dev || !cvdev_info || !dev->of_node) {
 		return NULL;
+	}
 
 	for (i = 0; i < count; i++)
-		if (cvdev_info[i].np == dev->of_node)
+		if (cvdev_info[i].np == dev->of_node) {
 			return &cvdev_info[i];
+		}
 	return NULL;
 }

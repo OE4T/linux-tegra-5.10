@@ -33,8 +33,9 @@
 
 int nvmap_handle_ref_get(struct nvmap_handle_ref *ref)
 {
-	if (!ref)
+	if (!ref) {
 		return -1;
+	}
 
 	atomic_inc(&ref->dupes);
 	nvmap_handle_get(ref->handle);

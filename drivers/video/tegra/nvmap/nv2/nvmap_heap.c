@@ -87,34 +87,39 @@ extern ulong nvmap_init_time;
 
 int nvmap_query_heap_peer(struct nvmap_heap *heap)
 {
-	if (!heap || !heap->is_ivm)
+	if (!heap || !heap->is_ivm) {
 		return -EINVAL;
+	}
 
 	return heap->peer;
 }
 
 size_t nvmap_query_heap_size(struct nvmap_heap *heap)
 {
-	if (!heap)
+	if (!heap) {
 		return -EINVAL;
+	}
 
 	return heap->len;
 }
 
 void nvmap_heap_debugfs_init(struct dentry *heap_root, struct nvmap_heap *heap)
 {
-	if (sizeof(heap->base) == sizeof(u64))
+	if (sizeof(heap->base) == sizeof(u64)) {
 		debugfs_create_x64("base", S_IRUGO,
 			heap_root, (u64 *)&heap->base);
-	else
+	} else {
 		debugfs_create_x32("base", S_IRUGO,
 			heap_root, (u32 *)&heap->base);
-	if (sizeof(heap->len) == sizeof(u64))
+	}
+
+	if (sizeof(heap->len) == sizeof(u64)) {
 		debugfs_create_x64("size", S_IRUGO,
 			heap_root, (u64 *)&heap->len);
-	else
+	} else {
 		debugfs_create_x32("size", S_IRUGO,
 			heap_root, (u32 *)&heap->len);
+	}
 }
 
 static void nvmap_free_mem(struct nvmap_heap *h, phys_addr_t base,
@@ -164,8 +169,9 @@ void nvmap_heap_free(struct nvmap_heap_block *b)
 	struct nvmap_heap *h;
 	struct list_block *lb;
 
-	if (!b)
+	if (!b) {
 		return;
+	}
 
 	h = nvmap_block_to_heap(b);
 	mutex_lock(&h->lock);
@@ -178,8 +184,9 @@ void nvmap_heap_free(struct nvmap_heap_block *b)
 	 * RAM attached with the HEAP returns error, raise warning.
 	 */
 	if (h->pm_ops.idle) {
-		if (h->pm_ops.idle() < 0)
+		if (h->pm_ops.idle() < 0) {
 			WARN_ON(1);
+		}
 	}
 
 	mutex_unlock(&h->lock);
@@ -205,8 +212,9 @@ struct nvmap_heap *nvmap_heap_create(struct device *parent,
 #ifdef CONFIG_DMA_CMA
 		struct dma_contiguous_stats stats;
 
-		if (dma_get_contiguous_stats(co->cma_dev, &stats))
+		if (dma_get_contiguous_stats(co->cma_dev, &stats)) {
 			goto fail;
+		}
 
 		base = stats.base;
 		len = stats.size;
@@ -248,11 +256,13 @@ struct nvmap_heap *nvmap_heap_create(struct device *parent,
 	h->len = len;
 	h->peer = co->peer;
 	h->vm_id = co->vmid;
-	if (co->pm_ops.busy)
+	if (co->pm_ops.busy) {
 		h->pm_ops.busy = co->pm_ops.busy;
+	}
 
-	if (co->pm_ops.idle)
+	if (co->pm_ops.idle) {
 		h->pm_ops.idle = co->pm_ops.idle;
+	}
 
 	INIT_LIST_HEAD(&h->all_list);
 	mutex_init(&h->lock);
@@ -264,11 +274,13 @@ struct nvmap_heap *nvmap_heap_create(struct device *parent,
 	}
 	wmb();
 
-	if (co->disable_dynamic_dma_map)
+	if (co->disable_dynamic_dma_map) {
 		nvmap_dev->dynamic_dma_map_mask &= ~co->usage_mask;
+	}
 
-	if (co->no_cpu_access)
+	if (co->no_cpu_access) {
 		nvmap_dev->cpu_access_mask &= ~co->usage_mask;
+	}
 
 	dev_info(parent, "created heap %s base 0x%p size (%zuKiB)\n",
 		co->name, (void *)(uintptr_t)base, len/1024);
@@ -308,8 +320,9 @@ int nvmap_heap_init(void)
 
 void nvmap_heap_deinit(void)
 {
-	if (heap_block_cache)
+	if (heap_block_cache) {
 		kmem_cache_destroy(heap_block_cache);
+	}
 
 	heap_block_cache = NULL;
 }
@@ -343,12 +356,14 @@ int nvmap_flush_heap_block(struct nvmap_client *client,
 	phys_addr_t end = block->base + len;
 	int ret = 0;
 
-	if (prot == NVMAP_HANDLE_UNCACHEABLE || prot == NVMAP_HANDLE_WRITE_COMBINE)
+	if (prot == NVMAP_HANDLE_UNCACHEABLE || prot == NVMAP_HANDLE_WRITE_COMBINE) {
 		goto out;
+	}
 
 	ret = nvmap_cache_maint_phys_range(NVMAP_CACHE_OP_WB_INV, phys, end);
-	if (ret)
+	if (ret) {
 		goto out;
+	}
 out:
 	wmb();
 	return ret;

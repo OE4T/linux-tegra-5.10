@@ -42,8 +42,9 @@
 
 static phys_addr_t handle_phys(struct nvmap_handle *h)
 {
-	if (h->heap_pgalloc)
+	if (h->heap_pgalloc) {
 		BUG();
+	}
 	return h->carveout->base;
 }
 
@@ -54,37 +55,44 @@ void *__nvmap_kmap(struct nvmap_handle *h, unsigned int pagenum)
 	pgprot_t prot;
 	struct vm_struct *area = NULL;
 
-	if (!virt_addr_valid(h))
+	if (!virt_addr_valid(h)) {
 		return NULL;
+	}
 
 	h = nvmap_handle_get(h);
-	if (!h)
+	if (!h) {
 		return NULL;
+	}
 
-	if (!h->alloc)
+	if (!h->alloc) {
 		goto put_handle;
+	}
 
-	if (!(h->heap_type & nvmap_cpu_access_mask()))
+	if (!(h->heap_type & nvmap_cpu_access_mask())) {
 		goto put_handle;
+	}
 
 	nvmap_handle_kmap_inc(h);
-	if (pagenum >= h->size >> PAGE_SHIFT)
+	if (pagenum >= h->size >> PAGE_SHIFT) {
 		goto out;
+	}
 
 	if (h->vaddr) {
 		kaddr = (unsigned long)h->vaddr + pagenum * PAGE_SIZE;
 	} else {
 		prot = nvmap_handle_pgprot(h, PG_PROT_KERNEL);
 		area = alloc_vm_area(PAGE_SIZE, NULL);
-		if (!area)
+		if (!area) {
 			goto out;
+		}
 		kaddr = (ulong)area->addr;
 
-		if (h->heap_pgalloc)
+		if (h->heap_pgalloc) {
 			paddr = page_to_phys(nvmap_to_page(
 						h->pgalloc.pages[pagenum]));
-		else
+		} else {
 			paddr = h->carveout->base + pagenum * PAGE_SIZE;
+		}
 
 		ioremap_page_range(kaddr, kaddr + PAGE_SIZE, paddr, prot);
 	}
@@ -105,19 +113,23 @@ void __nvmap_kunmap(struct nvmap_handle *h, unsigned int pagenum,
 	if (!h || !h->alloc ||
 	    WARN_ON(!virt_addr_valid(h)) ||
 	    WARN_ON(!addr) ||
-	    !(h->heap_type & nvmap_cpu_access_mask()))
+	    !(h->heap_type & nvmap_cpu_access_mask())) {
 		return;
+	}
 
-	if (WARN_ON(pagenum >= h->size >> PAGE_SHIFT))
+	if (WARN_ON(pagenum >= h->size >> PAGE_SHIFT)) {
 		return;
+	}
 
-	if (h->vaddr && (h->vaddr == (addr - pagenum * PAGE_SIZE)))
+	if (h->vaddr && (h->vaddr == (addr - pagenum * PAGE_SIZE))) {
 		goto out;
+	}
 
-	if (h->heap_pgalloc)
+	if (h->heap_pgalloc) {
 		paddr = page_to_phys(nvmap_to_page(h->pgalloc.pages[pagenum]));
-	else
+	} else {
 		paddr = h->carveout->base + pagenum * PAGE_SIZE;
+	}
 
 	if (h->flags != NVMAP_HANDLE_UNCACHEABLE &&
 	    h->flags != NVMAP_HANDLE_WRITE_COMBINE) {
@@ -130,10 +142,11 @@ void __nvmap_kunmap(struct nvmap_handle *h, unsigned int pagenum,
 	}
 
 	area = find_vm_area(addr);
-	if (area)
+	if (area) {
 		free_vm_area(area);
-	else
+	} else {
 		WARN(1, "Invalid address passed");
+	}
 out:
 	nvmap_handle_kmap_dec(h);
 	nvmap_handle_put(h);
@@ -147,34 +160,41 @@ void *__nvmap_mmap(struct nvmap_handle *h)
 	struct vm_struct *v;
 	struct page **pages;
 
-	if (!virt_addr_valid(h))
+	if (!virt_addr_valid(h)) {
 		return NULL;
+	}
 
 	h = nvmap_handle_get(h);
-	if (!h)
+	if (!h) {
 		return NULL;
+	}
 
-	if (!h->alloc)
+	if (!h->alloc) {
 		goto put_handle;
+	}
 
-	if (!(h->heap_type & nvmap_cpu_access_mask()))
+	if (!(h->heap_type & nvmap_cpu_access_mask())) {
 		goto put_handle;
+	}
 
-	if (h->vaddr)
+	if (h->vaddr) {
 		return h->vaddr;
+	}
 
 	nvmap_handle_kmap_inc(h);
 	prot = nvmap_handle_pgprot(h, PG_PROT_KERNEL);
 
 	if (h->heap_pgalloc) {
 		pages = nvmap_alloc_pages(h->pgalloc.pages, h->size >> PAGE_SHIFT);
-		if (!pages)
+		if (!pages) {
 			goto out;
+		}
 
 		vaddr = vm_map_ram(pages, h->size >> PAGE_SHIFT, -1, prot);
 		nvmap_altfree(pages, (h->size >> PAGE_SHIFT) * sizeof(*pages));
-		if (!vaddr && !h->vaddr)
+		if (!vaddr && !h->vaddr) {
 			goto out;
+		}
 
 		if (vaddr && atomic_long_cmpxchg(&h->vaddr, 0, (long)vaddr)) {
 			nvmap_handle_kmap_dec(h);
@@ -189,8 +209,9 @@ void *__nvmap_mmap(struct nvmap_handle *h)
 	adj_size = PAGE_ALIGN(adj_size);
 
 	v = alloc_vm_area(adj_size, NULL);
-	if (!v)
+	if (!v) {
 		goto out;
+	}
 
 	vaddr = v->addr + (h->carveout->base & ~PAGE_MASK);
 	ioremap_page_range((ulong)v->addr, (ulong)v->addr + adj_size,
@@ -222,8 +243,9 @@ void __nvmap_munmap(struct nvmap_handle *h, void *addr)
 	if (!h || !h->alloc ||
 	    WARN_ON(!virt_addr_valid(h)) ||
 	    WARN_ON(!addr) ||
-	    !(h->heap_type & nvmap_cpu_access_mask()))
+	    !(h->heap_type & nvmap_cpu_access_mask())) {
 		return;
+	}
 
 	nvmap_handle_put(h);
 }
@@ -235,12 +257,14 @@ struct sg_table *__nvmap_sg_table(struct nvmap_client *client,
 	int err, npages;
 	struct page **pages;
 
-	if (!virt_addr_valid(h))
+	if (!virt_addr_valid(h)) {
 		return ERR_PTR(-EINVAL);
+	}
 
 	h = nvmap_handle_get(h);
-	if (!h)
+	if (!h) {
 		return ERR_PTR(-EINVAL);
+	}
 
 	if (!h->alloc) {
 		err = -EINVAL;
@@ -259,8 +283,9 @@ struct sg_table *__nvmap_sg_table(struct nvmap_client *client,
 		struct page *page = phys_to_page(paddr);
 
 		err = sg_alloc_table(sgt, 1, GFP_KERNEL);
-		if (err)
+		if (err) {
 			goto err;
+		}
 
 		sg_set_page(sgt->sgl, page, h->size, offset_in_page(paddr));
 	} else {
@@ -272,8 +297,9 @@ struct sg_table *__nvmap_sg_table(struct nvmap_client *client,
 		err = sg_alloc_table_from_pages(sgt, pages,
 				npages, 0, h->size, GFP_KERNEL);
 		nvmap_altfree(pages, npages * sizeof(*pages));
-		if (err)
+		if (err) {
 			goto err;
+		}
 	}
 	nvmap_handle_put(h);
 	return sgt;

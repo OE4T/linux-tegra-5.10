@@ -158,8 +158,9 @@ int nvmap_ioctl_getfd(struct file *filp, void __user *arg)
 	struct nvmap_client *client = filp->private_data;
 	int fd;
 
-	if (copy_from_user(&op, arg, sizeof(op)))
+	if (copy_from_user(&op, arg, sizeof(op))) {
 		return -EFAULT;
+	}
 
 	handle = nvmap_handle_from_fd(op.handle);
 	/* If there's no handle install a non-nvmap dmabuf fd */
@@ -168,18 +169,21 @@ int nvmap_ioctl_getfd(struct file *filp, void __user *arg)
 		struct dma_buf *dmabuf;
 
 		dmabuf = dma_buf_get(op.handle);
-		if (IS_ERR(dmabuf))
+		if (IS_ERR(dmabuf)) {
 			return PTR_ERR(dmabuf);
+		}
 
 		fd = nvmap_client_create_fd(client);
-		if (fd < 0)
+		if (fd < 0) {
 			return fd;
+		}
 		nvmap_dmabuf_install_fd(dmabuf, fd);
 	} else {
 
 		fd = nvmap_client_create_fd(client);
-		if (fd < 0)
+		if (fd < 0) {
 			return fd;
+		}
 
 		nvmap_handle_install_fd(handle, fd);
 	}
@@ -217,15 +221,18 @@ int nvmap_ioctl_create_from_va(struct file *filp, void __user *arg)
 	struct vm_area_struct *vma;
 	size_t size;
 
-	if (copy_from_user(&op, arg, sizeof(op)))
+	if (copy_from_user(&op, arg, sizeof(op))) {
 		return -EFAULT;
+	}
 
 	/* don't allow non-page aligned addresses. */
-	if (op.va & ~PAGE_MASK)
+	if (op.va & ~PAGE_MASK) {
 		return -EINVAL;
+	}
 
-	if (!client)
+	if (!client) {
 		return -ENODEV;
+	}
 
 	vma = find_vma(current->mm, op.va);
 	size = (op.size) ? op.size: op.size64;
@@ -272,8 +279,9 @@ int nvmap_ioctl_free(struct file *filp, unsigned long fd)
 	struct nvmap_client *client = filp->private_data;
 	struct nvmap_handle *handle;
 
-	if (!fd)
+	if (!fd) {
 		return 0;
+	}
 
 	handle  = nvmap_handle_from_fd(fd);
 	if (!IS_ERR_OR_NULL(handle)) {
@@ -297,8 +305,9 @@ int nvmap_ioctl_alloc(struct file *filp, unsigned int cmd, void __user *arg)
 	if (cmd == NVMAP_IOC_ALLOC) {
 		struct nvmap_alloc_handle op;
 
-		if (copy_from_user(&op, arg, sizeof(op)))
+		if (copy_from_user(&op, arg, sizeof(op))) {
 			return -EFAULT;
+		}
 
 		peer = NVMAP_IVM_INVALID_PEER;
 		align = op.align;
@@ -308,8 +317,9 @@ int nvmap_ioctl_alloc(struct file *filp, unsigned int cmd, void __user *arg)
 	} else if (cmd == NVMAP_IOC_ALLOC_IVM) {
 		struct nvmap_alloc_ivm_handle op;
 
-		if (copy_from_user(&op, arg, sizeof(op)))
+		if (copy_from_user(&op, arg, sizeof(op))) {
 			return -EFAULT;
+		}
 		peer = op.peer;
 
 		align = op.align;
@@ -320,15 +330,18 @@ int nvmap_ioctl_alloc(struct file *filp, unsigned int cmd, void __user *arg)
 		return -EINVAL;
 	}
 
-	if (align & (align - 1))
+	if (align & (align - 1)) {
 		return -EINVAL;
+	}
 
 	h = nvmap_handle_from_fd(handle);
-	if (!h)
+	if (!h) {
 		return -EINVAL;
+	}
 	h = nvmap_handle_get(h);
-	if (!h)
+	if (!h) {
 		return -EINVAL;
+	}
 	if (nvmap_handle_is_allocated(h)) {
 		nvmap_handle_put(h);
 		return -EEXIST;
@@ -370,8 +383,9 @@ struct nvmap_handle *nvmap_try_duplicate_by_ivmid(
 
 	handle = nvmap_handle_from_ivmid(ivm_id);
 	handle = nvmap_handle_get(handle);
-	if (!handle)
+	if (!handle) {
 		return NULL;
+	}
 
 	nvmap_client_add_handle(client, handle);
 
@@ -415,12 +429,14 @@ static int ioctl_handle_from_ivmid(struct nvmap_client *client, int ivm_id)
 	int fd;
 
 	handle = nvmap_handle_from_ivmid(ivm_id);
-	if (!handle)
+	if (!handle) {
 		return -1;
+	}
 
 	fd = nvmap_client_create_fd(client);
-	if (fd >= 0)
+	if (fd >= 0) {
 		nvmap_handle_install_fd(handle, fd);
+	}
 
 	return fd;
 }
@@ -433,11 +449,13 @@ int nvmap_ioctl_create_from_ivc(struct file *filp, void __user *arg)
 	int err = 0;
 
 	/* First create a new handle and then fake carveout allocation */
-	if (copy_from_user(&op, arg, sizeof(op)))
+	if (copy_from_user(&op, arg, sizeof(op))) {
 		return -EFAULT;
+	}
 
-	if (!client)
+	if (!client) {
 		return -ENODEV;
+	}
 
 	fd = ioctl_handle_from_ivmid(client, op.ivm_id);
 	if (fd < 0) {
@@ -471,8 +489,9 @@ int nvmap_ioctl_vpr_floor_size(struct file *filp, void __user *arg)
 	int err=0;
 	u32 floor_size;
 
-	if (copy_from_user(&floor_size, arg, sizeof(floor_size)))
+	if (copy_from_user(&floor_size, arg, sizeof(floor_size))) {
 		return -EFAULT;
+	}
 
 	err = dma_set_resizable_heap_floor_size(&tegra_vpr_dev, floor_size);
 	return err;
@@ -488,18 +507,21 @@ int nvmap_ioctl_get_ivc_heap(struct file *filp, void __user *arg)
 		struct nvmap_carveout_node *co_heap = nvmap_dev_to_carveout(dev, i);
 		int peer;
 
-		if (!nvmap_carveout_is_ivm(co_heap))
+		if (!nvmap_carveout_is_ivm(co_heap)) {
 			continue;
+		}
 
 		peer = nvmap_carveout_query_peer(co_heap);
-		if (peer < 0)
+		if (peer < 0) {
 			return -EINVAL;
+		}
 
 		heap_mask |= BIT(peer);
 	}
 
-	if (copy_to_user(arg, &heap_mask, sizeof(heap_mask)))
+	if (copy_to_user(arg, &heap_mask, sizeof(heap_mask))) {
 		return -EFAULT;
+	}
 
 	return 0;
 }
@@ -534,8 +556,9 @@ static int ioctl_cache_maint_copy_op_from_user(void __user *arg,
 	if (op_size == sizeof(struct nvmap_cache_op_32)) {
 		struct nvmap_cache_op_32 op32;
 
-		if (copy_from_user(&op32, arg, sizeof(op32)))
+		if (copy_from_user(&op32, arg, sizeof(op32))) {
 			return -EFAULT;
+		}
 
 		op64->addr = op32.addr;
 		op64->handle = op32.handle;
@@ -547,8 +570,9 @@ static int ioctl_cache_maint_copy_op_from_user(void __user *arg,
 	if (op_size == sizeof(struct nvmap_cache_op)) {
 		struct nvmap_cache_op op;
 
-		if (copy_from_user(&op, arg, sizeof(op)))
+		if (copy_from_user(&op, arg, sizeof(op))) {
 			return -EFAULT;
+		}
 		op64->addr = op.addr;
 		op64->handle = op.handle;
 		op64->len = op.len;
@@ -556,8 +580,9 @@ static int ioctl_cache_maint_copy_op_from_user(void __user *arg,
 		return 0;
 	}
 
-	if (copy_from_user(&op64, arg, sizeof(op64)))
+	if (copy_from_user(&op64, arg, sizeof(op64))) {
 		return -EFAULT;
+	}
 	return 0;
 }
 int nvmap_ioctl_cache_maint(struct file *filp, void __user *arg, int op_size)
@@ -570,13 +595,15 @@ int nvmap_ioctl_cache_maint(struct file *filp, void __user *arg, int op_size)
 	unsigned long end;
 
 	ret = ioctl_cache_maint_copy_op_from_user(arg, &op, op_size);
-	if (ret)
+	if (ret) {
 		return ret;
+	}
 
 	handle = nvmap_handle_from_fd(op.handle);
 	handle = nvmap_handle_get(handle);
-	if (!handle)
+	if (!handle) {
 		return -EINVAL;
+	}
 
 	down_read(&current->mm->mmap_sem);
 
@@ -619,8 +646,9 @@ static int ioctl_rw_handle_copy_op_from_user(void __user *arg,
 
 #ifdef CONFIG_COMPAT
 	if (op_size == sizeof(op32)) {
-		if (copy_from_user(&op32, arg, sizeof(op32)))
+		if (copy_from_user(&op32, arg, sizeof(op32))) {
 			return -EFAULT;
+		}
 		op->addr = op32.addr;
 		op->handle = op32.handle;
 		op->offset = op32.offset;
@@ -632,14 +660,16 @@ static int ioctl_rw_handle_copy_op_from_user(void __user *arg,
 	}
 #endif
 	if (op_size == sizeof(*op)) {
-		if (copy_from_user(op, arg, sizeof(*op)))
+		if (copy_from_user(op, arg, sizeof(*op))) {
 			return -EFAULT;
+		}
 		return 0;
 	}
 
 	if (op_size == sizeof(op64)) {
-		if (copy_from_user(&op64, arg, sizeof(op64)))
+		if (copy_from_user(&op64, arg, sizeof(op64))) {
 			return -EFAULT;
+		}
 		op->addr = op64.addr;
 		op->handle = op64.handle;
 		op->offset = op64.offset;
@@ -692,8 +722,9 @@ static int set_vpr_fail_data(void *user_addr, ulong user_stride,
 	void *vaddr;
 
 	vaddr = vmalloc(PAGE_SIZE);
-	if (!vaddr)
+	if (!vaddr) {
 		return -ENOMEM;
+	}
 	memset(vaddr, 0xFF, PAGE_SIZE);
 
 	while (!ret && count--) {
@@ -724,8 +755,9 @@ int nvmap_ioctl_rw_handle(struct file *filp, int is_read, void __user *arg,
 	int err = 0;
 
 	err = ioctl_rw_handle_copy_op_from_user(arg, &op, op_size);
-	if (err)
+	if (err) {
 		return err;
+	}
 
 	addr = op.addr;
 	fd = op.handle;
@@ -736,13 +768,15 @@ int nvmap_ioctl_rw_handle(struct file *filp, int is_read, void __user *arg,
 	count = op.count;
 
 
-	if (!addr || !count || !elem_size)
+	if (!addr || !count || !elem_size) {
 		return -EINVAL;
+	}
 
 	h = nvmap_handle_from_fd(fd);
 	h = nvmap_handle_get(h);
-	if (!h)
+	if (!h) {
 		return -EINVAL;
+	}
 
 	if (is_read && soc_is_tegra186_n_later() &&
 		nvmap_handle_heap_type(h) == NVMAP_HEAP_CARVEOUT_VPR) {
@@ -753,8 +787,9 @@ int nvmap_ioctl_rw_handle(struct file *filp, int is_read, void __user *arg,
 		ret = set_vpr_fail_data((void *)addr, user_stride, elem_size, count);
 		nvmap_handle_put(h);
 
-		if (ret == 0)
+		if (ret == 0) {
 			ret = -EPERM;
+		}
 
 		return ret;
 	}
@@ -773,8 +808,9 @@ int nvmap_ioctl_rw_handle(struct file *filp, int is_read, void __user *arg,
 	if (copied < 0) {
 		err = copied;
 		copied = 0;
-	} else if (copied < (count * elem_size))
+	} else if (copied < (count * elem_size)) {
 		err = -EINTR;
+	}
 
 	ioctl_rw_handle_copy_arg_to_user(arg, copied, op_size);
 
@@ -794,19 +830,22 @@ int nvmap_ioctl_gup_test(struct file *filp, void __user *arg)
 	int nr_page;
 	struct page **pages;
 
-	if (copy_from_user(&op, arg, sizeof(op)))
+	if (copy_from_user(&op, arg, sizeof(op))) {
 		return -EFAULT;
+	}
 
 	op.result = 1;
 	vma = find_vma(current->mm, op.va);
 	if (unlikely(!vma) || (unlikely(op.va < vma->vm_start )) ||
-	    unlikely(op.va >= vma->vm_end))
+	    unlikely(op.va >= vma->vm_end)) {
 		goto exit;
+	}
 
 	handle = nvmap_handle_from_fd(op.handle);
 	nvmap_handle_get(handle);
-	if (!handle)
+	if (!handle) {
 		goto exit;
+	}
 
 	if (vma->vm_end - vma->vm_start != nvmap_handle_size(handle)) {
 		pr_err("handle size(0x%zx) and vma size(0x%lx) don't match\n",
@@ -823,8 +862,9 @@ int nvmap_ioctl_gup_test(struct file *filp, void __user *arg)
 	}
 
 	err = nvmap_get_user_pages(op.va & PAGE_MASK, nr_page, pages);
-	if (err)
+	if (err) {
 		goto put_user_pages;
+	}
 
 	// TODO: Find an easy way to fix this
 	/*
@@ -837,11 +877,13 @@ int nvmap_ioctl_gup_test(struct file *filp, void __user *arg)
 	}
 	*/
 
-	if (op.result)
+	if (op.result) {
 		err = 0;
+	}
 
-	if (copy_to_user(arg, &op, sizeof(op)))
+	if (copy_to_user(arg, &op, sizeof(op))) {
 		err = -EFAULT;
+	}
 
 put_user_pages:
 	nvmap_altfree(pages, nr_page * sizeof(*pages));
@@ -858,17 +900,20 @@ int nvmap_ioctl_set_tag_label(struct file *filp, void __user *arg)
 	struct nvmap_device *dev = nvmap_dev;
 	int err;
 
-	if (copy_from_user(&op, arg, sizeof(op)))
+	if (copy_from_user(&op, arg, sizeof(op))) {
 		return -EFAULT;
+	}
 
-	if (op.len > NVMAP_TAG_LABEL_MAXLEN)
+	if (op.len > NVMAP_TAG_LABEL_MAXLEN) {
 		op.len = NVMAP_TAG_LABEL_MAXLEN;
+	}
 
-	if (op.len)
+	if (op.len) {
 		err = nvmap_define_tag(dev, op.tag,
 			(const char __user *)op.addr, op.len);
-	else
+	} else {
 		err = nvmap_remove_tag(dev, op.tag);
+	}
 
 	return err;
 }
@@ -901,8 +946,9 @@ int nvmap_ioctl_get_heap_size(struct file *filp, void __user *arg)
 	int i;
 	memset(&op, 0, sizeof(op));
 
-	if (copy_from_user(&op, arg, sizeof(op)))
+	if (copy_from_user(&op, arg, sizeof(op))) {
 		return -EFAULT;
+	}
 
 	for (i = 0; i < nvmap_dev->nr_carveouts; i++) {
 		struct nvmap_carveout_node *carveout =
@@ -910,8 +956,9 @@ int nvmap_ioctl_get_heap_size(struct file *filp, void __user *arg)
 
 		if (op.heap & nvmap_carveout_heap_bit(carveout)) {
 			op.size = nvmap_carveout_query_heap_size(carveout);
-			if (copy_to_user(arg, &op, sizeof(op)))
+			if (copy_to_user(arg, &op, sizeof(op))) {
 				return -EFAULT;
+			}
 			return 0;
 		}
 	}

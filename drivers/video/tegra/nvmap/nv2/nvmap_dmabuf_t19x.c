@@ -57,29 +57,34 @@ struct sg_table *nvmap_dmabuf_map_dma_buf(
 	struct sg_table *sg_table;
 	struct dma_buf *dmabuf = nvmap_handle_to_dmabuf(handle);
 
-	if (!nvmap_version_t19x)
+	if (!nvmap_version_t19x) {
 		goto dmabuf_map;
+	}
 
 	handle_t19x = dma_buf_get_drvdata(dmabuf, dev);
 	if (!handle_t19x && !of_dma_is_coherent(attach->dev->of_node)) {
 		handle_t19x = kmalloc(sizeof(*handle_t19x), GFP_KERNEL);
-		if (WARN(!handle_t19x, "No memory!!"))
+		if (WARN(!handle_t19x, "No memory!!")) {
 			return ERR_PTR(-ENOMEM);
+		}
 
 		atomic_set(&handle_t19x->nc_pin, 0);
 		dma_buf_set_drvdata(dmabuf, dev,
 				handle_t19x, nvmap_handle_t19x_free);
 	}
 
-	if (!of_dma_is_coherent(attach->dev->of_node))
+	if (!of_dma_is_coherent(attach->dev->of_node)) {
 		atomic_inc(&handle_t19x->nc_pin);
+	}
 
 dmabuf_map:
 	sg_table = _nvmap_dmabuf_map_dma_buf(attach, dir);
 	/* no need to free handle_t19x, it is freed with handle */
-	if (IS_ERR(sg_table))
-		if (handle_t19x)
+	if (IS_ERR(sg_table)) {
+		if (handle_t19x) {
 			atomic_dec(&handle_t19x->nc_pin);
+		}
+	}
 
 	return sg_table;
 }
@@ -96,7 +101,8 @@ void nvmap_dmabuf_unmap_dma_buf(struct dma_buf_attachment *attach,
 	_nvmap_dmabuf_unmap_dma_buf(attach, sgt, dir);
 
 	handle_t19x = dma_buf_get_drvdata(dmabuf, dev);
-	if (handle_t19x && !of_dma_is_coherent(attach->dev->of_node))
+	if (handle_t19x && !of_dma_is_coherent(attach->dev->of_node)) {
 		atomic_dec(&handle_t19x->nc_pin);
+	}
 }
 

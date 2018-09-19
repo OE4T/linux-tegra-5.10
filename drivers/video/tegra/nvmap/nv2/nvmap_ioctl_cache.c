@@ -51,8 +51,9 @@ static int cache_maint_sanitize_size_offset(struct nvmap_handle **handles,
 	int i = 0;
 
 	for (i = 0; i < nr; i++) {
-		if (sizes[i] == 0)
+		if (sizes[i] == 0) {
 			sizes[i] = nvmap_handle_size(handles[i]);
+		}
 	}
 
 	return err;
@@ -96,11 +97,13 @@ static int cache_maint_get_handles(struct nvmap_handle **handles,
 
 	for (i = 0; i < nr; i++) {
 		if (nvmap_handle_userflag(handles[i])
-					& NVMAP_HANDLE_CACHE_SYNC_AT_RESERVE)
+					& NVMAP_HANDLE_CACHE_SYNC_AT_RESERVE) {
 			sync_count++;
+		}
 
-		if (nvmap_handle_is_heap(handles[i]))
+		if (nvmap_handle_is_heap(handles[i])) {
 			pgalloc_count++;
+		}
 	}
 
 	/*
@@ -202,14 +205,17 @@ int nvmap_ioctl_cache_maint_list(struct file *filp, void __user *arg,
 	u64 *size_ptr;
 	int err = 0;
 
-	if (copy_from_user(&op, arg, sizeof(op)))
+	if (copy_from_user(&op, arg, sizeof(op))) {
 		return -EFAULT;
+	}
 
-	if (!op.nr || op.nr > UINT_MAX / sizeof(u32))
+	if (!op.nr || op.nr > UINT_MAX / sizeof(u32)) {
 		return -EINVAL;
+	}
 
-	if (!access_ok(VERIFY_READ, op.handles, op.nr * sizeof(u32)))
+	if (!access_ok(VERIFY_READ, op.handles, op.nr * sizeof(u32))) {
 		return -EFAULT;
+	}
 
 	handles		= nvmap_altalloc(sizeof(*handles) * op.nr);
 	offset_ptr 	= nvmap_altalloc(sizeof(u64) * op.nr);
@@ -217,31 +223,38 @@ int nvmap_ioctl_cache_maint_list(struct file *filp, void __user *arg,
 	handle_ptr 	= nvmap_altalloc(sizeof(u32) * op.nr);
 
 	if (!handles || !offset_ptr || !size_ptr || !handle_ptr) {
-		if (handles)
+		if (handles) {
 			nvmap_altfree(handles, sizeof(*handles) * op.nr);
-		if (offset_ptr)
+		}
+		if (offset_ptr) {
 			nvmap_altfree(offset_ptr, sizeof(u64) * op.nr);
-		if (size_ptr)
+		}
+		if (size_ptr) {
 			nvmap_altfree(size_ptr, sizeof(u64) * op.nr);
-		if (handle_ptr)
+		}
+		if (handle_ptr) {
 			nvmap_altfree(handle_ptr, sizeof(u32) * op.nr);
+		}
 		return -ENOMEM;
 	}
 
 	err = cache_maint_copy_args(&op, handle_ptr, offset_ptr, size_ptr);
-	if (err)
+	if (err) {
 		goto free_mem;
+	}
 
 	op.op &= ~NVMAP_ELEM_SIZE_U64;
 
 	err = cache_maint_get_handles(handles, handle_ptr, op.nr);
-	if (err)
+	if (err) {
 		goto free_mem;
+	}
 
 	err = cache_maint_sanitize_size_offset(handles, size_ptr,
 							offset_ptr, op.nr);
-	if (err)
+	if (err) {
 		goto free_handles;
+	}
 
 	if (is_reserve_ioctl) {
 		err = nvmap_handles_reserve(handles, offset_ptr, size_ptr,
