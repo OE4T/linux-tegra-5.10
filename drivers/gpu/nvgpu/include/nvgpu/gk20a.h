@@ -48,7 +48,7 @@ struct nvgpu_clk_arb;
 struct nvgpu_gpu_ctxsw_trace_filter;
 #endif
 struct priv_cmd_entry;
-struct nvgpu_gpfifo_args;
+struct nvgpu_setup_bind_args;
 
 #include <nvgpu/lock.h>
 #include <nvgpu/thread.h>
@@ -1612,7 +1612,7 @@ struct gk20a {
 				struct nvgpu_gpfifo_userdata userdata,
 				u32 start, u32 length);
 		int (*alloc_usermode_buffers)(struct channel_gk20a *c,
-			struct nvgpu_gpfifo_args *gpfifo_args);
+			struct nvgpu_setup_bind_args *args);
 	} os_channel;
 
 	struct gk20a_scale_profile *scale_profile;
