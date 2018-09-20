@@ -55,6 +55,7 @@ struct hv_ivc {
 	/* channel configuration */
 	struct ivc		ivc;
 	const struct tegra_hv_queue_data *qd;
+	const struct ivc_shared_area *area;
 	const struct guest_ivc_info *givci;
 	int			other_guestid;
 
@@ -214,6 +215,7 @@ static int tegra_hv_add_ivc(struct tegra_hv_data *hvd,
 	for (i = 0; i < hvd->info->nr_areas; i++) {
 		if (hvd->info->areas[i].guest == ivc->other_guestid) {
 			ivc->givci = &hvd->guest_ivc_info[i];
+			ivc->area = &hvd->info->areas[i];
 			break;
 		}
 	}
@@ -586,6 +588,44 @@ struct tegra_hv_ivc_cookie *tegra_hv_ivc_reserve(struct device_node *dn,
 	return ivck;
 }
 EXPORT_SYMBOL(tegra_hv_ivc_reserve);
+
+void tegra_hv_ivc_notify(struct tegra_hv_ivc_cookie *ivck)
+{
+	struct hv_ivc *ivc;
+
+	if (ivck == NULL)
+		return;
+
+	ivc = cookie_to_ivc_dev(ivck);
+	hyp_raise_irq(ivc->qd->raise_irq, ivc->other_guestid);
+
+}
+EXPORT_SYMBOL(tegra_hv_ivc_notify);
+
+int tegra_hv_ivc_get_info(struct tegra_hv_ivc_cookie *ivck, uint64_t *pa,
+			  uint64_t *size)
+{
+	struct hv_ivc *ivc;
+	int ret;
+
+	if (ivck == NULL)
+		return -EINVAL;
+
+	ivc = cookie_to_ivc_dev(ivck);
+
+	mutex_lock(&ivc->lock);
+	if (ivc->reserved) {
+		*pa = ivc->area->pa;
+		*size = ivc->area->size;
+		ret = 0;
+	} else {
+		ret = -EINVAL;
+	}
+	mutex_unlock(&ivc->lock);
+
+	return ret;
+}
+EXPORT_SYMBOL(tegra_hv_ivc_get_info);
 
 int tegra_hv_ivc_unreserve(struct tegra_hv_ivc_cookie *ivck)
 {

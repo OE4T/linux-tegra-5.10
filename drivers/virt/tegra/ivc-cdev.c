@@ -21,6 +21,7 @@
 #include <linux/slab.h>
 #include <linux/sched.h>
 
+#include <linux/tegra-ivc-dev.h>
 #include "tegra_hv.h"
 
 #define ERR(...) pr_err("ivc: " __VA_ARGS__)
@@ -229,7 +230,6 @@ static ssize_t ivc_dev_write(struct file *filp, const char __user *buf,
 		*pos += chunk;
 	}
 
-
 	if (done == 0)
 		return ret;
 
@@ -258,6 +258,105 @@ static unsigned int ivc_dev_poll(struct file *filp, poll_table *wait)
 	return mask;
 }
 
+static int ivc_dev_mmap(struct file *filp, struct vm_area_struct *vma)
+{
+	struct ivc_dev *ivcd = filp->private_data;
+	uint64_t map_region_sz;
+	uint64_t ivc_area_ipa, ivc_area_size;
+	int ret = -EFAULT;
+
+	BUG_ON(!ivcd);
+
+	ret = tegra_hv_ivc_get_info(ivcd->ivck, &ivc_area_ipa, &ivc_area_size);
+	if (ret < 0) {
+		dev_err(ivcd->device, "%s: get_info failed\n", __func__);
+		return ret;
+	}
+
+	/* fail if userspace attempts to partially map the mempool */
+	map_region_sz = vma->vm_end - vma->vm_start;
+
+	if (((vma->vm_pgoff == 0) && (map_region_sz == ivc_area_size))) {
+
+		if (remap_pfn_range(vma, vma->vm_start,
+					(ivc_area_ipa >> PAGE_SHIFT),
+					map_region_sz,
+					vma->vm_page_prot)) {
+			ret = -EAGAIN;
+		} else {
+			/* success! */
+			ret = 0;
+		}
+	}
+
+	return ret;
+}
+
+static long ivc_dev_ioctl(struct file *filp, unsigned int cmd,
+		unsigned long arg)
+{
+	struct ivc_dev *ivcd = filp->private_data;
+	struct nvipc_ivc_info info;
+	uint64_t ivc_area_ipa, ivc_area_size;
+	long ret = 0;
+
+	/* validate the cmd */
+	if (_IOC_TYPE(cmd) != NVIPC_IVC_IOCTL_MAGIC) {
+		dev_err(ivcd->device, "%s: not a ivc ioctl\n", __func__);
+		return -ENOTTY;
+	}
+
+	if (_IOC_NR(cmd) > NVIPC_IVC_IOCTL_NUMBER_MAX) {
+		dev_err(ivcd->device, "%s: wrong ivc ioctl\n", __func__);
+		ret = -ENOTTY;
+	}
+
+	switch (cmd) {
+	case NVIPC_IVC_IOCTL_GET_INFO:
+		ret = tegra_hv_ivc_get_info(ivcd->ivck, &ivc_area_ipa,
+					    &ivc_area_size);
+		if (ret < 0) {
+			dev_err(ivcd->device, "%s: get_info failed\n",
+				__func__);
+			return ret;
+		}
+
+		info.nframes = ivcd->qd->nframes;
+		info.frame_size = ivcd->qd->frame_size;
+		info.queue_size = ivcd->qd->size;
+		info.queue_offset = ivcd->qd->offset;
+		info.area_size = ivc_area_size;
+
+		if (ivcd->qd->peers[0] == ivcd->qd->peers[1]) {
+			/*
+			 * The queue ids of loopback queues are always
+			 * consecutive, so the even-numbered one
+			 * receives in the first area.
+			 */
+			info.rx_first = (ivcd->qd->id & 1) == 0;
+
+		} else {
+			info.rx_first = (tegra_hv_get_vmid() ==
+					 ivcd->qd->peers[0]);
+		}
+
+		if (copy_to_user((void __user *) arg, &info,
+					sizeof(struct nvipc_ivc_info))) {
+			ret = -EFAULT;
+		}
+		break;
+
+	case NVIPC_IVC_IOCTL_NOTIFY_REMOTE:
+		tegra_hv_ivc_notify(ivcd->ivck);
+		break;
+
+	default:
+		ret = -ENOTTY;
+	}
+
+	return ret;
+}
+
 static const struct file_operations ivc_fops = {
 	.owner		= THIS_MODULE,
 	.open		= ivc_dev_open,
@@ -265,7 +364,9 @@ static const struct file_operations ivc_fops = {
 	.llseek		= noop_llseek,
 	.read		= ivc_dev_read,
 	.write		= ivc_dev_write,
+	.mmap		= ivc_dev_mmap,
 	.poll		= ivc_dev_poll,
+	.unlocked_ioctl = ivc_dev_ioctl,
 };
 
 static ssize_t id_show(struct device *dev,
