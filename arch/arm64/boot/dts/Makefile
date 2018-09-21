@@ -46,8 +46,8 @@ dts_mfiles = $(call dts_makefile, $(tegra-dtstree)/platform/, Makefile)
 ifneq ($(dts_mfiles),)
 dts-include :=
 include $(dts_mfiles)
-dtb-y := $(addprefix $(tegra-rel-dtstree)/hardware/nvidia/,$(dtb-y))
-dtbo-y := $(addprefix $(tegra-rel-dtstree)/hardware/nvidia/,$(dtbo-y))
+dtb-y := $(addprefix $(tegra-rel-dtstree)/nvidia/,$(dtb-y))
+dtbo-y := $(addprefix $(tegra-rel-dtstree)/nvidia/,$(dtbo-y))
 ifneq ($(dts-include),)
 DTC_INCLUDE += $(addprefix $(tegra-dtstree)/,$(dts-include))
 endif
