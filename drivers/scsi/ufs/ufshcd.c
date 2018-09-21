@@ -3981,7 +3981,7 @@ static int ufshcd_uic_hibern8_enter(struct ufs_hba *hba)
 	}
 out:
 	if (!ret)
-		ufshcd_vops_hibern8_entry_notify(hba);
+		ufshcd_vops_hibern8_entry_notify(hba, POST_CHANGE);
 	return ret;
 }
 
@@ -3993,6 +3993,7 @@ int ufshcd_uic_hibern8_exit(struct ufs_hba *hba)
 
 	ufshcd_vops_hibern8_notify(hba, UIC_CMD_DME_HIBER_EXIT, PRE_CHANGE);
 
+	ufshcd_vops_hibern8_entry_notify(hba, PRE_CHANGE);
 	uic_cmd.command = UIC_CMD_DME_HIBER_EXIT;
 	ret = ufshcd_uic_pwr_ctrl(hba, &uic_cmd);
 	trace_ufshcd_profile_hibern8(dev_name(hba->dev), "exit",

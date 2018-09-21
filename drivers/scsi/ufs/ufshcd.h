@@ -331,7 +331,7 @@ struct ufs_hba_variant_ops {
 				     enum ufs_notify_change_status);
 	int	(*link_startup_notify)(struct ufs_hba *,
 				       enum ufs_notify_change_status);
-	void	(*hibern8_entry_notify)(struct ufs_hba *);
+	void	(*hibern8_entry_notify)(struct ufs_hba *, int flag);
 	int	(*pwr_change_notify)(struct ufs_hba *,
 					enum ufs_notify_change_status status,
 					struct ufs_pa_layer_attr *,
@@ -1090,10 +1090,11 @@ static inline int ufshcd_vops_link_startup_notify(struct ufs_hba *hba,
 }
 
 
-static inline void ufshcd_vops_hibern8_entry_notify(struct ufs_hba *hba)
+static inline void ufshcd_vops_hibern8_entry_notify(struct ufs_hba *hba,
+							int flag)
 {
 	if (hba->vops && hba->vops->hibern8_entry_notify)
-		hba->vops->hibern8_entry_notify(hba);
+		hba->vops->hibern8_entry_notify(hba, flag);
 }
 
 static inline int ufshcd_vops_pwr_change_notify(struct ufs_hba *hba,
