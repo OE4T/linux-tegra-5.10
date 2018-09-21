@@ -280,10 +280,14 @@ static int ufs_tegra_enable_mphylane_clks(struct ufs_tegra_host *host)
 	if (host->is_lane_clks_enabled)
 		return 0;
 
+	err = clk_prepare_enable(host->pllrefe_clk);
+	if (err < 0)
+		goto out;
+
 	err = ufs_tegra_host_clk_enable(dev, "mphy_core_pll_fixed",
 		host->mphy_core_pll_fixed);
 	if (err)
-		goto out;
+		goto disable_mphy_core_pll_fixed;
 
 	err = ufs_tegra_host_clk_enable(dev, "mphy_l0_tx_symb",
 		host->mphy_l0_tx_symb);
@@ -339,6 +343,8 @@ disable_tx_1mhz_ref:
 	clk_disable_unprepare(host->mphy_l0_tx_symb);
 disable_l0_tx_symb:
 	clk_disable_unprepare(host->mphy_core_pll_fixed);
+disable_mphy_core_pll_fixed:
+	clk_disable_unprepare(host->pllrefe_clk);
 out:
 	return err;
 }
@@ -347,6 +353,11 @@ static int ufs_tegra_init_mphy_lane_clks(struct ufs_tegra_host *host)
 {
 	int err = 0;
 	struct device *dev = host->hba->dev;
+
+	err = ufs_tegra_host_clk_get(dev,
+			"pllrefe_vcoout", &host->pllrefe_clk);
+	if (err)
+		goto out;
 
 	err = ufs_tegra_host_clk_get(dev,
 			"mphy_core_pll_fixed", &host->mphy_core_pll_fixed);
@@ -1047,12 +1058,17 @@ out_disable_ufs_clks:
 }
 
 
-static void ufs_tegra_hibern8_entry_notify(struct ufs_hba *hba)
+static void ufs_tegra_hibern8_entry_notify(struct ufs_hba *hba, int flag)
 {
 	struct ufs_tegra_host *ufs_tegra = hba->priv;
 
-	if (!(ufs_tegra->nvquirks & NVQUIRK_BROKEN_HIBERN8_ENTRY))
+	if (!(ufs_tegra->nvquirks & NVQUIRK_BROKEN_HIBERN8_ENTRY)) {
+		if (flag)
+			clk_disable_unprepare(ufs_tegra->pllrefe_clk);
+		else
+			clk_prepare_enable(ufs_tegra->pllrefe_clk);
 		return;
+	}
 
 	ufs_tegra_context_save(ufs_tegra);
 
