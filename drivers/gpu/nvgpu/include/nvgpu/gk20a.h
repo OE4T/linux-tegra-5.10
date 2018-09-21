@@ -759,6 +759,8 @@ struct gpu_ops {
 			u32 off, bool acquire, bool wfi);
 		int (*init_pdb_cache_war)(struct gk20a *g);
 		void (*deinit_pdb_cache_war)(struct gk20a *g);
+		int (*set_sm_exception_type_mask)(struct channel_gk20a *ch,
+				u32 exception_mask);
 	} fifo;
 	struct pmu_v {
 		u32 (*get_pmu_cmdline_args_size)(struct nvgpu_pmu *pmu);

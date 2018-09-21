@@ -632,6 +632,7 @@ static const struct gpu_ops tu104_ops = {
 		.add_sema_cmd = gv11b_fifo_add_sema_cmd,
 		.init_pdb_cache_war = tu104_init_pdb_cache_war,
 		.deinit_pdb_cache_war = tu104_deinit_pdb_cache_war,
+		.set_sm_exception_type_mask = gk20a_tsg_set_sm_exception_type_mask,
 	},
 	.gr_ctx = {
 		.get_netlist_name = gr_tu104_get_netlist_name,
