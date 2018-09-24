@@ -57,7 +57,7 @@ struct clk_progs {
 	struct boardobjgrp_e255 super;
 	u8 slave_entry_count;
 	u8 vf_entry_count;
-
+	u8 vf_sec_entry_count;
 };
 
 struct clk_prog {
@@ -91,6 +91,42 @@ struct clk_prog_1x_master_ratio {
 struct clk_prog_1x_master_table {
 	struct clk_prog_1x_master super;
 	struct ctrl_clk_clk_prog_1x_master_table_slave_entry *p_slave_entries;
+};
+
+struct clk_prog_3x_master {
+	bool b_o_c_o_v_enabled;
+	struct ctrl_clk_clk_prog_1x_master_vf_entry *p_vf_entries;
+	struct ctrl_clk_clk_delta deltas;
+	union ctrl_clk_clk_prog_1x_master_source_data source_data;
+	vf_flatten *vfflatten;
+	vf_lookup *vflookup;
+	get_fpoints *getfpoints;
+	get_slaveclk *getslaveclk;
+};
+
+struct clk_prog_3x_master_ratio {
+	struct ctrl_clk_clk_prog_1x_master_ratio_slave_entry *p_slave_entries;
+};
+
+struct clk_prog_3x_master_table {
+	struct ctrl_clk_clk_prog_1x_master_table_slave_entry *p_slave_entries;
+};
+
+struct clk_prog_35_master {
+	struct clk_prog_1x super;
+	struct clk_prog_3x_master master;
+	struct ctrl_clk_clk_prog_35_master_sec_vf_entry_voltrail
+			*p_voltrail_sec_vf_entries;
+};
+
+struct clk_prog_35_master_ratio {
+	struct clk_prog_35_master super;
+	struct clk_prog_3x_master_ratio ratio;
+};
+
+struct clk_prog_35_master_table {
+	struct clk_prog_35_master super;
+	struct clk_prog_3x_master_table table;
 };
 
 #define CLK_CLK_PROG_GET(pclk, idx)                                            \

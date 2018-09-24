@@ -60,10 +60,15 @@
 #define CTRL_CLK_CLK_DOMAIN_3X_PROG_ORDERING_INDEX_INVALID     0xFFU
 #define CTRL_CLK_CLK_DOMAIN_INDEX_INVALID                      0xFF
 
+#define CTRL_CLK_CLK_PROG_TYPE_3X                              0x00U
 #define CTRL_CLK_CLK_PROG_TYPE_1X                              0x01U
 #define CTRL_CLK_CLK_PROG_TYPE_1X_MASTER                       0x02U
 #define CTRL_CLK_CLK_PROG_TYPE_1X_MASTER_RATIO                 0x03U
 #define CTRL_CLK_CLK_PROG_TYPE_1X_MASTER_TABLE                 0x04U
+#define CTRL_CLK_CLK_PROG_TYPE_35                              0x05U
+#define CTRL_CLK_CLK_PROG_TYPE_35_MASTER                       0x06U
+#define CTRL_CLK_CLK_PROG_TYPE_35_MASTER_RATIO                 0x07U
+#define CTRL_CLK_CLK_PROG_TYPE_35_MASTER_TABLE                 0x08U
 #define CTRL_CLK_CLK_PROG_TYPE_UNKNOWN                         255U
 
 /*!
@@ -75,6 +80,7 @@
 #define CTRL_CLK_PROG_1X_SOURCE_INVALID                        255U
 
 #define CTRL_CLK_CLK_PROG_1X_MASTER_VF_ENTRY_MAX_ENTRIES 4U
+#define CTRL_CLK_CLK_PROG_35_MASTER_SEC_VF_ENTRY_VOLTRAIL_MAX	1U
 #define CTRL_CLK_PROG_1X_MASTER_MAX_SLAVE_ENTRIES 6U
 
 #define CTRL_CLK_CLK_VF_POINT_IDX_INVALID                      255U
@@ -108,6 +114,18 @@ struct ctrl_clk_clk_prog_1x_master_vf_entry {
 	u8 gain_vfe_idx;
 	u8 vf_point_idx_first;
 	u8 vf_point_idx_last;
+};
+
+struct ctrl_clk_clk_prog_35_master_sec_vf_entry {
+	u8 vfe_idx;
+	u8 dvco_offset_vfe_idx;
+	u8 vf_point_idx_first;
+	u8 vf_point_idx_last;
+};
+
+struct ctrl_clk_clk_prog_35_master_sec_vf_entry_voltrail {
+	struct ctrl_clk_clk_prog_35_master_sec_vf_entry sec_vf_entries[
+			CTRL_CLK_CLK_PROG_35_MASTER_SEC_VF_ENTRY_VOLTRAIL_MAX];
 };
 
 struct ctrl_clk_clk_prog_1x_master_ratio_slave_entry {

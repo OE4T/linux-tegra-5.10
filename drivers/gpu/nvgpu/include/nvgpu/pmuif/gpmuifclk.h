@@ -186,6 +186,7 @@ struct nv_pmu_clk_clk_prog_boardobjgrp_set_header {
 	struct nv_pmu_boardobjgrp_e255 super;
 	u8 slave_entry_count;
 	u8 vf_entry_count;
+	u8 vf_sec_entry_count;
 };
 
 struct nv_pmu_clk_clk_prog_boardobj_set {
@@ -223,6 +224,45 @@ struct nv_pmu_clk_clk_prog_1x_master_table_boardobj_set {
 	slave_entries[CTRL_CLK_PROG_1X_MASTER_MAX_SLAVE_ENTRIES];
 };
 
+struct nv_pmu_clk_clk_prog_3x_master_boardobj_set {
+	u8 rsvd;	/* Stubbing for RM_PMU_BOARDOBJ_INTERFACE */
+	bool b_o_c_o_v_enabled;
+	struct ctrl_clk_clk_prog_1x_master_vf_entry vf_entries[
+			CTRL_CLK_CLK_PROG_1X_MASTER_VF_ENTRY_MAX_ENTRIES];
+	struct ctrl_clk_clk_delta deltas;
+	union ctrl_clk_clk_prog_1x_master_source_data source_data;
+};
+
+struct nv_pmu_clk_clk_prog_3x_master_ratio_boardobj_set {
+	u8 rsvd;	/* Stubbing for RM_PMU_BOARDOBJ_INTERFACE */
+	struct ctrl_clk_clk_prog_1x_master_ratio_slave_entry slave_entries[
+				CTRL_CLK_PROG_1X_MASTER_MAX_SLAVE_ENTRIES];
+};
+
+struct nv_pmu_clk_clk_prog_3x_master_table_boardobj_set {
+	u8 rsvd;	/* Stubbing for RM_PMU_BOARDOBJ_INTERFACE */
+	struct ctrl_clk_clk_prog_1x_master_table_slave_entry slave_entries[
+				CTRL_CLK_PROG_1X_MASTER_MAX_SLAVE_ENTRIES];
+};
+
+struct nv_pmu_clk_clk_prog_35_master_boardobj_set {
+	struct nv_pmu_clk_clk_prog_1x_boardobj_set super;
+	struct nv_pmu_clk_clk_prog_3x_master_boardobj_set master;
+	struct ctrl_clk_clk_prog_35_master_sec_vf_entry_voltrail
+		voltrail_sec_vf_entries[
+			CTRL_CLK_CLK_PROG_1X_MASTER_VF_ENTRY_MAX_ENTRIES];
+};
+
+struct nv_pmu_clk_clk_prog_35_master_ratio_boardobj_set {
+	struct nv_pmu_clk_clk_prog_35_master_boardobj_set super;
+	struct nv_pmu_clk_clk_prog_3x_master_ratio_boardobj_set ratio;
+};
+
+struct nv_pmu_clk_clk_prog_35_master_table_boardobj_set {
+	struct nv_pmu_clk_clk_prog_35_master_boardobj_set super;
+	struct nv_pmu_clk_clk_prog_3x_master_table_boardobj_set table;
+};
+
 union nv_pmu_clk_clk_prog_boardobj_set_union {
 	struct nv_pmu_boardobj board_obj;
 	struct nv_pmu_clk_clk_prog_boardobj_set super;
@@ -230,6 +270,9 @@ union nv_pmu_clk_clk_prog_boardobj_set_union {
 	struct nv_pmu_clk_clk_prog_1x_master_boardobj_set v1x_master;
 	struct nv_pmu_clk_clk_prog_1x_master_ratio_boardobj_set v1x_master_ratio;
 	struct nv_pmu_clk_clk_prog_1x_master_table_boardobj_set v1x_master_table;
+	struct nv_pmu_clk_clk_prog_35_master_boardobj_set v35_master;
+	struct nv_pmu_clk_clk_prog_35_master_ratio_boardobj_set v35_master_ratio;
+	struct nv_pmu_clk_clk_prog_35_master_table_boardobj_set v35_master_table;
 };
 
 NV_PMU_BOARDOBJ_GRP_SET_MAKE_E255(clk, clk_prog);
