@@ -488,7 +488,7 @@ ssize_t parent_fops_write(struct file *file, const char __user *buf,
 	s = (struct seq_file *)file->private_data;
 	clk = (struct clk *)s->private;
 
-	parent_name = kmalloc(len, GFP_KERNEL);
+	parent_name = kzalloc(len, GFP_KERNEL);
 	if (!parent_name)
 		return -ENOMEM;
 
