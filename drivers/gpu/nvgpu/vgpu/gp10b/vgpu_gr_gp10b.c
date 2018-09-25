@@ -261,7 +261,7 @@ int vgpu_gr_gp10b_set_preemption_mode(struct channel_gk20a *ch,
 		return -EINVAL;
 
 	vm = tsg->vm;
-	gr_ctx = &tsg->gr_ctx;
+	gr_ctx = tsg->gr_ctx;
 
 	/* skip setting anything if both modes are already set */
 	if (graphics_preempt_mode &&

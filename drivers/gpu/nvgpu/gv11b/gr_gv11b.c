@@ -1682,7 +1682,7 @@ void gr_gv11b_update_ctxsw_preemption_mode(struct gk20a *g,
 		return;
 	}
 
-	gr_ctx = &tsg->gr_ctx;
+	gr_ctx = tsg->gr_ctx;
 
 	if (gr_ctx->graphics_preempt_mode ==
 					NVGPU_PREEMPTION_MODE_GRAPHICS_GFXP) {
@@ -2384,7 +2384,7 @@ int gr_gv11b_pre_process_sm_exception(struct gk20a *g,
 			return -EINVAL;
 		}
 
-		cilp_enabled = (tsg->gr_ctx.compute_preempt_mode ==
+		cilp_enabled = (tsg->gr_ctx->compute_preempt_mode ==
 			NVGPU_PREEMPTION_MODE_COMPUTE_CILP);
 	}
 

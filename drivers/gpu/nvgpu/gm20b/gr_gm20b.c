@@ -195,7 +195,7 @@ int gr_gm20b_commit_global_cb_manager(struct gk20a *g,
 		return -EINVAL;
 	}
 
-	ch_ctx = &tsg->gr_ctx;
+	ch_ctx = tsg->gr_ctx;
 
 	gr_gk20a_ctx_patch_write(g, ch_ctx, gr_ds_tga_constraintlogic_r(),
 		gr_ds_tga_constraintlogic_beta_cbsize_f(gr->attrib_cb_default_size) |
@@ -931,7 +931,7 @@ void gr_gm20b_update_ctxsw_preemption_mode(struct gk20a *g,
 		return;
 	}
 
-	gr_ctx = &tsg->gr_ctx;
+	gr_ctx = tsg->gr_ctx;
 	if (gr_ctx->compute_preempt_mode == NVGPU_PREEMPTION_MODE_COMPUTE_CTA) {
 		nvgpu_log_info(g, "CTA: %x", cta_preempt_option);
 		nvgpu_mem_wr(g, mem,
@@ -1097,7 +1097,7 @@ int gr_gm20b_update_pc_sampling(struct channel_gk20a *c,
 		return -EINVAL;
 	}
 
-	gr_ctx = &tsg->gr_ctx;
+	gr_ctx = tsg->gr_ctx;
 	mem = &gr_ctx->mem;
 	if (!nvgpu_mem_is_valid(mem) || c->vpr) {
 		return -EINVAL;

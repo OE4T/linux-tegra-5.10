@@ -54,7 +54,7 @@ struct tsg_gk20a {
 	struct nvgpu_mem *eng_method_buffers;
 
 
-	struct nvgpu_gr_ctx gr_ctx;
+	struct nvgpu_gr_ctx *gr_ctx;
 	struct nvgpu_ref refcount;
 
 	struct nvgpu_list_node ch_list;

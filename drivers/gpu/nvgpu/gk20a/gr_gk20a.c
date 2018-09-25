@@ -107,7 +107,7 @@ int gr_gk20a_get_ctx_id(struct gk20a *g,
 		return -EINVAL;
 	}
 
-	gr_ctx = &tsg->gr_ctx;
+	gr_ctx = tsg->gr_ctx;
 	mem = &gr_ctx->mem;
 
 	/* Channel gr_ctx buffer is gpu cacheable.
@@ -766,7 +766,7 @@ static int gr_gk20a_ctx_zcull_setup(struct gk20a *g, struct channel_gk20a *c)
 		return -EINVAL;
 	}
 
-	gr_ctx = &tsg->gr_ctx;
+	gr_ctx = tsg->gr_ctx;
 	mem = &gr_ctx->mem;
 
 	if (gr_ctx->zcull_ctx.gpu_va == 0 &&
@@ -836,7 +836,7 @@ int gr_gk20a_commit_global_ctx_buffers(struct gk20a *g,
 		return -EINVAL;
 	}
 
-	gr_ctx = &tsg->gr_ctx;
+	gr_ctx = tsg->gr_ctx;
 	if (patch) {
 		int err;
 		err = gr_gk20a_ctx_patch_write_begin(g, gr_ctx, false);
@@ -1359,7 +1359,7 @@ static int gr_gk20a_init_golden_ctx_image(struct gk20a *g,
 		return -EINVAL;
 	}
 
-	gr_ctx = &tsg->gr_ctx;
+	gr_ctx = tsg->gr_ctx;
 	gr_mem = &gr_ctx->mem;
 
 	/* golden ctx is global to all channels. Although only the first
@@ -1609,7 +1609,7 @@ int gr_gk20a_update_smpc_ctxsw_mode(struct gk20a *g,
 		return -EINVAL;
 	}
 
-	gr_ctx = &tsg->gr_ctx;
+	gr_ctx = tsg->gr_ctx;
 	mem = &gr_ctx->mem;
 	if (!nvgpu_mem_is_valid(mem)) {
 		nvgpu_err(g, "no graphics context allocated");
@@ -1669,7 +1669,7 @@ int gr_gk20a_update_hwpm_ctxsw_mode(struct gk20a *g,
 		return -EINVAL;
 	}
 
-	gr_ctx = &tsg->gr_ctx;
+	gr_ctx = tsg->gr_ctx;
 	pm_ctx = &gr_ctx->pm_ctx;
 	gr_mem = &gr_ctx->mem;
 	if (!nvgpu_mem_is_valid(gr_mem)) {
@@ -1825,7 +1825,7 @@ int gr_gk20a_load_golden_ctx_image(struct gk20a *g,
 		return -EINVAL;
 	}
 
-	gr_ctx = &tsg->gr_ctx;
+	gr_ctx = tsg->gr_ctx;
 	mem = &gr_ctx->mem;
 	if (gr->ctx_vars.local_golden_image == NULL) {
 		return -EINVAL;
@@ -2661,9 +2661,9 @@ int gr_gk20a_map_global_ctx_buffers(struct gk20a *g,
 		return -EINVAL;
 	}
 
-	g_bfr_va = tsg->gr_ctx.global_ctx_buffer_va;
-	g_bfr_size = tsg->gr_ctx.global_ctx_buffer_size;
-	g_bfr_index = tsg->gr_ctx.global_ctx_buffer_index;
+	g_bfr_va = tsg->gr_ctx->global_ctx_buffer_va;
+	g_bfr_size = tsg->gr_ctx->global_ctx_buffer_size;
+	g_bfr_index = tsg->gr_ctx->global_ctx_buffer_index;
 
 	/* Circular Buffer */
 	if (c->vpr &&
@@ -2744,7 +2744,7 @@ int gr_gk20a_map_global_ctx_buffers(struct gk20a *g,
 	g_bfr_size[PRIV_ACCESS_MAP_VA] = mem->size;
 	g_bfr_index[PRIV_ACCESS_MAP_VA] = PRIV_ACCESS_MAP;
 
-	tsg->gr_ctx.global_ctx_buffer_mapped = true;
+	tsg->gr_ctx->global_ctx_buffer_mapped = true;
 
 #ifdef CONFIG_GK20A_CTXSW_TRACE
 	/* FECS trace buffer */
@@ -2763,7 +2763,7 @@ int gr_gk20a_map_global_ctx_buffers(struct gk20a *g,
 	return 0;
 
 clean_up:
-	gr_gk20a_unmap_global_ctx_buffers(g, ch_vm, &tsg->gr_ctx);
+	gr_gk20a_unmap_global_ctx_buffers(g, ch_vm, tsg->gr_ctx);
 
 	return -ENOMEM;
 }
@@ -2812,7 +2812,7 @@ int gr_gk20a_alloc_gr_ctx(struct gk20a *g,
 static int gr_gk20a_alloc_tsg_gr_ctx(struct gk20a *g,
 			struct tsg_gk20a *tsg, u32 class, u32 padding)
 {
-	struct nvgpu_gr_ctx *gr_ctx = &tsg->gr_ctx;
+	struct nvgpu_gr_ctx *gr_ctx = tsg->gr_ctx;
 	int err;
 
 	if (tsg->vm == NULL) {
@@ -2835,7 +2835,7 @@ void gr_gk20a_free_gr_ctx(struct gk20a *g,
 {
 	nvgpu_log_fn(g, " ");
 
-	if (gr_ctx->mem.gpu_va) {
+	if (gr_ctx != NULL) {
 		gr_gk20a_unmap_global_ctx_buffers(g, vm, gr_ctx);
 		gr_gk20a_free_channel_patch_ctx(g, vm, gr_ctx);
 		gr_gk20a_free_channel_pm_ctx(g, vm, gr_ctx);
@@ -2863,7 +2863,7 @@ void gr_gk20a_free_tsg_gr_ctx(struct tsg_gk20a *tsg)
 		nvgpu_err(g, "No address space bound");
 		return;
 	}
-	tsg->g->ops.gr.free_gr_ctx(g, tsg->vm, &tsg->gr_ctx);
+	tsg->g->ops.gr.free_gr_ctx(g, tsg->vm, tsg->gr_ctx);
 }
 
 u32 gr_gk20a_get_patch_slots(struct gk20a *g)
@@ -2887,7 +2887,7 @@ static int gr_gk20a_alloc_channel_patch_ctx(struct gk20a *g,
 		return -EINVAL;
 	}
 
-	patch_ctx = &tsg->gr_ctx.patch_ctx;
+	patch_ctx = &tsg->gr_ctx->patch_ctx;
 	alloc_size = g->ops.gr.get_patch_slots(g) *
 		PATCH_CTX_SLOTS_REQUIRED_PER_ENTRY;
 
@@ -2967,7 +2967,7 @@ int gk20a_alloc_obj_ctx(struct channel_gk20a  *c, u32 class_num, u32 flags)
 	}
 
 	tsg = &f->tsg[c->tsgid];
-	gr_ctx = &tsg->gr_ctx;
+	gr_ctx = tsg->gr_ctx;
 
 	if (!nvgpu_mem_is_valid(&gr_ctx->mem)) {
 		tsg->vm = c->vm;
@@ -3661,7 +3661,7 @@ int gr_gk20a_bind_ctxsw_zcull(struct gk20a *g, struct gr_gk20a *gr,
 		return -EINVAL;
 	}
 
-	zcull_ctx = &tsg->gr_ctx.zcull_ctx;
+	zcull_ctx = &tsg->gr_ctx->zcull_ctx;
 	zcull_ctx->ctx_sw_mode = mode;
 	zcull_ctx->gpu_va = zcull_va;
 
@@ -6746,7 +6746,7 @@ static int gr_gk20a_ctx_patch_smpc(struct gk20a *g,
 		return -EINVAL;
 	}
 
-	gr_ctx = &tsg->gr_ctx;
+	gr_ctx = tsg->gr_ctx;
 	g->ops.gr.init_ovr_sm_dsm_perf();
 	g->ops.gr.init_sm_dsm_reg_info();
 	g->ops.gr.get_ovr_perf_regs(g, &num_ovr_perf_regs, &ovr_perf_regs);
@@ -8034,7 +8034,7 @@ int __gr_gk20a_exec_ctx_ops(struct channel_gk20a *ch,
 		return -EINVAL;
 	}
 
-	gr_ctx = &tsg->gr_ctx;
+	gr_ctx = tsg->gr_ctx;
 
 	if (ch_is_curr_ctx) {
 		for (pass = 0; pass < 2; pass++) {

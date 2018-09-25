@@ -469,7 +469,7 @@ int gk20a_fecs_trace_bind_channel(struct gk20a *g,
 	if (!tsg)
 		return -EINVAL;
 
-	ch_ctx = &tsg->gr_ctx;
+	ch_ctx = tsg->gr_ctx;
 	mem = &ch_ctx->mem;
 
 	if (!trace)

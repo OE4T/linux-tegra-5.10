@@ -175,9 +175,9 @@ int gr_tu104_map_global_ctx_buffers(struct gk20a *g,
 		return -EINVAL;
 	}
 
-	g_bfr_va = tsg->gr_ctx.global_ctx_buffer_va;
-	g_bfr_size = tsg->gr_ctx.global_ctx_buffer_size;
-	g_bfr_index = tsg->gr_ctx.global_ctx_buffer_index;
+	g_bfr_va = tsg->gr_ctx->global_ctx_buffer_va;
+	g_bfr_size = tsg->gr_ctx->global_ctx_buffer_size;
+	g_bfr_index = tsg->gr_ctx->global_ctx_buffer_index;
 
 	/* RTV circular buffer */
 	mem = &gr->global_ctx_buffer[RTV_CIRCULAR_BUFFER].mem;
@@ -238,7 +238,7 @@ int gr_tu104_commit_global_ctx_buffers(struct gk20a *g,
 		return -EINVAL;
 	}
 
-	gr_ctx = &tsg->gr_ctx;
+	gr_ctx = tsg->gr_ctx;
 	if (patch) {
 		int err;
 		err = gr_gk20a_ctx_patch_write_begin(g, gr_ctx, false);

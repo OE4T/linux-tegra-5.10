@@ -414,7 +414,7 @@ int gr_gp10b_commit_global_cb_manager(struct gk20a *g,
 		return -EINVAL;
 	}
 
-	gr_ctx = &tsg->gr_ctx;
+	gr_ctx = tsg->gr_ctx;
 
 	if (gr_ctx->graphics_preempt_mode == NVGPU_PREEMPTION_MODE_GRAPHICS_GFXP) {
 		attrib_size_in_chunk = gr->attrib_cb_gfxp_size;
@@ -1199,7 +1199,7 @@ void gr_gp10b_update_ctxsw_preemption_mode(struct gk20a *g,
 		return;
 	}
 
-	gr_ctx = &tsg->gr_ctx;
+	gr_ctx = tsg->gr_ctx;
 
 	if (gr_ctx->graphics_preempt_mode == NVGPU_PREEMPTION_MODE_GRAPHICS_GFXP) {
 		nvgpu_log_info(g, "GfxP: %x", gfxp_preempt_option);
@@ -1737,7 +1737,7 @@ int gr_gp10b_set_cilp_preempt_pending(struct gk20a *g,
 		return -EINVAL;
 	}
 
-	gr_ctx = &tsg->gr_ctx;
+	gr_ctx = tsg->gr_ctx;
 
 	if (gr_ctx->cilp_preempt_pending) {
 		nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gpu_dbg | gpu_dbg_intr,
@@ -1818,7 +1818,7 @@ static int gr_gp10b_clear_cilp_preempt_pending(struct gk20a *g,
 		return -EINVAL;
 	}
 
-	gr_ctx = &tsg->gr_ctx;
+	gr_ctx = tsg->gr_ctx;
 
 	/* The ucode is self-clearing, so all we need to do here is
 	   to clear cilp_preempt_pending. */
@@ -1861,7 +1861,7 @@ int gr_gp10b_pre_process_sm_exception(struct gk20a *g,
 			return -EINVAL;
 		}
 
-		cilp_enabled = (tsg->gr_ctx.compute_preempt_mode ==
+		cilp_enabled = (tsg->gr_ctx->compute_preempt_mode ==
 			NVGPU_PREEMPTION_MODE_COMPUTE_CILP);
 	}
 
@@ -1968,7 +1968,7 @@ static int gr_gp10b_get_cilp_preempt_pending_chid(struct gk20a *g, int *__chid)
 		return -EINVAL;
 	}
 
-	gr_ctx = &tsg->gr_ctx;
+	gr_ctx = tsg->gr_ctx;
 
 	if (gr_ctx->cilp_preempt_pending) {
 		*__chid = chid;
@@ -2084,7 +2084,7 @@ bool gr_gp10b_suspend_context(struct channel_gk20a *ch,
 		return -EINVAL;
 	}
 
-	gr_ctx = &tsg->gr_ctx;
+	gr_ctx = tsg->gr_ctx;
 
 	*cilp_preempt_pending = false;
 
@@ -2173,7 +2173,7 @@ int gr_gp10b_suspend_contexts(struct gk20a *g,
 			goto clean_up;
 		}
 
-		gr_ctx = &tsg->gr_ctx;
+		gr_ctx = tsg->gr_ctx;
 
 		nvgpu_timeout_init(g, &timeout, gk20a_get_gr_idle_timeout(g),
 				   NVGPU_TIMER_CPU_TIMER);
@@ -2212,7 +2212,7 @@ int gr_gp10b_set_boosted_ctx(struct channel_gk20a *ch,
 		return -EINVAL;
 	}
 
-	gr_ctx = &tsg->gr_ctx;
+	gr_ctx = tsg->gr_ctx;
 	gr_ctx->boosted_ctx = boost;
 	mem = &gr_ctx->mem;
 
@@ -2270,7 +2270,7 @@ int gr_gp10b_set_preemption_mode(struct channel_gk20a *ch,
 	}
 
 	vm = tsg->vm;
-	gr_ctx = &tsg->gr_ctx;
+	gr_ctx = tsg->gr_ctx;
 	mem = &gr_ctx->mem;
 
 	/* skip setting anything if both modes are already set */
