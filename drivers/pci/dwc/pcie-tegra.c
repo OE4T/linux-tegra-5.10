@@ -512,6 +512,11 @@ struct tegra_pcie_dw {
 	int pex_wake;
 	u32 tsa_config_addr;
 	bool link_state;
+	u32 aux_clk_freq;
+	u32 preset_init;
+	u32 aspm_cmrt;
+	u32 aspm_pwr_on_t;
+	u32 aspm_l0s_enter_lat;
 
 	int n_gpios;
 	int *gpios;
@@ -2210,18 +2215,18 @@ static void program_gen3_gen4_eq_presets(struct pcie_port *pp)
 {
 	struct dw_pcie *pci = to_dw_pcie_from_pp(pp);
 	struct tegra_pcie_dw *pcie = dw_pcie_to_tegra_pcie(pci);
-	int i, init_preset = 5;
+	int i;
 	u32 val;
 
 	/* program init preset */
-	if (init_preset < 11) {
+	if (pcie->preset_init < 11) {
 		for (i = 0; i < pcie->num_lanes; i++) {
 			dw_pcie_read(pci->dbi_base + CAP_SPCIE_CAP_OFF
 					 + (i * 2), 2, &val);
 			val &= ~CAP_SPCIE_CAP_OFF_DSP_TX_PRESET0_MASK;
-			val |= init_preset;
+			val |= pcie->preset_init;
 			val &= ~CAP_SPCIE_CAP_OFF_USP_TX_PRESET0_MASK;
-			val |= (init_preset <<
+			val |= (pcie->preset_init <<
 				   CAP_SPCIE_CAP_OFF_USP_TX_PRESET0_SHIFT);
 			dw_pcie_write(pci->dbi_base + CAP_SPCIE_CAP_OFF
 					 + (i * 2), 2, val);
@@ -2229,9 +2234,9 @@ static void program_gen3_gen4_eq_presets(struct pcie_port *pp)
 			dw_pcie_read(pci->dbi_base + pcie->cap_pl16g_cap_off
 					 + i, 1, &val);
 			val &= ~PL16G_CAP_OFF_DSP_16G_TX_PRESET_MASK;
-			val |= init_preset;
+			val |= pcie->preset_init;
 			val &= ~PL16G_CAP_OFF_USP_16G_TX_PRESET_MASK;
-			val |= (init_preset <<
+			val |= (pcie->preset_init <<
 				PL16G_CAP_OFF_USP_16G_TX_PRESET_SHIFT);
 			dw_pcie_write(pci->dbi_base + pcie->cap_pl16g_cap_off
 					 + i, 1, val);
@@ -2300,7 +2305,7 @@ static int tegra_pcie_dw_host_init(struct pcie_port *pp)
 		dw_pcie_read(pci->dbi_base + AUX_CLK_FREQ, 4, &tmp);
 		tmp &= ~(0x3FF);
 		/* CHECK: Confirm this value for Silicon */
-		tmp |= 19;
+		tmp |= pcie->aux_clk_freq;
 		dw_pcie_write(pci->dbi_base + AUX_CLK_FREQ, 4, tmp);
 	}
 
@@ -2367,14 +2372,14 @@ static int tegra_pcie_dw_host_init(struct pcie_port *pp)
 	/* Program T_cmrt and T_pwr_on values */
 	dw_pcie_read(pcie->pci.dbi_base + pcie->cfg_link_cap_l1sub, 4, &val);
 	val &= ~(PCI_L1SS_CAP_CM_RTM_MASK | PCI_L1SS_CAP_PWRN_VAL_MASK);
-	val |= (0x3C << PCI_L1SS_CAP_CM_RTM_SHIFT);	/* 60us */
-	val |= (0x14 << PCI_L1SS_CAP_PWRN_VAL_SHIFT);	/* 40us */
+	val |= (pcie->aspm_cmrt << PCI_L1SS_CAP_CM_RTM_SHIFT);
+	val |= (pcie->aspm_pwr_on_t << PCI_L1SS_CAP_PWRN_VAL_SHIFT);
 	dw_pcie_write(pcie->pci.dbi_base + pcie->cfg_link_cap_l1sub, 4, val);
 
 	/* Program L0s and L1 entrance latencies */
 	val = readl(pci->dbi_base + PORT_LOGIC_ACK_F_ASPM_CTRL);
 	val &= ~L0S_ENTRANCE_LAT_MASK;
-	val |= (0x3 << L0S_ENTRANCE_LAT_SHIFT); /* 4us */
+	val |= (pcie->aspm_l0s_enter_lat << L0S_ENTRANCE_LAT_SHIFT);
 	val |= ENTER_ASPM;
 	writel(val, pci->dbi_base + PORT_LOGIC_ACK_F_ASPM_CTRL);
 
@@ -2728,6 +2733,36 @@ static int tegra_pcie_dw_parse_dt(struct tegra_pcie_dw *pcie)
 		dev_err(pcie->dev, "fail to read EMC DVFS table: %d\n", ret);
 		return ret;
 	}
+
+	ret = of_property_read_u32(np, "nvidia,aux-clk-freq",
+				   &pcie->aux_clk_freq);
+	if (ret < 0) {
+		dev_err(pcie->dev, "fail to read Aux_Clk_Freq: %d\n", ret);
+		return ret;
+	}
+
+	ret = of_property_read_u32(np, "nvidia,preset-init",
+				   &pcie->preset_init);
+	if (ret < 0) {
+		dev_err(pcie->dev, "fail to read Preset Init: %d\n", ret);
+		return ret;
+	}
+
+	ret = of_property_read_u32(np, "nvidia,aspm-cmrt", &pcie->aspm_cmrt);
+	if (ret < 0)
+		dev_info(pcie->dev, "fail to read ASPM cmrt: %d\n", ret);
+
+	ret = of_property_read_u32(np, "nvidia,aspm-pwr-on-t",
+				   &pcie->aspm_pwr_on_t);
+	if (ret < 0)
+		dev_info(pcie->dev, "fail to read ASPM Power On time: %d\n",
+			 ret);
+
+	ret = of_property_read_u32(np, "nvidia,aspm-l0s-entrance-latency",
+				   &pcie->aspm_l0s_enter_lat);
+	if (ret < 0)
+		dev_info(pcie->dev,
+			 "fail to read ASPM L0s Entrance latency: %d\n", ret);
 
 	ret = of_property_read_u32(np, "num-lanes", &pcie->num_lanes);
 	if (ret < 0) {

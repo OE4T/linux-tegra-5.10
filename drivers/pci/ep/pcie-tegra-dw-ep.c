@@ -319,6 +319,11 @@ struct tegra_pcie_dw_ep {
 	dma_addr_t dma_handle;
 	void *cpu_virt;
 	bool update_fc_fixup;
+	u32 aux_clk_freq;
+	u32 aspm_cmrt;
+	u32 aspm_pwr_on_t;
+	u32 aspm_l0s_enter_lat;
+	u32 aspm_l1_enter_lat;
 	enum ep_event event;
 	struct regulator *pex_ctl_reg;
 	struct margin_cmd mcmd;
@@ -674,7 +679,7 @@ static void pex_ep_event_pex_rst_deassert(struct tegra_pcie_dw_ep *pcie)
 	if (tegra_platform_is_fpga())
 		val |= 0x6;
 	else
-		val |= 19;	/* CHECK: for Silicon */
+		val |= pcie->aux_clk_freq;
 	writel(val, pcie->dbi_base + AUX_CLK_FREQ);
 
 	inbound_atu(pcie, PCIE_ATU_REGION_INDEX0, PCIE_ATU_TYPE_MEM,
@@ -698,15 +703,15 @@ static void pex_ep_event_pex_rst_deassert(struct tegra_pcie_dw_ep *pcie)
 	/* Program T_cmrt and T_pwr_on values */
 	val = readl(pcie->dbi_base + pcie->cfg_link_cap_l1sub);
 	val &= ~(PCI_L1SS_CAP_CM_RTM_MASK | PCI_L1SS_CAP_PWRN_VAL_MASK);
-	val |= (0x3C << PCI_L1SS_CAP_CM_RTM_SHIFT);	/* 60us */
-	val |= (0x14 << PCI_L1SS_CAP_PWRN_VAL_SHIFT);	/* 40us */
+	val |= (pcie->aspm_cmrt << PCI_L1SS_CAP_CM_RTM_SHIFT);
+	val |= (pcie->aspm_pwr_on_t << PCI_L1SS_CAP_PWRN_VAL_SHIFT);
 	writel(val, pcie->dbi_base + pcie->cfg_link_cap_l1sub);
 
 	/* Program L0s and L1 entrance latencies */
 	val = readl(pcie->dbi_base + PORT_LOGIC_ACK_F_ASPM_CTRL);
 	val &= ~(L0S_ENTRANCE_LAT_MASK | L1_ENTRANCE_LAT_MASK);
-	val |= (0x3 << L0S_ENTRANCE_LAT_SHIFT);	/* 4us */
-	val |= (0x5 << L1_ENTRANCE_LAT_SHIFT);	/* 32us */
+	val |= (pcie->aspm_l0s_enter_lat << L0S_ENTRANCE_LAT_SHIFT);
+	val |= (pcie->aspm_l1_enter_lat << L1_ENTRANCE_LAT_SHIFT);
 	val |= ENTER_ASPM;
 	writel(val, pcie->dbi_base + PORT_LOGIC_ACK_F_ASPM_CTRL);
 
@@ -1318,6 +1323,35 @@ static int tegra_pcie_dw_ep_probe(struct platform_device *pdev)
 		dev_err(pcie->dev, "fail to read num-lanes: %d\n", ret);
 		return ret;
 	}
+
+	ret = of_property_read_u32(np, "nvidia,aux-clk-freq",
+				   &pcie->aux_clk_freq);
+	if (ret < 0) {
+		dev_err(pcie->dev, "fail to read Aux_Clk_Freq: %d\n", ret);
+		return ret;
+	}
+
+	ret = of_property_read_u32(np, "nvidia,aspm-cmrt", &pcie->aspm_cmrt);
+	if (ret < 0)
+		dev_info(pcie->dev, "fail to read ASPM cmrt: %d\n", ret);
+
+	ret = of_property_read_u32(np, "nvidia,aspm-pwr-on-t",
+				   &pcie->aspm_pwr_on_t);
+	if (ret < 0)
+		dev_info(pcie->dev, "fail to read ASPM Power On time: %d\n",
+			 ret);
+
+	ret = of_property_read_u32(np, "nvidia,aspm-l0s-entrance-latency",
+				   &pcie->aspm_l0s_enter_lat);
+	if (ret < 0)
+		dev_info(pcie->dev,
+			 "fail to read ASPM L0s Entrance latency: %d\n", ret);
+
+	ret = of_property_read_u32(np, "nvidia,aspm-l1-entrance-latency",
+				   &pcie->aspm_l1_enter_lat);
+	if (ret < 0)
+		dev_info(pcie->dev,
+			 "fail to read ASPM L1 Entrance latency: %d\n", ret);
 
 	ret = of_property_read_u32_array(np, "nvidia,dvfs-tbl",
 					 &pcie->dvfs_tbl[0][0], 16);
