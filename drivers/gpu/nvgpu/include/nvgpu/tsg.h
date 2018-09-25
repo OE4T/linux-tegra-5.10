@@ -25,12 +25,14 @@
 #include <nvgpu/lock.h>
 #include <nvgpu/kref.h>
 #include <nvgpu/rwsem.h>
-
-#include "gk20a/gr_gk20a.h"
+#include <nvgpu/list.h>
+#include <nvgpu/cond.h>
 
 #define NVGPU_INVALID_TSG_ID (U32_MAX)
 
+struct gk20a;
 struct channel_gk20a;
+struct nvgpu_gr_ctx;
 
 bool gk20a_is_channel_marked_as_tsg(struct channel_gk20a *ch);
 struct tsg_gk20a *gk20a_tsg_open(struct gk20a *g, pid_t pid);

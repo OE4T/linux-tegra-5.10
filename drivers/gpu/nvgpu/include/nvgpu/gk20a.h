@@ -72,6 +72,7 @@ struct nvgpu_setup_bind_args;
 
 #include "gk20a/clk_gk20a.h"
 #include "gk20a/fifo_gk20a.h"
+#include "gk20a/gr_gk20a.h"
 #include "clk/clk.h"
 #include "pmu_perf/pmu_perf.h"
 #include "pmgr/pmgr.h"
