@@ -1171,6 +1171,10 @@ static int tegra_xusb_padctl_probe(struct platform_device *pdev)
 	of_node_put(np);
 
 	match = of_match_node(tegra_xusb_padctl_of_match, pdev->dev.of_node);
+	if (!match) {
+		dev_warn(&pdev->dev, "of_match_node() failed\n");
+		return -ENODEV;
+	}
 	soc = match->data;
 
 	padctl = soc->ops->probe(&pdev->dev, soc);
