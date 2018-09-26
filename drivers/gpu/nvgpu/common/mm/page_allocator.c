@@ -246,14 +246,13 @@ static void nvgpu_page_alloc_free_pages(struct nvgpu_page_allocator *a,
 	nvgpu_kmem_cache_free(a->alloc_cache, alloc);
 }
 
-static int insert_page_alloc(struct nvgpu_page_allocator *a,
+static void insert_page_alloc(struct nvgpu_page_allocator *a,
 			     struct nvgpu_page_alloc *alloc)
 {
 	alloc->tree_entry.key_start = alloc->base;
 	alloc->tree_entry.key_end = alloc->base + alloc->length;
 
 	nvgpu_rbtree_insert(&alloc->tree_entry, &a->allocs);
-	return 0;
 }
 
 static struct nvgpu_page_alloc *find_page_alloc(
@@ -368,7 +367,7 @@ static int do_slab_alloc(struct nvgpu_page_allocator *a,
 					  slab_page->nr_objects,
 					  0, 1, 0);
 	if (offs >= slab_page->nr_objects) {
-		WARN(1, "Empty/partial slab with no free objects?");
+		(void) WARN(1, "Empty/partial slab with no free objects?");
 
 		/* Add the buggy page to the full list... This isn't ideal. */
 		add_slab_page_to_full(slab, slab_page);
@@ -767,7 +766,8 @@ static struct nvgpu_page_alloc *nvgpu_alloc_pages_fixed(
 	alloc->sgt.ops = &page_alloc_sgl_ops;
 	alloc->base = nvgpu_alloc_fixed(&a->source_allocator, base, length, 0);
 	if (alloc->base == 0ULL) {
-		WARN(1, "nvgpu: failed to fixed alloc pages @ 0x%010llx", base);
+		(void) WARN(1, "nvgpu: failed to fixed alloc pages @ 0x%010llx",
+			base);
 		goto fail;
 	}
 

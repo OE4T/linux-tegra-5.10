@@ -107,9 +107,7 @@ void vgpu_locked_gmmu_unmap(struct vm_gk20a *vm,
 		nvgpu_err(g, "failed to update gmmu ptes on unmap");
 
 	if (va_allocated) {
-		err = __nvgpu_vm_free_va(vm, vaddr, pgsz_idx);
-		if (err)
-			nvgpu_err(g, "failed to free va");
+		__nvgpu_vm_free_va(vm, vaddr, pgsz_idx);
 	}
 	/* TLB invalidate handled on server side */
 }

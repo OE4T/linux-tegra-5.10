@@ -57,12 +57,30 @@ static inline void nvgpu_ref_get(struct nvgpu_ref *ref)
  * @release: pointer to the function that would be invoked to clean up the
  *	object when the reference count becomes zero, i.e. the last
  *	reference corresponding to this object is removed.
+ */
+static inline void nvgpu_ref_put(struct nvgpu_ref *ref,
+		void (*release)(struct nvgpu_ref *r))
+{
+	if (nvgpu_atomic_sub_and_test(1, &ref->refcount)) {
+		if (release != NULL) {
+			release(ref);
+		}
+	}
+}
+
+/*
+ * Decrement reference count for the object, call release() if it becomes
+ * zero and return the status of the removal.
+ * @ref: the nvgpu_ref object
+ * @release: pointer to the function that would be invoked to clean up the
+ *	object when the reference count becomes zero, i.e. the last
+ *	reference corresponding to this object is removed.
  * Return 1 if object was removed, otherwise return 0. The user should not
  * make any assumptions about the status of the object in the memory when
  * the function returns 0 and should only use it to know that there are no
  * further references to this object.
  */
-static inline int nvgpu_ref_put(struct nvgpu_ref *ref,
+static inline int nvgpu_ref_put_return(struct nvgpu_ref *ref,
 		void (*release)(struct nvgpu_ref *r))
 {
 	if (nvgpu_atomic_sub_and_test(1, &ref->refcount)) {

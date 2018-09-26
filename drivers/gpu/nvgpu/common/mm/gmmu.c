@@ -787,11 +787,7 @@ void gk20a_locked_gmmu_unmap(struct vm_gk20a *vm,
 	};
 
 	if (va_allocated) {
-		err = __nvgpu_vm_free_va(vm, vaddr, pgsz_idx);
-		if (err) {
-			nvgpu_err(g, "failed to free va");
-			return;
-		}
+		__nvgpu_vm_free_va(vm, vaddr, pgsz_idx);
 	}
 
 	/* unmap here needs to know the page size we assigned at mapping */

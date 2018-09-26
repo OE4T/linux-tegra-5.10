@@ -160,13 +160,11 @@ u64 __nvgpu_vm_alloc_va(struct vm_gk20a *vm, u64 size, u32 pgsz_idx)
 	return addr;
 }
 
-int __nvgpu_vm_free_va(struct vm_gk20a *vm, u64 addr, u32 pgsz_idx)
+void __nvgpu_vm_free_va(struct vm_gk20a *vm, u64 addr, u32 pgsz_idx)
 {
 	struct nvgpu_allocator *vma = vm->vma[pgsz_idx];
 
 	nvgpu_free(vma, addr);
-
-	return 0;
 }
 
 void nvgpu_vm_mapping_batch_start(struct vm_gk20a_mapping_batch *mapping_batch)
@@ -1175,12 +1173,17 @@ static int nvgpu_vm_unmap_sync_buffer(struct vm_gk20a *vm,
 	struct nvgpu_timeout timeout;
 	int ret = 0;
 
-	nvgpu_mutex_release(&vm->update_gmmu_lock);
-
 	/*
 	 * 100ms timer.
 	 */
-	nvgpu_timeout_init(vm->mm->g, &timeout, 100, NVGPU_TIMER_CPU_TIMER);
+	ret = nvgpu_timeout_init(vm->mm->g, &timeout, 100,
+		NVGPU_TIMER_CPU_TIMER);
+	if (ret != 0) {
+		nvgpu_err(vm->mm->g, "timeout_init failed (%d)", ret);
+		return ret;
+	}
+
+	nvgpu_mutex_release(&vm->update_gmmu_lock);
 
 	do {
 		if (nvgpu_atomic_read(&mapped_buffer->ref.refcount) == 1) {

@@ -308,7 +308,7 @@ static void nvgpu_buddy_allocator_destroy(struct nvgpu_allocator *na)
 	while (node) {
 		bud = nvgpu_buddy_from_rbtree_node(node);
 
-		balloc_free_buddy(a, bud->start);
+		(void) balloc_free_buddy(a, bud->start);
 		balloc_blist_add(a, bud);
 		balloc_coalesce(a, bud);
 
@@ -821,7 +821,7 @@ err_and_cleanup:
 						nvgpu_buddy, buddy_entry);
 
 		balloc_buddy_list_do_rem(a, bud);
-		balloc_free_buddy(a, bud->start);
+		(void) balloc_free_buddy(a, bud->start);
 		nvgpu_kmem_cache_free(a->buddy_cache, bud);
 	}
 
@@ -839,7 +839,7 @@ static void balloc_do_free_fixed(struct nvgpu_buddy_allocator *a,
 				       buddy_entry);
 		balloc_buddy_list_do_rem(a, bud);
 
-		balloc_free_buddy(a, bud->start);
+		(void) balloc_free_buddy(a, bud->start);
 		balloc_blist_add(a, bud);
 		a->bytes_freed += balloc_order_to_len(a, bud->order);
 

@@ -323,7 +323,7 @@ struct vm_gk20a *nvgpu_vm_init(struct gk20a *g,
  */
 u64 __nvgpu_vm_alloc_va(struct vm_gk20a *vm, u64 size,
 				u32 pgsz_idx);
-int __nvgpu_vm_free_va(struct vm_gk20a *vm, u64 addr,
+void __nvgpu_vm_free_va(struct vm_gk20a *vm, u64 addr,
 				u32 pgsz_idx);
 
 #endif /* NVGPU_VM_H */

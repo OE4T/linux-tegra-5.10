@@ -441,7 +441,7 @@ static void nvgpu_pd_cache_free(struct gk20a *g, struct nvgpu_pd_cache *cache,
 
 	pentry = nvgpu_pd_cache_look_up(g, cache, pd);
 	if (pentry == NULL) {
-		WARN(1, "Attempting to free non-existent pd");
+		(void) WARN(1, "Attempting to free non-existent pd");
 		return;
 	}
 
