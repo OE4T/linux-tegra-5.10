@@ -20,10 +20,10 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
+#include <nvgpu/gk20a.h>
 #include <nvgpu/enabled.h>
 #include <nvgpu/cyclestats_snapshot.h>
 
-#include "gk20a/gk20a.h"
 #include "vgpu/css_vgpu.h"
 #include "vgpu_gr_gm20b.h"
 

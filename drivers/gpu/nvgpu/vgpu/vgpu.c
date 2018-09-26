@@ -25,10 +25,10 @@
 #include <nvgpu/vgpu/vgpu_ivc.h>
 #include <nvgpu/vgpu/vgpu.h>
 #include <nvgpu/timers.h>
+#include <nvgpu/gk20a.h>
 #include <nvgpu/channel.h>
 #include <nvgpu/clk_arb.h>
 
-#include "gk20a/gk20a.h"
 #include "fecs_trace_vgpu.h"
 
 int vgpu_comm_init(struct gk20a *g)

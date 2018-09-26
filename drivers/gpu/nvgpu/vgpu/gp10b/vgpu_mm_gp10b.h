@@ -23,7 +23,15 @@
 #ifndef __VGPU_MM_GP10B_H__
 #define __VGPU_MM_GP10B_H__
 
-#include "gk20a/gk20a.h"
+#include <nvgpu/types.h>
+
+struct gk20a;
+struct vm_gk20a;
+struct nvgpu_sgt;
+struct vm_gk20a_mapping_batch;
+
+enum gk20a_mem_rw_flag;
+enum nvgpu_aperture;
 
 u64 vgpu_gp10b_locked_gmmu_map(struct vm_gk20a *vm,
 				u64 map_offset,

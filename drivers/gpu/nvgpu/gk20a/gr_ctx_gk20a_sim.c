@@ -22,7 +22,7 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#include "gk20a.h"
+#include <nvgpu/gk20a.h>
 #include <nvgpu/sim.h>
 #include "gr_ctx_gk20a.h"
 

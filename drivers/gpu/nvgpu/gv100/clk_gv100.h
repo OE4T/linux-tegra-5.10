@@ -23,7 +23,7 @@
 #define CLK_GV100_H
 
 #include <nvgpu/lock.h>
-#include "gk20a/gk20a.h"
+#include <nvgpu/gk20a.h>
 
 #define CLK_NAMEMAP_INDEX_GPCCLK	0x00
 #define CLK_NAMEMAP_INDEX_XBARCLK	0x02

@@ -24,9 +24,9 @@
 #include <nvgpu/soc.h>
 #include <nvgpu/io.h>
 #include <nvgpu/utils.h>
+#include <nvgpu/gk20a.h>
 #include <nvgpu/channel.h>
 
-#include "gk20a/gk20a.h"
 #include "gk20a/gr_gk20a.h"
 #include "gk20a/gr_ctx_gk20a.h"
 #include "gk20a/gr_pri_gk20a.h"

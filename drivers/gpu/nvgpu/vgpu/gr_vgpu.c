@@ -30,11 +30,11 @@
 #include <nvgpu/debugger.h>
 #include <nvgpu/vgpu/vgpu_ivc.h>
 #include <nvgpu/vgpu/vgpu.h>
+#include <nvgpu/gk20a.h>
 #include <nvgpu/channel.h>
 #include <nvgpu/tsg.h>
 
 #include "gr_vgpu.h"
-#include "gk20a/gk20a.h"
 #include "gk20a/fecs_trace_gk20a.h"
 
 #include <nvgpu/hw/gk20a/hw_gr_gk20a.h>

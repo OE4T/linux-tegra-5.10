@@ -24,10 +24,9 @@
 #include <nvgpu/mm.h>
 #include <nvgpu/bug.h>
 #include <nvgpu/unit.h>
+#include <nvgpu/gk20a.h>
 
 #include "perf_gm20b.h"
-
-#include "gk20a/gk20a.h"
 
 #include <nvgpu/hw/gm20b/hw_perf_gm20b.h>
 

@@ -22,7 +22,6 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#include "gk20a.h"
 #include "gr_gk20a.h"
 #include "regops_gk20a.h"
 
@@ -31,6 +30,7 @@
 #include <nvgpu/bsearch.h>
 #include <nvgpu/bug.h>
 #include <nvgpu/io.h>
+#include <nvgpu/gk20a.h>
 
 static int regop_bsearch_range_cmp(const void *pkey, const void *pelem)
 {

@@ -55,7 +55,6 @@
 #include "common/mc/mc_tu104.h"
 #include "common/perf/perf_gv11b.h"
 
-#include "gk20a/gk20a.h"
 #include "gk20a/fifo_gk20a.h"
 #include "gk20a/fecs_trace_gk20a.h"
 #include "gk20a/flcn_gk20a.h"
@@ -124,6 +123,7 @@
 #include <nvgpu/enabled.h>
 #include <nvgpu/ctxsw_trace.h>
 #include <nvgpu/error_notifier.h>
+#include <nvgpu/gk20a.h>
 #include <nvgpu/clk_arb.h>
 #include <nvgpu/debugger.h>
 #include <nvgpu/channel.h>

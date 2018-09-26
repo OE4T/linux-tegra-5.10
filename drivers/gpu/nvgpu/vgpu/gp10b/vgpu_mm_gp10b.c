@@ -22,13 +22,14 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#include "vgpu_mm_gp10b.h"
-#include "gk20a/mm_gk20a.h"
-
 #include <nvgpu/bug.h>
 #include <nvgpu/dma.h>
+#include <nvgpu/gk20a.h>
 #include <nvgpu/vgpu/vgpu_ivc.h>
 #include <nvgpu/vgpu/vgpu.h>
+
+#include "vgpu_mm_gp10b.h"
+#include "gk20a/mm_gk20a.h"
 
 int vgpu_gp10b_init_mm_setup_hw(struct gk20a *g)
 {

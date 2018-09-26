@@ -43,11 +43,11 @@
 #include <nvgpu/ptimer.h>
 #include <nvgpu/io.h>
 #include <nvgpu/utils.h>
+#include <nvgpu/gk20a.h>
 #include <nvgpu/channel.h>
 #include <nvgpu/unit.h>
 #include <nvgpu/types.h>
 
-#include "gk20a.h"
 #include "mm_gk20a.h"
 
 #include <nvgpu/hw/gk20a/hw_fifo_gk20a.h>

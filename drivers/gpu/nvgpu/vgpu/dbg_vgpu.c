@@ -25,9 +25,9 @@
 #include <nvgpu/vgpu/vgpu.h>
 #include <nvgpu/debugger.h>
 #include <nvgpu/bug.h>
+#include <nvgpu/gk20a.h>
 #include <nvgpu/channel.h>
 
-#include "gk20a/gk20a.h"
 #include "gk20a/regops_gk20a.h"
 #include "dbg_vgpu.h"
 

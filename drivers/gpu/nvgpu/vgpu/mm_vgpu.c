@@ -27,13 +27,13 @@
 #include <nvgpu/bug.h>
 #include <nvgpu/vm.h>
 #include <nvgpu/vm_area.h>
+#include <nvgpu/gk20a.h>
 #include <nvgpu/channel.h>
 
 #include <nvgpu/vgpu/vm.h>
 #include <nvgpu/vgpu/vgpu.h>
 
 #include "mm_vgpu.h"
-#include "gk20a/gk20a.h"
 #include "gk20a/mm_gk20a.h"
 #include "gm20b/mm_gm20b.h"
 

@@ -23,8 +23,7 @@
 #include <nvgpu/types.h>
 #include <nvgpu/timers.h>
 #include <nvgpu/io.h>
-
-#include "gk20a/gk20a.h"
+#include <nvgpu/gk20a.h>
 
 #include "tu104/bios_tu104.h"
 

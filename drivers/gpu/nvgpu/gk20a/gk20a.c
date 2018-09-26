@@ -38,11 +38,11 @@
 #include <nvgpu/clk_arb.h>
 #include <nvgpu/therm.h>
 #include <nvgpu/mc.h>
+#include <nvgpu/gk20a.h>
 #include <nvgpu/channel_sync.h>
 
 #include <trace/events/gk20a.h>
 
-#include "gk20a.h"
 #include "gk20a/ce2_gk20a.h"
 
 #include "pstate/pstate.h"

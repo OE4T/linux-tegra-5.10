@@ -23,7 +23,7 @@
 #ifndef __VGPU_GR_GM20B_H__
 #define __VGPU_GR_GM20B_H__
 
-#include "gk20a/gk20a.h"
+struct gk20a;
 
 void vgpu_gr_gm20b_init_cyclestats(struct gk20a *g);
 

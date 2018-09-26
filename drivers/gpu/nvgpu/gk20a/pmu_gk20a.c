@@ -33,10 +33,10 @@
 #include <nvgpu/mm.h>
 #include <nvgpu/io.h>
 #include <nvgpu/clk_arb.h>
+#include <nvgpu/gk20a.h>
 #include <nvgpu/utils.h>
 #include <nvgpu/unit.h>
 
-#include "gk20a.h"
 #include "gr_gk20a.h"
 #include "pmu_gk20a.h"
 

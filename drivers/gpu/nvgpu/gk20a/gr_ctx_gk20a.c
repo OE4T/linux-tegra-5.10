@@ -28,8 +28,8 @@
 #include <nvgpu/firmware.h>
 #include <nvgpu/enabled.h>
 #include <nvgpu/io.h>
+#include <nvgpu/gk20a.h>
 
-#include "gk20a.h"
 #include "gr_ctx_gk20a.h"
 
 #include <nvgpu/hw/gk20a/hw_gr_gk20a.h>

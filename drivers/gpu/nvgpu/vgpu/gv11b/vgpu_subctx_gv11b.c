@@ -20,11 +20,11 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#include "gk20a/gk20a.h"
 #include "vgpu_subctx_gv11b.h"
 
 #include <nvgpu/vgpu/vgpu.h>
 #include <nvgpu/vgpu/tegra_vgpu.h>
+#include <nvgpu/gk20a.h>
 #include <nvgpu/channel.h>
 
 #include <nvgpu/hw/gv11b/hw_ctxsw_prog_gv11b.h>

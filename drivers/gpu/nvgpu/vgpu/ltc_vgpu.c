@@ -22,9 +22,9 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
+#include <nvgpu/gk20a.h>
 #include <nvgpu/vgpu/vgpu.h>
 
-#include "gk20a/gk20a.h"
 #include "ltc_vgpu.h"
 
 int vgpu_determine_L2_size_bytes(struct gk20a *g)

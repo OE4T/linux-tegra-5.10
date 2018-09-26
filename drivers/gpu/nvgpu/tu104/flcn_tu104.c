@@ -20,8 +20,8 @@
  * DEALINGS IN THE SOFTWARE.
  */
 #include <nvgpu/falcon.h>
+#include <nvgpu/gk20a.h>
 
-#include "gk20a/gk20a.h"
 #include "gk20a/flcn_gk20a.h"
 #include "gv100/flcn_gv100.h"
 #include "tu104/flcn_tu104.h"

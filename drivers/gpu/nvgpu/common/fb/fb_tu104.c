@@ -28,11 +28,10 @@
 #include <nvgpu/nvgpu_mem.h>
 #include <nvgpu/io.h>
 #include <nvgpu/utils.h>
+#include <nvgpu/gk20a.h>
 
 #include "common/fb/fb_gv11b.h"
 #include "common/mc/mc_tu104.h"
-
-#include "gk20a/gk20a.h"
 
 #include "tu104/func_tu104.h"
 

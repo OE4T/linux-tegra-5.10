@@ -21,9 +21,9 @@
  */
 
 #include <nvgpu/enabled.h>
+#include <nvgpu/gk20a.h>
 #include <nvgpu/vgpu/vgpu.h>
 
-#include "gk20a/gk20a.h"
 #include "vgpu_gv11b.h"
 
 int vgpu_gv11b_init_gpu_characteristics(struct gk20a *g)

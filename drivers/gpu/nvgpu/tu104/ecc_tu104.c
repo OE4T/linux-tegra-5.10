@@ -21,8 +21,8 @@
  */
 
 #include <nvgpu/ecc.h>
+#include <nvgpu/gk20a.h>
 
-#include "gk20a/gk20a.h"
 #include "gv11b/ecc_gv11b.h"
 #include "tu104/ecc_tu104.h"
 

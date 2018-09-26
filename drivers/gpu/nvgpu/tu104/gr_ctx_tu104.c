@@ -22,7 +22,8 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#include "gk20a/gk20a.h"
+#include <nvgpu/gk20a.h>
+
 #include "gr_ctx_tu104.h"
 #include "nvgpu_gpuid_next.h"
 

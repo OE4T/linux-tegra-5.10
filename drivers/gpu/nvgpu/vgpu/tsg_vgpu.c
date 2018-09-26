@@ -20,15 +20,15 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#include "gk20a/gk20a.h"
-#include "fifo_vgpu.h"
-
+#include <nvgpu/gk20a.h>
 #include <nvgpu/channel.h>
 #include <nvgpu/tsg.h>
 #include <nvgpu/bug.h>
 
 #include <nvgpu/vgpu/tegra_vgpu.h>
 #include <nvgpu/vgpu/vgpu.h>
+
+#include "fifo_vgpu.h"
 
 int vgpu_tsg_open(struct tsg_gk20a *tsg)
 {

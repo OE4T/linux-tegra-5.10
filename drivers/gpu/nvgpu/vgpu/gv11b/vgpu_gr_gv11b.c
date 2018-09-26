@@ -20,7 +20,8 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#include "gk20a/gk20a.h"
+#include <nvgpu/gk20a.h>
+
 #include "vgpu/gr_vgpu.h"
 #include "vgpu_subctx_gv11b.h"
 #include "vgpu_gr_gv11b.h"

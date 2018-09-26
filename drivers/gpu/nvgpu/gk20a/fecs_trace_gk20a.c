@@ -35,9 +35,9 @@
 #include <nvgpu/utils.h>
 #include <nvgpu/timers.h>
 #include <nvgpu/channel.h>
+#include <nvgpu/gk20a.h>
 
 #include "fecs_trace_gk20a.h"
-#include "gk20a.h"
 #include "gr_gk20a.h"
 
 #include <nvgpu/log.h>

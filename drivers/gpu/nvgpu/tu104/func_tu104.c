@@ -22,8 +22,8 @@
 
 #include <nvgpu/types.h>
 #include <nvgpu/io.h>
+#include <nvgpu/gk20a.h>
 
-#include "gk20a/gk20a.h"
 #include "tu104/func_tu104.h"
 
 #include <nvgpu/hw/tu104/hw_func_tu104.h>

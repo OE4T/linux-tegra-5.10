@@ -37,7 +37,7 @@
 #include "common/fuse/fuse_gm20b.h"
 #include "common/fuse/fuse_gp10b.h"
 
-#include <gk20a/gk20a.h>
+#include <nvgpu/gk20a.h>
 #include <gv11b/hal_gv11b.h>
 #include <nvgpu/vgpu/vgpu.h>
 #include <nvgpu/error_notifier.h>

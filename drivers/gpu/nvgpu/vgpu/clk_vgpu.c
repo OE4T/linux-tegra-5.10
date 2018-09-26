@@ -20,11 +20,11 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
+#include <nvgpu/gk20a.h>
 #include <nvgpu/vgpu/vgpu.h>
 #include <nvgpu/vgpu/vgpu_ivc.h>
 #include <nvgpu/clk_arb.h>
 
-#include "gk20a/gk20a.h"
 #include "clk_vgpu.h"
 #include "ctrl/ctrlclk.h"
 

@@ -21,8 +21,8 @@
  */
 
 #include <nvgpu/enabled.h>
+#include <nvgpu/gk20a.h>
 
-#include "gk20a/gk20a.h"
 #include "vgpu_fuse_gp10b.h"
 
 int vgpu_gp10b_fuse_check_priv_security(struct gk20a *g)

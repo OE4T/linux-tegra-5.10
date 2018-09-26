@@ -24,9 +24,9 @@
 
 #include <nvgpu/types.h>
 #include <nvgpu/io.h>
+#include <nvgpu/gk20a.h>
 #include <nvgpu/hw/tu104/hw_fbpa_tu104.h>
 
-#include "gk20a/gk20a.h"
 #include "tu104/fbpa_tu104.h"
 
 int tu104_fbpa_init(struct gk20a *g)

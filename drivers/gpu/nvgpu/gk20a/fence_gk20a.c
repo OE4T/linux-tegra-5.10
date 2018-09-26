@@ -28,9 +28,8 @@
 #include <nvgpu/nvhost.h>
 #include <nvgpu/barrier.h>
 #include <nvgpu/os_fence.h>
+#include <nvgpu/gk20a.h>
 #include <nvgpu/channel.h>
-
-#include "gk20a.h"
 
 struct gk20a_fence_ops {
 	int (*wait)(struct gk20a_fence *, long timeout);

@@ -22,9 +22,9 @@
 
 #include <nvgpu/vgpu/tegra_vgpu.h>
 #include <nvgpu/vgpu/vgpu.h>
+#include <nvgpu/gk20a.h>
 #include <nvgpu/channel.h>
 
-#include "gk20a/gk20a.h"
 #include "vgpu_tsg_gv11b.h"
 
 int vgpu_gv11b_tsg_bind_channel(struct tsg_gk20a *tsg,

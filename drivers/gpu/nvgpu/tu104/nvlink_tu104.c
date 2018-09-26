@@ -28,8 +28,8 @@
 #include <nvgpu/enabled.h>
 #include <nvgpu/io.h>
 #include <nvgpu/timers.h>
+#include <nvgpu/gk20a.h>
 
-#include "gk20a/gk20a.h"
 #include "gv100/nvlink_gv100.h"
 #include "nvlink_tu104.h"
 
