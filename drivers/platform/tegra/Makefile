@@ -38,8 +38,9 @@ ifeq ($(CONFIG_HW_PERF_EVENTS), y)
 obj-$(CONFIG_ARCH_TEGRA_18x_SOC) += tegra18_perf_uncore.o
 endif
 obj-$(CONFIG_TEGRA_PTP_NOTIFIER) += ptp-notifier.o
+ifeq ($(CONFIG_DEBUG_FS), y)
 obj-$(CONFIG_DENVER_CPU) += denver-knobs.o
-obj-$(CONFIG_DENVER_DEBUG)+= denver-hardwood.o
+endif
 obj-$(CONFIG_DENVER_MCA) += denver_mca.o
 obj-$(CONFIG_TEGRA_SAFETY_SCE) += tegra-safety.o
 obj-$(CONFIG_TEGRA_HV_XHCI_DEBUG) += tegra-hv-xhci-debug.o
