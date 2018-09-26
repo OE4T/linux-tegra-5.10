@@ -8,6 +8,9 @@
 # that unit tests are found and nvgpu-drv is found.
 #
 
+this_script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" > /dev/null && pwd )"
+pushd $this_script_dir
+
 if [ -f nvgpu_unit ]; then
         # if the executable is in the current directory, we are running on
         # target, so use that dir structure
@@ -23,3 +26,6 @@ export LD_LIBRARY_PATH
 echo "$ $NVGPU_UNIT $*"
 
 $NVGPU_UNIT $*
+rc=$?
+popd
+exit $rc
