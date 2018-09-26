@@ -34,6 +34,7 @@ static struct option core_opts[] = {
 	{ "verbose",		0, NULL, 'v' },
 	{ "quiet",		0, NULL, 'q' },
 	{ "no-color",		0, NULL, 'C' },
+	{ "nvtest",		0, NULL, 'n' },
 
 	{ "unit-load-path",	1, NULL, 'L' },
 	{ "num-threads",	1, NULL, 'j' },
@@ -41,7 +42,7 @@ static struct option core_opts[] = {
 	{ NULL,			0, NULL,  0  }
 };
 
-static const char *core_opts_str = "hvqCL:j:";
+static const char *core_opts_str = "hvqCnL:j:";
 
 void core_print_help(struct unit_fw *fw)
 {
@@ -62,6 +63,7 @@ void core_print_help(struct unit_fw *fw)
 "  -C, --no-color         Disable color printing; for example, if writing\n",
 "                         output to a file the color escape sequences will\n",
 "                         corrupt that file.\n",
+"  -n, --nvtest           Enable nvtest-formatted output results\n",
 "  -L, --unit-load-path <PATH>\n",
 "                         Path to where the unit test libraries reside.\n",
 "  -j, --num-threads <COUNT>\n",
@@ -121,6 +123,9 @@ int core_parse_args(struct unit_fw *fw, int argc, char **argv)
 			break;
 		case 'C':
 			args->no_color = true;
+			break;
+		case 'n':
+			args->nvtest = true;
 			break;
 		case 'L':
 			args->unit_load_path = optarg;

@@ -15,7 +15,7 @@ if [ -f nvgpu_unit ]; then
         # if the executable is in the current directory, we are running on
         # target, so use that dir structure
         LD_LIBRARY_PATH=".:units"
-        NVGPU_UNIT="./nvgpu_unit -L units/"
+        NVGPU_UNIT="./nvgpu_unit -n -L units/"
 else
         # running on host
         LD_LIBRARY_PATH="build:build/units"

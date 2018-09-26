@@ -22,12 +22,14 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 #include <pthread.h>
 #include <semaphore.h>
 #include <signal.h>
 
 #include <unit/io.h>
 #include <unit/core.h>
+#include <unit/args.h>
 #include <unit/unit.h>
 #include <unit/module.h>
 #include <unit/results.h>
@@ -81,8 +83,21 @@ static void *core_exec_module(void *module_param)
 
 		core_msg(module->fw, "Running %s.%s\n", module->name,
 			t->name);
+		if (args(module->fw)->nvtest) {
+			/* special prints for NVTEST fw in GVS */
+			printf("[%s: %s.%s]\n",
+				"start",
+				module->name, t->name);
+		}
+
 		test_status = t->fn(module, g, t->args);
 
+		if (args(module->fw)->nvtest) {
+			/* special prints for NVTEST fw in GVS */
+			printf("[%s: %s.%s]\n",
+				test_status == UNIT_SUCCESS ? "pass" : "fail",
+				module->name, t->name);
+		}
 		if (test_status != UNIT_SUCCESS)
 			core_msg_color(module->fw, C_RED,
 				       "  Unit error! Test %s.%s FAILED!\n",
