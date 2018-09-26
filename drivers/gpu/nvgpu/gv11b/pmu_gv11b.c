@@ -167,7 +167,7 @@ bool gv11b_is_priv_load(u32 falcon_id)
 
 	switch (falcon_id) {
 	case LSF_FALCON_ID_FECS:
-		enable_status = true;
+		enable_status = false;
 		break;
 	case LSF_FALCON_ID_GPCCS:
 		enable_status = true;
