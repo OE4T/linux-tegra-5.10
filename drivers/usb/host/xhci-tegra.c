@@ -1650,8 +1650,9 @@ static int tegra_xusb_load_firmware(struct tegra_xusb *tegra)
 
 	/* update the phys_log_buffer and total_entries here */
 	if (test_bit(FW_LOG_CONTEXT_VALID, &tegra->log.flags)) {
-		header->phys_addr_log_buffer = tegra->log.phys_addr;
-		header->total_log_entries = FW_LOG_COUNT;
+		header->phys_addr_log_buffer =
+					cpu_to_le32(tegra->log.phys_addr);
+		header->total_log_entries = cpu_to_le32(FW_LOG_COUNT);
 	}
 
 	/* Program the size of DFI into ILOAD_ATTR. */
