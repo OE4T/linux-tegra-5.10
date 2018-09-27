@@ -22,10 +22,10 @@
 
 #include <nvgpu/bios.h>
 #include <nvgpu/gk20a.h>
+#include <nvgpu/boardobjgrp.h>
+#include <nvgpu/boardobjgrp_e32.h>
 
 #include "pwrdev.h"
-#include "boardobj/boardobjgrp.h"
-#include "boardobj/boardobjgrp_e32.h"
 #include "gp106/bios_gp106.h"
 
 static int _pwr_device_pmudata_instget(struct gk20a *g,

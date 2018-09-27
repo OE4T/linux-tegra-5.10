@@ -30,9 +30,8 @@ struct pmu_surface;
 
 
 /* ------------------------ Includes ----------------------------------------*/
-#include "ctrl/ctrlboardobj.h"
-#include "boardobj.h"
-#include "boardobjgrpmask.h"
+#include <nvgpu/boardobj.h>
+#include <nvgpu/boardobjgrpmask.h>
 #include <nvgpu/list.h>
 #include <nvgpu/pmu.h>
 

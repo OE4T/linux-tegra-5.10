@@ -26,10 +26,9 @@
 #include <nvgpu/list.h>
 #include <nvgpu/pmuif/nvgpu_gpmu_cmdif.h>
 
-#include "ctrl/ctrlboardobj.h"
-
 struct boardobj;
 struct nvgpu_list_node;
+struct gk20a;
 
 /*
 * check whether the specified BOARDOBJ object implements the queried

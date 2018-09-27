@@ -121,11 +121,11 @@ srcs :=	os/posix/nvgpu.c \
 	common/mc/mc_gp10b.c  \
 	common/mc/mc_gv11b.c  \
 	common/mc/mc_gv100.c \
-	boardobj/boardobj.c \
-	boardobj/boardobjgrp.c \
-	boardobj/boardobjgrpmask.c \
-	boardobj/boardobjgrp_e255.c \
-	boardobj/boardobjgrp_e32.c \
+	common/boardobj/boardobj.c \
+	common/boardobj/boardobjgrp.c \
+	common/boardobj/boardobjgrpmask.c \
+	common/boardobj/boardobjgrp_e255.c \
+	common/boardobj/boardobjgrp_e32.c \
 	pstate/pstate.c \
 	volt/volt_dev.c \
 	volt/volt_pmu.c \

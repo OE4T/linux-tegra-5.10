@@ -25,8 +25,8 @@
 #define NVGPU_PMGR_PWRMONITOR_H
 
 #include <nvgpu/pmuif/nvgpu_gpmu_cmdif.h>
-#include "boardobj/boardobjgrp.h"
-#include "boardobj/boardobj.h"
+#include <nvgpu/boardobjgrp.h>
+#include <nvgpu/boardobj.h>
 #include "ctrl/ctrlpmgr.h"
 
 struct pwr_channel {

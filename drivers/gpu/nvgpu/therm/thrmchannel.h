@@ -24,8 +24,8 @@
 #ifndef NVGPU_THERM_THRMCHANNEL_H
 #define NVGPU_THERM_THRMCHANNEL_H
 
-#include "boardobj/boardobj.h"
-#include "boardobj/boardobjgrp.h"
+#include <nvgpu/boardobj.h>
+#include <nvgpu/boardobjgrp.h>
 #include "ctrl/ctrltherm.h"
 
 struct therm_channel {

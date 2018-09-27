@@ -23,9 +23,9 @@
 #ifndef NVGPU_CLK_VIN_H
 #define NVGPU_CLK_VIN_H
 
-#include "boardobj/boardobj.h"
-#include "boardobj/boardobjgrp.h"
-#include "boardobj/boardobjgrp_e32.h"
+#include <nvgpu/boardobj.h>
+#include <nvgpu/boardobjgrp.h>
+#include <nvgpu/boardobjgrp_e32.h>
 
 struct vin_device;
 struct clk_pmupstate;

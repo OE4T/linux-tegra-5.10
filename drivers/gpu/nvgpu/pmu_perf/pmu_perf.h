@@ -28,7 +28,6 @@
 #include "pstate/pstate.h"
 #include "volt/volt.h"
 #include "lpwr/lpwr.h"
-#include "boardobj/boardobjgrp_e255.h"
 
 #define CTRL_PERF_VFE_VAR_TYPE_INVALID                               0x00U
 #define CTRL_PERF_VFE_VAR_TYPE_DERIVED                               0x01U

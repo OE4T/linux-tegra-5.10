@@ -24,8 +24,8 @@
 #define NVGPU_CLK_FLL_H
 
 #include <nvgpu/pmuif/nvgpu_gpmu_cmdif.h>
-#include "boardobj/boardobjgrp_e32.h"
-#include "boardobj/boardobjgrpmask.h"
+#include <nvgpu/boardobjgrp_e32.h>
+#include <nvgpu/boardobjgrpmask.h>
 
 /*data and function definition to talk to driver*/
 int clk_fll_sw_setup(struct gk20a *g);

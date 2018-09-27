@@ -24,9 +24,8 @@
 #include <nvgpu/pmuif/nvgpu_gpmu_cmdif.h>
 #include <nvgpu/io.h>
 #include <nvgpu/gk20a.h>
-
-#include "boardobj/boardobjgrp.h"
-#include "boardobj/boardobjgrp_e32.h"
+#include <nvgpu/boardobjgrp.h>
+#include <nvgpu/boardobjgrp_e32.h>
 
 #include "ctrl/ctrlvolt.h"
 

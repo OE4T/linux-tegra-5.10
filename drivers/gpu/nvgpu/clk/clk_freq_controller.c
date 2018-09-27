@@ -22,13 +22,13 @@
 
 #include <nvgpu/bios.h>
 #include <nvgpu/gk20a.h>
+#include <nvgpu/boardobjgrp.h>
+#include <nvgpu/boardobjgrp_e32.h>
 
 #include "clk.h"
 #include "clk_fll.h"
 #include "clk_domain.h"
 #include "clk_freq_controller.h"
-#include "boardobj/boardobjgrp.h"
-#include "boardobj/boardobjgrp_e32.h"
 #include "ctrl/ctrlclk.h"
 #include "ctrl/ctrlvolt.h"
 

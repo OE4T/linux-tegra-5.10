@@ -22,11 +22,11 @@
 
 #include <nvgpu/bios.h>
 #include <nvgpu/gk20a.h>
+#include <nvgpu/boardobjgrp.h>
+#include <nvgpu/boardobjgrp_e255.h>
 
 #include "pmu_perf.h"
 #include "vfe_equ.h"
-#include "boardobj/boardobjgrp.h"
-#include "boardobj/boardobjgrp_e255.h"
 #include "ctrl/ctrlclk.h"
 #include "ctrl/ctrlvolt.h"
 

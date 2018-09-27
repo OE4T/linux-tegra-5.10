@@ -20,8 +20,8 @@
  * DEALINGS IN THE SOFTWARE.
  */
 #include <nvgpu/gk20a.h>
+#include <nvgpu/boardobjgrp.h>
 
-#include "boardobjgrp.h"
 #include "ctrl/ctrlboardobj.h"
 
 /*

@@ -23,8 +23,8 @@
 #ifndef NVGPU_VOLT_DEV_H
 #define NVGPU_VOLT_DEV_H
 
-#include "boardobj/boardobj.h"
-#include "boardobj/boardobjgrp.h"
+#include <nvgpu/boardobj.h>
+#include <nvgpu/boardobjgrp.h>
 #include "ctrl/ctrlvolt.h"
 
 #define VOLTAGE_TABLE_MAX_ENTRIES_ONE	1U

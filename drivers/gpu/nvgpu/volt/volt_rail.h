@@ -24,8 +24,8 @@
 #ifndef NVGPU_VOLT_RAIL_H
 #define NVGPU_VOLT_RAIL_H
 
-#include "boardobj/boardobj.h"
-#include "boardobj/boardobjgrp.h"
+#include <nvgpu/boardobj.h>
+#include <nvgpu/boardobjgrp.h>
 
 #define CTRL_VOLT_RAIL_VOLT_DELTA_MAX_ENTRIES	0x04U
 #define CTRL_PMGR_PWR_EQUATION_INDEX_INVALID	0xFFU

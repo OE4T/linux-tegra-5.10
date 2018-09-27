@@ -24,11 +24,10 @@
 #include <nvgpu/pmuif/nvgpu_gpmu_cmdif.h>
 #include <nvgpu/pmu.h>
 #include <nvgpu/gk20a.h>
+#include <nvgpu/boardobjgrp.h>
+#include <nvgpu/boardobjgrp_e32.h>
 
 #include "gp106/bios_gp106.h"
-
-#include "boardobj/boardobjgrp.h"
-#include "boardobj/boardobjgrp_e32.h"
 
 #include "pwrdev.h"
 #include "pmgrpmu.h"

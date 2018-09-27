@@ -53,7 +53,12 @@ nvgpu-y += common/bus/bus_gk20a.o \
 	common/mc/mc_gp10b.o  \
 	common/mc/mc_gv11b.o  \
 	common/mc/mc_gv100.o \
-	common/sync/channel_sync.o
+	common/sync/channel_sync.o \
+	common/boardobj/boardobj.o \
+	common/boardobj/boardobjgrp.o \
+	common/boardobj/boardobjgrpmask.o \
+	common/boardobj/boardobjgrp_e255.o \
+	common/boardobj/boardobjgrp_e32.o
 
 # Linux specific parts of nvgpu.
 nvgpu-y += \
@@ -254,12 +259,7 @@ nvgpu-y += \
 	gm20b/acr_gm20b.o \
 	gm20b/pmu_gm20b.o \
 	gm20b/mm_gm20b.o \
-	gm20b/regops_gm20b.o \
-	boardobj/boardobj.o \
-	boardobj/boardobjgrp.o \
-	boardobj/boardobjgrpmask.o \
-	boardobj/boardobjgrp_e255.o \
-	boardobj/boardobjgrp_e32.o
+	gm20b/regops_gm20b.o
 
 nvgpu-$(CONFIG_GK20A_VIDMEM) += \
 	common/mm/vidmem.o

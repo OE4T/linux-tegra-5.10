@@ -24,7 +24,7 @@
 #ifndef NVGPU_PERF_VFE_EQU_H
 #define NVGPU_PERF_VFE_EQU_H
 
-#include "boardobj/boardobjgrp.h"
+#include <nvgpu/boardobjgrp.h>
 #include "vfe_var.h"
 #include <nvgpu/pmuif/nvgpu_gpmu_cmdif.h>
 

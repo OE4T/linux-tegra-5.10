@@ -24,8 +24,8 @@
 #ifndef NVGPU_THERM_THRMDEV_H
 #define NVGPU_THERM_THRMDEV_H
 
-#include "boardobj/boardobj.h"
-#include "boardobj/boardobjgrp.h"
+#include <nvgpu/boardobj.h>
+#include <nvgpu/boardobjgrp.h>
 
 struct therm_devices {
 	struct boardobjgrp_e32 super;

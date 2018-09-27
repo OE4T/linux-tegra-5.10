@@ -26,8 +26,8 @@
 #include "ctrl/ctrlclk.h"
 #include "ctrl/ctrlboardobj.h"
 #include <nvgpu/pmuif/nvgpu_gpmu_cmdif.h>
-#include "boardobj/boardobjgrp_e32.h"
-#include "boardobj/boardobjgrpmask.h"
+#include <nvgpu/boardobjgrp_e32.h>
+#include <nvgpu/boardobjgrpmask.h>
 
 #define CLK_DOMAIN_BOARDOBJGRP_VERSION 0x30
 #define CLK_TABLE_HAL_ENTRY_GP 0x02

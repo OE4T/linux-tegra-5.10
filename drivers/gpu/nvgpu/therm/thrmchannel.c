@@ -23,10 +23,10 @@
 #include <nvgpu/bios.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/pmuif/nvgpu_gpmu_cmdif.h>
+#include <nvgpu/boardobjgrp.h>
+#include <nvgpu/boardobjgrp_e32.h>
 
 #include "thrmchannel.h"
-#include "boardobj/boardobjgrp.h"
-#include "boardobj/boardobjgrp_e32.h"
 #include "gp106/bios_gp106.h"
 
 static int _therm_channel_pmudatainit_device(struct gk20a *g,

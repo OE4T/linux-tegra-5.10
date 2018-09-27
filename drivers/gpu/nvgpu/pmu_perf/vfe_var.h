@@ -23,7 +23,7 @@
 #ifndef NVGPU_PERF_VFE_VAR_H
 #define NVGPU_PERF_VFE_VAR_H
 
-#include "boardobj/boardobjgrp.h"
+#include <nvgpu/boardobjgrp.h>
 #include <nvgpu/pmuif/nvgpu_gpmu_cmdif.h>
 
 int vfe_var_sw_setup(struct gk20a *g);

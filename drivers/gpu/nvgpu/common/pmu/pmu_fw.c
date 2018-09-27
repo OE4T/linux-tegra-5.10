@@ -28,9 +28,8 @@
 #include <nvgpu/enabled.h>
 #include <nvgpu/utils.h>
 #include <nvgpu/gk20a.h>
-
-#include "boardobj/boardobj.h"
-#include "boardobj/boardobjgrp.h"
+#include <nvgpu/boardobj.h>
+#include <nvgpu/boardobjgrp.h>
 
 /* PMU NS UCODE IMG */
 #define NVGPU_PMU_NS_UCODE_IMAGE	"gpmu_ucode.bin"

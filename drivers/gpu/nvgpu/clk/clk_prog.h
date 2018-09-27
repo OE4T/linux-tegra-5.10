@@ -25,9 +25,9 @@
 #include "ctrl/ctrlclk.h"
 #include "ctrl/ctrlboardobj.h"
 #include <nvgpu/pmuif/nvgpu_gpmu_cmdif.h>
-#include "boardobj/boardobjgrp_e32.h"
-#include "boardobj/boardobjgrp_e255.h"
-#include "boardobj/boardobjgrpmask.h"
+#include <nvgpu/boardobjgrp_e32.h>
+#include <nvgpu/boardobjgrp_e255.h>
+#include <nvgpu/boardobjgrpmask.h>
 
 int clk_prog_sw_setup(struct gk20a *g);
 int clk_prog_pmu_setup(struct gk20a *g);

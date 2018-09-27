@@ -21,10 +21,10 @@
 */
 #include <nvgpu/bug.h>
 #include <nvgpu/gk20a.h>
+#include <nvgpu/boardobjgrp.h>
+#include <nvgpu/boardobj.h>
 
-#include "boardobjgrp.h"
 #include "ctrl/ctrlboardobj.h"
-#include "boardobj.h"
 
 static boardobjgrp_objinsert   boardobjgrp_objinsert_final;
 static boardobjgrp_objgetbyidx   boardobjgrp_objgetbyidx_final;

@@ -23,11 +23,9 @@
 #ifndef NVGPU_BOARDOBJGRP_E32_H
 #define NVGPU_BOARDOBJGRP_E32_H
 
-#include "ctrl/ctrlboardobj.h"
-#include "boardobj.h"
-#include "boardobjgrp.h"
-#include "boardobjgrpmask.h"
-#include "boardobj/boardobjgrp.h"
+#include <nvgpu/boardobj.h>
+#include <nvgpu/boardobjgrp.h>
+#include <nvgpu/boardobjgrpmask.h>
 
 /*
  * boardobjgrp_e32 is @ref BOARDOBJGRP child class allowing storage of up to 32

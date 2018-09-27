@@ -25,8 +25,8 @@
 #define NVGPU_PMGR_PWRPOLICY_H
 
 #include <nvgpu/pmuif/nvgpu_gpmu_cmdif.h>
-#include "boardobj/boardobjgrp.h"
-#include "boardobj/boardobj.h"
+#include <nvgpu/boardobjgrp.h>
+#include <nvgpu/boardobj.h>
 #include "ctrl/ctrlpmgr.h"
 
 #define PWR_POLICY_EXT_POWER_STATE_ID_COUNT 0x4U

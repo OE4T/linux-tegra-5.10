@@ -24,7 +24,7 @@
 #ifndef NVGPU_PMGR_PWRDEV_H
 #define NVGPU_PMGR_PWRDEV_H
 
-#include "boardobj/boardobj.h"
+#include <nvgpu/boardobj.h>
 #include <nvgpu/pmuif/nvgpu_gpmu_cmdif.h>
 #include "ctrl/ctrlpmgr.h"
 

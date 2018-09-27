@@ -21,12 +21,12 @@
 */
 
 #include <nvgpu/gk20a.h>
+#include <nvgpu/boardobj.h>
+#include <nvgpu/boardobjgrp_e255.h>
+#include <nvgpu/boardobjgrp.h>
+#include <nvgpu/boardobjgrpmask.h>
 
-#include "boardobj.h"
-#include "boardobjgrp_e255.h"
 #include "ctrl/ctrlboardobj.h"
-#include "boardobjgrp.h"
-#include "boardobjgrpmask.h"
 
 int boardobjgrpconstruct_e255(struct gk20a *g,
 			      struct boardobjgrp_e255 *pboardobjgrp_e255)

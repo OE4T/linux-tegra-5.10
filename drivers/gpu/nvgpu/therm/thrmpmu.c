@@ -20,9 +20,9 @@
  * DEALINGS IN THE SOFTWARE.
  */
 #include <nvgpu/gk20a.h>
+#include <nvgpu/boardobjgrp.h>
+#include <nvgpu/boardobjgrp_e32.h>
 
-#include "boardobj/boardobjgrp.h"
-#include "boardobj/boardobjgrp_e32.h"
 #include "thrmpmu.h"
 #include <nvgpu/pmuif/nvgpu_gpmu_cmdif.h>
 
