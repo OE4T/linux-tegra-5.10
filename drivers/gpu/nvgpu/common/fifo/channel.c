@@ -1225,7 +1225,7 @@ int nvgpu_channel_setup_bind(struct channel_gk20a *c,
 
 	/* TBD: setup engine contexts */
 
-	if (args->num_inflight_jobs) {
+	if (c->deterministic && args->num_inflight_jobs != 0U) {
 		err = channel_gk20a_prealloc_resources(c,
 				args->num_inflight_jobs);
 		if (err != 0) {
@@ -1251,7 +1251,7 @@ int nvgpu_channel_setup_bind(struct channel_gk20a *c,
 clean_up_priv_cmd:
 	channel_gk20a_free_priv_cmdbuf(c);
 clean_up_prealloc:
-	if (args->num_inflight_jobs) {
+	if (c->deterministic && args->num_inflight_jobs != 0U) {
 		channel_gk20a_free_prealloc_resources(c);
 	}
 clean_up_sync:
