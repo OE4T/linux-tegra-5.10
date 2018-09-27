@@ -64,6 +64,10 @@ static inline u32 func_doorbell_r(void)
 {
 	return 0x00030090U;
 }
+static inline u32 func_cfg0_r(void)
+{
+	return 0x00030000U;
+}
 static inline u32 func_priv_cpu_intr_top_en_set_r(u32 i)
 {
 	return 0x00001608U + i*4U;

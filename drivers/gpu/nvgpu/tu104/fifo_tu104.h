@@ -36,6 +36,8 @@ void tu104_fifo_runlist_hw_submit(struct gk20a *g, u32 runlist_id,
 int tu104_fifo_runlist_wait_pending(struct gk20a *g, u32 runlist_id);
 int tu104_init_fifo_setup_hw(struct gk20a *g);
 void tu104_ring_channel_doorbell(struct channel_gk20a *c);
+u64 tu104_fifo_usermode_base(struct gk20a *g);
+u32 tu104_fifo_doorbell_token(struct channel_gk20a *c);
 
 int tu104_init_pdb_cache_war(struct gk20a *g);
 void tu104_deinit_pdb_cache_war(struct gk20a *g);

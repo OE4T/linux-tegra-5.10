@@ -300,6 +300,7 @@ static int tu104_init_gpu_characteristics(struct gk20a *g)
 		__nvgpu_set_enabled(g, NVGPU_SUPPORT_SYNCPOINT_ADDRESS, true);
 		__nvgpu_set_enabled(g, NVGPU_SUPPORT_USER_SYNCPOINT, true);
 	}
+	__nvgpu_set_enabled(g, NVGPU_SUPPORT_USERMODE_SUBMIT, true);
 
 	return 0;
 }
@@ -702,6 +703,8 @@ static const struct gpu_ops tu104_ops = {
 		.get_sema_wait_cmd_size = gv11b_fifo_get_sema_wait_cmd_size,
 		.get_sema_incr_cmd_size = gv11b_fifo_get_sema_incr_cmd_size,
 		.add_sema_cmd = gv11b_fifo_add_sema_cmd,
+		.usermode_base = tu104_fifo_usermode_base,
+		.doorbell_token = tu104_fifo_doorbell_token,
 		.init_pdb_cache_war = tu104_init_pdb_cache_war,
 		.deinit_pdb_cache_war = tu104_deinit_pdb_cache_war,
 		.set_sm_exception_type_mask = gk20a_tsg_set_sm_exception_type_mask,
