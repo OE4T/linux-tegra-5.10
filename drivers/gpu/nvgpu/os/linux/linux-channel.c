@@ -512,7 +512,7 @@ static int nvgpu_channel_alloc_usermode_buffers(struct channel_gk20a *c,
 		goto unmap_free_gpfifo;
 	}
 
-	args->work_submit_token = g->fifo.channel_base + c->chid;
+	args->work_submit_token = g->ops.fifo.doorbell_token(c);
 
 	return 0;
 unmap_free_gpfifo:

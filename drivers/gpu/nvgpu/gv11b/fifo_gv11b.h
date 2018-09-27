@@ -134,4 +134,5 @@ void gv11b_fifo_init_ramfc_eng_method_buffer(struct gk20a *g,
 void gv11b_userd_writeback_config(struct gk20a *g);
 void gv11b_ring_channel_doorbell(struct channel_gk20a *c);
 u64 gv11b_fifo_usermode_base(struct gk20a *g);
+u32 gv11b_fifo_doorbell_token(struct channel_gk20a *c);
 #endif

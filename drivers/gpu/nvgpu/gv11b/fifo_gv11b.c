@@ -222,6 +222,14 @@ u64 gv11b_fifo_usermode_base(struct gk20a *g)
 	return usermode_cfg0_r();
 }
 
+u32 gv11b_fifo_doorbell_token(struct channel_gk20a *c)
+{
+	struct gk20a *g = c->g;
+	struct fifo_gk20a *f = &g->fifo;
+
+	return f->channel_base + c->chid;
+}
+
 void gv11b_ring_channel_doorbell(struct channel_gk20a *c)
 {
 	struct gk20a *g = c->g;
