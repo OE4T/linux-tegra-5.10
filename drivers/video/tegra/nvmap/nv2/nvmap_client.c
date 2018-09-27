@@ -51,8 +51,8 @@ struct nvmap_client {
 	struct list_head		list;
 	u32				handle_count;
 	u32				next_fd;
-	int				warned;
-	int				tag_warned;
+	bool				warned;
+	bool				tag_warned;
 };
 
 extern bool dmabuf_is_nvmap(struct dma_buf *dmabuf);
@@ -65,7 +65,7 @@ struct nvmap_client *nvmap_client_create(struct list_head *dev_client_list,
 	struct task_struct *task;
 
 	client = kzalloc(sizeof(*client), GFP_KERNEL);
-	if (!client) {
+	if (client == NULL) {
 		return NULL;
 	}
 
@@ -102,7 +102,7 @@ void nvmap_client_destroy(struct nvmap_client *client)
 {
 	struct rb_node *n;
 
-	if (!client) {
+	if (client == NULL) {
 		return;
 	}
 
@@ -144,7 +144,9 @@ static void client_unlock(struct nvmap_client *c)
 
 pid_t nvmap_client_pid(struct nvmap_client *client)
 {
-	return client->task ? client->task->pid : 0;
+	if (client->task == NULL)
+		return 0;
+	return client->task->pid;
 }
 
 void nvmap_client_stats_alloc(struct nvmap_client *client, size_t size)
@@ -163,13 +165,13 @@ int nvmap_client_add_handle(struct nvmap_client *client,
 	struct nvmap_handle_ref *ref;
 
 	ref = nvmap_client_to_handle_ref(client, handle);
-	if (ref) {
+	if (ref != NULL) {
 		nvmap_handle_ref_get(ref);
 		return 0;
 	}
 
 	ref = nvmap_handle_ref_create(handle);
-	if (!ref) {
+	if (ref == NULL) {
 		return -ENOMEM;
 	}
 
@@ -186,7 +188,7 @@ void nvmap_client_remove_handle(struct nvmap_client *client,
 	int ref_count;
 
 	ref = nvmap_client_to_handle_ref(client, handle);
-	if (!ref) {
+	if (ref == NULL) {
 		return;
 	}
 
@@ -344,9 +346,11 @@ int nvmap_client_give_dmabuf_new_fd(struct nvmap_client *client,
 void nvmap_client_warn_if_bad_heap(struct nvmap_client *client,
 				u32 heap_type, u32 userflags)
 {
-	if (heap_type != NVMAP_HEAP_CARVEOUT_VPR && client && !client->warned) {
+	if (heap_type != NVMAP_HEAP_CARVEOUT_VPR &&
+			(client != NULL) && 
+			!client->warned) {
 		char task_comm[TASK_COMM_LEN];
-		client->warned = 1;
+		client->warned = true;
 		get_task_comm(task_comm, client->task);
 		pr_err("PID %d: %s: TAG: 0x%04x WARNING: "
 				"NVMAP_HANDLE_WRITE_COMBINE "
@@ -363,8 +367,8 @@ void nvmap_client_warn_if_no_tag(struct nvmap_client *client,
 	int tag = flags >> 16;
 	char task_comm[TASK_COMM_LEN];
 
-	if (!tag && client && !client->tag_warned) {
-		client->tag_warned = 1;
+	if ((tag == 0) && (client != NULL) && !client->tag_warned) {
+		client->tag_warned = true;
 		get_task_comm(task_comm, client->task);
 		pr_err("PID %d: %s: WARNING: "
 			"All NvMap Allocations must have a tag "
@@ -382,7 +386,7 @@ void nvmap_client_warn_if_no_tag(struct nvmap_client *client,
 void nvmap_client_stringify(struct nvmap_client *client, struct seq_file *s)
 {
 	char task_comm[TASK_COMM_LEN];
-	if (!client->task) {
+	if (client->task == NULL) {
 		seq_printf(s, "%-18s %18s %8u", client->name, "kernel", 0);
 		return;
 	}
@@ -525,7 +529,7 @@ static int procrank_pte_entry(pte_t *pte, unsigned long addr, unsigned long end,
 		}
 	}
 
-	if (!page) {
+	if (page == NULL) {
 		return 0;
 	}
 
@@ -560,7 +564,7 @@ void nvmap_client_calc_iovmm_mss(struct nvmap_client *client, u64 *pss,
 	mm = mm_access(client->task,
 			PTRACE_MODE_READ_FSCREDS);
 
-	if (!mm || IS_ERR(mm)) {
+	if (mm == NULL || IS_ERR(mm)) {
 		return;
 	}
 

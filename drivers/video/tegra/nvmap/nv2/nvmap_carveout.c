@@ -23,6 +23,7 @@
 #include "nvmap_dev.h"
 #include "nvmap_cache.h"
 #include "nvmap_misc.h"
+#include "nvmap_debugfs.h"
 
 extern struct nvmap_device *nvmap_dev;
 extern struct kmem_cache *heap_block_cache;
@@ -97,12 +98,12 @@ int nvmap_carveout_create(const struct nvmap_platform_carveout *co)
 	int i, err = 0;
 	struct nvmap_carveout_node *node;
 
-	if (!nvmap_dev->heaps) {
+	if (nvmap_dev->heaps == NULL) {
 		nvmap_dev->nr_carveouts = 0;
 		nvmap_dev->nr_heaps = nvmap_dev->plat->nr_carveouts + 1;
 		nvmap_dev->heaps = kzalloc(sizeof(struct nvmap_carveout_node) *
 				     nvmap_dev->nr_heaps, GFP_KERNEL);
-		if (!nvmap_dev->heaps) {
+		if (nvmap_dev->heaps == NULL) {
 			err = -ENOMEM;
 			pr_err("couldn't allocate carveout memory\n");
 			goto out;
@@ -111,7 +112,7 @@ int nvmap_carveout_create(const struct nvmap_platform_carveout *co)
 		node = krealloc(nvmap_dev->heaps,
 				sizeof(*node) * (nvmap_dev->nr_carveouts + 1),
 				GFP_KERNEL);
-		if (!node) {
+		if (node == NULL) {
 			err = -ENOMEM;
 			pr_err("nvmap heap array resize failed\n");
 			goto out;
@@ -122,7 +123,8 @@ int nvmap_carveout_create(const struct nvmap_platform_carveout *co)
 
 	for (i = 0; i < nvmap_dev->nr_heaps; i++)
 		if ((co->usage_mask != NVMAP_HEAP_CARVEOUT_IVM) &&
-		    (nvmap_dev->heaps[i].heap_bit & co->usage_mask)) {
+		    (flag_is_set(nvmap_dev->heaps[i].heap_bit,
+				 		co->usage_mask))) {
 			pr_err("carveout %s already exists\n", co->name);
 			return -EEXIST;
 		}
@@ -132,7 +134,7 @@ int nvmap_carveout_create(const struct nvmap_platform_carveout *co)
 	node->base = round_up(co->base, PAGE_SIZE);
 	node->size = round_down(co->size -
 				(node->base - co->base), PAGE_SIZE);
-	if (!co->size) {
+	if (co->size == 0) {
 		goto out;
 	}
 
@@ -140,7 +142,7 @@ int nvmap_carveout_create(const struct nvmap_platform_carveout *co)
 			nvmap_dev->dev_user.this_device, co,
 			node->base, node->size, node);
 
-	if (!node->carveout) {
+	if (node->carveout == NULL) {
 		err = -ENOMEM;
 		pr_err("couldn't create %s\n", co->name);
 		goto out;
@@ -153,23 +155,23 @@ int nvmap_carveout_create(const struct nvmap_platform_carveout *co)
 		struct dentry *heap_root =
 			debugfs_create_dir(co->name, nvmap_dev->debug_root);
 		if (!IS_ERR_OR_NULL(heap_root)) {
-			debugfs_create_file("clients", S_IRUGO,
+			debugfs_create_file("clients", NVMAP_IRUGO(),
 				heap_root,
 				(void *)(uintptr_t)node->heap_bit,
 				&debug_clients_fops);
-			debugfs_create_file("allocations", S_IRUGO,
+			debugfs_create_file("allocations", NVMAP_IRUGO(),
 				heap_root,
 				(void *)(uintptr_t)node->heap_bit,
 				&debug_allocations_fops);
-			debugfs_create_file("all_allocations", S_IRUGO,
+			debugfs_create_file("all_allocations", NVMAP_IRUGO(),
 				heap_root,
 				(void *)(uintptr_t)node->heap_bit,
 				&debug_all_allocations_fops);
-			debugfs_create_file("orphan_handles", S_IRUGO,
+			debugfs_create_file("orphan_handles", NVMAP_IRUGO(),
 				heap_root,
 				(void *)(uintptr_t)node->heap_bit,
 				&debug_orphan_handles_fops);
-			debugfs_create_file("maps", S_IRUGO,
+			debugfs_create_file("maps", NVMAP_IRUGO(),
 				heap_root,
 				(void *)(uintptr_t)node->heap_bit,
 				&debug_maps_fops);
@@ -189,7 +191,7 @@ struct device *nvmap_heap_type_to_dev(unsigned long type)
 	for (i = 0; i < nvmap_dev->nr_carveouts; i++) {
 		co_heap = &nvmap_dev->heaps[i];
 
-		if (!(co_heap->heap_bit & type)) {
+		if (!flag_is_set(co_heap->heap_bit, type)) {
 			continue;
 		}
 
@@ -245,12 +247,12 @@ static phys_addr_t nvmap_alloc_mem(struct nvmap_heap *h, size_t len,
 	dma_set_attr(DMA_ATTR_ALLOC_EXACT_SIZE, __DMA_ATTR(attrs));
 
 #ifdef CONFIG_TEGRA_VIRTUALIZATION
-	if (start && h->is_ivm) {
+	if ((start != 0) && h->is_ivm) {
 		int err;
 
 		pa = h->base + *start;
 		err = heap_alloc_mem_virtualized(dev, pa, len);
-		if (err) {
+		if (err != 0) {
 			return DMA_ERROR_CODE;
 		}
 		return pa;
@@ -264,7 +266,7 @@ static phys_addr_t nvmap_alloc_mem(struct nvmap_heap *h, size_t len,
 
 	dev_dbg(dev, "Allocated addr (%pa) len(%zu)\n", &pa, len);
 
-	if (!dma_is_coherent_dev(dev) && h->cma_dev) {
+	if (!dma_is_coherent_dev(dev) && (h->cma_dev != NULL)) {
 		int ret;
 		ret = nvmap_cache_maint_phys_range(NVMAP_CACHE_OP_WB,
 							pa, pa + len);
@@ -312,7 +314,7 @@ static int heap_block_flush(struct nvmap_heap_block *block, size_t len,
 	}
 
 	ret = nvmap_cache_maint_phys_range(NVMAP_CACHE_OP_WB_INV, phys, end);
-	if (ret) {
+	if (ret != 0) {
 		goto out;
 	}
 out:
@@ -325,7 +327,7 @@ void nvmap_heap_block_free(struct nvmap_heap_block *b)
 	struct nvmap_heap *h;
 	struct list_block *lb;
 
-	if (!b) {
+	if (b == NULL) {
 		return;
 	}
 
@@ -344,9 +346,9 @@ void nvmap_heap_block_free(struct nvmap_heap_block *b)
 	 * If this HEAP has pm_ops defined and powering off the
 	 * RAM attached with the HEAP returns error, raise warning.
 	 */
-	if (h->pm_ops.idle) {
+	if (h->pm_ops.idle != NULL) {
 		if (h->pm_ops.idle() < 0) {
-			WARN_ON(1);
+			WARN_ON(true);
 		}
 	}
 
@@ -362,7 +364,7 @@ static struct nvmap_heap_block *heap_block_alloc(struct nvmap_heap *heap,
 	dma_addr_t dev_base;
 	struct device *dev = heap->dma_dev;
 
-	align = max_t(size_t, align, L1_CACHE_BYTES);
+	align = max_t(size_t, align, NVMAP_L1_CACHE_BYTES);
 
 	/* since pages are only mappable with one cache attribute,
 	 * and most allocations from carveout heaps are DMA coherent
@@ -380,14 +382,14 @@ static struct nvmap_heap_block *heap_block_alloc(struct nvmap_heap *heap,
 	}
 
 	heap_block = kmem_cache_zalloc(heap_block_cache, GFP_KERNEL);
-	if (!heap_block) {
+	if (heap_block == NULL) {
 		dev_err(dev, "%s: failed to alloc heap block %s\n",
 			__func__, dev_name(dev));
 		goto fail_heap_block_alloc;
 	}
 
 	dev_base = nvmap_alloc_mem(heap, len, start);
-	if (dma_mapping_error(dev, dev_base)) {
+	if (dma_mapping_error(dev, dev_base) != 0) {
 		dev_err(dev, "failed to alloc mem of size (%zu)\n",
 			len);
 		if (dma_is_coherent_dev(dev)) {
@@ -416,7 +418,7 @@ fail_heap_block_alloc:
 	return NULL;
 }
 
-static int heap_can_allocate(struct nvmap_heap *h, int peer, phys_addr_t *start)
+static bool heap_can_allocate(struct nvmap_heap *h, int peer, phys_addr_t *start)
 {
 	if (h->is_ivm) { /* Is IVM carveout? */
 		/* Check if this correct IVM heap */
@@ -426,14 +428,14 @@ static int heap_can_allocate(struct nvmap_heap *h, int peer, phys_addr_t *start)
 		/* If this partition does actual allocation, it
 		 * should not specify start_offset.
 		 */
-		if (h->can_alloc && start) {
+		if (h->can_alloc && (start != NULL)) {
 			return 0;
 		}
 
 		/* If this partition does not do actual
 		 * allocation, it should specify start_offset.
 		 */
-		if (!h->can_alloc && !start) {
+		if (!h->can_alloc && (start == NULL)) {
 			return 0;
 		}
 	}
@@ -443,7 +445,7 @@ static int heap_can_allocate(struct nvmap_heap *h, int peer, phys_addr_t *start)
 	 * RAM attached with the HEAP returns error, don't
 	 * allocate from the heap and return NULL.
 	 */
-	if (h->pm_ops.busy) {
+	if (h->pm_ops.busy != NULL) {
 		if (h->pm_ops.busy() < 0) {
 			pr_err("Unable to power on the heap device\n");
 			return 0;
@@ -472,7 +474,7 @@ struct nvmap_heap_block *nvmap_carveout_alloc(struct nvmap_carveout_node *co,
 	}
 
 	b = heap_block_alloc(h, len, align, prot, start);
-	if (!b) {
+	if (b == NULL) {
 		mutex_unlock(&h->lock);
 		return NULL;
 	}
@@ -492,7 +494,7 @@ u64 nvmap_carveout_ivm(struct nvmap_carveout_node *co,
 		offs = (b->base - h->base);
 		return nvmap_calculate_ivm_id(h->vm_id, len, offs);
 	} else {
-		return 0;
+		return 0U;
 	}
 }
 

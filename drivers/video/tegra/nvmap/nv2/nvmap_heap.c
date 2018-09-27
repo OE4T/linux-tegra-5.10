@@ -42,6 +42,7 @@
 #include "nvmap_heap.h"
 #include "nvmap_dev.h"
 #include "nvmap_cache.h"
+#include "nvmap_debugfs.h"
 
 /*
  * "carveouts" are platform-defined regions of physically contiguous memory
@@ -106,18 +107,18 @@ size_t nvmap_query_heap_size(struct nvmap_heap *heap)
 void nvmap_heap_debugfs_init(struct dentry *heap_root, struct nvmap_heap *heap)
 {
 	if (sizeof(heap->base) == sizeof(u64)) {
-		debugfs_create_x64("base", S_IRUGO,
+		debugfs_create_x64("base", NVMAP_IRUGO(),
 			heap_root, (u64 *)&heap->base);
 	} else {
-		debugfs_create_x32("base", S_IRUGO,
+		debugfs_create_x32("base", NVMAP_IRUGO(),
 			heap_root, (u32 *)&heap->base);
 	}
 
 	if (sizeof(heap->len) == sizeof(u64)) {
-		debugfs_create_x64("size", S_IRUGO,
+		debugfs_create_x64("size", NVMAP_IRUGO(),
 			heap_root, (u64 *)&heap->len);
 	} else {
-		debugfs_create_x32("size", S_IRUGO,
+		debugfs_create_x32("size", NVMAP_IRUGO(),
 			heap_root, (u32 *)&heap->len);
 	}
 }

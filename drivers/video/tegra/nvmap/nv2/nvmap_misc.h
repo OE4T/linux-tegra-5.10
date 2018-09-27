@@ -107,4 +107,9 @@ static inline bool nvmap_page_mkclean(struct page **page)
 	return true;
 }
 
+static inline bool flag_is_set(unsigned int flags, unsigned int flag)
+{
+	return (flags & flag) != 0;
+}
+
 #endif /* __NVMAP_MISC_H */

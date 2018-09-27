@@ -38,6 +38,7 @@
 #include "nvmap_cache.h"
 #include "nvmap_pp.h"
 #include "nvmap_dev.h"
+#include "nvmap_debugfs.h"
 
 #define NVMAP_TEST_PAGE_POOL_SHRINKER     1
 #define PENDING_PAGES_SIZE                (SZ_1M / PAGE_SIZE)
@@ -678,36 +679,36 @@ int nvmap_page_pool_debugfs_init(struct dentry *nvmap_root)
 	}
 
 	debugfs_create_u32("page_pool_available_pages",
-			   S_IRUGO, pp_root,
+			   NVMAP_IRUGO(), pp_root,
 			   &nvmap_dev->pool.count);
 	debugfs_create_u32("page_pool_pages_to_zero",
-			   S_IRUGO, pp_root,
+			   NVMAP_IRUGO(), pp_root,
 			   &nvmap_dev->pool.to_zero);
 	debugfs_create_u32("page_pool_available_big_pages",
-			   S_IRUGO, pp_root,
+			   NVMAP_IRUGO(), pp_root,
 			   &nvmap_dev->pool.big_page_count);
 	debugfs_create_u32("page_pool_big_page_size",
-			   S_IRUGO, pp_root,
+			   NVMAP_IRUGO(), pp_root,
 			   &nvmap_dev->pool.big_pg_sz);
 	debugfs_create_u64("total_big_page_allocs",
-			   S_IRUGO, pp_root,
+			   NVMAP_IRUGO(), pp_root,
 			   &nvmap_big_page_allocs);
 	debugfs_create_u64("total_page_allocs",
-			   S_IRUGO, pp_root,
+			   NVMAP_IRUGO(), pp_root,
 			   &nvmap_total_page_allocs);
 
 #ifdef CONFIG_NVMAP_PAGE_POOL_DEBUG
 	debugfs_create_u64("page_pool_allocs",
-			   S_IRUGO, pp_root,
+			   NVMAP_IRUGO(), pp_root,
 			   &nvmap_dev->pool.allocs);
 	debugfs_create_u64("page_pool_fills",
-			   S_IRUGO, pp_root,
+			   NVMAP_IRUGO(), pp_root,
 			   &nvmap_dev->pool.fills);
 	debugfs_create_u64("page_pool_hits",
-			   S_IRUGO, pp_root,
+			   NVMAP_IRUGO(), pp_root,
 			   &nvmap_dev->pool.hits);
 	debugfs_create_u64("page_pool_misses",
-			   S_IRUGO, pp_root,
+			   NVMAP_IRUGO(), pp_root,
 			   &nvmap_dev->pool.misses);
 #endif
 

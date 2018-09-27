@@ -32,6 +32,7 @@
 #include "nvmap_cache.h"
 #include "nvmap_handle.h"
 #include "nvmap_stats.h"
+#include "nvmap_debugfs.h"
 
 typedef void (*nvmap_setup_chip_cache_fn)(struct nvmap_chip_cache_op *);
 
@@ -44,9 +45,9 @@ extern struct of_device_id __nvmapcache_of_table;
 #ifndef CONFIG_NVMAP_CACHE_MAINT_BY_SET_WAYS
 /* This is basically the L2 cache size but may be tuned as per requirement */
 size_t cache_maint_inner_threshold = SIZE_MAX;
-int nvmap_cache_maint_by_set_ways;
+bool nvmap_cache_maint_by_set_ways;
 #else
-int nvmap_cache_maint_by_set_ways = 1;
+bool nvmap_cache_maint_by_set_ways = 1;
 size_t cache_maint_inner_threshold = 8 * SZ_2M;
 #endif
 
@@ -95,7 +96,7 @@ static void nvmap_cache_of_setup(struct nvmap_chip_cache_op *op)
 	op->inner_clean_cache_all = nvmap_inner_clean_cache_all;
 	op->inner_flush_cache_all = nvmap_cache_inner_flush_all;
 	op->name = kstrdup("set/ways", GFP_KERNEL);
-	BUG_ON(!op->name);
+	BUG_ON(op->name == NULL);
 }
 NVMAP_CACHE_OF_DECLARE("nvidia,carveouts", nvmap_cache_of_setup);
 
@@ -126,13 +127,15 @@ void nvmap_select_cache_ops(struct device *dev)
 	pr_info("nvmap cache ops set to %s\n", op.name);
 	kfree(op.name);
 
-	if (inner_clean_cache_all && (op.flags & CALL_CLEAN_CACHE_ON_INIT)) {
+	if (inner_clean_cache_all != NULL &&
+			flag_is_set(op.flags, CALL_CLEAN_CACHE_ON_INIT)) {
 		pr_info("calling cache operation %pF\n",
 					inner_clean_cache_all);
 		inner_clean_cache_all();
 	}
 
-	if (inner_flush_cache_all && (op.flags & CALL_FLUSH_CACHE_ON_INIT)) {
+	if (inner_flush_cache_all != NULL &&
+			flag_is_set(op.flags, CALL_FLUSH_CACHE_ON_INIT)) {
 		pr_info("calling cache operation %pF\n",
 					inner_flush_cache_all);
 		inner_flush_cache_all();
@@ -165,7 +168,7 @@ static void cache_clean_page(struct page *page)
 	__clean_dcache_page(page);
 }
 
-void nvmap_cache_clean_pages(struct page **pages, int numpages)
+void nvmap_cache_clean_pages(struct page **pages, unsigned int numpages)
 {
 	int i;
 
@@ -248,7 +251,7 @@ int nvmap_cache_maint_phys_range(unsigned int op, phys_addr_t pstart,
 	}
 
 	area = alloc_vm_area(PAGE_SIZE, NULL);
-	if (!area) {
+	if (area == NULL) {
 		return -ENOMEM;
 	}
 
@@ -377,20 +380,20 @@ int nvmap_cache_debugfs_init(struct dentry *nvmap_root)
 	}
 
 	if (nvmap_cache_maint_by_set_ways) {
-		debugfs_create_x32("nvmap_cache_maint_by_set_ways",
-				   S_IRUSR | S_IWUSR,
+		debugfs_create_bool("nvmap_cache_maint_by_set_ways",
+				   NVMAP_IRUSR() | NVMAP_IWUSR(),
 				   cache_root,
 				   &nvmap_cache_maint_by_set_ways);
 
 		debugfs_create_file("cache_maint_inner_threshold",
-				S_IRUSR | S_IWUSR,
+				NVMAP_IRUSR() | NVMAP_IWUSR(),
 				cache_root,
 				NULL,
 				&cache_inner_threshold_fops);
 	}
 
 	debugfs_create_atomic_t("nvmap_disable_vaddr_for_cache_maint",
-				S_IRUSR | S_IWUSR,
+				NVMAP_IRUSR() | NVMAP_IWUSR(),
 				cache_root,
 				&nvmap_disable_vaddr_for_cache_maint.enabled);
 

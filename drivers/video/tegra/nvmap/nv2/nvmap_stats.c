@@ -19,6 +19,7 @@
 #include <linux/atomic.h>
 
 #include "nvmap_stats.h"
+#include "nvmap_debugfs.h"
 
 struct nvmap_stats nvmap_stats;
 
@@ -62,7 +63,7 @@ void nvmap_stats_init(struct dentry *nvmap_debug_root)
 	struct dentry *stats_root;
 
 #define CREATE_DF(x, y) \
-	debugfs_create_file(#x, S_IRUGO, stats_root, &y, &stats_fops);
+	debugfs_create_file(#x, NVMAP_IRUGO(), stats_root, &y, &stats_fops);
 
 	stats_root = debugfs_create_dir("stats", nvmap_debug_root);
 	if (!IS_ERR_OR_NULL(stats_root)) {
@@ -80,9 +81,9 @@ void nvmap_stats_init(struct dentry *nvmap_debug_root)
 		CREATE_DF(kcflush_done, nvmap_stats.stats[NS_KCFLUSH_DONE]);
 		CREATE_DF(total_memory, nvmap_stats.stats[NS_TOTAL]);
 
-		debugfs_create_file("collect", S_IRUGO | S_IWUSR,
+		debugfs_create_file("collect", NVMAP_IRUGO() | NVMAP_IWUSR(),
 			stats_root, &nvmap_stats.collect, &stats_fops);
-		debugfs_create_file("reset", S_IWUSR,
+		debugfs_create_file("reset", NVMAP_IWUSR(),
 			stats_root, NULL, &reset_stats_fops);
 	}
 

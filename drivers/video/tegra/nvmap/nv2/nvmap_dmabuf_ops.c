@@ -44,6 +44,7 @@
 #include "nvmap_client.h"
 
 #include "nvmap_ioctl.h"
+#include "nvmap_misc.h"
 
 struct nvmap_handle_dmabuf_priv {
 	void *priv;
@@ -167,7 +168,7 @@ static inline bool access_vpr_phys(struct device *dev)
 	 * Assumes gpu nodes always have DT entry, this is valid as device
 	 * specifying access-vpr-phys will do so through its DT entry.
 	 */
-	if (!dev->of_node) {
+	if (dev->of_node == NULL) {
 		return false;
 	}
 
@@ -188,7 +189,7 @@ static void __nvmap_dmabuf_free_sgt_locked(struct nvmap_handle_sgt *nvmap_sgt)
 
 	heap_type = nvmap_handle_heap_type(info->handle);
 
-	if (!(nvmap_dev->dynamic_dma_map_mask & heap_type)) {
+	if (!flag_is_set(nvmap_dev->dynamic_dma_map_mask, heap_type)) {
 		sg_dma_address(nvmap_sgt->sgt->sgl) = 0;
 	} else if (heap_type == NVMAP_HEAP_CARVEOUT_VPR &&
 			access_vpr_phys(nvmap_sgt->dev)) {
@@ -337,7 +338,7 @@ struct sg_table *_nvmap_dmabuf_map_dma_buf(
 	atomic_inc(h_pin);
 
 	sgt = __nvmap_dmabuf_get_sgt_locked(attach, dir);
-	if (sgt) {
+	if (sgt != NULL) {
 		goto cache_hit;
 	}
 
@@ -350,7 +351,7 @@ struct sg_table *_nvmap_dmabuf_map_dma_buf(
 
 	if (!nvmap_handle_is_allocated(info->handle)) {
 		goto err_map;
-	} else if (!(nvmap_dev->dynamic_dma_map_mask & heap_type)) {
+	} else if (!flag_is_set(nvmap_dev->dynamic_dma_map_mask, heap_type)) {
 		sg_dma_address(sgt->sgl) = info->handle->carveout->base;
 	} else if (heap_type == NVMAP_HEAP_CARVEOUT_VPR &&
 			access_vpr_phys(attach->dev)) {
@@ -365,7 +366,7 @@ struct sg_table *_nvmap_dmabuf_map_dma_buf(
 		}
 	}
 
-	if (__nvmap_dmabuf_prep_sgt_locked(attach, dir, sgt)) {
+	if (__nvmap_dmabuf_prep_sgt_locked(attach, dir, sgt) != 0) {
 		WARN(1, "No mem to prep sgt.\n");
 		goto err_prep;
 	}
@@ -498,12 +499,12 @@ int __nvmap_map(struct nvmap_handle *h, struct vm_area_struct *vma)
 	u32 heap_type;
 
 	h = nvmap_handle_get(h);
-	if (!h) {
+	if (h == NULL) {
 		return -EINVAL;
 	}
 
 	heap_type = nvmap_handle_heap_type(h);
-	if (!(heap_type & nvmap_dev->cpu_access_mask)) {
+	if (!flag_is_set(heap_type, nvmap_dev->cpu_access_mask)) {
 		nvmap_handle_put(h);
 		return -EPERM;
 	}
@@ -519,7 +520,7 @@ int __nvmap_map(struct nvmap_handle *h, struct vm_area_struct *vma)
 	}
 
 	priv = kzalloc(sizeof(*priv), GFP_KERNEL);
-	if (!priv) {
+	if (priv == NULL) {
 		nvmap_handle_put(h);
 		return -ENOMEM;
 	}
@@ -578,7 +579,7 @@ static int nvmap_dmabuf_set_private(struct dma_buf *dmabuf,
 	}
 
 	curr = kmalloc(sizeof(*curr), GFP_KERNEL);
-	if (!curr) {
+	if (curr == NULL) {
 		ret = -ENOMEM;
 		goto unlock;
 	}

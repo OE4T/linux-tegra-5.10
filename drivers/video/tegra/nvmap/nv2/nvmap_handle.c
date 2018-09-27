@@ -59,7 +59,7 @@ static int handle_remove_from_dev(struct nvmap_handle *h,
 						struct nvmap_device *dev);
 // TODO: Remove these global variables
 extern size_t cache_maint_inner_threshold;
-extern int nvmap_cache_maint_by_set_ways;
+extern bool nvmap_cache_maint_by_set_ways;
 extern struct static_key nvmap_disable_vaddr_for_cache_maint;
 
 static struct nvmap_handle_info *handle_create_info(struct nvmap_handle *handle)

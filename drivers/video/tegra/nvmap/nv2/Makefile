@@ -34,6 +34,7 @@ obj-y += nvmap_carveout.o
 obj-y += nvmap_handle_map.o
 obj-y += nvmap_helper.o
 obj-y += nvmap_page_color.o
+obj-y += nvmap_misra.o
 
 obj-$(CONFIG_NVMAP_PAGE_POOLS) += nvmap_pp.o
 

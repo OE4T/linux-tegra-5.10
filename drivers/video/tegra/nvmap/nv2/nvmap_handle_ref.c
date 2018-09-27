@@ -30,21 +30,24 @@
 #include "nvmap_handle.h"
 #include "nvmap_handle_priv.h"
 #include "nvmap_handle_ref.h"
+#include "nvmap_misra.h"
 
 int nvmap_handle_ref_get(struct nvmap_handle_ref *ref)
 {
-	if (!ref) {
+	if (ref == NULL) {
 		return -1;
 	}
 
-	atomic_inc(&ref->dupes);
-	nvmap_handle_get(ref->handle);
+	nvmap_atomic_inc(&ref->dupes);
+	if (nvmap_handle_get(ref->handle) == NULL) {
+		 return -1;
+	}
 	return 0;
 }
 
 int nvmap_handle_ref_count(struct nvmap_handle_ref *ref)
 {
-	return atomic_read(&ref->dupes);
+	return nvmap_atomic_read(&ref->dupes);
 }
 
 struct nvmap_handle_ref *nvmap_handle_ref_create(struct nvmap_handle *handle)
@@ -52,20 +55,20 @@ struct nvmap_handle_ref *nvmap_handle_ref_create(struct nvmap_handle *handle)
 	struct nvmap_handle_ref *ref = NULL;
 
 	ref = kzalloc(sizeof(*ref), GFP_KERNEL);
-	if (!ref) {
+	if (ref == NULL) {
 		return NULL;
 	}
 
-	atomic_set(&ref->dupes, 1);
+	nvmap_atomic_set(&ref->dupes, 1);
 
 	handle = nvmap_handle_get(handle);
-	if (!handle) {
+	if (handle == NULL) {
 		kfree(ref);
 		return NULL;
 	}
 
 	ref->handle = handle;
-	atomic_inc(&handle->share_count);
+	nvmap_atomic_inc(&handle->share_count);
 
 	get_dma_buf(handle->dmabuf);
 	return ref;
@@ -73,7 +76,7 @@ struct nvmap_handle_ref *nvmap_handle_ref_create(struct nvmap_handle *handle)
 
 void nvmap_handle_ref_free(struct nvmap_handle_ref *ref)
 {
-	atomic_dec(&ref->handle->share_count);
+	nvmap_atomic_dec(&ref->handle->share_count);
 	dma_buf_put(ref->handle->dmabuf);
 	kfree(ref);
 }
@@ -82,5 +85,5 @@ int nvmap_handle_ref_put(struct nvmap_handle_ref *ref)
 {
 	// TODO: Do the same error that handle does on ref dec
 	nvmap_handle_put(ref->handle);
-	return atomic_dec_return(&ref->dupes);
+	return nvmap_atomic_dec_return(&ref->dupes);
 }

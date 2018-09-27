@@ -53,7 +53,7 @@ void nvmap_cache_maint_heap_page_outer(struct page **pages,
 				unsigned int op,
 				unsigned long start, unsigned long end);
 
-void nvmap_cache_clean_pages(struct page **pages, int numpages);
+void nvmap_cache_clean_pages(struct page **pages, unsigned int numpages);
 
 int nvmap_cache_maint_phys_range(unsigned int op, phys_addr_t pstart,
 					phys_addr_t pend);
@@ -65,7 +65,7 @@ struct nvmap_chip_cache_op {
 	void (*inner_clean_cache_all)(void);
 	void (*inner_flush_cache_all)(void);
 	const char *name;
-	int flags;
+	unsigned int flags;
 };
 
 // TODO: Rename this
@@ -81,7 +81,7 @@ extern struct of_device_id __nvmapcache_of_table;
 			nvmap_setup_chip_cache_fn)
 
 extern size_t cache_maint_inner_threshold;
-extern int nvmap_cache_maint_by_set_ways;
+extern bool nvmap_cache_maint_by_set_ways;
 
 int nvmap_cache_debugfs_init(struct dentry *nvmap_root);
 void nvmap_override_cache_ops(void);

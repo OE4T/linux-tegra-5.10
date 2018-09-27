@@ -64,6 +64,7 @@
 #include "nvmap_carveout.h"
 #include "nvmap_cache.h"
 #include "nvmap_stats.h"
+#include "nvmap_debugfs.h"
 
 // TODO remove global variables
 extern bool nvmap_convert_carveout_to_iovmm;
@@ -159,7 +160,7 @@ static void nvmap_pid_get_locked(struct nvmap_device *dev, pid_t pid)
 	snprintf(name, sizeof(name), "%d", pid);
 	p->pid = pid;
 	kref_init(&p->refcount);
-	p->handles_file = debugfs_create_file(name, S_IRUGO,
+	p->handles_file = debugfs_create_file(name, NVMAP_IRUGO(),
 			dev->handles_by_pid, p,
 			&debug_handles_by_pid_fops);
 
@@ -736,22 +737,22 @@ static void nvmap_iovmm_debugfs_init(void)
 		struct dentry *iovmm_root =
 			debugfs_create_dir("iovmm", nvmap_dev->debug_root);
 		if (!IS_ERR_OR_NULL(iovmm_root)) {
-			debugfs_create_file("clients", S_IRUGO, iovmm_root,
+			debugfs_create_file("clients", NVMAP_IRUGO(), iovmm_root,
 				(void *)(uintptr_t)NVMAP_HEAP_IOVMM,
 				&debug_clients_fops);
-			debugfs_create_file("allocations", S_IRUGO, iovmm_root,
+			debugfs_create_file("allocations", NVMAP_IRUGO(), iovmm_root,
 				(void *)(uintptr_t)NVMAP_HEAP_IOVMM,
 				&debug_allocations_fops);
-			debugfs_create_file("all_allocations", S_IRUGO,
+			debugfs_create_file("all_allocations", NVMAP_IRUGO(),
 				iovmm_root, (void *)(uintptr_t)NVMAP_HEAP_IOVMM,
 				&debug_all_allocations_fops);
-			debugfs_create_file("orphan_handles", S_IRUGO,
+			debugfs_create_file("orphan_handles", NVMAP_IRUGO(),
 				iovmm_root, (void *)(uintptr_t)NVMAP_HEAP_IOVMM,
 				&debug_orphan_handles_fops);
-			debugfs_create_file("maps", S_IRUGO, iovmm_root,
+			debugfs_create_file("maps", NVMAP_IRUGO(), iovmm_root,
 				(void *)(uintptr_t)NVMAP_HEAP_IOVMM,
 				&debug_maps_fops);
-			debugfs_create_file("procrank", S_IRUGO, iovmm_root,
+			debugfs_create_file("procrank", NVMAP_IRUGO(), iovmm_root,
 				nvmap_dev, &debug_iovmm_procrank_fops);
 		}
 	}
@@ -836,7 +837,7 @@ int __init nvmap_probe(struct platform_device *pdev)
 		dev_err(&pdev->dev, "couldn't create debug files\n");
 	}
 
-	debugfs_create_u32("max_handle_count", S_IRUGO,
+	debugfs_create_u32("max_handle_count", NVMAP_IRUGO(),
 			nvmap_debug_root, &nvmap_max_handle_count);
 
 	nvmap_dev->dynamic_dma_map_mask = ~0;
@@ -852,7 +853,7 @@ int __init nvmap_probe(struct platform_device *pdev)
 	nvmap_dev->handles_by_pid = debugfs_create_dir("handles_by_pid",
 							nvmap_debug_root);
 #if defined(CONFIG_DEBUG_FS)
-	debugfs_create_ulong("nvmap_init_time", S_IRUGO | S_IWUSR,
+	debugfs_create_ulong("nvmap_init_time", NVMAP_IRUGO() | NVMAP_IWUSR(),
 				nvmap_dev->debug_root, &nvmap_init_time);
 #endif
 	nvmap_stats_init(nvmap_debug_root);
