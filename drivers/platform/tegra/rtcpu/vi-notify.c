@@ -554,7 +554,7 @@ static int tegra_ivc_channel_vi_notify_probe(struct tegra_ivc_channel *chan)
 	ivn->status_mem_size = sizeof(*ivn->status_mem)
 		* VI_NOTIFY_STATUS_ENTRIES * VI_NOTIFY_MAX_VI_CHANS;
 
-	ivn->status_mem = dma_alloc_coherent(dev,
+	ivn->status_mem = (struct vi_capture_status __iomem *)dma_alloc_coherent(dev,
 		ivn->status_mem_size,
 		&ivn->status_dmaptr, GFP_KERNEL | __GFP_ZERO);
 
