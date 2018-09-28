@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2017, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2012-2018, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -53,8 +53,8 @@
  *         comparison with unshifted values appropriate for use in field <y>
  *         of register <x>.
  */
-#ifndef _hw_bus_gk20a_h_
-#define _hw_bus_gk20a_h_
+#ifndef NVGPU_HW_BUS_GK20A_H
+#define NVGPU_HW_BUS_GK20A_H
 
 static inline u32 bus_bar0_window_r(void)
 {
