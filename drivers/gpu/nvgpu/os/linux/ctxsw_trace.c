@@ -178,6 +178,11 @@ static int gk20a_ctxsw_dev_alloc_buffer(struct gk20a_ctxsw_dev *dev,
 	if ((dev->write_enabled) || (nvgpu_atomic_read(&dev->vma_ref)))
 		return -EBUSY;
 
+	if (dev->hdr) {
+		g->ops.fecs_trace.free_user_buffer(g);
+		dev->hdr = NULL;
+	}
+
 	err = g->ops.fecs_trace.alloc_user_buffer(g, &buf, &size);
 	if (err)
 		return err;
