@@ -600,6 +600,7 @@ static void gk20a_remove_fifo_support(struct fifo_gk20a *f)
 	}
 
 	gk20a_fifo_delete_runlist(f);
+	nvgpu_mutex_destroy(&f->runlist_submit_mutex);
 
 	nvgpu_kfree(g, f->pbdma_map);
 	f->pbdma_map = NULL;
@@ -916,6 +917,12 @@ int gk20a_init_fifo_setup_sw_common(struct gk20a *g)
 	err = nvgpu_mutex_init(&f->gr_reset_mutex);
 	if (err) {
 		nvgpu_err(g, "failed to init gr_reset_mutex");
+		return err;
+	}
+
+	err = nvgpu_mutex_init(&f->runlist_submit_mutex);
+	if (err) {
+		nvgpu_err(g, "failed to init runlist_submit_mutex");
 		return err;
 	}
 
@@ -3583,6 +3590,7 @@ int gk20a_fifo_update_runlist_locked(struct gk20a *g, u32 runlist_id,
 		runlist->count = 0;
 	}
 
+	nvgpu_mutex_acquire(&f->runlist_submit_mutex);
 	g->ops.fifo.runlist_hw_submit(g, runlist_id, runlist->count, new_buf);
 
 	if (wait_for_finish) {
@@ -3590,6 +3598,7 @@ int gk20a_fifo_update_runlist_locked(struct gk20a *g, u32 runlist_id,
 
 		if (ret == -ETIMEDOUT) {
 			nvgpu_err(g, "runlist %d update timeout", runlist_id);
+			nvgpu_mutex_release(&f->runlist_submit_mutex);
 			/* trigger runlist update timeout recovery */
 			return ret;
 
@@ -3597,6 +3606,7 @@ int gk20a_fifo_update_runlist_locked(struct gk20a *g, u32 runlist_id,
 			nvgpu_err(g, "runlist update interrupted");
 		}
 	}
+	nvgpu_mutex_release(&f->runlist_submit_mutex);
 
 	runlist->cur_buffer = new_buf;
 

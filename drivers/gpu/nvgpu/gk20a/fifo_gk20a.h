@@ -185,6 +185,7 @@ struct fifo_gk20a {
 	struct nvgpu_list_node free_chs;
 	struct nvgpu_mutex free_chs_mutex;
 	struct nvgpu_mutex gr_reset_mutex;
+	struct nvgpu_mutex runlist_submit_mutex;
 
 	struct tsg_gk20a *tsg;
 	struct nvgpu_mutex tsg_inuse_mutex;
