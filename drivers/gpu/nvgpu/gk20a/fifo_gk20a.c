@@ -241,7 +241,7 @@ u32 gk20a_fifo_get_gr_runlist_id(struct gk20a *g)
 	u32 gr_engine_cnt = 0;
 	u32 gr_engine_id = FIFO_INVAL_ENGINE_ID;
 	struct fifo_engine_info_gk20a *engine_info;
-	u32 gr_runlist_id = ~0;
+	u32 gr_runlist_id = U32_MAX;
 
 	/* Consider 1st available GR engine */
 	gr_engine_cnt = gk20a_fifo_get_engine_ids(g, &gr_engine_id,
@@ -358,14 +358,14 @@ int gk20a_fifo_init_engine_info(struct fifo_gk20a *f)
 	u32 max_info_entries = top_device_info__size_1_v();
 	u32 engine_enum = ENGINE_INVAL_GK20A;
 	u32 engine_id = FIFO_INVAL_ENGINE_ID;
-	u32 runlist_id = ~0;
-	u32 pbdma_id = ~0;
-	u32 intr_id = ~0;
-	u32 reset_id = ~0;
+	u32 runlist_id = U32_MAX;
+	u32 pbdma_id = U32_MAX;
+	u32 intr_id = U32_MAX;
+	u32 reset_id = U32_MAX;
 	u32 inst_id  = 0;
 	u32 pri_base = 0;
 	u32 fault_id = 0;
-	u32 gr_runlist_id = ~0;
+	u32 gr_runlist_id = U32_MAX;
 	bool found_pbdma_for_runlist = false;
 
 	nvgpu_log_fn(g, " ");
@@ -882,7 +882,7 @@ int gk20a_init_fifo_reset_enable_hw(struct gk20a *g)
 	}
 
 	/* reset runlist interrupts */
-	gk20a_writel(g, fifo_intr_runlist_r(), ~0);
+	gk20a_writel(g, fifo_intr_runlist_r(), U32_MAX);
 
 	/* clear and enable pfifo interrupt */
 	gk20a_writel(g, fifo_intr_0_r(), 0xFFFFFFFF);
@@ -3613,9 +3613,9 @@ clean_up:
 int gk20a_fifo_update_runlist_ids(struct gk20a *g, u32 runlist_ids, u32 chid,
 				bool add, bool wait_for_finish)
 {
-	u32 ret = -EINVAL;
+	int ret = -EINVAL;
 	u32 runlist_id = 0;
-	u32 errcode;
+	int errcode;
 	unsigned long ulong_runlist_ids = (unsigned long)runlist_ids;
 
 	if (!g) {
@@ -4455,7 +4455,7 @@ void gk20a_fifo_add_sema_cmd(struct gk20a *g,
 		nvgpu_mem_wr32(g, cmd->mem, off++, 0x20010007);
 		/* operation: release, wfi */
 		nvgpu_mem_wr32(g, cmd->mem, off++,
-				0x2 | ((wfi ? 0x0 : 0x1) << 20));
+				0x2UL | ((wfi ? 0x0UL : 0x1UL) << 20));
 		/* non_stall_int */
 		nvgpu_mem_wr32(g, cmd->mem, off++, 0x20010008);
 		/* ignored */
