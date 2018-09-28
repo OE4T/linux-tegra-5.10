@@ -181,10 +181,10 @@ int gp10b_fifo_resetup_ramfc(struct channel_gk20a *c)
 	return 0;
 }
 
-int gp10b_fifo_engine_enum_from_type(struct gk20a *g, u32 engine_type,
-					u32 *inst_id)
+enum fifo_engine gp10b_fifo_engine_enum_from_type(struct gk20a *g,
+					u32 engine_type, u32 *inst_id)
 {
-	int ret = ENGINE_INVAL_GK20A;
+	enum fifo_engine ret = ENGINE_INVAL_GK20A;
 
 	nvgpu_log_info(g, "engine type %d", engine_type);
 	if (engine_type == top_device_info_type_enum_graphics_v()) {

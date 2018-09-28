@@ -99,7 +99,7 @@ struct fifo_runlist_info_gk20a {
 	struct nvgpu_mutex runlist_lock;
 };
 
-enum {
+enum fifo_engine {
 	ENGINE_GR_GK20A	       = 0U,
 	ENGINE_GRCE_GK20A      = 1U,
 	ENGINE_ASYNC_CE_GK20A  = 2U,
@@ -131,7 +131,7 @@ struct fifo_engine_info_gk20a {
 	u32 inst_id;
 	u32 pri_base;
 	u32 fault_id;
-	u32 engine_enum;
+	enum fifo_engine engine_enum;
 	struct fifo_pbdma_exception_info_gk20a pbdma_exception_info;
 	struct fifo_engine_exception_info_gk20a engine_exception_info;
 };
@@ -306,11 +306,11 @@ int gk20a_fifo_tsg_set_timeslice(struct tsg_gk20a *tsg, u32 timeslice);
 
 const char *gk20a_fifo_interleave_level_name(u32 interleave_level);
 
-int gk20a_fifo_engine_enum_from_type(struct gk20a *g, u32 engine_type,
-		u32 *inst_id);
+enum fifo_engine gk20a_fifo_engine_enum_from_type(struct gk20a *g,
+		u32 engine_type, u32 *inst_id);
 
 u32 gk20a_fifo_get_engine_ids(struct gk20a *g, u32 engine_id[],
-				 u32 engine_id_sz, u32 engine_enum);
+			u32 engine_id_sz, enum fifo_engine engine_enum);
 
 void gk20a_fifo_delete_runlist(struct fifo_gk20a *f);
 

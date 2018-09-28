@@ -35,8 +35,8 @@ int channel_gp10b_setup_ramfc(struct channel_gk20a *c,
 			unsigned long acquire_timeout, u32 flags);
 u32 gp10b_fifo_get_pbdma_signature(struct gk20a *g);
 int gp10b_fifo_resetup_ramfc(struct channel_gk20a *c);
-int gp10b_fifo_engine_enum_from_type(struct gk20a *g, u32 engine_type,
-					u32 *inst_id);
+enum fifo_engine gp10b_fifo_engine_enum_from_type(struct gk20a *g,
+					u32 engine_type, u32 *inst_id);
 void gp10b_device_info_data_parse(struct gk20a *g, u32 table_entry,
 				u32 *inst_id, u32 *pri_base, u32 *fault_id);
 void gp10b_fifo_init_pbdma_intr_descs(struct fifo_gk20a *f);

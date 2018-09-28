@@ -675,8 +675,8 @@ struct gpu_ops {
 		u32 (*default_timeslice_us)(struct gk20a *);
 		int (*force_reset_ch)(struct channel_gk20a *ch,
 					u32 err_code, bool verbose);
-		int (*engine_enum_from_type)(struct gk20a *g, u32 engine_type,
-					u32 *inst_id);
+		enum fifo_engine (*engine_enum_from_type)(struct gk20a *g,
+					u32 engine_type, u32 *inst_id);
 		void (*device_info_data_parse)(struct gk20a *g,
 					u32 table_entry, u32 *inst_id,
 					u32 *pri_base, u32 *fault_id);
