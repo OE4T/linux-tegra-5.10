@@ -53,8 +53,8 @@
  *         comparison with unshifted values appropriate for use in field <y>
  *         of register <x>.
  */
-#ifndef _hw_mc_gp10b_h_
-#define _hw_mc_gp10b_h_
+#ifndef NVGPU_HW_MC_GP10B_H
+#define NVGPU_HW_MC_GP10B_H
 
 static inline u32 mc_boot_0_r(void)
 {

@@ -53,8 +53,8 @@
  *         comparison with unshifted values appropriate for use in field <y>
  *         of register <x>.
  */
-#ifndef _hw_perf_gp10b_h_
-#define _hw_perf_gp10b_h_
+#ifndef NVGPU_HW_PERF_GP10B_H
+#define NVGPU_HW_PERF_GP10B_H
 
 static inline u32 perf_pmmsys_base_v(void)
 {

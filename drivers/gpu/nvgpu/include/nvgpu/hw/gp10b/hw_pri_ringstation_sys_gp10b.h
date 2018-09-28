@@ -53,8 +53,8 @@
  *         comparison with unshifted values appropriate for use in field <y>
  *         of register <x>.
  */
-#ifndef _hw_pri_ringstation_sys_gp10b_h_
-#define _hw_pri_ringstation_sys_gp10b_h_
+#ifndef NVGPU_HW_PRI_RINGSTATION_SYS_GP10B_H
+#define NVGPU_HW_PRI_RINGSTATION_SYS_GP10B_H
 
 static inline u32 pri_ringstation_sys_master_config_r(u32 i)
 {

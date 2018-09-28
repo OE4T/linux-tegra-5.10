@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2017, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2018, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -53,8 +53,8 @@
  *         comparison with unshifted values appropriate for use in field <y>
  *         of register <x>.
  */
-#ifndef _hw_fifo_gp10b_h_
-#define _hw_fifo_gp10b_h_
+#ifndef NVGPU_HW_FIFO_GP10B_H
+#define NVGPU_HW_FIFO_GP10B_H
 
 static inline u32 fifo_bar1_base_r(void)
 {

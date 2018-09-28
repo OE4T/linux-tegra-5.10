@@ -53,8 +53,8 @@
  *         comparison with unshifted values appropriate for use in field <y>
  *         of register <x>.
  */
-#ifndef _hw_falcon_gp10b_h_
-#define _hw_falcon_gp10b_h_
+#ifndef NVGPU_HW_FALCON_GP10B_H
+#define NVGPU_HW_FALCON_GP10B_H
 
 static inline u32 falcon_falcon_irqsset_r(void)
 {
