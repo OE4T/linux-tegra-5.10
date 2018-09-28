@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2018, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -53,8 +53,8 @@
  *         comparison with unshifted values appropriate for use in field <y>
  *         of register <x>.
  */
-#ifndef _hw_pri_ringmaster_gv11b_h_
-#define _hw_pri_ringmaster_gv11b_h_
+#ifndef NVGPU_HW_PRI_RINGMASTER_GV11B_H
+#define NVGPU_HW_PRI_RINGMASTER_GV11B_H
 
 static inline u32 pri_ringmaster_command_r(void)
 {
