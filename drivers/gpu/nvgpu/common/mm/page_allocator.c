@@ -167,6 +167,12 @@ static u64 nvgpu_page_alloc_sgl_phys(struct gk20a *g, struct nvgpu_sgl *sgl)
 	return sgl_impl->phys;
 }
 
+static u64 nvgpu_page_alloc_sgl_ipa_to_pa(struct gk20a *g,
+		struct nvgpu_sgl *sgl, u64 ipa, u64 *pa_len)
+{
+	return ipa;
+}
+
 static u64 nvgpu_page_alloc_sgl_dma(struct nvgpu_sgl *sgl)
 {
 	struct nvgpu_mem_sgl *sgl_impl = (struct nvgpu_mem_sgl *)sgl;
@@ -205,6 +211,8 @@ static void nvgpu_page_alloc_sgt_free(struct gk20a *g, struct nvgpu_sgt *sgt)
 static const struct nvgpu_sgt_ops page_alloc_sgl_ops = {
 	.sgl_next = nvgpu_page_alloc_sgl_next,
 	.sgl_phys = nvgpu_page_alloc_sgl_phys,
+	.sgl_ipa = nvgpu_page_alloc_sgl_phys,
+	.sgl_ipa_to_pa = nvgpu_page_alloc_sgl_ipa_to_pa,
 	.sgl_dma = nvgpu_page_alloc_sgl_dma,
 	.sgl_length = nvgpu_page_alloc_sgl_length,
 	.sgl_gpu_addr = nvgpu_page_alloc_sgl_gpu_addr,

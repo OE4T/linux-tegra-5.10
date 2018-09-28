@@ -99,6 +99,18 @@ u64 nvgpu_sgt_get_phys(struct gk20a *g, struct nvgpu_sgt *sgt,
 	return sgt->ops->sgl_phys(g, sgl);
 }
 
+u64 nvgpu_sgt_get_ipa(struct gk20a *g, struct nvgpu_sgt *sgt,
+		       struct nvgpu_sgl *sgl)
+{
+	return sgt->ops->sgl_ipa(g, sgl);
+}
+
+u64 nvgpu_sgt_ipa_to_pa(struct gk20a *g, struct nvgpu_sgt *sgt,
+		       struct nvgpu_sgl *sgl, u64 ipa, u64 *pa_len)
+{
+	return sgt->ops->sgl_ipa_to_pa(g, sgl, ipa, pa_len);
+}
+
 u64 nvgpu_sgt_get_dma(struct nvgpu_sgt *sgt, struct nvgpu_sgl *sgl)
 {
 	return sgt->ops->sgl_dma(sgl);

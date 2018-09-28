@@ -537,8 +537,20 @@ static int __nvgpu_gmmu_do_update_page_table(struct vm_gk20a *vm,
 	 * we really are mapping physical pages directly.
 	 */
 	nvgpu_sgt_for_each_sgl(sgl, sgt) {
+		/*
+		 * ipa_addr == phys_addr for non virtualized OSes.
+		 */
 		u64 phys_addr;
-		u64 chunk_length;
+		u64 ipa_addr;
+		/*
+		 * For non virtualized OSes SGL entries are contiguous in
+		 * physical memory (sgl_length == phys_length). For virtualized
+		 * OSes SGL entries are mapped to intermediate physical memory
+		 * which may subsequently point to discontiguous physical
+		 * memory. Therefore phys_length may not be equal to sgl_length.
+		 */
+		u64 phys_length;
+		u64 sgl_length;
 
 		/*
 		 * Cut out sgl ents for space_to_skip.
@@ -549,31 +561,83 @@ static int __nvgpu_gmmu_do_update_page_table(struct vm_gk20a *vm,
 			continue;
 		}
 
-		phys_addr = g->ops.mm.gpu_phys_addr(g, attrs,
-			    nvgpu_sgt_get_phys(g, sgt, sgl)) + space_to_skip;
-		chunk_length = min(length,
-			nvgpu_sgt_get_length(sgt, sgl) - space_to_skip);
-
-		err = __set_pd_level(vm, &vm->pdb,
-				     0,
-				     phys_addr,
-				     virt_addr,
-				     chunk_length,
-				     attrs);
-		if (err != 0) {
-			break;
-		}
-
-		/* Space has been skipped so zero this for future chunks. */
-		space_to_skip = 0;
+		/*
+		 * IPA and PA have 1:1 mapping for non virtualized OSes.
+		 */
+		ipa_addr = nvgpu_sgt_get_ipa(g, sgt, sgl);
 
 		/*
-		 * Update the map pointer and the remaining length.
+		 * For non-virtualized OSes SGL entries are contiguous and hence
+		 * sgl_length == phys_length. For virtualized OSes the
+		 * phys_length will be updated by nvgpu_sgt_ipa_to_pa.
 		 */
-		virt_addr += chunk_length;
-		length    -= chunk_length;
+		sgl_length = nvgpu_sgt_get_length(sgt, sgl);
+		phys_length = sgl_length;
 
-		if (length == 0U) {
+		while (sgl_length > 0ULL && length > 0ULL) {
+			/*
+			 * Holds the size of the portion of SGL that is backed
+			 * with physically contiguous memory.
+			 */
+			u64 sgl_contiguous_length;
+			/*
+			 * Number of bytes of the SGL entry that is actually
+			 * mapped after accounting for space_to_skip.
+			 */
+			u64 mapped_sgl_length;
+
+			/*
+			 * For virtualized OSes translate IPA to PA. Retrieve
+			 * the size of the underlying physical memory chunk to
+			 * which SGL has been mapped.
+			 */
+			phys_addr = nvgpu_sgt_ipa_to_pa(g, sgt, sgl, ipa_addr,
+					&phys_length);
+			phys_addr = g->ops.mm.gpu_phys_addr(g, attrs, phys_addr)
+				+ space_to_skip;
+
+			/*
+			 * For virtualized OSes when phys_length is less than
+			 * sgl_length check if space_to_skip exceeds phys_length
+			 * if so skip this memory chunk
+			 */
+			if (space_to_skip >= phys_length) {
+				space_to_skip -= phys_length;
+				ipa_addr += phys_length;
+				sgl_length -= phys_length;
+				continue;
+			}
+
+			sgl_contiguous_length = min(phys_length, sgl_length);
+			mapped_sgl_length = min(length, sgl_contiguous_length -
+					space_to_skip);
+
+			err = __set_pd_level(vm, &vm->pdb,
+						 0,
+						 phys_addr,
+						 virt_addr,
+						 mapped_sgl_length,
+						 attrs);
+			if (err != 0) {
+				return err;
+			}
+
+			/*
+			 * Update the map pointer and the remaining length.
+			 */
+			virt_addr  += mapped_sgl_length;
+			length     -= mapped_sgl_length;
+			sgl_length -= mapped_sgl_length + space_to_skip;
+			ipa_addr   += mapped_sgl_length + space_to_skip;
+
+			/*
+			 * Space has been skipped so zero this for future
+			 * chunks.
+			 */
+			space_to_skip = 0;
+		}
+
+		if (length == 0ULL) {
 			break;
 		}
 	}

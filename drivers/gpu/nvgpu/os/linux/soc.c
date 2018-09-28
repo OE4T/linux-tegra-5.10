@@ -65,7 +65,7 @@ bool nvgpu_is_soc_t194_a01(struct gk20a *g)
  * is enabled), the addresses we get from dma_alloc are IPAs. We need to
  * convert them to PA.
  */
-static u64 nvgpu_tegra_hv_ipa_pa(struct gk20a *g, u64 ipa)
+static u64 nvgpu_tegra_hv_ipa_pa(struct gk20a *g, u64 ipa, u64 *pa_len)
 {
 	struct device *dev = dev_from_gk20a(g);
 	struct gk20a_platform *platform = gk20a_get_platform(dev);
@@ -92,6 +92,13 @@ static u64 nvgpu_tegra_hv_ipa_pa(struct gk20a *g, u64 ipa)
 		}
 	} else {
 		pa = info.base + info.offset;
+		if (pa_len != NULL) {
+			/*
+			 * Update the size of physical memory chunk after the
+			 * specified offset.
+			 */
+			*pa_len = info.size - info.offset;
+		}
 		nvgpu_log(g, gpu_dbg_map_v,
 				"ipa=%llx vmid=%d -> pa=%llx "
 				"base=%llx offset=%llx size=%llx\n",

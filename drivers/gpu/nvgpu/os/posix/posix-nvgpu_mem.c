@@ -56,6 +56,14 @@ static u64 nvgpu_mem_sgl_phys(struct gk20a *g, struct nvgpu_sgl *sgl)
 	return (u64)(uintptr_t)mem->phys;
 }
 
+static u64 nvgpu_mem_sgl_ipa_to_pa(struct gk20a *g, struct nvgpu_sgl *sgl,
+		u64 ipa, u64 *pa_len)
+{
+	struct nvgpu_mem *mem = (struct nvgpu_mem *)sgl;
+
+	return (u64)(uintptr_t)mem->cpu_va;
+}
+
 static u64 nvgpu_mem_sgl_dma(struct nvgpu_sgl *sgl)
 {
 	struct nvgpu_mem_sgl *mem = (struct nvgpu_mem_sgl *)sgl;
@@ -99,6 +107,8 @@ static void nvgpu_mem_sgt_free(struct gk20a *g, struct nvgpu_sgt *sgt)
 static struct nvgpu_sgt_ops nvgpu_sgt_posix_ops = {
 	.sgl_next	= nvgpu_mem_sgl_next,
 	.sgl_phys	= nvgpu_mem_sgl_phys,
+	.sgl_ipa    = nvgpu_mem_sgl_phys,
+	.sgl_ipa_to_pa = nvgpu_mem_sgl_ipa_to_pa,
 	.sgl_dma	= nvgpu_mem_sgl_dma,
 	.sgl_length	= nvgpu_mem_sgl_length,
 	.sgl_gpu_addr	= nvgpu_mem_sgl_gpu_addr,

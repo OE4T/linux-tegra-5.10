@@ -71,6 +71,9 @@ struct nvgpu_sgl;
 struct nvgpu_sgt_ops {
 	struct nvgpu_sgl *(*sgl_next)(struct nvgpu_sgl *sgl);
 	u64   (*sgl_phys)(struct gk20a *g, struct nvgpu_sgl *sgl);
+	u64   (*sgl_ipa)(struct gk20a *g, struct nvgpu_sgl *sgl);
+	u64   (*sgl_ipa_to_pa)(struct gk20a *g, struct nvgpu_sgl *sgl,
+			      u64 ipa, u64 *pa_len);
 	u64   (*sgl_dma)(struct nvgpu_sgl *sgl);
 	u64   (*sgl_length)(struct nvgpu_sgl *sgl);
 	u64   (*sgl_gpu_addr)(struct gk20a *g, struct nvgpu_sgl *sgl,
@@ -255,6 +258,10 @@ struct nvgpu_sgt *nvgpu_sgt_create_from_mem(struct gk20a *g,
 
 struct nvgpu_sgl *nvgpu_sgt_get_next(struct nvgpu_sgt *sgt,
 					  struct nvgpu_sgl *sgl);
+u64 nvgpu_sgt_get_ipa(struct gk20a *g, struct nvgpu_sgt *sgt,
+				struct nvgpu_sgl *sgl);
+u64 nvgpu_sgt_ipa_to_pa(struct gk20a *g, struct nvgpu_sgt *sgt,
+				struct nvgpu_sgl *sgl, u64 ipa, u64 *pa_len);
 u64 nvgpu_sgt_get_phys(struct gk20a *g, struct nvgpu_sgt *sgt,
 		       struct nvgpu_sgl *sgl);
 u64 nvgpu_sgt_get_dma(struct nvgpu_sgt *sgt, struct nvgpu_sgl *sgl);

@@ -36,6 +36,11 @@
 #include "gk20a/mm_gk20a.h"
 #include "platform_gk20a.h"
 
+static u64 __nvgpu_sgl_ipa(struct gk20a *g, struct nvgpu_sgl *sgl)
+{
+	return sg_phys((struct scatterlist *)sgl);
+}
+
 static u64 __nvgpu_sgl_phys(struct gk20a *g, struct nvgpu_sgl *sgl)
 {
 	struct device *dev = dev_from_gk20a(g);
@@ -43,7 +48,7 @@ static u64 __nvgpu_sgl_phys(struct gk20a *g, struct nvgpu_sgl *sgl)
 	u64 ipa = sg_phys((struct scatterlist *)sgl);
 
 	if (platform->phys_addr)
-		return platform->phys_addr(g, ipa);
+		return platform->phys_addr(g, ipa, NULL);
 
 	return ipa;
 }
@@ -251,6 +256,23 @@ static struct nvgpu_sgl *nvgpu_mem_linux_sgl_next(struct nvgpu_sgl *sgl)
 	return (struct nvgpu_sgl *)sg_next((struct scatterlist *)sgl);
 }
 
+static u64 nvgpu_mem_linux_sgl_ipa(struct gk20a *g, struct nvgpu_sgl *sgl)
+{
+	return __nvgpu_sgl_ipa(g, sgl);
+}
+
+static u64 nvgpu_mem_linux_sgl_ipa_to_pa(struct gk20a *g,
+		struct nvgpu_sgl *sgl, u64 ipa, u64 *pa_len)
+{
+	struct device *dev = dev_from_gk20a(g);
+	struct gk20a_platform *platform = gk20a_get_platform(dev);
+
+	if (platform->phys_addr)
+		return platform->phys_addr(g, ipa, pa_len);
+
+	return ipa;
+}
+
 static u64 nvgpu_mem_linux_sgl_phys(struct gk20a *g, struct nvgpu_sgl *sgl)
 {
 	return (u64)__nvgpu_sgl_phys(g, sgl);
@@ -301,6 +323,8 @@ static void nvgpu_mem_linux_sgl_free(struct gk20a *g, struct nvgpu_sgt *sgt)
 static const struct nvgpu_sgt_ops nvgpu_linux_sgt_ops = {
 	.sgl_next      = nvgpu_mem_linux_sgl_next,
 	.sgl_phys      = nvgpu_mem_linux_sgl_phys,
+	.sgl_ipa       = nvgpu_mem_linux_sgl_ipa,
+	.sgl_ipa_to_pa = nvgpu_mem_linux_sgl_ipa_to_pa,
 	.sgl_dma       = nvgpu_mem_linux_sgl_dma,
 	.sgl_length    = nvgpu_mem_linux_sgl_length,
 	.sgl_gpu_addr  = nvgpu_mem_linux_sgl_gpu_addr,

@@ -234,7 +234,7 @@ struct gk20a_platform {
 	 * addresses (not IPA). This is the case for GV100 nvlink in HV+L
 	 * configuration, when dGPU is in pass-through mode.
 	 */
-	u64 (*phys_addr)(struct gk20a *g, u64 ipa);
+	u64 (*phys_addr)(struct gk20a *g, u64 ipa, u64 *pa_len);
 
 	/* Callbacks to assert/deassert GPU reset */
 	int (*reset_assert)(struct device *dev);
