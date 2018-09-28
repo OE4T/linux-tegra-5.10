@@ -248,7 +248,7 @@ static int ufs_tegra_mphy_receiver_calibration(struct ufs_tegra_host *ufs_tegra)
 	}
 	if (timeout < 0) {
 		dev_err(dev, "MPhy Receiver Calibration failed\n");
-		return -1;
+		return -ETIMEDOUT;
 	}
 	return 0;
 }
@@ -475,11 +475,15 @@ static int ufs_tegra_enable_ufs_clks(struct ufs_tegra_host *ufs_tegra)
 		goto out;
 	err = clk_set_parent(ufs_tegra->ufshc_clk,
 				ufs_tegra->ufshc_parent);
-	if (err)
+	if (err){
+		pr_err("Function clk_set_parent failed\n");
 		goto out;
+	}
 	err = clk_set_rate(ufs_tegra->ufshc_clk, UFSHC_CLK_FREQ);
-	if (err)
+	if (err){
+		pr_err("Function clk_set_rate failed\n");
 		goto out;
+	}
 
 	/* clk_m is the parent for ufsdev_ref
          * Frequency is 19.2 MHz.
