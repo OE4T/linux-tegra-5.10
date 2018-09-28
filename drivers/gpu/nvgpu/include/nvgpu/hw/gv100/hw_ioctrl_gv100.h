@@ -53,8 +53,8 @@
  *         comparison with unshifted values appropriate for use in field <y>
  *         of register <x>.
  */
-#ifndef _hw_ioctrl_gv100_h_
-#define _hw_ioctrl_gv100_h_
+#ifndef NVGPU_HW_IOCTRL_GV100_H
+#define NVGPU_HW_IOCTRL_GV100_H
 
 static inline u32 ioctrl_reset_r(void)
 {

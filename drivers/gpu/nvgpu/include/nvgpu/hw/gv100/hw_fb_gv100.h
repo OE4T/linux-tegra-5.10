@@ -53,8 +53,8 @@
  *         comparison with unshifted values appropriate for use in field <y>
  *         of register <x>.
  */
-#ifndef _hw_fb_gv100_h_
-#define _hw_fb_gv100_h_
+#ifndef NVGPU_HW_FB_GV100_H
+#define NVGPU_HW_FB_GV100_H
 
 static inline u32 fb_fbhub_num_active_ltcs_r(void)
 {

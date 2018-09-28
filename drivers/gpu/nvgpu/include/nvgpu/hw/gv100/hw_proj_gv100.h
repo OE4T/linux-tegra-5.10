@@ -53,8 +53,8 @@
  *         comparison with unshifted values appropriate for use in field <y>
  *         of register <x>.
  */
-#ifndef _hw_proj_gv100_h_
-#define _hw_proj_gv100_h_
+#ifndef NVGPU_HW_PROJ_GV100_H
+#define NVGPU_HW_PROJ_GV100_H
 
 static inline u32 proj_gpc_base_v(void)
 {

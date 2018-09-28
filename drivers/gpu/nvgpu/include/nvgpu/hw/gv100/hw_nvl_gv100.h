@@ -53,8 +53,8 @@
  *         comparison with unshifted values appropriate for use in field <y>
  *         of register <x>.
  */
-#ifndef _hw_nvl_gv100_h_
-#define _hw_nvl_gv100_h_
+#ifndef NVGPU_HW_NVL_GV100_H
+#define NVGPU_HW_NVL_GV100_H
 
 static inline u32 nvl_link_state_r(void)
 {
