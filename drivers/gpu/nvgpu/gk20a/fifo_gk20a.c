@@ -2992,7 +2992,7 @@ int gk20a_fifo_preempt_channel(struct gk20a *g, u32 chid)
 			nvgpu_err(g, "preempt timed out for chid: %u, "
 			"ctxsw timeout will trigger recovery if needed", chid);
 		} else {
-			gk20a_fifo_preempt_timeout_rc(g, chid, false);
+			gk20a_fifo_preempt_timeout_rc(g, chid, ID_TYPE_CHANNEL);
 		}
 	}
 
@@ -3036,7 +3036,7 @@ int gk20a_fifo_preempt_tsg(struct gk20a *g, u32 tsgid)
 			nvgpu_err(g, "preempt timed out for tsgid: %u, "
 			"ctxsw timeout will trigger recovery if needed", tsgid);
 		} else {
-			gk20a_fifo_preempt_timeout_rc(g, tsgid, true);
+			gk20a_fifo_preempt_timeout_rc(g, tsgid, ID_TYPE_TSG);
 		}
 	}
 
