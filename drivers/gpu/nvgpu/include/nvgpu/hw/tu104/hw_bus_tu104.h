@@ -53,8 +53,8 @@
  *         comparison with unshifted values appropriate for use in field <y>
  *         of register <x>.
  */
-#ifndef _hw_bus_tu104_h_
-#define _hw_bus_tu104_h_
+#ifndef NVGPU_HW_BUS_TU104_H
+#define NVGPU_HW_BUS_TU104_H
 
 static inline u32 bus_sw_scratch_r(u32 i)
 {

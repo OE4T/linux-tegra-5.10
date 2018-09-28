@@ -53,8 +53,8 @@
  *         comparison with unshifted values appropriate for use in field <y>
  *         of register <x>.
  */
-#ifndef _hw_pram_tu104_h_
-#define _hw_pram_tu104_h_
+#ifndef NVGPU_HW_PRAM_TU104_H
+#define NVGPU_HW_PRAM_TU104_H
 
 static inline u32 pram_data032_r(u32 i)
 {

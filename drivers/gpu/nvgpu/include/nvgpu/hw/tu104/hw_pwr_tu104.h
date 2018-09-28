@@ -53,8 +53,8 @@
  *         comparison with unshifted values appropriate for use in field <y>
  *         of register <x>.
  */
-#ifndef _hw_pwr_tu104_h_
-#define _hw_pwr_tu104_h_
+#ifndef NVGPU_HW_PWR_TU104_H
+#define NVGPU_HW_PWR_TU104_H
 
 static inline u32 pwr_falcon_irqsset_r(void)
 {

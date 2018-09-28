@@ -53,8 +53,8 @@
  *         comparison with unshifted values appropriate for use in field <y>
  *         of register <x>.
  */
-#ifndef _hw_pnvdec_tu104_h_
-#define _hw_pnvdec_tu104_h_
+#ifndef NVGPU_HW_PNVDEC_TU104_H
+#define NVGPU_HW_PNVDEC_TU104_H
 
 static inline u32 pnvdec_falcon_irqsset_r(u32 i)
 {

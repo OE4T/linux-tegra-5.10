@@ -53,8 +53,8 @@
  *         comparison with unshifted values appropriate for use in field <y>
  *         of register <x>.
  */
-#ifndef _hw_ce_tu104_h_
-#define _hw_ce_tu104_h_
+#ifndef NVGPU_HW_CE_TU104_H
+#define NVGPU_HW_CE_TU104_H
 
 static inline u32 ce_intr_status_r(u32 i)
 {

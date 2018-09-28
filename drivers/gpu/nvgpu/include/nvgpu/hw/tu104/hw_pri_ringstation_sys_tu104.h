@@ -53,8 +53,8 @@
  *         comparison with unshifted values appropriate for use in field <y>
  *         of register <x>.
  */
-#ifndef _hw_pri_ringstation_sys_tu104_h_
-#define _hw_pri_ringstation_sys_tu104_h_
+#ifndef NVGPU_HW_PRI_RINGSTATION_SYS_TU104_H
+#define NVGPU_HW_PRI_RINGSTATION_SYS_TU104_H
 
 static inline u32 pri_ringstation_sys_decode_config_r(void)
 {

@@ -53,8 +53,8 @@
  *         comparison with unshifted values appropriate for use in field <y>
  *         of register <x>.
  */
-#ifndef _hw_perf_tu104_h_
-#define _hw_perf_tu104_h_
+#ifndef NVGPU_HW_PERF_TU104_H
+#define NVGPU_HW_PERF_TU104_H
 
 static inline u32 perf_pmmgpc_perdomain_offset_v(void)
 {

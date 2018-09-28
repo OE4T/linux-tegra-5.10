@@ -53,8 +53,8 @@
  *         comparison with unshifted values appropriate for use in field <y>
  *         of register <x>.
  */
-#ifndef _hw_flush_tu104_h_
-#define _hw_flush_tu104_h_
+#ifndef NVGPU_HW_FLUSH_TU104_H
+#define NVGPU_HW_FLUSH_TU104_H
 
 static inline u32 flush_l2_system_invalidate_r(void)
 {

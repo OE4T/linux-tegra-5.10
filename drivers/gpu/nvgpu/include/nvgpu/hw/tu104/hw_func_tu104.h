@@ -53,8 +53,8 @@
  *         comparison with unshifted values appropriate for use in field <y>
  *         of register <x>.
  */
-#ifndef _hw_func_tu104_h_
-#define _hw_func_tu104_h_
+#ifndef NVGPU_HW_FUNC_TU104_H
+#define NVGPU_HW_FUNC_TU104_H
 
 static inline u32 func_full_phys_offset_v(void)
 {

@@ -53,8 +53,8 @@
  *         comparison with unshifted values appropriate for use in field <y>
  *         of register <x>.
  */
-#ifndef _hw_xp_tu104_h_
-#define _hw_xp_tu104_h_
+#ifndef NVGPU_HW_XP_TU104_H
+#define NVGPU_HW_XP_TU104_H
 
 static inline u32 xp_dl_mgr_r(u32 i)
 {

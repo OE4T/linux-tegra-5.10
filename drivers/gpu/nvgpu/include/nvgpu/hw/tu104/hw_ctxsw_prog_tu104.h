@@ -53,8 +53,8 @@
  *         comparison with unshifted values appropriate for use in field <y>
  *         of register <x>.
  */
-#ifndef _hw_ctxsw_prog_tu104_h_
-#define _hw_ctxsw_prog_tu104_h_
+#ifndef NVGPU_HW_CTXSW_PROG_TU104_H
+#define NVGPU_HW_CTXSW_PROG_TU104_H
 
 static inline u32 ctxsw_prog_fecs_header_v(void)
 {

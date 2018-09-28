@@ -53,8 +53,8 @@
  *         comparison with unshifted values appropriate for use in field <y>
  *         of register <x>.
  */
-#ifndef _hw_gc6_tu104_h_
-#define _hw_gc6_tu104_h_
+#ifndef NVGPU_HW_GC6_TU104_H
+#define NVGPU_HW_GC6_TU104_H
 
 static inline u32 gc6_aon_secure_scratch_group_05_r(u32 i)
 {

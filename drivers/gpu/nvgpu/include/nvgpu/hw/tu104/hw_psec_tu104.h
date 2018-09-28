@@ -53,8 +53,8 @@
  *         comparison with unshifted values appropriate for use in field <y>
  *         of register <x>.
  */
-#ifndef _hw_psec_tu104_h_
-#define _hw_psec_tu104_h_
+#ifndef NVGPU_HW_PSEC_TU104_H
+#define NVGPU_HW_PSEC_TU104_H
 
 static inline u32 psec_falcon_irqsset_r(void)
 {

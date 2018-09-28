@@ -53,8 +53,8 @@
  *         comparison with unshifted values appropriate for use in field <y>
  *         of register <x>.
  */
-#ifndef _hw_ccsr_tu104_h_
-#define _hw_ccsr_tu104_h_
+#ifndef NVGPU_HW_CCSR_TU104_H
+#define NVGPU_HW_CCSR_TU104_H
 
 static inline u32 ccsr_channel_inst_r(u32 i)
 {
