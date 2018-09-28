@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2017, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2015-2018, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -53,8 +53,8 @@
  *         comparison with unshifted values appropriate for use in field <y>
  *         of register <x>.
  */
-#ifndef _hw_ce2_gm20b_h_
-#define _hw_ce2_gm20b_h_
+#ifndef NVGPU_HW_CE2_GM20B_H
+#define NVGPU_HW_CE2_GM20B_H
 
 static inline u32 ce2_intr_status_r(void)
 {

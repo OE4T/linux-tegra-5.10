@@ -53,8 +53,8 @@
  *         comparison with unshifted values appropriate for use in field <y>
  *         of register <x>.
  */
-#ifndef _hw_pbdma_gm20b_h_
-#define _hw_pbdma_gm20b_h_
+#ifndef NVGPU_HW_PBDMA_GM20B_H
+#define NVGPU_HW_PBDMA_GM20B_H
 
 static inline u32 pbdma_gp_entry1_r(void)
 {
