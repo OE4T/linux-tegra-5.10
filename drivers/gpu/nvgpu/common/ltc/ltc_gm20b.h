@@ -46,7 +46,8 @@ void gm20b_ltc_set_enabled(struct gk20a *g, bool enabled);
 void gm20b_ltc_init_fs_state(struct gk20a *g);
 int gm20b_ltc_cbc_ctrl(struct gk20a *g, enum gk20a_cbc_op op,
 		       u32 min, u32 max);
-void gm20b_ltc_isr(struct gk20a *g);
+void gm20b_ltc_isr(struct gk20a *g, unsigned int ltc);
+void gm20b_ltc_lts_isr(struct gk20a *g, unsigned int ltc, unsigned int slice);
 u32 gm20b_ltc_cbc_fix_config(struct gk20a *g, int base);
 void gm20b_flush_ltc(struct gk20a *g);
 int gm20b_ltc_alloc_phys_cbc(struct gk20a *g,

@@ -204,7 +204,7 @@ struct gpu_ops {
 		void (*init_cbc)(struct gk20a *g, struct gr_gk20a *gr);
 		void (*set_enabled)(struct gk20a *g, bool enabled);
 		void (*init_fs_state)(struct gk20a *g);
-		void (*isr)(struct gk20a *g);
+		void (*isr)(struct gk20a *g, unsigned int ltc);
 		u32 (*cbc_fix_config)(struct gk20a *g, int base);
 		void (*flush)(struct gk20a *g);
 		void (*intr_en_illegal_compstat)(struct gk20a *g, bool enable);
@@ -1186,6 +1186,7 @@ struct gpu_ops {
 		void (*fbpa_isr)(struct gk20a *g);
 		u32 (*reset_mask)(struct gk20a *g, enum nvgpu_unit unit);
 		void (*fb_reset)(struct gk20a *g);
+		void (*ltc_isr)(struct gk20a *g);
 	} mc;
 	struct {
 		void (*show_dump)(struct gk20a *g,

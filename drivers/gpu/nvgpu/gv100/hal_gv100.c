@@ -844,6 +844,7 @@ static const struct gpu_ops gv100_ops = {
 		.reset_mask = gv100_mc_reset_mask,
 		.is_enabled = gm20b_mc_is_enabled,
 		.fb_reset = NULL,
+		.ltc_isr = mc_gp10b_ltc_isr,
 	},
 	.debug = {
 		.show_dump = gk20a_debug_show_dump,

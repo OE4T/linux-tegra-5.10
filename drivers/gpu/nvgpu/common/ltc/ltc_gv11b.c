@@ -106,8 +106,7 @@ void gv11b_ltc_intr_en_illegal_compstat(struct gk20a *g, bool enable)
 	gk20a_writel(g, ltc_ltcs_ltss_intr_r(), val);
 }
 
-void gv11b_ltc_lts_isr(struct gk20a *g,
-		unsigned int ltc, unsigned int slice)
+void gv11b_ltc_lts_isr(struct gk20a *g, unsigned int ltc, unsigned int slice)
 {
 	u32 offset;
 	u32 ltc_intr3;
@@ -204,19 +203,11 @@ void gv11b_ltc_lts_isr(struct gk20a *g,
 	gp10b_ltc_lts_isr(g, ltc, slice);
 }
 
-void gv11b_ltc_isr(struct gk20a *g)
+void gv11b_ltc_isr(struct gk20a *g, unsigned int ltc)
 {
-	u32 mc_intr;
-	unsigned int ltc, slice;
+	unsigned int slice;
 
-	mc_intr = gk20a_readl(g, mc_intr_ltc_r());
-	for (ltc = 0; ltc < g->ltc_count; ltc++) {
-		if ((mc_intr & 1U << ltc) == 0) {
-			continue;
-		}
-
-		for (slice = 0; slice < g->gr.slices_per_ltc; slice++) {
-			gv11b_ltc_lts_isr(g, ltc, slice);
-		}
+	for (slice = 0; slice < g->gr.slices_per_ltc; slice++) {
+		gv11b_ltc_lts_isr(g, ltc, slice);
 	}
 }

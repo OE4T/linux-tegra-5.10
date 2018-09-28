@@ -410,3 +410,14 @@ void mc_tu104_fbpa_isr(struct gk20a *g)
 		g->ops.fb.handle_fbpa_intr(g, i);
 	}
 }
+
+
+void mc_tu104_ltc_isr(struct gk20a *g)
+{
+	unsigned int ltc;
+
+	/* Go through all the LTCs explicitly */
+	for (ltc = 0; ltc < g->ltc_count; ltc++) {
+		g->ops.ltc.isr(g, ltc);
+	}
+}

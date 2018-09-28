@@ -61,5 +61,6 @@ u32 intr_tu104_isr_nonstall(struct gk20a *g);
 bool intr_tu104_is_intr_hub_pending(struct gk20a *g, u32 mc_intr_0);
 void intr_tu104_log_pending_intrs(struct gk20a *g);
 void mc_tu104_fbpa_isr(struct gk20a *g);
+void mc_tu104_ltc_isr(struct gk20a *g);
 
 #endif /* NVGPU_MC_TU104_H */

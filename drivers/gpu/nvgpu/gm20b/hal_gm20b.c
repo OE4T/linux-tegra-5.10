@@ -599,6 +599,7 @@ static const struct gpu_ops gm20b_ops = {
 		.reset_mask = gm20b_mc_reset_mask,
 		.is_enabled = gm20b_mc_is_enabled,
 		.fb_reset = gm20b_mc_fb_reset,
+		.ltc_isr = gm20b_mc_ltc_isr,
 	},
 	.debug = {
 		.show_dump = gk20a_debug_show_dump,

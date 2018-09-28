@@ -43,5 +43,6 @@ void mc_gp10b_intr_stall_resume(struct gk20a *g);
 u32 mc_gp10b_intr_nonstall(struct gk20a *g);
 void mc_gp10b_intr_nonstall_pause(struct gk20a *g);
 void mc_gp10b_intr_nonstall_resume(struct gk20a *g);
+void mc_gp10b_ltc_isr(struct gk20a *g);
 
 #endif

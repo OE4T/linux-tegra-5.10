@@ -50,5 +50,6 @@ void gm20b_mc_handle_intr_nonstall(struct gk20a *g, u32 ops);
 u32 gm20b_mc_reset_mask(struct gk20a *g, enum nvgpu_unit unit);
 bool gm20b_mc_is_enabled(struct gk20a *g, enum nvgpu_unit unit);
 void gm20b_mc_fb_reset(struct gk20a *g);
+void gm20b_mc_ltc_isr(struct gk20a *g);
 
 #endif /* NVGPU_MC_GM20B_H */

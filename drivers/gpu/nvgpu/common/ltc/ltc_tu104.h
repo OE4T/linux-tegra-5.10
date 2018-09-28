@@ -29,7 +29,6 @@ enum gk20a_cbc_op;
 struct gk20a;
 struct gr_gk20a;
 
-void tu104_ltc_isr(struct gk20a *g);
 u64 ltc_tu104_get_cbc_base_divisor(struct gk20a *g);
 void ltc_tu104_init_fs_state(struct gk20a *g);
 int ltc_tu104_init_comptags(struct gk20a *g, struct gr_gk20a *gr);

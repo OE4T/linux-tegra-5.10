@@ -135,7 +135,7 @@ void mc_gp10b_isr_stall(struct gk20a *g)
 		g->ops.priv_ring.isr(g);
 	}
 	if ((mc_intr_0 & mc_intr_ltc_pending_f()) != 0U) {
-		g->ops.ltc.isr(g);
+		g->ops.mc.ltc_isr(g);
 	}
 	if ((mc_intr_0 & mc_intr_pbus_pending_f()) != 0U) {
 		g->ops.bus.isr(g);
@@ -221,4 +221,19 @@ void mc_gp10b_log_pending_intrs(struct gk20a *g)
 		nvgpu_info(g, "Pending intr%d=0x%08x", i, intr);
 	}
 
+}
+
+void mc_gp10b_ltc_isr(struct gk20a *g)
+{
+	u32 mc_intr;
+	unsigned int ltc;
+
+	mc_intr = gk20a_readl(g, mc_intr_ltc_r());
+	nvgpu_err(g, "mc_ltc_intr: %08x", mc_intr);
+	for (ltc = 0; ltc < g->ltc_count; ltc++) {
+		if ((mc_intr & 1U << ltc) == 0) {
+			continue;
+		}
+		g->ops.ltc.isr(g, ltc);
+	}
 }

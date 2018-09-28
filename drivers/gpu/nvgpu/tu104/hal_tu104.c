@@ -326,7 +326,7 @@ static const struct gpu_ops tu104_ops = {
 		.init_fs_state = ltc_tu104_init_fs_state,
 		.init_comptags = ltc_tu104_init_comptags,
 		.cbc_ctrl = ltc_tu104_cbc_ctrl,
-		.isr = tu104_ltc_isr,
+		.isr = gv11b_ltc_isr,
 		.cbc_fix_config = NULL,
 		.flush = gm20b_flush_ltc,
 		.set_enabled = gp10b_ltc_set_enabled,
@@ -821,6 +821,7 @@ static const struct gpu_ops tu104_ops = {
 		.reset_mask = gv100_mc_reset_mask,
 		.is_enabled = gm20b_mc_is_enabled,
 		.fb_reset = NULL,
+		.ltc_isr = mc_tu104_ltc_isr,
 	},
 	.debug = {
 		.show_dump = gk20a_debug_show_dump,

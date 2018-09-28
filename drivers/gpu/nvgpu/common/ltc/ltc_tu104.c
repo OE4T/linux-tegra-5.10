@@ -229,15 +229,3 @@ out:
 	nvgpu_mutex_release(&g->mm.l2_op_lock);
 	return err;
 }
-
-void tu104_ltc_isr(struct gk20a *g)
-{
-	unsigned int ltc, slice;
-
-	/* Go through all the LTCs explicitly */
-	for (ltc = 0; ltc < g->ltc_count; ltc++) {
-		for (slice = 0; slice < g->gr.slices_per_ltc; slice++) {
-			gv11b_ltc_lts_isr(g, ltc, slice);
-		}
-	}
-}

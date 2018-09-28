@@ -31,7 +31,6 @@
 #include <nvgpu/timers.h>
 #include <nvgpu/gk20a.h>
 
-#include <nvgpu/hw/gp10b/hw_mc_gp10b.h>
 #include <nvgpu/hw/gp10b/hw_ltc_gp10b.h>
 
 #include "ltc_gm20b.h"
@@ -232,8 +231,7 @@ out:
 	return err;
 }
 
-void gp10b_ltc_lts_isr(struct gk20a *g,
-		unsigned int ltc, unsigned int slice)
+void gp10b_ltc_lts_isr(struct gk20a *g,	unsigned int ltc, unsigned int slice)
 {
 	u32 offset;
 	u32 ltc_intr;
@@ -289,20 +287,12 @@ void gp10b_ltc_lts_isr(struct gk20a *g,
 		ltc_intr);
 }
 
-void gp10b_ltc_isr(struct gk20a *g)
+void gp10b_ltc_isr(struct gk20a *g, unsigned int ltc)
 {
-	u32 mc_intr;
-	unsigned int ltc, slice;
+	unsigned int slice;
 
-	mc_intr = gk20a_readl(g, mc_intr_ltc_r());
-	nvgpu_err(g, "mc_ltc_intr: %08x", mc_intr);
-	for (ltc = 0; ltc < g->ltc_count; ltc++) {
-		if ((mc_intr & 1U << ltc) == 0) {
-			continue;
-		}
-		for (slice = 0; slice < g->gr.slices_per_ltc; slice++) {
-			gp10b_ltc_lts_isr(g, ltc, slice);
-		}
+	for (slice = 0; slice < g->gr.slices_per_ltc; slice++) {
+		gp10b_ltc_lts_isr(g, ltc, slice);
 	}
 }
 

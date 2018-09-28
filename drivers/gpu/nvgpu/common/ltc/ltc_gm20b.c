@@ -32,7 +32,6 @@
 #include <nvgpu/utils.h>
 #include <nvgpu/gk20a.h>
 
-#include <nvgpu/hw/gm20b/hw_mc_gm20b.h>
 #include <nvgpu/hw/gm20b/hw_ltc_gm20b.h>
 #include <nvgpu/hw/gm20b/hw_top_gm20b.h>
 #include <nvgpu/hw/gm20b/hw_pri_ringmaster_gm20b.h>
@@ -238,30 +237,29 @@ void gm20b_ltc_init_fs_state(struct gk20a *g)
 	gk20a_writel(g, ltc_ltcs_ltss_intr_r(), reg);
 }
 
-void gm20b_ltc_isr(struct gk20a *g)
+void gm20b_ltc_lts_isr(struct gk20a *g, unsigned int ltc, unsigned int slice)
 {
-	u32 mc_intr, ltc_intr;
-	unsigned int ltc, slice;
+	u32 ltc_intr;
 	u32 ltc_stride = nvgpu_get_litter_value(g, GPU_LIT_LTC_STRIDE);
 	u32 lts_stride = nvgpu_get_litter_value(g, GPU_LIT_LTS_STRIDE);
 
-	mc_intr = gk20a_readl(g, mc_intr_ltc_r());
-	nvgpu_err(g, "mc_ltc_intr: %08x", mc_intr);
-	for (ltc = 0; ltc < g->ltc_count; ltc++) {
-		if ((mc_intr & 1U << ltc) == 0) {
-			continue;
-		}
-		for (slice = 0; slice < g->gr.slices_per_ltc; slice++) {
-			ltc_intr = gk20a_readl(g, ltc_ltc0_lts0_intr_r() +
-					   ltc_stride * ltc +
-					   lts_stride * slice);
-			nvgpu_err(g, "ltc%d, slice %d: %08x",
-				  ltc, slice, ltc_intr);
-			gk20a_writel(g, ltc_ltc0_lts0_intr_r() +
-					   ltc_stride * ltc +
-					   lts_stride * slice,
-				     ltc_intr);
-		}
+	ltc_intr = gk20a_readl(g, ltc_ltc0_lts0_intr_r() +
+			   ltc_stride * ltc +
+			   lts_stride * slice);
+	nvgpu_err(g, "ltc%d, slice %d: %08x",
+		  ltc, slice, ltc_intr);
+	gk20a_writel(g, ltc_ltc0_lts0_intr_r() +
+			   ltc_stride * ltc +
+			   lts_stride * slice,
+		     ltc_intr);
+}
+
+void gm20b_ltc_isr(struct gk20a *g, unsigned int ltc)
+{
+	unsigned int slice;
+
+	for (slice = 0; slice < g->gr.slices_per_ltc; slice++) {
+		gm20b_ltc_lts_isr(g, ltc, slice);
 	}
 }
 
