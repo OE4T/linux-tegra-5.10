@@ -53,8 +53,8 @@
  *         comparison with unshifted values appropriate for use in field <y>
  *         of register <x>.
  */
-#ifndef _hw_gr_gp106_h_
-#define _hw_gr_gp106_h_
+#ifndef NVGPU_HW_GR_GP106_H
+#define NVGPU_HW_GR_GP106_H
 
 static inline u32 gr_intr_r(void)
 {
