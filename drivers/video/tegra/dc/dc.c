@@ -3450,7 +3450,7 @@ EXPORT_SYMBOL(tegra_dc_get_stride);
 
 struct tegra_dc *tegra_dc_get_dc(unsigned idx)
 {
-	if (idx < tegra_dc_get_numof_dispheads())
+	if ((int)idx < tegra_dc_get_numof_dispheads())
 		return tegra_dcs[idx];
 	else
 		return NULL;
