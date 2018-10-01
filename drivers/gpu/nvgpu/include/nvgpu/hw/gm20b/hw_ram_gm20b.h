@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2017, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2018, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -379,10 +379,6 @@ static inline u32 ram_userd_ref_w(void)
 static inline u32 ram_userd_put_hi_w(void)
 {
 	return 19U;
-}
-static inline u32 ram_userd_ref_threshold_w(void)
-{
-	return 20U;
 }
 static inline u32 ram_userd_top_level_get_w(void)
 {

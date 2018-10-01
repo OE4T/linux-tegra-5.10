@@ -4303,7 +4303,6 @@ int gk20a_fifo_setup_userd(struct channel_gk20a *c)
 	nvgpu_mem_wr32(g, mem, offset + ram_userd_get_w(), 0);
 	nvgpu_mem_wr32(g, mem, offset + ram_userd_ref_w(), 0);
 	nvgpu_mem_wr32(g, mem, offset + ram_userd_put_hi_w(), 0);
-	nvgpu_mem_wr32(g, mem, offset + ram_userd_ref_threshold_w(), 0);
 	nvgpu_mem_wr32(g, mem, offset + ram_userd_gp_top_level_get_w(), 0);
 	nvgpu_mem_wr32(g, mem, offset + ram_userd_gp_top_level_get_hi_w(), 0);
 	nvgpu_mem_wr32(g, mem, offset + ram_userd_get_hi_w(), 0);

@@ -440,10 +440,6 @@ static inline u32 ram_userd_put_hi_w(void)
 {
 	return 19U;
 }
-static inline u32 ram_userd_ref_threshold_w(void)
-{
-	return 20U;
-}
 static inline u32 ram_userd_top_level_get_w(void)
 {
 	return 22U;
