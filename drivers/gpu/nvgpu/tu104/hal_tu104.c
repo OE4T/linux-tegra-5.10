@@ -28,7 +28,7 @@
 #include "common/bus/bus_tu104.h"
 #include "common/priv_ring/priv_ring_gm20b.h"
 #include "common/priv_ring/priv_ring_gp10b.h"
-#include "common/clock_gating/gv11b_gating_reglist.h"
+#include "common/clock_gating/tu104_gating_reglist.h"
 #include "common/ptimer/ptimer_gk20a.h"
 #include "common/fb/fb_gm20b.h"
 #include "common/fb/fb_gp10b.h"
@@ -563,6 +563,54 @@ static const struct gpu_ops tu104_ops = {
 		.fault_buf_configure_hw = gv11b_fb_fault_buf_configure_hw,
 		.get_vidmem_size = gv100_fb_get_vidmem_size,
 		.apply_pdb_cache_war = tu104_fb_apply_pdb_cache_war,
+	},
+	.clock_gating = {
+		.slcg_bus_load_gating_prod =
+			tu104_slcg_bus_load_gating_prod,
+		.slcg_ce2_load_gating_prod =
+			tu104_slcg_ce2_load_gating_prod,
+		.slcg_chiplet_load_gating_prod =
+			tu104_slcg_chiplet_load_gating_prod,
+		.slcg_ctxsw_firmware_load_gating_prod =
+			tu104_slcg_ctxsw_firmware_load_gating_prod,
+		.slcg_fb_load_gating_prod =
+			tu104_slcg_fb_load_gating_prod,
+		.slcg_fifo_load_gating_prod =
+			tu104_slcg_fifo_load_gating_prod,
+		.slcg_gr_load_gating_prod =
+			gr_tu104_slcg_gr_load_gating_prod,
+		.slcg_ltc_load_gating_prod =
+			ltc_tu104_slcg_ltc_load_gating_prod,
+		.slcg_perf_load_gating_prod =
+			tu104_slcg_perf_load_gating_prod,
+		.slcg_priring_load_gating_prod =
+			tu104_slcg_priring_load_gating_prod,
+		.slcg_pmu_load_gating_prod =
+			tu104_slcg_pmu_load_gating_prod,
+		.slcg_therm_load_gating_prod =
+			tu104_slcg_therm_load_gating_prod,
+		.slcg_xbar_load_gating_prod =
+			tu104_slcg_xbar_load_gating_prod,
+		.blcg_bus_load_gating_prod =
+			tu104_blcg_bus_load_gating_prod,
+		.blcg_ce_load_gating_prod =
+			tu104_blcg_ce_load_gating_prod,
+		.blcg_ctxsw_firmware_load_gating_prod =
+			tu104_blcg_ctxsw_firmware_load_gating_prod,
+		.blcg_fb_load_gating_prod =
+			tu104_blcg_fb_load_gating_prod,
+		.blcg_fifo_load_gating_prod =
+			tu104_blcg_fifo_load_gating_prod,
+		.blcg_gr_load_gating_prod =
+			tu104_blcg_gr_load_gating_prod,
+		.blcg_ltc_load_gating_prod =
+			tu104_blcg_ltc_load_gating_prod,
+		.blcg_pwr_csb_load_gating_prod =
+			tu104_blcg_pwr_csb_load_gating_prod,
+		.blcg_pmu_load_gating_prod =
+			tu104_blcg_pmu_load_gating_prod,
+		.blcg_xbar_load_gating_prod =
+			tu104_blcg_xbar_load_gating_prod,
 	},
 	.fifo = {
 		.get_preempt_timeout = gv100_fifo_get_preempt_timeout,

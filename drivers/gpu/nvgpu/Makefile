@@ -232,6 +232,7 @@ nvgpu-y += \
 	common/clock_gating/gp10b_gating_reglist.o \
 	common/clock_gating/gv100_gating_reglist.o \
 	common/clock_gating/gv11b_gating_reglist.o \
+	common/clock_gating/tu104_gating_reglist.o \
 	common/sim.o \
 	common/sim_pci.o \
 	common/fifo/channel.o \
