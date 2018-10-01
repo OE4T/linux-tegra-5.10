@@ -12,26 +12,9 @@
 #
 ###############################################################################
 
-ifdef NV_COMPONENT_FLAG_SHARED_LIBRARY_SECTION
-include $(NV_BUILD_START_COMPONENT)
+NVGPU_UNIT_NAME=posix-env
 
-NV_COMPONENT_NAME		:= posix-env
-NV_COMPONENT_SOURCES		:= posix-env.c
-NV_COMPONENT_OWN_INTERFACE_DIR	:= .
-NV_COMPONENT_CFLAGS		+= -D__NVGPU_POSIX__
-
-NV_COMPONENT_NEEDED_INTERFACE_DIRS := \
-                                $(NV_SOURCE)/kernel/nvgpu/drivers/gpu/nvgpu \
-                                $(NV_SOURCE)/kernel/nvgpu/userspace
-
-NV_COMPONENT_SYSTEMIMAGE_DIR    := $(NV_SYSTEMIMAGE_TEST_EXECUTABLE_DIR)/nvgpu_unit/units
-systemimage:: $(NV_COMPONENT_SYSTEMIMAGE_DIR)
-$(NV_COMPONENT_SYSTEMIMAGE_DIR) : $(NV_SYSTEMIMAGE_TEST_EXECUTABLE_DIR)
-	$(MKDIR_P) $@
-
-include $(NV_BUILD_SHARED_LIBRARY)
-
-endif
+include $(NV_COMPONENT_DIR)/../Makefile.units.common.tmk
 
 # Local Variables:
 # indent-tabs-mode: t
