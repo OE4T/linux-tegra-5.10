@@ -23,13 +23,13 @@
 #include <nvgpu/io.h>
 #include <nvgpu/mm.h>
 #include <nvgpu/bug.h>
+#include <nvgpu/unit.h>
 
 #include "perf_gv11b.h"
 
 #include "gk20a/gk20a.h"
 
 #include <nvgpu/hw/gv11b/hw_perf_gv11b.h>
-#include <nvgpu/hw/gv11b/hw_mc_gv11b.h>
 
 bool gv11b_perf_get_membuf_overflow_status(struct gk20a *g)
 {
@@ -55,7 +55,7 @@ void gv11b_perf_membuf_reset_streaming(struct gk20a *g)
 	u32 engine_status;
 	u32 num_unread_bytes;
 
-	g->ops.mc.reset(g, mc_enable_perfmon_enabled_f());
+	g->ops.mc.reset(g, g->ops.mc.reset_mask(g, NVGPU_UNIT_PERFMON));
 
 	engine_status = nvgpu_readl(g, perf_pmasys_enginestatus_r());
 	WARN_ON(0U ==
