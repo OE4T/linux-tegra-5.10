@@ -253,7 +253,7 @@ struct nvgpu_posix_io_reg_space *nvgpu_posix_io_get_reg_space(struct gk20a *g,
 			nvgpu_posix_io_reg_space, link) {
 		u32 offset = addr - reg_space->base;
 
-		if ((addr >= reg_space->base) && (offset <= reg_space->size)) {
+		if ((addr >= reg_space->base) && (offset < reg_space->size)) {
 			return reg_space;
 		}
 	}

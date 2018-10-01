@@ -268,7 +268,7 @@ static int test_register_space(struct unit_module *m, struct gk20a *g,
 	if (value != 0x87654321) {
 		return UNIT_FAIL;
 	}
-	nvgpu_posix_io_writel_reg_space(g, 0x10000100, 0x2727);
+	nvgpu_posix_io_writel_reg_space(g, 0x100000FC, 0x2727);
 
 	/* Now re-define the callbacks to perform our own testing */
 	struct nvgpu_posix_io_callbacks *old_cbs = nvgpu_posix_register_io(g,
