@@ -56,26 +56,6 @@
 #ifndef _hw_fifo_gv11b_h_
 #define _hw_fifo_gv11b_h_
 
-static inline u32 fifo_bar1_base_r(void)
-{
-	return 0x00002254U;
-}
-static inline u32 fifo_bar1_base_ptr_f(u32 v)
-{
-	return (v & 0xfffffffU) << 0U;
-}
-static inline u32 fifo_bar1_base_ptr_align_shift_v(void)
-{
-	return 0x0000000cU;
-}
-static inline u32 fifo_bar1_base_valid_false_f(void)
-{
-	return 0x0U;
-}
-static inline u32 fifo_bar1_base_valid_true_f(void)
-{
-	return 0x10000000U;
-}
 static inline u32 fifo_userd_writeback_r(void)
 {
 	return 0x0000225cU;
