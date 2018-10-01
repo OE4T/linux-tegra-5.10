@@ -85,9 +85,9 @@ static inline u32 nvgpu_pl_to_div(u32 pl)
 	return pl;
 }
 
-static inline u32 nvgpu_div_to_pl(u32 div)
+static inline u32 nvgpu_div_to_pl(u32 divisor)
 {
-	return div;
+	return divisor;
 }
 
 #endif /* NVGPU_GM20B_CLK_GM20B_H */

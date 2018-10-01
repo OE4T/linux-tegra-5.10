@@ -4477,7 +4477,7 @@ void gk20a_fifo_userd_gp_put(struct gk20a *g, struct channel_gk20a *c)
 
 u32 gk20a_fifo_pbdma_acquire_val(u64 timeout)
 {
-	u32 val, exp, man;
+	u32 val, exponent, mantissa;
 	unsigned int val_len;
 
 	val = pbdma_acquire_retry_man_2_f() |
@@ -4496,18 +4496,18 @@ u32 gk20a_fifo_pbdma_acquire_val(u64 timeout)
 		val_len = fls(timeout);
 	}
 	if (val_len > 16U + pbdma_acquire_timeout_exp_max_v()) { /* man: 16bits */
-		exp = pbdma_acquire_timeout_exp_max_v();
-		man = pbdma_acquire_timeout_man_max_v();
+		exponent = pbdma_acquire_timeout_exp_max_v();
+		mantissa = pbdma_acquire_timeout_man_max_v();
 	} else if (val_len > 16) {
-		exp = val_len - 16;
-		man = timeout >> exp;
+		exponent = val_len - 16;
+		mantissa = timeout >> exponent;
 	} else {
-		exp = 0;
-		man = timeout;
+		exponent = 0;
+		mantissa = timeout;
 	}
 
-	val |= pbdma_acquire_timeout_exp_f(exp) |
-		pbdma_acquire_timeout_man_f(man) |
+	val |= pbdma_acquire_timeout_exp_f(exponent) |
+		pbdma_acquire_timeout_man_f(mantissa) |
 		pbdma_acquire_timeout_en_enable_f();
 
 	return val;
