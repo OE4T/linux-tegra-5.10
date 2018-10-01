@@ -180,6 +180,7 @@ struct unit_module **core_load_modules(struct unit_fw *fw)
 
 	sort_modules_by_prio(modules, i);
 
+	closedir(load_dir);
 	return modules;
 
 err:
