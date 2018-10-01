@@ -362,8 +362,13 @@ int tegra_mipi_bias_pad_disable(void)
 
 	if (mipi->soc->pad_disable) {
 		if (atomic_read(&mipi->pad_refcount) < 1) {
-			WARN_ON(1);
-			return -EINVAL;
+			/*
+			 * no-op:
+			 * valid usecase when v4l2 path and ioctl path is used
+			 */
+			dev_info(mipi->dev,
+				"mipical: unbalanced call to pad_disable\n");
+			return ret;
 		}
 		if (atomic_dec_return(&mipi->pad_refcount) == 0)
 			ret = mipi->soc->pad_disable(mipi);
