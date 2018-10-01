@@ -139,5 +139,8 @@ fail:
 
 void nvgpu_posix_cleanup(struct gk20a *g)
 {
+	struct nvgpu_os_posix *p = nvgpu_os_posix_from_gk20a(g);
+
 	nvgpu_kmem_fini(g, 0);
+	free(p);
 }
