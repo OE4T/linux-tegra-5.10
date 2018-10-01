@@ -12,11 +12,9 @@
 #
 ###############################################################################
 
-ifdef NV_INTERFACE_FLAG_SHARED_LIBRARY_SECTION
-NV_INTERFACE_NAME             := posix-bitops
-NV_INTERFACE_EXPORTS          := posix-bitops
-NV_INTERFACE_PUBLIC_INCLUDES  := . include
-endif
+NVGPU_UNIT_NAME=posix-bitops
+
+include $(NV_COMPONENT_DIR)/../Makefile.units.common.interface.tmk
 
 # Local Variables:
 # indent-tabs-mode: t
