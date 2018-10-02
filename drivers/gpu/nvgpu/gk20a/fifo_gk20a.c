@@ -2551,14 +2551,14 @@ static u32 fifo_error_isr(struct gk20a *g, u32 fifo_intr)
 	return handled;
 }
 
-static inline void gk20a_fifo_reset_pbdma_header(struct gk20a *g, int pbdma_id)
+static inline void gk20a_fifo_reset_pbdma_header(struct gk20a *g, u32 pbdma_id)
 {
 	gk20a_writel(g, pbdma_pb_header_r(pbdma_id),
 			pbdma_pb_header_first_true_f() |
 			pbdma_pb_header_type_non_inc_f());
 }
 
-void gk20a_fifo_reset_pbdma_method(struct gk20a *g, int pbdma_id,
+void gk20a_fifo_reset_pbdma_method(struct gk20a *g, u32 pbdma_id,
 						int pbdma_method_index)
 {
 	u32 pbdma_method_stride;
@@ -2577,7 +2577,7 @@ void gk20a_fifo_reset_pbdma_method(struct gk20a *g, int pbdma_id,
 			     pbdma_udma_nop_r() >> 2));
 }
 
-static bool gk20a_fifo_is_sw_method_subch(struct gk20a *g, int pbdma_id,
+static bool gk20a_fifo_is_sw_method_subch(struct gk20a *g, u32 pbdma_id,
 						int pbdma_method_index)
 {
 	u32 pbdma_method_stride;
