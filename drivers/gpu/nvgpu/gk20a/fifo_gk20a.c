@@ -1086,56 +1086,18 @@ void gk20a_fifo_handle_runlist_event(struct gk20a *g)
 int gk20a_init_fifo_setup_hw(struct gk20a *g)
 {
 	struct fifo_gk20a *f = &g->fifo;
+	u64 shifted_addr;
 
 	nvgpu_log_fn(g, " ");
 
-	/* test write, read through bar1 @ userd region before
-	 * turning on the snooping */
-	{
-		struct fifo_gk20a *f = &g->fifo;
-		u32 v, v1 = 0x33, v2 = 0x55;
-
-		u32 bar1_vaddr = f->userd.gpu_va;
-		volatile u32 *cpu_vaddr = f->userd.cpu_va;
-
-		nvgpu_log_info(g, "test bar1 @ vaddr 0x%x",
-			   bar1_vaddr);
-
-		v = gk20a_bar1_readl(g, bar1_vaddr);
-
-		*cpu_vaddr = v1;
-		nvgpu_mb();
-
-		if (v1 != gk20a_bar1_readl(g, bar1_vaddr)) {
-			nvgpu_err(g, "bar1 broken @ gk20a: CPU wrote 0x%x, \
-				GPU read 0x%x", *cpu_vaddr, gk20a_bar1_readl(g, bar1_vaddr));
-			return -EINVAL;
-		}
-
-		gk20a_bar1_writel(g, bar1_vaddr, v2);
-
-		if (v2 != gk20a_bar1_readl(g, bar1_vaddr)) {
-			nvgpu_err(g, "bar1 broken @ gk20a: GPU wrote 0x%x, \
-				CPU read 0x%x", gk20a_bar1_readl(g, bar1_vaddr), *cpu_vaddr);
-			return -EINVAL;
-		}
-
-		/* is it visible to the cpu? */
-		if (*cpu_vaddr != v2) {
-			nvgpu_err(g,
-				"cpu didn't see bar1 write @ %p!",
-				cpu_vaddr);
-		}
-
-		/* put it back */
-		gk20a_bar1_writel(g, bar1_vaddr, v);
-	}
-
-	/*XXX all manner of flushes and caching worries, etc */
-
 	/* set the base for the userd region now */
+	shifted_addr = f->userd.gpu_va >> 12;
+	if ((shifted_addr >> 32) != 0U) {
+		nvgpu_err(g, "GPU VA > 32 bits %016llx\n", f->userd.gpu_va);
+		return -EFAULT;
+	}
 	gk20a_writel(g, fifo_bar1_base_r(),
-			fifo_bar1_base_ptr_f(f->userd.gpu_va >> 12) |
+			fifo_bar1_base_ptr_f(u64_lo32(shifted_addr)) |
 			fifo_bar1_base_valid_true_f());
 
 	nvgpu_log_fn(g, "done");
@@ -1683,7 +1645,7 @@ static bool gk20a_fifo_handle_mmu_fault_locked(
 		/* bits in fifo_intr_mmu_fault_id_r do not correspond 1:1 to
 		 * engines. Convert engine_mmu_id to engine_id */
 		u32 engine_id = gk20a_mmu_id_to_engine_id(g,
-					engine_mmu_fault_id);
+					(u32)engine_mmu_fault_id);
 		struct mmu_fault_info mmfault_info;
 		struct channel_gk20a *ch = NULL;
 		struct tsg_gk20a *tsg = NULL;
@@ -1851,7 +1813,7 @@ static bool gk20a_fifo_handle_mmu_fault_locked(
 	}
 
 	/* clear interrupt */
-	gk20a_writel(g, fifo_intr_mmu_fault_id_r(), fault_id);
+	gk20a_writel(g, fifo_intr_mmu_fault_id_r(), (u32)fault_id);
 
 	/* resume scheduler */
 	gk20a_writel(g, fifo_error_sched_disable_r(),
@@ -2048,8 +2010,8 @@ void gk20a_fifo_teardown_ch_tsg(struct gk20a *g, u32 __engine_ids,
 	} else {
 		/* store faulted engines in advance */
 		for_each_set_bit(engine_id, &_engine_ids, 32) {
-			gk20a_fifo_get_faulty_id_type(g, engine_id, &ref_id,
-						      &ref_type);
+			gk20a_fifo_get_faulty_id_type(g, (u32)engine_id,
+						      &ref_id, &ref_type);
 			if (ref_type == fifo_engine_status_id_type_tsgid_v()) {
 				ref_id_is_tsg = true;
 			} else {
