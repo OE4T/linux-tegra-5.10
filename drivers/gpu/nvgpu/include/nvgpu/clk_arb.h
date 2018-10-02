@@ -211,6 +211,7 @@ struct nvgpu_clk_arb {
 	u32 vf_table_index;
 
 	u16 *mclk_f_points;
+	int prev_req_nr;
 	nvgpu_atomic_t req_nr;
 
 	u32 mclk_f_numpoints;
