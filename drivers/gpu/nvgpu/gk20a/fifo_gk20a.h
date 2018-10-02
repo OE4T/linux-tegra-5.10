@@ -46,8 +46,8 @@ enum {
 #define FIFO_INVAL_TSG_ID		((u32)~0)
 #define FIFO_INVAL_RUNLIST_ID		((u32)~0)
 
-#define ID_TYPE_CHANNEL			0
-#define ID_TYPE_TSG			1
+#define ID_TYPE_CHANNEL			0U
+#define ID_TYPE_TSG			1U
 #define ID_TYPE_UNKNOWN			((u32)~0)
 
 #define RC_YES				1
@@ -285,7 +285,7 @@ u32 gk20a_fifo_engine_interrupt_mask(struct gk20a *g);
 u32 gk20a_fifo_act_eng_interrupt_mask(struct gk20a *g, u32 act_eng_id);
 u32 gk20a_fifo_get_pbdma_signature(struct gk20a *g);
 u32 gk20a_fifo_get_failing_engine_data(struct gk20a *g,
-		int *__id, bool *__is_tsg);
+		u32 *__id, bool *__is_tsg);
 void gk20a_fifo_set_ctx_mmu_error_tsg(struct gk20a *g,
 		struct tsg_gk20a *tsg);
 void gk20a_fifo_abort_tsg(struct gk20a *g, u32 tsgid, bool preempt);

@@ -45,6 +45,7 @@
 #include <nvgpu/utils.h>
 #include <nvgpu/channel.h>
 #include <nvgpu/unit.h>
+#include <nvgpu/types.h>
 
 #include "gk20a.h"
 #include "mm_gk20a.h"
@@ -695,7 +696,7 @@ static int init_runlist(struct gk20a *g, struct fifo_gk20a *f)
 	u32 i;
 	size_t runlist_size;
 	u32 active_engine_id, pbdma_id, engine_id;
-	int flags = nvgpu_is_enabled(g, NVGPU_MM_USE_PHYSICAL_SG) ?
+	u32 flags = nvgpu_is_enabled(g, NVGPU_MM_USE_PHYSICAL_SG) ?
 		NVGPU_DMA_FORCE_CONTIGUOUS : 0;
 	int err = 0;
 
@@ -1895,7 +1896,7 @@ static bool gk20a_fifo_handle_mmu_fault(
 	return verbose;
 }
 
-static void gk20a_fifo_get_faulty_id_type(struct gk20a *g, int engine_id,
+static void gk20a_fifo_get_faulty_id_type(struct gk20a *g, u32 engine_id,
 					  u32 *id, u32 *type)
 {
 	u32 status = gk20a_readl(g, fifo_engine_status_r(engine_id));
@@ -2018,7 +2019,7 @@ void gk20a_fifo_teardown_ch_tsg(struct gk20a *g, u32 __engine_ids,
 	u32 mmu_fault_engines = 0;
 	u32 ref_type;
 	u32 ref_id;
-	u32 ref_id_is_tsg = false;
+	bool ref_id_is_tsg = false;
 	bool id_is_known = (id_type != ID_TYPE_UNKNOWN) ? true : false;
 	bool id_is_tsg = (id_type == ID_TYPE_TSG) ? true : false;
 	u32 rlid;
@@ -2244,10 +2245,10 @@ fail_enable_tsg:
 }
 
 u32 gk20a_fifo_get_failing_engine_data(struct gk20a *g,
-			int *__id, bool *__is_tsg)
+			u32 *__id, bool *__is_tsg)
 {
 	u32 engine_id;
-	int id = -1;
+	u32 id = U32_MAX;
 	bool is_tsg = false;
 	u32 mailbox2;
 	u32 active_engine_id = FIFO_INVAL_ENGINE_ID;
@@ -2413,7 +2414,7 @@ bool gk20a_fifo_handle_sched_error(struct gk20a *g)
 {
 	u32 sched_error;
 	u32 engine_id;
-	int id = -1;
+	u32 id = U32_MAX;
 	bool is_tsg = false;
 	bool ret = false;
 
@@ -2435,6 +2436,13 @@ bool gk20a_fifo_handle_sched_error(struct gk20a *g)
 		struct fifo_gk20a *f = &g->fifo;
 		u32 ms = 0;
 		bool verbose = false;
+
+		if (id > f->num_channels) {
+			nvgpu_err(g, "fifo sched error : channel id invalid %u",
+				  id);
+			ret = false;
+			goto err;
+		}
 
 		if (is_tsg) {
 			ret = g->ops.fifo.check_tsg_ctxsw_timeout(
