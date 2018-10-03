@@ -30,6 +30,8 @@
 #include <nvgpu/boardobjgrpmask.h>
 
 #define CLK_DOMAIN_BOARDOBJGRP_VERSION 0x30
+#define CLK_DOMAIN_BOARDOBJGRP_VERSION_35 0x35
+
 #define CLK_TABLE_HAL_ENTRY_GP 0x02
 #define CLK_TABLE_HAL_ENTRY_GV 0x03
 

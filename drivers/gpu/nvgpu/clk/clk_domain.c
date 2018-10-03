@@ -141,7 +141,7 @@ static int _clk_domains_pmudatainit_3x(struct gk20a *g,
 
 	pset->vbios_domains = pdomains->vbios_domains;
 	pset->cntr_sampling_periodms = pdomains->cntr_sampling_periodms;
-	pset->version = CLK_DOMAIN_BOARDOBJGRP_VERSION;
+	pset->version = pdomains->version;
 	pset->b_override_o_v_o_c = false;
 	pset->b_debug_mode = false;
 	pset->b_enforce_vf_monotonicity = pdomains->b_enforce_vf_monotonicity;
@@ -194,6 +194,8 @@ int clk_domain_sw_setup(struct gk20a *g)
 	struct clk_domain *pdomain;
 	struct clk_domain_3x_master *pdomain_master;
 	struct clk_domain_3x_slave *pdomain_slave;
+	struct clk_domain_35_master *pdomain_master_35;
+	struct clk_domain_35_slave *pdomain_slave_35;
 	u8 i;
 
 	nvgpu_log_info(g, " ");
@@ -246,8 +248,18 @@ int clk_domain_sw_setup(struct gk20a *g)
 	BOARDOBJGRP_FOR_EACH(&(pclkdomainobjs->super.super),
 			     struct clk_domain *, pdomain, i) {
 		pdomain_master = NULL;
+		pdomain_master_35 = NULL;
 		if (pdomain->super.implements(g, &pdomain->super,
 				CTRL_CLK_CLK_DOMAIN_TYPE_3X_PROG)) {
+			status = boardobjgrpmask_bitset(
+				&pclkdomainobjs->prog_domains_mask.super, i);
+			if (status != 0) {
+				goto done;
+			}
+		}
+
+		if (pdomain->super.implements(g, &pdomain->super,
+				CTRL_CLK_CLK_DOMAIN_TYPE_35_PROG)) {
 			status = boardobjgrpmask_bitset(
 				&pclkdomainobjs->prog_domains_mask.super, i);
 			if (status != 0) {
@@ -265,6 +277,15 @@ int clk_domain_sw_setup(struct gk20a *g)
 		}
 
 		if (pdomain->super.implements(g, &pdomain->super,
+				CTRL_CLK_CLK_DOMAIN_TYPE_35_MASTER)) {
+			status = boardobjgrpmask_bitset(
+				&pclkdomainobjs->master_domains_mask.super, i);
+			if (status != 0) {
+				goto done;
+			}
+		}
+
+		if (pdomain->super.implements(g, &pdomain->super,
 				CTRL_CLK_CLK_DOMAIN_TYPE_3X_SLAVE)) {
 				pdomain_slave =
 					(struct clk_domain_3x_slave *)pdomain;
@@ -273,6 +294,17 @@ int clk_domain_sw_setup(struct gk20a *g)
 					(CLK_CLK_DOMAIN_GET((g->clk_pmu),
 					pdomain_slave->master_idx));
 			pdomain_master->slave_idxs_mask |= BIT(i);
+		}
+
+		if (pdomain->super.implements(g, &pdomain->super,
+				CTRL_CLK_CLK_DOMAIN_TYPE_35_SLAVE)) {
+				pdomain_slave_35 =
+					(struct clk_domain_35_slave *)pdomain;
+				pdomain_master_35 =
+					(struct clk_domain_35_master *)
+					(CLK_CLK_DOMAIN_GET((g->clk_pmu),
+					pdomain_slave_35->slave.master_idx));
+			pdomain_master_35->master.slave_idxs_mask |= BIT(i);
 		}
 
 	}
@@ -322,6 +354,7 @@ static int devinit_get_clocks_table_35(struct gk20a *g,
 	} clk_domain_data;
 
 	nvgpu_log_info(g, " ");
+	pclkdomainobjs->version = CLK_DOMAIN_BOARDOBJGRP_VERSION_35;
 
 	nvgpu_memcpy((u8 *)&clocks_table_header, clocks_table_ptr,
 			VBIOS_CLOCKS_TABLE_35_HEADER_SIZE_09);
@@ -528,6 +561,7 @@ static int devinit_get_clocks_table_1x(struct gk20a *g,
 	} clk_domain_data;
 
 	nvgpu_log_info(g, " ");
+	pclkdomainobjs->version = CLK_DOMAIN_BOARDOBJGRP_VERSION;
 
 	nvgpu_memcpy((u8 *)&clocks_table_header, clocks_table_ptr,
 			VBIOS_CLOCKS_TABLE_1X_HEADER_SIZE_07);
@@ -1150,7 +1184,7 @@ static int clk_domain_construct_35_prog(struct gk20a *g,
 			(struct clk_domain_35_prog *)pargs;
 	int status = 0;
 
-	ptmpobj->type_mask |= BIT(CTRL_CLK_CLK_DOMAIN_TYPE_3X_PROG);
+	ptmpobj->type_mask |= BIT(CTRL_CLK_CLK_DOMAIN_TYPE_35_PROG);
 	status = clk_domain_construct_3x(g, ppboardobj, size, pargs);
 	if (status != 0)
 	{
@@ -1158,6 +1192,9 @@ static int clk_domain_construct_35_prog(struct gk20a *g,
 	}
 
 	pdomain = (struct clk_domain_35_prog *)(void*) *ppboardobj;
+
+	pdomain->super.super.super.super.type_mask |=
+		BIT(CTRL_CLK_CLK_DOMAIN_TYPE_35_PROG);
 
 	pdomain->super.super.super.super.pmudatainit =
 				clk_domain_pmudatainit_35_prog;
