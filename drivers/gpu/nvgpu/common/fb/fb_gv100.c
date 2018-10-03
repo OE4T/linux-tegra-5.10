@@ -50,7 +50,7 @@
 #define MEM_UNLOCK_TIMEOUT			3500 /* msec */
 
 #define MEM_UNLOCK_PROD_BIN		"mem_unlock.bin"
-#define MEM_UNLOCK_DBG_BIN		"mem_unlock.bin"
+#define MEM_UNLOCK_DBG_BIN		"mem_unlock_dbg.bin"
 
 void gv100_fb_reset(struct gk20a *g)
 {
