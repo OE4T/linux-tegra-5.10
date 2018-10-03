@@ -684,14 +684,16 @@ int nvgpu_insert_mapped_buf(struct vm_gk20a *vm,
 	mapped_buffer->node.key_end = mapped_buffer->addr + mapped_buffer->size;
 
 	nvgpu_rbtree_insert(&mapped_buffer->node, &vm->mapped_buffers);
+	vm->num_user_mapped_buffers++;
 
 	return 0;
 }
 
-void nvgpu_remove_mapped_buf(struct vm_gk20a *vm,
-			     struct nvgpu_mapped_buf *mapped_buffer)
+static void nvgpu_remove_mapped_buf(struct vm_gk20a *vm,
+				    struct nvgpu_mapped_buf *mapped_buffer)
 {
 	nvgpu_rbtree_unlink(&mapped_buffer->node, &vm->mapped_buffers);
+	vm->num_user_mapped_buffers--;
 }
 
 struct nvgpu_mapped_buf *__nvgpu_vm_find_mapped_buf(
@@ -1076,8 +1078,6 @@ struct nvgpu_mapped_buf *nvgpu_vm_map(struct vm_gk20a *vm,
 		goto clean_up;
 	}
 
-	vm->num_user_mapped_buffers++;
-
 	if (vm_area) {
 		nvgpu_list_add_tail(&mapped_buffer->buffer_list,
 			      &vm_area->buffer_list_head);
@@ -1116,8 +1116,6 @@ static void __nvgpu_vm_unmap(struct nvgpu_mapped_buf *mapped_buffer,
 {
 	struct vm_gk20a *vm = mapped_buffer->vm;
 	struct gk20a *g = vm->mm->g;
-
-	vm->num_user_mapped_buffers--;
 
 	g->ops.mm.gmmu_unmap(vm,
 			     mapped_buffer->addr,

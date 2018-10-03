@@ -288,8 +288,6 @@ struct nvgpu_mapped_buf *__nvgpu_vm_find_mapped_buf_less_than(
 
 int nvgpu_insert_mapped_buf(struct vm_gk20a *vm,
 			    struct nvgpu_mapped_buf *mapped_buffer);
-void nvgpu_remove_mapped_buf(struct vm_gk20a *vm,
-			     struct nvgpu_mapped_buf *mapped_buffer);
 
 /*
  * Initialize a preallocated vm
