@@ -962,7 +962,7 @@ static int get_repeater_info(struct tegra_dphdcp *dphdcp)
 	return 0;
 }
 
-static void dphdcp_downstream_worker(struct work_struct *work)
+static void dphdcp1_downstream_worker(struct work_struct *work)
 {
 	int e = 0;
 	u8 b_caps = 0;
@@ -2018,36 +2018,39 @@ err:
 }
 #endif
 
-static int tegra_dphdcp_on(struct tegra_dphdcp *dphdcp)
+static void dphdcp_downstream_worker(struct work_struct *work)
 {
+	struct tegra_dphdcp *dphdcp =
+		container_of(to_delayed_work(work), struct tegra_dphdcp, work);
+	struct tegra_dc_dp_data *dp = dphdcp->dp;
 	u8 hdcp2version = 0;
 	int e;
 	u32 status;
-	struct tegra_dc_dp_data *dp = dphdcp->dp;
 
+	dphdcp->fail_count = 0;
+	e = tegra_dphdcp_read(dp, HDCP_HDCP2_VERSION,
+			&hdcp2version, 1, &status);
+	if (e)
+		dphdcp_err("dphdcp i2c HDCP22 version read failed\n");
+
+	dphdcp_vdbg("read back version:%x\n", hdcp2version);
+#ifdef DPHDCP22
+	if (hdcp2version & HDCP_HDCP2_VERSION_HDCP22_YES) {
+		dphdcp->hdcp22 = HDCP22_PROTOCOL;
+		dphdcp2_downstream_worker(work);
+		return;
+	}
+#endif
+	dphdcp->hdcp22 = HDCP1X_PROTOCOL;
+	dphdcp1_downstream_worker(work);
+}
+
+static int tegra_dphdcp_on(struct tegra_dphdcp *dphdcp)
+{
 	dphdcp->state = STATE_UNAUTHENTICATED;
 	if (dphdcp_is_plugged(dphdcp) &&
 		atomic_read(&dphdcp->policy) !=
 		TEGRA_DC_HDCP_POLICY_ALWAYS_OFF) {
-		dphdcp->fail_count = 0;
-		e = tegra_dphdcp_read(dp, HDCP_HDCP2_VERSION,
-				&hdcp2version, 1, &status);
-		if (e)
-			return -EIO;
-
-		dphdcp_vdbg("read back version:%x\n", hdcp2version);
-		if (hdcp2version & HDCP_HDCP2_VERSION_HDCP22_YES) {
-#ifdef DPHDCP22
-			INIT_DELAYED_WORK(&dphdcp->work,
-					dphdcp2_downstream_worker);
-#endif
-			dphdcp->hdcp22 = HDCP22_PROTOCOL;
-		} else {
-			INIT_DELAYED_WORK(&dphdcp->work,
-					dphdcp_downstream_worker);
-			dphdcp->hdcp22 = HDCP1X_PROTOCOL;
-		}
-
 		queue_delayed_work(dphdcp->downstream_wq, &dphdcp->work,
 						msecs_to_jiffies(100));
 	}
@@ -2263,6 +2266,8 @@ struct tegra_dphdcp *tegra_dphdcp_create(struct tegra_dc_dp_data *dp,
 	dphdcp->state = STATE_UNAUTHENTICATED;
 
 	dphdcp->downstream_wq = create_singlethread_workqueue(dphdcp->name);
+
+	INIT_DELAYED_WORK(&dphdcp->work, dphdcp_downstream_worker);
 
 	dphdcp->miscdev.minor = MISC_DYNAMIC_MINOR;
 	dphdcp->miscdev.name = dphdcp->name;
