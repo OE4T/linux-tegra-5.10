@@ -288,6 +288,7 @@ int tegra_dc_sync_windows(struct tegra_dc_win *windows[], int n)
 	trace_sync_windows(dc);
 	mutex_lock(&dc->lock);
 
+retry:
 	/*
 	 * Putting the task state as TASK_UINTERRUPTIBLE makes
 	 * task wait till windows status promoted or timeout occurred
@@ -299,6 +300,12 @@ int tegra_dc_sync_windows(struct tegra_dc_win *windows[], int n)
 		mutex_unlock(&dc->lock);
 		__ret = schedule_timeout(__ret);
 		mutex_lock(&dc->lock));
+
+	if (ret == 0) {
+		dev_info(&dc->ndev->dev, "sync_windows timeout\n");
+		if (!tegra_platform_is_silicon())
+			goto retry;
+	}
 
 	mutex_unlock(&dc->lock);
 
@@ -1026,10 +1033,10 @@ int tegra_dc_update_windows(struct tegra_dc_win *windows[], int n,
 	int e = 0;
 
 	dc = windows[0]->dc;
-	trace_update_windows(dc);
-
 	if (dc == NULL)
 		return -EINVAL;
+
+	trace_update_windows(dc);
 
 	/* check that window arguments are valid */
 	for (i = 0; i < n; i++) {
