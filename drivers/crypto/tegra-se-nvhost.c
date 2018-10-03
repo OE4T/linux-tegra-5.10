@@ -3576,7 +3576,6 @@ static int tegra_se_dh_compute_value(struct kpp_request *req)
 	struct tegra_se_dh_context *dh_ctx = NULL;
 	struct tegra_se_dev *se_dev;
 	struct scatterlist *src_sg;
-	struct tegra_se_ll *src_ll, *dst_ll;
 	u32 num_src_sgs, num_dst_sgs;
 	u8 *base_buff = NULL;
 	struct scatterlist src;
@@ -3645,8 +3644,8 @@ static int tegra_se_dh_compute_value(struct kpp_request *req)
 
 	tegra_se_fix_endianness(se_dev, src_sg, num_src_sgs, total, true);
 
-	src_ll = (struct tegra_se_ll *)(se_dev->src_ll_buf);
-	dst_ll = (struct tegra_se_ll *)(se_dev->dst_ll_buf);
+	se_dev->src_ll = (struct tegra_se_ll *)(se_dev->src_ll_buf);
+	se_dev->dst_ll = (struct tegra_se_ll *)(se_dev->dst_ll_buf);
 
 	err = tegra_map_sg(se_dev->dev, src_sg, 1, DMA_TO_DEVICE,
 			   se_dev->src_ll, total);
