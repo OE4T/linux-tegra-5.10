@@ -60,8 +60,6 @@
 #define FECS_METHOD_WFI_RESTORE 0x80000
 #define FECS_MAILBOX_0_ACK_RESTORE 0x4
 
-#define RUNLIST_APPEND_FAILURE 0xffffffffU
-
 static u32 gk20a_fifo_engines_on_id(struct gk20a *g, u32 id, bool is_tsg);
 
 static const char *const pbdma_intr_fault_type_desc[] = {
@@ -3325,7 +3323,7 @@ void gk20a_get_ch_runlist_entry(struct channel_gk20a *ch, u32 *runlist)
 
 static u32 nvgpu_runlist_append_tsg(struct gk20a *g,
 		struct fifo_runlist_info_gk20a *runlist,
-		u32 *runlist_entry,
+		u32 **runlist_entry,
 		u32 *entries_left,
 		struct tsg_gk20a *tsg)
 {
@@ -3334,16 +3332,19 @@ static u32 nvgpu_runlist_append_tsg(struct gk20a *g,
 	struct channel_gk20a *ch;
 	u32 count = 0;
 
+	nvgpu_log_fn(f->g, " ");
+
 	if (*entries_left == 0U) {
 		return RUNLIST_APPEND_FAILURE;
 	}
 
 	/* add TSG entry */
 	nvgpu_log_info(g, "add TSG %d to runlist", tsg->tsgid);
-	g->ops.fifo.get_tsg_runlist_entry(tsg, runlist_entry);
+	g->ops.fifo.get_tsg_runlist_entry(tsg, *runlist_entry);
 	nvgpu_log_info(g, "tsg rl entries left %d runlist [0] %x [1] %x",
-			*entries_left, runlist_entry[0], runlist_entry[1]);
-	runlist_entry += runlist_entry_words;
+			*entries_left,
+			(*runlist_entry)[0], (*runlist_entry)[1]);
+	*runlist_entry += runlist_entry_words;
 	count++;
 	(*entries_left)--;
 
@@ -3363,11 +3364,12 @@ static u32 nvgpu_runlist_append_tsg(struct gk20a *g,
 
 		nvgpu_log_info(g, "add channel %d to runlist",
 			ch->chid);
-		g->ops.fifo.get_ch_runlist_entry(ch, runlist_entry);
+		g->ops.fifo.get_ch_runlist_entry(ch, *runlist_entry);
 		nvgpu_log_info(g, "rl entries left %d runlist [0] %x [1] %x",
-			*entries_left, runlist_entry[0], runlist_entry[1]);
+			*entries_left,
+			(*runlist_entry)[0], (*runlist_entry)[1]);
 		count++;
-		runlist_entry += runlist_entry_words;
+		*runlist_entry += runlist_entry_words;
 		(*entries_left)--;
 	}
 	nvgpu_rwsem_up_read(&tsg->ch_list_lock);
@@ -3375,81 +3377,196 @@ static u32 nvgpu_runlist_append_tsg(struct gk20a *g,
 	return count;
 }
 
-/* recursively construct a runlist with interleaved bare channels and TSGs */
-u32 *gk20a_runlist_construct_locked(struct fifo_gk20a *f,
+
+static u32 nvgpu_runlist_append_prio(struct fifo_gk20a *f,
 				struct fifo_runlist_info_gk20a *runlist,
-				u32 cur_level,
-				u32 *runlist_entry,
-				bool interleave_enabled,
-				bool prev_empty,
-				u32 *entries_left)
+				u32 **runlist_entry,
+				u32 *entries_left,
+				u32 interleave_level)
 {
-	bool last_level = cur_level == NVGPU_FIFO_RUNLIST_INTERLEAVE_LEVEL_HIGH;
-	bool skip_next = false;
-	unsigned long tsgid;
 	u32 count = 0;
-	struct gk20a *g = f->g;
+	unsigned long tsgid;
 
-	nvgpu_log_fn(g, " ");
+	nvgpu_log_fn(f->g, " ");
 
-	/* for each TSG, T, on this level, insert all higher-level channels
-	   and TSGs before inserting T. */
 	for_each_set_bit(tsgid, runlist->active_tsgs, f->num_channels) {
 		struct tsg_gk20a *tsg = &f->tsg[tsgid];
-		u32 n;
+		u32 entries;
 
-		if (tsg->interleave_level != cur_level) {
+		if (tsg->interleave_level == interleave_level) {
+			entries = nvgpu_runlist_append_tsg(f->g, runlist,
+					runlist_entry, entries_left, tsg);
+			if (entries == RUNLIST_APPEND_FAILURE) {
+				return RUNLIST_APPEND_FAILURE;
+			}
+			count += entries;
+		}
+	}
+
+	return count;
+}
+
+static u32 nvgpu_runlist_append_hi(struct fifo_gk20a *f,
+				struct fifo_runlist_info_gk20a *runlist,
+				u32 **runlist_entry,
+				u32 *entries_left)
+{
+	nvgpu_log_fn(f->g, " ");
+
+	/*
+	 * No higher levels - this is where the "recursion" ends; just add all
+	 * active TSGs at this level.
+	 */
+	return nvgpu_runlist_append_prio(f, runlist, runlist_entry,
+			entries_left,
+			NVGPU_FIFO_RUNLIST_INTERLEAVE_LEVEL_HIGH);
+}
+
+static u32 nvgpu_runlist_append_med(struct fifo_gk20a *f,
+				struct fifo_runlist_info_gk20a *runlist,
+				u32 **runlist_entry,
+				u32 *entries_left)
+{
+	u32 count = 0;
+	unsigned long tsgid;
+
+	nvgpu_log_fn(f->g, " ");
+
+	for_each_set_bit(tsgid, runlist->active_tsgs, f->num_channels) {
+		struct tsg_gk20a *tsg = &f->tsg[tsgid];
+		u32 entries;
+
+		if (tsg->interleave_level !=
+				NVGPU_FIFO_RUNLIST_INTERLEAVE_LEVEL_MEDIUM) {
 			continue;
 		}
 
-		if (!last_level && !skip_next) {
-			runlist_entry = gk20a_runlist_construct_locked(f,
-							runlist,
-							cur_level + 1,
-							runlist_entry,
-							interleave_enabled,
-							false,
-							entries_left);
-			if (!interleave_enabled) {
-				skip_next = true;
-			}
-		}
+		/* LEVEL_MEDIUM list starts with a LEVEL_HIGH, if any */
 
-		n = nvgpu_runlist_append_tsg(g, runlist, runlist_entry,
-				entries_left, tsg);
-		if (n == RUNLIST_APPEND_FAILURE) {
-			return NULL;
+		entries = nvgpu_runlist_append_hi(f, runlist,
+				runlist_entry, entries_left);
+		if (entries == RUNLIST_APPEND_FAILURE) {
+			return RUNLIST_APPEND_FAILURE;
 		}
-		count += n;
+		count += entries;
+
+		entries = nvgpu_runlist_append_tsg(f->g, runlist,
+				runlist_entry, entries_left, tsg);
+		if (entries == RUNLIST_APPEND_FAILURE) {
+			return RUNLIST_APPEND_FAILURE;
+		}
+		count += entries;
 	}
 
-	/* append entries from higher level if this level is empty */
-	if ((count == 0U) && !last_level) {
-		runlist_entry = gk20a_runlist_construct_locked(f,
-							runlist,
-							cur_level + 1,
-							runlist_entry,
-							interleave_enabled,
-							true,
-							entries_left);
+	return count;
+}
+
+static u32 nvgpu_runlist_append_low(struct fifo_gk20a *f,
+				struct fifo_runlist_info_gk20a *runlist,
+				u32 **runlist_entry,
+				u32 *entries_left)
+{
+	u32 count = 0;
+	unsigned long tsgid;
+
+	nvgpu_log_fn(f->g, " ");
+
+	for_each_set_bit(tsgid, runlist->active_tsgs, f->num_channels) {
+		struct tsg_gk20a *tsg = &f->tsg[tsgid];
+		u32 entries;
+
+		if (tsg->interleave_level !=
+				NVGPU_FIFO_RUNLIST_INTERLEAVE_LEVEL_LOW) {
+			continue;
+		}
+
+		/* The medium level starts with the highs, if any. */
+
+		entries = nvgpu_runlist_append_med(f, runlist,
+				runlist_entry, entries_left);
+		if (entries == RUNLIST_APPEND_FAILURE) {
+			return RUNLIST_APPEND_FAILURE;
+		}
+		count += entries;
+
+		entries = nvgpu_runlist_append_hi(f, runlist,
+				runlist_entry, entries_left);
+		if (entries == RUNLIST_APPEND_FAILURE) {
+			return RUNLIST_APPEND_FAILURE;
+		}
+		count += entries;
+
+		entries = nvgpu_runlist_append_tsg(f->g, runlist,
+				runlist_entry, entries_left, tsg);
+		if (entries == RUNLIST_APPEND_FAILURE) {
+			return RUNLIST_APPEND_FAILURE;
+		}
+		count += entries;
 	}
+
+	if (count == 0U) {
+		/*
+		 * No transitions to fill with higher levels, so add
+		 * the next level once. If that's empty too, we have only
+		 * LEVEL_HIGH jobs.
+		 */
+		count = nvgpu_runlist_append_med(f, runlist,
+				runlist_entry, entries_left);
+		if (count == 0U) {
+			count = nvgpu_runlist_append_hi(f, runlist,
+					runlist_entry, entries_left);
+		}
+	}
+
+	return count;
+}
+
+static u32 nvgpu_runlist_append_flat(struct fifo_gk20a *f,
+				struct fifo_runlist_info_gk20a *runlist,
+				u32 **runlist_entry,
+				u32 *entries_left)
+{
+	u32 count = 0, entries, i;
+
+	nvgpu_log_fn(f->g, " ");
+
+	/* Group by priority but don't interleave. High comes first. */
+
+	for (i = 0; i < NVGPU_FIFO_RUNLIST_INTERLEAVE_NUM_LEVELS; i++) {
+		u32 level = NVGPU_FIFO_RUNLIST_INTERLEAVE_LEVEL_HIGH - i;
+
+		entries = nvgpu_runlist_append_prio(f, runlist, runlist_entry,
+				entries_left, level);
+		if (entries == RUNLIST_APPEND_FAILURE) {
+			return RUNLIST_APPEND_FAILURE;
+		}
+		count += entries;
+	}
+
+	return count;
+}
+
+u32 nvgpu_runlist_construct_locked(struct fifo_gk20a *f,
+				struct fifo_runlist_info_gk20a *runlist,
+				u32 buf_id,
+				u32 max_entries)
+{
+	u32 *runlist_entry_base = runlist->mem[buf_id].cpu_va;
+
+	nvgpu_log_fn(f->g, " ");
 
 	/*
-	 * if previous and this level have entries, append
-	 * entries from higher level.
-	 *
-	 * ex. dropping from MEDIUM to LOW, need to insert HIGH
+	 * The entry pointer and capacity counter that live on the stack here
+	 * keep track of the current position and the remaining space when tsg
+	 * and channel entries are ultimately appended.
 	 */
-	if (interleave_enabled && (count != 0U) && !prev_empty && !last_level) {
-		runlist_entry = gk20a_runlist_construct_locked(f,
-							runlist,
-							cur_level + 1,
-							runlist_entry,
-							interleave_enabled,
-							false,
-							entries_left);
+	if (f->g->runlist_interleave) {
+		return nvgpu_runlist_append_low(f, runlist,
+				&runlist_entry_base, &max_entries);
+	} else {
+		return nvgpu_runlist_append_flat(f, runlist,
+				&runlist_entry_base, &max_entries);
 	}
-	return runlist_entry;
 }
 
 int gk20a_fifo_set_runlist_interleave(struct gk20a *g,
@@ -3515,12 +3632,10 @@ int gk20a_fifo_update_runlist_locked(struct gk20a *g, u32 runlist_id,
 	int ret = 0;
 	struct fifo_gk20a *f = &g->fifo;
 	struct fifo_runlist_info_gk20a *runlist = NULL;
-	u32 *runlist_entry_base = NULL;
 	u64 runlist_iova;
 	u32 new_buf;
 	struct channel_gk20a *ch = NULL;
 	struct tsg_gk20a *tsg = NULL;
-	u32 runlist_entry_words = f->runlist_entry_size / (u32)sizeof(u32);
 
 	runlist = &f->runlist_info[runlist_id];
 
@@ -3567,30 +3682,19 @@ int gk20a_fifo_update_runlist_locked(struct gk20a *g, u32 runlist_id,
 		goto clean_up;
 	}
 
-	runlist_entry_base = runlist->mem[new_buf].cpu_va;
-	if (runlist_entry_base == NULL) {
-		ret = -ENOMEM;
-		goto clean_up;
-	}
-
 	if (chid != FIFO_INVAL_CHANNEL_ID || /* add/remove a valid channel */
 	    add /* resume to add all channels back */) {
-		u32 max_entries = f->num_runlist_entries;
-		u32 *runlist_end;
+		u32 num_entries;
 
-		runlist_end = gk20a_runlist_construct_locked(f,
+		num_entries = nvgpu_runlist_construct_locked(f,
 						runlist,
-						0,
-						runlist_entry_base,
-						g->runlist_interleave,
-						true,
-						&max_entries);
-		if (runlist_end == NULL) {
+						new_buf,
+						f->num_runlist_entries);
+		if (num_entries == RUNLIST_APPEND_FAILURE) {
 			ret = -E2BIG;
 			goto clean_up;
 		}
-		runlist->count = (runlist_end - runlist_entry_base) /
-			runlist_entry_words;
+		runlist->count = num_entries;
 		WARN_ON(runlist->count > f->num_runlist_entries);
 	} else {
 		/* suspend to remove all channels */

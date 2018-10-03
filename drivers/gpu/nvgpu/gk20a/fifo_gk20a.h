@@ -33,10 +33,10 @@ struct channel_gk20a;
 struct tsg_gk20a;
 
 enum {
-	NVGPU_FIFO_RUNLIST_INTERLEAVE_LEVEL_LOW = 0,
-	NVGPU_FIFO_RUNLIST_INTERLEAVE_LEVEL_MEDIUM,
-	NVGPU_FIFO_RUNLIST_INTERLEAVE_LEVEL_HIGH,
-	NVGPU_FIFO_RUNLIST_INTERLEAVE_NUM_LEVELS,
+	NVGPU_FIFO_RUNLIST_INTERLEAVE_LEVEL_LOW = 0U,
+	NVGPU_FIFO_RUNLIST_INTERLEAVE_LEVEL_MEDIUM = 1U,
+	NVGPU_FIFO_RUNLIST_INTERLEAVE_LEVEL_HIGH = 2U,
+	NVGPU_FIFO_RUNLIST_INTERLEAVE_NUM_LEVELS = 3U,
 };
 
 #define MAX_RUNLIST_BUFFERS		2
@@ -406,13 +406,11 @@ int gk20a_fifo_setup_userd(struct channel_gk20a *c);
 u32 gk20a_fifo_pbdma_acquire_val(u64 timeout);
 
 
-u32 *gk20a_runlist_construct_locked(struct fifo_gk20a *f,
+#define RUNLIST_APPEND_FAILURE 0xffffffffU
+u32 nvgpu_runlist_construct_locked(struct fifo_gk20a *f,
 				struct fifo_runlist_info_gk20a *runlist,
-				u32 cur_level,
-				u32 *runlist_entry,
-				bool interleave_enabled,
-				bool prev_empty,
-				u32 *entries_left);
+				u32 buf_id,
+				u32 max_entries);
 void gk20a_fifo_runlist_hw_submit(struct gk20a *g, u32 runlist_id,
 	u32 count, u32 buffer_index);
 int gk20a_fifo_runlist_wait_pending(struct gk20a *g, u32 runlist_id);
