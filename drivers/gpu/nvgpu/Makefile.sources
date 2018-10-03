@@ -222,21 +222,4 @@ srcs :=	os/posix/nvgpu.c \
 	gv100/pmu_gv100.c \
 	gv100/perf_gv100.c \
 	gv100/gsp_gv100.c \
-	gv100/clk_gv100.c \
-	common/bus/bus_tu104.c	\
-	common/fb/fb_tu104.c	\
-	common/ltc/ltc_tu104.c	\
-	common/mc/mc_tu104.c	\
-	tu104/bios_tu104.c	\
-	tu104/ecc_tu104.c	\
-	tu104/fbpa_tu104.c	\
-	tu104/fifo_tu104.c	\
-	tu104/flcn_tu104.c	\
-	tu104/gr_ctx_tu104.c	\
-	tu104/gr_tu104.c	\
-	tu104/hal_tu104.c	\
-	tu104/nvlink_tu104.c	\
-	tu104/sec2_tu104.c	\
-	tu104/func_tu104.c	\
-	tu104/regops_tu104.c \
-	tu104/acr_tu104.c
+	gv100/clk_gv100.c

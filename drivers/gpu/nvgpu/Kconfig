@@ -146,10 +146,3 @@ config NVGPU_USE_TEGRA_ALLOC_FD
 	  fd limit.
 
 	  It is only available in Tegra kernel.
-
-config TEGRA_GPU_NEXT
-	bool "Turing family GPU"
-	depends on GK20A && ARCH_TEGRA_19x_SOC
-	default y
-	help
-	  Support for NVIDIA Turing family of GPU
