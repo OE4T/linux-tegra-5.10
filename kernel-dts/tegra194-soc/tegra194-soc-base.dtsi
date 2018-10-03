@@ -758,30 +758,6 @@
 		status = "disabled";
 	};
 
-	hsp_pva0: tegra-hsp@16160000 {
-		compatible = "nvidia,tegra186-hsp";
-		reg = <0x0 0x16160000 0x0 0x00090000>;
-		interrupts = <0 234 0x04>;
-		interrupt-names = "shared0";
-		nvidia,num-SM = <0x8>; /* num of shared mailboxes  */
-		nvidia,num-SS = <0x4>; /* num of shared semaphores */
-		nvidia,num-SI = <0x5>; /* num of shared interrupts */
-		nvidia,mbox-ie;
-		status = "disabled";
-	};
-
-	hsp_pva1: tegra-hsp@16960000 {
-		compatible = "nvidia,tegra186-hsp";
-		reg = <0x0 0x16960000 0x0 0x00090000>;
-		interrupts = <0 235 0x04>;
-		interrupt-names = "shared0";
-		nvidia,num-SM = <0x8>; /* num of shared mailboxes  */
-		nvidia,num-SS = <0x4>; /* num of shared semaphores */
-		nvidia,num-SI = <0x5>; /* num of shared interrupts */
-		nvidia,mbox-ie;
-		status = "disabled";
-	};
-
 	efuse@3820000 {
 		compatible = "nvidia,tegra194-efuse";
 		reg = <0x0 0x03820000 0x0 0x600>;
