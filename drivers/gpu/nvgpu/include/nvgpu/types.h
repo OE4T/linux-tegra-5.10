@@ -60,11 +60,14 @@
 #define U32(x)	((u32)(x))
 #define U64(x)	((u64)(x))
 
-/* Linux uses U8_MAX instead of UCHAR_MAX. We define it here for non-Linux
- * OSes
+/* Linux uses U8_MAX, U32_MAX, etc instead of UCHAR_MAX, UINT32_MAX. We define
+ * them here for non-Linux OSes
  */
 #if !defined(__KERNEL__) && !defined(U8_MAX)
-#define U8_MAX ((u8)255)
+#define U8_MAX		((u8)~0U)
+#define U16_MAX		((u16)~0U)
+#define U32_MAX		((u32)~0U)
+#define U64_MAX		((u64)~0ULL)
 #endif
 
 #endif /* NVGPU_TYPES_H */
