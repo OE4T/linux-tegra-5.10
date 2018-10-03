@@ -4,7 +4,6 @@ ccflags-y += -I$(srctree.nvgpu)/drivers/gpu/nvgpu/include
 ccflags-y += -I$(srctree.nvgpu)/drivers/gpu/nvgpu
 ccflags-y += -I$(srctree.nvgpu)/include
 ccflags-y += -I$(srctree.nvgpu)/include/uapi
-ccflags-y += -I$(srctree.nvgpu-next)/drivers/gpu/nvgpu
 
 ccflags-y += -I$(srctree)/drivers/devfreq
 
@@ -370,3 +369,27 @@ nvgpu-y += \
 	lpwr/rppg.o \
 	lpwr/lpwr.o \
 	gv100/clk_gv100.o
+
+nvgpu-$(CONFIG_TEGRA_GPU_NEXT) += \
+	common/bus/bus_tu104.o \
+	common/fb/fb_tu104.o \
+	common/ltc/ltc_tu104.o \
+	common/mc/mc_tu104.o
+
+nvgpu-$(CONFIG_TEGRA_GPU_NEXT) += \
+	tu104/hal_tu104.o \
+	tu104/fifo_tu104.o \
+	tu104/gr_tu104.o \
+	tu104/func_tu104.o \
+	tu104/bios_tu104.o \
+	tu104/nvlink_tu104.o \
+	tu104/fbpa_tu104.o \
+	tu104/gr_ctx_tu104.o \
+	tu104/flcn_tu104.o \
+	tu104/sec2_tu104.o \
+	tu104/ecc_tu104.o \
+	tu104/regops_tu104.o \
+	tu104/acr_tu104.o
+
+nvgpu-$(CONFIG_TEGRA_GPU_NEXT) += \
+	os/linux/os_ops_tu104.o
