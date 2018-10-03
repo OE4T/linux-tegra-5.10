@@ -31,6 +31,7 @@
 
 #include "gk20a/mm_gk20a.h"
 #include "gk20a/fence_gk20a.h"
+#include "gk20a/ce2_gk20a.h"
 
 /*
  * This is expected to be called from the shutdown path (or the error path in

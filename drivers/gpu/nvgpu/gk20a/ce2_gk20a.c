@@ -33,6 +33,7 @@
 
 #include "gk20a.h"
 #include "gk20a/fence_gk20a.h"
+#include "gk20a/ce2_gk20a.h"
 
 #include <nvgpu/hw/gk20a/hw_ce2_gk20a.h>
 #include <nvgpu/hw/gk20a/hw_pbdma_gk20a.h>
@@ -331,9 +332,17 @@ int gk20a_ce_prepare_submit(u64 src_buf,
 /* global CE app related apis */
 int gk20a_init_ce_support(struct gk20a *g)
 {
-	struct gk20a_ce_app *ce_app = &g->ce_app;
+	struct gk20a_ce_app *ce_app = g->ce_app;
 	int err;
 	u32 ce_reset_mask;
+
+	if (unlikely(ce_app == NULL)) {
+		ce_app = nvgpu_kzalloc(g, sizeof(*ce_app));
+		if (ce_app == NULL) {
+			return -ENOMEM;
+		}
+		g->ce_app = ce_app;
+	}
 
 	ce_reset_mask = gk20a_fifo_get_all_ce_engine_reset_mask(g);
 
@@ -377,11 +386,15 @@ int gk20a_init_ce_support(struct gk20a *g)
 
 void gk20a_ce_destroy(struct gk20a *g)
 {
-	struct gk20a_ce_app *ce_app = &g->ce_app;
+	struct gk20a_ce_app *ce_app = g->ce_app;
 	struct gk20a_gpu_ctx *ce_ctx, *ce_ctx_save;
 
-	if (!ce_app->initialised) {
+	if (ce_app == NULL) {
 		return;
+	}
+
+	if (ce_app->initialised == false) {
+		goto free;
 	}
 
 	ce_app->app_state = NVGPU_CE_SUSPEND;
@@ -401,11 +414,13 @@ void gk20a_ce_destroy(struct gk20a *g)
 	nvgpu_mutex_release(&ce_app->app_mutex);
 
 	nvgpu_mutex_destroy(&ce_app->app_mutex);
+free:
+	nvgpu_kfree(g, ce_app);
 }
 
 void gk20a_ce_suspend(struct gk20a *g)
 {
-	struct gk20a_ce_app *ce_app = &g->ce_app;
+	struct gk20a_ce_app *ce_app = g->ce_app;
 
 	if (!ce_app->initialised) {
 		return;
@@ -423,7 +438,7 @@ u32 gk20a_ce_create_context(struct gk20a *g,
 		int runlist_level)
 {
 	struct gk20a_gpu_ctx *ce_ctx;
-	struct gk20a_ce_app *ce_app = &g->ce_app;
+	struct gk20a_ce_app *ce_app = g->ce_app;
 	struct nvgpu_gpfifo_args gpfifo_args;
 	u32 ctx_id = ~0;
 	int err = 0;
@@ -552,7 +567,7 @@ void gk20a_ce_delete_context(struct gk20a *g,
 void gk20a_ce_delete_context_priv(struct gk20a *g,
 		u32 ce_ctx_id)
 {
-	struct gk20a_ce_app *ce_app = &g->ce_app;
+	struct gk20a_ce_app *ce_app = g->ce_app;
 	struct gk20a_gpu_ctx *ce_ctx, *ce_ctx_save;
 
 	if (!ce_app->initialised || ce_app->app_state != NVGPU_CE_ACTIVE) {

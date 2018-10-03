@@ -29,6 +29,7 @@ struct fifo_gk20a;
 struct channel_gk20a;
 struct gr_gk20a;
 struct sim_nvgpu;
+struct gk20a_ce_app;
 struct gk20a_ctxsw_ucode_segments;
 struct gk20a_fecs_trace;
 struct gk20a_ctxsw_trace;
@@ -70,7 +71,6 @@ struct nvgpu_gpfifo_args;
 #include <nvgpu/sec2.h>
 
 #include "gk20a/clk_gk20a.h"
-#include "gk20a/ce2_gk20a.h"
 #include "gk20a/fifo_gk20a.h"
 #include "clk/clk.h"
 #include "pmu_perf/pmu_perf.h"
@@ -1631,7 +1631,7 @@ struct gk20a {
 
 	nvgpu_atomic_t clk_arb_global_nr;
 
-	struct gk20a_ce_app ce_app;
+	struct gk20a_ce_app *ce_app;
 
 	bool ltc_intr_en_illegal_compstat;
 

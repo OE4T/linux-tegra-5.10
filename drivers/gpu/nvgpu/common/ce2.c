@@ -53,7 +53,7 @@ int gk20a_ce_execute_ops(struct gk20a *g,
 		struct gk20a_fence **gk20a_fence_out)
 {
 	int ret = -EPERM;
-	struct gk20a_ce_app *ce_app = &g->ce_app;
+	struct gk20a_ce_app *ce_app = g->ce_app;
 	struct gk20a_gpu_ctx *ce_ctx, *ce_ctx_save;
 	bool found = false;
 	u32 *cmd_buf_cpu_va;

@@ -31,6 +31,8 @@
 #include <nvgpu/enabled.h>
 #include <nvgpu/gk20a.h>
 
+#include "gk20a/ce2_gk20a.h"
+
 /*
  * Attempt to find a reserved memory area to determine PTE size for the passed
  * mapping. If no reserved area can be found use small pages.
