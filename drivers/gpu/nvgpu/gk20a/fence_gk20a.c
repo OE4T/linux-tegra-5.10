@@ -32,9 +32,9 @@
 #include <nvgpu/channel.h>
 
 struct gk20a_fence_ops {
-	int (*wait)(struct gk20a_fence *, long timeout);
-	bool (*is_expired)(struct gk20a_fence *);
-	void *(*free)(struct nvgpu_ref *);
+	int (*wait)(struct gk20a_fence *f, long timeout);
+	bool (*is_expired)(struct gk20a_fence *f);
+	void *(*free)(struct nvgpu_ref *ref);
 };
 
 static void gk20a_fence_free(struct nvgpu_ref *ref)

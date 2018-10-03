@@ -241,7 +241,7 @@ struct gr_gk20a_isr_data {
 };
 
 struct gr_ctx_buffer_desc {
-	void (*destroy)(struct gk20a *, struct gr_ctx_buffer_desc *);
+	void (*destroy)(struct gk20a *g, struct gr_ctx_buffer_desc *desc);
 	struct nvgpu_mem mem;
 	void *priv;
 };

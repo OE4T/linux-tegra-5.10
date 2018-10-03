@@ -53,8 +53,8 @@ enum {
 	SEC2_SEQ_STATE_CANCELLED
 };
 
-typedef void (*sec2_callback)(struct gk20a *, struct nv_flcn_msg_sec2 *,
-	void *, u32, u32);
+typedef void (*sec2_callback)(struct gk20a *g, struct nv_flcn_msg_sec2 *msg,
+	void *param, u32 handle, u32 status);
 
 struct sec2_sequence {
 	u8 id;

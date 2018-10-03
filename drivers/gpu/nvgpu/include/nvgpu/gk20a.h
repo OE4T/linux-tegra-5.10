@@ -669,7 +669,7 @@ struct gpu_ops {
 					u32 runlist_id,
 					u32 new_level);
 		int (*tsg_set_timeslice)(struct tsg_gk20a *tsg, u32 timeslice);
-		u32 (*default_timeslice_us)(struct gk20a *);
+		u32 (*default_timeslice_us)(struct gk20a *g);
 		int (*force_reset_ch)(struct channel_gk20a *ch,
 					u32 err_code, bool verbose);
 		enum fifo_engine (*engine_enum_from_type)(struct gk20a *g,
@@ -1241,7 +1241,7 @@ struct gpu_ops {
 		int (*read_ptimer)(struct gk20a *g, u64 *value);
 		int (*get_timestamps_zipper)(struct gk20a *g,
 			u32 source_id, u32 count,
-			struct nvgpu_cpu_time_correlation_sample *);
+			struct nvgpu_cpu_time_correlation_sample *samples);
 	} ptimer;
 
 	struct {
@@ -1561,7 +1561,7 @@ struct gk20a {
 	bool global_profiler_reservation_held;
 	int profiler_reservation_count;
 
-	void (*remove_support)(struct gk20a *);
+	void (*remove_support)(struct gk20a *g);
 
 	u64 pg_ingating_time_us;
 	u64 pg_ungating_time_us;

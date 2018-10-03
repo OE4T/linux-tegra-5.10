@@ -190,7 +190,7 @@ struct fifo_gk20a {
 	struct tsg_gk20a *tsg;
 	struct nvgpu_mutex tsg_inuse_mutex;
 
-	void (*remove_support)(struct fifo_gk20a *);
+	void (*remove_support)(struct fifo_gk20a *f);
 	bool sw_ready;
 	struct {
 		/* share info between isrs and non-isr code */

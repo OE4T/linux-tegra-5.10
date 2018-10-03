@@ -186,8 +186,8 @@ enum {
 			(_size), _cb, _cbp, false);	\
 	} while (0)
 
-typedef void (*pmu_callback)(struct gk20a *, struct pmu_msg *, void *, u32,
-	u32);
+typedef void (*pmu_callback)(struct gk20a *g, struct pmu_msg *msg, void *param,
+		u32 handle, u32 status);
 
 struct rpc_handler_payload {
 	void *rpc_buff;
