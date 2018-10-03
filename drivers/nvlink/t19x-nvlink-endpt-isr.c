@@ -62,16 +62,16 @@ static void nvlw_config_intr(struct tnvlink_dev *tdev)
 	nvlw_tioctrl_writel(tdev, NVLW_COMMON_INTR_2_MASK, reg_val);
 
 	/* Configure link specific registers */
-	reg_val = BIT(NVLW_LINK_INTR_0_MASK_FATAL);
+	reg_val = BIT(NVLW_LINK_INTR_0_MASK_FATAL) |
+			BIT(NVLW_LINK_INTR_0_MASK_INTRA);
 	nvlw_tioctrl_writel(tdev, NVLW_LINK_INTR_0_MASK, reg_val);
 
 	reg_val = BIT(NVLW_LINK_INTR_1_MASK_NONFATAL) |
-			BIT(NVLW_LINK_INTR_1_MASK_CORRECTABLE);
+			BIT(NVLW_LINK_INTR_1_MASK_CORRECTABLE) |
+			BIT(NVLW_LINK_INTR_1_MASK_INTRB);
 	nvlw_tioctrl_writel(tdev, NVLW_LINK_INTR_1_MASK, reg_val);
 
-	reg_val = BIT(NVLW_LINK_INTR_2_MASK_INTRA) |
-			BIT(NVLW_LINK_INTR_2_MASK_INTRB);
-	nvlw_tioctrl_writel(tdev, NVLW_LINK_INTR_2_MASK, reg_val);
+	nvlw_tioctrl_writel(tdev, NVLW_LINK_INTR_2_MASK, 0);
 }
 
 /* Initialize NVLIPT common interrupts */
@@ -131,52 +131,38 @@ void nvlink_enable_dl_interrupts(struct tnvlink_dev *tdev)
 	nvlw_nvl_writel(tdev, NVL_INTR, 0xffffffff);
 	nvlw_nvl_writel(tdev, NVL_INTR_SW2, 0xffffffff);
 
-	/* Recommend non-fatal interrupt line.
-	 * This indicates that we have seen a significant number of bit errors
-	 * and need help. This will be flagged while we are still in the process
-	 * of transitioning to SWCFG.
-	 */
-	reg_val |= BIT(NVL_INTR_STALL_EN_TX_RECOVERY_LONG);
+	/* Enable Non Stall interrupts */
+	reg_val = BIT(NVL_SL1_ERROR_COUNT_CTRL_SHORT_RATE) |
+		NVL_SL1_ERROR_COUNT_CTRL_RATE_COUNT_MODE_F(
+		NVL_SL1_ERROR_COUNT_CTRL_RATE_COUNT_MODE_FLIT);
+	nvlw_nvl_writel(tdev, NVL_SL1_ERROR_COUNT_CTRL, reg_val);
 
-	/* Recommend fatal. Internal hardware parity fault. Reset required */
-	reg_val |= BIT(NVL_INTR_STALL_EN_TX_FAULT_RAM);
-	reg_val |= BIT(NVL_INTR_STALL_EN_TX_FAULT_INTERFACE);
-
-	/* Recommend fatal, should never happen? */
-	reg_val |= BIT(NVL_INTR_STALL_EN_TX_FAULT_SUBLINK_CHANGE);
-
-	/* Recommend to not enable interrupt OR treat similar to RECOVERY_LONG.
-	 * HW should end up failing and going to SWCFG.
-	 */
-	reg_val |= BIT(NVL_INTR_STALL_EN_RX_FAULT_SUBLINK_CHANGE);
-
-	/* Recommend fatal, should not happen except through software error
-	 * with AN0 injection mechanism
-	 */
-	reg_val |= BIT(NVL_INTR_STALL_EN_RX_FAULT_DL_PROTOCOL);
-
-	/* Recommend fatal (after initialization completed).
-	 * Internal hardware parity fault or other very bad condition,
-	 * link unusable.
-	 * EXCEPT during INIT->HWCFG where it indicates a failure
-	 * to get to safe mode (may still be fatal but retry)
-	 */
-	reg_val |= BIT(NVL_INTR_STALL_EN_LTSSM_FAULT);
-
-	/* Enable Stall interrupts */
-	nvlw_nvl_writel(tdev, NVL_INTR_STALL_EN, reg_val);
-
-	/* TODO: Check if below WAR is still needed */
-	/* Configure the error threshold that generates interrupt as a WAR
-	 * for bug 1710544
-	 */
-	reg_val = nvlw_nvl_readl(tdev, NVL_SL1_ERROR_RATE_CTRL);
-	reg_val |= NVL_SL1_ERROR_RATE_CTRL_SHORT_THRESHOLD_MAN_F(0x2);
-	reg_val |= NVL_SL1_ERROR_RATE_CTRL_LONG_THRESHOLD_MAN_F(0x2);
+	reg_val = NVL_SL1_ERROR_RATE_CTRL_SHORT_TIMESCALE_EXP_F(0x2) |
+		NVL_SL1_ERROR_RATE_CTRL_SHORT_TIMESCALE_MAN_F(0x5) |
+		BIT(NVL_SL1_ERROR_RATE_CTRL_SHORT_THRESHOLD_EXP) |
+		NVL_SL1_ERROR_RATE_CTRL_SHORT_THRESHOLD_MAN_F(0xc);
 	nvlw_nvl_writel(tdev, NVL_SL1_ERROR_RATE_CTRL, reg_val);
 
-	/* Don't hookup interrupts on NON-STALL line */
-	nvlw_nvl_writel(tdev, NVL_INTR_NONSTALL_EN, 0);
+	reg_val = BIT(NVL_INTR_NONSTALL_EN_RX_SHORT_ERROR_RATE);
+	nvlw_nvl_writel(tdev, NVL_INTR_NONSTALL_EN, reg_val);
+
+	/* Enable Stall interrupts */
+	/*
+	 * Note for FAULT_SUBLINK_CHANGE:
+	 *	Since we don't support LP mode on T19x, this error isn't
+	 *	relevant. Hence making it as fatal on the principle that
+	 *	anything that "shouldn't ever happen" should be fatal.
+	 *	If we ever support LP mode FAULT_SUBLINK_CHANGE needs to
+	 *	be handled differently.
+	 */
+	reg_val = BIT(NVL_INTR_STALL_EN_TX_RECOVERY_LONG) |
+		BIT(NVL_INTR_STALL_EN_TX_FAULT_RAM) |
+		BIT(NVL_INTR_STALL_EN_TX_FAULT_INTERFACE) |
+		BIT(NVL_INTR_STALL_EN_RX_FAULT_SUBLINK_CHANGE) |
+		BIT(NVL_INTR_STALL_EN_RX_FAULT_DL_PROTOCOL) |
+		BIT(NVL_INTR_STALL_EN_LTSSM_FAULT) |
+		BIT(NVL_INTR_STALL_EN_LTSSM_PROTOCOL);
+	nvlw_nvl_writel(tdev, NVL_INTR_STALL_EN, reg_val);
 }
 
 /* Enable TLC link interrupts */
@@ -652,192 +638,6 @@ static void nvlink_disable_tl_interrupts(struct tnvlink_dev *tdev)
 	nvlw_nvltlc_writel(tdev, NVLTLC_TX_ERR_REPORT_EN_0, 0);
 }
 
-/* Handles errors reported on a link. This will disable link interrupts
- *  for fatal, non-injected interrupts on the device that reports them
- */
-static void nvlink_handle_link_errors(struct tnvlink_dev *tdev,
-				struct nvlink_link_error_masks *err_masks,
-				u64 inforom_mask)
-{
-	if (err_masks->dl)
-		nvlink_disable_dl_interrupts(tdev);
-
-	/* Log publicly if a fatal NVLink error has occurred - these are never
-	 * expected.
-	 */
-	if (inforom_mask) {
-		nvlink_err("fatal error detected, inforom 0x%llx",
-					inforom_mask);
-		/* TODO :
-		 * Log a set of fatal errors that have occurred on the given
-		 * link to the NVL object in the InfoROM.
-		 */
-	}
-}
-
-int nvlink_service_dl_interrupts(struct tnvlink_dev *tdev,
-				 bool *retrain_from_safe)
-{
-	u32 nonfatal_mask = 0;
-	u32 fatal_mask = 0;
-	u32 inforom_mask = 0;
-	u32 intr_status = 0;
-	int ret = 0;
-	struct nvlink_link_error_masks err_masks = {0};
-
-	*retrain_from_safe = false;
-
-	/*
-	 * Mask DLPL intr register while reading it. This ensures that we
-	 * operate only on enabled interrupt bits. HW triggers interrupts when
-	 * (NVL_INTR & NVL_INTR_STALL_EN) is non-zero.
-	 * Hence, SW needs to follow the same masking logic to filter out
-	 * interrupts.
-	 */
-	intr_status = nvlw_nvl_readl(tdev, NVL_INTR) &
-			nvlw_nvl_readl(tdev, NVL_INTR_STALL_EN);
-
-	if (intr_status & BIT(NVL_INTR_TX_REPLAY)) {
-		nvlink_err("Non Fatal: TX Replay DL interrupt hit on link");
-		nonfatal_mask |= BIT(NVL_INTR_TX_REPLAY);
-	}
-
-	if (intr_status & BIT(NVL_INTR_TX_RECOVERY_SHORT)) {
-		nvlink_err("Non Fatal: TX Recovery Short DL interrupt hit"
-				" on link");
-		nonfatal_mask |= BIT(NVL_INTR_TX_RECOVERY_SHORT);
-	}
-
-	if (intr_status & BIT(NVL_INTR_TX_RECOVERY_LONG)) {
-		nvlink_err("Fatal: TX Recovery Long DL interrupt hit on link");
-		nvlink_err("Retraining from SAFE");
-		nonfatal_mask |= BIT(NVL_INTR_TX_RECOVERY_LONG);
-		inforom_mask |= BIT(DL_TX_RECOVERY_LONG);
-		*retrain_from_safe = true;
-	}
-
-	if (intr_status & BIT(NVL_INTR_TX_FAULT_RAM)) {
-		nvlink_err("Fatal: TX Fault RAM DL interrupt hit on link");
-		nvlink_err("Reset Required");
-		fatal_mask |= BIT(NVL_INTR_TX_FAULT_RAM);
-		inforom_mask |= BIT(DL_TX_FAULT_RAM);
-	}
-
-	if (intr_status & BIT(NVL_INTR_TX_FAULT_INTERFACE)) {
-		nvlink_err("Fatal: TX Fault Interface DL interrupt hit on"
-				" link");
-		nvlink_err("Reset Required");
-		fatal_mask |= BIT(NVL_INTR_TX_FAULT_INTERFACE);
-		inforom_mask |= BIT(DL_TX_FAULT_INTERFACE);
-	}
-
-	if (intr_status & BIT(NVL_INTR_TX_FAULT_SUBLINK_CHANGE)) {
-		nvlink_err("Fatal: TX Fault Sublink Change DL interrupt hit"
-				" on link ");
-		fatal_mask |= BIT(NVL_INTR_TX_FAULT_SUBLINK_CHANGE);
-		inforom_mask |= BIT(DL_TX_FAULT_SUBLINK_CHANGE);
-	}
-
-	if (intr_status & BIT(NVL_INTR_RX_FAULT_SUBLINK_CHANGE)) {
-		nvlink_err("Fatal: RX Fault Sublink Change DL interrupt hit"
-				" on link");
-		fatal_mask |= BIT(NVL_INTR_RX_FAULT_SUBLINK_CHANGE);
-		inforom_mask |= BIT(DL_RX_FAULT_SUBLINK_CHANGE);
-	}
-
-	if (intr_status & BIT(NVL_INTR_RX_FAULT_DL_PROTOCOL)) {
-		nvlink_err("Fatal: RX Fault DL Protocol interrupt hit on link");
-		fatal_mask |= BIT(NVL_INTR_RX_FAULT_DL_PROTOCOL);
-		inforom_mask |= BIT(DL_RX_FAULT_DL_PROTOCOL);
-	}
-
-	if (intr_status & BIT(NVL_INTR_RX_SHORT_ERROR_RATE)) {
-		nvlink_err("Non Fatal: RX Short Error Rate DL interrupt hit"
-				" on link ");
-		nonfatal_mask |= BIT(NVL_INTR_RX_SHORT_ERROR_RATE);
-	}
-
-	if (intr_status & BIT(NVL_INTR_RX_LONG_ERROR_RATE)) {
-		nvlink_err("Non Fatal: RX Long Error Rate Change DL interrupt"
-				" hit on link");
-		nonfatal_mask |= BIT(NVL_INTR_RX_LONG_ERROR_RATE);
-	}
-
-	if (intr_status & BIT(NVL_INTR_RX_ILA_TRIGGER)) {
-		nvlink_err("Non Fatal: RX internal Logic Analyzer DL interrupt"
-				" hit on link. Ignore");
-		nonfatal_mask |= BIT(NVL_INTR_RX_ILA_TRIGGER);
-	}
-
-	if (intr_status & BIT(NVL_INTR_LTSSM_FAULT)) {
-		nvlink_err("Fatal: LTSSM Fault DL interrupt hit on link ");
-		fatal_mask |= BIT(NVL_INTR_LTSSM_FAULT);
-		inforom_mask |= BIT(DL_LTSSM_FAULT);
-	}
-
-	if (intr_status & BIT(NVL_INTR_LTSSM_PROTOCOL)) {
-		nvlink_err("Non Fatal: LTSSM Protocol DL interrupt hit on link."
-				" Ignore for now");
-		nonfatal_mask |= BIT(NVL_INTR_LTSSM_PROTOCOL);
-	}
-
-	if ((fatal_mask | nonfatal_mask) != 0) {
-		intr_status &= ~(nonfatal_mask | fatal_mask);
-
-		if (intr_status) {
-			/* did not log all interrupts received */
-			nvlink_err("Unable to service enabled interrupts for"
-				" link");
-			ret = -1;
-		}
-	}
-
-	if (fatal_mask)
-		*retrain_from_safe = false;
-
-	/*
-	 * NOTE: _TX_RECOVERY_LONG is non-fatal if handled by SW, but still
-	 * should be logged to inforom here.
-	 */
-	if (fatal_mask | inforom_mask) {
-		err_masks.dl = fatal_mask;
-		nvlink_handle_link_errors(tdev, &err_masks, inforom_mask);
-	}
-
-	if (*retrain_from_safe) {
-		if (tdev->rm_shim_enabled) {
-			/*
-			 * FIXME: Fix the following hack. The proper solution
-			 * would be to increment the error recoveries count
-			 * after RM notifies us that the link has been
-			 * retrained.
-			 */
-			nvlink_dbg("We've encountered an error which requires"
-				" link retraining but we 're in RM shim driver"
-				" mode. And in RM shim driver mode we don't"
-				" know when RM will retrain the link. Currently"
-				" we just assume that RM will retrain the link"
-				" successfully. Therefore, we blindly increment"
-				" the successful error recoveries count.");
-			tdev->tlink.error_recoveries++;
-		} else {
-			if (nvlink_retrain_link(tdev, false)) {
-				nvlink_err("Fatal: Unable to retrain Link from"
-					" SAFE mode");
-				ret = -1;
-			}
-		}
-	}
-
-	/* Clear interrupt register (W1C) */
-	nvlw_nvl_writel(tdev, NVL_INTR, (nonfatal_mask | fatal_mask));
-
-	/* Always clear SW2 to cover sideband "err" interfaces to NVLIPT */
-	nvlw_nvl_writel(tdev, NVL_INTR_SW2, 0xffffffff);
-
-	return ret;
-}
-
 /* Get status of TL interrupts */
 static void nvltlc_get_intr_status(struct tnvlink_dev *tdev,
 				u32 *tlc_tx_err_status0,
@@ -882,7 +682,6 @@ static u32 nvlink_service_link(struct tnvlink_dev *tdev)
 	u32 tlc_tx_err_status0;
 	u32 tlc_rx_err_status0;
 	u32 tlc_rx_err_status1;
-	bool retrain_from_safe = false;
 
 	/*
 	 * Cache the error log register for clients.  Need to cache it here
@@ -895,8 +694,6 @@ static u32 nvlink_service_link(struct tnvlink_dev *tdev)
 	tdev->tlink.tlc_tx_err_status0 |= tlc_tx_err_status0;
 	tdev->tlink.tlc_rx_err_status0 |= tlc_rx_err_status0;
 	tdev->tlink.tlc_rx_err_status1 |= tlc_rx_err_status1;
-
-	nvlink_service_dl_interrupts(tdev, &retrain_from_safe);
 
 	/* NVLIPT is the IP top level, it goes last */
 	nvlink_service_nvlipt_interrupts(tdev);

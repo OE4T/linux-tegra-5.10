@@ -1084,18 +1084,11 @@ static int service_device_ioctl(struct tnvlink_dev *tdev, void *ioctl_struct)
 	int ret = 0;
 	struct tegra_nvlink_service_device *service_device =
 			(struct tegra_nvlink_service_device *)ioctl_struct;
-	bool retrain_from_safe = false;
 
 	if (service_device->link_mask !=
 			TNVLINK_LINK_ID_TO_MASK(tdev->ndev->link.link_id)) {
 		nvlink_err("Invalid link mask specified");
 		return -EINVAL;
-	}
-
-	ret = nvlink_service_dl_interrupts(tdev, &retrain_from_safe);
-	if ((ret == 0) && retrain_from_safe) {
-		service_device->retrain_from_safe_mask =
-			TNVLINK_LINK_ID_TO_MASK(tdev->ndev->link.link_id);
 	}
 
 	return ret;

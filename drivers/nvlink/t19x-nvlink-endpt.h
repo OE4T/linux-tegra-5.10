@@ -46,31 +46,6 @@ enum nvlink_refclk {
 	NVLINK_REFCLK_156
 };
 
-/* Struct used for passing around error masks in error handling functions */
-struct nvlink_link_error_masks {
-	u32 dl;
-	u32 tl;
-	u32 tl_injected;
-	u32 tlc_rx0;
-	u32 tlc_rx0_injected;
-	u32 tlc_rx1;
-	u32 tlc_rx1_injected;
-	u32 tlc_tx;
-	u32 tlc_tx_injected;
-};
-
-/* Fatal Errors */
-enum inforom_nvlink_fatal_err {
-	/* NVLink 2.0 */
-	DL_TX_RECOVERY_LONG,
-	DL_TX_FAULT_RAM,
-	DL_TX_FAULT_INTERFACE,
-	DL_TX_FAULT_SUBLINK_CHANGE,
-	DL_RX_FAULT_SUBLINK_CHANGE,
-	DL_RX_FAULT_DL_PROTOCOL,
-	DL_LTSSM_FAULT,
-};
-
 /*
  * This structure is used for storing parameters which describe the Single-Lane
  * (SL / 1/8th) mode policy. A few acronyms that are used in this structure are
@@ -233,8 +208,6 @@ void nvlink_enable_link_interrupts(struct tnvlink_dev *tdev);
 void nvlink_disable_link_interrupts(struct tnvlink_dev *tdev);
 void minion_service_falcon_intr(struct tnvlink_dev *tdev);
 void nvlink_disable_dl_interrupts(struct tnvlink_dev *tdev);
-int nvlink_service_dl_interrupts(struct tnvlink_dev *tdev,
-				bool *retrain_from_safe);
 irqreturn_t t19x_nvlink_endpt_isr(int irq, void *dev_id);
 
 void init_single_lane_params(struct tnvlink_dev *tdev);
