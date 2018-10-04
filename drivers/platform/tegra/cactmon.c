@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017, NVIDIA Corporation. All rights reserved.
+ * Copyright (C) 2017-2018, NVIDIA Corporation. All rights reserved.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -17,40 +17,16 @@
 #include <linux/platform/tegra/emc_bwmgr.h>
 #include <linux/platform/tegra/actmon_common.h>
 
-static struct actmon_drv_data *actmon;
-
 /************ START OF REG DEFINITION **************/
 /* Actmon common registers */
 #define ACTMON_GLB_CTRL				0x00
-/* ACTMON_MC_GLB_CTRL bit definitions */
-#define ACTMON_GLB_CTRL_SAMPLE_PERIOD_VAL_SHIFT 0
-#define ACTMON_GLB_CTRL_SAMPLE_PERIOD_MASK	(0xff << 0)
-#define ACTMON_GLB_CTRL_SMPL_PRD_SOURCE_VAL_SHIFT 8
-#define ACTMON_GLB_CTRL_SMPL_PRD_SOURCE_MASK (0x3 << 8)
-#define ACTMON_GLB_CTRL_SMPL_PRD_TICK (0x2)
-#define ACTMON_GLB_CTRL_SMPL_PRD_USEC (0x1)
-#define ACTMON_GLB_CTRL_SMPL_PRD_MLSEC (0x0)
-#define ACTMON_GLB_CTRL_SMPL_TICK_65536 (0x1 << 10)
-
 #define ACTMON_GLB_INT_EN			0x04
-/* ACTMON_MC_GLB_INT_ENABLE bit definitions */
-#define ACTMON_GLB_INT_EN_MC_CPU (0x1 << 0)
-#define ACTMON_GLB_INT_EN_MC_ALL (0x1 << 1)
-#define ACTMON_GLB_INT_EN_TSA_CHAIN0 (0x1 << 2)
-#define ACTMON_GLB_INT_EN_TSA_CHAIN1 (0x1 << 3)
-
 #define ACTMON_GLB_INT_STATUS			0x08
-#define ACTMON_GLB_INT_STATUS_MC_CPU (0x1 << 0)
-#define ACTMON_GLB_INT_STATUS_MC_ALL (0x1 << 1)
-#define ACTMON_GLB_INT_STATUS_TSA_CHAIN0 (0x1 << 2)
-#define ACTMON_GLB_INT_STATUS_TSA_CHAIN1 (0x1 << 3)
 
 /* Actmon device registers */
 /* ACTMON_*_CTRL_0 offset */
 #define ACTMON_DEV_CTRL				0x00
 /* ACTMON_*_CTRL_0 bit definitions */
-#define ACTMON_DEV_CTRL_ENB			(0x1 << 31)
-#define ACTMON_DEV_CTRL_CUMULATIVE_ENB		(0x1 << 30)
 #define ACTMON_DEV_CTRL_UP_WMARK_NUM_SHIFT	26
 #define ACTMON_DEV_CTRL_UP_WMARK_NUM_MASK	(0x7 << 26)
 #define ACTMON_DEV_CTRL_DOWN_WMARK_NUM_SHIFT	21
@@ -60,23 +36,15 @@ static struct actmon_drv_data *actmon;
 #define ACTMON_DEV_CTRL_K_VAL_MASK		(0x7 << 10)
 
 /* ACTMON_*_INTR_ENABLE_0 */
-#define ACTMON_DEV_INTR_ENB				0x04
+#define ACTMON_DEV_INTR_ENB			0x04
 /* ACTMON_*_INTR_ENABLE_0 bit definitions */
 #define ACTMON_DEV_INTR_UP_WMARK_ENB		(0x1 << 31)
 #define ACTMON_DEV_INTR_DOWN_WMARK_ENB		(0x1 << 30)
 #define ACTMON_DEV_INTR_AVG_UP_WMARK_ENB	(0x1 << 29)
-#define ACTMON_DEV_INTR_AVG_DOWN_WMARK_ENB (0x1 << 28)
-#define ACTMON_DEV_INTR_AT_END_ENB (0x1 << 27)
+#define ACTMON_DEV_INTR_AVG_DOWN_WMARK_ENB	(0x1 << 28)
 
 /* ACTMON_*_INTR_STAUS_0 */
-#define ACTMON_DEV_INTR_STATUS		0x08
-/* ACTMON_*_INTR_STATUS_0 bit definitions */
-#define ACTMON_DEV_INTR_UP_WMARK		(0x1 << 31)
-#define ACTMON_DEV_INTR_DOWN_WMARK		(0x1 << 30)
-#define ACTMON_DEV_INTR_AVG_DOWN_WMARK		(0x1 << 29)
-#define ACTMON_DEV_INTR_AVG_UP_WMARK		(0x1 << 28)
-#define ACTMON_DEV_INTR_AT_END			(0x1 << 27)
-
+#define ACTMON_DEV_INTR_STATUS			0x08
 /* ACTMON_*_UPPER_WMARK_0 */
 #define ACTMON_DEV_UP_WMARK			0x0c
 /* ACTMON_*_LOWER_WMARK_0 */
@@ -84,7 +52,7 @@ static struct actmon_drv_data *actmon;
 /* ACTMON_*_AVG_UPPER_WMARK_0 */
 #define ACTMON_DEV_AVG_UP_WMARK			0x14
 /* ACTMON_*_AVG_LOWER_WMARK_0 */
-#define ACTMON_DEV_AVG_DOWN_WMARK			0x18
+#define ACTMON_DEV_AVG_DOWN_WMARK		0x18
 /* ACTMON_*_AVG_INIT_AVG_0 */
 #define ACTMON_DEV_INIT_AVG			0x1c
 /* ACTMON_*_COUNT_0 */
@@ -94,11 +62,11 @@ static struct actmon_drv_data *actmon;
 /* ACTMON_*_AVG_COUNT_WEIGHT_0 */
 #define ACTMON_DEV_COUNT_WEGHT			0x28
 /* ACTMON_*_CUMULATIVE_COUNT_0 */
-#define ACTMON_DEV_CUMULATIVE_COUNT			0x2c
+#define ACTMON_DEV_CUMULATIVE_COUNT		0x2c
 /************ END OF REG DEFINITION **************/
 
 /******** start of actmon register operations **********/
-static void set_prd_t19x(u32 val, void __iomem *base)
+static void set_prd(u32 val, void __iomem *base)
 {
 	__raw_writel(val, base + ACTMON_GLB_CTRL);
 }
@@ -265,7 +233,7 @@ static void actmon_dev_set_rate(struct actmon_dev *adev,
 		TEGRA_BWMGR_SET_EMC_FLOOR);
 }
 
-static int cactmon_bwmgr_register_t19x(
+static int cactmon_bwmgr_register(
 	struct actmon_dev *adev, struct platform_device *pdev)
 {
 	struct tegra_bwmgr_client *bwclnt = (struct tegra_bwmgr_client *)
@@ -287,7 +255,7 @@ static int cactmon_bwmgr_register_t19x(
 }
 
 
-static void cactmon_bwmgr_unregister_t19x(
+static void cactmon_bwmgr_unregister(
 	struct actmon_dev *adev, struct platform_device *pdev)
 {
 	struct tegra_bwmgr_client *bwclnt = (struct tegra_bwmgr_client *)
@@ -302,13 +270,13 @@ static void cactmon_bwmgr_unregister_t19x(
 	}
 }
 
-static int actmon_dev_platform_init_t19x(struct actmon_dev *adev,
+static int actmon_dev_platform_init(struct actmon_dev *adev,
 		struct platform_device *pdev)
 {
 	struct tegra_bwmgr_client *bwclnt;
 	int ret = 0;
 
-	ret = cactmon_bwmgr_register_t19x(adev, pdev);
+	ret = cactmon_bwmgr_register(adev, pdev);
 	if (ret)
 		goto end;
 
@@ -335,14 +303,7 @@ end:
 	return ret;
 }
 
-static void actmon_reg_ops_init(struct platform_device *pdev)
-{
-	actmon->ops.set_sample_prd = set_prd_t19x;
-	actmon->ops.set_glb_intr = set_glb_intr;
-	actmon->ops.get_glb_intr_st = get_glb_intr_st;
-}
-
-static void cactmon_free_resource_t19x(
+static void cactmon_free_resource(
 	struct actmon_dev *adev, struct platform_device *pdev)
 {
 	int ret;
@@ -354,10 +315,10 @@ static void cactmon_free_resource_t19x(
 			adev->dev_name);
 		}
 	}
-	cactmon_bwmgr_unregister_t19x(adev, pdev);
+	cactmon_bwmgr_unregister(adev, pdev);
 }
 
-static int cactmon_reset_dinit_t19x(struct platform_device *pdev)
+static int cactmon_reset_dinit(struct platform_device *pdev)
 {
 	struct actmon_drv_data *actmon = platform_get_drvdata(pdev);
 	struct device *mon_dev = &pdev->dev;
@@ -372,7 +333,7 @@ static int cactmon_reset_dinit_t19x(struct platform_device *pdev)
 	return ret;
 }
 
-static int cactmon_reset_init_t19x(struct platform_device *pdev)
+static int cactmon_reset_init(struct platform_device *pdev)
 {
 	struct actmon_drv_data *actmon = platform_get_drvdata(pdev);
 	struct device *mon_dev = &pdev->dev;
@@ -393,7 +354,7 @@ static int cactmon_reset_init_t19x(struct platform_device *pdev)
 }
 
 
-static int cactmon_clk_disable_t19x(struct platform_device *pdev)
+static int cactmon_clk_disable(struct platform_device *pdev)
 {
 	struct actmon_drv_data *actmon = platform_get_drvdata(pdev);
 	struct device *mon_dev = &pdev->dev;
@@ -409,7 +370,7 @@ static int cactmon_clk_disable_t19x(struct platform_device *pdev)
 	return ret;
 }
 
-static int cactmon_clk_enable_t19x(struct platform_device *pdev)
+static int cactmon_clk_enable(struct platform_device *pdev)
 {
 	struct actmon_drv_data *actmon = platform_get_drvdata(pdev);
 	struct device *mon_dev = &pdev->dev;
@@ -436,60 +397,46 @@ end:
 	return ret;
 }
 
-static int __init actmon_platform_init_t19x(struct platform_device *pdev)
+static struct actmon_drv_data actmon_data =
 {
-	actmon->clock_init = cactmon_clk_enable_t19x;
-	actmon->clock_deinit = cactmon_clk_disable_t19x;
-	actmon->reset_init = cactmon_reset_init_t19x;
-	actmon->reset_deinit = cactmon_reset_dinit_t19x;
-	actmon->dev_free_resource = cactmon_free_resource_t19x;
-	actmon->actmon_dev_platform_init = actmon_dev_platform_init_t19x;
-	actmon_reg_ops_init(pdev);
-	return 0;
-}
+	.clock_init = cactmon_clk_enable,
+	.clock_deinit = cactmon_clk_disable,
+	.reset_init = cactmon_reset_init,
+	.reset_deinit = cactmon_reset_dinit,
+	.dev_free_resource = cactmon_free_resource,
+	.actmon_dev_platform_init = actmon_dev_platform_init,
+	.ops.set_sample_prd = set_prd,
+	.ops.set_glb_intr = set_glb_intr,
+	.ops.get_glb_intr_st = get_glb_intr_st,
+};
 
-static int __init tegra19x_actmon_probe(struct platform_device *pdev)
-{
-	struct device_node *dn;
-	int ret = 0;
-
-	dn = of_find_compatible_node(NULL, NULL, "nvidia,tegra194-cactmon");
-	if (dn == NULL) {
-		ret = -ENODEV;
-		goto err_out;
-	}
-	actmon = devm_kzalloc(&pdev->dev, sizeof(*actmon),
-				GFP_KERNEL);
-	if (!actmon) {
-		ret = -ENOMEM;
-		goto err_out;
-	}
-	platform_set_drvdata(pdev, actmon);
-	actmon_platform_init_t19x(pdev);
-	actmon->pdev = pdev;
-	ret = tegra_actmon_register(actmon);
-err_out:
-	return ret;
-}
-
-static int tegra19x_actmon_remove(struct platform_device *pdev)
-{
-	tegra_actmon_remove(pdev);
-	return 0;
-}
-
-static const struct of_device_id tegra19x_actmon_of[] = {
-	{ .compatible = "nvidia,tegra194-cactmon", .data = NULL, },
+static const struct of_device_id tegra_actmon_of_match[] = {
+	{ .compatible = "nvidia,tegra194-cactmon", .data = &actmon_data, },
+	{ .compatible = "nvidia,tegra186-cactmon", .data = &actmon_data, },
 	{},
 };
 
+static int __init tegra_actmon_probe(struct platform_device *pdev)
+{
+	int ret = 0;
+	const struct of_device_id *of_id;
+	struct actmon_drv_data *actmon;
+
+	of_id = of_match_node(tegra_actmon_of_match, pdev->dev.of_node);
+	actmon = (struct actmon_drv_data *)of_id->data;
+	platform_set_drvdata(pdev, actmon);
+	actmon->pdev = pdev;
+	ret = tegra_actmon_register(actmon);
+	return ret;
+}
+
 static struct platform_driver tegra19x_actmon_driver __refdata = {
-	.probe		= tegra19x_actmon_probe,
-	.remove		= tegra19x_actmon_remove,
+	.probe		= tegra_actmon_probe,
+	.remove		= tegra_actmon_remove,
 	.driver	= {
-		.name	= "tegra19x_actmon",
+		.name	= "tegra_actmon",
 		.owner	= THIS_MODULE,
-		.of_match_table = of_match_ptr(tegra19x_actmon_of),
+		.of_match_table = of_match_ptr(tegra_actmon_of_match),
 	},
 };
 

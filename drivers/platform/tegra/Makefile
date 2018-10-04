@@ -36,7 +36,7 @@ obj-$(CONFIG_TEGRA_ARI_MCA) += ari_mca.o
 obj-$(CONFIG_TEGRA_18X_SERROR) += tegra18_serr.o
 obj-$(CONFIG_TEGRA_BRIDGE_MCA) += bridge_mca.o
 obj-$(CONFIG_TEGRA_18X_SERROR) += tegra18_a57_serr.o
-obj-$(CONFIG_TEGRA_CENTRAL_ACTMON) += cactmon_t18x.o
+obj-$(CONFIG_TEGRA_CENTRAL_ACTMON) += cactmon.o
 obj-$(CONFIG_TEGRA_CENTRAL_ACTMON) += cactmon_t21x.o
 ifeq ($(CONFIG_HW_PERF_EVENTS), y)
 obj-$(CONFIG_ARCH_TEGRA_18x_SOC) += tegra18_perf_uncore.o
@@ -61,8 +61,6 @@ obj-$(CONFIG_ARCH_TEGRA_210_SOC) += cpu_emc.o
 endif
 
 ifdef CONFIG_ARCH_TEGRA_19x_SOC
-
-obj-$(CONFIG_TEGRA_CENTRAL_ACTMON) += cactmon_t19x.o
 obj-y += tegra19x-mce.o
 obj-y += t19x_cache.o
 obj-y += cvnas.o
