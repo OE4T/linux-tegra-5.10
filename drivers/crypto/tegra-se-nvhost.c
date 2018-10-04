@@ -172,7 +172,8 @@ struct tegra_se_dev {
 	dma_addr_t aes_addr;
 	dma_addr_t aes_cur_addr;
 	unsigned int cmdbuf_cnt;
-	unsigned int bytes_mapped;
+	unsigned int src_bytes_mapped;
+	unsigned int dst_bytes_mapped;
 	unsigned int gather_buf_sz;
 	unsigned int aesbuf_entry;
 	u32 *aes_cmdbuf_cpuvaddr;
@@ -205,7 +206,8 @@ struct tegra_se_priv_data {
 	struct ahash_request *sha_req;
 	struct tegra_se_dev *se_dev;
 	unsigned int req_cnt;
-	unsigned int bytes_mapped;
+	unsigned int src_bytes_mapped;
+	unsigned int dst_bytes_mapped;
 	unsigned int gather_buf_sz;
 	struct scatterlist sg;
 	void *buf;
@@ -729,6 +731,23 @@ static unsigned int tegra_se_count_sgs(struct scatterlist *sl, u32 nbytes)
 	return sg_nents;
 }
 
+static int tegra_se_get_free_cmdbuf(struct tegra_se_dev *se_dev)
+{
+	int i = 0;
+	unsigned int index = se_dev->cmdbuf_list_entry + 1;
+
+	for (i = 0; i < SE_MAX_CMDBUF_TIMEOUT; i++, index++) {
+		index = index % SE_MAX_SUBMIT_CHAIN_SZ;
+		if (atomic_read(&se_dev->cmdbuf_addr_list[index].free)) {
+			atomic_set(&se_dev->cmdbuf_addr_list[index].free, 0);
+			break;
+		}
+		if (i % SE_MAX_SUBMIT_CHAIN_SZ == 0)
+			udelay(SE_WAIT_UDELAY);
+	}
+
+	return (i == SE_MAX_CMDBUF_TIMEOUT) ? -ENOMEM : index;
+}
 
 static void tegra_se_sha_complete_callback(void *priv, int nr_completed)
 {
@@ -737,6 +756,7 @@ static void tegra_se_sha_complete_callback(void *priv, int nr_completed)
 	struct tegra_se_dev *se_dev;
 
 	se_dev = priv_data->se_dev;
+	atomic_set(&se_dev->cmdbuf_addr_list[priv_data->cmdbuf_node].free, 1);
 
 	req = priv_data->sha_req;
 	if (!req) {
@@ -747,11 +767,11 @@ static void tegra_se_sha_complete_callback(void *priv, int nr_completed)
 
 	if (priv_data->sha_src_mapped)
 		tegra_unmap_sg(se_dev->dev, req->src, DMA_TO_DEVICE,
-			       priv_data->bytes_mapped);
+			       priv_data->src_bytes_mapped);
 
 	if (priv_data->sha_dst_mapped)
 		tegra_unmap_sg(se_dev->dev, &priv_data->sg, DMA_FROM_DEVICE,
-			       priv_data->bytes_mapped);
+			       priv_data->dst_bytes_mapped);
 
 	req->base.complete(&req->base, 0);
 
@@ -943,11 +963,13 @@ static int tegra_se_channel_submit_gather(struct tegra_se_dev *se_dev,
 		priv->se_dev = se_dev;
 		priv->sha_req = se_dev->sha_req;
 		priv->sg = se_dev->sg;
-		priv->bytes_mapped = se_dev->bytes_mapped;
+		priv->src_bytes_mapped = se_dev->src_bytes_mapped;
+		priv->dst_bytes_mapped = se_dev->dst_bytes_mapped;
 		priv->sha_src_mapped = se_dev->sha_src_mapped;
 		priv->sha_dst_mapped = se_dev->sha_dst_mapped;
 		priv->sha_last = se_dev->sha_last;
 		priv->buf_addr = se_dev->dst_ll->addr;
+		priv->cmdbuf_node = se_dev->cmdbuf_list_entry;
 
 		err = nvhost_intr_register_fast_notifier(
 			se_dev->pdev, job->sp->id, job->sp->fence,
@@ -971,7 +993,8 @@ static int tegra_se_channel_submit_gather(struct tegra_se_dev *se_dev,
 	se_dev->req_cnt = 0;
 	se_dev->gather_buf_sz = 0;
 	se_dev->cmdbuf_cnt = 0;
-	se_dev->bytes_mapped = 0;
+	se_dev->src_bytes_mapped = 0;
+	se_dev->dst_bytes_mapped = 0;
 	se_dev->sha_src_mapped = false;
 	se_dev->sha_dst_mapped = false;
 	se_dev->sha_last = false;
@@ -1241,22 +1264,23 @@ static int tegra_se_send_sha_data(struct tegra_se_dev *se_dev,
 	dma_addr_t cmdbuf_iova = 0;
 	struct tegra_se_ll *src_ll = se_dev->src_ll;
 	struct tegra_se_ll *dst_ll = se_dev->dst_ll;
-	unsigned int total = count, val;
+	unsigned int total = count, val, index;
 	u64 msg_len;
 
-	cmdbuf_cpuvaddr = dma_alloc_attrs(se_dev->dev->parent, SZ_4K,
-					  &cmdbuf_iova, GFP_KERNEL,
-					  __DMA_ATTR(attrs));
-	if (!cmdbuf_cpuvaddr) {
-		dev_err(se_dev->dev, "Failed to allocate cmdbuf\n");
-		return -ENOMEM;
+	err = tegra_se_get_free_cmdbuf(se_dev);
+	if (err < 0) {
+		dev_err(se_dev->dev, "Couldn't get free cmdbuf\n");
+		goto index_out;
 	}
+	index = err;
+
+	cmdbuf_cpuvaddr = se_dev->cmdbuf_addr_list[index].cmdbuf_addr;
+	cmdbuf_iova = se_dev->cmdbuf_addr_list[index].iova;
+	se_dev->cmdbuf_list_entry = index;
 
 	while (total) {
 		if (src_ll->data_len & SE_BUFF_SIZE_MASK) {
-			dma_free_attrs(se_dev->dev->parent, SZ_4K,
-				       cmdbuf_cpuvaddr, cmdbuf_iova,
-				       __DMA_ATTR(attrs));
+			atomic_set(&se_dev->cmdbuf_addr_list[index].free, 1);
 			return -EINVAL;
 		}
 
@@ -1337,9 +1361,12 @@ static int tegra_se_send_sha_data(struct tegra_se_dev *se_dev,
 	err = tegra_se_channel_submit_gather(se_dev, cmdbuf_cpuvaddr,
 					     cmdbuf_iova, 0, cmdbuf_num_words,
 					     SHA_CB);
-	dma_free_attrs(se_dev->dev->parent, SZ_4K, cmdbuf_cpuvaddr,
-		       cmdbuf_iova, __DMA_ATTR(attrs));
+	if (err) {
+		dev_err(se_dev->dev, "Channel submission fail err = %d\n", err);
+		atomic_set(&se_dev->cmdbuf_addr_list[index].free, 1);
+	}
 
+index_out:
 	return err;
 }
 
@@ -1647,24 +1674,6 @@ static int tegra_se_prepare_cmdbuf(struct tegra_se_dev *se_dev,
 
 out:
 	return ret;
-}
-
-static int tegra_se_get_free_cmdbuf(struct tegra_se_dev *se_dev)
-{
-	int i = 0;
-	unsigned int index = se_dev->cmdbuf_list_entry + 1;
-
-	for (i = 0; i < SE_MAX_CMDBUF_TIMEOUT; i++, index++) {
-		index = index % SE_MAX_SUBMIT_CHAIN_SZ;
-		if (atomic_read(&se_dev->cmdbuf_addr_list[index].free)) {
-			atomic_set(&se_dev->cmdbuf_addr_list[index].free, 0);
-			break;
-		}
-		if (i % SE_MAX_SUBMIT_CHAIN_SZ == 0)
-			udelay(SE_WAIT_UDELAY);
-	}
-
-	return (i == SE_MAX_CMDBUF_TIMEOUT) ? -ENOMEM : index;
 }
 
 static void tegra_se_process_new_req(struct tegra_se_dev *se_dev)
@@ -2216,9 +2225,9 @@ static int tegra_se_sha_process_buf(struct ahash_request *req, bool is_last,
 	struct tegra_se_ll *src_ll;
 	struct tegra_se_ll *dst_ll;
 	u32 current_total = 0, num_sgs, bytes_process_in_req = 0, num_blks;
-	int err = 0;
+	int err = 0, dst_len = crypto_ahash_digestsize(tfm);
 
-	sg_init_one(&se_dev->sg, req->result, req->nbytes);
+	sg_init_one(&se_dev->sg, req->result, dst_len);
 
 	se_dev->sha_last = is_last;
 
@@ -2249,11 +2258,12 @@ static int tegra_se_sha_process_buf(struct ahash_request *req, bool is_last,
 
 			err = tegra_map_sg(se_dev->dev, &se_dev->sg, 1,
 					   DMA_FROM_DEVICE, dst_ll,
-					   bytes_process_in_req);
+					   dst_len);
 			if (!err)
 				return -EINVAL;
 
-			se_dev->bytes_mapped = bytes_process_in_req;
+			se_dev->src_bytes_mapped = bytes_process_in_req;
+			se_dev->dst_bytes_mapped = dst_len;
 			se_dev->sha_src_mapped = true;
 			se_dev->sha_dst_mapped = true;
 		} else {
@@ -2265,10 +2275,11 @@ static int tegra_se_sha_process_buf(struct ahash_request *req, bool is_last,
 			}
 			err = tegra_map_sg(se_dev->dev, &se_dev->sg, 1,
 					   DMA_FROM_DEVICE, dst_ll,
-					   req->nbytes);
+					   dst_len);
 			if (!err)
 				return -EINVAL;
 
+			se_dev->dst_bytes_mapped = dst_len;
 			se_dev->sha_dst_mapped = true;
 		}
 	} else {
@@ -2328,11 +2339,12 @@ static int tegra_se_sha_process_buf(struct ahash_request *req, bool is_last,
 		current_total = (num_blks * sha_ctx->blk_size);
 
 		err = tegra_map_sg(se_dev->dev, &se_dev->sg, 1, DMA_FROM_DEVICE,
-				   dst_ll, bytes_process_in_req);
+				   dst_ll, dst_len);
 		if (!err)
 			return -EINVAL;
 
-		se_dev->bytes_mapped = bytes_process_in_req;
+		se_dev->src_bytes_mapped = bytes_process_in_req;
+		se_dev->dst_bytes_mapped = dst_len;
 		se_dev->sha_src_mapped = true;
 		se_dev->sha_dst_mapped = true;
 	}
@@ -2347,7 +2359,7 @@ static int tegra_se_sha_process_buf(struct ahash_request *req, bool is_last,
 				       bytes_process_in_req);
 		if (se_dev->sha_dst_mapped)
 			tegra_unmap_sg(se_dev->dev, &se_dev->sg,
-				       DMA_FROM_DEVICE, bytes_process_in_req);
+				       DMA_FROM_DEVICE, dst_len);
 		return err;
 	}
 	sha_ctx->is_first = false;
@@ -2445,15 +2457,12 @@ static int tegra_se_sha_op(struct ahash_request *req, bool is_last,
 			}
 		}
 	}
-	mutex_lock(&se_dev->mtx);
 
 	ret = tegra_se_sha_process_buf(req, is_last, process_cur_req);
 	if (ret) {
 		mutex_unlock(&se_dev->mtx);
 		return ret;
 	}
-
-	mutex_unlock(&se_dev->mtx);
 
 	return 0;
 }
@@ -2508,6 +2517,7 @@ static int tegra_se_sha_update(struct ahash_request *req)
 		dev_err(se_dev->dev, "SHA request not valid\n");
 		return -EINVAL;
 	}
+	mutex_lock(&se_dev->mtx);
 
 	se_dev->sha_req = req;
 
@@ -2517,6 +2527,7 @@ static int tegra_se_sha_update(struct ahash_request *req)
 	else
 		ret = -EBUSY;
 
+	mutex_unlock(&se_dev->mtx);
 	return ret;
 }
 
@@ -2529,6 +2540,7 @@ static int tegra_se_sha_finup(struct ahash_request *req)
 		dev_err(se_dev->dev, "SHA request not valid\n");
 		return -EINVAL;
 	}
+	mutex_lock(&se_dev->mtx);
 
 	se_dev->sha_req = req;
 
@@ -2538,6 +2550,7 @@ static int tegra_se_sha_finup(struct ahash_request *req)
 	else
 		ret = -EBUSY;
 
+	mutex_unlock(&se_dev->mtx);
 	return ret;
 }
 
@@ -2550,6 +2563,7 @@ static int tegra_se_sha_final(struct ahash_request *req)
 		dev_err(se_dev->dev, "SHA request not valid\n");
 		return -EINVAL;
 	}
+	mutex_lock(&se_dev->mtx);
 
 	se_dev->sha_req = req;
 
@@ -2560,6 +2574,7 @@ static int tegra_se_sha_final(struct ahash_request *req)
 	else
 		ret = -EBUSY;
 
+	mutex_unlock(&se_dev->mtx);
 	return ret;
 }
 
@@ -2571,6 +2586,7 @@ static int tegra_se_sha_digest(struct ahash_request *req)
 	ret = tegra_se_sha_init(req);
 	if (ret)
 		return ret;
+	mutex_lock(&se_dev->mtx);
 
 	se_dev->sha_req = req;
 
@@ -2580,6 +2596,7 @@ static int tegra_se_sha_digest(struct ahash_request *req)
 	else
 		ret = -EBUSY;
 
+	mutex_unlock(&se_dev->mtx);
 	return ret;
 }
 
@@ -4338,8 +4355,8 @@ static int tegra_se_probe(struct platform_device *pdev)
 			goto reg_fail;
 		}
 	}
-	if (is_algo_supported(node, "aes")) {
 
+	if (is_algo_supported(node, "aes")) {
 		for (i = 1; i < ARRAY_SIZE(aes_algs); i++) {
 			INIT_LIST_HEAD(&aes_algs[i].cra_list);
 			err = crypto_register_alg(&aes_algs[i]);
@@ -4457,7 +4474,7 @@ static int tegra_se_probe(struct platform_device *pdev)
 	tegra_se_init_aesbuf(se_dev);
 
 	if (is_algo_supported(node, "drbg") || is_algo_supported(node, "aes") ||
-	    is_algo_supported(node, "cmac")) {
+	    is_algo_supported(node, "cmac") || is_algo_supported(node, "sha")) {
 		se_dev->aes_cmdbuf_cpuvaddr = dma_alloc_attrs(
 			se_dev->dev->parent, SZ_16K * SE_MAX_SUBMIT_CHAIN_SZ,
 			&se_dev->aes_cmdbuf_iova, GFP_KERNEL,
