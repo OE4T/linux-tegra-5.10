@@ -1666,34 +1666,34 @@ int nvgpu_init_pmu_fw_support(struct nvgpu_pmu *pmu)
 	nvgpu_log_fn(g, " ");
 
 	err = nvgpu_mutex_init(&pmu->elpg_mutex);
-	if (err) {
+	if (err != 0) {
 		return err;
 	}
 
 	err = nvgpu_mutex_init(&pmu->pg_mutex);
-	if (err) {
+	if (err != 0) {
 		goto fail_elpg;
 	}
 
 	err = nvgpu_mutex_init(&pmu->isr_mutex);
-	if (err) {
+	if (err != 0) {
 		goto fail_pg;
 	}
 
 	err = nvgpu_mutex_init(&pmu->pmu_copy_lock);
-	if (err) {
+	if (err != 0) {
 		goto fail_isr;
 	}
 
 	err = nvgpu_mutex_init(&pmu->pmu_seq_lock);
-	if (err) {
+	if (err != 0) {
 		goto fail_pmu_copy;
 	}
 
 	pmu->remove_support = nvgpu_remove_pmu_support;
 
 	err = nvgpu_init_pmu_fw_ver_ops(pmu);
-	if (err) {
+	if (err != 0) {
 		goto fail_pmu_seq;
 	}
 
@@ -1740,7 +1740,7 @@ int nvgpu_pmu_prepare_ns_ucode_blob(struct gk20a *g)
 
 	err = nvgpu_dma_alloc_map_sys(vm, GK20A_PMU_UCODE_SIZE_MAX,
 			&pmu->ucode);
-	if (err) {
+	if (err != 0) {
 		goto err_release_fw;
 	}
 

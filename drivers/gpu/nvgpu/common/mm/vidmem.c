@@ -103,7 +103,7 @@ static int __nvgpu_vidmem_do_clear_all(struct gk20a *g)
 			NVGPU_CE_MEMSET,
 			0,
 			&gk20a_fence_out);
-	if (err) {
+	if (err != 0) {
 		nvgpu_err(g,
 			"Failed to clear vidmem : %d", err);
 		return err;
@@ -123,7 +123,7 @@ static int __nvgpu_vidmem_do_clear_all(struct gk20a *g)
 			 !nvgpu_timeout_expired(&timeout));
 
 		gk20a_fence_put(gk20a_fence_out);
-		if (err) {
+		if (err != 0) {
 			nvgpu_err(g,
 				"fence wait failed for CE execute ops");
 			return err;
@@ -321,7 +321,7 @@ int nvgpu_vidmem_init(struct mm_gk20a *mm)
 					base, size - base,
 					default_page_size,
 					GPU_ALLOC_4K_VIDMEM_PAGES);
-	if (err) {
+	if (err != 0) {
 		nvgpu_err(g, "Failed to register vidmem for size %zu: %d",
 				size, err);
 		return err;
@@ -336,7 +336,7 @@ int nvgpu_vidmem_init(struct mm_gk20a *mm)
 	mm->vidmem.bootstrap_size = bootstrap_size;
 
 	err = nvgpu_cond_init(&mm->vidmem.clearing_thread_cond);
-	if (err)
+	if (err != 0)
 		goto fail;
 
 	nvgpu_atomic64_set(&mm->vidmem.bytes_pending, 0);
@@ -358,7 +358,7 @@ int nvgpu_vidmem_init(struct mm_gk20a *mm)
 	err = nvgpu_thread_create(&mm->vidmem.clearing_thread, mm,
 				  nvgpu_vidmem_clear_pending_allocs_thr,
 				  "vidmem-clear");
-	if (err)
+	if (err != 0)
 		goto fail;
 
 	vidmem_dbg(g, "VIDMEM Total: %zu MB", size >> 20);
@@ -427,7 +427,7 @@ int nvgpu_vidmem_clear(struct gk20a *g, struct nvgpu_mem *mem)
 			0,
 			&gk20a_fence_out);
 
-		if (err) {
+		if (err != 0) {
 			nvgpu_err(g,
 				"Failed gk20a_ce_execute_ops[%d]", err);
 			return err;
@@ -454,7 +454,7 @@ int nvgpu_vidmem_clear(struct gk20a *g, struct nvgpu_mem *mem)
 			 !nvgpu_timeout_expired(&timeout));
 
 		gk20a_fence_put(gk20a_last_fence);
-		if (err)
+		if (err != 0)
 			nvgpu_err(g,
 				"fence wait failed for CE execute ops");
 	}
@@ -474,7 +474,7 @@ static int nvgpu_vidmem_clear_all(struct gk20a *g)
 	nvgpu_mutex_acquire(&g->mm.vidmem.first_clear_mutex);
 	if (!g->mm.vidmem.cleared) {
 		err = __nvgpu_vidmem_do_clear_all(g);
-		if (err) {
+		if (err != 0) {
 			nvgpu_mutex_release(&g->mm.vidmem.first_clear_mutex);
 			nvgpu_err(g, "failed to clear whole vidmem");
 			return err;
@@ -491,7 +491,7 @@ struct nvgpu_vidmem_buf *nvgpu_vidmem_user_alloc(struct gk20a *g, size_t bytes)
 	int err;
 
 	err = nvgpu_vidmem_clear_all(g);
-	if (err)
+	if (err != 0)
 		return ERR_PTR(-ENOMEM);
 
 	buf = nvgpu_kzalloc(g, sizeof(*buf));
@@ -506,7 +506,7 @@ struct nvgpu_vidmem_buf *nvgpu_vidmem_user_alloc(struct gk20a *g, size_t bytes)
 	}
 
 	err = nvgpu_dma_alloc_vid(g, bytes, buf->mem);
-	if (err)
+	if (err != 0)
 		goto fail;
 
 	/*

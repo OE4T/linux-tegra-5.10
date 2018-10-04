@@ -278,7 +278,7 @@ static int pd_allocate(struct vm_gk20a *vm,
 	}
 
 	err = nvgpu_pd_alloc(vm, pd, pd_size(l, attrs));
-	if (err) {
+	if (err != 0) {
 		nvgpu_info(vm->mm->g, "error allocating page directory!");
 		return err;
 	}
@@ -451,7 +451,7 @@ static int __set_pd_level(struct vm_gk20a *vm,
 					     chunk_size,
 					     attrs);
 
-			if (err) {
+			if (err != 0) {
 				return err;
 			}
 		}
@@ -560,7 +560,7 @@ static int __nvgpu_gmmu_do_update_page_table(struct vm_gk20a *vm,
 				     virt_addr,
 				     chunk_length,
 				     attrs);
-		if (err) {
+		if (err != 0) {
 			break;
 		}
 
@@ -740,7 +740,7 @@ u64 gk20a_locked_gmmu_map(struct vm_gk20a *vm,
 
 	err = __nvgpu_gmmu_update_page_table(vm, sgt, buffer_offset,
 					     vaddr, size, &attrs);
-	if (err) {
+	if (err != 0) {
 		nvgpu_err(g, "failed to update ptes on map");
 		goto fail_validate;
 	}
@@ -793,7 +793,7 @@ void gk20a_locked_gmmu_unmap(struct vm_gk20a *vm,
 	/* unmap here needs to know the page size we assigned at mapping */
 	err = __nvgpu_gmmu_update_page_table(vm, NULL, 0,
 					     vaddr, size, &attrs);
-	if (err) {
+	if (err != 0) {
 		nvgpu_err(g, "failed to update gmmu ptes on unmap");
 	}
 
@@ -929,7 +929,7 @@ int __nvgpu_set_pte(struct gk20a *g, struct vm_gk20a *vm, u64 vaddr, u32 *pte)
 	err = __nvgpu_locate_pte(g, vm, &vm->pdb,
 				 vaddr, 0, &attrs,
 				 NULL, &pd, &pd_idx, &pd_offs);
-	if (err) {
+	if (err != 0) {
 		return err;
 	}
 

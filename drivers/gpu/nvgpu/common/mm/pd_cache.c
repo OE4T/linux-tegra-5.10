@@ -179,7 +179,7 @@ int nvgpu_pd_cache_alloc_direct(struct gk20a *g,
 	}
 
 	err = nvgpu_dma_alloc_flags(g, flags, bytes, pd->mem);
-	if (err) {
+	if (err != 0) {
 		nvgpu_err(g, "OOM allocating page directory!");
 		nvgpu_kfree(g, pd->mem);
 		return -ENOMEM;
@@ -327,7 +327,7 @@ static int nvgpu_pd_cache_alloc(struct gk20a *g, struct nvgpu_pd_cache *cache,
 		err = nvgpu_pd_cache_alloc_from_partial(g, cache, pentry, pd);
 	}
 
-	if (err) {
+	if (err != 0) {
 		nvgpu_err(g, "PD-Alloc [C] Failed!");
 	}
 
@@ -350,7 +350,7 @@ int nvgpu_pd_alloc(struct vm_gk20a *vm, struct nvgpu_gmmu_pd *pd, u32 bytes)
 	 */
 	if (bytes >= PAGE_SIZE) {
 		err = nvgpu_pd_cache_alloc_direct(g, pd, bytes);
-		if (err) {
+		if (err != 0) {
 			return err;
 		}
 

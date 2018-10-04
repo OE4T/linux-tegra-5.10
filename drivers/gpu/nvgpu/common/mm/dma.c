@@ -50,7 +50,7 @@ int nvgpu_dma_alloc_flags(struct gk20a *g, unsigned long flags, size_t size,
 				NVGPU_DMA_NO_KERNEL_MAPPING,
 				size, mem);
 
-		if (!err) {
+		if (err == 0) {
 			return 0;
 		}
 
@@ -107,7 +107,7 @@ int nvgpu_dma_alloc_map_flags(struct vm_gk20a *vm, unsigned long flags,
 				flags | NVGPU_DMA_NO_KERNEL_MAPPING,
 				size, mem);
 
-		if (!err) {
+		if (err == 0) {
 			return 0;
 		}
 
@@ -131,7 +131,7 @@ int nvgpu_dma_alloc_map_flags_sys(struct vm_gk20a *vm, unsigned long flags,
 {
 	int err = nvgpu_dma_alloc_flags_sys(vm->mm->g, flags, size, mem);
 
-	if (err) {
+	if (err != 0) {
 		return err;
 	}
 
@@ -162,7 +162,7 @@ int nvgpu_dma_alloc_map_flags_vid(struct vm_gk20a *vm, unsigned long flags,
 {
 	int err = nvgpu_dma_alloc_flags_vid(vm->mm->g, flags, size, mem);
 
-	if (err) {
+	if (err != 0) {
 		return err;
 	}
 

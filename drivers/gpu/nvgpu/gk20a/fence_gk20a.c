@@ -136,7 +136,7 @@ int gk20a_alloc_fence_pool(struct channel_gk20a *c, unsigned int count)
 	err = nvgpu_lockless_allocator_init(c->g, &c->fence_allocator,
 				"fence_pool", (size_t)fence_pool, size,
 				sizeof(struct gk20a_fence), 0);
-	if (err) {
+	if (err != 0) {
 		goto fail;
 	}
 

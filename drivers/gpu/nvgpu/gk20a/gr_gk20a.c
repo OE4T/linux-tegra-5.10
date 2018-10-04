@@ -574,7 +574,7 @@ int gr_gk20a_submit_fecs_method_op(struct gk20a *g,
 				      op.cond.ok, op.mailbox.ok,
 				      op.cond.fail, op.mailbox.fail,
 				      sleepduringwait);
-	if (ret) {
+	if (ret != 0) {
 		nvgpu_err(g,"fecs method: data=0x%08x push adr=0x%08x",
 			op.method.data, op.method.addr);
 	}
@@ -604,7 +604,7 @@ int gr_gk20a_submit_fecs_sideband_method_op(struct gk20a *g,
 				      op.cond.ok, op.mailbox.ok,
 				      op.cond.fail, op.mailbox.fail,
 				      false);
-	if (ret) {
+	if (ret != 0) {
 		nvgpu_err(g,"fecs method: data=0x%08x push adr=0x%08x",
 			op.method.data, op.method.addr);
 	}
@@ -782,7 +782,7 @@ int gr_gk20a_fecs_ctx_bind_channel(struct gk20a *g,
 	u32 inst_base_ptr = u64_lo32(nvgpu_inst_block_addr(g, &c->inst_block)
 				     >> ram_in_base_shift_v());
 	u32 data = fecs_current_ctx_data(g, &c->inst_block);
-	u32 ret;
+	int ret;
 
 	nvgpu_log_info(g, "bind channel %d inst ptr 0x%08x",
 		   c->chid, inst_base_ptr);
@@ -798,7 +798,7 @@ int gr_gk20a_fecs_ctx_bind_channel(struct gk20a *g,
 				  .fail = 0x20, },
 		     .cond.ok = GR_IS_UCODE_OP_AND,
 		     .cond.fail = GR_IS_UCODE_OP_AND}, true);
-	if (ret) {
+	if (ret != 0) {
 		nvgpu_err(g,
 			"bind channel instance failed");
 	}
@@ -849,12 +849,12 @@ static int gr_gk20a_ctx_zcull_setup(struct gk20a *g, struct channel_gk20a *c)
 	}
 
 	ret = gk20a_disable_channel_tsg(g, c);
-	if (ret) {
+	if (ret != 0) {
 		nvgpu_err(g, "failed to disable channel/TSG");
 		return ret;
 	}
 	ret = gk20a_fifo_preempt(g, c);
-	if (ret) {
+	if (ret != 0) {
 		gk20a_enable_channel_tsg(g, c);
 		nvgpu_err(g, "failed to preempt channel/TSG");
 		return ret;
@@ -1324,7 +1324,7 @@ int gr_gk20a_fecs_ctx_image_save(struct channel_gk20a *c, u32 save_type)
 		.cond.fail = GR_IS_UCODE_OP_AND,
 		 }, true);
 
-	if (ret) {
+	if (ret != 0) {
 		nvgpu_err(g, "save context image failed");
 	}
 
@@ -1696,12 +1696,12 @@ int gr_gk20a_update_smpc_ctxsw_mode(struct gk20a *g,
 	}
 
 	ret = gk20a_disable_channel_tsg(g, c);
-	if (ret) {
+	if (ret != 0) {
 		nvgpu_err(g, "failed to disable channel/TSG");
 		goto out;
 	}
 	ret = gk20a_fifo_preempt(g, c);
-	if (ret) {
+	if (ret != 0) {
 		gk20a_enable_channel_tsg(g, c);
 		nvgpu_err(g, "failed to preempt channel/TSG");
 		goto out;
@@ -1784,13 +1784,13 @@ int gr_gk20a_update_hwpm_ctxsw_mode(struct gk20a *g,
 	}
 
 	ret = gk20a_disable_channel_tsg(g, c);
-	if (ret) {
+	if (ret != 0) {
 		nvgpu_err(g, "failed to disable channel/TSG");
 		return ret;
 	}
 
 	ret = gk20a_fifo_preempt(g, c);
-	if (ret) {
+	if (ret != 0) {
 		gk20a_enable_channel_tsg(g, c);
 		nvgpu_err(g, "failed to preempt channel/TSG");
 		return ret;
@@ -1806,7 +1806,7 @@ int gr_gk20a_update_hwpm_ctxsw_mode(struct gk20a *g,
 			ret = nvgpu_dma_alloc_sys(g,
 					g->gr.ctx_vars.pm_ctxsw_image_size,
 					&pm_ctx->mem);
-			if (ret) {
+			if (ret != 0) {
 				c->g->ops.fifo.enable_channel(c);
 				nvgpu_err(g,
 					"failed to allocate pm ctxt buffer");
@@ -2449,7 +2449,7 @@ int gr_gk20a_load_ctxsw_ucode(struct gk20a *g)
 
 static int gr_gk20a_wait_ctxsw_ready(struct gk20a *g)
 {
-	u32 ret;
+	int ret;
 
 	nvgpu_log_fn(g, " ");
 
@@ -2457,7 +2457,7 @@ static int gr_gk20a_wait_ctxsw_ready(struct gk20a *g)
 				      GR_IS_UCODE_OP_EQUAL,
 				      eUcodeHandshakeInitComplete,
 				      GR_IS_UCODE_OP_SKIP, 0, false);
-	if (ret) {
+	if (ret != 0) {
 		nvgpu_err(g, "falcon ucode init timeout");
 		return ret;
 	}
@@ -2479,7 +2479,7 @@ static int gr_gk20a_wait_ctxsw_ready(struct gk20a *g)
 
 int gr_gk20a_init_ctx_state(struct gk20a *g)
 {
-	u32 ret;
+	int ret;
 	struct fecs_method_op_gk20a op = {
 		.mailbox = { .id = 0, .data = 0,
 			     .clr = ~0, .ok = 0, .fail = 0},
@@ -2495,7 +2495,7 @@ int gr_gk20a_init_ctx_state(struct gk20a *g)
 			gr_fecs_method_push_adr_discover_image_size_v();
 		op.mailbox.ret = &g->gr.ctx_vars.golden_image_size;
 		ret = gr_gk20a_submit_fecs_method_op(g, op, false);
-		if (ret) {
+		if (ret != 0) {
 			nvgpu_err(g,
 				   "query golden image size failed");
 			return ret;
@@ -2504,7 +2504,7 @@ int gr_gk20a_init_ctx_state(struct gk20a *g)
 			gr_fecs_method_push_adr_discover_zcull_image_size_v();
 		op.mailbox.ret = &g->gr.ctx_vars.zcull_ctxsw_image_size;
 		ret = gr_gk20a_submit_fecs_method_op(g, op, false);
-		if (ret) {
+		if (ret != 0) {
 			nvgpu_err(g,
 				   "query zcull ctx image size failed");
 			return ret;
@@ -2513,7 +2513,7 @@ int gr_gk20a_init_ctx_state(struct gk20a *g)
 			gr_fecs_method_push_adr_discover_pm_image_size_v();
 		op.mailbox.ret = &g->gr.ctx_vars.pm_ctxsw_image_size;
 		ret = gr_gk20a_submit_fecs_method_op(g, op, false);
-		if (ret) {
+		if (ret != 0) {
 			nvgpu_err(g,
 				   "query pm ctx image size failed");
 			return ret;
@@ -3683,7 +3683,7 @@ clean_up:
 	nvgpu_kfree(g, sorted_num_tpcs);
 	nvgpu_kfree(g, sorted_to_unsorted_gpc_map);
 
-	if (ret) {
+	if (ret != 0) {
 		nvgpu_err(g, "fail");
 	} else {
 		nvgpu_log_fn(g, "done");
@@ -3847,14 +3847,14 @@ void gr_gk20a_pmu_save_zbc(struct gk20a *g, u32 entries)
 {
 	struct fifo_gk20a *f = &g->fifo;
 	struct fifo_engine_info_gk20a *gr_info = NULL;
-	u32 ret;
+	int ret;
 	u32 engine_id;
 
 	engine_id = gk20a_fifo_get_gr_engine_id(g);
 	gr_info = (f->engine_info + engine_id);
 
 	ret = gk20a_fifo_disable_engine_activity(g, gr_info, true);
-	if (ret) {
+	if (ret != 0) {
 		nvgpu_err(g,
 			"failed to disable gr engine activity");
 		return;
@@ -3862,7 +3862,7 @@ void gr_gk20a_pmu_save_zbc(struct gk20a *g, u32 entries)
 
 	ret = g->ops.gr.wait_empty(g, gk20a_get_gr_idle_timeout(g),
 				   GR_IDLE_CHECK_DEFAULT);
-	if (ret) {
+	if (ret != 0) {
 		nvgpu_err(g,
 			"failed to idle graphics");
 		goto clean_up;
@@ -3873,7 +3873,7 @@ void gr_gk20a_pmu_save_zbc(struct gk20a *g, u32 entries)
 
 clean_up:
 	ret = gk20a_fifo_enable_engine_activity(g, gr_info);
-	if (ret) {
+	if (ret != 0) {
 		nvgpu_err(g,
 			"failed to enable gr engine activity");
 	}
@@ -4066,7 +4066,7 @@ static int gr_gk20a_load_zbc_table(struct gk20a *g, struct gr_gk20a *gr)
 
 		ret = g->ops.gr.add_zbc_color(g, gr, &zbc_val, i);
 
-		if (ret) {
+		if (ret != 0) {
 			return ret;
 		}
 	}
@@ -4079,14 +4079,14 @@ static int gr_gk20a_load_zbc_table(struct gk20a *g, struct gr_gk20a *gr)
 		zbc_val.format = d_tbl->format;
 
 		ret = g->ops.gr.add_zbc_depth(g, gr, &zbc_val, i);
-		if (ret) {
+		if (ret != 0) {
 			return ret;
 		}
 	}
 
 	if (g->ops.gr.load_zbc_s_tbl) {
 		ret = g->ops.gr.load_zbc_s_tbl(g, gr);
-		if (ret) {
+		if (ret != 0) {
 			return ret;
 		}
 	}
@@ -4194,7 +4194,7 @@ int _gk20a_gr_zbc_set_table(struct gk20a *g, struct gr_gk20a *gr,
 	gr_info = (f->engine_info + engine_id);
 
 	ret = gk20a_fifo_disable_engine_activity(g, gr_info, true);
-	if (ret) {
+	if (ret != 0) {
 		nvgpu_err(g,
 			"failed to disable gr engine activity");
 		return ret;
@@ -4202,7 +4202,7 @@ int _gk20a_gr_zbc_set_table(struct gk20a *g, struct gr_gk20a *gr,
 
 	ret = g->ops.gr.wait_empty(g, gk20a_get_gr_idle_timeout(g),
 				   GR_IDLE_CHECK_DEFAULT);
-	if (ret) {
+	if (ret != 0) {
 		nvgpu_err(g,
 			"failed to idle graphics");
 		goto clean_up;
@@ -5258,7 +5258,7 @@ static int gk20a_gr_handle_illegal_method(struct gk20a *g,
 	int ret = g->ops.gr.handle_sw_method(g, isr_data->addr,
 			isr_data->class_num, isr_data->offset,
 			isr_data->data_lo);
-	if (ret) {
+	if (ret != 0) {
 		gk20a_gr_set_error_notifier(g, isr_data,
 			 NVGPU_ERR_NOTIFIER_GR_ILLEGAL_NOTIFY);
 		nvgpu_err(g, "invalid method class 0x%08x"
@@ -5691,7 +5691,7 @@ int gr_gk20a_handle_sm_exception(struct gk20a *g, u32 gpc, u32 tpc, u32 sm,
 				fault_ch,
 				&early_exit,
 				&ignore_debugger);
-		if (ret) {
+		if (ret != 0) {
 			nvgpu_err(g, "could not pre-process sm error!");
 			return ret;
 		}
@@ -5735,7 +5735,7 @@ int gr_gk20a_handle_sm_exception(struct gk20a *g, u32 gpc, u32 tpc, u32 sm,
 	if (do_warp_sync) {
 		ret = g->ops.gr.lock_down_sm(g, gpc, tpc, sm,
 				 global_mask, true);
-		if (ret) {
+		if (ret != 0) {
 			nvgpu_err(g, "sm did not lock down!");
 			return ret;
 		}
@@ -6321,7 +6321,7 @@ int gk20a_gr_suspend(struct gk20a *g)
 
 	ret = g->ops.gr.wait_empty(g, gk20a_get_gr_idle_timeout(g),
 				   GR_IDLE_CHECK_DEFAULT);
-	if (ret) {
+	if (ret != 0U) {
 		return ret;
 	}
 

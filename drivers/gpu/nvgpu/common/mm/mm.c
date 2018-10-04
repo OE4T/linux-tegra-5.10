@@ -241,7 +241,7 @@ static int nvgpu_init_system_vm(struct mm_gk20a *mm)
 	}
 
 	err = g->ops.mm.alloc_inst_block(g, inst_block);
-	if (err) {
+	if (err != 0) {
 		goto clean_up_vm;
 	}
 	g->ops.mm.init_inst_block(inst_block, mm->pmu.vm, big_page_size);
@@ -260,7 +260,7 @@ static int nvgpu_init_hwpm(struct mm_gk20a *mm)
 	struct nvgpu_mem *inst_block = &mm->hwpm.inst_block;
 
 	err = g->ops.mm.alloc_inst_block(g, inst_block);
-	if (err) {
+	if (err != 0) {
 		return err;
 	}
 	g->ops.mm.init_inst_block(inst_block, mm->pmu.vm, 0);
@@ -307,14 +307,14 @@ static int nvgpu_init_mmu_debug(struct mm_gk20a *mm)
 
 	if (!nvgpu_mem_is_valid(&mm->mmu_wr_mem)) {
 		err = nvgpu_dma_alloc_sys(g, SZ_4K, &mm->mmu_wr_mem);
-		if (err) {
+		if (err != 0) {
 			goto err;
 		}
 	}
 
 	if (!nvgpu_mem_is_valid(&mm->mmu_rd_mem)) {
 		err = nvgpu_dma_alloc_sys(g, SZ_4K, &mm->mmu_rd_mem);
-		if (err) {
+		if (err != 0) {
 			goto err_free_wr_mem;
 		}
 	}
@@ -394,7 +394,7 @@ static int nvgpu_init_bar1_vm(struct mm_gk20a *mm)
 	}
 
 	err = g->ops.mm.alloc_inst_block(g, inst_block);
-	if (err) {
+	if (err != 0) {
 		goto clean_up_vm;
 	}
 	g->ops.mm.init_inst_block(inst_block, mm->bar1.vm, big_page_size);
@@ -437,7 +437,7 @@ static int nvgpu_init_mm_setup_sw(struct gk20a *g)
 	mm->vidmem.ce_ctx_id = (u32)~0;
 
 	err = nvgpu_vidmem_init(mm);
-	if (err) {
+	if (err != 0) {
 		return err;
 	}
 
@@ -449,51 +449,51 @@ static int nvgpu_init_mm_setup_sw(struct gk20a *g)
 	if (g->acr.alloc_blob_space != NULL &&
 			!nvgpu_is_enabled(g, NVGPU_MM_UNIFIED_MEMORY)) {
 		err = g->acr.alloc_blob_space(g, 0, &g->acr.ucode_blob);
-		if (err) {
+		if (err != 0) {
 			return err;
 		}
 	}
 
 	err = nvgpu_alloc_sysmem_flush(g);
-	if (err) {
+	if (err != 0) {
 		return err;
 	}
 
 	err = nvgpu_init_bar1_vm(mm);
-	if (err) {
+	if (err != 0) {
 		return err;
 	}
 
 	if (g->ops.mm.init_bar2_vm) {
 		err = g->ops.mm.init_bar2_vm(g);
-		if (err) {
+		if (err != 0) {
 			return err;
 		}
 	}
 	err = nvgpu_init_system_vm(mm);
-	if (err) {
+	if (err != 0) {
 		return err;
 	}
 
 	err = nvgpu_init_hwpm(mm);
-	if (err) {
+	if (err != 0) {
 		return err;
 	}
 
 	if (g->has_cde) {
 		err = nvgpu_init_cde_vm(mm);
-			if (err) {
+			if (err != 0) {
 				return err;
 			}
 	}
 
 	err = nvgpu_init_ce_vm(mm);
-	if (err) {
+	if (err != 0) {
 		return err;
 	}
 
 	err = nvgpu_init_mmu_debug(mm);
-	if (err)
+	if (err != 0)
 		return err;
 
 	mm->remove_support = nvgpu_remove_mm_support;
@@ -510,14 +510,14 @@ static int nvgpu_init_mm_pdb_cache_war(struct gk20a *g)
 
 	if (g->ops.fifo.init_pdb_cache_war) {
 		err = g->ops.fifo.init_pdb_cache_war(g);
-		if (err) {
+		if (err != 0) {
 			return err;
 		}
 	}
 
 	if (g->ops.fb.apply_pdb_cache_war) {
 		err = g->ops.fb.apply_pdb_cache_war(g);
-		if (err) {
+		if (err != 0) {
 			return err;
 		}
 	}
@@ -527,20 +527,20 @@ static int nvgpu_init_mm_pdb_cache_war(struct gk20a *g)
 
 int nvgpu_init_mm_support(struct gk20a *g)
 {
-	u32 err;
+	int err;
 
 	err = nvgpu_init_mm_reset_enable_hw(g);
-	if (err) {
+	if (err != 0) {
 		return err;
 	}
 
 	err = nvgpu_init_mm_pdb_cache_war(g);
-	if (err) {
+	if (err != 0) {
 		return err;
 	}
 
 	err = nvgpu_init_mm_setup_sw(g);
-	if (err) {
+	if (err != 0) {
 		return err;
 	}
 

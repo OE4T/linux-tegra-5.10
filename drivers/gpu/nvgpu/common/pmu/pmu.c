@@ -85,12 +85,12 @@ static int pmu_enable(struct nvgpu_pmu *pmu, bool enable)
 		}
 	} else {
 		err = pmu_enable_hw(pmu, true);
-		if (err) {
+		if (err != 0) {
 			goto exit;
 		}
 
 		err = nvgpu_flcn_wait_idle(pmu->flcn);
-		if (err) {
+		if (err != 0) {
 			goto exit;
 		}
 
@@ -110,12 +110,12 @@ int nvgpu_pmu_reset(struct gk20a *g)
 	nvgpu_log_fn(g, " %s ", g->name);
 
 	err = nvgpu_flcn_wait_idle(pmu->flcn);
-	if (err) {
+	if (err != 0) {
 		goto exit;
 	}
 
 	err = pmu_enable(pmu, false);
-	if (err) {
+	if (err != 0) {
 		goto exit;
 	}
 
@@ -141,7 +141,7 @@ static int nvgpu_init_task_pg_init(struct gk20a *g)
 
 	err = nvgpu_thread_create(&pmu->pg_init.state_task, g,
 			nvgpu_pg_init_task, thread_name);
-	if (err) {
+	if (err != 0) {
 		nvgpu_err(g, "failed to start nvgpu_pg_init thread");
 	}
 
@@ -234,7 +234,7 @@ static int nvgpu_init_pmu_setup_sw(struct gk20a *g)
 
 	err = nvgpu_dma_alloc_map_sys(vm, GK20A_PMU_SEQ_BUF_SIZE,
 			&pmu->seq_buf);
-	if (err) {
+	if (err != 0) {
 		nvgpu_err(g, "failed to allocate memory");
 		goto err_free_seq;
 	}
@@ -254,14 +254,14 @@ static int nvgpu_init_pmu_setup_sw(struct gk20a *g)
 		err = g->ops.pmu.alloc_super_surface(g,
 				&pmu->super_surface_buf,
 				sizeof(struct nv_pmu_super_surface));
-		if (err) {
+		if (err != 0) {
 			goto err_free_seq_buf;
 		}
 	}
 
 	err = nvgpu_dma_alloc_map(vm, GK20A_PMU_TRACE_BUFSIZE,
 			&pmu->trace_buf);
-	if (err) {
+	if (err != 0) {
 		nvgpu_err(g, "failed to allocate pmu trace buffer\n");
 		goto err_free_super_surface;
 	}
@@ -613,7 +613,7 @@ int nvgpu_pmu_vidmem_surface_alloc(struct gk20a *g, struct nvgpu_mem *mem,
 	int err;
 
 	err = nvgpu_dma_alloc_map_vid(vm, size, mem);
-	if (err) {
+	if (err != 0) {
 		nvgpu_err(g, "memory allocation failed");
 		return -ENOMEM;
 	}
@@ -629,7 +629,7 @@ int nvgpu_pmu_sysmem_surface_alloc(struct gk20a *g, struct nvgpu_mem *mem,
 	int err;
 
 	err = nvgpu_dma_alloc_map_sys(vm, size, mem);
-	if (err) {
+	if (err != 0) {
 		nvgpu_err(g, "failed to allocate memory\n");
 		return -ENOMEM;
 	}
@@ -646,7 +646,7 @@ int nvgpu_pmu_super_surface_alloc(struct gk20a *g,
 	nvgpu_log_fn(g, " ");
 
 	err = nvgpu_dma_alloc_map(vm, size, mem_surface);
-	if (err) {
+	if (err != 0) {
 		nvgpu_err(g, "failed to allocate pmu suffer surface\n");
 		err = -ENOMEM;
 	}

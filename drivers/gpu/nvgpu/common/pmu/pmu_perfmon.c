@@ -339,7 +339,7 @@ int nvgpu_pmu_init_perfmon_rpc(struct nvgpu_pmu *pmu)
 
 	nvgpu_pmu_dbg(g, "RPC post NV_PMU_RPC_ID_PERFMON_INIT");
 	PMU_RPC_EXECUTE(status, pmu, PERFMON_T18X, INIT, &rpc, 0);
-	if (status) {
+	if (status != 0) {
 		nvgpu_err(g, "Failed to execute RPC, status=0x%x", status);
 		goto exit;
 	}
@@ -372,7 +372,7 @@ int nvgpu_pmu_perfmon_start_sampling_rpc(struct nvgpu_pmu *pmu)
 
 	nvgpu_pmu_dbg(g, "RPC post NV_PMU_RPC_ID_PERFMON_START\n");
 	PMU_RPC_EXECUTE(status, pmu, PERFMON_T18X, START, &rpc, 0);
-	if (status) {
+	if (status != 0) {
 		nvgpu_err(g, "Failed to execute RPC, status=0x%x", status);
 	}
 
@@ -395,7 +395,7 @@ int nvgpu_pmu_perfmon_stop_sampling_rpc(struct nvgpu_pmu *pmu)
 	/* PERFMON Stop */
 	nvgpu_pmu_dbg(g, "RPC post NV_PMU_RPC_ID_PERFMON_STOP\n");
 	PMU_RPC_EXECUTE(status, pmu, PERFMON_T18X, STOP, &rpc, 0);
-	if (status) {
+	if (status != 0) {
 		nvgpu_err(g, "Failed to execute RPC, status=0x%x", status);
 	}
 
@@ -418,7 +418,7 @@ int nvgpu_pmu_perfmon_get_samples_rpc(struct nvgpu_pmu *pmu)
 	/* PERFMON QUERY */
 	nvgpu_pmu_dbg(g, "RPC post NV_PMU_RPC_ID_PERFMON_QUERY\n");
 	PMU_RPC_EXECUTE(status, pmu, PERFMON_T18X, QUERY, &rpc, 0);
-	if (status) {
+	if (status != 0) {
 		nvgpu_err(g, "Failed to execute RPC, status=0x%x", status);
 	}
 

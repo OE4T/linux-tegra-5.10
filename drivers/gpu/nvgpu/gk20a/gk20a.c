@@ -83,7 +83,7 @@ int gk20a_prepare_poweroff(struct gk20a *g)
 
 	if (g->ops.fifo.channel_suspend) {
 		ret = g->ops.fifo.channel_suspend(g);
-		if (ret) {
+		if (ret != 0) {
 			return ret;
 		}
 	}
@@ -148,7 +148,7 @@ int gk20a_finalize_poweron(struct gk20a *g)
 	 * buffers.
 	 */
 	err = nvgpu_pd_cache_init(g);
-	if (err) {
+	if (err != 0) {
 		return err;
 	}
 
@@ -182,7 +182,7 @@ int gk20a_finalize_poweron(struct gk20a *g)
 	if (g->ops.bios.init) {
 		err = g->ops.bios.init(g);
 	}
-	if (err) {
+	if (err != 0) {
 		goto done;
 	}
 
@@ -202,7 +202,7 @@ int gk20a_finalize_poweron(struct gk20a *g)
 	   saving features (blcg/slcg) are enabled. For now, do it here. */
 	if (g->ops.clk.init_clk_support) {
 		err = g->ops.clk.init_clk_support(g);
-		if (err) {
+		if (err != 0) {
 			nvgpu_err(g, "failed to init gk20a clk");
 			goto done;
 		}
@@ -210,7 +210,7 @@ int gk20a_finalize_poweron(struct gk20a *g)
 
 	if (nvgpu_is_enabled(g, NVGPU_SUPPORT_NVLINK)) {
 		err = g->ops.nvlink.init(g);
-		if (err) {
+		if (err != 0) {
 			nvgpu_err(g, "failed to init nvlink");
 			goto done;
 		}
@@ -218,7 +218,7 @@ int gk20a_finalize_poweron(struct gk20a *g)
 
 	if (g->ops.fb.init_fbpa) {
 		err = g->ops.fb.init_fbpa(g);
-		if (err) {
+		if (err != 0) {
 			nvgpu_err(g, "failed to init fbpa");
 			goto done;
 		}
@@ -226,7 +226,7 @@ int gk20a_finalize_poweron(struct gk20a *g)
 
 	if (g->ops.fb.mem_unlock) {
 		err = g->ops.fb.mem_unlock(g);
-		if (err) {
+		if (err != 0) {
 			nvgpu_err(g, "failed to unlock memory");
 			goto done;
 		}
@@ -234,25 +234,25 @@ int gk20a_finalize_poweron(struct gk20a *g)
 
 	err = g->ops.fifo.reset_enable_hw(g);
 
-	if (err) {
+	if (err != 0) {
 		nvgpu_err(g, "failed to reset gk20a fifo");
 		goto done;
 	}
 
 	err = nvgpu_init_ltc_support(g);
-	if (err) {
+	if (err != 0) {
 		nvgpu_err(g, "failed to init ltc");
 		goto done;
 	}
 
 	err = nvgpu_init_mm_support(g);
-	if (err) {
+	if (err != 0) {
 		nvgpu_err(g, "failed to init gk20a mm");
 		goto done;
 	}
 
 	err = gk20a_init_fifo_support(g);
-	if (err) {
+	if (err != 0) {
 		nvgpu_err(g, "failed to init gk20a fifo");
 		goto done;
 	}
@@ -282,7 +282,7 @@ int gk20a_finalize_poweron(struct gk20a *g)
 	}
 
 	err = gk20a_enable_gr_hw(g);
-	if (err) {
+	if (err != 0) {
 		nvgpu_err(g, "failed to enable gr");
 		nvgpu_mutex_release(&g->tpc_pg_lock);
 		goto done;
@@ -292,7 +292,7 @@ int gk20a_finalize_poweron(struct gk20a *g)
 		if (g->ops.pmu.prepare_ucode) {
 			err = g->ops.pmu.prepare_ucode(g);
 		}
-		if (err) {
+		if (err != 0) {
 			nvgpu_err(g, "failed to init pmu ucode");
 			nvgpu_mutex_release(&g->tpc_pg_lock);
 			goto done;
@@ -301,7 +301,7 @@ int gk20a_finalize_poweron(struct gk20a *g)
 
 	if (nvgpu_is_enabled(g, NVGPU_PMU_PSTATE)) {
 		err = gk20a_init_pstate_support(g);
-		if (err) {
+		if (err != 0) {
 			nvgpu_err(g, "failed to init pstates");
 			nvgpu_mutex_release(&g->tpc_pg_lock);
 			goto done;
@@ -327,7 +327,7 @@ int gk20a_finalize_poweron(struct gk20a *g)
 
 	if (g->ops.pmu.is_pmu_supported(g)) {
 		err = nvgpu_init_pmu_support(g);
-		if (err) {
+		if (err != 0) {
 			nvgpu_err(g, "failed to init gk20a pmu");
 			nvgpu_mutex_release(&g->tpc_pg_lock);
 			goto done;
@@ -335,7 +335,7 @@ int gk20a_finalize_poweron(struct gk20a *g)
 	}
 
 	err = gk20a_init_gr_support(g);
-	if (err) {
+	if (err != 0) {
 		nvgpu_err(g, "failed to init gk20a gr");
 		nvgpu_mutex_release(&g->tpc_pg_lock);
 		goto done;
@@ -345,7 +345,7 @@ int gk20a_finalize_poweron(struct gk20a *g)
 
 	if (nvgpu_is_enabled(g, NVGPU_PMU_PSTATE)) {
 		err = gk20a_init_pstate_pmu_support(g);
-		if (err) {
+		if (err != 0) {
 			nvgpu_err(g, "failed to init pstates");
 			goto done;
 		}
@@ -355,27 +355,27 @@ int gk20a_finalize_poweron(struct gk20a *g)
 		g->ops.pmu_ver.clk.clk_set_boot_clk(g);
 	} else {
 		err = nvgpu_clk_arb_init_arbiter(g);
-		if (err) {
+		if (err != 0) {
 			nvgpu_err(g, "failed to init clk arb");
 			goto done;
 		}
 	}
 
 	err = nvgpu_init_therm_support(g);
-	if (err) {
+	if (err != 0) {
 		nvgpu_err(g, "failed to init gk20a therm");
 		goto done;
 	}
 
 	err = g->ops.chip_init_gpu_characteristics(g);
-	if (err) {
+	if (err != 0) {
 		nvgpu_err(g, "failed to init gk20a gpu characteristics");
 		goto done;
 	}
 
 #ifdef CONFIG_GK20A_CTXSW_TRACE
 	err = gk20a_ctxsw_trace_init(g);
-	if (err)
+	if (err != 0)
 		nvgpu_warn(g, "could not initialize ctxsw tracing");
 #endif
 
@@ -396,7 +396,7 @@ int gk20a_finalize_poweron(struct gk20a *g)
 		/* Set to max speed */
 		speed = 1 << (fls(speed) - 1);
 		err = g->ops.xve.set_speed(g, speed);
-		if (err) {
+		if (err != 0) {
 			nvgpu_err(g, "Failed to set PCIe bus speed!");
 			goto done;
 		}
@@ -417,7 +417,7 @@ int gk20a_finalize_poweron(struct gk20a *g)
 	}
 
 done:
-	if (err) {
+	if (err != 0) {
 		g->power_on = false;
 	}
 

@@ -437,7 +437,7 @@ static struct nvgpu_page_alloc *nvgpu_alloc_slab(
 
 	alloc->sgt.sgl = (struct nvgpu_sgl *)sgl;
 	err = do_slab_alloc(a, slab, alloc);
-	if (err) {
+	if (err != 0) {
 		goto fail;
 	}
 
@@ -1023,7 +1023,7 @@ int nvgpu_page_allocator_init(struct gk20a *g, struct nvgpu_allocator *na,
 	}
 
 	err = nvgpu_alloc_common_init(na, g, name, a, false, &page_ops);
-	if (err) {
+	if (err != 0) {
 		goto fail;
 	}
 
@@ -1047,7 +1047,7 @@ int nvgpu_page_allocator_init(struct gk20a *g, struct nvgpu_allocator *na,
 	if ((flags & GPU_ALLOC_4K_VIDMEM_PAGES) != 0ULL &&
 	    blk_size > SZ_4K) {
 		err = nvgpu_page_alloc_init_slabs(a);
-		if (err) {
+		if (err != 0) {
 			goto fail;
 		}
 	}
@@ -1057,7 +1057,7 @@ int nvgpu_page_allocator_init(struct gk20a *g, struct nvgpu_allocator *na,
 	err = nvgpu_buddy_allocator_init(g, &a->source_allocator, NULL,
 					 buddy_name, base, length, blk_size,
 					 0ULL, 0ULL);
-	if (err) {
+	if (err != 0) {
 		goto fail;
 	}
 

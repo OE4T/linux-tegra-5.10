@@ -357,7 +357,7 @@ int gk20a_init_ce_support(struct gk20a *g)
 	nvgpu_log(g, gpu_dbg_fn, "ce: init");
 
 	err = nvgpu_mutex_init(&ce_app->app_mutex);
-	if (err) {
+	if (err != 0) {
 		return err;
 	}
 
@@ -438,7 +438,7 @@ u32 gk20a_ce_create_context(struct gk20a *g,
 	}
 
 	err = nvgpu_mutex_init(&ce_ctx->gpu_ctx_mutex);
-	if (err) {
+	if (err != 0) {
 		nvgpu_kfree(g, ce_ctx);
 		return ctx_id;
 	}
@@ -469,13 +469,13 @@ u32 gk20a_ce_create_context(struct gk20a *g,
 
 	/* bind the channel to the vm */
 	err = g->ops.mm.vm_bind_channel(g->mm.ce.vm, ce_ctx->ch);
-	if (err) {
+	if (err != 0) {
 		nvgpu_err(g, "ce: could not bind vm");
 		goto end;
 	}
 
 	err = gk20a_tsg_bind_channel(ce_ctx->tsg, ce_ctx->ch);
-	if (err) {
+	if (err != 0) {
 		nvgpu_err(g, "ce: unable to bind to tsg");
 		goto end;
 	}
@@ -485,7 +485,7 @@ u32 gk20a_ce_create_context(struct gk20a *g,
 	gpfifo_args.flags = 0;
 	/* allocate gpfifo (1024 should be more than enough) */
 	err = gk20a_channel_alloc_gpfifo(ce_ctx->ch, &gpfifo_args);
-	if (err) {
+	if (err != 0) {
 		nvgpu_err(g, "ce: unable to allocate gpfifo");
 		goto end;
 	}
@@ -495,7 +495,7 @@ u32 gk20a_ce_create_context(struct gk20a *g,
 			NVGPU_CE_MAX_INFLIGHT_JOBS *
 			NVGPU_CE_MAX_COMMAND_BUFF_BYTES_PER_KICKOFF,
 			&ce_ctx->cmd_buf_mem);
-	 if (err) {
+	 if (err != 0) {
 		nvgpu_err(g,
 			"ce: could not allocate command buffer for CE context");
 		goto end;
@@ -506,7 +506,7 @@ u32 gk20a_ce_create_context(struct gk20a *g,
 	/* -1 means default channel timeslice value */
 	if (timeslice != -1) {
 		err = gk20a_fifo_tsg_set_timeslice(ce_ctx->tsg, timeslice);
-		if (err) {
+		if (err != 0) {
 			nvgpu_err(g,
 				"ce: could not set the channel timeslice value for CE context");
 			goto end;
@@ -517,7 +517,7 @@ u32 gk20a_ce_create_context(struct gk20a *g,
 	if (runlist_level != -1) {
 		err = gk20a_tsg_set_runlist_interleave(ce_ctx->tsg,
 						       runlist_level);
-		if (err) {
+		if (err != 0) {
 			nvgpu_err(g,
 				"ce: could not set the runlist interleave for CE context");
 			goto end;

@@ -164,7 +164,7 @@ int nvgpu_alloc_common_init(struct nvgpu_allocator *a, struct gk20a *g,
 	}
 
 	err = nvgpu_mutex_init(&a->lock);
-	if (err) {
+	if (err != 0) {
 		return err;
 	}
 

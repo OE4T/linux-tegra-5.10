@@ -73,7 +73,7 @@ static bool gr_context_info_available(struct gr_gk20a *gr)
 	nvgpu_mutex_acquire(&gr->ctx_mutex);
 	err = !gr->ctx_vars.golden_image_initialized;
 	nvgpu_mutex_release(&gr->ctx_mutex);
-	if (err) {
+	if (err != 0) {
 		return false;
 	}
 
@@ -222,7 +222,7 @@ int exec_regops_gk20a(struct dbg_session_gk20a *dbg_s,
 		err = gr_gk20a_exec_ctx_ops(ch, ops, num_ops,
 					    ctx_wr_count, ctx_rd_count,
 					    is_current_ctx);
-		if (err) {
+		if (err != 0) {
 			nvgpu_warn(g, "failed to perform ctx ops\n");
 			goto clean_up;
 		}
@@ -377,7 +377,7 @@ static int validate_reg_op_offset(struct dbg_session_gk20a *dbg_s,
 						      &num_offsets,
 						      op->type == REGOP(TYPE_GR_CTX_QUAD),
 						      op->quad);
-		if (err) {
+		if (err != 0) {
 			err = gr_gk20a_get_pm_ctx_buffer_offsets(dbg_s->g,
 							      op->offset,
 							      1,
@@ -385,7 +385,7 @@ static int validate_reg_op_offset(struct dbg_session_gk20a *dbg_s,
 							      &buf_offset_addr,
 							      &num_offsets);
 
-			if (err) {
+			if (err != 0) {
 				op->status |= REGOP(STATUS_INVALID_OFFSET);
 				return -EINVAL;
 			}

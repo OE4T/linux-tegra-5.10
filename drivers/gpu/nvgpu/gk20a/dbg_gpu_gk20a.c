@@ -207,7 +207,7 @@ int dbg_set_powergate(struct dbg_session_gk20a *dbg_s, bool disable_powergate)
 		nvgpu_log(g, gpu_dbg_gpu_dbg | gpu_dbg_fn,
 						"module busy");
 		err = gk20a_busy(g);
-		if (err) {
+		if (err != 0) {
 			return err;
 		}
 

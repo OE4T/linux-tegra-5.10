@@ -405,7 +405,7 @@ int nvgpu_bitmap_allocator_init(struct gk20a *g, struct nvgpu_allocator *na,
 	}
 
 	err = nvgpu_alloc_common_init(na, g, name, a, false, &bitmap_ops);
-	if (err) {
+	if (err != 0) {
 		goto fail;
 	}
 

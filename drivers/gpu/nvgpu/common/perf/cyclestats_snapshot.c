@@ -118,7 +118,7 @@ int nvgpu_css_enable_snapshot(struct channel_gk20a *ch,
 
 	ret = nvgpu_dma_alloc_map_sys(g->mm.pmu.vm, snapshot_size,
 							&data->hw_memdesc);
-	if (ret)
+	if (ret != 0)
 		return ret;
 
 	/* perf output buffer may not cross a 4GB boundary - with a separate */
@@ -233,7 +233,7 @@ static int css_gr_flush_snapshots(struct channel_gk20a *ch)
 
 	/* check data available */
 	err = g->ops.css.check_data_available(ch, &pending, &hw_overflow);
-	if (err)
+	if (err != 0)
 		return err;
 
 	if (!pending)
@@ -460,17 +460,17 @@ int gr_gk20a_css_attach(struct channel_gk20a *ch,
 	nvgpu_mutex_acquire(&gr->cs_lock);
 
 	ret = css_gr_create_shared_data(gr);
-	if (ret)
+	if (ret != 0)
 		goto failed;
 
 	ret = css_gr_create_client_data(g, gr->cs_data,
 				     perfmon_count,
 				     cs_client);
-	if (ret)
+	if (ret != 0)
 		goto failed;
 
 	ret = g->ops.css.enable_snapshot(ch, cs_client);
-	if (ret)
+	if (ret != 0)
 		goto failed;
 
 	if (perfmon_start)

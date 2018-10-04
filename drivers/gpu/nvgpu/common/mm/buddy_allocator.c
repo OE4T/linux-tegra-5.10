@@ -1320,7 +1320,7 @@ int nvgpu_buddy_allocator_init(struct gk20a *g, struct nvgpu_allocator *na,
 	}
 
 	err = nvgpu_alloc_common_init(na, g, name, a, false, &buddy_ops);
-	if (err) {
+	if (err != 0) {
 		goto fail;
 	}
 
@@ -1375,7 +1375,7 @@ int nvgpu_buddy_allocator_init(struct gk20a *g, struct nvgpu_allocator *na,
 	a->fixed_allocs = NULL;
 	nvgpu_init_list_node(&a->co_list);
 	err = balloc_init_lists(a);
-	if (err) {
+	if (err != 0) {
 		goto fail;
 	}
 

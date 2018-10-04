@@ -109,7 +109,7 @@ int gk20a_init_mm_setup_hw(struct gk20a *g)
 
 	if (g->ops.bus.bar2_bind) {
 		err = g->ops.bus.bar2_bind(g, &mm->bar2.inst_block);
-		if (err) {
+		if (err != 0) {
 			return err;
 		}
 	}
@@ -350,7 +350,7 @@ int gk20a_vm_bind_channel(struct vm_gk20a *vm, struct channel_gk20a *ch)
 	nvgpu_vm_get(vm);
 	ch->vm = vm;
 	err = channel_gk20a_commit_va(ch);
-	if (err) {
+	if (err != 0) {
 		ch->vm = NULL;
 	}
 
@@ -409,7 +409,7 @@ int gk20a_alloc_inst_block(struct gk20a *g, struct nvgpu_mem *inst_block)
 	nvgpu_log_fn(g, " ");
 
 	err = nvgpu_dma_alloc(g, ram_in_alloc_size_v(), inst_block);
-	if (err) {
+	if (err != 0) {
 		nvgpu_err(g, "%s: memory allocation failed", __func__);
 		return err;
 	}

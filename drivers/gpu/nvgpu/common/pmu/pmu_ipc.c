@@ -250,7 +250,7 @@ static int pmu_write_cmd(struct nvgpu_pmu *pmu, struct pmu_cmd *cmd,
 		}
 	} while (1);
 
-	if (err) {
+	if (err != 0) {
 		nvgpu_err(g, "fail to write cmd to queue %d", queue_id);
 	} else {
 		nvgpu_log_fn(g, "done");
@@ -293,7 +293,7 @@ static int pmu_cmd_payload_extract_rpc(struct gk20a *g, struct pmu_cmd *cmd,
 		dmem_alloc_offset);
 
 clean_up:
-	if (err) {
+	if (err != 0) {
 		nvgpu_log_fn(g, "fail");
 	} else {
 		nvgpu_log_fn(g, "done");
@@ -411,7 +411,7 @@ static int pmu_cmd_payload_extract(struct gk20a *g, struct pmu_cmd *cmd,
 	}
 
 clean_up:
-	if (err) {
+	if (err != 0) {
 		nvgpu_log_fn(g, "fail");
 		if (in) {
 			nvgpu_free(&pmu->dmem,
@@ -457,7 +457,7 @@ int nvgpu_pmu_cmd_post(struct gk20a *g, struct pmu_cmd *cmd,
 	}
 
 	err = pmu_seq_acquire(pmu, &seq);
-	if (err) {
+	if (err != 0) {
 		return err;
 	}
 
@@ -481,14 +481,14 @@ int nvgpu_pmu_cmd_post(struct gk20a *g, struct pmu_cmd *cmd,
 		err = pmu_cmd_payload_extract(g, cmd, payload, seq);
 	}
 
-	if (err) {
+	if (err != 0) {
 		goto clean_up;
 	}
 
 	seq->state = PMU_SEQ_STATE_USED;
 
 	err = pmu_write_cmd(pmu, cmd, queue_id, timeout);
-	if (err) {
+	if (err != 0) {
 		seq->state = PMU_SEQ_STATE_PENDING;
 	}
 
@@ -938,7 +938,7 @@ int nvgpu_pmu_rpc_execute(struct nvgpu_pmu *pmu, struct nv_pmu_rpc_header *rpc,
 	status = nvgpu_pmu_cmd_post(g, &cmd, NULL, &payload,
 			PMU_COMMAND_QUEUE_LPQ, callback,
 			rpc_payload, &seq, ~0);
-	if (status) {
+	if (status != 0) {
 		nvgpu_err(g, "Failed to execute RPC status=0x%x, func=0x%x",
 				status, rpc->function);
 		goto exit;
@@ -960,7 +960,7 @@ int nvgpu_pmu_rpc_execute(struct nvgpu_pmu *pmu, struct nv_pmu_rpc_header *rpc,
 	}
 
 exit:
-	if (status) {
+	if (status != 0) {
 		if (rpc_payload) {
 			nvgpu_kfree(g, rpc_payload);
 		}

@@ -260,7 +260,7 @@ static int nvgpu_init_sema_pool(struct vm_gk20a *vm)
 	}
 
 	err = nvgpu_semaphore_pool_map(vm->sema_pool, vm);
-	if (err) {
+	if (err != 0) {
 		nvgpu_semaphore_pool_unmap(vm->sema_pool, vm);
 		nvgpu_free(vm->vma[GMMU_PAGE_SIZE_SMALL],
 			   vm->sema_pool->gpu_va);
@@ -339,7 +339,7 @@ int __nvgpu_vm_init(struct mm_gk20a *mm,
 	/* Initialize the page table data structures. */
 	strncpy(vm->name, name, min(strlen(name), sizeof(vm->name)));
 	err = nvgpu_gmmu_init_page_table(vm);
-	if (err) {
+	if (err != 0) {
 		goto clean_up_vgpu_vm;
 	}
 
@@ -427,7 +427,7 @@ int __nvgpu_vm_init(struct mm_gk20a *mm,
 						 SZ_4K,
 						 GPU_BALLOC_MAX_ORDER,
 						 GPU_ALLOC_GVA_SPACE);
-		if (err) {
+		if (err != 0) {
 			goto clean_up_page_tables;
 		}
 	} else {
@@ -453,7 +453,7 @@ int __nvgpu_vm_init(struct mm_gk20a *mm,
 						 vm->big_page_size,
 						 GPU_BALLOC_MAX_ORDER,
 						 GPU_ALLOC_GVA_SPACE);
-		if (err) {
+		if (err != 0) {
 			goto clean_up_allocators;
 		}
 	}
@@ -469,7 +469,7 @@ int __nvgpu_vm_init(struct mm_gk20a *mm,
 					 SZ_4K,
 					 GPU_BALLOC_MAX_ORDER,
 					 kernel_vma_flags);
-	if (err) {
+	if (err != 0) {
 		goto clean_up_allocators;
 	}
 
@@ -498,7 +498,7 @@ int __nvgpu_vm_init(struct mm_gk20a *mm,
 	 */
 	if (vm->va_limit > 4ULL * SZ_1G) {
 		err = nvgpu_init_sema_pool(vm);
-		if (err) {
+		if (err != 0) {
 			goto clean_up_gmmu_lock;
 		}
 	}
@@ -917,7 +917,7 @@ struct nvgpu_mapped_buf *nvgpu_vm_map(struct vm_gk20a *vm,
 						    map_size,
 						    binfo.pgsz_idx,
 						    &vm_area);
-		if (err) {
+		if (err != 0) {
 			goto clean_up;
 		}
 
@@ -925,7 +925,7 @@ struct nvgpu_mapped_buf *nvgpu_vm_map(struct vm_gk20a *vm,
 	}
 
 	err = nvgpu_vm_compute_compression(vm, &binfo);
-	if (err) {
+	if (err != 0) {
 		nvgpu_err(g, "failure setting up compression");
 		goto clean_up;
 	}
@@ -962,7 +962,7 @@ struct nvgpu_mapped_buf *nvgpu_vm_map(struct vm_gk20a *vm,
 		err = gk20a_alloc_or_get_comptags(g, os_buf,
 						  &g->gr.comp_tags,
 						  &comptags);
-		if (err) {
+		if (err != 0) {
 			/*
 			 * This is an irrecoverable failure and we need to
 			 * abort. In particular, it is not safe to proceed with
@@ -987,7 +987,7 @@ struct nvgpu_mapped_buf *nvgpu_vm_map(struct vm_gk20a *vm,
 						 comptags.lines - 1U));
 					gk20a_comptags_finish_clear(
 						os_buf, err == 0);
-					if (err) {
+					if (err != 0) {
 						goto clean_up;
 					}
 				}
@@ -1073,7 +1073,7 @@ struct nvgpu_mapped_buf *nvgpu_vm_map(struct vm_gk20a *vm,
 	mapped_buffer->vm_area      = vm_area;
 
 	err = nvgpu_insert_mapped_buf(vm, mapped_buffer);
-	if (err) {
+	if (err != 0) {
 		nvgpu_err(g, "failed to insert into mapped buffer tree");
 		goto clean_up;
 	}

@@ -738,7 +738,7 @@ static int init_runlist(struct gk20a *g, struct fifo_gk20a *f)
 			err = nvgpu_dma_alloc_flags_sys(g, flags,
 							    runlist_size,
 							    &runlist->mem[i]);
-			if (err) {
+			if (err != 0) {
 				nvgpu_err(g, "memory allocation failed");
 				goto clean_up_runlist;
 			}
@@ -908,13 +908,13 @@ int gk20a_init_fifo_setup_sw_common(struct gk20a *g)
 	f->g = g;
 
 	err = nvgpu_mutex_init(&f->intr.isr.mutex);
-	if (err) {
+	if (err != 0) {
 		nvgpu_err(g, "failed to init isr.mutex");
 		return err;
 	}
 
 	err = nvgpu_mutex_init(&f->gr_reset_mutex);
-	if (err) {
+	if (err != 0) {
 		nvgpu_err(g, "failed to init gr_reset_mutex");
 		return err;
 	}
@@ -953,7 +953,7 @@ int gk20a_init_fifo_setup_sw_common(struct gk20a *g)
 	g->ops.fifo.init_engine_info(f);
 
 	err = init_runlist(g, f);
-	if (err) {
+	if (err != 0) {
 		nvgpu_err(g, "failed to init runlist");
 		goto clean_up;
 	}
@@ -961,7 +961,7 @@ int gk20a_init_fifo_setup_sw_common(struct gk20a *g)
 	nvgpu_init_list_node(&f->free_chs);
 
 	err = nvgpu_mutex_init(&f->free_chs_mutex);
-	if (err) {
+	if (err != 0) {
 		nvgpu_err(g, "failed to init free_chs_mutex");
 		goto clean_up;
 	}
@@ -972,7 +972,7 @@ int gk20a_init_fifo_setup_sw_common(struct gk20a *g)
 	}
 
 	err = nvgpu_mutex_init(&f->tsg_inuse_mutex);
-	if (err) {
+	if (err != 0) {
 		nvgpu_err(g, "failed to init tsg_inuse_mutex");
 		goto clean_up;
 	}
@@ -982,7 +982,7 @@ int gk20a_init_fifo_setup_sw_common(struct gk20a *g)
 	f->deferred_reset_pending = false;
 
 	err = nvgpu_mutex_init(&f->deferred_reset_mutex);
-	if (err) {
+	if (err != 0) {
 		nvgpu_err(g, "failed to init deferred_reset_mutex");
 		goto clean_up;
 	}
@@ -1022,7 +1022,7 @@ int gk20a_init_fifo_setup_sw(struct gk20a *g)
 	}
 
 	err = gk20a_init_fifo_setup_sw_common(g);
-	if (err) {
+	if (err != 0) {
 		nvgpu_err(g, "fail: err: %d", err);
 		return err;
 	}
@@ -1035,7 +1035,7 @@ int gk20a_init_fifo_setup_sw(struct gk20a *g)
 		err = nvgpu_dma_alloc_sys(g, f->userd_entry_size *
 				f->num_channels, &f->userd);
 	}
-	if (err) {
+	if (err != 0) {
 		nvgpu_err(g, "userd memory allocation failed");
 		goto clean_up;
 	}
@@ -1050,7 +1050,7 @@ int gk20a_init_fifo_setup_sw(struct gk20a *g)
 	}
 
 	err = nvgpu_channel_worker_init(g);
-	if (err) {
+	if (err != 0) {
 		goto clean_up;
 	}
 
@@ -1144,17 +1144,17 @@ int gk20a_init_fifo_setup_hw(struct gk20a *g)
 
 int gk20a_init_fifo_support(struct gk20a *g)
 {
-	u32 err;
+	int err;
 
 	err = g->ops.fifo.setup_sw(g);
-	if (err) {
+	if (err != 0) {
 		return err;
 	}
 
 	if (g->ops.fifo.init_fifo_setup_hw) {
 		err = g->ops.fifo.init_fifo_setup_hw(g);
 	}
-	if (err) {
+	if (err != 0) {
 		return err;
 	}
 
@@ -2198,20 +2198,20 @@ int gk20a_fifo_tsg_unbind_channel(struct channel_gk20a *ch)
 	g->ops.fifo.disable_tsg(tsg);
 
 	err = g->ops.fifo.preempt_tsg(g, tsg->tsgid);
-	if (err) {
+	if (err != 0) {
 		goto fail_enable_tsg;
 	}
 
 	if (g->ops.fifo.tsg_verify_channel_status && !tsg_timedout) {
 		err = g->ops.fifo.tsg_verify_channel_status(ch);
-		if (err) {
+		if (err != 0) {
 			goto fail_enable_tsg;
 		}
 	}
 
 	/* Channel should be seen as TSG channel while updating runlist */
 	err = channel_gk20a_update_runlist(ch, false);
-	if (err) {
+	if (err != 0) {
 		goto fail_enable_tsg;
 	}
 
@@ -2893,7 +2893,7 @@ int gk20a_fifo_is_preempt_pending(struct gk20a *g, u32 id,
 		delay = min_t(u32, delay << 1, GR_IDLE_CHECK_MAX);
 	} while (!nvgpu_timeout_expired(&timeout));
 
-	if (ret) {
+	if (ret != 0) {
 		nvgpu_err(g, "preempt timeout: id: %u id_type: %d ",
 			id, id_type);
 	}
@@ -2960,7 +2960,7 @@ int __locked_fifo_preempt(struct gk20a *g, u32 id, bool is_tsg)
 int gk20a_fifo_preempt_channel(struct gk20a *g, u32 chid)
 {
 	struct fifo_gk20a *f = &g->fifo;
-	u32 ret = 0;
+	int ret = 0;
 	u32 token = PMU_INVALID_MUTEX_OWNER_ID;
 	u32 mutex_ret = 0;
 	u32 i;
@@ -2987,7 +2987,7 @@ int gk20a_fifo_preempt_channel(struct gk20a *g, u32 chid)
 		nvgpu_mutex_release(&f->runlist_info[i].runlist_lock);
 	}
 
-	if (ret) {
+	if (ret != 0) {
 		if (nvgpu_platform_is_silicon(g)) {
 			nvgpu_err(g, "preempt timed out for chid: %u, "
 			"ctxsw timeout will trigger recovery if needed", chid);
@@ -3004,7 +3004,7 @@ int gk20a_fifo_preempt_channel(struct gk20a *g, u32 chid)
 int gk20a_fifo_preempt_tsg(struct gk20a *g, u32 tsgid)
 {
 	struct fifo_gk20a *f = &g->fifo;
-	u32 ret = 0;
+	int ret = 0;
 	u32 token = PMU_INVALID_MUTEX_OWNER_ID;
 	u32 mutex_ret = 0;
 	u32 i;
@@ -3031,7 +3031,7 @@ int gk20a_fifo_preempt_tsg(struct gk20a *g, u32 tsgid)
 		nvgpu_mutex_release(&f->runlist_info[i].runlist_lock);
 	}
 
-	if (ret) {
+	if (ret != 0) {
 		if (nvgpu_platform_is_silicon(g)) {
 			nvgpu_err(g, "preempt timed out for tsgid: %u, "
 			"ctxsw timeout will trigger recovery if needed", tsgid);
@@ -3123,7 +3123,7 @@ int gk20a_fifo_enable_all_engine_activity(struct gk20a *g)
 		u32 active_engine_id = g->fifo.active_engines_list[i];
 		err = gk20a_fifo_enable_engine_activity(g,
 				&g->fifo.engine_info[active_engine_id]);
-		if (err) {
+		if (err != 0) {
 			nvgpu_err(g,
 				"failed to enable engine %d activity", active_engine_id);
 			ret = err;
@@ -3142,7 +3142,7 @@ int gk20a_fifo_disable_engine_activity(struct gk20a *g,
 	u32 engine_chid = FIFO_INVAL_CHANNEL_ID;
 	u32 token = PMU_INVALID_MUTEX_OWNER_ID;
 	u32 mutex_ret;
-	u32 err = 0;
+	int err = 0;
 
 	nvgpu_log_fn(g, " ");
 
@@ -3171,7 +3171,7 @@ int gk20a_fifo_disable_engine_activity(struct gk20a *g,
 
 	if (pbdma_chid != FIFO_INVAL_CHANNEL_ID) {
 		err = g->ops.fifo.preempt_channel(g, pbdma_chid);
-		if (err) {
+		if (err != 0) {
 			goto clean_up;
 		}
 	}
@@ -3189,7 +3189,7 @@ int gk20a_fifo_disable_engine_activity(struct gk20a *g,
 
 	if (engine_chid != FIFO_INVAL_ENGINE_ID && engine_chid != pbdma_chid) {
 		err = g->ops.fifo.preempt_channel(g, engine_chid);
-		if (err) {
+		if (err != 0) {
 			goto clean_up;
 		}
 	}
@@ -3199,7 +3199,7 @@ clean_up:
 		nvgpu_pmu_mutex_release(&g->pmu, PMU_MUTEX_ID_FIFO, &token);
 	}
 
-	if (err) {
+	if (err != 0) {
 		nvgpu_log_fn(g, "failed");
 		if (gk20a_fifo_enable_engine_activity(g, eng_info)) {
 			nvgpu_err(g,
@@ -3223,7 +3223,7 @@ int gk20a_fifo_disable_all_engine_activity(struct gk20a *g,
 		err = gk20a_fifo_disable_engine_activity(g,
 				&g->fifo.engine_info[active_engine_id],
 				wait_for_idle);
-		if (err) {
+		if (err != 0) {
 			nvgpu_err(g, "failed to disable engine %d activity",
 				active_engine_id);
 			ret = err;
@@ -3231,12 +3231,12 @@ int gk20a_fifo_disable_all_engine_activity(struct gk20a *g,
 		}
 	}
 
-	if (err) {
+	if (err != 0) {
 		while (i-- != 0) {
 			active_engine_id = g->fifo.active_engines_list[i];
 			err = gk20a_fifo_enable_engine_activity(g,
 					&g->fifo.engine_info[active_engine_id]);
-			if (err) {
+			if (err != 0) {
 				nvgpu_err(g,
 					"failed to re-enable engine %d activity",
 					active_engine_id);
@@ -3291,7 +3291,7 @@ int gk20a_fifo_runlist_wait_pending(struct gk20a *g, u32 runlist_id)
 		delay = min_t(u32, delay << 1, GR_IDLE_CHECK_MAX);
 	} while (!nvgpu_timeout_expired(&timeout));
 
-	if (ret) {
+	if (ret != 0) {
 		nvgpu_err(g, "runlist wait timeout: runlist id: %u",
 			runlist_id);
 	}
@@ -3847,7 +3847,7 @@ int gk20a_fifo_wait_engine_idle(struct gk20a *g)
 					delay << 1, GR_IDLE_CHECK_MAX);
 		} while (!nvgpu_timeout_expired(&timeout));
 
-		if (ret) {
+		if (ret != 0) {
 			nvgpu_log_info(g, "cannot idle engine %u", i);
 			break;
 		}
@@ -4315,7 +4315,7 @@ int gk20a_fifo_alloc_inst(struct gk20a *g, struct channel_gk20a *ch)
 	nvgpu_log_fn(g, " ");
 
 	err = g->ops.mm.alloc_inst_block(g, &ch->inst_block);
-	if (err) {
+	if (err != 0) {
 		return err;
 	}
 

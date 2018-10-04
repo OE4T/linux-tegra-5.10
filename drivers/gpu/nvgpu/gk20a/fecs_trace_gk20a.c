@@ -418,10 +418,10 @@ int gk20a_fecs_trace_init(struct gk20a *g)
 	g->fecs_trace = trace;
 
 	err = nvgpu_mutex_init(&trace->poll_lock);
-	if (err)
+	if (err != 0)
 		goto clean;
 	err = nvgpu_mutex_init(&trace->hash_lock);
-	if (err)
+	if (err != 0)
 		goto clean_poll_lock;
 
 	BUG_ON(!is_power_of_2(GK20A_FECS_TRACE_NUM_RECORDS));
@@ -609,7 +609,7 @@ int gk20a_fecs_trace_enable(struct gk20a *g)
 
 	err = nvgpu_thread_create(&trace->poll_task, g,
 			gk20a_fecs_trace_periodic_polling, __func__);
-	if (err) {
+	if (err != 0) {
 		nvgpu_warn(g,
 				"failed to create FECS polling task");
 		return err;
