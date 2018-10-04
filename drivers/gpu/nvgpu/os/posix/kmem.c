@@ -41,7 +41,7 @@ struct nvgpu_kmem_cache *nvgpu_kmem_cache_create(struct gk20a *g, size_t size)
 	struct nvgpu_kmem_cache *cache =
 		malloc(sizeof(struct nvgpu_kmem_cache));
 
-	if (cache != NULL)
+	if (cache == NULL)
 		return NULL;
 
 	cache->alloc_size = size;
