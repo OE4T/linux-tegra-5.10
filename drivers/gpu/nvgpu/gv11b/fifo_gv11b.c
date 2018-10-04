@@ -311,8 +311,9 @@ void gv11b_dump_channel_status_ramfc(struct gk20a *g,
 
 	inst_mem = &ch_state->inst_block[0];
 
-	gk20a_debug_output(o, "%d-%s, pid %d, refs: %d: ", chid,
+	gk20a_debug_output(o, "%d-%s, TSG: %u, pid %d, refs: %d: ", chid,
 			g->name,
+			c->tsgid,
 			ch_state->pid,
 			ch_state->refs);
 	gk20a_debug_output(o, "channel status: %s in use %s %s\n",
