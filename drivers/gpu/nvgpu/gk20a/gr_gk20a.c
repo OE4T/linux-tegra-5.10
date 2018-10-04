@@ -45,6 +45,7 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/channel.h>
 #include <nvgpu/unit.h>
+#include <nvgpu/string.h>
 
 #include "gr_gk20a.h"
 #include "gk20a/fecs_trace_gk20a.h"
@@ -3826,11 +3827,13 @@ int gr_gk20a_add_zbc(struct gk20a *g, struct gr_gk20a *gr,
 			c_tbl = &gr->zbc_col_tbl[i];
 
 			if ((c_tbl->ref_cnt != 0U) &&
-			    (c_tbl->format == zbc_val->format) &&
-			    (memcmp(c_tbl->color_ds, zbc_val->color_ds,
-				sizeof(zbc_val->color_ds)) == 0) &&
-			    (memcmp(c_tbl->color_l2, zbc_val->color_l2,
-				sizeof(zbc_val->color_l2)) == 0)) {
+				(c_tbl->format == zbc_val->format) &&
+				(nvgpu_memcmp((u8 *)c_tbl->color_ds,
+					(u8 *)zbc_val->color_ds,
+					sizeof(zbc_val->color_ds)) == 0) &&
+				(nvgpu_memcmp((u8 *)c_tbl->color_l2,
+					(u8 *)zbc_val->color_l2,
+					sizeof(zbc_val->color_l2)) == 0)) {
 
 				added = true;
 				c_tbl->ref_cnt++;

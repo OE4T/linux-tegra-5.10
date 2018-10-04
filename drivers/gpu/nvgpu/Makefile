@@ -204,6 +204,7 @@ nvgpu-y += \
 	common/mm/mm.o \
 	common/mm/dma.o \
 	common/enabled.o \
+	common/string.o \
 	common/nvlink.o \
 	common/pramin.o \
 	common/semaphore.o \

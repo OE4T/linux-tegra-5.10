@@ -23,6 +23,7 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/boardobjgrp.h>
 #include <nvgpu/boardobjgrp_e32.h>
+#include <nvgpu/string.h>
 
 #include "clk.h"
 #include "clk_vf_point.h"
@@ -382,7 +383,7 @@ static int clk_vf_point_update(struct gk20a *g,
 		return -EINVAL;
 	}
 	/* now copy VF pair */
-	memcpy(&pclk_vf_point->pair, &pstatus->pair,
+	nvgpu_memcpy((u8 *)&pclk_vf_point->pair, (u8 *)&pstatus->pair,
 		sizeof(struct ctrl_clk_vf_pair));
 	return 0;
 }

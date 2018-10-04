@@ -24,6 +24,7 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/boardobjgrp.h>
 #include <nvgpu/boardobjgrp_e32.h>
+#include <nvgpu/string.h>
 
 #include "clk.h"
 #include "clk_fll.h"
@@ -208,7 +209,7 @@ static int clk_get_freq_controller_table(struct gk20a *g,
 		goto done;
 	}
 
-	memcpy(&header, pfreq_controller_table_ptr,
+	nvgpu_memcpy((u8 *)&header, pfreq_controller_table_ptr,
 			sizeof(struct vbios_fct_1x_header));
 
 	pclk_freq_controllers->sampling_period_ms = header.sampling_period_ms;
@@ -224,7 +225,7 @@ static int clk_get_freq_controller_table(struct gk20a *g,
 		ptmp_freq_cntr = &freq_controller_data.freq_controller;
 		ptmp_freq_cntr_pi = &freq_controller_data.freq_controller_pi;
 
-		memcpy(&entry, entry_offset,
+		nvgpu_memcpy((u8 *)&entry, entry_offset,
 			sizeof(struct vbios_fct_1x_entry));
 
 		if (!BIOS_GET_FIELD(entry.flags0,

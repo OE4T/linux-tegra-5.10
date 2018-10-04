@@ -25,6 +25,7 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/boardobjgrp.h>
 #include <nvgpu/boardobjgrp_e32.h>
+#include <nvgpu/string.h>
 
 #include "clk.h"
 #include "clk_prog.h"
@@ -455,7 +456,7 @@ static int devinit_get_clk_prog_table_1x(struct gk20a *g,
 
 	nvgpu_log_info(g, " ");
 
-	memcpy(&header, clkprogs_tbl_ptr, hszfmt);
+	nvgpu_memcpy((u8 *)&header, clkprogs_tbl_ptr, hszfmt);
 	if (header.header_size < hszfmt) {
 		status = -EINVAL;
 		goto done;
@@ -497,7 +498,7 @@ static int devinit_get_clk_prog_table_1x(struct gk20a *g,
 			(i * (szfmt + (header.slave_entry_count * slaveszfmt) +
 			(header.vf_entry_count * vfszfmt)));
 
-		memcpy(&prog, entry, szfmt);
+		nvgpu_memcpy((u8 *)&prog, entry, szfmt);
 		memset(vfentries, 0xFF,
 			sizeof(struct ctrl_clk_clk_prog_1x_master_vf_entry) *
 			CTRL_CLK_CLK_PROG_1X_MASTER_VF_ENTRY_MAX_ENTRIES);
@@ -550,7 +551,7 @@ static int devinit_get_clk_prog_table_1x(struct gk20a *g,
 		case NV_VBIOS_CLOCK_PROGRAMMING_TABLE_1X_ENTRY_FLAGS0_TYPE_MASTER_TABLE:
 			prog_data.v1x_master.b_o_c_o_v_enabled = false;
 			for (j = 0; j < header.vf_entry_count; j++) {
-				memcpy(&vfprog, vfentry, vfszfmt);
+				nvgpu_memcpy((u8 *)&vfprog, vfentry, vfszfmt);
 
 				vfentries[j].vfe_idx = (u8)vfprog.vfe_idx;
 				if (CTRL_CLK_PROG_1X_SOURCE_FLL ==
@@ -567,7 +568,8 @@ static int devinit_get_clk_prog_table_1x(struct gk20a *g,
 			prog_data.v1x_master.p_vf_entries = vfentries;
 
 			for (j = 0; j < header.slave_entry_count; j++) {
-				memcpy(&slaveprog, slaveentry, slaveszfmt);
+				nvgpu_memcpy((u8 *)&slaveprog, slaveentry,
+					slaveszfmt);
 
 				if (prog_type == NV_VBIOS_CLOCK_PROGRAMMING_TABLE_1X_ENTRY_FLAGS0_TYPE_MASTER_RATIO) {
 					ratioslaveentries[j].clk_dom_idx =
@@ -727,12 +729,13 @@ static int clk_prog_pmudatainit_1x_master(struct gk20a *g,
 	pset = (struct nv_pmu_clk_clk_prog_1x_master_boardobj_set *)(void *)
 		ppmudata;
 
-	memcpy(pset->vf_entries, pclk_prog_1x_master->p_vf_entries, vfsize);
+	nvgpu_memcpy((u8 *)pset->vf_entries,
+		(u8 *)pclk_prog_1x_master->p_vf_entries, vfsize);
 
 	pset->b_o_c_o_v_enabled = pclk_prog_1x_master->b_o_c_o_v_enabled;
 	pset->source_data = pclk_prog_1x_master->source_data;
 
-	memcpy(&pset->deltas, &pclk_prog_1x_master->deltas,
+	nvgpu_memcpy((u8 *)&pset->deltas, (u8 *)&pclk_prog_1x_master->deltas,
 		(u32) sizeof(struct ctrl_clk_clk_delta));
 
 	return status;
@@ -789,8 +792,8 @@ static int clk_prog_pmudatainit_1x_master_ratio(struct gk20a *g,
 	pset = (struct nv_pmu_clk_clk_prog_1x_master_ratio_boardobj_set *)
 				(void *)ppmudata;
 
-	memcpy(pset->slave_entries,
-		pclk_prog_1x_master_ratio->p_slave_entries, slavesize);
+	nvgpu_memcpy((u8 *)pset->slave_entries,
+		(u8 *)pclk_prog_1x_master_ratio->p_slave_entries, slavesize);
 
 	return status;
 }
@@ -846,8 +849,8 @@ static int clk_prog_pmudatainit_1x_master_table(struct gk20a *g,
 
 	pset = (struct nv_pmu_clk_clk_prog_1x_master_table_boardobj_set *)
 				(void *)ppmudata;
-	memcpy(pset->slave_entries,
-		pclk_prog_1x_master_table->p_slave_entries, slavesize);
+	nvgpu_memcpy((u8 *)pset->slave_entries,
+		(u8 *)pclk_prog_1x_master_table->p_slave_entries, slavesize);
 
 	return status;
 }
@@ -1032,7 +1035,8 @@ static int clk_prog_construct_1x_master(struct gk20a *g,
 	pclkprog->p_vf_entries = (struct ctrl_clk_clk_prog_1x_master_vf_entry *)
 		nvgpu_kzalloc(g, vfsize);
 
-	memcpy(pclkprog->p_vf_entries, ptmpprog->p_vf_entries, vfsize);
+	nvgpu_memcpy((u8 *)pclkprog->p_vf_entries,
+		(u8 *)ptmpprog->p_vf_entries, vfsize);
 
 	pclkprog->b_o_c_o_v_enabled = ptmpprog->b_o_c_o_v_enabled;
 
@@ -1126,7 +1130,8 @@ static int clk_prog_construct_1x_master_ratio(struct gk20a *g,
 	memset(pclkprog->p_slave_entries, CTRL_CLK_CLK_DOMAIN_INDEX_INVALID,
 		slavesize);
 
-	memcpy(pclkprog->p_slave_entries, ptmpprog->p_slave_entries, slavesize);
+	nvgpu_memcpy((u8 *)pclkprog->p_slave_entries,
+		(u8 *)ptmpprog->p_slave_entries, slavesize);
 
 	return status;
 }
@@ -1217,7 +1222,8 @@ static int clk_prog_construct_1x_master_table(struct gk20a *g,
 	memset(pclkprog->p_slave_entries, CTRL_CLK_CLK_DOMAIN_INDEX_INVALID,
 		slavesize);
 
-	memcpy(pclkprog->p_slave_entries, ptmpprog->p_slave_entries, slavesize);
+	nvgpu_memcpy((u8 *)pclkprog->p_slave_entries,
+		(u8 *)ptmpprog->p_slave_entries, slavesize);
 
 exit:
 	if (status) {

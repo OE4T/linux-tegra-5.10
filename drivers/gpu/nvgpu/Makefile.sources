@@ -86,6 +86,7 @@ srcs :=	os/posix/nvgpu.c \
 	common/enabled.c \
 	common/pramin.c \
 	common/semaphore.c \
+	common/string.c \
 	common/as.c \
 	common/rbtree.c \
 	common/ltc/ltc.c \

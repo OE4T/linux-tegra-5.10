@@ -24,6 +24,7 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/boardobjgrp.h>
 #include <nvgpu/boardobjgrp_e32.h>
+#include <nvgpu/string.h>
 
 #include "clk.h"
 #include "clk_fll.h"
@@ -155,7 +156,7 @@ static int _clk_domains_pmudatainit_3x(struct gk20a *g,
 				pdomains->master_domains_mask.super.bitcount,
 				&pset->master_domains_mask.super);
 
-	memcpy(&pset->deltas, &pdomains->deltas,
+	nvgpu_memcpy((u8 *)&pset->deltas, (u8 *)&pdomains->deltas,
 		(sizeof(struct ctrl_clk_clk_delta)));
 
 done:
@@ -322,7 +323,7 @@ static int devinit_get_clocks_table_35(struct gk20a *g,
 
 	nvgpu_log_info(g, " ");
 
-	memcpy(&clocks_table_header, clocks_table_ptr,
+	nvgpu_memcpy((u8 *)&clocks_table_header, clocks_table_ptr,
 			VBIOS_CLOCKS_TABLE_35_HEADER_SIZE_09);
 	if (clocks_table_header.header_size <
 			(u8) VBIOS_CLOCKS_TABLE_35_HEADER_SIZE_09) {
@@ -361,8 +362,8 @@ static int devinit_get_clocks_table_35(struct gk20a *g,
 	clocks_tbl_entry_ptr = clocks_table_ptr +
 			clocks_table_header.header_size;
 	for (index = 0; index < clocks_table_header.entry_count; index++) {
-		memcpy((void*) &clocks_table_entry, (void*) clocks_tbl_entry_ptr,
-				clocks_table_header.entry_size);
+		nvgpu_memcpy((u8 *)&clocks_table_entry,
+			clocks_tbl_entry_ptr, clocks_table_header.entry_size);
 		clk_domain_data.clk_domain.domain =
 				(u8) vbiosclktbl1xhalentry[index].domain;
 		clk_domain_data.clk_domain.api_domain =
@@ -528,7 +529,7 @@ static int devinit_get_clocks_table_1x(struct gk20a *g,
 
 	nvgpu_log_info(g, " ");
 
-	memcpy(&clocks_table_header, clocks_table_ptr,
+	nvgpu_memcpy((u8 *)&clocks_table_header, clocks_table_ptr,
 			VBIOS_CLOCKS_TABLE_1X_HEADER_SIZE_07);
 	if (clocks_table_header.header_size <
 			(u8) VBIOS_CLOCKS_TABLE_1X_HEADER_SIZE_07) {
@@ -567,8 +568,8 @@ static int devinit_get_clocks_table_1x(struct gk20a *g,
 	clocks_tbl_entry_ptr = clocks_table_ptr +
 		VBIOS_CLOCKS_TABLE_1X_HEADER_SIZE_07;
 	for (index = 0; index < clocks_table_header.entry_count; index++) {
-		memcpy((void*) &clocks_table_entry, (void*) clocks_tbl_entry_ptr,
-				clocks_table_header.entry_size);
+		nvgpu_memcpy((u8 *)&clocks_table_entry,
+			clocks_tbl_entry_ptr, clocks_table_header.entry_size);
 		clk_domain_data.clk_domain.domain =
 				(u8) vbiosclktbl1xhalentry[index].domain;
 		clk_domain_data.clk_domain.api_domain =
@@ -712,7 +713,7 @@ static int devinit_get_clocks_table(struct gk20a *g,
 		status = -EINVAL;
 		goto done;
 	}
-	memcpy(&clocks_table_header, clocks_table_ptr,
+	nvgpu_memcpy((u8 *)&clocks_table_header, clocks_table_ptr,
 			VBIOS_CLOCKS_TABLE_1X_HEADER_SIZE_07);
 	if (clocks_table_header.version == 0x35U) {
 		devinit_get_clocks_table_35(g, pclkdomainobjs, clocks_table_ptr);
@@ -1091,7 +1092,7 @@ static int clk_domain_pmudatainit_35_prog(struct gk20a *g,
 	pset->super.factory_delta = pclk_domain_3x_prog->factory_delta;
 	pset->super.freq_delta_min_mhz = pclk_domain_3x_prog->freq_delta_min_mhz;
 	pset->super.freq_delta_max_mhz = pclk_domain_3x_prog->freq_delta_max_mhz;
-	memcpy(&pset->super.deltas, &pdomains->deltas,
+	nvgpu_memcpy((u8 *)&pset->super.deltas, (u8 *)&pdomains->deltas,
 		(sizeof(struct ctrl_clk_clk_delta)));
 	pset->pre_volt_ordering_index = pclk_domain_35_prog->pre_volt_ordering_index;
 	pset->post_volt_ordering_index = pclk_domain_35_prog->post_volt_ordering_index;
@@ -1133,7 +1134,7 @@ static int _clk_domain_pmudatainit_3x_prog(struct gk20a *g,
 	pset->super.factory_delta = pclk_domain_3x_prog->factory_delta;
 	pset->super.freq_delta_min_mhz = pclk_domain_3x_prog->freq_delta_min_mhz;
 	pset->super.freq_delta_max_mhz = pclk_domain_3x_prog->freq_delta_max_mhz;
-	memcpy(&pset->super.deltas, &pdomains->deltas,
+	nvgpu_memcpy((u8 *)&pset->super.deltas, (u8 *)&pdomains->deltas,
 		(sizeof(struct ctrl_clk_clk_delta)));
 
 	return status;

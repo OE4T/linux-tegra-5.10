@@ -26,6 +26,7 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/boardobjgrp.h>
 #include <nvgpu/boardobjgrp_e32.h>
+#include <nvgpu/string.h>
 
 #include "ctrl/ctrlvolt.h"
 
@@ -286,7 +287,7 @@ static int devinit_get_vin_device_table(struct gk20a *g,
 		goto done;
 	}
 
-	memcpy(&vin_desc_table_header, vin_table_ptr,
+	nvgpu_memcpy((u8 *)&vin_desc_table_header, vin_table_ptr,
 	       sizeof(struct vin_descriptor_header_10));
 
 	pvinobjs->calibration_rev_vbios =
@@ -329,7 +330,7 @@ static int devinit_get_vin_device_table(struct gk20a *g,
 	/* Read table entries*/
 	vin_tbl_entry_ptr = vin_table_ptr + vin_desc_table_header.header_sizee;
 	for (index = 0; index < vin_desc_table_header.entry_count; index++) {
-		memcpy(&vin_desc_table_entry, vin_tbl_entry_ptr,
+		nvgpu_memcpy((u8 *)&vin_desc_table_entry, vin_tbl_entry_ptr,
 		       sizeof(struct vin_descriptor_entry_10));
 
 		if (vin_desc_table_entry.vin_device_type == CTRL_CLK_VIN_TYPE_DISABLED) {

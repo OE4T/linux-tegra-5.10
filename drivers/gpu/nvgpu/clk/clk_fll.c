@@ -24,6 +24,7 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/boardobjgrp.h>
 #include <nvgpu/boardobjgrp_e32.h>
+#include <nvgpu/string.h>
 
 #include "clk.h"
 #include "clk_fll.h"
@@ -254,7 +255,7 @@ static int devinit_get_fll_device_table(struct gk20a *g,
 		goto done;
 	}
 
-	memcpy(&fll_desc_table_header_sz, fll_table_ptr,
+	nvgpu_memcpy((u8 *)&fll_desc_table_header_sz, fll_table_ptr,
 			sizeof(struct fll_descriptor_header));
 	if (fll_desc_table_header_sz.size >= FLL_DESCRIPTOR_HEADER_10_SIZE_6) {
 		desctablesize = FLL_DESCRIPTOR_HEADER_10_SIZE_6;
@@ -262,7 +263,8 @@ static int devinit_get_fll_device_table(struct gk20a *g,
 		desctablesize = FLL_DESCRIPTOR_HEADER_10_SIZE_4;
 	}
 
-	memcpy(&fll_desc_table_header, fll_table_ptr, desctablesize);
+	nvgpu_memcpy((u8 *)&fll_desc_table_header, fll_table_ptr,
+		desctablesize);
 
 	if (desctablesize == FLL_DESCRIPTOR_HEADER_10_SIZE_6) {
 		pfllobjs->max_min_freq_mhz =
@@ -276,7 +278,7 @@ static int devinit_get_fll_device_table(struct gk20a *g,
 	for (index = 0; index < fll_desc_table_header.entry_count; index++) {
 		u32 fll_id;
 
-		memcpy(&fll_desc_table_entry, fll_tbl_entry_ptr,
+		nvgpu_memcpy((u8 *)&fll_desc_table_entry, fll_tbl_entry_ptr,
 				sizeof(struct fll_descriptor_entry_10));
 
 		if (fll_desc_table_entry.fll_device_type == CTRL_CLK_FLL_TYPE_DISABLED) {
@@ -437,9 +439,11 @@ static struct fll_device *construct_fll_device(struct gk20a *g,
 	board_obj_fll_ptr->freq_ctrl_idx = pfll_dev->freq_ctrl_idx;
 	board_obj_fll_ptr->b_skip_pldiv_below_dvco_min =
 		pfll_dev->b_skip_pldiv_below_dvco_min;
-	memcpy(&board_obj_fll_ptr->lut_device, &pfll_dev->lut_device,
+	nvgpu_memcpy((u8 *)&board_obj_fll_ptr->lut_device,
+		(u8 *)&pfll_dev->lut_device,
 		sizeof(struct nv_pmu_clk_lut_device_desc));
-	memcpy(&board_obj_fll_ptr->regime_desc, &pfll_dev->regime_desc,
+	nvgpu_memcpy((u8 *)&board_obj_fll_ptr->regime_desc,
+		(u8 *)&pfll_dev->regime_desc,
 		sizeof(struct nv_pmu_clk_regime_desc));
 	boardobjgrpmask_e32_init(
 		&board_obj_fll_ptr->lut_prog_broadcast_slave_mask, NULL);
@@ -479,9 +483,11 @@ static int fll_device_init_pmudata_super(struct gk20a *g,
 		pfll_dev->min_freq_vfe_idx;
 	perf_pmu_data->freq_ctrl_idx = pfll_dev->freq_ctrl_idx;
 	perf_pmu_data->b_skip_pldiv_below_dvco_min = pfll_dev->b_skip_pldiv_below_dvco_min;
-	memcpy(&perf_pmu_data->lut_device, &pfll_dev->lut_device,
+	nvgpu_memcpy((u8 *)&perf_pmu_data->lut_device,
+		(u8 *)&pfll_dev->lut_device,
 		sizeof(struct nv_pmu_clk_lut_device_desc));
-	memcpy(&perf_pmu_data->regime_desc, &pfll_dev->regime_desc,
+	nvgpu_memcpy((u8 *)&perf_pmu_data->regime_desc,
+		(u8 *)&pfll_dev->regime_desc,
 		sizeof(struct nv_pmu_clk_regime_desc));
 
 	status = boardobjgrpmask_export(
