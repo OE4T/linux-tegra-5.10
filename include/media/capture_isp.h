@@ -54,6 +54,7 @@ struct isp_capture_info {
 		uint32_t stats_progress_syncpt;
 		uint32_t stats_progress_syncpt_val;
 	} syncpts;
+	uint32_t channel_id;
 } __ISP_CAPTURE_ALIGN;
 
 struct isp_capture_req {

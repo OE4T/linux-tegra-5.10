@@ -975,6 +975,8 @@ int isp_capture_get_info(struct tegra_isp_channel *chan,
 		return -EINVAL;
 	}
 
+	info->channel_id = capture->channel_id;
+
 	info->syncpts.progress_syncpt = capture->progress_sp.id;
 	info->syncpts.stats_progress_syncpt =
 			capture->stats_progress_sp.id;
