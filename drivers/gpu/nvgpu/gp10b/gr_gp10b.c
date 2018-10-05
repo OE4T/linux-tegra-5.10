@@ -28,6 +28,7 @@
 #include <nvgpu/dma.h>
 #include <nvgpu/bug.h>
 #include <nvgpu/debug.h>
+#include <nvgpu/debugger.h>
 #include <nvgpu/fuse.h>
 #include <nvgpu/enabled.h>
 #include <nvgpu/io.h>
@@ -36,7 +37,6 @@
 #include <nvgpu/channel.h>
 
 #include "gk20a/gr_gk20a.h"
-#include "gk20a/dbg_gpu_gk20a.h"
 #include "gk20a/regops_gk20a.h"
 
 #include "gm20b/gr_gm20b.h"
@@ -1893,13 +1893,13 @@ int gr_gp10b_pre_process_sm_exception(struct gk20a *g,
 					"CILP: starting wait for LOCKED_DOWN on gpc %d tpc %d\n",
 					gpc, tpc);
 
-			if (gk20a_dbg_gpu_broadcast_stop_trigger(fault_ch)) {
+			if (nvgpu_dbg_gpu_broadcast_stop_trigger(fault_ch)) {
 				nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gpu_dbg,
 						"CILP: Broadcasting STOP_TRIGGER from gpc %d tpc %d\n",
 						gpc, tpc);
 				g->ops.gr.suspend_all_sms(g, global_mask, false);
 
-				gk20a_dbg_gpu_clear_broadcast_stop_trigger(fault_ch);
+				nvgpu_dbg_gpu_clear_broadcast_stop_trigger(fault_ch);
 			} else {
 				nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gpu_dbg,
 						"CILP: STOP_TRIGGER from gpc %d tpc %d\n",

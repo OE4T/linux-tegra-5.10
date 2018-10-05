@@ -29,6 +29,7 @@
 #include <nvgpu/vm.h>
 #include <nvgpu/atomic.h>
 #include <nvgpu/cond.h>
+#include <nvgpu/debugger.h>
 #include <nvgpu/utils.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/channel.h>
@@ -38,7 +39,6 @@
 
 #include "gk20a/gr_gk20a.h"
 #include "gk20a/regops_gk20a.h"
-#include "gk20a/dbg_gpu_gk20a.h"
 #include "os_linux.h"
 #include "platform_gk20a.h"
 #include "ioctl_dbg.h"
@@ -214,7 +214,7 @@ int gk20a_dbg_gpu_dev_release(struct inode *inode, struct file *filp)
 				dbg_profiler_object_data, prof_obj_entry) {
 		if (prof_obj->session_id == dbg_s->id) {
 			if (prof_obj->has_reservation)
-				g->ops.dbg_session_ops.
+				g->ops.debugger.
 				  release_profiler_reservation(dbg_s, prof_obj);
 			nvgpu_list_del(&prof_obj->prof_obj_entry);
 			nvgpu_kfree(g, prof_obj);
@@ -469,7 +469,7 @@ static int dbg_unbind_single_channel_gk20a(struct dbg_session_gk20a *dbg_s,
 		if ((prof_obj->session_id == dbg_s->id) &&
 			(prof_obj->ch->chid == chid)) {
 			if (prof_obj->has_reservation) {
-				g->ops.dbg_session_ops.
+				g->ops.debugger.
 				  release_profiler_reservation(dbg_s, prof_obj);
 			}
 			nvgpu_list_del(&prof_obj->prof_obj_entry);
@@ -1189,7 +1189,7 @@ static int nvgpu_ioctl_free_profiler_object(
 				break;
 			}
 			if (prof_obj->has_reservation)
-				g->ops.dbg_session_ops.
+				g->ops.debugger.
 				  release_profiler_reservation(dbg_s, prof_obj);
 			nvgpu_list_del(&prof_obj->prof_obj_entry);
 			nvgpu_kfree(g, prof_obj);
@@ -1645,7 +1645,7 @@ static int nvgpu_profiler_reserve_release(struct dbg_session_gk20a *dbg_s,
 	}
 
 	if (prof_obj->has_reservation)
-		g->ops.dbg_session_ops.release_profiler_reservation(dbg_s, prof_obj);
+		g->ops.debugger.release_profiler_reservation(dbg_s, prof_obj);
 	else {
 		nvgpu_err(g, "No reservation found");
 		err = -EINVAL;
@@ -1691,7 +1691,7 @@ static int nvgpu_profiler_reserve_acquire(struct dbg_session_gk20a *dbg_s,
 		/* Global reservations are only allowed if there are no other
 		 * global or per-context reservations currently held
 		 */
-		if (!g->ops.dbg_session_ops.check_and_set_global_reservation(
+		if (!g->ops.debugger.check_and_set_global_reservation(
 							dbg_s, my_prof_obj)) {
 			nvgpu_err(g,
 				"global reserve: have existing reservation");
@@ -1721,7 +1721,7 @@ static int nvgpu_profiler_reserve_acquire(struct dbg_session_gk20a *dbg_s,
 			}
 		}
 
-		if (!g->ops.dbg_session_ops.check_and_set_context_reservation(
+		if (!g->ops.debugger.check_and_set_context_reservation(
 							dbg_s, my_prof_obj)) {
 			/* Another guest OS has the global reservation */
 			nvgpu_err(g,
@@ -1745,7 +1745,7 @@ static int nvgpu_profiler_reserve_acquire(struct dbg_session_gk20a *dbg_s,
 			}
 		}
 
-		if (!g->ops.dbg_session_ops.check_and_set_context_reservation(
+		if (!g->ops.debugger.check_and_set_context_reservation(
 							dbg_s, my_prof_obj)) {
 			/* Another guest OS has the global reservation */
 			nvgpu_err(g,

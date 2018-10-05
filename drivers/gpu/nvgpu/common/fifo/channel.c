@@ -36,6 +36,7 @@
 #include <nvgpu/cond.h>
 #include <nvgpu/enabled.h>
 #include <nvgpu/debug.h>
+#include <nvgpu/debugger.h>
 #include <nvgpu/ltc.h>
 #include <nvgpu/barrier.h>
 #include <nvgpu/ctxsw_trace.h>
@@ -47,7 +48,6 @@
 #include <nvgpu/channel.h>
 #include <nvgpu/channel_sync.h>
 
-#include "gk20a/dbg_gpu_gk20a.h"
 #include "gk20a/fence_gk20a.h"
 
 static void free_channel(struct fifo_gk20a *f, struct channel_gk20a *c);

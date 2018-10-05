@@ -95,6 +95,7 @@ srcs :=	os/posix/nvgpu.c \
 	common/io_common.c \
 	common/ecc.c \
 	common/ce2.c \
+	common/debugger.c \
 	common/vbios/bios.c \
 	common/falcon/falcon.c \
 	common/falcon/falcon_queue.c \
@@ -156,7 +157,6 @@ srcs :=	os/posix/nvgpu.c \
 	common/ptimer/ptimer_gk20a.c \
 	gk20a/ce2_gk20a.c \
 	gk20a/fifo_gk20a.c \
-	gk20a/dbg_gpu_gk20a.c \
 	gk20a/regops_gk20a.c \
 	gk20a/gr_gk20a.c \
 	gk20a/mm_gk20a.c \

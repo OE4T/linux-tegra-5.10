@@ -627,9 +627,6 @@ struct gpu_ops {
 		void (*pg_gr_load_gating_prod)(struct gk20a *g, bool prod);
 	} clock_gating;
 	struct {
-		void (*post_events)(struct channel_gk20a *ch);
-	} debugger;
-	struct {
 		int (*setup_sw)(struct gk20a *g);
 		int (*init_fifo_setup_hw)(struct gk20a *g);
 		void (*bind_channel)(struct channel_gk20a *ch_gk20a);
@@ -1195,6 +1192,7 @@ struct gpu_ops {
 				struct gk20a_debug_output *o);
 	} debug;
 	struct {
+		void (*post_events)(struct channel_gk20a *ch);
 		int (*dbg_set_powergate)(struct dbg_session_gk20a *dbg_s,
 					bool disable_powergate);
 		bool (*check_and_set_global_reservation)(
@@ -1206,7 +1204,7 @@ struct gpu_ops {
 		void (*release_profiler_reservation)(
 				struct dbg_session_gk20a *dbg_s,
 				struct dbg_profiler_object_data *prof_obj);
-	} dbg_session_ops;
+	} debugger;
 	struct {
 		void (*enable_membuf)(struct gk20a *g, u32 size,
 			u64 buf_addr, struct nvgpu_mem *inst_block);

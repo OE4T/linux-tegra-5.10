@@ -30,6 +30,7 @@
 #include <nvgpu/enabled.h>
 #include <nvgpu/fuse.h>
 #include <nvgpu/bug.h>
+#include <nvgpu/debugger.h>
 #include <nvgpu/error_notifier.h>
 #include <nvgpu/soc.h>
 #include <nvgpu/io.h>
@@ -39,7 +40,6 @@
 #include <nvgpu/channel.h>
 
 #include "gk20a/gr_gk20a.h"
-#include "gk20a/dbg_gpu_gk20a.h"
 #include "gk20a/regops_gk20a.h"
 #include "gk20a/gr_pri_gk20a.h"
 
@@ -2409,7 +2409,7 @@ int gr_gv11b_pre_process_sm_exception(struct gk20a *g,
 				"gpc %d tpc %d sm %d",
 				gpc, tpc, sm);
 
-			if (gk20a_dbg_gpu_broadcast_stop_trigger(fault_ch)) {
+			if (nvgpu_dbg_gpu_broadcast_stop_trigger(fault_ch)) {
 				nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gpu_dbg,
 					"CILP: Broadcasting STOP_TRIGGER from "
 					"gpc %d tpc %d sm %d",
@@ -2417,7 +2417,7 @@ int gr_gv11b_pre_process_sm_exception(struct gk20a *g,
 				g->ops.gr.suspend_all_sms(g,
 						global_mask, false);
 
-				gk20a_dbg_gpu_clear_broadcast_stop_trigger(fault_ch);
+				nvgpu_dbg_gpu_clear_broadcast_stop_trigger(fault_ch);
 			} else {
 				nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gpu_dbg,
 					"CILP: STOP_TRIGGER from "

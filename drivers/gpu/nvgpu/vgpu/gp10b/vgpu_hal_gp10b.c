@@ -49,7 +49,6 @@
 #include "vgpu_fuse_gp10b.h"
 
 #include "gk20a/flcn_gk20a.h"
-#include "gk20a/dbg_gpu_gk20a.h"
 #include "gk20a/pmu_gk20a.h"
 
 #include "gp10b/mm_gp10b.h"
@@ -67,6 +66,7 @@
 #include "gm20b/pmu_gm20b.h"
 #include "gm20b/mm_gm20b.h"
 
+#include <nvgpu/debugger.h>
 #include <nvgpu/enabled.h>
 #include <nvgpu/vgpu/vgpu.h>
 #include <nvgpu/error_notifier.h>
@@ -503,9 +503,7 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 		.show_dump = NULL,
 	},
 	.debugger = {
-		.post_events = gk20a_dbg_gpu_post_events,
-	},
-	.dbg_session_ops = {
+		.post_events = nvgpu_dbg_gpu_post_events,
 		.dbg_set_powergate = vgpu_dbg_set_powergate,
 		.check_and_set_global_reservation =
 			vgpu_check_and_set_global_reservation,
@@ -596,7 +594,6 @@ int vgpu_gp10b_init_hal(struct gk20a *g)
 	gops->mc = vgpu_gp10b_ops.mc;
 	gops->debug = vgpu_gp10b_ops.debug;
 	gops->debugger = vgpu_gp10b_ops.debugger;
-	gops->dbg_session_ops = vgpu_gp10b_ops.dbg_session_ops;
 	gops->perfbuf = vgpu_gp10b_ops.perfbuf;
 	gops->bus = vgpu_gp10b_ops.bus;
 	gops->ptimer = vgpu_gp10b_ops.ptimer;

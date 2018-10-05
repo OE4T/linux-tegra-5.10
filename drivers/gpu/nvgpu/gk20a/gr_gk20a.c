@@ -36,6 +36,7 @@
 #include <nvgpu/debug.h>
 #include <nvgpu/barrier.h>
 #include <nvgpu/mm.h>
+#include <nvgpu/debugger.h>
 #include <nvgpu/ctxsw_trace.h>
 #include <nvgpu/error_notifier.h>
 #include <nvgpu/ecc.h>
@@ -50,7 +51,6 @@
 #include "gr_ctx_gk20a.h"
 #include "gr_pri_gk20a.h"
 #include "regops_gk20a.h"
-#include "dbg_gpu_gk20a.h"
 
 #include <nvgpu/hw/gk20a/hw_ccsr_gk20a.h>
 #include <nvgpu/hw/gk20a/hw_ctxsw_prog_gk20a.h>

@@ -24,9 +24,9 @@
 
 #include "gk20a.h"
 #include "gr_gk20a.h"
-#include "dbg_gpu_gk20a.h"
 #include "regops_gk20a.h"
 
+#include <nvgpu/debugger.h>
 #include <nvgpu/log.h>
 #include <nvgpu/bsearch.h>
 #include <nvgpu/bug.h>

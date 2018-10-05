@@ -32,11 +32,10 @@
 #include <nvgpu/utils.h>
 #include <nvgpu/channel.h>
 #include <nvgpu/unit.h>
+#include <nvgpu/gk20a.h>
+#include <nvgpu/debugger.h>
 
-#include "gk20a.h"
-#include "gr_gk20a.h"
-#include "dbg_gpu_gk20a.h"
-#include "regops_gk20a.h"
+#include "gk20a/gr_gk20a.h"
 
 /*
  * API to get first channel from the list of all channels
@@ -65,7 +64,7 @@ nvgpu_dbg_gpu_get_session_channel(struct dbg_session_gk20a *dbg_s)
 	return ch;
 }
 
-void gk20a_dbg_gpu_post_events(struct channel_gk20a *ch)
+void nvgpu_dbg_gpu_post_events(struct channel_gk20a *ch)
 {
 	struct dbg_session_data *session_data;
 	struct dbg_session_gk20a *dbg_s;
@@ -94,7 +93,7 @@ void gk20a_dbg_gpu_post_events(struct channel_gk20a *ch)
 	nvgpu_mutex_release(&ch->dbg_s_lock);
 }
 
-bool gk20a_dbg_gpu_broadcast_stop_trigger(struct channel_gk20a *ch)
+bool nvgpu_dbg_gpu_broadcast_stop_trigger(struct channel_gk20a *ch)
 {
 	struct dbg_session_data *session_data;
 	struct dbg_session_gk20a *dbg_s;
@@ -122,7 +121,7 @@ bool gk20a_dbg_gpu_broadcast_stop_trigger(struct channel_gk20a *ch)
 	return broadcast;
 }
 
-int gk20a_dbg_gpu_clear_broadcast_stop_trigger(struct channel_gk20a *ch)
+int nvgpu_dbg_gpu_clear_broadcast_stop_trigger(struct channel_gk20a *ch)
 {
 	struct dbg_session_data *session_data;
 	struct dbg_session_gk20a *dbg_s;
@@ -164,7 +163,7 @@ u32 nvgpu_set_powergate_locked(struct dbg_session_gk20a *dbg_s,
 		 * the global pg disabled refcount is zero
 		 */
 		if (g->dbg_powergating_disabled_refcount == 0) {
-			err = g->ops.dbg_session_ops.dbg_set_powergate(dbg_s,
+			err = g->ops.debugger.dbg_set_powergate(dbg_s,
 									mode);
 		}
 
@@ -178,7 +177,7 @@ u32 nvgpu_set_powergate_locked(struct dbg_session_gk20a *dbg_s,
 	return err;
 }
 
-int dbg_set_powergate(struct dbg_session_gk20a *dbg_s, bool disable_powergate)
+int nvgpu_dbg_set_powergate(struct dbg_session_gk20a *dbg_s, bool disable_powergate)
 {
 	int err = 0;
 	struct gk20a *g = dbg_s->g;

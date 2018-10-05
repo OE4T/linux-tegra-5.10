@@ -27,6 +27,7 @@
 #include <nvgpu/ptimer.h>
 #include <nvgpu/error_notifier.h>
 #include <nvgpu/gk20a.h>
+#include <nvgpu/debugger.h>
 #include <nvgpu/channel.h>
 #include <nvgpu/tsg.h>
 #include <nvgpu/perfbuf.h>
@@ -46,7 +47,6 @@
 #include "common/perf/perf_gm20b.h"
 
 #include "gk20a/ce2_gk20a.h"
-#include "gk20a/dbg_gpu_gk20a.h"
 #include "gk20a/fifo_gk20a.h"
 #include "gk20a/mm_gk20a.h"
 #include "gk20a/flcn_gk20a.h"
@@ -604,10 +604,8 @@ static const struct gpu_ops gm20b_ops = {
 		.show_dump = gk20a_debug_show_dump,
 	},
 	.debugger = {
-		.post_events = gk20a_dbg_gpu_post_events,
-	},
-	.dbg_session_ops = {
-		.dbg_set_powergate = dbg_set_powergate,
+		.post_events = nvgpu_dbg_gpu_post_events,
+		.dbg_set_powergate = nvgpu_dbg_set_powergate,
 		.check_and_set_global_reservation =
 			nvgpu_check_and_set_global_reservation,
 		.check_and_set_context_reservation =
@@ -710,7 +708,6 @@ int gm20b_init_hal(struct gk20a *g)
 
 	gops->regops = gm20b_ops.regops;
 	gops->mc = gm20b_ops.mc;
-	gops->dbg_session_ops = gm20b_ops.dbg_session_ops;
 	gops->perf = gm20b_ops.perf;
 	gops->perfbuf = gm20b_ops.perfbuf;
 	gops->debug = gm20b_ops.debug;

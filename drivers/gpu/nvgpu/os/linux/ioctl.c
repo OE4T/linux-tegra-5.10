@@ -22,8 +22,6 @@
 #include <nvgpu/ctxsw_trace.h>
 #include <nvgpu/gk20a.h>
 
-#include "gk20a/dbg_gpu_gk20a.h"
-
 #include "ioctl_channel.h"
 #include "ioctl_ctrl.h"
 #include "ioctl_as.h"

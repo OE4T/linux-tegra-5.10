@@ -21,8 +21,8 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef DBG_GPU_H
-#define DBG_GPU_H
+#ifndef NVGPU_DEBUGGER_H
+#define NVGPU_DEBUGGER_H
 
 #include <nvgpu/cond.h>
 #include <nvgpu/lock.h>
@@ -31,9 +31,6 @@
 struct gk20a;
 struct channel_gk20a;
 struct dbg_session_gk20a;
-
-/* used by the interrupt handler to post events */
-void gk20a_dbg_gpu_post_events(struct channel_gk20a *fault_ch);
 
 struct channel_gk20a *
 nvgpu_dbg_gpu_get_session_channel(struct dbg_session_gk20a *dbg_s);
@@ -117,10 +114,13 @@ dbg_profiler_object_data_from_prof_obj_entry(struct nvgpu_list_node *node)
 	((uintptr_t)node - offsetof(struct dbg_profiler_object_data, prof_obj_entry));
 };
 
-bool gk20a_dbg_gpu_broadcast_stop_trigger(struct channel_gk20a *ch);
-int gk20a_dbg_gpu_clear_broadcast_stop_trigger(struct channel_gk20a *ch);
+/* used by the interrupt handler to post events */
+void nvgpu_dbg_gpu_post_events(struct channel_gk20a *fault_ch);
 
-int dbg_set_powergate(struct dbg_session_gk20a *dbg_s, bool disable_powergate);
+bool nvgpu_dbg_gpu_broadcast_stop_trigger(struct channel_gk20a *ch);
+int nvgpu_dbg_gpu_clear_broadcast_stop_trigger(struct channel_gk20a *ch);
+
+int nvgpu_dbg_set_powergate(struct dbg_session_gk20a *dbg_s, bool disable_powergate);
 bool nvgpu_check_and_set_global_reservation(
 				struct dbg_session_gk20a *dbg_s,
 				struct dbg_profiler_object_data *prof_obj);
@@ -142,4 +142,4 @@ u32 nvgpu_set_powergate_locked(struct dbg_session_gk20a *dbg_s,
 /* This mode says that the pms in Mode-E (stream out) are to be context switched. */
 #define NVGPU_DBG_HWPM_CTXSW_MODE_STREAM_OUT_CTXSW       (0x00000002)
 
-#endif /* DBG_GPU_GK20A_H */
+#endif /* NVGPU_DEBUGGER_H */

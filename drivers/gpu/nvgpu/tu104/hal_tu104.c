@@ -58,7 +58,6 @@
 #include "gk20a/gk20a.h"
 #include "gk20a/fifo_gk20a.h"
 #include "gk20a/fecs_trace_gk20a.h"
-#include "gk20a/dbg_gpu_gk20a.h"
 #include "gk20a/flcn_gk20a.h"
 #include "gk20a/regops_gk20a.h"
 #include "gk20a/mm_gk20a.h"
@@ -126,6 +125,7 @@
 #include <nvgpu/ctxsw_trace.h>
 #include <nvgpu/error_notifier.h>
 #include <nvgpu/clk_arb.h>
+#include <nvgpu/debugger.h>
 #include <nvgpu/channel.h>
 #include <nvgpu/perfbuf.h>
 #include <nvgpu/cyclestats_snapshot.h>
@@ -826,10 +826,8 @@ static const struct gpu_ops tu104_ops = {
 		.show_dump = gk20a_debug_show_dump,
 	},
 	.debugger = {
-		.post_events = gk20a_dbg_gpu_post_events,
-	},
-	.dbg_session_ops = {
-		.dbg_set_powergate = dbg_set_powergate,
+		.post_events = nvgpu_dbg_gpu_post_events,
+		.dbg_set_powergate = nvgpu_dbg_set_powergate,
 		.check_and_set_global_reservation =
 			nvgpu_check_and_set_global_reservation,
 		.check_and_set_context_reservation =
@@ -979,7 +977,6 @@ int tu104_init_hal(struct gk20a *g)
 	gops->mc = tu104_ops.mc;
 	gops->debug = tu104_ops.debug;
 	gops->debugger = tu104_ops.debugger;
-	gops->dbg_session_ops = tu104_ops.dbg_session_ops;
 	gops->perf = tu104_ops.perf;
 	gops->perfbuf = tu104_ops.perfbuf;
 	gops->bus = tu104_ops.bus;

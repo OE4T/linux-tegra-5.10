@@ -45,7 +45,6 @@
 #include "gk20a.h"
 #include "gk20a/ce2_gk20a.h"
 
-#include "dbg_gpu_gk20a.h"
 #include "pstate/pstate.h"
 
 void __nvgpu_check_gpu_state(struct gk20a *g)

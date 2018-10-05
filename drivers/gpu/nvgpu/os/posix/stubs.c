@@ -27,8 +27,8 @@
 
 #include <nvgpu/ecc.h>
 #include <nvgpu/ltc.h>
+#include <nvgpu/debugger.h>
 
-#include "gk20a/dbg_gpu_gk20a.h"
 
 void nvgpu_dbg_session_post_event(struct dbg_session_gk20a *dbg_s)
 {
