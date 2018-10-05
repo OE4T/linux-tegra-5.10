@@ -21,17 +21,9 @@
  */
 
 #include <nvgpu/log.h>
-
 #include <nvgpu/posix/bug.h>
-
-__attribute__ ((noreturn))
-static void __hang(void)
-{
-	nvgpu_err(NULL, "Hanging!");
-
-	while (1)
-		;
-}
+#include <signal.h>
+#include <pthread.h>
 
 static void __dump_stack(unsigned int skip_frames)
 {
@@ -50,7 +42,9 @@ void __bug(const char *fmt, ...)
 {
 	nvgpu_err(NULL, "BUG detected!");
 
-	__hang();
+	/* Raise a bad system call signal and kill the thread */
+	(void) raise(SIGSEGV);
+	pthread_exit(NULL);
 }
 
 bool __warn(bool cond, const char *fmt, ...)
