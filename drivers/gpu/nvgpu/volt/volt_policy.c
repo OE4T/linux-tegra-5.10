@@ -121,6 +121,23 @@ done:
 	return status;
 }
 
+static int volt_construct_volt_policy_single_rail(struct gk20a *g,
+	struct boardobj **ppboardobj, u16 size, void *pArgs)
+{
+	struct boardobj *pboardobj = NULL;
+	int status = 0;
+
+	status = construct_volt_policy_single_rail(g, ppboardobj, size, pArgs);
+	if (status != 0x0) {
+		return status;
+	}
+
+	pboardobj = *ppboardobj;
+	pboardobj->pmudatainit = volt_policy_pmu_data_init_single_rail;
+
+	return status;
+}
+
 static int volt_policy_pmu_data_init_sr_multi_step(struct gk20a *g,
 	struct boardobj *pboardobj, struct nv_pmu_boardobj *ppmudata)
 {
@@ -247,6 +264,17 @@ static struct voltage_policy *volt_volt_policy_construct(struct gk20a *g, void *
 			pboard_obj = NULL;
 		}
 		break;
+	case CTRL_VOLT_POLICY_TYPE_SINGLE_RAIL:
+		status = volt_construct_volt_policy_single_rail(g,
+			&pboard_obj,
+			sizeof(struct voltage_policy_single_rail),
+			pargs);
+		if (status != 0) {
+			nvgpu_err(g,
+				"Could not allocate memory for voltage_policy");
+			pboard_obj = NULL;
+		}
+		break;
 	}
 
 	return (struct voltage_policy *)pboard_obj;
@@ -286,6 +314,7 @@ static int volt_get_volt_policy_table(struct gk20a *g,
 		struct voltage_policy	volt_policy;
 		struct voltage_policy_split_rail	split_rail;
 		struct voltage_policy_single_rail_multi_step single_rail_ms;
+		struct voltage_policy_single_rail single_rail;
 	} policy_type_data;
 
 	voltage_policy_table_ptr =
@@ -343,6 +372,11 @@ static int volt_get_volt_policy_table(struct gk20a *g,
 			policy_type_data.single_rail_ms.ramp_down_step_size_uv =
 			(u32)BIOS_GET_FIELD(entry.param3,
 			NV_VBIOS_VPT_ENTRY_PARAM3_SR_RAMP_DOWN_STEP_SIZE_UV);
+			break;
+		case CTRL_VOLT_POLICY_TYPE_SINGLE_RAIL:
+			policy_type_data.single_rail.rail_idx =
+				(u8)BIOS_GET_FIELD(entry.param0,
+				NV_VBIOS_VPT_ENTRY_PARAM0_SINGLE_RAIL_VOLT_DOMAIN);
 			break;
 		}
 
