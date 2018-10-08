@@ -97,7 +97,7 @@ int gm20b_fb_tlb_invalidate(struct gk20a *g, struct nvgpu_mem *pdb)
 
 	do {
 		data = gk20a_readl(g, fb_mmu_ctrl_r());
-		if (fb_mmu_ctrl_pri_fifo_space_v(data) != 0) {
+		if (fb_mmu_ctrl_pri_fifo_space_v(data) != 0U) {
 			break;
 		}
 		nvgpu_udelay(2);
@@ -203,7 +203,7 @@ unsigned int gm20b_fb_compressible_page_size(struct gk20a *g)
 
 u32 gm20b_fb_compression_align_mask(struct gk20a *g)
 {
-	return SZ_64K - 1;
+	return SZ_64K - 1U;
 }
 
 void gm20b_fb_dump_vpr_info(struct gk20a *g)
@@ -212,7 +212,7 @@ void gm20b_fb_dump_vpr_info(struct gk20a *g)
 
 	/* print vpr info */
 	val = gk20a_readl(g, fb_mmu_vpr_info_r());
-	val &= ~0x3;
+	val &= ~0x3U;
 	val |= fb_mmu_vpr_info_index_addr_lo_v();
 	gk20a_writel(g, fb_mmu_vpr_info_r(), val);
 	nvgpu_err(g, "VPR: %08x %08x %08x %08x",
@@ -228,7 +228,7 @@ void gm20b_fb_dump_wpr_info(struct gk20a *g)
 
 	/* print wpr info */
 	val = gk20a_readl(g, fb_mmu_wpr_info_r());
-	val &= ~0xf;
+	val &= ~0xfU;
 	val |= (fb_mmu_wpr_info_index_allow_read_v());
 	gk20a_writel(g, fb_mmu_wpr_info_r(), val);
 	nvgpu_err(g, "WPR: %08x %08x %08x %08x %08x %08x",
@@ -280,7 +280,7 @@ void gm20b_fb_read_wpr_info(struct gk20a *g, struct wpr_carveout_info *inf)
 	u64 wpr_end = 0;
 
 	val = gk20a_readl(g, fb_mmu_wpr_info_r());
-	val &= ~0xF;
+	val &= ~0xFU;
 	val |= fb_mmu_wpr_info_index_wpr1_addr_lo_v();
 	gk20a_writel(g, fb_mmu_wpr_info_r(), val);
 
@@ -290,7 +290,7 @@ void gm20b_fb_read_wpr_info(struct gk20a *g, struct wpr_carveout_info *inf)
 			(val << WPR_INFO_ADDR_ALIGNMENT));
 
 	val = gk20a_readl(g, fb_mmu_wpr_info_r());
-	val &= ~0xF;
+	val &= ~0xFU;
 	val |= fb_mmu_wpr_info_index_wpr1_addr_hi_v();
 	gk20a_writel(g, fb_mmu_wpr_info_r(), val);
 

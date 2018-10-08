@@ -207,7 +207,7 @@ void gv11b_ltc_isr(struct gk20a *g, unsigned int ltc)
 {
 	unsigned int slice;
 
-	for (slice = 0; slice < g->gr.slices_per_ltc; slice++) {
+	for (slice = 0U; slice < g->gr.slices_per_ltc; slice++) {
 		gv11b_ltc_lts_isr(g, ltc, slice);
 	}
 }

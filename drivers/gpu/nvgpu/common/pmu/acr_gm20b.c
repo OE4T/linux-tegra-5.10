@@ -1057,11 +1057,11 @@ int acr_ucode_patch_sig(struct gk20a *g,
 	}
 
 	/* Patching logic:*/
-	for (i = 0; i < sizeof(*p_patch_loc)>>2; i++) {
-		p_img[(p_patch_loc[i]>>2)] = p_sig[(p_patch_ind[i]<<2)];
-		p_img[(p_patch_loc[i]>>2)+1] = p_sig[(p_patch_ind[i]<<2)+1];
-		p_img[(p_patch_loc[i]>>2)+2] = p_sig[(p_patch_ind[i]<<2)+2];
-		p_img[(p_patch_loc[i]>>2)+3] = p_sig[(p_patch_ind[i]<<2)+3];
+	for (i = 0U; i < sizeof(*p_patch_loc)>>2U; i++) {
+		p_img[(p_patch_loc[i]>>2U)] = p_sig[(p_patch_ind[i]<<2U)];
+		p_img[(p_patch_loc[i]>>2U)+1U] = p_sig[(p_patch_ind[i]<<2U)+1U];
+		p_img[(p_patch_loc[i]>>2U)+2U] = p_sig[(p_patch_ind[i]<<2U)+2U];
+		p_img[(p_patch_loc[i]>>2U)+3U] = p_sig[(p_patch_ind[i]<<2U)+3U];
 	}
 	return 0;
 }
@@ -1077,7 +1077,7 @@ static int nvgpu_gm20b_acr_wait_for_completion(struct gk20a *g,
 	nvgpu_log_fn(g, " ");
 
 	completion = nvgpu_falcon_wait_for_halt(flcn, timeout);
-	if (completion != 0U) {
+	if (completion != 0) {
 		nvgpu_err(g, "flcn-%d: ACR boot timed out", flcn_id);
 		goto exit;
 	}
@@ -1181,7 +1181,7 @@ static int gm20b_acr_hs_bl_exec(struct gk20a *g, struct nvgpu_acr *acr,
 		/* wait for ACR halt*/
 		err = nvgpu_gm20b_acr_wait_for_completion(g, acr_desc->acr_flcn,
 			ACR_COMPLETION_TIMEOUT_MS);
-		if (err != 0U) {
+		if (err != 0) {
 			goto err_unmap_bl;
 		}
 	}

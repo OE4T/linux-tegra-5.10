@@ -141,7 +141,7 @@ void gv11b_fb_init_cbc(struct gk20a *g, struct gr_gk20a *gr)
 	gr->compbit_store.base_hw = compbit_base_post_divide;
 
 	g->ops.ltc.cbc_ctrl(g, gk20a_cbc_op_invalidate,
-			0, max_comptag_lines - 1);
+			0, max_comptag_lines - 1U);
 
 }
 
@@ -308,7 +308,7 @@ static bool gv11b_fb_is_fault_buffer_full(struct gk20a *g, u32 index)
 
 	entries = gv11b_fb_fault_buffer_size_val(g, index);
 
-	return get_idx == ((put_idx + 1) % entries);
+	return get_idx == ((put_idx + 1U) % entries);
 }
 
 void gv11b_fb_fault_buf_set_state_hw(struct gk20a *g,
@@ -354,7 +354,7 @@ void gv11b_fb_fault_buf_set_state_hw(struct gk20a *g,
 			nvgpu_log_info(g, "fault status busy set, check again");
 			fault_status = g->ops.fb.read_mmu_fault_status(g);
 
-			nvgpu_usleep_range(delay, delay * 2);
+			nvgpu_usleep_range(delay, delay * 2U);
 			delay = min_t(u32, delay << 1, GR_IDLE_CHECK_MAX);
 		} while (nvgpu_timeout_expired_msg(&timeout,
 				"fault status busy set") == 0);
@@ -1036,7 +1036,7 @@ void gv11b_fb_handle_mmu_nonreplay_replay_fault(struct gk20a *g,
 
 		gv11b_fb_copy_from_hw_fault_buf(g, mem, offset, mmfault);
 
-		get_indx = (get_indx + 1) % entries;
+		get_indx = (get_indx + 1U) % entries;
 		nvgpu_log(g, gpu_dbg_intr, "new get index = %d", get_indx);
 
 		gv11b_fb_fault_buffer_get_ptr_update(g, index, get_indx);
@@ -1506,7 +1506,7 @@ static int gv11b_fb_fix_page_fault(struct gk20a *g,
 	nvgpu_log(g, gpu_dbg_intr | gpu_dbg_pte,
 			"pte: %#08x %#08x", pte[1], pte[0]);
 
-	if (pte[0] == 0x0 && pte[1] == 0x0) {
+	if (pte[0] == 0x0U && pte[1] == 0x0U) {
 		nvgpu_log(g, gpu_dbg_intr | gpu_dbg_pte,
 				"pte all zeros, do not set valid");
 		return -1;

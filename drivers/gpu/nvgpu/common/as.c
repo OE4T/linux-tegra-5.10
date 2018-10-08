@@ -56,10 +56,10 @@ static int gk20a_vm_alloc_share(struct gk20a_as_share *as_share,
 	struct vm_gk20a *vm;
 	char name[32];
 	const bool userspace_managed =
-		(flags & NVGPU_AS_ALLOC_USERSPACE_MANAGED) != 0;
+		(flags & NVGPU_AS_ALLOC_USERSPACE_MANAGED) != 0U;
 	const bool unified_va =
 		nvgpu_is_enabled(g, NVGPU_MM_UNIFY_ADDRESS_SPACES) ||
-		(flags & NVGPU_AS_ALLOC_UNIFIED_VA) != 0;
+		(flags & NVGPU_AS_ALLOC_UNIFIED_VA) != 0U;
 
 	nvgpu_log_fn(g, " ");
 

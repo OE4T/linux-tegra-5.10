@@ -83,7 +83,7 @@ int gk20a_prepare_poweroff(struct gk20a *g)
 
 	if (g->ops.fifo.channel_suspend != NULL) {
 		ret = g->ops.fifo.channel_suspend(g);
-		if (ret != 0) {
+		if (ret != 0U) {
 			return ret;
 		}
 	}

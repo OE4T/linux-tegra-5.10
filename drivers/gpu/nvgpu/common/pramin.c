@@ -78,7 +78,7 @@ static void nvgpu_pramin_access_batched(struct gk20a *g, struct nvgpu_mem *mem,
 		byteoff = g->ops.bus.set_bar0_window(g, mem, sgt, sgl,
 					      offset / sizeof(u32));
 		start_reg = g->ops.pramin.data032_r(byteoff / sizeof(u32));
-		until_end = SZ_1M - (byteoff & (SZ_1M - 1));
+		until_end = U32(SZ_1M) - (byteoff & (U32(SZ_1M) - 1U));
 
 		n = min3(size, until_end, (u32)(sgl_len - offset));
 

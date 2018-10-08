@@ -267,7 +267,7 @@ int gv11b_pmu_bootstrap(struct nvgpu_pmu *pmu)
 				U32(addr_load_lo) -
 				(desc->bootloader_imem_offset >> U32(8)));
 
-	blocks = ((desc->bootloader_size + 0xFF) & ~0xFF) >> 8;
+	blocks = ((desc->bootloader_size + 0xFFU) & ~0xFFU) >> 8U;
 
 	for (i = 0; i < blocks; i++) {
 		gk20a_writel(g, pwr_falcon_dmatrfmoffs_r(),
@@ -418,7 +418,7 @@ static void pmu_handle_pg_sub_feature_msg(struct gk20a *g, struct pmu_msg *msg,
 {
 	nvgpu_log_fn(g, " ");
 
-	if (status != 0) {
+	if (status != 0U) {
 		nvgpu_err(g, "Sub-feature mask update cmd aborted\n");
 		return;
 	}
@@ -432,7 +432,7 @@ static void pmu_handle_pg_param_msg(struct gk20a *g, struct pmu_msg *msg,
 {
 	nvgpu_log_fn(g, " ");
 
-	if (status != 0) {
+	if (status != 0U) {
 		nvgpu_err(g, "GR PARAM cmd aborted\n");
 		return;
 	}

@@ -25,14 +25,14 @@
 
 #include <nvgpu/types.h>
 
-#define NV_CPU_INTR_SUBTREE_TO_TOP_IDX(i)	((i) / 32)
-#define NV_CPU_INTR_SUBTREE_TO_TOP_BIT(i)	((i) % 32)
-#define NV_CPU_INTR_SUBTREE_TO_LEAF_REG0(i)	((i)*2)
-#define NV_CPU_INTR_SUBTREE_TO_LEAF_REG1(i)	(((i)*2) + 1)
+#define NV_CPU_INTR_SUBTREE_TO_TOP_IDX(i)	((i) / 32U)
+#define NV_CPU_INTR_SUBTREE_TO_TOP_BIT(i)	((i) % 32U)
+#define NV_CPU_INTR_SUBTREE_TO_LEAF_REG0(i)	((i)*2U)
+#define NV_CPU_INTR_SUBTREE_TO_LEAF_REG1(i)	(((i)*2U) + 1U)
 
-#define NV_CPU_INTR_GPU_VECTOR_TO_LEAF_REG(i)		((i) / 32)
-#define NV_CPU_INTR_GPU_VECTOR_TO_LEAF_BIT(i)		((i) % 32)
-#define NV_CPU_INTR_GPU_VECTOR_TO_SUBTREE(i)		((NV_CPU_INTR_GPU_VECTOR_TO_LEAF_REG(i)) / 2)
+#define NV_CPU_INTR_GPU_VECTOR_TO_LEAF_REG(i)		((i) / 32U)
+#define NV_CPU_INTR_GPU_VECTOR_TO_LEAF_BIT(i)		((i) % 32U)
+#define NV_CPU_INTR_GPU_VECTOR_TO_SUBTREE(i)		((NV_CPU_INTR_GPU_VECTOR_TO_LEAF_REG(i)) / 2U)
 
 #define NV_CPU_INTR_TOP_NONSTALL_SUBTREE	0U
 

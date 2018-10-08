@@ -103,7 +103,7 @@ static void pmu_handle_param_msg(struct gk20a *g, struct pmu_msg *msg,
 {
 	nvgpu_log_fn(g, " ");
 
-	if (status != 0) {
+	if (status != 0U) {
 		nvgpu_err(g, "PG PARAM cmd aborted");
 		return;
 	}
@@ -123,7 +123,7 @@ int gp106_pg_param_init(struct gk20a *g, u32 pg_engine_id)
 	if (pg_engine_id == PMU_PG_ELPG_ENGINE_ID_GRAPHICS) {
 
 		status = init_rppg(g);
-		if (status != 0) {
+		if (status != 0U) {
 			nvgpu_err(g, "RPPG init Failed");
 			return -1;
 		}
@@ -275,7 +275,7 @@ int gp106_load_falcon_ucode(struct gk20a *g, u32 falconidmask)
 	u32 flags = PMU_ACR_CMD_BOOTSTRAP_FALCON_FLAGS_RESET_YES;
 
 	/* GM20B PMU supports loading FECS and GPCCS only */
-	if (falconidmask == 0) {
+	if (falconidmask == 0U) {
 		return -EINVAL;
 	}
 	if ((falconidmask &

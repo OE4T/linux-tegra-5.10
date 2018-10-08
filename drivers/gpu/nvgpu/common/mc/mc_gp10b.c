@@ -232,7 +232,7 @@ void mc_gp10b_ltc_isr(struct gk20a *g)
 	mc_intr = gk20a_readl(g, mc_intr_ltc_r());
 	nvgpu_err(g, "mc_ltc_intr: %08x", mc_intr);
 	for (ltc = 0; ltc < g->ltc_count; ltc++) {
-		if ((mc_intr & 1U << ltc) == 0) {
+		if ((mc_intr & BIT32(ltc)) == 0U) {
 			continue;
 		}
 		g->ops.ltc.isr(g, ltc);

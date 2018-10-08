@@ -48,9 +48,9 @@
 /*
  * VIDMEM page size is 4k.
  */
-#define PAGE_SIZE		0x1000
-#define PAGE_ALIGN(addr)	((addr + (PAGE_SIZE - 1)) &		\
-				 ((typeof(addr)) ~(PAGE_SIZE - 1)))
+#define PAGE_SIZE		0x1000U
+#define PAGE_ALIGN(addr)	((addr + (PAGE_SIZE - 1U)) &		\
+				 ((typeof(addr)) ~(PAGE_SIZE - 1U)))
 
 /*
  * Handle the book-keeping for these operations.

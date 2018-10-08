@@ -178,7 +178,7 @@ int gp10b_load_falcon_ucode(struct gk20a *g, u32 falconidmask)
 	u32 flags = PMU_ACR_CMD_BOOTSTRAP_FALCON_FLAGS_RESET_YES;
 
 	/* GM20B PMU supports loading FECS and GPCCS only */
-	if (falconidmask == 0) {
+	if (falconidmask == 0U) {
 		return -EINVAL;
 	}
 	if ((falconidmask &
@@ -214,7 +214,7 @@ static void pmu_handle_gr_param_msg(struct gk20a *g, struct pmu_msg *msg,
 {
 	nvgpu_log_fn(g, " ");
 
-	if (status != 0) {
+	if (status != 0U) {
 		nvgpu_err(g, "GR PARAM cmd aborted");
 		/* TBD: disable ELPG */
 		return;

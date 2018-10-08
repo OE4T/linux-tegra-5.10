@@ -360,7 +360,7 @@ static int sec2_process_init_msg(struct nvgpu_sec2 *sec2,
 
 		u32 end = (sec2_init->nv_managed_area_offset +
 			sec2_init->nv_managed_area_size) &
-			~(PMU_DMEM_ALLOC_ALIGNMENT - 1);
+			~(PMU_DMEM_ALLOC_ALIGNMENT - 1U);
 		u32 size = end - start;
 
 		nvgpu_bitmap_allocator_init(g, &sec2->dmem, "sec2_dmem",

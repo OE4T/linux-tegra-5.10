@@ -230,7 +230,7 @@ int gm20b_load_falcon_ucode(struct gk20a *g, u32 falconidmask)
 	unsigned long timeout = gk20a_get_gr_idle_timeout(g);
 
 	/* GM20B PMU supports loading FECS only */
-	if (!(falconidmask == (1 << FALCON_ID_FECS))) {
+	if (!(falconidmask == BIT32(FALCON_ID_FECS))) {
 		return -EINVAL;
 	}
 	/* check whether pmu is ready to bootstrap lsf if not wait for it */

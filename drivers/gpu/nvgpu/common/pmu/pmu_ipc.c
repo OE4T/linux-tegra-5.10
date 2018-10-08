@@ -222,11 +222,11 @@ static bool pmu_validate_cmd(struct nvgpu_pmu *pmu, struct pmu_cmd *cmd,
 invalid_cmd:
 	nvgpu_err(g, "invalid pmu cmd :\n"
 		"queue_id=%d,\n"
-		"cmd_size=%d, cmd_unit_id=%d, msg=%p, msg_size=%d,\n"
+		"cmd_size=%d, cmd_unit_id=%d, msg=%p, msg_size=%u,\n"
 		"payload in=%p, in_size=%d, in_offset=%d,\n"
 		"payload out=%p, out_size=%d, out_offset=%d",
 		queue_id, cmd->hdr.size, cmd->hdr.unit_id,
-		msg, (msg != NULL) ? msg->hdr.unit_id : ~0,
+		msg, (msg != NULL) ? msg->hdr.unit_id : ~0U,
 		&payload->in, payload->in.size, payload->in.offset,
 		&payload->out, payload->out.size, payload->out.offset);
 

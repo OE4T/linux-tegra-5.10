@@ -54,10 +54,10 @@ typedef int (*gp106_get_ucode_details)(struct gk20a *g,
 				       struct flcn_ucode_img_v1 *udata);
 
 /* Both size and address of WPR need to be 128K-aligned */
-#define WPR_ALIGNMENT	0x20000
+#define WPR_ALIGNMENT	0x20000U
 #define GP106_DGPU_NONWPR NVGPU_VIDMEM_BOOTSTRAP_ALLOCATOR_BASE
-#define GP106_DGPU_WPR_OFFSET 0x400000
-#define DGPU_WPR_SIZE 0x100000
+#define GP106_DGPU_WPR_OFFSET 0x400000U
+#define DGPU_WPR_SIZE 0x100000U
 
 /*Externs*/
 

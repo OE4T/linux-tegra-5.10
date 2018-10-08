@@ -169,7 +169,7 @@ int nvgpu_ecc_counter_init_per_fbpa(struct gk20a *g,
 	int num_fbpa = nvgpu_get_litter_value(g, GPU_LIT_NUM_FBPAS);
 	struct nvgpu_ecc_stat *stats;
 
-	stats = nvgpu_kzalloc(g, sizeof(*stats) * num_fbpa);
+	stats = nvgpu_kzalloc(g, sizeof(*stats) * (size_t)num_fbpa);
 	if (stats == NULL) {
 		return -ENOMEM;
 	}

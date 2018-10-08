@@ -69,28 +69,28 @@ void gp10b_priv_ring_decode_error_code(struct gk20a *g,
 {
 	u32 error_type_index;
 
-	error_type_index = (error_code & 0x00000f00) >> 16;
-	error_code = error_code & 0xBADFf000;
+	error_type_index = (error_code & 0x00000f00U) >> 16U;
+	error_code = error_code & 0xBADFf000U;
 
-	if (error_code == 0xBADF1000) {
+	if (error_code == 0xBADF1000U) {
 		if (error_type_index <
 				ARRAY_SIZE(error_type_badf1xyy)) {
 			nvgpu_err(g, "%s",
 				error_type_badf1xyy[error_type_index]);
 		}
-	} else if (error_code == 0xBADF2000) {
+	} else if (error_code == 0xBADF2000U) {
 		if (error_type_index <
 				ARRAY_SIZE(error_type_badf2xyy)) {
 			nvgpu_err(g, "%s",
 				error_type_badf2xyy[error_type_index]);
 		}
-	} else if (error_code == 0xBADF3000) {
+	} else if (error_code == 0xBADF3000U) {
 		if (error_type_index <
 				ARRAY_SIZE(error_type_badf3xyy)) {
 			nvgpu_err(g, "%s",
 				error_type_badf3xyy[error_type_index]);
 		}
-	} else if (error_code == 0xBADF5000) {
+	} else if (error_code == 0xBADF5000U) {
 		if (error_type_index <
 				ARRAY_SIZE(error_type_badf5xyy)) {
 			nvgpu_err(g, "%s",
@@ -123,20 +123,20 @@ void gp10b_priv_ring_isr(struct gk20a *g)
 	nvgpu_err(g, "ringmaster intr status0: 0x%08x,"
 		"status1: 0x%08x", status0, status1);
 
-	if (pri_ringmaster_intr_status0_ring_start_conn_fault_v(status0) != 0) {
+	if (pri_ringmaster_intr_status0_ring_start_conn_fault_v(status0) != 0U) {
 		nvgpu_err(g,
 			"BUG: connectivity problem on the startup sequence");
 	}
 
-	if (pri_ringmaster_intr_status0_disconnect_fault_v(status0) != 0) {
+	if (pri_ringmaster_intr_status0_disconnect_fault_v(status0) != 0U) {
 		nvgpu_err(g, "ring disconnected");
 	}
 
-	if (pri_ringmaster_intr_status0_overflow_fault_v(status0) != 0) {
+	if (pri_ringmaster_intr_status0_overflow_fault_v(status0) != 0U) {
 		nvgpu_err(g, "ring overflowed");
 	}
 
-	if (pri_ringmaster_intr_status0_gbl_write_error_sys_v(status0) != 0) {
+	if (pri_ringmaster_intr_status0_gbl_write_error_sys_v(status0) != 0U) {
 		error_info =
 			gk20a_readl(g, pri_ringstation_sys_priv_error_info_r());
 		error_code =

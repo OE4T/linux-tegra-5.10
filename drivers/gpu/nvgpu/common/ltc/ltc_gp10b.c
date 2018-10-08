@@ -46,7 +46,7 @@ int gp10b_determine_L2_size_bytes(struct gk20a *g)
 	tmp = gk20a_readl(g, ltc_ltc0_lts0_tstg_info_1_r());
 
 	ret = g->ltc_count *
-		ltc_ltc0_lts0_tstg_info_1_slice_size_in_kb_v(tmp)*1024 *
+		ltc_ltc0_lts0_tstg_info_1_slice_size_in_kb_v(tmp) * 1024U *
 		ltc_ltc0_lts0_tstg_info_1_slices_per_l2_v(tmp);
 
 	nvgpu_log(g, gpu_dbg_info, "L2 size: %d\n", ret);
@@ -156,7 +156,7 @@ int gp10b_ltc_cbc_ctrl(struct gk20a *g, enum gk20a_cbc_op op,
 	}
 
 	while (true) {
-		const u32 iter_max = min(min + max_lines - 1, max);
+		const u32 iter_max = min(min + max_lines - 1U, max);
 		bool full_cache_op = true;
 
 		nvgpu_mutex_acquire(&g->mm.l2_op_lock);
@@ -221,7 +221,7 @@ int gp10b_ltc_cbc_ctrl(struct gk20a *g, enum gk20a_cbc_op op,
 		}
 
 		/* note: iter_max is inclusive upper bound */
-		min = iter_max + 1;
+		min = iter_max + 1U;
 
 		/* give a chance for higher-priority threads to progress */
 		nvgpu_mutex_release(&g->mm.l2_op_lock);
@@ -292,7 +292,7 @@ void gp10b_ltc_isr(struct gk20a *g, unsigned int ltc)
 {
 	unsigned int slice;
 
-	for (slice = 0; slice < g->gr.slices_per_ltc; slice++) {
+	for (slice = 0U; slice < g->gr.slices_per_ltc; slice++) {
 		gp10b_ltc_lts_isr(g, ltc, slice);
 	}
 }

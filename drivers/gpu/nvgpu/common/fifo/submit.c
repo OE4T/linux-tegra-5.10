@@ -219,8 +219,8 @@ static int nvgpu_submit_append_gpfifo_user_direct(struct channel_gk20a *c,
 
 	if (end > gpfifo_size) {
 		/* wrap-around */
-		int length0 = gpfifo_size - start;
-		int length1 = len - length0;
+		u32 length0 = gpfifo_size - start;
+		u32 length1 = len - length0;
 
 		err = g->os_channel.copy_user_gpfifo(
 				gpfifo_cpu + start, userdata,
@@ -261,8 +261,8 @@ static void nvgpu_submit_append_gpfifo_common(struct channel_gk20a *c,
 
 	if (end > gpfifo_size) {
 		/* wrap-around */
-		int length0 = gpfifo_size - start;
-		int length1 = len - length0;
+		u32 length0 = gpfifo_size - start;
+		u32 length1 = len - length0;
 		struct nvgpu_gpfifo_entry *src2 = src + length0;
 
 		nvgpu_mem_wr_n(g, gpfifo_mem, start, src, length0);

@@ -72,7 +72,7 @@ void gm20b_priv_ring_isr(struct gk20a *g)
 	nvgpu_log(g, gpu_dbg_intr, "ringmaster intr status0: 0x%08x,"
 		"status1: 0x%08x", status0, status1);
 
-	if (pri_ringmaster_intr_status0_gbl_write_error_sys_v(status0) != 0) {
+	if (pri_ringmaster_intr_status0_gbl_write_error_sys_v(status0) != 0U) {
 		nvgpu_log(g, gpu_dbg_intr, "SYS write error. ADR %08x WRDAT %08x INFO %08x, CODE %08x",
 			gk20a_readl(g, pri_ringstation_sys_priv_error_adr_r()),
 			gk20a_readl(g, pri_ringstation_sys_priv_error_wrdat_r()),

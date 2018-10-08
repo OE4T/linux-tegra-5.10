@@ -126,12 +126,12 @@ int gm20b_ltc_cbc_ctrl(struct gk20a *g, enum gk20a_cbc_op op,
 
 	trace_gk20a_ltc_cbc_ctrl_start(g->name, op, min, max);
 
-	if (gr->compbit_store.mem.size == 0) {
+	if (gr->compbit_store.mem.size == 0ULL) {
 		return 0;
 	}
 
 	while (true) {
-		const u32 iter_max = min(min + max_lines - 1, max);
+		const u32 iter_max = min(min + max_lines - 1U, max);
 		bool full_cache_op = true;
 
 		nvgpu_mutex_acquire(&g->mm.l2_op_lock);
@@ -194,7 +194,7 @@ int gm20b_ltc_cbc_ctrl(struct gk20a *g, enum gk20a_cbc_op op,
 		}
 
 		/* note: iter_max is inclusive upper bound */
-		min = iter_max + 1;
+		min = iter_max + 1U;
 
 		/* give a chance for higher-priority threads to progress */
 		nvgpu_mutex_release(&g->mm.l2_op_lock);
@@ -259,7 +259,7 @@ void gm20b_ltc_isr(struct gk20a *g, unsigned int ltc)
 {
 	unsigned int slice;
 
-	for (slice = 0; slice < g->gr.slices_per_ltc; slice++) {
+	for (slice = 0U; slice < g->gr.slices_per_ltc; slice++) {
 		gm20b_ltc_lts_isr(g, ltc, slice);
 	}
 }
@@ -269,7 +269,7 @@ u32 gm20b_ltc_cbc_fix_config(struct gk20a *g, int base)
 	u32 val = gk20a_readl(g, ltc_ltcs_ltss_cbc_num_active_ltcs_r());
 	if (val == 2U) {
 		return base * 2;
-	} else if (val != 1) {
+	} else if (val != 1U) {
 		nvgpu_err(g, "Invalid number of active ltcs: %08x", val);
 	}
 
@@ -484,7 +484,7 @@ void gm20b_ltc_init_cbc(struct gk20a *g, struct gr_gk20a *gr)
 	gr->compbit_store.base_hw = compbit_base_post_divide;
 
 	g->ops.ltc.cbc_ctrl(g, gk20a_cbc_op_invalidate,
-			    0, max_comptag_lines - 1);
+			    0, max_comptag_lines - 1U);
 
 }
 
@@ -525,7 +525,7 @@ bool gm20b_ltc_is_ltcn_ltss_addr(struct gk20a *g, u32 addr)
 {
 	u32 lts_shared_base = ltc_ltc0_ltss_v();
 	u32 lts_stride = nvgpu_get_litter_value(g, GPU_LIT_LTS_STRIDE);
-	u32 addr_mask = nvgpu_get_litter_value(g, GPU_LIT_LTC_STRIDE) - 1;
+	u32 addr_mask = nvgpu_get_litter_value(g, GPU_LIT_LTC_STRIDE) - 1U;
 	u32 base_offset = lts_shared_base & addr_mask;
 	u32 end_offset = base_offset + lts_stride;
 
@@ -548,7 +548,7 @@ static void gm20b_ltc_update_ltc_lts_addr(struct gk20a *g, u32 addr, u32 ltc_num
 		priv_addr_table[index++] = ltc_ltc0_lts0_v() +
 						ltc_num * ltc_stride +
 						lts_num * lts_stride +
-						(addr & (lts_stride - 1));
+						(addr & (lts_stride - 1U));
 	}
 
 	*priv_addr_table_index = index;

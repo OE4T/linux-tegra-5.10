@@ -314,9 +314,9 @@ static void falcon_print_mem(struct nvgpu_falcon *flcn, u32 src,
 			break;
 		}
 
-		for (i = 0; i < (byte_read_count >> 2); i += 4U) {
+		for (i = 0U; i < (byte_read_count >> 2U); i += 4U) {
 			nvgpu_info(flcn->g, "%#06x: %#010x %#010x %#010x %#010x",
-				src + (i << 2), buff[i], buff[i+1U],
+				src + (i << 2U), buff[i], buff[i+1U],
 				buff[i+2U], buff[i+3U]);
 		}
 

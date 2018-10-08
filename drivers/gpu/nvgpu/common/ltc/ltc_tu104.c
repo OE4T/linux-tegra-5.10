@@ -155,7 +155,7 @@ int ltc_tu104_cbc_ctrl(struct gk20a *g, enum gk20a_cbc_op op,
 	}
 
 	while (true) {
-		const u32 iter_max = min(min + max_lines - 1, max);
+		const u32 iter_max = min(min + max_lines - 1U, max);
 		bool full_cache_op = true;
 
 		nvgpu_mutex_acquire(&g->mm.l2_op_lock);
@@ -219,7 +219,7 @@ int ltc_tu104_cbc_ctrl(struct gk20a *g, enum gk20a_cbc_op op,
 		}
 
 		/* note: iter_max is inclusive upper bound */
-		min = iter_max + 1;
+		min = iter_max + 1U;
 
 		/* give a chance for higher-priority threads to progress */
 		nvgpu_mutex_release(&g->mm.l2_op_lock);

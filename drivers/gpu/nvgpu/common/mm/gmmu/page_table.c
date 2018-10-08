@@ -351,7 +351,7 @@ static int pd_allocate_children(struct vm_gk20a *vm,
 
 	pd->num_entries = pd_entries(l, attrs);
 	pd->entries = nvgpu_vzalloc(g, sizeof(struct nvgpu_gmmu_pd) *
-				    pd->num_entries);
+				(unsigned long)pd->num_entries);
 	if (pd->entries == NULL) {
 		return -ENOMEM;
 	}
@@ -725,7 +725,7 @@ static int __nvgpu_gmmu_update_page_table(struct vm_gk20a *vm,
 		   (sgt != NULL) ? "MAP" : "UNMAP",
 		   virt_addr,
 		   length,
-		   (sgt != NULL) ? nvgpu_sgt_get_phys(g, sgt, sgt->sgl) : 0,
+		   (sgt != NULL) ? nvgpu_sgt_get_phys(g, sgt, sgt->sgl) : 0ULL,
 		   space_to_skip,
 		   page_size >> 10,
 		   nvgpu_gmmu_perm_str(attrs->rw_flag),

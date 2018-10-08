@@ -428,9 +428,9 @@ int nvgpu_pmu_process_init_msg(struct nvgpu_pmu *pmu,
 		/* Align start and end addresses */
 		u32 start = ALIGN(pv->get_pmu_init_msg_pmu_sw_mg_off(init),
 			PMU_DMEM_ALLOC_ALIGNMENT);
-		u32 end = (pv->get_pmu_init_msg_pmu_sw_mg_off(init) +
-			pv->get_pmu_init_msg_pmu_sw_mg_size(init)) &
-			~(PMU_DMEM_ALLOC_ALIGNMENT - 1);
+		u32 end = (U32(pv->get_pmu_init_msg_pmu_sw_mg_off(init)) +
+			U32(pv->get_pmu_init_msg_pmu_sw_mg_size(init))) &
+			~(PMU_DMEM_ALLOC_ALIGNMENT - 1U);
 		u32 size = end - start;
 
 		nvgpu_bitmap_allocator_init(g, &pmu->dmem, "gk20a_pmu_dmem",

@@ -33,7 +33,7 @@
 #include <nvgpu/hw/gp106/hw_xp_gp106.h>
 #include <nvgpu/hw/gp106/hw_xve_gp106.h>
 
-#define NV_PCFG 0x88000
+#define NV_PCFG 0x88000U
 
 void xve_xve_writel_gp106(struct gk20a *g, u32 reg, u32 val)
 {
@@ -350,7 +350,7 @@ static int __do_xve_set_speed_gp106(struct gk20a *g, u32 next_link_speed)
 				NVGPU_TIMER_CPU_TIMER);
 		do {
 			pl_link_config = gk20a_readl(g, xp_pl_link_config_r(0));
-			if (pl_link_config != 0xfffffff &&
+			if (pl_link_config != 0xfffffffU &&
 			    (xp_pl_link_config_ltssm_status_f(pl_link_config) ==
 			     xp_pl_link_config_ltssm_status_idle_v()) &&
 			    (xp_pl_link_config_ltssm_directive_f(pl_link_config) ==
@@ -367,7 +367,7 @@ static int __do_xve_set_speed_gp106(struct gk20a *g, u32 next_link_speed)
 
 		xv_sc_dbg(g, EXEC_CHANGE, "  Change done... Checking status");
 
-		if (pl_link_config == 0xffffffff) {
+		if (pl_link_config == 0xffffffffU) {
 			WARN(1, "GPU fell of PCI bus!?");
 
 			/*
@@ -462,7 +462,7 @@ int xve_set_speed_gp106(struct gk20a *g, u32 next_link_speed)
 	u32 current_link_speed;
 	int err;
 
-	if ((next_link_speed & GPU_XVE_SPEED_MASK) == 0) {
+	if ((next_link_speed & GPU_XVE_SPEED_MASK) == 0U) {
 		return -EINVAL;
 	}
 

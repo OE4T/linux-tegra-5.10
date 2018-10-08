@@ -69,7 +69,7 @@ u32 gk20a_bus_set_bar0_window(struct gk20a *g, struct nvgpu_mem *mem,
 	u64 addr = bufbase + w * sizeof(u32);
 	u32 hi = (u32)((addr & ~(u64)0xfffff)
 		>> bus_bar0_window_target_bar0_window_base_shift_v());
-	u32 lo = (u32)(addr & 0xfffff);
+	u32 lo = U32(addr & 0xfffffULL);
 	u32 win = nvgpu_aperture_mask(g, mem,
 			bus_bar0_window_target_sys_mem_noncoherent_f(),
 			bus_bar0_window_target_sys_mem_coherent_f(),

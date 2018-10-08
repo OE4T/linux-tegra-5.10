@@ -23,7 +23,7 @@
 #ifndef NVGPU_FLCNIF_CMN_H
 #define NVGPU_FLCNIF_CMN_H
 
-#define PMU_CMD_SUBMIT_PAYLOAD_PARAMS_FB_SIZE_UNUSED 0
+#define PMU_CMD_SUBMIT_PAYLOAD_PARAMS_FB_SIZE_UNUSED 0U
 
 struct falc_u64 {
 	u32 lo;
@@ -104,18 +104,18 @@ struct pmu_hdr {
 #define nv_pmu_hdr pmu_hdr
 typedef u8 flcn_status;
 
-#define PMU_DMEM_ALLOC_ALIGNMENT	(32)
-#define PMU_DMEM_ALIGNMENT		(4)
+#define PMU_DMEM_ALLOC_ALIGNMENT	32U
+#define PMU_DMEM_ALIGNMENT		4U
 
-#define PMU_CMD_FLAGS_PMU_MASK		(0xF0)
+#define PMU_CMD_FLAGS_PMU_MASK		U8(0xF0U)
 
 #define PMU_CMD_FLAGS_STATUS		BIT8(0)
 #define PMU_CMD_FLAGS_INTR		BIT8(1)
 #define PMU_CMD_FLAGS_EVENT		BIT8(2)
 #define PMU_CMD_FLAGS_WATERMARK		BIT8(3)
 
-#define ALIGN_UP(v, gran)       (((v) + ((gran) - 1)) & ~((gran)-1))
+#define ALIGN_UP(v, gran)       (((v) + ((gran) - 1U)) & ~((gran)-1U))
 
-#define NV_UNSIGNED_ROUNDED_DIV(a, b)    (((a) + ((b) / 2)) / (b))
+#define NV_UNSIGNED_ROUNDED_DIV(a, b)    (((a) + ((b) / 2U)) / (b))
 
 #endif /* NVGPU_FLCNIF_CMN_H */

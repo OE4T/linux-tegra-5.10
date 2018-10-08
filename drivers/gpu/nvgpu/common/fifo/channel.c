@@ -138,7 +138,7 @@ int gk20a_channel_get_timescale_from_timeslice(struct gk20a *g,
 
 	/* value field is 8 bits long */
 	while (value >= BIT32(8)) {
-		value >>= 1;
+		value >>= 1U;
 		shift++;
 	}
 
@@ -830,7 +830,7 @@ static void channel_gk20a_free_priv_cmdbuf(struct channel_gk20a *c)
 	struct vm_gk20a *ch_vm = c->vm;
 	struct priv_cmd_queue *q = &c->priv_cmd_q;
 
-	if (q->size == 0) {
+	if (q->size == 0U) {
 		return;
 	}
 
@@ -865,7 +865,7 @@ int gk20a_channel_alloc_priv_cmdbuf(struct channel_gk20a *c, u32 orig_size,
 	nvgpu_log_info(c->g, "ch %d: priv cmd queue get:put %d:%d",
 			c->chid, q->get, q->put);
 
-	free_count = (q->size - (q->put - q->get) - 1) % q->size;
+	free_count = (q->size - (q->put - q->get) - 1U) % q->size;
 
 	if (size > free_count) {
 		return -EAGAIN;
@@ -883,7 +883,7 @@ int gk20a_channel_alloc_priv_cmdbuf(struct channel_gk20a *c, u32 orig_size,
 	} else {
 		e->off = q->put;
 		e->gva = q->mem.gpu_va + q->put * sizeof(u32);
-		q->put = (q->put + orig_size) & (q->size - 1);
+		q->put = (q->put + orig_size) & (q->size - 1U);
 	}
 
 	/* we already handled q->put + size > q->size so BUG_ON this */
@@ -1009,7 +1009,7 @@ static void channel_gk20a_joblist_add(struct channel_gk20a *c,
 		struct channel_gk20a_job *job)
 {
 	if (channel_gk20a_is_prealloc_enabled(c)) {
-		c->joblist.pre_alloc.put = (c->joblist.pre_alloc.put + 1) %
+		c->joblist.pre_alloc.put = (c->joblist.pre_alloc.put + 1U) %
 				(c->joblist.pre_alloc.length);
 	} else {
 		nvgpu_list_add_tail(&job->list, &c->joblist.dynamic.jobs);
@@ -1020,7 +1020,7 @@ static void channel_gk20a_joblist_delete(struct channel_gk20a *c,
 		struct channel_gk20a_job *job)
 {
 	if (channel_gk20a_is_prealloc_enabled(c)) {
-		c->joblist.pre_alloc.get = (c->joblist.pre_alloc.get + 1) %
+		c->joblist.pre_alloc.get = (c->joblist.pre_alloc.get + 1U) %
 				(c->joblist.pre_alloc.length);
 	} else {
 		nvgpu_list_del(&job->list);
@@ -1358,7 +1358,7 @@ static inline u32 update_gp_get(struct gk20a *g,
 
 u32 nvgpu_gp_free_count(struct channel_gk20a *c)
 {
-	return (c->gpfifo.entry_num - (c->gpfifo.put - c->gpfifo.get) - 1) %
+	return (c->gpfifo.entry_num - (c->gpfifo.put - c->gpfifo.get) - 1U) %
 		c->gpfifo.entry_num;
 }
 
@@ -1889,7 +1889,7 @@ int gk20a_free_priv_cmdbuf(struct channel_gk20a *c, struct priv_cmd_entry *e)
 	if (e->valid) {
 		/* read the entry's valid flag before reading its contents */
 		nvgpu_smp_rmb();
-		if ((q->get != e->off) && e->off != 0) {
+		if ((q->get != e->off) && e->off != 0U) {
 			nvgpu_err(g, "requests out-of-order, ch=%d",
 				  c->chid);
 		}

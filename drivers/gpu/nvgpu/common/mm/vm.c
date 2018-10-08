@@ -761,7 +761,7 @@ int nvgpu_vm_get_buffers(struct vm_gk20a *vm,
 	nvgpu_mutex_acquire(&vm->update_gmmu_lock);
 
 	buffer_list = nvgpu_big_zalloc(vm->mm->g, sizeof(*buffer_list) *
-				       vm->num_user_mapped_buffers);
+					(size_t)vm->num_user_mapped_buffers);
 	if (buffer_list == NULL) {
 		nvgpu_mutex_release(&vm->update_gmmu_lock);
 		return -ENOMEM;

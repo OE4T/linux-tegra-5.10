@@ -72,7 +72,7 @@ static u64 nvgpu_lockless_alloc(struct nvgpu_allocator *a, u64 len)
 		new_head = NV_ACCESS_ONCE(pa->next[head]);
 		ret = cmpxchg(&pa->head, head, new_head);
 		if (ret == head) {
-			addr = pa->base + head * pa->blk_size;
+			addr = pa->base + U64(head) * pa->blk_size;
 			nvgpu_atomic_inc(&pa->nr_allocs);
 			alloc_dbg(a, "Alloc node # %d @ addr 0x%llx", head,
 				  addr);
@@ -178,7 +178,7 @@ int nvgpu_lockless_allocator_init(struct gk20a *g, struct nvgpu_allocator *na,
 	 * In order to control memory footprint, we require count < INT_MAX
 	 */
 	count = length / blk_size;
-	if (base == 0ULL || count == 0ULL || count > INT_MAX) {
+	if (base == 0ULL || count == 0ULL || count > U64(INT_MAX)) {
 		return -EINVAL;
 	}
 

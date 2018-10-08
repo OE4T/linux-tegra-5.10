@@ -466,7 +466,7 @@ void fb_tu104_init_cbc(struct gk20a *g, struct gr_gk20a *gr)
 	gr->compbit_store.base_hw = compbit_store_base;
 
 	g->ops.ltc.cbc_ctrl(g, gk20a_cbc_op_invalidate,
-			0, gr->max_comptag_lines - 1);
+			0, gr->max_comptag_lines - 1U);
 }
 
 static int tu104_fb_wait_mmu_bind(struct gk20a *g)
@@ -553,8 +553,8 @@ int tu104_fb_apply_pdb_cache_war(struct gk20a *g)
 	}
 
 	/* Bind 257th (last) instance block that reserves PDB cache entry 255 */
-	inst_blk_addr = u64_lo32((inst_blk_base_addr + (256 * PAGE_SIZE))
-			>> fb_mmu_bind_imb_addr_alignment_v());
+	inst_blk_addr = u64_lo32((inst_blk_base_addr + (256ULL * U64(PAGE_SIZE)))
+			>> U64(fb_mmu_bind_imb_addr_alignment_v()));
 
 	nvgpu_writel(g, fb_mmu_bind_imb_r(),
 		fb_mmu_bind_imb_addr_f(inst_blk_addr) |

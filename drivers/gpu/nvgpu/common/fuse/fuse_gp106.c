@@ -165,7 +165,7 @@ int gp106_fuse_read_vin_cal_slope_intercept_fuse(struct gk20a *g,
 	case CTRL_CLK_VIN_ID_LTC:
 	case CTRL_CLK_VIN_ID_SRAM:
 		slopedata =
-			(fuse_vin_cal_gpc1_delta_slope_int_data_v(data)) * 1000;
+			(fuse_vin_cal_gpc1_delta_slope_int_data_v(data)) * 1000U;
 		break;
 
 	default:

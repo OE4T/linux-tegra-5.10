@@ -58,7 +58,7 @@ u32 *nvgpu_netlist_alloc_u32_list(struct gk20a *g, struct netlist_u32_list *u32l
 static int nvgpu_netlist_alloc_load_u32_list(struct gk20a *g, u8 *src, u32 len,
 			struct netlist_u32_list *u32_list)
 {
-	u32_list->count = (len + sizeof(u32) - 1) / sizeof(u32);
+	u32_list->count = (len + U32(sizeof(u32)) - 1U) / U32(sizeof(u32));
 	if (nvgpu_netlist_alloc_u32_list(g, u32_list) == NULL) {
 		return -ENOMEM;
 	}

@@ -46,18 +46,18 @@ struct condition_entry {
 	u32 cond_compare;
 } __packed;
 
-static u16 nvgpu_bios_rdu16(struct gk20a *g, int offset)
+static u16 nvgpu_bios_rdu16(struct gk20a *g, u32 offset)
 {
-	u16 val = (U16(g->bios.data[offset+1]) << U16(8)) +
+	u16 val = (U16(g->bios.data[offset+1U]) << U16(8)) +
 		U16(g->bios.data[offset]);
 	return val;
 }
 
-static u32 nvgpu_bios_rdu32(struct gk20a *g, int offset)
+static u32 nvgpu_bios_rdu32(struct gk20a *g, u32 offset)
 {
-	u32 val = (U32(g->bios.data[offset+3]) << U32(24)) +
-		  (U32(g->bios.data[offset+2]) << U32(16)) +
-		  (U32(g->bios.data[offset+1]) << U32(8)) +
+	u32 val = (U32(g->bios.data[offset+3U]) << U32(24)) +
+		  (U32(g->bios.data[offset+2U]) << U32(16)) +
+		  (U32(g->bios.data[offset+1U]) << U32(8)) +
 		  U32(g->bios.data[offset]);
 	return val;
 }
@@ -299,7 +299,7 @@ struct pci_ext_data_struct {
 	u8 flags;
 } __packed;
 
-static void nvgpu_bios_parse_bit(struct gk20a *g, int offset);
+static void nvgpu_bios_parse_bit(struct gk20a *g, u32 offset);
 
 int nvgpu_bios_parse_rom(struct gk20a *g)
 {
@@ -357,8 +357,8 @@ int nvgpu_bios_parse_rom(struct gk20a *g)
 				&g->bios.data[(offset +
 					       pci_rom->pci_data_struct_ptr +
 					       pci_data->pci_data_struct_len +
-					       0xf)
-					      & ~0xf];
+					       0xfU)
+					      & ~0xfU];
 			nvgpu_log_fn(g, "pci ext data sig %08x rev %x len %x sub_image_len %x priv_last %d flags %x",
 					pci_ext_data->sig,
 					pci_ext_data->nv_pci_data_ext_rev,
@@ -399,7 +399,7 @@ int nvgpu_bios_parse_rom(struct gk20a *g)
 	}
 }
 
-static void nvgpu_bios_parse_biosdata(struct gk20a *g, int offset)
+static void nvgpu_bios_parse_biosdata(struct gk20a *g, u32 offset)
 {
 	struct biosdata biosdata;
 
@@ -412,7 +412,7 @@ static void nvgpu_bios_parse_biosdata(struct gk20a *g, int offset)
 	g->bios.vbios_oem_version = biosdata.oem_version;
 }
 
-static void nvgpu_bios_parse_nvinit_ptrs(struct gk20a *g, int offset)
+static void nvgpu_bios_parse_nvinit_ptrs(struct gk20a *g, u32 offset)
 {
 	struct nvinit_ptrs nvinit_ptrs;
 
@@ -533,7 +533,7 @@ static void nvgpu_bios_parse_memory_ptrs(struct gk20a *g, int offset, u8 version
 	return;
 }
 
-static void nvgpu_bios_parse_devinit_appinfo(struct gk20a *g, int dmem_offset)
+static void nvgpu_bios_parse_devinit_appinfo(struct gk20a *g, u32 dmem_offset)
 {
 	struct devinit_engine_interface interface;
 
@@ -552,10 +552,10 @@ static void nvgpu_bios_parse_devinit_appinfo(struct gk20a *g, int dmem_offset)
 	g->bios.devinit_script_phys_base = interface.script_phys_base;
 }
 
-static int nvgpu_bios_parse_appinfo_table(struct gk20a *g, int offset)
+static int nvgpu_bios_parse_appinfo_table(struct gk20a *g, u32 offset)
 {
 	struct application_interface_table_hdr_v1 hdr;
-	int i;
+	u32 i;
 
 	nvgpu_memcpy((u8 *)&hdr, &g->bios.data[offset], sizeof(hdr));
 
@@ -567,8 +567,8 @@ static int nvgpu_bios_parse_appinfo_table(struct gk20a *g, int offset)
 		return 0;
 	}
 
-	offset += sizeof(hdr);
-	for (i = 0; i < hdr.entry_count; i++) {
+	offset += U32(sizeof(hdr));
+	for (i = 0U; i < hdr.entry_count; i++) {
 		struct application_interface_entry_v1 entry;
 
 		nvgpu_memcpy((u8 *)&entry, &g->bios.data[offset],
@@ -588,7 +588,7 @@ static int nvgpu_bios_parse_appinfo_table(struct gk20a *g, int offset)
 }
 
 static int nvgpu_bios_parse_falcon_ucode_desc(struct gk20a *g,
-		struct nvgpu_bios_ucode *ucode, int offset)
+		struct nvgpu_bios_ucode *ucode, u32 offset)
 {
 	union falcon_ucode_desc udesc;
 	struct falcon_ucode_desc_v2 desc;
@@ -664,16 +664,16 @@ static int nvgpu_bios_parse_falcon_ucode_desc(struct gk20a *g,
 	ucode->dmem_size = desc.dmem_load_size;
 
 	ret = nvgpu_bios_parse_appinfo_table(g,
-			offset + desc_size +
+			offset + U32(desc_size) +
 			desc.dmem_offset + desc.interface_offset);
 
 	return ret;
 }
 
-static int nvgpu_bios_parse_falcon_ucode_table(struct gk20a *g, int offset)
+static int nvgpu_bios_parse_falcon_ucode_table(struct gk20a *g, u32 offset)
 {
 	struct falcon_ucode_table_hdr_v1 hdr;
-	int i;
+	u32 i;
 
 	nvgpu_memcpy((u8 *)&hdr, &g->bios.data[offset], sizeof(hdr));
 	nvgpu_log_fn(g, "falcon ucode table ver %d size %d entrySize %d entryCount %d descVer %d descSize %d",
@@ -687,7 +687,7 @@ static int nvgpu_bios_parse_falcon_ucode_table(struct gk20a *g, int offset)
 
 	offset += hdr.header_size;
 
-	for (i = 0; i < hdr.entry_count; i++) {
+	for (i = 0U; i < hdr.entry_count; i++) {
 		struct falcon_ucode_table_entry_v1 entry;
 
 		nvgpu_memcpy((u8 *)&entry, &g->bios.data[offset],
@@ -739,7 +739,7 @@ static int nvgpu_bios_parse_falcon_ucode_table(struct gk20a *g, int offset)
 	return 0;
 }
 
-static void nvgpu_bios_parse_falcon_data_v2(struct gk20a *g, int offset)
+static void nvgpu_bios_parse_falcon_data_v2(struct gk20a *g, u32 offset)
 {
 	struct falcon_data_v2 falcon_data;
 	int err;
@@ -773,12 +773,12 @@ void *nvgpu_bios_get_perf_table_ptrs(struct gk20a *g,
 		if (ptoken->token_id == TOKEN_ID_VIRT_PTRS) {
 			perf_table_id_offset = *((u16 *)&g->bios.data[
 				ptoken->data_ptr +
-				(table_id * PERF_PTRS_WIDTH_16)]);
+				(U16(table_id) * U16(PERF_PTRS_WIDTH_16))]);
 			data_size = PERF_PTRS_WIDTH_16;
 		} else {
 			perf_table_id_offset = *((u32 *)&g->bios.data[
 				ptoken->data_ptr +
-				(table_id * PERF_PTRS_WIDTH)]);
+				(U16(table_id) * U16(PERF_PTRS_WIDTH))]);
 			data_size = PERF_PTRS_WIDTH;
 		}
 	} else {
@@ -813,11 +813,11 @@ void *nvgpu_bios_get_perf_table_ptrs(struct gk20a *g,
 	return (void *)perf_table_ptr;
 }
 
-static void nvgpu_bios_parse_bit(struct gk20a *g, int offset)
+static void nvgpu_bios_parse_bit(struct gk20a *g, u32 offset)
 {
 	struct bios_bit bit;
 	struct bit_token bit_token;
-	int i;
+	u32 i;
 
 	nvgpu_log_fn(g, " ");
 	nvgpu_memcpy((u8 *)&bit, &g->bios.data[offset], sizeof(bit));
@@ -827,7 +827,7 @@ static void nvgpu_bios_parse_bit(struct gk20a *g, int offset)
 			bit.token_entries, bit.token_size);
 
 	offset += bit.header_size;
-	for (i = 0; i < bit.token_entries; i++) {
+	for (i = 0U; i < bit.token_entries; i++) {
 		nvgpu_memcpy((u8 *)&bit_token, &g->bios.data[offset],
 			sizeof(bit_token));
 

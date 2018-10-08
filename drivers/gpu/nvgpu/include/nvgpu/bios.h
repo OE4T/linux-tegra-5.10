@@ -27,8 +27,8 @@
 
 struct gk20a;
 
-#define PERF_PTRS_WIDTH 0x4
-#define PERF_PTRS_WIDTH_16 0x2
+#define PERF_PTRS_WIDTH		U8(0x4)
+#define PERF_PTRS_WIDTH_16	U8(0x2)
 
 enum {
 	CLOCKS_TABLE = 2,
