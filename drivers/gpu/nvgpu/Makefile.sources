@@ -161,6 +161,7 @@ srcs :=	os/posix/nvgpu.c \
 	volt/volt_rail.c \
 	clk/clk.c \
 	clk/clk_domain.c \
+	clk/clk_freq_domain.c \
 	clk/clk_fll.c \
 	clk/clk_freq_controller.c \
 	clk/clk_prog.c \

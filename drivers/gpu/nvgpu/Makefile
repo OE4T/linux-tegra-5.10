@@ -367,6 +367,7 @@ nvgpu-y += \
 	clk/clk_vin.o \
 	clk/clk_fll.o \
 	clk/clk_domain.o \
+	clk/clk_freq_domain.o \
 	clk/clk_prog.o \
 	clk/clk_vf_point.o \
 	clk/clk_arb.o \

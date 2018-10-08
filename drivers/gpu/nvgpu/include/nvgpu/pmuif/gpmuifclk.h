@@ -70,6 +70,7 @@
 #define NV_PMU_CLK_BOARDOBJGRP_CLASS_ID_FLL_DEVICE                         0x03U
 #define NV_PMU_CLK_BOARDOBJGRP_CLASS_ID_CLK_VF_POINT                       0x04U
 #define NV_PMU_CLK_BOARDOBJGRP_CLASS_ID_CLK_FREQ_CONTROLLER                0x05U
+#define NV_PMU_CLK_BOARDOBJGRP_CLASS_ID_CLK_FREQ_DOMAIN                    0x07U
 
 /*!
 * CLK_DOMAIN BOARDOBJGRP Header structure.  Describes global state about the
@@ -610,5 +611,21 @@ union nv_pmu_clk_clk_fll_device_boardobj_get_status_union {
 };
 
 NV_PMU_BOARDOBJ_GRP_GET_STATUS_MAKE_E32(clk, clk_fll_device);
+
+struct nv_pmu_clk_clk_freq_domain_boardobjgrp_set_header {
+	struct nv_pmu_boardobjgrp_e32 super;
+	u32 init_flags;
+};
+
+struct nv_pmu_clk_clk_freq_domain_boardobj_set {
+	struct nv_pmu_boardobj super;
+	u32 clk_domain;
+};
+
+union nv_pmu_clk_clk_freq_domain_boardobj_set_union {
+	struct nv_pmu_boardobj super;
+	struct nv_pmu_clk_clk_freq_domain_boardobj_set domain;
+};
+NV_PMU_BOARDOBJ_GRP_SET_MAKE_E32(clk, clk_freq_domain);
 
 #endif /*NVGPU_PMUIF_GPMUIFCLK_H*/

@@ -31,6 +31,7 @@
 #include "clk_vf_point.h"
 #include "clk_mclk.h"
 #include "clk_freq_controller.h"
+#include "clk_freq_domain.h"
 
 #define NV_PERF_DOMAIN_4X_CLOCK_DOMAIN_SKIP		0x10U
 #define NV_PERF_DOMAIN_4X_CLOCK_DOMAIN_MASK		0x1FU
@@ -50,6 +51,7 @@ struct clk_pmupstate {
 	struct clk_vf_points clk_vf_pointobjs;
 	struct clk_mclk_state clk_mclk;
 	struct clk_freq_controllers clk_freq_controllers;
+	struct nvgpu_clk_freq_domain_grp freq_domain_grp_objs;
 };
 
 struct clockentry {

@@ -38,6 +38,7 @@
 #define CTRL_CLK_DOMAIN_XBAR2CLK                            (0x00040000U)
 #define CTRL_CLK_DOMAIN_SYS2CLK                             (0x00800000U)
 #define CTRL_CLK_DOMAIN_HUB2CLK                             (0x01000000U)
+#define CTRL_CLK_DOMAIN_UTILSCLK                            (0x00040000U)
 #define CTRL_CLK_DOMAIN_PWRCLK                              (0x00080000U)
 #define CTRL_CLK_DOMAIN_NVDCLK                              (0x00100000U)
 #define CTRL_CLK_DOMAIN_PCIEGENCLK                          (0x00200000U)
@@ -233,5 +234,16 @@ struct ctrl_clk_clk_domain_list {
 
 #define CTRL_CLK_VF_PAIR_VOLTAGE_UV_SET(pvfpair, _voltageuv)	        \
 	(((pvfpair)->voltage_uv) = (_voltageuv))
+
+#define CTRL_CLK_FREQ_DOMAIN_SCHEMA_BIF                              0x01U
+#define CTRL_CLK_FREQ_DOMAIN_SCHEMA_OSM                              0x02U
+#define CTRL_CLK_FREQ_DOMAIN_SCHEMA_MCLK                             0x03U
+#define CTRL_CLK_FREQ_DOMAIN_SCHEMA_PLL_LDIV                         0x04U
+#define CTRL_CLK_FREQ_DOMAIN_SCHEMA_PLL_XCLK                         0x05U
+#define CTRL_CLK_FREQ_DOMAIN_SCHEMA_SINGLE_FLL                       0x06U
+#define CTRL_CLK_FREQ_DOMAIN_SCHEMA_MULTI_FLL                        0x07U
+#define CTRL_CLK_FREQ_DOMAIN_SCHEMA_SWDIV                            0x08U
+#define CTRL_CLK_FREQ_DOMAIN_SCHEMA_STUB                             0x09U
+
 
 #endif /* NVGPU_CTRLCLK_H */

@@ -27,6 +27,7 @@
 #include <nvgpu/pmu.h>
 
 #include "clk/clk.h"
+#include "clk/clk_freq_domain.h"
 #include "pmu_perf/pmu_perf.h"
 #include "pmu_perf/change_seq.h"
 #include "pmgr/pmgr.h"
@@ -134,6 +135,13 @@ int gk20a_init_pstate_support(struct gk20a *g)
 	err = clk_prog_sw_setup(g);
 	if (err != 0) {
 		goto err_pmgr_pmu_init_pmupstate;
+	}
+
+	if (g->ops.clk.support_clk_freq_domain) {
+		err = nvgpu_clk_freq_domain_sw_setup(g);
+		if (err != 0) {
+			goto err_pmgr_pmu_init_pmupstate;
+		}
 	}
 
 	err = pstate_sw_setup(g);
@@ -257,6 +265,13 @@ int gk20a_init_pstate_pmu_support(struct gk20a *g)
 	err = clk_vin_pmu_setup(g);
 	if (err != 0U) {
 		return err;
+	}
+
+	if (g->ops.clk.support_clk_freq_domain) {
+		err = nvgpu_clk_freq_domain_pmu_setup(g);
+		if (err != 0) {
+			return err;
+		}
 	}
 
 	err = clk_fll_pmu_setup(g);
