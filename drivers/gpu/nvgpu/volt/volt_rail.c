@@ -104,6 +104,7 @@ static u32 volt_rail_state_init(struct gk20a *g,
 	u32 i;
 
 	pvolt_rail->volt_dev_idx_default = CTRL_BOARDOBJ_IDX_INVALID;
+	pvolt_rail->volt_dev_idx_ipc_vmin = CTRL_BOARDOBJ_IDX_INVALID;
 
 	for (i = 0; i < CTRL_VOLT_RAIL_VOLT_DELTA_MAX_ENTRIES; i++) {
 		pvolt_rail->volt_delta_uv[i] = (int)NV_PMU_VOLT_VALUE_0V_IN_UV;
