@@ -861,7 +861,7 @@ static void gv11b_fb_handle_mmu_fault_common(struct gk20a *g,
 				mmfault->faulted_pbdma,
 				mmfault->faulted_engine);
 		}
-		if (!err) {
+		if (err == 0) {
 			nvgpu_log(g, gpu_dbg_intr, "CE Page Fault Fixed");
 			*invalidate_replay_val = 0;
 			if (mmfault->refch) {
@@ -945,7 +945,7 @@ static void gv11b_fb_handle_mmu_fault_common(struct gk20a *g,
 		if (mmfault->fault_type == gmmu_fault_type_pte_v()) {
 			nvgpu_log(g, gpu_dbg_intr, "invalid pte! try to fix");
 			err = gv11b_fb_fix_page_fault(g, mmfault);
-			if (err) {
+			if (err != 0) {
 				*invalidate_replay_val |=
 					fb_mmu_invalidate_replay_cancel_global_f();
 			} else {
@@ -1396,17 +1396,17 @@ void gv11b_fb_hub_isr(struct gk20a *g)
 		nvgpu_info(g, "ecc uncorrected error notify");
 
 		status = gk20a_readl(g, fb_mmu_l2tlb_ecc_status_r());
-		if (status) {
+		if (status != 0U) {
 			gv11b_handle_l2tlb_ecc_isr(g, status);
 		}
 
 		status = gk20a_readl(g, fb_mmu_hubtlb_ecc_status_r());
-		if (status) {
+		if (status != 0U) {
 			gv11b_handle_hubtlb_ecc_isr(g, status);
 		}
 
 		status = gk20a_readl(g, fb_mmu_fillunit_ecc_status_r());
-		if (status) {
+		if (status != 0U) {
 			gv11b_handle_fillunit_ecc_isr(g, status);
 		}
 	}
@@ -1471,7 +1471,7 @@ int gv11b_fb_mmu_invalidate_replay(struct gk20a *g,
 		nvgpu_udelay(5);
 	} while (!nvgpu_timeout_expired_msg(&timeout,
 			    "invalidate replay failed on 0x%llx"));
-	if (err) {
+	if (err != 0) {
 		nvgpu_err(g, "invalidate replay timedout");
 	}
 
@@ -1493,7 +1493,7 @@ static int gv11b_fb_fix_page_fault(struct gk20a *g,
 
 	err = __nvgpu_get_pte(g,
 			mmfault->refch->vm, mmfault->fault_addr, &pte[0]);
-	if (err) {
+	if (err != 0) {
 		nvgpu_log(g, gpu_dbg_intr | gpu_dbg_pte, "pte not found");
 		return err;
 	}
@@ -1520,7 +1520,7 @@ static int gv11b_fb_fix_page_fault(struct gk20a *g,
 
 	err = __nvgpu_set_pte(g,
 			mmfault->refch->vm, mmfault->fault_addr, &pte[0]);
-	if (err) {
+	if (err != 0) {
 		nvgpu_log(g, gpu_dbg_intr | gpu_dbg_pte, "pte not fixed");
 		return err;
 	}

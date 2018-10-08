@@ -465,7 +465,7 @@ int xve_set_speed_gp106(struct gk20a *g, u32 next_link_speed)
 	}
 
 	err = g->ops.xve.get_speed(g, &current_link_speed);
-	if (err) {
+	if (err != 0) {
 		return err;
 	}
 

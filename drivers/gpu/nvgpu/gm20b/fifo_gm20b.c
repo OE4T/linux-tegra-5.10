@@ -122,7 +122,7 @@ void gm20b_fifo_trigger_mmu_fault(struct gk20a *g,
 		delay = min_t(u32, delay << 1, GR_IDLE_CHECK_MAX);
 	} while (nvgpu_timeout_expired(&timeout) == 0);
 
-	if (ret) {
+	if (ret != 0) {
 		nvgpu_err(g, "mmu fault timeout");
 	}
 

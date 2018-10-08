@@ -322,7 +322,7 @@ static void gk20a_free_channel(struct channel_gk20a *ch, bool force)
 		/* abort channel and remove from runlist */
 		if (gk20a_is_channel_marked_as_tsg(ch)) {
 			err = gk20a_tsg_unbind_channel(ch);
-			if (err) {
+			if (err != 0) {
 				nvgpu_err(g,
 					"failed to unbind channel %d from TSG",
 					ch->chid);
@@ -603,7 +603,7 @@ struct channel_gk20a *_gk20a_channel_get(struct channel_gk20a *ch,
 
 	nvgpu_spinlock_release(&ch->ref_obtain_lock);
 
-	if (ret) {
+	if (ret != NULL) {
 		trace_gk20a_channel_get(ch->chid, caller);
 	}
 
@@ -762,7 +762,7 @@ static int channel_gk20a_alloc_priv_cmdbuf(struct channel_gk20a *c)
 				  2 * 18 * sizeof(u32) / 3);
 
 	err = nvgpu_dma_alloc_map_sys(ch_vm, size, &q->mem);
-	if (err) {
+	if (err != 0) {
 		nvgpu_err(g, "%s: memory allocation failed", __func__);
 		goto clean_up;
 	}
@@ -1046,7 +1046,7 @@ static int channel_gk20a_prealloc_resources(struct channel_gk20a *c,
 
 	/* pre-allocate a fence pool */
 	err = gk20a_alloc_fence_pool(c, num_jobs);
-	if (err) {
+	if (err != 0) {
 		goto clean_up_priv_cmd;
 	}
 
@@ -1117,7 +1117,7 @@ int nvgpu_channel_setup_bind(struct channel_gk20a *c,
 		 * busy lock.
 		 */
 		err = gk20a_busy(g);
-		if (err) {
+		if (err != 0) {
 			nvgpu_rwsem_up_read(&g->deterministic_busy);
 			return err;
 		}
@@ -1146,7 +1146,7 @@ int nvgpu_channel_setup_bind(struct channel_gk20a *c,
 	if (args->flags & NVGPU_SETUP_BIND_FLAGS_USERMODE_SUPPORT) {
 		if (g->os_channel.alloc_usermode_buffers) {
 			err = g->os_channel.alloc_usermode_buffers(c, args);
-			if (err) {
+			if (err != 0) {
 				nvgpu_err(g, "Usermode buffer alloc failed");
 				goto clean_up;
 			}
@@ -1163,7 +1163,7 @@ int nvgpu_channel_setup_bind(struct channel_gk20a *c,
 		err = nvgpu_dma_alloc_map_sys(ch_vm,
 				gpfifo_size * gpfifo_entry_size,
 				&c->gpfifo.mem);
-		if (err) {
+		if (err != 0) {
 			nvgpu_err(g, "memory allocation failed");
 			goto clean_up;
 		}
@@ -1199,7 +1199,7 @@ int nvgpu_channel_setup_bind(struct channel_gk20a *c,
 
 		if (g->ops.fifo.resetup_ramfc) {
 			err = g->ops.fifo.resetup_ramfc(c);
-			if (err) {
+			if (err != 0) {
 				goto clean_up_sync;
 			}
 		}
@@ -1214,7 +1214,7 @@ int nvgpu_channel_setup_bind(struct channel_gk20a *c,
 	err = g->ops.fifo.setup_ramfc(c, gpfifo_gpu_va,
 					c->gpfifo.entry_num,
 					acquire_timeout, args->flags);
-	if (err) {
+	if (err != 0) {
 		goto clean_up_sync;
 	}
 
@@ -1223,18 +1223,18 @@ int nvgpu_channel_setup_bind(struct channel_gk20a *c,
 	if (args->num_inflight_jobs) {
 		err = channel_gk20a_prealloc_resources(c,
 				args->num_inflight_jobs);
-		if (err) {
+		if (err != 0) {
 			goto clean_up_sync;
 		}
 	}
 
 	err = channel_gk20a_alloc_priv_cmdbuf(c);
-	if (err) {
+	if (err != 0) {
 		goto clean_up_prealloc;
 	}
 
 	err = channel_gk20a_update_runlist(c, true);
-	if (err) {
+	if (err != 0) {
 		goto clean_up_priv_cmd;
 	}
 
@@ -1737,13 +1737,13 @@ int nvgpu_channel_worker_init(struct gk20a *g)
 	nvgpu_init_list_node(&g->channel_worker.items);
 	nvgpu_spinlock_init(&g->channel_worker.items_lock);
 	err = nvgpu_mutex_init(&g->channel_worker.start_lock);
-	if (err) {
+	if (err != 0) {
 		goto error_check;
 	}
 
 	err = __nvgpu_channel_worker_start(g);
 error_check:
-	if (err) {
+	if (err != 0) {
 		nvgpu_err(g, "failed to start channel poller thread");
 		return err;
 	}
@@ -1844,7 +1844,7 @@ int gk20a_channel_add_job(struct channel_gk20a *c,
 	if (!skip_buffer_refcounting) {
 		err = nvgpu_vm_get_buffers(vm, &mapped_buffers,
 					&num_mapped_buffers);
-		if (err) {
+		if (err != 0) {
 			return err;
 		}
 	}
@@ -2174,31 +2174,31 @@ int gk20a_init_channel_support(struct gk20a *g, u32 chid)
 	nvgpu_init_list_node(&c->worker_item);
 
 	err = nvgpu_mutex_init(&c->ioctl_lock);
-	if (err) {
+	if (err != 0) {
 		return err;
 	}
 	err = nvgpu_mutex_init(&c->joblist.cleanup_lock);
-	if (err) {
+	if (err != 0) {
 		goto fail_1;
 	}
 	err = nvgpu_mutex_init(&c->joblist.pre_alloc.read_lock);
-	if (err) {
+	if (err != 0) {
 		goto fail_2;
 	}
 	err = nvgpu_mutex_init(&c->sync_lock);
-	if (err) {
+	if (err != 0) {
 		goto fail_3;
 	}
 #if defined(CONFIG_GK20A_CYCLE_STATS)
 	err = nvgpu_mutex_init(&c->cyclestate.cyclestate_buffer_mutex);
-	if (err)
+	if (err != 0)
 		goto fail_4;
 	err = nvgpu_mutex_init(&c->cs_client_mutex);
-	if (err)
+	if (err != 0)
 		goto fail_5;
 #endif
 	err = nvgpu_mutex_init(&c->dbg_s_lock);
-	if (err) {
+	if (err != 0) {
 		goto fail_6;
 	}
 

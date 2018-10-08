@@ -39,7 +39,7 @@ int nvgpu_get_timestamps_zipper(struct gk20a *g,
 
 	for (i = 0; i < count; i++) {
 		err = g->ops.ptimer.read_ptimer(g, &samples[i].gpu_timestamp);
-		if (err) {
+		if (err != 0) {
 			return err;
 		}
 

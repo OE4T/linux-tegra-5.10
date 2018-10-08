@@ -115,13 +115,13 @@ int gk20a_as_alloc_share(struct gk20a *g,
 
 	/* this will set as_share->vm. */
 	err = gk20a_busy(g);
-	if (err) {
+	if (err != 0) {
 		goto failed;
 	}
 	err = gk20a_vm_alloc_share(as_share, big_page_size, flags);
 	gk20a_idle(g);
 
-	if (err) {
+	if (err != 0) {
 		goto failed;
 	}
 
@@ -161,7 +161,7 @@ int gk20a_as_release_share(struct gk20a_as_share *as_share)
 
 	err = gk20a_busy(g);
 
-	if (err) {
+	if (err != 0) {
 		goto release_fail;
 	}
 

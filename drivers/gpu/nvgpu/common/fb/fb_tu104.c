@@ -209,17 +209,17 @@ void tu104_fb_hub_isr(struct gk20a *g)
 			fb_mmu_int_vector_ecc_error_vector_v(ecc_error));
 
 		status = nvgpu_readl(g, fb_mmu_l2tlb_ecc_status_r());
-		if (status) {
+		if (status != 0U) {
 			gv11b_handle_l2tlb_ecc_isr(g, status);
 		}
 
 		status = nvgpu_readl(g, fb_mmu_hubtlb_ecc_status_r());
-		if (status) {
+		if (status != 0U) {
 			gv11b_handle_hubtlb_ecc_isr(g, status);
 		}
 
 		status = nvgpu_readl(g, fb_mmu_fillunit_ecc_status_r());
-		if (status) {
+		if (status != 0U) {
 			gv11b_handle_fillunit_ecc_isr(g, status);
 		}
 	}
@@ -416,7 +416,7 @@ int fb_tu104_mmu_invalidate_replay(struct gk20a *g,
 		nvgpu_udelay(5);
 	} while (!nvgpu_timeout_expired_msg(&timeout,
 			    "invalidate replay failed on 0x%llx"));
-	if (err) {
+	if (err != 0) {
 		nvgpu_err(g, "invalidate replay timedout");
 	}
 
@@ -477,7 +477,7 @@ static int tu104_fb_wait_mmu_bind(struct gk20a *g)
 	int err;
 
 	err = nvgpu_timeout_init(g, &timeout, 1000, NVGPU_TIMER_RETRY_TIMER);
-	if (err) {
+	if (err != 0) {
 		return err;
 	}
 
@@ -523,7 +523,7 @@ int tu104_fb_apply_pdb_cache_war(struct gk20a *g)
 			fb_mmu_bind_trigger_true_f());
 
 		err = tu104_fb_wait_mmu_bind(g);
-		if (err) {
+		if (err != 0) {
 			return err;
 		}
 	}
@@ -538,7 +538,7 @@ int tu104_fb_apply_pdb_cache_war(struct gk20a *g)
 		fb_mmu_bind_trigger_true_f());
 
 	err = tu104_fb_wait_mmu_bind(g);
-	if (err) {
+	if (err != 0) {
 		return err;
 	}
 
@@ -548,7 +548,7 @@ int tu104_fb_apply_pdb_cache_war(struct gk20a *g)
 		fb_mmu_bind_trigger_true_f());
 
 	err = tu104_fb_wait_mmu_bind(g);
-	if (err) {
+	if (err != 0) {
 		return err;
 	}
 
@@ -568,7 +568,7 @@ int tu104_fb_apply_pdb_cache_war(struct gk20a *g)
 		fb_mmu_bind_trigger_true_f());
 
 	err = tu104_fb_wait_mmu_bind(g);
-	if (err) {
+	if (err != 0) {
 		return err;
 	}
 

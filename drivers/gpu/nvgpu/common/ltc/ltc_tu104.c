@@ -110,12 +110,12 @@ int ltc_tu104_init_comptags(struct gk20a *g, struct gr_gk20a *gr)
 	compbit_backing_size = roundup(compbit_backing_size, 64 * 1024);
 
 	err = nvgpu_ltc_alloc_cbc(g, compbit_backing_size, true);
-	if (err) {
+	if (err != 0) {
 		return err;
 	}
 
 	err = gk20a_comptag_allocator_init(g, &gr->comp_tags, max_comptag_lines);
-	if (err) {
+	if (err != 0) {
 		return err;
 	}
 

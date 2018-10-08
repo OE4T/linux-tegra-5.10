@@ -479,23 +479,23 @@ int nvgpu_nvlink_probe(struct gk20a *g)
 	g->nvlink.priv = (void *) ndev;
 
 	err = nvgpu_nvlink_read_dt_props(g);
-	if (err)
+	if (err != 0)
 		goto free_ndev;
 
 	err = nvgpu_nvlink_init_ops(g);
-	if (err)
+	if (err != 0)
 		goto free_ndev;
 
 	/* Register device with core driver*/
 	err = nvlink_register_device(ndev);
-	if (err) {
+	if (err != 0) {
 		nvgpu_err(g, "failed on nvlink device registration");
 		goto free_ndev;
 	}
 
 	/* Register link with core driver */
 	err = nvlink_register_link(&ndev->link);
-	if (err) {
+	if (err != 0) {
 		nvgpu_err(g, "failed on nvlink link registration");
 		goto unregister_ndev;
 	}
@@ -532,13 +532,13 @@ int nvgpu_nvlink_remove(struct gk20a *g)
 	__nvgpu_set_enabled(g, NVGPU_SUPPORT_NVLINK, false);
 
 	err = nvlink_unregister_link(&ndev->link);
-	if (err) {
+	if (err != 0) {
 		nvgpu_err(g, "failed on nvlink link unregistration");
 		return err;
 	}
 
 	err = nvlink_unregister_device(ndev);
-	if (err) {
+	if (err != 0) {
 		nvgpu_err(g, "failed on nvlink device unregistration");
 		return err;
 	}

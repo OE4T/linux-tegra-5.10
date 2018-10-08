@@ -287,7 +287,7 @@ static int nvgpu_fuse_calib_gpcpll_get_adc(struct gk20a *g,
 	int ret;
 
 	ret = nvgpu_tegra_fuse_read_reserved_calib(g, &val);
-	if (ret) {
+	if (ret != 0) {
 		return ret;
 	}
 
@@ -932,7 +932,7 @@ static int clk_program_gpc_pll(struct gk20a *g, struct pll *gpll_new,
 			clk_config_dvfs_ndiv(gpll.dvfs.mv, gpll.N, &gpll.dvfs);
 		}
 		ret = clk_slide_gpc_pll(g, &gpll);
-		if (ret) {
+		if (ret != 0) {
 			return ret;
 		}
 	}
@@ -1112,7 +1112,7 @@ static int clk_program_na_gpc_pll(struct gk20a *g, struct pll *gpll_new,
 		clk_config_pll_safe_dvfs(g, &gpll_safe);
 
 		ret = clk_program_gpc_pll(g, &gpll_safe, true);
-		if (ret) {
+		if (ret != 0) {
 			nvgpu_err(g, "Safe dvfs program fail");
 			return ret;
 		}
@@ -1200,7 +1200,7 @@ int gm20b_init_clk_setup_sw(struct gk20a *g)
 	nvgpu_log_fn(g, " ");
 
 	err = nvgpu_mutex_init(&clk->clk_mutex);
-	if (err) {
+	if (err != 0) {
 		return err;
 	}
 
@@ -1466,7 +1466,7 @@ static int set_pll_freq(struct gk20a *g, bool allow_slide)
 int gm20b_init_clk_support(struct gk20a *g)
 {
 	struct clk_gk20a *clk = &g->clk;
-	u32 err;
+	int err;
 
 	nvgpu_log_fn(g, " ");
 
@@ -1475,13 +1475,13 @@ int gm20b_init_clk_support(struct gk20a *g)
 
 	err = gm20b_init_clk_setup_hw(g);
 	nvgpu_mutex_release(&clk->clk_mutex);
-	if (err) {
+	if (err != 0) {
 		return err;
 	}
 
 	/* FIXME: this effectively prevents host level clock gating */
 	err = g->ops.clk.prepare_enable(&g->clk);
-	if (err) {
+	if (err != 0) {
 		return err;
 	}
 
@@ -1526,7 +1526,7 @@ int gm20b_clk_get_voltage(struct clk_gk20a *clk, u64 *val)
 	}
 
 	err = gk20a_busy(g);
-	if (err) {
+	if (err != 0) {
 		return err;
 	}
 
@@ -1554,7 +1554,7 @@ int gm20b_clk_get_gpcclk_clock_counter(struct clk_gk20a *clk, u64 *val)
 	u32 count1, count2;
 
 	err = gk20a_busy(g);
-	if (err) {
+	if (err != 0) {
 		return err;
 	}
 

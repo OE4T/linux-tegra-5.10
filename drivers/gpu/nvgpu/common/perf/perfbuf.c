@@ -31,13 +31,13 @@ int nvgpu_perfbuf_enable_locked(struct gk20a *g, u64 offset, u32 size)
 	int err;
 
 	err = gk20a_busy(g);
-	if (err) {
+	if (err != 0) {
 		nvgpu_err(g, "failed to poweron");
 		return err;
 	}
 
 	err = g->ops.mm.alloc_inst_block(g, &mm->perfbuf.inst_block);
-	if (err) {
+	if (err != 0) {
 		return err;
 	}
 
@@ -54,7 +54,7 @@ int nvgpu_perfbuf_enable_locked(struct gk20a *g, u64 offset, u32 size)
 int nvgpu_perfbuf_disable_locked(struct gk20a *g)
 {
 	int err = gk20a_busy(g);
-	if (err) {
+	if (err != 0) {
 		nvgpu_err(g, "failed to poweron");
 		return err;
 	}

@@ -691,7 +691,7 @@ int gr_gm20b_init_fs_state(struct gk20a *g)
 	nvgpu_log_fn(g, " ");
 
 	err = gr_gk20a_init_fs_state(g);
-	if (err) {
+	if (err != 0) {
 		return err;
 	}
 
@@ -782,7 +782,7 @@ static void gr_gm20b_load_gpccs_with_bootloader(struct gk20a *g)
 
 int gr_gm20b_load_ctxsw_ucode(struct gk20a *g)
 {
-	u32 err;
+	int err;
 	u32 reg_offset = gr_gpcs_gpccs_falcon_hwcfg_r() -
 	  gr_fecs_falcon_hwcfg_r();
 	u8 falcon_id_mask = 0;
@@ -817,7 +817,7 @@ int gr_gm20b_load_ctxsw_ucode(struct gk20a *g)
 					(1 << LSF_FALCON_ID_GPCCS));
 			}
 		}
-		if (err) {
+		if (err != 0) {
 			nvgpu_err(g, "Unable to recover GR falcon");
 			return err;
 		}
@@ -846,7 +846,7 @@ int gr_gm20b_load_ctxsw_ucode(struct gk20a *g)
 				err = g->ops.pmu.load_lsfalcon_ucode(g, falcon_id_mask);
 			}
 
-			if (err) {
+			if (err != 0) {
 				nvgpu_err(g, "Unable to boot GPCCS");
 				return err;
 			}
@@ -902,7 +902,7 @@ int gr_gm20b_alloc_gr_ctx(struct gk20a *g,
 	nvgpu_log_fn(g, " ");
 
 	err = gr_gk20a_alloc_gr_ctx(g, gr_ctx, vm, class, flags);
-	if (err) {
+	if (err != 0) {
 		return err;
 	}
 
@@ -1393,7 +1393,7 @@ int gm20b_gr_clear_sm_error_state(struct gk20a *g,
 	memset(&tsg->sm_error_states[sm_id], 0, sizeof(*tsg->sm_error_states));
 
 	err = gr_gk20a_disable_ctxsw(g);
-	if (err) {
+	if (err != 0) {
 		nvgpu_err(g, "unable to stop gr ctxsw");
 		goto fail;
 	}

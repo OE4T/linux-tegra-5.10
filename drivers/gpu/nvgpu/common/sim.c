@@ -193,14 +193,14 @@ static int issue_rpc_and_wait(struct gk20a *g)
 	int err;
 
 	err = rpc_send_message(g);
-	if (err) {
+	if (err != 0) {
 		nvgpu_err(g, "%s failed rpc_send_message",
 			__func__);
 		return err;
 	}
 
 	err = rpc_recv_poll(g);
-	if (err) {
+	if (err != 0) {
 		nvgpu_err(g, "%s failed rpc_recv_poll",
 			__func__);
 		return err;
@@ -297,7 +297,7 @@ int nvgpu_init_sim_support(struct gk20a *g)
 	err = err || nvgpu_alloc_sim_buffer(g, &g->sim->recv_bfr);
 	err = err || nvgpu_alloc_sim_buffer(g, &g->sim->msg_bfr);
 
-	if (err)
+	if (err != 0)
 		goto fail;
 
 	g->sim->sim_init_late = nvgpu_sim_init_late;

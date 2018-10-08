@@ -70,7 +70,7 @@ static int nvgpu_submit_prepare_syncs(struct channel_gk20a *c,
 
 	if (g->ops.fifo.resetup_ramfc && new_sync_created) {
 		err = g->ops.fifo.resetup_ramfc(c);
-		if (err) {
+		if (err != 0) {
 			goto fail;
 		}
 	}
@@ -102,7 +102,7 @@ static int nvgpu_submit_prepare_syncs(struct channel_gk20a *c,
 						   job->wait_cmd);
 		}
 
-		if (err) {
+		if (err != 0) {
 			goto clean_up_wait_cmd;
 		}
 
@@ -144,7 +144,7 @@ static int nvgpu_submit_prepare_syncs(struct channel_gk20a *c,
 				    job->post_fence, need_sync_fence,
 				    register_irq);
 	}
-	if (!err) {
+	if (err == 0) {
 		*incr_cmd = job->incr_cmd;
 		*post_fence = job->post_fence;
 	} else {
@@ -215,21 +215,21 @@ static int nvgpu_submit_append_gpfifo_user_direct(struct channel_gk20a *c,
 		err = g->os_channel.copy_user_gpfifo(
 				gpfifo_cpu + start, userdata,
 				0, length0);
-		if (err) {
+		if (err != 0) {
 			return err;
 		}
 
 		err = g->os_channel.copy_user_gpfifo(
 				gpfifo_cpu, userdata,
 				length0, length1);
-		if (err) {
+		if (err != 0) {
 			return err;
 		}
 	} else {
 		err = g->os_channel.copy_user_gpfifo(
 				gpfifo_cpu + start, userdata,
 				0, len);
-		if (err) {
+		if (err != 0) {
 			return err;
 		}
 	}
@@ -282,14 +282,14 @@ static int nvgpu_submit_append_gpfifo(struct channel_gk20a *c,
 		 */
 		err = nvgpu_submit_append_gpfifo_user_direct(c, userdata,
 				num_entries);
-		if (err) {
+		if (err != 0) {
 			return err;
 		}
 	} else if (!kern_gpfifo) {
 		/* from userspace to vidmem, use the common path */
 		err = g->os_channel.copy_user_gpfifo(c->gpfifo.pipe, userdata,
 				0, num_entries);
-		if (err) {
+		if (err != 0) {
 			return err;
 		}
 
@@ -451,7 +451,7 @@ static int nvgpu_submit_channel_gpfifo(struct channel_gk20a *c,
 			 * via syncpt or sema interrupt, whichever is used.
 			 */
 			err = gk20a_busy(g);
-			if (err) {
+			if (err != 0) {
 				nvgpu_err(g,
 					"failed to host gk20a to submit gpfifo");
 				nvgpu_print_current(g, NULL, NVGPU_ERROR);
@@ -511,7 +511,7 @@ static int nvgpu_submit_channel_gpfifo(struct channel_gk20a *c,
 
 	if (need_job_tracking) {
 		err = channel_gk20a_alloc_job(c, &job);
-		if (err) {
+		if (err != 0) {
 			goto clean_up;
 		}
 
@@ -520,7 +520,7 @@ static int nvgpu_submit_channel_gpfifo(struct channel_gk20a *c,
 						 &post_fence,
 						 need_deferred_cleanup,
 						 flags);
-		if (err) {
+		if (err != 0) {
 			goto clean_up_job;
 		}
 	}
@@ -533,7 +533,7 @@ static int nvgpu_submit_channel_gpfifo(struct channel_gk20a *c,
 
 	err = nvgpu_submit_append_gpfifo(c, gpfifo, userdata,
 			num_entries);
-	if (err) {
+	if (err != 0) {
 		goto clean_up_job;
 	}
 

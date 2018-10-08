@@ -108,7 +108,7 @@ int gk20a_ce_execute_ops(struct gk20a *g,
 
 		gk20a_fence_put(*prev_post_fence);
 		*prev_post_fence = NULL;
-		if (ret)
+		if (ret != 0)
 			goto noop;
 	}
 
@@ -141,7 +141,7 @@ int gk20a_ce_execute_ops(struct gk20a *g,
 		ret = nvgpu_submit_channel_gpfifo_kernel(ce_ctx->ch, &gpfifo,
 				1, submit_flags, &fence, &ce_cmd_buf_fence_out);
 
-		if (!ret) {
+		if (ret == 0) {
 			ce_ctx->postfences[ce_ctx->cmd_buf_read_queue_offset] =
 				ce_cmd_buf_fence_out;
 			if (gk20a_fence_out) {

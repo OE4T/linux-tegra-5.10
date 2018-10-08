@@ -67,7 +67,7 @@ static int __nvgpu_semaphore_sea_grow(struct nvgpu_semaphore_sea *sea)
 	ret = nvgpu_dma_alloc_sys(gk20a,
 				  PAGE_SIZE * SEMAPHORE_POOL_COUNT,
 				  &sea->sea_mem);
-	if (ret) {
+	if (ret != 0) {
 		goto out;
 	}
 
@@ -170,7 +170,7 @@ int nvgpu_semaphore_pool_alloc(struct nvgpu_semaphore_sea *sea,
 	__lock_sema_sea(sea);
 
 	ret = nvgpu_mutex_init(&p->pool_lock);
-	if (ret) {
+	if (ret != 0) {
 		goto fail;
 	}
 
@@ -254,7 +254,7 @@ int nvgpu_semaphore_pool_map(struct nvgpu_semaphore_pool *p,
 	err = nvgpu_mem_create_from_mem(vm->mm->g,
 					&p->rw_mem, &p->sema_sea->sea_mem,
 					p->page_idx, 1);
-	if (err) {
+	if (err != 0) {
 		goto fail_unmap;
 	}
 
@@ -443,7 +443,7 @@ struct nvgpu_semaphore *nvgpu_semaphore_alloc(struct channel_gk20a *ch)
 
 	if (ch->hw_sema == NULL) {
 		ret = __nvgpu_init_hw_sema(ch);
-		if (ret) {
+		if (ret != 0) {
 			return NULL;
 		}
 	}

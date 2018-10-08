@@ -156,7 +156,7 @@ int gk20a_tsg_unbind_channel(struct channel_gk20a *ch)
 	int err;
 
 	err = g->ops.fifo.tsg_unbind_channel(ch);
-	if (err) {
+	if (err != 0) {
 		nvgpu_err(g, "Channel %d unbind failed, tearing down TSG %d",
 			ch->chid, tsg->tsgid);
 
@@ -197,7 +197,7 @@ int gk20a_init_tsg_support(struct gk20a *g, u32 tsgid)
 
 	nvgpu_init_list_node(&tsg->event_id_list);
 	err = nvgpu_mutex_init(&tsg->event_id_list_lock);
-	if (err) {
+	if (err != 0) {
 		tsg->in_use = true; /* make this TSG unusable */
 		return err;
 	}

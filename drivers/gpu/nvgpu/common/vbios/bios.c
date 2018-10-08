@@ -608,14 +608,14 @@ static int nvgpu_bios_parse_falcon_ucode_table(struct gk20a *g, int offset)
 
 			err = nvgpu_bios_parse_falcon_ucode_desc(g,
 					&g->bios.devinit, entry.desc_ptr);
-			if (err) {
+			if (err != 0) {
 				err = nvgpu_bios_parse_falcon_ucode_desc(g,
 					&g->bios.devinit,
 					entry.desc_ptr +
 					 g->bios.expansion_rom_offset);
 			}
 
-			if (err) {
+			if (err != 0) {
 				nvgpu_err(g,
 					  "could not parse devinit ucode desc");
 			}
@@ -625,14 +625,14 @@ static int nvgpu_bios_parse_falcon_ucode_table(struct gk20a *g, int offset)
 
 			err = nvgpu_bios_parse_falcon_ucode_desc(g,
 					&g->bios.preos, entry.desc_ptr);
-			if (err) {
+			if (err != 0) {
 				err = nvgpu_bios_parse_falcon_ucode_desc(g,
 					&g->bios.preos,
 					entry.desc_ptr +
 					 g->bios.expansion_rom_offset);
 			}
 
-			if (err) {
+			if (err != 0) {
 				nvgpu_err(g,
 					  "could not parse preos ucode desc");
 			}
@@ -654,13 +654,13 @@ static void nvgpu_bios_parse_falcon_data_v2(struct gk20a *g, int offset)
 			falcon_data.falcon_ucode_table_ptr);
 	err = nvgpu_bios_parse_falcon_ucode_table(g,
 			falcon_data.falcon_ucode_table_ptr);
-	if (err) {
+	if (err != 0) {
 		err = nvgpu_bios_parse_falcon_ucode_table(g,
 				falcon_data.falcon_ucode_table_ptr +
 			g->bios.expansion_rom_offset);
 	}
 
-	if (err) {
+	if (err != 0) {
 		nvgpu_err(g, "could not parse falcon ucode table");
 	}
 }

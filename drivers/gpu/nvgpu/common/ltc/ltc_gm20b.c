@@ -92,12 +92,12 @@ int gm20b_ltc_init_comptags(struct gk20a *g, struct gr_gk20a *gr)
 		max_comptag_lines);
 
 	err = nvgpu_ltc_alloc_cbc(g, compbit_backing_size, false);
-	if (err) {
+	if (err != 0) {
 		return err;
 	}
 
 	err = gk20a_comptag_allocator_init(g, &gr->comp_tags, max_comptag_lines);
-	if (err) {
+	if (err != 0) {
 		return err;
 	}
 
