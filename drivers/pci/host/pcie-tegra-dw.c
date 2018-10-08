@@ -2530,9 +2530,9 @@ static void tegra_pcie_dw_scan_bus(struct pcie_port *pp)
 	struct tegra_pcie_dw *pcie = to_tegra_pcie(pp);
 	struct resource_entry *win;
 	struct pci_dev *pdev = NULL, *ppdev = NULL;
-	u32 width = 0, speed = 0, data = 0, pos = 0;
+	u32 speed = 0, data = 0, pos = 0;
 	struct pci_bus *child;
-	unsigned long freq;
+	unsigned long freq, width = 0;
 
 	if (!tegra_pcie_dw_link_up(pp))
 		return;
