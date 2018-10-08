@@ -343,7 +343,7 @@ static int _vfe_equ_pmudatainit_super(struct gk20a *g,
 	nvgpu_log_info(g, " ");
 
 	status = boardobj_pmudatainit_super(g, board_obj_ptr, ppmudata);
-	if (status != 0) {
+	if (status != 0U) {
 		return status;
 	}
 

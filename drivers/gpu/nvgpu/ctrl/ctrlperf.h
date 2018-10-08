@@ -73,7 +73,7 @@ struct ctrl_bios_vfield_register_segment {
 	union ctrl_bios_vfield_register_segment_data data;
 };
 
-#define NV_PMU_VFE_VAR_SINGLE_SENSED_FUSE_SEGMENTS_MAX                         1
+#define NV_PMU_VFE_VAR_SINGLE_SENSED_FUSE_SEGMENTS_MAX                        1U
 
 struct ctrl_perf_vfe_var_single_sensed_fuse_info {
 	u8 segment_count;

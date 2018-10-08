@@ -119,7 +119,7 @@ u32 perf_pmu_vfe_load(struct gk20a *g)
 			gk20a_get_gr_idle_timeout(g),
 			&handler.success, 1);
 
-	if (handler.success == 0) {
+	if (handler.success == 0U) {
 		status = -EINVAL;
 		nvgpu_err(g, "rpc call to load VFE failed");
 	}

@@ -26,9 +26,9 @@
 #include "gpmuifboardobj.h"
 #include "ctrl/ctrlperf.h"
 
-#define CTRL_PERF_VFE_EQU_QUADRATIC_COEFF_COUNT                      0x03
-#define NV_PMU_PERF_RPC_VFE_EQU_EVAL_VAR_COUNT_MAX                             2
-#define NV_PMU_PERF_RPC_VFE_EQU_MONITOR_COUNT_MAX                             16
+#define CTRL_PERF_VFE_EQU_QUADRATIC_COEFF_COUNT                      0x03U
+#define NV_PMU_PERF_RPC_VFE_EQU_EVAL_VAR_COUNT_MAX                            2U
+#define NV_PMU_PERF_RPC_VFE_EQU_MONITOR_COUNT_MAX                            16U
 
 struct nv_pmu_perf_vfe_var_value {
 	u8 var_type;

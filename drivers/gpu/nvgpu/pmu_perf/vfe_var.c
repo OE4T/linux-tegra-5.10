@@ -91,7 +91,7 @@ static int _vfe_vars_pmustatus_instget(struct gk20a *g, void *pboardobjgrppmu,
 		pboardobjgrppmu;
 
 	if (((u32)BIT(idx) &
-		pgrp_get_status->hdr.data.super.obj_mask.super.data[0]) == 0) {
+		pgrp_get_status->hdr.data.super.obj_mask.super.data[0]) == 0U) {
 		return -EINVAL;
 	}
 
@@ -697,13 +697,13 @@ static u32 vfe_var_construct_single_sensed_fuse(struct gk20a *g,
 
 	dev_init_get_vfield_info(g, pvfevar);
 	/*check whether fuse segment got initialized*/
-	if (pvfevar->vfield_info.fuse.segment_count == 0) {
+	if (pvfevar->vfield_info.fuse.segment_count == 0U) {
 		nvgpu_err(g, "unable to get fuse reg info %x",
 			pvfevar->vfield_info.v_field_id);
 		status = -EINVAL;
 		goto exit;
 	}
-	if (pvfevar->vfield_ver_info.fuse.segment_count == 0) {
+	if (pvfevar->vfield_ver_info.fuse.segment_count == 0U) {
 		nvgpu_err(g, "unable to get fuse reg info %x",
 			pvfevar->vfield_ver_info.v_field_id_ver);
 		status = -EINVAL;

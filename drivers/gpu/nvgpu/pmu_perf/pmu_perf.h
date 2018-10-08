@@ -30,38 +30,38 @@
 #include "lpwr/lpwr.h"
 #include "boardobj/boardobjgrp_e255.h"
 
-#define CTRL_PERF_VFE_VAR_TYPE_INVALID                               0x00
-#define CTRL_PERF_VFE_VAR_TYPE_DERIVED                               0x01
-#define CTRL_PERF_VFE_VAR_TYPE_DERIVED_PRODUCT                       0x02
-#define CTRL_PERF_VFE_VAR_TYPE_DERIVED_SUM                           0x03
-#define CTRL_PERF_VFE_VAR_TYPE_SINGLE                                0x04
-#define CTRL_PERF_VFE_VAR_TYPE_SINGLE_FREQUENCY                      0x05
-#define CTRL_PERF_VFE_VAR_TYPE_SINGLE_SENSED                         0x06
-#define CTRL_PERF_VFE_VAR_TYPE_SINGLE_SENSED_FUSE                    0x07
-#define CTRL_PERF_VFE_VAR_TYPE_SINGLE_SENSED_TEMP                    0x08
-#define CTRL_PERF_VFE_VAR_TYPE_SINGLE_VOLTAGE                        0x09
+#define CTRL_PERF_VFE_VAR_TYPE_INVALID                               0x00U
+#define CTRL_PERF_VFE_VAR_TYPE_DERIVED                               0x01U
+#define CTRL_PERF_VFE_VAR_TYPE_DERIVED_PRODUCT                       0x02U
+#define CTRL_PERF_VFE_VAR_TYPE_DERIVED_SUM                           0x03U
+#define CTRL_PERF_VFE_VAR_TYPE_SINGLE                                0x04U
+#define CTRL_PERF_VFE_VAR_TYPE_SINGLE_FREQUENCY                      0x05U
+#define CTRL_PERF_VFE_VAR_TYPE_SINGLE_SENSED                         0x06U
+#define CTRL_PERF_VFE_VAR_TYPE_SINGLE_SENSED_FUSE                    0x07U
+#define CTRL_PERF_VFE_VAR_TYPE_SINGLE_SENSED_TEMP                    0x08U
+#define CTRL_PERF_VFE_VAR_TYPE_SINGLE_VOLTAGE                        0x09U
 
-#define CTRL_PERF_VFE_VAR_SINGLE_OVERRIDE_TYPE_NONE                  0x00
-#define CTRL_PERF_VFE_VAR_SINGLE_OVERRIDE_TYPE_VALUE                 0x01
-#define CTRL_PERF_VFE_VAR_SINGLE_OVERRIDE_TYPE_OFFSET                0x02
-#define CTRL_PERF_VFE_VAR_SINGLE_OVERRIDE_TYPE_SCALE                 0x03
+#define CTRL_PERF_VFE_VAR_SINGLE_OVERRIDE_TYPE_NONE                  0x00U
+#define CTRL_PERF_VFE_VAR_SINGLE_OVERRIDE_TYPE_VALUE                 0x01U
+#define CTRL_PERF_VFE_VAR_SINGLE_OVERRIDE_TYPE_OFFSET                0x02U
+#define CTRL_PERF_VFE_VAR_SINGLE_OVERRIDE_TYPE_SCALE                 0x03U
 
-#define CTRL_PERF_VFE_EQU_TYPE_INVALID                               0x00
-#define CTRL_PERF_VFE_EQU_TYPE_COMPARE                               0x01
-#define CTRL_PERF_VFE_EQU_TYPE_MINMAX                                0x02
-#define CTRL_PERF_VFE_EQU_TYPE_QUADRATIC                             0x03
+#define CTRL_PERF_VFE_EQU_TYPE_INVALID                               0x00U
+#define CTRL_PERF_VFE_EQU_TYPE_COMPARE                               0x01U
+#define CTRL_PERF_VFE_EQU_TYPE_MINMAX                                0x02U
+#define CTRL_PERF_VFE_EQU_TYPE_QUADRATIC                             0x03U
 
-#define CTRL_PERF_VFE_EQU_OUTPUT_TYPE_UNITLESS                       0x00
-#define CTRL_PERF_VFE_EQU_OUTPUT_TYPE_FREQ_MHZ                       0x01
-#define CTRL_PERF_VFE_EQU_OUTPUT_TYPE_VOLT_UV                        0x02
-#define CTRL_PERF_VFE_EQU_OUTPUT_TYPE_VF_GAIN                        0x03
-#define CTRL_PERF_VFE_EQU_OUTPUT_TYPE_VOLT_DELTA_UV                  0x04
+#define CTRL_PERF_VFE_EQU_OUTPUT_TYPE_UNITLESS                       0x00U
+#define CTRL_PERF_VFE_EQU_OUTPUT_TYPE_FREQ_MHZ                       0x01U
+#define CTRL_PERF_VFE_EQU_OUTPUT_TYPE_VOLT_UV                        0x02U
+#define CTRL_PERF_VFE_EQU_OUTPUT_TYPE_VF_GAIN                        0x03U
+#define CTRL_PERF_VFE_EQU_OUTPUT_TYPE_VOLT_DELTA_UV                  0x04U
 
-#define CTRL_PERF_VFE_EQU_QUADRATIC_COEFF_COUNT                      0x03
+#define CTRL_PERF_VFE_EQU_QUADRATIC_COEFF_COUNT                      0x03U
 
-#define CTRL_PERF_VFE_EQU_COMPARE_FUNCTION_EQUAL                     0x00
-#define CTRL_PERF_VFE_EQU_COMPARE_FUNCTION_GREATER_EQ                0x01
-#define CTRL_PERF_VFE_EQU_COMPARE_FUNCTION_GREATER                   0x02
+#define CTRL_PERF_VFE_EQU_COMPARE_FUNCTION_EQUAL                     0x00U
+#define CTRL_PERF_VFE_EQU_COMPARE_FUNCTION_GREATER_EQ                0x01U
+#define CTRL_PERF_VFE_EQU_COMPARE_FUNCTION_GREATER                   0x02U
 
 struct gk20a;
 
