@@ -28,7 +28,7 @@
 #include "ctrl/ctrlboardobj.h"
 
 
-int  boardobjgrpconstruct_e32(struct gk20a *g,
+int boardobjgrpconstruct_e32(struct gk20a *g,
 			      struct boardobjgrp_e32 *pboardobjgrp_e32)
 {
 	int status;
@@ -38,7 +38,7 @@ int  boardobjgrpconstruct_e32(struct gk20a *g,
 	objslots = 32;
 
 	status = boardobjgrpmask_e32_init(&pboardobjgrp_e32->mask, NULL);
-	if (status) {
+	if (status != 0) {
 		goto boardobjgrpconstruct_e32_exit;
 	}
 
@@ -48,7 +48,7 @@ int  boardobjgrpconstruct_e32(struct gk20a *g,
 	pboardobjgrp_e32->super.mask     = &(pboardobjgrp_e32->mask.super);
 
 	status = boardobjgrp_construct_super(g, &pboardobjgrp_e32->super);
-	if (status) {
+	if (status != 0) {
 		goto boardobjgrpconstruct_e32_exit;
 	}
 
@@ -79,7 +79,7 @@ int boardobjgrp_pmuhdrdatainit_e32(struct gk20a *g,
 	status = boardobjgrpmask_export(mask,
 				mask->bitcount,
 				&pgrpe32->obj_mask.super);
-	if (status) {
+	if (status != 0) {
 		nvgpu_err(g, "e32 init:failed export grpmask");
 		return status;
 	}

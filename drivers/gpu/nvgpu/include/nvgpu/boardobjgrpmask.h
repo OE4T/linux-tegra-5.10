@@ -68,15 +68,15 @@ struct boardobjgrpmask_e255 {
 };
 
 /* Init and I/O operations.*/
-u32 boardobjgrpmask_init(struct boardobjgrpmask *mask, u8 bitsize,
+int boardobjgrpmask_init(struct boardobjgrpmask *mask, u8 bitsize,
 		struct ctrl_boardobjgrp_mask *extmask);
-u32 boardobjgrpmask_import(struct boardobjgrpmask *mask, u8 bitsize,
+int boardobjgrpmask_import(struct boardobjgrpmask *mask, u8 bitsize,
 		struct ctrl_boardobjgrp_mask *extmask);
 u32 boardobjgrpmask_export(struct boardobjgrpmask *mask, u8 bitsize,
 		struct ctrl_boardobjgrp_mask *extmask);
 
 /* Operations on all bits of a single mask.*/
-u32 boardobjgrpmask_clr(struct boardobjgrpmask *mask);
+int boardobjgrpmask_clr(struct boardobjgrpmask *mask);
 u32 boardobjgrpmask_set(struct boardobjgrpmask *mask);
 u32 boardobjgrpmask_inv(struct boardobjgrpmask *mask);
 bool boardobjgrpmask_iszero(struct boardobjgrpmask *mask);

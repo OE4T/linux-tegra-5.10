@@ -99,9 +99,9 @@ int gp106_elcg_init_idle_filters(struct gk20a *g)
 	return 0;
 }
 
-u32 gp106_configure_therm_alert(struct gk20a *g, s32 curr_warn_temp)
+int gp106_configure_therm_alert(struct gk20a *g, s32 curr_warn_temp)
 {
-	u32 err = 0;
+	int err = 0;
 
 	if (g->curr_warn_temp != curr_warn_temp) {
 		g->curr_warn_temp = curr_warn_temp;

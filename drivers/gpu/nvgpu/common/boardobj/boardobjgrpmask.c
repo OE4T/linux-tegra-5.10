@@ -30,7 +30,7 @@
 #define BOARDOBJGRPMASK_NORMALIZE(_pmask)                                      \
 	((_pmask)->data[(_pmask)->maskdatacount-1U] &= (_pmask)->lastmaskfilter)
 
-u32 boardobjgrpmask_init(struct boardobjgrpmask *mask, u8 bitsize,
+int boardobjgrpmask_init(struct boardobjgrpmask *mask, u8 bitsize,
 		struct ctrl_boardobjgrp_mask *extmask)
 {
 	if (mask == NULL) {
@@ -54,7 +54,7 @@ u32 boardobjgrpmask_init(struct boardobjgrpmask *mask, u8 bitsize,
 		boardobjgrpmask_import(mask, bitsize, extmask);
 }
 
-u32 boardobjgrpmask_import(struct boardobjgrpmask *mask, u8 bitsize,
+int boardobjgrpmask_import(struct boardobjgrpmask *mask, u8 bitsize,
 		struct ctrl_boardobjgrp_mask *extmask)
 {
 	u8 index;
@@ -100,7 +100,7 @@ u32 boardobjgrpmask_export(struct boardobjgrpmask *mask, u8 bitsize,
 	return 0;
 }
 
-u32 boardobjgrpmask_clr(struct boardobjgrpmask *mask)
+int boardobjgrpmask_clr(struct boardobjgrpmask *mask)
 {
 	u8 index;
 

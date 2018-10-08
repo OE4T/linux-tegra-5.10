@@ -303,7 +303,7 @@ static void nvgpu_flcn_print_mem(struct nvgpu_falcon *flcn, u32 src,
 	u32 total_block_read = 0;
 	u32 byte_read_count = 0;
 	u32 i = 0;
-	u32 status = 0;
+	int status = 0;
 
 	nvgpu_info(flcn->g, " offset 0x%x  size %d bytes", src, size);
 
@@ -324,7 +324,7 @@ static void nvgpu_flcn_print_mem(struct nvgpu_falcon *flcn, u32 src,
 				(u8 *)buff, byte_read_count, 0);
 		}
 
-		if (status) {
+		if (status != 0) {
 			nvgpu_err(flcn->g, "MEM print failed");
 			break;
 		}

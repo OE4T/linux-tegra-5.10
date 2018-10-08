@@ -889,11 +889,11 @@ struct gpu_ops {
 				struct boardobjgrp_pmu_cmd *cmd);
 		} boardobj;
 		struct {
-			u32 (*volt_set_voltage)(struct gk20a *g,
+			int (*volt_set_voltage)(struct gk20a *g,
 				u32 logic_voltage_uv, u32 sram_voltage_uv);
-			u32 (*volt_get_voltage)(struct gk20a *g,
+			int (*volt_get_voltage)(struct gk20a *g,
 				u8 volt_domain, u32 *pvoltage_uv);
-			u32 (*volt_send_load_cmd_to_pmu)(struct gk20a *g);
+			int (*volt_send_load_cmd_to_pmu)(struct gk20a *g);
 		} volt;
 		struct {
 			u32 (*get_vbios_clk_domain)(u32 vbios_domain);
@@ -1022,7 +1022,7 @@ struct gpu_ops {
 		int (*get_internal_sensor_curr_temp)(struct gk20a *g, u32 *temp_f24_8);
 		void (*get_internal_sensor_limits)(s32 *max_24_8,
 							s32 *min_24_8);
-		u32 (*configure_therm_alert)(struct gk20a *g, s32 curr_warn_temp);
+		int (*configure_therm_alert)(struct gk20a *g, s32 curr_warn_temp);
 	} therm;
 	struct {
 		bool (*is_pmu_supported)(struct gk20a *g);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2018, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -25,12 +25,12 @@
 #include "thrm.h"
 #include "thrmpmu.h"
 
-u32 therm_domain_sw_setup(struct gk20a *g)
+int therm_domain_sw_setup(struct gk20a *g)
 {
-	u32 status;
+	int status;
 
 	status = therm_device_sw_setup(g);
-	if (status) {
+	if (status != 0) {
 		nvgpu_err(g,
 			"error creating boardobjgrp for therm devices, status - 0x%x",
 			status);
@@ -38,7 +38,7 @@ u32 therm_domain_sw_setup(struct gk20a *g)
 	}
 
 	status = therm_channel_sw_setup(g);
-	if (status) {
+	if (status != 0) {
 		nvgpu_err(g,
 			"error creating boardobjgrp for therm channel, status - 0x%x",
 			status);

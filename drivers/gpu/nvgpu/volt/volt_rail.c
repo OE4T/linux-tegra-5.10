@@ -53,10 +53,10 @@ u8 volt_rail_volt_domain_convert_to_idx(struct gk20a *g, u8 volt_domain)
 	return CTRL_BOARDOBJ_IDX_INVALID;
 }
 
-u32 volt_rail_volt_dev_register(struct gk20a *g, struct voltage_rail
+int volt_rail_volt_dev_register(struct gk20a *g, struct voltage_rail
 	*pvolt_rail, u8 volt_dev_idx, u8 operation_type)
 {
-	u32 status = 0;
+	int status = 0;
 
 	if (operation_type == CTRL_VOLT_DEVICE_OPERATION_TYPE_DEFAULT) {
 		if (pvolt_rail->volt_dev_idx_default ==
@@ -90,17 +90,17 @@ u32 volt_rail_volt_dev_register(struct gk20a *g, struct voltage_rail
 			volt_dev_idx);
 
 exit:
-	if (status) {
+	if (status != 0) {
 		nvgpu_err(g, "Failed to register VOLTAGE_DEVICE");
 	}
 
 	return status;
 }
 
-static u32 volt_rail_state_init(struct gk20a *g,
+static int volt_rail_state_init(struct gk20a *g,
 		struct voltage_rail *pvolt_rail)
 {
-	u32 status = 0;
+	int status = 0;
 	u32 i;
 
 	pvolt_rail->volt_dev_idx_default = CTRL_BOARDOBJ_IDX_INVALID;
@@ -122,7 +122,7 @@ static u32 volt_rail_state_init(struct gk20a *g,
 		NV_PMU_PERF_RPC_VFE_EQU_MONITOR_COUNT_MAX;
 
 	status = boardobjgrpmask_e32_init(&pvolt_rail->volt_dev_mask, NULL);
-	if (status) {
+	if (status != 0) {
 		nvgpu_err(g,
 			"Failed to initialize BOARDOBJGRPMASK of VOLTAGE_DEVICEs");
 	}
@@ -141,7 +141,7 @@ static int volt_rail_init_pmudata_super(struct gk20a *g,
 	nvgpu_log_info(g, " ");
 
 	status = boardobj_pmudatainit_super(g, board_obj_ptr, ppmudata);
-	if (status) {
+	if (status != 0) {
 		return status;
 	}
 
@@ -170,7 +170,7 @@ static int volt_rail_init_pmudata_super(struct gk20a *g,
 	status = boardobjgrpmask_export(&prail->volt_dev_mask.super,
 				prail->volt_dev_mask.super.bitcount,
 				&rail_pmu_data->volt_dev_mask.super);
-	if (status) {
+	if (status != 0) {
 		nvgpu_err(g,
 			"Failed to export BOARDOBJGRPMASK of VOLTAGE_DEVICEs");
 	}
@@ -190,7 +190,7 @@ static struct voltage_rail *construct_volt_rail(struct gk20a *g, void *pargs)
 	nvgpu_log_info(g, " ");
 	status = boardobj_construct_super(g, &board_obj_ptr,
 		sizeof(struct voltage_rail), pargs);
-	if (status) {
+	if (status != 0) {
 		return NULL;
 	}
 
@@ -424,7 +424,7 @@ int volt_rail_sw_setup(struct gk20a *g)
 
 	status = boardobjgrpconstruct_e32(g,
 			&g->perf_pmu.volt.volt_rail_metadata.volt_rails);
-	if (status) {
+	if (status != 0) {
 		nvgpu_err(g,
 			"error creating boardobjgrp for volt rail, status - 0x%x",
 			status);
@@ -442,7 +442,7 @@ int volt_rail_sw_setup(struct gk20a *g)
 	/* Obtain Voltage Rail Table from VBIOS */
 	status = volt_get_volt_rail_table(g, &g->perf_pmu.volt.
 			volt_rail_metadata);
-	if (status) {
+	if (status != 0) {
 		goto done;
 	}
 
@@ -451,7 +451,7 @@ int volt_rail_sw_setup(struct gk20a *g)
 
 	status = BOARDOBJGRP_PMU_CMD_GRP_SET_CONSTRUCT(g, pboardobjgrp,
 			volt, VOLT, volt_rail, VOLT_RAIL);
-	if (status) {
+	if (status != 0) {
 		nvgpu_err(g,
 			"error constructing PMU_BOARDOBJ_CMD_GRP_SET interface - 0x%x",
 			status);
@@ -461,7 +461,7 @@ int volt_rail_sw_setup(struct gk20a *g)
 	status = BOARDOBJGRP_PMU_CMD_GRP_GET_STATUS_CONSTRUCT(g,
 		&g->perf_pmu.volt.volt_rail_metadata.volt_rails.super,
 			volt, VOLT, volt_rail, VOLT_RAIL);
-	if (status) {
+	if (status != 0) {
 		nvgpu_err(g,
 			"error constructing PMU_BOARDOBJ_CMD_GRP_SET interface - 0x%x",
 			status);
@@ -473,7 +473,7 @@ int volt_rail_sw_setup(struct gk20a *g)
 			       volt_rails.super),
 			     struct voltage_rail *, pvolt_rail, i) {
 		status = volt_rail_state_init(g, pvolt_rail);
-		if (status) {
+		if (status != 0) {
 			nvgpu_err(g,
 				"Failure while executing RAIL's state init railIdx = %d",
 				i);

@@ -47,7 +47,7 @@ static int volt_device_pmu_data_init_super(struct gk20a *g,
 	struct nv_pmu_volt_volt_device_boardobj_set *pset;
 
 	status = boardobj_pmudatainit_super(g, pboard_obj, ppmudata);
-	if (status) {
+	if (status != 0) {
 		return status;
 	}
 
@@ -70,7 +70,7 @@ static int volt_device_pmu_data_init_pwm(struct gk20a *g,
 	struct nv_pmu_volt_volt_device_pwm_boardobj_set *pset;
 
 	status = volt_device_pmu_data_init_super(g, pboard_obj, ppmudata);
-	if (status) {
+	if (status != 0) {
 		return  status;
 	}
 
@@ -93,7 +93,7 @@ static int construct_volt_device(struct gk20a *g,
 	int status = 0;
 
 	status = boardobj_construct_super(g, ppboardobj, size, pargs);
-	if (status) {
+	if (status != 0) {
 		return status;
 	}
 
@@ -125,7 +125,7 @@ static int construct_pwm_volt_device(struct gk20a *g,
 	int status = 0;
 
 	status = construct_volt_device(g, ppboardobj, size, pargs);
-	if (status) {
+	if (status != 0) {
 		return status;
 	}
 
@@ -191,7 +191,7 @@ static struct voltage_device *volt_volt_device_construct(struct gk20a *g,
 	if (BOARDOBJ_GET_TYPE(pargs) == CTRL_VOLT_DEVICE_TYPE_PWM) {
 		int status = construct_pwm_volt_device(g, &pboard_obj,
 				sizeof(struct voltage_device_pwm), pargs);
-		if (status) {
+		if (status != 0) {
 			nvgpu_err(g,
 				" Could not allocate memory for VOLTAGE_DEVICE type (%x).",
 				BOARDOBJ_GET_TYPE(pargs));
@@ -329,7 +329,7 @@ static int volt_get_voltage_device_table_1x_psv(struct gk20a *g,
 	status = boardobjgrp_objinsert(
 				&p_Volt_Device_Meta_Data->volt_devices.super,
 				(struct boardobj *)pvolt_dev, entry_Idx);
-	if (status) {
+	if (status != 0) {
 		nvgpu_err(g,
 			"could not add VOLTAGE_DEVICE for entry %d into boardobjgrp ",
 			entry_Idx);
@@ -394,10 +394,10 @@ done:
 	return status;
 }
 
-static u32 volt_get_volt_devices_table(struct gk20a *g,
+static int volt_get_volt_devices_table(struct gk20a *g,
 		struct voltage_device_metadata *pvolt_device_metadata)
 {
-	u32 status = 0;
+	int status = 0;
 	u8 *volt_device_table_ptr = NULL;
 	struct vbios_voltage_device_table_1x_header header = { 0 };
 	struct vbios_voltage_device_table_1x_entry entry  = { 0 };
@@ -482,10 +482,10 @@ static int volt_device_volt_cmp(const void *a, const void *b)
 	return (int)a_entry->voltage_uv - (int)b_entry->voltage_uv;
 }
 
-static u32 volt_device_state_init(struct gk20a *g,
+static int volt_device_state_init(struct gk20a *g,
 			struct voltage_device *pvolt_dev)
 {
-	u32 status = 0;
+	int status = 0;
 	struct voltage_rail *pRail = NULL;
 	u8 rail_idx = 0;
 
@@ -523,7 +523,7 @@ static u32 volt_device_state_init(struct gk20a *g,
 
 		status = volt_rail_volt_dev_register(g, pRail,
 			BOARDOBJ_GET_IDX(pvolt_dev), pvolt_dev->operation_type);
-		if (status) {
+		if (status != 0) {
 			nvgpu_err(g,
 				"Failed to register the device with rail obj");
 			goto done;
@@ -531,7 +531,7 @@ static u32 volt_device_state_init(struct gk20a *g,
 	}
 
 done:
-	if (status) {
+	if (status != 0) {
 		nvgpu_err(g, "Error in building rail sw state device sw");
 	}
 
@@ -557,9 +557,9 @@ int volt_dev_pmu_setup(struct gk20a *g)
 	return status;
 }
 
-u32 volt_dev_sw_setup(struct gk20a *g)
+int volt_dev_sw_setup(struct gk20a *g)
 {
-	u32 status = 0;
+	int status = 0;
 	struct boardobjgrp *pboardobjgrp = NULL;
 	struct voltage_device *pvolt_device;
 	u8 i;
@@ -568,7 +568,7 @@ u32 volt_dev_sw_setup(struct gk20a *g)
 
 	status = boardobjgrpconstruct_e32(g,
 			&g->perf_pmu.volt.volt_dev_metadata.volt_devices);
-	if (status) {
+	if (status != 0) {
 		nvgpu_err(g,
 			"error creating boardobjgrp for volt rail, status - 0x%x",
 			status);
@@ -583,7 +583,7 @@ u32 volt_dev_sw_setup(struct gk20a *g)
 	/* Obtain Voltage Rail Table from VBIOS */
 	status = volt_get_volt_devices_table(g, &g->perf_pmu.volt.
 			volt_dev_metadata);
-	if (status) {
+	if (status != 0) {
 		goto done;
 	}
 
@@ -592,7 +592,7 @@ u32 volt_dev_sw_setup(struct gk20a *g)
 
 	status = BOARDOBJGRP_PMU_CMD_GRP_SET_CONSTRUCT(g, pboardobjgrp,
 			volt, VOLT, volt_device, VOLT_DEVICE);
-	if (status) {
+	if (status != 0) {
 		nvgpu_err(g,
 			"error constructing PMU_BOARDOBJ_CMD_GRP_SET interface - 0x%x",
 			status);
@@ -602,7 +602,7 @@ u32 volt_dev_sw_setup(struct gk20a *g)
 	status = BOARDOBJGRP_PMU_CMD_GRP_GET_STATUS_CONSTRUCT(g,
 			&g->perf_pmu.volt.volt_dev_metadata.volt_devices.super,
 			volt, VOLT, volt_device, VOLT_DEVICE);
-	if (status) {
+	if (status != 0) {
 		nvgpu_err(g,
 			"error constructing PMU_BOARDOBJ_CMD_GRP_SET interface - 0x%x",
 			status);
@@ -614,7 +614,7 @@ u32 volt_dev_sw_setup(struct gk20a *g)
 			       super),
 			     struct voltage_device *, pvolt_device, i) {
 		status = volt_device_state_init(g, pvolt_device);
-		if (status) {
+		if (status != 0) {
 			nvgpu_err(g,
 				"failure while executing devices's state init interface");
 			nvgpu_err(g,

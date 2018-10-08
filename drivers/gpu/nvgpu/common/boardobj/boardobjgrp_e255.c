@@ -38,7 +38,7 @@ int boardobjgrpconstruct_e255(struct gk20a *g,
 
 	objslots = 255;
 	status = boardobjgrpmask_e255_init(&pboardobjgrp_e255->mask, NULL);
-	if (status) {
+	if (status != 0) {
 		goto boardobjgrpconstruct_e255_exit;
 	}
 
@@ -48,7 +48,7 @@ int boardobjgrpconstruct_e255(struct gk20a *g,
 	pboardobjgrp_e255->super.mask     = &(pboardobjgrp_e255->mask.super);
 
 	status = boardobjgrp_construct_super(g, &pboardobjgrp_e255->super);
-	if (status) {
+	if (status != 0) {
 		goto boardobjgrpconstruct_e255_exit;
 	}
 
@@ -81,7 +81,7 @@ int boardobjgrp_pmuhdrdatainit_e255(struct gk20a *g,
 	status = boardobjgrpmask_export(mask,
 				mask->bitcount,
 				&pgrpe255->obj_mask.super);
-	if (status) {
+	if (status != 0) {
 		nvgpu_err(g, "e255 init:failed export grpmask");
 		return status;
 	}

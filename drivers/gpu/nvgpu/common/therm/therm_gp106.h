@@ -32,6 +32,6 @@ struct gk20a;
 void gp106_get_internal_sensor_limits(s32 *max_24_8, s32 *min_24_8);
 int gp106_get_internal_sensor_curr_temp(struct gk20a *g, u32 *temp_f24_8);
 int gp106_elcg_init_idle_filters(struct gk20a *g);
-u32 gp106_configure_therm_alert(struct gk20a *g, s32 curr_warn_temp);
+int gp106_configure_therm_alert(struct gk20a *g, s32 curr_warn_temp);
 
 #endif

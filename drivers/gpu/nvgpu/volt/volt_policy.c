@@ -44,7 +44,7 @@ static int construct_volt_policy(struct gk20a *g,
 	int status = 0;
 
 	status = boardobj_construct_super(g, ppboardobj, size, pArgs);
-	if (status) {
+	if (status != 0) {
 		return status;
 	}
 
@@ -64,7 +64,7 @@ static int construct_volt_policy_split_rail(struct gk20a *g,
 	int status = 0;
 
 	status = construct_volt_policy(g, ppboardobj, size, pArgs);
-	if (status) {
+	if (status != 0) {
 		return status;
 	}
 
@@ -89,7 +89,7 @@ static int construct_volt_policy_single_rail(struct gk20a *g,
 	int status = 0;
 
 	status = construct_volt_policy(g, ppboardobj, size, pArgs);
-	if (status) {
+	if (status != 0) {
 		return status;
 	}
 
@@ -108,7 +108,7 @@ static int volt_policy_pmu_data_init_single_rail(struct gk20a *g,
 	struct nv_pmu_volt_volt_policy_sr_boardobj_set *pset;
 
 	status = volt_policy_pmu_data_init_super(g, pboardobj, ppmudata);
-	if (status) {
+	if (status != 0) {
 		goto done;
 	}
 
@@ -146,7 +146,7 @@ static int volt_policy_pmu_data_init_sr_multi_step(struct gk20a *g,
 	struct nv_pmu_volt_volt_policy_sr_multi_step_boardobj_set *pset;
 
 	status = volt_policy_pmu_data_init_single_rail(g, pboardobj, ppmudata);
-	if (status) {
+	if (status != 0) {
 		goto done;
 	}
 
@@ -172,7 +172,7 @@ static int volt_construct_volt_policy_single_rail_multi_step(struct gk20a *g,
 	int status = 0;
 
 	status = construct_volt_policy_single_rail(g, ppboardobj, size, pargs);
-	if (status) {
+	if (status != 0) {
 		return status;
 	}
 
@@ -200,7 +200,7 @@ static int volt_policy_pmu_data_init_split_rail(struct gk20a *g,
 	struct nv_pmu_volt_volt_policy_splt_r_boardobj_set *pset;
 
 	status = volt_policy_pmu_data_init_super(g, pboardobj, ppmudata);
-	if (status) {
+	if (status != 0) {
 		goto done;
 	}
 
@@ -226,7 +226,7 @@ static int volt_construct_volt_policy_split_rail_single_step(struct gk20a *g,
 	int status = 0;
 
 	status = construct_volt_policy_split_rail(g, ppboardobj, size, pargs);
-	if (status) {
+	if (status != 0) {
 		return status;
 	}
 
@@ -247,7 +247,7 @@ static struct voltage_policy *volt_volt_policy_construct(struct gk20a *g, void *
 			&pboard_obj,
 			sizeof(struct voltage_policy_split_rail_single_step),
 			pargs);
-		if (status) {
+		if (status != 0) {
 			nvgpu_err(g,
 				"Could not allocate memory for voltage_policy");
 			pboard_obj = NULL;
@@ -258,7 +258,7 @@ static struct voltage_policy *volt_volt_policy_construct(struct gk20a *g, void *
 			&pboard_obj,
 			sizeof(struct voltage_policy_single_rail_multi_step),
 			pargs);
-		if (status) {
+		if (status != 0) {
 			nvgpu_err(g,
 				"Could not allocate memory for voltage_policy");
 			pboard_obj = NULL;
@@ -394,7 +394,7 @@ static int volt_get_volt_policy_table(struct gk20a *g,
 		status = boardobjgrp_objinsert(
 				&pvolt_policy_metadata->volt_policies.super,
 				(struct boardobj *)ppolicy, i);
-		if (status) {
+		if (status != 0) {
 			nvgpu_err(g,
 				"could not add volt_policy for entry %d into boardobjgrp ",
 				i);
@@ -457,7 +457,7 @@ static int _volt_policy_grp_pmudatainit_super(struct gk20a *g,
 	int status = 0;
 
 	status = boardobjgrp_pmudatainit_e32(g, pboardobjgrp, pboardobjgrppmu);
-	if (status) {
+	if (status != 0) {
 		nvgpu_err(g,
 			"error updating pmu boardobjgrp for volt policy 0x%x",
 			 status);
@@ -499,7 +499,7 @@ int volt_policy_sw_setup(struct gk20a *g)
 
 	status = boardobjgrpconstruct_e32(g,
 			&g->perf_pmu.volt.volt_policy_metadata.volt_policies);
-	if (status) {
+	if (status != 0) {
 		nvgpu_err(g,
 			"error creating boardobjgrp for volt rail, status - 0x%x",
 			status);
@@ -516,7 +516,7 @@ int volt_policy_sw_setup(struct gk20a *g)
 	/* Obtain Voltage Rail Table from VBIOS */
 	status = volt_get_volt_policy_table(g, &g->perf_pmu.volt.
 			volt_policy_metadata);
-	if (status) {
+	if (status != 0) {
 		goto done;
 	}
 
@@ -525,7 +525,7 @@ int volt_policy_sw_setup(struct gk20a *g)
 
 	status = BOARDOBJGRP_PMU_CMD_GRP_SET_CONSTRUCT(g, pboardobjgrp,
 			volt, VOLT, volt_policy, VOLT_POLICY);
-	if (status) {
+	if (status != 0) {
 		nvgpu_err(g,
 			"error constructing PMU_BOARDOBJ_CMD_GRP_SET interface - 0x%x",
 			status);
@@ -535,7 +535,7 @@ int volt_policy_sw_setup(struct gk20a *g)
 	status = BOARDOBJGRP_PMU_CMD_GRP_GET_STATUS_CONSTRUCT(g,
 		&g->perf_pmu.volt.volt_policy_metadata.volt_policies.super,
 			volt, VOLT, volt_policy, VOLT_POLICY);
-	if (status) {
+	if (status != 0) {
 		nvgpu_err(g,
 			"error constructing PMU_BOARDOBJ_CMD_GRP_SET interface - 0x%x",
 			status);

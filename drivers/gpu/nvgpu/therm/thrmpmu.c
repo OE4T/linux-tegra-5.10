@@ -59,7 +59,7 @@ int therm_send_pmgr_tables_to_pmu(struct gk20a *g)
 	if (!BOARDOBJGRP_IS_EMPTY(&g->therm_pmu.therm_deviceobjs.super.super)) {
 		pboardobjgrp = &g->therm_pmu.therm_deviceobjs.super.super;
 		status = pboardobjgrp->pmuinithandle(g, pboardobjgrp);
-		if (status) {
+		if (status != 0) {
 			nvgpu_err(g,
 				"therm_send_pmgr_tables_to_pmu - therm_device failed %x",
 				status);
@@ -71,7 +71,7 @@ int therm_send_pmgr_tables_to_pmu(struct gk20a *g)
 			&g->therm_pmu.therm_channelobjs.super.super)) {
 		pboardobjgrp = &g->therm_pmu.therm_channelobjs.super.super;
 		status = pboardobjgrp->pmuinithandle(g, pboardobjgrp);
-		if (status) {
+		if (status != 0) {
 			nvgpu_err(g,
 				"therm_send_pmgr_tables_to_pmu - therm_channel failed %x",
 				status);
@@ -83,12 +83,12 @@ exit:
 	return status;
 }
 
-static u32 therm_pmu_cmd_post(struct gk20a *g, struct pmu_cmd *cmd,
+static int therm_pmu_cmd_post(struct gk20a *g, struct pmu_cmd *cmd,
 		struct pmu_msg *msg, struct pmu_payload *payload,
 		u32 queue_id, pmu_callback callback, void* cb_param,
 		u32 *seq_desc, unsigned long timeout)
 {
-	u32 status;
+	int status;
 	struct therm_pmucmdhandler_params *handlerparams = NULL;
 
 	status = nvgpu_pmu_cmd_post(g, cmd, msg, payload,
@@ -97,7 +97,7 @@ static u32 therm_pmu_cmd_post(struct gk20a *g, struct pmu_cmd *cmd,
 				cb_param,
 				seq_desc,
 				timeout);
-	if (status) {
+	if (status != 0) {
 		nvgpu_err(g,
 			"unable to post therm cmd for unit %x cmd id %x size %x",
 			cmd->hdr.unit_id, cmd->cmd.therm.cmd_type, cmd->hdr.size);
@@ -122,7 +122,7 @@ exit:
 	return status;
 }
 
-static u32 therm_set_warn_temp_limit(struct gk20a *g)
+static int therm_set_warn_temp_limit(struct gk20a *g)
 {
 	u32 seqdesc = 0;
 	struct pmu_cmd cmd;
@@ -172,7 +172,7 @@ static u32 therm_set_warn_temp_limit(struct gk20a *g)
 				&seqdesc, ~0);
 }
 
-static u32 therm_enable_slct_notification_request(struct gk20a *g)
+static int therm_enable_slct_notification_request(struct gk20a *g)
 {
 	u32 seqdesc = 0;
 	struct pmu_cmd cmd = { {0} };
@@ -192,7 +192,7 @@ static u32 therm_enable_slct_notification_request(struct gk20a *g)
 				&seqdesc, ~0);
 }
 
-static u32 therm_send_slct_configuration_to_pmu(struct gk20a *g)
+static int therm_send_slct_configuration_to_pmu(struct gk20a *g)
 {
 	u32 seqdesc = 0;
 	struct pmu_cmd cmd;
@@ -241,12 +241,12 @@ static u32 therm_send_slct_configuration_to_pmu(struct gk20a *g)
 				&seqdesc, ~0);
 }
 
-u32 therm_configure_therm_alert(struct gk20a *g)
+int therm_configure_therm_alert(struct gk20a *g)
 {
-	u32 status;
+	int status;
 
 	status = therm_enable_slct_notification_request(g);
-	if (status) {
+	if (status != 0) {
 		nvgpu_err(g,
 			"therm_enable_slct_notification_request-failed %d",
 			status);
@@ -254,7 +254,7 @@ u32 therm_configure_therm_alert(struct gk20a *g)
 	}
 
 	status = therm_send_slct_configuration_to_pmu(g);
-	if (status) {
+	if (status != 0) {
 		nvgpu_err(g,
 			"therm_send_slct_configuration_to_pmu-failed %d",
 			status);
@@ -262,7 +262,7 @@ u32 therm_configure_therm_alert(struct gk20a *g)
 	}
 
 	status = therm_set_warn_temp_limit(g);
-	if (status) {
+	if (status != 0) {
 		nvgpu_err(g,
 			"therm_set_warn_temp_limit-failed %d",
 			status);
