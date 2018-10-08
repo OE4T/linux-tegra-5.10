@@ -90,7 +90,7 @@ struct obj_lwpr {
 	u32 mclk_change_cache;
 };
 
-u32 nvgpu_lpwr_pg_setup(struct gk20a *g);
+int nvgpu_lpwr_pg_setup(struct gk20a *g);
 int nvgpu_lwpr_mclk_change(struct gk20a *g, u32 pstate);
 int nvgpu_lpwr_enable_pg(struct gk20a *g, bool pstate_lock);
 int nvgpu_lpwr_disable_pg(struct gk20a *g, bool pstate_lock);

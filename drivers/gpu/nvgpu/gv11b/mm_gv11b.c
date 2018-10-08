@@ -130,7 +130,7 @@ static void gv11b_mm_mmu_hw_fault_buf_init(struct gk20a *g)
 
 		err = nvgpu_dma_alloc_map_sys(vm, fb_size,
 			&g->mm.hw_fault_buf[NVGPU_MM_MMU_FAULT_TYPE_OTHER_AND_NONREPLAY]);
-		if (err) {
+		if (err != 0) {
 			nvgpu_err(g,
 			"Error in hw mmu fault buf [0] alloc in bar2 vm ");
 			/* Fault will be snapped in pri reg but not in buffer */
@@ -142,7 +142,7 @@ static void gv11b_mm_mmu_hw_fault_buf_init(struct gk20a *g)
 		&g->mm.hw_fault_buf[NVGPU_MM_MMU_FAULT_TYPE_REPLAY])) {
 		err = nvgpu_dma_alloc_map_sys(vm, fb_size,
 				&g->mm.hw_fault_buf[NVGPU_MM_MMU_FAULT_TYPE_REPLAY]);
-		if (err) {
+		if (err != 0) {
 			nvgpu_err(g,
 			"Error in hw mmu fault buf [1] alloc in bar2 vm ");
 			/* Fault will be snapped in pri reg but not in buffer */
@@ -178,7 +178,7 @@ static int gv11b_mm_mmu_fault_setup_sw(struct gk20a *g)
 
 	err = gv11b_mm_mmu_fault_info_buf_init(g);
 
-	if (!err) {
+	if (err == 0) {
 		gv11b_mm_mmu_hw_fault_buf_init(g);
 	}
 
@@ -194,7 +194,7 @@ int gv11b_init_mm_setup_hw(struct gk20a *g)
 	err = gk20a_init_mm_setup_hw(g);
 
 	err = gv11b_mm_mmu_fault_setup_sw(g);
-	if (!err) {
+	if (err == 0) {
 		gv11b_mm_mmu_fault_setup_hw(g);
 	}
 

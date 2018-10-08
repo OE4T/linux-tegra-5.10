@@ -139,7 +139,7 @@ int gp106_init_clk_arbiter(struct gk20a *g)
 	arb->clk_arb_events_supported = true;
 
 	err = nvgpu_mutex_init(&arb->pstate_lock);
-	if (err)
+	if (err != 0)
 		goto mutex_fail;
 	nvgpu_spinlock_init(&arb->sessions_lock);
 	nvgpu_spinlock_init(&arb->users_lock);

@@ -48,7 +48,7 @@ int gp10b_fecs_trace_flush(struct gk20a *g)
 
 	err = gr_gk20a_elpg_protected_call(g,
 			gr_gk20a_submit_fecs_method_op(g, op, false));
-	if (err)
+	if (err != 0)
 		nvgpu_err(g, "write timestamp record failed");
 
 	return err;

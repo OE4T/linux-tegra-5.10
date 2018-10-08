@@ -278,7 +278,7 @@ int gv100_init_gpu_characteristics(struct gk20a *g)
 	int err;
 
 	err = gk20a_init_gpu_characteristics(g);
-	if (err)
+	if (err != 0)
 		return err;
 
 	__nvgpu_set_enabled(g, NVGPU_SUPPORT_TSG_SUBCONTEXTS, true);

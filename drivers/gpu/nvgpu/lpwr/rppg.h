@@ -22,5 +22,5 @@
 #ifndef NVGPU_LPWR_RPPG_H
 #define NVGPU_LPWR_RPPG_H
 
-u32 init_rppg(struct gk20a *g);
+int init_rppg(struct gk20a *g);
 #endif /* NVGPU_LPWR_RPPG_H */

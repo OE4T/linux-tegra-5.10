@@ -484,7 +484,7 @@ static int gv11b_fifo_poll_pbdma_chan_status(struct gk20a *g, u32 id,
 				delay << 1, GR_IDLE_CHECK_MAX);
 	} while (!nvgpu_timeout_expired(&timeout));
 
-	if (ret) {
+	if (ret != 0) {
 		nvgpu_err(g, "preempt timeout pbdma: %u pbdma_stat: %u "
 				"tsgid: %u", pbdma_id, pbdma_stat, id);
 	}
@@ -609,7 +609,7 @@ static int gv11b_fifo_poll_eng_ctx_status(struct gk20a *g, u32 id,
 				delay << 1, GR_IDLE_CHECK_MAX);
 	} while (!nvgpu_timeout_expired(&timeout));
 
-	if (ret) {
+	if (ret != 0) {
 		/*
 		* The reasons a preempt can fail are:
 		* 1.Some other stalling interrupt is asserted preventing
@@ -841,7 +841,7 @@ int gv11b_fifo_enable_tsg(struct tsg_gk20a *tsg)
 int gv11b_fifo_preempt_tsg(struct gk20a *g, u32 tsgid)
 {
 	struct fifo_gk20a *f = &g->fifo;
-	u32 ret = 0;
+	int ret = 0;
 	u32 token = PMU_INVALID_MUTEX_OWNER_ID;
 	u32 mutex_ret = 0;
 	u32 runlist_id;
@@ -875,7 +875,7 @@ int gv11b_fifo_preempt_tsg(struct gk20a *g, u32 tsgid)
 
 	nvgpu_mutex_release(&f->runlist_info[runlist_id].runlist_lock);
 
-	if (ret) {
+	if (ret != 0) {
 		if (nvgpu_platform_is_silicon(g)) {
 			nvgpu_err(g, "preempt timed out for tsgid: %u, "
 			"ctxsw timeout will trigger recovery if needed", tsgid);
@@ -970,7 +970,7 @@ static void gv11b_fifo_locked_abort_runlist_active_tsgs(struct gk20a *g,
 			/* (chid == ~0 && !add) remove all act ch from runlist*/
 			err = gk20a_fifo_update_runlist_locked(g, rlid,
 					FIFO_INVAL_CHANNEL_ID, add, wait_for_finish);
-			if (err) {
+			if (err != 0) {
 				nvgpu_err(g, "runlist id %d is not cleaned up",
 					rlid);
 			}
@@ -1763,11 +1763,11 @@ void gv11b_fifo_init_eng_method_buffers(struct gk20a *g,
 	for (runque = 0; runque < num_pbdma; runque++) {
 		err = nvgpu_dma_alloc_map_sys(vm, method_buffer_size,
 					&tsg->eng_method_buffers[runque]);
-		if (err) {
+		if (err != 0) {
 			break;
 		}
 	}
-	if (err) {
+	if (err != 0) {
 		for (i = (runque - 1); i >= 0; i--) {
 			nvgpu_dma_unmap_free(vm,
 				 &tsg->eng_method_buffers[i]);
@@ -1887,7 +1887,7 @@ int gv11b_fifo_alloc_syncpt_buf(struct channel_gk20a *c,
 	nvgpu_mutex_acquire(&c->vm->syncpt_ro_map_lock);
 	err = set_syncpt_ro_map_gpu_va_locked(c->vm);
 	nvgpu_mutex_release(&c->vm->syncpt_ro_map_lock);
-	if (err)
+	if (err != 0)
 		return err;
 
 	nr_pages = DIV_ROUND_UP(g->syncpt_size, PAGE_SIZE);
@@ -1923,7 +1923,7 @@ int gv11b_fifo_get_sync_ro_map(struct vm_gk20a *vm,
 	nvgpu_mutex_acquire(&vm->syncpt_ro_map_lock);
 	err = set_syncpt_ro_map_gpu_va_locked(vm);
 	nvgpu_mutex_release(&vm->syncpt_ro_map_lock);
-	if (err)
+	if (err != 0)
 		return err;
 
 	*base_gpuva = vm->syncpt_ro_map_gpu_va;

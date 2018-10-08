@@ -3222,12 +3222,12 @@ int gp106_mclk_init(struct gk20a *g)
 	mclk = &g->clk_pmu.clk_mclk;
 
 	err = nvgpu_mutex_init(&mclk->mclk_lock);
-	if (err) {
+	if (err != 0) {
 		return err;
 	}
 
 	err = nvgpu_mutex_init(&mclk->data_lock);
-	if (err) {
+	if (err != 0) {
 		goto fail_mclk_mutex;
 	}
 
@@ -3400,7 +3400,7 @@ int gp106_mclk_change(struct gk20a *g, u16 val)
 			PMU_COMMAND_QUEUE_LPQ,
 			mclk_seq_pmucmdhandler,
 			&seq_running, &seqdesc, ~0UL);
-	if (status) {
+	if (status != 0) {
 		nvgpu_err(g, "unable to post seq script exec cmd for unit %x",
 			cmd.hdr.unit_id);
 		goto exit_status;

@@ -50,82 +50,82 @@ int gk20a_init_pstate_support(struct gk20a *g)
 	nvgpu_log_fn(g, " ");
 
 	err = volt_rail_sw_setup(g);
-	if (err) {
+	if (err != 0) {
 		return err;
 	}
 
 	err = volt_dev_sw_setup(g);
-	if (err) {
+	if (err != 0) {
 		return err;
 	}
 
 	err = volt_policy_sw_setup(g);
-	if (err) {
+	if (err != 0) {
 		return err;
 	}
 
 	err = clk_vin_sw_setup(g);
-	if (err) {
+	if (err != 0) {
 		return err;
 	}
 
 	err = clk_fll_sw_setup(g);
-	if (err) {
+	if (err != 0) {
 		return err;
 	}
 
 	err = therm_domain_sw_setup(g);
-	if (err) {
+	if (err != 0) {
 		return err;
 	}
 
 	err = vfe_var_sw_setup(g);
-	if (err) {
+	if (err != 0) {
 		return err;
 	}
 
 	err = vfe_equ_sw_setup(g);
-	if (err) {
+	if (err != 0) {
 		return err;
 	}
 
 	err = clk_domain_sw_setup(g);
-	if (err) {
+	if (err != 0) {
 		return err;
 	}
 
 	err = clk_vf_point_sw_setup(g);
-	if (err) {
+	if (err != 0) {
 		return err;
 	}
 
 	err = clk_prog_sw_setup(g);
-	if (err) {
+	if (err != 0) {
 		return err;
 	}
 
 	err = pstate_sw_setup(g);
-	if (err) {
+	if (err != 0) {
 		return err;
 	}
 
 	if(g->ops.clk.support_pmgr_domain) {
 		err = pmgr_domain_sw_setup(g);
-		if (err) {
+		if (err != 0) {
 			return err;
 		}
 	}
 
 	if (g->ops.clk.support_clk_freq_controller) {
 		err = clk_freq_controller_sw_setup(g);
-		if (err) {
+		if (err != 0) {
 			return err;
 		}
 	}
 
 	if(g->ops.clk.support_lpwr_pg) {
 		err = nvgpu_lpwr_pg_setup(g);
-		if (err) {
+		if (err != 0) {
 			return err;
 		}
 	}
@@ -142,29 +142,29 @@ int gk20a_init_pstate_pmu_support(struct gk20a *g)
 
 	if (g->ops.clk.mclk_init) {
 		err = g->ops.clk.mclk_init(g);
-		if (err) {
+		if (err != 0U) {
 			nvgpu_err(g, "failed to set mclk");
 			/* Indicate error and continue */
 		}
 	}
 
 	err = volt_rail_pmu_setup(g);
-	if (err) {
+	if (err != 0U) {
 		return err;
 	}
 
 	err = volt_dev_pmu_setup(g);
-	if (err) {
+	if (err != 0U) {
 		return err;
 	}
 
 	err = volt_policy_pmu_setup(g);
-	if (err) {
+	if (err != 0U) {
 		return err;
 	}
 
 	err = g->ops.pmu_ver.volt.volt_send_load_cmd_to_pmu(g);
-	if (err) {
+	if (err != 0U) {
 		nvgpu_err(g,
 			"Failed to send VOLT LOAD CMD to PMU: status = 0x%08x.",
 			err);
@@ -172,58 +172,58 @@ int gk20a_init_pstate_pmu_support(struct gk20a *g)
 	}
 
 	err = therm_domain_pmu_setup(g);
-	if (err) {
+	if (err != 0U) {
 		return err;
 	}
 
 	err = vfe_var_pmu_setup(g);
-	if (err) {
+	if (err != 0U) {
 		return err;
 	}
 
 	err = vfe_equ_pmu_setup(g);
-	if (err) {
+	if (err != 0U) {
 		return err;
 	}
 
 	err = clk_domain_pmu_setup(g);
-	if (err) {
+	if (err != 0U) {
 		return err;
 	}
 
 	err = clk_prog_pmu_setup(g);
-	if (err) {
+	if (err != 0U) {
 		return err;
 	}
 
 	err = clk_vin_pmu_setup(g);
-	if (err) {
+	if (err != 0U) {
 		return err;
 	}
 
 	err = clk_fll_pmu_setup(g);
-	if (err) {
+	if (err != 0U) {
 		return err;
 	}
 
 	err = clk_vf_point_pmu_setup(g);
-	if (err) {
+	if (err != 0U) {
 		return err;
 	}
 
 	if (g->ops.clk.support_clk_freq_controller) {
 		err = clk_freq_controller_pmu_setup(g);
-		if (err) {
+		if (err != 0U) {
 			return err;
 		}
 	}
 	err = clk_pmu_vin_load(g);
-	if (err) {
+	if (err != 0U) {
 		return err;
 	}
 
 	err = g->ops.clk.perf_pmu_vfe_load(g);
-	if (err) {
+	if (err != 0U) {
 		return err;
 	}
 
@@ -242,7 +242,7 @@ static int pstate_construct_super(struct gk20a *g, struct boardobj **ppboardobj,
 	int err;
 
 	err = boardobj_construct_super(g, ppboardobj, size, args);
-	if (err) {
+	if (err != 0) {
 		return err;
 	}
 
@@ -286,7 +286,7 @@ static int pstate_insert(struct gk20a *g, struct pstate *pstate, int index)
 
 	err = boardobjgrp_objinsert(&pstates->super.super,
 			(struct boardobj *)pstate, index);
-	if (err) {
+	if (err != 0) {
 		nvgpu_err(g,
 			  "error adding pstate boardobj %d", index);
 		return err;
@@ -380,7 +380,7 @@ static int parse_pstate_table_5x(struct gk20a *g,
 		}
 
 		err = parse_pstate_entry_5x(g, hdr, entry, &_pstate);
-		if (err) {
+		if (err != 0) {
 			goto done;
 		}
 
@@ -390,7 +390,7 @@ static int parse_pstate_table_5x(struct gk20a *g,
 		}
 
 		err = pstate_insert(g, pstate, i);
-		if (err) {
+		if (err != 0) {
 			goto done;
 		}
 	}
@@ -409,12 +409,12 @@ static int pstate_sw_setup(struct gk20a *g)
 	nvgpu_cond_init(&g->perf_pmu.pstatesobjs.pstate_notifier_wq);
 
 	err = nvgpu_mutex_init(&g->perf_pmu.pstatesobjs.pstate_mutex);
-	if (err) {
+	if (err != 0) {
 		return err;
 	}
 
 	err = boardobjgrpconstruct_e32(g, &g->perf_pmu.pstatesobjs.super);
-	if (err) {
+	if (err != 0) {
 		nvgpu_err(g,
 			  "error creating boardobjgrp for pstates, err=%d",
 			  err);
@@ -440,7 +440,7 @@ static int pstate_sw_setup(struct gk20a *g)
 
 	err = parse_pstate_table_5x(g, hdr);
 done:
-	if (err) {
+	if (err != 0) {
 		nvgpu_mutex_destroy(&g->perf_pmu.pstatesobjs.pstate_mutex);
 	}
 	return err;

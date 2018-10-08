@@ -38,13 +38,13 @@
 
 int tu104_nvlink_rxdet(struct gk20a *g, u32 link_id)
 {
-	u32 ret = 0;
+	int ret = 0;
 	u32 reg;
 	struct nvgpu_timeout timeout;
 
 	ret = gv100_nvlink_minion_send_command(g, link_id,
 			0x00000005U, 0, true);
-	if (ret) {
+	if (ret != 0) {
 		nvgpu_err(g, "Error during INITRXTERM minion DLCMD on link %u",
 				link_id);
 		return ret;
@@ -52,7 +52,7 @@ int tu104_nvlink_rxdet(struct gk20a *g, u32 link_id)
 
 	ret = gv100_nvlink_minion_send_command(g, link_id,
 			minion_nvlink_dl_cmd_command_turing_rxdet_v(), 0, true);
-	if (ret) {
+	if (ret != 0) {
 		nvgpu_err(g, "Error during RXDET minion DLCMD on link %u",
 				link_id);
 		return ret;
@@ -98,7 +98,7 @@ int tu104_nvlink_setup_pll(struct gk20a *g, unsigned long link_mask)
 		ret = gv100_nvlink_minion_send_command(g, link_id,
 			minion_nvlink_dl_cmd_command_txclkswitch_pll_v(),
 			0, true);
-		if (ret) {
+		if (ret != 0) {
 			nvgpu_err(g, "Error: TXCLKSWITCH_PLL dlcmd on link %u",
 								link_id);
 			return ret;
@@ -106,7 +106,7 @@ int tu104_nvlink_setup_pll(struct gk20a *g, unsigned long link_mask)
 
 		ret = nvgpu_timeout_init(g, &timeout,
 			NV_NVLINK_REG_POLL_TIMEOUT_MS, NVGPU_TIMER_CPU_TIMER);
-		if (ret) {
+		if (ret != 0) {
 			nvgpu_err(g, "Error during timeout init");
 			return ret;
 		}
@@ -210,7 +210,7 @@ int tu104_nvlink_minion_data_ready_en(struct gk20a *g,
 		ret = gv100_nvlink_minion_send_command(g, link_id,
 			minion_nvlink_dl_cmd_command_initdlpl_v(), 0,
 									sync);
-		if (ret) {
+		if (ret != 0) {
 			nvgpu_err(g, "Minion initdlpl failed on link %u",
 								link_id);
 			return ret;
@@ -220,7 +220,7 @@ int tu104_nvlink_minion_data_ready_en(struct gk20a *g,
 		ret = gv100_nvlink_minion_send_command(g, link_id,
 			minion_nvlink_dl_cmd_command_turing_initdlpl_to_chipa_v(),
 								0, sync);
-		if (ret) {
+		if (ret != 0) {
 			nvgpu_err(g, "Minion initdlpl_to_chipA failed on link\
 								%u", link_id);
 			return ret;
@@ -230,7 +230,7 @@ int tu104_nvlink_minion_data_ready_en(struct gk20a *g,
 		ret = gv100_nvlink_minion_send_command(g, link_id,
 			minion_nvlink_dl_cmd_command_inittl_v(), 0,
 									sync);
-		if (ret) {
+		if (ret != 0) {
 			nvgpu_err(g, "Minion inittl failed on link %u",
 								link_id);
 			return ret;
@@ -240,7 +240,7 @@ int tu104_nvlink_minion_data_ready_en(struct gk20a *g,
 		ret = gv100_nvlink_minion_send_command(g, link_id,
 			minion_nvlink_dl_cmd_command_initlaneenable_v(), 0,
 									sync);
-		if (ret) {
+		if (ret != 0) {
 			nvgpu_err(g, "Minion initlaneenable failed on link %u",
 								link_id);
 			return ret;

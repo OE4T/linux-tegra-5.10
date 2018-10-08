@@ -1148,7 +1148,7 @@ int gr_gv11b_load_stencil_tbl(struct gk20a *g, struct gr_gk20a *gr)
 		zbc_val.format = s_tbl->format;
 
 		ret = g->ops.gr.add_zbc_s(g, gr, &zbc_val, i);
-		if (ret) {
+		if (ret != 0) {
 			return ret;
 		}
 	}
@@ -1501,7 +1501,7 @@ int gr_gv11b_alloc_buffer(struct vm_gk20a *vm, size_t size,
 	nvgpu_log_fn(g, " ");
 
 	err = nvgpu_dma_alloc_sys(vm->mm->g, size, mem);
-	if (err) {
+	if (err != 0) {
 		return err;
 	}
 
@@ -1589,7 +1589,7 @@ int gr_gv11b_set_ctxsw_preemption_mode(struct gk20a *g,
 		err = gr_gp10b_alloc_buffer(vm,
 					g->gr.ctx_vars.preempt_image_size,
 					&gr_ctx->preempt_ctxsw_buffer);
-		if (err) {
+		if (err != 0) {
 			nvgpu_err(g, "cannot allocate preempt buffer");
 			goto fail;
 		}
@@ -1597,7 +1597,7 @@ int gr_gv11b_set_ctxsw_preemption_mode(struct gk20a *g,
 		err = gr_gp10b_alloc_buffer(vm,
 					spill_size,
 					&gr_ctx->spill_ctxsw_buffer);
-		if (err) {
+		if (err != 0) {
 			nvgpu_err(g, "cannot allocate spill buffer");
 			goto fail_free_preempt;
 		}
@@ -1605,7 +1605,7 @@ int gr_gv11b_set_ctxsw_preemption_mode(struct gk20a *g,
 		err = gr_gp10b_alloc_buffer(vm,
 					attrib_cb_size,
 					&gr_ctx->betacb_ctxsw_buffer);
-		if (err) {
+		if (err != 0) {
 			nvgpu_err(g, "cannot allocate beta buffer");
 			goto fail_free_spill;
 		}
@@ -1613,7 +1613,7 @@ int gr_gv11b_set_ctxsw_preemption_mode(struct gk20a *g,
 		err = gr_gp10b_alloc_buffer(vm,
 					pagepool_size,
 					&gr_ctx->pagepool_ctxsw_buffer);
-		if (err) {
+		if (err != 0) {
 			nvgpu_err(g, "cannot allocate page pool");
 			goto fail_free_betacb;
 		}
@@ -1719,7 +1719,7 @@ void gr_gv11b_update_ctxsw_preemption_mode(struct gk20a *g,
 		}
 
 		err = gr_gk20a_ctx_patch_write_begin(g, gr_ctx, true);
-		if (err) {
+		if (err != 0) {
 			nvgpu_err(g, "can't map patch context");
 			goto out;
 		}
@@ -2193,7 +2193,7 @@ static int gr_gv11b_handle_warp_esr_error_mmu_nack(struct gk20a *g,
 	 * recovery path even if channel is invalid. We want to explicitly check
 	 * for teardown value in mmu fault handler.
 	 */
-	if (!err) {
+	if (err == 0) {
 		gk20a_channel_put(fault_ch);
 	}
 
@@ -2369,7 +2369,7 @@ int gr_gv11b_pre_process_sm_exception(struct gk20a *g,
 	 */
 	ret = gr_gv11b_handle_all_warp_esr_errors(g, gpc, tpc, sm,
 				warp_esr_error, fault_ch);
-	if (ret) {
+	if (ret != 0) {
 		return ret;
 	}
 
@@ -2439,7 +2439,7 @@ int gr_gv11b_pre_process_sm_exception(struct gk20a *g,
 
 			nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gpu_dbg, "CILP: Setting CILP preempt pending\n");
 			ret = gr_gp10b_set_cilp_preempt_pending(g, fault_ch);
-			if (ret) {
+			if (ret != 0) {
 				nvgpu_err(g, "CILP: error while setting CILP preempt pending!");
 				return ret;
 			}
@@ -2699,7 +2699,7 @@ int gr_gv11b_init_sw_veid_bundle(struct gk20a *g)
 			&g->gr.ctx_vars.sw_veid_bundle_init;
 	u32 i;
 	u32 last_bundle_data = 0;
-	u32 err = 0;
+	int err = 0;
 
 	for (i = 0; i < sw_veid_bundle_init->count; i++) {
 		nvgpu_log_fn(g, "veid bundle count: %d", i);
@@ -2718,14 +2718,14 @@ int gr_gv11b_init_sw_veid_bundle(struct gk20a *g)
 			nvgpu_log_fn(g, "go idle bundle");
 				gk20a_writel(g, gr_pipe_bundle_address_r(),
 					sw_veid_bundle_init->l[i].addr);
-				err |= gr_gk20a_wait_idle(g,
+				err = gr_gk20a_wait_idle(g,
 						gk20a_get_gr_idle_timeout(g),
 						GR_IDLE_CHECK_DEFAULT);
 		} else {
 			err = gv11b_write_bundle_veid_state(g, i);
 		}
 
-		if (err) {
+		if (err != 0) {
 			nvgpu_err(g, "failed to init sw veid bundle");
 			break;
 		}
@@ -2879,12 +2879,12 @@ int gr_gv11b_commit_inst(struct channel_gk20a *c, u64 gpu_va)
 	nvgpu_log_fn(g, " ");
 
 	err = gv11b_alloc_subctx_header(c);
-	if (err) {
+	if (err != 0) {
 		return err;
 	}
 
 	err = gv11b_update_subctx_header(c, gpu_va);
-	if (err) {
+	if (err != 0) {
 		return err;
 	}
 
@@ -3081,7 +3081,7 @@ int gr_gv11b_init_fs_state(struct gk20a *g)
 	}
 
 	err = gr_gk20a_init_fs_state(g);
-	if (err) {
+	if (err != 0) {
 		return err;
 	}
 
@@ -3268,7 +3268,7 @@ int gv11b_gr_set_sm_debug_mode(struct gk20a *g,
 	}
 
 	err = gr_gk20a_exec_ctx_ops(ch, ops, i, i, 0, NULL);
-	if (err) {
+	if (err != 0) {
 		nvgpu_err(g, "Failed to access register\n");
 	}
 	nvgpu_kfree(g, ops);
@@ -3416,7 +3416,7 @@ void gv11b_gr_suspend_single_sm(struct gk20a *g,
 
 	err = g->ops.gr.wait_for_sm_lock_down(g, gpc, tpc, sm,
 			global_esr_mask, check_errors);
-	if (err) {
+	if (err != 0) {
 		nvgpu_err(g,
 			"SuspendSm failed");
 		return;
@@ -3458,7 +3458,7 @@ void gv11b_gr_suspend_all_sms(struct gk20a *g,
 				err = g->ops.gr.wait_for_sm_lock_down(g,
 					gpc, tpc, sm,
 					global_esr_mask, check_errors);
-				if (err) {
+				if (err != 0) {
 					nvgpu_err(g,
 						"SuspendAllSms failed");
 					return;
@@ -4852,7 +4852,7 @@ int gr_gv11b_create_priv_addr_table(struct gk20a *g,
 					&gpc_num, &tpc_num, &ppc_num, &be_num,
 					&broadcast_flags);
 	nvgpu_log(g, gpu_dbg_gpu_dbg, "addr_type = %d", addr_type);
-	if (err) {
+	if (err != 0) {
 		return err;
 	}
 
@@ -4896,7 +4896,7 @@ int gr_gv11b_create_priv_addr_table(struct gk20a *g,
 			else if (broadcast_flags & PRI_BROADCAST_FLAGS_PPC) {
 				err = gr_gk20a_split_ppc_broadcast_addr(g,
 					addr, gpc_num, priv_addr_table, &t);
-				if (err) {
+				if (err != 0) {
 					return err;
 				}
 			} else {

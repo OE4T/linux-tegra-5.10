@@ -219,7 +219,7 @@ static const char *__gv100_device_type_to_str(u32 type)
  * Function prototypes
  */
 static u32 __gv100_nvlink_get_link_reset_mask(struct gk20a *g);
-static u32 gv100_nvlink_rxcal_en(struct gk20a *g, unsigned long mask);
+static int gv100_nvlink_rxcal_en(struct gk20a *g, unsigned long mask);
 
 
 /*
@@ -738,7 +738,7 @@ int gv100_nvlink_minion_send_command(struct gk20a *g, u32 link_id,
 
 	/* Check last command succeded */
 	err = gv100_nvlink_minion_command_complete(g, link_id);
-	if (err)
+	if (err != 0)
 		return -EINVAL;
 
 	nvgpu_log(g, gpu_dbg_nvlink,
@@ -763,10 +763,10 @@ int gv100_nvlink_minion_send_command(struct gk20a *g, u32 link_id,
 /*
  * Init UPHY
  */
-static u32 gv100_nvlink_minion_init_uphy(struct gk20a *g, unsigned long mask,
+static int gv100_nvlink_minion_init_uphy(struct gk20a *g, unsigned long mask,
 					bool sync)
 {
-	u32 err = 0;
+	int err = 0;
 	u32 init_pll_cmd;
 	u32 link_id, master_pll, slave_pll;
 	u32 master_state, slave_state;
@@ -813,7 +813,7 @@ static u32 gv100_nvlink_minion_init_uphy(struct gk20a *g, unsigned long mask,
 		if (!(BIT(master_pll) & g->nvlink.init_pll_done)) {
 			err = gv100_nvlink_minion_send_command(g, master_pll,
 							init_pll_cmd, 0, sync);
-			if (err) {
+			if (err != 0) {
 				nvgpu_err(g, " Error sending INITPLL to minion");
 				return err;
 			}
@@ -823,7 +823,7 @@ static u32 gv100_nvlink_minion_init_uphy(struct gk20a *g, unsigned long mask,
 	}
 
 	err = g->ops.nvlink.setup_pll(g, mask);
-	if (err) {
+	if (err != 0) {
 		nvgpu_err(g, "Error setting up PLL");
 		return err;
 	}
@@ -832,7 +832,7 @@ static u32 gv100_nvlink_minion_init_uphy(struct gk20a *g, unsigned long mask,
 	for_each_set_bit(link_id, &mask, 32) {
 		err = gv100_nvlink_minion_send_command(g, link_id,
 			minion_nvlink_dl_cmd_command_initphy_v(), 0, sync);
-		if (err) {
+		if (err != 0) {
 			nvgpu_err(g, "Error on INITPHY minion DL command %u",
 					link_id);
 			return err;
@@ -845,10 +845,10 @@ static u32 gv100_nvlink_minion_init_uphy(struct gk20a *g, unsigned long mask,
 /*
  * Configure AC coupling
  */
-static u32 gv100_nvlink_minion_configure_ac_coupling(struct gk20a *g,
+static int gv100_nvlink_minion_configure_ac_coupling(struct gk20a *g,
 	unsigned long mask, bool sync)
 {
-	u32 err = 0;
+	int err = 0;
 	u32 i;
 	u32 temp;
 
@@ -863,7 +863,7 @@ static u32 gv100_nvlink_minion_configure_ac_coupling(struct gk20a *g,
 		err = gv100_nvlink_minion_send_command(g, i,
 			minion_nvlink_dl_cmd_command_setacmode_v(), 0, sync);
 
-		if (err)
+		if (err != 0)
 			return err;
 	}
 
@@ -883,7 +883,7 @@ int gv100_nvlink_minion_data_ready_en(struct gk20a *g,
 		ret = gv100_nvlink_minion_send_command(g, link_id,
 			minion_nvlink_dl_cmd_command_initlaneenable_v(), 0,
 									sync);
-		if (ret) {
+		if (ret != 0) {
 			nvgpu_err(g, "Failed initlaneenable on link %u",
 								link_id);
 			return ret;
@@ -893,7 +893,7 @@ int gv100_nvlink_minion_data_ready_en(struct gk20a *g,
 	for_each_set_bit(link_id, &link_mask, 32) {
 		ret = gv100_nvlink_minion_send_command(g, link_id,
 			minion_nvlink_dl_cmd_command_initdlpl_v(), 0, sync);
-		if (ret) {
+		if (ret != 0) {
 			nvgpu_err(g, "Failed initdlpl on link %u", link_id);
 			return ret;
 		}
@@ -904,15 +904,15 @@ int gv100_nvlink_minion_data_ready_en(struct gk20a *g,
 /*
  * Request that minion disable the lane
  */
-static u32 gv100_nvlink_minion_lane_disable(struct gk20a *g, u32 link_id,
+static int gv100_nvlink_minion_lane_disable(struct gk20a *g, u32 link_id,
 								bool sync)
 {
-	u32 err = 0;
+	int err = 0;
 
 	err = gv100_nvlink_minion_send_command(g, link_id,
 			minion_nvlink_dl_cmd_command_lanedisable_v(), 0, sync);
 
-	if (err)
+	if (err != 0)
 		nvgpu_err(g, " failed to disable lane on %d", link_id);
 
 	return err;
@@ -921,15 +921,15 @@ static u32 gv100_nvlink_minion_lane_disable(struct gk20a *g, u32 link_id,
 /*
  * Request that minion shutdown the lane
  */
-static u32 gv100_nvlink_minion_lane_shutdown(struct gk20a *g, u32 link_id,
+static int gv100_nvlink_minion_lane_shutdown(struct gk20a *g, u32 link_id,
 								bool sync)
 {
-	u32 err = 0;
+	int err = 0;
 
 	err = gv100_nvlink_minion_send_command(g, link_id,
 			minion_nvlink_dl_cmd_command_laneshutdown_v(), 0, sync);
 
-	if (err)
+	if (err != 0)
 		nvgpu_err(g, " failed to shutdown lane on %d", link_id);
 
 	return err;
@@ -1110,7 +1110,7 @@ static void gv100_nvlink_dlpl_isr(struct gk20a *g, u32 link_id)
 	u32 fatal_mask = 0;
 	u32 intr = 0;
 	bool retrain = false;
-	u32 err;
+	int err;
 
 	intr = DLPL_REG_RD32(g, link_id, nvl_intr_r()) &
 		DLPL_REG_RD32(g, link_id, nvl_intr_stall_en_r());
@@ -1135,7 +1135,7 @@ static void gv100_nvlink_dlpl_isr(struct gk20a *g, u32 link_id)
 
 	if (retrain) {
 		err = nvgpu_nvlink_train(g, link_id, false);
-		if (err)
+		if (err != 0)
 			nvgpu_err(g, "failed to retrain link %d", link_id);
 	}
 
@@ -1539,7 +1539,7 @@ static int gv100_nvlink_enable_links_pre_top(struct gk20a *g, u32 links)
 	u32 tmp;
 	u32 reg;
 	u32 delay = ioctrl_reset_sw_post_reset_delay_microseconds_v();
-	u32 err;
+	int err;
 
 	nvgpu_log(g, gpu_dbg_nvlink, " enabling 0x%lx links", enabled_links);
 	/* Take links out of reset */
@@ -1571,7 +1571,7 @@ static int gv100_nvlink_enable_links_pre_top(struct gk20a *g, u32 links)
 		 */
 		if (g->ops.nvlink.rxdet) {
 			err = g->ops.nvlink.rxdet(g, link_id);
-			if (err)
+			if (err != 0)
 				return err;
 		}
 
@@ -1583,19 +1583,19 @@ static int gv100_nvlink_enable_links_pre_top(struct gk20a *g, u32 links)
 
 		/* This should be done by the NVLINK API */
 		err = gv100_nvlink_minion_init_uphy(g, BIT(link_id), true);
-		if (err) {
+		if (err != 0) {
 			nvgpu_err(g, "Failed to init phy of link: %u", link_id);
 			return err;
 		}
 
 		err = gv100_nvlink_rxcal_en(g, BIT(link_id));
-		if (err) {
+		if (err != 0) {
 			nvgpu_err(g, "Failed to RXcal on link: %u", link_id);
 			return err;
 		}
 
 		err = gv100_nvlink_minion_data_ready_en(g, BIT(link_id), true);
-		if (err) {
+		if (err != 0) {
 			nvgpu_err(g, "Failed to set data ready link:%u",
 				link_id);
 			return err;
@@ -1669,7 +1669,7 @@ static u32 gv100_nvlink_prbs_gen_en(struct gk20a *g, unsigned long mask)
 	return 0;
 }
 
-static u32 gv100_nvlink_rxcal_en(struct gk20a *g, unsigned long mask)
+static int gv100_nvlink_rxcal_en(struct gk20a *g, unsigned long mask)
 {
 	u32 link_id;
 	struct nvgpu_timeout timeout;
@@ -1719,7 +1719,7 @@ int gv100_nvlink_init(struct gk20a *g)
 		return -ENODEV;
 
 	err = nvgpu_nvlink_enumerate(g);
-	if (err) {
+	if (err != 0) {
 		nvgpu_err(g, "failed to enumerate nvlink");
 		goto fail;
 	}
@@ -1728,7 +1728,7 @@ int gv100_nvlink_init(struct gk20a *g)
 	__nvgpu_set_enabled(g, NVGPU_MM_USE_PHYSICAL_SG, true);
 
 	err = g->ops.fb.enable_nvlink(g);
-	if (err) {
+	if (err != 0) {
 		nvgpu_err(g, "failed switch to nvlink sysmem");
 		goto fail;
 	}
@@ -2202,7 +2202,7 @@ int gv100_nvlink_link_early_init(struct gk20a *g, unsigned long mask)
 	int err;
 
 	err = gv100_nvlink_enable_links_pre_top(g, mask);
-	if (err) {
+	if (err != 0) {
 		nvgpu_err(g, "Pre topology failed for links %lx", mask);
 		return err;
 	}
@@ -2230,7 +2230,7 @@ int gv100_nvlink_interface_init(struct gk20a *g)
 	}
 
 	err = g->ops.fb.init_nvlink(g);
-	if (err) {
+	if (err != 0) {
 		nvgpu_err(g, "failed to setup nvlinks for sysmem");
 		return err;
 	}
@@ -2263,7 +2263,7 @@ int gv100_nvlink_reg_init(struct gk20a *g)
 
 		endp = link->remote_info.device_type;
 		err = gv100_nvlink_get_tlc_reginit(endp, &reg, &count);
-		if (err) {
+		if (err != 0) {
 			nvgpu_err(g, "no reginit for endp=%u", endp);
 			continue;
 		}
@@ -2329,7 +2329,7 @@ int gv100_nvlink_link_set_mode(struct gk20a *g, u32 link_id, u32 mode)
 {
 	u32 state;
 	u32 reg;
-	u32 err = 0;
+	int err = 0;
 
 	nvgpu_log(g, gpu_dbg_nvlink, "link :%d, mode:%u", link_id, mode);
 
@@ -2468,7 +2468,7 @@ int gv100_nvlink_link_set_sublink_mode(struct gk20a *g, u32 link_id,
 		return -EINVAL;
 
 	err = gv100_nvlink_link_sublink_check_change(g, link_id);
-	if (err)
+	if (err != 0)
 		return err;
 
 	if (is_rx_sublink)
@@ -2500,7 +2500,7 @@ int gv100_nvlink_link_set_sublink_mode(struct gk20a *g, u32 link_id,
 		DLPL_REG_WR32(g, link_id, nvl_sublink_change_r(), reg);
 
 		err = gv100_nvlink_link_sublink_check_change(g, link_id);
-		if (err) {
+		if (err != 0) {
 			nvgpu_err(g, "Error in TX to HS");
 			return err;
 		}
@@ -2534,7 +2534,7 @@ int gv100_nvlink_link_set_sublink_mode(struct gk20a *g, u32 link_id,
 		DLPL_REG_WR32(g, link_id, nvl_sublink_change_r(), reg);
 
 		err = gv100_nvlink_link_sublink_check_change(g, link_id);
-		if (err) {
+		if (err != 0) {
 			nvgpu_err(g, "Error in TX to SAFE");
 			return err;
 		}
@@ -2560,7 +2560,7 @@ int gv100_nvlink_link_set_sublink_mode(struct gk20a *g, u32 link_id,
 		DLPL_REG_WR32(g, link_id, nvl_sublink_change_r(), reg);
 
 		err = gv100_nvlink_link_sublink_check_change(g, link_id);
-		if (err) {
+		if (err != 0) {
 			nvgpu_err(g, "Error in TX to OFF");
 			return err;
 		}
@@ -2591,7 +2591,7 @@ int gv100_nvlink_link_set_sublink_mode(struct gk20a *g, u32 link_id,
 		DLPL_REG_WR32(g, link_id, nvl_sublink_change_r(), reg);
 
 		err = gv100_nvlink_link_sublink_check_change(g, link_id);
-		if (err) {
+		if (err != 0) {
 			nvgpu_err(g, "Error in RX to OFF");
 			return err;
 		}
@@ -2613,7 +2613,7 @@ int gv100_nvlink_link_set_sublink_mode(struct gk20a *g, u32 link_id,
 		nvgpu_err(g, "MODE %u", mode);
 	}
 
-	if (err)
+	if (err != 0)
 		nvgpu_err(g, " failed on set_sublink_mode");
 	return err;
 }
@@ -2695,13 +2695,13 @@ int gv100_nvlink_early_init(struct gk20a *g)
 		return -EINVAL;
 
 	err = nvgpu_bios_get_nvlink_config_data(g);
-	if (err) {
+	if (err != 0) {
 		nvgpu_err(g, "failed to read nvlink vbios data");
 		goto nvlink_init_exit;
 	}
 
 	err = g->ops.nvlink.discover_ioctrl(g);
-	if (err)
+	if (err != 0)
 		goto nvlink_init_exit;
 
 	/* Enable NVLINK in MC */
@@ -2711,7 +2711,7 @@ int gv100_nvlink_early_init(struct gk20a *g)
 	g->ops.mc.reset(g, mc_reset_nvlink_mask);
 
 	err = g->ops.nvlink.discover_link(g);
-	if (err || g->nvlink.discovered_links == 0) {
+	if ((err != 0) || (g->nvlink.discovered_links == 0)) {
 		nvgpu_err(g, "No links available");
 		goto nvlink_init_exit;
 	}
@@ -2757,13 +2757,13 @@ int gv100_nvlink_early_init(struct gk20a *g)
 	g->nvlink.speed = nvgpu_nvlink_speed_20G;
 
 	err = __gv100_nvlink_state_load_hal(g);
-	if (err) {
+	if (err != 0) {
 		nvgpu_err(g, " failed Nvlink state load");
 		goto nvlink_init_exit;
 	}
 	err = gv100_nvlink_minion_configure_ac_coupling(g,
 					g->nvlink.ac_coupling_mask, true);
-	if (err) {
+	if (err != 0) {
 		nvgpu_err(g, " failed Nvlink state load");
 		goto nvlink_init_exit;
 	}

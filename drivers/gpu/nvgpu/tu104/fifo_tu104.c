@@ -217,7 +217,7 @@ int tu104_init_pdb_cache_war(struct gk20a *g)
 	 * PDB bound to 257th instance block
 	 */
 	err = nvgpu_dma_alloc_sys(g, size, &g->pdb_cache_war_mem);
-	if (err) {
+	if (err != 0) {
 		return err;
 	}
 

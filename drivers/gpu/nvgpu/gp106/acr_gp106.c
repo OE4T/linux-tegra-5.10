@@ -103,7 +103,7 @@ int gp106_alloc_blob_space(struct gk20a *g,
 	err = nvgpu_dma_alloc_vid_at(g,
 			wpr_inf.size,
 			&g->acr.wpr_dummy, wpr_inf.wpr_base);
-	if (err) {
+	if (err != 0) {
 		return err;
 	}
 
@@ -150,7 +150,7 @@ int pmu_ucode_details(struct gk20a *g, struct flcn_ucode_img_v1 *p_img)
 	g->acr.pmu_desc = pmu_desc;
 
 	err = nvgpu_init_pmu_fw_support(pmu);
-	if (err) {
+	if (err != 0) {
 		nvgpu_err(g, "failed to set function pointers");
 		goto release_sig;
 	}
@@ -514,7 +514,7 @@ int gp106_prepare_ucode_blob(struct gk20a *g)
 		/*Recovery case, we do not need to form
 		non WPR blob of ucodes*/
 		err = nvgpu_init_pmu_fw_support(pmu);
-		if (err) {
+		if (err != 0) {
 			gp106_dbg_pmu(g, "failed to set function pointers\n");
 			return err;
 		}
@@ -531,7 +531,7 @@ int gp106_prepare_ucode_blob(struct gk20a *g)
 	/* Discover all managed falcons*/
 	err = lsfm_discover_ucode_images(g, plsfm);
 	gp106_dbg_pmu(g, " Managed Falcon cnt %d\n", plsfm->managed_flcn_cnt);
-	if (err) {
+	if (err != 0) {
 		goto exit_err;
 	}
 
@@ -543,14 +543,14 @@ int gp106_prepare_ucode_blob(struct gk20a *g)
 	    (g->acr.ucode_blob.cpu_va == NULL)) {
 		/* Generate WPR requirements*/
 		err = lsf_gen_wpr_requirements(g, plsfm);
-		if (err) {
+		if (err != 0) {
 			goto exit_err;
 		}
 
 		/*Alloc memory to hold ucode blob contents*/
 		err = g->acr.alloc_blob_space(g, plsfm->wpr_size
 							,&g->acr.ucode_blob);
-		if (err) {
+		if (err != 0) {
 			goto exit_err;
 		}
 
@@ -588,7 +588,7 @@ int lsfm_discover_ucode_images(struct gk20a *g,
 	/* Obtain the PMU ucode image and add it to the list if required*/
 	memset(&ucode_img, 0, sizeof(ucode_img));
 	status = pmu_ucode_details(g, &ucode_img);
-	if (status) {
+	if (status != 0) {
 		return status;
 	}
 

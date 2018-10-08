@@ -219,7 +219,7 @@ int gp106_bios_init(struct gk20a *g)
 	}
 
 	err = nvgpu_bios_parse_rom(g);
-	if (err) {
+	if (err != 0) {
 		goto free_firmware;
 	}
 
@@ -236,7 +236,7 @@ int gp106_bios_init(struct gk20a *g)
 
 	if (g->ops.bios.devinit) {
 		err = g->ops.bios.devinit(g);
-		if (err) {
+		if (err != 0) {
 			nvgpu_err(g, "devinit failed");
 			goto free_firmware;
 		}
@@ -245,7 +245,7 @@ int gp106_bios_init(struct gk20a *g)
 	if (nvgpu_is_enabled(g, NVGPU_PMU_RUN_PREOS) &&
 	    (g->ops.bios.preos != NULL)) {
 		err = g->ops.bios.preos(g);
-		if (err) {
+		if (err != 0) {
 			nvgpu_err(g, "pre-os failed");
 			goto free_firmware;
 		}
@@ -253,7 +253,7 @@ int gp106_bios_init(struct gk20a *g)
 
 	if (g->ops.bios.verify_devinit) {
 		err = g->ops.bios.verify_devinit(g);
-		if (err) {
+		if (err != 0) {
 			nvgpu_err(g, "devinit status verification failed");
 			goto free_firmware;
 		}

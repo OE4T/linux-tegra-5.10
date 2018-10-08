@@ -136,12 +136,12 @@ int gr_tu104_alloc_global_ctx_buffers(struct gk20a *g)
 	err = gk20a_gr_alloc_ctx_buffer(g,
 			&gr->global_ctx_buffer[RTV_CIRCULAR_BUFFER],
 			rtv_circular_buffer_size);
-	if (err) {
+	if (err != 0) {
 		return err;
 	}
 
 	err = gr_gk20a_alloc_global_ctx_buffers(g);
-	if (err) {
+	if (err != 0) {
 		goto clean_up;
 	}
 
@@ -192,7 +192,7 @@ int gr_tu104_map_global_ctx_buffers(struct gk20a *g,
 	g_bfr_index[RTV_CIRCULAR_BUFFER_VA] = RTV_CIRCULAR_BUFFER;
 
 	err = gr_gk20a_map_global_ctx_buffers(g, ch);
-	if (err) {
+	if (err != 0) {
 		goto clean_up;
 	}
 
@@ -229,7 +229,7 @@ int gr_tu104_commit_global_ctx_buffers(struct gk20a *g,
 	u32 size;
 
 	err = gr_gk20a_commit_global_ctx_buffers(g, ch, patch);
-	if (err) {
+	if (err != 0) {
 		return err;
 	}
 
@@ -242,7 +242,7 @@ int gr_tu104_commit_global_ctx_buffers(struct gk20a *g,
 	if (patch) {
 		int err;
 		err = gr_gk20a_ctx_patch_write_begin(g, gr_ctx, false);
-		if (err) {
+		if (err != 0) {
 			return err;
 		}
 	}

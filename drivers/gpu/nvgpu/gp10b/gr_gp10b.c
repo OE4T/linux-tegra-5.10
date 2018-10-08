@@ -896,7 +896,7 @@ int gr_gp10b_init_ctx_state(struct gk20a *g)
 	nvgpu_log_fn(g, " ");
 
 	err = gr_gk20a_init_ctx_state(g);
-	if (err) {
+	if (err != 0) {
 		return err;
 	}
 
@@ -905,7 +905,7 @@ int gr_gp10b_init_ctx_state(struct gk20a *g)
 			gr_fecs_method_push_adr_discover_preemption_image_size_v();
 		op.mailbox.ret = &g->gr.ctx_vars.preempt_image_size;
 		err = gr_gk20a_submit_fecs_method_op(g, op, false);
-		if (err) {
+		if (err != 0) {
 			nvgpu_err(g, "query preempt image size failed");
 			return err;
 		}
@@ -928,7 +928,7 @@ int gr_gp10b_alloc_buffer(struct vm_gk20a *vm, size_t size,
 	nvgpu_log_fn(g, " ");
 
 	err = nvgpu_dma_alloc_sys(vm->mm->g, size, mem);
-	if (err) {
+	if (err != 0) {
 		return err;
 	}
 
@@ -1016,7 +1016,7 @@ int gr_gp10b_set_ctxsw_preemption_mode(struct gk20a *g,
 		err = gr_gp10b_alloc_buffer(vm,
 					g->gr.ctx_vars.preempt_image_size,
 					&gr_ctx->preempt_ctxsw_buffer);
-		if (err) {
+		if (err != 0) {
 			nvgpu_err(g, "cannot allocate preempt buffer");
 			goto fail;
 		}
@@ -1024,7 +1024,7 @@ int gr_gp10b_set_ctxsw_preemption_mode(struct gk20a *g,
 		err = gr_gp10b_alloc_buffer(vm,
 					spill_size,
 					&gr_ctx->spill_ctxsw_buffer);
-		if (err) {
+		if (err != 0) {
 			nvgpu_err(g, "cannot allocate spill buffer");
 			goto fail_free_preempt;
 		}
@@ -1032,7 +1032,7 @@ int gr_gp10b_set_ctxsw_preemption_mode(struct gk20a *g,
 		err = gr_gp10b_alloc_buffer(vm,
 					attrib_cb_size,
 					&gr_ctx->betacb_ctxsw_buffer);
-		if (err) {
+		if (err != 0) {
 			nvgpu_err(g, "cannot allocate beta buffer");
 			goto fail_free_spill;
 		}
@@ -1040,7 +1040,7 @@ int gr_gp10b_set_ctxsw_preemption_mode(struct gk20a *g,
 		err = gr_gp10b_alloc_buffer(vm,
 					pagepool_size,
 					&gr_ctx->pagepool_ctxsw_buffer);
-		if (err) {
+		if (err != 0) {
 			nvgpu_err(g, "cannot allocate page pool");
 			goto fail_free_betacb;
 		}
@@ -1094,7 +1094,7 @@ int gr_gp10b_alloc_gr_ctx(struct gk20a *g,
 	nvgpu_log_fn(g, " ");
 
 	err = gr_gk20a_alloc_gr_ctx(g, gr_ctx, vm, class, flags);
-	if (err) {
+	if (err != 0) {
 		return err;
 	}
 
@@ -1111,7 +1111,7 @@ int gr_gp10b_alloc_gr_ctx(struct gk20a *g,
 		if (g->ops.gr.set_ctxsw_preemption_mode) {
 			err = g->ops.gr.set_ctxsw_preemption_mode(g, gr_ctx, vm,
 			    class, graphics_preempt_mode, compute_preempt_mode);
-			if (err) {
+			if (err != 0) {
 				nvgpu_err(g, "set_ctxsw_preemption_mode failed");
 				goto fail_free_gk20a_ctx;
 			}
@@ -1238,7 +1238,7 @@ void gr_gp10b_update_ctxsw_preemption_mode(struct gk20a *g,
 		}
 
 		err = gr_gk20a_ctx_patch_write_begin(g, gr_ctx, true);
-		if (err) {
+		if (err != 0) {
 			nvgpu_err(g, "can't map patch context");
 			goto out;
 		}
@@ -1692,14 +1692,14 @@ static int gr_gp10b_disable_channel_or_tsg(struct gk20a *g, struct channel_gk20a
 	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gpu_dbg | gpu_dbg_intr, " ");
 
 	ret = gk20a_disable_channel_tsg(g, fault_ch);
-	if (ret) {
+	if (ret != 0) {
 		nvgpu_err(g,
 				"CILP: failed to disable channel/TSG!");
 		return ret;
 	}
 
 	ret = g->ops.fifo.update_runlist(g, fault_ch->runlist_id, ~0, true, false);
-	if (ret) {
+	if (ret != 0) {
 		nvgpu_err(g,
 				"CILP: failed to restart runlist 0!");
 		return ret;
@@ -1751,7 +1751,7 @@ int gr_gp10b_set_cilp_preempt_pending(struct gk20a *g,
 		nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gpu_dbg | gpu_dbg_intr,
 				"CILP: looking up ctx id");
 		ret = gr_gk20a_get_ctx_id(g, fault_ch, &gr_ctx->ctx_id);
-		if (ret) {
+		if (ret != 0) {
 			nvgpu_err(g, "CILP: error looking up ctx id!");
 			return ret;
 		}
@@ -1775,7 +1775,7 @@ int gr_gp10b_set_cilp_preempt_pending(struct gk20a *g,
 			.cond.ok = GR_IS_UCODE_OP_EQUAL,
 			.cond.fail = GR_IS_UCODE_OP_SKIP});
 
-	if (ret) {
+	if (ret != 0) {
 		nvgpu_err(g, "CILP: failed to enable ctxsw interrupt!");
 		return ret;
 	}
@@ -1788,7 +1788,7 @@ int gr_gp10b_set_cilp_preempt_pending(struct gk20a *g,
 			fault_ch->chid);
 
 	ret = gr_gp10b_disable_channel_or_tsg(g, fault_ch);
-	if (ret) {
+	if (ret != 0) {
 		nvgpu_err(g, "CILP: failed to disable channel!!");
 		return ret;
 	}
@@ -1918,7 +1918,7 @@ int gr_gp10b_pre_process_sm_exception(struct gk20a *g,
 
 			nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gpu_dbg, "CILP: Setting CILP preempt pending\n");
 			ret = gr_gp10b_set_cilp_preempt_pending(g, fault_ch);
-			if (ret) {
+			if (ret != 0) {
 				nvgpu_err(g, "CILP: error while setting CILP preempt pending!");
 				return ret;
 			}
@@ -2005,7 +2005,7 @@ int gr_gp10b_handle_fecs_error(struct gk20a *g,
 				gr_fecs_host_int_clear_ctxsw_intr1_clear_f());
 
 		ret = gr_gp10b_get_cilp_preempt_pending_chid(g, &chid);
-		if (ret) {
+		if (ret != 0) {
 			goto clean_up;
 		}
 
@@ -2018,7 +2018,7 @@ int gr_gp10b_handle_fecs_error(struct gk20a *g,
 
 		/* set preempt_pending to false */
 		ret = gr_gp10b_clear_cilp_preempt_pending(g, ch);
-		if (ret) {
+		if (ret != 0) {
 			nvgpu_err(g, "CILP: error while unsetting CILP preempt pending!");
 			gk20a_channel_put(ch);
 			goto clean_up;
@@ -2093,7 +2093,7 @@ bool gr_gp10b_suspend_context(struct channel_gk20a *ch,
 
 		if (gr_ctx->compute_preempt_mode == NVGPU_PREEMPTION_MODE_COMPUTE_CILP) {
 			err = gr_gp10b_set_cilp_preempt_pending(g, ch);
-			if (err) {
+			if (err != 0) {
 				nvgpu_err(g, "unable to set CILP preempt pending");
 			} else {
 				*cilp_preempt_pending = true;
@@ -2126,7 +2126,7 @@ int gr_gp10b_suspend_contexts(struct gk20a *g,
 	nvgpu_mutex_acquire(&g->dbg_sessions_lock);
 
 	err = gr_gk20a_disable_ctxsw(g);
-	if (err) {
+	if (err != 0) {
 		nvgpu_err(g, "unable to stop gr ctxsw");
 		nvgpu_mutex_release(&g->dbg_sessions_lock);
 		goto clean_up;
@@ -2151,7 +2151,7 @@ int gr_gp10b_suspend_contexts(struct gk20a *g,
 	nvgpu_mutex_release(&dbg_s->ch_list_lock);
 
 	err = gr_gk20a_enable_ctxsw(g);
-	if (err) {
+	if (err != 0) {
 		nvgpu_mutex_release(&g->dbg_sessions_lock);
 		goto clean_up;
 	}
@@ -2217,12 +2217,12 @@ int gr_gp10b_set_boosted_ctx(struct channel_gk20a *ch,
 	mem = &gr_ctx->mem;
 
 	err = gk20a_disable_channel_tsg(g, ch);
-	if (err) {
+	if (err != 0) {
 		return err;
 	}
 
 	err = gk20a_fifo_preempt(g, ch);
-	if (err) {
+	if (err != 0) {
 		goto enable_ch;
 	}
 
@@ -2299,19 +2299,19 @@ int gr_gp10b_set_preemption_mode(struct channel_gk20a *ch,
 				compute_preempt_mode);
 		err = g->ops.gr.set_ctxsw_preemption_mode(g, gr_ctx, vm, class,
 						graphics_preempt_mode, compute_preempt_mode);
-		if (err) {
+		if (err != 0) {
 			nvgpu_err(g, "set_ctxsw_preemption_mode failed");
 			return err;
 		}
 	}
 
 	err = gk20a_disable_channel_tsg(g, ch);
-	if (err) {
+	if (err != 0) {
 		return err;
 	}
 
 	err = gk20a_fifo_preempt(g, ch);
-	if (err) {
+	if (err != 0) {
 		goto enable_ch;
 	}
 
@@ -2320,7 +2320,7 @@ int gr_gp10b_set_preemption_mode(struct channel_gk20a *ch,
 						ch, mem);
 
 		err = gr_gk20a_ctx_patch_write_begin(g, gr_ctx, true);
-		if (err) {
+		if (err != 0) {
 			nvgpu_err(g, "can't map patch context");
 			goto enable_ch;
 		}

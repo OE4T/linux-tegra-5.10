@@ -67,7 +67,7 @@ int gv11b_alloc_subctx_header(struct channel_gk20a *c)
 	if (!nvgpu_mem_is_valid(ctxheader)) {
 		ret = nvgpu_dma_alloc_sys(g, ctxsw_prog_fecs_header_v(),
 				ctxheader);
-		if (ret) {
+		if (ret != 0) {
 			nvgpu_err(g, "failed to allocate sub ctx header");
 			return ret;
 		}

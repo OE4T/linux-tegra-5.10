@@ -242,7 +242,7 @@ int gr_gv100_init_sm_id_table(struct gk20a *g)
 				err = gr_gv100_scg_estimate_perf(g,
 						gpc_tpc_mask, gpc, tpc, &perf);
 
-				if (err) {
+				if (err != 0) {
 					nvgpu_err(g,
 						"Error while estimating perf");
 					goto exit_build_table;

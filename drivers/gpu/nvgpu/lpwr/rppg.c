@@ -32,7 +32,7 @@ static void pmu_handle_rppg_init_msg(struct gk20a *g, struct pmu_msg *msg,
 {
 	u32 *success = param;
 
-	if (status == 0) {
+	if (status == 0U) {
 		switch (msg->msg.pg.rppg_msg.cmn.msg_id) {
 		case NV_PMU_RPPG_MSG_ID_INIT_CTRL_ACK:
 			*success = 1;
@@ -46,11 +46,11 @@ static void pmu_handle_rppg_init_msg(struct gk20a *g, struct pmu_msg *msg,
 				msg->msg.pg.msg_type);
 }
 
-static u32 rppg_send_cmd(struct gk20a *g, struct nv_pmu_rppg_cmd *prppg_cmd)
+static int rppg_send_cmd(struct gk20a *g, struct nv_pmu_rppg_cmd *prppg_cmd)
 {
 	struct pmu_cmd cmd;
 	u32 seq;
-	u32 status = 0;
+	int status = 0;
 	u32 success = 0;
 
 	memset(&cmd, 0, sizeof(struct pmu_cmd));
@@ -82,7 +82,7 @@ static u32 rppg_send_cmd(struct gk20a *g, struct nv_pmu_rppg_cmd *prppg_cmd)
 
 	status = nvgpu_pmu_cmd_post(g, &cmd, NULL, NULL, PMU_COMMAND_QUEUE_HPQ,
 			pmu_handle_rppg_init_msg, &success, &seq, ~0);
-	if (status) {
+	if (status != 0) {
 		nvgpu_err(g, "Unable to submit parameter command %d",
 			prppg_cmd->cmn.cmd_id);
 		goto exit;
@@ -102,7 +102,7 @@ exit:
 	return status;
 }
 
-static u32 rppg_init(struct gk20a *g)
+static int rppg_init(struct gk20a *g)
 {
 	struct nv_pmu_rppg_cmd rppg_cmd;
 
@@ -111,7 +111,7 @@ static u32 rppg_init(struct gk20a *g)
 	return rppg_send_cmd(g, &rppg_cmd);
 }
 
-static u32 rppg_ctrl_init(struct gk20a *g, u8 ctrl_id)
+static int rppg_ctrl_init(struct gk20a *g, u8 ctrl_id)
 {
 	struct nv_pmu_rppg_cmd rppg_cmd;
 
@@ -128,9 +128,9 @@ static u32 rppg_ctrl_init(struct gk20a *g, u8 ctrl_id)
 	return rppg_send_cmd(g, &rppg_cmd);
 }
 
-u32 init_rppg(struct gk20a *g)
+int init_rppg(struct gk20a *g)
 {
-	u32 status;
+	int status;
 
 	status = rppg_init(g);
 	if (status != 0) {

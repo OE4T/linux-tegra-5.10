@@ -226,7 +226,7 @@ static int gp106_init_gpu_characteristics(struct gk20a *g)
 	int err;
 
 	err = gk20a_init_gpu_characteristics(g);
-	if (err) {
+	if (err != 0) {
 		return err;
 	}
 

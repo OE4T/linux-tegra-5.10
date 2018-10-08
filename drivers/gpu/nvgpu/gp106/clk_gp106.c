@@ -77,12 +77,12 @@ unsigned long gp106_clk_measure_freq(struct gk20a *g, u32 api_domain)
 int gp106_init_clk_support(struct gk20a *g)
 {
 	struct clk_gk20a *clk = &g->clk;
-	u32 err = 0;
+	int err = 0;
 
 	nvgpu_log_fn(g, " ");
 
 	err = nvgpu_mutex_init(&clk->clk_mutex);
-	if (err) {
+	if (err != 0) {
 		return err;
 	}
 

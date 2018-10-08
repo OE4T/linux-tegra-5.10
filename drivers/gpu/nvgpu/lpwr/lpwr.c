@@ -191,19 +191,19 @@ static int get_lpwr_ms_table(struct gk20a *g)
 	return 0;
 }
 
-u32 nvgpu_lpwr_pg_setup(struct gk20a *g)
+int nvgpu_lpwr_pg_setup(struct gk20a *g)
 {
-	u32 err = 0;
+	int err = 0;
 
 	nvgpu_log_fn(g, " ");
 
 	err = get_lpwr_gr_table(g);
-	if (err) {
+	if (err != 0) {
 		return err;
 	}
 
 	err = get_lpwr_ms_table(g);
-	if (err) {
+	if (err != 0) {
 		return err;
 	}
 
@@ -220,7 +220,7 @@ static void nvgpu_pmu_handle_param_lpwr_msg(struct gk20a *g,
 
 	nvgpu_log_fn(g, " ");
 
-	if (status != 0) {
+	if (status != 0U) {
 		nvgpu_err(g, "LWPR PARAM cmd aborted");
 		return;
 	}
@@ -423,7 +423,7 @@ int nvgpu_lpwr_disable_pg(struct gk20a *g, bool pstate_lock)
 	if (is_rppg_supported) {
 		if (g->support_pmu && g->elpg_enabled) {
 			status = nvgpu_pmu_disable_elpg(g);
-			if (status) {
+			if (status != 0) {
 				goto exit_unlock;
 			}
 		}
