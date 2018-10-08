@@ -256,6 +256,27 @@ static u32 tu104_get_litter_value(struct gk20a *g, int value)
 	case GPU_LIT_GPC_PRIV_STRIDE:
 		ret = proj_gpc_priv_stride_v();
 		break;
+	case GPU_LIT_PERFMON_PMMGPCTPCA_DOMAIN_START:
+		ret = 2;
+		break;
+	case GPU_LIT_PERFMON_PMMGPCTPCB_DOMAIN_START:
+		ret = 8;
+		break;
+	case GPU_LIT_PERFMON_PMMGPCTPC_DOMAIN_COUNT:
+		ret = 6;
+		break;
+	case GPU_LIT_PERFMON_PMMFBP_LTC_DOMAIN_START:
+		ret = 2;
+		break;
+	case GPU_LIT_PERFMON_PMMFBP_LTC_DOMAIN_COUNT:
+		ret = 8;
+		break;
+	case GPU_LIT_PERFMON_PMMFBP_ROP_DOMAIN_START:
+		ret = 10;
+		break;
+	case GPU_LIT_PERFMON_PMMFBP_ROP_DOMAIN_COUNT:
+		ret = 2;
+		break;
 	default:
 		nvgpu_err(g, "Missing definition %d", value);
 		BUG();
