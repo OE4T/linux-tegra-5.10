@@ -272,6 +272,8 @@ struct gpio_irq_chip {
  *	This can be omitted on input-only or output-only gpio chips.
  * @direction_output: configures signal "offset" as output, or returns error
  *	This can be omitted on input-only or output-only gpio chips.
+ * @timestamp_control: enables signal "offset" for timestamping
+ * @timestamp_read: read timestamp value for given signal "offset"
  * @get: returns value for signal "offset", 0=low, 1=high, or negative error
  * @get_multiple: reads values for multiple signals defined by "mask" and
  *	stores them in "bits", returns 0 on success or negative error
@@ -353,6 +355,10 @@ struct gpio_chip {
 						unsigned offset);
 	int			(*direction_output)(struct gpio_chip *chip,
 						unsigned offset, int value);
+	int			(*timestamp_control)(struct gpio_chip *chip,
+						unsigned offset, int enable);
+	int			(*timestamp_read)(struct gpio_chip *chip,
+						unsigned offset, u64 *ts);
 	int			(*get)(struct gpio_chip *chip,
 						unsigned offset);
 	int			(*get_multiple)(struct gpio_chip *chip,
