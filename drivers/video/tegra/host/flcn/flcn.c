@@ -31,9 +31,12 @@
 #include <linux/module.h>
 #include <linux/version.h>
 #include <linux/iopoll.h>
+#include <soc/tegra/chip-id.h>
+#include <soc/tegra/fuse.h>
 
 #include "dev.h"
 #include "class_ids.h"
+#include "class_ids_t194.h"
 #include "bus_client.h"
 #include "nvhost_acm.h"
 #include "nvhost_vm.h"
@@ -808,6 +811,15 @@ static int flcn_probe(struct platform_device *dev)
 	}
 
 	nvhost_dbg_fn("dev:%p pdata:%p", dev, pdata);
+
+	if (tegra_get_chipid() == TEGRA_CHIPID_TEGRA19 &&
+	    (tegra_get_sku_id() == 0x9F ||
+	     tegra_get_sku_id() == 0x9E) &&
+	    pdata->class == NV_VIDEO_ENCODE_NVENC1_CLASS_ID) {
+		dev_err(&dev->dev, "NVENC1 IP is disabled in SKU\n");
+		err = -ENODEV;
+		return err;
+	}
 
 	pdata->pdev = dev;
 	mutex_init(&pdata->lock);

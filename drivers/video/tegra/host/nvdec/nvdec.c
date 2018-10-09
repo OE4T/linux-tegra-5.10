@@ -37,6 +37,8 @@
 #include <linux/nvhost_nvdec_ioctl.h>
 
 #include <linux/platform/tegra/mc.h>
+#include <soc/tegra/chip-id.h>
+#include <soc/tegra/fuse.h>
 
 #include <soc/tegra/kfuse.h>
 
@@ -51,6 +53,7 @@
 #include "t124/t124.h"
 #include "t210/t210.h"
 #include "iomap.h"
+#include "class_ids_t194.h"
 
 #if defined(CONFIG_TRUSTED_LITTLE_KERNEL) || defined(CONFIG_TRUSTY)
 #include <linux/ote_protocol.h>
@@ -480,6 +483,15 @@ static int nvdec_probe(struct platform_device *dev)
 	if (!pdata) {
 		dev_info(&dev->dev, "no platform data\n");
 		return -ENODATA;
+	}
+
+	if (tegra_get_chipid() == TEGRA_CHIPID_TEGRA19 &&
+	    (tegra_get_sku_id() == 0x9F ||
+	     tegra_get_sku_id() == 0x9E) &&
+	    pdata->class == NV_NVDEC1_CLASS_ID) {
+		dev_err(&dev->dev, "NVDEC1 IP is disabled in SKU\n");
+		err = -ENODEV;
+		return err;
 	}
 
 	pdata->pdev = dev;
