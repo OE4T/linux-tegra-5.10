@@ -129,15 +129,12 @@ static void test_t19x_cpu_enter_c6(u32 wake_time)
 	mce_index = (NVG_STAT_QUERY_C6_ENTRIES << MCE_STAT_ID_SHIFT)
 					+ (u32)cpu;
 	tegra_mce_read_cstate_stats(mce_index, &val);
-	trace_printk("cpu = %d C6_COUNT_BEFORE = %llu\n", cpu, val);
 
 	atomic_inc(&entered_c6_cpu_count);
 
 	t19x_cpu_enter_c6(T19x_CPUIDLE_C6_STATE);
 
-	trace_printk("Exiting C6\n");
 	tegra_mce_read_cstate_stats(mce_index, &val);
-	trace_printk("cpu = %d C6_COUNT_AFTER = %llu\n", cpu, val);
 }
 
 static void t19x_cpu_enter_c7(int index)
