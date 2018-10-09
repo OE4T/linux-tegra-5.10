@@ -793,7 +793,7 @@ static int nvgpu_ioctl_channel_reg_ops(struct dbg_session_gk20a *dbg_s,
 	struct gk20a *g = dbg_s->g;
 	struct channel_gk20a *ch;
 
-	bool is_current_ctx;
+	bool is_current_ctx = false;
 
 
 	nvgpu_log_fn(g, "%d ops, max fragment %d", args->num_ops, g->dbg_regops_tmp_buf_ops);
