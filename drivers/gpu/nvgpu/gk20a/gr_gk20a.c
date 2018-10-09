@@ -78,9 +78,6 @@ static void gr_gk20a_free_channel_pm_ctx(struct gk20a *g,
 					 struct vm_gk20a *vm,
 					 struct nvgpu_gr_ctx *gr_ctx);
 
-/* channel patch ctx buffer */
-static int  gr_gk20a_alloc_channel_patch_ctx(struct gk20a *g,
-					struct channel_gk20a *c);
 static void gr_gk20a_free_channel_patch_ctx(struct gk20a *g,
 					    struct vm_gk20a *vm,
 					    struct nvgpu_gr_ctx *gr_ctx);
@@ -2810,22 +2807,16 @@ u32 gr_gk20a_get_patch_slots(struct gk20a *g)
 }
 
 static int gr_gk20a_alloc_channel_patch_ctx(struct gk20a *g,
-				struct channel_gk20a *c)
+				struct vm_gk20a *ch_vm,
+				struct nvgpu_gr_ctx *gr_ctx)
 {
-	struct tsg_gk20a *tsg;
 	struct patch_desc *patch_ctx;
-	struct vm_gk20a *ch_vm = c->vm;
 	u32 alloc_size;
 	int err = 0;
 
 	nvgpu_log_fn(g, " ");
 
-	tsg = tsg_gk20a_from_ch(c);
-	if (tsg == NULL) {
-		return -EINVAL;
-	}
-
-	patch_ctx = &tsg->gr_ctx->patch_ctx;
+	patch_ctx = &gr_ctx->patch_ctx;
 	alloc_size = g->ops.gr.get_patch_slots(g) *
 		PATCH_CTX_SLOTS_REQUIRED_PER_ENTRY;
 
@@ -2925,7 +2916,8 @@ int gk20a_alloc_obj_ctx(struct channel_gk20a  *c, u32 class_num, u32 flags)
 		/* allocate patch buffer */
 		if (!nvgpu_mem_is_valid(&gr_ctx->patch_ctx.mem)) {
 			gr_ctx->patch_ctx.data_count = 0;
-			err = gr_gk20a_alloc_channel_patch_ctx(g, c);
+			err = gr_gk20a_alloc_channel_patch_ctx(g, c->vm,
+					gr_ctx);
 			if (err != 0) {
 				nvgpu_err(g,
 					"fail to allocate patch buffer");
