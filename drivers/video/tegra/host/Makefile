@@ -57,6 +57,8 @@ obj-$(CONFIG_TEGRA_GRHOST) += nvhost_minimal_pm/
 
 endif
 
+obj-$(CONFIG_TEGRA_T23X_GRHOST) += t23x/
+
 ifdef CONFIG_EVENTLIB
 
 $(obj)/bus_client.o: $(obj)/nvhost_events_json.h
