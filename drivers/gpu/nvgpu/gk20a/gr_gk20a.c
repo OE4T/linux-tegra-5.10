@@ -2768,27 +2768,6 @@ int gr_gk20a_alloc_gr_ctx(struct gk20a *g,
 	return err;
 }
 
-static int gr_gk20a_alloc_tsg_gr_ctx(struct gk20a *g,
-			struct tsg_gk20a *tsg, u32 class, u32 padding)
-{
-	struct nvgpu_gr_ctx *gr_ctx = tsg->gr_ctx;
-	int err;
-
-	if (tsg->vm == NULL) {
-		nvgpu_err(tsg->g, "No address space bound");
-		return -ENOMEM;
-	}
-
-	err = g->ops.gr.alloc_gr_ctx(g, gr_ctx, tsg->vm, class, padding);
-	if (err != 0) {
-		return err;
-	}
-
-	gr_ctx->tsgid = tsg->tsgid;
-
-	return 0;
-}
-
 void gr_gk20a_free_gr_ctx(struct gk20a *g,
 			  struct vm_gk20a *vm, struct nvgpu_gr_ctx *gr_ctx)
 {
@@ -2931,9 +2910,8 @@ int gk20a_alloc_obj_ctx(struct channel_gk20a  *c, u32 class_num, u32 flags)
 	if (!nvgpu_mem_is_valid(&gr_ctx->mem)) {
 		tsg->vm = c->vm;
 		nvgpu_vm_get(tsg->vm);
-		err = gr_gk20a_alloc_tsg_gr_ctx(g, tsg,
-						class_num,
-						flags);
+		err = g->ops.gr.alloc_gr_ctx(g, gr_ctx, tsg->vm, class_num,
+				flags);
 		if (err != 0) {
 			nvgpu_err(g,
 				"fail to allocate TSG gr ctx buffer");
@@ -2941,6 +2919,8 @@ int gk20a_alloc_obj_ctx(struct channel_gk20a  *c, u32 class_num, u32 flags)
 			tsg->vm = NULL;
 			goto out;
 		}
+
+		gr_ctx->tsgid = tsg->tsgid;
 
 		/* allocate patch buffer */
 		if (!nvgpu_mem_is_valid(&gr_ctx->patch_ctx.mem)) {
