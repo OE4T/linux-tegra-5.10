@@ -85,9 +85,6 @@ static void gr_gk20a_free_channel_patch_ctx(struct gk20a *g,
 					    struct vm_gk20a *vm,
 					    struct nvgpu_gr_ctx *gr_ctx);
 
-/* golden ctx image */
-static int gr_gk20a_init_golden_ctx_image(struct gk20a *g,
-					  struct channel_gk20a *c);
 /*elcg init */
 static void gr_gk20a_enable_elcg(struct gk20a *g);
 
@@ -1312,11 +1309,10 @@ error:
 /* init global golden image from a fresh gr_ctx in channel ctx.
    save a copy in local_golden_image in ctx_vars */
 static int gr_gk20a_init_golden_ctx_image(struct gk20a *g,
-					  struct channel_gk20a *c)
+					  struct channel_gk20a *c,
+					  struct nvgpu_gr_ctx *gr_ctx)
 {
 	struct gr_gk20a *gr = &g->gr;
-	struct tsg_gk20a *tsg;
-	struct nvgpu_gr_ctx *gr_ctx = NULL;
 	u32 ctx_header_bytes = ctxsw_prog_fecs_header_v();
 	u32 ctx_header_words;
 	u32 i;
@@ -1330,12 +1326,6 @@ static int gr_gk20a_init_golden_ctx_image(struct gk20a *g,
 
 	nvgpu_log_fn(g, " ");
 
-	tsg = tsg_gk20a_from_ch(c);
-	if (tsg == NULL) {
-		return -EINVAL;
-	}
-
-	gr_ctx = tsg->gr_ctx;
 	gr_mem = &gr_ctx->mem;
 
 	/* golden ctx is global to all channels. Although only the first
@@ -2981,7 +2971,7 @@ int gk20a_alloc_obj_ctx(struct channel_gk20a  *c, u32 class_num, u32 flags)
 		}
 
 		/* init golden image, ELPG enabled after this is done */
-		err = gr_gk20a_init_golden_ctx_image(g, c);
+		err = gr_gk20a_init_golden_ctx_image(g, c, gr_ctx);
 		if (err != 0) {
 			nvgpu_err(g,
 				"fail to init golden ctx image");
