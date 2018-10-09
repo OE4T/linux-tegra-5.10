@@ -6160,7 +6160,7 @@ int gk20a_gr_isr(struct gk20a *g)
 	}
 
 	/* Posting of BPT events should be the last thing in this function */
-	if ((global_esr != 0U) && (tsg != NULL)) {
+	if ((global_esr != 0U) && (tsg != NULL) && (need_reset == false)) {
 		gk20a_gr_post_bpt_events(g, tsg, global_esr);
 	}
 
