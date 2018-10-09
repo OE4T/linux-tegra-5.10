@@ -25,6 +25,7 @@
 #define  TEGRA186_GPIO_ENABLE_CONFIG_TRIGGER_TYPE_MASK (0x3 << 2)
 #define  TEGRA186_GPIO_ENABLE_CONFIG_TRIGGER_LEVEL BIT(4)
 #define  TEGRA186_GPIO_ENABLE_CONFIG_INTERRUPT BIT(6)
+#define  TEGRA186_GPIO_ENABLE_CONFIG_TIMESTAMP_FUNC BIT(7)
 
 #define TEGRA186_GPIO_DEBOUNCE_CONTROL 0x04
 #define  TEGRA186_GPIO_DEBOUNCE_CONTROL_THRESHOLD(x) ((x) & 0xff)
@@ -42,6 +43,112 @@
 
 #define TEGRA186_GPIO_INTERRUPT_STATUS(x) (0x100 + (x) * 4)
 
+/******************** GTE Registers ******************************/
+
+#define GTE_GPIO_TECTRL				0x0
+#define GTE_GPIO_TETSCH				0x4
+#define GTE_GPIO_TETSCL				0x8
+#define GTE_GPIO_TESRC				0xC
+#define GTE_GPIO_TECCV				0x10
+#define GTE_GPIO_TEPCV				0x14
+#define GTE_GPIO_TEENCV				0x18
+#define GTE_GPIO_TECMD				0x1C
+#define GTE_GPIO_TESTATUS			0x20
+#define GTE_GPIO_SLICE0_TETEN			0x40
+#define GTE_GPIO_SLICE0_TETDIS			0x44
+#define GTE_GPIO_SLICE1_TETEN			0x60
+#define GTE_GPIO_SLICE1_TETDIS			0x64
+#define GTE_GPIO_SLICE2_TETEN			0x80
+#define GTE_GPIO_SLICE2_TETDIS			0x84
+
+#define GTE_GPIO_TECTRL_ENABLE_SHIFT		0
+#define GTE_GPIO_TECTRL_ENABLE_MASK		0x1
+#define GTE_GPIO_TECTRL_ENABLE_DISABLE		0x0
+#define GTE_GPIO_TECTRL_ENABLE_ENABLE		0x1
+
+#define GTE_GPIO_TESRC_SLICE_SHIFT		16
+#define GTE_GPIO_TESRC_SLICE_DEFAULT_MASK	0xFF
+
+#define GTE_GPIO_TECMD_CMD_POP			0x1
+
+#define GTE_GPIO_TESTATUS_OCCUPANCY_SHIFT	8
+#define GTE_GPIO_TESTATUS_OCCUPANCY_MASK	0xFF
+
+#define AON_GPIO_SLICE1_MAP			0x3000
+#define AON_GPIO_SLICE2_MAP			0xFFFFFFF
+#define AON_GPIO_SLICE1_INDEX			1
+#define AON_GPIO_SLICE2_INDEX			2
+#define BASE_ADDRESS_GTE_GPIO_SLICE0		0x40
+#define BASE_ADDRESS_GTE_GPIO_SLICE1		0x60
+#define BASE_ADDRESS_GTE_GPIO_SLICE2		0x80
+
+#define GTE_GPIO_SLICE_SIZE (BASE_ADDRESS_GTE_GPIO_SLICE1 - \
+			     BASE_ADDRESS_GTE_GPIO_SLICE0)
+
+/* AON GPIOS are mapped to only slice 1 and slice 2 */
+/* GTE Interrupt connections. For slice 1 */
+#define NV_AON_GTE_SLICE1_IRQ_LIC0   0
+#define NV_AON_GTE_SLICE1_IRQ_LIC1   1
+#define NV_AON_GTE_SLICE1_IRQ_LIC2   2
+#define NV_AON_GTE_SLICE1_IRQ_LIC3   3
+#define NV_AON_GTE_SLICE1_IRQ_APBERR 4
+#define NV_AON_GTE_SLICE1_IRQ_GPIO   5
+#define NV_AON_GTE_SLICE1_IRQ_WAKE0  6
+#define NV_AON_GTE_SLICE1_IRQ_PMC    7
+#define NV_AON_GTE_SLICE1_IRQ_DMIC   8
+#define NV_AON_GTE_SLICE1_IRQ_PM     9
+#define NV_AON_GTE_SLICE1_IRQ_FPUINT 10
+#define NV_AON_GTE_SLICE1_IRQ_AOVC   11
+#define NV_AON_GTE_SLICE1_IRQ_GPIO_28 12
+#define NV_AON_GTE_SLICE1_IRQ_GPIO_29 13
+#define NV_AON_GTE_SLICE1_IRQ_GPIO_30 14
+#define NV_AON_GTE_SLICE1_IRQ_GPIO_31 15
+#define NV_AON_GTE_SLICE1_IRQ_GPIO_32 16
+#define NV_AON_GTE_SLICE1_IRQ_GPIO_33 17
+#define NV_AON_GTE_SLICE1_IRQ_GPIO_34 18
+#define NV_AON_GTE_SLICE1_IRQ_GPIO_35 19
+#define NV_AON_GTE_SLICE1_IRQ_GPIO_36 20
+#define NV_AON_GTE_SLICE1_IRQ_GPIO_37 21
+#define NV_AON_GTE_SLICE1_IRQ_GPIO_38 22
+#define NV_AON_GTE_SLICE1_IRQ_GPIO_39 23
+#define NV_AON_GTE_SLICE1_IRQ_GPIO_40 24
+#define NV_AON_GTE_SLICE1_IRQ_GPIO_41 25
+#define NV_AON_GTE_SLICE1_IRQ_GPIO_42 26
+#define NV_AON_GTE_SLICE1_IRQ_GPIO_43 27
+
+/* GTE Interrupt connections. For slice 2 */
+#define NV_AON_GTE_SLICE2_IRQ_GPIO_0 0
+#define NV_AON_GTE_SLICE2_IRQ_GPIO_1 1
+#define NV_AON_GTE_SLICE2_IRQ_GPIO_2 2
+#define NV_AON_GTE_SLICE2_IRQ_GPIO_3 3
+#define NV_AON_GTE_SLICE2_IRQ_GPIO_4 4
+#define NV_AON_GTE_SLICE2_IRQ_GPIO_5 5
+#define NV_AON_GTE_SLICE2_IRQ_GPIO_6 6
+#define NV_AON_GTE_SLICE2_IRQ_GPIO_7 7
+#define NV_AON_GTE_SLICE2_IRQ_GPIO_8 8
+#define NV_AON_GTE_SLICE2_IRQ_GPIO_9 9
+#define NV_AON_GTE_SLICE2_IRQ_GPIO_10 10
+#define NV_AON_GTE_SLICE2_IRQ_GPIO_11 11
+#define NV_AON_GTE_SLICE2_IRQ_GPIO_12 12
+#define NV_AON_GTE_SLICE2_IRQ_GPIO_13 13
+#define NV_AON_GTE_SLICE2_IRQ_GPIO_14 14
+#define NV_AON_GTE_SLICE2_IRQ_GPIO_15 15
+#define NV_AON_GTE_SLICE2_IRQ_GPIO_16 16
+#define NV_AON_GTE_SLICE2_IRQ_GPIO_17 17
+#define NV_AON_GTE_SLICE2_IRQ_GPIO_18 18
+#define NV_AON_GTE_SLICE2_IRQ_GPIO_19 19
+#define NV_AON_GTE_SLICE2_IRQ_GPIO_20 20
+#define NV_AON_GTE_SLICE2_IRQ_GPIO_21 21
+#define NV_AON_GTE_SLICE2_IRQ_GPIO_22 22
+#define NV_AON_GTE_SLICE2_IRQ_GPIO_23 23
+#define NV_AON_GTE_SLICE2_IRQ_GPIO_24 24
+#define NV_AON_GTE_SLICE2_IRQ_GPIO_25 25
+#define NV_AON_GTE_SLICE2_IRQ_GPIO_26 26
+#define NV_AON_GTE_SLICE2_IRQ_GPIO_27 27
+
+
+/**************************************************************/
+
 struct tegra_gpio_port {
 	const char *name;
 	unsigned int offset;
@@ -53,6 +160,8 @@ struct tegra_gpio_soc {
 	const struct tegra_gpio_port *ports;
 	unsigned int num_ports;
 	const char *name;
+	const struct tegra_gte_info *gte_info;
+	int gte_npins;
 };
 
 struct tegra_gpio {
@@ -62,9 +171,195 @@ struct tegra_gpio {
 	unsigned int *irq;
 
 	const struct tegra_gpio_soc *soc;
+	unsigned int gte_enable;
+	bool use_timestamp;
 
 	void __iomem *base;
+	void __iomem *gte_regs;
 };
+
+/*************************** GTE related code ********************/
+
+struct tegra_gte_info {
+	uint32_t pin_num;
+	uint32_t slice;
+	uint32_t slice_bit;
+};
+
+
+/* Structure to maintain all information about the AON GPIOs
+ * that can be supported
+ */
+static struct tegra_gte_info tegra194_gte_info[] = {
+	/* pin_num, slice, slice_bit*/
+	[0]  = {11, 2, NV_AON_GTE_SLICE2_IRQ_GPIO_0},
+	[1]  = {10, 2, NV_AON_GTE_SLICE2_IRQ_GPIO_1},
+	[2]  = {9,  2, NV_AON_GTE_SLICE2_IRQ_GPIO_2},
+	[3]  = {8,  2, NV_AON_GTE_SLICE2_IRQ_GPIO_3},
+	[4]  = {7,  2, NV_AON_GTE_SLICE2_IRQ_GPIO_4},
+	[5]  = {6,  2, NV_AON_GTE_SLICE2_IRQ_GPIO_5},
+	[6]  = {5,  2, NV_AON_GTE_SLICE2_IRQ_GPIO_6},
+	[7]  = {4,  2, NV_AON_GTE_SLICE2_IRQ_GPIO_7},
+	[8]  = {3,  2, NV_AON_GTE_SLICE2_IRQ_GPIO_8},
+	[9]  = {2,  2, NV_AON_GTE_SLICE2_IRQ_GPIO_9},
+	[10] = {1,  2, NV_AON_GTE_SLICE2_IRQ_GPIO_10},
+	[11] = {0,  2, NV_AON_GTE_SLICE2_IRQ_GPIO_11},
+	[12] = {26, 2, NV_AON_GTE_SLICE2_IRQ_GPIO_12},
+	[13] = {25, 2, NV_AON_GTE_SLICE2_IRQ_GPIO_13},
+	[14] = {24, 2, NV_AON_GTE_SLICE2_IRQ_GPIO_14},
+	[15] = {23, 2, NV_AON_GTE_SLICE2_IRQ_GPIO_15},
+	[16] = {22, 2, NV_AON_GTE_SLICE2_IRQ_GPIO_16},
+	[17] = {21, 2, NV_AON_GTE_SLICE2_IRQ_GPIO_17},
+	[18] = {20, 2, NV_AON_GTE_SLICE2_IRQ_GPIO_18},
+	[19] = {19, 2, NV_AON_GTE_SLICE2_IRQ_GPIO_19},
+	[20] = {18, 2, NV_AON_GTE_SLICE2_IRQ_GPIO_20},
+	[21] = {17, 2, NV_AON_GTE_SLICE2_IRQ_GPIO_21},
+	[22] = {16, 2, NV_AON_GTE_SLICE2_IRQ_GPIO_22},
+	[23] = {38, 2, NV_AON_GTE_SLICE2_IRQ_GPIO_23},
+	[24] = {37, 2, NV_AON_GTE_SLICE2_IRQ_GPIO_24},
+	[25] = {36, 2, NV_AON_GTE_SLICE2_IRQ_GPIO_25},
+	[26] = {35, 2, NV_AON_GTE_SLICE2_IRQ_GPIO_26},
+	[27] = {34, 2, NV_AON_GTE_SLICE2_IRQ_GPIO_27},
+	[28] = {33, 1, NV_AON_GTE_SLICE1_IRQ_GPIO_28},
+	[29] = {32, 1, NV_AON_GTE_SLICE1_IRQ_GPIO_29},
+};
+
+static inline u32 tegra_gte_readl(struct tegra_gpio *tgi, u32 reg)
+{
+	return __raw_readl(tgi->gte_regs + reg);
+}
+
+static inline void tegra_gte_writel(struct tegra_gpio *tgi, u32 reg,
+		u32 val)
+{
+	__raw_writel(val, tgi->gte_regs + reg);
+}
+
+static void tegra_gte_flush_fifo(struct tegra_gpio *tgi)
+{
+	/* Check if FIFO is empty */
+	while ((tegra_gte_readl(tgi, GTE_GPIO_TESTATUS) >>
+		GTE_GPIO_TESTATUS_OCCUPANCY_SHIFT) &
+		GTE_GPIO_TESTATUS_OCCUPANCY_MASK) {
+		/* Pop this entry, go to next */
+		tegra_gte_writel(tgi, GTE_GPIO_TECMD, GTE_GPIO_TECMD_CMD_POP);
+	}
+}
+
+u64 tegra_gte_read_fifo(struct tegra_gpio *tgi, u32 offset)
+{
+	u32 src_slice;
+	u32 tsh, tsl;
+	u64 ts = 0;
+	u32 precv, curcv, xorcv;
+	u32 aon_bits;
+	u32 bit_index = 0;
+
+	/* Check if FIFO is empty */
+	while ((tegra_gte_readl(tgi, GTE_GPIO_TESTATUS) >>
+		GTE_GPIO_TESTATUS_OCCUPANCY_SHIFT) &
+		GTE_GPIO_TESTATUS_OCCUPANCY_MASK) {
+		src_slice = (tegra_gte_readl(tgi, GTE_GPIO_TESRC) >>
+				GTE_GPIO_TESRC_SLICE_SHIFT) &
+			GTE_GPIO_TESRC_SLICE_DEFAULT_MASK;
+
+		if (src_slice == AON_GPIO_SLICE1_INDEX ||
+		    src_slice == AON_GPIO_SLICE2_INDEX) {
+			precv = tegra_gte_readl(tgi, GTE_GPIO_TEPCV);
+			curcv = tegra_gte_readl(tgi, GTE_GPIO_TECCV);
+
+			/* Save TSC high and low 32 bits value */
+			tsh = tegra_gte_readl(tgi, GTE_GPIO_TETSCH);
+			tsl = tegra_gte_readl(tgi, GTE_GPIO_TETSCL);
+
+			/* TSC countre as 64 bits */
+			ts  = (((uint64_t)tsh << 32) | tsl);
+
+			xorcv = precv ^ curcv;
+			if (src_slice == AON_GPIO_SLICE1_INDEX)
+				aon_bits = xorcv & AON_GPIO_SLICE1_MAP;
+			else
+				aon_bits = xorcv & AON_GPIO_SLICE2_MAP;
+
+			bit_index = ffs(aon_bits) - 1;
+		}
+		/* Pop this entry, go to next */
+		tegra_gte_writel(tgi, GTE_GPIO_TECMD, GTE_GPIO_TECMD_CMD_POP);
+		tegra_gte_readl(tgi, GTE_GPIO_TESRC);
+	}
+
+	return (tgi->soc->gte_info[bit_index].pin_num == offset) ? ts : 0;
+}
+
+int tegra_gte_enable_ts(struct tegra_gpio *tgi, u32 offset)
+{
+	u32 val, mask, reg;
+	int i = 0;
+
+	if (tgi->gte_enable == 1) {
+		dev_err(tgi->gpio.parent, "timestamp is already enabled for gpio\n");
+		return -EINVAL;
+	}
+
+	/* Configure Timestamping AON GPIO to SLICEx mapping */
+	for (i = 0; i < tgi->soc->gte_npins; i++) {
+		if (tgi->soc->gte_info[i].pin_num == offset) {
+			reg = (tgi->soc->gte_info[i].slice *
+			       GTE_GPIO_SLICE_SIZE) + GTE_GPIO_SLICE0_TETEN;
+			val = (1 << tgi->soc->gte_info[i].slice_bit);
+			tegra_gte_writel(tgi, reg, val);
+			break;
+		}
+	}
+
+	val = tegra_gte_readl(tgi, GTE_GPIO_TECTRL);
+	mask = (GTE_GPIO_TECTRL_ENABLE_MASK << GTE_GPIO_TECTRL_ENABLE_SHIFT);
+	val &= ~mask;
+	val |= (GTE_GPIO_TECTRL_ENABLE_ENABLE << GTE_GPIO_TECTRL_ENABLE_SHIFT);
+	tegra_gte_writel(tgi, GTE_GPIO_TECTRL, val);
+
+	tegra_gte_flush_fifo(tgi);
+
+	tgi->gte_enable = 1;
+
+	return 0;
+}
+
+int tegra_gte_disable_ts(struct tegra_gpio *tgi, u32 offset)
+{
+	u32 val, mask;
+
+	if (tgi->gte_enable == 0) {
+		dev_err(tgi->gpio.parent, "timestamp is already disabled\n");
+		return 0;
+	}
+
+	val = tegra_gte_readl(tgi, GTE_GPIO_TECTRL);
+	mask = (GTE_GPIO_TECTRL_ENABLE_MASK << GTE_GPIO_TECTRL_ENABLE_SHIFT);
+	val &= ~mask;
+	val |= (GTE_GPIO_TECTRL_ENABLE_DISABLE << GTE_GPIO_TECTRL_ENABLE_SHIFT);
+	tegra_gte_writel(tgi, GTE_GPIO_TECTRL, val);
+
+	/* Disable Slice mapping as well */
+	tegra_gte_writel(tgi, (AON_GPIO_SLICE1_INDEX * GTE_GPIO_SLICE_SIZE) +
+			GTE_GPIO_SLICE0_TETEN, 0);
+	tegra_gte_writel(tgi, (AON_GPIO_SLICE2_INDEX * GTE_GPIO_SLICE_SIZE) +
+			GTE_GPIO_SLICE0_TETEN, 0);
+
+	tgi->gte_enable = 0;
+
+	return 0;
+}
+
+int tegra_gte_setup(struct tegra_gpio *tgi)
+{
+	tegra_gte_writel(tgi, GTE_GPIO_TECTRL, 0);
+	tgi->gte_enable = 0;
+
+	return 0;
+}
+
+/*****************************************************************/
 
 static const struct tegra_gpio_port *
 tegra186_gpio_get_port(struct tegra_gpio *gpio, unsigned int *pin)
@@ -163,6 +458,47 @@ static int tegra186_gpio_direction_output(struct gpio_chip *chip,
 	writel(value, base + TEGRA186_GPIO_ENABLE_CONFIG);
 
 	return 0;
+}
+
+static int tegra_gpio_timestamp_control(struct gpio_chip *chip, unsigned offset,
+					int enable)
+{
+	struct tegra_gpio *gpio = gpiochip_get_data(chip);
+	void __iomem *base;
+	int value;
+	int ret;
+
+	base = tegra186_gpio_get_base(gpio, offset);
+	if (WARN_ON(base == NULL))
+		return -EINVAL;
+
+	if (gpio->use_timestamp) {
+		value = readl(base + TEGRA186_GPIO_ENABLE_CONFIG);
+		value |= TEGRA186_GPIO_ENABLE_CONFIG_TIMESTAMP_FUNC;
+		writel(value, base + TEGRA186_GPIO_ENABLE_CONFIG);
+		if (enable)
+			ret = tegra_gte_enable_ts(gpio, offset);
+		else
+			ret = tegra_gte_disable_ts(gpio, offset);
+	} else
+		ret = -EOPNOTSUPP;
+
+	return ret;
+}
+
+static int tegra_gpio_timestamp_read(struct gpio_chip *chip, unsigned offset,
+				     u64 *ts)
+{
+	struct tegra_gpio *tgi = gpiochip_get_data(chip);
+	int ret;
+
+	if (tgi->use_timestamp) {
+		*ts = tegra_gte_read_fifo(tgi, offset);
+		ret = 0;
+	} else
+		ret = -EOPNOTSUPP;
+
+	return ret;
 }
 
 static int tegra186_gpio_get(struct gpio_chip *chip, unsigned int offset)
@@ -407,9 +743,11 @@ static int tegra186_gpio_probe(struct platform_device *pdev)
 	unsigned int i, j, offset;
 	struct gpio_irq_chip *irq;
 	struct tegra_gpio *gpio;
+	struct device_node *np;
 	struct resource *res;
 	char **names;
 	int err;
+	int ret;
 
 	gpio = devm_kzalloc(&pdev->dev, sizeof(*gpio), GFP_KERNEL);
 	if (!gpio)
@@ -421,6 +759,29 @@ static int tegra186_gpio_probe(struct platform_device *pdev)
 	gpio->base = devm_ioremap_resource(&pdev->dev, res);
 	if (IS_ERR(gpio->base))
 		return PTR_ERR(gpio->base);
+
+	np = pdev->dev.of_node;
+	if (!np) {
+		dev_err(&pdev->dev, "No valid device node, probe failed\n");
+		return -EINVAL;
+	}
+
+	gpio->use_timestamp = of_property_read_bool(np, "use-timestamp");
+
+	if (gpio->use_timestamp) {
+		res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "gte");
+		if (!res) {
+			dev_err(&pdev->dev, "Missing gte MEM resource\n");
+			return -ENODEV;
+		}
+		gpio->gte_regs = devm_ioremap_resource(&pdev->dev, res);
+		if (IS_ERR(gpio->gte_regs)) {
+			ret = PTR_ERR(gpio->gte_regs);
+			dev_err(&pdev->dev,
+				"Failed to iomap for gte: %d\n", ret);
+			return ret;
+		}
+	}
 
 	err = platform_irq_count(pdev);
 	if (err < 0)
@@ -449,6 +810,8 @@ static int tegra186_gpio_probe(struct platform_device *pdev)
 	gpio->gpio.direction_output = tegra186_gpio_direction_output;
 	gpio->gpio.get = tegra186_gpio_get,
 	gpio->gpio.set = tegra186_gpio_set;
+	gpio->gpio.timestamp_control = tegra_gpio_timestamp_control;
+	gpio->gpio.timestamp_read = tegra_gpio_timestamp_read;
 
 	gpio->gpio.base = -1;
 
@@ -517,6 +880,9 @@ static int tegra186_gpio_probe(struct platform_device *pdev)
 	err = devm_gpiochip_add_data(&pdev->dev, &gpio->gpio, gpio);
 	if (err < 0)
 		return err;
+
+	if (gpio->use_timestamp)
+		tegra_gte_setup(gpio);
 
 	return 0;
 }
@@ -656,6 +1022,8 @@ static const struct tegra_gpio_soc tegra194_aon_soc = {
 	.num_ports = ARRAY_SIZE(tegra194_aon_ports),
 	.ports = tegra194_aon_ports,
 	.name = "tegra194-gpio-aon",
+	.gte_info = tegra194_gte_info,
+	.gte_npins = ARRAY_SIZE(tegra194_gte_info),
 };
 
 static const struct of_device_id tegra186_gpio_of_match[] = {
