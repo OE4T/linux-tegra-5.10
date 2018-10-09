@@ -43,22 +43,7 @@ static const struct gating_desc gv100_slcg_ce2[] = {
 
 /* slcg chiplet */
 static const struct gating_desc gv100_slcg_chiplet[] = {
-	{.addr = 0x0010c07cU, .prod = 0x00000000U, .disable = 0x00000007U},
-	{.addr = 0x0010c17cU, .prod = 0x00000000U, .disable = 0x00000007U},
-	{.addr = 0x0010c27cU, .prod = 0x00000000U, .disable = 0x00000007U},
-	{.addr = 0x0010c37cU, .prod = 0x00000000U, .disable = 0x00000007U},
-	{.addr = 0x0010c47cU, .prod = 0x00000000U, .disable = 0x00000007U},
-	{.addr = 0x0010c57cU, .prod = 0x00000000U, .disable = 0x00000007U},
 	{.addr = 0x0010e07cU, .prod = 0x00000000U, .disable = 0x00000007U},
-	{.addr = 0x0010d07cU, .prod = 0x00000000U, .disable = 0x00000007U},
-	{.addr = 0x0010d17cU, .prod = 0x00000000U, .disable = 0x00000007U},
-	{.addr = 0x0010d27cU, .prod = 0x00000000U, .disable = 0x00000007U},
-	{.addr = 0x0010d37cU, .prod = 0x00000000U, .disable = 0x00000007U},
-	{.addr = 0x0010d47cU, .prod = 0x00000000U, .disable = 0x00000007U},
-	{.addr = 0x0010d57cU, .prod = 0x00000000U, .disable = 0x00000007U},
-	/* fix priv error */
-	/*{.addr = 0x0010d67cU, .prod = 0x00000000U, .disable = 0x00000007U},*/
-	/*{.addr = 0x0010d77cU, .prod = 0x00000000U, .disable = 0x00000007U},*/
 	{.addr = 0x0010e17cU, .prod = 0x00000000U, .disable = 0x00000007U},
 };
 
@@ -106,8 +91,6 @@ static const struct gating_desc gv100_slcg_gr[] = {
 	{.addr = 0x00419d24U, .prod = 0x00000000U, .disable = 0x000000ffU},
 	{.addr = 0x0041986cU, .prod = 0x00000104U, .disable = 0x00fffffeU},
 	{.addr = 0x00419c74U, .prod = 0x0000001eU, .disable = 0x0000001eU},
-	/* fix priv error */
-	/*{.addr = 0x00419c84U, .prod = 0x0003fffeU, .disable = 0x0003fffeU},*/
 	{.addr = 0x00419c8cU, .prod = 0xffffff84U, .disable = 0xfffffffeU},
 	{.addr = 0x00419c94U, .prod = 0x00000240U, .disable = 0x00007ffeU},
 	{.addr = 0x00419ca4U, .prod = 0x00003ffeU, .disable = 0x00003ffeU},
@@ -122,31 +105,6 @@ static const struct gating_desc gv100_slcg_gr[] = {
 	{.addr = 0x0041be2cU, .prod = 0x04115fc0U, .disable = 0xfffffffeU},
 	{.addr = 0x0041bfecU, .prod = 0xfffffff0U, .disable = 0xfffffffeU},
 	{.addr = 0x0041bed4U, .prod = 0xfffffff8U, .disable = 0xfffffffeU},
-	{.addr = 0x00412814U, .prod = 0x00000000U, .disable = 0x0001fffeU},
-	{.addr = 0x00412a84U, .prod = 0x00000000U, .disable = 0x0001fffeU},
-	{.addr = 0x004129acU, .prod = 0x00000000U, .disable = 0x0001fffeU},
-	{.addr = 0x00412a24U, .prod = 0x00000000U, .disable = 0x000000ffU},
-	{.addr = 0x00412c14U, .prod = 0x00000000U, .disable = 0x0001fffeU},
-	{.addr = 0x00412e84U, .prod = 0x00000000U, .disable = 0x0001fffeU},
-	{.addr = 0x00412dacU, .prod = 0x00000000U, .disable = 0x0001fffeU},
-	{.addr = 0x00412e24U, .prod = 0x00000000U, .disable = 0x000000ffU},
-	/* fix priv error */
-	/*{.addr = 0x00413014U, .prod = 0x00000000U, .disable = 0x0001fffeU},*/
-	/*{.addr = 0x00413284U, .prod = 0x00000000U, .disable = 0x0001fffeU},*/
-	/*{.addr = 0x004131acU, .prod = 0x00000000U, .disable = 0x0001fffeU},*/
-	/*{.addr = 0x00413224U, .prod = 0x00000000U, .disable = 0x000000ffU},*/
-	/*{.addr = 0x00413414U, .prod = 0x00000000U, .disable = 0x0001fffeU},*/
-	/*{.addr = 0x00413684U, .prod = 0x00000000U, .disable = 0x0001fffeU},*/
-	/*{.addr = 0x004135acU, .prod = 0x00000000U, .disable = 0x0001fffeU},*/
-	/*{.addr = 0x00413624U, .prod = 0x00000000U, .disable = 0x000000ffU},*/
-	/*{.addr = 0x00413814U, .prod = 0x00000000U, .disable = 0x0001fffeU},*/
-	/*{.addr = 0x00413a84U, .prod = 0x00000000U, .disable = 0x0001fffeU},*/
-	/*{.addr = 0x004139acU, .prod = 0x00000000U, .disable = 0x0001fffeU},*/
-	/*{.addr = 0x00413a24U, .prod = 0x00000000U, .disable = 0x000000ffU},*/
-	/*{.addr = 0x00413c14U, .prod = 0x00000000U, .disable = 0x0001fffeU},*/
-	/*{.addr = 0x00413e84U, .prod = 0x00000000U, .disable = 0x0001fffeU},*/
-	/*{.addr = 0x00413dacU, .prod = 0x00000000U, .disable = 0x0001fffeU},*/
-	/*{.addr = 0x00413e24U, .prod = 0x00000000U, .disable = 0x000000ffU},*/
 	{.addr = 0x00408814U, .prod = 0x00000000U, .disable = 0x0001fffeU},
 	{.addr = 0x00408a84U, .prod = 0x00000000U, .disable = 0x0001fffeU},
 	{.addr = 0x004089acU, .prod = 0x00000000U, .disable = 0x0001fffeU},
@@ -155,43 +113,6 @@ static const struct gating_desc gv100_slcg_gr[] = {
 
 /* slcg ltc */
 static const struct gating_desc gv100_slcg_ltc[] = {
-	{.addr = 0x00154050U, .prod = 0x00000000U, .disable = 0xfffffffeU},
-	{.addr = 0x0015455cU, .prod = 0x00000000U, .disable = 0xfffffffeU},
-	{.addr = 0x0015475cU, .prod = 0x00000000U, .disable = 0xfffffffeU},
-	{.addr = 0x0015495cU, .prod = 0x00000000U, .disable = 0xfffffffeU},
-	{.addr = 0x00154b5cU, .prod = 0x00000000U, .disable = 0xfffffffeU},
-	{.addr = 0x0015435cU, .prod = 0x00000000U, .disable = 0xfffffffeU},
-	{.addr = 0x00156050U, .prod = 0x00000000U, .disable = 0xfffffffeU},
-	{.addr = 0x0015655cU, .prod = 0x00000000U, .disable = 0xfffffffeU},
-	{.addr = 0x0015675cU, .prod = 0x00000000U, .disable = 0xfffffffeU},
-	{.addr = 0x0015695cU, .prod = 0x00000000U, .disable = 0xfffffffeU},
-	{.addr = 0x00156b5cU, .prod = 0x00000000U, .disable = 0xfffffffeU},
-	{.addr = 0x0015635cU, .prod = 0x00000000U, .disable = 0xfffffffeU},
-	/* fix priv error */
-	/*{.addr = 0x00158050U, .prod = 0x00000000U, .disable = 0xfffffffeU},*/
-	/*{.addr = 0x0015855cU, .prod = 0x00000000U, .disable = 0xfffffffeU},*/
-	/*{.addr = 0x0015875cU, .prod = 0x00000000U, .disable = 0xfffffffeU},*/
-	/*{.addr = 0x0015895cU, .prod = 0x00000000U, .disable = 0xfffffffeU},*/
-	/*{.addr = 0x00158b5cU, .prod = 0x00000000U, .disable = 0xfffffffeU},*/
-	/*{.addr = 0x0015835cU, .prod = 0x00000000U, .disable = 0xfffffffeU},*/
-	/*{.addr = 0x0015a050U, .prod = 0x00000000U, .disable = 0xfffffffeU},*/
-	/*{.addr = 0x0015a55cU, .prod = 0x00000000U, .disable = 0xfffffffeU},*/
-	/*{.addr = 0x0015a75cU, .prod = 0x00000000U, .disable = 0xfffffffeU},*/
-	/*{.addr = 0x0015a95cU, .prod = 0x00000000U, .disable = 0xfffffffeU},*/
-	/*{.addr = 0x0015ab5cU, .prod = 0x00000000U, .disable = 0xfffffffeU},*/
-	/*{.addr = 0x0015a35cU, .prod = 0x00000000U, .disable = 0xfffffffeU},*/
-	/*{.addr = 0x0015c050U, .prod = 0x00000000U, .disable = 0xfffffffeU},*/
-	/*{.addr = 0x0015c55cU, .prod = 0x00000000U, .disable = 0xfffffffeU},*/
-	/*{.addr = 0x0015c75cU, .prod = 0x00000000U, .disable = 0xfffffffeU},*/
-	/*{.addr = 0x0015c95cU, .prod = 0x00000000U, .disable = 0xfffffffeU},*/
-	/*{.addr = 0x0015cb5cU, .prod = 0x00000000U, .disable = 0xfffffffeU},*/
-	/*{.addr = 0x0015c35cU, .prod = 0x00000000U, .disable = 0xfffffffeU},*/
-	/*{.addr = 0x0015e050U, .prod = 0x00000000U, .disable = 0xfffffffeU},*/
-	/*{.addr = 0x0015e55cU, .prod = 0x00000000U, .disable = 0xfffffffeU},*/
-	/*{.addr = 0x0015e75cU, .prod = 0x00000000U, .disable = 0xfffffffeU},*/
-	/*{.addr = 0x0015e95cU, .prod = 0x00000000U, .disable = 0xfffffffeU},*/
-	/*{.addr = 0x0015eb5cU, .prod = 0x00000000U, .disable = 0xfffffffeU},*/
-	/*{.addr = 0x0015e35cU, .prod = 0x00000000U, .disable = 0xfffffffeU},*/
 	{.addr = 0x0017e050U, .prod = 0x00000000U, .disable = 0xfffffffeU},
 	{.addr = 0x0017e35cU, .prod = 0x00000000U, .disable = 0xfffffffeU},
 };
@@ -201,35 +122,9 @@ static const struct gating_desc gv100_slcg_perf[] = {
 	{.addr = 0x00248018U, .prod = 0xffffffffU, .disable = 0x00000000U},
 	{.addr = 0x00248018U, .prod = 0xffffffffU, .disable = 0x00000000U},
 	{.addr = 0x00246018U, .prod = 0xffffffffU, .disable = 0x00000000U},
-	{.addr = 0x00246218U, .prod = 0xffffffffU, .disable = 0x00000000U},
-	{.addr = 0x00246418U, .prod = 0xffffffffU, .disable = 0x00000000U},
-	{.addr = 0x00246618U, .prod = 0xffffffffU, .disable = 0x00000000U},
-	{.addr = 0x00246818U, .prod = 0xffffffffU, .disable = 0x00000000U},
-	{.addr = 0x00246a18U, .prod = 0xffffffffU, .disable = 0x00000000U},
-	/* fix priv error */
-	/*{.addr = 0x00246c18U, .prod = 0xffffffffU, .disable = 0x00000000U},*/
-	/*{.addr = 0x00246e18U, .prod = 0xffffffffU, .disable = 0x00000000U},*/
 	{.addr = 0x00246018U, .prod = 0xffffffffU, .disable = 0x00000000U},
-	{.addr = 0x00246218U, .prod = 0xffffffffU, .disable = 0x00000000U},
-	{.addr = 0x00246418U, .prod = 0xffffffffU, .disable = 0x00000000U},
-	{.addr = 0x00246618U, .prod = 0xffffffffU, .disable = 0x00000000U},
-	{.addr = 0x00246818U, .prod = 0xffffffffU, .disable = 0x00000000U},
-	{.addr = 0x00246a18U, .prod = 0xffffffffU, .disable = 0x00000000U},
-	/* fix priv error */
-	/*{.addr = 0x00246c18U, .prod = 0xffffffffU, .disable = 0x00000000U},*/
-	/*{.addr = 0x00246e18U, .prod = 0xffffffffU, .disable = 0x00000000U},*/
 	{.addr = 0x00244018U, .prod = 0xffffffffU, .disable = 0x00000000U},
-	{.addr = 0x00244218U, .prod = 0xffffffffU, .disable = 0x00000000U},
-	{.addr = 0x00244418U, .prod = 0xffffffffU, .disable = 0x00000000U},
-	{.addr = 0x00244618U, .prod = 0xffffffffU, .disable = 0x00000000U},
-	{.addr = 0x00244818U, .prod = 0xffffffffU, .disable = 0x00000000U},
-	{.addr = 0x00244a18U, .prod = 0xffffffffU, .disable = 0x00000000U},
 	{.addr = 0x00244018U, .prod = 0xffffffffU, .disable = 0x00000000U},
-	{.addr = 0x00244218U, .prod = 0xffffffffU, .disable = 0x00000000U},
-	{.addr = 0x00244418U, .prod = 0xffffffffU, .disable = 0x00000000U},
-	{.addr = 0x00244618U, .prod = 0xffffffffU, .disable = 0x00000000U},
-	{.addr = 0x00244818U, .prod = 0xffffffffU, .disable = 0x00000000U},
-	{.addr = 0x00244a18U, .prod = 0xffffffffU, .disable = 0x00000000U},
 	{.addr = 0x0024a124U, .prod = 0x00000001U, .disable = 0x00000000U},
 };
 
@@ -264,12 +159,6 @@ static const struct gating_desc gv100_slcg_xbar[] = {
 	{.addr = 0x0013dc08U, .prod = 0x00000000U, .disable = 0xfffffffeU},
 	{.addr = 0x0013c924U, .prod = 0x00000000U, .disable = 0x7ffffffeU},
 	{.addr = 0x0013cbe4U, .prod = 0x00000000U, .disable = 0x1ffffffeU},
-	{.addr = 0x0013cc04U, .prod = 0x00000000U, .disable = 0x1ffffffeU},
-	{.addr = 0x0013cc24U, .prod = 0x00000000U, .disable = 0x1ffffffeU},
-	{.addr = 0x0013cc44U, .prod = 0x00000000U, .disable = 0x1ffffffeU},
-	{.addr = 0x0013cc64U, .prod = 0x00000000U, .disable = 0x1ffffffeU},
-	{.addr = 0x0013cc84U, .prod = 0x00000000U, .disable = 0x1ffffffeU},
-	{.addr = 0x0013cca4U, .prod = 0x00000000U, .disable = 0x1ffffffeU},
 };
 
 /* blcg bus */
@@ -292,7 +181,6 @@ static const struct gating_desc gv100_blcg_fb[] = {
 	{.addr = 0x00100d30U, .prod = 0x0000c242U, .disable = 0x00000000U},
 	{.addr = 0x00100d3cU, .prod = 0x00000242U, .disable = 0x00000000U},
 	{.addr = 0x00100d48U, .prod = 0x0000c242U, .disable = 0x00000000U},
-	{.addr = 0x00100d1cU, .prod = 0x00000042U, .disable = 0x00000000U},
 	{.addr = 0x00100c98U, .prod = 0x00004242U, .disable = 0x00000000U},
 	{.addr = 0x001facb0U, .prod = 0x00004242U, .disable = 0x00000000U},
 };
@@ -351,25 +239,6 @@ static const struct gating_desc gv100_blcg_gr[] = {
 	{.addr = 0x0041be28U, .prod = 0x00008242U, .disable = 0x00000000U},
 	{.addr = 0x0041bfe8U, .prod = 0x0000c444U, .disable = 0x00000000U},
 	{.addr = 0x0041bed0U, .prod = 0x0000c444U, .disable = 0x00000000U},
-	{.addr = 0x00412810U, .prod = 0x0000c242U, .disable = 0x00000000U},
-	{.addr = 0x00412a80U, .prod = 0x0000c242U, .disable = 0x00000000U},
-	{.addr = 0x004129a8U, .prod = 0x0000c242U, .disable = 0x00000000U},
-	{.addr = 0x00412c10U, .prod = 0x0000c242U, .disable = 0x00000000U},
-	{.addr = 0x00412e80U, .prod = 0x0000c242U, .disable = 0x00000000U},
-	{.addr = 0x00412da8U, .prod = 0x0000c242U, .disable = 0x00000000U},
-	/* fix priv error */
-	/*{.addr = 0x00413010U, .prod = 0x0000c242U, .disable = 0x00000000U},*/
-	/*{.addr = 0x00413280U, .prod = 0x0000c242U, .disable = 0x00000000U},*/
-	/*{.addr = 0x004131a8U, .prod = 0x0000c242U, .disable = 0x00000000U},*/
-	/*{.addr = 0x00413410U, .prod = 0x0000c242U, .disable = 0x00000000U},*/
-	/*{.addr = 0x00413680U, .prod = 0x0000c242U, .disable = 0x00000000U},*/
-	/*{.addr = 0x004135a8U, .prod = 0x0000c242U, .disable = 0x00000000U},*/
-	/*{.addr = 0x00413810U, .prod = 0x0000c242U, .disable = 0x00000000U},*/
-	/*{.addr = 0x00413a80U, .prod = 0x0000c242U, .disable = 0x00000000U},*/
-	/*{.addr = 0x004139a8U, .prod = 0x0000c242U, .disable = 0x00000000U},*/
-	/*{.addr = 0x00413c10U, .prod = 0x0000c242U, .disable = 0x00000000U},*/
-	/*{.addr = 0x00413e80U, .prod = 0x0000c242U, .disable = 0x00000000U},*/
-	/*{.addr = 0x00413da8U, .prod = 0x0000c242U, .disable = 0x00000000U},*/
 	{.addr = 0x00408810U, .prod = 0x0000c242U, .disable = 0x00000000U},
 	{.addr = 0x00408a80U, .prod = 0x0000c242U, .disable = 0x00000000U},
 	{.addr = 0x004089a8U, .prod = 0x0000c242U, .disable = 0x00000000U},
@@ -377,79 +246,6 @@ static const struct gating_desc gv100_blcg_gr[] = {
 
 /* blcg ltc */
 static const struct gating_desc gv100_blcg_ltc[] = {
-	{.addr = 0x00154030U, .prod = 0x00000044U, .disable = 0x00000000U},
-	{.addr = 0x00154040U, .prod = 0x00000044U, .disable = 0x00000000U},
-	{.addr = 0x001545e0U, .prod = 0x00000044U, .disable = 0x00000000U},
-	{.addr = 0x001545c8U, .prod = 0x00000044U, .disable = 0x00000000U},
-	{.addr = 0x001547e0U, .prod = 0x00000044U, .disable = 0x00000000U},
-	{.addr = 0x001547c8U, .prod = 0x00000044U, .disable = 0x00000000U},
-	{.addr = 0x001549e0U, .prod = 0x00000044U, .disable = 0x00000000U},
-	{.addr = 0x001549c8U, .prod = 0x00000044U, .disable = 0x00000000U},
-	{.addr = 0x00154be0U, .prod = 0x00000044U, .disable = 0x00000000U},
-	{.addr = 0x00154bc8U, .prod = 0x00000044U, .disable = 0x00000000U},
-	{.addr = 0x001543e0U, .prod = 0x00000044U, .disable = 0x00000000U},
-	{.addr = 0x001543c8U, .prod = 0x00000044U, .disable = 0x00000000U},
-	{.addr = 0x00156030U, .prod = 0x00000044U, .disable = 0x00000000U},
-	{.addr = 0x00156040U, .prod = 0x00000044U, .disable = 0x00000000U},
-	{.addr = 0x001565e0U, .prod = 0x00000044U, .disable = 0x00000000U},
-	{.addr = 0x001565c8U, .prod = 0x00000044U, .disable = 0x00000000U},
-	{.addr = 0x001567e0U, .prod = 0x00000044U, .disable = 0x00000000U},
-	{.addr = 0x001567c8U, .prod = 0x00000044U, .disable = 0x00000000U},
-	{.addr = 0x001569e0U, .prod = 0x00000044U, .disable = 0x00000000U},
-	{.addr = 0x001569c8U, .prod = 0x00000044U, .disable = 0x00000000U},
-	{.addr = 0x00156be0U, .prod = 0x00000044U, .disable = 0x00000000U},
-	{.addr = 0x00156bc8U, .prod = 0x00000044U, .disable = 0x00000000U},
-	{.addr = 0x001563e0U, .prod = 0x00000044U, .disable = 0x00000000U},
-	{.addr = 0x001563c8U, .prod = 0x00000044U, .disable = 0x00000000U},
-	/* fix priv error */
-	/*{.addr = 0x00158030U, .prod = 0x00000044U, .disable = 0x00000000U},*/
-	/*{.addr = 0x00158040U, .prod = 0x00000044U, .disable = 0x00000000U},*/
-	/*{.addr = 0x001585e0U, .prod = 0x00000044U, .disable = 0x00000000U},*/
-	/*{.addr = 0x001585c8U, .prod = 0x00000044U, .disable = 0x00000000U},*/
-	/*{.addr = 0x001587e0U, .prod = 0x00000044U, .disable = 0x00000000U},*/
-	/*{.addr = 0x001587c8U, .prod = 0x00000044U, .disable = 0x00000000U},*/
-	/*{.addr = 0x001589e0U, .prod = 0x00000044U, .disable = 0x00000000U},*/
-	/*{.addr = 0x001589c8U, .prod = 0x00000044U, .disable = 0x00000000U},*/
-	/*{.addr = 0x00158be0U, .prod = 0x00000044U, .disable = 0x00000000U},*/
-	/*{.addr = 0x00158bc8U, .prod = 0x00000044U, .disable = 0x00000000U},*/
-	/*{.addr = 0x001583e0U, .prod = 0x00000044U, .disable = 0x00000000U},*/
-	/*{.addr = 0x001583c8U, .prod = 0x00000044U, .disable = 0x00000000U},*/
-	/*{.addr = 0x0015a030U, .prod = 0x00000044U, .disable = 0x00000000U},*/
-	/*{.addr = 0x0015a040U, .prod = 0x00000044U, .disable = 0x00000000U},*/
-	/*{.addr = 0x0015a5e0U, .prod = 0x00000044U, .disable = 0x00000000U},*/
-	/*{.addr = 0x0015a5c8U, .prod = 0x00000044U, .disable = 0x00000000U},*/
-	/*{.addr = 0x0015a7e0U, .prod = 0x00000044U, .disable = 0x00000000U},*/
-	/*{.addr = 0x0015a7c8U, .prod = 0x00000044U, .disable = 0x00000000U},*/
-	/*{.addr = 0x0015a9e0U, .prod = 0x00000044U, .disable = 0x00000000U},*/
-	/*{.addr = 0x0015a9c8U, .prod = 0x00000044U, .disable = 0x00000000U},*/
-	/*{.addr = 0x0015abe0U, .prod = 0x00000044U, .disable = 0x00000000U},*/
-	/*{.addr = 0x0015abc8U, .prod = 0x00000044U, .disable = 0x00000000U},*/
-	/*{.addr = 0x0015a3e0U, .prod = 0x00000044U, .disable = 0x00000000U},*/
-	/*{.addr = 0x0015a3c8U, .prod = 0x00000044U, .disable = 0x00000000U},*/
-	/*{.addr = 0x0015c030U, .prod = 0x00000044U, .disable = 0x00000000U},*/
-	/*{.addr = 0x0015c040U, .prod = 0x00000044U, .disable = 0x00000000U},*/
-	/*{.addr = 0x0015c5e0U, .prod = 0x00000044U, .disable = 0x00000000U},*/
-	/*{.addr = 0x0015c5c8U, .prod = 0x00000044U, .disable = 0x00000000U},*/
-	/*{.addr = 0x0015c7e0U, .prod = 0x00000044U, .disable = 0x00000000U},*/
-	/*{.addr = 0x0015c7c8U, .prod = 0x00000044U, .disable = 0x00000000U},*/
-	/*{.addr = 0x0015c9e0U, .prod = 0x00000044U, .disable = 0x00000000U},*/
-	/*{.addr = 0x0015c9c8U, .prod = 0x00000044U, .disable = 0x00000000U},*/
-	/*{.addr = 0x0015cbe0U, .prod = 0x00000044U, .disable = 0x00000000U},*/
-	/*{.addr = 0x0015cbc8U, .prod = 0x00000044U, .disable = 0x00000000U},*/
-	/*{.addr = 0x0015c3e0U, .prod = 0x00000044U, .disable = 0x00000000U},*/
-	/*{.addr = 0x0015c3c8U, .prod = 0x00000044U, .disable = 0x00000000U},*/
-	/*{.addr = 0x0015e030U, .prod = 0x00000044U, .disable = 0x00000000U},*/
-	/*{.addr = 0x0015e040U, .prod = 0x00000044U, .disable = 0x00000000U},*/
-	/*{.addr = 0x0015e5e0U, .prod = 0x00000044U, .disable = 0x00000000U},*/
-	/*{.addr = 0x0015e5c8U, .prod = 0x00000044U, .disable = 0x00000000U},*/
-	/*{.addr = 0x0015e7e0U, .prod = 0x00000044U, .disable = 0x00000000U},*/
-	/*{.addr = 0x0015e7c8U, .prod = 0x00000044U, .disable = 0x00000000U},*/
-	/*{.addr = 0x0015e9e0U, .prod = 0x00000044U, .disable = 0x00000000U},*/
-	/*{.addr = 0x0015e9c8U, .prod = 0x00000044U, .disable = 0x00000000U},*/
-	/*{.addr = 0x0015ebe0U, .prod = 0x00000044U, .disable = 0x00000000U},*/
-	/*{.addr = 0x0015ebc8U, .prod = 0x00000044U, .disable = 0x00000000U},*/
-	/*{.addr = 0x0015e3e0U, .prod = 0x00000044U, .disable = 0x00000000U},*/
-	/*{.addr = 0x0015e3c8U, .prod = 0x00000044U, .disable = 0x00000000U},*/
 	{.addr = 0x0017e030U, .prod = 0x00000044U, .disable = 0x00000000U},
 	{.addr = 0x0017e040U, .prod = 0x00000044U, .disable = 0x00000000U},
 	{.addr = 0x0017e3e0U, .prod = 0x00000044U, .disable = 0x00000000U},
@@ -472,12 +268,6 @@ static const struct gating_desc gv100_blcg_xbar[] = {
 	{.addr = 0x0013dc04U, .prod = 0x0001004aU, .disable = 0x00000000U},
 	{.addr = 0x0013c920U, .prod = 0x0000004aU, .disable = 0x00000000U},
 	{.addr = 0x0013cbe0U, .prod = 0x00000042U, .disable = 0x00000000U},
-	{.addr = 0x0013cc00U, .prod = 0x00000042U, .disable = 0x00000000U},
-	{.addr = 0x0013cc20U, .prod = 0x00000042U, .disable = 0x00000000U},
-	{.addr = 0x0013cc40U, .prod = 0x00000042U, .disable = 0x00000000U},
-	{.addr = 0x0013cc60U, .prod = 0x00000042U, .disable = 0x00000000U},
-	{.addr = 0x0013cc80U, .prod = 0x00000042U, .disable = 0x00000000U},
-	{.addr = 0x0013cca0U, .prod = 0x00000042U, .disable = 0x00000000U},
 };
 
 /* pg gr */
