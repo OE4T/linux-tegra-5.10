@@ -155,12 +155,10 @@ clean_up:
 	return err;
 }
 
-int gr_tu104_map_global_ctx_buffers(struct gk20a *g,
-		struct channel_gk20a *ch)
+int gr_tu104_map_global_ctx_buffers(struct gk20a *g, struct vm_gk20a *vm,
+		struct nvgpu_gr_ctx *gr_ctx, bool vpr)
 {
 	int err;
-	struct tsg_gk20a *tsg;
-	struct vm_gk20a *ch_vm = ch->vm;
 	u64 *g_bfr_va;
 	u64 *g_bfr_size;
 	int *g_bfr_index;
@@ -170,18 +168,13 @@ int gr_tu104_map_global_ctx_buffers(struct gk20a *g,
 
 	nvgpu_log_fn(g, " ");
 
-	tsg = tsg_gk20a_from_ch(ch);
-	if (tsg == NULL) {
-		return -EINVAL;
-	}
-
-	g_bfr_va = tsg->gr_ctx->global_ctx_buffer_va;
-	g_bfr_size = tsg->gr_ctx->global_ctx_buffer_size;
-	g_bfr_index = tsg->gr_ctx->global_ctx_buffer_index;
+	g_bfr_va = gr_ctx->global_ctx_buffer_va;
+	g_bfr_size = gr_ctx->global_ctx_buffer_size;
+	g_bfr_index = gr_ctx->global_ctx_buffer_index;
 
 	/* RTV circular buffer */
 	mem = &gr->global_ctx_buffer[RTV_CIRCULAR_BUFFER].mem;
-	gpu_va = nvgpu_gmmu_map(ch_vm, mem, mem->size, 0,
+	gpu_va = nvgpu_gmmu_map(vm, mem, mem->size, 0,
 			gk20a_mem_flag_none, true, mem->aperture);
 	if (gpu_va == 0ULL) {
 		return -ENOMEM;
@@ -191,7 +184,7 @@ int gr_tu104_map_global_ctx_buffers(struct gk20a *g,
 	g_bfr_size[RTV_CIRCULAR_BUFFER_VA] = mem->size;
 	g_bfr_index[RTV_CIRCULAR_BUFFER_VA] = RTV_CIRCULAR_BUFFER;
 
-	err = gr_gk20a_map_global_ctx_buffers(g, ch);
+	err = gr_gk20a_map_global_ctx_buffers(g, vm, gr_ctx, vpr);
 	if (err != 0) {
 		goto clean_up;
 	}
@@ -200,7 +193,7 @@ int gr_tu104_map_global_ctx_buffers(struct gk20a *g,
 
 clean_up:
 	nvgpu_err(g, "fail");
-	nvgpu_gmmu_unmap(ch_vm, mem, gpu_va);
+	nvgpu_gmmu_unmap(vm, mem, gpu_va);
 
 	return err;
 }

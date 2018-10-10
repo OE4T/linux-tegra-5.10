@@ -2590,11 +2590,9 @@ static void gr_gk20a_unmap_global_ctx_buffers(struct gk20a *g,
 	gr_ctx->global_ctx_buffer_mapped = false;
 }
 
-int gr_gk20a_map_global_ctx_buffers(struct gk20a *g,
-				struct channel_gk20a *c)
+int gr_gk20a_map_global_ctx_buffers(struct gk20a *g, struct vm_gk20a *vm,
+				struct nvgpu_gr_ctx *gr_ctx, bool vpr)
 {
-	struct tsg_gk20a *tsg;
-	struct vm_gk20a *ch_vm = c->vm;
 	u64 *g_bfr_va;
 	u64 *g_bfr_size;
 	int *g_bfr_index;
@@ -2604,17 +2602,12 @@ int gr_gk20a_map_global_ctx_buffers(struct gk20a *g,
 
 	nvgpu_log_fn(g, " ");
 
-	tsg = tsg_gk20a_from_ch(c);
-	if (tsg == NULL) {
-		return -EINVAL;
-	}
-
-	g_bfr_va = tsg->gr_ctx->global_ctx_buffer_va;
-	g_bfr_size = tsg->gr_ctx->global_ctx_buffer_size;
-	g_bfr_index = tsg->gr_ctx->global_ctx_buffer_index;
+	g_bfr_va = gr_ctx->global_ctx_buffer_va;
+	g_bfr_size = gr_ctx->global_ctx_buffer_size;
+	g_bfr_index = gr_ctx->global_ctx_buffer_index;
 
 	/* Circular Buffer */
-	if (c->vpr &&
+	if (vpr &&
 	    nvgpu_mem_is_valid(&gr->global_ctx_buffer[CIRCULAR_VPR].mem)) {
 		mem = &gr->global_ctx_buffer[CIRCULAR_VPR].mem;
 		g_bfr_index[CIRCULAR_VA] = CIRCULAR_VPR;
@@ -2623,7 +2616,7 @@ int gr_gk20a_map_global_ctx_buffers(struct gk20a *g,
 		g_bfr_index[CIRCULAR_VA] = CIRCULAR;
 	}
 
-	gpu_va = nvgpu_gmmu_map(ch_vm, mem, mem->size,
+	gpu_va = nvgpu_gmmu_map(vm, mem, mem->size,
 				NVGPU_VM_MAP_CACHEABLE,
 				gk20a_mem_flag_none, true, mem->aperture);
 	if (gpu_va == 0ULL) {
@@ -2633,7 +2626,7 @@ int gr_gk20a_map_global_ctx_buffers(struct gk20a *g,
 	g_bfr_size[CIRCULAR_VA] = mem->size;
 
 	/* Attribute Buffer */
-	if (c->vpr &&
+	if (vpr &&
 	    nvgpu_mem_is_valid(&gr->global_ctx_buffer[ATTRIBUTE_VPR].mem)) {
 		mem = &gr->global_ctx_buffer[ATTRIBUTE_VPR].mem;
 		g_bfr_index[ATTRIBUTE_VA] = ATTRIBUTE_VPR;
@@ -2642,7 +2635,7 @@ int gr_gk20a_map_global_ctx_buffers(struct gk20a *g,
 		g_bfr_index[ATTRIBUTE_VA] = ATTRIBUTE;
 	}
 
-	gpu_va = nvgpu_gmmu_map(ch_vm, mem, mem->size,
+	gpu_va = nvgpu_gmmu_map(vm, mem, mem->size,
 				NVGPU_VM_MAP_CACHEABLE,
 				gk20a_mem_flag_none, false, mem->aperture);
 	if (gpu_va == 0ULL) {
@@ -2652,7 +2645,7 @@ int gr_gk20a_map_global_ctx_buffers(struct gk20a *g,
 	g_bfr_size[ATTRIBUTE_VA] = mem->size;
 
 	/* Page Pool */
-	if (c->vpr &&
+	if (vpr &&
 	    nvgpu_mem_is_valid(&gr->global_ctx_buffer[PAGEPOOL_VPR].mem)) {
 		mem = &gr->global_ctx_buffer[PAGEPOOL_VPR].mem;
 		g_bfr_index[PAGEPOOL_VA] = PAGEPOOL_VPR;
@@ -2661,7 +2654,7 @@ int gr_gk20a_map_global_ctx_buffers(struct gk20a *g,
 		g_bfr_index[PAGEPOOL_VA] = PAGEPOOL;
 	}
 
-	gpu_va = nvgpu_gmmu_map(ch_vm, mem, mem->size,
+	gpu_va = nvgpu_gmmu_map(vm, mem, mem->size,
 				NVGPU_VM_MAP_CACHEABLE,
 				gk20a_mem_flag_none, true, mem->aperture);
 	if (gpu_va == 0ULL) {
@@ -2672,7 +2665,7 @@ int gr_gk20a_map_global_ctx_buffers(struct gk20a *g,
 
 	/* Golden Image */
 	mem = &gr->global_ctx_buffer[GOLDEN_CTX].mem;
-	gpu_va = nvgpu_gmmu_map(ch_vm, mem, mem->size, 0,
+	gpu_va = nvgpu_gmmu_map(vm, mem, mem->size, 0,
 				gk20a_mem_flag_none, true, mem->aperture);
 	if (gpu_va == 0ULL) {
 		goto clean_up;
@@ -2683,7 +2676,7 @@ int gr_gk20a_map_global_ctx_buffers(struct gk20a *g,
 
 	/* Priv register Access Map */
 	mem = &gr->global_ctx_buffer[PRIV_ACCESS_MAP].mem;
-	gpu_va = nvgpu_gmmu_map(ch_vm, mem, mem->size, 0,
+	gpu_va = nvgpu_gmmu_map(vm, mem, mem->size, 0,
 				gk20a_mem_flag_none, true, mem->aperture);
 	if (gpu_va == 0ULL) {
 		goto clean_up;
@@ -2692,13 +2685,13 @@ int gr_gk20a_map_global_ctx_buffers(struct gk20a *g,
 	g_bfr_size[PRIV_ACCESS_MAP_VA] = mem->size;
 	g_bfr_index[PRIV_ACCESS_MAP_VA] = PRIV_ACCESS_MAP;
 
-	tsg->gr_ctx->global_ctx_buffer_mapped = true;
+	gr_ctx->global_ctx_buffer_mapped = true;
 
 #ifdef CONFIG_GK20A_CTXSW_TRACE
 	/* FECS trace buffer */
 	if (nvgpu_is_enabled(g, NVGPU_FECS_TRACE_VA)) {
 		mem = &gr->global_ctx_buffer[FECS_TRACE_BUFFER].mem;
-		gpu_va = nvgpu_gmmu_map(ch_vm, mem, mem->size, 0,
+		gpu_va = nvgpu_gmmu_map(vm, mem, mem->size, 0,
 				gk20a_mem_flag_none, true, mem->aperture);
 		if (!gpu_va)
 			goto clean_up;
@@ -2711,7 +2704,7 @@ int gr_gk20a_map_global_ctx_buffers(struct gk20a *g,
 	return 0;
 
 clean_up:
-	gr_gk20a_unmap_global_ctx_buffers(g, ch_vm, tsg->gr_ctx);
+	gr_gk20a_unmap_global_ctx_buffers(g, vm, gr_ctx);
 
 	return -ENOMEM;
 }
@@ -2918,7 +2911,8 @@ int gk20a_alloc_obj_ctx(struct channel_gk20a  *c, u32 class_num, u32 flags)
 		}
 
 		/* map global buffer to channel gpu_va and commit */
-		err = g->ops.gr.map_global_ctx_buffers(g, c);
+		err = g->ops.gr.map_global_ctx_buffers(g, tsg->vm, gr_ctx,
+				c->vpr);
 		if (err != 0) {
 			nvgpu_err(g,
 				"fail to map global ctx buffer");

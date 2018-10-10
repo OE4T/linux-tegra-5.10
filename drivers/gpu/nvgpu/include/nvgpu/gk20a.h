@@ -519,7 +519,8 @@ struct gpu_ops {
 		int (*init_sw_bundle64)(struct gk20a *g);
 		int (*alloc_global_ctx_buffers)(struct gk20a *g);
 		int (*map_global_ctx_buffers)(struct gk20a *g,
-			struct channel_gk20a *c);
+			struct vm_gk20a *vm,
+			struct nvgpu_gr_ctx *gr_ctx, bool vpr);
 		int (*commit_global_ctx_buffers)(struct gk20a *g,
 			struct nvgpu_gr_ctx *gr_ctx, bool patch);
 		u32 (*get_nonpes_aware_tpc)(struct gk20a *g, u32 gpc, u32 tpc);
