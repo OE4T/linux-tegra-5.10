@@ -102,6 +102,15 @@ int core_parse_args(struct unit_fw *fw, int argc, char **argv)
 	memset(args, 0, sizeof(*args));
 	set_arg_defaults(args);
 
+	args->binary_name = strrchr(argv[0], '/');
+	if (args->binary_name == NULL) {
+		/* no slash, so use the whole name */
+		args->binary_name = argv[0];
+	} else {
+		/* move past the slash */
+		args->binary_name++;
+	}
+
 	fw->args = args;
 
 	while (1) {

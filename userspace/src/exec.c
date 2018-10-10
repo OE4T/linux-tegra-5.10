@@ -83,21 +83,9 @@ static void *core_exec_module(void *module_param)
 
 		core_msg(module->fw, "Running %s.%s\n", module->name,
 			t->name);
-		if (args(module->fw)->nvtest) {
-			/* special prints for NVTEST fw in GVS */
-			printf("[%s: %s.%s]\n",
-				"start",
-				module->name, t->name);
-		}
 
 		test_status = t->fn(module, g, t->args);
 
-		if (args(module->fw)->nvtest) {
-			/* special prints for NVTEST fw in GVS */
-			printf("[%s: %s.%s]\n",
-				test_status == UNIT_SUCCESS ? "pass" : "fail",
-				module->name, t->name);
-		}
 		if (test_status != UNIT_SUCCESS)
 			core_msg_color(module->fw, C_RED,
 				       "  Unit error! Test %s.%s FAILED!\n",
@@ -183,6 +171,10 @@ int core_exec(struct unit_fw *fw)
 	struct unit_module **modules;
 	int err = 0;
 
+	if (args(fw)->nvtest) {
+		/* special prints for NVTEST fw in GVS */
+		printf("[start: %s]\n", args(fw)->binary_name);
+	}
 	core_vbs(fw, 1, "Using %d threads\n", fw->args->thread_count);
 	sem_init(&unit_thread_semaphore, 0, fw->args->thread_count);
 
@@ -215,5 +207,12 @@ int core_exec(struct unit_fw *fw)
 		}
 	}
 
+	if (args(fw)->nvtest) {
+		/* special prints for NVTEST fw in GVS */
+		printf("[%s: %s]\n",
+			fw->results->nr_tests == fw->results->nr_passing ?
+				"pass" : "fail",
+			args(fw)->binary_name);
+	}
 	return 0;
 }
