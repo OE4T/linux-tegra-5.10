@@ -220,25 +220,17 @@ static void gr_tu104_commit_rtv_circular_buffer(struct gk20a *g,
 }
 
 int gr_tu104_commit_global_ctx_buffers(struct gk20a *g,
-			struct channel_gk20a *ch, bool patch)
+			struct nvgpu_gr_ctx *gr_ctx, bool patch)
 {
 	int err;
-	struct tsg_gk20a *tsg;
-	struct nvgpu_gr_ctx *gr_ctx = NULL;
 	u64 addr;
 	u32 size;
 
-	err = gr_gk20a_commit_global_ctx_buffers(g, ch, patch);
+	err = gr_gk20a_commit_global_ctx_buffers(g, gr_ctx, patch);
 	if (err != 0) {
 		return err;
 	}
 
-	tsg = tsg_gk20a_from_ch(ch);
-	if (tsg == NULL) {
-		return -EINVAL;
-	}
-
-	gr_ctx = tsg->gr_ctx;
 	if (patch) {
 		int err;
 		err = gr_gk20a_ctx_patch_write_begin(g, gr_ctx, false);

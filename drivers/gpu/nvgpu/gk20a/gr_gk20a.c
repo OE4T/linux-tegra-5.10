@@ -791,22 +791,14 @@ u32 gk20a_gr_tpc_offset(struct gk20a *g, u32 tpc)
 }
 
 int gr_gk20a_commit_global_ctx_buffers(struct gk20a *g,
-			struct channel_gk20a *c, bool patch)
+			struct nvgpu_gr_ctx *gr_ctx, bool patch)
 {
 	struct gr_gk20a *gr = &g->gr;
-	struct tsg_gk20a *tsg;
-	struct nvgpu_gr_ctx *gr_ctx = NULL;
 	u64 addr;
 	u32 size;
 
 	nvgpu_log_fn(g, " ");
 
-	tsg = tsg_gk20a_from_ch(c);
-	if (tsg == NULL) {
-		return -EINVAL;
-	}
-
-	gr_ctx = tsg->gr_ctx;
 	if (patch) {
 		int err;
 		err = gr_gk20a_ctx_patch_write_begin(g, gr_ctx, false);
@@ -1435,7 +1427,7 @@ static int gr_gk20a_init_golden_ctx_image(struct gk20a *g,
 	gk20a_writel(g, gr_fe_go_idle_timeout_r(),
 		gr_fe_go_idle_timeout_count_disabled_f());
 
-	err = g->ops.gr.commit_global_ctx_buffers(g, c, false);
+	err = g->ops.gr.commit_global_ctx_buffers(g, gr_ctx, false);
 	if (err != 0U) {
 		goto clean_up;
 	}
@@ -2932,7 +2924,7 @@ int gk20a_alloc_obj_ctx(struct channel_gk20a  *c, u32 class_num, u32 flags)
 				"fail to map global ctx buffer");
 			goto out;
 		}
-		g->ops.gr.commit_global_ctx_buffers(g, c, true);
+		g->ops.gr.commit_global_ctx_buffers(g, gr_ctx, true);
 
 		/* commit gr ctx buffer */
 		err = g->ops.gr.commit_inst(c, gr_ctx->mem.gpu_va);

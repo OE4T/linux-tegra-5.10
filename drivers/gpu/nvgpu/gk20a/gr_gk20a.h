@@ -755,7 +755,7 @@ int gr_gk20a_alloc_global_ctx_buffers(struct gk20a *g);
 int gr_gk20a_map_global_ctx_buffers(struct gk20a *g,
 				struct channel_gk20a *c);
 int gr_gk20a_commit_global_ctx_buffers(struct gk20a *g,
-			struct channel_gk20a *c, bool patch);
+			struct nvgpu_gr_ctx *gr_ctx, bool patch);
 
 int gr_gk20a_fecs_ctx_bind_channel(struct gk20a *g,
 					struct channel_gk20a *c);

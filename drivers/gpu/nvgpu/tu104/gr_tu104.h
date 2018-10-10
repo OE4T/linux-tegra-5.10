@@ -72,7 +72,7 @@ int gr_tu104_alloc_global_ctx_buffers(struct gk20a *g);
 int gr_tu104_map_global_ctx_buffers(struct gk20a *g,
 		struct channel_gk20a *ch);
 int gr_tu104_commit_global_ctx_buffers(struct gk20a *g,
-			struct channel_gk20a *ch, bool patch);
+			struct nvgpu_gr_ctx *gr_ctx, bool patch);
 
 void gr_tu104_bundle_cb_defaults(struct gk20a *g);
 void gr_tu104_cb_size_default(struct gk20a *g);
