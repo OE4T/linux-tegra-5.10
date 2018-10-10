@@ -49,6 +49,7 @@
 
 #define TEGRA_HV_VSE_SHA_MAX_LL_NUM 26
 #define TEGRA_HV_VSE_AES_MAX_LL_NUM 17
+#define TEGRA_HV_VSE_AES_MAX_W_KEY_LL_NUM 10
 #define TEGRA_HV_VSE_CRYPTO_QUEUE_LENGTH 100
 #define TEGRA_VIRTUAL_SE_KEY_128_SIZE 16
 #define TEGRA_HV_VSE_AES_CMAC_MAX_LL_NUM 36
@@ -177,14 +178,14 @@ union tegra_virtual_se_aes_args {
 		u8 lctr[16];
 		u8 ctr_cntn;
 		u32 data_length;
-		u8 key_flag;
-		u8 keydata[32];
 		u8 src_ll_num;
 		struct tegra_virtual_se_addr
-			src_addr[TEGRA_HV_VSE_AES_MAX_LL_NUM];
+			src_addr[TEGRA_HV_VSE_AES_MAX_W_KEY_LL_NUM];
 		u8 dst_ll_num;
 		struct tegra_virtual_se_addr
-			dst_addr[TEGRA_HV_VSE_AES_MAX_LL_NUM];
+			dst_addr[TEGRA_HV_VSE_AES_MAX_W_KEY_LL_NUM];
+		u8 key_flag;
+		u8 keydata[32];
 	} op_w_key;
 	struct aes_cmac {
 		u8 streamid;
@@ -499,6 +500,7 @@ static int tegra_hv_vse_send_ivc(
 	int length)
 {
 	u32 timeout;
+	int err = 0;
 
 	timeout = TEGRA_VIRTUAL_SE_TIMEOUT_1S;
 	mutex_lock(&se_ivc_lock);
@@ -523,7 +525,19 @@ static int tegra_hv_vse_send_ivc(
 		timeout--;
 	}
 
-	tegra_hv_ivc_write(pivck, pbuf, length);
+	if (length > TEGRA_HV_VSE_IVC_FRAME_SIZE) {
+		mutex_unlock(&se_ivc_lock);
+		dev_err(se_dev->dev,
+				"Wrong write msg len %d\n", length);
+		return -E2BIG;
+	}
+
+	err = tegra_hv_ivc_write(pivck, pbuf, length);
+	if (err < 0) {
+		mutex_unlock(&se_ivc_lock);
+		dev_err(se_dev->dev, "ivc write error!!! error=%d\n", err);
+		return err;
+	}
 	mutex_unlock(&se_ivc_lock);
 	return 0;
 }
@@ -1681,6 +1695,9 @@ static void tegra_hv_vse_aes_cra_exit(struct crypto_tfm *tfm)
 		return;
 
 	if (!ctx->is_key_slot_allocated)
+		return;
+
+	if (ctx->key_in_mem)
 		return;
 
 	ivc_req_msg =
