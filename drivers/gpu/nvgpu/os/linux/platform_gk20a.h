@@ -59,6 +59,9 @@ struct gk20a_platform {
 	/* Should be populated at probe. */
 	bool can_railgate_init;
 
+	/* controls gc off feature for pci gpu */
+	bool can_pci_gc_off;
+
 	/* Should be populated at probe. */
 	bool can_tpc_powergate;
 

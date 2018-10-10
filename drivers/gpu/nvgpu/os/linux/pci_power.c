@@ -52,6 +52,7 @@ struct nvgpu_pci_power {
 	char	pci_dev_name[PCI_DEV_NAME_MAX];
 	void	*pci_cookie;
 	struct	pci_power_stats stats;
+	bool	can_pci_gc_off;
 };
 
 static struct list_head nvgpu_pci_power_devs =
@@ -70,6 +71,7 @@ static struct nvgpu_pci_power *nvgpu_pci_get_pci_power(const char *dev_name)
 
 int nvgpu_pci_add_pci_power(struct pci_dev *pdev)
 {
+	struct gk20a_platform *platform;
 	struct nvgpu_pci_power *pp;
 
 	if (!pdev)
@@ -89,6 +91,9 @@ int nvgpu_pci_add_pci_power(struct pci_dev *pdev)
 	pp->pci_dev = pdev;
 	strlcpy(pp->pci_dev_name,
 		dev_name(&pdev->dev), PCI_DEV_NAME_MAX);
+
+	platform = pci_get_drvdata(pdev);
+	pp->can_pci_gc_off = platform->can_pci_gc_off;
 
 	list_add(&pp->list, &nvgpu_pci_power_devs);
 
@@ -440,6 +445,11 @@ static int nvgpu_pci_gpu_power_on(char *dev_name)
 		return -ENODEV;
 	}
 
+	if (pp->can_pci_gc_off == false) {
+		pr_err("nvgpu: gc-off not enabled for pdev: %s\n", dev_name);
+		return -EPERM;
+	}
+
 	time_start = ktime_get();
 
 	nvgpu_mutex_acquire(&pp->mutex);
@@ -502,6 +512,11 @@ static int nvgpu_pci_gpu_power_off(char *dev_name)
 	if (!pp) {
 		pr_err("nvgpu: no pci dev by name: %s\n", dev_name);
 		return -ENODEV;
+	}
+
+	if (pp->can_pci_gc_off == false) {
+		pr_err("nvgpu: gc-off not enabled for pdev: %s\n", dev_name);
+		return -EPERM;
 	}
 
 	time_start = ktime_get();

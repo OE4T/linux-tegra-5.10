@@ -189,6 +189,7 @@ static struct gk20a_platform nvgpu_pci_device[] = {
 	/* power management configuration */
 	.railgate_delay_init	= 500,
 	.can_railgate_init	= false,
+	.can_pci_gc_off		= true,
 	.can_elpg_init = false,
 	.enable_elpg = false,
 	.enable_elcg = false,
@@ -263,6 +264,7 @@ static struct gk20a_platform nvgpu_pci_device[] = {
 	/* power management configuration */
 	.railgate_delay_init	= 500,
 	.can_railgate_init	= false,
+	.can_pci_gc_off		= true,
 	.can_elpg_init = false,
 	.enable_elpg = false,
 	.enable_elcg = false,
