@@ -6634,7 +6634,8 @@ void gk20a_gr_init_ovr_sm_dsm_perf(void)
 static int gr_gk20a_ctx_patch_smpc(struct gk20a *g,
 			    struct channel_gk20a *ch,
 			    u32 addr, u32 data,
-			    struct nvgpu_mem *mem)
+			    struct nvgpu_mem *mem,
+			    struct nvgpu_gr_ctx *gr_ctx)
 {
 	u32 num_gpc = g->gr.gpc_count;
 	u32 num_tpc;
@@ -6647,16 +6648,8 @@ static int gr_gk20a_ctx_patch_smpc(struct gk20a *g,
 	u32 *ovr_perf_regs = NULL;
 	u32 gpc_stride = nvgpu_get_litter_value(g, GPU_LIT_GPC_STRIDE);
 	u32 tpc_in_gpc_stride = nvgpu_get_litter_value(g, GPU_LIT_TPC_IN_GPC_STRIDE);
-	struct tsg_gk20a *tsg;
-	struct nvgpu_gr_ctx *gr_ctx;
 	struct nvgpu_mem *ctxheader = &ch->ctx_header;
 
-	tsg = tsg_gk20a_from_ch(ch);
-	if (tsg == NULL) {
-		return -EINVAL;
-	}
-
-	gr_ctx = tsg->gr_ctx;
 	g->ops.gr.init_ovr_sm_dsm_perf();
 	g->ops.gr.init_sm_dsm_reg_info();
 	g->ops.gr.get_ovr_perf_regs(g, &num_ovr_perf_regs, &ovr_perf_regs);
@@ -8121,7 +8114,7 @@ int __gr_gk20a_exec_ctx_ops(struct channel_gk20a *ch,
 					/* check to see if we need to add a special WAR
 					   for some of the SMPC perf regs */
 					gr_gk20a_ctx_patch_smpc(g, ch, offset_addrs[j],
-							v, current_mem);
+							v, current_mem, gr_ctx);
 
 				} else { /* read pass */
 					ctx_ops[i].value_lo =
