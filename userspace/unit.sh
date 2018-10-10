@@ -15,7 +15,9 @@ if [ -f nvgpu_unit ]; then
         # if the executable is in the current directory, we are running on
         # target, so use that dir structure
         LD_LIBRARY_PATH=".:units"
-        NVGPU_UNIT="./nvgpu_unit -n -L units/"
+        cores=$(cat /proc/cpuinfo |grep processor |wc -l)
+        NVGPU_UNIT="./nvgpu_unit --nvtest --unit-load-path units/ --no-color \
+                 --num-threads $cores"
 else
         # running on host
         LD_LIBRARY_PATH="build:build/units"
