@@ -290,7 +290,7 @@ static int tegra_mipi_wait(struct tegra_mipi *mipi, int lanes)
 
 }
 
-static int _tegra_mipi_bias_pad_enable(struct tegra_mipi *mipi)
+static int _t18x_tegra_mipi_bias_pad_enable(struct tegra_mipi *mipi)
 {
 	tegra_mipi_clk_enable(mipi);
 	mipical_update_bits(mipi->regmap, ADDR(MIPI_BIAS_PAD_CFG0),
@@ -301,12 +301,26 @@ static int _tegra_mipi_bias_pad_enable(struct tegra_mipi *mipi)
 	return 0;
 }
 
-static int _tegra_mipi_bias_pad_disable(struct tegra_mipi *mipi)
+static int _t18x_tegra_mipi_bias_pad_disable(struct tegra_mipi *mipi)
 {
 	mipical_update_bits(mipi->regmap, ADDR(MIPI_BIAS_PAD_CFG0),
 			PDVCLAMP, 1 << PDVCLAMP_SHIFT);
 	mipical_update_bits(mipi->regmap, ADDR(MIPI_BIAS_PAD_CFG2),
 			PDVREG, 1 << PDVREG_SHIFT);
+	tegra_mipi_clk_disable(mipi);
+
+	return 0;
+}
+
+static int _t19x_tegra_mipi_bias_pad_enable(struct tegra_mipi *mipi)
+{
+	tegra_mipi_clk_enable(mipi);
+
+	return 0;
+}
+
+static int _t19x_tegra_mipi_bias_pad_disable(struct tegra_mipi *mipi)
+{
 	tegra_mipi_clk_disable(mipi);
 
 	return 0;
@@ -690,6 +704,12 @@ prod_set_fail:
 	return err;
 
 }
+
+static int tegra_mipical_no_op(struct tegra_mipi *mipi, int lanes_info)
+{
+	return 0;
+}
+
 int tegra_mipi_calibration(int lanes)
 {
 	if (!mipi)
@@ -784,6 +804,11 @@ static int t21x_tegra_mipical_using_prod(struct tegra_mipi *mipi, int lanes)
 	return err;
 }
 
+int nvcsi_cil_sw_reset_no_op(int lanes, int enable)
+{
+	return 0;
+}
+
 /*
  * t21x, the register MIPI_CAL_MIPI_CAL_MODE_0 does not
  * exist, and the whole address space is at a -4 offset
@@ -812,8 +837,8 @@ static const struct tegra_mipi_soc tegra18x_mipi_soc = {
 	.dsi_base = T186_DSI_BASE,
 	.ppsb_war = 0,
 	.debug_table_id = DEBUGFS_TABLE_T18x,
-	.pad_enable = &_tegra_mipi_bias_pad_enable,
-	.pad_disable = &_tegra_mipi_bias_pad_disable,
+	.pad_enable = &_t18x_tegra_mipi_bias_pad_enable,
+	.pad_disable = &_t18x_tegra_mipi_bias_pad_disable,
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 14, 0)
 	.cil_sw_reset = NULL,
 #else
@@ -836,14 +861,10 @@ static const struct tegra_mipi_soc tegra19x_mipi_soc = {
 	.dsi_base = T186_DSI_BASE + 8,
 	.ppsb_war = 0,
 	.debug_table_id = DEBUGFS_TABLE_T19x,
-	.pad_enable = &_tegra_mipi_bias_pad_enable,
-	.pad_disable = &_tegra_mipi_bias_pad_disable,
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 14, 0)
-	.cil_sw_reset = NULL,
-#else
-	.cil_sw_reset = &tegra194_nvcsi_cil_sw_reset,
-#endif
-	.calibrate = &tegra_mipical_using_prod,
+	.pad_enable = &_t19x_tegra_mipi_bias_pad_enable,
+	.pad_disable = &_t19x_tegra_mipi_bias_pad_disable,
+	.cil_sw_reset = &nvcsi_cil_sw_reset_no_op,
+	.calibrate = &tegra_mipical_no_op,
 	.parse_cfg = &tegra_prod_get_config,
 	.powergate_id = TEGRA194_POWER_DOMAIN_DISP,
 };
