@@ -46,7 +46,7 @@ int main(int argc, char **argv)
 
 	ret = core_parse_args(fw, argc, argv);
 	if (ret) {
-		core_err(fw, "Enable to parse args.\n");
+		core_err(fw, "Unable to parse args.\n");
 		core_err(fw, "Exiting!\n");
 		return 1;
 	}
