@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2017, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2015-2018, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -157,21 +157,19 @@ static void tegra_aon_rx_handler(struct tegra_aon *aon, u32 ivc_chans)
 	}
 }
 
-static u32 tegra_aon_hsp_sm_full_notify(void *data, u32 value)
+static void tegra_aon_hsp_sm_full_notify(void *data, u32 value)
 {
 	struct tegra_aon *aon = data;
 	u32 ss_val;
 
 	if (value != SMBOX_IVC_NOTIFY) {
 		dev_err(aon->mbox.dev, "Invalid IVC notification\n");
-		return 0;
+		return;
 	}
 
 	ss_val = tegra_aon_hsp_ss_status(aon, aon->ivc_rx_ss);
 	tegra_aon_hsp_ss_clr(aon, aon->ivc_rx_ss, ss_val);
 	tegra_aon_rx_handler(aon, ss_val);
-
-	return 0;
 }
 
 #define NV(p) "nvidia," p

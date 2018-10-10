@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2016-2018, NVIDIA CORPORATION. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -19,12 +19,11 @@
 #include <linux/tegra-hsp.h>
 #include <linux/tegra-ivc-bus.h>
 
-static u32 tegra_hsp_mailbox_notify(void *data, u32 value)
+static void tegra_hsp_mailbox_notify(void *data, u32 value)
 {
 	struct device *dev = data;
 
 	tegra_hsp_notify(dev);
-	return 0;
 }
 
 static int tegra_hsp_mailbox_probe(struct device *dev)

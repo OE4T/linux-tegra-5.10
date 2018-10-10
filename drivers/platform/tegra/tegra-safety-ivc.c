@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017, NVIDIA CORPORATION, All rights reserved.
+ * Copyright (c) 2016-2018, NVIDIA CORPORATION, All rights reserved.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -31,21 +31,17 @@
 int ivc_chan_count;
 
 /* wake up cmd-resp threads */
-static u32 tegra_safety_ivc_notify(void *data, u32 response)
+static void tegra_safety_ivc_notify(void *data, u32 response)
 {
 	tegra_safety_dev_notify();
-
-	return 0;
 }
 
-static u32 tegra_safety_cmd_full_notify(void *data, u32 response)
+static void tegra_safety_cmd_full_notify(void *data, u32 response)
 {
 	struct tegra_safety_ivc *safety_ivc = data;
 
 	atomic_set(&safety_ivc->cmd.response, response);
 	wake_up(&safety_ivc->cmd.response_waitq);
-
-	return 0;
 }
 
 static void tegra_safety_cmd_empty_notify(void *data, u32 empty_value)

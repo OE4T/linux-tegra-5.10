@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2018 NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2015-2018, NVIDIA CORPORATION. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -725,14 +725,12 @@ static void tegra_camrtc_set_online(struct device *dev, bool online)
 	tegra_ivc_bus_ready(rtcpu->ivc, online);
 }
 
-static u32 tegra_camrtc_full_notify(void *data, u32 response)
+static void tegra_camrtc_full_notify(void *data, u32 response)
 {
 	struct tegra_cam_rtcpu *rtcpu = data;
 
 	atomic_set(&rtcpu->cmd.response, response);
 	wake_up(&rtcpu->cmd.response_waitq);
-
-	return 0;
 }
 
 static void tegra_camrtc_empty_notify(void *data, u32 empty_value)
