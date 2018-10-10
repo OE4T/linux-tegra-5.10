@@ -25,6 +25,9 @@
 #include <nvgpu/gmmu.h>
 #include <nvgpu/kmem.h>
 #include <nvgpu/nvgpu_mem.h>
+#include <nvgpu/gk20a.h>
+
+#define DMA_ERROR_CODE	(~(u64)0x0)
 
 /*
  * These functions are somewhat meaningless.
@@ -41,36 +44,46 @@ u64 nvgpu_mem_get_phys_addr(struct gk20a *g, struct nvgpu_mem *mem)
 
 static struct nvgpu_sgl *nvgpu_mem_sgl_next(struct nvgpu_sgl *sgl)
 {
-	return NULL;
+	struct nvgpu_mem_sgl *mem = (struct nvgpu_mem_sgl *)sgl;
+
+	return (struct nvgpu_sgl *) mem->next;
 }
 
 static u64 nvgpu_mem_sgl_phys(struct gk20a *g, struct nvgpu_sgl *sgl)
 {
-	struct nvgpu_mem *mem = (struct nvgpu_mem *)sgl;
+	struct nvgpu_mem_sgl *mem = (struct nvgpu_mem_sgl *)sgl;
 
-	return (u64)(uintptr_t)mem->cpu_va;
+	return (u64)(uintptr_t)mem->phys;
 }
 
 static u64 nvgpu_mem_sgl_dma(struct nvgpu_sgl *sgl)
 {
-	struct nvgpu_mem *mem = (struct nvgpu_mem *)sgl;
+	struct nvgpu_mem_sgl *mem = (struct nvgpu_mem_sgl *)sgl;
 
-	return (u64)(uintptr_t)mem->cpu_va;
+	return (u64)(uintptr_t)mem->dma;
 }
 
 static u64 nvgpu_mem_sgl_length(struct nvgpu_sgl *sgl)
 {
-	struct nvgpu_mem *mem = (struct nvgpu_mem *)sgl;
+	struct nvgpu_mem_sgl *mem = (struct nvgpu_mem_sgl *)sgl;
 
-	return (u64)mem->aligned_size;
+	return (u64)mem->length;
 }
 
 static u64 nvgpu_mem_sgl_gpu_addr(struct gk20a *g, struct nvgpu_sgl *sgl,
 				  struct nvgpu_gmmu_attrs *attrs)
 {
-	struct nvgpu_mem *mem = (struct nvgpu_mem *)sgl;
+	struct nvgpu_mem_sgl *mem = (struct nvgpu_mem_sgl *)sgl;
 
-	return mem->gpu_va;
+	if (mem->dma == 0U) {
+		return g->ops.mm.gpu_phys_addr(g, attrs, mem->phys);
+	}
+
+	if (mem->dma == DMA_ERROR_CODE) {
+		return 0x0;
+	}
+
+	return nvgpu_mem_iommu_translate(g, mem->dma);
 }
 
 static bool nvgpu_mem_sgt_iommuable(struct gk20a *g, struct nvgpu_sgt *sgt)
