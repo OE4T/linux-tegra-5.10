@@ -60,7 +60,7 @@ void gr_gm20b_commit_global_bundle_cb(struct gk20a *g,
 					    struct nvgpu_gr_ctx *ch_ctx,
 					    u64 addr, u64 size, bool patch);
 int gr_gm20b_commit_global_cb_manager(struct gk20a *g,
-			struct channel_gk20a *c, bool patch);
+			struct nvgpu_gr_ctx *gr_ctx, bool patch);
 void gr_gm20b_commit_global_pagepool(struct gk20a *g,
 					    struct nvgpu_gr_ctx *ch_ctx,
 					    u64 addr, u32 size, bool patch);

@@ -391,11 +391,9 @@ int gr_gp10b_handle_tex_exception(struct gk20a *g, u32 gpc, u32 tpc,
 }
 
 int gr_gp10b_commit_global_cb_manager(struct gk20a *g,
-			struct channel_gk20a *c, bool patch)
+			struct nvgpu_gr_ctx *gr_ctx, bool patch)
 {
-	struct tsg_gk20a *tsg;
 	struct gr_gk20a *gr = &g->gr;
-	struct nvgpu_gr_ctx *gr_ctx;
 	u32 attrib_offset_in_chunk = 0;
 	u32 alpha_offset_in_chunk = 0;
 	u32 pd_ab_max_output;
@@ -408,13 +406,6 @@ int gr_gp10b_commit_global_cb_manager(struct gk20a *g,
 	u32 num_pes_per_gpc = nvgpu_get_litter_value(g, GPU_LIT_NUM_PES_PER_GPC);
 
 	nvgpu_log_fn(g, " ");
-
-	tsg = tsg_gk20a_from_ch(c);
-	if (tsg == NULL) {
-		return -EINVAL;
-	}
-
-	gr_ctx = tsg->gr_ctx;
 
 	if (gr_ctx->graphics_preempt_mode == NVGPU_PREEMPTION_MODE_GRAPHICS_GFXP) {
 		attrib_size_in_chunk = gr->attrib_cb_gfxp_size;
@@ -2308,7 +2299,7 @@ int gr_gp10b_set_preemption_mode(struct channel_gk20a *ch,
 			nvgpu_err(g, "can't map patch context");
 			goto enable_ch;
 		}
-		g->ops.gr.commit_global_cb_manager(g, ch, true);
+		g->ops.gr.commit_global_cb_manager(g, gr_ctx, true);
 		gr_gk20a_ctx_patch_write_end(g, gr_ctx, true);
 	}
 

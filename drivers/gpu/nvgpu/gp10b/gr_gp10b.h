@@ -77,7 +77,7 @@ int gr_gp10b_handle_sm_exception(struct gk20a *g,
 int gr_gp10b_handle_tex_exception(struct gk20a *g, u32 gpc, u32 tpc,
 		bool *post_event);
 int gr_gp10b_commit_global_cb_manager(struct gk20a *g,
-			struct channel_gk20a *c, bool patch);
+			struct nvgpu_gr_ctx *gr_ctx, bool patch);
 void gr_gp10b_commit_global_pagepool(struct gk20a *g,
 					    struct nvgpu_gr_ctx *gr_ctx,
 					    u64 addr, u32 size, bool patch);

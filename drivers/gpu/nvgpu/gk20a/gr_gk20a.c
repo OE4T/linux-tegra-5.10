@@ -848,7 +848,7 @@ int gr_gk20a_commit_global_ctx_buffers(struct gk20a *g,
 
 	nvgpu_log_info(g, "attrib cb addr : 0x%016llx", addr);
 	g->ops.gr.commit_global_attrib_cb(g, gr_ctx, addr, patch);
-	g->ops.gr.commit_global_cb_manager(g, c, patch);
+	g->ops.gr.commit_global_cb_manager(g, gr_ctx, patch);
 
 	if (patch) {
 		gr_gk20a_ctx_patch_write_end(g, gr_ctx, false);

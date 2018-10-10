@@ -242,7 +242,7 @@ struct gpu_ops {
 						struct nvgpu_gr_ctx *ch_ctx,
 						u64 addr, u64 size, bool patch);
 		int (*commit_global_cb_manager)(struct gk20a *g,
-						struct channel_gk20a *ch,
+						struct nvgpu_gr_ctx *gr_ctx,
 						bool patch);
 		void (*commit_global_pagepool)(struct gk20a *g,
 					       struct nvgpu_gr_ctx *ch_ctx,
