@@ -10,6 +10,10 @@
 #define DT_VERSION_2		2
 
 /**
+ * TEGRA_BPMP_FW_DT_VERSION
+ *		V1: Nv version of DT binding
+ * 		V2: Mainline compatible DT binding
+ *
  * TEGRA_AUDIO_BUS_DT_VERSION: Audio node DT version.
  *		V1: All audio bus are in root node.
  *		V2: All audio bus are in the under aconnect node.
@@ -52,6 +56,11 @@
 #if defined(LINUX_VERSION)
 #define _OS_FOUND_
 #define TEGRA_CPUFREQ_DT_VERSION		DT_VERSION_2
+#if LINUX_VERSION >= 419
+#define TEGRA_BPMP_FW_DT_VERSION		DT_VERSION_2
+#else
+#define TEGRA_BPMP_FW_DT_VERSION		DT_VERSION_1
+#endif
 #if LINUX_VERSION >= 409
 #define TEGRA_AUDIO_BUS_DT_VERSION		DT_VERSION_2
 #define TEGRA_POWER_DOMAIN_DT_VERSION		DT_VERSION_2
@@ -76,6 +85,7 @@
 /* OS QNX */
 #if defined (__QNX__)
 #define _OS_FOUND_
+#define TEGRA_BPMP_FW_DT_VERSION		DT_VERSION_1
 #define TEGRA_AUDIO_BUS_DT_VERSION		DT_VERSION_1
 #define TEGRA_POWER_DOMAIN_DT_VERSION		DT_VERSION_1
 #define TEGRA_XUSB_PADCONTROL_VERSION		DT_VERSION_2
@@ -90,6 +100,7 @@
 /* OS Integrity */
 #if defined( __INTEGRITY)
 #define _OS_FOUND_
+#define TEGRA_BPMP_FW_DT_VERSION		DT_VERSION_1
 #define TEGRA_AUDIO_BUS_DT_VERSION		DT_VERSION_1
 #define TEGRA_POWER_DOMAIN_DT_VERSION		DT_VERSION_1
 #define TEGRA_XUSB_PADCONTROL_VERSION		DT_VERSION_1
@@ -104,6 +115,7 @@
 /* OS LK */
 #if defined (__LK__)
 #define _OS_FOUND_
+#define TEGRA_BPMP_FW_DT_VERSION		DT_VERSION_1
 #define TEGRA_AUDIO_BUS_DT_VERSION		DT_VERSION_2
 #define TEGRA_POWER_DOMAIN_DT_VERSION		DT_VERSION_2
 #define TEGRA_XUSB_PADCONTROL_VERSION		DT_VERSION_2
