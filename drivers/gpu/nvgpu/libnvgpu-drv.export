@@ -42,3 +42,12 @@ __nvgpu_posix_ffs
 __nvgpu_posix_fls
 __nvgpu_readl
 __nvgpu_set_enabled
+nvgpu_posix_enable_fault_injection
+nvgpu_posix_is_fault_injection_triggered
+__nvgpu_kmalloc
+__nvgpu_kfree
+nvgpu_kmem_cache_create
+nvgpu_kmem_cache_destroy
+nvgpu_kmem_cache_alloc
+nvgpu_kmem_cache_free
+nvgpu_kmem_get_fault_injection

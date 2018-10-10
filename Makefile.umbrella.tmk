@@ -25,6 +25,7 @@ NV_REPOSITORY_COMPONENTS += userspace
 NV_REPOSITORY_COMPONENTS += userspace/units/posix-bitops
 NV_REPOSITORY_COMPONENTS += userspace/units/posix-env
 NV_REPOSITORY_COMPONENTS += userspace/units/posix-mockio
+NV_REPOSITORY_COMPONENTS += userspace/units/posix-fault-injection
 NV_REPOSITORY_COMPONENTS += userspace/units/nvgpu-pramin
 endif
 
