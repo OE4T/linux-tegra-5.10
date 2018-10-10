@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2018, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -32,5 +32,7 @@ void *__nvgpu_vmalloc(struct gk20a *g, unsigned long size, void *ip);
 void *__nvgpu_vzalloc(struct gk20a *g, unsigned long size, void *ip);
 void __nvgpu_kfree(struct gk20a *g, void *addr);
 void __nvgpu_vfree(struct gk20a *g, void *addr);
+
+struct nvgpu_posix_fault_inj *nvgpu_kmem_get_fault_injection(void);
 
 #endif
