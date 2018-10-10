@@ -1409,7 +1409,7 @@ static void gk20a_fifo_handle_chsw_fault(struct gk20a *g)
 
 	intr = gk20a_readl(g, fifo_intr_chsw_error_r());
 	nvgpu_err(g, "chsw: %08x", intr);
-	gk20a_fecs_dump_falcon_stats(g);
+	g->ops.gr.dump_gr_falcon_stats(g);
 	gk20a_writel(g, fifo_intr_chsw_error_r(), intr);
 }
 
@@ -1722,7 +1722,7 @@ static bool gk20a_fifo_handle_mmu_fault_locked(
 			   mmfault_info.access_type, mmfault_info.inst_ptr);
 
 		if (ctxsw) {
-			gk20a_fecs_dump_falcon_stats(g);
+			g->ops.gr.dump_gr_falcon_stats(g);
 			nvgpu_err(g, "gr_status_r : 0x%x",
 					gk20a_readl(g, gr_status_r()));
 		}

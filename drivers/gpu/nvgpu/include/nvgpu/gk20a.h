@@ -524,6 +524,7 @@ struct gpu_ops {
 			u32 num_ppcs, u32 reg_list_ppc_count,
 			u32 *__offset_in_segment);
 		void (*set_debug_mode)(struct gk20a *g, bool enable);
+		void (*dump_gr_falcon_stats)(struct gk20a *g);
 	} gr;
 	struct {
 		void (*init_hw)(struct gk20a *g);

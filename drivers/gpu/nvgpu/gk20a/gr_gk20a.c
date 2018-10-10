@@ -125,86 +125,13 @@ void gk20a_fecs_dump_falcon_stats(struct gk20a *g)
 {
 	unsigned int i;
 
-	nvgpu_err(g, "gr_fecs_os_r : %d",
-		gk20a_readl(g, gr_fecs_os_r()));
-	nvgpu_err(g, "gr_fecs_cpuctl_r : 0x%x",
-		gk20a_readl(g, gr_fecs_cpuctl_r()));
-	nvgpu_err(g, "gr_fecs_idlestate_r : 0x%x",
-		gk20a_readl(g, gr_fecs_idlestate_r()));
-	nvgpu_err(g, "gr_fecs_mailbox0_r : 0x%x",
-		gk20a_readl(g, gr_fecs_mailbox0_r()));
-	nvgpu_err(g, "gr_fecs_mailbox1_r : 0x%x",
-		gk20a_readl(g, gr_fecs_mailbox1_r()));
-	nvgpu_err(g, "gr_fecs_irqstat_r : 0x%x",
-		gk20a_readl(g, gr_fecs_irqstat_r()));
-	nvgpu_err(g, "gr_fecs_irqmode_r : 0x%x",
-		gk20a_readl(g, gr_fecs_irqmode_r()));
-	nvgpu_err(g, "gr_fecs_irqmask_r : 0x%x",
-		gk20a_readl(g, gr_fecs_irqmask_r()));
-	nvgpu_err(g, "gr_fecs_irqdest_r : 0x%x",
-		gk20a_readl(g, gr_fecs_irqdest_r()));
-	nvgpu_err(g, "gr_fecs_debug1_r : 0x%x",
-		gk20a_readl(g, gr_fecs_debug1_r()));
-	nvgpu_err(g, "gr_fecs_debuginfo_r : 0x%x",
-		gk20a_readl(g, gr_fecs_debuginfo_r()));
-	nvgpu_err(g, "gr_fecs_ctxsw_status_1_r : 0x%x",
-		gk20a_readl(g, gr_fecs_ctxsw_status_1_r()));
+	nvgpu_flcn_dump_stats(&g->fecs_flcn);
 
 	for (i = 0; i < g->ops.gr.fecs_ctxsw_mailbox_size(); i++) {
 		nvgpu_err(g, "gr_fecs_ctxsw_mailbox_r(%d) : 0x%x",
 			i, gk20a_readl(g, gr_fecs_ctxsw_mailbox_r(i)));
 	}
 
-	nvgpu_err(g, "gr_fecs_engctl_r : 0x%x",
-		gk20a_readl(g, gr_fecs_engctl_r()));
-	nvgpu_err(g, "gr_fecs_curctx_r : 0x%x",
-		gk20a_readl(g, gr_fecs_curctx_r()));
-	nvgpu_err(g, "gr_fecs_nxtctx_r : 0x%x",
-		gk20a_readl(g, gr_fecs_nxtctx_r()));
-
-	gk20a_writel(g, gr_fecs_icd_cmd_r(),
-		gr_fecs_icd_cmd_opc_rreg_f() |
-		gr_fecs_icd_cmd_idx_f(PMU_FALCON_REG_IMB));
-	nvgpu_err(g, "FECS_FALCON_REG_IMB : 0x%x",
-		gk20a_readl(g, gr_fecs_icd_rdata_r()));
-
-	gk20a_writel(g, gr_fecs_icd_cmd_r(),
-		gr_fecs_icd_cmd_opc_rreg_f() |
-		gr_fecs_icd_cmd_idx_f(PMU_FALCON_REG_DMB));
-	nvgpu_err(g, "FECS_FALCON_REG_DMB : 0x%x",
-		gk20a_readl(g, gr_fecs_icd_rdata_r()));
-
-	gk20a_writel(g, gr_fecs_icd_cmd_r(),
-		gr_fecs_icd_cmd_opc_rreg_f() |
-		gr_fecs_icd_cmd_idx_f(PMU_FALCON_REG_CSW));
-	nvgpu_err(g, "FECS_FALCON_REG_CSW : 0x%x",
-		gk20a_readl(g, gr_fecs_icd_rdata_r()));
-
-	gk20a_writel(g, gr_fecs_icd_cmd_r(),
-		gr_fecs_icd_cmd_opc_rreg_f() |
-		gr_fecs_icd_cmd_idx_f(PMU_FALCON_REG_CTX));
-	nvgpu_err(g, "FECS_FALCON_REG_CTX : 0x%x",
-		gk20a_readl(g, gr_fecs_icd_rdata_r()));
-
-	gk20a_writel(g, gr_fecs_icd_cmd_r(),
-		gr_fecs_icd_cmd_opc_rreg_f() |
-		gr_fecs_icd_cmd_idx_f(PMU_FALCON_REG_EXCI));
-	nvgpu_err(g, "FECS_FALCON_REG_EXCI : 0x%x",
-		gk20a_readl(g, gr_fecs_icd_rdata_r()));
-
-	for (i = 0; i < 4; i++) {
-		gk20a_writel(g, gr_fecs_icd_cmd_r(),
-			gr_fecs_icd_cmd_opc_rreg_f() |
-			gr_fecs_icd_cmd_idx_f(PMU_FALCON_REG_PC));
-		nvgpu_err(g, "FECS_FALCON_REG_PC : 0x%x",
-			gk20a_readl(g, gr_fecs_icd_rdata_r()));
-
-		gk20a_writel(g, gr_fecs_icd_cmd_r(),
-			gr_fecs_icd_cmd_opc_rreg_f() |
-			gr_fecs_icd_cmd_idx_f(PMU_FALCON_REG_SP));
-		nvgpu_err(g, "FECS_FALCON_REG_SP : 0x%x",
-			gk20a_readl(g, gr_fecs_icd_rdata_r()));
-	}
 }
 
 static void gr_gk20a_load_falcon_dmem(struct gk20a *g)
@@ -526,14 +453,14 @@ int gr_gk20a_ctx_wait_ucode(struct gk20a *g, u32 mailbox_id,
 		nvgpu_err(g,
 			   "timeout waiting on mailbox=%d value=0x%08x",
 			   mailbox_id, reg);
-		gk20a_fecs_dump_falcon_stats(g);
+		g->ops.gr.dump_gr_falcon_stats(g);
 		gk20a_gr_debug_dump(g);
 		return -1;
 	} else if (check == WAIT_UCODE_ERROR) {
 		nvgpu_err(g,
 			   "ucode method failed on mailbox=%d value=0x%08x",
 			   mailbox_id, reg);
-		gk20a_fecs_dump_falcon_stats(g);
+		g->ops.gr.dump_gr_falcon_stats(g);
 		return -1;
 	}
 
@@ -5303,7 +5230,7 @@ int gk20a_gr_handle_fecs_error(struct gk20a *g, struct channel_gk20a *ch,
 		/* currently, recovery is not initiated */
 		nvgpu_err(g, "fecs watchdog triggered for channel %u, "
 				"cannot ctxsw anymore !!", isr_data->chid);
-		gk20a_fecs_dump_falcon_stats(g);
+		g->ops.gr.dump_gr_falcon_stats(g);
 	} else {
 		nvgpu_err(g,
 			"fecs error interrupt 0x%08x for channel %u",

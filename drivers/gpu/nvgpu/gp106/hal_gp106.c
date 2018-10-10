@@ -406,6 +406,7 @@ static const struct gpu_ops gp106_ops = {
 		.get_offset_in_gpccs_segment =
 			gr_gk20a_get_offset_in_gpccs_segment,
 		.set_debug_mode = gm20b_gr_set_debug_mode,
+		.dump_gr_falcon_stats = gk20a_fecs_dump_falcon_stats,
 	},
 	.fb = {
 		.init_hw = gm20b_fb_init_hw,

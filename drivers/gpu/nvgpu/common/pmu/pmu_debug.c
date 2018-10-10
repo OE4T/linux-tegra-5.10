@@ -52,5 +52,5 @@ void nvgpu_pmu_dump_falcon_stats(struct nvgpu_pmu *pmu)
 	nvgpu_err(g, "elpg state: %d", pmu->elpg_stat);
 
 	/* PMU may crash due to FECS crash. Dump FECS status */
-	gk20a_fecs_dump_falcon_stats(g);
+	g->ops.gr.dump_gr_falcon_stats(g);
 }
