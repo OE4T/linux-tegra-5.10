@@ -17,6 +17,7 @@
 #include <linux/tegra-camera-rtcpu.h>
 
 #include <linux/bitops.h>
+#include <linux/completion.h>
 #include <linux/delay.h>
 #include <linux/interrupt.h>
 #include <linux/io.h>
@@ -194,10 +195,9 @@ struct tegra_cam_rtcpu {
 	struct tegra_rtcpu_coverage *coverage;
 	struct {
 		struct mutex mutex;
+		struct completion emptied;
 		wait_queue_head_t response_waitq;
-		wait_queue_head_t empty_waitq;
 		atomic_t response;
-		atomic_t emptied;
 		u32 timeout;
 	} cmd;
 	u32 fw_version;
@@ -737,8 +737,7 @@ static void tegra_camrtc_empty_notify(void *data, u32 empty_value)
 {
 	struct tegra_cam_rtcpu *rtcpu = data;
 
-	atomic_set(&rtcpu->cmd.emptied, 1);
-	wake_up(&rtcpu->cmd.empty_waitq);
+	complete(&rtcpu->cmd.emptied);
 }
 
 static long tegra_camrtc_wait_for_empty(struct device *dev,
@@ -749,17 +748,44 @@ static long tegra_camrtc_wait_for_empty(struct device *dev,
 	if (timeout == 0)
 		timeout = 2 * HZ;
 
-	timeout = wait_event_timeout(
-		rtcpu->cmd.empty_waitq,
-		/* Make sure IRQ has been handled */
-		atomic_read(&rtcpu->cmd.emptied) != 0 &&
-		tegra_hsp_sm_pair_is_empty(rtcpu->sm_pair),
-		timeout);
+	for (;;) {
+		if (tegra_hsp_sm_pair_is_empty(rtcpu->sm_pair))
+			return timeout > 0 ? timeout : 1;
 
-	if (timeout > 0)
-		atomic_set(&rtcpu->cmd.emptied, 0);
+		if (timeout <= 0)
+			return timeout;
 
-	return timeout;
+		/*
+		 * The reinit_completion() resets the completion to 0.
+		 *
+		 * The tegra_hsp_sm_pair_enable_empty_notify()
+		 * guarantees that the empty notify gets called at
+		 * least once even if the mailbox was already empty,
+		 * so no harm is done if the mailbox is emptied
+		 * between reinit_completion() and
+		 * tegra_hsp_sm_pair_enable_empty_notify().
+		 *
+		 * The tegra_hsp_sm_pair_enable_empty_notify() may or
+		 * may not do reference counting (on APE it does,
+		 * elsewhere it does not). If the mailbox is initially
+		 * empty, the emptied is already complete()d here, and
+		 * the code ends up enabling empty notify twice, and
+		 * when the mailbox gets empty, emptied gets
+		 * complete() twice, and we always run the loop one
+		 * extra time.
+		 *
+		 * Note that the complete() call above lets only one
+		 * waiting task to run. The code here is protected by
+		 * cmd.mutex, so only one task can be waiting here.
+		 */
+		reinit_completion(&rtcpu->cmd.emptied);
+		tegra_hsp_sm_pair_enable_empty_notify(rtcpu->sm_pair);
+
+		dev_dbg(dev, "waiting for cmd mailbox to be cleared\n");
+
+		timeout = wait_for_completion_timeout(&rtcpu->cmd.emptied,
+				timeout);
+	}
 }
 
 static int tegra_camrtc_mbox_exchange(struct device *dev,
@@ -771,10 +797,8 @@ static int tegra_camrtc_mbox_exchange(struct device *dev,
 
 	*timeout = tegra_camrtc_wait_for_empty(dev, *timeout);
 	if (*timeout <= 0) {
-		dev_err(dev, "command: 0x%08x: empty mailbox%s timeout\n",
-			command,
-			tegra_hsp_sm_pair_is_empty(rtcpu->sm_pair) ?
-			" interrupt" : "");
+		dev_err(dev, "command: 0x%08x: empty mailbox timeout\n",
+			command);
 		return -ETIMEDOUT;
 	}
 
@@ -1143,7 +1167,7 @@ static int tegra_camrtc_mbox_init(struct device *dev)
 
 	mutex_init(&rtcpu->cmd.mutex);
 	init_waitqueue_head(&rtcpu->cmd.response_waitq);
-	init_waitqueue_head(&rtcpu->cmd.empty_waitq);
+	init_completion(&rtcpu->cmd.emptied);
 
 	hsp_node = of_get_child_by_name(dev->of_node, "hsp");
 	rtcpu->hsp_device = tegra_camrtc_get_hsp_device(hsp_node);

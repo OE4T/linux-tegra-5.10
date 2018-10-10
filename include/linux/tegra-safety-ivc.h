@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017, NVIDIA CORPORATION, All rights reserved.
+ * Copyright (c) 2016-2018, NVIDIA CORPORATION, All rights reserved.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -14,6 +14,16 @@
 
 #ifndef _LINUX_TEGRA_SAFETY_IVC_H_
 #define _LINUX_TEGRA_SAFETY_IVC_H_
+
+#include <linux/completion.h>
+#include <linux/device.h>
+#include <linux/tegra-hsp.h>
+#include <linux/tegra-ivc-instance.h>
+#include <linux/types.h>
+#include <linux/wait.h>
+
+struct device;
+struct tegra_safety_ivc_chan;
 
 #define SAFETY_CONF(id, value)          ((SAFETY_CONF_ ## id << 24) | (value))
 #define SAFETY_CONF_GET_ID(value)       (((value) >> 24) & 0x7f)
@@ -40,9 +50,8 @@ struct tegra_safety_ivc {
 	struct tegra_hsp_sm_pair *ivc_pair;
 	struct {
 		wait_queue_head_t response_waitq;
-		wait_queue_head_t empty_waitq;
 		atomic_t response;
-		atomic_t emptied;
+		struct completion emptied;
 	} cmd;
 	struct tegra_safety_ivc_chan *ivc_chan[MAX_SAFETY_CHANNELS];
 };

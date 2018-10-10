@@ -9,8 +9,9 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- *
  */
+
+#include <linux/tegra-safety-ivc.h>
 
 #include <linux/kernel.h>
 #include <linux/module.h>
@@ -24,7 +25,6 @@
 #include <linux/wait.h>
 
 #include <dt-bindings/memory/tegra-swgroup.h>
-#include <linux/tegra-safety-ivc.h>
 
 #define NV(p) "nvidia," #p
 
@@ -48,8 +48,7 @@ static void tegra_safety_cmd_empty_notify(void *data, u32 empty_value)
 {
 	struct tegra_safety_ivc *safety_ivc = data;
 
-	atomic_set(&safety_ivc->cmd.emptied, 1);
-	wake_up(&safety_ivc->cmd.empty_waitq);
+	complete(&safety_ivc->cmd.emptied);
 }
 
 static long tegra_safety_ivc_wait_for_empty(struct device *dev,
@@ -57,17 +56,18 @@ static long tegra_safety_ivc_wait_for_empty(struct device *dev,
 {
 	struct tegra_safety_ivc *safety_ivc = dev_get_drvdata(dev);
 
-	timeout = wait_event_interruptible_timeout(
-			safety_ivc->cmd.empty_waitq,
-			/* Make sure IRQ has been handled */
-			atomic_read(&safety_ivc->cmd.emptied) != 0 &&
-			tegra_hsp_sm_pair_is_empty(safety_ivc->cmd_pair),
-			timeout);
+	for (;;) {
+		if (tegra_hsp_sm_pair_is_empty(safety_ivc->cmd_pair))
+			return timeout > 0 ? timeout : 1;
 
-	if (timeout > 0)
-		atomic_set(&safety_ivc->cmd.emptied, 0);
+		if (timeout <= 0)
+			return timeout;
 
-	return timeout;
+		tegra_hsp_sm_pair_enable_empty_notify(safety_ivc->cmd_pair);
+
+		timeout = wait_for_completion_timeout(&safety_ivc->cmd.emptied,
+				timeout);
+	}
 }
 
 static int tegra_safety_ivc_command(struct device *dev, u32 command,
@@ -369,7 +369,7 @@ static int tegra_safety_ivc_probe(struct platform_device *pdev)
 	dev_set_drvdata(dev, safety_ivc);
 
 	init_waitqueue_head(&safety_ivc->cmd.response_waitq);
-	init_waitqueue_head(&safety_ivc->cmd.empty_waitq);
+	init_completion(&safety_ivc->cmd.emptied);
 
 	ret = tegra_safety_ivc_parse_hsp(dev);
 	if (ret) {
