@@ -67,7 +67,7 @@ void nvgpu_writel(struct gk20a *g, u32 r, u32 v)
 
 void nvgpu_writel_relaxed(struct gk20a *g, u32 r, u32 v)
 {
-	BUG();
+	nvgpu_writel(g, r, v);
 }
 
 u32 nvgpu_readl(struct gk20a *g, u32 r)
