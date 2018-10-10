@@ -26,6 +26,7 @@
 #include <nvgpu/sizes.h>
 #include <nvgpu/io.h>
 #include <nvgpu/gk20a.h>
+#include <nvgpu/bug.h>
 
 /*
  * This typedef is for functions that get called during the access_batched()
@@ -68,7 +69,10 @@ static void nvgpu_pramin_access_batched(struct gk20a *g, struct nvgpu_mem *mem,
 	}
 
 	while (size) {
-		u32 sgl_len = (u32)nvgpu_sgt_get_length(sgt, sgl);
+		u32 sgl_len;
+
+		BUG_ON(sgl == NULL);
+		sgl_len = (u32)nvgpu_sgt_get_length(sgt, sgl);
 
 		nvgpu_spinlock_acquire(&g->mm.pramin_window_lock);
 		byteoff = g->ops.bus.set_bar0_window(g, mem, sgt, sgl,
