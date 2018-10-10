@@ -22,12 +22,12 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef _NVGPU_TU104_FBPA
-#define _NVGPU_TU104_FBPA
+#ifndef NVGPU_FBPA_TU104_H
+#define NVGPU_FBPA_TU104_H
 
 struct gk20a;
 
 int tu104_fbpa_init(struct gk20a *g);
 void tu104_fbpa_handle_intr(struct gk20a *g, u32 fbpa_id);
 
-#endif
+#endif /* NVGPU_FBPA_TU104_H */

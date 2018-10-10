@@ -20,8 +20,8 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef __NVGPU_CLK_H__
-#define __NVGPU_CLK_H__
+#ifndef NVGPU_INCLUDE_CLK_H
+#define NVGPU_INCLUDE_CLK_H
 
 #define CLK_NAME_MAX	24
 
@@ -39,4 +39,4 @@ struct namemap_cfg {
 	char name[CLK_NAME_MAX];
 };
 
-#endif
+#endif /* NVGPU_INCLUDE_CLK_H */

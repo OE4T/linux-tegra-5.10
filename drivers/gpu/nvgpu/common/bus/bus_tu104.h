@@ -20,12 +20,12 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef __NVGPU_TU104_BUS__
-#define __NVGPU_TU104_BUS__
+#ifndef NVGPU_BUS_TU104_H
+#define NVGPU_BUS_TU104_H
 
 struct gk20a;
 struct nvgpu_mem;
 
 int bus_tu104_bar2_bind(struct gk20a *g, struct nvgpu_mem *bar2_inst);
 
-#endif
+#endif /* NVGPU_BUS_TU104_H */

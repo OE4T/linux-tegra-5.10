@@ -20,8 +20,8 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef __FB_TU104_H__
-#define __FB_TU104_H__
+#ifndef NVGPU_FB_TU104_H
+#define NVGPU_FB_TU104_H
 
 #include <nvgpu/types.h>
 
@@ -59,4 +59,4 @@ void fb_tu104_init_cbc(struct gk20a *g, struct gr_gk20a *gr);
 
 int tu104_fb_apply_pdb_cache_war(struct gk20a *g);
 
-#endif
+#endif /* NVGPU_FB_TU104_H */

@@ -20,8 +20,8 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef __SEC2_TU104_H__
-#define __SEC2_TU104_H__
+#ifndef NVGPU_SEC2_TU104_H
+#define NVGPU_SEC2_TU104_H
 
 struct nvgpu_sec2;
 
@@ -46,4 +46,4 @@ bool tu104_sec2_is_interrupted(struct nvgpu_sec2 *sec2);
 void tu104_sec2_enable_irq(struct nvgpu_sec2 *sec2, bool enable);
 void tu104_start_sec2_secure(struct gk20a *g);
 
-#endif /*__SEC2_TU104_H__*/
+#endif /* NVGPU_SEC2_TU104_H */

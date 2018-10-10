@@ -20,8 +20,8 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef __NVGPU_GPUID_NEXT_H__
-#define __NVGPU_GPUID_NEXT_H__
+#ifndef NVGPU_GPUID_NEXT_H
+#define NVGPU_GPUID_NEXT_H
 
 #define NVGPU_GPUID_NEXT	0x00000164
 
@@ -36,4 +36,4 @@ struct nvgpu_os_linux;
 extern int tu104_init_hal(struct gk20a *g);
 extern void nvgpu_tu104_init_os_ops(struct nvgpu_os_linux *l);
 
-#endif
+#endif /* NVGPU_GPUID_NEXT_H */

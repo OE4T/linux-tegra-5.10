@@ -20,8 +20,8 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef __FIFO_TU104_H__
-#define __FIFO_TU104_H__
+#ifndef NVGPU_FIFO_TU104_H
+#define NVGPU_FIFO_TU104_H
 
 #include <nvgpu/types.h>
 
@@ -40,4 +40,4 @@ void tu104_ring_channel_doorbell(struct channel_gk20a *c);
 int tu104_init_pdb_cache_war(struct gk20a *g);
 void tu104_deinit_pdb_cache_war(struct gk20a *g);
 
-#endif
+#endif /* NVGPU_FIFO_TU104_H */

@@ -20,11 +20,11 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef __BIOS_TU104_H__
-#define __BIOS_TU104_H__
+#ifndef NVGPU_BIOS_TU104_H
+#define NVGPU_BIOS_TU104_H
 
 struct gk20a;
 
 int tu104_bios_verify_devinit(struct gk20a *g);
 
-#endif
+#endif /* NVGPU_BIOS_TU104_H */

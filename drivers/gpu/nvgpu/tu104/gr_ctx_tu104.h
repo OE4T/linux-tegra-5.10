@@ -19,10 +19,10 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef __GR_CTX_TU104_H__
-#define __GR_CTX_TU104_H__
+#ifndef NVGPU_GR_CTX_TU104_H
+#define NVGPU_GR_CTX_TU104_H
 
 int gr_tu104_get_netlist_name(struct gk20a *g, int index, char *name);
 bool gr_tu104_is_firmware_defined(void);
 
-#endif /*__GR_CTX_TU104_H__*/
+#endif /* NVGPU_GR_CTX_TU104_H */

@@ -22,8 +22,8 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef __PERF_GV100_H_
-#define __PERF_GV100_H_
+#ifndef NVGPU_PERF_GV100_H
+#define NVGPU_PERF_GV100_H
 
 #include <nvgpu/pmuif/nvgpu_gpmu_cmdif.h>
 
@@ -33,4 +33,4 @@ u32 perf_pmu_init_vfe_perf_event(struct gk20a *g);
 u32 gv100_perf_pmu_vfe_load(struct gk20a *g);
 
 
-#endif /*__PERF_GV100_H_*/
+#endif /* NVGPU_PERF_GV100_H */

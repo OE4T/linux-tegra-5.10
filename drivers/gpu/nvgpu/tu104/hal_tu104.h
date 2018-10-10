@@ -22,11 +22,11 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef __NVGPU_HAL_TU104_H__
-#define __NVGPU_HAL_TU104_H__
+#ifndef NVGPU_HAL_TU104_H
+#define NVGPU_HAL_TU104_H
 
 struct gk20a;
 
 int tu104_init_hal(struct gk20a *gops);
 
-#endif
+#endif /* NVGPU_HAL_TU104_H */

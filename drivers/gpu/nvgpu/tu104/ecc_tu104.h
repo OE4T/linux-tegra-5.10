@@ -20,9 +20,9 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef __ECC_TU104_H__
-#define __ECC_TU104_H__
+#ifndef NVGPU_ECC_TU104_H
+#define NVGPU_ECC_TU104_H
 
 int tu104_ecc_init(struct gk20a *g);
 
-#endif
+#endif /* NVGPU_ECC_TU104_H */
