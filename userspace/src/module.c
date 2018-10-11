@@ -117,6 +117,17 @@ static void sort_modules_by_prio(struct unit_module **modules, int nr)
 	      cmp_module_prio);
 }
 
+static bool is_shared_obj_filename(char *name)
+{
+	size_t len = strlen(name);
+
+	if ((len > 3) && (strcmp(&name[len-3], ".so") == 0)) {
+		return true;
+	} else {
+		return false;
+	}
+}
+
 /*
  * Load all the modules we can from the module load path. Return the list of
  * loaded module as an array of pointers to modules. The returned list of
@@ -142,11 +153,17 @@ struct unit_module **core_load_modules(struct unit_fw *fw)
 		return NULL;
 	}
 
-	while (readdir(load_dir) != NULL)
-		nr_modules += 1;
-
-	/* '.' and '..' should be skipped. */
-	nr_modules -= 2;
+	ent = readdir(load_dir);
+	while (ent != NULL) {
+		if (is_shared_obj_filename(ent->d_name)) {
+			nr_modules += 1;
+		} else {
+			core_vbs(fw, 1,
+				 "Skipping load of file %s (not a .so)\n",
+				 ent->d_name);
+		}
+		ent = readdir(load_dir);
+	}
 
 	/*
 	 * Now allocate necessary space for storing pointers to the modules and
@@ -162,7 +179,8 @@ struct unit_module **core_load_modules(struct unit_fw *fw)
 	i = 0;
 	while ((ent = readdir(load_dir)) != NULL) {
 		if (strcmp(".", ent->d_name) == 0 ||
-		    strcmp("..", ent->d_name) == 0)
+		    strcmp("..", ent->d_name) == 0 ||
+		    !is_shared_obj_filename(ent->d_name))
 			continue;
 
 		mod = load_one_module(fw, ent);
