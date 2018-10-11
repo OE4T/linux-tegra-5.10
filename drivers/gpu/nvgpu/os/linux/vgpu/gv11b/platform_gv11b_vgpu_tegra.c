@@ -16,6 +16,8 @@
 
 #include <linux/platform_device.h>
 
+#include <linux/dma-mapping.h>
+
 #include <nvgpu/nvhost.h>
 #include <nvgpu/gk20a.h>
 
@@ -100,4 +102,6 @@ struct gk20a_platform gv11b_vgpu_tegra_platform = {
 	/* power management callbacks */
 	.suspend = vgpu_tegra_suspend,
 	.resume = vgpu_tegra_resume,
+
+	.dma_mask = DMA_BIT_MASK(36),
 };

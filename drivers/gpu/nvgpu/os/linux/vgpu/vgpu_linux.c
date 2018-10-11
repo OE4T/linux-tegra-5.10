@@ -453,6 +453,16 @@ int vgpu_probe(struct platform_device *pdev)
 	dev->dma_parms = &l->dma_parms;
 	dma_set_max_seg_size(dev, UINT_MAX);
 
+	/*
+	 * A default of 16GB is the largest supported DMA size that is
+	 * acceptable to all currently supported Tegra SoCs.
+	 */
+	if (!platform->dma_mask)
+		platform->dma_mask = DMA_BIT_MASK(34);
+
+	dma_set_mask(dev, platform->dma_mask);
+	dma_set_coherent_mask(dev, platform->dma_mask);
+
 	gk20a->gr_idle_timeout_default = NVGPU_DEFAULT_GR_IDLE_TIMEOUT;
 	gk20a->timeouts_disabled_by_user = false;
 	nvgpu_atomic_set(&gk20a->timeouts_disabled_refcount, 0);
