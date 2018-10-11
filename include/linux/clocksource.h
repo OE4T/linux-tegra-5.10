@@ -74,6 +74,7 @@ struct module;
  * @wd_list:		List head to enqueue into the watchdog list (internal)
  * @cs_last:		Last clocksource value for clocksource watchdog
  * @wd_last:		Last watchdog value corresponding to @cs_last
+ * @offset_ns:		the delta in ns from TSC to start of MONOTONIC_RAW
  * @owner:		Module reference, must be set by clocksource in modules
  *
  * Note: This struct is not used in hotpathes of the timekeeping code
@@ -117,6 +118,7 @@ struct clocksource {
 	u64			cs_last;
 	u64			wd_last;
 #endif
+	u64			offset_ns;
 	struct module		*owner;
 };
 

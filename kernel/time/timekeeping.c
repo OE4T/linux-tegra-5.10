@@ -348,6 +348,12 @@ static void tk_setup_internals(struct timekeeper *tk, struct clocksource *clock)
 	tk->tkr_raw.mult = clock->mult;
 	tk->ntp_err_mult = 0;
 	tk->skip_second_overflow = 0;
+
+	/* update clocksource offset_ns */
+	tmp = mul_u64_u32_shr(tk->tkr_raw.cycle_last,
+			clock->mult, clock->shift);
+	clock->offset_ns = tmp - tk->raw_sec * NSEC_PER_SEC -
+				(tk->tkr_raw.xtime_nsec >> clock->shift);
 }
 
 /* Timekeeper helper functions. */
