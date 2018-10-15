@@ -4081,7 +4081,7 @@ void gk20a_dump_channel_status_ramfc(struct gk20a *g,
 		return;
 	}
 
-	inst_mem = &ch_state->inst_block[0];
+	inst_mem = ch_state->inst_block;
 
 	syncpointa = inst_mem[ram_fc_syncpointa_w()];
 	syncpointb = inst_mem[ram_fc_syncpointb_w()];
@@ -4155,13 +4155,19 @@ void gk20a_debug_dump_all_channel_status_ramfc(struct gk20a *g,
 	for (chid = 0; chid < f->num_channels; chid++) {
 		struct channel_gk20a *ch = &f->channel[chid];
 		if (gk20a_channel_get(ch)) {
-			ch_state[chid] =
-				nvgpu_kmalloc(g, sizeof(struct ch_state) +
-					ram_in_alloc_size_v());
+			struct ch_state *state = nvgpu_kmalloc(g,
+					sizeof(*state));
+			u32 *inst = nvgpu_kmalloc(g, ram_in_alloc_size_v());
+
 			/* ref taken stays to below loop with
 			 * successful allocs */
-			if (ch_state[chid] == NULL) {
+			if (state == NULL || inst == NULL) {
 				gk20a_channel_put(ch);
+				nvgpu_kfree(g, state);
+				nvgpu_kfree(g, inst);
+			} else {
+				ch_state[chid] = state;
+				ch_state[chid]->inst_block = inst;
 			}
 		}
 	}
@@ -4176,7 +4182,7 @@ void gk20a_debug_dump_all_channel_status_ramfc(struct gk20a *g,
 		ch_state[chid]->refs = nvgpu_atomic_read(&ch->ref_count);
 		ch_state[chid]->deterministic = ch->deterministic;
 		nvgpu_mem_rd_n(g, &ch->inst_block, 0,
-				&ch_state[chid]->inst_block[0],
+				ch_state[chid]->inst_block,
 				ram_in_alloc_size_v());
 		gk20a_channel_put(ch);
 	}
@@ -4184,6 +4190,7 @@ void gk20a_debug_dump_all_channel_status_ramfc(struct gk20a *g,
 		if (ch_state[chid]) {
 			g->ops.fifo.dump_channel_status_ramfc(g, o, chid,
 						 ch_state[chid]);
+			nvgpu_kfree(g, ch_state[chid]->inst_block);
 			nvgpu_kfree(g, ch_state[chid]);
 		}
 	}

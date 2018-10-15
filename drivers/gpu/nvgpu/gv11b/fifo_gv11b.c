@@ -313,7 +313,7 @@ void gv11b_dump_channel_status_ramfc(struct gk20a *g,
 		return;
 	}
 
-	inst_mem = &ch_state->inst_block[0];
+	inst_mem = ch_state->inst_block;
 
 	gk20a_debug_output(o, "%d-%s, TSG: %u, pid %d, refs: %d: ", chid,
 			g->name,

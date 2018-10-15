@@ -221,7 +221,7 @@ struct ch_state {
 	int pid;
 	int refs;
 	bool deterministic;
-	u32 inst_block[0];
+	u32 *inst_block;
 };
 
 int gk20a_init_fifo_support(struct gk20a *g);
