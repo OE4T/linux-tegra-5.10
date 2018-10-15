@@ -72,13 +72,13 @@ int boardobjgrpmask_init(struct boardobjgrpmask *mask, u8 bitsize,
 		struct ctrl_boardobjgrp_mask *extmask);
 int boardobjgrpmask_import(struct boardobjgrpmask *mask, u8 bitsize,
 		struct ctrl_boardobjgrp_mask *extmask);
-u32 boardobjgrpmask_export(struct boardobjgrpmask *mask, u8 bitsize,
+int boardobjgrpmask_export(struct boardobjgrpmask *mask, u8 bitsize,
 		struct ctrl_boardobjgrp_mask *extmask);
 
 /* Operations on all bits of a single mask.*/
 int boardobjgrpmask_clr(struct boardobjgrpmask *mask);
-u32 boardobjgrpmask_set(struct boardobjgrpmask *mask);
-u32 boardobjgrpmask_inv(struct boardobjgrpmask *mask);
+int boardobjgrpmask_set(struct boardobjgrpmask *mask);
+int boardobjgrpmask_inv(struct boardobjgrpmask *mask);
 bool boardobjgrpmask_iszero(struct boardobjgrpmask *mask);
 u8 boardobjgrpmask_bitsetcount(struct boardobjgrpmask *mask);
 u8 boardobjgrpmask_bitidxlowest(struct boardobjgrpmask *mask);
@@ -87,21 +87,21 @@ u8 boardobjgrpmask_bitidxhighest(struct boardobjgrpmask *mask);
 /* Operations on a single bit of a single mask */
 int boardobjgrpmask_bitclr(struct boardobjgrpmask *mask, u8 bitidx);
 int boardobjgrpmask_bitset(struct boardobjgrpmask *mask, u8 bitidx);
-u32 boardobjgrpmask_bitinv(struct boardobjgrpmask *mask, u8 bitidx);
+int boardobjgrpmask_bitinv(struct boardobjgrpmask *mask, u8 bitidx);
 bool boardobjgrpmask_bitget(struct boardobjgrpmask *mask, u8 bitidx);
 
 /* Operations on a multiple masks */
-u32 boardobjgrpmask_and(struct boardobjgrpmask *dst,
+int boardobjgrpmask_and(struct boardobjgrpmask *dst,
 			struct boardobjgrpmask *op1,
 			struct boardobjgrpmask *op2);
-u32 boardobjgrpmask_or(struct boardobjgrpmask *dst, struct boardobjgrpmask *op1,
+int boardobjgrpmask_or(struct boardobjgrpmask *dst, struct boardobjgrpmask *op1,
 		       struct boardobjgrpmask *op2);
-u32 boardobjgrpmask_xor(struct boardobjgrpmask *dst,
+int boardobjgrpmask_xor(struct boardobjgrpmask *dst,
 			struct boardobjgrpmask *op1,
 			struct boardobjgrpmask *op2);
 
 /* Special interfaces */
-u32 boardobjgrpmask_copy(struct boardobjgrpmask *dst,
+int boardobjgrpmask_copy(struct boardobjgrpmask *dst,
 		struct boardobjgrpmask *src);
 bool boardobjgrpmask_sizeeq(struct boardobjgrpmask *op1,
 		struct boardobjgrpmask *op2);

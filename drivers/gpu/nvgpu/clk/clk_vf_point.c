@@ -37,10 +37,10 @@ static int _clk_vf_points_pmudatainit(struct gk20a *g,
 				      struct boardobjgrp *pboardobjgrp,
 				      struct nv_pmu_boardobjgrp_super *pboardobjgrppmu)
 {
-	u32 status = 0;
+	int status = 0;
 
 	status = boardobjgrp_pmudatainit_e32(g, pboardobjgrp, pboardobjgrppmu);
-	if (status) {
+	if (status != 0) {
 		nvgpu_err(g,
 			  "error updating pmu boardobjgrp for clk vfpoint 0x%x",
 			  status);
@@ -100,7 +100,7 @@ int clk_vf_point_sw_setup(struct gk20a *g)
 	nvgpu_log_info(g, " ");
 
 	status = boardobjgrpconstruct_e255(g, &g->clk_pmu.clk_vf_pointobjs.super);
-	if (status) {
+	if (status != 0) {
 		nvgpu_err(g,
 		"error creating boardobjgrp for clk vfpoint, status - 0x%x",
 		status);
@@ -113,7 +113,7 @@ int clk_vf_point_sw_setup(struct gk20a *g)
 
 	status = BOARDOBJGRP_PMU_CMD_GRP_SET_CONSTRUCT(g, pboardobjgrp,
 			clk, CLK, clk_vf_point, CLK_VF_POINT);
-	if (status) {
+	if (status != 0) {
 		nvgpu_err(g,
 			"error constructing PMU_BOARDOBJ_CMD_GRP_SET interface - 0x%x",
 			status);
@@ -123,7 +123,7 @@ int clk_vf_point_sw_setup(struct gk20a *g)
 	status = BOARDOBJGRP_PMU_CMD_GRP_GET_STATUS_CONSTRUCT(g,
 				&g->clk_pmu.clk_vf_pointobjs.super.super,
 				clk, CLK, clk_vf_point, CLK_VF_POINT);
-	if (status) {
+	if (status != 0) {
 		nvgpu_err(g,
 			"error constructing PMU_BOARDOBJ_CMD_GRP_SET interface - 0x%x",
 			status);
@@ -169,7 +169,7 @@ static int clk_vf_point_construct_super(struct gk20a *g,
 
 	status = boardobj_construct_super(g, ppboardobj,
 		size, pargs);
-	if (status) {
+	if (status != 0) {
 		return -EINVAL;
 	}
 
@@ -257,7 +257,7 @@ static int clk_vf_point_construct_volt(struct gk20a *g,
 
 	ptmpobj->type_mask = BIT(CTRL_CLK_CLK_VF_POINT_TYPE_VOLT);
 	status = clk_vf_point_construct_super(g, ppboardobj, size, pargs);
-	if (status) {
+	if (status != 0) {
 		return -EINVAL;
 	}
 
@@ -288,7 +288,7 @@ static int clk_vf_point_construct_freq(struct gk20a *g,
 
 	ptmpobj->type_mask = BIT(CTRL_CLK_CLK_VF_POINT_TYPE_FREQ);
 	status = clk_vf_point_construct_super(g, ppboardobj, size, pargs);
-	if (status) {
+	if (status != 0) {
 		return -EINVAL;
 	}
 
@@ -324,7 +324,7 @@ struct clk_vf_point *construct_clk_vf_point(struct gk20a *g, void *pargs)
 		return NULL;
 	}
 
-	if (status) {
+	if (status != 0) {
 		return NULL;
 	}
 
@@ -407,7 +407,7 @@ int clk_vf_point_cache(struct gk20a *g)
 	pboardobjgrpmask = &pclk_vf_points->super.mask.super;
 
 	status = pboardobjgrp->pmugetstatus(g, pboardobjgrp, pboardobjgrpmask);
-	if (status) {
+	if (status != 0) {
 		nvgpu_err(g, "err getting boardobjs from pmu");
 		return status;
 	}
@@ -417,14 +417,14 @@ int clk_vf_point_cache(struct gk20a *g)
 		status = pboardobjgrp->pmustatusinstget(g,
 				(struct nv_pmu_boardobjgrp *)pboardobjgrppmu,
 				&pboardobjpmustatus, index);
-		if (status) {
+		if (status != 0) {
 			nvgpu_err(g, "could not get status object instance");
 			return status;
 		}
 
 		status = clk_vf_point_update(g, pboardobj,
 			(struct nv_pmu_boardobj *)pboardobjpmustatus);
-		if (status) {
+		if (status != 0) {
 			nvgpu_err(g, "invalid data from pmu at %d", index);
 			return status;
 		}

@@ -898,13 +898,13 @@ struct gpu_ops {
 		} volt;
 		struct {
 			u32 (*get_vbios_clk_domain)(u32 vbios_domain);
-			u32 (*clk_avfs_get_vin_cal_data)(struct gk20a *g,
+			int (*clk_avfs_get_vin_cal_data)(struct gk20a *g,
 				struct avfsvinobjs *pvinobjs,
 				struct vin_device_v20 *pvindev);
 			u32 (*clk_vf_change_inject_data_fill)(struct gk20a *g,
 				struct nv_pmu_clk_rpc *rpccall,
 				struct set_fll_clk *setfllclk);
-			u32 (*clk_set_boot_clk)(struct gk20a *g);
+			int (*clk_set_boot_clk)(struct gk20a *g);
 		}clk;
 	} pmu_ver;
 	struct {
@@ -1130,7 +1130,7 @@ struct gpu_ops {
 		bool support_clk_freq_controller;
 		bool support_pmgr_domain;
 		bool support_lpwr_pg;
-		u32 (*perf_pmu_vfe_load)(struct gk20a *g);
+		int (*perf_pmu_vfe_load)(struct gk20a *g);
 		u32 lut_num_entries;
 	} clk;
 	struct {

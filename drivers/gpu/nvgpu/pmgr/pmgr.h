@@ -34,7 +34,7 @@ struct pmgr_pmupstate {
 	struct pmgr_pwr_policy pmgr_policyobjs;
 };
 
-u32 pmgr_domain_sw_setup(struct gk20a *g);
+int pmgr_domain_sw_setup(struct gk20a *g);
 int pmgr_domain_pmu_setup(struct gk20a *g);
 int pmgr_pwr_devices_get_current(struct gk20a *g, u32 *val);
 int pmgr_pwr_devices_get_voltage(struct gk20a *g, u32 *val);

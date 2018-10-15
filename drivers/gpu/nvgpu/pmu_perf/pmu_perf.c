@@ -67,11 +67,11 @@ static int pmu_handle_perf_event(struct gk20a *g, void *pmu_msg)
 	return 0;
 }
 
-u32 perf_pmu_vfe_load(struct gk20a *g)
+int perf_pmu_vfe_load(struct gk20a *g)
 {
 	struct pmu_cmd cmd;
 	struct pmu_payload payload;
-	u32 status;
+	int status;
 	u32 seqdesc;
 	struct nv_pmu_perf_rpc rpccall;
 	struct perfrpc_pmucmdhandler_params handler;
@@ -110,7 +110,7 @@ u32 perf_pmu_vfe_load(struct gk20a *g)
 			perfrpc_pmucmdhandler, (void *)&handler,
 			&seqdesc, ~0);
 
-	if (status) {
+	if (status != 0) {
 		nvgpu_err(g, "unable to post perf RPC cmd %x",
 			  cmd.cmd.perf.cmd_type);
 		goto done;

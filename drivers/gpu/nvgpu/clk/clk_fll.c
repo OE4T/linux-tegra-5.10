@@ -54,7 +54,7 @@ static int _clk_fll_devgrp_pmudatainit_super(struct gk20a *g,
 	nvgpu_log_info(g, " ");
 
 	status = boardobjgrp_pmudatainit_e32(g, pboardobjgrp, pboardobjgrppmu);
-	if (status) {
+	if (status != 0) {
 		nvgpu_err(g, "failed to init fll pmuobjgrp");
 		return status;
 	}
@@ -129,7 +129,7 @@ int clk_fll_sw_setup(struct gk20a *g)
 	nvgpu_log_info(g, " ");
 
 	status = boardobjgrpconstruct_e32(g, &g->clk_pmu.avfs_fllobjs.super);
-	if (status) {
+	if (status != 0) {
 		nvgpu_err(g,
 		"error creating boardobjgrp for fll, status - 0x%x", status);
 		goto done;
@@ -141,7 +141,7 @@ int clk_fll_sw_setup(struct gk20a *g)
 
 	status = BOARDOBJGRP_PMU_CMD_GRP_SET_CONSTRUCT(g, pboardobjgrp,
 			clk, CLK, clk_fll_device, CLK_FLL_DEVICE);
-	if (status) {
+	if (status != 0) {
 		nvgpu_err(g,
 			  "error constructing PMU_BOARDOBJ_CMD_GRP_SET interface - 0x%x",
 			  status);
@@ -160,14 +160,14 @@ int clk_fll_sw_setup(struct gk20a *g)
 	boardobjgrpmask_e32_init(&pfllobjs->lut_prog_master_mask, NULL);
 
 	status = devinit_get_fll_device_table(g, pfllobjs);
-	if (status) {
+	if (status != 0) {
 		goto done;
 	}
 
 	status = BOARDOBJGRP_PMU_CMD_GRP_GET_STATUS_CONSTRUCT(g,
 				&g->clk_pmu.avfs_fllobjs.super.super,
 				clk, CLK, clk_fll_device, CLK_FLL_DEVICE);
-	if (status) {
+	if (status != 0) {
 		nvgpu_err(g,
 			  "error constructing PMU_BOARDOBJ_CMD_GRP_SET interface - 0x%x",
 			  status);
@@ -191,7 +191,7 @@ int clk_fll_sw_setup(struct gk20a *g)
 			status = boardobjgrpmask_bitset(
 				&pfllobjs->lut_prog_master_mask.super,
 				BOARDOBJ_GET_IDX(pfll));
-			if (status) {
+			if (status != 0) {
 				nvgpu_err(g, "err setting lutprogmask");
 				goto done;
 			}
@@ -200,7 +200,7 @@ int clk_fll_sw_setup(struct gk20a *g)
 		status = pfll_master->lut_broadcast_slave_register(
 			g, pfllobjs, pfll_master, pfll);
 
-		if (status) {
+		if (status != 0) {
 			nvgpu_err(g, "err setting lutslavemask");
 			goto done;
 		}
@@ -418,7 +418,7 @@ static struct fll_device *construct_fll_device(struct gk20a *g,
 	nvgpu_log_info(g, " ");
 	status = boardobj_construct_super(g, &board_obj_ptr,
 		sizeof(struct fll_device), pargs);
-	if (status) {
+	if (status != 0) {
 		return NULL;
 	}
 

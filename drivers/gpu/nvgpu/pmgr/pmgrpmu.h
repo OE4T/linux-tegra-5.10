@@ -31,7 +31,7 @@
 
 int pmgr_send_pmgr_tables_to_pmu(struct gk20a *g);
 
-u32 pmgr_pmu_pwr_devices_query_blocking(
+int pmgr_pmu_pwr_devices_query_blocking(
 		struct gk20a *g,
 		u32 pwr_dev_mask,
 		struct nv_pmu_pmgr_pwr_devices_query_payload *ppayload);

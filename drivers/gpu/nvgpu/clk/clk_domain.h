@@ -52,7 +52,7 @@ typedef int clkgetslaveclk(struct gk20a *g, struct clk_pmupstate *pclk,
 			struct clk_domain *pdomain, u16 *clkmhz,
 			u16 masterclkmhz);
 
-typedef u32 clkgetfpoints(struct gk20a *g, struct clk_pmupstate *pclk,
+typedef int clkgetfpoints(struct gk20a *g, struct clk_pmupstate *pclk,
 			struct clk_domain *pdomain, u32 *pfpointscount,
 			  u16 *pfreqpointsinmhz, u8 rail);
 

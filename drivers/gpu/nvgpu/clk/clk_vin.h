@@ -69,10 +69,10 @@ boardobj_pmudatainit vindeviceinit_pmudata_super;
 
 int clk_vin_sw_setup(struct gk20a *g);
 int clk_vin_pmu_setup(struct gk20a *g);
-u32 clk_avfs_get_vin_cal_fuse_v10(struct gk20a *g,
+int clk_avfs_get_vin_cal_fuse_v10(struct gk20a *g,
 					struct avfsvinobjs *pvinobjs,
 					struct vin_device_v20 *pvindev);
-u32 clk_avfs_get_vin_cal_fuse_v20(struct gk20a *g,
+int clk_avfs_get_vin_cal_fuse_v20(struct gk20a *g,
 					struct avfsvinobjs *pvinobjs,
 					struct vin_device_v20 *pvindev);
 

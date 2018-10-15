@@ -42,7 +42,7 @@ static int _vfe_equs_pmudatainit(struct gk20a *g,
 	int status = 0;
 
 	status = boardobjgrp_pmudatainit_e255(g, pboardobjgrp, pboardobjgrppmu);
-	if (status) {
+	if (status != 0) {
 		nvgpu_err(g, "error updating pmu boardobjgrp for vfe equ 0x%x",
 			  status);
 		goto done;
@@ -82,7 +82,7 @@ int vfe_equ_sw_setup(struct gk20a *g)
 	nvgpu_log_info(g, " ");
 
 	status = boardobjgrpconstruct_e255(g, &g->perf_pmu.vfe_equobjs.super);
-	if (status) {
+	if (status != 0) {
 		nvgpu_err(g,
 			  "error creating boardobjgrp for clk domain, status - 0x%x",
 			  status);
@@ -96,7 +96,7 @@ int vfe_equ_sw_setup(struct gk20a *g)
 
 	status = BOARDOBJGRP_PMU_CMD_GRP_SET_CONSTRUCT(g, pboardobjgrp,
 			perf, PERF, vfe_equ, VFE_EQU);
-	if (status) {
+	if (status != 0) {
 		nvgpu_err(g,
 			"error constructing PMU_BOARDOBJ_CMD_GRP_SET interface - 0x%x",
 			status);
@@ -107,7 +107,7 @@ int vfe_equ_sw_setup(struct gk20a *g)
 	pboardobjgrp->pmudatainstget  = _vfe_equs_pmudata_instget;
 
 	status = devinit_get_vfe_equ_table(g, pvfeequobjs);
-	if (status) {
+	if (status != 0) {
 		goto done;
 	}
 
@@ -323,7 +323,7 @@ static int devinit_get_vfe_equ_table(struct gk20a *g,
 
 		status = boardobjgrp_objinsert(&pvfeequobjs->super.super,
 					       (struct boardobj *)pequ, index);
-		if (status) {
+		if (status != 0) {
 			nvgpu_err(g, "error adding vfe_equ boardobj %d", index);
 			status = -EINVAL;
 			goto done;
@@ -338,14 +338,14 @@ static int _vfe_equ_pmudatainit_super(struct gk20a *g,
 				      struct boardobj *board_obj_ptr,
 				      struct nv_pmu_boardobj *ppmudata)
 {
-	u32 status = 0;
+	int status = 0;
 	struct vfe_equ *pvfe_equ;
 	struct nv_pmu_vfe_equ *pset;
 
 	nvgpu_log_info(g, " ");
 
 	status = boardobj_pmudatainit_super(g, board_obj_ptr, ppmudata);
-	if (status != 0U) {
+	if (status != 0) {
 		return status;
 	}
 
@@ -373,7 +373,7 @@ static int vfe_equ_construct_super(struct gk20a *g,
 
 	status = boardobj_construct_super(g, ppboardobj,
 		size, pargs);
-	if (status) {
+	if (status != 0) {
 		return -EINVAL;
 	}
 
@@ -435,7 +435,7 @@ static int vfe_equ_construct_compare(struct gk20a *g,
 
 	ptmpobj->type_mask |= BIT(CTRL_PERF_VFE_EQU_TYPE_COMPARE);
 	status = vfe_equ_construct_super(g, ppboardobj, size, pargs);
-	if (status) {
+	if (status != 0) {
 		return -EINVAL;
 	}
 
@@ -496,7 +496,7 @@ static int vfe_equ_construct_minmax(struct gk20a *g,
 
 	ptmpobj->type_mask |= BIT(CTRL_PERF_VFE_EQU_TYPE_MINMAX);
 	status = vfe_equ_construct_super(g, ppboardobj, size, pargs);
-	if (status) {
+	if (status != 0) {
 		return -EINVAL;
 	}
 
@@ -555,7 +555,7 @@ static int vfe_equ_construct_quadratic(struct gk20a *g,
 
 	ptmpobj->type_mask |= BIT(CTRL_PERF_VFE_EQU_TYPE_QUADRATIC);
 	status = vfe_equ_construct_super(g, ppboardobj, size, pargs);
-	if (status) {
+	if (status != 0) {
 		return -EINVAL;
 	}
 
@@ -599,7 +599,7 @@ static struct vfe_equ *construct_vfe_equ(struct gk20a *g, void *pargs)
 
 	}
 
-	if (status) {
+	if (status != 0) {
 		return NULL;
 	}
 

@@ -132,7 +132,7 @@ static int _clk_domains_pmudatainit_3x(struct gk20a *g,
 	int status = 0;
 
 	status = boardobjgrp_pmudatainit_e32(g, pboardobjgrp, pboardobjgrppmu);
-	if (status) {
+	if (status != 0) {
 		nvgpu_err(g,
 			  "error updating pmu boardobjgrp for clk domain 0x%x",
 			  status);
@@ -199,7 +199,7 @@ int clk_domain_sw_setup(struct gk20a *g)
 	nvgpu_log_info(g, " ");
 
 	status = boardobjgrpconstruct_e32(g, &g->clk_pmu.clk_domainobjs.super);
-	if (status) {
+	if (status != 0) {
 		nvgpu_err(g,
 			  "error creating boardobjgrp for clk domain, status - 0x%x",
 			  status);
@@ -213,7 +213,7 @@ int clk_domain_sw_setup(struct gk20a *g)
 
 	status = BOARDOBJGRP_PMU_CMD_GRP_SET_CONSTRUCT(g, pboardobjgrp,
 			clk, CLK, clk_domain, CLK_DOMAIN);
-	if (status) {
+	if (status != 0) {
 		nvgpu_err(g,
 			  "error constructing PMU_BOARDOBJ_CMD_GRP_SET interface - 0x%x",
 			  status);
@@ -239,7 +239,7 @@ int clk_domain_sw_setup(struct gk20a *g)
 		sizeof(struct ctrl_clk_clk_delta));
 
 	status = devinit_get_clocks_table(g, pclkdomainobjs);
-	if (status) {
+	if (status != 0) {
 		goto done;
 	}
 
@@ -250,7 +250,7 @@ int clk_domain_sw_setup(struct gk20a *g)
 				CTRL_CLK_CLK_DOMAIN_TYPE_3X_PROG)) {
 			status = boardobjgrpmask_bitset(
 				&pclkdomainobjs->prog_domains_mask.super, i);
-			if (status) {
+			if (status != 0) {
 				goto done;
 			}
 		}
@@ -259,7 +259,7 @@ int clk_domain_sw_setup(struct gk20a *g)
 				CTRL_CLK_CLK_DOMAIN_TYPE_3X_MASTER)) {
 			status = boardobjgrpmask_bitset(
 				&pclkdomainobjs->master_domains_mask.super, i);
-			if (status) {
+			if (status != 0) {
 				goto done;
 			}
 		}
@@ -747,7 +747,7 @@ static int clkdomainvfsearch_stub(
 	return -EINVAL;
 }
 
-static u32 clkdomaingetfpoints_stub(
+static int clkdomaingetfpoints_stub(
 	struct gk20a *g,
 	struct clk_pmupstate *pclk,
 	struct clk_domain *pdomain,
@@ -771,7 +771,7 @@ static int clk_domain_construct_super(struct gk20a *g,
 	status = boardobj_construct_super(g, ppboardobj,
 		size, pargs);
 
-	if (status) {
+	if (status != 0) {
 		return -EINVAL;
 	}
 
@@ -834,7 +834,7 @@ static int clk_domain_construct_3x(struct gk20a *g,
 	ptmpobj->type_mask = BIT(CTRL_CLK_CLK_DOMAIN_TYPE_3X);
 	status = clk_domain_construct_super(g, ppboardobj,
 					size, pargs);
-	if (status) {
+	if (status != 0) {
 		return -EINVAL;
 	}
 
@@ -994,7 +994,7 @@ done:
 	return status;
 }
 
-static u32 clkdomaingetfpoints
+static int clkdomaingetfpoints
 (
 	struct gk20a *g,
 	struct clk_pmupstate *pclk,
@@ -1004,7 +1004,7 @@ static u32 clkdomaingetfpoints
 	u8 rail
 )
 {
-	u32 status = 0;
+	int status = 0;
 	struct clk_domain_3x_master *p3xmaster  =
 		(struct clk_domain_3x_master *)pdomain;
 	struct clk_prog *pprog = NULL;
@@ -1042,7 +1042,7 @@ static u32 clkdomaingetfpoints
 		pprog1xmaster = (struct clk_prog_1x_master *)pprog;
 		status = pprog1xmaster->getfpoints(g, pclk, pprog1xmaster,
 				&fpointscount, &freqpointsdata, rail);
-		if (status) {
+		if (status != 0) {
 			*pfpointscount = 0;
 			goto done;
 		}
@@ -1202,7 +1202,7 @@ static int clk_domain_construct_3x_prog(struct gk20a *g,
 
 	ptmpobj->type_mask |= BIT(CTRL_CLK_CLK_DOMAIN_TYPE_3X_PROG);
 	status = clk_domain_construct_3x(g, ppboardobj, size, pargs);
-	if (status) {
+	if (status != 0) {
 		return -EINVAL;
 	}
 
@@ -1366,7 +1366,7 @@ static int clkdomainclkproglink_3x_master(struct gk20a *g,
 	nvgpu_log_info(g, " ");
 
 	status = clkdomainclkproglink_3x_prog(g, pclk, pdomain);
-	if (status) {
+	if (status != 0) {
 		goto done;
 	}
 
@@ -1386,7 +1386,7 @@ static int clkdomainclkproglink_3x_master(struct gk20a *g,
 		pprog1xmaster = (struct clk_prog_1x_master *)pprog;
 		status = pprog1xmaster->vfflatten(g, pclk, pprog1xmaster,
 			BOARDOBJ_GET_IDX(p3xmaster), &freq_max_last_mhz);
-		if (status) {
+		if (status != 0) {
 			goto done;
 		}
 	}
@@ -1490,7 +1490,7 @@ static int clk_domain_construct_3x_master(struct gk20a *g,
 
 	ptmpobj->type_mask |= BIT(CTRL_CLK_CLK_DOMAIN_TYPE_3X_MASTER);
 	status = clk_domain_construct_3x_prog(g, ppboardobj, size, pargs);
-	if (status) {
+	if (status != 0) {
 		return -EINVAL;
 	}
 
@@ -1555,7 +1555,7 @@ static int clk_domain_construct_3x_fixed(struct gk20a *g,
 
 	ptmpobj->type_mask |= BIT(CTRL_CLK_CLK_DOMAIN_TYPE_3X_FIXED);
 	status = clk_domain_construct_3x(g, ppboardobj, size, pargs);
-	if (status) {
+	if (status != 0) {
 		return -EINVAL;
 	}
 
@@ -1575,7 +1575,7 @@ static int clk_domain_construct_3x_fixed(struct gk20a *g,
 static struct clk_domain *construct_clk_domain(struct gk20a *g, void *pargs)
 {
 	struct boardobj *board_obj_ptr = NULL;
-	u32 status;
+	int status;
 
 	nvgpu_log_info(g, " %d", BOARDOBJ_GET_TYPE(pargs));
 	switch (BOARDOBJ_GET_TYPE(pargs)) {
@@ -1609,7 +1609,7 @@ static struct clk_domain *construct_clk_domain(struct gk20a *g, void *pargs)
 		return NULL;
 	}
 
-	if (status) {
+	if (status != 0) {
 		return NULL;
 	}
 
@@ -1654,7 +1654,7 @@ int clk_domain_clk_prog_link(struct gk20a *g, struct clk_pmupstate *pclk)
 	BOARDOBJGRP_FOR_EACH(&(pclk->clk_domainobjs.super.super),
 			struct clk_domain *, pdomain, i) {
 		status = pdomain->clkdomainclkproglink(g, pclk, pdomain);
-		if (status) {
+		if (status != 0) {
 			nvgpu_err(g,
 				  "error flattening VF for CLK DOMAIN - 0x%x",
 				  pdomain->domain);

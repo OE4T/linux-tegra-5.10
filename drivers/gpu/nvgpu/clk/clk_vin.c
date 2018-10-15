@@ -58,11 +58,11 @@ static int vin_device_init_pmudata_super(struct gk20a *g,
 				  struct boardobj *board_obj_ptr,
 				  struct nv_pmu_boardobj *ppmudata);
 
-u32 clk_avfs_get_vin_cal_fuse_v10(struct gk20a *g,
+int clk_avfs_get_vin_cal_fuse_v10(struct gk20a *g,
 					struct avfsvinobjs *pvinobjs,
 					struct vin_device_v20 *pvindev)
 {
-	u32 status = 0;
+	int status = 0;
 	u32 slope, intercept;
 	u8 i;
 
@@ -74,7 +74,7 @@ u32 clk_avfs_get_vin_cal_fuse_v10(struct gk20a *g,
 			pvindev = (struct vin_device_v20 *)CLK_GET_VIN_DEVICE(pvinobjs, i);
 			status = g->ops.fuse.read_vin_cal_slope_intercept_fuse(g,
 					pvindev->super.id, &slope, &intercept);
-			if (status) {
+			if (status != 0) {
 				nvgpu_err(g,
 				"err reading vin cal for id %x", pvindev->super.id);
 				return status;
@@ -87,11 +87,11 @@ u32 clk_avfs_get_vin_cal_fuse_v10(struct gk20a *g,
 
 }
 
-u32 clk_avfs_get_vin_cal_fuse_v20(struct gk20a *g,
+int clk_avfs_get_vin_cal_fuse_v20(struct gk20a *g,
 					struct avfsvinobjs *pvinobjs,
 					struct vin_device_v20 *pvindev)
 {
-	u32 status = 0;
+	int status = 0;
 	s8 gain, offset;
 	u8 i;
 
@@ -103,7 +103,7 @@ u32 clk_avfs_get_vin_cal_fuse_v20(struct gk20a *g,
 			pvindev = (struct vin_device_v20 *)CLK_GET_VIN_DEVICE(pvinobjs, i);
 			status = g->ops.fuse.read_vin_cal_gain_offset_fuse(g,
 					pvindev->super.id, &gain, &offset);
-			if (status) {
+			if (status != 0) {
 				nvgpu_err(g,
 				"err reading vin cal for id %x", pvindev->super.id);
 				return status;
@@ -189,7 +189,7 @@ int clk_vin_sw_setup(struct gk20a *g)
 	nvgpu_log_info(g, " ");
 
 	status = boardobjgrpconstruct_e32(g, &g->clk_pmu.avfs_vinobjs.super);
-	if (status) {
+	if (status != 0) {
 		nvgpu_err(g,
 			"error creating boardobjgrp for clk vin, statu - 0x%x",
 			status);
@@ -203,7 +203,7 @@ int clk_vin_sw_setup(struct gk20a *g)
 
 	status = BOARDOBJGRP_PMU_CMD_GRP_SET_CONSTRUCT(g, pboardobjgrp,
 			clk, CLK, clk_vin_device, CLK_VIN_DEVICE);
-	if (status) {
+	if (status != 0) {
 		nvgpu_err(g,
 			"error constructing PMU_BOARDOBJ_CMD_GRP_SET interface - 0x%x",
 			status);
@@ -215,7 +215,7 @@ int clk_vin_sw_setup(struct gk20a *g)
 	pboardobjgrp->pmustatusinstget  = _clk_vin_devgrp_pmustatus_instget;
 
 	status = devinit_get_vin_device_table(g, &g->clk_pmu.avfs_vinobjs);
-	if (status) {
+	if (status != 0) {
 		goto done;
 	}
 
@@ -225,7 +225,7 @@ int clk_vin_sw_setup(struct gk20a *g)
 	status = BOARDOBJGRP_PMU_CMD_GRP_GET_STATUS_CONSTRUCT(g,
 				&g->clk_pmu.avfs_vinobjs.super.super,
 				clk, CLK, clk_vin_device, CLK_VIN_DEVICE);
-	if (status) {
+	if (status != 0) {
 		nvgpu_err(g,
 			"error constructing PMU_BOARDOBJ_CMD_GRP_SET interface - 0x%x",
 			status);
@@ -386,7 +386,7 @@ static int vin_device_construct_v10(struct gk20a *g,
 
 	ptmpobj->type_mask |= BIT(CTRL_CLK_VIN_TYPE_V10);
 	status = vin_device_construct_super(g, ppboardobj, size, pargs);
-	if (status) {
+	if (status != 0) {
 		return -EINVAL;
 	}
 
@@ -416,7 +416,7 @@ static int vin_device_construct_v20(struct gk20a *g,
 
 	ptmpobj->type_mask |= BIT(CTRL_CLK_VIN_TYPE_V20);
 	status = vin_device_construct_super(g, ppboardobj, size, pargs);
-	if (status) {
+	if (status != 0) {
 		return -EINVAL;
 	}
 
@@ -440,7 +440,7 @@ static int vin_device_construct_super(struct gk20a *g,
 	int status = 0;
 	status = boardobj_construct_super(g, ppboardobj, size, pargs);
 
-	if (status) {
+	if (status != 0) {
 		return -EINVAL;
 	}
 
@@ -477,7 +477,7 @@ static struct vin_device *construct_vin_device(struct gk20a *g, void *pargs)
 		return NULL;
 	};
 
-	if (status) {
+	if (status != 0) {
 		return NULL;
 	}
 

@@ -30,7 +30,7 @@
 struct gk20a;
 
 u32 perf_pmu_init_vfe_perf_event(struct gk20a *g);
-u32 gv100_perf_pmu_vfe_load(struct gk20a *g);
+int gv100_perf_pmu_vfe_load(struct gk20a *g);
 
 
 #endif /* NVGPU_PERF_GV100_H */

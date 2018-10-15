@@ -413,11 +413,11 @@ exit_vf_table:
 static void nvgpu_clk_arb_run_vf_table_cb(struct nvgpu_clk_arb *arb)
 {
 	struct gk20a *g = arb->g;
-	u32 err;
+	int err;
 
 	/* get latest vf curve from pmu */
 	err = clk_vf_point_cache(g);
-	if (err) {
+	if (err != 0) {
 		nvgpu_err(g, "failed to cache VF table");
 		nvgpu_clk_arb_set_global_alarm(g,
 			EVENT(ALARM_VF_TABLE_UPDATE_FAILED));
@@ -742,12 +742,12 @@ int nvgpu_clk_arb_worker_init(struct gk20a *g)
 	nvgpu_init_list_node(&g->clk_arb_worker.items);
 	nvgpu_spinlock_init(&g->clk_arb_worker.items_lock);
 	err = nvgpu_mutex_init(&g->clk_arb_worker.start_lock);
-	if (err)
+	if (err != 0)
 		goto error_check;
 
 	err = __nvgpu_clk_arb_worker_start(g);
 error_check:
-	if (err) {
+	if (err != 0) {
 		nvgpu_err(g, "failed to start clk arb poller thread");
 		return err;
 	}
@@ -962,7 +962,7 @@ int nvgpu_clk_arb_get_arbiter_clk_range(struct gk20a *g, u32 api_domain,
 	case NVGPU_CLK_DOMAIN_GPCCLK:
 		ret = g->ops.clk_arb.get_arbiter_clk_range(g,
 				CTRL_CLK_DOMAIN_GPC2CLK, min_mhz, max_mhz);
-		if (!ret) {
+		if (ret == 0) {
 			*min_mhz /= 2;
 			*max_mhz /= 2;
 		}

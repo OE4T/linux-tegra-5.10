@@ -117,7 +117,7 @@ static int _pwr_domains_pmudatainit_sensor(struct gk20a *g,
 	int status = 0;
 
 	status = boardobj_pmudatainit_super(g, board_obj_ptr, ppmudata);
-	if (status) {
+	if (status != 0) {
 		nvgpu_err(g,
 			  "error updating pmu boardobjgrp for pwr sensor 0x%x",
 			  status);
@@ -153,7 +153,7 @@ static struct boardobj *construct_pwr_topology(struct gk20a *g,
 
 	status = boardobj_construct_super(g, &board_obj_ptr,
 		pargs_size, pargs);
-	if (status) {
+	if (status != 0) {
 		return NULL;
 	}
 
@@ -286,7 +286,7 @@ static int devinit_get_pwr_topology_table(struct gk20a *g,
 		status = boardobjgrp_objinsert(&ppwrmonitorobjs->pwr_channels.super,
 				boardobj, obj_index);
 
-		if (status) {
+		if (status != 0) {
 			nvgpu_err(g,
 				"unable to insert pwr topology boardobj for %d", index);
 			status = -EINVAL;
@@ -312,7 +312,7 @@ int pmgr_monitor_sw_setup(struct gk20a *g)
 	/* Construct the Super Class and override the Interfaces */
 	status = boardobjgrpconstruct_e32(g,
 			&g->pmgr_pmu.pmgr_monitorobjs.pwr_channels);
-	if (status) {
+	if (status != 0) {
 		nvgpu_err(g,
 			"error creating boardobjgrp for pmgr channel, status - 0x%x",
 			status);
@@ -327,7 +327,7 @@ int pmgr_monitor_sw_setup(struct gk20a *g)
 	/* Construct the Super Class and override the Interfaces */
 	status = boardobjgrpconstruct_e32(g,
 			&g->pmgr_pmu.pmgr_monitorobjs.pwr_ch_rels);
-	if (status) {
+	if (status != 0) {
 		nvgpu_err(g,
 			"error creating boardobjgrp for pmgr channel relationship, status - 0x%x",
 			status);
@@ -350,12 +350,12 @@ int pmgr_monitor_sw_setup(struct gk20a *g)
 	ppwrmonitorobjs = &(g->pmgr_pmu.pmgr_monitorobjs);
 
 	status = devinit_get_pwr_topology_table(g, ppwrmonitorobjs);
-	if (status) {
+	if (status != 0) {
 		goto done;
 	}
 
 	status = _pwr_channel_state_init(g);
-	if (status) {
+	if (status != 0) {
 		goto done;
 	}
 

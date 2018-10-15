@@ -31,7 +31,7 @@ int pmgr_pwr_devices_get_power(struct gk20a *g, u32 *val)
 	int status;
 
 	status = pmgr_pmu_pwr_devices_query_blocking(g, 1, &payload);
-	if (status) {
+	if (status != 0) {
 		nvgpu_err(g, "pmgr_pwr_devices_get_current_power failed %x",
 			status);
 	}
@@ -47,7 +47,7 @@ int pmgr_pwr_devices_get_current(struct gk20a *g, u32 *val)
 	int status;
 
 	status = pmgr_pmu_pwr_devices_query_blocking(g, 1, &payload);
-	if (status) {
+	if (status != 0) {
 		nvgpu_err(g, "pmgr_pwr_devices_get_current failed %x",
 			status);
 	}
@@ -63,7 +63,7 @@ int pmgr_pwr_devices_get_voltage(struct gk20a *g, u32 *val)
 	int status;
 
 	status = pmgr_pmu_pwr_devices_query_blocking(g, 1, &payload);
-	if (status) {
+	if (status != 0) {
 		nvgpu_err(g, "pmgr_pwr_devices_get_current_voltage failed %x",
 			status);
 	}
@@ -73,12 +73,12 @@ int pmgr_pwr_devices_get_voltage(struct gk20a *g, u32 *val)
 	return status;
 }
 
-u32 pmgr_domain_sw_setup(struct gk20a *g)
+int pmgr_domain_sw_setup(struct gk20a *g)
 {
-	u32 status;
+	int status;
 
 	status = pmgr_device_sw_setup(g);
-	if (status) {
+	if (status != 0) {
 		nvgpu_err(g,
 			"error creating boardobjgrp for pmgr devices, status - 0x%x",
 			status);
@@ -86,7 +86,7 @@ u32 pmgr_domain_sw_setup(struct gk20a *g)
 	}
 
 	status = pmgr_monitor_sw_setup(g);
-	if (status) {
+	if (status != 0) {
 		nvgpu_err(g,
 			"error creating boardobjgrp for pmgr monitor, status - 0x%x",
 			status);
@@ -94,7 +94,7 @@ u32 pmgr_domain_sw_setup(struct gk20a *g)
 	}
 
 	status = pmgr_policy_sw_setup(g);
-	if (status) {
+	if (status != 0) {
 		nvgpu_err(g,
 			"error creating boardobjgrp for pmgr policy, status - 0x%x",
 			status);

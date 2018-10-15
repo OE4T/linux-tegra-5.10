@@ -119,9 +119,9 @@ struct vbios_clocks_table_1x_hal_clock_entry {
 
 #define BOOT_GPC2CLK_MHZ	2581U
 
-u32 clk_pmu_vin_load(struct gk20a *g);
-u32 clk_domain_print_vf_table(struct gk20a *g, u32 clkapidomain);
-u32 clk_domain_get_f_or_v(
+int clk_pmu_vin_load(struct gk20a *g);
+int clk_domain_print_vf_table(struct gk20a *g, u32 clkapidomain);
+int clk_domain_get_f_or_v(
 	struct gk20a *g,
 	u32 clkapidomain,
 	u16 *pclkmhz,
@@ -137,8 +137,8 @@ u32 nvgpu_clk_vf_change_inject_data_fill_gv10x(struct gk20a *g,
 u32 nvgpu_clk_vf_change_inject_data_fill_gp10x(struct gk20a *g,
 	struct nv_pmu_clk_rpc *rpccall,
 	struct set_fll_clk *setfllclk);
-u32 nvgpu_clk_set_boot_fll_clk_gv10x(struct gk20a *g);
+int nvgpu_clk_set_boot_fll_clk_gv10x(struct gk20a *g);
 int nvgpu_clk_set_fll_clk_gv10x(struct gk20a *g);
 int clk_pmu_freq_effective_avg_load(struct gk20a *g, bool bload);
-u32 clk_freq_effective_avg(struct gk20a *g, u32  clkDomainMask);
+int clk_freq_effective_avg(struct gk20a *g, u32 *freqkHz, u32  clkDomainMask);
 #endif /* NVGPU_CLK_H */

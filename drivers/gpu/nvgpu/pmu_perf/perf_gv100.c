@@ -99,15 +99,15 @@ u32 perf_pmu_init_vfe_perf_event(struct gk20a *g)
 
 }
 
-u32 gv100_perf_pmu_vfe_load(struct gk20a *g)
+int gv100_perf_pmu_vfe_load(struct gk20a *g)
 {
 	struct nvgpu_pmu *pmu = &g->pmu;
 	struct nv_pmu_rpc_struct_perf_load rpc;
-	u32 status = 0;
+	int status = 0;
 
 	(void) memset(&rpc, 0, sizeof(struct nv_pmu_rpc_struct_perf_load));
 	PMU_RPC_EXECUTE_CPB(status, pmu, PERF, VFE_INVALIDATE, &rpc, 0);
-	if (status != 0U) {
+	if (status != 0) {
 		nvgpu_err(g, "Failed to execute RPC status=0x%x",
 			status);
 	}

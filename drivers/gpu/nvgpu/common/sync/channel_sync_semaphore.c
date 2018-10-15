@@ -187,7 +187,7 @@ static int channel_sync_semaphore_incr_common(
 
 	incr_cmd_size = c->g->ops.fifo.get_sema_incr_cmd_size();
 	err = gk20a_channel_alloc_priv_cmdbuf(c, incr_cmd_size, incr_cmd);
-	if (err) {
+	if (err != 0) {
 		nvgpu_err(c->g,
 				"not enough priv cmd buffer space");
 		goto clean_up_sema;
@@ -200,7 +200,7 @@ static int channel_sync_semaphore_incr_common(
 		err = nvgpu_os_fence_sema_create(&os_fence, c,
 			semaphore);
 
-		if (err) {
+		if (err != 0) {
 			goto clean_up_sema;
 		}
 	}

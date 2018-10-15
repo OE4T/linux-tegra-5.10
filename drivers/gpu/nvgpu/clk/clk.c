@@ -61,7 +61,7 @@ int clk_pmu_freq_effective_avg_load(struct gk20a *g, bool bload)
 {
 	struct pmu_cmd cmd;
 	struct pmu_payload payload;
-	u32 status;
+	int status;
 	u32 seqdesc;
 	struct nv_pmu_clk_rpc rpccall;
 	struct clkrpc_pmucmdhandler_params handler;
@@ -102,7 +102,7 @@ int clk_pmu_freq_effective_avg_load(struct gk20a *g, bool bload)
 			PMU_COMMAND_QUEUE_LPQ,
 			clkrpc_pmucmdhandler, (void *)&handler,
 			&seqdesc, ~0);
-	if (status) {
+	if (status != 0) {
 		nvgpu_err(g, "unable to post clk RPC cmd %x",
 			cmd.cmd.clk.cmd_type);
 		goto done;
@@ -120,11 +120,11 @@ done:
 	return status;
 }
 
-u32 clk_freq_effective_avg(struct gk20a *g, u32  clkDomainMask) {
+int clk_freq_effective_avg(struct gk20a *g, u32 *freqkHz, u32 clkDomainMask) {
 
 	struct pmu_cmd cmd;
 	struct pmu_payload payload;
-	u32 status;
+	int status = 0;
 	u32 seqdesc;
 	struct nv_pmu_clk_rpc rpccall;
 	struct clkrpc_pmucmdhandler_params handler;
@@ -162,7 +162,7 @@ u32 clk_freq_effective_avg(struct gk20a *g, u32  clkDomainMask) {
 			PMU_COMMAND_QUEUE_LPQ,
 			clkrpc_pmucmdhandler, (void *)&handler,
 			&seqdesc, ~0);
-	if (status) {
+	if (status != 0) {
 		nvgpu_err(g, "unable to post clk RPC cmd %x",
 			cmd.cmd.clk.cmd_type);
 		goto done;
@@ -177,7 +177,7 @@ u32 clk_freq_effective_avg(struct gk20a *g, u32  clkDomainMask) {
 		goto done;
 	}
 
-	return rpccall.params.clk_freq_effective_avg.freqkHz[clkDomainMask];
+	*freqkHz = rpccall.params.clk_freq_effective_avg.freqkHz[clkDomainMask];
 
 done:
 	return status;
@@ -187,7 +187,7 @@ int clk_pmu_freq_controller_load(struct gk20a *g, bool bload, u8 bit_idx)
 {
 	struct pmu_cmd cmd;
 	struct pmu_payload payload;
-	u32 status;
+	int status;
 	u32 seqdesc;
 	struct nv_pmu_clk_rpc rpccall;
 	struct clkrpc_pmucmdhandler_params handler;
@@ -240,7 +240,7 @@ int clk_pmu_freq_controller_load(struct gk20a *g, bool bload, u8 bit_idx)
 		}
 	}
 
-	if (status) {
+	if (status != 0) {
 		nvgpu_err(g, "Error in generating mask used to select CFC");
 		goto done;
 	}
@@ -268,7 +268,7 @@ int clk_pmu_freq_controller_load(struct gk20a *g, bool bload, u8 bit_idx)
 			clkrpc_pmucmdhandler, (void *)&handler,
 			&seqdesc, ~0);
 
-	if (status) {
+	if (status != 0) {
 		nvgpu_err(g, "unable to post clk RPC cmd %x",
 			cmd.cmd.clk.cmd_type);
 		goto done;
@@ -287,11 +287,11 @@ done:
 	return status;
 }
 
-u32 clk_pmu_vin_load(struct gk20a *g)
+int clk_pmu_vin_load(struct gk20a *g)
 {
 	struct pmu_cmd cmd;
 	struct pmu_payload payload;
-	u32 status;
+	int status;
 	u32 seqdesc;
 	struct nv_pmu_clk_rpc rpccall;
 	struct clkrpc_pmucmdhandler_params handler;
@@ -330,7 +330,7 @@ u32 clk_pmu_vin_load(struct gk20a *g)
 			clkrpc_pmucmdhandler, (void *)&handler,
 			&seqdesc, ~0);
 
-	if (status) {
+	if (status != 0) {
 		nvgpu_err(g, "unable to post clk RPC cmd %x",
 			cmd.cmd.clk.cmd_type);
 		goto done;
@@ -424,11 +424,11 @@ u32 nvgpu_clk_vf_change_inject_data_fill_gv10x(struct gk20a *g,
 	return 0;
 }
 
-static u32 clk_pmu_vf_inject(struct gk20a *g, struct set_fll_clk *setfllclk)
+static int clk_pmu_vf_inject(struct gk20a *g, struct set_fll_clk *setfllclk)
 {
 	struct pmu_cmd cmd;
 	struct pmu_payload payload;
-	u32 status;
+	int status;
 	u32 seqdesc;
 	struct nv_pmu_clk_rpc rpccall;
 	struct clkrpc_pmucmdhandler_params handler;
@@ -478,7 +478,7 @@ static u32 clk_pmu_vf_inject(struct gk20a *g, struct set_fll_clk *setfllclk)
 			clkrpc_pmucmdhandler, (void *)&handler,
 			&seqdesc, ~0);
 
-	if (status) {
+	if (status != 0) {
 		nvgpu_err(g, "unable to post clk RPC cmd %x",
 			  cmd.cmd.clk.cmd_type);
 		goto done;
@@ -555,7 +555,7 @@ int clk_set_fll_clks(struct gk20a *g, struct set_fll_clk *setfllclk)
 	/*set regime ids */
 	status = get_regime_id(g, CTRL_CLK_DOMAIN_GPC2CLK,
 			&setfllclk->current_regime_id_gpc);
-	if (status) {
+	if (status != 0) {
 		goto done;
 	}
 
@@ -564,7 +564,7 @@ int clk_set_fll_clks(struct gk20a *g, struct set_fll_clk *setfllclk)
 
 	status = get_regime_id(g, CTRL_CLK_DOMAIN_SYS2CLK,
 			&setfllclk->current_regime_id_sys);
-	if (status) {
+	if (status != 0) {
 		goto done;
 	}
 
@@ -573,7 +573,7 @@ int clk_set_fll_clks(struct gk20a *g, struct set_fll_clk *setfllclk)
 
 	status = get_regime_id(g, CTRL_CLK_DOMAIN_XBAR2CLK,
 			&setfllclk->current_regime_id_xbar);
-	if (status) {
+	if (status != 0) {
 		goto done;
 	}
 
@@ -582,26 +582,26 @@ int clk_set_fll_clks(struct gk20a *g, struct set_fll_clk *setfllclk)
 
 	status = clk_pmu_vf_inject(g, setfllclk);
 
-	if (status) {
+	if (status != 0) {
 		nvgpu_err(g, "vf inject to change clk failed");
 	}
 
 	/* save regime ids */
 	status = set_regime_id(g, CTRL_CLK_DOMAIN_XBAR2CLK,
 			setfllclk->target_regime_id_xbar);
-	if (status) {
+	if (status != 0) {
 		goto done;
 	}
 
 	status = set_regime_id(g, CTRL_CLK_DOMAIN_GPC2CLK,
 			setfllclk->target_regime_id_gpc);
-	if (status) {
+	if (status != 0) {
 		goto done;
 	}
 
 	status = set_regime_id(g, CTRL_CLK_DOMAIN_SYS2CLK,
 			setfllclk->target_regime_id_sys);
-	if (status) {
+	if (status != 0) {
 		goto done;
 	}
 done:
@@ -650,7 +650,7 @@ int clk_get_fll_clks(struct gk20a *g, struct set_fll_clk *setfllclk)
 						(struct clk_domain *)p3xslave,
 						&clkmhz,
 						setfllclk->gpc2clkmhz);
-				if (status) {
+				if (status != 0) {
 					status = -EINVAL;
 					goto done;
 				}
@@ -669,9 +669,9 @@ done:
 	return status;
 }
 
-u32 clk_domain_print_vf_table(struct gk20a *g, u32 clkapidomain)
+int clk_domain_print_vf_table(struct gk20a *g, u32 clkapidomain)
 {
-	u32 status = -EINVAL;
+	int status = -EINVAL;
 	struct clk_domain *pdomain;
 	u8 i;
 	struct clk_pmupstate *pclk = &g->clk_pmu;
@@ -744,7 +744,7 @@ static int clk_program_fllclks(struct gk20a *g, struct change_fll_clk *fllclk)
 						(struct clk_domain *)p3xslave,
 						&clkmhz,
 						fllclk->clkmhz);
-				if (status) {
+				if (status != 0) {
 					status = -EINVAL;
 					goto done;
 				}
@@ -762,7 +762,7 @@ static int clk_program_fllclks(struct gk20a *g, struct change_fll_clk *fllclk)
 	/*set regime ids */
 	status = get_regime_id(g, CTRL_CLK_DOMAIN_GPCCLK,
 			&setfllclk.current_regime_id_gpc);
-	if (status) {
+	if (status != 0) {
 		goto done;
 	}
 
@@ -771,7 +771,7 @@ static int clk_program_fllclks(struct gk20a *g, struct change_fll_clk *fllclk)
 
 	status = get_regime_id(g, CTRL_CLK_DOMAIN_SYSCLK,
 			&setfllclk.current_regime_id_sys);
-	if (status) {
+	if (status != 0) {
 		goto done;
 	}
 
@@ -780,7 +780,7 @@ static int clk_program_fllclks(struct gk20a *g, struct change_fll_clk *fllclk)
 
 	status = get_regime_id(g, CTRL_CLK_DOMAIN_XBARCLK,
 			&setfllclk.current_regime_id_xbar);
-	if (status) {
+	if (status != 0) {
 		goto done;
 	}
 
@@ -789,7 +789,7 @@ static int clk_program_fllclks(struct gk20a *g, struct change_fll_clk *fllclk)
 
 	status = clk_pmu_vf_inject(g, &setfllclk);
 
-	if (status) {
+	if (status != 0) {
 		nvgpu_err(g,
 			"vf inject to change clk failed");
 	}
@@ -797,26 +797,26 @@ static int clk_program_fllclks(struct gk20a *g, struct change_fll_clk *fllclk)
 	/* save regime ids */
 	status = set_regime_id(g, CTRL_CLK_DOMAIN_XBARCLK,
 			setfllclk.target_regime_id_xbar);
-	if (status) {
+	if (status != 0) {
 		goto done;
 	}
 
 	status = set_regime_id(g, CTRL_CLK_DOMAIN_GPCCLK,
 			setfllclk.target_regime_id_gpc);
-	if (status) {
+	if (status != 0) {
 		goto done;
 	}
 
 	status = set_regime_id(g, CTRL_CLK_DOMAIN_SYSCLK,
 			setfllclk.target_regime_id_sys);
-	if (status) {
+	if (status != 0) {
 		goto done;
 	}
 done:
 	return status;
 }
 
-u32 nvgpu_clk_set_boot_fll_clk_gv10x(struct gk20a *g)
+int nvgpu_clk_set_boot_fll_clk_gv10x(struct gk20a *g)
 {
 	int status;
 	struct change_fll_clk bootfllclk;
@@ -825,21 +825,21 @@ u32 nvgpu_clk_set_boot_fll_clk_gv10x(struct gk20a *g)
 	u32 voltuv = 0;
 
 	status = clk_vf_point_cache(g);
-	if (status) {
+	if (status != 0) {
 		nvgpu_err(g,"caching failed");
 		return status;
 	}
 
 	status = clk_domain_get_f_or_v(g, CTRL_CLK_DOMAIN_GPCCLK,
 		&gpcclk_clkmhz, &gpcclk_voltuv, CTRL_VOLT_DOMAIN_LOGIC);
-	if (status) {
+	if (status != 0) {
 		return status;
 	}
 
 	voltuv = gpcclk_voltuv;
 
 	status = volt_set_voltage(g, voltuv, 0);
-	if (status) {
+	if (status != 0) {
 		nvgpu_err(g,
 			"attempt to set boot voltage failed %d",
 			voltuv);
@@ -849,7 +849,7 @@ u32 nvgpu_clk_set_boot_fll_clk_gv10x(struct gk20a *g)
 	bootfllclk.clkmhz = gpcclk_clkmhz;
 	bootfllclk.voltuv = voltuv;
 	status = clk_program_fllclks(g, &bootfllclk);
-	if (status) {
+	if (status != 0) {
 		nvgpu_err(g, "attempt to set boot gpcclk failed");
 	}
 
@@ -858,10 +858,11 @@ u32 nvgpu_clk_set_boot_fll_clk_gv10x(struct gk20a *g)
 	/*
 	 * Read clocks after some delay with below method
 	 * & extract clock data from buffer
-	 * clk_freq_effective_avg(g, CTRL_CLK_DOMAIN_GPCCLK |
-	 * 		CTRL_CLK_DOMAIN_XBARCLK |
-	 * 		CTRL_CLK_DOMAIN_SYSCLK |
-	 * 		CTRL_CLK_DOMAIN_NVDCLK)
+	 * u32 freqkHz;
+	 * status = clk_freq_effective_avg(g, &freqkHz, CTRL_CLK_DOMAIN_GPCCLK |
+	 * 				CTRL_CLK_DOMAIN_XBARCLK |
+	 * 				CTRL_CLK_DOMAIN_SYSCLK |
+	 * 				CTRL_CLK_DOMAIN_NVDCLK)
 	 * */
 
 	return status;
@@ -904,7 +905,7 @@ int nvgpu_clk_set_fll_clk_gv10x(struct gk20a *g)
 	return status;
 }
 
-u32 clk_domain_get_f_or_v(
+int clk_domain_get_f_or_v(
 	struct gk20a *g,
 	u32 clkapidomain,
 	u16 *pclkmhz,
@@ -912,7 +913,7 @@ u32 clk_domain_get_f_or_v(
 	u8 railidx
 )
 {
-	u32 status = -EINVAL;
+	int status = -EINVAL;
 	struct clk_domain *pdomain;
 	u8 i;
 	struct clk_pmupstate *pclk = &g->clk_pmu;

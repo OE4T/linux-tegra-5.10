@@ -77,7 +77,7 @@ int boardobjgrpmask_import(struct boardobjgrpmask *mask, u8 bitsize,
 	return 0;
 }
 
-u32 boardobjgrpmask_export(struct boardobjgrpmask *mask, u8 bitsize,
+int boardobjgrpmask_export(struct boardobjgrpmask *mask, u8 bitsize,
 		struct ctrl_boardobjgrp_mask *extmask)
 {
 	u8 index;
@@ -113,7 +113,7 @@ int boardobjgrpmask_clr(struct boardobjgrpmask *mask)
 	return 0;
 }
 
-u32 boardobjgrpmask_set(struct boardobjgrpmask *mask)
+int boardobjgrpmask_set(struct boardobjgrpmask *mask)
 {
 	u8 index;
 
@@ -127,7 +127,7 @@ u32 boardobjgrpmask_set(struct boardobjgrpmask *mask)
 	return 0;
 }
 
-u32 boardobjgrpmask_inv(struct boardobjgrpmask *mask)
+int boardobjgrpmask_inv(struct boardobjgrpmask *mask)
 {
 	u8 index;
 
@@ -261,7 +261,7 @@ int boardobjgrpmask_bitset(struct boardobjgrpmask *mask, u8 bitidx)
 	return 0;
 }
 
-u32 boardobjgrpmask_bitinv(struct boardobjgrpmask *mask, u8 bitidx)
+int boardobjgrpmask_bitinv(struct boardobjgrpmask *mask, u8 bitidx)
 {
 	u8 index;
 	u8 offset;
@@ -299,7 +299,7 @@ bool boardobjgrpmask_bitget(struct boardobjgrpmask *mask, u8 bitidx)
 	return (mask->data[index] & BIT(offset)) != 0U;
 }
 
-u32 boardobjgrpmask_and(struct boardobjgrpmask *dst,
+int boardobjgrpmask_and(struct boardobjgrpmask *dst,
 			struct boardobjgrpmask *op1,
 			struct boardobjgrpmask *op2)
 {
@@ -319,7 +319,7 @@ u32 boardobjgrpmask_and(struct boardobjgrpmask *dst,
 	return 0;
 }
 
-u32 boardobjgrpmask_or(struct boardobjgrpmask *dst,
+int boardobjgrpmask_or(struct boardobjgrpmask *dst,
 		       struct boardobjgrpmask *op1,
 		       struct boardobjgrpmask *op2)
 {
@@ -339,7 +339,7 @@ u32 boardobjgrpmask_or(struct boardobjgrpmask *dst,
 	return 0;
 }
 
-u32 boardobjgrpmask_xor(struct boardobjgrpmask *dst,
+int boardobjgrpmask_xor(struct boardobjgrpmask *dst,
 			struct boardobjgrpmask *op1,
 			struct boardobjgrpmask *op2)
 {
@@ -359,7 +359,7 @@ u32 boardobjgrpmask_xor(struct boardobjgrpmask *dst,
 	return 0;
 }
 
-u32 boardobjgrpmask_copy(struct boardobjgrpmask *dst,
+int boardobjgrpmask_copy(struct boardobjgrpmask *dst,
 		struct boardobjgrpmask *src)
 {
 	u8 index;
