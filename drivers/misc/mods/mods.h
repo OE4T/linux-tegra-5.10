@@ -1,3 +1,4 @@
+/* SPDX-License-Identifier: GPL-2.0 */
 /*
  * mods.h - This file is part of NVIDIA MODS kernel driver.
  *
@@ -24,7 +25,7 @@
 
 /* Driver version */
 #define MODS_DRIVER_VERSION_MAJOR 3
-#define MODS_DRIVER_VERSION_MINOR 87
+#define MODS_DRIVER_VERSION_MINOR 88
 #define MODS_DRIVER_VERSION ((MODS_DRIVER_VERSION_MAJOR << 8) | \
 			     ((MODS_DRIVER_VERSION_MINOR/10) << 4) | \
 			     (MODS_DRIVER_VERSION_MINOR%10))
@@ -1071,6 +1072,19 @@ struct MODS_SET_NUM_VF {
 	__u32                 numvfs;  /* number of virtual functions */
 };
 
+/* MODS_ESC_READ_MSR
+ * MODS_ESC_WRITE_MSR
+ */
+struct MODS_MSR {
+	/* IN */
+	__u32 reg;
+	__u32 cpu_num;
+
+	/* IN/OUT */
+	__u32 low;
+	__u32 high;
+};
+
 #pragma pack(pop)
 
 /* ************************************************************************* */
@@ -1338,5 +1352,8 @@ struct MODS_SET_NUM_VF {
 		    _IOW(MODS_IOC_MAGIC, 118, struct MODS_PCI_DMA_MASK)
 #define MODS_ESC_GET_IOMMU_STATE_2	\
 		    _IOWR(MODS_IOC_MAGIC, 119, struct MODS_GET_IOMMU_STATE)
-
+#define MODS_ESC_READ_MSR  \
+		    _IOWR(MODS_IOC_MAGIC, 120, struct MODS_MSR)
+#define MODS_ESC_WRITE_MSR \
+		    _IOW(MODS_IOC_MAGIC, 121, struct MODS_MSR)
 #endif /* _MODS_H_  */

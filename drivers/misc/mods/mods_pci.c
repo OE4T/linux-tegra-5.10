@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-2.0
 /*
  * mods_pci.c - This file is part of NVIDIA MODS kernel driver.
  *
@@ -155,7 +156,7 @@ int esc_mods_pci_get_bar_info_2(struct file *pfile,
 		return -EINVAL;
 
 	mods_debug_printk(DEBUG_PCI,
-			  "pci get bar info %04x:%x:%02x:%x, bar index %d\n",
+			  "pci get bar info %04x:%02x:%02x:%x, bar index %d\n",
 			  (int) p->pci_device.domain,
 			  (int) p->pci_device.bus, (int) p->pci_device.device,
 			  (int) p->pci_device.function, (int) p->bar_index);
@@ -238,7 +239,7 @@ int esc_mods_pci_get_irq_2(struct file *pfile,
 		return -EINVAL;
 
 	mods_debug_printk(DEBUG_PCI,
-			  "pci get irq %04x:%x:%02x:%x\n",
+			  "pci get irq %04x:%02x:%02x:%x\n",
 			  (int) p->pci_device.domain,
 			  (int) p->pci_device.bus, (int) p->pci_device.device,
 			  (int) p->pci_device.function);
@@ -279,7 +280,7 @@ int esc_mods_pci_read_2(struct file *pfile, struct MODS_PCI_READ_2 *p)
 		return -EINVAL;
 
 	mods_debug_printk(DEBUG_PCI,
-			  "pci read %04x:%x:%02x.%x, addr 0x%04x, size %d\n",
+			  "pci read %04x:%02x:%02x.%x, addr 0x%04x, size %d\n",
 			  (int) p->pci_device.domain,
 			  (int) p->pci_device.bus, (int) p->pci_device.device,
 			  (int) p->pci_device.function, (int) p->address,
@@ -336,7 +337,7 @@ int esc_mods_pci_write_2(struct file *pfile, struct MODS_PCI_WRITE_2 *p)
 	unsigned int devfn;
 
 	mods_debug_printk(DEBUG_PCI,
-		"pci write %04x:%x:%02x.%x, addr 0x%04x, size %d, data 0x%x\n",
+		"pci write %04x:%02x:%02x.%x, addr 0x%04x, size %d, data 0x%x\n",
 		(int) p->pci_device.domain,
 		(int) p->pci_device.bus, (int) p->pci_device.device,
 		(int) p->pci_device.function,
@@ -347,7 +348,7 @@ int esc_mods_pci_write_2(struct file *pfile, struct MODS_PCI_WRITE_2 *p)
 
 	if (dev == NULL) {
 		mods_error_printk(
-		  "pci write to %04x:%x:%02x.%x, addr 0x%04x, size %d failed\n",
+		  "pci write to %04x:%02x:%02x.%x, addr 0x%04x, size %d failed\n",
 		    (unsigned int)p->pci_device.domain,
 		    (unsigned int)p->pci_device.bus,
 		    (unsigned int)p->pci_device.device,
@@ -416,7 +417,7 @@ int esc_mods_pci_hot_reset(struct file *pfile,
 	int retval;
 
 	mods_debug_printk(DEBUG_PCI,
-			  "pci_hot_reset %04x:%x:%02x.%x\n",
+			  "pci_hot_reset %04x:%02x:%02x.%x\n",
 			  (int) p->pci_device.domain,
 			  (int) p->pci_device.bus,
 			  (int) p->pci_device.device,
@@ -427,7 +428,7 @@ int esc_mods_pci_hot_reset(struct file *pfile,
 
 	if (dev == NULL) {
 		mods_error_printk(
-		    "pci_hot_reset cannot find pci device %04x:%x:%02x.%x\n",
+		    "pci_hot_reset cannot find pci device %04x:%02x:%02x.%x\n",
 		    (unsigned int)p->pci_device.domain,
 		    (unsigned int)p->pci_device.bus,
 		    (unsigned int)p->pci_device.device,
@@ -438,7 +439,7 @@ int esc_mods_pci_hot_reset(struct file *pfile,
 	retval = pci_set_pcie_reset_state(dev, pcie_hot_reset);
 	if (retval) {
 		mods_error_printk(
-		    "pci_hot_reset failed on %04x:%x:%02x.%x\n",
+		    "pci_hot_reset failed on %04x:%02x:%02x.%x\n",
 		    (unsigned int)p->pci_device.domain,
 		    (unsigned int)p->pci_device.bus,
 		    (unsigned int)p->pci_device.device,
@@ -449,7 +450,7 @@ int esc_mods_pci_hot_reset(struct file *pfile,
 	retval = pci_set_pcie_reset_state(dev, pcie_deassert_reset);
 	if (retval) {
 		mods_error_printk(
-		    "pci_hot_reset deassert failed on %04x:%x:%02x.%x\n",
+		    "pci_hot_reset deassert failed on %04x:%02x:%02x.%x\n",
 		    (unsigned int)p->pci_device.domain,
 		    (unsigned int)p->pci_device.bus,
 		    (unsigned int)p->pci_device.device,
@@ -519,7 +520,7 @@ int esc_mods_device_numa_info_2(struct file *fp,
 	LOG_ENT();
 
 	if (dev == NULL) {
-		mods_error_printk("PCI device %04x:%x:%02x.%x not found\n",
+		mods_error_printk("PCI device %04x:%02x:%02x.%x not found\n",
 				  p->pci_device.domain,
 				  p->pci_device.bus, p->pci_device.device,
 				  p->pci_device.function);
@@ -644,7 +645,7 @@ int esc_mods_pci_set_dma_mask(struct file              *file,
 
 	err = pci_set_dma_mask(dev, mask);
 	if (err) {
-		mods_error_printk("failed to set dma mask 0x%llx for dev %04x:%x:%02x.%x\n",
+		mods_error_printk("failed to set dma mask 0x%llx for dev %04x:%02x:%02x.%x\n",
 				  mask,
 				  (unsigned int)dma_mask->pci_device.domain,
 				  (unsigned int)dma_mask->pci_device.bus,

@@ -1,7 +1,8 @@
+// SPDX-License-Identifier: GPL-2.0
 /*
  * mods_acpi.c - This file is part of NVIDIA MODS kernel driver.
  *
- * Copyright (c) 2008-2017, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2008-2018, NVIDIA CORPORATION.  All rights reserved.
  *
  * NVIDIA MODS kernel driver is free software: you can redistribute it and/or
  * modify it under the terms of the GNU General Public License,
@@ -178,7 +179,7 @@ static int mods_eval_acpi_method(struct file		      *pfile,
 		struct pci_dev *dev;
 
 		mods_debug_printk(DEBUG_ACPI,
-				  "ACPI %s for device %04x:%x:%02x.%x\n",
+				  "ACPI %s for device %04x:%02x:%02x.%x\n",
 				  p->method_name,
 				  (unsigned int)pdevice->domain,
 				  (unsigned int)pdevice->bus,
@@ -279,7 +280,7 @@ static int mods_acpi_get_ddc(struct file *pfile,
 	acpi_handle lcd_dev_handle	= NULL;
 
 	mods_debug_printk(DEBUG_ACPI,
-			  "ACPI _DDC (EDID) for device %04x:%x:%02x.%x\n",
+			  "ACPI _DDC (EDID) for device %04x:%02x:%02x.%x\n",
 			  (unsigned int)pci_device->domain,
 			  (unsigned int)pci_device->bus,
 			  (unsigned int)pci_device->device,
@@ -338,7 +339,7 @@ static int mods_acpi_get_ddc(struct file *pfile,
 
 			lcd_dev_handle = dev->handle;
 			mods_debug_printk(DEBUG_ACPI,
-			    "ACPI: Found LCD 0x%x on device %04x:%x:%02x.%x\n",
+			    "ACPI: Found LCD 0x%x on device %04x:%02x:%02x.%x\n",
 			    (unsigned int)device_id,
 			    (unsigned int)p->device.domain,
 			    (unsigned int)p->device.bus,
@@ -351,7 +352,7 @@ static int mods_acpi_get_ddc(struct file *pfile,
 
 	if (lcd_dev_handle == NULL) {
 		mods_error_printk(
-			"ACPI: LCD not found for device %04x:%x:%02x.%x\n",
+			"ACPI: LCD not found for device %04x:%02x:%02x.%x\n",
 			(unsigned int)p->device.domain,
 			(unsigned int)p->device.bus,
 			(unsigned int)p->device.device,

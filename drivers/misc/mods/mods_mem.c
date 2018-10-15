@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-2.0
 /*
  * mods_mem.c - This file is part of NVIDIA MODS kernel driver.
  *
@@ -58,7 +59,7 @@ static void mods_dma_unmap_page(struct MODS_DMA_MAP *p_dma_map,
 		       DMA_BIDIRECTIONAL);
 
 	mods_debug_printk(DEBUG_MEM_DETAILED,
-		"Unmapped map_addr=0x%llx dma_addr=0x%llx on dev %x:%x:%x.%x\n",
+		"dma unmap map_addr=0x%llx dma_addr=0x%llx on dev %04x:%02x:%02x.%x\n",
 		(unsigned long long)pm->map_addr,
 		(unsigned long long)pm->pt->dma_addr,
 		pci_domain_nr(p_dma_map->dev->bus),
@@ -161,8 +162,7 @@ static void mods_dma_map_pages(struct MODS_MEM_INFO *p_mem_info,
 							 pm->map_addr);
 
 		mods_debug_printk(DEBUG_MEM_DETAILED,
-			"%s : Mapped map_addr=0x%llx, dma_addr=0x%llx on dev %x:%x:%x.%x\n",
-			__func__,
+			"dma map map_addr=0x%llx, dma_addr=0x%llx on dev %04x:%02x:%02x.%x\n",
 			(unsigned long long)pm->map_addr,
 			(unsigned long long)pt->dma_addr,
 			pci_domain_nr(p_dma_map->dev->bus),
@@ -185,13 +185,11 @@ static int mods_create_dma_map(struct MODS_MEM_INFO *p_mem_info,
 		     (p_mem_info->max_chunks - 1) *
 		     sizeof(struct MODS_MAP_CHUNK);
 
-	p_dma_map = kmalloc(alloc_size, GFP_KERNEL | __GFP_NORETRY);
+	p_dma_map = kzalloc(alloc_size, GFP_KERNEL | __GFP_NORETRY);
 	if (unlikely(!p_dma_map)) {
 		mods_error_printk("failed to allocate device map data\n");
 		return -ENOMEM;
 	}
-
-	memset(p_dma_map, 0, alloc_size);
 
 	p_dma_map->dev = p_pci_dev;
 	mods_dma_map_pages(p_mem_info, p_dma_map);
@@ -304,7 +302,7 @@ static gfp_t mods_alloc_flags(struct MODS_MEM_INFO *p_mem_info)
 
 	if (p_mem_info->alloc_type != MODS_ALLOC_TYPE_NON_CONTIG)
 		flags |= __GFP_COMP;
-	if ((p_mem_info->addr_bits & 0xFF) == 32)
+	if (p_mem_info->addr_bits == 32)
 #ifdef MODS_HAS_DMA32
 		flags |= __GFP_DMA32;
 #else
@@ -366,16 +364,18 @@ static int mods_alloc_contig_sys_pages(struct MODS_MEM_INFO *p_mem_info)
 	p_mem_info->pages[0].dma_addr = MODS_PHYS_TO_DMA(phys_addr);
 
 	mods_debug_printk(DEBUG_MEM,
-	    "alloc contig 0x%lx bytes%s, 2^%u pages, %s, phys 0x%llx\n",
+	    "alloc contig 0x%lx bytes%s, 2^%u pages, %s, node %d, addrbits %u, phys 0x%llx\n",
 	    (unsigned long)p_mem_info->length,
 	    p_mem_info->alloc_type == MODS_ALLOC_TYPE_BIGPHYS_AREA ?
 		" bigphys" : "",
 	    p_mem_info->pages[0].order,
 	    mods_get_prot_str(p_mem_info->cache_type),
+	    p_mem_info->numa_node,
+	    (unsigned int)p_mem_info->addr_bits,
 	    (unsigned long long)p_mem_info->pages[0].dma_addr);
 
 	end_addr = p_mem_info->pages[0].dma_addr + p_mem_info->length;
-	if (((p_mem_info->addr_bits & 0xFF) == 32) &&
+	if ((p_mem_info->addr_bits == 32) &&
 	    (end_addr > 0x100000000ULL)) {
 		mods_error_printk("allocation exceeds 32-bit addressing\n");
 		mods_free_pages(p_mem_info);
@@ -444,11 +444,13 @@ static int mods_alloc_noncontig_sys_pages(struct MODS_MEM_INFO *p_mem_info)
 		}
 		pt->dma_addr = MODS_PHYS_TO_DMA(phys_addr);
 		mods_debug_printk(DEBUG_MEM,
-		    "alloc 0x%lx bytes [%u], 2^%u pages, %s, phys 0x%llx\n",
+		    "alloc 0x%lx bytes [%u], 2^%u pages, %s, node %d, addrbits %u, phys 0x%llx\n",
 		    (unsigned long)p_mem_info->length,
 		    (unsigned int)num_chunks,
 		    pt->order,
 		    mods_get_prot_str(p_mem_info->cache_type),
+		    p_mem_info->numa_node,
+		    (unsigned int)p_mem_info->addr_bits,
 		    (unsigned long long)pt->dma_addr);
 
 		++num_chunks;
@@ -698,7 +700,7 @@ int esc_mods_device_alloc_pages_2(struct file	*fp,
 	alloc_size = sizeof(*p_mem_info) +
 		     (max_chunks - 1) * sizeof(struct MODS_PHYS_CHUNK);
 
-	p_mem_info = kmalloc(alloc_size, GFP_KERNEL | __GFP_NORETRY);
+	p_mem_info = kzalloc(alloc_size, GFP_KERNEL | __GFP_NORETRY);
 	if (unlikely(!p_mem_info)) {
 		mods_error_printk("failed to allocate auxiliary 0x%x bytes\n",
 				  alloc_size);
@@ -740,7 +742,8 @@ int esc_mods_device_alloc_pages_2(struct file	*fp,
 			p_mem_info->numa_node = 0;
 #endif
 		mods_debug_printk(DEBUG_MEM_DETAILED,
-			"affinity %x:%x.%x node %d\n",
+			"affinity %04x:%02x:%02x.%x node %d\n",
+			p->pci_device.domain,
 			p->pci_device.bus,
 			p->pci_device.device,
 			p->pci_device.function,
@@ -749,22 +752,21 @@ int esc_mods_device_alloc_pages_2(struct file	*fp,
 
 	p->memory_handle = 0;
 
-	if (p->contiguous) {
-		if (mods_alloc_contig_sys_pages(p_mem_info)) {
-			mods_error_printk(
-				"failed to alloc 0x%x contiguous bytes\n",
-				p_mem_info->length);
-			ret = -ENOMEM;
-			goto failed;
-		}
-	} else {
-		if (mods_alloc_noncontig_sys_pages(p_mem_info)) {
-			mods_error_printk(
-			    "failed to alloc 0x%x noncontiguous bytes\n",
-			    p_mem_info->length);
-			ret = -ENOMEM;
-			goto failed;
-		}
+	if (p->contiguous)
+		ret = mods_alloc_contig_sys_pages(p_mem_info);
+	else
+		ret = mods_alloc_noncontig_sys_pages(p_mem_info);
+
+	if (ret) {
+		mods_error_printk(
+			"failed to alloc 0x%x %s bytes, %s, node %d, addrbits %u\n",
+			p_mem_info->length,
+			p->contiguous ? "contiguous" : "non-contiguous",
+			mods_get_prot_str(p_mem_info->cache_type),
+			p_mem_info->numa_node,
+			(unsigned int)p_mem_info->addr_bits);
+		ret = -ENOMEM;
+		goto failed;
 	}
 
 #if defined(CONFIG_PPC64)
@@ -931,7 +933,8 @@ int esc_mods_get_phys_addr_2(struct file *fp,
 	pt = mods_find_phys_chunk(p_mem_info, p->offset, &chunk_offset);
 
 	if (!pt || !pt->allocated) {
-		mods_error_printk("invalid offset requested\n");
+		mods_error_printk("invalid offset 0x%llx requested for allocation %p\n",
+				  p->offset, p_mem_info);
 		LOG_EXT();
 		return -EINVAL;
 	}
@@ -1012,7 +1015,8 @@ int esc_mods_get_mapped_phys_addr_3(struct file *fp,
 	pt = mods_find_phys_chunk(p_mem_info, p->offset, &chunk_offset);
 
 	if (!pt || !pt->allocated) {
-		mods_error_printk("invalid offset requested\n");
+		mods_error_printk("invalid offset 0x%llx requested for allocation %p\n",
+				  p->offset, p_mem_info);
 		LOG_EXT();
 		return -EINVAL;
 	}
@@ -1036,7 +1040,8 @@ int esc_mods_get_mapped_phys_addr_3(struct file *fp,
 
 	pm = mods_find_dma_map_chunk(p_mem_info, dev, pt);
 	if (!pm) {
-		mods_error_printk("invalid device mapping requested\n");
+		mods_error_printk("invalid device mapping requested for allocation %p\n",
+				  p_mem_info);
 		LOG_EXT();
 		return -EINVAL;
 	}
@@ -1124,7 +1129,8 @@ int esc_mods_virtual_to_phys(struct file *fp,
 
 	mutex_unlock(&client->mtx);
 
-	mods_error_printk("invalid virtual address\n");
+	mods_error_printk("invalid virtual address 0x%llx\n",
+			  p->virtual_address);
 	return -EINVAL;
 }
 
@@ -1232,14 +1238,18 @@ int esc_mods_dma_map_memory(struct file *fp,
 				devfn);
 
 	if (!p_pci_dev) {
-		mods_error_printk("pci device not found\n");
+		mods_error_printk("pci device %04x:%02x:%02x.%x not found\n",
+				  p->pci_device.domain,
+				  p->pci_device.bus,
+				  p->pci_device.device,
+				  p->pci_device.function);
 		return -EINVAL;
 	}
 
 	p_map_chunk = mods_find_dma_map_chunk(p_mem_info, p_pci_dev, NULL);
 	if (p_map_chunk) {
 		mods_debug_printk(DEBUG_MEM_DETAILED,
-			"memory %p already mapped to dev %x:%x:%x.%x\n",
+			"memory %p already mapped to dev %04x:%02x:%02x.%x\n",
 			p_mem_info,
 			p->pci_device.domain,
 				p->pci_device.bus,
@@ -1275,7 +1285,11 @@ int esc_mods_dma_unmap_memory(struct file *fp,
 				devfn);
 
 	if (!p_pci_dev) {
-		mods_error_printk("pci device not found\n");
+		mods_error_printk("pci device %04x:%02x:%02x.%x not found\n",
+				  p->pci_device.domain,
+				  p->pci_device.bus,
+				  p->pci_device.device,
+				  p->pci_device.function);
 		return -EINVAL;
 	}
 

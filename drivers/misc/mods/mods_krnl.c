@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-2.0
 /*
  * mods_krnl.c - This file is part of NVIDIA MODS kernel driver.
  *
@@ -34,6 +35,9 @@
 #   include <linux/tty.h>
 #   include <linux/console_struct.h>
 #   include <linux/vt_kern.h>
+#endif
+#ifdef MODS_HAS_MSR
+#   include <asm/msr.h>
 #endif
 
 /***********************************************************************
@@ -174,7 +178,7 @@ static int esc_mods_set_num_vf(struct file *pfile, struct MODS_SET_NUM_VF *p)
 	dev = MODS_PCI_GET_SLOT(p->dev.domain, p->dev.bus, devfn);
 	if (!dev) {
 		mods_error_printk(
-			"unknown dev %04x:%x:%02x.%x\n",
+			"unknown dev %04x:%02x:%02x.%x\n",
 			(unsigned int)p->dev.domain,
 			(unsigned int)p->dev.bus,
 			(unsigned int)p->dev.device,
@@ -206,7 +210,7 @@ static int esc_mods_set_total_vf(struct file *pfile, struct MODS_SET_NUM_VF *p)
 	dev = MODS_PCI_GET_SLOT(p->dev.domain, p->dev.bus, devfn);
 	if (!dev) {
 		mods_error_printk(
-			"unknown dev %04x:%x:%02x.%x\n",
+			"unknown dev %04x:%02x:%02x.%x\n",
 			(unsigned int)p->dev.domain,
 			(unsigned int)p->dev.bus,
 			(unsigned int)p->dev.device,
@@ -439,12 +443,11 @@ static int mods_register_mapping(
 
 	LOG_ENT();
 
-	p_map_mem = kmalloc(sizeof(*p_map_mem), GFP_KERNEL | __GFP_NORETRY);
+	p_map_mem = kzalloc(sizeof(*p_map_mem), GFP_KERNEL | __GFP_NORETRY);
 	if (unlikely(!p_map_mem)) {
 		LOG_EXT();
 		return -ENOMEM;
 	}
-	memset(p_map_mem, 0, sizeof(*p_map_mem));
 
 	p_map_mem->dma_addr = dma_addr;
 	p_map_mem->virtual_addr = virtual_address;
@@ -574,7 +577,7 @@ static pci_ers_result_t mods_pci_error_detected(struct pci_dev *dev,
 						enum pci_channel_state state)
 {
 	mods_debug_printk(DEBUG_PCI,
-			  "pci_error_detected %04x:%x:%02x.%x\n",
+			  "pci_error_detected %04x:%02x:%02x.%x\n",
 			  pci_domain_nr(dev->bus),
 			  dev->bus->number,
 			  PCI_SLOT(dev->devfn),
@@ -586,7 +589,7 @@ static pci_ers_result_t mods_pci_error_detected(struct pci_dev *dev,
 static pci_ers_result_t mods_pci_mmio_enabled(struct pci_dev *dev)
 {
 	mods_debug_printk(DEBUG_PCI,
-			  "pci_mmio_enabled %04x:%x:%02x.%x\n",
+			  "pci_mmio_enabled %04x:%02x:%02x.%x\n",
 			  pci_domain_nr(dev->bus),
 			  dev->bus->number,
 			  PCI_SLOT(dev->devfn),
@@ -598,7 +601,7 @@ static pci_ers_result_t mods_pci_mmio_enabled(struct pci_dev *dev)
 static void mods_pci_resume(struct pci_dev *dev)
 {
 	mods_debug_printk(DEBUG_PCI,
-			  "pci_resume %04x:%x:%02x.%x\n",
+			  "pci_resume %04x:%02x:%02x.%x\n",
 			  pci_domain_nr(dev->bus),
 			  dev->bus->number,
 			  PCI_SLOT(dev->devfn),
@@ -762,7 +765,7 @@ static int mods_krnl_mmap(struct file *fp, struct vm_area_struct *vma)
 
 	vma->vm_ops = &mods_krnl_vm_ops;
 
-	vma_private_data = kmalloc(sizeof(*vma_private_data),
+	vma_private_data = kzalloc(sizeof(*vma_private_data),
 				   GFP_KERNEL | __GFP_NORETRY);
 	if (unlikely(!vma_private_data)) {
 		LOG_EXT();
@@ -1273,6 +1276,36 @@ static int esc_mods_write_sysfs_node(struct file            *pfile,
 	return ret;
 }
 
+#ifdef MODS_HAS_MSR
+static int esc_mods_read_msr(struct file *pfile, struct MODS_MSR *p)
+{
+	int ret = -EINVAL;
+
+	LOG_ENT();
+
+	ret = rdmsr_safe_on_cpu(p->cpu_num, p->reg, &p->low, &p->high);
+	if (ret < 0)
+		mods_error_printk("Could not read MSR %u\n", p->reg);
+
+	LOG_EXT();
+	return ret;
+}
+
+static int esc_mods_write_msr(struct file *pfile, struct MODS_MSR *p)
+{
+	int ret = -EINVAL;
+
+	LOG_ENT();
+
+	ret = wrmsr_safe_on_cpu(p->cpu_num, p->reg, p->low, p->high);
+	if (ret < 0)
+		mods_error_printk("Could not write MSR %u\n", p->reg);
+
+	LOG_EXT();
+	return ret;
+}
+#endif
+
 /**************
  * IO control *
  **************/
@@ -1301,7 +1334,7 @@ static long mods_krnl_ioctl(struct file  *fp,
 	arg_size = _IOC_SIZE(cmd);
 
 	if (arg_size > (int)sizeof(buf)) {
-		arg_copy = kmalloc(arg_size, GFP_KERNEL | __GFP_NORETRY);
+		arg_copy = kzalloc(arg_size, GFP_KERNEL | __GFP_NORETRY);
 		if (unlikely(!arg_copy)) {
 			LOG_EXT();
 			return -ENOMEM;
@@ -1984,6 +2017,18 @@ static long mods_krnl_ioctl(struct file  *fp,
 	case MODS_ESC_SET_TOTAL_VF:
 		MODS_IOCTL_NORETVAL(MODS_ESC_SET_TOTAL_VF,
 			   esc_mods_set_total_vf, MODS_SET_NUM_VF);
+		break;
+#endif
+
+#ifdef MODS_HAS_MSR
+	case MODS_ESC_READ_MSR:
+		MODS_IOCTL(MODS_ESC_READ_MSR,
+			   esc_mods_read_msr, MODS_MSR);
+		break;
+
+	case MODS_ESC_WRITE_MSR:
+		MODS_IOCTL_NORETVAL(MODS_ESC_WRITE_MSR,
+			   esc_mods_write_msr, MODS_MSR);
 		break;
 #endif
 

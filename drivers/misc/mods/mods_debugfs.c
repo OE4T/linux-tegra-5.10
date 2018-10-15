@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-2.0
 /*
  * mods_debugfs.c - This file is part of NVIDIA MODS kernel driver.
  *
