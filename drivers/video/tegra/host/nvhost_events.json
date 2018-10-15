@@ -2,10 +2,10 @@
     "Copyright": "Copyright (c) 2017-2018, NVIDIA Corporation.  All rights reserved.",
 
     "Type"   : "EventProvider",
-    "Version": "1",
+    "Version": "2",
 
     "EventProviderDomain": "NvMedia",
-    "EventProviderName": "nv_mm_nvhost",
+    "EventProviderName": "mm_nvhost",
     "StructPrefix"     : "nv_mm_nvhost_",
     "MacroPrefix"      : "NV_MM_NVHOST_",
 
