@@ -274,7 +274,7 @@ int gk20a_fifo_reschedule_runlist(struct channel_gk20a *ch, bool preempt_next);
 int nvgpu_fifo_reschedule_runlist(struct channel_gk20a *ch, bool preempt_next,
 		bool wait_preempt);
 
-int gk20a_fifo_update_runlist(struct gk20a *g, u32 engine_id, u32 chid,
+int gk20a_fifo_update_runlist(struct gk20a *g, u32 runlist_id, u32 chid,
 			      bool add, bool wait_for_finish);
 
 int gk20a_fifo_update_runlist_locked(struct gk20a *g, u32 runlist_id,
@@ -287,7 +287,7 @@ bool gk20a_fifo_mmu_fault_pending(struct gk20a *g);
 void gk20a_fifo_recover(struct gk20a *g,
 			u32 engine_ids, /* if zero, will be queried from HW */
 			u32 hw_id, /* if ~0, will be queried from HW */
-			bool hw_id_is_tsg, /* ignored if hw_id == ~0 */
+			bool id_is_tsg, /* ignored if hw_id == ~0 */
 			bool id_is_known, bool verbose, u32 rc_type);
 void gk20a_fifo_recover_ch(struct gk20a *g, u32 chid, bool verbose,
 				u32 rc_type);

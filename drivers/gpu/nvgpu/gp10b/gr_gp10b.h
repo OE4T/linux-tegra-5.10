@@ -79,7 +79,7 @@ int gr_gp10b_handle_tex_exception(struct gk20a *g, u32 gpc, u32 tpc,
 int gr_gp10b_commit_global_cb_manager(struct gk20a *g,
 			struct channel_gk20a *c, bool patch);
 void gr_gp10b_commit_global_pagepool(struct gk20a *g,
-					    struct nvgpu_gr_ctx *ch_ctx,
+					    struct nvgpu_gr_ctx *gr_ctx,
 					    u64 addr, u32 size, bool patch);
 u32 gr_gp10b_get_gpcs_swdx_dss_zbc_c_format_reg(struct gk20a *g);
 u32 gr_gp10b_get_gpcs_swdx_dss_zbc_z_format_reg(struct gk20a *g);
@@ -116,10 +116,10 @@ void gr_gp10b_dump_ctxsw_stats(struct gk20a *g, struct vm_gk20a *vm,
 int gr_gp10b_wait_empty(struct gk20a *g, unsigned long duration_ms,
 			       u32 expect_delay);
 void gr_gp10b_commit_global_attrib_cb(struct gk20a *g,
-					     struct nvgpu_gr_ctx *ch_ctx,
+					     struct nvgpu_gr_ctx *gr_ctx,
 					     u64 addr, bool patch);
 void gr_gp10b_commit_global_bundle_cb(struct gk20a *g,
-					    struct nvgpu_gr_ctx *ch_ctx,
+					    struct nvgpu_gr_ctx *gr_ctx,
 					    u64 addr, u64 size, bool patch);
 int gr_gp10b_load_smid_config(struct gk20a *g);
 void gr_gp10b_set_gpc_tpc_mask(struct gk20a *g, u32 gpc_index);

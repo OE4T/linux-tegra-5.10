@@ -27,6 +27,6 @@
 
 struct gk20a;
 
-int gv100_init_hal(struct gk20a *gops);
+int gv100_init_hal(struct gk20a *g);
 
 #endif /* NVGPU_HAL_GV100_H */

@@ -59,7 +59,7 @@ int lsfm_add_ucode_img(struct gk20a *g, struct ls_flcn_mgr_v1 *plsfm,
 int lsfm_discover_ucode_images(struct gk20a *g,
 	struct ls_flcn_mgr_v1 *plsfm);
 void lsfm_init_wpr_contents(struct gk20a *g,
-		struct ls_flcn_mgr_v1 *plsfm, struct nvgpu_mem *nonwpr);
+		struct ls_flcn_mgr_v1 *plsfm, struct nvgpu_mem *ucode);
 int gp106_flcn_populate_bl_dmem_desc(struct gk20a *g,
 	void *lsfm, u32 *p_bl_gen_desc_size, u32 falconid);
 int lsfm_fill_flcn_bl_gen_desc(struct gk20a *g,

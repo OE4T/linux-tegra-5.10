@@ -27,6 +27,6 @@
 
 struct gk20a;
 
-int tu104_init_hal(struct gk20a *gops);
+int tu104_init_hal(struct gk20a *g);
 
 #endif /* NVGPU_HAL_TU104_H */

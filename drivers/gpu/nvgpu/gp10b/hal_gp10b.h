@@ -26,6 +26,6 @@
 #define NVGPU_HAL_GP10B_H
 struct gk20a;
 
-int gp10b_init_hal(struct gk20a *gops);
+int gp10b_init_hal(struct gk20a *g);
 u32 gp10b_get_litter_value(struct gk20a *g, int value);
 #endif /* NVGPU_HAL_GP10B_H */

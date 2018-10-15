@@ -142,7 +142,7 @@ u32 gk20a_mm_get_iommu_bit(struct gk20a *g);
 
 const struct gk20a_mmu_level *gk20a_mm_get_mmu_levels(struct gk20a *g,
 						      u32 big_page_size);
-void gk20a_mm_init_pdb(struct gk20a *g, struct nvgpu_mem *mem,
+void gk20a_mm_init_pdb(struct gk20a *g, struct nvgpu_mem *inst_block,
 		struct vm_gk20a *vm);
 
 extern const struct gk20a_mmu_level gk20a_mm_levels_64k[];

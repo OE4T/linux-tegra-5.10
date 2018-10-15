@@ -26,5 +26,5 @@
 #define NVGPU_HAL_GP106_H
 struct gk20a;
 
-int gp106_init_hal(struct gk20a *gops);
+int gp106_init_hal(struct gk20a *g);
 #endif /* NVGPU_HAL_GP106_H */

@@ -64,7 +64,7 @@ static void lsfm_free_nonpmu_ucode_img_res(struct gk20a *g,
 					   struct flcn_ucode_img *p_img);
 static int lsf_gen_wpr_requirements(struct gk20a *g, struct ls_flcn_mgr *plsfm);
 static void lsfm_init_wpr_contents(struct gk20a *g, struct ls_flcn_mgr *plsfm,
-	struct nvgpu_mem *nonwpr);
+	struct nvgpu_mem *ucode);
 static void free_acr_resources(struct gk20a *g, struct ls_flcn_mgr *plsfm);
 
 /*Globals*/

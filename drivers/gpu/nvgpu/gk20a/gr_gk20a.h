@@ -598,16 +598,16 @@ int gr_gk20a_update_hwpm_ctxsw_mode(struct gk20a *g,
 				  u32 mode);
 
 struct nvgpu_gr_ctx;
-void gr_gk20a_ctx_patch_write(struct gk20a *g, struct nvgpu_gr_ctx *ch_ctx,
+void gr_gk20a_ctx_patch_write(struct gk20a *g, struct nvgpu_gr_ctx *gr_ctx,
 				    u32 addr, u32 data, bool patch);
 int gr_gk20a_ctx_patch_write_begin(struct gk20a *g,
-					  struct nvgpu_gr_ctx *ch_ctx,
+					  struct nvgpu_gr_ctx *gr_ctx,
 					  bool update_patch_count);
 void gr_gk20a_ctx_patch_write_end(struct gk20a *g,
-					struct nvgpu_gr_ctx *ch_ctx,
+					struct nvgpu_gr_ctx *gr_ctx,
 					bool update_patch_count);
 void gr_gk20a_commit_global_pagepool(struct gk20a *g,
-				     struct nvgpu_gr_ctx *ch_ctx,
+				     struct nvgpu_gr_ctx *gr_ctx,
 				     u64 addr, u32 size, bool patch);
 void gk20a_gr_set_shader_exceptions(struct gk20a *g, u32 data);
 void gr_gk20a_enable_hww_exceptions(struct gk20a *g);
@@ -622,7 +622,7 @@ void gr_gk20a_load_ctxsw_ucode_boot(struct gk20a *g, u64 addr_base,
 	struct gk20a_ctxsw_ucode_segments *segments, u32 reg_offset);
 
 
-void gr_gk20a_free_tsg_gr_ctx(struct tsg_gk20a *c);
+void gr_gk20a_free_tsg_gr_ctx(struct tsg_gk20a *tsg);
 int gr_gk20a_disable_ctxsw(struct gk20a *g);
 int gr_gk20a_enable_ctxsw(struct gk20a *g);
 void gk20a_gr_resume_single_sm(struct gk20a *g,

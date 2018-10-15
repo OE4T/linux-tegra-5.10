@@ -133,7 +133,7 @@ int gr_gv11b_dump_gr_status_regs(struct gk20a *g,
 int gr_gv11b_wait_empty(struct gk20a *g, unsigned long duration_ms,
 		       u32 expect_delay);
 void gr_gv11b_commit_global_attrib_cb(struct gk20a *g,
-					     struct nvgpu_gr_ctx *ch_ctx,
+					     struct nvgpu_gr_ctx *gr_ctx,
 					     u64 addr, bool patch);
 void gr_gv11b_set_gpc_tpc_mask(struct gk20a *g, u32 gpc_index);
 void gr_gv11b_get_access_map(struct gk20a *g,
@@ -219,7 +219,8 @@ int gv11b_gr_decode_egpc_addr(struct gk20a *g, u32 addr,
 	enum ctxsw_addr_type *addr_type, u32 *gpc_num, u32 *tpc_num,
 	u32 *broadcast_flags);
 void gv11b_gr_egpc_etpc_priv_addr_table(struct gk20a *g, u32 addr,
-	 u32 gpc, u32 tpc, u32 broadcast_flags, u32 *priv_addr_table, u32 *t);
+				u32 gpc_num, u32 tpc_num, u32 broadcast_flags,
+				u32 *priv_addr_table, u32 *t);
 u32 gv11b_gr_get_egpc_base(struct gk20a *g);
 void gr_gv11b_init_gpc_mmu(struct gk20a *g);
 int gr_gv11b_init_preemption_state(struct gk20a *g);
@@ -234,8 +235,8 @@ int gr_gv11b_set_ctxsw_preemption_mode(struct gk20a *g,
                                 u32 compute_preempt_mode);
 
 void gr_gv11b_update_ctxsw_preemption_mode(struct gk20a *g,
-                struct channel_gk20a *ch_ctx,
-                struct nvgpu_mem *mem);
+		struct channel_gk20a *c,
+		struct nvgpu_mem *mem);
 int gr_gv11b_handle_ssync_hww(struct gk20a *g);
 u32 gv11b_gr_sm_offset(struct gk20a *g, u32 sm);
 

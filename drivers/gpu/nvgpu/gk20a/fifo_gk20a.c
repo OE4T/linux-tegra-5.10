@@ -2004,7 +2004,7 @@ void gk20a_fifo_teardown_ch_tsg(struct gk20a *g, u32 __engine_ids,
 	}
 }
 
-void gk20a_fifo_recover(struct gk20a *g, u32 __engine_ids,
+void gk20a_fifo_recover(struct gk20a *g, u32 engine_ids,
 			u32 hw_id, bool id_is_tsg,
 			bool id_is_known, bool verbose, u32 rc_type)
 {
@@ -2024,7 +2024,7 @@ void gk20a_fifo_recover(struct gk20a *g, u32 __engine_ids,
 		id_type = ID_TYPE_UNKNOWN;
 	}
 
-	g->ops.fifo.teardown_ch_tsg(g, __engine_ids, hw_id, id_type,
+	g->ops.fifo.teardown_ch_tsg(g, engine_ids, hw_id, id_type,
 					 rc_type, NULL);
 }
 
