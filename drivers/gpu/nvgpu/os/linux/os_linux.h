@@ -20,6 +20,7 @@
 #include <linux/cdev.h>
 #include <linux/iommu.h>
 #include <linux/hashtable.h>
+#include <linux/notifier.h>
 
 #include <nvgpu/gk20a.h>
 
@@ -135,6 +136,8 @@ struct nvgpu_os_linux {
 	u64 usermode_regs_bus_addr;
 
 	struct nvgpu_os_linux_ops ops;
+
+	struct notifier_block nvgpu_reboot_nb;
 
 #ifdef CONFIG_DEBUG_FS
 	struct dentry *debugfs;
