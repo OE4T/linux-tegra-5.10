@@ -198,32 +198,32 @@ static u32 nvgpu_event_id_to_ioctl_channel_event_id(u32 event_id)
 }
 
 void gk20a_tsg_event_id_post_event(struct tsg_gk20a *tsg,
-				       int __event_id)
+				       int event_id)
 {
-	struct gk20a_event_id_data *event_id_data;
-	u32 event_id;
+	struct gk20a_event_id_data *channel_event_id_data;
+	u32 channel_event_id;
 	int err = 0;
 	struct gk20a *g = tsg->g;
 
-	event_id = nvgpu_event_id_to_ioctl_channel_event_id(__event_id);
+	channel_event_id = nvgpu_event_id_to_ioctl_channel_event_id(event_id);
 	if (event_id >= NVGPU_IOCTL_CHANNEL_EVENT_ID_MAX)
 		return;
 
-	err = gk20a_tsg_get_event_data_from_id(tsg, event_id,
-						&event_id_data);
+	err = gk20a_tsg_get_event_data_from_id(tsg, channel_event_id,
+						&channel_event_id_data);
 	if (err)
 		return;
 
-	nvgpu_mutex_acquire(&event_id_data->lock);
+	nvgpu_mutex_acquire(&channel_event_id_data->lock);
 
 	nvgpu_log_info(g,
 		"posting event for event_id=%d on tsg=%d\n",
-		event_id, tsg->tsgid);
-	event_id_data->event_posted = true;
+		channel_event_id, tsg->tsgid);
+	channel_event_id_data->event_posted = true;
 
-	nvgpu_cond_broadcast_interruptible(&event_id_data->event_id_wq);
+	nvgpu_cond_broadcast_interruptible(&channel_event_id_data->event_id_wq);
 
-	nvgpu_mutex_release(&event_id_data->lock);
+	nvgpu_mutex_release(&channel_event_id_data->lock);
 }
 
 static unsigned int gk20a_event_id_poll(struct file *filep, poll_table *wait)

@@ -225,12 +225,12 @@ bool nvgpu_big_pages_possible(struct vm_gk20a *vm, u64 base, u64 size);
 int nvgpu_vm_pde_coverage_bit_count(struct vm_gk20a *vm);
 
 /* batching eliminates redundant cache flushes and invalidates */
-void nvgpu_vm_mapping_batch_start(struct vm_gk20a_mapping_batch *batch);
+void nvgpu_vm_mapping_batch_start(struct vm_gk20a_mapping_batch *mapping_batch);
 void nvgpu_vm_mapping_batch_finish(
-	struct vm_gk20a *vm, struct vm_gk20a_mapping_batch *batch);
+	struct vm_gk20a *vm, struct vm_gk20a_mapping_batch *mapping_batch);
 /* called when holding vm->update_gmmu_lock */
 void nvgpu_vm_mapping_batch_finish_locked(
-	struct vm_gk20a *vm, struct vm_gk20a_mapping_batch *batch);
+	struct vm_gk20a *vm, struct vm_gk20a_mapping_batch *mapping_batch);
 
 /* get reference to all currently mapped buffers */
 int nvgpu_vm_get_buffers(struct vm_gk20a *vm,

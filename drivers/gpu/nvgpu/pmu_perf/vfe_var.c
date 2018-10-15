@@ -33,7 +33,7 @@
 #include "vfe_var.h"
 
 static int devinit_get_vfe_var_table(struct gk20a *g,
-				     struct vfe_vars *pvarobjs);
+				     struct vfe_vars *pvfevarobjs);
 static int vfe_var_construct_single(struct gk20a *g,
 				    struct boardobj **ppboardobj,
 				    u16 size, void *pargs);

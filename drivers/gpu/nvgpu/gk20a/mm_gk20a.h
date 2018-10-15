@@ -105,7 +105,7 @@ void gk20a_init_inst_block(struct nvgpu_mem *inst_block, struct vm_gk20a *vm,
 int gk20a_init_mm_setup_hw(struct gk20a *g);
 
 u64 gk20a_locked_gmmu_map(struct vm_gk20a *vm,
-			  u64 map_offset,
+			  u64 vaddr,
 			  struct nvgpu_sgt *sgt,
 			  u64 buffer_offset,
 			  u64 size,

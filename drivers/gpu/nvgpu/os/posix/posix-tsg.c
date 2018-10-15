@@ -23,6 +23,6 @@
 #include <nvgpu/tsg.h>
 
 void gk20a_tsg_event_id_post_event(struct tsg_gk20a *tsg,
-				       int __event_id)
+				       int channel_event_id)
 {
 }

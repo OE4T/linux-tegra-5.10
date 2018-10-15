@@ -440,7 +440,7 @@ boardobjgrp_from_node(struct nvgpu_list_node *node)
 
 int is_boardobjgrp_pmucmd_id_valid_v0(struct gk20a *g,
 	struct boardobjgrp *pboardobjgrp,
-	struct boardobjgrp_pmu_cmd *cmd);
+	struct boardobjgrp_pmu_cmd *pcmd);
 int is_boardobjgrp_pmucmd_id_valid_v1(struct gk20a *g,
 	struct boardobjgrp *pboardobjgrp,
 	struct boardobjgrp_pmu_cmd *cmd);

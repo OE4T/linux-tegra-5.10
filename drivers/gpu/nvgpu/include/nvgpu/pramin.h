@@ -30,9 +30,9 @@ struct mm_gk20a;
 struct nvgpu_mem;
 
 
-void nvgpu_pramin_rd_n(struct gk20a *g, struct nvgpu_mem *mem, u32 start, u32 words, void *dest);
-void nvgpu_pramin_wr_n(struct gk20a *g, struct nvgpu_mem *mem, u32 start, u32 words, void *src);
-void nvgpu_pramin_memset(struct gk20a *g, struct nvgpu_mem *mem, u32 start, u32 words, u32 w);
+void nvgpu_pramin_rd_n(struct gk20a *g, struct nvgpu_mem *mem, u32 start, u32 size, void *dest);
+void nvgpu_pramin_wr_n(struct gk20a *g, struct nvgpu_mem *mem, u32 start, u32 size, void *src);
+void nvgpu_pramin_memset(struct gk20a *g, struct nvgpu_mem *mem, u32 start, u32 size, u32 w);
 
 void nvgpu_init_pramin(struct mm_gk20a *mm);
 

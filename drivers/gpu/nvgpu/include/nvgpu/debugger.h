@@ -115,7 +115,7 @@ dbg_profiler_object_data_from_prof_obj_entry(struct nvgpu_list_node *node)
 };
 
 /* used by the interrupt handler to post events */
-void nvgpu_dbg_gpu_post_events(struct channel_gk20a *fault_ch);
+void nvgpu_dbg_gpu_post_events(struct channel_gk20a *ch);
 
 bool nvgpu_dbg_gpu_broadcast_stop_trigger(struct channel_gk20a *ch);
 int nvgpu_dbg_gpu_clear_broadcast_stop_trigger(struct channel_gk20a *ch);

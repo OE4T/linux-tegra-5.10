@@ -33,7 +33,7 @@
 
 static struct vfe_equ *construct_vfe_equ(struct gk20a *g, void *pargs);
 static int devinit_get_vfe_equ_table(struct gk20a *g,
-	struct vfe_equs *pequobjs);
+	struct vfe_equs *pvfeequobjs);
 
 static int _vfe_equs_pmudatainit(struct gk20a *g,
 				 struct boardobjgrp *pboardobjgrp,

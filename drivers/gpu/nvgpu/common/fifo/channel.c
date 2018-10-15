@@ -50,8 +50,8 @@
 
 #include "gk20a/fence_gk20a.h"
 
-static void free_channel(struct fifo_gk20a *f, struct channel_gk20a *c);
-static void gk20a_channel_dump_ref_actions(struct channel_gk20a *c);
+static void free_channel(struct fifo_gk20a *f, struct channel_gk20a *ch);
+static void gk20a_channel_dump_ref_actions(struct channel_gk20a *ch);
 
 static void channel_gk20a_free_priv_cmdbuf(struct channel_gk20a *c);
 

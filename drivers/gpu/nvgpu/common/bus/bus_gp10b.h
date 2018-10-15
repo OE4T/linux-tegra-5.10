@@ -26,6 +26,6 @@
 struct gk20a;
 struct nvgpu_mem;
 
-int gp10b_bus_bar2_bind(struct gk20a *g, struct nvgpu_mem *bar1_inst);
+int gp10b_bus_bar2_bind(struct gk20a *g, struct nvgpu_mem *bar2_inst);
 
 #endif

@@ -233,20 +233,20 @@ int nvgpu_page_allocator_init(struct gk20a *g, struct nvgpu_allocator *na,
  */
 int nvgpu_lockless_allocator_init(struct gk20a *g, struct nvgpu_allocator *na,
 				  const char *name, u64 base, u64 length,
-				  u64 struct_size, u64 flags);
+				  u64 blk_size, u64 flags);
 
 #define GPU_BALLOC_MAX_ORDER		31U
 
 /*
  * Allocator APIs.
  */
-u64  nvgpu_alloc(struct nvgpu_allocator *allocator, u64 len);
+u64  nvgpu_alloc(struct nvgpu_allocator *a, u64 len);
 u64  nvgpu_alloc_pte(struct nvgpu_allocator *a, u64 len, u32 page_size);
-void nvgpu_free(struct nvgpu_allocator *allocator, u64 addr);
+void nvgpu_free(struct nvgpu_allocator *a, u64 addr);
 
-u64  nvgpu_alloc_fixed(struct nvgpu_allocator *allocator, u64 base, u64 len,
+u64  nvgpu_alloc_fixed(struct nvgpu_allocator *a, u64 base, u64 len,
 		       u32 page_size);
-void nvgpu_free_fixed(struct nvgpu_allocator *allocator, u64 base, u64 len);
+void nvgpu_free_fixed(struct nvgpu_allocator *a, u64 base, u64 len);
 
 int  nvgpu_alloc_reserve_carveout(struct nvgpu_allocator *a,
 				  struct nvgpu_alloc_carveout *co);
@@ -259,7 +259,7 @@ u64  nvgpu_alloc_end(struct nvgpu_allocator *a);
 bool nvgpu_alloc_initialized(struct nvgpu_allocator *a);
 u64  nvgpu_alloc_space(struct nvgpu_allocator *a);
 
-void nvgpu_alloc_destroy(struct nvgpu_allocator *allocator);
+void nvgpu_alloc_destroy(struct nvgpu_allocator *a);
 
 #ifdef __KERNEL__
 void nvgpu_alloc_print_stats(struct nvgpu_allocator *a,

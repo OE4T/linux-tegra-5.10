@@ -35,7 +35,7 @@
 static struct clk_domain *construct_clk_domain(struct gk20a *g, void *pargs);
 
 static int devinit_get_clocks_table(struct gk20a *g,
-	struct clk_domains *pdomainobjs);
+	struct clk_domains *pclkdomainobjs);
 
 static int clk_domain_pmudatainit_super(struct gk20a *g, struct boardobj
 	*board_obj_ptr,	struct nv_pmu_boardobj *ppmudata);
