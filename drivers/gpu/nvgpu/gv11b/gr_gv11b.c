@@ -3222,7 +3222,7 @@ int gv11b_gr_set_sm_debug_mode(struct gk20a *g,
 		u32 gpc, tpc, sm;
 		u32 reg_offset, reg_mask, reg_val;
 
-		if (!(sms & (1 << sm_id))) {
+		if (!(sms & ((u64)1 << sm_id))) {
 			continue;
 		}
 
