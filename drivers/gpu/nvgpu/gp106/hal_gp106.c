@@ -521,6 +521,7 @@ static const struct gpu_ops gp106_ops = {
 		.dump_pbdma_status = gk20a_dump_pbdma_status,
 		.dump_eng_status = gk20a_dump_eng_status,
 		.dump_channel_status_ramfc = gk20a_dump_channel_status_ramfc,
+		.capture_channel_ram_dump = gk20a_capture_channel_ram_dump,
 		.intr_0_error_mask = gk20a_fifo_intr_0_error_mask,
 		.is_preempt_pending = gk20a_fifo_is_preempt_pending,
 		.init_pbdma_intr_descs = gp10b_fifo_init_pbdma_intr_descs,

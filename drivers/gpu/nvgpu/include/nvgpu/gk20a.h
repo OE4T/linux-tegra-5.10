@@ -702,8 +702,11 @@ struct gpu_ops {
 		void (*dump_eng_status)(struct gk20a *g,
 				struct gk20a_debug_output *o);
 		void (*dump_channel_status_ramfc)(struct gk20a *g,
-				struct gk20a_debug_output *o, u32 chid,
-				struct ch_state *ch_state);
+				struct gk20a_debug_output *o,
+				struct nvgpu_channel_dump_info *info);
+		void (*capture_channel_ram_dump)(struct gk20a *g,
+				struct channel_gk20a *ch,
+				struct nvgpu_channel_dump_info *info);
 		u32 (*intr_0_error_mask)(struct gk20a *g);
 		int (*is_preempt_pending)(struct gk20a *g, u32 id,
 			unsigned int id_type);

@@ -294,60 +294,87 @@ bool gv11b_is_fault_engine_subid_gpc(struct gk20a *g, u32 engine_subid)
 	return (engine_subid == gmmu_fault_client_type_gpc_v());
 }
 
+void gv11b_capture_channel_ram_dump(struct gk20a *g,
+		struct channel_gk20a *ch,
+		struct nvgpu_channel_dump_info *info)
+{
+	struct nvgpu_mem *mem = &ch->inst_block;
+
+	info->channel_reg = gk20a_readl(g, ccsr_channel_r(ch->chid));
+
+	info->inst.pb_top_level_get = nvgpu_mem_rd32_pair(g, mem,
+			ram_fc_pb_top_level_get_w(),
+			ram_fc_pb_top_level_get_hi_w());
+	info->inst.pb_put = nvgpu_mem_rd32_pair(g, mem,
+			ram_fc_pb_put_w(),
+			ram_fc_pb_put_hi_w());
+	info->inst.pb_get = nvgpu_mem_rd32_pair(g, mem,
+			ram_fc_pb_get_w(),
+			ram_fc_pb_get_hi_w());
+	info->inst.pb_fetch = nvgpu_mem_rd32_pair(g, mem,
+			ram_fc_pb_fetch_w(),
+			ram_fc_pb_fetch_hi_w());
+	info->inst.pb_header = nvgpu_mem_rd32(g, mem,
+			ram_fc_pb_header_w());
+	info->inst.pb_count = nvgpu_mem_rd32(g, mem,
+			ram_fc_pb_count_w());
+	info->inst.sem_addr = nvgpu_mem_rd32_pair(g, mem,
+			ram_fc_sem_addr_lo_w(),
+			ram_fc_sem_addr_hi_w());
+	info->inst.sem_payload = nvgpu_mem_rd32_pair(g, mem,
+			ram_fc_sem_payload_lo_w(),
+			ram_fc_sem_payload_hi_w());
+	info->inst.sem_execute = nvgpu_mem_rd32(g, mem,
+			ram_fc_sem_execute_w());
+}
+
 void gv11b_dump_channel_status_ramfc(struct gk20a *g,
 				     struct gk20a_debug_output *o,
-				     u32 chid,
-				     struct ch_state *ch_state)
+				     struct nvgpu_channel_dump_info *info)
 {
-	u32 channel = gk20a_readl(g, ccsr_channel_r(chid));
-	u32 status = ccsr_channel_status_v(channel);
-	u32 *inst_mem;
-	struct channel_gk20a *c = g->fifo.channel + chid;
-	struct nvgpu_semaphore_int *hw_sema = NULL;
+	u32 status;
 
-	if (c->hw_sema) {
-		hw_sema = c->hw_sema;
-	}
-
-	if (!ch_state) {
+	if (info == NULL) {
 		return;
 	}
 
-	inst_mem = ch_state->inst_block;
+	status = ccsr_channel_status_v(info->channel_reg);
 
-	gk20a_debug_output(o, "%d-%s, TSG: %u, pid %d, refs: %d: ", chid,
+	gk20a_debug_output(o, "%d-%s, TSG: %u, pid %d, refs: %d: ",
+			info->chid,
 			g->name,
-			c->tsgid,
-			ch_state->pid,
-			ch_state->refs);
+			info->tsgid,
+			info->pid,
+			info->refs);
 	gk20a_debug_output(o, "channel status: %s in use %s %s\n",
-			ccsr_channel_enable_v(channel) ? "" : "not",
+			ccsr_channel_enable_v(info->channel_reg) ? "" : "not",
 			gk20a_decode_ccsr_chan_status(status),
-			ccsr_channel_busy_v(channel) ? "busy" : "not busy");
-	gk20a_debug_output(o, "RAMFC : TOP: %016llx PUT: %016llx GET: %016llx "
-			"FETCH: %016llx\nHEADER: %08x COUNT: %08x\n"
-			"SEMAPHORE: addr hi: %08x addr lo: %08x\n"
-			"payload %08x execute %08x\n",
-		(u64)inst_mem[ram_fc_pb_top_level_get_w()] +
-		((u64)inst_mem[ram_fc_pb_top_level_get_hi_w()] << 32ULL),
-		(u64)inst_mem[ram_fc_pb_put_w()] +
-		((u64)inst_mem[ram_fc_pb_put_hi_w()] << 32ULL),
-		(u64)inst_mem[ram_fc_pb_get_w()] +
-		((u64)inst_mem[ram_fc_pb_get_hi_w()] << 32ULL),
-		(u64)inst_mem[ram_fc_pb_fetch_w()] +
-		((u64)inst_mem[ram_fc_pb_fetch_hi_w()] << 32ULL),
-		inst_mem[ram_fc_pb_header_w()],
-		inst_mem[ram_fc_pb_count_w()],
-		inst_mem[ram_fc_sem_addr_hi_w()],
-		inst_mem[ram_fc_sem_addr_lo_w()],
-		inst_mem[ram_fc_sem_payload_lo_w()],
-		inst_mem[ram_fc_sem_execute_w()]);
-	if (hw_sema) {
-		gk20a_debug_output(o, "SEMA STATE: value: 0x%08x next_val: 0x%08x addr: 0x%010llx\n",
-				  __nvgpu_semaphore_read(hw_sema),
-				  nvgpu_atomic_read(&hw_sema->next_value),
-				  nvgpu_hw_sema_addr(hw_sema));
+			ccsr_channel_busy_v(info->channel_reg) ?
+				"busy" : "not busy");
+	gk20a_debug_output(o,
+			"RAMFC : TOP: %016llx PUT: %016llx GET: %016llx "
+			"FETCH: %016llx\n"
+			"HEADER: %08x COUNT: %08x\n"
+			"SEMAPHORE: addr %016llx\n"
+			"payload %016llx execute %08x\n",
+			info->inst.pb_top_level_get,
+			info->inst.pb_put,
+			info->inst.pb_get,
+			info->inst.pb_fetch,
+			info->inst.pb_header,
+			info->inst.pb_count,
+			info->inst.sem_addr,
+			info->inst.sem_payload,
+			info->inst.sem_execute);
+
+	if (info->sema.addr) {
+		gk20a_debug_output(o, "SEMA STATE: value: 0x%08x "
+				   "next_val: 0x%08x addr: 0x%010llx\n",
+				  info->sema.value,
+				  info->sema.next,
+				  info->sema.addr);
 	}
+
 	gk20a_debug_output(o, "\n");
 }
 

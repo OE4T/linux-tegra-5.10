@@ -658,6 +658,7 @@ static const struct gpu_ops tu104_ops = {
 		.dump_pbdma_status = gk20a_dump_pbdma_status,
 		.dump_eng_status = gv11b_dump_eng_status,
 		.dump_channel_status_ramfc = gv11b_dump_channel_status_ramfc,
+		.capture_channel_ram_dump = gv11b_capture_channel_ram_dump,
 		.intr_0_error_mask = gv11b_fifo_intr_0_error_mask,
 		.is_preempt_pending = gv11b_fifo_is_preempt_pending,
 		.init_pbdma_intr_descs = gv11b_fifo_init_pbdma_intr_descs,

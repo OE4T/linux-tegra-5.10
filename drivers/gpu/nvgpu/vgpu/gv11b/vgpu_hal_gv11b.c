@@ -386,6 +386,7 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 		.dump_pbdma_status = NULL,
 		.dump_eng_status = NULL,
 		.dump_channel_status_ramfc = NULL,
+		.capture_channel_ram_dump = NULL,
 		.intr_0_error_mask = gv11b_fifo_intr_0_error_mask,
 		.is_preempt_pending = gv11b_fifo_is_preempt_pending,
 		.init_pbdma_intr_descs = gv11b_fifo_init_pbdma_intr_descs,

@@ -4061,68 +4061,98 @@ bool gk20a_fifo_channel_status_is_ctx_reload(struct gk20a *g, u32 chid)
 		status == ccsr_channel_status_on_eng_pending_acq_ctx_reload_v());
 }
 
+void gk20a_capture_channel_ram_dump(struct gk20a *g,
+		struct channel_gk20a *ch,
+		struct nvgpu_channel_dump_info *info)
+{
+	struct nvgpu_mem *mem = &ch->inst_block;
+
+	info->channel_reg = gk20a_readl(g, ccsr_channel_r(ch->chid));
+
+	info->inst.pb_top_level_get = nvgpu_mem_rd32_pair(g, mem,
+			ram_fc_pb_top_level_get_w(),
+			ram_fc_pb_top_level_get_hi_w());
+	info->inst.pb_put = nvgpu_mem_rd32_pair(g, mem,
+			ram_fc_pb_put_w(),
+			ram_fc_pb_put_hi_w());
+	info->inst.pb_get = nvgpu_mem_rd32_pair(g, mem,
+			ram_fc_pb_get_w(),
+			ram_fc_pb_get_hi_w());
+	info->inst.pb_fetch = nvgpu_mem_rd32_pair(g, mem,
+			ram_fc_pb_fetch_w(),
+			ram_fc_pb_fetch_hi_w());
+	info->inst.pb_header = nvgpu_mem_rd32(g, mem,
+			ram_fc_pb_header_w());
+	info->inst.pb_count = nvgpu_mem_rd32(g, mem,
+			ram_fc_pb_count_w());
+	info->inst.syncpointa = nvgpu_mem_rd32(g, mem,
+			ram_fc_syncpointa_w());
+	info->inst.syncpointb = nvgpu_mem_rd32(g, mem,
+			ram_fc_syncpointb_w());
+	info->inst.semaphorea = nvgpu_mem_rd32(g, mem,
+			ram_fc_semaphorea_w());
+	info->inst.semaphoreb = nvgpu_mem_rd32(g, mem,
+			ram_fc_semaphoreb_w());
+	info->inst.semaphorec = nvgpu_mem_rd32(g, mem,
+			ram_fc_semaphorec_w());
+	info->inst.semaphored = nvgpu_mem_rd32(g, mem,
+			ram_fc_semaphored_w());
+}
+
 void gk20a_dump_channel_status_ramfc(struct gk20a *g,
 				     struct gk20a_debug_output *o,
-				     u32 chid,
-				     struct ch_state *ch_state)
+				     struct nvgpu_channel_dump_info *info)
 {
-	u32 channel = gk20a_readl(g, ccsr_channel_r(chid));
-	u32 status = ccsr_channel_status_v(channel);
+	u32 status;
 	u32 syncpointa, syncpointb;
-	u32 *inst_mem;
-	struct channel_gk20a *c = g->fifo.channel + chid;
-	struct nvgpu_semaphore_int *hw_sema = NULL;
 
-	if (c->hw_sema) {
-		hw_sema = c->hw_sema;
-	}
-
-	if (ch_state == NULL) {
+	if (info == NULL) {
 		return;
 	}
 
-	inst_mem = ch_state->inst_block;
+	status = ccsr_channel_status_v(info->channel_reg);
 
-	syncpointa = inst_mem[ram_fc_syncpointa_w()];
-	syncpointb = inst_mem[ram_fc_syncpointb_w()];
+	syncpointa = info->inst.syncpointa;
+	syncpointb = info->inst.syncpointb;
 
-	gk20a_debug_output(o, "%d-%s, pid %d, refs %d%s: ", chid,
+	gk20a_debug_output(o, "%d-%s, pid %d, refs %d%s: ",
+			info->chid,
 			g->name,
-			ch_state->pid,
-			ch_state->refs,
-			ch_state->deterministic ? ", deterministic" : "");
+			info->pid,
+			info->refs,
+			info->deterministic ? ", deterministic" : "");
 	gk20a_debug_output(o, "channel status: %s in use %s %s\n",
-			(ccsr_channel_enable_v(channel) ==
+			(ccsr_channel_enable_v(info->channel_reg) ==
 				ccsr_channel_enable_in_use_v()) ? "" : "not",
 			gk20a_decode_ccsr_chan_status(status),
-			(ccsr_channel_busy_v(channel) ==
+			(ccsr_channel_busy_v(info->channel_reg) ==
 				ccsr_channel_busy_true_v()) ? "busy" : "not busy");
-	gk20a_debug_output(o, "RAMFC : TOP: %016llx PUT: %016llx GET: %016llx "
-			"FETCH: %016llx\nHEADER: %08x COUNT: %08x\n"
+	gk20a_debug_output(o,
+			"RAMFC : TOP: %016llx PUT: %016llx GET: %016llx "
+			"FETCH: %016llx\n"
+			"HEADER: %08x COUNT: %08x\n"
 			"SYNCPOINT %08x %08x SEMAPHORE %08x %08x %08x %08x\n",
-		(u64)inst_mem[ram_fc_pb_top_level_get_w()] +
-		((u64)inst_mem[ram_fc_pb_top_level_get_hi_w()] << 32ULL),
-		(u64)inst_mem[ram_fc_pb_put_w()] +
-		((u64)inst_mem[ram_fc_pb_put_hi_w()] << 32ULL),
-		(u64)inst_mem[ram_fc_pb_get_w()] +
-		((u64)inst_mem[ram_fc_pb_get_hi_w()] << 32ULL),
-		(u64)inst_mem[ram_fc_pb_fetch_w()] +
-		((u64)inst_mem[ram_fc_pb_fetch_hi_w()] << 32ULL),
-		inst_mem[ram_fc_pb_header_w()],
-		inst_mem[ram_fc_pb_count_w()],
-		syncpointa,
-		syncpointb,
-		inst_mem[ram_fc_semaphorea_w()],
-		inst_mem[ram_fc_semaphoreb_w()],
-		inst_mem[ram_fc_semaphorec_w()],
-		inst_mem[ram_fc_semaphored_w()]);
-	if (hw_sema) {
+			info->inst.pb_top_level_get,
+			info->inst.pb_put,
+			info->inst.pb_get,
+			info->inst.pb_fetch,
+			info->inst.pb_header,
+			info->inst.pb_count,
+			syncpointa,
+			syncpointb,
+			info->inst.semaphorea,
+			info->inst.semaphoreb,
+			info->inst.semaphorec,
+			info->inst.semaphored);
+
+	if (info->sema.addr) {
 		gk20a_debug_output(o, "SEMA STATE: value: 0x%08x "
 				   "next_val: 0x%08x addr: 0x%010llx\n",
-				   __nvgpu_semaphore_read(hw_sema),
-				   nvgpu_atomic_read(&hw_sema->next_value),
-				   nvgpu_hw_sema_addr(hw_sema));
+				  info->sema.value,
+				  info->sema.next,
+				  info->sema.addr);
 	}
+
 
 #ifdef CONFIG_TEGRA_GK20A_NVHOST
 	if ((pbdma_syncpointb_op_v(syncpointb) == pbdma_syncpointb_op_wait_v())
@@ -4144,57 +4174,69 @@ void gk20a_debug_dump_all_channel_status_ramfc(struct gk20a *g,
 {
 	struct fifo_gk20a *f = &g->fifo;
 	u32 chid;
-	struct ch_state **ch_state;
+	struct nvgpu_channel_dump_info **infos;
 
-	ch_state = nvgpu_kzalloc(g, sizeof(*ch_state) * f->num_channels);
-	if (ch_state == NULL) {
+	infos = nvgpu_kzalloc(g, sizeof(*infos) * f->num_channels);
+	if (infos == NULL) {
 		gk20a_debug_output(o, "cannot alloc memory for channels\n");
 		return;
 	}
 
 	for (chid = 0; chid < f->num_channels; chid++) {
 		struct channel_gk20a *ch = &f->channel[chid];
-		if (gk20a_channel_get(ch)) {
-			struct ch_state *state = nvgpu_kmalloc(g,
-					sizeof(*state));
-			u32 *inst = nvgpu_kmalloc(g, ram_in_alloc_size_v());
+
+		if (gk20a_channel_get(ch) != NULL) {
+			struct nvgpu_channel_dump_info *info;
+
+			info = nvgpu_kzalloc(g, sizeof(*info));
 
 			/* ref taken stays to below loop with
 			 * successful allocs */
-			if (state == NULL || inst == NULL) {
+			if (info == NULL) {
 				gk20a_channel_put(ch);
-				nvgpu_kfree(g, state);
-				nvgpu_kfree(g, inst);
 			} else {
-				ch_state[chid] = state;
-				ch_state[chid]->inst_block = inst;
+				infos[chid] = info;
 			}
 		}
 	}
 
 	for (chid = 0; chid < f->num_channels; chid++) {
 		struct channel_gk20a *ch = &f->channel[chid];
-		if (ch_state[chid] == NULL) {
+		struct nvgpu_channel_dump_info *info = infos[chid];
+		struct nvgpu_semaphore_int *hw_sema = ch->hw_sema;
+
+		if (info == NULL) {
 			continue;
 		}
 
-		ch_state[chid]->pid = ch->pid;
-		ch_state[chid]->refs = nvgpu_atomic_read(&ch->ref_count);
-		ch_state[chid]->deterministic = ch->deterministic;
-		nvgpu_mem_rd_n(g, &ch->inst_block, 0,
-				ch_state[chid]->inst_block,
-				ram_in_alloc_size_v());
+		info->chid = ch->chid;
+		info->tsgid = ch->tsgid;
+		info->pid = ch->pid;
+		info->refs = nvgpu_atomic_read(&ch->ref_count);
+		info->deterministic = ch->deterministic;
+
+		if (hw_sema != NULL) {
+			info->sema.value = __nvgpu_semaphore_read(hw_sema);
+			info->sema.next =
+				nvgpu_atomic_read(&hw_sema->next_value);
+			info->sema.addr = nvgpu_hw_sema_addr(hw_sema);
+		}
+
+		g->ops.fifo.capture_channel_ram_dump(g, ch, info);
+
 		gk20a_channel_put(ch);
 	}
+
 	for (chid = 0; chid < f->num_channels; chid++) {
-		if (ch_state[chid]) {
-			g->ops.fifo.dump_channel_status_ramfc(g, o, chid,
-						 ch_state[chid]);
-			nvgpu_kfree(g, ch_state[chid]->inst_block);
-			nvgpu_kfree(g, ch_state[chid]);
+		struct nvgpu_channel_dump_info *info = infos[chid];
+
+		if (info != NULL) {
+			g->ops.fifo.dump_channel_status_ramfc(g, o, info);
+			nvgpu_kfree(g, info);
 		}
 	}
-	nvgpu_kfree(g, ch_state);
+
+	nvgpu_kfree(g, infos);
 }
 
 void gk20a_dump_pbdma_status(struct gk20a *g,

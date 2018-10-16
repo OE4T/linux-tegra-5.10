@@ -320,6 +320,7 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 		.dump_pbdma_status = NULL,
 		.dump_eng_status = NULL,
 		.dump_channel_status_ramfc = NULL,
+		.capture_channel_ram_dump = NULL,
 		.intr_0_error_mask = gk20a_fifo_intr_0_error_mask,
 		.is_preempt_pending = NULL,
 		.init_pbdma_intr_descs = gp10b_fifo_init_pbdma_intr_descs,

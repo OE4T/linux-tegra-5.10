@@ -217,11 +217,35 @@ struct fifo_gk20a {
 	u32 channel_base;
 };
 
-struct ch_state {
+struct nvgpu_channel_dump_info {
+	u32 chid;
+	u32 tsgid;
 	int pid;
 	int refs;
 	bool deterministic;
-	u32 *inst_block;
+	u32 channel_reg;
+	struct {
+		u64 pb_top_level_get;
+		u64 pb_put;
+		u64 pb_get;
+		u64 pb_fetch;
+		u32 pb_header;
+		u32 pb_count;
+		u64 sem_addr;
+		u64 sem_payload;
+		u32 sem_execute;
+		u32 syncpointa;
+		u32 syncpointb;
+		u32 semaphorea;
+		u32 semaphoreb;
+		u32 semaphorec;
+		u32 semaphored;
+	} inst;
+	struct {
+		u32 value;
+		u32 next;
+		u64 addr;
+	} sema;
 };
 
 int gk20a_init_fifo_support(struct gk20a *g);
@@ -369,8 +393,10 @@ static inline void gk20a_fifo_profile_snapshot(
 
 void gk20a_dump_channel_status_ramfc(struct gk20a *g,
 				     struct gk20a_debug_output *o,
-				     u32 chid,
-				     struct ch_state *ch_state);
+				     struct nvgpu_channel_dump_info *info);
+void gk20a_capture_channel_ram_dump(struct gk20a *g,
+		struct channel_gk20a *ch,
+		struct nvgpu_channel_dump_info *info);
 void gk20a_debug_dump_all_channel_status_ramfc(struct gk20a *g,
 		 struct gk20a_debug_output *o);
 void gk20a_dump_pbdma_status(struct gk20a *g,
