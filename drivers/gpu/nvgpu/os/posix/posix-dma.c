@@ -38,7 +38,7 @@ static int __nvgpu_do_dma_alloc(struct gk20a *g, unsigned long flags,
 				size_t size, struct nvgpu_mem *mem,
 				enum nvgpu_aperture ap)
 {
-	void *memory = malloc(mem->aligned_size);
+	void *memory = malloc(PAGE_ALIGN(size));
 
 	if (memory == NULL)
 		return -ENOMEM;
