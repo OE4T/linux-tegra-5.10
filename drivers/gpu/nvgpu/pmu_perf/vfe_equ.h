@@ -81,4 +81,8 @@ struct vfe_equ_quadratic {
 	u32   coeffs[CTRL_PERF_VFE_EQU_QUADRATIC_COEFF_COUNT];
 };
 
+struct vfe_equ_scalar {
+	struct vfe_equ super;
+	u8 equ_idx_to_scale;
+};
 #endif /* NVGPU_PERF_VFE_EQU_H */

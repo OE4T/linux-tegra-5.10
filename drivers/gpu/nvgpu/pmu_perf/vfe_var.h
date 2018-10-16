@@ -77,10 +77,16 @@ struct vfe_var_single {
 
 struct vfe_var_single_frequency {
 	struct vfe_var_single  super;
+	u8 clk_domain_idx;
 };
 
 struct vfe_var_single_voltage {
 	struct vfe_var_single super;
+};
+
+struct vfe_var_single_caller_specified {
+	struct vfe_var_single  super;
+	u8 uid;
 };
 
 struct vfe_var_single_sensed {

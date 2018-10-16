@@ -30,9 +30,15 @@
 #define NV_PMU_PERF_RPC_VFE_EQU_EVAL_VAR_COUNT_MAX                            2U
 #define NV_PMU_PERF_RPC_VFE_EQU_MONITOR_COUNT_MAX                            16U
 
+union nv_pmu_perf_vfe_var_type_data {
+	u8 uid;
+	u8 clk_domain_idx;
+};
+
 struct nv_pmu_perf_vfe_var_value {
 	u8 var_type;
-	u8 reserved[3];
+	union nv_pmu_perf_vfe_var_type_data var_type_data;
+	u8 reserved[2];
 	u32 var_value;
 };
 
@@ -41,6 +47,12 @@ union nv_pmu_perf_vfe_equ_result {
 	u32 voltu_v;
 	u32 vf_gain;
 	int volt_deltau_v;
+	u32 work_type;
+	u32 util_ratio;
+	u32 work_fb_norm;
+	u32 power_mw;
+	u32 pwr_over_util_slope;
+	int vin_code;
 };
 
 struct nv_pmu_perf_rpc_vfe_equ_eval {
@@ -80,6 +92,11 @@ union nv_pmu_perf_vfe_var_boardobj_get_status_union {
 
 NV_PMU_BOARDOBJ_GRP_GET_STATUS_MAKE_E32(perf, vfe_var);
 
+struct nv_pmu_perf_vfe_var_boardobj_grp_get_status_pack {
+	struct nv_pmu_perf_vfe_var_boardobj_grp_get_status pri;
+	struct nv_pmu_perf_vfe_var_boardobj_grp_get_status rppm;
+};
+
 struct nv_pmu_vfe_var {
 	struct nv_pmu_boardobj super;
 	u32 out_range_min;
@@ -112,6 +129,12 @@ struct nv_pmu_vfe_var_single {
 
 struct nv_pmu_vfe_var_single_frequency {
 	struct nv_pmu_vfe_var_single super;
+	u8 clk_domain_idx;
+};
+
+struct nv_pmu_vfe_var_single_caller_specified {
+	struct nv_pmu_vfe_var_single super;
+	u8 uid;
 };
 
 struct nv_pmu_vfe_var_single_sensed {
@@ -156,9 +179,15 @@ union nv_pmu_perf_vfe_var_boardobj_set_union {
 	struct nv_pmu_vfe_var_single_sensed_fuse var_single_sensed_fuse;
 	struct nv_pmu_vfe_var_single_sensed_temp var_single_sensed_temp;
 	struct nv_pmu_vfe_var_single_voltage var_single_voltage;
+	struct nv_pmu_vfe_var_single_caller_specified var_single_caller_specified;
 };
 
 NV_PMU_BOARDOBJ_GRP_SET_MAKE_E32(perf, vfe_var);
+
+struct nv_pmu_perf_vfe_var_boardobj_grp_set_pack {
+	struct nv_pmu_perf_vfe_var_boardobj_grp_set pri;
+	struct nv_pmu_perf_vfe_var_boardobj_grp_set rppm;
+};
 
 struct nv_pmu_vfe_equ {
 	struct nv_pmu_boardobj super;
@@ -189,6 +218,11 @@ struct nv_pmu_vfe_equ_quadratic {
 	u32 coeffs[CTRL_PERF_VFE_EQU_QUADRATIC_COEFF_COUNT];
 };
 
+struct nv_pmu_vfe_equ_scalar {
+	struct nv_pmu_vfe_equ super;
+	u8 equ_idx_to_scale;
+};
+
 struct nv_pmu_perf_vfe_equ_boardobjgrp_set_header {
 	struct nv_pmu_boardobjgrp_e255 super;
 };
@@ -199,8 +233,14 @@ union nv_pmu_perf_vfe_equ_boardobj_set_union {
 	struct nv_pmu_vfe_equ_compare equ_comapre;
 	struct nv_pmu_vfe_equ_minmax equ_minmax;
 	struct nv_pmu_vfe_equ_quadratic equ_quadratic;
+	struct nv_pmu_vfe_equ_scalar equ_scalar;
 };
 
 NV_PMU_BOARDOBJ_GRP_SET_MAKE_E255(perf, vfe_equ);
+
+struct nv_pmu_perf_vfe_equ_boardobj_grp_set_pack {
+	struct nv_pmu_perf_vfe_equ_boardobj_grp_set pri;
+	struct nv_pmu_perf_vfe_var_boardobj_grp_set rppm;
+};
 
 #endif  /* NVGPU_PMUIF_GPMUIFPERFVFE_H*/

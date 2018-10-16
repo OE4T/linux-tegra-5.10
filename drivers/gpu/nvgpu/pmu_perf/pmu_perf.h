@@ -40,6 +40,7 @@
 #define CTRL_PERF_VFE_VAR_TYPE_SINGLE_SENSED_FUSE                    0x07U
 #define CTRL_PERF_VFE_VAR_TYPE_SINGLE_SENSED_TEMP                    0x08U
 #define CTRL_PERF_VFE_VAR_TYPE_SINGLE_VOLTAGE                        0x09U
+#define CTRL_PERF_VFE_VAR_TYPE_SINGLE_CALLER_SPECIFIED               0x0AU
 
 #define CTRL_PERF_VFE_VAR_SINGLE_OVERRIDE_TYPE_NONE                  0x00U
 #define CTRL_PERF_VFE_VAR_SINGLE_OVERRIDE_TYPE_VALUE                 0x01U
@@ -50,12 +51,19 @@
 #define CTRL_PERF_VFE_EQU_TYPE_COMPARE                               0x01U
 #define CTRL_PERF_VFE_EQU_TYPE_MINMAX                                0x02U
 #define CTRL_PERF_VFE_EQU_TYPE_QUADRATIC                             0x03U
+#define CTRL_PERF_VFE_EQU_TYPE_SCALAR                                0x04U
 
 #define CTRL_PERF_VFE_EQU_OUTPUT_TYPE_UNITLESS                       0x00U
 #define CTRL_PERF_VFE_EQU_OUTPUT_TYPE_FREQ_MHZ                       0x01U
 #define CTRL_PERF_VFE_EQU_OUTPUT_TYPE_VOLT_UV                        0x02U
 #define CTRL_PERF_VFE_EQU_OUTPUT_TYPE_VF_GAIN                        0x03U
 #define CTRL_PERF_VFE_EQU_OUTPUT_TYPE_VOLT_DELTA_UV                  0x04U
+#define CTRL_PERF_VFE_EQU_OUTPUT_TYPE_WORK_TYPE                      0x06U
+#define CTRL_PERF_VFE_EQU_OUTPUT_TYPE_UTIL_RATIO                     0x07U
+#define CTRL_PERF_VFE_EQU_OUTPUT_TYPE_WORK_FB_NORM                   0x08U
+#define CTRL_PERF_VFE_EQU_OUTPUT_TYPE_POWER_MW                       0x09U
+#define CTRL_PERF_VFE_EQU_OUTPUT_TYPE_PWR_OVER_UTIL_SLOPE            0x0AU
+#define CTRL_PERF_VFE_EQU_OUTPUT_TYPE_VIN_CODE                       0x0BU
 
 #define CTRL_PERF_VFE_EQU_QUADRATIC_COEFF_COUNT                      0x03U
 

@@ -63,13 +63,10 @@ struct nv_pmu_super_surface {
 		u8 clk_rsvd[0x4660];
 	} clk;
 	struct {
-		struct nv_pmu_perf_vfe_equ_boardobj_grp_set vfe_equ_grp_set;
-		struct nv_pmu_perf_vfe_var_boardobj_grp_set dummy1;
-		u8 rsvd1[0x200];
-		struct nv_pmu_perf_vfe_var_boardobj_grp_set vfe_var_grp_set;
-		struct nv_pmu_perf_vfe_var_boardobj_grp_set dummy2;
-		u8 rsvd2[0x400];
-		struct nv_pmu_perf_vfe_var_boardobj_grp_get_status vfe_var_grp_get_status;
+		struct nv_pmu_perf_vfe_equ_boardobj_grp_set_pack vfe_equ_grp_set;
+		struct nv_pmu_perf_vfe_var_boardobj_grp_set_pack vfe_var_grp_set;
+
+		struct nv_pmu_perf_vfe_var_boardobj_grp_get_status_pack vfe_var_grp_get_status;
 		u8 perf_rsvd[0x40790];
 		u8 perfcf_rsvd[0x1eb0];
 	} perf;

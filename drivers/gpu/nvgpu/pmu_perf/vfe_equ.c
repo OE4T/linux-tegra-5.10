@@ -35,7 +35,7 @@ static struct vfe_equ *construct_vfe_equ(struct gk20a *g, void *pargs);
 static int devinit_get_vfe_equ_table(struct gk20a *g,
 	struct vfe_equs *pvfeequobjs);
 
-static int _vfe_equs_pmudatainit(struct gk20a *g,
+static int vfe_equs_pmudatainit(struct gk20a *g,
 				 struct boardobjgrp *pboardobjgrp,
 				 struct nv_pmu_boardobjgrp_super *pboardobjgrppmu)
 {
@@ -52,13 +52,13 @@ done:
 	return status;
 }
 
-static int _vfe_equs_pmudata_instget(struct gk20a *g,
+static int vfe_equs_pmudata_instget(struct gk20a *g,
 				     struct nv_pmu_boardobjgrp *pmuboardobjgrp,
 				     struct nv_pmu_boardobj **ppboardobjpmudata,
 				     u8 idx)
 {
 	struct nv_pmu_perf_vfe_equ_boardobj_grp_set  *pgrp_set =
-		(struct nv_pmu_perf_vfe_equ_boardobj_grp_set *)pmuboardobjgrp;
+		(struct nv_pmu_perf_vfe_equ_boardobj_grp_set *)(void *)pmuboardobjgrp;
 
 	nvgpu_log_info(g, " ");
 
@@ -94,7 +94,7 @@ int vfe_equ_sw_setup(struct gk20a *g)
 
 	BOARDOBJGRP_PMU_CONSTRUCT(pboardobjgrp, PERF, VFE_EQU);
 
-	status = BOARDOBJGRP_PMU_CMD_GRP_SET_CONSTRUCT(g, pboardobjgrp,
+	status = BOARDOBJGRP_PMU_CMD_GRP_SET_PACK_CONSTRUCT(g, pboardobjgrp,
 			perf, PERF, vfe_equ, VFE_EQU);
 	if (status != 0) {
 		nvgpu_err(g,
@@ -103,8 +103,8 @@ int vfe_equ_sw_setup(struct gk20a *g)
 		goto done;
 	}
 
-	pboardobjgrp->pmudatainit  = _vfe_equs_pmudatainit;
-	pboardobjgrp->pmudatainstget  = _vfe_equs_pmudata_instget;
+	pboardobjgrp->pmudatainit  = vfe_equs_pmudatainit;
+	pboardobjgrp->pmudatainstget  = vfe_equs_pmudata_instget;
 
 	status = devinit_get_vfe_equ_table(g, pvfeequobjs);
 	if (status != 0) {
@@ -149,12 +149,14 @@ static int devinit_get_vfe_equ_table(struct gk20a *g,
 	u8 equ_type = 0;
 	u32 szfmt;
 	bool done = false;
+	u32 hdrszfmt = 0;
 	union {
 		struct boardobj board_obj;
 		struct vfe_equ super;
 		struct vfe_equ_compare compare;
 		struct vfe_equ_minmax minmax;
 		struct vfe_equ_quadratic quadratic;
+		struct vfe_equ_scalar scalar;
 	} equ_data;
 
 	nvgpu_log_info(g, " ");
@@ -170,7 +172,14 @@ static int devinit_get_vfe_equ_table(struct gk20a *g,
 
 	nvgpu_memcpy((u8 *)&vfeequs_tbl_header, vfeequs_tbl_ptr,
 			VBIOS_CLOCKS_TABLE_1X_HEADER_SIZE_07);
-	if (vfeequs_tbl_header.header_size != VBIOS_CLOCKS_TABLE_1X_HEADER_SIZE_07) {
+	if (vfeequs_tbl_header.header_size == VBIOS_VFE_3X_HEADER_SIZE_07) {
+		hdrszfmt = VBIOS_VFE_3X_HEADER_SIZE_07;
+	} else if (vfeequs_tbl_header.header_size ==
+						VBIOS_VFE_3X_HEADER_SIZE_09) {
+		hdrszfmt = VBIOS_VFE_3X_HEADER_SIZE_09;
+		nvgpu_memcpy((u8 *)&vfeequs_tbl_header, vfeequs_tbl_ptr, hdrszfmt);
+	} else {
+		nvgpu_err(g, "Invalid VFE Table Header size\n");
 		status = -EINVAL;
 		goto done;
 	}
@@ -186,8 +195,7 @@ static int devinit_get_vfe_equ_table(struct gk20a *g,
 		goto done;
 	}
 
-	vfeequs_tbl_entry_ptr = vfeequs_tbl_ptr +
-		vfeequs_tbl_header.header_size +
+	vfeequs_tbl_entry_ptr = vfeequs_tbl_ptr + hdrszfmt +
 		(vfeequs_tbl_header.vfe_var_entry_count *
 		 vfeequs_tbl_header.vfe_var_entry_size);
 
@@ -213,27 +221,57 @@ static int devinit_get_vfe_equ_table(struct gk20a *g,
 				VBIOS_VFE_3X_EQU_ENTRY_PAR3_OUTPUT_TYPE)) {
 		case VBIOS_VFE_3X_EQU_ENTRY_PAR3_OUTPUT_TYPE_UNITLESS:
 			equ_data.super.output_type =
-				CTRL_PERF_VFE_EQU_OUTPUT_TYPE_UNITLESS;
+				(u8)CTRL_PERF_VFE_EQU_OUTPUT_TYPE_UNITLESS;
 			break;
 
 		case VBIOS_VFE_3X_EQU_ENTRY_PAR3_OUTPUT_TYPE_FREQ_MHZ:
 			equ_data.super.output_type =
-				CTRL_PERF_VFE_EQU_OUTPUT_TYPE_FREQ_MHZ;
+				(u8)CTRL_PERF_VFE_EQU_OUTPUT_TYPE_FREQ_MHZ;
 			break;
 
 		case VBIOS_VFE_3X_EQU_ENTRY_PAR3_OUTPUT_TYPE_VOLT_UV:
 			equ_data.super.output_type =
-				CTRL_PERF_VFE_EQU_OUTPUT_TYPE_VOLT_UV;
+				(u8)CTRL_PERF_VFE_EQU_OUTPUT_TYPE_VOLT_UV;
 			break;
 
 		case VBIOS_VFE_3X_EQU_ENTRY_PAR3_OUTPUT_TYPE_VF_GAIN:
 			equ_data.super.output_type =
-				CTRL_PERF_VFE_EQU_OUTPUT_TYPE_VF_GAIN;
+				(u8)CTRL_PERF_VFE_EQU_OUTPUT_TYPE_VF_GAIN;
 			break;
 
 		case VBIOS_VFE_3X_EQU_ENTRY_PAR3_OUTPUT_TYPE_VOLT_DELTA_UV:
 			equ_data.super.output_type =
-				CTRL_PERF_VFE_EQU_OUTPUT_TYPE_VOLT_DELTA_UV;
+				(u8)CTRL_PERF_VFE_EQU_OUTPUT_TYPE_VOLT_DELTA_UV;
+			break;
+
+		case VBIOS_VFE_3X_EQU_ENTRY_PAR3_OUTPUT_TYPE_WORK_TYPE:
+			equ_data.super.output_type =
+				(u8)CTRL_PERF_VFE_EQU_OUTPUT_TYPE_WORK_TYPE;
+			break;
+
+		case VBIOS_VFE_3X_EQU_ENTRY_PAR3_OUTPUT_TYPE_UTIL_RATIO:
+			equ_data.super.output_type =
+				(u8)CTRL_PERF_VFE_EQU_OUTPUT_TYPE_UTIL_RATIO;
+			break;
+
+		case VBIOS_VFE_3X_EQU_ENTRY_PAR3_OUTPUT_TYPE_WORK_FB_NORM:
+			equ_data.super.output_type =
+				(u8)CTRL_PERF_VFE_EQU_OUTPUT_TYPE_WORK_FB_NORM;
+			break;
+
+		case VBIOS_VFE_3X_EQU_ENTRY_PAR3_OUTPUT_TYPE_POWER_MW:
+			equ_data.super.output_type =
+				(u8)CTRL_PERF_VFE_EQU_OUTPUT_TYPE_POWER_MW;
+			break;
+
+		case VBIOS_VFE_3X_EQU_ENTRY_PAR3_OUTPUT_TYPE_PWR_OVER_UTIL_SLOPE:
+			equ_data.super.output_type =
+				(u8)CTRL_PERF_VFE_EQU_OUTPUT_TYPE_PWR_OVER_UTIL_SLOPE;
+			break;
+
+		case VBIOS_VFE_3X_EQU_ENTRY_PAR3_OUTPUT_TYPE_VIN_CODE:
+			equ_data.super.output_type =
+				(u8)CTRL_PERF_VFE_EQU_OUTPUT_TYPE_VIN_CODE;
 			break;
 
 		default:
@@ -261,14 +299,14 @@ static int devinit_get_vfe_equ_table(struct gk20a *g,
 			break;
 
 		case VBIOS_VFE_3X_EQU_ENTRY_TYPE_QUADRATIC:
-			equ_type = CTRL_PERF_VFE_EQU_TYPE_QUADRATIC;
+			equ_type = (u8)CTRL_PERF_VFE_EQU_TYPE_QUADRATIC;
 			equ_data.quadratic.coeffs[0] = equ.param0;
 			equ_data.quadratic.coeffs[1] = equ.param1;
 			equ_data.quadratic.coeffs[2] = equ.param2;
 			break;
 
 		case VBIOS_VFE_3X_EQU_ENTRY_TYPE_MINMAX:
-			equ_type = CTRL_PERF_VFE_EQU_TYPE_MINMAX;
+			equ_type = (u8)CTRL_PERF_VFE_EQU_TYPE_MINMAX;
 			equ_data.minmax.b_max = BIOS_GET_FIELD(bool, equ.param0,
 				VBIOS_VFE_3X_EQU_ENTRY_PAR0_MINMAX_CRIT) &&
 				(VBIOS_VFE_3X_EQU_ENTRY_PAR0_MINMAX_CRIT_MAX != 0U);
@@ -284,27 +322,30 @@ static int devinit_get_vfe_equ_table(struct gk20a *g,
 		{
 			u8 cmp_func = BIOS_GET_FIELD(u8, equ.param1,
 				VBIOS_VFE_3X_EQU_ENTRY_PAR1_COMPARE_FUNCTION);
-			equ_type = CTRL_PERF_VFE_EQU_TYPE_COMPARE;
+			equ_type = (u8)CTRL_PERF_VFE_EQU_TYPE_COMPARE;
 
 			switch (cmp_func) {
 			case VBIOS_VFE_3X_EQU_ENTRY_PAR1_COMPARE_FUNCTION_EQUAL:
 				equ_data.compare.func_id =
-					CTRL_PERF_VFE_EQU_COMPARE_FUNCTION_EQUAL;
+					(u8)CTRL_PERF_VFE_EQU_COMPARE_FUNCTION_EQUAL;
 				break;
 
 			case VBIOS_VFE_3X_EQU_ENTRY_PAR1_COMPARE_FUNCTION_GREATER_EQ:
 				equ_data.compare.func_id =
-					CTRL_PERF_VFE_EQU_COMPARE_FUNCTION_GREATER_EQ;
+					(u8)CTRL_PERF_VFE_EQU_COMPARE_FUNCTION_GREATER_EQ;
 				break;
 			case VBIOS_VFE_3X_EQU_ENTRY_PAR1_COMPARE_FUNCTION_GREATER:
 				equ_data.compare.func_id =
-					CTRL_PERF_VFE_EQU_COMPARE_FUNCTION_GREATER;
+					(u8)CTRL_PERF_VFE_EQU_COMPARE_FUNCTION_GREATER;
 				break;
 			default:
 				nvgpu_err(g,
 					  "invalid vfe compare index %x type %x ",
 					  index, cmp_func);
 				status = -EINVAL;
+				break;
+			}
+			if (status != 0) {
 				goto done;
 			}
 			equ_data.compare.equ_idx_true = BIOS_GET_FIELD(u8,
@@ -316,10 +357,23 @@ static int devinit_get_vfe_equ_table(struct gk20a *g,
 			equ_data.compare.criteria = equ.param0;
 			break;
 		}
+
+		case VBIOS_VFE_3X_EQU_ENTRY_TYPE_EQUATION_SCALAR:
+		{
+			equ_type = (u8)CTRL_PERF_VFE_EQU_TYPE_SCALAR;
+			equ_data.scalar.equ_idx_to_scale =
+				BIOS_GET_FIELD(u8, equ.param0,
+					VBIOS_VFE_3X_EQU_ENTRY_PAR0_EQUATION_SCALAR_IDX_TO_SCALE);
+			break;
+		}
+
 		default:
 			status = -EINVAL;
 			nvgpu_err(g, "Invalid equ[%d].type = 0x%x.",
 				index, (u8)equ.type);
+			break;
+		}
+		if (status != 0) {
 			goto done;
 		}
 
@@ -346,7 +400,7 @@ done:
 	return status;
 }
 
-static int _vfe_equ_pmudatainit_super(struct gk20a *g,
+static int vfe_equ_pmudatainit_super(struct gk20a *g,
 				      struct boardobj *board_obj_ptr,
 				      struct nv_pmu_boardobj *ppmudata)
 {
@@ -361,9 +415,9 @@ static int _vfe_equ_pmudatainit_super(struct gk20a *g,
 		return status;
 	}
 
-	pvfe_equ = (struct vfe_equ *)board_obj_ptr;
+	pvfe_equ = (struct vfe_equ *)(void *)board_obj_ptr;
 
-	pset = (struct nv_pmu_vfe_equ *)
+	pset = (struct nv_pmu_vfe_equ *)(void *)
 		ppmudata;
 
 	pset->var_idx      = pvfe_equ->var_idx;
@@ -389,10 +443,10 @@ static int vfe_equ_construct_super(struct gk20a *g,
 		return -EINVAL;
 	}
 
-	pvfeequ = (struct vfe_equ *)*ppboardobj;
+	pvfeequ = (struct vfe_equ *)(void *)*ppboardobj;
 
 	pvfeequ->super.pmudatainit =
-			_vfe_equ_pmudatainit_super;
+			vfe_equ_pmudatainit_super;
 
 	pvfeequ->var_idx = ptmpequ->var_idx;
 	pvfeequ->equ_idx_next = ptmpequ->equ_idx_next;
@@ -403,7 +457,7 @@ static int vfe_equ_construct_super(struct gk20a *g,
 	return status;
 }
 
-static int _vfe_equ_pmudatainit_compare(struct gk20a *g,
+static int vfe_equ_pmudatainit_compare(struct gk20a *g,
 					struct boardobj *board_obj_ptr,
 					struct nv_pmu_boardobj *ppmudata)
 {
@@ -413,14 +467,14 @@ static int _vfe_equ_pmudatainit_compare(struct gk20a *g,
 
 	nvgpu_log_info(g, " ");
 
-	status = _vfe_equ_pmudatainit_super(g, board_obj_ptr, ppmudata);
+	status = vfe_equ_pmudatainit_super(g, board_obj_ptr, ppmudata);
 	if (status != 0) {
 		return status;
 	}
 
-	pvfe_equ_compare = (struct vfe_equ_compare *)board_obj_ptr;
+	pvfe_equ_compare = (struct vfe_equ_compare *)(void *)board_obj_ptr;
 
-	pset = (struct nv_pmu_vfe_equ_compare *) ppmudata;
+	pset = (struct nv_pmu_vfe_equ_compare *)(void *)ppmudata;
 
 	pset->func_id = pvfe_equ_compare->func_id;
 	pset->equ_idx_true = pvfe_equ_compare->equ_idx_true;
@@ -445,16 +499,16 @@ static int vfe_equ_construct_compare(struct gk20a *g,
 		return -EINVAL;
 	}
 
-	ptmpobj->type_mask |= BIT(CTRL_PERF_VFE_EQU_TYPE_COMPARE);
+	ptmpobj->type_mask |= (u32)BIT(CTRL_PERF_VFE_EQU_TYPE_COMPARE);
 	status = vfe_equ_construct_super(g, ppboardobj, size, pargs);
 	if (status != 0) {
 		return -EINVAL;
 	}
 
-	pvfeequ = (struct vfe_equ_compare *)*ppboardobj;
+	pvfeequ = (struct vfe_equ_compare *)(void *)*ppboardobj;
 
 	pvfeequ->super.super.pmudatainit =
-			_vfe_equ_pmudatainit_compare;
+			vfe_equ_pmudatainit_compare;
 
 	pvfeequ->func_id = ptmpequ->func_id;
 	pvfeequ->equ_idx_true = ptmpequ->equ_idx_true;
@@ -465,7 +519,7 @@ static int vfe_equ_construct_compare(struct gk20a *g,
 	return status;
 }
 
-static int _vfe_equ_pmudatainit_minmax(struct gk20a *g,
+static int vfe_equ_pmudatainit_minmax(struct gk20a *g,
 				       struct boardobj *board_obj_ptr,
 				       struct nv_pmu_boardobj *ppmudata)
 {
@@ -475,14 +529,14 @@ static int _vfe_equ_pmudatainit_minmax(struct gk20a *g,
 
 	nvgpu_log_info(g, " ");
 
-	status = _vfe_equ_pmudatainit_super(g, board_obj_ptr, ppmudata);
+	status = vfe_equ_pmudatainit_super(g, board_obj_ptr, ppmudata);
 	if (status != 0) {
 		return status;
 	}
 
-	pvfe_equ_minmax = (struct vfe_equ_minmax *)board_obj_ptr;
+	pvfe_equ_minmax = (struct vfe_equ_minmax *)(void *)board_obj_ptr;
 
-	pset = (struct nv_pmu_vfe_equ_minmax *)
+	pset = (struct nv_pmu_vfe_equ_minmax *)(void *)
 		ppmudata;
 
 	pset->b_max = pvfe_equ_minmax->b_max;
@@ -506,16 +560,16 @@ static int vfe_equ_construct_minmax(struct gk20a *g,
 		return -EINVAL;
 	}
 
-	ptmpobj->type_mask |= BIT(CTRL_PERF_VFE_EQU_TYPE_MINMAX);
+	ptmpobj->type_mask |= (u32)BIT(CTRL_PERF_VFE_EQU_TYPE_MINMAX);
 	status = vfe_equ_construct_super(g, ppboardobj, size, pargs);
 	if (status != 0) {
 		return -EINVAL;
 	}
 
-	pvfeequ = (struct vfe_equ_minmax *)*ppboardobj;
+	pvfeequ = (struct vfe_equ_minmax *)(void *)*ppboardobj;
 
 	pvfeequ->super.super.pmudatainit =
-			_vfe_equ_pmudatainit_minmax;
+			vfe_equ_pmudatainit_minmax;
 	pvfeequ->b_max = ptmpequ->b_max;
 	pvfeequ->equ_idx0 = ptmpequ->equ_idx0;
 	pvfeequ->equ_idx1 = ptmpequ->equ_idx1;
@@ -523,7 +577,7 @@ static int vfe_equ_construct_minmax(struct gk20a *g,
 	return status;
 }
 
-static int _vfe_equ_pmudatainit_quadratic(struct gk20a *g,
+static int vfe_equ_pmudatainit_quadratic(struct gk20a *g,
 					  struct boardobj *board_obj_ptr,
 					  struct nv_pmu_boardobj *ppmudata)
 {
@@ -534,14 +588,14 @@ static int _vfe_equ_pmudatainit_quadratic(struct gk20a *g,
 
 	nvgpu_log_info(g, " ");
 
-	status = _vfe_equ_pmudatainit_super(g, board_obj_ptr, ppmudata);
+	status = vfe_equ_pmudatainit_super(g, board_obj_ptr, ppmudata);
 	if (status != 0) {
 		return status;
 	}
 
-	pvfe_equ_quadratic = (struct vfe_equ_quadratic *)board_obj_ptr;
+	pvfe_equ_quadratic = (struct vfe_equ_quadratic *)(void *)board_obj_ptr;
 
-	pset = (struct nv_pmu_vfe_equ_quadratic *) ppmudata;
+	pset = (struct nv_pmu_vfe_equ_quadratic *)(void *)ppmudata;
 
 	for (i = 0; i < CTRL_PERF_VFE_EQU_QUADRATIC_COEFF_COUNT; i++) {
 		pset->coeffs[i] = pvfe_equ_quadratic->coeffs[i];
@@ -565,20 +619,75 @@ static int vfe_equ_construct_quadratic(struct gk20a *g,
 		return -EINVAL;
 	}
 
-	ptmpobj->type_mask |= BIT(CTRL_PERF_VFE_EQU_TYPE_QUADRATIC);
+	ptmpobj->type_mask |= (u32)BIT(CTRL_PERF_VFE_EQU_TYPE_QUADRATIC);
 	status = vfe_equ_construct_super(g, ppboardobj, size, pargs);
 	if (status != 0) {
 		return -EINVAL;
 	}
 
-	pvfeequ = (struct vfe_equ_quadratic *)*ppboardobj;
+	pvfeequ = (struct vfe_equ_quadratic *)(void *)*ppboardobj;
 
 	pvfeequ->super.super.pmudatainit =
-			_vfe_equ_pmudatainit_quadratic;
+			vfe_equ_pmudatainit_quadratic;
 
 	for (i = 0; i < CTRL_PERF_VFE_EQU_QUADRATIC_COEFF_COUNT; i++) {
 		pvfeequ->coeffs[i] = ptmpequ->coeffs[i];
 	}
+
+	return status;
+}
+
+static int vfe_equ_pmudatainit_scalar(struct gk20a *g,
+				       struct boardobj *board_obj_ptr,
+				       struct nv_pmu_boardobj *ppmudata)
+{
+	int status = 0;
+	struct vfe_equ_scalar *pvfe_equ_scalar;
+	struct nv_pmu_vfe_equ_scalar *pset;
+
+	nvgpu_log_info(g, " ");
+
+	status = vfe_equ_pmudatainit_super(g, board_obj_ptr, ppmudata);
+	if (status != 0) {
+		return status;
+	}
+
+	pvfe_equ_scalar = (struct vfe_equ_scalar *)(void *)board_obj_ptr;
+
+	pset = (struct nv_pmu_vfe_equ_scalar *)(void *)
+		ppmudata;
+
+	pset->equ_idx_to_scale = pvfe_equ_scalar->equ_idx_to_scale;
+
+	return status;
+}
+
+static int vfe_equ_construct_scalar(struct gk20a *g,
+				       struct boardobj **ppboardobj,
+				       u16 size, void *pargs)
+{
+	struct boardobj *ptmpobj = (struct boardobj *)pargs;
+	struct vfe_equ_scalar *pvfeequ;
+	struct vfe_equ_scalar *ptmpequ =
+			(struct vfe_equ_scalar *)pargs;
+	int status = 0;
+
+	if (BOARDOBJ_GET_TYPE(pargs) != CTRL_PERF_VFE_EQU_TYPE_SCALAR) {
+		return -EINVAL;
+	}
+
+	ptmpobj->type_mask |= (u32)BIT(CTRL_PERF_VFE_EQU_TYPE_SCALAR);
+	status = vfe_equ_construct_super(g, ppboardobj, size, pargs);
+	if (status != 0) {
+		return -EINVAL;
+	}
+
+	pvfeequ = (struct vfe_equ_scalar *)(void *)*ppboardobj;
+
+	pvfeequ->super.super.pmudatainit =
+			vfe_equ_pmudatainit_scalar;
+
+	pvfeequ->equ_idx_to_scale = ptmpequ->equ_idx_to_scale;
 
 	return status;
 }
@@ -606,9 +715,14 @@ static struct vfe_equ *construct_vfe_equ(struct gk20a *g, void *pargs)
 			sizeof(struct vfe_equ_quadratic), pargs);
 		break;
 
-	default:
-		return NULL;
+	case CTRL_PERF_VFE_EQU_TYPE_SCALAR:
+		status = vfe_equ_construct_scalar(g, &board_obj_ptr,
+			sizeof(struct vfe_equ_scalar), pargs);
+		break;
 
+	default:
+		status = -EINVAL;
+		break;
 	}
 
 	if (status != 0) {
