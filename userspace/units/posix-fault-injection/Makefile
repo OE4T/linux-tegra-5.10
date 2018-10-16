@@ -21,7 +21,8 @@
 .SUFFIXES:
 
 OBJS   = posix-fault-injection.o \
-	 posix-fault-injection-kmem.o
+	 posix-fault-injection-kmem.o \
+	 posix-fault-injection-dma-alloc.o
 MODULE = posix-fault-injection
 
 include ../Makefile.units

@@ -24,6 +24,7 @@
 #include <unit/unit.h>
 #include <unit/io.h>
 #include "posix-fault-injection-kmem.h"
+#include "posix-fault-injection-dma-alloc.h"
 
 static int test_fault_injection_init(struct unit_module *m,
 			      struct gk20a *g, void *__args)
@@ -61,7 +62,14 @@ struct unit_module_test fault_injection_tests[] = {
 	UNIT_TEST(kmalloc_delayed_disable,
 		  test_kmem_kmalloc_fi_delayed_disable, NULL),
 
+	UNIT_TEST(dma_alloc_init, test_dma_alloc_init, NULL),
+
+	UNIT_TEST(dma_alloc_default, test_dma_alloc_fi_default, NULL),
+	UNIT_TEST(dma_alloc_enabled, test_dma_alloc_fi_enabled, NULL),
+	UNIT_TEST(dma_alloc_delayed_enable, test_dma_alloc_fi_delayed_enable,
+		  NULL),
+
 	UNIT_TEST(fault_injection_free, test_fault_injection_free, NULL),
 };
 
-UNIT_MODULE(fault_injection, fault_injection_tests, UNIT_PRIO_NVGPU_TEST);
+UNIT_MODULE(fault_injection, fault_injection_tests, UNIT_PRIO_POSIX_TEST);

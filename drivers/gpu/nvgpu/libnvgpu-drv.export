@@ -29,6 +29,9 @@ nvgpu_alloc_reserve_carveout
 nvgpu_alloc_space
 nvgpu_bar1_readl
 nvgpu_bar1_writel
+nvgpu_dma_alloc
+nvgpu_dma_alloc_get_fault_injection
+nvgpu_dma_free
 nvgpu_free
 nvgpu_free_enabled_flags
 nvgpu_free_fixed

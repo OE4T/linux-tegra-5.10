@@ -14,7 +14,8 @@
 
 NVGPU_UNIT_NAME=posix-fault-injection
 NVGPU_UNIT_SRCS=posix-fault-injection.c \
-		posix-fault-injection-kmem.c
+		posix-fault-injection-kmem.c \
+		posix-fault-injection-dma-alloc.c
 
 include $(NV_COMPONENT_DIR)/../Makefile.units.common.tmk
 
