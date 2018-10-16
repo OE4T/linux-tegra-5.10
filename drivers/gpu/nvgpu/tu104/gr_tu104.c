@@ -474,6 +474,9 @@ int gr_tu104_handle_sw_method(struct gk20a *g, u32 addr,
 		case NVC597_SET_BES_CROP_DEBUG4:
 			g->ops.gr.set_bes_crop_debug4(g, data);
 			break;
+		case NVC597_SET_SM_DISP_CTRL:
+			gr_tu104_set_sm_disp_ctrl(g, data);
+			break;
 		case NVC597_SET_SHADER_CUT_COLLECTOR:
 			gr_gv11b_set_shader_cut_collector(g, data);
 			break;

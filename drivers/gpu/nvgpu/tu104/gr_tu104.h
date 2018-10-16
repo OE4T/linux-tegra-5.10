@@ -52,6 +52,7 @@ enum {
 #define NVC597_SET_SKEDCHECK                    0x10c0
 #define NVC597_SET_BES_CROP_DEBUG3              0x10c4
 #define NVC597_SET_BES_CROP_DEBUG4              0x10b0
+#define NVC597_SET_SM_DISP_CTRL                 0x10c8
 #define NVC597_SET_SHADER_CUT_COLLECTOR         0x10d0
 
 /* TODO: merge these into global context buffer list in gr_gk20a.h */
