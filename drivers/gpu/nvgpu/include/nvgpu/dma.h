@@ -25,6 +25,10 @@
 
 #include <nvgpu/types.h>
 
+#if defined(__NVGPU_POSIX__)
+#include <nvgpu/posix/dma.h>
+#endif
+
 struct gk20a;
 struct vm_gk20a;
 struct nvgpu_mem;

@@ -29,6 +29,17 @@
 #include <nvgpu/gmmu.h>
 #include <nvgpu/nvgpu_mem.h>
 #include <nvgpu/enabled.h>
+#include <nvgpu/posix/posix-fault-injection.h>
+
+_Thread_local struct nvgpu_posix_fault_inj dma_fi = {
+						     .enabled = false,
+						     .counter = 0U,
+						    };
+
+struct nvgpu_posix_fault_inj *nvgpu_dma_alloc_get_fault_injection(void)
+{
+	return &dma_fi;
+}
 
 /*
  * In userspace vidmem vs sysmem is just a difference in what is placed in the
@@ -38,7 +49,13 @@ static int __nvgpu_do_dma_alloc(struct gk20a *g, unsigned long flags,
 				size_t size, struct nvgpu_mem *mem,
 				enum nvgpu_aperture ap)
 {
-	void *memory = malloc(PAGE_ALIGN(size));
+	void *memory;
+
+	if (nvgpu_posix_fault_injection_handle_call(&dma_fi)) {
+		return -ENOMEM;
+	}
+
+	memory = malloc(PAGE_ALIGN(size));
 
 	if (memory == NULL)
 		return -ENOMEM;
@@ -63,6 +80,7 @@ bool nvgpu_iommuable(struct gk20a *g)
 int nvgpu_dma_alloc_flags_sys(struct gk20a *g, unsigned long flags,
 			      size_t size, struct nvgpu_mem *mem)
 {
+	/* note: fault injection handled in common function */
 	return __nvgpu_do_dma_alloc(g, flags, size, mem, APERTURE_SYSMEM);
 }
 
