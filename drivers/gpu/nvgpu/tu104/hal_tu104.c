@@ -497,6 +497,7 @@ static const struct gpu_ops tu104_ops = {
 		.create_priv_addr_table = gr_gv11b_create_priv_addr_table,
 		.get_pmm_per_chiplet_offset =
 			gr_gv11b_get_pmm_per_chiplet_offset,
+		.split_fbpa_broadcast_addr = gr_gv100_split_fbpa_broadcast_addr,
 		.init_sw_bundle64 = gr_tu104_init_sw_bundle64,
 		.fecs_ctxsw_mailbox_size = gr_fecs_ctxsw_mailbox__size_1_v,
 		.alloc_global_ctx_buffers = gr_tu104_alloc_global_ctx_buffers,
