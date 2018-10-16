@@ -336,6 +336,9 @@ void __nvgpu_mem_free_vidmem_alloc(struct gk20a *g, struct nvgpu_mem *vidmem);
 
 /* word-indexed offset */
 u32 nvgpu_mem_rd32(struct gk20a *g, struct nvgpu_mem *mem, u32 w);
+/* word-indexed offsets */
+u64 nvgpu_mem_rd32_pair(struct gk20a *g, struct nvgpu_mem *mem,
+		u32 lo, u32 hi);
 /* byte offset (32b-aligned) */
 u32 nvgpu_mem_rd(struct gk20a *g, struct nvgpu_mem *mem, u32 offset);
 /* memcpy to cpu, offset and size in bytes (32b-aligned) */

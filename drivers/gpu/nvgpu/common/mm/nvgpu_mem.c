@@ -216,6 +216,14 @@ u32 nvgpu_mem_rd32(struct gk20a *g, struct nvgpu_mem *mem, u32 w)
 	return data;
 }
 
+u64 nvgpu_mem_rd32_pair(struct gk20a *g, struct nvgpu_mem *mem, u32 lo, u32 hi)
+{
+	u64 lo_data = U64(nvgpu_mem_rd32(g, mem, lo));
+	u64 hi_data = U64(nvgpu_mem_rd32(g, mem, hi));
+
+	return lo_data | (hi_data << 32ULL);
+}
+
 u32 nvgpu_mem_rd(struct gk20a *g, struct nvgpu_mem *mem, u32 offset)
 {
 	WARN_ON((offset & 3U) != 0U);
