@@ -21,6 +21,10 @@
 #include <linux/of_device.h>
 #include <linux/spi/spi.h>
 #include <soc/tegra/virt/tegra_hv_pm_ctl.h>
+#include <linux/version.h>
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 14, 0)
+#include <linux/sched/signal.h>
+#endif
 
 #define AURIX			0x3
 #define TEGRA			0x2
