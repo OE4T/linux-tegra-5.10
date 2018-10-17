@@ -318,6 +318,9 @@ config ARCH_PROC_KCORE_TEXT
 config BROKEN_GAS_INST
 	def_bool !$(as-instr,1:\n.inst 0\n.rept . - 1b\n\nnop\n.endr\n)
 
+config ARM64_NON_SHARED_TLBI
+	def_bool n
+
 config KASAN_SHADOW_OFFSET
 	hex
 	depends on KASAN

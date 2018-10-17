@@ -4,6 +4,7 @@
  *
  * Copyright (C) 1999-2003 Russell King
  * Copyright (C) 2012 ARM Ltd.
+ * Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
  */
 #ifndef __ASM_TLBFLUSH_H
 #define __ASM_TLBFLUSH_H
@@ -227,6 +228,25 @@ static inline unsigned long get_trans_granule(void)
  *	on top of these routines, since that is our interface to the mmu_gather
  *	API as used by munmap() and friends.
  */
+
+/*
+ * Non shared TLB invalidation is only valid here if there are no other PEs in
+ * the sharability domain
+ */
+#ifdef CONFIG_ARM64_NON_SHARED_TLBI
+#define __DSB_FOR_TLBI(...)		dsb(nsh##__VA_ARGS__)
+#define __TLBI(TYPE, ...)		__tlbi(TYPE, ##__VA_ARGS__)
+#define __TLBI_USER(TYPE, ...)		__tlbi_user(TYPE, ##__VA_ARGS__)
+#define __TLBI_LEVEL(TYPE, ...)		__tlbi_level(TYPE, ##__VA_ARGS__)
+#define __TLBI_USER_LEVEL(TYPE, ...)	__tlbi_user_level(TYPE, ##__VA_ARGS__)
+#else
+#define __DSB_FOR_TLBI(...)		dsb(ish##__VA_ARGS__)
+#define __TLBI(TYPE, ...)		__tlbi(TYPE##is, ##__VA_ARGS__)
+#define __TLBI_USER(TYPE, ...)		__tlbi_user(TYPE##is, ##__VA_ARGS__)
+#define __TLBI_LEVEL(TYPE, ...)		__tlbi_level(TYPE##is, ##__VA_ARGS__)
+#define __TLBI_USER_LEVEL(TYPE, ...)	__tlbi_user_level(TYPE##is, ##__VA_ARGS__)
+#endif
+
 static inline void local_flush_tlb_all(void)
 {
 	dsb(nshst);
@@ -237,9 +257,9 @@ static inline void local_flush_tlb_all(void)
 
 static inline void flush_tlb_all(void)
 {
-	dsb(ishst);
-	__tlbi(vmalle1is);
-	dsb(ish);
+	__DSB_FOR_TLBI(st);
+	__TLBI(vmalle1);
+	__DSB_FOR_TLBI();
 	isb();
 }
 
@@ -247,10 +267,10 @@ static inline void flush_tlb_mm(struct mm_struct *mm)
 {
 	unsigned long asid = __TLBI_VADDR(0, ASID(mm));
 
-	dsb(ishst);
-	__tlbi(aside1is, asid);
-	__tlbi_user(aside1is, asid);
-	dsb(ish);
+	__DSB_FOR_TLBI(st);
+	__TLBI(aside1, asid);
+	__TLBI_USER(aside1, asid);
+	__DSB_FOR_TLBI();
 }
 
 static inline void flush_tlb_page_nosync(struct vm_area_struct *vma,
@@ -258,16 +278,16 @@ static inline void flush_tlb_page_nosync(struct vm_area_struct *vma,
 {
 	unsigned long addr = __TLBI_VADDR(uaddr, ASID(vma->vm_mm));
 
-	dsb(ishst);
-	__tlbi(vale1is, addr);
-	__tlbi_user(vale1is, addr);
+	__DSB_FOR_TLBI(st);
+	__TLBI(vale1, addr);
+	__TLBI_USER(vale1, addr);
 }
 
 static inline void flush_tlb_page(struct vm_area_struct *vma,
 				  unsigned long uaddr)
 {
 	flush_tlb_page_nosync(vma, uaddr);
-	dsb(ish);
+	__DSB_FOR_TLBI();
 }
 
 /*
@@ -304,7 +324,7 @@ static inline void __flush_tlb_range(struct vm_area_struct *vma,
 		return;
 	}
 
-	dsb(ishst);
+	__DSB_FOR_TLBI(st);
 
 	/*
 	 * When the CPU does not support TLB range operations, flush the TLB
@@ -329,11 +349,11 @@ static inline void __flush_tlb_range(struct vm_area_struct *vma,
 		    pages % 2 == 1) {
 			addr = __TLBI_VADDR(start, asid);
 			if (last_level) {
-				__tlbi_level(vale1is, addr, tlb_level);
-				__tlbi_user_level(vale1is, addr, tlb_level);
+				__TLBI_LEVEL(vale1, addr, tlb_level);
+				__TLBI_USER_LEVEL(vale1, addr, tlb_level);
 			} else {
-				__tlbi_level(vae1is, addr, tlb_level);
-				__tlbi_user_level(vae1is, addr, tlb_level);
+				__TLBI_LEVEL(vae1, addr, tlb_level);
+				__TLBI_USER_LEVEL(vae1, addr, tlb_level);
 			}
 			start += stride;
 			pages -= stride >> PAGE_SHIFT;
@@ -345,18 +365,18 @@ static inline void __flush_tlb_range(struct vm_area_struct *vma,
 			addr = __TLBI_VADDR_RANGE(start, asid, scale,
 						  num, tlb_level);
 			if (last_level) {
-				__tlbi(rvale1is, addr);
-				__tlbi_user(rvale1is, addr);
+				__TLBI(rvale1, addr);
+				__TLBI_USER(rvale1, addr);
 			} else {
-				__tlbi(rvae1is, addr);
-				__tlbi_user(rvae1is, addr);
+				__TLBI(rvae1, addr);
+				__TLBI_USER(rvae1, addr);
 			}
 			start += __TLBI_RANGE_PAGES(num, scale) << PAGE_SHIFT;
 			pages -= __TLBI_RANGE_PAGES(num, scale);
 		}
 		scale++;
 	}
-	dsb(ish);
+	__DSB_FOR_TLBI();
 }
 
 static inline void flush_tlb_range(struct vm_area_struct *vma,
@@ -382,10 +402,10 @@ static inline void flush_tlb_kernel_range(unsigned long start, unsigned long end
 	start = __TLBI_VADDR(start, 0);
 	end = __TLBI_VADDR(end, 0);
 
-	dsb(ishst);
+	__DSB_FOR_TLBI(st);
 	for (addr = start; addr < end; addr += 1 << (PAGE_SHIFT - 12))
-		__tlbi(vaale1is, addr);
-	dsb(ish);
+		__TLBI(vaale1, addr);
+	__DSB_FOR_TLBI();
 	isb();
 }
 
@@ -397,9 +417,9 @@ static inline void __flush_tlb_kernel_pgtable(unsigned long kaddr)
 {
 	unsigned long addr = __TLBI_VADDR(kaddr, 0);
 
-	dsb(ishst);
-	__tlbi(vaae1is, addr);
-	dsb(ish);
+	__DSB_FOR_TLBI(st);
+	__TLBI(vaae1, addr);
+	__DSB_FOR_TLBI();
 	isb();
 }
 #endif
