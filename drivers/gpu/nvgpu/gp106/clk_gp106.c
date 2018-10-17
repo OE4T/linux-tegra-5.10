@@ -248,11 +248,13 @@ int gp106_clk_domain_get_f_points(
 	u8 i;
 	struct clk_pmupstate *pclk = &g->clk_pmu;
 
-	if (pfpointscount == NULL)
+	if (pfpointscount == NULL) {
 		return -EINVAL;
+	}
 
-	if ((pfreqpointsinmhz == NULL) && (*pfpointscount != 0))
+	if ((pfreqpointsinmhz == NULL) && (*pfpointscount != 0)) {
 		return -EINVAL;
+	}
 
 	BOARDOBJGRP_FOR_EACH(&(pclk->clk_domainobjs.super.super),
 			struct clk_domain *, pdomain, i) {

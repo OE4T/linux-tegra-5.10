@@ -390,10 +390,11 @@ int nvgpu_sec2_process_message(struct nvgpu_sec2 *sec2)
 
 		msg.hdr.ctrl_flags &= ~PMU_CMD_FLAGS_PMU_MASK;
 
-		if (msg.hdr.ctrl_flags == PMU_CMD_FLAGS_EVENT)
+		if (msg.hdr.ctrl_flags == PMU_CMD_FLAGS_EVENT) {
 			sec2_handle_event(sec2, &msg);
-		else
+		} else {
 			sec2_response_handle(sec2, &msg);
+		}
 	}
 
 exit:
@@ -410,8 +411,9 @@ int nvgpu_sec2_wait_message_cond(struct nvgpu_sec2 *sec2, u32 timeout_ms,
 	nvgpu_timeout_init(g, &timeout, timeout_ms, NVGPU_TIMER_CPU_TIMER);
 
 	do {
-		if (*(u8 *)var == val)
+		if (*(u8 *)var == val) {
 			return 0;
+		}
 
 		if (g->ops.sec2.is_interrupted(&g->sec2)) {
 			g->ops.sec2.isr(g);

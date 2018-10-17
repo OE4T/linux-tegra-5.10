@@ -90,8 +90,9 @@ struct sg_table *gk20a_mm_pin(struct device *dev, struct dma_buf *dmabuf,
 	struct gk20a_dmabuf_priv *priv;
 
 	priv = dma_buf_get_drvdata(dmabuf, dev);
-	if (WARN_ON(!priv))
+	if (WARN_ON(!priv)) {
 		return ERR_PTR(-EINVAL);
+	}
 
 	nvgpu_mutex_acquire(&priv->lock);
 
@@ -182,16 +183,18 @@ int gk20a_dmabuf_get_state(struct dma_buf *dmabuf, struct gk20a *g,
 	struct gk20a_buffer_state *s;
 	struct device *dev = dev_from_gk20a(g);
 
-	if (WARN_ON(offset >= (u64)dmabuf->size))
+	if (WARN_ON(offset >= (u64)dmabuf->size)) {
 		return -EINVAL;
+	}
 
 	err = gk20a_dmabuf_alloc_drvdata(dmabuf, dev);
 	if (err)
 		return err;
 
 	priv = dma_buf_get_drvdata(dmabuf, dev);
-	if (WARN_ON(!priv))
+	if (WARN_ON(!priv)) {
 		return -ENOSYS;
+	}
 
 	nvgpu_mutex_acquire(&priv->lock);
 

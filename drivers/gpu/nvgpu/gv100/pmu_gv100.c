@@ -53,12 +53,14 @@ int gv100_load_falcon_ucode(struct gk20a *g, u32 falconidmask)
 	u32 flags = PMU_ACR_CMD_BOOTSTRAP_FALCON_FLAGS_RESET_YES;
 	int status = 0;
 
-	if (falconidmask == 0)
+	if (falconidmask == 0) {
 		return -EINVAL;
+	}
 
 	if (falconidmask & ~((1 << LSF_FALCON_ID_FECS) |
-		(1 << LSF_FALCON_ID_GPCCS)))
+		(1 << LSF_FALCON_ID_GPCCS))) {
 		return -EINVAL;
+	}
 
 	g->pmu_lsf_loaded_falcon_id = 0;
 	/* check whether pmu is ready to bootstrap lsf if not wait for it */
@@ -90,8 +92,9 @@ int gv100_load_falcon_ucode(struct gk20a *g, u32 falconidmask)
 	pmu_wait_message_cond(&g->pmu, gk20a_get_gr_idle_timeout(g),
 		&g->pmu_lsf_loaded_falcon_id, 1);
 
-	if (g->pmu_lsf_loaded_falcon_id != 1)
+	if (g->pmu_lsf_loaded_falcon_id != 1) {
 		status =  -ETIMEDOUT;
+	}
 
 exit:
 	return status;

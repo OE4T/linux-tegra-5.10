@@ -76,8 +76,9 @@ static int gr_gv100_scg_estimate_perf(struct gk20a *g,
 	u32 *num_tpc_gpc = nvgpu_kzalloc(g, sizeof(u32) *
 				nvgpu_get_litter_value(g, GPU_LIT_NUM_GPCS));
 
-	if (!num_tpc_gpc)
+	if (!num_tpc_gpc) {
 		return -ENOMEM;
+	}
 
 	/* Calculate pix-perf-reduction-rate per GPC and find bottleneck TPC */
 	for (gpc_id = 0; gpc_id < gr->gpc_count; gpc_id++) {
@@ -111,8 +112,9 @@ static int gr_gv100_scg_estimate_perf(struct gk20a *g,
 		scg_gpc_pix_perf = scale_factor * num_tpc_gpc[gpc_id] /
 					gr->gpc_tpc_count[gpc_id];
 
-		if (min_scg_gpc_pix_perf > scg_gpc_pix_perf)
+		if (min_scg_gpc_pix_perf > scg_gpc_pix_perf) {
 			min_scg_gpc_pix_perf = scg_gpc_pix_perf;
+		}
 
 		/* Calculate # of surviving PES */
 		for (pes_id = 0; pes_id < gr->gpc_ppc_count[gpc_id]; pes_id++) {
@@ -130,8 +132,9 @@ static int gr_gv100_scg_estimate_perf(struct gk20a *g,
 				num_tpc_mask &= ~(0x1 << disable_tpc_id);
 				is_tpc_removed_pes = true;
 			}
-			if (hweight32(num_tpc_mask))
+			if (hweight32(num_tpc_mask)) {
 				scg_num_pes++;
+			}
 		}
 	}
 
@@ -151,8 +154,9 @@ static int gr_gv100_scg_estimate_perf(struct gk20a *g,
 	average_tpcs = scale_factor * average_tpcs / gr->gpc_count;
 	for (gpc_id =0; gpc_id < gr->gpc_count; gpc_id++) {
 		diff = average_tpcs - scale_factor * num_tpc_gpc[gpc_id];
-		if (diff < 0)
+		if (diff < 0) {
 			diff = -diff;
+		}
 		deviation += diff;
 	}
 
@@ -194,9 +198,10 @@ void gr_gv100_cb_size_default(struct gk20a *g)
 {
 	struct gr_gk20a *gr = &g->gr;
 
-	if (!gr->attrib_cb_default_size)
+	if (!gr->attrib_cb_default_size) {
 		gr->attrib_cb_default_size =
 			gr_gpc0_ppc0_cbm_beta_cb_size_v_default_v();
+	}
 	gr->alpha_cb_default_size =
 		gr_gpc0_ppc0_cbm_alpha_cb_size_v_default_v();
 }
@@ -373,8 +378,9 @@ int gr_gv100_add_ctxsw_reg_pm_fbpa(struct gk20a *g,
 	u32 off = *offset;
 	u32 active_fbpa_mask;
 
-	if ((cnt + (regs->count * num_fbpas)) > max_cnt)
+	if ((cnt + (regs->count * num_fbpas)) > max_cnt) {
 		return -EINVAL;
+	}
 
 	active_fbpa_mask = gr_gv100_get_active_fpba_mask(g);
 

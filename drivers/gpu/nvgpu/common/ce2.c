@@ -65,8 +65,9 @@ int gk20a_ce_execute_ops(struct gk20a *g,
 	struct nvgpu_channel_fence fence = {0, 0};
 	struct gk20a_fence *ce_cmd_buf_fence_out = NULL;
 
-	if (!ce_app->initialised ||ce_app->app_state != NVGPU_CE_ACTIVE)
+	if (!ce_app->initialised || ce_app->app_state != NVGPU_CE_ACTIVE) {
 		goto end;
+	}
 
 	nvgpu_mutex_acquire(&ce_app->app_mutex);
 
@@ -108,8 +109,9 @@ int gk20a_ce_execute_ops(struct gk20a *g,
 
 		gk20a_fence_put(*prev_post_fence);
 		*prev_post_fence = NULL;
-		if (ret != 0)
+		if (ret != 0) {
 			goto noop;
+		}
 	}
 
 	cmd_buf_gpu_va = (ce_ctx->cmd_buf_mem.gpu_va + (u64)(cmd_buf_read_offset *sizeof(u32)));

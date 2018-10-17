@@ -495,8 +495,9 @@ static int nvgpu_init_mm_setup_sw(struct gk20a *g)
 	}
 
 	err = nvgpu_init_mmu_debug(mm);
-	if (err != 0)
+	if (err != 0) {
 		return err;
+	}
 
 	mm->remove_support = nvgpu_remove_mm_support;
 	mm->remove_ce_support = nvgpu_remove_mm_ce_support;

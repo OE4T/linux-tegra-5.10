@@ -124,8 +124,9 @@ void gm20b_therm_init_blcg_mode(struct gk20a *g, u32 mode, u32 engine)
 {
 	u32 gate_ctrl;
 
-	if (!nvgpu_is_enabled(g, NVGPU_GPU_CAN_BLCG))
+	if (!nvgpu_is_enabled(g, NVGPU_GPU_CAN_BLCG)) {
 		return;
+	}
 
 	gate_ctrl = gk20a_readl(g, therm_gate_ctrl_r(engine));
 
@@ -155,8 +156,9 @@ void gm20b_therm_init_elcg_mode(struct gk20a *g, u32 mode, u32 engine)
 
 	gate_ctrl = gk20a_readl(g, therm_gate_ctrl_r(engine));
 
-	if (!nvgpu_is_enabled(g, NVGPU_GPU_CAN_ELCG))
+	if (!nvgpu_is_enabled(g, NVGPU_GPU_CAN_ELCG)) {
 		return;
+	}
 
 	switch (mode) {
 	case ELCG_RUN:

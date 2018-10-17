@@ -938,12 +938,14 @@ static int nvgpu_gpu_alloc_vidmem(struct gk20a *g,
 	nvgpu_log_fn(g, " ");
 
 	/* not yet supported */
-	if (WARN_ON(args->in.flags & NVGPU_GPU_ALLOC_VIDMEM_FLAG_CPU_MASK))
+	if (WARN_ON(args->in.flags & NVGPU_GPU_ALLOC_VIDMEM_FLAG_CPU_MASK)) {
 		return -EINVAL;
+	}
 
 	/* not yet supported */
-	if (WARN_ON(args->in.flags & NVGPU_GPU_ALLOC_VIDMEM_FLAG_VPR))
+	if (WARN_ON(args->in.flags & NVGPU_GPU_ALLOC_VIDMEM_FLAG_VPR)) {
 		return -EINVAL;
+	}
 
 	if (args->in.size & (SZ_4K - 1))
 		return -EINVAL;

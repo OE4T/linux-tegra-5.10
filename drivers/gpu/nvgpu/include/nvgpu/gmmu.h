@@ -261,10 +261,11 @@ int __nvgpu_set_pte(struct gk20a *g, struct vm_gk20a *vm, u64 vaddr, u32 *pte);
  */
 #define pte_dbg(g, attrs, fmt, args...)					\
 	do {								\
-		if (((attrs) != NULL) && ((attrs)->debug))		\
+		if (((attrs) != NULL) && ((attrs)->debug)) {		\
 			nvgpu_info(g, fmt, ##args);			\
-		else							\
+		} else {						\
 			nvgpu_log(g, gpu_dbg_pte, fmt, ##args);		\
+		}							\
 	} while (0)
 
 #endif /* NVGPU_GMMU_H */

@@ -70,8 +70,9 @@ static inline u32 pri_get_gpc_num(struct gk20a *g, u32 addr)
 	u32 gpc_stride = nvgpu_get_litter_value(g, GPU_LIT_GPC_STRIDE);
 	for (i = 0; i < num_gpcs; i++) {
 		start = gpc_base + (i * gpc_stride);
-		if ((addr >= start) && (addr < (start + gpc_stride)))
+		if ((addr >= start) && (addr < (start + gpc_stride))) {
 			return i;
+		}
 	}
 	return 0;
 }
@@ -198,8 +199,9 @@ static inline u32 pri_get_be_num(struct gk20a *g, u32 addr)
 	u32 rop_stride = nvgpu_get_litter_value(g, GPU_LIT_ROP_STRIDE);
 	for (i = 0; i < num_fbps; i++) {
 		start = rop_base + (i * rop_stride);
-		if ((addr >= start) && (addr < (start + rop_stride)))
+		if ((addr >= start) && (addr < (start + rop_stride))) {
 			return i;
+		}
 	}
 	return 0;
 }

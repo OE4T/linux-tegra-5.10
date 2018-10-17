@@ -282,8 +282,9 @@ int gk20a_finalize_poweron(struct gk20a *g)
 	nvgpu_mutex_acquire(&g->tpc_pg_lock);
 
 	if (g->can_tpc_powergate) {
-		if (g->ops.gr.powergate_tpc != NULL)
+		if (g->ops.gr.powergate_tpc != NULL) {
 			g->ops.gr.powergate_tpc(g);
+		}
 	}
 
 	err = gk20a_enable_gr_hw(g);

@@ -161,8 +161,9 @@ int vgpu_intr_thread(void *dev_id)
 					(void **)&msg, &size, &sender);
 		if (err == -ETIME)
 			continue;
-		if (WARN_ON(err))
+		if (WARN_ON(err)) {
 			continue;
+		}
 
 		if (msg->event == TEGRA_VGPU_EVENT_ABORT) {
 			vgpu_ivc_release(handle);

@@ -591,11 +591,13 @@ bool nvgpu_semaphore_reset(struct nvgpu_semaphore_int *hw_sema)
 	 */
 
 	if (WARN_ON(__nvgpu_semaphore_value_released(threshold + 1U,
-						     current_val)))
+						     current_val))) {
 		return false;
+	}
 
-	if (current_val == threshold)
+	if (current_val == threshold) {
 		return false;
+	}
 
 	nvgpu_mem_wr(hw_sema->ch->g, &hw_sema->location.pool->rw_mem,
 			hw_sema->location.offset, threshold);

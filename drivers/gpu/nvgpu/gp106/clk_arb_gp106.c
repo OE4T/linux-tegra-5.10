@@ -133,14 +133,16 @@ int gp106_init_clk_arbiter(struct gk20a *g)
 	}
 
 	arb = nvgpu_kzalloc(g, sizeof(struct nvgpu_clk_arb));
-	if (arb == NULL)
+	if (arb == NULL) {
 		return -ENOMEM;
+	}
 
 	arb->clk_arb_events_supported = true;
 
 	err = nvgpu_mutex_init(&arb->pstate_lock);
-	if (err != 0)
+	if (err != 0) {
 		goto mutex_fail;
+	}
 	nvgpu_spinlock_init(&arb->sessions_lock);
 	nvgpu_spinlock_init(&arb->users_lock);
 	nvgpu_spinlock_init(&arb->requests_lock);
@@ -206,8 +208,9 @@ int gp106_init_clk_arbiter(struct gk20a *g)
 	nvgpu_atomic64_set(&arb->alarm_mask, 0);
 	err = nvgpu_clk_notification_queue_alloc(g, &arb->notification_queue,
 		DEFAULT_EVENT_NUMBER);
-	if (err < 0)
+	if (err < 0) {
 		goto init_fail;
+	}
 
 	nvgpu_init_list_node(&arb->users);
 	nvgpu_init_list_node(&arb->sessions);
@@ -223,8 +226,9 @@ int gp106_init_clk_arbiter(struct gk20a *g)
 	arb->update_arb_work_item.item_type = CLK_ARB_WORK_UPDATE_ARB;
 
 	err = nvgpu_clk_arb_worker_init(g);
-	if (err < 0)
+	if (err < 0) {
 		goto init_fail;
+	}
 
 #ifdef CONFIG_DEBUG_FS
 	arb->debug = &arb->debug_pool[0];
@@ -235,12 +239,14 @@ int gp106_init_clk_arbiter(struct gk20a *g)
 	}
 #endif
 	err = clk_vf_point_cache(g);
-	if (err < 0)
+	if (err < 0) {
 		goto init_fail;
+	}
 
 	err = nvgpu_clk_arb_update_vf_table(arb);
-	if (err < 0)
+	if (err < 0) {
 		goto init_fail;
+	}
 	do {
 		/* Check that first run is completed */
 		nvgpu_smp_mb();
@@ -292,8 +298,9 @@ static u8 nvgpu_clk_arb_find_vf_point(struct nvgpu_clk_arb *arb,
 		/* pointer to table can be updated by callback */
 		nvgpu_smp_rmb();
 
-		if (table == NULL)
+		if (table == NULL) {
 			continue;
+		}
 		if ((table->gpc2clk_num_points == 0U) ||
 		    (table->mclk_num_points == 0U)) {
 			nvgpu_err(arb->g, "found empty table");
@@ -420,28 +427,34 @@ static int nvgpu_clk_arb_change_vf_point(struct gk20a *g, u16 gpc2clk_target,
 	/* descending */
 	if (voltuv < arb->voltuv_actual) {
 		status = g->ops.clk.mclk_change(g, mclk_target);
-		if (status < 0)
+		if (status < 0) {
 			return status;
+		}
 
 		status = volt_set_voltage(g, voltuv, voltuv_sram);
-		if (status < 0)
+		if (status < 0) {
 			return status;
+		}
 
 		status = clk_set_fll_clks(g, &fllclk);
-		if (status < 0)
+		if (status < 0) {
 			return status;
+		}
 	} else {
 		status = clk_set_fll_clks(g, &fllclk);
-		if (status < 0)
+		if (status < 0) {
 			return status;
+		}
 
 		status = volt_set_voltage(g, voltuv, voltuv_sram);
-		if (status < 0)
+		if (status < 0) {
 			return status;
+		}
 
 		status = g->ops.clk.mclk_change(g, mclk_target);
-		if (status < 0)
+		if (status < 0) {
 			return status;
+		}
 	}
 
 	return 0;
@@ -477,8 +490,9 @@ void gp106_clk_arb_run_arbiter_cb(struct nvgpu_clk_arb *arb)
 	clk_arb_dbg(g, " ");
 
 	/* bail out if gpu is down */
-	if (nvgpu_atomic64_read(&arb->alarm_mask) & EVENT(ALARM_GPU_LOST))
+	if (nvgpu_atomic64_read(&arb->alarm_mask) & EVENT(ALARM_GPU_LOST)) {
 		goto exit_arb;
+	}
 
 #ifdef CONFIG_DEBUG_FS
 	g->ops.ptimer.read_ptimer(g, &t0);
@@ -543,20 +557,24 @@ void gp106_clk_arb_run_arbiter_cb(struct nvgpu_clk_arb *arb)
 	gpc2clk_target = (gpc2clk_target > 0) ? gpc2clk_target :
 			arb->gpc2clk_default_mhz;
 
-	if (gpc2clk_target < arb->gpc2clk_min)
+	if (gpc2clk_target < arb->gpc2clk_min) {
 		gpc2clk_target = arb->gpc2clk_min;
+	}
 
-	if (gpc2clk_target > arb->gpc2clk_max)
+	if (gpc2clk_target > arb->gpc2clk_max) {
 		gpc2clk_target = arb->gpc2clk_max;
+	}
 
 	mclk_target = (mclk_target > 0) ? mclk_target :
 			arb->mclk_default_mhz;
 
-	if (mclk_target < arb->mclk_min)
+	if (mclk_target < arb->mclk_min) {
 		mclk_target = arb->mclk_min;
+	}
 
-	if (mclk_target > arb->mclk_max)
+	if (mclk_target > arb->mclk_max) {
 		mclk_target = arb->mclk_max;
+	}
 
 	sys2clk_target = 0;
 	xbar2clk_target = 0;
@@ -577,9 +595,10 @@ void gp106_clk_arb_run_arbiter_cb(struct nvgpu_clk_arb *arb)
 	}
 
 	if ((gpc2clk_target < gpc2clk_session_target) ||
-			(mclk_target < mclk_session_target))
+			(mclk_target < mclk_session_target)) {
 		nvgpu_clk_arb_set_global_alarm(g,
 			EVENT(ALARM_TARGET_VF_NOT_POSSIBLE));
+	}
 
 	if ((arb->actual->gpc2clk == gpc2clk_target) &&
 		(arb->actual->mclk == mclk_target) &&

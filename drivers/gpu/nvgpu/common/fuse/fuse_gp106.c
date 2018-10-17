@@ -57,8 +57,9 @@ u32 gp106_fuse_read_vin_cal_slope_intercept_fuse(struct gk20a *g,
 
 	/* read gpc0 irrespective of vin id */
 	gpc0data = gk20a_readl(g, fuse_vin_cal_gpc0_r());
-	if (gpc0data == 0xFFFFFFFF)
+	if (gpc0data == 0xFFFFFFFF) {
 		return -EINVAL;
+	}
 
 	switch (vin_id) {
 	case CTRL_CLK_VIN_ID_GPC0:
@@ -97,8 +98,9 @@ u32 gp106_fuse_read_vin_cal_slope_intercept_fuse(struct gk20a *g,
 	default:
 		return -EINVAL;
 	}
-	if (data == 0xFFFFFFFF)
+	if (data == 0xFFFFFFFF) {
 		return -EINVAL;
+	}
 
 	gpc0interceptdata = (fuse_vin_cal_gpc0_icpt_int_data_v(gpc0data) <<
 			     fuse_vin_cal_gpc0_icpt_frac_data_s()) +
@@ -137,10 +139,11 @@ u32 gp106_fuse_read_vin_cal_slope_intercept_fuse(struct gk20a *g,
 		return -EINVAL;
 	}
 
-	if (fuse_vin_cal_gpc1_delta_icpt_sign_data_v(data))
+	if (fuse_vin_cal_gpc1_delta_icpt_sign_data_v(data)) {
 		*intercept = gpc0interceptdata - interceptdata;
-	else
+	} else {
 		*intercept = gpc0interceptdata + interceptdata;
+	}
 
 	/* slope */
 	gpc0slopedata = (fuse_vin_cal_gpc0_slope_int_data_v(gpc0data) <<
@@ -169,10 +172,11 @@ u32 gp106_fuse_read_vin_cal_slope_intercept_fuse(struct gk20a *g,
 		return -EINVAL;
 	}
 
-	if (fuse_vin_cal_gpc1_delta_slope_sign_data_v(data))
+	if (fuse_vin_cal_gpc1_delta_slope_sign_data_v(data)) {
 		*slope = gpc0slopedata - slopedata;
-	else
+	} else {
 		*slope = gpc0slopedata + slopedata;
+	}
 	return 0;
 }
 
