@@ -512,4 +512,4 @@ struct unit_module_test pramin_tests[] = {
 	UNIT_TEST(nvgpu_pramin_free_test_env, free_test_env, NULL),
 };
 
-UNIT_MODULE(pramin, pramin_tests, UNIT_PRIO_POSIX_TEST);
+UNIT_MODULE(pramin, pramin_tests, UNIT_PRIO_NVGPU_TEST);
