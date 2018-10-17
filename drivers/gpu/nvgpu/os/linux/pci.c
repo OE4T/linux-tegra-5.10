@@ -874,11 +874,30 @@ static void nvgpu_pci_remove(struct pci_dev *pdev)
 	gk20a_put(g);
 }
 
+void nvgpu_pci_shutdown(struct pci_dev *pdev)
+{
+	struct gk20a *g = get_gk20a(&pdev->dev);
+	struct device *dev = dev_from_gk20a(g);
+	int err;
+
+	nvgpu_info(g, "shutting down");
+
+	/* no support yet if DGPU is in VGPU mode */
+	if (gk20a_gpu_is_virtual(dev))
+		return;
+
+	err = nvgpu_nvlink_deinit(g);
+	WARN(err, "gpu failed to remove nvlink");
+
+	nvgpu_info(g, "shut down complete");
+}
+
 static struct pci_driver nvgpu_pci_driver = {
 	.name = "nvgpu",
 	.id_table = nvgpu_pci_table,
 	.probe = nvgpu_pci_probe,
 	.remove = nvgpu_pci_remove,
+	.shutdown = nvgpu_pci_shutdown,
 #ifdef CONFIG_PM
 	.driver.pm = &nvgpu_pci_pm_ops,
 #endif
