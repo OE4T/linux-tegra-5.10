@@ -721,15 +721,6 @@ channel_sync_semaphore_create(struct channel_gk20a *c, bool user_managed)
 	return &sema->ops;
 }
 
-void nvgpu_channel_sync_destroy(struct nvgpu_channel_sync *sync,
-	bool set_safe_state)
-{
-	if (set_safe_state) {
-		sync->set_safe_state(sync);
-	}
-	sync->destroy(sync);
-}
-
 struct nvgpu_channel_sync *nvgpu_channel_sync_create(struct channel_gk20a *c,
 	bool user_managed)
 {
@@ -754,3 +745,55 @@ bool nvgpu_has_syncpoints(struct gk20a *g)
 	return false;
 #endif
 }
+
+int nvgpu_channel_sync_wait_fence_fd(struct nvgpu_channel_sync *s, int fd,
+	struct priv_cmd_entry *entry, u32 max_wait_cmds)
+{
+	return s->wait_fd(s, fd, entry, max_wait_cmds);
+}
+
+int nvgpu_channel_sync_incr(struct nvgpu_channel_sync *s,
+	struct priv_cmd_entry *entry, struct gk20a_fence *fence,
+	bool need_sync_fence, bool register_irq)
+{
+	return s->incr(s, entry, fence, need_sync_fence, register_irq);
+}
+
+int nvgpu_channel_sync_incr_user(struct nvgpu_channel_sync *s,
+	int wait_fence_fd, struct priv_cmd_entry *entry,
+	struct gk20a_fence *fence, bool wfi, bool need_sync_fence,
+	bool register_irq)
+{
+	return s->incr_user(s, wait_fence_fd, entry, fence, wfi,
+		need_sync_fence, register_irq);
+}
+
+void nvgpu_channel_sync_set_min_eq_max(struct nvgpu_channel_sync *s)
+{
+	s->set_min_eq_max(s);
+}
+
+void nvgpu_channel_sync_set_safe_state(struct nvgpu_channel_sync *s)
+{
+	s->set_safe_state(s);
+}
+
+void nvgpu_channel_sync_destroy(struct nvgpu_channel_sync *sync,
+	bool set_safe_state)
+{
+	if (set_safe_state) {
+		sync->set_safe_state(sync);
+	}
+	sync->destroy(sync);
+}
+
+void nvgpu_channel_sync_get_ref(struct nvgpu_channel_sync *s)
+{
+	nvgpu_atomic_inc(&s->refcount);
+}
+
+bool nvgpu_channel_sync_put_ref_and_check(struct nvgpu_channel_sync *s)
+{
+	return nvgpu_atomic_dec_and_test(&s->refcount);
+}
+
