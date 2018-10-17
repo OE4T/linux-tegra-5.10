@@ -154,6 +154,7 @@ nvgpu-$(CONFIG_SYNC) += \
 ifeq ($(CONFIG_TEGRA_GK20A_NVHOST), y)
 nvgpu-$(CONFIG_SYNC) += \
 	os/linux/os_fence_android_syncpt.o
+nvgpu-y += common/sync/channel_sync_syncpt.o
 endif
 
 nvgpu-$(CONFIG_GK20A_PCI) += \
