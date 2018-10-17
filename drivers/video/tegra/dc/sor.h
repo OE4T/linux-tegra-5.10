@@ -238,7 +238,7 @@ void tegra_dc_sor_set_link_bandwidth(struct tegra_dc_sor_data *sor,
 void tegra_dc_sor_set_lane_count(struct tegra_dc_sor_data *sor, u8 lane_count);
 void tegra_sor_pad_cal_power(struct tegra_dc_sor_data *sor, bool power_up);
 void tegra_sor_setup_clk(struct tegra_dc_sor_data *sor, struct clk *clk,
-	bool is_lvds);
+	struct clk *parent_clk, bool is_lvds);
 void tegra_sor_precharge_lanes(struct tegra_dc_sor_data *sor);
 int tegra_dc_sor_set_power_state(struct tegra_dc_sor_data *sor,
 	int pu_pd);

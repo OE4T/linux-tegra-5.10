@@ -2899,7 +2899,7 @@ void tegra_dc_dp_disable_link(struct tegra_dc_dp_data *dp, bool powerdown)
 static long tegra_dc_dp_setup_clk(struct tegra_dc *dc, struct clk *clk)
 {
 	struct tegra_dc_dp_data *dp = tegra_dc_get_outdata(dc);
-	struct clk *dc_parent_clk;
+	struct clk *dc_parent_clk = NULL;
 	struct tegra_dc_sor_data *sor = NULL;
 
 	if (!tegra_platform_is_silicon())
@@ -2909,12 +2909,6 @@ static long tegra_dc_dp_setup_clk(struct tegra_dc *dc, struct clk *clk)
 		if (tegra_dc_is_nvdisplay()) {
 			dc_parent_clk = tegra_disp_clk_get(&dc->ndev->dev,
 					dc->out->parent_clk);
-			if (IS_ERR_OR_NULL(dc_parent_clk)) {
-				dev_err(&dc->ndev->dev,
-						"dp: failed to get clock %s\n",
-						dc->out->parent_clk);
-				return -EINVAL;
-			}
 		} else {
 			if (dc->out->type == TEGRA_DC_OUT_FAKE_DP)
 				dc_parent_clk = clk_get_sys(NULL,
@@ -2923,11 +2917,15 @@ static long tegra_dc_dp_setup_clk(struct tegra_dc *dc, struct clk *clk)
 				dc_parent_clk = clk_get_sys(NULL,
 						dc->out->parent_clk);
 		}
-		clk_set_parent(dc->clk, dc_parent_clk);
+		if (IS_ERR_OR_NULL(dc_parent_clk)) {
+			dev_err(&dc->ndev->dev, "dp: failed to get clock %s\n",
+				dc->out->parent_clk);
+			return -EINVAL;
+		}
 	}
 
 	/* set pll_d2 to pclk rate */
-	tegra_sor_setup_clk(dp->sor, clk, false);
+	tegra_sor_setup_clk(dp->sor, clk, dc_parent_clk, false);
 
 	if (tegra_dc_is_nvdisplay()) {
 		sor = dp->sor;

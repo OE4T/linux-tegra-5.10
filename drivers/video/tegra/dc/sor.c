@@ -2211,38 +2211,38 @@ void tegra_dc_sor_set_lane_count(struct tegra_dc_sor_data *sor, u8 lane_count)
 }
 
 void tegra_sor_setup_clk(struct tegra_dc_sor_data *sor, struct clk *clk,
-	bool is_lvds)
+	struct clk *parent_clk, bool is_lvds)
 {
-	struct clk *dc_parent_clk;
 	struct tegra_dc *dc = sor->dc;
+	unsigned long parent_clk_rate = 0;
 
 	if (tegra_platform_is_vdk())
 		return;
 
 	if (clk == dc->clk) {
-		dc_parent_clk = clk_get_parent(clk);
-		BUG_ON(!dc_parent_clk);
-
+		if (!parent_clk) {
+			pr_err("%s: dc parent clock NULL, clock setup failed\n",
+				__func__);
+			return;
+		}
 		/* Change for seamless */
 		if (!dc->initialized) {
-			if (dc->mode.pclk != clk_get_rate(dc_parent_clk)) {
-				clk_set_rate(dc_parent_clk, dc->mode.pclk);
-				clk_set_rate(clk, dc->mode.pclk);
-			}
-		}
+			parent_clk_rate = dc->mode.pclk;
+			/*
+			 * For t18x plldx cannot go below 27MHz.
+			 * Real HW limit is lesser though.
+			 * 27Mz is chosen to have a safe margin.
+			 */
+			if (tegra_dc_is_nvdisplay() &&
+				dc->mode.pclk < 27000000)
+				parent_clk_rate = dc->mode.pclk * 2;
 
-		if (!tegra_dc_is_nvdisplay())
-			return;
+			if (clk_get_rate(parent_clk) != parent_clk_rate)
+				clk_set_rate(parent_clk, parent_clk_rate);
 
-		/*
-		 * For t18x plldx cannot go below 27MHz.
-		 * Real HW limit is lesser though.
-		 * 27Mz is chosen to have a safe margin.
-		 */
-		if (dc->mode.pclk < 27000000) {
-			if ((2 * dc->mode.pclk) != clk_get_rate(dc_parent_clk))
-				clk_set_rate(dc_parent_clk, 2 * dc->mode.pclk);
-			if (dc->mode.pclk != clk_get_rate(dc->clk))
+			clk_set_parent(clk, parent_clk);
+
+			if (clk_get_rate(dc->clk) != dc->mode.pclk)
 				clk_set_rate(dc->clk, dc->mode.pclk);
 		}
 	}

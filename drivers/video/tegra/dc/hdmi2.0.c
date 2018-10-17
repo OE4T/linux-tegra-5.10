@@ -3076,6 +3076,9 @@ static long tegra_dc_hdmi_setup_clk_nvdisplay(struct tegra_dc *dc,
 
 		clk_set_rate(parent_clk, parent_clk_rate);
 
+		/* Set parent for dc->clk. This also enables the parent clk */
+		clk_set_parent(dc->clk, parent_clk);
+
 		if (clk == dc->clk)
 			clk_set_rate(clk, dc->mode.pclk);
 	}

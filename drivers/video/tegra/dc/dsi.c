@@ -5409,19 +5409,18 @@ static void tegra_dc_dsi_setup_clk_t21x(struct tegra_dc *dc,
 static void tegra_dc_dsi_setup_clk_nvdisplay(struct tegra_dc *dc,
 						struct clk *clk)
 {
-	unsigned long rate;
+	unsigned long rate, pclk_div_1000;
 	struct clk *parent_clk = NULL;
 	struct clk *base_clk = NULL;
 	int err;
 
 	/* divide by 1000 to avoid overflow */
-	dc->mode.pclk /= 1000;
+	pclk_div_1000 = dc->mode.pclk / 1000;
 
-	rate = (dc->mode.pclk * dc->shift_clk_div.mul * 2)
+	rate = (pclk_div_1000 * dc->shift_clk_div.mul * 2)
 		/ dc->shift_clk_div.div;
 
 	rate *= 1000;
-	dc->mode.pclk *= 1000;
 
 	if (clk == dc->clk) {
 		base_clk = tegra_disp_clk_get(&dc->ndev->dev,
@@ -5439,14 +5438,33 @@ static void tegra_dc_dsi_setup_clk_nvdisplay(struct tegra_dc *dc,
 
 	if (tegra_bpmp_running() && base_clk &&
 			rate != clk_get_rate(base_clk)) {
-		tegra_nvdisp_test_and_set_compclk(rate, dc);
 		err = clk_set_rate(base_clk, rate);
 		if (err)
 			dev_err(&dc->ndev->dev, "Failed to set pll freq\n");
+
+	}
+
+	if (clk == dc->clk) {
+		struct clk *dsi_parent_clk = NULL;
+
+		dsi_parent_clk = tegra_disp_clk_get(&dc->ndev->dev,
+						"pll_d_out1");
+		if (!dsi_parent_clk) {
+			dev_err(&dc->ndev->dev,
+				"DSI clock setup failed, parent clock NULL\n");
+			return;
+		}
+		clk_set_parent(clk, dsi_parent_clk);
 	}
 
 	if (parent_clk && (clk_get_parent(clk) != parent_clk))
 		clk_set_parent(clk, parent_clk);
+
+
+	if (!dc->initialized) {
+		clk_set_rate(dc->clk, dc->mode.pclk);
+		tegra_nvdisp_test_and_set_compclk(dc->mode.pclk, dc);
+	}
 
 }
 
