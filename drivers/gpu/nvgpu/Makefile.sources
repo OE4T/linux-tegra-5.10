@@ -110,6 +110,7 @@ srcs :=	os/posix/nvgpu.c \
 	common/sec2/sec2_ipc.c \
 	common/ptimer/ptimer.c \
 	common/sync/channel_sync.c \
+	common/sync/channel_sync_semaphore.c \
 	common/clock_gating/gm20b_gating_reglist.c \
 	common/clock_gating/gp10b_gating_reglist.c \
 	common/clock_gating/gv11b_gating_reglist.c \

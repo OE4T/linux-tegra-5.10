@@ -54,6 +54,7 @@ nvgpu-y += common/bus/bus_gk20a.o \
 	common/mc/mc_gv11b.o  \
 	common/mc/mc_gv100.o \
 	common/sync/channel_sync.o \
+	common/sync/channel_sync_semaphore.o \
 	common/boardobj/boardobj.o \
 	common/boardobj/boardobjgrp.o \
 	common/boardobj/boardobjgrpmask.o \
