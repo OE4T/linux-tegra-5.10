@@ -193,7 +193,8 @@ static int devinit_get_vfe_equ_table(struct gk20a *g,
 	for (index = 0;
 	     index < vfeequs_tbl_header.vfe_equ_entry_count;
 	     index++) {
-		memset(&equ, 0, sizeof(struct vbios_vfe_3x_equ_entry_struct));
+		(void) memset(&equ, 0,
+			sizeof(struct vbios_vfe_3x_equ_entry_struct));
 
 		rd_offset_ptr = vfeequs_tbl_entry_ptr +
 			(index * vfeequs_tbl_header.vfe_equ_entry_size);

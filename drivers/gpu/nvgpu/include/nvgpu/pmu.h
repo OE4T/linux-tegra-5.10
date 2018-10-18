@@ -147,7 +147,7 @@ enum {
 /* RPC */
 #define PMU_RPC_EXECUTE(_stat, _pmu, _unit, _func, _prpc, _size)\
 	do {                                                 \
-		memset(&((_prpc)->hdr), 0, sizeof((_prpc)->hdr));\
+		(void) memset(&((_prpc)->hdr), 0, sizeof((_prpc)->hdr));\
 		\
 		(_prpc)->hdr.unit_id   = PMU_UNIT_##_unit;       \
 		(_prpc)->hdr.function = NV_PMU_RPC_ID_##_unit##_##_func;\
@@ -161,7 +161,7 @@ enum {
 /* RPC blocking call to copy back data from PMU to  _prpc */
 #define PMU_RPC_EXECUTE_CPB(_stat, _pmu, _unit, _func, _prpc, _size)\
 	do {                                                 \
-		memset(&((_prpc)->hdr), 0, sizeof((_prpc)->hdr));\
+		(void) memset(&((_prpc)->hdr), 0, sizeof((_prpc)->hdr));\
 		\
 		(_prpc)->hdr.unit_id   = PMU_UNIT_##_unit;       \
 		(_prpc)->hdr.function = NV_PMU_RPC_ID_##_unit##_##_func;\
@@ -175,7 +175,7 @@ enum {
 /* RPC non-blocking with call_back handler option */
 #define PMU_RPC_EXECUTE_CB(_stat, _pmu, _unit, _func, _prpc, _size, _cb, _cbp)\
 	do {                                                 \
-		memset(&((_prpc)->hdr), 0, sizeof((_prpc)->hdr));\
+		(void) memset(&((_prpc)->hdr), 0, sizeof((_prpc)->hdr));\
 		\
 		(_prpc)->hdr.unit_id   = PMU_UNIT_##_unit;       \
 		(_prpc)->hdr.function = NV_PMU_RPC_ID_##_unit##_##_func;\

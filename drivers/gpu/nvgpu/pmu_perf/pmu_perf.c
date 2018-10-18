@@ -76,9 +76,10 @@ u32 perf_pmu_vfe_load(struct gk20a *g)
 	struct nv_pmu_perf_rpc rpccall;
 	struct perfrpc_pmucmdhandler_params handler;
 
-	memset(&payload, 0, sizeof(struct pmu_payload));
-	memset(&rpccall, 0, sizeof(struct nv_pmu_perf_rpc));
-	memset(&handler, 0, sizeof(struct perfrpc_pmucmdhandler_params));
+	(void) memset(&payload, 0, sizeof(struct pmu_payload));
+	(void) memset(&rpccall, 0, sizeof(struct nv_pmu_perf_rpc));
+	(void) memset(&handler, 0,
+		sizeof(struct perfrpc_pmucmdhandler_params));
 
 	/*register call back for future VFE updates*/
 	g->ops.pmu_perf.handle_pmu_perf_event = pmu_handle_perf_event;

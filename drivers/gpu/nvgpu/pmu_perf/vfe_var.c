@@ -609,14 +609,15 @@ static int _vfe_var_pmudatainit_single_sensed_fuse(struct gk20a *g,
 	pset = (struct nv_pmu_vfe_var_single_sensed_fuse *)
 		ppmudata;
 
-	memcpy(&pset->vfield_info, &pvfe_var_single_sensed_fuse->vfield_info,
+	(void) memcpy(&pset->vfield_info,
+		&pvfe_var_single_sensed_fuse->vfield_info,
 		sizeof(struct ctrl_perf_vfe_var_single_sensed_fuse_vfield_info));
 
-	memcpy(&pset->vfield_ver_info,
+	(void) memcpy(&pset->vfield_ver_info,
 		&pvfe_var_single_sensed_fuse->vfield_ver_info,
 		sizeof(struct ctrl_perf_vfe_var_single_sensed_fuse_ver_vfield_info));
 
-	memcpy(&pset->override_info,
+	(void) memcpy(&pset->override_info,
 		&pvfe_var_single_sensed_fuse->override_info,
 		sizeof(struct ctrl_perf_vfe_var_single_sensed_fuse_override_info));
 
