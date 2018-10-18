@@ -2570,7 +2570,7 @@ unsigned int gk20a_fifo_handle_pbdma_intr_0(struct gk20a *g, u32 pbdma_id,
 	unsigned int rc_type = RC_TYPE_NO_RC;
 	int i;
 	unsigned long pbdma_intr_err;
-	u32 bit;
+	unsigned long bit;
 
 	if ((f->intr.pbdma.device_fatal_0 |
 	     f->intr.pbdma.channel_fatal_0 |
@@ -3247,7 +3247,7 @@ static void gk20a_fifo_runlist_reset_engines(struct gk20a *g, u32 runlist_id)
 int gk20a_fifo_runlist_wait_pending(struct gk20a *g, u32 runlist_id)
 {
 	struct nvgpu_timeout timeout;
-	unsigned long delay = GR_IDLE_CHECK_DEFAULT;
+	u32 delay = GR_IDLE_CHECK_DEFAULT;
 	int ret = -ETIMEDOUT;
 
 	nvgpu_timeout_init(g, &timeout, gk20a_get_gr_idle_timeout(g),
@@ -3322,7 +3322,8 @@ u32 *gk20a_runlist_construct_locked(struct fifo_gk20a *f,
 	bool last_level = cur_level == NVGPU_FIFO_RUNLIST_INTERLEAVE_LEVEL_HIGH;
 	struct channel_gk20a *ch;
 	bool skip_next = false;
-	u32 tsgid, count = 0;
+	unsigned long tsgid;
+	u32 count = 0;
 	u32 runlist_entry_words = f->runlist_entry_size / sizeof(u32);
 	struct gk20a *g = f->g;
 
