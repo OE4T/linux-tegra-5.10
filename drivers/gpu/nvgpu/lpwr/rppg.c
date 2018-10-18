@@ -53,7 +53,7 @@ static int rppg_send_cmd(struct gk20a *g, struct nv_pmu_rppg_cmd *prppg_cmd)
 	int status = 0;
 	u32 success = 0;
 
-	memset(&cmd, 0, sizeof(struct pmu_cmd));
+	(void) memset(&cmd, 0, sizeof(struct pmu_cmd));
 	cmd.hdr.unit_id = PMU_UNIT_PG;
 	cmd.hdr.size   = PMU_CMD_HDR_SIZE +
 			sizeof(struct nv_pmu_rppg_cmd);

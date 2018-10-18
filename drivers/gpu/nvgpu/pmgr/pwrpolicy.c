@@ -225,7 +225,7 @@ static int _pwr_domains_pmudatainit_hw_threshold(struct gk20a *g,
 				PWR_POLICY_LIMIT_ID_CURR),
 			p_pwr_policy->limit_delta);
 
-	memcpy(&pmu_pwr_policy->integral, &p_pwr_policy->integral,
+	(void) memcpy(&pmu_pwr_policy->integral, &p_pwr_policy->integral,
 			sizeof(struct ctrl_pmgr_pwr_policy_info_integral));
 
 	pmu_pwr_policy->sample_mult = p_pwr_policy->sample_mult;
@@ -342,7 +342,7 @@ static struct boardobj *construct_pwr_policy(struct gk20a *g,
 				pwrpolicyparams->limit_batt:
 				CTRL_PMGR_PWR_POLICY_LIMIT_MAX));
 
-	memcpy(&pwrpolicy->integral, &pwrpolicyparams->integral,
+	(void) memcpy(&pwrpolicy->integral, &pwrpolicyparams->integral,
 			sizeof(struct ctrl_pmgr_pwr_policy_info_integral));
 
 	pwrpolicyhwthreshold->threshold_idx = hwthreshold->threshold_idx;
@@ -615,8 +615,9 @@ static int devinit_get_pwr_policy_table(struct gk20a *g,
 			pwr_policy_data.pwrpolicy.integral.ratio_limit_min =
 					entry.ratio_min;
 		} else {
-			memset(&(pwr_policy_data.pwrpolicy.integral), 0x0,
-				sizeof(struct ctrl_pmgr_pwr_policy_info_integral));
+			(void) memset(&(pwr_policy_data.pwrpolicy.integral),
+				0x0, sizeof(
+				struct ctrl_pmgr_pwr_policy_info_integral));
 		}
 		pwr_policy_data.hw_threshold.threshold_idx = (u8)
 			BIOS_GET_FIELD(entry.param0,
@@ -745,8 +746,9 @@ int pmgr_policy_sw_setup(struct gk20a *g)
 		goto done;
 	}
 
-	memset(g->pmgr_pmu.pmgr_policyobjs.policy_idxs, CTRL_PMGR_PWR_POLICY_INDEX_INVALID,
-				sizeof(u8) * CTRL_PMGR_PWR_POLICY_IDX_NUM_INDEXES);
+	(void) memset(g->pmgr_pmu.pmgr_policyobjs.policy_idxs,
+		CTRL_PMGR_PWR_POLICY_INDEX_INVALID,
+		sizeof(u8) * CTRL_PMGR_PWR_POLICY_IDX_NUM_INDEXES);
 
 	/* Initialize external power limit policy indexes to _INVALID/0xFF */
 	for (indx = 0; indx < PWR_POLICY_EXT_POWER_STATE_ID_COUNT; indx++) {

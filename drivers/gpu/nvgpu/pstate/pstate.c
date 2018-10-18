@@ -314,7 +314,7 @@ static int parse_pstate_entry_5x(struct gk20a *g,
 
 	p += hdr->base_entry_size;
 
-	memset(pstate, 0, sizeof(struct pstate));
+	(void) memset(pstate, 0, sizeof(struct pstate));
 	pstate->super.type = CTRL_PERF_PSTATE_TYPE_3X;
 	pstate->num = 0x0F - entry->pstate_level;
 	pstate->clklist.num_info = hdr->clock_entry_count;

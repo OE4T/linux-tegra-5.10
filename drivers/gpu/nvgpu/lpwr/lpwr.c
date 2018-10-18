@@ -289,7 +289,7 @@ u32 nvgpu_lpwr_post_init(struct gk20a *g)
 	u32 status = 0;
 	u32 ack_status = 0;
 
-	memset(&cmd, 0, sizeof(struct pmu_cmd));
+	(void) memset(&cmd, 0, sizeof(struct pmu_cmd));
 	cmd.hdr.unit_id = PMU_UNIT_PG;
 	cmd.hdr.size   = PMU_CMD_HDR_SIZE +
 		sizeof(struct pmu_pg_cmd_post_init_param);

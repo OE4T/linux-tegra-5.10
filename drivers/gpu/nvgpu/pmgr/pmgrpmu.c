@@ -96,9 +96,10 @@ static u32 pmgr_pmu_set_object(struct gk20a *g,
 	u32 seqdesc;
 	struct pmgr_pmucmdhandler_params handlerparams;
 
-	memset(&payload, 0, sizeof(struct pmu_payload));
-	memset(&cmd, 0, sizeof(struct pmu_cmd));
-	memset(&handlerparams, 0, sizeof(struct pmgr_pmucmdhandler_params));
+	(void) memset(&payload, 0, sizeof(struct pmu_payload));
+	(void) memset(&cmd, 0, sizeof(struct pmu_cmd));
+	(void) memset(&handlerparams, 0,
+		sizeof(struct pmgr_pmucmdhandler_params));
 
 	cmd.hdr.unit_id = PMU_UNIT_PMGR;
 	cmd.hdr.size = (u32)sizeof(struct nv_pmu_pmgr_cmd_set_object) +
@@ -317,7 +318,7 @@ static int pmgr_send_pwr_policy_to_pmu(struct gk20a *g)
 			&ppwrpack->policies.hdr.data.super,
 			g->pmgr_pmu.pmgr_policyobjs.pwr_policies.super.objmask);
 
-	memset(&ppwrpack->policies.hdr.data.reserved_pmu_policy_mask,
+	(void) memset(&ppwrpack->policies.hdr.data.reserved_pmu_policy_mask,
 			0,
 			sizeof(ppwrpack->policies.hdr.data.reserved_pmu_policy_mask));
 
@@ -328,11 +329,11 @@ static int pmgr_send_pwr_policy_to_pmu(struct gk20a *g)
 	ppwrpack->policies.hdr.data.low_sampling_mult =
 			g->pmgr_pmu.pmgr_policyobjs.low_sampling_mult;
 
-	memcpy(&ppwrpack->policies.hdr.data.global_ceiling,
+	(void) memcpy(&ppwrpack->policies.hdr.data.global_ceiling,
 			&g->pmgr_pmu.pmgr_policyobjs.global_ceiling,
 			sizeof(struct nv_pmu_perf_domain_group_limits));
 
-	memcpy(&ppwrpack->policies.hdr.data.semantic_policy_tbl,
+	(void) memcpy(&ppwrpack->policies.hdr.data.semantic_policy_tbl,
 			&g->pmgr_pmu.pmgr_policyobjs.policy_idxs,
 			sizeof(g->pmgr_pmu.pmgr_policyobjs.policy_idxs));
 
@@ -394,9 +395,10 @@ u32 pmgr_pmu_pwr_devices_query_blocking(
 	u32 seqdesc;
 	struct pmgr_pmucmdhandler_params handlerparams;
 
-	memset(&payload, 0, sizeof(struct pmu_payload));
-	memset(&cmd, 0, sizeof(struct pmu_cmd));
-	memset(&handlerparams, 0, sizeof(struct pmgr_pmucmdhandler_params));
+	(void) memset(&payload, 0, sizeof(struct pmu_payload));
+	(void) memset(&cmd, 0, sizeof(struct pmu_cmd));
+	(void) memset(&handlerparams, 0,
+		sizeof(struct pmgr_pmucmdhandler_params));
 
 	cmd.hdr.unit_id = PMU_UNIT_PMGR;
 	cmd.hdr.size = (u32)sizeof(struct nv_pmu_pmgr_cmd_pwr_devices_query) +
