@@ -51,6 +51,7 @@
 #include "rtcpu/clk-group.h"
 #include "rtcpu/device-group.h"
 #include "rtcpu/reset-group.h"
+#include "rtcpu/hsp-combo.h"
 
 #include "soc/tegra/camrtc-commands.h"
 #include "soc/tegra/camrtc-ctrl-commands.h"
@@ -190,16 +191,10 @@ struct tegra_cam_rtcpu {
 	struct tegra_ivc_bus *ivc;
 	struct device_dma_parameters dma_parms;
 	struct device *hsp_device;
-	struct tegra_hsp_sm_pair *sm_pair;
+	struct camrtc_hsp *hsp;
 	struct tegra_rtcpu_trace *tracer;
 	struct tegra_rtcpu_coverage *coverage;
-	struct {
-		struct mutex mutex;
-		struct completion emptied;
-		wait_queue_head_t response_waitq;
-		atomic_t response;
-		u32 timeout;
-	} cmd;
+	u32 cmd_timeout;
 	u32 fw_version;
 	u8 fw_hash[RTCPU_FW_HASH_SIZE];
 	struct {
@@ -234,9 +229,6 @@ struct tegra_cam_rtcpu {
 	bool boot_sync_done;
 	bool online;
 };
-
-static int tegra_camrtc_mbox_exchange(struct device *dev,
-				u32 command, long *timeout);
 
 static void __iomem *tegra_cam_ioremap(struct device *dev, int index)
 {
@@ -453,11 +445,7 @@ static int tegra_camrtc_cmd_pm_suspend(struct device *dev, long *timeout)
 	int expect = RTCPU_COMMAND(PM_SUSPEND,
 			(CAMRTC_PM_CTRL_STATE_SUSPEND << 8) |
 			CAMRTC_PM_CTRL_STATUS_OK);
-	int err;
-
-	mutex_lock(&rtcpu->cmd.mutex);
-	err = tegra_camrtc_mbox_exchange(dev, command, timeout);
-	mutex_unlock(&rtcpu->cmd.mutex);
+	int err = camrtc_hsp_command(rtcpu->hsp, command, timeout);
 
 	if (err == expect)
 		return 0;
@@ -546,7 +534,7 @@ static int tegra_sce_cam_wait_for_wfi(struct device *dev, long *timeout)
 static int tegra_sce_cam_suspend_core(struct device *dev)
 {
 	struct tegra_cam_rtcpu *rtcpu = dev_get_drvdata(dev);
-	long timeout = 2 * rtcpu->cmd.timeout;
+	long timeout = 2 * rtcpu->cmd_timeout;
 	int err;
 
 	err = tegra_camrtc_cmd_pm_suspend(dev, &timeout);
@@ -648,7 +636,7 @@ static int tegra_ape_cam_wait_for_wfi(struct device *dev, long *timeout)
 static int tegra_ape_cam_suspend_core(struct device *dev)
 {
 	struct tegra_cam_rtcpu *rtcpu = dev_get_drvdata(dev);
-	long timeout = 2 * rtcpu->cmd.timeout;
+	long timeout = 2 * rtcpu->cmd_timeout;
 	int err;
 
 	err = tegra_camrtc_cmd_pm_suspend(dev, &timeout);
@@ -693,7 +681,7 @@ static int tegra_camrtc_suspend_core(struct device *dev)
 {
 	struct tegra_cam_rtcpu *rtcpu = dev_get_drvdata(dev);
 
-	if (!rtcpu->boot_sync_done || !rtcpu->sm_pair)
+	if (!rtcpu->boot_sync_done || !rtcpu->hsp)
 		return 0;
 
 	rtcpu->boot_sync_done = false;
@@ -725,114 +713,14 @@ static void tegra_camrtc_set_online(struct device *dev, bool online)
 	tegra_ivc_bus_ready(rtcpu->ivc, online);
 }
 
-static void tegra_camrtc_full_notify(void *data, u32 response)
-{
-	struct tegra_cam_rtcpu *rtcpu = data;
-
-	atomic_set(&rtcpu->cmd.response, response);
-	wake_up(&rtcpu->cmd.response_waitq);
-}
-
-static void tegra_camrtc_empty_notify(void *data, u32 empty_value)
-{
-	struct tegra_cam_rtcpu *rtcpu = data;
-
-	complete(&rtcpu->cmd.emptied);
-}
-
-static long tegra_camrtc_wait_for_empty(struct device *dev,
-				long timeout)
-{
-	struct tegra_cam_rtcpu *rtcpu = dev_get_drvdata(dev);
-
-	if (timeout == 0)
-		timeout = 2 * HZ;
-
-	for (;;) {
-		if (tegra_hsp_sm_pair_is_empty(rtcpu->sm_pair))
-			return timeout > 0 ? timeout : 1;
-
-		if (timeout <= 0)
-			return timeout;
-
-		/*
-		 * The reinit_completion() resets the completion to 0.
-		 *
-		 * The tegra_hsp_sm_pair_enable_empty_notify()
-		 * guarantees that the empty notify gets called at
-		 * least once even if the mailbox was already empty,
-		 * so no harm is done if the mailbox is emptied
-		 * between reinit_completion() and
-		 * tegra_hsp_sm_pair_enable_empty_notify().
-		 *
-		 * The tegra_hsp_sm_pair_enable_empty_notify() may or
-		 * may not do reference counting (on APE it does,
-		 * elsewhere it does not). If the mailbox is initially
-		 * empty, the emptied is already complete()d here, and
-		 * the code ends up enabling empty notify twice, and
-		 * when the mailbox gets empty, emptied gets
-		 * complete() twice, and we always run the loop one
-		 * extra time.
-		 *
-		 * Note that the complete() call above lets only one
-		 * waiting task to run. The code here is protected by
-		 * cmd.mutex, so only one task can be waiting here.
-		 */
-		reinit_completion(&rtcpu->cmd.emptied);
-		tegra_hsp_sm_pair_enable_empty_notify(rtcpu->sm_pair);
-
-		dev_dbg(dev, "waiting for cmd mailbox to be cleared\n");
-
-		timeout = wait_for_completion_timeout(&rtcpu->cmd.emptied,
-				timeout);
-	}
-}
-
-static int tegra_camrtc_mbox_exchange(struct device *dev,
-					u32 command, long *timeout)
-{
-	struct tegra_cam_rtcpu *rtcpu = dev_get_drvdata(dev);
-
-#define INVALID_RESPONSE (0x80000000U)
-
-	*timeout = tegra_camrtc_wait_for_empty(dev, *timeout);
-	if (*timeout <= 0) {
-		dev_err(dev, "command: 0x%08x: empty mailbox timeout\n",
-			command);
-		return -ETIMEDOUT;
-	}
-
-	atomic_set(&rtcpu->cmd.response, INVALID_RESPONSE);
-
-	tegra_hsp_sm_pair_write(rtcpu->sm_pair, command);
-
-	*timeout = wait_event_timeout(
-		rtcpu->cmd.response_waitq,
-		atomic_read(&rtcpu->cmd.response) != INVALID_RESPONSE,
-		*timeout);
-	if (*timeout <= 0) {
-		dev_err(dev, "command: 0x%08x: response timeout\n", command);
-		return -ETIMEDOUT;
-	}
-
-	return (int)atomic_read(&rtcpu->cmd.response);
-}
-
 int tegra_camrtc_command(struct device *dev, u32 command, long timeout)
 {
 	struct tegra_cam_rtcpu *rtcpu = dev_get_drvdata(dev);
-	int response;
 
 	if (timeout == 0)
-		timeout = rtcpu->cmd.timeout;
+		timeout = rtcpu->cmd_timeout;
 
-	mutex_lock(&rtcpu->cmd.mutex);
-
-	response = tegra_camrtc_mbox_exchange(dev, command, &timeout);
-
-	mutex_unlock(&rtcpu->cmd.mutex);
-
-	return response;
+	return camrtc_hsp_command(rtcpu->hsp, command, &timeout);
 }
 EXPORT_SYMBOL(tegra_camrtc_command);
 
@@ -840,24 +728,30 @@ int tegra_camrtc_prefix_command(struct device *dev,
 				u32 prefix, u32 command, long timeout)
 {
 	struct tegra_cam_rtcpu *rtcpu = dev_get_drvdata(dev);
-	int response;
 
 	if (timeout == 0)
-		timeout = rtcpu->cmd.timeout;
+		timeout = rtcpu->cmd_timeout;
 
-	mutex_lock(&rtcpu->cmd.mutex);
-
-	prefix = RTCPU_COMMAND(PREFIX, prefix);
-	response = tegra_camrtc_mbox_exchange(dev, prefix, &timeout);
-
-	if (RTCPU_GET_COMMAND_ID(response) == RTCPU_CMD_PREFIX)
-		response = tegra_camrtc_mbox_exchange(dev, command, &timeout);
-
-	mutex_unlock(&rtcpu->cmd.mutex);
-
-	return response;
+	return camrtc_hsp_prefix_command(rtcpu->hsp,
+			prefix, command, &timeout);
 }
 EXPORT_SYMBOL(tegra_camrtc_prefix_command);
+
+static void tegra_camrtc_ivc_notify(struct device *dev, u16 group)
+{
+	struct tegra_cam_rtcpu *rtcpu = dev_get_drvdata(dev);
+
+	if (rtcpu->ivc)
+		tegra_ivc_bus_notify(rtcpu->ivc, group);
+}
+
+void tegra_camrtc_ivc_ring(struct device *dev, u16 group)
+{
+	struct tegra_cam_rtcpu *rtcpu = dev_get_drvdata(dev);
+
+	camrtc_hsp_group_ring(rtcpu->hsp, group);
+}
+EXPORT_SYMBOL(tegra_camrtc_ivc_ring);
 
 static int tegra_camrtc_poweron(struct device *dev, bool full_speed)
 {
@@ -871,7 +765,7 @@ static int tegra_camrtc_poweron(struct device *dev, bool full_speed)
 	}
 
 	/* APE power domain may misbehave and try to resume while probing */
-	if (rtcpu->sm_pair == NULL) {
+	if (rtcpu->hsp == NULL) {
 		dev_info(dev, "poweron while probing");
 		return 0;
 	}
@@ -1012,9 +906,8 @@ static int tegra_camrtc_boot(struct device *dev)
 		tegra_camrtc_deassert_resets(dev);
 	}
 
-	if (ret == 0) {
+	if (ret == 0)
 		tegra_camrtc_set_online(dev, true);
-	}
 
 	tegra_camrtc_slow_mem_bw(dev);
 
@@ -1157,17 +1050,14 @@ static struct device *tegra_camrtc_get_hsp_device(struct device_node *hsp_node)
 	return &pdev->dev;
 }
 
-static int tegra_camrtc_mbox_init(struct device *dev)
+static int tegra_camrtc_hsp_init(struct device *dev)
 {
 	struct tegra_cam_rtcpu *rtcpu = dev_get_drvdata(dev);
 	struct device_node *hsp_node;
+	int err;
 
-	if (!IS_ERR_OR_NULL(rtcpu->sm_pair))
+	if (!IS_ERR_OR_NULL(rtcpu->hsp))
 		return 0;
-
-	mutex_init(&rtcpu->cmd.mutex);
-	init_waitqueue_head(&rtcpu->cmd.response_waitq);
-	init_completion(&rtcpu->cmd.emptied);
 
 	hsp_node = of_get_child_by_name(dev->of_node, "hsp");
 	rtcpu->hsp_device = tegra_camrtc_get_hsp_device(hsp_node);
@@ -1181,23 +1071,18 @@ static int tegra_camrtc_mbox_init(struct device *dev)
 		if (ret < 0) {
 			dev_warn(rtcpu->hsp_device,
 				"power on failure: %d\n", ret);
+			of_node_put(hsp_node);
 			put_device(rtcpu->hsp_device);
 			rtcpu->hsp_device = NULL;
 			return ret;
 		}
 	}
 
-	rtcpu->sm_pair = of_tegra_hsp_sm_pair_by_name(hsp_node,
-					"cmd-pair", tegra_camrtc_full_notify,
-					tegra_camrtc_empty_notify, rtcpu);
-	of_node_put(hsp_node);
-	if (IS_ERR(rtcpu->sm_pair)) {
-		int ret = PTR_ERR(rtcpu->sm_pair);
-		if (ret != -EPROBE_DEFER)
-			dev_err(dev, "failed to obtain %s mbox pair: %d\n",
-				rtcpu->name, ret);
-		rtcpu->sm_pair = NULL;
-		return ret;
+	rtcpu->hsp = camrtc_hsp_create(dev, tegra_camrtc_ivc_notify);
+	if (IS_ERR(rtcpu->hsp)) {
+		err = PTR_ERR(rtcpu->hsp);
+		rtcpu->hsp = NULL;
+		return err;
 	}
 
 	return 0;
@@ -1213,11 +1098,11 @@ static int tegra_cam_rtcpu_remove(struct platform_device *pdev)
 
 	tegra_camrtc_set_online(&pdev->dev, false);
 
-	if (rtcpu->sm_pair) {
+	if (rtcpu->hsp) {
 		if (pm_is_active)
 			tegra_cam_rtcpu_runtime_suspend(&pdev->dev);
-		tegra_hsp_sm_pair_free(rtcpu->sm_pair);
-		rtcpu->sm_pair = NULL;
+		camrtc_hsp_free(rtcpu->hsp);
+		rtcpu->hsp = NULL;
 	}
 
 	if (!IS_ERR_OR_NULL(rtcpu->hsp_device)) {
@@ -1286,7 +1171,7 @@ static int tegra_cam_rtcpu_probe(struct platform_device *pdev)
 
 	timeout = 2000;
 	(void)of_property_read_u32(dev->of_node, NV(cmd-timeout), &timeout);
-	rtcpu->cmd.timeout = msecs_to_jiffies(timeout);
+	rtcpu->cmd_timeout = msecs_to_jiffies(timeout);
 
 	timeout = 60000;
 	ret = of_property_read_u32(dev->of_node, NV(autosuspend-delay-ms), &timeout);
@@ -1304,7 +1189,7 @@ static int tegra_cam_rtcpu_probe(struct platform_device *pdev)
 
 	rtcpu->coverage = tegra_rtcpu_coverage_create(dev);
 
-	ret = tegra_camrtc_mbox_init(dev);
+	ret = tegra_camrtc_hsp_init(dev);
 	if (ret)
 		goto fail;
 

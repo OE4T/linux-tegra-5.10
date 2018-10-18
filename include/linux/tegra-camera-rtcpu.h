@@ -32,5 +32,6 @@ bool tegra_camrtc_is_rtcpu_powered(void);
 int tegra_camrtc_command(struct device *dev, u32 command, long timeout);
 int tegra_camrtc_prefix_command(struct device *dev,
 				u32 prefix, u32 command, long timeout);
+void tegra_camrtc_ivc_ring(struct device *dev, u16 group);
 
 #endif

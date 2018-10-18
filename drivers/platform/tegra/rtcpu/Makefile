@@ -6,9 +6,10 @@ ccflags-y += -I$(srctree.nvidia)/drivers/platform/tegra/rtcpu
 ccflags-y += -I$(srctree.nvidia)/drivers/platform/tegra
 
 obj-y += debug.o
+obj-y += ivc-bus.o
 obj-y += tegra-sysfs-mbox.o
 obj-y += vi-notify.o
-obj-y += hsp-mbox.o
+obj-y += hsp-combo.o
 obj-y += tegra-rtcpu-trace.o
 obj-y += camchar.o
 obj-y += clk-group.o
