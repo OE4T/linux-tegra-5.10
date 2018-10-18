@@ -61,7 +61,7 @@ struct tsg_gk20a {
 	struct nvgpu_list_node event_id_list;
 	struct nvgpu_rwsem ch_list_lock;
 	struct nvgpu_mutex event_id_list_lock;
-	int num_active_channels;
+	u32 num_active_channels;
 
 	unsigned int timeslice_us;
 	unsigned int timeslice_timeout;
