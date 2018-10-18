@@ -68,7 +68,7 @@ void __nvgpu_log_msg(struct gk20a *g, const char *func_name, int line,
 	va_list args;
 
 	va_start(args, fmt);
-	vsnprintf(log, LOG_BUFFER_LENGTH, fmt, args);
+	(void) vsnprintf(log, LOG_BUFFER_LENGTH, fmt, args);
 	va_end(args);
 
 	__nvgpu_really_print_log(nvgpu_log_name(g),
@@ -87,7 +87,7 @@ void __nvgpu_log_dbg(struct gk20a *g, u64 log_mask,
 		return;
 
 	va_start(args, fmt);
-	vsnprintf(log, LOG_BUFFER_LENGTH, fmt, args);
+	(void) vsnprintf(log, LOG_BUFFER_LENGTH, fmt, args);
 	va_end(args);
 
 	__nvgpu_really_print_log(nvgpu_log_name(g),

@@ -54,13 +54,14 @@ int nvgpu_thread_create(struct nvgpu_thread *thread,
 
 	BUG_ON(thread->running);
 
-	memset(thread, 0, sizeof(*thread));
+	(void) memset(thread, 0, sizeof(*thread));
 
 	/*
 	 * By subtracting 1 the above memset ensures that we have a zero
 	 * terminated string.
 	 */
-	strncpy(thread->tname, name, NVGPU_THREAD_POSIX_MAX_NAMELEN - 1);
+	(void) strncpy(thread->tname, name,
+		NVGPU_THREAD_POSIX_MAX_NAMELEN - 1);
 
 	thread->nvgpu.data = data;
 	thread->nvgpu.fn = threadfn;

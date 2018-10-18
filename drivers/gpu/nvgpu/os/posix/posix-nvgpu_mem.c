@@ -151,7 +151,7 @@ int nvgpu_mem_create_from_mem(struct gk20a *g,
 	if ((start + size) > src->size)
 		return -EINVAL;
 
-	memset(dest, 0, sizeof(*dest));
+	(void) memset(dest, 0, sizeof(*dest));
 
 	dest->cpu_va    = ((char *)src->cpu_va) + start;
 	dest->mem_flags = src->mem_flags | NVGPU_MEM_FLAG_SHADOW_COPY;

@@ -28,7 +28,7 @@
 
 void nvgpu_rwsem_init(struct nvgpu_rwsem *rwsem)
 {
-	memset(rwsem, 0, sizeof(*rwsem));
+	(void) memset(rwsem, 0, sizeof(*rwsem));
 
 	nvgpu_spinlock_init(&rwsem->lock);
 }

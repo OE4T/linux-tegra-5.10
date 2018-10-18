@@ -97,7 +97,7 @@ void nvgpu_dma_free_sys(struct gk20a *g, struct nvgpu_mem *mem)
 	if (!(mem->mem_flags & NVGPU_MEM_FLAG_SHADOW_COPY))
 		free(mem->cpu_va);
 
-	memset(mem, 0, sizeof(*mem));
+	(void) memset(mem, 0, sizeof(*mem));
 }
 
 void nvgpu_dma_free_vid(struct gk20a *g, struct nvgpu_mem *mem)
