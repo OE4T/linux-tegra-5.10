@@ -366,6 +366,9 @@ static int period_set(void *data, u64 val)
 		for (i = 0; i < MAX_DEVICES; i++) {
 			struct actmon_dev *dev = &actmon->devices[i];
 
+			if (!dev->dn)
+				continue;
+
 			spin_lock_irqsave(&dev->lock, flags);
 			actmon_dev_wmark_set(dev);
 			spin_unlock_irqrestore(&dev->lock, flags);
@@ -518,9 +521,11 @@ static int __init actmon_debugfs_init(void)
 		goto err_out;
 
 	for (i = 0; i < MAX_DEVICES; i++) {
-		ret = actmon_debugfs_create_dev(&actmon->devices[i]);
-		if (ret)
-			goto err_out;
+		if (actmon->devices[i].dn) {
+			ret = actmon_debugfs_create_dev(&actmon->devices[i]);
+			if (ret)
+				goto err_out;
+		}
 	}
 	return 0;
 
@@ -913,7 +918,8 @@ static int actmon_dev_init(struct actmon_dev *dev,
 
 	ret = devm_request_threaded_irq(&pdev->dev,
 			actmon->virq, actmon_dev_isr, actmon_dev_fn,
-			IRQ_TYPE_LEVEL_HIGH, dev_name(&pdev->dev), dev);
+			IRQ_TYPE_LEVEL_HIGH | IRQF_SHARED,
+			dev_name(&pdev->dev), dev);
 	if (ret) {
 		dev_err(mon_dev, "Failed irq %d request for.%s\n",
 		actmon->virq, dev_name(&pdev->dev));
@@ -1075,6 +1081,7 @@ int tegra_actmon_register(struct actmon_drv_data *actmon_data)
 		if (ret)
 			dev_err(mon_dev, "Couldn't create avg_actv files\n");
 	}
+
 #ifdef CONFIG_DEBUG_FS
 	ret = actmon_debugfs_init();
 #endif

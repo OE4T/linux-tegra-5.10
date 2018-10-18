@@ -49,8 +49,9 @@
  */
 #define EMC_PLLP_FREQ_MAX			204000
 
-enum actmon_devices {
-	MC_ALL, /* Should match with device sequence in dt */
+enum actmon_devices { /* Should match with device sequence in dt */
+	MC_ALL, /* instance 1 */
+	MC_CPU, /* instance 0 */
 	MAX_DEVICES,
 };
 
