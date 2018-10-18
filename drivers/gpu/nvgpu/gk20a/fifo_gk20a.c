@@ -2935,7 +2935,7 @@ int gk20a_fifo_preempt_channel(struct gk20a *g, u32 chid)
 	struct fifo_gk20a *f = &g->fifo;
 	int ret = 0;
 	u32 token = PMU_INVALID_MUTEX_OWNER_ID;
-	u32 mutex_ret = 0;
+	int mutex_ret = 0;
 	u32 i;
 
 	nvgpu_log_fn(g, "chid: %d", chid);
@@ -2979,7 +2979,7 @@ int gk20a_fifo_preempt_tsg(struct gk20a *g, u32 tsgid)
 	struct fifo_gk20a *f = &g->fifo;
 	int ret = 0;
 	u32 token = PMU_INVALID_MUTEX_OWNER_ID;
-	u32 mutex_ret = 0;
+	int mutex_ret = 0;
 	u32 i;
 
 	nvgpu_log_fn(g, "tsgid: %d", tsgid);
@@ -3050,7 +3050,7 @@ void gk20a_fifo_set_runlist_state(struct gk20a *g, u32 runlists_mask,
 		u32 runlist_state)
 {
 	u32 token = PMU_INVALID_MUTEX_OWNER_ID;
-	u32 mutex_ret;
+	int mutex_ret;
 
 	nvgpu_log(g, gpu_dbg_info, "runlist mask = 0x%08x state = 0x%08x",
 			runlists_mask, runlist_state);
@@ -3114,7 +3114,7 @@ int gk20a_fifo_disable_engine_activity(struct gk20a *g,
 	u32 pbdma_chid = FIFO_INVAL_CHANNEL_ID;
 	u32 engine_chid = FIFO_INVAL_CHANNEL_ID;
 	u32 token = PMU_INVALID_MUTEX_OWNER_ID;
-	u32 mutex_ret;
+	int mutex_ret;
 	int err = 0;
 
 	nvgpu_log_fn(g, " ");
@@ -3682,7 +3682,7 @@ int nvgpu_fifo_reschedule_runlist(struct channel_gk20a *ch, bool preempt_next,
 	struct gk20a *g = ch->g;
 	struct fifo_runlist_info_gk20a *runlist;
 	u32 token = PMU_INVALID_MUTEX_OWNER_ID;
-	u32 mutex_ret;
+	int mutex_ret;
 	int ret = 0;
 
 	runlist = &g->fifo.runlist_info[ch->runlist_id];
@@ -3721,7 +3721,7 @@ int gk20a_fifo_update_runlist(struct gk20a *g, u32 runlist_id, u32 chid,
 	struct fifo_runlist_info_gk20a *runlist = NULL;
 	struct fifo_gk20a *f = &g->fifo;
 	u32 token = PMU_INVALID_MUTEX_OWNER_ID;
-	u32 mutex_ret;
+	int mutex_ret;
 	int ret = 0;
 
 	nvgpu_log_fn(g, " ");
