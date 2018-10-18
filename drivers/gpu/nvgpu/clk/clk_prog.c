@@ -491,7 +491,7 @@ static int devinit_get_clk_prog_table_1x(struct gk20a *g,
 	pclkprogobjs->vf_entry_count = header.vf_entry_count;
 
 	for (i = 0; i < header.entry_count; i++) {
-		memset(&prog_data, 0x0, (u32)sizeof(prog_data));
+		(void) memset(&prog_data, 0x0, (u32)sizeof(prog_data));
 
 		/* Read table entries*/
 		entry = clkprogs_tbl_ptr + hszfmt +
@@ -499,13 +499,13 @@ static int devinit_get_clk_prog_table_1x(struct gk20a *g,
 			(header.vf_entry_count * vfszfmt)));
 
 		nvgpu_memcpy((u8 *)&prog, entry, szfmt);
-		memset(vfentries, 0xFF,
+		(void) memset(vfentries, 0xFF,
 			sizeof(struct ctrl_clk_clk_prog_1x_master_vf_entry) *
 			CTRL_CLK_CLK_PROG_1X_MASTER_VF_ENTRY_MAX_ENTRIES);
-		memset(ratioslaveentries, 0xFF,
+		(void) memset(ratioslaveentries, 0xFF,
 			sizeof(struct ctrl_clk_clk_prog_1x_master_ratio_slave_entry) *
 			CTRL_CLK_PROG_1X_MASTER_MAX_SLAVE_ENTRIES);
-		memset(tableslaveentries, 0xFF,
+		(void) memset(tableslaveentries, 0xFF,
 			sizeof(struct ctrl_clk_clk_prog_1x_master_table_slave_entry) *
 			CTRL_CLK_PROG_1X_MASTER_MAX_SLAVE_ENTRIES);
 		src_type = (u8)BIOS_GET_FIELD(prog.flags0,
@@ -821,7 +821,7 @@ static int clk_prog_pmudatainit_35_master_ratio(struct gk20a *g,
 	pset = (struct nv_pmu_clk_clk_prog_35_master_ratio_boardobj_set *)
 				(void *)ppmudata;
 
-	memcpy(pset->ratio.slave_entries,
+	(void) memcpy(pset->ratio.slave_entries,
 		pclk_prog_35_master_ratio->ratio.p_slave_entries, slavesize);
 
 	return status;
@@ -877,7 +877,7 @@ static int clk_prog_pmudatainit_35_master_table(struct gk20a *g,
 
 	pset = (struct nv_pmu_clk_clk_prog_35_master_table_boardobj_set *)
 				(void *)ppmudata;
-	memcpy(pset->table.slave_entries,
+	(void) memcpy(pset->table.slave_entries,
 		pclk_prog_35_master_table->table.p_slave_entries, slavesize);
 
 	return status;
@@ -1127,8 +1127,8 @@ static int clk_prog_construct_1x_master_ratio(struct gk20a *g,
 		return -ENOMEM;
 	}
 
-	memset(pclkprog->p_slave_entries, CTRL_CLK_CLK_DOMAIN_INDEX_INVALID,
-		slavesize);
+	(void) memset(pclkprog->p_slave_entries,
+		CTRL_CLK_CLK_DOMAIN_INDEX_INVALID, slavesize);
 
 	nvgpu_memcpy((u8 *)pclkprog->p_slave_entries,
 		(u8 *)ptmpprog->p_slave_entries, slavesize);
@@ -1170,11 +1170,11 @@ static int clk_prog_construct_35_master_ratio(struct gk20a *g,
 		return -ENOMEM;
 	}
 
-	memset(pclkprog->ratio.p_slave_entries,
+	(void) memset(pclkprog->ratio.p_slave_entries,
 			CTRL_CLK_CLK_DOMAIN_INDEX_INVALID, slavesize);
 
-	if ((memcpy(pclkprog->ratio.p_slave_entries, ptmpprog->ratio.p_slave_entries,
-			slavesize)) == NULL) {
+	if ((memcpy(pclkprog->ratio.p_slave_entries,
+			ptmpprog->ratio.p_slave_entries, slavesize)) == NULL) {
 		status = -EINVAL;
 	}
 
@@ -1219,8 +1219,8 @@ static int clk_prog_construct_1x_master_table(struct gk20a *g,
 		goto exit;
 	}
 
-	memset(pclkprog->p_slave_entries, CTRL_CLK_CLK_DOMAIN_INDEX_INVALID,
-		slavesize);
+	(void) memset(pclkprog->p_slave_entries,
+		CTRL_CLK_CLK_DOMAIN_INDEX_INVALID, slavesize);
 
 	nvgpu_memcpy((u8 *)pclkprog->p_slave_entries,
 		(u8 *)ptmpprog->p_slave_entries, slavesize);
@@ -1358,7 +1358,7 @@ static u32 vfflatten_prog_1x_master(struct gk20a *g,
 	u8 vf_rail_idx;
 
 	nvgpu_log_info(g, " ");
-	memset(&vf_point_data, 0x0, sizeof(vf_point_data));
+	(void) memset(&vf_point_data, 0x0, sizeof(vf_point_data));
 
 	vf_point_idx = BOARDOBJGRP_NEXT_EMPTY_IDX(
 			&pclk->clk_vf_pointobjs.super.super);

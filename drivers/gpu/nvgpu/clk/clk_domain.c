@@ -229,13 +229,13 @@ int clk_domain_sw_setup(struct gk20a *g)
 	pclkdomainobjs->b_enforce_vf_monotonicity = true;
 	pclkdomainobjs->b_enforce_vf_smoothening = true;
 
-	memset(&pclkdomainobjs->ordered_noise_aware_list, 0,
+	(void) memset(&pclkdomainobjs->ordered_noise_aware_list, 0,
 		sizeof(pclkdomainobjs->ordered_noise_aware_list));
 
-	memset(&pclkdomainobjs->ordered_noise_unaware_list, 0,
+	(void) memset(&pclkdomainobjs->ordered_noise_unaware_list, 0,
 		sizeof(pclkdomainobjs->ordered_noise_unaware_list));
 
-	memset(&pclkdomainobjs->deltas, 0,
+	(void) memset(&pclkdomainobjs->deltas, 0,
 		sizeof(struct ctrl_clk_clk_delta));
 
 	status = devinit_get_clocks_table(g, pclkdomainobjs);

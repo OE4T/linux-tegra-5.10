@@ -220,7 +220,7 @@ static int clk_get_freq_controller_table(struct gk20a *g,
 		entry_offset = (pfreq_controller_table_ptr +
 			header.header_size + (entry_idx * header.entry_size));
 
-		memset(&freq_controller_data, 0x0,
+		(void) memset(&freq_controller_data, 0x0,
 				sizeof(struct freq_controller_data_type));
 		ptmp_freq_cntr = &freq_controller_data.freq_controller;
 		ptmp_freq_cntr_pi = &freq_controller_data.freq_controller_pi;

@@ -67,10 +67,10 @@ int clk_pmu_freq_effective_avg_load(struct gk20a *g, bool bload)
 	struct clkrpc_pmucmdhandler_params handler;
 	struct nv_pmu_clk_load *clkload;
 
-	memset(&payload, 0, sizeof(struct pmu_payload));
-	memset(&rpccall, 0, sizeof(struct nv_pmu_clk_rpc));
-	memset(&handler, 0, sizeof(struct clkrpc_pmucmdhandler_params));
-	memset(&cmd, 0, sizeof(struct pmu_cmd));
+	(void) memset(&payload, 0, sizeof(struct pmu_payload));
+	(void) memset(&rpccall, 0, sizeof(struct nv_pmu_clk_rpc));
+	(void) memset(&handler, 0, sizeof(struct clkrpc_pmucmdhandler_params));
+	(void) memset(&cmd, 0, sizeof(struct pmu_cmd));
 
 	rpccall.function = NV_PMU_CLK_RPC_ID_LOAD;
 	clkload = &rpccall.params.clk_load;
@@ -130,10 +130,10 @@ u32 clk_freq_effective_avg(struct gk20a *g, u32  clkDomainMask) {
 	struct clkrpc_pmucmdhandler_params handler;
 	struct nv_pmu_clk_freq_effective_avg *clk_freq_effective_avg;
 
-	memset(&payload, 0, sizeof(struct pmu_payload));
-	memset(&rpccall, 0, sizeof(struct nv_pmu_clk_rpc));
-	memset(&handler, 0, sizeof(struct clkrpc_pmucmdhandler_params));
-	memset(&cmd, 0, sizeof(struct pmu_cmd));
+	(void) memset(&payload, 0, sizeof(struct pmu_payload));
+	(void) memset(&rpccall, 0, sizeof(struct nv_pmu_clk_rpc));
+	(void) memset(&handler, 0, sizeof(struct clkrpc_pmucmdhandler_params));
+	(void) memset(&cmd, 0, sizeof(struct pmu_cmd));
 
 	rpccall.function = NV_PMU_CLK_RPC_ID_CLK_FREQ_EFF_AVG;
 	clk_freq_effective_avg = &rpccall.params.clk_freq_effective_avg;
@@ -196,9 +196,9 @@ int clk_pmu_freq_controller_load(struct gk20a *g, bool bload, u8 bit_idx)
 	struct ctrl_boardobjgrp_mask_e32 *load_mask;
 	struct boardobjgrpmask_e32 isolate_cfc_mask;
 
-	memset(&payload, 0, sizeof(struct pmu_payload));
-	memset(&rpccall, 0, sizeof(struct nv_pmu_clk_rpc));
-	memset(&handler, 0, sizeof(struct clkrpc_pmucmdhandler_params));
+	(void) memset(&payload, 0, sizeof(struct pmu_payload));
+	(void) memset(&rpccall, 0, sizeof(struct nv_pmu_clk_rpc));
+	(void) memset(&handler, 0, sizeof(struct clkrpc_pmucmdhandler_params));
 
 	pclk_freq_controllers = &g->clk_pmu.clk_freq_controllers;
 	rpccall.function = NV_PMU_CLK_RPC_ID_LOAD;
@@ -297,9 +297,9 @@ u32 clk_pmu_vin_load(struct gk20a *g)
 	struct clkrpc_pmucmdhandler_params handler;
 	struct nv_pmu_clk_load *clkload;
 
-	memset(&payload, 0, sizeof(struct pmu_payload));
-	memset(&rpccall, 0, sizeof(struct nv_pmu_clk_rpc));
-	memset(&handler, 0, sizeof(struct clkrpc_pmucmdhandler_params));
+	(void) memset(&payload, 0, sizeof(struct pmu_payload));
+	(void) memset(&rpccall, 0, sizeof(struct nv_pmu_clk_rpc));
+	(void) memset(&handler, 0, sizeof(struct clkrpc_pmucmdhandler_params));
 
 	rpccall.function = NV_PMU_CLK_RPC_ID_LOAD;
 	clkload = &rpccall.params.clk_load;
@@ -433,10 +433,10 @@ static u32 clk_pmu_vf_inject(struct gk20a *g, struct set_fll_clk *setfllclk)
 	struct nv_pmu_clk_rpc rpccall;
 	struct clkrpc_pmucmdhandler_params handler;
 
-	memset(&payload, 0, sizeof(struct pmu_payload));
-	memset(&rpccall, 0, sizeof(struct nv_pmu_clk_rpc));
-	memset(&handler, 0, sizeof(struct clkrpc_pmucmdhandler_params));
-	memset(&cmd, 0, sizeof(struct pmu_cmd));
+	(void) memset(&payload, 0, sizeof(struct pmu_payload));
+	(void) memset(&rpccall, 0, sizeof(struct nv_pmu_clk_rpc));
+	(void) memset(&handler, 0, sizeof(struct clkrpc_pmucmdhandler_params));
+	(void) memset(&cmd, 0, sizeof(struct pmu_cmd));
 
 	if ((setfllclk->gpc2clkmhz == 0U) || (setfllclk->xbar2clkmhz == 0U) ||
 		(setfllclk->sys2clkmhz == 0U) || (setfllclk->voltuv == 0U)) {

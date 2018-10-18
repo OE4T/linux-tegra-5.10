@@ -161,9 +161,9 @@ int nvgpu_clk_arb_update_vf_table(struct nvgpu_clk_arb *arb)
 		goto exit_vf_table;
 	}
 
-	memset(table->mclk_points, 0,
+	(void) memset(table->mclk_points, 0,
 		table->mclk_num_points*sizeof(struct nvgpu_clk_vf_point));
-	memset(table->gpc2clk_points, 0,
+	(void) memset(table->gpc2clk_points, 0,
 		table->gpc2clk_num_points*sizeof(struct nvgpu_clk_vf_point));
 
 	p5_info = pstate_get_clk_set_info(g,
@@ -684,7 +684,7 @@ static int __nvgpu_clk_arb_worker_start(struct gk20a *g)
 		return err;
 	}
 
-	snprintf(thread_name, sizeof(thread_name),
+	(void) snprintf(thread_name, sizeof(thread_name),
 			"nvgpu_clk_arb_poll_%s", g->name);
 
 	err = nvgpu_thread_create(&g->clk_arb_worker.poll_task, g,
