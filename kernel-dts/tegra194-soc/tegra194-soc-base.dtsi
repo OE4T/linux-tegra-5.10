@@ -1332,10 +1332,8 @@
 				      "hda2hdmi";
 			resets = <&bpmp_resets TEGRA194_RESET_SOR0>,
 				 <&bpmp_resets TEGRA194_RESET_HDA>,
-				 <&bpmp_resets TEGRA194_RESET_HDA2CODEC_2X>,
 				 <&bpmp_resets TEGRA194_RESET_HDA2HDMICODEC>;
-			reset-names = "sor0","hda_rst", "hda2codec_2x_rst",
-				"hda2hdmi_rst";
+			reset-names = "sor0","hda_rst","hda2hdmi_rst";
 
 			sor0_hdmi_display: hdmi-display {
 				compatible = "hdmi,display";
@@ -1372,10 +1370,8 @@
 				      "hda2hdmi";
 			resets = <&bpmp_resets TEGRA194_RESET_SOR1>,
 				 <&bpmp_resets TEGRA194_RESET_HDA>,
-				 <&bpmp_resets TEGRA194_RESET_HDA2CODEC_2X>,
 				 <&bpmp_resets TEGRA194_RESET_HDA2HDMICODEC>;
-			reset-names = "sor1","hda_rst", "hda2codec_2x_rst",
-				"hda2hdmi_rst";
+			reset-names = "sor1","hda_rst","hda2hdmi_rst";
 
 			sor1_hdmi_display: hdmi-display {
 				compatible = "hdmi,display";
@@ -1412,10 +1408,8 @@
 				      "hda2hdmi";
 			resets = <&bpmp_resets TEGRA194_RESET_SOR2>,
 				 <&bpmp_resets TEGRA194_RESET_HDA>,
-				 <&bpmp_resets TEGRA194_RESET_HDA2CODEC_2X>,
 				 <&bpmp_resets TEGRA194_RESET_HDA2HDMICODEC>;
-			reset-names = "sor2","hda_rst", "hda2codec_2x_rst",
-				"hda2hdmi_rst";
+			reset-names = "sor2","hda_rst","hda2hdmi_rst";
 
 			sor2_hdmi_display: hdmi-display {
 				compatible = "hdmi,display";
@@ -1452,10 +1446,8 @@
 				      "hda2hdmi";
 			resets = <&bpmp_resets TEGRA194_RESET_SOR3>,
 				 <&bpmp_resets TEGRA194_RESET_HDA>,
-				 <&bpmp_resets TEGRA194_RESET_HDA2CODEC_2X>,
 				 <&bpmp_resets TEGRA194_RESET_HDA2HDMICODEC>;
-			reset-names = "sor3","hda_rst", "hda2codec_2x_rst",
-				"hda2hdmi_rst";
+			reset-names = "sor3","hda_rst","hda2hdmi_rst";
 
 			sor3_hdmi_display: hdmi-display {
 				compatible = "hdmi,display";
