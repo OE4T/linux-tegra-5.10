@@ -352,7 +352,14 @@ static int devinit_get_fll_device_table(struct gk20a *g,
 			CTRL_CLK_FLL_REGIME_ID_FFR;
 		fll_dev_data.regime_desc.fixed_freq_regime_limit_mhz =
 			(u16)fll_desc_table_entry.ffr_cutoff_freq_mhz;
-		fll_dev_data.regime_desc.target_regime_id_override=0;
+		if (fll_desc_table_entry.fll_device_type == 0x1U) {
+			fll_dev_data.regime_desc.target_regime_id_override = 0U;
+			fll_dev_data.b_dvco_1x = false;
+		} else {
+			fll_dev_data.regime_desc.target_regime_id_override =
+				CTRL_CLK_FLL_REGIME_ID_FFR;
+			fll_dev_data.b_dvco_1x = true;
+		}
 
 		/*construct fll device*/
 		pfll_dev = construct_fll_device(g, (void *)&fll_dev_data);
@@ -377,6 +384,8 @@ u32 nvgpu_clk_get_vbios_clk_domain_gv10x( u32 vbios_domain)
 		return CTRL_CLK_DOMAIN_SYSCLK;
 	} else if (vbios_domain == 5U) {
 		return CTRL_CLK_DOMAIN_NVDCLK;
+	} else if (vbios_domain == 9U) {
+		return CTRL_CLK_DOMAIN_HOSTCLK;
 	}
 	return 0;
 }
@@ -445,6 +454,7 @@ static struct fll_device *construct_fll_device(struct gk20a *g,
 	nvgpu_memcpy((u8 *)&board_obj_fll_ptr->regime_desc,
 		(u8 *)&pfll_dev->regime_desc,
 		sizeof(struct nv_pmu_clk_regime_desc));
+	board_obj_fll_ptr->b_dvco_1x=pfll_dev->b_dvco_1x;
 	boardobjgrpmask_e32_init(
 		&board_obj_fll_ptr->lut_prog_broadcast_slave_mask, NULL);
 
@@ -483,6 +493,7 @@ static int fll_device_init_pmudata_super(struct gk20a *g,
 		pfll_dev->min_freq_vfe_idx;
 	perf_pmu_data->freq_ctrl_idx = pfll_dev->freq_ctrl_idx;
 	perf_pmu_data->b_skip_pldiv_below_dvco_min = pfll_dev->b_skip_pldiv_below_dvco_min;
+	perf_pmu_data->b_dvco_1x = pfll_dev->b_dvco_1x;
 	nvgpu_memcpy((u8 *)&perf_pmu_data->lut_device,
 		(u8 *)&pfll_dev->lut_device,
 		sizeof(struct nv_pmu_clk_lut_device_desc));
