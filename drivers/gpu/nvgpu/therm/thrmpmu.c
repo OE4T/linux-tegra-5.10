@@ -131,11 +131,12 @@ static u32 therm_set_warn_temp_limit(struct gk20a *g)
 	struct nv_pmu_therm_rpc rpccall;
 	struct therm_pmucmdhandler_params handlerparams;
 
-	memset(&payload, 0, sizeof(struct pmu_payload));
-	memset(&cmd, 0, sizeof(struct pmu_cmd));
-	memset(&msg, 0, sizeof(struct pmu_msg));
-	memset(&rpccall, 0, sizeof(struct nv_pmu_therm_rpc));
-	memset(&handlerparams, 0, sizeof(struct therm_pmucmdhandler_params));
+	(void) memset(&payload, 0, sizeof(struct pmu_payload));
+	(void) memset(&cmd, 0, sizeof(struct pmu_cmd));
+	(void) memset(&msg, 0, sizeof(struct pmu_msg));
+	(void) memset(&rpccall, 0, sizeof(struct nv_pmu_therm_rpc));
+	(void) memset(&handlerparams, 0,
+		sizeof(struct therm_pmucmdhandler_params));
 
 	rpccall.function = NV_PMU_THERM_RPC_ID_SLCT_EVENT_TEMP_TH_SET;
 	rpccall.params.slct_event_temp_th_set.event_id =
@@ -200,11 +201,12 @@ static u32 therm_send_slct_configuration_to_pmu(struct gk20a *g)
 	struct nv_pmu_therm_rpc rpccall;
 	struct therm_pmucmdhandler_params handlerparams;
 
-	memset(&payload, 0, sizeof(struct pmu_payload));
-	memset(&cmd, 0, sizeof(struct pmu_cmd));
-	memset(&msg, 0, sizeof(struct pmu_msg));
-	memset(&rpccall, 0, sizeof(struct nv_pmu_therm_rpc));
-	memset(&handlerparams, 0, sizeof(struct therm_pmucmdhandler_params));
+	(void) memset(&payload, 0, sizeof(struct pmu_payload));
+	(void) memset(&cmd, 0, sizeof(struct pmu_cmd));
+	(void) memset(&msg, 0, sizeof(struct pmu_msg));
+	(void) memset(&rpccall, 0, sizeof(struct nv_pmu_therm_rpc));
+	(void) memset(&handlerparams, 0,
+		sizeof(struct therm_pmucmdhandler_params));
 
 	rpccall.function = NV_PMU_THERM_RPC_ID_SLCT;
 	rpccall.params.slct.mask_enabled =
