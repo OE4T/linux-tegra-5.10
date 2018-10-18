@@ -767,6 +767,8 @@ static const struct gpu_ops tu104_ops = {
 		.elcg_init_idle_filters = NULL,
 		.get_internal_sensor_curr_temp =
 			gp106_get_internal_sensor_curr_temp,
+		.get_internal_sensor_limits =
+			gp106_get_internal_sensor_limits,
 	},
 	.pmu = {
 		.init_wpr_region = NULL,
