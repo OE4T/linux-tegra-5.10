@@ -39,6 +39,7 @@ struct gk20a_debug_output {
 #ifdef CONFIG_DEBUG_FS
 extern unsigned int gk20a_debug_trace_cmdbuf;
 
+__attribute__((format (printf, 2, 3)))
 void gk20a_debug_output(struct gk20a_debug_output *o,
 					const char *fmt, ...);
 
@@ -50,6 +51,7 @@ void gk20a_init_debug_ops(struct gpu_ops *gops);
 void gk20a_debug_init(struct gk20a *g, const char *debugfs_symlink);
 void gk20a_debug_deinit(struct gk20a *g);
 #else
+__attribute__((format (printf, 2, 3)))
 static inline void gk20a_debug_output(struct gk20a_debug_output *o,
 					const char *fmt, ...) {}
 
