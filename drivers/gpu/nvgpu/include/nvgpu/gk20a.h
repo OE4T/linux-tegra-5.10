@@ -1139,6 +1139,8 @@ struct gpu_ops {
 		bool support_pmgr_domain;
 		bool support_lpwr_pg;
 		int (*perf_pmu_vfe_load)(struct gk20a *g);
+		bool support_clk_freq_domain;
+		bool support_vf_point;
 		u32 lut_num_entries;
 	} clk;
 	struct {
@@ -1160,6 +1162,7 @@ struct gpu_ops {
 	struct {
 		int (*handle_pmu_perf_event)(struct gk20a *g, void *pmu_msg);
 		bool support_changeseq;
+		bool support_vfe;
 	} pmu_perf;
 	struct {
 		int (*exec_regops)(struct dbg_session_gk20a *dbg_s,

@@ -106,14 +106,16 @@ int gk20a_init_pstate_support(struct gk20a *g)
 		goto err_pmgr_pmu_init_pmupstate;
 	}
 
-	err = vfe_var_sw_setup(g);
-	if (err != 0) {
-		goto err_pmgr_pmu_init_pmupstate;
-	}
+	if (g->ops.pmu_perf.support_vfe) {
+		err = vfe_var_sw_setup(g);
+		if (err != 0) {
+			goto err_pmgr_pmu_init_pmupstate;
+		}
 
-	err = vfe_equ_sw_setup(g);
-	if (err != 0) {
-		goto err_pmgr_pmu_init_pmupstate;
+		err = vfe_equ_sw_setup(g);
+		if (err != 0) {
+			goto err_pmgr_pmu_init_pmupstate;
+		}
 	}
 
 	err = clk_domain_sw_setup(g);
@@ -121,9 +123,12 @@ int gk20a_init_pstate_support(struct gk20a *g)
 		goto err_pmgr_pmu_init_pmupstate;
 	}
 
-	err = clk_vf_point_sw_setup(g);
-	if (err != 0) {
-		goto err_pmgr_pmu_init_pmupstate;
+	if (g->ops.clk.support_vf_point &&
+		g->ops.pmu_perf.support_vfe) {
+		err = clk_vf_point_sw_setup(g);
+		if (err != 0) {
+			goto err_pmgr_pmu_init_pmupstate;
+		}
 	}
 
 	err = clk_prog_sw_setup(g);
@@ -227,14 +232,16 @@ int gk20a_init_pstate_pmu_support(struct gk20a *g)
 		return err;
 	}
 
-	err = vfe_var_pmu_setup(g);
-	if (err != 0U) {
-		return err;
-	}
+	if (g->ops.pmu_perf.support_vfe) {
+		err = vfe_var_pmu_setup(g);
+		if (err != 0U) {
+			return err;
+		}
 
-	err = vfe_equ_pmu_setup(g);
-	if (err != 0U) {
-		return err;
+		err = vfe_equ_pmu_setup(g);
+		if (err != 0U) {
+			return err;
+		}
 	}
 
 	err = clk_domain_pmu_setup(g);
@@ -257,9 +264,12 @@ int gk20a_init_pstate_pmu_support(struct gk20a *g)
 		return err;
 	}
 
-	err = clk_vf_point_pmu_setup(g);
-	if (err != 0U) {
-		return err;
+	if (g->ops.clk.support_vf_point &&
+		g->ops.pmu_perf.support_vfe) {
+		err = clk_vf_point_pmu_setup(g);
+		if (err != 0U) {
+			return err;
+		}
 	}
 
 	if (g->ops.clk.support_clk_freq_controller) {
@@ -274,9 +284,11 @@ int gk20a_init_pstate_pmu_support(struct gk20a *g)
 		return err;
 	}
 
-	err = g->ops.clk.perf_pmu_vfe_load(g);
-	if (err != 0U) {
-		return err;
+	if (g->ops.pmu_perf.support_vfe) {
+		err = g->ops.clk.perf_pmu_vfe_load(g);
+		if (err != 0U) {
+			return err;
+		}
 	}
 
 	if (g->ops.clk.support_pmgr_domain) {
