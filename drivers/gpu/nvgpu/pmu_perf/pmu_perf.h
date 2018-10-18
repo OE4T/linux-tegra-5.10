@@ -28,6 +28,7 @@
 #include "pstate/pstate.h"
 #include "volt/volt.h"
 #include "lpwr/lpwr.h"
+#include "change_seq.h"
 
 #define CTRL_PERF_VFE_VAR_TYPE_INVALID                               0x00U
 #define CTRL_PERF_VFE_VAR_TYPE_DERIVED                               0x01U
@@ -77,6 +78,7 @@ struct perf_pmupstate {
 	struct obj_volt volt;
 	struct obj_lwpr lpwr;
 	struct nvgpu_vfe_invalidate vfe_init;
+	struct change_seq_pmu changeseq_pmu;
 };
 
 int perf_pmu_init_pmupstate(struct gk20a *g);

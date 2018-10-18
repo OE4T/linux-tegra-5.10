@@ -85,9 +85,16 @@
 
 #define CTRL_CLK_CLK_VF_POINT_IDX_INVALID                      255U
 
-#define CTRL_CLK_CLK_VF_POINT_TYPE_FREQ                        0x01U
-#define CTRL_CLK_CLK_VF_POINT_TYPE_VOLT                        0x02U
-#define CTRL_CLK_CLK_VF_POINT_TYPE_UNKNOWN                     255U
+#define CTRL_CLK_CLK_VF_POINT_TYPE_FREQ                         0x01U
+#define CTRL_CLK_CLK_VF_POINT_TYPE_VOLT                         0x02U
+#define CTRL_CLK_CLK_VF_POINT_TYPE_35                           0x03U
+#define CTRL_CLK_CLK_VF_POINT_TYPE_35_FREQ                      0x04U
+#define CTRL_CLK_CLK_VF_POINT_TYPE_35_VOLT                      0x05U
+#define CTRL_CLK_CLK_VF_POINT_TYPE_35_VOLT_SEC                  0x06U
+#define CTRL_CLK_CLK_VF_POINT_TYPE_UNKNOWN                      255U
+
+#define CTRL_CLK_CLK_DOMAIN_CLIENT_MAX_DOMAINS  16
+
 
 struct ctrl_clk_clk_prog_1x_master_source_fll {
 	u32 base_vfsmooth_volt_uv;

@@ -151,4 +151,67 @@ struct nv_pmu_perf_msg {
 	};
 };
 
+struct nv_pmu_rpc_perf_change_seq_queue_change {
+	/*[IN/OUT] Must be first field in RPC structure */
+    struct nv_pmu_rpc_header hdr;
+	struct ctrl_perf_change_seq_change_input change;
+	u32 seq_id;
+	u32  scratch[1];
+};
+
+struct nv_pmu_perf_change_seq_super_info_get {
+	u8 version;
+};
+
+struct nv_pmu_perf_change_seq_pmu_info_get {
+	struct nv_pmu_perf_change_seq_super_info_get  super;
+	u32 cpu_advertised_step_id_mask;
+};
+
+struct nv_pmu_perf_change_seq_super_info_set {
+	u8 version;
+	struct ctrl_boardobjgrp_mask_e32 clk_domains_exclusion_mask;
+	struct ctrl_boardobjgrp_mask_e32 clk_domains_inclusion_mask;
+};
+
+struct nv_pmu_perf_change_seq_pmu_info_set {
+	struct nv_pmu_perf_change_seq_super_info_set super;
+	bool b_lock;
+	bool b_vf_point_check_ignore;
+	u32 cpu_step_id_mask;
+};
+
+struct nv_pmu_rpc_perf_change_seq_info_get {
+	/*[IN/OUT] Must be first field in RPC structure */
+    struct nv_pmu_rpc_header hdr;
+    struct nv_pmu_perf_change_seq_pmu_info_get info_get;
+	u32  scratch[1];
+
+};
+
+struct nv_pmu_rpc_perf_change_seq_info_set {
+	/*[IN/OUT] Must be first field in RPC structure */
+    struct nv_pmu_rpc_header hdr;
+    struct nv_pmu_perf_change_seq_pmu_info_set info_set;
+	u32  scratch[1];
+
+};
+
+NV_PMU_MAKE_ALIGNED_STRUCT(ctrl_perf_change_seq_change,
+		sizeof(struct ctrl_perf_change_seq_change));
+
+NV_PMU_MAKE_ALIGNED_STRUCT(ctrl_perf_change_seq_pmu_script_header,
+		sizeof(struct ctrl_perf_change_seq_pmu_script_header));
+
+NV_PMU_MAKE_ALIGNED_UNION(ctrl_perf_change_seq_pmu_script_step_data,
+		sizeof(union ctrl_perf_change_seq_pmu_script_step_data));
+
+struct perf_change_seq_pmu_script {
+	union ctrl_perf_change_seq_pmu_script_header_aligned hdr;
+	union ctrl_perf_change_seq_change_aligned change;
+	/* below should be an aligned structure */
+	union ctrl_perf_change_seq_pmu_script_step_data_aligned
+		steps[CTRL_PERF_CHANGE_SEQ_PMU_STEP_ID_MAX_STEPS];
+};
+
 #endif  /* NVGPU_PMUIF_GPMUIFPERF_H*/

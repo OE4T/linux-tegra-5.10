@@ -374,6 +374,7 @@ nvgpu-y += \
 	pmu_perf/vfe_equ.o \
 	pmu_perf/pmu_perf.o \
 	pmu_perf/perf_gv100.o \
+	pmu_perf/change_seq.o \
 	clk/clk.o \
 	gp106/clk_gp106.o \
 	gp106/clk_arb_gp106.o \

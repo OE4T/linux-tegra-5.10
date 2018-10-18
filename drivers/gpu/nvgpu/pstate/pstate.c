@@ -28,6 +28,7 @@
 
 #include "clk/clk.h"
 #include "pmu_perf/pmu_perf.h"
+#include "pmu_perf/change_seq.h"
 #include "pmgr/pmgr.h"
 #include "pstate/pstate.h"
 #include "therm/thrm.h"
@@ -150,6 +151,13 @@ int gk20a_init_pstate_support(struct gk20a *g)
 		}
 	}
 
+	if(g->ops.pmu_perf.support_changeseq) {
+		err = nvgpu_perf_change_seq_sw_setup(g);
+		if (err != 0) {
+			goto err_clk_init_pmupstate;
+		}
+	}
+
 	return 0;
 
 err_therm_pmu_init_pmupstate:
@@ -158,6 +166,7 @@ err_perf_pmu_init_pmupstate:
 	perf_pmu_free_pmupstate(g);
 err_clk_init_pmupstate:
 	clk_free_pmupstate(g);
+
 	return err;
 }
 
@@ -251,6 +260,7 @@ int gk20a_init_pstate_pmu_support(struct gk20a *g)
 			return err;
 		}
 	}
+
 	err = clk_pmu_vin_load(g);
 	if (err != 0U) {
 		return err;
@@ -263,6 +273,13 @@ int gk20a_init_pstate_pmu_support(struct gk20a *g)
 
 	if (g->ops.clk.support_pmgr_domain) {
 		err = pmgr_domain_pmu_setup(g);
+	}
+
+	if(g->ops.pmu_perf.support_changeseq) {
+		err = nvgpu_perf_change_seq_pmu_setup(g);
+		if (err != 0U) {
+			return err;
+		}
 	}
 
 	return err;

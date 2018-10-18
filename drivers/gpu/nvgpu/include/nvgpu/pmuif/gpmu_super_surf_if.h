@@ -72,6 +72,11 @@ struct nv_pmu_super_surface {
 		struct nv_pmu_therm_therm_device_boardobj_grp_set therm_device_grp_set;
 		u8 therm_rsvd[0x1460];
 	} therm;
+	struct {
+		struct perf_change_seq_pmu_script script_curr;
+		struct perf_change_seq_pmu_script script_last;
+		struct perf_change_seq_pmu_script script_query;
+	} change_seq;
 };
 
 #endif /* NVGPU_PMUIF_GPMU_SUPER_SURF_IF_H */

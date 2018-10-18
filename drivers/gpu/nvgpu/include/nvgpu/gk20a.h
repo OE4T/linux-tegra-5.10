@@ -1155,6 +1155,7 @@ struct gpu_ops {
 	} clk_arb;
 	struct {
 		int (*handle_pmu_perf_event)(struct gk20a *g, void *pmu_msg);
+		bool support_changeseq;
 	} pmu_perf;
 	struct {
 		int (*exec_regops)(struct dbg_session_gk20a *dbg_s,
