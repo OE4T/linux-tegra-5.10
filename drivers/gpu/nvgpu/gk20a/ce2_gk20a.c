@@ -48,7 +48,7 @@
  */
 #define MAX_CE_SHIFT	31	/* 4Gpixels -1 */
 #define MAX_CE_MASK	((u32) (~(~0U << MAX_CE_SHIFT)))
-#define MAX_CE_ALIGN(a)	(a & MAX_CE_MASK)
+#define MAX_CE_ALIGN(a)	((a) & MAX_CE_MASK)
 
 
 static u32 ce2_nonblockpipe_isr(struct gk20a *g, u32 fifo_intr)

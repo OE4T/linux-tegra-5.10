@@ -37,15 +37,15 @@
 
 #define __lock_sema_sea(s)						\
 	do {								\
-		gpu_sema_verbose_dbg(s->gk20a, "Acquiring sema lock..."); \
-		nvgpu_mutex_acquire(&s->sea_lock);			\
-		gpu_sema_verbose_dbg(s->gk20a, "Sema lock aquried!");	\
+		gpu_sema_verbose_dbg((s)->gk20a, "Acquiring sema lock..."); \
+		nvgpu_mutex_acquire(&(s)->sea_lock);			\
+		gpu_sema_verbose_dbg((s)->gk20a, "Sema lock aquried!");	\
 	} while (0)
 
 #define __unlock_sema_sea(s)						\
 	do {								\
-		nvgpu_mutex_release(&s->sea_lock);			\
-		gpu_sema_verbose_dbg(s->gk20a, "Released sema lock");	\
+		nvgpu_mutex_release(&(s)->sea_lock);			\
+		gpu_sema_verbose_dbg((s)->gk20a, "Released sema lock");	\
 	} while (0)
 
 /*

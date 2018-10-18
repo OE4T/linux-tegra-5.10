@@ -38,7 +38,7 @@
 
 #define __gmmu_dbg(g, attrs, fmt, args...)				\
 	do {								\
-		if (attrs->debug) {					\
+		if ((attrs)->debug) {					\
 			nvgpu_info(g, fmt, ##args);			\
 		} else {						\
 			nvgpu_log(g, gpu_dbg_map, fmt, ##args);		\
@@ -47,7 +47,7 @@
 
 #define __gmmu_dbg_v(g, attrs, fmt, args...)				\
 	do {								\
-		if (attrs->debug) {					\
+		if ((attrs)->debug) {					\
 			nvgpu_info(g, fmt, ##args);			\
 		} else {						\
 			nvgpu_log(g, gpu_dbg_map_v, fmt, ##args);	\

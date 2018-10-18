@@ -57,7 +57,7 @@
 #define PATCH_CTX_SLOTS_REQUIRED_PER_ENTRY	2
 #define PATCH_CTX_SLOTS_PER_PAGE \
 	(PAGE_SIZE/(PATCH_CTX_SLOTS_REQUIRED_PER_ENTRY * sizeof(u32)))
-#define PATCH_CTX_ENTRIES_FROM_SIZE(size) (size/sizeof(u32))
+#define PATCH_CTX_ENTRIES_FROM_SIZE(size) ((size)/sizeof(u32))
 
 #define NVGPU_PREEMPTION_MODE_GRAPHICS_WFI	(1 << 0)
 #define NVGPU_PREEMPTION_MODE_GRAPHICS_GFXP	(1 << 1)
@@ -593,15 +593,15 @@ u32 gk20a_gr_get_sm_no_lock_down_hww_global_esr_mask(struct gk20a *g);
 #define gr_gk20a_elpg_protected_call(g, func) \
 	({ \
 		int err = 0; \
-		if ((g->support_pmu) && (g->elpg_enabled)) {\
+		if (((g)->support_pmu) && ((g)->elpg_enabled)) {\
 			err = nvgpu_pmu_disable_elpg(g); \
 			if (err != 0) {\
 				nvgpu_pmu_enable_elpg(g); \
 			} \
 		} \
 		if (err == 0) { \
-			err = func; \
-			if ((g->support_pmu) && (g->elpg_enabled)) {\
+			err = (func); \
+			if (((g)->support_pmu) && ((g)->elpg_enabled)) {\
 				nvgpu_pmu_enable_elpg(g); \
 			} \
 		} \

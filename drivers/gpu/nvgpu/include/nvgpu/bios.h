@@ -529,9 +529,9 @@ struct vfield_header {
 
 #define VBIOS_VFIELD_TABLE_VERSION_1_0  0x10U
 
-#define VFIELD_BIT_START(ventry) (ventry.strap_desc & 0x1FU)
-#define VFIELD_BIT_STOP(ventry)	((ventry.strap_desc & 0x3E0U) >> 5U)
-#define VFIELD_BIT_REG(ventry) ((ventry.strap_desc & 0x3C00U) >> 10U)
+#define VFIELD_BIT_START(ventry) ((ventry).strap_desc & 0x1FU)
+#define VFIELD_BIT_STOP(ventry)	(((ventry).strap_desc & 0x3E0U) >> 5U)
+#define VFIELD_BIT_REG(ventry) (((ventry).strap_desc & 0x3C00U) >> 10U)
 
 #define VFIELD_ENTRY_SIZE 3U
 

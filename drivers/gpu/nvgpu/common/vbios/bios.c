@@ -160,7 +160,7 @@ struct falcon_ucode_table_entry_v1 {
 
 #define FALCON_UCODE_FLAGS_VERSION_AVAILABLE 	0x1U
 #define FALCON_UCODE_IS_VERSION_AVAILABLE(hdr)           \
-	((hdr.v2.v_desc & FALCON_UCODE_FLAGS_VERSION_AVAILABLE) == \
+	(((hdr).v2.v_desc & FALCON_UCODE_FLAGS_VERSION_AVAILABLE) == \
 	FALCON_UCODE_FLAGS_VERSION_AVAILABLE)
 
 /*
@@ -169,10 +169,10 @@ struct falcon_ucode_table_entry_v1 {
  */
 
 #define FALCON_UCODE_GET_VERSION(hdr) \
-	((hdr.v2.v_desc >> 8) & 0xffU)
+	(((hdr).v2.v_desc >> 8) & 0xffU)
 
 #define FALCON_UCODE_GET_DESC_SIZE(hdr) \
-	((hdr.v2.v_desc >> 16) & 0xffffU)
+	(((hdr).v2.v_desc >> 16) & 0xffffU)
 
 struct falcon_ucode_desc_v1 {
 	union {

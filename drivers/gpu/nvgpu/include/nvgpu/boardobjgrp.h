@@ -263,17 +263,19 @@ struct boardobjgrp {
 * If @ref _pmask is provided only objects specified by the mask are traversed.
 */
 #define BOARDOBJGRP_ITERATOR(_pgrp, _ptype, _pobj, _index, _pmask)             \
-	for (_index = CTRL_BOARDOBJ_IDX_INVALID,                             \
-	_pobj  = (_ptype)boardobjgrpobjgetnextsafe((_pgrp), &_index, (_pmask));\
-	_pobj != NULL;                                                         \
-	_pobj  = (_ptype)boardobjgrpobjgetnextsafe((_pgrp), &_index, (_pmask)))
+	for ((_index) = CTRL_BOARDOBJ_IDX_INVALID,                             \
+	(_pobj)  = (_ptype)boardobjgrpobjgetnextsafe((_pgrp),		       \
+						     &(_index), (_pmask));     \
+	(_pobj) != NULL;                                                       \
+	(_pobj)  = (_ptype)boardobjgrpobjgetnextsafe((_pgrp),		       \
+						     &(_index), (_pmask)))
 #define BOARDOBJGRP_FOR_EACH(_pgrp, _ptype, _pobj, _index)                     \
 	BOARDOBJGRP_ITERATOR(_pgrp, _ptype, _pobj, _index, NULL)
 
 #define BOARDOBJGRP_FOR_EACH_INDEX_IN_MASK(mask_width, index, mask)        \
 {                                                           \
 	u##mask_width lcl_msk = (u##mask_width)(mask);         \
-	for (index = 0; lcl_msk != 0U; index++, lcl_msk >>= 1U) {     \
+	for ((index) = 0; lcl_msk != 0U; (index)++, lcl_msk >>= 1U) {     \
 		if (((u##mask_width)((u64)1) & lcl_msk) == 0U) {     \
 			continue;                                       \
 		}
@@ -323,7 +325,7 @@ do {                                                                          \
 
 #define BOARDOBJGRP_PMU_CMD_GRP_SET_CONSTRUCT(g, pboardobjgrp, eng, ENG, \
 	class, CLASS)                                                 \
-	g->ops.pmu_ver.boardobj.boardobjgrp_pmucmd_construct_impl(    \
+	(g)->ops.pmu_ver.boardobj.boardobjgrp_pmucmd_construct_impl(    \
 	g,                                              /* pgpu */    \
 	pboardobjgrp,                                      /* pboardobjgrp */ \
 	&((pboardobjgrp)->pmu.set),                        /* pcmd */         \
@@ -337,7 +339,7 @@ do {                                                                          \
 
 #define BOARDOBJGRP_PMU_CMD_GRP_GET_STATUS_CONSTRUCT(g, pboardobjgrp, \
 	eng, ENG, class, CLASS)                                       \
-	g->ops.pmu_ver.boardobj.boardobjgrp_pmucmd_construct_impl(    \
+	(g)->ops.pmu_ver.boardobj.boardobjgrp_pmucmd_construct_impl(    \
 	g,                                              /* pGpu */    \
 	pboardobjgrp,                                      /* pBoardObjGrp */ \
 	&((pboardobjgrp)->pmu.getstatus),                  /* pCmd */         \
@@ -379,10 +381,10 @@ void boardobjgrpe32hdrset(struct nv_pmu_boardobjgrp *hdr, u32 objmask);
 #define HIGHESTBITIDX_32(n32)   \
 {                               \
 	u32 count = 0U;        \
-	while (n32 >>= 1U) {       \
+	while ((n32) >>= 1U) {       \
 		count++;       \
 	}                      \
-	n32 = count;            \
+	(n32) = count;            \
 }
 
 #define LOWESTBIT(x)            ((x) &  (((x)-1U) ^ (x)))
@@ -403,9 +405,9 @@ void boardobjgrpe32hdrset(struct nv_pmu_boardobjgrp *hdr, u32 objmask);
 
 #define NUMSETBITS_32(n32)                                         \
 {                                                                  \
-	n32 = n32 - ((n32 >> 1U) & 0x55555555U);                         \
-	n32 = (n32 & 0x33333333U) + ((n32 >> 2U) & 0x33333333U);          \
-	n32 = (((n32 + (n32 >> 4U)) & 0x0F0F0F0FU) * 0x01010101U) >> 24U;  \
+	(n32) = (n32) - (((n32) >> 1U) & 0x55555555U);                         \
+	(n32) = ((n32) & 0x33333333U) + (((n32) >> 2U) & 0x33333333U);         \
+	(n32) = ((((n32) + ((n32) >> 4U)) & 0x0F0F0F0FU) * 0x01010101U) >> 24U;\
 }
 
 #define IDX_32(n32)                     \

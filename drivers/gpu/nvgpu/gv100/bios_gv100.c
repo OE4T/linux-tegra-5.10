@@ -35,7 +35,7 @@
 #define PMU_BOOT_TIMEOUT_MAX		2000000 /* usec */
 
 #define SCRATCH_PREOS_PROGRESS	6
-#define PREOS_PROGRESS_MASK(r)		((r >> 12) & 0xf)
+#define PREOS_PROGRESS_MASK(r)		(((r) >> 12) & 0xf)
 #define PREOS_PROGRESS_NOT_STARTED	0
 #define PREOS_PROGRESS_STARTED		1
 #define PREOS_PROGRESS_EXIT		2
@@ -43,11 +43,11 @@
 #define PREOS_PROGRESS_ABORTED		6
 
 #define SCRATCH_PMU_EXIT_AND_HALT	1
-#define PMU_EXIT_AND_HALT_SET(r, v)	((r & ~0x200UL) | v)
+#define PMU_EXIT_AND_HALT_SET(r, v)	(((r) & ~0x200UL) | (v))
 #define PMU_EXIT_AND_HALT_YES		(0x1UL << 9)
 
 #define SCRATCH_PRE_OS_RELOAD		1
-#define PRE_OS_RELOAD_SET(r, v)		((r & ~0x100UL) | v)
+#define PRE_OS_RELOAD_SET(r, v)		(((r) & ~0x100UL) | (v))
 #define PRE_OS_RELOAD_YES		(0x1UL << 8)
 
 

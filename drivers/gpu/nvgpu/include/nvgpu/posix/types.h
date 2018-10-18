@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2018, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -64,11 +64,11 @@ typedef signed long long	s64;
 
 #define min(a, b)			\
 	({				\
-		(a) < (b) ? a : b;	\
+		(a) < (b) ? (a) : (b);	\
 	})
 #define max(a, b)			\
 	({				\
-		(a) > (b) ? a : b;	\
+		(a) > (b) ? (a) : (b);	\
 	})
 #define min3(a, b, c)			min(min(a, b), c)
 
@@ -183,7 +183,7 @@ static inline unsigned long __hweight64(uint64_t x)
 #define WRITE_ONCE(p, v)				\
 	({						\
 		volatile typeof(p) *__p__ = &(p);	\
-		*__p__ = v;				\
+		*__p__ = (v);				\
 	})
 
 #define container_of(ptr, type, member) ({                      \

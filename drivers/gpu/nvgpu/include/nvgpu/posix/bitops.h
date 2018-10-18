@@ -31,7 +31,7 @@
 #define BITS_PER_BYTE	8UL
 #define BITS_PER_LONG 	(__SIZEOF_LONG__ * BITS_PER_BYTE)
 #define BITS_TO_LONGS(bits)			\
-	(bits + (BITS_PER_LONG - 1) / BITS_PER_LONG)
+	((bits) + (BITS_PER_LONG - 1) / BITS_PER_LONG)
 
 /*
  * Deprecated; use the explicit BITxx() macros instead.

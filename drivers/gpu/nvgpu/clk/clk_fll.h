@@ -71,11 +71,11 @@ u32 nvgpu_clk_get_vbios_clk_domain_gv10x( u32 vbios_domain);
 u32 nvgpu_clk_get_vbios_clk_domain_gp10x( u32 vbios_domain);
 
 #define CLK_FLL_LUT_VF_NUM_ENTRIES(pclk) \
-	(pclk->avfs_fllobjs.lut_num_entries)
+	((pclk)->avfs_fllobjs.lut_num_entries)
 
 #define CLK_FLL_LUT_MIN_VOLTAGE_UV(pclk) \
-	(pclk->avfs_fllobjs.lut_min_voltage_uv)
+	((pclk)->avfs_fllobjs.lut_min_voltage_uv)
 #define CLK_FLL_LUT_STEP_SIZE_UV(pclk) \
-	(pclk->avfs_fllobjs.lut_step_size_uv)
+	((pclk)->avfs_fllobjs.lut_step_size_uv)
 
 #endif /* NVGPU_CLK_FLL_H */

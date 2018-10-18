@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2018, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -91,14 +91,14 @@ static inline void nvgpu_list_replace_init(struct nvgpu_list_node *old_node, str
 	nvgpu_list_entry((ptr)->prev, type, member)
 
 #define nvgpu_list_for_each_entry(pos, head, type, member)	\
-	for (pos = nvgpu_list_first_entry(head, type, member);	\
-		&pos->member != (head);				\
-		pos = nvgpu_list_next_entry(pos, type, member))
+	for ((pos) = nvgpu_list_first_entry(head, type, member);	\
+		&(pos)->member != (head);				\
+		(pos) = nvgpu_list_next_entry(pos, type, member))
 
 #define nvgpu_list_for_each_entry_safe(pos, n, head, type, member)	\
-	for (pos = nvgpu_list_first_entry(head, type, member),		\
-			n = nvgpu_list_next_entry(pos, type, member);	\
-		&pos->member != (head);					\
-		pos = n, n = nvgpu_list_next_entry(n, type, member))
+	for ((pos) = nvgpu_list_first_entry(head, type, member),	\
+			(n) = nvgpu_list_next_entry(pos, type, member);	\
+		&(pos)->member != (head);				\
+		(pos) = (n), (n) = nvgpu_list_next_entry(n, type, member))
 
 #endif /* NVGPU_LIST_H */
