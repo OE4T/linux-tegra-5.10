@@ -68,7 +68,7 @@ int vgpu_ecc_get_info(struct gk20a *g)
 
 	for (i = 0; i < count; i++) {
 		stats[i].ecc_id = entry[i].ecc_id;
-		strncpy(stats[i].name, entry[i].name,
+		(void) strncpy(stats[i].name, entry[i].name,
 			NVGPU_ECC_STAT_NAME_MAX_SIZE);
 	}
 

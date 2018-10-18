@@ -33,7 +33,8 @@ int gv100_pmu_init_acr(struct gk20a *g)
 	struct nv_pmu_rpc_struct_acr_init_wpr_region rpc;
 	int status = 0;
 
-	memset(&rpc, 0, sizeof(struct nv_pmu_rpc_struct_acr_init_wpr_region));
+	(void) memset(&rpc, 0,
+		sizeof(struct nv_pmu_rpc_struct_acr_init_wpr_region));
 	rpc.wpr_regionId = 0x1;
 	rpc.wpr_offset = 0x0;
 	PMU_RPC_EXECUTE(status, pmu, ACR, INIT_WPR_REGION, &rpc, 0);
@@ -73,7 +74,8 @@ int gv100_load_falcon_ucode(struct gk20a *g, u32 falconidmask)
 		}
 	}
 
-	memset(&rpc, 0, sizeof(struct nv_pmu_rpc_struct_acr_bootstrap_gr_falcons));
+	(void) memset(&rpc, 0,
+		sizeof(struct nv_pmu_rpc_struct_acr_bootstrap_gr_falcons));
 	rpc.falcon_id_mask = falconidmask;
 	rpc.flags = flags;
 	rpc.falcon_va_mask = 0;

@@ -169,7 +169,7 @@ struct gk20a_fence *gk20a_alloc_fence(struct channel_gk20a *c)
 
 			/* clear the node and reset the allocator pointer */
 			if (fence) {
-				memset(fence, 0, sizeof(*fence));
+				(void) memset(fence, 0, sizeof(*fence));
 				fence->allocator = &c->fence_allocator;
 			}
 		}

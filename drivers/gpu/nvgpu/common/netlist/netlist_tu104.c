@@ -32,7 +32,7 @@ int tu104_netlist_get_name(struct gk20a *g, int index, char *name)
 
 	switch (ver) {
 		case NVGPU_GPUID_NEXT:
-			sprintf(name, "%s/%s", "tu104", "NETC_img.bin");
+			(void) sprintf(name, "%s/%s", "tu104", "NETC_img.bin");
 			break;
 		default:
 			nvgpu_err(g, "no support for GPUID %x", ver);

@@ -338,7 +338,7 @@ int gpccs_ucode_details(struct gk20a *g, struct flcn_ucode_img_v1 *p_img)
 		err = -ENOMEM;
 		goto rel_sig;
 	}
-	memcpy(lsf_desc, (void *)gpccs_sig->data,
+	(void) memcpy(lsf_desc, (void *)gpccs_sig->data,
 			min_t(size_t, sizeof(*lsf_desc), gpccs_sig->size));
 	lsf_desc->falcon_id = LSF_FALCON_ID_GPCCS;
 
@@ -522,7 +522,7 @@ int gp106_prepare_ucode_blob(struct gk20a *g)
 		return 0;
 	}
 	plsfm = &lsfm_l;
-	memset((void *)plsfm, 0, sizeof(struct ls_flcn_mgr_v1));
+	(void) memset((void *)plsfm, 0, sizeof(struct ls_flcn_mgr_v1));
 	gr_gk20a_init_ctxsw_ucode(g);
 
 	g->acr.get_wpr_info(g, &wpr_inf);
@@ -587,7 +587,7 @@ int lsfm_discover_ucode_images(struct gk20a *g,
 
 	/* LSFM requires a secure PMU, discover it first.*/
 	/* Obtain the PMU ucode image and add it to the list if required*/
-	memset(&ucode_img, 0, sizeof(ucode_img));
+	(void) memset(&ucode_img, 0, sizeof(ucode_img));
 	status = pmu_ucode_details(g, &ucode_img);
 	if (status != 0) {
 		return status;
@@ -627,7 +627,7 @@ int lsfm_discover_ucode_images(struct gk20a *g,
 	/*0th index is always PMU which is already handled in earlier
 	if condition*/
 	for (i = 1; i < g->acr.max_supported_lsfm; i++) {
-		memset(&ucode_img, 0, sizeof(ucode_img));
+		(void) memset(&ucode_img, 0, sizeof(ucode_img));
 		if (pmu_acr_supp_ucode_list[i](g, &ucode_img) == 0) {
 			if (ucode_img.lsf_desc != NULL) {
 				/* We have engine sigs, ensure that this falcon
@@ -721,7 +721,8 @@ int gp106_pmu_populate_loader_cfg(struct gk20a *g,
 	gp106_dbg_pmu(g, "addr_args %x\n", addr_args);
 
 	/* Populate the LOADER_CONFIG state */
-	memset((void *) ldr_cfg, 0, sizeof(struct flcn_bl_dmem_desc_v1));
+	(void) memset((void *) ldr_cfg, 0,
+		sizeof(struct flcn_bl_dmem_desc_v1));
 	ldr_cfg->ctx_dma = GK20A_PMU_DMAIDX_UCODE;
 	flcn64_set_dma(&ldr_cfg->code_dma_base, addr_code);
 	ldr_cfg->non_sec_code_off = desc->app_resident_code_offset;
@@ -786,7 +787,8 @@ int gp106_flcn_populate_bl_dmem_desc(struct gk20a *g,
 			addr_code, addr_data, desc->bootloader_start_offset);
 
 	/* Populate the LOADER_CONFIG state */
-	memset((void *) ldr_cfg, 0, sizeof(struct flcn_bl_dmem_desc_v1));
+	(void) memset((void *) ldr_cfg, 0,
+		sizeof(struct flcn_bl_dmem_desc_v1));
 
 	if (falconid == LSF_FALCON_ID_SEC2) {
 		addr_code = addr_base + desc->app_start_offset;
@@ -876,7 +878,7 @@ void lsfm_init_wpr_contents(struct gk20a *g,
 
 	/* The WPR array is at the base of the WPR */
 	pnode = plsfm->ucode_img_list;
-	memset(&last_wpr_hdr, 0, sizeof(struct lsf_wpr_header_v1));
+	(void) memset(&last_wpr_hdr, 0, sizeof(struct lsf_wpr_header_v1));
 	i = 0;
 
 	if (nvgpu_is_enabled(g, NVGPU_SUPPORT_MULTIPLE_WPR)) {
@@ -1015,7 +1017,8 @@ void lsfm_fill_static_lsb_hdr_info(struct gk20a *g,
 	u32 data = 0;
 
 	if (pnode->ucode_img.lsf_desc) {
-		memcpy(&pnode->lsb_header.signature, pnode->ucode_img.lsf_desc,
+		(void) memcpy(&pnode->lsb_header.signature,
+			pnode->ucode_img.lsf_desc,
 			sizeof(struct lsf_ucode_desc_v1));
 	}
 	pnode->lsb_header.ucode_size = pnode->ucode_img.data_size;
@@ -1090,7 +1093,8 @@ int lsfm_add_ucode_img(struct gk20a *g, struct ls_flcn_mgr_v1 *plsfm,
 	}
 
 	/* Keep a copy of the ucode image info locally */
-	memcpy(&pnode->ucode_img, ucode_image, sizeof(struct flcn_ucode_img_v1));
+	(void) memcpy(&pnode->ucode_img, ucode_image,
+		sizeof(struct flcn_ucode_img_v1));
 
 	/* Fill in static WPR header info*/
 	pnode->wpr_header.falcon_id = falcon_id;
@@ -1322,7 +1326,7 @@ int gp106_acr_fill_bl_dmem_desc(struct gk20a *g,
 
 	nvgpu_log_fn(g, " ");
 
-	memset(bl_dmem_desc, 0U, sizeof(struct flcn_bl_dmem_desc_v1));
+	(void) memset(bl_dmem_desc, 0U, sizeof(struct flcn_bl_dmem_desc_v1));
 
 	bl_dmem_desc->signature[0] = 0U;
 	bl_dmem_desc->signature[1] = 0U;

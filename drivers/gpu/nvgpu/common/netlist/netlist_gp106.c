@@ -31,11 +31,11 @@ int gp106_netlist_get_name(struct gk20a *g, int index, char *name)
 
 	switch (ver) {
 		case NVGPU_GPUID_GP104:
-			sprintf(name, "%s/%s", "gp104",
+			(void) sprintf(name, "%s/%s", "gp104",
 					GP104_NETLIST_IMAGE_FW_NAME);
 			break;
 		case NVGPU_GPUID_GP106:
-			sprintf(name, "%s/%s", "gp106",
+			(void) sprintf(name, "%s/%s", "gp106",
 					GP106_NETLIST_IMAGE_FW_NAME);
 			break;
 		default:

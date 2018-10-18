@@ -282,7 +282,7 @@ void gp10b_fifo_get_mmu_fault_info(struct gk20a *g, u32 mmu_fault_id,
 
 	nvgpu_log_fn(g, "mmu_fault_id %d", mmu_fault_id);
 
-	memset(mmfault, 0, sizeof(*mmfault));
+	(void) memset(mmfault, 0, sizeof(*mmfault));
 
 	fault_info = gk20a_readl(g,
 		fifo_intr_mmu_fault_info_r(mmu_fault_id));

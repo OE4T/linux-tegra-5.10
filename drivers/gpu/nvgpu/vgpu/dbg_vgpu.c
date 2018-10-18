@@ -60,7 +60,7 @@ int vgpu_exec_regops(struct dbg_session_gk20a *dbg_s,
 		goto fail;
 	}
 
-	memcpy(oob, ops, ops_size);
+	(void) memcpy(oob, ops, ops_size);
 
 	msg.cmd = TEGRA_VGPU_CMD_REG_OPS;
 	msg.handle = vgpu_get_handle(dbg_s->g);
@@ -70,8 +70,9 @@ int vgpu_exec_regops(struct dbg_session_gk20a *dbg_s,
 	p->is_profiler = dbg_s->is_profiler;
 	err = vgpu_comm_sendrecv(&msg, sizeof(msg), sizeof(msg));
 	err = err ? err : msg.ret;
-	if (!err)
-		memcpy(ops, oob, ops_size);
+	if (!err) {
+		(void) memcpy(ops, oob, ops_size);
+	}
 
 fail:
 	vgpu_ivc_oob_put_ptr(handle);

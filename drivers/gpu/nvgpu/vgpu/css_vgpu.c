@@ -114,7 +114,7 @@ static int vgpu_css_init_snapshot_buffer(struct gr_gk20a *gr)
 	data->hw_end = data->hw_snapshot +
 		size / sizeof(struct gk20a_cs_snapshot_fifo_entry);
 	data->hw_get = data->hw_snapshot;
-	memset(data->hw_snapshot, 0xff, size);
+	(void) memset(data->hw_snapshot, 0xff, size);
 	return 0;
 fail:
 	vgpu_ivm_mempool_unreserve(css_cookie);

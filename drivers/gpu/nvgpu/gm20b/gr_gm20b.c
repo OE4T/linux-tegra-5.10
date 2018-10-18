@@ -1391,7 +1391,8 @@ int gm20b_gr_clear_sm_error_state(struct gk20a *g,
 
 	nvgpu_mutex_acquire(&g->dbg_sessions_lock);
 
-	memset(&tsg->sm_error_states[sm_id], 0, sizeof(*tsg->sm_error_states));
+	(void) memset(&tsg->sm_error_states[sm_id], 0,
+		sizeof(*tsg->sm_error_states));
 
 	err = gr_gk20a_disable_ctxsw(g);
 	if (err != 0) {

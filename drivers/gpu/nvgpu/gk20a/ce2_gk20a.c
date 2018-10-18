@@ -517,7 +517,8 @@ u32 gk20a_ce_create_context(struct gk20a *g,
 		goto end;
 	}
 
-	memset(ce_ctx->cmd_buf_mem.cpu_va, 0x00, ce_ctx->cmd_buf_mem.size);
+	(void) memset(ce_ctx->cmd_buf_mem.cpu_va, 0x00,
+		ce_ctx->cmd_buf_mem.size);
 
 	/* -1 means default channel timeslice value */
 	if (timeslice != -1) {

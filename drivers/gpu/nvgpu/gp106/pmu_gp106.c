@@ -120,7 +120,7 @@ int gp106_pg_param_init(struct gk20a *g, u32 pg_engine_id)
 	u32 seq;
 	u32 status;
 
-	memset(&cmd, 0, sizeof(struct pmu_cmd));
+	(void) memset(&cmd, 0, sizeof(struct pmu_cmd));
 	if (pg_engine_id == PMU_PG_ELPG_ENGINE_ID_GRAPHICS) {
 
 		status = init_rppg(g);
@@ -249,7 +249,7 @@ static void gp106_pmu_load_multiple_falcons(struct gk20a *g, u32 falconidmask,
 	gp106_dbg_pmu(g, "wprinit status = %x\n", g->pmu_lsf_pmu_wpr_init_done);
 	if (g->pmu_lsf_pmu_wpr_init_done) {
 		/* send message to load FECS falcon */
-		memset(&cmd, 0, sizeof(struct pmu_cmd));
+		(void) memset(&cmd, 0, sizeof(struct pmu_cmd));
 		cmd.hdr.unit_id = PMU_UNIT_ACR;
 		cmd.hdr.size = PMU_CMD_HDR_SIZE +
 		  sizeof(struct pmu_acr_cmd_bootstrap_multiple_falcons);

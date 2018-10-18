@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2017, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2015-2018, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -30,27 +30,27 @@ int gp10b_netlist_get_name(struct gk20a *g, int index, char *name)
 	switch (index) {
 #ifdef GP10B_NETLIST_IMAGE_FW_NAME
 	case NETLIST_FINAL:
-		sprintf(name, GP10B_NETLIST_IMAGE_FW_NAME);
+		(void) sprintf(name, GP10B_NETLIST_IMAGE_FW_NAME);
 		return 0;
 #endif
 #ifdef NVGPU_NETLIST_IMAGE_A
 	case NETLIST_SLOT_A:
-		sprintf(name, NVGPU_NETLIST_IMAGE_A);
+		(void) sprintf(name, NVGPU_NETLIST_IMAGE_A);
 		return 0;
 #endif
 #ifdef NVGPU_NETLIST_IMAGE_B
 	case NETLIST_SLOT_B:
-		sprintf(name, NVGPU_NETLIST_IMAGE_B);
+		(void) sprintf(name, NVGPU_NETLIST_IMAGE_B);
 		return 0;
 #endif
 #ifdef NVGPU_NETLIST_IMAGE_C
 	case NETLIST_SLOT_C:
-		sprintf(name, NVGPU_NETLIST_IMAGE_C);
+		(void) sprintf(name, NVGPU_NETLIST_IMAGE_C);
 		return 0;
 #endif
 #ifdef NVGPU_NETLIST_IMAGE_D
 	case NETLIST_SLOT_D:
-		sprintf(name, NVGPU_NETLIST_IMAGE_D);
+		(void) sprintf(name, NVGPU_NETLIST_IMAGE_D);
 		return 0;
 #endif
 	default:

@@ -449,7 +449,7 @@ int gv11b_pg_gr_init(struct gk20a *g, u32 pg_engine_id)
 	u32 seq;
 
 	if (pg_engine_id == PMU_PG_ELPG_ENGINE_ID_GRAPHICS) {
-		memset(&cmd, 0, sizeof(struct pmu_cmd));
+		(void) memset(&cmd, 0, sizeof(struct pmu_cmd));
 		cmd.hdr.unit_id = PMU_UNIT_PG;
 		cmd.hdr.size = PMU_CMD_HDR_SIZE +
 				sizeof(struct pmu_pg_cmd_gr_init_param_v1);
@@ -478,7 +478,7 @@ int gv11b_pg_set_subfeature_mask(struct gk20a *g, u32 pg_engine_id)
 	u32 seq;
 
 	if (pg_engine_id == PMU_PG_ELPG_ENGINE_ID_GRAPHICS) {
-		memset(&cmd, 0, sizeof(struct pmu_cmd));
+		(void) memset(&cmd, 0, sizeof(struct pmu_cmd));
 		cmd.hdr.unit_id = PMU_UNIT_PG;
 		cmd.hdr.size = PMU_CMD_HDR_SIZE +
 			sizeof(struct pmu_pg_cmd_sub_feature_mask_update);

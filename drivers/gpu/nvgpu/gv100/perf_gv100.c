@@ -45,7 +45,8 @@ static int pmu_set_boot_clk_runcb_fn(void *arg)
 
 		vfe_init->state_change = false;
 
-		memset(&rpc, 0, sizeof(struct nv_pmu_rpc_struct_perf_load));
+		(void) memset(&rpc, 0,
+			sizeof(struct nv_pmu_rpc_struct_perf_load));
 		PMU_RPC_EXECUTE_CPB(status, pmu, PERF, VFE_INVALIDATE, &rpc, 0);
 		if (status != 0) {
 			nvgpu_err(g, "Failed to execute RPC status=0x%x",
@@ -85,7 +86,7 @@ u32 perf_pmu_init_vfe_perf_event(struct gk20a *g)
 
 	nvgpu_cond_init(&perf_pmu->vfe_init.wq);
 
-	snprintf(thread_name, sizeof(thread_name),
+	(void) snprintf(thread_name, sizeof(thread_name),
 				"nvgpu_vfe_invalidate_init_%s", g->name);
 
 	err = nvgpu_thread_create(&perf_pmu->vfe_init.state_task, g,
@@ -104,7 +105,7 @@ u32 gv100_perf_pmu_vfe_load(struct gk20a *g)
 	struct nv_pmu_rpc_struct_perf_load rpc;
 	u32 status = 0;
 
-	memset(&rpc, 0, sizeof(struct nv_pmu_rpc_struct_perf_load));
+	(void) memset(&rpc, 0, sizeof(struct nv_pmu_rpc_struct_perf_load));
 	PMU_RPC_EXECUTE_CPB(status, pmu, PERF, VFE_INVALIDATE, &rpc, 0);
 	if (status != 0U) {
 		nvgpu_err(g, "Failed to execute RPC status=0x%x",

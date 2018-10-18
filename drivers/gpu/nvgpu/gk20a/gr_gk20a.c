@@ -2632,9 +2632,9 @@ static void gr_gk20a_unmap_global_ctx_buffers(struct gk20a *g,
 		}
 	}
 
-	memset(g_bfr_va, 0, sizeof(gr_ctx->global_ctx_buffer_va));
-	memset(g_bfr_size, 0, sizeof(gr_ctx->global_ctx_buffer_size));
-	memset(g_bfr_index, 0, sizeof(gr_ctx->global_ctx_buffer_index));
+	(void) memset(g_bfr_va, 0, sizeof(gr_ctx->global_ctx_buffer_va));
+	(void) memset(g_bfr_size, 0, sizeof(gr_ctx->global_ctx_buffer_size));
+	(void) memset(g_bfr_index, 0, sizeof(gr_ctx->global_ctx_buffer_index));
 
 	gr_ctx->global_ctx_buffer_mapped = false;
 }
@@ -2848,7 +2848,7 @@ void gr_gk20a_free_gr_ctx(struct gk20a *g,
 		nvgpu_dma_unmap_free(vm, &gr_ctx->preempt_ctxsw_buffer);
 		nvgpu_dma_unmap_free(vm, &gr_ctx->mem);
 
-		memset(gr_ctx, 0, sizeof(*gr_ctx));
+		(void) memset(gr_ctx, 0, sizeof(*gr_ctx));
 	}
 }
 
@@ -3081,7 +3081,8 @@ static void gk20a_remove_gr_support(struct gr_gk20a *gr)
 
 	nvgpu_dma_free(g, &gr->compbit_store.mem);
 
-	memset(&gr->compbit_store, 0, sizeof(struct compbit_store_desc));
+	(void) memset(&gr->compbit_store, 0,
+		sizeof(struct compbit_store_desc));
 
 	nvgpu_kfree(g, gr->gpc_tpc_count);
 	nvgpu_kfree(g, gr->gpc_zcb_count);
@@ -3149,7 +3150,7 @@ static int gr_gk20a_init_gr_config(struct gk20a *g, struct gr_gk20a *gr)
 			goto clean_up;
 		}
 	} else {
-		memset(gr->fbp_rop_l2_en_mask, 0, gr->max_fbps_count *
+		(void) memset(gr->fbp_rop_l2_en_mask, 0, gr->max_fbps_count *
 				sizeof(u32));
 	}
 
@@ -3181,7 +3182,7 @@ static int gr_gk20a_init_gr_config(struct gk20a *g, struct gr_gk20a *gr)
 		gr->gpc_tpc_count = nvgpu_kzalloc(g, gr->gpc_count *
 					sizeof(u32));
 	} else {
-		memset(gr->gpc_tpc_count, 0, gr->gpc_count *
+		(void) memset(gr->gpc_tpc_count, 0, gr->gpc_count *
 					sizeof(u32));
 	}
 
@@ -3189,7 +3190,7 @@ static int gr_gk20a_init_gr_config(struct gk20a *g, struct gr_gk20a *gr)
 		gr->gpc_tpc_mask = nvgpu_kzalloc(g, gr->max_gpc_count *
 					sizeof(u32));
 	} else {
-		memset(gr->gpc_tpc_mask, 0,  gr->max_gpc_count *
+		(void) memset(gr->gpc_tpc_mask, 0,  gr->max_gpc_count *
 					sizeof(u32));
 	}
 
@@ -3197,7 +3198,7 @@ static int gr_gk20a_init_gr_config(struct gk20a *g, struct gr_gk20a *gr)
 		gr->gpc_zcb_count = nvgpu_kzalloc(g, gr->gpc_count *
 					sizeof(u32));
 	} else {
-		memset(gr->gpc_zcb_count, 0, gr->gpc_count *
+		(void) memset(gr->gpc_zcb_count, 0, gr->gpc_count *
 					sizeof(u32));
 	}
 
@@ -3205,7 +3206,7 @@ static int gr_gk20a_init_gr_config(struct gk20a *g, struct gr_gk20a *gr)
 		gr->gpc_ppc_count = nvgpu_kzalloc(g, gr->gpc_count *
 					sizeof(u32));
 	} else {
-		memset(gr->gpc_ppc_count, 0, gr->gpc_count *
+		(void) memset(gr->gpc_ppc_count, 0, gr->gpc_count *
 					sizeof(u32));
 	}
 
@@ -3215,7 +3216,7 @@ static int gr_gk20a_init_gr_config(struct gk20a *g, struct gr_gk20a *gr)
 				(size_t)gr_pd_dist_skip_table__size_1_v() *
 				(size_t)4 * sizeof(u32));
 	} else {
-		memset(gr->gpc_skip_mask, 0,
+		(void) memset(gr->gpc_skip_mask, 0,
 			(size_t)gr_pd_dist_skip_table__size_1_v() *
 			(size_t)4 * sizeof(u32));
 	}
@@ -3319,7 +3320,7 @@ static int gr_gk20a_init_gr_config(struct gk20a *g, struct gr_gk20a *gr)
 					(size_t)sm_per_tpc *
 					sizeof(struct sm_info));
 	} else {
-		memset(gr->sm_to_cluster, 0, (size_t)gr->gpc_count *
+		(void) memset(gr->sm_to_cluster, 0, (size_t)gr->gpc_count *
 					(size_t)gr->max_tpc_per_gpc_count *
 					(size_t)sm_per_tpc *
 					sizeof(struct sm_info));
@@ -3957,9 +3958,9 @@ static int gr_gk20a_load_zbc_table(struct gk20a *g, struct gr_gk20a *gr)
 		struct zbc_entry zbc_val;
 
 		zbc_val.type = GK20A_ZBC_TYPE_COLOR;
-		memcpy(zbc_val.color_ds,
+		(void) memcpy(zbc_val.color_ds,
 		       c_tbl->color_ds, sizeof(zbc_val.color_ds));
-		memcpy(zbc_val.color_l2,
+		(void) memcpy(zbc_val.color_l2,
 		       c_tbl->color_l2, sizeof(zbc_val.color_l2));
 		zbc_val.format = c_tbl->format;
 
@@ -6526,8 +6527,8 @@ int gr_gk20a_get_ctx_buffer_offsets(struct gk20a *g,
 		err = PTR_ERR(priv_registers);
 		goto cleanup;
 	}
-	memset(offsets,      0, sizeof(u32) * max_offsets);
-	memset(offset_addrs, 0, sizeof(u32) * max_offsets);
+	(void) memset(offsets,      0, sizeof(u32) * max_offsets);
+	(void) memset(offset_addrs, 0, sizeof(u32) * max_offsets);
 	*num_offsets = 0;
 
 	g->ops.gr.create_priv_addr_table(g, addr, &priv_registers[0],
@@ -6608,8 +6609,8 @@ int gr_gk20a_get_pm_ctx_buffer_offsets(struct gk20a *g,
 		nvgpu_log_fn(g, "failed alloc for potential_offsets=%d", potential_offsets);
 		return -ENOMEM;
 	}
-	memset(offsets,      0, sizeof(u32) * max_offsets);
-	memset(offset_addrs, 0, sizeof(u32) * max_offsets);
+	(void) memset(offsets,      0, sizeof(u32) * max_offsets);
+	(void) memset(offset_addrs, 0, sizeof(u32) * max_offsets);
 	*num_offsets = 0;
 
 	g->ops.gr.create_priv_addr_table(g, addr, priv_registers,
@@ -8855,7 +8856,7 @@ u32 gk20a_gr_get_sm_no_lock_down_hww_global_esr_mask(struct gk20a *g)
 void gk20a_gr_flush_channel_tlb(struct gr_gk20a *gr)
 {
 	nvgpu_spinlock_acquire(&gr->ch_tlb_lock);
-	memset(gr->chid_tlb, 0,
+	(void) memset(gr->chid_tlb, 0,
 		sizeof(struct gr_channel_map_tlb_entry) *
 		GR_CHANNEL_MAP_TLB_SIZE);
 	nvgpu_spinlock_release(&gr->ch_tlb_lock);

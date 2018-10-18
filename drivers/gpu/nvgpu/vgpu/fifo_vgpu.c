@@ -236,8 +236,8 @@ static int init_runlist(struct gk20a *g, struct fifo_gk20a *f)
 	if (!f->runlist_info)
 		goto clean_up_runlist;
 
-	memset(f->runlist_info, 0, (sizeof(struct fifo_runlist_info_gk20a) *
-		f->max_runlists));
+	(void) memset(f->runlist_info, 0,
+		(sizeof(struct fifo_runlist_info_gk20a) * f->max_runlists));
 
 	for (runlist_id = 0; runlist_id < f->max_runlists; runlist_id++) {
 		runlist = &f->runlist_info[runlist_id];
@@ -326,7 +326,8 @@ static int vgpu_init_fifo_setup_sw(struct gk20a *g)
 		err = -ENOMEM;
 		goto clean_up;
 	}
-	memset(f->active_engines_list, 0xff, (f->max_engines * sizeof(u32)));
+	(void) memset(f->active_engines_list, 0xff, (f->max_engines *
+		sizeof(u32)));
 
 	g->ops.fifo.init_engine_info(f);
 
@@ -366,7 +367,7 @@ clean_up:
 	/* FIXME: unmap from bar1 */
 	nvgpu_dma_free(g, &f->userd);
 
-	memset(&f->userd, 0, sizeof(f->userd));
+	(void) memset(&f->userd, 0, sizeof(f->userd));
 
 	nvgpu_vfree(g, f->channel);
 	f->channel = NULL;
@@ -522,7 +523,7 @@ static int vgpu_submit_runlist(struct gk20a *g, u64 handle, u8 runlist_id,
 	p->runlist_id = runlist_id;
 	p->num_entries = num_entries;
 
-	memcpy(oob, runlist, size);
+	(void) memcpy(oob, runlist, size);
 	err = vgpu_comm_sendrecv(&msg, sizeof(msg), sizeof(msg));
 
 	err = (err || msg.ret) ? -1 : 0;

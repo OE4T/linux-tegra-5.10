@@ -58,7 +58,7 @@ int vgpu_comm_sendrecv(struct tegra_vgpu_cmd_msg *msg, size_t size_in,
 				TEGRA_VGPU_QUEUE_CMD, &handle, &data, &size);
 	if (!err) {
 		WARN_ON(size < size_out);
-		memcpy(msg, data, size_out);
+		(void) memcpy(msg, data, size_out);
 		vgpu_ivc_release(handle);
 	}
 

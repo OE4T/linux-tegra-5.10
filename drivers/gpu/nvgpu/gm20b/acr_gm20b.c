@@ -356,7 +356,7 @@ int prepare_ucode_blob(struct gk20a *g)
 		return 0;
 	}
 	plsfm = &lsfm_l;
-	memset((void *)plsfm, 0, sizeof(struct ls_flcn_mgr));
+	(void) memset((void *)plsfm, 0, sizeof(struct ls_flcn_mgr));
 	nvgpu_pmu_dbg(g, "fetching GMMU regs\n");
 	g->ops.fb.vpr_info_fetch(g);
 	gr_gk20a_init_ctxsw_ucode(g);
@@ -417,7 +417,7 @@ static int lsfm_discover_ucode_images(struct gk20a *g,
 
 	/* LSFM requires a secure PMU, discover it first.*/
 	/* Obtain the PMU ucode image and add it to the list if required*/
-	memset(&ucode_img, 0, sizeof(ucode_img));
+	(void) memset(&ucode_img, 0, sizeof(ucode_img));
 	status = pmu_ucode_details(g, &ucode_img);
 	if (status != 0) {
 		return status;
@@ -455,7 +455,7 @@ static int lsfm_discover_ucode_images(struct gk20a *g,
 	/*0th index is always PMU which is already handled in earlier
 	if condition*/
 	for (i = 1; i < g->acr.max_supported_lsfm; i++) {
-		memset(&ucode_img, 0, sizeof(ucode_img));
+		(void) memset(&ucode_img, 0, sizeof(ucode_img));
 		if (pmu_acr_supp_ucode_list[i](g, &ucode_img) == 0) {
 			if (ucode_img.lsf_desc != NULL) {
 				/* We have engine sigs, ensure that this falcon
@@ -617,7 +617,7 @@ int gm20b_flcn_populate_bl_dmem_desc(struct gk20a *g,
 		p_lsfm->wpr_header.falcon_id);
 
 	/* Populate the LOADER_CONFIG state */
-	memset((void *) ldr_cfg, 0, sizeof(struct flcn_bl_dmem_desc));
+	(void) memset((void *) ldr_cfg, 0, sizeof(struct flcn_bl_dmem_desc));
 	ldr_cfg->ctx_dma = GK20A_PMU_DMAIDX_UCODE;
 	ldr_cfg->code_dma_base = addr_code;
 	ldr_cfg->non_sec_code_size = desc->app_resident_code_size;
@@ -664,7 +664,7 @@ static void lsfm_init_wpr_contents(struct gk20a *g, struct ls_flcn_mgr *plsfm,
 
 	/* The WPR array is at the base of the WPR */
 	pnode = plsfm->ucode_img_list;
-	memset(&last_wpr_hdr, 0, sizeof(struct lsf_wpr_header));
+	(void) memset(&last_wpr_hdr, 0, sizeof(struct lsf_wpr_header));
 	i = 0;
 
 	/*
@@ -799,7 +799,8 @@ static void lsfm_fill_static_lsb_hdr_info(struct gk20a *g,
 	u32 data = 0;
 
 	if (pnode->ucode_img.lsf_desc) {
-		memcpy(&pnode->lsb_header.signature, pnode->ucode_img.lsf_desc,
+		(void) memcpy(&pnode->lsb_header.signature,
+			pnode->ucode_img.lsf_desc,
 			sizeof(struct lsf_ucode_desc));
 	}
 	pnode->lsb_header.ucode_size = pnode->ucode_img.data_size;
@@ -874,7 +875,8 @@ static int lsfm_add_ucode_img(struct gk20a *g, struct ls_flcn_mgr *plsfm,
 	}
 
 	/* Keep a copy of the ucode image info locally */
-	memcpy(&pnode->ucode_img, ucode_image, sizeof(struct flcn_ucode_img));
+	(void) memcpy(&pnode->ucode_img, ucode_image,
+		sizeof(struct flcn_ucode_img));
 
 	/* Fill in static WPR header info*/
 	pnode->wpr_header.falcon_id = falcon_id;
@@ -1226,7 +1228,7 @@ int gm20b_acr_fill_bl_dmem_desc(struct gk20a *g,
 
 	nvgpu_log_fn(g, " ");
 
-	memset(bl_dmem_desc, 0U, sizeof(struct flcn_bl_dmem_desc));
+	(void) memset(bl_dmem_desc, 0U, sizeof(struct flcn_bl_dmem_desc));
 
 	bl_dmem_desc->signature[0] = 0U;
 	bl_dmem_desc->signature[1] = 0U;

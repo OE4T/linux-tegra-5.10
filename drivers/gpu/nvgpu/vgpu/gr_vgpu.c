@@ -449,7 +449,7 @@ void vgpu_gr_free_gr_ctx(struct gk20a *g,
 		nvgpu_dma_unmap_free(vm, &gr_ctx->spill_ctxsw_buffer);
 		nvgpu_dma_unmap_free(vm, &gr_ctx->preempt_ctxsw_buffer);
 
-		memset(gr_ctx, 0, sizeof(*gr_ctx));
+		(void) memset(gr_ctx, 0, sizeof(*gr_ctx));
 	}
 }
 
@@ -819,8 +819,10 @@ int vgpu_gr_add_zbc(struct gk20a *g, struct gr_gk20a *gr,
 	p->format = zbc_val->format;
 	switch (p->type) {
 	case GK20A_ZBC_TYPE_COLOR:
-		memcpy(p->color_ds, zbc_val->color_ds, sizeof(p->color_ds));
-		memcpy(p->color_l2, zbc_val->color_l2, sizeof(p->color_l2));
+		(void) memcpy(p->color_ds, zbc_val->color_ds,
+			sizeof(p->color_ds));
+		(void) memcpy(p->color_l2, zbc_val->color_l2,
+			sizeof(p->color_l2));
 		break;
 	case GK20A_ZBC_TYPE_DEPTH:
 		p->depth = zbc_val->depth;
@@ -856,9 +858,9 @@ int vgpu_gr_query_zbc(struct gk20a *g, struct gr_gk20a *gr,
 
 	switch (query_params->type) {
 	case GK20A_ZBC_TYPE_COLOR:
-		memcpy(query_params->color_ds, p->color_ds,
+		(void) memcpy(query_params->color_ds, p->color_ds,
 				sizeof(query_params->color_ds));
-		memcpy(query_params->color_l2, p->color_l2,
+		(void) memcpy(query_params->color_l2, p->color_l2,
 				sizeof(query_params->color_l2));
 		break;
 	case GK20A_ZBC_TYPE_DEPTH:
@@ -1161,7 +1163,8 @@ int vgpu_gr_clear_sm_error_state(struct gk20a *g,
 	err = vgpu_comm_sendrecv(&msg, sizeof(msg), sizeof(msg));
 	WARN_ON(err || msg.ret);
 
-	memset(&tsg->sm_error_states[sm_id], 0, sizeof(*tsg->sm_error_states));
+	(void) memset(&tsg->sm_error_states[sm_id], 0,
+		sizeof(*tsg->sm_error_states));
 	nvgpu_mutex_release(&g->dbg_sessions_lock);
 
 	return err ? err : msg.ret;

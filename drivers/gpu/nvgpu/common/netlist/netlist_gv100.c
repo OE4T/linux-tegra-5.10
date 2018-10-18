@@ -30,7 +30,7 @@ int gv100_netlist_get_name(struct gk20a *g, int index, char *name)
 
 	switch (ver) {
 		case NVGPU_GPUID_GV100:
-			sprintf(name, "%s/%s", "gv100",
+			(void) sprintf(name, "%s/%s", "gv100",
 					GV100_NETLIST_IMAGE_FW_NAME);
 			break;
 		default:

@@ -102,7 +102,7 @@ static void print_pmu_trace(struct nvgpu_pmu *pmu)
 			if (k >= 40) {
 				break;
 			}
-			strncpy(part_str, (trace+i+20+m), k);
+			(void) strncpy(part_str, (trace+i+20+m), k);
 			part_str[k] = '\0';
 			count += scnprintf((buf + count), 0x40, "%s0x%x",
 					part_str, trace1[(i / 4) + 1 + l]);
@@ -110,7 +110,7 @@ static void print_pmu_trace(struct nvgpu_pmu *pmu)
 			m += k + 2;
 		}
 
-		scnprintf((buf + count), 0x40, "%s", (trace+i+20+m));
+		(void) scnprintf((buf + count), 0x40, "%s", (trace+i+20+m));
 		nvgpu_err(g, "%s", buf);
 	}
 
@@ -555,7 +555,7 @@ void gk20a_pmu_save_zbc(struct gk20a *g, u32 entries)
 		return;
 	}
 
-	memset(&cmd, 0, sizeof(struct pmu_cmd));
+	(void) memset(&cmd, 0, sizeof(struct pmu_cmd));
 	cmd.hdr.unit_id = PMU_UNIT_PG;
 	cmd.hdr.size = PMU_CMD_HDR_SIZE + sizeof(struct pmu_zbc_cmd);
 	cmd.cmd.zbc.cmd_type = g->pmu_ver_cmd_id_zbc_table_update;

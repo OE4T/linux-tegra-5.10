@@ -689,7 +689,7 @@ void gp106_clk_arb_run_arbiter_cb(struct nvgpu_clk_arb *arb)
 	debug = arb->debug == &arb->debug_pool[0] ?
 		&arb->debug_pool[1] : &arb->debug_pool[0];
 
-	memcpy(debug, arb->debug, sizeof(arb->debug_pool[0]));
+	(void) memcpy(debug, arb->debug, sizeof(arb->debug_pool[0]));
 	debug->switch_num++;
 
 	if (debug->switch_num == 1) {

@@ -89,7 +89,7 @@ u64 vgpu_gp10b_locked_gmmu_map(struct vm_gk20a *vm,
 	if (space_to_skip & (page_size - 1))
 		return 0;
 
-	memset(&msg, 0, sizeof(msg));
+	(void) memset(&msg, 0, sizeof(msg));
 
 	/* Allocate (or validate when map_offset != 0) the virtual address. */
 	if (!map_offset) {

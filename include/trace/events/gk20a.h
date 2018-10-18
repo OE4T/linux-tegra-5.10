@@ -268,8 +268,8 @@ TRACE_EVENT(gk20a_push_cmdbuf,
 
 	TP_fast_assign(
 		if (cmdbuf) {
-			memcpy(__get_dynamic_array(cmdbuf), cmdbuf+offset,
-					words * sizeof(u32));
+			(void) memcpy(__get_dynamic_array(cmdbuf),
+				cmdbuf+offset, words * sizeof(u32));
 		}
 		__entry->cmdbuf = cmdbuf;
 		__entry->name = name;

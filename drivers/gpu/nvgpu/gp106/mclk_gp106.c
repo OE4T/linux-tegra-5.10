@@ -3091,8 +3091,8 @@ static int mclk_get_memclk_table(struct gk20a *g)
 	old_fbio_delay = gk20a_readl(g, fb_fbpa_fbio_delay_r());
 	old_fbio_cmd_delay = gk20a_readl(g, fb_fbpa_fbio_cmd_delay_r());
 
-	memset(idx_to_ptr_tbl, 0, sizeof(idx_to_ptr_tbl));
-	memset(idx_to_cmd_ptr_tbl, 0, sizeof(idx_to_cmd_ptr_tbl));
+	(void) memset(idx_to_ptr_tbl, 0, sizeof(idx_to_ptr_tbl));
+	(void) memset(idx_to_cmd_ptr_tbl, 0, sizeof(idx_to_cmd_ptr_tbl));
 
 	/* Read table entries */
 	mem_entry_ptr = mem_table_ptr + memclock_table_header.header_size;
@@ -3352,7 +3352,7 @@ int gp106_mclk_change(struct gk20a *g, u16 val)
 
 	nvgpu_log_info(g, " ");
 
-	memset(&payload, 0, sizeof(struct pmu_payload));
+	(void) memset(&payload, 0, sizeof(struct pmu_payload));
 
 	mclk = &g->clk_pmu.clk_mclk;
 
@@ -3379,7 +3379,7 @@ int gp106_mclk_change(struct gk20a *g, u16 val)
 	}
 
 	/* Fill command header with SEQ ID & size */
-	memset(&cmd, 0, sizeof(cmd));
+	(void) memset(&cmd, 0, sizeof(cmd));
 	cmd.hdr.unit_id	= PMU_UNIT_SEQ;
 	cmd_hdr_size = sizeof(struct nv_pmu_seq_cmd_run_script) +
 		sizeof(struct pmu_hdr);
@@ -3414,7 +3414,7 @@ int gp106_mclk_change(struct gk20a *g, u16 val)
 	payload.in.offset = (u32)offsetof(struct nv_pmu_seq_cmd_run_script,
 			script_alloc);
 
-	memset(mclk->vreg_buf, 0, (sizeof(u32) * VREG_COUNT));
+	(void) memset(mclk->vreg_buf, 0, (sizeof(u32) * VREG_COUNT));
 
 	payload.out.buf = mclk->vreg_buf;
 	payload.out.size = (VREG_COUNT * (u32)sizeof(u32));

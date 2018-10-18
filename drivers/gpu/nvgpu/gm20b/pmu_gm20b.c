@@ -143,7 +143,7 @@ int gm20b_pmu_init_acr(struct gk20a *g)
 	nvgpu_log_fn(g, " ");
 
 	/* init ACR */
-	memset(&cmd, 0, sizeof(struct pmu_cmd));
+	(void) memset(&cmd, 0, sizeof(struct pmu_cmd));
 	cmd.hdr.unit_id = PMU_UNIT_ACR;
 	cmd.hdr.size = PMU_CMD_HDR_SIZE +
 	  sizeof(struct pmu_acr_cmd_init_wpr_details);
@@ -206,7 +206,7 @@ void gm20b_pmu_load_lsf(struct gk20a *g, u32 falcon_id, u32 flags)
 	nvgpu_pmu_dbg(g, "wprinit status = %x\n", g->pmu_lsf_pmu_wpr_init_done);
 	if (g->pmu_lsf_pmu_wpr_init_done) {
 		/* send message to load FECS falcon */
-		memset(&cmd, 0, sizeof(struct pmu_cmd));
+		(void) memset(&cmd, 0, sizeof(struct pmu_cmd));
 		cmd.hdr.unit_id = PMU_UNIT_ACR;
 		cmd.hdr.size = PMU_CMD_HDR_SIZE +
 		  sizeof(struct pmu_acr_cmd_bootstrap_falcon);

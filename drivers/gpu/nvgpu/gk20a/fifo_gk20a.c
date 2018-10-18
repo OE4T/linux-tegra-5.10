@@ -552,8 +552,8 @@ void gk20a_fifo_delete_runlist(struct fifo_gk20a *f)
 		nvgpu_mutex_destroy(&runlist->runlist_lock);
 
 	}
-	memset(f->runlist_info, 0, (sizeof(struct fifo_runlist_info_gk20a) *
-		f->max_runlists));
+	(void) memset(f->runlist_info, 0,
+		(sizeof(struct fifo_runlist_info_gk20a) * f->max_runlists));
 
 	nvgpu_kfree(g, f->runlist_info);
 	f->runlist_info = NULL;
@@ -715,8 +715,8 @@ static int init_runlist(struct gk20a *g, struct fifo_gk20a *f)
 		goto clean_up_runlist;
 	}
 
-	memset(f->runlist_info, 0, (sizeof(struct fifo_runlist_info_gk20a) *
-		f->max_runlists));
+	(void) memset(f->runlist_info, 0,
+		(sizeof(struct fifo_runlist_info_gk20a) * f->max_runlists));
 
 	for (runlist_id = 0; runlist_id < f->max_runlists; runlist_id++) {
 		runlist = &f->runlist_info[runlist_id];
@@ -954,7 +954,8 @@ int gk20a_init_fifo_setup_sw_common(struct gk20a *g)
 		err = -ENOMEM;
 		goto clean_up;
 	}
-	memset(f->active_engines_list, 0xff, (f->max_engines * sizeof(u32)));
+	(void) memset(f->active_engines_list, 0xff,
+		(f->max_engines * sizeof(u32)));
 
 	/* pbdma map needs to be in place before calling engine info init */
 	for (i = 0; i < f->num_pbdma; ++i) {
@@ -1292,7 +1293,7 @@ void gk20a_fifo_get_mmu_fault_info(struct gk20a *g, u32 mmu_fault_id,
 
 	nvgpu_log_fn(g, "mmu_fault_id %d", mmu_fault_id);
 
-	memset(mmfault, 0, sizeof(*mmfault));
+	(void) memset(mmfault, 0, sizeof(*mmfault));
 
 	fault_info = gk20a_readl(g,
 		fifo_intr_mmu_fault_info_r(mmu_fault_id));
