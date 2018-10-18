@@ -421,7 +421,7 @@ static struct nvgpu_pd_mem_entry *nvgpu_pd_cache_look_up(
 	struct nvgpu_pd_cache *cache,
 	struct nvgpu_gmmu_pd *pd)
 {
-	struct nvgpu_rbtree_node *node;
+	struct nvgpu_rbtree_node *node = NULL;
 
 	nvgpu_rbtree_search((u64)(uintptr_t)pd->mem, &node,
 			    cache->mem_tree);

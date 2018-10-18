@@ -146,7 +146,7 @@ int nvgpu_sec2_cmd_post(struct gk20a *g, struct nv_flcn_cmd_sec2 *cmd,
 	void *cb_param, u32 *seq_desc, unsigned long timeout)
 {
 	struct nvgpu_sec2 *sec2 = &g->sec2;
-	struct sec2_sequence *seq;
+	struct sec2_sequence *seq = NULL;
 	int err = 0;
 
 	if ((cmd == NULL) || (seq_desc == NULL) || (!sec2->sec2_ready)) {

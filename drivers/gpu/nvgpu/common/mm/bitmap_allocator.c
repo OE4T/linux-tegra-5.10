@@ -310,7 +310,7 @@ static void nvgpu_bitmap_alloc_destroy(struct nvgpu_allocator *na)
 {
 	struct nvgpu_bitmap_allocator *a = bitmap_allocator(na);
 	struct nvgpu_bitmap_alloc *alloc;
-	struct nvgpu_rbtree_node *node;
+	struct nvgpu_rbtree_node *node = NULL;
 
 	/*
 	 * Kill any outstanding allocations.

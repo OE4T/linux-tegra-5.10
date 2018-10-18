@@ -262,7 +262,7 @@ void gm20b_write_dmatrfbase(struct gk20a *g, u32 addr)
 /*Dump Security related fuses*/
 void pmu_dump_security_fuses_gm20b(struct gk20a *g)
 {
-	u32 val;
+	u32 val = 0;
 
 	nvgpu_err(g, "FUSE_OPT_SEC_DEBUG_EN_0: 0x%x",
 			g->ops.fuse.fuse_opt_sec_debug_en(g));

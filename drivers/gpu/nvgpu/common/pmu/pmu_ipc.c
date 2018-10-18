@@ -434,7 +434,7 @@ int nvgpu_pmu_cmd_post(struct gk20a *g, struct pmu_cmd *cmd,
 		u32 *seq_desc, unsigned long timeout)
 {
 	struct nvgpu_pmu *pmu = &g->pmu;
-	struct pmu_sequence *seq;
+	struct pmu_sequence *seq = NULL;
 	int err;
 
 	nvgpu_log_fn(g, " ");
