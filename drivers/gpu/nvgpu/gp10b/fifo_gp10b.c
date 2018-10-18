@@ -31,6 +31,7 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/channel.h>
 #include <nvgpu/channel_sync.h>
+#include <nvgpu/channel_sync_syncpt.h>
 
 #include "fifo_gp10b.h"
 
@@ -145,6 +146,7 @@ int gp10b_fifo_resetup_ramfc(struct channel_gk20a *c)
 	u32 new_syncpt = 0, old_syncpt;
 	u32 v;
 	struct gk20a *g = c->g;
+	struct nvgpu_channel_sync_syncpt *sync_syncpt = NULL;
 
 	nvgpu_log_fn(g, " ");
 
@@ -152,9 +154,13 @@ int gp10b_fifo_resetup_ramfc(struct channel_gk20a *c)
 			ram_fc_allowed_syncpoints_w());
 	old_syncpt = pbdma_allowed_syncpoints_0_index_v(v);
 	if (c->sync) {
-		new_syncpt = c->sync->syncpt_id(c->sync);
+		sync_syncpt = nvgpu_channel_sync_to_syncpt(c->sync);
+		if (sync_syncpt != NULL) {
+			new_syncpt = nvgpu_channel_sync_get_syncpt_id(sync_syncpt);
+		} else {
+			new_syncpt = -EINVAL;
+		}
 	}
-
 	if (new_syncpt && new_syncpt != old_syncpt) {
 		/* disable channel */
 		gk20a_disable_channel_tsg(c->g, c);

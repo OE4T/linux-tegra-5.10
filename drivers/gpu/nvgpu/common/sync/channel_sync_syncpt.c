@@ -35,6 +35,7 @@
 #include <nvgpu/channel_sync.h>
 #include <nvgpu/channel_sync_syncpt.h>
 
+#include "channel_sync_priv.h"
 #include "gk20a/fence_gk20a.h"
 #include "gk20a/mm_gk20a.h"
 
@@ -341,9 +342,8 @@ nvgpu_channel_sync_to_syncpt(struct nvgpu_channel_sync *sync)
 {
 	struct nvgpu_channel_sync_syncpt *syncpt = NULL;
 
-	if (sync->wait_fd == channel_sync_syncpt_wait_fd) {
-		syncpt = container_of(sync, struct nvgpu_channel_sync_syncpt,
-					ops);
+	if (sync->wait_fence_fd == channel_sync_syncpt_wait_fd) {
+		syncpt = container_of(sync, struct nvgpu_channel_sync_syncpt, ops);
 	}
 
 	return syncpt;
@@ -388,7 +388,7 @@ nvgpu_channel_sync_syncpt_create(struct channel_gk20a *c, bool user_managed)
 	nvgpu_nvhost_syncpt_set_min_eq_max_ext(sp->nvhost_dev, sp->id);
 
 	nvgpu_atomic_set(&sp->ops.refcount, 0);
-	sp->ops.wait_fd			= channel_sync_syncpt_wait_fd;
+	sp->ops.wait_fence_fd		= channel_sync_syncpt_wait_fd;
 	sp->ops.incr			= channel_sync_syncpt_incr;
 	sp->ops.incr_user		= channel_sync_syncpt_incr_user;
 	sp->ops.set_min_eq_max		= channel_sync_syncpt_set_min_eq_max;

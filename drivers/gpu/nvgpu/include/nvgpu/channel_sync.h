@@ -33,68 +33,6 @@ struct priv_cmd_entry;
 struct channel_gk20a;
 struct gk20a_fence;
 struct gk20a;
-struct nvgpu_semaphore;
-
-struct nvgpu_channel_sync {
-	nvgpu_atomic_t refcount;
-
-	/* Generate a gpu wait cmdbuf from syncpoint.
-	 * Returns a gpu cmdbuf that performs the wait when executed
-	 */
-	int (*wait_syncpt)(struct nvgpu_channel_sync *s, u32 id, u32 thresh,
-			   struct priv_cmd_entry *entry);
-
-	/* Generate a gpu wait cmdbuf from sync fd.
-	 * Returns a gpu cmdbuf that performs the wait when executed
-	 */
-	int (*wait_fd)(struct nvgpu_channel_sync *s, int fd,
-		       struct priv_cmd_entry *entry, u32 max_wait_cmds);
-
-	/* Increment syncpoint/semaphore.
-	 * Returns
-	 *  - a gpu cmdbuf that performs the increment when executed,
-	 *  - a fence that can be passed to wait_cpu() and is_expired().
-	 */
-	int (*incr)(struct nvgpu_channel_sync *s,
-		    struct priv_cmd_entry *entry,
-		    struct gk20a_fence *fence,
-		    bool need_sync_fence,
-		    bool register_irq);
-
-	/* Increment syncpoint/semaphore, so that the returned fence represents
-	 * work completion (may need wfi) and can be returned to user space.
-	 * Returns
-	 *  - a gpu cmdbuf that performs the increment when executed,
-	 *  - a fence that can be passed to wait_cpu() and is_expired(),
-	 *  - a gk20a_fence that signals when the incr has happened.
-	 */
-	int (*incr_user)(struct nvgpu_channel_sync *s,
-			 int wait_fence_fd,
-			 struct priv_cmd_entry *entry,
-			 struct gk20a_fence *fence,
-			 bool wfi,
-			 bool need_sync_fence,
-			 bool register_irq);
-
-	/* Reset the channel syncpoint/semaphore. */
-	void (*set_min_eq_max)(struct nvgpu_channel_sync *s);
-
-	/*
-	 * Set the channel syncpoint/semaphore to safe state
-	 * This should be used to reset User managed syncpoint since we don't
-	 * track threshold values for those syncpoints
-	 */
-	void (*set_safe_state)(struct nvgpu_channel_sync *s);
-
-	/* Returns the sync point id or negative number if no syncpt*/
-	int (*syncpt_id)(struct nvgpu_channel_sync *s);
-
-	/* Returns the sync point address of sync point or 0 if not supported */
-	u64 (*syncpt_address)(struct nvgpu_channel_sync *s);
-
-	/* Free the resources allocated by nvgpu_channel_sync_create. */
-	void (*destroy)(struct nvgpu_channel_sync *s);
-};
 
 /* Public APIS for channel_sync below */
 

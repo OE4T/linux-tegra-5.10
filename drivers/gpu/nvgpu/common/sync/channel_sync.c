@@ -36,6 +36,7 @@
 #include <nvgpu/channel_sync_syncpt.h>
 #include <nvgpu/channel_sync_semaphore.h>
 
+#include "channel_sync_priv.h"
 #include "gk20a/fence_gk20a.h"
 #include "gk20a/mm_gk20a.h"
 
@@ -67,7 +68,7 @@ bool nvgpu_has_syncpoints(struct gk20a *g)
 int nvgpu_channel_sync_wait_fence_fd(struct nvgpu_channel_sync *s, int fd,
 	struct priv_cmd_entry *entry, u32 max_wait_cmds)
 {
-	return s->wait_fd(s, fd, entry, max_wait_cmds);
+	return s->wait_fence_fd(s, fd, entry, max_wait_cmds);
 }
 
 int nvgpu_channel_sync_incr(struct nvgpu_channel_sync *s,

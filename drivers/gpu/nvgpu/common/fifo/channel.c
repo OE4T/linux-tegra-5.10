@@ -197,10 +197,10 @@ void gk20a_channel_abort_clean_up(struct channel_gk20a *ch)
 	/* ensure no fences are pending */
 	nvgpu_mutex_acquire(&ch->sync_lock);
 	if (ch->sync) {
-		ch->sync->set_min_eq_max(ch->sync);
+		nvgpu_channel_sync_set_min_eq_max(ch->sync);
 	}
 	if (ch->user_sync) {
-		ch->user_sync->set_safe_state(ch->user_sync);
+		nvgpu_channel_sync_set_safe_state(ch->user_sync);
 	}
 	nvgpu_mutex_release(&ch->sync_lock);
 
@@ -1982,9 +1982,8 @@ void gk20a_channel_clean_up_jobs(struct channel_gk20a *c,
 
 			if (g->aggressive_sync_destroy_thresh) {
 				nvgpu_mutex_acquire(&c->sync_lock);
-				if (nvgpu_atomic_dec_and_test(
-					&c->sync->refcount) &&
-						g->aggressive_sync_destroy) {
+				if (nvgpu_channel_sync_put_ref_and_check(c->sync)
+					&& g->aggressive_sync_destroy) {
 					nvgpu_channel_sync_destroy(c->sync,
 						false);
 					c->sync = NULL;

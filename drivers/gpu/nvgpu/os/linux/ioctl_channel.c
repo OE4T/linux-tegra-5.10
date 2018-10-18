@@ -37,6 +37,7 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/channel.h>
 #include <nvgpu/channel_sync.h>
+#include <nvgpu/channel_sync_syncpt.h>
 
 #include "gk20a/fence_gk20a.h"
 
@@ -1020,6 +1021,7 @@ static int nvgpu_ioctl_channel_get_user_syncpoint(struct channel_gk20a *ch,
 {
 #ifdef CONFIG_TEGRA_GK20A_NVHOST
 	struct gk20a *g = ch->g;
+	struct nvgpu_channel_sync_syncpt *user_sync_syncpt = NULL;
 	int err;
 
 	if (!nvgpu_is_enabled(g, NVGPU_SUPPORT_USER_SYNCPOINT)) {
@@ -1054,14 +1056,20 @@ static int nvgpu_ioctl_channel_get_user_syncpoint(struct channel_gk20a *ch,
 				return err;
 		}
 	}
+	user_sync_syncpt = nvgpu_channel_sync_to_syncpt(ch->user_sync);
+	if (user_sync_syncpt == NULL) {
+		return -EINVAL;
+	}
 
-	args->syncpoint_id = ch->user_sync->syncpt_id(ch->user_sync);
+	args->syncpoint_id = nvgpu_channel_sync_get_syncpt_id(user_sync_syncpt);
 	args->syncpoint_max = nvgpu_nvhost_syncpt_read_maxval(g->nvhost_dev,
 						args->syncpoint_id);
-	if (nvgpu_is_enabled(g, NVGPU_SUPPORT_SYNCPOINT_ADDRESS))
-		args->gpu_va = ch->user_sync->syncpt_address(ch->user_sync);
-	else
+	if (nvgpu_is_enabled(g, NVGPU_SUPPORT_SYNCPOINT_ADDRESS)) {
+		args->gpu_va =
+			nvgpu_channel_sync_get_syncpt_address(user_sync_syncpt);
+	} else {
 		args->gpu_va = 0;
+	}
 
 	return 0;
 #else

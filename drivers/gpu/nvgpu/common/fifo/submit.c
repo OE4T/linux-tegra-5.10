@@ -26,6 +26,7 @@
 #include <nvgpu/os_sched.h>
 #include <nvgpu/utils.h>
 #include <nvgpu/channel_sync.h>
+#include <nvgpu/channel_sync_syncpt.h>
 
 #include <nvgpu/hw/gk20a/hw_pbdma_gk20a.h>
 
@@ -52,6 +53,7 @@ static int nvgpu_submit_prepare_syncs(struct channel_gk20a *c,
 	int err = 0;
 	bool need_wfi = !(flags & NVGPU_SUBMIT_FLAGS_SUPPRESS_WFI);
 	bool pre_alloc_enabled = channel_gk20a_is_prealloc_enabled(c);
+	struct nvgpu_channel_sync_syncpt *sync_syncpt = NULL;
 
 	if (g->aggressive_sync_destroy_thresh) {
 		nvgpu_mutex_acquire(&c->sync_lock);
@@ -64,7 +66,7 @@ static int nvgpu_submit_prepare_syncs(struct channel_gk20a *c,
 			}
 			new_sync_created = true;
 		}
-		nvgpu_atomic_inc(&c->sync->refcount);
+		nvgpu_channel_sync_get_ref(c->sync);
 		nvgpu_mutex_release(&c->sync_lock);
 	}
 
@@ -94,12 +96,17 @@ static int nvgpu_submit_prepare_syncs(struct channel_gk20a *c,
 
 		if (flags & NVGPU_SUBMIT_FLAGS_SYNC_FENCE) {
 			wait_fence_fd = fence->id;
-			err = c->sync->wait_fd(c->sync, wait_fence_fd,
-					       job->wait_cmd, max_wait_cmds);
+			err = nvgpu_channel_sync_wait_fence_fd(c->sync,
+				wait_fence_fd, job->wait_cmd, max_wait_cmds);
 		} else {
-			err = c->sync->wait_syncpt(c->sync, fence->id,
-						   fence->value,
-						   job->wait_cmd);
+			sync_syncpt = nvgpu_channel_sync_to_syncpt(c->sync);
+			if (sync_syncpt != NULL) {
+				err = nvgpu_channel_sync_wait_syncpt(
+					sync_syncpt, fence->id,
+					fence->value, job->wait_cmd);
+			} else {
+				err = -EINVAL;
+			}
 		}
 
 		if (err != 0) {
@@ -136,13 +143,14 @@ static int nvgpu_submit_prepare_syncs(struct channel_gk20a *c,
 	}
 
 	if (flags & NVGPU_SUBMIT_FLAGS_FENCE_GET) {
-		err = c->sync->incr_user(c->sync, wait_fence_fd, job->incr_cmd,
-				 job->post_fence, need_wfi, need_sync_fence,
-				 register_irq);
+		err = nvgpu_channel_sync_incr_user(c->sync,
+			wait_fence_fd, job->incr_cmd,
+			job->post_fence, need_wfi, need_sync_fence,
+			register_irq);
 	} else {
-		err = c->sync->incr(c->sync, job->incr_cmd,
-				    job->post_fence, need_sync_fence,
-				    register_irq);
+		err = nvgpu_channel_sync_incr(c->sync,
+			job->incr_cmd, job->post_fence, need_sync_fence,
+			register_irq);
 	}
 	if (err == 0) {
 		*incr_cmd = job->incr_cmd;

@@ -36,6 +36,7 @@
 #include <nvgpu/channel_sync.h>
 #include <nvgpu/channel_sync_semaphore.h>
 
+#include "channel_sync_priv.h"
 #include "gk20a/fence_gk20a.h"
 #include "gk20a/mm_gk20a.h"
 
@@ -314,7 +315,7 @@ struct nvgpu_channel_sync_semaphore *
 	nvgpu_channel_sync_to_semaphore(struct nvgpu_channel_sync *sync)
 {
 	struct nvgpu_channel_sync_semaphore *sema = NULL;
-	if (sync->wait_fd == channel_sync_semaphore_wait_fd) {
+	if (sync->wait_fence_fd == channel_sync_semaphore_wait_fd) {
 		sema = container_of(sync, struct nvgpu_channel_sync_semaphore, ops);
 	}
 
@@ -360,7 +361,7 @@ nvgpu_channel_sync_semaphore_create(
 	}
 
 	nvgpu_atomic_set(&sema->ops.refcount, 0);
-	sema->ops.wait_fd	= channel_sync_semaphore_wait_fd;
+	sema->ops.wait_fence_fd	= channel_sync_semaphore_wait_fd;
 	sema->ops.incr		= channel_sync_semaphore_incr;
 	sema->ops.incr_user	= channel_sync_semaphore_incr_user;
 	sema->ops.set_min_eq_max = channel_sync_semaphore_set_min_eq_max;
