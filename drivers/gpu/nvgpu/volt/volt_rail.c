@@ -295,7 +295,7 @@ static int volt_get_volt_rail_table(struct gk20a *g,
 		entry_ptr = (volt_rail_table_ptr + header.header_size +
 			(i * header.table_entry_size));
 
-		memset(&rail_type_data, 0x0, sizeof(rail_type_data));
+		(void) memset(&rail_type_data, 0x0, sizeof(rail_type_data));
 
 		nvgpu_memcpy((u8 *)&entry, entry_ptr,
 			sizeof(struct vbios_voltage_rail_table_1x_entry));

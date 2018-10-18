@@ -340,7 +340,8 @@ static int volt_get_volt_policy_table(struct gk20a *g,
 		nvgpu_memcpy((u8 *)&entry, entry_offset,
 			sizeof(struct vbios_voltage_policy_table_1x_entry));
 
-		memset(&policy_type_data, 0x0, sizeof(policy_type_data));
+		(void) memset(&policy_type_data, 0x0,
+			sizeof(policy_type_data));
 
 		policy_type = volt_policy_type_convert((u8)entry.type);
 

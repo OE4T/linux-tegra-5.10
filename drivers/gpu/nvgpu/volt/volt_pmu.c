@@ -70,10 +70,11 @@ static int volt_pmu_rpc_execute(struct gk20a *g,
 	u32 seqdesc;
 	struct volt_rpc_pmucmdhandler_params handler;
 
-	memset(&payload, 0, sizeof(struct pmu_payload));
-	memset(&cmd, 0, sizeof(struct pmu_cmd));
-	memset(&msg, 0, sizeof(struct pmu_msg));
-	memset(&handler, 0, sizeof(struct volt_rpc_pmucmdhandler_params));
+	(void) memset(&payload, 0, sizeof(struct pmu_payload));
+	(void) memset(&cmd, 0, sizeof(struct pmu_cmd));
+	(void) memset(&msg, 0, sizeof(struct pmu_msg));
+	(void) memset(&handler, 0,
+		sizeof(struct volt_rpc_pmucmdhandler_params));
 
 	cmd.hdr.unit_id = PMU_UNIT_VOLT;
 	cmd.hdr.size = (u32)sizeof(struct nv_pmu_volt_cmd) +
@@ -140,7 +141,7 @@ int nvgpu_volt_send_load_cmd_to_pmu_gv10x(struct gk20a *g)
 	struct nv_pmu_rpc_struct_volt_load rpc;
 	int status = 0;
 
-	memset(&rpc, 0, sizeof(struct nv_pmu_rpc_struct_volt_load));
+	(void) memset(&rpc, 0, sizeof(struct nv_pmu_rpc_struct_volt_load));
 	PMU_RPC_EXECUTE(status, pmu, VOLT, LOAD, &rpc, 0);
 	if (status != 0) {
 		nvgpu_err(g, "Failed to execute RPC status=0x%x",
@@ -201,7 +202,7 @@ int nvgpu_volt_rail_get_voltage_gv10x(struct gk20a *g,
 		return -EINVAL;
 	}
 
-	memset(&rpc, 0,
+	(void) memset(&rpc, 0,
 		sizeof(struct nv_pmu_rpc_struct_volt_volt_rail_get_voltage));
 	rpc.rail_idx = rail_idx;
 
@@ -255,8 +256,8 @@ static int volt_policy_set_voltage(struct gk20a *g, u8 client_id,
 	/* Set RPC parameters. */
 	rpc_call.function = NV_PMU_VOLT_RPC_ID_VOLT_POLICY_SET_VOLTAGE;
 	rpc_call.params.volt_policy_voltage_data.policy_idx = policy_idx;
-	memcpy(&rpc_call.params.volt_policy_voltage_data.rail_list, prail_list,
-		(sizeof(struct ctrl_perf_volt_rail_list)));
+	(void) memcpy(&rpc_call.params.volt_policy_voltage_data.rail_list,
+		prail_list, (sizeof(struct ctrl_perf_volt_rail_list)));
 
 	/* Execute the voltage change request via PMU RPC. */
 	status = volt_pmu_rpc_execute(g, &rpc_call);
@@ -276,7 +277,8 @@ static int volt_set_voltage_gv10x_rpc(struct gk20a *g, u8 client_id,
 	struct nv_pmu_rpc_struct_volt_volt_set_voltage rpc;
 	int status = 0;
 
-	memset(&rpc, 0, sizeof(struct nv_pmu_rpc_struct_volt_volt_set_voltage));
+	(void) memset(&rpc, 0,
+		sizeof(struct nv_pmu_rpc_struct_volt_volt_set_voltage));
 	rpc.client_id = 0x1;
 	rpc.rail_list = *prail_list;
 
@@ -350,7 +352,8 @@ static int volt_policy_set_noiseaware_vmin(struct gk20a *g,
 	rpc_call.function = NV_PMU_VOLT_RPC_ID_VOLT_RAIL_SET_NOISE_UNAWARE_VMIN;
 	rpc_call.params.volt_rail_set_noise_unaware_vmin.num_rails =
 			prail_list->num_rails;
-	memcpy(&rpc_call.params.volt_rail_set_noise_unaware_vmin.rail_list,
+	(void) memcpy(
+		&rpc_call.params.volt_rail_set_noise_unaware_vmin.rail_list,
 		prail_list, (sizeof(struct ctrl_volt_volt_rail_list)));
 
 	/* Execute the voltage change request via PMU RPC. */

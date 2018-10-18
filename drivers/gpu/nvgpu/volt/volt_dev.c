@@ -157,7 +157,7 @@ static struct voltage_device_entry *volt_dev_construct_dev_entry_pwm(
 		return NULL;
 	}
 
-	memset(pentry, 0, sizeof(struct voltage_device_pwm_entry));
+	(void) memset(pentry, 0, sizeof(struct voltage_device_pwm_entry));
 
 	pentry->super.voltage_uv = voltage_uv;
 	pentry->duty_cycle = ptmp_entry->duty_cycle;
