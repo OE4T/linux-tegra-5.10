@@ -202,7 +202,7 @@ int __nvgpu_mem_create_from_pages(struct gk20a *g, struct nvgpu_mem *dest,
 	if (!our_pages)
 		return -ENOMEM;
 
-	memcpy(our_pages, pages, sizeof(struct page *) * nr_pages);
+	(void) memcpy(our_pages, pages, sizeof(struct page *) * nr_pages);
 
 	if (nvgpu_get_sgtable_from_pages(g, &sgt, pages, 0,
 					 nr_pages * PAGE_SIZE)) {

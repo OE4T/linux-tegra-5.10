@@ -61,7 +61,7 @@ int nvgpu_timeout_init(struct gk20a *g, struct nvgpu_timeout *timeout,
 	if (flags & ~NVGPU_TIMER_FLAG_MASK)
 		return -EINVAL;
 
-	memset(timeout, 0, sizeof(*timeout));
+	(void) memset(timeout, 0, sizeof(*timeout));
 
 	timeout->g = g;
 	timeout->flags = flags;
@@ -89,7 +89,7 @@ static int __nvgpu_timeout_expired_msg_cpu(struct nvgpu_timeout *timeout,
 		if (!(timeout->flags & NVGPU_TIMER_SILENT_TIMEOUT)) {
 			char buf[128];
 
-			vsnprintf(buf, sizeof(buf), fmt, args);
+			(void) vsnprintf(buf, sizeof(buf), fmt, args);
 
 			nvgpu_err(g, "Timeout detected @ %pF %s", caller, buf);
 		}
@@ -113,7 +113,7 @@ static int __nvgpu_timeout_expired_msg_retry(struct nvgpu_timeout *timeout,
 		if (!(timeout->flags & NVGPU_TIMER_SILENT_TIMEOUT)) {
 			char buf[128];
 
-			vsnprintf(buf, sizeof(buf), fmt, args);
+			(void) vsnprintf(buf, sizeof(buf), fmt, args);
 
 			nvgpu_err(g, "No more retries @ %pF %s", caller, buf);
 		}

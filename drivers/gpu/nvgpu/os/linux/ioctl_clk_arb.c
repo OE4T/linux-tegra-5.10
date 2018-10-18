@@ -198,7 +198,7 @@ static ssize_t nvgpu_clk_arb_read_event_dev(struct file *filp, char __user *buf,
 	if ((size - *off) < sizeof(info))
 		return 0;
 
-	memset(&info, 0, sizeof(info));
+	(void) memset(&info, 0, sizeof(info));
 	/* Get the oldest event from the queue */
 	while (!__pending_event(dev, &info)) {
 		if (filp->f_flags & O_NONBLOCK)
@@ -257,7 +257,7 @@ static long nvgpu_clk_arb_ioctl_event_dev(struct file *filp, unsigned int cmd,
 
 	BUG_ON(_IOC_SIZE(cmd) > NVGPU_EVENT_IOCTL_MAX_ARG_SIZE);
 
-	memset(buf, 0, sizeof(buf));
+	(void) memset(buf, 0, sizeof(buf));
 	if (_IOC_DIR(cmd) & _IOC_WRITE) {
 		if (copy_from_user(buf, (void __user *) arg, _IOC_SIZE(cmd)))
 			return -EFAULT;
@@ -327,7 +327,7 @@ static int nvgpu_clk_arb_install_fd(struct gk20a *g,
 		goto fail;
 	}
 
-	snprintf(name, sizeof(name), "%s-clk-fd%d", g->name, fd);
+	(void) snprintf(name, sizeof(name), "%s-clk-fd%d", g->name, fd);
 	file = anon_inode_getfile(name, fops, dev, O_RDWR);
 	if (IS_ERR(file)) {
 		err = PTR_ERR(file);

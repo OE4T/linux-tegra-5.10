@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 NVIDIA Corporation.  All rights reserved.
+ * Copyright (C) 2018 NVIDIA Corporation.  All rights reserved.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -164,7 +164,7 @@ static void print_histogram(struct nvgpu_mem_alloc_tracker *tracker,
 		u64 hr_bytes;
 		const char *hr_suffix;
 
-		memset(this_line, 0, sizeof(this_line));
+		(void) memset(this_line, 0, sizeof(this_line));
 
 		/*
 		 * Compute the normalized line length. Cant use floating point
@@ -175,7 +175,7 @@ static void print_histogram(struct nvgpu_mem_alloc_tracker *tracker,
 		line_length *= sizeof(histogram_line);
 		line_length /= 1000;
 
-		memset(this_line, '+', line_length);
+		(void) memset(this_line, '+', line_length);
 
 		__to_human_readable_bytes(1 << (__ffs(pot_min) + i),
 					  &hr_bytes, &hr_suffix);

@@ -143,7 +143,7 @@ static int nvgpu_pci_parse_dev_name(const char *buf, size_t count, char *name)
 	if (ret < 4)
 		return -EINVAL;
 
-	snprintf(name, PCI_DEV_NAME_MAX, "%04x:%02x:%02x.%1x",
+	(void) snprintf(name, PCI_DEV_NAME_MAX, "%04x:%02x:%02x.%1x",
 		 domain, bus, device, func);
 
 	return 0;

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 NVIDIA Corporation.  All rights reserved.
+ * Copyright (C) 2018 NVIDIA Corporation.  All rights reserved.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -284,7 +284,7 @@ static int falc_trace_show(struct seq_file *s, void *data)
 		while (nvgpu_find_hex_in_string((trace+i+20+m), g, &k)) {
 			if (k >= 40)
 				break;
-			strncpy(part_str, (trace+i+20+m), k);
+			(void) strncpy(part_str, (trace+i+20+m), k);
 			part_str[k] = 0;
 			seq_printf(s, "%s0x%x", part_str,
 					trace1[(i / 4) + 1 + l]);
@@ -334,7 +334,7 @@ static ssize_t perfmon_events_enable_write(struct file *file,
 	int buf_size;
 	int err;
 
-	memset(buf, 0, sizeof(buf));
+	(void) memset(buf, 0, sizeof(buf));
 	buf_size = min(count, (sizeof(buf)-1));
 
 	if (copy_from_user(buf, userbuf, buf_size))

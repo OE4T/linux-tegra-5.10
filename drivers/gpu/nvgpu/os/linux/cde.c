@@ -290,7 +290,7 @@ static int gk20a_init_cde_buf(struct gk20a_cde_ctx *cde_ctx,
 
 	/* copy the content */
 	if (buf->data_byte_offset != 0)
-		memcpy(mem->cpu_va, img->data + buf->data_byte_offset,
+		(void) memcpy(mem->cpu_va, img->data + buf->data_byte_offset,
 		       buf->num_bytes);
 
 	cde_ctx->num_bufs++;
@@ -644,8 +644,8 @@ static int gk20a_cde_pack_cmdbufs(struct gk20a_cde_ctx *cde_ctx)
 	}
 
 	/* move the original init here and append convert */
-	memcpy(combined_cmd, cde_ctx->init_convert_cmd, init_bytes);
-	memcpy(combined_cmd + cde_ctx->init_cmd_num_entries,
+	(void) memcpy(combined_cmd, cde_ctx->init_convert_cmd, init_bytes);
+	(void) memcpy(combined_cmd + cde_ctx->init_cmd_num_entries,
 			cde_ctx->convert_cmd, conv_bytes);
 
 	nvgpu_kfree(g, cde_ctx->init_convert_cmd);
@@ -714,7 +714,7 @@ static int gk20a_init_cde_img(struct gk20a_cde_ctx *cde_ctx,
 			break;
 		}
 		case TYPE_ARRAY:
-			memcpy(&cde_app->arrays[elem->array.id][0],
+			(void) memcpy(&cde_app->arrays[elem->array.id][0],
 				elem->array.data,
 				MAX_CDE_ARRAY_ENTRIES*sizeof(u32));
 			break;
@@ -1173,7 +1173,7 @@ __releases(&l->cde_app->mutex)
 	cde_ctx->scatterbuffer_size = scatterbuffer_size;
 
 	/* remove existing argument data */
-	memset(cde_ctx->user_param_values, 0,
+	(void) memset(cde_ctx->user_param_values, 0,
 	       sizeof(cde_ctx->user_param_values));
 
 	/* read user space arguments for the conversion */

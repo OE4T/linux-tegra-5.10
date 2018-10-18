@@ -211,7 +211,7 @@ int vgpu_fecs_trace_set_filter(struct gk20a *g,
 	struct tegra_vgpu_fecs_trace_filter *p = &msg.params.fecs_trace_filter;
 	int err;
 
-	memcpy(&p->tag_bits, &filter->tag_bits, sizeof(p->tag_bits));
+	(void) memcpy(&p->tag_bits, &filter->tag_bits, sizeof(p->tag_bits));
 	err = vgpu_comm_sendrecv(&msg, sizeof(msg), sizeof(msg));
 	err = err ? err : msg.ret;
 	WARN_ON(err);

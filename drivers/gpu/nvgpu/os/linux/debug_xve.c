@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 NVIDIA Corporation.  All rights reserved.
+ * Copyright (C) 2018 NVIDIA Corporation.  All rights reserved.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -34,7 +34,7 @@ static ssize_t xve_link_speed_write(struct file *filp,
 
 	buff_size = min_t(size_t, 16, len);
 
-	memset(kbuff, 0, 16);
+	(void) memset(kbuff, 0, 16);
 	if (copy_from_user(kbuff, buff, buff_size))
 		return -EFAULT;
 

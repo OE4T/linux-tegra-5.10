@@ -273,7 +273,7 @@ gk20a_ctrl_ioctl_gpu_characteristics(
 		return -EINVAL;
 	}
 
-	memset(&gpu, 0, sizeof(gpu));
+	(void) memset(&gpu, 0, sizeof(gpu));
 
 	gpu.L2_cache_size = g->ops.ltc.determine_L2_size_bytes(g);
 	gpu.on_board_video_memory_size = 0; /* integrated GPU */
@@ -477,7 +477,7 @@ static int gk20a_ctrl_alloc_as(
 		return err;
 	fd = err;
 
-	snprintf(name, sizeof(name), "nvhost-%s-fd%d", g->name, fd);
+	(void) snprintf(name, sizeof(name), "nvhost-%s-fd%d", g->name, fd);
 
 	file = anon_inode_getfile(name, l->as_dev.cdev.ops, NULL, O_RDWR);
 	if (IS_ERR(file)) {
@@ -519,7 +519,7 @@ static int gk20a_ctrl_open_tsg(struct gk20a *g,
 		return err;
 	fd = err;
 
-	snprintf(name, sizeof(name), "nvgpu-%s-tsg%d", g->name, fd);
+	(void) snprintf(name, sizeof(name), "nvgpu-%s-tsg%d", g->name, fd);
 
 	file = anon_inode_getfile(name, l->tsg.cdev.ops, NULL, O_RDWR);
 	if (IS_ERR(file)) {
@@ -886,7 +886,7 @@ static int nvgpu_gpu_get_engine_info(
 			&g->fifo.engine_info[active_engine_id];
 		struct nvgpu_gpu_get_engine_info_item dst_info;
 
-		memset(&dst_info, 0, sizeof(dst_info));
+		(void) memset(&dst_info, 0, sizeof(dst_info));
 
 		engine_enum = src_info->engine_enum;
 
@@ -1619,7 +1619,7 @@ long gk20a_ctrl_dev_ioctl(struct file *filp, unsigned int cmd, unsigned long arg
 		(_IOC_SIZE(cmd) > NVGPU_GPU_IOCTL_MAX_ARG_SIZE))
 		return -EINVAL;
 
-	memset(buf, 0, sizeof(buf));
+	(void) memset(buf, 0, sizeof(buf));
 	if (_IOC_DIR(cmd) & _IOC_WRITE) {
 		if (copy_from_user(buf, (void __user *)arg, _IOC_SIZE(cmd)))
 			return -EFAULT;
@@ -1643,7 +1643,8 @@ long gk20a_ctrl_dev_ioctl(struct file *filp, unsigned int cmd, unsigned long arg
 	case NVGPU_GPU_IOCTL_ZCULL_GET_INFO:
 		get_info_args = (struct nvgpu_gpu_zcull_get_info_args *)buf;
 
-		memset(get_info_args, 0, sizeof(struct nvgpu_gpu_zcull_get_info_args));
+		(void) memset(get_info_args, 0,
+			sizeof(struct nvgpu_gpu_zcull_get_info_args));
 
 		zcull_info = nvgpu_kzalloc(g, sizeof(struct gr_zcull_info));
 		if (zcull_info == NULL)

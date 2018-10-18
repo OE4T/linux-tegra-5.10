@@ -252,13 +252,15 @@ static int gk20a_ctxsw_dev_ioctl_ring_setup(struct gk20a_ctxsw_dev *dev,
 static void nvgpu_set_ctxsw_trace_filter_args(struct nvgpu_gpu_ctxsw_trace_filter *filter_dst,
         struct nvgpu_ctxsw_trace_filter *filter_src)
 {
-	memcpy(filter_dst->tag_bits, filter_src->tag_bits, (NVGPU_CTXSW_FILTER_SIZE + 63) / 64);
+	(void) memcpy(filter_dst->tag_bits, filter_src->tag_bits,
+		(NVGPU_CTXSW_FILTER_SIZE + 63) / 64);
 }
 
 static void nvgpu_get_ctxsw_trace_filter_args(struct nvgpu_ctxsw_trace_filter *filter_dst,
 	struct nvgpu_gpu_ctxsw_trace_filter *filter_src)
 {
-	memcpy(filter_dst->tag_bits, filter_src->tag_bits, (NVGPU_CTXSW_FILTER_SIZE + 63) / 64);
+	(void) memcpy(filter_dst->tag_bits, filter_src->tag_bits,
+		(NVGPU_CTXSW_FILTER_SIZE + 63) / 64);
 }
 
 static int gk20a_ctxsw_dev_ioctl_set_filter(struct gk20a_ctxsw_dev *dev,
@@ -418,7 +420,7 @@ long gk20a_ctxsw_dev_ioctl(struct file *filp, unsigned int cmd,
 		(_IOC_SIZE(cmd) > NVGPU_CTXSW_IOCTL_MAX_ARG_SIZE))
 		return -EINVAL;
 
-	memset(buf, 0, sizeof(buf));
+	(void) memset(buf, 0, sizeof(buf));
 	if (_IOC_DIR(cmd) & _IOC_WRITE) {
 		if (copy_from_user(buf, (void __user *) arg, _IOC_SIZE(cmd)))
 			return -EFAULT;
@@ -580,7 +582,7 @@ int gk20a_ctxsw_trace_init(struct gk20a *g)
 	return 0;
 
 fail:
-	memset(&g->ops.fecs_trace, 0, sizeof(g->ops.fecs_trace));
+	(void) memset(&g->ops.fecs_trace, 0, sizeof(g->ops.fecs_trace));
 	nvgpu_kfree(g, trace);
 	g->ctxsw_trace = NULL;
 	return err;

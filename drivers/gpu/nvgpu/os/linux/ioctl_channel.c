@@ -396,7 +396,7 @@ static int gk20a_init_error_notifier(struct channel_gk20a *ch,
 
 	priv->error_notifier.notification = va + args->offset;
 	priv->error_notifier.vaddr = va;
-	memset(priv->error_notifier.notification, 0,
+	(void) memset(priv->error_notifier.notification, 0,
 		sizeof(struct nvgpu_notification));
 
 	/* set channel notifiers pointer */
@@ -553,7 +553,7 @@ int gk20a_channel_open_ioctl(struct gk20a *g,
 		return err;
 	fd = err;
 
-	snprintf(name, sizeof(name), "nvhost-%s-fd%d",
+	(void) snprintf(name, sizeof(name), "nvhost-%s-fd%d",
 		 dev_name(dev_from_gk20a(g)), fd);
 
 	file = anon_inode_getfile(name, l->channel.cdev.ops, NULL, O_RDWR);

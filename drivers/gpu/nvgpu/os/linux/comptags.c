@@ -33,7 +33,7 @@ void gk20a_get_comptags(struct nvgpu_os_buffer *buf,
 		return;
 
 	if (!priv) {
-		memset(comptags, 0, sizeof(*comptags));
+		(void) memset(comptags, 0, sizeof(*comptags));
 		return;
 	}
 

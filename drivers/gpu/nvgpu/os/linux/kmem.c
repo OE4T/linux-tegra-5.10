@@ -300,7 +300,7 @@ static int __nvgpu_free_kmem_alloc(struct nvgpu_mem_alloc_tracker *tracker,
 		return -EINVAL;
 	}
 
-	memset((void *)alloc->addr, 0, alloc->size);
+	(void) memset((void *)alloc->addr, 0, alloc->size);
 
 	tracker->nr_frees++;
 	tracker->bytes_freed += alloc->size;
@@ -621,7 +621,7 @@ struct nvgpu_kmem_cache *nvgpu_kmem_cache_create(struct gk20a *g, size_t size)
 
 	cache->g = g;
 
-	snprintf(cache->name, sizeof(cache->name),
+	(void) snprintf(cache->name, sizeof(cache->name),
 		 "nvgpu-cache-0x%p-%d-%d", g, (int)size,
 		 atomic_inc_return(&kmem_cache_id));
 	cache->cache = kmem_cache_create(cache->name,

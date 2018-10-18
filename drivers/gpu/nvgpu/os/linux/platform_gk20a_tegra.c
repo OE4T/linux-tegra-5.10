@@ -482,7 +482,7 @@ static int gk20a_tegra_get_clocks(struct device *dev)
 
 	BUG_ON(GK20A_CLKS_MAX < ARRAY_SIZE(tegra_gk20a_clocks));
 
-	snprintf(devname, sizeof(devname), "tegra_%s", dev_name(dev));
+	(void) snprintf(devname, sizeof(devname), "tegra_%s", dev_name(dev));
 
 	platform->num_clks = 0;
 	for (i = 0; i < ARRAY_SIZE(tegra_gk20a_clocks); i++) {
@@ -655,7 +655,7 @@ static struct clk *gk20a_clk_get(struct gk20a *g)
 		char clk_dev_id[32];
 		struct device *dev = dev_from_gk20a(g);
 
-		snprintf(clk_dev_id, 32, "tegra_%s", dev_name(dev));
+		(void) snprintf(clk_dev_id, 32, "tegra_%s", dev_name(dev));
 
 		clk = clk_get_sys(clk_dev_id, "gpu");
 		if (IS_ERR(clk)) {

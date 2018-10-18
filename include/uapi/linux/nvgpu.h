@@ -2245,8 +2245,10 @@ struct nvgpu_ctxsw_ring_setup_args {
 	((p)->tag_bits[(n) / 64] &= ~(1 << ((n) & 63)))
 #define NVGPU_CTXSW_FILTER_ISSET(n, p) \
 	((p)->tag_bits[(n) / 64] &   (1 << ((n) & 63)))
-#define NVGPU_CTXSW_FILTER_CLR_ALL(p)    memset((void *)(p), 0, sizeof(*(p)))
-#define NVGPU_CTXSW_FILTER_SET_ALL(p)    memset((void *)(p), ~0, sizeof(*(p)))
+#define NVGPU_CTXSW_FILTER_CLR_ALL(p) \
+	((void) memset((void *)(p), 0, sizeof(*(p))))
+#define NVGPU_CTXSW_FILTER_SET_ALL(p) \
+	((void) memset((void *)(p), ~0, sizeof(*(p))))
 
 struct nvgpu_ctxsw_trace_filter {
 	__u64 tag_bits[(NVGPU_CTXSW_FILTER_SIZE + 63) / 64];

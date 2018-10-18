@@ -276,7 +276,7 @@ static void gk20a_sync_timeline_value_str(struct sync_timeline *timeline,
 {
 	struct gk20a_sync_timeline *obj =
 		(struct gk20a_sync_timeline *)timeline;
-	snprintf(str, size, "%d", gk20a_sync_timeline_current(obj));
+	(void) snprintf(str, size, "%d", gk20a_sync_timeline_current(obj));
 }
 
 static void gk20a_sync_pt_value_str_for_sema(struct gk20a_sync_pt *pt,
@@ -284,7 +284,7 @@ static void gk20a_sync_pt_value_str_for_sema(struct gk20a_sync_pt *pt,
 {
 	struct nvgpu_semaphore *s = pt->sema;
 
-	snprintf(str, size, "S: pool=%llu [v=%u,r_v=%u]",
+	(void) snprintf(str, size, "S: pool=%llu [v=%u,r_v=%u]",
 		 s->location.pool->page_idx,
 		 nvgpu_semaphore_get_value(s),
 		 nvgpu_semaphore_read(s));
@@ -300,7 +300,7 @@ static void gk20a_sync_pt_value_str(struct sync_pt *sync_pt, char *str,
 		return;
 	}
 
-	snprintf(str, size, "%d", pt->thresh);
+	(void) snprintf(str, size, "%d", pt->thresh);
 }
 
 static const struct sync_timeline_ops gk20a_sync_timeline_ops = {
@@ -406,7 +406,7 @@ struct sync_fence *gk20a_sync_fence_create(
 		return NULL;
 
 	va_start(args, fmt);
-	vsnprintf(name, sizeof(name), fmt, args);
+	(void) vsnprintf(name, sizeof(name), fmt, args);
 	va_end(args);
 
 	fence = sync_fence_create(name, pt);

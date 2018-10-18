@@ -136,7 +136,7 @@ static int gk20a_sched_dev_ioctl_get_recent_tsgs(struct gk20a_sched_ctrl *sched,
 		return -EFAULT;
 	}
 
-	memset(sched->recent_tsg_bitmap, 0, sched->bitmap_size);
+	(void) memset(sched->recent_tsg_bitmap, 0, sched->bitmap_size);
 	nvgpu_mutex_release(&sched->status_lock);
 
 	return 0;
@@ -418,9 +418,9 @@ int gk20a_sched_dev_open(struct inode *inode, struct file *filp)
 		goto free_ref;
 	}
 
-	memcpy(sched->recent_tsg_bitmap, sched->active_tsg_bitmap,
+	(void) memcpy(sched->recent_tsg_bitmap, sched->active_tsg_bitmap,
 			sched->bitmap_size);
-	memset(sched->ref_tsg_bitmap, 0, sched->bitmap_size);
+	(void) memset(sched->ref_tsg_bitmap, 0, sched->bitmap_size);
 
 	filp->private_data = sched;
 	nvgpu_log(g, gpu_dbg_sched, "filp=%p sched=%p", filp, sched);
@@ -447,7 +447,7 @@ long gk20a_sched_dev_ioctl(struct file *filp, unsigned int cmd,
 		(_IOC_SIZE(cmd) > NVGPU_SCHED_IOCTL_MAX_ARG_SIZE))
 		return -EINVAL;
 
-	memset(buf, 0, sizeof(buf));
+	(void) memset(buf, 0, sizeof(buf));
 	if (_IOC_DIR(cmd) & _IOC_WRITE) {
 		if (copy_from_user(buf, (void __user *)arg, _IOC_SIZE(cmd)))
 			return -EFAULT;

@@ -701,7 +701,8 @@ static int nvgpu_pci_probe(struct pci_dev *pdev,
 	}
 
 	/* copy detected device data to allocated platform space*/
-	memcpy((void *)platform, (void *)&nvgpu_pci_device[pent->driver_data],
+	(void) memcpy((void *)platform,
+		(void *)&nvgpu_pci_device[pent->driver_data],
 		sizeof(struct gk20a_platform));
 
 	pci_set_drvdata(pdev, platform);
@@ -778,7 +779,7 @@ static int nvgpu_pci_probe(struct pci_dev *pdev,
 		goto err_free_irq;
 	}
 
-	snprintf(nodefmt, sizeof(nodefmt),
+	(void) snprintf(nodefmt, sizeof(nodefmt),
 		 PCI_INTERFACE_NAME, dev_name(&pdev->dev));
 
 	err = nvgpu_probe(g, "gpu_pci", nodefmt, &nvgpu_pci_class);

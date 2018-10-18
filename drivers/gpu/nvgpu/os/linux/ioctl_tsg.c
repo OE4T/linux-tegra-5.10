@@ -305,7 +305,7 @@ static int gk20a_tsg_event_id_enable(struct tsg_gk20a *tsg,
 		goto free_ref;
 	local_fd = err;
 
-	snprintf(name, sizeof(name), "nvgpu-event%d-fd%d",
+	(void) snprintf(name, sizeof(name), "nvgpu-event%d-fd%d",
 		 event_id, local_fd);
 
 	file = anon_inode_getfile(name, &gk20a_event_id_ops,
@@ -612,7 +612,7 @@ long nvgpu_ioctl_tsg_dev_ioctl(struct file *filp, unsigned int cmd,
 	    (_IOC_SIZE(cmd) > NVGPU_TSG_IOCTL_MAX_ARG_SIZE))
 		return -EINVAL;
 
-	memset(buf, 0, sizeof(buf));
+	(void) memset(buf, 0, sizeof(buf));
 	if (_IOC_DIR(cmd) & _IOC_WRITE) {
 		if (copy_from_user(buf, (void __user *)arg, _IOC_SIZE(cmd)))
 			return -EFAULT;

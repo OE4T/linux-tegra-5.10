@@ -183,7 +183,7 @@ static int gk20a_as_ioctl_map_buffer_batch(
 		s16 incompressible_kind;
 
 		struct nvgpu_as_map_buffer_ex_args map_args;
-		memset(&map_args, 0, sizeof(map_args));
+		(void) memset(&map_args, 0, sizeof(map_args));
 
 		if (copy_from_user(&map_args, &user_map_args[i],
 				   sizeof(map_args))) {
@@ -249,7 +249,7 @@ static int gk20a_as_ioctl_get_va_regions(
 		struct nvgpu_as_va_region region;
 		struct nvgpu_allocator *vma = vm->vma[i];
 
-		memset(&region, 0, sizeof(struct nvgpu_as_va_region));
+		(void) memset(&region, 0, sizeof(struct nvgpu_as_va_region));
 
 		region.page_size = vm->gmmu_page_sizes[i];
 		region.offset = nvgpu_alloc_base(vma);
@@ -345,7 +345,7 @@ long gk20a_as_dev_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 		(_IOC_SIZE(cmd) > NVGPU_AS_IOCTL_MAX_ARG_SIZE))
 		return -EINVAL;
 
-	memset(buf, 0, sizeof(buf));
+	(void) memset(buf, 0, sizeof(buf));
 	if (_IOC_DIR(cmd) & _IOC_WRITE) {
 		if (copy_from_user(buf, (void __user *)arg, _IOC_SIZE(cmd)))
 			return -EFAULT;

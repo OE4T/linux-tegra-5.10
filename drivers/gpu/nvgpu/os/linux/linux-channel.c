@@ -332,7 +332,7 @@ static int nvgpu_channel_init_os_fence_framework(struct channel_gk20a *ch,
 	fence_framework = &priv->fence_framework;
 
 	va_start(args, fmt);
-	vsnprintf(name, sizeof(name), fmt, args);
+	(void) vsnprintf(name, sizeof(name), fmt, args);
 	va_end(args);
 
 	fence_framework->timeline = gk20a_sync_timeline_create(name);

@@ -40,7 +40,7 @@ static const struct firmware *do_request_firmware(struct device *dev,
 		if (!fw_path)
 			return NULL;
 
-		sprintf(fw_path, "%s/%s", prefix, fw_name);
+		(void) sprintf(fw_path, "%s/%s", prefix, fw_name);
 		fw_name = fw_path;
 	}
 
@@ -93,7 +93,7 @@ struct nvgpu_firmware *nvgpu_request_firmware(struct gk20a *g,
 	if (!fw->data)
 		goto err_release;
 
-	memcpy(fw->data, linux_fw->data, linux_fw->size);
+	(void) memcpy(fw->data, linux_fw->data, linux_fw->size);
 	fw->size = linux_fw->size;
 
 	release_firmware(linux_fw);
