@@ -314,4 +314,7 @@
 			status="okay";
 		};
 	};
+
+	/* Delete nodes which are not needed for automotive */
+	/delete-node/ nvpmodel;
 };
