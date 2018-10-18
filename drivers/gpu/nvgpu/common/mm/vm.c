@@ -1183,17 +1183,13 @@ static int nvgpu_vm_unmap_sync_buffer(struct vm_gk20a *vm,
 
 	nvgpu_mutex_release(&vm->update_gmmu_lock);
 
-	do {
-		if (nvgpu_atomic_read(&mapped_buffer->ref.refcount) == 1) {
-			break;
-		}
+	while (nvgpu_atomic_read(&mapped_buffer->ref.refcount) > 1 &&
+		nvgpu_timeout_expired_msg(&timeout,
+		"sync-unmap failed on 0x%llx", mapped_buffer->addr) == 0) {
 		nvgpu_msleep(10);
-	} while (nvgpu_timeout_expired_msg(&timeout,
-			    "sync-unmap failed on 0x%llx",
-			    mapped_buffer->addr) == 0);
+	}
 
-	if (nvgpu_atomic_read(&mapped_buffer->ref.refcount) != 1 &&
-			nvgpu_timeout_expired(&timeout)) {
+	if (nvgpu_timeout_expired(&timeout) == -ETIMEDOUT) {
 		ret = -ETIMEDOUT;
 	}
 
