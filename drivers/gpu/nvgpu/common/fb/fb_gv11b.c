@@ -742,7 +742,7 @@ static void gv11b_fb_copy_from_hw_fault_buf(struct gk20a *g,
 	u32 chid = FIFO_INVAL_CHANNEL_ID;
 	struct channel_gk20a *refch;
 
-	memset(mmfault, 0, sizeof(*mmfault));
+	(void) memset(mmfault, 0, sizeof(*mmfault));
 
 	rd32_val = nvgpu_mem_rd32(g, mem, offset +
 			 gmmu_fault_buf_entry_inst_lo_w());
@@ -1086,7 +1086,7 @@ static void gv11b_mm_copy_from_fault_snap_reg(struct gk20a *g,
 	int chid = FIFO_INVAL_CHANNEL_ID;
 	struct channel_gk20a *refch;
 
-	memset(mmfault, 0, sizeof(*mmfault));
+	(void) memset(mmfault, 0, sizeof(*mmfault));
 
 	if ((fault_status & fb_mmu_fault_status_valid_set_f()) == 0U) {
 

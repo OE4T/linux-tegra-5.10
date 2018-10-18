@@ -169,7 +169,7 @@ void __nvgpu_vm_free_va(struct vm_gk20a *vm, u64 addr, u32 pgsz_idx)
 
 void nvgpu_vm_mapping_batch_start(struct vm_gk20a_mapping_batch *mapping_batch)
 {
-	memset(mapping_batch, 0, sizeof(*mapping_batch));
+	(void) memset(mapping_batch, 0, sizeof(*mapping_batch));
 	mapping_batch->gpu_l2_flushed = false;
 	mapping_batch->need_tlb_invalidate = false;
 }
@@ -337,7 +337,7 @@ int __nvgpu_vm_init(struct mm_gk20a *mm,
 #endif
 
 	/* Initialize the page table data structures. */
-	strncpy(vm->name, name, min(strlen(name), sizeof(vm->name)));
+	(void) strncpy(vm->name, name, min(strlen(name), sizeof(vm->name)));
 	err = nvgpu_gmmu_init_page_table(vm);
 	if (err != 0) {
 		goto clean_up_vgpu_vm;
@@ -418,7 +418,8 @@ int __nvgpu_vm_init(struct mm_gk20a *mm,
 	 * User VMA.
 	 */
 	if (user_vma_start < user_vma_limit) {
-		snprintf(alloc_name, sizeof(alloc_name), "gk20a_%s", name);
+		(void) snprintf(alloc_name, sizeof(alloc_name), "gk20a_%s",
+			name);
 		err = nvgpu_buddy_allocator_init(g, &vm->user,
 						 vm, alloc_name,
 						 user_vma_start,
@@ -444,7 +445,8 @@ int __nvgpu_vm_init(struct mm_gk20a *mm,
 	 * User VMA for large pages when a split address range is used.
 	 */
 	if (user_lp_vma_start < user_lp_vma_limit) {
-		snprintf(alloc_name, sizeof(alloc_name), "gk20a_%s_lp", name);
+		(void) snprintf(alloc_name, sizeof(alloc_name), "gk20a_%s_lp",
+			name);
 		err = nvgpu_buddy_allocator_init(g, &vm->user_lp,
 						 vm, alloc_name,
 						 user_lp_vma_start,
@@ -461,7 +463,7 @@ int __nvgpu_vm_init(struct mm_gk20a *mm,
 	/*
 	 * Kernel VMA. Must always exist for an address space.
 	 */
-	snprintf(alloc_name, sizeof(alloc_name), "gk20a_%s-sys", name);
+	(void) snprintf(alloc_name, sizeof(alloc_name), "gk20a_%s-sys", name);
 	err = nvgpu_buddy_allocator_init(g, &vm->kernel,
 					 vm, alloc_name,
 					 kernel_vma_start,

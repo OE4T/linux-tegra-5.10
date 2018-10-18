@@ -33,9 +33,9 @@ void nvgpu_pmu_seq_init(struct nvgpu_pmu *pmu)
 {
 	u32 i;
 
-	memset(pmu->seq, 0,
+	(void) memset(pmu->seq, 0,
 		sizeof(struct pmu_sequence) * PMU_MAX_NUM_SEQUENCES);
-	memset(pmu->pmu_seq_tbl, 0,
+	(void) memset(pmu->pmu_seq_tbl, 0,
 		sizeof(pmu->pmu_seq_tbl));
 
 	for (i = 0; i < PMU_MAX_NUM_SEQUENCES; i++) {
@@ -527,7 +527,7 @@ static int pmu_response_handle(struct nvgpu_pmu *pmu,
 	} else if (seq->state != PMU_SEQ_STATE_CANCELLED) {
 		if (seq->msg) {
 			if (seq->msg->hdr.size >= msg->hdr.size) {
-				memcpy(seq->msg, msg, msg->hdr.size);
+				(void) memcpy(seq->msg, msg, msg->hdr.size);
 			}  else {
 				nvgpu_err(g, "sequence %d msg buffer too small",
 					seq->id);
@@ -559,7 +559,7 @@ static int pmu_response_handle(struct nvgpu_pmu *pmu,
 	}
 
 	if (seq->out_mem != NULL) {
-		memset(pv->pmu_allocation_get_fb_addr(pmu,
+		(void) memset(pv->pmu_allocation_get_fb_addr(pmu,
 			pv->get_pmu_seq_out_a_ptr(seq)), 0x0,
 			pv->pmu_allocation_get_fb_size(pmu,
 				pv->get_pmu_seq_out_a_ptr(seq)));
@@ -573,7 +573,7 @@ static int pmu_response_handle(struct nvgpu_pmu *pmu,
 	}
 
 	if (seq->in_mem != NULL) {
-		memset(pv->pmu_allocation_get_fb_addr(pmu,
+		(void) memset(pv->pmu_allocation_get_fb_addr(pmu,
 			pv->get_pmu_seq_in_a_ptr(seq)), 0x0,
 			pv->pmu_allocation_get_fb_size(pmu,
 				pv->get_pmu_seq_in_a_ptr(seq)));
@@ -766,8 +766,9 @@ static void pmu_rpc_handler(struct gk20a *g, struct pmu_msg *msg,
 		(struct rpc_handler_payload *)param;
 	struct nv_pmu_rpc_struct_perfmon_query *rpc_param;
 
-	memset(&rpc, 0, sizeof(struct nv_pmu_rpc_header));
-	memcpy(&rpc, rpc_payload->rpc_buff,	sizeof(struct nv_pmu_rpc_header));
+	(void) memset(&rpc, 0, sizeof(struct nv_pmu_rpc_header));
+	(void) memcpy(&rpc, rpc_payload->rpc_buff,
+		sizeof(struct nv_pmu_rpc_header));
 
 	if (rpc.flcn_status) {
 		nvgpu_err(g, " failed RPC response, status=0x%x, func=0x%x",
@@ -922,15 +923,15 @@ int nvgpu_pmu_rpc_execute(struct nvgpu_pmu *pmu, struct nv_pmu_rpc_header *rpc,
 	}
 
 	rpc_buff = rpc_payload->rpc_buff;
-	memset(&cmd, 0, sizeof(struct pmu_cmd));
-	memset(&payload, 0, sizeof(struct pmu_payload));
+	(void) memset(&cmd, 0, sizeof(struct pmu_cmd));
+	(void) memset(&payload, 0, sizeof(struct pmu_payload));
 
 	cmd.hdr.unit_id = rpc->unit_id;
 	cmd.hdr.size = PMU_CMD_HDR_SIZE + sizeof(struct nv_pmu_rpc_cmd);
 	cmd.cmd.rpc.cmd_type = NV_PMU_RPC_CMD_ID;
 	cmd.cmd.rpc.flags = rpc->flags;
 
-	memcpy(rpc_buff, rpc, size_rpc);
+	(void) memcpy(rpc_buff, rpc, size_rpc);
 	payload.rpc.prpc = rpc_buff;
 	payload.rpc.size_rpc = size_rpc;
 	payload.rpc.size_scratch = size_scratch;
@@ -954,7 +955,7 @@ int nvgpu_pmu_rpc_execute(struct nvgpu_pmu *pmu, struct nv_pmu_rpc_header *rpc,
 		pmu_wait_message_cond(pmu, gk20a_get_gr_idle_timeout(g),
 			&rpc_payload->complete, true);
 		/* copy back data to caller */
-		memcpy(rpc, rpc_buff, size_rpc);
+		(void) memcpy(rpc, rpc_buff, size_rpc);
 		/* free allocated memory */
 		nvgpu_kfree(g, rpc_payload);
 	}

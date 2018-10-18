@@ -131,7 +131,7 @@ void nvgpu_alloc_destroy(struct nvgpu_allocator *a)
 {
 	a->ops->fini(a);
 	nvgpu_mutex_destroy(&a->lock);
-	memset(a, 0, sizeof(*a));
+	(void) memset(a, 0, sizeof(*a));
 }
 
 #ifdef __KERNEL__
@@ -173,7 +173,7 @@ int nvgpu_alloc_common_init(struct nvgpu_allocator *a, struct gk20a *g,
 	a->priv = priv;
 	a->debug = dbg;
 
-	strncpy(a->name, name, sizeof(a->name));
+	(void) strncpy(a->name, name, sizeof(a->name));
 	a->name[sizeof(a->name) - 1U] = '\0';
 
 	return 0;

@@ -408,7 +408,7 @@ static void gk20a_free_channel(struct channel_gk20a *ch, bool force)
 
 	nvgpu_dma_unmap_free(ch_vm, &ch->gpfifo.mem);
 	nvgpu_big_free(g, ch->gpfifo.pipe);
-	memset(&ch->gpfifo, 0, sizeof(struct gpfifo_desc));
+	(void) memset(&ch->gpfifo, 0, sizeof(struct gpfifo_desc));
 
 	channel_gk20a_free_priv_cmdbuf(ch);
 
@@ -495,7 +495,7 @@ unbind:
 	}
 
 #if GK20A_CHANNEL_REFCOUNT_TRACKING
-	memset(ch->ref_actions, 0, sizeof(ch->ref_actions));
+	(void) memset(ch->ref_actions, 0, sizeof(ch->ref_actions));
 	ch->ref_actions_put = 0;
 #endif
 
@@ -804,7 +804,7 @@ static void channel_gk20a_free_priv_cmdbuf(struct channel_gk20a *c)
 
 	nvgpu_dma_unmap_free(ch_vm, &q->mem);
 
-	memset(q, 0, sizeof(struct priv_cmd_queue));
+	(void) memset(q, 0, sizeof(struct priv_cmd_queue));
 }
 
 /* allocate a cmd buffer with given size. size is number of u32 entries */
@@ -875,7 +875,7 @@ void free_priv_cmdbuf(struct channel_gk20a *c,
 			     struct priv_cmd_entry *e)
 {
 	if (channel_gk20a_is_prealloc_enabled(c)) {
-		memset(e, 0, sizeof(struct priv_cmd_entry));
+		(void) memset(e, 0, sizeof(struct priv_cmd_entry));
 	} else {
 		nvgpu_kfree(c->g, e);
 	}
@@ -926,7 +926,7 @@ void channel_gk20a_free_job(struct channel_gk20a *c,
 	if (channel_gk20a_is_prealloc_enabled(c)) {
 		struct priv_cmd_entry *wait_cmd = job->wait_cmd;
 		struct priv_cmd_entry *incr_cmd = job->incr_cmd;
-		memset(job, 0, sizeof(*job));
+		(void) memset(job, 0, sizeof(*job));
 		job->wait_cmd = wait_cmd;
 		job->incr_cmd = incr_cmd;
 	} else {
@@ -1088,7 +1088,7 @@ clean_up_priv_cmd:
 clean_up_joblist:
 	nvgpu_vfree(c->g, c->joblist.pre_alloc.jobs);
 clean_up:
-	memset(&c->joblist.pre_alloc, 0, sizeof(c->joblist.pre_alloc));
+	(void) memset(&c->joblist.pre_alloc, 0, sizeof(c->joblist.pre_alloc));
 	return err;
 }
 
@@ -1286,7 +1286,7 @@ clean_up_unmap:
 		c->usermode_submit_enabled = false;
 	}
 clean_up:
-	memset(&c->gpfifo, 0, sizeof(struct gpfifo_desc));
+	(void) memset(&c->gpfifo, 0, sizeof(struct gpfifo_desc));
 clean_up_idle:
 	if (c->deterministic) {
 		nvgpu_rwsem_down_read(&g->deterministic_busy);
@@ -1741,7 +1741,7 @@ static int __nvgpu_channel_worker_start(struct gk20a *g)
 		return err;
 	}
 
-	snprintf(thread_name, sizeof(thread_name),
+	(void) snprintf(thread_name, sizeof(thread_name),
 			"nvgpu_channel_poll_%s", g->name);
 
 	err = nvgpu_thread_create(&g->channel_worker.poll_task, g,

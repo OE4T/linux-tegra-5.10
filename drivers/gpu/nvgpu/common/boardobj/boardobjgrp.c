@@ -500,7 +500,7 @@ int boardobjgrp_pmuset_impl(struct gk20a *g, struct boardobjgrp *pboardobjgrp)
 	}
 
 	/* Initialize PMU buffer with BOARDOBJGRP data. */
-	memset(pcmd->buf, 0x0, pcmd->fbsize);
+	(void) memset(pcmd->buf, 0x0, pcmd->fbsize);
 	status = pboardobjgrp->pmudatainit(g, pboardobjgrp,
 			pcmd->buf);
 	if (status != 0) {
@@ -559,7 +559,7 @@ int boardobjgrp_pmuset_impl_v1(struct gk20a *g,
 	}
 
 	/* Initialize PMU buffer with BOARDOBJGRP data. */
-	memset(pcmd->buf, 0x0, pcmd->fbsize);
+	(void) memset(pcmd->buf, 0x0, pcmd->fbsize);
 	status = pboardobjgrp->pmudatainit(g, pboardobjgrp,
 			pcmd->buf);
 	if (status != 0) {
@@ -643,7 +643,7 @@ boardobjgrp_pmugetstatus_impl(struct gk20a *g, struct boardobjgrp *pboardobjgrp,
 	 * retrieve status
 	 */
 
-	memset(pcmd->buf, 0x0, pcmd->fbsize);
+	(void) memset(pcmd->buf, 0x0, pcmd->fbsize);
 	status = pboardobjgrp->pmuhdrdatainit(g, pboardobjgrp,
 					pcmd->buf, mask);
 	if (status != 0) {
@@ -700,7 +700,7 @@ boardobjgrp_pmugetstatus_impl_v1(struct gk20a *g, struct boardobjgrp *pboardobjg
 	 * Initialize PMU buffer with the mask of
 	 * BOARDOBJGRPs for which to retrieve status
 	 */
-	memset(pcmd->buf, 0x0, pcmd->fbsize);
+	(void) memset(pcmd->buf, 0x0, pcmd->fbsize);
 	status = pboardobjgrp->pmuhdrdatainit(g, pboardobjgrp,
 			pcmd->buf, mask);
 	if (status != 0) {
@@ -953,9 +953,9 @@ static int boardobjgrp_pmucmdsend(struct gk20a *g,
 
 	nvgpu_log_info(g, " ");
 
-	memset(&payload, 0, sizeof(payload));
-	memset(&handlerparams, 0, sizeof(handlerparams));
-	memset(&cmd, 0, sizeof(struct pmu_cmd));
+	(void) memset(&payload, 0, sizeof(payload));
+	(void) memset(&handlerparams, 0, sizeof(handlerparams));
+	(void) memset(&cmd, 0, sizeof(struct pmu_cmd));
 	cmd.hdr.unit_id	= pboardobjgrp->pmu.unitid;
 	cmd.hdr.size = sizeof(struct nv_pmu_boardobj_cmd_grp) +
 					sizeof(struct pmu_hdr);
@@ -1022,7 +1022,8 @@ static int boardobjgrp_pmucmdsend_rpc(struct gk20a *g,
 
 	nvgpu_log_fn(g, " ");
 
-	memset(&rpc, 0, sizeof(struct nv_pmu_rpc_struct_board_obj_grp_cmd));
+	(void) memset(&rpc, 0,
+		sizeof(struct nv_pmu_rpc_struct_board_obj_grp_cmd));
 
 	rpc.class_id = pboardobjgrp->pmu.classid;
 	rpc.command_id = copy_out ?

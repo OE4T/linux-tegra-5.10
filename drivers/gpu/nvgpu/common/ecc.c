@@ -71,7 +71,7 @@ int nvgpu_ecc_counter_init_per_tpc(struct gk20a *g,
 
 	for (gpc = 0; gpc < gr->gpc_count; gpc++) {
 		for (tpc = 0; tpc < gr->gpc_tpc_count[gpc]; tpc++) {
-			snprintf(stats[gpc][tpc].name,
+			(void) snprintf(stats[gpc][tpc].name,
 					NVGPU_ECC_STAT_NAME_MAX_SIZE,
 					"gpc%d_tpc%d_%s", gpc, tpc, name);
 			nvgpu_ecc_stat_add(g, &stats[gpc][tpc]);
@@ -94,7 +94,7 @@ int nvgpu_ecc_counter_init_per_gpc(struct gk20a *g,
 		return -ENOMEM;
 	}
 	for (gpc = 0; gpc < gr->gpc_count; gpc++) {
-		snprintf(stats[gpc].name, NVGPU_ECC_STAT_NAME_MAX_SIZE,
+		(void) snprintf(stats[gpc].name, NVGPU_ECC_STAT_NAME_MAX_SIZE,
 				"gpc%d_%s", gpc, name);
 		nvgpu_ecc_stat_add(g, &stats[gpc]);
 	}
@@ -151,7 +151,7 @@ int nvgpu_ecc_counter_init_per_lts(struct gk20a *g,
 
 	for (ltc = 0; ltc < g->ltc_count; ltc++) {
 		for (lts = 0; lts < gr->slices_per_ltc; lts++) {
-			snprintf(stats[ltc][lts].name,
+			(void) snprintf(stats[ltc][lts].name,
 					NVGPU_ECC_STAT_NAME_MAX_SIZE,
 					"ltc%d_lts%d_%s", ltc, lts, name);
 			nvgpu_ecc_stat_add(g, &stats[ltc][lts]);
@@ -175,7 +175,7 @@ int nvgpu_ecc_counter_init_per_fbpa(struct gk20a *g,
 	}
 
 	for (i = 0; i < num_fbpa; i++) {
-		snprintf(stats[i].name, NVGPU_ECC_STAT_NAME_MAX_SIZE,
+		(void) snprintf(stats[i].name, NVGPU_ECC_STAT_NAME_MAX_SIZE,
 				"fbpa%d_%s", i, name);
 		nvgpu_ecc_stat_add(g, &stats[i]);
 	}

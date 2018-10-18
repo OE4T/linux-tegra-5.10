@@ -41,7 +41,7 @@ void nvgpu_free_sim_buffer(struct gk20a *g, struct nvgpu_mem *mem)
 	if (nvgpu_mem_is_valid(mem))
 		nvgpu_dma_free(g, mem);
 
-	memset(mem, 0, sizeof(*mem));
+	(void) memset(mem, 0, sizeof(*mem));
 }
 
 void nvgpu_free_sim_support(struct gk20a *g)
@@ -233,7 +233,8 @@ static void nvgpu_sim_esc_readl(struct gk20a *g,
 	err = issue_rpc_and_wait(g);
 
 	if (err == 0) {
-		memcpy(data, sim_msg_param(g, data_offset), sizeof(u32));
+		(void) memcpy(data, sim_msg_param(g, data_offset),
+			sizeof(u32));
 	} else {
 		*data = 0xffffffff;
 		WARN(1, "issue_rpc_and_wait failed err=%d", err);

@@ -152,7 +152,7 @@ static int pmu_enable_elpg_locked(struct gk20a *g, u32 pg_engine_id)
 
 	nvgpu_log_fn(g, " ");
 
-	memset(&cmd, 0, sizeof(struct pmu_cmd));
+	(void) memset(&cmd, 0, sizeof(struct pmu_cmd));
 	cmd.hdr.unit_id = PMU_UNIT_PG;
 	cmd.hdr.size = PMU_CMD_HDR_SIZE +
 		sizeof(struct pmu_pg_cmd_elpg_cmd);
@@ -314,7 +314,7 @@ int nvgpu_pmu_disable_elpg(struct gk20a *g)
 		}
 
 		if (BIT(pg_engine_id) & pg_engine_id_list) {
-			memset(&cmd, 0, sizeof(struct pmu_cmd));
+			(void) memset(&cmd, 0, sizeof(struct pmu_cmd));
 			cmd.hdr.unit_id = PMU_UNIT_PG;
 			cmd.hdr.size = PMU_CMD_HDR_SIZE +
 				sizeof(struct pmu_pg_cmd_elpg_cmd);
@@ -400,7 +400,7 @@ static int pmu_pg_init_send(struct gk20a *g, u32 pg_engine_id)
 	}
 
 	/* init ELPG */
-	memset(&cmd, 0, sizeof(struct pmu_cmd));
+	(void) memset(&cmd, 0, sizeof(struct pmu_cmd));
 	cmd.hdr.unit_id = PMU_UNIT_PG;
 	cmd.hdr.size = PMU_CMD_HDR_SIZE + sizeof(struct pmu_pg_cmd_elpg_cmd);
 	cmd.cmd.pg.elpg_cmd.cmd_type = PMU_PG_CMD_ID_ELPG_CMD;
@@ -416,7 +416,7 @@ static int pmu_pg_init_send(struct gk20a *g, u32 pg_engine_id)
 
 	/* alloc dmem for powergating state log */
 	pmu->stat_dmem_offset[pg_engine_id] = 0;
-	memset(&cmd, 0, sizeof(struct pmu_cmd));
+	(void) memset(&cmd, 0, sizeof(struct pmu_cmd));
 	cmd.hdr.unit_id = PMU_UNIT_PG;
 	cmd.hdr.size = PMU_CMD_HDR_SIZE + sizeof(struct pmu_pg_cmd_stat);
 	cmd.cmd.pg.stat.cmd_type = PMU_PG_CMD_ID_PG_STAT;
@@ -440,7 +440,7 @@ static int pmu_pg_init_send(struct gk20a *g, u32 pg_engine_id)
 	} else if (pg_engine_id == PMU_PG_ELPG_ENGINE_ID_MS) {
 		pmu->mscg_transition_state = PMU_ELPG_STAT_OFF;
 	}
-	memset(&cmd, 0, sizeof(struct pmu_cmd));
+	(void) memset(&cmd, 0, sizeof(struct pmu_cmd));
 	cmd.hdr.unit_id = PMU_UNIT_PG;
 	cmd.hdr.size = PMU_CMD_HDR_SIZE + sizeof(struct pmu_pg_cmd_elpg_cmd);
 	cmd.cmd.pg.elpg_cmd.cmd_type = PMU_PG_CMD_ID_ELPG_CMD;
@@ -534,7 +534,7 @@ int nvgpu_pmu_init_bind_fecs(struct gk20a *g)
 
 	gr_engine_id = gk20a_fifo_get_gr_engine_id(g);
 
-	memset(&cmd, 0, sizeof(struct pmu_cmd));
+	(void) memset(&cmd, 0, sizeof(struct pmu_cmd));
 	cmd.hdr.unit_id = PMU_UNIT_PG;
 	cmd.hdr.size = PMU_CMD_HDR_SIZE +
 			g->ops.pmu_ver.pg_cmd_eng_buf_load_size(&cmd.cmd.pg);
@@ -575,7 +575,7 @@ void nvgpu_pmu_setup_hw_load_zbc(struct gk20a *g)
 
 	gr_engine_id = gk20a_fifo_get_gr_engine_id(g);
 
-	memset(&cmd, 0, sizeof(struct pmu_cmd));
+	(void) memset(&cmd, 0, sizeof(struct pmu_cmd));
 	cmd.hdr.unit_id = PMU_UNIT_PG;
 	cmd.hdr.size = PMU_CMD_HDR_SIZE +
 			g->ops.pmu_ver.pg_cmd_eng_buf_load_size(&cmd.cmd.pg);
@@ -664,7 +664,7 @@ int nvgpu_pmu_ap_send_command(struct gk20a *g,
 	u32 seq;
 	pmu_callback p_callback = NULL;
 
-	memset(&cmd, 0, sizeof(struct pmu_cmd));
+	(void) memset(&cmd, 0, sizeof(struct pmu_cmd));
 
 	/* Copy common members */
 	cmd.hdr.unit_id = PMU_UNIT_PG;
@@ -685,7 +685,7 @@ int nvgpu_pmu_ap_send_command(struct gk20a *g,
 		nvgpu_pmu_dbg(g, "cmd post PMU_AP_CMD_ID_INIT_AND_ENABLE_CTRL");
 		cmd.cmd.pg.ap_cmd.init_and_enable_ctrl.ctrl_id =
 		p_ap_cmd->init_and_enable_ctrl.ctrl_id;
-		memcpy(
+		(void) memcpy(
 		(void *)&(cmd.cmd.pg.ap_cmd.init_and_enable_ctrl.params),
 			(void *)&(p_ap_cmd->init_and_enable_ctrl.params),
 			sizeof(struct pmu_ap_ctrl_init_params));

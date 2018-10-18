@@ -469,7 +469,7 @@ void nvgpu_flcn_queue_free(struct nvgpu_falcon *flcn,
 	nvgpu_mutex_destroy(&queue->mutex);
 
 	/* clear data*/
-	memset(queue, 0, sizeof(struct nvgpu_falcon_queue));
+	(void) memset(queue, 0, sizeof(struct nvgpu_falcon_queue));
 }
 
 int nvgpu_flcn_queue_init(struct nvgpu_falcon *flcn,

@@ -136,7 +136,7 @@ static int nvgpu_init_task_pg_init(struct gk20a *g)
 
 	nvgpu_cond_init(&pmu->pg_init.wq);
 
-	snprintf(thread_name, sizeof(thread_name),
+	(void) snprintf(thread_name, sizeof(thread_name),
 				"nvgpu_pg_init_%s", g->name);
 
 	err = nvgpu_thread_create(&pmu->pg_init.state_task, g,
@@ -411,7 +411,7 @@ int nvgpu_pmu_process_init_msg(struct nvgpu_pmu *pmu,
 			BUG_ON(sizeof(pmu->gid_info.gid) !=
 				sizeof(gid_data.gid));
 
-			memcpy(pmu->gid_info.gid, gid_data.gid,
+			(void) memcpy(pmu->gid_info.gid, gid_data.gid,
 				sizeof(pmu->gid_info.gid));
 		}
 	}
@@ -658,7 +658,7 @@ int nvgpu_pmu_super_surface_alloc(struct gk20a *g,
 void nvgpu_pmu_surface_free(struct gk20a *g, struct nvgpu_mem *mem)
 {
 	nvgpu_dma_free(g, mem);
-	memset(mem, 0, sizeof(struct nvgpu_mem));
+	(void) memset(mem, 0, sizeof(struct nvgpu_mem));
 }
 
 struct gk20a *gk20a_from_pmu(struct nvgpu_pmu *pmu)

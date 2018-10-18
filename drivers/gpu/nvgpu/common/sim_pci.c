@@ -201,7 +201,8 @@ static void nvgpu_sim_esc_readl(struct gk20a *g,
 	err = issue_rpc_and_wait(g);
 
 	if (err == 0) {
-		memcpy(data, sim_msg_param(g, data_offset + 0xc), sizeof(u32));
+		(void) memcpy(data, sim_msg_param(g, data_offset + 0xc),
+			sizeof(u32));
 	} else {
 		*data = 0xffffffff;
 		WARN(1, "issue_rpc_and_wait failed err=%d", err);

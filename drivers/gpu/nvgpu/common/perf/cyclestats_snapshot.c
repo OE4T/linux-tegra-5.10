@@ -136,7 +136,7 @@ int nvgpu_css_enable_snapshot(struct channel_gk20a *ch,
 	data->hw_end = data->hw_snapshot +
 		snapshot_size / sizeof(struct gk20a_cs_snapshot_fifo_entry);
 	data->hw_get = data->hw_snapshot;
-	memset(data->hw_snapshot, 0xff, snapshot_size);
+	(void) memset(data->hw_snapshot, 0xff, snapshot_size);
 
 	g->ops.perf.membuf_reset_streaming(g);
 	g->ops.perf.enable_membuf(g, snapshot_size, data->hw_memdesc.gpu_va,
@@ -149,7 +149,7 @@ int nvgpu_css_enable_snapshot(struct channel_gk20a *ch,
 failed_allocation:
 	if (data->hw_memdesc.size) {
 		nvgpu_dma_unmap_free(g->mm.pmu.vm, &data->hw_memdesc);
-		memset(&data->hw_memdesc, 0, sizeof(data->hw_memdesc));
+		(void) memset(&data->hw_memdesc, 0, sizeof(data->hw_memdesc));
 	}
 	data->hw_snapshot = NULL;
 
@@ -168,7 +168,7 @@ void nvgpu_css_disable_snapshot(struct gr_gk20a *gr)
 	g->ops.perf.disable_membuf(g);
 
 	nvgpu_dma_unmap_free(g->mm.pmu.vm, &data->hw_memdesc);
-	memset(&data->hw_memdesc, 0, sizeof(data->hw_memdesc));
+	(void) memset(&data->hw_memdesc, 0, sizeof(data->hw_memdesc));
 	data->hw_snapshot = NULL;
 
 	nvgpu_log_info(g, "cyclestats: buffer for hardware snapshots disabled\n");
@@ -320,11 +320,12 @@ next_hw_fifo_entry:
 
 	/* re-set HW buffer after processing taking wrapping into account */
 	if (css->hw_get < src) {
-		memset(css->hw_get, 0xff, (src - css->hw_get) * sizeof(*src));
+		(void) memset(css->hw_get, 0xff,
+			(src - css->hw_get) * sizeof(*src));
 	} else {
-		memset(css->hw_snapshot, 0xff,
+		(void) memset(css->hw_snapshot, 0xff,
 				(src - css->hw_snapshot) * sizeof(*src));
-		memset(css->hw_get, 0xff,
+		(void) memset(css->hw_get, 0xff,
 				(css->hw_end - css->hw_get) * sizeof(*src));
 	}
 	gr->cs_data->hw_get = src;
@@ -408,7 +409,7 @@ static int css_gr_create_client_data(struct gk20a *g,
 	 * guest side
 	 */
 	if (cur->snapshot) {
-		memset(cur->snapshot, 0, sizeof(*cur->snapshot));
+		(void) memset(cur->snapshot, 0, sizeof(*cur->snapshot));
 		cur->snapshot->start = sizeof(*cur->snapshot);
 		/* we should be ensure that can fit all fifo entries here */
 		cur->snapshot->end =

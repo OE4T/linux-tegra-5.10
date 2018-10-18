@@ -240,7 +240,7 @@ void nvgpu_mem_rd_n(struct gk20a *g, struct nvgpu_mem *mem,
 		u8 *src = (u8 *)mem->cpu_va + offset;
 
 		WARN_ON(mem->cpu_va == NULL);
-		memcpy(dest, src, size);
+		(void) memcpy(dest, src, size);
 	} else if (mem->aperture == APERTURE_VIDMEM) {
 		nvgpu_pramin_rd_n(g, mem, offset, size, dest);
 	} else {
@@ -281,7 +281,7 @@ void nvgpu_mem_wr_n(struct gk20a *g, struct nvgpu_mem *mem, u32 offset,
 		u8 *dest = (u8 *)mem->cpu_va + offset;
 
 		WARN_ON(mem->cpu_va == NULL);
-		memcpy(dest, src, size);
+		(void) memcpy(dest, src, size);
 	} else if (mem->aperture == APERTURE_VIDMEM) {
 		nvgpu_pramin_wr_n(g, mem, offset, size, src);
 		if (!mem->skip_wmb) {
@@ -305,7 +305,7 @@ void nvgpu_memset(struct gk20a *g, struct nvgpu_mem *mem, u32 offset,
 		u8 *dest = (u8 *)mem->cpu_va + offset;
 
 		WARN_ON(mem->cpu_va == NULL);
-		memset(dest, c, size);
+		(void) memset(dest, c, size);
 	} else if (mem->aperture == APERTURE_VIDMEM) {
 		u32 repeat_value = c | (c << 8) | (c << 16) | (c << 24);
 

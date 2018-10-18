@@ -294,7 +294,7 @@ static struct page_alloc_slab_page *alloc_slab_page(
 		return NULL;
 	}
 
-	memset(slab_page, 0, sizeof(*slab_page));
+	(void) memset(slab_page, 0, sizeof(*slab_page));
 
 	slab_page->page_addr = nvgpu_alloc(&a->source_allocator, a->page_size);
 	if (slab_page->page_addr == 0ULL) {
@@ -535,7 +535,7 @@ static struct nvgpu_page_alloc *do_nvgpu_alloc_pages(
 		goto fail;
 	}
 
-	memset(alloc, 0, sizeof(*alloc));
+	(void) memset(alloc, 0, sizeof(*alloc));
 
 	alloc->length = pages << a->page_shift;
 	alloc->sgt.ops = &page_alloc_sgl_ops;
@@ -1060,7 +1060,7 @@ int nvgpu_page_allocator_init(struct gk20a *g, struct nvgpu_allocator *na,
 		}
 	}
 
-	snprintf(buddy_name, sizeof(buddy_name), "%s-src", name);
+	(void) snprintf(buddy_name, sizeof(buddy_name), "%s-src", name);
 
 	err = nvgpu_buddy_allocator_init(g, &a->source_allocator, NULL,
 					 buddy_name, base, length, blk_size,

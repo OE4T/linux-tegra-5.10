@@ -84,10 +84,10 @@ static void sec2_seq_init(struct nvgpu_sec2 *sec2)
 
 	nvgpu_log_fn(sec2->g, " ");
 
-	memset(sec2->seq, 0,
+	(void) memset(sec2->seq, 0,
 		sizeof(struct sec2_sequence) * SEC2_MAX_NUM_SEQUENCES);
 
-	memset(sec2->sec2_seq_tbl, 0, sizeof(sec2->sec2_seq_tbl));
+	(void) memset(sec2->sec2_seq_tbl, 0, sizeof(sec2->sec2_seq_tbl));
 
 	for (i = 0; i < SEC2_MAX_NUM_SEQUENCES; i++) {
 		sec2->seq[i].id = (u8)i;
@@ -218,7 +218,7 @@ static void sec2_load_ls_falcons(struct gk20a *g, struct nvgpu_sec2 *sec2,
 	nvgpu_log_fn(g, " ");
 
 	/* send message to load falcon */
-	memset(&cmd, 0, sizeof(struct nv_flcn_cmd_sec2));
+	(void) memset(&cmd, 0, sizeof(struct nv_flcn_cmd_sec2));
 	cmd.hdr.unit_id = NV_SEC2_UNIT_ACR;
 	cmd.hdr.size = PMU_CMD_HDR_SIZE +
 		sizeof(struct nv_sec2_acr_cmd_bootstrap_falcon);

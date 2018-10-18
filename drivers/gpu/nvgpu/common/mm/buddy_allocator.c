@@ -133,7 +133,7 @@ static struct nvgpu_buddy *balloc_new_buddy(struct nvgpu_buddy_allocator *a,
 		return NULL;
 	}
 
-	memset(new_buddy, 0, sizeof(struct nvgpu_buddy));
+	(void) memset(new_buddy, 0, sizeof(struct nvgpu_buddy));
 
 	new_buddy->parent = parent;
 	new_buddy->start = start;

@@ -84,7 +84,7 @@ int nvgpu_pmu_init_perfmon(struct nvgpu_pmu *pmu)
 	}
 
 	/* init PERFMON */
-	memset(&cmd, 0, sizeof(struct pmu_cmd));
+	(void) memset(&cmd, 0, sizeof(struct pmu_cmd));
 
 	cmd.hdr.unit_id = get_perfmon_id(pmu);
 	if (cmd.hdr.unit_id == PMU_UNIT_INVALID) {
@@ -115,7 +115,7 @@ int nvgpu_pmu_init_perfmon(struct nvgpu_pmu *pmu)
 	 */
 	pv->perfmon_cmd_init_set_mov_avg(&cmd.cmd.perfmon, 17);
 
-	memset(&payload, 0, sizeof(struct pmu_payload));
+	(void) memset(&payload, 0, sizeof(struct pmu_payload));
 	payload.in.buf = pv->get_perfmon_cntr_ptr(pmu);
 	payload.in.size = pv->get_perfmon_cntr_sz(pmu);
 	payload.in.offset = pv->get_perfmon_cmd_init_offsetofvar(COUNTER_ALLOC);
@@ -140,7 +140,7 @@ int nvgpu_pmu_perfmon_start_sampling(struct nvgpu_pmu *pmu)
 	}
 
 	/* PERFMON Start */
-	memset(&cmd, 0, sizeof(struct pmu_cmd));
+	(void) memset(&cmd, 0, sizeof(struct pmu_cmd));
 	cmd.hdr.unit_id = get_perfmon_id(pmu);
 	if (cmd.hdr.unit_id == PMU_UNIT_INVALID) {
 		nvgpu_err(g, "failed to get perfmon UNIT ID, command skipped");
@@ -159,7 +159,7 @@ int nvgpu_pmu_perfmon_start_sampling(struct nvgpu_pmu *pmu)
 		PMU_PERFMON_FLAG_ENABLE_DECREASE |
 		PMU_PERFMON_FLAG_CLEAR_PREV);
 
-	memset(&payload, 0, sizeof(struct pmu_payload));
+	(void) memset(&payload, 0, sizeof(struct pmu_payload));
 
 	/* TBD: PMU_PERFMON_PCT_TO_INC * 100 */
 	pv->set_perfmon_cntr_ut(pmu, 3000); /* 30% */
@@ -190,7 +190,7 @@ int nvgpu_pmu_perfmon_stop_sampling(struct nvgpu_pmu *pmu)
 	}
 
 	/* PERFMON Stop */
-	memset(&cmd, 0, sizeof(struct pmu_cmd));
+	(void) memset(&cmd, 0, sizeof(struct pmu_cmd));
 	cmd.hdr.unit_id = get_perfmon_id(pmu);
 	if (cmd.hdr.unit_id == PMU_UNIT_INVALID) {
 		nvgpu_err(g, "failed to get perfmon UNIT ID, command skipped");
@@ -312,7 +312,7 @@ int nvgpu_pmu_init_perfmon_rpc(struct nvgpu_pmu *pmu)
 
 	nvgpu_log_fn(g, " ");
 
-	memset(&rpc, 0, sizeof(struct nv_pmu_rpc_struct_perfmon_init));
+	(void) memset(&rpc, 0, sizeof(struct nv_pmu_rpc_struct_perfmon_init));
 	pmu->perfmon_ready = 0;
 
 	g->ops.pmu.pmu_init_perfmon_counter(g);
@@ -332,7 +332,7 @@ int nvgpu_pmu_init_perfmon_rpc(struct nvgpu_pmu *pmu)
 	 */
 	rpc.num_counters = 1;
 
-	memset(rpc.counter, 0, sizeof(struct pmu_perfmon_counter_v3) *
+	(void) memset(rpc.counter, 0, sizeof(struct pmu_perfmon_counter_v3) *
 		NV_PMU_PERFMON_MAX_COUNTERS);
 	/* Counter used to count GR busy cycles */
 	rpc.counter[0].index = 3;
@@ -360,7 +360,7 @@ int nvgpu_pmu_perfmon_start_sampling_rpc(struct nvgpu_pmu *pmu)
 
 	nvgpu_log_fn(g, " ");
 
-	memset(&rpc, 0, sizeof(struct nv_pmu_rpc_struct_perfmon_start));
+	(void) memset(&rpc, 0, sizeof(struct nv_pmu_rpc_struct_perfmon_start));
 	rpc.group_id = PMU_DOMAIN_GROUP_PSTATE;
 	rpc.state_id = pmu->perfmon_state_id[PMU_DOMAIN_GROUP_PSTATE];
 	rpc.flags = PMU_PERFMON_FLAG_ENABLE_INCREASE |
@@ -391,7 +391,7 @@ int nvgpu_pmu_perfmon_stop_sampling_rpc(struct nvgpu_pmu *pmu)
 
 	nvgpu_log_fn(g, " ");
 
-	memset(&rpc, 0, sizeof(struct nv_pmu_rpc_struct_perfmon_stop));
+	(void) memset(&rpc, 0, sizeof(struct nv_pmu_rpc_struct_perfmon_stop));
 	/* PERFMON Stop */
 	nvgpu_pmu_dbg(g, "RPC post NV_PMU_RPC_ID_PERFMON_STOP\n");
 	PMU_RPC_EXECUTE(status, pmu, PERFMON_T18X, STOP, &rpc, 0);
@@ -414,7 +414,7 @@ int nvgpu_pmu_perfmon_get_samples_rpc(struct nvgpu_pmu *pmu)
 
 	nvgpu_log_fn(g, " ");
 	pmu->perfmon_query = 0;
-	memset(&rpc, 0, sizeof(struct nv_pmu_rpc_struct_perfmon_query));
+	(void) memset(&rpc, 0, sizeof(struct nv_pmu_rpc_struct_perfmon_query));
 	/* PERFMON QUERY */
 	nvgpu_pmu_dbg(g, "RPC post NV_PMU_RPC_ID_PERFMON_QUERY\n");
 	PMU_RPC_EXECUTE(status, pmu, PERFMON_T18X, QUERY, &rpc, 0);

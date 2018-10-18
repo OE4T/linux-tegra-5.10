@@ -400,7 +400,8 @@ u32 nvgpu_bios_get_nvlink_config_data(struct gk20a *g)
 		return -EINVAL;
 	}
 
-	memcpy(&config, &g->bios.data[g->bios.nvlink_config_data_offset],
+	(void) memcpy(&config,
+		&g->bios.data[g->bios.nvlink_config_data_offset],
 		sizeof(config));
 
 	if (config.version != NVLINK_CONFIG_DATA_HDR_VER_10) {
@@ -475,7 +476,7 @@ static int nvgpu_bios_parse_appinfo_table(struct gk20a *g, int offset)
 	struct application_interface_table_hdr_v1 hdr;
 	int i;
 
-	memcpy((u8 *)&hdr, &g->bios.data[offset], sizeof(hdr));
+	nvgpu_memcpy((u8 *)&hdr, &g->bios.data[offset], sizeof(hdr));
 
 	nvgpu_log_fn(g, "appInfoHdr ver %d size %d entrySize %d entryCount %d",
 			hdr.version, hdr.header_size,
@@ -731,7 +732,7 @@ static void nvgpu_bios_parse_bit(struct gk20a *g, int offset)
 	int i;
 
 	nvgpu_log_fn(g, " ");
-	memcpy(&bit, &g->bios.data[offset], sizeof(bit));
+	(void) memcpy(&bit, &g->bios.data[offset], sizeof(bit));
 
 	nvgpu_log_info(g, "BIT header: %04x %08x", bit.id, bit.signature);
 	nvgpu_log_info(g, "tokens: %d entries * %d bytes",
@@ -739,7 +740,8 @@ static void nvgpu_bios_parse_bit(struct gk20a *g, int offset)
 
 	offset += bit.header_size;
 	for (i = 0; i < bit.token_entries; i++) {
-		memcpy(&bit_token, &g->bios.data[offset], sizeof(bit_token));
+		(void) memcpy(&bit_token, &g->bios.data[offset],
+			sizeof(bit_token));
 
 		nvgpu_log_info(g, "BIT token id %d ptr %d size %d ver %d",
 				bit_token.token_id, bit_token.data_ptr,
