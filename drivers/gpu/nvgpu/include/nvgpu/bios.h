@@ -545,6 +545,7 @@ struct vfield_entry {
 #define PERF_CLK_DOMAINS_IDX_INVALID		PERF_CLK_DOMAINS_IDX_MAX
 
 #define VBIOS_PSTATE_TABLE_VERSION_5X		0x50U
+#define VBIOS_PSTATE_TABLE_VERSION_6X		0x60U
 #define VBIOS_PSTATE_HEADER_5X_SIZE_10		(10U)
 
 struct vbios_pstate_header_5x {
@@ -564,6 +565,7 @@ u8 cpi_features;
 
 #define VBIOS_PSTATE_BASE_ENTRY_5X_SIZE_2	0x2U
 #define VBIOS_PSTATE_BASE_ENTRY_5X_SIZE_3	0x3U
+#define VBIOS_PSTATE_BASE_ENTRY_6X_SIZE_5	0x5U
 
 struct vbios_pstate_entry_clock_5x {
 	u16 param0;

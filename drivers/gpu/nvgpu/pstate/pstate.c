@@ -403,7 +403,8 @@ static int parse_pstate_table_5x(struct gk20a *g,
 	if ((hdr->header_size != VBIOS_PSTATE_HEADER_5X_SIZE_10) ||
 		(hdr->base_entry_count == 0) ||
 		((hdr->base_entry_size != VBIOS_PSTATE_BASE_ENTRY_5X_SIZE_2) &&
-		 (hdr->base_entry_size != VBIOS_PSTATE_BASE_ENTRY_5X_SIZE_3)) ||
+		 (hdr->base_entry_size != VBIOS_PSTATE_BASE_ENTRY_5X_SIZE_3) &&
+		 (hdr->base_entry_size != VBIOS_PSTATE_BASE_ENTRY_6X_SIZE_5)) ||
 		(hdr->clock_entry_size != VBIOS_PSTATE_CLOCK_ENTRY_5X_SIZE_6) ||
 		(hdr->clock_entry_count > CLK_SET_INFO_MAX_SIZE)) {
 		return -EINVAL;
@@ -474,7 +475,8 @@ static int pstate_sw_setup(struct gk20a *g)
 		goto done;
 	}
 
-	if (hdr->version != VBIOS_PSTATE_TABLE_VERSION_5X) {
+	if (hdr->version != VBIOS_PSTATE_TABLE_VERSION_5X &&
+		hdr->version != VBIOS_PSTATE_TABLE_VERSION_6X) {
 		nvgpu_err(g, "unknown/unsupported clocks table version=0x%02x",
 				hdr->version);
 		err = -EINVAL;
