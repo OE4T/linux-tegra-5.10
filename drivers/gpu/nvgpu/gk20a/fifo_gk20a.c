@@ -3324,7 +3324,7 @@ u32 *gk20a_runlist_construct_locked(struct fifo_gk20a *f,
 	bool skip_next = false;
 	unsigned long tsgid;
 	u32 count = 0;
-	u32 runlist_entry_words = f->runlist_entry_size / sizeof(u32);
+	u32 runlist_entry_words = f->runlist_entry_size / (u32)sizeof(u32);
 	struct gk20a *g = f->g;
 
 	nvgpu_log_fn(g, " ");
@@ -3488,7 +3488,7 @@ int gk20a_fifo_update_runlist_locked(struct gk20a *g, u32 runlist_id,
 	u32 new_buf;
 	struct channel_gk20a *ch = NULL;
 	struct tsg_gk20a *tsg = NULL;
-	u32 runlist_entry_words = f->runlist_entry_size / sizeof(u32);
+	u32 runlist_entry_words = f->runlist_entry_size / (u32)sizeof(u32);
 
 	runlist = &f->runlist_info[runlist_id];
 
@@ -3521,7 +3521,8 @@ int gk20a_fifo_update_runlist_locked(struct gk20a *g, u32 runlist_id,
 		}
 	}
 
-	new_buf = !runlist->cur_buffer;
+	/* There just 2 buffers */
+	new_buf = runlist->cur_buffer == 0U ? 1U : 0U;
 
 	runlist_iova = nvgpu_mem_get_addr(g, &runlist->mem[new_buf]);
 
@@ -3646,7 +3647,7 @@ static int __locked_fifo_reschedule_preempt_next(struct channel_gk20a *ch,
 	} else {
 		return ret;
 	}
-	if (preempt_id == ch->tsgid && preempt_type) {
+	if ((preempt_id == ch->tsgid) && (preempt_type != 0U)) {
 		return ret;
 	}
 	fecsstat1 = gk20a_readl(g, gr_fecs_ctxsw_mailbox_r(0));
@@ -4140,7 +4141,7 @@ void gk20a_fifo_channel_unbind(struct channel_gk20a *ch_gk20a)
 
 	nvgpu_log_fn(g, " ");
 
-	if (nvgpu_atomic_cmpxchg(&ch_gk20a->bound, true, false)) {
+	if (nvgpu_atomic_cmpxchg(&ch_gk20a->bound, (int)true, (int)false)) {
 		gk20a_writel(g, ccsr_channel_inst_r(ch_gk20a->chid),
 			ccsr_channel_inst_ptr_f(0) |
 			ccsr_channel_inst_bind_false_f());
@@ -4266,7 +4267,7 @@ int gk20a_fifo_setup_userd(struct channel_gk20a *c)
 		offset = 0;
 	} else {
 		mem = &g->fifo.userd;
-		offset = c->chid * g->fifo.userd_entry_size / sizeof(u32);
+		offset = c->chid * g->fifo.userd_entry_size / (u32)sizeof(u32);
 	}
 
 	nvgpu_mem_wr32(g, mem, offset + ram_userd_put_w(), 0);
@@ -4403,11 +4404,11 @@ void gk20a_fifo_add_sema_cmd(struct gk20a *g,
 	/* semaphore_a */
 	nvgpu_mem_wr32(g, cmd->mem, off++, 0x20010004);
 	/* offset_upper */
-	nvgpu_mem_wr32(g, cmd->mem, off++, (sema_va >> 32) & 0xff);
+	nvgpu_mem_wr32(g, cmd->mem, off++, (u32)(sema_va >> 32) & 0xffU);
 	/* semaphore_b */
 	nvgpu_mem_wr32(g, cmd->mem, off++, 0x20010005);
 	/* offset */
-	nvgpu_mem_wr32(g, cmd->mem, off++, sema_va & 0xffffffff);
+	nvgpu_mem_wr32(g, cmd->mem, off++, (u32)sema_va & 0xffffffff);
 
 	if (acquire) {
 		/* semaphore_c */
