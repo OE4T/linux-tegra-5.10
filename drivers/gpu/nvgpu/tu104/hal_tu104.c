@@ -769,7 +769,7 @@ static const struct gpu_ops tu104_ops = {
 			gp106_get_internal_sensor_curr_temp,
 	},
 	.pmu = {
-		.init_wpr_region = gv100_pmu_init_acr,
+		.init_wpr_region = NULL,
 		.load_lsfalcon_ucode = gv100_load_falcon_ucode,
 		.is_lazy_bootstrap = gp106_is_lazy_bootstrap,
 		.is_priv_load = gp106_is_priv_load,

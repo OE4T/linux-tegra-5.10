@@ -77,6 +77,7 @@ struct nv_pmu_super_surface {
 		struct nv_pmu_therm_therm_channel_boardobj_grp_set therm_channel_grp_set;
 		struct nv_pmu_therm_therm_device_boardobj_grp_set therm_device_grp_set;
 		u8 therm_rsvd[0x1460];
+		u8 rsvd[0xC580];
 	} therm;
 	struct {
 		struct perf_change_seq_pmu_script script_curr;
