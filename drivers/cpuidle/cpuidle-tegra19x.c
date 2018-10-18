@@ -37,6 +37,9 @@
 #include <linux/atomic.h>
 #include <linux/platform/tegra/t19x-cpuidle.h>
 
+#define CREATE_TRACE_POINTS
+#include <trace/events/cpuidle_t19x.h>
+
 #include <linux/of_gpio.h>
 #include <asm/cpuidle.h>
 #include <asm/suspend.h>
@@ -129,12 +132,15 @@ static void test_t19x_cpu_enter_c6(u32 wake_time)
 	mce_index = (NVG_STAT_QUERY_C6_ENTRIES << MCE_STAT_ID_SHIFT)
 					+ (u32)cpu;
 	tegra_mce_read_cstate_stats(mce_index, &val);
+	trace_cpuidle_t19x_c6_count(cpu, val, "C6_COUNT_BEFORE");
 
 	atomic_inc(&entered_c6_cpu_count);
 
 	t19x_cpu_enter_c6(T19x_CPUIDLE_C6_STATE);
+	trace_cpuidle_t19x_print("Exiting C6");
 
 	tegra_mce_read_cstate_stats(mce_index, &val);
+	trace_cpuidle_t19x_c6_count(cpu, val, "C6_COUNT_AFTER");
 }
 
 static void t19x_cpu_enter_c7(int index)
