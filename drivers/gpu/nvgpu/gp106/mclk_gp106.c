@@ -41,7 +41,8 @@
 
 #define GP106_MEM_CONFIG_GDDR5_PG418		0U
 #define GP106_MEM_CONFIG_GDDR5_PG419		1U
-#define GP106_MEM_CONFIG_GDDR5_PG419_8606580012	2U
+#define GP106_MEM_CONFIG_GDDR5_PG419_12		2U
+#define GP106_NUM_MEM_CONFIG                    3U
 
 struct memory_link_training_pattern {
 	u32 regaddr;
@@ -1689,7 +1690,7 @@ static u8 seq_script_step33_ls_pg419[] = {
   0x98, 0x8f, 0x02, 0x16, 0x00, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00,
 };
 
-static u8 seq_script_step33_ls_pg419_8606580012[] = {
+static u8 seq_script_step33_ls_pg419_12[] = {
   0x34, 0x00, 0x02, 0x00, 0x0a, 0x00, 0x00, 0x00, 0x20, 0x00, 0x03, 0x00, 0x01,
   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x21, 0x00, 0x0d, 0x00, 0x00, 0x02,
   0x9a, 0x00, 0x00, 0x90, 0x8f, 0x02, 0x10, 0x09, 0x90, 0x00, 0x00, 0x00, 0x0c,
@@ -1889,7 +1890,7 @@ static u8 seq_script_step33_pg419[] = {
   0x00, 0x00,
 };
 
-static u8 seq_script_step33_pg419_8606580012[] = {
+static u8 seq_script_step33_pg419_12[] = {
   0x34, 0x00, 0x02, 0x00, 0x0a, 0x00, 0x00, 0x00, 0x20, 0x00, 0x03, 0x00, 0x01,
   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x21, 0x00, 0x0d, 0x00, 0x00, 0x02,
   0x9a, 0x00, 0x00, 0x90, 0x8f, 0x02, 0x10, 0x09, 0x90, 0x00, 0x00, 0x00, 0x0c,
@@ -2153,7 +2154,7 @@ static u8 seq_script_step28_pg419[] = {
   0x00, 0x00,
 };
 
-static u8 seq_script_step28_pg419_8606580012[] = {
+static u8 seq_script_step28_pg419_12[] = {
   0x34, 0x00, 0x02, 0x00, 0x0a, 0x00, 0x00, 0x00, 0x20, 0x00, 0x03, 0x00, 0x01,
   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x21, 0x00, 0x07, 0x00, 0x30, 0x03,
   0x9a, 0x00, 0x14, 0x00, 0x10, 0x00, 0x38, 0xd6, 0x00, 0x00, 0x00, 0x60, 0x00,
@@ -2337,7 +2338,7 @@ static u8 seq_script_step29_pg419[] = {
   0x00, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00,
 };
 
-static u8 seq_script_step29_pg419_8606580012[] = {
+static u8 seq_script_step29_pg419_12[] = {
   0x34, 0x00, 0x02, 0x00, 0x0a, 0x00, 0x00, 0x00, 0x20, 0x00, 0x03, 0x00, 0x01,
   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x21, 0x00, 0x07, 0x00, 0x30, 0x03,
   0x9a, 0x00, 0x14, 0x00, 0x10, 0x00, 0x38, 0xd6, 0x00, 0x00, 0x00, 0x60, 0x00,
@@ -2585,7 +2586,7 @@ static u8 seq_script_step32_ls_pg419[] = {
   0x02, 0x16, 0x00, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00,
 };
 
-static u8 seq_script_step32_ls_pg419_8606580012[] = {
+static u8 seq_script_step32_ls_pg419_12[] = {
   0x34, 0x00, 0x02, 0x00, 0x0a, 0x00, 0x00, 0x00, 0x20, 0x00, 0x03, 0x00, 0x01,
   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x21, 0x00, 0x0d, 0x00, 0x00, 0x02,
   0x9a, 0x00, 0x00, 0x10, 0x8f, 0x1a, 0x10, 0x09, 0x90, 0x00, 0x00, 0x00, 0x0c,
@@ -2841,7 +2842,7 @@ static u8 seq_script_step32_pg419[] = {
   0x00, 0x00, 0x98, 0x8f, 0x02, 0x16, 0x00, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00,
 };
 
-static u8 seq_script_step32_pg419_8606580012[] = {
+static u8 seq_script_step32_pg419_12[] = {
   0x34, 0x00, 0x02, 0x00, 0x0a, 0x00, 0x00, 0x00, 0x20, 0x00, 0x03, 0x00, 0x01,
   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x21, 0x00, 0x0d, 0x00, 0x00, 0x02,
   0x9a, 0x00, 0x00, 0x10, 0x8f, 0x1a, 0x10, 0x09, 0x90, 0x00, 0x00, 0x00, 0x0c,
@@ -2942,22 +2943,27 @@ struct memory_config {
 };
 
 #undef S
-#define S(from, to, script) \
-	[GP106_MCLK_##from##_SPEED][GP106_MCLK_##to##_SPEED] = \
-		{ script, (u32)sizeof(script) }
+#define S(script) { seq_script_##script, (u32)sizeof(seq_script_##script) }
 
-static struct memory_config mem_config[] = {
+
+static struct memory_config mem_config[GP106_NUM_MEM_CONFIG] = {
 	[GP106_MEM_CONFIG_GDDR5_PG418] = {
 		.pattern_ptr = memory_pattern_gp106,
 		.pattern_size = sizeof(memory_pattern_gp106) /
 				sizeof(struct memory_link_training_pattern),
 		.scripts = {
-			S(LOW, MID, seq_script_step33_pg418),
-			S(LOW, HIGH, seq_script_step28_pg418),
-			S(MID, LOW, seq_script_step33_ls_pg418),
-			S(MID, HIGH, seq_script_step28_pg418),
-			S(HIGH, LOW, seq_script_step32_ls_pg418),
-			S(HIGH, MID, seq_script_step32_pg418),
+			[GP106_MCLK_LOW_SPEED] = {
+				[GP106_MCLK_MID_SPEED] = S(step33_pg418),
+				[GP106_MCLK_HIGH_SPEED] = S(step28_pg418),
+			},
+			[GP106_MCLK_MID_SPEED] = {
+				[GP106_MCLK_LOW_SPEED] = S(step33_ls_pg418),
+				[GP106_MCLK_HIGH_SPEED] = S(step28_pg418),
+			},
+			[GP106_MCLK_HIGH_SPEED] = {
+				[GP106_MCLK_LOW_SPEED] = S(step32_ls_pg418),
+				[GP106_MCLK_MID_SPEED] = S(step32_pg418),
+			}
 		}
 	},
 	[GP106_MEM_CONFIG_GDDR5_PG419] = {
@@ -2965,25 +2971,37 @@ static struct memory_config mem_config[] = {
 		.pattern_size = sizeof(memory_pattern_gp106) /
 				sizeof(struct memory_link_training_pattern),
 		.scripts = {
-			S(LOW, MID, seq_script_step33_pg419),
-			S(LOW, HIGH, seq_script_step28_pg419),
-			S(MID, LOW, seq_script_step33_ls_pg419),
-			S(MID, HIGH, seq_script_step29_pg419),
-			S(HIGH, LOW, seq_script_step32_ls_pg419),
-			S(HIGH, MID, seq_script_step32_pg419),
+			[GP106_MCLK_LOW_SPEED] = {
+				[GP106_MCLK_MID_SPEED] = S(step33_pg419),
+				[GP106_MCLK_HIGH_SPEED] = S(step28_pg419),
+			},
+			[GP106_MCLK_MID_SPEED] = {
+				[GP106_MCLK_LOW_SPEED] = S(step33_ls_pg419),
+				[GP106_MCLK_HIGH_SPEED] = S(step29_pg419),
+			},
+			[GP106_MCLK_HIGH_SPEED] = {
+				[GP106_MCLK_LOW_SPEED] = S(step32_ls_pg419),
+				[GP106_MCLK_MID_SPEED] = S(step32_pg419),
+			}
 		}
 	},
-	[GP106_MEM_CONFIG_GDDR5_PG419_8606580012] = {
+	[GP106_MEM_CONFIG_GDDR5_PG419_12] = {
 		.pattern_ptr = memory_pattern_gp106,
 		.pattern_size = sizeof(memory_pattern_gp106) /
 				sizeof(struct memory_link_training_pattern),
 		.scripts = {
-			S(LOW, MID, seq_script_step33_pg419_8606580012),
-			S(LOW, HIGH, seq_script_step28_pg419_8606580012),
-			S(MID, LOW, seq_script_step33_ls_pg419_8606580012),
-			S(MID, HIGH, seq_script_step29_pg419_8606580012),
-			S(HIGH, LOW, seq_script_step32_ls_pg419_8606580012),
-			S(HIGH, MID, seq_script_step32_pg419_8606580012),
+			[GP106_MCLK_LOW_SPEED] = {
+				[GP106_MCLK_MID_SPEED] = S(step33_pg419_12),
+				[GP106_MCLK_HIGH_SPEED] = S(step28_pg419_12),
+			},
+			[GP106_MCLK_MID_SPEED] = {
+				[GP106_MCLK_LOW_SPEED] = S(step33_ls_pg419_12),
+				[GP106_MCLK_HIGH_SPEED] = S(step29_pg419_12),
+			},
+			[GP106_MCLK_HIGH_SPEED] = {
+				[GP106_MCLK_LOW_SPEED] = S(step32_ls_pg419_12),
+				[GP106_MCLK_MID_SPEED] = S(step32_pg419_12),
+			}
 		}
 	}
 };
@@ -3244,7 +3262,7 @@ int gp106_mclk_init(struct gk20a *g)
 
 		g->mem_config_idx =
 			(g->bios.vbios_oem_version == 0x12) ?
-				GP106_MEM_CONFIG_GDDR5_PG419_8606580012 :
+				GP106_MEM_CONFIG_GDDR5_PG419_12 :
 				GP106_MEM_CONFIG_GDDR5_PG419;
 	}
 
