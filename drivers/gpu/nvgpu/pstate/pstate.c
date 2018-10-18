@@ -24,6 +24,7 @@
 
 #include <nvgpu/bios.h>
 #include <nvgpu/gk20a.h>
+#include <nvgpu/pmu.h>
 
 #include "clk/clk.h"
 #include "pmu_perf/pmu_perf.h"
@@ -139,6 +140,12 @@ int gk20a_init_pstate_pmu_support(struct gk20a *g)
 	u32 err;
 
 	nvgpu_log_fn(g, " ");
+
+	err = nvgpu_pmu_wait_ready(g);
+	if (err != 0U) {
+		nvgpu_err(g, "PMU not ready to process pstate requests");
+		return err;
+	}
 
 	if (g->ops.clk.mclk_init != NULL) {
 		err = g->ops.clk.mclk_init(g);

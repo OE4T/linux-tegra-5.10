@@ -664,3 +664,17 @@ struct gk20a *gk20a_from_pmu(struct nvgpu_pmu *pmu)
 {
 	return container_of(pmu, struct gk20a, pmu);
 }
+
+int nvgpu_pmu_wait_ready(struct gk20a *g)
+{
+	int status = 0;
+
+	status = pmu_wait_message_cond(&g->pmu,
+		gk20a_get_gr_idle_timeout(g),
+		&g->pmu.pmu_ready, (u8)true);
+	if (status != 0) {
+		nvgpu_err(g, "PMU is not ready yet");
+	}
+
+	return status;
+}
