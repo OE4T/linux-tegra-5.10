@@ -143,4 +143,5 @@ int nvgpu_clk_set_boot_fll_clk_gv10x(struct gk20a *g);
 int nvgpu_clk_set_fll_clk_gv10x(struct gk20a *g);
 int clk_pmu_freq_effective_avg_load(struct gk20a *g, bool bload);
 int clk_freq_effective_avg(struct gk20a *g, u32 *freqkHz, u32  clkDomainMask);
+int nvgpu_clk_set_boot_fll_clk_tu10x(struct gk20a *g);
 #endif /* NVGPU_CLK_H */

@@ -26,9 +26,12 @@
 #include <nvgpu/pmuif/ctrlclk.h>
 #include <nvgpu/pmuif/ctrlvolt.h>
 #include <nvgpu/bug.h>
+#include <nvgpu/pmuif/ctrlperf.h>
 
 #include "clk.h"
+#include <nvgpu/timers.h>
 #include "volt/volt.h"
+#include "pstate/pstate.h"
 
 #define BOOT_GPC2CLK_MHZ  2581U
 #define BOOT_MCLK_MHZ     3003U
@@ -915,6 +918,71 @@ int nvgpu_clk_set_fll_clk_gv10x(struct gk20a *g)
 	}
 	return status;
 }
+
+int nvgpu_clk_set_boot_fll_clk_tu10x(struct gk20a *g)
+{
+	struct nvgpu_pmu *pmu = &g->pmu;
+	struct nv_pmu_rpc_perf_change_seq_queue_change rpc;
+	struct ctrl_perf_change_seq_change_input change_input;
+	struct clk_set_info *p0_clk_set_info;
+	struct clk_domain *pclk_domain;
+	int status = 0;
+	u8 i = 0;
+
+	(void) memset(&change_input, 0,
+		sizeof(struct ctrl_perf_change_seq_change_input));
+
+	BOARDOBJGRP_FOR_EACH(&(g->clk_pmu->clk_domainobjs.super.super),
+		struct clk_domain *, pclk_domain, i) {
+
+		p0_clk_set_info = pstate_get_clk_set_info(g, CTRL_PERF_PSTATE_P0,
+				pclk_domain->domain);
+
+		switch (pclk_domain->api_domain) {
+		case CTRL_CLK_DOMAIN_GPCCLK:
+		case CTRL_CLK_DOMAIN_XBARCLK:
+		case CTRL_CLK_DOMAIN_SYSCLK:
+		case CTRL_CLK_DOMAIN_NVDCLK:
+		case CTRL_CLK_DOMAIN_HOSTCLK:
+			change_input.clk[i].clk_freq_khz =
+				p0_clk_set_info->max_mhz * 1000U;
+
+			change_input.clk_domains_mask.super.data[0] |= (u32) BIT(i);
+
+			nvgpu_pmu_dbg(g, "domain - 0x%x freq %d", pclk_domain->api_domain,
+				change_input.clk[i].clk_freq_khz);
+			break;
+		default:
+			nvgpu_pmu_dbg(g, "Fixed clock domain");
+			break;
+		}
+	}
+
+	change_input.pstate_index = 0U;
+	change_input.flags = CTRL_PERF_CHANGE_SEQ_CHANGE_FORCE;
+	change_input.vf_points_cache_counter = 0xFFFFFFFFU;
+	change_input.volt[0].voltage_uv = 900U*1000U;
+	change_input.volt[0].voltage_min_noise_unaware_uv = 900U*1000U;
+	change_input.volt_rails_mask.super.data[0] = 1U;
+
+	/* RPC to PMU to queue to execute change sequence request*/
+	(void) memset(&rpc, 0, sizeof(struct nv_pmu_rpc_perf_change_seq_queue_change ));
+	rpc.change = change_input;
+	rpc.change.pstate_index =  0;
+	PMU_RPC_EXECUTE_CPB(status, pmu, PERF, CHANGE_SEQ_QUEUE_CHANGE, &rpc, 0);
+	if (status != 0) {
+		nvgpu_err(g, "Failed to execute Change Seq RPC status=0x%x",
+			status);
+	}
+
+	/* Wait for sync change to complete. */
+	if ((rpc.change.flags & CTRL_PERF_CHANGE_SEQ_CHANGE_ASYNC) == 0U) {
+		nvgpu_msleep(20);
+	}
+
+	return status;
+}
+
 
 int clk_domain_get_f_or_v(
 	struct gk20a *g,
