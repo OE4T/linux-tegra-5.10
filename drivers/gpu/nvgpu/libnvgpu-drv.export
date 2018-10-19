@@ -10,6 +10,8 @@ __nvgpu_set_enabled
 bitmap_clear
 bitmap_find_next_zero_area_off
 bitmap_set
+bug_handler_cancel
+bug_handler_register
 clear_bit
 find_first_bit
 find_first_zero_bit

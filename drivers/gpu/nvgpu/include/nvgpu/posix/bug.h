@@ -24,6 +24,7 @@
 #define __NVGPU_POSIX_BUG_H__
 
 #include <nvgpu/types.h>
+#include <setjmp.h>
 
 /*
  * TODO: make these actually useful!
@@ -53,5 +54,30 @@ void dump_stack(void);
 
 void __bug(const char *fmt, ...) __attribute__ ((noreturn));
 bool __warn(bool cond, const char *fmt, ...);
+
+/* Provide a simple API for BUG() handling */
+void bug_handler_register(jmp_buf *handler);
+void bug_handler_cancel(void);
+
+/*
+ * Macro to indicate that a BUG() call is expected when executing
+ * the "code_to_run" block of code. The macro uses a statement expression
+ * and the setjmp API to set a long jump point that gets called by the BUG()
+ * function if enabled. This allows the macro to simply expand as true if
+ * BUG() was called, and false otherwise.
+ */
+
+#define EXPECT_BUG(code_to_run)				\
+	({						\
+		jmp_buf handler;			\
+		bool bug_result = true;			\
+		if (!setjmp(handler)) {			\
+			bug_handler_register(&handler);	\
+			code_to_run;			\
+			bug_handler_cancel();		\
+			bug_result = false;		\
+		}					\
+		bug_result;				\
+	})
 
 #endif

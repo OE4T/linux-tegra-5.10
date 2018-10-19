@@ -24,6 +24,23 @@
 #include <nvgpu/posix/bug.h>
 #include <signal.h>
 #include <pthread.h>
+#include <stdbool.h>
+#include <setjmp.h>
+
+static _Thread_local bool expect_bug;
+static _Thread_local jmp_buf *jmp_handler;
+
+void bug_handler_register(jmp_buf *handler)
+{
+	expect_bug = true;
+	jmp_handler = handler;
+}
+
+void bug_handler_cancel(void)
+{
+	expect_bug = false;
+	jmp_handler = NULL;
+}
 
 static void __dump_stack(unsigned int skip_frames)
 {
@@ -40,9 +57,14 @@ void dump_stack(void)
  */
 void __bug(const char *fmt, ...)
 {
+	if (expect_bug) {
+		nvgpu_info(NULL, "Expected BUG detected!");
+		expect_bug = false;
+		/* Perform a long jump to where "setjmp()" was called. */
+		longjmp(*jmp_handler, 1);
+	}
+	/* If BUG is unexpected, raise a SIGSEGV signal and kill the thread */
 	nvgpu_err(NULL, "BUG detected!");
-
-	/* Raise a bad system call signal and kill the thread */
 	(void) raise(SIGSEGV);
 	pthread_exit(NULL);
 }
