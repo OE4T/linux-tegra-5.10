@@ -705,7 +705,6 @@ static int __nvgpu_clk_arb_worker_start(struct gk20a *g)
 void nvgpu_clk_arb_worker_enqueue(struct gk20a *g,
 		struct nvgpu_clk_arb_work_item *work_item)
 {
-	struct nvgpu_clk_arb *arb = g->clk_arb;
 	clk_arb_dbg(g, " ");
 
 	/*
@@ -725,7 +724,6 @@ void nvgpu_clk_arb_worker_enqueue(struct gk20a *g,
 		nvgpu_spinlock_release(&g->clk_arb_worker.items_lock);
 		return;
 	}
-	arb->prev_req_nr = nvgpu_atomic_read(&arb->req_nr);
 	nvgpu_list_add_tail(&work_item->worker_item, &g->clk_arb_worker.items);
 	nvgpu_spinlock_release(&g->clk_arb_worker.items_lock);
 
