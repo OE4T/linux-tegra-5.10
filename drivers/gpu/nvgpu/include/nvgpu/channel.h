@@ -300,6 +300,8 @@ struct channel_gk20a {
 
 	struct nvgpu_mem ctx_header;
 
+	struct nvgpu_spinlock ch_timedout_lock;
+	bool ch_timedout;
 	/* Any operating system specific data. */
 	void *os_priv;
 
@@ -315,7 +317,6 @@ struct channel_gk20a {
 	u32 runlist_id;
 
 	bool mmu_nack_handled;
-	bool has_timedout;
 	bool referenceable;
 	bool vpr;
 	bool deterministic;
@@ -460,5 +461,8 @@ static inline void trace_write_pushbuffers(struct channel_gk20a *c, u32 count)
 {
 }
 #endif
+
+void gk20a_channel_set_timedout(struct channel_gk20a *ch);
+bool gk20a_channel_check_timedout(struct channel_gk20a *ch);
 
 #endif
