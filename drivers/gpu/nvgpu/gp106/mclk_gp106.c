@@ -2945,7 +2945,6 @@ struct memory_config {
 #undef S
 #define S(script) { seq_script_##script, (u32)sizeof(seq_script_##script) }
 
-
 static struct memory_config mem_config[GP106_NUM_MEM_CONFIG] = {
 	[GP106_MEM_CONFIG_GDDR5_PG418] = {
 		.pattern_ptr = memory_pattern_gp106,
@@ -2953,16 +2952,19 @@ static struct memory_config mem_config[GP106_NUM_MEM_CONFIG] = {
 				sizeof(struct memory_link_training_pattern),
 		.scripts = {
 			[GP106_MCLK_LOW_SPEED] = {
+				[GP106_MCLK_LOW_SPEED] = { NULL, 0},
 				[GP106_MCLK_MID_SPEED] = S(step33_pg418),
 				[GP106_MCLK_HIGH_SPEED] = S(step28_pg418),
 			},
 			[GP106_MCLK_MID_SPEED] = {
 				[GP106_MCLK_LOW_SPEED] = S(step33_ls_pg418),
+				[GP106_MCLK_MID_SPEED] = { NULL, 0 },
 				[GP106_MCLK_HIGH_SPEED] = S(step28_pg418),
 			},
 			[GP106_MCLK_HIGH_SPEED] = {
 				[GP106_MCLK_LOW_SPEED] = S(step32_ls_pg418),
 				[GP106_MCLK_MID_SPEED] = S(step32_pg418),
+				[GP106_MCLK_HIGH_SPEED] = { NULL, 0 },
 			}
 		}
 	},
@@ -2972,16 +2974,19 @@ static struct memory_config mem_config[GP106_NUM_MEM_CONFIG] = {
 				sizeof(struct memory_link_training_pattern),
 		.scripts = {
 			[GP106_MCLK_LOW_SPEED] = {
+				[GP106_MCLK_LOW_SPEED] = { NULL, 0 },
 				[GP106_MCLK_MID_SPEED] = S(step33_pg419),
 				[GP106_MCLK_HIGH_SPEED] = S(step28_pg419),
 			},
 			[GP106_MCLK_MID_SPEED] = {
 				[GP106_MCLK_LOW_SPEED] = S(step33_ls_pg419),
+				[GP106_MCLK_MID_SPEED] = { NULL, 0 },
 				[GP106_MCLK_HIGH_SPEED] = S(step29_pg419),
 			},
 			[GP106_MCLK_HIGH_SPEED] = {
 				[GP106_MCLK_LOW_SPEED] = S(step32_ls_pg419),
 				[GP106_MCLK_MID_SPEED] = S(step32_pg419),
+				[GP106_MCLK_HIGH_SPEED] = { NULL, 0 },
 			}
 		}
 	},
@@ -2991,16 +2996,19 @@ static struct memory_config mem_config[GP106_NUM_MEM_CONFIG] = {
 				sizeof(struct memory_link_training_pattern),
 		.scripts = {
 			[GP106_MCLK_LOW_SPEED] = {
+				[GP106_MCLK_LOW_SPEED] = { NULL, 0 },
 				[GP106_MCLK_MID_SPEED] = S(step33_pg419_12),
 				[GP106_MCLK_HIGH_SPEED] = S(step28_pg419_12),
 			},
 			[GP106_MCLK_MID_SPEED] = {
 				[GP106_MCLK_LOW_SPEED] = S(step33_ls_pg419_12),
+				[GP106_MCLK_MID_SPEED] = { NULL, 0 },
 				[GP106_MCLK_HIGH_SPEED] = S(step29_pg419_12),
 			},
 			[GP106_MCLK_HIGH_SPEED] = {
 				[GP106_MCLK_LOW_SPEED] = S(step32_ls_pg419_12),
 				[GP106_MCLK_MID_SPEED] = S(step32_pg419_12),
+				[GP106_MCLK_HIGH_SPEED] = { NULL, 0 },
 			}
 		}
 	}
