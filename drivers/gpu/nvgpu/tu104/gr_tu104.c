@@ -489,3 +489,18 @@ int gr_tu104_handle_sw_method(struct gk20a *g, u32 addr,
 fail:
 	return -EINVAL;
 }
+
+void gr_tu104_init_sm_dsm_reg_info(void)
+{
+	return;
+}
+
+void gr_tu104_get_sm_dsm_perf_ctrl_regs(struct gk20a *g,
+				        u32 *num_sm_dsm_perf_ctrl_regs,
+				        u32 **sm_dsm_perf_ctrl_regs,
+				        u32 *ctrl_register_stride)
+{
+	*num_sm_dsm_perf_ctrl_regs = 0;
+	*sm_dsm_perf_ctrl_regs = NULL;
+	*ctrl_register_stride = 0;
+}
