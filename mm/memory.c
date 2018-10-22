@@ -3858,6 +3858,7 @@ static vm_fault_t handle_pte_fault(struct vm_fault *vmf)
 	if (pte_protnone(vmf->orig_pte) && vma_is_accessible(vmf->vma))
 		return do_numa_page(vmf);
 
+	entry = vmf->orig_pte;
 	if (vmf->vma->vm_ops && vmf->vma->vm_ops->fixup_prot &&
 		vmf->vma->vm_ops->fault &&
 		((prot_vm_none & pte_val(entry)) == prot_vm_none)) {
@@ -3872,7 +3873,6 @@ static vm_fault_t handle_pte_fault(struct vm_fault *vmf)
 
 	vmf->ptl = pte_lockptr(vmf->vma->vm_mm, vmf->pmd);
 	spin_lock(vmf->ptl);
-	entry = vmf->orig_pte;
 	if (unlikely(!pte_same(*vmf->pte, entry)))
 		goto unlock;
 	if (fix_prot) {
