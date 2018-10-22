@@ -93,7 +93,7 @@ int nvgpu_flcn_reset(struct nvgpu_falcon *flcn)
 {
 	int status = 0;
 
-	if (flcn->flcn_ops.reset) {
+	if (flcn->flcn_ops.reset != NULL) {
 		status = flcn->flcn_ops.reset(flcn);
 		if (!status) {
 			status = nvgpu_flcn_mem_scrub_wait(flcn);
@@ -112,7 +112,7 @@ void nvgpu_flcn_set_irq(struct nvgpu_falcon *flcn, bool enable,
 {
 	struct nvgpu_falcon_ops *flcn_ops = &flcn->flcn_ops;
 
-	if (flcn_ops->set_irq) {
+	if (flcn_ops->set_irq != NULL) {
 		flcn->intr_mask = intr_mask;
 		flcn->intr_dest = intr_dest;
 		flcn_ops->set_irq(flcn, enable);
@@ -127,7 +127,7 @@ bool nvgpu_flcn_get_mem_scrubbing_status(struct nvgpu_falcon *flcn)
 	struct nvgpu_falcon_ops *flcn_ops = &flcn->flcn_ops;
 	bool status = false;
 
-	if (flcn_ops->is_falcon_scrubbing_done) {
+	if (flcn_ops->is_falcon_scrubbing_done != NULL) {
 		status = flcn_ops->is_falcon_scrubbing_done(flcn);
 	} else {
 		nvgpu_warn(flcn->g, "Invalid op on falcon 0x%x ",
@@ -142,7 +142,7 @@ bool nvgpu_flcn_get_cpu_halted_status(struct nvgpu_falcon *flcn)
 	struct nvgpu_falcon_ops *flcn_ops = &flcn->flcn_ops;
 	bool status = false;
 
-	if (flcn_ops->is_falcon_cpu_halted) {
+	if (flcn_ops->is_falcon_cpu_halted != NULL) {
 		status = flcn_ops->is_falcon_cpu_halted(flcn);
 	} else {
 		nvgpu_warn(flcn->g, "Invalid op on falcon 0x%x ",
@@ -209,7 +209,7 @@ bool nvgpu_flcn_get_idle_status(struct nvgpu_falcon *flcn)
 	struct nvgpu_falcon_ops *flcn_ops = &flcn->flcn_ops;
 	bool status = false;
 
-	if (flcn_ops->is_falcon_idle) {
+	if (flcn_ops->is_falcon_idle != NULL) {
 		status = flcn_ops->is_falcon_idle(flcn);
 	} else {
 		nvgpu_warn(flcn->g, "Invalid op on falcon 0x%x ",
@@ -269,7 +269,7 @@ int nvgpu_flcn_copy_from_imem(struct nvgpu_falcon *flcn,
 	struct nvgpu_falcon_ops *flcn_ops = &flcn->flcn_ops;
 	int status = -EINVAL;
 
-	if (flcn_ops->copy_from_imem) {
+	if (flcn_ops->copy_from_imem != NULL) {
 		status = flcn_ops->copy_from_imem(flcn, src, dst, size, port);
 	} else {
 		nvgpu_warn(flcn->g, "Invalid op on falcon 0x%x ",
@@ -285,7 +285,7 @@ int nvgpu_flcn_copy_to_imem(struct nvgpu_falcon *flcn,
 	struct nvgpu_falcon_ops *flcn_ops = &flcn->flcn_ops;
 	int status = -EINVAL;
 
-	if (flcn_ops->copy_to_imem) {
+	if (flcn_ops->copy_to_imem != NULL) {
 		status = flcn_ops->copy_to_imem(flcn, dst, src, size, port,
 					sec, tag);
 	} else {
@@ -356,7 +356,7 @@ int nvgpu_flcn_bootstrap(struct nvgpu_falcon *flcn, u32 boot_vector)
 	struct nvgpu_falcon_ops *flcn_ops = &flcn->flcn_ops;
 	int status = -EINVAL;
 
-	if (flcn_ops->bootstrap) {
+	if (flcn_ops->bootstrap != NULL) {
 		status = flcn_ops->bootstrap(flcn, boot_vector);
 	} else {
 		nvgpu_warn(flcn->g, "Invalid op on falcon 0x%x ",
@@ -371,7 +371,7 @@ u32 nvgpu_flcn_mailbox_read(struct nvgpu_falcon *flcn, u32 mailbox_index)
 	struct nvgpu_falcon_ops *flcn_ops = &flcn->flcn_ops;
 	u32 data = 0;
 
-	if (flcn_ops->mailbox_read) {
+	if (flcn_ops->mailbox_read != NULL) {
 		data = flcn_ops->mailbox_read(flcn, mailbox_index);
 	} else {
 		nvgpu_warn(flcn->g, "Invalid op on falcon 0x%x ",
@@ -386,7 +386,7 @@ void nvgpu_flcn_mailbox_write(struct nvgpu_falcon *flcn, u32 mailbox_index,
 {
 	struct nvgpu_falcon_ops *flcn_ops = &flcn->flcn_ops;
 
-	if (flcn_ops->mailbox_write) {
+	if (flcn_ops->mailbox_write != NULL) {
 		flcn_ops->mailbox_write(flcn, mailbox_index, data);
 	} else {
 		nvgpu_warn(flcn->g, "Invalid op on falcon 0x%x ",
@@ -398,7 +398,7 @@ void nvgpu_flcn_dump_stats(struct nvgpu_falcon *flcn)
 {
 	struct nvgpu_falcon_ops *flcn_ops = &flcn->flcn_ops;
 
-	if (flcn_ops->dump_falcon_stats) {
+	if (flcn_ops->dump_falcon_stats != NULL) {
 		flcn_ops->dump_falcon_stats(flcn);
 	} else {
 		nvgpu_warn(flcn->g, "Invalid op on falcon 0x%x ",

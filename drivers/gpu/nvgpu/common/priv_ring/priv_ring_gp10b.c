@@ -147,7 +147,7 @@ void gp10b_priv_ring_isr(struct gk20a *g)
 			pri_ringstation_sys_priv_error_info_subid_v(error_info),
 			pri_ringstation_sys_priv_error_info_priv_level_v(error_info),
 			error_code);
-		if (g->ops.priv_ring.decode_error_code) {
+		if (g->ops.priv_ring.decode_error_code != NULL) {
 			g->ops.priv_ring.decode_error_code(g, error_code);
 		}
 	}
@@ -174,7 +174,7 @@ void gp10b_priv_ring_isr(struct gk20a *g)
 					pri_ringstation_gpc_gpc0_priv_error_info_priv_level_v(error_info),
 					error_code);
 
-				if (g->ops.priv_ring.decode_error_code) {
+				if (g->ops.priv_ring.decode_error_code != NULL) {
 					g->ops.priv_ring.decode_error_code(g,
 								error_code);
 				}

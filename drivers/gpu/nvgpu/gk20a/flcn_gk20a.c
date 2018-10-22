@@ -35,7 +35,7 @@ static int gk20a_flcn_reset(struct nvgpu_falcon *flcn)
 	u32 unit_status = 0;
 	int status = 0;
 
-	if (flcn->flcn_engine_dep_ops.reset_eng) {
+	if (flcn->flcn_engine_dep_ops.reset_eng != NULL) {
 		/* falcon & engine reset */
 		status = flcn->flcn_engine_dep_ops.reset_eng(g);
 	} else {

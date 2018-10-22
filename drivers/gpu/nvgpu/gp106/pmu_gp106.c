@@ -318,7 +318,7 @@ void gp106_update_lspmu_cmdline_args(struct gk20a *g)
 	g->ops.pmu_ver.set_pmu_cmdline_args_trace_dma_base(pmu);
 	g->ops.pmu_ver.set_pmu_cmdline_args_trace_dma_idx(
 		pmu, GK20A_PMU_DMAIDX_VIRT);
-	if (g->ops.pmu_ver.config_pmu_cmdline_args_super_surface) {
+	if (g->ops.pmu_ver.config_pmu_cmdline_args_super_surface != NULL) {
 		g->ops.pmu_ver.config_pmu_cmdline_args_super_surface(pmu);
 	}
 

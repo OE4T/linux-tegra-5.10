@@ -331,7 +331,7 @@ u32 intr_tu104_stall(struct gk20a *g)
 		return mc_intr_0;
 	}
 
-	if (g->ops.mc.is_intr_hub_pending) {
+	if (g->ops.mc.is_intr_hub_pending != NULL) {
 		return g->ops.mc.is_intr_hub_pending(g, 0);
 	}
 
@@ -377,7 +377,7 @@ void intr_tu104_log_pending_intrs(struct gk20a *g)
 		nvgpu_info(g, "Pending stall intr=0x%08x", intr);
 	}
 
-	if (g->ops.mc.is_intr_hub_pending) {
+	if (g->ops.mc.is_intr_hub_pending != NULL) {
 		pending = g->ops.mc.is_intr_hub_pending(g, 0);
 		if (pending) {
 			nvgpu_info(g, "Pending hub intr");

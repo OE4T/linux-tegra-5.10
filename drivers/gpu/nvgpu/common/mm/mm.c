@@ -177,11 +177,11 @@ static void nvgpu_remove_mm_support(struct mm_gk20a *mm)
 	nvgpu_dma_free(g, &mm->mmu_wr_mem);
 	nvgpu_dma_free(g, &mm->mmu_rd_mem);
 
-	if (g->ops.mm.fault_info_mem_destroy) {
+	if (g->ops.mm.fault_info_mem_destroy != NULL) {
 		g->ops.mm.fault_info_mem_destroy(g);
 	}
 
-	if (g->ops.mm.remove_bar2_vm) {
+	if (g->ops.mm.remove_bar2_vm != NULL) {
 		g->ops.mm.remove_bar2_vm(g);
 	}
 
@@ -200,7 +200,7 @@ static void nvgpu_remove_mm_support(struct mm_gk20a *mm)
 	nvgpu_vidmem_destroy(g);
 	nvgpu_pd_cache_fini(g);
 
-	if (g->ops.fifo.deinit_pdb_cache_war) {
+	if (g->ops.fifo.deinit_pdb_cache_war != NULL) {
 		g->ops.fifo.deinit_pdb_cache_war(g);
 	}
 }
@@ -347,28 +347,28 @@ void nvgpu_init_mm_ce_context(struct gk20a *g)
 
 static int nvgpu_init_mm_reset_enable_hw(struct gk20a *g)
 {
-	if (g->ops.mc.fb_reset) {
+	if (g->ops.mc.fb_reset != NULL) {
 		g->ops.mc.fb_reset(g);
 	}
 
-	if (g->ops.clock_gating.slcg_fb_load_gating_prod) {
+	if (g->ops.clock_gating.slcg_fb_load_gating_prod != NULL) {
 		g->ops.clock_gating.slcg_fb_load_gating_prod(g,
 				g->slcg_enabled);
 	}
-	if (g->ops.clock_gating.slcg_ltc_load_gating_prod) {
+	if (g->ops.clock_gating.slcg_ltc_load_gating_prod != NULL) {
 		g->ops.clock_gating.slcg_ltc_load_gating_prod(g,
 				g->slcg_enabled);
 	}
-	if (g->ops.clock_gating.blcg_fb_load_gating_prod) {
+	if (g->ops.clock_gating.blcg_fb_load_gating_prod != NULL) {
 		g->ops.clock_gating.blcg_fb_load_gating_prod(g,
 				g->blcg_enabled);
 	}
-	if (g->ops.clock_gating.blcg_ltc_load_gating_prod) {
+	if (g->ops.clock_gating.blcg_ltc_load_gating_prod != NULL) {
 		g->ops.clock_gating.blcg_ltc_load_gating_prod(g,
 				g->blcg_enabled);
 	}
 
-	if (g->ops.fb.init_fs_state) {
+	if (g->ops.fb.init_fs_state != NULL) {
 		g->ops.fb.init_fs_state(g);
 	}
 
@@ -466,7 +466,7 @@ static int nvgpu_init_mm_setup_sw(struct gk20a *g)
 		return err;
 	}
 
-	if (g->ops.mm.init_bar2_vm) {
+	if (g->ops.mm.init_bar2_vm != NULL) {
 		err = g->ops.mm.init_bar2_vm(g);
 		if (err != 0) {
 			return err;
@@ -510,14 +510,14 @@ static int nvgpu_init_mm_pdb_cache_war(struct gk20a *g)
 {
 	int err;
 
-	if (g->ops.fifo.init_pdb_cache_war) {
+	if (g->ops.fifo.init_pdb_cache_war != NULL) {
 		err = g->ops.fifo.init_pdb_cache_war(g);
 		if (err != 0) {
 			return err;
 		}
 	}
 
-	if (g->ops.fb.apply_pdb_cache_war) {
+	if (g->ops.fb.apply_pdb_cache_war != NULL) {
 		err = g->ops.fb.apply_pdb_cache_war(g);
 		if (err != 0) {
 			return err;
@@ -546,7 +546,7 @@ int nvgpu_init_mm_support(struct gk20a *g)
 		return err;
 	}
 
-	if (g->ops.mm.init_mm_setup_hw) {
+	if (g->ops.mm.init_mm_setup_hw != NULL) {
 		err = g->ops.mm.init_mm_setup_hw(g);
 	}
 
@@ -573,7 +573,7 @@ u32 nvgpu_mm_get_available_big_page_sizes(struct gk20a *g)
 	if (!g->mm.disable_bigpage) {
 		available_big_page_sizes =
 			g->ops.mm.get_default_big_page_size();
-		if (g->ops.mm.get_big_page_sizes) {
+		if (g->ops.mm.get_big_page_sizes != NULL) {
 			available_big_page_sizes |= g->ops.mm.get_big_page_sizes();
 		}
 	}

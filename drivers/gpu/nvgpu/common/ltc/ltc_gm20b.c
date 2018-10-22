@@ -462,7 +462,7 @@ void gm20b_ltc_init_cbc(struct gk20a *g, struct gr_gk20a *gr)
 	}
 
 	/* Bug 1477079 indicates sw adjustment on the posted divided base. */
-	if (g->ops.ltc.cbc_fix_config) {
+	if (g->ops.ltc.cbc_fix_config != NULL) {
 		compbit_base_post_divide =
 			g->ops.ltc.cbc_fix_config(g, compbit_base_post_divide);
 	}

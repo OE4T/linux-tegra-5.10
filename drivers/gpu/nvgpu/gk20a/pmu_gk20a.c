@@ -395,7 +395,7 @@ int gk20a_pmu_queue_head(struct gk20a *g, struct nvgpu_falcon_queue *queue,
 {
 	u32 queue_head_size = 0;
 
-	if (g->ops.pmu.pmu_get_queue_head_size) {
+	if (g->ops.pmu.pmu_get_queue_head_size != NULL) {
 		queue_head_size = g->ops.pmu.pmu_get_queue_head_size();
 	}
 
@@ -435,7 +435,7 @@ int gk20a_pmu_queue_tail(struct gk20a *g, struct nvgpu_falcon_queue *queue,
 {
 	u32 queue_tail_size = 0;
 
-	if (g->ops.pmu.pmu_get_queue_tail_size) {
+	if (g->ops.pmu.pmu_get_queue_tail_size != NULL) {
 		queue_tail_size = g->ops.pmu.pmu_get_queue_tail_size();
 	}
 
@@ -475,7 +475,7 @@ void gk20a_pmu_msgq_tail(struct nvgpu_pmu *pmu, u32 *tail, bool set)
 	struct gk20a *g = gk20a_from_pmu(pmu);
 	u32 queue_tail_size = 0;
 
-	if (g->ops.pmu.pmu_get_queue_tail_size) {
+	if (g->ops.pmu.pmu_get_queue_tail_size != NULL) {
 		queue_tail_size = g->ops.pmu.pmu_get_queue_tail_size();
 	}
 
@@ -714,7 +714,7 @@ void gk20a_pmu_isr(struct gk20a *g)
 		if (gk20a_readl(g, pwr_pmu_mailbox_r
 				(PMU_MODE_MISMATCH_STATUS_MAILBOX_R)) ==
 				PMU_MODE_MISMATCH_STATUS_VAL) {
-			if (g->ops.pmu.dump_secure_fuses) {
+			if (g->ops.pmu.dump_secure_fuses != NULL) {
 				g->ops.pmu.dump_secure_fuses(g);
 			}
 		}
@@ -729,7 +729,7 @@ void gk20a_pmu_isr(struct gk20a *g)
 				~pwr_falcon_exterrstat_valid_m());
 	}
 
-	if (g->ops.pmu.handle_ext_irq) {
+	if (g->ops.pmu.handle_ext_irq != NULL) {
 		g->ops.pmu.handle_ext_irq(g, intr);
 	}
 

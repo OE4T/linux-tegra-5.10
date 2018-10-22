@@ -75,7 +75,7 @@ void gv11b_ltc_init_fs_state(struct gk20a *g)
 	reg &= ~ltc_ltcs_ltss_intr_en_illegal_compstat_access_m();
 	nvgpu_writel_check(g, ltc_ltcs_ltss_intr_r(), reg);
 
-	if (g->ops.ltc.intr_en_illegal_compstat) {
+	if (g->ops.ltc.intr_en_illegal_compstat != NULL) {
 		g->ops.ltc.intr_en_illegal_compstat(g,
 					g->ltc_intr_en_illegal_compstat);
 	}

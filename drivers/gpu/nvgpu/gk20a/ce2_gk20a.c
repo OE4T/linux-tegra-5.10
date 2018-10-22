@@ -348,11 +348,11 @@ int gk20a_init_ce_support(struct gk20a *g)
 
 	g->ops.mc.reset(g, ce_reset_mask);
 
-	if (g->ops.clock_gating.slcg_ce2_load_gating_prod) {
+	if (g->ops.clock_gating.slcg_ce2_load_gating_prod != NULL) {
 		g->ops.clock_gating.slcg_ce2_load_gating_prod(g,
 				g->slcg_enabled);
 	}
-	if (g->ops.clock_gating.blcg_ce_load_gating_prod) {
+	if (g->ops.clock_gating.blcg_ce_load_gating_prod != NULL) {
 		g->ops.clock_gating.blcg_ce_load_gating_prod(g,
 				g->blcg_enabled);
 	}

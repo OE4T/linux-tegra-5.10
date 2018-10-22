@@ -1708,7 +1708,7 @@ void gr_gv11b_update_ctxsw_preemption_mode(struct gk20a *g,
 		u32 size;
 		u32 cbes_reserve;
 
-		if (g->ops.gr.set_preemption_buffer_va) {
+		if (g->ops.gr.set_preemption_buffer_va != NULL) {
 			if (ctxheader->gpu_va) {
 				g->ops.gr.set_preemption_buffer_va(g, ctxheader,
 				gr_ctx->preempt_ctxsw_buffer.gpu_va);

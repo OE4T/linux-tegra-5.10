@@ -312,11 +312,11 @@ struct tsg_gk20a *gk20a_tsg_open(struct gk20a *g, pid_t pid)
 	tsg->tgid = pid;
 	tsg->sm_exception_mask_type = NVGPU_SM_EXCEPTION_TYPE_MASK_NONE;
 
-	if (g->ops.fifo.init_eng_method_buffers) {
+	if (g->ops.fifo.init_eng_method_buffers != NULL) {
 		g->ops.fifo.init_eng_method_buffers(g, tsg);
 	}
 
-	if (g->ops.fifo.tsg_open) {
+	if (g->ops.fifo.tsg_open != NULL) {
 		err = g->ops.fifo.tsg_open(tsg);
 		if (err != 0) {
 			nvgpu_err(g, "tsg %d fifo open failed %d",

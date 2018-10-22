@@ -1108,7 +1108,7 @@ int gr_gp10b_alloc_gr_ctx(struct gk20a *g,
 	}
 
 	if (graphics_preempt_mode || compute_preempt_mode) {
-		if (g->ops.gr.set_ctxsw_preemption_mode) {
+		if (g->ops.gr.set_ctxsw_preemption_mode != NULL) {
 			err = g->ops.gr.set_ctxsw_preemption_mode(g, gr_ctx, vm,
 			    class, graphics_preempt_mode, compute_preempt_mode);
 			if (err != 0) {
@@ -1227,7 +1227,7 @@ void gr_gp10b_update_ctxsw_preemption_mode(struct gk20a *g,
 		u32 size;
 		u32 cbes_reserve;
 
-		if (g->ops.gr.set_preemption_buffer_va) {
+		if (g->ops.gr.set_preemption_buffer_va != NULL) {
 			if (ctxheader->gpu_va) {
 				g->ops.gr.set_preemption_buffer_va(g, ctxheader,
 				gr_ctx->preempt_ctxsw_buffer.gpu_va);
@@ -2060,7 +2060,7 @@ u32 get_ecc_override_val(struct gk20a *g)
 {
 	bool en = false;
 
-	if (g->ops.fuse.is_opt_ecc_enable) {
+	if (g->ops.fuse.is_opt_ecc_enable != NULL) {
 		en = g->ops.fuse.is_opt_ecc_enable(g);
 		if (en) {
 			return gk20a_readl(g, gr_fecs_feature_override_ecc_r());
@@ -2226,7 +2226,7 @@ int gr_gp10b_set_boosted_ctx(struct channel_gk20a *ch,
 		goto enable_ch;
 	}
 
-	if (g->ops.gr.update_boosted_ctx) {
+	if (g->ops.gr.update_boosted_ctx != NULL) {
 		g->ops.gr.update_boosted_ctx(g, mem, gr_ctx);
 	} else {
 		err = -ENOSYS;
@@ -2288,7 +2288,7 @@ int gr_gp10b_set_preemption_mode(struct channel_gk20a *ch,
 		return 0;
 	}
 
-	if (g->ops.gr.set_ctxsw_preemption_mode) {
+	if (g->ops.gr.set_ctxsw_preemption_mode != NULL) {
 
 		nvgpu_log(g, gpu_dbg_sched, "chid=%d tsgid=%d pid=%d "
 				"graphics_preempt=%d compute_preempt=%d",
@@ -2315,7 +2315,7 @@ int gr_gp10b_set_preemption_mode(struct channel_gk20a *ch,
 		goto enable_ch;
 	}
 
-	if (g->ops.gr.update_ctxsw_preemption_mode) {
+	if (g->ops.gr.update_ctxsw_preemption_mode != NULL) {
 		g->ops.gr.update_ctxsw_preemption_mode(ch->g,
 						ch, mem);
 

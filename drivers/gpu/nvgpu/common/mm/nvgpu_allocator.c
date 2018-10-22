@@ -29,7 +29,7 @@
 
 u64 nvgpu_alloc_length(struct nvgpu_allocator *a)
 {
-	if (a->ops->length) {
+	if (a->ops->length != NULL) {
 		return a->ops->length(a);
 	}
 
@@ -38,7 +38,7 @@ u64 nvgpu_alloc_length(struct nvgpu_allocator *a)
 
 u64 nvgpu_alloc_base(struct nvgpu_allocator *a)
 {
-	if (a->ops->base) {
+	if (a->ops->base != NULL) {
 		return a->ops->base(a);
 	}
 
@@ -56,7 +56,7 @@ bool nvgpu_alloc_initialized(struct nvgpu_allocator *a)
 
 u64 nvgpu_alloc_end(struct nvgpu_allocator *a)
 {
-	if (a->ops->end) {
+	if (a->ops->end != NULL) {
 		return a->ops->end(a);
 	}
 
@@ -65,7 +65,7 @@ u64 nvgpu_alloc_end(struct nvgpu_allocator *a)
 
 u64 nvgpu_alloc_space(struct nvgpu_allocator *a)
 {
-	if (a->ops->space) {
+	if (a->ops->space != NULL) {
 		return a->ops->space(a);
 	}
 
@@ -90,7 +90,7 @@ void nvgpu_free(struct nvgpu_allocator *a, u64 addr)
 u64 nvgpu_alloc_fixed(struct nvgpu_allocator *a, u64 base, u64 len,
 		      u32 page_size)
 {
-	if (a->ops->alloc_fixed) {
+	if (a->ops->alloc_fixed != NULL) {
 		return a->ops->alloc_fixed(a, base, len, page_size);
 	}
 
@@ -104,7 +104,7 @@ void nvgpu_free_fixed(struct nvgpu_allocator *a, u64 base, u64 len)
 	 * nothing. The alternative would be to fall back on the regular
 	 * free but that may be harmful in unexpected ways.
 	 */
-	if (a->ops->free_fixed) {
+	if (a->ops->free_fixed != NULL) {
 		a->ops->free_fixed(a, base, len);
 	}
 }
@@ -112,7 +112,7 @@ void nvgpu_free_fixed(struct nvgpu_allocator *a, u64 base, u64 len)
 int nvgpu_alloc_reserve_carveout(struct nvgpu_allocator *a,
 				 struct nvgpu_alloc_carveout *co)
 {
-	if (a->ops->reserve_carveout) {
+	if (a->ops->reserve_carveout != NULL) {
 		return a->ops->reserve_carveout(a, co);
 	}
 
@@ -122,7 +122,7 @@ int nvgpu_alloc_reserve_carveout(struct nvgpu_allocator *a,
 void nvgpu_alloc_release_carveout(struct nvgpu_allocator *a,
 				  struct nvgpu_alloc_carveout *co)
 {
-	if (a->ops->release_carveout) {
+	if (a->ops->release_carveout != NULL) {
 		a->ops->release_carveout(a, co);
 	}
 }

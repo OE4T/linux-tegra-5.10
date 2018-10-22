@@ -213,15 +213,15 @@ int nvgpu_dbg_set_powergate(struct dbg_session_gk20a *dbg_s, bool disable_powerg
 		/*do elpg disable before clock gating */
 		nvgpu_pmu_pg_global_enable(g, false);
 
-		if (g->ops.clock_gating.slcg_gr_load_gating_prod) {
+		if (g->ops.clock_gating.slcg_gr_load_gating_prod != NULL) {
 			g->ops.clock_gating.slcg_gr_load_gating_prod(g,
 				false);
 		}
-		if (g->ops.clock_gating.slcg_perf_load_gating_prod) {
+		if (g->ops.clock_gating.slcg_perf_load_gating_prod != NULL) {
 			g->ops.clock_gating.slcg_perf_load_gating_prod(g,
 				false);
 		}
-		if (g->ops.clock_gating.slcg_ltc_load_gating_prod) {
+		if (g->ops.clock_gating.slcg_ltc_load_gating_prod != NULL) {
 			g->ops.clock_gating.slcg_ltc_load_gating_prod(g,
 				false);
 		}
@@ -244,15 +244,15 @@ int nvgpu_dbg_set_powergate(struct dbg_session_gk20a *dbg_s, bool disable_powerg
 		}
 
 		if (g->slcg_enabled) {
-			if (g->ops.clock_gating.slcg_ltc_load_gating_prod) {
+			if (g->ops.clock_gating.slcg_ltc_load_gating_prod != NULL) {
 				g->ops.clock_gating.slcg_ltc_load_gating_prod(g,
 					g->slcg_enabled);
 			}
-			if (g->ops.clock_gating.slcg_perf_load_gating_prod) {
+			if (g->ops.clock_gating.slcg_perf_load_gating_prod != NULL) {
 				g->ops.clock_gating.slcg_perf_load_gating_prod(g,
 					g->slcg_enabled);
 			}
-			if (g->ops.clock_gating.slcg_gr_load_gating_prod) {
+			if (g->ops.clock_gating.slcg_gr_load_gating_prod != NULL) {
 				g->ops.clock_gating.slcg_gr_load_gating_prod(g,
 					g->slcg_enabled);
 			}

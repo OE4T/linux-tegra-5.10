@@ -31,7 +31,7 @@ int nvgpu_init_therm_support(struct gk20a *g)
 
 	nvgpu_log_fn(g, " ");
 
-	if (g->ops.therm.init_therm_setup_hw)
+	if (g->ops.therm.init_therm_setup_hw != NULL)
 		err = g->ops.therm.init_therm_setup_hw(g);
 	if (err != 0)
 		return err;

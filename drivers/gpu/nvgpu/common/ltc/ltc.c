@@ -34,7 +34,7 @@ int nvgpu_init_ltc_support(struct gk20a *g)
 	g->mm.ltc_enabled_current = true;
 	g->mm.ltc_enabled_target = true;
 
-	if (g->ops.ltc.init_fs_state) {
+	if (g->ops.ltc.init_fs_state != NULL) {
 		g->ops.ltc.init_fs_state(g);
 	}
 

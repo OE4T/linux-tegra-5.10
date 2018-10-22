@@ -222,7 +222,7 @@ int nvgpu_pmu_load_update(struct gk20a *g)
 		return 0;
 	}
 
-	if (g->ops.pmu.pmu_perfmon_get_samples_rpc) {
+	if (g->ops.pmu.pmu_perfmon_get_samples_rpc != NULL) {
 		nvgpu_pmu_perfmon_get_samples_rpc(pmu);
 		load = pmu->load;
 	} else {

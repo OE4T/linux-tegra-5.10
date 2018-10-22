@@ -41,7 +41,7 @@ void gm20b_priv_ring_enable(struct gk20a *g)
 
 	nvgpu_log(g, gpu_dbg_info, "enabling priv ring");
 
-	if (g->ops.clock_gating.slcg_priring_load_gating_prod) {
+	if (g->ops.clock_gating.slcg_priring_load_gating_prod != NULL) {
 		g->ops.clock_gating.slcg_priring_load_gating_prod(g,
 				g->slcg_enabled);
 	}

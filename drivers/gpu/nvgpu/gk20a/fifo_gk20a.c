@@ -437,7 +437,7 @@ int gk20a_fifo_init_engine_info(struct fifo_gk20a *f)
 						engine_type, &inst_id);
 		} else if (entry == top_device_info_entry_data_v()) {
 			/* gk20a doesn't support device_info_data packet parsing */
-			if (g->ops.fifo.device_info_data_parse) {
+			if (g->ops.fifo.device_info_data_parse != NULL) {
 				g->ops.fifo.device_info_data_parse(g,
 					table_entry, &inst_id, &pri_base,
 					&fault_id);
@@ -832,11 +832,11 @@ int gk20a_init_fifo_reset_enable_hw(struct gk20a *g)
 	/* enable pmc pfifo */
 	g->ops.mc.reset(g, g->ops.mc.reset_mask(g, NVGPU_UNIT_FIFO));
 
-	if (g->ops.clock_gating.slcg_fifo_load_gating_prod) {
+	if (g->ops.clock_gating.slcg_fifo_load_gating_prod != NULL) {
 		g->ops.clock_gating.slcg_fifo_load_gating_prod(g,
 				g->slcg_enabled);
 	}
-	if (g->ops.clock_gating.blcg_fifo_load_gating_prod) {
+	if (g->ops.clock_gating.blcg_fifo_load_gating_prod != NULL) {
 		g->ops.clock_gating.blcg_fifo_load_gating_prod(g,
 				g->blcg_enabled);
 	}
@@ -855,11 +855,11 @@ int gk20a_init_fifo_reset_enable_hw(struct gk20a *g)
 		nvgpu_log_info(g, "pbdma_timeout reg val = 0x%08x", timeout);
 		gk20a_writel(g, pbdma_timeout_r(i), timeout);
 	}
-	if (g->ops.fifo.apply_pb_timeout) {
+	if (g->ops.fifo.apply_pb_timeout != NULL) {
 		g->ops.fifo.apply_pb_timeout(g);
 	}
 
-	if (g->ops.fifo.apply_ctxsw_timeout_intr) {
+	if (g->ops.fifo.apply_ctxsw_timeout_intr != NULL) {
 		g->ops.fifo.apply_ctxsw_timeout_intr(g);
 	} else {
 		timeout = g->fifo_eng_timeout_us;
@@ -1124,7 +1124,7 @@ int gk20a_init_fifo_support(struct gk20a *g)
 		return err;
 	}
 
-	if (g->ops.fifo.init_fifo_setup_hw) {
+	if (g->ops.fifo.init_fifo_setup_hw != NULL) {
 		err = g->ops.fifo.init_fifo_setup_hw(g);
 	}
 	if (err != 0) {
@@ -1258,7 +1258,7 @@ static void get_exception_mmu_fault_info(struct gk20a *g, u32 mmu_fault_id,
 
 	/* parse info */
 	mmfault->fault_type_desc =  does_not_exist[0];
-	if (g->ops.fifo.get_mmu_fault_desc) {
+	if (g->ops.fifo.get_mmu_fault_desc != NULL) {
 		g->ops.fifo.get_mmu_fault_desc(mmfault);
 	}
 
@@ -1545,7 +1545,7 @@ void gk20a_fifo_abort_tsg(struct gk20a *g, u32 tsgid, bool preempt)
 	nvgpu_list_for_each_entry(ch, &tsg->ch_list, channel_gk20a, ch_entry) {
 		if (gk20a_channel_get(ch)) {
 			ch->has_timedout = true;
-			if (ch->g->ops.fifo.ch_abort_clean_up) {
+			if (ch->g->ops.fifo.ch_abort_clean_up != NULL) {
 				ch->g->ops.fifo.ch_abort_clean_up(ch);
 			}
 			gk20a_channel_put(ch);
@@ -1616,15 +1616,15 @@ static bool gk20a_fifo_handle_mmu_fault_locked(
 			nvgpu_err(g, "failed to set disable elpg");
 		}
 	}
-	if (g->ops.clock_gating.slcg_gr_load_gating_prod) {
+	if (g->ops.clock_gating.slcg_gr_load_gating_prod != NULL) {
 		g->ops.clock_gating.slcg_gr_load_gating_prod(g,
 				false);
 	}
-	if (g->ops.clock_gating.slcg_perf_load_gating_prod) {
+	if (g->ops.clock_gating.slcg_perf_load_gating_prod != NULL) {
 		g->ops.clock_gating.slcg_perf_load_gating_prod(g,
 				false);
 	}
-	if (g->ops.clock_gating.slcg_ltc_load_gating_prod) {
+	if (g->ops.clock_gating.slcg_ltc_load_gating_prod != NULL) {
 		g->ops.clock_gating.slcg_ltc_load_gating_prod(g,
 				false);
 	}
@@ -2085,7 +2085,7 @@ void gk20a_fifo_recover(struct gk20a *g, u32 __engine_ids,
 		gk20a_debug_dump(g);
 	}
 
-	if (g->ops.ltc.flush) {
+	if (g->ops.ltc.flush != NULL) {
 		g->ops.ltc.flush(g);
 	}
 
@@ -2143,11 +2143,11 @@ int gk20a_fifo_tsg_unbind_channel_verify_status(struct channel_gk20a *ch)
 		return -EINVAL;
 	}
 
-	if (g->ops.fifo.tsg_verify_status_ctx_reload) {
+	if (g->ops.fifo.tsg_verify_status_ctx_reload != NULL) {
 		g->ops.fifo.tsg_verify_status_ctx_reload(ch);
 	}
 
-	if (g->ops.fifo.tsg_verify_status_faulted) {
+	if (g->ops.fifo.tsg_verify_status_faulted != NULL) {
 		g->ops.fifo.tsg_verify_status_faulted(ch);
 	}
 
@@ -2203,7 +2203,7 @@ int gk20a_fifo_tsg_unbind_channel(struct channel_gk20a *ch)
 		g->ops.fifo.enable_tsg(tsg);
 	}
 
-	if (ch->g->ops.fifo.ch_abort_clean_up) {
+	if (ch->g->ops.fifo.ch_abort_clean_up != NULL) {
 		ch->g->ops.fifo.ch_abort_clean_up(ch);
 	}
 
@@ -2801,7 +2801,7 @@ void gk20a_fifo_isr(struct gk20a *g)
 			clear_intr |= fifo_pbdma_isr(g, fifo_intr);
 		}
 
-		if (g->ops.fifo.handle_ctxsw_timeout) {
+		if (g->ops.fifo.handle_ctxsw_timeout != NULL) {
 			g->ops.fifo.handle_ctxsw_timeout(g, fifo_intr);
 		}
 

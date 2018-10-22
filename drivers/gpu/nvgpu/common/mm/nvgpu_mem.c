@@ -118,7 +118,7 @@ u64 nvgpu_sgt_get_gpu_addr(struct gk20a *g, struct nvgpu_sgt *sgt,
 
 bool nvgpu_sgt_iommuable(struct gk20a *g, struct nvgpu_sgt *sgt)
 {
-	if (sgt->ops->sgt_iommuable) {
+	if (sgt->ops->sgt_iommuable != NULL) {
 		return sgt->ops->sgt_iommuable(g, sgt);
 	}
 	return false;

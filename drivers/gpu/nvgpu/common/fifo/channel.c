@@ -230,7 +230,7 @@ void gk20a_channel_abort(struct channel_gk20a *ch, bool channel_preempt)
 		ch->g->ops.fifo.preempt_channel(ch->g, ch->chid);
 	}
 
-	if (ch->g->ops.fifo.ch_abort_clean_up) {
+	if (ch->g->ops.fifo.ch_abort_clean_up != NULL) {
 		ch->g->ops.fifo.ch_abort_clean_up(ch);
 	}
 }
@@ -394,7 +394,7 @@ static void gk20a_free_channel(struct channel_gk20a *ch, bool force)
 		g->ops.fecs_trace.unbind_channel(g, ch);
 #endif
 
-	if (g->ops.fifo.free_channel_ctx_header) {
+	if (g->ops.fifo.free_channel_ctx_header != NULL) {
 		g->ops.fifo.free_channel_ctx_header(ch);
 	}
 
@@ -678,7 +678,7 @@ struct channel_gk20a *gk20a_open_new_channel(struct gk20a *g,
 	ch->pid = tid;
 	ch->tgid = pid;  /* process granularity for FECS traces */
 
-	if (g->ops.fifo.alloc_inst(g, ch)) {
+	if (g->ops.fifo.alloc_inst(g, ch) != 0) {
 		ch->g = NULL;
 		free_channel(f, ch);
 		nvgpu_err(g,
@@ -1197,7 +1197,7 @@ int nvgpu_channel_setup_bind(struct channel_gk20a *c,
 		}
 		nvgpu_mutex_release(&c->sync_lock);
 
-		if (g->ops.fifo.resetup_ramfc) {
+		if (g->ops.fifo.resetup_ramfc != NULL) {
 			err = g->ops.fifo.resetup_ramfc(c);
 			if (err != 0) {
 				goto clean_up_sync;

@@ -146,7 +146,7 @@ static void config_pmu_cmdline_args_super_surface_v6(struct nvgpu_pmu *pmu)
 {
 	struct gk20a *g = gk20a_from_pmu(pmu);
 
-	if (g->ops.pmu.alloc_super_surface) {
+	if (g->ops.pmu.alloc_super_surface != NULL) {
 		nvgpu_pmu_surface_describe(g, &pmu->super_surface_buf,
 			&pmu->args_v6.super_surface);
 	}

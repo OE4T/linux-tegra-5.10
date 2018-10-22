@@ -81,7 +81,7 @@ int gk20a_prepare_poweroff(struct gk20a *g)
 
 	nvgpu_log_fn(g, " ");
 
-	if (g->ops.fifo.channel_suspend) {
+	if (g->ops.fifo.channel_suspend != NULL) {
 		ret = g->ops.fifo.channel_suspend(g);
 		if (ret != 0) {
 			return ret;
@@ -104,7 +104,7 @@ int gk20a_prepare_poweroff(struct gk20a *g)
 	gk20a_ce_suspend(g);
 
 	/* Disable GPCPLL */
-	if (g->ops.clk.suspend_clk_support) {
+	if (g->ops.clk.suspend_clk_support != NULL) {
 		ret |= g->ops.clk.suspend_clk_support(g);
 	}
 
@@ -184,7 +184,7 @@ int gk20a_finalize_poweron(struct gk20a *g)
 		g->ops.acr.acr_sw_init(g, &g->acr);
 	}
 
-	if (g->ops.bios.init) {
+	if (g->ops.bios.init != NULL) {
 		err = g->ops.bios.init(g);
 	}
 	if (err != 0) {
@@ -193,7 +193,7 @@ int gk20a_finalize_poweron(struct gk20a *g)
 
 	g->ops.bus.init_hw(g);
 
-	if (g->ops.clk.disable_slowboot) {
+	if (g->ops.clk.disable_slowboot != NULL) {
 		g->ops.clk.disable_slowboot(g);
 	}
 
@@ -205,7 +205,7 @@ int gk20a_finalize_poweron(struct gk20a *g)
 	   during boot but it also significantly slows down gk20a init on
 	   simulation and emulation. We should remove SOB after graphics power
 	   saving features (blcg/slcg) are enabled. For now, do it here. */
-	if (g->ops.clk.init_clk_support) {
+	if (g->ops.clk.init_clk_support != NULL) {
 		err = g->ops.clk.init_clk_support(g);
 		if (err != 0) {
 			nvgpu_err(g, "failed to init gk20a clk");
@@ -221,7 +221,7 @@ int gk20a_finalize_poweron(struct gk20a *g)
 		}
 	}
 
-	if (g->ops.fb.init_fbpa) {
+	if (g->ops.fb.init_fbpa != NULL) {
 		err = g->ops.fb.init_fbpa(g);
 		if (err != 0) {
 			nvgpu_err(g, "failed to init fbpa");
@@ -229,7 +229,7 @@ int gk20a_finalize_poweron(struct gk20a *g)
 		}
 	}
 
-	if (g->ops.fb.mem_unlock) {
+	if (g->ops.fb.mem_unlock != NULL) {
 		err = g->ops.fb.mem_unlock(g);
 		if (err != 0) {
 			nvgpu_err(g, "failed to unlock memory");
@@ -262,7 +262,7 @@ int gk20a_finalize_poweron(struct gk20a *g)
 		goto done;
 	}
 
-	if (g->ops.therm.elcg_init_idle_filters) {
+	if (g->ops.therm.elcg_init_idle_filters != NULL) {
 		g->ops.therm.elcg_init_idle_filters(g);
 	}
 
@@ -294,7 +294,7 @@ int gk20a_finalize_poweron(struct gk20a *g)
 	}
 
 	if (g->ops.pmu.is_pmu_supported(g)) {
-		if (g->ops.pmu.prepare_ucode) {
+		if (g->ops.pmu.prepare_ucode != NULL) {
 			err = g->ops.pmu.prepare_ucode(g);
 		}
 		if (err != 0) {
@@ -390,7 +390,7 @@ int gk20a_finalize_poweron(struct gk20a *g)
 
 	gk20a_init_ce_support(g);
 
-	if (g->ops.xve.available_speeds) {
+	if (g->ops.xve.available_speeds != NULL) {
 		u32 speed;
 
 		if (!nvgpu_is_enabled(g, NVGPU_SUPPORT_ASPM) &&
@@ -419,7 +419,7 @@ int gk20a_finalize_poweron(struct gk20a *g)
 	}
 #endif
 
-	if (g->ops.fifo.channel_resume) {
+	if (g->ops.fifo.channel_resume != NULL) {
 		g->ops.fifo.channel_resume(g);
 	}
 
@@ -513,7 +513,7 @@ int gk20a_init_gpu_characteristics(struct gk20a *g)
 
 	g->ops.gr.detect_sm_arch(g);
 
-	if (g->ops.gr.init_cyclestats) {
+	if (g->ops.gr.init_cyclestats != NULL) {
 		g->ops.gr.init_cyclestats(g);
 	}
 

@@ -122,7 +122,7 @@ void gv11b_fb_init_cbc(struct gk20a *g, struct gr_gk20a *gr)
 		compbit_base_post_divide++;
 	}
 
-	if (g->ops.ltc.cbc_fix_config) {
+	if (g->ops.ltc.cbc_fix_config != NULL) {
 		compbit_base_post_divide =
 			g->ops.ltc.cbc_fix_config(g, compbit_base_post_divide);
 	}

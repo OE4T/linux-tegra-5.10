@@ -391,7 +391,7 @@ int gm20b_pmu_setup_hw_and_bl_bootstrap(struct gk20a *g,
 	}
 	nvgpu_mutex_release(&pmu->isr_mutex);
 
-	if (g->ops.pmu.setup_apertures) {
+	if (g->ops.pmu.setup_apertures != NULL) {
 		g->ops.pmu.setup_apertures(g);
 	}
 

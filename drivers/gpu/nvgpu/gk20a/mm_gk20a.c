@@ -92,22 +92,22 @@ int gk20a_init_mm_setup_hw(struct gk20a *g)
 
 	nvgpu_log_fn(g, " ");
 
-	if (g->ops.fb.set_mmu_page_size) {
+	if (g->ops.fb.set_mmu_page_size != NULL) {
 		g->ops.fb.set_mmu_page_size(g);
 	}
 
-	if (g->ops.fb.set_use_full_comp_tag_line) {
+	if (g->ops.fb.set_use_full_comp_tag_line != NULL) {
 		mm->use_full_comp_tag_line =
 			g->ops.fb.set_use_full_comp_tag_line(g);
 	}
 
 	g->ops.fb.init_hw(g);
 
-	if (g->ops.bus.bar1_bind) {
+	if (g->ops.bus.bar1_bind != NULL) {
 		g->ops.bus.bar1_bind(g, &mm->bar1.inst_block);
 	}
 
-	if (g->ops.bus.bar2_bind) {
+	if (g->ops.bus.bar2_bind != NULL) {
 		err = g->ops.bus.bar2_bind(g, &mm->bar2.inst_block);
 		if (err != 0) {
 			return err;
@@ -437,7 +437,7 @@ int gk20a_mm_fb_flush(struct gk20a *g)
 
 	retries = 100;
 
-	if (g->ops.mm.get_flush_retries) {
+	if (g->ops.mm.get_flush_retries != NULL) {
 		retries = g->ops.mm.get_flush_retries(g, NVGPU_FLUSH_FB);
 	}
 
@@ -469,10 +469,10 @@ int gk20a_mm_fb_flush(struct gk20a *g)
 	} while (nvgpu_timeout_expired(&timeout) == 0);
 
 	if (nvgpu_timeout_peek_expired(&timeout)) {
-		if (g->ops.fb.dump_vpr_info) {
+		if (g->ops.fb.dump_vpr_info != NULL) {
 			g->ops.fb.dump_vpr_info(g);
 		}
-		if (g->ops.fb.dump_wpr_info) {
+		if (g->ops.fb.dump_wpr_info != NULL) {
 			g->ops.fb.dump_wpr_info(g);
 		}
 		ret = -EBUSY;
@@ -495,7 +495,7 @@ static void gk20a_mm_l2_invalidate_locked(struct gk20a *g)
 
 	trace_gk20a_mm_l2_invalidate(g->name);
 
-	if (g->ops.mm.get_flush_retries) {
+	if (g->ops.mm.get_flush_retries != NULL) {
 		retries = g->ops.mm.get_flush_retries(g, NVGPU_FLUSH_L2_INV);
 	}
 
@@ -554,7 +554,7 @@ void gk20a_mm_l2_flush(struct gk20a *g, bool invalidate)
 		goto hw_was_off;
 	}
 
-	if (g->ops.mm.get_flush_retries) {
+	if (g->ops.mm.get_flush_retries != NULL) {
 		retries = g->ops.mm.get_flush_retries(g, NVGPU_FLUSH_L2_FLUSH);
 	}
 
@@ -610,7 +610,7 @@ void gk20a_mm_cbc_clean(struct gk20a *g)
 		goto hw_was_off;
 	}
 
-	if (g->ops.mm.get_flush_retries) {
+	if (g->ops.mm.get_flush_retries != NULL) {
 		retries = g->ops.mm.get_flush_retries(g, NVGPU_FLUSH_CBC_CLEAN);
 	}
 

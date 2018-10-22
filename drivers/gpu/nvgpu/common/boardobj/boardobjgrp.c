@@ -253,7 +253,7 @@ int boardobjgrp_pmucmd_pmuinithandle_impl(struct gk20a *g,
 	nvgpu_log_info(g, " ");
 
 	if (g->ops.pmu_ver.boardobj.is_boardobjgrp_pmucmd_id_valid(g,
-			pboardobjgrp, pcmd)) {
+			pboardobjgrp, pcmd) != 0) {
 		goto boardobjgrp_pmucmd_pmuinithandle_exit;
 	}
 

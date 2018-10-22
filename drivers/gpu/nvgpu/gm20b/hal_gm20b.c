@@ -736,7 +736,7 @@ int gm20b_init_hal(struct gk20a *g)
 	__nvgpu_set_enabled(g, NVGPU_PMU_PSTATE, false);
 
 	/* Read fuses to check if gpu needs to boot in secure/non-secure mode */
-	if (gops->fuse.check_priv_security(g)) {
+	if (gops->fuse.check_priv_security(g) != 0) {
 		return -EINVAL; /* Do not boot gpu */
 	}
 

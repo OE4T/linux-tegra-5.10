@@ -54,7 +54,7 @@ void gk20a_ptimer_isr(struct gk20a *g)
 
 	if (fecs_errcode) {
 		nvgpu_err(g, "FECS_ERRCODE 0x%08x", fecs_errcode);
-		if (g->ops.priv_ring.decode_error_code) {
+		if (g->ops.priv_ring.decode_error_code != NULL) {
 			g->ops.priv_ring.decode_error_code(g,
 						fecs_errcode);
 		}

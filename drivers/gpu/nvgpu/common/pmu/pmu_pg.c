@@ -120,7 +120,7 @@ int nvgpu_pmu_pg_global_enable(struct gk20a *g, u32 enable_pg)
 			g->ops.pmu.pmu_pg_engines_feature_list(g,
 				PMU_PG_ELPG_ENGINE_ID_GRAPHICS) !=
 			NVGPU_PMU_GR_FEATURE_MASK_POWER_GATING) {
-			if (g->ops.pmu.pmu_lpwr_enable_pg) {
+			if (g->ops.pmu.pmu_lpwr_enable_pg != NULL) {
 				status = g->ops.pmu.pmu_lpwr_enable_pg(g,
 						true);
 			}
@@ -132,7 +132,7 @@ int nvgpu_pmu_pg_global_enable(struct gk20a *g, u32 enable_pg)
 			g->ops.pmu.pmu_pg_engines_feature_list(g,
 				PMU_PG_ELPG_ENGINE_ID_GRAPHICS) !=
 			NVGPU_PMU_GR_FEATURE_MASK_POWER_GATING) {
-			if (g->ops.pmu.pmu_lpwr_disable_pg) {
+			if (g->ops.pmu.pmu_lpwr_disable_pg != NULL) {
 				status = g->ops.pmu.pmu_lpwr_disable_pg(g,
 						true);
 			}
@@ -221,7 +221,7 @@ int nvgpu_pmu_enable_elpg(struct gk20a *g)
 		goto exit_unlock;
 	}
 
-	if (g->ops.pmu.pmu_pg_supported_engines_list) {
+	if (g->ops.pmu.pmu_pg_supported_engines_list != NULL) {
 		pg_engine_id_list = g->ops.pmu.pmu_pg_supported_engines_list(g);
 	}
 
@@ -257,7 +257,7 @@ int nvgpu_pmu_disable_elpg(struct gk20a *g)
 
 	nvgpu_log_fn(g, " ");
 
-	if (g->ops.pmu.pmu_pg_supported_engines_list) {
+	if (g->ops.pmu.pmu_pg_supported_engines_list != NULL) {
 		pg_engine_id_list = g->ops.pmu.pmu_pg_supported_engines_list(g);
 	}
 
@@ -395,7 +395,7 @@ static int pmu_pg_init_send(struct gk20a *g, u32 pg_engine_id)
 
 	g->ops.pmu.pmu_pg_idle_counter_config(g, pg_engine_id);
 
-	if (g->ops.pmu.pmu_pg_init_param) {
+	if (g->ops.pmu.pmu_pg_init_param != NULL) {
 		g->ops.pmu.pmu_pg_init_param(g, pg_engine_id);
 	}
 
@@ -454,7 +454,7 @@ static int pmu_pg_init_send(struct gk20a *g, u32 pg_engine_id)
 		nvgpu_err(g, "PMU_PG_ELPG_CMD_DISALLOW cmd failed\n");
 	}
 
-	if (g->ops.pmu.pmu_pg_set_sub_feature_mask) {
+	if (g->ops.pmu.pmu_pg_set_sub_feature_mask != NULL) {
 		g->ops.pmu.pmu_pg_set_sub_feature_mask(g, pg_engine_id);
 	}
 
@@ -469,7 +469,7 @@ int nvgpu_pmu_init_powergating(struct gk20a *g)
 
 	nvgpu_log_fn(g, " ");
 
-	if (g->ops.pmu.pmu_pg_supported_engines_list) {
+	if (g->ops.pmu.pmu_pg_supported_engines_list != NULL) {
 		pg_engine_id_list = g->ops.pmu.pmu_pg_supported_engines_list(g);
 	}
 
@@ -489,7 +489,7 @@ int nvgpu_pmu_init_powergating(struct gk20a *g)
 		}
 	}
 
-	if (g->ops.pmu.pmu_pg_param_post_init) {
+	if (g->ops.pmu.pmu_pg_param_post_init != NULL) {
 		g->ops.pmu.pmu_pg_param_post_init(g);
 	}
 
@@ -618,7 +618,7 @@ int nvgpu_pmu_get_pg_stats(struct gk20a *g, u32 pg_engine_id,
 		return 0;
 	}
 
-	if (g->ops.pmu.pmu_pg_supported_engines_list) {
+	if (g->ops.pmu.pmu_pg_supported_engines_list != NULL) {
 		pg_engine_id_list = g->ops.pmu.pmu_pg_supported_engines_list(g);
 	}
 

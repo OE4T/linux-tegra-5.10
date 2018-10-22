@@ -1074,15 +1074,15 @@ void gv11b_fifo_teardown_ch_tsg(struct gk20a *g, u32 act_eng_bitmask,
 			nvgpu_err(g, "failed to set disable elpg");
 		}
 	}
-	if (g->ops.clock_gating.slcg_gr_load_gating_prod) {
+	if (g->ops.clock_gating.slcg_gr_load_gating_prod != NULL) {
 		g->ops.clock_gating.slcg_gr_load_gating_prod(g,
 				false);
 	}
-	if (g->ops.clock_gating.slcg_perf_load_gating_prod) {
+	if (g->ops.clock_gating.slcg_perf_load_gating_prod != NULL) {
 		g->ops.clock_gating.slcg_perf_load_gating_prod(g,
 				false);
 	}
-	if (g->ops.clock_gating.slcg_ltc_load_gating_prod) {
+	if (g->ops.clock_gating.slcg_ltc_load_gating_prod != NULL) {
 		g->ops.clock_gating.slcg_ltc_load_gating_prod(g,
 				false);
 	}
@@ -1284,15 +1284,15 @@ int gv11b_init_fifo_reset_enable_hw(struct gk20a *g)
 	/* enable pmc pfifo */
 	g->ops.mc.reset(g, g->ops.mc.reset_mask(g, NVGPU_UNIT_FIFO));
 
-	if (g->ops.clock_gating.slcg_ce2_load_gating_prod) {
+	if (g->ops.clock_gating.slcg_ce2_load_gating_prod != NULL) {
 		g->ops.clock_gating.slcg_ce2_load_gating_prod(g,
 				g->slcg_enabled);
 	}
-	if (g->ops.clock_gating.slcg_fifo_load_gating_prod) {
+	if (g->ops.clock_gating.slcg_fifo_load_gating_prod != NULL) {
 		g->ops.clock_gating.slcg_fifo_load_gating_prod(g,
 				g->slcg_enabled);
 	}
-	if (g->ops.clock_gating.blcg_fifo_load_gating_prod) {
+	if (g->ops.clock_gating.blcg_fifo_load_gating_prod != NULL) {
 		g->ops.clock_gating.blcg_fifo_load_gating_prod(g,
 				g->blcg_enabled);
 	}

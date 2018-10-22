@@ -156,7 +156,7 @@ int gp106_bios_preos(struct gk20a *g)
 		goto out;
 	}
 
-	if (g->ops.bios.preos_reload_check) {
+	if (g->ops.bios.preos_reload_check != NULL) {
 		g->ops.bios.preos_reload_check(g);
 	}
 
@@ -203,7 +203,7 @@ int gp106_bios_init(struct gk20a *g)
 		return -ENOMEM;
 	}
 
-	if (g->ops.xve.disable_shadow_rom) {
+	if (g->ops.xve.disable_shadow_rom != NULL) {
 		g->ops.xve.disable_shadow_rom(g);
 	}
 	for (i = 0; i < g->bios.size/4; i++) {
@@ -214,7 +214,7 @@ int gp106_bios_init(struct gk20a *g)
 		g->bios.data[(i*4)+2] = (val >> 8) & 0xff;
 		g->bios.data[(i*4)+3] = val & 0xff;
 	}
-	if (g->ops.xve.enable_shadow_rom) {
+	if (g->ops.xve.enable_shadow_rom != NULL) {
 		g->ops.xve.enable_shadow_rom(g);
 	}
 
@@ -234,7 +234,7 @@ int gp106_bios_init(struct gk20a *g)
 
 	nvgpu_log_fn(g, "done");
 
-	if (g->ops.bios.devinit) {
+	if (g->ops.bios.devinit != NULL) {
 		err = g->ops.bios.devinit(g);
 		if (err != 0) {
 			nvgpu_err(g, "devinit failed");
@@ -251,7 +251,7 @@ int gp106_bios_init(struct gk20a *g)
 		}
 	}
 
-	if (g->ops.bios.verify_devinit) {
+	if (g->ops.bios.verify_devinit != NULL) {
 		err = g->ops.bios.verify_devinit(g);
 		if (err != 0) {
 			nvgpu_err(g, "devinit status verification failed");
