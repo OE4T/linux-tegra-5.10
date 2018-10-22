@@ -35,7 +35,7 @@
 		if (cond) {			\
 			BUG();			\
 		}				\
-	} while (0)
+	} while (false)
 
 #define WARN(cond, msg, arg...)			__warn(cond, msg, ##arg)
 #define WARN_ON(cond)				__warn(cond, "")
