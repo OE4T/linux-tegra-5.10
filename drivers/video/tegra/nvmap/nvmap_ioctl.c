@@ -508,7 +508,8 @@ static ssize_t rw_handle(struct nvmap_client *client, struct nvmap_handle *h,
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 9, 0)
 			if (h->heap_type == NVMAP_HEAP_CARVEOUT_VPR) {
 				uaccess_enable();
-				memcpy_toio(addr, (void *)sys_addr, elem_size);
+				kasan_memcpy_toio(addr, (void *)sys_addr,
+				elem_size);
 				uaccess_disable();
 				ret = 0;
 			} else

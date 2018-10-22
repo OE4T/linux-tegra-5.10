@@ -33,6 +33,7 @@ obj-y += nvmap_tag.o
 obj-y += nvmap_mm.o
 obj-y += nvmap_stats.o
 obj-y += nvmap_carveout.o
+obj-y += nvmap_kasan_wrapper.o
 
 obj-$(CONFIG_NVMAP_PAGE_POOLS) += nvmap_pp.o
 
@@ -47,5 +48,5 @@ obj-y += nvmap_dmabuf_t19x.o
 obj-y += nvmap_cache_t19x.o
 
 endif
-
+KASAN_SANITIZE_nvmap_kasan_wrapper.o := n
 endif
