@@ -62,10 +62,11 @@ struct nvgpu_gmmu_pd {
 	struct nvgpu_mem	*mem;
 	u32			 mem_offs;
 	bool			 cached;
+	u32			 pd_size; /* In bytes. */
 
 	/*
-	 * List of pointers to the next level of page tables. Does not
-	 * need to be populated when this PD is pointing to PTEs.
+	 * List of pointers to the next level of page tables. Will not be
+	 * populated when this PD is pointing to PTEs.
 	 */
 	struct nvgpu_gmmu_pd	*entries;
 	int			 num_entries;

@@ -256,7 +256,7 @@ static u32 pd_entries(const struct gk20a_mmu_level *l,
 }
 
 /*
- * Computes the size of a PD table.
+ * Computes the size of a PD table (in bytes).
  */
 static u32 pd_size(const struct gk20a_mmu_level *l,
 		   struct nvgpu_gmmu_attrs *attrs)
@@ -276,8 +276,17 @@ static int pd_allocate(struct vm_gk20a *vm,
 {
 	int err;
 
-	if (pd->mem != NULL) {
+	/*
+	 * Same basic logic as in pd_allocate_children() except we (re)allocate
+	 * the underlying DMA memory here.
+	 */
+	if (pd->mem != NULL && pd->pd_size >= pd_size(l, attrs)) {
 		return 0;
+	}
+
+	if (pd->mem != NULL) {
+		nvgpu_pd_free(vm, pd);
+		pd->mem = NULL;
 	}
 
 	err = nvgpu_pd_alloc(vm, pd, pd_size(l, attrs));
@@ -320,8 +329,38 @@ static int pd_allocate_children(struct vm_gk20a *vm,
 {
 	struct gk20a *g = gk20a_from_vm(vm);
 
-	if (pd->entries != NULL) {
+	/*
+	 * Check that we have already allocated enough pd_entries for this
+	 * page directory. There's 4 possible cases:
+	 *
+	 *   1. This pd is new and therefor has no entries.
+	 *   2. This pd does not have enough entries.
+	 *   3. This pd has exactly the right number of entries.
+	 *   4. This pd has more than enough entries.
+	 *
+	 * (3) and (4) are easy: just return. Case (1) is also straight forward:
+	 * just allocate enough space for the number of pd_entries.
+	 *
+	 * Case (2) is rare but can happen. It occurs when we have a PD that has
+	 * already been allocated for some VA range with a page size of 64K. If
+	 * later on we free that VA range and then remap that VA range with a
+	 * 4K page size map then we now need more pd space. As such we need to
+	 * reallocate this pd entry array.
+	 *
+	 * Critically case (2) should _only_ ever happen when the PD is not in
+	 * use. Obviously blowing away a bunch of previous PDEs would be
+	 * catastrophic. But the buddy allocator logic prevents mixing page
+	 * sizes within a single last level PD range. Therefor we should only
+	 * ever see this once the entire PD range has been freed - otherwise
+	 * there would be mixing (which, remember, is prevented by the buddy
+	 * allocator).
+	 */
+	if (pd->num_entries >= (int)pd_entries(l, attrs)) {
 		return 0;
+	}
+
+	if (pd->entries != NULL) {
+		nvgpu_vfree(g, pd->entries);
 	}
 
 	pd->num_entries = pd_entries(l, attrs);
