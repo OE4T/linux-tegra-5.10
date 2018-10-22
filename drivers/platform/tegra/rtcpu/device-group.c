@@ -40,6 +40,12 @@ static int get_grouped_device(struct camrtc_device_group *grp,
 	if (np == NULL)
 		return 0;
 
+	if (!of_device_is_available(np)) {
+		dev_info(dev, "%s[%u] is disabled\n", name, index);
+		of_node_put(np);
+		return 0;
+	}
+
 	pdev = of_find_device_by_node(np);
 	of_node_put(np);
 
