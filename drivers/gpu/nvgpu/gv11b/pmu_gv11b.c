@@ -299,10 +299,11 @@ void gv11b_pmu_handle_ext_irq(struct gk20a *g, u32 intr0)
 	/*
 	 * handle the ECC interrupt
 	 */
-	if (intr0 & pwr_falcon_irqstat_ext_ecc_parity_true_f()) {
+	if ((intr0 & pwr_falcon_irqstat_ext_ecc_parity_true_f()) != 0U) {
 		intr1 = gk20a_readl(g, pwr_pmu_ecc_intr_status_r());
-		if (intr1 & (pwr_pmu_ecc_intr_status_corrected_m() |
-			     pwr_pmu_ecc_intr_status_uncorrected_m())) {
+		if ((intr1 &
+			(pwr_pmu_ecc_intr_status_corrected_m() |
+			 pwr_pmu_ecc_intr_status_uncorrected_m())) != 0U) {
 
 			ecc_status = gk20a_readl(g,
 				pwr_pmu_falcon_ecc_status_r());
@@ -353,19 +354,19 @@ void gv11b_pmu_handle_ext_irq(struct gk20a *g, u32 intr0)
 			nvgpu_log(g, gpu_dbg_intr,
 				"pmu ecc interrupt intr1: 0x%x", intr1);
 
-			if (ecc_status & pwr_pmu_falcon_ecc_status_corrected_err_imem_m()) {
+			if ((ecc_status & pwr_pmu_falcon_ecc_status_corrected_err_imem_m()) != 0U) {
 				nvgpu_log(g, gpu_dbg_intr,
 					"imem ecc error corrected");
 			}
-			if (ecc_status & pwr_pmu_falcon_ecc_status_uncorrected_err_imem_m()) {
+			if ((ecc_status & pwr_pmu_falcon_ecc_status_uncorrected_err_imem_m()) != 0U) {
 				nvgpu_log(g, gpu_dbg_intr,
 					"imem ecc error uncorrected");
 			}
-			if (ecc_status & pwr_pmu_falcon_ecc_status_corrected_err_dmem_m()) {
+			if ((ecc_status & pwr_pmu_falcon_ecc_status_corrected_err_dmem_m()) != 0U) {
 				nvgpu_log(g, gpu_dbg_intr,
 					"dmem ecc error corrected");
 			}
-			if (ecc_status & pwr_pmu_falcon_ecc_status_uncorrected_err_dmem_m()) {
+			if ((ecc_status & pwr_pmu_falcon_ecc_status_uncorrected_err_dmem_m()) != 0U) {
 				nvgpu_log(g, gpu_dbg_intr,
 					"dmem ecc error uncorrected");
 			}

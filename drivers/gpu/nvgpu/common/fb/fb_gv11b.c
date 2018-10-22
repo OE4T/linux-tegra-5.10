@@ -250,7 +250,7 @@ static void gv11b_fb_fault_buffer_get_ptr_update(struct gk20a *g,
 	/* while the fault is being handled it is possible for overflow
 	 * to happen,
 	 */
-	if (reg_val & fb_mmu_fault_buffer_get_overflow_m()) {
+	if ((reg_val & fb_mmu_fault_buffer_get_overflow_m()) != 0U) {
 		reg_val |= fb_mmu_fault_buffer_get_overflow_clear_f();
 	}
 
@@ -462,12 +462,12 @@ void gv11b_handle_l2tlb_ecc_isr(struct gk20a *g, u32 ecc_status)
 	g->ecc.fb.mmu_l2tlb_ecc_uncorrected_err_count[0].counter +=
 							uncorrected_delta;
 
-	if (ecc_status &
-            fb_mmu_l2tlb_ecc_status_corrected_err_l2tlb_sa_data_m()) {
+	if ((ecc_status &
+             fb_mmu_l2tlb_ecc_status_corrected_err_l2tlb_sa_data_m()) != 0U) {
 		nvgpu_log(g, gpu_dbg_intr, "corrected ecc sa data error");
 	}
-	if (ecc_status &
-            fb_mmu_l2tlb_ecc_status_uncorrected_err_l2tlb_sa_data_m()) {
+	if ((ecc_status &
+             fb_mmu_l2tlb_ecc_status_uncorrected_err_l2tlb_sa_data_m()) != 0U) {
 		nvgpu_log(g, gpu_dbg_intr, "uncorrected ecc sa data error");
 	}
 	if (corrected_overflow || uncorrected_overflow) {
@@ -529,10 +529,12 @@ void gv11b_handle_hubtlb_ecc_isr(struct gk20a *g, u32 ecc_status)
 	g->ecc.fb.mmu_hubtlb_ecc_uncorrected_err_count[0].counter +=
 							uncorrected_delta;
 
-	if (ecc_status & fb_mmu_hubtlb_ecc_status_corrected_err_sa_data_m()) {
+	if ((ecc_status &
+	     fb_mmu_hubtlb_ecc_status_corrected_err_sa_data_m()) != 0U) {
 		nvgpu_log(g, gpu_dbg_intr, "corrected ecc sa data error");
 	}
-	if (ecc_status & fb_mmu_hubtlb_ecc_status_uncorrected_err_sa_data_m()) {
+	if ((ecc_status &
+	     fb_mmu_hubtlb_ecc_status_uncorrected_err_sa_data_m()) != 0U) {
 		nvgpu_log(g, gpu_dbg_intr, "uncorrected ecc sa data error");
 	}
 	if (corrected_overflow || uncorrected_overflow) {
@@ -594,20 +596,20 @@ void gv11b_handle_fillunit_ecc_isr(struct gk20a *g, u32 ecc_status)
 	g->ecc.fb.mmu_fillunit_ecc_uncorrected_err_count[0].counter +=
 							uncorrected_delta;
 
-	if (ecc_status &
-            fb_mmu_fillunit_ecc_status_corrected_err_pte_data_m()) {
+	if ((ecc_status &
+             fb_mmu_fillunit_ecc_status_corrected_err_pte_data_m()) != 0U) {
 		nvgpu_log(g, gpu_dbg_intr, "corrected ecc pte data error");
 	}
-	if (ecc_status &
-            fb_mmu_fillunit_ecc_status_uncorrected_err_pte_data_m()) {
+	if ((ecc_status &
+             fb_mmu_fillunit_ecc_status_uncorrected_err_pte_data_m()) != 0U) {
 		nvgpu_log(g, gpu_dbg_intr, "uncorrected ecc pte data error");
 	}
-	if (ecc_status &
-            fb_mmu_fillunit_ecc_status_corrected_err_pde0_data_m()) {
+	if ((ecc_status &
+             fb_mmu_fillunit_ecc_status_corrected_err_pde0_data_m()) != 0U) {
 		nvgpu_log(g, gpu_dbg_intr, "corrected ecc pde0 data error");
 	}
-	if (ecc_status &
-            fb_mmu_fillunit_ecc_status_uncorrected_err_pde0_data_m()) {
+	if ((ecc_status &
+             fb_mmu_fillunit_ecc_status_uncorrected_err_pde0_data_m()) != 0U) {
 		nvgpu_log(g, gpu_dbg_intr, "uncorrected ecc pde0 data error");
 	}
 
@@ -974,16 +976,16 @@ static int gv11b_fb_replay_or_cancel_faults(struct gk20a *g,
 
 	nvgpu_log_fn(g, " ");
 
-	if (invalidate_replay_val &
-			 fb_mmu_invalidate_replay_cancel_global_f()) {
+	if ((invalidate_replay_val &
+	     fb_mmu_invalidate_replay_cancel_global_f()) != 0U) {
 		/*
 		 * cancel faults so that next time it faults as
 		 * replayable faults and channel recovery can be done
 		 */
 		err = g->ops.fb.mmu_invalidate_replay(g,
 			fb_mmu_invalidate_replay_cancel_global_f());
-	} else if (invalidate_replay_val &
-			 fb_mmu_invalidate_replay_start_ack_all_f()) {
+	} else if ((invalidate_replay_val &
+		    fb_mmu_invalidate_replay_start_ack_all_f()) != 0U) {
 		/* pte valid is fixed. replay faulting request */
 		err = g->ops.fb.mmu_invalidate_replay(g,
 			fb_mmu_invalidate_replay_start_ack_all_f());
@@ -1026,7 +1028,7 @@ void gv11b_fb_handle_mmu_nonreplay_replay_fault(struct gk20a *g,
 		 offset + gmmu_fault_buf_entry_valid_w());
 	nvgpu_log(g, gpu_dbg_intr, "entry valid offset val = 0x%x", rd32_val);
 
-	while ((rd32_val & gmmu_fault_buf_entry_valid_m())) {
+	while ((rd32_val & gmmu_fault_buf_entry_valid_m()) != 0U) {
 
 		nvgpu_log(g, gpu_dbg_intr, "entry valid = 0x%x", rd32_val);
 
@@ -1156,8 +1158,8 @@ void gv11b_fb_handle_replay_fault_overflow(struct gk20a *g,
 
 	reg_val = g->ops.fb.read_mmu_fault_buffer_get(g, index);
 
-	if (fault_status &
-		 fb_mmu_fault_status_replayable_getptr_corrupted_m()) {
+	if ((fault_status &
+	     fb_mmu_fault_status_replayable_getptr_corrupted_m()) != 0U) {
 
 		nvgpu_err(g, "replayable getptr corrupted set");
 
@@ -1168,8 +1170,8 @@ void gv11b_fb_handle_replay_fault_overflow(struct gk20a *g,
 			fb_mmu_fault_buffer_get_getptr_corrupted_clear_f());
 	}
 
-	if (fault_status &
-		 fb_mmu_fault_status_replayable_overflow_m()) {
+	if ((fault_status &
+	     fb_mmu_fault_status_replayable_overflow_m()) != 0U) {
 		bool buffer_full = gv11b_fb_is_fault_buffer_full(g, index);
 
 		nvgpu_err(g, "replayable overflow: buffer full:%s",
@@ -1191,8 +1193,8 @@ void gv11b_fb_handle_nonreplay_fault_overflow(struct gk20a *g,
 
 	reg_val = g->ops.fb.read_mmu_fault_buffer_get(g, index);
 
-	if (fault_status &
-		 fb_mmu_fault_status_non_replayable_getptr_corrupted_m()) {
+	if ((fault_status &
+	     fb_mmu_fault_status_non_replayable_getptr_corrupted_m()) != 0U) {
 
 		nvgpu_err(g, "non replayable getptr corrupted set");
 
@@ -1203,8 +1205,8 @@ void gv11b_fb_handle_nonreplay_fault_overflow(struct gk20a *g,
 			fb_mmu_fault_buffer_get_getptr_corrupted_clear_f());
 	}
 
-	if (fault_status &
-		 fb_mmu_fault_status_non_replayable_overflow_m()) {
+	if ((fault_status &
+	     fb_mmu_fault_status_non_replayable_overflow_m()) != 0U) {
 
 		bool buffer_full = gv11b_fb_is_fault_buffer_full(g, index);
 
@@ -1222,14 +1224,15 @@ void gv11b_fb_handle_nonreplay_fault_overflow(struct gk20a *g,
 static void gv11b_fb_handle_bar2_fault(struct gk20a *g,
 			struct mmu_fault_info *mmfault, u32 fault_status)
 {
-	if (fault_status & fb_mmu_fault_status_non_replayable_error_m()) {
+	if ((fault_status &
+	     fb_mmu_fault_status_non_replayable_error_m()) != 0U) {
 		if (gv11b_fb_is_fault_buf_enabled(g,
 				NVGPU_FB_MMU_FAULT_NONREPLAY_REG_INDEX)) {
 			gv11b_fb_fault_buf_configure_hw(g, NVGPU_FB_MMU_FAULT_NONREPLAY_REG_INDEX);
 		}
 	}
 
-	if (fault_status & fb_mmu_fault_status_replayable_error_m()) {
+	if ((fault_status & fb_mmu_fault_status_replayable_error_m()) != 0U) {
 		if (gv11b_fb_is_fault_buf_enabled(g,
 				NVGPU_FB_MMU_FAULT_REPLAY_REG_INDEX)) {
 			gv11b_fb_fault_buf_configure_hw(g,
@@ -1319,8 +1322,8 @@ static void gv11b_fb_handle_mmu_fault(struct gk20a *g, u32 niso_intr)
 
 	nvgpu_log(g, gpu_dbg_intr, "mmu_fault_status = 0x%08x", fault_status);
 
-	if (niso_intr &
-		 fb_niso_intr_mmu_other_fault_notify_m()) {
+	if ((niso_intr &
+	     fb_niso_intr_mmu_other_fault_notify_m()) != 0U) {
 
 		gv11b_fb_handle_dropped_mmu_fault(g, fault_status);
 
@@ -1329,8 +1332,8 @@ static void gv11b_fb_handle_mmu_fault(struct gk20a *g, u32 niso_intr)
 
 	if (gv11b_fb_is_fault_buf_enabled(g, NVGPU_FB_MMU_FAULT_NONREPLAY_REG_INDEX)) {
 
-		if (niso_intr &
-		 fb_niso_intr_mmu_nonreplayable_fault_notify_m()) {
+		if ((niso_intr &
+		     fb_niso_intr_mmu_nonreplayable_fault_notify_m()) != 0U) {
 
 			gv11b_fb_handle_mmu_nonreplay_replay_fault(g,
 					fault_status,
@@ -1342,8 +1345,8 @@ static void gv11b_fb_handle_mmu_fault(struct gk20a *g, u32 niso_intr)
 			 * bit will be reset by HW
 			 */
 		}
-		if (niso_intr &
-		 fb_niso_intr_mmu_nonreplayable_fault_overflow_m()) {
+		if ((niso_intr &
+		     fb_niso_intr_mmu_nonreplayable_fault_overflow_m()) != 0U) {
 
 			gv11b_fb_handle_nonreplay_fault_overflow(g,
 				 fault_status);
@@ -1353,15 +1356,15 @@ static void gv11b_fb_handle_mmu_fault(struct gk20a *g, u32 niso_intr)
 
 	if (gv11b_fb_is_fault_buf_enabled(g, NVGPU_FB_MMU_FAULT_REPLAY_REG_INDEX)) {
 
-		if (niso_intr &
-		 fb_niso_intr_mmu_replayable_fault_notify_m()) {
+		if ((niso_intr &
+		     fb_niso_intr_mmu_replayable_fault_notify_m()) != 0U) {
 
 			gv11b_fb_handle_mmu_nonreplay_replay_fault(g,
 					fault_status,
 					NVGPU_FB_MMU_FAULT_REPLAY_REG_INDEX);
 		}
-		if (niso_intr &
-		 fb_niso_intr_mmu_replayable_fault_overflow_m()) {
+		if ((niso_intr &
+		     fb_niso_intr_mmu_replayable_fault_overflow_m()) != 0U) {
 
 			gv11b_fb_handle_replay_fault_overflow(g,
 				 fault_status);
@@ -1385,14 +1388,14 @@ void gv11b_fb_hub_isr(struct gk20a *g)
 	nvgpu_log(g, gpu_dbg_intr, "enter hub isr, niso_intr = 0x%08x",
 			niso_intr);
 
-	if (niso_intr &
+	if ((niso_intr &
 		 (fb_niso_intr_hub_access_counter_notify_m() |
-		  fb_niso_intr_hub_access_counter_error_m())) {
+		  fb_niso_intr_hub_access_counter_error_m())) != 0U) {
 
 		nvgpu_info(g, "hub access counter notify/error");
 	}
-	if (niso_intr &
-		fb_niso_intr_mmu_ecc_uncorrected_error_notify_pending_f()) {
+	if ((niso_intr &
+	     fb_niso_intr_mmu_ecc_uncorrected_error_notify_pending_f()) != 0U) {
 
 		nvgpu_info(g, "ecc uncorrected error notify");
 
@@ -1411,12 +1414,12 @@ void gv11b_fb_hub_isr(struct gk20a *g)
 			gv11b_handle_fillunit_ecc_isr(g, status);
 		}
 	}
-	if (niso_intr &
+	if ((niso_intr &
 		(fb_niso_intr_mmu_other_fault_notify_m() |
 		fb_niso_intr_mmu_replayable_fault_notify_m() |
 		fb_niso_intr_mmu_replayable_fault_overflow_m() |
 		fb_niso_intr_mmu_nonreplayable_fault_notify_m() |
-		fb_niso_intr_mmu_nonreplayable_fault_overflow_m())) {
+		fb_niso_intr_mmu_nonreplayable_fault_overflow_m())) != 0U) {
 
 		nvgpu_log(g, gpu_dbg_intr, "MMU Fault");
 		gv11b_fb_handle_mmu_fault(g, niso_intr);
@@ -1427,13 +1430,13 @@ void gv11b_fb_hub_isr(struct gk20a *g)
 
 bool gv11b_fb_mmu_fault_pending(struct gk20a *g)
 {
-	if (gk20a_readl(g, fb_niso_intr_r()) &
+	if ((gk20a_readl(g, fb_niso_intr_r()) &
 		(fb_niso_intr_mmu_other_fault_notify_m() |
 		 fb_niso_intr_mmu_ecc_uncorrected_error_notify_m() |
 		 fb_niso_intr_mmu_replayable_fault_notify_m() |
 		 fb_niso_intr_mmu_replayable_fault_overflow_m() |
 		 fb_niso_intr_mmu_nonreplayable_fault_notify_m() |
-		 fb_niso_intr_mmu_nonreplayable_fault_overflow_m())) {
+		 fb_niso_intr_mmu_nonreplayable_fault_overflow_m())) != 0U) {
 		return true;
 	}
 
@@ -1506,14 +1509,14 @@ static int gv11b_fb_fix_page_fault(struct gk20a *g,
 				"pte all zeros, do not set valid");
 		return -1;
 	}
-	if (pte[0] & gmmu_new_pte_valid_true_f()) {
+	if ((pte[0] & gmmu_new_pte_valid_true_f()) != 0U) {
 		nvgpu_log(g, gpu_dbg_intr | gpu_dbg_pte,
 				"pte valid already set");
 		return -1;
 	}
 
 	pte[0] |= gmmu_new_pte_valid_true_f();
-	if (pte[0] & gmmu_new_pte_read_only_true_f()) {
+	if ((pte[0] & gmmu_new_pte_read_only_true_f()) != 0U) {
 		pte[0] &= ~(gmmu_new_pte_read_only_true_f());
 	}
 	nvgpu_log(g, gpu_dbg_intr | gpu_dbg_pte,

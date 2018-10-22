@@ -303,9 +303,10 @@ static u32 gp10b_get_pde0_pgsz(struct gk20a *g, const struct gk20a_mmu_level *l,
 	/*
 	 * Check if the aperture AND address are set
 	 */
-	if (pde_v[2] & (gmmu_new_dual_pde_aperture_small_sys_mem_ncoh_f() |
-			gmmu_new_dual_pde_aperture_small_sys_mem_coh_f() |
-			gmmu_new_dual_pde_aperture_small_video_memory_f())) {
+	if ((pde_v[2] &
+		(gmmu_new_dual_pde_aperture_small_sys_mem_ncoh_f() |
+		 gmmu_new_dual_pde_aperture_small_sys_mem_coh_f() |
+		 gmmu_new_dual_pde_aperture_small_video_memory_f())) != 0U) {
 		u64 addr = ((U64(pde_v[3]) << U64(32)) | (U64(pde_v[2]) &
 			U64(gmmu_new_dual_pde_address_small_sys_f(~0)))) <<
 			U64(gmmu_new_dual_pde_address_shift_v());
@@ -315,9 +316,10 @@ static u32 gp10b_get_pde0_pgsz(struct gk20a *g, const struct gk20a_mmu_level *l,
 		}
 	}
 
-	if (pde_v[0] & (gmmu_new_dual_pde_aperture_big_sys_mem_ncoh_f() |
-			gmmu_new_dual_pde_aperture_big_sys_mem_coh_f() |
-			gmmu_new_dual_pde_aperture_big_video_memory_f())) {
+	if ((pde_v[0] &
+		(gmmu_new_dual_pde_aperture_big_sys_mem_ncoh_f() |
+		 gmmu_new_dual_pde_aperture_big_sys_mem_coh_f() |
+		 gmmu_new_dual_pde_aperture_big_video_memory_f())) != 0U) {
 		u64 addr = ((U64(pde_v[1]) << U64(32)) | (U64(pde_v[0]) &
 			U64(gmmu_new_dual_pde_address_big_sys_f(~0)))) <<
 			U64(gmmu_new_dual_pde_address_big_shift_v());

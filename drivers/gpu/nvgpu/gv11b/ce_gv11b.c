@@ -59,7 +59,7 @@ void gv11b_ce_isr(struct gk20a *g, u32 inst_id, u32 pri_base)
 	 * registers. This is a fatal error and the LCE will have to be
 	 * reset to get back to a working state.
 	 */
-	if (ce_intr & ce_intr_status_invalid_config_pending_f()) {
+	if ((ce_intr & ce_intr_status_invalid_config_pending_f()) != 0U) {
 		nvgpu_log(g, gpu_dbg_intr,
 			"ce: inst %d: invalid config", inst_id);
 		clear_intr |= ce_intr_status_invalid_config_reset_f();
@@ -70,7 +70,7 @@ void gv11b_ce_isr(struct gk20a *g, u32 inst_id, u32 pri_base)
 	 * This is a fatal interrupt and will require at least the LCE to be
 	 * reset before operations can start again, if not the entire GPU.
 	 */
-	if (ce_intr & ce_intr_status_mthd_buffer_fault_pending_f()) {
+	if ((ce_intr & ce_intr_status_mthd_buffer_fault_pending_f()) != 0U) {
 		nvgpu_log(g, gpu_dbg_intr,
 			"ce: inst %d: mthd buffer fault", inst_id);
 		clear_intr |= ce_intr_status_mthd_buffer_fault_reset_f();
@@ -100,7 +100,7 @@ void gv11b_ce_mthd_buffer_fault_in_bar2_fault(struct gk20a *g)
 
 	for (lce = 0; lce < num_lce; lce++) {
 		reg_val = gk20a_readl(g, ce_intr_status_r(lce));
-		if (reg_val & ce_intr_status_mthd_buffer_fault_pending_f()) {
+		if ((reg_val & ce_intr_status_mthd_buffer_fault_pending_f()) != 0U) {
 			nvgpu_log(g, gpu_dbg_intr,
 			"ce: lce %d: mthd buffer fault", lce);
 			clear_intr = ce_intr_status_mthd_buffer_fault_reset_f();

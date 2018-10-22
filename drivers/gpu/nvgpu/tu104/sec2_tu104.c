@@ -393,11 +393,11 @@ void tu104_sec2_isr(struct gk20a *g)
 		return;
 	}
 
-	if (intr & psec_falcon_irqstat_halt_true_f()) {
+	if ((intr & psec_falcon_irqstat_halt_true_f()) != 0U) {
 		nvgpu_err(g, "sec2 halt intr not implemented");
 		nvgpu_flcn_dump_stats(&g->sec2_flcn);
 	}
-	if (intr & psec_falcon_irqstat_exterr_true_f()) {
+	if ((intr & psec_falcon_irqstat_exterr_true_f()) != 0U) {
 		nvgpu_err(g,
 			"sec2 exterr intr not implemented. Clearing interrupt.");
 
@@ -406,7 +406,7 @@ void tu104_sec2_isr(struct gk20a *g)
 				~psec_falcon_exterrstat_valid_m());
 	}
 
-	if (intr & psec_falcon_irqstat_swgen0_true_f()) {
+	if ((intr & psec_falcon_irqstat_swgen0_true_f()) != 0U) {
 		if (nvgpu_sec2_process_message(sec2)) {
 			gk20a_writel(g, psec_falcon_irqsclr_r(), intr);
 			goto exit;

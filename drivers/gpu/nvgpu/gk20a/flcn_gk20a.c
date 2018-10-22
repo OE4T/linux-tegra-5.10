@@ -132,8 +132,9 @@ static bool gk20a_is_falcon_scrubbing_done(struct nvgpu_falcon *flcn)
 	unit_status = gk20a_readl(g,
 		base_addr + falcon_falcon_dmactl_r());
 
-	if (unit_status & (falcon_falcon_dmactl_dmem_scrubbing_m() |
-		 falcon_falcon_dmactl_imem_scrubbing_m())) {
+	if ((unit_status &
+		(falcon_falcon_dmactl_dmem_scrubbing_m() |
+		 falcon_falcon_dmactl_imem_scrubbing_m())) != 0U) {
 		status = false;
 	} else {
 		status = true;

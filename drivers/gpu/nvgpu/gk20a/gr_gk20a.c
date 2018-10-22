@@ -5850,11 +5850,13 @@ static int gk20a_gr_handle_gpc_exception(struct gk20a *g, bool *post_event,
 static int gk20a_gr_post_bpt_events(struct gk20a *g, struct tsg_gk20a *tsg,
 				    u32 global_esr)
 {
-	if (global_esr & gr_gpc0_tpc0_sm_hww_global_esr_bpt_int_pending_f()) {
+	if ((global_esr &
+	     gr_gpc0_tpc0_sm_hww_global_esr_bpt_int_pending_f()) != 0U) {
 		g->ops.fifo.post_event_id(tsg, NVGPU_EVENT_ID_BPT_INT);
 	}
 
-	if (global_esr & gr_gpc0_tpc0_sm_hww_global_esr_bpt_pause_pending_f()) {
+	if ((global_esr &
+	     gr_gpc0_tpc0_sm_hww_global_esr_bpt_pause_pending_f()) != 0U) {
 		g->ops.fifo.post_event_id(tsg, NVGPU_EVENT_ID_BPT_PAUSE);
 	}
 
@@ -5927,21 +5929,21 @@ int gk20a_gr_isr(struct gk20a *g)
 		isr_data.curr_ctx, isr_data.offset,
 		isr_data.sub_chan, isr_data.class_num);
 
-	if (gr_intr & gr_intr_notify_pending_f()) {
+	if ((gr_intr & gr_intr_notify_pending_f()) != 0U) {
 		g->ops.gr.handle_notify_pending(g, &isr_data);
 		gk20a_writel(g, gr_intr_r(),
 			gr_intr_notify_reset_f());
 		gr_intr &= ~gr_intr_notify_pending_f();
 	}
 
-	if (gr_intr & gr_intr_semaphore_pending_f()) {
+	if ((gr_intr & gr_intr_semaphore_pending_f()) != 0U) {
 		g->ops.gr.handle_semaphore_pending(g, &isr_data);
 		gk20a_writel(g, gr_intr_r(),
 			gr_intr_semaphore_reset_f());
 		gr_intr &= ~gr_intr_semaphore_pending_f();
 	}
 
-	if (gr_intr & gr_intr_semaphore_timeout_pending_f()) {
+	if ((gr_intr & gr_intr_semaphore_timeout_pending_f()) != 0U) {
 		if (gk20a_gr_handle_semaphore_timeout_pending(g,
 				&isr_data) != 0) {
 			need_reset = true;
@@ -5951,7 +5953,7 @@ int gk20a_gr_isr(struct gk20a *g)
 		gr_intr &= ~gr_intr_semaphore_pending_f();
 	}
 
-	if (gr_intr & gr_intr_illegal_notify_pending_f()) {
+	if ((gr_intr & gr_intr_illegal_notify_pending_f()) != 0U) {
 		if (gk20a_gr_intr_illegal_notify_pending(g,
 				&isr_data) != 0) {
 			need_reset = true;
@@ -5961,7 +5963,7 @@ int gk20a_gr_isr(struct gk20a *g)
 		gr_intr &= ~gr_intr_illegal_notify_pending_f();
 	}
 
-	if (gr_intr & gr_intr_illegal_method_pending_f()) {
+	if ((gr_intr & gr_intr_illegal_method_pending_f()) != 0U) {
 		if (gk20a_gr_handle_illegal_method(g, &isr_data) != 0) {
 			need_reset = true;
 		}
@@ -5970,7 +5972,7 @@ int gk20a_gr_isr(struct gk20a *g)
 		gr_intr &= ~gr_intr_illegal_method_pending_f();
 	}
 
-	if (gr_intr & gr_intr_illegal_class_pending_f()) {
+	if ((gr_intr & gr_intr_illegal_class_pending_f()) != 0U) {
 		if (gk20a_gr_handle_illegal_class(g, &isr_data) != 0) {
 			need_reset = true;
 		}
@@ -5979,7 +5981,7 @@ int gk20a_gr_isr(struct gk20a *g)
 		gr_intr &= ~gr_intr_illegal_class_pending_f();
 	}
 
-	if (gr_intr & gr_intr_fecs_error_pending_f()) {
+	if ((gr_intr & gr_intr_fecs_error_pending_f()) != 0U) {
 		if (g->ops.gr.handle_fecs_error(g, ch, &isr_data) != 0) {
 			need_reset = true;
 		}
@@ -5988,7 +5990,7 @@ int gk20a_gr_isr(struct gk20a *g)
 		gr_intr &= ~gr_intr_fecs_error_pending_f();
 	}
 
-	if (gr_intr & gr_intr_class_error_pending_f()) {
+	if ((gr_intr & gr_intr_class_error_pending_f()) != 0U) {
 		if (gk20a_gr_handle_class_error(g, &isr_data) != 0) {
 			need_reset = true;
 		}
@@ -5999,7 +6001,7 @@ int gk20a_gr_isr(struct gk20a *g)
 
 	/* this one happens if someone tries to hit a non-whitelisted
 	 * register using set_falcon[4] */
-	if (gr_intr & gr_intr_firmware_method_pending_f()) {
+	if ((gr_intr & gr_intr_firmware_method_pending_f()) != 0U) {
 		if (gk20a_gr_handle_firmware_method(g, &isr_data) != 0) {
 			need_reset = true;
 		}
@@ -6009,12 +6011,12 @@ int gk20a_gr_isr(struct gk20a *g)
 		gr_intr &= ~gr_intr_firmware_method_pending_f();
 	}
 
-	if (gr_intr & gr_intr_exception_pending_f()) {
+	if ((gr_intr & gr_intr_exception_pending_f()) != 0U) {
 		u32 exception = gk20a_readl(g, gr_exception_r());
 
 		nvgpu_log(g, gpu_dbg_intr | gpu_dbg_gpu_dbg, "exception %08x\n", exception);
 
-		if (exception & gr_exception_fe_m()) {
+		if ((exception & gr_exception_fe_m()) != 0U) {
 			u32 fe = gk20a_readl(g, gr_fe_hww_esr_r());
 			u32 info = gk20a_readl(g, gr_fe_hww_esr_info_r());
 
@@ -6025,7 +6027,7 @@ int gk20a_gr_isr(struct gk20a *g)
 			need_reset = true;
 		}
 
-		if (exception & gr_exception_memfmt_m()) {
+		if ((exception & gr_exception_memfmt_m()) != 0U) {
 			u32 memfmt = gk20a_readl(g, gr_memfmt_hww_esr_r());
 
 			nvgpu_err(g, "memfmt exception: esr %08x", memfmt);
@@ -6034,7 +6036,7 @@ int gk20a_gr_isr(struct gk20a *g)
 			need_reset = true;
 		}
 
-		if (exception & gr_exception_pd_m()) {
+		if ((exception & gr_exception_pd_m()) != 0U) {
 			u32 pd = gk20a_readl(g, gr_pd_hww_esr_r());
 
 			nvgpu_err(g, "pd exception: esr 0x%08x", pd);
@@ -6043,7 +6045,7 @@ int gk20a_gr_isr(struct gk20a *g)
 			need_reset = true;
 		}
 
-		if (exception & gr_exception_scc_m()) {
+		if ((exception & gr_exception_scc_m()) != 0U) {
 			u32 scc = gk20a_readl(g, gr_scc_hww_esr_r());
 
 			nvgpu_err(g, "scc exception: esr 0x%08x", scc);
@@ -6052,7 +6054,7 @@ int gk20a_gr_isr(struct gk20a *g)
 			need_reset = true;
 		}
 
-		if (exception & gr_exception_ds_m()) {
+		if ((exception & gr_exception_ds_m()) != 0U) {
 			u32 ds = gk20a_readl(g, gr_ds_hww_esr_r());
 
 			nvgpu_err(g, "ds exception: esr: 0x%08x", ds);
@@ -6061,7 +6063,7 @@ int gk20a_gr_isr(struct gk20a *g)
 			need_reset = true;
 		}
 
-		if (exception & gr_exception_ssync_m()) {
+		if ((exception & gr_exception_ssync_m()) != 0U) {
 			if (g->ops.gr.handle_ssync_hww != NULL) {
 				if (g->ops.gr.handle_ssync_hww(g) != 0) {
 					need_reset = true;
@@ -6071,7 +6073,7 @@ int gk20a_gr_isr(struct gk20a *g)
 			}
 		}
 
-		if (exception & gr_exception_mme_m()) {
+		if ((exception & gr_exception_mme_m()) != 0U) {
 			u32 mme = gk20a_readl(g, gr_mme_hww_esr_r());
 			u32 info = gk20a_readl(g, gr_mme_hww_esr_info_r());
 
@@ -6082,7 +6084,7 @@ int gk20a_gr_isr(struct gk20a *g)
 			need_reset = true;
 		}
 
-		if (exception & gr_exception_sked_m()) {
+		if ((exception & gr_exception_sked_m()) != 0U) {
 			u32 sked = gk20a_readl(g, gr_sked_hww_esr_r());
 
 			nvgpu_err(g, "sked exception: esr 0x%08x", sked);
@@ -6449,10 +6451,10 @@ int gr_gk20a_create_priv_addr_table(struct gk20a *g,
 	/* The GPC/TPC unicast registers are included in the compressed PRI
 	 * tables. Convert a GPC/TPC broadcast address to unicast addresses so
 	 * that we can look up the offsets. */
-	if (broadcast_flags & PRI_BROADCAST_FLAGS_GPC) {
+	if ((broadcast_flags & PRI_BROADCAST_FLAGS_GPC) != 0U) {
 		for (gpc_num = 0; gpc_num < g->gr.gpc_count; gpc_num++) {
 
-			if (broadcast_flags & PRI_BROADCAST_FLAGS_TPC) {
+			if ((broadcast_flags & PRI_BROADCAST_FLAGS_TPC) != 0U) {
 				for (tpc_num = 0;
 				     tpc_num < g->gr.gpc_tpc_count[gpc_num];
 				     tpc_num++) {
@@ -6461,7 +6463,7 @@ int gr_gk20a_create_priv_addr_table(struct gk20a *g,
 							     gpc_num, tpc_num);
 				}
 
-			} else if (broadcast_flags & PRI_BROADCAST_FLAGS_PPC) {
+			} else if ((broadcast_flags & PRI_BROADCAST_FLAGS_PPC) != 0U) {
 				err = gr_gk20a_split_ppc_broadcast_addr(g, addr, gpc_num,
 							       priv_addr_table, &t);
 				if (err != 0) {
@@ -6487,18 +6489,18 @@ int gr_gk20a_create_priv_addr_table(struct gk20a *g,
 		nvgpu_log(g, gpu_dbg_gpu_dbg, "addr_type : EGPC/ETPC");
 		g->ops.gr.egpc_etpc_priv_addr_table(g, addr, gpc_num, tpc_num,
 				broadcast_flags, priv_addr_table, &t);
-	} else if (broadcast_flags & PRI_BROADCAST_FLAGS_LTSS) {
+	} else if ((broadcast_flags & PRI_BROADCAST_FLAGS_LTSS) != 0U) {
 		g->ops.ltc.split_lts_broadcast_addr(g, addr,
 							priv_addr_table, &t);
-	} else if (broadcast_flags & PRI_BROADCAST_FLAGS_LTCS) {
+	} else if ((broadcast_flags & PRI_BROADCAST_FLAGS_LTCS) != 0U) {
 		g->ops.ltc.split_ltc_broadcast_addr(g, addr,
 							priv_addr_table, &t);
-	} else if (broadcast_flags & PRI_BROADCAST_FLAGS_FBPA) {
+	} else if ((broadcast_flags & PRI_BROADCAST_FLAGS_FBPA) != 0U) {
 		g->ops.gr.split_fbpa_broadcast_addr(g, addr,
 				nvgpu_get_litter_value(g, GPU_LIT_NUM_FBPAS),
 				priv_addr_table, &t);
 	} else if ((broadcast_flags & PRI_BROADCAST_FLAGS_GPC) == 0U) {
-		if (broadcast_flags & PRI_BROADCAST_FLAGS_TPC) {
+		if ((broadcast_flags & PRI_BROADCAST_FLAGS_TPC) != 0U) {
 			for (tpc_num = 0;
 			     tpc_num < g->gr.gpc_tpc_count[gpc_num];
 			     tpc_num++) {
@@ -6506,7 +6508,7 @@ int gr_gk20a_create_priv_addr_table(struct gk20a *g,
 					pri_tpc_addr(g, pri_tpccs_addr_mask(addr),
 						     gpc_num, tpc_num);
 			}
-		} else if (broadcast_flags & PRI_BROADCAST_FLAGS_PPC) {
+		} else if ((broadcast_flags & PRI_BROADCAST_FLAGS_PPC) != 0U) {
 			err = gr_gk20a_split_ppc_broadcast_addr(g,
 					addr, gpc_num, priv_addr_table, &t);
 		} else {

@@ -270,7 +270,7 @@ int gr_gp10b_handle_tex_exception(struct gk20a *g, u32 gpc, u32 tpc,
 			 gr_gpc0_tpc0_tex_m_hww_esr_r() + offset);
 	nvgpu_log(g, gpu_dbg_intr | gpu_dbg_gpu_dbg, "0x%08x", esr);
 
-	if (esr & gr_gpc0_tpc0_tex_m_hww_esr_ecc_sec_pending_f()) {
+	if ((esr & gr_gpc0_tpc0_tex_m_hww_esr_ecc_sec_pending_f()) != 0U) {
 		nvgpu_log(g, gpu_dbg_fn | gpu_dbg_intr,
 			"Single bit error detected in TEX!");
 
@@ -326,7 +326,7 @@ int gr_gp10b_handle_tex_exception(struct gk20a *g, u32 gpc, u32 tpc,
 			gr_pri_gpc0_tpc0_tex_m_routing_r() + offset,
 			gr_pri_gpc0_tpc0_tex_m_routing_sel_default_f());
 	}
-	if (esr & gr_gpc0_tpc0_tex_m_hww_esr_ecc_ded_pending_f()) {
+	if ((esr & gr_gpc0_tpc0_tex_m_hww_esr_ecc_ded_pending_f()) != 0U) {
 		nvgpu_log(g, gpu_dbg_fn | gpu_dbg_intr,
 			"Double bit error detected in TEX!");
 
@@ -1869,12 +1869,12 @@ int gr_gp10b_pre_process_sm_exception(struct gk20a *g,
 			gpc, tpc, global_esr);
 
 	if (cilp_enabled && sm_debugger_attached) {
-		if (global_esr & gr_gpc0_tpc0_sm_hww_global_esr_bpt_int_pending_f()) {
+		if ((global_esr & gr_gpc0_tpc0_sm_hww_global_esr_bpt_int_pending_f()) != 0U) {
 			gk20a_writel(g, gr_gpc0_tpc0_sm_hww_global_esr_r() + offset,
 					gr_gpc0_tpc0_sm_hww_global_esr_bpt_int_pending_f());
 		}
 
-		if (global_esr & gr_gpc0_tpc0_sm_hww_global_esr_single_step_complete_pending_f()) {
+		if ((global_esr & gr_gpc0_tpc0_sm_hww_global_esr_single_step_complete_pending_f()) != 0U) {
 			gk20a_writel(g, gr_gpc0_tpc0_sm_hww_global_esr_r() + offset,
 					gr_gpc0_tpc0_sm_hww_global_esr_single_step_complete_pending_f());
 		}
@@ -1924,7 +1924,7 @@ int gr_gp10b_pre_process_sm_exception(struct gk20a *g,
 			}
 
 			dbgr_control0 = gk20a_readl(g, gr_gpc0_tpc0_sm_dbgr_control0_r() + offset);
-			if (dbgr_control0 & gr_gpcs_tpcs_sm_dbgr_control0_single_step_mode_enable_f()) {
+			if ((dbgr_control0 & gr_gpcs_tpcs_sm_dbgr_control0_single_step_mode_enable_f()) != 0U) {
 				nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gpu_dbg,
 						"CILP: clearing SINGLE_STEP_MODE before resume for gpc %d tpc %d\n",
 						gpc, tpc);

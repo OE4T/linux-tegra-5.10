@@ -1621,7 +1621,7 @@ unsigned int gv11b_fifo_handle_pbdma_intr_0(struct gk20a *g,
 	rc_type = gk20a_fifo_handle_pbdma_intr_0(g, pbdma_id,
 			 pbdma_intr_0, handled, error_notifier);
 
-	if (pbdma_intr_0 & pbdma_intr_0_clear_faulted_error_pending_f()) {
+	if ((pbdma_intr_0 & pbdma_intr_0_clear_faulted_error_pending_f()) != 0U) {
 		nvgpu_log(g, gpu_dbg_intr, "clear faulted error on pbdma id %d",
 				 pbdma_id);
 		gk20a_fifo_reset_pbdma_method(g, pbdma_id, 0);
@@ -1629,7 +1629,7 @@ unsigned int gv11b_fifo_handle_pbdma_intr_0(struct gk20a *g,
 		rc_type = RC_TYPE_PBDMA_FAULT;
 	}
 
-	if (pbdma_intr_0 & pbdma_intr_0_eng_reset_pending_f()) {
+	if ((pbdma_intr_0 & pbdma_intr_0_eng_reset_pending_f()) != 0U) {
 		nvgpu_log(g, gpu_dbg_intr, "eng reset intr on pbdma id %d",
 				 pbdma_id);
 		*handled |= pbdma_intr_0_eng_reset_pending_f();
@@ -1678,7 +1678,7 @@ unsigned int gv11b_fifo_handle_pbdma_intr_1(struct gk20a *g,
 		return RC_TYPE_NO_RC;
 	}
 
-	if (pbdma_intr_1 & pbdma_intr_1_ctxnotvalid_pending_f()) {
+	if ((pbdma_intr_1 & pbdma_intr_1_ctxnotvalid_pending_f()) != 0U) {
 		nvgpu_log(g, gpu_dbg_intr, "ctxnotvalid intr on pbdma id %d",
 				 pbdma_id);
 		nvgpu_err(g, "pbdma_intr_1(%d)= 0x%08x ",

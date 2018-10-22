@@ -851,16 +851,20 @@ static int gr_gv11b_handle_gpcmmu_ecc_exception(struct gk20a *g, u32 gpc,
 	nvgpu_log(g, gpu_dbg_intr,
 			"mmu l1tlb gpc:%d ecc interrupt intr: 0x%x", gpc, hww_esr);
 
-	if (ecc_status & gr_gpc0_mmu_l1tlb_ecc_status_corrected_err_l1tlb_sa_data_m()) {
+	if ((ecc_status &
+	     gr_gpc0_mmu_l1tlb_ecc_status_corrected_err_l1tlb_sa_data_m()) != 0U) {
 		nvgpu_log(g, gpu_dbg_intr, "corrected ecc sa data error");
 	}
-	if (ecc_status & gr_gpc0_mmu_l1tlb_ecc_status_uncorrected_err_l1tlb_sa_data_m()) {
+	if ((ecc_status &
+	     gr_gpc0_mmu_l1tlb_ecc_status_uncorrected_err_l1tlb_sa_data_m()) != 0U) {
 		nvgpu_log(g, gpu_dbg_intr, "uncorrected ecc sa data error");
 	}
-	if (ecc_status & gr_gpc0_mmu_l1tlb_ecc_status_corrected_err_l1tlb_fa_data_m()) {
+	if ((ecc_status &
+	     gr_gpc0_mmu_l1tlb_ecc_status_corrected_err_l1tlb_fa_data_m()) != 0U) {
 		nvgpu_log(g, gpu_dbg_intr, "corrected ecc fa data error");
 	}
-	if (ecc_status & gr_gpc0_mmu_l1tlb_ecc_status_uncorrected_err_l1tlb_fa_data_m()) {
+	if ((ecc_status &
+	     gr_gpc0_mmu_l1tlb_ecc_status_uncorrected_err_l1tlb_fa_data_m()) != 0U) {
 		nvgpu_log(g, gpu_dbg_intr, "uncorrected ecc fa data error");
 	}
 	if (corrected_overflow || uncorrected_overflow) {
@@ -937,19 +941,20 @@ static int gr_gv11b_handle_gpccs_ecc_exception(struct gk20a *g, u32 gpc,
 	nvgpu_log(g, gpu_dbg_intr,
 			"gppcs gpc:%d ecc interrupt intr: 0x%x", gpc, hww_esr);
 
-	if (ecc_status & gr_gpc0_gpccs_falcon_ecc_status_corrected_err_imem_m()) {
+	if ((ecc_status &
+	     gr_gpc0_gpccs_falcon_ecc_status_corrected_err_imem_m()) != 0U) {
 		nvgpu_log(g, gpu_dbg_intr, "imem ecc error corrected");
 	}
-	if (ecc_status &
-		gr_gpc0_gpccs_falcon_ecc_status_uncorrected_err_imem_m()) {
+	if ((ecc_status &
+	     gr_gpc0_gpccs_falcon_ecc_status_uncorrected_err_imem_m()) != 0U) {
 		nvgpu_log(g, gpu_dbg_intr, "imem ecc error uncorrected");
 	}
-	if (ecc_status &
-		gr_gpc0_gpccs_falcon_ecc_status_corrected_err_dmem_m()) {
+	if ((ecc_status &
+	     gr_gpc0_gpccs_falcon_ecc_status_corrected_err_dmem_m()) != 0U) {
 		nvgpu_log(g, gpu_dbg_intr, "dmem ecc error corrected");
 	}
-	if (ecc_status &
-		gr_gpc0_gpccs_falcon_ecc_status_uncorrected_err_dmem_m()) {
+	if ((ecc_status &
+	     gr_gpc0_gpccs_falcon_ecc_status_uncorrected_err_dmem_m()) != 0U) {
 		nvgpu_log(g, gpu_dbg_intr, "dmem ecc error uncorrected");
 	}
 	if (corrected_overflow || uncorrected_overflow) {
@@ -971,7 +976,7 @@ static int gr_gv11b_handle_gpccs_ecc_exception(struct gk20a *g, u32 gpc,
 int gr_gv11b_handle_gpc_gpcmmu_exception(struct gk20a *g, u32 gpc,
 							u32 gpc_exception)
 {
-	if (gpc_exception & gr_gpc0_gpccs_gpc_exception_gpcmmu_m()) {
+	if ((gpc_exception & gr_gpc0_gpccs_gpc_exception_gpcmmu_m()) != 0U) {
 		return gr_gv11b_handle_gpcmmu_ecc_exception(g, gpc,
 								gpc_exception);
 	}
@@ -981,7 +986,7 @@ int gr_gv11b_handle_gpc_gpcmmu_exception(struct gk20a *g, u32 gpc,
 int gr_gv11b_handle_gpc_gpccs_exception(struct gk20a *g, u32 gpc,
 							u32 gpc_exception)
 {
-	if (gpc_exception & gr_gpc0_gpccs_gpc_exception_gpccs_m()) {
+	if ((gpc_exception & gr_gpc0_gpccs_gpc_exception_gpccs_m()) != 0U) {
 		return gr_gv11b_handle_gpccs_ecc_exception(g, gpc,
 								gpc_exception);
 	}
@@ -2388,12 +2393,14 @@ int gr_gv11b_pre_process_sm_exception(struct gk20a *g,
 			gpc, tpc, sm, global_esr);
 
 	if (cilp_enabled && sm_debugger_attached) {
-		if (global_esr & gr_gpc0_tpc0_sm0_hww_global_esr_bpt_int_pending_f()) {
+		if ((global_esr &
+		     gr_gpc0_tpc0_sm0_hww_global_esr_bpt_int_pending_f()) != 0U) {
 			gk20a_writel(g, gr_gpc0_tpc0_sm0_hww_global_esr_r() + offset,
 					gr_gpc0_tpc0_sm0_hww_global_esr_bpt_int_pending_f());
 		}
 
-		if (global_esr & gr_gpc0_tpc0_sm0_hww_global_esr_single_step_complete_pending_f()) {
+		if ((global_esr &
+		     gr_gpc0_tpc0_sm0_hww_global_esr_single_step_complete_pending_f()) != 0U) {
 			gk20a_writel(g, gr_gpc0_tpc0_sm0_hww_global_esr_r() + offset,
 					gr_gpc0_tpc0_sm0_hww_global_esr_single_step_complete_pending_f());
 		}
@@ -2445,7 +2452,8 @@ int gr_gv11b_pre_process_sm_exception(struct gk20a *g,
 			}
 
 			dbgr_control0 = gk20a_readl(g, gr_gpc0_tpc0_sm0_dbgr_control0_r() + offset);
-			if (dbgr_control0 & gr_gpc0_tpc0_sm0_dbgr_control0_single_step_mode_enable_f()) {
+			if ((dbgr_control0 &
+			     gr_gpc0_tpc0_sm0_dbgr_control0_single_step_mode_enable_f()) != 0U) {
 				nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gpu_dbg,
 					"CILP: clearing SINGLE_STEP_MODE "
 					"before resume for gpc %d tpc %d sm %d",
@@ -2478,8 +2486,8 @@ static void gr_gv11b_handle_fecs_ecc_error(struct gk20a *g, u32 intr)
 	u32 corrected_delta, uncorrected_delta;
 	u32 corrected_overflow, uncorrected_overflow;
 
-	if (intr & (gr_fecs_host_int_status_ecc_uncorrected_m() |
-		    gr_fecs_host_int_status_ecc_corrected_m())) {
+	if ((intr & (gr_fecs_host_int_status_ecc_uncorrected_m() |
+		    gr_fecs_host_int_status_ecc_corrected_m())) != 0U) {
 		ecc_status = gk20a_readl(g, gr_fecs_falcon_ecc_status_r());
 		ecc_addr = gk20a_readl(g,
 			gr_fecs_falcon_ecc_address_r());
@@ -2529,21 +2537,21 @@ static void gr_gv11b_handle_fecs_ecc_error(struct gk20a *g, u32 intr)
 		nvgpu_log(g, gpu_dbg_intr,
 			"fecs ecc interrupt intr: 0x%x", intr);
 
-		if (ecc_status &
-			gr_fecs_falcon_ecc_status_corrected_err_imem_m()) {
+		if ((ecc_status &
+		     gr_fecs_falcon_ecc_status_corrected_err_imem_m()) != 0U) {
 			nvgpu_log(g, gpu_dbg_intr, "imem ecc error corrected");
 		}
-		if (ecc_status &
-			gr_fecs_falcon_ecc_status_uncorrected_err_imem_m()) {
+		if ((ecc_status &
+		     gr_fecs_falcon_ecc_status_uncorrected_err_imem_m()) != 0U) {
 			nvgpu_log(g, gpu_dbg_intr,
 						"imem ecc error uncorrected");
 		}
-		if (ecc_status &
-			gr_fecs_falcon_ecc_status_corrected_err_dmem_m()) {
+		if ((ecc_status &
+		     gr_fecs_falcon_ecc_status_corrected_err_dmem_m()) != 0U) {
 			nvgpu_log(g, gpu_dbg_intr, "dmem ecc error corrected");
 		}
-		if (ecc_status &
-			gr_fecs_falcon_ecc_status_uncorrected_err_dmem_m()) {
+		if ((ecc_status &
+		     gr_fecs_falcon_ecc_status_uncorrected_err_dmem_m()) != 0U) {
 			nvgpu_log(g, gpu_dbg_intr,
 						"dmem ecc error uncorrected");
 		}
@@ -4193,17 +4201,17 @@ void gv11b_gr_egpc_etpc_priv_addr_table(struct gk20a *g, u32 addr,
 	 * tables. Convert a GPC/TPC broadcast address to unicast addresses so
 	 * that we can look up the offsets.
 	 */
-	if (broadcast_flags & PRI_BROADCAST_FLAGS_EGPC) {
+	if ((broadcast_flags & PRI_BROADCAST_FLAGS_EGPC) != 0U) {
 		nvgpu_log_info(g, "broadcast flags egpc");
 		for (gpc_num = 0; gpc_num < g->gr.gpc_count; gpc_num++) {
 
-			if (broadcast_flags & PRI_BROADCAST_FLAGS_ETPC) {
+			if ((broadcast_flags & PRI_BROADCAST_FLAGS_ETPC) != 0U) {
 				nvgpu_log_info(g, "broadcast flags etpc");
 				for (tpc_num = 0;
 				     tpc_num < g->gr.gpc_tpc_count[gpc_num];
 				     tpc_num++) {
-					if (broadcast_flags &
-						PRI_BROADCAST_FLAGS_SMPC) {
+					if ((broadcast_flags &
+					     PRI_BROADCAST_FLAGS_SMPC) != 0U) {
 							gv11b_gr_update_priv_addr_table_smpc(
 								g, gpc_num, tpc_num, addr,
 								priv_addr_table, t);
@@ -4218,7 +4226,8 @@ void gv11b_gr_egpc_etpc_priv_addr_table(struct gk20a *g, u32 addr,
 						(*t)++;
 					}
 				}
-			} else if (broadcast_flags & PRI_BROADCAST_FLAGS_SMPC) {
+			} else if ((broadcast_flags &
+				   PRI_BROADCAST_FLAGS_SMPC) != 0U) {
 				gv11b_gr_update_priv_addr_table_smpc(
 					g, gpc_num, tpc_num, addr,
 					priv_addr_table, t);
@@ -4239,14 +4248,14 @@ void gv11b_gr_egpc_etpc_priv_addr_table(struct gk20a *g, u32 addr,
 				(*t)++;
 			}
 		}
-	} else if (!(broadcast_flags & PRI_BROADCAST_FLAGS_EGPC)) {
-		if (broadcast_flags & PRI_BROADCAST_FLAGS_ETPC) {
+	} else if ((broadcast_flags & PRI_BROADCAST_FLAGS_EGPC) == 0U) {
+		if ((broadcast_flags & PRI_BROADCAST_FLAGS_ETPC) != 0U) {
 			nvgpu_log_info(g, "broadcast flags etpc but not egpc");
 			for (tpc_num = 0;
 			     tpc_num < g->gr.gpc_tpc_count[gpc_num];
 			     tpc_num++) {
-				if (broadcast_flags &
-						PRI_BROADCAST_FLAGS_SMPC) {
+				if ((broadcast_flags &
+				     PRI_BROADCAST_FLAGS_SMPC) != 0U) {
 					gv11b_gr_update_priv_addr_table_smpc(
 						g, gpc_num, tpc_num, addr,
 						priv_addr_table, t);
@@ -4261,7 +4270,7 @@ void gv11b_gr_egpc_etpc_priv_addr_table(struct gk20a *g, u32 addr,
 					(*t)++;
 				}
 			}
-		} else if (broadcast_flags & PRI_BROADCAST_FLAGS_SMPC) {
+		} else if ((broadcast_flags & PRI_BROADCAST_FLAGS_SMPC) != 0U) {
 			gv11b_gr_update_priv_addr_table_smpc(
 				g, gpc_num, tpc_num, addr,
 				priv_addr_table, t);
@@ -4864,7 +4873,7 @@ int gr_gv11b_create_priv_addr_table(struct gk20a *g,
 		 * so that we can look up the offset
 		 */
 		if ((addr_type == CTXSW_ADDR_TYPE_BE) &&
-		    !(broadcast_flags & PRI_BROADCAST_FLAGS_BE)) {
+		    (broadcast_flags & PRI_BROADCAST_FLAGS_BE) == 0U) {
 			priv_addr_table[t++] = pri_be_shared_addr(g, addr);
 		} else {
 			priv_addr_table[t++] = addr;
@@ -4879,10 +4888,10 @@ int gr_gv11b_create_priv_addr_table(struct gk20a *g,
 	 * tables. Convert a GPC/TPC broadcast address to unicast addresses so
 	 * that we can look up the offsets
 	 */
-	if (broadcast_flags & PRI_BROADCAST_FLAGS_GPC) {
+	if ((broadcast_flags & PRI_BROADCAST_FLAGS_GPC) != 0U) {
 		for (gpc_num = 0; gpc_num < g->gr.gpc_count; gpc_num++) {
 
-			if (broadcast_flags & PRI_BROADCAST_FLAGS_TPC) {
+			if ((broadcast_flags & PRI_BROADCAST_FLAGS_TPC) != 0U) {
 				for (tpc_num = 0;
 				     tpc_num < g->gr.gpc_tpc_count[gpc_num];
 				     tpc_num++) {
@@ -4893,7 +4902,7 @@ int gr_gv11b_create_priv_addr_table(struct gk20a *g,
 				}
 			}
 
-			else if (broadcast_flags & PRI_BROADCAST_FLAGS_PPC) {
+			else if ((broadcast_flags & PRI_BROADCAST_FLAGS_PPC) != 0U) {
 				err = gr_gk20a_split_ppc_broadcast_addr(g,
 					addr, gpc_num, priv_addr_table, &t);
 				if (err != 0) {
@@ -4913,26 +4922,28 @@ int gr_gv11b_create_priv_addr_table(struct gk20a *g,
 				priv_addr_table[t++] = priv_addr;
 			}
 		}
-	} else if (broadcast_flags & PRI_BROADCAST_FLAGS_PMMGPC) {
+	} else if ((broadcast_flags & PRI_BROADCAST_FLAGS_PMMGPC) != 0U) {
 		u32 pmm_domain_start = 0;
 		u32 domain_idx = 0;
 		u32 num_domains = 0;
 		u32 offset = 0;
 
-		if (broadcast_flags & PRI_BROADCAST_FLAGS_PMM_GPCGS_GPCTPCA) {
+		if ((broadcast_flags &
+		     PRI_BROADCAST_FLAGS_PMM_GPCGS_GPCTPCA) != 0U) {
 			pmm_domain_start = nvgpu_get_litter_value(g,
 				GPU_LIT_PERFMON_PMMGPCTPCA_DOMAIN_START);
 			num_domains = nvgpu_get_litter_value(g,
 				GPU_LIT_PERFMON_PMMGPCTPC_DOMAIN_COUNT);
 			offset = PRI_PMMGS_OFFSET_MASK(addr);
-		} else if (broadcast_flags &
-				PRI_BROADCAST_FLAGS_PMM_GPCGS_GPCTPCB) {
+		} else if ((broadcast_flags &
+			    PRI_BROADCAST_FLAGS_PMM_GPCGS_GPCTPCB) != 0U) {
 			pmm_domain_start = nvgpu_get_litter_value(g,
 				GPU_LIT_PERFMON_PMMGPCTPCB_DOMAIN_START);
 			num_domains = nvgpu_get_litter_value(g,
 				GPU_LIT_PERFMON_PMMGPCTPC_DOMAIN_COUNT);
 			offset = PRI_PMMGS_OFFSET_MASK(addr);
-		} else if (broadcast_flags & PRI_BROADCAST_FLAGS_PMM_GPCS) {
+		} else if ((broadcast_flags &
+			    PRI_BROADCAST_FLAGS_PMM_GPCS) != 0U) {
 			pmm_domain_start = (addr -
 			     (NV_PERF_PMMGPC_GPCS + PRI_PMMS_ADDR_MASK(addr)))/
 			     perf_pmmgpc_perdomain_offset_v();
@@ -4957,13 +4968,13 @@ int gr_gv11b_create_priv_addr_table(struct gk20a *g,
 		nvgpu_log(g, gpu_dbg_gpu_dbg, "addr_type : EGPC/ETPC");
 		g->ops.gr.egpc_etpc_priv_addr_table(g, addr, gpc_num, tpc_num,
 				broadcast_flags, priv_addr_table, &t);
-	} else if (broadcast_flags & PRI_BROADCAST_FLAGS_LTSS) {
+	} else if ((broadcast_flags & PRI_BROADCAST_FLAGS_LTSS) != 0U) {
 		g->ops.ltc.split_lts_broadcast_addr(g, addr,
 							priv_addr_table, &t);
-	} else if (broadcast_flags & PRI_BROADCAST_FLAGS_LTCS) {
+	} else if ((broadcast_flags & PRI_BROADCAST_FLAGS_LTCS) != 0U) {
 		g->ops.ltc.split_ltc_broadcast_addr(g, addr,
 							priv_addr_table, &t);
-	} else if (broadcast_flags & PRI_BROADCAST_FLAGS_FBPA) {
+	} else if ((broadcast_flags & PRI_BROADCAST_FLAGS_FBPA) != 0U) {
 		g->ops.gr.split_fbpa_broadcast_addr(g, addr,
 				nvgpu_get_litter_value(g, GPU_LIT_NUM_FBPAS),
 				priv_addr_table, &t);
@@ -4992,8 +5003,8 @@ int gr_gv11b_create_priv_addr_table(struct gk20a *g,
 			PRI_PMMS_ADDR_MASK(addr),
 			priv_addr_table, &t,
 			domain_start, 1);
-	} else if (!(broadcast_flags & PRI_BROADCAST_FLAGS_GPC)) {
-		if (broadcast_flags & PRI_BROADCAST_FLAGS_TPC) {
+	} else if ((broadcast_flags & PRI_BROADCAST_FLAGS_GPC) == 0U) {
+		if ((broadcast_flags & PRI_BROADCAST_FLAGS_TPC) != 0U) {
 			for (tpc_num = 0;
 			     tpc_num < g->gr.gpc_tpc_count[gpc_num];
 			     tpc_num++) {
@@ -5002,7 +5013,7 @@ int gr_gv11b_create_priv_addr_table(struct gk20a *g,
 						pri_tpccs_addr_mask(addr),
 						gpc_num, tpc_num);
 			}
-		} else if (broadcast_flags & PRI_BROADCAST_FLAGS_PPC) {
+		} else if ((broadcast_flags & PRI_BROADCAST_FLAGS_PPC) != 0U) {
 			err = gr_gk20a_split_ppc_broadcast_addr(g,
 					addr, gpc_num, priv_addr_table, &t);
 		} else {

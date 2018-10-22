@@ -708,7 +708,7 @@ void gk20a_pmu_isr(struct gk20a *g)
 		return;
 	}
 
-	if (intr & pwr_falcon_irqstat_halt_true_f()) {
+	if ((intr & pwr_falcon_irqstat_halt_true_f()) != 0U) {
 		nvgpu_err(g, "pmu halt intr not implemented");
 		nvgpu_pmu_dump_falcon_stats(pmu);
 		if (gk20a_readl(g, pwr_pmu_mailbox_r
@@ -719,7 +719,7 @@ void gk20a_pmu_isr(struct gk20a *g)
 			}
 		}
 	}
-	if (intr & pwr_falcon_irqstat_exterr_true_f()) {
+	if ((intr & pwr_falcon_irqstat_exterr_true_f()) != 0U) {
 		nvgpu_err(g,
 			"pmu exterr intr not implemented. Clearing interrupt.");
 		nvgpu_pmu_dump_falcon_stats(pmu);
@@ -733,7 +733,7 @@ void gk20a_pmu_isr(struct gk20a *g)
 		g->ops.pmu.handle_ext_irq(g, intr);
 	}
 
-	if (intr & pwr_falcon_irqstat_swgen0_true_f()) {
+	if ((intr & pwr_falcon_irqstat_swgen0_true_f()) != 0U) {
 		nvgpu_pmu_process_message(pmu);
 		recheck = true;
 	}

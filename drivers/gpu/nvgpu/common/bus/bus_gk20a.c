@@ -50,9 +50,9 @@ void gk20a_bus_isr(struct gk20a *g)
 
 	val = gk20a_readl(g, bus_intr_0_r());
 
-	if (val & (bus_intr_0_pri_squash_m() |
+	if ((val & (bus_intr_0_pri_squash_m() |
 			bus_intr_0_pri_fecserr_m() |
-			bus_intr_0_pri_timeout_m())) {
+			bus_intr_0_pri_timeout_m())) != 0U) {
 
 		g->ops.ptimer.isr(g);
 	} else {

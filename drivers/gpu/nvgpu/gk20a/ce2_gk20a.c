@@ -80,11 +80,11 @@ void gk20a_ce2_isr(struct gk20a *g, u32 inst_id, u32 pri_base)
 	nvgpu_log(g, gpu_dbg_intr, "ce2 isr %08x\n", ce2_intr);
 
 	/* clear blocking interrupts: they exibit broken behavior */
-	if (ce2_intr & ce2_intr_status_blockpipe_pending_f()) {
+	if ((ce2_intr & ce2_intr_status_blockpipe_pending_f()) != 0U) {
 		clear_intr |= ce2_blockpipe_isr(g, ce2_intr);
 	}
 
-	if (ce2_intr & ce2_intr_status_launcherr_pending_f()) {
+	if ((ce2_intr & ce2_intr_status_launcherr_pending_f()) != 0U) {
 		clear_intr |= ce2_launcherr_isr(g, ce2_intr);
 	}
 
@@ -99,7 +99,7 @@ u32 gk20a_ce2_nonstall_isr(struct gk20a *g, u32 inst_id, u32 pri_base)
 
 	nvgpu_log(g, gpu_dbg_intr, "ce2 nonstall isr %08x\n", ce2_intr);
 
-	if (ce2_intr & ce2_intr_status_nonblockpipe_pending_f()) {
+	if ((ce2_intr & ce2_intr_status_nonblockpipe_pending_f()) != 0U) {
 		gk20a_writel(g, ce2_intr_status_r(),
 			ce2_nonblockpipe_isr(g, ce2_intr));
 		ops |= (GK20A_NONSTALL_OPS_WAKEUP_SEMAPHORE |

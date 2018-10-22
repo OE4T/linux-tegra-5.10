@@ -52,24 +52,24 @@ static void tu104_fbpa_handle_ecc_intr(struct gk20a *g,
 
 	status = gk20a_readl(g, offset + fbpa_0_ecc_status_r(subp_id));
 
-	if (status & fbpa_0_ecc_status_sec_counter_overflow_pending_f()) {
+	if ((status & fbpa_0_ecc_status_sec_counter_overflow_pending_f()) != 0U) {
 		nvgpu_err(g, "fbpa %u subp %u ecc sec counter overflow",
 				fbpa_id, subp_id);
 	}
 
-	if (status & fbpa_0_ecc_status_ded_counter_overflow_pending_f()) {
+	if ((status & fbpa_0_ecc_status_ded_counter_overflow_pending_f()) != 0U) {
 		nvgpu_err(g, "fbpa %u subp %u ecc ded counter overflow",
 				fbpa_id, subp_id);
 	}
 
-	if (status & fbpa_0_ecc_status_sec_intr_pending_f()) {
+	if ((status & fbpa_0_ecc_status_sec_intr_pending_f()) != 0U) {
 		sec_cnt = gk20a_readl(g,
 				offset + fbpa_0_ecc_sec_count_r(subp_id));
 		gk20a_writel(g, offset + fbpa_0_ecc_sec_count_r(subp_id), 0u);
 		g->ecc.fbpa.fbpa_ecc_sec_err_count[cnt_idx].counter += sec_cnt;
 	}
 
-	if (status & fbpa_0_ecc_status_ded_intr_pending_f()) {
+	if ((status & fbpa_0_ecc_status_ded_intr_pending_f()) != 0U) {
 		ded_cnt = gk20a_readl(g,
 				offset + fbpa_0_ecc_ded_count_r(subp_id));
 		gk20a_writel(g, offset + fbpa_0_ecc_ded_count_r(subp_id), 0u);

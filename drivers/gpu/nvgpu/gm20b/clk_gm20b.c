@@ -841,7 +841,7 @@ static int clk_lock_gpc_pll_under_bypass(struct gk20a *g, struct pll *gpll)
 
 	/* lock pll */
 	cfg = gk20a_readl(g, trim_sys_gpcpll_cfg_r());
-	if (cfg & trim_sys_gpcpll_cfg_enb_lckdet_power_off_f()){
+	if ((cfg & trim_sys_gpcpll_cfg_enb_lckdet_power_off_f()) != 0U) {
 		cfg = set_field(cfg, trim_sys_gpcpll_cfg_enb_lckdet_m(),
 			trim_sys_gpcpll_cfg_enb_lckdet_power_on_f());
 		gk20a_writel(g, trim_sys_gpcpll_cfg_r(), cfg);
@@ -853,7 +853,7 @@ static int clk_lock_gpc_pll_under_bypass(struct gk20a *g, struct pll *gpll)
 	do {
 		nvgpu_udelay(1);
 		cfg = gk20a_readl(g, trim_sys_gpcpll_cfg_r());
-		if (cfg & trim_sys_gpcpll_cfg_pll_lock_true_f()) {
+		if ((cfg & trim_sys_gpcpll_cfg_pll_lock_true_f()) != 0U) {
 			goto pll_locked;
 		}
 	} while (--timeout > 0);

@@ -112,8 +112,8 @@ void gm20b_fifo_trigger_mmu_fault(struct gk20a *g,
 
 	/* Wait for MMU fault to trigger */
 	do {
-		if (gk20a_readl(g, fifo_intr_0_r()) &
-				fifo_intr_0_mmu_fault_pending_f()) {
+		if ((gk20a_readl(g, fifo_intr_0_r()) &
+		     fifo_intr_0_mmu_fault_pending_f()) != 0U) {
 			ret = 0;
 			break;
 		}

@@ -243,8 +243,8 @@ void gp10b_ltc_lts_isr(struct gk20a *g,	unsigned int ltc, unsigned int slice)
 	ltc_intr = gk20a_readl(g, ltc_ltc0_lts0_intr_r() + offset);
 
 	/* Detect and handle ECC errors */
-	if (ltc_intr &
-		ltc_ltcs_ltss_intr_ecc_sec_error_pending_f()) {
+	if ((ltc_intr &
+	     ltc_ltcs_ltss_intr_ecc_sec_error_pending_f()) != 0U) {
 		u32 ecc_stats_reg_val;
 
 		nvgpu_err(g,
@@ -262,8 +262,8 @@ void gp10b_ltc_lts_isr(struct gk20a *g,	unsigned int ltc, unsigned int slice)
 			ecc_stats_reg_val);
 		g->ops.mm.l2_flush(g, true);
 	}
-	if (ltc_intr &
-		ltc_ltcs_ltss_intr_ecc_ded_error_pending_f()) {
+	if ((ltc_intr &
+	     ltc_ltcs_ltss_intr_ecc_ded_error_pending_f()) != 0U) {
 		u32 ecc_stats_reg_val;
 
 		nvgpu_err(g,

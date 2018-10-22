@@ -2461,38 +2461,38 @@ static u32 fifo_error_isr(struct gk20a *g, u32 fifo_intr)
 
 	nvgpu_log_fn(g, "fifo_intr=0x%08x", fifo_intr);
 
-	if (fifo_intr & fifo_intr_0_pio_error_pending_f()) {
+	if ((fifo_intr & fifo_intr_0_pio_error_pending_f()) != 0U) {
 		/* pio mode is unused.  this shouldn't happen, ever. */
 		/* should we clear it or just leave it pending? */
 		nvgpu_err(g, "fifo pio error!");
 		BUG_ON(1);
 	}
 
-	if (fifo_intr & fifo_intr_0_bind_error_pending_f()) {
+	if ((fifo_intr & fifo_intr_0_bind_error_pending_f()) != 0U) {
 		u32 bind_error = gk20a_readl(g, fifo_intr_bind_error_r());
 		nvgpu_err(g, "fifo bind error: 0x%08x", bind_error);
 		print_channel_reset_log = true;
 		handled |= fifo_intr_0_bind_error_pending_f();
 	}
 
-	if (fifo_intr & fifo_intr_0_sched_error_pending_f()) {
+	if ((fifo_intr & fifo_intr_0_sched_error_pending_f()) != 0U) {
 		print_channel_reset_log = g->ops.fifo.handle_sched_error(g);
 		handled |= fifo_intr_0_sched_error_pending_f();
 	}
 
-	if (fifo_intr & fifo_intr_0_chsw_error_pending_f()) {
+	if ((fifo_intr & fifo_intr_0_chsw_error_pending_f()) != 0U) {
 		gk20a_fifo_handle_chsw_fault(g);
 		handled |= fifo_intr_0_chsw_error_pending_f();
 	}
 
-	if (fifo_intr & fifo_intr_0_mmu_fault_pending_f()) {
+	if ((fifo_intr & fifo_intr_0_mmu_fault_pending_f()) != 0U) {
 		if (gk20a_fifo_handle_mmu_fault(g, 0, ~(u32)0, false)) {
 			print_channel_reset_log = true;
 		}
 		handled |= fifo_intr_0_mmu_fault_pending_f();
 	}
 
-	if (fifo_intr & fifo_intr_0_dropped_mmu_fault_pending_f()) {
+	if ((fifo_intr & fifo_intr_0_dropped_mmu_fault_pending_f()) != 0U) {
 		gk20a_fifo_handle_dropped_mmu_fault(g);
 		handled |= fifo_intr_0_dropped_mmu_fault_pending_f();
 	}
@@ -2616,7 +2616,7 @@ unsigned int gk20a_fifo_handle_pbdma_intr_0(struct gk20a *g, u32 pbdma_id,
 			    pbdma_intr_0);
 	}
 
-	if (pbdma_intr_0 & pbdma_intr_0_acquire_pending_f()) {
+	if ((pbdma_intr_0 & pbdma_intr_0_acquire_pending_f()) != 0U) {
 		u32 val = gk20a_readl(g, pbdma_acquire_r(pbdma_id));
 
 		val &= ~pbdma_acquire_timeout_en_enable_f();
@@ -2630,24 +2630,24 @@ unsigned int gk20a_fifo_handle_pbdma_intr_0(struct gk20a *g, u32 pbdma_id,
 		*handled |= pbdma_intr_0_acquire_pending_f();
 	}
 
-	if (pbdma_intr_0 & pbdma_intr_0_pbentry_pending_f()) {
+	if ((pbdma_intr_0 & pbdma_intr_0_pbentry_pending_f()) != 0U) {
 		gk20a_fifo_reset_pbdma_header(g, pbdma_id);
 		gk20a_fifo_reset_pbdma_method(g, pbdma_id, 0);
 		rc_type = RC_TYPE_PBDMA_FAULT;
 	}
 
-	if (pbdma_intr_0 & pbdma_intr_0_method_pending_f()) {
+	if ((pbdma_intr_0 & pbdma_intr_0_method_pending_f()) != 0U) {
 		gk20a_fifo_reset_pbdma_method(g, pbdma_id, 0);
 		rc_type = RC_TYPE_PBDMA_FAULT;
 	}
 
-	if (pbdma_intr_0 & pbdma_intr_0_pbcrc_pending_f()) {
+	if ((pbdma_intr_0 & pbdma_intr_0_pbcrc_pending_f()) != 0U) {
 		*error_notifier =
 			NVGPU_ERR_NOTIFIER_PBDMA_PUSHBUFFER_CRC_MISMATCH;
 		rc_type = RC_TYPE_PBDMA_FAULT;
 	}
 
-	if (pbdma_intr_0 & pbdma_intr_0_device_pending_f()) {
+	if ((pbdma_intr_0 & pbdma_intr_0_device_pending_f()) != 0U) {
 		gk20a_fifo_reset_pbdma_header(g, pbdma_id);
 
 		for (i = 0; i < 4; i++) {
@@ -2795,11 +2795,11 @@ void gk20a_fifo_isr(struct gk20a *g)
 		nvgpu_log(g, gpu_dbg_intr, "fifo isr %08x\n", fifo_intr);
 
 		/* handle runlist update */
-		if (fifo_intr & fifo_intr_0_runlist_event_pending_f()) {
+		if ((fifo_intr & fifo_intr_0_runlist_event_pending_f()) != 0U) {
 			gk20a_fifo_handle_runlist_event(g);
 			clear_intr |= fifo_intr_0_runlist_event_pending_f();
 		}
-		if (fifo_intr & fifo_intr_0_pbdma_intr_pending_f()) {
+		if ((fifo_intr & fifo_intr_0_pbdma_intr_pending_f()) != 0U) {
 			clear_intr |= fifo_pbdma_isr(g, fifo_intr);
 		}
 
@@ -2825,7 +2825,7 @@ u32 gk20a_fifo_nonstall_isr(struct gk20a *g)
 
 	nvgpu_log(g, gpu_dbg_intr, "fifo nonstall isr %08x\n", fifo_intr);
 
-	if (fifo_intr & fifo_intr_0_channel_intr_pending_f()) {
+	if ((fifo_intr & fifo_intr_0_channel_intr_pending_f()) != 0U) {
 		clear_intr = fifo_intr_0_channel_intr_pending_f();
 	}
 
@@ -3784,8 +3784,8 @@ int gk20a_fifo_suspend(struct gk20a *g)
 
 bool gk20a_fifo_mmu_fault_pending(struct gk20a *g)
 {
-	if (gk20a_readl(g, fifo_intr_0_r()) &
-			fifo_intr_0_mmu_fault_pending_f()) {
+	if ((gk20a_readl(g, fifo_intr_0_r()) &
+	     fifo_intr_0_mmu_fault_pending_f()) != 0U) {
 		return true;
 	} else {
 		return false;
