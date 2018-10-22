@@ -56,9 +56,14 @@
  * 64 bits in order to prevent undefined behavior.
  */
 #define U8(x)	((u8)(x))
-#define U16(x)  ((u16)(x))
+#define U16(x)	((u16)(x))
 #define U32(x)	((u32)(x))
 #define U64(x)	((u64)(x))
+
+#define S8(x)	((s8)(x))
+#define S16(x)	((s16)(x))
+#define S32(x)	((s32)(x))
+#define S64(x)	((s64)(x))
 
 /* Linux uses U8_MAX, U32_MAX, etc instead of UCHAR_MAX, UINT32_MAX. We define
  * them here for non-Linux OSes
