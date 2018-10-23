@@ -4111,9 +4111,10 @@ void gk20a_dump_channel_status_ramfc(struct gk20a *g,
 	syncpointa = info->inst.syncpointa;
 	syncpointb = info->inst.syncpointb;
 
-	gk20a_debug_output(o, "%d-%s, pid %d, refs %d%s: ",
+	gk20a_debug_output(o, "%d-%s, TSG: %u, pid %d, refs %d%s: ",
 			info->chid,
 			g->name,
+			info->tsgid,
 			info->pid,
 			info->refs,
 			info->deterministic ? ", deterministic" : "");

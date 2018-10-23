@@ -336,12 +336,13 @@ void gv11b_dump_channel_status_ramfc(struct gk20a *g,
 
 	status = ccsr_channel_status_v(info->channel_reg);
 
-	gk20a_debug_output(o, "%d-%s, TSG: %u, pid %d, refs: %d: ",
+	gk20a_debug_output(o, "%d-%s, TSG: %u, pid %d, refs: %d%s: ",
 			info->chid,
 			g->name,
 			info->tsgid,
 			info->pid,
-			info->refs);
+			info->refs,
+			info->deterministic ? ", deterministic" : "");
 	gk20a_debug_output(o, "channel status: %s in use %s %s\n",
 			ccsr_channel_enable_v(info->channel_reg) ? "" : "not",
 			gk20a_decode_ccsr_chan_status(status),
