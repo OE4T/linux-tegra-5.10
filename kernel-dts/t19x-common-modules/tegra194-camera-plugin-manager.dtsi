@@ -251,6 +251,7 @@
 				target = <&tca9546_70>;
 				_overlay_ {
 					status = "okay";
+					vcc-pullup-supply = <&battery_reg>;
 				};
 			};
 			override@24 {
@@ -1141,6 +1142,7 @@
 				target = <&tca9546_70>;
 				_overlay_ {
 					status = "okay";
+					vcc-pullup-supply = <&battery_reg>;
 				};
 			};
 			/* GPIO */
@@ -1366,6 +1368,7 @@
 				target = <&tca9546_70>;
 				_overlay_ {
 					status = "okay";
+					vcc-pullup-supply = <&battery_reg>;
 				};
 			};
 			/* GPIO */
@@ -1425,6 +1428,7 @@
 				target = <&tca9546_70>;
 				_overlay_ {
 					status = "okay";
+					vcc-pullup-supply = <&battery_reg>;
 				};
 			};
 			/* Camera 0: Module */
@@ -1752,6 +1756,7 @@
 				target = <&tca9546_70>;
 				_overlay_ {
 					status = "okay";
+					vcc-pullup-supply = <&battery_reg>;
 				};
 			};
 			/* GPIO expander */
