@@ -248,10 +248,8 @@ int gr_tu104_commit_global_ctx_buffers(struct gk20a *g,
 	}
 
 	/* RTV circular buffer */
-	addr = (u64_lo32(gr_ctx->global_ctx_buffer_va[RTV_CIRCULAR_BUFFER_VA]) >>
-			gr_scc_rm_rtv_cb_base_addr_39_8_align_bits_f()) |
-	       (u64_hi32(gr_ctx->global_ctx_buffer_va[RTV_CIRCULAR_BUFFER_VA]) <<
-			(32 - gr_scc_rm_rtv_cb_base_addr_39_8_align_bits_f()));
+	addr = gr_ctx->global_ctx_buffer_va[RTV_CIRCULAR_BUFFER_VA] >>
+		U64(gr_scc_rm_rtv_cb_base_addr_39_8_align_bits_f());
 
 	size = (gr_scc_rm_rtv_cb_size_div_256b_default_f() +
 			gr_scc_rm_rtv_cb_size_div_256b_db_adder_f());

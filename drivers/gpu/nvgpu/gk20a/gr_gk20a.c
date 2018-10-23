@@ -845,10 +845,8 @@ int gr_gk20a_commit_global_ctx_buffers(struct gk20a *g,
 	}
 
 	/* global pagepool buffer */
-	addr = (u64_lo32(gr_ctx->global_ctx_buffer_va[PAGEPOOL_VA]) >>
-		gr_scc_pagepool_base_addr_39_8_align_bits_v()) |
-		(u64_hi32(gr_ctx->global_ctx_buffer_va[PAGEPOOL_VA]) <<
-		 (32 - gr_scc_pagepool_base_addr_39_8_align_bits_v()));
+	addr = gr_ctx->global_ctx_buffer_va[PAGEPOOL_VA] >>
+		U64(gr_scc_pagepool_base_addr_39_8_align_bits_v());
 
 	size = gr->global_ctx_buffer[PAGEPOOL].mem.size /
 		gr_scc_pagepool_total_pages_byte_granularity_v();
@@ -863,10 +861,8 @@ int gr_gk20a_commit_global_ctx_buffers(struct gk20a *g,
 	g->ops.gr.commit_global_pagepool(g, gr_ctx, addr, size, patch);
 
 	/* global bundle cb */
-	addr = (u64_lo32(gr_ctx->global_ctx_buffer_va[CIRCULAR_VA]) >>
-		gr_scc_bundle_cb_base_addr_39_8_align_bits_v()) |
-		(u64_hi32(gr_ctx->global_ctx_buffer_va[CIRCULAR_VA]) <<
-		 (32 - gr_scc_bundle_cb_base_addr_39_8_align_bits_v()));
+	addr = gr_ctx->global_ctx_buffer_va[CIRCULAR_VA] >>
+		U64(gr_scc_bundle_cb_base_addr_39_8_align_bits_v());
 
 	size = gr->bundle_cb_default_size;
 
@@ -876,10 +872,8 @@ int gr_gk20a_commit_global_ctx_buffers(struct gk20a *g,
 	g->ops.gr.commit_global_bundle_cb(g, gr_ctx, addr, size, patch);
 
 	/* global attrib cb */
-	addr = (u64_lo32(gr_ctx->global_ctx_buffer_va[ATTRIBUTE_VA]) >>
-		gr_gpcs_setup_attrib_cb_base_addr_39_12_align_bits_v()) |
-		(u64_hi32(gr_ctx->global_ctx_buffer_va[ATTRIBUTE_VA]) <<
-		 (32 - gr_gpcs_setup_attrib_cb_base_addr_39_12_align_bits_v()));
+	addr = gr_ctx->global_ctx_buffer_va[ATTRIBUTE_VA] >>
+		U64(gr_gpcs_setup_attrib_cb_base_addr_39_12_align_bits_v());
 
 	nvgpu_log_info(g, "attrib cb addr : 0x%016llx", addr);
 	g->ops.gr.commit_global_attrib_cb(g, gr_ctx, addr, patch);
