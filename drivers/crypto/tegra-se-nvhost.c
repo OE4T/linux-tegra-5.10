@@ -3626,12 +3626,11 @@ static int tegra_se_dh_compute_value(struct kpp_request *req)
 		src_sg = req->src;
 		total = req->src_len;
 	} else {
-		base_buff = (u8 *)devm_kzalloc(se_dev->dev,
-					       dh_ctx->p_size, GFP_KERNEL);
-		if (!base_buff)
-			return -ENOMEM;
-
 		if (dh_ctx->g_size < dh_ctx->p_size) {
+			base_buff = (u8 *)devm_kzalloc(se_dev->dev,
+					       dh_ctx->p_size, GFP_KERNEL);
+			if (!base_buff)
+				return -ENOMEM;
 			zpad_sz = dh_ctx->p_size - dh_ctx->g_size;
 
 			for (j = 0; j < zpad_sz; j++)
@@ -3641,6 +3640,10 @@ static int tegra_se_dh_compute_value(struct kpp_request *req)
 
 			dh_ctx->g_size = dh_ctx->p_size;
 		} else {
+			base_buff = (u8 *)devm_kzalloc(se_dev->dev,
+					       dh_ctx->g_size, GFP_KERNEL);
+			if (!base_buff)
+				return -ENOMEM;
 			memcpy(base_buff, (u8 *)(dh_ctx->g), dh_ctx->g_size);
 		}
 
