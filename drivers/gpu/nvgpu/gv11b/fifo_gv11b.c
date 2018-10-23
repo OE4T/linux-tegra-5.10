@@ -334,10 +334,6 @@ void gv11b_dump_channel_status_ramfc(struct gk20a *g,
 {
 	u32 status;
 
-	if (info == NULL) {
-		return;
-	}
-
 	status = ccsr_channel_status_v(info->channel_reg);
 
 	gk20a_debug_output(o, "%d-%s, TSG: %u, pid %d, refs: %d: ",

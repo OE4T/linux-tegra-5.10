@@ -4106,10 +4106,6 @@ void gk20a_dump_channel_status_ramfc(struct gk20a *g,
 	u32 status;
 	u32 syncpointa, syncpointb;
 
-	if (info == NULL) {
-		return;
-	}
-
 	status = ccsr_channel_status_v(info->channel_reg);
 
 	syncpointa = info->inst.syncpointa;
