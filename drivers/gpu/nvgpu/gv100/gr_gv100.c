@@ -207,7 +207,8 @@ void gr_gv100_set_gpc_tpc_mask(struct gk20a *g, u32 gpc_index)
 
 int gr_gv100_init_sm_id_table(struct gk20a *g)
 {
-	u32 gpc, tpc, sm, pes, gtpc;
+	unsigned long tpc;
+	u32 gpc, sm, pes, gtpc;
 	u32 sm_id = 0;
 	u32 sm_per_tpc = nvgpu_get_litter_value(g, GPU_LIT_NUM_SM_PER_TPC);
 	u32 num_sm = sm_per_tpc * g->gr.tpc_count;

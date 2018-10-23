@@ -736,7 +736,8 @@ static int init_runlist(struct gk20a *g, struct fifo_gk20a *f)
 			goto clean_up_runlist;
 		}
 
-		runlist_size  = f->runlist_entry_size * f->num_runlist_entries;
+		runlist_size  = (size_t)f->runlist_entry_size *
+				(size_t)f->num_runlist_entries;
 		nvgpu_log(g, gpu_dbg_info,
 				"runlist_entries %d runlist size %zu",
 				f->num_runlist_entries, runlist_size);
@@ -1040,11 +1041,12 @@ int gk20a_init_fifo_setup_sw(struct gk20a *g)
 
 	if (g->ops.mm.is_bar1_supported(g)) {
 		err = nvgpu_dma_alloc_map_sys(g->mm.bar1.vm,
-				   f->userd_entry_size * f->num_channels,
+				   (size_t)f->userd_entry_size *
+				   (size_t)f->num_channels,
 				   &f->userd);
 	} else {
-		err = nvgpu_dma_alloc_sys(g, f->userd_entry_size *
-				f->num_channels, &f->userd);
+		err = nvgpu_dma_alloc_sys(g, (size_t)f->userd_entry_size *
+				(size_t)f->num_channels, &f->userd);
 	}
 	if (err != 0) {
 		nvgpu_err(g, "userd memory allocation failed");
@@ -1055,9 +1057,9 @@ int gk20a_init_fifo_setup_sw(struct gk20a *g)
 	userd_base = nvgpu_mem_get_addr(g, &f->userd);
 	for (chid = 0; chid < f->num_channels; chid++) {
 		f->channel[chid].userd_iova = userd_base +
-			chid * f->userd_entry_size;
+			U64(chid) * U64(f->userd_entry_size);
 		f->channel[chid].userd_gpu_va =
-			f->userd.gpu_va + chid * f->userd_entry_size;
+			f->userd.gpu_va + U64(chid) * U64(f->userd_entry_size);
 	}
 
 	err = nvgpu_channel_worker_init(g);
@@ -1556,7 +1558,7 @@ void gk20a_fifo_abort_tsg(struct gk20a *g, u32 tsgid, bool preempt)
 
 int gk20a_fifo_deferred_reset(struct gk20a *g, struct channel_gk20a *ch)
 {
-	u32 engine_id, engines;
+	unsigned long engine_id, engines;
 
 	nvgpu_mutex_acquire(&g->dbg_sessions_lock);
 	gr_gk20a_disable_ctxsw(g);
@@ -1578,8 +1580,8 @@ int gk20a_fifo_deferred_reset(struct gk20a *g, struct channel_gk20a *ch)
 	 * If deferred reset is set for an engine, and channel is running
 	 * on that engine, reset it
 	 */
-	for_each_set_bit(engine_id, &g->fifo.deferred_fault_engines, 32) {
-		if (BIT(engine_id) & engines) {
+	for_each_set_bit(engine_id, &g->fifo.deferred_fault_engines, 32UL) {
+		if (BIT64(engine_id) & engines) {
 			gk20a_fifo_reset_engine(g, engine_id);
 		}
 	}
@@ -3600,7 +3602,7 @@ int gk20a_fifo_update_runlist_ids(struct gk20a *g, u32 runlist_ids, u32 chid,
 				bool add, bool wait_for_finish)
 {
 	int ret = -EINVAL;
-	u32 runlist_id = 0;
+	unsigned long runlist_id = 0;
 	int errcode;
 	unsigned long ulong_runlist_ids = (unsigned long)runlist_ids;
 
@@ -3614,7 +3616,8 @@ int gk20a_fifo_update_runlist_ids(struct gk20a *g, u32 runlist_ids, u32 chid,
 		errcode = g->ops.fifo.update_runlist(g, runlist_id, chid, add, wait_for_finish);
 		if (errcode) {
 			nvgpu_err(g,
-				"failed to update_runlist %d %d", runlist_id, errcode);
+				"failed to update_runlist %lu %d",
+				runlist_id, errcode);
 			ret = errcode;
 		}
 	}
@@ -4285,7 +4288,8 @@ int gk20a_fifo_setup_userd(struct channel_gk20a *c)
 		offset = 0;
 	} else {
 		mem = &g->fifo.userd;
-		offset = c->chid * g->fifo.userd_entry_size / (u32)sizeof(u32);
+		offset = U32(c->chid) * g->fifo.userd_entry_size /
+			 U32(sizeof(u32));
 	}
 
 	nvgpu_mem_wr32(g, mem, offset + ram_userd_put_w(), 0);

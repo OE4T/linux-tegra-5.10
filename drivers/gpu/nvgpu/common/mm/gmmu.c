@@ -249,7 +249,7 @@ static u32 pd_entries(const struct gk20a_mmu_level *l,
 	 * used to index the page directory. That is simply 2 raised to the
 	 * number of bits.
 	 */
-	return 1UL << (l->hi_bit[attrs->pgsz] - l->lo_bit[attrs->pgsz] + 1UL);
+	return BIT32(l->hi_bit[attrs->pgsz] - l->lo_bit[attrs->pgsz] + 1);
 }
 
 /*
@@ -679,7 +679,7 @@ static int __nvgpu_gmmu_update_page_table(struct vm_gk20a *vm,
 
 	page_size = vm->gmmu_page_sizes[attrs->pgsz];
 
-	if (space_to_skip & (page_size - 1U)) {
+	if (space_to_skip & (U64(page_size) - U64(1))) {
 		return -EINVAL;
 	}
 
@@ -775,7 +775,7 @@ u64 gk20a_locked_gmmu_map(struct vm_gk20a *vm,
 	 * boundaries.
 	 */
 	if (attrs.ctag) {
-		attrs.ctag += buffer_offset & (ctag_granularity - 1U);
+		attrs.ctag += buffer_offset & (U64(ctag_granularity) - U64(1));
 	}
 
 	attrs.l3_alloc = (bool)(flags & NVGPU_VM_MAP_L3_ALLOC);
@@ -1000,7 +1000,7 @@ int __nvgpu_set_pte(struct gk20a *g, struct vm_gk20a *vm, u64 vaddr, u32 *pte)
 	pte_size = __nvgpu_pte_words(g);
 
 	for (i = 0; i < pte_size; i++) {
-		pd_write(g, pd, pd_offs + i, pte[i]);
+		pd_write(g, pd, (size_t)pd_offs + (size_t)i, pte[i]);
 		pte_dbg(g, attrs_ptr,
 			"PTE: idx=%-4u (%d) 0x%08x", pd_idx, i, pte[i]);
 	}

@@ -227,7 +227,7 @@ static u32 dev_init_get_vfield_info(struct gk20a *g,
 			(i * vheader.entry_size),
 			vheader.entry_size);
 
-		currindex = VFIELD_BIT_REG(ventry);
+		currindex = U32(VFIELD_BIT_REG(ventry));
 		if (currindex != oldindex) {
 
 			memcpy(&vregentry, vfieldregtableptr +

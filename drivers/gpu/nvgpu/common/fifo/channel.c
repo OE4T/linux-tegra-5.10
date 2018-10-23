@@ -401,7 +401,7 @@ static void gk20a_free_channel(struct channel_gk20a *ch, bool force)
 	if (ch->usermode_submit_enabled) {
 		gk20a_channel_free_usermode_buffers(ch);
 		ch->userd_iova = nvgpu_mem_get_addr(g, &f->userd) +
-				ch->chid * f->userd_entry_size;
+				U64(ch->chid) * U64(f->userd_entry_size);
 		ch->usermode_submit_enabled = false;
 	}
 
@@ -1031,7 +1031,9 @@ static int channel_gk20a_prealloc_resources(struct channel_gk20a *c,
 	 */
 	size = sizeof(struct priv_cmd_entry);
 	if (num_jobs <= ULONG_MAX / (size << 1)) {
-		entries = nvgpu_vzalloc(c->g, (num_jobs << 1) * size);
+		entries = nvgpu_vzalloc(c->g,
+					((unsigned long)num_jobs << 1UL) *
+					(unsigned long)size);
 	}
 	if (entries == NULL) {
 		err = -ENOMEM;
@@ -1161,7 +1163,7 @@ int nvgpu_channel_setup_bind(struct channel_gk20a *c,
 		gpfifo_gpu_va = c->usermode_gpfifo.gpu_va;
 	} else {
 		err = nvgpu_dma_alloc_map_sys(ch_vm,
-				gpfifo_size * gpfifo_entry_size,
+				(size_t)gpfifo_size * (size_t)gpfifo_entry_size,
 				&c->gpfifo.mem);
 		if (err != 0) {
 			nvgpu_err(g, "memory allocation failed");
@@ -1170,7 +1172,8 @@ int nvgpu_channel_setup_bind(struct channel_gk20a *c,
 
 		if (c->gpfifo.mem.aperture == APERTURE_VIDMEM) {
 			c->gpfifo.pipe = nvgpu_big_malloc(g,
-					gpfifo_size * gpfifo_entry_size);
+						(size_t)gpfifo_size *
+						(size_t)gpfifo_entry_size);
 			if (c->gpfifo.pipe == NULL) {
 				err = -ENOMEM;
 				goto clean_up_unmap;
@@ -1260,7 +1263,7 @@ clean_up_unmap:
 	if (c->usermode_submit_enabled) {
 		gk20a_channel_free_usermode_buffers(c);
 		c->userd_iova = nvgpu_mem_get_addr(g, &g->fifo.userd) +
-				c->chid * g->fifo.userd_entry_size;
+				U64(c->chid) * U64(g->fifo.userd_entry_size);
 		c->usermode_submit_enabled = false;
 	}
 clean_up:

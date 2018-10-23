@@ -106,7 +106,8 @@ int gp10b_ltc_init_comptags(struct gk20a *g, struct gr_gk20a *gr)
 		g->ltc_count << ltc_ltcs_ltss_cbc_base_alignment_shift_v();
 
 	/* must be a multiple of 64KB */
-	compbit_backing_size = roundup(compbit_backing_size, 64*1024);
+	compbit_backing_size = roundup(compbit_backing_size,
+					U32(64) * U32(1024));
 
 	nvgpu_log_info(g, "compbit backing store size : %d",
 		compbit_backing_size);

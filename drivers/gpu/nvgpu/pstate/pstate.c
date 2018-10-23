@@ -369,8 +369,9 @@ static int parse_pstate_table_5x(struct gk20a *g,
 
 	p += hdr->header_size;
 
-	entry_size = hdr->base_entry_size +
-			hdr->clock_entry_count * hdr->clock_entry_size;
+	entry_size = U32(hdr->base_entry_size) +
+			U32(hdr->clock_entry_count) *
+			U32(hdr->clock_entry_size);
 
 	for (i = 0; i < hdr->base_entry_count; i++, p += entry_size) {
 		entry = (struct vbios_pstate_entry_5x *)p;

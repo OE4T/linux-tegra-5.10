@@ -31,8 +31,8 @@
 
 unsigned long __nvgpu_posix_ffs(unsigned long word)
 {
-	return (__builtin_ffsl(word) - 1) &
-		((sizeof(unsigned long) * 8UL) - 1UL);
+	return ((unsigned long)__builtin_ffsl(word) - 1UL) &
+		(((unsigned long)sizeof(unsigned long) * 8UL) - 1UL);
 }
 
 unsigned long __nvgpu_posix_fls(unsigned long word)

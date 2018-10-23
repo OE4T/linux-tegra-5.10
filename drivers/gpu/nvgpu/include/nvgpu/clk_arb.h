@@ -55,7 +55,7 @@ struct nvgpu_clk_session;
 	__fls((a)->pstates) :\
 	VF_POINT_INVALID_PSTATE)
 #define VF_POINT_COMMON_PSTATE(a, b)   (((a)->pstates & (b)->pstates) != 0U ?\
-	__fls((a)->pstates & (b)->pstates) :\
+	__fls((unsigned long)((a)->pstates) & (unsigned long)((b)->pstates)) :\
 	VF_POINT_INVALID_PSTATE)
 
 /*

@@ -67,7 +67,7 @@ void gv11b_ltc_init_fs_state(struct gk20a *g)
 	reg = gk20a_readl(g, ltc_ltcs_ltss_cbc_param_r());
 	gr->slices_per_ltc = ltc_ltcs_ltss_cbc_param_slices_per_ltc_v(reg);;
 	gr->cacheline_size =
-		512U << ltc_ltcs_ltss_cbc_param_cache_line_size_v(reg);
+		U32(512) << ltc_ltcs_ltss_cbc_param_cache_line_size_v(reg);
 
 	/* Disable LTC interrupts */
 	reg = gk20a_readl(g, ltc_ltcs_ltss_intr_r());
@@ -162,10 +162,10 @@ void gv11b_ltc_lts_isr(struct gk20a *g, unsigned int ltc, unsigned int slice)
 
 		/* update counters per slice */
 		if (corrected_overflow) {
-			corrected_delta += (0x1U << ltc_ltc0_lts0_l2_cache_ecc_corrected_err_count_total_s());
+			corrected_delta += BIT32(ltc_ltc0_lts0_l2_cache_ecc_corrected_err_count_total_s());
 		}
 		if (uncorrected_overflow) {
-			uncorrected_delta += (0x1U << ltc_ltc0_lts0_l2_cache_ecc_uncorrected_err_count_total_s());
+			uncorrected_delta += BIT32(ltc_ltc0_lts0_l2_cache_ecc_uncorrected_err_count_total_s());
 		}
 
 		g->ecc.ltc.ecc_sec_count[ltc][slice].counter += corrected_delta;

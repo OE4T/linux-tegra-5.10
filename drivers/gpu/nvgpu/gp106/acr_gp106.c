@@ -1168,8 +1168,8 @@ int lsf_gen_wpr_requirements(struct gk20a *g,
 	 The expectation here is that the secure falcon will do a single DMA
 	 read of this array and cache it internally so it's OK to pack these.
 	 Also, we add 1 to the falcon count to indicate the end of the array.*/
-	wpr_offset = sizeof(struct lsf_wpr_header_v1) *
-		(plsfm->managed_flcn_cnt+1);
+	wpr_offset = U32(sizeof(struct lsf_wpr_header_v1)) *
+		(U32(plsfm->managed_flcn_cnt) + U32(1));
 
 	if (nvgpu_is_enabled(g, NVGPU_SUPPORT_MULTIPLE_WPR)) {
 		wpr_offset = ALIGN_UP(wpr_offset,
@@ -1183,8 +1183,8 @@ int lsf_gen_wpr_requirements(struct gk20a *g,
 		wpr_offset = ALIGN_UP(wpr_offset,
 			LSF_SUB_WPR_HEADER_ALIGNMENT);
 		wpr_offset = wpr_offset +
-			(sizeof(struct lsf_shared_sub_wpr_header) *
-			(plsfm->managed_sub_wpr_count + 1));
+			(U32(sizeof(struct lsf_shared_sub_wpr_header)) *
+			(U32(plsfm->managed_sub_wpr_count) + U32(1)));
 	}
 
 	/* Walk the managed falcons, accounting for the LSB structs

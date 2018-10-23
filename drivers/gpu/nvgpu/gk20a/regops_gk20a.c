@@ -38,8 +38,8 @@ static int regop_bsearch_range_cmp(const void *pkey, const void *pelem)
 	struct regop_offset_range *prange = (struct regop_offset_range *)pelem;
 	if (key < prange->base) {
 		return -1;
-	} else if (prange->base <= key && key < (prange->base +
-					       (prange->count * 4U))) {
+	} else if (prange->base <= key && key < (U32(prange->base) +
+					       (U32(prange->count) * U32(4)))) {
 		return 0;
 	}
 	return 1;

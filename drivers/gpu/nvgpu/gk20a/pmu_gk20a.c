@@ -246,7 +246,7 @@ int pmu_bootstrap(struct nvgpu_pmu *pmu)
 	gk20a_writel(g, pwr_falcon_dmemd_r(0), addr_args);
 
 	g->ops.pmu.write_dmatrfbase(g,
-			addr_load - (desc->bootloader_imem_offset >> 8));
+			U32(addr_load) - (desc->bootloader_imem_offset >> U32(8)));
 
 	blocks = ((desc->bootloader_size + 0xFF) & ~0xFF) >> 8;
 

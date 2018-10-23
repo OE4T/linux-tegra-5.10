@@ -769,8 +769,8 @@ int gv11b_fifo_is_preempt_pending(struct gk20a *g, u32 id,
 	struct fifo_gk20a *f = &g->fifo;
 	unsigned long runlist_served_pbdmas;
 	unsigned long runlist_served_engines;
-	u32 pbdma_id;
-	u32 act_eng_id;
+	unsigned long pbdma_id;
+	unsigned long act_eng_id;
 	u32 runlist_id;
 	int ret = 0;
 	u32 tsgid;
@@ -925,7 +925,8 @@ static void gv11b_fifo_locked_abort_runlist_active_tsgs(struct gk20a *g,
 			u32 runlists_mask)
 {
 	struct tsg_gk20a *tsg = NULL;
-	u32 rlid, tsgid;
+	unsigned long tsgid;
+	u32 rlid;
 	struct fifo_runlist_info_gk20a *runlist = NULL;
 	u32 token = PMU_INVALID_MUTEX_OWNER_ID;
 	u32 mutex_ret = 0;
@@ -948,7 +949,7 @@ static void gv11b_fifo_locked_abort_runlist_active_tsgs(struct gk20a *g,
 
 		for_each_set_bit(tsgid, runlist->active_tsgs,
 			g->fifo.num_channels) {
-			nvgpu_log(g, gpu_dbg_info, "abort tsg id %d", tsgid);
+			nvgpu_log(g, gpu_dbg_info, "abort tsg id %lu", tsgid);
 			tsg = &g->fifo.tsg[tsgid];
 			gk20a_disable_tsg(tsg);
 
@@ -977,7 +978,7 @@ static void gv11b_fifo_locked_abort_runlist_active_tsgs(struct gk20a *g,
 
 			gk20a_fifo_abort_tsg(g, tsg->tsgid, false);
 
-			nvgpu_log(g, gpu_dbg_info, "aborted tsg id %d", tsgid);
+			nvgpu_log(g, gpu_dbg_info, "aborted tsg id %lu", tsgid);
 		}
 	}
 	if (!mutex_ret) {
@@ -990,9 +991,11 @@ void gv11b_fifo_teardown_ch_tsg(struct gk20a *g, u32 act_eng_bitmask,
 			 struct mmu_fault_info *mmfault)
 {
 	struct tsg_gk20a *tsg = NULL;
-	u32 runlists_mask, rlid, pbdma_id;
+	u32 runlists_mask, rlid;
+	unsigned long pbdma_id;
 	struct fifo_runlist_info_gk20a *runlist = NULL;
-	u32 engine_id, client_type = ~0;
+	unsigned long engine_id;
+	u32 client_type = ~0;
 	struct fifo_gk20a *f = &g->fifo;
 	u32 runlist_id = FIFO_INVAL_RUNLIST_ID;
 	u32 num_runlists = 0;
@@ -1146,7 +1149,7 @@ void gv11b_fifo_teardown_ch_tsg(struct gk20a *g, u32 act_eng_bitmask,
 					engine_id, client_type, false)) {
 
 				g->fifo.deferred_fault_engines |=
-							 BIT(engine_id);
+							 BIT64(engine_id);
 
 				/* handled during channel free */
 				g->fifo.deferred_reset_pending = true;

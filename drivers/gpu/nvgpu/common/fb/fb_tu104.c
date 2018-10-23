@@ -507,7 +507,8 @@ int tu104_fb_apply_pdb_cache_war(struct gk20a *g)
 
 	/* Bind 256 instance blocks to unused engine ID 0x0 */
 	for (i = 0U; i < 256U; i++) {
-		inst_blk_addr = u64_lo32((inst_blk_base_addr + (i * PAGE_SIZE))
+		inst_blk_addr = u64_lo32((inst_blk_base_addr +
+						(U64(i) * U64(PAGE_SIZE)))
 				>> fb_mmu_bind_imb_addr_alignment_v());
 
 		nvgpu_writel(g, fb_mmu_bind_imb_r(),

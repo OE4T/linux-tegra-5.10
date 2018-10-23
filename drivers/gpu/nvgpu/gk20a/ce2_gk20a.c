@@ -177,9 +177,11 @@ static inline unsigned int gk20a_ce_get_method_size(int request_operation,
 	}
 
 	if (request_operation & NVGPU_CE_PHYS_MODE_TRANSFER) {
-		methodsize = (2 + (16 * iterations)) * sizeof(u32);
+		methodsize = (2U + (16U * iterations)) *
+				(unsigned int)sizeof(u32);
 	} else if (request_operation & NVGPU_CE_MEMSET) {
-		methodsize = (2 + (15 * iterations)) * sizeof(u32);
+		methodsize = (2U + (15U * iterations)) *
+				(unsigned int)sizeof(u32);
 	}
 
 	return methodsize;

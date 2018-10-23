@@ -43,16 +43,17 @@ struct condition_entry {
 
 static u16 nvgpu_bios_rdu16(struct gk20a *g, int offset)
 {
-	u16 val = (g->bios.data[offset+1] << 8) + g->bios.data[offset];
+	u16 val = (U16(g->bios.data[offset+1]) << U16(8)) +
+		U16(g->bios.data[offset]);
 	return val;
 }
 
 static u32 nvgpu_bios_rdu32(struct gk20a *g, int offset)
 {
-	u32 val = (g->bios.data[offset+3] << 24) +
-		  (g->bios.data[offset+2] << 16) +
-		  (g->bios.data[offset+1] << 8) +
-		  g->bios.data[offset];
+	u32 val = (U32(g->bios.data[offset+3]) << U32(24)) +
+		  (U32(g->bios.data[offset+2]) << U32(16)) +
+		  (U32(g->bios.data[offset+1]) << U32(8)) +
+		  U32(g->bios.data[offset]);
 	return val;
 }
 
@@ -693,7 +694,7 @@ void *nvgpu_bios_get_perf_table_ptrs(struct gk20a *g,
 
 		nvgpu_log_info(g, "Perf_Tbl_ID-offset 0x%x Tbl_ID_Ptr-offset- 0x%x",
 					(ptoken->data_ptr +
-					(table_id * data_size)),
+					(U16(table_id) * U16(data_size))),
 					perf_table_id_offset);
 
 		if (perf_table_id_offset != 0U) {
@@ -831,9 +832,9 @@ static void nvgpu_bios_init_xmemsel_zm_nv_reg_array(struct gk20a *g, bool *condi
 				strap) : strap;
 
 		for (i = 0; i < count; i++) {
-			data = nvgpu_bios_read_u32(g, data_table_offset + ((i *
-				g->bios.mem_strap_data_count + index) *
-				sizeof(u32)));
+			data = nvgpu_bios_read_u32(g, data_table_offset +
+				((U32(i) * U32(g->bios.mem_strap_data_count) +
+				index) * U32(sizeof(u32))));
 			gk20a_writel(g, reg, data);
 			reg += stride;
 		}

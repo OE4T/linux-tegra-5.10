@@ -1214,7 +1214,7 @@ int gr_gk20a_init_fs_state(struct gk20a *g)
 	if ((g->tpc_fs_mask_user != 0U) &&
 		(fuse_tpc_mask == BIT32(gr->max_tpc_count) - 1U)) {
 		u32 val = g->tpc_fs_mask_user;
-		val &= (0x1U << gr->max_tpc_count) - 1U;
+		val &= BIT32(gr->max_tpc_count) - U32(1);
 		gk20a_writel(g, gr_cwd_fs_r(),
 			gr_cwd_fs_num_gpcs_f(gr->gpc_count) |
 			gr_cwd_fs_num_tpcs_f(hweight32(val)));
@@ -3246,11 +3246,13 @@ static int gr_gk20a_init_gr_config(struct gk20a *g, struct gr_gk20a *gr)
 
 	if (gr->gpc_skip_mask == NULL) {
 		gr->gpc_skip_mask =
-			nvgpu_kzalloc(g, gr_pd_dist_skip_table__size_1_v() *
-			      4 * sizeof(u32));
+			nvgpu_kzalloc(g,
+				(size_t)gr_pd_dist_skip_table__size_1_v() *
+				(size_t)4 * sizeof(u32));
 	} else {
-		memset(gr->gpc_skip_mask, 0, gr_pd_dist_skip_table__size_1_v() *
-			      4 * sizeof(u32));
+		memset(gr->gpc_skip_mask, 0,
+			(size_t)gr_pd_dist_skip_table__size_1_v() *
+			(size_t)4 * sizeof(u32));
 	}
 
 	if ((gr->gpc_tpc_count == NULL) || (gr->gpc_tpc_mask == NULL) ||
@@ -3347,13 +3349,15 @@ static int gr_gk20a_init_gr_config(struct gk20a *g, struct gr_gk20a *gr)
 
 	/* allocate for max tpc per gpc */
 	if (gr->sm_to_cluster == NULL) {
-		gr->sm_to_cluster = nvgpu_kzalloc(g, gr->gpc_count *
-					gr->max_tpc_per_gpc_count *
-					sm_per_tpc * sizeof(struct sm_info));
+		gr->sm_to_cluster = nvgpu_kzalloc(g, (size_t)gr->gpc_count *
+					(size_t)gr->max_tpc_per_gpc_count *
+					(size_t)sm_per_tpc *
+					sizeof(struct sm_info));
 	} else {
-		memset(gr->sm_to_cluster, 0, gr->gpc_count *
-					gr->max_tpc_per_gpc_count *
-					sm_per_tpc * sizeof(struct sm_info));
+		memset(gr->sm_to_cluster, 0, (size_t)gr->gpc_count *
+					(size_t)gr->max_tpc_per_gpc_count *
+					(size_t)sm_per_tpc *
+					sizeof(struct sm_info));
 	}
 	gr->no_of_sm = 0;
 
@@ -3457,9 +3461,11 @@ static int gr_gk20a_init_map_tiles(struct gk20a *g, struct gr_gk20a *gr)
 	init_err = nvgpu_kzalloc(g, num_gpcs * sizeof(s32));
 	run_err = nvgpu_kzalloc(g, num_gpcs * sizeof(s32));
 	sorted_num_tpcs =
-		nvgpu_kzalloc(g, num_gpcs * num_tpc_per_gpc * sizeof(s32));
+		nvgpu_kzalloc(g, (size_t)num_gpcs *
+				 (size_t)num_tpc_per_gpc *
+				 sizeof(s32));
 	sorted_to_unsorted_gpc_map =
-		nvgpu_kzalloc(g, num_gpcs * sizeof(s32));
+		nvgpu_kzalloc(g, (size_t)num_gpcs * sizeof(s32));
 
 	if (!((init_frac != NULL) &&
 	      (init_err != NULL) &&

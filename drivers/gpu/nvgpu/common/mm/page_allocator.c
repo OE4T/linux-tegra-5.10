@@ -1001,7 +1001,7 @@ static int nvgpu_page_alloc_init_slabs(struct nvgpu_page_allocator *a)
 	for (i = 0; i < nr_slabs; i++) {
 		struct page_alloc_slab *slab = &a->slabs[i];
 
-		slab->slab_size = SZ_4K * (1 << i);
+		slab->slab_size = U32(SZ_4K) * BIT32(i);
 		nvgpu_init_list_node(&slab->empty);
 		nvgpu_init_list_node(&slab->partial);
 		nvgpu_init_list_node(&slab->full);

@@ -57,7 +57,7 @@ int nvgpu_vm_area_validate_buffer(struct vm_gk20a *vm,
 		return -EINVAL;
 	}
 
-	if (map_addr & (vm->gmmu_page_sizes[pgsz_idx] - 1U)) {
+	if (map_addr & (U64(vm->gmmu_page_sizes[pgsz_idx]) - U64(1))) {
 		nvgpu_err(g, "map offset must be buffer page size aligned 0x%llx",
 			  map_addr);
 		return -EINVAL;

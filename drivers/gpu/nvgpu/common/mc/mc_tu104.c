@@ -128,7 +128,8 @@ bool intr_tu104_vector_intr_pending(struct gk20a *g, u32 intr_vector)
 		func_priv_cpu_intr_leaf_r(
 			NV_CPU_INTR_GPU_VECTOR_TO_LEAF_REG(intr_vector)));
 
-	return leaf_val & BIT(NV_CPU_INTR_GPU_VECTOR_TO_LEAF_BIT(intr_vector));
+	return leaf_val &
+		BIT32(NV_CPU_INTR_GPU_VECTOR_TO_LEAF_BIT(intr_vector));
 }
 
 static void intr_tu104_stall_enable(struct gk20a *g)
@@ -177,14 +178,14 @@ static void intr_tu104_nonstall_enable(struct gk20a *g)
 		active_engine_id = g->fifo.active_engines_list[i];
 		intr_mask = g->fifo.engine_info[active_engine_id].intr_mask;
 
-		nonstall_intr_mask |= intr_mask << nonstall_intr_base;
+		nonstall_intr_mask |= U64(intr_mask) << U64(nonstall_intr_base);
 	}
 
 	nvgpu_func_writel(g,
 		func_priv_cpu_intr_top_en_set_r(
 			NV_CPU_INTR_SUBTREE_TO_TOP_IDX(
 				NV_CPU_INTR_TOP_NONSTALL_SUBTREE)),
-		BIT(NV_CPU_INTR_SUBTREE_TO_TOP_BIT(
+		BIT32(NV_CPU_INTR_SUBTREE_TO_TOP_BIT(
 			NV_CPU_INTR_TOP_NONSTALL_SUBTREE)));
 
 	nvgpu_func_writel(g,
@@ -234,7 +235,7 @@ u32 intr_tu104_nonstall(struct gk20a *g)
 			NV_CPU_INTR_SUBTREE_TO_TOP_IDX(
 				NV_CPU_INTR_TOP_NONSTALL_SUBTREE)));
 
-	nonstall_intr_set_mask = BIT(
+	nonstall_intr_set_mask = BIT32(
 			NV_CPU_INTR_SUBTREE_TO_TOP_BIT(
 				NV_CPU_INTR_TOP_NONSTALL_SUBTREE));
 
@@ -248,7 +249,7 @@ void intr_tu104_nonstall_pause(struct gk20a *g)
 		func_priv_cpu_intr_top_en_clear_r(
 			NV_CPU_INTR_SUBTREE_TO_TOP_IDX(
 				NV_CPU_INTR_TOP_NONSTALL_SUBTREE)),
-		BIT(NV_CPU_INTR_SUBTREE_TO_TOP_BIT(
+		BIT32(NV_CPU_INTR_SUBTREE_TO_TOP_BIT(
 			NV_CPU_INTR_TOP_NONSTALL_SUBTREE)));
 }
 
@@ -259,7 +260,7 @@ void intr_tu104_nonstall_resume(struct gk20a *g)
 		func_priv_cpu_intr_top_en_set_r(
 			NV_CPU_INTR_SUBTREE_TO_TOP_IDX(
 				NV_CPU_INTR_TOP_NONSTALL_SUBTREE)),
-		BIT(NV_CPU_INTR_SUBTREE_TO_TOP_BIT(
+		BIT32(NV_CPU_INTR_SUBTREE_TO_TOP_BIT(
 			NV_CPU_INTR_TOP_NONSTALL_SUBTREE)));
 }
 
@@ -291,7 +292,7 @@ u32 intr_tu104_isr_nonstall(struct gk20a *g)
 		active_engine_id = g->fifo.active_engines_list[i];
 		intr_mask = g->fifo.engine_info[active_engine_id].intr_mask;
 
-		nonstall_intr_mask = intr_mask << nonstall_intr_base;
+		nonstall_intr_mask = U64(intr_mask) << U64(nonstall_intr_base);
 		nonstall_intr_mask_lo = u64_lo32(nonstall_intr_mask);
 		nonstall_intr_mask_hi = u64_hi32(nonstall_intr_mask);
 

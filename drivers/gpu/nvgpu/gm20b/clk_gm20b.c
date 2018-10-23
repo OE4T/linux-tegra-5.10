@@ -214,7 +214,8 @@ static int clk_config_pll(struct clk_gk20a *clk, struct pll *pll,
 				if (vco_f >= min_vco_f && vco_f <= max_vco_f) {
 					lwv = (vco_f + (nvgpu_pl_to_div(pl) / 2))
 						/ nvgpu_pl_to_div(pl);
-					delta = abs((s32)(lwv - target_clk_f));
+					delta = abs(S32(lwv) -
+							S32(target_clk_f));
 
 					if (delta < best_delta) {
 						best_delta = delta;
@@ -378,8 +379,8 @@ static void clk_config_dvfs_ndiv(int mv, u32 n_eff, struct na_dvfs *d)
 	det_delta = min(det_delta, d->dfs_det_max);
 	det_delta = det_delta * d->dfs_coeff;
 
-	n = (int)(n_eff << DFS_DET_RANGE) - det_delta;
-	BUG_ON((n < 0) || (n > (int)(p->max_N << DFS_DET_RANGE)));
+	n = ((int)n_eff << DFS_DET_RANGE) - det_delta;
+	BUG_ON((n < 0) || (n > (int)p->max_N << DFS_DET_RANGE));
 	d->n_int = ((u32)n) >> DFS_DET_RANGE;
 
 	rem = ((u32)n) & ((1 << DFS_DET_RANGE) - 1);

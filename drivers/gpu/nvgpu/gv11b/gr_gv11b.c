@@ -2994,10 +2994,10 @@ void gr_gv11b_load_tpc_mask(struct gk20a *g)
 	fuse_tpc_mask = g->ops.gr.get_gpc_tpc_mask(g, gpc);
 	if (g->tpc_fs_mask_user &&
 			g->tpc_fs_mask_user != fuse_tpc_mask &&
-			fuse_tpc_mask == (0x1U << g->gr.max_tpc_count) - 1U) {
+			fuse_tpc_mask == BIT32(g->gr.max_tpc_count) - U32(1)) {
 		val = g->tpc_fs_mask_user;
-		val &= (0x1U << g->gr.max_tpc_count) - 1U;
-		val = (0x1U << hweight32(val)) - 1U;
+		val &= BIT32(g->gr.max_tpc_count) - U32(1);
+		val = BIT32(hweight32(val)) - U32(1);
 		gk20a_writel(g, gr_fe_tpc_fs_r(0), val);
 	} else {
 		gk20a_writel(g, gr_fe_tpc_fs_r(0), pes_tpc_mask);

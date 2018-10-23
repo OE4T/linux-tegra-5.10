@@ -1019,7 +1019,7 @@ void gv11b_fb_handle_mmu_nonreplay_replay_fault(struct gk20a *g,
 	entries = gv11b_fb_fault_buffer_size_val(g, index);
 	nvgpu_log(g, gpu_dbg_intr, "buffer num entries = %d", entries);
 
-	offset = (get_indx * gmmu_fault_buf_size_v()) / sizeof(u32);
+	offset = (get_indx * gmmu_fault_buf_size_v()) / U32(sizeof(u32));
 	nvgpu_log(g, gpu_dbg_intr, "starting word offset = 0x%x", offset);
 
 	rd32_val = nvgpu_mem_rd32(g, mem,
@@ -1037,7 +1037,8 @@ void gv11b_fb_handle_mmu_nonreplay_replay_fault(struct gk20a *g,
 
 		gv11b_fb_fault_buffer_get_ptr_update(g, index, get_indx);
 
-		offset = (get_indx * gmmu_fault_buf_size_v()) / sizeof(u32);
+		offset = (get_indx * gmmu_fault_buf_size_v()) /
+			 U32(sizeof(u32));
 		nvgpu_log(g, gpu_dbg_intr, "next word offset = 0x%x", offset);
 
 		rd32_val = nvgpu_mem_rd32(g, mem,

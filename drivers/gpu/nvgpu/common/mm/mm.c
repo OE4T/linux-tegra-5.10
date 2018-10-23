@@ -276,7 +276,7 @@ static int nvgpu_init_cde_vm(struct mm_gk20a *mm)
 	u32 big_page_size = g->ops.mm.get_default_big_page_size();
 
 	mm->cde.vm = nvgpu_vm_init(g, big_page_size,
-				   big_page_size << 10,
+				   U64(big_page_size) << U64(10),
 				   NV_MM_DEFAULT_KERNEL_SIZE,
 				   NV_MM_DEFAULT_KERNEL_SIZE + NV_MM_DEFAULT_USER_SIZE,
 				   false, false, "cde");
@@ -292,7 +292,7 @@ static int nvgpu_init_ce_vm(struct mm_gk20a *mm)
 	u32 big_page_size = g->ops.mm.get_default_big_page_size();
 
 	mm->ce.vm = nvgpu_vm_init(g, big_page_size,
-				  big_page_size << 10,
+				  U64(big_page_size) << U64(10),
 				  NV_MM_DEFAULT_KERNEL_SIZE,
 				  NV_MM_DEFAULT_KERNEL_SIZE + NV_MM_DEFAULT_USER_SIZE,
 				  false, false, "ce");
@@ -430,9 +430,9 @@ static int nvgpu_init_mm_setup_sw(struct gk20a *g)
 		NV_MM_DEFAULT_KERNEL_SIZE;
 	mm->channel.kernel_size = NV_MM_DEFAULT_KERNEL_SIZE;
 
-	nvgpu_log_info(g, "channel vm size: user %dMB  kernel %dMB",
-		   (int)(mm->channel.user_size >> 20),
-		   (int)(mm->channel.kernel_size >> 20));
+	nvgpu_log_info(g, "channel vm size: user %uMB  kernel %uMB",
+		   U32(mm->channel.user_size >> U64(20)),
+		   U32(mm->channel.kernel_size >> U64(20)));
 
 	nvgpu_init_pramin(mm);
 

@@ -200,7 +200,7 @@ static inline struct nvgpu_list_node *balloc_get_order_list(
 static inline u64 balloc_order_to_len(struct nvgpu_buddy_allocator *a,
 				      int order)
 {
-	return (1 << order) * a->blk_size;
+	return BIT64(order) * a->blk_size;
 }
 
 static inline u64 balloc_base_shift(struct nvgpu_buddy_allocator *a,

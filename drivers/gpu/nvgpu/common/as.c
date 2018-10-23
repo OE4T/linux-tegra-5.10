@@ -76,7 +76,7 @@ static int gk20a_vm_alloc_share(struct gk20a_as_share *as_share,
 	snprintf(name, sizeof(name), "as_%d", as_share->id);
 
 	vm = nvgpu_vm_init(g, big_page_size,
-			   big_page_size << 10,
+			   U64(big_page_size) << U64(10),
 			   mm->channel.kernel_size,
 			   mm->channel.user_size + mm->channel.kernel_size,
 			   !mm->disable_bigpage, userspace_managed, name);

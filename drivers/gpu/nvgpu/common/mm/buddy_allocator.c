@@ -1351,8 +1351,10 @@ int nvgpu_buddy_allocator_init(struct gk20a *g, struct nvgpu_allocator *na,
 	 * requirement is not necessary.
 	 */
 	if (is_gva_space) {
-		base_big_page = base & ((vm->big_page_size << 10U) - 1U);
-		size_big_page = size & ((vm->big_page_size << 10U) - 1U);
+		base_big_page = base &
+				((U64(vm->big_page_size) << U64(10)) - U64(1));
+		size_big_page = size &
+				((U64(vm->big_page_size) << U64(10)) - U64(1));
 		if (vm->big_pages &&
 			(base_big_page != 0ULL || size_big_page != 0ULL)) {
 			return -EINVAL;

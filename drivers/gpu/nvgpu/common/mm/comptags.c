@@ -62,7 +62,7 @@ void gk20a_comptaglines_free(struct gk20a_comptag_allocator *allocator,
 
 	WARN_ON(offset == 0U);
 	WARN_ON(addr > allocator->size);
-	WARN_ON(addr + len > allocator->size);
+	WARN_ON((unsigned long)addr + (unsigned long)len > allocator->size);
 
 	nvgpu_mutex_acquire(&allocator->lock);
 	bitmap_clear(allocator->bitmap, addr, len);

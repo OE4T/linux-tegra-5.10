@@ -265,7 +265,7 @@ void nvgpu_pd_cache_fini(struct gk20a *g);
 static inline u32 pd_offset_from_index(const struct gk20a_mmu_level *l,
 				       u32 pd_idx)
 {
-	return (pd_idx * l->entry_size) / sizeof(u32);
+	return (pd_idx * l->entry_size) / U32(sizeof(u32));
 }
 
 static inline void pd_write(struct gk20a *g, struct nvgpu_gmmu_pd *pd,

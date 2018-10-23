@@ -76,7 +76,8 @@ int gm20b_ltc_init_comptags(struct gk20a *g, struct gr_gk20a *gr)
 		g->ltc_count << ltc_ltcs_ltss_cbc_base_alignment_shift_v();
 
 	/* must be a multiple of 64KB */
-	compbit_backing_size = roundup(compbit_backing_size, 64*1024);
+	compbit_backing_size = roundup(compbit_backing_size,
+					U32(64) * U32(1024));
 
 	max_comptag_lines =
 		(compbit_backing_size * comptags_per_cacheline) /
@@ -218,7 +219,7 @@ void gm20b_ltc_init_fs_state(struct gk20a *g)
 	reg = gk20a_readl(g, ltc_ltcs_ltss_cbc_param_r());
 	gr->slices_per_ltc = ltc_ltcs_ltss_cbc_param_slices_per_ltc_v(reg);;
 	gr->cacheline_size =
-		512U << ltc_ltcs_ltss_cbc_param_cache_line_size_v(reg);
+		U32(512) << ltc_ltcs_ltss_cbc_param_cache_line_size_v(reg);
 
 	gk20a_writel(g, ltc_ltcs_ltss_cbc_num_active_ltcs_r(),
 	g->ltc_count);

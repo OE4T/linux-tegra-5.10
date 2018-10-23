@@ -46,7 +46,7 @@ void ltc_tu104_init_fs_state(struct gk20a *g)
 	gr->slices_per_ltc =
 		ltc_ltcs_ltss_cbc_param2_slices_per_ltc_v(reg);
 	gr->cacheline_size =
-		512U << ltc_ltcs_ltss_cbc_param2_cache_line_size_v(reg);
+		U32(512) << ltc_ltcs_ltss_cbc_param2_cache_line_size_v(reg);
 }
 
 u64 ltc_tu104_get_cbc_base_divisor(struct gk20a *g)
@@ -106,7 +106,8 @@ int ltc_tu104_init_comptags(struct gk20a *g, struct gr_gk20a *gr)
 	compbit_backing_size += amap_swizzle_rounding;
 
 	/* must be a multiple of 64KB */
-	compbit_backing_size = roundup(compbit_backing_size, 64 * 1024);
+	compbit_backing_size = roundup(compbit_backing_size,
+					U32(64) * U32(1024));
 
 	err = nvgpu_ltc_alloc_cbc(g, compbit_backing_size, true);
 	if (err != 0) {

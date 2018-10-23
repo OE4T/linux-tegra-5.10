@@ -1112,7 +1112,7 @@ static void pg_cmd_eng_buf_load_set_dma_idx_v1(struct pmu_pg_cmd *pg,
 static void pg_cmd_eng_buf_load_set_dma_idx_v2(struct pmu_pg_cmd *pg,
 	u8 value)
 {
-	pg->eng_buf_load_v2.dma_desc.params |= (value << 24);
+	pg->eng_buf_load_v2.dma_desc.params |= (U32(value) << U32(24));
 }
 
 static int nvgpu_init_pmu_fw_ver_ops(struct nvgpu_pmu *pmu)

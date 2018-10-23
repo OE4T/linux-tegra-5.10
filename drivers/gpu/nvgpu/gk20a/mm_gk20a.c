@@ -190,8 +190,8 @@ static void update_gmmu_pde_locked(struct vm_gk20a *vm,
 		virt_addr, phys_addr,
 		pde_v[1], pde_v[0]);
 
-	pd_write(g, &vm->pdb, pd_offset + 0, pde_v[0]);
-	pd_write(g, &vm->pdb, pd_offset + 1, pde_v[1]);
+	pd_write(g, &vm->pdb, (size_t)pd_offset + (size_t)0, pde_v[0]);
+	pd_write(g, &vm->pdb, (size_t)pd_offset + (size_t)1, pde_v[1]);
 }
 
 static void __update_pte_sparse(u32 *pte_w)
@@ -292,8 +292,8 @@ static void update_gmmu_pte_locked(struct vm_gk20a *vm,
 		(u32)attrs->ctag >> ctag_shift,
 		pte_w[1], pte_w[0]);
 
-	pd_write(g, pd, pd_offset + 0, pte_w[0]);
-	pd_write(g, pd, pd_offset + 1, pte_w[1]);
+	pd_write(g, pd, (size_t)pd_offset + (size_t)0, pte_w[0]);
+	pd_write(g, pd, (size_t)pd_offset + (size_t)1, pte_w[1]);
 }
 
 u32 gk20a_get_pde_pgsz(struct gk20a *g, const struct gk20a_mmu_level *l,

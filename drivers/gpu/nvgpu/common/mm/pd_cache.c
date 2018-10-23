@@ -76,7 +76,8 @@
 
 static u32 nvgpu_pd_cache_nr(u32 bytes)
 {
-	return ilog2(bytes >> (NVGPU_PD_CACHE_MIN_SHIFT - 1U));
+	return ilog2((unsigned long)bytes >>
+			((unsigned long)NVGPU_PD_CACHE_MIN_SHIFT - 1UL));
 }
 
 static u32 nvgpu_pd_cache_get_mask(struct nvgpu_pd_mem_entry *pentry)
@@ -259,7 +260,7 @@ static int nvgpu_pd_cache_alloc_from_partial(struct gk20a *g,
 		return -ENOMEM;
 	}
 
-	pentry->alloc_map |= 1 << bit_offs;
+	pentry->alloc_map |= BIT64(bit_offs);
 
 	pd_dbg(g, "PD-Alloc [C]   Partial: offs=%lu", bit_offs);
 

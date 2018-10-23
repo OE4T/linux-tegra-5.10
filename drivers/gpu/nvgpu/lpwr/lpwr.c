@@ -145,7 +145,7 @@ static int get_lpwr_ms_table(struct gk20a *g)
 
 	pms_data->default_entry_idx = (u8)header.default_entry_idx;
 
-	pms_data->idle_threshold_us = (u32)(header.idle_threshold_us * 10);
+	pms_data->idle_threshold_us = U32(header.idle_threshold_us) * U32(10);
 
 	/* Parse the LPWR MS Table entries.*/
 	for (idx = 0; idx < header.entry_count; idx++) {

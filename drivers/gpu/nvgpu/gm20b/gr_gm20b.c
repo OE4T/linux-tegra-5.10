@@ -611,11 +611,11 @@ void gr_gm20b_load_tpc_mask(struct gk20a *g)
 	fuse_tpc_mask = g->ops.gr.get_gpc_tpc_mask(g, 0);
 	if ((g->tpc_fs_mask_user != 0U) &&
 	    (g->tpc_fs_mask_user != fuse_tpc_mask) &&
-	    (fuse_tpc_mask == BIT32(g->gr.max_tpc_count) - 1U)) {
+	    (fuse_tpc_mask == BIT32(g->gr.max_tpc_count) - U32(1))) {
 		u32 val = g->tpc_fs_mask_user;
-		val &= BIT32(g->gr.max_tpc_count) - 1U;
+		val &= BIT32(g->gr.max_tpc_count) - U32(1);
 		/* skip tpc to disable the other tpc cause channel timeout */
-		val = BIT32(hweight32(val)) - 1U;
+		val = BIT32(hweight32(val)) - U32(1);
 		gk20a_writel(g, gr_fe_tpc_fs_r(), val);
 	} else {
 		gk20a_writel(g, gr_fe_tpc_fs_r(), pes_tpc_mask);
@@ -1154,7 +1154,8 @@ u32 gr_gm20b_get_max_lts_per_ltc(struct gk20a *g)
 u32 *gr_gm20b_rop_l2_en_mask(struct gk20a *g)
 {
 	struct gr_gk20a *gr = &g->gr;
-	u32 i, tmp, max_fbps_count, max_ltc_per_fbp;
+	unsigned long i;
+	u32 tmp, max_fbps_count, max_ltc_per_fbp;
 	unsigned long fbp_en_mask;
 	u32 rop_l2_all_en;
 

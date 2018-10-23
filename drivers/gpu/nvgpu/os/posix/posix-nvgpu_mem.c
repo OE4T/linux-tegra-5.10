@@ -139,8 +139,8 @@ int nvgpu_mem_create_from_mem(struct gk20a *g,
 			      struct nvgpu_mem *dest, struct nvgpu_mem *src,
 			      u64 start_page, int nr_pages)
 {
-	u64 start = start_page * PAGE_SIZE;
-	u64 size = nr_pages * PAGE_SIZE;
+	u64 start = start_page * U64(PAGE_SIZE);
+	u64 size = U64(nr_pages) * U64(PAGE_SIZE);
 
 	if (src->aperture != APERTURE_SYSMEM)
 		return -EINVAL;

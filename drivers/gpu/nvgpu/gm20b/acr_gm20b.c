@@ -947,8 +947,8 @@ static int lsf_gen_wpr_requirements(struct gk20a *g, struct ls_flcn_mgr *plsfm)
 	 The expectation here is that the secure falcon will do a single DMA
 	 read of this array and cache it internally so it's OK to pack these.
 	 Also, we add 1 to the falcon count to indicate the end of the array.*/
-	wpr_offset = sizeof(struct lsf_wpr_header) *
-		(plsfm->managed_flcn_cnt+1);
+	wpr_offset = U32(sizeof(struct lsf_wpr_header)) *
+		(U32(plsfm->managed_flcn_cnt) + U32(1));
 
 	/* Walk the managed falcons, accounting for the LSB structs
 	as well as the ucode images. */

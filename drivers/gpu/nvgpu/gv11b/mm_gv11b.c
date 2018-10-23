@@ -122,8 +122,8 @@ static void gv11b_mm_mmu_hw_fault_buf_init(struct gk20a *g)
 	size_t fb_size;
 
 	/* Max entries take care of 1 entry used for full detection */
-	fb_size = (g->ops.fifo.get_num_fifos(g) + 1) *
-				 gmmu_fault_buf_size_v();
+	fb_size = ((size_t)g->ops.fifo.get_num_fifos(g) + (size_t)1) *
+				 (size_t)gmmu_fault_buf_size_v();
 
 	if (!nvgpu_mem_is_valid(
 		&g->mm.hw_fault_buf[NVGPU_MM_MMU_FAULT_TYPE_OTHER_AND_NONREPLAY])) {

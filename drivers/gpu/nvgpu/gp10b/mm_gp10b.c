@@ -101,8 +101,8 @@ static void update_gmmu_pde3_locked(struct vm_gk20a *vm,
 	pde_v[0] |= gmmu_new_pde_vol_true_f();
 	pde_v[1] |= phys_addr >> 24;
 
-	pd_write(g, pd, pd_offset + 0, pde_v[0]);
-	pd_write(g, pd, pd_offset + 1, pde_v[1]);
+	pd_write(g, pd, (size_t)pd_offset + (size_t)0, pde_v[0]);
+	pd_write(g, pd, (size_t)pd_offset + (size_t)1, pde_v[1]);
 
 	pte_dbg(g, attrs,
 		"PDE: i=%-4u size=%-2u offs=%-4u pgsz: -- | "
@@ -160,10 +160,10 @@ static void update_gmmu_pde0_locked(struct vm_gk20a *vm,
 		pde_v[1] |= big_addr >> 28;
 	}
 
-	pd_write(g, pd, pd_offset + 0, pde_v[0]);
-	pd_write(g, pd, pd_offset + 1, pde_v[1]);
-	pd_write(g, pd, pd_offset + 2, pde_v[2]);
-	pd_write(g, pd, pd_offset + 3, pde_v[3]);
+	pd_write(g, pd, (size_t)pd_offset + (size_t)0, pde_v[0]);
+	pd_write(g, pd, (size_t)pd_offset + (size_t)1, pde_v[1]);
+	pd_write(g, pd, (size_t)pd_offset + (size_t)2, pde_v[2]);
+	pd_write(g, pd, (size_t)pd_offset + (size_t)3, pde_v[3]);
 
 	pte_dbg(g, attrs,
 		"PDE: i=%-4u size=%-2u offs=%-4u pgsz: %c%c | "
@@ -271,8 +271,8 @@ static void update_gmmu_pte_locked(struct vm_gk20a *vm,
 		(u32)attrs->ctag / g->ops.fb.compression_page_size(g),
 		pte_w[1], pte_w[0]);
 
-	pd_write(g, pd, pd_offset + 0, pte_w[0]);
-	pd_write(g, pd, pd_offset + 1, pte_w[1]);
+	pd_write(g, pd, (size_t)pd_offset + (size_t)0, pte_w[0]);
+	pd_write(g, pd, (size_t)pd_offset + (size_t)1, pte_w[1]);
 }
 
 #define GP10B_PDE0_ENTRY_SIZE 16
@@ -306,9 +306,9 @@ static u32 gp10b_get_pde0_pgsz(struct gk20a *g, const struct gk20a_mmu_level *l,
 	if (pde_v[2] & (gmmu_new_dual_pde_aperture_small_sys_mem_ncoh_f() |
 			gmmu_new_dual_pde_aperture_small_sys_mem_coh_f() |
 			gmmu_new_dual_pde_aperture_small_video_memory_f())) {
-		u64 addr = (((u64) pde_v[3] << 32) | (u64) (pde_v[2] &
-			gmmu_new_dual_pde_address_small_sys_f(~0))) <<
-			gmmu_new_dual_pde_address_shift_v();
+		u64 addr = ((U64(pde_v[3]) << U64(32)) | (U64(pde_v[2]) &
+			U64(gmmu_new_dual_pde_address_small_sys_f(~0)))) <<
+			U64(gmmu_new_dual_pde_address_shift_v());
 
 		if (addr) {
 			pgsz = GMMU_PAGE_SIZE_SMALL;
@@ -318,9 +318,9 @@ static u32 gp10b_get_pde0_pgsz(struct gk20a *g, const struct gk20a_mmu_level *l,
 	if (pde_v[0] & (gmmu_new_dual_pde_aperture_big_sys_mem_ncoh_f() |
 			gmmu_new_dual_pde_aperture_big_sys_mem_coh_f() |
 			gmmu_new_dual_pde_aperture_big_video_memory_f())) {
-		u64 addr = (((u64) pde_v[1] << 32) | (u64) (pde_v[0] &
-			gmmu_new_dual_pde_address_big_sys_f(~0))) <<
-			gmmu_new_dual_pde_address_big_shift_v();
+		u64 addr = ((U64(pde_v[1]) << U64(32)) | (U64(pde_v[0]) &
+			U64(gmmu_new_dual_pde_address_big_sys_f(~0)))) <<
+			U64(gmmu_new_dual_pde_address_big_shift_v());
 
 		if (addr) {
 			/*

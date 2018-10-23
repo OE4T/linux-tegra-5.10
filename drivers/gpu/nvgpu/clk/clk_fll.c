@@ -330,8 +330,8 @@ static int devinit_get_fll_device_table(struct gk20a *g,
 			(u8)fll_desc_table_entry.min_freq_vfe_idx;
 		fll_dev_data.freq_ctrl_idx = CTRL_BOARDOBJ_IDX_INVALID;
 
-		vbios_domain = (u32)(fll_desc_table_entry.clk_domain &
-					NV_PERF_DOMAIN_4X_CLOCK_DOMAIN_MASK);
+		vbios_domain = U32(fll_desc_table_entry.clk_domain) &
+				U32(NV_PERF_DOMAIN_4X_CLOCK_DOMAIN_MASK);
 		fll_dev_data.clk_domain =
 			g->ops.pmu_ver.clk.get_vbios_clk_domain(vbios_domain);
 

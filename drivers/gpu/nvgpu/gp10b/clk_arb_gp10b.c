@@ -331,7 +331,7 @@ void gp10b_clk_arb_run_arbiter_cb(struct nvgpu_clk_arb *arb)
    * pass (gpcclk) freq = (gpc2clk) freq / 2
    */
 	status = g->ops.clk.clk_get_round_rate(g,
-		CTRL_CLK_DOMAIN_GPCCLK, (gpc2clk_session_target/2) * 1000000UL, &rounded_rate);
+		CTRL_CLK_DOMAIN_GPCCLK, ((unsigned long)gpc2clk_session_target / 2UL) * 1000000UL, &rounded_rate);
 
 	clk_arb_dbg(g, "rounded_rate: %lu\n",
 		rounded_rate);

@@ -37,7 +37,7 @@ struct nvgpu_cpu_time_correlation_sample {
 
 static inline u32 ptimer_scalingfactor10x(u32 ptimer_src_freq)
 {
-	return (u32)(((u64)(PTIMER_REF_FREQ_HZ * 10)) / ptimer_src_freq);
+	return U32((U64(PTIMER_REF_FREQ_HZ) * U64(10)) / U64(ptimer_src_freq));
 }
 
 static inline u32 scale_ptimer(u32 timeout , u32 scale10x)

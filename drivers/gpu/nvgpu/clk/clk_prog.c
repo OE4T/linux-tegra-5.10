@@ -1391,7 +1391,8 @@ static u32 vfflatten_prog_1x_master(struct gk20a *g,
 			do {
 				clkvfpointfreqmhzset(g, &vf_point_data.vf_point,
 					p1xmaster->super.freq_max_mhz -
-					  step_count * freq_step_size_mhz);
+					  U16(step_count) *
+					  U16(freq_step_size_mhz));
 
 				status = _clk_prog_1x_master_rail_construct_vf_point(g, pclk,
 					p1xmaster, p_vf_rail,
