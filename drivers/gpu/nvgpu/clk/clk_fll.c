@@ -25,12 +25,12 @@
 #include <nvgpu/boardobjgrp.h>
 #include <nvgpu/boardobjgrp_e32.h>
 #include <nvgpu/string.h>
+#include <nvgpu/pmuif/ctrlclk.h>
+#include <nvgpu/pmuif/ctrlvolt.h>
 
 #include "clk.h"
 #include "clk_fll.h"
 #include "clk_domain.h"
-#include "ctrl/ctrlclk.h"
-#include "ctrl/ctrlvolt.h"
 
 static int devinit_get_fll_device_table(struct gk20a *g,
 				   struct avfsfllobjs *pfllobjs);

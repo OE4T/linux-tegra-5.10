@@ -25,12 +25,12 @@
 #include <nvgpu/boardobjgrp.h>
 #include <nvgpu/boardobjgrp_e32.h>
 #include <nvgpu/string.h>
+#include <nvgpu/pmuif/ctrlclk.h>
+#include <nvgpu/pmuif/ctrlvolt.h>
+#include <nvgpu/pmuif/ctrlperf.h>
 
 #include "pmu_perf.h"
 #include "vfe_var.h"
-#include "ctrl/ctrlclk.h"
-#include "ctrl/ctrlvolt.h"
-#include "ctrl/ctrlperf.h"
 
 static int devinit_get_vfe_var_table(struct gk20a *g,
 				     struct vfe_vars *pvarobjs);

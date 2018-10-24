@@ -23,7 +23,6 @@
 #ifndef NVGPU_CTRLCLKAVFS_H
 #define NVGPU_CTRLCLKAVFS_H
 
-#include "ctrlboardobj.h"
 /*!
  * Valid global VIN ID values
  */
@@ -53,54 +52,12 @@
 /*!
  * Mask of all GPC VIN IDs supported by RM
  */
-#define	CTRL_CLK_VIN_MASK_UNICAST_GPC (BIT(CTRL_CLK_VIN_ID_GPC0) | \
-			BIT(CTRL_CLK_VIN_ID_GPC1) | \
-			BIT(CTRL_CLK_VIN_ID_GPC2) | \
-			BIT(CTRL_CLK_VIN_ID_GPC3) | \
-			BIT(CTRL_CLK_VIN_ID_GPC4) | \
-			BIT(CTRL_CLK_VIN_ID_GPC5))
 #define CTRL_CLK_LUT_NUM_ENTRIES_MAX   (128U)
 #define CTRL_CLK_LUT_NUM_ENTRIES_GV10x (128U)
 #define CTRL_CLK_LUT_NUM_ENTRIES_GP10x (100U)
 #define CTRL_CLK_VIN_STEP_SIZE_UV (10000U)
 #define CTRL_CLK_LUT_MIN_VOLTAGE_UV (450000U)
 #define CTRL_CLK_FLL_TYPE_DISABLED 0U
-
-#define    CTRL_CLK_FLL_ID_SYS            (0x00000000U)
-#define    CTRL_CLK_FLL_ID_LTC            (0x00000001U)
-#define    CTRL_CLK_FLL_ID_XBAR           (0x00000002U)
-#define    CTRL_CLK_FLL_ID_GPC0           (0x00000003U)
-#define    CTRL_CLK_FLL_ID_GPC1           (0x00000004U)
-#define    CTRL_CLK_FLL_ID_GPC2           (0x00000005U)
-#define    CTRL_CLK_FLL_ID_GPC3           (0x00000006U)
-#define    CTRL_CLK_FLL_ID_GPC4           (0x00000007U)
-#define    CTRL_CLK_FLL_ID_GPC5           (0x00000008U)
-#define    CTRL_CLK_FLL_ID_GPCS           (0x00000009U)
-#define    CTRL_CLK_FLL_ID_UNDEFINED      (0x000000FFU)
-#define    CTRL_CLK_FLL_MASK_UNDEFINED    (0x00000000U)
-
-/*!
- * Mask of all GPC FLL IDs supported by RM
- */
-#define    CTRL_CLK_FLL_MASK_UNICAST_GPC    (BIT(CTRL_CLK_FLL_ID_GPC0) | \
-					       BIT(CTRL_CLK_FLL_ID_GPC1) | \
-					       BIT(CTRL_CLK_FLL_ID_GPC2) | \
-					       BIT(CTRL_CLK_FLL_ID_GPC3) | \
-					       BIT(CTRL_CLK_FLL_ID_GPC4) | \
-					       BIT(CTRL_CLK_FLL_ID_GPC5))
-/*!
- * Mask of all FLL IDs supported by Nvgpu driver
- */
-#define    CTRL_CLK_FLL_ID_ALL_MASK         (BIT(CTRL_CLK_FLL_ID_SYS)  | \
-					       BIT(CTRL_CLK_FLL_ID_LTC)  | \
-					       BIT(CTRL_CLK_FLL_ID_XBAR) | \
-					       BIT(CTRL_CLK_FLL_ID_GPC0) | \
-					       BIT(CTRL_CLK_FLL_ID_GPC1) | \
-					       BIT(CTRL_CLK_FLL_ID_GPC2) | \
-					       BIT(CTRL_CLK_FLL_ID_GPC3) | \
-					       BIT(CTRL_CLK_FLL_ID_GPC4) | \
-					       BIT(CTRL_CLK_FLL_ID_GPC5) | \
-					       BIT(CTRL_CLK_FLL_ID_GPCS))
 
 #define CTRL_CLK_FLL_REGIME_ID_INVALID                     (0x00000000U)
 #define CTRL_CLK_FLL_REGIME_ID_FFR                         (0x00000001U)

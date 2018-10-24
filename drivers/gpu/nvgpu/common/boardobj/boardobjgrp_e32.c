@@ -24,9 +24,7 @@
 #include <nvgpu/boardobjgrp.h>
 #include <nvgpu/boardobjgrp_e32.h>
 #include <nvgpu/boardobjgrpmask.h>
-
-#include "ctrl/ctrlboardobj.h"
-
+#include <nvgpu/pmuif/ctrlboardobj.h>
 
 int boardobjgrpconstruct_e32(struct gk20a *g,
 			      struct boardobjgrp_e32 *pboardobjgrp_e32)

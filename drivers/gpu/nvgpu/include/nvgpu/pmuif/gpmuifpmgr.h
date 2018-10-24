@@ -23,8 +23,8 @@
 #ifndef NVGPU_PMUIF_GPMUIFPMGR_H
 #define NVGPU_PMUIF_GPMUIFPMGR_H
 
-#include "ctrl/ctrlpmgr.h"
-#include "gpmuifboardobj.h"
+#include <nvgpu/pmuif/ctrlpmgr.h>
+#include <nvgpu/pmuif/gpmuifboardobj.h>
 #include <nvgpu/flcnif_cmn.h>
 
 struct nv_pmu_pmgr_i2c_device_desc {

@@ -29,10 +29,9 @@
 #include <nvgpu/boardobjgrp.h>
 #include <nvgpu/boardobjgrp_e32.h>
 #include <nvgpu/string.h>
+#include <nvgpu/pmuif/ctrlvolt.h>
 
 #include "gp106/bios_gp106.h"
-
-#include "ctrl/ctrlvolt.h"
 
 #include "volt.h"
 

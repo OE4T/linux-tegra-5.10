@@ -22,9 +22,9 @@
 #ifndef NVGPU_PMUIF_GPMUIFVOLT_H
 #define NVGPU_PMUIF_GPMUIFVOLT_H
 
-#include "gpmuifboardobj.h"
+#include <nvgpu/pmuif/gpmuifboardobj.h>
 #include <nvgpu/flcnif_cmn.h>
-#include "ctrl/ctrlvolt.h"
+#include <nvgpu/pmuif/ctrlvolt.h>
 
 #define NV_PMU_VOLT_VALUE_0V_IN_UV	(0U)
 

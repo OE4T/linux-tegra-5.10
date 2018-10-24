@@ -23,7 +23,7 @@
 #define NVGPU_PMUIF_GPMUIFBOARDOBJ_H
 
 #include <nvgpu/flcnif_cmn.h>
-#include "ctrl/ctrlboardobj.h"
+#include <nvgpu/pmuif/ctrlboardobj.h>
 
 /* board object group command id's. */
 #define NV_PMU_BOARDOBJGRP_CMD_SET			0x00U

@@ -23,8 +23,8 @@
 #ifndef NVGPU_CLK_DOMAIN_H
 #define NVGPU_CLK_DOMAIN_H
 
-#include "ctrl/ctrlclk.h"
-#include "ctrl/ctrlboardobj.h"
+#include <nvgpu/pmuif/ctrlclk.h>
+#include <nvgpu/pmuif/ctrlboardobj.h>
 #include <nvgpu/pmuif/nvgpu_gpmu_cmdif.h>
 #include <nvgpu/boardobjgrp_e32.h>
 #include <nvgpu/boardobjgrpmask.h>

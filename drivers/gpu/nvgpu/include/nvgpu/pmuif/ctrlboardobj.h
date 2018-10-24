@@ -23,6 +23,8 @@
 #ifndef NVGPU_CTRLBOARDOBJ_H
 #define NVGPU_CTRLBOARDOBJ_H
 
+#include <nvgpu/types.h>
+
 struct ctrl_boardobj {
 	u8    type;
 };

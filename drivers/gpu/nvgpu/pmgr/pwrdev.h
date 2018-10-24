@@ -26,7 +26,7 @@
 
 #include <nvgpu/boardobj.h>
 #include <nvgpu/pmuif/nvgpu_gpmu_cmdif.h>
-#include "ctrl/ctrlpmgr.h"
+#include <nvgpu/pmuif/ctrlpmgr.h>
 
 #define  PWRDEV_I2CDEV_DEVICE_INDEX_NONE  (0xFF)
 

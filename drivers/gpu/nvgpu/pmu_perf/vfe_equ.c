@@ -25,11 +25,11 @@
 #include <nvgpu/boardobjgrp.h>
 #include <nvgpu/boardobjgrp_e255.h>
 #include <nvgpu/string.h>
+#include <nvgpu/pmuif/ctrlclk.h>
+#include <nvgpu/pmuif/ctrlvolt.h>
 
 #include "pmu_perf.h"
 #include "vfe_equ.h"
-#include "ctrl/ctrlclk.h"
-#include "ctrl/ctrlvolt.h"
 
 static struct vfe_equ *construct_vfe_equ(struct gk20a *g, void *pargs);
 static int devinit_get_vfe_equ_table(struct gk20a *g,

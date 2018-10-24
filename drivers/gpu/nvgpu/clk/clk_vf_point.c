@@ -24,11 +24,11 @@
 #include <nvgpu/boardobjgrp.h>
 #include <nvgpu/boardobjgrp_e32.h>
 #include <nvgpu/string.h>
+#include <nvgpu/pmuif/ctrlclk.h>
+#include <nvgpu/pmuif/ctrlvolt.h>
 
 #include "clk.h"
 #include "clk_vf_point.h"
-#include "ctrl/ctrlclk.h"
-#include "ctrl/ctrlvolt.h"
 
 static int _clk_vf_point_pmudatainit_super(struct gk20a *g, struct boardobj
 	*board_obj_ptr,	struct nv_pmu_boardobj *ppmudata);

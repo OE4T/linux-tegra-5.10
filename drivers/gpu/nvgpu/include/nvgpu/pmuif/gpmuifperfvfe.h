@@ -22,9 +22,9 @@
 #ifndef NVGPU_PMUIF_GPMUIFPERFVFE_H
 #define NVGPU_PMUIF_GPMUIFPERFVFE_H
 
-#include "gpmuifbios.h"
-#include "gpmuifboardobj.h"
-#include "ctrl/ctrlperf.h"
+#include <nvgpu/pmuif/gpmuifbios.h>
+#include <nvgpu/pmuif/gpmuifboardobj.h>
+#include <nvgpu/pmuif/ctrlperf.h>
 
 #define CTRL_PERF_VFE_EQU_QUADRATIC_COEFF_COUNT                      0x03U
 #define NV_PMU_PERF_RPC_VFE_EQU_EVAL_VAR_COUNT_MAX                            2U

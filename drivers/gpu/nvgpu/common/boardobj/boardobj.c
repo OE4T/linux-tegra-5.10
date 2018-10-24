@@ -23,8 +23,7 @@
 #include <nvgpu/kmem.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/boardobj.h>
-
-#include "ctrl/ctrlboardobj.h"
+#include <nvgpu/pmuif/ctrlboardobj.h>
 
 int boardobj_construct_super(struct gk20a *g, struct boardobj **ppboardobj,
 				u16 size, void *args)

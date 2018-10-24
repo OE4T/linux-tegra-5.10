@@ -23,10 +23,10 @@
 #include <nvgpu/pmu.h>
 #include <nvgpu/pmuif/nvgpu_gpmu_cmdif.h>
 #include <nvgpu/gk20a.h>
+#include <nvgpu/pmuif/ctrlclk.h>
+#include <nvgpu/pmuif/ctrlvolt.h>
 
 #include "clk.h"
-#include "ctrl/ctrlclk.h"
-#include "ctrl/ctrlvolt.h"
 #include "volt/volt.h"
 
 #define BOOT_GPC2CLK_MHZ  2581U

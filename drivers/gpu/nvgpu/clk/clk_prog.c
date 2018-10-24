@@ -26,13 +26,13 @@
 #include <nvgpu/boardobjgrp.h>
 #include <nvgpu/boardobjgrp_e32.h>
 #include <nvgpu/string.h>
+#include <nvgpu/pmuif/ctrlclk.h>
+#include <nvgpu/pmuif/ctrlvolt.h>
 
 #include "clk.h"
 #include "clk_prog.h"
 #include "clk_vf_point.h"
 #include "gp106/bios_gp106.h"
-#include "ctrl/ctrlclk.h"
-#include "ctrl/ctrlvolt.h"
 
 static struct clk_prog *construct_clk_prog(struct gk20a *g, void *pargs);
 static int devinit_get_clk_prog_table(struct gk20a *g,

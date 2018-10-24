@@ -26,10 +26,10 @@
 #include <nvgpu/boardobjgrp.h>
 #include <nvgpu/boardobjgrp_e32.h>
 #include <nvgpu/string.h>
+#include <nvgpu/pmuif/ctrltherm.h>
 
 #include "thrmdev.h"
 #include "gp106/bios_gp106.h"
-#include "ctrl/ctrltherm.h"
 
 static int _therm_device_pmudata_instget(struct gk20a *g,
 			struct nv_pmu_boardobjgrp *pmuboardobjgrp,

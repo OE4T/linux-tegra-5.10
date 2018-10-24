@@ -25,13 +25,13 @@
 #include <nvgpu/boardobjgrp.h>
 #include <nvgpu/boardobjgrp_e32.h>
 #include <nvgpu/string.h>
+#include <nvgpu/pmuif/ctrlclk.h>
+#include <nvgpu/pmuif/ctrlvolt.h>
 
 #include "clk.h"
 #include "clk_fll.h"
 #include "clk_domain.h"
 #include "clk_freq_controller.h"
-#include "ctrl/ctrlclk.h"
-#include "ctrl/ctrlvolt.h"
 
 static int clk_freq_controller_pmudatainit_super(struct gk20a *g,
 	struct boardobj *board_obj_ptr,

@@ -23,12 +23,12 @@
 #ifndef NVGPU_PMUIF_GPMUIFCLK_H
 #define NVGPU_PMUIF_GPMUIFCLK_H
 
-#include "ctrl/ctrlboardobj.h"
-#include "ctrl/ctrlvolt.h"
-#include "ctrl/ctrlperf.h"
-#include "ctrl/ctrlclk.h"
-#include "gpmuifboardobj.h"
-#include "gpmuifvolt.h"
+#include <nvgpu/pmuif/ctrlboardobj.h>
+#include <nvgpu/pmuif/ctrlvolt.h>
+#include <nvgpu/pmuif/ctrlperf.h>
+#include <nvgpu/pmuif/ctrlclk.h>
+#include <nvgpu/pmuif/gpmuifboardobj.h>
+#include <nvgpu/pmuif/gpmuifvolt.h>
 #include <nvgpu/flcnif_cmn.h>
 
 

@@ -23,8 +23,8 @@
 #ifndef NVGPU_PMUIF_GPMUIFTHERMSENSOR_H
 #define NVGPU_PMUIF_GPMUIFTHERMSENSOR_H
 
-#include "ctrl/ctrltherm.h"
-#include "gpmuifboardobj.h"
+#include <nvgpu/pmuif/ctrltherm.h>
+#include <nvgpu/pmuif/gpmuifboardobj.h>
 #include <nvgpu/flcnif_cmn.h>
 
 #define NV_PMU_THERM_BOARDOBJGRP_CLASS_ID_THERM_DEVICE      0x00

@@ -21,8 +21,7 @@
  */
 #include <nvgpu/gk20a.h>
 #include <nvgpu/boardobjgrp.h>
-
-#include "ctrl/ctrlboardobj.h"
+#include <nvgpu/pmuif/ctrlboardobj.h>
 
 /*
 * Assures that unused bits (size .. (maskDataCount * 32 - 1)) are always zero.

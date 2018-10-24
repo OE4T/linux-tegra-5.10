@@ -23,8 +23,7 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/boardobjgrp.h>
 #include <nvgpu/boardobj.h>
-
-#include "ctrl/ctrlboardobj.h"
+#include <nvgpu/pmuif/ctrlboardobj.h>
 
 static boardobjgrp_objinsert   boardobjgrp_objinsert_final;
 static boardobjgrp_objgetbyidx   boardobjgrp_objgetbyidx_final;

@@ -25,10 +25,10 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/boardobjgrp.h>
 #include <nvgpu/boardobjgrp_e32.h>
+#include <nvgpu/pmuif/ctrlvolt.h>
+#include <nvgpu/pmuif/ctrlperf.h>
 
 #include "gp106/bios_gp106.h"
-#include "ctrl/ctrlvolt.h"
-#include "ctrl/ctrlperf.h"
 
 #include "volt.h"
 

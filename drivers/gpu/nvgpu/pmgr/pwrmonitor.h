@@ -27,7 +27,7 @@
 #include <nvgpu/pmuif/nvgpu_gpmu_cmdif.h>
 #include <nvgpu/boardobjgrp.h>
 #include <nvgpu/boardobj.h>
-#include "ctrl/ctrlpmgr.h"
+#include <nvgpu/pmuif/ctrlpmgr.h>
 
 struct pwr_channel {
 	struct boardobj super;

@@ -26,7 +26,6 @@
 
 #include <nvgpu/boardobj.h>
 #include <nvgpu/boardobjgrp.h>
-#include "ctrl/ctrltherm.h"
 
 struct therm_channel {
 	struct boardobj super;

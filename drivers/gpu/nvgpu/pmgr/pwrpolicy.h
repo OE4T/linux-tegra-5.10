@@ -27,7 +27,7 @@
 #include <nvgpu/pmuif/nvgpu_gpmu_cmdif.h>
 #include <nvgpu/boardobjgrp.h>
 #include <nvgpu/boardobj.h>
-#include "ctrl/ctrlpmgr.h"
+#include <nvgpu/pmuif/ctrlpmgr.h>
 
 #define PWR_POLICY_EXT_POWER_STATE_ID_COUNT 0x4U
 
