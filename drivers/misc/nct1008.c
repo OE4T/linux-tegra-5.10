@@ -71,7 +71,7 @@
 /* NOT USED                          0x1F */
 #define LOC_THERM_LIMIT              0x20
 #define THERM_HYSTERESIS             0x21
-#define COSECUTIVE_ALERT             0x22
+#define CONSECUTIVE_ALERT            0x22
 #define NFACTOR_CORRECTION           0x23
 #define MANUFACTURER_ID              0xFE
 #define MAX6649_LOC_TEMP_LO_RD       0x11
@@ -109,6 +109,9 @@
 #define THERM2_BIT         BIT(5)
 #define STANDBY_BIT        BIT(6)
 #define ALERT_BIT          BIT(7)
+
+/* Consecutive ALERT register bits. */
+#define SMBTO_BIT BIT(7) /* Enable or disable SMBus time-out */
 
 /* Status register trip point bits. */
 #define EXT_LO_BIT BIT(3) /* External Sensor has tripped 'temp <= LOW' */
@@ -545,7 +548,7 @@ static ssize_t nct1008_show_regs(struct device *dev,
 	sz += pr_reg(nct, buf+sz, PAGE_SIZE-sz,
 		"Hysteresis          ", THERM_HYSTERESIS);
 	sz += pr_reg(nct, buf+sz, PAGE_SIZE-sz,
-		"Consecutive Alert   ", COSECUTIVE_ALERT);
+		"Consecutive Alert   ", CONSECUTIVE_ALERT);
 	sz += pr_reg(nct, buf+sz, PAGE_SIZE-sz,
 		"Local Temp Value    ", LOC_TEMP_RD);
 	sz += pr_reg(nct, buf+sz, PAGE_SIZE-sz,
@@ -1123,6 +1126,16 @@ static int nct1008_sensors_init(struct nct1008_data *data)
 	struct nct1008_platform_data *pdata = &data->plat_data;
 
 	if (!pdata)
+		goto err;
+
+	/* Enable SMBus timeout */
+	temp = nct1008_read_reg(data, CONSECUTIVE_ALERT);
+	if (temp < 0)
+		goto err;
+
+	temp |= SMBTO_BIT;
+	ret = nct1008_write_reg(data, CONSECUTIVE_ALERT, temp);
+	if (ret)
 		goto err;
 
 	/* Configure sensor to trigger alerts clear THERM2_BIT and ALERT_BIT*/
