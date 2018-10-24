@@ -125,6 +125,8 @@ struct gk20a *nvgpu_posix_probe(void)
 
 	g = &p->g;
 
+	g->log_mask = 0;
+
 	err = nvgpu_kmem_init(g);
 	if (err != 0)
 		goto fail;
