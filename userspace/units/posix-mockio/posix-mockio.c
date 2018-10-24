@@ -314,6 +314,10 @@ static int test_register_space(struct unit_module *m, struct gk20a *g,
 	/* Calling this function again resets the recorder to use it again */
 	nvgpu_posix_io_start_recorder(g);
 
+	/* Free the reg space structures, too */
+	nvgpu_posix_io_delete_reg_space(g, 0x10000000);
+	nvgpu_posix_io_delete_reg_space(g, 0x80000000);
+
 	/* Restore the old callbacks for other tests within this unit */
 	nvgpu_posix_register_io(g, old_cbs);
 
