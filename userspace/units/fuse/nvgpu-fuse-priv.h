@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -20,37 +20,18 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#include <nvgpu/fuse.h>
+#ifndef __UNIT_NVGPU_FUSE_PRIV_H__
+#define __UNIT_NVGPU_FUSE_PRIV_H__
 
-int nvgpu_tegra_get_gpu_speedo_id(struct gk20a *g)
-{
-	return 0;
-}
+extern u32 gcplex_config;
+int read_gcplex_config_fuse_pass(struct gk20a *g, u32 *val);
+int read_gcplex_config_fuse_fail(struct gk20a *g, u32 *val);
 
-void nvgpu_tegra_fuse_write_bypass(struct gk20a *g, u32 val)
-{
-}
+struct fuse_test_args {
+	u32 gpu_arch;
+	u32 gpu_impl;
+	u32 fuse_base_addr;
+	u32 sec_fuse_addr;
+};
 
-void nvgpu_tegra_fuse_write_access_sw(struct gk20a *g, u32 val)
-{
-}
-
-void nvgpu_tegra_fuse_write_opt_gpu_tpc0_disable(struct gk20a *g, u32 val)
-{
-}
-
-void nvgpu_tegra_fuse_write_opt_gpu_tpc1_disable(struct gk20a *g, u32 val)
-{
-}
-
-int nvgpu_tegra_fuse_read_gcplex_config_fuse(struct gk20a *g, u32 *val)
-{
-	*val = 0;
-
-	return 0;
-}
-
-int nvgpu_tegra_fuse_read_reserved_calib(struct gk20a *g, u32 *val)
-{
-	return -ENODEV;
-}
+#endif /* __UNIT_NVGPU_FUSE_PRIV_H__ */

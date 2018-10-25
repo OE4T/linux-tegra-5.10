@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -20,37 +20,24 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#include <nvgpu/fuse.h>
+#ifndef __UNIT_NVGPU_FUSE_GP10B_H__
+#define __UNIT_NVGPU_FUSE_GP10B_H__
 
-int nvgpu_tegra_get_gpu_speedo_id(struct gk20a *g)
-{
-	return 0;
-}
+extern struct fuse_test_args gp10b_init_args;
 
-void nvgpu_tegra_fuse_write_bypass(struct gk20a *g, u32 val)
-{
-}
+int test_fuse_gp10b_check_sec(struct unit_module *m,
+			      struct gk20a *g, void *__args);
+int test_fuse_gp10b_check_gcplex_fail(struct unit_module *m,
+				      struct gk20a *g, void *__args);
+int test_fuse_gp10b_check_sec_invalid_gcplex(struct unit_module *m,
+					     struct gk20a *g, void *__args);
+int test_fuse_gp10b_check_non_sec(struct unit_module *m,
+				  struct gk20a *g, void *__args);
+int test_fuse_gp10b_ecc(struct unit_module *m,
+			struct gk20a *g, void *__args);
+int test_fuse_gp10b_feature_override_disable(struct unit_module *m,
+					     struct gk20a *g, void *__args);
+int test_fuse_gp10b_check_fmodel(struct unit_module *m,
+				 struct gk20a *g, void *__args);
 
-void nvgpu_tegra_fuse_write_access_sw(struct gk20a *g, u32 val)
-{
-}
-
-void nvgpu_tegra_fuse_write_opt_gpu_tpc0_disable(struct gk20a *g, u32 val)
-{
-}
-
-void nvgpu_tegra_fuse_write_opt_gpu_tpc1_disable(struct gk20a *g, u32 val)
-{
-}
-
-int nvgpu_tegra_fuse_read_gcplex_config_fuse(struct gk20a *g, u32 *val)
-{
-	*val = 0;
-
-	return 0;
-}
-
-int nvgpu_tegra_fuse_read_reserved_calib(struct gk20a *g, u32 *val)
-{
-	return -ENODEV;
-}
+#endif /* __UNIT_NVGPU_FUSE_GP10B_H__ */

@@ -29,6 +29,7 @@ NV_REPOSITORY_COMPONENTS += userspace/units/posix/fault-injection
 NV_REPOSITORY_COMPONENTS += userspace/units/pramin
 NV_REPOSITORY_COMPONENTS += userspace/units/mm/nvgpu_allocator
 NV_REPOSITORY_COMPONENTS += userspace/units/fifo/runlist
+NV_REPOSITORY_COMPONENTS += userspace/units/fuse
 endif
 
 # Local Variables:

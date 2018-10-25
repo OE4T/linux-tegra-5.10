@@ -40,7 +40,9 @@ nvgpu_free
 nvgpu_free_enabled_flags
 nvgpu_free_fixed
 nvgpu_init_enabled_flags
+nvgpu_init_hal
 nvgpu_init_pramin
+nvgpu_is_enabled
 nvgpu_kmem_cache_alloc
 nvgpu_kmem_cache_create
 nvgpu_kmem_cache_destroy
