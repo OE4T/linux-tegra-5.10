@@ -1,7 +1,7 @@
 /*
  * Host1x Application Specific Virtual Memory
  *
- * Copyright (c) 2015, NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2015-2018, NVIDIA Corporation.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -21,7 +21,6 @@
 
 struct platform_device *iommu_context_dev_allocate(void *identifier);
 void iommu_context_dev_release(struct platform_device *pdev);
-int iommu_context_dev_get_streamid(struct platform_device *pdev);
 int iommu_context_dev_map_static(void *vaddr, dma_addr_t paddr, size_t size);
 
 #endif
