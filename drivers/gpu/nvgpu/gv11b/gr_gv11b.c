@@ -3088,6 +3088,12 @@ int gr_gv11b_init_fs_state(struct gk20a *g)
 			g->gr.fecs_feature_override_ecc_val);
 	}
 
+	data = gk20a_readl(g, gr_debug_0_r());
+	data = set_field(data,
+		gr_debug_0_scg_force_slow_drain_tpc_m(),
+		gr_debug_0_scg_force_slow_drain_tpc_enabled_f());
+	gk20a_writel(g, gr_debug_0_r(), data);
+
 	err = gr_gk20a_init_fs_state(g);
 	if (err != 0) {
 		return err;

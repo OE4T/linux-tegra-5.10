@@ -5672,6 +5672,22 @@ static inline u32 gr_fecs_falcon_ecc_uncorrected_err_count_unique_total_v(u32 r)
 {
 	return (r >> 16U) & 0xffffU;
 }
+static inline u32 gr_debug_0_r(void)
+{
+	return 0x00400080U;
+}
+static inline u32 gr_debug_0_scg_force_slow_drain_tpc_m(void)
+{
+	return 0x1U << 11U;
+}
+static inline u32 gr_debug_0_scg_force_slow_drain_tpc_enabled_f(void)
+{
+	return 0x800U;
+}
+static inline u32 gr_debug_0_scg_force_slow_drain_tpc_disabled_f(void)
+{
+	return 0x0U;
+}
 static inline u32 gr_debug_2_r(void)
 {
 	return 0x00400088U;
