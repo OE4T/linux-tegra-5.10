@@ -107,4 +107,6 @@ done
 # target jetson. This means you may
 jcp $nvgpu_bins            nvgpu_unit
 jcp $TOP/kernel/nvgpu      $TOP/kernel
-jcp $TOP/kernel/nvgpu-next $TOP/kernel
+if [ -d TOP/kernel/nvgpu-next ]; then
+    jcp $TOP/kernel/nvgpu-next $TOP/kernel
+fi
