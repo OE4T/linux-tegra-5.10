@@ -4689,10 +4689,19 @@ static int tegra210_adsp_audio_platform_probe(struct platform_device *pdev)
 		goto err_unregister_codec;
 	}
 
+	/* Try booting the ADSP OS */
+	ret = tegra210_adsp_init(adsp);
+	if (ret < 0) {
+		dev_err(&pdev->dev, "Failed to init ADSP.");
+		goto err_release_netlink;
+	}
+
 	dev_info(&pdev->dev, "Tegra210 ADSP driver successfully registered\n");
 
 	return 0;
 
+err_release_netlink:
+	netlink_kernel_release(adsp->nl_sk);
 err_unregister_codec:
 	snd_soc_unregister_codec(&pdev->dev);
 err_unregister_component:
