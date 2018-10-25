@@ -45,7 +45,7 @@ else:
 	if top is None:
 		print("$TOP is undefined, unable to find gk20a.h");
 		exit(-1);
-	gk20a_h_path = top + "/kernel/nvgpu/drivers/gpu/nvgpu/gk20a/gk20a.h"
+	gk20a_h_path = top + "/kernel/nvgpu/drivers/gpu/nvgpu/include/nvgpu/gk20a.h"
 
 def get_function_pointer_name(line):
 	matches = re.search('.*\(\*(?P<function_name>\w+)\)\(', line);

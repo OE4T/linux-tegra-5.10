@@ -28,8 +28,8 @@
 #include <nvgpu/kmem.h>
 #include <nvgpu/pmu.h>
 #include <nvgpu/dma.h>
+#include <nvgpu/gk20a.h>
 
-#include "gk20a/gk20a.h"
 #include "gm20b/acr_gm20b.h"
 #include "gp106/acr_gp106.h"
 #include "gv100/gsp_gv100.h"
