@@ -47,13 +47,13 @@ CORE_HEADERS :=	\
 
 # Each directory under the UNIT_SRC directory should correspond to one module.
 UNITS :=				\
-	$(UNIT_SRC)/posix-env		\
-	$(UNIT_SRC)/posix-bitops	\
-	$(UNIT_SRC)/posix-mockio	\
-	$(UNIT_SRC)/posix-fault-injection \
-	$(UNIT_SRC)/nvgpu-pramin	\
+	$(UNIT_SRC)/posix/env		\
+	$(UNIT_SRC)/posix/bitops	\
+	$(UNIT_SRC)/posix/mockio	\
+	$(UNIT_SRC)/posix/fault-injection \
+	$(UNIT_SRC)/pramin		\
 	$(UNIT_SRC)/mm/nvgpu_allocator	\
-	$(UNIT_SRC)/fifo/nvgpu-runlist	\
+	$(UNIT_SRC)/fifo/runlist	\
 	$(UNIT_SRC)/list
 
 # A test unit. Not really needed any more...

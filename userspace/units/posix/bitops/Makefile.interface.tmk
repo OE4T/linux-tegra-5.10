@@ -12,9 +12,9 @@
 #
 ###############################################################################
 
-NVGPU_UNIT_NAME=posix-fault-injection
+NVGPU_UNIT_NAME=posix-bitops
 
-include $(NV_COMPONENT_DIR)/../Makefile.units.common.interface.tmk
+include $(NV_COMPONENT_DIR)/../../Makefile.units.common.interface.tmk
 
 # Local Variables:
 # indent-tabs-mode: t

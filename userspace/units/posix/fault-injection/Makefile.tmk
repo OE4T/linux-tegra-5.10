@@ -1,6 +1,6 @@
 ################################### tell Emacs this is a -*- makefile-gmake -*-
 #
-# Copyright (c) 2018, NVIDIA CORPORATION.  All Rights Reserved.
+# Copyright (c) 2018 NVIDIA CORPORATION.  All Rights Reserved.
 #
 # NVIDIA CORPORATION and its licensors retain all intellectual property
 # and proprietary rights in and to this software, related documentation
@@ -12,9 +12,12 @@
 #
 ###############################################################################
 
-NVGPU_UNIT_NAME=posix-mockio
+NVGPU_UNIT_NAME=posix-fault-injection
+NVGPU_UNIT_SRCS=posix-fault-injection.c \
+		posix-fault-injection-kmem.c \
+		posix-fault-injection-dma-alloc.c
 
-include $(NV_COMPONENT_DIR)/../Makefile.units.common.interface.tmk
+include $(NV_COMPONENT_DIR)/../../Makefile.units.common.tmk
 
 # Local Variables:
 # indent-tabs-mode: t

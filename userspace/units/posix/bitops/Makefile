@@ -20,7 +20,7 @@
 
 .SUFFIXES:
 
-OBJS   = posix-env.o
-MODULE = posix-env
+OBJS   = posix-bitops.o
+MODULE = posix-bitops
 
-include ../Makefile.units
+include ../../Makefile.units

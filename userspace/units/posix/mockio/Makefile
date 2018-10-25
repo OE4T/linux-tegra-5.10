@@ -23,4 +23,4 @@
 OBJS   = posix-mockio.o
 MODULE = posix-mockio
 
-include ../Makefile.units
+include ../../Makefile.units

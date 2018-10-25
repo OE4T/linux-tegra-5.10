@@ -26,6 +26,7 @@
 #include <nvgpu/dma.h>
 #include <nvgpu/nvgpu_mem.h>
 #include <nvgpu/posix/posix-fault-injection.h>
+
 #include "posix-fault-injection-dma-alloc.h"
 
 #define TEST_DEFAULT_SIZE 4096

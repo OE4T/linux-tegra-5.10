@@ -20,9 +20,7 @@
 
 .SUFFIXES:
 
-OBJS   = posix-fault-injection.o \
-	 posix-fault-injection-kmem.o \
-	 posix-fault-injection-dma-alloc.o
-MODULE = posix-fault-injection
+OBJS   = posix-env.o
+MODULE = posix-env
 
-include ../Makefile.units
+include ../../Makefile.units
