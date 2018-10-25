@@ -706,6 +706,12 @@ static int azx_pcm_silence(struct snd_pcm_substream *substream,
 	int i, j;
 
 	snd_pcm_uframes_t count = bytes_to_frames(substream->runtime, bytes);
+	struct azx_pcm *apcm = snd_pcm_substream_chip(substream);
+
+	if (!apcm->codec->comfort_noise) {
+		memset(buf16, 0, bytes);
+		return 0;
+	}
 
 	if (substream->runtime->format == SNDRV_PCM_FORMAT_S32_LE) {
 		for (i = 0; i < count; i++) {
