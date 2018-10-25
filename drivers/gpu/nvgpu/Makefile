@@ -239,6 +239,16 @@ nvgpu-y += \
 	common/pmu/pmu_pg.o \
 	common/pmu/pmu_perfmon.o \
 	common/pmu/pmu_debug.o \
+	common/pmu/pmu_gk20a.o \
+	common/pmu/pmu_gm20b.o \
+	common/pmu/pmu_gp10b.o \
+	common/pmu/pmu_gp106.o \
+	common/pmu/pmu_gv11b.o \
+	common/pmu/pmu_gv100.o \
+	common/pmu/acr_gm20b.o \
+	common/pmu/acr_gp106.o \
+	common/pmu/acr_gv11b.o \
+	common/pmu/acr_tu104.o \
 	common/sec2/sec2.o \
 	common/sec2/sec2_ipc.o \
 	common/io_common.o \
@@ -262,7 +272,6 @@ nvgpu-y += \
 	gk20a/regops_gk20a.o \
 	gk20a/gr_gk20a.o \
 	gk20a/mm_gk20a.o \
-	gk20a/pmu_gk20a.o \
 	gk20a/flcn_gk20a.o \
 	gk20a/fence_gk20a.o \
 	gk20a/fecs_trace_gk20a.o \
@@ -270,8 +279,6 @@ nvgpu-y += \
 	gm20b/gr_gm20b.o \
 	gm20b/clk_gm20b.o \
 	gm20b/fifo_gm20b.o \
-	gm20b/acr_gm20b.o \
-	gm20b/pmu_gm20b.o \
 	gm20b/mm_gm20b.o \
 	gm20b/regops_gm20b.o
 
@@ -311,7 +318,6 @@ nvgpu-y += \
 	gp10b/ce_gp10b.o \
 	gp10b/fifo_gp10b.o  \
 	gp10b/mm_gp10b.o \
-	gp10b/pmu_gp10b.o \
 	gp10b/hal_gp10b.o \
 	gp10b/regops_gp10b.o \
 	gp10b/fecs_trace_gp10b.o \
@@ -319,10 +325,8 @@ nvgpu-y += \
 	gp10b/ecc_gp10b.o \
 	gp106/hal_gp106.o \
 	gp106/flcn_gp106.o \
-	gp106/pmu_gp106.o \
 	gp106/mclk_gp106.o \
 	gp106/gr_gp106.o \
-	gp106/acr_gp106.o \
 	gp106/sec2_gp106.o \
 	gp106/fifo_gp106.o \
 	gp106/regops_gp106.o \
@@ -333,8 +337,6 @@ nvgpu-y += \
 	gv11b/fifo_gv11b.o \
 	gv11b/mm_gv11b.o \
 	gv11b/ce_gv11b.o \
-	gv11b/pmu_gv11b.o \
-	gv11b/acr_gv11b.o \
 	gv11b/subctx_gv11b.o \
 	gv11b/regops_gv11b.o \
 	gv11b/ecc_gv11b.o \
@@ -346,7 +348,6 @@ nvgpu-y += \
 	gv100/flcn_gv100.o \
 	gv100/nvlink_gv100.o \
 	gv100/hal_gv100.o \
-	gv100/pmu_gv100.o \
 	gv100/perf_gv100.o \
 	gv100/gsp_gv100.o \
 	gv100/clk_gv100.o \
@@ -361,7 +362,6 @@ nvgpu-y += \
 	tu104/sec2_tu104.o \
 	tu104/ecc_tu104.o \
 	tu104/regops_tu104.o \
-	tu104/acr_tu104.o \
 	pstate/pstate.o \
 	clk/clk_vin.o \
 	clk/clk_fll.o \

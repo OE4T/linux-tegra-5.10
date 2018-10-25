@@ -34,13 +34,13 @@
 #include <nvgpu/string.h>
 
 #include "gm20b/mm_gm20b.h"
-#include "gm20b/acr_gm20b.h"
-#include "gp106/acr_gp106.h"
-#include "gp106/pmu_gp106.h"
-#include "gv100/acr_gv100.h"
-#include "tu104/acr_tu104.h"
+#include "gp106/sec2_gp106.h"
 
-#include "sec2_gp106.h"
+#include "acr_gm20b.h"
+#include "acr_gp106.h"
+#include "pmu_gp106.h"
+#include "acr_gv100.h"
+#include "acr_tu104.h"
 
 #include <nvgpu/hw/gp106/hw_psec_gp106.h>
 #include <nvgpu/hw/gp106/hw_pwr_gp106.h>

@@ -30,9 +30,8 @@
 #include <nvgpu/utils.h>
 #include <nvgpu/gk20a.h>
 
-#include "gp10b/pmu_gp10b.h"
-#include "gp106/pmu_gp106.h"
-
+#include "pmu_gp10b.h"
+#include "pmu_gp106.h"
 #include "pmu_gv11b.h"
 #include "acr_gv11b.h"
 

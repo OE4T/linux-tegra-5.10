@@ -30,11 +30,12 @@
 #include <nvgpu/dma.h>
 #include <nvgpu/gk20a.h>
 
-#include "gm20b/acr_gm20b.h"
-#include "gp106/acr_gp106.h"
 #include "gv100/gsp_gv100.h"
-#include "tu104/acr_tu104.h"
 #include "tu104/sec2_tu104.h"
+
+#include "acr_gm20b.h"
+#include "acr_gp106.h"
+#include "acr_tu104.h"
 
 static int tu104_bootstrap_hs_acr(struct gk20a *g, struct nvgpu_acr *acr,
 	struct hs_acr *acr_type)

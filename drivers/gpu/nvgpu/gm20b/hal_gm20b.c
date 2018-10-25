@@ -45,23 +45,23 @@
 #include "common/fuse/fuse_gm20b.h"
 #include "common/mc/mc_gm20b.h"
 #include "common/perf/perf_gm20b.h"
+#include "common/pmu/pmu_gk20a.h"
+#include "common/pmu/pmu_gm20b.h"
+#include "common/pmu/acr_gm20b.h"
 
 #include "gk20a/ce2_gk20a.h"
 #include "gk20a/fifo_gk20a.h"
 #include "gk20a/mm_gk20a.h"
 #include "gk20a/flcn_gk20a.h"
 #include "gk20a/regops_gk20a.h"
-#include "gk20a/pmu_gk20a.h"
 #include "gk20a/gr_gk20a.h"
 
 #include "gr_gm20b.h"
 #include "fifo_gm20b.h"
 #include "mm_gm20b.h"
-#include "pmu_gm20b.h"
 #include "clk_gm20b.h"
 #include "regops_gm20b.h"
 #include "hal_gm20b.h"
-#include "acr_gm20b.h"
 
 #include <nvgpu/hw/gm20b/hw_proj_gm20b.h>
 #include <nvgpu/hw/gm20b/hw_fifo_gm20b.h>

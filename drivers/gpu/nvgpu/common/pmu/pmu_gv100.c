@@ -25,7 +25,7 @@
 #include <nvgpu/pmu.h>
 #include <nvgpu/gk20a.h>
 
-#include "gv100/pmu_gv100.h"
+#include "pmu_gv100.h"
 
 int gv100_pmu_init_acr(struct gk20a *g)
 {

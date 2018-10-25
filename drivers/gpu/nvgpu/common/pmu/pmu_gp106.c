@@ -26,13 +26,12 @@
 #include <nvgpu/clk_arb.h>
 #include <nvgpu/gk20a.h>
 
-#include "gk20a/pmu_gk20a.h"
-
-#include "gm20b/acr_gm20b.h"
-#include "gm20b/pmu_gm20b.h"
-#include "gp10b/pmu_gp10b.h"
-#include "gp106/pmu_gp106.h"
-#include "gp106/acr_gp106.h"
+#include "pmu_gk20a.h"
+#include "acr_gm20b.h"
+#include "pmu_gm20b.h"
+#include "pmu_gp10b.h"
+#include "pmu_gp106.h"
+#include "acr_gp106.h"
 
 #include "clk/clk_mclk.h"
 

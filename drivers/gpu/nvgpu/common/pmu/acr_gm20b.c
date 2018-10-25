@@ -38,7 +38,8 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/string.h>
 
-#include "mm_gm20b.h"
+#include "gm20b/mm_gm20b.h"
+
 #include "pmu_gm20b.h"
 #include "acr_gm20b.h"
 

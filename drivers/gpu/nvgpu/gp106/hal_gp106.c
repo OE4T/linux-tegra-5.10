@@ -44,13 +44,18 @@
 #include "common/mc/mc_gm20b.h"
 #include "common/mc/mc_gp10b.h"
 #include "common/perf/perf_gm20b.h"
+#include "common/pmu/pmu_gk20a.h"
+#include "common/pmu/pmu_gm20b.h"
+#include "common/pmu/pmu_gp10b.h"
+#include "common/pmu/pmu_gp106.h"
+#include "common/pmu/acr_gm20b.h"
+#include "common/pmu/acr_gp106.h"
 
 #include "gk20a/fifo_gk20a.h"
 #include "gk20a/fecs_trace_gk20a.h"
 #include "gk20a/mm_gk20a.h"
 #include "gk20a/flcn_gk20a.h"
 #include "gk20a/regops_gk20a.h"
-#include "gk20a/pmu_gk20a.h"
 #include "gk20a/gr_gk20a.h"
 
 #include "gp10b/gr_gp10b.h"
@@ -59,7 +64,6 @@
 #include "gp10b/ce_gp10b.h"
 #include "gp10b/regops_gp10b.h"
 #include "gp10b/fifo_gp10b.h"
-#include "gp10b/pmu_gp10b.h"
 #include "gp10b/gr_gp10b.h"
 
 #include "gp106/fifo_gp106.h"
@@ -68,11 +72,8 @@
 #include "gm20b/gr_gm20b.h"
 #include "gm20b/fifo_gm20b.h"
 #include "gm20b/mm_gm20b.h"
-#include "gm20b/pmu_gm20b.h"
-#include "gm20b/acr_gm20b.h"
 #include "gm20b/gr_gm20b.h"
 
-#include "gp106/acr_gp106.h"
 #include "gp106/sec2_gp106.h"
 #include "gp106/clk_gp106.h"
 #include "gp106/clk_arb_gp106.h"
@@ -80,7 +81,6 @@
 #include "gp106/bios_gp106.h"
 #include "gp106/fifo_gp106.h"
 #include "gp106/clk_gp106.h"
-#include "gp106/pmu_gp106.h"
 #include "gp106/gr_gp106.h"
 #include "gp106/flcn_gp106.h"
 

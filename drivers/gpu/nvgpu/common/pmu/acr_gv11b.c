@@ -35,12 +35,13 @@
 #include <nvgpu/utils.h>
 #include <nvgpu/gk20a.h>
 
+#include "gm20b/mm_gm20b.h"
+
 #include "acr_gv11b.h"
 #include "pmu_gv11b.h"
-#include "gm20b/mm_gm20b.h"
-#include "gm20b/pmu_gm20b.h"
-#include "gm20b/acr_gm20b.h"
-#include "gp106/acr_gp106.h"
+#include "pmu_gm20b.h"
+#include "acr_gm20b.h"
+#include "acr_gp106.h"
 
 #include <nvgpu/hw/gv11b/hw_pwr_gv11b.h>
 

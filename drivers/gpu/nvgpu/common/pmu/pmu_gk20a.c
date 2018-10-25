@@ -37,7 +37,7 @@
 #include <nvgpu/utils.h>
 #include <nvgpu/unit.h>
 
-#include "gr_gk20a.h"
+#include "gk20a/gr_gk20a.h"
 #include "pmu_gk20a.h"
 
 #include <nvgpu/hw/gk20a/hw_mc_gk20a.h>

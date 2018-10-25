@@ -55,26 +55,17 @@
 #include "vgpu/gp10b/vgpu_gr_gp10b.h"
 
 #include <gk20a/flcn_gk20a.h>
-#include <gk20a/pmu_gk20a.h>
 
 #include <gm20b/gr_gm20b.h>
 #include <gm20b/fifo_gm20b.h>
-#include <gm20b/pmu_gm20b.h>
 #include <gm20b/mm_gm20b.h>
-#include <gm20b/acr_gm20b.h>
 
-#include <gp10b/pmu_gp10b.h>
 #include <gp10b/mm_gp10b.h>
 #include <gp10b/ce_gp10b.h>
 #include "gp10b/gr_gp10b.h"
 #include <gp10b/fifo_gp10b.h>
 #include "gp10b/clk_arb_gp10b.h"
 
-#include <gp106/pmu_gp106.h>
-#include <gp106/acr_gp106.h>
-
-#include <gv11b/pmu_gv11b.h>
-#include <gv11b/acr_gv11b.h>
 #include <gv11b/mm_gv11b.h>
 #include <gv11b/ce_gv11b.h>
 #include <gv11b/fifo_gv11b.h>
