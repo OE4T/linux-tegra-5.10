@@ -24,6 +24,7 @@
 #include <nvgpu/io.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/hw/gp106/hw_gc6_gp106.h>
+#include <nvgpu/string.h>
 
 #define BIT_HEADER_ID 				0xb8ffU
 #define BIT_HEADER_SIGNATURE 			0x00544942U
@@ -363,7 +364,7 @@ static void nvgpu_bios_parse_biosdata(struct gk20a *g, int offset)
 {
 	struct biosdata biosdata;
 
-	memcpy(&biosdata, &g->bios.data[offset], sizeof(biosdata));
+	nvgpu_memcpy((u8 *)&biosdata, &g->bios.data[offset], sizeof(biosdata));
 	nvgpu_log_fn(g, "bios version %x, oem version %x",
 			biosdata.version,
 			biosdata.oem_version);
@@ -376,7 +377,8 @@ static void nvgpu_bios_parse_nvinit_ptrs(struct gk20a *g, int offset)
 {
 	struct nvinit_ptrs nvinit_ptrs;
 
-	memcpy(&nvinit_ptrs, &g->bios.data[offset], sizeof(nvinit_ptrs));
+	nvgpu_memcpy((u8 *)&nvinit_ptrs, &g->bios.data[offset],
+		sizeof(nvinit_ptrs));
 	nvgpu_log_fn(g, "devinit ptr %x size %d", nvinit_ptrs.devinit_tables_ptr,
 			nvinit_ptrs.devinit_tables_size);
 	nvgpu_log_fn(g, "bootscripts ptr %x size %d", nvinit_ptrs.bootscripts_ptr,
@@ -434,12 +436,12 @@ static void nvgpu_bios_parse_memory_ptrs(struct gk20a *g, int offset, u8 version
 
 	switch (version) {
 	case MEMORY_PTRS_V1:
-		memcpy(&v1, &g->bios.data[offset], sizeof(v1));
+		nvgpu_memcpy((u8 *)&v1, &g->bios.data[offset], sizeof(v1));
 		g->bios.mem_strap_data_count = v1.mem_strap_data_count;
 		g->bios.mem_strap_xlat_tbl_ptr = v1.mem_strap_xlat_tbl_ptr;
 		return;
 	case MEMORY_PTRS_V2:
-		memcpy(&v2, &g->bios.data[offset], sizeof(v2));
+		nvgpu_memcpy((u8 *)&v2, &g->bios.data[offset], sizeof(v2));
 		g->bios.mem_strap_data_count = v2.mem_strap_data_count;
 		g->bios.mem_strap_xlat_tbl_ptr = v2.mem_strap_xlat_tbl_ptr;
 		return;
@@ -453,7 +455,8 @@ static void nvgpu_bios_parse_devinit_appinfo(struct gk20a *g, int dmem_offset)
 {
 	struct devinit_engine_interface interface;
 
-	memcpy(&interface, &g->bios.devinit.dmem[dmem_offset], sizeof(interface));
+	nvgpu_memcpy((u8 *)&interface, &g->bios.devinit.dmem[dmem_offset],
+		sizeof(interface));
 	nvgpu_log_fn(g, "devinit version %x tables phys %x script phys %x size %d",
 			interface.version,
 			interface.tables_phys_base,
@@ -472,7 +475,7 @@ static int nvgpu_bios_parse_appinfo_table(struct gk20a *g, int offset)
 	struct application_interface_table_hdr_v1 hdr;
 	int i;
 
-	memcpy(&hdr, &g->bios.data[offset], sizeof(hdr));
+	memcpy((u8 *)&hdr, &g->bios.data[offset], sizeof(hdr));
 
 	nvgpu_log_fn(g, "appInfoHdr ver %d size %d entrySize %d entryCount %d",
 			hdr.version, hdr.header_size,
@@ -486,7 +489,8 @@ static int nvgpu_bios_parse_appinfo_table(struct gk20a *g, int offset)
 	for (i = 0; i < hdr.entry_count; i++) {
 		struct application_interface_entry_v1 entry;
 
-		memcpy(&entry, &g->bios.data[offset], sizeof(entry));
+		nvgpu_memcpy((u8 *)&entry, &g->bios.data[offset],
+			sizeof(entry));
 
 		nvgpu_log_fn(g, "appInfo id %d dmem_offset %d",
 				entry.id, entry.dmem_offset);
@@ -509,7 +513,7 @@ static int nvgpu_bios_parse_falcon_ucode_desc(struct gk20a *g,
 	u8 version;
 	u16 desc_size;
 
-	memcpy(&udesc, &g->bios.data[offset], sizeof(udesc));
+	nvgpu_memcpy((u8 *)&udesc, &g->bios.data[offset], sizeof(udesc));
 
 	if (FALCON_UCODE_IS_VERSION_AVAILABLE(udesc)) {
 		version = FALCON_UCODE_GET_VERSION(udesc);
@@ -535,7 +539,7 @@ static int nvgpu_bios_parse_falcon_ucode_desc(struct gk20a *g,
 		desc.dmem_load_size = udesc.v1.dmem_load_size;
 		break;
 	case 2:
-		memcpy(&desc, &udesc, sizeof(udesc.v2));
+		nvgpu_memcpy((u8 *)&desc, (u8 *)&udesc, sizeof(udesc.v2));
 		break;
 	default:
 		nvgpu_log_info(g, "invalid version");
@@ -582,7 +586,7 @@ static int nvgpu_bios_parse_falcon_ucode_table(struct gk20a *g, int offset)
 	struct falcon_ucode_table_hdr_v1 hdr;
 	int i;
 
-	memcpy(&hdr, &g->bios.data[offset], sizeof(hdr));
+	nvgpu_memcpy((u8 *)&hdr, &g->bios.data[offset], sizeof(hdr));
 	nvgpu_log_fn(g, "falcon ucode table ver %d size %d entrySize %d entryCount %d descVer %d descSize %d",
 			hdr.version, hdr.header_size,
 			hdr.entry_size, hdr.entry_count,
@@ -597,7 +601,8 @@ static int nvgpu_bios_parse_falcon_ucode_table(struct gk20a *g, int offset)
 	for (i = 0; i < hdr.entry_count; i++) {
 		struct falcon_ucode_table_entry_v1 entry;
 
-		memcpy(&entry, &g->bios.data[offset], sizeof(entry));
+		nvgpu_memcpy((u8 *)&entry, &g->bios.data[offset],
+			sizeof(entry));
 
 		nvgpu_log_fn(g, "falcon ucode table entry appid %x targetId %x descPtr %x",
 				entry.application_id, entry.target_id,
@@ -650,7 +655,8 @@ static void nvgpu_bios_parse_falcon_data_v2(struct gk20a *g, int offset)
 	struct falcon_data_v2 falcon_data;
 	int err;
 
-	memcpy(&falcon_data, &g->bios.data[offset], sizeof(falcon_data));
+	nvgpu_memcpy((u8 *)&falcon_data, &g->bios.data[offset],
+		sizeof(falcon_data));
 	nvgpu_log_fn(g, "falcon ucode table ptr %x",
 			falcon_data.falcon_ucode_table_ptr);
 	err = nvgpu_bios_parse_falcon_ucode_table(g,
