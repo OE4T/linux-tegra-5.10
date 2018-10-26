@@ -24,6 +24,7 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/boardobjgrp.h>
 #include <nvgpu/boardobjgrp_e32.h>
+#include <nvgpu/string.h>
 
 #include "pwrdev.h"
 #include "gp106/bios_gp106.h"
@@ -156,7 +157,7 @@ static int devinit_get_pwr_device_table(struct gk20a *g,
 		goto done;
 	}
 
-	memcpy(&pwr_sensor_table_header, pwr_device_table_ptr,
+	nvgpu_memcpy((u8 *)&pwr_sensor_table_header, pwr_device_table_ptr,
 		VBIOS_POWER_SENSORS_2X_HEADER_SIZE_08);
 
 	if (pwr_sensor_table_header.version !=
@@ -189,7 +190,7 @@ static int devinit_get_pwr_device_table(struct gk20a *g,
 
 		pwr_sensor_table_entry.flags0 = *curr_pwr_device_table_ptr;
 
-		memcpy(&pwr_sensor_table_entry.class_param0,
+		nvgpu_memcpy((u8 *)&pwr_sensor_table_entry.class_param0,
 			(curr_pwr_device_table_ptr + 1),
 			(VBIOS_POWER_SENSORS_2X_ENTRY_SIZE_15 - 1U));
 

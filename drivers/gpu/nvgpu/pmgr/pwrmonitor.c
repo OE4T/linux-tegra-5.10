@@ -24,6 +24,7 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/boardobjgrp.h>
 #include <nvgpu/boardobjgrp_e32.h>
+#include <nvgpu/string.h>
 
 #include "pwrdev.h"
 #include "gp106/bios_gp106.h"
@@ -204,7 +205,7 @@ static int devinit_get_pwr_topology_table(struct gk20a *g,
 		goto done;
 	}
 
-	memcpy(&pwr_topology_table_header, pwr_topology_table_ptr,
+	nvgpu_memcpy((u8 *)&pwr_topology_table_header, pwr_topology_table_ptr,
 		VBIOS_POWER_TOPOLOGY_2X_HEADER_SIZE_06);
 
 	if (pwr_topology_table_header.version !=
@@ -239,7 +240,7 @@ static int devinit_get_pwr_topology_table(struct gk20a *g,
 		pwr_topology_table_entry.flags0 = *curr_pwr_topology_table_ptr;
 		pwr_topology_table_entry.pwr_rail = *(curr_pwr_topology_table_ptr + 1);
 
-		memcpy(&pwr_topology_table_entry.param0,
+		nvgpu_memcpy((u8 *)&pwr_topology_table_entry.param0,
 			(curr_pwr_topology_table_ptr + 2),
 			(VBIOS_POWER_TOPOLOGY_2X_ENTRY_SIZE_16 - 2U));
 
