@@ -17,6 +17,6 @@
 #ifndef __LINUX_OS_OPS_TU104_H
 #define __LINUX_OS_OPS_TU104_H
 
-void nvgpu_tu104_init_os_ops(struct nvgpu_os_linux *l)
+void nvgpu_tu104_init_os_ops(struct nvgpu_os_linux *l);
 
 #endif

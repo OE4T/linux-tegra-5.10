@@ -1793,6 +1793,7 @@ int gk20a_wait_for_idle(struct gk20a *g);
 #define NVGPU_GPUID_GP106   0x00000136
 #define NVGPU_GPUID_GV11B   0x0000015B
 #define NVGPU_GPUID_GV100   0x00000140
+#define NVGPU_GPUID_TU104   0x00000164
 
 int gk20a_init_gpu_characteristics(struct gk20a *g);
 

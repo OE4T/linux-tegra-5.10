@@ -147,7 +147,7 @@ config NVGPU_USE_TEGRA_ALLOC_FD
 
 	  It is only available in Tegra kernel.
 
-config TEGRA_GPU_NEXT
+config NVGPU_SUPPORT_TURING
 	bool "Turing family GPU"
 	depends on GK20A && ARCH_TEGRA_19x_SOC
 	default y

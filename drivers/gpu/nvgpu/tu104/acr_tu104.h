@@ -25,6 +25,9 @@
 
 #define TU104_MAX_SUPPORTED_LSFM	4
 
+#define TU104_FECS_UCODE_SIG "tu104/fecs_sig.bin"
+#define TU104_GPCCS_UCODE_SIG "tu104/gpccs_sig.bin"
+
 void nvgpu_tu104_acr_sw_init(struct gk20a *g, struct nvgpu_acr *acr);
 
 #endif /*NVGPU_ACR_TU104_H*/

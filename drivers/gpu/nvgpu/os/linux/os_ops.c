@@ -21,10 +21,7 @@
 #include "os_ops_gp106.h"
 #include "os_ops_gv11b.h"
 #include "os_ops_gv100.h"
-
-#if defined(CONFIG_TEGRA_GPU_NEXT)
-#include "nvgpu_gpuid_next.h"
-#endif
+#include "os_ops_tu104.h"
 
 int nvgpu_init_os_linux_ops(struct nvgpu_os_linux *l)
 {
@@ -48,11 +45,9 @@ int nvgpu_init_os_linux_ops(struct nvgpu_os_linux *l)
 	case NVGPU_GPUID_GV11B:
 		nvgpu_gv11b_init_os_ops(l);
 		break;
-#if defined(CONFIG_TEGRA_GPU_NEXT)
-	case NVGPU_GPUID_NEXT:
-		NVGPU_NEXT_INIT_OS_OPS(l);
+	case NVGPU_GPUID_TU104:
+		nvgpu_tu104_init_os_ops(l);
 		break;
-#endif
 	default:
 		break;
 	}

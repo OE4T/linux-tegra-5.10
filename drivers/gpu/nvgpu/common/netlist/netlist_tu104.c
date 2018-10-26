@@ -24,14 +24,13 @@
 #include <nvgpu/netlist.h>
 
 #include "netlist_tu104.h"
-#include "nvgpu_gpuid_next.h"
 
 int tu104_netlist_get_name(struct gk20a *g, int index, char *name)
 {
 	u32 ver = g->params.gpu_arch + g->params.gpu_impl;
 
 	switch (ver) {
-		case NVGPU_GPUID_NEXT:
+		case NVGPU_GPUID_TU104:
 			(void) sprintf(name, "%s/%s", "tu104", "NETC_img.bin");
 			break;
 		default:

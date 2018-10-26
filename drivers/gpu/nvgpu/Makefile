@@ -26,6 +26,7 @@ nvgpu-y += common/bus/bus_gk20a.o \
 	common/bus/bus_gm20b.o \
 	common/bus/bus_gp10b.o \
 	common/bus/bus_gv100.o \
+	common/bus/bus_tu104.o \
 	common/priv_ring/priv_ring_gm20b.o \
 	common/priv_ring/priv_ring_gp10b.o \
 	common/ptimer/ptimer.o \
@@ -35,6 +36,7 @@ nvgpu-y += common/bus/bus_gk20a.o \
 	common/fb/fb_gp106.o \
 	common/fb/fb_gv11b.o \
 	common/fb/fb_gv100.o \
+	common/fb/fb_tu104.o \
 	common/perf/perf_gm20b.o \
 	common/perf/perf_gv11b.o \
 	common/perf/perfbuf.o \
@@ -53,13 +55,27 @@ nvgpu-y += common/bus/bus_gk20a.o \
 	common/mc/mc_gp10b.o  \
 	common/mc/mc_gv11b.o  \
 	common/mc/mc_gv100.o \
+	common/mc/mc_tu104.o \
 	common/sync/channel_sync.o \
 	common/sync/channel_sync_semaphore.o \
 	common/boardobj/boardobj.o \
 	common/boardobj/boardobjgrp.o \
 	common/boardobj/boardobjgrpmask.o \
 	common/boardobj/boardobjgrp_e255.o \
-	common/boardobj/boardobjgrp_e32.o
+	common/boardobj/boardobjgrp_e32.o \
+	common/ltc/ltc.o \
+	common/ltc/ltc_gm20b.o \
+	common/ltc/ltc_gp10b.o \
+	common/ltc/ltc_gv11b.o  \
+	common/ltc/ltc_tu104.o \
+	common/netlist/netlist.o \
+	common/netlist/netlist_sim.o \
+	common/netlist/netlist_gm20b.o \
+	common/netlist/netlist_gp106.o \
+	common/netlist/netlist_gp10b.o \
+	common/netlist/netlist_gv100.o \
+	common/netlist/netlist_gv11b.o \
+	common/netlist/netlist_tu104.o
 
 # Linux specific parts of nvgpu.
 nvgpu-y += \
@@ -101,7 +117,8 @@ nvgpu-y += \
 	os/linux/nvlink.o \
 	os/linux/dt.o \
 	os/linux/ecc_sysfs.o \
-	os/linux/ltc.o
+	os/linux/ltc.o \
+	os/linux/os_ops_tu104.o
 
 nvgpu-$(CONFIG_GK20A_VIDMEM) += \
 	os/linux/dmabuf_vidmem.o
@@ -222,18 +239,6 @@ nvgpu-y += \
 	common/pmu/pmu_pg.o \
 	common/pmu/pmu_perfmon.o \
 	common/pmu/pmu_debug.o \
-	common/netlist/netlist.o \
-	common/netlist/netlist_sim.o \
-	common/netlist/netlist_gm20b.o \
-	common/netlist/netlist_gp106.o \
-	common/netlist/netlist_gp10b.o \
-	common/netlist/netlist_gv100.o \
-	common/netlist/netlist_gv11b.o \
-	common/netlist/netlist_tu104.o \
-	common/ltc/ltc.o \
-	common/ltc/ltc_gm20b.o \
-	common/ltc/ltc_gp10b.o \
-	common/ltc/ltc_gv11b.o  \
 	common/sec2/sec2.o \
 	common/sec2/sec2_ipc.o \
 	common/io_common.o \
@@ -344,6 +349,19 @@ nvgpu-y += \
 	gv100/pmu_gv100.o \
 	gv100/perf_gv100.o \
 	gv100/gsp_gv100.o \
+	gv100/clk_gv100.o \
+	tu104/hal_tu104.o \
+	tu104/fifo_tu104.o \
+	tu104/gr_tu104.o \
+	tu104/func_tu104.o \
+	tu104/bios_tu104.o \
+	tu104/nvlink_tu104.o \
+	tu104/fbpa_tu104.o \
+	tu104/flcn_tu104.o \
+	tu104/sec2_tu104.o \
+	tu104/ecc_tu104.o \
+	tu104/regops_tu104.o \
+	tu104/acr_tu104.o \
 	pstate/pstate.o \
 	clk/clk_vin.o \
 	clk/clk_fll.o \
@@ -372,28 +390,4 @@ nvgpu-y += \
 	therm/thrmchannel.o \
 	therm/thrmpmu.o \
 	lpwr/rppg.o \
-	lpwr/lpwr.o \
-	gv100/clk_gv100.o
-
-nvgpu-$(CONFIG_TEGRA_GPU_NEXT) += \
-	common/bus/bus_tu104.o \
-	common/fb/fb_tu104.o \
-	common/ltc/ltc_tu104.o \
-	common/mc/mc_tu104.o
-
-nvgpu-$(CONFIG_TEGRA_GPU_NEXT) += \
-	tu104/hal_tu104.o \
-	tu104/fifo_tu104.o \
-	tu104/gr_tu104.o \
-	tu104/func_tu104.o \
-	tu104/bios_tu104.o \
-	tu104/nvlink_tu104.o \
-	tu104/fbpa_tu104.o \
-	tu104/flcn_tu104.o \
-	tu104/sec2_tu104.o \
-	tu104/ecc_tu104.o \
-	tu104/regops_tu104.o \
-	tu104/acr_tu104.o
-
-nvgpu-$(CONFIG_TEGRA_GPU_NEXT) += \
-	os/linux/os_ops_tu104.o
+	lpwr/lpwr.o

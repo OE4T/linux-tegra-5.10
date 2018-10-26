@@ -35,7 +35,7 @@
 #define NVGPU_PMU_NS_UCODE_IMAGE	"gpmu_ucode.bin"
 
 /* PMU F/W version */
-#define APP_VERSION_GPU_NEXT	24408680U
+#define APP_VERSION_TU10X	24408680U
 #define APP_VERSION_GV11B	25005711U
 #define APP_VERSION_GV10X	24283706U
 #define APP_VERSION_GP10X	24076634U
@@ -1228,7 +1228,7 @@ static int nvgpu_init_pmu_fw_ver_ops(struct nvgpu_pmu *pmu)
 		break;
 	case APP_VERSION_GV11B:
 	case APP_VERSION_GV10X:
-	case APP_VERSION_GPU_NEXT:
+	case APP_VERSION_TU10X:
 		g->ops.pmu_ver.pg_cmd_eng_buf_load_size =
 				pg_cmd_eng_buf_load_size_v2;
 		g->ops.pmu_ver.pg_cmd_eng_buf_load_set_cmd_type =
@@ -1294,7 +1294,7 @@ static int nvgpu_init_pmu_fw_ver_ops(struct nvgpu_pmu *pmu)
 		g->ops.pmu_ver.pmu_allocation_get_fb_size =
 				pmu_allocation_get_fb_size_v3;
 		if (pmu->desc->app_version == APP_VERSION_GV10X ||
-			pmu->desc->app_version == APP_VERSION_GPU_NEXT) {
+			pmu->desc->app_version == APP_VERSION_TU10X) {
 			g->ops.pmu_ver.get_pmu_init_msg_pmu_queue_params =
 				get_pmu_init_msg_pmu_queue_params_v5;
 			g->ops.pmu_ver.get_pmu_msg_pmu_init_msg_ptr =
