@@ -244,15 +244,16 @@ static int devinit_get_pwr_topology_table(struct gk20a *g,
 			(curr_pwr_topology_table_ptr + 2),
 			(VBIOS_POWER_TOPOLOGY_2X_ENTRY_SIZE_16 - 2U));
 
-		class_type = (u8)BIOS_GET_FIELD(
-			pwr_topology_table_entry.flags0,
-			NV_VBIOS_POWER_TOPOLOGY_2X_ENTRY_FLAGS0_CLASS);
+		class_type = BIOS_GET_FIELD(u8, pwr_topology_table_entry.flags0,
+				NV_VBIOS_POWER_TOPOLOGY_2X_ENTRY_FLAGS0_CLASS);
 
 		if (class_type == NV_VBIOS_POWER_TOPOLOGY_2X_ENTRY_FLAGS0_CLASS_SENSOR) {
-			pwr_topology_data.sensor.pwr_dev_idx = (u8)BIOS_GET_FIELD(
+			pwr_topology_data.sensor.pwr_dev_idx =
+				BIOS_GET_FIELD(u8,
 				pwr_topology_table_entry.param1,
 				NV_VBIOS_POWER_TOPOLOGY_2X_ENTRY_PARAM1_SENSOR_INDEX);
-			pwr_topology_data.sensor.pwr_dev_prov_idx = (u8)BIOS_GET_FIELD(
+			pwr_topology_data.sensor.pwr_dev_prov_idx =
+				BIOS_GET_FIELD(u8,
 				pwr_topology_table_entry.param1,
 				NV_VBIOS_POWER_TOPOLOGY_2X_ENTRY_PARAM1_SENSOR_PROVIDER_INDEX);
 

@@ -290,12 +290,12 @@ static int devinit_get_vin_device_table(struct gk20a *g,
 	       sizeof(struct vin_descriptor_header_10));
 
 	pvinobjs->calibration_rev_vbios =
-			BIOS_GET_FIELD(vin_desc_table_header.flags0,
+			BIOS_GET_FIELD(u8, vin_desc_table_header.flags0,
 				NV_VIN_DESC_FLAGS0_VIN_CAL_REVISION);
 	pvinobjs->vin_is_disable_allowed =
-			BIOS_GET_FIELD(vin_desc_table_header.flags0,
+			BIOS_GET_FIELD(bool, vin_desc_table_header.flags0,
 				NV_VIN_DESC_FLAGS0_DISABLE_CONTROL);
-	cal_type = BIOS_GET_FIELD(vin_desc_table_header.flags0,
+	cal_type = BIOS_GET_FIELD(u32, vin_desc_table_header.flags0,
 				NV_VIN_DESC_FLAGS0_VIN_CAL_TYPE);
 	if (cal_type == 0U) {
 		cal_type = CTRL_CLK_VIN_CAL_TYPE_V10;
@@ -304,22 +304,22 @@ static int devinit_get_vin_device_table(struct gk20a *g,
 	switch (cal_type) {
 	case CTRL_CLK_VIN_CAL_TYPE_V10:
 		/* VIN calibration slope: XX.YYY mV/code => XXYYY uV/code*/
-		slope = ((BIOS_GET_FIELD(vin_desc_table_header.vin_cal,
-				NV_VIN_DESC_VIN_CAL_SLOPE_INTEGER) * 1000)) +
-			((BIOS_GET_FIELD(vin_desc_table_header.vin_cal,
+		slope = ((BIOS_GET_FIELD(u32, vin_desc_table_header.vin_cal,
+				NV_VIN_DESC_VIN_CAL_SLOPE_INTEGER) * 1000U)) +
+			((BIOS_GET_FIELD(u32, vin_desc_table_header.vin_cal,
 				NV_VIN_DESC_VIN_CAL_SLOPE_FRACTION)));
 
 		/* VIN calibration intercept: ZZZ.W mV => ZZZW00 uV */
-		intercept = ((BIOS_GET_FIELD(vin_desc_table_header.vin_cal,
-				NV_VIN_DESC_VIN_CAL_INTERCEPT_INTEGER) * 1000)) +
-			    ((BIOS_GET_FIELD(vin_desc_table_header.vin_cal,
-				NV_VIN_DESC_VIN_CAL_INTERCEPT_FRACTION) * 100));
+		intercept = ((BIOS_GET_FIELD(u32, vin_desc_table_header.vin_cal,
+			NV_VIN_DESC_VIN_CAL_INTERCEPT_INTEGER) * 1000U)) +
+			    ((BIOS_GET_FIELD(u32, vin_desc_table_header.vin_cal,
+			NV_VIN_DESC_VIN_CAL_INTERCEPT_FRACTION) * 100U));
 
 		break;
 	case CTRL_CLK_VIN_CAL_TYPE_V20:
-		offset = BIOS_GET_FIELD(vin_desc_table_header.vin_cal,
+		offset = BIOS_GET_FIELD(s8, vin_desc_table_header.vin_cal,
                                 NV_VIN_DESC_VIN_CAL_OFFSET);
-		gain = BIOS_GET_FIELD(vin_desc_table_header.vin_cal,
+		gain = BIOS_GET_FIELD(s8, vin_desc_table_header.vin_cal,
                                 NV_VIN_DESC_VIN_CAL_GAIN);
 		break;
 	default:

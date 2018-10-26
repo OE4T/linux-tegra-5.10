@@ -287,7 +287,7 @@ static int devinit_get_clk_prog_table_35(struct gk20a *g,
 			sizeof(struct ctrl_clk_clk_prog_1x_master_table_slave_entry) *
 			CTRL_CLK_PROG_1X_MASTER_MAX_SLAVE_ENTRIES);
 
-		prog_type = (u8)BIOS_GET_FIELD((prog.flags0),
+		prog_type = BIOS_GET_FIELD(u8, prog.flags0,
 			NV_VBIOS_CLOCK_PROGRAMMING_TABLE_1X_ENTRY_FLAGS0_TYPE);
 		nvgpu_log_info(g, "Prog_type (master, slave type): 0x%x",
 								prog_type);
@@ -296,7 +296,7 @@ static int devinit_get_clk_prog_table_35(struct gk20a *g,
 			continue;
 		}
 
-		src_type = (u8)BIOS_GET_FIELD(prog.flags0,
+		src_type = BIOS_GET_FIELD(u8, prog.flags0,
 			NV_VBIOS_CLOCK_PROGRAMMING_TABLE_1X_ENTRY_FLAGS0_SOURCE);
 		nvgpu_log_info(g, "source type: 0x%x", src_type);
 		switch (src_type) {
@@ -304,10 +304,10 @@ static int devinit_get_clk_prog_table_35(struct gk20a *g,
 			nvgpu_log_info(g, "Source type is PLL");
 			prog_data.v1x.source = CTRL_CLK_PROG_1X_SOURCE_PLL;
 			prog_data.v1x.source_data.pll.pll_idx =
-				(u8)BIOS_GET_FIELD(prog.param0,
+				BIOS_GET_FIELD(u8, prog.param0,
 					NV_VBIOS_CLOCK_PROGRAMMING_TABLE_1X_ENTRY_PARAM0_PLL_PLL_INDEX);
 			prog_data.v1x.source_data.pll.freq_step_size_mhz =
-				(u8)BIOS_GET_FIELD(prog.param1,
+				BIOS_GET_FIELD(u8, prog.param1,
 					NV_VBIOS_CLOCK_PROGRAMMING_TABLE_1X_ENTRY_PARAM1_PLL_FREQ_STEP_SIZE);
 			nvgpu_log_info(g, "pll_index: 0x%x freq_step_size: %d",
 				prog_data.v1x.source_data.pll.pll_idx,
@@ -359,7 +359,8 @@ static int devinit_get_clk_prog_table_35(struct gk20a *g,
 
 					voltrailsecvfentries[j].sec_vf_entries[k].vfe_idx = (u8)vfsecprog.sec_vfe_idx;
 					if (prog_data.v1x.source == CTRL_CLK_PROG_1X_SOURCE_FLL) {
-						voltrailsecvfentries[j].sec_vf_entries[k].dvco_offset_vfe_idx = (u8)BIOS_GET_FIELD(
+						voltrailsecvfentries[j].sec_vf_entries[k].dvco_offset_vfe_idx =
+							BIOS_GET_FIELD(u8,
 							vfsecprog.param0,
 							NV_VBIOS_CLOCK_PROGRAMMING_TABLE_35_SEC_VF_ENTRY_PARAM0_FLL_DVCO_OFFSET_VFE_IDX);
 					} else {
@@ -381,15 +382,17 @@ static int devinit_get_clk_prog_table_35(struct gk20a *g,
 				if (prog_type == NV_VBIOS_CLOCK_PROGRAMMING_TABLE_1X_ENTRY_FLAGS0_TYPE_MASTER_RATIO) {
 					ratioslaveentries[j].clk_dom_idx =
 						(u8)slaveprog.clk_dom_idx;
-					ratioslaveentries[j].ratio = (u8)
-					BIOS_GET_FIELD(slaveprog.param0,
-					NV_VBIOS_CLOCK_PROGRAMMING_TABLE_1X_SLAVE_ENTRY_PARAM0_MASTER_RATIO_RATIO);
+					ratioslaveentries[j].ratio =
+						BIOS_GET_FIELD(u8,
+						slaveprog.param0,
+						NV_VBIOS_CLOCK_PROGRAMMING_TABLE_1X_SLAVE_ENTRY_PARAM0_MASTER_RATIO_RATIO);
 				} else {
 					tableslaveentries[j].clk_dom_idx =
 						(u8)slaveprog.clk_dom_idx;
 					tableslaveentries[j].freq_mhz =
-						(u16)BIOS_GET_FIELD(slaveprog.param0,
-							NV_VBIOS_CLOCK_PROGRAMMING_TABLE_1X_SLAVE_ENTRY_PARAM0_MASTER_TABLE_FREQ);
+						BIOS_GET_FIELD(u16,
+						slaveprog.param0,
+						NV_VBIOS_CLOCK_PROGRAMMING_TABLE_1X_SLAVE_ENTRY_PARAM0_MASTER_TABLE_FREQ);
 				}
 				slaveentry += slaveszfmt;
 			}
@@ -529,19 +532,19 @@ static int devinit_get_clk_prog_table_1x(struct gk20a *g,
 		(void) memset(tableslaveentries, 0xFF,
 			sizeof(struct ctrl_clk_clk_prog_1x_master_table_slave_entry) *
 			CTRL_CLK_PROG_1X_MASTER_MAX_SLAVE_ENTRIES);
-		src_type = (u8)BIOS_GET_FIELD(prog.flags0,
-					       NV_VBIOS_CLOCK_PROGRAMMING_TABLE_1X_ENTRY_FLAGS0_SOURCE);
-		prog_type = (u8)BIOS_GET_FIELD(prog.flags0,
+		src_type = BIOS_GET_FIELD(u8, prog.flags0,
+			NV_VBIOS_CLOCK_PROGRAMMING_TABLE_1X_ENTRY_FLAGS0_SOURCE);
+		prog_type = BIOS_GET_FIELD(u8, prog.flags0,
 			NV_VBIOS_CLOCK_PROGRAMMING_TABLE_1X_ENTRY_FLAGS0_TYPE);
 
 		switch (src_type) {
 		case NV_VBIOS_CLOCK_PROGRAMMING_TABLE_1X_ENTRY_FLAGS0_SOURCE_PLL:
 			prog_data.v1x.source = CTRL_CLK_PROG_1X_SOURCE_PLL;
 			prog_data.v1x.source_data.pll.pll_idx =
-				(u8)BIOS_GET_FIELD(prog.param0,
+				BIOS_GET_FIELD(u8, prog.param0,
 					NV_VBIOS_CLOCK_PROGRAMMING_TABLE_1X_ENTRY_PARAM0_PLL_PLL_INDEX);
 			prog_data.v1x.source_data.pll.freq_step_size_mhz =
-				(u8)BIOS_GET_FIELD(prog.param1,
+				BIOS_GET_FIELD(u8, prog.param1,
 					NV_VBIOS_CLOCK_PROGRAMMING_TABLE_1X_ENTRY_PARAM1_PLL_FREQ_STEP_SIZE);
 			break;
 
@@ -577,7 +580,8 @@ static int devinit_get_clk_prog_table_1x(struct gk20a *g,
 				vfentries[j].vfe_idx = (u8)vfprog.vfe_idx;
 				if (CTRL_CLK_PROG_1X_SOURCE_FLL ==
 					prog_data.v1x.source) {
-					vfentries[j].gain_vfe_idx = (u8)BIOS_GET_FIELD(
+					vfentries[j].gain_vfe_idx =
+						BIOS_GET_FIELD(u8,
 						vfprog.param0,
 						NV_VBIOS_CLOCK_PROGRAMMING_TABLE_1X_VF_ENTRY_PARAM0_FLL_GAIN_VFE_IDX);
 				} else {
@@ -595,15 +599,16 @@ static int devinit_get_clk_prog_table_1x(struct gk20a *g,
 				if (prog_type == NV_VBIOS_CLOCK_PROGRAMMING_TABLE_1X_ENTRY_FLAGS0_TYPE_MASTER_RATIO) {
 					ratioslaveentries[j].clk_dom_idx =
 						(u8)slaveprog.clk_dom_idx;
-					ratioslaveentries[j].ratio = (u8)
-					BIOS_GET_FIELD(slaveprog.param0,
+					ratioslaveentries[j].ratio =
+					BIOS_GET_FIELD(u8, slaveprog.param0,
 					NV_VBIOS_CLOCK_PROGRAMMING_TABLE_1X_SLAVE_ENTRY_PARAM0_MASTER_RATIO_RATIO);
 				} else {
 					tableslaveentries[j].clk_dom_idx =
 						(u8)slaveprog.clk_dom_idx;
 					tableslaveentries[j].freq_mhz =
-						(u16)BIOS_GET_FIELD(slaveprog.param0,
-							NV_VBIOS_CLOCK_PROGRAMMING_TABLE_1X_SLAVE_ENTRY_PARAM0_MASTER_TABLE_FREQ);
+						BIOS_GET_FIELD(u16,
+						slaveprog.param0,
+						NV_VBIOS_CLOCK_PROGRAMMING_TABLE_1X_SLAVE_ENTRY_PARAM0_MASTER_TABLE_FREQ);
 				}
 				slaveentry += slaveszfmt;
 			}

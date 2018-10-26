@@ -102,14 +102,14 @@ static int get_lpwr_gr_table(struct gk20a *g)
 		nvgpu_memcpy((u8 *)&entry, entry_addr,
 			sizeof(struct nvgpu_bios_lpwr_gr_table_1x_entry));
 
-		if (BIOS_GET_FIELD(entry.feautre_mask,
-			NV_VBIOS_LPWR_MS_FEATURE_MASK_MS) != 0U) {
+		if (BIOS_GET_FIELD(bool, entry.feautre_mask,
+			NV_VBIOS_LPWR_MS_FEATURE_MASK_MS)) {
 			pgr_data->entry[idx].gr_enabled = true;
 
 			pgr_data->entry[idx].feature_mask =
 				NVGPU_PMU_GR_FEATURE_MASK_ALL;
 
-			if (!BIOS_GET_FIELD(entry.feautre_mask,
+			if (!BIOS_GET_FIELD(bool, entry.feautre_mask,
 				NV_VBIOS_LPWR_GR_FEATURE_MASK_GR_RPPG)) {
 				pgr_data->entry[idx].feature_mask &=
 					~NVGPU_PMU_GR_FEATURE_MASK_RPPG;
@@ -156,26 +156,26 @@ static int get_lpwr_ms_table(struct gk20a *g)
 		nvgpu_memcpy((u8 *)&entry, entry_addr,
 			sizeof(struct nvgpu_bios_lpwr_ms_table_1x_entry));
 
-		if (BIOS_GET_FIELD(entry.feautre_mask,
-			NV_VBIOS_LPWR_MS_FEATURE_MASK_MS) != 0U) {
+		if (BIOS_GET_FIELD(bool, entry.feautre_mask,
+			NV_VBIOS_LPWR_MS_FEATURE_MASK_MS)) {
 			pms_data->entry[idx].ms_enabled = true;
 
 			pms_data->entry[idx].feature_mask =
 				NVGPU_PMU_MS_FEATURE_MASK_ALL;
 
-			if (!BIOS_GET_FIELD(entry.feautre_mask,
+			if (!BIOS_GET_FIELD(bool, entry.feautre_mask,
 				NV_VBIOS_LPWR_MS_FEATURE_MASK_MS_CLOCK_GATING)) {
 				pms_data->entry[idx].feature_mask &=
 					~NVGPU_PMU_MS_FEATURE_MASK_CLOCK_GATING;
 			}
 
-			if (!BIOS_GET_FIELD(entry.feautre_mask,
+			if (!BIOS_GET_FIELD(bool, entry.feautre_mask,
 				NV_VBIOS_LPWR_MS_FEATURE_MASK_MS_SWASR)) {
 				pms_data->entry[idx].feature_mask &=
 					~NVGPU_PMU_MS_FEATURE_MASK_SW_ASR;
 			}
 
-			if (!BIOS_GET_FIELD(entry.feautre_mask,
+			if (!BIOS_GET_FIELD(bool, entry.feautre_mask,
 				NV_VBIOS_LPWR_MS_FEATURE_MASK_MS_RPPG)) {
 				pms_data->entry[idx].feature_mask &=
 					~NVGPU_PMU_MS_FEATURE_MASK_RPPG;

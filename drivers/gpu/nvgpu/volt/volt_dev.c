@@ -225,14 +225,14 @@ static int volt_get_voltage_device_table_1x_psv(struct gk20a *g,
 		return -ENOMEM;
 	}
 
-	frequency_hz = (u32)BIOS_GET_FIELD(p_bios_entry->param0,
-		NV_VBIOS_VDT_1X_ENTRY_PARAM0_PSV_INPUT_FREQUENCY);
+	frequency_hz = BIOS_GET_FIELD(u32, p_bios_entry->param0,
+			NV_VBIOS_VDT_1X_ENTRY_PARAM0_PSV_INPUT_FREQUENCY);
 
-	ext_dev_idx = (u8)BIOS_GET_FIELD(p_bios_entry->param0,
-		NV_VBIOS_VDT_1X_ENTRY_PARAM0_PSV_EXT_DEVICE_INDEX);
+	ext_dev_idx = BIOS_GET_FIELD(u8, p_bios_entry->param0,
+			NV_VBIOS_VDT_1X_ENTRY_PARAM0_PSV_EXT_DEVICE_INDEX);
 
 	ptmp_dev->super.operation_type = volt_dev_operation_type_convert(
-			(u8)BIOS_GET_FIELD(p_bios_entry->param1,
+			BIOS_GET_FIELD(u8, p_bios_entry->param1,
 			NV_VBIOS_VDT_1X_ENTRY_PARAM1_PSV_OPERATION_TYPE));
 
 	if (ptmp_dev->super.operation_type ==
@@ -243,25 +243,25 @@ static int volt_get_voltage_device_table_1x_psv(struct gk20a *g,
 		goto done;
 	}
 
-	ptmp_dev->super.voltage_min_uv =
-		(u32)BIOS_GET_FIELD(p_bios_entry->param1,
-			NV_VBIOS_VDT_1X_ENTRY_PARAM1_PSV_VOLTAGE_MINIMUM);
+	ptmp_dev->super.voltage_min_uv = BIOS_GET_FIELD(u32,
+		p_bios_entry->param1,
+		NV_VBIOS_VDT_1X_ENTRY_PARAM1_PSV_VOLTAGE_MINIMUM);
 
-	ptmp_dev->super.voltage_max_uv =
-		(u32)BIOS_GET_FIELD(p_bios_entry->param2,
-			NV_VBIOS_VDT_1X_ENTRY_PARAM2_PSV_VOLTAGE_MAXIMUM);
+	ptmp_dev->super.voltage_max_uv = BIOS_GET_FIELD(u32,
+		p_bios_entry->param2,
+		NV_VBIOS_VDT_1X_ENTRY_PARAM2_PSV_VOLTAGE_MAXIMUM);
 
-	ptmp_dev->voltage_base_uv = BIOS_GET_FIELD(p_bios_entry->param3,
-		NV_VBIOS_VDT_1X_ENTRY_PARAM3_PSV_VOLTAGE_BASE);
+	ptmp_dev->voltage_base_uv = BIOS_GET_FIELD(s32, p_bios_entry->param3,
+			NV_VBIOS_VDT_1X_ENTRY_PARAM3_PSV_VOLTAGE_BASE);
 
-	steps = (u8)BIOS_GET_FIELD(p_bios_entry->param3,
-		NV_VBIOS_VDT_1X_ENTRY_PARAM3_PSV_VOLTAGE_STEPS);
+	steps = BIOS_GET_FIELD(u8, p_bios_entry->param3,
+			NV_VBIOS_VDT_1X_ENTRY_PARAM3_PSV_VOLTAGE_STEPS);
 	if (steps == VOLT_DEV_PWM_VOLTAGE_STEPS_INVALID) {
 		steps = VOLT_DEV_PWM_VOLTAGE_STEPS_DEFAULT;
 	}
 
 	ptmp_dev->voltage_offset_scale_uv =
-			BIOS_GET_FIELD(p_bios_entry->param4,
+			BIOS_GET_FIELD(s32, p_bios_entry->param4,
 				NV_VBIOS_VDT_1X_ENTRY_PARAM4_PSV_OFFSET_SCALE);
 
 	volt_domain = volt_rail_vbios_volt_domain_convert_to_internal(g,

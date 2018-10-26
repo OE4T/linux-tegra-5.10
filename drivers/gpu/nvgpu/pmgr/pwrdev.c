@@ -194,15 +194,14 @@ static int devinit_get_pwr_device_table(struct gk20a *g,
 			(curr_pwr_device_table_ptr + 1),
 			(VBIOS_POWER_SENSORS_2X_ENTRY_SIZE_15 - 1U));
 
-		device_type = (u8)BIOS_GET_FIELD(
-			pwr_sensor_table_entry.flags0,
-			NV_VBIOS_POWER_SENSORS_2X_ENTRY_FLAGS0_CLASS);
+		device_type = BIOS_GET_FIELD(u8, pwr_sensor_table_entry.flags0,
+				NV_VBIOS_POWER_SENSORS_2X_ENTRY_FLAGS0_CLASS);
 
 		if (device_type == NV_VBIOS_POWER_SENSORS_2X_ENTRY_FLAGS0_CLASS_I2C) {
-			i2c_dev_idx = (u8)BIOS_GET_FIELD(
+			i2c_dev_idx = BIOS_GET_FIELD(u8,
 				pwr_sensor_table_entry.class_param0,
 				NV_VBIOS_POWER_SENSORS_2X_ENTRY_CLASS_PARAM0_I2C_INDEX);
-			use_fxp8_8 = (u8)BIOS_GET_FIELD(
+			use_fxp8_8 = BIOS_GET_FIELD(bool,
 				pwr_sensor_table_entry.class_param0,
 				NV_VBIOS_POWER_SENSORS_2X_ENTRY_CLASS_PARAM0_I2C_USE_FXP8_8);
 
@@ -211,41 +210,42 @@ static int devinit_get_pwr_device_table(struct gk20a *g,
 			pwr_device_data.ina3221.r_shuntm_ohm[1].use_fxp8_8 = use_fxp8_8;
 			pwr_device_data.ina3221.r_shuntm_ohm[2].use_fxp8_8 = use_fxp8_8;
 			pwr_device_data.ina3221.r_shuntm_ohm[0].rshunt_value =
-				(u16)BIOS_GET_FIELD(
+				BIOS_GET_FIELD(u16,
 				pwr_sensor_table_entry.sensor_param0,
 				NV_VBIOS_POWER_SENSORS_2X_ENTRY_SENSOR_PARAM0_INA3221_RSHUNT0_MOHM);
 
 			pwr_device_data.ina3221.r_shuntm_ohm[1].rshunt_value =
-				(u16)BIOS_GET_FIELD(
+				BIOS_GET_FIELD(u16,
 				pwr_sensor_table_entry.sensor_param0,
 				NV_VBIOS_POWER_SENSORS_2X_ENTRY_SENSOR_PARAM0_INA3221_RSHUNT1_MOHM);
 
 			pwr_device_data.ina3221.r_shuntm_ohm[2].rshunt_value =
-				(u16)BIOS_GET_FIELD(
+				BIOS_GET_FIELD(u16,
 				pwr_sensor_table_entry.sensor_param1,
 				NV_VBIOS_POWER_SENSORS_2X_ENTRY_SENSOR_PARAM1_INA3221_RSHUNT2_MOHM);
+
 			pwr_device_data.ina3221.configuration =
-				(u16)BIOS_GET_FIELD(
+				BIOS_GET_FIELD(u16,
 				pwr_sensor_table_entry.sensor_param1,
 				NV_VBIOS_POWER_SENSORS_2X_ENTRY_SENSOR_PARAM1_INA3221_CONFIGURATION);
 
 			pwr_device_data.ina3221.mask_enable =
-				(u16)BIOS_GET_FIELD(
+				BIOS_GET_FIELD(u16,
 				pwr_sensor_table_entry.sensor_param2,
 				NV_VBIOS_POWER_SENSORS_2X_ENTRY_SENSOR_PARAM2_INA3221_MASKENABLE);
 
 			pwr_device_data.ina3221.gpio_function =
-				(u8)BIOS_GET_FIELD(
+				BIOS_GET_FIELD(u8,
 				pwr_sensor_table_entry.sensor_param2,
 				NV_VBIOS_POWER_SENSORS_2X_ENTRY_SENSOR_PARAM2_INA3221_GPIOFUNCTION);
 
 			pwr_device_data.ina3221.curr_correct_m =
-				(u16)BIOS_GET_FIELD(
+				BIOS_GET_FIELD(u16,
 				pwr_sensor_table_entry.sensor_param3,
 				NV_VBIOS_POWER_SENSORS_2X_ENTRY_SENSOR_PARAM3_INA3221_CURR_CORRECT_M);
 
 			pwr_device_data.ina3221.curr_correct_b =
-				(u16)BIOS_GET_FIELD(
+				BIOS_GET_FIELD(s16,
 				pwr_sensor_table_entry.sensor_param3,
 				NV_VBIOS_POWER_SENSORS_2X_ENTRY_SENSOR_PARAM3_INA3221_CURR_CORRECT_B);
 

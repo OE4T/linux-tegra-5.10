@@ -228,16 +228,16 @@ static int clk_get_freq_controller_table(struct gk20a *g,
 		nvgpu_memcpy((u8 *)&entry, entry_offset,
 			sizeof(struct vbios_fct_1x_entry));
 
-		if (!BIOS_GET_FIELD(entry.flags0,
+		if (!BIOS_GET_FIELD(bool, entry.flags0,
 				NV_VBIOS_FCT_1X_ENTRY_FLAGS0_TYPE)) {
 			continue;
 		}
 
-		freq_controller_data.board_obj.type = (u8)BIOS_GET_FIELD(
+		freq_controller_data.board_obj.type = BIOS_GET_FIELD(u8,
 			entry.flags0, NV_VBIOS_FCT_1X_ENTRY_FLAGS0_TYPE);
 
 		ptmp_freq_cntr->controller_id =
-			(u8)BIOS_GET_FIELD(entry.param0,
+			BIOS_GET_FIELD(u8, entry.param0,
 				NV_VBIOS_FCT_1X_ENTRY_PARAM0_ID);
 
 		pclk_domain = CLK_CLK_DOMAIN_GET((g->clk_pmu),
@@ -246,51 +246,51 @@ static int clk_get_freq_controller_table(struct gk20a *g,
 			pclk_domain->api_domain;
 
 		ptmp_freq_cntr->parts_freq_mode =
-			(u8)BIOS_GET_FIELD(entry.param0,
+			BIOS_GET_FIELD(u8, entry.param0,
 				NV_VBIOS_FCT_1X_ENTRY_PARAM0_FREQ_MODE);
 
 		/* Populate PI specific data */
 		ptmp_freq_cntr_pi->slowdown_pct_min =
-			(u8)BIOS_GET_FIELD(entry.param1,
+			BIOS_GET_FIELD(u8, entry.param1,
 				NV_VBIOS_FCT_1X_ENTRY_PARAM1_SLOWDOWN_PCT_MIN);
 
 		ptmp_freq_cntr_pi->bpoison =
-			BIOS_GET_FIELD(entry.param1,
+			BIOS_GET_FIELD(bool, entry.param1,
 				NV_VBIOS_FCT_1X_ENTRY_PARAM1_POISON);
 
 		ptmp_freq_cntr_pi->prop_gain =
-			(s32)BIOS_GET_FIELD(entry.param2,
+			BIOS_GET_FIELD(s32, entry.param2,
 				NV_VBIOS_FCT_1X_ENTRY_PARAM2_PROP_GAIN);
 
 		ptmp_freq_cntr_pi->integ_gain =
-			(s32)BIOS_GET_FIELD(entry.param3,
+			BIOS_GET_FIELD(s32, entry.param3,
 				NV_VBIOS_FCT_1X_ENTRY_PARAM3_INTEG_GAIN);
 
 		ptmp_freq_cntr_pi->integ_decay =
-			(s32)BIOS_GET_FIELD(entry.param4,
+			BIOS_GET_FIELD(s32, entry.param4,
 				NV_VBIOS_FCT_1X_ENTRY_PARAM4_INTEG_DECAY);
 
 		ptmp_freq_cntr_pi->volt_delta_min =
-		(s32)BIOS_GET_FIELD(entry.param5,
-			NV_VBIOS_FCT_1X_ENTRY_PARAM5_VOLT_DELTA_MIN);
+			BIOS_GET_FIELD(s32, entry.param5,
+				NV_VBIOS_FCT_1X_ENTRY_PARAM5_VOLT_DELTA_MIN);
 
 		ptmp_freq_cntr_pi->volt_delta_max =
-		(s32)BIOS_GET_FIELD(entry.param6,
-			NV_VBIOS_FCT_1X_ENTRY_PARAM6_VOLT_DELTA_MAX);
+			BIOS_GET_FIELD(s32, entry.param6,
+				NV_VBIOS_FCT_1X_ENTRY_PARAM6_VOLT_DELTA_MAX);
 
 		ptmp_freq_cntr->freq_cap_noise_unaware_vmin_above =
-			(s16)BIOS_GET_FIELD(entry.param7,
+			BIOS_GET_FIELD(s16, entry.param7,
 				NV_VBIOS_FCT_1X_ENTRY_PARAM7_FREQ_CAP_VF);
 
 		ptmp_freq_cntr->freq_cap_noise_unaware_vmin_below =
-		(s16)BIOS_GET_FIELD(entry.param7,
-			NV_VBIOS_FCT_1X_ENTRY_PARAM7_FREQ_CAP_VMIN);
+			BIOS_GET_FIELD(s16, entry.param7,
+				NV_VBIOS_FCT_1X_ENTRY_PARAM7_FREQ_CAP_VMIN);
 
 		ptmp_freq_cntr->freq_hyst_pos_mhz =
-			(s16)BIOS_GET_FIELD(entry.param8,
+			BIOS_GET_FIELD(s16, entry.param8,
 				NV_VBIOS_FCT_1X_ENTRY_PARAM8_FREQ_HYST_POS);
 		ptmp_freq_cntr->freq_hyst_neg_mhz =
-			(s16)BIOS_GET_FIELD(entry.param8,
+			BIOS_GET_FIELD(s16, entry.param8,
 				NV_VBIOS_FCT_1X_ENTRY_PARAM8_FREQ_HYST_NEG);
 
 		if (ptmp_freq_cntr_pi->volt_delta_max <

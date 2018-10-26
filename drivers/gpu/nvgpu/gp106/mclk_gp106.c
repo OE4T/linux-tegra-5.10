@@ -3107,7 +3107,7 @@ static int mclk_get_memclk_table(struct gk20a *g)
 			continue;
 		}
 
-		script_index = BIOS_GET_FIELD(memclock_base_entry.flags1,
+		script_index = BIOS_GET_FIELD(u8, memclock_base_entry.flags1,
 			VBIOS_MEMORY_CLOCK_BASE_ENTRY_11_FLAGS1_SCRIPT_INDEX);
 
 		script_ptr = nvgpu_bios_read_u32(g,
@@ -3162,7 +3162,8 @@ static int mclk_get_memclk_table(struct gk20a *g)
 
 		}
 
-		cmd_script_index = BIOS_GET_FIELD(memclock_base_entry.flags2,
+		cmd_script_index = BIOS_GET_FIELD(u8,
+			memclock_base_entry.flags2,
 			VBIOS_MEMORY_CLOCK_BASE_ENTRY_12_FLAGS2_CMD_SCRIPT_INDEX);
 
 		cmd_script_ptr = nvgpu_bios_read_u32(g,

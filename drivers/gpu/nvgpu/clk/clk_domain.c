@@ -342,6 +342,7 @@ static int devinit_get_clocks_table_35(struct gk20a *g,
 	struct vbios_clocks_table_1x_hal_clock_entry *vbiosclktbl1xhalentry;
 	u8 *clocks_tbl_entry_ptr = NULL;
 	u32 index = 0;
+	bool done = false;
 	struct clk_domain *pclkdomain_dev;
 	union {
 		struct boardobj boardobj;
@@ -405,13 +406,13 @@ static int devinit_get_clocks_table_35(struct gk20a *g,
 		clk_domain_data.v3x.b_noise_aware_capable =
 			vbiosclktbl1xhalentry[index].b_noise_aware_capable;
 
-		switch (BIOS_GET_FIELD(clocks_table_entry.flags0,
+		switch (BIOS_GET_FIELD(u32, clocks_table_entry.flags0,
 				NV_VBIOS_CLOCKS_TABLE_1X_ENTRY_FLAGS0_USAGE)) {
 		case  NV_VBIOS_CLOCKS_TABLE_1X_ENTRY_FLAGS0_USAGE_FIXED:
 		{
 			clk_domain_data.boardobj.type =
 				CTRL_CLK_CLK_DOMAIN_TYPE_3X_FIXED;
-			clk_domain_data.v3x_fixed.freq_mhz = (u16)BIOS_GET_FIELD(
+			clk_domain_data.v3x_fixed.freq_mhz = BIOS_GET_FIELD(u16,
 				clocks_table_entry.param1,
 				NV_VBIOS_CLOCKS_TABLE_1X_ENTRY_PARAM1_FIXED_FREQUENCY_MHZ);
 			break;
@@ -422,18 +423,19 @@ static int devinit_get_clocks_table_35(struct gk20a *g,
 			clk_domain_data.boardobj.type =
 				CTRL_CLK_CLK_DOMAIN_TYPE_35_MASTER;
 			clk_domain_data.v35_prog.super.clk_prog_idx_first =
-				(u8)(BIOS_GET_FIELD(clocks_table_entry.param0,
-				     NV_VBIOS_CLOCKS_TABLE_1X_ENTRY_PARAM0_PROG_CLK_PROG_IDX_FIRST));
+				BIOS_GET_FIELD(u8, clocks_table_entry.param0,
+				NV_VBIOS_CLOCKS_TABLE_1X_ENTRY_PARAM0_PROG_CLK_PROG_IDX_FIRST);
 			clk_domain_data.v35_prog.super.clk_prog_idx_last =
-				(u8)(BIOS_GET_FIELD(clocks_table_entry.param0,
-				     NV_VBIOS_CLOCKS_TABLE_1X_ENTRY_PARAM0_PROG_CLK_PROG_IDX_LAST));
+				BIOS_GET_FIELD(u8, clocks_table_entry.param0,
+				NV_VBIOS_CLOCKS_TABLE_1X_ENTRY_PARAM0_PROG_CLK_PROG_IDX_LAST);
 			clk_domain_data.v35_prog.super.noise_unaware_ordering_index =
-				(u8)(BIOS_GET_FIELD(clocks_table_entry.param2,
-				     NV_VBIOS_CLOCKS_TABLE_1X_ENTRY_PARAM2_PROG_NOISE_UNAWARE_ORDERING_IDX));
+				BIOS_GET_FIELD(u8, clocks_table_entry.param2,
+				NV_VBIOS_CLOCKS_TABLE_1X_ENTRY_PARAM2_PROG_NOISE_UNAWARE_ORDERING_IDX);
 			if (clk_domain_data.v3x.b_noise_aware_capable) {
 				clk_domain_data.v35_prog.super.b_force_noise_unaware_ordering =
-					(bool)(BIOS_GET_FIELD(clocks_table_entry.param2,
-					NV_VBIOS_CLOCKS_TABLE_1X_ENTRY_PARAM2_PROG_FORCE_NOISE_UNAWARE_ORDERING));
+					BIOS_GET_FIELD(bool,
+					clocks_table_entry.param2,
+					NV_VBIOS_CLOCKS_TABLE_1X_ENTRY_PARAM2_PROG_FORCE_NOISE_UNAWARE_ORDERING);
 
 			} else {
 				clk_domain_data.v35_prog.super.noise_aware_ordering_index =
@@ -441,23 +443,23 @@ static int devinit_get_clocks_table_35(struct gk20a *g,
 				clk_domain_data.v35_prog.super.b_force_noise_unaware_ordering = false;
 			}
 			clk_domain_data.v35_prog.pre_volt_ordering_index =
-				(u8)(BIOS_GET_FIELD(clocks_table_entry.param2,
-					NV_VBIOS_CLOCKS_TABLE_35_ENTRY_PARAM2_PROG_PRE_VOLT_ORDERING_IDX));
+				BIOS_GET_FIELD(u8, clocks_table_entry.param2,
+				NV_VBIOS_CLOCKS_TABLE_35_ENTRY_PARAM2_PROG_PRE_VOLT_ORDERING_IDX);
 
 			clk_domain_data.v35_prog.post_volt_ordering_index =
-				(u8)(BIOS_GET_FIELD(clocks_table_entry.param2,
-					NV_VBIOS_CLOCKS_TABLE_35_ENTRY_PARAM2_PROG_POST_VOLT_ORDERING_IDX));
+				BIOS_GET_FIELD(u8, clocks_table_entry.param2,
+				NV_VBIOS_CLOCKS_TABLE_35_ENTRY_PARAM2_PROG_POST_VOLT_ORDERING_IDX);
 
 			clk_domain_data.v35_prog.super.factory_delta.data.delta_khz = 0;
 			clk_domain_data.v35_prog.super.factory_delta.type = 0;
 
 			clk_domain_data.v35_prog.super.freq_delta_min_mhz =
-				(u16)(BIOS_GET_FIELD(clocks_table_entry.param1,
-				      NV_VBIOS_CLOCKS_TABLE_1X_ENTRY_PARAM1_MASTER_FREQ_OC_DELTA_MIN_MHZ));
+				BIOS_GET_FIELD(s16, clocks_table_entry.param1,
+				NV_VBIOS_CLOCKS_TABLE_1X_ENTRY_PARAM1_MASTER_FREQ_OC_DELTA_MIN_MHZ);
 
 			clk_domain_data.v35_prog.super.freq_delta_max_mhz =
-				(u16)(BIOS_GET_FIELD(clocks_table_entry.param1,
-				      NV_VBIOS_CLOCKS_TABLE_1X_ENTRY_PARAM1_MASTER_FREQ_OC_DELTA_MAX_MHZ));
+				BIOS_GET_FIELD(s16, clocks_table_entry.param1,
+				NV_VBIOS_CLOCKS_TABLE_1X_ENTRY_PARAM1_MASTER_FREQ_OC_DELTA_MAX_MHZ);
 			clk_domain_data.v35_prog.clk_vf_curve_count =
 				vbiosclktbl1xhalentry[index].clk_vf_curve_count;
 			break;
@@ -468,19 +470,20 @@ static int devinit_get_clocks_table_35(struct gk20a *g,
 			clk_domain_data.boardobj.type =
 				CTRL_CLK_CLK_DOMAIN_TYPE_35_SLAVE;
 			clk_domain_data.v35_prog.super.clk_prog_idx_first =
-				(u8)(BIOS_GET_FIELD(clocks_table_entry.param0,
-				     NV_VBIOS_CLOCKS_TABLE_1X_ENTRY_PARAM0_PROG_CLK_PROG_IDX_FIRST));
+				BIOS_GET_FIELD(u8, clocks_table_entry.param0,
+				NV_VBIOS_CLOCKS_TABLE_1X_ENTRY_PARAM0_PROG_CLK_PROG_IDX_FIRST);
 			clk_domain_data.v35_prog.super.clk_prog_idx_last =
-				(u8)(BIOS_GET_FIELD(clocks_table_entry.param0,
-				     NV_VBIOS_CLOCKS_TABLE_1X_ENTRY_PARAM0_PROG_CLK_PROG_IDX_LAST));
+				BIOS_GET_FIELD(u8, clocks_table_entry.param0,
+				NV_VBIOS_CLOCKS_TABLE_1X_ENTRY_PARAM0_PROG_CLK_PROG_IDX_LAST);
 			clk_domain_data.v35_prog.super.noise_unaware_ordering_index =
-				(u8)(BIOS_GET_FIELD(clocks_table_entry.param2,
-				     NV_VBIOS_CLOCKS_TABLE_1X_ENTRY_PARAM2_PROG_NOISE_UNAWARE_ORDERING_IDX));
+				BIOS_GET_FIELD(u8, clocks_table_entry.param2,
+				NV_VBIOS_CLOCKS_TABLE_1X_ENTRY_PARAM2_PROG_NOISE_UNAWARE_ORDERING_IDX);
 
 			if (clk_domain_data.v3x.b_noise_aware_capable) {
 				clk_domain_data.v35_prog.super.b_force_noise_unaware_ordering =
-					(bool)(BIOS_GET_FIELD(clocks_table_entry.param2,
-					NV_VBIOS_CLOCKS_TABLE_1X_ENTRY_PARAM2_PROG_FORCE_NOISE_UNAWARE_ORDERING));
+					BIOS_GET_FIELD(bool,
+					clocks_table_entry.param2,
+					NV_VBIOS_CLOCKS_TABLE_1X_ENTRY_PARAM2_PROG_FORCE_NOISE_UNAWARE_ORDERING);
 
 			} else {
 				clk_domain_data.v35_prog.super.noise_aware_ordering_index =
@@ -488,20 +491,20 @@ static int devinit_get_clocks_table_35(struct gk20a *g,
 				clk_domain_data.v35_prog.super.b_force_noise_unaware_ordering = false;
 			}
 			clk_domain_data.v35_prog.pre_volt_ordering_index =
-				(u8)(BIOS_GET_FIELD(clocks_table_entry.param2,
-					NV_VBIOS_CLOCKS_TABLE_35_ENTRY_PARAM2_PROG_PRE_VOLT_ORDERING_IDX));
+				BIOS_GET_FIELD(u8, clocks_table_entry.param2,
+				NV_VBIOS_CLOCKS_TABLE_35_ENTRY_PARAM2_PROG_PRE_VOLT_ORDERING_IDX);
 
 			clk_domain_data.v35_prog.post_volt_ordering_index =
-				(u8)(BIOS_GET_FIELD(clocks_table_entry.param2,
-					NV_VBIOS_CLOCKS_TABLE_35_ENTRY_PARAM2_PROG_POST_VOLT_ORDERING_IDX));
+				BIOS_GET_FIELD(u8, clocks_table_entry.param2,
+				NV_VBIOS_CLOCKS_TABLE_35_ENTRY_PARAM2_PROG_POST_VOLT_ORDERING_IDX);
 
 			clk_domain_data.v35_prog.super.factory_delta.data.delta_khz = 0;
 			clk_domain_data.v35_prog.super.factory_delta.type = 0;
 			clk_domain_data.v35_prog.super.freq_delta_min_mhz = 0;
 			clk_domain_data.v35_prog.super.freq_delta_max_mhz = 0;
 			clk_domain_data.v35_slave.slave.master_idx =
-				(u8)(BIOS_GET_FIELD(clocks_table_entry.param1,
-				     NV_VBIOS_CLOCKS_TABLE_1X_ENTRY_PARAM1_SLAVE_MASTER_DOMAIN));
+				BIOS_GET_FIELD(u8, clocks_table_entry.param1,
+				    NV_VBIOS_CLOCKS_TABLE_1X_ENTRY_PARAM1_SLAVE_MASTER_DOMAIN);
 			break;
 		}
 
@@ -510,10 +513,22 @@ static int devinit_get_clocks_table_35(struct gk20a *g,
 			nvgpu_err(g,
 				  "error reading clock domain entry %d", index);
 			status = -EINVAL;
-			goto done;
+			done = true;
+			break;
 		}
 
 		}
+		/*
+		 * Previously we were doing "goto done" from the default case of
+		 * the switch-case block above. MISRA however, gets upset about
+		 * this because it wants a break statement in the default case.
+		 * That's why we had to move the goto statement outside of the
+		 * switch-case block.
+		 */
+		if(done) {
+			goto done;
+		}
+
 		pclkdomain_dev = construct_clk_domain(g,
 				(void *)&clk_domain_data);
 		if (pclkdomain_dev == NULL) {
@@ -550,6 +565,7 @@ static int devinit_get_clocks_table_1x(struct gk20a *g,
 	u8 *clocks_tbl_entry_ptr = NULL;
 	u32 index = 0;
 	struct clk_domain *pclkdomain_dev;
+	bool done = false;
 	union {
 		struct boardobj boardobj;
 		struct clk_domain clk_domain;
@@ -612,13 +628,13 @@ static int devinit_get_clocks_table_1x(struct gk20a *g,
 		clk_domain_data.v3x.b_noise_aware_capable =
 			vbiosclktbl1xhalentry[index].b_noise_aware_capable;
 
-		switch (BIOS_GET_FIELD(clocks_table_entry.flags0,
+		switch (BIOS_GET_FIELD(u32, clocks_table_entry.flags0,
 				NV_VBIOS_CLOCKS_TABLE_1X_ENTRY_FLAGS0_USAGE)) {
 		case  NV_VBIOS_CLOCKS_TABLE_1X_ENTRY_FLAGS0_USAGE_FIXED:
 		{
 			clk_domain_data.boardobj.type =
 				CTRL_CLK_CLK_DOMAIN_TYPE_3X_FIXED;
-			clk_domain_data.v3x_fixed.freq_mhz = (u16)BIOS_GET_FIELD(
+			clk_domain_data.v3x_fixed.freq_mhz = BIOS_GET_FIELD(u16,
 				clocks_table_entry.param1,
 				NV_VBIOS_CLOCKS_TABLE_1X_ENTRY_PARAM1_FIXED_FREQUENCY_MHZ);
 			break;
@@ -629,21 +645,23 @@ static int devinit_get_clocks_table_1x(struct gk20a *g,
 			clk_domain_data.boardobj.type =
 				CTRL_CLK_CLK_DOMAIN_TYPE_3X_MASTER;
 			clk_domain_data.v3x_prog.clk_prog_idx_first =
-				(u8)(BIOS_GET_FIELD(clocks_table_entry.param0,
-				     NV_VBIOS_CLOCKS_TABLE_1X_ENTRY_PARAM0_PROG_CLK_PROG_IDX_FIRST));
+				BIOS_GET_FIELD(u8, clocks_table_entry.param0,
+				NV_VBIOS_CLOCKS_TABLE_1X_ENTRY_PARAM0_PROG_CLK_PROG_IDX_FIRST);
 			clk_domain_data.v3x_prog.clk_prog_idx_last =
-				(u8)(BIOS_GET_FIELD(clocks_table_entry.param0,
-				     NV_VBIOS_CLOCKS_TABLE_1X_ENTRY_PARAM0_PROG_CLK_PROG_IDX_LAST));
+				BIOS_GET_FIELD(u8, clocks_table_entry.param0,
+				NV_VBIOS_CLOCKS_TABLE_1X_ENTRY_PARAM0_PROG_CLK_PROG_IDX_LAST);
 			clk_domain_data.v3x_prog.noise_unaware_ordering_index =
-				(u8)(BIOS_GET_FIELD(clocks_table_entry.param2,
-				     NV_VBIOS_CLOCKS_TABLE_1X_ENTRY_PARAM2_PROG_NOISE_UNAWARE_ORDERING_IDX));
+				BIOS_GET_FIELD(u8, clocks_table_entry.param2,
+				NV_VBIOS_CLOCKS_TABLE_1X_ENTRY_PARAM2_PROG_NOISE_UNAWARE_ORDERING_IDX);
 			if (clk_domain_data.v3x.b_noise_aware_capable) {
 				clk_domain_data.v3x_prog.noise_aware_ordering_index =
-					(u8)(BIOS_GET_FIELD(clocks_table_entry.param2,
-					     NV_VBIOS_CLOCKS_TABLE_1X_ENTRY_PARAM2_PROG_NOISE_AWARE_ORDERING_IDX));
+					BIOS_GET_FIELD(u8,
+					clocks_table_entry.param2,
+					NV_VBIOS_CLOCKS_TABLE_1X_ENTRY_PARAM2_PROG_NOISE_AWARE_ORDERING_IDX);
 				clk_domain_data.v3x_prog.b_force_noise_unaware_ordering =
-					(u8)(BIOS_GET_FIELD(clocks_table_entry.param2,
-					     NV_VBIOS_CLOCKS_TABLE_1X_ENTRY_PARAM2_PROG_FORCE_NOISE_UNAWARE_ORDERING));
+					BIOS_GET_FIELD(bool,
+					clocks_table_entry.param2,
+					NV_VBIOS_CLOCKS_TABLE_1X_ENTRY_PARAM2_PROG_FORCE_NOISE_UNAWARE_ORDERING);
 			} else {
 				clk_domain_data.v3x_prog.noise_aware_ordering_index =
 					CTRL_CLK_CLK_DOMAIN_3X_PROG_ORDERING_INDEX_INVALID;
@@ -654,12 +672,12 @@ static int devinit_get_clocks_table_1x(struct gk20a *g,
 			clk_domain_data.v3x_prog.factory_delta.type = 0;
 
 			clk_domain_data.v3x_prog.freq_delta_min_mhz =
-				(u16)(BIOS_GET_FIELD(clocks_table_entry.param1,
-				      NV_VBIOS_CLOCKS_TABLE_1X_ENTRY_PARAM1_MASTER_FREQ_OC_DELTA_MIN_MHZ));
+				BIOS_GET_FIELD(s16, clocks_table_entry.param1,
+				NV_VBIOS_CLOCKS_TABLE_1X_ENTRY_PARAM1_MASTER_FREQ_OC_DELTA_MIN_MHZ);
 
 			clk_domain_data.v3x_prog.freq_delta_max_mhz =
-				(u16)(BIOS_GET_FIELD(clocks_table_entry.param1,
-				      NV_VBIOS_CLOCKS_TABLE_1X_ENTRY_PARAM1_MASTER_FREQ_OC_DELTA_MAX_MHZ));
+				BIOS_GET_FIELD(s16, clocks_table_entry.param1,
+				NV_VBIOS_CLOCKS_TABLE_1X_ENTRY_PARAM1_MASTER_FREQ_OC_DELTA_MAX_MHZ);
 			break;
 		}
 
@@ -668,22 +686,24 @@ static int devinit_get_clocks_table_1x(struct gk20a *g,
 			clk_domain_data.boardobj.type =
 				CTRL_CLK_CLK_DOMAIN_TYPE_3X_SLAVE;
 			clk_domain_data.v3x_prog.clk_prog_idx_first =
-				(u8)(BIOS_GET_FIELD(clocks_table_entry.param0,
-				     NV_VBIOS_CLOCKS_TABLE_1X_ENTRY_PARAM0_PROG_CLK_PROG_IDX_FIRST));
+				BIOS_GET_FIELD(u8, clocks_table_entry.param0,
+				NV_VBIOS_CLOCKS_TABLE_1X_ENTRY_PARAM0_PROG_CLK_PROG_IDX_FIRST);
 			clk_domain_data.v3x_prog.clk_prog_idx_last =
-				(u8)(BIOS_GET_FIELD(clocks_table_entry.param0,
-				     NV_VBIOS_CLOCKS_TABLE_1X_ENTRY_PARAM0_PROG_CLK_PROG_IDX_LAST));
+				BIOS_GET_FIELD(u8, clocks_table_entry.param0,
+				NV_VBIOS_CLOCKS_TABLE_1X_ENTRY_PARAM0_PROG_CLK_PROG_IDX_LAST);
 			clk_domain_data.v3x_prog.noise_unaware_ordering_index =
-				(u8)(BIOS_GET_FIELD(clocks_table_entry.param2,
-				     NV_VBIOS_CLOCKS_TABLE_1X_ENTRY_PARAM2_PROG_NOISE_UNAWARE_ORDERING_IDX));
+				BIOS_GET_FIELD(u8, clocks_table_entry.param2,
+				NV_VBIOS_CLOCKS_TABLE_1X_ENTRY_PARAM2_PROG_NOISE_UNAWARE_ORDERING_IDX);
 
 			if (clk_domain_data.v3x.b_noise_aware_capable) {
 				clk_domain_data.v3x_prog.noise_aware_ordering_index =
-					(u8)(BIOS_GET_FIELD(clocks_table_entry.param2,
-					     NV_VBIOS_CLOCKS_TABLE_1X_ENTRY_PARAM2_PROG_NOISE_AWARE_ORDERING_IDX));
+					BIOS_GET_FIELD(u8,
+					clocks_table_entry.param2,
+					NV_VBIOS_CLOCKS_TABLE_1X_ENTRY_PARAM2_PROG_NOISE_AWARE_ORDERING_IDX);
 				clk_domain_data.v3x_prog.b_force_noise_unaware_ordering =
-					(u8)(BIOS_GET_FIELD(clocks_table_entry.param2,
-					     NV_VBIOS_CLOCKS_TABLE_1X_ENTRY_PARAM2_PROG_FORCE_NOISE_UNAWARE_ORDERING));
+					BIOS_GET_FIELD(bool,
+					clocks_table_entry.param2,
+					NV_VBIOS_CLOCKS_TABLE_1X_ENTRY_PARAM2_PROG_FORCE_NOISE_UNAWARE_ORDERING);
 			} else {
 				clk_domain_data.v3x_prog.noise_aware_ordering_index =
 					CTRL_CLK_CLK_DOMAIN_3X_PROG_ORDERING_INDEX_INVALID;
@@ -694,8 +714,8 @@ static int devinit_get_clocks_table_1x(struct gk20a *g,
 			clk_domain_data.v3x_prog.freq_delta_min_mhz = 0;
 			clk_domain_data.v3x_prog.freq_delta_max_mhz = 0;
 			clk_domain_data.v3x_slave.master_idx =
-				(u8)(BIOS_GET_FIELD(clocks_table_entry.param1,
-				     NV_VBIOS_CLOCKS_TABLE_1X_ENTRY_PARAM1_SLAVE_MASTER_DOMAIN));
+				BIOS_GET_FIELD(u8, clocks_table_entry.param1,
+				    NV_VBIOS_CLOCKS_TABLE_1X_ENTRY_PARAM1_SLAVE_MASTER_DOMAIN);
 			break;
 		}
 
@@ -704,10 +724,22 @@ static int devinit_get_clocks_table_1x(struct gk20a *g,
 			nvgpu_err(g,
 				  "error reading clock domain entry %d", index);
 			status = (u32) -EINVAL;
-			goto done;
+			done = true;
+			break;
 		}
 
 		}
+		/*
+		 * Previously we were doing "goto done" from the default case of
+		 * the switch-case block above. MISRA however, gets upset about
+		 * this because it wants a break statement in the default case.
+		 * That's why we had to move the goto statement outside of the
+		 * switch-case block.
+		 */
+		if(done) {
+			goto done;
+		}
+
 		pclkdomain_dev = construct_clk_domain(g,
 				(void *)&clk_domain_data);
 		if (pclkdomain_dev == NULL) {

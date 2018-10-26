@@ -302,8 +302,8 @@ static int devinit_get_fll_device_table(struct gk20a *g,
 		}
 
 		fll_dev_data.lut_device.vselect_mode =
-			(u8)BIOS_GET_FIELD(fll_desc_table_entry.lut_params,
-			NV_FLL_DESC_LUT_PARAMS_VSELECT);
+			BIOS_GET_FIELD(u8, fll_desc_table_entry.lut_params,
+				NV_FLL_DESC_LUT_PARAMS_VSELECT);
 
 		if ( (u8)fll_desc_table_entry.vin_idx_sram != CTRL_CLK_VIN_ID_UNDEFINED) {
 			pvin_dev = CLK_GET_VIN_DEVICE(pvinobjs,
@@ -323,9 +323,9 @@ static int devinit_get_fll_device_table(struct gk20a *g,
 		fll_dev_data.super.type =
 			(u8)fll_desc_table_entry.fll_device_type;
 		fll_dev_data.id = (u8)fll_desc_table_entry.fll_device_id;
-		fll_dev_data.mdiv = (u8)BIOS_GET_FIELD(
+		fll_dev_data.mdiv = BIOS_GET_FIELD(u8,
 			fll_desc_table_entry.fll_params,
-			NV_FLL_DESC_FLL_PARAMS_MDIV);
+				NV_FLL_DESC_FLL_PARAMS_MDIV);
 		fll_dev_data.input_freq_mhz =
 			(u16)fll_desc_table_entry.ref_freq_mhz;
 		fll_dev_data.min_freq_vfe_idx =
@@ -343,11 +343,11 @@ static int devinit_get_fll_device_table(struct gk20a *g,
 		fll_dev_data.vin_idx_sram =
 			(u8)fll_desc_table_entry.vin_idx_sram;
 		fll_dev_data.b_skip_pldiv_below_dvco_min =
-			(bool)BIOS_GET_FIELD(fll_desc_table_entry.fll_params,
+			BIOS_GET_FIELD(bool, fll_desc_table_entry.fll_params,
 			NV_FLL_DESC_FLL_PARAMS_SKIP_PLDIV_BELOW_DVCO_MIN);
 		fll_dev_data.lut_device.hysteresis_threshold =
-			(u8)BIOS_GET_FIELD(fll_desc_table_entry.lut_params,
-					   NV_FLL_DESC_LUT_PARAMS_HYSTERISIS_THRESHOLD);
+			BIOS_GET_FIELD(u16, fll_desc_table_entry.lut_params,
+			NV_FLL_DESC_LUT_PARAMS_HYSTERISIS_THRESHOLD);
 		fll_dev_data.regime_desc.regime_id =
 			CTRL_CLK_FLL_REGIME_ID_FFR;
 		fll_dev_data.regime_desc.fixed_freq_regime_limit_mhz =

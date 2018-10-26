@@ -897,7 +897,8 @@ static int devinit_get_vfe_var_table(struct gk20a *g,
 	u32 index = 0;
 	struct vfe_var *pvar;
 	u8 var_type;
-	u32 szfmt;
+	u32 szfmt, val;
+	bool done = false;
 	union {
 		struct boardobj board_obj;
 		struct vfe_var super;
@@ -966,33 +967,35 @@ static int devinit_get_vfe_var_table(struct gk20a *g,
 			var_type = CTRL_PERF_VFE_VAR_TYPE_SINGLE_SENSED_TEMP;
 			var_data.single_sensed_temp.temp_default = 0x9600;
 			var_data.single_sensed_temp.therm_channel_index =
-				(u8)BIOS_GET_FIELD(var.param0,
-					VBIOS_VFE_3X_VAR_ENTRY_PAR0_SSTEMP_TH_CH_IDX);
+				BIOS_GET_FIELD(u8, var.param0,
+				VBIOS_VFE_3X_VAR_ENTRY_PAR0_SSTEMP_TH_CH_IDX);
+			val = BIOS_GET_FIELD(u32, var.param0,
+			      VBIOS_VFE_3X_VAR_ENTRY_PAR0_SSTEMP_HYS_POS) << 5U;
 			var_data.single_sensed_temp.temp_hysteresis_positive =
-				(u8)BIOS_GET_FIELD(var.param0,
-					VBIOS_VFE_3X_VAR_ENTRY_PAR0_SSTEMP_HYS_POS) << 5;
+				(int)val;
+			val = BIOS_GET_FIELD(u32, var.param0,
+			      VBIOS_VFE_3X_VAR_ENTRY_PAR0_SSTEMP_HYS_NEG) << 5U;
 			var_data.single_sensed_temp.temp_hysteresis_negative =
-				(u8)BIOS_GET_FIELD(var.param0,
-					VBIOS_VFE_3X_VAR_ENTRY_PAR0_SSTEMP_HYS_NEG) << 5;
+				(int)val;
 			break;
 
 		case VBIOS_VFE_3X_VAR_ENTRY_TYPE_SINGLE_SENSED_FUSE:
 			var_type = CTRL_PERF_VFE_VAR_TYPE_SINGLE_SENSED_FUSE;
 			var_data.single_sensed_fuse.vfield_info.v_field_id =
-				(u8)BIOS_GET_FIELD(var.param0,
+				BIOS_GET_FIELD(u8, var.param0,
 					VBIOS_VFE_3X_VAR_ENTRY_PAR0_SSFUSE_VFIELD_ID);
 			var_data.single_sensed_fuse.vfield_ver_info.v_field_id_ver =
-				(u8)BIOS_GET_FIELD(var.param0,
+				BIOS_GET_FIELD(u8, var.param0,
 					VBIOS_VFE_3X_VAR_ENTRY_PAR0_SSFUSE_VFIELD_ID_VER);
 			var_data.single_sensed_fuse.vfield_ver_info.ver_expected =
-				(u8)BIOS_GET_FIELD(var.param0,
+				BIOS_GET_FIELD(u8, var.param0,
 					VBIOS_VFE_3X_VAR_ENTRY_PAR0_SSFUSE_EXPECTED_VER);
 			var_data.single_sensed_fuse.vfield_ver_info.b_use_default_on_ver_check_fail =
-				BIOS_GET_FIELD(var.param0,
+				(BIOS_GET_FIELD(bool, var.param0,
 					VBIOS_VFE_3X_VAR_ENTRY_PAR0_SSFUSE_USE_DEFAULT_ON_VER_CHECK_FAIL) &&
-					(VBIOS_VFE_3X_VAR_ENTRY_PAR0_SSFUSE_USE_DEFAULT_ON_VER_CHECK_FAIL_YES != 0U);
+					(VBIOS_VFE_3X_VAR_ENTRY_PAR0_SSFUSE_USE_DEFAULT_ON_VER_CHECK_FAIL_YES != 0U));
 			var_data.single_sensed_fuse.b_fuse_value_signed =
-				(u8)BIOS_GET_FIELD(var.param0,
+				BIOS_GET_FIELD(bool, var.param0,
 					VBIOS_VFE_3X_VAR_ENTRY_PAR0_SSFUSE_VALUE_SIGNED_INTEGER);
 			var_data.single_sensed_fuse.vfield_info.fuse_val_default =
 				var.param1;
@@ -1019,26 +1022,38 @@ static int devinit_get_vfe_var_table(struct gk20a *g,
 		case VBIOS_VFE_3X_VAR_ENTRY_TYPE_DERIVED_PRODUCT:
 			var_type = CTRL_PERF_VFE_VAR_TYPE_DERIVED_PRODUCT;
 			var_data.derived_product.var_idx0 =
-				(u8)BIOS_GET_FIELD(var.param0,
+				BIOS_GET_FIELD(u8, var.param0,
 					VBIOS_VFE_3X_VAR_ENTRY_PAR0_DPROD_VFE_VAR_IDX_0);
 			var_data.derived_product.var_idx1 =
-				(u8)BIOS_GET_FIELD(var.param0,
+				BIOS_GET_FIELD(u8, var.param0,
 					VBIOS_VFE_3X_VAR_ENTRY_PAR0_DPROD_VFE_VAR_IDX_1);
 			break;
 
 		case VBIOS_VFE_3X_VAR_ENTRY_TYPE_DERIVED_SUM:
 			var_type = CTRL_PERF_VFE_VAR_TYPE_DERIVED_SUM;
 			var_data.derived_sum.var_idx0 =
-				(u8)BIOS_GET_FIELD(var.param0,
+				BIOS_GET_FIELD(u8, var.param0,
 					VBIOS_VFE_3X_VAR_ENTRY_PAR0_DSUM_VFE_VAR_IDX_0);
 			var_data.derived_sum.var_idx1 =
-				(u8)BIOS_GET_FIELD(var.param0,
+				BIOS_GET_FIELD(u8, var.param0,
 					VBIOS_VFE_3X_VAR_ENTRY_PAR0_DSUM_VFE_VAR_IDX_1);
 			break;
 		default:
 			status = -EINVAL;
+			done = true;
+			break;
+		}
+		/*
+		 * Previously we were doing "goto done" from the default case of
+		 * the switch-case block above. MISRA however, gets upset about
+		 * this because it wants a break statement in the default case.
+		 * That's why we had to move the goto statement outside of the
+		 * switch-case block.
+		 */
+		if(done) {
 			goto done;
 		}
+
 		var_data.board_obj.type = var_type;
 		var_data.board_obj.type_mask = 0;
 

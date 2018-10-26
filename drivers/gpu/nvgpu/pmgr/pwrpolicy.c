@@ -575,9 +575,8 @@ static int devinit_get_pwr_policy_table(struct gk20a *g,
 
 		packed_entry = (struct pwr_policy_3x_entry_struct *)ptr;
 
-		class_type = (u8)BIOS_GET_FIELD(
-			packed_entry->flags0,
-			NV_VBIOS_POWER_POLICY_3X_ENTRY_FLAGS0_CLASS);
+		class_type = BIOS_GET_FIELD(u8, packed_entry->flags0,
+				NV_VBIOS_POWER_POLICY_3X_ENTRY_FLAGS0_CLASS);
 
 		if (class_type != NV_VBIOS_POWER_POLICY_3X_ENTRY_FLAGS0_CLASS_HW_THRESHOLD) {
 			continue;
@@ -605,7 +604,7 @@ static int devinit_get_pwr_policy_table(struct gk20a *g,
 		ppwrpolicyobjs->policy_idxs[5] = hdr.pwr_tgt_floor_policy_idx;
 		ppwrpolicyobjs->policy_idxs[6] = hdr.sm_bus_policy_idx;
 
-		integral_control = (bool)BIOS_GET_FIELD(entry.flags1,
+		integral_control = BIOS_GET_FIELD(bool, entry.flags1,
 			NV_VBIOS_POWER_POLICY_3X_ENTRY_FLAGS1_INTEGRAL_CONTROL);
 
 		if (integral_control) {
@@ -622,21 +621,21 @@ static int devinit_get_pwr_policy_table(struct gk20a *g,
 				0x0, sizeof(
 				struct ctrl_pmgr_pwr_policy_info_integral));
 		}
-		pwr_policy_data.hw_threshold.threshold_idx = (u8)
-			BIOS_GET_FIELD(entry.param0,
+		pwr_policy_data.hw_threshold.threshold_idx =
+			BIOS_GET_FIELD(u8, entry.param0,
 				NV_VBIOS_POWER_POLICY_3X_ENTRY_PARAM0_HW_THRESHOLD_THRES_IDX);
 
 		pwr_policy_data.hw_threshold.b_use_low_threshold =
-			BIOS_GET_FIELD(entry.param0,
+			BIOS_GET_FIELD(bool, entry.param0,
 				NV_VBIOS_POWER_POLICY_3X_ENTRY_PARAM0_HW_THRESHOLD_LOW_THRESHOLD_USE);
 
 		if (pwr_policy_data.hw_threshold.b_use_low_threshold) {
-			pwr_policy_data.hw_threshold.low_threshold_idx = (u8)
-				BIOS_GET_FIELD(entry.param0,
+			pwr_policy_data.hw_threshold.low_threshold_idx =
+				BIOS_GET_FIELD(u8, entry.param0,
 					NV_VBIOS_POWER_POLICY_3X_ENTRY_PARAM0_HW_THRESHOLD_LOW_THRESHOLD_IDX);
 
-			pwr_policy_data.hw_threshold.low_threshold_value = (u16)
-				BIOS_GET_FIELD(entry.param1,
+			pwr_policy_data.hw_threshold.low_threshold_value =
+				BIOS_GET_FIELD(u16, entry.param1,
 					NV_VBIOS_POWER_POLICY_3X_ENTRY_PARAM1_HW_THRESHOLD_LOW_THRESHOLD_VAL);
 		}
 
@@ -646,13 +645,13 @@ static int devinit_get_pwr_policy_table(struct gk20a *g,
 		pwr_policy_data.boardobj.type =
 				CTRL_PMGR_PWR_POLICY_TYPE_HW_THRESHOLD;
 		pwr_policy_data.pwrpolicy.ch_idx = entry.ch_idx;
-		pwr_policy_data.pwrpolicy.limit_unit = (u8)
-				BIOS_GET_FIELD(entry.flags0,
-					NV_VBIOS_POWER_POLICY_3X_ENTRY_FLAGS0_LIMIT_UNIT);
+		pwr_policy_data.pwrpolicy.limit_unit =
+			BIOS_GET_FIELD(u8, entry.flags0,
+			NV_VBIOS_POWER_POLICY_3X_ENTRY_FLAGS0_LIMIT_UNIT);
 		pwr_policy_data.pwrpolicy.filter_type =
-			(enum ctrl_pmgr_pwr_policy_filter_type)
-				BIOS_GET_FIELD(entry.flags1,
-					NV_VBIOS_POWER_POLICY_3X_ENTRY_FLAGS1_FILTER_TYPE);
+			BIOS_GET_FIELD(enum ctrl_pmgr_pwr_policy_filter_type,
+			entry.flags1,
+			NV_VBIOS_POWER_POLICY_3X_ENTRY_FLAGS1_FILTER_TYPE);
 
 		pwr_policy_data.pwrpolicy.limit_min = entry.limit_min;
 		pwr_policy_data.pwrpolicy.limit_rated = entry.limit_rated;

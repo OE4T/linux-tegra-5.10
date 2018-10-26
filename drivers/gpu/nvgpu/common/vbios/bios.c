@@ -492,7 +492,7 @@ int nvgpu_bios_get_lpwr_nvlink_table_hdr(struct gk20a *g)
 	}
 
 	g->nvlink.initpll_ordinal =
-		BIOS_GET_FIELD(hdr.line_rate_initpll_ordinal,
+		BIOS_GET_FIELD(u8, hdr.line_rate_initpll_ordinal,
 				VBIOS_LPWR_NVLINK_TABLE_HDR_INITPLL_ORDINAL);
 	nvgpu_log(g, gpu_dbg_nvlink, " Nvlink initpll_ordinal: 0x%x",
 					g->nvlink.initpll_ordinal);

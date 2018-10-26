@@ -148,6 +148,7 @@ static int devinit_get_vfe_equ_table(struct gk20a *g,
 	struct vfe_equ *pequ;
 	u8 equ_type = 0;
 	u32 szfmt;
+	bool done = false;
 	union {
 		struct boardobj board_obj;
 		struct vfe_equ super;
@@ -208,7 +209,8 @@ static int devinit_get_vfe_equ_table(struct gk20a *g,
 		equ_data.super.out_range_min = equ.out_range_min;
 		equ_data.super.out_range_max = equ.out_range_max;
 
-		switch (BIOS_GET_FIELD(equ.param3, VBIOS_VFE_3X_EQU_ENTRY_PAR3_OUTPUT_TYPE)) {
+		switch (BIOS_GET_FIELD(u32, equ.param3,
+				VBIOS_VFE_3X_EQU_ENTRY_PAR3_OUTPUT_TYPE)) {
 		case VBIOS_VFE_3X_EQU_ENTRY_PAR3_OUTPUT_TYPE_UNITLESS:
 			equ_data.super.output_type =
 				CTRL_PERF_VFE_EQU_OUTPUT_TYPE_UNITLESS;
@@ -237,6 +239,17 @@ static int devinit_get_vfe_equ_table(struct gk20a *g,
 		default:
 			nvgpu_err(g, "unrecognized output id @vfeequ index %d",
 				  index);
+			done = true;
+			break;
+		}
+		/*
+		 * Previously we were doing "goto done" from the default case of
+		 * the switch-case block above. MISRA however, gets upset about
+		 * this because it wants a break statement in the default case.
+		 * That's why we had to move the goto statement outside of the
+		 * switch-case block.
+		 */
+		if(done) {
 			goto done;
 		}
 
@@ -256,21 +269,20 @@ static int devinit_get_vfe_equ_table(struct gk20a *g,
 
 		case VBIOS_VFE_3X_EQU_ENTRY_TYPE_MINMAX:
 			equ_type = CTRL_PERF_VFE_EQU_TYPE_MINMAX;
-			equ_data.minmax.b_max = BIOS_GET_FIELD(equ.param0,
+			equ_data.minmax.b_max = BIOS_GET_FIELD(bool, equ.param0,
 				VBIOS_VFE_3X_EQU_ENTRY_PAR0_MINMAX_CRIT) &&
 				(VBIOS_VFE_3X_EQU_ENTRY_PAR0_MINMAX_CRIT_MAX != 0U);
-			equ_data.minmax.equ_idx0 = (u8)BIOS_GET_FIELD(
+			equ_data.minmax.equ_idx0 = BIOS_GET_FIELD(u8,
 				equ.param0,
 				VBIOS_VFE_3X_EQU_ENTRY_PAR0_MINMAX_VFE_EQU_IDX_0);
-			equ_data.minmax.equ_idx1 = (u8)BIOS_GET_FIELD(
+			equ_data.minmax.equ_idx1 = BIOS_GET_FIELD(u8,
 				equ.param0,
 				VBIOS_VFE_3X_EQU_ENTRY_PAR0_MINMAX_VFE_EQU_IDX_1);
 			break;
 
 		case VBIOS_VFE_3X_EQU_ENTRY_TYPE_COMPARE:
 		{
-			u8 cmp_func = (u8)BIOS_GET_FIELD(
-				equ.param1,
+			u8 cmp_func = BIOS_GET_FIELD(u8, equ.param1,
 				VBIOS_VFE_3X_EQU_ENTRY_PAR1_COMPARE_FUNCTION);
 			equ_type = CTRL_PERF_VFE_EQU_TYPE_COMPARE;
 
@@ -295,10 +307,10 @@ static int devinit_get_vfe_equ_table(struct gk20a *g,
 				status = -EINVAL;
 				goto done;
 			}
-			equ_data.compare.equ_idx_true = (u8)BIOS_GET_FIELD(
+			equ_data.compare.equ_idx_true = BIOS_GET_FIELD(u8,
 				equ.param1,
 				VBIOS_VFE_3X_EQU_ENTRY_PAR1_COMPARE_VFE_EQU_IDX_TRUE);
-			equ_data.compare.equ_idx_false = (u8)BIOS_GET_FIELD(
+			equ_data.compare.equ_idx_false = BIOS_GET_FIELD(u8,
 				equ.param1,
 				VBIOS_VFE_3X_EQU_ENTRY_PAR1_COMPARE_VFE_EQU_IDX_FALSE);
 			equ_data.compare.criteria = equ.param0;

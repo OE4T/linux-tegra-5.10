@@ -379,13 +379,13 @@ static int parse_pstate_entry_5x(struct gk20a *g,
 
 		pclksetinfo->clkwhich = clk_domain->domain;
 		pclksetinfo->nominal_mhz =
-			BIOS_GET_FIELD(clk_entry->param0,
+			BIOS_GET_FIELD(u32, clk_entry->param0,
 				VBIOS_PSTATE_5X_CLOCK_PROG_PARAM0_NOM_FREQ_MHZ);
 		pclksetinfo->min_mhz =
-			BIOS_GET_FIELD(clk_entry->param1,
+			BIOS_GET_FIELD(u16, clk_entry->param1,
 				VBIOS_PSTATE_5X_CLOCK_PROG_PARAM1_MIN_FREQ_MHZ);
 		pclksetinfo->max_mhz =
-			BIOS_GET_FIELD(clk_entry->param1,
+			BIOS_GET_FIELD(u16, clk_entry->param1,
 				VBIOS_PSTATE_5X_CLOCK_PROG_PARAM1_MAX_FREQ_MHZ);
 
 		nvgpu_log_info(g,

@@ -29,17 +29,18 @@
  * Assume an 8 bit byte, of course.
  */
 #define BITS_PER_BYTE	8UL
-#define BITS_PER_LONG 	(__SIZEOF_LONG__ * BITS_PER_BYTE)
+#define BITS_PER_LONG 	((unsigned long)__SIZEOF_LONG__ * BITS_PER_BYTE)
 #define BITS_TO_LONGS(bits)			\
-	((bits) + (BITS_PER_LONG - 1) / BITS_PER_LONG)
+	((bits) + (BITS_PER_LONG - 1UL) / BITS_PER_LONG)
 
 /*
  * Deprecated; use the explicit BITxx() macros instead.
  */
 #define BIT(i)		BIT64(i)
 
-#define GENMASK(h, l) \
-	(((~0UL) - (1UL << (l)) + 1) & (~0UL >> (BITS_PER_LONG - 1 - (h))))
+#define GENMASK(hi, lo) \
+	(((~0UL) - (1UL << (lo)) + 1UL) &	\
+		(~0UL >> (BITS_PER_LONG - 1UL - (unsigned long)(hi))))
 
 #define DECLARE_BITMAP(bmap, bits)		\
 	unsigned long bmap[BITS_TO_LONGS(bits)]

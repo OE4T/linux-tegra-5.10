@@ -349,35 +349,35 @@ static int volt_get_volt_policy_table(struct gk20a *g,
 		switch (policy_type) {
 		case  CTRL_VOLT_POLICY_TYPE_SR_SINGLE_STEP:
 			policy_type_data.split_rail.rail_idx_master =
-				(u8)BIOS_GET_FIELD(entry.param0,
-				  NV_VBIOS_VPT_ENTRY_PARAM0_SR_VD_MASTER);
+				BIOS_GET_FIELD(u8, entry.param0,
+				NV_VBIOS_VPT_ENTRY_PARAM0_SR_VD_MASTER);
 
 			policy_type_data.split_rail.rail_idx_slave =
-				(u8)BIOS_GET_FIELD(entry.param0,
-				  NV_VBIOS_VPT_ENTRY_PARAM0_SR_VD_SLAVE);
+				BIOS_GET_FIELD(u8, entry.param0,
+				NV_VBIOS_VPT_ENTRY_PARAM0_SR_VD_SLAVE);
 
 			policy_type_data.split_rail.delta_min_vfe_equ_idx =
-				(u8)BIOS_GET_FIELD(entry.param0,
-				  NV_VBIOS_VPT_ENTRY_PARAM0_SR_DELTA_SM_MIN);
+				BIOS_GET_FIELD(u8, entry.param0,
+				NV_VBIOS_VPT_ENTRY_PARAM0_SR_DELTA_SM_MIN);
 
 			policy_type_data.split_rail.delta_max_vfe_equ_idx =
-				(u8)BIOS_GET_FIELD(entry.param0,
-				  NV_VBIOS_VPT_ENTRY_PARAM0_SR_DELTA_SM_MAX);
+				BIOS_GET_FIELD(u8, entry.param0,
+				NV_VBIOS_VPT_ENTRY_PARAM0_SR_DELTA_SM_MAX);
 			break;
 		case CTRL_VOLT_POLICY_TYPE_SINGLE_RAIL_MULTI_STEP:
 			policy_type_data.single_rail_ms.inter_switch_delay_us =
-			(u16)BIOS_GET_FIELD(entry.param1,
-			NV_VBIOS_VPT_ENTRY_PARAM1_SR_SETTLE_TIME_INTERMEDIATE);
+				BIOS_GET_FIELD(u16, entry.param1,
+				NV_VBIOS_VPT_ENTRY_PARAM1_SR_SETTLE_TIME_INTERMEDIATE);
 			policy_type_data.single_rail_ms.ramp_up_step_size_uv =
-			(u32)BIOS_GET_FIELD(entry.param2,
-			NV_VBIOS_VPT_ENTRY_PARAM2_SR_RAMP_UP_STEP_SIZE_UV);
+				BIOS_GET_FIELD(u32, entry.param2,
+				NV_VBIOS_VPT_ENTRY_PARAM2_SR_RAMP_UP_STEP_SIZE_UV);
 			policy_type_data.single_rail_ms.ramp_down_step_size_uv =
-			(u32)BIOS_GET_FIELD(entry.param3,
-			NV_VBIOS_VPT_ENTRY_PARAM3_SR_RAMP_DOWN_STEP_SIZE_UV);
+				BIOS_GET_FIELD(u32, entry.param3,
+				NV_VBIOS_VPT_ENTRY_PARAM3_SR_RAMP_DOWN_STEP_SIZE_UV);
 			break;
 		case CTRL_VOLT_POLICY_TYPE_SINGLE_RAIL:
 			policy_type_data.single_rail.rail_idx =
-				(u8)BIOS_GET_FIELD(entry.param0,
+				BIOS_GET_FIELD(u8, entry.param0,
 				NV_VBIOS_VPT_ENTRY_PARAM0_SINGLE_RAIL_VOLT_DOMAIN);
 			break;
 		}
