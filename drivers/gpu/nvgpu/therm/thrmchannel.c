@@ -25,6 +25,7 @@
 #include <nvgpu/pmuif/nvgpu_gpmu_cmdif.h>
 #include <nvgpu/boardobjgrp.h>
 #include <nvgpu/boardobjgrp_e32.h>
+#include <nvgpu/string.h>
 
 #include "thrmchannel.h"
 #include "gp106/bios_gp106.h"
@@ -148,7 +149,7 @@ static int devinit_get_therm_channel_table(struct gk20a *g,
 		goto done;
 	}
 
-	memcpy(&therm_channel_table_header, therm_channel_table_ptr,
+	nvgpu_memcpy((u8 *)&therm_channel_table_header, therm_channel_table_ptr,
 		VBIOS_THERM_CHANNEL_1X_HEADER_SIZE_09);
 
 	if (therm_channel_table_header.version !=

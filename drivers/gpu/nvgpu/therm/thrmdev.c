@@ -25,6 +25,7 @@
 #include <nvgpu/pmuif/nvgpu_gpmu_cmdif.h>
 #include <nvgpu/boardobjgrp.h>
 #include <nvgpu/boardobjgrp_e32.h>
+#include <nvgpu/string.h>
 
 #include "thrmdev.h"
 #include "gp106/bios_gp106.h"
@@ -248,7 +249,7 @@ static int devinit_get_therm_device_table(struct gk20a *g,
 		goto done;
 	}
 
-	memcpy(&therm_device_table_header, therm_device_table_ptr,
+	nvgpu_memcpy((u8 *)&therm_device_table_header, therm_device_table_ptr,
 		VBIOS_THERM_DEVICE_1X_HEADER_SIZE_04);
 
 	if (therm_device_table_header.version !=
