@@ -28,6 +28,7 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/boardobjgrp.h>
 #include <nvgpu/boardobjgrp_e32.h>
+#include <nvgpu/string.h>
 
 #include "gp106/bios_gp106.h"
 
@@ -391,7 +392,7 @@ static u32 volt_get_volt_devices_table(struct gk20a *g,
 		goto done;
 	}
 
-	memcpy(&header, volt_device_table_ptr,
+	nvgpu_memcpy((u8 *)&header, volt_device_table_ptr,
 			sizeof(struct vbios_voltage_device_table_1x_header));
 
 	/* Read in the entries. */
@@ -399,7 +400,7 @@ static u32 volt_get_volt_devices_table(struct gk20a *g,
 		entry_offset = (volt_device_table_ptr + header.header_size +
 					(entry_idx * header.table_entry_size));
 
-		memcpy(&entry, entry_offset,
+		nvgpu_memcpy((u8 *)&entry, entry_offset,
 			sizeof(struct vbios_voltage_device_table_1x_entry));
 
 		if (entry.type == NV_VBIOS_VOLTAGE_DEVICE_1X_ENTRY_TYPE_PSV) {

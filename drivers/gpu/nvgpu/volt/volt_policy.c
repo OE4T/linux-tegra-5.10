@@ -24,6 +24,7 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/boardobjgrp.h>
 #include <nvgpu/boardobjgrp_e32.h>
+#include <nvgpu/string.h>
 
 #include "gp106/bios_gp106.h"
 #include "ctrl/ctrlvolt.h"
@@ -295,7 +296,7 @@ static int volt_get_volt_policy_table(struct gk20a *g,
 		goto done;
 	}
 
-	memcpy(&header, voltage_policy_table_ptr,
+	nvgpu_memcpy((u8 *)&header, voltage_policy_table_ptr,
 			sizeof(struct vbios_voltage_policy_table_1x_header));
 
 	/* Set Voltage Policy Table Index for Perf Core VF Sequence client. */
@@ -307,7 +308,7 @@ static int volt_get_volt_policy_table(struct gk20a *g,
 		entry_offset = (voltage_policy_table_ptr + header.header_size +
 						i * header.table_entry_size);
 
-		memcpy(&entry, entry_offset,
+		nvgpu_memcpy((u8 *)&entry, entry_offset,
 			sizeof(struct vbios_voltage_policy_table_1x_entry));
 
 		memset(&policy_type_data, 0x0, sizeof(policy_type_data));
