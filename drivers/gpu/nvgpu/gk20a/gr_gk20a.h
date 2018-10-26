@@ -838,4 +838,6 @@ void gk20a_gr_destroy_ctx_buffer(struct gk20a *g,
 int gk20a_gr_alloc_ctx_buffer(struct gk20a *g,
 	struct gr_ctx_buffer_desc *desc, size_t size);
 void gk20a_gr_flush_channel_tlb(struct gr_gk20a *gr);
+
+u32 gk20a_gr_get_fecs_ctx_state_store_major_rev_id(struct gk20a *g);
 #endif /*__GR_GK20A_H__*/

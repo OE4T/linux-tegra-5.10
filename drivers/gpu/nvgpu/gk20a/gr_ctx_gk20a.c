@@ -32,8 +32,6 @@
 
 #include "gr_ctx_gk20a.h"
 
-#include <nvgpu/hw/gk20a/hw_gr_gk20a.h>
-
 static int gr_gk20a_alloc_load_netlist_u32(struct gk20a *g, u32 *src, u32 len,
 			struct u32_list_gk20a *u32_list)
 {
@@ -104,8 +102,7 @@ static int gr_gk20a_init_ctx_vars_fw(struct gk20a *g, struct gr_gk20a *gr)
 	} else {
 		net = NETLIST_SLOT_A;
 		max = MAX_NETLIST;
-		major_v_hw = gk20a_readl(g,
-				gr_fecs_ctx_state_store_major_rev_id_r());
+		major_v_hw = g->ops.gr.get_fecs_ctx_state_store_major_rev_id(g);
 		g->gr.ctx_vars.dynamic = true;
 	}
 
