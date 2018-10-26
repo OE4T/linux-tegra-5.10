@@ -32,6 +32,7 @@
 #include "common/fb/fb_gp10b.h"
 #include "common/fb/fb_gm20b.h"
 #include "common/fb/fb_gp106.h"
+#include "common/netlist/netlist_gp106.h"
 #include "common/xve/xve_gp106.h"
 #include "common/therm/therm_gm20b.h"
 #include "common/therm/therm_gp106.h"
@@ -80,7 +81,6 @@
 #include "gp106/fifo_gp106.h"
 #include "gp106/clk_gp106.h"
 #include "gp106/pmu_gp106.h"
-#include "gp106/gr_ctx_gp106.h"
 #include "gp106/gr_gp106.h"
 #include "gp106/flcn_gp106.h"
 
@@ -562,9 +562,9 @@ static const struct gpu_ops gp106_ops = {
 		.add_sema_cmd = gk20a_fifo_add_sema_cmd,
 		.set_sm_exception_type_mask = gk20a_tsg_set_sm_exception_type_mask,
 	},
-	.gr_ctx = {
-		.get_netlist_name = gr_gp106_get_netlist_name,
-		.is_fw_defined = gr_gp106_is_firmware_defined,
+	.netlist = {
+		.get_netlist_name = gp106_netlist_get_name,
+		.is_fw_defined = gp106_netlist_is_firmware_defined,
 	},
 #ifdef CONFIG_GK20A_CTXSW_TRACE
 	.fecs_trace = {
@@ -847,7 +847,7 @@ int gp106_init_hal(struct gk20a *g)
 	gops->fb = gp106_ops.fb;
 	gops->clock_gating = gp106_ops.clock_gating;
 	gops->fifo = gp106_ops.fifo;
-	gops->gr_ctx = gp106_ops.gr_ctx;
+	gops->netlist = gp106_ops.netlist;
 #ifdef CONFIG_GK20A_CTXSW_TRACE
 	gops->fecs_trace = gp106_ops.fecs_trace;
 #endif

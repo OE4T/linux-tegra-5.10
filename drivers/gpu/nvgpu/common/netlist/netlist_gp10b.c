@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2015-2017, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -19,15 +19,52 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef NVGPU_GR_CTX_GV100_H
-#define NVGPU_GR_CTX_GV100_H
 
-#include "gk20a/gr_ctx_gk20a.h"
+#include <nvgpu/gk20a.h>
+#include <nvgpu/netlist.h>
 
-/* production netlist, one and only one from below */
-#define GV100_NETLIST_IMAGE_FW_NAME GK20A_NETLIST_IMAGE_D
+#include "netlist_gp10b.h"
 
-int gr_gv100_get_netlist_name(struct gk20a *g, int index, char *name);
-bool gr_gv100_is_firmware_defined(void);
+int gp10b_netlist_get_name(struct gk20a *g, int index, char *name)
+{
+	switch (index) {
+#ifdef GP10B_NETLIST_IMAGE_FW_NAME
+	case NETLIST_FINAL:
+		sprintf(name, GP10B_NETLIST_IMAGE_FW_NAME);
+		return 0;
+#endif
+#ifdef NVGPU_NETLIST_IMAGE_A
+	case NETLIST_SLOT_A:
+		sprintf(name, NVGPU_NETLIST_IMAGE_A);
+		return 0;
+#endif
+#ifdef NVGPU_NETLIST_IMAGE_B
+	case NETLIST_SLOT_B:
+		sprintf(name, NVGPU_NETLIST_IMAGE_B);
+		return 0;
+#endif
+#ifdef NVGPU_NETLIST_IMAGE_C
+	case NETLIST_SLOT_C:
+		sprintf(name, NVGPU_NETLIST_IMAGE_C);
+		return 0;
+#endif
+#ifdef NVGPU_NETLIST_IMAGE_D
+	case NETLIST_SLOT_D:
+		sprintf(name, NVGPU_NETLIST_IMAGE_D);
+		return 0;
+#endif
+	default:
+		return -1;
+	}
 
-#endif /* NVGPU_GR_CTX_GV100_H */
+	return -1;
+}
+
+bool gp10b_netlist_is_firmware_defined(void)
+{
+#ifdef GP10B_NETLIST_IMAGE_FW_NAME
+	return true;
+#else
+	return false;
+#endif
+}

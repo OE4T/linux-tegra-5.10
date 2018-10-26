@@ -1,7 +1,5 @@
 /*
- * GV100 Graphics Context
- *
- * Copyright (c) 2017-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2017, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -21,27 +19,52 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
+
 #include <nvgpu/gk20a.h>
+#include <nvgpu/netlist.h>
 
-#include "gr_ctx_gv100.h"
+#include "netlist_gv11b.h"
 
-int gr_gv100_get_netlist_name(struct gk20a *g, int index, char *name)
+int gv11b_netlist_get_name(struct gk20a *g, int index, char *name)
 {
-	u32 ver = g->params.gpu_arch + g->params.gpu_impl;
-
-	switch (ver) {
-		case NVGPU_GPUID_GV100:
-			sprintf(name, "%s/%s", "gv100",
-					GV100_NETLIST_IMAGE_FW_NAME);
-			break;
-		default:
-			nvgpu_err(g, "no support for GPUID %x", ver);
+	switch (index) {
+#ifdef GV11B_NETLIST_IMAGE_FW_NAME
+	case NETLIST_FINAL:
+		sprintf(name, GV11B_NETLIST_IMAGE_FW_NAME);
+		return 0;
+#endif
+#ifdef NVGPU_NETLIST_IMAGE_A
+	case NETLIST_SLOT_A:
+		sprintf(name, NVGPU_NETLIST_IMAGE_A);
+		return 0;
+#endif
+#ifdef NVGPU_NETLIST_IMAGE_B
+	case NETLIST_SLOT_B:
+		sprintf(name, NVGPU_NETLIST_IMAGE_B);
+		return 0;
+#endif
+#ifdef NVGPU_NETLIST_IMAGE_C
+	case NETLIST_SLOT_C:
+		sprintf(name, NVGPU_NETLIST_IMAGE_C);
+		return 0;
+#endif
+#ifdef NVGPU_NETLIST_IMAGE_D
+	case NETLIST_SLOT_D:
+		sprintf(name, NVGPU_NETLIST_IMAGE_D);
+		return 0;
+#endif
+	default:
+		return -1;
 	}
 
-	return 0;
+	return -1;
 }
 
-bool gr_gv100_is_firmware_defined(void)
+bool gv11b_netlist_is_firmware_defined(void)
 {
+#ifdef GV11B_NETLIST_IMAGE_FW_NAME
 	return true;
+#else
+	return false;
+#endif
 }

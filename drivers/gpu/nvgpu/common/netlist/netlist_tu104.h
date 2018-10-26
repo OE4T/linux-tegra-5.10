@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -19,16 +19,10 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef NVGPU_GR_CTX_GP106_H
-#define NVGPU_GR_CTX_GP106_H
+#ifndef NVGPU_NETLIST_TU104_H
+#define NVGPU_NETLIST_TU104_H
 
-#include "gk20a/gr_ctx_gk20a.h"
+int tu104_netlist_get_name(struct gk20a *g, int index, char *name);
+bool tu104_netlist_is_firmware_defined(void);
 
-/* production netlist, one and only one from below */
-#define GP106_NETLIST_IMAGE_FW_NAME GK20A_NETLIST_IMAGE_C
-#define GP104_NETLIST_IMAGE_FW_NAME GK20A_NETLIST_IMAGE_D
-
-int gr_gp106_get_netlist_name(struct gk20a *g, int index, char *name);
-bool gr_gp106_is_firmware_defined(void);
-
-#endif /* NVGPU_GR_CTX_GP106_H */
+#endif /*NVGPU_NETLIST_TU104_H*/

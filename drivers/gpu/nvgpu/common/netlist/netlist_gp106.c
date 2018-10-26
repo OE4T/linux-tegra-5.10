@@ -1,7 +1,5 @@
 /*
- * GP10B Graphics Context
- *
- * Copyright (c) 2015-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2018, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -21,15 +19,33 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef NVGPU_GR_CTX_GP10B_H
-#define NVGPU_GR_CTX_GP10B_H
 
-#include "gk20a/gr_ctx_gk20a.h"
+#include <nvgpu/gk20a.h>
+#include <nvgpu/netlist.h>
 
-/* production netlist, one and only one from below */
-#define GP10B_NETLIST_IMAGE_FW_NAME GK20A_NETLIST_IMAGE_A
+#include "netlist_gp106.h"
 
-int gr_gp10b_get_netlist_name(struct gk20a *g, int index, char *name);
-bool gr_gp10b_is_firmware_defined(void);
+int gp106_netlist_get_name(struct gk20a *g, int index, char *name)
+{
+	u32 ver = g->params.gpu_arch + g->params.gpu_impl;
 
-#endif /* NVGPU_GR_CTX_GP10B_H */
+	switch (ver) {
+		case NVGPU_GPUID_GP104:
+			sprintf(name, "%s/%s", "gp104",
+					GP104_NETLIST_IMAGE_FW_NAME);
+			break;
+		case NVGPU_GPUID_GP106:
+			sprintf(name, "%s/%s", "gp106",
+					GP106_NETLIST_IMAGE_FW_NAME);
+			break;
+		default:
+			nvgpu_err(g, "no support for GPUID %x", ver);
+	}
+
+	return 0;
+}
+
+bool gp106_netlist_is_firmware_defined(void)
+{
+	return true;
+}

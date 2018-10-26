@@ -27,6 +27,7 @@
 #include "common/clock_gating/gp10b_gating_reglist.h"
 #include "common/fb/fb_gm20b.h"
 #include "common/fb/fb_gp10b.h"
+#include "common/netlist/netlist_gp10b.h"
 #include "common/therm/therm_gm20b.h"
 #include "common/therm/therm_gp10b.h"
 #include "common/ltc/ltc_gm20b.h"
@@ -53,7 +54,6 @@
 #include "gp10b/mm_gp10b.h"
 #include "gp10b/ce_gp10b.h"
 #include "gp10b/gr_gp10b.h"
-#include "gp10b/gr_ctx_gp10b.h"
 #include "gp10b/fifo_gp10b.h"
 #include "gp10b/regops_gp10b.h"
 #include "gp10b/clk_arb_gp10b.h"
@@ -359,9 +359,9 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 		.add_sema_cmd = gk20a_fifo_add_sema_cmd,
 		.set_sm_exception_type_mask = vgpu_set_sm_exception_type_mask,
 	},
-	.gr_ctx = {
-		.get_netlist_name = gr_gp10b_get_netlist_name,
-		.is_fw_defined = gr_gp10b_is_firmware_defined,
+	.netlist = {
+		.get_netlist_name = gp10b_netlist_get_name,
+		.is_fw_defined = gp10b_netlist_is_firmware_defined,
 	},
 #ifdef CONFIG_GK20A_CTXSW_TRACE
 	.fecs_trace = {
@@ -578,7 +578,7 @@ int vgpu_gp10b_init_hal(struct gk20a *g)
 	gops->fb = vgpu_gp10b_ops.fb;
 	gops->clock_gating = vgpu_gp10b_ops.clock_gating;
 	gops->fifo = vgpu_gp10b_ops.fifo;
-	gops->gr_ctx = vgpu_gp10b_ops.gr_ctx;
+	gops->netlist = vgpu_gp10b_ops.netlist;
 #ifdef CONFIG_GK20A_CTXSW_TRACE
 	gops->fecs_trace = vgpu_gp10b_ops.fecs_trace;
 #endif

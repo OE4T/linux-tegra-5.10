@@ -28,6 +28,7 @@
 #include "common/fb/fb_gm20b.h"
 #include "common/fb/fb_gp10b.h"
 #include "common/fb/fb_gv11b.h"
+#include "common/netlist/netlist_gv11b.h"
 #include "common/therm/therm_gm20b.h"
 #include "common/therm/therm_gp10b.h"
 #include "common/therm/therm_gv11b.h"
@@ -78,7 +79,6 @@
 #include <gv11b/ce_gv11b.h>
 #include <gv11b/fifo_gv11b.h>
 #include <gv11b/regops_gv11b.h>
-#include <gv11b/gr_ctx_gv11b.h>
 #include <gv11b/gr_gv11b.h>
 
 #include <gv100/gr_gv100.h>
@@ -432,9 +432,9 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 		.add_sema_cmd = gv11b_fifo_add_sema_cmd,
 		.set_sm_exception_type_mask = vgpu_set_sm_exception_type_mask,
 	},
-	.gr_ctx = {
-		.get_netlist_name = gr_gv11b_get_netlist_name,
-		.is_fw_defined = gr_gv11b_is_firmware_defined,
+	.netlist = {
+		.get_netlist_name = gv11b_netlist_get_name,
+		.is_fw_defined = gv11b_netlist_is_firmware_defined,
 	},
 #ifdef CONFIG_GK20A_CTXSW_TRACE
 	.fecs_trace = {
@@ -650,7 +650,7 @@ int vgpu_gv11b_init_hal(struct gk20a *g)
 	gops->fb = vgpu_gv11b_ops.fb;
 	gops->clock_gating = vgpu_gv11b_ops.clock_gating;
 	gops->fifo = vgpu_gv11b_ops.fifo;
-	gops->gr_ctx = vgpu_gv11b_ops.gr_ctx;
+	gops->netlist = vgpu_gv11b_ops.netlist;
 	gops->mm = vgpu_gv11b_ops.mm;
 #ifdef CONFIG_GK20A_CTXSW_TRACE
 	gops->fecs_trace = vgpu_gv11b_ops.fecs_trace;

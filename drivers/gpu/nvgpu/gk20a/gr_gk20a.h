@@ -25,8 +25,8 @@
 #define GR_GK20A_H
 
 #include <nvgpu/types.h>
+#include <nvgpu/netlist.h>
 
-#include "gr_ctx_gk20a.h"
 #include "mm_gk20a.h"
 
 #include <nvgpu/comptags.h>
@@ -257,8 +257,6 @@ struct nvgpu_preemption_modes_rec {
 struct gr_gk20a {
 	struct gk20a *g;
 	struct {
-		bool dynamic;
-
 		u32 buffer_size;
 		u32 buffer_total_size;
 
@@ -279,41 +277,6 @@ struct gr_gk20a {
 
 		u32 fecs_trace_buffer_size;
 
-		struct gr_ucode_gk20a ucode;
-
-		struct av_list_gk20a  sw_bundle_init;
-		struct av_list_gk20a  sw_method_init;
-		struct aiv_list_gk20a sw_ctx_load;
-		struct av_list_gk20a  sw_non_ctx_load;
-		struct av_list_gk20a  sw_veid_bundle_init;
-		struct av64_list_gk20a sw_bundle64_init;
-		struct {
-			struct aiv_list_gk20a sys;
-			struct aiv_list_gk20a gpc;
-			struct aiv_list_gk20a tpc;
-			struct aiv_list_gk20a zcull_gpc;
-			struct aiv_list_gk20a ppc;
-			struct aiv_list_gk20a pm_sys;
-			struct aiv_list_gk20a pm_gpc;
-			struct aiv_list_gk20a pm_tpc;
-			struct aiv_list_gk20a pm_ppc;
-			struct aiv_list_gk20a perf_sys;
-			struct aiv_list_gk20a perf_gpc;
-			struct aiv_list_gk20a fbp;
-			struct aiv_list_gk20a fbp_router;
-			struct aiv_list_gk20a gpc_router;
-			struct aiv_list_gk20a pm_ltc;
-			struct aiv_list_gk20a pm_fbpa;
-			struct aiv_list_gk20a perf_sys_router;
-			struct aiv_list_gk20a perf_pma;
-			struct aiv_list_gk20a pm_rop;
-			struct aiv_list_gk20a pm_ucgpc;
-			struct aiv_list_gk20a etpc;
-			struct aiv_list_gk20a pm_cau;
-		} ctxsw_regs;
-		u32 regs_base_index;
-		bool valid;
-
 		u32 preempt_image_size;
 		bool force_preemption_gfxp;
 		bool force_preemption_cilp;
@@ -322,10 +285,6 @@ struct gr_gk20a {
 
 	struct nvgpu_mutex ctx_mutex; /* protect golden ctx init */
 	struct nvgpu_mutex fecs_mutex; /* protect fecs method */
-
-#define GR_NETLIST_DYNAMIC	-1
-#define GR_NETLIST_STATIC_A	'A'
-	int netlist;
 
 	struct nvgpu_cond init_wq;
 	int initialized;
@@ -807,12 +766,12 @@ int gk20a_gr_handle_semaphore_pending(struct gk20a *g,
 				struct gr_gk20a_isr_data *isr_data);
 int gr_gk20a_add_ctxsw_reg_pm_fbpa(struct gk20a *g,
 				struct ctxsw_buf_offset_map_entry *map,
-				struct aiv_list_gk20a *regs,
+				struct netlist_aiv_list *regs,
 				u32 *count, u32 *offset,
 				u32 max_cnt, u32 base,
 				u32 num_fbpas, u32 stride, u32 mask);
 int gr_gk20a_add_ctxsw_reg_perf_pma(struct ctxsw_buf_offset_map_entry *map,
-	struct aiv_list_gk20a *regs,
+	struct netlist_aiv_list *regs,
 	u32 *count, u32 *offset,
 	u32 max_cnt, u32 base, u32 mask);
 int gr_gk20a_decode_priv_addr(struct gk20a *g, u32 addr,

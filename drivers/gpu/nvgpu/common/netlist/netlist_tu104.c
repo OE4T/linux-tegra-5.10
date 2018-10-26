@@ -1,6 +1,4 @@
 /*
- * TU104 Graphics Context
- *
  * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
@@ -23,11 +21,12 @@
  */
 
 #include <nvgpu/gk20a.h>
+#include <nvgpu/netlist.h>
 
-#include "gr_ctx_tu104.h"
+#include "netlist_tu104.h"
 #include "nvgpu_gpuid_next.h"
 
-int gr_tu104_get_netlist_name(struct gk20a *g, int index, char *name)
+int tu104_netlist_get_name(struct gk20a *g, int index, char *name)
 {
 	u32 ver = g->params.gpu_arch + g->params.gpu_impl;
 
@@ -42,7 +41,7 @@ int gr_tu104_get_netlist_name(struct gk20a *g, int index, char *name)
 	return 0;
 }
 
-bool gr_tu104_is_firmware_defined(void)
+bool tu104_netlist_is_firmware_defined(void)
 {
 	return true;
 }

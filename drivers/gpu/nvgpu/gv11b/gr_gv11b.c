@@ -2682,8 +2682,8 @@ int gr_gv11b_setup_rop_mapping(struct gk20a *g, struct gr_gk20a *gr)
 
 static int gv11b_write_bundle_veid_state(struct gk20a *g, u32 index)
 {
-	struct av_list_gk20a *sw_veid_bundle_init =
-			&g->gr.ctx_vars.sw_veid_bundle_init;
+	struct netlist_av_list *sw_veid_bundle_init =
+			&g->netlist_vars->sw_veid_bundle_init;
 	u32 j;
 	u32  num_subctx, err = 0;
 
@@ -2703,8 +2703,8 @@ static int gv11b_write_bundle_veid_state(struct gk20a *g, u32 index)
 
 int gr_gv11b_init_sw_veid_bundle(struct gk20a *g)
 {
-	struct av_list_gk20a *sw_veid_bundle_init =
-			&g->gr.ctx_vars.sw_veid_bundle_init;
+	struct netlist_av_list *sw_veid_bundle_init =
+			&g->netlist_vars->sw_veid_bundle_init;
 	u32 i;
 	u32 last_bundle_data = 0;
 	int err = 0;

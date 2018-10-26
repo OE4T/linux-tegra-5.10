@@ -1,7 +1,5 @@
 /*
- * GM20B Graphics Context
- *
- * Copyright (c) 2014-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2018, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -21,16 +19,15 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef NVGPU_GM20B_GR_CTX_GM20B_H
-#define NVGPU_GM20B_GR_CTX_GM20B_H
+#ifndef NVGPU_NETLIST_GV100_H
+#define NVGPU_NETLIST_GV100_H
 
-#include "gk20a/gr_ctx_gk20a.h"
+#include <nvgpu/netlist.h>
 
 /* production netlist, one and only one from below */
-/*#undef GM20B_NETLIST_IMAGE_FW_NAME*/
-#define GM20B_NETLIST_IMAGE_FW_NAME GK20A_NETLIST_IMAGE_B
+#define GV100_NETLIST_IMAGE_FW_NAME NVGPU_NETLIST_IMAGE_D
 
-int gr_gm20b_get_netlist_name(struct gk20a *g, int index, char *name);
-bool gr_gm20b_is_firmware_defined(void);
+int gv100_netlist_get_name(struct gk20a *g, int index, char *name);
+bool gv100_netlist_is_firmware_defined(void);
 
-#endif /*NVGPU_GM20B_GR_CTX_GM20B_H*/
+#endif /* NVGPU_NETLIST_GV100_H */

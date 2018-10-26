@@ -26,9 +26,9 @@
 #include <nvgpu/utils.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/channel.h>
+#include <nvgpu/netlist.h>
 
 #include "gk20a/gr_gk20a.h"
-#include "gk20a/gr_ctx_gk20a.h"
 #include "gk20a/gr_pri_gk20a.h"
 
 #include "gp10b/gr_gp10b.h"
@@ -84,8 +84,8 @@ int gr_tu104_init_sw_bundle64(struct gk20a *g)
 	u32 last_bundle_data_lo = 0;
 	u32 last_bundle_data_hi = 0;
 	u32 err = 0;
-	struct av64_list_gk20a *sw_bundle64_init =
-			&g->gr.ctx_vars.sw_bundle64_init;
+	struct netlist_av64_list *sw_bundle64_init =
+			&g->netlist_vars->sw_bundle64_init;
 
 	for (i = 0; i < sw_bundle64_init->count; i++) {
 		if (i == 0 ||
@@ -330,13 +330,12 @@ int gr_tu104_get_offset_in_gpccs_segment(struct gk20a *g,
 					u32 *__offset_in_segment)
 {
 	u32 offset_in_segment = 0;
-	struct gr_gk20a *gr = &g->gr;
 	u32 num_pes_per_gpc = nvgpu_get_litter_value(g,
 				GPU_LIT_NUM_PES_PER_GPC);
 
 	if (addr_type == CTXSW_ADDR_TYPE_TPC) {
 		/*
-		 * reg = gr->ctx_vars.ctxsw_regs.tpc.l;
+		 * reg = g->netlist_vars->ctxsw_regs.tpc.l;
 		 * offset_in_segment = 0;
 		 */
 	} else if (addr_type == CTXSW_ADDR_TYPE_PPC) {
@@ -345,7 +344,7 @@ int gr_tu104_get_offset_in_gpccs_segment(struct gk20a *g,
 		 * Advance offset past TPC data to PPC data.
 		 */
 		offset_in_segment =
-			((gr->ctx_vars.ctxsw_regs.tpc.count *
+			((g->netlist_vars->ctxsw_regs.tpc.count *
 				num_tpcs) << 2);
 	} else if (addr_type == CTXSW_ADDR_TYPE_GPC) {
 		/*
@@ -356,27 +355,27 @@ int gr_tu104_get_offset_in_gpccs_segment(struct gk20a *g,
 		 */
 		if (num_pes_per_gpc > 1) {
 			offset_in_segment =
-				(((gr->ctx_vars.ctxsw_regs.tpc.count *
+				(((g->netlist_vars->ctxsw_regs.tpc.count *
 					num_tpcs) << 2) +
 				((reg_list_ppc_count * num_ppcs) << 2));
 		} else {
 			offset_in_segment =
-				((gr->ctx_vars.ctxsw_regs.tpc.count *
+				((g->netlist_vars->ctxsw_regs.tpc.count *
 					num_tpcs) << 2);
 		}
 	} else if ((addr_type == CTXSW_ADDR_TYPE_EGPC) ||
 			(addr_type == CTXSW_ADDR_TYPE_ETPC)) {
 		if (num_pes_per_gpc > 1) {
 			offset_in_segment =
-				((gr->ctx_vars.ctxsw_regs.tpc.count *
+				((g->netlist_vars->ctxsw_regs.tpc.count *
 					num_tpcs) << 2) +
 				((reg_list_ppc_count * num_ppcs) << 2) +
-				(gr->ctx_vars.ctxsw_regs.gpc.count << 2);
+				(g->netlist_vars->ctxsw_regs.gpc.count << 2);
 		} else {
 			offset_in_segment =
-				((gr->ctx_vars.ctxsw_regs.tpc.count *
+				((g->netlist_vars->ctxsw_regs.tpc.count *
 					num_tpcs) << 2) +
-				(gr->ctx_vars.ctxsw_regs.gpc.count << 2);
+				(g->netlist_vars->ctxsw_regs.gpc.count << 2);
 		}
 
 		/* aligned to next 256 byte */

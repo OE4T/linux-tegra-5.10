@@ -222,6 +222,14 @@ nvgpu-y += \
 	common/pmu/pmu_pg.o \
 	common/pmu/pmu_perfmon.o \
 	common/pmu/pmu_debug.o \
+	common/netlist/netlist.o \
+	common/netlist/netlist_sim.o \
+	common/netlist/netlist_gm20b.o \
+	common/netlist/netlist_gp106.o \
+	common/netlist/netlist_gp10b.o \
+	common/netlist/netlist_gv100.o \
+	common/netlist/netlist_gv11b.o \
+	common/netlist/netlist_tu104.o \
 	common/ltc/ltc.o \
 	common/ltc/ltc_gm20b.o \
 	common/ltc/ltc_gp10b.o \
@@ -252,14 +260,11 @@ nvgpu-y += \
 	gk20a/pmu_gk20a.o \
 	gk20a/flcn_gk20a.o \
 	gk20a/fence_gk20a.o \
-	gk20a/gr_ctx_gk20a_sim.o \
-	gk20a/gr_ctx_gk20a.o \
 	gk20a/fecs_trace_gk20a.o \
 	gm20b/hal_gm20b.o \
 	gm20b/gr_gm20b.o \
 	gm20b/clk_gm20b.o \
 	gm20b/fifo_gm20b.o \
-	gm20b/gr_ctx_gm20b.o \
 	gm20b/acr_gm20b.o \
 	gm20b/pmu_gm20b.o \
 	gm20b/mm_gm20b.o \
@@ -298,7 +303,6 @@ nvgpu-$(CONFIG_GK20A_CYCLE_STATS) += \
 nvgpu-y += \
 	gp10b/gr_gp10b.o  \
 	gp10b/clk_arb_gp10b.o \
-	gp10b/gr_ctx_gp10b.o  \
 	gp10b/ce_gp10b.o \
 	gp10b/fifo_gp10b.o  \
 	gp10b/mm_gp10b.o \
@@ -313,7 +317,6 @@ nvgpu-y += \
 	gp106/pmu_gp106.o \
 	gp106/mclk_gp106.o \
 	gp106/gr_gp106.o \
-	gp106/gr_ctx_gp106.o \
 	gp106/acr_gp106.o \
 	gp106/sec2_gp106.o \
 	gp106/fifo_gp106.o \
@@ -325,14 +328,12 @@ nvgpu-y += \
 	gv11b/fifo_gv11b.o \
 	gv11b/mm_gv11b.o \
 	gv11b/ce_gv11b.o \
-	gv11b/gr_ctx_gv11b.o \
 	gv11b/pmu_gv11b.o \
 	gv11b/acr_gv11b.o \
 	gv11b/subctx_gv11b.o \
 	gv11b/regops_gv11b.o \
 	gv11b/ecc_gv11b.o \
 	gv100/mm_gv100.o \
-	gv100/gr_ctx_gv100.o \
 	gv100/bios_gv100.o \
 	gv100/fifo_gv100.o \
 	gv100/gr_gv100.o \
@@ -388,7 +389,6 @@ nvgpu-$(CONFIG_TEGRA_GPU_NEXT) += \
 	tu104/bios_tu104.o \
 	tu104/nvlink_tu104.o \
 	tu104/fbpa_tu104.o \
-	tu104/gr_ctx_tu104.o \
 	tu104/flcn_tu104.o \
 	tu104/sec2_tu104.o \
 	tu104/ecc_tu104.o \

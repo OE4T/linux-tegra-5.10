@@ -1,9 +1,5 @@
 /*
- * drivers/video/tegra/host/gm20b/gr_ctx_gm20b.c
- *
- * GM20B Graphics Context
- *
- * Copyright (c) 2015-2017, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2018, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -23,51 +19,16 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
+#ifndef NVGPU_NETLIST_GP106_H
+#define NVGPU_NETLIST_GP106_H
 
-#include <nvgpu/gk20a.h>
+#include <nvgpu/netlist.h>
 
-#include "gr_ctx_gm20b.h"
+/* production netlist, one and only one from below */
+#define GP106_NETLIST_IMAGE_FW_NAME NVGPU_NETLIST_IMAGE_C
+#define GP104_NETLIST_IMAGE_FW_NAME NVGPU_NETLIST_IMAGE_D
 
-int gr_gm20b_get_netlist_name(struct gk20a *g, int index, char *name)
-{
-	switch (index) {
-#ifdef GM20B_NETLIST_IMAGE_FW_NAME
-	case NETLIST_FINAL:
-		sprintf(name, GM20B_NETLIST_IMAGE_FW_NAME);
-		return 0;
-#endif
-#ifdef GK20A_NETLIST_IMAGE_A
-	case NETLIST_SLOT_A:
-		sprintf(name, GK20A_NETLIST_IMAGE_A);
-		return 0;
-#endif
-#ifdef GK20A_NETLIST_IMAGE_B
-	case NETLIST_SLOT_B:
-		sprintf(name, GK20A_NETLIST_IMAGE_B);
-		return 0;
-#endif
-#ifdef GK20A_NETLIST_IMAGE_C
-	case NETLIST_SLOT_C:
-		sprintf(name, GK20A_NETLIST_IMAGE_C);
-		return 0;
-#endif
-#ifdef GK20A_NETLIST_IMAGE_D
-	case NETLIST_SLOT_D:
-		sprintf(name, GK20A_NETLIST_IMAGE_D);
-		return 0;
-#endif
-	default:
-		return -1;
-	}
+int gp106_netlist_get_name(struct gk20a *g, int index, char *name);
+bool gp106_netlist_is_firmware_defined(void);
 
-	return -1;
-}
-
-bool gr_gm20b_is_firmware_defined(void)
-{
-#ifdef GM20B_NETLIST_IMAGE_FW_NAME
-	return true;
-#else
-	return false;
-#endif
-}
+#endif /* NVGPU_NETLIST_GP106_H */

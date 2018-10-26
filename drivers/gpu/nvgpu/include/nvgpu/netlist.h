@@ -1,6 +1,4 @@
 /*
- * GK20A Graphics Context
- *
  * Copyright (c) 2011-2018, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
@@ -21,18 +19,16 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef NVGPU_GK20A_GR_CTX_GK20A_H
-#define NVGPU_GK20A_GR_CTX_GK20A_H
+#ifndef NVGPU_NETLIST_H
+#define NVGPU_NETLIST_H
 
-#include <nvgpu/kmem.h>
-
-struct gr_gk20a;
+struct gk20a;
 
 /* emulation netlists, match majorV with HW */
-#define GK20A_NETLIST_IMAGE_A	"NETA_img.bin"
-#define GK20A_NETLIST_IMAGE_B	"NETB_img.bin"
-#define GK20A_NETLIST_IMAGE_C	"NETC_img.bin"
-#define GK20A_NETLIST_IMAGE_D   "NETD_img.bin"
+#define NVGPU_NETLIST_IMAGE_A	"NETA_img.bin"
+#define NVGPU_NETLIST_IMAGE_B	"NETB_img.bin"
+#define NVGPU_NETLIST_IMAGE_C	"NETC_img.bin"
+#define NVGPU_NETLIST_IMAGE_D	"NETD_img.bin"
 
 /*
  * Need to support multiple ARCH in same GPU family
@@ -46,17 +42,17 @@ struct gr_gk20a;
 #define GPU_ARCH "GAxxx"
 
 union __max_name {
-#ifdef GK20A_NETLIST_IMAGE_A
-	char __name_a[sizeof(GK20A_NETLIST_IMAGE_A)];
+#ifdef NVGPU_NETLIST_IMAGE_A
+	char __name_a[sizeof(NVGPU_NETLIST_IMAGE_A)];
 #endif
-#ifdef GK20A_NETLIST_IMAGE_B
-	char __name_b[sizeof(GK20A_NETLIST_IMAGE_B)];
+#ifdef NVGPU_NETLIST_IMAGE_B
+	char __name_b[sizeof(NVGPU_NETLIST_IMAGE_B)];
 #endif
-#ifdef GK20A_NETLIST_IMAGE_C
-	char __name_c[sizeof(GK20A_NETLIST_IMAGE_C)];
+#ifdef NVGPU_NETLIST_IMAGE_C
+	char __name_c[sizeof(NVGPU_NETLIST_IMAGE_C)];
 #endif
-#ifdef GK20A_NETLIST_IMAGE_D
-	char __name_d[sizeof(GK20A_NETLIST_IMAGE_D)];
+#ifdef NVGPU_NETLIST_IMAGE_D
+	char __name_d[sizeof(NVGPU_NETLIST_IMAGE_D)];
 #endif
 };
 
@@ -124,33 +120,33 @@ struct netlist_image {
 	struct netlist_region regions[1];
 };
 
-struct av_gk20a {
+struct netlist_av {
 	u32 addr;
 	u32 value;
 };
-struct av64_gk20a {
+struct netlist_av64 {
 	u32 addr;
 	u32 value_lo;
 	u32 value_hi;
 };
-struct aiv_gk20a {
+struct netlist_aiv {
 	u32 addr;
 	u32 index;
 	u32 value;
 };
-struct aiv_list_gk20a {
-	struct aiv_gk20a *l;
+struct netlist_aiv_list {
+	struct netlist_aiv *l;
 	u32 count;
 };
-struct av_list_gk20a {
-	struct av_gk20a *l;
+struct netlist_av_list {
+	struct netlist_av *l;
 	u32 count;
 };
-struct av64_list_gk20a {
-	struct av64_gk20a *l;
+struct netlist_av64_list {
+	struct netlist_av64 *l;
 	u32 count;
 };
-struct u32_list_gk20a {
+struct netlist_u32_list {
 	u32 *l;
 	u32 count;
 };
@@ -160,47 +156,60 @@ struct ctxsw_buf_offset_map_entry {
 	u32 offset;	/* Offset in ctxt switch buffer */
 };
 
-static inline
-struct av_gk20a *alloc_av_list_gk20a(struct gk20a *g, struct av_list_gk20a *avl)
-{
-	avl->l = nvgpu_kzalloc(g, avl->count * sizeof(*avl->l));
-	return avl->l;
-}
+struct netlist_av *nvgpu_netlist_alloc_av_list(struct gk20a *g, struct netlist_av_list *avl);
+struct netlist_av64 *nvgpu_netlist_alloc_av64_list(struct gk20a *g, struct netlist_av64_list *avl);
+struct netlist_aiv *nvgpu_netlist_alloc_aiv_list(struct gk20a *g, struct netlist_aiv_list *aivl);
+u32 *nvgpu_netlist_alloc_u32_list(struct gk20a *g, struct netlist_u32_list *u32l);
 
-static inline
-struct av64_gk20a *alloc_av64_list_gk20a(struct gk20a *g, struct av64_list_gk20a *avl)
-{
-	avl->l = nvgpu_kzalloc(g, avl->count * sizeof(*avl->l));
-	return avl->l;
-}
-
-static inline
-struct aiv_gk20a *alloc_aiv_list_gk20a(struct gk20a *g,
-				       struct aiv_list_gk20a *aivl)
-{
-	aivl->l = nvgpu_kzalloc(g, aivl->count * sizeof(*aivl->l));
-	return aivl->l;
-}
-
-static inline
-u32 *alloc_u32_list_gk20a(struct gk20a *g, struct u32_list_gk20a *u32l)
-{
-	u32l->l = nvgpu_kzalloc(g, u32l->count * sizeof(*u32l->l));
-	return u32l->l;
-}
-
-struct gr_ucode_gk20a {
+struct netlist_gr_ucode {
 	struct {
-		struct u32_list_gk20a inst;
-		struct u32_list_gk20a data;
+		struct netlist_u32_list inst;
+		struct netlist_u32_list data;
 	} gpccs, fecs;
 };
 
-/* main entry for grctx loading */
-int gr_gk20a_init_ctx_vars(struct gk20a *g, struct gr_gk20a *gr);
-int gr_gk20a_init_ctx_vars_sim(struct gk20a *g, struct gr_gk20a *gr);
+struct nvgpu_netlist_vars {
+	bool dynamic;
 
-struct gpu_ops;
-void gk20a_init_gr_ctx(struct gpu_ops *gops);
+	u32 regs_base_index;
+	u32 buffer_size;
 
-#endif /*NVGPU_GK20A_GR_CTX_GK20A_H*/
+	struct netlist_gr_ucode ucode;
+
+	struct netlist_av_list  sw_bundle_init;
+	struct netlist_av64_list sw_bundle64_init;
+	struct netlist_av_list  sw_method_init;
+	struct netlist_aiv_list sw_ctx_load;
+	struct netlist_av_list  sw_non_ctx_load;
+	struct netlist_av_list  sw_veid_bundle_init;
+	struct {
+		struct netlist_aiv_list sys;
+		struct netlist_aiv_list gpc;
+		struct netlist_aiv_list tpc;
+		struct netlist_aiv_list zcull_gpc;
+		struct netlist_aiv_list ppc;
+		struct netlist_aiv_list pm_sys;
+		struct netlist_aiv_list pm_gpc;
+		struct netlist_aiv_list pm_tpc;
+		struct netlist_aiv_list pm_ppc;
+		struct netlist_aiv_list perf_sys;
+		struct netlist_aiv_list perf_gpc;
+		struct netlist_aiv_list fbp;
+		struct netlist_aiv_list fbp_router;
+		struct netlist_aiv_list gpc_router;
+		struct netlist_aiv_list pm_ltc;
+		struct netlist_aiv_list pm_fbpa;
+		struct netlist_aiv_list perf_sys_router;
+		struct netlist_aiv_list perf_pma;
+		struct netlist_aiv_list pm_rop;
+		struct netlist_aiv_list pm_ucgpc;
+		struct netlist_aiv_list etpc;
+		struct netlist_aiv_list pm_cau;
+	} ctxsw_regs;
+};
+
+int nvgpu_netlist_init_ctx_vars(struct gk20a *g);
+int nvgpu_netlist_init_ctx_vars_sim(struct gk20a *g);
+void nvgpu_netlist_deinit_ctx_vars(struct gk20a *g);
+
+#endif /* NVGPU_NETLIST_H */

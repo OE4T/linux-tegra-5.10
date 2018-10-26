@@ -39,6 +39,7 @@ struct dbg_profiler_object_data;
 struct gk20a_debug_output;
 struct nvgpu_clk_pll_debug_data;
 struct nvgpu_nvhost_dev;
+struct nvgpu_netlist_vars;
 struct nvgpu_cpu_time_correlation_sample;
 struct nvgpu_mem_sgt;
 struct nvgpu_warpstate;
@@ -490,12 +491,12 @@ struct gpu_ops {
 					struct gr_gk20a_isr_data *isr_data);
 		int (*add_ctxsw_reg_pm_fbpa)(struct gk20a *g,
 				struct ctxsw_buf_offset_map_entry *map,
-				struct aiv_list_gk20a *regs,
+				struct netlist_aiv_list *regs,
 				u32 *count, u32 *offset,
 				u32 max_cnt, u32 base,
 				u32 num_fbpas, u32 stride, u32 mask);
 		int (*add_ctxsw_reg_perf_pma)(struct ctxsw_buf_offset_map_entry *map,
-					struct aiv_list_gk20a *regs,
+					struct netlist_aiv_list *regs,
 					u32 *count, u32 *offset,
 					u32 max_cnt, u32 base, u32 mask);
 		int (*decode_priv_addr)(struct gk20a *g, u32 addr,
@@ -908,7 +909,7 @@ struct gpu_ops {
 	struct {
 		int (*get_netlist_name)(struct gk20a *g, int index, char *name);
 		bool (*is_fw_defined)(void);
-	} gr_ctx;
+	} netlist;
 #ifdef CONFIG_GK20A_CTXSW_TRACE
 	/*
 	 * Currently only supported on Linux due to the extremely tight
@@ -1466,6 +1467,9 @@ struct gk20a {
 	 * gk20a_do_idle().
 	 */
 	struct nvgpu_rwsem deterministic_busy;
+
+	struct nvgpu_netlist_vars *netlist_vars;
+	bool netlist_valid;
 
 	struct nvgpu_falcon pmu_flcn;
 	struct nvgpu_falcon sec2_flcn;

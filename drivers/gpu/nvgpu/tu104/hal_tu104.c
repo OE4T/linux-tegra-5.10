@@ -37,6 +37,7 @@
 #include "common/fb/fb_gv100.h"
 #include "common/fb/fb_tu104.h"
 #include "common/xve/xve_gp106.h"
+#include "common/netlist/netlist_tu104.h"
 #include "common/therm/therm_gm20b.h"
 #include "common/therm/therm_gp10b.h"
 #include "common/therm/therm_gp106.h"
@@ -98,7 +99,6 @@
 #include "gv100/bios_gv100.h"
 #include "gv100/fifo_gv100.h"
 #include "gv100/flcn_gv100.h"
-#include "gv100/gr_ctx_gv100.h"
 #include "gv100/gr_gv100.h"
 #include "gv100/mm_gv100.h"
 #include "gv100/pmu_gv100.h"
@@ -109,7 +109,6 @@
 #include "tu104/gr_tu104.h"
 #include "tu104/bios_tu104.h"
 #include "tu104/fbpa_tu104.h"
-#include "tu104/gr_ctx_tu104.h"
 #include "tu104/sec2_tu104.h"
 #include "tu104/flcn_tu104.h"
 #include "tu104/nvlink_tu104.h"
@@ -707,9 +706,9 @@ static const struct gpu_ops tu104_ops = {
 		.deinit_pdb_cache_war = tu104_deinit_pdb_cache_war,
 		.set_sm_exception_type_mask = gk20a_tsg_set_sm_exception_type_mask,
 	},
-	.gr_ctx = {
-		.get_netlist_name = gr_tu104_get_netlist_name,
-		.is_fw_defined = gr_tu104_is_firmware_defined,
+	.netlist = {
+		.get_netlist_name = tu104_netlist_get_name,
+		.is_fw_defined = tu104_netlist_is_firmware_defined,
 	},
 #ifdef CONFIG_GK20A_CTXSW_TRACE
 	.fecs_trace = {
@@ -1017,7 +1016,7 @@ int tu104_init_hal(struct gk20a *g)
 	gops->fb = tu104_ops.fb;
 	gops->clock_gating = tu104_ops.clock_gating;
 	gops->fifo = tu104_ops.fifo;
-	gops->gr_ctx = tu104_ops.gr_ctx;
+	gops->netlist = tu104_ops.netlist;
 	gops->mm = tu104_ops.mm;
 #ifdef CONFIG_GK20A_CTXSW_TRACE
 	gops->fecs_trace = tu104_ops.fecs_trace;

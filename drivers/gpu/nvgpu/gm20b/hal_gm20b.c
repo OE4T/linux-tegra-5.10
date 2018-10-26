@@ -39,7 +39,7 @@
 #include "common/priv_ring/priv_ring_gm20b.h"
 #include "common/ptimer/ptimer_gk20a.h"
 #include "common/fb/fb_gm20b.h"
-#include "common/therm/therm_gm20b.h"
+#include "common/netlist/netlist_gm20b.h"
 #include "common/therm/therm_gm20b.h"
 #include "common/ltc/ltc_gm20b.h"
 #include "common/fuse/fuse_gm20b.h"
@@ -56,7 +56,6 @@
 
 #include "gr_gm20b.h"
 #include "fifo_gm20b.h"
-#include "gr_ctx_gm20b.h"
 #include "mm_gm20b.h"
 #include "pmu_gm20b.h"
 #include "clk_gm20b.h"
@@ -485,9 +484,9 @@ static const struct gpu_ops gm20b_ops = {
 		.add_sema_cmd = gk20a_fifo_add_sema_cmd,
 		.set_sm_exception_type_mask = gk20a_tsg_set_sm_exception_type_mask,
 	},
-	.gr_ctx = {
-		.get_netlist_name = gr_gm20b_get_netlist_name,
-		.is_fw_defined = gr_gm20b_is_firmware_defined,
+	.netlist = {
+		.get_netlist_name = gm20b_netlist_get_name,
+		.is_fw_defined = gm20b_netlist_is_firmware_defined,
 	},
 	.mm = {
 		.support_sparse = gm20b_mm_support_sparse,
@@ -693,7 +692,7 @@ int gm20b_init_hal(struct gk20a *g)
 	gops->fb = gm20b_ops.fb;
 	gops->clock_gating = gm20b_ops.clock_gating;
 	gops->fifo = gm20b_ops.fifo;
-	gops->gr_ctx = gm20b_ops.gr_ctx;
+	gops->netlist = gm20b_ops.netlist;
 	gops->mm = gm20b_ops.mm;
 	gops->therm = gm20b_ops.therm;
 	gops->pmu = gm20b_ops.pmu;

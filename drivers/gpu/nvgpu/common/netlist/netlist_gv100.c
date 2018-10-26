@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2018, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -19,10 +19,28 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef NVGPU_GR_CTX_TU104_H
-#define NVGPU_GR_CTX_TU104_H
+#include <nvgpu/gk20a.h>
+#include <nvgpu/netlist.h>
 
-int gr_tu104_get_netlist_name(struct gk20a *g, int index, char *name);
-bool gr_tu104_is_firmware_defined(void);
+#include "netlist_gv100.h"
 
-#endif /* NVGPU_GR_CTX_TU104_H */
+int gv100_netlist_get_name(struct gk20a *g, int index, char *name)
+{
+	u32 ver = g->params.gpu_arch + g->params.gpu_impl;
+
+	switch (ver) {
+		case NVGPU_GPUID_GV100:
+			sprintf(name, "%s/%s", "gv100",
+					GV100_NETLIST_IMAGE_FW_NAME);
+			break;
+		default:
+			nvgpu_err(g, "no support for GPUID %x", ver);
+	}
+
+	return 0;
+}
+
+bool gv100_netlist_is_firmware_defined(void)
+{
+	return true;
+}
