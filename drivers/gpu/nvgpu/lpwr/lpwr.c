@@ -24,6 +24,7 @@
 #include <nvgpu/pmu.h>
 #include <nvgpu/clk_arb.h>
 #include <nvgpu/gk20a.h>
+#include <nvgpu/string.h>
 
 #include "gp106/bios_gp106.h"
 #include "pstate/pstate.h"
@@ -32,7 +33,7 @@
 
 static int get_lpwr_idx_table(struct gk20a *g)
 {
-	u32 *lpwr_idx_table_ptr;
+	u8 *lpwr_idx_table_ptr;
 	u8 *entry_addr;
 	u32 idx;
 	struct nvgpu_lpwr_bios_idx_data *pidx_data =
@@ -40,13 +41,13 @@ static int get_lpwr_idx_table(struct gk20a *g)
 	struct nvgpu_bios_lpwr_idx_table_1x_header header = { 0 };
 	struct nvgpu_bios_lpwr_idx_table_1x_entry entry = { 0 };
 
-	lpwr_idx_table_ptr = (u32 *)nvgpu_bios_get_perf_table_ptrs(g,
+	lpwr_idx_table_ptr = (u8 *)nvgpu_bios_get_perf_table_ptrs(g,
 		g->bios.perf_token, LOWPOWER_TABLE);
 	if (lpwr_idx_table_ptr == NULL) {
 		return -EINVAL;
 	}
 
-	memcpy(&header, lpwr_idx_table_ptr,
+	nvgpu_memcpy((u8 *)&header, lpwr_idx_table_ptr,
 		sizeof(struct nvgpu_bios_lpwr_idx_table_1x_header));
 
 	if (header.entry_count >= LPWR_VBIOS_IDX_ENTRY_COUNT_MAX) {
@@ -57,10 +58,10 @@ static int get_lpwr_idx_table(struct gk20a *g)
 
 	/* Parse the LPWR Index Table entries.*/
 	for (idx = 0; idx < header.entry_count; idx++) {
-		entry_addr = (u8 *)lpwr_idx_table_ptr + header.header_size +
+		entry_addr = lpwr_idx_table_ptr + header.header_size +
 			(idx * header.entry_size);
 
-		memcpy(&entry, entry_addr,
+		nvgpu_memcpy((u8 *)&entry, entry_addr,
 			sizeof(struct nvgpu_bios_lpwr_idx_table_1x_entry));
 
 		pidx_data->entry[idx].pcie_idx = entry.pcie_idx;
@@ -76,7 +77,7 @@ static int get_lpwr_idx_table(struct gk20a *g)
 
 static int get_lpwr_gr_table(struct gk20a *g)
 {
-	u32 *lpwr_gr_table_ptr;
+	u8 *lpwr_gr_table_ptr;
 	u8 *entry_addr;
 	u32 idx;
 	struct nvgpu_lpwr_bios_gr_data *pgr_data =
@@ -84,21 +85,21 @@ static int get_lpwr_gr_table(struct gk20a *g)
 	struct nvgpu_bios_lpwr_gr_table_1x_header header = { 0 };
 	struct nvgpu_bios_lpwr_gr_table_1x_entry entry = { 0 };
 
-	lpwr_gr_table_ptr = (u32 *)nvgpu_bios_get_perf_table_ptrs(g,
+	lpwr_gr_table_ptr = (u8 *)nvgpu_bios_get_perf_table_ptrs(g,
 		g->bios.perf_token, LOWPOWER_GR_TABLE);
 	if (lpwr_gr_table_ptr == NULL) {
 		return -EINVAL;
 	}
 
-	memcpy(&header, lpwr_gr_table_ptr,
+	nvgpu_memcpy((u8 *)&header, lpwr_gr_table_ptr,
 		sizeof(struct nvgpu_bios_lpwr_gr_table_1x_header));
 
 	/* Parse the LPWR Index Table entries.*/
 	for (idx = 0; idx < header.entry_count; idx++) {
-		entry_addr = (u8 *)lpwr_gr_table_ptr + header.header_size +
+		entry_addr = lpwr_gr_table_ptr + header.header_size +
 			(idx * header.entry_size);
 
-		memcpy(&entry, entry_addr,
+		nvgpu_memcpy((u8 *)&entry, entry_addr,
 			sizeof(struct nvgpu_bios_lpwr_gr_table_1x_entry));
 
 		if (BIOS_GET_FIELD(entry.feautre_mask,
@@ -122,7 +123,7 @@ static int get_lpwr_gr_table(struct gk20a *g)
 
 static int get_lpwr_ms_table(struct gk20a *g)
 {
-	u32 *lpwr_ms_table_ptr;
+	u8 *lpwr_ms_table_ptr;
 	u8 *entry_addr;
 	u32 idx;
 	struct nvgpu_lpwr_bios_ms_data *pms_data =
@@ -130,13 +131,13 @@ static int get_lpwr_ms_table(struct gk20a *g)
 	struct nvgpu_bios_lpwr_ms_table_1x_header header = { 0 };
 	struct nvgpu_bios_lpwr_ms_table_1x_entry entry = { 0 };
 
-	lpwr_ms_table_ptr = (u32 *)nvgpu_bios_get_perf_table_ptrs(g,
+	lpwr_ms_table_ptr = (u8 *)nvgpu_bios_get_perf_table_ptrs(g,
 		g->bios.perf_token, LOWPOWER_MS_TABLE);
 	if (lpwr_ms_table_ptr == NULL) {
 		return -EINVAL;
 	}
 
-	memcpy(&header, lpwr_ms_table_ptr,
+	nvgpu_memcpy((u8 *)&header, lpwr_ms_table_ptr,
 		sizeof(struct nvgpu_bios_lpwr_ms_table_1x_header));
 
 	if (header.entry_count >= LPWR_VBIOS_MS_ENTRY_COUNT_MAX) {
@@ -149,10 +150,10 @@ static int get_lpwr_ms_table(struct gk20a *g)
 
 	/* Parse the LPWR MS Table entries.*/
 	for (idx = 0; idx < header.entry_count; idx++) {
-		entry_addr = (u8 *)lpwr_ms_table_ptr + header.header_size +
+		entry_addr = lpwr_ms_table_ptr + header.header_size +
 			(idx * header.entry_size);
 
-		memcpy(&entry, entry_addr,
+		nvgpu_memcpy((u8 *)&entry, entry_addr,
 			sizeof(struct nvgpu_bios_lpwr_ms_table_1x_entry));
 
 		if (BIOS_GET_FIELD(entry.feautre_mask,
