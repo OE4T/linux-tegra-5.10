@@ -49,11 +49,9 @@
 #include "vgpu_fuse_gp10b.h"
 
 #include "gk20a/flcn_gk20a.h"
-#include "gk20a/pmu_gk20a.h"
 
 #include "gp10b/mm_gp10b.h"
 #include "gp10b/ce_gp10b.h"
-#include "gp10b/pmu_gp10b.h"
 #include "gp10b/gr_gp10b.h"
 #include "gp10b/gr_ctx_gp10b.h"
 #include "gp10b/fifo_gp10b.h"
@@ -62,8 +60,6 @@
 
 #include "gm20b/gr_gm20b.h"
 #include "gm20b/fifo_gm20b.h"
-#include "gm20b/acr_gm20b.h"
-#include "gm20b/pmu_gm20b.h"
 #include "gm20b/mm_gm20b.h"
 
 #include <nvgpu/debugger.h>
@@ -564,7 +560,7 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 		.read_vin_cal_gain_offset_fuse = NULL,
 	},
 	.acr = {
-		.acr_sw_init = nvgpu_gm20b_acr_sw_init,
+		.acr_sw_init = NULL,
 	},
 	.chip_init_gpu_characteristics = vgpu_init_gpu_characteristics,
 	.get_litter_value = gp10b_get_litter_value,
@@ -613,50 +609,6 @@ int vgpu_gp10b_init_hal(struct gk20a *g)
 	gops->get_litter_value = vgpu_gp10b_ops.get_litter_value;
 	gops->semaphore_wakeup = gk20a_channel_semaphore_wakeup;
 
-	__nvgpu_set_enabled(g, NVGPU_GR_USE_DMA_FOR_FW_BOOTSTRAP, true);
-	__nvgpu_set_enabled(g, NVGPU_PMU_PSTATE, false);
-
-	/* Read fuses to check if gpu needs to boot in secure/non-secure mode */
-	if (gops->fuse.check_priv_security(g))
-		return -EINVAL; /* Do not boot gpu */
-
-	/* priv security dependent ops */
-	if (nvgpu_is_enabled(g, NVGPU_SEC_PRIVSECURITY)) {
-		/* Add in ops from gm20b acr */
-		gops->pmu.is_pmu_supported = gm20b_is_pmu_supported,
-		gops->pmu.prepare_ucode = prepare_ucode_blob,
-		gops->pmu.is_lazy_bootstrap = gm20b_is_lazy_bootstrap,
-		gops->pmu.is_priv_load = gm20b_is_priv_load,
-		gops->pmu.pmu_populate_loader_cfg =
-			gm20b_pmu_populate_loader_cfg,
-		gops->pmu.flcn_populate_bl_dmem_desc =
-			gm20b_flcn_populate_bl_dmem_desc,
-		gops->pmu.update_lspmu_cmdline_args =
-			gm20b_update_lspmu_cmdline_args;
-		gops->pmu.setup_apertures = gm20b_pmu_setup_apertures;
-		gops->pmu.secured_pmu_start = gm20b_secured_pmu_start;
-
-		gops->pmu.init_wpr_region = gm20b_pmu_init_acr;
-		gops->pmu.load_lsfalcon_ucode = gp10b_load_falcon_ucode;
-		gops->pmu.is_lazy_bootstrap = gp10b_is_lazy_bootstrap;
-		gops->pmu.is_priv_load = gp10b_is_priv_load;
-
-		gops->gr.load_ctxsw_ucode = gr_gm20b_load_ctxsw_ucode;
-	} else {
-		/* Inherit from gk20a */
-		gops->pmu.is_pmu_supported = gk20a_is_pmu_supported,
-		gops->pmu.prepare_ucode = nvgpu_pmu_prepare_ns_ucode_blob,
-		gops->pmu.pmu_setup_hw_and_bootstrap =
-			gm20b_ns_pmu_setup_hw_and_bootstrap;
-		gops->pmu.pmu_nsbootstrap = pmu_bootstrap,
-
-		gops->pmu.load_lsfalcon_ucode = NULL;
-		gops->pmu.init_wpr_region = NULL;
-
-		gops->gr.load_ctxsw_ucode = gr_gk20a_load_ctxsw_ucode;
-	}
-
-	__nvgpu_set_enabled(g, NVGPU_PMU_FECS_BOOTSTRAP_DONE, false);
 	g->pmu_lsf_pmu_wpr_init_done = 0;
 
 	if (priv->constants.can_set_clkrate) {
