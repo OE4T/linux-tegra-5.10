@@ -81,7 +81,6 @@ struct tegra_p2u {
 	struct work_struct	rx_margin_work;
 	u32			next_state;
 	spinlock_t		next_state_lock; /* lock for next_state */
-	bool			enable_lm;
 	bool			disable_uphy_rx_idle;
 };
 
@@ -103,13 +102,13 @@ static int tegra_p2u_power_on(struct phy *x)
 	u32 val;
 	struct tegra_p2u *phy = phy_get_drvdata(x);
 
-	if (phy->enable_lm) {
-		val = P2U_RX_MARGIN_SW_INT_EN_READINESS |
-		      P2U_RX_MARGIN_SW_INT_EN_MARGIN_START |
-		      P2U_RX_MARGIN_SW_INT_EN_MARGIN_CHANGE |
-		      P2U_RX_MARGIN_SW_INT_EN_MARGIN_STOP;
-		writel(val, phy->base + P2U_RX_MARGIN_SW_INT_EN);
-	}
+#ifdef CONFIG_PCIE_TEGRA_DW_LANE_MARGIN
+	val = P2U_RX_MARGIN_SW_INT_EN_READINESS |
+	      P2U_RX_MARGIN_SW_INT_EN_MARGIN_START |
+	      P2U_RX_MARGIN_SW_INT_EN_MARGIN_CHANGE |
+	      P2U_RX_MARGIN_SW_INT_EN_MARGIN_STOP;
+	writel(val, phy->base + P2U_RX_MARGIN_SW_INT_EN);
+#endif
 
 	if (!phy->disable_uphy_rx_idle) {
 		val = readl(phy->base + P2U_CONTROL_GEN1);
@@ -351,9 +350,6 @@ static int tegra_p2u_probe(struct platform_device *pdev)
 		return ret;
 	}
 	phy->id = val;
-
-	phy->enable_lm = of_property_read_bool(dev->of_node,
-					       "nvidia,enable-lm");
 
 	phy->disable_uphy_rx_idle =
 		of_property_read_bool(dev->of_node,
