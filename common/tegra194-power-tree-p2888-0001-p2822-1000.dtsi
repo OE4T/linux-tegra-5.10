@@ -74,7 +74,11 @@
 		vdd-fan-supply = <&p2822_vdd_fan>;
 	};
 
+#if TEGRA_BPMP_FW_DT_VERSION >= DT_VERSION_2
+	bpmp { i2c {
+#else
 	bpmp_i2c {
+#endif
 		spmic@3c {
 			regulators {
 				sd0 {
@@ -172,5 +176,9 @@
 				};
 			};
 		};
+#if TEGRA_BPMP_FW_DT_VERSION >= DT_VERSION_2
+	}; };
+#else
 	};
+#endif
 };

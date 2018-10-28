@@ -23,7 +23,11 @@
                 rtc1 = &tegra_rtc;
         };
 
+#if TEGRA_BPMP_FW_DT_VERSION >= DT_VERSION_2
+	bpmp { i2c {
+#else
 	bpmp_i2c {
+#endif
 		p2888_spmic: spmic@3c {
 			compatible = "maxim,max20024";
 			reg = <0x3c>;
@@ -233,7 +237,11 @@
 				};
 			};
 		};
+#if TEGRA_BPMP_FW_DT_VERSION >= DT_VERSION_2
+	}; };
+#else
 	};
+#endif
 
 	dummy_cool_dev: dummy-cool-dev {
 		compatible = "dummy-cooling-dev";
