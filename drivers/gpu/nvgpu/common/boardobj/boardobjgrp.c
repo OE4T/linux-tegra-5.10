@@ -24,13 +24,34 @@
 #include <nvgpu/boardobjgrp.h>
 #include <nvgpu/boardobj.h>
 #include <nvgpu/pmuif/ctrlboardobj.h>
-
-static boardobjgrp_objinsert   boardobjgrp_objinsert_final;
-static boardobjgrp_objgetbyidx   boardobjgrp_objgetbyidx_final;
-static boardobjgrp_objgetnext   boardobjgrp_objgetnext_final;
-static boardobjgrp_objremoveanddestroy  boardobjgrp_objremoveanddestroy_final;
-static boardobjgrp_pmudatainstget boardobjgrp_pmudatainstget_stub;
-static boardobjgrp_pmustatusinstget boardobjgrp_pmustatusinstget_stub;
+/*
+ * Inserts a previously constructed Board Object into a Board Object Group for
+ * tracking. Objects are inserted in the array based on the given index.
+ */
+static int boardobjgrp_objinsert_final(struct boardobjgrp *pboardobjgrp,
+				struct boardobj *pboardobj, u8 index);
+/*
+ * Retrieves a Board Object from a Board Object Group using the group's index.
+ */
+static struct boardobj *boardobjgrp_objgetbyidx_final(
+			struct boardobjgrp *pboardobjgrp, u8 index);
+/*
+ * Retrieve Board Object immediately following one pointed by @ref currentindex
+ * filtered out by the provided mask. If (mask == NULL) => no filtering.
+ */
+static struct boardobj *boardobjgrp_objgetnext_final(
+			struct boardobjgrp *pboardobjgrp,
+			u8 *currentindex, struct boardobjgrpmask *mask);
+static int  boardobjgrp_objremoveanddestroy_final(
+			struct boardobjgrp *pboardobjgrp,
+			u8 index);
+static int boardobjgrp_pmudatainstget_stub(struct gk20a *g,
+			struct nv_pmu_boardobjgrp  *boardobjgrppmu,
+			struct nv_pmu_boardobj **ppboardobjpmudata, u8 idx);
+static int boardobjgrp_pmustatusinstget_stub(struct gk20a *g,
+			void *pboardobjgrppmu,
+			struct nv_pmu_boardobj_query **ppBoardobjpmustatus,
+			u8 idx);
 static int boardobjgrp_pmucmdsend(struct gk20a *g,
 		struct boardobjgrp *pboardobjgrp,
 		struct boardobjgrp_pmu_cmd *pcmd);

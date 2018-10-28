@@ -34,7 +34,7 @@ struct gk20a;
 * check whether the specified BOARDOBJ object implements the queried
 * type/class enumeration.
 */
-typedef bool boardobj_implements(struct gk20a *g, struct boardobj *pboardobj,
+bool boardobj_implements_super(struct gk20a *g, struct boardobj *pboardobj,
 					u8 type);
 
 /*
@@ -42,14 +42,14 @@ typedef bool boardobj_implements(struct gk20a *g, struct boardobj *pboardobj,
 * description structure, describing this BOARDOBJ board device to the PMU.
 *
 */
-typedef int boardobj_pmudatainit(struct gk20a *g, struct boardobj *pboardobj,
+int boardobj_pmudatainit_super(struct gk20a *g, struct boardobj *pboardobj,
 				struct nv_pmu_boardobj *pmudata);
 
 /*
 * Constructor for the base Board Object. Called by each device-specific
 * implementation of the BOARDOBJ interface to initialize the board object.
 */
-typedef int boardobj_construct(struct gk20a *g, struct boardobj **pboardobj,
+int boardobj_construct_super(struct gk20a *g, struct boardobj **ppboardobj,
 				u16 size, void *args);
 
 /*
@@ -58,7 +58,7 @@ typedef int boardobj_construct(struct gk20a *g, struct boardobj **pboardobj,
 * This has to be explicitly set by each device that extends from the
 * board object.
 */
-typedef int boardobj_destruct(struct boardobj *pboardobj);
+int boardobj_destruct_super(struct boardobj *pboardobj);
 
 /*
 * Base Class for all physical or logical device on the PCB.
@@ -75,20 +75,17 @@ struct boardobj {
 	/* true if allocated in constructor. destructor should free */
 	bool allocated;
 	u32 type_mask; /*mask of types this boardobjimplements*/
-	boardobj_implements  *implements;
-	boardobj_destruct    *destruct;
+	bool (*implements)(struct gk20a *g, struct boardobj *pboardobj,
+			u8 type);
+	int (*destruct)(struct boardobj *pboardobj);
 	/*
 	* Access interface apis which will be overridden by the devices
 	* that inherit from BOARDOBJ
 	*/
-	boardobj_pmudatainit *pmudatainit;
+	int (*pmudatainit)(struct gk20a *g, struct boardobj *pboardobj,
+			struct nv_pmu_boardobj *pmudata);
 	struct nvgpu_list_node node;
 };
-
-boardobj_construct   boardobj_construct_super;
-boardobj_destruct    boardobj_destruct_super;
-boardobj_implements  boardobj_implements_super;
-boardobj_pmudatainit boardobj_pmudatainit_super;
 
 #define BOARDOBJ_GET_TYPE(pobj) (((struct boardobj *)(pobj))->type)
 #define BOARDOBJ_GET_IDX(pobj) (((struct boardobj *)(pobj))->idx)

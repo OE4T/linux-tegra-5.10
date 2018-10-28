@@ -43,8 +43,11 @@ struct boardobjgrp_e255 {
 
 /* Constructor and destructor */
 int boardobjgrpconstruct_e255(struct gk20a *g,
-	struct boardobjgrp_e255 *pboardobjgrp);
-boardobjgrp_destruct boardobjgrpdestruct_e255;
-boardobjgrp_pmuhdrdatainit  boardobjgrp_pmuhdrdatainit_e255;
+	struct boardobjgrp_e255 *pboardobjgrp_e255);
+int boardobjgrpdestruct_e255(struct boardobjgrp *pboardobjgrp);
+int boardobjgrp_pmuhdrdatainit_e255(struct gk20a *g,
+			struct boardobjgrp *pboardobjgrp,
+			struct nv_pmu_boardobjgrp_super *pboardobjgrppmu,
+			struct boardobjgrpmask *mask);
 
 #endif /* NVGPU_BOARDOBJGRP_E255_H */

@@ -57,8 +57,11 @@ struct boardobjgrp_e32 {
 
 /* Constructor and destructor */
 int boardobjgrpconstruct_e32(struct gk20a *g,
-	struct boardobjgrp_e32 *pboardobjgrp);
-boardobjgrp_destruct boardobjgrpdestruct_e32;
-boardobjgrp_pmuhdrdatainit  boardobjgrp_pmuhdrdatainit_e32;
+	struct boardobjgrp_e32 *pboardobjgrp_e32);
+int boardobjgrpdestruct_e32(struct boardobjgrp *pboardobjgrp);
+int boardobjgrp_pmuhdrdatainit_e32(struct gk20a *g,
+			struct boardobjgrp *pboardobjgrp,
+			struct nv_pmu_boardobjgrp_super *pboardobjgrppmu,
+			struct boardobjgrpmask *mask);
 
 #endif /* NVGPU_BOARDOBJGRP_E32_H */

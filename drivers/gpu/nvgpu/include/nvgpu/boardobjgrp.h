@@ -39,35 +39,14 @@ struct pmu_surface;
 * Board Object Group destructor.
 *
 */
-typedef int boardobjgrp_destruct(struct boardobjgrp *pboardobjgrp);
-
-/*
-* Inserts a previously constructed Board Object into a Board Object Group for
-* tracking. Objects are inserted in the array based on the given index.
-*/
-typedef int boardobjgrp_objinsert(struct boardobjgrp *pboardobjgrp,
-		struct boardobj *pboardobj, u8 index);
-
-/*
-* Retrieves a Board Object from a Board Object Group using the group's index.
-*
-*/
-typedef struct boardobj *boardobjgrp_objgetbyidx(
-		struct boardobjgrp *pBobrdobjgrp, u8 index);
-
-/*
-* Retrieve Board Object immediately following one pointed by @ref pcurrentindex
-* filtered out by the provided mask. If (pMask == NULL) => no filtering.
-*/
-typedef struct boardobj *boardobjgrp_objgetnext(
-		struct boardobjgrp *pboardobjgrp,
-		u8 *currentindex, struct boardobjgrpmask *mask);
+int boardobjgrp_destruct_super(struct boardobjgrp *pboardobjgrp);
+int boardobjgrp_destruct_impl(struct boardobjgrp *pboardobjgrp);
 
 /*
 * Board Object Group Remover and destructor. This is used to remove and
 * destruct specific entry from the Board Object Group.
 */
-typedef int boardobjgrp_objremoveanddestroy(struct boardobjgrp *pboardobjgrp,
+int boardobjgrp_objremoveanddestroy(struct boardobjgrp *pboardobjgrp,
 	u8 index);
 
 /*
@@ -75,23 +54,26 @@ typedef int boardobjgrp_objremoveanddestroy(struct boardobjgrp *pboardobjgrp,
 * for the constructed PMU CMDs, and then sets the object via the
 * PMU_BOARDOBJ_CMD_GRP interface (if constructed).
 */
-typedef int boardobjgrp_pmuinithandle(struct gk20a *g,
-		struct boardobjgrp *pboardobjGrp);
+int boardobjgrp_pmuinithandle_impl(struct gk20a *g,
+		struct boardobjgrp *pboardobjgrp);
 
 /*
 * Fills out the appropriate the PMU_BOARDOBJGRP_<xyz> driver<->PMU description
 * header structure, more specifically a mask of BOARDOBJs.
 */
-typedef int boardobjgrp_pmuhdrdatainit(struct gk20a *g,
-		struct boardobjgrp *pboardobjgrp,
-		struct nv_pmu_boardobjgrp_super *pboardobjgrppmu,
-		struct boardobjgrpmask *mask);
+int boardobjgrp_pmuhdrdatainit_super(struct gk20a *g,
+			struct boardobjgrp *pboardobjgrp,
+			struct nv_pmu_boardobjgrp_super *pboardobjgrppmu,
+			struct boardobjgrpmask *mask);
 
 /*
 * Fills out the appropriate the PMU_BOARDOBJGRP_<xyz> driver->PMU description
 * structure, describing the BOARDOBJGRP and all of its BOARDOBJs to the PMU.
 */
-typedef int boardobjgrp_pmudatainit(struct gk20a *g,
+int boardobjgrp_pmudatainit_super(struct gk20a *g,
+		struct boardobjgrp *pboardobjgrp,
+		struct nv_pmu_boardobjgrp_super *pboardobjgrppmu);
+int boardobjgrp_pmudatainit_legacy(struct gk20a *g,
 		struct boardobjgrp *pboardobjgrp,
 		struct nv_pmu_boardobjgrp_super *pboardobjgrppmu);
 
@@ -100,23 +82,21 @@ typedef int boardobjgrp_pmudatainit(struct gk20a *g,
 * This interface leverages @ref boardobjgrp_pmudatainit to populate the
 * structure.
 */
-typedef int boardobjgrp_pmuset(struct gk20a *g,
+int boardobjgrp_pmuset_impl(struct gk20a *g,
+		struct boardobjgrp *pboardobjgrp);
+int boardobjgrp_pmuset_impl_v1(struct gk20a *g,
 		struct boardobjgrp *pboardobjgrp);
 
 /*
 * Gets the dynamic status of the PMU BOARDOBJGRP via the
 * PMU_BOARDOBJ_CMD_GRP GET_STATUS interface.
 */
-typedef int boardobjgrp_pmugetstatus(struct gk20a *g,
+int boardobjgrp_pmugetstatus_impl(struct gk20a *g,
 		struct boardobjgrp *pboardobjgrp,
 		struct boardobjgrpmask *mask);
-
-typedef int boardobjgrp_pmudatainstget(struct gk20a *g,
-	struct nv_pmu_boardobjgrp  *boardobjgrppmu,
-	struct nv_pmu_boardobj **ppboardobjpmudata, u8 idx);
-
-typedef int boardobjgrp_pmustatusinstget(struct gk20a *g, void *pboardobjgrppmu,
-	struct nv_pmu_boardobj_query **ppBoardobjpmustatus, u8 idx);
+int boardobjgrp_pmugetstatus_impl_v1(struct gk20a *g,
+		struct boardobjgrp *pboardobjgrp,
+		struct boardobjgrpmask *mask);
 
 /*
 * Structure describing an PMU CMD for interacting with the representaition
@@ -152,15 +132,22 @@ struct boardobjgrp_pmu {
 * CMD.  This provides the various information describing the PMU CMD including
 * the CMD and MSG ID and the size of the various sturctures in the payload.
 */
-typedef int boardobjgrp_pmucmd_construct(struct gk20a *g,
-		struct boardobjgrp *pboardobjgrp,
-		struct boardobjgrp_pmu_cmd *cmd, u8 id, u8 msgid,
-		u16 hdrsize, u16 entrysize, u16 fbsize, u32 ss_offset, u8 rpc_func_id);
+int boardobjgrp_pmucmd_construct_impl(struct gk20a *g,
+				struct boardobjgrp *pboardobjgrp,
+				struct boardobjgrp_pmu_cmd *cmd, u8 id,
+				u8 msgid, u16 hdrsize, u16 entrysize,
+				u16 fbsize, u32 ss_offset, u8 rpc_func_id);
+
+int boardobjgrp_pmucmd_construct_impl_v1(struct gk20a *g,
+				struct boardobjgrp *pboardobjgrp,
+				struct boardobjgrp_pmu_cmd *cmd, u8 id,
+				u8 msgid, u16 hdrsize, u16 entrysize,
+				u16 fbsize, u32 ss_offset, u8 rpc_func_id);
 
 /*
 * Destroys BOARDOBJGRP PMU SW state.  CMD.
 */
-typedef int boardobjgrp_pmucmd_destroy(struct gk20a *g,
+int boardobjgrp_pmucmd_destroy_impl(struct gk20a *g,
 		struct boardobjgrp_pmu_cmd *cmd);
 
 /*
@@ -168,9 +155,9 @@ typedef int boardobjgrp_pmucmd_destroy(struct gk20a *g,
 * PMU CMD payload within both the PMU and driver so that it can be referenced
 * at run-time.
 */
-typedef int boardobjgrp_pmucmd_pmuinithandle(struct gk20a *g,
+int boardobjgrp_pmucmd_pmuinithandle_impl(struct gk20a *g,
 	struct boardobjgrp *pboardobjgrp,
-	struct boardobjgrp_pmu_cmd *cmd);
+	struct boardobjgrp_pmu_cmd *pcmd);
 
 /*
 * Base Class Group for all physical or logical device on the PCB.
@@ -191,21 +178,36 @@ struct boardobjgrp {
 	struct boardobjgrp_pmu  pmu;
 
 	/* Basic interfaces */
-	boardobjgrp_destruct  *destruct;
-	boardobjgrp_objinsert *objinsert;
-	boardobjgrp_objgetbyidx *objgetbyidx;
-	boardobjgrp_objgetnext  *objgetnext;
-	boardobjgrp_objremoveanddestroy  *objremoveanddestroy;
+	int (*destruct)(struct boardobjgrp *pboardobjgrp);
+	int (*objinsert)(struct boardobjgrp *pboardobjgrp,
+			struct boardobj *pboardobj, u8 index);
+	struct boardobj *(*objgetbyidx)(
+			struct boardobjgrp *pBobrdobjgrp, u8 index);
+	struct boardobj *(*objgetnext)(struct boardobjgrp *pboardobjgrp,
+			u8 *currentindex, struct boardobjgrpmask *mask);
+	int (*objremoveanddestroy)(struct boardobjgrp *pboardobjgrp, u8 index);
 
 	/* PMU interfaces */
-	boardobjgrp_pmuinithandle *pmuinithandle;
-	boardobjgrp_pmuhdrdatainit  *pmuhdrdatainit;
-	boardobjgrp_pmudatainit *pmudatainit;
-	boardobjgrp_pmuset  *pmuset;
-	boardobjgrp_pmugetstatus *pmugetstatus;
+	int (*pmuinithandle)(struct gk20a *g,
+			struct boardobjgrp *pboardobjgrp);
+	int (*pmuhdrdatainit)(struct gk20a *g, struct boardobjgrp *pboardobjgrp,
+			struct nv_pmu_boardobjgrp_super *pboardobjgrppmu,
+			struct boardobjgrpmask *mask);
+	int (*pmudatainit)(struct gk20a *g,
+			struct boardobjgrp *pboardobjgrp,
+			struct nv_pmu_boardobjgrp_super *pboardobjgrppmu);
+	int (*pmuset)(struct gk20a *g,
+			struct boardobjgrp *pboardobjgrp);
+	int (*pmugetstatus)(struct gk20a *g,
+			struct boardobjgrp *pboardobjgrp,
+			struct boardobjgrpmask *mask);
 
-	boardobjgrp_pmudatainstget *pmudatainstget;
-	boardobjgrp_pmustatusinstget *pmustatusinstget;
+	int (*pmudatainstget)(struct gk20a *g,
+			struct nv_pmu_boardobjgrp  *boardobjgrppmu,
+			struct nv_pmu_boardobj **ppboardobjpmudata, u8 idx);
+	int (*pmustatusinstget)(struct gk20a *g, void *pboardobjgrppmu,
+			struct nv_pmu_boardobj_query **ppBoardobjpmustatus,
+			u8 idx);
 	struct nvgpu_list_node node;
 };
 
@@ -355,26 +357,6 @@ do {                                                                          \
 /* Constructor and destructor */
 int boardobjgrp_construct_super(struct gk20a *g,
 	struct boardobjgrp *pboardobjgrp);
-boardobjgrp_destruct boardobjgrp_destruct_impl;
-boardobjgrp_destruct boardobjgrp_destruct_super;
-
-/* PMU_CMD interfaces */
-boardobjgrp_pmucmd_construct     boardobjgrp_pmucmd_construct_impl;
-boardobjgrp_pmucmd_destroy         boardobjgrp_pmucmd_destroy_impl;
-boardobjgrp_pmucmd_pmuinithandle   boardobjgrp_pmucmd_pmuinithandle_impl;
-
-boardobjgrp_pmucmd_construct     boardobjgrp_pmucmd_construct_impl_v1;
-
-/* BOARDOBJGRP interfaces */
-boardobjgrp_pmuinithandle    boardobjgrp_pmuinithandle_impl;
-boardobjgrp_pmuhdrdatainit   boardobjgrp_pmuhdrdatainit_super;
-boardobjgrp_pmudatainit      boardobjgrp_pmudatainit_super;
-
-boardobjgrp_pmudatainit      boardobjgrp_pmudatainit_legacy;
-boardobjgrp_pmuset           boardobjgrp_pmuset_impl;
-boardobjgrp_pmugetstatus     boardobjgrp_pmugetstatus_impl;
-boardobjgrp_pmuset           boardobjgrp_pmuset_impl_v1;
-boardobjgrp_pmugetstatus     boardobjgrp_pmugetstatus_impl_v1;
 
 void boardobjgrpe32hdrset(struct nv_pmu_boardobjgrp *hdr, u32 objmask);
 

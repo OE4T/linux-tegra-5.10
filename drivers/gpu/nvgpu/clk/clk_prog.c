@@ -37,10 +37,29 @@
 static struct clk_prog *construct_clk_prog(struct gk20a *g, void *pargs);
 static int devinit_get_clk_prog_table(struct gk20a *g,
 	struct clk_progs *pprogobjs);
-static vf_flatten vfflatten_prog_1x_master;
-static vf_lookup vflookup_prog_1x_master;
-static get_fpoints getfpoints_prog_1x_master;
-static get_slaveclk getslaveclk_prog_1x_master;
+static int vfflatten_prog_1x_master(struct gk20a *g,
+				    struct clk_pmupstate *pclk,
+				    struct clk_prog_1x_master *p1xmaster,
+				    u8 clk_domain_idx, u16 *pfreqmaxlastmhz);
+static u32 vflookup_prog_1x_master(struct gk20a *g,
+				   struct clk_pmupstate *pclk,
+				   struct clk_prog_1x_master *p1xmaster,
+				   u8 *slave_clk_domain,
+				   u16 *pclkmhz,
+				   u32 *pvoltuv,
+				   u8 rail);
+static int getfpoints_prog_1x_master(struct gk20a *g,
+				     struct clk_pmupstate *pclk,
+				     struct clk_prog_1x_master *p1xmaster,
+				     u32 *pfpointscount,
+				     u16 **ppfreqpointsinmhz,
+				     u8 rail);
+static int getslaveclk_prog_1x_master(struct gk20a *g,
+				      struct clk_pmupstate *pclk,
+				      struct clk_prog_1x_master *p1xmaster,
+				      u8 slave_clk_domain,
+				      u16 *pclkmhz,
+				      u16 masterclkmhz);
 
 static int _clk_progs_pmudatainit(struct gk20a *g,
 				  struct boardobjgrp *pboardobjgrp,

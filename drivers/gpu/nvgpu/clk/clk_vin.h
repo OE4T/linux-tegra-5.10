@@ -64,8 +64,10 @@ struct vin_device_v20 {
 	((struct vin_device *)BOARDOBJGRP_OBJ_GET_BY_IDX(                       \
 	((struct boardobjgrp *)&(pvinobjs->super.super)), (dev_index)))
 
-boardobj_construct construct_vindevice;
-boardobj_pmudatainit vindeviceinit_pmudata_super;
+int construct_vindevice(struct gk20a *g, struct boardobj **ppboardobj,
+				u16 size, void *args);
+int vindeviceinit_pmudata_super(struct gk20a *g, struct boardobj *pboardobj,
+			struct nv_pmu_boardobj *pmudata);
 
 int clk_vin_sw_setup(struct gk20a *g);
 int clk_vin_pmu_setup(struct gk20a *g);
