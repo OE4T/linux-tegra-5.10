@@ -44,6 +44,7 @@
 		status = "okay";
 	};
 
+#if TEGRA_BPMP_FW_DT_VERSION <= DT_VERSION_1
 	clock@0 {
 	        status = "okay";
 	};
@@ -51,12 +52,18 @@
 	bpmp_reset@0 {
 	        status = "okay";
 	};
+#endif
 
 	bpmp {
 	        status = "okay";
 		bpmpthermal {
 			status = "okay";
 		};
+#if TEGRA_BPMP_FW_DT_VERSION >= DT_VERSION_2
+		i2c {
+			status = "okay";
+		};
+#endif
 	};
 
 	gv11b {
@@ -77,10 +84,12 @@
 		status = "okay";
 	};
 
+#if TEGRA_BPMP_FW_DT_VERSION <= DT_VERSION_1
 	/* BPMP I2c for PMIC acess */
 	bpmp_i2c {
 		status = "okay";
 	};
+#endif
 
 	efuse@3820000 {
 		status = "okay";

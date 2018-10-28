@@ -117,6 +117,7 @@
 		dma-names = "rx", "tx";
 	};
 
+#if TEGRA_BPMP_FW_DT_VERSION <= DT_VERSION_1
 	pwr_i2c: bpmp_i2c {
 		#address-cells = <1>;
 		#size-cells = <0>;
@@ -125,6 +126,7 @@
 		nvidia,hw-instance-id = <0x4>;
 		adapter = <5>;
 	};
+#endif
 
 	dp_aux_ch0_i2c: i2c@31b0000 {
 		#address-cells = <1>;

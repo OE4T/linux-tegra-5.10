@@ -98,12 +98,19 @@
 		status = "okay";
 	};
 
+#if TEGRA_BPMP_FW_DT_VERSION <= DT_VERSION_1
 	bpmp_reset@0 {
 		status = "okay";
 	};
+#endif
 
 	bpmp {
 		status = "okay";
+#if TEGRA_BPMP_FW_DT_VERSION >= DT_VERSION_2
+		i2c {
+			status = "okay";
+		};
+#endif
 	};
 
 	gv11b {
@@ -143,9 +150,11 @@
 		status = "okay";
 	};
 
+#if TEGRA_BPMP_FW_DT_VERSION <= DT_VERSION_1
 	bpmp_i2c {
 		status = "okay";
 	};
+#endif
 
 	i2c@31b0000 {
 		status = "okay";

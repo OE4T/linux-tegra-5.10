@@ -19,6 +19,7 @@
 #include <dt-bindings/version.h>
 #include <dt-bindings/clock/tegra194-clock.h>
 #include <dt-bindings/reset/tegra194-reset.h>
+#include <dt-bindings/mailbox/tegra186-hsp.h>
 #include "dt-bindings/display/tegra-dc.h"
 #include "dt-bindings/interrupt/tegra194-irq.h"
 #include "dt-bindings/interrupt-controller/arm-gic.h"
@@ -193,6 +194,7 @@
 		status = "disabled";
 	};
 
+#if TEGRA_BPMP_FW_DT_VERSION <= DT_VERSION_1
 	bpmp_clks: clock@0 {
 		compatible = "nvidia,tegra-bpmp-clks";
 		reg = <0x0 0x0 0x0 0x0>;
@@ -206,6 +208,7 @@
 		#reset-cells = <1>;
 		status = "disabled";
 	};
+#endif
 
 	tegra_rtc: rtc@c2a0000 {
 		compatible = "nvidia,tegra18-rtc";
@@ -811,6 +814,52 @@
 		status = "disabled";
 	};
 
+#if TEGRA_BPMP_FW_DT_VERSION >= DT_VERSION_2
+	sysram@40000000 {
+		compatible = "nvidia,tegra194-sysram", "mmio-sram";
+		reg = <0x0 0x40000000 0x0 0x50000>;
+		#address-cells = <1>;
+		#size-cells = <1>;
+		ranges = <0x0 0x0 0x40000000 0x50000>;
+
+		cpu_bpmp_tx: shmem@4e000 {
+			compatible = "nvidia,tegra194-bpmp-shmem";
+			reg = <0x4e000 0x1000>;
+			label = "cpu-bpmp-tx";
+			pool;
+		};
+
+		cpu_bpmp_rx: shmem@4f000 {
+			compatible = "nvidia,tegra194-bpmp-shmem";
+			reg = <0x4f000 0x1000>;
+			label = "cpu-bpmp-rx";
+			pool;
+		};
+	};
+
+	bpmp: bpmp {
+		compatible = "nvidia,tegra186-bpmp";
+		mboxes = <&hsp_top TEGRA_HSP_MBOX_TYPE_DB
+				   TEGRA_HSP_DB_MASTER_BPMP>;
+		shmem = <&cpu_bpmp_tx &cpu_bpmp_rx>;
+		#clock-cells = <1>;
+		#reset-cells = <1>;
+		#power-domain-cells = <1>;
+
+		pwr_i2c: i2c {
+			compatible = "nvidia,tegra186-bpmp-i2c";
+			nvidia,bpmp-bus-id = <5>;
+			#address-cells = <1>;
+			#size-cells = <0>;
+		};
+
+		bpmpthermal {
+			compatible = "nvidia,tegra186-bpmp-thermal";
+			#thermal-sensor-cells = <1>;
+			status = "disabled";
+		};
+	};
+#else
 	bpmp: bpmp {
 		compatible = "nvidia,tegra186-bpmp";
 		iommus = <&smmu TEGRA_SID_BPMP>;
@@ -829,6 +878,7 @@
 			status = "disabled";
 		};
 	};
+#endif
 
 	se: se_elp@3ad0000 {
 		compatible = "nvidia,tegra194-se-elp";
