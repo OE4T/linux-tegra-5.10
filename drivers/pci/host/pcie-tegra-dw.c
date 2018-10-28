@@ -1547,6 +1547,7 @@ static int aspm_state_cnt(struct seq_file *s, void *data)
 	return 0;
 }
 
+#ifdef CONFIG_PCIE_TEGRA_DW_LANE_MARGIN
 static void setup_margin_cmd(struct tegra_pcie_dw *pcie, enum margin_cmds mcmd,
 			     int rcv_no, int payload)
 {
@@ -1652,11 +1653,6 @@ static int verify_timing_margin(struct seq_file *s, void *data)
 		return 0;
 	}
 
-	val = readl(pcie->pp.dbi_base + GEN4_LANE_MARGINING_1);
-	val &= ~GEN4_LANE_MARGINING_1_NUM_TIMING_STEPS_MASK;
-	val |= NUM_TIMING_STEPS;
-	writel(val, pcie->pp.dbi_base + GEN4_LANE_MARGINING_1);
-
 	setup_margin_cmd(pcie, MARGIN_SET_ERR_COUNT, RP_RCV_NO,
 			 MAX_ERR_CNT_PAYLOAD);
 	issue_margin_cmd(pcie);
@@ -1718,22 +1714,6 @@ static int verify_voltage_margin(struct seq_file *s, void *data)
 		return 0;
 	}
 
-	val = readl(pcie->pp.dbi_base + GEN4_LANE_MARGINING_1);
-	val &= ~GEN4_LANE_MARGINING_1_MAX_VOLTAGE_OFFSET_MASK;
-	val |= (NUM_VOLTAGE_STEPS <<
-		GEN4_LANE_MARGINING_1_MAX_VOLTAGE_OFFSET_SHIFT);
-	writel(val, pcie->pp.dbi_base + GEN4_LANE_MARGINING_1);
-
-	val = readl(pcie->pp.dbi_base + PORT_LOGIC_MISC_CONTROL);
-	val |= PORT_LOGIC_MISC_CONTROL_DBI_RO_WR_EN;
-	writel(val, pcie->pp.dbi_base + PORT_LOGIC_MISC_CONTROL);
-	val = readl(pcie->pp.dbi_base + GEN4_LANE_MARGINING_2);
-	val |= GEN4_LANE_MARGINING_2_VOLTAGE_SUPPORTED;
-	writel(val, pcie->pp.dbi_base + GEN4_LANE_MARGINING_2);
-	val = readl(pcie->pp.dbi_base + PORT_LOGIC_MISC_CONTROL);
-	val &= ~PORT_LOGIC_MISC_CONTROL_DBI_RO_WR_EN;
-	writel(val, pcie->pp.dbi_base + PORT_LOGIC_MISC_CONTROL);
-
 	setup_margin_cmd(pcie, MARGIN_SET_ERR_COUNT, RP_RCV_NO,
 			 MAX_ERR_CNT_PAYLOAD);
 	issue_margin_cmd(pcie);
@@ -1781,6 +1761,7 @@ static int verify_voltage_margin(struct seq_file *s, void *data)
 
 	return 0;
 }
+#endif
 
 static int __attach_controller(struct tegra_pcie_dw *pcie)
 {
@@ -1878,8 +1859,10 @@ DEFINE_ENTRY(apply_speed_change);
 DEFINE_ENTRY(apply_pme_turnoff);
 DEFINE_ENTRY(apply_sbr);
 DEFINE_ENTRY(aspm_state_cnt);
+#ifdef CONFIG_PCIE_TEGRA_DW_LANE_MARGIN
 DEFINE_ENTRY(verify_timing_margin);
 DEFINE_ENTRY(verify_voltage_margin);
+#endif
 DEFINE_ENTRY(hot_plug);
 DEFINE_ENTRY(hot_unplug);
 
@@ -1999,6 +1982,7 @@ static int init_debugfs(struct tegra_pcie_dw *pcie)
 	if (!d)
 		dev_err(pcie->dev, "debugfs for aspm_state_cnt failed\n");
 
+#ifdef CONFIG_PCIE_TEGRA_DW_LANE_MARGIN
 	d = debugfs_create_file("verify_timing_margin", 0444, pcie->debugfs,
 				(void *)pcie, &verify_timing_margin_fops);
 	if (!d)
@@ -2008,6 +1992,7 @@ static int init_debugfs(struct tegra_pcie_dw *pcie)
 				(void *)pcie, &verify_voltage_margin_fops);
 	if (!d)
 		dev_err(pcie->dev, "debugfs for verify_voltage_margin failed\n");
+#endif
 
 	d = debugfs_create_file("hot_plug", 0444, pcie->debugfs,
 				(void *)pcie, &hot_plug_fops);
@@ -2428,6 +2413,21 @@ static void tegra_pcie_dw_host_init(struct pcie_port *pp)
 		disable_aspm_l11(pcie); /* Disable L1.1 */
 		disable_aspm_l12(pcie); /* Disable L1.2 */
 	}
+
+#ifdef CONFIG_PCIE_TEGRA_DW_LANE_MARGIN
+	val = readl(pp->dbi_base + GEN4_LANE_MARGINING_1);
+	val &= ~GEN4_LANE_MARGINING_1_NUM_TIMING_STEPS_MASK;
+	val |= NUM_TIMING_STEPS;
+	val &= ~GEN4_LANE_MARGINING_1_MAX_VOLTAGE_OFFSET_MASK;
+	val |= (NUM_VOLTAGE_STEPS <<
+		GEN4_LANE_MARGINING_1_MAX_VOLTAGE_OFFSET_SHIFT);
+	writel(val, pp->dbi_base + GEN4_LANE_MARGINING_1);
+
+	/* Need DBI_RO_WR_EN set to program this bit */
+	val = readl(pp->dbi_base + GEN4_LANE_MARGINING_2);
+	val |= GEN4_LANE_MARGINING_2_VOLTAGE_SUPPORTED;
+	writel(val, pp->dbi_base + GEN4_LANE_MARGINING_2);
+#endif
 
 	val = readl(pp->dbi_base + PORT_LOGIC_MISC_CONTROL);
 	val &= ~PORT_LOGIC_MISC_CONTROL_DBI_RO_WR_EN;
