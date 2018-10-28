@@ -307,6 +307,8 @@
 
 #define GEN4_LANE_MARGINING_2	0xb84
 #define GEN4_LANE_MARGINING_2_VOLTAGE_SUPPORTED		BIT(24)
+#define GEN4_LANE_MARGINING_2_UP_DOWN_VOLTAGE		BIT(25)
+#define GEN4_LANE_MARGINING_2_LEFT_RIGHT_TIMING		BIT(26)
 
 #define DMA_RD_CHNL_NUM			2
 #define DMA_WR_CHNL_NUM			4
@@ -1667,6 +1669,32 @@ static int verify_timing_margin(struct seq_file *s, void *data)
 	msleep(MARGIN_READ_DELAY);
 	read_margin_status(pcie, s, ppdev, i, NO_STEP);
 
+#ifdef CONFIG_PCIE_TEGRA_DW_TWO_SIDE_LANE_MARGIN
+	for (i = 1; i <= NUM_TIMING_STEPS; i++) {
+		/*
+		 * Step Margin to timing offset to left of default
+		 * payload = offset | (0x10 << 6)
+		 */
+		setup_margin_cmd(pcie, MARGIN_SET_X_OFFSET, RP_RCV_NO,
+				 i | LEFT_STEP_PAYLOAD);
+		issue_margin_cmd(pcie, ppdev);
+		msleep(MARGIN_WIN_TIME);
+		read_margin_status(pcie, s, ppdev, i, LEFT_STEP);
+
+		setup_margin_cmd(pcie, MARGIN_SET_NORMAL, RP_RCV_NO,
+				 NORMAL_PAYLOAD);
+		issue_margin_cmd(pcie, ppdev);
+		msleep(MARGIN_READ_DELAY);
+		read_margin_status(pcie, s, ppdev, i, NO_STEP);
+
+		setup_margin_cmd(pcie, MARGIN_CLR_ERR, RP_RCV_NO,
+				 CLR_ERR_PAYLOAD);
+		issue_margin_cmd(pcie, ppdev);
+		msleep(MARGIN_READ_DELAY);
+		read_margin_status(pcie, s, ppdev, i, NO_STEP);
+	}
+#endif
+
 	for (i = 1; i <= NUM_TIMING_STEPS; i++) {
 		/*
 		 * Step Margin to timing offset to right of default
@@ -1710,6 +1738,32 @@ endpoint:
 	issue_margin_cmd(pcie, pdev);
 	msleep(MARGIN_READ_DELAY);
 	read_margin_status(pcie, s, pdev, i, NO_STEP);
+
+#ifdef CONFIG_PCIE_TEGRA_DW_TWO_SIDE_LANE_MARGIN
+	for (i = 1; i <= NUM_TIMING_STEPS; i++) {
+		/*
+		 * Step Margin to timing offset to left of default
+		 * payload = offset | (0x10 << 6)
+		 */
+		setup_margin_cmd(pcie, MARGIN_SET_X_OFFSET, EP_RCV_NO,
+				 i | LEFT_STEP_PAYLOAD);
+		issue_margin_cmd(pcie, pdev);
+		msleep(MARGIN_WIN_TIME);
+		read_margin_status(pcie, s, pdev, i, LEFT_STEP);
+
+		setup_margin_cmd(pcie, MARGIN_SET_NORMAL, EP_RCV_NO,
+				 NORMAL_PAYLOAD);
+		issue_margin_cmd(pcie, pdev);
+		msleep(MARGIN_READ_DELAY);
+		read_margin_status(pcie, s, pdev, i, NO_STEP);
+
+		setup_margin_cmd(pcie, MARGIN_CLR_ERR, EP_RCV_NO,
+				 CLR_ERR_PAYLOAD);
+		issue_margin_cmd(pcie, pdev);
+		msleep(MARGIN_READ_DELAY);
+		read_margin_status(pcie, s, pdev, i, NO_STEP);
+	}
+#endif
 
 	for (i = 1; i <= NUM_TIMING_STEPS; i++) {
 		/*
@@ -1789,6 +1843,32 @@ static int verify_voltage_margin(struct seq_file *s, void *data)
 	msleep(MARGIN_READ_DELAY);
 	read_margin_status(pcie, s, ppdev, i, NO_STEP);
 
+#ifdef CONFIG_PCIE_TEGRA_DW_TWO_SIDE_LANE_MARGIN
+	for (i = 1; i <= NUM_VOLTAGE_STEPS; i++) {
+		/*
+		 * Step Margin to voltage offset to down of default
+		 * payload = offset | (0x01 << 7)
+		 */
+		setup_margin_cmd(pcie, MARGIN_SET_Y_OFFSET, RP_RCV_NO,
+				 i | DOWN_STEP_PAYLOAD);
+		issue_margin_cmd(pcie, ppdev);
+		msleep(MARGIN_WIN_TIME);
+		read_margin_status(pcie, s, ppdev, i, DOWN_STEP);
+
+		setup_margin_cmd(pcie, MARGIN_SET_NORMAL, RP_RCV_NO,
+				 NORMAL_PAYLOAD);
+		issue_margin_cmd(pcie, ppdev);
+		msleep(MARGIN_READ_DELAY);
+		read_margin_status(pcie, s, ppdev, i, NO_STEP);
+
+		setup_margin_cmd(pcie, MARGIN_CLR_ERR, RP_RCV_NO,
+				 CLR_ERR_PAYLOAD);
+		issue_margin_cmd(pcie, ppdev);
+		msleep(MARGIN_READ_DELAY);
+		read_margin_status(pcie, s, ppdev, i, NO_STEP);
+	}
+#endif
+
 	for (i = 1; i <= NUM_VOLTAGE_STEPS; i++) {
 		/*
 		 * Step Margin to voltage offset to up of default
@@ -1832,6 +1912,32 @@ endpoint:
 	issue_margin_cmd(pcie, pdev);
 	msleep(MARGIN_READ_DELAY);
 	read_margin_status(pcie, s, pdev, i, NO_STEP);
+
+#ifdef CONFIG_PCIE_TEGRA_DW_TWO_SIDE_LANE_MARGIN
+	for (i = 1; i <= NUM_VOLTAGE_STEPS; i++) {
+		/*
+		 * Step Margin to voltage offset to down of default
+		 * payload = offset | (0x01 << 7)
+		 */
+		setup_margin_cmd(pcie, MARGIN_SET_Y_OFFSET, EP_RCV_NO,
+				 i | DOWN_STEP_PAYLOAD);
+		issue_margin_cmd(pcie, pdev);
+		msleep(MARGIN_WIN_TIME);
+		read_margin_status(pcie, s, pdev, i, DOWN_STEP);
+
+		setup_margin_cmd(pcie, MARGIN_SET_NORMAL, EP_RCV_NO,
+				 NORMAL_PAYLOAD);
+		issue_margin_cmd(pcie, pdev);
+		msleep(MARGIN_READ_DELAY);
+		read_margin_status(pcie, s, pdev, i, NO_STEP);
+
+		setup_margin_cmd(pcie, MARGIN_CLR_ERR, EP_RCV_NO,
+				 CLR_ERR_PAYLOAD);
+		issue_margin_cmd(pcie, pdev);
+		msleep(MARGIN_READ_DELAY);
+		read_margin_status(pcie, s, pdev, i, NO_STEP);
+	}
+#endif
 
 	for (i = 1; i <= NUM_VOLTAGE_STEPS; i++) {
 		/*
@@ -2539,6 +2645,10 @@ static int tegra_pcie_dw_host_init(struct pcie_port *pp)
 	/* Need DBI_RO_WR_EN set to program this bit */
 	val = readl(pci->dbi_base + GEN4_LANE_MARGINING_2);
 	val |= GEN4_LANE_MARGINING_2_VOLTAGE_SUPPORTED;
+#ifdef CONFIG_PCIE_TEGRA_DW_TWO_SIDE_LANE_MARGIN
+	val |= GEN4_LANE_MARGINING_2_LEFT_RIGHT_TIMING;
+	val |= GEN4_LANE_MARGINING_2_UP_DOWN_VOLTAGE;
+#endif
 	writel(val, pci->dbi_base + GEN4_LANE_MARGINING_2);
 #endif
 
