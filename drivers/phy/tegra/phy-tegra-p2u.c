@@ -70,6 +70,10 @@
 #define P2U_RX_MARGIN_CONTROL				0xf0
 #define P2U_RX_MARGIN_CONTROL_START			BIT(0)
 
+#define P2U_RX_MARGIN_CYA_CTRL				0xf8
+#define P2U_RX_MARGIN_CYA_CTRL_IND_X			BIT(0)
+#define P2U_RX_MARGIN_CYA_CTRL_IND_Y			BIT(1)
+
 #define RX_MARGIN_START_CHANGE	(1)
 #define RX_MARGIN_STOP		(2)
 #define RX_MARGIN_GET_MARGIN	(3)
@@ -108,6 +112,13 @@ static int tegra_p2u_power_on(struct phy *x)
 	      P2U_RX_MARGIN_SW_INT_EN_MARGIN_CHANGE |
 	      P2U_RX_MARGIN_SW_INT_EN_MARGIN_STOP;
 	writel(val, phy->base + P2U_RX_MARGIN_SW_INT_EN);
+#endif
+
+#ifdef CONFIG_PCIE_TEGRA_DW_TWO_SIDE_LANE_MARGIN
+	val = readl(phy->base + P2U_RX_MARGIN_CYA_CTRL);
+	val |= P2U_RX_MARGIN_CYA_CTRL_IND_X;
+	val |= P2U_RX_MARGIN_CYA_CTRL_IND_Y;
+	writel(val, phy->base + P2U_RX_MARGIN_CYA_CTRL);
 #endif
 
 	if (!phy->disable_uphy_rx_idle) {
@@ -157,14 +168,29 @@ static int set_margin_control(u32 id, u32 ctrl_data)
 	struct mrq_uphy_request req;
 	struct mrq_uphy_response resp;
 	struct margin_ctrl ctrl;
+	u32 ctrl_x;
 
 	memcpy(&ctrl, &ctrl_data, sizeof(ctrl_data));
+
+	/*
+	 * P2U logic converts negative time step to 6-bit 1's compliment,
+	 * where as UPHY expects 7-bit 2's compliment. P2U logic converts
+	 * negative voltage step to 6-bit 1's compliment and UPHY expects same.
+	 * number of timing steps is set to 0x20, so anything greater than
+	 * 0x20 would be negative step with 1's compliment.
+	 */
+	if (ctrl.x > 0x20) {
+		ctrl_x = ctrl.x + 1;
+		ctrl_x |= 0x40;
+	} else {
+		ctrl_x = ctrl.x;
+	}
 
 	req.lane = id;
 	req.cmd = CMD_UPHY_PCIE_LANE_MARGIN_CONTROL;
 	req.uphy_set_margin_control.en = ctrl.en;
 	req.uphy_set_margin_control.clr = ctrl.clr;
-	req.uphy_set_margin_control.x = ctrl.x;
+	req.uphy_set_margin_control.x = ctrl_x;
 	req.uphy_set_margin_control.y = ctrl.y;
 	req.uphy_set_margin_control.nblks = ctrl.n_blks;
 
