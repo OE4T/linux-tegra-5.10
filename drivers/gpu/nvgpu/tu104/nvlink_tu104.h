@@ -35,4 +35,5 @@ u32 tu104_nvlink_link_get_rx_sublink_state(struct gk20a *g, u32 link_id);
 int tu104_nvlink_minion_data_ready_en(struct gk20a *g, unsigned long mask,
 								 bool sync);
 void tu104_nvlink_get_connected_link_mask(u32 *link_mask);
+int tu104_nvlink_speed_config(struct gk20a *g);
 #endif

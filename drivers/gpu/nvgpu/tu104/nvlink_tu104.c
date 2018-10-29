@@ -29,6 +29,7 @@
 #include <nvgpu/io.h>
 #include <nvgpu/timers.h>
 #include <nvgpu/gk20a.h>
+#include <nvgpu/bios.h>
 
 #include "gv100/nvlink_gv100.h"
 #include "nvlink_tu104.h"
@@ -254,4 +255,34 @@ void tu104_nvlink_get_connected_link_mask(u32 *link_mask)
 	*link_mask = TU104_CONNECTED_LINK_MASK;
 }
 
+int tu104_nvlink_speed_config(struct gk20a *g)
+{
+	int ret = 0;
+
+	ret = nvgpu_bios_get_lpwr_nvlink_table_hdr(g);
+	if (ret != 0) {
+		nvgpu_err(g, "Failed to read LWPR_NVLINK_TABLE header\n");
+		return ret;
+	}
+
+	switch (g->nvlink.initpll_ordinal) {
+	case INITPLL_1:
+		g->nvlink.speed = nvgpu_nvlink_speed_20G;
+		g->nvlink.initpll_cmd =
+				minion_nvlink_dl_cmd_command_initpll_1_v();
+		break;
+	case INITPLL_7:
+		g->nvlink.speed = nvgpu_nvlink_speed_16G;
+		g->nvlink.initpll_cmd =
+				minion_nvlink_dl_cmd_command_initpll_7_v();
+		break;
+	default:
+		nvgpu_err(g, "Nvlink initpll %d from VBIOS not supported.",
+					g->nvlink.initpll_ordinal);
+		ret = -EINVAL;
+		break;
+	}
+
+	return ret;
+}
 #endif /* CONFIG_TEGRA_NVLINK */

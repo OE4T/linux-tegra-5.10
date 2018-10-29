@@ -989,6 +989,7 @@ static const struct gpu_ops tu104_ops = {
 		.reg_init = gv100_nvlink_reg_init,
 		.shutdown = gv100_nvlink_shutdown,
 		.early_init = gv100_nvlink_early_init,
+		.speed_config = tu104_nvlink_speed_config,
 	},
 #endif
 	.acr = {

@@ -767,20 +767,10 @@ static int gv100_nvlink_minion_init_uphy(struct gk20a *g, unsigned long mask,
 					bool sync)
 {
 	int err = 0;
-	u32 init_pll_cmd;
 	u32 link_id, master_pll, slave_pll;
 	u32 master_state, slave_state;
 
 	unsigned long link_enable;
-
-	switch(g->nvlink.speed) {
-	case nvgpu_nvlink_speed_20G:
-		init_pll_cmd = minion_nvlink_dl_cmd_command_initpll_1_v();
-		break;
-	default:
-		nvgpu_err(g, "Unsupported UPHY speed");
-		return -EINVAL;
-	}
 
 	link_enable = __gv100_nvlink_get_link_reset_mask(g);
 
@@ -809,7 +799,7 @@ static int gv100_nvlink_minion_init_uphy(struct gk20a *g, unsigned long mask,
 		/* Check if INIT PLL is done on link */
 		if (!(BIT(master_pll) & g->nvlink.init_pll_done)) {
 			err = gv100_nvlink_minion_send_command(g, master_pll,
-							init_pll_cmd, 0, sync);
+						g->nvlink.initpll_cmd, 0, sync);
 			if (err != 0) {
 				nvgpu_err(g, " Error sending INITPLL to minion");
 				return err;
@@ -2691,6 +2681,12 @@ int gv100_nvlink_early_init(struct gk20a *g)
 	if (!nvgpu_is_enabled(g, NVGPU_SUPPORT_NVLINK))
 		return -EINVAL;
 
+	err = nvgpu_bios_get_lpwr_nvlink_table_hdr(g);
+	if (err != 0) {
+		nvgpu_err(g, "Failed to read LWPR_NVLINK_TABLE header\n");
+		goto nvlink_init_exit;
+	}
+
 	err = nvgpu_bios_get_nvlink_config_data(g);
 	if (err != 0) {
 		nvgpu_err(g, "failed to read nvlink vbios data");
@@ -2751,8 +2747,6 @@ int gv100_nvlink_early_init(struct gk20a *g)
 		goto nvlink_init_exit;
 	}
 
-	g->nvlink.speed = nvgpu_nvlink_speed_20G;
-
 	err = __gv100_nvlink_state_load_hal(g);
 	if (err != 0) {
 		nvgpu_err(g, " failed Nvlink state load");
@@ -2772,4 +2766,11 @@ nvlink_init_exit:
 	return err;
 }
 
+int gv100_nvlink_speed_config(struct gk20a *g)
+{
+	g->nvlink.speed = nvgpu_nvlink_speed_20G;
+	g->nvlink.initpll_ordinal = INITPLL_1;
+	g->nvlink.initpll_cmd = minion_nvlink_dl_cmd_command_initpll_1_v();
+	return 0;
+}
 #endif /* CONFIG_TEGRA_NVLINK */

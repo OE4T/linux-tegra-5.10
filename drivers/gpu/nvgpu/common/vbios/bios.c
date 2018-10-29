@@ -92,6 +92,18 @@ struct nvlink_config_data_hdr_v1 {
 	u32 ac_coupling_mask;
 } __packed;
 
+#define LWPR_NVLINK_TABLE_10_HDR_VER_10		0x10U
+#define LPWR_NVLINK_TABLE_10_HDR_SIZE_06	6U
+
+struct lpwr_nvlink_table_hdr_v1 {
+	u8 version;
+	u8 hdr_size;
+	u8 entry_size;
+	u8 entry_count;
+	u8 default_entry_idx;
+	u8 line_rate_initpll_ordinal;
+} __packed;
+
 #define MEMORY_PTRS_V1 				1U
 #define MEMORY_PTRS_V2 				2U
 
@@ -426,6 +438,37 @@ u32 nvgpu_bios_get_nvlink_config_data(struct gk20a *g)
 		nvgpu_err(g, "invalid nvlink bios config size");
 		return -EINVAL;
 	}
+
+	return 0;
+}
+
+int nvgpu_bios_get_lpwr_nvlink_table_hdr(struct gk20a *g)
+{
+	struct lpwr_nvlink_table_hdr_v1 hdr;
+	u8 *lpwr_nvlink_tbl_hdr_ptr = NULL;
+
+	lpwr_nvlink_tbl_hdr_ptr = (u8 *)nvgpu_bios_get_perf_table_ptrs(g,
+					g->bios.perf_token,
+					LPWR_NVLINK_TABLE);
+	if (lpwr_nvlink_tbl_hdr_ptr == NULL) {
+		nvgpu_err(g, "Invalid pointer to LPWR_NVLINK_TABLE\n");
+		return -EINVAL;
+	}
+
+	nvgpu_memcpy((u8 *)&hdr, lpwr_nvlink_tbl_hdr_ptr,
+					LPWR_NVLINK_TABLE_10_HDR_SIZE_06);
+
+	if (hdr.version != LWPR_NVLINK_TABLE_10_HDR_VER_10) {
+		nvgpu_err(g, "Unsupported LPWR_NVLINK_TABLE version: 0x%x",
+					hdr.version);
+		return -EINVAL;
+	}
+
+	g->nvlink.initpll_ordinal =
+		BIOS_GET_FIELD(hdr.line_rate_initpll_ordinal,
+				VBIOS_LPWR_NVLINK_TABLE_HDR_INITPLL_ORDINAL);
+	nvgpu_log(g, gpu_dbg_nvlink, " Nvlink initpll_ordinal: 0x%x",
+					g->nvlink.initpll_ordinal);
 
 	return 0;
 }

@@ -54,4 +54,5 @@ int gv100_nvlink_interface_disable(struct gk20a *g);
 int gv100_nvlink_reg_init(struct gk20a *g);
 int gv100_nvlink_shutdown(struct gk20a *g);
 int gv100_nvlink_early_init(struct gk20a *g);
+int gv100_nvlink_speed_config(struct gk20a *g);
 #endif

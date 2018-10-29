@@ -44,6 +44,28 @@ static u32 __nvgpu_nvlink_get_link(struct nvlink_device *ndev)
 	return NVLINK_MAX_LINKS_SW;
 }
 
+static int nvgpu_nvlink_speed_config(struct nvlink_device *ndev)
+{
+	struct gk20a *g = (struct gk20a *) ndev->priv;
+	int err;
+
+	/* For now master topology is the only one supported */
+	if (!ndev->is_master) {
+		nvgpu_err(g, "dGPU is not master for Nvlink speed config");
+		return -EINVAL;
+	}
+
+	err = g->ops.nvlink.speed_config(g);
+	if (err != 0) {
+		nvgpu_err(g, "Nvlink speed config failed.\n");
+		return err;
+	}
+	ndev->speed = g->nvlink.speed;
+	nvgpu_log(g, gpu_dbg_nvlink, "Nvlink default speed set to %d\n",
+						ndev->speed);
+	return err;
+}
+
 static int nvgpu_nvlink_early_init(struct nvlink_device *ndev)
 {
 	struct gk20a *g = (struct gk20a *) ndev->priv;
@@ -413,6 +435,7 @@ static int nvgpu_nvlink_init_ops(struct gk20a *g)
 	ndev->dev_ops.dev_reg_init = nvgpu_nvlink_reg_init;
 	ndev->dev_ops.dev_interface_disable = nvgpu_nvlink_interface_disable;
 	ndev->dev_ops.dev_shutdown = nvgpu_nvlink_shutdown;
+	ndev->dev_ops.dev_speed_config = nvgpu_nvlink_speed_config;
 
 	/* Fill in the link struct */
 	ndev->link.device_id = ndev->device_id;

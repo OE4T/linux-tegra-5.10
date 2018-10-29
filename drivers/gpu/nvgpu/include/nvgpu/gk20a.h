@@ -1352,6 +1352,7 @@ struct gpu_ops {
 		int (*reg_init)(struct gk20a *g);
 		int (*shutdown)(struct gk20a *g);
 		int (*early_init)(struct gk20a *g);
+		int (*speed_config)(struct gk20a *g);
 	} nvlink;
 	struct {
 		u32 (*get_nvhsclk_ctrl_e_clk_nvl)(struct gk20a *g);

@@ -971,6 +971,7 @@ static const struct gpu_ops gv100_ops = {
 		.reg_init = gv100_nvlink_reg_init,
 		.shutdown = gv100_nvlink_shutdown,
 		.early_init = gv100_nvlink_early_init,
+		.speed_config = gv100_nvlink_speed_config,
 	},
 #endif
 	.top = {

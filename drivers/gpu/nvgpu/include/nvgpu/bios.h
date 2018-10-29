@@ -58,6 +58,7 @@ enum {
 	LOWPOWER_TABLE,
 	LOWPOWER_GR_TABLE = 32,
 	LOWPOWER_MS_TABLE = 33,
+	LPWR_NVLINK_TABLE = 39,
 };
 
 enum {
@@ -1144,6 +1145,10 @@ struct nvgpu_bios_lpwr_gr_table_1x_entry {
 
 #define NV_VBIOS_LPWR_GR_FEATURE_MASK_GR_RPPG_MASK GENMASK(4, 4)
 #define NV_VBIOS_LPWR_GR_FEATURE_MASK_GR_RPPG_SHIFT 4
+
+#define VBIOS_LPWR_NVLINK_TABLE_HDR_INITPLL_ORDINAL_MASK		0x07U
+#define VBIOS_LPWR_NVLINK_TABLE_HDR_INITPLL_ORDINAL_SHIFT		0x00U
+
 int nvgpu_bios_parse_rom(struct gk20a *g);
 u8 nvgpu_bios_read_u8(struct gk20a *g, u32 offset);
 s8 nvgpu_bios_read_s8(struct gk20a *g, u32 offset);
@@ -1153,4 +1158,5 @@ void *nvgpu_bios_get_perf_table_ptrs(struct gk20a *g,
 		struct bit_token *ptoken, u8 table_id);
 int nvgpu_bios_execute_script(struct gk20a *g, u32 offset);
 u32 nvgpu_bios_get_nvlink_config_data(struct gk20a *g);
+int nvgpu_bios_get_lpwr_nvlink_table_hdr(struct gk20a *g);
 #endif

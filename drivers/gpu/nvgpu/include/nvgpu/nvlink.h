@@ -36,6 +36,9 @@
 #define NV_NVLINK_REG_POLL_TIMEOUT_MS           3000
 #define NV_NVLINK_TIMEOUT_DELAY_US              5
 
+#define INITPLL_1				U8(1)
+#define INITPLL_7				U8(7)
+
 #define MINION_REG_RD32(g, off) gk20a_readl(g, g->nvlink.minion_base + (off))
 #define MINION_REG_WR32(g, off, v) gk20a_writel(g, g->nvlink.minion_base + (off), (v))
 #define IOCTRL_REG_RD32(g, off) gk20a_readl(g, g->nvlink.ioctrl_base + (off))
@@ -153,9 +156,10 @@ struct nvgpu_nvlink_link {
 
 #define NVLINK_MAX_LINKS_SW 6
 
+
 enum nvgpu_nvlink_speed {
-	nvgpu_nvlink_speed_25G,
-	nvgpu_nvlink_speed_20G,
+	nvgpu_nvlink_speed_16G = 16,
+	nvgpu_nvlink_speed_20G = 20,
 	nvgpu_nvlink_speed__last,
 };
 
@@ -208,6 +212,7 @@ struct nvgpu_nvlink_dev {
 	u32 link_refclk_mask;
 	u8 train_at_boot;
 	u32 ac_coupling_mask;
+	u8 initpll_ordinal;
 
 	u32 connected_links;
 	u32 initialized_links;
@@ -215,6 +220,7 @@ struct nvgpu_nvlink_dev {
 	u32 init_pll_done;
 
 	enum nvgpu_nvlink_speed speed;
+	u32 initpll_cmd;
 
 	/* tlc cached errors */
 	u32 tlc_rx_err_status_0[NVLINK_MAX_LINKS_SW];
