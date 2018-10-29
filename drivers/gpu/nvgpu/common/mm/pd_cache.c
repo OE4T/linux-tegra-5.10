@@ -215,6 +215,7 @@ void nvgpu_pd_cache_fini(struct gk20a *g)
 	}
 
 	nvgpu_kfree(g, g->mm.pd_cache);
+	g->mm.pd_cache = NULL;
 }
 
 /*
