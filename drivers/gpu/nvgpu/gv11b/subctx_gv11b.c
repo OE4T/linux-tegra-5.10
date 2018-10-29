@@ -150,7 +150,7 @@ int gv11b_update_subctx_header(struct channel_gk20a *c, u64 gpu_va)
 	return ret;
 }
 
-void gv11b_subctx_commit_valid_mask(struct vm_gk20a *vm,
+static void gv11b_subctx_commit_valid_mask(struct vm_gk20a *vm,
 				struct nvgpu_mem *inst_block)
 {
 	struct gk20a *g = gk20a_from_vm(vm);

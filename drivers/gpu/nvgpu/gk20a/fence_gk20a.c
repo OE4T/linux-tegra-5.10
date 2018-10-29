@@ -75,7 +75,7 @@ struct gk20a_fence *gk20a_fence_get(struct gk20a_fence *f)
 	return f;
 }
 
-inline bool gk20a_fence_is_valid(struct gk20a_fence *f)
+static bool gk20a_fence_is_valid(struct gk20a_fence *f)
 {
 	bool valid = f->valid;
 

@@ -94,7 +94,6 @@ struct gk20a_fence *gk20a_fence_get(struct gk20a_fence *f);
 int gk20a_fence_wait(struct gk20a *g, struct gk20a_fence *f,
 							unsigned long timeout);
 bool gk20a_fence_is_expired(struct gk20a_fence *f);
-bool gk20a_fence_is_valid(struct gk20a_fence *f);
 int gk20a_fence_install_fd(struct gk20a_fence *f, int fd);
 
 #endif /* NVGPU_GK20A_FENCE_GK20A_H */
