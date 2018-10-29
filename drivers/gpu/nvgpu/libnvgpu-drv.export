@@ -49,6 +49,10 @@ nvgpu_kmem_cache_create
 nvgpu_kmem_cache_destroy
 nvgpu_kmem_cache_free
 nvgpu_kmem_get_fault_injection
+nvgpu_pd_alloc
+nvgpu_pd_cache_fini
+nvgpu_pd_cache_init
+nvgpu_pd_free
 nvgpu_posix_cleanup
 nvgpu_posix_enable_fault_injection
 nvgpu_posix_io_add_reg_space
