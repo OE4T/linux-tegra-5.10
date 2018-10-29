@@ -551,6 +551,9 @@ NV_PMU_BOARDOBJ_GRP_SET_MAKE_E32(clk, clk_freq_controller);
 #define NV_PMU_CLK_RPC_ID_CLK_VF_CHANGE_INJECT                     (0x00000000U)
 #define NV_PMU_CLK_RPC_ID_CLK_FREQ_EFF_AVG                         (0x00000002U)
 
+#define NV_PMU_RPC_ID_CLK_CLK_DOMAIN_35_PROG_VOLT_TO_FREQ          (0x00000002U)
+#define NV_PMU_RPC_ID_CLK_CLK_DOMAIN_35_PROG_FREQ_TO_VOLT          (0x00000003U)
+
 struct nv_pmu_clk_cmd_rpc {
 	u8 cmd_type;
 	u8 pad[3];
@@ -669,5 +672,17 @@ union nv_pmu_clk_clk_freq_domain_boardobj_set_union {
 	struct nv_pmu_clk_clk_freq_domain_boardobj_set domain;
 };
 NV_PMU_BOARDOBJ_GRP_SET_MAKE_E32(clk, clk_freq_domain);
+
+
+struct nv_pmu_rpc_clk_domain_35_prog_freq_to_volt {
+	/*[IN/OUT] Must be first field in RPC structure */
+    struct nv_pmu_rpc_header hdr;
+    u8 clk_domain_idx;
+    u8 volt_rail_idx;
+    u8 voltage_type;
+    struct ctrl_clk_vf_input input;
+    struct ctrl_clk_vf_output output;
+    u32  scratch[1];
+};
 
 #endif /*NVGPU_PMUIF_GPMUIFCLK_H*/
