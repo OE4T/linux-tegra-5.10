@@ -45,9 +45,9 @@ static const char *log_types[] = {
 	"INFO",
 };
 
-int nvgpu_log_mask_enabled(struct gk20a *g, u64 log_mask)
+bool nvgpu_log_mask_enabled(struct gk20a *g, u64 log_mask)
 {
-	return !!(g->log_mask & log_mask);
+	return (g->log_mask & log_mask) != 0ULL;
 }
 
 static inline const char *nvgpu_log_name(struct gk20a *g)

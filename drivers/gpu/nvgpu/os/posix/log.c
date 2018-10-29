@@ -50,6 +50,11 @@ static inline const char *nvgpu_log_name(struct gk20a *g)
 	return "gpu.USS";
 }
 
+bool nvgpu_log_mask_enabled(struct gk20a *g, u64 log_mask)
+{
+	return (g->log_mask & log_mask) != 0ULL;
+}
+
 static void __nvgpu_really_print_log(const char *gpu_name,
 				     const char *func_name, int line,
 				     enum nvgpu_log_type type, const char *log)

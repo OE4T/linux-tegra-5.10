@@ -93,7 +93,7 @@ void __nvgpu_log_dbg(struct gk20a *g, u64 log_mask,
  * said prints would not happen. For example for-loops of log statements in
  * critical paths.
  */
-int nvgpu_log_mask_enabled(struct gk20a *g, u64 log_mask);
+bool nvgpu_log_mask_enabled(struct gk20a *g, u64 log_mask);
 
 /**
  * nvgpu_log - Print a debug message
