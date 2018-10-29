@@ -209,8 +209,15 @@ static int isc_pwm_suspend(struct device *dev)
 	int err = 0;
 	struct isc_pwm_info *info = dev_get_drvdata(dev);
 
-	pwm_disable(info->pwm);
-	err = pwm_config(info->pwm, PWM_SUSPEND_DUTY_RATIO, PWM_SUSPEND_PERIOD);
+	if (info == NULL) {
+		dev_err(dev, "%s: fail to get info\n", __func__);
+	} else {
+		if (!IS_ERR(info->pwm)) {
+			pwm_disable(info->pwm);
+			err = pwm_config(info->pwm, PWM_SUSPEND_DUTY_RATIO,
+					PWM_SUSPEND_PERIOD);
+		}
+	}
 	return 0;
 }
 

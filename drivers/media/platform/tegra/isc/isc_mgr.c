@@ -954,9 +954,11 @@ static int isc_mgr_resume(struct device *dev)
 {
 	struct pwm_device *pwm;
 	/* Reconfigure PWM as done during boot time */
-	pwm = devm_pwm_get(dev, NULL);
-	if (!IS_ERR(pwm))
-		dev_info(dev, "%s Resume successful\n", __func__);
+	if (of_property_read_bool(dev->of_node, "pwms")) {
+		pwm = devm_pwm_get(dev, NULL);
+		if (!IS_ERR(pwm))
+			dev_info(dev, "%s Resume successful\n", __func__);
+	}
 	return 0;
 }
 
