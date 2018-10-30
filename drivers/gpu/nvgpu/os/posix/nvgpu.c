@@ -30,6 +30,7 @@
 #include <nvgpu/nvgpu_common.h>
 #include <nvgpu/os_sched.h>
 #include <nvgpu/gk20a.h>
+#include <nvgpu/enabled.h>
 
 #include <nvgpu/posix/probe.h>
 
@@ -117,23 +118,29 @@ struct gk20a *nvgpu_posix_probe(void)
 {
 	struct gk20a *g;
 	struct nvgpu_os_posix *p;
-	int err;
 
 	p = malloc(sizeof(*p));
-	if (p == NULL)
+	if (p == NULL) {
 		return NULL;
+	}
 
 	g = &p->g;
-
 	g->log_mask = 0;
+	g->mm.g = g;
 
-	err = nvgpu_kmem_init(g);
-	if (err != 0)
-		goto fail;
+	if (nvgpu_kmem_init(g) != 0) {
+		goto fail_kmem;
+	}
+
+	if (nvgpu_init_enabled_flags(g) != 0) {
+		goto fail_enabled_flags;
+	}
 
 	return g;
 
-fail:
+fail_enabled_flags:
+	nvgpu_kmem_fini(g, 0);
+fail_kmem:
 	free(p);
 
 	return NULL;
@@ -144,5 +151,6 @@ void nvgpu_posix_cleanup(struct gk20a *g)
 	struct nvgpu_os_posix *p = nvgpu_os_posix_from_gk20a(g);
 
 	nvgpu_kmem_fini(g, 0);
+	nvgpu_free_enabled_flags(g);
 	free(p);
 }
