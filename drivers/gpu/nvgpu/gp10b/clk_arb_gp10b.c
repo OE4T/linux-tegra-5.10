@@ -278,7 +278,7 @@ void gp10b_clk_arb_run_arbiter_cb(struct nvgpu_clk_arb *arb)
 				&session->target_pool[1] :
 				&session->target_pool[0]);
 		nvgpu_spinlock_acquire(&session->session_lock);
-		if (nvgpu_list_empty(&session->targets) == 0) {
+		if (!nvgpu_list_empty(&session->targets)) {
 			/* Copy over state */
 			target->gpc2clk = session->target->gpc2clk;
 			/* Query the latest committed request */

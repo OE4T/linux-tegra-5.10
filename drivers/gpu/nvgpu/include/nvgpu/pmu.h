@@ -492,7 +492,7 @@ int nvgpu_pmu_reset(struct gk20a *g);
 /* PG enable/disable */
 int nvgpu_pmu_enable_elpg(struct gk20a *g);
 int nvgpu_pmu_disable_elpg(struct gk20a *g);
-int nvgpu_pmu_pg_global_enable(struct gk20a *g, u32 enable_pg);
+int nvgpu_pmu_pg_global_enable(struct gk20a *g, bool enable_pg);
 
 int nvgpu_pmu_get_pg_stats(struct gk20a *g, u32 pg_engine_id,
 	struct pmu_pg_stats_data *pg_stat_data);

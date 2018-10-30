@@ -111,11 +111,11 @@ static void pmu_handle_pg_elpg_msg(struct gk20a *g, struct pmu_msg *msg,
 }
 
 /* PG enable/disable */
-int nvgpu_pmu_pg_global_enable(struct gk20a *g, u32 enable_pg)
+int nvgpu_pmu_pg_global_enable(struct gk20a *g, bool enable_pg)
 {
 	u32 status = 0;
 
-	if (enable_pg == true) {
+	if (enable_pg) {
 		if (g->ops.pmu.pmu_pg_engines_feature_list != NULL &&
 			g->ops.pmu.pmu_pg_engines_feature_list(g,
 				PMU_PG_ELPG_ENGINE_ID_GRAPHICS) !=
@@ -127,7 +127,7 @@ int nvgpu_pmu_pg_global_enable(struct gk20a *g, u32 enable_pg)
 		} else if (g->support_pmu && g->can_elpg) {
 			status = nvgpu_pmu_enable_elpg(g);
 		}
-	} else if (enable_pg == false) {
+	} else {
 		if (g->ops.pmu.pmu_pg_engines_feature_list != NULL &&
 			g->ops.pmu.pmu_pg_engines_feature_list(g,
 				PMU_PG_ELPG_ENGINE_ID_GRAPHICS) !=

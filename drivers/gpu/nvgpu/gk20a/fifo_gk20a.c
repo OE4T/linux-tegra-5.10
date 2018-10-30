@@ -3651,7 +3651,7 @@ int gk20a_fifo_update_runlist_locked(struct gk20a *g, u32 runlist_id,
 
 		if (add) {
 			if (test_and_set_bit(chid,
-				runlist->active_channels) == 1) {
+				runlist->active_channels)) {
 				return 0;
 			}
 			if ((tsg != NULL) && (++tsg->num_active_channels != 0)) {
@@ -3659,8 +3659,8 @@ int gk20a_fifo_update_runlist_locked(struct gk20a *g, u32 runlist_id,
 					runlist->active_tsgs);
 			}
 		} else {
-			if (test_and_clear_bit(chid,
-				runlist->active_channels) == 0) {
+			if (!test_and_clear_bit(chid,
+				runlist->active_channels)) {
 				return 0;
 			}
 			if ((tsg != NULL) &&

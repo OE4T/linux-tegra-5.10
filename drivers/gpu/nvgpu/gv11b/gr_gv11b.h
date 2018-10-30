@@ -80,7 +80,7 @@ enum {
 #define NVC3C0_SET_SKEDCHECK			0x23c
 #define NVC3C0_SET_SHADER_CUT_COLLECTOR		0x250
 
-#define NVA297_SET_SHADER_EXCEPTIONS_ENABLE_FALSE 0
+#define NVA297_SET_SHADER_EXCEPTIONS_ENABLE_FALSE	U32(0)
 
 int gr_gv11b_alloc_buffer(struct vm_gk20a *vm, size_t size,
                         struct nvgpu_mem *mem);

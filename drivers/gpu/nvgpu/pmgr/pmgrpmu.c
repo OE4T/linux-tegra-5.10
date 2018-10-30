@@ -50,7 +50,7 @@ static void pmgr_pmucmdhandler(struct gk20a *g, struct pmu_msg *msg,
 	}
 
 	if (msg->msg.pmgr.msg_type == NV_PMU_PMGR_MSG_ID_SET_OBJECT) {
-		if ((msg->msg.pmgr.set_object.b_success != 1) ||
+		if (!msg->msg.pmgr.set_object.b_success ||
 			(msg->msg.pmgr.set_object.flcnstatus != 0U)) {
 			nvgpu_err(g, "pmgr msg failed %x %x %x %x",
 				msg->msg.pmgr.set_object.msg_type,
@@ -60,7 +60,7 @@ static void pmgr_pmucmdhandler(struct gk20a *g, struct pmu_msg *msg,
 			return;
 		}
 	} else if (msg->msg.pmgr.msg_type == NV_PMU_PMGR_MSG_ID_QUERY) {
-		if ((msg->msg.pmgr.query.b_success != 1) ||
+		if (!msg->msg.pmgr.query.b_success ||
 			(msg->msg.pmgr.query.flcnstatus != 0U)) {
 			nvgpu_err(g, "pmgr msg failed %x %x %x %x",
 				msg->msg.pmgr.query.msg_type,
@@ -70,7 +70,7 @@ static void pmgr_pmucmdhandler(struct gk20a *g, struct pmu_msg *msg,
 			return;
 		}
 	} else if (msg->msg.pmgr.msg_type == NV_PMU_PMGR_MSG_ID_LOAD) {
-		if ((msg->msg.pmgr.query.b_success != 1) ||
+		if (!msg->msg.pmgr.query.b_success ||
 			(msg->msg.pmgr.query.flcnstatus != 0U)) {
 			nvgpu_err(g, "pmgr msg failed %x %x %x",
 				msg->msg.pmgr.load.msg_type,

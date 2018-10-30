@@ -605,7 +605,7 @@ static int devinit_get_pwr_policy_table(struct gk20a *g,
 		integral_control = (bool)BIOS_GET_FIELD(entry.flags1,
 			NV_VBIOS_POWER_POLICY_3X_ENTRY_FLAGS1_INTEGRAL_CONTROL);
 
-		if (integral_control == 0x01) {
+		if (integral_control) {
 			pwr_policy_data.pwrpolicy.integral.past_sample_count =
 					entry.past_length;
 			pwr_policy_data.pwrpolicy.integral.next_sample_count =

@@ -4990,7 +4990,7 @@ void gk20a_gr_wait_initialized(struct gk20a *g)
 #define NVA297_SET_SHADER_EXCEPTIONS		0x1528
 #define NVA0C0_SET_SHADER_EXCEPTIONS		0x1528
 
-#define NVA297_SET_SHADER_EXCEPTIONS_ENABLE_FALSE 0
+#define NVA297_SET_SHADER_EXCEPTIONS_ENABLE_FALSE	U32(0)
 
 void gk20a_gr_set_shader_exceptions(struct gk20a *g, u32 data)
 {

@@ -199,7 +199,7 @@ bool test_and_set_bit(int nr, volatile unsigned long *addr)
 	unsigned long mask = BIT_MASK(nr);
 	volatile unsigned long *p = addr + BIT_WORD(nr);
 
-	return !!(__sync_fetch_and_or(p, mask) & mask);
+	return (__sync_fetch_and_or(p, mask) & mask) != 0ULL;
 }
 
 bool test_and_clear_bit(int nr, volatile unsigned long *addr)
@@ -207,7 +207,7 @@ bool test_and_clear_bit(int nr, volatile unsigned long *addr)
 	unsigned long mask = BIT_MASK(nr);
 	unsigned long *p = ((unsigned long *)addr) + BIT_WORD(nr);
 
-	return !!(__sync_fetch_and_and(p, ~mask) & mask);
+	return (__sync_fetch_and_and(p, ~mask) & mask) != 0ULL;
 }
 
 void set_bit(int nr, volatile unsigned long *addr)

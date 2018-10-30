@@ -43,7 +43,7 @@ enum {
 #define NVB1C0_SET_SHADER_EXCEPTIONS		0x1528
 #define NVB1C0_SET_RD_COALESCE			0x0228
 
-#define NVA297_SET_SHADER_EXCEPTIONS_ENABLE_FALSE 0
+#define NVA297_SET_SHADER_EXCEPTIONS_ENABLE_FALSE	U32(0)
 
 void gr_gm20b_commit_global_attrib_cb(struct gk20a *g,
 				      struct nvgpu_gr_ctx *ch_ctx,

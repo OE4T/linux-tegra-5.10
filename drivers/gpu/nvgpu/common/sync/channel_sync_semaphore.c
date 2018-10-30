@@ -211,7 +211,7 @@ static int channel_sync_semaphore_incr_common(
 		os_fence);
 
 	if (err != 0) {
-		if (nvgpu_os_fence_is_initialized(&os_fence) != 0) {
+		if (nvgpu_os_fence_is_initialized(&os_fence)) {
 			os_fence.ops->drop_ref(&os_fence);
 		}
 		goto clean_up_sema;
