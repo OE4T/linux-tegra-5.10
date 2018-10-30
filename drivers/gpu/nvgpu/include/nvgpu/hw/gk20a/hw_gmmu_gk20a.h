@@ -56,6 +56,8 @@
 #ifndef NVGPU_HW_GMMU_GK20A_H
 #define NVGPU_HW_GMMU_GK20A_H
 
+#include <nvgpu/types.h>
+
 static inline u32 gmmu_pde_aperture_big_w(void)
 {
 	return 0U;

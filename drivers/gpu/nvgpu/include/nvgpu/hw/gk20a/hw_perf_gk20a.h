@@ -56,6 +56,8 @@
 #ifndef NVGPU_HW_PERF_GK20A_H
 #define NVGPU_HW_PERF_GK20A_H
 
+#include <nvgpu/types.h>
+
 static inline u32 perf_pmasys_control_r(void)
 {
 	return 0x001b4000U;

@@ -56,6 +56,8 @@
 #ifndef NVGPU_HW_PRAM_GK20A_H
 #define NVGPU_HW_PRAM_GK20A_H
 
+#include <nvgpu/types.h>
+
 static inline u32 pram_data032_r(u32 i)
 {
 	return 0x00700000U + i*4U;

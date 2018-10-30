@@ -56,6 +56,8 @@
 #ifndef NVGPU_HW_FIFO_GK20A_H
 #define NVGPU_HW_FIFO_GK20A_H
 
+#include <nvgpu/types.h>
+
 static inline u32 fifo_bar1_base_r(void)
 {
 	return 0x00002254U;
@@ -270,7 +272,7 @@ static inline u32 fifo_intr_en_0_sched_error_f(u32 v)
 }
 static inline u32 fifo_intr_en_0_sched_error_m(void)
 {
-	return 0x1U << 8U;
+	return U32(0x1U) << 8U;
 }
 static inline u32 fifo_intr_en_0_mmu_fault_f(u32 v)
 {
@@ -278,7 +280,7 @@ static inline u32 fifo_intr_en_0_mmu_fault_f(u32 v)
 }
 static inline u32 fifo_intr_en_0_mmu_fault_m(void)
 {
-	return 0x1U << 28U;
+	return U32(0x1U) << 28U;
 }
 static inline u32 fifo_intr_en_1_r(void)
 {
@@ -390,7 +392,7 @@ static inline u32 fifo_fb_timeout_r(void)
 }
 static inline u32 fifo_fb_timeout_period_m(void)
 {
-	return 0x3fffffffU << 0U;
+	return U32(0x3fffffffU) << 0U;
 }
 static inline u32 fifo_fb_timeout_period_max_f(void)
 {
@@ -418,7 +420,7 @@ static inline u32 fifo_sched_disable_runlist_f(u32 v, u32 i)
 }
 static inline u32 fifo_sched_disable_runlist_m(u32 i)
 {
-	return 0x1U << (0U + i*1U);
+	return U32(0x1U) << (0U + i*1U);
 }
 static inline u32 fifo_sched_disable_true_v(void)
 {

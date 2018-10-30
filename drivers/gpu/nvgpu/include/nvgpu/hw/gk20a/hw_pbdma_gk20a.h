@@ -56,6 +56,8 @@
 #ifndef NVGPU_HW_PBDMA_GK20A_H
 #define NVGPU_HW_PBDMA_GK20A_H
 
+#include <nvgpu/types.h>
+
 static inline u32 pbdma_gp_entry1_r(void)
 {
 	return 0x10000004U;
@@ -122,7 +124,7 @@ static inline u32 pbdma_timeout__size_1_v(void)
 }
 static inline u32 pbdma_timeout_period_m(void)
 {
-	return 0xffffffffU << 0U;
+	return U32(0xffffffffU) << 0U;
 }
 static inline u32 pbdma_timeout_period_max_f(void)
 {

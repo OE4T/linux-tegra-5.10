@@ -56,6 +56,8 @@
 #ifndef NVGPU_HW_FALCON_GK20A_H
 #define NVGPU_HW_FALCON_GK20A_H
 
+#include <nvgpu/types.h>
+
 static inline u32 falcon_falcon_irqsset_r(void)
 {
 	return 0x00000000U;
@@ -310,7 +312,7 @@ static inline u32 falcon_falcon_cpuctl_halt_intr_f(u32 v)
 }
 static inline u32 falcon_falcon_cpuctl_halt_intr_m(void)
 {
-	return 0x1U << 4U;
+	return U32(0x1U) << 4U;
 }
 static inline u32 falcon_falcon_cpuctl_halt_intr_v(u32 r)
 {
@@ -318,7 +320,7 @@ static inline u32 falcon_falcon_cpuctl_halt_intr_v(u32 r)
 }
 static inline u32 falcon_falcon_cpuctl_stopped_m(void)
 {
-	return 0x1U << 5U;
+	return U32(0x1U) << 5U;
 }
 static inline u32 falcon_falcon_imemc_r(u32 i)
 {
@@ -362,11 +364,11 @@ static inline u32 falcon_falcon_dmactl_r(void)
 }
 static inline u32 falcon_falcon_dmactl_dmem_scrubbing_m(void)
 {
-	return 0x1U << 1U;
+	return U32(0x1U) << 1U;
 }
 static inline u32 falcon_falcon_dmactl_imem_scrubbing_m(void)
 {
-	return 0x1U << 2U;
+	return U32(0x1U) << 2U;
 }
 static inline u32 falcon_falcon_dmactl_require_ctx_f(u32 v)
 {
@@ -450,7 +452,7 @@ static inline u32 falcon_falcon_exterrstat_r(void)
 }
 static inline u32 falcon_falcon_exterrstat_valid_m(void)
 {
-	return 0x1U << 31U;
+	return U32(0x1U) << 31U;
 }
 static inline u32 falcon_falcon_exterrstat_valid_v(u32 r)
 {
@@ -474,7 +476,7 @@ static inline u32 falcon_falcon_icd_cmd_opc_f(u32 v)
 }
 static inline u32 falcon_falcon_icd_cmd_opc_m(void)
 {
-	return 0xfU << 0U;
+	return U32(0xfU) << 0U;
 }
 static inline u32 falcon_falcon_icd_cmd_opc_v(u32 r)
 {
@@ -506,7 +508,7 @@ static inline u32 falcon_falcon_dmemc_offs_f(u32 v)
 }
 static inline u32 falcon_falcon_dmemc_offs_m(void)
 {
-	return 0x3fU << 2U;
+	return U32(0x3fU) << 2U;
 }
 static inline u32 falcon_falcon_dmemc_blk_f(u32 v)
 {
@@ -514,7 +516,7 @@ static inline u32 falcon_falcon_dmemc_blk_f(u32 v)
 }
 static inline u32 falcon_falcon_dmemc_blk_m(void)
 {
-	return 0xffU << 8U;
+	return U32(0xffU) << 8U;
 }
 static inline u32 falcon_falcon_dmemc_aincw_f(u32 v)
 {
@@ -542,7 +544,7 @@ static inline u32 falcon_falcon_debug1_ctxsw_mode_f(u32 v)
 }
 static inline u32 falcon_falcon_debug1_ctxsw_mode_m(void)
 {
-	return 0x1U << 16U;
+	return U32(0x1U) << 16U;
 }
 static inline u32 falcon_falcon_debug1_ctxsw_mode_v(u32 r)
 {

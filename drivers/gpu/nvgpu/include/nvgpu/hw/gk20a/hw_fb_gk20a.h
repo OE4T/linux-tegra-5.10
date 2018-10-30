@@ -56,6 +56,8 @@
 #ifndef NVGPU_HW_FB_GK20A_H
 #define NVGPU_HW_FB_GK20A_H
 
+#include <nvgpu/types.h>
+
 static inline u32 fb_mmu_ctrl_r(void)
 {
 	return 0x00100c80U;
@@ -122,7 +124,7 @@ static inline u32 fb_mmu_invalidate_trigger_f(u32 v)
 }
 static inline u32 fb_mmu_invalidate_trigger_m(void)
 {
-	return 0x1U << 31U;
+	return U32(0x1U) << 31U;
 }
 static inline u32 fb_mmu_invalidate_trigger_v(u32 r)
 {
@@ -146,7 +148,7 @@ static inline u32 fb_mmu_debug_wr_aperture_f(u32 v)
 }
 static inline u32 fb_mmu_debug_wr_aperture_m(void)
 {
-	return 0x3U << 0U;
+	return U32(0x3U) << 0U;
 }
 static inline u32 fb_mmu_debug_wr_aperture_v(u32 r)
 {
@@ -222,7 +224,7 @@ static inline u32 fb_mmu_debug_ctrl_debug_v(u32 r)
 }
 static inline u32 fb_mmu_debug_ctrl_debug_m(void)
 {
-	return 0x1U << 16U;
+	return U32(0x1U) << 16U;
 }
 static inline u32 fb_mmu_debug_ctrl_debug_enabled_v(void)
 {

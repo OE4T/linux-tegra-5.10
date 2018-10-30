@@ -56,6 +56,8 @@
 #ifndef NVGPU_HW_RAM_GK20A_H
 #define NVGPU_HW_RAM_GK20A_H
 
+#include <nvgpu/types.h>
+
 static inline u32 ram_in_ramfc_s(void)
 {
 	return 4096U;

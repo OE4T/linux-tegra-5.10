@@ -56,13 +56,15 @@
 #ifndef NVGPU_HW_TRIM_GK20A_H
 #define NVGPU_HW_TRIM_GK20A_H
 
+#include <nvgpu/types.h>
+
 static inline u32 trim_sys_gpcpll_cfg_r(void)
 {
 	return 0x00137000U;
 }
 static inline u32 trim_sys_gpcpll_cfg_enable_m(void)
 {
-	return 0x1U << 0U;
+	return U32(0x1U) << 0U;
 }
 static inline u32 trim_sys_gpcpll_cfg_enable_v(u32 r)
 {
@@ -78,7 +80,7 @@ static inline u32 trim_sys_gpcpll_cfg_enable_yes_f(void)
 }
 static inline u32 trim_sys_gpcpll_cfg_iddq_m(void)
 {
-	return 0x1U << 1U;
+	return U32(0x1U) << 1U;
 }
 static inline u32 trim_sys_gpcpll_cfg_iddq_v(u32 r)
 {
@@ -90,7 +92,7 @@ static inline u32 trim_sys_gpcpll_cfg_iddq_power_on_v(void)
 }
 static inline u32 trim_sys_gpcpll_cfg_enb_lckdet_m(void)
 {
-	return 0x1U << 4U;
+	return U32(0x1U) << 4U;
 }
 static inline u32 trim_sys_gpcpll_cfg_enb_lckdet_power_on_f(void)
 {
@@ -118,7 +120,7 @@ static inline u32 trim_sys_gpcpll_coeff_mdiv_f(u32 v)
 }
 static inline u32 trim_sys_gpcpll_coeff_mdiv_m(void)
 {
-	return 0xffU << 0U;
+	return U32(0xffU) << 0U;
 }
 static inline u32 trim_sys_gpcpll_coeff_mdiv_v(u32 r)
 {
@@ -130,7 +132,7 @@ static inline u32 trim_sys_gpcpll_coeff_ndiv_f(u32 v)
 }
 static inline u32 trim_sys_gpcpll_coeff_ndiv_m(void)
 {
-	return 0xffU << 8U;
+	return U32(0xffU) << 8U;
 }
 static inline u32 trim_sys_gpcpll_coeff_ndiv_v(u32 r)
 {
@@ -142,7 +144,7 @@ static inline u32 trim_sys_gpcpll_coeff_pldiv_f(u32 v)
 }
 static inline u32 trim_sys_gpcpll_coeff_pldiv_m(void)
 {
-	return 0x3fU << 16U;
+	return U32(0x3fU) << 16U;
 }
 static inline u32 trim_sys_gpcpll_coeff_pldiv_v(u32 r)
 {
@@ -154,7 +156,7 @@ static inline u32 trim_sys_sel_vco_r(void)
 }
 static inline u32 trim_sys_sel_vco_gpc2clk_out_m(void)
 {
-	return 0x1U << 0U;
+	return U32(0x1U) << 0U;
 }
 static inline u32 trim_sys_sel_vco_gpc2clk_out_init_v(void)
 {
@@ -186,7 +188,7 @@ static inline u32 trim_sys_gpc2clk_out_bypdiv_f(u32 v)
 }
 static inline u32 trim_sys_gpc2clk_out_bypdiv_m(void)
 {
-	return 0x3fU << 0U;
+	return U32(0x3fU) << 0U;
 }
 static inline u32 trim_sys_gpc2clk_out_bypdiv_v(u32 r)
 {
@@ -206,7 +208,7 @@ static inline u32 trim_sys_gpc2clk_out_vcodiv_f(u32 v)
 }
 static inline u32 trim_sys_gpc2clk_out_vcodiv_m(void)
 {
-	return 0x3fU << 8U;
+	return U32(0x3fU) << 8U;
 }
 static inline u32 trim_sys_gpc2clk_out_vcodiv_v(u32 r)
 {
@@ -218,7 +220,7 @@ static inline u32 trim_sys_gpc2clk_out_vcodiv_by1_f(void)
 }
 static inline u32 trim_sys_gpc2clk_out_sdiv14_m(void)
 {
-	return 0x1U << 31U;
+	return U32(0x1U) << 31U;
 }
 static inline u32 trim_sys_gpc2clk_out_sdiv14_indiv4_mode_f(void)
 {
@@ -262,7 +264,7 @@ static inline u32 trim_sys_gpcpll_cfg2_pll_stepa_f(u32 v)
 }
 static inline u32 trim_sys_gpcpll_cfg2_pll_stepa_m(void)
 {
-	return 0xffU << 24U;
+	return U32(0xffU) << 24U;
 }
 static inline u32 trim_sys_gpcpll_cfg3_r(void)
 {
@@ -274,7 +276,7 @@ static inline u32 trim_sys_gpcpll_cfg3_pll_stepb_f(u32 v)
 }
 static inline u32 trim_sys_gpcpll_cfg3_pll_stepb_m(void)
 {
-	return 0xffU << 16U;
+	return U32(0xffU) << 16U;
 }
 static inline u32 trim_sys_gpcpll_ndiv_slowdown_r(void)
 {
@@ -282,7 +284,7 @@ static inline u32 trim_sys_gpcpll_ndiv_slowdown_r(void)
 }
 static inline u32 trim_sys_gpcpll_ndiv_slowdown_slowdown_using_pll_m(void)
 {
-	return 0x1U << 22U;
+	return U32(0x1U) << 22U;
 }
 static inline u32 trim_sys_gpcpll_ndiv_slowdown_slowdown_using_pll_yes_f(void)
 {
@@ -294,7 +296,7 @@ static inline u32 trim_sys_gpcpll_ndiv_slowdown_slowdown_using_pll_no_f(void)
 }
 static inline u32 trim_sys_gpcpll_ndiv_slowdown_en_dynramp_m(void)
 {
-	return 0x1U << 31U;
+	return U32(0x1U) << 31U;
 }
 static inline u32 trim_sys_gpcpll_ndiv_slowdown_en_dynramp_yes_f(void)
 {
