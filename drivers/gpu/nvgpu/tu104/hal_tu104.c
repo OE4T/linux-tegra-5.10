@@ -883,6 +883,9 @@ static const struct gpu_ops tu104_ops = {
 		.pmu_pg_idle_counter_config = gk20a_pmu_pg_idle_counter_config,
 		.pmu_read_idle_counter = gk20a_pmu_read_idle_counter,
 		.pmu_reset_idle_counter = gk20a_pmu_reset_idle_counter,
+		/* TODO: implement for tu104 */
+		.pmu_read_idle_intr_status = NULL,
+		.pmu_clear_idle_intr_status = NULL,
 		.pmu_dump_elpg_stats = gk20a_pmu_dump_elpg_stats,
 		.pmu_dump_falcon_stats = gk20a_pmu_dump_falcon_stats,
 		.pmu_enable_irq = gk20a_pmu_enable_irq,
