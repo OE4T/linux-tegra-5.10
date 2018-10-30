@@ -3330,7 +3330,7 @@ static u32 nvgpu_runlist_append_tsg(struct gk20a *g,
 		struct tsg_gk20a *tsg)
 {
 	struct fifo_gk20a *f = &g->fifo;
-	u32 runlist_entry_words = f->runlist_entry_size / sizeof(u32);
+	u32 runlist_entry_words = f->runlist_entry_size / (u32)sizeof(u32);
 	struct channel_gk20a *ch;
 	u32 count = 0;
 
