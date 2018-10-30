@@ -29,17 +29,7 @@
 static int test_fault_injection_init(struct unit_module *m,
 			      struct gk20a *g, void *__args)
 {
-	if (nvgpu_init_enabled_flags(g) != 0) {
-		unit_return_fail(m, "module init failed\n");
-	}
 	__nvgpu_set_enabled(g, NVGPU_MM_UNIFIED_MEMORY, true);
-	return UNIT_SUCCESS;
-}
-
-static int test_fault_injection_free(struct unit_module *m,
-			      struct gk20a *g, void *__args)
-{
-	nvgpu_free_enabled_flags(g);
 	return UNIT_SUCCESS;
 }
 
@@ -68,8 +58,6 @@ struct unit_module_test fault_injection_tests[] = {
 	UNIT_TEST(dma_alloc_enabled, test_dma_alloc_fi_enabled, NULL),
 	UNIT_TEST(dma_alloc_delayed_enable, test_dma_alloc_fi_delayed_enable,
 		  NULL),
-
-	UNIT_TEST(fault_injection_free, test_fault_injection_free, NULL),
 };
 
 UNIT_MODULE(fault_injection, fault_injection_tests, UNIT_PRIO_POSIX_TEST);

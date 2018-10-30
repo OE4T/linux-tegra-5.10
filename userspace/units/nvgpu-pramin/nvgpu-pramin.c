@@ -171,16 +171,12 @@ static int init_test_env(struct unit_module *m, struct gk20a *g)
 	}
 	first_init = false;
 
-	if (nvgpu_init_enabled_flags(g) != 0) {
-		return UNIT_FAIL;
-	}
 	nvgpu_init_pramin(&g->mm);
 
 	/* Create a test buffer to be filled with random data */
 	rand_test_data = (u32 *) malloc(RAND_DATA_SIZE);
 	if (rand_test_data == NULL) {
-		err = -ENOMEM;
-		goto clean_flags;
+		return -ENOMEM;
 	}
 
 	/* Create the VIDMEM */
@@ -210,8 +206,6 @@ clean_vidmem:
 	free(vidmem);
 clean_rand_data:
 	free(rand_test_data);
-clean_flags:
-	nvgpu_free_enabled_flags(g);
 
 	return err;
 }
@@ -222,7 +216,6 @@ static int free_test_env(struct unit_module *m, struct gk20a *g,
 	free(rand_test_data);
 	free(vidmem);
 	nvgpu_posix_io_delete_reg_space(g, bus_bar0_window_r());
-	nvgpu_free_enabled_flags(g);
 	return UNIT_SUCCESS;
 }
 
