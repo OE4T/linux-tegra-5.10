@@ -24,6 +24,7 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/boardobjgrp.h>
 #include <nvgpu/boardobjgrp_e255.h>
+#include <nvgpu/string.h>
 
 #include "pmu_perf.h"
 #include "vfe_equ.h"
@@ -166,7 +167,7 @@ static int devinit_get_vfe_equ_table(struct gk20a *g,
 		goto done;
 	}
 
-	memcpy(&vfeequs_tbl_header, vfeequs_tbl_ptr,
+	nvgpu_memcpy((u8 *)&vfeequs_tbl_header, vfeequs_tbl_ptr,
 			VBIOS_CLOCKS_TABLE_1X_HEADER_SIZE_07);
 	if (vfeequs_tbl_header.header_size != VBIOS_CLOCKS_TABLE_1X_HEADER_SIZE_07) {
 		status = -EINVAL;
@@ -197,7 +198,7 @@ static int devinit_get_vfe_equ_table(struct gk20a *g,
 		rd_offset_ptr = vfeequs_tbl_entry_ptr +
 			(index * vfeequs_tbl_header.vfe_equ_entry_size);
 
-		memcpy(&equ, rd_offset_ptr, szfmt);
+		nvgpu_memcpy((u8 *)&equ, rd_offset_ptr, szfmt);
 
 		equ_data.super.var_idx = (u8)equ.var_idx;
 		equ_data.super.equ_idx_next =

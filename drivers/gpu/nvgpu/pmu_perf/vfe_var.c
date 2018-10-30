@@ -24,6 +24,7 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/boardobjgrp.h>
 #include <nvgpu/boardobjgrp_e32.h>
+#include <nvgpu/string.h>
 
 #include "pmu_perf.h"
 #include "vfe_var.h"
@@ -206,14 +207,15 @@ static u32 dev_init_get_vfield_info(struct gk20a *g,
 		goto done;
 	}
 
-	memcpy(&vregheader, vfieldregtableptr, VFIELD_REG_HEADER_SIZE);
+	nvgpu_memcpy((u8 *)&vregheader, vfieldregtableptr,
+		VFIELD_REG_HEADER_SIZE);
 
 	if (vregheader.version != VBIOS_VFIELD_REG_TABLE_VERSION_1_0) {
 		nvgpu_err(g, "invalid vreg header version");
 		goto done;
 	}
 
-	memcpy(&vheader, vfieldtableptr, VFIELD_HEADER_SIZE);
+	nvgpu_memcpy((u8 *)&vheader, vfieldtableptr, VFIELD_HEADER_SIZE);
 
 	if (vregheader.version != VBIOS_VFIELD_TABLE_VERSION_1_0) {
 		nvgpu_err(g, "invalid vfield header version");
@@ -223,14 +225,14 @@ static u32 dev_init_get_vfield_info(struct gk20a *g,
 	pvfevar->vfield_info.fuse.segment_count = 0;
 	pvfevar->vfield_ver_info.fuse.segment_count = 0;
 	for (i = 0; i < (u32)vheader.count; i++) {
-		memcpy(&ventry, vfieldtableptr + vfieldheadersize +
+		nvgpu_memcpy((u8 *)&ventry, vfieldtableptr + vfieldheadersize +
 			(i * vheader.entry_size),
 			vheader.entry_size);
 
 		currindex = U32(VFIELD_BIT_REG(ventry));
 		if (currindex != oldindex) {
 
-			memcpy(&vregentry, vfieldregtableptr +
+			nvgpu_memcpy((u8 *)&vregentry, vfieldregtableptr +
 				vfieldregheadersize +
 				(currindex * vregheader.entry_size),
 				vregheader.entry_size);
@@ -914,7 +916,7 @@ static int devinit_get_vfe_var_table(struct gk20a *g,
 		goto done;
 	}
 
-	memcpy(&vfevars_tbl_header, vfevars_tbl_ptr,
+	nvgpu_memcpy((u8 *)&vfevars_tbl_header, vfevars_tbl_ptr,
 	       VBIOS_CLOCKS_TABLE_1X_HEADER_SIZE_07);
 	if (vfevars_tbl_header.header_size !=
 	    VBIOS_CLOCKS_TABLE_1X_HEADER_SIZE_07){
@@ -941,7 +943,7 @@ static int devinit_get_vfe_var_table(struct gk20a *g,
 	     index++) {
 		rd_offset_ptr = vfevars_tbl_entry_ptr +
 				(index * vfevars_tbl_header.vfe_var_entry_size);
-		memcpy(&var, rd_offset_ptr, szfmt);
+		nvgpu_memcpy((u8 *)&var, rd_offset_ptr, szfmt);
 
 		var_data.super.out_range_min = var.out_range_min;
 		var_data.super.out_range_max = var.out_range_max;
