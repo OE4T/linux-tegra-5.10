@@ -36,6 +36,7 @@
 #include <nvgpu/io.h>
 #include <nvgpu/utils.h>
 #include <nvgpu/gk20a.h>
+#include <nvgpu/string.h>
 
 #include "mm_gm20b.h"
 #include "pmu_gm20b.h"
@@ -125,7 +126,7 @@ static int pmu_ucode_details(struct gk20a *g, struct flcn_ucode_img *p_img)
 		err = -ENOMEM;
 		goto release_sig;
 	}
-	memcpy(lsf_desc, (void *)pmu_sig->data,
+	nvgpu_memcpy((u8 *)lsf_desc, (u8 *)pmu_sig->data,
 			min_t(size_t, sizeof(*lsf_desc), pmu_sig->size));
 	lsf_desc->falcon_id = LSF_FALCON_ID_PMU;
 
@@ -165,7 +166,7 @@ static int fecs_ucode_details(struct gk20a *g, struct flcn_ucode_img *p_img)
 		err = -ENOMEM;
 		goto rel_sig;
 	}
-	memcpy(lsf_desc, (void *)fecs_sig->data,
+	nvgpu_memcpy((u8 *)lsf_desc, (u8 *)fecs_sig->data,
 			min_t(size_t, sizeof(*lsf_desc), fecs_sig->size));
 	lsf_desc->falcon_id = LSF_FALCON_ID_FECS;
 
@@ -237,7 +238,7 @@ static int gpccs_ucode_details(struct gk20a *g, struct flcn_ucode_img *p_img)
 		err = -ENOMEM;
 		goto rel_sig;
 	}
-	memcpy(lsf_desc, (void *)gpccs_sig->data,
+	nvgpu_memcpy((u8 *)lsf_desc, (u8 *)gpccs_sig->data,
 			min_t(size_t, sizeof(*lsf_desc), gpccs_sig->size));
 	lsf_desc->falcon_id = LSF_FALCON_ID_GPCCS;
 
