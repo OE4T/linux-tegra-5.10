@@ -774,9 +774,6 @@ static int gv100_nvlink_minion_init_uphy(struct gk20a *g, unsigned long mask,
 	unsigned long link_enable;
 
 	switch(g->nvlink.speed) {
-	case nvgpu_nvlink_speed_25G:
-		init_pll_cmd = minion_nvlink_dl_cmd_command_initpll_0_v();
-		break;
 	case nvgpu_nvlink_speed_20G:
 		init_pll_cmd = minion_nvlink_dl_cmd_command_initpll_1_v();
 		break;
