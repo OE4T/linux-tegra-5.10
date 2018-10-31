@@ -111,12 +111,12 @@ void gk20a_debug_dump(struct gk20a *g)
 		.fn = gk20a_debug_write_printk
 	};
 
-	if (platform->dump_platform_dependencies)
-		platform->dump_platform_dependencies(dev_from_gk20a(g));
-
 	/* HAL only initialized after 1st power-on */
 	if (g->ops.debug.show_dump)
 		g->ops.debug.show_dump(g, &o);
+
+	if (platform->dump_platform_dependencies)
+		platform->dump_platform_dependencies(dev_from_gk20a(g));
 }
 
 static int gk20a_debug_show(struct seq_file *s, void *unused)
@@ -171,10 +171,9 @@ static const struct file_operations gk20a_debug_fops = {
 
 void gk20a_debug_show_dump(struct gk20a *g, struct gk20a_debug_output *o)
 {
+	gk20a_debug_dump_all_channel_status_ramfc(g, o);
 	g->ops.fifo.dump_pbdma_status(g, o);
 	g->ops.fifo.dump_eng_status(g, o);
-
-	gk20a_debug_dump_all_channel_status_ramfc(g, o);
 }
 
 static ssize_t disable_bigpage_read(struct file *file, char __user *user_buf, size_t count, loff_t *ppos)
