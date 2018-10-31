@@ -29,10 +29,10 @@ struct gk20a;
 
 int gp106_fuse_check_priv_security(struct gk20a *g);
 u32 gp106_fuse_read_vin_cal_fuse_rev(struct gk20a *g);
-u32 gp106_fuse_read_vin_cal_slope_intercept_fuse(struct gk20a *g,
+int gp106_fuse_read_vin_cal_slope_intercept_fuse(struct gk20a *g,
 					     u32 vin_id, u32 *slope,
 					     u32 *intercept);
-u32 gp106_fuse_read_vin_cal_gain_offset_fuse(struct gk20a *g,
+int gp106_fuse_read_vin_cal_gain_offset_fuse(struct gk20a *g,
 					     u32 vin_id, s8 *gain,
 					     s8 *offset);
 
