@@ -1604,24 +1604,25 @@ static bool gk20a_fifo_handle_mmu_fault_locked(
 				      mmfault_info.client_type_desc,
 				      mmfault_info.client_id_desc,
 				      mmfault_info.fault_type_desc);
-		nvgpu_err(g, "%s mmu fault on engine %d, "
-			   "engine subid %d (%s), client %d (%s), "
-			   "addr 0x%llx, type %d (%s), access_type 0x%08x,"
-			   "inst_ptr 0x%llx",
-			   fake_fault ? "fake" : "",
-			   engine_id,
-			   mmfault_info.client_type,
-			   mmfault_info.client_type_desc,
-			   mmfault_info.client_id, mmfault_info.client_id_desc,
-			   mmfault_info.fault_addr,
-			   mmfault_info.fault_type,
-			   mmfault_info.fault_type_desc,
-			   mmfault_info.access_type, mmfault_info.inst_ptr);
+		nvgpu_err(g, "MMU fault @ address: 0x%llx %s",
+			  mmfault_info.fault_addr,
+			  fake_fault ? "[FAKE]" : "");
+		nvgpu_err(g, "  Engine: %d  subid: %d (%s)",
+			  (int)engine_id,
+			  mmfault_info.client_type,
+			  mmfault_info.client_type_desc);
+		nvgpu_err(g, "  Client %d (%s), ",
+			  mmfault_info.client_id,
+			  mmfault_info.client_id_desc);
+		nvgpu_err(g, "  Type %d (%s); access_type 0x%08x; inst_ptr 0x%llx",
+			  mmfault_info.fault_type,
+			  mmfault_info.fault_type_desc,
+			  mmfault_info.access_type, mmfault_info.inst_ptr);
 
 		if (ctxsw) {
 			g->ops.gr.dump_gr_falcon_stats(g);
-			nvgpu_err(g, "gr_status_r : 0x%x",
-					gk20a_readl(g, gr_status_r()));
+			nvgpu_err(g, "  gr_status_r: 0x%x",
+				  gk20a_readl(g, gr_status_r()));
 		}
 
 		/* get the channel/TSG */
@@ -1652,7 +1653,7 @@ static bool gk20a_fifo_handle_mmu_fault_locked(
 				refch = gk20a_channel_get(ch);
 			}
 		} else {
-			/* read channel based on instruction pointer */
+			/* Look up channel from the inst block pointer. */
 			ch = gk20a_refch_from_inst_ptr(g,
 					mmfault_info.inst_ptr);
 			refch = ch;
@@ -1731,9 +1732,8 @@ static bool gk20a_fifo_handle_mmu_fault_locked(
 				}
 				gk20a_channel_put(ch);
 			} else {
-				nvgpu_err(g,
-						"mmu error in freed channel %d",
-						ch->chid);
+				nvgpu_err(g, "mmu error in freed channel %d",
+					  ch->chid);
 			}
 		} else if (mmfault_info.inst_ptr ==
 				nvgpu_inst_block_addr(g, &g->mm.bar1.inst_block)) {
