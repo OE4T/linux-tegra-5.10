@@ -205,7 +205,7 @@ static int devinit_get_clk_prog_table_35(struct gk20a *g,
 		goto done;
 	}
 
-	memcpy(&header, clkprogs_tbl_ptr, hszfmt);
+	nvgpu_memcpy((u8 *)&header, clkprogs_tbl_ptr, hszfmt);
 	if (header.header_size < hszfmt) {
 		status = -EINVAL;
 		goto done;
@@ -254,7 +254,7 @@ static int devinit_get_clk_prog_table_35(struct gk20a *g,
 			(header.vf_entry_count * vfszfmt) +
 			(header.vf_sec_entry_count * vfsecszfmt)));
 
-		memcpy(&prog, entry, szfmt);
+		nvgpu_memcpy((u8 *)&prog, entry, szfmt);
 		memset(vfentries, 0xFF,
 			sizeof(struct ctrl_clk_clk_prog_1x_master_vf_entry) *
 			CTRL_CLK_CLK_PROG_1X_MASTER_VF_ENTRY_MAX_ENTRIES);
@@ -328,14 +328,15 @@ static int devinit_get_clk_prog_table_35(struct gk20a *g,
 		case NV_VBIOS_CLOCK_PROGRAMMING_TABLE_1X_ENTRY_FLAGS0_TYPE_MASTER_TABLE:
 			prog_data.v35_master.master.b_o_c_o_v_enabled = false;
 			for (j = 0; j < header.vf_entry_count; j++) {
-				memcpy(&vfprog, vfentry, vfszfmt);
+				nvgpu_memcpy((u8 *)&vfprog, vfentry, vfszfmt);
 
 				vfentries[j].vfe_idx = (u8)vfprog.vfe_idx;
 				vfentries[j].gain_vfe_idx = CTRL_BOARDOBJ_IDX_INVALID;
 				vfentry += vfszfmt;
 
 				for (k = 0; k < header.vf_sec_entry_count; k++) {
-					memcpy(&vfsecprog, vfsecentry, vfsecszfmt);
+					nvgpu_memcpy((u8 *)&vfsecprog,
+						vfsecentry, vfsecszfmt);
 
 					voltrailsecvfentries[j].sec_vf_entries[k].vfe_idx = (u8)vfsecprog.sec_vfe_idx;
 					if (prog_data.v1x.source == CTRL_CLK_PROG_1X_SOURCE_FLL) {
@@ -356,7 +357,8 @@ static int devinit_get_clk_prog_table_35(struct gk20a *g,
 			prog_data.v35_master.p_voltrail_sec_vf_entries = voltrailsecvfentries;
 
 			for (j = 0; j < header.slave_entry_count; j++) {
-				memcpy(&slaveprog, slaveentry, slaveszfmt);
+				nvgpu_memcpy((u8 *)&slaveprog, slaveentry,
+					slaveszfmt);
 				if (prog_type == NV_VBIOS_CLOCK_PROGRAMMING_TABLE_1X_ENTRY_FLAGS0_TYPE_MASTER_RATIO) {
 					ratioslaveentries[j].clk_dom_idx =
 						(u8)slaveprog.clk_dom_idx;
@@ -647,7 +649,7 @@ static int devinit_get_clk_prog_table(struct gk20a *g,
 	if (clkprogs_tbl_ptr == NULL) {
 		return -EINVAL;
 	}
-	memcpy(&header, clkprogs_tbl_ptr,
+	nvgpu_memcpy((u8 *)&header, clkprogs_tbl_ptr,
 			VBIOS_CLOCK_PROGRAMMING_TABLE_1X_HEADER_SIZE_08);
 
 	switch (header.version) {

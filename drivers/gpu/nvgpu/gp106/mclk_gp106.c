@@ -27,6 +27,7 @@
 #include <nvgpu/io.h>
 #include <nvgpu/utils.h>
 #include <nvgpu/gk20a.h>
+#include <nvgpu/string.h>
 
 #ifdef CONFIG_DEBUG_FS
 #include <linux/debugfs.h>
@@ -3075,7 +3076,7 @@ static int mclk_get_memclk_table(struct gk20a *g)
 		goto done;
 	}
 
-	memcpy(&memclock_table_header, mem_table_ptr,
+	nvgpu_memcpy((u8 *)&memclock_table_header, mem_table_ptr,
 		sizeof(memclock_table_header));
 
 	if ((memclock_table_header.version <
@@ -3099,7 +3100,7 @@ static int mclk_get_memclk_table(struct gk20a *g)
 		u8 script_index, cmd_script_index;
 		u32 script_ptr = 0, cmd_script_ptr = 0;
 
-		memcpy(&memclock_base_entry, mem_entry_ptr,
+		nvgpu_memcpy((u8 *)&memclock_base_entry, mem_entry_ptr,
 			memclock_table_header.base_entry_size);
 		if (memclock_base_entry.maximum == 0) {
 			continue;
