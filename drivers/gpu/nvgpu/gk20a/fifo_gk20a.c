@@ -1649,7 +1649,6 @@ static bool gk20a_fifo_handle_mmu_fault_locked(
 	} else {
 		fault_id = gk20a_readl(g, fifo_intr_mmu_fault_id_r());
 		fake_fault = false;
-		gk20a_debug_dump(g);
 	}
 
 
@@ -1823,6 +1822,10 @@ static bool gk20a_fifo_handle_mmu_fault_locked(
 		} else {
 			nvgpu_err(g, "couldn't locate channel for mmu fault");
 		}
+	}
+
+	if (!fake_fault) {
+		gk20a_debug_dump(g);
 	}
 
 	/* clear interrupt */
