@@ -615,84 +615,6 @@ static void gk20a_remove_fifo_support(struct fifo_gk20a *f)
 	f->active_engines_list = NULL;
 }
 
-/* reads info from hardware and fills in pbmda exception info record */
-static inline void get_exception_pbdma_info(
-	struct gk20a *g,
-	struct fifo_engine_info_gk20a *eng_info)
-{
-	struct fifo_pbdma_exception_info_gk20a *e =
-		&eng_info->pbdma_exception_info;
-
-	u32 pbdma_status_r = e->status_r = gk20a_readl(g,
-		   fifo_pbdma_status_r(eng_info->pbdma_id));
-	e->id = fifo_pbdma_status_id_v(pbdma_status_r); /* vs. id_hw_v()? */
-	e->id_is_chid = fifo_pbdma_status_id_type_v(pbdma_status_r) ==
-		fifo_pbdma_status_id_type_chid_v();
-	e->chan_status_v  = fifo_pbdma_status_chan_status_v(pbdma_status_r);
-	e->next_id_is_chid =
-		fifo_pbdma_status_next_id_type_v(pbdma_status_r) ==
-		fifo_pbdma_status_next_id_type_chid_v();
-	e->next_id = fifo_pbdma_status_next_id_v(pbdma_status_r);
-	e->chsw_in_progress =
-		fifo_pbdma_status_chsw_v(pbdma_status_r) ==
-		fifo_pbdma_status_chsw_in_progress_v();
-}
-
-static void fifo_pbdma_exception_status(struct gk20a *g,
-	struct fifo_engine_info_gk20a *eng_info)
-{
-	struct fifo_pbdma_exception_info_gk20a *e;
-	get_exception_pbdma_info(g, eng_info);
-	e = &eng_info->pbdma_exception_info;
-
-	nvgpu_log_fn(g, "pbdma_id %d, "
-		      "id_type %s, id %d, chan_status %d, "
-		      "next_id_type %s, next_id %d, "
-		      "chsw_in_progress %d",
-		      eng_info->pbdma_id,
-		      e->id_is_chid ? "chid" : "tsgid", e->id, e->chan_status_v,
-		      e->next_id_is_chid ? "chid" : "tsgid", e->next_id,
-		      e->chsw_in_progress);
-}
-
-/* reads info from hardware and fills in pbmda exception info record */
-static inline void get_exception_engine_info(
-	struct gk20a *g,
-	struct fifo_engine_info_gk20a *eng_info)
-{
-	struct fifo_engine_exception_info_gk20a *e =
-		&eng_info->engine_exception_info;
-	u32 engine_status_r = e->status_r =
-		gk20a_readl(g, fifo_engine_status_r(eng_info->engine_id));
-	e->id = fifo_engine_status_id_v(engine_status_r); /* vs. id_hw_v()? */
-	e->id_is_chid = fifo_engine_status_id_type_v(engine_status_r) ==
-		fifo_engine_status_id_type_chid_v();
-	e->ctx_status_v = fifo_engine_status_ctx_status_v(engine_status_r);
-	e->faulted =
-		fifo_engine_status_faulted_v(engine_status_r) ==
-		fifo_engine_status_faulted_true_v();
-	e->idle =
-		fifo_engine_status_engine_v(engine_status_r) ==
-		fifo_engine_status_engine_idle_v();
-	e->ctxsw_in_progress =
-		fifo_engine_status_ctxsw_v(engine_status_r) ==
-		fifo_engine_status_ctxsw_in_progress_v();
-}
-
-static void fifo_engine_exception_status(struct gk20a *g,
-			       struct fifo_engine_info_gk20a *eng_info)
-{
-	struct fifo_engine_exception_info_gk20a *e;
-	get_exception_engine_info(g, eng_info);
-	e = &eng_info->engine_exception_info;
-
-	nvgpu_log_fn(g, "engine_id %d, id_type %s, id %d, ctx_status %d, "
-		      "faulted %d, idle %d, ctxsw_in_progress %d, ",
-		      eng_info->engine_id, e->id_is_chid ? "chid" : "tsgid",
-		      e->id, e->ctx_status_v,
-		      e->faulted, e->idle,  e->ctxsw_in_progress);
-}
-
 static int init_runlist(struct gk20a *g, struct fifo_gk20a *f)
 {
 	struct fifo_runlist_info_gk20a *runlist;
@@ -2463,7 +2385,6 @@ err:
 
 static u32 fifo_error_isr(struct gk20a *g, u32 fifo_intr)
 {
-	bool print_channel_reset_log = false;
 	u32 handled = 0;
 
 	nvgpu_log_fn(g, "fifo_intr=0x%08x", fifo_intr);
@@ -2478,12 +2399,11 @@ static u32 fifo_error_isr(struct gk20a *g, u32 fifo_intr)
 	if ((fifo_intr & fifo_intr_0_bind_error_pending_f()) != 0U) {
 		u32 bind_error = gk20a_readl(g, fifo_intr_bind_error_r());
 		nvgpu_err(g, "fifo bind error: 0x%08x", bind_error);
-		print_channel_reset_log = true;
 		handled |= fifo_intr_0_bind_error_pending_f();
 	}
 
 	if ((fifo_intr & fifo_intr_0_sched_error_pending_f()) != 0U) {
-		print_channel_reset_log = g->ops.fifo.handle_sched_error(g);
+		(void) g->ops.fifo.handle_sched_error(g);
 		handled |= fifo_intr_0_sched_error_pending_f();
 	}
 
@@ -2493,40 +2413,13 @@ static u32 fifo_error_isr(struct gk20a *g, u32 fifo_intr)
 	}
 
 	if ((fifo_intr & fifo_intr_0_mmu_fault_pending_f()) != 0U) {
-		if (gk20a_fifo_handle_mmu_fault(g, 0, ~(u32)0, false)) {
-			print_channel_reset_log = true;
-		}
+		(void) gk20a_fifo_handle_mmu_fault(g, 0, ~(u32)0, false);
 		handled |= fifo_intr_0_mmu_fault_pending_f();
 	}
 
 	if ((fifo_intr & fifo_intr_0_dropped_mmu_fault_pending_f()) != 0U) {
 		gk20a_fifo_handle_dropped_mmu_fault(g);
 		handled |= fifo_intr_0_dropped_mmu_fault_pending_f();
-	}
-
-	print_channel_reset_log = !g->fifo.deferred_reset_pending
-			&& print_channel_reset_log;
-
-	if (print_channel_reset_log) {
-		unsigned int engine_id;
-		nvgpu_err(g,
-			   "channel reset initiated from %s; intr=0x%08x",
-			   __func__, fifo_intr);
-		for (engine_id = 0;
-		     engine_id < g->fifo.num_engines;
-		     engine_id++) {
-				u32 active_engine_id = g->fifo.active_engines_list[engine_id];
-				struct fifo_engine_info_gk20a *engine_info =
-					&g->fifo.engine_info[active_engine_id];
-				enum fifo_engine engine_enum =
-					engine_info->engine_enum;
-				nvgpu_log_fn(g, "enum:%d -> engine_id:%d", engine_enum,
-					active_engine_id);
-				fifo_pbdma_exception_status(g,
-						&g->fifo.engine_info[active_engine_id]);
-				fifo_engine_exception_status(g,
-						&g->fifo.engine_info[active_engine_id]);
-		}
 	}
 
 	return handled;
