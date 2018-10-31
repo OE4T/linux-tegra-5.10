@@ -1358,8 +1358,12 @@ void gm20b_remove_acr_support(struct nvgpu_acr *acr)
 		nvgpu_release_firmware(g, acr->acr.acr_hs_bl.hs_bl_fw);
 	}
 
-	nvgpu_dma_unmap_free(vm, &acr->acr.acr_ucode);
-	nvgpu_dma_unmap_free(vm, &acr->acr.acr_hs_bl.hs_bl_ucode);
+	if (nvgpu_mem_is_valid(&acr->acr.acr_ucode)) {
+		nvgpu_dma_unmap_free(vm, &acr->acr.acr_ucode);
+	}
+	if (nvgpu_mem_is_valid(&acr->acr.acr_hs_bl.hs_bl_ucode)) {
+		nvgpu_dma_unmap_free(vm, &acr->acr.acr_hs_bl.hs_bl_ucode);
+	}
 }
 
 static void gm20b_acr_default_sw_init(struct gk20a *g, struct hs_acr *hs_acr)

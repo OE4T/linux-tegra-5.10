@@ -120,8 +120,12 @@ static void tu104_free_hs_acr(struct gk20a *g,
 		nvgpu_release_firmware(g, acr_type->acr_hs_bl.hs_bl_fw);
 	}
 
-	nvgpu_dma_unmap_free(vm, &acr_type->acr_ucode);
-	nvgpu_dma_unmap_free(vm, &acr_type->acr_hs_bl.hs_bl_ucode);
+	if (nvgpu_mem_is_valid(&acr_type->acr_ucode)) {
+		nvgpu_dma_unmap_free(vm, &acr_type->acr_ucode);
+	}
+	if (nvgpu_mem_is_valid(&acr_type->acr_hs_bl.hs_bl_ucode)) {
+		nvgpu_dma_unmap_free(vm, &acr_type->acr_hs_bl.hs_bl_ucode);
+	}
 }
 
 static void tu104_remove_acr_support(struct nvgpu_acr *acr)
