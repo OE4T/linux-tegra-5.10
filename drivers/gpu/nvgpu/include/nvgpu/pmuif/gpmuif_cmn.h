@@ -76,7 +76,7 @@ enum {
 #define PMU_MUTEX_ID_IS_VALID(id)	\
 		((id) < PMU_MUTEX_ID_INVALID)
 
-#define PMU_INVALID_MUTEX_OWNER_ID	(0)
+#define PMU_INVALID_MUTEX_OWNER_ID	0U
 
 /*
  * The PMU's frame-buffer interface block has several slots/indices
@@ -96,8 +96,8 @@ enum {
 /*
  * Falcon PMU DMA's minimum size in bytes.
  */
-#define PMU_DMA_MIN_READ_SIZE_BYTES		16
-#define PMU_DMA_MIN_WRITE_SIZE_BYTES	4
+#define PMU_DMA_MIN_READ_SIZE_BYTES		16U
+#define PMU_DMA_MIN_WRITE_SIZE_BYTES	4U
 
 #define PMU_FB_COPY_RW_ALIGNMENT	\
 	((PMU_DMA_MIN_READ_SIZE_BYTES > PMU_DMA_MIN_WRITE_SIZE_BYTES) ?	\
@@ -122,7 +122,7 @@ union name##_aligned {		                         \
 }
 
 /* RPC (Remote Procedure Call) header structure */
-#define NV_PMU_RPC_FLAGS_TYPE_SYNC 0x00000000
+#define NV_PMU_RPC_FLAGS_TYPE_SYNC 0x00000000U
 
 struct nv_pmu_rpc_header {
 	/* Identifies the unit servicing requested RPC*/

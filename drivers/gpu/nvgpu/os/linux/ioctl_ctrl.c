@@ -1611,7 +1611,8 @@ long gk20a_ctrl_dev_ioctl(struct file *filp, unsigned int cmd, unsigned long arg
 	struct gr_zcull_info *zcull_info;
 	struct zbc_entry *zbc_val;
 	struct zbc_query_params *zbc_tbl;
-	int i, err = 0;
+	int err = 0;
+	u32 i;
 
 	nvgpu_log_fn(g, "start %d", _IOC_NR(cmd));
 
@@ -1683,7 +1684,7 @@ long gk20a_ctrl_dev_ioctl(struct file *filp, unsigned int cmd, unsigned long arg
 
 		switch (zbc_val->type) {
 		case GK20A_ZBC_TYPE_COLOR:
-			for (i = 0; i < GK20A_ZBC_COLOR_VALUE_SIZE; i++) {
+			for (i = 0U; i < GK20A_ZBC_COLOR_VALUE_SIZE; i++) {
 				zbc_val->color_ds[i] = set_table_args->color_ds[i];
 				zbc_val->color_l2[i] = set_table_args->color_l2[i];
 			}
@@ -1723,7 +1724,7 @@ long gk20a_ctrl_dev_ioctl(struct file *filp, unsigned int cmd, unsigned long arg
 		if (!err) {
 			switch (zbc_tbl->type) {
 			case GK20A_ZBC_TYPE_COLOR:
-				for (i = 0; i < GK20A_ZBC_COLOR_VALUE_SIZE; i++) {
+				for (i = 0U; i < GK20A_ZBC_COLOR_VALUE_SIZE; i++) {
 					query_table_args->color_ds[i] = zbc_tbl->color_ds[i];
 					query_table_args->color_l2[i] = zbc_tbl->color_l2[i];
 				}

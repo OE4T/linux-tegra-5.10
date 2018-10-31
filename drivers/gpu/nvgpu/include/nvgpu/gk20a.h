@@ -1766,9 +1766,9 @@ enum {
 	KEPLER_DMA_COPY_A         = 0xA0B5,
 };
 
-#define GK20A_BAR0_IORESOURCE_MEM 0
-#define GK20A_BAR1_IORESOURCE_MEM 1
-#define GK20A_SIM_IORESOURCE_MEM 2
+#define GK20A_BAR0_IORESOURCE_MEM	0U
+#define GK20A_BAR1_IORESOURCE_MEM	1U
+#define GK20A_SIM_IORESOURCE_MEM	2U
 
 void gk20a_busy_noresume(struct gk20a *g);
 void gk20a_idle_nosuspend(struct gk20a *g);
@@ -1780,21 +1780,21 @@ int __gk20a_do_unidle(struct gk20a *g);
 int gk20a_can_busy(struct gk20a *g);
 int gk20a_wait_for_idle(struct gk20a *g);
 
-#define NVGPU_GPU_ARCHITECTURE_SHIFT 4
+#define NVGPU_GPU_ARCHITECTURE_SHIFT 4U
 
 /* constructs unique and compact GPUID from nvgpu_gpu_characteristics
  * arch/impl fields */
 #define GK20A_GPUID(arch, impl) ((u32) ((arch) | (impl)))
 
-#define GK20A_GPUID_GK20A   0x000000EA
-#define GK20A_GPUID_GM20B   0x0000012B
-#define GK20A_GPUID_GM20B_B 0x0000012E
-#define NVGPU_GPUID_GP10B   0x0000013B
-#define NVGPU_GPUID_GP104   0x00000134
-#define NVGPU_GPUID_GP106   0x00000136
-#define NVGPU_GPUID_GV11B   0x0000015B
-#define NVGPU_GPUID_GV100   0x00000140
-#define NVGPU_GPUID_TU104   0x00000164
+#define GK20A_GPUID_GK20A   0x000000EAU
+#define GK20A_GPUID_GM20B   0x0000012BU
+#define GK20A_GPUID_GM20B_B 0x0000012EU
+#define NVGPU_GPUID_GP10B   0x0000013BU
+#define NVGPU_GPUID_GP104   0x00000134U
+#define NVGPU_GPUID_GP106   0x00000136U
+#define NVGPU_GPUID_GV11B   0x0000015BU
+#define NVGPU_GPUID_GV100   0x00000140U
+#define NVGPU_GPUID_TU104   0x00000164U
 
 int gk20a_init_gpu_characteristics(struct gk20a *g);
 

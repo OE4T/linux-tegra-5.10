@@ -34,11 +34,11 @@
  */
 static inline u32 pri_gpccs_addr_width(void)
 {
-	return 15; /*from where?*/
+	return 15U; /*from where?*/
 }
 static inline u32 pri_gpccs_addr_mask(u32 addr)
 {
-	return addr & ((1 << pri_gpccs_addr_width()) - 1);
+	return addr & (BIT32(pri_gpccs_addr_width()) - 1U);
 }
 static inline u32 pri_gpc_addr(struct gk20a *g, u32 addr, u32 gpc)
 {
@@ -110,15 +110,15 @@ static inline bool pri_is_ppc_addr(struct gk20a *g, u32 addr)
  */
 static inline u32 pri_tpccs_addr_width(void)
 {
-	return 11; /* from where? */
+	return 11U; /* from where? */
 }
 static inline u32 pri_tpccs_addr_mask(u32 addr)
 {
-	return addr & ((1 << pri_tpccs_addr_width()) - 1);
+	return addr & (BIT32(pri_tpccs_addr_width()) - 1U);
 }
 static inline u32 pri_fbpa_addr_mask(struct gk20a *g, u32 addr)
 {
-	return addr & (nvgpu_get_litter_value(g, GPU_LIT_FBPA_STRIDE) - 1);
+	return addr & (nvgpu_get_litter_value(g, GPU_LIT_FBPA_STRIDE) - 1U);
 }
 static inline u32 pri_tpc_addr(struct gk20a *g, u32 addr, u32 gpc, u32 tpc)
 {
@@ -164,11 +164,11 @@ static inline bool pri_is_fbpa_addr(struct gk20a *g, u32 addr)
  */
 static inline u32 pri_becs_addr_width(void)
 {
-	return 10;/* from where? */
+	return 10U;/* from where? */
 }
 static inline u32 pri_becs_addr_mask(u32 addr)
 {
-	return addr & ((1 << pri_becs_addr_width()) - 1);
+	return addr & (BIT32(pri_becs_addr_width()) - 1U);
 }
 static inline bool pri_is_be_addr_shared(struct gk20a *g, u32 addr)
 {
@@ -211,11 +211,11 @@ static inline u32 pri_get_be_num(struct gk20a *g, u32 addr)
  */
 static inline u32 pri_ppccs_addr_width(void)
 {
-	return 9; /* from where? */
+	return 9U; /* from where? */
 }
 static inline u32 pri_ppccs_addr_mask(u32 addr)
 {
-	return addr & ((1 << pri_ppccs_addr_width()) - 1);
+	return addr & (BIT32(pri_ppccs_addr_width()) - 1U);
 }
 static inline u32 pri_ppc_addr(struct gk20a *g, u32 addr, u32 gpc, u32 ppc)
 {

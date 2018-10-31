@@ -23,7 +23,7 @@
 #ifndef __NVGPU_POSIX_LOG2_H__
 #define __NVGPU_POSIX_LOG2_H__
 
-#define ilog2(x)			(fls(x) - 1)
+#define ilog2(x)			(fls(x) - 1U)
 
 #define roundup_pow_of_two(x)		(1UL << fls((x) - 1))
 #define rounddown_pow_of_two(x)		(1UL << (fls(x) - 1))

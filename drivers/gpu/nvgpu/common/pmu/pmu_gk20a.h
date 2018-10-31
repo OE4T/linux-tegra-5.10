@@ -32,7 +32,7 @@
 
 struct nvgpu_firmware;
 
-#define ZBC_MASK(i)			(~(~(0) << ((i)+1)) & 0xfffe)
+#define ZBC_MASK(i)			U16(~(~(0U) << ((i)+1U)) & 0xfffeU)
 
 bool gk20a_pmu_is_interrupted(struct nvgpu_pmu *pmu);
 void gk20a_pmu_isr(struct gk20a *g);

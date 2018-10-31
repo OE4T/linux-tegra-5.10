@@ -53,7 +53,7 @@ bool nvgpu_find_hex_in_string(char *strings, struct gk20a *g, u32 *hex_pos)
 
 	for (; i < j; i++) {
 		if (strings[i] == '%') {
-			if (strings[i + 1] == 'x' || strings[i + 1] == 'X') {
+			if (strings[i + 1U] == 'x' || strings[i + 1U] == 'X') {
 				*hex_pos = i;
 				return true;
 			}
@@ -66,7 +66,8 @@ bool nvgpu_find_hex_in_string(char *strings, struct gk20a *g, u32 *hex_pos)
 static void print_pmu_trace(struct nvgpu_pmu *pmu)
 {
 	struct gk20a *g = pmu->g;
-	u32 i = 0, j = 0, k, l, m, count;
+	u32 i = 0, j = 0, k, l, m;
+	int count;
 	char part_str[40], buf[0x40];
 	void *tracebuffer;
 	char *trace;
@@ -86,28 +87,28 @@ static void print_pmu_trace(struct nvgpu_pmu *pmu)
 	trace1 = (u32 *)tracebuffer;
 
 	nvgpu_err(g, "dump PMU trace buffer");
-	for (i = 0; i < GK20A_PMU_TRACE_BUFSIZE; i += 0x40) {
-		for (j = 0; j < 0x40; j++) {
+	for (i = 0U; i < GK20A_PMU_TRACE_BUFSIZE; i += 0x40U) {
+		for (j = 0U; j < 0x40U; j++) {
 			if (trace1[(i / 4U) + j] != 0U) {
 				break;
 			}
 		}
-		if (j == 0x40) {
+		if (j == 0x40U) {
 			break;
 		}
-		count = scnprintf(buf, 0x40, "Index %x: ", trace1[(i / 4)]);
+		count = scnprintf(buf, 0x40, "Index %x: ", trace1[(i / 4U)]);
 		l = 0;
 		m = 0;
 		while (nvgpu_find_hex_in_string((trace+i+20+m), g, &k)) {
-			if (k >= 40) {
+			if (k >= 40U) {
 				break;
 			}
 			(void) strncpy(part_str, (trace+i+20+m), k);
 			part_str[k] = '\0';
 			count += scnprintf((buf + count), 0x40, "%s0x%x",
-					part_str, trace1[(i / 4) + 1 + l]);
+					part_str, trace1[(i / 4U) + 1U + l]);
 			l++;
-			m += k + 2;
+			m += k + 2U;
 		}
 
 		(void) scnprintf((buf + count), 0x40, "%s", (trace+i+20+m));
@@ -248,7 +249,7 @@ int pmu_bootstrap(struct nvgpu_pmu *pmu)
 	g->ops.pmu.write_dmatrfbase(g,
 			U32(addr_load) - (desc->bootloader_imem_offset >> U32(8)));
 
-	blocks = ((desc->bootloader_size + 0xFF) & ~0xFF) >> 8;
+	blocks = ((desc->bootloader_size + 0xFFU) & ~0xFFU) >> 8;
 
 	for (i = 0; i < blocks; i++) {
 		gk20a_writel(g, pwr_falcon_dmatrfmoffs_r(),
@@ -297,7 +298,7 @@ int gk20a_pmu_mutex_acquire(struct nvgpu_pmu *pmu, u32 id, u32 *token)
 		gk20a_readl(g, pwr_pmu_mutex_r(mutex->index)));
 
 	if (*token != PMU_INVALID_MUTEX_OWNER_ID && *token == owner) {
-		BUG_ON(mutex->ref_cnt == 0);
+		BUG_ON(mutex->ref_cnt == 0U);
 		gk20a_dbg_pmu(g, "already acquired by owner : 0x%08x", *token);
 		mutex->ref_cnt++;
 		return 0;
@@ -342,7 +343,7 @@ int gk20a_pmu_mutex_acquire(struct nvgpu_pmu *pmu, u32 id, u32 *token)
 			nvgpu_usleep_range(20, 40);
 			continue;
 		}
-	} while (max_retry-- > 0);
+	} while (max_retry-- > 0U);
 
 	return -EBUSY;
 }
@@ -372,7 +373,7 @@ int gk20a_pmu_mutex_release(struct nvgpu_pmu *pmu, u32 id, u32 *token)
 		return -EINVAL;
 	}
 
-	if (--mutex->ref_cnt > 0) {
+	if (--mutex->ref_cnt > 0U) {
 		return -EBUSY;
 	}
 
@@ -637,7 +638,7 @@ void gk20a_pmu_dump_falcon_stats(struct nvgpu_pmu *pmu)
 
 	i = gk20a_readl(g, pwr_pmu_bar0_error_status_r());
 	nvgpu_err(g, "pwr_pmu_bar0_error_status_r : 0x%x", i);
-	if (i != 0) {
+	if (i != 0U) {
 		nvgpu_err(g, "pwr_pmu_bar0_addr_r : 0x%x",
 			gk20a_readl(g, pwr_pmu_bar0_addr_r()));
 		nvgpu_err(g, "pwr_pmu_bar0_data_r : 0x%x",

@@ -274,7 +274,7 @@ int gk20a_finalize_poweron(struct gk20a *g)
 	 *  via fuse. We will not support TPC-PG in those cases.
 	 */
 
-	if (g->ops.fuse.fuse_status_opt_tpc_gpc(g, 0) != 0x0) {
+	if (g->ops.fuse.fuse_status_opt_tpc_gpc(g, 0) != 0x0U) {
 		g->can_tpc_powergate = false;
 		g->tpc_pg_mask = 0x0;
 	}
@@ -404,7 +404,7 @@ int gk20a_finalize_poweron(struct gk20a *g)
 		g->ops.xve.available_speeds(g, &speed);
 
 		/* Set to max speed */
-		speed = 1 << (fls(speed) - 1);
+		speed = BIT32(fls(speed) - 1U);
 		err = g->ops.xve.set_speed(g, speed);
 		if (err != 0) {
 			nvgpu_err(g, "Failed to set PCIe bus speed!");

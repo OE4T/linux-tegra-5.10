@@ -79,7 +79,7 @@ typedef signed long long	s64;
 
 #define MAX_SCHEDULE_TIMEOUT	LONG_MAX
 
-#define DIV_ROUND_UP(n, d)	(((n) + (d) - 1) / (d))
+#define DIV_ROUND_UP(n, d)	(((n) + (d) - 1U) / (d))
 
 /*
  * Only used in clk_gm20b.c which we will never unit test. Don't use!
@@ -93,13 +93,13 @@ typedef signed long long	s64;
 #define do_div(a, b)		((a) /= (b))
 #define div64_u64(a, b)		((a) / (b))
 
-#define __round_mask(x, y)	((__typeof__(x))((y) - 1))
-#define round_up(x, y)		((((x) - 1) | __round_mask(x, y)) + 1)
+#define __round_mask(x, y)	((__typeof__(x))((y) - 1U))
+#define round_up(x, y)		((((x) - 1U) | __round_mask(x, y)) + 1U)
 #define roundup(x, y)		round_up(x, y)
 #define round_down(x, y)	((x) & ~__round_mask(x, y))
 
 #define ALIGN_MASK(x, mask)	(((x) + (mask)) & ~(mask))
-#define ALIGN(x, a)		ALIGN_MASK(x, (typeof(x))(a) - 1)
+#define ALIGN(x, a)		ALIGN_MASK(x, (typeof(x))(a) - 1U)
 #define PAGE_ALIGN(x)		ALIGN(x, PAGE_SIZE)
 
 /*

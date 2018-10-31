@@ -32,39 +32,39 @@
 #include <nvgpu/comptags.h>
 #include <nvgpu/cond.h>
 
-#define GR_IDLE_CHECK_DEFAULT		10 /* usec */
-#define GR_IDLE_CHECK_MAX		200 /* usec */
-#define GR_FECS_POLL_INTERVAL		5 /* usec */
+#define GR_IDLE_CHECK_DEFAULT		10U /* usec */
+#define GR_IDLE_CHECK_MAX		200U /* usec */
+#define GR_FECS_POLL_INTERVAL		5U /* usec */
 
-#define INVALID_SCREEN_TILE_ROW_OFFSET	0xFFFFFFFF
-#define INVALID_MAX_WAYS		0xFFFFFFFF
+#define INVALID_SCREEN_TILE_ROW_OFFSET	0xFFFFFFFFU
+#define INVALID_MAX_WAYS		0xFFFFFFFFU
 
 #define GK20A_FECS_UCODE_IMAGE	"fecs.bin"
 #define GK20A_GPCCS_UCODE_IMAGE	"gpccs.bin"
 
-#define GK20A_GR_MAX_PES_PER_GPC 3
+#define GK20A_GR_MAX_PES_PER_GPC 3U
 
-#define GK20A_TIMEOUT_FPGA		100000 /* 100 sec */
+#define GK20A_TIMEOUT_FPGA		100000U /* 100 sec */
 
 /* Flags to be passed to g->ops.gr.alloc_obj_ctx() */
-#define NVGPU_OBJ_CTX_FLAGS_SUPPORT_GFXP		(1 << 1)
-#define NVGPU_OBJ_CTX_FLAGS_SUPPORT_CILP		(1 << 2)
+#define NVGPU_OBJ_CTX_FLAGS_SUPPORT_GFXP		BIT32(1)
+#define NVGPU_OBJ_CTX_FLAGS_SUPPORT_CILP		BIT32(2)
 
 /*
  * allocate a minimum of 1 page (4KB) worth of patch space, this is 512 entries
  * of address and data pairs
  */
-#define PATCH_CTX_SLOTS_REQUIRED_PER_ENTRY	2
+#define PATCH_CTX_SLOTS_REQUIRED_PER_ENTRY	2U
 #define PATCH_CTX_SLOTS_PER_PAGE \
 	(PAGE_SIZE/(PATCH_CTX_SLOTS_REQUIRED_PER_ENTRY * sizeof(u32)))
 #define PATCH_CTX_ENTRIES_FROM_SIZE(size) ((size)/sizeof(u32))
 
-#define NVGPU_PREEMPTION_MODE_GRAPHICS_WFI	(1 << 0)
-#define NVGPU_PREEMPTION_MODE_GRAPHICS_GFXP	(1 << 1)
+#define NVGPU_PREEMPTION_MODE_GRAPHICS_WFI	BIT32(0)
+#define NVGPU_PREEMPTION_MODE_GRAPHICS_GFXP	BIT32(1)
 
-#define NVGPU_PREEMPTION_MODE_COMPUTE_WFI	(1 << 0)
-#define NVGPU_PREEMPTION_MODE_COMPUTE_CTA	(1 << 1)
-#define NVGPU_PREEMPTION_MODE_COMPUTE_CILP	(1 << 2)
+#define NVGPU_PREEMPTION_MODE_COMPUTE_WFI	BIT32(0)
+#define NVGPU_PREEMPTION_MODE_COMPUTE_CTA	BIT32(1)
+#define NVGPU_PREEMPTION_MODE_COMPUTE_CILP	BIT32(2)
 
 struct tsg_gk20a;
 struct channel_gk20a;
@@ -136,7 +136,7 @@ enum {
 };
 
 #ifndef GR_GO_IDLE_BUNDLE
-#define GR_GO_IDLE_BUNDLE	0x0000e100 /* --V-B */
+#define GR_GO_IDLE_BUNDLE	0x0000e100U /* --V-B */
 #endif
 
 struct gr_channel_map_tlb_entry {
@@ -169,16 +169,16 @@ struct gr_zcull_info {
 	u32 subregion_count;
 };
 
-#define GK20A_ZBC_COLOR_VALUE_SIZE	4  /* RGBA */
+#define GK20A_ZBC_COLOR_VALUE_SIZE	4U  /* RGBA */
 
 #define GK20A_STARTOF_ZBC_TABLE		1U   /* index zero reserved to indicate "not ZBCd" */
-#define GK20A_SIZEOF_ZBC_TABLE		16  /* match ltcs_ltss_dstg_zbc_index_address width (4) */
-#define GK20A_ZBC_TABLE_SIZE		(16 - 1)
+#define GK20A_SIZEOF_ZBC_TABLE		16U  /* match ltcs_ltss_dstg_zbc_index_address width (4) */
+#define GK20A_ZBC_TABLE_SIZE		(16U - 1U)
 
-#define GK20A_ZBC_TYPE_INVALID		0
-#define GK20A_ZBC_TYPE_COLOR		1
-#define GK20A_ZBC_TYPE_DEPTH		2
-#define T19X_ZBC			3
+#define GK20A_ZBC_TYPE_INVALID		0U
+#define GK20A_ZBC_TYPE_COLOR		1U
+#define GK20A_ZBC_TYPE_DEPTH		2U
+#define T19X_ZBC			3U
 
 struct zbc_color_table {
 	u32 color_ds[GK20A_ZBC_COLOR_VALUE_SIZE];
@@ -363,7 +363,7 @@ struct gr_gk20a {
 	u32 max_used_depth_index;
 	u32 max_used_s_index;
 
-#define GR_CHANNEL_MAP_TLB_SIZE		2 /* must of power of 2 */
+#define GR_CHANNEL_MAP_TLB_SIZE		2U /* must of power of 2 */
 	struct gr_channel_map_tlb_entry chid_tlb[GR_CHANNEL_MAP_TLB_SIZE];
 	u32 channel_tlb_flush_index;
 	struct nvgpu_spinlock ch_tlb_lock;
@@ -444,22 +444,22 @@ struct gk20a_ctxsw_ucode_segments {
 /* T18X FECS remains same as T21X,
  * so FALCON_UCODE_SIG_T21X_FECS_WITH_RESERVED used
  * for T18X*/
-#define FALCON_UCODE_SIG_T18X_GPCCS_WITH_RESERVED	0x68edab34
-#define FALCON_UCODE_SIG_T21X_FECS_WITH_DMEM_SIZE	0x9121ab5c
-#define FALCON_UCODE_SIG_T21X_FECS_WITH_RESERVED	0x9125ab5c
-#define FALCON_UCODE_SIG_T12X_FECS_WITH_RESERVED	0x8a621f78
-#define FALCON_UCODE_SIG_T12X_FECS_WITHOUT_RESERVED	0x67e5344b
-#define FALCON_UCODE_SIG_T12X_FECS_OLDER		0x56da09f
+#define FALCON_UCODE_SIG_T18X_GPCCS_WITH_RESERVED	0x68edab34U
+#define FALCON_UCODE_SIG_T21X_FECS_WITH_DMEM_SIZE	0x9121ab5cU
+#define FALCON_UCODE_SIG_T21X_FECS_WITH_RESERVED	0x9125ab5cU
+#define FALCON_UCODE_SIG_T12X_FECS_WITH_RESERVED	0x8a621f78U
+#define FALCON_UCODE_SIG_T12X_FECS_WITHOUT_RESERVED	0x67e5344bU
+#define FALCON_UCODE_SIG_T12X_FECS_OLDER		0x56da09fU
 
-#define FALCON_UCODE_SIG_T21X_GPCCS_WITH_RESERVED	0x3d3d65e2
-#define FALCON_UCODE_SIG_T12X_GPCCS_WITH_RESERVED	0x303465d5
-#define FALCON_UCODE_SIG_T12X_GPCCS_WITHOUT_RESERVED	0x3fdd33d3
-#define FALCON_UCODE_SIG_T12X_GPCCS_OLDER		0x53d7877
+#define FALCON_UCODE_SIG_T21X_GPCCS_WITH_RESERVED	0x3d3d65e2U
+#define FALCON_UCODE_SIG_T12X_GPCCS_WITH_RESERVED	0x303465d5U
+#define FALCON_UCODE_SIG_T12X_GPCCS_WITHOUT_RESERVED	0x3fdd33d3U
+#define FALCON_UCODE_SIG_T12X_GPCCS_OLDER		0x53d7877U
 
-#define FALCON_UCODE_SIG_T21X_FECS_WITHOUT_RESERVED	0x93671b7d
-#define FALCON_UCODE_SIG_T21X_FECS_WITHOUT_RESERVED2	0x4d6cbc10
+#define FALCON_UCODE_SIG_T21X_FECS_WITHOUT_RESERVED	0x93671b7dU
+#define FALCON_UCODE_SIG_T21X_FECS_WITHOUT_RESERVED2	0x4d6cbc10U
 
-#define FALCON_UCODE_SIG_T21X_GPCCS_WITHOUT_RESERVED	0x393161da
+#define FALCON_UCODE_SIG_T21X_GPCCS_WITHOUT_RESERVED	0x393161daU
 
 struct gk20a_ctxsw_ucode_info {
 	u64 *p_va;
