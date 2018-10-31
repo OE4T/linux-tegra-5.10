@@ -40,7 +40,9 @@ unsigned int gk20a_debug_trace_cmdbuf;
 static inline void gk20a_debug_write_printk(void *ctx, const char *str,
 					    size_t len)
 {
-	pr_info("%s", str);
+	struct gk20a *g = ctx;
+
+	nvgpu_err(g, str);
 }
 
 static inline void gk20a_debug_write_to_seqfile(void *ctx, const char *str,
@@ -49,8 +51,7 @@ static inline void gk20a_debug_write_to_seqfile(void *ctx, const char *str,
 	seq_write((struct seq_file *)ctx, str, len);
 }
 
-void gk20a_debug_output(struct gk20a_debug_output *o,
-					const char *fmt, ...)
+void gk20a_debug_output(struct gk20a_debug_output *o, const char *fmt, ...)
 {
 	va_list args;
 	int len;
@@ -59,6 +60,13 @@ void gk20a_debug_output(struct gk20a_debug_output *o,
 	len = vsnprintf(o->buf, sizeof(o->buf), fmt, args);
 	va_end(args);
 	o->fn(o->ctx, o->buf, len);
+}
+
+void gk20a_debug_show_dump(struct gk20a *g, struct gk20a_debug_output *o)
+{
+	gk20a_debug_dump_all_channel_status_ramfc(g, o);
+	g->ops.fifo.dump_pbdma_status(g, o);
+	g->ops.fifo.dump_eng_status(g, o);
 }
 
 static int gk20a_gr_dump_regs(struct gk20a *g,
@@ -73,7 +81,8 @@ static int gk20a_gr_dump_regs(struct gk20a *g,
 int gk20a_gr_debug_dump(struct gk20a *g)
 {
 	struct gk20a_debug_output o = {
-		.fn = gk20a_debug_write_printk
+		.fn = gk20a_debug_write_printk,
+		.ctx = g,
 	};
 
 	gk20a_gr_dump_regs(g, &o);
@@ -108,7 +117,8 @@ void gk20a_debug_dump(struct gk20a *g)
 {
 	struct gk20a_platform *platform = gk20a_get_platform(dev_from_gk20a(g));
 	struct gk20a_debug_output o = {
-		.fn = gk20a_debug_write_printk
+		.fn = gk20a_debug_write_printk,
+		.ctx = g,
 	};
 
 	/* HAL only initialized after 1st power-on */
@@ -168,13 +178,6 @@ static const struct file_operations gk20a_debug_fops = {
 	.llseek		= seq_lseek,
 	.release	= single_release,
 };
-
-void gk20a_debug_show_dump(struct gk20a *g, struct gk20a_debug_output *o)
-{
-	gk20a_debug_dump_all_channel_status_ramfc(g, o);
-	g->ops.fifo.dump_pbdma_status(g, o);
-	g->ops.fifo.dump_eng_status(g, o);
-}
 
 static ssize_t disable_bigpage_read(struct file *file, char __user *user_buf, size_t count, loff_t *ppos)
 {

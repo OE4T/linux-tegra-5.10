@@ -4126,51 +4126,53 @@ void gk20a_dump_channel_status_ramfc(struct gk20a *g,
 	syncpointa = info->inst.syncpointa;
 	syncpointb = info->inst.syncpointb;
 
-	gk20a_debug_output(o, "%d-%s, TSG: %u, pid %d, refs %d%s: ",
-			info->chid,
-			g->name,
-			info->tsgid,
-			info->pid,
-			info->refs,
-			info->deterministic ? ", deterministic" : "");
-	gk20a_debug_output(o, "channel status: %s in use %s %s\n",
-			(ccsr_channel_enable_v(info->channel_reg) ==
-				ccsr_channel_enable_in_use_v()) ? "" : "not",
-			gk20a_decode_ccsr_chan_status(status),
-			(ccsr_channel_busy_v(info->channel_reg) ==
-				ccsr_channel_busy_true_v()) ? "busy" : "not busy");
+	gk20a_debug_output(o, "Channel ID: %d, TSG ID: %u, pid %d, refs %d; deterministic = %s",
+			   info->chid,
+			   info->tsgid,
+			   info->pid,
+			   info->refs,
+			   info->deterministic ? "yes" : "no");
+	gk20a_debug_output(o, "  In use: %-3s  busy: %-3s  status: %s",
+			   (ccsr_channel_enable_v(info->channel_reg) ==
+			    ccsr_channel_enable_in_use_v()) ? "yes" : "no",
+			   (ccsr_channel_busy_v(info->channel_reg) ==
+			    ccsr_channel_busy_true_v()) ? "yes" : "no",
+			   gk20a_decode_ccsr_chan_status(status));
 	gk20a_debug_output(o,
-			"RAMFC : TOP: %016llx PUT: %016llx GET: %016llx "
-			"FETCH: %016llx\n"
-			"HEADER: %08x COUNT: %08x\n"
-			"SYNCPOINT %08x %08x SEMAPHORE %08x %08x %08x %08x\n",
-			info->inst.pb_top_level_get,
-			info->inst.pb_put,
-			info->inst.pb_get,
-			info->inst.pb_fetch,
-			info->inst.pb_header,
-			info->inst.pb_count,
-			syncpointa,
-			syncpointb,
-			info->inst.semaphorea,
-			info->inst.semaphoreb,
-			info->inst.semaphorec,
-			info->inst.semaphored);
+			   "  TOP       %016llx"
+			   "  PUT       %016llx  GET %016llx",
+			   info->inst.pb_top_level_get,
+			   info->inst.pb_put,
+			   info->inst.pb_get);
+	gk20a_debug_output(o,
+			   "  FETCH     %016llx"
+			   "  HEADER    %08x          COUNT %08x",
+			   info->inst.pb_fetch,
+			   info->inst.pb_header,
+			   info->inst.pb_count);
+	gk20a_debug_output(o,
+			   "  SYNCPOINT %08x %08x "
+			   "SEMAPHORE %08x %08x %08x %08x",
+			   syncpointa,
+			   syncpointb,
+			   info->inst.semaphorea,
+			   info->inst.semaphoreb,
+			   info->inst.semaphorec,
+			   info->inst.semaphored);
 
-	if (info->sema.addr != 0ULL) {
-		gk20a_debug_output(o, "SEMA STATE: value: 0x%08x "
-				   "next_val: 0x%08x addr: 0x%010llx\n",
-				  info->sema.value,
-				  info->sema.next,
-				  info->sema.addr);
+	if (info->sema.addr == 0ULL) {
+		gk20a_debug_output(o,
+			"  SEMA STATE: val: %u next_val: %u addr: 0x%010llx",
+			info->sema.value,
+			info->sema.next,
+			info->sema.addr);
 	}
-
 
 #ifdef CONFIG_TEGRA_GK20A_NVHOST
 	if ((pbdma_syncpointb_op_v(syncpointb) == pbdma_syncpointb_op_wait_v())
 		&& (pbdma_syncpointb_wait_switch_v(syncpointb) ==
 			pbdma_syncpointb_wait_switch_en_v()))
-		gk20a_debug_output(o, "%s on syncpt %u (%s) val %u\n",
+		gk20a_debug_output(o, "%s on syncpt %u (%s) val %u",
 			(status == 3 || status == 8) ? "Waiting" : "Waited",
 			pbdma_syncpointb_syncpt_index_v(syncpointb),
 			nvgpu_nvhost_syncpt_get_name(g->nvhost_dev,
@@ -4178,7 +4180,7 @@ void gk20a_dump_channel_status_ramfc(struct gk20a *g,
 			pbdma_syncpointa_payload_v(syncpointa));
 #endif
 
-	gk20a_debug_output(o, "\n");
+	gk20a_debug_output(o, " ");
 }
 
 void gk20a_debug_dump_all_channel_status_ramfc(struct gk20a *g,
@@ -4239,6 +4241,8 @@ void gk20a_debug_dump_all_channel_status_ramfc(struct gk20a *g,
 		gk20a_channel_put(ch);
 	}
 
+	gk20a_debug_output(o, "Channel Status - chip %-5s", g->name);
+	gk20a_debug_output(o, "---------------------------");
 	for (chid = 0; chid < f->num_channels; chid++) {
 		struct nvgpu_channel_dump_info *info = infos[chid];
 
@@ -4247,6 +4251,7 @@ void gk20a_debug_dump_all_channel_status_ramfc(struct gk20a *g,
 			nvgpu_kfree(g, info);
 		}
 	}
+	gk20a_debug_output(o, " ");
 
 	nvgpu_kfree(g, infos);
 }
@@ -4258,39 +4263,46 @@ void gk20a_dump_pbdma_status(struct gk20a *g,
 
 	host_num_pbdma = nvgpu_get_litter_value(g, GPU_LIT_HOST_NUM_PBDMA);
 
+	gk20a_debug_output(o, "PBDMA Status - chip %-5s", g->name);
+	gk20a_debug_output(o, "-------------------------");
+
 	for (i = 0; i < host_num_pbdma; i++) {
 		u32 status = gk20a_readl(g, fifo_pbdma_status_r(i));
 		u32 chan_status = fifo_pbdma_status_chan_status_v(status);
 
-		gk20a_debug_output(o, "%s pbdma %d: ", g->name, i);
+		gk20a_debug_output(o, "pbdma %d:", i);
 		gk20a_debug_output(o,
-				"id: %d (%s), next_id: %d (%s) chan status: %s\n",
-				fifo_pbdma_status_id_v(status),
-				(fifo_pbdma_status_id_type_v(status) ==
-					fifo_pbdma_status_id_type_tsgid_v()) ?
-					"tsg" : "channel",
-				fifo_pbdma_status_next_id_v(status),
-				(fifo_pbdma_status_next_id_type_v(status) ==
-					fifo_pbdma_status_next_id_type_tsgid_v()) ?
-					"tsg" : "channel",
+			"  id: %d - %-9s next_id: - %d %-9s | status: %s",
+			fifo_pbdma_status_id_v(status),
+			(fifo_pbdma_status_id_type_v(status) ==
+			 fifo_pbdma_status_id_type_tsgid_v()) ?
+				   "[tsg]" : "[channel]",
+			fifo_pbdma_status_next_id_v(status),
+			(fifo_pbdma_status_next_id_type_v(status) ==
+			 fifo_pbdma_status_next_id_type_tsgid_v()) ?
+				   "[tsg]" : "[channel]",
 			gk20a_decode_pbdma_chan_eng_ctx_status(chan_status));
-		gk20a_debug_output(o, "PBDMA_PUT: %016llx PBDMA_GET: %016llx "
-				"GP_PUT: %08x GP_GET: %08x "
-				"FETCH: %08x HEADER: %08x\n"
-				"HDR: %08x SHADOW0: %08x SHADOW1: %08x",
+		gk20a_debug_output(o,
+			"  PBDMA_PUT %016llx PBDMA_GET %016llx",
 			(u64)gk20a_readl(g, pbdma_put_r(i)) +
 			((u64)gk20a_readl(g, pbdma_put_hi_r(i)) << 32ULL),
 			(u64)gk20a_readl(g, pbdma_get_r(i)) +
-			((u64)gk20a_readl(g, pbdma_get_hi_r(i)) << 32ULL),
+			((u64)gk20a_readl(g, pbdma_get_hi_r(i)) << 32ULL));
+		gk20a_debug_output(o,
+			"  GP_PUT    %08x  GP_GET  %08x  "
+			"FETCH   %08x HEADER %08x",
 			gk20a_readl(g, pbdma_gp_put_r(i)),
 			gk20a_readl(g, pbdma_gp_get_r(i)),
 			gk20a_readl(g, pbdma_gp_fetch_r(i)),
-			gk20a_readl(g, pbdma_pb_header_r(i)),
+			gk20a_readl(g, pbdma_pb_header_r(i)));
+		gk20a_debug_output(o,
+			"  HDR       %08x  SHADOW0 %08x  SHADOW1 %08x",
 			gk20a_readl(g, pbdma_hdr_shadow_r(i)),
 			gk20a_readl(g, pbdma_gp_shadow_0_r(i)),
 			gk20a_readl(g, pbdma_gp_shadow_1_r(i)));
 	}
-	gk20a_debug_output(o, "\n");
+
+	gk20a_debug_output(o, " ");
 }
 
 void gk20a_dump_eng_status(struct gk20a *g,
@@ -4300,30 +4312,33 @@ void gk20a_dump_eng_status(struct gk20a *g,
 
 	host_num_engines = nvgpu_get_litter_value(g, GPU_LIT_HOST_NUM_ENGINES);
 
+	gk20a_debug_output(o, "Engine status - chip %-5s", g->name);
+	gk20a_debug_output(o, "--------------------------");
+
 	for (i = 0; i < host_num_engines; i++) {
 		u32 status = gk20a_readl(g, fifo_engine_status_r(i));
 		u32 ctx_status = fifo_engine_status_ctx_status_v(status);
 
-		gk20a_debug_output(o, "%s eng %d: ", g->name, i);
 		gk20a_debug_output(o,
-			"id: %d (%s), next_id: %d (%s), ctx status: %s ",
+			"Engine %d | "
+			"ID: %d - %-9s next_id: %d %-9s | status: %s",
+			i,
 			fifo_engine_status_id_v(status),
 			(fifo_engine_status_id_type_v(status) ==
 				fifo_engine_status_id_type_tsgid_v()) ?
-				"tsg" : "channel",
+				"[tsg]" : "[channel]",
 			fifo_engine_status_next_id_v(status),
 			(fifo_engine_status_next_id_type_v(status) ==
 				fifo_engine_status_next_id_type_tsgid_v()) ?
-				"tsg" : "channel",
+				"[tsg]" : "[channel]",
 			gk20a_decode_pbdma_chan_eng_ctx_status(ctx_status));
 
 		if (fifo_engine_status_faulted_v(status) != 0U) {
-			gk20a_debug_output(o, "faulted ");
+			gk20a_debug_output(o, "  State: faulted");
 		}
 		if (fifo_engine_status_engine_v(status) != 0U) {
-			gk20a_debug_output(o, "busy ");
+			gk20a_debug_output(o, "  State: busy");
 		}
-		gk20a_debug_output(o, "\n");
 	}
 	gk20a_debug_output(o, "\n");
 }
