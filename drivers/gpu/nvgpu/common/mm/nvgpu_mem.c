@@ -26,6 +26,8 @@
 #include <nvgpu/dma.h>
 #include <nvgpu/vidmem.h>
 #include <nvgpu/gk20a.h>
+#include <nvgpu/string.h>
+
 /*
  * Make sure to use the right coherency aperture if you use this function! This
  * will not add any checks. If you want to simply use the default coherency then
@@ -240,7 +242,7 @@ void nvgpu_mem_rd_n(struct gk20a *g, struct nvgpu_mem *mem,
 		u8 *src = (u8 *)mem->cpu_va + offset;
 
 		WARN_ON(mem->cpu_va == NULL);
-		(void) memcpy(dest, src, size);
+		nvgpu_memcpy((u8 *)dest, src, size);
 	} else if (mem->aperture == APERTURE_VIDMEM) {
 		nvgpu_pramin_rd_n(g, mem, offset, size, dest);
 	} else {
@@ -281,7 +283,7 @@ void nvgpu_mem_wr_n(struct gk20a *g, struct nvgpu_mem *mem, u32 offset,
 		u8 *dest = (u8 *)mem->cpu_va + offset;
 
 		WARN_ON(mem->cpu_va == NULL);
-		(void) memcpy(dest, src, size);
+		nvgpu_memcpy(dest, (u8 *)src, size);
 	} else if (mem->aperture == APERTURE_VIDMEM) {
 		nvgpu_pramin_wr_n(g, mem, offset, size, src);
 		if (!mem->skip_wmb) {
