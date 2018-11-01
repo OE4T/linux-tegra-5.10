@@ -1957,7 +1957,7 @@ void gk20a_channel_clean_up_jobs(struct channel_gk20a *c,
 	/* Synchronize with abort cleanup that needs the jobs. */
 	nvgpu_mutex_acquire(&c->joblist.cleanup_lock);
 
-	while (1) {
+	while (true) {
 		bool completed;
 
 		channel_gk20a_joblist_lock(c);

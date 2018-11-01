@@ -88,7 +88,7 @@ static void print_pmu_trace(struct nvgpu_pmu *pmu)
 	nvgpu_err(g, "dump PMU trace buffer");
 	for (i = 0; i < GK20A_PMU_TRACE_BUFSIZE; i += 0x40) {
 		for (j = 0; j < 0x40; j++) {
-			if (trace1[(i / 4) + j]) {
+			if (trace1[(i / 4U) + j] != 0U) {
 				break;
 			}
 		}

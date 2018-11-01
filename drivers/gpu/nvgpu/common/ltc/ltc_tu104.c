@@ -154,7 +154,7 @@ int ltc_tu104_cbc_ctrl(struct gk20a *g, enum gk20a_cbc_op op,
 		return 0;
 	}
 
-	while (1) {
+	while (true) {
 		const u32 iter_max = min(min + max_lines - 1, max);
 		bool full_cache_op = true;
 

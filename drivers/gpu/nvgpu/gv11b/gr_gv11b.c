@@ -835,10 +835,10 @@ static int gr_gv11b_handle_gpcmmu_ecc_exception(struct gk20a *g, u32 gpc,
 				gr_gpc0_mmu_l1tlb_ecc_status_reset_task_f());
 
 	/* Handle overflow */
-	if (corrected_overflow) {
+	if (corrected_overflow != 0U) {
 		corrected_delta += (0x1UL << gr_gpc0_mmu_l1tlb_ecc_corrected_err_count_total_s());
 	}
-	if (uncorrected_overflow) {
+	if (uncorrected_overflow != 0U) {
 		uncorrected_delta += (0x1UL << gr_gpc0_mmu_l1tlb_ecc_uncorrected_err_count_total_s());
 	}
 
@@ -1707,13 +1707,13 @@ void gr_gv11b_update_ctxsw_preemption_mode(struct gk20a *g,
 			cta_preempt_option);
 	}
 
-	if (gr_ctx->preempt_ctxsw_buffer.gpu_va) {
+	if (gr_ctx->preempt_ctxsw_buffer.gpu_va != 0ULL) {
 		u32 addr;
 		u32 size;
 		u32 cbes_reserve;
 
 		if (g->ops.gr.set_preemption_buffer_va != NULL) {
-			if (ctxheader->gpu_va) {
+			if (ctxheader->gpu_va != 0ULL) {
 				g->ops.gr.set_preemption_buffer_va(g, ctxheader,
 				gr_ctx->preempt_ctxsw_buffer.gpu_va);
 			} else {
@@ -2016,7 +2016,7 @@ int gr_gv11b_dump_gr_status_regs(struct gk20a *g,
 
 static bool gr_activity_empty_or_preempted(u32 val)
 {
-	while (val) {
+	while (val != 0U) {
 		u32 v = val & 7;
 		if (v != gr_activity_4_gpc0_empty_v() &&
 		    v != gr_activity_4_gpc0_preempted_v()) {
@@ -2082,7 +2082,7 @@ void gr_gv11b_commit_global_attrib_cb(struct gk20a *g,
 {
 	int attrBufferSize;
 
-	if (gr_ctx->preempt_ctxsw_buffer.gpu_va) {
+	if (gr_ctx->preempt_ctxsw_buffer.gpu_va != 0ULL) {
 		attrBufferSize = gr_ctx->betacb_ctxsw_buffer.size;
 	} else {
 		attrBufferSize = g->ops.gr.calc_global_ctx_buffer_size(g);
@@ -2179,7 +2179,7 @@ static int gr_gv11b_handle_warp_esr_error_mmu_nack(struct gk20a *g,
 	int err = 0;
 
 	fault_ch = gk20a_channel_get(fault_ch);
-	if (fault_ch) {
+	if (fault_ch != NULL) {
 		if (!fault_ch->mmu_nack_handled) {
 			/* recovery is not done for the channel implying mmu
 			 * nack interrupt is serviced before mmu fault. Force
@@ -2296,7 +2296,7 @@ static int gr_gv11b_handle_all_warp_esr_errors(struct gk20a *g,
 		return 0;
 	}
 
-	if (fault_ch) {
+	if (fault_ch != NULL) {
 		tsg = &g->fifo.tsg[fault_ch->tsgid];
 
 		/*
@@ -2317,7 +2317,7 @@ static int gr_gv11b_handle_all_warp_esr_errors(struct gk20a *g,
 		nvgpu_rwsem_down_read(&tsg->ch_list_lock);
 		nvgpu_list_for_each_entry(ch_tsg, &tsg->ch_list,
 				channel_gk20a, ch_entry) {
-			if (gk20a_channel_get(ch_tsg)) {
+			if (gk20a_channel_get(ch_tsg) != NULL) {
 				g->ops.fifo.set_error_notifier(ch_tsg,
 						 NVGPU_ERR_NOTIFIER_GR_EXCEPTION);
 				gk20a_channel_put(ch_tsg);
@@ -2377,7 +2377,7 @@ int gr_gv11b_pre_process_sm_exception(struct gk20a *g,
 		return ret;
 	}
 
-	if (fault_ch) {
+	if (fault_ch != NULL) {
 		tsg = tsg_gk20a_from_ch(fault_ch);
 		if (!tsg) {
 			return -EINVAL;
@@ -3120,10 +3120,10 @@ void gv11b_gr_get_esr_sm_sel(struct gk20a *g, u32 gpc, u32 tpc,
 	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gpu_dbg,
 			"sm tpc esr sm sel reg val: 0x%x", reg_val);
 	*esr_sm_sel = 0;
-	if (gr_gpc0_tpc0_sm_tpc_esr_sm_sel_sm0_error_v(reg_val)) {
+	if (gr_gpc0_tpc0_sm_tpc_esr_sm_sel_sm0_error_v(reg_val) != 0U) {
 		*esr_sm_sel = 1;
 	}
-	if (gr_gpc0_tpc0_sm_tpc_esr_sm_sel_sm1_error_v(reg_val)) {
+	if (gr_gpc0_tpc0_sm_tpc_esr_sm_sel_sm1_error_v(reg_val) != 0U) {
 		*esr_sm_sel |= 1 << 1;
 	}
 	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gpu_dbg,
@@ -4386,12 +4386,12 @@ static int gr_gv11b_ecc_scrub_is_done(struct gk20a *g,
 					break;
 				}
 
-				if (nvgpu_timeout_expired(&timeout)) {
+				if (nvgpu_timeout_expired(&timeout) != 0) {
 					return -ETIMEDOUT;
 				}
 
 				nvgpu_udelay(ECC_SCRUBBING_TIMEOUT_DEFAULT);
-			} while (1);
+			} while (true);
 		}
 	}
 
@@ -4658,19 +4658,19 @@ void gr_gv11b_ecc_init_scrub_reg(struct gk20a *g)
 
 	gr_gv11b_detect_ecc_enabled_units(g);
 
-	if (gr_gv11b_ecc_scrub_sm_lrf(g)) {
+	if (gr_gv11b_ecc_scrub_sm_lrf(g) != 0) {
 		nvgpu_warn(g, "ECC SCRUB SM LRF Failed");
 	}
-	if (gr_gv11b_ecc_scrub_sm_l1_data(g)) {
+	if (gr_gv11b_ecc_scrub_sm_l1_data(g) != 0) {
 		nvgpu_warn(g, "ECC SCRUB SM L1 DATA Failed");
 	}
-	if (gr_gv11b_ecc_scrub_sm_l1_tag(g)) {
+	if (gr_gv11b_ecc_scrub_sm_l1_tag(g) != 0) {
 		nvgpu_warn(g, "ECC SCRUB SM L1 TAG Failed");
 	}
-	if (gr_gv11b_ecc_scrub_sm_cbu(g)) {
+	if (gr_gv11b_ecc_scrub_sm_cbu(g) != 0) {
 		nvgpu_warn(g, "ECC SCRUB SM CBU Failed");
 	}
-	if (gr_gv11b_ecc_scrub_sm_icahe(g)) {
+	if (gr_gv11b_ecc_scrub_sm_icahe(g) != 0) {
 		nvgpu_warn(g, "ECC SCRUB SM ICACHE Failed");
 	}
 

@@ -156,7 +156,7 @@ enum {
 		_stat = nvgpu_pmu_rpc_execute(_pmu, &((_prpc)->hdr),    \
 			(sizeof(*(_prpc)) - sizeof((_prpc)->scratch)),\
 			(_size), NULL, NULL, false);	\
-	} while (0)
+	} while (false)
 
 /* RPC blocking call to copy back data from PMU to  _prpc */
 #define PMU_RPC_EXECUTE_CPB(_stat, _pmu, _unit, _func, _prpc, _size)\
@@ -170,7 +170,7 @@ enum {
 		_stat = nvgpu_pmu_rpc_execute(_pmu, &((_prpc)->hdr),    \
 			(sizeof(*(_prpc)) - sizeof((_prpc)->scratch)),\
 			(_size), NULL, NULL, true);	\
-	} while (0)
+	} while (false)
 
 /* RPC non-blocking with call_back handler option */
 #define PMU_RPC_EXECUTE_CB(_stat, _pmu, _unit, _func, _prpc, _size, _cb, _cbp)\
@@ -184,7 +184,7 @@ enum {
 		_stat = nvgpu_pmu_rpc_execute(_pmu, &((_prpc)->hdr),    \
 			(sizeof(*(_prpc)) - sizeof((_prpc)->scratch)),\
 			(_size), _cb, _cbp, false);	\
-	} while (0)
+	} while (false)
 
 typedef void (*pmu_callback)(struct gk20a *g, struct pmu_msg *msg, void *param,
 		u32 handle, u32 status);

@@ -303,7 +303,7 @@ static inline void nvgpu_alloc_disable_dbg(struct nvgpu_allocator *a)
 			seq_printf(seq, fmt "\n", ##arg);	\
 		else						\
 			alloc_dbg(allocator, fmt, ##arg);	\
-	} while (0)
+	} while (false)
 #endif
 
 #define do_alloc_dbg(a, fmt, arg...)				\
@@ -323,7 +323,7 @@ static inline void nvgpu_alloc_disable_dbg(struct nvgpu_allocator *a)
 	do {							\
 		if ((a)->debug)					\
 			do_alloc_dbg((a), fmt, ##arg);		\
-	} while (0)
+	} while (false)
 #else
 #define alloc_dbg(a, fmt, arg...) do_alloc_dbg(a, fmt, ##arg)
 #endif

@@ -65,7 +65,7 @@ void gv11b_get_tsg_runlist_entry(struct tsg_gk20a *tsg, u32 *runlist)
 	struct gk20a *g = tsg->g;
 	u32 runlist_entry_0 = ram_rl_entry_type_tsg_v();
 
-	if (tsg->timeslice_timeout) {
+	if (tsg->timeslice_timeout != 0U) {
 		runlist_entry_0 |=
 		ram_rl_entry_tsg_timeslice_scale_f(tsg->timeslice_scale) |
 		ram_rl_entry_tsg_timeslice_timeout_f(tsg->timeslice_timeout);
@@ -280,7 +280,7 @@ void channel_gv11b_unbind(struct channel_gk20a *ch)
 
 	nvgpu_log_fn(g, " ");
 
-	if (nvgpu_atomic_cmpxchg(&ch->bound, true, false)) {
+	if (nvgpu_atomic_cmpxchg(&ch->bound, true, false) != 0) {
 		gk20a_writel(g, ccsr_channel_inst_r(ch->chid),
 			ccsr_channel_inst_ptr_f(0) |
 			ccsr_channel_inst_bind_false_f());
@@ -372,7 +372,7 @@ void gv11b_dump_channel_status_ramfc(struct gk20a *g,
 			info->inst.sem_payload,
 			info->inst.sem_execute);
 
-	if (info->sema.addr) {
+	if (info->sema.addr != 0ULL) {
 		gk20a_debug_output(o, "SEMA STATE: value: 0x%08x "
 				   "next_val: 0x%08x addr: 0x%010llx\n",
 				  info->sema.value,
@@ -405,13 +405,13 @@ void gv11b_dump_eng_status(struct gk20a *g,
 				"tsg" : "channel",
 			gk20a_decode_pbdma_chan_eng_ctx_status(ctx_status));
 
-		if (fifo_engine_status_eng_reload_v(status)) {
+		if (fifo_engine_status_eng_reload_v(status) != 0U) {
 			gk20a_debug_output(o, "ctx_reload ");
 		}
-		if (fifo_engine_status_faulted_v(status)) {
+		if (fifo_engine_status_faulted_v(status) != 0U) {
 			gk20a_debug_output(o, "faulted ");
 		}
-		if (fifo_engine_status_engine_v(status)) {
+		if (fifo_engine_status_engine_v(status) != 0U) {
 			gk20a_debug_output(o, "busy ");
 		}
 		gk20a_debug_output(o, "\n");
@@ -594,7 +594,7 @@ static int gv11b_fifo_poll_eng_ctx_status(struct gk20a *g, u32 id,
 		if (ctx_stat ==
 			 fifo_engine_status_ctx_status_ctxsw_switch_v()) {
 			/* Eng save hasn't started yet. Continue polling */
-			if (eng_intr_pending) {
+			if (eng_intr_pending != 0U) {
 				/* if eng intr, stop polling */
 				*reset_eng_bitmask |= BIT(act_eng_id);
 				ret = 0;
@@ -607,7 +607,7 @@ static int gv11b_fifo_poll_eng_ctx_status(struct gk20a *g, u32 id,
 			 fifo_engine_status_ctx_status_ctxsw_save_v()) {
 
 			if (id == fifo_engine_status_id_v(eng_stat)) {
-				if (eng_intr_pending) {
+				if (eng_intr_pending != 0U) {
 					/* preemption will not finish */
 					*reset_eng_bitmask |= BIT(act_eng_id);
 					ret = 0;
@@ -623,7 +623,7 @@ static int gv11b_fifo_poll_eng_ctx_status(struct gk20a *g, u32 id,
 			 fifo_engine_status_ctx_status_ctxsw_load_v()) {
 
 			if (id == fifo_engine_status_next_id_v(eng_stat)) {
-				if (eng_intr_pending) {
+				if (eng_intr_pending != 0U) {
 					/* preemption will not finish */
 					*reset_eng_bitmask |= BIT(act_eng_id);
 					ret = 0;
@@ -764,7 +764,7 @@ static u32 gv11b_fifo_get_runlists_mask(struct gk20a *g, u32 act_eng_bitmask,
 
 	if (id_type == ID_TYPE_UNKNOWN) {
 		for (rlid = 0; rlid < f->max_runlists; rlid++) {
-			if (act_eng_bitmask) {
+			if (act_eng_bitmask != 0U) {
 				/* eng ids are known */
 				runlist = &f->runlist_info[rlid];
 				if (runlist->eng_bitmask & act_eng_bitmask) {
@@ -867,7 +867,7 @@ int gv11b_fifo_enable_tsg(struct tsg_gk20a *tsg)
 	}
 	nvgpu_rwsem_up_read(&tsg->ch_list_lock);
 
-	if (last_ch) {
+	if (last_ch != NULL) {
 		g->ops.fifo.ring_channel_doorbell(last_ch);
 	}
 
@@ -1063,7 +1063,7 @@ void gv11b_fifo_teardown_ch_tsg(struct gk20a *g, u32 act_eng_bitmask,
 		 * to multiple runlists, then abort all runlists
 		 */
 		for (rlid = 0; rlid < f->max_runlists; rlid++) {
-			if (act_eng_bitmask) {
+			if (act_eng_bitmask != 0U) {
 				/* eng ids are known */
 				runlist = &f->runlist_info[rlid];
 				if (runlist->eng_bitmask & act_eng_bitmask) {
@@ -1109,7 +1109,7 @@ void gv11b_fifo_teardown_ch_tsg(struct gk20a *g, u32 act_eng_bitmask,
 
 	/* Disable power management */
 	if (g->support_pmu && g->elpg_enabled) {
-		if (nvgpu_pmu_disable_elpg(g)) {
+		if (nvgpu_pmu_disable_elpg(g) != 0) {
 			nvgpu_err(g, "failed to set disable elpg");
 		}
 	}
@@ -1136,7 +1136,7 @@ void gv11b_fifo_teardown_ch_tsg(struct gk20a *g, u32 act_eng_bitmask,
 				mmfault->faulted_engine);
 	}
 
-	if (tsg) {
+	if (tsg != NULL) {
 		gk20a_disable_tsg(tsg);
 	}
 
@@ -1198,7 +1198,7 @@ void gv11b_fifo_teardown_ch_tsg(struct gk20a *g, u32 act_eng_bitmask,
 					 * taking place so no need to repeat
 					 */
 					if (nvgpu_mutex_tryacquire(
-						&g->fifo.gr_reset_mutex)) {
+						&g->fifo.gr_reset_mutex) != 0) {
 
 						gk20a_fifo_reset_engine(g,
 								 engine_id);
@@ -1212,10 +1212,10 @@ void gv11b_fifo_teardown_ch_tsg(struct gk20a *g, u32 act_eng_bitmask,
 	}
 
 #ifdef CONFIG_GK20A_CTXSW_TRACE
-	if (tsg)
+	if (tsg != NULL)
 		gk20a_ctxsw_trace_tsg_reset(g, tsg);
 #endif
-	if (tsg) {
+	if (tsg != NULL) {
 		if (g->fifo.deferred_reset_pending) {
 			gk20a_disable_tsg(tsg);
 		} else {

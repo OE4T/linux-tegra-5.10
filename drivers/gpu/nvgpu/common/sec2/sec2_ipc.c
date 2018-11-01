@@ -132,7 +132,7 @@ static int sec2_write_cmd(struct nvgpu_sec2 *sec2,
 		} else {
 			break;
 		}
-	} while (1);
+	} while (true);
 
 	if (err != 0) {
 		nvgpu_err(g, "fail to write cmd to queue %d", queue_id);

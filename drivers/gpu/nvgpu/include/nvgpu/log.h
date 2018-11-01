@@ -172,7 +172,7 @@ extern u64 nvgpu_dbg_mask;
 		if (((log_mask) & nvgpu_dbg_mask) != 0)			\
 			__nvgpu_log_msg(NULL, __func__, __LINE__,	\
 					NVGPU_DEBUG, fmt "\n", ##arg);	\
-	} while (0)
+	} while (false)
 
 /*
  * Some convenience macros.

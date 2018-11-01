@@ -321,7 +321,7 @@ do {                                                                          \
 	(pboardobjgrp)->pmu.unitid  = PMU_UNIT_##_ENG;                        \
 	(pboardobjgrp)->pmu.classid =                                         \
 	NV_PMU_##_ENG##_BOARDOBJGRP_CLASS_ID_##_CLASS;                        \
-} while (0)
+} while (false)
 
 #define BOARDOBJGRP_PMU_CMD_GRP_SET_CONSTRUCT(g, pboardobjgrp, eng, ENG, \
 	class, CLASS)                                                 \

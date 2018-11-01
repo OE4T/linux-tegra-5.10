@@ -192,7 +192,7 @@ static inline unsigned long __hweight64(uint64_t x)
 
 #define __packed __attribute__((packed))
 
-#define IS_ENABLED(config) 0
+#define IS_ENABLED(config) false
 
 #define MAX_ERRNO	4095
 

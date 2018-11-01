@@ -72,7 +72,7 @@ static char *nvgpu_dma_flags_to_str(struct gk20a *g, unsigned long flags)
 			strncat(buf, str_flag, bytes_available);	\
 			bytes_available -= strlen(str_flag);		\
 		}							\
-	} while (0)
+	} while (false)
 
 	APPEND_FLAG(NVGPU_DMA_NO_KERNEL_MAPPING, "NO_KERNEL_MAPPING ");
 	APPEND_FLAG(NVGPU_DMA_FORCE_CONTIGUOUS,  "FORCE_CONTIGUOUS ");

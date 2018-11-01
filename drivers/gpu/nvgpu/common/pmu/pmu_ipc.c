@@ -249,7 +249,7 @@ static int pmu_write_cmd(struct nvgpu_pmu *pmu, struct pmu_cmd *cmd,
 		} else {
 			break;
 		}
-	} while (1);
+	} while (true);
 
 	if (err != 0) {
 		nvgpu_err(g, "fail to write cmd to queue %d", queue_id);

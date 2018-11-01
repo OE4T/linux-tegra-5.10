@@ -59,7 +59,7 @@ int nvgpu_flcn_wait_idle(struct nvgpu_falcon *flcn)
 		}
 
 		nvgpu_usleep_range(100, 200);
-	} while (1);
+	} while (true);
 
 	return 0;
 }

@@ -49,7 +49,7 @@ void gv11b_free_subctx_header(struct channel_gk20a *c)
 
 	nvgpu_log(g, gpu_dbg_fn, "gv11b_free_subctx_header");
 
-	if (ctxheader->gpu_va) {
+	if (ctxheader->gpu_va != 0ULL) {
 		nvgpu_gmmu_unmap(c->vm, ctxheader, ctxheader->gpu_va);
 
 		nvgpu_dma_free(g, ctxheader);

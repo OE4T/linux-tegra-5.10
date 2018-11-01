@@ -129,7 +129,7 @@ int exec_regops_gk20a(struct dbg_session_gk20a *dbg_s,
 	}
 
 	/* be sure that ctx info is in place if there are ctx ops */
-	if (ctx_wr_count | ctx_rd_count) {
+	if ((ctx_wr_count | ctx_rd_count) != 0U) {
 		if (!gr_context_info_available(&g->gr)) {
 			nvgpu_err(g, "gr context data not available");
 			return -ENODEV;
@@ -218,7 +218,7 @@ int exec_regops_gk20a(struct dbg_session_gk20a *dbg_s,
 		}
 	}
 
-	if (ctx_wr_count | ctx_rd_count) {
+	if ((ctx_wr_count | ctx_rd_count) != 0U) {
 		err = gr_gk20a_exec_ctx_ops(ch, ops, num_ops,
 					    ctx_wr_count, ctx_rd_count,
 					    is_current_ctx);

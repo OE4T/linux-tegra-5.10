@@ -247,7 +247,7 @@ static void __update_pte(struct vm_gk20a *vm,
 		pte_w[1] |= gmmu_pte_vol_true_f();
 	}
 
-	if (attrs->ctag) {
+	if (attrs->ctag != 0ULL) {
 		attrs->ctag += page_size;
 	}
 }
@@ -266,7 +266,7 @@ static void update_gmmu_pte_locked(struct vm_gk20a *vm,
 	u32 pte_w[2] = {0, 0};
 	int ctag_shift = ilog2(g->ops.fb.compression_page_size(g));
 
-	if (phys_addr) {
+	if (phys_addr != 0ULL) {
 		__update_pte(vm, pte_w, phys_addr, attrs);
 	} else if (attrs->sparse) {
 		__update_pte_sparse(pte_w);
@@ -468,7 +468,7 @@ int gk20a_mm_fb_flush(struct gk20a *g)
 		}
 	} while (nvgpu_timeout_expired(&timeout) == 0);
 
-	if (nvgpu_timeout_peek_expired(&timeout)) {
+	if (nvgpu_timeout_peek_expired(&timeout) != 0) {
 		if (g->ops.fb.dump_vpr_info != NULL) {
 			g->ops.fb.dump_vpr_info(g);
 		}
@@ -521,7 +521,7 @@ static void gk20a_mm_l2_invalidate_locked(struct gk20a *g)
 		}
 	} while (nvgpu_timeout_expired(&timeout) == 0);
 
-	if (nvgpu_timeout_peek_expired(&timeout)) {
+	if (nvgpu_timeout_peek_expired(&timeout) != 0) {
 		nvgpu_warn(g, "l2_system_invalidate too many retries");
 	}
 

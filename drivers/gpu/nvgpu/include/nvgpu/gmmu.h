@@ -266,6 +266,6 @@ int __nvgpu_set_pte(struct gk20a *g, struct vm_gk20a *vm, u64 vaddr, u32 *pte);
 		} else {						\
 			nvgpu_log(g, gpu_dbg_pte, fmt, ##args);		\
 		}							\
-	} while (0)
+	} while (false)
 
 #endif /* NVGPU_GMMU_H */

@@ -355,13 +355,13 @@ int gr_gk20a_ctx_wait_ucode(struct gk20a *g, u32 mailbox_id,
 			   NVGPU_TIMER_CPU_TIMER);
 
 	while (check == WAIT_UCODE_LOOP) {
-		if (nvgpu_timeout_expired(&timeout)) {
+		if (nvgpu_timeout_expired(&timeout) != 0) {
 			check = WAIT_UCODE_TIMEOUT;
 		}
 
 		reg = gk20a_readl(g, gr_fecs_ctxsw_mailbox_r(mailbox_id));
 
-		if (mailbox_ret) {
+		if (mailbox_ret != NULL) {
 			*mailbox_ret = reg;
 		}
 
@@ -788,7 +788,7 @@ static int gr_gk20a_ctx_zcull_setup(struct gk20a *g, struct channel_gk20a *c)
 			ctxsw_prog_main_image_zcull_o(),
 		 gr_ctx->zcull_ctx.ctx_sw_mode);
 
-	if (ctxheader->gpu_va) {
+	if (ctxheader->gpu_va != 0ULL) {
 		g->ops.gr.write_zcull_ptr(g, ctxheader,
 					gr_ctx->zcull_ctx.gpu_va);
 	} else {
@@ -1505,7 +1505,7 @@ restore_fe_go_idle:
 	}
 
 	/* load method init */
-	if (sw_method_init->count) {
+	if (sw_method_init->count != 0U) {
 		gk20a_writel(g, gr_pri_mme_shadow_raw_data_r(),
 			     sw_method_init->l[0].value);
 		gk20a_writel(g, gr_pri_mme_shadow_raw_index_r(),
@@ -1774,7 +1774,7 @@ int gr_gk20a_update_hwpm_ctxsw_mode(struct gk20a *g,
 
 	nvgpu_mem_wr(g, gr_mem, ctxsw_prog_main_image_pm_o(), data);
 
-	if (ctxheader->gpu_va) {
+	if (ctxheader->gpu_va != 0ULL) {
 		struct channel_gk20a *ch;
 
 		nvgpu_rwsem_down_read(&tsg->ch_list_lock);
@@ -2090,7 +2090,7 @@ int gr_gk20a_init_ctxsw_ucode(struct gk20a *g)
 	return 0;
 
 clean_up:
-	if (ucode_info->surface_desc.gpu_va) {
+	if (ucode_info->surface_desc.gpu_va != 0ULL) {
 		nvgpu_gmmu_unmap(vm, &ucode_info->surface_desc,
 				 ucode_info->surface_desc.gpu_va);
 	}
@@ -2486,7 +2486,7 @@ static void gr_gk20a_free_global_ctx_buffers(struct gk20a *g)
 
 	for (i = 0; i < NR_GLOBAL_CTX_BUF; i++) {
 		/* destroy exists iff buffer is allocated */
-		if (gr->global_ctx_buffer[i].destroy) {
+		if (gr->global_ctx_buffer[i].destroy != NULL) {
 			gr->global_ctx_buffer[i].destroy(g,
 					&gr->global_ctx_buffer[i]);
 		}
@@ -2618,7 +2618,7 @@ static void gr_gk20a_unmap_global_ctx_buffers(struct gk20a *g,
 	nvgpu_log_fn(g, " ");
 
 	for (i = 0; i < NR_GLOBAL_CTX_BUF_VA; i++) {
-		if (g_bfr_index[i]) {
+		if (g_bfr_index[i] != 0) {
 			struct nvgpu_mem *mem;
 
 			/*
@@ -2909,7 +2909,7 @@ static void gr_gk20a_free_channel_patch_ctx(struct gk20a *g,
 
 	nvgpu_log_fn(g, " ");
 
-	if (patch_ctx->mem.gpu_va) {
+	if (patch_ctx->mem.gpu_va != 0ULL) {
 		nvgpu_gmmu_unmap(vm, &patch_ctx->mem,
 				 patch_ctx->mem.gpu_va);
 	}
@@ -2926,7 +2926,7 @@ static void gr_gk20a_free_channel_pm_ctx(struct gk20a *g,
 
 	nvgpu_log_fn(g, " ");
 
-	if (pm_ctx->mem.gpu_va) {
+	if (pm_ctx->mem.gpu_va != 0ULL) {
 		nvgpu_gmmu_unmap(vm, &pm_ctx->mem, pm_ctx->mem.gpu_va);
 
 		nvgpu_dma_free(g, &pm_ctx->mem);
@@ -3111,7 +3111,7 @@ static void gk20a_remove_gr_support(struct gr_gk20a *gr)
 	nvgpu_vfree(g, gr->ctx_vars.local_golden_image);
 	gr->ctx_vars.local_golden_image = NULL;
 
-	if (gr->ctx_vars.hwpm_ctxsw_buffer_offset_map) {
+	if (gr->ctx_vars.hwpm_ctxsw_buffer_offset_map != NULL) {
 		nvgpu_big_free(g, gr->ctx_vars.hwpm_ctxsw_buffer_offset_map);
 	}
 	gr->ctx_vars.hwpm_ctxsw_buffer_offset_map = NULL;
@@ -3484,7 +3484,7 @@ static int gr_gk20a_init_map_tiles(struct gk20a *g, struct gr_gk20a *gr)
 		break;
 	}
 
-	if (gr->map_tiles) {
+	if (gr->map_tiles != NULL) {
 		if (gr->map_tile_count != gr->tpc_count) {
 			delete_map = true;
 		}
@@ -4111,7 +4111,7 @@ int _gk20a_gr_zbc_set_table(struct gk20a *g, struct gr_gk20a *gr,
 	ret = gr_gk20a_add_zbc(g, gr, zbc_val);
 
 clean_up:
-	if (gk20a_fifo_enable_engine_activity(g, gr_info)) {
+	if (gk20a_fifo_enable_engine_activity(g, gr_info) != 0) {
 		nvgpu_err(g,
 			"failed to enable gr engine activity");
 	}
@@ -4530,7 +4530,7 @@ restore_fe_go_idle:
 	}
 
 	/* load method init */
-	if (sw_method_init->count) {
+	if (sw_method_init->count != 0U) {
 		gk20a_writel(g, gr_pri_mme_shadow_raw_data_r(),
 			     sw_method_init->l[0].value);
 		gk20a_writel(g, gr_pri_mme_shadow_raw_index_r(),
@@ -5117,7 +5117,7 @@ static void gk20a_gr_set_error_notifier(struct gk20a *g,
 			nvgpu_rwsem_down_read(&tsg->ch_list_lock);
 			nvgpu_list_for_each_entry(ch_tsg, &tsg->ch_list,
 					channel_gk20a, ch_entry) {
-				if (gk20a_channel_get(ch_tsg)) {
+				if (gk20a_channel_get(ch_tsg) != NULL) {
 					g->ops.fifo.set_error_notifier(ch_tsg,
 							 error_notifier);
 					gk20a_channel_put(ch_tsg);
@@ -5241,7 +5241,7 @@ static int gk20a_gr_handle_class_error(struct gk20a *g,
 
 	nvgpu_err(g, "trapped data low 0x%08x",
 		gk20a_readl(g, gr_trapped_data_lo_r()));
-	if (gr_trapped_addr_datahigh_v(isr_data->addr)) {
+	if (gr_trapped_addr_datahigh_v(isr_data->addr) != 0U) {
 		nvgpu_err(g, "trapped data high 0x%08x",
 		gk20a_readl(g, gr_trapped_data_hi_r()));
 	}
@@ -5511,7 +5511,7 @@ static struct channel_gk20a *gk20a_gr_get_channel_from_ctx(
 
 unlock:
 	nvgpu_spinlock_release(&gr->ch_tlb_lock);
-	if (curr_tsgid) {
+	if (curr_tsgid != NULL) {
 		*curr_tsgid = tsgid;
 	}
 	return ret;
@@ -5880,7 +5880,7 @@ int gk20a_gr_isr(struct gk20a *g)
 	isr_data.class_num = gr_fe_object_table_nvclass_v(obj_table);
 
 	ch = gk20a_gr_get_channel_from_ctx(g, isr_data.curr_ctx, &tsgid);
-	if (ch) {
+	if (ch != NULL) {
 		isr_data.chid = ch->chid;
 	} else {
 		isr_data.chid = FIFO_INVAL_CHANNEL_ID;
@@ -6105,7 +6105,7 @@ int gk20a_gr_isr(struct gk20a *g)
 			gk20a_fifo_recover(g, gr_engine_id,
 					   tsgid, true, true, true,
 						RC_TYPE_GR_FAULT);
-		} else if (ch) {
+		} else if (ch != NULL) {
 			gk20a_fifo_recover(g, gr_engine_id,
 					   ch->chid, false, true, true,
 						RC_TYPE_GR_FAULT);
@@ -6130,7 +6130,7 @@ int gk20a_gr_isr(struct gk20a *g)
 		grfifo_ctl | gr_gpfifo_ctl_access_f(1) |
 		gr_gpfifo_ctl_semaphore_access_f(1));
 
-	if (gr_intr) {
+	if (gr_intr != 0U) {
 		nvgpu_err(g,
 			   "unhandled gr interrupt 0x%08x", gr_intr);
 	}
@@ -6140,7 +6140,7 @@ int gk20a_gr_isr(struct gk20a *g)
 		gk20a_gr_post_bpt_events(g, tsg, global_esr);
 	}
 
-	if (ch) {
+	if (ch != NULL) {
 		gk20a_channel_put(ch);
 	}
 
@@ -6754,7 +6754,7 @@ static int gr_gk20a_ctx_patch_smpc(struct gk20a *g,
 				nvgpu_mem_wr(g, mem,
 					 ctxsw_prog_main_image_patch_count_o(),
 					 gr_ctx->patch_ctx.data_count);
-				if (ctxheader->gpu_va) {
+				if (ctxheader->gpu_va != 0ULL) {
 					nvgpu_mem_wr(g, ctxheader,
 						ctxsw_prog_main_image_patch_adr_lo_o(),
 						vaddr_lo);
@@ -7622,7 +7622,7 @@ static int add_ctxsw_buffer_map_entries_gpcs(struct gk20a *g,
 					&g->netlist_vars->ctxsw_regs.pm_tpc,
 					count, offset, max_cnt, base, num_tpcs,
 					tpc_in_gpc_stride,
-					(tpc_in_gpc_stride - 1))) {
+					(tpc_in_gpc_stride - 1)) != 0) {
 			return -EINVAL;
 		}
 
@@ -7632,7 +7632,7 @@ static int add_ctxsw_buffer_map_entries_gpcs(struct gk20a *g,
 					&g->netlist_vars->ctxsw_regs.pm_ppc,
 					count, offset, max_cnt, base, num_ppcs,
 					ppc_in_gpc_stride,
-					(ppc_in_gpc_stride - 1))) {
+					(ppc_in_gpc_stride - 1)) != 0) {
 			return -EINVAL;
 		}
 
@@ -7640,40 +7640,40 @@ static int add_ctxsw_buffer_map_entries_gpcs(struct gk20a *g,
 		if (add_ctxsw_buffer_map_entries_pmgpc(g, map,
 					&g->netlist_vars->ctxsw_regs.pm_gpc,
 					count, offset, max_cnt, base,
-					(gpc_stride - 1))) {
+					(gpc_stride - 1)) != 0) {
 			return -EINVAL;
 		}
 
 		base = NV_XBAR_MXBAR_PRI_GPC_GNIC_STRIDE * gpc_num;
 		if (add_ctxsw_buffer_map_entries(map,
 					&g->netlist_vars->ctxsw_regs.pm_ucgpc,
-					count, offset, max_cnt, base, ~0)) {
+					count, offset, max_cnt, base, ~0) != 0) {
 			return -EINVAL;
 		}
 
 		base = (g->ops.gr.get_pmm_per_chiplet_offset() * gpc_num);
 		if (add_ctxsw_buffer_map_entries(map,
 					&g->netlist_vars->ctxsw_regs.perf_gpc,
-					count, offset, max_cnt, base, ~0)) {
+					count, offset, max_cnt, base, ~0) != 0) {
 			return -EINVAL;
 		}
 
 		base = (NV_PERF_PMMGPCROUTER_STRIDE * gpc_num);
 		if (add_ctxsw_buffer_map_entries(map,
 					&g->netlist_vars->ctxsw_regs.gpc_router,
-					count, offset, max_cnt, base, ~0)) {
+					count, offset, max_cnt, base, ~0) != 0) {
 			return -EINVAL;
 		}
 
 		/* Counter Aggregation Unit, if available */
-		if (g->netlist_vars->ctxsw_regs.pm_cau.count) {
+		if (g->netlist_vars->ctxsw_regs.pm_cau.count != 0U) {
 			base = gpc_base + (gpc_stride * gpc_num)
 					+ tpc_in_gpc_base;
 			if (add_ctxsw_buffer_map_entries_subunits(map,
 					&g->netlist_vars->ctxsw_regs.pm_cau,
 					count, offset, max_cnt, base, num_tpcs,
 					tpc_in_gpc_stride,
-					(tpc_in_gpc_stride - 1))) {
+					(tpc_in_gpc_stride - 1)) != 0) {
 				return -EINVAL;
 			}
 		}
@@ -7785,19 +7785,19 @@ static int gr_gk20a_create_hwpm_ctxsw_buffer_offset_map(struct gk20a *g)
 
 	/* Add entries from _LIST_pm_ctx_reg_SYS */
 	if (add_ctxsw_buffer_map_entries_pmsys(map, &g->netlist_vars->ctxsw_regs.pm_sys,
-				&count, &offset, hwpm_ctxsw_reg_count_max, 0, ~0)) {
+				&count, &offset, hwpm_ctxsw_reg_count_max, 0, ~0) != 0) {
 		goto cleanup;
 	}
 
 	/* Add entries from _LIST_nv_perf_ctx_reg_SYS */
 	if (add_ctxsw_buffer_map_entries(map, &g->netlist_vars->ctxsw_regs.perf_sys,
-				&count, &offset, hwpm_ctxsw_reg_count_max, 0, ~0)) {
+				&count, &offset, hwpm_ctxsw_reg_count_max, 0, ~0) != 0) {
 		goto cleanup;
 	}
 
 	/* Add entries from _LIST_nv_perf_sysrouter_ctx_reg*/
 	if (add_ctxsw_buffer_map_entries(map, &g->netlist_vars->ctxsw_regs.perf_sys_router,
-				&count, &offset, hwpm_ctxsw_reg_count_max, 0, ~0)) {
+				&count, &offset, hwpm_ctxsw_reg_count_max, 0, ~0) != 0) {
 		goto cleanup;
 	}
 
@@ -7819,7 +7819,7 @@ static int gr_gk20a_create_hwpm_ctxsw_buffer_offset_map(struct gk20a *g)
 					hwpm_ctxsw_reg_count_max, 0,
 					g->gr.num_fbps,
 					g->ops.gr.get_pmm_per_chiplet_offset(),
-					~0)) {
+					~0) != 0) {
 		goto cleanup;
 	}
 
@@ -7828,7 +7828,7 @@ static int gr_gk20a_create_hwpm_ctxsw_buffer_offset_map(struct gk20a *g)
 					&g->netlist_vars->ctxsw_regs.fbp_router,
 					&count, &offset,
 					hwpm_ctxsw_reg_count_max, 0, g->gr.num_fbps,
-					NV_PERF_PMM_FBP_ROUTER_STRIDE, ~0)) {
+					NV_PERF_PMM_FBP_ROUTER_STRIDE, ~0) != 0) {
 		goto cleanup;
 	}
 
@@ -7846,7 +7846,7 @@ static int gr_gk20a_create_hwpm_ctxsw_buffer_offset_map(struct gk20a *g)
 	if (add_ctxsw_buffer_map_entries(map,
 					&g->netlist_vars->ctxsw_regs.pm_rop,
 					&count, &offset,
-					hwpm_ctxsw_reg_count_max, 0, ~0)) {
+					hwpm_ctxsw_reg_count_max, 0, ~0) != 0) {
 		goto cleanup;
 	}
 
@@ -7855,7 +7855,7 @@ static int gr_gk20a_create_hwpm_ctxsw_buffer_offset_map(struct gk20a *g)
 					&g->netlist_vars->ctxsw_regs.pm_ltc,
 					&count, &offset,
 					hwpm_ctxsw_reg_count_max, 0,
-					num_ltc, ltc_stride, ~0)) {
+					num_ltc, ltc_stride, ~0) != 0) {
 		goto cleanup;
 	}
 
@@ -7863,7 +7863,7 @@ static int gr_gk20a_create_hwpm_ctxsw_buffer_offset_map(struct gk20a *g)
 
 	/* Add GPC entries */
 	if (add_ctxsw_buffer_map_entries_gpcs(g, map, &count, &offset,
-					hwpm_ctxsw_reg_count_max)) {
+					hwpm_ctxsw_reg_count_max) != 0) {
 		goto cleanup;
 	}
 
@@ -8208,11 +8208,11 @@ int __gr_gk20a_exec_ctx_ops(struct channel_gk20a *ch,
 	}
 
  cleanup:
-	if (offsets) {
+	if (offsets != NULL) {
 		nvgpu_kfree(g, offsets);
 	}
 
-	if (gr_ctx->patch_ctx.mem.cpu_va) {
+	if (gr_ctx->patch_ctx.mem.cpu_va != NULL) {
 		gr_gk20a_ctx_patch_write_end(g, gr_ctx, gr_ctx_ready);
 	}
 
@@ -8250,7 +8250,7 @@ int gr_gk20a_exec_ctx_ops(struct channel_gk20a *ch,
 				      num_ctx_rd_ops, ch_is_curr_ctx);
 
 	tmp_err = gr_gk20a_enable_ctxsw(g);
-	if (tmp_err) {
+	if (tmp_err != 0) {
 		nvgpu_err(g, "unable to restart ctxsw!");
 		err = tmp_err;
 	}

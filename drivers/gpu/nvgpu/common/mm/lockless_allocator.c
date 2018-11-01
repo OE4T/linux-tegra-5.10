@@ -100,7 +100,7 @@ static void nvgpu_lockless_free(struct nvgpu_allocator *a, u64 addr)
 
 	alloc_dbg(a, "Free node # %llu @ addr 0x%llx", cur_idx, addr);
 
-	while (1) {
+	while (true) {
 		head = NV_ACCESS_ONCE(pa->head);
 		NV_ACCESS_ONCE(pa->next[cur_idx]) = head;
 		ret = cmpxchg(&pa->head, head, cur_idx);

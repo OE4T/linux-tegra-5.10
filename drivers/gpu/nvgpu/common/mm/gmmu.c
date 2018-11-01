@@ -43,7 +43,7 @@
 		} else {						\
 			nvgpu_log(g, gpu_dbg_map, fmt, ##args);		\
 		}							\
-	} while (0)
+	} while (false)
 
 #define __gmmu_dbg_v(g, attrs, fmt, args...)				\
 	do {								\
@@ -52,7 +52,7 @@
 		} else {						\
 			nvgpu_log(g, gpu_dbg_map_v, fmt, ##args);	\
 		}							\
-	} while (0)
+	} while (false)
 
 static int pd_allocate(struct vm_gk20a *vm,
 		       struct nvgpu_gmmu_pd *pd,

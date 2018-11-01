@@ -97,7 +97,7 @@ static void dump_gpc_pll(struct gk20a *g, struct pll *gpll, u32 last_cfg)
 									\
 		nvgpu_info(g, "  " #__addr_str__ " [0x%x] = 0x%x",	\
 			   __addr__, __data__); 			\
-	} while (0)
+	} while (false)
 
 	nvgpu_info(g, "GPCPLL DUMP:");
 	nvgpu_info(g, "  gpcpll s/w M=%u N=%u P=%u\n", gpll->M, gpll->N, gpll->PL);

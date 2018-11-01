@@ -117,7 +117,7 @@ struct nvgpu_clk_session;
 	do {								\
 		nvgpu_log(g, gpu_dbg_clk_arb,	\
 				fmt, ##args);	\
-	} while (0)
+	} while (false)
 
 struct nvgpu_clk_notification {
 	u32 notification;

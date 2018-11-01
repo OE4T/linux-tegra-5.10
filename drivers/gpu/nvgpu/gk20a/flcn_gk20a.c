@@ -201,7 +201,7 @@ static int gk20a_flcn_copy_from_dmem(struct nvgpu_falcon *flcn,
 
 	nvgpu_log_fn(g, " src dmem offset - %x, size - %x", src, size);
 
-	if (flcn_mem_overflow_check(flcn, src, size, MEM_DMEM)) {
+	if (flcn_mem_overflow_check(flcn, src, size, MEM_DMEM) != 0) {
 		nvgpu_err(g, "incorrect parameters");
 		return -EINVAL;
 	}
@@ -246,7 +246,7 @@ static int gk20a_flcn_copy_to_dmem(struct nvgpu_falcon *flcn,
 
 	nvgpu_log_fn(g, "dest dmem offset - %x, size - %x", dst, size);
 
-	if (flcn_mem_overflow_check(flcn, dst, size, MEM_DMEM)) {
+	if (flcn_mem_overflow_check(flcn, dst, size, MEM_DMEM) != 0) {
 		nvgpu_err(g, "incorrect parameters");
 		return -EINVAL;
 	}
@@ -304,7 +304,7 @@ static int gk20a_flcn_copy_from_imem(struct nvgpu_falcon *flcn, u32 src,
 
 	nvgpu_log_info(g, "download %d bytes from 0x%x", size, src);
 
-	if (flcn_mem_overflow_check(flcn, src, size, MEM_IMEM)) {
+	if (flcn_mem_overflow_check(flcn, src, size, MEM_IMEM) != 0) {
 		nvgpu_err(g, "incorrect parameters");
 		return -EINVAL;
 	}
@@ -352,7 +352,7 @@ static int gk20a_flcn_copy_to_imem(struct nvgpu_falcon *flcn, u32 dst,
 
 	nvgpu_log_info(g, "upload %d bytes to 0x%x", size, dst);
 
-	if (flcn_mem_overflow_check(flcn, dst, size, MEM_IMEM)) {
+	if (flcn_mem_overflow_check(flcn, dst, size, MEM_IMEM) != 0) {
 		nvgpu_err(g, "incorrect parameters");
 		return -EINVAL;
 	}
@@ -373,7 +373,7 @@ static int gk20a_flcn_copy_to_imem(struct nvgpu_falcon *flcn, u32 dst,
 			falcon_falcon_imemc_secure_f(sec ? 1U : 0U));
 
 	for (i = 0; i < words; i++) {
-		if (i % 64 == 0) {
+		if (i % 64U == 0U) {
 			/* tag is always 256B aligned */
 			gk20a_writel(g, base_addr + falcon_falcon_imemt_r(0),
 				tag);
@@ -385,7 +385,7 @@ static int gk20a_flcn_copy_to_imem(struct nvgpu_falcon *flcn, u32 dst,
 	}
 
 	/* WARNING : setting remaining bytes in block to 0x0 */
-	while (i % 64) {
+	while (i % 64U != 0U) {
 		gk20a_writel(g, base_addr + falcon_falcon_imemd_r(port), 0);
 		i++;
 	}

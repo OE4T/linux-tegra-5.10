@@ -115,7 +115,7 @@ static void gk20a_ce_put_fences(struct gk20a_gpu_ctx *ce_ctx)
 
 	for (i = 0; i < NVGPU_CE_MAX_INFLIGHT_JOBS; i++) {
 		struct gk20a_fence **fence = &ce_ctx->postfences[i];
-		if (*fence) {
+		if (*fence != NULL) {
 			gk20a_fence_put(*fence);
 		}
 		*fence = NULL;
@@ -164,7 +164,7 @@ static inline unsigned int gk20a_ce_get_method_size(int request_operation,
 	u64 chunk = size;
 	u32 height, width;
 
-	while (chunk) {
+	while (chunk != 0ULL) {
 		iterations++;
 
 		shift = (MAX_CE_ALIGN(chunk) != 0ULL) ?
@@ -233,7 +233,7 @@ int gk20a_ce_prepare_submit(u64 src_buf,
 	 *                                             1 <------ ffs ------->
 	 *        <-----------up to 30 bits----------->
 	 */
-	while (chunk) {
+	while (chunk != 0ULL) {
 		u32 width, height, shift;
 
 		/*

@@ -341,10 +341,10 @@ void gv11b_pmu_handle_ext_irq(struct gk20a *g, u32 intr0)
 				pwr_pmu_falcon_ecc_status_reset_task_f());
 
 			/* update counters per slice */
-			if (corrected_overflow) {
+			if (corrected_overflow != 0U) {
 				corrected_delta += (0x1UL << pwr_pmu_falcon_ecc_corrected_err_count_total_s());
 			}
-			if (uncorrected_overflow) {
+			if (uncorrected_overflow != 0U) {
 				uncorrected_delta += (0x1UL << pwr_pmu_falcon_ecc_uncorrected_err_count_total_s());
 			}
 
