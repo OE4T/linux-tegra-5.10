@@ -30,4 +30,8 @@
 	tegra-carveouts {
 		memory-region = <&generic_reserved>;
 	};
+
+	bpmp {
+		/delete-property/ iommus;
+	};
 };
