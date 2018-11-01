@@ -28,6 +28,7 @@
 #include <nvgpu/io.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/netlist.h>
+#include <nvgpu/string.h>
 
 struct netlist_av *nvgpu_netlist_alloc_av_list(struct gk20a *g, struct netlist_av_list *avl)
 {
@@ -54,7 +55,7 @@ u32 *nvgpu_netlist_alloc_u32_list(struct gk20a *g, struct netlist_u32_list *u32l
 	return u32l->l;
 }
 
-static int nvgpu_netlist_alloc_load_u32_list(struct gk20a *g, u32 *src, u32 len,
+static int nvgpu_netlist_alloc_load_u32_list(struct gk20a *g, u8 *src, u32 len,
 			struct netlist_u32_list *u32_list)
 {
 	u32_list->count = (len + sizeof(u32) - 1) / sizeof(u32);
@@ -62,12 +63,12 @@ static int nvgpu_netlist_alloc_load_u32_list(struct gk20a *g, u32 *src, u32 len,
 		return -ENOMEM;
 	}
 
-	memcpy(u32_list->l, src, len);
+	nvgpu_memcpy((u8 *)u32_list->l, src, len);
 
 	return 0;
 }
 
-static int nvgpu_netlist_alloc_load_av_list(struct gk20a *g, u32 *src, u32 len,
+static int nvgpu_netlist_alloc_load_av_list(struct gk20a *g, u8 *src, u32 len,
 			struct netlist_av_list *av_list)
 {
 	av_list->count = len / sizeof(struct netlist_av);
@@ -75,12 +76,12 @@ static int nvgpu_netlist_alloc_load_av_list(struct gk20a *g, u32 *src, u32 len,
 		return -ENOMEM;
 	}
 
-	memcpy(av_list->l, src, len);
+	nvgpu_memcpy((u8 *)av_list->l, src, len);
 
 	return 0;
 }
 
-static int nvgpu_netlist_alloc_load_av_list64(struct gk20a *g, u32 *src, u32 len,
+static int nvgpu_netlist_alloc_load_av_list64(struct gk20a *g, u8 *src, u32 len,
 			struct netlist_av64_list *av64_list)
 {
 	av64_list->count = len / sizeof(struct netlist_av64);
@@ -88,12 +89,12 @@ static int nvgpu_netlist_alloc_load_av_list64(struct gk20a *g, u32 *src, u32 len
 		return -ENOMEM;
 	}
 
-	memcpy(av64_list->l, src, len);
+	nvgpu_memcpy((u8 *)av64_list->l, src, len);
 
 	return 0;
 }
 
-static int nvgpu_netlist_alloc_load_aiv_list(struct gk20a *g, u32 *src, u32 len,
+static int nvgpu_netlist_alloc_load_aiv_list(struct gk20a *g, u8 *src, u32 len,
 			struct netlist_aiv_list *aiv_list)
 {
 	aiv_list->count = len / sizeof(struct netlist_aiv);
@@ -101,7 +102,7 @@ static int nvgpu_netlist_alloc_load_aiv_list(struct gk20a *g, u32 *src, u32 len,
 		return -ENOMEM;
 	}
 
-	memcpy(aiv_list->l, src, len);
+	nvgpu_memcpy((u8 *)aiv_list->l, src, len);
 
 	return 0;
 }
@@ -144,7 +145,7 @@ static int nvgpu_netlist_init_ctx_vars_fw(struct gk20a *g)
 		netlist = (struct netlist_image *)netlist_fw->data;
 
 		for (i = 0; i < netlist->header.regions; i++) {
-			u32 *src = (u32 *)((u8 *)netlist + netlist->regions[i].data_offset);
+			u8 *src = ((u8 *)netlist + netlist->regions[i].data_offset);
 			u32 size = netlist->regions[i].data_size;
 
 			switch (netlist->regions[i].region_id) {
