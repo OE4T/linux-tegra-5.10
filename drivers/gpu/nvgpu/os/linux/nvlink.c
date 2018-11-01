@@ -15,7 +15,7 @@
  */
 
 #ifdef CONFIG_TEGRA_NVLINK
-#include <linux/platform/tegra/tegra-nvlink.h>
+#include <nvlink/common/tegra-nvlink.h>
 #endif
 
 #include <nvgpu/gk20a.h>

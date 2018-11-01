@@ -25,7 +25,7 @@
 
 #ifdef CONFIG_TEGRA_NVLINK
 #include <linux/mutex.h>
-#include <linux/platform/tegra/tegra-nvlink.h>
+#include <nvlink/common/tegra-nvlink.h>
 #endif
 
 #endif
