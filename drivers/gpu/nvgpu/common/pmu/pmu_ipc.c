@@ -28,6 +28,7 @@
 #include <nvgpu/pmuif/nvgpu_gpmu_cmdif.h>
 #include <nvgpu/falcon.h>
 #include <nvgpu/gk20a.h>
+#include <nvgpu/string.h>
 
 void nvgpu_pmu_seq_init(struct nvgpu_pmu *pmu)
 {
@@ -767,7 +768,7 @@ static void pmu_rpc_handler(struct gk20a *g, struct pmu_msg *msg,
 	struct nv_pmu_rpc_struct_perfmon_query *rpc_param;
 
 	(void) memset(&rpc, 0, sizeof(struct nv_pmu_rpc_header));
-	(void) memcpy(&rpc, rpc_payload->rpc_buff,
+	nvgpu_memcpy((u8 *)&rpc, (u8 *)rpc_payload->rpc_buff,
 		sizeof(struct nv_pmu_rpc_header));
 
 	if (rpc.flcn_status) {
@@ -931,7 +932,7 @@ int nvgpu_pmu_rpc_execute(struct nvgpu_pmu *pmu, struct nv_pmu_rpc_header *rpc,
 	cmd.cmd.rpc.cmd_type = NV_PMU_RPC_CMD_ID;
 	cmd.cmd.rpc.flags = rpc->flags;
 
-	(void) memcpy(rpc_buff, rpc, size_rpc);
+	nvgpu_memcpy((u8 *)rpc_buff, (u8 *)rpc, size_rpc);
 	payload.rpc.prpc = rpc_buff;
 	payload.rpc.size_rpc = size_rpc;
 	payload.rpc.size_scratch = size_scratch;
@@ -955,7 +956,7 @@ int nvgpu_pmu_rpc_execute(struct nvgpu_pmu *pmu, struct nv_pmu_rpc_header *rpc,
 		pmu_wait_message_cond(pmu, gk20a_get_gr_idle_timeout(g),
 			&rpc_payload->complete, true);
 		/* copy back data to caller */
-		(void) memcpy(rpc, rpc_buff, size_rpc);
+		nvgpu_memcpy((u8 *)rpc, (u8 *)rpc_buff, size_rpc);
 		/* free allocated memory */
 		nvgpu_kfree(g, rpc_payload);
 	}
