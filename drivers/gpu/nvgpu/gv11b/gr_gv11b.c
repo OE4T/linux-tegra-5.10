@@ -58,7 +58,6 @@
 #include <nvgpu/hw/gv11b/hw_proj_gv11b.h>
 #include <nvgpu/hw/gv11b/hw_ctxsw_prog_gv11b.h>
 #include <nvgpu/hw/gv11b/hw_ram_gv11b.h>
-#include <nvgpu/hw/gv11b/hw_pbdma_gv11b.h>
 #include <nvgpu/hw/gv11b/hw_perf_gv11b.h>
 
 #define GFXP_WFI_TIMEOUT_COUNT_IN_USEC_DEFAULT 100
