@@ -338,7 +338,7 @@ int gpccs_ucode_details(struct gk20a *g, struct flcn_ucode_img_v1 *p_img)
 		err = -ENOMEM;
 		goto rel_sig;
 	}
-	(void) memcpy(lsf_desc, (void *)gpccs_sig->data,
+	nvgpu_memcpy((u8 *)lsf_desc, gpccs_sig->data,
 			min_t(size_t, sizeof(*lsf_desc), gpccs_sig->size));
 	lsf_desc->falcon_id = LSF_FALCON_ID_GPCCS;
 

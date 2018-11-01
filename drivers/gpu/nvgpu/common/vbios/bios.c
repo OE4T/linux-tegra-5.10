@@ -400,7 +400,7 @@ u32 nvgpu_bios_get_nvlink_config_data(struct gk20a *g)
 		return -EINVAL;
 	}
 
-	(void) memcpy(&config,
+	nvgpu_memcpy((u8 *)&config,
 		&g->bios.data[g->bios.nvlink_config_data_offset],
 		sizeof(config));
 
@@ -732,7 +732,7 @@ static void nvgpu_bios_parse_bit(struct gk20a *g, int offset)
 	int i;
 
 	nvgpu_log_fn(g, " ");
-	(void) memcpy(&bit, &g->bios.data[offset], sizeof(bit));
+	nvgpu_memcpy((u8 *)&bit, &g->bios.data[offset], sizeof(bit));
 
 	nvgpu_log_info(g, "BIT header: %04x %08x", bit.id, bit.signature);
 	nvgpu_log_info(g, "tokens: %d entries * %d bytes",
@@ -740,7 +740,7 @@ static void nvgpu_bios_parse_bit(struct gk20a *g, int offset)
 
 	offset += bit.header_size;
 	for (i = 0; i < bit.token_entries; i++) {
-		(void) memcpy(&bit_token, &g->bios.data[offset],
+		nvgpu_memcpy((u8 *)&bit_token, &g->bios.data[offset],
 			sizeof(bit_token));
 
 		nvgpu_log_info(g, "BIT token id %d ptr %d size %d ver %d",
