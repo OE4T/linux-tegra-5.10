@@ -179,7 +179,7 @@ static struct gk20a_platform nvgpu_pci_device[] = {
 	.run_preos = true,
 	.has_syncpoints = true,
 	},
-	{ /* SKU250 */
+	{ /* PG503 SKU250 */
 	/* ptimer src frequency in hz */
 	.ptimer_src_freq	= 31250000,
 
@@ -211,7 +211,7 @@ static struct gk20a_platform nvgpu_pci_device[] = {
 	.unify_address_spaces = true,
 	.honors_aperture = true,
 	.dma_mask = DMA_BIT_MASK(40),
-	.vbios_min_version = 0x1,
+	.vbios_min_version = 0x88005900,
 	.hardcode_sw_threshold = false,
 	.run_preos = true,
 	.has_syncpoints = true,
