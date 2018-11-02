@@ -29,6 +29,7 @@
 
 #include <nvgpu/hw/tu104/hw_psec_tu104.h>
 #include <nvgpu/hw/tu104/hw_pnvdec_tu104.h>
+#include <nvgpu/hw/tu104/hw_pgsp_tu104.h>
 
 static void tu104_falcon_engine_dependency_ops(struct nvgpu_falcon *flcn)
 {
