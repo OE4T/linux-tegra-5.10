@@ -81,8 +81,6 @@ int tegracam_device_register(struct tegracam_device *tc_dev)
 	s_data->ops = tc_dev->sensor_ops;
 
 	s_data->pdata = tc_dev->sensor_ops->parse_dt(tc_dev);
-	if (PTR_ERR(s_data->pdata) == -EPROBE_DEFER)
-		return -EPROBE_DEFER;
 	if (!s_data->pdata) {
 		dev_err(dev, "unable to get platform data\n");
 		return -EFAULT;

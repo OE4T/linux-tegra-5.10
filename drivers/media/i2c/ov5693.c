@@ -27,45 +27,61 @@
 #include <linux/of_device.h>
 #include <linux/of_gpio.h>
 #include <media/tegra-v4l2-camera.h>
-#include <media/tegracam_core.h>
+#include <media/camera_common.h>
 #include <media/ov5693.h>
 
+#include "soc/tegra/tegra-i2c-rtcpu.h"
 
 #include "../platform/tegra/camera/camera_gpio.h"
 #include "ov5693_mode_tbls.h"
+#include <soc/tegra/chip-id.h>
 #define CREATE_TRACE_POINTS
 #include <trace/events/ov5693.h>
 
+
 #define OV5693_MAX_COARSE_DIFF		6
+
+#define OV5693_GAIN_SHIFT		8
+#define OV5693_MIN_GAIN		(1 << OV5693_GAIN_SHIFT)
+#define OV5693_MAX_GAIN		(16 << OV5693_GAIN_SHIFT)
+#define OV5693_MAX_UNREAL_GAIN	(0x0F80)
+#define OV5693_MIN_FRAME_LENGTH	(0x0)
 #define OV5693_MAX_FRAME_LENGTH	(0x7fff)
 #define OV5693_MIN_EXPOSURE_COARSE	(0x0002)
 #define OV5693_MAX_EXPOSURE_COARSE	\
 	(OV5693_MAX_FRAME_LENGTH-OV5693_MAX_COARSE_DIFF)
 #define OV5693_DEFAULT_LINE_LENGTH	(0xA80)
 #define OV5693_DEFAULT_PIXEL_CLOCK	(160)
+
+#define OV5693_DEFAULT_GAIN		OV5693_MIN_GAIN
 #define OV5693_DEFAULT_FRAME_LENGTH	(0x07C0)
 #define OV5693_DEFAULT_EXPOSURE_COARSE	\
 	(OV5693_DEFAULT_FRAME_LENGTH-OV5693_MAX_COARSE_DIFF)
 
-static const u32 ctrl_cid_list[] = {
-	TEGRA_CAMERA_CID_GAIN,
-	TEGRA_CAMERA_CID_EXPOSURE,
-	TEGRA_CAMERA_CID_EXPOSURE_SHORT,
-	TEGRA_CAMERA_CID_FRAME_RATE,
-	TEGRA_CAMERA_CID_GROUP_HOLD,
-	TEGRA_CAMERA_CID_HDR_EN,
-	TEGRA_CAMERA_CID_EEPROM_DATA,
-	TEGRA_CAMERA_CID_OTP_DATA,
-	TEGRA_CAMERA_CID_FUSE_ID,
+#define OV5693_DEFAULT_MODE	OV5693_MODE_2592X1944
+#define OV5693_DEFAULT_HDR_MODE	OV5693_MODE_2592X1944_HDR
+#define OV5693_DEFAULT_WIDTH	2592
+#define OV5693_DEFAULT_HEIGHT	1944
+#define OV5693_DEFAULT_DATAFMT	MEDIA_BUS_FMT_SBGGR10_1X10
+#define OV5693_DEFAULT_CLK_FREQ	24000000
+
+struct ov5693;
+
+struct ov5693_soc {
+	char is_silicon;
+	struct regmap_config *regmap_cfg;
 };
 
 struct ov5693 {
+	struct camera_common_power_rail	power;
+	int				numctrls;
+	struct v4l2_ctrl_handler	ctrl_handler;
 	struct camera_common_eeprom_data eeprom[OV5693_EEPROM_NUM_BLOCKS];
 	u8				eeprom_buf[OV5693_EEPROM_SIZE];
-	u8				otp_buf[OV5693_OTP_SIZE];
 	struct i2c_client		*i2c_client;
 	struct v4l2_subdev		*subdev;
-	u8				fuse_id[OV5693_FUSE_ID_SIZE];
+	struct media_pad		pad;
+
 	const char			*devname;
 	struct dentry			*debugfs_dir;
 	struct mutex			streaming_lock;
@@ -74,9 +90,12 @@ struct ov5693 {
 	s32				group_hold_prev;
 	u32				frame_length;
 	bool				group_hold_en;
+	struct regmap			*regmap;
 	struct camera_common_i2c	i2c_dev;
 	struct camera_common_data	*s_data;
-	struct tegracam_device		*tc_dev;
+	struct camera_common_pdata	*pdata;
+	const struct ov5693_soc		*soc;
+	struct v4l2_ctrl		*ctrls[];
 };
 
 static struct regmap_config ov5693_regmap_config = {
@@ -84,8 +103,123 @@ static struct regmap_config ov5693_regmap_config = {
 	.val_bits = 8,
 };
 
-static void ov5693_update_ctrl_range(struct camera_common_data *s_data,
-					s32 frame_length);
+static struct regmap_config ov5693_regmap_config_single = {
+	.reg_bits = 16,
+	.val_bits = 8,
+	.use_single_rw = true,
+	.cache_type = REGCACHE_NONE,
+};
+
+static struct tegra_i2c_rtcpu_config ov5693_i2c_rtcpu_config = {
+	.reg_bytes = 2,
+};
+
+static int ov5693_s_ctrl(struct v4l2_ctrl *ctrl);
+static void ov5693_update_ctrl_range(struct ov5693 *priv, s32 frame_length);
+
+static const struct v4l2_ctrl_ops ov5693_ctrl_ops = {
+	.s_ctrl		= ov5693_s_ctrl,
+};
+
+static struct v4l2_ctrl_config ctrl_config_list[] = {
+/* Do not change the name field for the controls! */
+	{
+		.ops = &ov5693_ctrl_ops,
+		.id = TEGRA_CAMERA_CID_GAIN,
+		.name = "Gain",
+		.type = V4L2_CTRL_TYPE_INTEGER,
+		.flags = V4L2_CTRL_FLAG_SLIDER,
+		.min = OV5693_MIN_GAIN,
+		.max = OV5693_MAX_GAIN,
+		.def = OV5693_DEFAULT_GAIN,
+		.step = 1,
+	},
+	{
+		.ops = &ov5693_ctrl_ops,
+		.id = TEGRA_CAMERA_CID_FRAME_LENGTH,
+		.name = "Frame Length",
+		.type = V4L2_CTRL_TYPE_INTEGER,
+		.flags = V4L2_CTRL_FLAG_SLIDER,
+		.min = OV5693_MIN_FRAME_LENGTH,
+		.max = OV5693_MAX_FRAME_LENGTH,
+		.def = OV5693_DEFAULT_FRAME_LENGTH,
+		.step = 1,
+	},
+	{
+		.ops = &ov5693_ctrl_ops,
+		.id = TEGRA_CAMERA_CID_COARSE_TIME,
+		.name = "Coarse Time",
+		.type = V4L2_CTRL_TYPE_INTEGER,
+		.flags = V4L2_CTRL_FLAG_SLIDER,
+		.min = OV5693_MIN_EXPOSURE_COARSE,
+		.max = OV5693_MAX_EXPOSURE_COARSE,
+		.def = OV5693_DEFAULT_EXPOSURE_COARSE,
+		.step = 1,
+	},
+	{
+		.ops = &ov5693_ctrl_ops,
+		.id = TEGRA_CAMERA_CID_COARSE_TIME_SHORT,
+		.name = "Coarse Time Short",
+		.type = V4L2_CTRL_TYPE_INTEGER,
+		.flags = V4L2_CTRL_FLAG_SLIDER,
+		.min = OV5693_MIN_EXPOSURE_COARSE,
+		.max = OV5693_MAX_EXPOSURE_COARSE,
+		.def = OV5693_DEFAULT_EXPOSURE_COARSE,
+		.step = 1,
+	},
+	{
+		.ops = &ov5693_ctrl_ops,
+		.id = TEGRA_CAMERA_CID_GROUP_HOLD,
+		.name = "Group Hold",
+		.type = V4L2_CTRL_TYPE_INTEGER_MENU,
+		.min = 0,
+		.max = ARRAY_SIZE(switch_ctrl_qmenu) - 1,
+		.menu_skip_mask = 0,
+		.def = 0,
+		.qmenu_int = switch_ctrl_qmenu,
+	},
+	{
+		.ops = &ov5693_ctrl_ops,
+		.id = TEGRA_CAMERA_CID_HDR_EN,
+		.name = "HDR enable",
+		.type = V4L2_CTRL_TYPE_INTEGER_MENU,
+		.min = 0,
+		.max = ARRAY_SIZE(switch_ctrl_qmenu) - 1,
+		.menu_skip_mask = 0,
+		.def = 0,
+		.qmenu_int = switch_ctrl_qmenu,
+	},
+	{
+		.ops = &ov5693_ctrl_ops,
+		.id = TEGRA_CAMERA_CID_EEPROM_DATA,
+		.name = "EEPROM Data",
+		.type = V4L2_CTRL_TYPE_STRING,
+		.flags = V4L2_CTRL_FLAG_READ_ONLY,
+		.min = 0,
+		.max = OV5693_EEPROM_STR_SIZE,
+		.step = 2,
+	},
+	{
+		.ops = &ov5693_ctrl_ops,
+		.id = TEGRA_CAMERA_CID_OTP_DATA,
+		.name = "OTP Data",
+		.type = V4L2_CTRL_TYPE_STRING,
+		.flags = V4L2_CTRL_FLAG_READ_ONLY,
+		.min = 0,
+		.max = OV5693_OTP_STR_SIZE,
+		.step = 2,
+	},
+	{
+		.ops = &ov5693_ctrl_ops,
+		.id = TEGRA_CAMERA_CID_FUSE_ID,
+		.name = "Fuse ID",
+		.type = V4L2_CTRL_TYPE_STRING,
+		.flags = V4L2_CTRL_FLAG_READ_ONLY,
+		.min = 0,
+		.max = OV5693_FUSE_ID_STR_SIZE,
+		.step = 2,
+	},
+};
 
 static inline void ov5693_get_frame_length_regs(ov5693_reg *regs,
 				u32 frame_length)
@@ -95,6 +229,7 @@ static inline void ov5693_get_frame_length_regs(ov5693_reg *regs,
 	(regs + 1)->addr = OV5693_FRAME_LENGTH_ADDR_LSB;
 	(regs + 1)->val = (frame_length) & 0xff;
 }
+
 
 static inline void ov5693_get_coarse_time_regs(ov5693_reg *regs,
 				u32 coarse_time)
@@ -134,24 +269,22 @@ module_param(test_mode, int, 0644);
 static inline int ov5693_read_reg(struct camera_common_data *s_data,
 				u16 addr, u8 *val)
 {
-	int err = 0;
-	u32 reg_val = 0;
+	struct ov5693 *priv = (struct ov5693 *)s_data->priv;
 
-	err = regmap_read(s_data->regmap, addr, &reg_val);
-	*val = reg_val & 0xFF;
-
-	return err;
+	return camera_common_i2c_read_reg8(&priv->i2c_dev,
+		addr, val, 1);
 }
 
 static int ov5693_write_reg(struct camera_common_data *s_data, u16 addr, u8 val)
 {
 	int err;
-	struct device *dev = s_data->dev;
+	struct ov5693 *priv = (struct ov5693 *)s_data->priv;
+	struct device *dev = &priv->i2c_client->dev;
 
-	err = regmap_write(s_data->regmap, addr, val);
-
+	err = camera_common_i2c_write_reg8(&priv->i2c_dev,
+		addr, &val, 1);
 	if (err)
-		dev_err(dev, "%s: i2c write failed, 0x%x = %x\n",
+		dev_err(dev, "%s: i2c write failed, %x = %x\n",
 			__func__, addr, val);
 
 	return err;
@@ -160,22 +293,16 @@ static int ov5693_write_reg(struct camera_common_data *s_data, u16 addr, u8 val)
 static int ov5693_write_table(struct ov5693 *priv,
 			      const ov5693_reg table[])
 {
-	struct camera_common_data *s_data = priv->s_data;
-
-	return regmap_util_write_table_8(s_data->regmap,
-					 table,
-					 NULL, 0,
-					 OV5693_TABLE_WAIT_MS,
-					 OV5693_TABLE_END);
+	return camera_common_i2c_write_table_8(&priv->i2c_dev,
+		table, NULL, 0,
+		OV5693_TABLE_WAIT_MS, OV5693_TABLE_END);
 }
 
-static void ov5693_gpio_set(struct camera_common_data *s_data,
+static void ov5693_gpio_set(struct ov5693 *priv,
 			    unsigned int gpio, int val)
 {
-	struct camera_common_pdata *pdata = s_data->pdata;
-
-	if (pdata && pdata->use_cam_gpio)
-		cam_gpio_ctrl(s_data->dev, gpio, val, 1);
+	if (priv->pdata && priv->pdata->use_cam_gpio)
+		cam_gpio_ctrl(&priv->i2c_client->dev, gpio, val, 1);
 	else {
 		if (gpio_cansleep(gpio))
 			gpio_set_value_cansleep(gpio, val);
@@ -187,21 +314,22 @@ static void ov5693_gpio_set(struct camera_common_data *s_data,
 static int ov5693_power_on(struct camera_common_data *s_data)
 {
 	int err = 0;
-	struct camera_common_power_rail *pw = s_data->power;
-	struct camera_common_pdata *pdata = s_data->pdata;
-	struct device *dev = s_data->dev;
-
+	struct ov5693 *priv = (struct ov5693 *)s_data->priv;
+	struct camera_common_power_rail *pw = &priv->power;
+	struct device *dev = &priv->i2c_client->dev;
+	u32 frame_time;
 
 	dev_dbg(dev, "%s: power on\n", __func__);
 
-	if (pdata && pdata->power_on) {
-		err = pdata->power_on(pw);
+	if (priv->pdata && priv->pdata->power_on) {
+		err = priv->pdata->power_on(pw);
 		if (err)
 			dev_err(dev, "%s failed.\n", __func__);
 		else
 			pw->state = SWITCH_ON;
 		return err;
 	}
+
 	/* sleeps calls in the sequence below are for internal device
 	 * signal propagation as specified by sensor vendor
 	 */
@@ -218,7 +346,7 @@ static int ov5693_power_on(struct camera_common_data *s_data)
 
 	usleep_range(1, 2);
 	if (gpio_is_valid(pw->pwdn_gpio))
-		ov5693_gpio_set(s_data, pw->pwdn_gpio, 1);
+		ov5693_gpio_set(priv, pw->pwdn_gpio, 1);
 
 	/*
 	 * datasheet 2.9: reset requires ~2ms settling time
@@ -227,13 +355,28 @@ static int ov5693_power_on(struct camera_common_data *s_data)
 	usleep_range(2000, 2010);
 
 	if (gpio_is_valid(pw->reset_gpio))
-		ov5693_gpio_set(s_data, pw->reset_gpio, 1);
+		ov5693_gpio_set(priv, pw->reset_gpio, 1);
 
 	/* datasheet fig 2-9: t3 */
 	usleep_range(2000, 2010);
 
 	pw->state = SWITCH_ON;
 
+	/*
+	 * need SW standby LP11 for mipical.
+	 * sensor default is LP00, this will transition to LP11
+	 */
+	ov5693_write_reg(s_data, 0x0100, 0x1);
+	ov5693_write_reg(s_data, 0x0100, 0x0);
+	/*
+	 * Sleep to allow SW reset to settle into LP11. After writing
+	 * 0x1, according to the datasheet, it could take the remainder
+	 * of the frame tiem to settle.  Streaming too soon after this
+	 * may have unintended consequences.
+	 */
+	frame_time = OV5693_DEFAULT_FRAME_LENGTH *
+			OV5693_DEFAULT_LINE_LENGTH / OV5693_DEFAULT_PIXEL_CLOCK;
+	usleep_range(frame_time, frame_time + 1000);
 
 	return 0;
 
@@ -248,14 +391,14 @@ ov5693_avdd_fail:
 static int ov5693_power_off(struct camera_common_data *s_data)
 {
 	int err = 0;
-	struct camera_common_power_rail *pw = s_data->power;
-	struct device *dev = s_data->dev;
-	struct camera_common_pdata *pdata = s_data->pdata;
+	struct ov5693 *priv = (struct ov5693 *)s_data->priv;
+	struct camera_common_power_rail *pw = &priv->power;
+	struct device *dev = &priv->i2c_client->dev;
 
 	dev_dbg(dev, "%s: power off\n", __func__);
 
-	if (pdata && pdata->power_off) {
-		err = pdata->power_off(pw);
+	if (priv->pdata && priv->pdata->power_off) {
+		err = priv->pdata->power_off(pw);
 		if (!err) {
 			goto power_off_done;
 		} else {
@@ -267,12 +410,13 @@ static int ov5693_power_off(struct camera_common_data *s_data)
 	/* sleeps calls in the sequence below are for internal device
 	 * signal propagation as specified by sensor vendor
 	 */
+
 	usleep_range(21, 25);
 	if (gpio_is_valid(pw->pwdn_gpio))
-		ov5693_gpio_set(s_data, pw->pwdn_gpio, 0);
+		ov5693_gpio_set(priv, pw->pwdn_gpio, 0);
 	usleep_range(1, 2);
 	if (gpio_is_valid(pw->reset_gpio))
-		ov5693_gpio_set(s_data, pw->reset_gpio, 0);
+		ov5693_gpio_set(priv, pw->reset_gpio, 0);
 
 	/* datasheet 2.9: reset requires ~2ms settling time*/
 	usleep_range(2000, 2010);
@@ -287,18 +431,15 @@ power_off_done:
 	return 0;
 }
 
-static int ov5693_power_put(struct tegracam_device *tc_dev)
+static int ov5693_power_put(struct ov5693 *priv)
 {
-	struct camera_common_data *s_data = tc_dev->s_data;
-	struct camera_common_power_rail *pw = s_data->power;
-	struct camera_common_pdata *pdata = s_data->pdata;
-	struct device *dev = tc_dev->dev;
+	struct camera_common_power_rail *pw = &priv->power;
 
 	if (unlikely(!pw))
 		return -EFAULT;
 
-	if (pdata && pdata->use_cam_gpio)
-		cam_gpio_deregister(dev, pw->pwdn_gpio);
+	if (priv->pdata && priv->pdata->use_cam_gpio)
+		cam_gpio_deregister(&priv->i2c_client->dev, pw->pwdn_gpio);
 	else {
 		if (gpio_is_valid(pw->pwdn_gpio))
 			gpio_free(pw->pwdn_gpio);
@@ -309,12 +450,11 @@ static int ov5693_power_put(struct tegracam_device *tc_dev)
 	return 0;
 }
 
-static int ov5693_power_get(struct tegracam_device *tc_dev)
+static int ov5693_power_get(struct ov5693 *priv)
 {
-	struct camera_common_data *s_data = tc_dev->s_data;
-	struct camera_common_power_rail *pw = s_data->power;
-	struct camera_common_pdata *pdata = s_data->pdata;
-	struct device *dev = tc_dev->dev;
+	struct camera_common_power_rail *pw = &priv->power;
+	struct camera_common_pdata *pdata = priv->pdata;
+	struct device *dev = &priv->i2c_client->dev;
 	const char *mclk_name;
 	const char *parentclk_name;
 	struct clk *parent;
@@ -325,6 +465,10 @@ static int ov5693_power_get(struct tegracam_device *tc_dev)
 		return -EFAULT;
 	}
 
+	if (!priv->soc->is_silicon) {
+		dev_info(dev, "Skip getting mclk,regulator\n");
+		goto skip_clkvdd;
+	}
 	mclk_name = pdata->mclk_name ?
 		    pdata->mclk_name : "cam_mclk1";
 	pw->mclk = devm_clk_get(dev, mclk_name);
@@ -332,6 +476,7 @@ static int ov5693_power_get(struct tegracam_device *tc_dev)
 		dev_err(dev, "unable to get clock %s\n", mclk_name);
 		return PTR_ERR(pw->mclk);
 	}
+
 	parentclk_name = pdata->parentclk_name;
 	if (parentclk_name) {
 		parent = devm_clk_get(dev, parentclk_name);
@@ -342,6 +487,7 @@ static int ov5693_power_get(struct tegracam_device *tc_dev)
 			clk_set_parent(pw->mclk, parent);
 	}
 
+
 	/* analog 2.8v */
 	err |= camera_common_regulator_get(dev,
 			&pw->avdd, pdata->regulators.avdd);
@@ -349,6 +495,7 @@ static int ov5693_power_get(struct tegracam_device *tc_dev)
 	err |= camera_common_regulator_get(dev,
 			&pw->iovdd, pdata->regulators.iovdd);
 
+skip_clkvdd:
 	if (!err) {
 		pw->reset_gpio = pdata->reset_gpio;
 		pw->pwdn_gpio = pdata->pwdn_gpio;
@@ -381,30 +528,225 @@ static int ov5693_power_get(struct tegracam_device *tc_dev)
 	return err;
 }
 
-static int ov5693_set_gain(struct tegracam_device *tc_dev, s64 val);
-static int ov5693_set_frame_rate(struct tegracam_device *tc_dev, s64 val);
-static int ov5693_set_exposure(struct tegracam_device *tc_dev, s64 val);
-static int ov5693_set_exposure_short(struct tegracam_device *tc_dev, s64 val);
+static int ov5693_set_gain(struct ov5693 *priv, s32 val);
+static int ov5693_set_frame_length(struct ov5693 *priv, s32 val);
+static int ov5693_set_coarse_time(struct ov5693 *priv, s32 val);
+static int ov5693_set_coarse_time_short(struct ov5693 *priv, s32 val);
+
+static int ov5693_s_stream(struct v4l2_subdev *sd, int enable)
+{
+	struct i2c_client *client = v4l2_get_subdevdata(sd);
+	struct camera_common_data *s_data = to_camera_common_data(&client->dev);
+	struct ov5693 *priv = (struct ov5693 *)s_data->priv;
+	struct v4l2_control control;
+	int err;
+	u32 frame_time;
+	u8 val;
+
+	dev_dbg(&client->dev, "%s++\n", __func__);
+
+	trace_ov5693_s_stream(sd->name, enable, s_data->mode);
+	if (!enable) {
+		ov5693_update_ctrl_range(priv, OV5693_MAX_FRAME_LENGTH);
+
+		mutex_lock(&priv->streaming_lock);
+		err = ov5693_write_table(priv,
+			mode_table[OV5693_MODE_STOP_STREAM]);
+		if (err) {
+			mutex_unlock(&priv->streaming_lock);
+			return err;
+		} else {
+			priv->streaming = false;
+			mutex_unlock(&priv->streaming_lock);
+		}
+
+		/*
+		 * Wait for one frame to make sure sensor is set to
+		 * software standby in V-blank
+		 *
+		 * frame_time = frame length rows * Tline
+		 * Tline = line length / pixel clock (in MHz)
+		 */
+		frame_time = priv->frame_length *
+			OV5693_DEFAULT_LINE_LENGTH / OV5693_DEFAULT_PIXEL_CLOCK;
+
+		usleep_range(frame_time, frame_time + 1000);
+		return 0;
+	}
+
+	err = ov5693_write_table(priv, mode_table[s_data->mode]);
+	if (err)
+		goto exit;
+
+
+	if (s_data->override_enable) {
+		/*
+		 * write list of override regs for the asking frame length,
+		 * coarse integration time, and gain. Failures to write
+		 * overrides are non-fatal
+		 */
+		control.id = TEGRA_CAMERA_CID_GAIN;
+		err = v4l2_g_ctrl(&priv->ctrl_handler, &control);
+		err |= ov5693_set_gain(priv, control.value);
+		if (err)
+			dev_dbg(&client->dev, "%s: warning gain override failed\n",
+				__func__);
+
+		control.id = TEGRA_CAMERA_CID_FRAME_LENGTH;
+		err = v4l2_g_ctrl(&priv->ctrl_handler, &control);
+		err |= ov5693_set_frame_length(priv, control.value);
+		if (err)
+			dev_dbg(&client->dev,
+				"%s: warning frame length override failed\n",
+				__func__);
+
+		control.id = TEGRA_CAMERA_CID_COARSE_TIME;
+		err = v4l2_g_ctrl(&priv->ctrl_handler, &control);
+		err |= ov5693_set_coarse_time(priv, control.value);
+		if (err)
+			dev_dbg(&client->dev,
+				"%s: warning coarse time override failed\n",
+				__func__);
+
+		control.id = TEGRA_CAMERA_CID_COARSE_TIME_SHORT;
+		err = v4l2_g_ctrl(&priv->ctrl_handler, &control);
+		err |= ov5693_set_coarse_time_short(priv, control.value);
+		if (err)
+			dev_dbg(&client->dev,
+				"%s: warning coarse time short override failed\n",
+				__func__);
+	}
+
+	mutex_lock(&priv->streaming_lock);
+	err = ov5693_write_table(priv, mode_table[OV5693_MODE_START_STREAM]);
+	if (err) {
+		mutex_unlock(&priv->streaming_lock);
+		goto exit;
+	} else {
+		priv->streaming = true;
+		mutex_unlock(&priv->streaming_lock);
+	}
+	if (priv->pdata->v_flip) {
+		ov5693_read_reg(priv->s_data, OV5693_TIMING_REG20, &val);
+		ov5693_write_reg(priv->s_data, OV5693_TIMING_REG20,
+				 val | VERTICAL_FLIP);
+	}
+	if (priv->pdata->h_mirror) {
+		ov5693_read_reg(priv->s_data, OV5693_TIMING_REG21, &val);
+		ov5693_write_reg(priv->s_data, OV5693_TIMING_REG21,
+				 val | HORIZONTAL_MIRROR_MASK);
+	} else {
+		ov5693_read_reg(priv->s_data, OV5693_TIMING_REG21, &val);
+		ov5693_write_reg(priv->s_data, OV5693_TIMING_REG21,
+				 val & (~HORIZONTAL_MIRROR_MASK));
+	}
+	if (test_mode)
+		err = ov5693_write_table(priv,
+			mode_table[OV5693_MODE_TEST_PATTERN]);
+
+	dev_dbg(&client->dev, "%s--\n", __func__);
+	return 0;
+exit:
+	dev_dbg(&client->dev, "%s: error setting stream\n", __func__);
+	return err;
+}
+
+static int ov5693_g_input_status(struct v4l2_subdev *sd, u32 *status)
+{
+	struct i2c_client *client = v4l2_get_subdevdata(sd);
+	struct camera_common_data *s_data = to_camera_common_data(&client->dev);
+	struct ov5693 *priv = (struct ov5693 *)s_data->priv;
+	struct camera_common_power_rail *pw = &priv->power;
+
+	*status = pw->state == SWITCH_ON;
+	return 0;
+}
+
+static struct v4l2_subdev_video_ops ov5693_subdev_video_ops = {
+	.s_stream	= ov5693_s_stream,
+	.g_mbus_config	= camera_common_g_mbus_config,
+	.g_input_status = ov5693_g_input_status,
+};
+
+static struct v4l2_subdev_core_ops ov5693_subdev_core_ops = {
+	.s_power	= camera_common_s_power,
+};
+
+static int ov5693_get_fmt(struct v4l2_subdev *sd,
+		struct v4l2_subdev_pad_config *cfg,
+		struct v4l2_subdev_format *format)
+{
+	return camera_common_g_fmt(sd, &format->format);
+}
+
+static int ov5693_set_fmt(struct v4l2_subdev *sd,
+		struct v4l2_subdev_pad_config *cfg,
+		struct v4l2_subdev_format *format)
+{
+	int ret;
+
+	if (format->which == V4L2_SUBDEV_FORMAT_TRY)
+		ret = camera_common_try_fmt(sd, &format->format);
+	else
+		ret = camera_common_s_fmt(sd, &format->format);
+
+	return ret;
+}
+
+static struct v4l2_subdev_pad_ops ov5693_subdev_pad_ops = {
+	.set_fmt = ov5693_set_fmt,
+	.get_fmt = ov5693_get_fmt,
+	.enum_mbus_code = camera_common_enum_mbus_code,
+	.enum_frame_size	= camera_common_enum_framesizes,
+	.enum_frame_interval	= camera_common_enum_frameintervals,
+};
+
+static struct v4l2_subdev_ops ov5693_subdev_ops = {
+	.core	= &ov5693_subdev_core_ops,
+	.video	= &ov5693_subdev_video_ops,
+	.pad	= &ov5693_subdev_pad_ops,
+};
+
+static const struct ov5693_soc ov5693_silicon = {
+	.is_silicon = true,
+	.regmap_cfg = &ov5693_regmap_config,
+};
+
+static const struct ov5693_soc ov5693_t19x_sim = {
+	.is_silicon = false,
+	.regmap_cfg = &ov5693_regmap_config_single,
+};
 
 static const struct of_device_id ov5693_of_match[] = {
 	{
 		.compatible = "nvidia,ov5693",
+		.data = &ov5693_silicon,
+	},
+	{
+		.compatible = "nvidia,ov5693-sim",
+		.data = &ov5693_t19x_sim,
 	},
 	{ },
 };
 
-static int ov5693_set_group_hold(struct tegracam_device *tc_dev, bool val)
+static struct camera_common_sensor_ops ov5693_common_ops = {
+	.power_on = ov5693_power_on,
+	.power_off = ov5693_power_off,
+	.write_reg = ov5693_write_reg,
+	.read_reg = ov5693_read_reg,
+};
+
+static int ov5693_set_group_hold(struct ov5693 *priv)
 {
 	int err;
-	struct ov5693 *priv = tc_dev->priv;
 	int gh_prev = switch_ctrl_qmenu[priv->group_hold_prev];
-	struct device *dev = tc_dev->dev;
+	struct device *dev = &priv->i2c_client->dev;
 
 	if (priv->group_hold_en == true && gh_prev == SWITCH_OFF) {
 		camera_common_i2c_aggregate(&priv->i2c_dev, true);
 		/* enter group hold */
 		err = ov5693_write_reg(priv->s_data,
-				       OV5693_GROUP_HOLD_ADDR, val);
+				       OV5693_GROUP_HOLD_ADDR, 0x01);
 		if (err)
 			goto fail;
 
@@ -437,30 +779,46 @@ fail:
 	return err;
 }
 
-static int ov5693_set_gain(struct tegracam_device *tc_dev, s64 val)
+static u16 ov5693_to_real_gain(u32 rep, int shift)
 {
-	struct camera_common_data *s_data = tc_dev->s_data;
-	struct ov5693 *priv = (struct ov5693 *)tc_dev->priv;
-	struct device *dev = tc_dev->dev;
-	const struct sensor_mode_properties *mode =
-		&s_data->sensor_props.sensor_modes[s_data->mode_prop_idx];
+	u16 gain;
+	int gain_int;
+	int gain_dec;
+	int min_int = (1 << shift);
+
+	if (rep < OV5693_MIN_GAIN)
+		rep = OV5693_MIN_GAIN;
+	else if (rep > OV5693_MAX_GAIN)
+		rep = OV5693_MAX_GAIN;
+
+	gain_int = (int)(rep >> shift);
+	gain_dec = (int)(rep & ~(0xffff << shift));
+
+	/* derived from formulat gain = (x * 16 + 0.5) */
+	gain = ((gain_int * min_int + gain_dec) * 32 + min_int) / (2 * min_int);
+
+	return gain;
+}
+
+static int ov5693_set_gain(struct ov5693 *priv, s32 val)
+{
+	struct device *dev = &priv->i2c_client->dev;
 	ov5693_reg reg_list[2];
 	int err;
 	u16 gain;
 	int i;
 
 	if (!priv->group_hold_prev)
-		ov5693_set_group_hold(tc_dev, 1);
+		ov5693_set_group_hold(priv);
 
 	/* translate value */
-	gain = (u16) (((val * 16) +
-			(mode->control_properties.gain_factor / 2)) /
-			mode->control_properties.gain_factor);
+	gain = ov5693_to_real_gain((u32)val, OV5693_GAIN_SHIFT);
+
 	ov5693_get_gain_regs(reg_list, gain);
-	dev_dbg(dev, "%s: gain %d val: %lld\n", __func__, gain, val);
+	dev_dbg(dev, "%s: gain %04x val: %04x\n", __func__, val, gain);
 
 	for (i = 0; i < 2; i++) {
-		err = ov5693_write_reg(s_data, reg_list[i].addr,
+		err = ov5693_write_reg(priv->s_data, reg_list[i].addr,
 			 reg_list[i].val);
 		if (err)
 			goto fail;
@@ -473,25 +831,24 @@ fail:
 	return err;
 }
 
-static void ov5693_update_ctrl_range(struct camera_common_data *s_data,
-					s32 frame_length)
+static void ov5693_update_ctrl_range(struct ov5693 *priv, s32 frame_length)
 {
-	struct device *dev = s_data->dev;
+	struct device *dev = &priv->i2c_client->dev;
 	struct v4l2_ctrl *ctrl = NULL;
-	int ctrl_ids[2] = {TEGRA_CAMERA_CID_EXPOSURE,
-			TEGRA_CAMERA_CID_EXPOSURE_SHORT};
+	int ctrl_ids[2] = {TEGRA_CAMERA_CID_COARSE_TIME,
+			TEGRA_CAMERA_CID_COARSE_TIME_SHORT};
 	s32 max, min, def;
 	int i, j;
 
 	for (i = 0; i < ARRAY_SIZE(ctrl_ids); i++) {
-		for (j = 0; j < s_data->numctrls; j++) {
-			if (s_data->ctrls[j]->id == ctrl_ids[i]) {
-				ctrl = s_data->ctrls[j];
+		for (j = 0; j < priv->numctrls; j++) {
+			if (priv->ctrls[j]->id == ctrl_ids[i]) {
+				ctrl = priv->ctrls[j];
 				break;
 			}
 		}
 
-		if (j == s_data->numctrls) {
+		if (j == priv->numctrls) {
 			dev_err(dev, "could not find ctrl %x\n", ctrl_ids[i]);
 			continue;
 		}
@@ -509,30 +866,24 @@ static void ov5693_update_ctrl_range(struct camera_common_data *s_data,
 
 }
 
-static int ov5693_set_frame_rate(struct tegracam_device *tc_dev, s64 val)
+static int ov5693_set_frame_length(struct ov5693 *priv, s32 val)
 {
-	struct camera_common_data *s_data = tc_dev->s_data;
-	struct device *dev = tc_dev->dev;
-	struct ov5693 *priv = tc_dev->priv;
-	const struct sensor_mode_properties *mode =
-		&s_data->sensor_props.sensor_modes[s_data->mode_prop_idx];
+	struct device *dev = &priv->i2c_client->dev;
 	ov5693_reg reg_list[2];
 	int err;
 	u32 frame_length;
 	int i;
 
 	if (!priv->group_hold_prev)
-		ov5693_set_group_hold(tc_dev, 1);
+		ov5693_set_group_hold(priv);
 
-	frame_length =  mode->signal_properties.pixel_clock.val *
-		mode->control_properties.framerate_factor /
-		mode->image_properties.line_length / val;
+	frame_length = (u32)val;
 
 	ov5693_get_frame_length_regs(reg_list, frame_length);
 	dev_dbg(dev, "%s: val: %d\n", __func__, frame_length);
 
 	for (i = 0; i < 2; i++) {
-		err = ov5693_write_reg(s_data, reg_list[i].addr,
+		err = ov5693_write_reg(priv->s_data, reg_list[i].addr,
 			 reg_list[i].val);
 		if (err)
 			goto fail;
@@ -540,7 +891,7 @@ static int ov5693_set_frame_rate(struct tegracam_device *tc_dev, s64 val)
 
 	priv->frame_length = frame_length;
 
-	ov5693_update_ctrl_range(s_data, val);
+	ov5693_update_ctrl_range(priv, val);
 	return 0;
 
 fail:
@@ -548,29 +899,24 @@ fail:
 	return err;
 }
 
-static int ov5693_set_exposure(struct tegracam_device *tc_dev, s64 val)
+static int ov5693_set_coarse_time(struct ov5693 *priv, s32 val)
 {
-	struct camera_common_data *s_data = tc_dev->s_data;
-	struct device *dev = tc_dev->dev;
-	struct ov5693 *priv = tc_dev->priv;
-	const struct sensor_mode_properties *mode =
-		&s_data->sensor_props.sensor_modes[s_data->mode_prop_idx];
+	struct device *dev = &priv->i2c_client->dev;
 	ov5693_reg reg_list[3];
 	int err;
 	u32 coarse_time;
 	int i;
 
 	if (!priv->group_hold_prev)
-		ov5693_set_group_hold(tc_dev, 1);
+		ov5693_set_group_hold(priv);
 
-	coarse_time = (u32)(((mode->signal_properties.pixel_clock.val*val)
-			/mode->image_properties.line_length)/
-			mode->control_properties.exposure_factor);
+	coarse_time = (u32)val;
+
 	ov5693_get_coarse_time_regs(reg_list, coarse_time);
 	dev_dbg(dev, "%s: val: %d\n", __func__, coarse_time);
 
 	for (i = 0; i < 3; i++) {
-		err = ov5693_write_reg(s_data, reg_list[i].addr,
+		err = ov5693_write_reg(priv->s_data, reg_list[i].addr,
 			 reg_list[i].val);
 		if (err)
 			goto fail;
@@ -583,26 +929,23 @@ fail:
 	return err;
 }
 
-static int ov5693_set_exposure_short(struct tegracam_device *tc_dev, s64 val)
+static int ov5693_set_coarse_time_short(struct ov5693 *priv, s32 val)
 {
-	struct camera_common_data *s_data = tc_dev->s_data;
-	struct device *dev = tc_dev->dev;
-	struct ov5693 *priv = tc_dev->priv;
-	const struct sensor_mode_properties *mode =
-		&s_data->sensor_props.sensor_modes[s_data->mode_prop_idx];
+	struct device *dev = &priv->i2c_client->dev;
 	ov5693_reg reg_list[3];
 	int err;
 	struct v4l2_control hdr_control;
 	int hdr_en;
 	u32 coarse_time_short;
 	int i;
+
 	if (!priv->group_hold_prev)
-		ov5693_set_group_hold(tc_dev, 1);
+		ov5693_set_group_hold(priv);
 
 	/* check hdr enable ctrl */
 	hdr_control.id = TEGRA_CAMERA_CID_HDR_EN;
 
-	err = camera_common_g_ctrl(s_data, &hdr_control);
+	err = camera_common_g_ctrl(priv->s_data, &hdr_control);
 	if (err < 0) {
 		dev_err(dev, "could not find device ctrl.\n");
 		return err;
@@ -612,15 +955,13 @@ static int ov5693_set_exposure_short(struct tegracam_device *tc_dev, s64 val)
 	if (hdr_en == SWITCH_OFF)
 		return 0;
 
-	coarse_time_short = (u32)(((mode->signal_properties.pixel_clock.val*val)
-				/mode->image_properties.line_length)
-				/mode->control_properties.exposure_factor);
+	coarse_time_short = (u32)val;
 
 	ov5693_get_coarse_time_short_regs(reg_list, coarse_time_short);
 	dev_dbg(dev, "%s: val: %d\n", __func__, coarse_time_short);
 
 	for (i = 0; i < 3; i++) {
-		err = ov5693_write_reg(s_data, reg_list[i].addr,
+		err = ov5693_write_reg(priv->s_data, reg_list[i].addr,
 			 reg_list[i].val);
 		if (err)
 			goto fail;
@@ -631,35 +972,6 @@ static int ov5693_set_exposure_short(struct tegracam_device *tc_dev, s64 val)
 fail:
 	dev_dbg(dev, "%s: COARSE_TIME_SHORT control error\n", __func__);
 	return err;
-}
-
-static int ov5693_fill_string_ctrl(struct tegracam_device *tc_dev,
-				struct v4l2_ctrl *ctrl)
-{
-	struct ov5693 *priv = tc_dev->priv;
-	int i;
-
-	switch (ctrl->id) {
-	case TEGRA_CAMERA_CID_EEPROM_DATA:
-		for (i = 0; i < OV5693_EEPROM_SIZE; i++)
-			sprintf(&ctrl->p_new.p_char[i*2], "%02x",
-				priv->eeprom_buf[i]);
-		break;
-	case TEGRA_CAMERA_CID_OTP_DATA:
-		for (i = 0; i < OV5693_OTP_SIZE; i++)
-			sprintf(&ctrl->p_new.p_char[i*2], "%02x",
-				priv->otp_buf[i]);
-		break;
-	case TEGRA_CAMERA_CID_FUSE_ID:
-		for (i = 0; i < OV5693_FUSE_ID_SIZE; i++)
-			sprintf(&ctrl->p_new.p_char[i*2], "%02x",
-				priv->fuse_id[i]);
-		break;
-	default:
-		return -EINVAL;
-	}
-	ctrl->p_cur.p_char = ctrl->p_new.p_char;
-	return 0;
 }
 
 static int ov5693_eeprom_device_release(struct ov5693 *priv)
@@ -678,7 +990,6 @@ static int ov5693_eeprom_device_release(struct ov5693 *priv)
 
 static int ov5693_eeprom_device_init(struct ov5693 *priv)
 {
-	struct camera_common_pdata *pdata =  priv->s_data->pdata;
 	char *dev_name = "eeprom_ov5693";
 	static struct regmap_config eeprom_regmap_config = {
 		.reg_bits = 8,
@@ -687,7 +998,7 @@ static int ov5693_eeprom_device_init(struct ov5693 *priv)
 	int i;
 	int err;
 
-	if (!pdata->has_eeprom)
+	if (!priv->pdata->has_eeprom)
 		return -EINVAL;
 
 	for (i = 0; i < OV5693_EEPROM_NUM_BLOCKS; i++) {
@@ -715,6 +1026,15 @@ static int ov5693_eeprom_device_init(struct ov5693 *priv)
 static int ov5693_read_eeprom(struct ov5693 *priv)
 {
 	int err, i;
+	struct v4l2_ctrl *ctrl;
+
+	ctrl = v4l2_ctrl_find(&priv->ctrl_handler,
+			TEGRA_CAMERA_CID_EEPROM_DATA);
+	if (!ctrl) {
+		dev_err(&priv->i2c_client->dev,
+			"could not find device ctrl.\n");
+		return -EINVAL;
+	}
 
 	for (i = 0; i < OV5693_EEPROM_NUM_BLOCKS; i++) {
 		err = regmap_bulk_read(priv->eeprom[i].regmap, 0,
@@ -724,6 +1044,9 @@ static int ov5693_read_eeprom(struct ov5693 *priv)
 			return err;
 	}
 
+	for (i = 0; i < OV5693_EEPROM_SIZE; i++)
+		sprintf(&ctrl->p_new.p_char[i*2], "%02x",
+			priv->eeprom_buf[i]);
 	return 0;
 }
 
@@ -735,6 +1058,7 @@ static int ov5693_read_otp_bank(struct ov5693 *priv,
 	/* sleeps calls in the sequence below are for internal device
 	 * signal propagation as specified by sensor vendor
 	 */
+
 	usleep_range(10000, 11000);
 	mutex_lock(&priv->streaming_lock);
 	err = ov5693_write_table(priv, mode_table[OV5693_MODE_START_STREAM]);
@@ -756,8 +1080,8 @@ static int ov5693_read_otp_bank(struct ov5693 *priv,
 		return err;
 
 	usleep_range(10000, 11000);
-	err = regmap_bulk_read(priv->s_data->regmap, addr, buf, size);
-
+	err = camera_common_i2c_read_reg8(&priv->i2c_dev,
+		addr, buf, size);
 	if (err)
 		return err;
 
@@ -776,14 +1100,15 @@ static int ov5693_read_otp_bank(struct ov5693 *priv,
 
 static int ov5693_otp_setup(struct ov5693 *priv)
 {
-	struct device *dev = priv->s_data->dev;
-	int err = 0;
+	struct device *dev = &priv->i2c_client->dev;
+	int err;
 	int i;
+	struct v4l2_ctrl *ctrl;
+	u8 otp_buf[OV5693_OTP_SIZE];
 
 	for (i = 0; i < OV5693_OTP_NUM_BANKS; i++) {
 		err = ov5693_read_otp_bank(priv,
-					&priv->otp_buf[i
-					* OV5693_OTP_BANK_SIZE],
+					&otp_buf[i * OV5693_OTP_BANK_SIZE],
 					i,
 					OV5693_OTP_BANK_START_ADDR,
 					OV5693_OTP_BANK_SIZE);
@@ -793,17 +1118,32 @@ static int ov5693_otp_setup(struct ov5693 *priv)
 		}
 	}
 
+	ctrl = v4l2_ctrl_find(&priv->ctrl_handler, TEGRA_CAMERA_CID_OTP_DATA);
+	if (!ctrl) {
+		dev_err(dev, "could not find device ctrl.\n");
+		err = -EINVAL;
+		goto ret;
+	}
+
+	for (i = 0; i < OV5693_OTP_SIZE; i++)
+		sprintf(&ctrl->p_new.p_char[i*2], "%02x",
+			otp_buf[i]);
+	ctrl->p_cur.p_char = ctrl->p_new.p_char;
+
 ret:
 	return err;
 }
 
 static int ov5693_fuse_id_setup(struct ov5693 *priv)
 {
-	struct device *dev = priv->s_data->dev;
+	struct device *dev = &priv->i2c_client->dev;
 	int err;
+	int i;
+	struct v4l2_ctrl *ctrl;
+	u8 fuse_id[OV5693_FUSE_ID_SIZE];
 
 	err = ov5693_read_otp_bank(priv,
-				&priv->fuse_id[0],
+				&fuse_id[0],
 				OV5693_FUSE_ID_OTP_BANK,
 				OV5693_FUSE_ID_OTP_START_ADDR,
 				OV5693_FUSE_ID_SIZE);
@@ -812,42 +1152,185 @@ static int ov5693_fuse_id_setup(struct ov5693 *priv)
 		goto ret;
 	}
 
+	ctrl = v4l2_ctrl_find(&priv->ctrl_handler, TEGRA_CAMERA_CID_FUSE_ID);
+	if (!ctrl) {
+		dev_err(dev, "could not find device ctrl.\n");
+		err = -EINVAL;
+		goto ret;
+	}
+
+	for (i = 0; i < OV5693_FUSE_ID_SIZE; i++)
+		sprintf(&ctrl->p_new.p_char[i*2], "%02x",
+			fuse_id[i]);
+	ctrl->p_cur.p_char = ctrl->p_new.p_char;
+
 ret:
+	return err;
+}
+
+static int ov5693_s_ctrl(struct v4l2_ctrl *ctrl)
+{
+	struct ov5693 *priv =
+		container_of(ctrl->handler, struct ov5693, ctrl_handler);
+	struct device *dev = &priv->i2c_client->dev;
+	int err = 0;
+
+	if (priv->power.state == SWITCH_OFF)
+		return 0;
+
+	switch (ctrl->id) {
+	case TEGRA_CAMERA_CID_GAIN:
+		err = ov5693_set_gain(priv, ctrl->val);
+		break;
+	case TEGRA_CAMERA_CID_FRAME_LENGTH:
+		err = ov5693_set_frame_length(priv, ctrl->val);
+		break;
+	case TEGRA_CAMERA_CID_COARSE_TIME:
+		err = ov5693_set_coarse_time(priv, ctrl->val);
+		break;
+	case TEGRA_CAMERA_CID_COARSE_TIME_SHORT:
+		err = ov5693_set_coarse_time_short(priv, ctrl->val);
+		break;
+	case TEGRA_CAMERA_CID_GROUP_HOLD:
+		if (switch_ctrl_qmenu[ctrl->val] == SWITCH_ON) {
+			priv->group_hold_en = true;
+		} else {
+			priv->group_hold_en = false;
+			err = ov5693_set_group_hold(priv);
+		}
+		break;
+	case TEGRA_CAMERA_CID_HDR_EN:
+		break;
+	default:
+		dev_err(dev, "%s: unknown ctrl id.\n", __func__);
+		return -EINVAL;
+	}
+
+	return err;
+}
+
+static int ov5693_ctrls_init(struct ov5693 *priv, bool eeprom_ctrl)
+{
+	struct i2c_client *client = priv->i2c_client;
+	struct v4l2_ctrl *ctrl;
+	int numctrls;
+	int err;
+	int i;
+
+	dev_dbg(&client->dev, "%s++\n", __func__);
+
+	numctrls = ARRAY_SIZE(ctrl_config_list);
+	v4l2_ctrl_handler_init(&priv->ctrl_handler, numctrls);
+
+	for (i = 0; i < numctrls; i++) {
+		ctrl = v4l2_ctrl_new_custom(&priv->ctrl_handler,
+			&ctrl_config_list[i], NULL);
+		if (ctrl == NULL) {
+			dev_err(&client->dev, "Failed to init %s ctrl\n",
+				ctrl_config_list[i].name);
+			continue;
+		}
+
+		if (ctrl_config_list[i].type == V4L2_CTRL_TYPE_STRING &&
+			ctrl_config_list[i].flags & V4L2_CTRL_FLAG_READ_ONLY) {
+			ctrl->p_new.p_char = devm_kzalloc(&client->dev,
+				ctrl_config_list[i].max + 1, GFP_KERNEL);
+			if (!ctrl->p_new.p_char)
+				return -ENOMEM;
+		}
+		priv->ctrls[i] = ctrl;
+	}
+
+	priv->numctrls = numctrls;
+	priv->subdev->ctrl_handler = &priv->ctrl_handler;
+	if (priv->ctrl_handler.error) {
+		dev_err(&client->dev, "Error %d adding controls\n",
+			priv->ctrl_handler.error);
+		err = priv->ctrl_handler.error;
+		goto error;
+	}
+
+	err = v4l2_ctrl_handler_setup(&priv->ctrl_handler);
+	if (err) {
+		dev_err(&client->dev,
+			"Error %d setting default controls\n", err);
+		goto error;
+	}
+
+	err = camera_common_s_power(priv->subdev, true);
+	if (err) {
+		dev_err(&client->dev,
+			"Error %d during power on\n", err);
+		err = -ENODEV;
+		goto error;
+	}
+
+	if (eeprom_ctrl) {
+		err = ov5693_read_eeprom(priv);
+		if (err) {
+			dev_err(&client->dev,
+				"Error %d reading eeprom\n", err);
+			goto error_hw;
+		}
+	}
+
+	err = ov5693_otp_setup(priv);
+	if (err) {
+		dev_err(&client->dev,
+			"Error %d reading otp data\n", err);
+		goto error_hw;
+	}
+
+	err = ov5693_fuse_id_setup(priv);
+	if (err) {
+		dev_err(&client->dev,
+			"Error %d reading fuse id data\n", err);
+		goto error_hw;
+	}
+
+	camera_common_s_power(priv->subdev, false);
+	return 0;
+
+error_hw:
+	camera_common_s_power(priv->subdev, false);
+error:
+	v4l2_ctrl_handler_free(&priv->ctrl_handler);
 	return err;
 }
 
 MODULE_DEVICE_TABLE(of, ov5693_of_match);
 
-static struct camera_common_pdata *ov5693_parse_dt(struct tegracam_device
-							*tc_dev)
+static struct camera_common_pdata *ov5693_parse_dt(struct i2c_client *client)
 {
-	struct device *dev = tc_dev->dev;
-	struct device_node *node = dev->of_node;
+	struct device_node *node = client->dev.of_node;
 	struct camera_common_pdata *board_priv_pdata;
 	const struct of_device_id *match;
 	int gpio;
 	int err;
 	struct camera_common_pdata *ret = NULL;
+	const struct ov5693_soc *soc;
 
 	if (!node)
 		return NULL;
 
-	match = of_match_device(ov5693_of_match, dev);
+	match = of_match_device(ov5693_of_match, &client->dev);
 	if (!match) {
-		dev_err(dev, "Failed to find matching dt id\n");
+		dev_err(&client->dev, "Failed to find matching dt id\n");
 		return NULL;
 	}
-
-	board_priv_pdata = devm_kzalloc(dev,
+	soc = match->data;
+	board_priv_pdata = devm_kzalloc(&client->dev,
 			   sizeof(*board_priv_pdata), GFP_KERNEL);
 	if (!board_priv_pdata)
 		return NULL;
 
-	err = camera_common_parse_clocks(dev,
-					 board_priv_pdata);
-	if (err) {
-		dev_err(dev, "Failed to find clocks\n");
-		goto error;
+	if (soc->is_silicon) {
+		err = camera_common_parse_clocks(&client->dev,
+						 board_priv_pdata);
+		if (err) {
+			dev_err(&client->dev, "Failed to find clocks\n");
+			goto error;
+		}
 	}
 
 	gpio = of_get_named_gpio(node, "pwdn-gpios", 0);
@@ -857,6 +1340,10 @@ static struct camera_common_pdata *ov5693_parse_dt(struct tegracam_device
 			goto error;
 		}
 		gpio = 0;
+		if (soc->is_silicon) {
+			dev_err(&client->dev, "pwdn gpios not in DT\n");
+			goto error;
+		}
 	}
 	board_priv_pdata->pwdn_gpio = (unsigned int)gpio;
 
@@ -867,150 +1354,43 @@ static struct camera_common_pdata *ov5693_parse_dt(struct tegracam_device
 			ret = ERR_PTR(-EPROBE_DEFER);
 			goto error;
 		}
-		dev_dbg(dev, "reset gpios not in DT\n");
+		dev_dbg(&client->dev, "reset gpios not in DT\n");
 		gpio = 0;
 	}
 	board_priv_pdata->reset_gpio = (unsigned int)gpio;
 
 	board_priv_pdata->use_cam_gpio =
-		of_property_read_bool(node, "cam, use-cam-gpio");
+		of_property_read_bool(node, "cam,use-cam-gpio");
 
+	if (!soc->is_silicon) {
+		dev_info(&client->dev, "Skip query for regulator\n");
+		goto skip_vdd;
+	}
 	err = of_property_read_string(node, "avdd-reg",
 			&board_priv_pdata->regulators.avdd);
 	if (err) {
-		dev_err(dev, "avdd-reg not in DT\n");
+		dev_err(&client->dev, "avdd-reg not in DT\n");
 		goto error;
 	}
 	err = of_property_read_string(node, "iovdd-reg",
 			&board_priv_pdata->regulators.iovdd);
 	if (err) {
-		dev_err(dev, "iovdd-reg not in DT\n");
+		dev_err(&client->dev, "iovdd-reg not in DT\n");
 		goto error;
 	}
 
+skip_vdd:
 	board_priv_pdata->has_eeprom =
 		of_property_read_bool(node, "has-eeprom");
 	board_priv_pdata->v_flip = of_property_read_bool(node, "vertical-flip");
 	board_priv_pdata->h_mirror = of_property_read_bool(node,
 							 "horizontal-mirror");
-
 	return board_priv_pdata;
 
 error:
-	devm_kfree(dev, board_priv_pdata);
+	devm_kfree(&client->dev, board_priv_pdata);
 	return ret;
 }
-
-static int ov5693_set_mode(struct tegracam_device *tc_dev)
-{
-	struct ov5693 *priv = (struct ov5693 *)tegracam_get_privdata(tc_dev);
-	struct camera_common_data *s_data = tc_dev->s_data;
-	int err;
-
-	err = ov5693_write_table(priv, mode_table[s_data->mode_prop_idx]);
-	if (err)
-		return err;
-
-	return 0;
-}
-
-static int ov5693_start_streaming(struct tegracam_device *tc_dev)
-{
-	struct ov5693 *priv = (struct ov5693 *)tegracam_get_privdata(tc_dev);
-	struct camera_common_data *s_data = tc_dev->s_data;
-	struct camera_common_pdata *pdata = s_data->pdata;
-	struct device *dev = s_data->dev;
-	int err;
-	u8 val;
-
-	mutex_lock(&priv->streaming_lock);
-	err = ov5693_write_table(priv, mode_table[OV5693_MODE_START_STREAM]);
-	if (err) {
-		mutex_unlock(&priv->streaming_lock);
-		goto exit;
-	} else {
-		priv->streaming = true;
-		mutex_unlock(&priv->streaming_lock);
-	}
-	if (pdata->v_flip) {
-		ov5693_read_reg(s_data, OV5693_TIMING_REG20, &val);
-		ov5693_write_reg(s_data, OV5693_TIMING_REG20,
-				 val | VERTICAL_FLIP);
-	}
-	if (pdata->h_mirror) {
-		ov5693_read_reg(s_data, OV5693_TIMING_REG21, &val);
-		ov5693_write_reg(s_data, OV5693_TIMING_REG21,
-				 val | HORIZONTAL_MIRROR_MASK);
-	} else {
-		ov5693_read_reg(s_data, OV5693_TIMING_REG21, &val);
-		ov5693_write_reg(s_data, OV5693_TIMING_REG21,
-				 val & (~HORIZONTAL_MIRROR_MASK));
-	}
-	if (test_mode)
-		err = ov5693_write_table(priv,
-			mode_table[OV5693_MODE_TEST_PATTERN]);
-
-	return 0;
-
-exit:
-	dev_err(dev, "%s: error starting stream\n", __func__);
-	return err;
-}
-
-static int ov5693_stop_streaming(struct tegracam_device *tc_dev)
-{
-	struct camera_common_data *s_data = tc_dev->s_data;
-	struct ov5693 *priv = (struct ov5693 *)tegracam_get_privdata(tc_dev);
-	struct device *dev = s_data->dev;
-	u32 frame_time;
-	int err;
-
-	ov5693_update_ctrl_range(s_data, OV5693_MAX_FRAME_LENGTH);
-
-	mutex_lock(&priv->streaming_lock);
-	err = ov5693_write_table(priv,
-		mode_table[OV5693_MODE_STOP_STREAM]);
-	if (err) {
-		mutex_unlock(&priv->streaming_lock);
-		goto exit;
-	} else {
-		priv->streaming = false;
-		mutex_unlock(&priv->streaming_lock);
-	}
-
-	/*
-	 * Wait for one frame to make sure sensor is set to
-	 * software standby in V-blank
-	 *
-	 * frame_time = frame length rows * Tline
-	 * Tline = line length / pixel clock (in MHz)
-	 */
-	frame_time = priv->frame_length *
-		OV5693_DEFAULT_LINE_LENGTH / OV5693_DEFAULT_PIXEL_CLOCK;
-
-	usleep_range(frame_time, frame_time + 1000);
-
-	return 0;
-
-exit:
-	dev_err(dev, "%s: error stopping stream\n", __func__);
-	return err;
-}
-
-static struct camera_common_sensor_ops ov5693_common_ops = {
-	.numfrmfmts = ARRAY_SIZE(ov5693_frmfmt),
-	.frmfmt_table = ov5693_frmfmt,
-	.power_on = ov5693_power_on,
-	.power_off = ov5693_power_off,
-	.write_reg = ov5693_write_reg,
-	.read_reg = ov5693_read_reg,
-	.parse_dt = ov5693_parse_dt,
-	.power_get = ov5693_power_get,
-	.power_put = ov5693_power_put,
-	.set_mode = ov5693_set_mode,
-	.start_streaming = ov5693_start_streaming,
-	.stop_streaming = ov5693_stop_streaming,
-};
 
 static int ov5693_debugfs_streaming_show(void *data, u64 *val)
 {
@@ -1089,79 +1469,6 @@ error:
 	return -ENOMEM;
 }
 
-static struct tegracam_ctrl_ops ov5693_ctrl_ops = {
-	.numctrls = ARRAY_SIZE(ctrl_cid_list),
-	.ctrl_cid_list = ctrl_cid_list,
-	.string_ctrl_size = {OV5693_EEPROM_STR_SIZE,
-				OV5693_FUSE_ID_STR_SIZE,
-				OV5693_OTP_STR_SIZE},
-	.set_gain = ov5693_set_gain,
-	.set_exposure = ov5693_set_exposure,
-	.set_exposure_short = ov5693_set_exposure_short,
-	.set_frame_rate = ov5693_set_frame_rate,
-	.set_group_hold = ov5693_set_group_hold,
-	.fill_string_ctrl = ov5693_fill_string_ctrl,
-};
-
-static int ov5693_board_setup(struct ov5693 *priv)
-{
-	struct camera_common_data *s_data = priv->s_data;
-	struct device *dev = s_data->dev;
-	bool eeprom_ctrl = 0;
-	int err = 0;
-
-	dev_dbg(dev, "%s++\n", __func__);
-
-	/* eeprom interface */
-	err = ov5693_eeprom_device_init(priv);
-	if (err && s_data->pdata->has_eeprom)
-		dev_err(dev,
-			"Failed to allocate eeprom reg map: %d\n", err);
-	eeprom_ctrl = !err;
-
-	err = camera_common_mclk_enable(s_data);
-	if (err) {
-		dev_err(dev,
-			"Error %d turning on mclk\n", err);
-		return err;
-	}
-
-	err = ov5693_power_on(s_data);
-	if (err) {
-		dev_err(dev,
-			"Error %d during power on sensor\n", err);
-		return err;
-	}
-
-	if (eeprom_ctrl) {
-		err = ov5693_read_eeprom(priv);
-		if (err) {
-			dev_err(dev,
-				"Error %d reading eeprom\n", err);
-			goto error;
-		}
-	}
-
-	err = ov5693_otp_setup(priv);
-	if (err) {
-		dev_err(dev,
-			"Error %d reading otp data\n", err);
-		goto error;
-	}
-
-	err = ov5693_fuse_id_setup(priv);
-	if (err) {
-		dev_err(dev,
-			"Error %d reading fuse id data\n", err);
-		goto error;
-	}
-
-error:
-	ov5693_power_off(s_data);
-	camera_common_mclk_disable(s_data);
-	return err;
-}
-
 static void ov5693_debugfs_remove(struct ov5693 *priv)
 {
 	debugfs_remove_recursive(priv->debugfs_dir);
@@ -1180,77 +1487,133 @@ static const struct v4l2_subdev_internal_ops ov5693_subdev_internal_ops = {
 	.open = ov5693_open,
 };
 
+static const struct media_entity_operations ov5693_media_ops = {
+	.link_validate = v4l2_subdev_link_validate,
+};
+
 static int ov5693_probe(struct i2c_client *client,
 			const struct i2c_device_id *id)
 {
-	struct device *dev = &client->dev;
+	struct camera_common_data *common_data;
 	struct device_node *node = client->dev.of_node;
-	struct tegracam_device *tc_dev;
 	struct ov5693 *priv;
 	int err;
+	const struct ov5693_soc *soc_data;
 	const struct of_device_id *match;
 
-	dev_info(dev, "probing v4l2 sensor.\n");
+	dev_info(&client->dev, "probing v4l2 sensor.\n");
 
-	match = of_match_device(ov5693_of_match, dev);
+	match = of_match_device(ov5693_of_match, &client->dev);
 	if (!match) {
-		dev_err(dev, "No device match found\n");
+		dev_err(&client->dev, "No device match found\n");
 		return -ENODEV;
 	}
+	soc_data = match->data;
 
 	if (!IS_ENABLED(CONFIG_OF) || !node)
 		return -EINVAL;
 
-	priv = devm_kzalloc(dev,
-			    sizeof(struct ov5693), GFP_KERNEL);
+	common_data = devm_kzalloc(&client->dev,
+			    sizeof(struct camera_common_data), GFP_KERNEL);
+	if (!common_data)
+		return -ENOMEM;
+
+	priv = devm_kzalloc(&client->dev,
+			    sizeof(struct ov5693) + sizeof(struct v4l2_ctrl *) *
+			    ARRAY_SIZE(ctrl_config_list),
+			    GFP_KERNEL);
 	if (!priv)
 		return -ENOMEM;
-
-	tc_dev = devm_kzalloc(dev,
-			    sizeof(struct tegracam_device), GFP_KERNEL);
-	if (!tc_dev)
-		return -ENOMEM;
-
-	priv->i2c_client = tc_dev->client = client;
-	tc_dev->dev = dev;
-	strncpy(tc_dev->name, "ov5693", sizeof(tc_dev->name));
-	tc_dev->dev_regmap_config = &ov5693_regmap_config;
-	tc_dev->sensor_ops = &ov5693_common_ops;
-	tc_dev->v4l2sd_internal_ops = &ov5693_subdev_internal_ops;
-	tc_dev->tcctrl_ops = &ov5693_ctrl_ops;
-
-	err = tegracam_device_register(tc_dev);
-	if (err) {
-		dev_err(dev, "tegra camera driver registration failed\n");
-		return err;
+	priv->soc = soc_data;
+	priv->pdata = ov5693_parse_dt(client);
+	if (PTR_ERR(priv->pdata) == -EPROBE_DEFER)
+		return -EPROBE_DEFER;
+	if (!priv->pdata) {
+		dev_err(&client->dev, "unable to get platform data\n");
+		return -EFAULT;
 	}
 
-	priv->tc_dev = tc_dev;
-	priv->s_data = tc_dev->s_data;
-	priv->subdev = &tc_dev->s_data->subdev;
-	tegracam_set_privdata(tc_dev, (void *)priv);
+	err = camera_common_i2c_init(&priv->i2c_dev, client,
+		&ov5693_regmap_config, &ov5693_i2c_rtcpu_config);
+	if (err)
+		return err;
+
+	common_data->ops		= &ov5693_common_ops;
+	common_data->ctrl_handler	= &priv->ctrl_handler;
+	common_data->dev		= &client->dev;
+	common_data->frmfmt		= ov5693_frmfmt;
+	common_data->colorfmt		= camera_common_find_datafmt(
+					  OV5693_DEFAULT_DATAFMT);
+	common_data->power		= &priv->power;
+	common_data->ctrls		= priv->ctrls;
+	common_data->priv		= (void *)priv;
+	common_data->numctrls		= ARRAY_SIZE(ctrl_config_list);
+	common_data->numfmts		= ARRAY_SIZE(ov5693_frmfmt);
+	common_data->def_mode		= OV5693_DEFAULT_MODE;
+	common_data->def_width		= OV5693_DEFAULT_WIDTH;
+	common_data->def_height		= OV5693_DEFAULT_HEIGHT;
+	common_data->fmt_width		= common_data->def_width;
+	common_data->fmt_height		= common_data->def_height;
+	common_data->def_clk_freq	= OV5693_DEFAULT_CLK_FREQ;
+
+	priv->i2c_client = client;
+	priv->s_data			= common_data;
+	priv->subdev			= &common_data->subdev;
+	priv->subdev->dev		= &client->dev;
+	priv->s_data->dev		= &client->dev;
+
 	mutex_init(&priv->streaming_lock);
 
-	err = ov5693_board_setup(priv);
-		if (err) {
-			dev_err(dev, "board setup failed\n");
-			return err;
-	}
+	err = ov5693_power_get(priv);
+	if (err)
+		return err;
 
-	err = tegracam_v4l2subdev_register(tc_dev, true);
+	err = camera_common_initialize(common_data, "ov5693");
 	if (err) {
-		dev_err(dev, "tegra camera subdev registration failed\n");
+		dev_err(&client->dev, "Failed to initialize ov5693.\n");
 		return err;
 	}
+
+
+	v4l2_i2c_subdev_init(priv->subdev, client, &ov5693_subdev_ops);
+
+	/* eeprom interface */
+	err = ov5693_eeprom_device_init(priv);
+	if (err && priv->pdata->has_eeprom)
+		dev_err(&client->dev,
+			"Failed to allocate eeprom reg map: %d\n", err);
+
+	err = ov5693_ctrls_init(priv, !err);
+	if (err)
+		return err;
+
+	priv->subdev->internal_ops = &ov5693_subdev_internal_ops;
+	priv->subdev->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE |
+			       V4L2_SUBDEV_FL_HAS_EVENTS;
+
+#if defined(CONFIG_MEDIA_CONTROLLER)
+	priv->pad.flags = MEDIA_PAD_FL_SOURCE;
+	priv->subdev->entity.ops = &ov5693_media_ops;
+	err = tegra_media_entity_init(&priv->subdev->entity, 1,
+				&priv->pad, true, true);
+	if (err < 0) {
+		dev_err(&client->dev, "unable to init media entity\n");
+		return err;
+	}
+#endif
+
+	err = v4l2_async_register_subdev(priv->subdev);
+	if (err)
+		return err;
 
 	err = ov5693_debugfs_create(priv);
 	if (err) {
-		dev_err(dev, "error creating debugfs interface");
+		dev_err(&client->dev, "error creating debugfs interface");
 		ov5693_debugfs_remove(priv);
 		return err;
 	}
 
-	dev_dbg(dev, "Detected OV5693 sensor\n");
+	dev_dbg(&client->dev, "Detected OV5693 sensor\n");
 
 	return 0;
 }
@@ -1263,9 +1626,14 @@ ov5693_remove(struct i2c_client *client)
 
 	ov5693_debugfs_remove(priv);
 
-	tegracam_v4l2subdev_unregister(priv->tc_dev);
-	ov5693_power_put(priv->tc_dev);
-	tegracam_device_unregister(priv->tc_dev);
+	v4l2_async_unregister_subdev(priv->subdev);
+#if defined(CONFIG_MEDIA_CONTROLLER)
+	media_entity_cleanup(&priv->subdev->entity);
+#endif
+
+	v4l2_ctrl_handler_free(&priv->ctrl_handler);
+	ov5693_power_put(priv);
+	camera_common_cleanup(s_data);
 
 	mutex_destroy(&priv->streaming_lock);
 
@@ -1289,8 +1657,10 @@ static struct i2c_driver ov5693_i2c_driver = {
 	.remove = ov5693_remove,
 	.id_table = ov5693_id,
 };
+
 module_i2c_driver(ov5693_i2c_driver);
 
-MODULE_DESCRIPTION("Media Controller driver for OmniVision OV5693");
-MODULE_AUTHOR("NVIDIA Corporation");
+MODULE_DESCRIPTION("SoC Camera driver for Sony OV5693");
+MODULE_AUTHOR("David Wang <davidw@nvidia.com>");
 MODULE_LICENSE("GPL v2");
+
