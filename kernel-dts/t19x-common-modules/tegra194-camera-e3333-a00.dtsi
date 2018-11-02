@@ -316,23 +316,14 @@
 						mclk_multiplier = "6.67";
 						pix_clk_hz = "160000000";
 
-						gain_factor = "10";
-						min_gain_val = "10";/* 1DB*/
-						max_gain_val = "160";/* 16DB*/
-						step_gain_val = "1";
-						default_gain = "10";
+						min_gain_val = "1.0";
+						max_gain_val = "16";
 						min_hdr_ratio = "1";
 						max_hdr_ratio = "1";
-						framerate_factor = "1000000";
-						min_framerate = "1816577";/*1.816577 */
-						max_framerate = "30000000";/*30*/
-						step_framerate = "1";
-						default_framerate = "30000000";
-						exposure_factor = "1000000";
-						min_exp_time = "34";/* us */
-						max_exp_time = "550385";/* us */
-						step_exp_time = "1";
-						default_exp_time = "33334";/* us */
+						min_framerate = "1.816577";
+						max_framerate = "30";
+						min_exp_time = "34";
+						max_exp_time = "550385";
 					};
 
 					mode1 { //OV5693_MODE_2592X1458
@@ -353,23 +344,14 @@
 						mclk_multiplier = "6.67";
 						pix_clk_hz = "160000000";
 
-						gain_factor = "10";
-						min_gain_val = "10";/* 1DB*/
-						max_gain_val = "160";/* 16DB*/
-						step_gain_val = "1";
-						default_gain = "10";
+						min_gain_val = "1.0";
+						max_gain_val = "16";
 						min_hdr_ratio = "1";
 						max_hdr_ratio = "1";
-						framerate_factor = "1000000";
-						min_framerate = "1816577";/*1.816577 */
-						max_framerate = "30000000";/*30*/
-						step_framerate = "1";
-						default_framerate = "30000000";
-						exposure_factor = "1000000";
-						min_exp_time = "34";/* us */
-						max_exp_time = "550385";/* us */
-						step_exp_time = "1";
-						default_exp_time = "33334";/* us */
+						min_framerate = "1.816577";
+						max_framerate = "30";
+						min_exp_time = "34";
+						max_exp_time = "550385";
 					};
 
 					mode2 { //OV5693_MODE_1280X720
@@ -390,23 +372,14 @@
 						mclk_multiplier = "6.67";
 						pix_clk_hz = "160000000";
 
-						gain_factor = "10";
-						min_gain_val = "10";/* 1DB*/
-						max_gain_val = "160";/* 16DB*/
-						step_gain_val = "1";
-						default_gain = "10";
+						min_gain_val = "1.0";
+						max_gain_val = "16";
 						min_hdr_ratio = "1";
 						max_hdr_ratio = "1";
-						framerate_factor = "1000000";
-						min_framerate = "2787078";/* 2.787078 */
-						max_framerate = "120000000";/* 120*/
-						step_framerate = "1";
-						default_framerate = "120000000";
-						exposure_factor = "1000000";
-						min_exp_time = "22";/* us */
-						max_exp_time = "358733";/* us */
-						step_exp_time = "1";
-						default_exp_time = "8334";/* us */
+						min_framerate = "2.787078";
+						max_framerate = "120";
+						min_exp_time = "22";
+						max_exp_time = "358733";
 					};
 
 					ports {
@@ -532,23 +505,14 @@
 						mclk_multiplier = "6.67";
 						pix_clk_hz = "160000000";
 
-						gain_factor = "10";
-						min_gain_val = "10";/* 1DB*/
-						max_gain_val = "160";/* 16DB*/
-						step_gain_val = "1";
-						default_gain = "10";
+						min_gain_val = "1.0";
+						max_gain_val = "16";
 						min_hdr_ratio = "1";
 						max_hdr_ratio = "1";
-						framerate_factor = "1000000";
-						min_framerate = "1816577";/*1.816577 */
-						max_framerate = "30000000";/*30*/
-						step_framerate = "1";
-						default_framerate = "30000000";
-						exposure_factor = "1000000";
-						min_exp_time = "34";/* us */
-						max_exp_time = "550385";/* us */
-						step_exp_time = "1";
-						default_exp_time = "33334";/* us */
+						min_framerate = "1.816577";
+						max_framerate = "30";
+						min_exp_time = "34";
+						max_exp_time = "550385";
 					};
 
 					mode1 { //OV5693_MODE_2592X1458
@@ -569,23 +533,14 @@
 						mclk_multiplier = "6.67";
 						pix_clk_hz = "160000000";
 
-						gain_factor = "10";
-						min_gain_val = "10";/* 1DB*/
-						max_gain_val = "160";/* 16DB*/
-						step_gain_val = "1";
-						default_gain = "10";
+						min_gain_val = "1.0";
+						max_gain_val = "16";
 						min_hdr_ratio = "1";
 						max_hdr_ratio = "1";
-						framerate_factor = "1000000";
-						min_framerate = "1816577";/*1.816577 */
-						max_framerate = "30000000";/*30*/
-						step_framerate = "1";
-						default_framerate = "30000000";
-						exposure_factor = "1000000";
-						min_exp_time = "34";/* us */
-						max_exp_time = "550385";/* us */
-						step_exp_time = "1";
-						default_exp_time = "33334";/* us */
+						min_framerate = "1.816577";
+						max_framerate = "30";
+						min_exp_time = "34";
+						max_exp_time = "550385";
 					};
 
 					mode2 { //OV5693_MODE_1280X720
@@ -606,23 +561,14 @@
 						mclk_multiplier = "6.67";
 						pix_clk_hz = "160000000";
 
-						gain_factor = "10";
-						min_gain_val = "10";/* 1DB*/
-						max_gain_val = "160";/* 16DB*/
-						step_gain_val = "1";
-						default_gain = "10";
+						min_gain_val = "1.0";
+						max_gain_val = "16";
 						min_hdr_ratio = "1";
 						max_hdr_ratio = "1";
-						framerate_factor = "1000000";
-						min_framerate = "2787078";/* 2.787078 */
-						max_framerate = "120000000";/* 120*/
-						step_framerate = "1";
-						default_framerate = "120000000";
-						exposure_factor = "1000000";
-						min_exp_time = "22";/* us */
-						max_exp_time = "358733";/* us */
-						step_exp_time = "1";
-						default_exp_time = "8334";/* us */
+						min_framerate = "2.787078";
+						max_framerate = "120";
+						min_exp_time = "22";
+						max_exp_time = "358733";
 					};
 
 					ports {
@@ -748,23 +694,14 @@
 						mclk_multiplier = "6.67";
 						pix_clk_hz = "160000000";
 
-						gain_factor = "10";
-						min_gain_val = "10";/* 1DB*/
-						max_gain_val = "160";/* 16DB*/
-						step_gain_val = "1";
-						default_gain = "10";
+						min_gain_val = "1.0";
+						max_gain_val = "16";
 						min_hdr_ratio = "1";
 						max_hdr_ratio = "1";
-						framerate_factor = "1000000";
-						min_framerate = "1816577";/*1.816577 */
-						max_framerate = "30000000";/*30*/
-						step_framerate = "1";
-						default_framerate = "30000000";
-						exposure_factor = "1000000";
-						min_exp_time = "34";/* us */
-						max_exp_time = "550385";/* us */
-						step_exp_time = "1";
-						default_exp_time = "33334";/* us */
+						min_framerate = "1.816577";
+						max_framerate = "30";
+						min_exp_time = "34";
+						max_exp_time = "550385";
 					};
 
 					mode1 { //OV5693_MODE_2592X1458
@@ -785,23 +722,14 @@
 						mclk_multiplier = "6.67";
 						pix_clk_hz = "160000000";
 
-						gain_factor = "10";
-						min_gain_val = "10";/* 1DB*/
-						max_gain_val = "160";/* 16DB*/
-						step_gain_val = "1";
-						default_gain = "10";
+						min_gain_val = "1.0";
+						max_gain_val = "16";
 						min_hdr_ratio = "1";
 						max_hdr_ratio = "1";
-						framerate_factor = "1000000";
-						min_framerate = "1816577";/*1.816577 */
-						max_framerate = "30000000";/*30*/
-						step_framerate = "1";
-						default_framerate = "30000000";
-						exposure_factor = "1000000";
-						min_exp_time = "34";/* us */
-						max_exp_time = "550385";/* us */
-						step_exp_time = "1";
-						default_exp_time = "33334";/* us */
+						min_framerate = "1.816577";
+						max_framerate = "30";
+						min_exp_time = "34";
+						max_exp_time = "550385";
 					};
 
 					mode2 { //OV5693_MODE_1280X720
@@ -822,23 +750,14 @@
 						mclk_multiplier = "6.67";
 						pix_clk_hz = "160000000";
 
-						gain_factor = "10";
-						min_gain_val = "10";/* 1DB*/
-						max_gain_val = "160";/* 16DB*/
-						step_gain_val = "1";
-						default_gain = "10";
+						min_gain_val = "1.0";
+						max_gain_val = "16";
 						min_hdr_ratio = "1";
 						max_hdr_ratio = "1";
-						framerate_factor = "1000000";
-						min_framerate = "2787078";/* 2.787078 */
-						max_framerate = "120000000";/* 120*/
-						step_framerate = "1";
-						default_framerate = "120000000";
-						exposure_factor = "1000000";
-						min_exp_time = "22";/* us */
-						max_exp_time = "358733";/* us */
-						step_exp_time = "1";
-						default_exp_time = "8334";/* us */
+						min_framerate = "2.787078";
+						max_framerate = "120";
+						min_exp_time = "22";
+						max_exp_time = "358733";
 					};
 
 					ports {
@@ -964,23 +883,14 @@
 						mclk_multiplier = "6.67";
 						pix_clk_hz = "160000000";
 
-						gain_factor = "10";
-						min_gain_val = "10";/* 1DB*/
-						max_gain_val = "160";/* 16DB*/
-						step_gain_val = "1";
-						default_gain = "10";
+						min_gain_val = "1.0";
+						max_gain_val = "16";
 						min_hdr_ratio = "1";
 						max_hdr_ratio = "1";
-						framerate_factor = "1000000";
-						min_framerate = "1816577";/*1.816577 */
-						max_framerate = "30000000";/*30*/
-						step_framerate = "1";
-						default_framerate = "30000000";
-						exposure_factor = "1000000";
-						min_exp_time = "34";/* us */
-						max_exp_time = "550385";/* us */
-						step_exp_time = "1";
-						default_exp_time = "33334";/* us */
+						min_framerate = "1.816577";
+						max_framerate = "30";
+						min_exp_time = "34";
+						max_exp_time = "550385";
 					};
 
 					mode1 { //OV5693_MODE_2592X1458
@@ -1001,23 +911,14 @@
 						mclk_multiplier = "6.67";
 						pix_clk_hz = "160000000";
 
-						gain_factor = "10";
-						min_gain_val = "10";/* 1DB*/
-						max_gain_val = "160";/* 16DB*/
-						step_gain_val = "1";
-						default_gain = "10";
+						min_gain_val = "1.0";
+						max_gain_val = "16";
 						min_hdr_ratio = "1";
 						max_hdr_ratio = "1";
-						framerate_factor = "1000000";
-						min_framerate = "1816577";/*1.816577 */
-						max_framerate = "30000000";/*30*/
-						step_framerate = "1";
-						default_framerate = "30000000";
-						exposure_factor = "1000000";
-						min_exp_time = "34";/* us */
-						max_exp_time = "550385";/* us */
-						step_exp_time = "1";
-						default_exp_time = "33334";/* us */
+						min_framerate = "1.816577";
+						max_framerate = "30";
+						min_exp_time = "34";
+						max_exp_time = "550385";
 					};
 
 					mode2 { //OV5693_MODE_1280X720
@@ -1038,23 +939,14 @@
 						mclk_multiplier = "6.67";
 						pix_clk_hz = "160000000";
 
-						gain_factor = "10";
-						min_gain_val = "10";/* 1DB*/
-						max_gain_val = "160";/* 16DB*/
-						step_gain_val = "1";
-						default_gain = "10";
+						min_gain_val = "1.0";
+						max_gain_val = "16";
 						min_hdr_ratio = "1";
 						max_hdr_ratio = "1";
-						framerate_factor = "1000000";
-						min_framerate = "2787078";/* 2.787078 */
-						max_framerate = "120000000";/* 120*/
-						step_framerate = "1";
-						default_framerate = "120000000";
-						exposure_factor = "1000000";
-						min_exp_time = "22";/* us */
-						max_exp_time = "358733";/* us */
-						step_exp_time = "1";
-						default_exp_time = "8334";/* us */
+						min_framerate = "2.787078";
+						max_framerate = "120";
+						min_exp_time = "22";
+						max_exp_time = "358733";
 					};
 
 					ports {
@@ -1180,23 +1072,14 @@
 						mclk_multiplier = "6.67";
 						pix_clk_hz = "160000000";
 
-						gain_factor = "10";
-						min_gain_val = "10";/* 1DB*/
-						max_gain_val = "160";/* 16DB*/
-						step_gain_val = "1";
-						default_gain = "10";
+						min_gain_val = "1.0";
+						max_gain_val = "16";
 						min_hdr_ratio = "1";
 						max_hdr_ratio = "1";
-						framerate_factor = "1000000";
-						min_framerate = "1816577";/*1.816577 */
-						max_framerate = "30000000";/*30*/
-						step_framerate = "1";
-						default_framerate = "30000000";
-						exposure_factor = "1000000";
-						min_exp_time = "34";/* us */
-						max_exp_time = "550385";/* us */
-						step_exp_time = "1";
-						default_exp_time = "33334";/* us */
+						min_framerate = "1.816577";
+						max_framerate = "30";
+						min_exp_time = "34";
+						max_exp_time = "550385";
 					};
 
 					mode1 { //OV5693_MODE_2592X1458
@@ -1217,23 +1100,14 @@
 						mclk_multiplier = "6.67";
 						pix_clk_hz = "160000000";
 
-						gain_factor = "10";
-						min_gain_val = "10";/* 1DB*/
-						max_gain_val = "160";/* 16DB*/
-						step_gain_val = "1";
-						default_gain = "10";
+						min_gain_val = "1.0";
+						max_gain_val = "16";
 						min_hdr_ratio = "1";
 						max_hdr_ratio = "1";
-						framerate_factor = "1000000";
-						min_framerate = "1816577";/*1.816577 */
-						max_framerate = "30000000";/*30*/
-						step_framerate = "1";
-						default_framerate = "30000000";
-						exposure_factor = "1000000";
-						min_exp_time = "34";/* us */
-						max_exp_time = "550385";/* us */
-						step_exp_time = "1";
-						default_exp_time = "33334";/* us */
+						min_framerate = "1.816577";
+						max_framerate = "30";
+						min_exp_time = "34";
+						max_exp_time = "550385";
 					};
 
 					mode2 { //OV5693_MODE_1280X720
@@ -1254,23 +1128,14 @@
 						mclk_multiplier = "6.67";
 						pix_clk_hz = "160000000";
 
-						gain_factor = "10";
-						min_gain_val = "10";/* 1DB*/
-						max_gain_val = "160";/* 16DB*/
-						step_gain_val = "1";
-						default_gain = "10";
+						min_gain_val = "1.0";
+						max_gain_val = "16";
 						min_hdr_ratio = "1";
 						max_hdr_ratio = "1";
-						framerate_factor = "1000000";
-						min_framerate = "2787078";/* 2.787078 */
-						max_framerate = "120000000";/* 120*/
-						step_framerate = "1";
-						default_framerate = "120000000";
-						exposure_factor = "1000000";
-						min_exp_time = "22";/* us */
-						max_exp_time = "358733";/* us */
-						step_exp_time = "1";
-						default_exp_time = "8334";/* us */
+						min_framerate = "2.787078";
+						max_framerate = "120";
+						min_exp_time = "22";
+						max_exp_time = "358733";
 					};
 
 					ports {
@@ -1396,23 +1261,14 @@
 						mclk_multiplier = "6.67";
 						pix_clk_hz = "160000000";
 
-						gain_factor = "10";
-						min_gain_val = "10";/* 1DB*/
-						max_gain_val = "160";/* 16DB*/
-						step_gain_val = "1";
-						default_gain = "10";
+						min_gain_val = "1.0";
+						max_gain_val = "16";
 						min_hdr_ratio = "1";
 						max_hdr_ratio = "1";
-						framerate_factor = "1000000";
-						min_framerate = "1816577";/*1.816577 */
-						max_framerate = "30000000";/*30*/
-						step_framerate = "1";
-						default_framerate = "30000000";
-						exposure_factor = "1000000";
-						min_exp_time = "34";/* us */
-						max_exp_time = "550385";/* us */
-						step_exp_time = "1";
-						default_exp_time = "33334";/* us */
+						min_framerate = "1.816577";
+						max_framerate = "30";
+						min_exp_time = "34";
+						max_exp_time = "550385";
 					};
 
 					mode1 { //OV5693_MODE_2592X1458
@@ -1433,23 +1289,14 @@
 						mclk_multiplier = "6.67";
 						pix_clk_hz = "160000000";
 
-						gain_factor = "10";
-						min_gain_val = "10";/* 1DB*/
-						max_gain_val = "160";/* 16DB*/
-						step_gain_val = "1";
-						default_gain = "10";
+						min_gain_val = "1.0";
+						max_gain_val = "16";
 						min_hdr_ratio = "1";
 						max_hdr_ratio = "1";
-						framerate_factor = "1000000";
-						min_framerate = "1816577";/*1.816577 */
-						max_framerate = "30000000";/*30*/
-						step_framerate = "1";
-						default_framerate = "30000000";
-						exposure_factor = "1000000";
-						min_exp_time = "34";/* us */
-						max_exp_time = "550385";/* us */
-						step_exp_time = "1";
-						default_exp_time = "33334";/* us */
+						min_framerate = "1.816577";
+						max_framerate = "30";
+						min_exp_time = "34";
+						max_exp_time = "550385";
 					};
 
 					mode2 { //OV5693_MODE_1280X720
@@ -1470,23 +1317,14 @@
 						mclk_multiplier = "6.67";
 						pix_clk_hz = "160000000";
 
-						gain_factor = "10";
-						min_gain_val = "10";/* 1DB*/
-						max_gain_val = "160";/* 16DB*/
-						step_gain_val = "1";
-						default_gain = "10";
+						min_gain_val = "1.0";
+						max_gain_val = "16";
 						min_hdr_ratio = "1";
 						max_hdr_ratio = "1";
-						framerate_factor = "1000000";
-						min_framerate = "2787078";/* 2.787078 */
-						max_framerate = "120000000";/* 120*/
-						step_framerate = "1";
-						default_framerate = "120000000";
-						exposure_factor = "1000000";
-						min_exp_time = "22";/* us */
-						max_exp_time = "358733";/* us */
-						step_exp_time = "1";
-						default_exp_time = "8334";/* us */
+						min_framerate = "2.787078";
+						max_framerate = "120";
+						min_exp_time = "22";
+						max_exp_time = "358733";
 					};
 
 					ports {
