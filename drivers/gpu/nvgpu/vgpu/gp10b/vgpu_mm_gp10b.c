@@ -71,7 +71,7 @@ u64 vgpu_gp10b_locked_gmmu_map(struct vm_gk20a *vm,
 	struct tegra_vgpu_as_map_ex_params *p = &msg.params.as_map_ex;
 	struct tegra_vgpu_mem_desc *mem_desc;
 	u32 page_size  = vm->gmmu_page_sizes[pgsz_idx];
-	u64 buffer_size = PAGE_ALIGN(size);
+	u64 buffer_size = ALIGN(size, SZ_4K);
 	u64 space_to_skip = buffer_offset;
 	u32 mem_desc_count = 0, i;
 	void *handle = NULL;
