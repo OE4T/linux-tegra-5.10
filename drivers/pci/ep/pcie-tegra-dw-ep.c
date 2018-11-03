@@ -285,8 +285,6 @@ enum ep_event {
 	EP_PEX_RST_ASSERT,
 	EP_PEX_HOT_RST_DONE,
 	EP_PEX_BME_CHANGE,
-	EP_EVENT_EXIT,
-	EP_EVENT_INVALID,
 };
 
 enum margin_cmds {
@@ -322,6 +320,7 @@ struct tegra_pcie_dw_ep {
 	int ep_state;
 	struct phy **phy;
 	struct task_struct *pcie_ep_task;
+	struct mutex disable_lock;
 	wait_queue_head_t wq;
 	DECLARE_KFIFO(event_fifo, u32, EVENT_QUEUE_LEN);
 	u32 bar0_size;
@@ -587,8 +586,15 @@ static void pex_ep_event_pex_rst_assert(struct tegra_pcie_dw_ep *pcie)
 	u32 val = 0;
 	int ret = 0, count = 0;
 
-	if (pcie->ep_state == EP_STATE_DISABLED)
+	/*
+	 * mutex lock to synchronize pex_rst_assert triggered by irq which executes
+	 * in kthread context and triggered by remove callback function.
+	 */
+	mutex_lock(&pcie->disable_lock);
+	if (pcie->ep_state == EP_STATE_DISABLED) {
+		mutex_unlock(&pcie->disable_lock);
 		return;
+	}
 
 	/* disable LTSSM */
 	val = readl(pcie->appl_base + APPL_CTRL);
@@ -629,6 +635,7 @@ static void pex_ep_event_pex_rst_assert(struct tegra_pcie_dw_ep *pcie)
 	}
 
 	pcie->ep_state = EP_STATE_DISABLED;
+	mutex_unlock(&pcie->disable_lock);
 	dev_info(pcie->dev, "EP deinit done\n");
 }
 
@@ -973,13 +980,12 @@ static int pcie_ep_work_thread(void *p)
 	struct tegra_pcie_dw_ep *pcie = (struct tegra_pcie_dw_ep *)p;
 	u32 event = 0;
 
-	while (1) {
+	while (!kthread_should_stop()) {
 		wait_event_interruptible(pcie->wq,
-					 !kfifo_is_empty(&pcie->event_fifo));
-
+					 !kfifo_is_empty(&pcie->event_fifo) ||
+					 kthread_should_stop());
 		if (kthread_should_stop())
 			break;
-
 		if (!kfifo_get(&pcie->event_fifo, &event)) {
 			dev_warn(pcie->dev, "empty kfifo\n");
 			continue;
@@ -1018,10 +1024,8 @@ static void tegra_pcie_disable_phy(struct tegra_pcie_dw_ep *pcie)
 {
 	int phy_count = pcie->phy_count;
 
-	while (phy_count--) {
-		phy_power_off(pcie->phy[phy_count]);
+	while (phy_count--)
 		phy_exit(pcie->phy[phy_count]);
-	}
 }
 
 static int tegra_pcie_init_phy(struct tegra_pcie_dw_ep *pcie)
@@ -1435,6 +1439,7 @@ static int tegra_pcie_dw_ep_probe(struct platform_device *pdev)
 
 	pcie->dev = &pdev->dev;
 	pcie->ep_state = EP_STATE_DISABLED;
+	mutex_init(&pcie->disable_lock);
 
 	ret = of_property_read_u32(np, "num-lanes", &pcie->num_lanes);
 	if (ret < 0) {
@@ -1817,9 +1822,10 @@ static int tegra_pcie_dw_ep_remove(struct platform_device *pdev)
 
 	debugfs_remove_recursive(pcie->debugfs);
 
-	if (!kfifo_put(&pcie->event_fifo, EP_EVENT_EXIT))
-		dev_err(pcie->dev, "EVENT: fifo is full\n");
 	kthread_stop(pcie->pcie_ep_task);
+	pex_ep_event_pex_rst_assert(pcie);
+
+	pm_runtime_disable(pcie->dev);
 
 	tegra_bwmgr_unregister(pcie->emc_bw);
 
