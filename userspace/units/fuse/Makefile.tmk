@@ -15,7 +15,8 @@
 NVGPU_UNIT_NAME=nvgpu-fuse
 NVGPU_UNIT_SRCS=nvgpu-fuse.c \
 		nvgpu-fuse-gp10b.c \
-		nvgpu-fuse-gm20b.c
+		nvgpu-fuse-gm20b.c \
+		nvgpu-fuse-gp106.c
 
 include $(NV_COMPONENT_DIR)/../Makefile.units.common.tmk
 
