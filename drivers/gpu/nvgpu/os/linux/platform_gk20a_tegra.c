@@ -630,6 +630,9 @@ int gk20a_tegra_init_secure_alloc(struct gk20a_platform *platform)
 	if (nvgpu_is_enabled(g, NVGPU_IS_FMODEL))
 		return 0;
 
+#if PAGE_SIZE > 4096
+	platform->secure_buffer_size += SZ_64K;
+#endif
 	dma_set_attr(DMA_ATTR_NO_KERNEL_MAPPING, __DMA_ATTR(attrs));
 	(void)dma_alloc_attrs(&tegra_vpr_dev, platform->secure_buffer_size, &iova,
 				      GFP_KERNEL, __DMA_ATTR(attrs));
