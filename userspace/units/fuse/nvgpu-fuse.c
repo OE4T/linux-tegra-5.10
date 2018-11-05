@@ -30,6 +30,7 @@
 
 #include "nvgpu-fuse-priv.h"
 #include "nvgpu-fuse-gp10b.h"
+#include "nvgpu-fuse-gm20b.h"
 
 /*
  * Mock I/O
@@ -154,6 +155,23 @@ struct unit_module_test fuse_tests[] = {
 	UNIT_TEST(fuse_gp10b_check_fmodel, test_fuse_gp10b_check_fmodel, NULL),
 	UNIT_TEST(fuse_gp10b_cleanup, test_fuse_device_common_cleanup,
 		  &gp10b_init_args),
+
+	UNIT_TEST(fuse_gm20b_init, test_fuse_device_common_init,
+		  &gm20b_init_args),
+	UNIT_TEST(fuse_gm20b_check_sec, test_fuse_gm20b_check_sec, NULL),
+	UNIT_TEST(fuse_gm20b_check_sec_invalid_gcplex,
+		  test_fuse_gm20b_check_sec_invalid_gcplex,
+		  NULL),
+	UNIT_TEST(fuse_gm20b_check_gcplex_fail,
+		  test_fuse_gm20b_check_gcplex_fail,
+		  NULL),
+	UNIT_TEST(fuse_gm20b_check_non_sec,
+		  test_fuse_gm20b_check_non_sec,
+		  NULL),
+	UNIT_TEST(fuse_gm20b_basic_fuses, test_fuse_gm20b_basic_fuses, NULL),
+	UNIT_TEST(fuse_gm20b_check_fmodel, test_fuse_gm20b_check_fmodel, NULL),
+	UNIT_TEST(fuse_gm20b_cleanup, test_fuse_device_common_cleanup,
+		  &gm20b_init_args),
 };
 
 UNIT_MODULE(fuse, fuse_tests, UNIT_PRIO_NVGPU_TEST);

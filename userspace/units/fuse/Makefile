@@ -21,7 +21,8 @@
 .SUFFIXES:
 
 OBJS   = nvgpu-fuse.o \
-	 nvgpu-fuse-gp10b.o
+	 nvgpu-fuse-gp10b.o \
+	 nvgpu-fuse-gm20b.o
 MODULE = nvgpu-fuse
 
 include ../Makefile.units

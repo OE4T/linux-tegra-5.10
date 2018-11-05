@@ -19,6 +19,7 @@ find_next_bit
 gk20a_bus_set_bar0_window
 gk20a_get_ch_runlist_entry
 gk20a_get_tsg_runlist_entry
+gm20b_fuse_status_opt_gpc
 nvgpu_alloc
 nvgpu_alloc_base
 nvgpu_alloc_common_init
