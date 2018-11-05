@@ -97,9 +97,9 @@ jcp $nvgpu_bins/userspace-l4t_64/libnvgpu_unit-lib.so    nvgpu_unit/libnvgpu-uni
 jcp $nvgpu_bins/drivers/gpu/nvgpu-l4t_64/libnvgpu-drv.so nvgpu_unit/libnvgpu-drv.so
 jcp $TOP/kernel/nvgpu/userspace/unit.sh                  nvgpu_unit/unit.sh
 
-for unit_dir in `ls $nvgpu_bins/userspace/units`; do
-    unit=${unit_dir%-l4t_64}
-    jcp $nvgpu_bins/userspace/units/$unit_dir/lib$unit.so nvgpu_unit/units
+find $nvgpu_bins/userspace/units -name "*.so" -not -path "*unit.so" \
+    -not -path "*drv.so" \ -exec ls {} \; | while read unit_so ; do
+        jcp $unit_so nvgpu_unit/units/
 done
 
 # Set up the necessary coverage files. Basically what we do is recreate just
