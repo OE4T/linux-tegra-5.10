@@ -62,12 +62,13 @@ void gv100_fb_reset(struct gk20a *g)
 	/* wait for memory to be accessible */
 	do {
 		u32 w = gk20a_readl(g, fb_niso_scrub_status_r());
-		if (fb_niso_scrub_status_flag_v(w)) {
+		if (fb_niso_scrub_status_flag_v(w) != 0U) {
 			nvgpu_log_info(g, "done");
 			break;
 		}
 		nvgpu_udelay(HW_SCRUB_TIMEOUT_DEFAULT);
-	} while (--retries);
+		--retries;
+	} while (retries != 0);
 
 	val = gk20a_readl(g, fb_mmu_priv_level_mask_r());
 	val &= ~fb_mmu_priv_level_mask_write_violation_m();
@@ -219,7 +220,7 @@ int gv100_fb_memory_unlock(struct gk20a *g)
 
 	/* check mem unlock status */
 	val = nvgpu_flcn_mailbox_read(&g->nvdec_flcn, 0);
-	if (val) {
+	if (val != 0U) {
 		nvgpu_err(g, "memory unlock failed, err %x", val);
 		nvgpu_flcn_dump_stats(&g->nvdec_flcn);
 		err = -1;
@@ -227,7 +228,7 @@ int gv100_fb_memory_unlock(struct gk20a *g)
 	}
 
 exit:
-	if (mem_unlock_fw) {
+	if (mem_unlock_fw != NULL) {
 		nvgpu_release_firmware(g, mem_unlock_fw);
 	}
 
@@ -294,7 +295,7 @@ size_t gv100_fb_get_vidmem_size(struct gk20a *g)
 	u32 ecc = fb_mmu_local_memory_range_ecc_mode_v(range);
 	size_t bytes = ((size_t)mag << scale) * SZ_1M;
 
-	if (ecc) {
+	if (ecc != 0U) {
 		bytes = bytes / 16U * 15U;
 	}
 

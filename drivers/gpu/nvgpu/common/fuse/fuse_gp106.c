@@ -139,7 +139,7 @@ u32 gp106_fuse_read_vin_cal_slope_intercept_fuse(struct gk20a *g,
 		return -EINVAL;
 	}
 
-	if (fuse_vin_cal_gpc1_delta_icpt_sign_data_v(data)) {
+	if (fuse_vin_cal_gpc1_delta_icpt_sign_data_v(data) != 0U) {
 		*intercept = gpc0interceptdata - interceptdata;
 	} else {
 		*intercept = gpc0interceptdata + interceptdata;
@@ -172,7 +172,7 @@ u32 gp106_fuse_read_vin_cal_slope_intercept_fuse(struct gk20a *g,
 		return -EINVAL;
 	}
 
-	if (fuse_vin_cal_gpc1_delta_slope_sign_data_v(data)) {
+	if (fuse_vin_cal_gpc1_delta_slope_sign_data_v(data) != 0U) {
 		*slope = gpc0slopedata - slopedata;
 	} else {
 		*slope = gpc0slopedata + slopedata;

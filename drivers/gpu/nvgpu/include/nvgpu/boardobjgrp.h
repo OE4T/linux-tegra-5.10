@@ -381,7 +381,7 @@ void boardobjgrpe32hdrset(struct nv_pmu_boardobjgrp *hdr, u32 objmask);
 #define HIGHESTBITIDX_32(n32)   \
 {                               \
 	u32 count = 0U;        \
-	while ((n32) >>= 1U) {       \
+	while (((n32) >>= 1U) != 0U) {       \
 		count++;       \
 	}                      \
 	(n32) = count;            \

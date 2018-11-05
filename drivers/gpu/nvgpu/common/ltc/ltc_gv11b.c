@@ -161,10 +161,10 @@ void gv11b_ltc_lts_isr(struct gk20a *g, unsigned int ltc, unsigned int slice)
 			ltc_ltc0_lts0_l2_cache_ecc_status_reset_task_f());
 
 		/* update counters per slice */
-		if (corrected_overflow) {
+		if (corrected_overflow != 0U) {
 			corrected_delta += BIT32(ltc_ltc0_lts0_l2_cache_ecc_corrected_err_count_total_s());
 		}
-		if (uncorrected_overflow) {
+		if (uncorrected_overflow != 0U) {
 			uncorrected_delta += BIT32(ltc_ltc0_lts0_l2_cache_ecc_uncorrected_err_count_total_s());
 		}
 

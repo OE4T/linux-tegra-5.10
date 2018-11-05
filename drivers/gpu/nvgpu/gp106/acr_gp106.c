@@ -91,7 +91,7 @@ int gp106_alloc_blob_space(struct gk20a *g,
 	struct wpr_carveout_info wpr_inf;
 	int err;
 
-	if (mem->size) {
+	if (mem->size != 0ULL) {
 		return 0;
 	}
 
@@ -484,7 +484,7 @@ static u32 lsfm_discover_and_add_sub_wprs(struct gk20a *g,
 			break;
 		}
 
-		if (size_4K) {
+		if (size_4K != 0U) {
 			pnode = nvgpu_kzalloc(g, sizeof(struct lsfm_sub_wpr));
 			if (pnode == NULL) {
 				return -ENOMEM;
@@ -511,7 +511,7 @@ int gp106_prepare_ucode_blob(struct gk20a *g)
 	struct nvgpu_pmu *pmu = &g->pmu;
 	struct wpr_carveout_info wpr_inf;
 
-	if (g->acr.ucode_blob.cpu_va) {
+	if (g->acr.ucode_blob.cpu_va != NULL) {
 		/*Recovery case, we do not need to form
 		non WPR blob of ucodes*/
 		err = nvgpu_init_pmu_fw_support(pmu);
@@ -851,7 +851,7 @@ static u32 lsfm_init_sub_wpr_contents(struct gk20a *g,
 	 */
 	psub_wpr_node = plsfm->psub_wpr_list;
 	i = 0;
-	while (psub_wpr_node) {
+	while (psub_wpr_node != NULL) {
 		nvgpu_mem_wr_n(g, ucode,
 			sub_wpr_header_offset + (i * temp_size),
 			&psub_wpr_node->sub_wpr_header, temp_size);
@@ -890,7 +890,7 @@ void lsfm_init_wpr_contents(struct gk20a *g,
 	 * flush any bl args to the storage area relative to the
 	 * ucode image (appended on the end as a DMEM area).
 	 */
-	while (pnode) {
+	while (pnode != NULL) {
 		/* Flush WPR header to memory*/
 		nvgpu_mem_wr_n(g, ucode, i * sizeof(pnode->wpr_header),
 				&pnode->wpr_header, sizeof(pnode->wpr_header));
@@ -1016,7 +1016,7 @@ void lsfm_fill_static_lsb_hdr_info(struct gk20a *g,
 	u32 full_app_size = 0;
 	u32 data = 0;
 
-	if (pnode->ucode_img.lsf_desc) {
+	if (pnode->ucode_img.lsf_desc != NULL) {
 		(void) memcpy(&pnode->lsb_header.signature,
 			pnode->ucode_img.lsf_desc,
 			sizeof(struct lsf_ucode_desc_v1));
@@ -1024,7 +1024,7 @@ void lsfm_fill_static_lsb_hdr_info(struct gk20a *g,
 	pnode->lsb_header.ucode_size = pnode->ucode_img.data_size;
 
 	/* The remainder of the LSB depends on the loader usage */
-	if (pnode->ucode_img.header) {
+	if (pnode->ucode_img.header != NULL) {
 		/* Does not use a loader */
 		pnode->lsb_header.data_size = 0;
 		pnode->lsb_header.bl_code_size = 0;
@@ -1144,7 +1144,7 @@ void free_acr_resources(struct gk20a *g, struct ls_flcn_mgr_v1 *plsfm)
 	u32 cnt = plsfm->managed_flcn_cnt;
 	struct lsfm_managed_ucode_img_v2 *mg_ucode_img;
 
-	while (cnt) {
+	while (cnt != 0U) {
 		mg_ucode_img = plsfm->ucode_img_list;
 		if (mg_ucode_img->ucode_img.lsf_desc->falcon_id ==
 				LSF_FALCON_ID_PMU) {
@@ -1194,7 +1194,7 @@ int lsf_gen_wpr_requirements(struct gk20a *g,
 
 	/* Walk the managed falcons, accounting for the LSB structs
 	as well as the ucode images. */
-	while (pnode) {
+	while (pnode != NULL) {
 		/* Align, save off, and include an LSB header size */
 		wpr_offset = ALIGN(wpr_offset,
 			LSF_LSB_HEADER_ALIGNMENT);
@@ -1258,7 +1258,7 @@ int lsf_gen_wpr_requirements(struct gk20a *g,
 		/* Walk through the sub wpr headers to accommodate
 		 * sub wprs in WPR request
 		 */
-		while (pnode_sub_wpr) {
+		while (pnode_sub_wpr != NULL) {
 			wpr_offset = ALIGN_UP(wpr_offset,
 					SUB_WPR_SIZE_ALIGNMENT);
 			pnode_sub_wpr->sub_wpr_header.start_addr = wpr_offset;

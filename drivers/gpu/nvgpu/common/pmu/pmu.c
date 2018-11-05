@@ -54,7 +54,7 @@ static int pmu_enable_hw(struct nvgpu_pmu *pmu, bool enable)
 				g->blcg_enabled);
 		}
 
-		if (nvgpu_flcn_mem_scrub_wait(pmu->flcn)) {
+		if (nvgpu_flcn_mem_scrub_wait(pmu->flcn) != 0) {
 			/* keep PMU falcon/engine in reset
 			 * if IMEM/DMEM scrubbing fails
 			 */
@@ -567,7 +567,7 @@ int nvgpu_pmu_destroy(struct gk20a *g)
 	nvgpu_pmu_get_pg_stats(g,
 		PMU_PG_ELPG_ENGINE_ID_GRAPHICS,	&pg_stat_data);
 
-	if (nvgpu_pmu_disable_elpg(g)) {
+	if (nvgpu_pmu_disable_elpg(g) != 0) {
 		nvgpu_err(g, "failed to set disable elpg");
 	}
 	pmu->initialized = false;

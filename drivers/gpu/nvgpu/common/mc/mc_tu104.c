@@ -327,7 +327,7 @@ u32 intr_tu104_stall(struct gk20a *g)
 	u32 mc_intr_0;
 
 	mc_intr_0 = mc_gp10b_intr_stall(g);
-	if (mc_intr_0) {
+	if (mc_intr_0 != 0U) {
 		return mc_intr_0;
 	}
 
@@ -368,12 +368,12 @@ void intr_tu104_log_pending_intrs(struct gk20a *g)
 	u32 intr, i;
 
 	intr = intr_tu104_nonstall(g);
-	if (intr) {
+	if (intr != 0U) {
 		nvgpu_info(g, "Pending nonstall intr=0x%08x", intr);
 	}
 
 	intr = mc_gp10b_intr_stall(g);
-	if (intr) {
+	if (intr != 0U) {
 		nvgpu_info(g, "Pending stall intr=0x%08x", intr);
 	}
 

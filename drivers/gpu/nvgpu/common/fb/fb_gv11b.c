@@ -449,10 +449,10 @@ void gv11b_handle_l2tlb_ecc_isr(struct gk20a *g, u32 ecc_status)
 				fb_mmu_l2tlb_ecc_status_reset_clear_f());
 
 	/* Handle overflow */
-	if (corrected_overflow) {
+	if (corrected_overflow != 0U) {
 		corrected_delta += (0x1UL << fb_mmu_l2tlb_ecc_corrected_err_count_total_s());
 	}
-	if (uncorrected_overflow) {
+	if (uncorrected_overflow != 0U) {
 		uncorrected_delta += (0x1UL << fb_mmu_l2tlb_ecc_uncorrected_err_count_total_s());
 	}
 
@@ -516,10 +516,10 @@ void gv11b_handle_hubtlb_ecc_isr(struct gk20a *g, u32 ecc_status)
 				fb_mmu_hubtlb_ecc_status_reset_clear_f());
 
 	/* Handle overflow */
-	if (corrected_overflow) {
+	if (corrected_overflow != 0U) {
 		corrected_delta += (0x1UL << fb_mmu_hubtlb_ecc_corrected_err_count_total_s());
 	}
-	if (uncorrected_overflow) {
+	if (uncorrected_overflow != 0U) {
 		uncorrected_delta += (0x1UL << fb_mmu_hubtlb_ecc_uncorrected_err_count_total_s());
 	}
 
@@ -583,10 +583,10 @@ void gv11b_handle_fillunit_ecc_isr(struct gk20a *g, u32 ecc_status)
 				fb_mmu_fillunit_ecc_status_reset_clear_f());
 
 	/* Handle overflow */
-	if (corrected_overflow) {
+	if (corrected_overflow != 0U) {
 		corrected_delta += (0x1UL << fb_mmu_fillunit_ecc_corrected_err_count_total_s());
 	}
-	if (uncorrected_overflow) {
+	if (uncorrected_overflow != 0U) {
 		uncorrected_delta += (0x1UL << fb_mmu_fillunit_ecc_uncorrected_err_count_total_s());
 	}
 
@@ -757,7 +757,7 @@ static void gv11b_fb_copy_from_hw_fault_buf(struct gk20a *g,
 
 	/* refch will be put back after fault is handled */
 	refch = gk20a_refch_from_inst_ptr(g, inst_ptr);
-	if (refch) {
+	if (refch != NULL) {
 		chid = refch->chid;
 	}
 
@@ -868,7 +868,7 @@ static void gv11b_fb_handle_mmu_fault_common(struct gk20a *g,
 		if (err == 0) {
 			nvgpu_log(g, gpu_dbg_intr, "CE Page Fault Fixed");
 			*invalidate_replay_val = 0;
-			if (mmfault->refch) {
+			if (mmfault->refch != NULL) {
 				gk20a_channel_put(mmfault->refch);
 				mmfault->refch = NULL;
 			}
@@ -888,7 +888,7 @@ static void gv11b_fb_handle_mmu_fault_common(struct gk20a *g,
 		 */
 			rc_type = RC_TYPE_MMU_FAULT;
 
-		} else if (mmfault->refch) {
+		} else if (mmfault->refch != NULL) {
 			if (mmfault->refch->mmu_nack_handled) {
 				/* We have already recovered for the same
 				 * context, skip doing another recovery.
@@ -936,7 +936,7 @@ static void gv11b_fb_handle_mmu_fault_common(struct gk20a *g,
 		/* refch in mmfault is assigned at the time of copying
 		 * fault info from snap reg or bar2 fault buf
 		 */
-		if (mmfault->refch) {
+		if (mmfault->refch != NULL) {
 			gk20a_channel_put(mmfault->refch);
 			mmfault->refch = NULL;
 		}
@@ -964,7 +964,7 @@ static void gv11b_fb_handle_mmu_fault_common(struct gk20a *g,
 		/* refch in mmfault is assigned at the time of copying
 		 * fault info from snap reg or bar2 fault buf
 		 */
-		if (mmfault->refch) {
+		if (mmfault->refch != NULL) {
 			gk20a_channel_put(mmfault->refch);
 			mmfault->refch = NULL;
 		}
@@ -1059,7 +1059,7 @@ void gv11b_fb_handle_mmu_nonreplay_replay_fault(struct gk20a *g,
 			next_fault_addr = mmfault->fault_addr;
 			if (prev_fault_addr == next_fault_addr) {
 				nvgpu_log(g, gpu_dbg_intr, "pte already scanned");
-				if (mmfault->refch) {
+				if (mmfault->refch != NULL) {
 					gk20a_channel_put(mmfault->refch);
 					mmfault->refch = NULL;
 				}
@@ -1104,7 +1104,7 @@ static void gv11b_mm_copy_from_fault_snap_reg(struct gk20a *g,
 
 	/* refch will be put back after fault is handled */
 	refch = gk20a_refch_from_inst_ptr(g, inst_ptr);
-	if (refch) {
+	if (refch != NULL) {
 		chid = refch->chid;
 	}
 
@@ -1245,7 +1245,7 @@ static void gv11b_fb_handle_bar2_fault(struct gk20a *g,
 
 	g->ops.bus.bar2_bind(g, &g->mm.bar2.inst_block);
 
-	if (mmfault->refch) {
+	if (mmfault->refch != NULL) {
 		gk20a_channel_put(mmfault->refch);
 		mmfault->refch = NULL;
 	}
@@ -1275,7 +1275,7 @@ void gv11b_fb_handle_other_fault_notify(struct gk20a *g,
 		gv11b_fb_handle_mmu_fault_common(g, mmfault,
 				 &invalidate_replay_val);
 
-		if (invalidate_replay_val) {
+		if (invalidate_replay_val != 0U) {
 			gv11b_fb_replay_or_cancel_faults(g,
 					invalidate_replay_val);
 		}

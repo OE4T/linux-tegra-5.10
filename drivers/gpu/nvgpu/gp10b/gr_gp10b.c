@@ -93,7 +93,7 @@ bool gr_gp10b_is_valid_compute_class(struct gk20a *g, u32 class_num)
 }
 
 
-static void gr_gp10b_sm_lrf_ecc_overcount_war(int single_err,
+static void gr_gp10b_sm_lrf_ecc_overcount_war(bool single_err,
 						u32 sed_status,
 						u32 ded_status,
 						u32 *count_to_adjust,
@@ -172,11 +172,11 @@ int gr_gp10b_handle_sm_exception(struct gk20a *g,
 	gk20a_writel(g,
 		gr_pri_gpc0_tpc0_sm_lrf_ecc_double_err_count_r() + offset,
 		0);
-	if (lrf_ecc_sed_status) {
+	if (lrf_ecc_sed_status != 0U) {
 		nvgpu_log(g, gpu_dbg_fn | gpu_dbg_intr,
 			"Single bit error detected in SM LRF!");
 
-		gr_gp10b_sm_lrf_ecc_overcount_war(1,
+		gr_gp10b_sm_lrf_ecc_overcount_war(true,
 						lrf_ecc_sed_status,
 						lrf_ecc_ded_status,
 						&lrf_single_count_delta,
@@ -184,11 +184,11 @@ int gr_gp10b_handle_sm_exception(struct gk20a *g,
 		g->ecc.gr.sm_lrf_ecc_single_err_count[gpc][tpc].counter +=
 							lrf_single_count_delta;
 	}
-	if (lrf_ecc_ded_status) {
+	if (lrf_ecc_ded_status != 0U) {
 		nvgpu_log(g, gpu_dbg_fn | gpu_dbg_intr,
 			"Double bit error detected in SM LRF!");
 
-		gr_gp10b_sm_lrf_ecc_overcount_war(0,
+		gr_gp10b_sm_lrf_ecc_overcount_war(false,
 						lrf_ecc_sed_status,
 						lrf_ecc_ded_status,
 						&lrf_double_count_delta,
@@ -433,7 +433,7 @@ int gr_gp10b_commit_global_cb_manager(struct gk20a *g,
 		gr_gpc0_ppc0_cbm_beta_cb_size_v_granularity_v()) /
 		gr_pd_ab_dist_cfg1_max_output_granularity_v();
 
-	if (g->gr.pd_max_batches) {
+	if (g->gr.pd_max_batches != 0U) {
 		gr_gk20a_ctx_patch_write(g, gr_ctx, gr_pd_ab_dist_cfg1_r(),
 			gr_pd_ab_dist_cfg1_max_output_f(pd_ab_max_output) |
 			gr_pd_ab_dist_cfg1_max_batches_f(g->gr.pd_max_batches), patch);
@@ -783,7 +783,7 @@ void gr_gp10b_set_alpha_circular_buffer_size(struct gk20a *g, u32 data)
 		gr_gpc0_ppc0_cbm_alpha_cb_size_v_granularity_v() /
 		gr_pd_ab_dist_cfg1_max_output_granularity_v();
 
-	if (g->gr.pd_max_batches) {
+	if (g->gr.pd_max_batches != 0U) {
 		gk20a_writel(g, gr_pd_ab_dist_cfg1_r(),
 			gr_pd_ab_dist_cfg1_max_output_f(pd_ab_max_output) |
 			gr_pd_ab_dist_cfg1_max_batches_f(g->gr.pd_max_batches));
@@ -1222,13 +1222,13 @@ void gr_gp10b_update_ctxsw_preemption_mode(struct gk20a *g,
 				cta_preempt_option);
 	}
 
-	if (gr_ctx->preempt_ctxsw_buffer.gpu_va) {
+	if (gr_ctx->preempt_ctxsw_buffer.gpu_va != 0ULL) {
 		u32 addr;
 		u32 size;
 		u32 cbes_reserve;
 
 		if (g->ops.gr.set_preemption_buffer_va != NULL) {
-			if (ctxheader->gpu_va) {
+			if (ctxheader->gpu_va != 0ULL) {
 				g->ops.gr.set_preemption_buffer_va(g, ctxheader,
 				gr_ctx->preempt_ctxsw_buffer.gpu_va);
 			} else {
@@ -1435,7 +1435,7 @@ int gr_gp10b_dump_gr_status_regs(struct gk20a *g,
 
 static bool gr_activity_empty_or_preempted(u32 val)
 {
-	while(val) {
+	while(val != 0U) {
 		u32 v = val & 7;
 		if (v != gr_activity_4_gpc0_empty_v() &&
 		    v != gr_activity_4_gpc0_preempted_v()) {
@@ -1500,7 +1500,7 @@ void gr_gp10b_commit_global_attrib_cb(struct gk20a *g,
 {
 	int attrBufferSize;
 
-	if (gr_ctx->preempt_ctxsw_buffer.gpu_va) {
+	if (gr_ctx->preempt_ctxsw_buffer.gpu_va != 0ULL) {
 		attrBufferSize = gr_ctx->betacb_ctxsw_buffer.size;
 	} else {
 		attrBufferSize = g->ops.gr.calc_global_ctx_buffer_size(g);
@@ -1855,7 +1855,7 @@ int gr_gp10b_pre_process_sm_exception(struct gk20a *g,
 	*early_exit = false;
 	*ignore_debugger = false;
 
-	if (fault_ch) {
+	if (fault_ch != NULL) {
 		tsg = tsg_gk20a_from_ch(fault_ch);
 		if (!tsg) {
 			return -EINVAL;
@@ -2158,7 +2158,7 @@ int gr_gp10b_suspend_contexts(struct gk20a *g,
 
 	nvgpu_mutex_release(&g->dbg_sessions_lock);
 
-	if (cilp_preempt_pending_ch) {
+	if (cilp_preempt_pending_ch != NULL) {
 		struct tsg_gk20a *tsg;
 		struct nvgpu_gr_ctx *gr_ctx;
 		struct nvgpu_timeout timeout;

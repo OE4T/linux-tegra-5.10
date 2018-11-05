@@ -1047,7 +1047,7 @@ static u32 clkdomaingetfpoints
 			goto done;
 		}
 		totalcount += fpointscount;
-		if (*pfpointscount) {
+		if (*pfpointscount != 0U) {
 			remainingcount -= fpointscount;
 			fpointscount = remainingcount;
 		} else {

@@ -218,7 +218,7 @@ static void __update_pte(struct vm_gk20a *vm,
 		pte_w[0] |= gmmu_new_pte_vol_true_f();
 	}
 
-	if (attrs->ctag) {
+	if (attrs->ctag != 0ULL) {
 		attrs->ctag += page_size;
 	}
 
@@ -243,7 +243,7 @@ static void update_gmmu_pte_locked(struct vm_gk20a *vm,
 	u32 pd_offset = pd_offset_from_index(l, pd_idx);
 	u32 pte_w[2] = {0, 0};
 
-	if (phys_addr) {
+	if (phys_addr != 0ULL) {
 		__update_pte(vm, pte_w, phys_addr, attrs);
 	} else if (attrs->sparse) {
 		__update_pte_sparse(pte_w);
@@ -311,7 +311,7 @@ static u32 gp10b_get_pde0_pgsz(struct gk20a *g, const struct gk20a_mmu_level *l,
 			U64(gmmu_new_dual_pde_address_small_sys_f(~0)))) <<
 			U64(gmmu_new_dual_pde_address_shift_v());
 
-		if (addr) {
+		if (addr != 0ULL) {
 			pgsz = GMMU_PAGE_SIZE_SMALL;
 		}
 	}
@@ -324,7 +324,7 @@ static u32 gp10b_get_pde0_pgsz(struct gk20a *g, const struct gk20a_mmu_level *l,
 			U64(gmmu_new_dual_pde_address_big_sys_f(~0)))) <<
 			U64(gmmu_new_dual_pde_address_big_shift_v());
 
-		if (addr) {
+		if (addr != 0ULL) {
 			/*
 			 * If small is set that means that somehow MM allowed
 			 * both small and big to be set, the PDE is not valid

@@ -104,7 +104,7 @@ int gm20b_fb_tlb_invalidate(struct gk20a *g, struct nvgpu_mem *pdb)
 	} while (!nvgpu_timeout_expired_msg(&timeout,
 					 "wait mmu fifo space"));
 
-	if (nvgpu_timeout_peek_expired(&timeout)) {
+	if (nvgpu_timeout_peek_expired(&timeout) != 0) {
 		err = -ETIMEDOUT;
 		goto out;
 	}
@@ -263,7 +263,7 @@ static int gm20b_fb_vpr_info_fetch_wait(struct gk20a *g,
 
 int gm20b_fb_vpr_info_fetch(struct gk20a *g)
 {
-	if (gm20b_fb_vpr_info_fetch_wait(g, VPR_INFO_FETCH_WAIT)) {
+	if (gm20b_fb_vpr_info_fetch_wait(g, VPR_INFO_FETCH_WAIT) != 0) {
 		return -ETIMEDOUT;
 	}
 

@@ -73,7 +73,7 @@ struct boardobj {
 	u8 type; /*type of the device*/
 	u8 idx;  /*index of boardobj within in its group*/
 	/* true if allocated in constructor. destructor should free */
-	u8 allocated;
+	bool allocated;
 	u32 type_mask; /*mask of types this boardobjimplements*/
 	boardobj_implements  *implements;
 	boardobj_destruct    *destruct;

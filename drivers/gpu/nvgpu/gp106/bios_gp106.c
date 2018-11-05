@@ -82,7 +82,7 @@ int gp106_bios_devinit(struct gk20a *g)
 
 	nvgpu_log_fn(g, " ");
 
-	if (nvgpu_flcn_reset(g->pmu.flcn)) {
+	if (nvgpu_flcn_reset(g->pmu.flcn) != 0) {
 		err = -ETIMEDOUT;
 		goto out;
 	}
@@ -122,7 +122,7 @@ int gp106_bios_devinit(struct gk20a *g)
 		nvgpu_udelay(PMU_BOOT_TIMEOUT_DEFAULT);
 	} while (!devinit_completed && (nvgpu_timeout_expired(&timeout) == 0));
 
-	if (nvgpu_timeout_peek_expired(&timeout)) {
+	if (nvgpu_timeout_peek_expired(&timeout) != 0) {
 		err = -ETIMEDOUT;
 	}
 
@@ -138,7 +138,8 @@ int gp106_bios_preos_wait_for_halt(struct gk20a *g)
 {
 	int err = 0;
 
-	if (nvgpu_flcn_wait_for_halt(g->pmu.flcn, PMU_BOOT_TIMEOUT_MAX / 1000)) {
+	if (nvgpu_flcn_wait_for_halt(g->pmu.flcn,
+					PMU_BOOT_TIMEOUT_MAX / 1000) != 0) {
 		err = -ETIMEDOUT;
 	}
 
@@ -151,7 +152,7 @@ int gp106_bios_preos(struct gk20a *g)
 
 	nvgpu_log_fn(g, " ");
 
-	if (nvgpu_flcn_reset(g->pmu.flcn)) {
+	if (nvgpu_flcn_reset(g->pmu.flcn) != 0) {
 		err = -ETIMEDOUT;
 		goto out;
 	}
@@ -263,7 +264,7 @@ int gp106_bios_init(struct gk20a *g)
 
 	return 0;
 free_firmware:
-	if (g->bios.data) {
+	if (g->bios.data != NULL) {
 		nvgpu_vfree(g, g->bios.data);
 	}
 	return err;

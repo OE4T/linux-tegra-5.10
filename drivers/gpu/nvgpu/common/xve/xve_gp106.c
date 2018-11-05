@@ -248,7 +248,7 @@ static int __do_xve_set_speed_gp106(struct gk20a *g, u32 next_link_speed)
 		}
 	} while (nvgpu_timeout_expired(&timeout) == 0);
 
-	if (nvgpu_timeout_peek_expired(&timeout)) {
+	if (nvgpu_timeout_peek_expired(&timeout) != 0) {
 		err_status = -ETIMEDOUT;
 		goto done;
 	}
@@ -321,7 +321,7 @@ static int __do_xve_set_speed_gp106(struct gk20a *g, u32 next_link_speed)
 		}
 	} while (nvgpu_timeout_expired(&timeout) == 0);
 
-	if (nvgpu_timeout_peek_expired(&timeout)) {
+	if (nvgpu_timeout_peek_expired(&timeout) != 0) {
 		err_status = -ETIMEDOUT;
 		goto done;
 	}
@@ -357,7 +357,7 @@ static int __do_xve_set_speed_gp106(struct gk20a *g, u32 next_link_speed)
 			}
 		} while (nvgpu_timeout_expired(&timeout) == 0);
 
-		if (nvgpu_timeout_peek_expired(&timeout)) {
+		if (nvgpu_timeout_peek_expired(&timeout) != 0) {
 			err_status = -ETIMEDOUT;
 			xv_sc_dbg(g, EXEC_CHANGE, "  timeout; pl_link_config = 0x%x",
 				pl_link_config);

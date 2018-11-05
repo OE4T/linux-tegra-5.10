@@ -33,7 +33,7 @@ void gk20a_ptimer_isr(struct gk20a *g)
 	u32 save0, save1, fecs_errcode = 0;
 
 	save0 = gk20a_readl(g, timer_pri_timeout_save_0_r());
-	if (timer_pri_timeout_save_0_fecs_tgt_v(save0)) {
+	if (timer_pri_timeout_save_0_fecs_tgt_v(save0) != 0U) {
 		/*
 		 * write & addr fields in timeout_save0
 		 * might not be reliable
@@ -52,7 +52,7 @@ void gk20a_ptimer_isr(struct gk20a *g)
 	gk20a_writel(g, timer_pri_timeout_save_0_r(), 0);
 	gk20a_writel(g, timer_pri_timeout_save_1_r(), 0);
 
-	if (fecs_errcode) {
+	if (fecs_errcode != 0U) {
 		nvgpu_err(g, "FECS_ERRCODE 0x%08x", fecs_errcode);
 		if (g->ops.priv_ring.decode_error_code != NULL) {
 			g->ops.priv_ring.decode_error_code(g,

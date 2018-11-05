@@ -195,10 +195,10 @@ void gk20a_channel_abort_clean_up(struct channel_gk20a *ch)
 
 	/* ensure no fences are pending */
 	nvgpu_mutex_acquire(&ch->sync_lock);
-	if (ch->sync) {
+	if (ch->sync != NULL) {
 		nvgpu_channel_sync_set_min_eq_max(ch->sync);
 	}
-	if (ch->user_sync) {
+	if (ch->user_sync != NULL) {
 		nvgpu_channel_sync_set_safe_state(ch->user_sync);
 	}
 	nvgpu_mutex_release(&ch->sync_lock);
@@ -308,7 +308,7 @@ static void gk20a_free_channel(struct channel_gk20a *ch, bool force)
 
 	trace_gk20a_free_channel(ch->chid);
 
-	if (g->os_channel.close) {
+	if (g->os_channel.close != NULL) {
 		g->os_channel.close(ch);
 	}
 
@@ -374,7 +374,7 @@ static void gk20a_free_channel(struct channel_gk20a *ch, bool force)
 			   " deferred, running now");
 		/* if lock is already taken, a reset is taking place
 		so no need to repeat */
-		if (nvgpu_mutex_tryacquire(&g->fifo.gr_reset_mutex)) {
+		if (nvgpu_mutex_tryacquire(&g->fifo.gr_reset_mutex) != 0) {
 			gk20a_fifo_deferred_reset(g, ch);
 			nvgpu_mutex_release(&g->fifo.gr_reset_mutex);
 		}
@@ -414,11 +414,11 @@ static void gk20a_free_channel(struct channel_gk20a *ch, bool force)
 
 	/* sync must be destroyed before releasing channel vm */
 	nvgpu_mutex_acquire(&ch->sync_lock);
-	if (ch->sync) {
+	if (ch->sync != NULL) {
 		nvgpu_channel_sync_destroy(ch->sync, false);
 		ch->sync = NULL;
 	}
-	if (ch->user_sync) {
+	if (ch->user_sync != NULL) {
 		/*
 		 * Set user managed syncpoint to safe state
 		 * But it's already done if channel has timedout
@@ -437,7 +437,7 @@ static void gk20a_free_channel(struct channel_gk20a *ch, bool force)
 	 * we need to do this before releasing the address space,
 	 * as the semaphore pool might get freed after that point.
 	 */
-	if (ch->hw_sema) {
+	if (ch->hw_sema != NULL) {
 		nvgpu_semaphore_free_hw_sema(ch);
 	}
 
@@ -665,7 +665,7 @@ struct channel_gk20a *gk20a_open_new_channel(struct gk20a *g,
 
 	trace_gk20a_open_new_channel(ch->chid);
 
-	BUG_ON(ch->g);
+	BUG_ON(ch->g != NULL);
 	ch->g = g;
 
 	/* Runlist for the channel */
@@ -716,7 +716,7 @@ struct channel_gk20a *gk20a_open_new_channel(struct gk20a *g,
 	nvgpu_cond_init(&ch->notifier_wq);
 	nvgpu_cond_init(&ch->semaphore_wq);
 
-	if (g->os_channel.open) {
+	if (g->os_channel.open != NULL) {
 		g->os_channel.open(ch);
 	}
 
@@ -1163,7 +1163,7 @@ int nvgpu_channel_setup_bind(struct channel_gk20a *c,
 	}
 
 	if (args->flags & NVGPU_SETUP_BIND_FLAGS_USERMODE_SUPPORT) {
-		if (g->os_channel.alloc_usermode_buffers) {
+		if (g->os_channel.alloc_usermode_buffers != NULL) {
 			err = g->os_channel.alloc_usermode_buffers(c, args);
 			if (err != 0) {
 				nvgpu_err(g, "Usermode buffer alloc failed");
@@ -1272,7 +1272,7 @@ clean_up_prealloc:
 		channel_gk20a_free_prealloc_resources(c);
 	}
 clean_up_sync:
-	if (c->sync) {
+	if (c->sync != NULL) {
 		nvgpu_channel_sync_destroy(c->sync, false);
 		c->sync = NULL;
 	}
@@ -1560,7 +1560,7 @@ static void gk20a_channel_poll_timeouts(struct gk20a *g)
 	for (chid = 0; chid < g->fifo.num_channels; chid++) {
 		struct channel_gk20a *ch = &g->fifo.channel[chid];
 
-		if (gk20a_channel_get(ch)) {
+		if (gk20a_channel_get(ch) != NULL) {
 			gk20a_channel_timeout_check(ch);
 			gk20a_channel_put(ch);
 		}
@@ -1705,7 +1705,7 @@ static int gk20a_channel_poll_worker(void *arg)
 			gk20a_channel_worker_process(g, &get);
 		}
 
-		if (nvgpu_timeout_peek_expired(&timeout)) {
+		if (nvgpu_timeout_peek_expired(&timeout) != 0) {
 			gk20a_channel_poll_timeouts(g);
 			nvgpu_timeout_init(g, &timeout, watchdog_interval,
 					NVGPU_TIMER_CPU_TIMER);
@@ -1880,7 +1880,7 @@ int gk20a_channel_add_job(struct channel_gk20a *c,
 	 */
 	c = gk20a_channel_get(c);
 
-	if (c) {
+	if (c != NULL) {
 		job->num_mapped_buffers = num_mapped_buffers;
 		job->mapped_buffers = mapped_buffers;
 
@@ -2002,7 +2002,7 @@ void gk20a_channel_clean_up_jobs(struct channel_gk20a *c,
 					g->os_channel.signal_os_fence_framework(c);
 			}
 
-			if (g->aggressive_sync_destroy_thresh) {
+			if (g->aggressive_sync_destroy_thresh != 0U) {
 				nvgpu_mutex_acquire(&c->sync_lock);
 				if (nvgpu_channel_sync_put_ref_and_check(c->sync)
 					&& g->aggressive_sync_destroy) {
@@ -2014,7 +2014,7 @@ void gk20a_channel_clean_up_jobs(struct channel_gk20a *c,
 			}
 		}
 
-		if (job->num_mapped_buffers) {
+		if (job->num_mapped_buffers != 0) {
 			nvgpu_vm_put_buffers(vm, job->mapped_buffers,
 				job->num_mapped_buffers);
 		}
@@ -2160,7 +2160,7 @@ void gk20a_channel_deterministic_unidle(struct gk20a *g)
 		 * which we took in deterministic_idle.
 		 */
 		if (ch->deterministic && !ch->deterministic_railgate_allowed) {
-			if (gk20a_busy(g)) {
+			if (gk20a_busy(g) != 0) {
 				nvgpu_err(g, "cannot busy() again!");
 			}
 			/* Took this in idle() */
@@ -2268,7 +2268,7 @@ int gk20a_channel_suspend(struct gk20a *g)
 			/* preempt the channel */
 			gk20a_fifo_preempt(g, ch);
 			/* wait for channel update notifiers */
-			if (g->os_channel.work_completion_cancel_sync) {
+			if (g->os_channel.work_completion_cancel_sync != NULL) {
 				g->os_channel.work_completion_cancel_sync(ch);
 			}
 
@@ -2284,7 +2284,7 @@ int gk20a_channel_suspend(struct gk20a *g)
 		gk20a_fifo_update_runlist_ids(g, active_runlist_ids, ~0, false, true);
 
 		for (chid = 0; chid < f->num_channels; chid++) {
-			if (gk20a_channel_get(&f->channel[chid])) {
+			if (gk20a_channel_get(&f->channel[chid]) != NULL) {
 				g->ops.fifo.unbind_channel(&f->channel[chid]);
 				gk20a_channel_put(&f->channel[chid]);
 			}
@@ -2305,7 +2305,7 @@ int gk20a_channel_resume(struct gk20a *g)
 	nvgpu_log_fn(g, " ");
 
 	for (chid = 0; chid < f->num_channels; chid++) {
-		if (gk20a_channel_get(&f->channel[chid])) {
+		if (gk20a_channel_get(&f->channel[chid]) != NULL) {
 			nvgpu_log_info(g, "resume channel %d", chid);
 			g->ops.fifo.bind_channel(&f->channel[chid]);
 			channels_in_use = true;
@@ -2337,8 +2337,8 @@ void gk20a_channel_semaphore_wakeup(struct gk20a *g, bool post_events)
 
 	for (chid = 0; chid < f->num_channels; chid++) {
 		struct channel_gk20a *c = g->fifo.channel+chid;
-		if (gk20a_channel_get(c)) {
-			if (nvgpu_atomic_read(&c->bound)) {
+		if (gk20a_channel_get(c) != NULL) {
+			if (nvgpu_atomic_read(&c->bound) != 0) {
 				nvgpu_cond_broadcast_interruptible(
 						&c->semaphore_wq);
 				if (post_events) {

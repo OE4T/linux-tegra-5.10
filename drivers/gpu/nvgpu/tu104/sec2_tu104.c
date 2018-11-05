@@ -407,7 +407,7 @@ void tu104_sec2_isr(struct gk20a *g)
 	}
 
 	if ((intr & psec_falcon_irqstat_swgen0_true_f()) != 0U) {
-		if (nvgpu_sec2_process_message(sec2)) {
+		if (nvgpu_sec2_process_message(sec2) != 0) {
 			gk20a_writel(g, psec_falcon_irqsclr_r(), intr);
 			goto exit;
 		}

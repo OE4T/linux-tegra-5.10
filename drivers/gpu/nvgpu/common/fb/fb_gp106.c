@@ -40,12 +40,13 @@ void gp106_fb_init_fs_state(struct gk20a *g)
 	/* wait for memory to be accessible */
 	do {
 		u32 w = gk20a_readl(g, fb_niso_scrub_status_r());
-		if (fb_niso_scrub_status_flag_v(w)) {
+		if (fb_niso_scrub_status_flag_v(w) != 0U) {
 			nvgpu_log_fn(g, "done");
 			break;
 		}
 		nvgpu_udelay(HW_SCRUB_TIMEOUT_DEFAULT);
-	} while (--retries);
+		--retries;
+	} while (retries != 0);
 
 	val = gk20a_readl(g, fb_mmu_priv_level_mask_r());
 	val &= ~fb_mmu_priv_level_mask_write_violation_m();
@@ -60,7 +61,7 @@ size_t gp106_fb_get_vidmem_size(struct gk20a *g)
 	u32 ecc = fb_mmu_local_memory_range_ecc_mode_v(range);
 	size_t bytes = ((size_t)mag << scale) * SZ_1M;
 
-	if (ecc) {
+	if (ecc != 0U) {
 		bytes = bytes / 16U * 15U;
 	}
 

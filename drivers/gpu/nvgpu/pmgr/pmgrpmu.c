@@ -376,7 +376,7 @@ static int pmgr_send_pwr_policy_to_pmu(struct gk20a *g)
 	}
 
 exit:
-	if (ppwrpack) {
+	if (ppwrpack != NULL) {
 		nvgpu_kfree(g, ppwrpack);
 	}
 

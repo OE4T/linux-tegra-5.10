@@ -192,13 +192,13 @@ static bool pmu_validate_cmd(struct nvgpu_pmu *pmu, struct pmu_cmd *cmd,
 	}
 
 	in_size = PMU_CMD_HDR_SIZE;
-	if (payload->in.buf) {
+	if (payload->in.buf != NULL) {
 		in_size += payload->in.offset;
 		in_size += g->ops.pmu_ver.get_pmu_allocation_struct_size(pmu);
 	}
 
 	out_size = PMU_CMD_HDR_SIZE;
-	if (payload->out.buf) {
+	if (payload->out.buf != NULL) {
 		out_size += payload->out.offset;
 		out_size += g->ops.pmu_ver.get_pmu_allocation_struct_size(pmu);
 	}
@@ -414,11 +414,11 @@ static int pmu_cmd_payload_extract(struct gk20a *g, struct pmu_cmd *cmd,
 clean_up:
 	if (err != 0) {
 		nvgpu_log_fn(g, "fail");
-		if (in) {
+		if (in != NULL) {
 			nvgpu_free(&pmu->dmem,
 				pv->pmu_allocation_get_dmem_offset(pmu, in));
 		}
-		if (out) {
+		if (out != NULL) {
 			nvgpu_free(&pmu->dmem,
 				pv->pmu_allocation_get_dmem_offset(pmu, out));
 		}
@@ -526,7 +526,7 @@ static int pmu_response_handle(struct nvgpu_pmu *pmu,
 	    msg->msg.rc.msg_type == PMU_RC_MSG_TYPE_UNHANDLED_CMD) {
 		nvgpu_err(g, "unhandled cmd: seq %d", seq->id);
 	} else if (seq->state != PMU_SEQ_STATE_CANCELLED) {
-		if (seq->msg) {
+		if (seq->msg != NULL) {
 			if (seq->msg->hdr.size >= msg->hdr.size) {
 				(void) memcpy(seq->msg, msg, msg->hdr.size);
 			}  else {
@@ -584,7 +584,7 @@ static int pmu_response_handle(struct nvgpu_pmu *pmu,
 		seq->in_mem = NULL;
 	}
 
-	if (seq->callback) {
+	if (seq->callback != NULL) {
 		seq->callback(g, msg, seq->cb_params, seq->desc, ret);
 	}
 
@@ -771,7 +771,7 @@ static void pmu_rpc_handler(struct gk20a *g, struct pmu_msg *msg,
 	nvgpu_memcpy((u8 *)&rpc, (u8 *)rpc_payload->rpc_buff,
 		sizeof(struct nv_pmu_rpc_header));
 
-	if (rpc.flcn_status) {
+	if (rpc.flcn_status != 0U) {
 		nvgpu_err(g, " failed RPC response, status=0x%x, func=0x%x",
 			rpc.flcn_status, rpc.function);
 		goto exit;
@@ -963,7 +963,7 @@ int nvgpu_pmu_rpc_execute(struct nvgpu_pmu *pmu, struct nv_pmu_rpc_header *rpc,
 
 exit:
 	if (status != 0) {
-		if (rpc_payload) {
+		if (rpc_payload != NULL) {
 			nvgpu_kfree(g, rpc_payload);
 		}
 	}

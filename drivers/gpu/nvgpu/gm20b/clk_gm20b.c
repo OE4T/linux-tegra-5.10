@@ -493,7 +493,7 @@ static int clk_enbale_pll_dvfs(struct gk20a *g)
 	gk20a_writel(g, trim_sys_gpcpll_dvfs1_r(), data);
 
 	/* Set VCO_CTRL */
-	if (p->vco_ctrl) {
+	if (p->vco_ctrl != 0U) {
 		data = gk20a_readl(g, trim_sys_gpcpll_cfg3_r());
 		data = set_field(data, trim_sys_gpcpll_cfg3_vco_ctrl_m(),
 				 trim_sys_gpcpll_cfg3_vco_ctrl_f(p->vco_ctrl));
@@ -501,7 +501,7 @@ static int clk_enbale_pll_dvfs(struct gk20a *g)
 	}
 
 	/* Set NA mode DFS control */
-	if (p->dfs_ctrl) {
+	if (p->dfs_ctrl != 0U) {
 		data = gk20a_readl(g, trim_sys_gpcpll_dvfs1_r());
 		data = set_field(data, trim_sys_gpcpll_dvfs1_dfs_ctrl_m(),
 			trim_sys_gpcpll_dvfs1_dfs_ctrl_f(p->dfs_ctrl));
@@ -557,7 +557,7 @@ static int clk_enbale_pll_dvfs(struct gk20a *g)
 	/* Wait for internal calibration done (spec < 2us). */
 	do {
 		data = gk20a_readl(g, trim_sys_gpcpll_dvfs1_r());
-		if (trim_sys_gpcpll_dvfs1_dfs_cal_done_v(data)) {
+		if (trim_sys_gpcpll_dvfs1_dfs_cal_done_v(data) != 0U) {
 			break;
 		}
 		nvgpu_udelay(1);
@@ -690,7 +690,7 @@ static int clk_slide_gpc_pll(struct gk20a *g, struct pll *gpll)
 		ramp_timeout--;
 		data = gk20a_readl(
 			g, trim_gpc_bcast_gpcpll_ndiv_slowdown_debug_r());
-		if (trim_gpc_bcast_gpcpll_ndiv_slowdown_debug_pll_dynramp_done_synced_v(data)) {
+		if (trim_gpc_bcast_gpcpll_ndiv_slowdown_debug_pll_dynramp_done_synced_v(data) != 0U) {
 			break;
 		}
 	} while (ramp_timeout > 0);
@@ -779,7 +779,7 @@ static int clk_lock_gpc_pll_under_bypass(struct gk20a *g, struct pll *gpll)
 
 	cfg = gk20a_readl(g, trim_sys_gpcpll_cfg_r());
 	nvgpu_udelay(1);
-	if (trim_sys_gpcpll_cfg_iddq_v(cfg)) {
+	if (trim_sys_gpcpll_cfg_iddq_v(cfg) != 0U) {
 		/* get out from IDDQ (1st power up) */
 		cfg = set_field(cfg, trim_sys_gpcpll_cfg_iddq_m(),
 				trim_sys_gpcpll_cfg_iddq_power_on_v());
@@ -961,7 +961,7 @@ static int clk_program_gpc_pll(struct gk20a *g, struct pll *gpll_new,
 	if (pldiv_only) {
 		/* Insert interim PLDIV state if necessary */
 		u32 interim_pl = get_interim_pldiv(g, gpll_new->PL, gpll.PL);
-		if (interim_pl) {
+		if (interim_pl != 0U) {
 			coeff = set_field(coeff,
 				trim_sys_gpcpll_coeff_pldiv_m(),
 				trim_sys_gpcpll_coeff_pldiv_f(interim_pl));
@@ -1421,7 +1421,7 @@ static int set_pll_target(struct gk20a *g, u32 freq, u32 old_freq)
 	if (freq != old_freq) {
 		/* gpc_pll.freq is changed to new value here */
 		if (clk_config_pll(clk, &clk->gpc_pll, &gpc_pll_params,
-				   &freq, true)) {
+				   &freq, true) != 0) {
 			nvgpu_err(g, "failed to set pll target for %d", freq);
 			return -EINVAL;
 		}

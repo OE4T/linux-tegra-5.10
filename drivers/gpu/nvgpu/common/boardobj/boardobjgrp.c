@@ -484,7 +484,7 @@ int boardobjgrp_pmuset_impl(struct gk20a *g, struct boardobjgrp *pboardobjgrp)
 
 	nvgpu_log_info(g, " ");
 
-	if (check_boardobjgrp_param(g, pboardobjgrp)) {
+	if (check_boardobjgrp_param(g, pboardobjgrp) != 0) {
 		return -EINVAL;
 	}
 
@@ -547,7 +547,7 @@ int boardobjgrp_pmuset_impl_v1(struct gk20a *g,
 
 	nvgpu_log_info(g, " ");
 
-	if (check_boardobjgrp_param(g, pboardobjgrp)) {
+	if (check_boardobjgrp_param(g, pboardobjgrp) != 0) {
 		return -EINVAL;
 	}
 
@@ -606,7 +606,7 @@ boardobjgrp_pmugetstatus_impl(struct gk20a *g, struct boardobjgrp *pboardobjgrp,
 
 	nvgpu_log_info(g, " ");
 
-	if (check_boardobjgrp_param(g, pboardobjgrp)) {
+	if (check_boardobjgrp_param(g, pboardobjgrp) != 0) {
 		return -EINVAL;
 	}
 
@@ -677,7 +677,7 @@ boardobjgrp_pmugetstatus_impl_v1(struct gk20a *g, struct boardobjgrp *pboardobjg
 
 	nvgpu_log_info(g, " ");
 
-	if (check_boardobjgrp_param(g, pboardobjgrp)) {
+	if (check_boardobjgrp_param(g, pboardobjgrp) != 0) {
 		return -EINVAL;
 	}
 
@@ -862,7 +862,7 @@ static int boardobjgrp_objremoveanddestroy_final(
 	pboardobjgrp->objmask &= ~BIT(index);
 
 	stat = boardobjgrpmask_bitclr(pboardobjgrp->mask, index);
-	if (stat) {
+	if (stat != 0) {
 		if (status == 0) {
 			status = stat;
 		}

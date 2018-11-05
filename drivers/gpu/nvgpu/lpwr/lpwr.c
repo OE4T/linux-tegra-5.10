@@ -314,7 +314,7 @@ u32 nvgpu_lpwr_post_init(struct gk20a *g)
 	return status;
 }
 
-u32 nvgpu_lpwr_is_mscg_supported(struct gk20a *g, u32 pstate_num)
+bool nvgpu_lpwr_is_mscg_supported(struct gk20a *g, u32 pstate_num)
 {
 	struct nvgpu_lpwr_bios_ms_data *pms_data =
 			&g->perf_pmu.lpwr.lwpr_bios_data.ms;
@@ -326,18 +326,18 @@ u32 nvgpu_lpwr_is_mscg_supported(struct gk20a *g, u32 pstate_num)
 	nvgpu_log_fn(g, " ");
 
 	if (!pstate) {
-		return 0;
+		return false;
 	}
 
 	ms_idx = pidx_data->entry[pstate->lpwr_entry_idx].ms_idx;
 	if (pms_data->entry[ms_idx].ms_enabled) {
-		return 1;
+		return true;
 	} else {
-		return 0;
+		return false;
 	}
 }
 
-u32 nvgpu_lpwr_is_rppg_supported(struct gk20a *g, u32 pstate_num)
+bool nvgpu_lpwr_is_rppg_supported(struct gk20a *g, u32 pstate_num)
 {
 	struct nvgpu_lpwr_bios_gr_data *pgr_data =
 			&g->perf_pmu.lpwr.lwpr_bios_data.gr;
@@ -349,14 +349,14 @@ u32 nvgpu_lpwr_is_rppg_supported(struct gk20a *g, u32 pstate_num)
 	nvgpu_log_fn(g, " ");
 
 	if (!pstate) {
-		return 0;
+		return false;
 	}
 
 	idx = pidx_data->entry[pstate->lpwr_entry_idx].gr_idx;
 	if (pgr_data->entry[idx].gr_enabled) {
-		return 1;
+		return true;
 	} else {
-		return 0;
+		return false;
 	}
 }
 
@@ -365,8 +365,8 @@ int nvgpu_lpwr_enable_pg(struct gk20a *g, bool pstate_lock)
 {
 	struct nvgpu_pmu *pmu = &g->pmu;
 	u32  status = 0;
-	u32 is_mscg_supported = 0;
-	u32 is_rppg_supported = 0;
+	bool is_mscg_supported = false;
+	bool is_rppg_supported = false;
 	u32 present_pstate = 0;
 
 	nvgpu_log_fn(g, " ");
@@ -406,8 +406,8 @@ int nvgpu_lpwr_disable_pg(struct gk20a *g, bool pstate_lock)
 {
 	struct nvgpu_pmu *pmu = &g->pmu;
 	int status = 0;
-	u32 is_mscg_supported = 0;
-	u32 is_rppg_supported = 0;
+	bool is_mscg_supported = false;
+	bool is_rppg_supported = false;
 	u32 present_pstate = 0;
 
 	nvgpu_log_fn(g, " ");
@@ -433,7 +433,7 @@ int nvgpu_lpwr_disable_pg(struct gk20a *g, bool pstate_lock)
 	is_mscg_supported = nvgpu_lpwr_is_mscg_supported(g,
 			present_pstate);
 	if (is_mscg_supported && g->mscg_enabled) {
-		if (pmu->mscg_stat) {
+		if (pmu->mscg_stat != 0U) {
 			pmu->mscg_stat = PMU_MSCG_DISABLED;
 		}
 	}

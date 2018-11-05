@@ -153,7 +153,7 @@ int gp10b_fifo_resetup_ramfc(struct channel_gk20a *c)
 	v = nvgpu_mem_rd32(c->g, &c->inst_block,
 			ram_fc_allowed_syncpoints_w());
 	old_syncpt = pbdma_allowed_syncpoints_0_index_v(v);
-	if (c->sync) {
+	if (c->sync != NULL) {
 		sync_syncpt = nvgpu_channel_sync_to_syncpt(c->sync);
 		if (sync_syncpt != NULL) {
 			new_syncpt = nvgpu_channel_sync_get_syncpt_id(sync_syncpt);
@@ -208,10 +208,10 @@ void gp10b_device_info_data_parse(struct gk20a *g, u32 table_entry,
 {
 	if (top_device_info_data_type_v(table_entry) ==
 	    top_device_info_data_type_enum2_v()) {
-		if (inst_id) {
+		if (inst_id != NULL) {
 			*inst_id = top_device_info_data_inst_id_v(table_entry);
 		}
-		if (pri_base) {
+		if (pri_base != NULL) {
 			*pri_base =
 			    (top_device_info_data_pri_base_v(table_entry)
 			    << top_device_info_data_pri_base_align_v());

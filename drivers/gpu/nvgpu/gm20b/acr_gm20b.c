@@ -345,7 +345,7 @@ int prepare_ucode_blob(struct gk20a *g)
 	struct nvgpu_pmu *pmu = &g->pmu;
 	struct wpr_carveout_info wpr_inf;
 
-	if (g->acr.ucode_blob.cpu_va) {
+	if (g->acr.ucode_blob.cpu_va != NULL) {
 		/*Recovery case, we do not need to form
 		non WPR blob of ucodes*/
 		err = nvgpu_init_pmu_fw_support(pmu);
@@ -672,7 +672,7 @@ static void lsfm_init_wpr_contents(struct gk20a *g, struct ls_flcn_mgr *plsfm,
 	 * flush any bl args to the storage area relative to the
 	 * ucode image (appended on the end as a DMEM area).
 	 */
-	while (pnode) {
+	while (pnode != NULL) {
 		/* Flush WPR header to memory*/
 		nvgpu_mem_wr_n(g, ucode, i * sizeof(pnode->wpr_header),
 				&pnode->wpr_header, sizeof(pnode->wpr_header));
@@ -798,7 +798,7 @@ static void lsfm_fill_static_lsb_hdr_info(struct gk20a *g,
 	u32 full_app_size = 0;
 	u32 data = 0;
 
-	if (pnode->ucode_img.lsf_desc) {
+	if (pnode->ucode_img.lsf_desc != NULL) {
 		(void) memcpy(&pnode->lsb_header.signature,
 			pnode->ucode_img.lsf_desc,
 			sizeof(struct lsf_ucode_desc));
@@ -806,7 +806,7 @@ static void lsfm_fill_static_lsb_hdr_info(struct gk20a *g,
 	pnode->lsb_header.ucode_size = pnode->ucode_img.data_size;
 
 	/* The remainder of the LSB depends on the loader usage */
-	if (pnode->ucode_img.header) {
+	if (pnode->ucode_img.header != NULL) {
 		/* Does not use a loader */
 		pnode->lsb_header.data_size = 0;
 		pnode->lsb_header.bl_code_size = 0;
@@ -923,7 +923,7 @@ static void free_acr_resources(struct gk20a *g, struct ls_flcn_mgr *plsfm)
 {
 	u32 cnt = plsfm->managed_flcn_cnt;
 	struct lsfm_managed_ucode_img *mg_ucode_img;
-	while (cnt) {
+	while (cnt != 0U) {
 		mg_ucode_img = plsfm->ucode_img_list;
 		if (mg_ucode_img->ucode_img.lsf_desc->falcon_id ==
 				LSF_FALCON_ID_PMU) {
@@ -955,7 +955,7 @@ static int lsf_gen_wpr_requirements(struct gk20a *g, struct ls_flcn_mgr *plsfm)
 
 	/* Walk the managed falcons, accounting for the LSB structs
 	as well as the ucode images. */
-	while (pnode) {
+	while (pnode != NULL) {
 		/* Align, save off, and include an LSB header size */
 		wpr_offset = ALIGN(wpr_offset,
 			LSF_LSB_HEADER_ALIGNMENT);

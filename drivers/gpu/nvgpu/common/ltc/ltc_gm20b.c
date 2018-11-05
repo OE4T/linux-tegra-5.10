@@ -180,7 +180,7 @@ int gm20b_ltc_cbc_ctrl(struct gk20a *g, enum gk20a_cbc_op op,
 					nvgpu_udelay(5);
 				} while (nvgpu_timeout_expired(&timeout) == 0);
 
-				if (nvgpu_timeout_peek_expired(&timeout)) {
+				if (nvgpu_timeout_peek_expired(&timeout) != 0) {
 					nvgpu_err(g, "comp tag clear timeout");
 					err = -EBUSY;
 					goto out;

@@ -58,7 +58,7 @@ static int nvgpu_submit_prepare_syncs(struct channel_gk20a *c,
 	bool sync_fence = (flags & NVGPU_SUBMIT_FLAGS_SYNC_FENCE) != 0U;
 	bool fence_wait = (flags & NVGPU_SUBMIT_FLAGS_FENCE_WAIT) != 0U;
 
-	if (g->aggressive_sync_destroy_thresh) {
+	if (g->aggressive_sync_destroy_thresh != 0U) {
 		nvgpu_mutex_acquire(&c->sync_lock);
 		if (c->sync == NULL) {
 			c->sync = nvgpu_channel_sync_create(c, false);
@@ -172,7 +172,7 @@ clean_up_post_fence:
 	gk20a_fence_put(job->post_fence);
 	job->post_fence = NULL;
 clean_up_wait_cmd:
-	if (job->wait_cmd) {
+	if (job->wait_cmd != NULL) {
 		free_priv_cmdbuf(c, job->wait_cmd);
 	}
 	if (!pre_alloc_enabled) {
@@ -536,7 +536,7 @@ static int nvgpu_submit_channel_gpfifo(struct channel_gk20a *c,
 
 	gk20a_fifo_profile_snapshot(profile, PROFILE_JOB_TRACKING);
 
-	if (wait_cmd) {
+	if (wait_cmd != NULL) {
 		nvgpu_submit_append_priv_cmdbuf(c, wait_cmd);
 	}
 
@@ -550,11 +550,11 @@ static int nvgpu_submit_channel_gpfifo(struct channel_gk20a *c,
 	 * And here's where we add the incr_cmd we generated earlier. It should
 	 * always run!
 	 */
-	if (incr_cmd) {
+	if (incr_cmd != NULL) {
 		nvgpu_submit_append_priv_cmdbuf(c, incr_cmd);
 	}
 
-	if (fence_out) {
+	if (fence_out != NULL) {
 		*fence_out = gk20a_fence_get(post_fence);
 	}
 

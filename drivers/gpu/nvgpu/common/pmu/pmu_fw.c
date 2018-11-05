@@ -1634,15 +1634,15 @@ static void nvgpu_remove_pmu_support(struct nvgpu_pmu *pmu)
 		pboardobj->destruct(pboardobj);
 	}
 
-	if (pmu->fw) {
+	if (pmu->fw != NULL) {
 		nvgpu_release_firmware(g, pmu->fw);
 	}
 
-	if (g->acr.pmu_fw) {
+	if (g->acr.pmu_fw != NULL) {
 		nvgpu_release_firmware(g, g->acr.pmu_fw);
 	}
 
-	if (g->acr.pmu_desc) {
+	if (g->acr.pmu_desc != NULL) {
 		nvgpu_release_firmware(g, g->acr.pmu_desc);
 	}
 

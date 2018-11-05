@@ -3038,7 +3038,7 @@ static void mclk_seq_pmucmdhandler(struct gk20a *g, struct pmu_msg *_msg,
 		goto status_update;
 	}
 
-	if (seq_msg->error_code) {
+	if (seq_msg->error_code != 0U) {
 		msg_status = -ENOENT;
 		goto status_update;
 	}

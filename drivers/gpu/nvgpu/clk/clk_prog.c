@@ -1330,7 +1330,7 @@ static struct clk_prog *construct_clk_prog(struct gk20a *g, void *pargs)
 	}
 
 	if (status) {
-		if (board_obj_ptr) {
+		if (board_obj_ptr != NULL) {
 			board_obj_ptr->destruct(board_obj_ptr);
 		}
 		return NULL;

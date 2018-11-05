@@ -65,7 +65,7 @@ int bus_tu104_bar2_bind(struct gk20a *g, struct nvgpu_mem *bar2_inst)
 		nvgpu_udelay(5);
 	} while (!nvgpu_timeout_expired(&timeout));
 
-	if (nvgpu_timeout_peek_expired(&timeout)) {
+	if (nvgpu_timeout_peek_expired(&timeout) != 0) {
 		err = -EINVAL;
 	}
 

@@ -49,12 +49,12 @@ int nvgpu_flcn_wait_idle(struct nvgpu_falcon *flcn)
 	do {
 		idle_stat = flcn_ops->is_falcon_idle(flcn);
 
-		if (idle_stat) {
+		if (idle_stat != 0U) {
 			break;
 		}
 
 		if (nvgpu_timeout_expired_msg(&timeout,
-			"waiting for falcon idle: 0x%08x", idle_stat)) {
+			"waiting for falcon idle: 0x%08x", idle_stat) != 0) {
 			return -EBUSY;
 		}
 
@@ -81,7 +81,7 @@ int nvgpu_flcn_mem_scrub_wait(struct nvgpu_falcon *flcn)
 		nvgpu_udelay(MEM_SCRUBBING_TIMEOUT_DEFAULT);
 	} while (nvgpu_timeout_expired(&timeout) == 0);
 
-	if (nvgpu_timeout_peek_expired(&timeout)) {
+	if (nvgpu_timeout_peek_expired(&timeout) != 0) {
 		status = -ETIMEDOUT;
 	}
 
@@ -167,7 +167,7 @@ int nvgpu_flcn_wait_for_halt(struct nvgpu_falcon *flcn, unsigned int timeout)
 		nvgpu_udelay(10);
 	} while (nvgpu_timeout_expired(&to) == 0);
 
-	if (nvgpu_timeout_peek_expired(&to)) {
+	if (nvgpu_timeout_peek_expired(&to) != 0) {
 		status = -EBUSY;
 	}
 
@@ -197,7 +197,7 @@ int nvgpu_flcn_clear_halt_intr_status(struct nvgpu_falcon *flcn,
 		nvgpu_udelay(1);
 	} while (nvgpu_timeout_expired(&to) == 0);
 
-	if (nvgpu_timeout_peek_expired(&to)) {
+	if (nvgpu_timeout_peek_expired(&to) != 0) {
 		status = -EBUSY;
 	}
 
@@ -337,7 +337,7 @@ static void nvgpu_flcn_print_mem(struct nvgpu_falcon *flcn, u32 src,
 
 		src += byte_read_count;
 		size -= byte_read_count;
-	} while (total_block_read--);
+	} while (total_block_read-- != 0U);
 }
 
 void nvgpu_flcn_print_dmem(struct nvgpu_falcon *flcn, u32 src, u32 size)

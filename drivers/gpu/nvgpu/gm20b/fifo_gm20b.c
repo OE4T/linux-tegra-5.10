@@ -77,7 +77,7 @@ static inline u32 gm20b_engine_id_to_mmu_id(struct gk20a *g, u32 engine_id)
 
 	engine_info = gk20a_fifo_get_engine_info(g, engine_id);
 
-	if (engine_info) {
+	if (engine_info != NULL) {
 		fault_id = engine_info->fault_id;
 	} else {
 		nvgpu_err(g, "engine_id is not in active list/invalid %d", engine_id);
@@ -143,7 +143,7 @@ void gm20b_device_info_data_parse(struct gk20a *g,
 {
 	if (top_device_info_data_type_v(table_entry) ==
 	    top_device_info_data_type_enum2_v()) {
-		if (pri_base) {
+		if (pri_base != NULL) {
 			*pri_base =
 				(top_device_info_data_pri_base_v(table_entry)
 				<< top_device_info_data_pri_base_align_v());
