@@ -169,6 +169,7 @@
 		status = "disabled";
 	};
 
+#if TEGRA_TCU_DT_VERSION <= DT_VERSION_1
 	combined-uart {
 		compatible = "nvidia,tegra186-combined-uart";
 		reg = <0x0 0x3c10000 0x0 0x4   /* TOP0_HSP_SM_0_1_BASE */
@@ -177,4 +178,13 @@
 		interrupts = <0 TEGRA194_IRQ_TOP0_HSP_SHARED_0 0x04>;
 		status = "disabled";
 	};
+#else
+	combined-uart {
+		compatible = "nvidia,tegra194-tcu";
+		mboxes = <&hsp_top TEGRA_HSP_MBOX_TYPE_SM 0>,
+			<&aon_hsp TEGRA_HSP_MBOX_TYPE_SM 1>;
+		mbox-names = "rx", "tx";
+		status = "disabled";
+	};
+#endif
 };
