@@ -169,7 +169,7 @@ int nvgpu_pd_cache_init(struct gk20a *g)
 	 * This gets called from finalize_poweron() so we need to make sure we
 	 * don't reinit the pd_cache over and over.
 	 */
-	if (g->mm.pd_cache) {
+	if (g->mm.pd_cache != NULL) {
 		return 0;
 	}
 
@@ -284,7 +284,7 @@ static int nvgpu_pd_cache_alloc_new(struct gk20a *g,
 		return -ENOMEM;
 	}
 
-	if (nvgpu_dma_alloc(g, PAGE_SIZE, &pentry->mem)) {
+	if (nvgpu_dma_alloc(g, PAGE_SIZE, &pentry->mem) != 0) {
 		nvgpu_kfree(g, pentry);
 		nvgpu_err(g, "Unable to DMA alloc!");
 		return -ENOMEM;

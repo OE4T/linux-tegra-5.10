@@ -316,7 +316,7 @@ static void nvgpu_bitmap_alloc_destroy(struct nvgpu_allocator *na)
 	 * Kill any outstanding allocations.
 	 */
 	nvgpu_rbtree_enum_start(0, &node, a->allocs);
-	while (node) {
+	while (node != NULL) {
 		alloc = nvgpu_bitmap_alloc_from_rbtree_node(node);
 
 		nvgpu_rbtree_unlink(node, &a->allocs);
@@ -450,7 +450,7 @@ int nvgpu_bitmap_allocator_init(struct gk20a *g, struct nvgpu_allocator *na,
 	return 0;
 
 fail:
-	if (a->meta_data_cache) {
+	if (a->meta_data_cache != NULL) {
 		nvgpu_kmem_cache_destroy(a->meta_data_cache);
 	}
 	nvgpu_kfree(g, a);

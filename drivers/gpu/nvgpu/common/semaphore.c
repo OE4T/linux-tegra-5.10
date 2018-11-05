@@ -106,7 +106,7 @@ void nvgpu_semaphore_sea_destroy(struct gk20a *g)
  */
 struct nvgpu_semaphore_sea *nvgpu_semaphore_sea_create(struct gk20a *g)
 {
-	if (g->sema_sea) {
+	if (g->sema_sea != NULL) {
 		return g->sema_sea;
 	}
 
@@ -119,11 +119,11 @@ struct nvgpu_semaphore_sea *nvgpu_semaphore_sea_create(struct gk20a *g)
 	g->sema_sea->page_count = 0;
 	g->sema_sea->gk20a = g;
 	nvgpu_init_list_node(&g->sema_sea->pool_list);
-	if (nvgpu_mutex_init(&g->sema_sea->sea_lock)) {
+	if (nvgpu_mutex_init(&g->sema_sea->sea_lock) != 0) {
 		goto cleanup_free;
 	}
 
-	if (__nvgpu_semaphore_sea_grow(g->sema_sea)) {
+	if (__nvgpu_semaphore_sea_grow(g->sema_sea) != 0) {
 		goto cleanup_destroy;
 	}
 

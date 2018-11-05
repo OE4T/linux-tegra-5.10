@@ -197,7 +197,7 @@ void nvgpu_dma_free(struct gk20a *g, struct nvgpu_mem *mem)
 
 void nvgpu_dma_unmap_free(struct vm_gk20a *vm, struct nvgpu_mem *mem)
 {
-	if (mem->gpu_va) {
+	if (mem->gpu_va != 0ULL) {
 		nvgpu_gmmu_unmap(vm, mem, mem->gpu_va);
 	}
 	mem->gpu_va = 0;

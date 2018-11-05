@@ -132,7 +132,7 @@ static int gr_gv100_scg_estimate_perf(struct gk20a *g,
 				num_tpc_mask &= ~(0x1 << disable_tpc_id);
 				is_tpc_removed_pes = true;
 			}
-			if (hweight32(num_tpc_mask)) {
+			if (hweight32(num_tpc_mask) != 0UL) {
 				scg_num_pes++;
 			}
 		}

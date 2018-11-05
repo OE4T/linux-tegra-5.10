@@ -75,7 +75,7 @@ int nvgpu_vm_pde_coverage_bit_count(struct vm_gk20a *vm)
 	 * heirarchy: the last level is PTEs so we really want the level
 	 * before that which is the last level of PDEs.
 	 */
-	while (vm->mmu_levels[final_pde_level + 2].update_entry) {
+	while (vm->mmu_levels[final_pde_level + 2].update_entry != NULL) {
 		final_pde_level++;
 	}
 
@@ -88,12 +88,12 @@ static void __nvgpu_vm_free_entries(struct vm_gk20a *vm,
 {
 	int i;
 
-	if (pd->mem) {
+	if (pd->mem != NULL) {
 		nvgpu_pd_free(vm, pd);
 		pd->mem = NULL;
 	}
 
-	if (pd->entries) {
+	if (pd->entries != NULL) {
 		for (i = 0; i < pd->num_entries; i++) {
 			__nvgpu_vm_free_entries(vm, &pd->entries[i],
 					      level + 1);
@@ -227,7 +227,7 @@ static int nvgpu_init_sema_pool(struct vm_gk20a *vm)
 		return 0;
 	}
 
-	if (vm->sema_pool) {
+	if (vm->sema_pool != NULL) {
 		return 0;
 	}
 
@@ -586,7 +586,7 @@ struct vm_gk20a *nvgpu_vm_init(struct gk20a *g,
 
 	if (__nvgpu_vm_init(&g->mm, vm, big_page_size, low_hole,
 			    kernel_reserved, aperture_size, big_pages,
-			    userspace_managed, name)) {
+			    userspace_managed, name) != 0) {
 		nvgpu_kfree(g, vm);
 		return NULL;
 	}
@@ -610,7 +610,7 @@ static void __nvgpu_vm_remove(struct vm_gk20a *vm)
 	 * update_gmmu_lock.
 	 */
 	if (!nvgpu_has_syncpoints(g)) {
-		if (vm->sema_pool) {
+		if (vm->sema_pool != NULL) {
 			nvgpu_semaphore_pool_unmap(vm->sema_pool, vm);
 			nvgpu_semaphore_pool_put(vm->sema_pool);
 		}
@@ -625,7 +625,7 @@ static void __nvgpu_vm_remove(struct vm_gk20a *vm)
 	nvgpu_mutex_acquire(&vm->update_gmmu_lock);
 
 	nvgpu_rbtree_enum_start(0, &node, vm->mapped_buffers);
-	while (node) {
+	while (node != NULL) {
 		mapped_buffer = mapped_buffer_from_rbtree_node(node);
 		__nvgpu_vm_unmap(mapped_buffer, NULL);
 		nvgpu_rbtree_enum_start(0, &node, vm->mapped_buffers);
@@ -765,7 +765,7 @@ int nvgpu_vm_get_buffers(struct vm_gk20a *vm,
 	}
 
 	nvgpu_rbtree_enum_start(0, &node, vm->mapped_buffers);
-	while (node) {
+	while (node != NULL) {
 		mapped_buffer = mapped_buffer_from_rbtree_node(node);
 		buffer_list[i] = mapped_buffer;
 		nvgpu_ref_get(&mapped_buffer->ref);
@@ -877,7 +877,7 @@ struct nvgpu_mapped_buf *nvgpu_vm_map(struct vm_gk20a *vm,
 						      map_key_kind);
 		nvgpu_mutex_release(&vm->update_gmmu_lock);
 
-		if (mapped_buffer) {
+		if (mapped_buffer != NULL) {
 			nvgpu_ref_get(&mapped_buffer->ref);
 			return mapped_buffer;
 		}
@@ -1004,7 +1004,7 @@ struct nvgpu_mapped_buf *nvgpu_vm_map(struct vm_gk20a *vm,
 		/*
 		 * Store the ctag offset for later use if we got the comptags
 		 */
-		if (comptags.lines) {
+		if (comptags.lines != 0U) {
 			ctag_offset = comptags.offset;
 		}
 	}
@@ -1080,7 +1080,7 @@ struct nvgpu_mapped_buf *nvgpu_vm_map(struct vm_gk20a *vm,
 		goto clean_up;
 	}
 
-	if (vm_area) {
+	if (vm_area != NULL) {
 		nvgpu_list_add_tail(&mapped_buffer->buffer_list,
 			      &vm_area->buffer_list_head);
 		mapped_buffer->vm_area = vm_area;
@@ -1091,7 +1091,7 @@ struct nvgpu_mapped_buf *nvgpu_vm_map(struct vm_gk20a *vm,
 	return mapped_buffer;
 
 clean_up:
-	if (mapped_buffer->addr) {
+	if (mapped_buffer->addr != 0ULL) {
 		g->ops.mm.gmmu_unmap(vm,
 				     mapped_buffer->addr,
 				     mapped_buffer->size,
@@ -1213,7 +1213,7 @@ void nvgpu_vm_unmap(struct vm_gk20a *vm, u64 offset,
 	}
 
 	if (mapped_buffer->flags & NVGPU_VM_MAP_FIXED_OFFSET) {
-		if (nvgpu_vm_unmap_sync_buffer(vm, mapped_buffer)) {
+		if (nvgpu_vm_unmap_sync_buffer(vm, mapped_buffer) != 0) {
 			/*
 			 * Looks like we have failed... Better not continue in
 			 * case the buffer is in use.

@@ -103,7 +103,7 @@ u32 nvgpu_vm_get_pte_size(struct vm_gk20a *vm, u64 base, u64 size)
 		return nvgpu_vm_get_pte_size_split_addr(vm, base, size);
 	}
 
-	if (base) {
+	if (base != 0ULL) {
 		return nvgpu_vm_get_pte_size_fixed_map(vm, base, size);
 	}
 

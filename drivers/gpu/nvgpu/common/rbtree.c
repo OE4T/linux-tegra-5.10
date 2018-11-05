@@ -32,13 +32,13 @@ static void rotate_left(struct nvgpu_rbtree_node **root,
 
 	/* establish x->right link */
 	x->right = y->left;
-	if (y->left) {
+	if (y->left != NULL) {
 		y->left->parent = x;
 	}
 
 	/* establish y->parent link */
 	y->parent = x->parent;
-	if (x->parent) {
+	if (x->parent != NULL) {
 		if (x == x->parent->left) {
 			x->parent->left = y;
 		} else {
@@ -63,13 +63,13 @@ static void rotate_right(struct nvgpu_rbtree_node **root,
 
 	/* establish x->left link */
 	x->left = y->right;
-	if (y->right) {
+	if (y->right != NULL) {
 		y->right->parent = x;
 	}
 
 	/* establish y->parent link */
 	y->parent = x->parent;
-	if (x->parent) {
+	if (x->parent != NULL) {
 		if (x == x->parent->right) {
 			x->parent->right = y;
 		} else {
@@ -151,7 +151,7 @@ void nvgpu_rbtree_insert(struct nvgpu_rbtree_node *new_node,
 	curr = *root;
 	parent = NULL;
 
-	while (curr) {
+	while (curr != NULL) {
 		parent = curr;
 		if (new_node->key_start < curr->key_start) {
 			curr = curr->left;
@@ -169,7 +169,7 @@ void nvgpu_rbtree_insert(struct nvgpu_rbtree_node *new_node,
 	new_node->is_red = true;
 
 	/* insert node in tree */
-	if (parent) {
+	if (parent != NULL) {
 		if (new_node->key_start < parent->key_start) {
 			parent->left = new_node;
 		} else {
@@ -282,13 +282,13 @@ void nvgpu_rbtree_unlink(struct nvgpu_rbtree_node *node,
 	} else {
 		/* find tree successor */
 		y = z->right;
-		while (y->left) {
+		while (y->left != NULL) {
 			y = y->left;
 		}
 	}
 
 	/* x is y's only child */
-	if (y->left) {
+	if (y->left != NULL) {
 		x = y->left;
 	} else {
 		x = y->right;
@@ -300,7 +300,7 @@ void nvgpu_rbtree_unlink(struct nvgpu_rbtree_node *node,
 		x->parent = parent_of_x;
 	}
 
-	if (y->parent) {
+	if (y->parent != NULL) {
 		if (y == y->parent->left) {
 			y->parent->left = x;
 		} else {
@@ -316,7 +316,7 @@ void nvgpu_rbtree_unlink(struct nvgpu_rbtree_node *node,
 		 * the memory for z can be freed
 		 */
 		y->parent = z->parent;
-		if (z->parent) {
+		if (z->parent != NULL) {
 			if (z == z->parent->left) {
 				z->parent->left = y;
 			} else {
@@ -329,12 +329,12 @@ void nvgpu_rbtree_unlink(struct nvgpu_rbtree_node *node,
 		y->is_red = z->is_red;
 
 		y->left = z->left;
-		if (z->left) {
+		if (z->left != NULL) {
 			z->left->parent = y;
 		}
 
 		y->right = z->right;
-		if (z->right) {
+		if (z->right != NULL) {
 			z->right->parent = y;
 		}
 
@@ -353,7 +353,7 @@ void nvgpu_rbtree_search(u64 key_start, struct nvgpu_rbtree_node **node,
 {
 	struct nvgpu_rbtree_node *curr = root;
 
-	while (curr) {
+	while (curr != NULL) {
 		if (key_start < curr->key_start) {
 			curr = curr->left;
 		} else if (key_start > curr->key_start) {
@@ -373,7 +373,7 @@ void nvgpu_rbtree_range_search(u64 key,
 {
 	struct nvgpu_rbtree_node *curr = root;
 
-	while (curr) {
+	while (curr != NULL) {
 		if (key >= curr->key_start &&
 				key < curr->key_end) {
 			*node = curr;
@@ -394,7 +394,7 @@ void nvgpu_rbtree_less_than_search(u64 key_start,
 {
 	struct nvgpu_rbtree_node *curr = root;
 
-	while (curr) {
+	while (curr != NULL) {
 		if (key_start <= curr->key_start) {
 			curr = curr->left;
 		} else {
@@ -409,10 +409,10 @@ void nvgpu_rbtree_enum_start(u64 key_start, struct nvgpu_rbtree_node **node,
 {
 	*node = NULL;
 
-	if (root) {
+	if (root != NULL) {
 		struct nvgpu_rbtree_node *curr = root;
 
-		while (curr) {
+		while (curr != NULL) {
 			if (key_start < curr->key_start) {
 				*node = curr;
 				curr = curr->left;
@@ -436,14 +436,16 @@ void nvgpu_rbtree_enum_next(struct nvgpu_rbtree_node **node,
 		curr = *node;
 
 		/* pick the leftmost node of the right subtree ? */
-		if (curr->right) {
+		if (curr->right != NULL) {
 			curr = curr->right;
-			for (; curr->left;) {
+			for (; curr->left != NULL;) {
 				curr = curr->left;
 			}
 		} else {
 			/* go up until we find the right inorder node */
-			for (curr = curr->parent; curr; curr = curr->parent) {
+			for (curr = curr->parent;
+			     curr != NULL;
+			     curr = curr->parent) {
 				if (curr->key_start > (*node)->key_start) {
 					break;
 				}

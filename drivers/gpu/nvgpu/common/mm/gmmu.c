@@ -276,7 +276,7 @@ static int pd_allocate(struct vm_gk20a *vm,
 {
 	int err;
 
-	if (pd->mem) {
+	if (pd->mem != NULL) {
 		return 0;
 	}
 
@@ -320,7 +320,7 @@ static int pd_allocate_children(struct vm_gk20a *vm,
 {
 	struct gk20a *g = gk20a_from_vm(vm);
 
-	if (pd->entries) {
+	if (pd->entries != NULL) {
 		return 0;
 	}
 
@@ -392,7 +392,7 @@ static int __set_pd_level(struct vm_gk20a *vm,
 	 * For each of those chunks program our level's PDE and then, if there's
 	 * a next level, program the next level's PDEs/PTEs.
 	 */
-	while (length) {
+	while (length != 0ULL) {
 		u32 pd_idx = pd_index(l, virt_addr, attrs);
 		u64 chunk_size;
 		u64 target_addr;
@@ -409,8 +409,8 @@ static int __set_pd_level(struct vm_gk20a *vm,
 		 * that _this_ level points to PDEs (not PTEs). Thus we need to
 		 * have a bunch of children PDs.
 		 */
-		if (next_l->update_entry) {
-			if (pd_allocate_children(vm, l, pd, attrs)) {
+		if (next_l->update_entry != NULL) {
+			if (pd_allocate_children(vm, l, pd, attrs) != 0) {
 				return -ENOMEM;
 			}
 
@@ -425,7 +425,7 @@ static int __set_pd_level(struct vm_gk20a *vm,
 			/*
 			 * Allocate the backing memory for next_pd.
 			 */
-			if (pd_allocate(vm, next_pd, next_l, attrs)) {
+			if (pd_allocate(vm, next_pd, next_l, attrs) != 0) {
 				return -ENOMEM;
 			}
 		}
@@ -446,7 +446,7 @@ static int __set_pd_level(struct vm_gk20a *vm,
 				target_addr,
 				attrs);
 
-		if (next_l->update_entry) {
+		if (next_l->update_entry != NULL) {
 			err = __set_pd_level(vm, next_pd,
 					     lvl + 1,
 					     phys_addr,
@@ -467,7 +467,7 @@ static int __set_pd_level(struct vm_gk20a *vm,
 		 * non-zero phys addresses in the PTEs. A non-zero phys-addr
 		 * would also confuse the lower level PTE programming code.
 		 */
-		if (phys_addr) {
+		if (phys_addr != 0ULL) {
 			phys_addr += chunk_size;
 		}
 		length -= chunk_size;
@@ -777,7 +777,7 @@ u64 gk20a_locked_gmmu_map(struct vm_gk20a *vm,
 	 * the programmed ctagline gets increased at compression_page_size
 	 * boundaries.
 	 */
-	if (attrs.ctag) {
+	if (attrs.ctag != 0ULL) {
 		attrs.ctag += buffer_offset & (U64(ctag_granularity) - U64(1));
 	}
 
@@ -919,7 +919,7 @@ static int __nvgpu_locate_pte(struct gk20a *g, struct vm_gk20a *vm,
 	 * If this isn't the final level (i.e there's a valid next level)
 	 * then find the next level PD and recurse.
 	 */
-	if (next_l->update_entry) {
+	if (next_l->update_entry != NULL) {
 		struct nvgpu_gmmu_pd *pd_next = pd->entries + pd_idx;
 
 		/* Invalid entry! */
@@ -951,21 +951,21 @@ static int __nvgpu_locate_pte(struct gk20a *g, struct vm_gk20a *vm,
 		pd_offset_from_index(l, pd_idx);
 	pte_size = (u32)(l->entry_size / sizeof(u32));
 
-	if (data) {
+	if (data != NULL) {
 		for (i = 0; i < pte_size; i++) {
 			data[i] = nvgpu_mem_rd32(g, pd->mem, pte_base + i);
 		}
 	}
 
-	if (pd_out) {
+	if (pd_out != NULL) {
 		*pd_out = pd;
 	}
 
-	if (pd_idx_out) {
+	if (pd_idx_out != NULL) {
 		*pd_idx_out = pd_idx;
 	}
 
-	if (pd_offs_out) {
+	if (pd_offs_out != NULL) {
 		*pd_offs_out = pd_offset_from_index(l, pd_idx);
 	}
 

@@ -198,10 +198,10 @@ int nvgpu_vm_area_alloc(struct vm_gk20a *vm, u32 pages, u32 page_size,
 	return 0;
 
 clean_up_err:
-	if (vaddr_start) {
+	if (vaddr_start != 0ULL) {
 		nvgpu_free(vma, vaddr_start);
 	}
-	if (vm_area) {
+	if (vm_area != NULL) {
 		nvgpu_kfree(g, vm_area);
 	}
 	return -ENOMEM;

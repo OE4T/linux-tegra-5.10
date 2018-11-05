@@ -190,7 +190,7 @@ u64 nvgpu_sgt_alignment(struct gk20a *g, struct nvgpu_sgt *sgt)
 		chunk_align = 1ULL << __ffs(nvgpu_sgt_get_phys(g, sgt, sgl) |
 					    nvgpu_sgt_get_length(sgt, sgl));
 
-		if (align) {
+		if (align != 0ULL) {
 			align = min(align, chunk_align);
 		} else {
 			align = chunk_align;

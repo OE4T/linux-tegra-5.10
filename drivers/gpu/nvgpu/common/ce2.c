@@ -100,7 +100,7 @@ int gk20a_ce_execute_ops(struct gk20a *g,
 
 	cmd_buf_cpu_va = (u32 *)ce_ctx->cmd_buf_mem.cpu_va;
 
-	if (ce_ctx->postfences[ce_ctx->cmd_buf_read_queue_offset]) {
+	if (ce_ctx->postfences[ce_ctx->cmd_buf_read_queue_offset] != NULL) {
 		struct gk20a_fence **prev_post_fence =
 			&ce_ctx->postfences[ce_ctx->cmd_buf_read_queue_offset];
 
@@ -127,7 +127,7 @@ int gk20a_ce_execute_ops(struct gk20a *g,
 					request_operation,
 					dma_copy_class);
 
-	if (methodSize) {
+	if (methodSize != 0U) {
 		/* store the element into gpfifo */
 		gpfifo.entry0 =
 			u64_lo32(cmd_buf_gpu_va);
@@ -146,7 +146,7 @@ int gk20a_ce_execute_ops(struct gk20a *g,
 		if (ret == 0) {
 			ce_ctx->postfences[ce_ctx->cmd_buf_read_queue_offset] =
 				ce_cmd_buf_fence_out;
-			if (gk20a_fence_out) {
+			if (gk20a_fence_out != NULL) {
 				gk20a_fence_get(ce_cmd_buf_fence_out);
 				*gk20a_fence_out = ce_cmd_buf_fence_out;
 			}

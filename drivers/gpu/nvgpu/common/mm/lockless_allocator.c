@@ -81,7 +81,7 @@ static u64 nvgpu_lockless_alloc(struct nvgpu_allocator *a, u64 len)
 		head = NV_ACCESS_ONCE(pa->head);
 	}
 
-	if (addr) {
+	if (addr != 0ULL) {
 		alloc_dbg(a, "Alloc node # %d @ addr 0x%llx", head, addr);
 	} else {
 		alloc_dbg(a, "Alloc failed!");

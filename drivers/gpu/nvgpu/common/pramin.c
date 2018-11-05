@@ -68,7 +68,7 @@ static void nvgpu_pramin_access_batched(struct gk20a *g, struct nvgpu_mem *mem,
 		}
 	}
 
-	while (size) {
+	while (size != 0U) {
 		u32 sgl_len;
 
 		BUG_ON(sgl == NULL);
@@ -105,7 +105,8 @@ static void nvgpu_pramin_access_batch_rd_n(struct gk20a *g,
 {
 	u32 r = start, *dest_u32 = *arg;
 
-	while (words--) {
+	while (words != 0U) {
+		words--;
 		*dest_u32++ = nvgpu_readl(g, r);
 		r += sizeof(u32);
 	}
@@ -127,7 +128,8 @@ static void nvgpu_pramin_access_batch_wr_n(struct gk20a *g,
 {
 	u32 r = start, *src_u32 = *arg;
 
-	while (words--) {
+	while (words != 0U) {
+		words--;
 		nvgpu_writel_relaxed(g, r, *src_u32++);
 		r += sizeof(u32);
 	}
@@ -149,7 +151,8 @@ static void nvgpu_pramin_access_batch_set(struct gk20a *g,
 {
 	u32 r = start, repeat = **arg;
 
-	while (words--) {
+	while (words != 0U) {
+		words--;
 		nvgpu_writel_relaxed(g, r, repeat);
 		r += sizeof(u32);
 	}

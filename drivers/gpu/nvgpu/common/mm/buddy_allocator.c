@@ -292,7 +292,7 @@ static void nvgpu_buddy_allocator_destroy(struct nvgpu_allocator *na)
 	 * Free the fixed allocs first.
 	 */
 	nvgpu_rbtree_enum_start(0, &node, a->fixed_allocs);
-	while (node) {
+	while (node != NULL) {
 		falloc = nvgpu_fixed_alloc_from_rbtree_node(node);
 
 		nvgpu_rbtree_unlink(node, &a->fixed_allocs);
@@ -305,7 +305,7 @@ static void nvgpu_buddy_allocator_destroy(struct nvgpu_allocator *na)
 	 * And now free all outstanding allocations.
 	 */
 	nvgpu_rbtree_enum_start(0, &node, a->alloced_buddies);
-	while (node) {
+	while (node != NULL) {
 		bud = nvgpu_buddy_from_rbtree_node(node);
 
 		(void) balloc_free_buddy(a, bud->start);
@@ -564,7 +564,7 @@ static u64 balloc_do_alloc(struct nvgpu_buddy_allocator *a,
 	}
 
 	while (bud->order != order) {
-		if (balloc_split_buddy(a, bud, pte_size)) {
+		if (balloc_split_buddy(a, bud, pte_size) != 0) {
 			return 0; /* No mem... */
 		}
 		bud = bud->left;
@@ -686,7 +686,7 @@ static struct nvgpu_buddy *balloc_make_fixed_buddy(
 	 *     make.
 	 */
 	while (cur_order <= a->max_order) {
-		int found = 0;
+		bool found = false;
 
 		order_list = balloc_get_order_list(a, cur_order);
 		nvgpu_list_for_each_entry(bud, order_list,
@@ -706,7 +706,7 @@ static struct nvgpu_buddy *balloc_make_fixed_buddy(
 					return NULL;
 				}
 
-				found = 1;
+				found = true;
 				break;
 			}
 		}
@@ -726,7 +726,7 @@ static struct nvgpu_buddy *balloc_make_fixed_buddy(
 
 	/* Split this buddy as necessary until we get the target buddy. */
 	while (bud->start != base || bud->order != order) {
-		if (balloc_split_buddy(a, bud, pte_size)) {
+		if (balloc_split_buddy(a, bud, pte_size) != 0) {
 			alloc_dbg(balloc_owner(a),
 				  "split buddy failed? {0x%llx, %llu}",
 				  bud->start, bud->order);
@@ -1015,7 +1015,7 @@ static void nvgpu_buddy_bfree(struct nvgpu_allocator *na, u64 addr)
 	 * buddy.
 	 */
 	falloc = balloc_free_fixed(a, addr);
-	if (falloc) {
+	if (falloc != NULL) {
 		balloc_do_free_fixed(a, falloc);
 		goto done;
 	}
@@ -1402,7 +1402,7 @@ int nvgpu_buddy_allocator_init(struct gk20a *g, struct nvgpu_allocator *na,
 	return 0;
 
 fail:
-	if (a->buddy_cache) {
+	if (a->buddy_cache != NULL) {
 		nvgpu_kmem_cache_destroy(a->buddy_cache);
 	}
 	nvgpu_kfree(g, a);
