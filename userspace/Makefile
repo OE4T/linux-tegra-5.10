@@ -97,7 +97,7 @@ $(OUT)/nvgpu_unit: $(OUT)/libnvgpu-drv.so $(CORE_OBJS)
 		-o $(OUT)/nvgpu_unit $(CORE_OBJS) $(LIB_PATHS) $(LIBS)
 
 $(OUT)/libnvgpu-drv.so: $(OBJS)
-	$(CC) -shared -o $(OUT)/libnvgpu-drv.so $(OBJS) -lgcov
+	$(CC) -shared -o $(OUT)/libnvgpu-drv.so $(OBJS) -lgcov -rdynamic
 
 # Default build target for all the nvgpu driver object files we want to build in
 # userspace. These get bundled into libnvgpu-drv.so.

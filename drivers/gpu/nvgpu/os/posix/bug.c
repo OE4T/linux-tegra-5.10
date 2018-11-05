@@ -26,6 +26,11 @@
 #include <pthread.h>
 #include <stdbool.h>
 #include <setjmp.h>
+#ifndef _QNX_SOURCE
+#include <execinfo.h>
+#endif
+
+#define BACKTRACE_MAXSIZE 1024
 
 static _Thread_local bool expect_bug;
 static _Thread_local jmp_buf *jmp_handler;
@@ -42,14 +47,25 @@ void bug_handler_cancel(void)
 	jmp_handler = NULL;
 }
 
-static void __dump_stack(unsigned int skip_frames)
+static void __dump_stack(int skip_frames)
 {
+#ifndef _QNX_SOURCE
+	void *trace[BACKTRACE_MAXSIZE];
+	int i;
+	int trace_size = backtrace(trace, BACKTRACE_MAXSIZE);
+	char **trace_syms = backtrace_symbols(trace, trace_size);
+
+	for (i = skip_frames; i < trace_size; i++) {
+		nvgpu_err(NULL, "[%d] %s", i - skip_frames, trace_syms[i]);
+	}
+#endif
 	return;
 }
 
 void dump_stack(void)
 {
-	__dump_stack(0);
+	/* Skip this function and __dump_stack() */
+	__dump_stack(2);
 }
 
 /*
@@ -63,8 +79,12 @@ void __bug(const char *fmt, ...)
 		/* Perform a long jump to where "setjmp()" was called. */
 		longjmp(*jmp_handler, 1);
 	}
-	/* If BUG is unexpected, raise a SIGSEGV signal and kill the thread */
+	/*
+	 * If BUG was unexpected, raise a SIGSEGV signal, dump the stack and
+	 * kill the thread.
+	 */
 	nvgpu_err(NULL, "BUG detected!");
+	dump_stack();
 	(void) raise(SIGSEGV);
 	pthread_exit(NULL);
 }
