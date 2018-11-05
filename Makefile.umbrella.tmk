@@ -62,6 +62,7 @@ NV_REPOSITORY_COMPONENTS += userspace/units/fuse
 endif
 NV_REPOSITORY_COMPONENTS += userspace/units/list
 NV_REPOSITORY_COMPONENTS += userspace/units/enabled
+NV_REPOSITORY_COMPONENTS += userspace/units/falcon/falcon
 endif
 
 # Local Variables:

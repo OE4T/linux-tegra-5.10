@@ -66,7 +66,8 @@ UNITS :=				\
 	$(UNIT_SRC)/fifo/runlist	\
 	$(UNIT_SRC)/fifo/tsg		\
 	$(UNIT_SRC)/list		\
-	$(UNIT_SRC)/enabled
+	$(UNIT_SRC)/enabled		\
+	$(UNIT_SRC)/falcon/falcon
 
 ifeq ($(CONFIG_NVGPU_HAL_NON_FUSA),1)
 UNITS += $(UNIT_SRC)/fuse

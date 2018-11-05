@@ -1252,5 +1252,30 @@
         "test": "map_buf_gpu_va",
         "test_level": 0,
         "unit": "vm"
+    },
+    {
+        "test": "falcon_mem_rw_init",
+        "test_level": 0,
+        "unit": "falcon"
+    },
+    {
+        "test": "falcon_mem_rw_range",
+        "test_level": 0,
+        "unit": "falcon"
+    },
+    {
+        "test": "falcon_mem_rw_aligned",
+        "test_level": 0,
+        "unit": "falcon"
+    },
+    {
+        "test": "falcon_mem_rw_zero",
+        "test_level": 0,
+        "unit": "falcon"
+    },
+    {
+        "test": "falcon_free_test_env",
+        "test_level": 0,
+        "unit": "falcon"
     }
 ]
