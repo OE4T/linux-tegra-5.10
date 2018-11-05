@@ -10,6 +10,10 @@
 #define DT_VERSION_2		2
 
 /**
+ * TEGRA_TCU_DT_VERSION
+ *		V1: Nv version of Tegra Combined Uart DT binding
+ * 		V2: Mainline compatible DT binding
+ *
  * TEGRA_BPMP_FW_DT_VERSION
  *		V1: Nv version of DT binding
  * 		V2: Mainline compatible DT binding
@@ -57,8 +61,10 @@
 #define _OS_FOUND_
 #define TEGRA_CPUFREQ_DT_VERSION		DT_VERSION_2
 #if LINUX_VERSION >= 419
+#define TEGRA_TCU_DT_VERSION			DT_VERSION_2
 #define TEGRA_BPMP_FW_DT_VERSION		DT_VERSION_2
 #else
+#define TEGRA_TCU_DT_VERSION			DT_VERSION_1
 #define TEGRA_BPMP_FW_DT_VERSION		DT_VERSION_1
 #endif
 #if LINUX_VERSION >= 409
@@ -85,6 +91,7 @@
 /* OS QNX */
 #if defined (__QNX__)
 #define _OS_FOUND_
+#define TEGRA_TCU_DT_VERSION			DT_VERSION_1
 #define TEGRA_BPMP_FW_DT_VERSION		DT_VERSION_1
 #define TEGRA_AUDIO_BUS_DT_VERSION		DT_VERSION_1
 #define TEGRA_POWER_DOMAIN_DT_VERSION		DT_VERSION_1
@@ -100,6 +107,7 @@
 /* OS Integrity */
 #if defined( __INTEGRITY)
 #define _OS_FOUND_
+#define TEGRA_TCU_DT_VERSION			DT_VERSION_1
 #define TEGRA_BPMP_FW_DT_VERSION		DT_VERSION_1
 #define TEGRA_AUDIO_BUS_DT_VERSION		DT_VERSION_1
 #define TEGRA_POWER_DOMAIN_DT_VERSION		DT_VERSION_1
@@ -115,6 +123,7 @@
 /* OS LK */
 #if defined (__LK__)
 #define _OS_FOUND_
+#define TEGRA_TCU_DT_VERSION			DT_VERSION_1
 #define TEGRA_BPMP_FW_DT_VERSION		DT_VERSION_1
 #define TEGRA_AUDIO_BUS_DT_VERSION		DT_VERSION_2
 #define TEGRA_POWER_DOMAIN_DT_VERSION		DT_VERSION_2
