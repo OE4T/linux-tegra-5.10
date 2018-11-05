@@ -70,8 +70,11 @@ int vgpu_exec_regops(struct dbg_session_gk20a *dbg_s,
 	p->is_profiler = dbg_s->is_profiler;
 	err = vgpu_comm_sendrecv(&msg, sizeof(msg), sizeof(msg));
 	err = err ? err : msg.ret;
-	if (!err) {
+	if (err == 0) {
 		(void) memcpy(ops, oob, ops_size);
+		if (is_current_ctx != NULL) {
+			*is_current_ctx = p->is_current_ctx != 0u;
+		}
 	}
 
 fail:

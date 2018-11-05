@@ -334,6 +334,7 @@ struct tegra_vgpu_reg_ops_params {
 	u64 handle;
 	u64 num_ops;
 	u32 is_profiler;
+	u8 is_current_ctx;
 };
 
 struct tegra_vgpu_channel_priority_params {
