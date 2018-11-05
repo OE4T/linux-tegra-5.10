@@ -820,6 +820,12 @@
 		#power-domain-cells = <1>;
 		#strap-cells = <1>;
 		#nvidia,controller-id-cells = <1>;
+
+		bpmpthermal {
+			compatible = "nvidia,tegra186-bpmp-thermal";
+			#thermal-sensor-cells = <1>;
+			status = "disabled";
+		};
 	};
 
 	se: se_elp@3ad0000 {
