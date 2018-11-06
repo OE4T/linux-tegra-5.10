@@ -33,7 +33,7 @@
 #include <linux/clk/tegra.h>
 #include <soc/tegra/chip-id.h>
 #include <linux/reset.h>
-#include <video/tegra_dc_ext.h>
+#include <uapi/video/tegra_dc_ext.h>
 #include <linux/platform/tegra/isomgr.h>
 
 #include "dc.h"

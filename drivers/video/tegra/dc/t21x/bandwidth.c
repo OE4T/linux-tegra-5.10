@@ -30,7 +30,7 @@
 #include <linux/platform/tegra/tegra_emc.h>
 #include <linux/platform/tegra/mc.h>
 
-#include <video/tegra_dc_ext.h>
+#include <uapi/video/tegra_dc_ext.h>
 #include "dc.h"
 #include "dc_reg.h"
 #include "dc_config.h"

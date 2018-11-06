@@ -31,7 +31,7 @@
 #include <drm/drm_fixed.h>
 #include <linux/nvhost.h>
 #include <video/tegra_dc_ext_kernel.h>
-#include <video/tegra_dc_ext.h>
+#include <uapi/video/tegra_dc_ext.h>
 #include "dc_extras.h"
 
 #define DEFAULT_FPGA_FREQ_KHZ	160000

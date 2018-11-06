@@ -17,7 +17,7 @@
 #include <linux/errno.h>
 #include <linux/delay.h>
 
-#include "video/tegra_dc_ext.h"
+#include <uapi/video/tegra_dc_ext.h>
 #include "dc_priv.h"
 #include "dc_priv_defs.h"
 #include "hw_nvdisp_nvdisp.h"

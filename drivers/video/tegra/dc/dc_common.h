@@ -18,7 +18,7 @@
 #ifndef __DRIVERS_VIDEO_TEGRA_DC_DC_COMMON_H__
 #define __DRIVERS_VIDEO_TEGRA_DC_DC_COMMON_H__
 
-#include <video/tegra_dc_ext.h>
+#include <uapi/video/tegra_dc_ext.h>
 
 /* Flags for tegra_dc_common */
 

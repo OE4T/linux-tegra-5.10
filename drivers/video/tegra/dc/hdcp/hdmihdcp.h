@@ -16,7 +16,7 @@
 
 #ifndef __DRIVERS_VIDEO_TEGRA_DC_HDMIHDCP_H
 #define __DRIVERS_VIDEO_TEGRA_DC_HDMIHDCP_H
-#include <video/nvhdcp.h>
+#include <uapi/video/nvhdcp.h>
 #include <linux/version.h>
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 14, 0)
 #include <linux/miscdevice.h>

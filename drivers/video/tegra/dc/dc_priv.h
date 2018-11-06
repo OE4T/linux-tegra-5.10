@@ -20,14 +20,13 @@
 #ifndef __DRIVERS_VIDEO_TEGRA_DC_DC_PRIV_H
 #define __DRIVERS_VIDEO_TEGRA_DC_DC_PRIV_H
 
-#include <video/tegra_dc_ext.h>
 #include "dc_priv_defs.h"
 #ifndef CREATE_TRACE_POINTS
 #include <trace/events/display.h>
 #define WIN_IS_BLOCKLINEAR(win)	((win)->flags & TEGRA_WIN_FLAG_BLOCKLINEAR)
 #endif
 #include <soc/tegra/tegra_powergate.h>
-#include <video/tegra_dc_ext.h>
+#include <uapi/video/tegra_dc_ext.h>
 #include <video/tegra_dc_ext_kernel.h>
 #include <soc/tegra/tegra_bpmp.h>
 

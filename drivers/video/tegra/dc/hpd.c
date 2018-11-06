@@ -18,7 +18,7 @@
 #ifdef CONFIG_SWITCH
 #include <linux/switch.h>
 #endif
-#include <video/tegrafb.h>
+#include <uapi/video/tegrafb.h>
 #include "dc_priv.h"
 
 #include "dc.h"

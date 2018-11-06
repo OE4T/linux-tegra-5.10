@@ -1,7 +1,7 @@
 /*
  * dc_config.h: Declarations for tegra dc config settings.
  *
- * Copyright (c) 2010-2017, NVIDIA CORPORATION, All rights reserved.
+ * Copyright (c) 2010-2018, NVIDIA CORPORATION, All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,7 +22,7 @@
 #define __DRIVERS_VIDEO_TEGRA_DC_DC_CONFIG_H
 
 #include <linux/errno.h>
-#include <video/tegra_dc_ext.h>
+#include <uapi/video/tegra_dc_ext.h>
 #include "dc.h"
 #include "dc_priv.h"
 

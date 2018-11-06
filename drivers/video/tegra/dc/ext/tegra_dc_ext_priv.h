@@ -25,7 +25,7 @@
 #include <linux/list.h>
 #include <linux/mutex.h>
 #include <linux/poll.h>
-#include <video/tegra_dc_ext.h>
+#include <uapi/video/tegra_dc_ext.h>
 
 #include "../dc.h"
 
