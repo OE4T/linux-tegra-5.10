@@ -97,6 +97,9 @@ struct mods_client {
 	spinlock_t           irq_lock;
 	struct en_dev_entry *enabled_devices;
 	struct mem_type      mem_type;
+#if defined(CONFIG_PCI)
+	struct pci_dev      *cached_dev;
+#endif
 	struct mutex         mtx;
 	int                  mods_fb_suspended[FB_MAX];
 	u32                  access_token;
@@ -121,34 +124,35 @@ struct MODS_PHYS_CHUNK {
 	u64          dma_addr:58; /* phys addr (or machine addr on XEN) */
 	u32          order:5;     /* 1<<order = number of contig pages */
 	int          allocated:1;
+	u64          dev_addr;    /* DMA map addr for default device */
 	struct page *p_page;
 };
 
-struct MODS_MAP_CHUNK {
-	struct MODS_PHYS_CHUNK *pt;
-	u64 map_addr;
-};
-
 struct MODS_DMA_MAP {
-	struct pci_dev  *dev;          /* pci_dev to map the page to */
 	struct list_head list;
-	struct MODS_MAP_CHUNK mapping[1];
+	struct pci_dev  *dev;          /* pci_dev these mappings are for */
+	u64              dev_addr[1];  /* each entry corresponds to phys chunk
+					* in the pages array at the same index
+					*/
 };
 
 /* system memory allocation tracking */
 struct MODS_MEM_INFO {
-	u64		 logical_addr;   /* kernel logical address */
-	u32		 num_pages;      /* number of allocated pages */
-	u8		 alloc_type : 2; /* MODS_ALLOC_TYPE_* */
-	u8		 cache_type : 3; /* MODS_MEMORY_* */
-	u8		 addr_bits  : 7; /* phys addr size requested */
-	u32		 length;         /* actual number of bytes allocated */
-	u32		 max_chunks;     /* max number of contig chunks */
-	int		 numa_node;      /* numa node for the allocation */
-	struct pci_dev  *dev;  /* backwards compatibility : pci_dev that the
-				* memory was allocated on
-				*/
+	u64             logical_addr;   /* kernel logical address */
+	u32             num_pages;      /* number of allocated pages */
+	u8              alloc_type : 2; /* MODS_ALLOC_TYPE_* */
+	u8              cache_type : 3; /* MODS_MEMORY_* */
+	u8              addr_bits  : 7; /* phys addr size requested */
+	u32             length;         /* actual number of bytes allocated */
+	u32             num_chunks;     /* max number of contig chunks */
+	int             numa_node;      /* numa node for the allocation */
+	struct pci_dev *dev;            /* (optional) pci_dev this allocation
+					 * is for.
+					 */
 
+	/* List of DMA mappings for devices other than the default
+	 * device specified by the dev field above.
+	 */
 	struct list_head dma_map_list;
 
 	struct list_head list;
@@ -194,8 +198,10 @@ struct PPC_TCE_BYPASS {
 	struct list_head   list;
 };
 
+int has_npu_dev(struct pci_dev *dev, int index);
+
 int mods_is_nvlink_sysmem_trained(struct file *fp,
-			   struct pci_dev *dev);
+				  struct pci_dev *dev);
 
 /* NvLink Trained tracking */
 struct NVL_TRAINED {
@@ -335,19 +341,6 @@ struct mods_priv {
 	#define MODS_DMA_TO_PHYS(dma_addr)  (dma_addr)
 #endif
 
-/* PCI */
-#define MODS_PCI_GET_SLOT(mydomain, mybus, devfn)			     \
-({									     \
-	struct pci_dev *__dev = NULL;					     \
-	while ((__dev = pci_get_device(PCI_ANY_ID, PCI_ANY_ID, __dev))) {    \
-		if (pci_domain_nr(__dev->bus) == mydomain		     \
-		    && __dev->bus->number == mybus			     \
-		    && __dev->devfn == devfn)				     \
-			break;						     \
-	}								     \
-	__dev;								     \
-})
-
 /* ACPI */
 #ifdef MODS_HAS_NEW_ACPI_WALK
 #define MODS_ACPI_WALK_NAMESPACE(type, start_object, max_depth, user_function, \
@@ -398,10 +391,22 @@ int mods_unregister_all_ppc_tce_bypass(struct file *fp);
 int mods_unregister_all_nvlink_sysmem_trained(struct file *fp);
 #endif
 
+/* pci */
 #ifdef CONFIG_PCI
 struct en_dev_entry *mods_enable_device(struct mods_client *client,
 					struct pci_dev     *dev);
 void mods_disable_device(struct pci_dev *pdev);
+#endif
+
+#ifdef CONFIG_PCI
+int mods_is_pci_dev(struct pci_dev        *dev,
+		    struct mods_pci_dev_2 *pcidev);
+int mods_find_pci_dev(struct file           *fp,
+		      struct mods_pci_dev_2 *pcidev,
+		      struct pci_dev       **retdev);
+#else
+#define mods_is_pci_dev(a, b) 0
+#define mods_find_pci_dev(a, b, c) (-ENODEV)
 #endif
 
 /* clock */
@@ -424,12 +429,16 @@ int esc_mods_get_phys_addr(struct file *fp,
 			   struct MODS_GET_PHYSICAL_ADDRESS *p);
 int esc_mods_get_phys_addr_2(struct file *fp,
 			     struct MODS_GET_PHYSICAL_ADDRESS_3 *p);
+int esc_mods_get_phys_addr_range(struct file *fp,
+				 struct MODS_GET_ADDRESS_RANGE *p);
 int esc_mods_get_mapped_phys_addr(struct file *fp,
 			  struct MODS_GET_PHYSICAL_ADDRESS *p);
 int esc_mods_get_mapped_phys_addr_2(struct file *fp,
 				    struct MODS_GET_PHYSICAL_ADDRESS_2 *p);
 int esc_mods_get_mapped_phys_addr_3(struct file *fp,
 				    struct MODS_GET_PHYSICAL_ADDRESS_3 *p);
+int esc_mods_get_dma_addr_range(struct file *fp,
+				struct MODS_GET_ADDRESS_RANGE *p);
 int esc_mods_virtual_to_phys(struct file *fp,
 			     struct MODS_VIRTUAL_TO_PHYSICAL *p);
 int esc_mods_phys_to_virtual(struct file *fp,

@@ -25,7 +25,7 @@
 
 /* Driver version */
 #define MODS_DRIVER_VERSION_MAJOR 3
-#define MODS_DRIVER_VERSION_MINOR 88
+#define MODS_DRIVER_VERSION_MINOR 89
 #define MODS_DRIVER_VERSION ((MODS_DRIVER_VERSION_MAJOR << 8) | \
 			     ((MODS_DRIVER_VERSION_MINOR/10) << 4) | \
 			     (MODS_DRIVER_VERSION_MINOR%10))
@@ -123,6 +123,21 @@ struct MODS_GET_PHYSICAL_ADDRESS_3 {
 
 	/* OUT */
 	__u64                 physical_address;
+};
+
+#define MAX_PA_ENTRIES 64
+
+/* MODS_ESC_GET_PHYSICAL_ADDRESS_RANGE, MODS_ESC_GET_DMA_ADDRESS_RANGE */
+struct MODS_GET_ADDRESS_RANGE {
+	/* IN */
+	__u64                 memory_handle;
+	__u64                 offset;
+	__u32                 stride;
+	__u32                 num_entries;
+	struct mods_pci_dev_2 pci_device;
+
+	/* OUT */
+	__u64                 physical_addresses[MAX_PA_ENTRIES];
 };
 
 /* MODS_ESC_VIRTUAL_TO_PHYSICAL */
@@ -1356,4 +1371,10 @@ struct MODS_MSR {
 		    _IOWR(MODS_IOC_MAGIC, 120, struct MODS_MSR)
 #define MODS_ESC_WRITE_MSR \
 		    _IOW(MODS_IOC_MAGIC, 121, struct MODS_MSR)
+#define MODS_ESC_GET_PHYSICAL_ADDRESS_RANGE    \
+		    _IOWR(MODS_IOC_MAGIC, 122, \
+			  struct MODS_GET_ADDRESS_RANGE)
+#define MODS_ESC_GET_DMA_ADDRESS_RANGE         \
+		    _IOWR(MODS_IOC_MAGIC, 123, \
+			  struct MODS_GET_ADDRESS_RANGE)
 #endif /* _MODS_H_  */
