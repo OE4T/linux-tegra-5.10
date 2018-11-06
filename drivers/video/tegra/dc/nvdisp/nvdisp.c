@@ -2072,7 +2072,8 @@ int tegra_nvdisp_head_enable(struct tegra_dc *dc)
 {
 	int i;
 	int res;
-	int pclk = 0;
+	int pclk = 0, ret = 0;
+	struct clk *parent_clk = NULL;
 
 	if (WARN_ON(!dc || !dc->out || !dc->out_ops))
 		return false;
@@ -2097,13 +2098,36 @@ int tegra_nvdisp_head_enable(struct tegra_dc *dc)
 	if (dc->out->enable)
 		dc->out->enable(&dc->ndev->dev);
 
+	/* Setting DC clocks, DC, COMPCLK
+	 * Set maximum of DC clock for COMPCLK
+	 */
+	if (dc->out->type == TEGRA_DC_OUT_DSI) {
+		parent_clk = tegra_disp_clk_get(&dc->ndev->dev,
+						"pll_d_out1");
+	} else	{
+		parent_clk = tegra_disp_clk_get(&dc->ndev->dev,
+						dc->out->parent_clk);
+		pr_info("Parent Clock set for DC %s\n",
+				dc->out->parent_clk);
+	}
+
+	if (IS_ERR_OR_NULL(parent_clk)) {
+		dev_err(&dc->ndev->dev,
+			"Failed to get DC Parent clock\n");
+		ret = -ENOENT;
+		return ret; /*TODO: Add proper cleanup later */
+	}
+
+	/* Set parent for DC clock */
+	clk_set_parent(dc->clk, parent_clk);
+
+	/* Set rate on DC same as pclk */
+	if (!dc->initialized)
+		clk_set_rate(dc->clk, dc->mode.pclk);
+
 	if (dc->out_ops->setup_clk)
 		pclk = dc->out_ops->setup_clk(dc, dc->clk);
 
-	if (pclk < 0) {
-		dev_err(&dc->ndev->dev, "clock setup failed\n");
-		return -EINVAL;
-	}
 	/* Enable DC clock */
 	tegra_disp_clk_prepare_enable(dc->clk);
 
