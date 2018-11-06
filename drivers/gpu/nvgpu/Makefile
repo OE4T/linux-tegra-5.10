@@ -210,13 +210,13 @@ nvgpu-$(CONFIG_NVGPU_SUPPORT_CDE) += \
 endif
 
 nvgpu-y += \
-	common/mm/nvgpu_allocator.o \
-	common/mm/bitmap_allocator.o \
-	common/mm/buddy_allocator.o \
-	common/mm/page_allocator.o \
-	common/mm/lockless_allocator.o \
-	common/mm/gmmu.o \
-	common/mm/pd_cache.o \
+	common/mm/allocators/nvgpu_allocator.o \
+	common/mm/allocators/bitmap_allocator.o \
+	common/mm/allocators/buddy_allocator.o \
+	common/mm/allocators/page_allocator.o \
+	common/mm/allocators/lockless_allocator.o \
+	common/mm/gmmu/page_table.o \
+	common/mm/gmmu/pd_cache.o \
 	common/mm/vm.o \
 	common/mm/vm_area.o \
 	common/mm/nvgpu_mem.o \
