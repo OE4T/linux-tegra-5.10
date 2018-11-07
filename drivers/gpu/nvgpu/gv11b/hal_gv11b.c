@@ -22,6 +22,7 @@
  * DEALINGS IN THE SOFTWARE.
  */
 #include <nvgpu/gk20a.h>
+#include <nvgpu/fuse.h>
 
 #include "common/bus/bus_gk20a.h"
 #include "common/bus/bus_gp10b.h"
@@ -868,6 +869,8 @@ static const struct gpu_ops gv11b_ops = {
 		.read_vin_cal_fuse_rev = NULL,
 		.read_vin_cal_slope_intercept_fuse = NULL,
 		.read_vin_cal_gain_offset_fuse = NULL,
+		.read_gcplex_config_fuse =
+				nvgpu_tegra_fuse_read_gcplex_config_fuse,
 	},
 	.acr = {
 		.acr_sw_init = nvgpu_gv11b_acr_sw_init,

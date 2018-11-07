@@ -33,6 +33,7 @@
 #include <nvgpu/tsg.h>
 #include <nvgpu/perfbuf.h>
 #include <nvgpu/cyclestats_snapshot.h>
+#include <nvgpu/fuse.h>
 
 #include "common/bus/bus_gk20a.h"
 #include "common/clock_gating/gp10b_gating_reglist.h"
@@ -742,6 +743,8 @@ static const struct gpu_ops gp10b_ops = {
 		.read_vin_cal_fuse_rev = NULL,
 		.read_vin_cal_slope_intercept_fuse = NULL,
 		.read_vin_cal_gain_offset_fuse = NULL,
+		.read_gcplex_config_fuse =
+				nvgpu_tegra_fuse_read_gcplex_config_fuse,
 	},
 	.acr = {
 		.acr_sw_init = nvgpu_gm20b_acr_sw_init,

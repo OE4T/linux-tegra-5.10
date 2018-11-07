@@ -267,8 +267,9 @@ void pmu_dump_security_fuses_gm20b(struct gk20a *g)
 			g->ops.fuse.fuse_opt_sec_debug_en(g));
 	nvgpu_err(g, "FUSE_OPT_PRIV_SEC_EN_0: 0x%x",
 			g->ops.fuse.fuse_opt_priv_sec_en(g));
-	nvgpu_tegra_fuse_read_gcplex_config_fuse(g, &val);
-	nvgpu_err(g, "FUSE_GCPLEX_CONFIG_FUSE_0: 0x%x", val);
+	if (g->ops.fuse.read_gcplex_config_fuse(g, &val) != 0) {
+		nvgpu_err(g, "FUSE_GCPLEX_CONFIG_FUSE_0: 0x%x", val);
+	}
 }
 
 bool gm20b_pmu_is_debug_mode_en(struct gk20a *g)

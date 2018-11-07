@@ -1325,6 +1325,7 @@ struct gpu_ops {
 		int (*read_vin_cal_gain_offset_fuse)(struct gk20a *g,
 							     u32 vin_id, s8 *gain,
 							     s8 *offset);
+		int (*read_gcplex_config_fuse)(struct gk20a *g, u32 *val);
 	} fuse;
 	struct {
 		int (*init)(struct gk20a *g);

@@ -46,7 +46,7 @@ int gp10b_fuse_check_priv_security(struct gk20a *g)
 		return 0;
 	}
 
-	if (nvgpu_tegra_fuse_read_gcplex_config_fuse(g, &gcplex_config) != 0) {
+	if (g->ops.fuse.read_gcplex_config_fuse(g, &gcplex_config) != 0) {
 		nvgpu_err(g, "err reading gcplex config fuse, check fuse clk");
 		return -EINVAL;
 	}
