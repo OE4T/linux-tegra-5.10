@@ -45,6 +45,7 @@ srcs :=	os/posix/nvgpu.c \
 	os/posix/lock.c \
 	os/posix/stubs.c \
 	os/posix/posix-fault-injection.c \
+	os/posix/gk20a.c \
 	common/mm/nvgpu_allocator.c \
 	common/mm/bitmap_allocator.c \
 	common/mm/buddy_allocator.c \
@@ -174,7 +175,6 @@ srcs :=	os/posix/nvgpu.c \
 	pmgr/pwrpolicy.c \
 	lpwr/lpwr.c \
 	lpwr/rppg.c \
-	gk20a/gk20a.c \
 	common/ptimer/ptimer_gk20a.c \
 	gk20a/ce2_gk20a.c \
 	gk20a/fifo_gk20a.c \

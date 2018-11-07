@@ -79,6 +79,7 @@ nvgpu-y += common/bus/bus_gk20a.o \
 
 # Linux specific parts of nvgpu.
 nvgpu-y += \
+	os/linux/gk20a.o \
 	os/linux/os_ops.o \
 	os/linux/os_ops_gm20b.o \
 	os/linux/os_ops_gp10b.o \
@@ -266,7 +267,6 @@ nvgpu-y += \
 	common/ecc.o \
 	common/ce2.o \
 	common/debugger.o \
-	gk20a/gk20a.o \
 	gk20a/ce2_gk20a.o \
 	gk20a/fifo_gk20a.o \
 	gk20a/regops_gk20a.o \
