@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2016, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2015-2018, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -38,6 +38,8 @@ struct isc_mgr_priv {
 	u32 pwr_state;
 	atomic_t irq_in_use;
 	struct pwm_device *pwm;
+	wait_queue_head_t err_queue;
+	bool err_irq_recvd;
 };
 
 int isc_mgr_power_up(struct isc_mgr_priv *isc_mgr, unsigned long arg);

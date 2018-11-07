@@ -210,6 +210,8 @@ static irqreturn_t isc_mgr_isr(int irq, void *data)
 
 	if (data) {
 		isc_mgr = (struct isc_mgr_priv *)data;
+		isc_mgr->err_irq_recvd = true;
+		wake_up_interruptible(&isc_mgr->err_queue);
 		spin_lock_irqsave(&isc_mgr->spinlock, flags);
 		if (isc_mgr->sinfo.si_signo && isc_mgr->t) {
 			/* send the signal to user space */
@@ -657,6 +659,20 @@ static long isc_mgr_ioctl(
 	case ISC_MGR_IOCTL_PWM_CONFIG:
 		err = isc_mgr_pwm_config(isc_mgr, (const void __user *)arg);
 		break;
+	case ISC_MGR_IOCTL_WAIT_ERR:
+		if (isc_mgr->err_irq && !atomic_xchg(&isc_mgr->irq_in_use, 1)) {
+			enable_irq(isc_mgr->err_irq);
+			isc_mgr->err_irq_recvd = false;
+		}
+
+		err = wait_event_interruptible(isc_mgr->err_queue,
+			isc_mgr->err_irq_recvd);
+		isc_mgr->err_irq_recvd = false;
+		break;
+	case ISC_MGR_IOCTL_ABORT_WAIT_ERR:
+		isc_mgr->err_irq_recvd = true;
+		wake_up_interruptible(&isc_mgr->err_queue);
+		break;
 	default:
 		dev_err(isc_mgr->pdev, "%s unsupported ioctl: %x\n",
 			__func__, cmd);
@@ -700,8 +716,11 @@ static int isc_mgr_release(struct inode *inode, struct file *file)
 	isc_mgr_misc_ctrl(isc_mgr, false);
 
 	/* disable irq if irq is in use, when device is closed */
-	if (atomic_xchg(&isc_mgr->irq_in_use, 0))
+	if (atomic_xchg(&isc_mgr->irq_in_use, 0)) {
 		disable_irq(isc_mgr->err_irq);
+		isc_mgr->err_irq_recvd = true;
+		wake_up_interruptible(&isc_mgr->err_queue);
+	}
 
 	/* if runtime_pwrctrl_off is not true, power off all here */
 	if (!isc_mgr->pdata->runtime_pwrctrl_off)
@@ -990,6 +1009,8 @@ static int isc_mgr_probe(struct platform_device *pdev)
 	atomic_set(&isc_mgr->in_use, 0);
 	INIT_LIST_HEAD(&isc_mgr->dev_list);
 	mutex_init(&isc_mgr->mutex);
+	init_waitqueue_head(&isc_mgr->err_queue);
+	isc_mgr->err_irq_recvd = false;
 	isc_mgr->pwm = NULL;
 
 	if (pdev->dev.of_node) {
