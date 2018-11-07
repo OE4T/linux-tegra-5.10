@@ -25,36 +25,7 @@
 #include <nvgpu/lock.h>
 #include <nvgpu/gk20a.h>
 
-#define CLK_NAMEMAP_INDEX_GPCCLK	0x00
-#define CLK_NAMEMAP_INDEX_XBARCLK	0x02
-#define CLK_NAMEMAP_INDEX_SYSCLK	0x07	/* SYSPLL */
-#define CLK_NAMEMAP_INDEX_DRAMCLK	0x20	/* DRAMPLL */
-
-#define CLK_DEFAULT_CNTRL_SETTLE_RETRIES 10
-#define CLK_DEFAULT_CNTRL_SETTLE_USECS   5
-#define CLK_MAX_CNTRL_REGISTERS   2
-
-#define XTAL_CNTR_CLKS		27000	/* 1000usec at 27KHz XTAL */
-#define XTAL_CNTR_DELAY		10000	/* we need acuracy up to the 10ms   */
-#define XTAL_SCALE_TO_KHZ	1
-#define NUM_NAMEMAPS    (3U)
-#define XTAL4X_KHZ 108000
-
 u32 gv100_get_rate_cntr(struct gk20a *g, struct namemap_cfg *c);
-struct namemap_cfg {
-	u32 namemap;
-	u32 is_enable;	/* Namemap enabled */
-	u32 is_counter;	/* Using cntr */
-	struct gk20a *g;
-	struct {
-		u32 reg_ctrl_addr;
-		u32 reg_ctrl_idx;
-		u32 reg_cntr_addr[CLK_MAX_CNTRL_REGISTERS];
-	} cntr;
-	u32 scale;
-	char name[24];
-};
-
 int gv100_init_clk_support(struct gk20a *g);
 u32 gv100_crystal_clk_hz(struct gk20a *g);
 unsigned long gv100_clk_measure_freq(struct gk20a *g, u32 api_domain);

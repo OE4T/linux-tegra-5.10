@@ -33,11 +33,25 @@
 #include <nvgpu/clk_arb.h>
 #include <nvgpu/timers.h>
 #include <nvgpu/gk20a.h>
+#include <nvgpu/clk.h>
 
 #include "clk_gv100.h"
 
 #include <nvgpu/hw/gv100/hw_trim_gv100.h>
 
+#define CLK_NAMEMAP_INDEX_GPCCLK	0x00
+#define CLK_NAMEMAP_INDEX_XBARCLK	0x02
+#define CLK_NAMEMAP_INDEX_SYSCLK	0x07	/* SYSPLL */
+#define CLK_NAMEMAP_INDEX_DRAMCLK	0x20	/* DRAMPLL */
+
+#define CLK_DEFAULT_CNTRL_SETTLE_RETRIES 10
+#define CLK_DEFAULT_CNTRL_SETTLE_USECS   5
+
+#define XTAL_CNTR_CLKS		27000	/* 1000usec at 27KHz XTAL */
+#define XTAL_CNTR_DELAY		10000	/* we need acuracy up to the 10ms   */
+#define XTAL_SCALE_TO_KHZ	1
+#define NUM_NAMEMAPS    (3U)
+#define XTAL4X_KHZ 108000
 
 u32 gv100_crystal_clk_hz(struct gk20a *g)
 {

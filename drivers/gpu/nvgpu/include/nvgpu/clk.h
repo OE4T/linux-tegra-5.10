@@ -24,6 +24,7 @@
 #define NVGPU_INCLUDE_CLK_H
 
 #define CLK_NAME_MAX	24
+#define CLK_MAX_CNTRL_REGISTERS   2
 
 struct namemap_cfg {
 	u32 namemap;
@@ -33,7 +34,7 @@ struct namemap_cfg {
 	struct {
 		u32 reg_ctrl_addr;
 		u32 reg_ctrl_idx;
-		u32 reg_cntr_addr;
+		u32 reg_cntr_addr[CLK_MAX_CNTRL_REGISTERS];
 	} cntr;
 	u32 scale;
 	char name[CLK_NAME_MAX];

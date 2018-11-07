@@ -37,8 +37,20 @@
 
 #include <nvgpu/hw/gp106/hw_trim_gp106.h>
 
+#define CLK_NAMEMAP_INDEX_GPC2CLK	0x00
+#define CLK_NAMEMAP_INDEX_XBAR2CLK	0x02
+#define CLK_NAMEMAP_INDEX_SYS2CLK	0x07	/* SYSPLL */
+#define CLK_NAMEMAP_INDEX_DRAMCLK	0x20	/* DRAMPLL */
+
+#define CLK_DEFAULT_CNTRL_SETTLE_RETRIES 10
+#define CLK_DEFAULT_CNTRL_SETTLE_USECS   5
+
 #define NUM_NAMEMAPS	4
 #define XTAL4X_KHZ 108000
+
+#define XTAL_CNTR_CLKS		27000	/* 1000usec at 27KHz XTAL */
+#define XTAL_CNTR_DELAY		1000	/* we need acuracy up to the ms   */
+#define XTAL_SCALE_TO_KHZ	1
 
 u32 gp106_crystal_clk_hz(struct gk20a *g)
 {
@@ -110,7 +122,7 @@ int gp106_init_clk_support(struct gk20a *g)
 		.cntr = {
 			.reg_ctrl_addr = trim_gpc_bcast_clk_cntr_ncgpcclk_cfg_r(),
 			.reg_ctrl_idx  = trim_gpc_bcast_clk_cntr_ncgpcclk_cfg_source_gpc2clk_f(),
-			.reg_cntr_addr = trim_gpc_bcast_clk_cntr_ncgpcclk_cnt_r()
+			.reg_cntr_addr[0] = trim_gpc_bcast_clk_cntr_ncgpcclk_cnt_r()
 		},
 		.name = "gpc2clk",
 		.scale = 1
@@ -125,7 +137,7 @@ int gp106_init_clk_support(struct gk20a *g)
 		.cntr = {
 			.reg_ctrl_addr = trim_sys_clk_cntr_ncsyspll_cfg_r(),
 			.reg_ctrl_idx  = trim_sys_clk_cntr_ncsyspll_cfg_source_sys2clk_f(),
-			.reg_cntr_addr = trim_sys_clk_cntr_ncsyspll_cnt_r()
+			.reg_cntr_addr[0] = trim_sys_clk_cntr_ncsyspll_cnt_r()
 		},
 		.name = "sys2clk",
 		.scale = 1
@@ -140,7 +152,7 @@ int gp106_init_clk_support(struct gk20a *g)
 		.cntr = {
 			.reg_ctrl_addr = trim_sys_clk_cntr_ncltcpll_cfg_r(),
 			.reg_ctrl_idx  = trim_sys_clk_cntr_ncltcpll_cfg_source_xbar2clk_f(),
-			.reg_cntr_addr = trim_sys_clk_cntr_ncltcpll_cnt_r()
+			.reg_cntr_addr[0] = trim_sys_clk_cntr_ncltcpll_cnt_r()
 		},
 		.name = "xbar2clk",
 		.scale = 1
@@ -155,7 +167,7 @@ int gp106_init_clk_support(struct gk20a *g)
 		.cntr = {
 			.reg_ctrl_addr = trim_fbpa_bcast_clk_cntr_ncltcclk_cfg_r(),
 			.reg_ctrl_idx  = trim_fbpa_bcast_clk_cntr_ncltcclk_cfg_source_dramdiv4_rec_clk1_f(),
-			.reg_cntr_addr = trim_fbpa_bcast_clk_cntr_ncltcclk_cnt_r()
+			.reg_cntr_addr[0] = trim_fbpa_bcast_clk_cntr_ncltcclk_cnt_r()
 		},
 		.name = "dramdiv4_rec_clk1",
 		.scale = 4
@@ -179,7 +191,7 @@ u32 gp106_get_rate_cntr(struct gk20a *g, struct namemap_cfg *c)
 
 	if ((c == NULL) ||
 	    (c->cntr.reg_ctrl_addr == 0U) ||
-	    (c->cntr.reg_cntr_addr == 0U)) {
+	    (c->cntr.reg_cntr_addr[0] == 0U)) {
 		return 0;
 	}
 
@@ -200,7 +212,7 @@ u32 gp106_get_rate_cntr(struct gk20a *g, struct namemap_cfg *c)
 	retries = CLK_DEFAULT_CNTRL_SETTLE_RETRIES;
 	do {
 		nvgpu_udelay(CLK_DEFAULT_CNTRL_SETTLE_USECS);
-		cntr = gk20a_readl(g, c->cntr.reg_cntr_addr);
+		cntr = gk20a_readl(g, c->cntr.reg_cntr_addr[0]);
 		retries--;
 	} while ((retries != 0U) && (cntr != 0U));
 
@@ -221,7 +233,7 @@ u32 gp106_get_rate_cntr(struct gk20a *g, struct namemap_cfg *c)
 
 	nvgpu_udelay(XTAL_CNTR_DELAY);
 
-	cntr = XTAL_SCALE_TO_KHZ * gk20a_readl(g, c->cntr.reg_cntr_addr);
+	cntr = XTAL_SCALE_TO_KHZ * gk20a_readl(g, c->cntr.reg_cntr_addr[0]);
 
 read_err:
 	/* reset and restore control register */
