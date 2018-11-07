@@ -36,13 +36,14 @@ static int pstate_sw_setup(struct gk20a *g);
 
 void gk20a_deinit_pstate_support(struct gk20a *g)
 {
+	perf_pmu_free_pmupstate(g);
 	clk_free_pmupstate(g);
 
 	if (g->ops.clk.mclk_deinit != NULL) {
 		g->ops.clk.mclk_deinit(g);
 	}
 
-	nvgpu_mutex_destroy(&g->perf_pmu.pstatesobjs.pstate_mutex);
+	nvgpu_mutex_destroy(&g->perf_pmu->pstatesobjs.pstate_mutex);
 }
 
 /*sw setup for pstate components*/
@@ -57,89 +58,96 @@ int gk20a_init_pstate_support(struct gk20a *g)
 		return err;
 	}
 
-	err = volt_rail_sw_setup(g);
+	err = perf_pmu_init_pmupstate(g);
 	if (err != 0) {
 		goto err_clk_init_pmupstate;
+	}
+
+	err = volt_rail_sw_setup(g);
+	if (err != 0) {
+		goto err_perf_pmu_init_pmupstate;
 	}
 
 	err = volt_dev_sw_setup(g);
 	if (err != 0) {
-		goto err_clk_init_pmupstate;
+		goto err_perf_pmu_init_pmupstate;
 	}
 
 	err = volt_policy_sw_setup(g);
 	if (err != 0) {
-		goto err_clk_init_pmupstate;
+		goto err_perf_pmu_init_pmupstate;
 	}
 
 	err = clk_vin_sw_setup(g);
 	if (err != 0) {
-		goto err_clk_init_pmupstate;
+		goto err_perf_pmu_init_pmupstate;
 	}
 
 	err = clk_fll_sw_setup(g);
 	if (err != 0) {
-		goto err_clk_init_pmupstate;
+		goto err_perf_pmu_init_pmupstate;
 	}
 
 	err = therm_domain_sw_setup(g);
 	if (err != 0) {
-		goto err_clk_init_pmupstate;
+		goto err_perf_pmu_init_pmupstate;
 	}
 
 	err = vfe_var_sw_setup(g);
 	if (err != 0) {
-		goto err_clk_init_pmupstate;
+		goto err_perf_pmu_init_pmupstate;
 	}
 
 	err = vfe_equ_sw_setup(g);
 	if (err != 0) {
-		goto err_clk_init_pmupstate;
+		goto err_perf_pmu_init_pmupstate;
 	}
 
 	err = clk_domain_sw_setup(g);
 	if (err != 0) {
-		goto err_clk_init_pmupstate;
+		goto err_perf_pmu_init_pmupstate;
 	}
 
 	err = clk_vf_point_sw_setup(g);
 	if (err != 0) {
-		goto err_clk_init_pmupstate;
+		goto err_perf_pmu_init_pmupstate;
 	}
 
 	err = clk_prog_sw_setup(g);
 	if (err != 0) {
-		goto err_clk_init_pmupstate;
+		goto err_perf_pmu_init_pmupstate;
 	}
 
 	err = pstate_sw_setup(g);
 	if (err != 0) {
-		goto err_clk_init_pmupstate;
+		goto err_perf_pmu_init_pmupstate;
 	}
 
 	if(g->ops.clk.support_pmgr_domain) {
 		err = pmgr_domain_sw_setup(g);
 		if (err != 0) {
-			goto err_clk_init_pmupstate;
+			goto err_perf_pmu_init_pmupstate;
 		}
 	}
 
 	if (g->ops.clk.support_clk_freq_controller) {
 		err = clk_freq_controller_sw_setup(g);
 		if (err != 0) {
-			goto err_clk_init_pmupstate;
+			goto err_perf_pmu_init_pmupstate;
 		}
 	}
 
 	if(g->ops.clk.support_lpwr_pg) {
 		err = nvgpu_lpwr_pg_setup(g);
 		if (err != 0) {
-			goto err_clk_init_pmupstate;
+			goto err_perf_pmu_init_pmupstate;
 		}
 	}
 
 	return 0;
 
+err_perf_pmu_init_pmupstate:
+	perf_pmu_free_pmupstate(g);
 err_clk_init_pmupstate:
 	clk_free_pmupstate(g);
 	return err;
@@ -299,7 +307,7 @@ static struct pstate *pstate_construct(struct gk20a *g, void *args)
 
 static int pstate_insert(struct gk20a *g, struct pstate *pstate, int index)
 {
-	struct pstates *pstates = &(g->perf_pmu.pstatesobjs);
+	struct pstates *pstates = &(g->perf_pmu->pstatesobjs);
 	int err;
 
 	err = boardobjgrp_objinsert(&pstates->super.super,
@@ -425,14 +433,14 @@ static int pstate_sw_setup(struct gk20a *g)
 
 	nvgpu_log_fn(g, " ");
 
-	nvgpu_cond_init(&g->perf_pmu.pstatesobjs.pstate_notifier_wq);
+	nvgpu_cond_init(&g->perf_pmu->pstatesobjs.pstate_notifier_wq);
 
-	err = nvgpu_mutex_init(&g->perf_pmu.pstatesobjs.pstate_mutex);
+	err = nvgpu_mutex_init(&g->perf_pmu->pstatesobjs.pstate_mutex);
 	if (err != 0) {
 		return err;
 	}
 
-	err = boardobjgrpconstruct_e32(g, &g->perf_pmu.pstatesobjs.super);
+	err = boardobjgrpconstruct_e32(g, &g->perf_pmu->pstatesobjs.super);
 	if (err != 0) {
 		nvgpu_err(g,
 			  "error creating boardobjgrp for pstates, err=%d",
@@ -460,14 +468,14 @@ static int pstate_sw_setup(struct gk20a *g)
 	err = parse_pstate_table_5x(g, hdr);
 done:
 	if (err != 0) {
-		nvgpu_mutex_destroy(&g->perf_pmu.pstatesobjs.pstate_mutex);
+		nvgpu_mutex_destroy(&g->perf_pmu->pstatesobjs.pstate_mutex);
 	}
 	return err;
 }
 
 struct pstate *pstate_find(struct gk20a *g, u32 num)
 {
-	struct pstates *pstates = &(g->perf_pmu.pstatesobjs);
+	struct pstates *pstates = &(g->perf_pmu->pstatesobjs);
 	struct pstate *pstate;
 	u8 i;
 

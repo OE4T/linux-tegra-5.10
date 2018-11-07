@@ -31,6 +31,12 @@
 #include <nvgpu/boardobj.h>
 #include <nvgpu/boardobjgrp.h>
 
+#include "clk/clk.h"
+#include "clk/clk_vin.h"
+#include "clk/clk_fll.h"
+#include "volt/volt.h"
+#include "pstate/pstate.h"
+
 /* PMU NS UCODE IMG */
 #define NVGPU_PMU_NS_UCODE_IMAGE	"gpmu_ucode.bin"
 

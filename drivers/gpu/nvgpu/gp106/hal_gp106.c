@@ -50,6 +50,7 @@
 #include "common/pmu/pmu_gp106.h"
 #include "common/pmu/acr_gm20b.h"
 #include "common/pmu/acr_gp106.h"
+#include "pmu_perf/pmu_perf.h"
 
 #include "gk20a/fifo_gk20a.h"
 #include "gk20a/fecs_trace_gk20a.h"

@@ -127,3 +127,23 @@ int perf_pmu_vfe_load(struct gk20a *g)
 done:
 	return status;
 }
+
+int perf_pmu_init_pmupstate(struct gk20a *g)
+{
+	/* If already allocated, do not re-allocate */
+	if (g->perf_pmu != NULL) {
+		return 0;
+	}
+
+	g->perf_pmu = nvgpu_kzalloc(g, sizeof(*g->perf_pmu));
+	if (g->perf_pmu == NULL) {
+		return -ENOMEM;
+	}
+
+	return 0;
+}
+
+void perf_pmu_free_pmupstate(struct gk20a *g)
+{
+	nvgpu_kfree(g, g->perf_pmu);
+}

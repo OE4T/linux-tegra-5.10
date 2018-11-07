@@ -28,6 +28,7 @@
 #include <nvgpu/pmuif/ctrlvolt.h>
 #include <nvgpu/pmuif/ctrlperf.h>
 
+#include "pmu_perf/pmu_perf.h"
 #include "gp106/bios_gp106.h"
 
 #include "volt.h"
@@ -160,7 +161,7 @@ int nvgpu_volt_rail_get_voltage_gp10x(struct gk20a *g,
 
 	rail_idx = volt_rail_volt_domain_convert_to_idx(g, volt_domain);
 	if ((rail_idx == CTRL_VOLT_RAIL_INDEX_INVALID) ||
-		(!VOLT_RAIL_INDEX_IS_VALID(&g->perf_pmu.volt, rail_idx))) {
+		(!VOLT_RAIL_INDEX_IS_VALID(&g->perf_pmu->volt, rail_idx))) {
 		nvgpu_err(g,
 			"failed: volt_domain = %d, voltage rail table = %d.",
 			volt_domain, rail_idx);
@@ -195,7 +196,7 @@ int nvgpu_volt_rail_get_voltage_gv10x(struct gk20a *g,
 
 	rail_idx = volt_rail_volt_domain_convert_to_idx(g, volt_domain);
 	if ((rail_idx == CTRL_VOLT_RAIL_INDEX_INVALID) ||
-		(!VOLT_RAIL_INDEX_IS_VALID(&g->perf_pmu.volt, rail_idx))) {
+		(!VOLT_RAIL_INDEX_IS_VALID(&g->perf_pmu->volt, rail_idx))) {
 		nvgpu_err(g,
 			"failed: volt_domain = %d, voltage rail table = %d.",
 			volt_domain, rail_idx);
@@ -221,7 +222,7 @@ static int volt_policy_set_voltage(struct gk20a *g, u8 client_id,
 		struct ctrl_perf_volt_rail_list *prail_list)
 {
 	struct nv_pmu_volt_rpc rpc_call = { 0 };
-	struct obj_volt *pvolt = &g->perf_pmu.volt;
+	struct obj_volt *pvolt = &g->perf_pmu->volt;
 	int status = 0;
 	u8 policy_idx = CTRL_VOLT_POLICY_INDEX_INVALID;
 	u8 i = 0;

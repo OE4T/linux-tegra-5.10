@@ -33,6 +33,7 @@
 #include <linux/debugfs.h>
 #include "os/linux/os_linux.h"
 #endif
+#include "pstate/pstate.h"
 #include "gp106/mclk_gp106.h"
 
 #include <nvgpu/hw/gk20a/hw_pwr_gk20a.h>

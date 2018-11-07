@@ -79,6 +79,8 @@ struct perf_pmupstate {
 	struct nvgpu_vfe_invalidate vfe_init;
 };
 
+int perf_pmu_init_pmupstate(struct gk20a *g);
+void perf_pmu_free_pmupstate(struct gk20a *g);
 int perf_pmu_vfe_load(struct gk20a *g);
 
 #endif /* NVGPU_PERF_H */

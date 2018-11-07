@@ -27,6 +27,7 @@
 #include <nvgpu/string.h>
 #include <nvgpu/pmuif/ctrlvolt.h>
 
+#include "pmu_perf/pmu_perf.h"
 #include "gp106/bios_gp106.h"
 
 #include "volt.h"
@@ -479,7 +480,7 @@ int volt_policy_pmu_setup(struct gk20a *g)
 	nvgpu_log_info(g, " ");
 
 	pboardobjgrp =
-		&g->perf_pmu.volt.volt_policy_metadata.volt_policies.super;
+		&g->perf_pmu->volt.volt_policy_metadata.volt_policies.super;
 
 	if (!pboardobjgrp->bconstructed) {
 		return -EINVAL;
@@ -499,7 +500,7 @@ int volt_policy_sw_setup(struct gk20a *g)
 	nvgpu_log_info(g, " ");
 
 	status = boardobjgrpconstruct_e32(g,
-			&g->perf_pmu.volt.volt_policy_metadata.volt_policies);
+			&g->perf_pmu->volt.volt_policy_metadata.volt_policies);
 	if (status != 0) {
 		nvgpu_err(g,
 			"error creating boardobjgrp for volt rail, status - 0x%x",
@@ -508,14 +509,14 @@ int volt_policy_sw_setup(struct gk20a *g)
 	}
 
 	pboardobjgrp =
-		&g->perf_pmu.volt.volt_policy_metadata.volt_policies.super;
+		&g->perf_pmu->volt.volt_policy_metadata.volt_policies.super;
 
 	pboardobjgrp->pmudatainstget  = _volt_policy_devgrp_pmudata_instget;
 	pboardobjgrp->pmustatusinstget  = _volt_policy_devgrp_pmustatus_instget;
 	pboardobjgrp->pmudatainit = _volt_policy_grp_pmudatainit_super;
 
 	/* Obtain Voltage Rail Table from VBIOS */
-	status = volt_get_volt_policy_table(g, &g->perf_pmu.volt.
+	status = volt_get_volt_policy_table(g, &g->perf_pmu->volt.
 			volt_policy_metadata);
 	if (status != 0) {
 		goto done;
@@ -534,7 +535,7 @@ int volt_policy_sw_setup(struct gk20a *g)
 	}
 
 	status = BOARDOBJGRP_PMU_CMD_GRP_GET_STATUS_CONSTRUCT(g,
-		&g->perf_pmu.volt.volt_policy_metadata.volt_policies.super,
+		&g->perf_pmu->volt.volt_policy_metadata.volt_policies.super,
 			volt, VOLT, volt_policy, VOLT_POLICY);
 	if (status != 0) {
 		nvgpu_err(g,

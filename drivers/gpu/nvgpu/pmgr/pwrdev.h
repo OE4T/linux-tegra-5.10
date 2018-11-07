@@ -25,6 +25,7 @@
 #define NVGPU_PMGR_PWRDEV_H
 
 #include <nvgpu/boardobj.h>
+#include <nvgpu/boardobjgrp_e32.h>
 #include <nvgpu/pmuif/nvgpu_gpmu_cmdif.h>
 #include <nvgpu/pmuif/ctrlpmgr.h>
 

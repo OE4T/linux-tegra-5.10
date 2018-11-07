@@ -81,7 +81,7 @@ int vfe_equ_sw_setup(struct gk20a *g)
 
 	nvgpu_log_info(g, " ");
 
-	status = boardobjgrpconstruct_e255(g, &g->perf_pmu.vfe_equobjs.super);
+	status = boardobjgrpconstruct_e255(g, &g->perf_pmu->vfe_equobjs.super);
 	if (status != 0) {
 		nvgpu_err(g,
 			  "error creating boardobjgrp for clk domain, status - 0x%x",
@@ -89,8 +89,8 @@ int vfe_equ_sw_setup(struct gk20a *g)
 		goto done;
 	}
 
-	pboardobjgrp = &g->perf_pmu.vfe_equobjs.super.super;
-	pvfeequobjs = &(g->perf_pmu.vfe_equobjs);
+	pboardobjgrp = &g->perf_pmu->vfe_equobjs.super.super;
+	pvfeequobjs = &(g->perf_pmu->vfe_equobjs);
 
 	BOARDOBJGRP_PMU_CONSTRUCT(pboardobjgrp, PERF, VFE_EQU);
 
@@ -123,7 +123,7 @@ int vfe_equ_pmu_setup(struct gk20a *g)
 
 	nvgpu_log_info(g, " ");
 
-	pboardobjgrp = &g->perf_pmu.vfe_equobjs.super.super;
+	pboardobjgrp = &g->perf_pmu->vfe_equobjs.super.super;
 
 	if (!pboardobjgrp->bconstructed) {
 		return -EINVAL;

@@ -27,13 +27,14 @@
 #include <nvgpu/gk20a.h>
 
 #include "perf_gv100.h"
+#include "pmu_perf/pmu_perf.h"
 
 static int pmu_set_boot_clk_runcb_fn(void *arg)
 {
 	struct gk20a *g = (struct gk20a *)arg;
 	struct nvgpu_pmu *pmu = &g->pmu;
 	struct nv_pmu_rpc_struct_perf_load rpc;
-	struct perf_pmupstate *perf_pmu = &g->perf_pmu;
+	struct perf_pmupstate *perf_pmu = g->perf_pmu;
 	struct nvgpu_vfe_invalidate *vfe_init = &perf_pmu->vfe_init;
 	int status = 0;
 
@@ -61,7 +62,7 @@ static int pmu_set_boot_clk_runcb_fn(void *arg)
 static int gv100_pmu_handle_perf_event(struct gk20a *g, void *pmumsg)
 {
 	struct nv_pmu_perf_msg *msg = (struct nv_pmu_perf_msg *)pmumsg;
-	struct perf_pmupstate *perf_pmu = &g->perf_pmu;
+	struct perf_pmupstate *perf_pmu = g->perf_pmu;
 
 	nvgpu_log_fn(g, " ");
 	switch (msg->msg_type) {
@@ -78,7 +79,7 @@ static int gv100_pmu_handle_perf_event(struct gk20a *g, void *pmumsg)
 
 u32 perf_pmu_init_vfe_perf_event(struct gk20a *g)
 {
-	struct perf_pmupstate *perf_pmu = &g->perf_pmu;
+	struct perf_pmupstate *perf_pmu = g->perf_pmu;
 	char thread_name[64];
 	u32 err = 0;
 

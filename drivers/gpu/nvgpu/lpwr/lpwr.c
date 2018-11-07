@@ -37,7 +37,7 @@ static int get_lpwr_idx_table(struct gk20a *g)
 	u8 *entry_addr;
 	u32 idx;
 	struct nvgpu_lpwr_bios_idx_data *pidx_data =
-			&g->perf_pmu.lpwr.lwpr_bios_data.idx;
+			&g->perf_pmu->lpwr.lwpr_bios_data.idx;
 	struct nvgpu_bios_lpwr_idx_table_1x_header header = { 0 };
 	struct nvgpu_bios_lpwr_idx_table_1x_entry entry = { 0 };
 
@@ -81,7 +81,7 @@ static int get_lpwr_gr_table(struct gk20a *g)
 	u8 *entry_addr;
 	u32 idx;
 	struct nvgpu_lpwr_bios_gr_data *pgr_data =
-			&g->perf_pmu.lpwr.lwpr_bios_data.gr;
+			&g->perf_pmu->lpwr.lwpr_bios_data.gr;
 	struct nvgpu_bios_lpwr_gr_table_1x_header header = { 0 };
 	struct nvgpu_bios_lpwr_gr_table_1x_entry entry = { 0 };
 
@@ -127,7 +127,7 @@ static int get_lpwr_ms_table(struct gk20a *g)
 	u8 *entry_addr;
 	u32 idx;
 	struct nvgpu_lpwr_bios_ms_data *pms_data =
-			&g->perf_pmu.lpwr.lwpr_bios_data.ms;
+			&g->perf_pmu->lpwr.lwpr_bios_data.ms;
 	struct nvgpu_bios_lpwr_ms_table_1x_header header = { 0 };
 	struct nvgpu_bios_lpwr_ms_table_1x_entry entry = { 0 };
 
@@ -254,8 +254,8 @@ int nvgpu_lwpr_mclk_change(struct gk20a *g, u32 pstate)
 			NV_PMU_PG_PARAM_MCLK_CHANGE_GDDR5_WR_TRAINING_ENABLED;
 	}
 
-	if (payload != g->perf_pmu.lpwr.mclk_change_cache) {
-		g->perf_pmu.lpwr.mclk_change_cache = payload;
+	if (payload != g->perf_pmu->lpwr.mclk_change_cache) {
+		g->perf_pmu->lpwr.mclk_change_cache = payload;
 
 		cmd.hdr.unit_id = PMU_UNIT_PG;
 		cmd.hdr.size = PMU_CMD_HDR_SIZE +
@@ -317,9 +317,9 @@ u32 nvgpu_lpwr_post_init(struct gk20a *g)
 bool nvgpu_lpwr_is_mscg_supported(struct gk20a *g, u32 pstate_num)
 {
 	struct nvgpu_lpwr_bios_ms_data *pms_data =
-			&g->perf_pmu.lpwr.lwpr_bios_data.ms;
+			&g->perf_pmu->lpwr.lwpr_bios_data.ms;
 	struct nvgpu_lpwr_bios_idx_data *pidx_data =
-			&g->perf_pmu.lpwr.lwpr_bios_data.idx;
+			&g->perf_pmu->lpwr.lwpr_bios_data.idx;
 	struct pstate *pstate = pstate_find(g, pstate_num);
 	u32 ms_idx;
 
@@ -340,9 +340,9 @@ bool nvgpu_lpwr_is_mscg_supported(struct gk20a *g, u32 pstate_num)
 bool nvgpu_lpwr_is_rppg_supported(struct gk20a *g, u32 pstate_num)
 {
 	struct nvgpu_lpwr_bios_gr_data *pgr_data =
-			&g->perf_pmu.lpwr.lwpr_bios_data.gr;
+			&g->perf_pmu->lpwr.lwpr_bios_data.gr;
 	struct nvgpu_lpwr_bios_idx_data *pidx_data =
-			&g->perf_pmu.lpwr.lwpr_bios_data.idx;
+			&g->perf_pmu->lpwr.lwpr_bios_data.idx;
 	struct pstate *pstate = pstate_find(g, pstate_num);
 	u32 idx;
 
