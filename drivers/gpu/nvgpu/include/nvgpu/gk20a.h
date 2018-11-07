@@ -535,6 +535,10 @@ struct gpu_ops {
 		void (*set_debug_mode)(struct gk20a *g, bool enable);
 		void (*dump_gr_falcon_stats)(struct gk20a *g);
 		u32 (*get_fecs_ctx_state_store_major_rev_id)(struct gk20a *g);
+		int (*alloc_gfxp_rtv_cb)(struct gk20a *g,
+			  struct nvgpu_gr_ctx *gr_ctx, struct vm_gk20a *vm);
+		void (*commit_gfxp_rtv_cb)(struct gk20a *g,
+			  struct nvgpu_gr_ctx *gr_ctx, bool patch);
 	} gr;
 	struct {
 		void (*init_hw)(struct gk20a *g);

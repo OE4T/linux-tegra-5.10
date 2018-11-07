@@ -2302,6 +2302,14 @@ static inline u32 gr_scc_rm_rtv_cb_size_div_256b_f(u32 v)
 {
 	return (v & 0x7fffU) << 0U;
 }
+static inline u32 gr_scc_rm_rtv_cb_size_div_256b_byte_granularity_v(void)
+{
+	return 0x00000100U;
+}
+static inline u32 gr_scc_rm_rtv_cb_size_div_256b_init_f(void)
+{
+	return 0x0U;
+}
 static inline u32 gr_scc_rm_rtv_cb_size_div_256b_default_f(void)
 {
 	return 0x800U;
@@ -2309,6 +2317,10 @@ static inline u32 gr_scc_rm_rtv_cb_size_div_256b_default_f(void)
 static inline u32 gr_scc_rm_rtv_cb_size_div_256b_db_adder_f(void)
 {
 	return 0x0U;
+}
+static inline u32 gr_scc_rm_rtv_cb_size_div_256b_gfxp_adder_f(void)
+{
+	return 0x20U;
 }
 static inline u32 gr_gpcs_gcc_rm_rtv_cb_base_r(void)
 {

@@ -27,6 +27,7 @@
 
 struct gk20a;
 struct nvgpu_preemption_modes_rec;
+struct nvgpu_gr_ctx;
 
 enum {
 	TURING_CHANNEL_GPFIFO_A	= 0xC46F,
@@ -54,10 +55,6 @@ enum {
 #define NVC597_SET_BES_CROP_DEBUG4              0x10b0U
 #define NVC597_SET_SM_DISP_CTRL                 0x10c8U
 #define NVC597_SET_SHADER_CUT_COLLECTOR         0x10d0U
-
-/* TODO: merge these into global context buffer list in gr_gk20a.h */
-#define RTV_CIRCULAR_BUFFER		8
-#define RTV_CIRCULAR_BUFFER_VA		5
 
 bool gr_tu104_is_valid_class(struct gk20a *g, u32 class_num);
 bool gr_tu104_is_valid_gfx_class(struct gk20a *g, u32 class_num);
@@ -87,6 +84,15 @@ int gr_tu104_get_offset_in_gpccs_segment(struct gk20a *g,
 
 int gr_tu104_handle_sw_method(struct gk20a *g, u32 addr,
 			      u32 class_num, u32 offset, u32 data);
+
+int gr_tu104_alloc_gfxp_rtv_cb(struct gk20a *g,
+		  struct nvgpu_gr_ctx *gr_ctx, struct vm_gk20a *vm);
+void gr_tu104_commit_gfxp_rtv_cb(struct gk20a *g,
+		  struct nvgpu_gr_ctx *gr_ctx, bool patch);
+
+void gr_tu104_free_gr_ctx(struct gk20a *g,
+			struct vm_gk20a *vm,
+			struct nvgpu_gr_ctx *gr_ctx);
 
 void gr_tu104_init_sm_dsm_reg_info(void);
 void gr_tu104_get_sm_dsm_perf_ctrl_regs(struct gk20a *g,

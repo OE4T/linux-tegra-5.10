@@ -1036,6 +1036,14 @@ int gr_gp10b_set_ctxsw_preemption_mode(struct gk20a *g,
 			goto fail_free_betacb;
 		}
 
+		if (g->ops.gr.alloc_gfxp_rtv_cb != NULL) {
+			err = g->ops.gr.alloc_gfxp_rtv_cb(g, gr_ctx, vm);
+			if (err != 0) {
+				nvgpu_err(g, "cannot allocate gfxp rtv_cb");
+				goto fail_free_pagepool;
+			}
+		}
+
 		gr_ctx->graphics_preempt_mode = graphics_preempt_mode;
 		break;
 		}
@@ -1063,6 +1071,8 @@ int gr_gp10b_set_ctxsw_preemption_mode(struct gk20a *g,
 
 	return 0;
 
+fail_free_pagepool:
+	nvgpu_dma_unmap_free(vm, &gr_ctx->pagepool_ctxsw_buffer);
 fail_free_betacb:
 	nvgpu_dma_unmap_free(vm, &gr_ctx->betacb_ctxsw_buffer);
 fail_free_spill:

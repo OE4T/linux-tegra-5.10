@@ -200,7 +200,7 @@ clean_up:
 
 static void gr_tu104_commit_rtv_circular_buffer(struct gk20a *g,
 	struct nvgpu_gr_ctx *gr_ctx,
-	u64 addr, u32 size, bool patch)
+	u64 addr, u32 size, u32 gfxpAddSize, bool patch)
 {
 	gr_gk20a_ctx_patch_write(g, gr_ctx, gr_scc_rm_rtv_cb_base_r(),
 		gr_scc_rm_rtv_cb_base_addr_39_8_f(addr), patch);
@@ -209,7 +209,8 @@ static void gr_tu104_commit_rtv_circular_buffer(struct gk20a *g,
 	gr_gk20a_ctx_patch_write(g, gr_ctx, gr_gpcs_gcc_rm_rtv_cb_base_r(),
 		gr_gpcs_gcc_rm_rtv_cb_base_addr_39_8_f(addr), patch);
 	gr_gk20a_ctx_patch_write(g, gr_ctx, gr_scc_rm_gfxp_reserve_r(),
-		gr_scc_rm_gfxp_reserve_rtv_cb_size_div_256b_f(0), patch);
+		gr_scc_rm_gfxp_reserve_rtv_cb_size_div_256b_f(gfxpAddSize),
+		patch);
 }
 
 int gr_tu104_commit_global_ctx_buffers(struct gk20a *g,
@@ -218,6 +219,9 @@ int gr_tu104_commit_global_ctx_buffers(struct gk20a *g,
 	int err;
 	u64 addr;
 	u32 size;
+	u32 gfxpaddsize = 0;
+
+	nvgpu_log_fn(g, " ");
 
 	err = gr_gk20a_commit_global_ctx_buffers(g, gr_ctx, patch);
 	if (err != 0) {
@@ -239,13 +243,63 @@ int gr_tu104_commit_global_ctx_buffers(struct gk20a *g,
 	size = (gr_scc_rm_rtv_cb_size_div_256b_default_f() +
 			gr_scc_rm_rtv_cb_size_div_256b_db_adder_f());
 
-	gr_tu104_commit_rtv_circular_buffer(g, gr_ctx, addr, size, patch);
+	gr_tu104_commit_rtv_circular_buffer(g, gr_ctx, addr, size,
+						gfxpaddsize, patch);
 
 	if (patch) {
 		gr_gk20a_ctx_patch_write_end(g, gr_ctx, false);
 	}
 
 	return 0;
+}
+
+int gr_tu104_alloc_gfxp_rtv_cb(struct gk20a *g,
+		  struct nvgpu_gr_ctx *gr_ctx, struct vm_gk20a *vm)
+{
+	int err;
+	u32 rtv_cb_size;
+
+	nvgpu_log_fn(g, " ");
+
+	rtv_cb_size =
+		(gr_scc_rm_rtv_cb_size_div_256b_default_f() +
+		gr_scc_rm_rtv_cb_size_div_256b_db_adder_f() +
+		gr_scc_rm_rtv_cb_size_div_256b_gfxp_adder_f()) *
+		gr_scc_rm_rtv_cb_size_div_256b_byte_granularity_v();
+
+	err = gr_gp10b_alloc_buffer(vm,
+				rtv_cb_size,
+				&gr_ctx->gfxp_rtvcb_ctxsw_buffer);
+
+	return err;
+}
+
+void gr_tu104_commit_gfxp_rtv_cb(struct gk20a *g,
+		  struct nvgpu_gr_ctx *gr_ctx, bool patch)
+{
+	u64 addr;
+	u32 rtv_cb_size;
+	u32 gfxp_addr_size;
+
+	nvgpu_log_fn(g, " ");
+
+	rtv_cb_size =
+		(gr_scc_rm_rtv_cb_size_div_256b_default_f() +
+		gr_scc_rm_rtv_cb_size_div_256b_db_adder_f() +
+		gr_scc_rm_rtv_cb_size_div_256b_gfxp_adder_f());
+	gfxp_addr_size = gr_scc_rm_rtv_cb_size_div_256b_gfxp_adder_f();
+
+	/* GFXP RTV circular buffer */
+	addr = (u64)(u64_lo32(gr_ctx->gfxp_rtvcb_ctxsw_buffer.gpu_va) >>
+	       gr_scc_rm_rtv_cb_base_addr_39_8_align_bits_f()) |
+	       (u64)(u64_hi32(gr_ctx->gfxp_rtvcb_ctxsw_buffer.gpu_va) <<
+		(32U - gr_scc_rm_rtv_cb_base_addr_39_8_align_bits_f()));
+
+
+	gr_tu104_commit_rtv_circular_buffer(g, gr_ctx, addr,
+						rtv_cb_size,
+						gfxp_addr_size,
+						patch);
 }
 
 void gr_tu104_bundle_cb_defaults(struct gk20a *g)
@@ -270,6 +324,10 @@ void gr_tu104_cb_size_default(struct gk20a *g)
 	}
 	gr->alpha_cb_default_size =
 		gr_gpc0_ppc0_cbm_alpha_cb_size_v_default_v();
+	gr->attrib_cb_gfxp_default_size =
+		gr_gpc0_ppc0_cbm_beta_cb_size_v_gfxp_v();
+	gr->attrib_cb_gfxp_size =
+		gr_gpc0_ppc0_cbm_beta_cb_size_v_gfxp_v();
 }
 
 int gr_tu104_get_preemption_mode_flags(struct gk20a *g,
@@ -288,6 +346,18 @@ int gr_tu104_get_preemption_mode_flags(struct gk20a *g,
 			NVGPU_PREEMPTION_MODE_COMPUTE_WFI;
 
 	return 0;
+}
+
+void gr_tu104_free_gr_ctx(struct gk20a *g,
+			  struct vm_gk20a *vm, struct nvgpu_gr_ctx *gr_ctx)
+{
+	nvgpu_log_fn(g, " ");
+
+	if (gr_ctx != NULL) {
+		nvgpu_dma_unmap_free(vm, &gr_ctx->gfxp_rtvcb_ctxsw_buffer);
+	}
+
+	gr_gk20a_free_gr_ctx(g, vm, gr_ctx);
 }
 
 void gr_tu104_enable_gpc_exceptions(struct gk20a *g)

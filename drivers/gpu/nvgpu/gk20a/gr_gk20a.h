@@ -81,7 +81,7 @@ enum /* global_ctx_buffer */ {
 	ATTRIBUTE_VPR		= 5,
 	GOLDEN_CTX		= 6,
 	PRIV_ACCESS_MAP		= 7,
-	/* #8 is reserved */
+	RTV_CIRCULAR_BUFFER	= 8,
 	FECS_TRACE_BUFFER	= 9,
 	NR_GLOBAL_CTX_BUF	= 10
 };
@@ -93,7 +93,7 @@ enum  /*global_ctx_buffer_va */ {
 	ATTRIBUTE_VA		= 2,
 	GOLDEN_CTX_VA		= 3,
 	PRIV_ACCESS_MAP_VA	= 4,
-	/* #5 is reserved */
+	RTV_CIRCULAR_BUFFER_VA	= 5,
 	FECS_TRACE_BUFFER_VA	= 6,
 	NR_GLOBAL_CTX_BUF_VA	= 7
 };
@@ -403,6 +403,7 @@ struct nvgpu_gr_ctx {
 	struct nvgpu_mem spill_ctxsw_buffer;
 	struct nvgpu_mem betacb_ctxsw_buffer;
 	struct nvgpu_mem pagepool_ctxsw_buffer;
+	struct nvgpu_mem gfxp_rtvcb_ctxsw_buffer;
 	u32 ctx_id;
 	bool ctx_id_valid;
 	bool cilp_preempt_pending;
