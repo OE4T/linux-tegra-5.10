@@ -333,9 +333,7 @@ static int nvgpu_pd_cache_alloc_from_partial(struct gk20a *g,
 	       bit_offs, nr_bits, pentry);
 
 	/* Bit map full. Somethings wrong. */
-	if (WARN_ON(bit_offs >= nr_bits)) {
-		return -ENOMEM;
-	}
+	nvgpu_assert(bit_offs < nr_bits);
 
 	set_bit((int)bit_offs, pentry->alloc_map);
 	pentry->allocs += 1U;
