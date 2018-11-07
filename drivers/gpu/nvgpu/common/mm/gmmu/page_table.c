@@ -26,6 +26,7 @@
 #include <nvgpu/dma.h>
 #include <nvgpu/gmmu.h>
 #include <nvgpu/nvgpu_mem.h>
+#include <nvgpu/nvgpu_sgt.h>
 #include <nvgpu/enabled.h>
 #include <nvgpu/page_allocator.h>
 #include <nvgpu/barrier.h>

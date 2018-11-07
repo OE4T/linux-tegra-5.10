@@ -56,6 +56,7 @@ srcs :=	os/posix/nvgpu.c \
 	common/mm/vm.c \
 	common/mm/vm_area.c \
 	common/mm/nvgpu_mem.c \
+	common/mm/nvgpu_sgt.c \
 	common/mm/comptags.c \
 	common/mm/mm.c \
 	common/mm/dma.c \

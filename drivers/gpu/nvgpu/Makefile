@@ -219,6 +219,7 @@ nvgpu-y += \
 	common/mm/vm.o \
 	common/mm/vm_area.o \
 	common/mm/nvgpu_mem.o \
+	common/mm/nvgpu_sgt.o \
 	common/mm/comptags.o \
 	common/mm/mm.o \
 	common/mm/dma.o \

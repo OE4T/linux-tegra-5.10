@@ -28,6 +28,7 @@
 #include <nvgpu/enabled.h>
 #include <nvgpu/sizes.h>
 #include <nvgpu/gk20a.h>
+#include <nvgpu/nvgpu_sgt.h>
 
 #include "gk20a/mm_gk20a.h"
 #include "gk20a/fence_gk20a.h"

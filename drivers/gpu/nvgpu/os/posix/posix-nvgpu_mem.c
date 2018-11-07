@@ -25,6 +25,8 @@
 #include <nvgpu/gmmu.h>
 #include <nvgpu/kmem.h>
 #include <nvgpu/nvgpu_mem.h>
+#include <nvgpu/nvgpu_sgt.h>
+#include <nvgpu/nvgpu_sgt_os.h>
 #include <nvgpu/gk20a.h>
 
 #define DMA_ERROR_CODE	(~(u64)0x0)
@@ -117,8 +119,8 @@ static struct nvgpu_sgt_ops nvgpu_sgt_posix_ops = {
 	.sgt_free	= nvgpu_mem_sgt_free,
 };
 
-struct nvgpu_sgt *nvgpu_sgt_create_from_mem(struct gk20a *g,
-					    struct nvgpu_mem *mem)
+struct nvgpu_sgt *nvgpu_sgt_os_create_from_mem(struct gk20a *g,
+					       struct nvgpu_mem *mem)
 {
 	struct nvgpu_mem_sgl *sgl;
 	struct nvgpu_sgt *sgt = nvgpu_kzalloc(g, sizeof(*sgt));

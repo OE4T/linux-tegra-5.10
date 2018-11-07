@@ -25,6 +25,7 @@
 
 #include <nvgpu/allocator.h>
 #include <nvgpu/nvgpu_mem.h>
+#include <nvgpu/nvgpu_sgt.h>
 #include <nvgpu/kmem.h>
 #include <nvgpu/list.h>
 #include <nvgpu/rbtree.h>

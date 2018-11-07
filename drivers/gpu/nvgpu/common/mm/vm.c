@@ -35,6 +35,7 @@
 #include <nvgpu/sizes.h>
 #include <nvgpu/timers.h>
 #include <nvgpu/gk20a.h>
+#include <nvgpu/nvgpu_sgt.h>
 #include <nvgpu/vgpu/vm.h>
 
 #include "gk20a/mm_gk20a.h"

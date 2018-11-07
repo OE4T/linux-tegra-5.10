@@ -33,6 +33,7 @@
 
 struct vm_gk20a;
 struct nvgpu_vm_area;
+struct nvgpu_sgt;
 struct gk20a_comptag_allocator;
 
 /*

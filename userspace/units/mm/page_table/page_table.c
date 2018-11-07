@@ -29,6 +29,7 @@
 #include <nvgpu/gmmu.h>
 #include <nvgpu/mm.h>
 #include <nvgpu/vm.h>
+#include <nvgpu/nvgpu_sgt.h>
 #include <os/posix/os_posix.h>
 
 #include <gk20a/mm_gk20a.h>

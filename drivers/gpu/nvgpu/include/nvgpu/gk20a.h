@@ -58,6 +58,8 @@ struct set_fll_clk;
 struct boardobjgrp;
 struct boardobjgrp_pmu_cmd;
 struct boardobjgrpmask;
+struct nvgpu_sgt;
+struct nvgpu_sgl;
 
 #include <nvgpu/lock.h>
 #include <nvgpu/thread.h>

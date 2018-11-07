@@ -25,6 +25,7 @@
 #include <nvgpu/vidmem.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/string.h>
+#include <nvgpu/nvgpu_sgt_os.h>
 
 #include <nvgpu/linux/dma.h>
 
@@ -367,8 +368,8 @@ struct nvgpu_sgt *nvgpu_linux_sgt_create(struct gk20a *g, struct sg_table *sgt)
 	return nvgpu_sgt;
 }
 
-struct nvgpu_sgt *nvgpu_sgt_create_from_mem(struct gk20a *g,
-					    struct nvgpu_mem *mem)
+struct nvgpu_sgt *nvgpu_sgt_os_create_from_mem(struct gk20a *g,
+					       struct nvgpu_mem *mem)
 {
 	return nvgpu_linux_sgt_create(g, mem->priv.sgt);
 }
