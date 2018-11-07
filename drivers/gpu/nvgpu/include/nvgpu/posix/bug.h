@@ -26,10 +26,6 @@
 #include <nvgpu/types.h>
 #include <setjmp.h>
 
-/*
- * TODO: make these actually useful!
- */
-
 #define BUG()					__bug("")
 #define BUG_ON(cond)				\
 	do {					\
