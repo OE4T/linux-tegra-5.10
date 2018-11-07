@@ -258,7 +258,7 @@ int gp106_clk_domain_get_f_points(
 	int status = -EINVAL;
 	struct clk_domain *pdomain;
 	u8 i;
-	struct clk_pmupstate *pclk = &g->clk_pmu;
+	struct clk_pmupstate *pclk = g->clk_pmu;
 
 	if (pfpointscount == NULL) {
 		return -EINVAL;

@@ -50,6 +50,7 @@ struct nvgpu_gpu_ctxsw_trace_filter;
 #endif
 struct priv_cmd_entry;
 struct nvgpu_setup_bind_args;
+struct clk_pmupstate;
 
 #include <nvgpu/lock.h>
 #include <nvgpu/thread.h>
@@ -74,7 +75,6 @@ struct nvgpu_setup_bind_args;
 #include "gk20a/clk_gk20a.h"
 #include "gk20a/fifo_gk20a.h"
 #include "gk20a/gr_gk20a.h"
-#include "clk/clk.h"
 #include "pmu_perf/pmu_perf.h"
 #include "pmgr/pmgr.h"
 #include "therm/thrm.h"
@@ -1490,7 +1490,7 @@ struct gk20a {
 	struct nvgpu_pmu pmu;
 	struct nvgpu_acr acr;
 	struct nvgpu_ecc ecc;
-	struct clk_pmupstate clk_pmu;
+	struct clk_pmupstate *clk_pmu;
 	struct perf_pmupstate perf_pmu;
 	struct pmgr_pmupstate pmgr_pmu;
 	struct therm_pmupstate therm_pmu;

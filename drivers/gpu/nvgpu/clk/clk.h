@@ -119,6 +119,8 @@ struct vbios_clocks_table_1x_hal_clock_entry {
 
 #define BOOT_GPC2CLK_MHZ	2581U
 
+int clk_init_pmupstate(struct gk20a *g);
+void clk_free_pmupstate(struct gk20a *g);
 int clk_pmu_vin_load(struct gk20a *g);
 int clk_domain_print_vf_table(struct gk20a *g, u32 clkapidomain);
 int clk_domain_get_f_or_v(

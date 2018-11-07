@@ -18,6 +18,7 @@
 
 #include <nvgpu/clk.h>
 
+#include "clk/clk.h"
 #include "gv100/clk_gv100.h"
 
 #include "os_linux.h"
@@ -43,7 +44,7 @@ static int sys_cfc_read(void *data , u64 *val)
 {
 	struct gk20a *g = (struct gk20a *)data;
 	bool bload = boardobjgrpmask_bitget(
-		&g->clk_pmu.clk_freq_controllers.freq_ctrl_load_mask.super,
+		&g->clk_pmu->clk_freq_controllers.freq_ctrl_load_mask.super,
 		CTRL_CLK_CLK_FREQ_CONTROLLER_ID_SYS);
 
 	/* val = 1 implies CLFC is loaded or enabled */
@@ -70,7 +71,7 @@ static int ltc_cfc_read(void *data , u64 *val)
 {
 	struct gk20a *g = (struct gk20a *)data;
 	bool bload = boardobjgrpmask_bitget(
-		&g->clk_pmu.clk_freq_controllers.freq_ctrl_load_mask.super,
+		&g->clk_pmu->clk_freq_controllers.freq_ctrl_load_mask.super,
 		CTRL_CLK_CLK_FREQ_CONTROLLER_ID_LTC);
 
 	/* val = 1 implies CLFC is loaded or enabled */
@@ -97,7 +98,7 @@ static int xbar_cfc_read(void *data , u64 *val)
 {
 	struct gk20a *g = (struct gk20a *)data;
 	bool bload = boardobjgrpmask_bitget(
-		&g->clk_pmu.clk_freq_controllers.freq_ctrl_load_mask.super,
+		&g->clk_pmu->clk_freq_controllers.freq_ctrl_load_mask.super,
 		CTRL_CLK_CLK_FREQ_CONTROLLER_ID_XBAR);
 
 	/* val = 1 implies CLFC is loaded or enabled */
@@ -125,7 +126,7 @@ static int gpc_cfc_read(void *data , u64 *val)
 {
 	struct gk20a *g = (struct gk20a *)data;
 	bool bload = boardobjgrpmask_bitget(
-		&g->clk_pmu.clk_freq_controllers.freq_ctrl_load_mask.super,
+		&g->clk_pmu->clk_freq_controllers.freq_ctrl_load_mask.super,
 		CTRL_CLK_CLK_FREQ_CONTROLLER_ID_GPC0);
 
 	/* val = 1 implies CLFC is loaded or enabled */

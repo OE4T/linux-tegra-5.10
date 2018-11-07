@@ -198,7 +198,7 @@ int clk_domain_sw_setup(struct gk20a *g)
 
 	nvgpu_log_info(g, " ");
 
-	status = boardobjgrpconstruct_e32(g, &g->clk_pmu.clk_domainobjs.super);
+	status = boardobjgrpconstruct_e32(g, &g->clk_pmu->clk_domainobjs.super);
 	if (status != 0) {
 		nvgpu_err(g,
 			  "error creating boardobjgrp for clk domain, status - 0x%x",
@@ -206,8 +206,8 @@ int clk_domain_sw_setup(struct gk20a *g)
 		goto done;
 	}
 
-	pboardobjgrp = &g->clk_pmu.clk_domainobjs.super.super;
-	pclkdomainobjs = &(g->clk_pmu.clk_domainobjs);
+	pboardobjgrp = &g->clk_pmu->clk_domainobjs.super.super;
+	pclkdomainobjs = &(g->clk_pmu->clk_domainobjs);
 
 	BOARDOBJGRP_PMU_CONSTRUCT(pboardobjgrp, CLK, CLK_DOMAIN);
 
@@ -270,7 +270,7 @@ int clk_domain_sw_setup(struct gk20a *g)
 					(struct clk_domain_3x_slave *)pdomain;
 				pdomain_master =
 					(struct clk_domain_3x_master *)
-					(CLK_CLK_DOMAIN_GET((&g->clk_pmu),
+					(CLK_CLK_DOMAIN_GET((g->clk_pmu),
 					pdomain_slave->master_idx));
 			pdomain_master->slave_idxs_mask |= BIT(i);
 		}
@@ -289,7 +289,7 @@ int clk_domain_pmu_setup(struct gk20a *g)
 
 	nvgpu_log_info(g, " ");
 
-	pboardobjgrp = &g->clk_pmu.clk_domainobjs.super.super;
+	pboardobjgrp = &g->clk_pmu->clk_domainobjs.super.super;
 
 	if (!pboardobjgrp->bconstructed) {
 		return -EINVAL;
@@ -1070,7 +1070,7 @@ static int clk_domain_pmudatainit_35_prog(struct gk20a *g,
 	struct clk_domain_35_prog *pclk_domain_35_prog;
 	struct clk_domain_3x_prog *pclk_domain_3x_prog;
 	struct nv_pmu_clk_clk_domain_35_prog_boardobj_set *pset;
-	struct clk_domains *pdomains = &(g->clk_pmu.clk_domainobjs);
+	struct clk_domains *pdomains = &(g->clk_pmu->clk_domainobjs);
 
 	nvgpu_log_info(g, " ");
 
@@ -1109,7 +1109,7 @@ static int _clk_domain_pmudatainit_3x_prog(struct gk20a *g,
 	int status = 0;
 	struct clk_domain_3x_prog *pclk_domain_3x_prog;
 	struct nv_pmu_clk_clk_domain_30_prog_boardobj_set *pset;
-	struct clk_domains *pdomains = &(g->clk_pmu.clk_domainobjs);
+	struct clk_domains *pdomains = &(g->clk_pmu->clk_domainobjs);
 
 	nvgpu_log_info(g, " ");
 

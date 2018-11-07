@@ -3228,7 +3228,7 @@ done:
 
 void gp106_mclk_deinit(struct gk20a *g)
 {
-	struct clk_mclk_state *mclk = &g->clk_pmu.clk_mclk;
+	struct clk_mclk_state *mclk = &g->clk_pmu->clk_mclk;
 
 	nvgpu_mutex_destroy(&mclk->data_lock);
 	nvgpu_mutex_destroy(&mclk->mclk_lock);
@@ -3246,7 +3246,7 @@ int gp106_mclk_init(struct gk20a *g)
 
 	nvgpu_log_fn(g, " ");
 
-	mclk = &g->clk_pmu.clk_mclk;
+	mclk = &g->clk_pmu->clk_mclk;
 
 	err = nvgpu_mutex_init(&mclk->mclk_lock);
 	if (err != 0) {
@@ -3354,7 +3354,7 @@ int gp106_mclk_change(struct gk20a *g, u16 val)
 
 	(void) memset(&payload, 0, sizeof(struct pmu_payload));
 
-	mclk = &g->clk_pmu.clk_mclk;
+	mclk = &g->clk_pmu->clk_mclk;
 
 	nvgpu_mutex_acquire(&mclk->mclk_lock);
 
@@ -3483,7 +3483,7 @@ static int mclk_debug_speed_set(void *data, u64 val)
 	struct gk20a *g = (struct gk20a *) data;
 	struct clk_mclk_state *mclk;
 
-	mclk = &g->clk_pmu.clk_mclk;
+	mclk = &g->clk_pmu->clk_mclk;
 
 	/* This is problematic because it can interrupt the arbiter
 	 * and send it to sleep. we need to consider removing this
@@ -3508,7 +3508,7 @@ static int mclk_switch_stats_show(struct seq_file *s, void *unused)
 	u64 num;
 	s64 tmp, avg, std, max, min;
 
-	mclk = &g->clk_pmu.clk_mclk;
+	mclk = &g->clk_pmu->clk_mclk;
 
 	/* Make copy of structure to reduce time with lock held */
 	nvgpu_mutex_acquire(&mclk->data_lock);

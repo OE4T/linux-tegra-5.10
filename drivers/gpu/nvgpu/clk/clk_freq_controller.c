@@ -240,7 +240,7 @@ static int clk_get_freq_controller_table(struct gk20a *g,
 			(u8)BIOS_GET_FIELD(entry.param0,
 				NV_VBIOS_FCT_1X_ENTRY_PARAM0_ID);
 
-		pclk_domain = CLK_CLK_DOMAIN_GET((&g->clk_pmu),
+		pclk_domain = CLK_CLK_DOMAIN_GET((g->clk_pmu),
 				(u32)entry.clk_domain_idx);
 		freq_controller_data.freq_controller.clk_domain =
 			pclk_domain->api_domain;
@@ -332,7 +332,7 @@ int clk_freq_controller_pmu_setup(struct gk20a *g)
 
 	nvgpu_log_info(g, " ");
 
-	pboardobjgrp = &g->clk_pmu.clk_freq_controllers.super.super;
+	pboardobjgrp = &g->clk_pmu->clk_freq_controllers.super.super;
 
 	if (!pboardobjgrp->bconstructed) {
 		return -EINVAL;
@@ -397,7 +397,7 @@ int clk_freq_controller_sw_setup(struct gk20a *g)
 	int status = 0;
 	struct boardobjgrp *pboardobjgrp = NULL;
 	struct clk_freq_controllers *pclk_freq_controllers;
-	struct avfsfllobjs *pfllobjs = &(g->clk_pmu.avfs_fllobjs);
+	struct avfsfllobjs *pfllobjs = &(g->clk_pmu->avfs_fllobjs);
 	struct fll_device *pfll;
 	struct clk_freq_controller *pclkfreqctrl;
 	u8 i;
@@ -405,7 +405,7 @@ int clk_freq_controller_sw_setup(struct gk20a *g)
 
 	nvgpu_log_info(g, " ");
 
-	pclk_freq_controllers = &g->clk_pmu.clk_freq_controllers;
+	pclk_freq_controllers = &g->clk_pmu->clk_freq_controllers;
 	status = boardobjgrpconstruct_e32(g, &pclk_freq_controllers->super);
 	if (status != 0) {
 		nvgpu_err(g,
@@ -414,7 +414,7 @@ int clk_freq_controller_sw_setup(struct gk20a *g)
 		goto done;
 	}
 
-	pboardobjgrp = &g->clk_pmu.clk_freq_controllers.super.super;
+	pboardobjgrp = &g->clk_pmu->clk_freq_controllers.super.super;
 
 	pboardobjgrp->pmudatainit  = _clk_freq_controllers_pmudatainit;
 	pboardobjgrp->pmudatainstget  =

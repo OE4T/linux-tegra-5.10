@@ -128,14 +128,14 @@ int clk_fll_sw_setup(struct gk20a *g)
 
 	nvgpu_log_info(g, " ");
 
-	status = boardobjgrpconstruct_e32(g, &g->clk_pmu.avfs_fllobjs.super);
+	status = boardobjgrpconstruct_e32(g, &g->clk_pmu->avfs_fllobjs.super);
 	if (status != 0) {
 		nvgpu_err(g,
 		"error creating boardobjgrp for fll, status - 0x%x", status);
 		goto done;
 	}
-	pfllobjs = &(g->clk_pmu.avfs_fllobjs);
-	pboardobjgrp = &(g->clk_pmu.avfs_fllobjs.super.super);
+	pfllobjs = &(g->clk_pmu->avfs_fllobjs);
+	pboardobjgrp = &(g->clk_pmu->avfs_fllobjs.super.super);
 
 	BOARDOBJGRP_PMU_CONSTRUCT(pboardobjgrp, CLK, FLL_DEVICE);
 
@@ -165,7 +165,7 @@ int clk_fll_sw_setup(struct gk20a *g)
 	}
 
 	status = BOARDOBJGRP_PMU_CMD_GRP_GET_STATUS_CONSTRUCT(g,
-				&g->clk_pmu.avfs_fllobjs.super.super,
+				&g->clk_pmu->avfs_fllobjs.super.super,
 				clk, CLK, clk_fll_device, CLK_FLL_DEVICE);
 	if (status != 0) {
 		nvgpu_err(g,
@@ -217,7 +217,7 @@ int clk_fll_pmu_setup(struct gk20a *g)
 
 	nvgpu_log_info(g, " ");
 
-	pboardobjgrp = &g->clk_pmu.avfs_fllobjs.super.super;
+	pboardobjgrp = &g->clk_pmu->avfs_fllobjs.super.super;
 
 	if (!pboardobjgrp->bconstructed) {
 		return -EINVAL;
@@ -244,7 +244,7 @@ static int devinit_get_fll_device_table(struct gk20a *g,
 	struct vin_device *pvin_dev;
 	u32 desctablesize;
 	u32 vbios_domain = NV_PERF_DOMAIN_4X_CLOCK_DOMAIN_SKIP;
-	struct avfsvinobjs *pvinobjs = &g->clk_pmu.avfs_vinobjs;
+	struct avfsvinobjs *pvinobjs = &g->clk_pmu->avfs_vinobjs;
 
 	nvgpu_log_info(g, " ");
 

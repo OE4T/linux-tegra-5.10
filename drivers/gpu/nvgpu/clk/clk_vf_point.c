@@ -99,7 +99,7 @@ int clk_vf_point_sw_setup(struct gk20a *g)
 
 	nvgpu_log_info(g, " ");
 
-	status = boardobjgrpconstruct_e255(g, &g->clk_pmu.clk_vf_pointobjs.super);
+	status = boardobjgrpconstruct_e255(g, &g->clk_pmu->clk_vf_pointobjs.super);
 	if (status != 0) {
 		nvgpu_err(g,
 		"error creating boardobjgrp for clk vfpoint, status - 0x%x",
@@ -107,7 +107,7 @@ int clk_vf_point_sw_setup(struct gk20a *g)
 		goto done;
 	}
 
-	pboardobjgrp = &g->clk_pmu.clk_vf_pointobjs.super.super;
+	pboardobjgrp = &g->clk_pmu->clk_vf_pointobjs.super.super;
 
 	BOARDOBJGRP_PMU_CONSTRUCT(pboardobjgrp, CLK, CLK_VF_POINT);
 
@@ -121,7 +121,7 @@ int clk_vf_point_sw_setup(struct gk20a *g)
 	}
 
 	status = BOARDOBJGRP_PMU_CMD_GRP_GET_STATUS_CONSTRUCT(g,
-				&g->clk_pmu.clk_vf_pointobjs.super.super,
+				&g->clk_pmu->clk_vf_pointobjs.super.super,
 				clk, CLK, clk_vf_point, CLK_VF_POINT);
 	if (status != 0) {
 		nvgpu_err(g,
@@ -146,7 +146,7 @@ int clk_vf_point_pmu_setup(struct gk20a *g)
 
 	nvgpu_log_info(g, " ");
 
-	pboardobjgrp = &g->clk_pmu.clk_vf_pointobjs.super.super;
+	pboardobjgrp = &g->clk_pmu->clk_vf_pointobjs.super.super;
 
 	if (!pboardobjgrp->bconstructed) {
 		return -EINVAL;
@@ -402,7 +402,7 @@ int clk_vf_point_cache(struct gk20a *g)
 	u8 index;
 
 	nvgpu_log_info(g, " ");
-	pclk_vf_points = &g->clk_pmu.clk_vf_pointobjs;
+	pclk_vf_points = &g->clk_pmu->clk_vf_pointobjs;
 	pboardobjgrp = &pclk_vf_points->super.super;
 	pboardobjgrpmask = &pclk_vf_points->super.mask.super;
 

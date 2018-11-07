@@ -36,6 +36,8 @@ static int pstate_sw_setup(struct gk20a *g);
 
 void gk20a_deinit_pstate_support(struct gk20a *g)
 {
+	clk_free_pmupstate(g);
+
 	if (g->ops.clk.mclk_deinit != NULL) {
 		g->ops.clk.mclk_deinit(g);
 	}
@@ -50,87 +52,96 @@ int gk20a_init_pstate_support(struct gk20a *g)
 
 	nvgpu_log_fn(g, " ");
 
-	err = volt_rail_sw_setup(g);
+	err = clk_init_pmupstate(g);
 	if (err != 0) {
 		return err;
+	}
+
+	err = volt_rail_sw_setup(g);
+	if (err != 0) {
+		goto err_clk_init_pmupstate;
 	}
 
 	err = volt_dev_sw_setup(g);
 	if (err != 0) {
-		return err;
+		goto err_clk_init_pmupstate;
 	}
 
 	err = volt_policy_sw_setup(g);
 	if (err != 0) {
-		return err;
+		goto err_clk_init_pmupstate;
 	}
 
 	err = clk_vin_sw_setup(g);
 	if (err != 0) {
-		return err;
+		goto err_clk_init_pmupstate;
 	}
 
 	err = clk_fll_sw_setup(g);
 	if (err != 0) {
-		return err;
+		goto err_clk_init_pmupstate;
 	}
 
 	err = therm_domain_sw_setup(g);
 	if (err != 0) {
-		return err;
+		goto err_clk_init_pmupstate;
 	}
 
 	err = vfe_var_sw_setup(g);
 	if (err != 0) {
-		return err;
+		goto err_clk_init_pmupstate;
 	}
 
 	err = vfe_equ_sw_setup(g);
 	if (err != 0) {
-		return err;
+		goto err_clk_init_pmupstate;
 	}
 
 	err = clk_domain_sw_setup(g);
 	if (err != 0) {
-		return err;
+		goto err_clk_init_pmupstate;
 	}
 
 	err = clk_vf_point_sw_setup(g);
 	if (err != 0) {
-		return err;
+		goto err_clk_init_pmupstate;
 	}
 
 	err = clk_prog_sw_setup(g);
 	if (err != 0) {
-		return err;
+		goto err_clk_init_pmupstate;
 	}
 
 	err = pstate_sw_setup(g);
 	if (err != 0) {
-		return err;
+		goto err_clk_init_pmupstate;
 	}
 
 	if(g->ops.clk.support_pmgr_domain) {
 		err = pmgr_domain_sw_setup(g);
 		if (err != 0) {
-			return err;
+			goto err_clk_init_pmupstate;
 		}
 	}
 
 	if (g->ops.clk.support_clk_freq_controller) {
 		err = clk_freq_controller_sw_setup(g);
 		if (err != 0) {
-			return err;
+			goto err_clk_init_pmupstate;
 		}
 	}
 
 	if(g->ops.clk.support_lpwr_pg) {
 		err = nvgpu_lpwr_pg_setup(g);
 		if (err != 0) {
-			return err;
+			goto err_clk_init_pmupstate;
 		}
 	}
 
+	return 0;
+
+err_clk_init_pmupstate:
+	clk_free_pmupstate(g);
 	return err;
 }
 
@@ -328,7 +339,7 @@ static int parse_pstate_entry_5x(struct gk20a *g,
 		struct clk_domain *clk_domain;
 
 		clk_domain = (struct clk_domain *)BOARDOBJGRP_OBJ_GET_BY_IDX(
-			    &g->clk_pmu.clk_domainobjs.super.super, clkidx);
+			    &g->clk_pmu->clk_domainobjs.super.super, clkidx);
 
 		pclksetinfo = &pstate->clklist.clksetinfo[clkidx];
 		clk_entry = (struct vbios_pstate_entry_clock_5x *)p;

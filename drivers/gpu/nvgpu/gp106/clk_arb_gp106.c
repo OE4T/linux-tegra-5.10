@@ -45,7 +45,7 @@ int gp106_get_arbiter_clk_range(struct gk20a *g, u32 api_domain,
 	enum nv_pmu_clk_clkwhich clkwhich;
 	struct clk_set_info *p0_info;
 	struct clk_set_info *p5_info;
-	struct avfsfllobjs *pfllobjs =  &(g->clk_pmu.avfs_fllobjs);
+	struct avfsfllobjs *pfllobjs =  &(g->clk_pmu->avfs_fllobjs);
 
 	u16 limit_min_mhz;
 
