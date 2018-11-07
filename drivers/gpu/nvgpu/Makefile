@@ -348,7 +348,6 @@ nvgpu-y += \
 	gv100/flcn_gv100.o \
 	gv100/nvlink_gv100.o \
 	gv100/hal_gv100.o \
-	gv100/perf_gv100.o \
 	gv100/gsp_gv100.o \
 	gv100/clk_gv100.o \
 	tu104/hal_tu104.o \
@@ -373,6 +372,7 @@ nvgpu-y += \
 	pmu_perf/vfe_var.o \
 	pmu_perf/vfe_equ.o \
 	pmu_perf/pmu_perf.o \
+	pmu_perf/perf_gv100.o \
 	clk/clk.o \
 	gp106/clk_gp106.o \
 	gp106/clk_arb_gp106.o \

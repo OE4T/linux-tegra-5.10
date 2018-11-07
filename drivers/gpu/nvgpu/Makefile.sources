@@ -168,6 +168,7 @@ srcs :=	os/posix/nvgpu.c \
 	pmu_perf/pmu_perf.c \
 	pmu_perf/vfe_equ.c \
 	pmu_perf/vfe_var.c \
+	pmu_perf/perf_gv100.c \
 	pmgr/pmgr.c \
 	pmgr/pmgrpmu.c \
 	pmgr/pwrdev.c \
@@ -226,7 +227,6 @@ srcs :=	os/posix/nvgpu.c \
 	gv100/flcn_gv100.c \
 	gv100/nvlink_gv100.c \
 	gv100/hal_gv100.c \
-	gv100/perf_gv100.c \
 	gv100/gsp_gv100.c \
 	gv100/clk_gv100.c \
 	common/bus/bus_tu104.c	\

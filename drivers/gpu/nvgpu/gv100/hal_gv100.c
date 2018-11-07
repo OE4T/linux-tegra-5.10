@@ -60,6 +60,7 @@
 #include "common/pmu/acr_gp106.h"
 #include "common/pmu/pmu_gv11b.h"
 #include "common/pmu/pmu_gv100.h"
+#include "pmu_perf/perf_gv100.h"
 
 #include "gk20a/fifo_gk20a.h"
 #include "gk20a/fecs_trace_gk20a.h"
@@ -101,7 +102,6 @@
 #include "gv100/mm_gv100.h"
 #include "gv100/nvlink_gv100.h"
 #include "gv100/regops_gv100.h"
-#include "gv100/perf_gv100.h"
 #include "gv100/clk_gv100.h"
 
 #include <nvgpu/ptimer.h>
