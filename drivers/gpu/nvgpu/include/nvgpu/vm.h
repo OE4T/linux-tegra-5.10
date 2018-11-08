@@ -300,7 +300,7 @@ int __nvgpu_vm_init(struct mm_gk20a *mm,
 			   u64 aperture_size,
 			   bool big_pages,
 			   bool userspace_managed,
-			   char *name);
+			   const char *name);
 
 struct vm_gk20a *nvgpu_vm_init(struct gk20a *g,
 			       u32 big_page_size,
@@ -309,7 +309,7 @@ struct vm_gk20a *nvgpu_vm_init(struct gk20a *g,
 			       u64 aperture_size,
 			       bool big_pages,
 			       bool userspace_managed,
-			       char *name);
+			       const char *name);
 
 /*
  * These are private to the VM code but are unfortunately used by the vgpu code.

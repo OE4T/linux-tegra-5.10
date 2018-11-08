@@ -97,7 +97,7 @@ struct wpr_carveout_info {
 /* ACR interfaces */
 
 struct hs_flcn_bl {
-	char *bl_fw_name;
+	const char *bl_fw_name;
 	struct nvgpu_firmware *hs_bl_fw;
 	struct hsflcn_bl_desc *hs_bl_desc;
 	struct bin_hdr *hs_bl_bin_hdr;
@@ -111,7 +111,7 @@ struct hs_acr {
 	struct hs_flcn_bl acr_hs_bl;
 
 	/* ACR ucode */
-	char *acr_fw_name;
+	const char *acr_fw_name;
 	struct nvgpu_firmware *acr_fw;
 	struct nvgpu_mem acr_ucode;
 

@@ -281,7 +281,7 @@ int __nvgpu_vm_init(struct mm_gk20a *mm,
 			   u64 aperture_size,
 			   bool big_pages,
 			   bool userspace_managed,
-			   char *name)
+			   const char *name)
 {
 	int err = 0;
 	char alloc_name[32];
@@ -576,7 +576,7 @@ struct vm_gk20a *nvgpu_vm_init(struct gk20a *g,
 			       u64 aperture_size,
 			       bool big_pages,
 			       bool userspace_managed,
-			       char *name)
+			       const char *name)
 {
 	struct vm_gk20a *vm = nvgpu_kzalloc(g, sizeof(*vm));
 
