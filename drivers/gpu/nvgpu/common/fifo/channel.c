@@ -137,13 +137,13 @@ int gk20a_channel_get_timescale_from_timeslice(struct gk20a *g,
 	unsigned int shift = 0;
 
 	/* value field is 8 bits long */
-	while (value >= 1 << 8) {
+	while (value >= BIT32(8)) {
 		value >>= 1;
 		shift++;
 	}
 
 	/* time slice register is only 18bits long */
-	if ((value << shift) >= 1<<19) {
+	if ((value << shift) >= BIT32(19)) {
 		nvgpu_err(g, "Requested timeslice value is clamped to 18 bits\n");
 		value = 255;
 		shift = 10;

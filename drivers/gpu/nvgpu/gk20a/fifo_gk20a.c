@@ -859,7 +859,7 @@ int gk20a_init_fifo_setup_sw_common(struct gk20a *g)
 	f->num_pbdma = nvgpu_get_litter_value(g, GPU_LIT_HOST_NUM_PBDMA);
 	f->max_engines = nvgpu_get_litter_value(g, GPU_LIT_HOST_NUM_ENGINES);
 
-	f->userd_entry_size = 1 << ram_userd_base_shift_v();
+	f->userd_entry_size = BIT16(ram_userd_base_shift_v());
 
 	f->channel = nvgpu_vzalloc(g, f->num_channels * sizeof(*f->channel));
 	f->tsg = nvgpu_vzalloc(g, f->num_channels * sizeof(*f->tsg));

@@ -111,7 +111,7 @@ static struct boardobj *construct_pwr_device(struct gk20a *g,
 	board_obj_ptr->pmudatainit = _pwr_domains_pmudatainit_ina3221;
 	pwrdev->super.power_rail          = ina3221->super.power_rail;
 	pwrdev->super.i2c_dev_idx       = ina3221->super.i2c_dev_idx;
-	pwrdev->super.power_corr_factor = (1 << 12);
+	pwrdev->super.power_corr_factor = BIT32(12);
 	pwrdev->super.bIs_inforom_config = false;
 
 	/* Set INA3221-specific information */

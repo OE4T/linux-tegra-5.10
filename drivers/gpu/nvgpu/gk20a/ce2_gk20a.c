@@ -170,7 +170,7 @@ static inline unsigned int gk20a_ce_get_method_size(int request_operation,
 		shift = (MAX_CE_ALIGN(chunk) != 0ULL) ?
 				__ffs(MAX_CE_ALIGN(chunk)) : MAX_CE_SHIFT;
 		width = chunk >> shift;
-		height = 1 << shift;
+		height = BIT32(shift);
 		width = MAX_CE_ALIGN(width);
 
 		chunk -= (u64) height * width;
@@ -244,7 +244,7 @@ int gk20a_ce_prepare_submit(u64 src_buf,
 		shift = (MAX_CE_ALIGN(chunk) != 0ULL) ?
 				__ffs(MAX_CE_ALIGN(chunk)) : MAX_CE_SHIFT;
 		height = chunk >> shift;
-		width = 1 << shift;
+		width = BIT32(shift);
 		height = MAX_CE_ALIGN(height);
 
 		chunk_size = (u64) height * width;

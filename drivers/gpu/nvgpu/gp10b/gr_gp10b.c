@@ -580,7 +580,7 @@ int gr_gp10b_add_zbc_depth(struct gk20a *g, struct gr_gk20a *gr,
 
 	gk20a_writel(g, gr_gpcs_swdx_dss_zbc_z_r(index), depth_val->depth);
 	zbc_z = gk20a_readl(g, zbc_z_format_reg + (index & ~3));
-	zbc_z &= ~(0x7f << (index % 4) * 7);
+	zbc_z &= ~(U32(0x7f) << (index % 4U) * 7U);
 	zbc_z |= depth_val->format << (index % 4) * 7;
 	gk20a_writel(g, zbc_z_format_reg + (index & ~3), zbc_z);
 

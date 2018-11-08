@@ -1878,12 +1878,12 @@ void gv11b_fifo_add_sema_cmd(struct gk20a *g,
 	if (acquire) {
 		/* sema_execute : acq_strict_geq | switch_en | 32bit */
 		nvgpu_mem_wr32(g, cmd->mem, off++, 0x2001001b);
-		nvgpu_mem_wr32(g, cmd->mem, off++, 0x2 | (1 << 12));
+		nvgpu_mem_wr32(g, cmd->mem, off++, U32(0x2) | BIT32(12));
 	} else {
 		/* sema_execute : release | wfi | 32bit */
 		nvgpu_mem_wr32(g, cmd->mem, off++, 0x2001001b);
 		nvgpu_mem_wr32(g, cmd->mem, off++,
-			0x1 | ((wfi ? 0x1 : 0x0) << 20));
+			U32(0x1) | ((wfi ? U32(0x1) : U32(0x0)) << 20U));
 
 		/* non_stall_int : payload is ignored */
 		nvgpu_mem_wr32(g, cmd->mem, off++, 0x20010008);

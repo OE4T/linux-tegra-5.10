@@ -53,7 +53,7 @@ int gp10b_init_bar2_vm(struct gk20a *g)
 	u32 big_page_size = g->ops.mm.get_default_big_page_size();
 
 	/* BAR2 aperture size is 32MB */
-	mm->bar2.aperture_size = 32 << 20;
+	mm->bar2.aperture_size = U32(32) << 20U;
 	nvgpu_log_info(g, "bar2 vm size = 0x%x", mm->bar2.aperture_size);
 
 	mm->bar2.vm = nvgpu_vm_init(g, big_page_size, SZ_4K,

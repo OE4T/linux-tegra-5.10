@@ -30,21 +30,21 @@
  */
 
 /* Broadcast PMM defines */
-#define NV_PERF_PMMFBP_FBPGS_LTC             0x00250800
-#define NV_PERF_PMMFBP_FBPGS_ROP             0x00250A00
-#define NV_PERF_PMMGPC_GPCGS_GPCTPCA         0x00250000
-#define NV_PERF_PMMGPC_GPCGS_GPCTPCB         0x00250200
-#define NV_PERF_PMMGPC_GPCS                  0x00278000
-#define NV_PERF_PMMFBP_FBPS                  0x0027C000
+#define NV_PERF_PMMFBP_FBPGS_LTC             0x00250800U
+#define NV_PERF_PMMFBP_FBPGS_ROP             0x00250A00U
+#define NV_PERF_PMMGPC_GPCGS_GPCTPCA         0x00250000U
+#define NV_PERF_PMMGPC_GPCGS_GPCTPCB         0x00250200U
+#define NV_PERF_PMMGPC_GPCS                  0x00278000U
+#define NV_PERF_PMMFBP_FBPS                  0x0027C000U
 
 #define PRI_PMMGS_ADDR_WIDTH                 9
 #define PRI_PMMS_ADDR_WIDTH                  14
 
 /* Get the offset to be added to the chiplet base addr to get the unicast address */
-#define PRI_PMMGS_OFFSET_MASK(addr)    ((addr) & ((1 << PRI_PMMGS_ADDR_WIDTH) - 1))
-#define PRI_PMMGS_BASE_ADDR_MASK(addr) ((addr) & (~((1 << PRI_PMMGS_ADDR_WIDTH) - 1)))
+#define PRI_PMMGS_OFFSET_MASK(addr)    ((addr) & (BIT32(PRI_PMMGS_ADDR_WIDTH) - 1U))
+#define PRI_PMMGS_BASE_ADDR_MASK(addr) ((addr) & (~(BIT32(PRI_PMMGS_ADDR_WIDTH) - 1U)))
 
-#define PRI_PMMS_ADDR_MASK(addr)      ((addr) & ((1 << PRI_PMMS_ADDR_WIDTH) - 1))
-#define PRI_PMMS_BASE_ADDR_MASK(addr) ((addr) & (~((1 << PRI_PMMS_ADDR_WIDTH) - 1)))
+#define PRI_PMMS_ADDR_MASK(addr)      ((addr) & (BIT32(PRI_PMMS_ADDR_WIDTH) - 1U))
+#define PRI_PMMS_BASE_ADDR_MASK(addr) ((addr) & (~(BIT32(PRI_PMMS_ADDR_WIDTH) - 1U)))
 
 #endif /* GR_PRI_GV11B_H */

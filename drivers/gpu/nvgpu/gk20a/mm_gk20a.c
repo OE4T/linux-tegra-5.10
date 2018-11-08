@@ -214,7 +214,13 @@ static void __update_pte(struct vm_gk20a *vm,
 	u32 addr = attrs->aperture == APERTURE_SYSMEM ?
 		gmmu_pte_address_sys_f(phys_shifted) :
 		gmmu_pte_address_vid_f(phys_shifted);
-	int ctag_shift = ilog2(g->ops.fb.compression_page_size(g));
+	int ctag_shift = 0;
+	int shamt = ilog2(g->ops.fb.compression_page_size(g));
+	if (shamt < 0) {
+		nvgpu_err(g, "shift amount 'shamt' is negative");
+	} else {
+		ctag_shift = shamt;
+	}
 
 	pte_w[0] = pte_valid | addr;
 
@@ -233,7 +239,7 @@ static void __update_pte(struct vm_gk20a *vm,
 	     vm->mm->use_full_comp_tag_line &&
 	    ((phys_addr & 0x10000ULL) != 0ULL)) {
 		pte_w[1] |= gmmu_pte_comptagline_f(
-			1 << (gmmu_pte_comptagline_s() - 1U));
+			BIT32(gmmu_pte_comptagline_s() - 1U));
 	}
 
 	if (attrs->rw_flag == gk20a_mem_flag_read_only) {
@@ -264,7 +270,13 @@ static void update_gmmu_pte_locked(struct vm_gk20a *vm,
 	u32 page_size  = vm->gmmu_page_sizes[attrs->pgsz];
 	u32 pd_offset = pd_offset_from_index(l, pd_idx);
 	u32 pte_w[2] = {0, 0};
-	int ctag_shift = ilog2(g->ops.fb.compression_page_size(g));
+	int ctag_shift = 0;
+	int shamt = ilog2(g->ops.fb.compression_page_size(g));
+	if (shamt < 0) {
+		nvgpu_err(g, "shift amount 'shamt' is negative");
+	} else {
+		ctag_shift = shamt;
+	}
 
 	if (phys_addr != 0ULL) {
 		__update_pte(vm, pte_w, phys_addr, attrs);

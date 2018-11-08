@@ -603,7 +603,7 @@ void nvgpu_pmu_surface_describe(struct gk20a *g, struct nvgpu_mem *mem,
 	fb->address.lo = u64_lo32(mem->gpu_va);
 	fb->address.hi = u64_hi32(mem->gpu_va);
 	fb->params = ((u32)mem->size & 0xFFFFFFU);
-	fb->params |= (GK20A_PMU_DMAIDX_VIRT << 24);
+	fb->params |= (GK20A_PMU_DMAIDX_VIRT << 24U);
 }
 
 int nvgpu_pmu_vidmem_surface_alloc(struct gk20a *g, struct nvgpu_mem *mem,

@@ -70,6 +70,7 @@ static struct boardobj *construct_channel_device(struct gk20a *g,
 	struct therm_channel *pchannel;
 	struct therm_channel_device *pchannel_device;
 	int status;
+	u16 scale_shift = BIT16(8);
 	struct therm_channel_device *therm_device = (struct therm_channel_device*)pargs;
 
 	status = boardobj_construct_super(g, &board_obj_ptr,
@@ -86,7 +87,7 @@ static struct boardobj *construct_channel_device(struct gk20a *g,
 
 	g->ops.therm.get_internal_sensor_limits(&pchannel->temp_max,
 		&pchannel->temp_min);
-	pchannel->scaling = (1 << 8);
+	pchannel->scaling = S16(scale_shift);
 	pchannel->offset = 0;
 
 	pchannel_device->therm_dev_idx = therm_device->therm_dev_idx;

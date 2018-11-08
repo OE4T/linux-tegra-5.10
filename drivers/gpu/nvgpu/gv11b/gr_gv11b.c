@@ -1092,7 +1092,7 @@ int gr_gv11b_add_zbc_stencil(struct gk20a *g, struct gr_gk20a *gr,
 	gk20a_writel(g, gr_gpcs_swdx_dss_zbc_s_r(index), stencil_val->depth);
 	zbc_s = gk20a_readl(g, gr_gpcs_swdx_dss_zbc_s_01_to_04_format_r() +
 				 (index & ~3));
-	zbc_s &= ~(0x7f << (index % 4) * 7);
+	zbc_s &= ~(U32(0x7f) << (index % 4U) * 7U);
 	zbc_s |= stencil_val->format << (index % 4) * 7;
 	gk20a_writel(g, gr_gpcs_swdx_dss_zbc_s_01_to_04_format_r() +
 				 (index & ~3), zbc_s);
@@ -2663,13 +2663,13 @@ int gr_gv11b_setup_rop_mapping(struct gk20a *g, struct gr_gk20a *gr)
 					i++, j = j + 4) {
 		gk20a_writel(g, gr_ppcs_wwdx_map_table_cfg_coeff_r(i),
 			gr_ppcs_wwdx_map_table_cfg_coeff_0_mod_value_f(
-					((1 << j) % gr->tpc_count)) |
+					(BIT32(j) % gr->tpc_count)) |
 			gr_ppcs_wwdx_map_table_cfg_coeff_1_mod_value_f(
-				((1 << (j + 1)) % gr->tpc_count)) |
+				(BIT32(j + 1U) % gr->tpc_count)) |
 			gr_ppcs_wwdx_map_table_cfg_coeff_2_mod_value_f(
-				((1 << (j + 2)) % gr->tpc_count)) |
+				(BIT32(j + 2U) % gr->tpc_count)) |
 			gr_ppcs_wwdx_map_table_cfg_coeff_3_mod_value_f(
-				((1 << (j + 3)) % gr->tpc_count)));
+				(BIT32(j + 3U) % gr->tpc_count)));
 	}
 
 	gk20a_writel(g, gr_rstr2d_map_table_cfg_r(),
