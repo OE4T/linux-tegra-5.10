@@ -1191,7 +1191,7 @@ static int nvgpu_vm_unmap_sync_buffer(struct vm_gk20a *vm,
 		nvgpu_msleep(10);
 	}
 
-	if (nvgpu_timeout_expired(&timeout) == -ETIMEDOUT) {
+	if (nvgpu_atomic_read(&mapped_buffer->ref.refcount) > 1) {
 		ret = -ETIMEDOUT;
 	}
 
