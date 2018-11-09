@@ -33,6 +33,7 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/channel.h>
 #include <nvgpu/tsg.h>
+#include <nvgpu/string.h>
 
 #include "gr_vgpu.h"
 #include "gk20a/fecs_trace_gk20a.h"
@@ -819,9 +820,9 @@ int vgpu_gr_add_zbc(struct gk20a *g, struct gr_gk20a *gr,
 	p->format = zbc_val->format;
 	switch (p->type) {
 	case GK20A_ZBC_TYPE_COLOR:
-		(void) memcpy(p->color_ds, zbc_val->color_ds,
+		nvgpu_memcpy((u8 *)p->color_ds, (u8 *)zbc_val->color_ds,
 			sizeof(p->color_ds));
-		(void) memcpy(p->color_l2, zbc_val->color_l2,
+		nvgpu_memcpy((u8 *)p->color_l2, (u8 *)zbc_val->color_l2,
 			sizeof(p->color_l2));
 		break;
 	case GK20A_ZBC_TYPE_DEPTH:
@@ -858,9 +859,9 @@ int vgpu_gr_query_zbc(struct gk20a *g, struct gr_gk20a *gr,
 
 	switch (query_params->type) {
 	case GK20A_ZBC_TYPE_COLOR:
-		(void) memcpy(query_params->color_ds, p->color_ds,
+		nvgpu_memcpy((u8 *)query_params->color_ds, (u8 *)p->color_ds,
 				sizeof(query_params->color_ds));
-		(void) memcpy(query_params->color_l2, p->color_l2,
+		nvgpu_memcpy((u8 *)query_params->color_l2, (u8 *)p->color_l2,
 				sizeof(query_params->color_l2));
 		break;
 	case GK20A_ZBC_TYPE_DEPTH:

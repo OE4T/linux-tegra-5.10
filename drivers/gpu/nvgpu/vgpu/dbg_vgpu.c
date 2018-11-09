@@ -27,6 +27,7 @@
 #include <nvgpu/bug.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/channel.h>
+#include <nvgpu/string.h>
 
 #include "gk20a/regops_gk20a.h"
 #include "dbg_vgpu.h"
@@ -60,7 +61,7 @@ int vgpu_exec_regops(struct dbg_session_gk20a *dbg_s,
 		goto fail;
 	}
 
-	(void) memcpy(oob, ops, ops_size);
+	nvgpu_memcpy((u8 *)oob, (u8 *)ops, ops_size);
 
 	msg.cmd = TEGRA_VGPU_CMD_REG_OPS;
 	msg.handle = vgpu_get_handle(dbg_s->g);
@@ -71,7 +72,7 @@ int vgpu_exec_regops(struct dbg_session_gk20a *dbg_s,
 	err = vgpu_comm_sendrecv(&msg, sizeof(msg), sizeof(msg));
 	err = err ? err : msg.ret;
 	if (err == 0) {
-		(void) memcpy(ops, oob, ops_size);
+		nvgpu_memcpy((u8 *)ops, (u8 *)oob, ops_size);
 		if (is_current_ctx != NULL) {
 			*is_current_ctx = p->is_current_ctx != 0u;
 		}

@@ -28,6 +28,7 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/channel.h>
 #include <nvgpu/clk_arb.h>
+#include <nvgpu/string.h>
 
 #include "fecs_trace_vgpu.h"
 
@@ -58,7 +59,7 @@ int vgpu_comm_sendrecv(struct tegra_vgpu_cmd_msg *msg, size_t size_in,
 				TEGRA_VGPU_QUEUE_CMD, &handle, &data, &size);
 	if (!err) {
 		WARN_ON(size < size_out);
-		(void) memcpy(msg, data, size_out);
+		nvgpu_memcpy((u8 *)msg, (u8 *)data, size_out);
 		vgpu_ivc_release(handle);
 	}
 

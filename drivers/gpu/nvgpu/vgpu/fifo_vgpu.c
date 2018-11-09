@@ -35,6 +35,7 @@
 #include <nvgpu/vgpu/vgpu.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/channel.h>
+#include <nvgpu/string.h>
 
 #include "fifo_vgpu.h"
 
@@ -523,7 +524,7 @@ static int vgpu_submit_runlist(struct gk20a *g, u64 handle, u8 runlist_id,
 	p->runlist_id = runlist_id;
 	p->num_entries = num_entries;
 
-	(void) memcpy(oob, runlist, size);
+	nvgpu_memcpy((u8 *)oob, (u8 *)runlist, size);
 	err = vgpu_comm_sendrecv(&msg, sizeof(msg), sizeof(msg));
 
 	err = (err || msg.ret) ? -1 : 0;
