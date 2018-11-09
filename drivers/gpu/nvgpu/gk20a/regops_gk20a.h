@@ -30,31 +30,31 @@
  * attached to debug session
  */
 /* valid op values */
-#define NVGPU_DBG_REG_OP_READ_32                             (0x00000000)
-#define NVGPU_DBG_REG_OP_WRITE_32                            (0x00000001)
-#define NVGPU_DBG_REG_OP_READ_64                             (0x00000002)
-#define NVGPU_DBG_REG_OP_WRITE_64                            (0x00000003)
+#define NVGPU_DBG_REG_OP_READ_32                             0x00000000U
+#define NVGPU_DBG_REG_OP_WRITE_32                            0x00000001U
+#define NVGPU_DBG_REG_OP_READ_64                             0x00000002U
+#define NVGPU_DBG_REG_OP_WRITE_64                            0x00000003U
 /* note: 8b ops are unsupported */
-#define NVGPU_DBG_REG_OP_READ_08                             (0x00000004)
-#define NVGPU_DBG_REG_OP_WRITE_08                            (0x00000005)
+#define NVGPU_DBG_REG_OP_READ_08                             0x00000004U
+#define NVGPU_DBG_REG_OP_WRITE_08                            0x00000005U
 
 /* valid type values */
-#define NVGPU_DBG_REG_OP_TYPE_GLOBAL                         (0x00000000)
-#define NVGPU_DBG_REG_OP_TYPE_GR_CTX                         (0x00000001)
-#define NVGPU_DBG_REG_OP_TYPE_GR_CTX_TPC                     (0x00000002)
-#define NVGPU_DBG_REG_OP_TYPE_GR_CTX_SM                      (0x00000004)
-#define NVGPU_DBG_REG_OP_TYPE_GR_CTX_CROP                    (0x00000008)
-#define NVGPU_DBG_REG_OP_TYPE_GR_CTX_ZROP                    (0x00000010)
+#define NVGPU_DBG_REG_OP_TYPE_GLOBAL                         0x00000000U
+#define NVGPU_DBG_REG_OP_TYPE_GR_CTX                         0x00000001U
+#define NVGPU_DBG_REG_OP_TYPE_GR_CTX_TPC                     0x00000002U
+#define NVGPU_DBG_REG_OP_TYPE_GR_CTX_SM                      0x00000004U
+#define NVGPU_DBG_REG_OP_TYPE_GR_CTX_CROP                    0x00000008U
+#define NVGPU_DBG_REG_OP_TYPE_GR_CTX_ZROP                    0x00000010U
 /*#define NVGPU_DBG_REG_OP_TYPE_FB                           (0x00000020)*/
-#define NVGPU_DBG_REG_OP_TYPE_GR_CTX_QUAD                    (0x00000040)
+#define NVGPU_DBG_REG_OP_TYPE_GR_CTX_QUAD                    0x00000040U
 
 /* valid status values */
-#define NVGPU_DBG_REG_OP_STATUS_SUCCESS                      (0x00000000)
-#define NVGPU_DBG_REG_OP_STATUS_INVALID_OP                   (0x00000001)
-#define NVGPU_DBG_REG_OP_STATUS_INVALID_TYPE                 (0x00000002)
-#define NVGPU_DBG_REG_OP_STATUS_INVALID_OFFSET               (0x00000004)
-#define NVGPU_DBG_REG_OP_STATUS_UNSUPPORTED_OP               (0x00000008)
-#define NVGPU_DBG_REG_OP_STATUS_INVALID_MASK                 (0x00000010)
+#define NVGPU_DBG_REG_OP_STATUS_SUCCESS                      0x00000000U
+#define NVGPU_DBG_REG_OP_STATUS_INVALID_OP                   0x00000001U
+#define NVGPU_DBG_REG_OP_STATUS_INVALID_TYPE                 0x00000002U
+#define NVGPU_DBG_REG_OP_STATUS_INVALID_OFFSET               0x00000004U
+#define NVGPU_DBG_REG_OP_STATUS_UNSUPPORTED_OP               0x00000008U
+#define NVGPU_DBG_REG_OP_STATUS_INVALID_MASK                 0x00000010U
 
 struct nvgpu_dbg_reg_op {
 	u8    op;

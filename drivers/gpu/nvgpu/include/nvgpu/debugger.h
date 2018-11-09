@@ -136,10 +136,10 @@ u32 nvgpu_set_powergate_locked(struct dbg_session_gk20a *dbg_s,
 
  /* PM Context Switch Mode */
 /*This mode says that the pms are not to be context switched. */
-#define NVGPU_DBG_HWPM_CTXSW_MODE_NO_CTXSW               (0x00000000)
+#define NVGPU_DBG_HWPM_CTXSW_MODE_NO_CTXSW               (0x00000000U)
 /* This mode says that the pms in Mode-B are to be context switched */
-#define NVGPU_DBG_HWPM_CTXSW_MODE_CTXSW                  (0x00000001)
+#define NVGPU_DBG_HWPM_CTXSW_MODE_CTXSW                  (0x00000001U)
 /* This mode says that the pms in Mode-E (stream out) are to be context switched. */
-#define NVGPU_DBG_HWPM_CTXSW_MODE_STREAM_OUT_CTXSW       (0x00000002)
+#define NVGPU_DBG_HWPM_CTXSW_MODE_STREAM_OUT_CTXSW       (0x00000002U)
 
 #endif /* NVGPU_DEBUGGER_H */

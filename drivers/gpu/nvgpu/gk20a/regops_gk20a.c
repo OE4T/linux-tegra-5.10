@@ -155,7 +155,7 @@ int exec_regops_gk20a(struct dbg_session_gk20a *dbg_s,
 		case REGOP(READ_64):
 			ops[i].value_lo = gk20a_readl(g, ops[i].offset);
 			ops[i].value_hi =
-				gk20a_readl(g, ops[i].offset + 4);
+				gk20a_readl(g, ops[i].offset + 4U);
 
 			nvgpu_log(g, gpu_dbg_gpu_dbg, "read_64 0x%08x:%08x from 0x%08x",
 				   ops[i].value_hi, ops[i].value_lo,
@@ -189,7 +189,7 @@ int exec_regops_gk20a(struct dbg_session_gk20a *dbg_s,
 			/* if desired, read second 32bits */
 			if ((ops[i].op == REGOP(WRITE_64)) &&
 			    !skip_read_hi) {
-				data32_hi = gk20a_readl(g, ops[i].offset + 4);
+				data32_hi = gk20a_readl(g, ops[i].offset + 4U);
 				data32_hi &= ~ops[i].and_n_mask_hi;
 				data32_hi |= ops[i].value_hi;
 			}
@@ -200,9 +200,9 @@ int exec_regops_gk20a(struct dbg_session_gk20a *dbg_s,
 				   data32_lo, ops[i].offset);
 			/* if desired, update second 32bits */
 			if (ops[i].op == REGOP(WRITE_64)) {
-				gk20a_writel(g, ops[i].offset + 4, data32_hi);
+				gk20a_writel(g, ops[i].offset + 4U, data32_hi);
 				nvgpu_log(g, gpu_dbg_gpu_dbg, "Wrote 0x%08x to 0x%08x ",
-					   data32_hi, ops[i].offset + 4);
+					   data32_hi, ops[i].offset + 4U);
 
 			}
 
@@ -365,7 +365,7 @@ static int validate_reg_op_offset(struct dbg_session_gk20a *dbg_s,
 
 	valid = check_whitelists(dbg_s, op, offset);
 	if ((op->op == REGOP(READ_64) || op->op == REGOP(WRITE_64)) && valid) {
-		valid = check_whitelists(dbg_s, op, offset + 4);
+		valid = check_whitelists(dbg_s, op, offset + 4U);
 	}
 
 	if (valid && (op->type != REGOP(TYPE_GLOBAL))) {

@@ -58,7 +58,7 @@ static bool gk20a_flcn_clear_halt_interrupt_status(struct nvgpu_falcon *flcn)
 
 	gk20a_writel(g, base_addr + falcon_falcon_irqsclr_r(),
 		gk20a_readl(g, base_addr + falcon_falcon_irqsclr_r()) |
-		(0x10));
+		0x10U);
 	data = gk20a_readl(g, (base_addr + falcon_falcon_irqstat_r()));
 
 	if ((data & falcon_falcon_irqstat_halt_true_f()) !=
@@ -112,8 +112,8 @@ static bool gk20a_is_falcon_idle(struct nvgpu_falcon *flcn)
 	unit_status = gk20a_readl(g,
 		base_addr + falcon_falcon_idlestate_r());
 
-	if (falcon_falcon_idlestate_falcon_busy_v(unit_status) == 0 &&
-		falcon_falcon_idlestate_ext_busy_v(unit_status) == 0) {
+	if (falcon_falcon_idlestate_falcon_busy_v(unit_status) == 0U &&
+		falcon_falcon_idlestate_ext_busy_v(unit_status) == 0U) {
 		status = true;
 	} else {
 		status = false;
@@ -168,12 +168,12 @@ static int flcn_mem_overflow_check(struct nvgpu_falcon *flcn,
 	struct gk20a *g = flcn->g;
 	u32 mem_size = 0;
 
-	if (size == 0) {
+	if (size == 0U) {
 		nvgpu_err(g, "size is zero");
 		return -EINVAL;
 	}
 
-	if (offset & 0x3) {
+	if (offset & 0x3U) {
 		nvgpu_err(g, "offset (0x%08x) not 4-byte aligned", offset);
 		return -EINVAL;
 	}
@@ -209,7 +209,7 @@ static int gk20a_flcn_copy_from_dmem(struct nvgpu_falcon *flcn,
 	nvgpu_mutex_acquire(&flcn->copy_lock);
 
 	words = size >> 2;
-	bytes = size & 0x3;
+	bytes = size & 0x3U;
 
 	addr_mask = falcon_falcon_dmemc_offs_m() |
 			    falcon_falcon_dmemc_blk_m();
@@ -224,7 +224,7 @@ static int gk20a_flcn_copy_from_dmem(struct nvgpu_falcon *flcn,
 			base_addr + falcon_falcon_dmemd_r(port));
 	}
 
-	if (bytes > 0) {
+	if (bytes > 0U) {
 		data = gk20a_readl(g, base_addr + falcon_falcon_dmemd_r(port));
 		for (i = 0; i < bytes; i++) {
 			dst[(words << 2) + i] = ((u8 *)&data)[i];
@@ -254,7 +254,7 @@ static int gk20a_flcn_copy_to_dmem(struct nvgpu_falcon *flcn,
 	nvgpu_mutex_acquire(&flcn->copy_lock);
 
 	words = size >> 2;
-	bytes = size & 0x3;
+	bytes = size & 0x3U;
 
 	addr_mask = falcon_falcon_dmemc_offs_m() |
 		falcon_falcon_dmemc_blk_m();
@@ -269,7 +269,7 @@ static int gk20a_flcn_copy_to_dmem(struct nvgpu_falcon *flcn,
 			base_addr + falcon_falcon_dmemd_r(port), src_u32[i]);
 	}
 
-	if (bytes > 0) {
+	if (bytes > 0U) {
 		data = 0;
 		for (i = 0; i < bytes; i++) {
 			((u8 *)&data)[i] = src[(words << 2) + i];
@@ -312,7 +312,7 @@ static int gk20a_flcn_copy_from_imem(struct nvgpu_falcon *flcn, u32 src,
 	nvgpu_mutex_acquire(&flcn->copy_lock);
 
 	words = size >> 2;
-	bytes = size & 0x3;
+	bytes = size & 0x3U;
 	blk = src >> 8;
 
 	nvgpu_log_info(g, "download %d words from 0x%x block %d",
@@ -328,7 +328,7 @@ static int gk20a_flcn_copy_from_imem(struct nvgpu_falcon *flcn, u32 src,
 			base_addr + falcon_falcon_imemd_r(port));
 	}
 
-	if (bytes > 0) {
+	if (bytes > 0U) {
 		data = gk20a_readl(g, base_addr + falcon_falcon_imemd_r(port));
 		for (i = 0; i < bytes; i++) {
 			dst[(words << 2) + i] = ((u8 *)&data)[i];
@@ -372,7 +372,7 @@ static int gk20a_flcn_copy_to_imem(struct nvgpu_falcon *flcn, u32 dst,
 			falcon_falcon_imemc_aincw_f(1) |
 			falcon_falcon_imemc_secure_f(sec ? 1U : 0U));
 
-	for (i = 0; i < words; i++) {
+	for (i = 0U; i < words; i++) {
 		if (i % 64U == 0U) {
 			/* tag is always 256B aligned */
 			gk20a_writel(g, base_addr + falcon_falcon_imemt_r(0),
@@ -500,12 +500,12 @@ static void gk20a_falcon_dump_imblk(struct nvgpu_falcon *flcn)
 		flcn->flcn_base + falcon_falcon_hwcfg_r()));
 
 	/* block_count must be multiple of 8 */
-	block_count &= ~0x7;
+	block_count &= ~0x7U;
 	nvgpu_err(g, "FALCON IMEM BLK MAPPING (PA->VA) (%d TOTAL):",
 		block_count);
 
-	for (i = 0; i < block_count; i += 8) {
-		for (j = 0; j < 8; j++) {
+	for (i = 0U; i < block_count; i += 8U) {
+		for (j = 0U; j < 8U; j++) {
 			gk20a_writel(g, flcn->flcn_base +
 			falcon_falcon_imctl_debug_r(),
 			falcon_falcon_imctl_debug_cmd_f(0x2) |
@@ -518,7 +518,7 @@ static void gk20a_falcon_dump_imblk(struct nvgpu_falcon *flcn)
 		nvgpu_err(g, " %#04x: %#010x %#010x %#010x %#010x",
 				i, data[0], data[1], data[2], data[3]);
 		nvgpu_err(g, " %#04x: %#010x %#010x %#010x %#010x",
-				i + 4, data[4], data[5], data[6], data[7]);
+				i + 4U, data[4], data[5], data[6], data[7]);
 	}
 }
 
@@ -530,7 +530,7 @@ static void gk20a_falcon_dump_pc_trace(struct nvgpu_falcon *flcn)
 	u32 pc = 0;
 	u32 i = 0;
 
-	if (gk20a_readl(g, base_addr + falcon_falcon_sctl_r()) & 0x02) {
+	if (gk20a_readl(g, base_addr + falcon_falcon_sctl_r()) & 0x02U) {
 		nvgpu_err(g, " falcon is in HS mode, PC TRACE dump not supported");
 		return;
 	}
@@ -567,7 +567,7 @@ void gk20a_falcon_dump_stats(struct nvgpu_falcon *flcn)
 
 	nvgpu_err(g, "FALCON ICD REGISTERS DUMP");
 
-	for (i = 0; i < 4; i++) {
+	for (i = 0U; i < 4U; i++) {
 		gk20a_writel(g, base_addr + falcon_falcon_icd_cmd_r(),
 			falcon_falcon_icd_cmd_opc_rreg_f() |
 			falcon_falcon_icd_cmd_idx_f(FALCON_REG_PC));
@@ -613,7 +613,7 @@ void gk20a_falcon_dump_stats(struct nvgpu_falcon *flcn)
 	nvgpu_err(g, "FALCON_REG_EXCI : 0x%x",
 		gk20a_readl(g, base_addr + falcon_falcon_icd_rdata_r()));
 
-	for (i = 0; i < 6; i++) {
+	for (i = 0U; i < 6U; i++) {
 		gk20a_writel(g, base_addr + falcon_falcon_icd_cmd_r(),
 			falcon_falcon_icd_cmd_opc_rreg_f() |
 			falcon_falcon_icd_cmd_idx_f(

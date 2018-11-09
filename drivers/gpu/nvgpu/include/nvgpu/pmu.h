@@ -38,50 +38,50 @@
 	nvgpu_log(g, gpu_dbg_pmu, fmt, ##args)
 
 /* defined by pmu hw spec */
-#define GK20A_PMU_VA_SIZE		(512 * 1024 * 1024)
-#define GK20A_PMU_UCODE_SIZE_MAX	(256 * 1024)
-#define GK20A_PMU_SEQ_BUF_SIZE		4096
+#define GK20A_PMU_VA_SIZE		(512U * 1024U * 1024U)
+#define GK20A_PMU_UCODE_SIZE_MAX	(256U * 1024U)
+#define GK20A_PMU_SEQ_BUF_SIZE		4096U
 
-#define GK20A_PMU_TRACE_BUFSIZE		0x4000    /* 4K */
-#define GK20A_PMU_DMEM_BLKSIZE2		8
+#define GK20A_PMU_TRACE_BUFSIZE		0x4000U    /* 4K */
+#define GK20A_PMU_DMEM_BLKSIZE2		8U
 
-#define PMU_MODE_MISMATCH_STATUS_MAILBOX_R  6
-#define PMU_MODE_MISMATCH_STATUS_VAL        0xDEADDEAD
+#define PMU_MODE_MISMATCH_STATUS_MAILBOX_R  6U
+#define PMU_MODE_MISMATCH_STATUS_VAL        0xDEADDEADU
 
 /* Falcon Register index */
-#define PMU_FALCON_REG_R0		(0)
-#define PMU_FALCON_REG_R1		(1)
-#define PMU_FALCON_REG_R2		(2)
-#define PMU_FALCON_REG_R3		(3)
-#define PMU_FALCON_REG_R4		(4)
-#define PMU_FALCON_REG_R5		(5)
-#define PMU_FALCON_REG_R6		(6)
-#define PMU_FALCON_REG_R7		(7)
-#define PMU_FALCON_REG_R8		(8)
-#define PMU_FALCON_REG_R9		(9)
-#define PMU_FALCON_REG_R10		(10)
-#define PMU_FALCON_REG_R11		(11)
-#define PMU_FALCON_REG_R12		(12)
-#define PMU_FALCON_REG_R13		(13)
-#define PMU_FALCON_REG_R14		(14)
-#define PMU_FALCON_REG_R15		(15)
-#define PMU_FALCON_REG_IV0		(16)
-#define PMU_FALCON_REG_IV1		(17)
-#define PMU_FALCON_REG_UNDEFINED	(18)
-#define PMU_FALCON_REG_EV		(19)
-#define PMU_FALCON_REG_SP		(20)
-#define PMU_FALCON_REG_PC		(21)
-#define PMU_FALCON_REG_IMB		(22)
-#define PMU_FALCON_REG_DMB		(23)
-#define PMU_FALCON_REG_CSW		(24)
-#define PMU_FALCON_REG_CCR		(25)
-#define PMU_FALCON_REG_SEC		(26)
-#define PMU_FALCON_REG_CTX		(27)
-#define PMU_FALCON_REG_EXCI		(28)
-#define PMU_FALCON_REG_RSVD0	(29)
-#define PMU_FALCON_REG_RSVD1	(30)
-#define PMU_FALCON_REG_RSVD2	(31)
-#define PMU_FALCON_REG_SIZE		(32)
+#define PMU_FALCON_REG_R0		(0U)
+#define PMU_FALCON_REG_R1		(1U)
+#define PMU_FALCON_REG_R2		(2U)
+#define PMU_FALCON_REG_R3		(3U)
+#define PMU_FALCON_REG_R4		(4U)
+#define PMU_FALCON_REG_R5		(5U)
+#define PMU_FALCON_REG_R6		(6U)
+#define PMU_FALCON_REG_R7		(7U)
+#define PMU_FALCON_REG_R8		(8U)
+#define PMU_FALCON_REG_R9		(9U)
+#define PMU_FALCON_REG_R10		(10U)
+#define PMU_FALCON_REG_R11		(11U)
+#define PMU_FALCON_REG_R12		(12U)
+#define PMU_FALCON_REG_R13		(13U)
+#define PMU_FALCON_REG_R14		(14U)
+#define PMU_FALCON_REG_R15		(15U)
+#define PMU_FALCON_REG_IV0		(16U)
+#define PMU_FALCON_REG_IV1		(17U)
+#define PMU_FALCON_REG_UNDEFINED	(18U)
+#define PMU_FALCON_REG_EV		(19U)
+#define PMU_FALCON_REG_SP		(20U)
+#define PMU_FALCON_REG_PC		(21U)
+#define PMU_FALCON_REG_IMB		(22U)
+#define PMU_FALCON_REG_DMB		(23U)
+#define PMU_FALCON_REG_CSW		(24U)
+#define PMU_FALCON_REG_CCR		(25U)
+#define PMU_FALCON_REG_SEC		(26U)
+#define PMU_FALCON_REG_CTX		(27U)
+#define PMU_FALCON_REG_EXCI		(28U)
+#define PMU_FALCON_REG_RSVD0		(29U)
+#define PMU_FALCON_REG_RSVD1		(30U)
+#define PMU_FALCON_REG_RSVD2		(31U)
+#define PMU_FALCON_REG_SIZE		(32U)
 
 /* Choices for pmu_state */
 #define PMU_STATE_OFF			0U /* PMU is off */
@@ -102,7 +102,7 @@
 #define PMU_SEQ_TBL_SIZE	\
 		(PMU_MAX_NUM_SEQUENCES >> PMU_SEQ_BIT_SHIFT)
 
-#define PMU_INVALID_SEQ_DESC		(~0)
+#define PMU_INVALID_SEQ_DESC		(~0U)
 
 enum {
 	GK20A_PMU_DMAIDX_UCODE		= 0,
@@ -123,26 +123,26 @@ enum {
 };
 
 /*PG defines used by nvpgu-pmu*/
-#define PMU_PG_IDLE_THRESHOLD_SIM		1000
-#define PMU_PG_POST_POWERUP_IDLE_THRESHOLD_SIM	4000000
+#define PMU_PG_IDLE_THRESHOLD_SIM		1000U
+#define PMU_PG_POST_POWERUP_IDLE_THRESHOLD_SIM	4000000U
 /* TBD: QT or else ? */
-#define PMU_PG_IDLE_THRESHOLD			15000
-#define PMU_PG_POST_POWERUP_IDLE_THRESHOLD	1000000
+#define PMU_PG_IDLE_THRESHOLD			15000U
+#define PMU_PG_POST_POWERUP_IDLE_THRESHOLD	1000000U
 
-#define PMU_PG_LPWR_FEATURE_RPPG 0x0
-#define PMU_PG_LPWR_FEATURE_MSCG 0x1
+#define PMU_PG_LPWR_FEATURE_RPPG 0x0U
+#define PMU_PG_LPWR_FEATURE_MSCG 0x1U
 
 #define PMU_MSCG_DISABLED 0U
 #define PMU_MSCG_ENABLED 1U
 
 /* Default Sampling Period of AELPG */
-#define APCTRL_SAMPLING_PERIOD_PG_DEFAULT_US                    (1000000)
+#define APCTRL_SAMPLING_PERIOD_PG_DEFAULT_US                    (1000000U)
 
 /* Default values of APCTRL parameters */
-#define APCTRL_MINIMUM_IDLE_FILTER_DEFAULT_US                   (100)
-#define APCTRL_MINIMUM_TARGET_SAVING_DEFAULT_US                 (10000)
-#define APCTRL_POWER_BREAKEVEN_DEFAULT_US                       (2000)
-#define APCTRL_CYCLES_PER_SAMPLE_MAX_DEFAULT                    (200)
+#define APCTRL_MINIMUM_IDLE_FILTER_DEFAULT_US                   (100U)
+#define APCTRL_MINIMUM_TARGET_SAVING_DEFAULT_US                 (10000U)
+#define APCTRL_POWER_BREAKEVEN_DEFAULT_US                       (2000U)
+#define APCTRL_CYCLES_PER_SAMPLE_MAX_DEFAULT                    (200U)
 
 /* RPC */
 #define PMU_RPC_EXECUTE(_stat, _pmu, _unit, _func, _prpc, _size)\
@@ -353,7 +353,7 @@ struct nvgpu_pmu {
 
 	u32 pmu_state;
 
-#define PMU_ELPG_ENABLE_ALLOW_DELAY_MSEC	1 /* msec */
+#define PMU_ELPG_ENABLE_ALLOW_DELAY_MSEC	1U /* msec */
 	struct nvgpu_pg_init pg_init;
 	struct nvgpu_mutex pg_mutex; /* protect pg-RPPG/MSCG enable/disable */
 	struct nvgpu_mutex elpg_mutex; /* protect elpg enable/disable */

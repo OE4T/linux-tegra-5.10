@@ -34,11 +34,11 @@ void gk20a_ce2_isr(struct gk20a *g, u32 inst_id, u32 pri_base);
 u32 gk20a_ce2_nonstall_isr(struct gk20a *g, u32 inst_id, u32 pri_base);
 
 /* CE command utility macros */
-#define NVGPU_CE_LOWER_ADDRESS_OFFSET_MASK 0xffffffff
-#define NVGPU_CE_UPPER_ADDRESS_OFFSET_MASK 0xff
+#define NVGPU_CE_LOWER_ADDRESS_OFFSET_MASK 0xffffffffU
+#define NVGPU_CE_UPPER_ADDRESS_OFFSET_MASK 0xffU
 
-#define NVGPU_CE_MAX_INFLIGHT_JOBS 32
-#define NVGPU_CE_MAX_COMMAND_BUFF_BYTES_PER_KICKOFF 256
+#define NVGPU_CE_MAX_INFLIGHT_JOBS 32U
+#define NVGPU_CE_MAX_COMMAND_BUFF_BYTES_PER_KICKOFF 256U
 
 /* dma launch_flags */
 enum {

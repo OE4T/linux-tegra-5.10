@@ -40,57 +40,57 @@
 /*
  * Falcon Base address Defines
  */
-#define FALCON_NVDEC_BASE  0x00084000
-#define FALCON_PWR_BASE    0x0010a000
-#define FALCON_SEC_BASE    0x00087000
-#define FALCON_FECS_BASE   0x00409000
-#define FALCON_GPCCS_BASE  0x0041a000
+#define FALCON_NVDEC_BASE  0x00084000U
+#define FALCON_PWR_BASE    0x0010a000U
+#define FALCON_SEC_BASE    0x00087000U
+#define FALCON_FECS_BASE   0x00409000U
+#define FALCON_GPCCS_BASE  0x0041a000U
 
 /* Falcon Register index */
-#define FALCON_REG_R0		(0)
-#define FALCON_REG_R1		(1)
-#define FALCON_REG_R2		(2)
-#define FALCON_REG_R3		(3)
-#define FALCON_REG_R4		(4)
-#define FALCON_REG_R5		(5)
-#define FALCON_REG_R6		(6)
-#define FALCON_REG_R7		(7)
-#define FALCON_REG_R8		(8)
-#define FALCON_REG_R9		(9)
-#define FALCON_REG_R10		(10)
-#define FALCON_REG_R11		(11)
-#define FALCON_REG_R12		(12)
-#define FALCON_REG_R13		(13)
-#define FALCON_REG_R14		(14)
-#define FALCON_REG_R15		(15)
-#define FALCON_REG_IV0		(16)
-#define FALCON_REG_IV1		(17)
-#define FALCON_REG_UNDEFINED	(18)
-#define FALCON_REG_EV		(19)
-#define FALCON_REG_SP		(20)
-#define FALCON_REG_PC		(21)
-#define FALCON_REG_IMB		(22)
-#define FALCON_REG_DMB		(23)
-#define FALCON_REG_CSW		(24)
-#define FALCON_REG_CCR		(25)
-#define FALCON_REG_SEC		(26)
-#define FALCON_REG_CTX		(27)
-#define FALCON_REG_EXCI		(28)
-#define FALCON_REG_RSVD0	(29)
-#define FALCON_REG_RSVD1	(30)
-#define FALCON_REG_RSVD2	(31)
-#define FALCON_REG_SIZE		(32)
+#define FALCON_REG_R0		(0U)
+#define FALCON_REG_R1		(1U)
+#define FALCON_REG_R2		(2U)
+#define FALCON_REG_R3		(3U)
+#define FALCON_REG_R4		(4U)
+#define FALCON_REG_R5		(5U)
+#define FALCON_REG_R6		(6U)
+#define FALCON_REG_R7		(7U)
+#define FALCON_REG_R8		(8U)
+#define FALCON_REG_R9		(9U)
+#define FALCON_REG_R10		(10U)
+#define FALCON_REG_R11		(11U)
+#define FALCON_REG_R12		(12U)
+#define FALCON_REG_R13		(13U)
+#define FALCON_REG_R14		(14U)
+#define FALCON_REG_R15		(15U)
+#define FALCON_REG_IV0		(16U)
+#define FALCON_REG_IV1		(17U)
+#define FALCON_REG_UNDEFINED	(18U)
+#define FALCON_REG_EV		(19U)
+#define FALCON_REG_SP		(20U)
+#define FALCON_REG_PC		(21U)
+#define FALCON_REG_IMB		(22U)
+#define FALCON_REG_DMB		(23U)
+#define FALCON_REG_CSW		(24U)
+#define FALCON_REG_CCR		(25U)
+#define FALCON_REG_SEC		(26U)
+#define FALCON_REG_CTX		(27U)
+#define FALCON_REG_EXCI		(28U)
+#define FALCON_REG_RSVD0	(29U)
+#define FALCON_REG_RSVD1	(30U)
+#define FALCON_REG_RSVD2	(31U)
+#define FALCON_REG_SIZE		(32U)
 
-#define FALCON_MAILBOX_0	0x0
-#define FALCON_MAILBOX_1	0x1
-#define FALCON_MAILBOX_COUNT 0x02
+#define FALCON_MAILBOX_0	0x0U
+#define FALCON_MAILBOX_1	0x1U
+#define FALCON_MAILBOX_COUNT 0x02U
 #define FALCON_BLOCK_SIZE 0x100U
 
-#define GET_IMEM_TAG(IMEM_ADDR) ((IMEM_ADDR) >> 8)
+#define GET_IMEM_TAG(IMEM_ADDR) ((IMEM_ADDR) >> 8U)
 
 #define GET_NEXT_BLOCK(ADDR) \
-	(((((ADDR) + (FALCON_BLOCK_SIZE - 1)) & ~(FALCON_BLOCK_SIZE-1)) \
-		/ FALCON_BLOCK_SIZE) << 8)
+	(((((ADDR) + (FALCON_BLOCK_SIZE - 1U)) & ~(FALCON_BLOCK_SIZE-1U)) \
+		/ FALCON_BLOCK_SIZE) << 8U)
 
 /*
  * Falcon HWCFG request read types defines
@@ -113,8 +113,8 @@ enum flcn_hwcfg_write {
 	FALCON_ITF_EN
 };
 
-#define FALCON_MEM_SCRUBBING_TIMEOUT_MAX 1000
-#define FALCON_MEM_SCRUBBING_TIMEOUT_DEFAULT 10
+#define FALCON_MEM_SCRUBBING_TIMEOUT_MAX 1000U
+#define FALCON_MEM_SCRUBBING_TIMEOUT_DEFAULT 10U
 
 enum flcn_dma_dir {
 	DMA_TO_FB = 0,
@@ -145,13 +145,13 @@ enum flcn_mem_type {
  * OS Ovl Offset
  * OS Ovl Size
 */
-#define OS_CODE_OFFSET 0x0
-#define OS_CODE_SIZE   0x1
-#define OS_DATA_OFFSET 0x2
-#define OS_DATA_SIZE   0x3
-#define NUM_APPS       0x4
-#define APP_0_CODE_OFFSET 0x5
-#define APP_0_CODE_SIZE   0x6
+#define OS_CODE_OFFSET 0x0U
+#define OS_CODE_SIZE   0x1U
+#define OS_DATA_OFFSET 0x2U
+#define OS_DATA_SIZE   0x3U
+#define NUM_APPS       0x4U
+#define APP_0_CODE_OFFSET 0x5U
+#define APP_0_CODE_SIZE   0x6U
 
 struct nvgpu_falcon_dma_info {
 	u32 fb_base;

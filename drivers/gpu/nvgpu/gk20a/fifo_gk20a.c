@@ -57,8 +57,8 @@
 #include <nvgpu/hw/gk20a/hw_top_gk20a.h>
 #include <nvgpu/hw/gk20a/hw_gr_gk20a.h>
 
-#define FECS_METHOD_WFI_RESTORE 0x80000
-#define FECS_MAILBOX_0_ACK_RESTORE 0x4
+#define FECS_METHOD_WFI_RESTORE 0x80000U
+#define FECS_MAILBOX_0_ACK_RESTORE 0x4U
 
 static u32 gk20a_fifo_engines_on_id(struct gk20a *g, u32 id, bool is_tsg);
 
@@ -624,7 +624,7 @@ static int init_runlist(struct gk20a *g, struct fifo_gk20a *f)
 	size_t runlist_size;
 	u32 active_engine_id, pbdma_id, engine_id;
 	u32 flags = nvgpu_is_enabled(g, NVGPU_MM_USE_PHYSICAL_SG) ?
-		NVGPU_DMA_FORCE_CONTIGUOUS : 0;
+		NVGPU_DMA_FORCE_CONTIGUOUS : 0U;
 	int err = 0;
 
 	nvgpu_log_fn(g, " ");
@@ -1575,7 +1575,7 @@ static bool gk20a_fifo_handle_mmu_fault_locked(
 
 
 	/* go through all faulted engines */
-	for_each_set_bit(engine_mmu_fault_id, &fault_id, 32) {
+	for_each_set_bit(engine_mmu_fault_id, &fault_id, 32U) {
 		/* bits in fifo_intr_mmu_fault_id_r do not correspond 1:1 to
 		 * engines. Convert engine_mmu_id to engine_id */
 		u32 engine_id = gk20a_mmu_id_to_engine_id(g,
@@ -1847,7 +1847,7 @@ static u32 gk20a_fifo_engines_on_id(struct gk20a *g, u32 id, bool is_tsg)
 	return engines;
 }
 
-void gk20a_fifo_recover_ch(struct gk20a *g, u32 chid, bool verbose, int rc_type)
+void gk20a_fifo_recover_ch(struct gk20a *g, u32 chid, bool verbose, u32 rc_type)
 {
 	u32 engines;
 
@@ -1880,7 +1880,7 @@ void gk20a_fifo_recover_ch(struct gk20a *g, u32 chid, bool verbose, int rc_type)
 }
 
 void gk20a_fifo_recover_tsg(struct gk20a *g, u32 tsgid, bool verbose,
-				int rc_type)
+				u32 rc_type)
 {
 	u32 engines;
 
@@ -1938,7 +1938,7 @@ void gk20a_fifo_teardown_ch_tsg(struct gk20a *g, u32 __engine_ids,
 		ref_id_is_tsg = id_is_tsg;
 		/* atleast one engine will get passed during sched err*/
 		engine_ids |= __engine_ids;
-		for_each_set_bit(engine_id, &engine_ids, 32) {
+		for_each_set_bit(engine_id, &engine_ids, 32U) {
 			u32 mmu_id = gk20a_engine_id_to_mmu_id(g,
 							(u32)engine_id);
 
@@ -1948,7 +1948,7 @@ void gk20a_fifo_teardown_ch_tsg(struct gk20a *g, u32 __engine_ids,
 		}
 	} else {
 		/* store faulted engines in advance */
-		for_each_set_bit(engine_id, &_engine_ids, 32) {
+		for_each_set_bit(engine_id, &_engine_ids, 32U) {
 			gk20a_fifo_get_faulty_id_type(g, (u32)engine_id,
 						      &ref_id, &ref_type);
 			if (ref_type == fifo_engine_status_id_type_tsgid_v()) {
@@ -2006,7 +2006,7 @@ void gk20a_fifo_teardown_ch_tsg(struct gk20a *g, u32 __engine_ids,
 
 void gk20a_fifo_recover(struct gk20a *g, u32 __engine_ids,
 			u32 hw_id, bool id_is_tsg,
-			bool id_is_known, bool verbose, int rc_type)
+			bool id_is_known, bool verbose, u32 rc_type)
 {
 	unsigned int id_type;
 
@@ -2221,7 +2221,7 @@ bool gk20a_fifo_check_ch_ctxsw_timeout(struct channel_gk20a *ch,
 
 	if (gk20a_channel_get(ch) != NULL) {
 		recover = gk20a_channel_update_and_check_timeout(ch,
-				g->fifo_eng_timeout_us / 1000,
+				g->fifo_eng_timeout_us / 1000U,
 				&progress);
 		*verbose = ch->timeout_debug_dump;
 		*ms = ch->timeout_accumulated_ms;
@@ -2244,7 +2244,7 @@ bool gk20a_fifo_check_tsg_ctxsw_timeout(struct tsg_gk20a *tsg,
 	struct gk20a *g = tsg->g;
 
 	*verbose = false;
-	*ms = g->fifo_eng_timeout_us / 1000;
+	*ms = g->fifo_eng_timeout_us / 1000U;
 
 	nvgpu_rwsem_down_read(&tsg->ch_list_lock);
 
@@ -2295,7 +2295,7 @@ bool gk20a_fifo_check_tsg_ctxsw_timeout(struct tsg_gk20a *tsg,
 		nvgpu_log_info(g, "progress on tsg=%d ch=%d",
 				tsg->tsgid, ch->chid);
 		gk20a_channel_put(ch);
-		*ms = g->fifo_eng_timeout_us / 1000;
+		*ms = g->fifo_eng_timeout_us / 1000U;
 		nvgpu_list_for_each_entry(ch, &tsg->ch_list,
 				channel_gk20a, ch_entry) {
 			if (gk20a_channel_get(ch) != NULL) {
@@ -2433,7 +2433,7 @@ static inline void gk20a_fifo_reset_pbdma_header(struct gk20a *g, u32 pbdma_id)
 }
 
 void gk20a_fifo_reset_pbdma_method(struct gk20a *g, u32 pbdma_id,
-						int pbdma_method_index)
+						u32 pbdma_method_index)
 {
 	u32 pbdma_method_stride;
 	u32 pbdma_method_reg;
@@ -2452,7 +2452,7 @@ void gk20a_fifo_reset_pbdma_method(struct gk20a *g, u32 pbdma_id,
 }
 
 static bool gk20a_fifo_is_sw_method_subch(struct gk20a *g, u32 pbdma_id,
-						int pbdma_method_index)
+						u32 pbdma_method_index)
 {
 	u32 pbdma_method_stride;
 	u32 pbdma_method_reg, pbdma_method_subch;
@@ -2466,9 +2466,9 @@ static bool gk20a_fifo_is_sw_method_subch(struct gk20a *g, u32 pbdma_id,
 	pbdma_method_subch = pbdma_method0_subch_v(
 			gk20a_readl(g, pbdma_method_reg));
 
-	if (pbdma_method_subch == 5 ||
-	    pbdma_method_subch == 6 ||
-	    pbdma_method_subch == 7) {
+	if (pbdma_method_subch == 5U ||
+	    pbdma_method_subch == 6U ||
+	    pbdma_method_subch == 7U) {
 		return true;
 	}
 
@@ -2480,7 +2480,7 @@ unsigned int gk20a_fifo_handle_pbdma_intr_0(struct gk20a *g, u32 pbdma_id,
 {
 	struct fifo_gk20a *f = &g->fifo;
 	unsigned int rc_type = RC_TYPE_NO_RC;
-	int i;
+	u32 i;
 	unsigned long pbdma_intr_err;
 	unsigned long bit;
 
@@ -2489,7 +2489,7 @@ unsigned int gk20a_fifo_handle_pbdma_intr_0(struct gk20a *g, u32 pbdma_id,
 	     f->intr.pbdma.restartable_0) & pbdma_intr_0) {
 
 		pbdma_intr_err = (unsigned long)pbdma_intr_0;
-		for_each_set_bit(bit, &pbdma_intr_err, 32) {
+		for_each_set_bit(bit, &pbdma_intr_err, 32U) {
 			nvgpu_err(g, "PBDMA intr %s Error",
 				pbdma_intr_fault_type_desc[bit]);
 		}
@@ -2550,7 +2550,7 @@ unsigned int gk20a_fifo_handle_pbdma_intr_0(struct gk20a *g, u32 pbdma_id,
 	if ((pbdma_intr_0 & pbdma_intr_0_device_pending_f()) != 0U) {
 		gk20a_fifo_reset_pbdma_header(g, pbdma_id);
 
-		for (i = 0; i < 4; i++) {
+		for (i = 0U; i < 4U; i++) {
 			if (gk20a_fifo_is_sw_method_subch(g,
 					pbdma_id, i)) {
 				gk20a_fifo_reset_pbdma_method(g,
@@ -2755,7 +2755,7 @@ static u32 gk20a_fifo_get_preempt_timeout(struct gk20a *g)
 	 * triggered every 100 ms and context switch recovery
 	 * happens every 3000 ms */
 
-	return g->fifo_eng_timeout_us / 1000;
+	return g->fifo_eng_timeout_us / 1000U;
 }
 
 int gk20a_fifo_is_preempt_pending(struct gk20a *g, u32 id,
@@ -2774,7 +2774,7 @@ int gk20a_fifo_is_preempt_pending(struct gk20a *g, u32 id,
 			break;
 		}
 
-		nvgpu_usleep_range(delay, delay * 2);
+		nvgpu_usleep_range(delay, delay * 2U);
 		delay = min_t(u32, delay << 1, GR_IDLE_CHECK_MAX);
 	} while (nvgpu_timeout_expired(&timeout) == 0);
 
@@ -2864,7 +2864,7 @@ int gk20a_fifo_preempt_channel(struct gk20a *g, u32 chid)
 
 	ret = __locked_fifo_preempt(g, chid, false);
 
-	if (mutex_ret == 0U) {
+	if (mutex_ret == 0) {
 		nvgpu_pmu_mutex_release(&g->pmu, PMU_MUTEX_ID_FIFO, &token);
 	}
 
@@ -2908,7 +2908,7 @@ int gk20a_fifo_preempt_tsg(struct gk20a *g, u32 tsgid)
 
 	ret = __locked_fifo_preempt(g, tsgid, true);
 
-	if (mutex_ret == 0U) {
+	if (mutex_ret == 0) {
 		nvgpu_pmu_mutex_release(&g->pmu, PMU_MUTEX_ID_FIFO, &token);
 	}
 
@@ -2971,7 +2971,7 @@ void gk20a_fifo_set_runlist_state(struct gk20a *g, u32 runlists_mask,
 
 	gk20a_fifo_sched_disable_rw(g, runlists_mask, runlist_state);
 
-	if (mutex_ret == 0U) {
+	if (mutex_ret == 0) {
 		nvgpu_pmu_mutex_release(&g->pmu, PMU_MUTEX_ID_FIFO, &token);
 	}
 }
@@ -3080,7 +3080,7 @@ int gk20a_fifo_disable_engine_activity(struct gk20a *g,
 	}
 
 clean_up:
-	if (mutex_ret == 0U) {
+	if (mutex_ret == 0) {
 		nvgpu_pmu_mutex_release(&g->pmu, PMU_MUTEX_ID_FIFO, &token);
 	}
 
@@ -3117,7 +3117,7 @@ int gk20a_fifo_disable_all_engine_activity(struct gk20a *g,
 	}
 
 	if (err != 0) {
-		while (i-- != 0) {
+		while (i-- != 0U) {
 			active_engine_id = g->fifo.active_engines_list[i];
 			err = gk20a_fifo_enable_engine_activity(g,
 					&g->fifo.engine_info[active_engine_id]);
@@ -3167,12 +3167,12 @@ int gk20a_fifo_runlist_wait_pending(struct gk20a *g, u32 runlist_id)
 
 	do {
 		if ((gk20a_readl(g, fifo_eng_runlist_r(runlist_id)) &
-				fifo_eng_runlist_pending_true_f()) == 0) {
+				fifo_eng_runlist_pending_true_f()) == 0U) {
 			ret = 0;
 			break;
 		}
 
-		nvgpu_usleep_range(delay, delay * 2);
+		nvgpu_usleep_range(delay, delay * 2U);
 		delay = min_t(u32, delay << 1, GR_IDLE_CHECK_MAX);
 	} while (nvgpu_timeout_expired(&timeout) == 0);
 
@@ -3521,7 +3521,7 @@ void gk20a_fifo_runlist_hw_submit(struct gk20a *g, u32 runlist_id,
 
 	nvgpu_spinlock_acquire(&g->fifo.runlist_submit_lock);
 
-	if (count != 0) {
+	if (count != 0U) {
 		gk20a_writel(g, fifo_runlist_base_r(),
 			fifo_runlist_base_ptr_f(u64_lo32(runlist_iova >> 12)) |
 			nvgpu_aperture_mask(g, &runlist->mem[buffer_index],
@@ -3564,7 +3564,7 @@ int gk20a_fifo_update_runlist_locked(struct gk20a *g, u32 runlist_id,
 				runlist->active_channels)) {
 				return 0;
 			}
-			if ((tsg != NULL) && (++tsg->num_active_channels != 0)) {
+			if ((tsg != NULL) && (++tsg->num_active_channels != 0U)) {
 				set_bit((int)f->channel[chid].tsgid,
 					runlist->active_tsgs);
 			}
@@ -3647,7 +3647,7 @@ int gk20a_fifo_update_runlist_ids(struct gk20a *g, u32 runlist_ids, u32 chid,
 	}
 
 	ret = 0;
-	for_each_set_bit(runlist_id, &ulong_runlist_ids, 32) {
+	for_each_set_bit(runlist_id, &ulong_runlist_ids, 32U) {
 		/* Capture the last failure error code */
 		errcode = g->ops.fifo.update_runlist(g, (u32)runlist_id, chid,
 						add, wait_for_finish);
@@ -3675,7 +3675,7 @@ static int __locked_fifo_reschedule_preempt_next(struct channel_gk20a *ch,
 	u32 preempt_id;
 	u32 preempt_type = 0;
 
-	if (1 != gk20a_fifo_get_engine_ids(
+	if (1U != gk20a_fifo_get_engine_ids(
 		g, &gr_eng_id, 1, ENGINE_GR_GK20A)) {
 		return ret;
 	}
@@ -3755,7 +3755,7 @@ int nvgpu_fifo_reschedule_runlist(struct channel_gk20a *ch, bool preempt_next,
 
 	gk20a_fifo_runlist_wait_pending(g, ch->runlist_id);
 
-	if (mutex_ret == 0U) {
+	if (mutex_ret == 0) {
 		nvgpu_pmu_mutex_release(
 			&g->pmu, PMU_MUTEX_ID_FIFO, &token);
 	}
@@ -3788,7 +3788,7 @@ int gk20a_fifo_update_runlist(struct gk20a *g, u32 runlist_id, u32 chid,
 	ret = gk20a_fifo_update_runlist_locked(g, runlist_id, chid, add,
 					       wait_for_finish);
 
-	if (mutex_ret == 0U) {
+	if (mutex_ret == 0) {
 		nvgpu_pmu_mutex_release(&g->pmu, PMU_MUTEX_ID_FIFO, &token);
 	}
 
@@ -3869,7 +3869,7 @@ int gk20a_fifo_wait_engine_idle(struct gk20a *g)
 				break;
 			}
 
-			nvgpu_usleep_range(delay, delay * 2);
+			nvgpu_usleep_range(delay, delay * 2U);
 			delay = min_t(u32,
 					delay << 1, GR_IDLE_CHECK_MAX);
 		} while (nvgpu_timeout_expired(&timeout) == 0);
@@ -4476,20 +4476,20 @@ u32 gk20a_fifo_pbdma_acquire_val(u64 timeout)
 	}
 
 	timeout *= 80UL;
-	do_div(timeout, 100); /* set acquire timeout to 80% of channel wdt */
+	do_div(timeout, 100U); /* set acquire timeout to 80% of channel wdt */
 	timeout *= 1000000UL; /* ms -> ns */
-	do_div(timeout, 1024); /* in unit of 1024ns */
-	tmp = fls(timeout >> 32);
+	do_div(timeout, 1024U); /* in unit of 1024ns */
+	tmp = fls(timeout >> 32U);
 	BUG_ON(tmp > U64(U32_MAX));
 	val_len = (u32)tmp + 32U;
-	if (val_len == 32) {
+	if (val_len == 32U) {
 		val_len = (u32)fls(timeout);
 	}
 	if (val_len > 16U + pbdma_acquire_timeout_exp_max_v()) { /* man: 16bits */
 		exponent = pbdma_acquire_timeout_exp_max_v();
 		mantissa = pbdma_acquire_timeout_man_max_v();
-	} else if (val_len > 16) {
-		exponent = val_len - 16;
+	} else if (val_len > 16U) {
+		exponent = val_len - 16U;
 		BUG_ON((timeout >> exponent) > U64(U32_MAX));
 		mantissa = (u32)(timeout >> exponent);
 	} else {
@@ -4540,39 +4540,39 @@ void gk20a_fifo_add_sema_cmd(struct gk20a *g,
 	nvgpu_log_fn(g, " ");
 
 	/* semaphore_a */
-	nvgpu_mem_wr32(g, cmd->mem, off++, 0x20010004);
+	nvgpu_mem_wr32(g, cmd->mem, off++, 0x20010004U);
 	/* offset_upper */
 	nvgpu_mem_wr32(g, cmd->mem, off++, (u32)(sema_va >> 32) & 0xffU);
 	/* semaphore_b */
-	nvgpu_mem_wr32(g, cmd->mem, off++, 0x20010005);
+	nvgpu_mem_wr32(g, cmd->mem, off++, 0x20010005U);
 	/* offset */
 	nvgpu_mem_wr32(g, cmd->mem, off++, (u32)sema_va & 0xffffffff);
 
 	if (acquire) {
 		/* semaphore_c */
-		nvgpu_mem_wr32(g, cmd->mem, off++, 0x20010006);
+		nvgpu_mem_wr32(g, cmd->mem, off++, 0x20010006U);
 		/* payload */
 		nvgpu_mem_wr32(g, cmd->mem, off++,
 			       nvgpu_semaphore_get_value(s));
 		/* semaphore_d */
-		nvgpu_mem_wr32(g, cmd->mem, off++, 0x20010007);
+		nvgpu_mem_wr32(g, cmd->mem, off++, 0x20010007U);
 		/* operation: acq_geq, switch_en */
-		nvgpu_mem_wr32(g, cmd->mem, off++, 0x4 | (0x1 << 12));
+		nvgpu_mem_wr32(g, cmd->mem, off++, 0x4U | BIT32(12));
 	} else {
 		/* semaphore_c */
-		nvgpu_mem_wr32(g, cmd->mem, off++, 0x20010006);
+		nvgpu_mem_wr32(g, cmd->mem, off++, 0x20010006U);
 		/* payload */
 		nvgpu_mem_wr32(g, cmd->mem, off++,
 			       nvgpu_semaphore_get_value(s));
 		/* semaphore_d */
-		nvgpu_mem_wr32(g, cmd->mem, off++, 0x20010007);
+		nvgpu_mem_wr32(g, cmd->mem, off++, 0x20010007U);
 		/* operation: release, wfi */
 		nvgpu_mem_wr32(g, cmd->mem, off++,
 				0x2UL | ((wfi ? 0x0UL : 0x1UL) << 20));
 		/* non_stall_int */
-		nvgpu_mem_wr32(g, cmd->mem, off++, 0x20010008);
+		nvgpu_mem_wr32(g, cmd->mem, off++, 0x20010008U);
 		/* ignored */
-		nvgpu_mem_wr32(g, cmd->mem, off++, 0);
+		nvgpu_mem_wr32(g, cmd->mem, off++, 0U);
 	}
 }
 
@@ -4585,13 +4585,13 @@ void gk20a_fifo_add_syncpt_wait_cmd(struct gk20a *g,
 
 	off = cmd->off + off;
 	/* syncpoint_a */
-	nvgpu_mem_wr32(g, cmd->mem, off++, 0x2001001C);
+	nvgpu_mem_wr32(g, cmd->mem, off++, 0x2001001CU);
 	/* payload */
 	nvgpu_mem_wr32(g, cmd->mem, off++, thresh);
 	/* syncpoint_b */
-	nvgpu_mem_wr32(g, cmd->mem, off++, 0x2001001D);
+	nvgpu_mem_wr32(g, cmd->mem, off++, 0x2001001DU);
 	/* syncpt_id, switch_en, wait */
-	nvgpu_mem_wr32(g, cmd->mem, off++, (id << 8) | 0x10);
+	nvgpu_mem_wr32(g, cmd->mem, off++, (id << 8U) | 0x10U);
 }
 
 u32 gk20a_fifo_get_syncpt_wait_cmd_size(void)
@@ -4613,22 +4613,22 @@ void gk20a_fifo_add_syncpt_incr_cmd(struct gk20a *g,
 	nvgpu_log_fn(g, " ");
 	if (wfi_cmd) {
 		/* wfi */
-		nvgpu_mem_wr32(g, cmd->mem, off++, 0x2001001E);
+		nvgpu_mem_wr32(g, cmd->mem, off++, 0x2001001EU);
 		/* handle, ignored */
-		nvgpu_mem_wr32(g, cmd->mem, off++, 0x00000000);
+		nvgpu_mem_wr32(g, cmd->mem, off++, 0x00000000U);
 	}
 	/* syncpoint_a */
-	nvgpu_mem_wr32(g, cmd->mem, off++, 0x2001001C);
+	nvgpu_mem_wr32(g, cmd->mem, off++, 0x2001001CU);
 	/* payload, ignored */
-	nvgpu_mem_wr32(g, cmd->mem, off++, 0);
+	nvgpu_mem_wr32(g, cmd->mem, off++, 0U);
 	/* syncpoint_b */
-	nvgpu_mem_wr32(g, cmd->mem, off++, 0x2001001D);
+	nvgpu_mem_wr32(g, cmd->mem, off++, 0x2001001DU);
 	/* syncpt_id, incr */
-	nvgpu_mem_wr32(g, cmd->mem, off++, (id << 8) | 0x1);
+	nvgpu_mem_wr32(g, cmd->mem, off++, (id << 8U) | 0x1U);
 	/* syncpoint_b */
-	nvgpu_mem_wr32(g, cmd->mem, off++, 0x2001001D);
+	nvgpu_mem_wr32(g, cmd->mem, off++, 0x2001001DU);
 	/* syncpt_id, incr */
-	nvgpu_mem_wr32(g, cmd->mem, off++, (id << 8) | 0x1);
+	nvgpu_mem_wr32(g, cmd->mem, off++, (id << 8U) | 0x1U);
 
 }
 

@@ -46,7 +46,7 @@
 /*
  * Copy engine defines line size in pixels
  */
-#define MAX_CE_SHIFT	31	/* 4Gpixels -1 */
+#define MAX_CE_SHIFT	31U	/* 4Gpixels -1 */
 #define MAX_CE_MASK	((u32) (~(~0U << MAX_CE_SHIFT)))
 #define MAX_CE_ALIGN(a)	((a) & MAX_CE_MASK)
 
@@ -270,7 +270,7 @@ int gk20a_ce_prepare_submit(u64 src_buf,
 				cmd_buf_cpu_va[methodSize++] = 0x00000001;
 			}
 
-			launch |= 0x00001000;
+			launch |= 0x00001000U;
 		} else if (request_operation & NVGPU_CE_MEMSET) {
 			/* Remap from component A on 1 byte wide pixels */
 			cmd_buf_cpu_va[methodSize++] = 0x200181c2;
@@ -279,7 +279,7 @@ int gk20a_ce_prepare_submit(u64 src_buf,
 			cmd_buf_cpu_va[methodSize++] = 0x200181c0;
 			cmd_buf_cpu_va[methodSize++] = payload;
 
-			launch |= 0x00000400;
+			launch |= 0x00000400U;
 		} else {
 			/* Illegal size */
 			return 0;
@@ -308,18 +308,18 @@ int gk20a_ce_prepare_submit(u64 src_buf,
 			cmd_buf_cpu_va[methodSize++] = 0x00000001;
 		}
 
-		launch |= 0x00002005;
+		launch |= 0x00002005U;
 
 		if (launch_flags & NVGPU_CE_SRC_MEMORY_LAYOUT_BLOCKLINEAR) {
-			launch |= 0x00000000;
+			launch |= 0x00000000U;
 		} else {
-			launch |= 0x00000080;
+			launch |= 0x00000080U;
 		}
 
 		if (launch_flags & NVGPU_CE_DST_MEMORY_LAYOUT_BLOCKLINEAR) {
-			launch |= 0x00000000;
+			launch |= 0x00000000U;
 		} else {
-			launch |= 0x00000100;
+			launch |= 0x00000100U;
 		}
 
 		cmd_buf_cpu_va[methodSize++] = 0x200180c0;

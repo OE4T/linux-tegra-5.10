@@ -37,7 +37,7 @@ struct tsg_gk20a;
 #define NVGPU_FIFO_RUNLIST_INTERLEAVE_LEVEL_HIGH    2U
 #define NVGPU_FIFO_RUNLIST_INTERLEAVE_NUM_LEVELS    3U
 
-#define MAX_RUNLIST_BUFFERS		2
+#define MAX_RUNLIST_BUFFERS		2U
 
 #define FIFO_INVAL_ENGINE_ID		((u32)~0)
 #define FIFO_INVAL_CHANNEL_ID		((u32)~0)
@@ -48,20 +48,20 @@ struct tsg_gk20a;
 #define ID_TYPE_TSG			1U
 #define ID_TYPE_UNKNOWN			((u32)~0)
 
-#define RC_YES				1
-#define RC_NO				0
+#define RC_YES				1U
+#define RC_NO				0U
 
-#define GRFIFO_TIMEOUT_CHECK_PERIOD_US 100000
+#define GRFIFO_TIMEOUT_CHECK_PERIOD_US 100000U
 
-#define RC_TYPE_NO_RC			0
-#define RC_TYPE_MMU_FAULT		1
-#define RC_TYPE_PBDMA_FAULT		2
-#define RC_TYPE_GR_FAULT		3
-#define RC_TYPE_PREEMPT_TIMEOUT		4
-#define RC_TYPE_CTXSW_TIMEOUT		5
-#define RC_TYPE_RUNLIST_UPDATE_TIMEOUT	6
-#define RC_TYPE_FORCE_RESET		7
-#define RC_TYPE_SCHED_ERR		8
+#define RC_TYPE_NO_RC			0U
+#define RC_TYPE_MMU_FAULT		1U
+#define RC_TYPE_PBDMA_FAULT		2U
+#define RC_TYPE_GR_FAULT		3U
+#define RC_TYPE_PREEMPT_TIMEOUT		4U
+#define RC_TYPE_CTXSW_TIMEOUT		5U
+#define RC_TYPE_RUNLIST_UPDATE_TIMEOUT	6U
+#define RC_TYPE_FORCE_RESET		7U
+#define RC_TYPE_SCHED_ERR		8U
 
 #define NVGPU_FIFO_DEFAULT_TIMESLICE_TIMEOUT	128UL
 #define NVGPU_FIFO_DEFAULT_TIMESLICE_SCALE	3UL
@@ -72,11 +72,11 @@ struct tsg_gk20a;
  * significative on a histogram on a 5% step
  */
 #ifdef CONFIG_DEBUG_FS
-#define FIFO_PROFILING_ENTRIES	16384
+#define FIFO_PROFILING_ENTRIES	16384U
 #endif
 
-#define	RUNLIST_DISABLED		0
-#define	RUNLIST_ENABLED			1
+#define	RUNLIST_DISABLED		0U
+#define	RUNLIST_ENABLED			1U
 
 /* generally corresponds to the "pbdma" engine */
 
@@ -288,11 +288,11 @@ void gk20a_fifo_recover(struct gk20a *g,
 			u32 engine_ids, /* if zero, will be queried from HW */
 			u32 hw_id, /* if ~0, will be queried from HW */
 			bool hw_id_is_tsg, /* ignored if hw_id == ~0 */
-			bool id_is_known, bool verbose, int rc_type);
+			bool id_is_known, bool verbose, u32 rc_type);
 void gk20a_fifo_recover_ch(struct gk20a *g, u32 chid, bool verbose,
-				int rc_type);
+				u32 rc_type);
 void gk20a_fifo_recover_tsg(struct gk20a *g, u32 tsgid, bool verbose,
-				int rc_type);
+				u32 rc_type);
 int gk20a_fifo_force_reset_ch(struct channel_gk20a *ch,
 				u32 err_code, bool verbose);
 void gk20a_fifo_reset_engine(struct gk20a *g, u32 engine_id);
@@ -455,7 +455,7 @@ bool gk20a_fifo_check_tsg_ctxsw_timeout(struct tsg_gk20a *tsg,
 bool gk20a_fifo_handle_sched_error(struct gk20a *g);
 
 void gk20a_fifo_reset_pbdma_method(struct gk20a *g, u32 pbdma_id,
-			 int pbdma_method_index);
+			 u32 pbdma_method_index);
 unsigned int gk20a_fifo_handle_pbdma_intr_0(struct gk20a *g, u32 pbdma_id,
 			u32 pbdma_intr_0, u32 *handled, u32 *error_notifier);
 unsigned int gk20a_fifo_handle_pbdma_intr_1(struct gk20a *g, u32 pbdma_id,

@@ -119,18 +119,18 @@ struct clk_gk20a {
 
 struct gpu_ops;
 
-#define KHZ 1000
-#define MHZ 1000000
+#define KHZ 1000U
+#define MHZ 1000000U
 
 static inline unsigned long rate_gpc2clk_to_gpu(unsigned long rate)
 {
 	/* convert the kHz gpc2clk frequency to Hz gpcpll frequency */
-	return (rate * KHZ) / 2;
+	return (rate * KHZ) / 2U;
 }
 static inline unsigned long rate_gpu_to_gpc2clk(unsigned long rate)
 {
 	/* convert the Hz gpcpll frequency to kHz gpc2clk frequency */
-	return (rate * 2) / KHZ;
+	return (rate * 2U) / KHZ;
 }
 
 #endif /* CLK_GK20A_H */
