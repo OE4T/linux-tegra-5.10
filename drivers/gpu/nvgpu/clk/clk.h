@@ -68,14 +68,14 @@ struct change_fll_clk {
 struct set_fll_clk {
 		u32 voltuv;
 		u16 gpc2clkmhz;
-		u32 current_regime_id_gpc;
-		u32 target_regime_id_gpc;
+		u8 current_regime_id_gpc;
+		u8 target_regime_id_gpc;
 		u16 sys2clkmhz;
-		u32 current_regime_id_sys;
-		u32 target_regime_id_sys;
+		u8 current_regime_id_sys;
+		u8 target_regime_id_sys;
 		u16 xbar2clkmhz;
-		u32 current_regime_id_xbar;
-		u32 target_regime_id_xbar;
+		u8 current_regime_id_xbar;
+		u8 target_regime_id_xbar;
 };
 
 #define NV_PERF_HEADER_4X_CLOCKS_DOMAINS_MAX_NUMCLKS         9U

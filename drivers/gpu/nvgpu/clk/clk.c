@@ -507,7 +507,7 @@ done:
 	return status;
 }
 
-static u32 find_regime_id(struct gk20a *g, u32 domain, u16 clkmhz)
+static u8 find_regime_id(struct gk20a *g, u32 domain, u16 clkmhz)
 {
 	struct fll_device *pflldev;
 	u8 j;
@@ -527,7 +527,7 @@ static u32 find_regime_id(struct gk20a *g, u32 domain, u16 clkmhz)
 	return CTRL_CLK_FLL_REGIME_ID_INVALID;
 }
 
-static int set_regime_id(struct gk20a *g, u32 domain, u32 regimeid)
+static int set_regime_id(struct gk20a *g, u32 domain, u8 regimeid)
 {
 	struct fll_device *pflldev;
 	u8 j;
@@ -543,7 +543,7 @@ static int set_regime_id(struct gk20a *g, u32 domain, u32 regimeid)
 	return -EINVAL;
 }
 
-static int get_regime_id(struct gk20a *g, u32 domain, u32 *regimeid)
+static int get_regime_id(struct gk20a *g, u32 domain, u8 *regimeid)
 {
 	struct fll_device *pflldev;
 	u8 j;

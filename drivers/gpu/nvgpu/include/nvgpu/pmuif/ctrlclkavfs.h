@@ -59,9 +59,9 @@
 #define CTRL_CLK_LUT_MIN_VOLTAGE_UV (450000U)
 #define CTRL_CLK_FLL_TYPE_DISABLED 0U
 
-#define CTRL_CLK_FLL_REGIME_ID_INVALID                     (0x00000000U)
-#define CTRL_CLK_FLL_REGIME_ID_FFR                         (0x00000001U)
-#define CTRL_CLK_FLL_REGIME_ID_FR                          (0x00000002U)
+#define CTRL_CLK_FLL_REGIME_ID_INVALID                     ((u8)0x00000000)
+#define CTRL_CLK_FLL_REGIME_ID_FFR                         ((u8)0x00000001)
+#define CTRL_CLK_FLL_REGIME_ID_FR                          ((u8)0x00000002)
 
 #define CTRL_CLK_FLL_LUT_VSELECT_LOGIC  		   (0x00000000U)
 #define CTRL_CLK_FLL_LUT_VSELECT_MIN  	  		   (0x00000001U)
