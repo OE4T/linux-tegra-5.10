@@ -1,5 +1,5 @@
 /*
- * tegra210_admaif_alt.c - Tegra ADMAIF component driver
+ * tegra210_virt_alt_admaif.c - Tegra ADMAIF component driver
  *
  * Copyright (c) 2014-2018 NVIDIA CORPORATION.  All rights reserved.
  *
@@ -905,5 +905,12 @@ err:
 	return ret;
 }
 EXPORT_SYMBOL_GPL(tegra210_virt_admaif_register_component);
+
+void tegra210_virt_admaif_unregister_component(struct platform_device *pdev)
+{
+	tegra_alt_pcm_platform_unregister(&pdev->dev);
+	snd_soc_unregister_component(&pdev->dev);
+}
+EXPORT_SYMBOL_GPL(tegra210_virt_admaif_unregister_component);
 
 MODULE_LICENSE("GPL");
