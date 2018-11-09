@@ -389,11 +389,12 @@ static int nvgpu_pd_cache_alloc(struct gk20a *g, struct nvgpu_pd_cache *cache,
 	pd_dbg(g, "PD-Alloc [C] %u bytes", bytes);
 
 	if ((bytes & (bytes - 1U)) != 0U ||
-	    (bytes >= PAGE_SIZE ||
-	     bytes < NVGPU_PD_CACHE_MIN)) {
+	     bytes < NVGPU_PD_CACHE_MIN) {
 		pd_dbg(g, "PD-Alloc [C]   Invalid (bytes=%u)!", bytes);
 		return -EINVAL;
 	}
+
+	nvgpu_assert(bytes < PAGE_SIZE);
 
 	pentry = nvgpu_pd_cache_get_partial(cache, bytes);
 	if (pentry == NULL) {
