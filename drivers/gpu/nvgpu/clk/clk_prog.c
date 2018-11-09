@@ -764,9 +764,9 @@ static int clk_prog_pmudatainit_35_master(struct gk20a *g,
 	pset = (struct nv_pmu_clk_clk_prog_35_master_boardobj_set *)(void *)
 		ppmudata;
 
-	memcpy(pset->voltrail_sec_vf_entries,
-				pclk_prog_35_master->p_voltrail_sec_vf_entries,
-				voltrail_sec_vfsize);
+	nvgpu_memcpy((u8 *)pset->voltrail_sec_vf_entries,
+		(u8 *)pclk_prog_35_master->p_voltrail_sec_vf_entries,
+		voltrail_sec_vfsize);
 
 	return status;
 }
@@ -823,8 +823,9 @@ static int clk_prog_pmudatainit_35_master_ratio(struct gk20a *g,
 	pset = (struct nv_pmu_clk_clk_prog_35_master_ratio_boardobj_set *)
 				(void *)ppmudata;
 
-	(void) memcpy(pset->ratio.slave_entries,
-		pclk_prog_35_master_ratio->ratio.p_slave_entries, slavesize);
+	nvgpu_memcpy((u8 *)pset->ratio.slave_entries,
+		(u8 *)pclk_prog_35_master_ratio->ratio.p_slave_entries,
+		slavesize);
 
 	return status;
 }
@@ -879,8 +880,9 @@ static int clk_prog_pmudatainit_35_master_table(struct gk20a *g,
 
 	pset = (struct nv_pmu_clk_clk_prog_35_master_table_boardobj_set *)
 				(void *)ppmudata;
-	(void) memcpy(pset->table.slave_entries,
-		pclk_prog_35_master_table->table.p_slave_entries, slavesize);
+	nvgpu_memcpy((u8 *)pset->table.slave_entries,
+		(u8 *)pclk_prog_35_master_table->table.p_slave_entries,
+		slavesize);
 
 	return status;
 }
@@ -1087,10 +1089,8 @@ static int clk_prog_construct_35_master(struct gk20a *g,
 	memset(pclkprog->p_voltrail_sec_vf_entries,
 		CTRL_CLK_CLK_DOMAIN_INDEX_INVALID, voltrail_sec_vfsize);
 
-	if ((memcpy(pclkprog->p_voltrail_sec_vf_entries,
-	ptmpprog->p_voltrail_sec_vf_entries, voltrail_sec_vfsize)) == NULL) {
-		status = -EINVAL;
-	}
+	nvgpu_memcpy((u8 *)pclkprog->p_voltrail_sec_vf_entries,
+		(u8 *)ptmpprog->p_voltrail_sec_vf_entries, voltrail_sec_vfsize);
 
 	return status;
 }
@@ -1175,10 +1175,8 @@ static int clk_prog_construct_35_master_ratio(struct gk20a *g,
 	(void) memset(pclkprog->ratio.p_slave_entries,
 			CTRL_CLK_CLK_DOMAIN_INDEX_INVALID, slavesize);
 
-	if ((memcpy(pclkprog->ratio.p_slave_entries,
-			ptmpprog->ratio.p_slave_entries, slavesize)) == NULL) {
-		status = -EINVAL;
-	}
+	nvgpu_memcpy((u8 *)pclkprog->ratio.p_slave_entries,
+		(u8 *)ptmpprog->ratio.p_slave_entries, slavesize);
 
 	return status;
 }
@@ -1276,10 +1274,8 @@ static int clk_prog_construct_35_master_table(struct gk20a *g,
 	memset(pclkprog->table.p_slave_entries,
 			CTRL_CLK_CLK_DOMAIN_INDEX_INVALID, slavesize);
 
-	if ((memcpy(pclkprog->table.p_slave_entries,
-		ptmpprog->table.p_slave_entries,slavesize)) == NULL) {
-		status = -EINVAL;
-	}
+	nvgpu_memcpy((u8 *)pclkprog->table.p_slave_entries,
+		(u8 *)ptmpprog->table.p_slave_entries, slavesize);
 
 exit:
 	if (status != 0) {
