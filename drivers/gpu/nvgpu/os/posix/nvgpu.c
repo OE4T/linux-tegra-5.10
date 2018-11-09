@@ -120,6 +120,8 @@ struct gk20a *nvgpu_posix_probe(void)
 	struct nvgpu_os_posix *p;
 
 	p = malloc(sizeof(*p));
+	(void) memset(p, 0, sizeof(*p));
+
 	if (p == NULL) {
 		return NULL;
 	}
