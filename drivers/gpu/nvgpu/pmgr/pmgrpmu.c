@@ -26,6 +26,7 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/boardobjgrp.h>
 #include <nvgpu/boardobjgrp_e32.h>
+#include <nvgpu/string.h>
 
 #include "gp106/bios_gp106.h"
 
@@ -329,12 +330,12 @@ static int pmgr_send_pwr_policy_to_pmu(struct gk20a *g)
 	ppwrpack->policies.hdr.data.low_sampling_mult =
 			g->pmgr_pmu.pmgr_policyobjs.low_sampling_mult;
 
-	(void) memcpy(&ppwrpack->policies.hdr.data.global_ceiling,
-			&g->pmgr_pmu.pmgr_policyobjs.global_ceiling,
+	nvgpu_memcpy((u8 *)&ppwrpack->policies.hdr.data.global_ceiling,
+			(u8 *)&g->pmgr_pmu.pmgr_policyobjs.global_ceiling,
 			sizeof(struct nv_pmu_perf_domain_group_limits));
 
-	(void) memcpy(&ppwrpack->policies.hdr.data.semantic_policy_tbl,
-			&g->pmgr_pmu.pmgr_policyobjs.policy_idxs,
+	nvgpu_memcpy((u8 *)&ppwrpack->policies.hdr.data.semantic_policy_tbl,
+			(u8 *)&g->pmgr_pmu.pmgr_policyobjs.policy_idxs,
 			sizeof(g->pmgr_pmu.pmgr_policyobjs.policy_idxs));
 
 	BOARDOBJGRP_FOR_EACH_INDEX_IN_MASK(32, indx,

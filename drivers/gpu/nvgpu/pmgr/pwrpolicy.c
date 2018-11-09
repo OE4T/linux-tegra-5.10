@@ -25,6 +25,7 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/boardobjgrp.h>
 #include <nvgpu/boardobjgrp_e32.h>
+#include <nvgpu/string.h>
 
 #include "pwrpolicy.h"
 #include "gp106/bios_gp106.h"
@@ -225,7 +226,8 @@ static int _pwr_domains_pmudatainit_hw_threshold(struct gk20a *g,
 				PWR_POLICY_LIMIT_ID_CURR),
 			p_pwr_policy->limit_delta);
 
-	(void) memcpy(&pmu_pwr_policy->integral, &p_pwr_policy->integral,
+	nvgpu_memcpy((u8 *)&pmu_pwr_policy->integral,
+			(u8 *)&p_pwr_policy->integral,
 			sizeof(struct ctrl_pmgr_pwr_policy_info_integral));
 
 	pmu_pwr_policy->sample_mult = p_pwr_policy->sample_mult;
@@ -342,7 +344,8 @@ static struct boardobj *construct_pwr_policy(struct gk20a *g,
 				pwrpolicyparams->limit_batt:
 				CTRL_PMGR_PWR_POLICY_LIMIT_MAX));
 
-	(void) memcpy(&pwrpolicy->integral, &pwrpolicyparams->integral,
+	nvgpu_memcpy((u8 *)&pwrpolicy->integral,
+			(u8 *)&pwrpolicyparams->integral,
 			sizeof(struct ctrl_pmgr_pwr_policy_info_integral));
 
 	pwrpolicyhwthreshold->threshold_idx = hwthreshold->threshold_idx;
