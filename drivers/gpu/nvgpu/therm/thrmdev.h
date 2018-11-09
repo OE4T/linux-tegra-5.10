@@ -24,8 +24,12 @@
 #ifndef NVGPU_THERM_THRMDEV_H
 #define NVGPU_THERM_THRMDEV_H
 
+#include <nvgpu/types.h>
 #include <nvgpu/boardobj.h>
 #include <nvgpu/boardobjgrp.h>
+#include <nvgpu/boardobjgrp_e32.h>
+
+struct gk20a;
 
 struct therm_devices {
 	struct boardobjgrp_e32 super;

@@ -80,7 +80,6 @@ struct set_fll_clk;
 #include "gk20a/fifo_gk20a.h"
 #include "gk20a/gr_gk20a.h"
 #include "pmgr/pmgr.h"
-#include "therm/thrm.h"
 
 #ifdef CONFIG_DEBUG_FS
 struct railgate_stats {
@@ -1496,7 +1495,7 @@ struct gk20a {
 	struct clk_pmupstate *clk_pmu;
 	struct perf_pmupstate *perf_pmu;
 	struct pmgr_pmupstate pmgr_pmu;
-	struct therm_pmupstate therm_pmu;
+	struct therm_pmupstate *therm_pmu;
 	struct nvgpu_sec2 sec2;
 
 #ifdef CONFIG_DEBUG_FS

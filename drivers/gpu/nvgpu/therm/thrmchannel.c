@@ -28,6 +28,7 @@
 #include <nvgpu/string.h>
 
 #include "thrmchannel.h"
+#include "thrm.h"
 #include "gp106/bios_gp106.h"
 
 static int _therm_channel_pmudatainit_device(struct gk20a *g,
@@ -222,7 +223,7 @@ int therm_channel_sw_setup(struct gk20a *g)
 
 	/* Construct the Super Class and override the Interfaces */
 	status = boardobjgrpconstruct_e32(g,
-			&g->therm_pmu.therm_channelobjs.super);
+			&g->therm_pmu->therm_channelobjs.super);
 	if (status != 0) {
 		nvgpu_err(g,
 			  "error creating boardobjgrp for therm devices, status - 0x%x",
@@ -230,8 +231,8 @@ int therm_channel_sw_setup(struct gk20a *g)
 		goto done;
 	}
 
-	pboardobjgrp = &g->therm_pmu.therm_channelobjs.super.super;
-	pthermchannelobjs = &(g->therm_pmu.therm_channelobjs);
+	pboardobjgrp = &g->therm_pmu->therm_channelobjs.super.super;
+	pthermchannelobjs = &(g->therm_pmu->therm_channelobjs);
 
 	/* Override the Interfaces */
 	pboardobjgrp->pmudatainstget = _therm_channel_pmudata_instget;

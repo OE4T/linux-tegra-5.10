@@ -29,6 +29,7 @@
 #include <nvgpu/pmuif/ctrltherm.h>
 
 #include "thrmdev.h"
+#include "thrm.h"
 #include "gp106/bios_gp106.h"
 
 static int _therm_device_pmudata_instget(struct gk20a *g,
@@ -335,7 +336,7 @@ int therm_device_sw_setup(struct gk20a *g)
 
 	/* Construct the Super Class and override the Interfaces */
 	status = boardobjgrpconstruct_e32(g,
-			&g->therm_pmu.therm_deviceobjs.super);
+			&g->therm_pmu->therm_deviceobjs.super);
 	if (status != 0) {
 		nvgpu_err(g,
 			  "error creating boardobjgrp for therm devices, status - 0x%x",
@@ -343,8 +344,8 @@ int therm_device_sw_setup(struct gk20a *g)
 		goto done;
 	}
 
-	pboardobjgrp = &g->therm_pmu.therm_deviceobjs.super.super;
-	pthermdeviceobjs = &(g->therm_pmu.therm_deviceobjs);
+	pboardobjgrp = &g->therm_pmu->therm_deviceobjs.super.super;
+	pthermdeviceobjs = &(g->therm_pmu->therm_deviceobjs);
 
 	/* Override the Interfaces */
 	pboardobjgrp->pmudatainstget = _therm_device_pmudata_instget;

@@ -27,6 +27,8 @@
 #include "thrmdev.h"
 #include "thrmchannel.h"
 
+struct gk20a;
+
 struct therm_pmupstate {
 	struct therm_devices therm_deviceobjs;
 	struct therm_channels therm_channelobjs;
@@ -34,5 +36,7 @@ struct therm_pmupstate {
 
 int therm_domain_sw_setup(struct gk20a *g);
 u32 therm_domain_pmu_setup(struct gk20a *g);
+int therm_pmu_init_pmupstate(struct gk20a *g);
+void therm_pmu_free_pmupstate(struct gk20a *g);
 
 #endif /* NVGPU_THERM_THRM_H */

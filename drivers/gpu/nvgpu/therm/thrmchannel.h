@@ -24,8 +24,11 @@
 #ifndef NVGPU_THERM_THRMCHANNEL_H
 #define NVGPU_THERM_THRMCHANNEL_H
 
+#include <nvgpu/types.h>
 #include <nvgpu/boardobj.h>
 #include <nvgpu/boardobjgrp.h>
+
+struct gk20a;
 
 struct therm_channel {
 	struct boardobj super;
