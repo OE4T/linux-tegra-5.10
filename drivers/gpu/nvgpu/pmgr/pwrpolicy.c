@@ -28,6 +28,7 @@
 #include <nvgpu/string.h>
 
 #include "pwrpolicy.h"
+#include "pmgr.h"
 #include "gp106/bios_gp106.h"
 
 #define _pwr_policy_limitarboutputget_helper(p_limit_arb) (p_limit_arb)->output
@@ -723,7 +724,7 @@ int pmgr_policy_sw_setup(struct gk20a *g)
 
 	/* Construct the Super Class and override the Interfaces */
 	status = boardobjgrpconstruct_e32(g,
-			&g->pmgr_pmu.pmgr_policyobjs.pwr_policies);
+			&g->pmgr_pmu->pmgr_policyobjs.pwr_policies);
 	if (status != 0) {
 		nvgpu_err(g,
 			"error creating boardobjgrp for pmgr policy, status - 0x%x",
@@ -732,7 +733,7 @@ int pmgr_policy_sw_setup(struct gk20a *g)
 	}
 
 	status = boardobjgrpconstruct_e32(g,
-			&g->pmgr_pmu.pmgr_policyobjs.pwr_policy_rels);
+			&g->pmgr_pmu->pmgr_policyobjs.pwr_policy_rels);
 	if (status != 0) {
 		nvgpu_err(g,
 			"error creating boardobjgrp for pmgr policy rels, status - 0x%x",
@@ -741,7 +742,7 @@ int pmgr_policy_sw_setup(struct gk20a *g)
 	}
 
 	status = boardobjgrpconstruct_e32(g,
-			&g->pmgr_pmu.pmgr_policyobjs.pwr_violations);
+			&g->pmgr_pmu->pmgr_policyobjs.pwr_violations);
 	if (status != 0) {
 		nvgpu_err(g,
 			"error creating boardobjgrp for pmgr violations, status - 0x%x",
@@ -749,37 +750,37 @@ int pmgr_policy_sw_setup(struct gk20a *g)
 		goto done;
 	}
 
-	(void) memset(g->pmgr_pmu.pmgr_policyobjs.policy_idxs,
+	(void) memset(g->pmgr_pmu->pmgr_policyobjs.policy_idxs,
 		CTRL_PMGR_PWR_POLICY_INDEX_INVALID,
 		sizeof(u8) * CTRL_PMGR_PWR_POLICY_IDX_NUM_INDEXES);
 
 	/* Initialize external power limit policy indexes to _INVALID/0xFF */
 	for (indx = 0; indx < PWR_POLICY_EXT_POWER_STATE_ID_COUNT; indx++) {
-		g->pmgr_pmu.pmgr_policyobjs.ext_limits[indx].policy_table_idx =
+		g->pmgr_pmu->pmgr_policyobjs.ext_limits[indx].policy_table_idx =
 			CTRL_PMGR_PWR_POLICY_INDEX_INVALID;
 	}
 
 	/* Initialize external power state to _D1 */
-	g->pmgr_pmu.pmgr_policyobjs.ext_power_state = 0xFFFFFFFF;
+	g->pmgr_pmu->pmgr_policyobjs.ext_power_state = 0xFFFFFFFF;
 
-	ppwrpolicyobjs = &(g->pmgr_pmu.pmgr_policyobjs);
-	pboardobjgrp = &(g->pmgr_pmu.pmgr_policyobjs.pwr_policies.super);
+	ppwrpolicyobjs = &(g->pmgr_pmu->pmgr_policyobjs);
+	pboardobjgrp = &(g->pmgr_pmu->pmgr_policyobjs.pwr_policies.super);
 
 	status = devinit_get_pwr_policy_table(g, ppwrpolicyobjs);
 	if (status != 0) {
 		goto done;
 	}
 
-	g->pmgr_pmu.pmgr_policyobjs.b_enabled = true;
+	g->pmgr_pmu->pmgr_policyobjs.b_enabled = true;
 
 	BOARDOBJGRP_FOR_EACH(pboardobjgrp, struct pwr_policy *, ppolicy, indx) {
 		PMGR_PWR_POLICY_INCREMENT_LIMIT_INPUT_COUNT(ppolicy);
 	}
 
-	g->pmgr_pmu.pmgr_policyobjs.global_ceiling.values[0] =
+	g->pmgr_pmu->pmgr_policyobjs.global_ceiling.values[0] =
 				0xFF;
 
-	g->pmgr_pmu.pmgr_policyobjs.client_work_item.b_pending = false;
+	g->pmgr_pmu->pmgr_policyobjs.client_work_item.b_pending = false;
 
 done:
 	nvgpu_log_info(g, " done status %x", status);

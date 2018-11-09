@@ -27,6 +27,7 @@
 #include <nvgpu/string.h>
 
 #include "pwrdev.h"
+#include "pmgr.h"
 #include "gp106/bios_gp106.h"
 
 static int _pwr_channel_pmudata_instget(struct gk20a *g,
@@ -85,7 +86,7 @@ static u32 _pwr_channel_state_init(struct gk20a *g)
 	u8 indx = 0;
 	struct pwr_channel *pchannel;
 	u32 objmask =
-		g->pmgr_pmu.pmgr_monitorobjs.pwr_channels.super.objmask;
+		g->pmgr_pmu->pmgr_monitorobjs.pwr_channels.super.objmask;
 
 	/* Initialize each PWR_CHANNEL's dependent channel mask */
 	BOARDOBJGRP_FOR_EACH_INDEX_IN_MASK(32, indx, objmask) {
@@ -214,7 +215,7 @@ static int devinit_get_pwr_topology_table(struct gk20a *g,
 		goto done;
 	}
 
-	g->pmgr_pmu.pmgr_monitorobjs.b_is_topology_tbl_ver_1x = false;
+	g->pmgr_pmu->pmgr_monitorobjs.b_is_topology_tbl_ver_1x = false;
 
 	if (pwr_topology_table_header.header_size <
 			VBIOS_POWER_TOPOLOGY_2X_HEADER_SIZE_06) {
@@ -311,7 +312,7 @@ int pmgr_monitor_sw_setup(struct gk20a *g)
 
 	/* Construct the Super Class and override the Interfaces */
 	status = boardobjgrpconstruct_e32(g,
-			&g->pmgr_pmu.pmgr_monitorobjs.pwr_channels);
+			&g->pmgr_pmu->pmgr_monitorobjs.pwr_channels);
 	if (status != 0) {
 		nvgpu_err(g,
 			"error creating boardobjgrp for pmgr channel, status - 0x%x",
@@ -319,14 +320,14 @@ int pmgr_monitor_sw_setup(struct gk20a *g)
 		goto done;
 	}
 
-	pboardobjgrp = &(g->pmgr_pmu.pmgr_monitorobjs.pwr_channels.super);
+	pboardobjgrp = &(g->pmgr_pmu->pmgr_monitorobjs.pwr_channels.super);
 
 	/* Override the Interfaces */
 	pboardobjgrp->pmudatainstget = _pwr_channel_pmudata_instget;
 
 	/* Construct the Super Class and override the Interfaces */
 	status = boardobjgrpconstruct_e32(g,
-			&g->pmgr_pmu.pmgr_monitorobjs.pwr_ch_rels);
+			&g->pmgr_pmu->pmgr_monitorobjs.pwr_ch_rels);
 	if (status != 0) {
 		nvgpu_err(g,
 			"error creating boardobjgrp for pmgr channel relationship, status - 0x%x",
@@ -334,20 +335,20 @@ int pmgr_monitor_sw_setup(struct gk20a *g)
 		goto done;
 	}
 
-	pboardobjgrp = &(g->pmgr_pmu.pmgr_monitorobjs.pwr_ch_rels.super);
+	pboardobjgrp = &(g->pmgr_pmu->pmgr_monitorobjs.pwr_ch_rels.super);
 
 	/* Override the Interfaces */
 	pboardobjgrp->pmudatainstget = _pwr_channel_rels_pmudata_instget;
 
 	/* Initialize the Total GPU Power Channel Mask to 0 */
-	g->pmgr_pmu.pmgr_monitorobjs.pmu_data.channels.hdr.data.total_gpu_power_channel_mask = 0;
-	g->pmgr_pmu.pmgr_monitorobjs.total_gpu_channel_idx =
+	g->pmgr_pmu->pmgr_monitorobjs.pmu_data.channels.hdr.data.total_gpu_power_channel_mask = 0;
+	g->pmgr_pmu->pmgr_monitorobjs.total_gpu_channel_idx =
 			CTRL_PMGR_PWR_CHANNEL_INDEX_INVALID;
 
 	/* Supported topology table version 1.0 */
-	g->pmgr_pmu.pmgr_monitorobjs.b_is_topology_tbl_ver_1x = true;
+	g->pmgr_pmu->pmgr_monitorobjs.b_is_topology_tbl_ver_1x = true;
 
-	ppwrmonitorobjs = &(g->pmgr_pmu.pmgr_monitorobjs);
+	ppwrmonitorobjs = &(g->pmgr_pmu->pmgr_monitorobjs);
 
 	status = devinit_get_pwr_topology_table(g, ppwrmonitorobjs);
 	if (status != 0) {
@@ -360,14 +361,14 @@ int pmgr_monitor_sw_setup(struct gk20a *g)
 	}
 
 	/* Initialise physicalChannelMask */
-	g->pmgr_pmu.pmgr_monitorobjs.physical_channel_mask = 0;
+	g->pmgr_pmu->pmgr_monitorobjs.physical_channel_mask = 0;
 
-	pboardobjgrp = &g->pmgr_pmu.pmgr_monitorobjs.pwr_channels.super;
+	pboardobjgrp = &g->pmgr_pmu->pmgr_monitorobjs.pwr_channels.super;
 
 	BOARDOBJGRP_FOR_EACH(pboardobjgrp, struct pwr_channel *, pchannel, indx) {
 		if (_pwr_channel_implements(pchannel,
 				CTRL_PMGR_PWR_CHANNEL_TYPE_SENSOR)) {
-			g->pmgr_pmu.pmgr_monitorobjs.physical_channel_mask  |= BIT(indx);
+			g->pmgr_pmu->pmgr_monitorobjs.physical_channel_mask  |= BIT(indx);
 		}
 	}
 

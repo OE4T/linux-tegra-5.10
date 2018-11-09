@@ -27,6 +27,7 @@
 #include <nvgpu/string.h>
 
 #include "pwrdev.h"
+#include "pmgr.h"
 #include "gp106/bios_gp106.h"
 
 static int _pwr_device_pmudata_instget(struct gk20a *g,
@@ -295,7 +296,7 @@ int pmgr_device_sw_setup(struct gk20a *g)
 	struct pwr_devices *ppwrdeviceobjs;
 
 	/* Construct the Super Class and override the Interfaces */
-	status = boardobjgrpconstruct_e32(g, &g->pmgr_pmu.pmgr_deviceobjs.super);
+	status = boardobjgrpconstruct_e32(g, &g->pmgr_pmu->pmgr_deviceobjs.super);
 	if (status != 0) {
 		nvgpu_err(g,
 			"error creating boardobjgrp for pmgr devices, status - 0x%x",
@@ -303,8 +304,8 @@ int pmgr_device_sw_setup(struct gk20a *g)
 		goto done;
 	}
 
-	pboardobjgrp = &g->pmgr_pmu.pmgr_deviceobjs.super.super;
-	ppwrdeviceobjs = &(g->pmgr_pmu.pmgr_deviceobjs);
+	pboardobjgrp = &g->pmgr_pmu->pmgr_deviceobjs.super.super;
+	ppwrdeviceobjs = &(g->pmgr_pmu->pmgr_deviceobjs);
 
 	/* Override the Interfaces */
 	pboardobjgrp->pmudatainstget = _pwr_device_pmudata_instget;

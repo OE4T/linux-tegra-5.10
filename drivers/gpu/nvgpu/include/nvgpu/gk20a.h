@@ -55,6 +55,9 @@ struct perf_pmupstate;
 struct vin_device_v20;
 struct avfsvinobjs;
 struct set_fll_clk;
+struct boardobjgrp;
+struct boardobjgrp_pmu_cmd;
+struct boardobjgrpmask;
 
 #include <nvgpu/lock.h>
 #include <nvgpu/thread.h>
@@ -79,7 +82,6 @@ struct set_fll_clk;
 #include "gk20a/clk_gk20a.h"
 #include "gk20a/fifo_gk20a.h"
 #include "gk20a/gr_gk20a.h"
-#include "pmgr/pmgr.h"
 
 #ifdef CONFIG_DEBUG_FS
 struct railgate_stats {
@@ -1494,7 +1496,7 @@ struct gk20a {
 	struct nvgpu_ecc ecc;
 	struct clk_pmupstate *clk_pmu;
 	struct perf_pmupstate *perf_pmu;
-	struct pmgr_pmupstate pmgr_pmu;
+	struct pmgr_pmupstate *pmgr_pmu;
 	struct therm_pmupstate *therm_pmu;
 	struct nvgpu_sec2 sec2;
 
