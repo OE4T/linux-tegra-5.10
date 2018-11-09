@@ -528,7 +528,8 @@ static int pmu_response_handle(struct nvgpu_pmu *pmu,
 	} else if (seq->state != PMU_SEQ_STATE_CANCELLED) {
 		if (seq->msg != NULL) {
 			if (seq->msg->hdr.size >= msg->hdr.size) {
-				(void) memcpy(seq->msg, msg, msg->hdr.size);
+				nvgpu_memcpy((u8 *)seq->msg, (u8 *)msg,
+					msg->hdr.size);
 			}  else {
 				nvgpu_err(g, "sequence %d msg buffer too small",
 					seq->id);

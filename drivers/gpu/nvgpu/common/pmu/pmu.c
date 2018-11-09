@@ -30,6 +30,7 @@
 #include <nvgpu/bug.h>
 #include <nvgpu/utils.h>
 #include <nvgpu/gk20a.h>
+#include <nvgpu/string.h>
 
 static int nvgpu_pg_init_task(void *arg);
 
@@ -411,7 +412,8 @@ int nvgpu_pmu_process_init_msg(struct nvgpu_pmu *pmu,
 			BUG_ON(sizeof(pmu->gid_info.gid) !=
 				sizeof(gid_data.gid));
 
-			(void) memcpy(pmu->gid_info.gid, gid_data.gid,
+			nvgpu_memcpy((u8 *)pmu->gid_info.gid,
+				(u8 *)gid_data.gid,
 				sizeof(pmu->gid_info.gid));
 		}
 	}

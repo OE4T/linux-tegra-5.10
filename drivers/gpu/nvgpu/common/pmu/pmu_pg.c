@@ -27,6 +27,7 @@
 #include <nvgpu/bug.h>
 #include <nvgpu/utils.h>
 #include <nvgpu/gk20a.h>
+#include <nvgpu/string.h>
 
 /* state transition :
  * OFF => [OFF_ON_PENDING optional] => ON_PENDING => ON => OFF
@@ -685,9 +686,9 @@ int nvgpu_pmu_ap_send_command(struct gk20a *g,
 		nvgpu_pmu_dbg(g, "cmd post PMU_AP_CMD_ID_INIT_AND_ENABLE_CTRL");
 		cmd.cmd.pg.ap_cmd.init_and_enable_ctrl.ctrl_id =
 		p_ap_cmd->init_and_enable_ctrl.ctrl_id;
-		(void) memcpy(
-		(void *)&(cmd.cmd.pg.ap_cmd.init_and_enable_ctrl.params),
-			(void *)&(p_ap_cmd->init_and_enable_ctrl.params),
+		nvgpu_memcpy(
+			(u8 *)&(cmd.cmd.pg.ap_cmd.init_and_enable_ctrl.params),
+			(u8 *)&(p_ap_cmd->init_and_enable_ctrl.params),
 			sizeof(struct pmu_ap_ctrl_init_params));
 
 		p_callback = ap_callback_init_and_enable_ctrl;
