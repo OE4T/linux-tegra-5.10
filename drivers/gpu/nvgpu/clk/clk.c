@@ -25,6 +25,7 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/pmuif/ctrlclk.h>
 #include <nvgpu/pmuif/ctrlvolt.h>
+#include <nvgpu/bug.h>
 
 #include "clk.h"
 #include "volt/volt.h"
@@ -88,12 +89,14 @@ int clk_pmu_freq_effective_avg_load(struct gk20a *g, bool bload)
 	payload.in.buf = (u8 *)&rpccall;
 	payload.in.size = (u32)sizeof(struct nv_pmu_clk_rpc);
 	payload.in.fb_size = PMU_CMD_SUBMIT_PAYLOAD_PARAMS_FB_SIZE_UNUSED;
-	payload.in.offset = NV_PMU_CLK_CMD_RPC_ALLOC_OFFSET;
+	nvgpu_assert(NV_PMU_CLK_CMD_RPC_ALLOC_OFFSET < U64(U32_MAX));
+	payload.in.offset = (u32)NV_PMU_CLK_CMD_RPC_ALLOC_OFFSET;
 
 	payload.out.buf = (u8 *)&rpccall;
 	payload.out.size = (u32)sizeof(struct nv_pmu_clk_rpc);
 	payload.out.fb_size = PMU_CMD_SUBMIT_PAYLOAD_PARAMS_FB_SIZE_UNUSED;
-	payload.out.offset = NV_PMU_CLK_MSG_RPC_ALLOC_OFFSET;
+	nvgpu_assert(NV_PMU_CLK_MSG_RPC_ALLOC_OFFSET < U64(U32_MAX));
+	payload.out.offset = (u32)NV_PMU_CLK_MSG_RPC_ALLOC_OFFSET;
 
 	handler.prpccall = &rpccall;
 	handler.success = 0;
@@ -101,7 +104,7 @@ int clk_pmu_freq_effective_avg_load(struct gk20a *g, bool bload)
 	status = nvgpu_pmu_cmd_post(g, &cmd, NULL, &payload,
 			PMU_COMMAND_QUEUE_LPQ,
 			clkrpc_pmucmdhandler, (void *)&handler,
-			&seqdesc, ~0);
+			&seqdesc, ~0ULL);
 	if (status != 0) {
 		nvgpu_err(g, "unable to post clk RPC cmd %x",
 			cmd.cmd.clk.cmd_type);
@@ -148,12 +151,14 @@ int clk_freq_effective_avg(struct gk20a *g, u32 *freqkHz, u32 clkDomainMask) {
 	payload.in.buf = (u8 *)&rpccall;
 	payload.in.size = (u32)sizeof(struct nv_pmu_clk_rpc);
 	payload.in.fb_size = PMU_CMD_SUBMIT_PAYLOAD_PARAMS_FB_SIZE_UNUSED;
-	payload.in.offset = NV_PMU_CLK_CMD_RPC_ALLOC_OFFSET;
+	nvgpu_assert(NV_PMU_CLK_CMD_RPC_ALLOC_OFFSET < U64(U32_MAX));
+	payload.in.offset = (u32)NV_PMU_CLK_CMD_RPC_ALLOC_OFFSET;
 
 	payload.out.buf = (u8 *)&rpccall;
 	payload.out.size = (u32)sizeof(struct nv_pmu_clk_rpc);
 	payload.out.fb_size = PMU_CMD_SUBMIT_PAYLOAD_PARAMS_FB_SIZE_UNUSED;
-	payload.out.offset = NV_PMU_CLK_MSG_RPC_ALLOC_OFFSET;
+	nvgpu_assert(NV_PMU_CLK_MSG_RPC_ALLOC_OFFSET < U64(U32_MAX));
+	payload.out.offset = (u32)NV_PMU_CLK_MSG_RPC_ALLOC_OFFSET;
 
 	handler.prpccall = &rpccall;
 	handler.success = 0;
@@ -161,7 +166,7 @@ int clk_freq_effective_avg(struct gk20a *g, u32 *freqkHz, u32 clkDomainMask) {
 	status = nvgpu_pmu_cmd_post(g, &cmd, NULL, &payload,
 			PMU_COMMAND_QUEUE_LPQ,
 			clkrpc_pmucmdhandler, (void *)&handler,
-			&seqdesc, ~0);
+			&seqdesc, ~0ULL);
 	if (status != 0) {
 		nvgpu_err(g, "unable to post clk RPC cmd %x",
 			cmd.cmd.clk.cmd_type);
@@ -254,19 +259,21 @@ int clk_pmu_freq_controller_load(struct gk20a *g, bool bload, u8 bit_idx)
 	payload.in.buf = (u8 *)&rpccall;
 	payload.in.size = (u32)sizeof(struct nv_pmu_clk_rpc);
 	payload.in.fb_size = PMU_CMD_SUBMIT_PAYLOAD_PARAMS_FB_SIZE_UNUSED;
-	payload.in.offset = NV_PMU_CLK_CMD_RPC_ALLOC_OFFSET;
+	nvgpu_assert(NV_PMU_CLK_CMD_RPC_ALLOC_OFFSET < U64(U32_MAX));
+	payload.in.offset = (u32)NV_PMU_CLK_CMD_RPC_ALLOC_OFFSET;
 
 	payload.out.buf = (u8 *)&rpccall;
 	payload.out.size = (u32)sizeof(struct nv_pmu_clk_rpc);
 	payload.out.fb_size = PMU_CMD_SUBMIT_PAYLOAD_PARAMS_FB_SIZE_UNUSED;
-	payload.out.offset = NV_PMU_CLK_MSG_RPC_ALLOC_OFFSET;
+	nvgpu_assert(NV_PMU_CLK_MSG_RPC_ALLOC_OFFSET < U64(U32_MAX));
+	payload.out.offset = (u32)NV_PMU_CLK_MSG_RPC_ALLOC_OFFSET;
 
 	handler.prpccall = &rpccall;
 	handler.success = 0;
 	status = nvgpu_pmu_cmd_post(g, &cmd, NULL, &payload,
 			PMU_COMMAND_QUEUE_LPQ,
 			clkrpc_pmucmdhandler, (void *)&handler,
-			&seqdesc, ~0);
+			&seqdesc, ~0ULL);
 
 	if (status != 0) {
 		nvgpu_err(g, "unable to post clk RPC cmd %x",
@@ -316,19 +323,21 @@ int clk_pmu_vin_load(struct gk20a *g)
 	payload.in.buf = (u8 *)&rpccall;
 	payload.in.size = (u32)sizeof(struct nv_pmu_clk_rpc);
 	payload.in.fb_size = PMU_CMD_SUBMIT_PAYLOAD_PARAMS_FB_SIZE_UNUSED;
-	payload.in.offset = NV_PMU_CLK_CMD_RPC_ALLOC_OFFSET;
+	nvgpu_assert(NV_PMU_CLK_CMD_RPC_ALLOC_OFFSET < U64(U32_MAX));
+	payload.in.offset = (u32)NV_PMU_CLK_CMD_RPC_ALLOC_OFFSET;
 
 	payload.out.buf = (u8 *)&rpccall;
 	payload.out.size = (u32)sizeof(struct nv_pmu_clk_rpc);
 	payload.out.fb_size = PMU_CMD_SUBMIT_PAYLOAD_PARAMS_FB_SIZE_UNUSED;
-	payload.out.offset = NV_PMU_CLK_MSG_RPC_ALLOC_OFFSET;
+	nvgpu_assert(NV_PMU_CLK_MSG_RPC_ALLOC_OFFSET < U64(U32_MAX));
+	payload.out.offset = (u32)NV_PMU_CLK_MSG_RPC_ALLOC_OFFSET;
 
 	handler.prpccall = &rpccall;
 	handler.success = 0;
 	status = nvgpu_pmu_cmd_post(g, &cmd, NULL, &payload,
 			PMU_COMMAND_QUEUE_LPQ,
 			clkrpc_pmucmdhandler, (void *)&handler,
-			&seqdesc, ~0);
+			&seqdesc, ~0ULL);
 
 	if (status != 0) {
 		nvgpu_err(g, "unable to post clk RPC cmd %x",
@@ -463,12 +472,14 @@ static int clk_pmu_vf_inject(struct gk20a *g, struct set_fll_clk *setfllclk)
 	payload.in.buf = (u8 *)&rpccall;
 	payload.in.size = (u32)sizeof(struct nv_pmu_clk_rpc);
 	payload.in.fb_size = PMU_CMD_SUBMIT_PAYLOAD_PARAMS_FB_SIZE_UNUSED;
-	payload.in.offset = NV_PMU_CLK_CMD_RPC_ALLOC_OFFSET;
+	nvgpu_assert(NV_PMU_CLK_CMD_RPC_ALLOC_OFFSET < U64(U32_MAX));
+	payload.in.offset = (u32)NV_PMU_CLK_CMD_RPC_ALLOC_OFFSET;
 
 	payload.out.buf = (u8 *)&rpccall;
 	payload.out.size = (u32)sizeof(struct nv_pmu_clk_rpc);
 	payload.out.fb_size = PMU_CMD_SUBMIT_PAYLOAD_PARAMS_FB_SIZE_UNUSED;
-	payload.out.offset = NV_PMU_CLK_MSG_RPC_ALLOC_OFFSET;
+	nvgpu_assert(NV_PMU_CLK_MSG_RPC_ALLOC_OFFSET < U64(U32_MAX));
+	payload.out.offset = (u32)NV_PMU_CLK_MSG_RPC_ALLOC_OFFSET;
 
 	handler.prpccall = &rpccall;
 	handler.success = 0;
@@ -476,7 +487,7 @@ static int clk_pmu_vf_inject(struct gk20a *g, struct set_fll_clk *setfllclk)
 	status = nvgpu_pmu_cmd_post(g, &cmd, NULL, &payload,
 			PMU_COMMAND_QUEUE_LPQ,
 			clkrpc_pmucmdhandler, (void *)&handler,
-			&seqdesc, ~0);
+			&seqdesc, ~0ULL);
 
 	if (status != 0) {
 		nvgpu_err(g, "unable to post clk RPC cmd %x",
