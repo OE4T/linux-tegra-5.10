@@ -31,6 +31,7 @@
 #include "gp106/bios_gp106.h"
 
 #include "pwrdev.h"
+#include "pmgr.h"
 #include "pmgrpmu.h"
 
 struct pmgr_pmucmdhandler_params {
@@ -194,10 +195,10 @@ static int pmgr_send_pwr_device_topology_to_pmu(struct gk20a *g)
 
 	/* populate the table */
 	boardobjgrpe32hdrset((struct nv_pmu_boardobjgrp *)&ppwr_desc_header->super,
-			g->pmgr_pmu.pmgr_deviceobjs.super.super.objmask);
+			g->pmgr_pmu->pmgr_deviceobjs.super.super.objmask);
 
 	status = boardobjgrp_pmudatainit_legacy(g,
-			&g->pmgr_pmu.pmgr_deviceobjs.super.super,
+			&g->pmgr_pmu->pmgr_deviceobjs.super.super,
 			(struct nv_pmu_boardobjgrp_super *)pwr_desc_table);
 
 	if (status != 0) {
@@ -240,14 +241,14 @@ static int pmgr_send_pwr_mointer_to_pmu(struct gk20a *g)
 
 	/* Copy all the global settings from the RM copy */
 	pwr_channel_hdr = &(pwr_monitor_pack->channels.hdr.data);
-	*pwr_monitor_pack = g->pmgr_pmu.pmgr_monitorobjs.pmu_data;
+	*pwr_monitor_pack = g->pmgr_pmu->pmgr_monitorobjs.pmu_data;
 
 	boardobjgrpe32hdrset((struct nv_pmu_boardobjgrp *)&pwr_channel_hdr->super,
-			g->pmgr_pmu.pmgr_monitorobjs.pwr_channels.super.objmask);
+			g->pmgr_pmu->pmgr_monitorobjs.pwr_channels.super.objmask);
 
 	/* Copy in each channel */
 	status = boardobjgrp_pmudatainit_legacy(g,
-			&g->pmgr_pmu.pmgr_monitorobjs.pwr_channels.super,
+			&g->pmgr_pmu->pmgr_monitorobjs.pwr_channels.super,
 			(struct nv_pmu_boardobjgrp_super *)&(pwr_monitor_pack->channels));
 
 	if (status != 0) {
@@ -260,13 +261,14 @@ static int pmgr_send_pwr_mointer_to_pmu(struct gk20a *g)
 	pwr_chrelationship_header =  &(pwr_monitor_pack->ch_rels.hdr.data);
 
 	boardobjgrpe32hdrset((struct nv_pmu_boardobjgrp *)&pwr_chrelationship_header->super,
-			g->pmgr_pmu.pmgr_monitorobjs.pwr_ch_rels.super.objmask);
+			g->pmgr_pmu->pmgr_monitorobjs.pwr_ch_rels.super.objmask);
 
-	pwr_channel_hdr->physical_channel_mask = g->pmgr_pmu.pmgr_monitorobjs.physical_channel_mask;
+	pwr_channel_hdr->physical_channel_mask =
+			g->pmgr_pmu->pmgr_monitorobjs.physical_channel_mask;
 	pwr_channel_hdr->type = NV_PMU_PMGR_PWR_MONITOR_TYPE_NO_POLLING;
 
 	status = boardobjgrp_pmudatainit_legacy(g,
-		&g->pmgr_pmu.pmgr_monitorobjs.pwr_ch_rels.super,
+		&g->pmgr_pmu->pmgr_monitorobjs.pwr_ch_rels.super,
 		(struct nv_pmu_boardobjgrp_super *)&(pwr_monitor_pack->ch_rels));
 
 	if (status != 0) {
@@ -312,31 +314,31 @@ static int pmgr_send_pwr_policy_to_pmu(struct gk20a *g)
 		goto exit;
 	}
 
-	ppwrpack->policies.hdr.data.version = g->pmgr_pmu.pmgr_policyobjs.version;
-	ppwrpack->policies.hdr.data.b_enabled = g->pmgr_pmu.pmgr_policyobjs.b_enabled;
+	ppwrpack->policies.hdr.data.version = g->pmgr_pmu->pmgr_policyobjs.version;
+	ppwrpack->policies.hdr.data.b_enabled = g->pmgr_pmu->pmgr_policyobjs.b_enabled;
 
 	boardobjgrpe32hdrset((struct nv_pmu_boardobjgrp *)
 			&ppwrpack->policies.hdr.data.super,
-			g->pmgr_pmu.pmgr_policyobjs.pwr_policies.super.objmask);
+			g->pmgr_pmu->pmgr_policyobjs.pwr_policies.super.objmask);
 
 	(void) memset(&ppwrpack->policies.hdr.data.reserved_pmu_policy_mask,
 			0,
 			sizeof(ppwrpack->policies.hdr.data.reserved_pmu_policy_mask));
 
 	ppwrpack->policies.hdr.data.base_sample_period =
-			g->pmgr_pmu.pmgr_policyobjs.base_sample_period;
+			g->pmgr_pmu->pmgr_policyobjs.base_sample_period;
 	ppwrpack->policies.hdr.data.min_client_sample_period =
-			g->pmgr_pmu.pmgr_policyobjs.min_client_sample_period;
+			g->pmgr_pmu->pmgr_policyobjs.min_client_sample_period;
 	ppwrpack->policies.hdr.data.low_sampling_mult =
-			g->pmgr_pmu.pmgr_policyobjs.low_sampling_mult;
+			g->pmgr_pmu->pmgr_policyobjs.low_sampling_mult;
 
 	nvgpu_memcpy((u8 *)&ppwrpack->policies.hdr.data.global_ceiling,
-			(u8 *)&g->pmgr_pmu.pmgr_policyobjs.global_ceiling,
+			(u8 *)&g->pmgr_pmu->pmgr_policyobjs.global_ceiling,
 			sizeof(struct nv_pmu_perf_domain_group_limits));
 
 	nvgpu_memcpy((u8 *)&ppwrpack->policies.hdr.data.semantic_policy_tbl,
-			(u8 *)&g->pmgr_pmu.pmgr_policyobjs.policy_idxs,
-			sizeof(g->pmgr_pmu.pmgr_policyobjs.policy_idxs));
+			(u8 *)&g->pmgr_pmu->pmgr_policyobjs.policy_idxs,
+			sizeof(g->pmgr_pmu->pmgr_policyobjs.policy_idxs));
 
 	BOARDOBJGRP_FOR_EACH_INDEX_IN_MASK(32, indx,
 			ppwrpack->policies.hdr.data.super.obj_mask.super.data[0]) {
@@ -355,11 +357,11 @@ static int pmgr_send_pwr_policy_to_pmu(struct gk20a *g)
 
 	boardobjgrpe32hdrset((struct nv_pmu_boardobjgrp *)
 			&ppwrpack->policy_rels.hdr.data.super,
-			g->pmgr_pmu.pmgr_policyobjs.pwr_policy_rels.super.objmask);
+			g->pmgr_pmu->pmgr_policyobjs.pwr_policy_rels.super.objmask);
 
 	boardobjgrpe32hdrset((struct nv_pmu_boardobjgrp *)
 			&ppwrpack->violations.hdr.data.super,
-			g->pmgr_pmu.pmgr_policyobjs.pwr_violations.super.objmask);
+			g->pmgr_pmu->pmgr_policyobjs.pwr_violations.super.objmask);
 
 	max_dmem_size = sizeof(union nv_pmu_pmgr_pwr_policy_dmem_size);
 
@@ -500,7 +502,7 @@ int pmgr_send_pmgr_tables_to_pmu(struct gk20a *g)
 		goto exit;
 	}
 
-	if (!BOARDOBJGRP_IS_EMPTY(&g->pmgr_pmu.pmgr_deviceobjs.super.super)) {
+	if (!BOARDOBJGRP_IS_EMPTY(&g->pmgr_pmu->pmgr_deviceobjs.super.super)) {
 		status = pmgr_send_pwr_device_topology_to_pmu(g);
 		if (status != 0) {
 			nvgpu_err(g,
@@ -511,9 +513,9 @@ int pmgr_send_pmgr_tables_to_pmu(struct gk20a *g)
 	}
 
 	if (!(BOARDOBJGRP_IS_EMPTY(
-			&g->pmgr_pmu.pmgr_monitorobjs.pwr_channels.super)) ||
+			&g->pmgr_pmu->pmgr_monitorobjs.pwr_channels.super)) ||
 		!(BOARDOBJGRP_IS_EMPTY(
-			&g->pmgr_pmu.pmgr_monitorobjs.pwr_ch_rels.super))) {
+			&g->pmgr_pmu->pmgr_monitorobjs.pwr_ch_rels.super))) {
 		status = pmgr_send_pwr_mointer_to_pmu(g);
 		if (status != 0) {
 			nvgpu_err(g,
@@ -523,11 +525,11 @@ int pmgr_send_pmgr_tables_to_pmu(struct gk20a *g)
 	}
 
 	if (!(BOARDOBJGRP_IS_EMPTY(
-			&g->pmgr_pmu.pmgr_policyobjs.pwr_policies.super)) ||
+			&g->pmgr_pmu->pmgr_policyobjs.pwr_policies.super)) ||
 		!(BOARDOBJGRP_IS_EMPTY(
-			&g->pmgr_pmu.pmgr_policyobjs.pwr_policy_rels.super)) ||
+			&g->pmgr_pmu->pmgr_policyobjs.pwr_policy_rels.super)) ||
 		!(BOARDOBJGRP_IS_EMPTY(
-			&g->pmgr_pmu.pmgr_policyobjs.pwr_violations.super))) {
+			&g->pmgr_pmu->pmgr_policyobjs.pwr_violations.super))) {
 		status = pmgr_send_pwr_policy_to_pmu(g);
 		if (status != 0) {
 			nvgpu_err(g,
