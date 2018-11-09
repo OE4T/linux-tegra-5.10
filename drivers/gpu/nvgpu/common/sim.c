@@ -30,6 +30,7 @@
 #include <nvgpu/utils.h>
 #include <nvgpu/bug.h>
 #include <nvgpu/gk20a.h>
+#include <nvgpu/string.h>
 
 int nvgpu_alloc_sim_buffer(struct gk20a *g, struct nvgpu_mem *mem)
 {
@@ -233,7 +234,7 @@ static void nvgpu_sim_esc_readl(struct gk20a *g,
 	err = issue_rpc_and_wait(g);
 
 	if (err == 0) {
-		(void) memcpy(data, sim_msg_param(g, data_offset),
+		nvgpu_memcpy((u8 *)data, (u8 *)sim_msg_param(g, data_offset),
 			sizeof(u32));
 	} else {
 		*data = 0xffffffff;
