@@ -800,8 +800,8 @@ static void lsfm_fill_static_lsb_hdr_info(struct gk20a *g,
 	u32 data = 0;
 
 	if (pnode->ucode_img.lsf_desc != NULL) {
-		(void) memcpy(&pnode->lsb_header.signature,
-			pnode->ucode_img.lsf_desc,
+		nvgpu_memcpy((u8 *)&pnode->lsb_header.signature,
+			(u8 *)pnode->ucode_img.lsf_desc,
 			sizeof(struct lsf_ucode_desc));
 	}
 	pnode->lsb_header.ucode_size = pnode->ucode_img.data_size;
@@ -876,7 +876,7 @@ static int lsfm_add_ucode_img(struct gk20a *g, struct ls_flcn_mgr *plsfm,
 	}
 
 	/* Keep a copy of the ucode image info locally */
-	(void) memcpy(&pnode->ucode_img, ucode_image,
+	nvgpu_memcpy((u8 *)&pnode->ucode_img, (u8 *)ucode_image,
 		sizeof(struct flcn_ucode_img));
 
 	/* Fill in static WPR header info*/
