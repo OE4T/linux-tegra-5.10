@@ -1245,4 +1245,11 @@
 				"pva0_axi", "pva1_axi";
 		status = "okay";
 	};
+
+	nvdisplay@13800000 {
+		compatible = "nvidia,tegra234-display";
+		reg = <0x0 0x13800000 0x0 0xEFFFF>;
+		interrupts = <0 416 4>;
+		status = "disabled";
+	};
 };

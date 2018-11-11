@@ -116,4 +116,8 @@
 		/delete-property/ ranges;
 		/delete-node/ mssnvlink@1f20000;
 	};
+
+	nvdisplay@13800000 {
+		status = "okay";
+	};
 };
