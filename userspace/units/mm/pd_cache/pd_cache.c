@@ -22,6 +22,7 @@
 
 #include <unit/io.h>
 #include <unit/unit.h>
+#include <unit/unit-requirement-ids.h>
 
 #include <nvgpu/gk20a.h>
 #include <nvgpu/gmmu.h>
@@ -558,6 +559,76 @@ static int test_pd_cache_fini(struct unit_module *m,
 }
 
 /*
+ * Requirement NVGPU-RQCD-68.C1
+ * Requirement NVGPU-RQCD-68.C2
+ *
+ * Valid/Invalid: The pd_cache does/does not allocate a suitable DMA'able
+ *                buffer of memory.
+ * Valid/Invalid: The allocated PD is/is not sufficiently aligned for use by
+ *                the GMMU.
+ */
+static int test_pd_cache_valid_alloc(struct unit_module *m,
+				     struct gk20a *g, void *args)
+{
+	u32 bytes;
+	int err;
+	struct vm_gk20a vm;
+	struct nvgpu_gmmu_pd pd;
+
+	err = init_pd_cache(m, g, &vm);
+	if (err != UNIT_SUCCESS) {
+		return err;
+	}
+
+	/*
+	 * Allocate a PD of each valid PD size and ensure they are properly
+	 * populated with nvgpu_mem data. This tests read/write and alignment.
+	 * This covers the VCs 1 and 2.
+	 */
+	bytes = 256; /* 256 bytes is the min PD size. */
+	while (bytes <= PAGE_SIZE) {
+
+		err = nvgpu_pd_alloc(&vm, &pd, bytes);
+		if (err) {
+			goto fail;
+		}
+
+		/*
+		 * Do a write to the zeroth word and then verify this made it to
+		 * the nvgpu_mem. Using the zeroth word makes it easy to read
+		 * back.
+		 */
+		pd_write(g, &pd, 0, 0x12345678);
+
+		if (0x12345678 !=
+		    nvgpu_mem_rd32(g, pd.mem, pd.mem_offs / sizeof(u32))) {
+			nvgpu_pd_free(&vm, &pd);
+			goto fail;
+		}
+
+		/*
+		 * Check alignment is at least as much as the size.
+		 */
+		if ((pd.mem_offs & (bytes - 1)) != 0) {
+			nvgpu_pd_free(&vm, &pd);
+			goto fail;
+		}
+
+		nvgpu_pd_free(&vm, &pd);
+
+		bytes <<= 1;
+	}
+
+	nvgpu_pd_cache_fini(g);
+	return UNIT_SUCCESS;
+
+fail:
+	nvgpu_pd_cache_fini(g);
+	return err;
+}
+
+
+/*
  * Init the global env - just make sure we don't try and allocate from VIDMEM
  * when doing dma allocs.
  */
@@ -573,6 +644,12 @@ struct unit_module_test pd_cache_tests[] = {
 	UNIT_TEST(env_init,				test_pd_cache_env_init, NULL),
 	UNIT_TEST(init,					test_pd_cache_init, NULL),
 	UNIT_TEST(fini,					test_pd_cache_fini, NULL),
+
+	/*
+	 * Requirement verification tests.
+	 */
+	UNIT_TEST_REQ("NVGPU-RQCD-68.C1,2", PD_CACHE_REQ1_UID, "V4",
+		      valid_alloc,			test_pd_cache_valid_alloc, NULL),
 
 	/*
 	 * Direct allocs.

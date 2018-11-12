@@ -23,4 +23,9 @@
 #ifndef __UNIT_UNIT_REQUIREMENT_IDS_H__
 #define __UNIT_UNIT_REQUIREMENT_IDS_H__
 
+/*
+ * Unit requirement test specification unique IDs.
+ */
+#define PD_CACHE_REQ1_UID		"6439202"
+
 #endif
