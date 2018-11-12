@@ -26,6 +26,7 @@
 #include <pthread.h>
 #include <stdbool.h>
 #include <setjmp.h>
+#include <stdlib.h>
 #ifndef _QNX_SOURCE
 #include <execinfo.h>
 #endif
@@ -58,6 +59,8 @@ static void __dump_stack(int skip_frames)
 	for (i = skip_frames; i < trace_size; i++) {
 		nvgpu_err(NULL, "[%d] %s", i - skip_frames, trace_syms[i]);
 	}
+
+	free(trace_syms);
 #endif
 	return;
 }
