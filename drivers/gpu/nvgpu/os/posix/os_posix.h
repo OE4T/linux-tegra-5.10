@@ -48,6 +48,11 @@ struct nvgpu_os_posix {
 	 */
 	struct nvgpu_list_node recorder_head;
 	bool recording;
+
+	/*
+	 * Parameters to change the behavior of MM-related functions
+	 */
+	bool mm_is_iommuable;
 };
 
 static inline struct nvgpu_os_posix *nvgpu_os_posix_from_gk20a(struct gk20a *g)

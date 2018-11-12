@@ -30,6 +30,7 @@
 #include <nvgpu/nvgpu_mem.h>
 #include <nvgpu/enabled.h>
 #include <nvgpu/posix/posix-fault-injection.h>
+#include "os_posix.h"
 
 _Thread_local struct nvgpu_posix_fault_inj dma_fi = {
 						     .enabled = false,
@@ -74,7 +75,9 @@ static int __nvgpu_do_dma_alloc(struct gk20a *g, unsigned long flags,
 
 bool nvgpu_iommuable(struct gk20a *g)
 {
-	return false;
+	struct nvgpu_os_posix *p = nvgpu_os_posix_from_gk20a(g);
+
+	return p->mm_is_iommuable;
 }
 
 int nvgpu_dma_alloc_flags_sys(struct gk20a *g, unsigned long flags,
