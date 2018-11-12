@@ -41,8 +41,8 @@
 #define gk20a_dbg_clk(g, fmt, arg...) \
 	nvgpu_log(g, gpu_dbg_clk, fmt, ##arg)
 
-#define DFS_DET_RANGE	6	/* -2^6 ... 2^6-1 */
-#define SDM_DIN_RANGE	12	/* -2^12 ... 2^12-1 */
+#define DFS_DET_RANGE	6U	/* -2^6 ... 2^6-1 */
+#define SDM_DIN_RANGE	12U	/* -2^12 ... 2^12-1 */
 #define DFS_TESTOUT_DET	BIT32(0)
 #define DFS_EXT_CAL_EN	BIT32(9)
 #define DFS_EXT_STROBE	BIT32(16)
@@ -51,7 +51,7 @@
 #define BOOT_GPU_UV_C1	800000	/* gpu rail boot voltage 0.8V */
 #define ADC_SLOPE_UV	10000	/* default ADC detection slope 10mV */
 
-#define DVFS_SAFE_MARGIN	10	/* 10% */
+#define DVFS_SAFE_MARGIN	10U	/* 10% */
 
 static struct pll_parms gpc_pll_params_b1 = {
 	128000,  2600000,	/* freq */
@@ -126,8 +126,8 @@ static u32 get_interim_pldiv(struct gk20a *g, u32 old_pl, u32 new_pl)
 		return 0;
 	}
 
-	pl = old_pl | BIT(ffs(new_pl) - 1);	/* pl never 0 */
-	new_pl |= BIT(ffs(old_pl) - 1);
+	pl = old_pl | BIT32(ffs(new_pl) - 1U);	/* pl never 0 */
+	new_pl |= BIT32(ffs(old_pl) - 1U);
 
 	return min(pl, new_pl);
 }
@@ -164,13 +164,13 @@ static int clk_config_pll(struct clk_gk20a *clk, struct pll *pll,
 	best_N = pll_params->min_N;
 	best_PL = pll_params->min_PL;
 
-	target_vco_f = target_clk_f + target_clk_f / 50;
+	target_vco_f = target_clk_f + target_clk_f / 50U;
 	if (max_vco_f < target_vco_f) {
 		max_vco_f = target_vco_f;
 	}
 
 	/* Set PL search boundaries. */
-	high_PL = nvgpu_div_to_pl((max_vco_f + target_vco_f - 1) / target_vco_f);
+	high_PL = nvgpu_div_to_pl((max_vco_f + target_vco_f - 1U) / target_vco_f);
 	high_PL = min(high_PL, pll_params->max_PL);
 	high_PL = max(high_PL, pll_params->min_PL);
 
@@ -195,7 +195,7 @@ static int clk_config_pll(struct clk_gk20a *clk, struct pll *pll,
 			}
 
 			n = (target_vco_f * m) / ref_clk_f;
-			n2 = ((target_vco_f * m) + (ref_clk_f - 1)) / ref_clk_f;
+			n2 = ((target_vco_f * m) + (ref_clk_f - 1U)) / ref_clk_f;
 
 			if (n > pll_params->max_N) {
 				break;
@@ -212,7 +212,7 @@ static int clk_config_pll(struct clk_gk20a *clk, struct pll *pll,
 				vco_f = ref_clk_f * n / m;
 
 				if (vco_f >= min_vco_f && vco_f <= max_vco_f) {
-					lwv = (vco_f + (nvgpu_pl_to_div(pl) / 2))
+					lwv = (vco_f + (nvgpu_pl_to_div(pl) / 2U))
 						/ nvgpu_pl_to_div(pl);
 					delta = abs(S32(lwv) -
 							S32(target_clk_f));
@@ -223,9 +223,9 @@ static int clk_config_pll(struct clk_gk20a *clk, struct pll *pll,
 						best_N = n;
 						best_PL = pl;
 
-						if (best_delta == 0 ||
+						if (best_delta == 0U ||
 						    /* 0.45% for non best fit */
-						    (!best_fit && (vco_f / best_delta > 218))) {
+						    (!best_fit && (vco_f / best_delta > 218U))) {
 							goto found_match;
 						}
 
@@ -240,7 +240,7 @@ static int clk_config_pll(struct clk_gk20a *clk, struct pll *pll,
 found_match:
 	BUG_ON(best_delta == ~0U);
 
-	if (best_fit && best_delta != 0) {
+	if (best_fit && best_delta != 0U) {
 		gk20a_dbg_clk(g, "no best match for target @ %dMHz on gpc_pll",
 			target_clk_f);
 	}
@@ -264,21 +264,21 @@ found_match:
 
 /* GPCPLL NA/DVFS mode methods */
 
-static inline int fuse_get_gpcpll_adc_rev(u32 val)
+static inline u32 fuse_get_gpcpll_adc_rev(u32 val)
 {
-	return (val >> 30) & 0x3;
+	return (val >> 30) & 0x3U;
 }
 
 static inline int fuse_get_gpcpll_adc_slope_uv(u32 val)
 {
 	/*      Integer part in mV  * 1000 + fractional part in uV */
-	return ((val >> 24) & 0x3f) * 1000 + ((val >> 14) & 0x3ff);
+	return ((val >> 24) & 0x3fU) * 1000U + ((val >> 14) & 0x3ffU);
 }
 
 static inline int fuse_get_gpcpll_adc_intercept_uv(u32 val)
 {
 	/*      Integer part in mV  * 1000 + fractional part in 100uV */
-	return ((val >> 4) & 0x3ff) * 1000 + ((val >> 0) & 0xf) * 100;
+	return ((val >> 4) & 0x3ffU) * 1000U + ((val >> 0) & 0xfU) * 100U;
 }
 
 static int nvgpu_fuse_calib_gpcpll_get_adc(struct gk20a *g,
@@ -292,7 +292,7 @@ static int nvgpu_fuse_calib_gpcpll_get_adc(struct gk20a *g,
 		return ret;
 	}
 
-	if (fuse_get_gpcpll_adc_rev(val) == 0) {
+	if (fuse_get_gpcpll_adc_rev(val) == 0U) {
 		return -EINVAL;
 	}
 
@@ -383,10 +383,10 @@ static void clk_config_dvfs_ndiv(int mv, u32 n_eff, struct na_dvfs *d)
 	BUG_ON((n < 0) || (n > (int)p->max_N << DFS_DET_RANGE));
 	d->n_int = ((u32)n) >> DFS_DET_RANGE;
 
-	rem = ((u32)n) & ((1 << DFS_DET_RANGE) - 1);
-	rem_range = SDM_DIN_RANGE + 1 - DFS_DET_RANGE;
-	d->sdm_din = (rem << rem_range) - (1 << SDM_DIN_RANGE);
-	d->sdm_din = (d->sdm_din >> BITS_PER_BYTE) & 0xff;
+	rem = ((u32)n) & (BIT32(DFS_DET_RANGE) - 1U);
+	rem_range = SDM_DIN_RANGE + 1U - DFS_DET_RANGE;
+	d->sdm_din = (rem << rem_range) - BIT32(SDM_DIN_RANGE);
+	d->sdm_din = (d->sdm_din >> BITS_PER_BYTE) & 0xffU;
 }
 
 /* Voltage dependent configuration */
@@ -441,8 +441,8 @@ static void clk_set_dfs_ext_cal(struct gk20a *g, u32 dfs_det_cal)
 	u32 data, ctrl;
 
 	data = gk20a_readl(g, trim_gpc_bcast_gpcpll_dvfs2_r());
-	data &= ~(BIT(DFS_DET_RANGE + 1) - 1);
-	data |= dfs_det_cal & (BIT(DFS_DET_RANGE + 1) - 1);
+	data &= ~(BIT32(DFS_DET_RANGE + 1U) - 1U);
+	data |= dfs_det_cal & (BIT32(DFS_DET_RANGE + 1U) - 1U);
 	gk20a_writel(g, trim_gpc_bcast_gpcpll_dvfs2_r(), data);
 
 	data = gk20a_readl(g, trim_sys_gpcpll_dvfs1_r());
@@ -580,7 +580,7 @@ static int clk_enbale_pll_dvfs(struct gk20a *g)
 		return -ETIMEDOUT;
 	}
 
-	p->uvdet_offs = g->clk.pll_poweron_uv - data * ADC_SLOPE_UV;
+	p->uvdet_offs = g->clk.pll_poweron_uv - (int)data * ADC_SLOPE_UV;
 	p->uvdet_slope = ADC_SLOPE_UV;
 	return 0;
 }
@@ -831,8 +831,8 @@ static int clk_lock_gpc_pll_under_bypass(struct gk20a *g, struct pll *gpll)
 		(void) gk20a_readl(g, trim_sys_gpcpll_cfg_r());
 		nvgpu_udelay(gpc_pll_params.na_lock_delay);
 		gk20a_dbg_clk(g, "NA config_pll under bypass: %u (%u) kHz %d mV",
-			      gpll->freq, gpll->freq / 2,
-			      (trim_sys_gpcpll_cfg3_dfs_testout_v(
+			      gpll->freq, gpll->freq / 2U,
+			      ((int)trim_sys_gpcpll_cfg3_dfs_testout_v(
 				      gk20a_readl(g, trim_sys_gpcpll_cfg3_r()))
 			       * gpc_pll_params.uvdet_slope
 			       + gpc_pll_params.uvdet_offs) / 1000);
@@ -849,14 +849,15 @@ static int clk_lock_gpc_pll_under_bypass(struct gk20a *g, struct pll *gpll)
 	}
 
 	/* wait pll lock */
-	timeout = gpc_pll_params.lock_timeout + 1;
+	timeout = gpc_pll_params.lock_timeout + 1U;
 	do {
 		nvgpu_udelay(1);
 		cfg = gk20a_readl(g, trim_sys_gpcpll_cfg_r());
 		if ((cfg & trim_sys_gpcpll_cfg_pll_lock_true_f()) != 0U) {
 			goto pll_locked;
 		}
-	} while (--timeout > 0);
+		timeout--;
+	} while (timeout > 0U);
 
 	/* PLL is messed up. What can we do here? */
 	dump_gpc_pll(g, gpll, cfg);
@@ -945,7 +946,7 @@ static int clk_program_gpc_pll(struct gk20a *g, struct pll *gpll_new,
 	 *  transition is not really glitch-less - see get_interim_pldiv
 	 *  function header).
 	 */
-	if ((gpll_new->PL < 2) || (gpll.PL < 2)) {
+	if ((gpll_new->PL < 2U) || (gpll.PL < 2U)) {
 		data = gk20a_readl(g, trim_sys_gpc2clk_out_r());
 		data = set_field(data, trim_sys_gpc2clk_out_vcodiv_m(),
 			trim_sys_gpc2clk_out_vcodiv_f(2));
@@ -1028,7 +1029,7 @@ static void clk_config_pll_safe_dvfs(struct gk20a *g, struct pll *gpll)
 	u32 nsafe, nmin;
 
 	if (gpll->freq > g->clk.dvfs_safe_max_freq) {
-		gpll->freq = gpll->freq * (100 - DVFS_SAFE_MARGIN) / 100;
+		gpll->freq = gpll->freq * (100U - DVFS_SAFE_MARGIN) / 100U;
 	}
 
 	nmin = DIV_ROUND_UP(gpll->M * gpc_pll_params.min_vco, gpll->clk_in);
@@ -1069,7 +1070,7 @@ static int clk_program_na_gpc_pll(struct gk20a *g, struct pll *gpll_new,
 	struct pll gpll_safe;
 	struct pll *gpll_old = &g->clk.gpc_pll_last;
 
-	BUG_ON(gpll_new->M != 1);	/* the only MDIV in NA mode  */
+	BUG_ON(gpll_new->M != 1U);	/* the only MDIV in NA mode  */
 	clk_config_dvfs(g, gpll_new);
 
 	/*
@@ -1223,16 +1224,16 @@ int gm20b_init_clk_setup_sw(struct gk20a *g)
 	}
 
 	clk->gpc_pll.clk_in = g->ops.clk.get_ref_clock_rate(g) / KHZ;
-	if (clk->gpc_pll.clk_in == 0) {
+	if (clk->gpc_pll.clk_in == 0U) {
 		nvgpu_err(g, "GPCPLL reference clock is zero");
 		err = -EINVAL;
 		goto fail;
 	}
 
 	safe_rate = g->ops.clk.get_fmax_at_vmin_safe(g);
-	safe_rate = safe_rate * (100 - DVFS_SAFE_MARGIN) / 100;
+	safe_rate = safe_rate * (100UL - (unsigned long)DVFS_SAFE_MARGIN) / 100UL;
 	clk->dvfs_safe_max_freq = rate_gpu_to_gpc2clk(safe_rate);
-	clk->gpc_pll.PL = (clk->dvfs_safe_max_freq == 0) ? 0 :
+	clk->gpc_pll.PL = (clk->dvfs_safe_max_freq == 0UL) ? 0U :
 		DIV_ROUND_UP(gpc_pll_params.min_vco, clk->dvfs_safe_max_freq);
 
 	/* Initial freq: low enough to be safe at Vmin (default 1/3 VCO min) */
@@ -1535,8 +1536,8 @@ int gm20b_clk_get_voltage(struct clk_gk20a *clk, u64 *val)
 
 	det_out = gk20a_readl(g, trim_sys_gpcpll_cfg3_r());
 	det_out = trim_sys_gpcpll_cfg3_dfs_testout_v(det_out);
-	*val = div64_u64((u64)det_out * gpc_pll_params->uvdet_slope +
-		gpc_pll_params->uvdet_offs, 1000ULL);
+	*val = div64_u64((u64)det_out * (u64)gpc_pll_params->uvdet_slope +
+		(u64)gpc_pll_params->uvdet_offs, 1000ULL);
 
 	nvgpu_mutex_release(&g->clk.clk_mutex);
 

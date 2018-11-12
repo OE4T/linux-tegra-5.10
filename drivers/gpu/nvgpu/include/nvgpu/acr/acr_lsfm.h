@@ -31,17 +31,17 @@
  * READ/WRITE masks for WPR region
  */
 /* Readable only from level 2 and 3 client */
-#define LSF_WPR_REGION_RMASK	(0xC)
+#define LSF_WPR_REGION_RMASK	(0xCU)
 /* Writable only from level 2 and 3 client */
-#define LSF_WPR_REGION_WMASK	(0xC)
+#define LSF_WPR_REGION_WMASK	(0xCU)
 /* Readable only from level 3 client */
-#define LSF_WPR_REGION_RMASK_SUB_WPR_ENABLED	(0x8)
+#define LSF_WPR_REGION_RMASK_SUB_WPR_ENABLED	(0x8U)
 /* Writable only from level 3 client */
-#define LSF_WPR_REGION_WMASK_SUB_WPR_ENABLED	(0x8)
+#define LSF_WPR_REGION_WMASK_SUB_WPR_ENABLED	(0x8U)
 /* Disallow read mis-match for all clients */
-#define LSF_WPR_REGION_ALLOW_READ_MISMATCH_NO	(0x0)
+#define LSF_WPR_REGION_ALLOW_READ_MISMATCH_NO	(0x0U)
 /* Disallow write mis-match for all clients */
-#define LSF_WPR_REGION_ALLOW_WRITE_MISMATCH_NO	(0x0)
+#define LSF_WPR_REGION_ALLOW_WRITE_MISMATCH_NO	(0x0U)
 
 /*
  * Falcon Id Defines
@@ -124,7 +124,7 @@ enum {
 #define LSF_SHARED_DATA_SUB_WPR_USE_CASE_ID_MAX \
 	LSF_SHARED_DATA_SUB_WPR_USE_CASE_ID_PLAYREADY_SHARED_DATA
 
-#define LSF_SHARED_DATA_SUB_WPR_USE_CASE_ID_INVALID	(0xFFFFFFFF)
+#define LSF_SHARED_DATA_SUB_WPR_USE_CASE_ID_INVALID	(0xFFFFFFFFU)
 
 #define MAX_SUPPORTED_SHARED_SUB_WPR_USE_CASES	\
 	LSF_SHARED_DATA_SUB_WPR_USE_CASE_ID_MAX
@@ -132,9 +132,9 @@ enum {
 /* Static sizes of shared subWPRs */
 /* Minimum granularity supported is 4K */
 /* 1MB in 4K */
-#define LSF_SHARED_DATA_SUB_WPR_FRTS_VBIOS_TABLES_SIZE_IN_4K	(0x100)
+#define LSF_SHARED_DATA_SUB_WPR_FRTS_VBIOS_TABLES_SIZE_IN_4K	(0x100U)
 /* 4K */
-#define LSF_SHARED_DATA_SUB_WPR_PLAYREADY_SHARED_DATA_SIZE_IN_4K	(0x1)
+#define LSF_SHARED_DATA_SUB_WPR_PLAYREADY_SHARED_DATA_SIZE_IN_4K	(0x1U)
 
 /*
  * Bootstrap Owner Defines
@@ -144,13 +144,13 @@ enum {
 /*
  * Image Status Defines
  */
-#define LSF_IMAGE_STATUS_NONE                           (0)
-#define LSF_IMAGE_STATUS_COPY                           (1)
-#define LSF_IMAGE_STATUS_VALIDATION_CODE_FAILED         (2)
-#define LSF_IMAGE_STATUS_VALIDATION_DATA_FAILED         (3)
-#define LSF_IMAGE_STATUS_VALIDATION_DONE                (4)
-#define LSF_IMAGE_STATUS_VALIDATION_SKIPPED             (5)
-#define LSF_IMAGE_STATUS_BOOTSTRAP_READY                (6)
+#define LSF_IMAGE_STATUS_NONE                           (0U)
+#define LSF_IMAGE_STATUS_COPY                           (1U)
+#define LSF_IMAGE_STATUS_VALIDATION_CODE_FAILED         (2U)
+#define LSF_IMAGE_STATUS_VALIDATION_DATA_FAILED         (3U)
+#define LSF_IMAGE_STATUS_VALIDATION_DONE                (4U)
+#define LSF_IMAGE_STATUS_VALIDATION_SKIPPED             (5U)
+#define LSF_IMAGE_STATUS_BOOTSTRAP_READY                (6U)
 
 /*Light Secure Bootstrap header related defines*/
 #define NV_FLCN_ACR_LSF_FLAG_LOAD_CODE_AT_0_FALSE       0U
@@ -227,18 +227,18 @@ struct lsf_lsb_header_v1 {
 	LSF_SUB_WPR_HEADER_ALIGNMENT))
 
 
-#define LSF_UCODE_DATA_ALIGNMENT 4096
+#define LSF_UCODE_DATA_ALIGNMENT 4096U
 
 /* Defined for 1MB alignment */
-#define SHIFT_1MB	(20)
-#define SHIFT_4KB	(12)
+#define SHIFT_1MB	(20U)
+#define SHIFT_4KB	(12U)
 
 /*
  * Supporting maximum of 2 regions.
  * This is needed to pre-allocate space in DMEM
  */
-#define NVGPU_FLCN_ACR_MAX_REGIONS                (2)
-#define LSF_BOOTSTRAP_OWNER_RESERVED_DMEM_SIZE    (0x200)
+#define NVGPU_FLCN_ACR_MAX_REGIONS                (2U)
+#define LSF_BOOTSTRAP_OWNER_RESERVED_DMEM_SIZE    (0x200U)
 
 /*
  * start_addr     - Starting address of region

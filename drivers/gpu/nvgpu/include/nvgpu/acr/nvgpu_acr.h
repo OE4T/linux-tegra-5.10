@@ -49,9 +49,9 @@ struct nvgpu_acr;
 #define LSF_SEC2_UCODE_DESC_BIN "sec2_ucode_desc.bin"
 #define LSF_SEC2_UCODE_SIG_BIN "sec2_sig.bin"
 
-#define MAX_SUPPORTED_LSFM 3 /*PMU, FECS, GPCCS*/
+#define MAX_SUPPORTED_LSFM 3U /*PMU, FECS, GPCCS*/
 
-#define ACR_COMPLETION_TIMEOUT_MS 10000 /*in msec */
+#define ACR_COMPLETION_TIMEOUT_MS 10000U /*in msec */
 
 #define PMU_SECURE_MODE  BIT8(0)
 #define PMU_LSFM_MANAGED BIT8(1)

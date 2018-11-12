@@ -251,7 +251,7 @@ int gr_gm20b_commit_global_cb_manager(struct gk20a *g,
 			gr_gk20a_ctx_patch_write(g, ch_ctx,
 				gr_gpcs_swdx_tc_beta_cb_size_r(ppc_index + temp2),
 				gr_gpcs_swdx_tc_beta_cb_size_v_f(cbm_cfg_size1) |
-				gr_gpcs_swdx_tc_beta_cb_size_div3_f(cbm_cfg_size1/3),
+				gr_gpcs_swdx_tc_beta_cb_size_div3_f(cbm_cfg_size1/3U),
 				patch);
 		}
 	}
@@ -332,7 +332,7 @@ void gr_gm20b_set_alpha_circular_buffer_size(struct gk20a *g, u32 data)
 	struct gr_gk20a *gr = &g->gr;
 	u32 gpc_index, ppc_index, stride, val;
 	u32 pd_ab_max_output;
-	u32 alpha_cb_size = data * 4;
+	u32 alpha_cb_size = data * 4U;
 	u32 gpc_stride = nvgpu_get_litter_value(g, GPU_LIT_GPC_STRIDE);
 	u32 ppc_in_gpc_stride = nvgpu_get_litter_value(g, GPU_LIT_PPC_IN_GPC_STRIDE);
 
@@ -382,7 +382,7 @@ void gr_gm20b_set_circular_buffer_size(struct gk20a *g, u32 data)
 {
 	struct gr_gk20a *gr = &g->gr;
 	u32 gpc_index, ppc_index, stride, val;
-	u32 cb_size = data * 4;
+	u32 cb_size = data * 4U;
 	u32 gpc_stride = nvgpu_get_litter_value(g, GPU_LIT_GPC_STRIDE);
 	u32 ppc_in_gpc_stride = nvgpu_get_litter_value(g, GPU_LIT_PPC_IN_GPC_STRIDE);
 
@@ -426,7 +426,7 @@ void gr_gm20b_set_circular_buffer_size(struct gk20a *g, u32 data)
 			val = set_field(val,
 				gr_gpcs_swdx_tc_beta_cb_size_div3_m(),
 				gr_gpcs_swdx_tc_beta_cb_size_div3_f((cb_size *
-					gr->gpc_ppc_count[gpc_index])/3));
+					gr->gpc_ppc_count[gpc_index])/3U));
 
 			gk20a_writel(g, gr_gpcs_swdx_tc_beta_cb_size_r(
 						ppc_index + gpc_index), val);
@@ -517,7 +517,7 @@ static u32 _sm_dsm_perf_ctrl_regs[2];
 
 void gr_gm20b_init_sm_dsm_reg_info(void)
 {
-	if (_sm_dsm_perf_ctrl_regs[0] != 0) {
+	if (_sm_dsm_perf_ctrl_regs[0] != 0U) {
 		return;
 	}
 
@@ -574,7 +574,7 @@ u32 gr_gm20b_get_gpc_tpc_mask(struct gk20a *g, u32 gpc_index)
 	/* Toggle the bits of NV_FUSE_STATUS_OPT_TPC_GPC */
 	val = g->ops.fuse.fuse_status_opt_tpc_gpc(g, gpc_index);
 
-	return (~val) & ((0x1 << gr->max_tpc_per_gpc_count) - 1);
+	return (~val) & (BIT32(gr->max_tpc_per_gpc_count) - 1U);
 }
 
 void gr_gm20b_set_gpc_tpc_mask(struct gk20a *g, u32 gpc_index)
@@ -582,10 +582,10 @@ void gr_gm20b_set_gpc_tpc_mask(struct gk20a *g, u32 gpc_index)
 	nvgpu_tegra_fuse_write_bypass(g, 0x1);
 	nvgpu_tegra_fuse_write_access_sw(g, 0x0);
 
-	if (g->gr.gpc_tpc_mask[gpc_index] == 0x1) {
+	if (g->gr.gpc_tpc_mask[gpc_index] == 0x1U) {
 		nvgpu_tegra_fuse_write_opt_gpu_tpc0_disable(g, 0x0);
 		nvgpu_tegra_fuse_write_opt_gpu_tpc1_disable(g, 0x1);
-	} else if (g->gr.gpc_tpc_mask[gpc_index] == 0x2) {
+	} else if (g->gr.gpc_tpc_mask[gpc_index] == 0x2U) {
 		nvgpu_tegra_fuse_write_opt_gpu_tpc0_disable(g, 0x1);
 		nvgpu_tegra_fuse_write_opt_gpu_tpc1_disable(g, 0x0);
 	} else {
@@ -649,13 +649,13 @@ int gr_gm20b_load_smid_config(struct gk20a *g)
 	}
 
 	/* Each NV_PGRAPH_PRI_CWD_GPC_TPC_ID can store 4 TPCs.*/
-	for (i = 0; i <= ((g->gr.tpc_count-1) / 4); i++) {
+	for (i = 0U; i <= ((g->gr.tpc_count-1U) / 4U); i++) {
 		u32 reg = 0;
 		u32 bit_stride = gr_cwd_gpc_tpc_id_gpc0_s() +
 				 gr_cwd_gpc_tpc_id_tpc0_s();
 
-		for (j = 0; j < 4; j++) {
-			u32 sm_id = (i * 4) + j;
+		for (j = 0U; j < 4U; j++) {
+			u32 sm_id = (i * 4U) + j;
 			u32 bits;
 
 			if (sm_id >= g->gr.tpc_count) {
@@ -830,10 +830,10 @@ int gr_gm20b_load_ctxsw_ucode(struct gk20a *g)
 			/* bind WPR VA inst block */
 			gr_gk20a_load_falcon_bind_instblk(g);
 			if (g->ops.pmu.is_lazy_bootstrap(LSF_FALCON_ID_FECS)) {
-				falcon_id_mask |= (1 << LSF_FALCON_ID_FECS);
+				falcon_id_mask |= BIT8(LSF_FALCON_ID_FECS);
 			}
 			if (g->ops.pmu.is_lazy_bootstrap(LSF_FALCON_ID_GPCCS)) {
-				falcon_id_mask |= (1 << LSF_FALCON_ID_GPCCS);
+				falcon_id_mask |= BIT8(LSF_FALCON_ID_GPCCS);
 			}
 
 			if (nvgpu_is_enabled(g, NVGPU_SUPPORT_SEC2_RTOS)) {
@@ -989,7 +989,7 @@ int gr_gm20b_dump_gr_status_regs(struct gk20a *g,
 		gk20a_readl(g, gr_pri_gpc0_gpccs_gpc_activity3_r()));
 	gk20a_debug_output(o, "NV_PGRAPH_PRI_GPC0_TPC0_TPCCS_TPC_ACTIVITY0: 0x%x\n",
 		gk20a_readl(g, gr_pri_gpc0_tpc0_tpccs_tpc_activity_0_r()));
-	if ((gr->gpc_tpc_count != NULL) && (gr->gpc_tpc_count[0] == 2)) {
+	if ((gr->gpc_tpc_count != NULL) && (gr->gpc_tpc_count[0] == 2U)) {
 		gk20a_debug_output(o, "NV_PGRAPH_PRI_GPC0_TPC1_TPCCS_TPC_ACTIVITY0: 0x%x\n",
 			gk20a_readl(g, gr_pri_gpc0_tpc1_tpccs_tpc_activity_0_r()));
 	}
@@ -1005,7 +1005,7 @@ int gr_gm20b_dump_gr_status_regs(struct gk20a *g,
 		gk20a_readl(g, gr_pri_gpcs_gpccs_gpc_activity_3_r()));
 	gk20a_debug_output(o, "NV_PGRAPH_PRI_GPCS_TPC0_TPCCS_TPC_ACTIVITY0: 0x%x\n",
 		gk20a_readl(g, gr_pri_gpcs_tpc0_tpccs_tpc_activity_0_r()));
-	if ((gr->gpc_tpc_count != NULL) && (gr->gpc_tpc_count[0] == 2)) {
+	if ((gr->gpc_tpc_count != NULL) && (gr->gpc_tpc_count[0] == 2U)) {
 		gk20a_debug_output(o, "NV_PGRAPH_PRI_GPCS_TPC1_TPCCS_TPC_ACTIVITY0: 0x%x\n",
 			gk20a_readl(g, gr_pri_gpcs_tpc1_tpccs_tpc_activity_0_r()));
 	}
@@ -1129,7 +1129,7 @@ u32 gr_gm20b_get_fbp_en_mask(struct gk20a *g)
 	 */
 	fbp_en_mask = g->ops.fuse.fuse_status_opt_fbp(g);
 	fbp_en_mask = ~fbp_en_mask;
-	fbp_en_mask = fbp_en_mask & ((1 << max_fbps_count) - 1);
+	fbp_en_mask = fbp_en_mask & (BIT32(max_fbps_count) - 1U);
 
 	return fbp_en_mask;
 }
@@ -1225,15 +1225,15 @@ void gr_gm20b_bpt_reg_info(struct gk20a *g, struct nvgpu_warpstate *w_state)
 		reg_offset = tpc_offset + gpc_offset;
 
 		/* 64 bit read */
-		warps_valid = (u64)gk20a_readl(g, gr_gpc0_tpc0_sm_warp_valid_mask_r() + reg_offset + 4) << 32;
+		warps_valid = (u64)gk20a_readl(g, gr_gpc0_tpc0_sm_warp_valid_mask_r() + reg_offset + 4U) << 32;
 		warps_valid |= gk20a_readl(g, gr_gpc0_tpc0_sm_warp_valid_mask_r() + reg_offset);
 
 		/* 64 bit read */
-		warps_paused = (u64)gk20a_readl(g, gr_gpc0_tpc0_sm_dbgr_bpt_pause_mask_r() + reg_offset + 4) << 32;
+		warps_paused = (u64)gk20a_readl(g, gr_gpc0_tpc0_sm_dbgr_bpt_pause_mask_r() + reg_offset + 4U) << 32;
 		warps_paused |= gk20a_readl(g, gr_gpc0_tpc0_sm_dbgr_bpt_pause_mask_r() + reg_offset);
 
 		/* 64 bit read */
-		warps_trapped = (u64)gk20a_readl(g, gr_gpc0_tpc0_sm_dbgr_bpt_trap_mask_r() + reg_offset + 4) << 32;
+		warps_trapped = (u64)gk20a_readl(g, gr_gpc0_tpc0_sm_dbgr_bpt_trap_mask_r() + reg_offset + 4U) << 32;
 		warps_trapped |= gk20a_readl(g, gr_gpc0_tpc0_sm_dbgr_bpt_trap_mask_r() + reg_offset);
 
 		w_state[sm_id].valid_warps[0] = warps_valid;
@@ -1241,17 +1241,17 @@ void gr_gm20b_bpt_reg_info(struct gk20a *g, struct nvgpu_warpstate *w_state)
 		w_state[sm_id].paused_warps[0] = warps_paused;
 
 
-		if (numWarpPerTpc > 64) {
+		if (numWarpPerTpc > 64U) {
 			/* 64 bit read */
-			warps_valid = (u64)gk20a_readl(g, gr_gpc0_tpc0_sm_warp_valid_mask_2_r() + reg_offset + 4) << 32;
+			warps_valid = (u64)gk20a_readl(g, gr_gpc0_tpc0_sm_warp_valid_mask_2_r() + reg_offset + 4U) << 32;
 			warps_valid |= gk20a_readl(g, gr_gpc0_tpc0_sm_warp_valid_mask_2_r() + reg_offset);
 
 			/* 64 bit read */
-			warps_paused = (u64)gk20a_readl(g, gr_gpc0_tpc0_sm_dbgr_bpt_pause_mask_2_r() + reg_offset + 4) << 32;
+			warps_paused = (u64)gk20a_readl(g, gr_gpc0_tpc0_sm_dbgr_bpt_pause_mask_2_r() + reg_offset + 4U) << 32;
 			warps_paused |= gk20a_readl(g, gr_gpc0_tpc0_sm_dbgr_bpt_pause_mask_2_r() + reg_offset);
 
 			/* 64 bit read */
-			warps_trapped = (u64)gk20a_readl(g, gr_gpc0_tpc0_sm_dbgr_bpt_trap_mask_2_r() + reg_offset + 4) << 32;
+			warps_trapped = (u64)gk20a_readl(g, gr_gpc0_tpc0_sm_dbgr_bpt_trap_mask_2_r() + reg_offset + 4U) << 32;
 			warps_trapped |= gk20a_readl(g, gr_gpc0_tpc0_sm_dbgr_bpt_trap_mask_2_r() + reg_offset);
 
 			w_state[sm_id].valid_warps[1] = warps_valid;
@@ -1468,7 +1468,7 @@ void gm20a_gr_disable_rd_coalesce(struct gk20a *g)
 
 u32 gr_gm20b_get_pmm_per_chiplet_offset(void)
 {
-	return (perf_pmmsys_extent_v() - perf_pmmsys_base_v() + 1);
+	return (perf_pmmsys_extent_v() - perf_pmmsys_base_v() + 1U);
 }
 
 void gm20b_gr_set_debug_mode(struct gk20a *g, bool enable)

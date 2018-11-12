@@ -94,7 +94,7 @@ void gm20b_fifo_trigger_mmu_fault(struct gk20a *g,
 	struct nvgpu_timeout timeout;
 
 	/* trigger faults for all bad engines */
-	for_each_set_bit(engine_id, &engine_ids, 32) {
+	for_each_set_bit(engine_id, &engine_ids, 32UL) {
 		if (!gk20a_fifo_is_valid_engine_id(g, engine_id)) {
 			nvgpu_err(g, "faulting unknown engine %ld", engine_id);
 		} else {
@@ -118,7 +118,7 @@ void gm20b_fifo_trigger_mmu_fault(struct gk20a *g,
 			break;
 		}
 
-		nvgpu_usleep_range(delay, delay * 2);
+		nvgpu_usleep_range(delay, delay * 2UL);
 		delay = min_t(u32, delay << 1, GR_IDLE_CHECK_MAX);
 	} while (nvgpu_timeout_expired(&timeout) == 0);
 
@@ -127,7 +127,7 @@ void gm20b_fifo_trigger_mmu_fault(struct gk20a *g,
 	}
 
 	/* release mmu fault trigger */
-	for_each_set_bit(engine_id, &engine_ids, 32) {
+	for_each_set_bit(engine_id, &engine_ids, 32UL) {
 		gk20a_writel(g, fifo_trigger_mmu_fault_r(engine_id), 0);
 	}
 }

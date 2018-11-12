@@ -61,8 +61,8 @@ struct pmu_acr_cmd_bootstrap_multiple_falcons {
 	struct falc_u64 wprvirtualbase;
 };
 
-#define PMU_ACR_CMD_BOOTSTRAP_FALCON_FLAGS_RESET_NO  1
-#define PMU_ACR_CMD_BOOTSTRAP_FALCON_FLAGS_RESET_YES 0
+#define PMU_ACR_CMD_BOOTSTRAP_FALCON_FLAGS_RESET_NO  1U
+#define PMU_ACR_CMD_BOOTSTRAP_FALCON_FLAGS_RESET_YES 0U
 
 
 struct pmu_acr_cmd {
@@ -79,18 +79,18 @@ struct pmu_acr_cmd {
 /*
  * returns the WPR region init information
  */
-#define PMU_ACR_MSG_ID_INIT_WPR_REGION   0
+#define PMU_ACR_MSG_ID_INIT_WPR_REGION   0U
 
 /*
  * Returns the Bootstrapped falcon ID to RM
  */
-#define PMU_ACR_MSG_ID_BOOTSTRAP_FALCON  1
+#define PMU_ACR_MSG_ID_BOOTSTRAP_FALCON  1U
 
 /*
  * Returns the WPR init status
  */
-#define PMU_ACR_SUCCESS                  0
-#define PMU_ACR_ERROR                    1
+#define PMU_ACR_SUCCESS                  0U
+#define PMU_ACR_ERROR                    1U
 
 /*
  * PMU notifies about bootstrap status of falcon
@@ -111,11 +111,11 @@ struct pmu_acr_msg {
 };
 
 /* ACR RPC */
-#define NV_PMU_RPC_ID_ACR_INIT_WPR_REGION      0x00
-#define NV_PMU_RPC_ID_ACR_WRITE_CBC_BASE       0x01
-#define NV_PMU_RPC_ID_ACR_BOOTSTRAP_FALCON     0x02
-#define NV_PMU_RPC_ID_ACR_BOOTSTRAP_GR_FALCONS 0x03
-#define NV_PMU_RPC_ID_ACR__COUNT               0x04
+#define NV_PMU_RPC_ID_ACR_INIT_WPR_REGION      0x00U
+#define NV_PMU_RPC_ID_ACR_WRITE_CBC_BASE       0x01U
+#define NV_PMU_RPC_ID_ACR_BOOTSTRAP_FALCON     0x02U
+#define NV_PMU_RPC_ID_ACR_BOOTSTRAP_GR_FALCONS 0x03U
+#define NV_PMU_RPC_ID_ACR__COUNT               0x04U
 
 /*
  * structure that holds data used
