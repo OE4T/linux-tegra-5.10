@@ -51,6 +51,8 @@ struct nvgpu_pci_gpios {
 /* delays in milliseconds (ms) */
 #define PCI_VBAR_PWR_ON_DELAY_MS	15
 #define PCI_PWR_ON_DELAY_MS		150
+#define PCI_VBAR_PWR_OFF_DELAY_MS	2
+#define PCI_PWR_OFF_DELAY_MS		2
 
 struct gk20a_platform {
 	/* Populated by the gk20a driver before probing the platform. */

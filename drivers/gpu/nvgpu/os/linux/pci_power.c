@@ -258,7 +258,7 @@ static int nvgpu_disable_pci_rail(struct nvgpu_pci_gpios *pgpios)
 
 	gpio_set_value(pci_vbat_pwr_on_gpio, 0);
 
-	mdelay(PCI_VBAR_PWR_ON_DELAY_MS);
+	mdelay(PCI_VBAR_PWR_OFF_DELAY_MS);
 	return 0;
 }
 
@@ -285,7 +285,7 @@ static int nvgpu_deassert_pci_pwr_on(struct nvgpu_pci_gpios *pgpios)
 
 	gpio_set_value(pci_pwr_on, 0);
 
-	mdelay(PCI_PWR_ON_DELAY_MS);
+	mdelay(PCI_PWR_OFF_DELAY_MS);
 	return 0;
 }
 
