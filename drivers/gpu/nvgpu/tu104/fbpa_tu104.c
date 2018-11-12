@@ -96,10 +96,10 @@ void tu104_fbpa_handle_intr(struct gk20a *g, u32 fbpa_id)
 		return;
 	}
 
-	if (status & ecc_subp0_mask) {
+	if ((status & ecc_subp0_mask) != 0U) {
 		tu104_fbpa_handle_ecc_intr(g, fbpa_id, 0u);
 	}
-	if (status & ecc_subp1_mask) {
+	if ((status & ecc_subp1_mask) != 0U) {
 		tu104_fbpa_handle_ecc_intr(g, fbpa_id, 1u);
 	}
 }

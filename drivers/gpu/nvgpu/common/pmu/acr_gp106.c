@@ -816,7 +816,7 @@ int lsfm_fill_flcn_bl_gen_desc(struct gk20a *g,
 		return 0;
 	}
 
-	if (pmu->pmu_mode & PMU_LSFM_MANAGED) {
+	if ((pmu->pmu_mode & PMU_LSFM_MANAGED) != 0U) {
 		gp106_dbg_pmu(g, "pmu write flcn bl gen desc\n");
 		if (pnode->wpr_header.falcon_id == pmu->falcon_id) {
 			return g->ops.pmu.pmu_populate_loader_cfg(g, pnode,

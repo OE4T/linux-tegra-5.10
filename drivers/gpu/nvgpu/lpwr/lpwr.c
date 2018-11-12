@@ -103,7 +103,7 @@ static int get_lpwr_gr_table(struct gk20a *g)
 			sizeof(struct nvgpu_bios_lpwr_gr_table_1x_entry));
 
 		if (BIOS_GET_FIELD(entry.feautre_mask,
-			NV_VBIOS_LPWR_MS_FEATURE_MASK_MS)) {
+			NV_VBIOS_LPWR_MS_FEATURE_MASK_MS) != 0U) {
 			pgr_data->entry[idx].gr_enabled = true;
 
 			pgr_data->entry[idx].feature_mask =
@@ -157,7 +157,7 @@ static int get_lpwr_ms_table(struct gk20a *g)
 			sizeof(struct nvgpu_bios_lpwr_ms_table_1x_entry));
 
 		if (BIOS_GET_FIELD(entry.feautre_mask,
-			NV_VBIOS_LPWR_MS_FEATURE_MASK_MS)) {
+			NV_VBIOS_LPWR_MS_FEATURE_MASK_MS) != 0U) {
 			pms_data->entry[idx].ms_enabled = true;
 
 			pms_data->entry[idx].feature_mask =

@@ -913,7 +913,7 @@ struct nvgpu_mapped_buf *nvgpu_vm_map(struct vm_gk20a *vm,
 	/*
 	 * Check if we should use a fixed offset for mapping this buffer.
 	 */
-	if (flags & NVGPU_VM_MAP_FIXED_OFFSET)  {
+	if ((flags & NVGPU_VM_MAP_FIXED_OFFSET) != 0U)  {
 		err = nvgpu_vm_area_validate_buffer(vm,
 						    map_addr,
 						    map_size,
@@ -1212,7 +1212,7 @@ void nvgpu_vm_unmap(struct vm_gk20a *vm, u64 offset,
 		goto done;
 	}
 
-	if (mapped_buffer->flags & NVGPU_VM_MAP_FIXED_OFFSET) {
+	if ((mapped_buffer->flags & NVGPU_VM_MAP_FIXED_OFFSET) != 0U) {
 		if (nvgpu_vm_unmap_sync_buffer(vm, mapped_buffer) != 0) {
 			/*
 			 * Looks like we have failed... Better not continue in

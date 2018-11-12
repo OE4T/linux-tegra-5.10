@@ -1295,7 +1295,7 @@ void gv11b_fb_handle_dropped_mmu_fault(struct gk20a *g, u32 fault_status)
 			fb_mmu_fault_status_dropped_other_phys_set_f()|
 			fb_mmu_fault_status_dropped_other_virt_set_f();
 
-	if (fault_status & dropped_faults) {
+	if ((fault_status & dropped_faults) != 0U) {
 		nvgpu_err(g, "dropped mmu fault (0x%08x)",
 				 fault_status & dropped_faults);
 		g->ops.fb.write_mmu_fault_status(g, dropped_faults);

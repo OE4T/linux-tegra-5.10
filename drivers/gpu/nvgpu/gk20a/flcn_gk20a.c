@@ -173,7 +173,7 @@ static int flcn_mem_overflow_check(struct nvgpu_falcon *flcn,
 		return -EINVAL;
 	}
 
-	if (offset & 0x3U) {
+	if ((offset & 0x3U) != 0U) {
 		nvgpu_err(g, "offset (0x%08x) not 4-byte aligned", offset);
 		return -EINVAL;
 	}
@@ -530,7 +530,7 @@ static void gk20a_falcon_dump_pc_trace(struct nvgpu_falcon *flcn)
 	u32 pc = 0;
 	u32 i = 0;
 
-	if (gk20a_readl(g, base_addr + falcon_falcon_sctl_r()) & 0x02U) {
+	if ((gk20a_readl(g, base_addr + falcon_falcon_sctl_r()) & 0x02U) != 0U) {
 		nvgpu_err(g, " falcon is in HS mode, PC TRACE dump not supported");
 		return;
 	}

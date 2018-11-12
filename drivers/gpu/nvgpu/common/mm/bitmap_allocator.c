@@ -274,7 +274,7 @@ static void nvgpu_bitmap_free(struct nvgpu_allocator *na, u64 addr)
 
 	alloc_lock(na);
 
-	if (a->flags & GPU_ALLOC_NO_ALLOC_PAGE) {
+	if ((a->flags & GPU_ALLOC_NO_ALLOC_PAGE) != 0ULL) {
 		(void) WARN(1,
 			"Using wrong free for NO_ALLOC_PAGE bitmap allocator");
 		goto done;

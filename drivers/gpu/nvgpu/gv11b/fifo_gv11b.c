@@ -758,12 +758,12 @@ static u32 gv11b_fifo_get_runlists_mask(struct gk20a *g, u32 act_eng_bitmask,
 
 			runlist = &f->runlist_info[rlid];
 
-			if (runlist->eng_bitmask & act_eng_bitmask) {
+			if ((runlist->eng_bitmask & act_eng_bitmask) != 0U) {
 				runlists_mask |=
 				 fifo_sched_disable_runlist_m(rlid);
 			}
 
-			if (runlist->pbdma_bitmask & pbdma_bitmask) {
+			if ((runlist->pbdma_bitmask & pbdma_bitmask) != 0U) {
 				runlists_mask |=
 				 fifo_sched_disable_runlist_m(rlid);
 			}
@@ -775,7 +775,7 @@ static u32 gv11b_fifo_get_runlists_mask(struct gk20a *g, u32 act_eng_bitmask,
 			if (act_eng_bitmask != 0U) {
 				/* eng ids are known */
 				runlist = &f->runlist_info[rlid];
-				if (runlist->eng_bitmask & act_eng_bitmask) {
+				if ((runlist->eng_bitmask & act_eng_bitmask) != 0U) {
 					runlists_mask |=
 					fifo_sched_disable_runlist_m(rlid);
                                 }
@@ -1074,7 +1074,7 @@ void gv11b_fifo_teardown_ch_tsg(struct gk20a *g, u32 act_eng_bitmask,
 			if (act_eng_bitmask != 0U) {
 				/* eng ids are known */
 				runlist = &f->runlist_info[rlid];
-				if (runlist->eng_bitmask & act_eng_bitmask) {
+				if ((runlist->eng_bitmask & act_eng_bitmask) != 0U) {
 					runlist_id = rlid;
 					num_runlists++;
 				}
@@ -1608,9 +1608,9 @@ bool gv11b_fifo_handle_ctxsw_timeout(struct gk20a *g, u32 fifo_intr)
 	for (engine_id = 0; engine_id < g->fifo.num_engines; engine_id++) {
 		active_eng_id = g->fifo.active_engines_list[engine_id];
 
-		if (ctxsw_timeout_engines &
+		if ((ctxsw_timeout_engines &
 			fifo_intr_ctxsw_timeout_engine_pending_f(
-				active_eng_id)) {
+				active_eng_id)) != 0U) {
 
 			struct fifo_gk20a *f = &g->fifo;
 			u32 ms = 0;

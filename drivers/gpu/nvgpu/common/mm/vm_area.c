@@ -57,7 +57,7 @@ int nvgpu_vm_area_validate_buffer(struct vm_gk20a *vm,
 		return -EINVAL;
 	}
 
-	if (map_addr & (U64(vm->gmmu_page_sizes[pgsz_idx]) - U64(1))) {
+	if ((map_addr & (U64(vm->gmmu_page_sizes[pgsz_idx]) - U64(1))) != 0ULL) {
 		nvgpu_err(g, "map offset must be buffer page size aligned 0x%llx",
 			  map_addr);
 		return -EINVAL;
@@ -143,7 +143,7 @@ int nvgpu_vm_area_alloc(struct vm_gk20a *vm, u32 pages, u32 page_size,
 	}
 
 	vma = vm->vma[pgsz_idx];
-	if (flags & NVGPU_VM_AREA_ALLOC_FIXED_OFFSET) {
+	if ((flags & NVGPU_VM_AREA_ALLOC_FIXED_OFFSET) != 0U) {
 		vaddr_start = nvgpu_alloc_fixed(vma, our_addr,
 						(u64)pages *
 						(u64)page_size,
@@ -168,7 +168,7 @@ int nvgpu_vm_area_alloc(struct vm_gk20a *vm, u32 pages, u32 page_size,
 
 	nvgpu_mutex_acquire(&vm->update_gmmu_lock);
 
-	if (flags & NVGPU_VM_AREA_ALLOC_SPARSE) {
+	if ((flags & NVGPU_VM_AREA_ALLOC_SPARSE) != 0U) {
 		u64 map_addr = g->ops.mm.gmmu_map(vm, vaddr_start,
 					 NULL,
 					 0,

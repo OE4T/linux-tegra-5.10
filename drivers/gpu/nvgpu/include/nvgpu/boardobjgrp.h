@@ -410,20 +410,25 @@ void boardobjgrpe32hdrset(struct nv_pmu_boardobjgrp *hdr, u32 objmask);
 	(n32) = ((((n32) + ((n32) >> 4U)) & 0x0F0F0F0FU) * 0x01010101U) >> 24U;\
 }
 
-#define IDX_32(n32)                     \
-{                                       \
-	u32 idx = 0U;                      \
-	if ((n32) & 0xFFFF0000U)             \
-		idx += 16U;                  \
-	if ((n32) & 0xFF00FF00U)             \
-		idx += 8U;                   \
-	if ((n32) & 0xF0F0F0F0U)             \
-		idx += 4U;                   \
-	if ((n32) & 0xCCCCCCCCU)             \
-		idx += 2U;                   \
-	if ((n32) & 0xAAAAAAAAU)             \
-		idx += 1U;                   \
-	(n32) = idx;                        \
+#define IDX_32(n32)				\
+{						\
+	u32 idx = 0U;				\
+	if (((n32) & 0xFFFF0000U) != 0U) {  	\
+		idx += 16U;			\
+	}					\
+	if (((n32) & 0xFF00FF00U) != 0U) {	\
+		idx += 8U;			\
+	}					\
+	if (((n32) & 0xF0F0F0F0U) != 0U) {	\
+		idx += 4U;			\
+	}					\
+	if (((n32) & 0xCCCCCCCCU) != 0U) {	\
+		idx += 2U;			\
+	}					\
+	if (((n32) & 0xAAAAAAAAU) != 0U) {	\
+		idx += 1U;			\
+	}					\
+	(n32) = idx;				\
 }
 
 static inline struct boardobjgrp *

@@ -749,7 +749,7 @@ void *nvgpu_bios_get_perf_table_ptrs(struct gk20a *g,
 
 		if (perf_table_id_offset != 0U) {
 			/* check is perf_table_id_offset is > 64k */
-			if (perf_table_id_offset & ~0xFFFFU) {
+			if ((perf_table_id_offset & ~0xFFFFU) != 0U) {
 				perf_table_ptr =
 					&g->bios.data[g->bios.expansion_rom_offset +
 						perf_table_id_offset];

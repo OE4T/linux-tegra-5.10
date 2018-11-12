@@ -357,7 +357,7 @@ static int validate_reg_op_offset(struct dbg_session_gk20a *dbg_s,
 	offset = op->offset;
 
 	/* support only 24-bit 4-byte aligned offsets */
-	if (offset & 0xFF000003) {
+	if ((offset & 0xFF000003U) != 0U) {
 		nvgpu_err(dbg_s->g, "invalid regop offset: 0x%x", offset);
 		op->status |= REGOP(STATUS_INVALID_OFFSET);
 		return -EINVAL;

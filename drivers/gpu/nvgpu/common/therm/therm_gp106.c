@@ -48,8 +48,8 @@ int gp106_get_internal_sensor_curr_temp(struct gk20a *g, u32 *temp_f24_8)
 		nvgpu_err(g,
 			"Attempt to read temperature while sensor is OFF!");
 		err = -EINVAL;
-	} else if (therm_temp_sensor_tsense_state_v(readval) &
-		therm_temp_sensor_tsense_state_shadow_v()) {
+	} else if ((therm_temp_sensor_tsense_state_v(readval) &
+		   therm_temp_sensor_tsense_state_shadow_v()) != 0U) {
 		nvgpu_err(g, "Reading temperature from SHADOWed sensor!");
 	}
 

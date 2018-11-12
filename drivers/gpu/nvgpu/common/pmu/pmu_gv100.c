@@ -57,8 +57,9 @@ int gv100_load_falcon_ucode(struct gk20a *g, u32 falconidmask)
 		return -EINVAL;
 	}
 
-	if (falconidmask & ~((1 << LSF_FALCON_ID_FECS) |
-		(1 << LSF_FALCON_ID_GPCCS))) {
+	if ((falconidmask &
+		~(BIT32(LSF_FALCON_ID_FECS) |
+		  BIT32(LSF_FALCON_ID_GPCCS))) != 0U) {
 		return -EINVAL;
 	}
 

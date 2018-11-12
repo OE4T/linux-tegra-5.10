@@ -53,8 +53,8 @@ enum {
 #define NVC0C0_SET_SHADER_EXCEPTIONS		0x1528
 #define NVC0C0_SET_RD_COALESCE			0x0228
 
-#define NVC097_BES_CROP_DEBUG4_CLAMP_FP_BLEND_TO_INF	0x0
-#define NVC097_BES_CROP_DEBUG4_CLAMP_FP_BLEND_TO_MAXVAL 0x1
+#define NVC097_BES_CROP_DEBUG4_CLAMP_FP_BLEND_TO_INF	0x0U
+#define NVC097_BES_CROP_DEBUG4_CLAMP_FP_BLEND_TO_MAXVAL 0x1U
 
 int gr_gp10b_init_fs_state(struct gk20a *g);
 int gr_gp10b_alloc_buffer(struct vm_gk20a *vm, size_t size,

@@ -673,7 +673,7 @@ bool gk20a_pmu_is_interrupted(struct nvgpu_pmu *pmu)
 			pwr_falcon_irqstat_exterr_true_f() |
 			pwr_falcon_irqstat_swgen0_true_f();
 
-	if (gk20a_readl(g, pwr_falcon_irqstat_r()) & servicedpmuint) {
+	if ((gk20a_readl(g, pwr_falcon_irqstat_r()) & servicedpmuint) != 0U) {
 		return true;
 	}
 

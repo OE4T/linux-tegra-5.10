@@ -81,7 +81,7 @@ void gm20b_priv_ring_isr(struct gk20a *g)
 	}
 
 	for (gpc = 0; gpc < g->gr.gpc_count; gpc++) {
-		if (status1 & BIT(gpc)) {
+		if ((status1 & BIT32(gpc)) != 0U) {
 			nvgpu_log(g, gpu_dbg_intr, "GPC%u write error. ADR %08x WRDAT %08x INFO %08x, CODE %08x", gpc,
 				gk20a_readl(g, pri_ringstation_gpc_gpc0_priv_error_adr_r() + gpc * gpc_priv_stride),
 				gk20a_readl(g, pri_ringstation_gpc_gpc0_priv_error_wrdat_r() + gpc * gpc_priv_stride),

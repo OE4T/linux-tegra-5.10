@@ -156,7 +156,7 @@ void gp10b_priv_ring_isr(struct gk20a *g)
 		gpc_stride = nvgpu_get_litter_value(g, GPU_LIT_GPC_PRIV_STRIDE);
 		for (gpc = 0; gpc < g->gr.gpc_count; gpc++) {
 			offset = gpc * gpc_stride;
-			if (status1 & BIT(gpc)) {
+			if ((status1 & BIT32(gpc)) != 0U) {
 				error_info = gk20a_readl(g,
 					pri_ringstation_gpc_gpc0_priv_error_info_r() + offset);
 				error_code = gk20a_readl(g,

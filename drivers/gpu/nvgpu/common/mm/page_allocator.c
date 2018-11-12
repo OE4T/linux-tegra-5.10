@@ -710,7 +710,7 @@ static u64 nvgpu_page_alloc(struct nvgpu_allocator *na, u64 len)
 	}
 	alloc_unlock(na);
 
-	if (a->flags & GPU_ALLOC_NO_SCATTER_GATHER) {
+	if ((a->flags & GPU_ALLOC_NO_SCATTER_GATHER) != 0ULL) {
 		return alloc->base;
 	} else {
 		return (u64) (uintptr_t) alloc;
@@ -728,7 +728,7 @@ static void nvgpu_page_free(struct nvgpu_allocator *na, u64 base)
 
 	alloc_lock(na);
 
-	if (a->flags & GPU_ALLOC_NO_SCATTER_GATHER) {
+	if ((a->flags & GPU_ALLOC_NO_SCATTER_GATHER) != 0ULL) {
 		alloc = find_page_alloc(a, base);
 	} else {
 		alloc = find_page_alloc(a,
@@ -841,7 +841,7 @@ static u64 nvgpu_page_alloc_fixed(struct nvgpu_allocator *na,
 	a->nr_fixed_allocs++;
 	a->pages_alloced += pages;
 
-	if (a->flags & GPU_ALLOC_NO_SCATTER_GATHER) {
+	if ((a->flags & GPU_ALLOC_NO_SCATTER_GATHER) != 0ULL) {
 		return alloc->base;
 	} else {
 		return (u64) (uintptr_t) alloc;
@@ -856,7 +856,7 @@ static void nvgpu_page_free_fixed(struct nvgpu_allocator *na,
 
 	alloc_lock(na);
 
-	if (a->flags & GPU_ALLOC_NO_SCATTER_GATHER) {
+	if ((a->flags & GPU_ALLOC_NO_SCATTER_GATHER) != 0ULL) {
 		alloc = find_page_alloc(a, base);
 		if (alloc == NULL) {
 			goto done;

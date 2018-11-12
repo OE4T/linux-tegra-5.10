@@ -1120,11 +1120,11 @@ int nvgpu_channel_setup_bind(struct channel_gk20a *c,
 	gpfifo_size = args->num_gpfifo_entries;
 	gpfifo_entry_size = nvgpu_get_gpfifo_entry_size();
 
-	if (args->flags & NVGPU_SETUP_BIND_FLAGS_SUPPORT_VPR) {
+	if ((args->flags & NVGPU_SETUP_BIND_FLAGS_SUPPORT_VPR) != 0U) {
 		c->vpr = true;
 	}
 
-	if (args->flags & NVGPU_SETUP_BIND_FLAGS_SUPPORT_DETERMINISTIC) {
+	if ((args->flags & NVGPU_SETUP_BIND_FLAGS_SUPPORT_DETERMINISTIC) != 0U) {
 		nvgpu_rwsem_down_read(&g->deterministic_busy);
 		/*
 		 * Railgating isn't deterministic; instead of disallowing
@@ -1162,7 +1162,7 @@ int nvgpu_channel_setup_bind(struct channel_gk20a *c,
 		goto clean_up_idle;
 	}
 
-	if (args->flags & NVGPU_SETUP_BIND_FLAGS_USERMODE_SUPPORT) {
+	if ((args->flags & NVGPU_SETUP_BIND_FLAGS_USERMODE_SUPPORT) != 0U) {
 		if (g->os_channel.alloc_usermode_buffers != NULL) {
 			err = g->os_channel.alloc_usermode_buffers(c, args);
 			if (err != 0) {

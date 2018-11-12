@@ -644,7 +644,7 @@ void gr_gp10b_set_bes_crop_debug3(struct gk20a *g, u32 data)
 	nvgpu_log_fn(g, " ");
 
 	val = gk20a_readl(g, gr_bes_crop_debug3_r());
-	if ((data & 1)) {
+	if ((data & 1U) != 0U) {
 		val = set_field(val,
 				gr_bes_crop_debug3_blendopt_read_suppress_m(),
 				gr_bes_crop_debug3_blendopt_read_suppress_enabled_f());
@@ -669,11 +669,11 @@ void gr_gp10b_set_bes_crop_debug4(struct gk20a *g, u32 data)
 	nvgpu_log_fn(g, " ");
 
 	val = gk20a_readl(g, gr_bes_crop_debug4_r());
-	if (data & NVC097_BES_CROP_DEBUG4_CLAMP_FP_BLEND_TO_MAXVAL) {
+	if ((data & NVC097_BES_CROP_DEBUG4_CLAMP_FP_BLEND_TO_MAXVAL) != 0U) {
 		val = set_field(val,
 			gr_bes_crop_debug4_clamp_fp_blend_m(),
 			gr_bes_crop_debug4_clamp_fp_blend_to_maxval_f());
-	} else if (data & NVC097_BES_CROP_DEBUG4_CLAMP_FP_BLEND_TO_INF) {
+	} else if ((data & NVC097_BES_CROP_DEBUG4_CLAMP_FP_BLEND_TO_INF) != 0U) {
 		val = set_field(val,
 			gr_bes_crop_debug4_clamp_fp_blend_m(),
 			gr_bes_crop_debug4_clamp_fp_blend_to_inf_f());
@@ -1100,10 +1100,10 @@ int gr_gp10b_alloc_gr_ctx(struct gk20a *g,
 
 	gr_ctx->ctx_id_valid = false;
 
-	if (flags & NVGPU_OBJ_CTX_FLAGS_SUPPORT_GFXP) {
+	if ((flags & NVGPU_OBJ_CTX_FLAGS_SUPPORT_GFXP) != 0U) {
 		graphics_preempt_mode = NVGPU_PREEMPTION_MODE_GRAPHICS_GFXP;
 	}
-	if (flags & NVGPU_OBJ_CTX_FLAGS_SUPPORT_CILP) {
+	if ((flags & NVGPU_OBJ_CTX_FLAGS_SUPPORT_CILP) != 0U) {
 		compute_preempt_mode = NVGPU_PREEMPTION_MODE_COMPUTE_CILP;
 	}
 
@@ -1996,7 +1996,7 @@ int gr_gp10b_handle_fecs_error(struct gk20a *g,
 	 * INTR1 (bit 1 of the HOST_INT_STATUS_CTXSW_INTR)
 	 * indicates that a CILP ctxsw save has finished
 	 */
-	if (gr_fecs_intr & gr_fecs_host_int_status_ctxsw_intr_f(2)) {
+	if ((gr_fecs_intr & gr_fecs_host_int_status_ctxsw_intr_f(2)) != 0U) {
 		nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gpu_dbg | gpu_dbg_intr,
 				"CILP: ctxsw save completed!\n");
 

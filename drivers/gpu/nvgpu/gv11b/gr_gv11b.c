@@ -1279,7 +1279,7 @@ void gr_gv11b_set_shader_cut_collector(struct gk20a *g, u32 data)
 	nvgpu_log_fn(g, "gr_gv11b_set_shader_cut_collector");
 
 	val = gk20a_readl(g, gr_gpcs_tpcs_sm_l1tag_ctrl_r());
-	if (data & NVC397_SET_SHADER_CUT_COLLECTOR_STATE_ENABLE) {
+	if ((data & NVC397_SET_SHADER_CUT_COLLECTOR_STATE_ENABLE) != 0U) {
 		val = set_field(val,
 			gr_gpcs_tpcs_sm_l1tag_ctrl_always_cut_collector_m(),
 			gr_gpcs_tpcs_sm_l1tag_ctrl_always_cut_collector_enable_f());

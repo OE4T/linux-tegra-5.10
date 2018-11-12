@@ -394,13 +394,13 @@ int gk20a_fifo_init_engine_info(struct fifo_gk20a *f)
 					top_device_info_runlist_enum_v(table_entry);
 				nvgpu_log_info(g, "gr info: runlist_id %d", runlist_id);
 
-				runlist_bit = BIT(runlist_id);
+				runlist_bit = BIT32(runlist_id);
 
 				found_pbdma_for_runlist = false;
 				for (pbdma_id = 0; pbdma_id < f->num_pbdma;
 								pbdma_id++) {
-					if (f->pbdma_map[pbdma_id] &
-								runlist_bit) {
+					if ((f->pbdma_map[pbdma_id] &
+						runlist_bit) != 0U) {
 						nvgpu_log_info(g,
 						"gr info: pbdma_map[%d]=%d",
 							pbdma_id,
@@ -685,8 +685,8 @@ static int init_runlist(struct gk20a *g, struct fifo_gk20a *f)
 		runlist->cur_buffer = MAX_RUNLIST_BUFFERS;
 
 		for (pbdma_id = 0; pbdma_id < f->num_pbdma; pbdma_id++) {
-			if (f->pbdma_map[pbdma_id] & BIT(runlist_id)) {
-				runlist->pbdma_bitmask |= BIT(pbdma_id);
+			if ((f->pbdma_map[pbdma_id] & BIT32(runlist_id)) != 0U) {
+				runlist->pbdma_bitmask |= BIT32(pbdma_id);
 			}
 		}
 		nvgpu_log(g, gpu_dbg_info, "runlist %d : pbdma bitmask 0x%x",
@@ -1504,7 +1504,7 @@ int gk20a_fifo_deferred_reset(struct gk20a *g, struct channel_gk20a *ch)
 	 */
 
 	for_each_set_bit(engine_id, &g->fifo.deferred_fault_engines, 32UL) {
-		if (BIT64(engine_id) & engines) {
+		if ((BIT64(engine_id) & engines) != 0ULL) {
 			gk20a_fifo_reset_engine(g, (u32)engine_id);
 		}
 	}
@@ -2189,7 +2189,7 @@ u32 gk20a_fifo_get_failing_engine_data(struct gk20a *g,
 		} else if (ctx_status ==
 			       fifo_engine_status_ctx_status_ctxsw_switch_v()) {
 			mailbox2 = gk20a_readl(g, gr_fecs_ctxsw_mailbox_r(2));
-			if (mailbox2 & FECS_METHOD_WFI_RESTORE) {
+			if ((mailbox2 & FECS_METHOD_WFI_RESTORE) != 0U) {
 				id = fifo_engine_status_next_id_v(status);
 				is_tsg = fifo_engine_status_next_id_type_v(status) !=
 					fifo_engine_status_next_id_type_chid_v();
@@ -2484,9 +2484,9 @@ unsigned int gk20a_fifo_handle_pbdma_intr_0(struct gk20a *g, u32 pbdma_id,
 	unsigned long pbdma_intr_err;
 	unsigned long bit;
 
-	if ((f->intr.pbdma.device_fatal_0 |
-	     f->intr.pbdma.channel_fatal_0 |
-	     f->intr.pbdma.restartable_0) & pbdma_intr_0) {
+	if (((f->intr.pbdma.device_fatal_0 |
+	      f->intr.pbdma.channel_fatal_0 |
+	      f->intr.pbdma.restartable_0) & pbdma_intr_0) != 0U) {
 
 		pbdma_intr_err = (unsigned long)pbdma_intr_0;
 		for_each_set_bit(bit, &pbdma_intr_err, 32U) {

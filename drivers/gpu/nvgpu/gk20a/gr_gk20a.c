@@ -377,7 +377,7 @@ int gr_gk20a_ctx_wait_ucode(struct gk20a *g, u32 mailbox_id,
 			}
 			break;
 		case GR_IS_UCODE_OP_AND:
-			if (reg & mailbox_ok) {
+			if ((reg & mailbox_ok) != 0U) {
 				check = WAIT_UCODE_OK;
 			}
 			break;
@@ -414,7 +414,7 @@ int gr_gk20a_ctx_wait_ucode(struct gk20a *g, u32 mailbox_id,
 			}
 			break;
 		case GR_IS_UCODE_OP_AND:
-			if (reg & mailbox_fail) {
+			if ((reg & mailbox_fail) != 0U) {
 				check = WAIT_UCODE_ERROR;
 			}
 			break;
@@ -3540,7 +3540,7 @@ static int gr_gk20a_init_map_tiles(struct gk20a *g, struct gr_gk20a *gr)
 		}
 
 		mul_factor = S32(gr->gpc_count) * S32(max_tpc_count);
-		if (mul_factor & 0x1) {
+		if ((mul_factor & 0x1) != 0) {
 			mul_factor = 2;
 		} else {
 			mul_factor = 1;
@@ -5191,7 +5191,8 @@ int gk20a_gr_handle_fecs_error(struct gk20a *g, struct channel_gk20a *ch,
 		return 0;
 	}
 
-	if (gr_fecs_intr & gr_fecs_host_int_status_umimp_firmware_method_f(1)) {
+	if ((gr_fecs_intr &
+	     gr_fecs_host_int_status_umimp_firmware_method_f(1)) != 0U) {
 		gk20a_gr_set_error_notifier(g, isr_data,
 			 NVGPU_ERR_NOTIFIER_FECS_ERR_UNIMP_FIRMWARE_METHOD);
 		nvgpu_err(g,

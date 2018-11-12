@@ -47,13 +47,13 @@
  * Falcon Id Defines
  * Defines a common Light Secure Falcon identifier.
  */
-#define LSF_FALCON_ID_PMU       (0)
-#define LSF_FALCON_ID_GSPLITE   (1)
-#define LSF_FALCON_ID_FECS      (2)
-#define LSF_FALCON_ID_GPCCS     (3)
-#define LSF_FALCON_ID_SEC2      (7)
-#define LSF_FALCON_ID_END       (11)
-#define LSF_FALCON_ID_INVALID   (0xFFFFFFFF)
+#define LSF_FALCON_ID_PMU	0U
+#define LSF_FALCON_ID_GSPLITE	1U
+#define LSF_FALCON_ID_FECS	2U
+#define LSF_FALCON_ID_GPCCS	3U
+#define LSF_FALCON_ID_SEC2	7U
+#define LSF_FALCON_ID_END	11U
+#define LSF_FALCON_ID_INVALID	0xFFFFFFFFU
 
 /*
  * Light Secure Falcon Ucode Description Defines

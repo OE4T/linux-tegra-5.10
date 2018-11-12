@@ -43,9 +43,9 @@
 
 #define DFS_DET_RANGE	6	/* -2^6 ... 2^6-1 */
 #define SDM_DIN_RANGE	12	/* -2^12 ... 2^12-1 */
-#define DFS_TESTOUT_DET	BIT(0)
-#define DFS_EXT_CAL_EN	BIT(9)
-#define DFS_EXT_STROBE	BIT(16)
+#define DFS_TESTOUT_DET	BIT32(0)
+#define DFS_EXT_CAL_EN	BIT32(9)
+#define DFS_EXT_STROBE	BIT32(16)
 
 #define BOOT_GPU_UV_B1	1000000	/* gpu rail boot voltage 1.0V */
 #define BOOT_GPU_UV_C1	800000	/* gpu rail boot voltage 0.8V */
@@ -448,7 +448,7 @@ static void clk_set_dfs_ext_cal(struct gk20a *g, u32 dfs_det_cal)
 	data = gk20a_readl(g, trim_sys_gpcpll_dvfs1_r());
 	nvgpu_udelay(1);
 	ctrl = trim_sys_gpcpll_dvfs1_dfs_ctrl_v(data);
-	if (~ctrl & DFS_EXT_CAL_EN) {
+	if ((~ctrl & DFS_EXT_CAL_EN) != 0U) {
 		data = set_field(data, trim_sys_gpcpll_dvfs1_dfs_ctrl_m(),
 			trim_sys_gpcpll_dvfs1_dfs_ctrl_f(
 				ctrl | DFS_EXT_CAL_EN | DFS_TESTOUT_DET));

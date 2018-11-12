@@ -917,11 +917,11 @@ static u64 nvgpu_balloc_fixed_buddy_locked(struct nvgpu_allocator *na,
 	struct nvgpu_buddy_allocator *a = na->priv;
 
 	/* If base isn't aligned to an order 0 block, fail. */
-	if (base & (a->blk_size - 1U)) {
+	if ((base & (a->blk_size - 1ULL)) != 0ULL) {
 		goto fail;
 	}
 
-	if (len == 0U) {
+	if (len == 0ULL) {
 		goto fail;
 	}
 

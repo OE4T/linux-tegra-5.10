@@ -360,8 +360,8 @@ bool tu104_sec2_is_interrupted(struct nvgpu_sec2 *sec2)
 			psec_falcon_irqstat_exterr_true_f() |
 			psec_falcon_irqstat_swgen0_true_f();
 
-	if (gk20a_readl(g, psec_falcon_irqstat_r()) &
-		servicedpmuint) {
+	if ((gk20a_readl(g, psec_falcon_irqstat_r()) &
+		servicedpmuint) != 0U) {
 		return true;
 	}
 

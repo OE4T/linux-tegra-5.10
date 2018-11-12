@@ -234,7 +234,7 @@ int nvgpu_pmu_enable_elpg(struct gk20a *g)
 			continue;
 		}
 
-		if (BIT(pg_engine_id) & pg_engine_id_list) {
+		if ((BIT32(pg_engine_id) & pg_engine_id_list) != 0U) {
 			ret = pmu_enable_elpg_locked(g, pg_engine_id);
 		}
 	}
@@ -313,7 +313,7 @@ int nvgpu_pmu_disable_elpg(struct gk20a *g)
 			continue;
 		}
 
-		if (BIT(pg_engine_id) & pg_engine_id_list) {
+		if ((BIT32(pg_engine_id) & pg_engine_id_list) != 0U) {
 			(void) memset(&cmd, 0, sizeof(struct pmu_cmd));
 			cmd.hdr.unit_id = PMU_UNIT_PG;
 			cmd.hdr.size = PMU_CMD_HDR_SIZE +
@@ -479,7 +479,7 @@ int nvgpu_pmu_init_powergating(struct gk20a *g)
 		pg_engine_id < PMU_PG_ELPG_ENGINE_ID_INVALID_ENGINE;
 			pg_engine_id++) {
 
-		if (BIT(pg_engine_id) & pg_engine_id_list) {
+		if ((BIT32(pg_engine_id) & pg_engine_id_list) != 0U) {
 			if (pmu != NULL &&
 			    pmu->pmu_state == PMU_STATE_INIT_RECEIVED) {
 				nvgpu_pmu_state_change(g,
@@ -622,7 +622,7 @@ int nvgpu_pmu_get_pg_stats(struct gk20a *g, u32 pg_engine_id,
 		pg_engine_id_list = g->ops.pmu.pmu_pg_supported_engines_list(g);
 	}
 
-	if (BIT(pg_engine_id) & pg_engine_id_list) {
+	if ((BIT32(pg_engine_id) & pg_engine_id_list) != 0U) {
 		g->ops.pmu.pmu_elpg_statistics(g, pg_engine_id,
 			pg_stat_data);
 	}

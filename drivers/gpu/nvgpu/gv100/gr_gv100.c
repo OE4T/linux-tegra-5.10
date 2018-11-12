@@ -388,7 +388,7 @@ int gr_gv100_add_ctxsw_reg_pm_fbpa(struct gk20a *g,
 
 	for (idx = 0; idx < regs->count; idx++) {
 		for (fbpa_id = 0; fbpa_id < num_fbpas; fbpa_id++) {
-			if (active_fbpa_mask & BIT(fbpa_id)) {
+			if ((active_fbpa_mask & BIT32(fbpa_id)) != 0U) {
 				map[cnt].addr = base +
 						(regs->l[idx].addr & mask) +
 						(fbpa_id * stride);
@@ -422,7 +422,7 @@ void gr_gv100_split_fbpa_broadcast_addr(struct gk20a *g, u32 addr,
 	active_fbpa_mask = gr_gv100_get_active_fpba_mask(g);
 
 	for (fbpa_id = 0; fbpa_id < num_fbpas; fbpa_id++) {
-		if (active_fbpa_mask & BIT(fbpa_id)) {
+		if ((active_fbpa_mask & BIT32(fbpa_id)) != 0U) {
 			priv_addr_table[(*t)++] = pri_fbpa_addr(g,
 					pri_fbpa_addr_mask(g, addr), fbpa_id);
 		}

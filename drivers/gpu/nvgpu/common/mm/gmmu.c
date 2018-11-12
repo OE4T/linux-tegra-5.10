@@ -682,7 +682,7 @@ static int __nvgpu_gmmu_update_page_table(struct vm_gk20a *vm,
 
 	page_size = vm->gmmu_page_sizes[attrs->pgsz];
 
-	if (space_to_skip & (U64(page_size) - U64(1))) {
+	if ((space_to_skip & (U64(page_size) - U64(1))) != 0ULL) {
 		return -EINVAL;
 	}
 
