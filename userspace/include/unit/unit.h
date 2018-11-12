@@ -51,6 +51,38 @@ struct unit_module_test {
 	 * module_test_fn as @args.
 	 */
 	void *args;
+
+	/*
+	 * Linkage to JAMA test specification. An example would be:
+	 *
+	 *   .requirement = "NVGPU-RQCD-68"
+	 *   .verification_criteria  = "C1"
+	 *
+	 * This would link to C1 verification criteria of the pd_cache
+	 * requirement NVGPU-RQCD-68.
+	 *
+	 * This is an optional field for any given unit test. But a unit
+	 * test module must satisfy the necessary VC for all requirements
+	 * within that unit.
+	 */
+	struct {
+		/*
+		 * Requirement linkage: this should point to the unique ID
+		 * of the test specification.
+		 */
+		const char *unique_id;
+
+		/*
+		 * The particular verification criteria that this is
+		 * satisfying.
+		 */
+		const char *verification_criteria;
+
+		/*
+		 * Specific requirement this test provides coverage for.
+		 */
+		const char *requirement;
+	} jama;
 };
 
 /*
@@ -114,6 +146,20 @@ struct unit_module {
 		.name = #__name,					\
 		.fn = __fn,						\
 		.args = __args,						\
+	}
+
+/*
+ * Use this for a unit test that satisfies or contributes to satisfying a
+ * verification criteria for a given requirement.
+ */
+#define UNIT_TEST_REQ(__req, __uid, __vc, __name, __fn, __args)		\
+	{								\
+		.name = #__name,					\
+		.fn = __fn,						\
+		.args = __args,						\
+		.jama.requirement = __req,				\
+		.jama.unique_id = __uid,				\
+		.jama.verification_criteria = __vc,			\
 	}
 
 #define unit_return_fail(m, msg, ...)					\
