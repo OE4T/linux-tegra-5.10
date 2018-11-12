@@ -43,23 +43,21 @@
  *  xbar2clk is 19 in Pascal and 14 in Volta
  *    Changing for Pascal would break pwrclk of Volta
  */
-enum nv_pmu_clk_clkwhich {
-	clkwhich_gpcclk         = 1,
-	clkwhich_xbarclk        = 2,
-	clkwhich_sysclk         = 3,
-	clkwhich_hubclk         = 4,
-	clkwhich_mclk           = 5,
-	clkwhich_hostclk        = 6,
-	clkwhich_dispclk        = 7,
-	clkwhich_xclk           = 12,
-	clkwhich_gpc2clk        = 17,
-	clkwhich_xbar2clk       = 14,
-	clkwhich_sys2clk        = 15,
-	clkwhich_hub2clk        = 16,
-	clkwhich_pwrclk         = 19,
-	clkwhich_nvdclk         = 20,
-	clkwhich_pciegenclk     = 26,
-};
+#define CLKWHICH_GPCCLK		1U
+#define CLKWHICH_XBARCLK	2U
+#define CLKWHICH_SYSCLK		3U
+#define CLKWHICH_HUBCLK		4U
+#define CLKWHICH_MCLK		5U
+#define CLKWHICH_HOSTCLK	6U
+#define CLKWHICH_DISPCLK	7U
+#define CLKWHICH_XCLK		12U
+#define CLKWHICH_XBAR2CLK	14U
+#define CLKWHICH_SYS2CLK	15U
+#define CLKWHICH_HUB2CLK	16U
+#define CLKWHICH_GPC2CLK	17U
+#define CLKWHICH_PWRCLK		19U
+#define CLKWHICH_NVDCLK		20U
+#define CLKWHICH_PCIEGENCLK	26U
 
 /*
  * Enumeration of BOARDOBJGRP class IDs within OBJCLK.  Used as "classId"
@@ -94,7 +92,7 @@ struct nv_pmu_clk_clk_domain_boardobjgrp_set_header {
 
 struct nv_pmu_clk_clk_domain_boardobj_set {
 	struct nv_pmu_boardobj super;
-	enum nv_pmu_clk_clkwhich domain;
+	u32 domain;
 	u32 api_domain;
 	u8 perf_domain_grp_idx;
 };

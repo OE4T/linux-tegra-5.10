@@ -42,7 +42,7 @@ int gp106_get_arbiter_f_points(struct gk20a *g,u32 api_domain,
 int gp106_get_arbiter_clk_range(struct gk20a *g, u32 api_domain,
 		u16 *min_mhz, u16 *max_mhz)
 {
-	enum nv_pmu_clk_clkwhich clkwhich;
+	u32 clkwhich;
 	struct clk_set_info *p0_info;
 	struct clk_set_info *p5_info;
 	struct avfsfllobjs *pfllobjs =  &(g->clk_pmu->avfs_fllobjs);
@@ -51,11 +51,11 @@ int gp106_get_arbiter_clk_range(struct gk20a *g, u32 api_domain,
 
 	switch (api_domain) {
 	case CTRL_CLK_DOMAIN_MCLK:
-		clkwhich = clkwhich_mclk;
+		clkwhich = CLKWHICH_MCLK;
 		break;
 
 	case CTRL_CLK_DOMAIN_GPC2CLK:
-		clkwhich = clkwhich_gpc2clk;
+		clkwhich = CLKWHICH_GPC2CLK;
 		break;
 
 	default:
@@ -92,16 +92,16 @@ int gp106_get_arbiter_clk_range(struct gk20a *g, u32 api_domain,
 int gp106_get_arbiter_clk_default(struct gk20a *g, u32 api_domain,
 		u16 *default_mhz)
 {
-	enum nv_pmu_clk_clkwhich clkwhich;
+	u32 clkwhich;
 	struct clk_set_info *p0_info;
 
 	switch (api_domain) {
 	case CTRL_CLK_DOMAIN_MCLK:
-		clkwhich = clkwhich_mclk;
+		clkwhich = CLKWHICH_MCLK;
 		break;
 
 	case CTRL_CLK_DOMAIN_GPC2CLK:
-		clkwhich = clkwhich_gpc2clk;
+		clkwhich = CLKWHICH_GPC2CLK;
 		break;
 
 	default:

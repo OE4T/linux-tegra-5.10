@@ -528,7 +528,7 @@ struct pstate *pstate_find(struct gk20a *g, u32 num)
 }
 
 struct clk_set_info *pstate_get_clk_set_info(struct gk20a *g,
-		u32 pstate_num, enum nv_pmu_clk_clkwhich clkwhich)
+		u32 pstate_num, u32 clkwhich)
 {
 	struct pstate *pstate = pstate_find(g, pstate_num);
 	struct clk_set_info *info;

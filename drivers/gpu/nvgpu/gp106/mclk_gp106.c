@@ -3292,14 +3292,14 @@ int gp106_mclk_init(struct gk20a *g)
 	}
 
 	p5_info = pstate_get_clk_set_info(g,
-			CTRL_PERF_PSTATE_P5, clkwhich_mclk);
+			CTRL_PERF_PSTATE_P5, CLKWHICH_MCLK);
 	if (p5_info == NULL) {
 		err = -EINVAL;
 		goto fail_data_mutex;
 	}
 
 	p0_info = pstate_get_clk_set_info(g,
-			CTRL_PERF_PSTATE_P0, clkwhich_mclk);
+			CTRL_PERF_PSTATE_P0, CLKWHICH_MCLK);
 	if (p0_info == NULL) {
 		err = -EINVAL;
 		goto fail_data_mutex;

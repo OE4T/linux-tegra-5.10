@@ -243,7 +243,7 @@ int nvgpu_lwpr_mclk_change(struct gk20a *g, u32 pstate)
 	nvgpu_log_fn(g, " ");
 
 	pstate_info = pstate_get_clk_set_info(g, pstate,
-			clkwhich_mclk);
+			CLKWHICH_MCLK);
 	if (pstate_info == NULL) {
 		return -EINVAL;
 	}

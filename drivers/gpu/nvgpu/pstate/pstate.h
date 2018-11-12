@@ -37,7 +37,7 @@
 struct gk20a;
 
 struct clk_set_info {
-	enum nv_pmu_clk_clkwhich clkwhich;
+	u32 clkwhich;
 	u32 nominal_mhz;
 	u16 min_mhz;
 	u16 max_mhz;
@@ -68,7 +68,7 @@ void gk20a_deinit_pstate_support(struct gk20a *g);
 int gk20a_init_pstate_pmu_support(struct gk20a *g);
 
 struct clk_set_info *pstate_get_clk_set_info(struct gk20a *g, u32 pstate_num,
-		enum nv_pmu_clk_clkwhich clkwhich);
+		u32 clkwhich);
 struct pstate *pstate_find(struct gk20a *g, u32 num);
 
 #endif /* NVGPU_PSTATE_H */

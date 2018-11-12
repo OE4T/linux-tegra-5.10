@@ -87,7 +87,7 @@ struct vbios_clock_domain {
 };
 
 struct vbios_clocks_table_1x_hal_clock_entry {
-	enum nv_pmu_clk_clkwhich domain;
+	u32 domain;
 	bool b_noise_aware_capable;
 	u8 clk_vf_curve_count;
 };

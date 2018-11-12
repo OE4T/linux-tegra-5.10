@@ -41,31 +41,25 @@ u32 gk20a_ce2_nonstall_isr(struct gk20a *g, u32 inst_id, u32 pri_base);
 #define NVGPU_CE_MAX_COMMAND_BUFF_BYTES_PER_KICKOFF 256U
 
 /* dma launch_flags */
-enum {
 	/* location */
-	NVGPU_CE_SRC_LOCATION_COHERENT_SYSMEM                    = (1 << 0),
-	NVGPU_CE_SRC_LOCATION_NONCOHERENT_SYSMEM                 = (1 << 1),
-	NVGPU_CE_SRC_LOCATION_LOCAL_FB                           = (1 << 2),
-	NVGPU_CE_DST_LOCATION_COHERENT_SYSMEM                    = (1 << 3),
-	NVGPU_CE_DST_LOCATION_NONCOHERENT_SYSMEM                 = (1 << 4),
-	NVGPU_CE_DST_LOCATION_LOCAL_FB                           = (1 << 5),
-
+#define NVGPU_CE_SRC_LOCATION_COHERENT_SYSMEM			BIT32(0)
+#define NVGPU_CE_SRC_LOCATION_NONCOHERENT_SYSMEM		BIT32(1)
+#define NVGPU_CE_SRC_LOCATION_LOCAL_FB				BIT32(2)
+#define NVGPU_CE_DST_LOCATION_COHERENT_SYSMEM			BIT32(3)
+#define NVGPU_CE_DST_LOCATION_NONCOHERENT_SYSMEM		BIT32(4)
+#define NVGPU_CE_DST_LOCATION_LOCAL_FB				BIT32(5)
 	/* memory layout */
-	NVGPU_CE_SRC_MEMORY_LAYOUT_PITCH                         = (1 << 6),
-	NVGPU_CE_SRC_MEMORY_LAYOUT_BLOCKLINEAR                   = (1 << 7),
-	NVGPU_CE_DST_MEMORY_LAYOUT_PITCH                         = (1 << 8),
-	NVGPU_CE_DST_MEMORY_LAYOUT_BLOCKLINEAR                   = (1 << 9),
-
+#define NVGPU_CE_SRC_MEMORY_LAYOUT_PITCH			BIT32(6)
+#define NVGPU_CE_SRC_MEMORY_LAYOUT_BLOCKLINEAR			BIT32(7)
+#define NVGPU_CE_DST_MEMORY_LAYOUT_PITCH			BIT32(8)
+#define NVGPU_CE_DST_MEMORY_LAYOUT_BLOCKLINEAR			BIT32(9)
 	/* transfer type */
-	NVGPU_CE_DATA_TRANSFER_TYPE_PIPELINED                   = (1 << 10),
-	NVGPU_CE_DATA_TRANSFER_TYPE_NON_PIPELINED               = (1 << 11),
-};
+#define NVGPU_CE_DATA_TRANSFER_TYPE_PIPELINED			BIT32(10)
+#define NVGPU_CE_DATA_TRANSFER_TYPE_NON_PIPELINED		BIT32(11)
 
 /* CE operation mode */
-enum {
-	NVGPU_CE_PHYS_MODE_TRANSFER        = (1 << 0),
-	NVGPU_CE_MEMSET                    = (1 << 1),
-};
+#define NVGPU_CE_PHYS_MODE_TRANSFER	BIT32(0)
+#define NVGPU_CE_MEMSET			BIT32(1)
 
 /* CE app state machine flags */
 enum {
@@ -136,8 +130,8 @@ int gk20a_ce_execute_ops(struct gk20a *g,
 		u64 dst_buf,
 		u64 size,
 		unsigned int payload,
-		int launch_flags,
-		int request_operation,
+		u32 launch_flags,
+		u32 request_operation,
 		u32 submit_flags,
 		struct gk20a_fence **gk20a_fence_out);
 void gk20a_ce_delete_context_priv(struct gk20a *g,
@@ -150,8 +144,8 @@ int gk20a_ce_prepare_submit(u64 src_buf,
 		u32 *cmd_buf_cpu_va,
 		u32 max_cmd_buf_size,
 		unsigned int payload,
-		int launch_flags,
-		int request_operation,
+		u32 launch_flags,
+		u32 request_operation,
 		u32 dma_copy_class);
 
 #endif /*NVGPU_GK20A_CE2_GK20A_H*/

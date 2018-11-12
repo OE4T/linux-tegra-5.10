@@ -167,13 +167,13 @@ int nvgpu_clk_arb_update_vf_table(struct nvgpu_clk_arb *arb)
 		table->gpc2clk_num_points*sizeof(struct nvgpu_clk_vf_point));
 
 	p5_info = pstate_get_clk_set_info(g,
-			CTRL_PERF_PSTATE_P5, clkwhich_mclk);
+			CTRL_PERF_PSTATE_P5, CLKWHICH_MCLK);
 	if (!p5_info) {
 		nvgpu_err(g, "failed to get MCLK P5 info");
 		goto exit_vf_table;
 	}
 	p0_info = pstate_get_clk_set_info(g,
-			CTRL_PERF_PSTATE_P0, clkwhich_mclk);
+			CTRL_PERF_PSTATE_P0, CLKWHICH_MCLK);
 	if (!p0_info) {
 		nvgpu_err(g, "failed to get MCLK P0 info");
 		goto exit_vf_table;
@@ -229,7 +229,7 @@ int nvgpu_clk_arb_update_vf_table(struct nvgpu_clk_arb *arb)
 	table->mclk_num_points = num_points;
 
 	p5_info = pstate_get_clk_set_info(g,
-			CTRL_PERF_PSTATE_P5, clkwhich_gpc2clk);
+			CTRL_PERF_PSTATE_P5, CLKWHICH_GPC2CLK);
 	if (!p5_info) {
 		status = -EINVAL;
 		nvgpu_err(g, "failed to get GPC2CLK P5 info");
@@ -237,7 +237,7 @@ int nvgpu_clk_arb_update_vf_table(struct nvgpu_clk_arb *arb)
 	}
 
 	p0_info = pstate_get_clk_set_info(g,
-			CTRL_PERF_PSTATE_P0, clkwhich_gpc2clk);
+			CTRL_PERF_PSTATE_P0, CLKWHICH_GPC2CLK);
 	if (!p0_info) {
 		status = -EINVAL;
 		nvgpu_err(g, "failed to get GPC2CLK P0 info");
@@ -301,7 +301,7 @@ int nvgpu_clk_arb_update_vf_table(struct nvgpu_clk_arb *arb)
 		/* Check sysclk */
 		p5_info = pstate_get_clk_set_info(g,
 			VF_POINT_GET_PSTATE(&table->gpc2clk_points[i]),
-			clkwhich_sys2clk);
+			CLKWHICH_SYS2CLK);
 		if (!p5_info) {
 			status = -EINVAL;
 			nvgpu_err(g, "failed to get SYS2CLK P5 info");
@@ -339,7 +339,7 @@ int nvgpu_clk_arb_update_vf_table(struct nvgpu_clk_arb *arb)
 		/* Check xbarclk */
 		p5_info = pstate_get_clk_set_info(g,
 			VF_POINT_GET_PSTATE(&table->gpc2clk_points[i]),
-			clkwhich_xbar2clk);
+			CLKWHICH_XBAR2CLK);
 		if (!p5_info) {
 			status = -EINVAL;
 			nvgpu_err(g, "failed to get SYS2CLK P5 info");

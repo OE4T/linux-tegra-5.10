@@ -30,7 +30,7 @@
 #include "gk20a/ce2_gk20a.h"
 #include "gk20a/fence_gk20a.h"
 
-static inline int gk20a_get_valid_launch_flags(struct gk20a *g, int launch_flags)
+static inline u32 gk20a_get_valid_launch_flags(struct gk20a *g, u32 launch_flags)
 {
 	/* there is no local memory available,
 	don't allow local memory related CE flags */
@@ -47,8 +47,8 @@ int gk20a_ce_execute_ops(struct gk20a *g,
 		u64 dst_buf,
 		u64 size,
 		unsigned int payload,
-		int launch_flags,
-		int request_operation,
+		u32 launch_flags,
+		u32 request_operation,
 		u32 submit_flags,
 		struct gk20a_fence **gk20a_fence_out)
 {

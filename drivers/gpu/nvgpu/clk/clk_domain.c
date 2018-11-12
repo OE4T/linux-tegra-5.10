@@ -42,15 +42,15 @@ static int clk_domain_pmudatainit_super(struct gk20a *g, struct boardobj
 
 static struct vbios_clocks_table_1x_hal_clock_entry
 		vbiosclktbl1xhalentry_gp[] = {
-	{ clkwhich_gpc2clk,    true,    1, },
-	{ clkwhich_xbar2clk,   true,    1, },
-	{ clkwhich_mclk,       false,   1, },
-	{ clkwhich_sys2clk,    true,    1, },
-	{ clkwhich_hub2clk,    false,   1, },
-	{ clkwhich_nvdclk,     false,   1, },
-	{ clkwhich_pwrclk,     false,   1, },
-	{ clkwhich_dispclk,    false,   1, },
-	{ clkwhich_pciegenclk, false,   1, }
+	{ CLKWHICH_GPC2CLK,    true,    1, },
+	{ CLKWHICH_XBAR2CLK,   true,    1, },
+	{ CLKWHICH_MCLK,       false,   1, },
+	{ CLKWHICH_SYS2CLK,    true,    1, },
+	{ CLKWHICH_HUB2CLK,    false,   1, },
+	{ CLKWHICH_NVDCLK,     false,   1, },
+	{ CLKWHICH_PWRCLK,     false,   1, },
+	{ CLKWHICH_DISPCLK,    false,   1, },
+	{ CLKWHICH_PCIEGENCLK, false,   1, }
 };
 /*
  * Updated from RM devinit_clock.c
@@ -59,62 +59,62 @@ static struct vbios_clocks_table_1x_hal_clock_entry
  */
 static struct vbios_clocks_table_1x_hal_clock_entry
 		vbiosclktbl1xhalentry_gv[] = {
-	{ clkwhich_gpcclk,     true,    2, },
-	{ clkwhich_xbarclk,    true,    1, },
-	{ clkwhich_mclk,       false,   1, },
-	{ clkwhich_sysclk,     true,    1, },
-	{ clkwhich_hubclk,     false,   1, },
-	{ clkwhich_nvdclk,     true,    1, },
-	{ clkwhich_pwrclk,     false,   1, },
-	{ clkwhich_dispclk,    false,   1, },
-	{ clkwhich_pciegenclk, false,   1, },
-	{ clkwhich_hostclk,    true,    1, }
+	{ CLKWHICH_GPCCLK,     true,    2, },
+	{ CLKWHICH_XBARCLK,    true,    1, },
+	{ CLKWHICH_MCLK,       false,   1, },
+	{ CLKWHICH_SYSCLK,     true,    1, },
+	{ CLKWHICH_HUBCLK,     false,   1, },
+	{ CLKWHICH_NVDCLK,     true,    1, },
+	{ CLKWHICH_PWRCLK,     false,   1, },
+	{ CLKWHICH_DISPCLK,    false,   1, },
+	{ CLKWHICH_PCIEGENCLK, false,   1, },
+	{ CLKWHICH_HOSTCLK,    true,    1, }
 };
 
 static u32 clktranslatehalmumsettoapinumset(u32 clkhaldomains)
 {
 	u32   clkapidomains = 0;
 
-	if (clkhaldomains & BIT(clkwhich_gpcclk)) {
+	if ((clkhaldomains & BIT32(CLKWHICH_GPCCLK)) != 0U) {
 		clkapidomains |= CTRL_CLK_DOMAIN_GPCCLK;
 	}
-	if (clkhaldomains & BIT(clkwhich_xbarclk)) {
+	if ((clkhaldomains & BIT32(CLKWHICH_XBARCLK)) != 0U) {
 		clkapidomains |= CTRL_CLK_DOMAIN_XBARCLK;
 	}
-	if (clkhaldomains & BIT(clkwhich_sysclk)) {
+	if ((clkhaldomains & BIT32(CLKWHICH_SYSCLK)) != 0U) {
 		clkapidomains |= CTRL_CLK_DOMAIN_SYSCLK;
 	}
-	if (clkhaldomains & BIT(clkwhich_hubclk)) {
+	if ((clkhaldomains & BIT32(CLKWHICH_HUBCLK)) != 0U) {
 		clkapidomains |= CTRL_CLK_DOMAIN_HUBCLK;
 	}
-	if (clkhaldomains & BIT(clkwhich_hostclk)) {
+	if ((clkhaldomains & BIT32(CLKWHICH_HOSTCLK)) != 0U) {
 		clkapidomains |= CTRL_CLK_DOMAIN_HOSTCLK;
 	}
-	if (clkhaldomains & BIT(clkwhich_gpc2clk)) {
+	if ((clkhaldomains & BIT32(CLKWHICH_GPC2CLK)) != 0U) {
 		clkapidomains |= CTRL_CLK_DOMAIN_GPC2CLK;
 	}
-	if (clkhaldomains & BIT(clkwhich_xbar2clk)) {
+	if ((clkhaldomains & BIT32(CLKWHICH_XBAR2CLK)) != 0U) {
 		clkapidomains |= CTRL_CLK_DOMAIN_XBAR2CLK;
 	}
-	if (clkhaldomains & BIT(clkwhich_sys2clk)) {
+	if ((clkhaldomains & BIT32(CLKWHICH_SYS2CLK)) != 0U) {
 		clkapidomains |= CTRL_CLK_DOMAIN_SYS2CLK;
 	}
-	if (clkhaldomains & BIT(clkwhich_hub2clk)) {
+	if ((clkhaldomains & BIT32(CLKWHICH_HUB2CLK)) != 0U) {
 		clkapidomains |= CTRL_CLK_DOMAIN_HUB2CLK;
 	}
-	if (clkhaldomains & BIT(clkwhich_pwrclk)) {
+	if ((clkhaldomains & BIT32(CLKWHICH_PWRCLK)) != 0U) {
 		clkapidomains |= CTRL_CLK_DOMAIN_PWRCLK;
 	}
-	if (clkhaldomains & BIT(clkwhich_pciegenclk)) {
+	if ((clkhaldomains & BIT32(CLKWHICH_PCIEGENCLK)) != 0U) {
 		clkapidomains |= CTRL_CLK_DOMAIN_PCIEGENCLK;
 	}
-	if (clkhaldomains & BIT(clkwhich_mclk)) {
+	if ((clkhaldomains & BIT32(CLKWHICH_MCLK)) != 0U) {
 		clkapidomains |= CTRL_CLK_DOMAIN_MCLK;
 	}
-	if (clkhaldomains & BIT(clkwhich_nvdclk)) {
+	if ((clkhaldomains & BIT32(CLKWHICH_NVDCLK)) != 0U) {
 		clkapidomains |= CTRL_CLK_DOMAIN_NVDCLK;
 	}
-	if (clkhaldomains & BIT(clkwhich_dispclk)) {
+	if ((clkhaldomains & BIT32(CLKWHICH_DISPCLK)) != 0U) {
 		clkapidomains |= CTRL_CLK_DOMAIN_DISPCLK;
 	}
 

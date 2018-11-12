@@ -154,7 +154,7 @@ static void gk20a_ce_delete_gpu_context(struct gk20a_gpu_ctx *ce_ctx)
 	nvgpu_kfree(ce_ctx->g, ce_ctx);
 }
 
-static inline unsigned int gk20a_ce_get_method_size(int request_operation,
+static inline unsigned int gk20a_ce_get_method_size(u32 request_operation,
 			u64 size)
 {
 	/* failure size */
@@ -176,10 +176,10 @@ static inline unsigned int gk20a_ce_get_method_size(int request_operation,
 		chunk -= (u64) height * width;
 	}
 
-	if (request_operation & NVGPU_CE_PHYS_MODE_TRANSFER) {
+	if ((request_operation & NVGPU_CE_PHYS_MODE_TRANSFER) != 0U) {
 		methodsize = (2U + (16U * iterations)) *
 				(unsigned int)sizeof(u32);
-	} else if (request_operation & NVGPU_CE_MEMSET) {
+	} else if ((request_operation & NVGPU_CE_MEMSET) != 0U) {
 		methodsize = (2U + (15U * iterations)) *
 				(unsigned int)sizeof(u32);
 	}
@@ -193,8 +193,8 @@ int gk20a_ce_prepare_submit(u64 src_buf,
 		u32 *cmd_buf_cpu_va,
 		u32 max_cmd_buf_size,
 		unsigned int payload,
-		int launch_flags,
-		int request_operation,
+		u32 launch_flags,
+		u32 request_operation,
 		u32 dma_copy_class)
 {
 	u32 launch = 0;
@@ -252,7 +252,7 @@ int gk20a_ce_prepare_submit(u64 src_buf,
 		/* reset launch flag */
 		launch = 0;
 
-		if (request_operation & NVGPU_CE_PHYS_MODE_TRANSFER) {
+		if ((request_operation & NVGPU_CE_PHYS_MODE_TRANSFER) != 0U) {
 			/* setup the source */
 			cmd_buf_cpu_va[methodSize++] = 0x20028100;
 			cmd_buf_cpu_va[methodSize++] = (u64_hi32(src_buf +
@@ -261,17 +261,18 @@ int gk20a_ce_prepare_submit(u64 src_buf,
 				offset) & NVGPU_CE_LOWER_ADDRESS_OFFSET_MASK);
 
 			cmd_buf_cpu_va[methodSize++] = 0x20018098;
-			if (launch_flags & NVGPU_CE_SRC_LOCATION_LOCAL_FB) {
+			if ((launch_flags &
+			     NVGPU_CE_SRC_LOCATION_LOCAL_FB) != 0U) {
 				cmd_buf_cpu_va[methodSize++] = 0x00000000;
-			} else if (launch_flags &
-				NVGPU_CE_SRC_LOCATION_NONCOHERENT_SYSMEM) {
+			} else if ((launch_flags &
+				NVGPU_CE_SRC_LOCATION_NONCOHERENT_SYSMEM) != 0U) {
 				cmd_buf_cpu_va[methodSize++] = 0x00000002;
 			} else {
 				cmd_buf_cpu_va[methodSize++] = 0x00000001;
 			}
 
 			launch |= 0x00001000U;
-		} else if (request_operation & NVGPU_CE_MEMSET) {
+		} else if ((request_operation & NVGPU_CE_MEMSET) != 0U) {
 			/* Remap from component A on 1 byte wide pixels */
 			cmd_buf_cpu_va[methodSize++] = 0x200181c2;
 			cmd_buf_cpu_va[methodSize++] = 0x00000004;
@@ -299,10 +300,10 @@ int gk20a_ce_prepare_submit(u64 src_buf,
 		cmd_buf_cpu_va[methodSize++] = height;
 
 		cmd_buf_cpu_va[methodSize++] = 0x20018099;
-		if (launch_flags & NVGPU_CE_DST_LOCATION_LOCAL_FB) {
+		if ((launch_flags & NVGPU_CE_DST_LOCATION_LOCAL_FB) != 0U) {
 			cmd_buf_cpu_va[methodSize++] = 0x00000000;
-		} else if (launch_flags &
-				NVGPU_CE_DST_LOCATION_NONCOHERENT_SYSMEM) {
+		} else if ((launch_flags &
+			   NVGPU_CE_DST_LOCATION_NONCOHERENT_SYSMEM) != 0U) {
 			cmd_buf_cpu_va[methodSize++] = 0x00000002;
 		} else {
 			cmd_buf_cpu_va[methodSize++] = 0x00000001;
@@ -310,13 +311,15 @@ int gk20a_ce_prepare_submit(u64 src_buf,
 
 		launch |= 0x00002005U;
 
-		if (launch_flags & NVGPU_CE_SRC_MEMORY_LAYOUT_BLOCKLINEAR) {
+		if ((launch_flags &
+		     NVGPU_CE_SRC_MEMORY_LAYOUT_BLOCKLINEAR) != 0U) {
 			launch |= 0x00000000U;
 		} else {
 			launch |= 0x00000080U;
 		}
 
-		if (launch_flags & NVGPU_CE_DST_MEMORY_LAYOUT_BLOCKLINEAR) {
+		if ((launch_flags &
+		     NVGPU_CE_DST_MEMORY_LAYOUT_BLOCKLINEAR) != 0U) {
 			launch |= 0x00000000U;
 		} else {
 			launch |= 0x00000100U;
