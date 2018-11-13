@@ -7451,10 +7451,11 @@ static int gr_gk20a_find_priv_offset_in_buffer(struct gk20a *g,
 
 static int map_cmp(const void *a, const void *b)
 {
-	struct ctxsw_buf_offset_map_entry *e1 =
-					(struct ctxsw_buf_offset_map_entry *)a;
-	struct ctxsw_buf_offset_map_entry *e2 =
-					(struct ctxsw_buf_offset_map_entry *)b;
+	const struct ctxsw_buf_offset_map_entry *e1;
+	const struct ctxsw_buf_offset_map_entry *e2;
+
+	e1 = (const struct ctxsw_buf_offset_map_entry *)a;
+	e2 = (const struct ctxsw_buf_offset_map_entry *)b;
 
 	if (e1->addr < e2->addr) {
 		return -1;

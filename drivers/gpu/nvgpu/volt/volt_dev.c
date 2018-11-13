@@ -476,8 +476,11 @@ static int _volt_device_devgrp_pmustatus_instget(struct gk20a *g,
 
 static int volt_device_volt_cmp(const void *a, const void *b)
 {
-	const struct voltage_device_entry *a_entry = *(const struct voltage_device_entry **)a;
-	const struct voltage_device_entry *b_entry = *(const struct voltage_device_entry **)b;
+	const struct voltage_device_entry *a_entry;
+	const struct voltage_device_entry *b_entry;
+
+	a_entry = *(const struct voltage_device_entry * const *)a;
+	b_entry = *(const struct voltage_device_entry * const *)b;
 
 	return (int)a_entry->voltage_uv - (int)b_entry->voltage_uv;
 }
