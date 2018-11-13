@@ -56,6 +56,8 @@
 #ifndef NVGPU_HW_NVTLC_TU104_H
 #define NVGPU_HW_NVTLC_TU104_H
 
+#include <nvgpu/types.h>
+
 static inline u32 nvtlc_tx_err_report_en_0_r(void)
 {
 	return 0x00000708U;

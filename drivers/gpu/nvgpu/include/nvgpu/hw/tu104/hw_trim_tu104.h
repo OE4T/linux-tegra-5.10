@@ -56,6 +56,8 @@
 #ifndef NVGPU_HW_TRIM_TU104_H
 #define NVGPU_HW_TRIM_TU104_H
 
+#include <nvgpu/types.h>
+
 static inline u32 trim_sys_nvlink_uphy_cfg_r(void)
 {
 	return 0x00132410U;
@@ -66,7 +68,7 @@ static inline u32 trim_sys_nvlink_uphy_cfg_lockdect_wait_dly_length_f(u32 v)
 }
 static inline u32 trim_sys_nvlink_uphy_cfg_lockdect_wait_dly_length_m(void)
 {
-	return 0x3ffU << 0U;
+	return U32(0x3ffU) << 0U;
 }
 static inline u32 trim_sys_nvlink_uphy_cfg_lockdect_wait_dly_length_v(u32 r)
 {
@@ -78,7 +80,7 @@ static inline u32 trim_sys_nvlink_uphy_cfg_phy2clks_use_lockdet_f(u32 v)
 }
 static inline u32 trim_sys_nvlink_uphy_cfg_phy2clks_use_lockdet_m(void)
 {
-	return 0x1U << 12U;
+	return U32(0x1U) << 12U;
 }
 static inline u32 trim_sys_nvlink_uphy_cfg_phy2clks_use_lockdet_v(u32 r)
 {
@@ -90,7 +92,7 @@ static inline u32 trim_sys_nvlink_uphy_cfg_nvlink_wait_dly_f(u32 v)
 }
 static inline u32 trim_sys_nvlink_uphy_cfg_nvlink_wait_dly_m(void)
 {
-	return 0xffU << 16U;
+	return U32(0xffU) << 16U;
 }
 static inline u32 trim_sys_nvlink_uphy_cfg_nvlink_wait_dly_v(u32 r)
 {
@@ -106,7 +108,7 @@ static inline u32 trim_sys_nvlink0_ctrl_unit2clks_pll_turn_off_f(u32 v)
 }
 static inline u32 trim_sys_nvlink0_ctrl_unit2clks_pll_turn_off_m(void)
 {
-	return 0x1U << 0U;
+	return U32(0x1U) << 0U;
 }
 static inline u32 trim_sys_nvlink0_ctrl_unit2clks_pll_turn_off_v(u32 r)
 {
@@ -122,7 +124,7 @@ static inline u32 trim_sys_nvlink0_status_pll_off_f(u32 v)
 }
 static inline u32 trim_sys_nvlink0_status_pll_off_m(void)
 {
-	return 0x1U << 5U;
+	return U32(0x1U) << 5U;
 }
 static inline u32 trim_sys_nvlink0_status_pll_off_v(u32 r)
 {
@@ -138,7 +140,7 @@ static inline u32 trim_sys_nvl_common_clk_alt_switch_slowclk_f(u32 v)
 }
 static inline u32 trim_sys_nvl_common_clk_alt_switch_slowclk_m(void)
 {
-	return 0x3U << 16U;
+	return U32(0x3U) << 16U;
 }
 static inline u32 trim_sys_nvl_common_clk_alt_switch_slowclk_v(u32 r)
 {
@@ -166,7 +168,7 @@ static inline u32 trim_sys_nvl_common_clk_alt_switch_finalsel_f(u32 v)
 }
 static inline u32 trim_sys_nvl_common_clk_alt_switch_finalsel_m(void)
 {
-	return 0x3U << 0U;
+	return U32(0x3U) << 0U;
 }
 static inline u32 trim_sys_nvl_common_clk_alt_switch_finalsel_v(u32 r)
 {

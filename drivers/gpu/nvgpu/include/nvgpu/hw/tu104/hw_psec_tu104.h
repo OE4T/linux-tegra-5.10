@@ -56,6 +56,8 @@
 #ifndef NVGPU_HW_PSEC_TU104_H
 #define NVGPU_HW_PSEC_TU104_H
 
+#include <nvgpu/types.h>
+
 static inline u32 psec_falcon_irqsset_r(void)
 {
 	return 0x00840000U;
@@ -302,7 +304,7 @@ static inline u32 psec_falcon_cpuctl_halt_intr_f(u32 v)
 }
 static inline u32 psec_falcon_cpuctl_halt_intr_m(void)
 {
-	return 0x1U << 4U;
+	return U32(0x1U) << 4U;
 }
 static inline u32 psec_falcon_cpuctl_halt_intr_v(u32 r)
 {
@@ -314,7 +316,7 @@ static inline u32 psec_falcon_cpuctl_cpuctl_alias_en_f(u32 v)
 }
 static inline u32 psec_falcon_cpuctl_cpuctl_alias_en_m(void)
 {
-	return 0x1U << 6U;
+	return U32(0x1U) << 6U;
 }
 static inline u32 psec_falcon_cpuctl_cpuctl_alias_en_v(u32 r)
 {
@@ -374,11 +376,11 @@ static inline u32 psec_falcon_dmactl_r(void)
 }
 static inline u32 psec_falcon_dmactl_dmem_scrubbing_m(void)
 {
-	return 0x1U << 1U;
+	return U32(0x1U) << 1U;
 }
 static inline u32 psec_falcon_dmactl_imem_scrubbing_m(void)
 {
-	return 0x1U << 2U;
+	return U32(0x1U) << 2U;
 }
 static inline u32 psec_falcon_dmactl_require_ctx_f(u32 v)
 {
@@ -442,7 +444,7 @@ static inline u32 psec_falcon_exterrstat_r(void)
 }
 static inline u32 psec_falcon_exterrstat_valid_m(void)
 {
-	return 0x1U << 31U;
+	return U32(0x1U) << 31U;
 }
 static inline u32 psec_falcon_exterrstat_valid_v(u32 r)
 {
@@ -466,7 +468,7 @@ static inline u32 psec_sec2_falcon_icd_cmd_opc_f(u32 v)
 }
 static inline u32 psec_sec2_falcon_icd_cmd_opc_m(void)
 {
-	return 0xfU << 0U;
+	return U32(0xfU) << 0U;
 }
 static inline u32 psec_sec2_falcon_icd_cmd_opc_v(u32 r)
 {
@@ -498,7 +500,7 @@ static inline u32 psec_falcon_dmemc_offs_f(u32 v)
 }
 static inline u32 psec_falcon_dmemc_offs_m(void)
 {
-	return 0x3fU << 2U;
+	return U32(0x3fU) << 2U;
 }
 static inline u32 psec_falcon_dmemc_blk_f(u32 v)
 {
@@ -506,7 +508,7 @@ static inline u32 psec_falcon_dmemc_blk_f(u32 v)
 }
 static inline u32 psec_falcon_dmemc_blk_m(void)
 {
-	return 0xffU << 8U;
+	return U32(0xffU) << 8U;
 }
 static inline u32 psec_falcon_dmemc_aincw_f(u32 v)
 {
@@ -534,7 +536,7 @@ static inline u32 psec_falcon_debug1_ctxsw_mode_f(u32 v)
 }
 static inline u32 psec_falcon_debug1_ctxsw_mode_m(void)
 {
-	return 0x1U << 16U;
+	return U32(0x1U) << 16U;
 }
 static inline u32 psec_falcon_debug1_ctxsw_mode_v(u32 r)
 {
@@ -570,7 +572,7 @@ static inline u32 psec_fbif_transcfg_mem_type_f(u32 v)
 }
 static inline u32 psec_fbif_transcfg_mem_type_m(void)
 {
-	return 0x1U << 2U;
+	return U32(0x1U) << 2U;
 }
 static inline u32 psec_fbif_transcfg_mem_type_v(u32 r)
 {
@@ -622,7 +624,7 @@ static inline u32 psec_hwcfg_emem_size_f(u32 v)
 }
 static inline u32 psec_hwcfg_emem_size_m(void)
 {
-	return 0x1ffU << 0U;
+	return U32(0x1ffU) << 0U;
 }
 static inline u32 psec_hwcfg_emem_size_v(u32 r)
 {
@@ -638,7 +640,7 @@ static inline u32 psec_falcon_hwcfg1_dmem_tag_width_f(u32 v)
 }
 static inline u32 psec_falcon_hwcfg1_dmem_tag_width_m(void)
 {
-	return 0x1fU << 21U;
+	return U32(0x1fU) << 21U;
 }
 static inline u32 psec_falcon_hwcfg1_dmem_tag_width_v(u32 r)
 {
@@ -658,7 +660,7 @@ static inline u32 psec_ememc_blk_f(u32 v)
 }
 static inline u32 psec_ememc_blk_m(void)
 {
-	return 0xffU << 8U;
+	return U32(0xffU) << 8U;
 }
 static inline u32 psec_ememc_blk_v(u32 r)
 {
@@ -670,7 +672,7 @@ static inline u32 psec_ememc_offs_f(u32 v)
 }
 static inline u32 psec_ememc_offs_m(void)
 {
-	return 0x3fU << 2U;
+	return U32(0x3fU) << 2U;
 }
 static inline u32 psec_ememc_offs_v(u32 r)
 {
@@ -682,7 +684,7 @@ static inline u32 psec_ememc_aincw_f(u32 v)
 }
 static inline u32 psec_ememc_aincw_m(void)
 {
-	return 0x1U << 24U;
+	return U32(0x1U) << 24U;
 }
 static inline u32 psec_ememc_aincw_v(u32 r)
 {
@@ -694,7 +696,7 @@ static inline u32 psec_ememc_aincr_f(u32 v)
 }
 static inline u32 psec_ememc_aincr_m(void)
 {
-	return 0x1U << 25U;
+	return U32(0x1U) << 25U;
 }
 static inline u32 psec_ememc_aincr_v(u32 r)
 {
@@ -714,7 +716,7 @@ static inline u32 psec_ememd_data_f(u32 v)
 }
 static inline u32 psec_ememd_data_m(void)
 {
-	return 0xffffffffU << 0U;
+	return U32(0xffffffffU) << 0U;
 }
 static inline u32 psec_ememd_data_v(u32 r)
 {
@@ -730,7 +732,7 @@ static inline u32 psec_msgq_head_val_f(u32 v)
 }
 static inline u32 psec_msgq_head_val_m(void)
 {
-	return 0xffffffffU << 0U;
+	return U32(0xffffffffU) << 0U;
 }
 static inline u32 psec_msgq_head_val_v(u32 r)
 {
@@ -746,7 +748,7 @@ static inline u32 psec_msgq_tail_val_f(u32 v)
 }
 static inline u32 psec_msgq_tail_val_m(void)
 {
-	return 0xffffffffU << 0U;
+	return U32(0xffffffffU) << 0U;
 }
 static inline u32 psec_msgq_tail_val_v(u32 r)
 {
@@ -762,7 +764,7 @@ static inline u32 psec_queue_head_address_f(u32 v)
 }
 static inline u32 psec_queue_head_address_m(void)
 {
-	return 0xffffffffU << 0U;
+	return U32(0xffffffffU) << 0U;
 }
 static inline u32 psec_queue_head_address_v(u32 r)
 {
@@ -778,7 +780,7 @@ static inline u32 psec_queue_tail_address_f(u32 v)
 }
 static inline u32 psec_queue_tail_address_m(void)
 {
-	return 0xffffffffU << 0U;
+	return U32(0xffffffffU) << 0U;
 }
 static inline u32 psec_queue_tail_address_v(u32 r)
 {

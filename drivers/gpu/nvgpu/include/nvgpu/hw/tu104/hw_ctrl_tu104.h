@@ -56,6 +56,8 @@
 #ifndef NVGPU_HW_CTRL_TU104_H
 #define NVGPU_HW_CTRL_TU104_H
 
+#include <nvgpu/types.h>
+
 static inline u32 ctrl_doorbell_r(u32 i)
 {
 	return 0x00b64000U + i*8U;

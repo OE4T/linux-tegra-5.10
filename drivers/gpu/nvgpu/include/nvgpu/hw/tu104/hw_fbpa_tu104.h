@@ -56,6 +56,8 @@
 #ifndef NVGPU_HW_FBPA_TU104_H
 #define NVGPU_HW_FBPA_TU104_H
 
+#include <nvgpu/types.h>
+
 static inline u32 fbpa_0_intr_status_r(void)
 {
 	return 0x00900398U;

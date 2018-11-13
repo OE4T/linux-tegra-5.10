@@ -56,6 +56,8 @@
 #ifndef NVGPU_HW_PNVDEC_TU104_H
 #define NVGPU_HW_PNVDEC_TU104_H
 
+#include <nvgpu/types.h>
+
 static inline u32 pnvdec_falcon_irqsset_r(u32 i)
 {
 	return 0x00830000U + i*16384U;

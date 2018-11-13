@@ -56,6 +56,8 @@
 #ifndef NVGPU_HW_PRI_RINGSTATION_GPC_TU104_H
 #define NVGPU_HW_PRI_RINGSTATION_GPC_TU104_H
 
+#include <nvgpu/types.h>
+
 static inline u32 pri_ringstation_gpc_gpc0_priv_error_adr_r(void)
 {
 	return 0x00128120U;

@@ -56,6 +56,8 @@
 #ifndef NVGPU_HW_GMMU_TU104_H
 #define NVGPU_HW_GMMU_TU104_H
 
+#include <nvgpu/types.h>
+
 static inline u32 gmmu_new_pde_is_pte_w(void)
 {
 	return 0U;

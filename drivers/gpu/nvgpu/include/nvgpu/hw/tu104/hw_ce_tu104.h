@@ -56,6 +56,8 @@
 #ifndef NVGPU_HW_CE_TU104_H
 #define NVGPU_HW_CE_TU104_H
 
+#include <nvgpu/types.h>
+
 static inline u32 ce_intr_status_r(u32 i)
 {
 	return 0x00104410U + i*128U;

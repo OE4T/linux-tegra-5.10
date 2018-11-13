@@ -56,4 +56,6 @@
 #ifndef NVGPU_HW_NVLINKIP_DISCOVERY_TU104_H
 #define NVGPU_HW_NVLINKIP_DISCOVERY_TU104_H
 
+#include <nvgpu/types.h>
+
 #endif

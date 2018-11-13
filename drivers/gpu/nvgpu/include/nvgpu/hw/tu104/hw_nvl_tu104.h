@@ -56,6 +56,8 @@
 #ifndef NVGPU_HW_NVL_TU104_H
 #define NVGPU_HW_NVL_TU104_H
 
+#include <nvgpu/types.h>
+
 static inline u32 nvl_link_state_r(void)
 {
 	return 0x00000000U;
@@ -66,7 +68,7 @@ static inline u32 nvl_link_state_state_f(u32 v)
 }
 static inline u32 nvl_link_state_state_m(void)
 {
-	return 0xffU << 0U;
+	return U32(0xffU) << 0U;
 }
 static inline u32 nvl_link_state_state_v(u32 r)
 {
@@ -142,7 +144,7 @@ static inline u32 nvl_link_state_an0_busy_f(u32 v)
 }
 static inline u32 nvl_link_state_an0_busy_m(void)
 {
-	return 0x1U << 12U;
+	return U32(0x1U) << 12U;
 }
 static inline u32 nvl_link_state_an0_busy_v(u32 r)
 {
@@ -154,7 +156,7 @@ static inline u32 nvl_link_state_tl_busy_f(u32 v)
 }
 static inline u32 nvl_link_state_tl_busy_m(void)
 {
-	return 0x1U << 13U;
+	return U32(0x1U) << 13U;
 }
 static inline u32 nvl_link_state_tl_busy_v(u32 r)
 {
@@ -166,7 +168,7 @@ static inline u32 nvl_link_state_dbg_substate_f(u32 v)
 }
 static inline u32 nvl_link_state_dbg_substate_m(void)
 {
-	return 0xffffU << 16U;
+	return U32(0xffffU) << 16U;
 }
 static inline u32 nvl_link_state_dbg_substate_v(u32 r)
 {
@@ -182,7 +184,7 @@ static inline u32 nvl_link_activity_blkact_f(u32 v)
 }
 static inline u32 nvl_link_activity_blkact_m(void)
 {
-	return 0x7U << 0U;
+	return U32(0x7U) << 0U;
 }
 static inline u32 nvl_link_activity_blkact_v(u32 r)
 {
@@ -198,7 +200,7 @@ static inline u32 nvl_sublink_activity_blkact0_f(u32 v)
 }
 static inline u32 nvl_sublink_activity_blkact0_m(void)
 {
-	return 0x7U << 0U;
+	return U32(0x7U) << 0U;
 }
 static inline u32 nvl_sublink_activity_blkact0_v(u32 r)
 {
@@ -210,7 +212,7 @@ static inline u32 nvl_sublink_activity_blkact1_f(u32 v)
 }
 static inline u32 nvl_sublink_activity_blkact1_m(void)
 {
-	return 0x7U << 8U;
+	return U32(0x7U) << 8U;
 }
 static inline u32 nvl_sublink_activity_blkact1_v(u32 r)
 {
@@ -226,7 +228,7 @@ static inline u32 nvl_link_config_ac_safe_en_f(u32 v)
 }
 static inline u32 nvl_link_config_ac_safe_en_m(void)
 {
-	return 0x1U << 30U;
+	return U32(0x1U) << 30U;
 }
 static inline u32 nvl_link_config_ac_safe_en_v(u32 r)
 {
@@ -246,7 +248,7 @@ static inline u32 nvl_link_config_link_en_f(u32 v)
 }
 static inline u32 nvl_link_config_link_en_m(void)
 {
-	return 0x1U << 31U;
+	return U32(0x1U) << 31U;
 }
 static inline u32 nvl_link_config_link_en_v(u32 r)
 {
@@ -270,7 +272,7 @@ static inline u32 nvl_link_change_oldstate_mask_f(u32 v)
 }
 static inline u32 nvl_link_change_oldstate_mask_m(void)
 {
-	return 0xfU << 16U;
+	return U32(0xfU) << 16U;
 }
 static inline u32 nvl_link_change_oldstate_mask_v(u32 r)
 {
@@ -290,7 +292,7 @@ static inline u32 nvl_link_change_newstate_f(u32 v)
 }
 static inline u32 nvl_link_change_newstate_m(void)
 {
-	return 0xfU << 4U;
+	return U32(0xfU) << 4U;
 }
 static inline u32 nvl_link_change_newstate_v(u32 r)
 {
@@ -326,7 +328,7 @@ static inline u32 nvl_link_change_action_f(u32 v)
 }
 static inline u32 nvl_link_change_action_m(void)
 {
-	return 0x3U << 2U;
+	return U32(0x3U) << 2U;
 }
 static inline u32 nvl_link_change_action_v(u32 r)
 {
@@ -346,7 +348,7 @@ static inline u32 nvl_link_change_status_f(u32 v)
 }
 static inline u32 nvl_link_change_status_m(void)
 {
-	return 0x3U << 0U;
+	return U32(0x3U) << 0U;
 }
 static inline u32 nvl_link_change_status_v(u32 r)
 {
@@ -386,7 +388,7 @@ static inline u32 nvl_sublink_change_countdown_f(u32 v)
 }
 static inline u32 nvl_sublink_change_countdown_m(void)
 {
-	return 0xfffU << 20U;
+	return U32(0xfffU) << 20U;
 }
 static inline u32 nvl_sublink_change_countdown_v(u32 r)
 {
@@ -398,7 +400,7 @@ static inline u32 nvl_sublink_change_oldstate_mask_f(u32 v)
 }
 static inline u32 nvl_sublink_change_oldstate_mask_m(void)
 {
-	return 0xfU << 16U;
+	return U32(0xfU) << 16U;
 }
 static inline u32 nvl_sublink_change_oldstate_mask_v(u32 r)
 {
@@ -418,7 +420,7 @@ static inline u32 nvl_sublink_change_sublink_f(u32 v)
 }
 static inline u32 nvl_sublink_change_sublink_m(void)
 {
-	return 0xfU << 12U;
+	return U32(0xfU) << 12U;
 }
 static inline u32 nvl_sublink_change_sublink_v(u32 r)
 {
@@ -446,7 +448,7 @@ static inline u32 nvl_sublink_change_newstate_f(u32 v)
 }
 static inline u32 nvl_sublink_change_newstate_m(void)
 {
-	return 0xfU << 4U;
+	return U32(0xfU) << 4U;
 }
 static inline u32 nvl_sublink_change_newstate_v(u32 r)
 {
@@ -498,7 +500,7 @@ static inline u32 nvl_sublink_change_action_f(u32 v)
 }
 static inline u32 nvl_sublink_change_action_m(void)
 {
-	return 0x3U << 2U;
+	return U32(0x3U) << 2U;
 }
 static inline u32 nvl_sublink_change_action_v(u32 r)
 {
@@ -518,7 +520,7 @@ static inline u32 nvl_sublink_change_status_f(u32 v)
 }
 static inline u32 nvl_sublink_change_status_m(void)
 {
-	return 0x3U << 0U;
+	return U32(0x3U) << 0U;
 }
 static inline u32 nvl_sublink_change_status_v(u32 r)
 {
@@ -558,7 +560,7 @@ static inline u32 nvl_link_test_mode_f(u32 v)
 }
 static inline u32 nvl_link_test_mode_m(void)
 {
-	return 0x1U << 0U;
+	return U32(0x1U) << 0U;
 }
 static inline u32 nvl_link_test_mode_v(u32 r)
 {
@@ -578,7 +580,7 @@ static inline u32 nvl_link_test_auto_hwcfg_f(u32 v)
 }
 static inline u32 nvl_link_test_auto_hwcfg_m(void)
 {
-	return 0x1U << 30U;
+	return U32(0x1U) << 30U;
 }
 static inline u32 nvl_link_test_auto_hwcfg_v(u32 r)
 {
@@ -598,7 +600,7 @@ static inline u32 nvl_link_test_auto_nvhs_f(u32 v)
 }
 static inline u32 nvl_link_test_auto_nvhs_m(void)
 {
-	return 0x1U << 31U;
+	return U32(0x1U) << 31U;
 }
 static inline u32 nvl_link_test_auto_nvhs_v(u32 r)
 {
@@ -622,7 +624,7 @@ static inline u32 nvl_sl0_slsm_status_tx_substate_f(u32 v)
 }
 static inline u32 nvl_sl0_slsm_status_tx_substate_m(void)
 {
-	return 0xfU << 0U;
+	return U32(0xfU) << 0U;
 }
 static inline u32 nvl_sl0_slsm_status_tx_substate_v(u32 r)
 {
@@ -642,7 +644,7 @@ static inline u32 nvl_sl0_slsm_status_tx_primary_state_f(u32 v)
 }
 static inline u32 nvl_sl0_slsm_status_tx_primary_state_m(void)
 {
-	return 0xfU << 4U;
+	return U32(0xfU) << 4U;
 }
 static inline u32 nvl_sl0_slsm_status_tx_primary_state_v(u32 r)
 {
@@ -706,7 +708,7 @@ static inline u32 nvl_sl1_slsm_status_rx_substate_f(u32 v)
 }
 static inline u32 nvl_sl1_slsm_status_rx_substate_m(void)
 {
-	return 0xfU << 0U;
+	return U32(0xfU) << 0U;
 }
 static inline u32 nvl_sl1_slsm_status_rx_substate_v(u32 r)
 {
@@ -726,7 +728,7 @@ static inline u32 nvl_sl1_slsm_status_rx_primary_state_f(u32 v)
 }
 static inline u32 nvl_sl1_slsm_status_rx_primary_state_m(void)
 {
-	return 0xfU << 4U;
+	return U32(0xfU) << 4U;
 }
 static inline u32 nvl_sl1_slsm_status_rx_primary_state_v(u32 r)
 {
@@ -790,7 +792,7 @@ static inline u32 nvl_sl0_safe_ctrl2_tx_ctr_init_f(u32 v)
 }
 static inline u32 nvl_sl0_safe_ctrl2_tx_ctr_init_m(void)
 {
-	return 0x7ffU << 0U;
+	return U32(0x7ffU) << 0U;
 }
 static inline u32 nvl_sl0_safe_ctrl2_tx_ctr_init_v(u32 r)
 {
@@ -810,7 +812,7 @@ static inline u32 nvl_sl0_safe_ctrl2_tx_ctr_initscl_f(u32 v)
 }
 static inline u32 nvl_sl0_safe_ctrl2_tx_ctr_initscl_m(void)
 {
-	return 0x1fU << 11U;
+	return U32(0x1fU) << 11U;
 }
 static inline u32 nvl_sl0_safe_ctrl2_tx_ctr_initscl_v(u32 r)
 {
@@ -834,7 +836,7 @@ static inline u32 nvl_sl1_error_rate_ctrl_short_threshold_man_f(u32 v)
 }
 static inline u32 nvl_sl1_error_rate_ctrl_short_threshold_man_m(void)
 {
-	return 0x7U << 0U;
+	return U32(0x7U) << 0U;
 }
 static inline u32 nvl_sl1_error_rate_ctrl_short_threshold_man_v(u32 r)
 {
@@ -846,7 +848,7 @@ static inline u32 nvl_sl1_error_rate_ctrl_long_threshold_man_f(u32 v)
 }
 static inline u32 nvl_sl1_error_rate_ctrl_long_threshold_man_m(void)
 {
-	return 0x7U << 16U;
+	return U32(0x7U) << 16U;
 }
 static inline u32 nvl_sl1_error_rate_ctrl_long_threshold_man_v(u32 r)
 {
@@ -866,7 +868,7 @@ static inline u32 nvl_txiobist_configreg_io_bist_mode_in_f(u32 v)
 }
 static inline u32 nvl_txiobist_configreg_io_bist_mode_in_m(void)
 {
-	return 0x1U << 17U;
+	return U32(0x1U) << 17U;
 }
 static inline u32 nvl_txiobist_configreg_io_bist_mode_in_v(u32 r)
 {
@@ -882,7 +884,7 @@ static inline u32 nvl_txiobist_config_dpg_prbsseedld_f(u32 v)
 }
 static inline u32 nvl_txiobist_config_dpg_prbsseedld_m(void)
 {
-	return 0x1U << 2U;
+	return U32(0x1U) << 2U;
 }
 static inline u32 nvl_txiobist_config_dpg_prbsseedld_v(u32 r)
 {
@@ -898,7 +900,7 @@ static inline u32 nvl_intr_tx_replay_f(u32 v)
 }
 static inline u32 nvl_intr_tx_replay_m(void)
 {
-	return 0x1U << 0U;
+	return U32(0x1U) << 0U;
 }
 static inline u32 nvl_intr_tx_replay_v(u32 r)
 {
@@ -910,7 +912,7 @@ static inline u32 nvl_intr_tx_recovery_short_f(u32 v)
 }
 static inline u32 nvl_intr_tx_recovery_short_m(void)
 {
-	return 0x1U << 1U;
+	return U32(0x1U) << 1U;
 }
 static inline u32 nvl_intr_tx_recovery_short_v(u32 r)
 {
@@ -922,7 +924,7 @@ static inline u32 nvl_intr_tx_recovery_long_f(u32 v)
 }
 static inline u32 nvl_intr_tx_recovery_long_m(void)
 {
-	return 0x1U << 2U;
+	return U32(0x1U) << 2U;
 }
 static inline u32 nvl_intr_tx_recovery_long_v(u32 r)
 {
@@ -934,7 +936,7 @@ static inline u32 nvl_intr_tx_fault_ram_f(u32 v)
 }
 static inline u32 nvl_intr_tx_fault_ram_m(void)
 {
-	return 0x1U << 4U;
+	return U32(0x1U) << 4U;
 }
 static inline u32 nvl_intr_tx_fault_ram_v(u32 r)
 {
@@ -946,7 +948,7 @@ static inline u32 nvl_intr_tx_fault_interface_f(u32 v)
 }
 static inline u32 nvl_intr_tx_fault_interface_m(void)
 {
-	return 0x1U << 5U;
+	return U32(0x1U) << 5U;
 }
 static inline u32 nvl_intr_tx_fault_interface_v(u32 r)
 {
@@ -958,7 +960,7 @@ static inline u32 nvl_intr_tx_fault_sublink_change_f(u32 v)
 }
 static inline u32 nvl_intr_tx_fault_sublink_change_m(void)
 {
-	return 0x1U << 8U;
+	return U32(0x1U) << 8U;
 }
 static inline u32 nvl_intr_tx_fault_sublink_change_v(u32 r)
 {
@@ -970,7 +972,7 @@ static inline u32 nvl_intr_rx_fault_sublink_change_f(u32 v)
 }
 static inline u32 nvl_intr_rx_fault_sublink_change_m(void)
 {
-	return 0x1U << 16U;
+	return U32(0x1U) << 16U;
 }
 static inline u32 nvl_intr_rx_fault_sublink_change_v(u32 r)
 {
@@ -982,7 +984,7 @@ static inline u32 nvl_intr_rx_fault_dl_protocol_f(u32 v)
 }
 static inline u32 nvl_intr_rx_fault_dl_protocol_m(void)
 {
-	return 0x1U << 20U;
+	return U32(0x1U) << 20U;
 }
 static inline u32 nvl_intr_rx_fault_dl_protocol_v(u32 r)
 {
@@ -994,7 +996,7 @@ static inline u32 nvl_intr_rx_short_error_rate_f(u32 v)
 }
 static inline u32 nvl_intr_rx_short_error_rate_m(void)
 {
-	return 0x1U << 21U;
+	return U32(0x1U) << 21U;
 }
 static inline u32 nvl_intr_rx_short_error_rate_v(u32 r)
 {
@@ -1006,7 +1008,7 @@ static inline u32 nvl_intr_rx_long_error_rate_f(u32 v)
 }
 static inline u32 nvl_intr_rx_long_error_rate_m(void)
 {
-	return 0x1U << 22U;
+	return U32(0x1U) << 22U;
 }
 static inline u32 nvl_intr_rx_long_error_rate_v(u32 r)
 {
@@ -1018,7 +1020,7 @@ static inline u32 nvl_intr_rx_ila_trigger_f(u32 v)
 }
 static inline u32 nvl_intr_rx_ila_trigger_m(void)
 {
-	return 0x1U << 23U;
+	return U32(0x1U) << 23U;
 }
 static inline u32 nvl_intr_rx_ila_trigger_v(u32 r)
 {
@@ -1030,7 +1032,7 @@ static inline u32 nvl_intr_rx_crc_counter_f(u32 v)
 }
 static inline u32 nvl_intr_rx_crc_counter_m(void)
 {
-	return 0x1U << 24U;
+	return U32(0x1U) << 24U;
 }
 static inline u32 nvl_intr_rx_crc_counter_v(u32 r)
 {
@@ -1042,7 +1044,7 @@ static inline u32 nvl_intr_ltssm_fault_f(u32 v)
 }
 static inline u32 nvl_intr_ltssm_fault_m(void)
 {
-	return 0x1U << 28U;
+	return U32(0x1U) << 28U;
 }
 static inline u32 nvl_intr_ltssm_fault_v(u32 r)
 {
@@ -1054,7 +1056,7 @@ static inline u32 nvl_intr_ltssm_protocol_f(u32 v)
 }
 static inline u32 nvl_intr_ltssm_protocol_m(void)
 {
-	return 0x1U << 29U;
+	return U32(0x1U) << 29U;
 }
 static inline u32 nvl_intr_ltssm_protocol_v(u32 r)
 {
@@ -1066,7 +1068,7 @@ static inline u32 nvl_intr_minion_request_f(u32 v)
 }
 static inline u32 nvl_intr_minion_request_m(void)
 {
-	return 0x1U << 30U;
+	return U32(0x1U) << 30U;
 }
 static inline u32 nvl_intr_minion_request_v(u32 r)
 {
@@ -1086,7 +1088,7 @@ static inline u32 nvl_intr_minion_tx_replay_f(u32 v)
 }
 static inline u32 nvl_intr_minion_tx_replay_m(void)
 {
-	return 0x1U << 0U;
+	return U32(0x1U) << 0U;
 }
 static inline u32 nvl_intr_minion_tx_replay_v(u32 r)
 {
@@ -1098,7 +1100,7 @@ static inline u32 nvl_intr_minion_tx_recovery_short_f(u32 v)
 }
 static inline u32 nvl_intr_minion_tx_recovery_short_m(void)
 {
-	return 0x1U << 1U;
+	return U32(0x1U) << 1U;
 }
 static inline u32 nvl_intr_minion_tx_recovery_short_v(u32 r)
 {
@@ -1110,7 +1112,7 @@ static inline u32 nvl_intr_minion_tx_recovery_long_f(u32 v)
 }
 static inline u32 nvl_intr_minion_tx_recovery_long_m(void)
 {
-	return 0x1U << 2U;
+	return U32(0x1U) << 2U;
 }
 static inline u32 nvl_intr_minion_tx_recovery_long_v(u32 r)
 {
@@ -1122,7 +1124,7 @@ static inline u32 nvl_intr_minion_tx_fault_ram_f(u32 v)
 }
 static inline u32 nvl_intr_minion_tx_fault_ram_m(void)
 {
-	return 0x1U << 4U;
+	return U32(0x1U) << 4U;
 }
 static inline u32 nvl_intr_minion_tx_fault_ram_v(u32 r)
 {
@@ -1134,7 +1136,7 @@ static inline u32 nvl_intr_minion_tx_fault_interface_f(u32 v)
 }
 static inline u32 nvl_intr_minion_tx_fault_interface_m(void)
 {
-	return 0x1U << 5U;
+	return U32(0x1U) << 5U;
 }
 static inline u32 nvl_intr_minion_tx_fault_interface_v(u32 r)
 {
@@ -1146,7 +1148,7 @@ static inline u32 nvl_intr_minion_tx_fault_sublink_change_f(u32 v)
 }
 static inline u32 nvl_intr_minion_tx_fault_sublink_change_m(void)
 {
-	return 0x1U << 8U;
+	return U32(0x1U) << 8U;
 }
 static inline u32 nvl_intr_minion_tx_fault_sublink_change_v(u32 r)
 {
@@ -1158,7 +1160,7 @@ static inline u32 nvl_intr_minion_rx_fault_sublink_change_f(u32 v)
 }
 static inline u32 nvl_intr_minion_rx_fault_sublink_change_m(void)
 {
-	return 0x1U << 16U;
+	return U32(0x1U) << 16U;
 }
 static inline u32 nvl_intr_minion_rx_fault_sublink_change_v(u32 r)
 {
@@ -1170,7 +1172,7 @@ static inline u32 nvl_intr_minion_rx_fault_dl_protocol_f(u32 v)
 }
 static inline u32 nvl_intr_minion_rx_fault_dl_protocol_m(void)
 {
-	return 0x1U << 20U;
+	return U32(0x1U) << 20U;
 }
 static inline u32 nvl_intr_minion_rx_fault_dl_protocol_v(u32 r)
 {
@@ -1182,7 +1184,7 @@ static inline u32 nvl_intr_minion_rx_short_error_rate_f(u32 v)
 }
 static inline u32 nvl_intr_minion_rx_short_error_rate_m(void)
 {
-	return 0x1U << 21U;
+	return U32(0x1U) << 21U;
 }
 static inline u32 nvl_intr_minion_rx_short_error_rate_v(u32 r)
 {
@@ -1194,7 +1196,7 @@ static inline u32 nvl_intr_minion_rx_long_error_rate_f(u32 v)
 }
 static inline u32 nvl_intr_minion_rx_long_error_rate_m(void)
 {
-	return 0x1U << 22U;
+	return U32(0x1U) << 22U;
 }
 static inline u32 nvl_intr_minion_rx_long_error_rate_v(u32 r)
 {
@@ -1206,7 +1208,7 @@ static inline u32 nvl_intr_minion_rx_ila_trigger_f(u32 v)
 }
 static inline u32 nvl_intr_minion_rx_ila_trigger_m(void)
 {
-	return 0x1U << 23U;
+	return U32(0x1U) << 23U;
 }
 static inline u32 nvl_intr_minion_rx_ila_trigger_v(u32 r)
 {
@@ -1218,7 +1220,7 @@ static inline u32 nvl_intr_minion_rx_crc_counter_f(u32 v)
 }
 static inline u32 nvl_intr_minion_rx_crc_counter_m(void)
 {
-	return 0x1U << 24U;
+	return U32(0x1U) << 24U;
 }
 static inline u32 nvl_intr_minion_rx_crc_counter_v(u32 r)
 {
@@ -1230,7 +1232,7 @@ static inline u32 nvl_intr_minion_ltssm_fault_f(u32 v)
 }
 static inline u32 nvl_intr_minion_ltssm_fault_m(void)
 {
-	return 0x1U << 28U;
+	return U32(0x1U) << 28U;
 }
 static inline u32 nvl_intr_minion_ltssm_fault_v(u32 r)
 {
@@ -1242,7 +1244,7 @@ static inline u32 nvl_intr_minion_ltssm_protocol_f(u32 v)
 }
 static inline u32 nvl_intr_minion_ltssm_protocol_m(void)
 {
-	return 0x1U << 29U;
+	return U32(0x1U) << 29U;
 }
 static inline u32 nvl_intr_minion_ltssm_protocol_v(u32 r)
 {
@@ -1254,7 +1256,7 @@ static inline u32 nvl_intr_minion_minion_request_f(u32 v)
 }
 static inline u32 nvl_intr_minion_minion_request_m(void)
 {
-	return 0x1U << 30U;
+	return U32(0x1U) << 30U;
 }
 static inline u32 nvl_intr_minion_minion_request_v(u32 r)
 {
@@ -1274,7 +1276,7 @@ static inline u32 nvl_intr_stall_en_tx_replay_f(u32 v)
 }
 static inline u32 nvl_intr_stall_en_tx_replay_m(void)
 {
-	return 0x1U << 0U;
+	return U32(0x1U) << 0U;
 }
 static inline u32 nvl_intr_stall_en_tx_replay_v(u32 r)
 {
@@ -1286,7 +1288,7 @@ static inline u32 nvl_intr_stall_en_tx_recovery_short_f(u32 v)
 }
 static inline u32 nvl_intr_stall_en_tx_recovery_short_m(void)
 {
-	return 0x1U << 1U;
+	return U32(0x1U) << 1U;
 }
 static inline u32 nvl_intr_stall_en_tx_recovery_short_v(u32 r)
 {
@@ -1306,7 +1308,7 @@ static inline u32 nvl_intr_stall_en_tx_recovery_long_f(u32 v)
 }
 static inline u32 nvl_intr_stall_en_tx_recovery_long_m(void)
 {
-	return 0x1U << 2U;
+	return U32(0x1U) << 2U;
 }
 static inline u32 nvl_intr_stall_en_tx_recovery_long_v(u32 r)
 {
@@ -1326,7 +1328,7 @@ static inline u32 nvl_intr_stall_en_tx_fault_ram_f(u32 v)
 }
 static inline u32 nvl_intr_stall_en_tx_fault_ram_m(void)
 {
-	return 0x1U << 4U;
+	return U32(0x1U) << 4U;
 }
 static inline u32 nvl_intr_stall_en_tx_fault_ram_v(u32 r)
 {
@@ -1346,7 +1348,7 @@ static inline u32 nvl_intr_stall_en_tx_fault_interface_f(u32 v)
 }
 static inline u32 nvl_intr_stall_en_tx_fault_interface_m(void)
 {
-	return 0x1U << 5U;
+	return U32(0x1U) << 5U;
 }
 static inline u32 nvl_intr_stall_en_tx_fault_interface_v(u32 r)
 {
@@ -1366,7 +1368,7 @@ static inline u32 nvl_intr_stall_en_tx_fault_sublink_change_f(u32 v)
 }
 static inline u32 nvl_intr_stall_en_tx_fault_sublink_change_m(void)
 {
-	return 0x1U << 8U;
+	return U32(0x1U) << 8U;
 }
 static inline u32 nvl_intr_stall_en_tx_fault_sublink_change_v(u32 r)
 {
@@ -1386,7 +1388,7 @@ static inline u32 nvl_intr_stall_en_rx_fault_sublink_change_f(u32 v)
 }
 static inline u32 nvl_intr_stall_en_rx_fault_sublink_change_m(void)
 {
-	return 0x1U << 16U;
+	return U32(0x1U) << 16U;
 }
 static inline u32 nvl_intr_stall_en_rx_fault_sublink_change_v(u32 r)
 {
@@ -1406,7 +1408,7 @@ static inline u32 nvl_intr_stall_en_rx_fault_dl_protocol_f(u32 v)
 }
 static inline u32 nvl_intr_stall_en_rx_fault_dl_protocol_m(void)
 {
-	return 0x1U << 20U;
+	return U32(0x1U) << 20U;
 }
 static inline u32 nvl_intr_stall_en_rx_fault_dl_protocol_v(u32 r)
 {
@@ -1426,7 +1428,7 @@ static inline u32 nvl_intr_stall_en_rx_short_error_rate_f(u32 v)
 }
 static inline u32 nvl_intr_stall_en_rx_short_error_rate_m(void)
 {
-	return 0x1U << 21U;
+	return U32(0x1U) << 21U;
 }
 static inline u32 nvl_intr_stall_en_rx_short_error_rate_v(u32 r)
 {
@@ -1446,7 +1448,7 @@ static inline u32 nvl_intr_stall_en_rx_long_error_rate_f(u32 v)
 }
 static inline u32 nvl_intr_stall_en_rx_long_error_rate_m(void)
 {
-	return 0x1U << 22U;
+	return U32(0x1U) << 22U;
 }
 static inline u32 nvl_intr_stall_en_rx_long_error_rate_v(u32 r)
 {
@@ -1466,7 +1468,7 @@ static inline u32 nvl_intr_stall_en_rx_ila_trigger_f(u32 v)
 }
 static inline u32 nvl_intr_stall_en_rx_ila_trigger_m(void)
 {
-	return 0x1U << 23U;
+	return U32(0x1U) << 23U;
 }
 static inline u32 nvl_intr_stall_en_rx_ila_trigger_v(u32 r)
 {
@@ -1486,7 +1488,7 @@ static inline u32 nvl_intr_stall_en_rx_crc_counter_f(u32 v)
 }
 static inline u32 nvl_intr_stall_en_rx_crc_counter_m(void)
 {
-	return 0x1U << 24U;
+	return U32(0x1U) << 24U;
 }
 static inline u32 nvl_intr_stall_en_rx_crc_counter_v(u32 r)
 {
@@ -1506,7 +1508,7 @@ static inline u32 nvl_intr_stall_en_ltssm_fault_f(u32 v)
 }
 static inline u32 nvl_intr_stall_en_ltssm_fault_m(void)
 {
-	return 0x1U << 28U;
+	return U32(0x1U) << 28U;
 }
 static inline u32 nvl_intr_stall_en_ltssm_fault_v(u32 r)
 {
@@ -1526,7 +1528,7 @@ static inline u32 nvl_intr_stall_en_ltssm_protocol_f(u32 v)
 }
 static inline u32 nvl_intr_stall_en_ltssm_protocol_m(void)
 {
-	return 0x1U << 29U;
+	return U32(0x1U) << 29U;
 }
 static inline u32 nvl_intr_stall_en_ltssm_protocol_v(u32 r)
 {
@@ -1546,7 +1548,7 @@ static inline u32 nvl_intr_stall_en_minion_request_f(u32 v)
 }
 static inline u32 nvl_intr_stall_en_minion_request_m(void)
 {
-	return 0x1U << 30U;
+	return U32(0x1U) << 30U;
 }
 static inline u32 nvl_intr_stall_en_minion_request_v(u32 r)
 {
@@ -1570,7 +1572,7 @@ static inline u32 nvl_br0_cfg_cal_rxcal_f(u32 v)
 }
 static inline u32 nvl_br0_cfg_cal_rxcal_m(void)
 {
-	return 0x1U << 0U;
+	return U32(0x1U) << 0U;
 }
 static inline u32 nvl_br0_cfg_cal_rxcal_v(u32 r)
 {
@@ -1594,7 +1596,7 @@ static inline u32 nvl_br0_cfg_status_cal_rxcal_done_f(u32 v)
 }
 static inline u32 nvl_br0_cfg_status_cal_rxcal_done_m(void)
 {
-	return 0x1U << 2U;
+	return U32(0x1U) << 2U;
 }
 static inline u32 nvl_br0_cfg_status_cal_rxcal_done_v(u32 r)
 {

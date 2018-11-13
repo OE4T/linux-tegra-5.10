@@ -56,6 +56,8 @@
 #ifndef NVGPU_HW_GC6_TU104_H
 #define NVGPU_HW_GC6_TU104_H
 
+#include <nvgpu/types.h>
+
 static inline u32 gc6_aon_secure_scratch_group_05_r(u32 i)
 {
 	return 0x00118234U + i*4U;

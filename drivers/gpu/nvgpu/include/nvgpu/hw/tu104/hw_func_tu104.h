@@ -56,6 +56,8 @@
 #ifndef NVGPU_HW_FUNC_TU104_H
 #define NVGPU_HW_FUNC_TU104_H
 
+#include <nvgpu/types.h>
+
 static inline u32 func_full_phys_offset_v(void)
 {
 	return 0x00b80000U;

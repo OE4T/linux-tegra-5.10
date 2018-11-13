@@ -56,6 +56,8 @@
 #ifndef NVGPU_HW_FUSE_TU104_H
 #define NVGPU_HW_FUSE_TU104_H
 
+#include <nvgpu/types.h>
+
 static inline u32 fuse_status_opt_gpc_r(void)
 {
 	return 0x00021c1cU;
@@ -78,7 +80,7 @@ static inline u32 fuse_status_opt_fbio_data_f(u32 v)
 }
 static inline u32 fuse_status_opt_fbio_data_m(void)
 {
-	return 0xffffU << 0U;
+	return U32(0xffffU) << 0U;
 }
 static inline u32 fuse_status_opt_fbio_data_v(u32 r)
 {

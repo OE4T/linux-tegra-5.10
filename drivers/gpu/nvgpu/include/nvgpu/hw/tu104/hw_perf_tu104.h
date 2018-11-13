@@ -56,6 +56,8 @@
 #ifndef NVGPU_HW_PERF_TU104_H
 #define NVGPU_HW_PERF_TU104_H
 
+#include <nvgpu/types.h>
+
 static inline u32 perf_pmmgpc_perdomain_offset_v(void)
 {
 	return 0x00000200U;

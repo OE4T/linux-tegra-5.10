@@ -56,6 +56,8 @@
 #ifndef NVGPU_HW_IOCTRL_TU104_H
 #define NVGPU_HW_IOCTRL_TU104_H
 
+#include <nvgpu/types.h>
+
 static inline u32 ioctrl_reset_r(void)
 {
 	return 0x00000140U;
@@ -70,7 +72,7 @@ static inline u32 ioctrl_reset_linkreset_f(u32 v)
 }
 static inline u32 ioctrl_reset_linkreset_m(void)
 {
-	return 0x3U << 8U;
+	return U32(0x3U) << 8U;
 }
 static inline u32 ioctrl_reset_linkreset_v(u32 r)
 {
@@ -86,7 +88,7 @@ static inline u32 ioctrl_debug_reset_link_f(u32 v)
 }
 static inline u32 ioctrl_debug_reset_link_m(void)
 {
-	return 0x3U << 0U;
+	return U32(0x3U) << 0U;
 }
 static inline u32 ioctrl_debug_reset_link_v(u32 r)
 {
@@ -98,7 +100,7 @@ static inline u32 ioctrl_debug_reset_common_f(u32 v)
 }
 static inline u32 ioctrl_debug_reset_common_m(void)
 {
-	return 0x1U << 31U;
+	return U32(0x1U) << 31U;
 }
 static inline u32 ioctrl_debug_reset_common_v(u32 r)
 {
@@ -118,7 +120,7 @@ static inline u32 ioctrl_clock_control_clkdis_f(u32 v)
 }
 static inline u32 ioctrl_clock_control_clkdis_m(void)
 {
-	return 0x1U << 0U;
+	return U32(0x1U) << 0U;
 }
 static inline u32 ioctrl_clock_control_clkdis_v(u32 r)
 {
@@ -134,7 +136,7 @@ static inline u32 ioctrl_top_intr_0_status_link_f(u32 v)
 }
 static inline u32 ioctrl_top_intr_0_status_link_m(void)
 {
-	return 0x3U << 0U;
+	return U32(0x3U) << 0U;
 }
 static inline u32 ioctrl_top_intr_0_status_link_v(u32 r)
 {
@@ -146,7 +148,7 @@ static inline u32 ioctrl_top_intr_0_status_common_f(u32 v)
 }
 static inline u32 ioctrl_top_intr_0_status_common_m(void)
 {
-	return 0x1U << 31U;
+	return U32(0x1U) << 31U;
 }
 static inline u32 ioctrl_top_intr_0_status_common_v(u32 r)
 {

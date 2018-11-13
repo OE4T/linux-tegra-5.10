@@ -56,13 +56,15 @@
 #ifndef NVGPU_HW_PRI_RINGSTATION_SYS_TU104_H
 #define NVGPU_HW_PRI_RINGSTATION_SYS_TU104_H
 
+#include <nvgpu/types.h>
+
 static inline u32 pri_ringstation_sys_decode_config_r(void)
 {
 	return 0x00122204U;
 }
 static inline u32 pri_ringstation_sys_decode_config_ring_m(void)
 {
-	return 0x7U << 0U;
+	return U32(0x7U) << 0U;
 }
 static inline u32 pri_ringstation_sys_decode_config_ring_drop_on_ring_not_started_f(void)
 {

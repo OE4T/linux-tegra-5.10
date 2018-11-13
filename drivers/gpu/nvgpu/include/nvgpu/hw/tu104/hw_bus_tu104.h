@@ -56,6 +56,8 @@
 #ifndef NVGPU_HW_BUS_TU104_H
 #define NVGPU_HW_BUS_TU104_H
 
+#include <nvgpu/types.h>
+
 static inline u32 bus_sw_scratch_r(u32 i)
 {
 	return 0x00001400U + i*4U;
@@ -214,15 +216,15 @@ static inline u32 bus_intr_0_r(void)
 }
 static inline u32 bus_intr_0_pri_squash_m(void)
 {
-	return 0x1U << 1U;
+	return U32(0x1U) << 1U;
 }
 static inline u32 bus_intr_0_pri_fecserr_m(void)
 {
-	return 0x1U << 2U;
+	return U32(0x1U) << 2U;
 }
 static inline u32 bus_intr_0_pri_timeout_m(void)
 {
-	return 0x1U << 3U;
+	return U32(0x1U) << 3U;
 }
 static inline u32 bus_intr_en_0_r(void)
 {
@@ -230,14 +232,14 @@ static inline u32 bus_intr_en_0_r(void)
 }
 static inline u32 bus_intr_en_0_pri_squash_m(void)
 {
-	return 0x1U << 1U;
+	return U32(0x1U) << 1U;
 }
 static inline u32 bus_intr_en_0_pri_fecserr_m(void)
 {
-	return 0x1U << 2U;
+	return U32(0x1U) << 2U;
 }
 static inline u32 bus_intr_en_0_pri_timeout_m(void)
 {
-	return 0x1U << 3U;
+	return U32(0x1U) << 3U;
 }
 #endif

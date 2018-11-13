@@ -56,6 +56,8 @@
 #ifndef NVGPU_HW_USERMODE_TU104_H
 #define NVGPU_HW_USERMODE_TU104_H
 
+#include <nvgpu/types.h>
+
 static inline u32 usermode_cfg0_r(void)
 {
 	return 0x00810000U;
