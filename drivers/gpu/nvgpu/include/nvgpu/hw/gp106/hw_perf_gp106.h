@@ -56,6 +56,8 @@
 #ifndef NVGPU_HW_PERF_GP106_H
 #define NVGPU_HW_PERF_GP106_H
 
+#include <nvgpu/types.h>
+
 static inline u32 perf_pmmsys_base_v(void)
 {
 	return 0x001b0000U;

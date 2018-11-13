@@ -56,6 +56,8 @@
 #ifndef NVGPU_HW_CTXSW_PROG_GP106_H
 #define NVGPU_HW_CTXSW_PROG_GP106_H
 
+#include <nvgpu/types.h>
+
 static inline u32 ctxsw_prog_fecs_header_v(void)
 {
 	return 0x00000100U;
@@ -98,7 +100,7 @@ static inline u32 ctxsw_prog_main_image_pm_o(void)
 }
 static inline u32 ctxsw_prog_main_image_pm_mode_m(void)
 {
-	return 0x7U << 0U;
+	return U32(0x7U) << 0U;
 }
 static inline u32 ctxsw_prog_main_image_pm_mode_no_ctxsw_f(void)
 {
@@ -106,7 +108,7 @@ static inline u32 ctxsw_prog_main_image_pm_mode_no_ctxsw_f(void)
 }
 static inline u32 ctxsw_prog_main_image_pm_smpc_mode_m(void)
 {
-	return 0x7U << 3U;
+	return U32(0x7U) << 3U;
 }
 static inline u32 ctxsw_prog_main_image_pm_smpc_mode_ctxsw_f(void)
 {
@@ -226,7 +228,7 @@ static inline u32 ctxsw_prog_main_image_priv_access_map_config_mode_f(u32 v)
 }
 static inline u32 ctxsw_prog_main_image_priv_access_map_config_mode_m(void)
 {
-	return 0x3U << 0U;
+	return U32(0x3U) << 0U;
 }
 static inline u32 ctxsw_prog_main_image_priv_access_map_config_mode_v(u32 r)
 {
@@ -254,7 +256,7 @@ static inline u32 ctxsw_prog_main_image_misc_options_o(void)
 }
 static inline u32 ctxsw_prog_main_image_misc_options_verif_features_m(void)
 {
-	return 0x1U << 3U;
+	return U32(0x1U) << 3U;
 }
 static inline u32 ctxsw_prog_main_image_misc_options_verif_features_disabled_f(void)
 {

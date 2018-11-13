@@ -56,6 +56,8 @@
 #ifndef NVGPU_HW_FBPA_GP106_H
 #define NVGPU_HW_FBPA_GP106_H
 
+#include <nvgpu/types.h>
+
 static inline u32 fbpa_cstatus_r(void)
 {
 	return 0x009a020cU;

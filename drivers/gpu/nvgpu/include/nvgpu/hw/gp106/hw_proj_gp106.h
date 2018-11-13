@@ -56,6 +56,8 @@
 #ifndef NVGPU_HW_PROJ_GP106_H
 #define NVGPU_HW_PROJ_GP106_H
 
+#include <nvgpu/types.h>
+
 static inline u32 proj_gpc_base_v(void)
 {
 	return 0x00500000U;

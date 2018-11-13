@@ -56,6 +56,8 @@
 #ifndef NVGPU_HW_THERM_GP106_H
 #define NVGPU_HW_THERM_GP106_H
 
+#include <nvgpu/types.h>
+
 static inline u32 therm_temp_sensor_tsense_r(void)
 {
 	return 0x00020460U;
@@ -66,7 +68,7 @@ static inline u32 therm_temp_sensor_tsense_fixed_point_f(u32 v)
 }
 static inline u32 therm_temp_sensor_tsense_fixed_point_m(void)
 {
-	return 0x3fffU << 3U;
+	return U32(0x3fffU) << 3U;
 }
 static inline u32 therm_temp_sensor_tsense_fixed_point_v(u32 r)
 {
@@ -86,7 +88,7 @@ static inline u32 therm_temp_sensor_tsense_state_f(u32 v)
 }
 static inline u32 therm_temp_sensor_tsense_state_m(void)
 {
-	return 0x3U << 29U;
+	return U32(0x3U) << 29U;
 }
 static inline u32 therm_temp_sensor_tsense_state_v(u32 r)
 {
@@ -106,7 +108,7 @@ static inline u32 therm_gate_ctrl_r(u32 i)
 }
 static inline u32 therm_gate_ctrl_eng_clk_m(void)
 {
-	return 0x3U << 0U;
+	return U32(0x3U) << 0U;
 }
 static inline u32 therm_gate_ctrl_eng_clk_run_f(void)
 {
@@ -122,7 +124,7 @@ static inline u32 therm_gate_ctrl_eng_clk_stop_f(void)
 }
 static inline u32 therm_gate_ctrl_blk_clk_m(void)
 {
-	return 0x3U << 2U;
+	return U32(0x3U) << 2U;
 }
 static inline u32 therm_gate_ctrl_blk_clk_run_f(void)
 {
@@ -138,7 +140,7 @@ static inline u32 therm_gate_ctrl_eng_idle_filt_exp_f(u32 v)
 }
 static inline u32 therm_gate_ctrl_eng_idle_filt_exp_m(void)
 {
-	return 0x1fU << 8U;
+	return U32(0x1fU) << 8U;
 }
 static inline u32 therm_gate_ctrl_eng_idle_filt_mant_f(u32 v)
 {
@@ -146,7 +148,7 @@ static inline u32 therm_gate_ctrl_eng_idle_filt_mant_f(u32 v)
 }
 static inline u32 therm_gate_ctrl_eng_idle_filt_mant_m(void)
 {
-	return 0x7U << 13U;
+	return U32(0x7U) << 13U;
 }
 static inline u32 therm_gate_ctrl_eng_delay_before_f(u32 v)
 {
@@ -154,7 +156,7 @@ static inline u32 therm_gate_ctrl_eng_delay_before_f(u32 v)
 }
 static inline u32 therm_gate_ctrl_eng_delay_before_m(void)
 {
-	return 0xfU << 16U;
+	return U32(0xfU) << 16U;
 }
 static inline u32 therm_gate_ctrl_eng_delay_after_f(u32 v)
 {
@@ -162,7 +164,7 @@ static inline u32 therm_gate_ctrl_eng_delay_after_f(u32 v)
 }
 static inline u32 therm_gate_ctrl_eng_delay_after_m(void)
 {
-	return 0xfU << 20U;
+	return U32(0xfU) << 20U;
 }
 static inline u32 therm_fecs_idle_filter_r(void)
 {
@@ -170,7 +172,7 @@ static inline u32 therm_fecs_idle_filter_r(void)
 }
 static inline u32 therm_fecs_idle_filter_value_m(void)
 {
-	return 0xffffffffU << 0U;
+	return U32(0xffffffffU) << 0U;
 }
 static inline u32 therm_hubmmu_idle_filter_r(void)
 {
@@ -178,6 +180,6 @@ static inline u32 therm_hubmmu_idle_filter_r(void)
 }
 static inline u32 therm_hubmmu_idle_filter_value_m(void)
 {
-	return 0xffffffffU << 0U;
+	return U32(0xffffffffU) << 0U;
 }
 #endif
