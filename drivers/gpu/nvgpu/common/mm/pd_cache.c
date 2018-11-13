@@ -491,6 +491,8 @@ static void nvgpu_pd_cache_do_free(struct gk20a *g,
 		/* Empty now so free it. */
 		nvgpu_pd_cache_free_mem_entry(g, cache, pentry);
 	}
+
+	pd->mem = NULL;
 }
 
 static struct nvgpu_pd_mem_entry *nvgpu_pd_cache_look_up(
