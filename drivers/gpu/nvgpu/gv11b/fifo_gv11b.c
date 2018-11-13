@@ -344,46 +344,44 @@ void gv11b_dump_channel_status_ramfc(struct gk20a *g,
 
 	status = ccsr_channel_status_v(info->channel_reg);
 
-	gk20a_debug_output(o, "Channel ID: %d, TSG ID: %u, pid %d, refs %d; deterministic = %s",
-			   info->chid,
-			   info->tsgid,
-			   info->pid,
-			   info->refs,
-			   info->deterministic ? "yes" : "no");
-	gk20a_debug_output(o, "  In use: %-3s  busy: %-3s  status: %s",
-			   (ccsr_channel_enable_v(info->channel_reg) ==
-			    ccsr_channel_enable_in_use_v()) ? "yes" : "no",
-			   (ccsr_channel_busy_v(info->channel_reg) ==
-			    ccsr_channel_busy_true_v()) ? "yes" : "no",
-			   gk20a_decode_ccsr_chan_status(status));
+	gk20a_debug_output(o, "%d-%s, TSG: %u, pid %d, refs: %d%s: ",
+			info->chid,
+			g->name,
+			info->tsgid,
+			info->pid,
+			info->refs,
+			info->deterministic ? ", deterministic" : "");
+	gk20a_debug_output(o, "channel status: %s in use %s %s\n",
+			(ccsr_channel_enable_v(info->channel_reg) ==
+			 ccsr_channel_enable_in_use_v()) ? "" : "not",
+			gk20a_decode_ccsr_chan_status(status),
+			(ccsr_channel_busy_v(info->channel_reg) ==
+			 ccsr_channel_busy_true_v()) ? "busy" : "not busy");
 	gk20a_debug_output(o,
-			   "  TOP       %016llx"
-			   "  PUT       %016llx  GET %016llx",
-			   info->inst.pb_top_level_get,
-			   info->inst.pb_put,
-			   info->inst.pb_get);
-	gk20a_debug_output(o,
-			   "  FETCH     %016llx"
-			   "  HEADER    %08x          COUNT %08x",
-			   info->inst.pb_fetch,
-			   info->inst.pb_header,
-			   info->inst.pb_count);
-	gk20a_debug_output(o,
-			   "SEMAPHORE %08x %08x %08x %08x",
-			   info->inst.semaphorea,
-			   info->inst.semaphoreb,
-			   info->inst.semaphorec,
-			   info->inst.semaphored);
+			"RAMFC : TOP: %016llx PUT: %016llx GET: %016llx "
+			"FETCH: %016llx\n"
+			"HEADER: %08x COUNT: %08x\n"
+			"SEMAPHORE: addr %016llx\n"
+			"payload %016llx execute %08x\n",
+			info->inst.pb_top_level_get,
+			info->inst.pb_put,
+			info->inst.pb_get,
+			info->inst.pb_fetch,
+			info->inst.pb_header,
+			info->inst.pb_count,
+			info->inst.sem_addr,
+			info->inst.sem_payload,
+			info->inst.sem_execute);
 
-	if (info->sema.addr == 0ULL) {
-		gk20a_debug_output(o,
-			"  SEMA STATE: val: %u next_val: %u addr: 0x%010llx",
-			info->sema.value,
-			info->sema.next,
-			info->sema.addr);
+	if (info->sema.addr != 0ULL) {
+		gk20a_debug_output(o, "SEMA STATE: value: 0x%08x "
+				   "next_val: 0x%08x addr: 0x%010llx\n",
+				  info->sema.value,
+				  info->sema.next,
+				  info->sema.addr);
 	}
 
-	gk20a_debug_output(o, " ");
+	gk20a_debug_output(o, "\n");
 }
 
 void gv11b_dump_eng_status(struct gk20a *g,
@@ -393,36 +391,31 @@ void gv11b_dump_eng_status(struct gk20a *g,
 
 	host_num_engines = nvgpu_get_litter_value(g, GPU_LIT_HOST_NUM_ENGINES);
 
-	gk20a_debug_output(o, "Engine status - chip %-5s", g->name);
-	gk20a_debug_output(o, "--------------------------");
-
 	for (i = 0; i < host_num_engines; i++) {
 		u32 status = gk20a_readl(g, fifo_engine_status_r(i));
 		u32 ctx_status = fifo_engine_status_ctx_status_v(status);
 
+		gk20a_debug_output(o, "%s eng %d: ", g->name, i);
 		gk20a_debug_output(o,
-			"Engine %d | "
-			"ID: %d - %-9s next_id: %d %-9s | status: %s",
-			i,
+			"id: %d (%s), next_id: %d (%s), ctx status: %s ",
 			fifo_engine_status_id_v(status),
 			(fifo_engine_status_id_type_v(status) ==
-				fifo_engine_status_id_type_tsgid_v()) ?
-				"[tsg]" : "[channel]",
+			 fifo_engine_status_id_type_tsgid_v()) ? "tsg" : "channel",
 			fifo_engine_status_next_id_v(status),
 			(fifo_engine_status_next_id_type_v(status) ==
-				fifo_engine_status_next_id_type_tsgid_v()) ?
-				"[tsg]" : "[channel]",
+			 fifo_engine_status_next_id_type_tsgid_v()) ? "tsg" : "channel",
 			gk20a_decode_pbdma_chan_eng_ctx_status(ctx_status));
 
 		if (fifo_engine_status_eng_reload_v(status) != 0U) {
-			gk20a_debug_output(o, "  State: ctx_reload");
+			gk20a_debug_output(o, "ctx_reload ");
 		}
 		if (fifo_engine_status_faulted_v(status) != 0U) {
-			gk20a_debug_output(o, "  State: faulted");
+			gk20a_debug_output(o, "faulted ");
 		}
 		if (fifo_engine_status_engine_v(status) != 0U) {
-			gk20a_debug_output(o, "  State: busy");
+			gk20a_debug_output(o, "busy ");
 		}
+		gk20a_debug_output(o, "\n");
 	}
 	gk20a_debug_output(o, "\n");
 }
