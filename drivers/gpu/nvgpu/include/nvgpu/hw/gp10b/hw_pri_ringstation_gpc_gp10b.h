@@ -56,6 +56,8 @@
 #ifndef NVGPU_HW_PRI_RINGSTATION_GPC_GP10B_H
 #define NVGPU_HW_PRI_RINGSTATION_GPC_GP10B_H
 
+#include <nvgpu/types.h>
+
 static inline u32 pri_ringstation_gpc_master_config_r(u32 i)
 {
 	return 0x00128300U + i*4U;

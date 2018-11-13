@@ -56,6 +56,8 @@
 #ifndef NVGPU_HW_PBDMA_GP10B_H
 #define NVGPU_HW_PBDMA_GP10B_H
 
+#include <nvgpu/types.h>
+
 static inline u32 pbdma_gp_entry1_r(void)
 {
 	return 0x10000004U;

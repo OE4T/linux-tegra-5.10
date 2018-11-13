@@ -56,6 +56,8 @@
 #ifndef NVGPU_HW_CCSR_GP10B_H
 #define NVGPU_HW_CCSR_GP10B_H
 
+#include <nvgpu/types.h>
+
 static inline u32 ccsr_channel_inst_r(u32 i)
 {
 	return 0x00800000U + i*8U;

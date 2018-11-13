@@ -56,6 +56,8 @@
 #ifndef NVGPU_HW_FB_GP10B_H
 #define NVGPU_HW_FB_GP10B_H
 
+#include <nvgpu/types.h>
+
 static inline u32 fb_fbhub_num_active_ltcs_r(void)
 {
 	return 0x00100800U;
@@ -118,7 +120,7 @@ static inline u32 fb_mmu_invalidate_hubtlb_only_f(u32 v)
 }
 static inline u32 fb_mmu_invalidate_hubtlb_only_m(void)
 {
-	return 0x1U << 2U;
+	return U32(0x1U) << 2U;
 }
 static inline u32 fb_mmu_invalidate_hubtlb_only_v(u32 r)
 {
@@ -138,7 +140,7 @@ static inline u32 fb_mmu_invalidate_replay_f(u32 v)
 }
 static inline u32 fb_mmu_invalidate_replay_m(void)
 {
-	return 0x7U << 3U;
+	return U32(0x7U) << 3U;
 }
 static inline u32 fb_mmu_invalidate_replay_v(u32 r)
 {
@@ -178,7 +180,7 @@ static inline u32 fb_mmu_invalidate_sys_membar_f(u32 v)
 }
 static inline u32 fb_mmu_invalidate_sys_membar_m(void)
 {
-	return 0x1U << 6U;
+	return U32(0x1U) << 6U;
 }
 static inline u32 fb_mmu_invalidate_sys_membar_v(u32 r)
 {
@@ -198,7 +200,7 @@ static inline u32 fb_mmu_invalidate_ack_f(u32 v)
 }
 static inline u32 fb_mmu_invalidate_ack_m(void)
 {
-	return 0x3U << 7U;
+	return U32(0x3U) << 7U;
 }
 static inline u32 fb_mmu_invalidate_ack_v(u32 r)
 {
@@ -226,7 +228,7 @@ static inline u32 fb_mmu_invalidate_cancel_client_id_f(u32 v)
 }
 static inline u32 fb_mmu_invalidate_cancel_client_id_m(void)
 {
-	return 0x3fU << 9U;
+	return U32(0x3fU) << 9U;
 }
 static inline u32 fb_mmu_invalidate_cancel_client_id_v(u32 r)
 {
@@ -242,7 +244,7 @@ static inline u32 fb_mmu_invalidate_cancel_gpc_id_f(u32 v)
 }
 static inline u32 fb_mmu_invalidate_cancel_gpc_id_m(void)
 {
-	return 0x1fU << 15U;
+	return U32(0x1fU) << 15U;
 }
 static inline u32 fb_mmu_invalidate_cancel_gpc_id_v(u32 r)
 {
@@ -258,7 +260,7 @@ static inline u32 fb_mmu_invalidate_cancel_client_type_f(u32 v)
 }
 static inline u32 fb_mmu_invalidate_cancel_client_type_m(void)
 {
-	return 0x1U << 20U;
+	return U32(0x1U) << 20U;
 }
 static inline u32 fb_mmu_invalidate_cancel_client_type_v(u32 r)
 {
@@ -282,7 +284,7 @@ static inline u32 fb_mmu_invalidate_cancel_cache_level_f(u32 v)
 }
 static inline u32 fb_mmu_invalidate_cancel_cache_level_m(void)
 {
-	return 0x7U << 24U;
+	return U32(0x7U) << 24U;
 }
 static inline u32 fb_mmu_invalidate_cancel_cache_level_v(u32 r)
 {
@@ -330,7 +332,7 @@ static inline u32 fb_mmu_invalidate_trigger_f(u32 v)
 }
 static inline u32 fb_mmu_invalidate_trigger_m(void)
 {
-	return 0x1U << 31U;
+	return U32(0x1U) << 31U;
 }
 static inline u32 fb_mmu_invalidate_trigger_v(u32 r)
 {
@@ -354,7 +356,7 @@ static inline u32 fb_mmu_debug_wr_aperture_f(u32 v)
 }
 static inline u32 fb_mmu_debug_wr_aperture_m(void)
 {
-	return 0x3U << 0U;
+	return U32(0x3U) << 0U;
 }
 static inline u32 fb_mmu_debug_wr_aperture_v(u32 r)
 {
@@ -430,7 +432,7 @@ static inline u32 fb_mmu_debug_ctrl_debug_v(u32 r)
 }
 static inline u32 fb_mmu_debug_ctrl_debug_m(void)
 {
-	return 0x1U << 16U;
+	return U32(0x1U) << 16U;
 }
 static inline u32 fb_mmu_debug_ctrl_debug_enabled_v(void)
 {

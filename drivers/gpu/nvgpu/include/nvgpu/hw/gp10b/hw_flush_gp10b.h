@@ -56,6 +56,8 @@
 #ifndef NVGPU_HW_FLUSH_GP10B_H
 #define NVGPU_HW_FLUSH_GP10B_H
 
+#include <nvgpu/types.h>
+
 static inline u32 flush_l2_system_invalidate_r(void)
 {
 	return 0x00070004U;

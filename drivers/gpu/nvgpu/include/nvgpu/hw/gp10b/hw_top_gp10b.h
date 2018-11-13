@@ -56,6 +56,8 @@
 #ifndef NVGPU_HW_TOP_GP10B_H
 #define NVGPU_HW_TOP_GP10B_H
 
+#include <nvgpu/types.h>
+
 static inline u32 top_num_gpcs_r(void)
 {
 	return 0x00022430U;
