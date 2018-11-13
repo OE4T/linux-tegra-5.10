@@ -185,7 +185,7 @@ static int pmgr_send_pwr_device_topology_to_pmu(struct gk20a *g)
 
 	/* Set the BA-device-independent HW information */
 	pwr_desc_table = nvgpu_kzalloc(g, sizeof(*pwr_desc_table));
-	if (!pwr_desc_table) {
+	if (pwr_desc_table == NULL) {
 		return -ENOMEM;
 	}
 
@@ -234,7 +234,7 @@ static int pmgr_send_pwr_mointer_to_pmu(struct gk20a *g)
 	int status = 0;
 
 	pwr_monitor_pack = nvgpu_kzalloc(g, sizeof(*pwr_monitor_pack));
-	if (!pwr_monitor_pack) {
+	if (pwr_monitor_pack == NULL) {
 		return -ENOMEM;
 	}
 
@@ -305,7 +305,7 @@ static int pmgr_send_pwr_policy_to_pmu(struct gk20a *g)
 	u32 max_dmem_size;
 
 	ppwrpack = nvgpu_kzalloc(g, sizeof(struct nv_pmu_pmgr_pwr_policy_pack));
-	if (!ppwrpack) {
+	if (ppwrpack == NULL) {
 		nvgpu_err(g, "pwr policy alloc failed %x",
 			status);
 		status = -ENOMEM;

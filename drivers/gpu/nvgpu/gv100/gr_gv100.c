@@ -76,7 +76,7 @@ static int gr_gv100_scg_estimate_perf(struct gk20a *g,
 	u32 *num_tpc_gpc = nvgpu_kzalloc(g, sizeof(u32) *
 				nvgpu_get_litter_value(g, GPU_LIT_NUM_GPCS));
 
-	if (!num_tpc_gpc) {
+	if (num_tpc_gpc == NULL) {
 		return -ENOMEM;
 	}
 
@@ -84,8 +84,8 @@ static int gr_gv100_scg_estimate_perf(struct gk20a *g,
 	for (gpc_id = 0; gpc_id < gr->gpc_count; gpc_id++) {
 		num_tpc_mask = gpc_tpc_mask[gpc_id];
 
-		if ((gpc_id == disable_gpc_id) && num_tpc_mask &
-						(0x1 << disable_tpc_id)) {
+		if ((gpc_id == disable_gpc_id) &&
+		    ((num_tpc_mask & BIT32(disable_tpc_id)) != 0U)) {
 			/* Safety check if a TPC is removed twice */
 			if (is_tpc_removed_gpc) {
 				err = -EINVAL;
@@ -122,8 +122,8 @@ static int gr_gv100_scg_estimate_perf(struct gk20a *g,
 			num_tpc_mask = gr->pes_tpc_mask[pes_id][gpc_id] &
 					gpc_tpc_mask[gpc_id];
 
-			if ((gpc_id == disable_gpc_id) && (num_tpc_mask &
-				(0x1 << disable_tpc_id))) {
+			if ((gpc_id == disable_gpc_id) &&
+			    ((num_tpc_mask & BIT32(disable_tpc_id)) != 0U)) {
 
 				if (is_tpc_removed_pes) {
 					err = -EINVAL;
@@ -198,7 +198,7 @@ void gr_gv100_cb_size_default(struct gk20a *g)
 {
 	struct gr_gk20a *gr = &g->gr;
 
-	if (!gr->attrib_cb_default_size) {
+	if (gr->attrib_cb_default_size == 0U) {
 		gr->attrib_cb_default_size =
 			gr_gpc0_ppc0_cbm_beta_cb_size_v_default_v();
 	}
@@ -227,7 +227,9 @@ int gr_gv100_init_sm_id_table(struct gk20a *g)
 	gpc_tpc_mask = nvgpu_kzalloc(g, sizeof(unsigned long) *
 			nvgpu_get_litter_value(g, GPU_LIT_NUM_GPCS));
 
-	if (!gpc_table || !tpc_table || !gpc_tpc_mask) {
+	if ((gpc_table == NULL) ||
+	    (tpc_table == NULL) ||
+	    (gpc_tpc_mask == NULL)) {
 		nvgpu_err(g, "Error allocating memory for sm tables");
 		err = -ENOMEM;
 		goto exit_build_table;

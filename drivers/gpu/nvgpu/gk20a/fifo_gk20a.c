@@ -3651,7 +3651,7 @@ int gk20a_fifo_update_runlist_ids(struct gk20a *g, u32 runlist_ids, u32 chid,
 		/* Capture the last failure error code */
 		errcode = g->ops.fifo.update_runlist(g, (u32)runlist_id, chid,
 						add, wait_for_finish);
-		if (errcode) {
+		if (errcode != 0) {
 			nvgpu_err(g,
 				"failed to update_runlist %lu %d",
 				runlist_id, errcode);

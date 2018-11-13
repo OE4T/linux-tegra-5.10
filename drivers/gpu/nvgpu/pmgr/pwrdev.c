@@ -249,8 +249,8 @@ static int devinit_get_pwr_device_table(struct gk20a *g,
 				pwr_sensor_table_entry.sensor_param3,
 				NV_VBIOS_POWER_SENSORS_2X_ENTRY_SENSOR_PARAM3_INA3221_CURR_CORRECT_B);
 
-			if (!pwr_device_data.ina3221.curr_correct_m) {
-				pwr_device_data.ina3221.curr_correct_m = (1 << 12);
+			if (pwr_device_data.ina3221.curr_correct_m == 0U) {
+				pwr_device_data.ina3221.curr_correct_m = BIT16(12);
 			}
 			pwr_device_size = sizeof(struct pwr_device_ina3221);
 		} else {
@@ -263,7 +263,7 @@ static int devinit_get_pwr_device_table(struct gk20a *g,
 		boardobj = construct_pwr_device(g, &pwr_device_data,
 					pwr_device_size, pwr_device_data.boardobj.type);
 
-		if (!boardobj) {
+		if (boardobj == NULL) {
 			nvgpu_err(g,
 			"unable to create pwr device for %d type %d", index, pwr_device_data.boardobj.type);
 			status = -EINVAL;

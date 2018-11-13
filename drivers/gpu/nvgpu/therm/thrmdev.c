@@ -301,7 +301,7 @@ static int devinit_get_therm_device_table(struct gk20a *g,
 
 		therm_device_data.boardobj.type = class_id;
 		boardobj = therm_device_construct(g, &therm_device_data);
-		if (!boardobj) {
+		if (boardobj == NULL) {
 			nvgpu_err(g,
 				"unable to create thermal device for %d type %d",
 				index, therm_device_data.boardobj.type);

@@ -278,7 +278,7 @@ static struct pstate *pstate_construct(struct gk20a *g, void *args)
 
 	if ((tmp->super.type != CTRL_PERF_PSTATE_TYPE_3X) ||
 	    (pstate_construct_3x(g, (struct boardobj **)&pstate,
-			    sizeof(struct pstate), args))) {
+			    sizeof(struct pstate), args) != 0)) {
 		nvgpu_err(g,
 			"error constructing pstate num=%u", tmp->num);
 	}
@@ -393,7 +393,7 @@ static int parse_pstate_table_5x(struct gk20a *g,
 		}
 
 		pstate = pstate_construct(g, &_pstate);
-		if (!pstate) {
+		if (pstate == NULL) {
 			goto done;
 		}
 
@@ -433,7 +433,7 @@ static int pstate_sw_setup(struct gk20a *g)
 			nvgpu_bios_get_perf_table_ptrs(g,
 			g->bios.perf_token, PERFORMANCE_TABLE);
 
-	if (!hdr) {
+	if (hdr == NULL) {
 		nvgpu_err(g, "performance table not found");
 		err = -EINVAL;
 		goto done;
@@ -482,7 +482,7 @@ struct clk_set_info *pstate_get_clk_set_info(struct gk20a *g,
 
 	nvgpu_log_info(g, "pstate = %p", pstate);
 
-	if (!pstate) {
+	if (pstate == NULL) {
 		return NULL;
 	}
 

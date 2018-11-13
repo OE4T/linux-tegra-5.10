@@ -61,7 +61,7 @@ static int pmu_handle_perf_event(struct gk20a *g, void *pmu_msg)
 		nvgpu_clk_arb_schedule_vf_table_update(g);
 		break;
 	default:
-		WARN_ON(1);
+		WARN_ON(true);
 		break;
 	}
 	return 0;

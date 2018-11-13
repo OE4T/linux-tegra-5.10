@@ -244,7 +244,7 @@ int nvgpu_lwpr_mclk_change(struct gk20a *g, u32 pstate)
 
 	pstate_info = pstate_get_clk_set_info(g, pstate,
 			clkwhich_mclk);
-	if (!pstate_info) {
+	if (pstate_info == NULL) {
 		return -EINVAL;
 	}
 
@@ -325,7 +325,7 @@ bool nvgpu_lpwr_is_mscg_supported(struct gk20a *g, u32 pstate_num)
 
 	nvgpu_log_fn(g, " ");
 
-	if (!pstate) {
+	if (pstate == NULL) {
 		return false;
 	}
 
@@ -348,7 +348,7 @@ bool nvgpu_lpwr_is_rppg_supported(struct gk20a *g, u32 pstate_num)
 
 	nvgpu_log_fn(g, " ");
 
-	if (!pstate) {
+	if (pstate == NULL) {
 		return false;
 	}
 
@@ -381,7 +381,7 @@ int nvgpu_lpwr_enable_pg(struct gk20a *g, bool pstate_lock)
 	is_mscg_supported = nvgpu_lpwr_is_mscg_supported(g,
 			present_pstate);
 	if (is_mscg_supported && g->mscg_enabled) {
-		if (!pmu->mscg_stat) {
+		if (pmu->mscg_stat == 0U) {
 			pmu->mscg_stat = PMU_MSCG_ENABLED;
 		}
 	}

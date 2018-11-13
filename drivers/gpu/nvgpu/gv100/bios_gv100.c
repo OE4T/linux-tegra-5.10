@@ -69,7 +69,7 @@ int gv100_bios_preos_wait_for_halt(struct gk20a *g)
 	int err = -EINVAL;
 	u32 progress;
 	u32 tmp;
-	int preos_completed;
+	bool preos_completed;
 	struct nvgpu_timeout timeout;
 
 	nvgpu_udelay(PMU_BOOT_TIMEOUT_DEFAULT);
@@ -93,12 +93,13 @@ int gv100_bios_preos_wait_for_halt(struct gk20a *g)
 
 		do {
 			progress = g->ops.bus.read_sw_scratch(g, SCRATCH_PREOS_PROGRESS);
-			preos_completed = pwr_falcon_cpuctl_halt_intr_v(
-				gk20a_readl(g, pwr_falcon_cpuctl_r())) &&
+			preos_completed = (pwr_falcon_cpuctl_halt_intr_v(
+				gk20a_readl(g, pwr_falcon_cpuctl_r())) != 0U) &&
 					(PREOS_PROGRESS_MASK(progress) ==
 					PREOS_PROGRESS_EXIT);
 			nvgpu_udelay(PMU_BOOT_TIMEOUT_DEFAULT);
-		} while (!preos_completed && !nvgpu_timeout_expired(&timeout));
+		} while (!preos_completed &&
+			 (nvgpu_timeout_expired(&timeout) == 0));
 	}
 
 	return err;

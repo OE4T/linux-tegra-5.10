@@ -270,7 +270,7 @@ u32 intr_tu104_isr_nonstall(struct gk20a *g)
 	u32 i;
 	u32 nonstall_intr_base = 0;
 	u64 nonstall_intr_mask = 0;
-	u64 nonstall_intr_mask_lo, nonstall_intr_mask_hi;
+	u32 nonstall_intr_mask_lo, nonstall_intr_mask_hi;
 	u32 intr_leaf_reg0, intr_leaf_reg1;
 	u32 active_engine_id, intr_mask;
 	u32 ops = 0;
@@ -296,8 +296,8 @@ u32 intr_tu104_isr_nonstall(struct gk20a *g)
 		nonstall_intr_mask_lo = u64_lo32(nonstall_intr_mask);
 		nonstall_intr_mask_hi = u64_hi32(nonstall_intr_mask);
 
-		if ((nonstall_intr_mask_lo & intr_leaf_reg0) ||
-		    (nonstall_intr_mask_hi & intr_leaf_reg1)) {
+		if ((nonstall_intr_mask_lo & intr_leaf_reg0) != 0U ||
+		    (nonstall_intr_mask_hi & intr_leaf_reg1) != 0U) {
 			nvgpu_log(g, gpu_dbg_intr, "nonstall intr from engine %d",
 				active_engine_id);
 

@@ -297,7 +297,7 @@ static int devinit_get_vin_device_table(struct gk20a *g,
 				NV_VIN_DESC_FLAGS0_DISABLE_CONTROL);
 	cal_type = BIOS_GET_FIELD(vin_desc_table_header.flags0,
 				NV_VIN_DESC_FLAGS0_VIN_CAL_TYPE);
-	if (!cal_type) {
+	if (cal_type == 0U) {
 		cal_type = CTRL_CLK_VIN_CAL_TYPE_V10;
 	}
 

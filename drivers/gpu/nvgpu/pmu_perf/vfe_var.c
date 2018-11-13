@@ -988,9 +988,9 @@ static int devinit_get_vfe_var_table(struct gk20a *g,
 				(u8)BIOS_GET_FIELD(var.param0,
 					VBIOS_VFE_3X_VAR_ENTRY_PAR0_SSFUSE_EXPECTED_VER);
 			var_data.single_sensed_fuse.vfield_ver_info.b_use_default_on_ver_check_fail =
-				(BIOS_GET_FIELD(var.param0,
+				BIOS_GET_FIELD(var.param0,
 					VBIOS_VFE_3X_VAR_ENTRY_PAR0_SSFUSE_USE_DEFAULT_ON_VER_CHECK_FAIL) &&
-					VBIOS_VFE_3X_VAR_ENTRY_PAR0_SSFUSE_USE_DEFAULT_ON_VER_CHECK_FAIL_YES);
+					(VBIOS_VFE_3X_VAR_ENTRY_PAR0_SSFUSE_USE_DEFAULT_ON_VER_CHECK_FAIL_YES != 0U);
 			var_data.single_sensed_fuse.b_fuse_value_signed =
 				(u8)BIOS_GET_FIELD(var.param0,
 					VBIOS_VFE_3X_VAR_ENTRY_PAR0_SSFUSE_VALUE_SIGNED_INTEGER);

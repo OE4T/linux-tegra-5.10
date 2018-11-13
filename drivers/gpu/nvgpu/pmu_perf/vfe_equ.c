@@ -258,7 +258,7 @@ static int devinit_get_vfe_equ_table(struct gk20a *g,
 			equ_type = CTRL_PERF_VFE_EQU_TYPE_MINMAX;
 			equ_data.minmax.b_max = BIOS_GET_FIELD(equ.param0,
 				VBIOS_VFE_3X_EQU_ENTRY_PAR0_MINMAX_CRIT) &&
-				VBIOS_VFE_3X_EQU_ENTRY_PAR0_MINMAX_CRIT_MAX;
+				(VBIOS_VFE_3X_EQU_ENTRY_PAR0_MINMAX_CRIT_MAX != 0U);
 			equ_data.minmax.equ_idx0 = (u8)BIOS_GET_FIELD(
 				equ.param0,
 				VBIOS_VFE_3X_EQU_ENTRY_PAR0_MINMAX_VFE_EQU_IDX_0);

@@ -7921,7 +7921,7 @@ static int gr_gk20a_find_priv_offset_in_pm_buffer(struct gk20a *g,
 	map_key.addr = addr;
 	result = bsearch(&map_key, map, count, sizeof(*map), map_cmp);
 
-	if (result) {
+	if (result != NULL) {
 		*priv_offset = result->offset;
 	} else {
 		nvgpu_err(g, "Lookup failed for address 0x%x", addr);

@@ -187,7 +187,7 @@ static int devinit_get_therm_channel_table(struct gk20a *g,
 		boardobj = construct_channel_device(g, &therm_channel_data,
 					therm_channel_size, therm_channel_data.boardobj.type);
 
-		if (!boardobj) {
+		if (boardobj == NULL) {
 			nvgpu_err(g,
 				"unable to create thermal device for %d type %d",
 				index, therm_channel_data.boardobj.type);

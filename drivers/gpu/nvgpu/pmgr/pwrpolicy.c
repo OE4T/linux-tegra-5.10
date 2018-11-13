@@ -396,7 +396,7 @@ static int _pwr_policy_construct_WAR_SW_Threshold_policy(struct gk20a *g,
 	boardobj = construct_pwr_policy(g, ppwrpolicydata,
 				pwr_policy_size, ppwrpolicydata->boardobj.type);
 
-	if (!boardobj) {
+	if (boardobj == NULL) {
 		nvgpu_err(g,
 			"unable to create pwr policy for type %d", ppwrpolicydata->boardobj.type);
 		status = -EINVAL;
@@ -672,7 +672,7 @@ static int devinit_get_pwr_policy_table(struct gk20a *g,
 		boardobj = construct_pwr_policy(g, &pwr_policy_data,
 				pwr_policy_size, pwr_policy_data.boardobj.type);
 
-		if (!boardobj) {
+		if (boardobj == NULL) {
 			nvgpu_err(g,
 				"unable to create pwr policy for %d type %d",
 				index, pwr_policy_data.boardobj.type);

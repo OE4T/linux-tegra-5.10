@@ -275,7 +275,7 @@ static int devinit_get_pwr_topology_table(struct gk20a *g,
 		boardobj = construct_pwr_topology(g, &pwr_topology_data,
 					pwr_topology_size, pwr_topology_data.boardobj.type);
 
-		if (!boardobj) {
+		if (boardobj == NULL) {
 			nvgpu_err(g,
 				"unable to create pwr topology for %d type %d",
 				index, pwr_topology_data.boardobj.type);

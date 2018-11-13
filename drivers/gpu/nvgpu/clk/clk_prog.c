@@ -1125,7 +1125,7 @@ static int clk_prog_construct_1x_master_ratio(struct gk20a *g,
 	pclkprog->p_slave_entries =
 		(struct ctrl_clk_clk_prog_1x_master_ratio_slave_entry *)
 		nvgpu_kzalloc(g, slavesize);
-	if (!pclkprog->p_slave_entries) {
+	if (pclkprog->p_slave_entries == NULL) {
 		return -ENOMEM;
 	}
 
@@ -1214,7 +1214,7 @@ static int clk_prog_construct_1x_master_table(struct gk20a *g,
 		(struct ctrl_clk_clk_prog_1x_master_table_slave_entry *)
 		nvgpu_kzalloc(g, slavesize);
 
-	if (!pclkprog->p_slave_entries) {
+	if (pclkprog->p_slave_entries == NULL) {
 		status = -ENOMEM;
 		goto exit;
 	}
