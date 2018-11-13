@@ -25,6 +25,7 @@
 #include <nvgpu/list.h>
 #include <nvgpu/dma.h>
 #include <nvgpu/gmmu.h>
+#include <nvgpu/pd_cache.h>
 #include <nvgpu/nvgpu_mem.h>
 #include <nvgpu/nvgpu_sgt.h>
 #include <nvgpu/enabled.h>
@@ -216,22 +217,6 @@ int nvgpu_gmmu_init_page_table(struct vm_gk20a *vm)
 	vm->pdb.mem->skip_wmb = true;
 
 	return 0;
-}
-
-/*
- * Return the _physical_ address of a page directory.
- */
-u64 nvgpu_pde_gpu_addr(struct gk20a *g, struct nvgpu_gmmu_pd *pd)
-{
-	u64 page_addr;
-
-	if (nvgpu_is_enabled(g, NVGPU_SUPPORT_NVLINK)) {
-		page_addr = nvgpu_mem_get_phys_addr(g, pd->mem);
-	} else {
-		page_addr = nvgpu_mem_get_addr(g, pd->mem);
-	}
-
-	return page_addr + pd->mem_offs;
 }
 
 /*
@@ -477,7 +462,7 @@ static int __set_pd_level(struct vm_gk20a *vm,
 		 * target addr is the real physical address we are aiming for.
 		 */
 		target_addr = (next_pd != NULL) ?
-			nvgpu_pde_gpu_addr(g, next_pd) :
+			nvgpu_pd_gpu_addr(g, next_pd) :
 			phys_addr;
 
 		l->update_entry(vm, l,
@@ -987,8 +972,8 @@ static int __nvgpu_locate_pte(struct gk20a *g, struct vm_gk20a *vm,
 	 * Take into account the real offset into the nvgpu_mem since the PD
 	 * may be located at an offset other than 0 (due to PD packing).
 	 */
-	pte_base = (pd->mem_offs / sizeof(u32)) +
-		pd_offset_from_index(l, pd_idx);
+	pte_base = (u32)(pd->mem_offs / sizeof(u32)) +
+		nvgpu_pd_offset_from_index(l, pd_idx);
 	pte_size = (u32)(l->entry_size / sizeof(u32));
 
 	if (data != NULL) {
@@ -1006,7 +991,7 @@ static int __nvgpu_locate_pte(struct gk20a *g, struct vm_gk20a *vm,
 	}
 
 	if (pd_offs_out != NULL) {
-		*pd_offs_out = pd_offset_from_index(l, pd_idx);
+		*pd_offs_out = nvgpu_pd_offset_from_index(l, pd_idx);
 	}
 
 	return 0;
@@ -1043,7 +1028,7 @@ int __nvgpu_set_pte(struct gk20a *g, struct vm_gk20a *vm, u64 vaddr, u32 *pte)
 	pte_size = __nvgpu_pte_words(g);
 
 	for (i = 0; i < pte_size; i++) {
-		pd_write(g, pd, (size_t)pd_offs + (size_t)i, pte[i]);
+		nvgpu_pd_write(g, pd, (size_t)pd_offs + (size_t)i, pte[i]);
 		pte_dbg(g, attrs_ptr,
 			"PTE: idx=%-4u (%d) 0x%08x", pd_idx, i, pte[i]);
 	}

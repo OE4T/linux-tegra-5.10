@@ -26,6 +26,7 @@
 
 #include <nvgpu/gk20a.h>
 #include <nvgpu/gmmu.h>
+#include <nvgpu/pd_cache.h>
 #include <nvgpu/enabled.h>
 
 #include <nvgpu/posix/kmem.h>
@@ -598,7 +599,7 @@ static int test_pd_cache_valid_alloc(struct unit_module *m,
 		 * the nvgpu_mem. Using the zeroth word makes it easy to read
 		 * back.
 		 */
-		pd_write(g, &pd, 0, 0x12345678);
+		nvgpu_pd_write(g, &pd, 0, 0x12345678);
 
 		if (0x12345678 !=
 		    nvgpu_mem_rd32(g, pd.mem, pd.mem_offs / sizeof(u32))) {

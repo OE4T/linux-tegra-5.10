@@ -28,6 +28,7 @@
 #include <nvgpu/list.h>
 #include <nvgpu/log2.h>
 #include <nvgpu/gk20a.h>
+#include <nvgpu/enabled.h>
 
 #define pd_dbg(g, fmt, args...) nvgpu_log(g, gpu_dbg_pd_cache, fmt, ##args)
 
@@ -157,6 +158,34 @@ static u32 nvgpu_pd_cache_nr(u32 bytes)
 static u32 nvgpu_pd_cache_get_nr_entries(struct nvgpu_pd_mem_entry *pentry)
 {
 	return PAGE_SIZE / pentry->pd_size;
+}
+
+/*
+ * Return the _physical_ address of a page directory.
+ */
+u64 nvgpu_pd_gpu_addr(struct gk20a *g, struct nvgpu_gmmu_pd *pd)
+{
+	u64 page_addr;
+
+	if (nvgpu_is_enabled(g, NVGPU_SUPPORT_NVLINK)) {
+		page_addr = nvgpu_mem_get_phys_addr(g, pd->mem);
+	} else {
+		page_addr = nvgpu_mem_get_addr(g, pd->mem);
+	}
+
+	return page_addr + pd->mem_offs;
+}
+
+u32 nvgpu_pd_offset_from_index(const struct gk20a_mmu_level *l, u32 pd_idx)
+{
+	return (pd_idx * l->entry_size) / U32(sizeof(u32));
+}
+
+void nvgpu_pd_write(struct gk20a *g, struct nvgpu_gmmu_pd *pd,
+		    size_t w, u32 data)
+{
+	nvgpu_mem_wr32(g, pd->mem,
+		       (u32)((pd->mem_offs / sizeof(u32)) + w), data);
 }
 
 int nvgpu_pd_cache_init(struct gk20a *g)
