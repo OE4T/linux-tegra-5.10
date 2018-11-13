@@ -28,6 +28,7 @@
 #include <nvgpu/rbtree.h>
 #include <nvgpu/types.h>
 #include <nvgpu/gmmu.h>
+#include <nvgpu/pd_cache.h>
 #include <nvgpu/nvgpu_mem.h>
 #include <nvgpu/allocator.h>
 
