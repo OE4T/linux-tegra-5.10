@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -24,17 +24,20 @@ struct device;
 
 struct camrtc_hsp *camrtc_hsp_create(
 	struct device *dev,
-	void (*group_notify)(struct device *dev, u16 group));
+	void (*group_notify)(struct device *dev, u16 group),
+	long cmd_timeout);
 
 void camrtc_hsp_free(struct camrtc_hsp *camhsp);
 
 void camrtc_hsp_group_ring(struct camrtc_hsp *camhsp,
 		u16 group);
 
-int camrtc_hsp_command(struct camrtc_hsp *camhsp,
-		u32 command, long *timeout);
+int camrtc_hsp_resume(struct camrtc_hsp *camhsp);
+int camrtc_hsp_suspend(struct camrtc_hsp *camhsp);
+int camrtc_hsp_ch_setup(struct camrtc_hsp *camhsp, dma_addr_t iova);
+int camrtc_hsp_ping(struct camrtc_hsp *camhsp, u32 data, long timeout);
+int camrtc_hsp_get_fw_hash(struct camrtc_hsp *camhsp,
+		u8 hash[], size_t hash_size);
 
-int camrtc_hsp_prefix_command(struct camrtc_hsp *camhsp,
-		u32 prefix, u32 command, long *timeout);
 
 #endif	/* INCLUDE_RTCPU_HSP_COMBO_H */

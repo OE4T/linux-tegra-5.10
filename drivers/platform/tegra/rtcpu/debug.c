@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2018, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2016-2019, NVIDIA CORPORATION. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -15,7 +15,6 @@
  */
 
 #include "soc/tegra/camrtc-dbg-messages.h"
-#include "soc/tegra/camrtc-commands.h"
 
 #include <linux/debugfs.h>
 #include <linux/io.h>
@@ -314,7 +313,6 @@ static int camrtc_show_sm_ping(struct seq_file *file, void *data)
 	struct tegra_ivc_channel *ch = file->private;
 	struct device *camrtc = camrtc_get_device(ch);
 	u64 sent, recv;
-	u32 command;
 	int err;
 
 	err = tegra_ivc_channel_runtime_get(ch);
@@ -323,9 +321,7 @@ static int camrtc_show_sm_ping(struct seq_file *file, void *data)
 
 	sent = sched_clock();
 
-	command = RTCPU_COMMAND(PING, sent & 0xffffff);
-
-	err = tegra_camrtc_command(camrtc, command, 0);
+	err = tegra_camrtc_ping(camrtc, (uint32_t)sent & 0xffffffU, 0);
 	if (err < 0)
 		goto error;
 

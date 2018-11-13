@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2018, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2015-2019, NVIDIA CORPORATION. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -434,25 +434,6 @@ static void tegra_camrtc_slow_mem_bw(struct device *dev)
 				TEGRA_BWMGR_SET_EMC_FLOOR);
 }
 
-/*
- * Send the PM_SUSPEND command to remote core FW.
- */
-static int tegra_camrtc_cmd_pm_suspend(struct device *dev, long *timeout)
-{
-	struct tegra_cam_rtcpu *rtcpu = dev_get_drvdata(dev);
-	u32 command = RTCPU_COMMAND(PM_SUSPEND, 0);
-	int expect = RTCPU_COMMAND(PM_SUSPEND, RTCPU_PM_SUSPEND_SUCCESS);
-	int err = camrtc_hsp_command(rtcpu->hsp, command, timeout);
-
-	if (err == expect)
-		return 0;
-
-	dev_WARN(dev, "PM_SUSPEND failed: 0x%08x\n", (unsigned)err);
-	if (err >= 0)
-		err = -EIO;
-	return err;
-}
-
 static int tegra_sce_cam_deassert_resets(struct device *dev)
 {
 	struct tegra_cam_rtcpu *rtcpu = dev_get_drvdata(dev);
@@ -528,11 +509,11 @@ static int tegra_sce_cam_wait_for_wfi(struct device *dev, long *timeout)
 static int tegra_sce_cam_suspend_core(struct device *dev)
 {
 	struct tegra_cam_rtcpu *rtcpu = dev_get_drvdata(dev);
-	long timeout = 2 * rtcpu->cmd_timeout;
+	long timeout = rtcpu->cmd_timeout;
 	u32 val;
 	int err;
 
-	err = tegra_camrtc_cmd_pm_suspend(dev, &timeout);
+	err = camrtc_hsp_suspend(rtcpu->hsp);
 
 	if (rtcpu->pm_base != NULL) {
 		/* Don't bother to check for WFI if core is unresponsive */
@@ -639,10 +620,10 @@ static int tegra_ape_cam_wait_for_wfi(struct device *dev, long *timeout)
 static int tegra_ape_cam_suspend_core(struct device *dev)
 {
 	struct tegra_cam_rtcpu *rtcpu = dev_get_drvdata(dev);
-	long timeout = 2 * rtcpu->cmd_timeout;
+	long timeout = rtcpu->cmd_timeout;
 	int err;
 
-	err = tegra_camrtc_cmd_pm_suspend(dev, &timeout);
+	err = camrtc_hsp_suspend(rtcpu->hsp);
 	if (err)
 		return err;
 
@@ -716,29 +697,13 @@ static void tegra_camrtc_set_online(struct device *dev, bool online)
 	tegra_ivc_bus_ready(rtcpu->ivc, online);
 }
 
-int tegra_camrtc_command(struct device *dev, u32 command, long timeout)
+int tegra_camrtc_ping(struct device *dev, u32 data, long timeout)
 {
 	struct tegra_cam_rtcpu *rtcpu = dev_get_drvdata(dev);
 
-	if (timeout == 0)
-		timeout = rtcpu->cmd_timeout;
-
-	return camrtc_hsp_command(rtcpu->hsp, command, &timeout);
+	return camrtc_hsp_ping(rtcpu->hsp, data, timeout);
 }
-EXPORT_SYMBOL(tegra_camrtc_command);
-
-int tegra_camrtc_prefix_command(struct device *dev,
-				u32 prefix, u32 command, long timeout)
-{
-	struct tegra_cam_rtcpu *rtcpu = dev_get_drvdata(dev);
-
-	if (timeout == 0)
-		timeout = rtcpu->cmd_timeout;
-
-	return camrtc_hsp_prefix_command(rtcpu->hsp,
-			prefix, command, &timeout);
-}
-EXPORT_SYMBOL(tegra_camrtc_prefix_command);
+EXPORT_SYMBOL(tegra_camrtc_ping);
 
 static void tegra_camrtc_ivc_notify(struct device *dev, u16 group)
 {
@@ -811,46 +776,15 @@ static int tegra_camrtc_boot_sync(struct device *dev)
 {
 	struct tegra_cam_rtcpu *rtcpu = dev_get_drvdata(dev);
 	int ret;
-	u32 command;
 
 	if (rtcpu->boot_sync_done)
 		return 0;
 
-	/*
-	 * Handshake FW version before continuing with the boot
-	 */
-	command = RTCPU_COMMAND(INIT, 0);
-	ret = tegra_camrtc_command(dev, command, 0);
+	ret = camrtc_hsp_resume(rtcpu->hsp);
 	if (ret < 0)
 		return ret;
-	if (ret != command) {
-		dev_err(dev, "RTCPU sync problem (response=0x%08x)\n", ret);
-		return -EIO;
-	}
 
-	if (rtcpu->stats.boot_handshake == 0) {
-		u64 bt;
-
-		rtcpu->stats.boot_handshake = ktime_get_ns();
-
-		bt = rtcpu->stats.boot_handshake -
-			rtcpu->stats.reset_complete + 500U;
-
-		dev_dbg(dev, "boot time %llu.%03u ms\n", bt / 1000000U,
-			(unsigned int)(bt % 10000000U) / 1000U);
-	}
-
-	command = RTCPU_COMMAND(FW_VERSION, RTCPU_DRIVER_SM5_VERSION);
-	ret = tegra_camrtc_command(dev, command, 0);
-	if (ret < 0)
-		return ret;
-	if (RTCPU_GET_COMMAND_ID(ret) != RTCPU_CMD_FW_VERSION ||
-		RTCPU_GET_COMMAND_VALUE(ret) < RTCPU_FW_SM4_VERSION) {
-		dev_err(dev, "RTCPU version mismatch (response=0x%08x)\n", ret);
-		return -EIO;
-	}
-
-	rtcpu->fw_version = RTCPU_GET_COMMAND_VALUE(ret);
+	rtcpu->fw_version = ret;
 	rtcpu->boot_sync_done = true;
 
 	/*
@@ -919,52 +853,11 @@ static int tegra_camrtc_boot(struct device *dev)
 
 int tegra_camrtc_iovm_setup(struct device *dev, dma_addr_t iova)
 {
-	u32 command = RTCPU_COMMAND(CH_SETUP, iova >> 8);
-	int ret = tegra_camrtc_command(dev, command, 0);
+	struct tegra_cam_rtcpu *rtcpu = dev_get_drvdata(dev);
 
-	if (ret < 0)
-		return -ret;
-
-	if (RTCPU_GET_COMMAND_ID(ret) == RTCPU_CMD_ERROR) {
-		u32 error = RTCPU_GET_COMMAND_VALUE(ret);
-
-		dev_dbg(dev, "IOVM setup error: %u\n", error);
-
-		return (int)error;
-	}
-
-	return 0;
+	return camrtc_hsp_ch_setup(rtcpu->hsp, iova);
 }
 EXPORT_SYMBOL(tegra_camrtc_iovm_setup);
-
-static int tegra_camrtc_get_fw_hash(struct device *dev,
-				u8 hash[RTCPU_FW_HASH_SIZE])
-{
-	struct tegra_cam_rtcpu *rtcpu = dev_get_drvdata(dev);
-	int ret, i;
-	u32 value;
-
-	if (rtcpu->fw_version < RTCPU_FW_SM2_VERSION) {
-		dev_info(dev, "fw version %u has no sha1\n", rtcpu->fw_version);
-		return -EIO;
-	}
-
-	for (i = 0; i < RTCPU_FW_HASH_SIZE; i++) {
-		ret = tegra_camrtc_command(dev, RTCPU_COMMAND(FW_HASH, i), 0);
-		value = RTCPU_GET_COMMAND_VALUE(ret);
-
-		if (ret < 0 ||
-			RTCPU_GET_COMMAND_ID(ret) != RTCPU_CMD_FW_HASH ||
-			value > (u8)~0) {
-			dev_warn(dev, "FW_HASH problem (0x%08x)\n", ret);
-			return -EIO;
-		}
-
-		hash[i] = value;
-	}
-
-	return 0;
-}
 
 ssize_t tegra_camrtc_print_version(struct device *dev,
 					char *buf, size_t size)
@@ -1081,7 +974,8 @@ static int tegra_camrtc_hsp_init(struct device *dev)
 		}
 	}
 
-	rtcpu->hsp = camrtc_hsp_create(dev, tegra_camrtc_ivc_notify);
+	rtcpu->hsp = camrtc_hsp_create(dev, tegra_camrtc_ivc_notify,
+			rtcpu->cmd_timeout);
 	if (IS_ERR(rtcpu->hsp)) {
 		err = PTR_ERR(rtcpu->hsp);
 		rtcpu->hsp = NULL;
@@ -1227,7 +1121,8 @@ static int tegra_cam_rtcpu_probe(struct platform_device *pdev)
 		pm_runtime_get(dev);
 	}
 
-	ret = tegra_camrtc_get_fw_hash(dev, rtcpu->fw_hash);
+	ret = camrtc_hsp_get_fw_hash(rtcpu->hsp,
+			rtcpu->fw_hash, sizeof(rtcpu->fw_hash));
 	if (ret == 0)
 		devm_tegrafw_register(dev,
 			name != pdata->name ? name :  "camrtc",
