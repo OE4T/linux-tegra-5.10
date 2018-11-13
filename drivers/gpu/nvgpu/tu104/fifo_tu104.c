@@ -201,7 +201,7 @@ void tu104_ring_channel_doorbell(struct channel_gk20a *c)
 
 u64 tu104_fifo_usermode_base(struct gk20a *g)
 {
-	return func_full_phys_offset_v() + func_cfg0_r();
+	return U64(func_full_phys_offset_v()) + func_cfg0_r();
 }
 
 u32 tu104_fifo_doorbell_token(struct channel_gk20a *c)
