@@ -56,6 +56,8 @@
 #ifndef NVGPU_HW_MC_GV100_H
 #define NVGPU_HW_MC_GV100_H
 
+#include <nvgpu/types.h>
+
 static inline u32 mc_boot_0_r(void)
 {
 	return 0x00000000U;
@@ -146,7 +148,7 @@ static inline u32 mc_enable_pmedia_f(u32 v)
 }
 static inline u32 mc_enable_pmedia_m(void)
 {
-	return 0x1U << 4U;
+	return U32(0x1U) << 4U;
 }
 static inline u32 mc_enable_pmedia_v(u32 r)
 {
@@ -154,7 +156,7 @@ static inline u32 mc_enable_pmedia_v(u32 r)
 }
 static inline u32 mc_enable_ce0_m(void)
 {
-	return 0x1U << 6U;
+	return U32(0x1U) << 6U;
 }
 static inline u32 mc_enable_pfifo_enabled_f(void)
 {
@@ -182,7 +184,7 @@ static inline u32 mc_enable_pfb_enabled_f(void)
 }
 static inline u32 mc_enable_ce2_m(void)
 {
-	return 0x1U << 21U;
+	return U32(0x1U) << 21U;
 }
 static inline u32 mc_enable_ce2_enabled_f(void)
 {
@@ -242,7 +244,7 @@ static inline u32 mc_enable_pb_0_f(u32 v)
 }
 static inline u32 mc_enable_pb_0_m(void)
 {
-	return 0x1U << 0U;
+	return U32(0x1U) << 0U;
 }
 static inline u32 mc_enable_pb_0_v(u32 r)
 {

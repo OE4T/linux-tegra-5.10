@@ -56,6 +56,8 @@
 #ifndef NVGPU_HW_NVLIPT_GV100_H
 #define NVGPU_HW_NVLIPT_GV100_H
 
+#include <nvgpu/types.h>
+
 static inline u32 nvlipt_intr_control_link0_r(void)
 {
 	return 0x000004b4U;
@@ -66,7 +68,7 @@ static inline u32 nvlipt_intr_control_link0_stallenable_f(u32 v)
 }
 static inline u32 nvlipt_intr_control_link0_stallenable_m(void)
 {
-	return 0x1U << 0U;
+	return U32(0x1U) << 0U;
 }
 static inline u32 nvlipt_intr_control_link0_stallenable_v(u32 r)
 {
@@ -78,7 +80,7 @@ static inline u32 nvlipt_intr_control_link0_nostallenable_f(u32 v)
 }
 static inline u32 nvlipt_intr_control_link0_nostallenable_m(void)
 {
-	return 0x1U << 1U;
+	return U32(0x1U) << 1U;
 }
 static inline u32 nvlipt_intr_control_link0_nostallenable_v(u32 r)
 {
@@ -214,7 +216,7 @@ static inline u32 nvlipt_err_control_link0_fatalenable_f(u32 v)
 }
 static inline u32 nvlipt_err_control_link0_fatalenable_m(void)
 {
-	return 0x1U << 1U;
+	return U32(0x1U) << 1U;
 }
 static inline u32 nvlipt_err_control_link0_fatalenable_v(u32 r)
 {
@@ -226,7 +228,7 @@ static inline u32 nvlipt_err_control_link0_nonfatalenable_f(u32 v)
 }
 static inline u32 nvlipt_err_control_link0_nonfatalenable_m(void)
 {
-	return 0x1U << 2U;
+	return U32(0x1U) << 2U;
 }
 static inline u32 nvlipt_err_control_link0_nonfatalenable_v(u32 r)
 {
@@ -242,7 +244,7 @@ static inline u32 nvlipt_intr_control_common_stallenable_f(u32 v)
 }
 static inline u32 nvlipt_intr_control_common_stallenable_m(void)
 {
-	return 0x1U << 0U;
+	return U32(0x1U) << 0U;
 }
 static inline u32 nvlipt_intr_control_common_stallenable_v(u32 r)
 {
@@ -254,7 +256,7 @@ static inline u32 nvlipt_intr_control_common_nonstallenable_f(u32 v)
 }
 static inline u32 nvlipt_intr_control_common_nonstallenable_m(void)
 {
-	return 0x1U << 1U;
+	return U32(0x1U) << 1U;
 }
 static inline u32 nvlipt_intr_control_common_nonstallenable_v(u32 r)
 {

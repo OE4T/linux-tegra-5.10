@@ -56,6 +56,8 @@
 #ifndef NVGPU_HW_IOCTRLMIF_GV100_H
 #define NVGPU_HW_IOCTRLMIF_GV100_H
 
+#include <nvgpu/types.h>
+
 static inline u32 ioctrlmif_rx_err_contain_en_0_r(void)
 {
 	return 0x00000e0cU;
@@ -66,7 +68,7 @@ static inline u32 ioctrlmif_rx_err_contain_en_0_rxramdataparityerr_f(u32 v)
 }
 static inline u32 ioctrlmif_rx_err_contain_en_0_rxramdataparityerr_m(void)
 {
-	return 0x1U << 3U;
+	return U32(0x1U) << 3U;
 }
 static inline u32 ioctrlmif_rx_err_contain_en_0_rxramdataparityerr_v(u32 r)
 {
@@ -86,7 +88,7 @@ static inline u32 ioctrlmif_rx_err_contain_en_0_rxramhdrparityerr_f(u32 v)
 }
 static inline u32 ioctrlmif_rx_err_contain_en_0_rxramhdrparityerr_m(void)
 {
-	return 0x1U << 4U;
+	return U32(0x1U) << 4U;
 }
 static inline u32 ioctrlmif_rx_err_contain_en_0_rxramhdrparityerr_v(u32 r)
 {
@@ -110,7 +112,7 @@ static inline u32 ioctrlmif_rx_err_log_en_0_rxramdataparityerr_f(u32 v)
 }
 static inline u32 ioctrlmif_rx_err_log_en_0_rxramdataparityerr_m(void)
 {
-	return 0x1U << 3U;
+	return U32(0x1U) << 3U;
 }
 static inline u32 ioctrlmif_rx_err_log_en_0_rxramdataparityerr_v(u32 r)
 {
@@ -122,7 +124,7 @@ static inline u32 ioctrlmif_rx_err_log_en_0_rxramhdrparityerr_f(u32 v)
 }
 static inline u32 ioctrlmif_rx_err_log_en_0_rxramhdrparityerr_m(void)
 {
-	return 0x1U << 4U;
+	return U32(0x1U) << 4U;
 }
 static inline u32 ioctrlmif_rx_err_log_en_0_rxramhdrparityerr_v(u32 r)
 {
@@ -138,7 +140,7 @@ static inline u32 ioctrlmif_rx_err_report_en_0_rxramdataparityerr_f(u32 v)
 }
 static inline u32 ioctrlmif_rx_err_report_en_0_rxramdataparityerr_m(void)
 {
-	return 0x1U << 3U;
+	return U32(0x1U) << 3U;
 }
 static inline u32 ioctrlmif_rx_err_report_en_0_rxramdataparityerr_v(u32 r)
 {
@@ -150,7 +152,7 @@ static inline u32 ioctrlmif_rx_err_report_en_0_rxramhdrparityerr_f(u32 v)
 }
 static inline u32 ioctrlmif_rx_err_report_en_0_rxramhdrparityerr_m(void)
 {
-	return 0x1U << 4U;
+	return U32(0x1U) << 4U;
 }
 static inline u32 ioctrlmif_rx_err_report_en_0_rxramhdrparityerr_v(u32 r)
 {
@@ -166,7 +168,7 @@ static inline u32 ioctrlmif_rx_err_status_0_rxramdataparityerr_f(u32 v)
 }
 static inline u32 ioctrlmif_rx_err_status_0_rxramdataparityerr_m(void)
 {
-	return 0x1U << 3U;
+	return U32(0x1U) << 3U;
 }
 static inline u32 ioctrlmif_rx_err_status_0_rxramdataparityerr_v(u32 r)
 {
@@ -178,7 +180,7 @@ static inline u32 ioctrlmif_rx_err_status_0_rxramhdrparityerr_f(u32 v)
 }
 static inline u32 ioctrlmif_rx_err_status_0_rxramhdrparityerr_m(void)
 {
-	return 0x1U << 4U;
+	return U32(0x1U) << 4U;
 }
 static inline u32 ioctrlmif_rx_err_status_0_rxramhdrparityerr_v(u32 r)
 {
@@ -198,7 +200,7 @@ static inline u32 ioctrlmif_tx_err_contain_en_0_txramdataparityerr_f(u32 v)
 }
 static inline u32 ioctrlmif_tx_err_contain_en_0_txramdataparityerr_m(void)
 {
-	return 0x1U << 0U;
+	return U32(0x1U) << 0U;
 }
 static inline u32 ioctrlmif_tx_err_contain_en_0_txramdataparityerr_v(u32 r)
 {
@@ -218,7 +220,7 @@ static inline u32 ioctrlmif_tx_err_contain_en_0_txramhdrparityerr_f(u32 v)
 }
 static inline u32 ioctrlmif_tx_err_contain_en_0_txramhdrparityerr_m(void)
 {
-	return 0x1U << 1U;
+	return U32(0x1U) << 1U;
 }
 static inline u32 ioctrlmif_tx_err_contain_en_0_txramhdrparityerr_v(u32 r)
 {
@@ -242,7 +244,7 @@ static inline u32 ioctrlmif_tx_err_log_en_0_txramdataparityerr_f(u32 v)
 }
 static inline u32 ioctrlmif_tx_err_log_en_0_txramdataparityerr_m(void)
 {
-	return 0x1U << 0U;
+	return U32(0x1U) << 0U;
 }
 static inline u32 ioctrlmif_tx_err_log_en_0_txramdataparityerr_v(u32 r)
 {
@@ -254,7 +256,7 @@ static inline u32 ioctrlmif_tx_err_log_en_0_txramhdrparityerr_f(u32 v)
 }
 static inline u32 ioctrlmif_tx_err_log_en_0_txramhdrparityerr_m(void)
 {
-	return 0x1U << 1U;
+	return U32(0x1U) << 1U;
 }
 static inline u32 ioctrlmif_tx_err_log_en_0_txramhdrparityerr_v(u32 r)
 {
@@ -270,7 +272,7 @@ static inline u32 ioctrlmif_tx_err_report_en_0_txramdataparityerr_f(u32 v)
 }
 static inline u32 ioctrlmif_tx_err_report_en_0_txramdataparityerr_m(void)
 {
-	return 0x1U << 0U;
+	return U32(0x1U) << 0U;
 }
 static inline u32 ioctrlmif_tx_err_report_en_0_txramdataparityerr_v(u32 r)
 {
@@ -282,7 +284,7 @@ static inline u32 ioctrlmif_tx_err_report_en_0_txramhdrparityerr_f(u32 v)
 }
 static inline u32 ioctrlmif_tx_err_report_en_0_txramhdrparityerr_m(void)
 {
-	return 0x1U << 1U;
+	return U32(0x1U) << 1U;
 }
 static inline u32 ioctrlmif_tx_err_report_en_0_txramhdrparityerr_v(u32 r)
 {
@@ -298,7 +300,7 @@ static inline u32 ioctrlmif_tx_err_status_0_txramdataparityerr_f(u32 v)
 }
 static inline u32 ioctrlmif_tx_err_status_0_txramdataparityerr_m(void)
 {
-	return 0x1U << 0U;
+	return U32(0x1U) << 0U;
 }
 static inline u32 ioctrlmif_tx_err_status_0_txramdataparityerr_v(u32 r)
 {
@@ -310,7 +312,7 @@ static inline u32 ioctrlmif_tx_err_status_0_txramhdrparityerr_f(u32 v)
 }
 static inline u32 ioctrlmif_tx_err_status_0_txramhdrparityerr_m(void)
 {
-	return 0x1U << 1U;
+	return U32(0x1U) << 1U;
 }
 static inline u32 ioctrlmif_tx_err_status_0_txramhdrparityerr_v(u32 r)
 {

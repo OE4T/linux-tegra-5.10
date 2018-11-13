@@ -56,6 +56,8 @@
 #ifndef NVGPU_HW_MINION_GV100_H
 #define NVGPU_HW_MINION_GV100_H
 
+#include <nvgpu/types.h>
+
 static inline u32 minion_minion_status_r(void)
 {
 	return 0x00000830U;
@@ -66,7 +68,7 @@ static inline u32 minion_minion_status_status_f(u32 v)
 }
 static inline u32 minion_minion_status_status_m(void)
 {
-	return 0xffU << 0U;
+	return U32(0xffU) << 0U;
 }
 static inline u32 minion_minion_status_status_v(u32 r)
 {
@@ -86,7 +88,7 @@ static inline u32 minion_minion_status_intr_code_f(u32 v)
 }
 static inline u32 minion_minion_status_intr_code_m(void)
 {
-	return 0xffffffU << 8U;
+	return U32(0xffffffU) << 8U;
 }
 static inline u32 minion_minion_status_intr_code_v(u32 r)
 {
@@ -142,7 +144,7 @@ static inline u32 minion_falcon_irqmset_wdtmr_f(u32 v)
 }
 static inline u32 minion_falcon_irqmset_wdtmr_m(void)
 {
-	return 0x1U << 1U;
+	return U32(0x1U) << 1U;
 }
 static inline u32 minion_falcon_irqmset_wdtmr_v(u32 r)
 {
@@ -162,7 +164,7 @@ static inline u32 minion_falcon_irqmset_halt_f(u32 v)
 }
 static inline u32 minion_falcon_irqmset_halt_m(void)
 {
-	return 0x1U << 4U;
+	return U32(0x1U) << 4U;
 }
 static inline u32 minion_falcon_irqmset_halt_v(u32 r)
 {
@@ -182,7 +184,7 @@ static inline u32 minion_falcon_irqmset_exterr_f(u32 v)
 }
 static inline u32 minion_falcon_irqmset_exterr_m(void)
 {
-	return 0x1U << 5U;
+	return U32(0x1U) << 5U;
 }
 static inline u32 minion_falcon_irqmset_exterr_v(u32 r)
 {
@@ -202,7 +204,7 @@ static inline u32 minion_falcon_irqmset_swgen0_f(u32 v)
 }
 static inline u32 minion_falcon_irqmset_swgen0_m(void)
 {
-	return 0x1U << 6U;
+	return U32(0x1U) << 6U;
 }
 static inline u32 minion_falcon_irqmset_swgen0_v(u32 r)
 {
@@ -222,7 +224,7 @@ static inline u32 minion_falcon_irqmset_swgen1_f(u32 v)
 }
 static inline u32 minion_falcon_irqmset_swgen1_m(void)
 {
-	return 0x1U << 7U;
+	return U32(0x1U) << 7U;
 }
 static inline u32 minion_falcon_irqmset_swgen1_v(u32 r)
 {
@@ -246,7 +248,7 @@ static inline u32 minion_falcon_irqdest_host_wdtmr_f(u32 v)
 }
 static inline u32 minion_falcon_irqdest_host_wdtmr_m(void)
 {
-	return 0x1U << 1U;
+	return U32(0x1U) << 1U;
 }
 static inline u32 minion_falcon_irqdest_host_wdtmr_v(u32 r)
 {
@@ -266,7 +268,7 @@ static inline u32 minion_falcon_irqdest_host_halt_f(u32 v)
 }
 static inline u32 minion_falcon_irqdest_host_halt_m(void)
 {
-	return 0x1U << 4U;
+	return U32(0x1U) << 4U;
 }
 static inline u32 minion_falcon_irqdest_host_halt_v(u32 r)
 {
@@ -286,7 +288,7 @@ static inline u32 minion_falcon_irqdest_host_exterr_f(u32 v)
 }
 static inline u32 minion_falcon_irqdest_host_exterr_m(void)
 {
-	return 0x1U << 5U;
+	return U32(0x1U) << 5U;
 }
 static inline u32 minion_falcon_irqdest_host_exterr_v(u32 r)
 {
@@ -306,7 +308,7 @@ static inline u32 minion_falcon_irqdest_host_swgen0_f(u32 v)
 }
 static inline u32 minion_falcon_irqdest_host_swgen0_m(void)
 {
-	return 0x1U << 6U;
+	return U32(0x1U) << 6U;
 }
 static inline u32 minion_falcon_irqdest_host_swgen0_v(u32 r)
 {
@@ -326,7 +328,7 @@ static inline u32 minion_falcon_irqdest_host_swgen1_f(u32 v)
 }
 static inline u32 minion_falcon_irqdest_host_swgen1_m(void)
 {
-	return 0x1U << 7U;
+	return U32(0x1U) << 7U;
 }
 static inline u32 minion_falcon_irqdest_host_swgen1_v(u32 r)
 {
@@ -346,7 +348,7 @@ static inline u32 minion_falcon_irqdest_target_wdtmr_f(u32 v)
 }
 static inline u32 minion_falcon_irqdest_target_wdtmr_m(void)
 {
-	return 0x1U << 17U;
+	return U32(0x1U) << 17U;
 }
 static inline u32 minion_falcon_irqdest_target_wdtmr_v(u32 r)
 {
@@ -366,7 +368,7 @@ static inline u32 minion_falcon_irqdest_target_halt_f(u32 v)
 }
 static inline u32 minion_falcon_irqdest_target_halt_m(void)
 {
-	return 0x1U << 20U;
+	return U32(0x1U) << 20U;
 }
 static inline u32 minion_falcon_irqdest_target_halt_v(u32 r)
 {
@@ -386,7 +388,7 @@ static inline u32 minion_falcon_irqdest_target_exterr_f(u32 v)
 }
 static inline u32 minion_falcon_irqdest_target_exterr_m(void)
 {
-	return 0x1U << 21U;
+	return U32(0x1U) << 21U;
 }
 static inline u32 minion_falcon_irqdest_target_exterr_v(u32 r)
 {
@@ -406,7 +408,7 @@ static inline u32 minion_falcon_irqdest_target_swgen0_f(u32 v)
 }
 static inline u32 minion_falcon_irqdest_target_swgen0_m(void)
 {
-	return 0x1U << 22U;
+	return U32(0x1U) << 22U;
 }
 static inline u32 minion_falcon_irqdest_target_swgen0_v(u32 r)
 {
@@ -426,7 +428,7 @@ static inline u32 minion_falcon_irqdest_target_swgen1_f(u32 v)
 }
 static inline u32 minion_falcon_irqdest_target_swgen1_m(void)
 {
-	return 0x1U << 23U;
+	return U32(0x1U) << 23U;
 }
 static inline u32 minion_falcon_irqdest_target_swgen1_v(u32 r)
 {
@@ -458,7 +460,7 @@ static inline u32 minion_minion_intr_fatal_f(u32 v)
 }
 static inline u32 minion_minion_intr_fatal_m(void)
 {
-	return 0x1U << 0U;
+	return U32(0x1U) << 0U;
 }
 static inline u32 minion_minion_intr_fatal_v(u32 r)
 {
@@ -470,7 +472,7 @@ static inline u32 minion_minion_intr_nonfatal_f(u32 v)
 }
 static inline u32 minion_minion_intr_nonfatal_m(void)
 {
-	return 0x1U << 1U;
+	return U32(0x1U) << 1U;
 }
 static inline u32 minion_minion_intr_nonfatal_v(u32 r)
 {
@@ -482,7 +484,7 @@ static inline u32 minion_minion_intr_falcon_stall_f(u32 v)
 }
 static inline u32 minion_minion_intr_falcon_stall_m(void)
 {
-	return 0x1U << 2U;
+	return U32(0x1U) << 2U;
 }
 static inline u32 minion_minion_intr_falcon_stall_v(u32 r)
 {
@@ -494,7 +496,7 @@ static inline u32 minion_minion_intr_falcon_nostall_f(u32 v)
 }
 static inline u32 minion_minion_intr_falcon_nostall_m(void)
 {
-	return 0x1U << 3U;
+	return U32(0x1U) << 3U;
 }
 static inline u32 minion_minion_intr_falcon_nostall_v(u32 r)
 {
@@ -506,7 +508,7 @@ static inline u32 minion_minion_intr_link_f(u32 v)
 }
 static inline u32 minion_minion_intr_link_m(void)
 {
-	return 0xffffU << 16U;
+	return U32(0xffffU) << 16U;
 }
 static inline u32 minion_minion_intr_link_v(u32 r)
 {
@@ -526,7 +528,7 @@ static inline u32 minion_minion_intr_stall_en_fatal_f(u32 v)
 }
 static inline u32 minion_minion_intr_stall_en_fatal_m(void)
 {
-	return 0x1U << 0U;
+	return U32(0x1U) << 0U;
 }
 static inline u32 minion_minion_intr_stall_en_fatal_v(u32 r)
 {
@@ -554,7 +556,7 @@ static inline u32 minion_minion_intr_stall_en_nonfatal_f(u32 v)
 }
 static inline u32 minion_minion_intr_stall_en_nonfatal_m(void)
 {
-	return 0x1U << 1U;
+	return U32(0x1U) << 1U;
 }
 static inline u32 minion_minion_intr_stall_en_nonfatal_v(u32 r)
 {
@@ -582,7 +584,7 @@ static inline u32 minion_minion_intr_stall_en_falcon_stall_f(u32 v)
 }
 static inline u32 minion_minion_intr_stall_en_falcon_stall_m(void)
 {
-	return 0x1U << 2U;
+	return U32(0x1U) << 2U;
 }
 static inline u32 minion_minion_intr_stall_en_falcon_stall_v(u32 r)
 {
@@ -610,7 +612,7 @@ static inline u32 minion_minion_intr_stall_en_falcon_nostall_f(u32 v)
 }
 static inline u32 minion_minion_intr_stall_en_falcon_nostall_m(void)
 {
-	return 0x1U << 3U;
+	return U32(0x1U) << 3U;
 }
 static inline u32 minion_minion_intr_stall_en_falcon_nostall_v(u32 r)
 {
@@ -638,7 +640,7 @@ static inline u32 minion_minion_intr_stall_en_link_f(u32 v)
 }
 static inline u32 minion_minion_intr_stall_en_link_m(void)
 {
-	return 0xffffU << 16U;
+	return U32(0xffffU) << 16U;
 }
 static inline u32 minion_minion_intr_stall_en_link_v(u32 r)
 {
@@ -878,7 +880,7 @@ static inline u32 minion_nvlink_link_intr_code_f(u32 v)
 }
 static inline u32 minion_nvlink_link_intr_code_m(void)
 {
-	return 0xffU << 0U;
+	return U32(0xffU) << 0U;
 }
 static inline u32 minion_nvlink_link_intr_code_v(u32 r)
 {
@@ -922,7 +924,7 @@ static inline u32 minion_nvlink_link_intr_subcode_f(u32 v)
 }
 static inline u32 minion_nvlink_link_intr_subcode_m(void)
 {
-	return 0xffU << 8U;
+	return U32(0xffU) << 8U;
 }
 static inline u32 minion_nvlink_link_intr_subcode_v(u32 r)
 {
@@ -934,7 +936,7 @@ static inline u32 minion_nvlink_link_intr_state_f(u32 v)
 }
 static inline u32 minion_nvlink_link_intr_state_m(void)
 {
-	return 0x1U << 31U;
+	return U32(0x1U) << 31U;
 }
 static inline u32 minion_nvlink_link_intr_state_v(u32 r)
 {

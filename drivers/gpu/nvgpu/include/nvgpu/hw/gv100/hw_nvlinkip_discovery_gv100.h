@@ -56,6 +56,8 @@
 #ifndef NVGPU_HW_NVLINKIP_DISCOVERY_GV100_H
 #define NVGPU_HW_NVLINKIP_DISCOVERY_GV100_H
 
+#include <nvgpu/types.h>
+
 static inline u32 nvlinkip_discovery_common_r(void)
 {
 	return 0x00000000U;

@@ -56,6 +56,8 @@
 #ifndef NVGPU_HW_USERMODE_GV100_H
 #define NVGPU_HW_USERMODE_GV100_H
 
+#include <nvgpu/types.h>
+
 static inline u32 usermode_cfg0_r(void)
 {
 	return 0x00810000U;

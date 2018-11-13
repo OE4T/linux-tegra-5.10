@@ -56,6 +56,8 @@
 #ifndef NVGPU_HW_XVE_GV100_H
 #define NVGPU_HW_XVE_GV100_H
 
+#include <nvgpu/types.h>
+
 static inline u32 xve_rom_ctrl_r(void)
 {
 	return 0x00000050U;
@@ -78,7 +80,7 @@ static inline u32 xve_link_control_status_r(void)
 }
 static inline u32 xve_link_control_status_link_speed_m(void)
 {
-	return 0xfU << 16U;
+	return U32(0xfU) << 16U;
 }
 static inline u32 xve_link_control_status_link_speed_v(u32 r)
 {
@@ -98,7 +100,7 @@ static inline u32 xve_link_control_status_link_speed_link_speed_8p0_v(void)
 }
 static inline u32 xve_link_control_status_link_width_m(void)
 {
-	return 0x3fU << 20U;
+	return U32(0x3fU) << 20U;
 }
 static inline u32 xve_link_control_status_link_width_v(u32 r)
 {
@@ -134,7 +136,7 @@ static inline u32 xve_priv_xv_cya_l0s_enable_f(u32 v)
 }
 static inline u32 xve_priv_xv_cya_l0s_enable_m(void)
 {
-	return 0x1U << 7U;
+	return U32(0x1U) << 7U;
 }
 static inline u32 xve_priv_xv_cya_l0s_enable_v(u32 r)
 {
@@ -146,7 +148,7 @@ static inline u32 xve_priv_xv_cya_l1_enable_f(u32 v)
 }
 static inline u32 xve_priv_xv_cya_l1_enable_m(void)
 {
-	return 0x1U << 8U;
+	return U32(0x1U) << 8U;
 }
 static inline u32 xve_priv_xv_cya_l1_enable_v(u32 r)
 {
@@ -162,15 +164,15 @@ static inline u32 xve_reset_r(void)
 }
 static inline u32 xve_reset_reset_m(void)
 {
-	return 0x1U << 0U;
+	return U32(0x1U) << 0U;
 }
 static inline u32 xve_reset_gpu_on_sw_reset_m(void)
 {
-	return 0x1U << 1U;
+	return U32(0x1U) << 1U;
 }
 static inline u32 xve_reset_counter_en_m(void)
 {
-	return 0x1U << 2U;
+	return U32(0x1U) << 2U;
 }
 static inline u32 xve_reset_counter_val_f(u32 v)
 {
@@ -178,7 +180,7 @@ static inline u32 xve_reset_counter_val_f(u32 v)
 }
 static inline u32 xve_reset_counter_val_m(void)
 {
-	return 0x7ffU << 4U;
+	return U32(0x7ffU) << 4U;
 }
 static inline u32 xve_reset_counter_val_v(u32 r)
 {
@@ -186,11 +188,11 @@ static inline u32 xve_reset_counter_val_v(u32 r)
 }
 static inline u32 xve_reset_clock_on_sw_reset_m(void)
 {
-	return 0x1U << 15U;
+	return U32(0x1U) << 15U;
 }
 static inline u32 xve_reset_clock_counter_en_m(void)
 {
-	return 0x1U << 16U;
+	return U32(0x1U) << 16U;
 }
 static inline u32 xve_reset_clock_counter_val_f(u32 v)
 {
@@ -198,7 +200,7 @@ static inline u32 xve_reset_clock_counter_val_f(u32 v)
 }
 static inline u32 xve_reset_clock_counter_val_m(void)
 {
-	return 0x7ffU << 17U;
+	return U32(0x7ffU) << 17U;
 }
 static inline u32 xve_reset_clock_counter_val_v(u32 r)
 {

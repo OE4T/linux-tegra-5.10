@@ -56,6 +56,8 @@
 #ifndef NVGPU_HW_XP_GV100_H
 #define NVGPU_HW_XP_GV100_H
 
+#include <nvgpu/types.h>
+
 static inline u32 xp_dl_mgr_r(u32 i)
 {
 	return 0x0008b8c0U + i*4U;
@@ -82,7 +84,7 @@ static inline u32 xp_pl_link_config_ltssm_directive_f(u32 v)
 }
 static inline u32 xp_pl_link_config_ltssm_directive_m(void)
 {
-	return 0xfU << 0U;
+	return U32(0xfU) << 0U;
 }
 static inline u32 xp_pl_link_config_ltssm_directive_normal_operations_v(void)
 {
@@ -98,7 +100,7 @@ static inline u32 xp_pl_link_config_max_link_rate_f(u32 v)
 }
 static inline u32 xp_pl_link_config_max_link_rate_m(void)
 {
-	return 0x3U << 18U;
+	return U32(0x3U) << 18U;
 }
 static inline u32 xp_pl_link_config_max_link_rate_2500_mtps_v(void)
 {
@@ -118,7 +120,7 @@ static inline u32 xp_pl_link_config_target_tx_width_f(u32 v)
 }
 static inline u32 xp_pl_link_config_target_tx_width_m(void)
 {
-	return 0x7U << 20U;
+	return U32(0x7U) << 20U;
 }
 static inline u32 xp_pl_link_config_target_tx_width_x1_v(void)
 {

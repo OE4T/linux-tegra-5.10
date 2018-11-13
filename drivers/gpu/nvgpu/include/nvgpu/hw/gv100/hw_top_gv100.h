@@ -56,6 +56,8 @@
 #ifndef NVGPU_HW_TOP_GV100_H
 #define NVGPU_HW_TOP_GV100_H
 
+#include <nvgpu/types.h>
+
 static inline u32 top_num_gpcs_r(void)
 {
 	return 0x00022430U;
@@ -266,7 +268,7 @@ static inline u32 top_nvhsclk_ctrl_e_clk_nvl_f(u32 v)
 }
 static inline u32 top_nvhsclk_ctrl_e_clk_nvl_m(void)
 {
-	return 0x7U << 0U;
+	return U32(0x7U) << 0U;
 }
 static inline u32 top_nvhsclk_ctrl_e_clk_nvl_v(u32 r)
 {
@@ -278,7 +280,7 @@ static inline u32 top_nvhsclk_ctrl_e_clk_pcie_f(u32 v)
 }
 static inline u32 top_nvhsclk_ctrl_e_clk_pcie_m(void)
 {
-	return 0x1U << 3U;
+	return U32(0x1U) << 3U;
 }
 static inline u32 top_nvhsclk_ctrl_e_clk_pcie_v(u32 r)
 {
@@ -290,7 +292,7 @@ static inline u32 top_nvhsclk_ctrl_e_clk_core_f(u32 v)
 }
 static inline u32 top_nvhsclk_ctrl_e_clk_core_m(void)
 {
-	return 0x1U << 4U;
+	return U32(0x1U) << 4U;
 }
 static inline u32 top_nvhsclk_ctrl_e_clk_core_v(u32 r)
 {
@@ -302,7 +304,7 @@ static inline u32 top_nvhsclk_ctrl_rfu_f(u32 v)
 }
 static inline u32 top_nvhsclk_ctrl_rfu_m(void)
 {
-	return 0xfU << 5U;
+	return U32(0xfU) << 5U;
 }
 static inline u32 top_nvhsclk_ctrl_rfu_v(u32 r)
 {
@@ -314,7 +316,7 @@ static inline u32 top_nvhsclk_ctrl_swap_clk_nvl_f(u32 v)
 }
 static inline u32 top_nvhsclk_ctrl_swap_clk_nvl_m(void)
 {
-	return 0x7U << 10U;
+	return U32(0x7U) << 10U;
 }
 static inline u32 top_nvhsclk_ctrl_swap_clk_nvl_v(u32 r)
 {
@@ -326,7 +328,7 @@ static inline u32 top_nvhsclk_ctrl_swap_clk_pcie_f(u32 v)
 }
 static inline u32 top_nvhsclk_ctrl_swap_clk_pcie_m(void)
 {
-	return 0x1U << 9U;
+	return U32(0x1U) << 9U;
 }
 static inline u32 top_nvhsclk_ctrl_swap_clk_pcie_v(u32 r)
 {
@@ -338,7 +340,7 @@ static inline u32 top_nvhsclk_ctrl_swap_clk_core_f(u32 v)
 }
 static inline u32 top_nvhsclk_ctrl_swap_clk_core_m(void)
 {
-	return 0x1U << 13U;
+	return U32(0x1U) << 13U;
 }
 static inline u32 top_nvhsclk_ctrl_swap_clk_core_v(u32 r)
 {

@@ -56,6 +56,8 @@
 #ifndef NVGPU_HW_PBDMA_GV100_H
 #define NVGPU_HW_PBDMA_GV100_H
 
+#include <nvgpu/types.h>
+
 static inline u32 pbdma_gp_entry1_r(void)
 {
 	return 0x10000004U;
@@ -514,7 +516,7 @@ static inline u32 pbdma_intr_1_r(u32 i)
 }
 static inline u32 pbdma_intr_1_ctxnotvalid_m(void)
 {
-	return 0x1U << 31U;
+	return U32(0x1U) << 31U;
 }
 static inline u32 pbdma_intr_1_ctxnotvalid_pending_f(void)
 {
@@ -638,7 +640,7 @@ static inline u32 pbdma_timeout_r(u32 i)
 }
 static inline u32 pbdma_timeout_period_m(void)
 {
-	return 0xffffffffU << 0U;
+	return U32(0xffffffffU) << 0U;
 }
 static inline u32 pbdma_timeout_period_max_f(void)
 {
