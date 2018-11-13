@@ -418,6 +418,7 @@ void gk20a_ce_destroy(struct gk20a *g)
 	nvgpu_mutex_destroy(&ce_app->app_mutex);
 free:
 	nvgpu_kfree(g, ce_app);
+	g->ce_app = NULL;
 }
 
 void gk20a_ce_suspend(struct gk20a *g)
