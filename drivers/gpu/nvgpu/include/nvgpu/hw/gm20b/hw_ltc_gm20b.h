@@ -56,6 +56,8 @@
 #ifndef NVGPU_HW_LTC_GM20B_H
 #define NVGPU_HW_LTC_GM20B_H
 
+#include <nvgpu/types.h>
+
 static inline u32 ltc_pltcg_base_v(void)
 {
 	return 0x00140000U;
@@ -90,7 +92,7 @@ static inline u32 ltc_ltcs_ltss_dstg_cfg0_r(void)
 }
 static inline u32 ltc_ltcs_ltss_dstg_cfg0_vdc_4to2_disable_m(void)
 {
-	return 0x1U << 15U;
+	return U32(0x1U) << 15U;
 }
 static inline u32 ltc_ltc0_lts0_tstg_cfg1_r(void)
 {
@@ -238,7 +240,7 @@ static inline u32 ltc_ltcs_ltss_dstg_zbc_depth_clear_value_field_f(u32 v)
 }
 static inline u32 ltc_ltcs_ltss_dstg_zbc_depth_clear_value_field_m(void)
 {
-	return 0xffffffffU << 0U;
+	return U32(0xffffffffU) << 0U;
 }
 static inline u32 ltc_ltcs_ltss_dstg_zbc_depth_clear_value_field_v(u32 r)
 {
@@ -306,15 +308,15 @@ static inline u32 ltc_ltcs_ltss_intr_r(void)
 }
 static inline u32 ltc_ltcs_ltss_intr_en_evicted_cb_m(void)
 {
-	return 0x1U << 20U;
+	return U32(0x1U) << 20U;
 }
 static inline u32 ltc_ltcs_ltss_intr_en_illegal_compstat_access_m(void)
 {
-	return 0x1U << 30U;
+	return U32(0x1U) << 30U;
 }
 static inline u32 ltc_ltcs_ltss_intr_en_illegal_compstat_m(void)
 {
-	return 0x1U << 21U;
+	return U32(0x1U) << 21U;
 }
 static inline u32 ltc_ltc0_lts0_intr_r(void)
 {

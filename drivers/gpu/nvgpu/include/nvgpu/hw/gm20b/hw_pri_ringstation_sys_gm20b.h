@@ -56,6 +56,8 @@
 #ifndef NVGPU_HW_PRI_RINGSTATION_SYS_GM20B_H
 #define NVGPU_HW_PRI_RINGSTATION_SYS_GM20B_H
 
+#include <nvgpu/types.h>
+
 static inline u32 pri_ringstation_sys_master_config_r(u32 i)
 {
 	return 0x00122300U + i*4U;
@@ -66,7 +68,7 @@ static inline u32 pri_ringstation_sys_decode_config_r(void)
 }
 static inline u32 pri_ringstation_sys_decode_config_ring_m(void)
 {
-	return 0x7U << 0U;
+	return U32(0x7U) << 0U;
 }
 static inline u32 pri_ringstation_sys_decode_config_ring_drop_on_ring_not_started_f(void)
 {

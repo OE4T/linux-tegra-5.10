@@ -56,6 +56,8 @@
 #ifndef NVGPU_HW_RAM_GM20B_H
 #define NVGPU_HW_RAM_GM20B_H
 
+#include <nvgpu/types.h>
+
 static inline u32 ram_in_ramfc_s(void)
 {
 	return 4096U;
@@ -98,7 +100,7 @@ static inline u32 ram_in_big_page_size_f(u32 v)
 }
 static inline u32 ram_in_big_page_size_m(void)
 {
-	return 0x1U << 11U;
+	return U32(0x1U) << 11U;
 }
 static inline u32 ram_in_big_page_size_w(void)
 {

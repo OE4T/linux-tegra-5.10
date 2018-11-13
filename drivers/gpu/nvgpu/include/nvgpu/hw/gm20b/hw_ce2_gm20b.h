@@ -56,6 +56,8 @@
 #ifndef NVGPU_HW_CE2_GM20B_H
 #define NVGPU_HW_CE2_GM20B_H
 
+#include <nvgpu/types.h>
+
 static inline u32 ce2_intr_status_r(void)
 {
 	return 0x00106908U;
