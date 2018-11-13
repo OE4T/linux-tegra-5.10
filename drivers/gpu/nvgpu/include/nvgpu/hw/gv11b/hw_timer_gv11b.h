@@ -56,6 +56,8 @@
 #ifndef NVGPU_HW_TIMER_GV11B_H
 #define NVGPU_HW_TIMER_GV11B_H
 
+#include <nvgpu/types.h>
+
 static inline u32 timer_pri_timeout_r(void)
 {
 	return 0x00009080U;
@@ -66,7 +68,7 @@ static inline u32 timer_pri_timeout_period_f(u32 v)
 }
 static inline u32 timer_pri_timeout_period_m(void)
 {
-	return 0xffffffU << 0U;
+	return U32(0xffffffU) << 0U;
 }
 static inline u32 timer_pri_timeout_period_v(u32 r)
 {
@@ -78,7 +80,7 @@ static inline u32 timer_pri_timeout_en_f(u32 v)
 }
 static inline u32 timer_pri_timeout_en_m(void)
 {
-	return 0x1U << 31U;
+	return U32(0x1U) << 31U;
 }
 static inline u32 timer_pri_timeout_en_v(u32 r)
 {

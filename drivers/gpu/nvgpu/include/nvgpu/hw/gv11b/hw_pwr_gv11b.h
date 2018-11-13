@@ -56,6 +56,8 @@
 #ifndef NVGPU_HW_PWR_GV11B_H
 #define NVGPU_HW_PWR_GV11B_H
 
+#include <nvgpu/types.h>
+
 static inline u32 pwr_falcon_irqsset_r(void)
 {
 	return 0x0010a000U;
@@ -102,7 +104,7 @@ static inline u32 pwr_pmu_ecc_intr_status_corrected_f(u32 v)
 }
 static inline u32 pwr_pmu_ecc_intr_status_corrected_m(void)
 {
-	return 0x1U << 0U;
+	return U32(0x1U) << 0U;
 }
 static inline u32 pwr_pmu_ecc_intr_status_uncorrected_f(u32 v)
 {
@@ -110,7 +112,7 @@ static inline u32 pwr_pmu_ecc_intr_status_uncorrected_f(u32 v)
 }
 static inline u32 pwr_pmu_ecc_intr_status_uncorrected_m(void)
 {
-	return 0x1U << 1U;
+	return U32(0x1U) << 1U;
 }
 static inline u32 pwr_falcon_irqmode_r(void)
 {
@@ -462,7 +464,7 @@ static inline u32 pwr_falcon_cpuctl_halt_intr_f(u32 v)
 }
 static inline u32 pwr_falcon_cpuctl_halt_intr_m(void)
 {
-	return 0x1U << 4U;
+	return U32(0x1U) << 4U;
 }
 static inline u32 pwr_falcon_cpuctl_halt_intr_v(u32 r)
 {
@@ -474,7 +476,7 @@ static inline u32 pwr_falcon_cpuctl_cpuctl_alias_en_f(u32 v)
 }
 static inline u32 pwr_falcon_cpuctl_cpuctl_alias_en_m(void)
 {
-	return 0x1U << 6U;
+	return U32(0x1U) << 6U;
 }
 static inline u32 pwr_falcon_cpuctl_cpuctl_alias_en_v(u32 r)
 {
@@ -498,7 +500,7 @@ static inline u32 pwr_pmu_scpctl_stat_debug_mode_f(u32 v)
 }
 static inline u32 pwr_pmu_scpctl_stat_debug_mode_m(void)
 {
-	return 0x1U << 20U;
+	return U32(0x1U) << 20U;
 }
 static inline u32 pwr_pmu_scpctl_stat_debug_mode_v(u32 r)
 {
@@ -550,11 +552,11 @@ static inline u32 pwr_falcon_dmactl_r(void)
 }
 static inline u32 pwr_falcon_dmactl_dmem_scrubbing_m(void)
 {
-	return 0x1U << 1U;
+	return U32(0x1U) << 1U;
 }
 static inline u32 pwr_falcon_dmactl_imem_scrubbing_m(void)
 {
-	return 0x1U << 2U;
+	return U32(0x1U) << 2U;
 }
 static inline u32 pwr_falcon_hwcfg_r(void)
 {
@@ -614,7 +616,7 @@ static inline u32 pwr_falcon_exterrstat_r(void)
 }
 static inline u32 pwr_falcon_exterrstat_valid_m(void)
 {
-	return 0x1U << 31U;
+	return U32(0x1U) << 31U;
 }
 static inline u32 pwr_falcon_exterrstat_valid_v(u32 r)
 {
@@ -638,7 +640,7 @@ static inline u32 pwr_pmu_falcon_icd_cmd_opc_f(u32 v)
 }
 static inline u32 pwr_pmu_falcon_icd_cmd_opc_m(void)
 {
-	return 0xfU << 0U;
+	return U32(0xfU) << 0U;
 }
 static inline u32 pwr_pmu_falcon_icd_cmd_opc_v(u32 r)
 {
@@ -670,7 +672,7 @@ static inline u32 pwr_falcon_dmemc_offs_f(u32 v)
 }
 static inline u32 pwr_falcon_dmemc_offs_m(void)
 {
-	return 0x3fU << 2U;
+	return U32(0x3fU) << 2U;
 }
 static inline u32 pwr_falcon_dmemc_blk_f(u32 v)
 {
@@ -678,7 +680,7 @@ static inline u32 pwr_falcon_dmemc_blk_f(u32 v)
 }
 static inline u32 pwr_falcon_dmemc_blk_m(void)
 {
-	return 0xffU << 8U;
+	return U32(0xffU) << 8U;
 }
 static inline u32 pwr_falcon_dmemc_aincw_f(u32 v)
 {
@@ -742,7 +744,7 @@ static inline u32 pwr_pmu_mutex_id_release_value_f(u32 v)
 }
 static inline u32 pwr_pmu_mutex_id_release_value_m(void)
 {
-	return 0xffU << 0U;
+	return U32(0xffU) << 0U;
 }
 static inline u32 pwr_pmu_mutex_id_release_value_init_v(void)
 {
@@ -862,7 +864,7 @@ static inline u32 pwr_pmu_idle_ctrl_r(u32 i)
 }
 static inline u32 pwr_pmu_idle_ctrl_value_m(void)
 {
-	return 0x3U << 0U;
+	return U32(0x3U) << 0U;
 }
 static inline u32 pwr_pmu_idle_ctrl_value_busy_f(void)
 {
@@ -874,7 +876,7 @@ static inline u32 pwr_pmu_idle_ctrl_value_always_f(void)
 }
 static inline u32 pwr_pmu_idle_ctrl_filter_m(void)
 {
-	return 0x1U << 2U;
+	return U32(0x1U) << 2U;
 }
 static inline u32 pwr_pmu_idle_ctrl_filter_disabled_f(void)
 {
@@ -958,7 +960,7 @@ static inline u32 pwr_pmu_falcon_ecc_status_corrected_err_imem_f(u32 v)
 }
 static inline u32 pwr_pmu_falcon_ecc_status_corrected_err_imem_m(void)
 {
-	return 0x1U << 0U;
+	return U32(0x1U) << 0U;
 }
 static inline u32 pwr_pmu_falcon_ecc_status_corrected_err_dmem_f(u32 v)
 {
@@ -966,7 +968,7 @@ static inline u32 pwr_pmu_falcon_ecc_status_corrected_err_dmem_f(u32 v)
 }
 static inline u32 pwr_pmu_falcon_ecc_status_corrected_err_dmem_m(void)
 {
-	return 0x1U << 1U;
+	return U32(0x1U) << 1U;
 }
 static inline u32 pwr_pmu_falcon_ecc_status_uncorrected_err_imem_f(u32 v)
 {
@@ -974,7 +976,7 @@ static inline u32 pwr_pmu_falcon_ecc_status_uncorrected_err_imem_f(u32 v)
 }
 static inline u32 pwr_pmu_falcon_ecc_status_uncorrected_err_imem_m(void)
 {
-	return 0x1U << 8U;
+	return U32(0x1U) << 8U;
 }
 static inline u32 pwr_pmu_falcon_ecc_status_uncorrected_err_dmem_f(u32 v)
 {
@@ -982,7 +984,7 @@ static inline u32 pwr_pmu_falcon_ecc_status_uncorrected_err_dmem_f(u32 v)
 }
 static inline u32 pwr_pmu_falcon_ecc_status_uncorrected_err_dmem_m(void)
 {
-	return 0x1U << 9U;
+	return U32(0x1U) << 9U;
 }
 static inline u32 pwr_pmu_falcon_ecc_status_corrected_err_total_counter_overflow_f(u32 v)
 {
@@ -990,7 +992,7 @@ static inline u32 pwr_pmu_falcon_ecc_status_corrected_err_total_counter_overflow
 }
 static inline u32 pwr_pmu_falcon_ecc_status_corrected_err_total_counter_overflow_m(void)
 {
-	return 0x1U << 16U;
+	return U32(0x1U) << 16U;
 }
 static inline u32 pwr_pmu_falcon_ecc_status_uncorrected_err_total_counter_overflow_f(u32 v)
 {
@@ -998,7 +1000,7 @@ static inline u32 pwr_pmu_falcon_ecc_status_uncorrected_err_total_counter_overfl
 }
 static inline u32 pwr_pmu_falcon_ecc_status_uncorrected_err_total_counter_overflow_m(void)
 {
-	return 0x1U << 18U;
+	return U32(0x1U) << 18U;
 }
 static inline u32 pwr_pmu_falcon_ecc_status_reset_f(u32 v)
 {
@@ -1038,7 +1040,7 @@ static inline u32 pwr_pmu_falcon_ecc_address_row_address_f(u32 v)
 }
 static inline u32 pwr_pmu_falcon_ecc_address_row_address_m(void)
 {
-	return 0xffffU << 0U;
+	return U32(0xffffU) << 0U;
 }
 static inline u32 pwr_pmu_falcon_ecc_address_row_address_v(u32 r)
 {
@@ -1058,7 +1060,7 @@ static inline u32 pwr_pmu_falcon_ecc_corrected_err_count_total_f(u32 v)
 }
 static inline u32 pwr_pmu_falcon_ecc_corrected_err_count_total_m(void)
 {
-	return 0xffffU << 0U;
+	return U32(0xffffU) << 0U;
 }
 static inline u32 pwr_pmu_falcon_ecc_corrected_err_count_total_v(u32 r)
 {
@@ -1074,7 +1076,7 @@ static inline u32 pwr_pmu_falcon_ecc_corrected_err_count_unique_total_f(u32 v)
 }
 static inline u32 pwr_pmu_falcon_ecc_corrected_err_count_unique_total_m(void)
 {
-	return 0xffffU << 16U;
+	return U32(0xffffU) << 16U;
 }
 static inline u32 pwr_pmu_falcon_ecc_corrected_err_count_unique_total_v(u32 r)
 {
@@ -1094,7 +1096,7 @@ static inline u32 pwr_pmu_falcon_ecc_uncorrected_err_count_total_f(u32 v)
 }
 static inline u32 pwr_pmu_falcon_ecc_uncorrected_err_count_total_m(void)
 {
-	return 0xffffU << 0U;
+	return U32(0xffffU) << 0U;
 }
 static inline u32 pwr_pmu_falcon_ecc_uncorrected_err_count_total_v(u32 r)
 {
@@ -1110,7 +1112,7 @@ static inline u32 pwr_pmu_falcon_ecc_uncorrected_err_count_unique_total_f(u32 v)
 }
 static inline u32 pwr_pmu_falcon_ecc_uncorrected_err_count_unique_total_m(void)
 {
-	return 0xffffU << 16U;
+	return U32(0xffffU) << 16U;
 }
 static inline u32 pwr_pmu_falcon_ecc_uncorrected_err_count_unique_total_v(u32 r)
 {
@@ -1142,7 +1144,7 @@ static inline u32 pwr_fbif_transcfg_mem_type_f(u32 v)
 }
 static inline u32 pwr_fbif_transcfg_mem_type_m(void)
 {
-	return 0x1U << 2U;
+	return U32(0x1U) << 2U;
 }
 static inline u32 pwr_fbif_transcfg_mem_type_v(u32 r)
 {

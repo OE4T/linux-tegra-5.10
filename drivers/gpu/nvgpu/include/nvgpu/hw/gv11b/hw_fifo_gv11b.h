@@ -56,6 +56,8 @@
 #ifndef NVGPU_HW_FIFO_GV11B_H
 #define NVGPU_HW_FIFO_GV11B_H
 
+#include <nvgpu/types.h>
+
 static inline u32 fifo_userd_writeback_r(void)
 {
 	return 0x0000225cU;
@@ -230,7 +232,7 @@ static inline u32 fifo_intr_en_0_sched_error_f(u32 v)
 }
 static inline u32 fifo_intr_en_0_sched_error_m(void)
 {
-	return 0x1U << 8U;
+	return U32(0x1U) << 8U;
 }
 static inline u32 fifo_intr_en_0_ctxsw_timeout_pending_f(void)
 {
@@ -358,7 +360,7 @@ static inline u32 fifo_fb_timeout_r(void)
 }
 static inline u32 fifo_fb_timeout_period_m(void)
 {
-	return 0x3fffffffU << 0U;
+	return U32(0x3fffffffU) << 0U;
 }
 static inline u32 fifo_fb_timeout_period_max_f(void)
 {
@@ -370,7 +372,7 @@ static inline u32 fifo_fb_timeout_period_init_f(void)
 }
 static inline u32 fifo_fb_timeout_detection_m(void)
 {
-	return 0x1U << 31U;
+	return U32(0x1U) << 31U;
 }
 static inline u32 fifo_fb_timeout_detection_enabled_f(void)
 {
@@ -390,7 +392,7 @@ static inline u32 fifo_sched_disable_runlist_f(u32 v, u32 i)
 }
 static inline u32 fifo_sched_disable_runlist_m(u32 i)
 {
-	return 0x1U << (0U + i*1U);
+	return U32(0x1U) << (0U + i*1U);
 }
 static inline u32 fifo_sched_disable_true_v(void)
 {
@@ -406,7 +408,7 @@ static inline u32 fifo_runlist_preempt_runlist_f(u32 v, u32 i)
 }
 static inline u32 fifo_runlist_preempt_runlist_m(u32 i)
 {
-	return 0x1U << (0U + i*1U);
+	return U32(0x1U) << (0U + i*1U);
 }
 static inline u32 fifo_runlist_preempt_runlist_pending_v(void)
 {
@@ -542,7 +544,7 @@ static inline u32 fifo_eng_ctxsw_timeout_period_f(u32 v)
 }
 static inline u32 fifo_eng_ctxsw_timeout_period_m(void)
 {
-	return 0x7fffffffU << 0U;
+	return U32(0x7fffffffU) << 0U;
 }
 static inline u32 fifo_eng_ctxsw_timeout_period_v(u32 r)
 {
@@ -562,7 +564,7 @@ static inline u32 fifo_eng_ctxsw_timeout_detection_f(u32 v)
 }
 static inline u32 fifo_eng_ctxsw_timeout_detection_m(void)
 {
-	return 0x1U << 31U;
+	return U32(0x1U) << 31U;
 }
 static inline u32 fifo_eng_ctxsw_timeout_detection_enabled_f(void)
 {

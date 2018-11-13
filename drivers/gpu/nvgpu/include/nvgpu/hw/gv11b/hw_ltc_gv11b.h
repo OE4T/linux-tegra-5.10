@@ -56,6 +56,8 @@
 #ifndef NVGPU_HW_LTC_GV11B_H
 #define NVGPU_HW_LTC_GV11B_H
 
+#include <nvgpu/types.h>
+
 static inline u32 ltc_pltcg_base_v(void)
 {
 	return 0x00140000U;
@@ -90,7 +92,7 @@ static inline u32 ltc_ltcs_ltss_dstg_cfg0_r(void)
 }
 static inline u32 ltc_ltcs_ltss_dstg_cfg0_vdc_4to2_disable_m(void)
 {
-	return 0x1U << 15U;
+	return U32(0x1U) << 15U;
 }
 static inline u32 ltc_ltc0_lts0_tstg_cfg1_r(void)
 {
@@ -266,7 +268,7 @@ static inline u32 ltc_ltcs_ltss_dstg_zbc_depth_clear_value_field_f(u32 v)
 }
 static inline u32 ltc_ltcs_ltss_dstg_zbc_depth_clear_value_field_m(void)
 {
-	return 0xffffffffU << 0U;
+	return U32(0xffffffffU) << 0U;
 }
 static inline u32 ltc_ltcs_ltss_dstg_zbc_depth_clear_value_field_v(u32 r)
 {
@@ -286,7 +288,7 @@ static inline u32 ltc_ltcs_ltss_dstg_zbc_stencil_clear_value_field_f(u32 v)
 }
 static inline u32 ltc_ltcs_ltss_dstg_zbc_stencil_clear_value_field_m(void)
 {
-	return 0xffU << 0U;
+	return U32(0xffU) << 0U;
 }
 static inline u32 ltc_ltcs_ltss_dstg_zbc_stencil_clear_value_field_v(u32 r)
 {
@@ -362,11 +364,11 @@ static inline u32 ltc_ltcs_ltss_intr_ecc_ded_error_pending_f(void)
 }
 static inline u32 ltc_ltcs_ltss_intr_en_evicted_cb_m(void)
 {
-	return 0x1U << 20U;
+	return U32(0x1U) << 20U;
 }
 static inline u32 ltc_ltcs_ltss_intr_en_illegal_compstat_m(void)
 {
-	return 0x1U << 21U;
+	return U32(0x1U) << 21U;
 }
 static inline u32 ltc_ltcs_ltss_intr_en_illegal_compstat_enabled_f(void)
 {
@@ -378,7 +380,7 @@ static inline u32 ltc_ltcs_ltss_intr_en_illegal_compstat_disabled_f(void)
 }
 static inline u32 ltc_ltcs_ltss_intr_en_illegal_compstat_access_m(void)
 {
-	return 0x1U << 30U;
+	return U32(0x1U) << 30U;
 }
 static inline u32 ltc_ltcs_ltss_intr_en_ecc_sec_error_enabled_f(void)
 {
@@ -398,11 +400,11 @@ static inline u32 ltc_ltcs_ltss_intr3_r(void)
 }
 static inline u32 ltc_ltcs_ltss_intr3_ecc_corrected_m(void)
 {
-	return 0x1U << 7U;
+	return U32(0x1U) << 7U;
 }
 static inline u32 ltc_ltcs_ltss_intr3_ecc_uncorrected_m(void)
 {
-	return 0x1U << 8U;
+	return U32(0x1U) << 8U;
 }
 static inline u32 ltc_ltc0_lts0_intr3_r(void)
 {
@@ -418,7 +420,7 @@ static inline u32 ltc_ltc0_lts0_l2_cache_ecc_status_corrected_err_rstg_f(u32 v)
 }
 static inline u32 ltc_ltc0_lts0_l2_cache_ecc_status_corrected_err_rstg_m(void)
 {
-	return 0x1U << 1U;
+	return U32(0x1U) << 1U;
 }
 static inline u32 ltc_ltc0_lts0_l2_cache_ecc_status_corrected_err_tstg_f(u32 v)
 {
@@ -426,7 +428,7 @@ static inline u32 ltc_ltc0_lts0_l2_cache_ecc_status_corrected_err_tstg_f(u32 v)
 }
 static inline u32 ltc_ltc0_lts0_l2_cache_ecc_status_corrected_err_tstg_m(void)
 {
-	return 0x1U << 3U;
+	return U32(0x1U) << 3U;
 }
 static inline u32 ltc_ltc0_lts0_l2_cache_ecc_status_corrected_err_dstg_f(u32 v)
 {
@@ -434,7 +436,7 @@ static inline u32 ltc_ltc0_lts0_l2_cache_ecc_status_corrected_err_dstg_f(u32 v)
 }
 static inline u32 ltc_ltc0_lts0_l2_cache_ecc_status_corrected_err_dstg_m(void)
 {
-	return 0x1U << 5U;
+	return U32(0x1U) << 5U;
 }
 static inline u32 ltc_ltc0_lts0_l2_cache_ecc_status_uncorrected_err_rstg_f(u32 v)
 {
@@ -442,7 +444,7 @@ static inline u32 ltc_ltc0_lts0_l2_cache_ecc_status_uncorrected_err_rstg_f(u32 v
 }
 static inline u32 ltc_ltc0_lts0_l2_cache_ecc_status_uncorrected_err_rstg_m(void)
 {
-	return 0x1U << 0U;
+	return U32(0x1U) << 0U;
 }
 static inline u32 ltc_ltc0_lts0_l2_cache_ecc_status_uncorrected_err_tstg_f(u32 v)
 {
@@ -450,7 +452,7 @@ static inline u32 ltc_ltc0_lts0_l2_cache_ecc_status_uncorrected_err_tstg_f(u32 v
 }
 static inline u32 ltc_ltc0_lts0_l2_cache_ecc_status_uncorrected_err_tstg_m(void)
 {
-	return 0x1U << 2U;
+	return U32(0x1U) << 2U;
 }
 static inline u32 ltc_ltc0_lts0_l2_cache_ecc_status_uncorrected_err_dstg_f(u32 v)
 {
@@ -458,7 +460,7 @@ static inline u32 ltc_ltc0_lts0_l2_cache_ecc_status_uncorrected_err_dstg_f(u32 v
 }
 static inline u32 ltc_ltc0_lts0_l2_cache_ecc_status_uncorrected_err_dstg_m(void)
 {
-	return 0x1U << 4U;
+	return U32(0x1U) << 4U;
 }
 static inline u32 ltc_ltc0_lts0_l2_cache_ecc_status_uncorrected_err_total_counter_overflow_f(u32 v)
 {
@@ -466,7 +468,7 @@ static inline u32 ltc_ltc0_lts0_l2_cache_ecc_status_uncorrected_err_total_counte
 }
 static inline u32 ltc_ltc0_lts0_l2_cache_ecc_status_uncorrected_err_total_counter_overflow_m(void)
 {
-	return 0x1U << 18U;
+	return U32(0x1U) << 18U;
 }
 static inline u32 ltc_ltc0_lts0_l2_cache_ecc_status_corrected_err_total_counter_overflow_f(u32 v)
 {
@@ -474,7 +476,7 @@ static inline u32 ltc_ltc0_lts0_l2_cache_ecc_status_corrected_err_total_counter_
 }
 static inline u32 ltc_ltc0_lts0_l2_cache_ecc_status_corrected_err_total_counter_overflow_m(void)
 {
-	return 0x1U << 16U;
+	return U32(0x1U) << 16U;
 }
 static inline u32 ltc_ltc0_lts0_l2_cache_ecc_status_uncorrected_err_unique_counter_overflow_f(u32 v)
 {
@@ -482,7 +484,7 @@ static inline u32 ltc_ltc0_lts0_l2_cache_ecc_status_uncorrected_err_unique_count
 }
 static inline u32 ltc_ltc0_lts0_l2_cache_ecc_status_uncorrected_err_unique_counter_overflow_m(void)
 {
-	return 0x1U << 19U;
+	return U32(0x1U) << 19U;
 }
 static inline u32 ltc_ltc0_lts0_l2_cache_ecc_status_corrected_err_unique_counter_overflow_f(u32 v)
 {
@@ -490,7 +492,7 @@ static inline u32 ltc_ltc0_lts0_l2_cache_ecc_status_corrected_err_unique_counter
 }
 static inline u32 ltc_ltc0_lts0_l2_cache_ecc_status_corrected_err_unique_counter_overflow_m(void)
 {
-	return 0x1U << 17U;
+	return U32(0x1U) << 17U;
 }
 static inline u32 ltc_ltc0_lts0_l2_cache_ecc_status_reset_f(u32 v)
 {
@@ -518,7 +520,7 @@ static inline u32 ltc_ltc0_lts0_l2_cache_ecc_corrected_err_count_total_f(u32 v)
 }
 static inline u32 ltc_ltc0_lts0_l2_cache_ecc_corrected_err_count_total_m(void)
 {
-	return 0xffffU << 0U;
+	return U32(0xffffU) << 0U;
 }
 static inline u32 ltc_ltc0_lts0_l2_cache_ecc_corrected_err_count_total_v(u32 r)
 {
@@ -534,7 +536,7 @@ static inline u32 ltc_ltc0_lts0_l2_cache_ecc_corrected_err_count_unique_total_f(
 }
 static inline u32 ltc_ltc0_lts0_l2_cache_ecc_corrected_err_count_unique_total_m(void)
 {
-	return 0xffffU << 16U;
+	return U32(0xffffU) << 16U;
 }
 static inline u32 ltc_ltc0_lts0_l2_cache_ecc_corrected_err_count_unique_total_v(u32 r)
 {
@@ -554,7 +556,7 @@ static inline u32 ltc_ltc0_lts0_l2_cache_ecc_uncorrected_err_count_total_f(u32 v
 }
 static inline u32 ltc_ltc0_lts0_l2_cache_ecc_uncorrected_err_count_total_m(void)
 {
-	return 0xffffU << 0U;
+	return U32(0xffffU) << 0U;
 }
 static inline u32 ltc_ltc0_lts0_l2_cache_ecc_uncorrected_err_count_total_v(u32 r)
 {
@@ -570,7 +572,7 @@ static inline u32 ltc_ltc0_lts0_l2_cache_ecc_uncorrected_err_count_unique_total_
 }
 static inline u32 ltc_ltc0_lts0_l2_cache_ecc_uncorrected_err_count_unique_total_m(void)
 {
-	return 0xffffU << 16U;
+	return U32(0xffffU) << 16U;
 }
 static inline u32 ltc_ltc0_lts0_l2_cache_ecc_uncorrected_err_count_unique_total_v(u32 r)
 {
@@ -582,7 +584,7 @@ static inline u32 ltc_ltc0_lts0_dstg_ecc_report_r(void)
 }
 static inline u32 ltc_ltc0_lts0_dstg_ecc_report_sec_count_m(void)
 {
-	return 0xffU << 0U;
+	return U32(0xffU) << 0U;
 }
 static inline u32 ltc_ltc0_lts0_dstg_ecc_report_sec_count_v(u32 r)
 {
@@ -590,7 +592,7 @@ static inline u32 ltc_ltc0_lts0_dstg_ecc_report_sec_count_v(u32 r)
 }
 static inline u32 ltc_ltc0_lts0_dstg_ecc_report_ded_count_m(void)
 {
-	return 0xffU << 16U;
+	return U32(0xffU) << 16U;
 }
 static inline u32 ltc_ltc0_lts0_dstg_ecc_report_ded_count_v(u32 r)
 {

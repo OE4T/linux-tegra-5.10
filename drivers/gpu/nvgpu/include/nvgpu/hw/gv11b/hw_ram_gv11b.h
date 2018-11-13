@@ -56,6 +56,8 @@
 #ifndef NVGPU_HW_RAM_GV11B_H
 #define NVGPU_HW_RAM_GV11B_H
 
+#include <nvgpu/types.h>
+
 static inline u32 ram_in_ramfc_s(void)
 {
 	return 4096U;
@@ -102,7 +104,7 @@ static inline u32 ram_in_page_dir_base_fault_replay_tex_f(u32 v)
 }
 static inline u32 ram_in_page_dir_base_fault_replay_tex_m(void)
 {
-	return 0x1U << 4U;
+	return U32(0x1U) << 4U;
 }
 static inline u32 ram_in_page_dir_base_fault_replay_tex_w(void)
 {
@@ -118,7 +120,7 @@ static inline u32 ram_in_page_dir_base_fault_replay_gcc_f(u32 v)
 }
 static inline u32 ram_in_page_dir_base_fault_replay_gcc_m(void)
 {
-	return 0x1U << 5U;
+	return U32(0x1U) << 5U;
 }
 static inline u32 ram_in_page_dir_base_fault_replay_gcc_w(void)
 {
@@ -134,7 +136,7 @@ static inline u32 ram_in_use_ver2_pt_format_f(u32 v)
 }
 static inline u32 ram_in_use_ver2_pt_format_m(void)
 {
-	return 0x1U << 10U;
+	return U32(0x1U) << 10U;
 }
 static inline u32 ram_in_use_ver2_pt_format_w(void)
 {
@@ -154,7 +156,7 @@ static inline u32 ram_in_big_page_size_f(u32 v)
 }
 static inline u32 ram_in_big_page_size_m(void)
 {
-	return 0x1U << 11U;
+	return U32(0x1U) << 11U;
 }
 static inline u32 ram_in_big_page_size_w(void)
 {

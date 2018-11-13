@@ -56,13 +56,15 @@
 #ifndef NVGPU_HW_PRI_RINGMASTER_GV11B_H
 #define NVGPU_HW_PRI_RINGMASTER_GV11B_H
 
+#include <nvgpu/types.h>
+
 static inline u32 pri_ringmaster_command_r(void)
 {
 	return 0x0012004cU;
 }
 static inline u32 pri_ringmaster_command_cmd_m(void)
 {
-	return 0x3fU << 0U;
+	return U32(0x3fU) << 0U;
 }
 static inline u32 pri_ringmaster_command_cmd_v(u32 r)
 {

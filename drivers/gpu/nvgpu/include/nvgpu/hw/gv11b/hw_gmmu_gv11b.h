@@ -56,6 +56,8 @@
 #ifndef NVGPU_HW_GMMU_GV11B_H
 #define NVGPU_HW_GMMU_GV11B_H
 
+#include <nvgpu/types.h>
+
 static inline u32 gmmu_new_pde_is_pte_w(void)
 {
 	return 0U;
@@ -550,7 +552,7 @@ static inline u32 gmmu_fault_buf_entry_replayable_fault_en_true_f(void)
 }
 static inline u32 gmmu_fault_buf_entry_valid_m(void)
 {
-	return 0x1U << 31U;
+	return U32(0x1U) << 31U;
 }
 static inline u32 gmmu_fault_buf_entry_valid_v(u32 r)
 {
