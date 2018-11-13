@@ -71,7 +71,7 @@ enum falcon_mem_type {
 };
 
 struct nvgpu_falcon_queue {
-
+	struct gk20a *g;
 	/* Queue Type (queue_type) */
 	u8 queue_type;
 
@@ -90,6 +90,62 @@ struct nvgpu_falcon_queue {
 	u32 size;
 	/* open-flag */
 	u32 oflag;
+
+	/* members unique to the FB version of the falcon queues */
+	struct {
+		/* Holds super surface base address */
+		struct nvgpu_mem *super_surface_mem;
+
+		/*
+		 * Holds the offset of queue data (0th element).
+		 * This is used for FB Queues to hold a offset of
+		 * Super Surface for this queue.
+		 */
+		 u32 fb_offset;
+
+		/*
+		 * Define the size of a single queue element.
+		 * queues_size above is used for the number of
+		 * queue elements.
+		 */
+		u32 element_size;
+
+		 /*
+		 * Define a pointers to point to local (SYSMEM)
+		 * allocated buffers to hold a queue elements
+		 * it is being assembled.
+		 */
+		 u8 *write_buffer[64];
+
+		/* To keep track of elements in use */
+		u64 element_in_use;
+
+		/*
+		 * Define a pointer to a local (SYSMEM) allocated
+		 * buffer to hold a single queue element read
+		 */
+		 u8 *read_buffer;
+
+		/*
+		 * Tracks how much of the current FB Queue MSG queue
+		 * entry have been read. This is needed as functions read
+		 * the MSG queue as a byte stream, rather
+		 * than reading a whole MSG at a time.
+		 */
+		u32 read_position;
+
+		/*
+		 * Tail as tracked on the nvgpu "side".  Because the queue
+		 * elements and its associated payload (which is also moved
+		 * PMU->nvgpu through the FB CMD Queue) can't be free-ed until
+		 * the command is complete, response is received and any "out"
+		 * payload delivered to the client, it is necessary for the
+		 * nvgpu to track it's own version of "tail".  This one is
+		 * incremented as commands and completed entries are found
+		 * following tail.
+		 */
+		u32 tail;
+	} fbq;
 
 	/* queue type(DMEM-Q/FB-Q) specific ops */
 	int (*rewind)(struct nvgpu_falcon *flcn,
