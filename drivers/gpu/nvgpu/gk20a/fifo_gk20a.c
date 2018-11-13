@@ -1075,7 +1075,7 @@ gk20a_refch_from_inst_ptr(struct gk20a *g, u64 inst_ptr)
 		struct channel_gk20a *ch;
 		u64 ch_inst_ptr;
 
-		ch = gk20a_channel_get(&f->channel[ci]);
+		ch = gk20a_channel_from_id(g, ci);
 		/* only alive channels are searched */
 		if (ch == NULL) {
 			continue;
@@ -1866,9 +1866,9 @@ void gk20a_fifo_recover_ch(struct gk20a *g, u32 chid, bool verbose, u32 rc_type)
 		gk20a_fifo_recover(g, engines, chid, false, true, verbose,
 					rc_type);
 	} else {
-		struct channel_gk20a *ch = &g->fifo.channel[chid];
+		struct channel_gk20a *ch = gk20a_channel_from_id(g, chid);
 
-		if (gk20a_channel_get(ch) != NULL) {
+		if (ch != NULL) {
 			gk20a_channel_abort(ch, false);
 
 			if (gk20a_fifo_error_ch(g, ch)) {
@@ -2599,9 +2599,9 @@ static void gk20a_fifo_pbdma_fault_rc(struct gk20a *g,
 	id = fifo_pbdma_status_id_v(status);
 	if (fifo_pbdma_status_id_type_v(status)
 			== fifo_pbdma_status_id_type_chid_v()) {
-		struct channel_gk20a *ch = &f->channel[id];
+		struct channel_gk20a *ch = gk20a_channel_from_id(g, id);
 
-		if (gk20a_channel_get(ch) != NULL) {
+		if (ch != NULL) {
 			g->ops.fifo.set_error_notifier(ch, error_notifier);
 			gk20a_fifo_recover_ch(g, id, true, RC_TYPE_PBDMA_FAULT);
 			gk20a_channel_put(ch);
@@ -2813,12 +2813,12 @@ void gk20a_fifo_preempt_timeout_rc(struct gk20a *g, u32 id,
 		gk20a_fifo_recover_tsg(g, id, true,
 						RC_TYPE_PREEMPT_TIMEOUT);
 	} else {
-		struct channel_gk20a *ch = &g->fifo.channel[id];
+		struct channel_gk20a *ch = gk20a_channel_from_id(g, id);
 
 		nvgpu_err(g,
 			"preempt channel %d timeout", id);
 
-		if (gk20a_channel_get(ch) != NULL) {
+		if (ch != NULL) {
 			g->ops.fifo.set_error_notifier(ch,
 					NVGPU_ERR_NOTIFIER_FIFO_ERROR_IDLE_TIMEOUT);
 			gk20a_fifo_recover_ch(g, id, true,
@@ -4097,9 +4097,9 @@ void gk20a_debug_dump_all_channel_status_ramfc(struct gk20a *g,
 	}
 
 	for (chid = 0; chid < f->num_channels; chid++) {
-		struct channel_gk20a *ch = &f->channel[chid];
+		struct channel_gk20a *ch = gk20a_channel_from_id(g, chid);
 
-		if (gk20a_channel_get(ch) != NULL) {
+		if (ch != NULL) {
 			struct nvgpu_channel_dump_info *info;
 
 			info = nvgpu_kzalloc(g, sizeof(*info));
@@ -4119,6 +4119,7 @@ void gk20a_debug_dump_all_channel_status_ramfc(struct gk20a *g,
 		struct nvgpu_channel_dump_info *info = infos[chid];
 		struct nvgpu_semaphore_int *hw_sema = ch->hw_sema;
 
+		/* if this info exists, the above loop took a channel ref */
 		if (info == NULL) {
 			continue;
 		}
