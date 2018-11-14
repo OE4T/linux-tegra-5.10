@@ -59,9 +59,7 @@ static u64 nvgpu_mem_sgl_phys(struct gk20a *g, struct nvgpu_sgl *sgl)
 static u64 nvgpu_mem_sgl_ipa_to_pa(struct gk20a *g, struct nvgpu_sgl *sgl,
 		u64 ipa, u64 *pa_len)
 {
-	struct nvgpu_mem *mem = (struct nvgpu_mem *)sgl;
-
-	return (u64)(uintptr_t)mem->cpu_va;
+	return nvgpu_mem_sgl_phys(g, sgl);
 }
 
 static u64 nvgpu_mem_sgl_dma(struct nvgpu_sgl *sgl)
@@ -101,6 +99,9 @@ static bool nvgpu_mem_sgt_iommuable(struct gk20a *g, struct nvgpu_sgt *sgt)
 
 static void nvgpu_mem_sgt_free(struct gk20a *g, struct nvgpu_sgt *sgt)
 {
+	if (sgt->sgl != NULL) {
+		nvgpu_kfree(g, sgt->sgl);
+	}
 	nvgpu_kfree(g, sgt);
 }
 
@@ -119,6 +120,7 @@ static struct nvgpu_sgt_ops nvgpu_sgt_posix_ops = {
 struct nvgpu_sgt *nvgpu_sgt_create_from_mem(struct gk20a *g,
 					    struct nvgpu_mem *mem)
 {
+	struct nvgpu_mem_sgl *sgl;
 	struct nvgpu_sgt *sgt = nvgpu_kzalloc(g, sizeof(*sgt));
 
 	if (sgt == NULL)
@@ -126,11 +128,21 @@ struct nvgpu_sgt *nvgpu_sgt_create_from_mem(struct gk20a *g,
 
 	/*
 	 * The userspace implementation is simple: a single 'entry' (which we
-	 * only need the mem struct to describe). Maybe this could be expanded
-	 * to be more interesting some day.
+	 * only need the nvgpu_mem_sgl struct to describe). A unit test can
+	 * easily replace it if needed.
 	 */
-	sgt->sgl = (struct nvgpu_sgl *)mem;
 	sgt->ops = &nvgpu_sgt_posix_ops;
+
+	sgl = (struct nvgpu_mem_sgl *) nvgpu_kzalloc(g, sizeof(
+		struct nvgpu_mem_sgl));
+	if (sgl == NULL) {
+		nvgpu_kfree(g, sgt);
+		return NULL;
+	}
+
+	sgl->length = mem->size;
+	sgl->phys   = (u64) mem->cpu_va;
+	sgt->sgl    = (struct nvgpu_sgl *) sgl;
 
 	return sgt;
 }
