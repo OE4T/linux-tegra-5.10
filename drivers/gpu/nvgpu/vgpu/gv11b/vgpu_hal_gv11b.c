@@ -422,6 +422,8 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 		.get_sema_incr_cmd_size = gv11b_fifo_get_sema_incr_cmd_size,
 		.add_sema_cmd = gv11b_fifo_add_sema_cmd,
 		.set_sm_exception_type_mask = vgpu_set_sm_exception_type_mask,
+		.usermode_base = gv11b_fifo_usermode_base,
+		.doorbell_token = gv11b_fifo_doorbell_token,
 	},
 	.netlist = {
 		.get_netlist_name = gv11b_netlist_get_name,
