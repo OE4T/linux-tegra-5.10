@@ -331,6 +331,7 @@ gk20a_ctrl_ioctl_gpu_characteristics(
 	gpu.ioctl_channel_nr_last = NVGPU_IOCTL_CHANNEL_LAST;
 	gpu.as_ioctl_nr_last = NVGPU_AS_IOCTL_LAST;
 	gpu.event_ioctl_nr_last = NVGPU_EVENT_IOCTL_LAST;
+	gpu.ctxsw_ioctl_nr_last = NVGPU_CTXSW_IOCTL_LAST;
 	gpu.gpu_va_bit_count = 40;
 
 	strlcpy(gpu.chipname, g->name, sizeof(gpu.chipname));
