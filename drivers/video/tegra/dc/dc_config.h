@@ -209,6 +209,8 @@ struct tegra_dc_feature {
 	struct tegra_dc_feature_entry *entries;
 };
 
+int tegra_dc_get_feature(struct tegra_dc_feature *feature, int win_idx,
+			 enum tegra_dc_feature_option option);
 int tegra_dc_feature_has_scaling(struct tegra_dc *dc, int win_idx);
 int tegra_dc_feature_has_tiling(struct tegra_dc *dc, int win_idx);
 int tegra_dc_feature_has_blocklinear(struct tegra_dc *dc, int win_idx);
