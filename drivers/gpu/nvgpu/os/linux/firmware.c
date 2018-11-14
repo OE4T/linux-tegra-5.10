@@ -20,6 +20,7 @@
 #include <nvgpu/bug.h>
 #include <nvgpu/firmware.h>
 #include <nvgpu/gk20a.h>
+#include <nvgpu/string.h>
 
 #include "platform_gk20a.h"
 #include "os_linux.h"
@@ -93,7 +94,7 @@ struct nvgpu_firmware *nvgpu_request_firmware(struct gk20a *g,
 	if (!fw->data)
 		goto err_release;
 
-	(void) memcpy(fw->data, linux_fw->data, linux_fw->size);
+	nvgpu_memcpy((u8 *)fw->data, (u8 *)linux_fw->data, linux_fw->size);
 	fw->size = linux_fw->size;
 
 	release_firmware(linux_fw);

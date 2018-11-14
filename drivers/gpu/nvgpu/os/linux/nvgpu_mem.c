@@ -24,6 +24,7 @@
 #include <nvgpu/kmem.h>
 #include <nvgpu/vidmem.h>
 #include <nvgpu/gk20a.h>
+#include <nvgpu/string.h>
 
 #include <nvgpu/linux/dma.h>
 
@@ -202,7 +203,8 @@ int __nvgpu_mem_create_from_pages(struct gk20a *g, struct nvgpu_mem *dest,
 	if (!our_pages)
 		return -ENOMEM;
 
-	(void) memcpy(our_pages, pages, sizeof(struct page *) * nr_pages);
+	nvgpu_memcpy((u8 *)our_pages, (u8 *)pages,
+		sizeof(struct page *) * nr_pages);
 
 	if (nvgpu_get_sgtable_from_pages(g, &sgt, pages, 0,
 					 nr_pages * PAGE_SIZE)) {

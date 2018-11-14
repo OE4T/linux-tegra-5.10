@@ -35,6 +35,7 @@
 #include <nvgpu/channel.h>
 #include <nvgpu/utils.h>
 #include <nvgpu/gk20a.h>
+#include <nvgpu/string.h>
 
 #include <nvgpu/linux/vm.h>
 
@@ -290,8 +291,9 @@ static int gk20a_init_cde_buf(struct gk20a_cde_ctx *cde_ctx,
 
 	/* copy the content */
 	if (buf->data_byte_offset != 0)
-		(void) memcpy(mem->cpu_va, img->data + buf->data_byte_offset,
-		       buf->num_bytes);
+		nvgpu_memcpy((u8 *)mem->cpu_va,
+			(u8 *)(img->data + buf->data_byte_offset),
+			buf->num_bytes);
 
 	cde_ctx->num_bufs++;
 
@@ -644,9 +646,10 @@ static int gk20a_cde_pack_cmdbufs(struct gk20a_cde_ctx *cde_ctx)
 	}
 
 	/* move the original init here and append convert */
-	(void) memcpy(combined_cmd, cde_ctx->init_convert_cmd, init_bytes);
-	(void) memcpy(combined_cmd + cde_ctx->init_cmd_num_entries,
-			cde_ctx->convert_cmd, conv_bytes);
+	nvgpu_memcpy((u8 *)combined_cmd,
+		(u8 *)cde_ctx->init_convert_cmd, init_bytes);
+	nvgpu_memcpy((u8 *)(combined_cmd + cde_ctx->init_cmd_num_entries),
+		(u8 *)cde_ctx->convert_cmd, conv_bytes);
 
 	nvgpu_kfree(g, cde_ctx->init_convert_cmd);
 	nvgpu_kfree(g, cde_ctx->convert_cmd);
@@ -714,8 +717,8 @@ static int gk20a_init_cde_img(struct gk20a_cde_ctx *cde_ctx,
 			break;
 		}
 		case TYPE_ARRAY:
-			(void) memcpy(&cde_app->arrays[elem->array.id][0],
-				elem->array.data,
+			nvgpu_memcpy((u8 *)&cde_app->arrays[elem->array.id][0],
+				(u8 *)elem->array.data,
 				MAX_CDE_ARRAY_ENTRIES*sizeof(u32));
 			break;
 		default:

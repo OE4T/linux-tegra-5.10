@@ -28,6 +28,7 @@
 #include <nvgpu/soc.h>
 #include <nvgpu/sim.h>
 #include <nvgpu/gk20a.h>
+#include <nvgpu/string.h>
 
 #include "nvlink.h"
 #include "clk/clk.h"
@@ -701,8 +702,8 @@ static int nvgpu_pci_probe(struct pci_dev *pdev,
 	}
 
 	/* copy detected device data to allocated platform space*/
-	(void) memcpy((void *)platform,
-		(void *)&nvgpu_pci_device[pent->driver_data],
+	nvgpu_memcpy((u8 *)platform,
+		(u8 *)&nvgpu_pci_device[pent->driver_data],
 		sizeof(struct gk20a_platform));
 
 	pci_set_drvdata(pdev, platform);

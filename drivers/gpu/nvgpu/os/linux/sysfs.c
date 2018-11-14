@@ -21,6 +21,7 @@
 #include <nvgpu/kmem.h>
 #include <nvgpu/nvhost.h>
 #include <nvgpu/ptimer.h>
+#include <nvgpu/string.h>
 
 #include "os_linux.h"
 #include "sysfs.h"
@@ -655,7 +656,8 @@ static ssize_t aelpg_param_store(struct device *dev,
 	/* If parameter value is 0 then reset to SW default values*/
 	if ((paramlist[0] | paramlist[1] | paramlist[2]
 		| paramlist[3] | paramlist[4]) == 0x00) {
-		(void) memcpy(paramlist, defaultparam, sizeof(defaultparam));
+		nvgpu_memcpy((u8 *)paramlist, (u8 *)defaultparam,
+			sizeof(defaultparam));
 	}
 
 	/* If aelpg is enabled & pmu is ready then post values to

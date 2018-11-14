@@ -24,6 +24,7 @@
 #include <nvgpu/bug.h>
 #include <nvgpu/barrier.h>
 #include <nvgpu/gk20a.h>
+#include <nvgpu/string.h>
 
 #include "gk20a/gr_gk20a.h"
 #include "sched.h"
@@ -418,8 +419,9 @@ int gk20a_sched_dev_open(struct inode *inode, struct file *filp)
 		goto free_ref;
 	}
 
-	(void) memcpy(sched->recent_tsg_bitmap, sched->active_tsg_bitmap,
-			sched->bitmap_size);
+	nvgpu_memcpy((u8 *)sched->recent_tsg_bitmap,
+		(u8 *)sched->active_tsg_bitmap,
+		sched->bitmap_size);
 	(void) memset(sched->ref_tsg_bitmap, 0, sched->bitmap_size);
 
 	filp->private_data = sched;

@@ -27,6 +27,7 @@
 #include <nvgpu/barrier.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/channel.h>
+#include <nvgpu/string.h>
 
 #include "gk20a/gr_gk20a.h"
 #include "gk20a/fecs_trace_gk20a.h"
@@ -252,14 +253,14 @@ static int gk20a_ctxsw_dev_ioctl_ring_setup(struct gk20a_ctxsw_dev *dev,
 static void nvgpu_set_ctxsw_trace_filter_args(struct nvgpu_gpu_ctxsw_trace_filter *filter_dst,
         struct nvgpu_ctxsw_trace_filter *filter_src)
 {
-	(void) memcpy(filter_dst->tag_bits, filter_src->tag_bits,
+	nvgpu_memcpy((u8 *)filter_dst->tag_bits, (u8 *)filter_src->tag_bits,
 		(NVGPU_CTXSW_FILTER_SIZE + 63) / 64);
 }
 
 static void nvgpu_get_ctxsw_trace_filter_args(struct nvgpu_ctxsw_trace_filter *filter_dst,
 	struct nvgpu_gpu_ctxsw_trace_filter *filter_src)
 {
-	(void) memcpy(filter_dst->tag_bits, filter_src->tag_bits,
+	nvgpu_memcpy((u8 *)filter_dst->tag_bits, (u8 *)filter_src->tag_bits,
 		(NVGPU_CTXSW_FILTER_SIZE + 63) / 64);
 }
 
