@@ -227,6 +227,11 @@ struct gpu_ops {
 		void (*split_ltc_broadcast_addr)(struct gk20a *g, u32 addr,
 							u32 *priv_addr_table,
 							u32 *priv_addr_table_index);
+		struct {
+			int (*report_ecc_parity_err)(struct gk20a *g,
+					u32 hw_id, u32 inst, u32 err_id,
+					u64 err_addr, u64 count);
+		} err_ops;
 	} ltc;
 	struct {
 		void (*isr_stall)(struct gk20a *g, u32 inst_id, u32 pri_base);
@@ -623,6 +628,13 @@ struct gpu_ops {
 		} ctxsw_prog;
 		u32 (*fecs_falcon_base_addr)(void);
 		u32 (*gpccs_falcon_base_addr)(void);
+
+		struct {
+			int (*report_ecc_parity_err)(struct gk20a *g,
+					u32 hw_id, u32 inst, u32 err_id,
+					u64 err_addr,
+					u64 err_count);
+		} err_ops;
 	} gr;
 	struct {
 		void (*init_hw)(struct gk20a *g);
@@ -874,6 +886,11 @@ struct gpu_ops {
 		bool (*find_pbdma_for_runlist)(struct fifo_gk20a *f,
 				u32 runlist_id, u32 *pbdma_id);
 		int (*init_ce_engine_info)(struct fifo_gk20a *f);
+		struct {
+			int (*report_host_err)(struct gk20a *g,
+					u32 hw_id, u32 inst, u32 err_id,
+					u32 intr_info);
+		} err_ops;
 	} fifo;
 	struct pmu_v {
 		u32 (*get_pmu_cmdline_args_size)(struct nvgpu_pmu *pmu);
@@ -1200,6 +1217,12 @@ struct gpu_ops {
 			struct nvgpu_mem *super_surface, u32 size);
 		bool (*is_debug_mode_enabled)(struct gk20a *g);
 		void (*secured_pmu_start)(struct gk20a *g);
+		struct {
+			int (*report_ecc_parity_err)(struct gk20a *g,
+					u32 hw_id, u32 inst,
+					u32 err_id, u64 err_addr,
+					u64 err_cnt);
+		} err_ops;
 	} pmu;
 	struct {
 		int (*init_debugfs)(struct gk20a *g);
