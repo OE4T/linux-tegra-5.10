@@ -68,6 +68,7 @@
 #include "common/pmu/acr_gm20b.h"
 #include "common/pmu/acr_gp106.h"
 #include "common/pmu/acr_tu104.h"
+#include "common/pmu/perf/perf_tu104.h"
 #include "common/falcon/falcon_gk20a.h"
 #include "common/falcon/falcon_tu104.h"
 #include "common/nvdec/nvdec_tu104.h"
@@ -115,7 +116,6 @@
 #include "gv100/mm_gv100.h"
 #include "gv100/regops_gv100.h"
 #include "gv100/clk_arb_gv100.h"
-#include "pmu_perf/perf_tu104.h"
 
 #include "tu104/fifo_tu104.h"
 #include "tu104/gr_tu104.h"

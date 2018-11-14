@@ -22,6 +22,7 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/boardobjgrp.h>
 #include <nvgpu/boardobjgrp_e32.h>
+#include <nvgpu/pmu/therm.h>
 
 #include "thrmpmu.h"
 #include "thrm.h"

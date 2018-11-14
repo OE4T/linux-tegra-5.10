@@ -29,7 +29,7 @@
 #include <nvgpu/pmu/perf.h>
 
 #include "perf_tu104.h"
-#include "pmu_perf/pmu_perf.h"
+#include "pmu_perf.h"
 
 static int pmu_set_boot_clk_runcb_fn(void *arg)
 {

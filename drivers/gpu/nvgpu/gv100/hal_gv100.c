@@ -70,7 +70,7 @@
 #include "common/nvdec/nvdec_gp106.h"
 #include "common/nvlink/nvlink_gv100.h"
 #include "common/nvlink/nvlink_tu104.h"
-#include "pmu_perf/perf_gv100.h"
+#include "common/pmu/perf/perf_gv100.h"
 
 #include "gk20a/fifo_gk20a.h"
 #include "gk20a/fecs_trace_gk20a.h"

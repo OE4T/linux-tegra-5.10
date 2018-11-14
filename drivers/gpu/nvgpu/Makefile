@@ -83,7 +83,56 @@ nvgpu-y += common/bus/bus_gk20a.o \
 	common/netlist/netlist_gv11b.o \
 	common/netlist/netlist_tu104.o \
 	common/nvdec/nvdec_gp106.o \
-	common/nvdec/nvdec_tu104.o
+	common/nvdec/nvdec_tu104.o \
+	common/init/nvgpu_init.o \
+	common/pmu/pmu.o \
+	common/pmu/pmu_ipc.o \
+	common/pmu/pmu_fw.o \
+	common/pmu/pmu_pg.o \
+	common/pmu/pmu_perfmon.o \
+	common/pmu/pmu_debug.o \
+	common/pmu/pmu_gk20a.o \
+	common/pmu/pmu_gm20b.o \
+	common/pmu/pmu_gp10b.o \
+	common/pmu/pmu_gp106.o \
+	common/pmu/pmu_gv11b.o \
+	common/pmu/pmu_gv100.o \
+	common/pmu/pmu_tu104.o \
+	common/pmu/acr_gm20b.o \
+	common/pmu/acr_gp106.o \
+	common/pmu/acr_gv11b.o \
+	common/pmu/acr_tu104.o \
+	common/pmu/perf/vfe_var.o \
+	common/pmu/perf/vfe_equ.o \
+	common/pmu/perf/pmu_perf.o \
+	common/pmu/perf/perf_gv100.o \
+	common/pmu/perf/perf_tu104.o \
+	common/pmu/perf/change_seq.o \
+	common/pmu/pmgr/pwrdev.o \
+	common/pmu/pmgr/pmgr.o \
+	common/pmu/pmgr/pmgrpmu.o \
+	common/pmu/pmgr/pwrmonitor.o \
+	common/pmu/pmgr/pwrpolicy.o \
+	common/pmu/volt/volt_rail.o \
+	common/pmu/volt/volt_dev.o \
+	common/pmu/volt/volt_policy.o \
+	common/pmu/volt/volt_pmu.o \
+	common/pmu/therm/thrm.o \
+	common/pmu/therm/thrmdev.o \
+	common/pmu/therm/thrmchannel.o \
+	common/pmu/therm/thrmpmu.o \
+	common/pmu/lpwr/rppg.o \
+	common/pmu/lpwr/lpwr.o \
+	common/pmu/pstate/pstate.o \
+	common/pmu/clk/clk_vin.o \
+	common/pmu/clk/clk_fll.o \
+	common/pmu/clk/clk_domain.o \
+	common/pmu/clk/clk_freq_domain.o \
+	common/pmu/clk/clk_prog.o \
+	common/pmu/clk/clk_vf_point.o \
+	common/pmu/clk/clk_arb.o \
+	common/pmu/clk/clk_freq_controller.o \
+	common/pmu/clk/clk.o
 
 # Linux specific parts of nvgpu.
 nvgpu-y += \
@@ -247,24 +296,6 @@ nvgpu-y += \
 	common/falcon/falcon_gv100.o \
 	common/falcon/falcon_tu104.o \
 	common/init/hal_init.o \
-	common/init/nvgpu_init.o \
-	common/pmu/pmu.o \
-	common/pmu/pmu_ipc.o \
-	common/pmu/pmu_fw.o \
-	common/pmu/pmu_pg.o \
-	common/pmu/pmu_perfmon.o \
-	common/pmu/pmu_debug.o \
-	common/pmu/pmu_gk20a.o \
-	common/pmu/pmu_gm20b.o \
-	common/pmu/pmu_gp10b.o \
-	common/pmu/pmu_gp106.o \
-	common/pmu/pmu_gv11b.o \
-	common/pmu/pmu_gv100.o \
-	common/pmu/pmu_tu104.o \
-	common/pmu/acr_gm20b.o \
-	common/pmu/acr_gp106.o \
-	common/pmu/acr_gv11b.o \
-	common/pmu/acr_tu104.o \
 	common/sec2/sec2.o \
 	common/sec2/sec2_ipc.o \
 	common/io_common.o \
@@ -366,6 +397,7 @@ nvgpu-y += \
 	gv100/hal_gv100.o \
 	gv100/gsp_gv100.o \
 	gv100/clk_gv100.o \
+	gv100/clk_arb_gv100.o \
 	tu104/hal_tu104.o \
 	tu104/fifo_tu104.o \
 	tu104/gr_tu104.o \
@@ -375,36 +407,4 @@ nvgpu-y += \
 	tu104/sec2_tu104.o \
 	tu104/ecc_tu104.o \
 	tu104/regops_tu104.o \
-	pstate/pstate.o \
-	clk/clk_vin.o \
-	clk/clk_fll.o \
-	clk/clk_domain.o \
-	clk/clk_freq_domain.o \
-	clk/clk_prog.o \
-	clk/clk_vf_point.o \
-	clk/clk_arb.o \
-	clk/clk_freq_controller.o \
-	pmu_perf/vfe_var.o \
-	pmu_perf/vfe_equ.o \
-	pmu_perf/pmu_perf.o \
-	pmu_perf/perf_gv100.o \
-	pmu_perf/perf_tu104.o \
-	pmu_perf/change_seq.o \
-	clk/clk.o \
-	gp106/clk_gp106.o \
-	pmgr/pwrdev.o \
-	pmgr/pmgr.o \
-	pmgr/pmgrpmu.o \
-	pmgr/pwrmonitor.o \
-	pmgr/pwrpolicy.o \
-	volt/volt_rail.o \
-	volt/volt_dev.o \
-	volt/volt_policy.o \
-	volt/volt_pmu.o \
-	therm/thrm.o \
-	therm/thrmdev.o \
-	therm/thrmchannel.o \
-	therm/thrmpmu.o \
-	lpwr/rppg.o \
-	lpwr/lpwr.o \
-	gv100/clk_arb_gv100.o
+	gp106/clk_gp106.o

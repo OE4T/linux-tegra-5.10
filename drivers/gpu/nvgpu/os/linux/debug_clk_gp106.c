@@ -20,7 +20,7 @@
 #include <nvgpu/boardobjgrpmask.h>
 
 #include "os_linux.h"
-#include "clk/clk.h"
+#include "common/pmu/clk/clk.h"
 
 void nvgpu_clk_arb_pstate_change_lock(struct gk20a *g, bool lock);
 

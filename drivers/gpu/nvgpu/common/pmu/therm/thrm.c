@@ -21,6 +21,7 @@
  */
 
 #include <nvgpu/gk20a.h>
+#include <nvgpu/pmu/therm.h>
 
 #include "thrm.h"
 #include "thrmpmu.h"

@@ -164,36 +164,36 @@ srcs :=	os/posix/nvgpu.c \
 	common/boardobj/boardobjgrp_e32.c \
 	common/nvdec/nvdec_gp106.c \
 	common/nvdec/nvdec_tu104.c \
-	pstate/pstate.c \
-	volt/volt_dev.c \
-	volt/volt_pmu.c \
-	volt/volt_policy.c \
-	volt/volt_rail.c \
-	clk/clk.c \
-	clk/clk_domain.c \
-	clk/clk_freq_domain.c \
-	clk/clk_fll.c \
-	clk/clk_freq_controller.c \
-	clk/clk_prog.c \
-	clk/clk_vf_point.c \
-	clk/clk_vin.c \
-	therm/thrm.c \
-	therm/thrmchannel.c \
-	therm/thrmdev.c \
-	therm/thrmpmu.c \
-	pmu_perf/pmu_perf.c \
-	pmu_perf/vfe_equ.c \
-	pmu_perf/vfe_var.c \
-	pmu_perf/perf_gv100.c \
-	pmu_perf/perf_tu104.c \
-	pmu_perf/change_seq.c \
-	pmgr/pmgr.c \
-	pmgr/pmgrpmu.c \
-	pmgr/pwrdev.c \
-	pmgr/pwrmonitor.c \
-	pmgr/pwrpolicy.c \
-	lpwr/lpwr.c \
-	lpwr/rppg.c \
+	common/pmu/pstate/pstate.c \
+	common/pmu/volt/volt_dev.c \
+	common/pmu/volt/volt_pmu.c \
+	common/pmu/volt/volt_policy.c \
+	common/pmu/volt/volt_rail.c \
+	common/pmu/clk/clk.c \
+	common/pmu/clk/clk_domain.c \
+	common/pmu/clk/clk_freq_domain.c \
+	common/pmu/clk/clk_fll.c \
+	common/pmu/clk/clk_freq_controller.c \
+	common/pmu/clk/clk_prog.c \
+	common/pmu/clk/clk_vf_point.c \
+	common/pmu/clk/clk_vin.c \
+	common/pmu/therm/thrm.c \
+	common/pmu/therm/thrmchannel.c \
+	common/pmu/therm/thrmdev.c \
+	common/pmu/therm/thrmpmu.c \
+	common/pmu/perf/pmu_perf.c \
+	common/pmu/perf/vfe_equ.c \
+	common/pmu/perf/vfe_var.c \
+	common/pmu/perf/perf_gv100.c \
+	common/pmu/perf/perf_tu104.c \
+	common/pmu/perf/change_seq.c \
+	common/pmu/pmgr/pmgr.c \
+	common/pmu/pmgr/pmgrpmu.c \
+	common/pmu/pmgr/pwrdev.c \
+	common/pmu/pmgr/pwrmonitor.c \
+	common/pmu/pmgr/pwrpolicy.c \
+	common/pmu/lpwr/lpwr.c \
+	common/pmu/lpwr/rppg.c \
 	common/ptimer/ptimer_gk20a.c \
 	gk20a/ce2_gk20a.c \
 	gk20a/fifo_gk20a.c \

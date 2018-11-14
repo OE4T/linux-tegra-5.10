@@ -28,6 +28,4 @@ struct gk20a;
 
 int therm_send_pmgr_tables_to_pmu(struct gk20a *g);
 
-int therm_configure_therm_alert(struct gk20a *g);
-
 #endif /* NVGPU_THERM_THRMPMU_H */

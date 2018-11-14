@@ -18,7 +18,7 @@
 
 #include <nvgpu/clk.h>
 
-#include "clk/clk.h"
+#include "common/pmu/clk/clk.h"
 #include "gv100/clk_gv100.h"
 
 #include "os_linux.h"

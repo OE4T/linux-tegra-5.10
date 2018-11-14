@@ -35,8 +35,8 @@
 #include "os/linux/os_linux.h"
 #endif
 #include "gp106/mclk_gp106.h"
-#include "clk/clk.h"
-#include "clk/clk_mclk.h"
+#include "common/pmu/clk/clk.h"
+#include "common/pmu/clk/clk_mclk.h"
 
 #include <nvgpu/hw/gk20a/hw_pwr_gk20a.h>
 #include <nvgpu/hw/gp106/hw_fb_gp106.h>

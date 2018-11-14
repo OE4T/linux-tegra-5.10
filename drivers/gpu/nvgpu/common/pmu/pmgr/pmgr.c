@@ -21,6 +21,7 @@
  */
 
 #include <nvgpu/gk20a.h>
+#include <nvgpu/pmu/pmgr.h>
 
 #include "pmgr.h"
 #include "pwrdev.h"
