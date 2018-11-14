@@ -133,7 +133,7 @@ int vgpu_gr_init_ctx_state(struct gk20a *g)
 static int vgpu_gr_alloc_global_ctx_buffers(struct gk20a *g)
 {
 	struct gr_gk20a *gr = &g->gr;
-	int attr_buffer_size;
+	u32 attr_buffer_size;
 
 	u32 cb_buffer_size = gr->bundle_cb_default_size *
 		gr_scc_bundle_cb_size_div_256b_byte_granularity_v();
@@ -151,7 +151,7 @@ static int vgpu_gr_alloc_global_ctx_buffers(struct gk20a *g)
 	nvgpu_log_info(g, "pagepool_buffer_size : %d", pagepool_buffer_size);
 	gr->global_ctx_buffer[PAGEPOOL].mem.size = pagepool_buffer_size;
 
-	nvgpu_log_info(g, "attr_buffer_size : %d", attr_buffer_size);
+	nvgpu_log_info(g, "attr_buffer_size : %u", attr_buffer_size);
 	gr->global_ctx_buffer[ATTRIBUTE].mem.size = attr_buffer_size;
 
 	nvgpu_log_info(g, "priv access map size : %d",

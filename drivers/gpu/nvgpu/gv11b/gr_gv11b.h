@@ -121,7 +121,7 @@ int gr_gv11b_load_stencil_default_tbl(struct gk20a *g,
 		 struct gr_gk20a *gr);
 int gr_gv11b_load_stencil_tbl(struct gk20a *g, struct gr_gk20a *gr);
 u32 gr_gv11b_pagepool_default_size(struct gk20a *g);
-int gr_gv11b_calc_global_ctx_buffer_size(struct gk20a *g);
+u32 gr_gv11b_calc_global_ctx_buffer_size(struct gk20a *g);
 int gr_gv11b_handle_sw_method(struct gk20a *g, u32 addr,
 				     u32 class_num, u32 offset, u32 data);
 void gr_gv11b_bundle_cb_defaults(struct gk20a *g);

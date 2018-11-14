@@ -234,7 +234,7 @@ struct gpu_ops {
 		void (*access_smpc_reg)(struct gk20a *g, u32 quad, u32 offset);
 		void (*bundle_cb_defaults)(struct gk20a *g);
 		void (*cb_size_default)(struct gk20a *g);
-		int (*calc_global_ctx_buffer_size)(struct gk20a *g);
+		u32 (*calc_global_ctx_buffer_size)(struct gk20a *g);
 		void (*commit_global_attrib_cb)(struct gk20a *g,
 						struct nvgpu_gr_ctx *ch_ctx,
 						u64 addr, bool patch);
@@ -976,7 +976,7 @@ struct gpu_ops {
 		void (*l2_flush)(struct gk20a *g, bool invalidate);
 		void (*cbc_clean)(struct gk20a *g);
 		void (*set_big_page_size)(struct gk20a *g,
-					  struct nvgpu_mem *mem, int size);
+					  struct nvgpu_mem *mem, u32 size);
 		u32 (*get_big_page_sizes)(void);
 		u32 (*get_default_big_page_size)(void);
 		u32 (*get_iommu_bit)(struct gk20a *g);

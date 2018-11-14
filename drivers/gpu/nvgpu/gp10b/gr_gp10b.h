@@ -88,7 +88,7 @@ int gr_gp10b_add_zbc_color(struct gk20a *g, struct gr_gk20a *gr,
 int gr_gp10b_add_zbc_depth(struct gk20a *g, struct gr_gk20a *gr,
 				struct zbc_entry *depth_val, u32 index);
 u32 gr_gp10b_pagepool_default_size(struct gk20a *g);
-int gr_gp10b_calc_global_ctx_buffer_size(struct gk20a *g);
+u32 gr_gp10b_calc_global_ctx_buffer_size(struct gk20a *g);
 void gr_gp10b_set_bes_crop_debug3(struct gk20a *g, u32 data);
 void gr_gp10b_set_bes_crop_debug4(struct gk20a *g, u32 data);
 int gr_gp10b_handle_sw_method(struct gk20a *g, u32 addr,

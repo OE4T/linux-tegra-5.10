@@ -31,13 +31,13 @@
 #include <nvgpu/hw/gm20b/hw_ram_gm20b.h>
 
 void gm20b_mm_set_big_page_size(struct gk20a *g,
-				struct nvgpu_mem *mem, int size)
+				struct nvgpu_mem *mem, u32 size)
 {
 	u32 val;
 
 	nvgpu_log_fn(g, " ");
 
-	nvgpu_log_info(g, "big page size %d\n", size);
+	nvgpu_log_info(g, "big page size %u\n", size);
 	val = nvgpu_mem_rd32(g, mem, ram_in_big_page_size_w());
 	val &= ~ram_in_big_page_size_m();
 

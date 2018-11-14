@@ -583,10 +583,10 @@ u32 gr_gp10b_pagepool_default_size(struct gk20a *g)
 	return gr_scc_pagepool_total_pages_hwmax_value_v();
 }
 
-int gr_gp10b_calc_global_ctx_buffer_size(struct gk20a *g)
+u32 gr_gp10b_calc_global_ctx_buffer_size(struct gk20a *g)
 {
 	struct gr_gk20a *gr = &g->gr;
-	int size;
+	u32 size;
 
 	gr->attrib_cb_size = gr->attrib_cb_default_size;
 	gr->alpha_cb_size = gr->alpha_cb_default_size;
@@ -1479,10 +1479,10 @@ void gr_gp10b_commit_global_attrib_cb(struct gk20a *g,
 					     struct nvgpu_gr_ctx *gr_ctx,
 					     u64 addr, bool patch)
 {
-	int attrBufferSize;
+	u32 attrBufferSize;
 
 	if (gr_ctx->preempt_ctxsw_buffer.gpu_va != 0ULL) {
-		attrBufferSize = gr_ctx->betacb_ctxsw_buffer.size;
+		attrBufferSize = U32(gr_ctx->betacb_ctxsw_buffer.size);
 	} else {
 		attrBufferSize = g->ops.gr.calc_global_ctx_buffer_size(g);
 	}

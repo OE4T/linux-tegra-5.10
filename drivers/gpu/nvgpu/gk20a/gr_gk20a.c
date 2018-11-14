@@ -2449,7 +2449,8 @@ static void gr_gk20a_free_global_ctx_buffers(struct gk20a *g)
 int gr_gk20a_alloc_global_ctx_buffers(struct gk20a *g)
 {
 	struct gr_gk20a *gr = &g->gr;
-	int attr_buffer_size, err;
+	int err;
+	u32 attr_buffer_size;
 
 	u32 cb_buffer_size = gr->bundle_cb_default_size *
 		gr_scc_bundle_cb_size_div_256b_byte_granularity_v();
@@ -2495,7 +2496,7 @@ int gr_gk20a_alloc_global_ctx_buffers(struct gk20a *g)
 		}
 	}
 
-	nvgpu_log_info(g, "attr_buffer_size : %d", attr_buffer_size);
+	nvgpu_log_info(g, "attr_buffer_size : %u", attr_buffer_size);
 
 	err = gk20a_gr_alloc_ctx_buffer(g, &gr->global_ctx_buffer[ATTRIBUTE],
 					attr_buffer_size);

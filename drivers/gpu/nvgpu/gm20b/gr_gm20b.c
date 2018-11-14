@@ -97,10 +97,10 @@ void gr_gm20b_cb_size_default(struct gk20a *g)
 		gr_gpc0_ppc0_cbm_alpha_cb_size_v_default_v();
 }
 
-int gr_gm20b_calc_global_ctx_buffer_size(struct gk20a *g)
+u32 gr_gm20b_calc_global_ctx_buffer_size(struct gk20a *g)
 {
 	struct gr_gk20a *gr = &g->gr;
-	int size;
+	u32 size;
 
 	gr->attrib_cb_size = gr->attrib_cb_default_size
 		+ (gr->attrib_cb_default_size >> 1);
