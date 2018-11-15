@@ -203,7 +203,7 @@ static void __update_pte(struct vm_gk20a *vm,
 		pte_w[0] |= gmmu_new_pte_privilege_true_f();
 	}
 
-	pte_w[1] = phys_addr >> (24 + gmmu_new_pte_address_shift_v()) |
+	pte_w[1] = phys_addr >> (24U + gmmu_new_pte_address_shift_v()) |
 		gmmu_new_pte_kind_f(attrs->kind_v) |
 		gmmu_new_pte_comptagline_f((u32)(attrs->ctag /
 						 ctag_granularity));
@@ -275,7 +275,7 @@ static void update_gmmu_pte_locked(struct vm_gk20a *vm,
 	pd_write(g, pd, (size_t)pd_offset + (size_t)1, pte_w[1]);
 }
 
-#define GP10B_PDE0_ENTRY_SIZE 16
+#define GP10B_PDE0_ENTRY_SIZE 16U
 
 /*
  * Calculate the pgsz of the pde level

@@ -46,7 +46,7 @@
 #include <nvgpu/hw/gp10b/hw_fifo_gp10b.h>
 #include <nvgpu/hw/gp10b/hw_ctxsw_prog_gp10b.h>
 
-#define GFXP_WFI_TIMEOUT_COUNT_DEFAULT 100000
+#define GFXP_WFI_TIMEOUT_COUNT_DEFAULT 100000U
 
 bool gr_gp10b_is_valid_class(struct gk20a *g, u32 class_num)
 {
@@ -541,10 +541,10 @@ int gr_gp10b_add_zbc_color(struct gk20a *g, struct gr_gk20a *gr,
 			   color_val->color_ds[2]);
 	nvgpu_writel_loop(g, gr_gpcs_swdx_dss_zbc_color_a_r(index),
 			   color_val->color_ds[3]);
-	zbc_c = gk20a_readl(g, zbc_c_format_reg + (index & ~3));
-	zbc_c &= ~(0x7f << ((index % 4) * 7));
-	zbc_c |= color_val->format << ((index % 4) * 7);
-	nvgpu_writel_loop(g, zbc_c_format_reg + (index & ~3), zbc_c);
+	zbc_c = gk20a_readl(g, zbc_c_format_reg + (index & ~3U));
+	zbc_c &= ~(0x7fU << ((index % 4U) * 7U));
+	zbc_c |= color_val->format << ((index % 4U) * 7U);
+	nvgpu_writel_loop(g, zbc_c_format_reg + (index & ~3U), zbc_c);
 
 	return 0;
 }
@@ -570,10 +570,10 @@ int gr_gp10b_add_zbc_depth(struct gk20a *g, struct gr_gk20a *gr,
 	gr->zbc_dep_tbl[index].ref_cnt++;
 
 	gk20a_writel(g, gr_gpcs_swdx_dss_zbc_z_r(index), depth_val->depth);
-	zbc_z = gk20a_readl(g, zbc_z_format_reg + (index & ~3));
+	zbc_z = gk20a_readl(g, zbc_z_format_reg + (index & ~3U));
 	zbc_z &= ~(U32(0x7f) << (index % 4U) * 7U);
-	zbc_z |= depth_val->format << (index % 4) * 7;
-	gk20a_writel(g, zbc_z_format_reg + (index & ~3), zbc_z);
+	zbc_z |= depth_val->format << (index % 4U) * 7U;
+	gk20a_writel(g, zbc_z_format_reg + (index & ~3U), zbc_z);
 
 	return 0;
 }
@@ -755,7 +755,7 @@ void gr_gp10b_set_alpha_circular_buffer_size(struct gk20a *g, u32 data)
 	struct gr_gk20a *gr = &g->gr;
 	u32 gpc_index, ppc_index, stride, val;
 	u32 pd_ab_max_output;
-	u32 alpha_cb_size = data * 4;
+	u32 alpha_cb_size = data * 4U;
 	u32 gpc_stride = nvgpu_get_litter_value(g, GPU_LIT_GPC_STRIDE);
 	u32 ppc_in_gpc_stride = nvgpu_get_litter_value(g, GPU_LIT_PPC_IN_GPC_STRIDE);
 
@@ -809,7 +809,7 @@ void gr_gp10b_set_circular_buffer_size(struct gk20a *g, u32 data)
 {
 	struct gr_gk20a *gr = &g->gr;
 	u32 gpc_index, ppc_index, stride, val;
-	u32 cb_size_steady = data * 4, cb_size;
+	u32 cb_size_steady = data * 4U, cb_size;
 	u32 gpc_stride = nvgpu_get_litter_value(g, GPU_LIT_GPC_STRIDE);
 	u32 ppc_in_gpc_stride = nvgpu_get_litter_value(g, GPU_LIT_PPC_IN_GPC_STRIDE);
 
@@ -1227,7 +1227,7 @@ void gr_gp10b_update_ctxsw_preemption_mode(struct gk20a *g,
 		addr = (u64_lo32(gr_ctx->betacb_ctxsw_buffer.gpu_va) >>
 			gr_gpcs_setup_attrib_cb_base_addr_39_12_align_bits_v()) |
 			(u64_hi32(gr_ctx->betacb_ctxsw_buffer.gpu_va) <<
-			 (32 - gr_gpcs_setup_attrib_cb_base_addr_39_12_align_bits_v()));
+			 (32U - gr_gpcs_setup_attrib_cb_base_addr_39_12_align_bits_v()));
 
 		nvgpu_log_info(g, "attrib cb addr : 0x%016x", addr);
 		g->ops.gr.commit_global_attrib_cb(g, gr_ctx, addr, true);
@@ -1235,7 +1235,7 @@ void gr_gp10b_update_ctxsw_preemption_mode(struct gk20a *g,
 		addr = (u64_lo32(gr_ctx->pagepool_ctxsw_buffer.gpu_va) >>
 			gr_scc_pagepool_base_addr_39_8_align_bits_v()) |
 			(u64_hi32(gr_ctx->pagepool_ctxsw_buffer.gpu_va) <<
-			 (32 - gr_scc_pagepool_base_addr_39_8_align_bits_v()));
+			 (32U - gr_scc_pagepool_base_addr_39_8_align_bits_v()));
 		size = gr_ctx->pagepool_ctxsw_buffer.size;
 
 		if (size == g->ops.gr.pagepool_default_size(g)) {
@@ -1247,7 +1247,7 @@ void gr_gp10b_update_ctxsw_preemption_mode(struct gk20a *g,
 		addr = (u64_lo32(gr_ctx->spill_ctxsw_buffer.gpu_va) >>
 			gr_gpc0_swdx_rm_spill_buffer_addr_39_8_align_bits_v()) |
 			(u64_hi32(gr_ctx->spill_ctxsw_buffer.gpu_va) <<
-			 (32 - gr_gpc0_swdx_rm_spill_buffer_addr_39_8_align_bits_v()));
+			 (32U - gr_gpc0_swdx_rm_spill_buffer_addr_39_8_align_bits_v()));
 		size = gr_ctx->spill_ctxsw_buffer.size /
 			gr_gpc0_swdx_rm_spill_buffer_size_256b_byte_granularity_v();
 
@@ -1417,7 +1417,7 @@ int gr_gp10b_dump_gr_status_regs(struct gk20a *g,
 static bool gr_activity_empty_or_preempted(u32 val)
 {
 	while(val != 0U) {
-		u32 v = val & 7;
+		u32 v = val & 7U;
 		if (v != gr_activity_4_gpc0_empty_v() &&
 		    v != gr_activity_4_gpc0_preempted_v()) {
 			return false;
@@ -1447,7 +1447,7 @@ int gr_gp10b_wait_empty(struct gk20a *g, unsigned long duration_ms,
 		   only when gr_status is read */
 		gr_status = gk20a_readl(g, gr_status_r());
 
-		ctxsw_active = gr_status & 1<<7;
+		ctxsw_active = gr_status & BIT32(7);
 
 		activity0 = gk20a_readl(g, gr_activity_0_r());
 		activity1 = gk20a_readl(g, gr_activity_1_r());
@@ -1456,7 +1456,7 @@ int gr_gp10b_wait_empty(struct gk20a *g, unsigned long duration_ms,
 
 		gr_busy = !(gr_activity_empty_or_preempted(activity0) &&
 			    gr_activity_empty_or_preempted(activity1) &&
-			    activity2 == 0 &&
+			    activity2 == 0U &&
 			    gr_activity_empty_or_preempted(activity4));
 
 		if (!gr_busy && !ctxsw_active) {
@@ -1464,7 +1464,7 @@ int gr_gp10b_wait_empty(struct gk20a *g, unsigned long duration_ms,
 			return 0;
 		}
 
-		nvgpu_usleep_range(delay, delay * 2);
+		nvgpu_usleep_range(delay, delay * 2U);
 		delay = min_t(u32, delay << 1, GR_IDLE_CHECK_MAX);
 	} while (nvgpu_timeout_expired(&timeout) == 0);
 
@@ -1551,13 +1551,13 @@ int gr_gp10b_load_smid_config(struct gk20a *g)
 	}
 
 	/* Each NV_PGRAPH_PRI_CWD_GPC_TPC_ID can store 4 TPCs.*/
-	for (i = 0; i <= ((g->gr.tpc_count-1) / 4); i++) {
+	for (i = 0U; i <= ((g->gr.tpc_count-1U) / 4U); i++) {
 		u32 reg = 0;
 		u32 bit_stride = gr_cwd_gpc_tpc_id_gpc0_s() +
 				 gr_cwd_gpc_tpc_id_tpc0_s();
 
-		for (j = 0; j < 4; j++) {
-			u32 sm_id = (i * 4) + j;
+		for (j = 0U; j < 4U; j++) {
+			u32 sm_id = (i * 4U) + j;
 			u32 bits;
 
 			if (sm_id >= g->gr.tpc_count) {
@@ -1571,8 +1571,8 @@ int gr_gp10b_load_smid_config(struct gk20a *g)
 			       gr_cwd_gpc_tpc_id_tpc0_f(tpc_index);
 			reg |= bits << (j * bit_stride);
 
-			tpc_sm_id[gpc_index + max_gpcs * ((tpc_index & 4) >> 2)]
-				|= sm_id << (bit_stride * (tpc_index & 3));
+			tpc_sm_id[gpc_index + max_gpcs * ((tpc_index & 4U) >> 2U)]
+				|= sm_id << (bit_stride * (tpc_index & 3U));
 		}
 		gk20a_writel(g, gr_cwd_gpc_tpc_id_r(i), reg);
 	}
@@ -1602,7 +1602,7 @@ int gr_gp10b_init_fs_state(struct gk20a *g)
 			 gr_gpcs_tpcs_sm_disp_ctrl_re_suppress_disable_f());
 	gk20a_writel(g, gr_gpcs_tpcs_sm_disp_ctrl_r(), data);
 
-	if (g->gr.fecs_feature_override_ecc_val != 0) {
+	if (g->gr.fecs_feature_override_ecc_val != 0U) {
 		gk20a_writel(g,
 			gr_fecs_feature_override_ecc_r(),
 			g->gr.fecs_feature_override_ecc_val);
@@ -1616,9 +1616,9 @@ void gr_gp10b_set_gpc_tpc_mask(struct gk20a *g, u32 gpc_index)
 	nvgpu_tegra_fuse_write_bypass(g, 0x1);
 	nvgpu_tegra_fuse_write_access_sw(g, 0x0);
 
-	if (g->gr.gpc_tpc_mask[gpc_index] == 0x1) {
+	if (g->gr.gpc_tpc_mask[gpc_index] == 0x1U) {
 		nvgpu_tegra_fuse_write_opt_gpu_tpc0_disable(g, 0x2);
-	} else if (g->gr.gpc_tpc_mask[gpc_index] == 0x2) {
+	} else if (g->gr.gpc_tpc_mask[gpc_index] == 0x2U) {
 		nvgpu_tegra_fuse_write_opt_gpu_tpc0_disable(g, 0x1);
 	} else {
 		nvgpu_tegra_fuse_write_opt_gpu_tpc0_disable(g, 0x0);
@@ -1863,7 +1863,7 @@ int gr_gp10b_pre_process_sm_exception(struct gk20a *g,
 			gr_gpcs_tpcs_sm_hww_global_esr_timeout_error_pending_f() |
 			gr_gpcs_tpcs_sm_hww_global_esr_bpt_pause_pending_f();
 
-		if (warp_esr != 0 || (global_esr & global_mask) != 0) {
+		if (warp_esr != 0U || (global_esr & global_mask) != 0U) {
 			*ignore_debugger = true;
 
 			nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gpu_dbg,
@@ -2158,7 +2158,7 @@ int gr_gp10b_suspend_contexts(struct gk20a *g,
 				break;
 			}
 
-			nvgpu_usleep_range(delay, delay * 2);
+			nvgpu_usleep_range(delay, delay * 2U);
 			delay = min_t(u32, delay << 1, GR_IDLE_CHECK_MAX);
 		} while (nvgpu_timeout_expired(&timeout) == 0);
 
@@ -2399,5 +2399,5 @@ void gr_gp10b_init_gfxp_wfi_timeout_count(struct gk20a *g)
 unsigned long gr_gp10b_get_max_gfxp_wfi_timeout_count(struct gk20a *g)
 {
 	/* 100msec @ 1GHZ */
-	return (100 * 1000 * 1000UL);
+	return (100UL * 1000UL * 1000UL);
 }
