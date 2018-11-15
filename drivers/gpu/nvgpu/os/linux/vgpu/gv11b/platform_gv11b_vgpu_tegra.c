@@ -49,6 +49,8 @@ static int gv11b_vgpu_probe(struct device *dev)
 	}
 	l->usermode_regs = regs;
 
+	l->usermode_regs_bus_addr = r->start;
+
 #ifdef CONFIG_TEGRA_GK20A_NVHOST
 	ret = nvgpu_get_nvhost_dev(g);
 	if (ret) {

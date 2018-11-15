@@ -286,6 +286,16 @@ int gk20a_pm_finalize_poweron(struct device *dev)
 	if (err)
 		goto done;
 
+	if (g->ops.fifo.usermode_base != NULL) {
+		/*
+		 * Native has regs_bus_addr set but not this one yet. Virtual
+		 * gets usermode_regs_bus_addr directly from chip-specific
+		 * probe, and regs_bus_addr stays unset.
+		 */
+		l->usermode_regs_bus_addr = l->regs_bus_addr +
+			g->ops.fifo.usermode_base(g);
+	}
+
 	err = nvgpu_finalize_poweron_linux(l);
 	if (err)
 		goto done;

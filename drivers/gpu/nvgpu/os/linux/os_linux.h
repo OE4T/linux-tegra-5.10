@@ -124,6 +124,7 @@ struct nvgpu_os_linux {
 	struct resource *reg_mem;
 	void __iomem *regs;
 	void __iomem *regs_saved;
+	u64 regs_bus_addr;
 
 	struct resource *bar1_mem;
 	void __iomem *bar1;
@@ -131,8 +132,7 @@ struct nvgpu_os_linux {
 
 	void __iomem *usermode_regs;
 	void __iomem *usermode_regs_saved;
-
-	u64 regs_bus_addr;
+	u64 usermode_regs_bus_addr;
 
 	struct nvgpu_os_linux_ops ops;
 
