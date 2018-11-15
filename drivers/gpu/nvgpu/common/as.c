@@ -57,6 +57,9 @@ static int gk20a_vm_alloc_share(struct gk20a_as_share *as_share,
 	char name[32];
 	const bool userspace_managed =
 		(flags & NVGPU_AS_ALLOC_USERSPACE_MANAGED) != 0;
+	const bool unified_va =
+		nvgpu_is_enabled(g, NVGPU_MM_UNIFY_ADDRESS_SPACES) ||
+		(flags & NVGPU_AS_ALLOC_UNIFIED_VA) != 0;
 
 	nvgpu_log_fn(g, " ");
 
@@ -79,7 +82,8 @@ static int gk20a_vm_alloc_share(struct gk20a_as_share *as_share,
 			   U64(big_page_size) << U64(10),
 			   mm->channel.kernel_size,
 			   mm->channel.user_size + mm->channel.kernel_size,
-			   !mm->disable_bigpage, userspace_managed, name);
+			   !mm->disable_bigpage,
+			   userspace_managed, unified_va, name);
 	if (vm == NULL) {
 		return -ENOMEM;
 	}

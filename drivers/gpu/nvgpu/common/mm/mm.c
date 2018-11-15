@@ -99,7 +99,7 @@ u32 nvgpu_vm_get_pte_size(struct vm_gk20a *vm, u64 base, u64 size)
 		return GMMU_PAGE_SIZE_SMALL;
 	}
 
-	if (!nvgpu_is_enabled(g, NVGPU_MM_UNIFY_ADDRESS_SPACES)) {
+	if (!vm->unified_va) {
 		return nvgpu_vm_get_pte_size_split_addr(vm, base, size);
 	}
 
@@ -237,6 +237,7 @@ static int nvgpu_init_system_vm(struct mm_gk20a *mm)
 				   aperture_size,
 				   true,
 				   false,
+				   false,
 				   "system");
 	if (mm->pmu.vm == NULL) {
 		return -ENOMEM;
@@ -279,7 +280,7 @@ static int nvgpu_init_cde_vm(struct mm_gk20a *mm)
 				   U64(big_page_size) << U64(10),
 				   NV_MM_DEFAULT_KERNEL_SIZE,
 				   NV_MM_DEFAULT_KERNEL_SIZE + NV_MM_DEFAULT_USER_SIZE,
-				   false, false, "cde");
+				   false, false, false, "cde");
 	if (mm->cde.vm == NULL) {
 		return -ENOMEM;
 	}
@@ -295,7 +296,7 @@ static int nvgpu_init_ce_vm(struct mm_gk20a *mm)
 				  U64(big_page_size) << U64(10),
 				  NV_MM_DEFAULT_KERNEL_SIZE,
 				  NV_MM_DEFAULT_KERNEL_SIZE + NV_MM_DEFAULT_USER_SIZE,
-				  false, false, "ce");
+				  false, false, false, "ce");
 	if (mm->ce.vm == NULL) {
 		return -ENOMEM;
 	}
@@ -389,7 +390,7 @@ static int nvgpu_init_bar1_vm(struct mm_gk20a *mm)
 				    SZ_64K,
 				    mm->bar1.aperture_size - SZ_64K,
 				    mm->bar1.aperture_size,
-				    true, false,
+				    true, false, false,
 				    "bar1");
 	if (mm->bar1.vm == NULL) {
 		return -ENOMEM;

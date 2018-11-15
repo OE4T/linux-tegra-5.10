@@ -59,7 +59,7 @@ int gp10b_init_bar2_vm(struct gk20a *g)
 
 	mm->bar2.vm = nvgpu_vm_init(g, big_page_size, SZ_4K,
 		mm->bar2.aperture_size - SZ_4K,
-		mm->bar2.aperture_size, false, false, "bar2");
+		mm->bar2.aperture_size, false, false, false, "bar2");
 	if (mm->bar2.vm == NULL) {
 		return -ENOMEM;
 	}

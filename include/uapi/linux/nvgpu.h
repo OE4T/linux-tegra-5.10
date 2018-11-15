@@ -357,7 +357,8 @@ struct nvgpu_alloc_as_args {
  *      increments at kickoffs and decrements at job completion are
  *      bypassed.
  */
-#define NVGPU_GPU_IOCTL_ALLOC_AS_FLAGS_USERSPACE_MANAGED (1 << 0)
+#define NVGPU_GPU_IOCTL_ALLOC_AS_FLAGS_USERSPACE_MANAGED	(1 << 0)
+#define NVGPU_GPU_IOCTL_ALLOC_AS_FLAGS_UNIFIED_VA	 	(1 << 1)
 	__u32 flags;
 
 	__u32 reserved;			/* must be zero */

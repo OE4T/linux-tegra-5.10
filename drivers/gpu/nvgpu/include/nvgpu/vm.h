@@ -159,6 +159,7 @@ struct vm_gk20a {
 	u32 big_page_size;
 
 	bool userspace_managed;
+	bool unified_va;
 
 	const struct gk20a_mmu_level *mmu_levels;
 
@@ -302,6 +303,7 @@ int __nvgpu_vm_init(struct mm_gk20a *mm,
 			   u64 aperture_size,
 			   bool big_pages,
 			   bool userspace_managed,
+			   bool unified_va,
 			   const char *name);
 
 struct vm_gk20a *nvgpu_vm_init(struct gk20a *g,
@@ -311,6 +313,7 @@ struct vm_gk20a *nvgpu_vm_init(struct gk20a *g,
 			       u64 aperture_size,
 			       bool big_pages,
 			       bool userspace_managed,
+			       bool unified_va,
 			       const char *name);
 
 /*

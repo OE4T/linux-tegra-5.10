@@ -240,6 +240,7 @@ static int init_mm(struct unit_module *m, struct gk20a *g)
 				   aperture_size,
 				   true,
 				   false,
+				   false,
 				   "system");
 	if (mm->pmu.vm == NULL) {
 		unit_return_fail(m, "nvgpu_vm_init failed\n");

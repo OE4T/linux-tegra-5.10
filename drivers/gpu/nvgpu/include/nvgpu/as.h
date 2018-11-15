@@ -42,7 +42,8 @@ struct gk20a_as_share {
 /*
  * AS allocation flags.
  */
-#define NVGPU_AS_ALLOC_USERSPACE_MANAGED	(1 << 0)
+#define NVGPU_AS_ALLOC_USERSPACE_MANAGED	BIT32(0)
+#define NVGPU_AS_ALLOC_UNIFIED_VA		BIT32(1)
 
 int gk20a_as_release_share(struct gk20a_as_share *as_share);
 

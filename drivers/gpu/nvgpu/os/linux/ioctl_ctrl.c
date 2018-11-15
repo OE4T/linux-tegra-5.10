@@ -77,6 +77,8 @@ static u32 gk20a_as_translate_as_alloc_flags(struct gk20a *g, u32 flags)
 
 	if (flags & NVGPU_GPU_IOCTL_ALLOC_AS_FLAGS_USERSPACE_MANAGED)
 		core_flags |= NVGPU_AS_ALLOC_USERSPACE_MANAGED;
+	if (flags & NVGPU_GPU_IOCTL_ALLOC_AS_FLAGS_UNIFIED_VA)
+		core_flags |= NVGPU_AS_ALLOC_UNIFIED_VA;
 
 	return core_flags;
 }

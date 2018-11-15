@@ -282,6 +282,7 @@ int __nvgpu_vm_init(struct mm_gk20a *mm,
 			   u64 aperture_size,
 			   bool big_pages,
 			   bool userspace_managed,
+			   bool unified_va,
 			   const char *name)
 {
 	int err = 0;
@@ -315,7 +316,7 @@ int __nvgpu_vm_init(struct mm_gk20a *mm,
 	vm->vma[GMMU_PAGE_SIZE_SMALL]  = &vm->user;
 	vm->vma[GMMU_PAGE_SIZE_BIG]    = &vm->user;
 	vm->vma[GMMU_PAGE_SIZE_KERNEL] = &vm->kernel;
-	if (!nvgpu_is_enabled(g, NVGPU_MM_UNIFY_ADDRESS_SPACES)) {
+	if (!unified_va) {
 		vm->vma[GMMU_PAGE_SIZE_BIG] = &vm->user_lp;
 	}
 
@@ -324,6 +325,7 @@ int __nvgpu_vm_init(struct mm_gk20a *mm,
 
 	vm->big_page_size     = vm->gmmu_page_sizes[GMMU_PAGE_SIZE_BIG];
 	vm->userspace_managed = userspace_managed;
+	vm->unified_va        = unified_va;
 	vm->mmu_levels        = g->ops.mm.get_mmu_levels(g, vm->big_page_size);
 
 #ifdef CONFIG_TEGRA_GR_VIRTUALIZATION
@@ -351,8 +353,7 @@ int __nvgpu_vm_init(struct mm_gk20a *mm,
 		 * sense to make one VM, same as if the unified address flag
 		 * is set.
 		 */
-		if (!big_pages ||
-		    nvgpu_is_enabled(g, NVGPU_MM_UNIFY_ADDRESS_SPACES)) {
+		if (!big_pages || unified_va) {
 			user_vma_start = low_hole;
 			user_vma_limit = vm->va_limit - kernel_reserved;
 			user_lp_vma_start = user_vma_limit;
@@ -405,7 +406,7 @@ int __nvgpu_vm_init(struct mm_gk20a *mm,
 	 * Determine if big pages are possible in this VM. If a split address
 	 * space is used then check the user_lp vma instead of the user vma.
 	 */
-	if (nvgpu_is_enabled(g, NVGPU_MM_UNIFY_ADDRESS_SPACES)) {
+	if (unified_va) {
 		vm->big_pages = big_pages &&
 			nvgpu_big_pages_possible(vm, user_vma_start,
 					user_vma_limit - user_vma_start);
@@ -577,6 +578,7 @@ struct vm_gk20a *nvgpu_vm_init(struct gk20a *g,
 			       u64 aperture_size,
 			       bool big_pages,
 			       bool userspace_managed,
+			       bool unified_va,
 			       const char *name)
 {
 	struct vm_gk20a *vm = nvgpu_kzalloc(g, sizeof(*vm));
@@ -587,7 +589,7 @@ struct vm_gk20a *nvgpu_vm_init(struct gk20a *g,
 
 	if (__nvgpu_vm_init(&g->mm, vm, big_page_size, low_hole,
 			    kernel_reserved, aperture_size, big_pages,
-			    userspace_managed, name) != 0) {
+			    userspace_managed, unified_va, name) != 0) {
 		nvgpu_kfree(g, vm);
 		return NULL;
 	}

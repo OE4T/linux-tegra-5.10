@@ -1354,7 +1354,7 @@ static int gk20a_perfbuf_map(struct dbg_session_gk20a *dbg_s,
 			big_page_size << 10,
 			NV_MM_DEFAULT_KERNEL_SIZE,
 			NV_MM_DEFAULT_KERNEL_SIZE + NV_MM_DEFAULT_USER_SIZE,
-			false, false, "perfbuf");
+			false, false, false, "perfbuf");
 	if (!mm->perfbuf.vm) {
 		nvgpu_mutex_release(&g->dbg_sessions_lock);
 		return -ENOMEM;
