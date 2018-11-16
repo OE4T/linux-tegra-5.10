@@ -337,7 +337,7 @@
 					max_hdr_ratio = "16";
 					min_framerate = "1.5";
 					max_framerate = "30";
-					min_exp_time = "30";
+					min_exp_time = "2433";
 					max_exp_time = "660000";
 					embedded_metadata_height = "1";
 
