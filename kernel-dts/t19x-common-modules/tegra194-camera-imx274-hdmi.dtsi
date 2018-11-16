@@ -197,7 +197,6 @@
 			*
 			* min_exp_time = ""; (ceil to integer)
 			* max_exp_time = ""; (ceil to integer)
-			* exp_time_1h = ""; (ceil to integer)
 			* Exposure Time limits for mode (us)
 			*
 			*
@@ -262,7 +261,6 @@
 				max_framerate = "60";
 				min_exp_time = "44";
 				max_exp_time = "478696";
-				exp_time_1h = "6";
 				embedded_metadata_height = "1";
 			};
 			ports {
