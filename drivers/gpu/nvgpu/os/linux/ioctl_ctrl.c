@@ -46,7 +46,6 @@
 #include "dmabuf.h"
 #include "channel.h"
 #include "dmabuf_vidmem.h"
-#include "pmgr/pmgr.h"
 
 #define HZ_TO_MHZ(a) ((a > 0xF414F9CD7ULL) ? 0xffff : (a >> 32) ? \
 	(u32) ((a * 0x10C8ULL) >> 32) : (u16) ((u32) a/MHZ))

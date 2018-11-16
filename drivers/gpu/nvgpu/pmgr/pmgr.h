@@ -39,7 +39,5 @@ int pmgr_domain_pmu_setup(struct gk20a *g);
 int pmgr_pwr_devices_get_current(struct gk20a *g, u32 *val);
 int pmgr_pwr_devices_get_voltage(struct gk20a *g, u32 *val);
 int pmgr_pwr_devices_get_power(struct gk20a *g, u32 *val);
-int pmgr_pmu_init_pmupstate(struct gk20a *g);
-void pmgr_pmu_free_pmupstate(struct gk20a *g);
 
 #endif /* NVGPU_PMGR_H */

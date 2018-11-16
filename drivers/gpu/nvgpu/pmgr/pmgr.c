@@ -22,7 +22,6 @@
 
 #include <nvgpu/gk20a.h>
 
-#include "pmgr.h"
 #include "pwrdev.h"
 #include "pmgrpmu.h"
 
@@ -109,24 +108,4 @@ exit:
 int pmgr_domain_pmu_setup(struct gk20a *g)
 {
 	return pmgr_send_pmgr_tables_to_pmu(g);
-}
-
-int pmgr_pmu_init_pmupstate(struct gk20a *g)
-{
-	/* If already allocated, do not re-allocate */
-	if (g->pmgr_pmu != NULL) {
-		return 0;
-	}
-
-	g->pmgr_pmu = nvgpu_kzalloc(g, sizeof(*g->pmgr_pmu));
-	if (g->pmgr_pmu == NULL) {
-		return -ENOMEM;
-	}
-
-	return 0;
-}
-
-void pmgr_pmu_free_pmupstate(struct gk20a *g)
-{
-	nvgpu_kfree(g, g->pmgr_pmu);
 }

@@ -62,7 +62,7 @@ struct pmgr_pwr_monitor {
 
 #define PMGR_PWR_MONITOR_GET_PWR_CHANNEL(g, channel_idx)                    \
 	((struct pwr_channel *)BOARDOBJGRP_OBJ_GET_BY_IDX(                                 \
-		&(g->pmgr_pmu->pmgr_monitorobjs.pwr_channels.super), (channel_idx)))
+		&(g->pmgr_pmu.pmgr_monitorobjs.pwr_channels.super), (channel_idx)))
 
 int pmgr_monitor_sw_setup(struct gk20a *g);
 

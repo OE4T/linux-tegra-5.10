@@ -36,7 +36,6 @@ static int pstate_sw_setup(struct gk20a *g);
 
 void gk20a_deinit_pstate_support(struct gk20a *g)
 {
-	pmgr_pmu_free_pmupstate(g);
 	therm_pmu_free_pmupstate(g);
 	perf_pmu_free_pmupstate(g);
 	clk_free_pmupstate(g);
@@ -70,96 +69,89 @@ int gk20a_init_pstate_support(struct gk20a *g)
 		goto err_perf_pmu_init_pmupstate;
 	}
 
-	err = pmgr_pmu_init_pmupstate(g);
+	err = volt_rail_sw_setup(g);
 	if (err != 0) {
 		goto err_therm_pmu_init_pmupstate;
 	}
 
-	err = volt_rail_sw_setup(g);
-	if (err != 0) {
-		goto err_pmgr_pmu_init_pmupstate;
-	}
-
 	err = volt_dev_sw_setup(g);
 	if (err != 0) {
-		goto err_pmgr_pmu_init_pmupstate;
+		goto err_therm_pmu_init_pmupstate;
 	}
 
 	err = volt_policy_sw_setup(g);
 	if (err != 0) {
-		goto err_pmgr_pmu_init_pmupstate;
+		goto err_therm_pmu_init_pmupstate;
 	}
 
 	err = clk_vin_sw_setup(g);
 	if (err != 0) {
-		goto err_pmgr_pmu_init_pmupstate;
+		goto err_therm_pmu_init_pmupstate;
 	}
 
 	err = clk_fll_sw_setup(g);
 	if (err != 0) {
-		goto err_pmgr_pmu_init_pmupstate;
+		goto err_therm_pmu_init_pmupstate;
 	}
 
 	err = therm_domain_sw_setup(g);
 	if (err != 0) {
-		goto err_pmgr_pmu_init_pmupstate;
+		goto err_therm_pmu_init_pmupstate;
 	}
 
 	err = vfe_var_sw_setup(g);
 	if (err != 0) {
-		goto err_pmgr_pmu_init_pmupstate;
+		goto err_therm_pmu_init_pmupstate;
 	}
 
 	err = vfe_equ_sw_setup(g);
 	if (err != 0) {
-		goto err_pmgr_pmu_init_pmupstate;
+		goto err_therm_pmu_init_pmupstate;
 	}
 
 	err = clk_domain_sw_setup(g);
 	if (err != 0) {
-		goto err_pmgr_pmu_init_pmupstate;
+		goto err_therm_pmu_init_pmupstate;
 	}
 
 	err = clk_vf_point_sw_setup(g);
 	if (err != 0) {
-		goto err_pmgr_pmu_init_pmupstate;
+		goto err_therm_pmu_init_pmupstate;
 	}
 
 	err = clk_prog_sw_setup(g);
 	if (err != 0) {
-		goto err_pmgr_pmu_init_pmupstate;
+		goto err_therm_pmu_init_pmupstate;
 	}
 
 	err = pstate_sw_setup(g);
 	if (err != 0) {
-		goto err_pmgr_pmu_init_pmupstate;
+		goto err_therm_pmu_init_pmupstate;
 	}
 
 	if(g->ops.clk.support_pmgr_domain) {
 		err = pmgr_domain_sw_setup(g);
 		if (err != 0) {
-			goto err_pmgr_pmu_init_pmupstate;
+			goto err_therm_pmu_init_pmupstate;
 		}
 	}
 
 	if (g->ops.clk.support_clk_freq_controller) {
 		err = clk_freq_controller_sw_setup(g);
 		if (err != 0) {
-			goto err_pmgr_pmu_init_pmupstate;
+			goto err_therm_pmu_init_pmupstate;
 		}
 	}
 
 	if(g->ops.clk.support_lpwr_pg) {
 		err = nvgpu_lpwr_pg_setup(g);
 		if (err != 0) {
-			goto err_pmgr_pmu_init_pmupstate;
+			goto err_therm_pmu_init_pmupstate;
 		}
 	}
 
 	return 0;
 
-err_pmgr_pmu_init_pmupstate:
-	pmgr_pmu_free_pmupstate(g);
 err_therm_pmu_init_pmupstate:
 	therm_pmu_free_pmupstate(g);
 err_perf_pmu_init_pmupstate:

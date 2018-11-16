@@ -126,7 +126,7 @@ union pwr_policy_data_union {
 
 #define PMGR_GET_PWR_POLICY(g, policy_idx)                                 \
 	((struct pwr_policy *)BOARDOBJGRP_OBJ_GET_BY_IDX(                                 \
-		&(g->pmgr_pmu->pmgr_policyobjs.pwr_policies.super), (policy_idx)))
+		&(g->pmgr_pmu.pmgr_policyobjs.pwr_policies.super), (policy_idx)))
 
 #define PMGR_PWR_POLICY_INCREMENT_LIMIT_INPUT_COUNT(ppolicy)                 \
 	((ppolicy)->num_limit_inputs++)
