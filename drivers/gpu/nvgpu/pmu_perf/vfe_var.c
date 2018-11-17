@@ -33,7 +33,7 @@
 #include "vfe_var.h"
 
 static int devinit_get_vfe_var_table(struct gk20a *g,
-				     struct vfe_vars *pvfevarobjs);
+				     struct vfe_vars *pvarobjs);
 static int vfe_var_construct_single(struct gk20a *g,
 				    struct boardobj **ppboardobj,
 				    u16 size, void *pargs);
@@ -609,16 +609,16 @@ static int _vfe_var_pmudatainit_single_sensed_fuse(struct gk20a *g,
 	pset = (struct nv_pmu_vfe_var_single_sensed_fuse *)
 		ppmudata;
 
-	(void) memcpy(&pset->vfield_info,
-		&pvfe_var_single_sensed_fuse->vfield_info,
+	nvgpu_memcpy((u8 *)&pset->vfield_info,
+		(u8 *)&pvfe_var_single_sensed_fuse->vfield_info,
 		sizeof(struct ctrl_perf_vfe_var_single_sensed_fuse_vfield_info));
 
-	(void) memcpy(&pset->vfield_ver_info,
-		&pvfe_var_single_sensed_fuse->vfield_ver_info,
+	nvgpu_memcpy((u8 *)&pset->vfield_ver_info,
+		(u8 *)&pvfe_var_single_sensed_fuse->vfield_ver_info,
 		sizeof(struct ctrl_perf_vfe_var_single_sensed_fuse_ver_vfield_info));
 
-	(void) memcpy(&pset->override_info,
-		&pvfe_var_single_sensed_fuse->override_info,
+	nvgpu_memcpy((u8 *)&pset->override_info,
+		(u8 *)&pvfe_var_single_sensed_fuse->override_info,
 		sizeof(struct ctrl_perf_vfe_var_single_sensed_fuse_override_info));
 
 	pset->b_fuse_value_signed = pvfe_var_single_sensed_fuse->b_fuse_value_signed;

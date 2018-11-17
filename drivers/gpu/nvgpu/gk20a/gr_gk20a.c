@@ -3882,10 +3882,10 @@ static int gr_gk20a_load_zbc_table(struct gk20a *g, struct gr_gk20a *gr)
 		struct zbc_entry zbc_val;
 
 		zbc_val.type = GK20A_ZBC_TYPE_COLOR;
-		(void) memcpy(zbc_val.color_ds,
-		       c_tbl->color_ds, sizeof(zbc_val.color_ds));
-		(void) memcpy(zbc_val.color_l2,
-		       c_tbl->color_l2, sizeof(zbc_val.color_l2));
+		nvgpu_memcpy((u8 *)zbc_val.color_ds,
+			(u8 *)c_tbl->color_ds, sizeof(zbc_val.color_ds));
+		nvgpu_memcpy((u8 *)zbc_val.color_l2,
+			(u8 *)c_tbl->color_l2, sizeof(zbc_val.color_l2));
 		zbc_val.format = c_tbl->format;
 
 		ret = g->ops.gr.add_zbc_color(g, gr, &zbc_val, i);

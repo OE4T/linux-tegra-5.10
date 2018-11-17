@@ -27,6 +27,7 @@
 #include <nvgpu/boardobjgrp_e32.h>
 #include <nvgpu/pmuif/ctrlvolt.h>
 #include <nvgpu/pmuif/ctrlperf.h>
+#include <nvgpu/string.h>
 
 #include "pmu_perf/pmu_perf.h"
 #include "gp106/bios_gp106.h"
@@ -257,8 +258,8 @@ static int volt_policy_set_voltage(struct gk20a *g, u8 client_id,
 	/* Set RPC parameters. */
 	rpc_call.function = NV_PMU_VOLT_RPC_ID_VOLT_POLICY_SET_VOLTAGE;
 	rpc_call.params.volt_policy_voltage_data.policy_idx = policy_idx;
-	(void) memcpy(&rpc_call.params.volt_policy_voltage_data.rail_list,
-		prail_list, (sizeof(struct ctrl_perf_volt_rail_list)));
+	nvgpu_memcpy((u8 *)&rpc_call.params.volt_policy_voltage_data.rail_list,
+		(u8 *)prail_list, (sizeof(struct ctrl_perf_volt_rail_list)));
 
 	/* Execute the voltage change request via PMU RPC. */
 	status = volt_pmu_rpc_execute(g, &rpc_call);
@@ -353,9 +354,9 @@ static int volt_policy_set_noiseaware_vmin(struct gk20a *g,
 	rpc_call.function = NV_PMU_VOLT_RPC_ID_VOLT_RAIL_SET_NOISE_UNAWARE_VMIN;
 	rpc_call.params.volt_rail_set_noise_unaware_vmin.num_rails =
 			prail_list->num_rails;
-	(void) memcpy(
-		&rpc_call.params.volt_rail_set_noise_unaware_vmin.rail_list,
-		prail_list, (sizeof(struct ctrl_volt_volt_rail_list)));
+	nvgpu_memcpy(
+		(u8 *)&rpc_call.params.volt_rail_set_noise_unaware_vmin.rail_list,
+		(u8 *)prail_list, (sizeof(struct ctrl_volt_volt_rail_list)));
 
 	/* Execute the voltage change request via PMU RPC. */
 	status = volt_pmu_rpc_execute(g, &rpc_call);
