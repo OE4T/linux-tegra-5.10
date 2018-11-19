@@ -98,7 +98,7 @@ jcp $nvgpu_bins/drivers/gpu/nvgpu-l4t_64/libnvgpu-drv.so nvgpu_unit/libnvgpu-drv
 jcp $TOP/kernel/nvgpu/userspace/unit.sh                  nvgpu_unit/unit.sh
 
 find $nvgpu_bins/userspace/units -name "*.so" -not -path "*unit.so" \
-    -not -path "*drv.so" \ -exec ls {} \; | while read unit_so ; do
+    -not -path "*drv.so" -exec ls {} \; | while read unit_so ; do
         jcp $unit_so nvgpu_unit/units/
 done
 
