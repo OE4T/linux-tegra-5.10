@@ -50,12 +50,13 @@
 #include "common/pmu/pmu_gp106.h"
 #include "common/pmu/acr_gm20b.h"
 #include "common/pmu/acr_gp106.h"
+#include "common/falcon/falcon_gk20a.h"
+#include "common/falcon/falcon_gp106.h"
 #include "pmu_perf/pmu_perf.h"
 
 #include "gk20a/fifo_gk20a.h"
 #include "gk20a/fecs_trace_gk20a.h"
 #include "gk20a/mm_gk20a.h"
-#include "gk20a/flcn_gk20a.h"
 #include "gk20a/regops_gk20a.h"
 #include "gk20a/gr_gk20a.h"
 
@@ -83,7 +84,6 @@
 #include "gp106/fifo_gp106.h"
 #include "gp106/clk_gp106.h"
 #include "gp106/gr_gp106.h"
-#include "gp106/flcn_gp106.h"
 
 #include "hal_gp106.h"
 

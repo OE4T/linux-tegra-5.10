@@ -23,9 +23,9 @@
 #include <nvgpu/pmu.h>
 #include <nvgpu/gk20a.h>
 
-#include "gk20a/flcn_gk20a.h"
-#include "gp106/flcn_gp106.h"
-#include "gv100/flcn_gv100.h"
+#include "falcon_gk20a.h"
+#include "falcon_gp106.h"
+#include "falcon_gv100.h"
 #include "gv100/gsp_gv100.h"
 
 #include <nvgpu/hw/gv100/hw_falcon_gv100.h>

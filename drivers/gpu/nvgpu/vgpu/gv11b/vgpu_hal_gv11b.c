@@ -54,7 +54,7 @@
 #include "vgpu/gp10b/vgpu_mm_gp10b.h"
 #include "vgpu/gp10b/vgpu_gr_gp10b.h"
 
-#include <gk20a/flcn_gk20a.h>
+#include "common/falcon/falcon_gk20a.h"
 
 #include <gm20b/gr_gm20b.h>
 #include <gm20b/fifo_gm20b.h>

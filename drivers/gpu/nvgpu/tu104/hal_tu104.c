@@ -64,10 +64,13 @@
 #include "common/pmu/acr_gm20b.h"
 #include "common/pmu/acr_gp106.h"
 #include "common/pmu/acr_tu104.h"
+#include "common/falcon/falcon_gk20a.h"
+#include "common/falcon/falcon_gp106.h"
+#include "common/falcon/falcon_gv100.h"
+#include "common/falcon/falcon_tu104.h"
 
 #include "gk20a/fifo_gk20a.h"
 #include "gk20a/fecs_trace_gk20a.h"
-#include "gk20a/flcn_gk20a.h"
 #include "gk20a/regops_gk20a.h"
 #include "gk20a/mm_gk20a.h"
 #include "gk20a/gr_gk20a.h"
@@ -80,7 +83,6 @@
 #include "gp106/clk_arb_gp106.h"
 #include "gp106/sec2_gp106.h"
 #include "gp106/bios_gp106.h"
-#include "gp106/flcn_gp106.h"
 
 #include "gp10b/gr_gp10b.h"
 #include "gp10b/ce_gp10b.h"
@@ -99,7 +101,6 @@
 
 #include "gv100/bios_gv100.h"
 #include "gv100/fifo_gv100.h"
-#include "gv100/flcn_gv100.h"
 #include "gv100/gr_gv100.h"
 #include "gv100/mm_gv100.h"
 #include "gv100/nvlink_gv100.h"
@@ -110,7 +111,6 @@
 #include "tu104/bios_tu104.h"
 #include "tu104/fbpa_tu104.h"
 #include "tu104/sec2_tu104.h"
-#include "tu104/flcn_tu104.h"
 #include "tu104/nvlink_tu104.h"
 #include "tu104/ecc_tu104.h"
 #include "tu104/hal_tu104.h"

@@ -101,6 +101,10 @@ srcs :=	os/posix/nvgpu.c \
 	common/vbios/bios.c \
 	common/falcon/falcon.c \
 	common/falcon/falcon_queue.c \
+	common/falcon/falcon_gk20a.c \
+	common/falcon/falcon_gp106.c \
+	common/falcon/falcon_gv100.c \
+	common/falcon/falcon_tu104.c \
 	common/netlist/netlist.c \
 	common/netlist/netlist_sim.c \
 	common/netlist/netlist_gm20b.c \
@@ -182,7 +186,6 @@ srcs :=	os/posix/nvgpu.c \
 	gk20a/regops_gk20a.c \
 	gk20a/gr_gk20a.c \
 	gk20a/mm_gk20a.c \
-	gk20a/flcn_gk20a.c \
 	gk20a/fence_gk20a.c \
 	gm20b/hal_gm20b.c \
 	gm20b/gr_gm20b.c \
@@ -210,7 +213,6 @@ srcs :=	os/posix/nvgpu.c \
 	gv11b/regops_gv11b.c \
 	gv11b/ecc_gv11b.c \
 	gp106/hal_gp106.c \
-	gp106/flcn_gp106.c \
 	gp106/mclk_gp106.c \
 	gp106/gr_gp106.c \
 	gp106/sec2_gp106.c \
@@ -224,7 +226,6 @@ srcs :=	os/posix/nvgpu.c \
 	gv100/fifo_gv100.c \
 	gv100/gr_gv100.c \
 	gv100/regops_gv100.c \
-	gv100/flcn_gv100.c \
 	gv100/nvlink_gv100.c \
 	gv100/hal_gv100.c \
 	gv100/gsp_gv100.c \
@@ -237,7 +238,6 @@ srcs :=	os/posix/nvgpu.c \
 	tu104/ecc_tu104.c	\
 	tu104/fbpa_tu104.c	\
 	tu104/fifo_tu104.c	\
-	tu104/flcn_tu104.c	\
 	tu104/gr_tu104.c	\
 	tu104/hal_tu104.c	\
 	tu104/nvlink_tu104.c	\

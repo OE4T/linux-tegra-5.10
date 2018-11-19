@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -19,11 +19,9 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef NVGPU_GK20A_FLCN_GK20A_H
-#define NVGPU_GK20A_FLCN_GK20A_H
+#ifndef NVGPU_FALCON_GV100_H
+#define NVGPU_FALCON_GV100_H
 
-void gk20a_falcon_ops(struct nvgpu_falcon *flcn);
-int gk20a_falcon_hal_sw_init(struct nvgpu_falcon *flcn);
-void gk20a_falcon_dump_stats(struct nvgpu_falcon *flcn);
+int gv100_falcon_hal_sw_init(struct nvgpu_falcon *flcn);
 
-#endif /* NVGPU_GK20A_FLCN_GK20A_H */
+#endif /* NVGPU_FALCON_GV100_H */

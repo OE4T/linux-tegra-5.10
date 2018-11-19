@@ -49,7 +49,7 @@
 #include "vgpu_mm_gp10b.h"
 #include "vgpu_fuse_gp10b.h"
 
-#include "gk20a/flcn_gk20a.h"
+#include "common/falcon/falcon_gk20a.h"
 
 #include "gp10b/mm_gp10b.h"
 #include "gp10b/ce_gp10b.h"

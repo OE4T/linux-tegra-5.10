@@ -24,7 +24,7 @@
 #include <nvgpu/io.h>
 #include <nvgpu/gk20a.h>
 
-#include "gk20a/flcn_gk20a.h"
+#include "falcon_gk20a.h"
 
 #include <nvgpu/hw/gm20b/hw_falcon_gm20b.h>
 
@@ -273,7 +273,7 @@ static int gk20a_flcn_copy_to_dmem(struct nvgpu_falcon *flcn,
 		data = 0;
 		for (i = 0; i < bytes; i++) {
 			((u8 *)&data)[i] = src[(words << 2) + i];
-                }
+		}
 		gk20a_writel(g, base_addr + falcon_falcon_dmemd_r(port), data);
 	}
 
@@ -423,8 +423,8 @@ static u32 gk20a_falcon_mailbox_read(struct nvgpu_falcon *flcn,
 
 	if (mailbox_index < FALCON_MAILBOX_COUNT) {
 		data =  gk20a_readl(g, flcn->flcn_base + (mailbox_index != 0U ?
-						      falcon_falcon_mailbox1_r() :
-						      falcon_falcon_mailbox0_r()));
+						falcon_falcon_mailbox1_r() :
+						falcon_falcon_mailbox0_r()));
 	} else {
 		nvgpu_err(g, "incorrect mailbox id %d", mailbox_index);
 	}

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -19,28 +19,30 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
+#include <nvgpu/falcon.h>
 #include <nvgpu/gk20a.h>
 
-#include "gk20a/flcn_gk20a.h"
-#include "gp106/sec2_gp106.h"
-#include "gp106/flcn_gp106.h"
+#include "falcon_gk20a.h"
+#include "falcon_gv100.h"
+#include "falcon_tu104.h"
+#include "tu104/sec2_tu104.h"
 
-#include <nvgpu/hw/gp106/hw_falcon_gp106.h>
+#include <nvgpu/hw/tu104/hw_psec_tu104.h>
+#include <nvgpu/hw/tu104/hw_pnvdec_tu104.h>
 
-static void gp106_falcon_engine_dependency_ops(struct nvgpu_falcon *flcn)
+static void tu104_falcon_engine_dependency_ops(struct nvgpu_falcon *flcn)
 {
-	struct gk20a *g = flcn->g;
 	struct nvgpu_falcon_engine_dependency_ops *flcn_eng_dep_ops =
 			&flcn->flcn_engine_dep_ops;
 
 	switch (flcn->flcn_id) {
-	case FALCON_ID_PMU:
-		flcn_eng_dep_ops->reset_eng = nvgpu_pmu_reset;
-		flcn_eng_dep_ops->queue_head = g->ops.pmu.pmu_queue_head;
-		flcn_eng_dep_ops->queue_tail = g->ops.pmu.pmu_queue_tail;
-		break;
 	case FALCON_ID_SEC2:
-		flcn_eng_dep_ops->reset_eng = gp106_sec2_reset;
+		flcn_eng_dep_ops->reset_eng = tu104_sec2_reset;
+		flcn_eng_dep_ops->copy_to_emem = tu104_sec2_flcn_copy_to_emem;
+		flcn_eng_dep_ops->copy_from_emem =
+						tu104_sec2_flcn_copy_from_emem;
+		flcn_eng_dep_ops->queue_head = tu104_sec2_queue_head;
+		flcn_eng_dep_ops->queue_tail = tu104_sec2_queue_tail;
 		break;
 	default:
 		flcn_eng_dep_ops->reset_eng = NULL;
@@ -48,44 +50,33 @@ static void gp106_falcon_engine_dependency_ops(struct nvgpu_falcon *flcn)
 	}
 }
 
-static void gp106_falcon_ops(struct nvgpu_falcon *flcn)
+static void tu104_falcon_ops(struct nvgpu_falcon *flcn)
 {
 	gk20a_falcon_ops(flcn);
-	gp106_falcon_engine_dependency_ops(flcn);
+	tu104_falcon_engine_dependency_ops(flcn);
 }
 
-int gp106_falcon_hal_sw_init(struct nvgpu_falcon *flcn)
+int tu104_falcon_hal_sw_init(struct nvgpu_falcon *flcn)
 {
 	struct gk20a *g = flcn->g;
 	int err = 0;
 
 	switch (flcn->flcn_id) {
-	case FALCON_ID_PMU:
-		flcn->flcn_base = FALCON_PWR_BASE;
+	case FALCON_ID_SEC2:
+		flcn->flcn_base = psec_falcon_irqsset_r();
 		flcn->is_falcon_supported = true;
 		flcn->is_interrupt_enabled = true;
 		break;
-	case FALCON_ID_SEC2:
-		flcn->flcn_base = FALCON_SEC_BASE;
-		flcn->is_falcon_supported = true;
-		flcn->is_interrupt_enabled = false;
-		break;
-	case FALCON_ID_FECS:
-		flcn->flcn_base = FALCON_FECS_BASE;
-		flcn->is_falcon_supported = true;
-		flcn->is_interrupt_enabled = false;
-		break;
-	case FALCON_ID_GPCCS:
-		flcn->flcn_base = FALCON_GPCCS_BASE;
-		flcn->is_falcon_supported = true;
-		flcn->is_interrupt_enabled = false;
-		break;
 	case FALCON_ID_NVDEC:
-		flcn->flcn_base = FALCON_NVDEC_BASE;
+		flcn->flcn_base = pnvdec_falcon_irqsset_r(0);
 		flcn->is_falcon_supported = true;
 		flcn->is_interrupt_enabled = true;
 		break;
 	default:
+		/*
+		 * set false to inherit falcon support
+		 * from previous chips HAL
+		 */
 		flcn->is_falcon_supported = false;
 		break;
 	}
@@ -93,13 +84,18 @@ int gp106_falcon_hal_sw_init(struct nvgpu_falcon *flcn)
 	if (flcn->is_falcon_supported) {
 		err = nvgpu_mutex_init(&flcn->copy_lock);
 		if (err != 0) {
-			nvgpu_err(g, "Error in copy_lock mutex initialization");
+			nvgpu_err(g, "Error in flcn.copy_lock mutex initialization");
 		} else {
-			gp106_falcon_ops(flcn);
+			tu104_falcon_ops(flcn);
 		}
 	} else {
-		nvgpu_info(g, "falcon 0x%x not supported on %s",
-			flcn->flcn_id, g->name);
+		/*
+		 * Forward call to previous chips HAL
+		 * to fetch info for requested
+		 * falcon as no changes between
+		 * current & previous chips.
+		 */
+		err = gv100_falcon_hal_sw_init(flcn);
 	}
 
 	return err;

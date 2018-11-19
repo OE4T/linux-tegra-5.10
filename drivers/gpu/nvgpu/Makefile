@@ -233,6 +233,10 @@ nvgpu-y += \
 	common/vbios/bios.o \
 	common/falcon/falcon.o \
 	common/falcon/falcon_queue.o \
+	common/falcon/falcon_gk20a.o \
+	common/falcon/falcon_gp106.o \
+	common/falcon/falcon_gv100.o \
+	common/falcon/falcon_tu104.o \
 	common/init/hal_init.o \
 	common/pmu/pmu.o \
 	common/pmu/pmu_ipc.o \
@@ -272,7 +276,6 @@ nvgpu-y += \
 	gk20a/regops_gk20a.o \
 	gk20a/gr_gk20a.o \
 	gk20a/mm_gk20a.o \
-	gk20a/flcn_gk20a.o \
 	gk20a/fence_gk20a.o \
 	gk20a/fecs_trace_gk20a.o \
 	gm20b/hal_gm20b.o \
@@ -325,7 +328,6 @@ nvgpu-y += \
 	gp10b/gp10b.o \
 	gp10b/ecc_gp10b.o \
 	gp106/hal_gp106.o \
-	gp106/flcn_gp106.o \
 	gp106/mclk_gp106.o \
 	gp106/gr_gp106.o \
 	gp106/sec2_gp106.o \
@@ -346,7 +348,6 @@ nvgpu-y += \
 	gv100/fifo_gv100.o \
 	gv100/gr_gv100.o \
 	gv100/regops_gv100.o \
-	gv100/flcn_gv100.o \
 	gv100/nvlink_gv100.o \
 	gv100/hal_gv100.o \
 	gv100/gsp_gv100.o \
@@ -358,7 +359,6 @@ nvgpu-y += \
 	tu104/bios_tu104.o \
 	tu104/nvlink_tu104.o \
 	tu104/fbpa_tu104.o \
-	tu104/flcn_tu104.o \
 	tu104/sec2_tu104.o \
 	tu104/ecc_tu104.o \
 	tu104/regops_tu104.o \

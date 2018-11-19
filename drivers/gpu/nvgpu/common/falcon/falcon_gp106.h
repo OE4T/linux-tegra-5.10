@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2018, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -19,9 +19,9 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef NVGPU_FLCN_GV100_H
-#define NVGPU_FLCN_GV100_H
+#ifndef NVGPU_FALCON_GP106_H
+#define NVGPU_FALCON_GP106_H
 
-int gv100_falcon_hal_sw_init(struct nvgpu_falcon *flcn);
+int gp106_falcon_hal_sw_init(struct nvgpu_falcon *flcn);
 
-#endif /* NVGPU_FLCN_GV100_H */
+#endif /* NVGPU_FALCON_GP106_H */

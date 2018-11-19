@@ -55,11 +55,11 @@
 #include "common/pmu/acr_gm20b.h"
 #include "common/pmu/acr_gp106.h"
 #include "common/pmu/acr_gv11b.h"
+#include "common/falcon/falcon_gk20a.h"
 
 #include "gk20a/fifo_gk20a.h"
 #include "gk20a/fecs_trace_gk20a.h"
 #include "gk20a/mm_gk20a.h"
-#include "gk20a/flcn_gk20a.h"
 #include "gk20a/regops_gk20a.h"
 #include "gk20a/gr_gk20a.h"
 
