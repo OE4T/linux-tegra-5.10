@@ -39,7 +39,7 @@
 #include <nvgpu/hw/gk20a/hw_pwr_gk20a.h>
 #include <nvgpu/hw/gp106/hw_fb_gp106.h>
 
-#define VREG_COUNT 24
+#define VREG_COUNT 24U
 
 #define GP106_MEM_CONFIG_GDDR5_PG418		0U
 #define GP106_MEM_CONFIG_GDDR5_PG419		1U
@@ -3026,7 +3026,7 @@ static void mclk_seq_pmucmdhandler(struct gk20a *g, struct pmu_msg *_msg,
 
 	nvgpu_log_info(g, " ");
 
-	if (status != 0) {
+	if (status != 0U) {
 		nvgpu_err(g, "mclk seq_script cmd aborted");
 		msg_status = -ENOENT;
 		goto status_update;
@@ -3065,7 +3065,7 @@ static int mclk_get_memclk_table(struct gk20a *g)
 	struct vbios_memory_clock_base_entry_11 memclock_base_entry = { 0 };
 
 	u8 *mem_entry_ptr = NULL;
-	int index;
+	u32 index;
 
 	nvgpu_log_info(g, " ");
 
@@ -3097,13 +3097,13 @@ static int mclk_get_memclk_table(struct gk20a *g)
 
 	/* Read table entries */
 	mem_entry_ptr = mem_table_ptr + memclock_table_header.header_size;
-	for (index = 0; index < memclock_table_header.entry_count; index++) {
+	for (index = 0U; index < memclock_table_header.entry_count; index++) {
 		u8 script_index, cmd_script_index;
 		u32 script_ptr = 0, cmd_script_ptr = 0;
 
 		nvgpu_memcpy((u8 *)&memclock_base_entry, mem_entry_ptr,
 			memclock_table_header.base_entry_size);
-		if (memclock_base_entry.maximum == 0) {
+		if (memclock_base_entry.maximum == 0U) {
 			continue;
 		}
 
@@ -3133,7 +3133,7 @@ static int mclk_get_memclk_table(struct gk20a *g)
 			for (shadow_idx = 0; shadow_idx <
 					fb_fbpa_fbio_delay_priv_max_v();
 					++shadow_idx) {
-				if (idx_to_ptr_tbl[shadow_idx] == 0) {
+				if (idx_to_ptr_tbl[shadow_idx] == 0U) {
 					break;
 				}
 			}
@@ -3188,7 +3188,7 @@ static int mclk_get_memclk_table(struct gk20a *g)
 			for (cmd_idx = 0; cmd_idx <
 					fb_fbpa_fbio_cmd_delay_cmd_priv_max_v();
 					++cmd_idx) {
-				if (idx_to_cmd_ptr_tbl[cmd_idx] == 0) {
+				if (idx_to_cmd_ptr_tbl[cmd_idx] == 0U) {
 					break;
 				}
 			}
@@ -3268,11 +3268,11 @@ int gp106_mclk_init(struct gk20a *g)
 	/* Find out which memory configuration to use */
 	g->mem_config_idx = GP106_MEM_CONFIG_GDDR5_PG418;
 	if ((g->pci_vendor_id == PCI_VENDOR_ID_NVIDIA) &&
-		(g->pci_device_id == 0x1c75) &&
-		(g->bios.vbios_version == 0x86065800)) {
+		(g->pci_device_id == 0x1c75U) &&
+		(g->bios.vbios_version == 0x86065800U)) {
 
 		g->mem_config_idx =
-			(g->bios.vbios_oem_version == 0x12) ?
+			(g->bios.vbios_oem_version == 0x12U) ?
 				GP106_MEM_CONFIG_GDDR5_PG419_12 :
 				GP106_MEM_CONFIG_GDDR5_PG419;
 	}
@@ -3374,7 +3374,7 @@ int gp106_mclk_change(struct gk20a *g, u16 val)
 
 	seq_script_ptr = m->scripts[mclk->speed][speed].addr;
 	seq_script_size = m->scripts[mclk->speed][speed].size;
-	if (seq_script_size == 0) {
+	if (seq_script_size == 0U) {
 		nvgpu_err(g, "Illegal MCLK clock change");
 		status = -EINVAL;
 		goto exit_status;

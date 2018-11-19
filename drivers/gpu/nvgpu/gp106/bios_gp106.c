@@ -58,7 +58,7 @@ static void upload_data(struct gk20a *g, u32 dst, u8 *src, u32 size, u8 port)
 
 	nvgpu_log_info(g, "upload %d bytes to %x", size, dst);
 
-	words = DIV_ROUND_UP(size, 4);
+	words = DIV_ROUND_UP(size, 4U);
 
 	blk = dst >> 8;
 
@@ -207,13 +207,13 @@ int gp106_bios_init(struct gk20a *g)
 	if (g->ops.xve.disable_shadow_rom != NULL) {
 		g->ops.xve.disable_shadow_rom(g);
 	}
-	for (i = 0; i < g->bios.size/4; i++) {
-		u32 val = be32_to_cpu(gk20a_readl(g, 0x300000 + i*4));
+	for (i = 0U; i < g->bios.size/4U; i++) {
+		u32 val = be32_to_cpu(gk20a_readl(g, 0x300000U + i*4U));
 
-		g->bios.data[(i*4)] = (val >> 24) & 0xff;
-		g->bios.data[(i*4)+1] = (val >> 16) & 0xff;
-		g->bios.data[(i*4)+2] = (val >> 8) & 0xff;
-		g->bios.data[(i*4)+3] = val & 0xff;
+		g->bios.data[(i*4U)] = (val >> 24U) & 0xffU;
+		g->bios.data[(i*4U)+1U] = (val >> 16U) & 0xffU;
+		g->bios.data[(i*4U)+2U] = (val >> 8U) & 0xffU;
+		g->bios.data[(i*4U)+3U] = val & 0xffU;
 	}
 	if (g->ops.xve.enable_shadow_rom != NULL) {
 		g->ops.xve.enable_shadow_rom(g);

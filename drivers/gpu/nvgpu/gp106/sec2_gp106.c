@@ -74,7 +74,7 @@ static int sec2_flcn_bl_bootstrap(struct gk20a *g,
 	gk20a_writel(g, psec_falcon_debug1_r(), data);
 
 	data = gk20a_readl(g, psec_falcon_engctl_r());
-	data |= (1U << 3U);
+	data |= BIT32(3);
 	gk20a_writel(g, psec_falcon_engctl_r(), data);
 
 	err = nvgpu_falcon_bl_bootstrap(&g->sec2_flcn, bl_info);

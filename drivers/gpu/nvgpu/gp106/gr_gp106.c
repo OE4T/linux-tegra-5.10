@@ -158,7 +158,7 @@ int gr_gp106_set_ctxsw_preemption_mode(struct gk20a *g,
 	}
 
 	/* check for invalid combinations */
-	if ((graphics_preempt_mode == 0) && (compute_preempt_mode == 0)) {
+	if ((graphics_preempt_mode == 0U) && (compute_preempt_mode == 0U)) {
 		return -EINVAL;
 	}
 

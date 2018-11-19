@@ -37,24 +37,24 @@
 
 #include <nvgpu/hw/gp106/hw_trim_gp106.h>
 
-#define CLK_NAMEMAP_INDEX_GPC2CLK	0x00
-#define CLK_NAMEMAP_INDEX_XBAR2CLK	0x02
-#define CLK_NAMEMAP_INDEX_SYS2CLK	0x07	/* SYSPLL */
-#define CLK_NAMEMAP_INDEX_DRAMCLK	0x20	/* DRAMPLL */
+#define CLK_NAMEMAP_INDEX_GPC2CLK	0x00U
+#define CLK_NAMEMAP_INDEX_XBAR2CLK	0x02U
+#define CLK_NAMEMAP_INDEX_SYS2CLK	0x07U	/* SYSPLL */
+#define CLK_NAMEMAP_INDEX_DRAMCLK	0x20U	/* DRAMPLL */
 
-#define CLK_DEFAULT_CNTRL_SETTLE_RETRIES 10
-#define CLK_DEFAULT_CNTRL_SETTLE_USECS   5
+#define CLK_DEFAULT_CNTRL_SETTLE_RETRIES 10U
+#define CLK_DEFAULT_CNTRL_SETTLE_USECS   5U
 
-#define NUM_NAMEMAPS	4
-#define XTAL4X_KHZ 108000
+#define NUM_NAMEMAPS	4U
+#define XTAL4X_KHZ 108000U
 
-#define XTAL_CNTR_CLKS		27000	/* 1000usec at 27KHz XTAL */
-#define XTAL_CNTR_DELAY		1000	/* we need acuracy up to the ms   */
-#define XTAL_SCALE_TO_KHZ	1
+#define XTAL_CNTR_CLKS		27000U	/* 1000usec at 27KHz XTAL */
+#define XTAL_CNTR_DELAY		1000U	/* we need acuracy up to the ms   */
+#define XTAL_SCALE_TO_KHZ	1U
 
 u32 gp106_crystal_clk_hz(struct gk20a *g)
 {
-	return (XTAL4X_KHZ * 1000);
+	return (XTAL4X_KHZ * 1000U);
 }
 
 unsigned long gp106_clk_measure_freq(struct gk20a *g, u32 api_domain)
@@ -264,7 +264,7 @@ int gp106_clk_domain_get_f_points(
 		return -EINVAL;
 	}
 
-	if ((pfreqpointsinmhz == NULL) && (*pfpointscount != 0)) {
+	if ((pfreqpointsinmhz == NULL) && (*pfpointscount != 0U)) {
 		return -EINVAL;
 	}
 

@@ -79,7 +79,7 @@ int gp106_get_arbiter_clk_range(struct gk20a *g, u32 api_domain,
 	if (api_domain == CTRL_CLK_DOMAIN_GPC2CLK) {
 		if ((pfllobjs->max_min_freq_mhz != 0U) &&
 		    (pfllobjs->max_min_freq_mhz >= limit_min_mhz)) {
-			limit_min_mhz = pfllobjs->max_min_freq_mhz + 1;
+			limit_min_mhz = pfllobjs->max_min_freq_mhz + 1U;
 		}
 	}
 
@@ -321,8 +321,8 @@ recalculate_vf_point:
 			}
 		}
 		if (index == table->mclk_num_points) {
-			mclk_vf = &table->mclk_points[index-1];
-			index = table->mclk_num_points - 1;
+			mclk_vf = &table->mclk_points[index-1U];
+			index = table->mclk_num_points - 1U;
 		}
 		index_mclk = index;
 
@@ -351,21 +351,21 @@ recalculate_vf_point:
 
 		if (index == table->gpc2clk_num_points) {
 			pstate = VF_POINT_COMMON_PSTATE(
-				&table->gpc2clk_points[index-1], mclk_vf);
+				&table->gpc2clk_points[index-1U], mclk_vf);
 			if (pstate != VF_POINT_INVALID_PSTATE) {
 				gpc2clk_target =
-					table->gpc2clk_points[index-1].gpc_mhz;
+					table->gpc2clk_points[index-1U].gpc_mhz;
 				*sys2clk =
-					table->gpc2clk_points[index-1].sys_mhz;
+					table->gpc2clk_points[index-1U].sys_mhz;
 				*xbar2clk  =
-					table->gpc2clk_points[index-1].xbar_mhz;
+					table->gpc2clk_points[index-1U].xbar_mhz;
 
 				gpc2clk_voltuv =
-					table->gpc2clk_points[index-1].uvolt;
+					table->gpc2clk_points[index-1U].uvolt;
 				gpc2clk_voltuv_sram =
-					table->gpc2clk_points[index-1].
+					table->gpc2clk_points[index-1U].
 						uvolt_sram;
-			} else if (index_mclk >= table->mclk_num_points - 1) {
+			} else if (index_mclk >= table->mclk_num_points - 1U) {
 				/* There is no available combination of MCLK
 				 * and GPC2CLK, we need to fail this
 				 */
@@ -376,7 +376,7 @@ recalculate_vf_point:
 			} else {
 				/* recalculate with higher PSTATE */
 				gpc2clk_target = *gpc2clk;
-				mclk_target = table->mclk_points[index_mclk+1].
+				mclk_target = table->mclk_points[index_mclk+1U].
 									mem_mhz;
 				goto recalculate_vf_point;
 			}
@@ -491,7 +491,8 @@ void gp106_clk_arb_run_arbiter_cb(struct nvgpu_clk_arb *arb)
 	clk_arb_dbg(g, " ");
 
 	/* bail out if gpu is down */
-	if (nvgpu_atomic64_read(&arb->alarm_mask) & EVENT(ALARM_GPU_LOST)) {
+	if ((unsigned long)nvgpu_atomic64_read(&arb->alarm_mask) &
+			EVENT(ALARM_GPU_LOST)) {
 		goto exit_arb;
 	}
 
@@ -555,7 +556,7 @@ void gp106_clk_arb_run_arbiter_cb(struct nvgpu_clk_arb *arb)
 	}
 	nvgpu_spinlock_release(&arb->sessions_lock);
 
-	gpc2clk_target = (gpc2clk_target > 0) ? gpc2clk_target :
+	gpc2clk_target = (gpc2clk_target > 0U) ? gpc2clk_target :
 			arb->gpc2clk_default_mhz;
 
 	if (gpc2clk_target < arb->gpc2clk_min) {
@@ -566,7 +567,7 @@ void gp106_clk_arb_run_arbiter_cb(struct nvgpu_clk_arb *arb)
 		gpc2clk_target = arb->gpc2clk_max;
 	}
 
-	mclk_target = (mclk_target > 0) ? mclk_target :
+	mclk_target = (mclk_target > 0U) ? mclk_target :
 			arb->mclk_default_mhz;
 
 	if (mclk_target < arb->mclk_min) {
