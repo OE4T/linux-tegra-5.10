@@ -110,6 +110,10 @@ u64 vgpu_gp10b_locked_gmmu_map(struct vm_gk20a *vm,
 		goto fail;
 	}
 	sgl = sgt->sgl;
+
+	/* Align size to page size */
+	size = ALIGN(size, page_size);
+
 	while (sgl) {
 		u64 phys_addr;
 		u64 chunk_length;
