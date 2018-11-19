@@ -470,7 +470,7 @@ static u32 gv100_nvlink_minion_load(struct gk20a *g)
 	}
 
 	/* nvdec falcon reset */
-	nvgpu_flcn_reset(&g->minion_flcn);
+	nvgpu_falcon_reset(&g->minion_flcn);
 
 	/* Read ucode header */
 	minion_hdr->os_code_offset = minion_extract_word(nvgpu_minion_fw,
@@ -593,17 +593,17 @@ static u32 gv100_nvlink_minion_load(struct gk20a *g)
 		"  - Ucode Data Size = %u", minion_hdr->ucode_data_size);
 
 	/* Clear interrupts */
-	nvgpu_flcn_set_irq(&g->minion_flcn, true, MINION_FALCON_INTR_MASK,
+	nvgpu_falcon_set_irq(&g->minion_flcn, true, MINION_FALCON_INTR_MASK,
 						MINION_FALCON_INTR_DEST);
 
 	/* Copy Non Secure IMEM code */
-	nvgpu_flcn_copy_to_imem(&g->minion_flcn, 0,
+	nvgpu_falcon_copy_to_imem(&g->minion_flcn, 0,
 		(u8 *)&ndev->minion_img[minion_hdr->os_code_offset],
 		minion_hdr->os_code_size, 0, false,
 		GET_IMEM_TAG(minion_hdr->os_code_offset));
 
 	/* Copy Non Secure DMEM code */
-	nvgpu_flcn_copy_to_dmem(&g->minion_flcn, 0,
+	nvgpu_falcon_copy_to_dmem(&g->minion_flcn, 0,
 		(u8 *)&ndev->minion_img[minion_hdr->os_data_offset],
 		minion_hdr->os_data_size, 0);
 
@@ -615,21 +615,21 @@ static u32 gv100_nvlink_minion_load(struct gk20a *g)
 		u32 app_data_size = minion_hdr->app_data_sizes[app];
 
 		if (app_code_size)
-			nvgpu_flcn_copy_to_imem(&g->minion_flcn,
+			nvgpu_falcon_copy_to_imem(&g->minion_flcn,
 				app_code_start,
 				(u8 *)&ndev->minion_img[app_code_start],
 				app_code_size, 0, true,
 				GET_IMEM_TAG(app_code_start));
 
 		if (app_data_size)
-			nvgpu_flcn_copy_to_dmem(&g->minion_flcn,
+			nvgpu_falcon_copy_to_dmem(&g->minion_flcn,
 				app_data_start,
 				(u8 *)&ndev->minion_img[app_data_start],
 				app_data_size, 0);
 	}
 
 	/* set BOOTVEC to start of non-secure code */
-	nvgpu_flcn_bootstrap(&g->minion_flcn, 0x0);
+	nvgpu_falcon_bootstrap(&g->minion_flcn, 0x0);
 
 	nvgpu_timeout_init(g, &timeout, gk20a_get_gr_idle_timeout(g),
 		NVGPU_TIMER_CPU_TIMER);
@@ -2709,7 +2709,7 @@ int gv100_nvlink_early_init(struct gk20a *g)
 		goto nvlink_init_exit;
 	}
 
-	err = nvgpu_flcn_sw_init(g, FALCON_ID_MINION);
+	err = nvgpu_falcon_sw_init(g, FALCON_ID_MINION);
 	if (err != 0) {
 		nvgpu_err(g, "failed to sw init FALCON_ID_MINION");
 		goto nvlink_init_exit;

@@ -216,7 +216,7 @@ int gv11b_pmu_bootstrap(struct nvgpu_pmu *pmu)
 			<< GK20A_PMU_DMEM_BLKSIZE2) -
 		g->ops.pmu_ver.get_pmu_cmdline_args_size(pmu);
 
-	nvgpu_flcn_copy_to_dmem(pmu->flcn, addr_args,
+	nvgpu_falcon_copy_to_dmem(pmu->flcn, addr_args,
 			(u8 *)(g->ops.pmu_ver.get_pmu_cmdline_args_ptr(pmu)),
 			g->ops.pmu_ver.get_pmu_cmdline_args_size(pmu), 0);
 
@@ -281,7 +281,7 @@ int gv11b_pmu_bootstrap(struct nvgpu_pmu *pmu)
 			pwr_falcon_dmatrfcmd_ctxdma_f(GK20A_PMU_DMAIDX_UCODE));
 	}
 
-	nvgpu_flcn_bootstrap(pmu->flcn, desc->bootloader_entry_point);
+	nvgpu_falcon_bootstrap(pmu->flcn, desc->bootloader_entry_point);
 
 	gk20a_writel(g, pwr_falcon_os_r(), desc->app_version);
 

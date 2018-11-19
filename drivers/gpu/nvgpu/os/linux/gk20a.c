@@ -153,27 +153,27 @@ int gk20a_finalize_poweron(struct gk20a *g)
 	}
 
 	/* init interface layer support for PMU falcon */
-	err = nvgpu_flcn_sw_init(g, FALCON_ID_PMU);
+	err = nvgpu_falcon_sw_init(g, FALCON_ID_PMU);
 	if (err != 0) {
 		nvgpu_err(g, "failed to sw init FALCON_ID_PMU");
 		goto done;
 	}
-	err = nvgpu_flcn_sw_init(g, FALCON_ID_SEC2);
+	err = nvgpu_falcon_sw_init(g, FALCON_ID_SEC2);
 	if (err != 0) {
 		nvgpu_err(g, "failed to sw init FALCON_ID_SEC2");
 		goto done;
 	}
-	err = nvgpu_flcn_sw_init(g, FALCON_ID_NVDEC);
+	err = nvgpu_falcon_sw_init(g, FALCON_ID_NVDEC);
 	if (err != 0) {
 		nvgpu_err(g, "failed to sw init FALCON_ID_NVDEC");
 		goto done;
 	}
-	err = nvgpu_flcn_sw_init(g, FALCON_ID_GSPLITE);
+	err = nvgpu_falcon_sw_init(g, FALCON_ID_GSPLITE);
 	if (err != 0) {
 		nvgpu_err(g, "failed to sw init FALCON_ID_GSPLITE");
 		goto done;
 	}
-	err = nvgpu_flcn_sw_init(g, FALCON_ID_FECS);
+	err = nvgpu_falcon_sw_init(g, FALCON_ID_FECS);
 	if (err != 0) {
 		nvgpu_err(g, "failed to sw init FALCON_ID_FECS");
 		goto done;

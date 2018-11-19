@@ -161,7 +161,7 @@ int gv100_fb_memory_unlock(struct gk20a *g)
 	g->ops.mc.enable(g, g->ops.mc.reset_mask(g, NVGPU_UNIT_NVDEC));
 
 	/* nvdec falcon reset */
-	nvgpu_flcn_reset(&g->nvdec_flcn);
+	nvgpu_falcon_reset(&g->nvdec_flcn);
 
 	hsbin_hdr = (struct bin_hdr *)mem_unlock_fw->data;
 	fw_hdr = (struct acr_fw_header *)(mem_unlock_fw->data +
@@ -184,10 +184,10 @@ int gv100_fb_memory_unlock(struct gk20a *g)
 	}
 
 	/* Clear interrupts */
-	nvgpu_flcn_set_irq(&g->nvdec_flcn, false, 0x0, 0x0);
+	nvgpu_falcon_set_irq(&g->nvdec_flcn, false, 0x0, 0x0);
 
 	/* Copy Non Secure IMEM code */
-	nvgpu_flcn_copy_to_imem(&g->nvdec_flcn, 0,
+	nvgpu_falcon_copy_to_imem(&g->nvdec_flcn, 0,
 		(u8 *)&mem_unlock_ucode[
 			mem_unlock_ucode_header[OS_CODE_OFFSET] >> 2],
 		mem_unlock_ucode_header[OS_CODE_SIZE], 0, false,
@@ -196,33 +196,33 @@ int gv100_fb_memory_unlock(struct gk20a *g)
 	/* Put secure code after non-secure block */
 	sec_imem_dest = GET_NEXT_BLOCK(mem_unlock_ucode_header[OS_CODE_SIZE]);
 
-	nvgpu_flcn_copy_to_imem(&g->nvdec_flcn, sec_imem_dest,
+	nvgpu_falcon_copy_to_imem(&g->nvdec_flcn, sec_imem_dest,
 		(u8 *)&mem_unlock_ucode[
 			mem_unlock_ucode_header[APP_0_CODE_OFFSET] >> 2],
 		mem_unlock_ucode_header[APP_0_CODE_SIZE], 0, true,
 		GET_IMEM_TAG(mem_unlock_ucode_header[APP_0_CODE_OFFSET]));
 
 	/* load DMEM: ensure that signatures are patched */
-	nvgpu_flcn_copy_to_dmem(&g->nvdec_flcn, 0, (u8 *)&mem_unlock_ucode[
+	nvgpu_falcon_copy_to_dmem(&g->nvdec_flcn, 0, (u8 *)&mem_unlock_ucode[
 		mem_unlock_ucode_header[OS_DATA_OFFSET] >> 2],
 		mem_unlock_ucode_header[OS_DATA_SIZE], 0);
 
 	/* Write non-zero value to mailbox register which is updated by
 	 * mem_unlock bin to denote its return status.
 	 */
-	nvgpu_flcn_mailbox_write(&g->nvdec_flcn, 0, 0xdeadbeef);
+	nvgpu_falcon_mailbox_write(&g->nvdec_flcn, 0, 0xdeadbeef);
 
 	/* set BOOTVEC to start of non-secure code */
-	nvgpu_flcn_bootstrap(&g->nvdec_flcn, 0);
+	nvgpu_falcon_bootstrap(&g->nvdec_flcn, 0);
 
 	/* wait for complete & halt */
-	nvgpu_flcn_wait_for_halt(&g->nvdec_flcn, MEM_UNLOCK_TIMEOUT);
+	nvgpu_falcon_wait_for_halt(&g->nvdec_flcn, MEM_UNLOCK_TIMEOUT);
 
 	/* check mem unlock status */
-	val = nvgpu_flcn_mailbox_read(&g->nvdec_flcn, 0);
+	val = nvgpu_falcon_mailbox_read(&g->nvdec_flcn, 0);
 	if (val != 0U) {
 		nvgpu_err(g, "memory unlock failed, err %x", val);
-		nvgpu_flcn_dump_stats(&g->nvdec_flcn);
+		nvgpu_falcon_dump_stats(&g->nvdec_flcn);
 		err = -1;
 		goto exit;
 	}

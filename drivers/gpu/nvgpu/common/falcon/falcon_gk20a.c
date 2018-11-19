@@ -28,7 +28,7 @@
 
 #include <nvgpu/hw/gm20b/hw_falcon_gm20b.h>
 
-static int gk20a_flcn_reset(struct nvgpu_falcon *flcn)
+static int gk20a_falcon_reset(struct nvgpu_falcon *flcn)
 {
 	struct gk20a *g = flcn->g;
 	u32 base_addr = flcn->flcn_base;
@@ -49,7 +49,7 @@ static int gk20a_flcn_reset(struct nvgpu_falcon *flcn)
 	return status;
 }
 
-static bool gk20a_flcn_clear_halt_interrupt_status(struct nvgpu_falcon *flcn)
+static bool gk20a_falcon_clear_halt_interrupt_status(struct nvgpu_falcon *flcn)
 {
 	struct gk20a *g = flcn->g;
 	u32 base_addr = flcn->flcn_base;
@@ -70,7 +70,7 @@ static bool gk20a_flcn_clear_halt_interrupt_status(struct nvgpu_falcon *flcn)
 	return status;
 }
 
-static void gk20a_flcn_set_irq(struct nvgpu_falcon *flcn, bool enable)
+static void gk20a_falcon_set_irq(struct nvgpu_falcon *flcn, bool enable)
 {
 	struct gk20a *g = flcn->g;
 	u32 base_addr = flcn->flcn_base;
@@ -144,7 +144,7 @@ static bool gk20a_is_falcon_scrubbing_done(struct nvgpu_falcon *flcn)
 }
 
 static u32 gk20a_falcon_get_mem_size(struct nvgpu_falcon *flcn,
-		enum flcn_mem_type mem_type)
+		enum falcon_mem_type mem_type)
 {
 	struct gk20a *g = flcn->g;
 	u32 mem_size = 0;
@@ -162,8 +162,8 @@ static u32 gk20a_falcon_get_mem_size(struct nvgpu_falcon *flcn,
 	return mem_size;
 }
 
-static int flcn_mem_overflow_check(struct nvgpu_falcon *flcn,
-		u32 offset, u32 size, enum flcn_mem_type mem_type)
+static int falcon_mem_overflow_check(struct nvgpu_falcon *flcn,
+		u32 offset, u32 size, enum falcon_mem_type mem_type)
 {
 	struct gk20a *g = flcn->g;
 	u32 mem_size = 0;
@@ -190,7 +190,7 @@ static int flcn_mem_overflow_check(struct nvgpu_falcon *flcn,
 	return 0;
 }
 
-static int gk20a_flcn_copy_from_dmem(struct nvgpu_falcon *flcn,
+static int gk20a_falcon_copy_from_dmem(struct nvgpu_falcon *flcn,
 		u32 src, u8 *dst, u32 size, u8 port)
 {
 	struct gk20a *g = flcn->g;
@@ -201,7 +201,7 @@ static int gk20a_flcn_copy_from_dmem(struct nvgpu_falcon *flcn,
 
 	nvgpu_log_fn(g, " src dmem offset - %x, size - %x", src, size);
 
-	if (flcn_mem_overflow_check(flcn, src, size, MEM_DMEM) != 0) {
+	if (falcon_mem_overflow_check(flcn, src, size, MEM_DMEM) != 0) {
 		nvgpu_err(g, "incorrect parameters");
 		return -EINVAL;
 	}
@@ -235,7 +235,7 @@ static int gk20a_flcn_copy_from_dmem(struct nvgpu_falcon *flcn,
 	return 0;
 }
 
-static int gk20a_flcn_copy_to_dmem(struct nvgpu_falcon *flcn,
+static int gk20a_falcon_copy_to_dmem(struct nvgpu_falcon *flcn,
 		u32 dst, u8 *src, u32 size, u8 port)
 {
 	struct gk20a *g = flcn->g;
@@ -246,7 +246,7 @@ static int gk20a_flcn_copy_to_dmem(struct nvgpu_falcon *flcn,
 
 	nvgpu_log_fn(g, "dest dmem offset - %x, size - %x", dst, size);
 
-	if (flcn_mem_overflow_check(flcn, dst, size, MEM_DMEM) != 0) {
+	if (falcon_mem_overflow_check(flcn, dst, size, MEM_DMEM) != 0) {
 		nvgpu_err(g, "incorrect parameters");
 		return -EINVAL;
 	}
@@ -290,7 +290,7 @@ static int gk20a_flcn_copy_to_dmem(struct nvgpu_falcon *flcn,
 	return 0;
 }
 
-static int gk20a_flcn_copy_from_imem(struct nvgpu_falcon *flcn, u32 src,
+static int gk20a_falcon_copy_from_imem(struct nvgpu_falcon *flcn, u32 src,
 	u8 *dst, u32 size, u8 port)
 {
 	struct gk20a *g = flcn->g;
@@ -304,7 +304,7 @@ static int gk20a_flcn_copy_from_imem(struct nvgpu_falcon *flcn, u32 src,
 
 	nvgpu_log_info(g, "download %d bytes from 0x%x", size, src);
 
-	if (flcn_mem_overflow_check(flcn, src, size, MEM_IMEM) != 0) {
+	if (falcon_mem_overflow_check(flcn, src, size, MEM_IMEM) != 0) {
 		nvgpu_err(g, "incorrect parameters");
 		return -EINVAL;
 	}
@@ -340,7 +340,7 @@ static int gk20a_flcn_copy_from_imem(struct nvgpu_falcon *flcn, u32 src,
 	return 0;
 }
 
-static int gk20a_flcn_copy_to_imem(struct nvgpu_falcon *flcn, u32 dst,
+static int gk20a_falcon_copy_to_imem(struct nvgpu_falcon *flcn, u32 dst,
 		u8 *src, u32 size, u8 port, bool sec, u32 tag)
 {
 	struct gk20a *g = flcn->g;
@@ -352,7 +352,7 @@ static int gk20a_flcn_copy_to_imem(struct nvgpu_falcon *flcn, u32 dst,
 
 	nvgpu_log_info(g, "upload %d bytes to 0x%x", size, dst);
 
-	if (flcn_mem_overflow_check(flcn, dst, size, MEM_IMEM) != 0) {
+	if (falcon_mem_overflow_check(flcn, dst, size, MEM_IMEM) != 0) {
 		nvgpu_err(g, "incorrect parameters");
 		return -EINVAL;
 	}
@@ -458,7 +458,7 @@ static int gk20a_falcon_bl_bootstrap(struct nvgpu_falcon *flcn,
 	int err = 0;
 
 	/*copy bootloader interface structure to dmem*/
-	err = gk20a_flcn_copy_to_dmem(flcn, 0, (u8 *)bl_info->bl_desc,
+	err = gk20a_falcon_copy_to_dmem(flcn, 0, (u8 *)bl_info->bl_desc,
 		bl_info->bl_desc_size, (u8)0);
 	if (err != 0) {
 		goto exit;
@@ -468,7 +468,7 @@ static int gk20a_falcon_bl_bootstrap(struct nvgpu_falcon *flcn,
 	dst = (falcon_falcon_hwcfg_imem_size_v(gk20a_readl(g,
 		base_addr + falcon_falcon_hwcfg_r())) << 8) - bl_info->bl_size;
 
-	err = gk20a_flcn_copy_to_imem(flcn, dst, (u8 *)(bl_info->bl_src),
+	err = gk20a_falcon_copy_to_imem(flcn, dst, (u8 *)(bl_info->bl_src),
 		bl_info->bl_size, (u8)0, false, bl_info->bl_start_tag);
 	if (err != 0) {
 		goto exit;
@@ -676,7 +676,7 @@ static void gk20a_falcon_engine_dependency_ops(struct nvgpu_falcon *flcn)
 		break;
 	default:
 		/* NULL assignment make sure
-		 * CPU hard reset in gk20a_flcn_reset() gets execute
+		 * CPU hard reset in gk20a_falcon_reset() gets execute
 		 * if falcon doesn't need specific reset implementation
 		 */
 		flcn_eng_dep_ops->reset_eng = NULL;
@@ -688,17 +688,17 @@ void gk20a_falcon_ops(struct nvgpu_falcon *flcn)
 {
 	struct nvgpu_falcon_ops *flcn_ops = &flcn->flcn_ops;
 
-	flcn_ops->reset = gk20a_flcn_reset;
-	flcn_ops->set_irq = gk20a_flcn_set_irq;
+	flcn_ops->reset = gk20a_falcon_reset;
+	flcn_ops->set_irq = gk20a_falcon_set_irq;
 	flcn_ops->clear_halt_interrupt_status =
-		gk20a_flcn_clear_halt_interrupt_status;
+		gk20a_falcon_clear_halt_interrupt_status;
 	flcn_ops->is_falcon_cpu_halted =  gk20a_is_falcon_cpu_halted;
 	flcn_ops->is_falcon_idle =  gk20a_is_falcon_idle;
 	flcn_ops->is_falcon_scrubbing_done =  gk20a_is_falcon_scrubbing_done;
-	flcn_ops->copy_from_dmem = gk20a_flcn_copy_from_dmem;
-	flcn_ops->copy_to_dmem = gk20a_flcn_copy_to_dmem;
-	flcn_ops->copy_to_imem = gk20a_flcn_copy_to_imem;
-	flcn_ops->copy_from_imem = gk20a_flcn_copy_from_imem;
+	flcn_ops->copy_from_dmem = gk20a_falcon_copy_from_dmem;
+	flcn_ops->copy_to_dmem = gk20a_falcon_copy_to_dmem;
+	flcn_ops->copy_to_imem = gk20a_falcon_copy_to_imem;
+	flcn_ops->copy_from_imem = gk20a_falcon_copy_from_imem;
 	flcn_ops->bootstrap = gk20a_falcon_bootstrap;
 	flcn_ops->dump_falcon_stats = gk20a_falcon_dump_stats;
 	flcn_ops->mailbox_read = gk20a_falcon_mailbox_read;

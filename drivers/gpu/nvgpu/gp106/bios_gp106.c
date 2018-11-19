@@ -46,7 +46,7 @@
 static void upload_code(struct gk20a *g, u32 dst,
 			u8 *src, u32 size, u8 port, bool sec)
 {
-	nvgpu_flcn_copy_to_imem(g->pmu.flcn, dst, src, size, port, sec,
+	nvgpu_falcon_copy_to_imem(g->pmu.flcn, dst, src, size, port, sec,
 		dst >> 8);
 }
 
@@ -82,7 +82,7 @@ int gp106_bios_devinit(struct gk20a *g)
 
 	nvgpu_log_fn(g, " ");
 
-	if (nvgpu_flcn_reset(g->pmu.flcn) != 0) {
+	if (nvgpu_falcon_reset(g->pmu.flcn) != 0) {
 		err = -ETIMEDOUT;
 		goto out;
 	}
@@ -108,7 +108,7 @@ int gp106_bios_devinit(struct gk20a *g)
 			g->bios.bootscripts_size,
 			0);
 
-	nvgpu_flcn_bootstrap(g->pmu.flcn, g->bios.devinit.code_entry_point);
+	nvgpu_falcon_bootstrap(g->pmu.flcn, g->bios.devinit.code_entry_point);
 
 	nvgpu_timeout_init(g, &timeout,
 			   PMU_BOOT_TIMEOUT_MAX /
@@ -126,7 +126,7 @@ int gp106_bios_devinit(struct gk20a *g)
 		err = -ETIMEDOUT;
 	}
 
-	nvgpu_flcn_clear_halt_intr_status(g->pmu.flcn,
+	nvgpu_falcon_clear_halt_intr_status(g->pmu.flcn,
 		gk20a_get_gr_idle_timeout(g));
 
 out:
@@ -138,7 +138,7 @@ int gp106_bios_preos_wait_for_halt(struct gk20a *g)
 {
 	int err = 0;
 
-	if (nvgpu_flcn_wait_for_halt(g->pmu.flcn,
+	if (nvgpu_falcon_wait_for_halt(g->pmu.flcn,
 					PMU_BOOT_TIMEOUT_MAX / 1000) != 0) {
 		err = -ETIMEDOUT;
 	}
@@ -152,7 +152,7 @@ int gp106_bios_preos(struct gk20a *g)
 
 	nvgpu_log_fn(g, " ");
 
-	if (nvgpu_flcn_reset(g->pmu.flcn) != 0) {
+	if (nvgpu_falcon_reset(g->pmu.flcn) != 0) {
 		err = -ETIMEDOUT;
 		goto out;
 	}
@@ -174,11 +174,11 @@ int gp106_bios_preos(struct gk20a *g)
 			g->bios.preos.dmem_size,
 			0);
 
-	nvgpu_flcn_bootstrap(g->pmu.flcn, g->bios.preos.code_entry_point);
+	nvgpu_falcon_bootstrap(g->pmu.flcn, g->bios.preos.code_entry_point);
 
 	err = g->ops.bios.preos_wait_for_halt(g);
 
-	nvgpu_flcn_clear_halt_intr_status(g->pmu.flcn,
+	nvgpu_falcon_clear_halt_intr_status(g->pmu.flcn,
 			gk20a_get_gr_idle_timeout(g));
 
 out:

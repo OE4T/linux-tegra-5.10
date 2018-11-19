@@ -285,7 +285,7 @@ int gm20b_ns_pmu_setup_hw_and_bootstrap(struct gk20a *g)
 	nvgpu_log_fn(g, " ");
 
 	nvgpu_mutex_acquire(&pmu->isr_mutex);
-	nvgpu_flcn_reset(pmu->flcn);
+	nvgpu_falcon_reset(pmu->flcn);
 	pmu->isr_enabled = true;
 	nvgpu_mutex_release(&pmu->isr_mutex);
 
@@ -340,7 +340,7 @@ void gm20b_update_lspmu_cmdline_args(struct gk20a *g)
 	g->ops.pmu_ver.set_pmu_cmdline_args_trace_dma_base(pmu);
 	g->ops.pmu_ver.set_pmu_cmdline_args_trace_dma_idx(
 		pmu, GK20A_PMU_DMAIDX_VIRT);
-	nvgpu_flcn_copy_to_dmem(pmu->flcn, g->acr.pmu_args,
+	nvgpu_falcon_copy_to_dmem(pmu->flcn, g->acr.pmu_args,
 		(u8 *)(g->ops.pmu_ver.get_pmu_cmdline_args_ptr(pmu)),
 		g->ops.pmu_ver.get_pmu_cmdline_args_size(pmu), 0);
 }
@@ -363,7 +363,7 @@ static int gm20b_bl_bootstrap(struct gk20a *g,
 		  pwr_pmu_new_instblk_target_sys_coh_f() :
 		  pwr_pmu_new_instblk_target_sys_ncoh_f())) ;
 
-	nvgpu_flcn_bl_bootstrap(&g->pmu_flcn, bl_info);
+	nvgpu_falcon_bl_bootstrap(&g->pmu_flcn, bl_info);
 
 	return 0;
 }
@@ -384,7 +384,7 @@ int gm20b_pmu_setup_hw_and_bl_bootstrap(struct gk20a *g,
 	 */
 	g->ops.pmu.pmu_enable_irq(pmu, false);
 	pmu->isr_enabled = false;
-	err = nvgpu_flcn_reset(acr_desc->acr_flcn);
+	err = nvgpu_falcon_reset(acr_desc->acr_flcn);
 	if (err != 0) {
 		nvgpu_mutex_release(&pmu->isr_mutex);
 		goto exit;

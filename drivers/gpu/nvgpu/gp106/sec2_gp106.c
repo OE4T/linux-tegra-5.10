@@ -77,7 +77,7 @@ static int sec2_flcn_bl_bootstrap(struct gk20a *g,
 	data |= (1U << 3U);
 	gk20a_writel(g, psec_falcon_engctl_r(), data);
 
-	err = nvgpu_flcn_bl_bootstrap(&g->sec2_flcn, bl_info);
+	err = nvgpu_falcon_bl_bootstrap(&g->sec2_flcn, bl_info);
 
 	return err;
 }
@@ -90,7 +90,7 @@ int gp106_sec2_setup_hw_and_bl_bootstrap(struct gk20a *g,
 
 	nvgpu_log_fn(g, " ");
 
-	nvgpu_flcn_reset(&g->sec2_flcn);
+	nvgpu_falcon_reset(&g->sec2_flcn);
 
 	data = gk20a_readl(g, psec_fbif_ctl_r());
 	data |= psec_fbif_ctl_allow_phys_no_ctx_allow_f();

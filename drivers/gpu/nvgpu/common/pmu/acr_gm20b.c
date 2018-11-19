@@ -1059,16 +1059,16 @@ static int nvgpu_gm20b_acr_wait_for_completion(struct gk20a *g,
 
 	nvgpu_log_fn(g, " ");
 
-	completion = nvgpu_flcn_wait_for_halt(flcn, timeout);
+	completion = nvgpu_falcon_wait_for_halt(flcn, timeout);
 	if (completion != 0U) {
 		nvgpu_err(g, "flcn-%d: ACR boot timed out", flcn->flcn_id);
 		goto exit;
 	}
 
 	nvgpu_pmu_dbg(g, "flcn-%d: ACR capabilities %x\n", flcn->flcn_id,
-		nvgpu_flcn_mailbox_read(flcn, FALCON_MAILBOX_1));
+		nvgpu_falcon_mailbox_read(flcn, FALCON_MAILBOX_1));
 
-	data = nvgpu_flcn_mailbox_read(flcn, FALCON_MAILBOX_0);
+	data = nvgpu_falcon_mailbox_read(flcn, FALCON_MAILBOX_0);
 	if (data != 0U) {
 		nvgpu_err(g, "flcn-%d: ACR boot failed, err %x", flcn->flcn_id,
 			data);

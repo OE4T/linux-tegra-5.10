@@ -69,7 +69,7 @@ int nvgpu_sec2_queue_init(struct nvgpu_sec2 *sec2, u32 id,
 	queue->oflag = oflag;
 	queue->queue_type = QUEUE_TYPE_EMEM;
 
-	err = nvgpu_flcn_queue_init(sec2->flcn, queue);
+	err = nvgpu_falcon_queue_init(sec2->flcn, queue);
 	if (err != 0) {
 		nvgpu_err(g, "queue-%d init failed", queue->id);
 	}
@@ -180,7 +180,7 @@ int nvgpu_sec2_destroy(struct gk20a *g)
 	nvgpu_mutex_release(&sec2->isr_mutex);
 
 	for (i = 0; i < SEC2_QUEUE_NUM; i++) {
-		nvgpu_flcn_queue_free(sec2->flcn, &sec2->queue[i]);
+		nvgpu_falcon_queue_free(sec2->flcn, &sec2->queue[i]);
 	}
 
 	sec2->sec2_ready = false;

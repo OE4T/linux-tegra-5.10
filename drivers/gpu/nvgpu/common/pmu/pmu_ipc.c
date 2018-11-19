@@ -138,7 +138,7 @@ int nvgpu_pmu_queue_init(struct nvgpu_pmu *pmu,
 	queue->queue_type = QUEUE_TYPE_DMEM;
 	g->ops.pmu_ver.get_pmu_init_msg_pmu_queue_params(queue, id, init);
 
-	err = nvgpu_flcn_queue_init(pmu->flcn, queue);
+	err = nvgpu_falcon_queue_init(pmu->flcn, queue);
 	if (err != 0) {
 		nvgpu_err(g, "queue-%d init failed", queue->id);
 	}
@@ -243,7 +243,7 @@ static int pmu_write_cmd(struct nvgpu_pmu *pmu, struct pmu_cmd *cmd,
 	nvgpu_timeout_init(g, &timeout, timeout_ms, NVGPU_TIMER_CPU_TIMER);
 
 	do {
-		err = nvgpu_flcn_queue_push(pmu->flcn, queue, cmd, cmd->hdr.size);
+		err = nvgpu_falcon_queue_push(pmu->flcn, queue, cmd, cmd->hdr.size);
 		if (err == -EAGAIN && nvgpu_timeout_expired(&timeout) == 0) {
 			nvgpu_usleep_range(1000, 2000);
 		} else {
@@ -279,7 +279,7 @@ static int pmu_cmd_payload_extract_rpc(struct gk20a *g, struct pmu_cmd *cmd,
 		goto clean_up;
 	}
 
-	nvgpu_flcn_copy_to_dmem(pmu->flcn, dmem_alloc_offset,
+	nvgpu_falcon_copy_to_dmem(pmu->flcn, dmem_alloc_offset,
 		payload->rpc.prpc, payload->rpc.size_rpc, 0);
 
 	cmd->cmd.rpc.rpc_dmem_size = payload->rpc.size_rpc;
@@ -354,7 +354,7 @@ static int pmu_cmd_payload_extract(struct gk20a *g, struct pmu_cmd *cmd,
 				payload->in.buf, payload->in.fb_size);
 
 		} else {
-			nvgpu_flcn_copy_to_dmem(pmu->flcn,
+			nvgpu_falcon_copy_to_dmem(pmu->flcn,
 				(pv->pmu_allocation_get_dmem_offset(pmu, in)),
 				payload->in.buf, payload->in.size, 0);
 		}
@@ -537,7 +537,7 @@ static int pmu_response_handle(struct nvgpu_pmu *pmu,
 		}
 		if (pv->pmu_allocation_get_dmem_size(pmu,
 		pv->get_pmu_seq_out_a_ptr(seq)) != 0U) {
-			nvgpu_flcn_copy_from_dmem(pmu->flcn,
+			nvgpu_falcon_copy_from_dmem(pmu->flcn,
 			pv->pmu_allocation_get_dmem_offset(pmu,
 			pv->get_pmu_seq_out_a_ptr(seq)),
 			seq->out_payload,
@@ -637,11 +637,11 @@ static bool pmu_read_message(struct nvgpu_pmu *pmu,
 
 	*status = 0;
 
-	if (nvgpu_flcn_queue_is_empty(pmu->flcn, queue)) {
+	if (nvgpu_falcon_queue_is_empty(pmu->flcn, queue)) {
 		return false;
 	}
 
-	err = nvgpu_flcn_queue_pop(pmu->flcn, queue, &msg->hdr,
+	err = nvgpu_falcon_queue_pop(pmu->flcn, queue, &msg->hdr,
 			PMU_MSG_HDR_SIZE, &bytes_read);
 	if (err != 0 || bytes_read != PMU_MSG_HDR_SIZE) {
 		nvgpu_err(g, "fail to read msg from queue %d", queue->id);
@@ -650,14 +650,14 @@ static bool pmu_read_message(struct nvgpu_pmu *pmu,
 	}
 
 	if (msg->hdr.unit_id == PMU_UNIT_REWIND) {
-		err = nvgpu_flcn_queue_rewind(pmu->flcn, queue);
+		err = nvgpu_falcon_queue_rewind(pmu->flcn, queue);
 		if (err != 0) {
 			nvgpu_err(g, "fail to rewind queue %d", queue->id);
 			*status = err | -EINVAL;
 			goto clean_up;
 		}
 		/* read again after rewind */
-		err = nvgpu_flcn_queue_pop(pmu->flcn, queue, &msg->hdr,
+		err = nvgpu_falcon_queue_pop(pmu->flcn, queue, &msg->hdr,
 				PMU_MSG_HDR_SIZE, &bytes_read);
 		if (err != 0 || bytes_read != PMU_MSG_HDR_SIZE) {
 			nvgpu_err(g,
@@ -676,7 +676,7 @@ static bool pmu_read_message(struct nvgpu_pmu *pmu,
 
 	if (msg->hdr.size > PMU_MSG_HDR_SIZE) {
 		read_size = msg->hdr.size - PMU_MSG_HDR_SIZE;
-		err = nvgpu_flcn_queue_pop(pmu->flcn, queue, &msg->msg,
+		err = nvgpu_falcon_queue_pop(pmu->flcn, queue, &msg->msg,
 			read_size, &bytes_read);
 		if (err != 0 || bytes_read != read_size) {
 			nvgpu_err(g,

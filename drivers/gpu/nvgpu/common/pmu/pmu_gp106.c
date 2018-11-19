@@ -169,7 +169,7 @@ void gp106_pmu_elpg_statistics(struct gk20a *g, u32 pg_engine_id,
 	struct nvgpu_pmu *pmu = &g->pmu;
 	struct pmu_pg_stats_v2 stats;
 
-	nvgpu_flcn_copy_from_dmem(pmu->flcn,
+	nvgpu_falcon_copy_from_dmem(pmu->flcn,
 		pmu->stat_dmem_offset[pg_engine_id],
 		(u8 *)&stats, sizeof(struct pmu_pg_stats_v2), 0);
 
@@ -322,7 +322,7 @@ void gp106_update_lspmu_cmdline_args(struct gk20a *g)
 		g->ops.pmu_ver.config_pmu_cmdline_args_super_surface(pmu);
 	}
 
-	nvgpu_flcn_copy_to_dmem(pmu->flcn, g->acr.pmu_args,
+	nvgpu_falcon_copy_to_dmem(pmu->flcn, g->acr.pmu_args,
 		(u8 *)(g->ops.pmu_ver.get_pmu_cmdline_args_ptr(pmu)),
 		g->ops.pmu_ver.get_pmu_cmdline_args_size(pmu), 0);
 

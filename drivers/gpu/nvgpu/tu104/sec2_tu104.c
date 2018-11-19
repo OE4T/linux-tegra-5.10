@@ -199,7 +199,7 @@ static int tu104_sec2_flcn_bl_bootstrap(struct gk20a *g,
 	data |= (1U << 3U);
 	gk20a_writel(g, psec_falcon_engctl_r(), data);
 
-	return nvgpu_flcn_bl_bootstrap(&g->sec2_flcn, bl_info);
+	return nvgpu_falcon_bl_bootstrap(&g->sec2_flcn, bl_info);
 }
 
 int tu104_sec2_setup_hw_and_bl_bootstrap(struct gk20a *g,
@@ -210,7 +210,7 @@ int tu104_sec2_setup_hw_and_bl_bootstrap(struct gk20a *g,
 
 	nvgpu_log_fn(g, " ");
 
-	nvgpu_flcn_reset(&g->sec2_flcn);
+	nvgpu_falcon_reset(&g->sec2_flcn);
 
 	data = gk20a_readl(g, psec_fbif_ctl_r());
 	data |= psec_fbif_ctl_allow_phys_no_ctx_allow_f();
@@ -314,7 +314,7 @@ void tu104_sec2_enable_irq(struct nvgpu_sec2 *sec2, bool enable)
 	u32 intr_mask;
 	u32 intr_dest;
 
-	nvgpu_flcn_set_irq(&g->sec2_flcn, false, 0x0, 0x0);
+	nvgpu_falcon_set_irq(&g->sec2_flcn, false, 0x0, 0x0);
 
 	if (enable) {
 		/* dest 0=falcon, 1=host; level 0=irq0, 1=irq1 */
@@ -347,7 +347,7 @@ void tu104_sec2_enable_irq(struct nvgpu_sec2 *sec2, bool enable)
 			psec_falcon_irqmset_swgen0_f(1) |
 			psec_falcon_irqmset_swgen1_f(1);
 
-		nvgpu_flcn_set_irq(&g->sec2_flcn, true, intr_mask, intr_dest);
+		nvgpu_falcon_set_irq(&g->sec2_flcn, true, intr_mask, intr_dest);
 	}
 }
 
@@ -395,7 +395,7 @@ void tu104_sec2_isr(struct gk20a *g)
 
 	if ((intr & psec_falcon_irqstat_halt_true_f()) != 0U) {
 		nvgpu_err(g, "sec2 halt intr not implemented");
-		nvgpu_flcn_dump_stats(&g->sec2_flcn);
+		nvgpu_falcon_dump_stats(&g->sec2_flcn);
 	}
 	if ((intr & psec_falcon_irqstat_exterr_true_f()) != 0U) {
 		nvgpu_err(g,
@@ -418,7 +418,7 @@ void tu104_sec2_isr(struct gk20a *g)
 
 	if (recheck) {
 		queue = &sec2->queue[SEC2_NV_MSGQ_LOG_ID];
-		if (!nvgpu_flcn_queue_is_empty(sec2->flcn, queue)) {
+		if (!nvgpu_falcon_queue_is_empty(sec2->flcn, queue)) {
 			gk20a_writel(g, psec_falcon_irqsset_r(),
 				psec_falcon_irqsset_swgen0_set_f());
 		}

@@ -226,7 +226,7 @@ int nvgpu_pmu_load_update(struct gk20a *g)
 		nvgpu_pmu_perfmon_get_samples_rpc(pmu);
 		load = pmu->load;
 	} else {
-		nvgpu_flcn_copy_from_dmem(pmu->flcn, pmu->sample_buffer,
+		nvgpu_falcon_copy_from_dmem(pmu->flcn, pmu->sample_buffer,
 		(u8 *)&load, 2 * 1, 0);
 	}
 

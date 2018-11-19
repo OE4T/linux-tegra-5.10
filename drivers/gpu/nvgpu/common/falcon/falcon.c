@@ -31,7 +31,7 @@
 #define MEM_SCRUBBING_TIMEOUT_MAX 1000
 #define MEM_SCRUBBING_TIMEOUT_DEFAULT 10
 
-int nvgpu_flcn_wait_idle(struct nvgpu_falcon *flcn)
+int nvgpu_falcon_wait_idle(struct nvgpu_falcon *flcn)
 {
 	struct gk20a *g = flcn->g;
 	struct nvgpu_falcon_ops *flcn_ops = &flcn->flcn_ops;
@@ -64,7 +64,7 @@ int nvgpu_flcn_wait_idle(struct nvgpu_falcon *flcn)
 	return 0;
 }
 
-int nvgpu_flcn_mem_scrub_wait(struct nvgpu_falcon *flcn)
+int nvgpu_falcon_mem_scrub_wait(struct nvgpu_falcon *flcn)
 {
 	struct nvgpu_timeout timeout;
 	int status = 0;
@@ -75,7 +75,7 @@ int nvgpu_flcn_mem_scrub_wait(struct nvgpu_falcon *flcn)
 		MEM_SCRUBBING_TIMEOUT_DEFAULT,
 		NVGPU_TIMER_RETRY_TIMER);
 	do {
-		if (nvgpu_flcn_get_mem_scrubbing_status(flcn)) {
+		if (nvgpu_falcon_get_mem_scrubbing_status(flcn)) {
 			goto exit;
 		}
 		nvgpu_udelay(MEM_SCRUBBING_TIMEOUT_DEFAULT);
@@ -89,14 +89,14 @@ exit:
 	return status;
 }
 
-int nvgpu_flcn_reset(struct nvgpu_falcon *flcn)
+int nvgpu_falcon_reset(struct nvgpu_falcon *flcn)
 {
 	int status = 0;
 
 	if (flcn->flcn_ops.reset != NULL) {
 		status = flcn->flcn_ops.reset(flcn);
 		if (status == 0) {
-			status = nvgpu_flcn_mem_scrub_wait(flcn);
+			status = nvgpu_falcon_mem_scrub_wait(flcn);
                 }
 	} else {
 		nvgpu_warn(flcn->g, "Invalid op on falcon 0x%x ",
@@ -107,7 +107,7 @@ int nvgpu_flcn_reset(struct nvgpu_falcon *flcn)
 	return status;
 }
 
-void nvgpu_flcn_set_irq(struct nvgpu_falcon *flcn, bool enable,
+void nvgpu_falcon_set_irq(struct nvgpu_falcon *flcn, bool enable,
 	u32 intr_mask, u32 intr_dest)
 {
 	struct nvgpu_falcon_ops *flcn_ops = &flcn->flcn_ops;
@@ -122,7 +122,7 @@ void nvgpu_flcn_set_irq(struct nvgpu_falcon *flcn, bool enable,
 	}
 }
 
-bool nvgpu_flcn_get_mem_scrubbing_status(struct nvgpu_falcon *flcn)
+bool nvgpu_falcon_get_mem_scrubbing_status(struct nvgpu_falcon *flcn)
 {
 	struct nvgpu_falcon_ops *flcn_ops = &flcn->flcn_ops;
 	bool status = false;
@@ -137,7 +137,7 @@ bool nvgpu_flcn_get_mem_scrubbing_status(struct nvgpu_falcon *flcn)
 	return status;
 }
 
-bool nvgpu_flcn_get_cpu_halted_status(struct nvgpu_falcon *flcn)
+bool nvgpu_falcon_get_cpu_halted_status(struct nvgpu_falcon *flcn)
 {
 	struct nvgpu_falcon_ops *flcn_ops = &flcn->flcn_ops;
 	bool status = false;
@@ -152,7 +152,7 @@ bool nvgpu_flcn_get_cpu_halted_status(struct nvgpu_falcon *flcn)
 	return status;
 }
 
-int nvgpu_flcn_wait_for_halt(struct nvgpu_falcon *flcn, unsigned int timeout)
+int nvgpu_falcon_wait_for_halt(struct nvgpu_falcon *flcn, unsigned int timeout)
 {
 	struct gk20a *g = flcn->g;
 	struct nvgpu_timeout to;
@@ -160,7 +160,7 @@ int nvgpu_flcn_wait_for_halt(struct nvgpu_falcon *flcn, unsigned int timeout)
 
 	nvgpu_timeout_init(g, &to, timeout, NVGPU_TIMER_CPU_TIMER);
 	do {
-		if (nvgpu_flcn_get_cpu_halted_status(flcn)) {
+		if (nvgpu_falcon_get_cpu_halted_status(flcn)) {
 			break;
 		}
 
@@ -174,7 +174,7 @@ int nvgpu_flcn_wait_for_halt(struct nvgpu_falcon *flcn, unsigned int timeout)
 	return status;
 }
 
-int nvgpu_flcn_clear_halt_intr_status(struct nvgpu_falcon *flcn,
+int nvgpu_falcon_clear_halt_intr_status(struct nvgpu_falcon *flcn,
 	unsigned int timeout)
 {
 	struct gk20a *g = flcn->g;
@@ -204,7 +204,7 @@ int nvgpu_flcn_clear_halt_intr_status(struct nvgpu_falcon *flcn,
 	return status;
 }
 
-bool nvgpu_flcn_get_idle_status(struct nvgpu_falcon *flcn)
+bool nvgpu_falcon_get_idle_status(struct nvgpu_falcon *flcn)
 {
 	struct nvgpu_falcon_ops *flcn_ops = &flcn->flcn_ops;
 	bool status = false;
@@ -219,7 +219,7 @@ bool nvgpu_flcn_get_idle_status(struct nvgpu_falcon *flcn)
 	return status;
 }
 
-int nvgpu_flcn_copy_from_emem(struct nvgpu_falcon *flcn,
+int nvgpu_falcon_copy_from_emem(struct nvgpu_falcon *flcn,
 	u32 src, u8 *dst, u32 size, u8 port)
 {
 	struct nvgpu_falcon_engine_dependency_ops *flcn_dops =
@@ -233,7 +233,7 @@ int nvgpu_flcn_copy_from_emem(struct nvgpu_falcon *flcn,
 	return status;
 }
 
-int nvgpu_flcn_copy_to_emem(struct nvgpu_falcon *flcn,
+int nvgpu_falcon_copy_to_emem(struct nvgpu_falcon *flcn,
 	u32 dst, u8 *src, u32 size, u8 port)
 {
 	struct nvgpu_falcon_engine_dependency_ops *flcn_dops =
@@ -247,7 +247,7 @@ int nvgpu_flcn_copy_to_emem(struct nvgpu_falcon *flcn,
 	return status;
 }
 
-int nvgpu_flcn_copy_from_dmem(struct nvgpu_falcon *flcn,
+int nvgpu_falcon_copy_from_dmem(struct nvgpu_falcon *flcn,
 	u32 src, u8 *dst, u32 size, u8 port)
 {
 	struct nvgpu_falcon_ops *flcn_ops = &flcn->flcn_ops;
@@ -255,7 +255,7 @@ int nvgpu_flcn_copy_from_dmem(struct nvgpu_falcon *flcn,
 	return flcn_ops->copy_from_dmem(flcn, src, dst, size, port);
 }
 
-int nvgpu_flcn_copy_to_dmem(struct nvgpu_falcon *flcn,
+int nvgpu_falcon_copy_to_dmem(struct nvgpu_falcon *flcn,
 	u32 dst, u8 *src, u32 size, u8 port)
 {
 	struct nvgpu_falcon_ops *flcn_ops = &flcn->flcn_ops;
@@ -263,7 +263,7 @@ int nvgpu_flcn_copy_to_dmem(struct nvgpu_falcon *flcn,
 	return flcn_ops->copy_to_dmem(flcn, dst, src, size, port);
 }
 
-int nvgpu_flcn_copy_from_imem(struct nvgpu_falcon *flcn,
+int nvgpu_falcon_copy_from_imem(struct nvgpu_falcon *flcn,
 	u32 src, u8 *dst, u32 size, u8 port)
 {
 	struct nvgpu_falcon_ops *flcn_ops = &flcn->flcn_ops;
@@ -279,7 +279,7 @@ int nvgpu_flcn_copy_from_imem(struct nvgpu_falcon *flcn,
 	return status;
 }
 
-int nvgpu_flcn_copy_to_imem(struct nvgpu_falcon *flcn,
+int nvgpu_falcon_copy_to_imem(struct nvgpu_falcon *flcn,
 	u32 dst, u8 *src, u32 size, u8 port, bool sec, u32 tag)
 {
 	struct nvgpu_falcon_ops *flcn_ops = &flcn->flcn_ops;
@@ -296,8 +296,8 @@ int nvgpu_flcn_copy_to_imem(struct nvgpu_falcon *flcn,
 	return status;
 }
 
-static void nvgpu_flcn_print_mem(struct nvgpu_falcon *flcn, u32 src,
-	u32 size, enum flcn_mem_type mem_type)
+static void nvgpu_falcon_print_mem(struct nvgpu_falcon *flcn, u32 src,
+	u32 size, enum falcon_mem_type mem_type)
 {
 	u32 buff[64] = {0};
 	u32 total_block_read = 0;
@@ -317,10 +317,10 @@ static void nvgpu_flcn_print_mem(struct nvgpu_falcon *flcn, u32 src,
 		}
 
 		if (mem_type == MEM_DMEM) {
-			status = nvgpu_flcn_copy_from_dmem(flcn, src,
+			status = nvgpu_falcon_copy_from_dmem(flcn, src,
 				(u8 *)buff, byte_read_count, 0);
 		} else {
-			status = nvgpu_flcn_copy_from_imem(flcn, src,
+			status = nvgpu_falcon_copy_from_imem(flcn, src,
 				(u8 *)buff, byte_read_count, 0);
 		}
 
@@ -340,19 +340,19 @@ static void nvgpu_flcn_print_mem(struct nvgpu_falcon *flcn, u32 src,
 	} while (total_block_read-- != 0U);
 }
 
-void nvgpu_flcn_print_dmem(struct nvgpu_falcon *flcn, u32 src, u32 size)
+void nvgpu_falcon_print_dmem(struct nvgpu_falcon *flcn, u32 src, u32 size)
 {
 	nvgpu_info(flcn->g, " PRINT DMEM ");
-	nvgpu_flcn_print_mem(flcn, src, size, MEM_DMEM);
+	nvgpu_falcon_print_mem(flcn, src, size, MEM_DMEM);
 }
 
-void nvgpu_flcn_print_imem(struct nvgpu_falcon *flcn, u32 src, u32 size)
+void nvgpu_falcon_print_imem(struct nvgpu_falcon *flcn, u32 src, u32 size)
 {
 	nvgpu_info(flcn->g, " PRINT IMEM ");
-	nvgpu_flcn_print_mem(flcn, src, size, MEM_IMEM);
+	nvgpu_falcon_print_mem(flcn, src, size, MEM_IMEM);
 }
 
-int nvgpu_flcn_bootstrap(struct nvgpu_falcon *flcn, u32 boot_vector)
+int nvgpu_falcon_bootstrap(struct nvgpu_falcon *flcn, u32 boot_vector)
 {
 	struct nvgpu_falcon_ops *flcn_ops = &flcn->flcn_ops;
 	int status = -EINVAL;
@@ -367,7 +367,7 @@ int nvgpu_flcn_bootstrap(struct nvgpu_falcon *flcn, u32 boot_vector)
 	return status;
 }
 
-u32 nvgpu_flcn_mailbox_read(struct nvgpu_falcon *flcn, u32 mailbox_index)
+u32 nvgpu_falcon_mailbox_read(struct nvgpu_falcon *flcn, u32 mailbox_index)
 {
 	struct nvgpu_falcon_ops *flcn_ops = &flcn->flcn_ops;
 	u32 data = 0;
@@ -382,7 +382,7 @@ u32 nvgpu_flcn_mailbox_read(struct nvgpu_falcon *flcn, u32 mailbox_index)
 	return data;
 }
 
-void nvgpu_flcn_mailbox_write(struct nvgpu_falcon *flcn, u32 mailbox_index,
+void nvgpu_falcon_mailbox_write(struct nvgpu_falcon *flcn, u32 mailbox_index,
 		u32 data)
 {
 	struct nvgpu_falcon_ops *flcn_ops = &flcn->flcn_ops;
@@ -395,7 +395,7 @@ void nvgpu_flcn_mailbox_write(struct nvgpu_falcon *flcn, u32 mailbox_index,
 	}
 }
 
-void nvgpu_flcn_dump_stats(struct nvgpu_falcon *flcn)
+void nvgpu_falcon_dump_stats(struct nvgpu_falcon *flcn)
 {
 	struct nvgpu_falcon_ops *flcn_ops = &flcn->flcn_ops;
 
@@ -407,7 +407,7 @@ void nvgpu_flcn_dump_stats(struct nvgpu_falcon *flcn)
 	}
 }
 
-int nvgpu_flcn_bl_bootstrap(struct nvgpu_falcon *flcn,
+int nvgpu_falcon_bl_bootstrap(struct nvgpu_falcon *flcn,
 	struct nvgpu_falcon_bl_info *bl_info)
 {
 	struct nvgpu_falcon_ops *flcn_ops = &flcn->flcn_ops;
@@ -425,7 +425,7 @@ int nvgpu_flcn_bl_bootstrap(struct nvgpu_falcon *flcn,
 	return status;
 }
 
-int nvgpu_flcn_sw_init(struct gk20a *g, u32 flcn_id)
+int nvgpu_falcon_sw_init(struct gk20a *g, u32 flcn_id)
 {
 	struct nvgpu_falcon *flcn = NULL;
 	struct gpu_ops *gops = &g->ops;

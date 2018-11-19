@@ -95,7 +95,7 @@
 /*
  * Falcon HWCFG request read types defines
  */
-enum flcn_hwcfg_read {
+enum falcon_hwcfg_read {
 	FALCON_IMEM_SIZE = 0,
 	FALCON_DMEM_SIZE,
 	FALCON_CORE_REV,
@@ -106,7 +106,7 @@ enum flcn_hwcfg_read {
 /*
  * Falcon HWCFG request write types defines
  */
-enum flcn_hwcfg_write {
+enum falcon_hwcfg_write {
 	FALCON_STARTCPU = 0,
 	FALCON_STARTCPU_SECURE,
 	FALCON_BOOTVEC,
@@ -116,12 +116,12 @@ enum flcn_hwcfg_write {
 #define FALCON_MEM_SCRUBBING_TIMEOUT_MAX 1000U
 #define FALCON_MEM_SCRUBBING_TIMEOUT_DEFAULT 10U
 
-enum flcn_dma_dir {
+enum falcon_dma_dir {
 	DMA_TO_FB = 0,
 	DMA_FROM_FB
 };
 
-enum flcn_mem_type {
+enum falcon_mem_type {
 	MEM_DMEM = 0,
 	MEM_IMEM
 };
@@ -158,9 +158,9 @@ struct nvgpu_falcon_dma_info {
 	u32 fb_off;
 	u32 flcn_mem_off;
 	u32 size_in_bytes;
-	enum flcn_dma_dir dir;
+	enum falcon_dma_dir dir;
 	u32 ctx_dma;
-	enum flcn_mem_type flcn_mem;
+	enum falcon_mem_type flcn_mem;
 	u32 is_wait_complete;
 };
 
@@ -280,56 +280,56 @@ struct nvgpu_falcon {
 	struct nvgpu_falcon_engine_dependency_ops flcn_engine_dep_ops;
 };
 
-int nvgpu_flcn_wait_idle(struct nvgpu_falcon *flcn);
-int nvgpu_flcn_wait_for_halt(struct nvgpu_falcon *flcn, unsigned int timeout);
-int nvgpu_flcn_clear_halt_intr_status(struct nvgpu_falcon *flcn,
+int nvgpu_falcon_wait_idle(struct nvgpu_falcon *flcn);
+int nvgpu_falcon_wait_for_halt(struct nvgpu_falcon *flcn, unsigned int timeout);
+int nvgpu_falcon_clear_halt_intr_status(struct nvgpu_falcon *flcn,
 		unsigned int timeout);
-int nvgpu_flcn_reset(struct nvgpu_falcon *flcn);
-void nvgpu_flcn_set_irq(struct nvgpu_falcon *flcn, bool enable,
+int nvgpu_falcon_reset(struct nvgpu_falcon *flcn);
+void nvgpu_falcon_set_irq(struct nvgpu_falcon *flcn, bool enable,
 	u32 intr_mask, u32 intr_dest);
-bool nvgpu_flcn_get_mem_scrubbing_status(struct nvgpu_falcon *flcn);
-int nvgpu_flcn_mem_scrub_wait(struct nvgpu_falcon *flcn);
-bool nvgpu_flcn_get_cpu_halted_status(struct nvgpu_falcon *flcn);
-bool nvgpu_flcn_get_idle_status(struct nvgpu_falcon *flcn);
-int nvgpu_flcn_copy_from_emem(struct nvgpu_falcon *flcn,
+bool nvgpu_falcon_get_mem_scrubbing_status(struct nvgpu_falcon *flcn);
+int nvgpu_falcon_mem_scrub_wait(struct nvgpu_falcon *flcn);
+bool nvgpu_falcon_get_cpu_halted_status(struct nvgpu_falcon *flcn);
+bool nvgpu_falcon_get_idle_status(struct nvgpu_falcon *flcn);
+int nvgpu_falcon_copy_from_emem(struct nvgpu_falcon *flcn,
 	u32 src, u8 *dst, u32 size, u8 port);
-int nvgpu_flcn_copy_to_emem(struct nvgpu_falcon *flcn,
+int nvgpu_falcon_copy_to_emem(struct nvgpu_falcon *flcn,
 	u32 dst, u8 *src, u32 size, u8 port);
-int nvgpu_flcn_copy_from_dmem(struct nvgpu_falcon *flcn,
+int nvgpu_falcon_copy_from_dmem(struct nvgpu_falcon *flcn,
 	u32 src, u8 *dst, u32 size, u8 port);
-int nvgpu_flcn_copy_to_dmem(struct nvgpu_falcon *flcn,
+int nvgpu_falcon_copy_to_dmem(struct nvgpu_falcon *flcn,
 	u32 dst, u8 *src, u32 size, u8 port);
-int nvgpu_flcn_copy_to_imem(struct nvgpu_falcon *flcn,
+int nvgpu_falcon_copy_to_imem(struct nvgpu_falcon *flcn,
 	u32 dst, u8 *src, u32 size, u8 port, bool sec, u32 tag);
-int nvgpu_flcn_copy_from_imem(struct nvgpu_falcon *flcn,
+int nvgpu_falcon_copy_from_imem(struct nvgpu_falcon *flcn,
 	u32 src, u8 *dst, u32 size, u8 port);
-int nvgpu_flcn_dma_copy(struct nvgpu_falcon *flcn,
+int nvgpu_falcon_dma_copy(struct nvgpu_falcon *flcn,
 	struct nvgpu_falcon_dma_info *dma_info);
-u32 nvgpu_flcn_mailbox_read(struct nvgpu_falcon *flcn, u32 mailbox_index);
-void nvgpu_flcn_mailbox_write(struct nvgpu_falcon *flcn, u32 mailbox_index,
+u32 nvgpu_falcon_mailbox_read(struct nvgpu_falcon *flcn, u32 mailbox_index);
+void nvgpu_falcon_mailbox_write(struct nvgpu_falcon *flcn, u32 mailbox_index,
 	u32 data);
-int nvgpu_flcn_bootstrap(struct nvgpu_falcon *flcn, u32 boot_vector);
-void nvgpu_flcn_print_dmem(struct nvgpu_falcon *flcn, u32 src, u32 size);
-void nvgpu_flcn_print_imem(struct nvgpu_falcon *flcn, u32 src, u32 size);
-void nvgpu_flcn_dump_stats(struct nvgpu_falcon *flcn);
-int nvgpu_flcn_bl_bootstrap(struct nvgpu_falcon *flcn,
+int nvgpu_falcon_bootstrap(struct nvgpu_falcon *flcn, u32 boot_vector);
+void nvgpu_falcon_print_dmem(struct nvgpu_falcon *flcn, u32 src, u32 size);
+void nvgpu_falcon_print_imem(struct nvgpu_falcon *flcn, u32 src, u32 size);
+void nvgpu_falcon_dump_stats(struct nvgpu_falcon *flcn);
+int nvgpu_falcon_bl_bootstrap(struct nvgpu_falcon *flcn,
 	struct nvgpu_falcon_bl_info *bl_info);
 
 /* queue public functions */
-int nvgpu_flcn_queue_init(struct nvgpu_falcon *flcn,
+int nvgpu_falcon_queue_init(struct nvgpu_falcon *flcn,
 	struct nvgpu_falcon_queue *queue);
-bool nvgpu_flcn_queue_is_empty(struct nvgpu_falcon *flcn,
+bool nvgpu_falcon_queue_is_empty(struct nvgpu_falcon *flcn,
 	struct nvgpu_falcon_queue *queue);
-int nvgpu_flcn_queue_rewind(struct nvgpu_falcon *flcn,
+int nvgpu_falcon_queue_rewind(struct nvgpu_falcon *flcn,
 	struct nvgpu_falcon_queue *queue);
-int nvgpu_flcn_queue_pop(struct nvgpu_falcon *flcn,
+int nvgpu_falcon_queue_pop(struct nvgpu_falcon *flcn,
 	struct nvgpu_falcon_queue *queue, void *data, u32 size,
 	u32 *bytes_read);
-int nvgpu_flcn_queue_push(struct nvgpu_falcon *flcn,
+int nvgpu_falcon_queue_push(struct nvgpu_falcon *flcn,
 	struct nvgpu_falcon_queue *queue, void *data, u32 size);
-void nvgpu_flcn_queue_free(struct nvgpu_falcon *flcn,
+void nvgpu_falcon_queue_free(struct nvgpu_falcon *flcn,
 	struct nvgpu_falcon_queue *queue);
 
-int nvgpu_flcn_sw_init(struct gk20a *g, u32 flcn_id);
+int nvgpu_falcon_sw_init(struct gk20a *g, u32 flcn_id);
 
 #endif /* NVGPU_FALCON_H */

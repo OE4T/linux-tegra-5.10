@@ -55,7 +55,7 @@ static int pmu_enable_hw(struct nvgpu_pmu *pmu, bool enable)
 				g->blcg_enabled);
 		}
 
-		if (nvgpu_flcn_mem_scrub_wait(pmu->flcn) != 0) {
+		if (nvgpu_falcon_mem_scrub_wait(pmu->flcn) != 0) {
 			/* keep PMU falcon/engine in reset
 			 * if IMEM/DMEM scrubbing fails
 			 */
@@ -90,7 +90,7 @@ static int pmu_enable(struct nvgpu_pmu *pmu, bool enable)
 			goto exit;
 		}
 
-		err = nvgpu_flcn_wait_idle(pmu->flcn);
+		err = nvgpu_falcon_wait_idle(pmu->flcn);
 		if (err != 0) {
 			goto exit;
 		}
@@ -110,7 +110,7 @@ int nvgpu_pmu_reset(struct gk20a *g)
 
 	nvgpu_log_fn(g, " %s ", g->name);
 
-	err = nvgpu_flcn_wait_idle(pmu->flcn);
+	err = nvgpu_falcon_wait_idle(pmu->flcn);
 	if (err != 0) {
 		goto exit;
 	}
@@ -308,7 +308,7 @@ int nvgpu_init_pmu_support(struct gk20a *g)
 
 			if (nvgpu_is_enabled(g, NVGPU_SUPPORT_SEC2_RTOS)) {
 				/* Reset PMU engine */
-				err = nvgpu_flcn_reset(&g->pmu_flcn);
+				err = nvgpu_falcon_reset(&g->pmu_flcn);
 
 				/* Bootstrap PMU from SEC2 RTOS*/
 				err = nvgpu_sec2_bootstrap_ls_falcons(g, &g->sec2,
@@ -322,7 +322,7 @@ int nvgpu_init_pmu_support(struct gk20a *g)
 			 * clear halt interrupt to avoid PMU-RTOS ucode
 			 * hitting breakpoint due to PMU halt
 			 */
-			err = nvgpu_flcn_clear_halt_intr_status(&g->pmu_flcn,
+			err = nvgpu_falcon_clear_halt_intr_status(&g->pmu_flcn,
 				gk20a_get_gr_idle_timeout(g));
 			if (err != 0) {
 				goto exit;
@@ -377,14 +377,14 @@ int nvgpu_pmu_process_init_msg(struct nvgpu_pmu *pmu,
 
 	g->ops.pmu.pmu_msgq_tail(pmu, &tail, QUEUE_GET);
 
-	nvgpu_flcn_copy_from_dmem(pmu->flcn, tail,
+	nvgpu_falcon_copy_from_dmem(pmu->flcn, tail,
 		(u8 *)&msg->hdr, PMU_MSG_HDR_SIZE, 0);
 	if (msg->hdr.unit_id != PMU_UNIT_INIT) {
 		nvgpu_err(g, "expecting init msg");
 		return -EINVAL;
 	}
 
-	nvgpu_flcn_copy_from_dmem(pmu->flcn, tail + PMU_MSG_HDR_SIZE,
+	nvgpu_falcon_copy_from_dmem(pmu->flcn, tail + PMU_MSG_HDR_SIZE,
 		(u8 *)&msg->msg, msg->hdr.size - PMU_MSG_HDR_SIZE, 0);
 
 	if (msg->msg.init.msg_type != PMU_INIT_MSG_TYPE_PMU_INIT) {
@@ -399,7 +399,7 @@ int nvgpu_pmu_process_init_msg(struct nvgpu_pmu *pmu,
 	if (!pmu->gid_info.valid) {
 		u32 *gid_hdr_data = (u32 *)(gid_data.signature);
 
-		nvgpu_flcn_copy_from_dmem(pmu->flcn,
+		nvgpu_falcon_copy_from_dmem(pmu->flcn,
 			pv->get_pmu_init_msg_pmu_sw_mg_off(init),
 			(u8 *)&gid_data,
 			sizeof(struct pmu_sha1_gid_data), 0);
@@ -585,7 +585,7 @@ int nvgpu_pmu_destroy(struct gk20a *g)
 	nvgpu_mutex_release(&pmu->isr_mutex);
 
 	for (i = 0U; i < PMU_QUEUE_COUNT; i++) {
-		nvgpu_flcn_queue_free(pmu->flcn, &pmu->queue[i]);
+		nvgpu_falcon_queue_free(pmu->flcn, &pmu->queue[i]);
 	}
 
 	nvgpu_pmu_state_change(g, PMU_STATE_OFF, false);

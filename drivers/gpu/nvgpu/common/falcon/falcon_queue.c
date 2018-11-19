@@ -26,7 +26,7 @@
 #include <nvgpu/falcon.h>
 
 /* common falcon queue ops */
-static int flcn_queue_head(struct nvgpu_falcon *flcn,
+static int falcon_queue_head(struct nvgpu_falcon *flcn,
 	struct nvgpu_falcon_queue *queue, u32 *head, bool set)
 {
 	int err = -ENOSYS;
@@ -39,7 +39,7 @@ static int flcn_queue_head(struct nvgpu_falcon *flcn,
 	return err;
 }
 
-static int flcn_queue_tail(struct nvgpu_falcon *flcn,
+static int falcon_queue_tail(struct nvgpu_falcon *flcn,
 	struct nvgpu_falcon_queue *queue, u32 *tail, bool set)
 {
 	int err = -ENOSYS;
@@ -52,7 +52,7 @@ static int flcn_queue_tail(struct nvgpu_falcon *flcn,
 	return err;
 }
 
-static bool flcn_queue_has_room(struct nvgpu_falcon *flcn,
+static bool falcon_queue_has_room(struct nvgpu_falcon *flcn,
 	struct nvgpu_falcon_queue *queue, u32 size, bool *need_rewind)
 {
 	u32 q_head = 0;
@@ -97,7 +97,7 @@ exit:
 	return size <= q_free;
 }
 
-static int flcn_queue_rewind(struct nvgpu_falcon *flcn,
+static int falcon_queue_rewind(struct nvgpu_falcon *flcn,
 	struct nvgpu_falcon_queue *queue)
 {
 	struct gk20a *g = flcn->g;
@@ -136,12 +136,12 @@ exit:
 }
 
 /* EMEM-Q specific ops */
-static int flcn_queue_push_emem(struct nvgpu_falcon *flcn,
+static int falcon_queue_push_emem(struct nvgpu_falcon *flcn,
 	struct nvgpu_falcon_queue *queue, void *data, u32 size)
 {
 	int err = 0;
 
-	err = nvgpu_flcn_copy_to_emem(flcn, queue->position, data, size, 0);
+	err = nvgpu_falcon_copy_to_emem(flcn, queue->position, data, size, 0);
 	if (err != 0) {
 		nvgpu_err(flcn->g, "flcn-%d, queue-%d", flcn->flcn_id,
 			queue->id);
@@ -155,7 +155,7 @@ exit:
 	return err;
 }
 
-static int flcn_queue_pop_emem(struct nvgpu_falcon *flcn,
+static int falcon_queue_pop_emem(struct nvgpu_falcon *flcn,
 	struct nvgpu_falcon_queue *queue, void *data, u32 size,
 	u32 *bytes_read)
 {
@@ -187,7 +187,7 @@ static int flcn_queue_pop_emem(struct nvgpu_falcon *flcn,
 		size = used;
 	}
 
-	err = nvgpu_flcn_copy_from_emem(flcn, q_tail, data, size, 0);
+	err = nvgpu_falcon_copy_from_emem(flcn, q_tail, data, size, 0);
 	if (err != 0) {
 		nvgpu_err(g, "flcn-%d, queue-%d", flcn->flcn_id,
 			queue->id);
@@ -203,24 +203,24 @@ exit:
 }
 
 /* assign EMEM queue type specific ops */
-static void flcn_queue_init_emem_queue(struct nvgpu_falcon *flcn,
+static void falcon_queue_init_emem_queue(struct nvgpu_falcon *flcn,
 		struct nvgpu_falcon_queue *queue)
 {
-	queue->head = flcn_queue_head;
-	queue->tail = flcn_queue_tail;
-	queue->has_room = flcn_queue_has_room;
-	queue->rewind = flcn_queue_rewind;
-	queue->push = flcn_queue_push_emem;
-	queue->pop = flcn_queue_pop_emem;
+	queue->head = falcon_queue_head;
+	queue->tail = falcon_queue_tail;
+	queue->has_room = falcon_queue_has_room;
+	queue->rewind = falcon_queue_rewind;
+	queue->push = falcon_queue_push_emem;
+	queue->pop = falcon_queue_pop_emem;
 }
 
 /* DMEM-Q specific ops */
-static int flcn_queue_push_dmem(struct nvgpu_falcon *flcn,
+static int falcon_queue_push_dmem(struct nvgpu_falcon *flcn,
 	struct nvgpu_falcon_queue *queue, void *data, u32 size)
 {
 	int err = 0;
 
-	err = nvgpu_flcn_copy_to_dmem(flcn, queue->position, data, size, 0);
+	err = nvgpu_falcon_copy_to_dmem(flcn, queue->position, data, size, 0);
 	if (err != 0) {
 		nvgpu_err(flcn->g, "flcn-%d, queue-%d", flcn->flcn_id,
 			queue->id);
@@ -234,7 +234,7 @@ exit:
 	return err;
 }
 
-static int flcn_queue_pop_dmem(struct nvgpu_falcon *flcn,
+static int falcon_queue_pop_dmem(struct nvgpu_falcon *flcn,
 	struct nvgpu_falcon_queue *queue, void *data, u32 size,
 	u32 *bytes_read)
 {
@@ -266,7 +266,7 @@ static int flcn_queue_pop_dmem(struct nvgpu_falcon *flcn,
 		size = used;
 	}
 
-	err = nvgpu_flcn_copy_from_dmem(flcn, q_tail, data, size, 0);
+	err = nvgpu_falcon_copy_from_dmem(flcn, q_tail, data, size, 0);
 	if (err != 0) {
 		nvgpu_err(g, "flcn-%d, queue-%d", flcn->flcn_id,
 			queue->id);
@@ -282,18 +282,18 @@ exit:
 }
 
 /* assign DMEM queue type specific ops */
-static void flcn_queue_init_dmem_queue(struct nvgpu_falcon *flcn,
+static void falcon_queue_init_dmem_queue(struct nvgpu_falcon *flcn,
 		struct nvgpu_falcon_queue *queue)
 {
-	queue->head = flcn_queue_head;
-	queue->tail = flcn_queue_tail;
-	queue->has_room = flcn_queue_has_room;
-	queue->push = flcn_queue_push_dmem;
-	queue->pop = flcn_queue_pop_dmem;
-	queue->rewind = flcn_queue_rewind;
+	queue->head = falcon_queue_head;
+	queue->tail = falcon_queue_tail;
+	queue->has_room = falcon_queue_has_room;
+	queue->push = falcon_queue_push_dmem;
+	queue->pop = falcon_queue_pop_dmem;
+	queue->rewind = falcon_queue_rewind;
 }
 
-static int flcn_queue_prepare_write(struct nvgpu_falcon *flcn,
+static int falcon_queue_prepare_write(struct nvgpu_falcon *flcn,
 	struct nvgpu_falcon_queue *queue, u32 size)
 {
 	bool q_rewind = false;
@@ -325,7 +325,7 @@ exit:
 /* queue public functions */
 
 /* queue push operation with lock */
-int nvgpu_flcn_queue_push(struct nvgpu_falcon *flcn,
+int nvgpu_falcon_queue_push(struct nvgpu_falcon *flcn,
 	struct nvgpu_falcon_queue *queue, void *data, u32 size)
 {
 	int err = 0;
@@ -340,7 +340,7 @@ int nvgpu_flcn_queue_push(struct nvgpu_falcon *flcn,
 	/* acquire mutex */
 	nvgpu_mutex_acquire(&queue->mutex);
 
-	err = flcn_queue_prepare_write(flcn, queue, size);
+	err = falcon_queue_prepare_write(flcn, queue, size);
 	if (err != 0) {
 		nvgpu_err(flcn->g, "flcn-%d queue-%d, fail to open",
 			flcn->flcn_id, queue->id);
@@ -367,7 +367,7 @@ exit:
 }
 
 /* queue pop operation with lock */
-int nvgpu_flcn_queue_pop(struct nvgpu_falcon *flcn,
+int nvgpu_falcon_queue_pop(struct nvgpu_falcon *flcn,
 	struct nvgpu_falcon_queue *queue, void *data, u32 size,
 	u32 *bytes_read)
 {
@@ -409,7 +409,7 @@ exit:
 	return err;
 }
 
-int nvgpu_flcn_queue_rewind(struct nvgpu_falcon *flcn,
+int nvgpu_falcon_queue_rewind(struct nvgpu_falcon *flcn,
 	struct nvgpu_falcon_queue *queue)
 {
 	int err = 0;
@@ -428,7 +428,7 @@ int nvgpu_flcn_queue_rewind(struct nvgpu_falcon *flcn,
 }
 
 /* queue is_empty check with lock */
-bool nvgpu_flcn_queue_is_empty(struct nvgpu_falcon *flcn,
+bool nvgpu_falcon_queue_is_empty(struct nvgpu_falcon *flcn,
 	struct nvgpu_falcon_queue *queue)
 {
 	u32 q_head = 0;
@@ -459,7 +459,7 @@ exit:
 	return q_head == q_tail;
 }
 
-void nvgpu_flcn_queue_free(struct nvgpu_falcon *flcn,
+void nvgpu_falcon_queue_free(struct nvgpu_falcon *flcn,
 	struct nvgpu_falcon_queue *queue)
 {
 	nvgpu_log(flcn->g, gpu_dbg_pmu, "flcn id-%d q-id %d: index %d ",
@@ -472,7 +472,7 @@ void nvgpu_flcn_queue_free(struct nvgpu_falcon *flcn,
 	(void) memset(queue, 0, sizeof(struct nvgpu_falcon_queue));
 }
 
-int nvgpu_flcn_queue_init(struct nvgpu_falcon *flcn,
+int nvgpu_falcon_queue_init(struct nvgpu_falcon *flcn,
 	struct nvgpu_falcon_queue *queue)
 {
 	struct gk20a *g = flcn->g;
@@ -485,10 +485,10 @@ int nvgpu_flcn_queue_init(struct nvgpu_falcon *flcn,
 
 	switch (queue->queue_type) {
 	case QUEUE_TYPE_DMEM:
-		flcn_queue_init_dmem_queue(flcn, queue);
+		falcon_queue_init_dmem_queue(flcn, queue);
 		break;
 	case QUEUE_TYPE_EMEM:
-		flcn_queue_init_emem_queue(flcn, queue);
+		falcon_queue_init_emem_queue(flcn, queue);
 		break;
 	default:
 		err = -EINVAL;

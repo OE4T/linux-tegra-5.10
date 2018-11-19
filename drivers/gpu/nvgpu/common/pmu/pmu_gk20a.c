@@ -158,7 +158,7 @@ void gk20a_pmu_enable_irq(struct nvgpu_pmu *pmu, bool enable)
 	g->ops.mc.intr_unit_config(g, MC_INTR_UNIT_DISABLE, false,
 			mc_intr_mask_1_pmu_enabled_f());
 
-	nvgpu_flcn_set_irq(pmu->flcn, false, 0x0, 0x0);
+	nvgpu_falcon_set_irq(pmu->flcn, false, 0x0, 0x0);
 
 	if (enable) {
 		intr_dest = g->ops.pmu.get_irqdest(g);
@@ -172,7 +172,7 @@ void gk20a_pmu_enable_irq(struct nvgpu_pmu *pmu, bool enable)
 			pwr_falcon_irqmset_swgen0_f(1) |
 			pwr_falcon_irqmset_swgen1_f(1);
 
-		nvgpu_flcn_set_irq(pmu->flcn, true, intr_mask, intr_dest);
+		nvgpu_falcon_set_irq(pmu->flcn, true, intr_mask, intr_dest);
 
 		g->ops.mc.intr_unit_config(g, MC_INTR_UNIT_ENABLE, true,
 				mc_intr_mask_0_pmu_enabled_f());
@@ -217,7 +217,7 @@ int pmu_bootstrap(struct nvgpu_pmu *pmu)
 			<< GK20A_PMU_DMEM_BLKSIZE2) -
 		g->ops.pmu_ver.get_pmu_cmdline_args_size(pmu);
 
-	nvgpu_flcn_copy_to_dmem(pmu->flcn, addr_args,
+	nvgpu_falcon_copy_to_dmem(pmu->flcn, addr_args,
 			(u8 *)(g->ops.pmu_ver.get_pmu_cmdline_args_ptr(pmu)),
 			g->ops.pmu_ver.get_pmu_cmdline_args_size(pmu), 0);
 
@@ -263,7 +263,7 @@ int pmu_bootstrap(struct nvgpu_pmu *pmu)
 			pwr_falcon_dmatrfcmd_ctxdma_f(GK20A_PMU_DMAIDX_UCODE));
 	}
 
-	nvgpu_flcn_bootstrap(g->pmu.flcn, desc->bootloader_entry_point);
+	nvgpu_falcon_bootstrap(g->pmu.flcn, desc->bootloader_entry_point);
 
 	gk20a_writel(g, pwr_falcon_os_r(), desc->app_version);
 
@@ -743,7 +743,7 @@ void gk20a_pmu_isr(struct gk20a *g)
 
 	if (recheck) {
 		queue = &pmu->queue[PMU_MESSAGE_QUEUE];
-		if (!nvgpu_flcn_queue_is_empty(pmu->flcn, queue)) {
+		if (!nvgpu_falcon_queue_is_empty(pmu->flcn, queue)) {
 			gk20a_writel(g, pwr_falcon_irqsset_r(),
 				pwr_falcon_irqsset_swgen0_set_f());
 		}
@@ -819,7 +819,7 @@ void gk20a_pmu_elpg_statistics(struct gk20a *g, u32 pg_engine_id,
 	struct nvgpu_pmu *pmu = &g->pmu;
 	struct pmu_pg_stats stats;
 
-	nvgpu_flcn_copy_from_dmem(pmu->flcn,
+	nvgpu_falcon_copy_from_dmem(pmu->flcn,
 		pmu->stat_dmem_offset[pg_engine_id],
 		(u8 *)&stats, sizeof(struct pmu_pg_stats), 0);
 

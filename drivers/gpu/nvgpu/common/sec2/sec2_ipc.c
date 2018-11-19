@@ -125,7 +125,7 @@ static int sec2_write_cmd(struct nvgpu_sec2 *sec2,
 	nvgpu_timeout_init(g, &timeout, timeout_ms, NVGPU_TIMER_CPU_TIMER);
 
 	do {
-		err = nvgpu_flcn_queue_push(&g->sec2_flcn, queue, cmd,
+		err = nvgpu_falcon_queue_push(&g->sec2_flcn, queue, cmd,
 				cmd->hdr.size);
 		if ((err == -EAGAIN) && (nvgpu_timeout_expired(&timeout) == 0)) {
 			nvgpu_usleep_range(1000U, 2000U);
@@ -249,11 +249,11 @@ static bool sec2_read_message(struct nvgpu_sec2 *sec2,
 
 	*status = 0U;
 
-	if (nvgpu_flcn_queue_is_empty(sec2->flcn, queue)) {
+	if (nvgpu_falcon_queue_is_empty(sec2->flcn, queue)) {
 		return false;
 	}
 
-	err = nvgpu_flcn_queue_pop(sec2->flcn, queue, &msg->hdr,
+	err = nvgpu_falcon_queue_pop(sec2->flcn, queue, &msg->hdr,
 			PMU_MSG_HDR_SIZE, &bytes_read);
 	if ((err != 0) || (bytes_read != PMU_MSG_HDR_SIZE)) {
 		nvgpu_err(g, "fail to read msg from queue %d", queue->id);
@@ -262,7 +262,7 @@ static bool sec2_read_message(struct nvgpu_sec2 *sec2,
 	}
 
 	if (msg->hdr.unit_id == NV_SEC2_UNIT_REWIND) {
-		err = nvgpu_flcn_queue_rewind(sec2->flcn, queue);
+		err = nvgpu_falcon_queue_rewind(sec2->flcn, queue);
 		if (err != 0) {
 			nvgpu_err(g, "fail to rewind queue %d", queue->id);
 			*status = err | -EINVAL;
@@ -270,7 +270,7 @@ static bool sec2_read_message(struct nvgpu_sec2 *sec2,
 		}
 
 		/* read again after rewind */
-		err = nvgpu_flcn_queue_pop(sec2->flcn, queue, &msg->hdr,
+		err = nvgpu_falcon_queue_pop(sec2->flcn, queue, &msg->hdr,
 				PMU_MSG_HDR_SIZE, &bytes_read);
 		if ((err != 0) || (bytes_read != PMU_MSG_HDR_SIZE)) {
 			nvgpu_err(g,
@@ -289,7 +289,7 @@ static bool sec2_read_message(struct nvgpu_sec2 *sec2,
 
 	if (msg->hdr.size > PMU_MSG_HDR_SIZE) {
 		read_size = msg->hdr.size - PMU_MSG_HDR_SIZE;
-		err = nvgpu_flcn_queue_pop(sec2->flcn, queue, &msg->msg,
+		err = nvgpu_falcon_queue_pop(sec2->flcn, queue, &msg->msg,
 			read_size, &bytes_read);
 		if ((err != 0) || (bytes_read != read_size)) {
 			nvgpu_err(g,
@@ -315,7 +315,7 @@ static int sec2_process_init_msg(struct nvgpu_sec2 *sec2,
 
 	g->ops.sec2.msgq_tail(g, sec2, &tail, QUEUE_GET);
 
-	err = nvgpu_flcn_copy_from_emem(sec2->flcn, tail,
+	err = nvgpu_falcon_copy_from_emem(sec2->flcn, tail,
 		(u8 *)&msg->hdr, PMU_MSG_HDR_SIZE, 0U);
 	if (err != 0) {
 		goto exit;
@@ -327,7 +327,7 @@ static int sec2_process_init_msg(struct nvgpu_sec2 *sec2,
 		goto exit;
 	}
 
-	err = nvgpu_flcn_copy_from_emem(sec2->flcn, tail + PMU_MSG_HDR_SIZE,
+	err = nvgpu_falcon_copy_from_emem(sec2->flcn, tail + PMU_MSG_HDR_SIZE,
 		(u8 *)&msg->msg, msg->hdr.size - PMU_MSG_HDR_SIZE, 0U);
 	if (err != 0) {
 		goto exit;
