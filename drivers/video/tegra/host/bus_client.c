@@ -40,7 +40,7 @@
 #include <linux/string.h>
 
 #include <linux/nvhost.h>
-#include <linux/nvhost_ioctl.h>
+#include <uapi/linux/nvhost_ioctl.h>
 #include <linux/nospec.h>
 
 #ifdef CONFIG_EVENTLIB

@@ -19,11 +19,11 @@
  * 51 Franklin St - Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#ifndef __LINUX_NVHOST_ISP_IOCTL_H
-#define __LINUX_NVHOST_ISP_IOCTL_H
+#ifndef __UAPI_LINUX_NVHOST_ISP_IOCTL_H
+#define __UAPI_LINUX_NVHOST_ISP_IOCTL_H
 
-#include <linux/ioctl.h>
-#include <linux/types.h>
+#include <uapi/linux/ioctl.h>
+#include <uapi/linux/types.h>
 
 #define ISP_SOFT_ISO_CLIENT 0
 #define ISP_HARD_ISO_CLIENT 1

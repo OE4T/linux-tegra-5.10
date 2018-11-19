@@ -18,11 +18,11 @@
  * this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __LINUX_NVHOST_NVDLA_IOCTL_H
-#define __LINUX_NVHOST_NVDLA_IOCTL_H
+#ifndef __UAPI_LINUX_NVHOST_NVDLA_IOCTL_H
+#define __UAPI_LINUX_NVHOST_NVDLA_IOCTL_H
 
-#include <linux/ioctl.h>
-#include <linux/types.h>
+#include <uapi/linux/ioctl.h>
+#include <uapi/linux/types.h>
 
 #if !defined(__KERNEL__)
 #define __user
@@ -230,4 +230,4 @@ struct nvdla_status_notify {
 #define NVDLA_IOCTL_MAX_ARG_SIZE  \
 		sizeof(struct nvdla_pin_unpin_args)
 
-#endif /* __LINUX_NVHOST_NVDLA_IOCTL_H */
+#endif /* __UAPI_LINUX_NVHOST_NVDLA_IOCTL_H */

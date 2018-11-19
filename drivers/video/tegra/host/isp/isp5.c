@@ -46,7 +46,7 @@
 #include "nvhost_acm.h"
 #include "nvhost_syncpt_unit_interface.h"
 #include "t194/t194.h"
-#include <linux/nvhost_isp_ioctl.h>
+#include <uapi/linux/nvhost_isp_ioctl.h>
 
 #define ISP_PPC		2
 /* 20% overhead */

@@ -49,7 +49,7 @@
 #include <media/mc_common.h>
 #include <media/tegra_camera_platform.h>
 #include "camera/vi/vi5_fops.h"
-#include <linux/nvhost_vi_ioctl.h>
+#include <uapi/linux/nvhost_vi_ioctl.h>
 #include <linux/platform/tegra/latency_allowance.h>
 
 /* HW capability, pixels per clock */

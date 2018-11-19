@@ -19,7 +19,7 @@
 #include <linux/delay.h>
 #include <linux/module.h>
 #include <linux/nvhost.h>
-#include <linux/nvhost_vi_ioctl.h>
+#include <uapi/linux/nvhost_vi_ioctl.h>
 #include <linux/platform_device.h>
 #include <linux/regulator/consumer.h>
 #include <linux/uaccess.h>

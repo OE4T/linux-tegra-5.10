@@ -44,7 +44,7 @@
 #include <trace/events/nvhost.h>
 
 #include <linux/nvhost.h>
-#include <linux/nvhost_ioctl.h>
+#include <uapi/linux/nvhost_ioctl.h>
 
 #include "debug.h"
 #include "bus_client.h"

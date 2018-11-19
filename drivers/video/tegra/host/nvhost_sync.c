@@ -26,7 +26,7 @@
 #include <linux/version.h>
 #include <linux/nospec.h>
 
-#include <linux/nvhost_ioctl.h>
+#include <uapi/linux/nvhost_ioctl.h>
 
 #include "nvhost_sync.h"
 #include "nvhost_syncpt.h"

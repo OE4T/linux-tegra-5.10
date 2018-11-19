@@ -41,7 +41,7 @@
 
 #include "nvdla/nvdla.h"
 #include "nvdla/nvdla_debug.h"
-#include <linux/nvhost_nvdla_ioctl.h>
+#include <uapi/linux/nvhost_nvdla_ioctl.h>
 #include "dla_fw_version.h"
 #include "dla_os_interface.h"
 

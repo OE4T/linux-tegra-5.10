@@ -17,7 +17,7 @@
  */
 
 #include "nvcsi-t194.h"
-#include <linux/nvhost_nvcsi_ioctl.h>
+#include <uapi/linux/nvhost_nvcsi_ioctl.h>
 #include <linux/tegra-camera-rtcpu.h>
 
 #include <asm/ioctls.h>
