@@ -53,6 +53,8 @@
 #include "nvhost_job.h"
 #include "vhost/vhost.h"
 
+#include "../syncpt_fd.h"
+
 #ifdef CONFIG_TEGRA_GRHOST_SYNC
 #include "nvhost_sync.h"
 #endif
@@ -647,6 +649,9 @@ static long nvhost_ctrlctl(struct file *filp,
 		break;
 	case NVHOST_IOCTL_CTRL_POLL_FD_TRIGGER_EVENT:
 		err = nvhost_ioctl_ctrl_poll_fd_trigger_event(priv, (void *)buf);
+		break;
+	case NVHOST_IOCTL_CTRL_ALLOC_SYNCPT:
+		err = nvhost_syncpt_fd_alloc(priv->dev, (void *)buf);
 		break;
 	default:
 		nvhost_err(&priv->dev->dev->dev, "invalid cmd 0x%x", cmd);

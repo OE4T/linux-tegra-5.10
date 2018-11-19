@@ -18,7 +18,8 @@ nvhost-objs = \
 	debug.o \
 	bus_client.o \
 	chip_support.o \
-	nvhost_vm.o
+	nvhost_vm.o \
+	syncpt_fd.o
 
 obj-$(CONFIG_TEGRA_GRHOST_LEGACY_PD) += nvhost_pd.o
 obj-$(CONFIG_TEGRA_GRHOST) += nvhost.o
