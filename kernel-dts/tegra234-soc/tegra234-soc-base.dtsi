@@ -27,8 +27,6 @@
 #include "dt-bindings/soc/tegra234-powergate.h"
 #include <dt-bindings/interrupt-controller/irq.h>
 #include <dt-bindings/gpio/tegra194-gpio.h>
-#include <dt-bindings/memory/tegra-swgroup.h>
-#include <dt-bindings/memory/tegra194-swgroup.h>
 #include "dt-bindings/soc/tegra194-powergate.h"
 #include <dt-bindings/pinctrl/pinctrl-tegra.h>
 /* Minimal.dtsi is to be included first as subsequent headers can

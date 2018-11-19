@@ -11,6 +11,7 @@
  * more details.
  *
  */
+#include <dt-bindings/memory/tegra234-smmu-streamid.h>
 
 / {
 	reserved-memory {
@@ -125,7 +126,7 @@
 	};
 
 	mc_sid@2c00000 {
-		compatible = "nvidia,tegra194-mc-sid";
+		compatible = "nvidia,tegra234-mc-sid";
 		reg = <0x0 0x02c00000 0x0 0x00010000>; /* MC_SID_BASE */
 		status = "disabled";
 	};
@@ -305,8 +306,8 @@
 			};
 			ape_domain {
 				address-space = <&ape_as>;
-				sid-list = <TEGRA_SID(APE)
-					    TEGRA_SID(EQOS)>;
+				sid-list = <TEGRA_SID_APE
+					    TEGRA_SID_EQOS>;
 			};
 			bpmp_domain {
 				address-space = <&common_as>;
@@ -322,20 +323,20 @@
 			};
 			host1x_domain {
 				address-space = <&host1x_as>;
-				sid-list = <TEGRA_SID(HC)>;
+				sid-list = <TEGRA_SID_HC>;
 			};
 			host1x_client_domain {
 				address-space = <&host1x_client_as>;
-				sid-list = <TEGRA_SID(VIC)
-					    TEGRA_SID(NVDEC)
-					    TEGRA_SID(NVENC)
-					    TEGRA_SID(NVJPG)
-					    TEGRA_SID(NVDLA0)
-					    TEGRA_SID(NVDLA1)
-					    TEGRA_SID(NVENC1)
-					    TEGRA_SID(NVDEC1)
-					    TEGRA_SID(TSEC)
-					    TEGRA_SID(TSECB)>;
+				sid-list = <TEGRA_SID_VIC
+					    TEGRA_SID_NVDEC
+					    TEGRA_SID_NVENC
+					    TEGRA_SID_NVJPG
+					    TEGRA_SID_NVDLA0
+					    TEGRA_SID_NVDLA1
+					    TEGRA_SID_NVENC1
+					    TEGRA_SID_NVDEC1
+					    TEGRA_SID_TSEC
+					    TEGRA_SID_TSECB>;
 			};
 			host1x0_domain {
 				address-space = <&host1x_client_as>;
@@ -371,11 +372,11 @@
 			};
 			isp_domain {
 				address-space = <&common_as>;
-				sid-list = <TEGRA_SID(ISP)>;
+				sid-list = <TEGRA_SID_ISP>;
 			};
 			nvdisplay_domain {
 				address-space = <&nvdisplay_as>;
-				sid-list = <TEGRA_SID(NVDISPLAY)>;
+				sid-list = <TEGRA_SID_NVDISPLAY>;
 			};
 			pcie0_domain {
 				address-space = <&pcie0_as>;
@@ -403,11 +404,11 @@
 			};
 			pva0_domain {
 				address-space = <&pva_as>;
-				sid-list = <TEGRA_SID(PVA0)>;
+				sid-list = <TEGRA_SID_PVA0>;
 			};
 			pva1_domain {
 				address-space = <&pva_as>;
-				sid-list = <TEGRA_SID(PVA1)>;
+				sid-list = <TEGRA_SID_PVA1>;
 			};
 			sce_domain {
 				address-space = <&common_as>;
@@ -415,7 +416,7 @@
 			};
 			rce_domain {
 				address-space = <&camera_vm1_as>;
-				sid-list = <TEGRA_SID(RCE)>;
+				sid-list = <TEGRA_SID_RCE>;
 			};
 			sdmmc1a_domain {
 				address-space = <&common_as>;
@@ -427,9 +428,9 @@
 			};
 			se_domain {
 				address-space = <&se_client_as>;
-				sid-list = <TEGRA_SID(SE)
-					    TEGRA_SID(SE1)
-					    TEGRA_SID(SE2)>;
+				sid-list = <TEGRA_SID_SE
+					    TEGRA_SID_SE1
+					    TEGRA_SID_SE2>;
 			};
 			smmu_test_domain {
 				address-space = <&common_as>;
@@ -441,7 +442,7 @@
 			};
 			vi_domain {
 				address-space = <&common_as>;
-				sid-list = <TEGRA_SID(VI)>;
+				sid-list = <TEGRA_SID_VI>;
 			};
 			xusb_dev_domain {
 				address-space = <&common_as>;
