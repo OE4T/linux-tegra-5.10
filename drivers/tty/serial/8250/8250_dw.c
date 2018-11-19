@@ -371,6 +371,8 @@ static void dw8250_quirks(struct uart_port *p, struct dw8250_data *data)
 		p->regshift = 2;
 		p->serial_in = dw8250_serial_in32;
 		data->uart_16550_compatible = true;
+	} else if (acpi_dev_present("NVDA0100", NULL, -1)) {
+		data->skip_autocfg = true;
 	}
 
 	/* Platforms with iDMA 64-bit */
@@ -653,6 +655,7 @@ static const struct acpi_device_id dw8250_acpi_match[] = {
 	{ "AMDI0020", 0 },
 	{ "BRCM2032", 0 },
 	{ "HISI0031", 0 },
+	{ "NVDA0100", 0 },
 	{ },
 };
 MODULE_DEVICE_TABLE(acpi, dw8250_acpi_match);
