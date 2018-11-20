@@ -28,3 +28,28 @@ subdir-y += synaptics
 subdir-y += ti
 subdir-y += xilinx
 subdir-y += zte
+
+# NVIDIA downstream .dtb build
+tegra-dtstree := $(srctree)/../../hardware/nvidia
+
+DTC_INCLUDE += $(srctree)/arch/arm64/boot/dts/nvidia
+DTC_INCLUDE += $(tegra-dtstree)/soc/tegra/kernel-include
+DTC_INCLUDE += $(tegra-dtstree)/platform/tegra/common/kernel-dts
+
+DTC_INCLUDE += $(tegra-dtstree)/soc/t210/kernel-dts
+DTC_INCLUDE += $(tegra-dtstree)/platform/t210/common/kernel-dts
+DTC_INCLUDE += $(tegra-dtstree)/platform/t210b01/common/kernel-dts
+
+DTC_INCLUDE += $(tegra-dtstree)/soc/t18x/kernel-include
+DTC_INCLUDE += $(tegra-dtstree)/soc/t18x/kernel-dts
+DTC_INCLUDE += $(tegra-dtstree)/platform/t18x/common/kernel-dts
+
+DTC_INCLUDE += $(tegra-dtstree)/soc/t19x/kernel-include
+DTC_INCLUDE += $(tegra-dtstree)/soc/t19x/kernel-dts
+DTC_INCLUDE += $(tegra-dtstree)/platform/t19x/common/kernel-dts
+
+DTC_CPP_FLAGS += -DLINUX_VERSION=419
+
+dtb-$(CONFIG_ARCH_TEGRA_194_SOC) += nvidia/tegra194-p2888-0001-p2822-0000.dtb
+dtb-$(CONFIG_ARCH_TEGRA_186_SOC) += nvidia/tegra186-quill-p3310-1000-c03-00-base.dtb
+dtb-$(CONFIG_ARCH_TEGRA_186_SOC) += nvidia/tegra186-quill-p3310-1000-a00-00-base.dtb
