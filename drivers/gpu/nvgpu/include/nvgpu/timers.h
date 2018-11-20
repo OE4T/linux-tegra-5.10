@@ -74,8 +74,8 @@ struct nvgpu_timeout {
 /*
  * Bits 1 through 7 are reserved; bits 8 and up are flags:
  */
-#define NVGPU_TIMER_NO_PRE_SI		(0x1 << 8)
-#define NVGPU_TIMER_SILENT_TIMEOUT	(0x1 << 9)
+#define NVGPU_TIMER_NO_PRE_SI		BIT32(8)
+#define NVGPU_TIMER_SILENT_TIMEOUT	BIT32(9)
 
 #define NVGPU_TIMER_FLAG_MASK		(NVGPU_TIMER_RETRY_TIMER |	\
 					 NVGPU_TIMER_NO_PRE_SI |	\
