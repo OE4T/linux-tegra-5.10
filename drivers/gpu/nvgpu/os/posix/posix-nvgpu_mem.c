@@ -28,6 +28,7 @@
 #include <nvgpu/nvgpu_sgt.h>
 #include <nvgpu/nvgpu_sgt_os.h>
 #include <nvgpu/gk20a.h>
+#include <os/posix/os_posix.h>
 
 #define DMA_ERROR_CODE	(~(u64)0x0)
 
@@ -96,7 +97,9 @@ static u64 nvgpu_mem_sgl_gpu_addr(struct gk20a *g, struct nvgpu_sgl *sgl,
 
 static bool nvgpu_mem_sgt_iommuable(struct gk20a *g, struct nvgpu_sgt *sgt)
 {
-	return nvgpu_iommuable(g);
+	struct nvgpu_os_posix *p = nvgpu_os_posix_from_gk20a(g);
+
+	return p->mm_sgt_is_iommuable;
 }
 
 static void nvgpu_mem_sgt_free(struct gk20a *g, struct nvgpu_sgt *sgt)

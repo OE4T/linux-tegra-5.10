@@ -53,6 +53,7 @@ struct nvgpu_os_posix {
 	 * Parameters to change the behavior of MM-related functions
 	 */
 	bool mm_is_iommuable;
+	bool mm_sgt_is_iommuable;
 };
 
 static inline struct nvgpu_os_posix *nvgpu_os_posix_from_gk20a(struct gk20a *g)
