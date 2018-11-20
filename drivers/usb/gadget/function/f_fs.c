@@ -199,6 +199,7 @@ struct ffs_epfile {
 	unsigned char			isoc;	/* P: ffs->eps_lock */
 
 	unsigned char			_pad;
+	bool				reset;
 };
 
 struct ffs_buffer {
@@ -949,6 +950,9 @@ static ssize_t ffs_epfile_io(struct file *file, struct ffs_io_data *io_data)
 	if (WARN_ON(epfile->ffs->state != FFS_ACTIVE))
 		return -ENODEV;
 
+	if (epfile->reset)
+		return -ESHUTDOWN;
+
 	/* Wait for endpoint to be enabled */
 	ep = epfile->ep;
 	if (!ep) {
@@ -1272,6 +1276,8 @@ ffs_epfile_release(struct inode *inode, struct file *file)
 	__ffs_epfile_read_buffer_free(epfile);
 	ffs_data_closed(epfile->ffs);
 
+	epfile->reset = false;
+
 	return 0;
 }
 
@@ -1286,6 +1292,9 @@ static long ffs_epfile_ioctl(struct file *file, unsigned code,
 
 	if (WARN_ON(epfile->ffs->state != FFS_ACTIVE))
 		return -ENODEV;
+
+	if (epfile->reset)
+		return -ESHUTDOWN;
 
 	/* Wait for endpoint to be enabled */
 	ep = epfile->ep;
@@ -1931,6 +1940,7 @@ static void ffs_func_eps_disable(struct ffs_function *func)
 		++ep;
 
 		if (epfile) {
+			epfile->reset = true;
 			epfile->ep = NULL;
 			__ffs_epfile_read_buffer_free(epfile);
 			++epfile;
