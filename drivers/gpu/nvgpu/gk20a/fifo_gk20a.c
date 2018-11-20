@@ -967,7 +967,11 @@ int gk20a_init_fifo_setup_sw(struct gk20a *g)
 				   (size_t)f->num_channels,
 				   &f->userd);
 	} else {
-		err = nvgpu_dma_alloc_sys(g, (size_t)f->userd_entry_size *
+		u32 flags = nvgpu_is_enabled(g, NVGPU_MM_USE_PHYSICAL_SG) ?
+	                NVGPU_DMA_FORCE_CONTIGUOUS : 0U;
+
+		err = nvgpu_dma_alloc_flags_sys(g, flags,
+				(size_t)f->userd_entry_size *
 				(size_t)f->num_channels, &f->userd);
 	}
 	if (err != 0) {
