@@ -3,6 +3,7 @@ __bug
 __nvgpu_get_pte
 __nvgpu_kfree
 __nvgpu_kmalloc
+__nvgpu_kzalloc
 __nvgpu_log_dbg
 __nvgpu_posix_ffs
 __nvgpu_posix_fls
@@ -95,7 +96,15 @@ nvgpu_readl
 nvgpu_runlist_construct_locked
 nvgpu_rwsem_init
 nvgpu_sgt_create_from_mem
+nvgpu_sgt_alignment
 nvgpu_sgt_free
+nvgpu_sgt_get_dma
+nvgpu_sgt_get_gpu_addr
+nvgpu_sgt_get_ipa
+nvgpu_sgt_get_next
+nvgpu_sgt_get_phys
+nvgpu_sgt_iommuable
+nvgpu_sgt_ipa_to_pa
 nvgpu_usermode_writel
 nvgpu_vm_init
 nvgpu_vm_put
