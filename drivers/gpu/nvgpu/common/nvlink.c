@@ -249,6 +249,9 @@ static int nvgpu_nvlink_set_link_mode(struct nvlink_device *ndev, u32 mode)
 	case NVLINK_LINK_DISABLE_PM:
 		mode_sw = nvgpu_nvlink_link_disable_pm;
 		break;
+	case NVLINK_LINK_DISABLE_ERR_DETECT:
+		mode_sw = nvgpu_nvlink_link_disable_err_detect;
+		break;
 	case NVLINK_LINK_LANE_DISABLE:
 		mode_sw = nvgpu_nvlink_link_lane_disable;
 		break;
