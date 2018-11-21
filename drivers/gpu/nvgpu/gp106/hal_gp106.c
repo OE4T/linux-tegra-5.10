@@ -687,6 +687,7 @@ static const struct gpu_ops gp106_ops = {
 		.remove_bar2_vm = gp10b_remove_bar2_vm,
 		.get_kind_invalid = gm20b_get_kind_invalid,
 		.get_kind_pitch = gm20b_get_kind_pitch,
+		.bar1_map = gk20a_mm_bar1_map,
 	},
 	.pramin = {
 		.data032_r = pram_data032_r,

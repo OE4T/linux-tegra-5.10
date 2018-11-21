@@ -579,6 +579,7 @@ static const struct gpu_ops gm20b_ops = {
 		.mmu_fault_pending = gk20a_fifo_mmu_fault_pending,
 		.get_kind_invalid = gm20b_get_kind_invalid,
 		.get_kind_pitch = gm20b_get_kind_pitch,
+		.bar1_map = gk20a_mm_bar1_map,
 	},
 	.therm = {
 		.init_therm_setup_hw = gm20b_init_therm_setup_hw,

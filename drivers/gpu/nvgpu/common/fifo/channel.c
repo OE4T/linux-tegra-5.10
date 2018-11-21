@@ -419,8 +419,7 @@ static void gk20a_free_channel(struct channel_gk20a *ch, bool force)
 
 	if (ch->usermode_submit_enabled) {
 		gk20a_channel_free_usermode_buffers(ch);
-		ch->userd_iova = nvgpu_mem_get_addr(g, &f->userd) +
-				U64(ch->chid) * U64(f->userd_entry_size);
+		(void) gk20a_fifo_init_userd(g, ch);
 		ch->usermode_submit_enabled = false;
 	}
 
@@ -709,12 +708,14 @@ struct channel_gk20a *gk20a_open_new_channel(struct gk20a *g,
 	ch->pid = tid;
 	ch->tgid = pid;  /* process granularity for FECS traces */
 
+	if (gk20a_fifo_init_userd(g, ch) != 0) {
+		nvgpu_err(g, "userd init failed");
+		goto clean_up;
+	}
+
 	if (g->ops.fifo.alloc_inst(g, ch) != 0) {
-		ch->g = NULL;
-		free_channel(f, ch);
-		nvgpu_err(g,
-			   "failed to open gk20a channel, out of inst mem");
-		return NULL;
+		nvgpu_err(g, "inst allocation failed");
+		goto clean_up;
 	}
 
 	/* now the channel is in a limbo out of the free list but not marked as
@@ -760,6 +761,11 @@ struct channel_gk20a *gk20a_open_new_channel(struct gk20a *g,
 	nvgpu_smp_wmb();
 
 	return ch;
+
+clean_up:
+	ch->g = NULL;
+	free_channel(f, ch);
+	return NULL;
 }
 
 /* allocate private cmd buffer.
@@ -1313,8 +1319,7 @@ clean_up_unmap:
 	nvgpu_dma_unmap_free(ch_vm, &c->gpfifo.mem);
 	if (c->usermode_submit_enabled) {
 		gk20a_channel_free_usermode_buffers(c);
-		c->userd_iova = nvgpu_mem_get_addr(g, &g->fifo.userd) +
-				U64(c->chid) * U64(g->fifo.userd_entry_size);
+		(void) gk20a_fifo_init_userd(g, c);
 		c->usermode_submit_enabled = false;
 	}
 clean_up:

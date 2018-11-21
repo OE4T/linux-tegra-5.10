@@ -81,7 +81,7 @@ int vgpu_get_timestamps_zipper(struct gk20a *g,
 		struct nvgpu_cpu_time_correlation_sample *samples);
 int vgpu_init_hal(struct gk20a *g);
 int vgpu_get_constants(struct gk20a *g);
-u64 vgpu_bar1_map(struct gk20a *g, struct nvgpu_mem *mem);
+u64 vgpu_bar1_map(struct gk20a *g, struct nvgpu_mem *mem, u32 offset);
 int vgpu_gr_isr(struct gk20a *g, struct tegra_vgpu_gr_intr_info *info);
 int vgpu_gr_alloc_gr_ctx(struct gk20a *g,
 			struct nvgpu_gr_ctx *gr_ctx,

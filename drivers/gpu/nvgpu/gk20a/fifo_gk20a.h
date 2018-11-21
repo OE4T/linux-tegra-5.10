@@ -174,8 +174,12 @@ struct fifo_gk20a {
 		struct nvgpu_mutex lock;
 	} profile;
 #endif
-	struct nvgpu_mem userd;
+	struct nvgpu_mutex userd_mutex;
+	struct nvgpu_mem *userd_slabs;
+	u32 num_userd_slabs;
+	u32 num_channels_per_slab;
 	u32 userd_entry_size;
+	u64 userd_gpu_va;
 
 	unsigned int used_channels;
 	struct channel_gk20a *channel;
@@ -490,4 +494,8 @@ void gk20a_fifo_add_sema_cmd(struct gk20a *g,
 	struct nvgpu_semaphore *s, u64 sema_va,
 	struct priv_cmd_entry *cmd,
 	u32 off, bool acquire, bool wfi);
+int gk20a_fifo_init_userd_slabs(struct gk20a *g);
+void gk20a_fifo_free_userd_slabs(struct gk20a *g);
+int gk20a_fifo_init_userd(struct gk20a *g, struct channel_gk20a *c);
+
 #endif /* FIFO_GK20A_H */

@@ -559,6 +559,7 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 		.init_bar2_vm = gp10b_init_bar2_vm,
 		.remove_bar2_vm = gp10b_remove_bar2_vm,
 		.fault_info_mem_destroy = gv11b_mm_fault_info_mem_destroy,
+		.bar1_map = vgpu_bar1_map,
 	},
 	.therm = {
 		.init_therm_setup_hw = NULL,

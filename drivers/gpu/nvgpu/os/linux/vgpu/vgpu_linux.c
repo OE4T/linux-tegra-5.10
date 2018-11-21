@@ -507,10 +507,11 @@ int vgpu_remove(struct platform_device *pdev)
 
 bool vgpu_is_reduced_bar1(struct gk20a *g)
 {
-	struct fifo_gk20a *f = &g->fifo;
 	struct nvgpu_os_linux *l = nvgpu_os_linux_from_gk20a(g);
+	struct fifo_gk20a *f = &g->fifo;
+	u32 size = f->num_channels * f->userd_entry_size;
 
-	return resource_size(l->bar1_mem) == (resource_size_t)f->userd.size;
+	return resource_size(l->bar1_mem) == size;
 }
 
 int vgpu_tegra_suspend(struct device *dev)

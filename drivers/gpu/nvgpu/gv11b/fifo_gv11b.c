@@ -99,7 +99,7 @@ void gv11b_get_ch_runlist_entry(struct channel_gk20a *c, u32 *runlist)
 			ram_rl_entry_chan_runqueue_selector_f(
 						c->runqueue_sel) |
 			ram_rl_entry_chan_userd_target_f(
-				nvgpu_aperture_mask(g, &g->fifo.userd,
+				nvgpu_aperture_mask(g, c->userd_mem,
 					ram_rl_entry_chan_userd_target_sys_mem_ncoh_v(),
 					ram_rl_entry_chan_userd_target_sys_mem_coh_v(),
 					ram_rl_entry_chan_userd_target_vid_mem_v())) |
@@ -245,30 +245,30 @@ void gv11b_ring_channel_doorbell(struct channel_gk20a *c)
 
 u32 gv11b_userd_gp_get(struct gk20a *g, struct channel_gk20a *c)
 {
-	struct nvgpu_mem *userd_mem = &g->fifo.userd;
-	u32 offset = c->chid * (g->fifo.userd_entry_size / sizeof(u32));
+	struct nvgpu_mem *mem = c->userd_mem;
+	u32 offset = c->userd_offset / U32(sizeof(u32));
 
-	return nvgpu_mem_rd32(g, userd_mem,
-			offset + ram_userd_gp_get_w());
+	return nvgpu_mem_rd32(g, mem, offset + ram_userd_gp_get_w());
 }
 
 u64 gv11b_userd_pb_get(struct gk20a *g, struct channel_gk20a *c)
 {
-	struct nvgpu_mem *userd_mem = &g->fifo.userd;
-	u32 offset = c->chid * (g->fifo.userd_entry_size / sizeof(u32));
-	u32 lo = nvgpu_mem_rd32(g, userd_mem, offset + ram_userd_get_w());
-	u32 hi = nvgpu_mem_rd32(g, userd_mem, offset + ram_userd_get_hi_w());
+	struct nvgpu_mem *mem = c->userd_mem;
+	u32 offset = c->userd_offset / U32(sizeof(u32));
+	u32 lo, hi;
+
+	lo = nvgpu_mem_rd32(g, mem, offset + ram_userd_get_w());
+	hi = nvgpu_mem_rd32(g, mem, offset + ram_userd_get_hi_w());
 
 	return ((u64)hi << 32) | lo;
 }
 
 void gv11b_userd_gp_put(struct gk20a *g, struct channel_gk20a *c)
 {
-	struct nvgpu_mem *userd_mem = &g->fifo.userd;
-	u32 offset = c->chid * (g->fifo.userd_entry_size / sizeof(u32));
+	struct nvgpu_mem *mem = c->userd_mem;
+	u32 offset = c->userd_offset / U32(sizeof(u32));
 
-	nvgpu_mem_wr32(g, userd_mem, offset + ram_userd_gp_put_w(),
-							c->gpfifo.put);
+	nvgpu_mem_wr32(g, mem, offset + ram_userd_gp_put_w(), c->gpfifo.put);
 	/* Commit everything to GPU. */
 	nvgpu_mb();
 

@@ -264,7 +264,9 @@ struct channel_gk20a {
 	struct nvgpu_mem inst_block;
 
 	u64 userd_iova;
-	u64 userd_gpu_va;
+
+	struct nvgpu_mem *userd_mem;	/* kernel mode userd */
+	u32 userd_offset;		/* in bytes from start of userd_mem */
 
 	struct priv_cmd_queue priv_cmd_q;
 
@@ -470,4 +472,14 @@ static inline void trace_write_pushbuffers(struct channel_gk20a *c, u32 count)
 void gk20a_channel_set_timedout(struct channel_gk20a *ch);
 bool gk20a_channel_check_timedout(struct channel_gk20a *ch);
 
+static inline u64 gk20a_channel_userd_addr(struct channel_gk20a *c)
+{
+	return nvgpu_mem_get_addr(c->g, c->userd_mem) + c->userd_offset;
+}
+
+static inline u64 gk20a_channel_userd_gpu_va(struct channel_gk20a *c)
+{
+	struct nvgpu_mem *mem = c->userd_mem;
+	return (mem->gpu_va != 0ULL) ? mem->gpu_va + c->userd_offset : 0ULL;
+}
 #endif

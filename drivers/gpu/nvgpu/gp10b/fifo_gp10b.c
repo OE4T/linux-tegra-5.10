@@ -59,7 +59,7 @@ int channel_gp10b_commit_userd(struct channel_gk20a *c)
 
 	nvgpu_mem_wr32(g, &c->inst_block,
 		       ram_in_ramfc_w() + ram_fc_userd_w(),
-		       nvgpu_aperture_mask(g, &g->fifo.userd,
+		       nvgpu_aperture_mask(g, c->userd_mem,
 					   pbdma_userd_target_sys_mem_ncoh_f(),
 					   pbdma_userd_target_sys_mem_coh_f(),
 					   pbdma_userd_target_vid_mem_f()) |

@@ -155,7 +155,7 @@ void vgpu_vm_remove(struct vm_gk20a *vm)
 	WARN_ON(err || msg.ret);
 }
 
-u64 vgpu_bar1_map(struct gk20a *g, struct nvgpu_mem *mem)
+u64 vgpu_bar1_map(struct gk20a *g, struct nvgpu_mem *mem, u32 offset)
 {
 	u64 addr = nvgpu_mem_get_addr(g, mem);
 	struct tegra_vgpu_cmd_msg msg;
@@ -167,11 +167,31 @@ u64 vgpu_bar1_map(struct gk20a *g, struct nvgpu_mem *mem)
 	p->addr = addr;
 	p->size = mem->size;
 	p->iova = 0;
+	p->offset = offset; /* offset from start of BAR1 */
 	err = vgpu_comm_sendrecv(&msg, sizeof(msg), sizeof(msg));
-	if (err || msg.ret)
+	if (err || msg.ret) {
 		addr = 0;
-	else
+	} else {
 		addr = p->gpu_va;
+
+		/* Server returns gpu_va assuming full BAR1 range.
+		 * In case of reduced BAR1 configuration, we only map
+		 * the portion of BAR1 reserved for this guest.
+		 * As a result, we need to use the offset from the start
+		 * of this range, instead of the gpu_va.
+		 *
+		 *                 offset
+		 *                 <---->
+		 *  Guest IPA      +========+
+		 *                 :    X   :
+		 *  BAR1 PA   +----+========+-----------+
+		 *            <--------->
+		 *               gpu_va
+		 */
+		if (vgpu_is_reduced_bar1(g)) {
+			addr = offset;
+		}
+	}
 
 	return addr;
 }

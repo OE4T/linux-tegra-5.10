@@ -1094,6 +1094,7 @@ struct gpu_ops {
 		u32 (*get_kind_pitch)(void);
 		u32 (*get_flush_retries)(struct gk20a *g,
 							enum nvgpu_flush_op op);
+		u64 (*bar1_map)(struct gk20a *g, struct nvgpu_mem *mem, u32 offset);
 	} mm;
 	/*
 	 * This function is called to allocate secure memory (memory

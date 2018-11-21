@@ -667,3 +667,15 @@ const struct gk20a_mmu_level *gk20a_mm_get_mmu_levels(struct gk20a *g,
 	return (big_page_size == SZ_64K) ?
 		 gk20a_mm_levels_64k : gk20a_mm_levels_128k;
 }
+
+u64 gk20a_mm_bar1_map(struct gk20a *g, struct nvgpu_mem *mem, u32 offset)
+{
+	struct fifo_gk20a *f = &g->fifo;
+	u64 gpu_va = f->userd_gpu_va + offset;
+
+	return nvgpu_gmmu_map_fixed(g->mm.bar1.vm, mem, gpu_va,
+				    PAGE_SIZE, 0,
+				    gk20a_mem_flag_none, false,
+				    mem->aperture);
+}
+

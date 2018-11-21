@@ -170,7 +170,7 @@ struct tegra_vgpu_as_map_params {
 	u8 cacheable;
 	u8 clear_ctags;
 	u8 prot;
-	u32 ctag_offset;
+	u32 offset;
 };
 
 #define TEGRA_VGPU_MAP_CACHEABLE	(1 << 0)

@@ -36,6 +36,7 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/channel.h>
 #include <nvgpu/string.h>
+#include <nvgpu/vm_area.h>
 
 #include "fifo_vgpu.h"
 
@@ -294,28 +295,11 @@ static int vgpu_init_fifo_setup_sw(struct gk20a *g)
 
 	f->userd_entry_size = 1 << ram_userd_base_shift_v();
 
-	err = nvgpu_dma_alloc_sys(g, f->userd_entry_size * f->num_channels,
-			&f->userd);
-	if (err) {
-		nvgpu_err(g, "memory allocation failed");
-		goto clean_up;
+	err = gk20a_fifo_init_userd_slabs(g);
+	if (err != 0) {
+		nvgpu_err(g, "userd slab init failed, err=%d", err);
+		return err;
 	}
-
-	/* bar1 va */
-	if (g->ops.mm.is_bar1_supported(g)) {
-		f->userd.gpu_va = vgpu_bar1_map(g, &f->userd);
-		if (!f->userd.gpu_va) {
-			nvgpu_err(g, "gmmu mapping failed");
-			goto clean_up;
-		}
-		/* if reduced BAR1 range is specified, use offset of 0
-		 * (server returns offset assuming full BAR1 range)
-		 */
-		if (vgpu_is_reduced_bar1(g))
-			f->userd.gpu_va = 0;
-	}
-
-	nvgpu_log(g, gpu_dbg_map_v, "userd bar1 va = 0x%llx", f->userd.gpu_va);
 
 	f->channel = nvgpu_vzalloc(g, f->num_channels * sizeof(*f->channel));
 	f->tsg = nvgpu_vzalloc(g, f->num_channels * sizeof(*f->tsg));
@@ -338,12 +322,6 @@ static int vgpu_init_fifo_setup_sw(struct gk20a *g)
 	nvgpu_mutex_init(&f->free_chs_mutex);
 
 	for (chid = 0; chid < f->num_channels; chid++) {
-		f->channel[chid].userd_iova =
-			nvgpu_mem_get_addr(g, &f->userd) +
-			chid * f->userd_entry_size;
-		f->channel[chid].userd_gpu_va =
-			f->userd.gpu_va + chid * f->userd_entry_size;
-
 		gk20a_init_channel_support(g, chid);
 		gk20a_init_tsg_support(g, chid);
 	}
@@ -366,9 +344,7 @@ static int vgpu_init_fifo_setup_sw(struct gk20a *g)
 clean_up:
 	nvgpu_log_fn(g, "fail");
 	/* FIXME: unmap from bar1 */
-	nvgpu_dma_free(g, &f->userd);
-
-	(void) memset(&f->userd, 0, sizeof(f->userd));
+	gk20a_fifo_free_userd_slabs(g);
 
 	nvgpu_vfree(g, f->channel);
 	f->channel = NULL;
@@ -384,46 +360,58 @@ clean_up:
 
 int vgpu_init_fifo_setup_hw(struct gk20a *g)
 {
+	struct fifo_gk20a *f = &g->fifo;
+	u32 v, v1 = 0x33, v2 = 0x55;
+	struct nvgpu_mem *mem = &f->userd_slabs[0];
+	u32 bar1_vaddr;
+	volatile u32 *cpu_vaddr;
+	int err;
+
 	nvgpu_log_fn(g, " ");
+
+	/* allocate and map first userd slab for bar1 test. */
+	err = nvgpu_dma_alloc_sys(g, PAGE_SIZE, mem);
+	if (err != 0) {
+		nvgpu_err(g, "userd allocation failed, err=%d", err);
+		return err;
+	}
+	mem->gpu_va = g->ops.mm.bar1_map(g, mem, 0);
+	f->userd_gpu_va = mem->gpu_va;
 
 	/* test write, read through bar1 @ userd region before
 	 * turning on the snooping */
-	{
-		struct fifo_gk20a *f = &g->fifo;
-		u32 v, v1 = 0x33, v2 = 0x55;
 
-		u32 bar1_vaddr = f->userd.gpu_va;
-		volatile u32 *cpu_vaddr = f->userd.cpu_va;
+	cpu_vaddr = mem->cpu_va;
+	bar1_vaddr = mem->gpu_va;
 
-		nvgpu_log_info(g, "test bar1 @ vaddr 0x%x",
-			   bar1_vaddr);
+	nvgpu_log_info(g, "test bar1 @ vaddr 0x%x",
+		   bar1_vaddr);
 
-		v = gk20a_bar1_readl(g, bar1_vaddr);
+	v = gk20a_bar1_readl(g, bar1_vaddr);
 
-		*cpu_vaddr = v1;
-		nvgpu_mb();
+	*cpu_vaddr = v1;
+	nvgpu_mb();
 
-		if (v1 != gk20a_bar1_readl(g, bar1_vaddr)) {
-			nvgpu_err(g, "bar1 broken @ gk20a!");
-			return -EINVAL;
-		}
-
-		gk20a_bar1_writel(g, bar1_vaddr, v2);
-
-		if (v2 != gk20a_bar1_readl(g, bar1_vaddr)) {
-			nvgpu_err(g, "bar1 broken @ gk20a!");
-			return -EINVAL;
-		}
-
-		/* is it visible to the cpu? */
-		if (*cpu_vaddr != v2) {
-			nvgpu_err(g, "cpu didn't see bar1 write @ %p!",
-				cpu_vaddr);
-		}
-
-		/* put it back */
-		gk20a_bar1_writel(g, bar1_vaddr, v);
+	if (v1 != gk20a_bar1_readl(g, bar1_vaddr)) {
+		nvgpu_err(g, "bar1 broken @ gk20a!");
+		return -EINVAL;
 	}
+
+	gk20a_bar1_writel(g, bar1_vaddr, v2);
+
+	if (v2 != gk20a_bar1_readl(g, bar1_vaddr)) {
+		nvgpu_err(g, "bar1 broken @ gk20a!");
+		return -EINVAL;
+	}
+
+	/* is it visible to the cpu? */
+	if (*cpu_vaddr != v2) {
+		nvgpu_err(g, "cpu didn't see bar1 write @ %p!",
+			cpu_vaddr);
+	}
+
+	/* put it back */
+	gk20a_bar1_writel(g, bar1_vaddr, v);
 
 	nvgpu_log_fn(g, "done");
 

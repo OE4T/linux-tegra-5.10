@@ -851,6 +851,7 @@ static const struct gpu_ops tu104_ops = {
 		.fault_info_mem_destroy = gv11b_mm_fault_info_mem_destroy,
 		.mmu_fault_disable_hw = gv11b_mm_mmu_fault_disable_hw,
 		.get_flush_retries = gv100_mm_get_flush_retries,
+		.bar1_map = NULL,
 	},
 	.pramin = {
 		.data032_r = pram_data032_r,
