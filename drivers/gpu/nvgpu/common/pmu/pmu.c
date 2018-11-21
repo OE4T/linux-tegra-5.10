@@ -665,7 +665,7 @@ void nvgpu_pmu_surface_free(struct gk20a *g, struct nvgpu_mem *mem)
 
 struct gk20a *gk20a_from_pmu(struct nvgpu_pmu *pmu)
 {
-	return container_of(pmu, struct gk20a, pmu);
+	return pmu->g;
 }
 
 int nvgpu_pmu_wait_ready(struct gk20a *g)
