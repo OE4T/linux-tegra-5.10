@@ -92,35 +92,6 @@
 	(((((ADDR) + (FALCON_BLOCK_SIZE - 1U)) & ~(FALCON_BLOCK_SIZE-1U)) \
 		/ FALCON_BLOCK_SIZE) << 8U)
 
-/*
- * Falcon HWCFG request read types defines
- */
-enum falcon_hwcfg_read {
-	FALCON_IMEM_SIZE = 0,
-	FALCON_DMEM_SIZE,
-	FALCON_CORE_REV,
-	FALCON_SECURITY_MODEL,
-	FLACON_MAILBOX_COUNT
-};
-
-/*
- * Falcon HWCFG request write types defines
- */
-enum falcon_hwcfg_write {
-	FALCON_STARTCPU = 0,
-	FALCON_STARTCPU_SECURE,
-	FALCON_BOOTVEC,
-	FALCON_ITF_EN
-};
-
-#define FALCON_MEM_SCRUBBING_TIMEOUT_MAX 1000U
-#define FALCON_MEM_SCRUBBING_TIMEOUT_DEFAULT 10U
-
-enum falcon_dma_dir {
-	DMA_TO_FB = 0,
-	DMA_FROM_FB
-};
-
 enum falcon_mem_type {
 	MEM_DMEM = 0,
 	MEM_IMEM
@@ -152,17 +123,6 @@ enum falcon_mem_type {
 #define NUM_APPS       0x4U
 #define APP_0_CODE_OFFSET 0x5U
 #define APP_0_CODE_SIZE   0x6U
-
-struct nvgpu_falcon_dma_info {
-	u32 fb_base;
-	u32 fb_off;
-	u32 flcn_mem_off;
-	u32 size_in_bytes;
-	enum falcon_dma_dir dir;
-	u32 ctx_dma;
-	enum falcon_mem_type flcn_mem;
-	u32 is_wait_complete;
-};
 
 struct gk20a;
 struct nvgpu_falcon;
@@ -210,11 +170,6 @@ struct nvgpu_falcon_queue {
 		struct nvgpu_falcon_queue *queue, u32 *head, bool set);
 };
 
-struct nvgpu_falcon_version_ops {
-	void (*start_cpu_secure)(struct nvgpu_falcon *flcn);
-	void (*write_dmatrfbase)(struct nvgpu_falcon *flcn, u32 addr);
-};
-
 /* ops which are falcon engine specific */
 struct nvgpu_falcon_engine_dependency_ops {
 	int (*reset_eng)(struct gk20a *g);
@@ -222,7 +177,6 @@ struct nvgpu_falcon_engine_dependency_ops {
 		u32 *head, bool set);
 	int (*queue_tail)(struct gk20a *g, struct nvgpu_falcon_queue *queue,
 		u32 *tail, bool set);
-	void (*msgq_tail)(struct gk20a *g, u32 *tail, bool set);
 	int (*copy_from_emem)(struct nvgpu_falcon *flcn, u32 src, u8 *dst,
 		u32 size, u8 port);
 	int (*copy_to_emem)(struct nvgpu_falcon *flcn, u32 dst, u8 *src,
@@ -244,8 +198,6 @@ struct nvgpu_falcon_ops {
 		u32 size, u8 port);
 	int (*copy_to_imem)(struct nvgpu_falcon *flcn, u32 dst, u8 *src,
 		u32 size, u8 port, bool sec, u32 tag);
-	int (*dma_copy)(struct nvgpu_falcon *flcn,
-			struct nvgpu_falcon_dma_info *dma_info);
 	u32 (*mailbox_read)(struct nvgpu_falcon *flcn, u32 mailbox_index);
 	void (*mailbox_write)(struct nvgpu_falcon *flcn, u32 mailbox_index,
 		u32 data);
@@ -276,7 +228,6 @@ struct nvgpu_falcon {
 	struct nvgpu_mutex isr_mutex;
 	struct nvgpu_mutex copy_lock;
 	struct nvgpu_falcon_ops flcn_ops;
-	struct nvgpu_falcon_version_ops flcn_vops;
 	struct nvgpu_falcon_engine_dependency_ops flcn_engine_dep_ops;
 };
 
@@ -287,10 +238,7 @@ int nvgpu_falcon_clear_halt_intr_status(struct nvgpu_falcon *flcn,
 int nvgpu_falcon_reset(struct nvgpu_falcon *flcn);
 void nvgpu_falcon_set_irq(struct nvgpu_falcon *flcn, bool enable,
 	u32 intr_mask, u32 intr_dest);
-bool nvgpu_falcon_get_mem_scrubbing_status(struct nvgpu_falcon *flcn);
 int nvgpu_falcon_mem_scrub_wait(struct nvgpu_falcon *flcn);
-bool nvgpu_falcon_get_cpu_halted_status(struct nvgpu_falcon *flcn);
-bool nvgpu_falcon_get_idle_status(struct nvgpu_falcon *flcn);
 int nvgpu_falcon_copy_from_emem(struct nvgpu_falcon *flcn,
 	u32 src, u8 *dst, u32 size, u8 port);
 int nvgpu_falcon_copy_to_emem(struct nvgpu_falcon *flcn,
@@ -303,8 +251,6 @@ int nvgpu_falcon_copy_to_imem(struct nvgpu_falcon *flcn,
 	u32 dst, u8 *src, u32 size, u8 port, bool sec, u32 tag);
 int nvgpu_falcon_copy_from_imem(struct nvgpu_falcon *flcn,
 	u32 src, u8 *dst, u32 size, u8 port);
-int nvgpu_falcon_dma_copy(struct nvgpu_falcon *flcn,
-	struct nvgpu_falcon_dma_info *dma_info);
 u32 nvgpu_falcon_mailbox_read(struct nvgpu_falcon *flcn, u32 mailbox_index);
 void nvgpu_falcon_mailbox_write(struct nvgpu_falcon *flcn, u32 mailbox_index,
 	u32 data);

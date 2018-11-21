@@ -24,8 +24,8 @@
 #include <nvgpu/falcon.h>
 #include <nvgpu/gk20a.h>
 
-/* Dealy depends on memory size and pwr_clk
- * delay = MAX {IMEM_SIZE, DMEM_SIZE} * 64 + 1) / pwr_clk
+/* Delay depends on memory size and pwr_clk
+ * delay = (MAX {IMEM_SIZE, DMEM_SIZE} * 64 + 1) / pwr_clk
  * Timeout set is 1msec & status check at interval 10usec
  */
 #define MEM_SCRUBBING_TIMEOUT_MAX 1000
@@ -64,6 +64,21 @@ int nvgpu_falcon_wait_idle(struct nvgpu_falcon *flcn)
 	return 0;
 }
 
+static bool falcon_get_mem_scrubbing_status(struct nvgpu_falcon *flcn)
+{
+	struct nvgpu_falcon_ops *flcn_ops = &flcn->flcn_ops;
+	bool status = false;
+
+	if (flcn_ops->is_falcon_scrubbing_done != NULL) {
+		status = flcn_ops->is_falcon_scrubbing_done(flcn);
+	} else {
+		nvgpu_warn(flcn->g, "Invalid op on falcon 0x%x ",
+			flcn->flcn_id);
+	}
+
+	return status;
+}
+
 int nvgpu_falcon_mem_scrub_wait(struct nvgpu_falcon *flcn)
 {
 	struct nvgpu_timeout timeout;
@@ -75,7 +90,7 @@ int nvgpu_falcon_mem_scrub_wait(struct nvgpu_falcon *flcn)
 		MEM_SCRUBBING_TIMEOUT_DEFAULT,
 		NVGPU_TIMER_RETRY_TIMER);
 	do {
-		if (nvgpu_falcon_get_mem_scrubbing_status(flcn)) {
+		if (falcon_get_mem_scrubbing_status(flcn)) {
 			goto exit;
 		}
 		nvgpu_udelay(MEM_SCRUBBING_TIMEOUT_DEFAULT);
@@ -122,22 +137,7 @@ void nvgpu_falcon_set_irq(struct nvgpu_falcon *flcn, bool enable,
 	}
 }
 
-bool nvgpu_falcon_get_mem_scrubbing_status(struct nvgpu_falcon *flcn)
-{
-	struct nvgpu_falcon_ops *flcn_ops = &flcn->flcn_ops;
-	bool status = false;
-
-	if (flcn_ops->is_falcon_scrubbing_done != NULL) {
-		status = flcn_ops->is_falcon_scrubbing_done(flcn);
-	} else {
-		nvgpu_warn(flcn->g, "Invalid op on falcon 0x%x ",
-			flcn->flcn_id);
-	}
-
-	return status;
-}
-
-bool nvgpu_falcon_get_cpu_halted_status(struct nvgpu_falcon *flcn)
+static bool falcon_get_cpu_halted_status(struct nvgpu_falcon *flcn)
 {
 	struct nvgpu_falcon_ops *flcn_ops = &flcn->flcn_ops;
 	bool status = false;
@@ -160,7 +160,7 @@ int nvgpu_falcon_wait_for_halt(struct nvgpu_falcon *flcn, unsigned int timeout)
 
 	nvgpu_timeout_init(g, &to, timeout, NVGPU_TIMER_CPU_TIMER);
 	do {
-		if (nvgpu_falcon_get_cpu_halted_status(flcn)) {
+		if (falcon_get_cpu_halted_status(flcn)) {
 			break;
 		}
 
@@ -199,21 +199,6 @@ int nvgpu_falcon_clear_halt_intr_status(struct nvgpu_falcon *flcn,
 
 	if (nvgpu_timeout_peek_expired(&to) != 0) {
 		status = -EBUSY;
-	}
-
-	return status;
-}
-
-bool nvgpu_falcon_get_idle_status(struct nvgpu_falcon *flcn)
-{
-	struct nvgpu_falcon_ops *flcn_ops = &flcn->flcn_ops;
-	bool status = false;
-
-	if (flcn_ops->is_falcon_idle != NULL) {
-		status = flcn_ops->is_falcon_idle(flcn);
-	} else {
-		nvgpu_warn(flcn->g, "Invalid op on falcon 0x%x ",
-			flcn->flcn_id);
 	}
 
 	return status;
@@ -296,7 +281,7 @@ int nvgpu_falcon_copy_to_imem(struct nvgpu_falcon *flcn,
 	return status;
 }
 
-static void nvgpu_falcon_print_mem(struct nvgpu_falcon *flcn, u32 src,
+static void falcon_print_mem(struct nvgpu_falcon *flcn, u32 src,
 	u32 size, enum falcon_mem_type mem_type)
 {
 	u32 buff[64] = {0};
@@ -310,7 +295,7 @@ static void nvgpu_falcon_print_mem(struct nvgpu_falcon *flcn, u32 src,
 	total_block_read = size >> 8;
 	do {
 		byte_read_count =
-			(total_block_read != 0U) ? sizeof(buff) : size;
+			(total_block_read != 0U) ? (u32)sizeof(buff) : size;
 
 		if (byte_read_count == 0U) {
 			break;
@@ -329,10 +314,10 @@ static void nvgpu_falcon_print_mem(struct nvgpu_falcon *flcn, u32 src,
 			break;
 		}
 
-		for (i = 0; i < (byte_read_count >> 2); i += 4) {
+		for (i = 0; i < (byte_read_count >> 2); i += 4U) {
 			nvgpu_info(flcn->g, "%#06x: %#010x %#010x %#010x %#010x",
-				src + (i << 2), buff[i], buff[i+1],
-				buff[i+2], buff[i+3]);
+				src + (i << 2), buff[i], buff[i+1U],
+				buff[i+2U], buff[i+3U]);
 		}
 
 		src += byte_read_count;
@@ -343,13 +328,13 @@ static void nvgpu_falcon_print_mem(struct nvgpu_falcon *flcn, u32 src,
 void nvgpu_falcon_print_dmem(struct nvgpu_falcon *flcn, u32 src, u32 size)
 {
 	nvgpu_info(flcn->g, " PRINT DMEM ");
-	nvgpu_falcon_print_mem(flcn, src, size, MEM_DMEM);
+	falcon_print_mem(flcn, src, size, MEM_DMEM);
 }
 
 void nvgpu_falcon_print_imem(struct nvgpu_falcon *flcn, u32 src, u32 size)
 {
 	nvgpu_info(flcn->g, " PRINT IMEM ");
-	nvgpu_falcon_print_mem(flcn, src, size, MEM_IMEM);
+	falcon_print_mem(flcn, src, size, MEM_IMEM);
 }
 
 int nvgpu_falcon_bootstrap(struct nvgpu_falcon *flcn, u32 boot_vector)
