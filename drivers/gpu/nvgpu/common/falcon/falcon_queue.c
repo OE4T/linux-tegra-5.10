@@ -488,10 +488,19 @@ u32 nvgpu_falcon_queue_get_size(struct nvgpu_falcon_queue *queue)
 }
 
 int nvgpu_falcon_queue_init(struct nvgpu_falcon *flcn,
-	struct nvgpu_falcon_queue *queue)
+	struct nvgpu_falcon_queue *queue,
+	struct nvgpu_falcon_queue_params params)
 {
 	struct gk20a *g = flcn->g;
 	int err = 0;
+
+	queue->id = params.id;
+	queue->index = params.index;
+	queue->offset = params.offset;
+	queue->position = params.position;
+	queue->size = params.size;
+	queue->oflag = params.oflag;
+	queue->queue_type = params.queue_type;
 
 	nvgpu_log(g, gpu_dbg_pmu,
 		"flcn id-%d q-id %d: index %d, offset 0x%08x, size 0x%08x",

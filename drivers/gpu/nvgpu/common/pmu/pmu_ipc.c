@@ -108,7 +108,7 @@ int nvgpu_pmu_queue_init(struct nvgpu_pmu *pmu,
 		u32 id, union pmu_init_msg_pmu *init)
 {
 	struct gk20a *g = gk20a_from_pmu(pmu);
-	struct nvgpu_falcon_queue *queue = NULL;
+	struct nvgpu_falcon_queue_params params = {0};
 	u32 oflag = 0;
 	int err = 0;
 
@@ -133,15 +133,16 @@ int nvgpu_pmu_queue_init(struct nvgpu_pmu *pmu,
 	}
 
 	/* init queue parameters */
-	queue = &pmu->queue[id];
-	queue->id = id;
-	queue->oflag = oflag;
-	queue->queue_type = QUEUE_TYPE_DMEM;
-	g->ops.pmu_ver.get_pmu_init_msg_pmu_queue_params(queue, id, init);
-
-	err = nvgpu_falcon_queue_init(pmu->flcn, queue);
+	params.id = id;
+	params.oflag = oflag;
+	params.queue_type = QUEUE_TYPE_DMEM;
+	g->ops.pmu_ver.get_pmu_init_msg_pmu_queue_params(id, init,
+							 &params.index,
+							 &params.offset,
+							 &params.size);
+	err = nvgpu_falcon_queue_init(pmu->flcn, &pmu->queue[id], params);
 	if (err != 0) {
-		nvgpu_err(g, "queue-%d init failed", queue->id);
+		nvgpu_err(g, "queue-%d init failed", id);
 	}
 
 exit:

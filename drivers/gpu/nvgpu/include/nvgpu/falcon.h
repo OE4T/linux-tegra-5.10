@@ -134,6 +134,23 @@ struct nvgpu_falcon_bl_info;
 #define QUEUE_TYPE_DMEM 0x0U
 #define QUEUE_TYPE_EMEM 0x1U
 
+struct nvgpu_falcon_queue_params {
+	/* Queue Type (queue_type) */
+	u8 queue_type;
+	/* current write position */
+	u32 position;
+	/* physical dmem offset where this queue begins */
+	u32 offset;
+	/* logical queue identifier */
+	u32 id;
+	/* physical queue index */
+	u32 index;
+	/* in bytes */
+	u32 size;
+	/* open-flag */
+	u32 oflag;
+};
+
 struct nvgpu_falcon_queue {
 
 	/* Queue Type (queue_type) */
@@ -270,7 +287,8 @@ u32 nvgpu_falcon_get_id(struct nvgpu_falcon *flcn);
 
 /* queue public functions */
 int nvgpu_falcon_queue_init(struct nvgpu_falcon *flcn,
-	struct nvgpu_falcon_queue *queue);
+	struct nvgpu_falcon_queue *queue,
+	struct nvgpu_falcon_queue_params params);
 bool nvgpu_falcon_queue_is_empty(struct nvgpu_falcon *flcn,
 	struct nvgpu_falcon_queue *queue);
 int nvgpu_falcon_queue_rewind(struct nvgpu_falcon *flcn,

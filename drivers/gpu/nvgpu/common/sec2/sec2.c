@@ -32,7 +32,7 @@ int nvgpu_sec2_queue_init(struct nvgpu_sec2 *sec2, u32 id,
 	struct sec2_init_msg_sec2_init *init)
 {
 	struct gk20a *g = sec2->g;
-	struct nvgpu_falcon_queue *queue = NULL;
+	struct nvgpu_falcon_queue_params params = {0};
 	u32 queue_log_id = 0;
 	u32 oflag = 0;
 	int err = 0;
@@ -60,18 +60,19 @@ int nvgpu_sec2_queue_init(struct nvgpu_sec2 *sec2, u32 id,
 	/* init queue parameters */
 	queue_log_id = init->q_info[id].queue_log_id;
 
-	queue = &sec2->queue[queue_log_id];
-	queue->id = queue_log_id;
-	queue->index = init->q_info[id].queue_phy_id;
-	queue->offset = init->q_info[id].queue_offset;
-	queue->position = init->q_info[id].queue_offset;
-	queue->size = init->q_info[id].queue_size;
-	queue->oflag = oflag;
-	queue->queue_type = QUEUE_TYPE_EMEM;
+	params.id = queue_log_id;
+	params.index = init->q_info[id].queue_phy_id;
+	params.offset = init->q_info[id].queue_offset;
+	params.position = init->q_info[id].queue_offset;
+	params.size = init->q_info[id].queue_size;
+	params.oflag = oflag;
+	params.queue_type = QUEUE_TYPE_EMEM;
 
-	err = nvgpu_falcon_queue_init(sec2->flcn, queue);
+	err = nvgpu_falcon_queue_init(sec2->flcn,
+				      &sec2->queue[queue_log_id],
+				      params);
 	if (err != 0) {
-		nvgpu_err(g, "queue-%d init failed", queue->id);
+		nvgpu_err(g, "queue-%d init failed", queue_log_id);
 	}
 
 exit:
