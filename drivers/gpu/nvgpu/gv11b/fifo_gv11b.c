@@ -147,7 +147,7 @@ int channel_gv11b_setup_ramfc(struct channel_gk20a *c,
 
 	nvgpu_memset(g, mem, 0, 0, ram_fc_size_val_v());
 
-	if ((flags & NVGPU_SETUP_BIND_FLAGS_REPLAYABLE_FAULTS_ENABLE) != 0) {
+	if ((flags & NVGPU_SETUP_BIND_FLAGS_REPLAYABLE_FAULTS_ENABLE) != 0U) {
 		replayable = true;
 	}
 	gv11b_init_subcontext_pdb(c->vm, mem, replayable);
@@ -439,7 +439,7 @@ u32 gv11b_fifo_get_preempt_timeout(struct gk20a *g)
 	 * preempt is stuck. Use fifo_eng_timeout converted to ms
 	 * for preempt polling */
 
-	return g->fifo_eng_timeout_us / 1000 ;
+	return g->fifo_eng_timeout_us / 1000U ;
 }
 
 static int gv11b_fifo_poll_pbdma_chan_status(struct gk20a *g, u32 id,
@@ -516,7 +516,7 @@ static int gv11b_fifo_poll_pbdma_chan_status(struct gk20a *g, u32 id,
 			break;
 		}
 
-		nvgpu_usleep_range(delay, delay * 2);
+		nvgpu_usleep_range(delay, delay * 2UL);
 		delay = min_t(unsigned long,
 				delay << 1, GR_IDLE_CHECK_MAX);
 	} while (nvgpu_timeout_expired(&timeout) == 0);
@@ -641,7 +641,7 @@ static int gv11b_fifo_poll_eng_ctx_status(struct gk20a *g, u32 id,
 			ret = 0;
 			break;
 		}
-		nvgpu_usleep_range(delay, delay * 2);
+		nvgpu_usleep_range(delay, delay * 2UL);
 		delay = min_t(unsigned long,
 				delay << 1, GR_IDLE_CHECK_MAX);
 	} while (nvgpu_timeout_expired(&timeout) == 0);
@@ -1075,7 +1075,7 @@ void gv11b_fifo_teardown_ch_tsg(struct gk20a *g, u32 act_eng_bitmask,
 				break;
 			}
 		}
-		if (num_runlists > 1) {
+		if (num_runlists > 1U) {
 			/* abort all runlists */
 			runlist_id = FIFO_INVAL_RUNLIST_ID;
 		}
@@ -1085,7 +1085,7 @@ void gv11b_fifo_teardown_ch_tsg(struct gk20a *g, u32 act_eng_bitmask,
 	 * aborted, release runlist lock that are not
 	 * needed for this recovery
 	 */
-	if (runlist_id != FIFO_INVAL_RUNLIST_ID && num_runlists == 1) {
+	if (runlist_id != FIFO_INVAL_RUNLIST_ID && num_runlists == 1U) {
 		for (rlid = 0; rlid < g->fifo.max_runlists; rlid++) {
 			if (rlid != runlist_id) {
 				nvgpu_log_fn(g, "release runlist_lock for "
@@ -1588,7 +1588,7 @@ bool gv11b_fifo_handle_ctxsw_timeout(struct gk20a *g, u32 fifo_intr)
 
 	/* get ctxsw timedout engines */
 	ctxsw_timeout_engines = gk20a_readl(g, fifo_intr_ctxsw_timeout_r());
-	if (ctxsw_timeout_engines == 0) {
+	if (ctxsw_timeout_engines == 0U) {
 		nvgpu_err(g, "no eng ctxsw timeout pending");
 		return ret;
 	}
@@ -1711,7 +1711,7 @@ unsigned int gv11b_fifo_handle_pbdma_intr_1(struct gk20a *g,
 		pbdma_intr_1 &= ~pbdma_intr_1_ctxnotvalid_pending_f();
 	}
 
-	if (pbdma_intr_1 == 0) {
+	if (pbdma_intr_1 == 0U) {
 		return RC_TYPE_NO_RC;
 	}
 
@@ -1770,8 +1770,8 @@ static unsigned int gv11b_fifo_get_eng_method_buffer_size(struct gk20a *g)
 {
 	unsigned int buffer_size;
 
-	buffer_size =  ((9 + 1 + 3) * g->ops.ce2.get_num_pce(g)) + 2;
-	buffer_size = (27 * 5 * buffer_size);
+	buffer_size =  ((9U + 1U + 3U) * g->ops.ce2.get_num_pce(g)) + 2U;
+	buffer_size = (27U * 5U * buffer_size);
 	buffer_size = roundup(buffer_size, PAGE_SIZE);
 	nvgpu_log_info(g, "method buffer size in bytes %d", buffer_size);
 
@@ -1792,7 +1792,7 @@ void gv11b_fifo_init_eng_method_buffers(struct gk20a *g,
 	}
 
 	method_buffer_size = gv11b_fifo_get_eng_method_buffer_size(g);
-	if (method_buffer_size == 0) {
+	if (method_buffer_size == 0U) {
 		nvgpu_info(g, "ce will hit MTHD_BUFFER_FAULT");
 		return;
 	}
@@ -1808,7 +1808,7 @@ void gv11b_fifo_init_eng_method_buffers(struct gk20a *g,
 		}
 	}
 	if (err != 0) {
-		for (i = (runque - 1); i >= 0; i--) {
+		for (i = ((int)runque - 1); i >= 0; i--) {
 			nvgpu_dma_unmap_free(vm,
 				 &tsg->eng_method_buffers[i]);
 		}
@@ -1861,11 +1861,11 @@ void gv11b_fifo_add_sema_cmd(struct gk20a *g,
 
 	/* sema_addr_lo */
 	nvgpu_mem_wr32(g, cmd->mem, off++, 0x20010017);
-	nvgpu_mem_wr32(g, cmd->mem, off++, sema_va & 0xffffffff);
+	nvgpu_mem_wr32(g, cmd->mem, off++, sema_va & 0xffffffffULL);
 
 	/* sema_addr_hi */
 	nvgpu_mem_wr32(g, cmd->mem, off++, 0x20010018);
-	nvgpu_mem_wr32(g, cmd->mem, off++, (sema_va >> 32) & 0xff);
+	nvgpu_mem_wr32(g, cmd->mem, off++, (sema_va >> 32ULL) & 0xffULL);
 
 	/* payload_lo */
 	nvgpu_mem_wr32(g, cmd->mem, off++, 0x20010019);
@@ -2115,7 +2115,7 @@ static u32 gv11b_mmu_fault_id_to_pbdma_id(struct gk20a *g, u32 mmu_fault_id)
 	fault_id_pbdma0 = fifo_cfg0_pbdma_fault_id_v(reg_val);
 
 	if (mmu_fault_id >= fault_id_pbdma0 &&
-			mmu_fault_id <= fault_id_pbdma0 + num_pbdma - 1) {
+			mmu_fault_id <= fault_id_pbdma0 + num_pbdma - 1U) {
 		return mmu_fault_id - fault_id_pbdma0;
 	}
 

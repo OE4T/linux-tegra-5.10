@@ -37,8 +37,8 @@
 #define NV_PERF_PMMGPC_GPCS                  0x00278000U
 #define NV_PERF_PMMFBP_FBPS                  0x0027C000U
 
-#define PRI_PMMGS_ADDR_WIDTH                 9
-#define PRI_PMMS_ADDR_WIDTH                  14
+#define PRI_PMMGS_ADDR_WIDTH                 9U
+#define PRI_PMMS_ADDR_WIDTH                  14U
 
 /* Get the offset to be added to the chiplet base addr to get the unicast address */
 #define PRI_PMMGS_OFFSET_MASK(addr)    ((addr) & (BIT32(PRI_PMMGS_ADDR_WIDTH) - 1U))

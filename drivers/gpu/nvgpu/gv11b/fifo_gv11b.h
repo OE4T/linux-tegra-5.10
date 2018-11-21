@@ -25,13 +25,13 @@
 #ifndef FIFO_GV11B_H
 #define FIFO_GV11B_H
 
-#define PBDMA_SUBDEVICE_ID  1
+#define PBDMA_SUBDEVICE_ID  1U
 
 #define FIFO_INVAL_PBDMA_ID	((u32)~0)
 #define FIFO_INVAL_VEID		((u32)~0)
 
 /* engine context-switch request occurred while the engine was in reset */
-#define SCHED_ERROR_CODE_ENGINE_RESET      0x00000005
+#define SCHED_ERROR_CODE_ENGINE_RESET      0x00000005U
 
 /*
 * ERROR_CODE_BAD_TSG indicates that Host encountered a badly formed TSG header
@@ -41,16 +41,16 @@
 * Additionally this error code can indicate when a channel is encountered on
 * the runlist which is outside of a TSG.
 */
-#define SCHED_ERROR_CODE_BAD_TSG           0x00000020
+#define SCHED_ERROR_CODE_BAD_TSG           0x00000020U
 
 /* can be removed after runque support is added */
 
-#define GR_RUNQUE			0	/* pbdma 0 */
-#define ASYNC_CE_RUNQUE			2	/* pbdma 2 */
+#define GR_RUNQUE			0U	/* pbdma 0 */
+#define ASYNC_CE_RUNQUE			2U	/* pbdma 2 */
 
-#define CHANNEL_INFO_VEID0		0
+#define CHANNEL_INFO_VEID0		0U
 
-#define MAX_PRE_SI_RETRIES		200000	/* 1G/500KHz * 100 */
+#define MAX_PRE_SI_RETRIES		200000U	/* 1G/500KHz * 100 */
 
 struct gpu_ops;
 
