@@ -126,6 +126,13 @@ error:
 	return ret;
 }
 
+static void te_release_free_cmd_list(struct tlk_device *dev)
+{
+	kfree(dev->req_addr);
+	kfree(dev->param_bitmap);
+	kfree(dev->plist_bitmap);
+}
+
 struct te_oper_param *te_get_free_params(struct tlk_device *dev,
 	unsigned int nparams)
 {
@@ -674,6 +681,9 @@ static int __init tlk_driver_init(void)
 static void __exit tlk_driver_exit(void)
 {
 	platform_driver_unregister(&tlk_driver);
+
+	if (get_tlk_device_node())
+		te_release_free_cmd_list(&tlk_dev);
 }
 
 /* Initialize early so that other device drivers can use it during boot */
