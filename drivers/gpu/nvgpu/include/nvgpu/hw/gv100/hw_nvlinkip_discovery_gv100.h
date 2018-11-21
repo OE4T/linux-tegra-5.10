@@ -58,10 +58,6 @@
 
 #include <nvgpu/types.h>
 
-static inline u32 nvlinkip_discovery_common_r(void)
-{
-	return 0x00000000U;
-}
 static inline u32 nvlinkip_discovery_common_entry_f(u32 v)
 {
 	return (v & 0x3U) << 0U;
