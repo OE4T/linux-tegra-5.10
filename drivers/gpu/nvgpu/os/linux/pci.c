@@ -101,6 +101,7 @@ static struct gk20a_platform nvgpu_pci_device[] = {
 
 	.ch_wdt_timeout_ms = 7000,
 
+	.unify_address_spaces = true,
 	.honors_aperture = true,
 	.dma_mask = DMA_BIT_MASK(40),
 	.vbios_min_version = 0x86063000,
@@ -137,6 +138,7 @@ static struct gk20a_platform nvgpu_pci_device[] = {
 
 	.ch_wdt_timeout_ms = 7000,
 
+	.unify_address_spaces = true,
 	.honors_aperture = true,
 	.dma_mask = DMA_BIT_MASK(40),
 	.vbios_min_version = 0x86062d00,
@@ -173,6 +175,7 @@ static struct gk20a_platform nvgpu_pci_device[] = {
 
 	.ch_wdt_timeout_ms = 7000,
 
+	.unify_address_spaces = true,
 	.honors_aperture = true,
 	.dma_mask = DMA_BIT_MASK(40),
 	.vbios_min_version = 0x86063000,
@@ -209,6 +212,7 @@ static struct gk20a_platform nvgpu_pci_device[] = {
 
 	.ch_wdt_timeout_ms = 7000,
 
+	.unify_address_spaces = true,
 	.honors_aperture = true,
 	.dma_mask = DMA_BIT_MASK(40),
 	.vbios_min_version = 0x86065300,
@@ -245,6 +249,7 @@ static struct gk20a_platform nvgpu_pci_device[] = {
 
 	.ch_wdt_timeout_ms = 7000,
 
+	.unify_address_spaces = true,
 	.honors_aperture = true,
 	.dma_mask = DMA_BIT_MASK(40),
 	.vbios_min_version = 0x88001e00,
@@ -279,6 +284,7 @@ static struct gk20a_platform nvgpu_pci_device[] = {
 
 	.ch_wdt_timeout_ms = 7000,
 
+	.unify_address_spaces = true,
 	.honors_aperture = true,
 	.dma_mask = DMA_BIT_MASK(40),
 	.vbios_min_version = 0x88001e00,
@@ -313,6 +319,7 @@ static struct gk20a_platform nvgpu_pci_device[] = {
 
 	.ch_wdt_timeout_ms = 7000,
 
+	.unify_address_spaces = true,
 	.honors_aperture = true,
 	.dma_mask = DMA_BIT_MASK(40),
 	.vbios_min_version = 0x88000126,
@@ -348,6 +355,7 @@ static struct gk20a_platform nvgpu_pci_device[] = {
 
 	.ch_wdt_timeout_ms = 7000,
 
+	.unify_address_spaces = true,
 	.honors_aperture = true,
 	.dma_mask = DMA_BIT_MASK(40),
 	.vbios_min_version = 0x1,
@@ -386,6 +394,7 @@ static struct gk20a_platform nvgpu_pci_device[] = {
 	 */
 	.ch_wdt_timeout_ms = 30000,
 
+	.unify_address_spaces = true,
 	.honors_aperture = true,
 	.dma_mask = DMA_BIT_MASK(40),
 	.vbios_min_version = 0x1,
@@ -420,6 +429,7 @@ static struct gk20a_platform nvgpu_pci_device[] = {
 
 	.ch_wdt_timeout_ms = 7000,
 
+	.unify_address_spaces = true,
 	.honors_aperture = true,
 	.dma_mask = DMA_BIT_MASK(40),
 	.vbios_min_version = 0x90041800,
