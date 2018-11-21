@@ -395,6 +395,8 @@ int gk20a_pmu_queue_head(struct gk20a *g, struct nvgpu_falcon_queue *queue,
 			u32 *head, bool set)
 {
 	u32 queue_head_size = 0;
+	u32 queue_id = nvgpu_falcon_queue_get_id(queue);
+	u32 queue_index = nvgpu_falcon_queue_get_index(queue);
 
 	if (g->ops.pmu.pmu_get_queue_head_size != NULL) {
 		queue_head_size = g->ops.pmu.pmu_get_queue_head_size();
@@ -402,19 +404,19 @@ int gk20a_pmu_queue_head(struct gk20a *g, struct nvgpu_falcon_queue *queue,
 
 	BUG_ON((head == NULL) || (queue_head_size == 0U));
 
-	if (PMU_IS_COMMAND_QUEUE(queue->id)) {
+	if (PMU_IS_COMMAND_QUEUE(queue_id)) {
 
-		if (queue->index >= queue_head_size) {
+		if (queue_index >= queue_head_size) {
 			return -EINVAL;
 		}
 
 		if (!set) {
 			*head = pwr_pmu_queue_head_address_v(
 				gk20a_readl(g,
-				g->ops.pmu.pmu_get_queue_head(queue->index)));
+				g->ops.pmu.pmu_get_queue_head(queue_index)));
 		} else {
 			gk20a_writel(g,
-				g->ops.pmu.pmu_get_queue_head(queue->index),
+				g->ops.pmu.pmu_get_queue_head(queue_index),
 				pwr_pmu_queue_head_address_f(*head));
 		}
 	} else {
@@ -435,6 +437,8 @@ int gk20a_pmu_queue_tail(struct gk20a *g, struct nvgpu_falcon_queue *queue,
 			u32 *tail, bool set)
 {
 	u32 queue_tail_size = 0;
+	u32 queue_id = nvgpu_falcon_queue_get_id(queue);
+	u32 queue_index = nvgpu_falcon_queue_get_index(queue);
 
 	if (g->ops.pmu.pmu_get_queue_tail_size != NULL) {
 		queue_tail_size = g->ops.pmu.pmu_get_queue_tail_size();
@@ -442,18 +446,18 @@ int gk20a_pmu_queue_tail(struct gk20a *g, struct nvgpu_falcon_queue *queue,
 
 	BUG_ON((tail == NULL) || (queue_tail_size == 0U));
 
-	if (PMU_IS_COMMAND_QUEUE(queue->id)) {
+	if (PMU_IS_COMMAND_QUEUE(queue_id)) {
 
-		if (queue->index >= queue_tail_size) {
+		if (queue_index >= queue_tail_size) {
 			return -EINVAL;
 		}
 
 		if (!set) {
 			*tail = pwr_pmu_queue_tail_address_v(gk20a_readl(g,
-					g->ops.pmu.pmu_get_queue_tail(queue->index)));
+					g->ops.pmu.pmu_get_queue_tail(queue_index)));
 		} else {
 			gk20a_writel(g,
-				g->ops.pmu.pmu_get_queue_tail(queue->index),
+				g->ops.pmu.pmu_get_queue_tail(queue_index),
 				pwr_pmu_queue_tail_address_f(*tail));
 		}
 

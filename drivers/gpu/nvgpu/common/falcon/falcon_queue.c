@@ -472,6 +472,21 @@ void nvgpu_falcon_queue_free(struct nvgpu_falcon *flcn,
 	(void) memset(queue, 0, sizeof(struct nvgpu_falcon_queue));
 }
 
+u32 nvgpu_falcon_queue_get_id(struct nvgpu_falcon_queue *queue)
+{
+	return queue->id;
+}
+
+u32 nvgpu_falcon_queue_get_index(struct nvgpu_falcon_queue *queue)
+{
+	return queue->index;
+}
+
+u32 nvgpu_falcon_queue_get_size(struct nvgpu_falcon_queue *queue)
+{
+	return queue->size;
+}
+
 int nvgpu_falcon_queue_init(struct nvgpu_falcon *flcn,
 	struct nvgpu_falcon_queue *queue)
 {

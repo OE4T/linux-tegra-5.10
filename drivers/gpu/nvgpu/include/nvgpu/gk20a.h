@@ -814,8 +814,8 @@ struct gpu_ops {
 		u32 (*pmu_allocation_get_fb_size)(
 				struct nvgpu_pmu *pmu, void *pmu_alloc_ptr);
 		void (*get_pmu_init_msg_pmu_queue_params)(
-				struct nvgpu_falcon_queue *queue, u32 id,
-				void *pmu_init_msg);
+				struct nvgpu_falcon_queue *queue,
+				u32 id, void *pmu_init_msg);
 		void *(*get_pmu_msg_pmu_init_msg_ptr)(
 				struct pmu_init_msg *init);
 		u16 (*get_pmu_init_msg_pmu_sw_mg_off)(

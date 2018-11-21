@@ -153,6 +153,7 @@ static bool pmu_validate_cmd(struct nvgpu_pmu *pmu, struct pmu_cmd *cmd,
 {
 	struct gk20a *g = gk20a_from_pmu(pmu);
 	struct nvgpu_falcon_queue *queue;
+	u32 queue_size;
 	u32 in_size, out_size;
 
 	if (!PMU_IS_SW_COMMAND_QUEUE(queue_id)) {
@@ -160,11 +161,12 @@ static bool pmu_validate_cmd(struct nvgpu_pmu *pmu, struct pmu_cmd *cmd,
 	}
 
 	queue = &pmu->queue[queue_id];
+	queue_size = nvgpu_falcon_queue_get_size(queue);
 	if (cmd->hdr.size < PMU_CMD_HDR_SIZE) {
 		goto invalid_cmd;
 	}
 
-	if (cmd->hdr.size > (queue->size >> 1)) {
+	if (cmd->hdr.size > (queue_size >> 1)) {
 		goto invalid_cmd;
 	}
 
@@ -633,6 +635,7 @@ static bool pmu_read_message(struct nvgpu_pmu *pmu,
 {
 	struct gk20a *g = gk20a_from_pmu(pmu);
 	u32 read_size, bytes_read;
+	u32 queue_id;
 	int err;
 
 	*status = 0;
@@ -641,10 +644,12 @@ static bool pmu_read_message(struct nvgpu_pmu *pmu,
 		return false;
 	}
 
+	queue_id = nvgpu_falcon_queue_get_id(queue);
+
 	err = nvgpu_falcon_queue_pop(pmu->flcn, queue, &msg->hdr,
 			PMU_MSG_HDR_SIZE, &bytes_read);
 	if (err != 0 || bytes_read != PMU_MSG_HDR_SIZE) {
-		nvgpu_err(g, "fail to read msg from queue %d", queue->id);
+		nvgpu_err(g, "fail to read msg from queue %d", queue_id);
 		*status = err | -EINVAL;
 		goto clean_up;
 	}
@@ -652,7 +657,7 @@ static bool pmu_read_message(struct nvgpu_pmu *pmu,
 	if (msg->hdr.unit_id == PMU_UNIT_REWIND) {
 		err = nvgpu_falcon_queue_rewind(pmu->flcn, queue);
 		if (err != 0) {
-			nvgpu_err(g, "fail to rewind queue %d", queue->id);
+			nvgpu_err(g, "fail to rewind queue %d", queue_id);
 			*status = err | -EINVAL;
 			goto clean_up;
 		}
@@ -661,7 +666,7 @@ static bool pmu_read_message(struct nvgpu_pmu *pmu,
 				PMU_MSG_HDR_SIZE, &bytes_read);
 		if (err != 0 || bytes_read != PMU_MSG_HDR_SIZE) {
 			nvgpu_err(g,
-				"fail to read msg from queue %d", queue->id);
+				"fail to read msg from queue %d", queue_id);
 			*status = err | -EINVAL;
 			goto clean_up;
 		}
@@ -669,7 +674,7 @@ static bool pmu_read_message(struct nvgpu_pmu *pmu,
 
 	if (!PMU_UNIT_ID_IS_VALID(msg->hdr.unit_id)) {
 		nvgpu_err(g, "read invalid unit_id %d from queue %d",
-			msg->hdr.unit_id, queue->id);
+			msg->hdr.unit_id, queue_id);
 			*status = -EINVAL;
 			goto clean_up;
 	}
@@ -680,7 +685,7 @@ static bool pmu_read_message(struct nvgpu_pmu *pmu,
 			read_size, &bytes_read);
 		if (err != 0 || bytes_read != read_size) {
 			nvgpu_err(g,
-				"fail to read msg from queue %d", queue->id);
+				"fail to read msg from queue %d", queue_id);
 			*status = err;
 			goto clean_up;
 		}
