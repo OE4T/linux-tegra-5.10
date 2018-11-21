@@ -170,7 +170,7 @@ static int gk20a_ctxsw_dev_ioctl_trace_disable(struct gk20a_ctxsw_dev *dev)
 }
 
 static int gk20a_ctxsw_dev_alloc_buffer(struct gk20a_ctxsw_dev *dev,
-					size_t size)
+					size_t *size)
 {
 	struct gk20a *g = dev->g;
 	void *buf;
@@ -184,14 +184,14 @@ static int gk20a_ctxsw_dev_alloc_buffer(struct gk20a_ctxsw_dev *dev,
 		dev->hdr = NULL;
 	}
 
-	err = g->ops.fecs_trace.alloc_user_buffer(g, &buf, &size);
+	err = g->ops.fecs_trace.alloc_user_buffer(g, &buf, size);
 	if (err)
 		return err;
 
 
 	dev->hdr = buf;
 	dev->ents = (struct nvgpu_gpu_ctxsw_trace_entry *) (dev->hdr + 1);
-	dev->size = size;
+	dev->size = *size;
 	dev->num_ents = dev->hdr->num_ents;
 
 	nvgpu_log(g, gpu_dbg_ctxsw, "size=%zu hdr=%p ents=%p num_ents=%d",
@@ -244,9 +244,10 @@ static int gk20a_ctxsw_dev_ioctl_ring_setup(struct gk20a_ctxsw_dev *dev,
 		return -EINVAL;
 
 	nvgpu_mutex_acquire(&dev->write_lock);
-	ret = gk20a_ctxsw_dev_alloc_buffer(dev, size);
+	ret = gk20a_ctxsw_dev_alloc_buffer(dev, &size);
 	nvgpu_mutex_release(&dev->write_lock);
 
+	args->size = size;
 	return ret;
 }
 
@@ -366,7 +367,7 @@ int gk20a_ctxsw_dev_open(struct inode *inode, struct file *filp)
 	nvgpu_log(g, gpu_dbg_ctxsw, "size=%zu entries=%d ent_size=%zu",
 		size, n, sizeof(struct nvgpu_gpu_ctxsw_trace_entry));
 
-	err = gk20a_ctxsw_dev_alloc_buffer(dev, size);
+	err = gk20a_ctxsw_dev_alloc_buffer(dev, &size);
 	if (!err) {
 		filp->private_data = dev;
 		nvgpu_log(g, gpu_dbg_ctxsw, "filp=%p dev=%p size=%zu",
