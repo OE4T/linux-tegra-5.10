@@ -127,7 +127,7 @@
 #define TEGRA194_CLK_HOST1X			46U
 /** @brief Obselete - maintained for ABI compatibility */
 #define TEGRA194_CLK_HSIC_TRK			47U
-/** @clkdesc{i2c_clks, out, mux, CLK_RST_CONTROLLER_CLK_SOURCE_I2C1} */
+/** @brief output of mux controlled by CLK_RST_CONTROLLER_CLK_SOURCE_I2C1 */
 #define TEGRA194_CLK_I2C1			48U
 /** @brief output of mux controlled by CLK_RST_CONTROLLER_CLK_SOURCE_I2C2 */
 #define TEGRA194_CLK_I2C2			49U
@@ -308,7 +308,7 @@
 #define TEGRA194_CLK_SPI1			135U
 /** @brief output of mux controlled by CLK_RST_CONTROLLER_CLK_SOURCE_SPI2 */
 #define TEGRA194_CLK_SPI2			136U
-/**  @clkdesc{spi_clks, out, mux, CLK_RST_CONTROLLER_CLK_SOURCE_SPI3} */
+/** @brief output of mux controlled by CLK_RST_CONTROLLER_CLK_SOURCE_SPI3 */
 #define TEGRA194_CLK_SPI3			137U
 /** @brief output of mux controlled by CLK_RST_CONTROLLER_CLK_SOURCE_I2C_SLOW */
 #define TEGRA194_CLK_I2C_SLOW			138U
