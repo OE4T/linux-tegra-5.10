@@ -105,5 +105,6 @@ struct gk20a_platform gv11b_vgpu_tegra_platform = {
 	.suspend = vgpu_tegra_suspend,
 	.resume = vgpu_tegra_resume,
 
+	.unify_address_spaces = true,
 	.dma_mask = DMA_BIT_MASK(36),
 };

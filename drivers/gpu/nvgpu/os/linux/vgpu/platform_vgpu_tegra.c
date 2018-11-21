@@ -94,4 +94,6 @@ struct gk20a_platform vgpu_tegra_platform = {
 	/* power management callbacks */
 	.suspend = vgpu_tegra_suspend,
 	.resume = vgpu_tegra_resume,
+
+	.unify_address_spaces = true,
 };
