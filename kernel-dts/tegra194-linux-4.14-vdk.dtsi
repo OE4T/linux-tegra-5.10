@@ -34,8 +34,4 @@
 	bpmp {
 		/delete-property/ iommus;
 	};
-
-	iommu@12000000 {
-		status = "disabled";
-	};
 };
