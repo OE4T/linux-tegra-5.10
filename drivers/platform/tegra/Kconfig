@@ -104,11 +104,11 @@ config TEGRA_ISOMGR_MAX_ISO_BW_QUIRK
           work. This is necessary for systems running at lower
           EMC clock freq or on FPGA.
 
-config TEGRA_MC
-        bool "Tegra MC"
-        default y
-        help
-          Enable Tegra MC.
+config NV_TEGRA_MC
+	bool "Tegra MC (Downstream version)"
+	default ARCH_TEGRA_21x_SOC || ARCH_TEGRA_18x_SOC || ARCH_TEGRA_19x_SOC
+	help
+	  Enable Downstream version of Tegra MC driver.
 
 config TEGRA_MC_TRACE_PRINTK
 	bool "Enable trace_printk debugging for MC"

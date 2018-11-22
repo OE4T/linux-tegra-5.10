@@ -343,7 +343,7 @@ static struct platform_driver isp_driver = {
 	}
 };
 
-#ifdef CONFIG_TEGRA_MC
+#ifdef CONFIG_NV_TEGRA_MC
 static int isp_set_la(struct isp *tegra_isp, u32 isp_bw, u32 la_client)
 {
 	int ret = 0;

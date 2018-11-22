@@ -380,7 +380,7 @@ int tegra_camera_update_isobw(void)
 	if (info->num_active_streams == 0)
 		bw = 0;
 
-#ifdef CONFIG_TEGRA_MC
+#ifdef CONFIG_NV_TEGRA_MC
 	/*
 	 * Different chip versions use different APIs to set LA for VI.
 	 * If one fails, try another, and fail if both of them don't work.
