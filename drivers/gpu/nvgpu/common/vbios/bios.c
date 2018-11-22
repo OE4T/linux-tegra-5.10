@@ -36,6 +36,10 @@
 #define INIT_CONDITION 				0x75U
 #define INIT_XMEMSEL_ZM_NV_REG_ARRAY 		0x8fU
 
+#define PCI_ROM_IMAGE_BLOCK_SIZE		512U
+#define PCI_DATA_STRUCTURE_CODE_TYPE_VBIOS_BASE	0x00U
+#define PCI_DATA_STRUCTURE_CODE_TYPE_VBIOS_UEFI	0x03U
+
 struct condition_entry {
 	u32 cond_addr;
 	u32 cond_mask;
@@ -299,7 +303,7 @@ static void nvgpu_bios_parse_bit(struct gk20a *g, int offset);
 
 int nvgpu_bios_parse_rom(struct gk20a *g)
 {
-	int offset = 0;
+	u32 offset = 0;
 	int last = 0;
 	bool found = false;
 	unsigned int i;
@@ -329,7 +333,26 @@ int nvgpu_bios_parse_rom(struct gk20a *g)
 				pci_data->last_image,
 				pci_data->max_runtime_image_len);
 
-		if (pci_data->code_type == 0x3U) {
+		/* Get Base ROM Size */
+		if (pci_data->code_type ==
+				PCI_DATA_STRUCTURE_CODE_TYPE_VBIOS_BASE) {
+			g->bios.base_rom_size = (u32)pci_data->image_len *
+						PCI_ROM_IMAGE_BLOCK_SIZE;
+			nvgpu_log_fn(g, "Base ROM Size: %x",
+						g->bios.base_rom_size);
+		}
+
+		/* Get Expansion ROM offset:
+		 * In the UEFI case, the expansion ROM where the Perf tables
+		 * are located is not necessarily immediately after the base
+		 * VBIOS image. Some VBIOS images uses a "private image" layout,
+		 * where the order of the images is the VBIOS base block,
+		 * the UEFI ROM, the expansion ROM, and then the cert. So we
+		 * need to add the UEFI ROM size to offsets within the
+		 * expansion ROM.
+		 */
+		if (pci_data->code_type ==
+				PCI_DATA_STRUCTURE_CODE_TYPE_VBIOS_UEFI) {
 			pci_ext_data = (struct pci_ext_data_struct *)
 				&g->bios.data[(offset +
 					       pci_rom->pci_data_struct_ptr +
@@ -345,13 +368,17 @@ int nvgpu_bios_parse_rom(struct gk20a *g)
 					pci_ext_data->flags);
 
 			nvgpu_log_fn(g, "expansion rom offset %x",
-					pci_data->image_len * 512U);
+					pci_data->image_len *
+						PCI_ROM_IMAGE_BLOCK_SIZE);
 			g->bios.expansion_rom_offset =
-				(u32)pci_data->image_len * 512U;
-			offset += pci_ext_data->sub_image_len * 512;
+					(u32)pci_data->image_len *
+						PCI_ROM_IMAGE_BLOCK_SIZE;
+			offset += (u32)pci_ext_data->sub_image_len *
+						PCI_ROM_IMAGE_BLOCK_SIZE;
 			last = pci_ext_data->priv_last_image;
 		} else {
-			offset += pci_data->image_len * 512;
+			offset += (u32)pci_data->image_len *
+						PCI_ROM_IMAGE_BLOCK_SIZE;
 			last = pci_data->last_image;
 		}
 	}
@@ -748,8 +775,8 @@ void *nvgpu_bios_get_perf_table_ptrs(struct gk20a *g,
 					perf_table_id_offset);
 
 		if (perf_table_id_offset != 0U) {
-			/* check is perf_table_id_offset is > 64k */
-			if ((perf_table_id_offset & ~0xFFFFU) != 0U) {
+			/* check if perf_table_id_offset is beyond base rom */
+			if (perf_table_id_offset > g->bios.base_rom_size) {
 				perf_table_ptr =
 					&g->bios.data[g->bios.expansion_rom_offset +
 						perf_table_id_offset];

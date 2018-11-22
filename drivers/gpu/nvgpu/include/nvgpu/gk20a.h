@@ -1418,6 +1418,7 @@ struct nvgpu_bios {
 	struct bit_token *clock_token;
 	struct bit_token *virt_token;
 	u32 expansion_rom_offset;
+	u32 base_rom_size;
 
 	u32 nvlink_config_data_offset;
 };
