@@ -2,7 +2,7 @@
 /*
  * SPI driver for NVIDIA's Tegra114 SPI Controller.
  *
- * Copyright (c) 2013, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2013-2021, NVIDIA CORPORATION.  All rights reserved.
  */
 
 #include <linux/clk.h>
@@ -628,9 +628,12 @@ static int tegra_spi_start_dma_based_transfer(
 	} else if (((len) >> 4) & 0x1) {
 		val |= SPI_TX_TRIG_4 | SPI_RX_TRIG_4;
 		dma_burst = 4;
-	} else {
+	} else if (((len) >> 5) & 0x1) {
 		val |= SPI_TX_TRIG_8 | SPI_RX_TRIG_8;
 		dma_burst = 8;
+	} else {
+		val |= SPI_TX_TRIG_16 | SPI_RX_TRIG_16;
+		dma_burst = 16;
 	}
 
 	if (!tspi->soc_data->has_intr_mask_reg &&
@@ -1388,7 +1391,7 @@ static int tegra_spi_transfer_one_message(struct spi_controller *ctrl,
 	int gval = 1;
 	bool skip = false;
 	int single_xfer;
-	u32 cmd1 = 0;
+	u32 cmd1 = 0, dma_ctl = 0;
 
 	msg->status = 0;
 	msg->actual_length = 0;
@@ -1435,12 +1438,21 @@ static int tegra_spi_transfer_one_message(struct spi_controller *ctrl,
 				dmaengine_terminate_all(tspi->rx_dma_chan);
 			ret = -EIO;
 			tegra_spi_dump_regs(tspi);
+			/* Abort transfer by resetting pio/dma bit */
+			if (!tspi->is_curr_dma_xfer) {
+				cmd1 = tegra_spi_readl(tspi, SPI_COMMAND1);
+				cmd1 &= ~SPI_PIO;
+				tegra_spi_writel(tspi, cmd1, SPI_COMMAND1);
+			} else {
+				dma_ctl = tegra_spi_readl(tspi, SPI_DMA_CTL);
+				dma_ctl &= ~SPI_DMA_EN;
+				tegra_spi_writel(tspi, dma_ctl, SPI_DMA_CTL);
+			}
 			reset_control_assert(tspi->rst);
 			udelay(2);
 			reset_control_deassert(tspi->rst);
 			tspi->last_used_cs = ctrl->num_chipselect + 1;
 			tegra_spi_set_intr_mask(tspi);
-			tegra_spi_clear_fifo(tspi);
 			goto complete_xfer;
 		}
 
@@ -1527,7 +1539,6 @@ static irqreturn_t handle_cpu_based_xfer(struct tegra_spi_data *tspi)
 		udelay(2);
 		reset_control_deassert(tspi->rst);
 		tegra_spi_set_intr_mask(tspi);
-		tegra_spi_clear_fifo(tspi);
 		return IRQ_HANDLED;
 	}
 
@@ -1603,7 +1614,6 @@ static irqreturn_t handle_dma_based_xfer(struct tegra_spi_data *tspi)
 		udelay(2);
 		reset_control_deassert(tspi->rst);
 		tegra_spi_set_intr_mask(tspi);
-		tegra_spi_clear_fifo(tspi);
 		return IRQ_HANDLED;
 	}
 
@@ -1949,7 +1959,6 @@ exit_tx_dma_free:
 exit_rx_dma_free:
 	tegra_spi_deinit_dma_param(tspi, true);
 exit_free_ctrl:
-	spi_controller_put(ctrl);
 	return ret;
 }
 
@@ -1959,6 +1968,8 @@ static int tegra_spi_remove(struct platform_device *pdev)
 	struct tegra_spi_data	*tspi = spi_controller_get_devdata(ctrl);
 
 	free_irq(tspi->irq, tspi);
+
+	spi_unregister_master(ctrl);
 
 	if (tspi->tx_dma_chan)
 		tegra_spi_deinit_dma_param(tspi, false);
