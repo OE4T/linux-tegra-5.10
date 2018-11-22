@@ -45,7 +45,7 @@ srcs :=	os/posix/nvgpu.c \
 	os/posix/lock.c \
 	os/posix/stubs.c \
 	os/posix/posix-fault-injection.c \
-	os/posix/gk20a.c \
+	common/init/nvgpu_init.c \
 	common/mm/allocators/nvgpu_allocator.c \
 	common/mm/allocators/bitmap_allocator.c \
 	common/mm/allocators/buddy_allocator.c \

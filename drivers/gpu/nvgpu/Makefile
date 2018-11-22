@@ -79,7 +79,6 @@ nvgpu-y += common/bus/bus_gk20a.o \
 
 # Linux specific parts of nvgpu.
 nvgpu-y += \
-	os/linux/gk20a.o \
 	os/linux/os_ops.o \
 	os/linux/os_ops_gm20b.o \
 	os/linux/os_ops_gp10b.o \
@@ -238,6 +237,7 @@ nvgpu-y += \
 	common/falcon/falcon_gv100.o \
 	common/falcon/falcon_tu104.o \
 	common/init/hal_init.o \
+	common/init/nvgpu_init.o \
 	common/pmu/pmu.o \
 	common/pmu/pmu_ipc.o \
 	common/pmu/pmu_fw.o \

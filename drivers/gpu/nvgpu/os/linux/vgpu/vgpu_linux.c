@@ -229,6 +229,9 @@ int vgpu_pm_finalize_poweron(struct device *dev)
 		goto done;
 	}
 
+	/* Initialize linux specific flags */
+	gk20a_init_linux_characteristics(g);
+
 	err = nvgpu_finalize_poweron_linux(l);
 	if (err)
 		goto done;

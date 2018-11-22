@@ -49,10 +49,10 @@
 
 void __nvgpu_check_gpu_state(struct gk20a *g)
 {
-	u32 boot_0 = 0xffffffff;
+	u32 boot_0 = 0xffffffffU;
 
 	boot_0 = nvgpu_mc_boot_0(g, NULL, NULL, NULL);
-	if (boot_0 == 0xffffffff) {
+	if (boot_0 == 0xffffffffU) {
 		nvgpu_err(g, "GPU has disappeared from bus!!");
 		nvgpu_err(g, "Rebooting system!!");
 		nvgpu_kernel_restart(NULL);
@@ -77,7 +77,7 @@ static void gk20a_mask_interrupts(struct gk20a *g)
 
 int gk20a_prepare_poweroff(struct gk20a *g)
 {
-	int ret = 0;
+	u32 ret = 0;
 
 	nvgpu_log_fn(g, " ");
 
@@ -471,13 +471,8 @@ int gk20a_wait_for_idle(struct gk20a *g)
 
 int gk20a_init_gpu_characteristics(struct gk20a *g)
 {
-	__nvgpu_set_enabled(g, NVGPU_SUPPORT_PARTIAL_MAPPINGS, true);
 	__nvgpu_set_enabled(g, NVGPU_SUPPORT_MAP_DIRECT_KIND_CTRL, true);
 	__nvgpu_set_enabled(g, NVGPU_SUPPORT_MAP_BUFFER_BATCH, true);
-
-	if (IS_ENABLED(CONFIG_SYNC)) {
-		__nvgpu_set_enabled(g, NVGPU_SUPPORT_SYNC_FENCE_FDS, true);
-	}
 
 	if ((g->ops.mm.support_sparse != NULL) && g->ops.mm.support_sparse(g)) {
 		__nvgpu_set_enabled(g, NVGPU_SUPPORT_SPARSE_ALLOCS, true);
@@ -504,9 +499,6 @@ int gk20a_init_gpu_characteristics(struct gk20a *g)
 				true);
 	}
 
-	__nvgpu_set_enabled(g, NVGPU_SUPPORT_DETERMINISTIC_OPTS, true);
-
-	__nvgpu_set_enabled(g, NVGPU_SUPPORT_USERSPACE_MANAGED_AS, true);
 	__nvgpu_set_enabled(g, NVGPU_SUPPORT_TSG, true);
 
 	if (g->ops.clk_arb.get_arbiter_clk_domains != NULL &&

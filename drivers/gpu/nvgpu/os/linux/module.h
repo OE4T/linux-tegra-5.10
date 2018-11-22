@@ -33,5 +33,5 @@ void __iomem *nvgpu_devm_ioremap(struct device *dev, resource_size_t offset,
 		resource_size_t size);
 u64 nvgpu_resource_addr(struct platform_device *dev, int i);
 extern struct class nvgpu_class;
-
+void gk20a_init_linux_characteristics(struct gk20a *g);
 #endif

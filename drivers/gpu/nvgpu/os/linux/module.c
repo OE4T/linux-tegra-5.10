@@ -231,6 +231,17 @@ int nvgpu_finalize_poweron_linux(struct nvgpu_os_linux *l)
 	return 0;
 }
 
+void gk20a_init_linux_characteristics(struct gk20a *g)
+{
+	__nvgpu_set_enabled(g, NVGPU_SUPPORT_PARTIAL_MAPPINGS, true);
+	__nvgpu_set_enabled(g, NVGPU_SUPPORT_DETERMINISTIC_OPTS, true);
+	__nvgpu_set_enabled(g, NVGPU_SUPPORT_USERSPACE_MANAGED_AS, true);
+
+	if (IS_ENABLED(CONFIG_SYNC)) {
+		__nvgpu_set_enabled(g, NVGPU_SUPPORT_SYNC_FENCE_FDS, true);
+	}
+}
+
 int gk20a_pm_finalize_poweron(struct device *dev)
 {
 	struct gk20a *g = get_gk20a(dev);
@@ -281,6 +292,9 @@ int gk20a_pm_finalize_poweron(struct device *dev)
 	err = gk20a_finalize_poweron(g);
 	if (err)
 		goto done;
+
+	/* Initialize linux specific flags */
+	gk20a_init_linux_characteristics(g);
 
 	err = nvgpu_init_os_linux_ops(l);
 	if (err)
