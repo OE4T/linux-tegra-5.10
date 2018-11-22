@@ -241,4 +241,12 @@ config NV_TEGRA_IVC
 	  Enable the Tegra IVC library, which implements a lockless, shared-
 	  memory queue.
 
+config TEGRA_PM_DEBUG
+	bool "Additional Tegra PM debug functionality"
+	depends on PM
+	default n
+	help
+	  Enable additional Tegra PM debug functionality (extra prints
+	  during suspend entry and some debugfs functionality).
+
 source "drivers/platform/tegra/nvadsp/Kconfig"
