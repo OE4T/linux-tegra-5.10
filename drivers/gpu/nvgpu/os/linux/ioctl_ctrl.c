@@ -1348,6 +1348,9 @@ static int nvgpu_gpu_get_event_fd(struct gk20a *g,
 
 	nvgpu_log_fn(g, " ");
 
+	if (!nvgpu_is_enabled(g, NVGPU_SUPPORT_DEVICE_EVENTS))
+		return -EINVAL;
+
 	if (!session)
 		return -EINVAL;
 

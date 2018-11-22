@@ -136,8 +136,6 @@ int gp10b_init_clk_arbiter(struct gk20a *g)
 		return -ENOMEM;
 	}
 
-	arb->clk_arb_events_supported = false;
-
 	err = nvgpu_mutex_init(&arb->pstate_lock);
 	if (err != 0) {
 		goto mutex_fail;

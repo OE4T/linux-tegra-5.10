@@ -36,6 +36,7 @@
 #include <nvgpu/list.h>
 #include <nvgpu/clk_arb.h>
 #include <nvgpu/gk20a.h>
+#include <nvgpu/enabled.h>
 
 #include "clk/clk.h"
 #include "pstate/pstate.h"
@@ -58,7 +59,7 @@ static int nvgpu_clk_arb_release_completion_dev(struct inode *inode,
 	/* This is done to account for the extra refcount taken in
 	 * nvgpu_clk_arb_commit_request_fd without events support in iGPU
 	 */
-	if (!session->g->clk_arb->clk_arb_events_supported) {
+	if (!nvgpu_is_enabled(session->g, NVGPU_SUPPORT_DEVICE_EVENTS)) {
 		nvgpu_ref_put(&dev->refcount, nvgpu_clk_arb_free_fd);
 	}
 
