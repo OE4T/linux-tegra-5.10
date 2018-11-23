@@ -35,6 +35,7 @@
 #include <linux/tegra_pm_domains.h>
 #include <linux/nvhost_ioctl.h>
 #include <linux/version.h>
+#include <linux/dma-mapping.h>
 #include <linux/clk/tegra.h>
 #include <linux/clk-provider.h>
 
@@ -744,6 +745,11 @@ int nvhost_module_init(struct platform_device *dev)
 		pm_runtime_set_autosuspend_delay(&dev->dev,
 			pdata->autosuspend_delay);
 		pm_runtime_use_autosuspend(&dev->dev);
+	}
+
+	if (!device_is_iommuable(&dev->dev)) {
+		pdata->isolate_contexts = false;
+		dev_info(&dev->dev, "context isolation disabled due to no IOMMU");
 	}
 
 	/* initialize no_poweroff_req_mutex */
