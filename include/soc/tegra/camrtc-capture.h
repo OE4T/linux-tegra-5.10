@@ -1249,6 +1249,9 @@ struct stats_surface {
  *                  Width of the rest of tiles is defined by chunk_width_middle
  *                  field
  *
+ * @param surface_configs.mr_image_cfa: MR image CFA combination. Field needed
+ *                  for IspModel to reconstruct NvColorFormat from mr_image_def.
+ *
  * @param surface_configs.mr_image_def: MR image format definition. Field
  *                  format is according to register ISP_MR_IMAGE_DEF_MR.
  *
@@ -1322,7 +1325,8 @@ struct isp_capture_descriptor {
 		 * Dither settings would logically be part of ISP program
 		 */
 		uint32_t image_def;
-		uint32_t _pad0;
+		uint16_t width;
+		uint16_t height;
 	} outputs_mw[ISP_MAX_OUTPUTS];
 
 	/**
@@ -1358,9 +1362,11 @@ struct isp_capture_descriptor {
 		uint16_t chunk_width_middle;
 		/** Width of overfetch area in the beginning of VI chunks */
 		uint16_t chunk_overfetch_width;
-		/** Width of the leftmost ISP tile in al slice */
+		/** Width of the leftmost ISP tile in a slice */
 		uint16_t tile_width_first;
-		uint16_t __pad;
+		/** Input image cfa */
+		uint8_t mr_image_cfa;
+		uint8_t _pad;
 		/** Input image format */
 		uint32_t mr_image_def;
 		/** TODO: should this be exposed to user mode? */
