@@ -22,6 +22,12 @@ config ARCH_TEGRA_19x_SOC
 	help
 	  NVIDIA Tegra Downstream options for 19x family of SoCs
 
+config ARCH_TEGRA_21x_SOC
+	bool "Tegra 21x family SOC (Downstream options)"
+	default n
+	help
+	  NVIDIA Tegra Downstream options for 21x family of SoCs
+
 config ARCH_TEGRA_23x_SOC
 	bool "Tegra 23x family SOC (Downstream options)"
 	select PINCTRL
