@@ -6,7 +6,7 @@ KBUILD_CFLAGS += -I$(srctree)/arch/arm/mach-tegra \
 		 -I$(srctree.nvidia)/drivers/video/tegra/dc/panel/
 
 ccflags-y += -Werror
-obj-y += tegra-mce.o
+obj-$(CONFIG_TEGRA_MCE) += tegra-mce.o
 obj-$(CONFIG_NV_TEGRA_MC) += mc/
 obj-$(CONFIG_ARCH_TEGRA_18x_SOC) += tegra18_speedo.o
 obj-$(CONFIG_TEGRA_DC) += panel-simulator.o
