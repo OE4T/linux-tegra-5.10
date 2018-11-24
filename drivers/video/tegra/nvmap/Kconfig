@@ -3,7 +3,7 @@ menuconfig TEGRA_NVMAP
 	select ARM_DMA_USE_IOMMU if IOMMU_API
 	select DMA_SHARED_BUFFER
 	select CRYPTO_LZO
-	default y
+	default n
 	help
 	  Say Y here to include the memory management driver for the Tegra
 	  GPU, multimedia and display subsystems
