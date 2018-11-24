@@ -51,7 +51,7 @@ obj-$(CONFIG_PSTORE_RAM) += tegra_ramoops.o
 
 obj-$(CONFIG_TEGRA_NVADSP) += nvadsp/
 
-obj-y += tegra_vpr.o
+obj-$(CONFIG_TEGRA_VPR) += tegra_vpr.o
 obj-y += smc-calls.o
 
 ifeq ($(CONFIG_CPU_FREQ),y)
