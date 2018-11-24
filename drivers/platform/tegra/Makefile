@@ -17,9 +17,7 @@ obj-$(CONFIG_ARCH_TEGRA_18x_SOC) += tegra186-system-config.o
 obj-$(CONFIG_TEGRA_CAMERA_RTCPU) += tegra-camera-rtcpu.o
 obj-$(CONFIG_TEGRA_CAMERA_RTCPU) += rtcpu/
 obj-$(CONFIG_TEGRA_PM_IRQ) += pm-irq-t18x.o
-ifeq ($(CONFIG_PM_SLEEP),y)
 obj-$(CONFIG_TEGRA_WAKEUP) += wakeups-t18x.o
-endif
 obj-$(CONFIG_TEGRA_CENTRAL_ACTMON) += central_actmon/
 obj-y += powergate/
 obj-$(CONFIG_TEGRA_AON) += tegra-aon.o
@@ -70,7 +68,7 @@ endif
 
 obj-$(CONFIG_TEGRA_HSP) += tegra-hsp.o
 obj-$(CONFIG_TEGRA_HSP) += tegra186-hsp.o
-obj-$(CONFIG_PM_SLEEP) += tegra-wakeups.o
+obj-$(CONFIG_TEGRA_WAKEUP) += tegra-wakeups.o
 
 obj-$(CONFIG_TEGRA_FIRMWARES_CLASS)    += firmwares.o
 obj-$(CONFIG_TEGRA_FIRMWARES_INVENTORY)    += firmwares-all.o
