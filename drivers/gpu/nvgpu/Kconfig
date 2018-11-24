@@ -1,6 +1,6 @@
 config GK20A
 	tristate "Nvidia GK20A GPU support"
-	default y
+	default n
 	help
 	  Choose this option if you have an SoC with integrated
 	  Nvidia GPU IP.
