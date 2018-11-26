@@ -170,9 +170,10 @@ extern u64 nvgpu_dbg_mask;
 
 #define gk20a_dbg(log_mask, fmt, arg...)				\
 	do {								\
-		if (((log_mask) & nvgpu_dbg_mask) != 0)			\
+		if (((log_mask) & nvgpu_dbg_mask) != 0)	{		\
 			__nvgpu_log_msg(NULL, __func__, __LINE__,	\
 					NVGPU_DEBUG, fmt "\n", ##arg);	\
+		}							\
 	} while (false)
 
 /*
