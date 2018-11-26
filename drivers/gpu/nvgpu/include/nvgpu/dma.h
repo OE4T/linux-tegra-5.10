@@ -54,6 +54,15 @@ struct nvgpu_mem;
  */
 #define NVGPU_DMA_READ_ONLY		BIT32(2)
 
+/*
+ * Buffer is physically addressed from the GPU.
+ * If device is not iommuable, or nvlink is enabled, don't allow building
+ * the buffer from individual pages, but require a physically contiguous
+ * block.
+ */
+#define NVGPU_DMA_PHYSICALLY_ADDRESSED	BIT32(3)
+
+
 /**
  * nvgpu_iommuable - Check if GPU is behind IOMMU
  *

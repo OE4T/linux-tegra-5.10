@@ -74,8 +74,9 @@ static char *nvgpu_dma_flags_to_str(struct gk20a *g, unsigned long flags)
 		}							\
 	} while (false)
 
-	APPEND_FLAG(NVGPU_DMA_NO_KERNEL_MAPPING, "NO_KERNEL_MAPPING ");
-	APPEND_FLAG(NVGPU_DMA_FORCE_CONTIGUOUS,  "FORCE_CONTIGUOUS ");
+	APPEND_FLAG(NVGPU_DMA_NO_KERNEL_MAPPING,    "NO_KERNEL_MAPPING ");
+	APPEND_FLAG(NVGPU_DMA_FORCE_CONTIGUOUS,     "FORCE_CONTIGUOUS ");
+	APPEND_FLAG(NVGPU_DMA_PHYSICALLY_ADDRESSED, "PHYSICALLY_ADDRESSED");
 #undef APPEND_FLAG
 
 	return buf;
@@ -185,6 +186,12 @@ int nvgpu_dma_alloc_flags_sys(struct gk20a *g, unsigned long flags,
 	if (nvgpu_mem_is_valid(mem)) {
 		nvgpu_warn(g, "memory leak !!");
 		WARN_ON(1);
+	}
+
+	if ((flags & NVGPU_DMA_PHYSICALLY_ADDRESSED) &&
+	    (!nvgpu_iommuable(g) ||
+	     nvgpu_is_enabled(g, NVGPU_MM_USE_PHYSICAL_SG))) {
+		flags |= NVGPU_DMA_FORCE_CONTIGUOUS;
 	}
 
 	/*

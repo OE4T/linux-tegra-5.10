@@ -623,8 +623,6 @@ static int init_runlist(struct gk20a *g, struct fifo_gk20a *f)
 	u32 i;
 	size_t runlist_size;
 	u32 active_engine_id, pbdma_id, engine_id;
-	u32 flags = nvgpu_is_enabled(g, NVGPU_MM_USE_PHYSICAL_SG) ?
-		NVGPU_DMA_FORCE_CONTIGUOUS : 0U;
 	int err = 0;
 
 	nvgpu_log_fn(g, " ");
@@ -664,9 +662,10 @@ static int init_runlist(struct gk20a *g, struct fifo_gk20a *f)
 				f->num_runlist_entries, runlist_size);
 
 		for (i = 0; i < MAX_RUNLIST_BUFFERS; i++) {
-			err = nvgpu_dma_alloc_flags_sys(g, flags,
-							    runlist_size,
-							    &runlist->mem[i]);
+			err = nvgpu_dma_alloc_flags_sys(g,
+					NVGPU_DMA_PHYSICALLY_ADDRESSED,
+					runlist_size,
+					&runlist->mem[i]);
 			if (err != 0) {
 				nvgpu_err(g, "memory allocation failed");
 				goto clean_up_runlist;
@@ -967,10 +966,8 @@ int gk20a_init_fifo_setup_sw(struct gk20a *g)
 				   (size_t)f->num_channels,
 				   &f->userd);
 	} else {
-		u32 flags = nvgpu_is_enabled(g, NVGPU_MM_USE_PHYSICAL_SG) ?
-	                NVGPU_DMA_FORCE_CONTIGUOUS : 0U;
-
-		err = nvgpu_dma_alloc_flags_sys(g, flags,
+		err = nvgpu_dma_alloc_flags_sys(g,
+				NVGPU_DMA_PHYSICALLY_ADDRESSED,
 				(size_t)f->userd_entry_size *
 				(size_t)f->num_channels, &f->userd);
 	}

@@ -31,7 +31,6 @@ int nvgpu_ltc_alloc_cbc(struct gk20a *g, size_t compbit_backing_size,
 			bool vidmem_alloc)
 {
 	struct gr_gk20a *gr = &g->gr;
-	unsigned long flags = 0;
 
 	if (nvgpu_mem_is_valid(&gr->compbit_store.mem))
 		return 0;
@@ -49,11 +48,8 @@ int nvgpu_ltc_alloc_cbc(struct gk20a *g, size_t compbit_backing_size,
 					 compbit_backing_size,
 					 &gr->compbit_store.mem);
 	} else {
-		if (!nvgpu_iommuable(g))
-			flags = NVGPU_DMA_FORCE_CONTIGUOUS;
-
 		return nvgpu_dma_alloc_flags_sys(g,
-					 flags,
+					 NVGPU_DMA_PHYSICALLY_ADDRESSED,
 					 compbit_backing_size,
 					 &gr->compbit_store.mem);
 	}
