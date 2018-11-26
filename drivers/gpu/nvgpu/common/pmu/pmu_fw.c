@@ -51,7 +51,7 @@
 /* PMU version specific functions */
 static u32 pmu_perfmon_cntr_sz_v2(struct nvgpu_pmu *pmu)
 {
-	return sizeof(struct pmu_perfmon_counter_v2);
+	return (u32)sizeof(struct pmu_perfmon_counter_v2);
 }
 
 static void *get_perfmon_cntr_ptr_v2(struct nvgpu_pmu *pmu)
@@ -93,7 +93,7 @@ static void set_pmu_cmdline_args_falctracedmabase_v4(struct nvgpu_pmu *pmu)
 
 static u32 pmu_cmdline_size_v4(struct nvgpu_pmu *pmu)
 {
-	return sizeof(struct pmu_cmdline_args_v4);
+	return (u32)sizeof(struct pmu_cmdline_args_v4);
 }
 
 static void set_pmu_cmdline_args_cpufreq_v4(struct nvgpu_pmu *pmu, u32 freq)
@@ -118,12 +118,12 @@ static void set_pmu_cmdline_args_falctracedmaidx_v4(
 
 static u32 pmu_cmdline_size_v5(struct nvgpu_pmu *pmu)
 {
-	return sizeof(struct pmu_cmdline_args_v5);
+	return (u32)sizeof(struct pmu_cmdline_args_v5);
 }
 
 static u32 pmu_cmdline_size_v6(struct nvgpu_pmu *pmu)
 {
-	return sizeof(struct pmu_cmdline_args_v6);
+	return (u32)sizeof(struct pmu_cmdline_args_v6);
 }
 
 static void set_pmu_cmdline_args_cpufreq_v5(struct nvgpu_pmu *pmu, u32 freq)
@@ -166,7 +166,7 @@ static void set_pmu_cmdline_args_falctracedmaidx_v5(
 
 static u32 pmu_cmdline_size_v3(struct nvgpu_pmu *pmu)
 {
-	return sizeof(struct pmu_cmdline_args_v3);
+	return (u32)sizeof(struct pmu_cmdline_args_v3);
 }
 
 static void set_pmu_cmdline_args_cpufreq_v3(struct nvgpu_pmu *pmu, u32 freq)
@@ -212,17 +212,17 @@ static void *get_pmu_cmdline_args_ptr_v5(struct nvgpu_pmu *pmu)
 
 static u32 get_pmu_allocation_size_v3(struct nvgpu_pmu *pmu)
 {
-	return sizeof(struct pmu_allocation_v3);
+	return (u32)sizeof(struct pmu_allocation_v3);
 }
 
 static u32 get_pmu_allocation_size_v2(struct nvgpu_pmu *pmu)
 {
-	return sizeof(struct pmu_allocation_v2);
+	return (u32)sizeof(struct pmu_allocation_v2);
 }
 
 static u32 get_pmu_allocation_size_v1(struct nvgpu_pmu *pmu)
 {
-	return sizeof(struct pmu_allocation_v1);
+	return (u32)sizeof(struct pmu_allocation_v1);
 }
 
 static void set_pmu_allocation_ptr_v3(struct nvgpu_pmu *pmu,
@@ -357,7 +357,7 @@ static u32 pmu_allocation_get_fb_size_v3(
 	struct pmu_allocation_v3 *pmu_a_ptr =
 			(struct pmu_allocation_v3 *)pmu_alloc_ptr;
 
-	return sizeof(pmu_a_ptr->alloc.fb);
+	return (u32)sizeof(pmu_a_ptr->alloc.fb);
 }
 
 static u32 *pmu_allocation_get_dmem_offset_addr_v2(struct nvgpu_pmu *pmu,
@@ -491,17 +491,17 @@ static u16 get_pmu_init_msg_pmu_sw_mg_size_v1(union pmu_init_msg_pmu *init_msg)
 
 static u32 get_pmu_perfmon_cmd_start_size_v3(void)
 {
-	return sizeof(struct pmu_perfmon_cmd_start_v3);
+	return (u32)sizeof(struct pmu_perfmon_cmd_start_v3);
 }
 
 static u32 get_pmu_perfmon_cmd_start_size_v2(void)
 {
-	return sizeof(struct pmu_perfmon_cmd_start_v2);
+	return (u32)sizeof(struct pmu_perfmon_cmd_start_v2);
 }
 
 static u32 get_pmu_perfmon_cmd_start_size_v1(void)
 {
-	return sizeof(struct pmu_perfmon_cmd_start_v1);
+	return (u32)sizeof(struct pmu_perfmon_cmd_start_v1);
 }
 
 static int get_perfmon_cmd_start_offsetofvar_v3(
@@ -548,17 +548,17 @@ static int get_perfmon_cmd_start_offsetofvar_v1(
 
 static u32 get_pmu_perfmon_cmd_init_size_v3(void)
 {
-	return sizeof(struct pmu_perfmon_cmd_init_v3);
+	return (u32)sizeof(struct pmu_perfmon_cmd_init_v3);
 }
 
 static u32 get_pmu_perfmon_cmd_init_size_v2(void)
 {
-	return sizeof(struct pmu_perfmon_cmd_init_v2);
+	return (u32)sizeof(struct pmu_perfmon_cmd_init_v2);
 }
 
 static u32 get_pmu_perfmon_cmd_init_size_v1(void)
 {
-	return sizeof(struct pmu_perfmon_cmd_init_v1);
+	return (u32)sizeof(struct pmu_perfmon_cmd_init_v1);
 }
 
 static int get_perfmon_cmd_init_offsetofvar_v3(
@@ -974,17 +974,17 @@ static void *get_pmu_sequence_out_alloc_ptr_v1(struct pmu_sequence *seq)
 
 static u8 pg_cmd_eng_buf_load_size_v0(struct pmu_pg_cmd *pg)
 {
-	return sizeof(pg->eng_buf_load_v0);
+	return (u32)sizeof(pg->eng_buf_load_v0);
 }
 
 static u8 pg_cmd_eng_buf_load_size_v1(struct pmu_pg_cmd *pg)
 {
-	return sizeof(pg->eng_buf_load_v1);
+	return (u32)sizeof(pg->eng_buf_load_v1);
 }
 
 static u8 pg_cmd_eng_buf_load_size_v2(struct pmu_pg_cmd *pg)
 {
-	return sizeof(pg->eng_buf_load_v2);
+	return (u32)sizeof(pg->eng_buf_load_v2);
 }
 
 static void pg_cmd_eng_buf_load_set_cmd_type_v0(struct pmu_pg_cmd *pg,
