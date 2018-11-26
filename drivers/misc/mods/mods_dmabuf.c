@@ -49,23 +49,32 @@ static bool dummy_device_registered;
 int esc_mods_dmabuf_get_phys_addr(struct file *filp,
 				  struct MODS_DMABUF_GET_PHYSICAL_ADDRESS *op)
 {
-	int err = 0;
-	struct dma_buf *dmabuf = NULL;
+	int                        err = 0;
+	struct dma_buf            *dmabuf = NULL;
 	struct dma_buf_attachment *attachment = NULL;
-	struct sg_table *sgt = NULL;
-	unsigned int remaining_offset = op->offset;
-	phys_addr_t physical_address = 0;
-	unsigned int segment_size = 0;
-	struct scatterlist *sg;
-	unsigned int sg_index;
+	struct sg_table           *sgt = NULL;
+	u64                        remaining_offset = op->offset;
+	u64                        total_size = 0;
+	u32                        total_segments = 0;
+	phys_addr_t                physical_address = 0;
+	unsigned int               segment_size = 0;
+	struct scatterlist        *sg;
+	unsigned int               sg_index;
 
-	if (op->offset > UINT_MAX)
-		return -EINVAL;
+	LOG_ENT();
+
+	mods_debug_printk(DEBUG_MEM_DETAILED, "%s: fd=%d offs=0x%llx\n",
+			  __func__, op->buf_fd, (unsigned long long)op->offset);
 
 	dmabuf = dma_buf_get(op->buf_fd);
-	if (IS_ERR_OR_NULL(dmabuf))
+	if (IS_ERR_OR_NULL(dmabuf)) {
+		mods_error_printk("%s: failed to get dma buf from fd %d\n",
+				  __func__, op->buf_fd);
+		LOG_EXT();
 		return IS_ERR(dmabuf) ? PTR_ERR(dmabuf) : -EINVAL;
+	}
 
+	WARN_ON(!dummy_device_registered);
 	attachment = dma_buf_attach(dmabuf, &dummy_device.dev);
 	if (IS_ERR_OR_NULL(attachment)) {
 		mods_error_printk("%s: failed to attach dma buf\n", __func__);
@@ -81,6 +90,8 @@ int esc_mods_dmabuf_get_phys_addr(struct file *filp,
 	}
 
 	for_each_sg(sgt->sgl, sg, sgt->nents, sg_index) {
+		total_size += sg->length;
+		++total_segments;
 		if (remaining_offset >= sg->length) {
 			/* haven't reached segment yet, or empty sg */
 			remaining_offset -= sg->length;
@@ -98,7 +109,14 @@ int esc_mods_dmabuf_get_phys_addr(struct file *filp,
 		}
 	}
 
+	mods_debug_printk(DEBUG_MEM_DETAILED, "%s: traversed %u segments, 0x%llx size\n",
+			  __func__, total_segments,
+			  (unsigned long long) total_size);
+
 	if (segment_size == 0) {
+		mods_error_printk("%s: offset 0x%llx exceeds allocation size 0x%llx\n",
+				  __func__, (unsigned long long)op->offset,
+				  total_size);
 		err = -EINVAL;
 	} else {
 		op->physical_address = physical_address;
@@ -113,12 +131,15 @@ buf_map_fail:
 buf_attach_fail:
 	dma_buf_put(dmabuf);
 
+	LOG_EXT();
 	return err;
 }
 
 int mods_init_dmabuf(void)
 {
 	int ret;
+
+	WARN_ON(dummy_device_registered);
 
 	ret = platform_device_register(&dummy_device);
 	if (ret) {
