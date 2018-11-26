@@ -205,6 +205,8 @@ struct nvgpu_falcon_ops {
 	void (*dump_falcon_stats)(struct nvgpu_falcon *flcn);
 	int (*bl_bootstrap)(struct nvgpu_falcon *flcn,
 		struct nvgpu_falcon_bl_info *bl_info);
+	void (*get_falcon_ctls)(struct nvgpu_falcon *flcn, u32 *sctl,
+		u32 *cpuctl);
 };
 
 struct nvgpu_falcon_bl_info {
@@ -260,6 +262,9 @@ void nvgpu_falcon_print_imem(struct nvgpu_falcon *flcn, u32 src, u32 size);
 void nvgpu_falcon_dump_stats(struct nvgpu_falcon *flcn);
 int nvgpu_falcon_bl_bootstrap(struct nvgpu_falcon *flcn,
 	struct nvgpu_falcon_bl_info *bl_info);
+void nvgpu_falcon_get_ctls(struct nvgpu_falcon *flcn, u32 *sctl, u32 *cpuctl);
+struct gk20a *nvgpu_falcon_to_gk20a(struct nvgpu_falcon *flcn);
+u32 nvgpu_falcon_get_id(struct nvgpu_falcon *flcn);
 
 /* queue public functions */
 int nvgpu_falcon_queue_init(struct nvgpu_falcon *flcn,

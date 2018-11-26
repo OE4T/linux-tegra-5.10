@@ -1068,7 +1068,8 @@ int acr_ucode_patch_sig(struct gk20a *g,
 static int nvgpu_gm20b_acr_wait_for_completion(struct gk20a *g,
 	struct nvgpu_falcon *flcn, unsigned int timeout)
 {
-	u32 base_addr = flcn->flcn_base;
+	u32 flcn_id = nvgpu_falcon_get_id(flcn);
+	u32 sctl, cpuctl;
 	int completion = 0;
 	u32 data = 0;
 
@@ -1076,25 +1077,25 @@ static int nvgpu_gm20b_acr_wait_for_completion(struct gk20a *g,
 
 	completion = nvgpu_falcon_wait_for_halt(flcn, timeout);
 	if (completion != 0U) {
-		nvgpu_err(g, "flcn-%d: ACR boot timed out", flcn->flcn_id);
+		nvgpu_err(g, "flcn-%d: ACR boot timed out", flcn_id);
 		goto exit;
 	}
 
-	nvgpu_pmu_dbg(g, "flcn-%d: ACR capabilities %x\n", flcn->flcn_id,
+	nvgpu_pmu_dbg(g, "flcn-%d: ACR capabilities %x", flcn_id,
 		nvgpu_falcon_mailbox_read(flcn, FALCON_MAILBOX_1));
 
 	data = nvgpu_falcon_mailbox_read(flcn, FALCON_MAILBOX_0);
 	if (data != 0U) {
-		nvgpu_err(g, "flcn-%d: ACR boot failed, err %x", flcn->flcn_id,
+		nvgpu_err(g, "flcn-%d: ACR boot failed, err %x", flcn_id,
 			data);
 		completion = -EAGAIN;
 		goto exit;
 	}
 
-	nvgpu_pmu_dbg(g, "flcn-%d: sctl reg %x", flcn->flcn_id,
-		gk20a_readl(g, base_addr + falcon_falcon_sctl_r()));
-	nvgpu_pmu_dbg(g, "flcn-%d: cpuctl reg %x", flcn->flcn_id,
-		gk20a_readl(g, base_addr + falcon_falcon_cpuctl_r()));
+	nvgpu_falcon_get_ctls(flcn, &sctl, &cpuctl);
+
+	nvgpu_pmu_dbg(g, "flcn-%d: sctl reg %x cpuctl reg %x",
+			flcn_id, sctl, cpuctl);
 
 exit:
 	return completion;
@@ -1109,12 +1110,13 @@ static int gm20b_acr_hs_bl_exec(struct gk20a *g, struct nvgpu_acr *acr,
 	struct hs_flcn_bl *hs_bl = &acr_desc->acr_hs_bl;
 	struct mm_gk20a *mm = &g->mm;
 	struct vm_gk20a *vm = mm->pmu.vm;
+	u32 flcn_id = nvgpu_falcon_get_id(acr_desc->acr_flcn);
 	u32 *hs_bl_code = NULL;
 	int err = 0;
 	u32 bl_sz;
 
 	nvgpu_pmu_dbg(g, "Executing ACR HS Bootloader %s on Falcon-ID - %d",
-		hs_bl->bl_fw_name, acr_desc->acr_flcn->flcn_id);
+		hs_bl->bl_fw_name, flcn_id);
 
 	if (hs_bl_fw == NULL) {
 		hs_bl_fw = nvgpu_request_firmware(g, hs_bl->bl_fw_name, 0);

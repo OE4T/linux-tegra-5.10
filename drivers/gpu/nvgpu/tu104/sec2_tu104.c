@@ -156,7 +156,7 @@ exit:
 int tu104_sec2_flcn_copy_to_emem(struct nvgpu_falcon *flcn,
 	u32 dst, u8 *src, u32 size, u8 port)
 {
-	struct gk20a *g = flcn->g;
+	struct gk20a *g = nvgpu_falcon_to_gk20a(flcn);
 
 	return tu104_sec2_emem_transfer(g, dst, src, size, port, false);
 }
@@ -164,7 +164,7 @@ int tu104_sec2_flcn_copy_to_emem(struct nvgpu_falcon *flcn,
 int tu104_sec2_flcn_copy_from_emem(struct nvgpu_falcon *flcn,
 	u32 src, u8 *dst, u32 size, u8 port)
 {
-	struct gk20a *g = flcn->g;
+	struct gk20a *g = nvgpu_falcon_to_gk20a(flcn);
 
 	return tu104_sec2_emem_transfer(g, src, dst, size, port, true);
 }

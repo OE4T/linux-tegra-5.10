@@ -662,6 +662,13 @@ void gk20a_falcon_dump_stats(struct nvgpu_falcon *flcn)
 		gk20a_readl(g, base_addr + falcon_falcon_exterraddr_r()));
 }
 
+void gk20a_falcon_get_ctls(struct nvgpu_falcon *flcn, u32 *sctl, u32 *cpuctl)
+{
+	*sctl = gk20a_readl(flcn->g, flcn->flcn_base + falcon_falcon_sctl_r());
+	*cpuctl = gk20a_readl(flcn->g, flcn->flcn_base +
+					falcon_falcon_cpuctl_r());
+}
+
 static void gk20a_falcon_engine_dependency_ops(struct nvgpu_falcon *flcn)
 {
 	struct gk20a *g = flcn->g;
@@ -704,6 +711,7 @@ void gk20a_falcon_ops(struct nvgpu_falcon *flcn)
 	flcn_ops->mailbox_read = gk20a_falcon_mailbox_read;
 	flcn_ops->mailbox_write = gk20a_falcon_mailbox_write;
 	flcn_ops->bl_bootstrap = gk20a_falcon_bl_bootstrap;
+	flcn_ops->get_falcon_ctls = gk20a_falcon_get_ctls;
 
 	gk20a_falcon_engine_dependency_ops(flcn);
 }
