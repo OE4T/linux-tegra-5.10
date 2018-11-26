@@ -35,25 +35,25 @@ enum {
 	TURING_DMA_COPY_A	= 0xC5B5,
 };
 
-#define NVC5C0_SET_SHADER_EXCEPTIONS            0x1528
-#define NVC5C0_SET_SKEDCHECK                    0x23c
-#define NVC5C0_SET_SHADER_CUT_COLLECTOR         0x254
+#define NVC5C0_SET_SHADER_EXCEPTIONS            0x1528U
+#define NVC5C0_SET_SKEDCHECK                    0x23cU
+#define NVC5C0_SET_SHADER_CUT_COLLECTOR         0x254U
 
-#define NVC5C0_SET_SM_DISP_CTRL                             0x250
-#define NVC5C0_SET_SM_DISP_CTRL_COMPUTE_SHADER_QUAD_MASK    0x1
-#define NVC5C0_SET_SM_DISP_CTRL_COMPUTE_SHADER_QUAD_DISABLE 0
-#define NVC5C0_SET_SM_DISP_CTRL_COMPUTE_SHADER_QUAD_ENABLE  1
+#define NVC5C0_SET_SM_DISP_CTRL                             0x250U
+#define NVC5C0_SET_SM_DISP_CTRL_COMPUTE_SHADER_QUAD_MASK    0x1U
+#define NVC5C0_SET_SM_DISP_CTRL_COMPUTE_SHADER_QUAD_DISABLE 0U
+#define NVC5C0_SET_SM_DISP_CTRL_COMPUTE_SHADER_QUAD_ENABLE  1U
 
-#define NVC597_SET_SHADER_EXCEPTIONS            0x1528
-#define NVC597_SET_CIRCULAR_BUFFER_SIZE         0x1280
-#define NVC597_SET_ALPHA_CIRCULAR_BUFFER_SIZE   0x02dc
-#define NVC597_SET_GO_IDLE_TIMEOUT              0x022c
-#define NVC597_SET_TEX_IN_DBG                   0x10bc
-#define NVC597_SET_SKEDCHECK                    0x10c0
-#define NVC597_SET_BES_CROP_DEBUG3              0x10c4
-#define NVC597_SET_BES_CROP_DEBUG4              0x10b0
-#define NVC597_SET_SM_DISP_CTRL                 0x10c8
-#define NVC597_SET_SHADER_CUT_COLLECTOR         0x10d0
+#define NVC597_SET_SHADER_EXCEPTIONS            0x1528U
+#define NVC597_SET_CIRCULAR_BUFFER_SIZE         0x1280U
+#define NVC597_SET_ALPHA_CIRCULAR_BUFFER_SIZE   0x02dcU
+#define NVC597_SET_GO_IDLE_TIMEOUT              0x022cU
+#define NVC597_SET_TEX_IN_DBG                   0x10bcU
+#define NVC597_SET_SKEDCHECK                    0x10c0U
+#define NVC597_SET_BES_CROP_DEBUG3              0x10c4U
+#define NVC597_SET_BES_CROP_DEBUG4              0x10b0U
+#define NVC597_SET_SM_DISP_CTRL                 0x10c8U
+#define NVC597_SET_SHADER_CUT_COLLECTOR         0x10d0U
 
 /* TODO: merge these into global context buffer list in gr_gk20a.h */
 #define RTV_CIRCULAR_BUFFER		8

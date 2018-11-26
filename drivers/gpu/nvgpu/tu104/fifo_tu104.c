@@ -127,7 +127,7 @@ void tu104_fifo_runlist_hw_submit(struct gk20a *g, u32 runlist_id,
 				fifo_runlist_base_lo_ptr_align_shift_v();
 	runlist_iova_hi = u64_hi32(runlist_iova);
 
-	if (count != 0) {
+	if (count != 0U) {
 		nvgpu_writel(g, fifo_runlist_base_lo_r(runlist_id),
 			fifo_runlist_base_lo_ptr_lo_f(runlist_iova_lo) |
 			nvgpu_aperture_mask(g, &runlist->mem[buffer_index],
@@ -158,12 +158,12 @@ int tu104_fifo_runlist_wait_pending(struct gk20a *g, u32 runlist_id)
 	ret = -ETIMEDOUT;
 	do {
 		if ((nvgpu_readl(g, fifo_runlist_submit_info_r(runlist_id)) &
-			      fifo_runlist_submit_info_pending_true_f()) == 0) {
+			fifo_runlist_submit_info_pending_true_f()) == 0U) {
 			ret = 0;
 			break;
 		}
 
-		nvgpu_usleep_range(delay, delay * 2);
+		nvgpu_usleep_range(delay, delay * 2UL);
 		delay = min_t(u32, delay << 1, GR_IDLE_CHECK_MAX);
 	} while (nvgpu_timeout_expired(&timeout) == 0);
 
@@ -251,7 +251,7 @@ int tu104_init_pdb_cache_war(struct gk20a *g)
 		pdb_addr_hi = u64_hi32(pdb_addr);
 
 		nvgpu_mem_wr32(g, &g->pdb_cache_war_mem,
-			ram_in_page_dir_base_lo_w() + (i * PAGE_SIZE / 4),
+			ram_in_page_dir_base_lo_w() + (i * PAGE_SIZE / 4U),
 			nvgpu_aperture_mask(g, &g->pdb_cache_war_mem,
 				ram_in_page_dir_base_target_sys_mem_ncoh_f(),
 				ram_in_page_dir_base_target_sys_mem_coh_f(),
@@ -262,7 +262,7 @@ int tu104_init_pdb_cache_war(struct gk20a *g)
 			ram_in_use_ver2_pt_format_true_f());
 
 		nvgpu_mem_wr32(g, &g->pdb_cache_war_mem,
-			ram_in_page_dir_base_hi_w() + (i * PAGE_SIZE / 4),
+			ram_in_page_dir_base_hi_w() + (i * PAGE_SIZE / 4U),
 			ram_in_page_dir_base_hi_f(pdb_addr_hi));
 
 		pdb_addr += PAGE_SIZE;
@@ -273,7 +273,7 @@ int tu104_init_pdb_cache_war(struct gk20a *g)
 	pdb_addr_hi = u64_hi32(last_bind_pdb_addr);
 
 	nvgpu_mem_wr32(g, &g->pdb_cache_war_mem,
-		ram_in_page_dir_base_lo_w() + (256U * PAGE_SIZE / 4),
+		ram_in_page_dir_base_lo_w() + (256U * PAGE_SIZE / 4U),
 		nvgpu_aperture_mask(g, &g->pdb_cache_war_mem,
 			ram_in_page_dir_base_target_sys_mem_ncoh_f(),
 			ram_in_page_dir_base_target_sys_mem_coh_f(),
@@ -284,7 +284,7 @@ int tu104_init_pdb_cache_war(struct gk20a *g)
 		ram_in_use_ver2_pt_format_true_f());
 
 	nvgpu_mem_wr32(g, &g->pdb_cache_war_mem,
-		ram_in_page_dir_base_hi_w() + (256U * PAGE_SIZE / 4),
+		ram_in_page_dir_base_hi_w() + (256U * PAGE_SIZE / 4U),
 		ram_in_page_dir_base_hi_f(pdb_addr_hi));
 
 	return 0;

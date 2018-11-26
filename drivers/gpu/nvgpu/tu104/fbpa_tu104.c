@@ -48,7 +48,7 @@ static void tu104_fbpa_handle_ecc_intr(struct gk20a *g,
 {
 	u32 status, sec_cnt, ded_cnt;
 	u32 offset = nvgpu_get_litter_value(g, GPU_LIT_FBPA_STRIDE) * fbpa_id;
-	u32 cnt_idx = fbpa_id * 2 + subp_id;
+	u32 cnt_idx = fbpa_id * 2U + subp_id;
 
 	status = gk20a_readl(g, offset + fbpa_0_ecc_status_r(subp_id));
 

@@ -87,8 +87,8 @@ int gr_tu104_init_sw_bundle64(struct gk20a *g)
 	struct netlist_av64_list *sw_bundle64_init =
 			&g->netlist_vars->sw_bundle64_init;
 
-	for (i = 0; i < sw_bundle64_init->count; i++) {
-		if (i == 0 ||
+	for (i = 0U; i < sw_bundle64_init->count; i++) {
+		if (i == 0U ||
 		   (last_bundle_data_lo != sw_bundle64_init->l[i].value_lo) ||
 		   (last_bundle_data_hi != sw_bundle64_init->l[i].value_hi)) {
 			nvgpu_writel(g, gr_pipe_bundle_data_r(),
@@ -338,7 +338,7 @@ int gr_tu104_get_offset_in_gpccs_segment(struct gk20a *g,
 		 *
 		 * Note 1 PES_PER_GPC case
 		 */
-		if (num_pes_per_gpc > 1) {
+		if (num_pes_per_gpc > 1U) {
 			offset_in_segment =
 				(((g->netlist_vars->ctxsw_regs.tpc.count *
 					num_tpcs) << 2) +
@@ -350,7 +350,7 @@ int gr_tu104_get_offset_in_gpccs_segment(struct gk20a *g,
 		}
 	} else if ((addr_type == CTXSW_ADDR_TYPE_EGPC) ||
 			(addr_type == CTXSW_ADDR_TYPE_ETPC)) {
-		if (num_pes_per_gpc > 1) {
+		if (num_pes_per_gpc > 1U) {
 			offset_in_segment =
 				((g->netlist_vars->ctxsw_regs.tpc.count *
 					num_tpcs) << 2) +
