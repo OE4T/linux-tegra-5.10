@@ -349,38 +349,38 @@ static void csi4_stream_check_status(struct tegra_csi_channel *chan,
 	if (!chan->pg_mode) {
 		status = csi4_stream_read(chan, port_idx, ERROR_STATUS2VI_VC0);
 		if (status)
-			dev_err(csi->dev,
+			dev_info(csi->dev,
 				"%s (%d) ERROR_STATUS2VI_VC0 = 0x%08x\n",
 				__func__, port_idx, status);
 
 		status = csi4_stream_read(chan, port_idx, ERROR_STATUS2VI_VC1);
 		if (status)
-			dev_err(csi->dev,
+			dev_info(csi->dev,
 				"%s (%d) ERROR_STATUS2VI_VC1 = 0x%08x\n",
 				__func__, port_idx, status);
 
 		status = csi4_stream_read(chan, port_idx, ERROR_STATUS2VI_VC2);
 		if (status)
-			dev_err(csi->dev,
+			dev_info(csi->dev,
 				"%s (%d) ERROR_STATUS2VI_VC2 = 0x%08x\n",
 				__func__, port_idx, status);
 
 		status = csi4_stream_read(chan, port_idx, ERROR_STATUS2VI_VC3);
 		if (status)
-			dev_err(csi->dev,
+			dev_info(csi->dev,
 				"%s (%d) ERROR_STATUS2VI_VC2 = 0x%08x\n",
 				__func__, port_idx, status);
 	}
 
 	status = csi4_stream_read(chan, port_idx, INTR_STATUS);
 	if (status)
-		dev_err(csi->dev,
+		dev_info(csi->dev,
 				"%s (%d) INTR_STATUS 0x%08x\n",
 				__func__, port_idx, status);
 
 	status = csi4_stream_read(chan, port_idx, ERR_INTR_STATUS);
 	if (status)
-		dev_err(csi->dev,
+		dev_info(csi->dev,
 				"%s (%d) ERR_INTR_STATUS 0x%08x\n",
 				__func__, port_idx, status);
 }
@@ -394,13 +394,13 @@ static void csi4_cil_check_status(struct tegra_csi_channel *chan, int port_idx)
 
 	status = csi4_stream_read(chan, port_idx, CILA_INTR_STATUS);
 	if (status)
-		dev_err(csi->dev,
+		dev_info(csi->dev,
 			"%s (%d) CILA_INTR_STATUS 0x%08x\n",
 			__func__, port_idx, status);
 
 	status = csi4_stream_read(chan, port_idx, CILA_ERR_INTR_STATUS);
 	if (status)
-		dev_err(csi->dev,
+		dev_info(csi->dev,
 			"%s (%d) CILA_ERR_INTR_STATUS 0x%08x\n",
 			__func__, port_idx, status);
 }
