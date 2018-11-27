@@ -676,7 +676,7 @@ static void lsfm_init_wpr_contents(struct gk20a *g, struct ls_flcn_mgr *plsfm,
 	 */
 	while (pnode != NULL) {
 		/* Flush WPR header to memory*/
-		nvgpu_mem_wr_n(g, ucode, i * sizeof(pnode->wpr_header),
+		nvgpu_mem_wr_n(g, ucode, i * (u32)sizeof(pnode->wpr_header),
 				&pnode->wpr_header,
 				(u32)sizeof(pnode->wpr_header));
 
@@ -744,7 +744,8 @@ static void lsfm_init_wpr_contents(struct gk20a *g, struct ls_flcn_mgr *plsfm,
 	/* Tag the terminator WPR header with an invalid falcon ID. */
 	last_wpr_hdr.falcon_id = LSF_FALCON_ID_INVALID;
 	nvgpu_mem_wr_n(g, ucode,
-			plsfm->managed_flcn_cnt * sizeof(struct lsf_wpr_header),
+			(u32)plsfm->managed_flcn_cnt *
+				(u32)sizeof(struct lsf_wpr_header),
 			&last_wpr_hdr,
 			(u32)sizeof(struct lsf_wpr_header));
 }
@@ -987,7 +988,7 @@ static int lsf_gen_wpr_requirements(struct gk20a *g, struct ls_flcn_mgr *plsfm)
 			/* Align (size bloat) and save off generic
 			descriptor size*/
 			pnode->lsb_header.bl_data_size = ALIGN(
-				sizeof(pnode->bl_gen_desc),
+				(u32)sizeof(pnode->bl_gen_desc),
 				LSF_BL_DATA_SIZE_ALIGNMENT);
 
 			/*Align, save off, and include the additional BL data*/

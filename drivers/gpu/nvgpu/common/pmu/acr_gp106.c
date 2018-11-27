@@ -1218,7 +1218,7 @@ int lsf_gen_wpr_requirements(struct gk20a *g,
 			/* Align (size bloat) and save off generic
 			descriptor size*/
 			pnode->lsb_header.bl_data_size = ALIGN(
-				sizeof(pnode->bl_gen_desc),
+				(u32)sizeof(pnode->bl_gen_desc),
 				LSF_BL_DATA_SIZE_ALIGNMENT);
 
 			/*Align, save off, and include the additional BL data*/

@@ -215,7 +215,7 @@ struct lsf_lsb_header_v1 {
  * Maximum WPR Header size
  */
 #define LSF_WPR_HEADERS_TOTAL_SIZE_MAX	\
-	(ALIGN_UP((sizeof(struct lsf_wpr_header_v1) * LSF_FALCON_ID_END), \
+	(ALIGN_UP(((u32)sizeof(struct lsf_wpr_header_v1) * LSF_FALCON_ID_END), \
 		LSF_WPR_HEADER_ALIGNMENT))
 #define LSF_LSB_HEADER_TOTAL_SIZE_MAX	(\
 	ALIGN_UP(sizeof(struct lsf_lsb_header_v1), LSF_LSB_HEADER_ALIGNMENT))
