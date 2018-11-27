@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -461,7 +461,7 @@ void fb_tu104_init_cbc(struct gk20a *g, struct gr_gk20a *gr)
 	nvgpu_log(g, gpu_dbg_info | gpu_dbg_map_v | gpu_dbg_pte,
 		"compbit base.pa: 0x%x,%08x cbc_base:0x%llx\n",
 		(u32)(compbit_store_pa >> 32),
-		(u32)(compbit_store_pa & 0xffffffff),
+		(u32)(compbit_store_pa & 0xffffffffU),
 		compbit_store_base);
 
 	gr->compbit_store.base_hw = compbit_store_base;

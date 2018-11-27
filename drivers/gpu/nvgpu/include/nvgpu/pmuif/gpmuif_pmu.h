@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -71,10 +71,10 @@ struct pmu_cmdline_args_v6 {
 };
 
 /* GPU ID */
-#define PMU_SHA1_GID_SIGNATURE		0xA7C66AD2
-#define PMU_SHA1_GID_SIGNATURE_SIZE	4
+#define PMU_SHA1_GID_SIGNATURE		0xA7C66AD2U
+#define PMU_SHA1_GID_SIGNATURE_SIZE	4U
 
-#define PMU_SHA1_GID_SIZE	16
+#define PMU_SHA1_GID_SIZE	16U
 
 struct pmu_sha1_gid {
 	bool valid;
@@ -107,13 +107,13 @@ struct pmu_init_msg_pmu_v1 {
 	u16 sw_managed_area_size;
 };
 
-#define PMU_QUEUE_COUNT_FOR_V5 4
-#define PMU_QUEUE_COUNT_FOR_V4 5
-#define PMU_QUEUE_COUNT_FOR_V3 3
-#define PMU_QUEUE_HPQ_IDX_FOR_V3 0
-#define PMU_QUEUE_LPQ_IDX_FOR_V3 1
-#define PMU_QUEUE_MSG_IDX_FOR_V3 2
-#define PMU_QUEUE_MSG_IDX_FOR_V5 3
+#define PMU_QUEUE_COUNT_FOR_V5 4U
+#define PMU_QUEUE_COUNT_FOR_V4 5U
+#define PMU_QUEUE_COUNT_FOR_V3 3U
+#define PMU_QUEUE_HPQ_IDX_FOR_V3 0U
+#define PMU_QUEUE_LPQ_IDX_FOR_V3 1U
+#define PMU_QUEUE_MSG_IDX_FOR_V3 2U
+#define PMU_QUEUE_MSG_IDX_FOR_V5 3U
 struct pmu_init_msg_pmu_v3 {
 	u8 msg_type;
 	u8  queue_index[PMU_QUEUE_COUNT_FOR_V3];

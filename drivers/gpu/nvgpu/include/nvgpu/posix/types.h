@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -161,13 +161,13 @@ static inline unsigned long __hweight16(uint16_t x)
 static inline unsigned long __hweight32(uint32_t x)
 {
 	return __hweight16((uint16_t)x) +
-		__hweight16((uint16_t)((x & 0xffff0000) >> 16));
+		__hweight16((uint16_t)((x & 0xffff0000U) >> 16));
 }
 
 static inline unsigned long __hweight64(uint64_t x)
 {
 	return __hweight32((uint32_t)x) +
-		__hweight32((uint32_t)((x & 0xffffffff00000000) >> 32));
+		__hweight32((uint32_t)((x & 0xffffffff00000000U) >> 32));
 }
 
 #define hweight32		__hweight32

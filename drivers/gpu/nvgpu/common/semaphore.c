@@ -1,7 +1,7 @@
 /*
  * Nvgpu Semaphores
  *
- * Copyright (c) 2014-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -80,7 +80,7 @@ static int __nvgpu_semaphore_sea_grow(struct nvgpu_semaphore_sea *sea)
 	 * sooner rather than later.
 	 */
 	for (i = 0U; i < PAGE_SIZE * SEMAPHORE_POOL_COUNT; i += 4U) {
-		nvgpu_mem_wr(gk20a, &sea->sea_mem, i, 0xfffffff0);
+		nvgpu_mem_wr(gk20a, &sea->sea_mem, i, 0xfffffff0U);
 	}
 
 out:
@@ -552,7 +552,7 @@ static bool __nvgpu_semaphore_value_released(u32 goal, u32 racer)
 	 * effectively the same as: signed_racer - signed_goal > 0.
 	 */
 
-	return racer - goal < 0x80000000;
+	return racer - goal < 0x80000000U;
 }
 
 u32 nvgpu_semaphore_get_value(struct nvgpu_semaphore *s)

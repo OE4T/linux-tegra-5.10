@@ -1050,8 +1050,8 @@ static void gv100_nvlink_dlpl_intr_enable(struct gk20a *g, u32 link_id,
 	}
 
 	/* Clear interrupt register to get rid of stale state (W1C) */
-	DLPL_REG_WR32(g, link_id, nvl_intr_r(), 0xffffffff);
-	DLPL_REG_WR32(g, link_id, nvl_intr_sw2_r(), 0xffffffff);
+	DLPL_REG_WR32(g, link_id, nvl_intr_r(), 0xffffffffU);
+	DLPL_REG_WR32(g, link_id, nvl_intr_sw2_r(), 0xffffffffU);
 
 	reg = nvl_intr_stall_en_tx_recovery_long_enable_f()          |
 		nvl_intr_stall_en_tx_fault_ram_enable_f()            |
@@ -1128,7 +1128,7 @@ static void gv100_nvlink_dlpl_isr(struct gk20a *g, u32 link_id)
 
 	/* Clear interrupts */
 	DLPL_REG_WR32(g, link_id, nvl_intr_r(), (non_fatal_mask | fatal_mask));
-	DLPL_REG_WR32(g, link_id, nvl_intr_sw2_r(), 0xffffffff);
+	DLPL_REG_WR32(g, link_id, nvl_intr_sw2_r(), 0xffffffffU);
 }
 
 /*

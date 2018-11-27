@@ -183,7 +183,7 @@ static int dev_init_get_vfield_info(struct gk20a *g,
 	u8 *vfieldregtableptr = NULL;
 	u32 vfieldregheadersize = VFIELD_REG_HEADER_SIZE;
 	u32 i;
-	u32 oldindex = 0xFFFFFFFF;
+	u32 oldindex = 0xFFFFFFFFU;
 	u32 currindex;
 	struct vfield_reg_header vregheader;
 	struct vfield_reg_entry vregentry;

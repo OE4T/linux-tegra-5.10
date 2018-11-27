@@ -3414,8 +3414,8 @@ void gv11b_gr_set_hww_esr_report_mask(struct gk20a *g)
 {
 
 	/* clear hww */
-	gk20a_writel(g, gr_gpcs_tpcs_sms_hww_global_esr_r(), 0xffffffff);
-	gk20a_writel(g, gr_gpcs_tpcs_sms_hww_global_esr_r(), 0xffffffff);
+	gk20a_writel(g, gr_gpcs_tpcs_sms_hww_global_esr_r(), 0xffffffffU);
+	gk20a_writel(g, gr_gpcs_tpcs_sms_hww_global_esr_r(), 0xffffffffU);
 
 	/* setup sm warp esr report masks */
 	gk20a_writel(g, gr_gpcs_tpcs_sms_hww_warp_esr_report_mask_r(),

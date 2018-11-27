@@ -1979,7 +1979,7 @@ void gv11b_fifo_add_syncpt_wait_cmd(struct gk20a *g,
 
 	/* sema_addr_lo */
 	nvgpu_mem_wr32(g, cmd->mem, off++, 0x20010017);
-	nvgpu_mem_wr32(g, cmd->mem, off++, gpu_va & 0xffffffff);
+	nvgpu_mem_wr32(g, cmd->mem, off++, gpu_va & 0xffffffffU);
 
 	/* sema_addr_hi */
 	nvgpu_mem_wr32(g, cmd->mem, off++, 0x20010018);
@@ -2018,7 +2018,7 @@ void gv11b_fifo_add_syncpt_incr_cmd(struct gk20a *g,
 
 	/* sema_addr_lo */
 	nvgpu_mem_wr32(g, cmd->mem, off++, 0x20010017);
-	nvgpu_mem_wr32(g, cmd->mem, off++, gpu_va & 0xffffffff);
+	nvgpu_mem_wr32(g, cmd->mem, off++, gpu_va & 0xffffffffU);
 
 	/* sema_addr_hi */
 	nvgpu_mem_wr32(g, cmd->mem, off++, 0x20010018);

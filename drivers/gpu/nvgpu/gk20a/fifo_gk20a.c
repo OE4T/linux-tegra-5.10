@@ -526,8 +526,8 @@ int gk20a_init_fifo_reset_enable_hw(struct gk20a *g)
 
 	/* clear and enable pbdma interrupt */
 	for (i = 0; i < host_num_pbdma; i++) {
-		gk20a_writel(g, pbdma_intr_0_r(i), 0xFFFFFFFF);
-		gk20a_writel(g, pbdma_intr_1_r(i), 0xFFFFFFFF);
+		gk20a_writel(g, pbdma_intr_0_r(i), 0xFFFFFFFFU);
+		gk20a_writel(g, pbdma_intr_1_r(i), 0xFFFFFFFFU);
 
 		intr_stall = gk20a_readl(g, pbdma_intr_stall_r(i));
 		intr_stall &= ~pbdma_intr_stall_lbreq_enabled_f();
@@ -548,12 +548,12 @@ int gk20a_init_fifo_reset_enable_hw(struct gk20a *g)
 	gk20a_writel(g, fifo_intr_runlist_r(), U32_MAX);
 
 	/* clear and enable pfifo interrupt */
-	gk20a_writel(g, fifo_intr_0_r(), 0xFFFFFFFF);
+	gk20a_writel(g, fifo_intr_0_r(), 0xFFFFFFFFU);
 	mask = gk20a_fifo_intr_0_en_mask(g);
 	nvgpu_log_info(g, "fifo_intr_en_0 0x%08x", mask);
 	gk20a_writel(g, fifo_intr_en_0_r(), mask);
 	nvgpu_log_info(g, "fifo_intr_en_1 = 0x80000000");
-	gk20a_writel(g, fifo_intr_en_1_r(), 0x80000000);
+	gk20a_writel(g, fifo_intr_en_1_r(), 0x80000000U);
 
 	nvgpu_log_fn(g, "done");
 
@@ -3653,7 +3653,7 @@ void gk20a_fifo_add_sema_cmd(struct gk20a *g,
 	/* semaphore_b */
 	nvgpu_mem_wr32(g, cmd->mem, off++, 0x20010005U);
 	/* offset */
-	nvgpu_mem_wr32(g, cmd->mem, off++, (u32)sema_va & 0xffffffff);
+	nvgpu_mem_wr32(g, cmd->mem, off++, (u32)sema_va & 0xffffffffU);
 
 	if (acquire) {
 		/* semaphore_c */

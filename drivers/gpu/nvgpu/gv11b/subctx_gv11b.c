@@ -138,8 +138,8 @@ static void gv11b_subctx_commit_valid_mask(struct vm_gk20a *vm,
 	struct gk20a *g = gk20a_from_vm(vm);
 
 	/* Make all subctx pdbs valid */
-	nvgpu_mem_wr32(g, inst_block, 166, 0xffffffff);
-	nvgpu_mem_wr32(g, inst_block, 167, 0xffffffff);
+	nvgpu_mem_wr32(g, inst_block, 166, 0xffffffffU);
+	nvgpu_mem_wr32(g, inst_block, 167, 0xffffffffU);
 }
 
 static void gv11b_subctx_commit_pdb(struct vm_gk20a *vm,

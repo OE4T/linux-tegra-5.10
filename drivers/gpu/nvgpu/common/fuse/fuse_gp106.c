@@ -1,7 +1,7 @@
 /*
  * GP106 FUSE
  *
- * Copyright (c) 2017-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -49,7 +49,7 @@ int gp106_fuse_read_vin_cal_slope_intercept_fuse(struct gk20a *g,
 
 	/* read gpc0 irrespective of vin id */
 	gpc0data = gk20a_readl(g, fuse_vin_cal_gpc0_r());
-	if (gpc0data == 0xFFFFFFFF) {
+	if (gpc0data == 0xFFFFFFFFU) {
 		return -EINVAL;
 	}
 
@@ -86,7 +86,7 @@ int gp106_fuse_read_vin_cal_slope_intercept_fuse(struct gk20a *g,
 	default:
 		return -EINVAL;
 	}
-	if (data == 0xFFFFFFFF) {
+	if (data == 0xFFFFFFFFU) {
 		return -EINVAL;
 	}
 
@@ -200,7 +200,7 @@ int gp106_fuse_read_vin_cal_gain_offset_fuse(struct gk20a *g,
 	default:
 		return -EINVAL;
 	}
-	if (reg_val == 0xFFFFFFFF) {
+	if (reg_val == 0xFFFFFFFFU) {
 		return -EINVAL;
 	}
 	data = (reg_val >> 16U) & 0x1fU;

@@ -781,9 +781,9 @@ int gr_gm20b_load_ctxsw_ucode(struct gk20a *g)
 
 	if (nvgpu_is_enabled(g, NVGPU_IS_FMODEL)) {
 		gk20a_writel(g, gr_fecs_ctxsw_mailbox_r(7),
-			gr_fecs_ctxsw_mailbox_value_f(0xc0de7777));
+			gr_fecs_ctxsw_mailbox_value_f(0xc0de7777U));
 		gk20a_writel(g, gr_gpccs_ctxsw_mailbox_r(7),
-			gr_gpccs_ctxsw_mailbox_value_f(0xc0de7777));
+			gr_gpccs_ctxsw_mailbox_value_f(0xc0de7777U));
 	}
 
 	g->pmu_lsf_loaded_falcon_id = 0;
@@ -1150,7 +1150,7 @@ void gr_gm20b_init_cyclestats(struct gk20a *g)
 #if defined(CONFIG_GK20A_CYCLE_STATS)
 	__nvgpu_set_enabled(g, NVGPU_SUPPORT_CYCLE_STATS, true);
 	__nvgpu_set_enabled(g, NVGPU_SUPPORT_CYCLE_STATS_SNAPSHOT, true);
-	g->gr.max_css_buffer_size = 0xffffffff;
+	g->gr.max_css_buffer_size = 0xffffffffU;
 #else
 	(void)g;
 #endif

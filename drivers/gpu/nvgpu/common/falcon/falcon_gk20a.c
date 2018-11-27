@@ -89,7 +89,7 @@ static void gk20a_falcon_set_irq(struct nvgpu_falcon *flcn, bool enable)
 			flcn->intr_dest);
 	} else {
 		gk20a_writel(g, base_addr + falcon_falcon_irqmclr_r(),
-			0xffffffff);
+			0xffffffffU);
 	}
 }
 

@@ -1,7 +1,7 @@
 /*
  * GP10B PMU
  *
- * Copyright (c) 2015-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2015-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -161,8 +161,8 @@ static void gp10b_pmu_load_multiple_falcons(struct gk20a *g, u32 falconidmask,
 		cmd.cmd.acr.boot_falcons.falconidmask =
 				falconidmask;
 		cmd.cmd.acr.boot_falcons.usevamask = 0;
-		cmd.cmd.acr.boot_falcons.wprvirtualbase.lo = 0x0;
-		cmd.cmd.acr.boot_falcons.wprvirtualbase.hi = 0x0;
+		cmd.cmd.acr.boot_falcons.wprvirtualbase.lo = 0x0U;
+		cmd.cmd.acr.boot_falcons.wprvirtualbase.hi = 0x0U;
 		gp10b_dbg_pmu(g, "PMU_ACR_CMD_ID_BOOTSTRAP_MULTIPLE_FALCONS:%x\n",
 				falconidmask);
 		nvgpu_pmu_cmd_post(g, &cmd, NULL, NULL, PMU_COMMAND_QUEUE_HPQ,
@@ -301,7 +301,7 @@ void gp10b_write_dmatrfbase(struct gk20a *g, u32 addr)
 	gk20a_writel(g, pwr_falcon_dmatrfbase_r(),
 				addr);
 	gk20a_writel(g, pwr_falcon_dmatrfbase1_r(),
-				0x0);
+				0x0U);
 }
 
 bool gp10b_is_lazy_bootstrap(u32 falcon_id)

@@ -2164,9 +2164,9 @@ int gr_gk20a_load_ctxsw_ucode(struct gk20a *g)
 
 	if (nvgpu_is_enabled(g, NVGPU_IS_FMODEL)) {
 		gk20a_writel(g, gr_fecs_ctxsw_mailbox_r(7),
-			gr_fecs_ctxsw_mailbox_value_f(0xc0de7777));
+			gr_fecs_ctxsw_mailbox_value_f(0xc0de7777U));
 		gk20a_writel(g, gr_gpccs_ctxsw_mailbox_r(7),
-			gr_gpccs_ctxsw_mailbox_value_f(0xc0de7777));
+			gr_gpccs_ctxsw_mailbox_value_f(0xc0de7777U));
 	}
 
 	/*
@@ -2213,7 +2213,7 @@ static int gr_gk20a_wait_ctxsw_ready(struct gk20a *g)
 			gr_fecs_current_ctx_valid_false_f());
 	}
 
-	gk20a_writel(g, gr_fecs_ctxsw_mailbox_clear_r(0), 0xffffffff);
+	gk20a_writel(g, gr_fecs_ctxsw_mailbox_clear_r(0), 0xffffffffU);
 	gk20a_writel(g, gr_fecs_method_data_r(), 0x7fffffff);
 	gk20a_writel(g, gr_fecs_method_push_r(),
 		     gr_fecs_method_push_adr_set_watchdog_timeout_f());
@@ -3478,11 +3478,11 @@ int gr_gk20a_load_zbc_default_table(struct gk20a *g, struct gr_gk20a *gr)
 	/* Opaque black (i.e. solid black, fmt 0x28 = A8B8G8R8) */
 	zbc_val.format = gr_ds_zbc_color_fmt_val_a8_b8_g8_r8_v();
 	for (i = 0; i < GK20A_ZBC_COLOR_VALUE_SIZE; i++) {
-		zbc_val.color_ds[i] = 0;
-		zbc_val.color_l2[i] = 0;
+		zbc_val.color_ds[i] = 0U;
+		zbc_val.color_l2[i] = 0U;
 	}
-	zbc_val.color_l2[0] = 0xff000000;
-	zbc_val.color_ds[3] = 0x3f800000;
+	zbc_val.color_l2[0] = 0xff000000U;
+	zbc_val.color_ds[3] = 0x3f800000U;
 	err = gr_gk20a_add_zbc(g, gr, &zbc_val);
 	if (err != 0) {
 		goto color_fail;
@@ -3491,8 +3491,8 @@ int gr_gk20a_load_zbc_default_table(struct gk20a *g, struct gr_gk20a *gr)
 	/* Transparent black = (fmt 1 = zero) */
 	zbc_val.format = gr_ds_zbc_color_fmt_val_zero_v();
 	for (i = 0; i < GK20A_ZBC_COLOR_VALUE_SIZE; i++) {
-		zbc_val.color_ds[i] = 0;
-		zbc_val.color_l2[i] = 0;
+		zbc_val.color_ds[i] = 0U;
+		zbc_val.color_l2[i] = 0U;
 	}
 	err = gr_gk20a_add_zbc(g, gr, &zbc_val);
 	if (err != 0) {
@@ -3502,8 +3502,8 @@ int gr_gk20a_load_zbc_default_table(struct gk20a *g, struct gr_gk20a *gr)
 	/* Opaque white (i.e. solid white) = (fmt 2 = uniform 1) */
 	zbc_val.format = gr_ds_zbc_color_fmt_val_unorm_one_v();
 	for (i = 0; i < GK20A_ZBC_COLOR_VALUE_SIZE; i++) {
-		zbc_val.color_ds[i] = 0x3f800000;
-		zbc_val.color_l2[i] = 0xffffffff;
+		zbc_val.color_ds[i] = 0x3f800000U;
+		zbc_val.color_l2[i] = 0xffffffffU;
 	}
 	err = gr_gk20a_add_zbc(g, gr, &zbc_val);
 	if (err != 0) {
@@ -3829,12 +3829,12 @@ static int gr_gk20a_zcull_init_hw(struct gk20a *g, struct gr_gk20a *gr)
 
 void gk20a_gr_enable_exceptions(struct gk20a *g)
 {
-	gk20a_writel(g, gr_exception_r(), 0xFFFFFFFF);
-	gk20a_writel(g, gr_exception_en_r(), 0xFFFFFFFF);
-	gk20a_writel(g, gr_exception1_r(), 0xFFFFFFFF);
-	gk20a_writel(g, gr_exception1_en_r(), 0xFFFFFFFF);
-	gk20a_writel(g, gr_exception2_r(), 0xFFFFFFFF);
-	gk20a_writel(g, gr_exception2_en_r(), 0xFFFFFFFF);
+	gk20a_writel(g, gr_exception_r(), 0xFFFFFFFFU);
+	gk20a_writel(g, gr_exception_en_r(), 0xFFFFFFFFU);
+	gk20a_writel(g, gr_exception1_r(), 0xFFFFFFFFU);
+	gk20a_writel(g, gr_exception1_en_r(), 0xFFFFFFFFU);
+	gk20a_writel(g, gr_exception2_r(), 0xFFFFFFFFU);
+	gk20a_writel(g, gr_exception2_en_r(), 0xFFFFFFFFU);
 }
 
 void gk20a_gr_enable_gpc_exceptions(struct gk20a *g)
@@ -3909,8 +3909,8 @@ static int gk20a_init_gr_setup_hw(struct gk20a *g)
 	/* TBD: reload gr ucode when needed */
 
 	/* enable interrupts */
-	gk20a_writel(g, gr_intr_r(), 0xFFFFFFFF);
-	gk20a_writel(g, gr_intr_en_r(), 0xFFFFFFFF);
+	gk20a_writel(g, gr_intr_r(), 0xFFFFFFFFU);
+	gk20a_writel(g, gr_intr_en_r(), 0xFFFFFFFFU);
 
 	/* enable fecs error interrupts */
 	g->ops.gr.fecs_host_int_enable(g);
@@ -4794,7 +4794,7 @@ static inline bool is_valid_cyclestats_bar0_offset_gk20a(struct gk20a *g,
 							 u32 offset)
 {
 	/* support only 24-bit 4-byte aligned offsets */
-	bool valid = !(offset & 0xFF000003);
+	bool valid = !(offset & 0xFF000003U);
 
 	if (g->allow_all)
 		return true;

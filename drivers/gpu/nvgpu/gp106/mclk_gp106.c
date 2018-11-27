@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -3261,7 +3261,7 @@ int gp106_mclk_init(struct gk20a *g)
 	}
 
 	/* FBPA gain WAR */
-	gk20a_writel(g, fb_fbpa_fbio_iref_byte_rx_ctrl_r(), 0x22222222);
+	gk20a_writel(g, fb_fbpa_fbio_iref_byte_rx_ctrl_r(), 0x22222222U);
 
 	mclk->speed = GP106_MCLK_LOW_SPEED; /* Value from Devinit */
 
@@ -3401,13 +3401,13 @@ int gp106_mclk_change(struct gk20a *g, u16 val)
 #endif
 
 	if (speed == GP106_MCLK_HIGH_SPEED) {
-		gk20a_writel(g, 0x132000, 0x98010000);
+		gk20a_writel(g, 0x132000U, 0x98010000U);
 		/* Introduce delay */
-		(void) gk20a_readl(g, 0x132000);
-		(void) gk20a_readl(g, 0x132000);
+		(void) gk20a_readl(g, 0x132000U);
+		(void) gk20a_readl(g, 0x132000U);
 	}
 
-	gk20a_writel(g, 0x137300, 0x20000103);
+	gk20a_writel(g, 0x137300U, 0x20000103U);
 
 	/* Read sequencer binary*/
 	payload.in.buf = seq_script_ptr;

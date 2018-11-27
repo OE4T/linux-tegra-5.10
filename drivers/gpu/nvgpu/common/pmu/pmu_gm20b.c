@@ -147,8 +147,8 @@ int gm20b_pmu_init_acr(struct gk20a *g)
 	cmd.hdr.size = PMU_CMD_HDR_SIZE +
 	  sizeof(struct pmu_acr_cmd_init_wpr_details);
 	cmd.cmd.acr.init_wpr.cmd_type = PMU_ACR_CMD_ID_INIT_WPR_REGION;
-	cmd.cmd.acr.init_wpr.regionid = 0x01;
-	cmd.cmd.acr.init_wpr.wproffset = 0x00;
+	cmd.cmd.acr.init_wpr.regionid = 0x01U;
+	cmd.cmd.acr.init_wpr.wproffset = 0x00U;
 	nvgpu_pmu_dbg(g, "cmd post PMU_ACR_CMD_ID_INIT_WPR_REGION");
 	nvgpu_pmu_cmd_post(g, &cmd, NULL, NULL, PMU_COMMAND_QUEUE_HPQ,
 			pmu_handle_acr_init_wpr_msg, pmu, &seq);
@@ -249,7 +249,7 @@ int gm20b_load_falcon_ucode(struct gk20a *g, u32 falconidmask)
 		gr_fecs_ctxsw_mailbox_clear_r(0), ~U32(0x0U));
 	gm20b_pmu_load_lsf(g, FALCON_ID_FECS, flags);
 	err = pmu_gm20b_ctx_wait_lsf_ready(g, timeout,
-			0x55AA55AA);
+			0x55AA55AAU);
 	return err;
 }
 

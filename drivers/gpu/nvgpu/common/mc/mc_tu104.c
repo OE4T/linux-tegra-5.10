@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -137,7 +137,7 @@ static void intr_tu104_stall_enable(struct gk20a *g)
 	u32 eng_intr_mask = gk20a_fifo_engine_interrupt_mask(g);
 
 	nvgpu_writel(g, mc_intr_en_clear_r(NVGPU_MC_INTR_STALLING),
-				0xffffffff);
+				0xffffffffU);
 
 	g->mc_intr_mask_restore[NVGPU_MC_INTR_STALLING] =
 				mc_intr_pfifo_pending_f() |
@@ -161,7 +161,7 @@ static void intr_tu104_nonstall_enable(struct gk20a *g)
 
 	/* Keep NV_PMC_INTR(1) disabled */
 	nvgpu_writel(g, mc_intr_en_clear_r(NVGPU_MC_INTR_NONSTALLING),
-				0xffffffff);
+				0xffffffffU);
 
 	/*
 	 * Enable nonstall interrupts in TOP
@@ -205,15 +205,15 @@ void intr_tu104_mask(struct gk20a *g)
 	u32 size, reg, i;
 
 	nvgpu_writel(g, mc_intr_en_clear_r(NVGPU_MC_INTR_STALLING),
-				0xffffffff);
+				0xffffffffU);
 
 	nvgpu_writel(g, mc_intr_en_clear_r(NVGPU_MC_INTR_NONSTALLING),
-				0xffffffff);
+				0xffffffffU);
 
 	size = func_priv_cpu_intr_top_en_clear__size_1_v();
 	for (i = 0; i < size; i++) {
 		reg = func_priv_cpu_intr_top_en_clear_r(i);
-		nvgpu_func_writel(g, reg, 0xffffffff);
+		nvgpu_func_writel(g, reg, 0xffffffffU);
 	}
 }
 

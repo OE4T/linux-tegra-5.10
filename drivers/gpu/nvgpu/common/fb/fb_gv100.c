@@ -211,7 +211,7 @@ int gv100_fb_memory_unlock(struct gk20a *g)
 	 * mem_unlock bin to denote its return status.
 	 */
 	nvgpu_falcon_mailbox_write(g->nvdec_flcn,
-		FALCON_MAILBOX_0, 0xdeadbeef);
+		FALCON_MAILBOX_0, 0xdeadbeefU);
 
 	/* set BOOTVEC to start of non-secure code */
 	nvgpu_falcon_bootstrap(g->nvdec_flcn, 0);

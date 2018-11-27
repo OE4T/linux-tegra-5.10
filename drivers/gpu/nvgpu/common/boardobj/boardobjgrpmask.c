@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -121,7 +121,7 @@ int boardobjgrpmask_set(struct boardobjgrpmask *mask)
 		return -EINVAL;
 	}
 	for (index = 0; index < mask->maskdatacount; index++) {
-		mask->data[index] = 0xFFFFFFFF;
+		mask->data[index] = 0xFFFFFFFFU;
 	}
 	BOARDOBJGRPMASK_NORMALIZE(mask);
 	return 0;

@@ -1,7 +1,7 @@
 /*
  * GM20B L2
  *
- * Copyright (c) 2014-2018 NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2019 NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -478,7 +478,7 @@ void gm20b_ltc_init_cbc(struct gk20a *g, struct gr_gk20a *gr)
 	nvgpu_log(g, gpu_dbg_info | gpu_dbg_map_v | gpu_dbg_pte,
 		   "compbit base.pa: 0x%x,%08x cbc_base:0x%08x\n",
 		   (u32)(compbit_store_iova >> 32),
-		   (u32)(compbit_store_iova & 0xffffffff),
+		   (u32)(compbit_store_iova & 0xffffffffU),
 		   compbit_base_post_divide);
 
 	gr->compbit_store.base_hw = compbit_base_post_divide;

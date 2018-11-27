@@ -1,7 +1,7 @@
 /*
  * GV11B FB
  *
- * Copyright (c) 2016-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -134,7 +134,7 @@ void gv11b_fb_init_cbc(struct gk20a *g, struct gr_gk20a *gr)
 	nvgpu_log(g, gpu_dbg_info | gpu_dbg_map_v | gpu_dbg_pte,
 		"compbit base.pa: 0x%x,%08x cbc_base:0x%08x\n",
 		(u32)(compbit_store_iova >> 32),
-		(u32)(compbit_store_iova & 0xffffffff),
+		(u32)(compbit_store_iova & 0xffffffffU),
 		compbit_base_post_divide);
 	nvgpu_log(g, gpu_dbg_fn, "cbc base %x",
 		gk20a_readl(g, fb_mmu_cbc_base_r()));

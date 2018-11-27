@@ -1,7 +1,7 @@
 /*
  * GV11B PMU
  *
- * Copyright (c) 2016-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -260,26 +260,26 @@ int gv11b_pmu_bootstrap(struct nvgpu_pmu *pmu)
 	addr_load_lo = u64_lo32((pmu->ucode.gpu_va +
 			desc->bootloader_start_offset) >> 8);
 
-	gk20a_writel(g, pwr_falcon_dmemd_r(0), 0x0);
-	gk20a_writel(g, pwr_falcon_dmemd_r(0), 0x0);
-	gk20a_writel(g, pwr_falcon_dmemd_r(0), 0x0);
-	gk20a_writel(g, pwr_falcon_dmemd_r(0), 0x0);
-	gk20a_writel(g, pwr_falcon_dmemd_r(0), 0x0);
-	gk20a_writel(g, pwr_falcon_dmemd_r(0), 0x0);
-	gk20a_writel(g, pwr_falcon_dmemd_r(0), 0x0);
-	gk20a_writel(g, pwr_falcon_dmemd_r(0), 0x0);
+	gk20a_writel(g, pwr_falcon_dmemd_r(0), 0x0U);
+	gk20a_writel(g, pwr_falcon_dmemd_r(0), 0x0U);
+	gk20a_writel(g, pwr_falcon_dmemd_r(0), 0x0U);
+	gk20a_writel(g, pwr_falcon_dmemd_r(0), 0x0U);
+	gk20a_writel(g, pwr_falcon_dmemd_r(0), 0x0U);
+	gk20a_writel(g, pwr_falcon_dmemd_r(0), 0x0U);
+	gk20a_writel(g, pwr_falcon_dmemd_r(0), 0x0U);
+	gk20a_writel(g, pwr_falcon_dmemd_r(0), 0x0U);
 	gk20a_writel(g, pwr_falcon_dmemd_r(0), GK20A_PMU_DMAIDX_UCODE);
 	gk20a_writel(g, pwr_falcon_dmemd_r(0), addr_code_lo << 8);
 	gk20a_writel(g, pwr_falcon_dmemd_r(0), addr_code_hi);
 	gk20a_writel(g, pwr_falcon_dmemd_r(0), desc->app_resident_code_offset);
 	gk20a_writel(g, pwr_falcon_dmemd_r(0), desc->app_resident_code_size);
-	gk20a_writel(g, pwr_falcon_dmemd_r(0), 0x0);
-	gk20a_writel(g, pwr_falcon_dmemd_r(0), 0x0);
+	gk20a_writel(g, pwr_falcon_dmemd_r(0), 0x0U);
+	gk20a_writel(g, pwr_falcon_dmemd_r(0), 0x0U);
 	gk20a_writel(g, pwr_falcon_dmemd_r(0), desc->app_imem_entry);
 	gk20a_writel(g, pwr_falcon_dmemd_r(0), addr_data_lo << 8);
 	gk20a_writel(g, pwr_falcon_dmemd_r(0), addr_data_hi);
 	gk20a_writel(g, pwr_falcon_dmemd_r(0), desc->app_resident_data_size);
-	gk20a_writel(g, pwr_falcon_dmemd_r(0), 0x1);
+	gk20a_writel(g, pwr_falcon_dmemd_r(0), 0x1U);
 	gk20a_writel(g, pwr_falcon_dmemd_r(0), addr_args);
 
 	g->ops.pmu.write_dmatrfbase(g,
