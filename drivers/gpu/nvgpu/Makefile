@@ -49,6 +49,8 @@ nvgpu-y += common/bus/bus_gk20a.o \
 	common/fuse/fuse_gm20b.o \
 	common/fuse/fuse_gp10b.o \
 	common/fuse/fuse_gp106.o \
+	common/top/top_gm20b.o \
+	common/top/top_gp10b.o \
 	common/top/top_gv100.o \
 	common/mc/mc.o \
 	common/mc/mc_gm20b.o \

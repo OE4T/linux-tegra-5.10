@@ -59,6 +59,8 @@
 #include "common/pmu/acr_gp106.h"
 #include "common/pmu/acr_gv11b.h"
 #include "common/falcon/falcon_gk20a.h"
+#include "common/top/top_gm20b.h"
+#include "common/top/top_gp10b.h"
 
 #include "gk20a/fifo_gk20a.h"
 #include "gk20a/fecs_trace_gk20a.h"
@@ -970,6 +972,16 @@ static const struct gpu_ops gv11b_ops = {
 	.acr = {
 		.acr_sw_init = nvgpu_gv11b_acr_sw_init,
 	},
+	.top = {
+		.device_info_parse_enum = gm20b_device_info_parse_enum,
+		.device_info_parse_data = gp10b_device_info_parse_data,
+		.get_num_engine_type_entries =
+				gp10b_get_num_engine_type_entries,
+		.get_device_info = gp10b_get_device_info,
+		.is_engine_gr = gm20b_is_engine_gr,
+		.is_engine_ce = gp10b_is_engine_ce,
+		.get_ce_inst_id = NULL,
+	},
 	.chip_init_gpu_characteristics = gv11b_init_gpu_characteristics,
 	.get_litter_value = gv11b_get_litter_value,
 };
@@ -1008,6 +1020,7 @@ int gv11b_init_hal(struct gk20a *g)
 	gops->fuse = gv11b_ops.fuse;
 	gops->clk_arb = gv11b_ops.clk_arb;
 	gops->acr = gv11b_ops.acr;
+	gops->top = gv11b_ops.top;
 
 	/* Lone functions */
 	gops->chip_init_gpu_characteristics =

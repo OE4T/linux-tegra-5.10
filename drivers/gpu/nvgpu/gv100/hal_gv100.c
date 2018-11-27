@@ -49,6 +49,8 @@
 #include "common/fuse/fuse_gm20b.h"
 #include "common/fuse/fuse_gp10b.h"
 #include "common/fuse/fuse_gp106.h"
+#include "common/top/top_gm20b.h"
+#include "common/top/top_gp10b.h"
 #include "common/top/top_gv100.h"
 #include "common/mc/mc_gm20b.h"
 #include "common/mc/mc_gp10b.h"
@@ -1086,6 +1088,14 @@ static const struct gpu_ops gv100_ops = {
 					gv100_top_get_nvhsclk_ctrl_swap_clk_nvl,
 		.set_nvhsclk_ctrl_swap_clk_nvl =
 					gv100_top_set_nvhsclk_ctrl_swap_clk_nvl,
+		.device_info_parse_enum = gm20b_device_info_parse_enum,
+		.device_info_parse_data = gp10b_device_info_parse_data,
+		.get_num_engine_type_entries =
+					gp10b_get_num_engine_type_entries,
+		.get_device_info = gp10b_get_device_info,
+		.is_engine_gr = gm20b_is_engine_gr,
+		.is_engine_ce = gp10b_is_engine_ce,
+		.get_ce_inst_id = NULL,
 	},
 	.acr = {
 		.acr_sw_init = nvgpu_gp106_acr_sw_init,

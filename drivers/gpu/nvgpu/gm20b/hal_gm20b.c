@@ -51,6 +51,7 @@
 #include "common/pmu/pmu_gm20b.h"
 #include "common/pmu/acr_gm20b.h"
 #include "common/falcon/falcon_gk20a.h"
+#include "common/top/top_gm20b.h"
 
 #include "gk20a/ce2_gk20a.h"
 #include "gk20a/fifo_gk20a.h"
@@ -757,6 +758,14 @@ static const struct gpu_ops gm20b_ops = {
 	.acr = {
 		.acr_sw_init = nvgpu_gm20b_acr_sw_init,
 	},
+	.top = {
+		.device_info_parse_enum = gm20b_device_info_parse_enum,
+		.device_info_parse_data = gm20b_device_info_parse_data,
+		.get_device_info = gm20b_get_device_info,
+		.is_engine_gr = gm20b_is_engine_gr,
+		.is_engine_ce = gm20b_is_engine_ce,
+		.get_ce_inst_id = gm20b_get_ce_inst_id,
+	},
 	.chip_init_gpu_characteristics = gk20a_init_gpu_characteristics,
 	.get_litter_value = gm20b_get_litter_value,
 };
@@ -807,6 +816,7 @@ int gm20b_init_hal(struct gk20a *g)
 	gops->fuse = gm20b_ops.fuse;
 
 	gops->acr = gm20b_ops.acr;
+	gops->top = gm20b_ops.top;
 
 	/* Lone functions */
 	gops->chip_init_gpu_characteristics =

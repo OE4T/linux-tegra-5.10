@@ -61,6 +61,8 @@
 #include "common/pmu/pmu_gp10b.h"
 #include "common/pmu/acr_gm20b.h"
 #include "common/falcon/falcon_gk20a.h"
+#include "common/top/top_gm20b.h"
+#include "common/top/top_gp10b.h"
 
 #include "gk20a/fifo_gk20a.h"
 #include "gk20a/fecs_trace_gk20a.h"
@@ -834,6 +836,16 @@ static const struct gpu_ops gp10b_ops = {
 	.acr = {
 		.acr_sw_init = nvgpu_gm20b_acr_sw_init,
 	},
+	.top = {
+		.device_info_parse_enum = gm20b_device_info_parse_enum,
+		.device_info_parse_data = gp10b_device_info_parse_data,
+		.get_num_engine_type_entries =
+					gp10b_get_num_engine_type_entries,
+		.get_device_info = gp10b_get_device_info,
+		.is_engine_gr = gm20b_is_engine_gr,
+		.is_engine_ce = gp10b_is_engine_ce,
+		.get_ce_inst_id = NULL,
+	},
 	.chip_init_gpu_characteristics = gp10b_init_gpu_characteristics,
 	.get_litter_value = gp10b_get_litter_value,
 };
@@ -875,6 +887,7 @@ int gp10b_init_hal(struct gk20a *g)
 
 	gops->fuse = gp10b_ops.fuse;
 	gops->acr = gp10b_ops.acr;
+	gops->top = gp10b_ops.top;
 
 	/* Lone Functions */
 	gops->chip_init_gpu_characteristics =

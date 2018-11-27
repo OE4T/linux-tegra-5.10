@@ -73,6 +73,8 @@
 #include "common/falcon/falcon_gv100.h"
 #include "common/falcon/falcon_tu104.h"
 #include "common/nvdec/nvdec_tu104.h"
+#include "common/top/top_gm20b.h"
+#include "common/top/top_gp10b.h"
 
 #include "gk20a/fifo_gk20a.h"
 #include "gk20a/fecs_trace_gk20a.h"
@@ -1122,6 +1124,16 @@ static const struct gpu_ops tu104_ops = {
 	.gsp = {
 		.falcon_base_addr = gv100_gsp_falcon_base_addr,
 	},
+	.top = {
+		.device_info_parse_enum = gm20b_device_info_parse_enum,
+		.device_info_parse_data = gp10b_device_info_parse_data,
+		.get_num_engine_type_entries =
+					gp10b_get_num_engine_type_entries,
+		.get_device_info = gp10b_get_device_info,
+		.is_engine_gr = gm20b_is_engine_gr,
+		.is_engine_ce = gp10b_is_engine_ce,
+		.get_ce_inst_id = NULL,
+	},
 	.chip_init_gpu_characteristics = tu104_init_gpu_characteristics,
 	.get_litter_value = tu104_get_litter_value,
 };
@@ -1166,6 +1178,7 @@ int tu104_init_hal(struct gk20a *g)
 	gops->acr = tu104_ops.acr;
 	gops->sec2 = tu104_ops.sec2;
 	gops->gsp = tu104_ops.gsp;
+	gops->top = tu104_ops.top;
 
 	/* clocks */
 	gops->clk.init_clk_support = tu104_ops.clk.init_clk_support;

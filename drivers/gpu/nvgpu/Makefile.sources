@@ -84,6 +84,8 @@ srcs :=	os/posix/nvgpu.c \
 	common/fuse/fuse_gm20b.c \
 	common/fuse/fuse_gp10b.c \
 	common/fuse/fuse_gp106.c \
+	common/top/top_gm20b.c \
+	common/top/top_gp10b.c \
 	common/top/top_gv100.c \
 	common/enabled.c \
 	common/pramin.c \

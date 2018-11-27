@@ -60,6 +60,7 @@ struct boardobjgrp_pmu_cmd;
 struct boardobjgrpmask;
 struct nvgpu_sgt;
 struct nvgpu_sgl;
+struct nvgpu_device_info;
 
 #include <nvgpu/lock.h>
 #include <nvgpu/thread.h>
@@ -1473,6 +1474,21 @@ struct gpu_ops {
 		void (*set_nvhsclk_ctrl_e_clk_nvl)(struct gk20a *g, u32 val);
 		u32 (*get_nvhsclk_ctrl_swap_clk_nvl)(struct gk20a *g);
 		void (*set_nvhsclk_ctrl_swap_clk_nvl)(struct gk20a *g, u32 val);
+		int (*device_info_parse_enum)(struct gk20a *g,
+						u32 table_entry,
+						u32 *engine_id, u32 *runlist_id,
+						u32 *intr_id, u32 *reset_id);
+		int (*device_info_parse_data)(struct gk20a *g,
+						u32 table_entry, u32 *inst_id,
+						u32 *pri_base, u32 *fault_id);
+		u32 (*get_num_engine_type_entries)(struct gk20a *g,
+						u32 engine_type);
+		int (*get_device_info)(struct gk20a *g,
+					struct nvgpu_device_info *dev_info,
+					u32 engine_type, u32 inst_id);
+		bool (*is_engine_gr)(struct gk20a *g, u32 engine_type);
+		bool (*is_engine_ce)(struct gk20a *g, u32 engine_type);
+		u32 (*get_ce_inst_id)(struct gk20a *g, u32 engine_type);
 	} top;
 	struct {
 		void (*acr_sw_init)(struct gk20a *g, struct nvgpu_acr *acr);

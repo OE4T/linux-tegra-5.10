@@ -170,17 +170,33 @@ static inline u32 top_device_info_engine_v(u32 r)
 {
 	return (r >> 5U) & 0x1U;
 }
+static inline u32 top_device_info_engine_valid_v(void)
+{
+	return 0x00000001U;
+}
 static inline u32 top_device_info_runlist_v(u32 r)
 {
 	return (r >> 4U) & 0x1U;
+}
+static inline u32 top_device_info_runlist_valid_v(void)
+{
+	return 0x00000001U;
 }
 static inline u32 top_device_info_intr_v(u32 r)
 {
 	return (r >> 3U) & 0x1U;
 }
+static inline u32 top_device_info_intr_valid_v(void)
+{
+	return 0x00000001U;
+}
 static inline u32 top_device_info_reset_v(u32 r)
 {
 	return (r >> 2U) & 0x1U;
+}
+static inline u32 top_device_info_reset_valid_v(void)
+{
+	return 0x00000001U;
 }
 static inline u32 top_device_info_entry_v(u32 r)
 {
