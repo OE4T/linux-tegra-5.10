@@ -37,6 +37,7 @@
 #include <nvgpu/utils.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/string.h>
+#include <nvgpu/bug.h>
 
 #include "gm20b/mm_gm20b.h"
 
@@ -506,7 +507,8 @@ int gm20b_pmu_populate_loader_cfg(struct gk20a *g,
 	struct loader_config *ldr_cfg = &(p_lsfm->bl_gen_desc.loader_cfg);
 	u64 addr_base;
 	struct pmu_ucode_desc *desc;
-	u64 addr_code, addr_data;
+	u64 tmp;
+	u32 addr_code, addr_data;
 	u32 addr_args;
 
 	if (p_img->desc == NULL) {
@@ -530,14 +532,18 @@ int gm20b_pmu_populate_loader_cfg(struct gk20a *g,
 	addr_base += wpr_inf.wpr_base;
 	nvgpu_pmu_dbg(g, "pmu loader cfg u32 addrbase %x\n", (u32)addr_base);
 	/*From linux*/
-	addr_code = u64_lo32((addr_base +
-				desc->app_start_offset +
-				desc->app_resident_code_offset) >> 8);
+	tmp = (addr_base +
+			desc->app_start_offset +
+			desc->app_resident_code_offset) >> 8;
+	nvgpu_assert(tmp <= U32_MAX);
+	addr_code = u64_lo32(tmp);
 	nvgpu_pmu_dbg(g, "app start %d app res code off %d\n",
 		desc->app_start_offset, desc->app_resident_code_offset);
-	addr_data = u64_lo32((addr_base +
-				desc->app_start_offset +
-				desc->app_resident_data_offset) >> 8);
+	tmp = (addr_base +
+			desc->app_start_offset +
+			desc->app_resident_data_offset) >> 8;
+	nvgpu_assert(tmp <= U32_MAX);
+	addr_data = u64_lo32(tmp);
 	nvgpu_pmu_dbg(g, "app res data offset%d\n",
 		desc->app_resident_data_offset);
 	nvgpu_pmu_dbg(g, "bl start off %d\n", desc->bootloader_start_offset);
@@ -582,7 +588,8 @@ int gm20b_flcn_populate_bl_dmem_desc(struct gk20a *g,
 			&(p_lsfm->bl_gen_desc.bl_dmem_desc);
 	u64 addr_base;
 	struct pmu_ucode_desc *desc;
-	u64 addr_code, addr_data;
+	u32 addr_code, addr_data;
+	u64 tmp;
 
 	if (p_img->desc == NULL) {
 		/*
@@ -607,12 +614,16 @@ int gm20b_flcn_populate_bl_dmem_desc(struct gk20a *g,
 
 	nvgpu_pmu_dbg(g, "gen loader cfg %x u32 addrbase %x ID\n", (u32)addr_base,
 			p_lsfm->wpr_header.falcon_id);
-	addr_code = u64_lo32((addr_base +
-				desc->app_start_offset +
-				desc->app_resident_code_offset) >> 8);
-	addr_data = u64_lo32((addr_base +
-				desc->app_start_offset +
-				desc->app_resident_data_offset) >> 8);
+	tmp = (addr_base +
+			desc->app_start_offset +
+			desc->app_resident_code_offset) >> 8;
+	nvgpu_assert(tmp <= U32_MAX);
+	addr_code = u64_lo32(tmp);
+	tmp = (addr_base +
+			desc->app_start_offset +
+			desc->app_resident_data_offset) >> 8;
+	nvgpu_assert(tmp <= U32_MAX);
+	addr_data = u64_lo32(tmp);
 
 	nvgpu_pmu_dbg(g, "gen cfg %x u32 addrcode %x & data %x load offset %xID\n",
 		(u32)addr_code, (u32)addr_data, desc->bootloader_start_offset,
@@ -889,7 +900,7 @@ static int lsfm_add_ucode_img(struct gk20a *g, struct ls_flcn_mgr *plsfm,
 	pnode->wpr_header.status = LSF_IMAGE_STATUS_COPY;
 
 	pnode->wpr_header.lazy_bootstrap =
-			g->ops.pmu.is_lazy_bootstrap(falcon_id);
+			(u32)g->ops.pmu.is_lazy_bootstrap(falcon_id);
 
 	/*TODO to check if PDB_PROP_FLCN_LAZY_BOOTSTRAP is to be supported by
 	Android */
@@ -1150,8 +1161,10 @@ static int gm20b_acr_hs_bl_exec(struct gk20a *g, struct nvgpu_acr *acr,
 	/* Fill HS BL info */
 	bl_info.bl_src = hs_bl->hs_bl_ucode.cpu_va;
 	bl_info.bl_desc = acr_desc->ptr_bl_dmem_desc;
-	bl_info.bl_desc_size = acr_desc->bl_dmem_desc_size;
-	bl_info.bl_size = hs_bl->hs_bl_ucode.size;
+	nvgpu_assert(acr_desc->bl_dmem_desc_size <= U32_MAX);
+	bl_info.bl_desc_size = (u32)acr_desc->bl_dmem_desc_size;
+	nvgpu_assert(hs_bl->hs_bl_ucode.size <= U32_MAX);
+	bl_info.bl_size = (u32)hs_bl->hs_bl_ucode.size;
 	bl_info.bl_start_tag = hs_bl->hs_bl_desc->bl_start_tag;
 
 	/*
@@ -1217,8 +1230,9 @@ int gm20b_acr_patch_wpr_info_to_ucode(struct gk20a *g,
 
 		acr_dmem_desc->nonwpr_ucode_blob_start =
 			nvgpu_mem_get_addr(g, &g->acr.ucode_blob);
+		nvgpu_assert(g->acr.ucode_blob.size <= U32_MAX);
 		acr_dmem_desc->nonwpr_ucode_blob_size =
-			g->acr.ucode_blob.size;
+			(u32)g->acr.ucode_blob.size;
 		acr_dmem_desc->regions.no_regions = 1U;
 		acr_dmem_desc->wpr_offset = 0U;
 	}

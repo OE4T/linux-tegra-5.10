@@ -34,6 +34,7 @@
 #include <nvgpu/io.h>
 #include <nvgpu/utils.h>
 #include <nvgpu/gk20a.h>
+#include <nvgpu/bug.h>
 
 #include "gm20b/mm_gm20b.h"
 
@@ -119,8 +120,9 @@ int gv11b_acr_patch_wpr_info_to_ucode(struct gk20a *g, struct nvgpu_acr *acr,
 
 		acr_dmem_desc->nonwpr_ucode_blob_start =
 			nvgpu_mem_get_addr(g, &g->acr.ucode_blob);
+		nvgpu_assert(g->acr.ucode_blob.size <= U32_MAX);
 		acr_dmem_desc->nonwpr_ucode_blob_size =
-			g->acr.ucode_blob.size;
+			(u32)g->acr.ucode_blob.size;
 		acr_dmem_desc->regions.no_regions = 1U;
 		acr_dmem_desc->wpr_offset = 0U;
 	}

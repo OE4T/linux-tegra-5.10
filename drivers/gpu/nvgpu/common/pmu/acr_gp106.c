@@ -32,6 +32,7 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/sec2if/sec2_if_cmn.h>
 #include <nvgpu/string.h>
+#include <nvgpu/bug.h>
 
 #include "gm20b/mm_gm20b.h"
 #include "gp106/sec2_gp106.h"
@@ -872,6 +873,7 @@ void lsfm_init_wpr_contents(struct gk20a *g,
 	struct lsfm_managed_ucode_img_v2 *pnode = plsfm->ucode_img_list;
 	struct lsf_wpr_header_v1 last_wpr_hdr;
 	u32 i;
+	u64 tmp;
 
 	/* The WPR array is at the base of the WPR */
 	pnode = plsfm->ucode_img_list;
@@ -956,8 +958,10 @@ void lsfm_init_wpr_contents(struct gk20a *g,
 
 	/* Tag the terminator WPR header with an invalid falcon ID. */
 	last_wpr_hdr.falcon_id = LSF_FALCON_ID_INVALID;
+	tmp = plsfm->managed_flcn_cnt * sizeof(struct lsf_wpr_header_v1);
+	nvgpu_assert(tmp <= U32_MAX);
 	nvgpu_mem_wr_n(g, ucode,
-		plsfm->managed_flcn_cnt * sizeof(struct lsf_wpr_header_v1),
+		(u32)tmp,
 		&last_wpr_hdr,
 		(u32)sizeof(struct lsf_wpr_header_v1));
 }
@@ -1101,7 +1105,7 @@ int lsfm_add_ucode_img(struct gk20a *g, struct ls_flcn_mgr_v1 *plsfm,
 	pnode->wpr_header.status = LSF_IMAGE_STATUS_COPY;
 
 	pnode->wpr_header.lazy_bootstrap =
-			g->ops.pmu.is_lazy_bootstrap(falcon_id);
+			(u32)g->ops.pmu.is_lazy_bootstrap(falcon_id);
 
 	/*TODO to check if PDB_PROP_FLCN_LAZY_BOOTSTRAP is to be supported by
 	Android */
@@ -1299,7 +1303,8 @@ int gp106_acr_patch_wpr_info_to_ucode(struct gk20a *g, struct nvgpu_acr *acr,
 		&(((u8 *)acr_ucode_data)[acr_ucode_header[2U]]);
 
 	acr_dmem_desc->nonwpr_ucode_blob_start = wpr_inf.nonwpr_base;
-	acr_dmem_desc->nonwpr_ucode_blob_size = wpr_inf.size;
+	nvgpu_assert(wpr_inf.size <= U32_MAX);
+	acr_dmem_desc->nonwpr_ucode_blob_size = (u32)wpr_inf.size;
 	acr_dmem_desc->regions.no_regions = 1U;
 	acr_dmem_desc->wpr_offset = 0U;
 
