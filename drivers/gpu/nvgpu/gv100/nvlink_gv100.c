@@ -32,10 +32,10 @@
 #include <nvgpu/utils.h>
 #include <nvgpu/timers.h>
 #include <nvgpu/gk20a.h>
+#include <nvgpu/top.h>
 
 #include "nvlink_gv100.h"
 
-#include <nvgpu/hw/gv100/hw_top_gv100.h>
 #include <nvgpu/hw/gv100/hw_nvlinkip_discovery_gv100.h>
 #include <nvgpu/hw/gv100/hw_nvlipt_gv100.h>
 #include <nvgpu/hw/gv100/hw_ioctrl_gv100.h>
@@ -2099,77 +2099,54 @@ int gv100_nvlink_discover_link(struct gk20a *g)
  */
 int gv100_nvlink_discover_ioctrl(struct gk20a *g)
 {
+	int ret = 0;
 	u32 i;
 	struct nvgpu_nvlink_ioctrl_list *ioctrl_table;
-	u32 table_entry;
-	u32 devinfo_type;
-	u32 io_num_entries = 0;
-	u32 entry_engine = 0;
-	u32 entry_enum = 0;
-	u32 entry_data = 0;
+	u32 ioctrl_num_entries = 0;
 
-	ioctrl_table = nvgpu_kzalloc(g, top_device_info__size_1_v() *
-		sizeof(struct nvgpu_nvlink_ioctrl_list));
-
-	if (!ioctrl_table) {
-		nvgpu_err(g, "failed to allocate memory for nvlink io table");
-		return -ENOMEM;
-	}
-	for (i = 0; i < top_device_info__size_1_v(); i++) {
-		table_entry = gk20a_readl(g, top_device_info_r(i));
-		nvgpu_log(g, gpu_dbg_nvlink, "Table entry: 0x%x", table_entry);
-
-		devinfo_type = top_device_info_entry_v(table_entry);
-		if (devinfo_type == top_device_info_entry_not_valid_v()) {
-			nvgpu_log(g, gpu_dbg_nvlink, "Invalid entry");
-			continue;
-		}
-
-		if (devinfo_type == top_device_info_entry_engine_type_v()) {
-			entry_engine = table_entry;
-		} else if (devinfo_type == top_device_info_entry_data_v()) {
-			entry_data = table_entry;
-		} else if (devinfo_type == top_device_info_entry_enum_v()) {
-			entry_enum = table_entry;
-		}
-
-		if (top_device_info_chain_v(table_entry) ==
-					top_device_info_chain_enable_v()) {
-			continue;
-		}
-
-		if (top_device_info_type_enum_v(entry_engine) ==
-					top_device_info_type_enum_ioctrl_v()) {
-			nvgpu_log(g, gpu_dbg_nvlink, "IOCTRL entries");
-			nvgpu_log(g, gpu_dbg_nvlink,
-				" enum: 0x%x, engine = 0x%x, data = 0x%x",
-				entry_enum, entry_engine, entry_data);
-			ioctrl_table[io_num_entries].valid = true;
-			ioctrl_table[io_num_entries].intr_enum =
-				top_device_info_intr_enum_v(entry_enum);
-			ioctrl_table[io_num_entries].reset_enum =
-				top_device_info_reset_enum_v(entry_enum);
-			ioctrl_table[io_num_entries].pri_base_addr =
-				top_device_info_data_pri_base_v(entry_data) <<
-					top_device_info_data_pri_base_align_v();
-			io_num_entries++;
-		}
+	if (g->ops.top.get_num_engine_type_entries) {
+		ioctrl_num_entries = g->ops.top.get_num_engine_type_entries(g,
+							NVGPU_ENGINE_IOCTRL);
+		nvgpu_info(g, "ioctrl_num_entries: %d", ioctrl_num_entries);
 	}
 
-	if (io_num_entries == 0 || !ioctrl_table[0].pri_base_addr) {
-		nvgpu_err(g, "No NVLINK io found");
-		nvgpu_kfree(g, ioctrl_table);
+	if (ioctrl_num_entries == 0) {
+		nvgpu_err(g, "No NVLINK IOCTRL entry found in dev_info table");
 		return -EINVAL;
 	}
 
-	g->nvlink.ioctrl_table = ioctrl_table;
-	g->nvlink.io_num_entries = io_num_entries;
+	ioctrl_table = nvgpu_kzalloc(g, ioctrl_num_entries *
+				sizeof(struct nvgpu_nvlink_ioctrl_list));
+	if (!ioctrl_table) {
+		nvgpu_err(g, "Failed to allocate memory for nvlink io table");
+		return -ENOMEM;
+	}
 
-	for (i =0; i < io_num_entries; i++)
+	for (i = 0; i < ioctrl_num_entries; i++) {
+		struct nvgpu_device_info dev_info;
+
+		ret = g->ops.top.get_device_info(g, &dev_info,
+						NVGPU_ENGINE_IOCTRL, i);
+		if (ret) {
+			nvgpu_err(g, "Failed to parse dev_info table"
+					"for engine %d",
+					NVGPU_ENGINE_IOCTRL);
+			nvgpu_kfree(g, ioctrl_table);
+			return -EINVAL;
+		}
+
+		ioctrl_table[i].valid = true;
+		ioctrl_table[i].intr_enum = dev_info.intr_id;
+		ioctrl_table[i].reset_enum = dev_info.reset_id;
+		ioctrl_table[i].pri_base_addr = dev_info.pri_base;
 		nvgpu_log(g, gpu_dbg_nvlink,
-			"Device %d : Pri Base Addr = 0x%0x Intr = %d Reset = %d",
-			i, ioctrl_table[i].pri_base_addr, ioctrl_table[i].intr_enum,
+			"Dev %d: Pri_Base = 0x%0x Intr = %d Reset = %d",
+			i, ioctrl_table[i].pri_base_addr,
+			ioctrl_table[i].intr_enum,
 			ioctrl_table[i].reset_enum);
+	}
+	g->nvlink.ioctrl_table = ioctrl_table;
+	g->nvlink.io_num_entries = ioctrl_num_entries;
 
 	return 0;
 }
