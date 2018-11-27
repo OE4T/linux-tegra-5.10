@@ -745,7 +745,7 @@ int nvmap_ioctl_cache_maint_list(struct file *filp, void __user *arg,
 		if (refs[i]->userflags & NVMAP_HANDLE_CACHE_SYNC_AT_RESERVE)
 			count++;
 
-	if (count % op.nr) {
+	if (op.nr && count % op.nr) {
 		pr_err("incorrect CACHE_SYNC_AT_RESERVE mix of handles\n");
 		err = -EINVAL;
 		goto free_mem;
@@ -761,7 +761,7 @@ int nvmap_ioctl_cache_maint_list(struct file *filp, void __user *arg,
 			if (refs[i]->heap_pgalloc)
 				count++;
 
-		if (count % op.nr) {
+		if (op.nr && count % op.nr) {
 			pr_err("all or none of the handles should be from heap\n");
 			err = -EINVAL;
 			goto free_mem;
