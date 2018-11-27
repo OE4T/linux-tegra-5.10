@@ -729,7 +729,7 @@ int gp106_pmu_populate_loader_cfg(struct gk20a *g,
 	ldr_cfg->argc = 1;
 	ldr_cfg->argv = addr_args;
 
-	*p_bl_gen_desc_size = sizeof(struct flcn_bl_dmem_desc_v1);
+	*p_bl_gen_desc_size = (u32)sizeof(struct flcn_bl_dmem_desc_v1);
 
 	g->acr.pmu_args = addr_args;
 	return 0;
@@ -798,7 +798,7 @@ int gp106_flcn_populate_bl_dmem_desc(struct gk20a *g,
 	ldr_cfg->data_size = desc->app_resident_data_size;
 	ldr_cfg->code_entry_point = desc->app_imem_entry;
 
-	*p_bl_gen_desc_size = sizeof(struct flcn_bl_dmem_desc_v1);
+	*p_bl_gen_desc_size = (u32)sizeof(struct flcn_bl_dmem_desc_v1);
 	return 0;
 }
 
@@ -833,7 +833,7 @@ static u32 lsfm_init_sub_wpr_contents(struct gk20a *g,
 {
 	struct lsfm_sub_wpr *psub_wpr_node;
 	struct lsf_shared_sub_wpr_header last_sub_wpr_header;
-	u32 temp_size = sizeof(struct lsf_shared_sub_wpr_header);
+	u32 temp_size = (u32)sizeof(struct lsf_shared_sub_wpr_header);
 	u32 sub_wpr_header_offset = 0;
 	u32 i = 0;
 
@@ -886,8 +886,9 @@ void lsfm_init_wpr_contents(struct gk20a *g,
 	 */
 	while (pnode != NULL) {
 		/* Flush WPR header to memory*/
-		nvgpu_mem_wr_n(g, ucode, i * sizeof(pnode->wpr_header),
-				&pnode->wpr_header, sizeof(pnode->wpr_header));
+		nvgpu_mem_wr_n(g, ucode, i * (u32)sizeof(pnode->wpr_header),
+				&pnode->wpr_header,
+				(u32)sizeof(pnode->wpr_header));
 
 		gp106_dbg_pmu(g, "wpr header");
 		gp106_dbg_pmu(g, "falconid :%d",
@@ -903,7 +904,8 @@ void lsfm_init_wpr_contents(struct gk20a *g,
 
 		/*Flush LSB header to memory*/
 		nvgpu_mem_wr_n(g, ucode, pnode->wpr_header.lsb_offset,
-				&pnode->lsb_header, sizeof(pnode->lsb_header));
+				&pnode->lsb_header,
+				(u32)sizeof(pnode->lsb_header));
 
 		gp106_dbg_pmu(g, "lsb header");
 		gp106_dbg_pmu(g, "ucode_off :%x",
@@ -954,7 +956,7 @@ void lsfm_init_wpr_contents(struct gk20a *g,
 	nvgpu_mem_wr_n(g, ucode,
 		plsfm->managed_flcn_cnt * sizeof(struct lsf_wpr_header_v1),
 		&last_wpr_hdr,
-		sizeof(struct lsf_wpr_header_v1));
+		(u32)sizeof(struct lsf_wpr_header_v1));
 }
 
 /*!
@@ -1193,7 +1195,7 @@ int lsf_gen_wpr_requirements(struct gk20a *g,
 		wpr_offset = ALIGN(wpr_offset,
 			LSF_LSB_HEADER_ALIGNMENT);
 		pnode->wpr_header.lsb_offset = wpr_offset;
-		wpr_offset += sizeof(struct lsf_lsb_header_v1);
+		wpr_offset += (u32)sizeof(struct lsf_lsb_header_v1);
 
 		/* Align, save off, and include the original (static)
 		ucode image size */
@@ -1357,7 +1359,7 @@ static void nvgpu_gp106_acr_default_sw_init(struct gk20a *g, struct hs_acr *hs_a
 	hs_acr->acr_fw_name = HSBIN_ACR_UCODE_IMAGE;
 
 	hs_acr->ptr_bl_dmem_desc = &hs_acr->bl_dmem_desc_v1;
-	hs_acr->bl_dmem_desc_size = sizeof(struct flcn_bl_dmem_desc_v1);
+	hs_acr->bl_dmem_desc_size = (u32)sizeof(struct flcn_bl_dmem_desc_v1);
 
 	hs_acr->acr_flcn = &g->sec2_flcn;
 	hs_acr->acr_flcn_setup_hw_and_bl_bootstrap =
