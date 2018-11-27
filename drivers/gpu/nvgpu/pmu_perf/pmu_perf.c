@@ -146,4 +146,5 @@ int perf_pmu_init_pmupstate(struct gk20a *g)
 void perf_pmu_free_pmupstate(struct gk20a *g)
 {
 	nvgpu_kfree(g, g->perf_pmu);
+	g->perf_pmu = NULL;
 }

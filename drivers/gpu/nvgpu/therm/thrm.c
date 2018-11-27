@@ -72,4 +72,5 @@ int therm_pmu_init_pmupstate(struct gk20a *g)
 void therm_pmu_free_pmupstate(struct gk20a *g)
 {
 	nvgpu_kfree(g, g->therm_pmu);
+	g->therm_pmu = NULL;
 }

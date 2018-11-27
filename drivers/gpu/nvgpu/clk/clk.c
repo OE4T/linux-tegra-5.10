@@ -1039,4 +1039,5 @@ int clk_init_pmupstate(struct gk20a *g)
 void clk_free_pmupstate(struct gk20a *g)
 {
 	nvgpu_kfree(g, g->clk_pmu);
+	g->clk_pmu = NULL;
 }
