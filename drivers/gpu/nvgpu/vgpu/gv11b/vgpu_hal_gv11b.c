@@ -451,8 +451,6 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 		.tsg_open = vgpu_tsg_open,
 		.tsg_release = vgpu_tsg_release,
 		.force_reset_ch = vgpu_fifo_force_reset_ch,
-		.engine_enum_from_type = gp10b_fifo_engine_enum_from_type,
-		.device_info_data_parse = gp10b_device_info_data_parse,
 		.eng_runlist_base_size = fifo_eng_runlist_base__size_1_v,
 		.init_engine_info = vgpu_fifo_init_engine_info,
 		.get_engines_mask_on_id = NULL,
@@ -498,7 +496,6 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 #endif
 		.resetup_ramfc = NULL,
 		.reschedule_runlist = NULL,
-		.device_info_fault_id = top_device_info_data_fault_id_enum_v,
 		.free_channel_ctx_header = vgpu_gv11b_free_subctx_header,
 		.handle_ctxsw_timeout = gv11b_fifo_handle_ctxsw_timeout,
 		.runlist_hw_submit = NULL,

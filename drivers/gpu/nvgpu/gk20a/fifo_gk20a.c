@@ -49,6 +49,7 @@
 #include <nvgpu/unit.h>
 #include <nvgpu/types.h>
 #include <nvgpu/vm_area.h>
+#include <nvgpu/top.h>
 
 #include "mm_gk20a.h"
 
@@ -56,7 +57,6 @@
 #include <nvgpu/hw/gk20a/hw_pbdma_gk20a.h>
 #include <nvgpu/hw/gk20a/hw_ccsr_gk20a.h>
 #include <nvgpu/hw/gk20a/hw_ram_gk20a.h>
-#include <nvgpu/hw/gk20a/hw_top_gk20a.h>
 #include <nvgpu/hw/gk20a/hw_gr_gk20a.h>
 
 #define FECS_METHOD_WFI_RESTORE 0x80000U
@@ -332,159 +332,28 @@ static inline u32 gk20a_mmu_id_to_engine_id(struct gk20a *g, u32 fault_id)
 }
 
 enum fifo_engine gk20a_fifo_engine_enum_from_type(struct gk20a *g,
-					u32 engine_type, u32 *inst_id)
+					u32 engine_type)
 {
 	enum fifo_engine ret = ENGINE_INVAL_GK20A;
 
-	nvgpu_log_info(g, "engine type %d", engine_type);
-	if (engine_type == top_device_info_type_enum_graphics_v()) {
-		ret = ENGINE_GR_GK20A;
-	} else if ((engine_type >= top_device_info_type_enum_copy0_v()) &&
-		(engine_type <= top_device_info_type_enum_copy2_v())) {
-		/* Lets consider all the CE engine have separate runlist at this point
-		 * We can identify the ENGINE_GRCE_GK20A type CE using runlist_id
-		 * comparsion logic with GR runlist_id in init_engine_info() */
+	if ((g->ops.top.is_engine_gr != NULL) &&
+					(g->ops.top.is_engine_ce != NULL)) {
+		if (g->ops.top.is_engine_gr(g, engine_type)) {
+			ret = ENGINE_GR_GK20A;
+		} else if (g->ops.top.is_engine_ce(g, engine_type)) {
+			/* Lets consider all the CE engine have separate
+			 * runlist at this point. We can identify the
+			 * ENGINE_GRCE_GK20A type CE using runlist_id
+			 * comparsion logic with GR runlist_id in
+			 * init_engine_info()
+			 */
 			ret = ENGINE_ASYNC_CE_GK20A;
-		/* inst_id starts from CE0 to CE2 */
-		if (inst_id != NULL) {
-			*inst_id = (engine_type - top_device_info_type_enum_copy0_v());
+		} else {
+			ret = ENGINE_INVAL_GK20A;
 		}
 	}
 
 	return ret;
-}
-
-int gk20a_fifo_init_engine_info(struct fifo_gk20a *f)
-{
-	struct gk20a *g = f->g;
-	u32 i;
-	u32 max_info_entries = top_device_info__size_1_v();
-	enum fifo_engine engine_enum = ENGINE_INVAL_GK20A;
-	u32 engine_id = FIFO_INVAL_ENGINE_ID;
-	u32 runlist_id = U32_MAX;
-	u32 pbdma_id = U32_MAX;
-	u32 intr_id = U32_MAX;
-	u32 reset_id = U32_MAX;
-	u32 inst_id  = 0;
-	u32 pri_base = 0;
-	u32 fault_id = 0;
-	u32 gr_runlist_id = U32_MAX;
-	bool found_pbdma_for_runlist = false;
-
-	nvgpu_log_fn(g, " ");
-
-	f->num_engines = 0;
-
-	for (i = 0; i < max_info_entries; i++) {
-		u32 table_entry = gk20a_readl(f->g, top_device_info_r(i));
-		u32 entry = top_device_info_entry_v(table_entry);
-		u32 runlist_bit;
-
-		if (entry == top_device_info_entry_enum_v()) {
-			if (top_device_info_engine_v(table_entry) != 0U) {
-				engine_id =
-					top_device_info_engine_enum_v(table_entry);
-				nvgpu_log_info(g, "info: engine_id %d",
-					top_device_info_engine_enum_v(table_entry));
-			}
-
-
-			if (top_device_info_runlist_v(table_entry) != 0U) {
-				runlist_id =
-					top_device_info_runlist_enum_v(table_entry);
-				nvgpu_log_info(g, "gr info: runlist_id %d", runlist_id);
-
-				runlist_bit = BIT32(runlist_id);
-
-				found_pbdma_for_runlist = false;
-				for (pbdma_id = 0; pbdma_id < f->num_pbdma;
-								pbdma_id++) {
-					if ((f->pbdma_map[pbdma_id] &
-						runlist_bit) != 0U) {
-						nvgpu_log_info(g,
-						"gr info: pbdma_map[%d]=%d",
-							pbdma_id,
-							f->pbdma_map[pbdma_id]);
-						found_pbdma_for_runlist = true;
-						break;
-					}
-				}
-
-				if (!found_pbdma_for_runlist) {
-					nvgpu_err(g, "busted pbdma map");
-					return -EINVAL;
-				}
-			}
-
-			if (top_device_info_intr_v(table_entry) != 0U) {
-				intr_id =
-					top_device_info_intr_enum_v(table_entry);
-				nvgpu_log_info(g, "gr info: intr_id %d", intr_id);
-			}
-
-			if (top_device_info_reset_v(table_entry) != 0U) {
-				reset_id =
-					top_device_info_reset_enum_v(table_entry);
-				nvgpu_log_info(g, "gr info: reset_id %d",
-						reset_id);
-			}
-		} else if (entry == top_device_info_entry_engine_type_v()) {
-			u32 engine_type =
-				top_device_info_type_enum_v(table_entry);
-			engine_enum =
-				g->ops.fifo.engine_enum_from_type(g,
-						engine_type, &inst_id);
-		} else if (entry == top_device_info_entry_data_v()) {
-			/* gk20a doesn't support device_info_data packet parsing */
-			if (g->ops.fifo.device_info_data_parse != NULL) {
-				g->ops.fifo.device_info_data_parse(g,
-					table_entry, &inst_id, &pri_base,
-					&fault_id);
-			}
-		}
-
-		if (top_device_info_chain_v(table_entry) ==
-			top_device_info_chain_disable_v()) {
-			if (engine_enum < ENGINE_INVAL_GK20A) {
-				struct fifo_engine_info_gk20a *info =
-					&g->fifo.engine_info[engine_id];
-
-				info->intr_mask |= BIT(intr_id);
-				info->reset_mask |= BIT(reset_id);
-				info->runlist_id = runlist_id;
-				info->pbdma_id = pbdma_id;
-				info->inst_id  = inst_id;
-				info->pri_base = pri_base;
-
-				if (engine_enum == ENGINE_GR_GK20A) {
-					gr_runlist_id = runlist_id;
-				}
-
-				/* GR and GR_COPY shares same runlist_id */
-				if ((engine_enum == ENGINE_ASYNC_CE_GK20A) &&
-					(gr_runlist_id == runlist_id)) {
-						engine_enum = ENGINE_GRCE_GK20A;
-				}
-
-				info->engine_enum = engine_enum;
-
-				if ((fault_id == 0U) &&
-				    (engine_enum == ENGINE_GRCE_GK20A)) {
-					fault_id = 0x1b;
-				}
-				info->fault_id = fault_id;
-
-				/* engine_id starts from 0 to NV_HOST_NUM_ENGINES */
-				f->active_engines_list[f->num_engines] = engine_id;
-
-				++f->num_engines;
-
-				engine_enum = ENGINE_INVAL_GK20A;
-			}
-		}
-	}
-
-	return 0;
 }
 
 u32 gk20a_fifo_act_eng_interrupt_mask(struct gk20a *g, u32 act_eng_id)
@@ -4409,6 +4278,27 @@ void gk20a_fifo_add_sema_cmd(struct gk20a *g,
 		/* ignored */
 		nvgpu_mem_wr32(g, cmd->mem, off++, 0U);
 	}
+}
+
+bool gk20a_fifo_find_pbdma_for_runlist(struct fifo_gk20a *f, u32 runlist_id,
+								u32 *pbdma_id)
+{
+	struct gk20a *g = f->g;
+	bool found_pbdma_for_runlist = false;
+	u32 runlist_bit;
+	u32 id;
+
+	runlist_bit = BIT32(runlist_id);
+	for (id = 0; id < f->num_pbdma; id++) {
+		if ((f->pbdma_map[id] & runlist_bit) != 0U) {
+			nvgpu_info(g, "gr info: pbdma_map[%d]=%d", id,
+							f->pbdma_map[id]);
+			found_pbdma_for_runlist = true;
+			break;
+		}
+	}
+	*pbdma_id = id;
+	return found_pbdma_for_runlist;
 }
 
 #ifdef CONFIG_TEGRA_GK20A_NVHOST

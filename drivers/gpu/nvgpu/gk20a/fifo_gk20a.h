@@ -313,7 +313,7 @@ int gk20a_fifo_tsg_set_timeslice(struct tsg_gk20a *tsg, u32 timeslice);
 const char *gk20a_fifo_interleave_level_name(u32 interleave_level);
 
 enum fifo_engine gk20a_fifo_engine_enum_from_type(struct gk20a *g,
-		u32 engine_type, u32 *inst_id);
+				u32 engine_type);
 
 u32 gk20a_fifo_get_engine_ids(struct gk20a *g, u32 engine_id[],
 			u32 engine_id_sz, enum fifo_engine engine_enum);
@@ -339,8 +339,6 @@ bool gk20a_fifo_is_valid_runlist_id(struct gk20a *g, u32 runlist_id);
 
 int gk20a_fifo_update_runlist_ids(struct gk20a *g, u32 runlist_ids, u32 chid,
 		bool add, bool wait_for_finish);
-
-int gk20a_fifo_init_engine_info(struct fifo_gk20a *f);
 
 void gk20a_get_tsg_runlist_entry(struct tsg_gk20a *tsg, u32 *runlist);
 void gk20a_get_ch_runlist_entry(struct channel_gk20a *ch, u32 *runlist);
@@ -477,4 +475,6 @@ int gk20a_fifo_init_userd_slabs(struct gk20a *g);
 void gk20a_fifo_free_userd_slabs(struct gk20a *g);
 int gk20a_fifo_init_userd(struct gk20a *g, struct channel_gk20a *c);
 
+bool gk20a_fifo_find_pbdma_for_runlist(struct fifo_gk20a *f, u32 runlist_id,
+			u32 *pbdma_id);
 #endif /* FIFO_GK20A_H */

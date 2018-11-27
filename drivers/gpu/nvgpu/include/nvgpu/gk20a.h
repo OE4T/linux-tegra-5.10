@@ -772,12 +772,6 @@ struct gpu_ops {
 		u32 (*default_timeslice_us)(struct gk20a *g);
 		int (*force_reset_ch)(struct channel_gk20a *ch,
 					u32 err_code, bool verbose);
-		enum fifo_engine (*engine_enum_from_type)(struct gk20a *g,
-					u32 engine_type, u32 *inst_id);
-		void (*device_info_data_parse)(struct gk20a *g,
-					u32 table_entry, u32 *inst_id,
-					u32 *pri_base, u32 *fault_id);
-		u32 (*device_info_fault_id)(u32 table_entry);
 		int (*tsg_bind_channel)(struct tsg_gk20a *tsg,
 				struct channel_gk20a *ch);
 		int (*tsg_unbind_channel)(struct channel_gk20a *ch);
@@ -876,6 +870,9 @@ struct gpu_ops {
 		u32 (*runlist_busy_engines)(struct gk20a *g, u32 runlist_id);
 		void (*runlist_write_state)(struct gk20a *g, u32 runlists_mask,
 				u32 runlist_state);
+		bool (*find_pbdma_for_runlist)(struct fifo_gk20a *f,
+				u32 runlist_id, u32 *pbdma_id);
+		int (*init_ce_engine_info)(struct fifo_gk20a *f);
 	} fifo;
 	struct pmu_v {
 		u32 (*get_pmu_cmdline_args_size)(struct nvgpu_pmu *pmu);

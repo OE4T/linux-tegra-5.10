@@ -32,15 +32,14 @@
 #include <nvgpu/bug.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/channel.h>
+#include <nvgpu/top.h>
 
 #include "gk20a/fifo_gk20a.h"
-
 #include "fifo_gm20b.h"
 
 #include <nvgpu/hw/gm20b/hw_ccsr_gm20b.h>
 #include <nvgpu/hw/gm20b/hw_ram_gm20b.h>
 #include <nvgpu/hw/gm20b/hw_fifo_gm20b.h>
-#include <nvgpu/hw/gm20b/hw_top_gm20b.h>
 #include <nvgpu/hw/gm20b/hw_pbdma_gm20b.h>
 
 void channel_gm20b_bind(struct channel_gk20a *c)
@@ -135,29 +134,6 @@ void gm20b_fifo_trigger_mmu_fault(struct gk20a *g,
 u32 gm20b_fifo_get_num_fifos(struct gk20a *g)
 {
 	return ccsr_channel__size_1_v();
-}
-
-void gm20b_device_info_data_parse(struct gk20a *g,
-						u32 table_entry, u32 *inst_id,
-						u32 *pri_base, u32 *fault_id)
-{
-	if (top_device_info_data_type_v(table_entry) ==
-	    top_device_info_data_type_enum2_v()) {
-		if (pri_base != NULL) {
-			*pri_base =
-				(top_device_info_data_pri_base_v(table_entry)
-				<< top_device_info_data_pri_base_align_v());
-		}
-		if ((fault_id != NULL) &&
-		    (top_device_info_data_fault_id_v(table_entry) ==
-			top_device_info_data_fault_id_valid_v())) {
-			*fault_id =
-			    top_device_info_data_fault_id_enum_v(table_entry);
-		}
-	} else {
-		nvgpu_err(g, "unknown device_info_data %d",
-				top_device_info_data_type_v(table_entry));
-	}
 }
 
 void gm20b_fifo_init_pbdma_intr_descs(struct fifo_gk20a *f)
@@ -263,3 +239,156 @@ void gm20b_fifo_get_mmu_fault_gpc_desc(struct mmu_fault_info *mmfault)
 			 gm20b_gpc_client_descs[mmfault->client_id];
 	}
 }
+
+int gm20b_fifo_init_engine_info(struct fifo_gk20a *f)
+{
+	struct gk20a *g = f->g;
+	int ret = 0;
+	enum fifo_engine engine_enum;
+	u32 pbdma_id = U32_MAX;
+	bool found_pbdma_for_runlist = false;
+
+	f->num_engines = 0;
+	if (g->ops.top.get_device_info != NULL) {
+		struct nvgpu_device_info dev_info;
+		struct fifo_engine_info_gk20a *info;
+
+		ret = g->ops.top.get_device_info(g, &dev_info,
+						NVGPU_ENGINE_GRAPHICS, 0);
+		if (ret != 0) {
+			nvgpu_err(g,
+				"Failed to parse dev_info table for engine %d",
+				NVGPU_ENGINE_GRAPHICS);
+			return -EINVAL;
+		}
+
+		found_pbdma_for_runlist = g->ops.fifo.find_pbdma_for_runlist(f,
+							dev_info.runlist_id,
+							&pbdma_id);
+		if (!found_pbdma_for_runlist) {
+			nvgpu_err(g, "busted pbdma map");
+			return -EINVAL;
+		}
+
+		engine_enum = gk20a_fifo_engine_enum_from_type(g,
+							dev_info.engine_type);
+
+		info = &g->fifo.engine_info[dev_info.engine_id];
+
+		info->intr_mask |= BIT32(dev_info.intr_id);
+		info->reset_mask |= BIT32(dev_info.reset_id);
+		info->runlist_id = dev_info.runlist_id;
+		info->pbdma_id = pbdma_id;
+		info->inst_id  = dev_info.inst_id;
+		info->pri_base = dev_info.pri_base;
+		info->engine_enum = engine_enum;
+		info->fault_id = dev_info.fault_id;
+
+		/* engine_id starts from 0 to NV_HOST_NUM_ENGINES */
+		f->active_engines_list[f->num_engines] = dev_info.engine_id;
+		++f->num_engines;
+		nvgpu_info(g, "gr info: engine_id %d runlist_id %d intr_id %d "
+			"reset_id %d engine_type %d engine_enum %d inst_id %d",
+					dev_info.engine_id,
+					dev_info.runlist_id,
+					dev_info.intr_id,
+					dev_info.reset_id,
+					dev_info.engine_type,
+					engine_enum,
+					dev_info.inst_id);
+	}
+
+	ret = g->ops.fifo.init_ce_engine_info(f);
+
+	return 0;
+}
+
+int gm20b_fifo_init_ce_engine_info(struct fifo_gk20a *f)
+{
+	struct gk20a *g = f->g;
+	int ret = 0;
+	u32 i;
+	enum fifo_engine engine_enum;
+	u32 pbdma_id = U32_MAX;
+	u32 gr_runlist_id;
+	bool found_pbdma_for_runlist = false;
+
+	gr_runlist_id = gk20a_fifo_get_gr_runlist_id(g);
+	nvgpu_info(g, "gr_runlist_id: %d", gr_runlist_id);
+
+	if (g->ops.top.get_device_info != NULL) {
+		for (i = NVGPU_ENGINE_COPY0;  i <= NVGPU_ENGINE_COPY2; i++) {
+			struct nvgpu_device_info dev_info;
+			struct fifo_engine_info_gk20a *info;
+
+			ret = g->ops.top.get_device_info(g, &dev_info, i, 0);
+			if (ret != 0) {
+				nvgpu_err(g,
+					"Failed to parse dev_info table for"
+					" engine %d", i);
+				return ret;
+			}
+			if (dev_info.engine_type != i) {
+				nvgpu_log_info(g, "No entry found in dev_info "
+					"table for engine_type %d", i);
+				continue;
+			}
+
+			found_pbdma_for_runlist =
+					g->ops.fifo.find_pbdma_for_runlist(f,
+							dev_info.runlist_id,
+							&pbdma_id);
+			if (!found_pbdma_for_runlist) {
+				nvgpu_err(g, "busted pbdma map");
+				return -EINVAL;
+			}
+
+			info = &g->fifo.engine_info[dev_info.engine_id];
+
+			engine_enum = gk20a_fifo_engine_enum_from_type(g,
+							dev_info.engine_type);
+
+			/* GR and GR_COPY shares same runlist_id */
+			if ((engine_enum == ENGINE_ASYNC_CE_GK20A) &&
+				(gr_runlist_id == dev_info.runlist_id)) {
+					engine_enum = ENGINE_GRCE_GK20A;
+			}
+			info->engine_enum = engine_enum;
+
+			if (g->ops.top.get_ce_inst_id != NULL) {
+				dev_info.inst_id = g->ops.top.get_ce_inst_id(g,
+							dev_info.engine_type);
+			}
+
+			if ((dev_info.fault_id == 0U) &&
+					(engine_enum == ENGINE_GRCE_GK20A)) {
+				dev_info.fault_id = 0x1b;
+			}
+			info->fault_id = dev_info.fault_id;
+
+			info->intr_mask |= BIT32(dev_info.intr_id);
+			info->reset_mask |= BIT32(dev_info.reset_id);
+			info->runlist_id = dev_info.runlist_id;
+			info->pbdma_id = pbdma_id;
+			info->inst_id  = dev_info.inst_id;
+			info->pri_base = dev_info.pri_base;
+
+			/* engine_id starts from 0 to NV_HOST_NUM_ENGINES */
+			f->active_engines_list[f->num_engines] =
+							dev_info.engine_id;
+			++f->num_engines;
+			nvgpu_info(g, "gr info: engine_id %d runlist_id %d "
+				"intr_id %d reset_id %d engine_type %d "
+				"engine_enum %d inst_id %d",
+				dev_info.engine_id,
+				dev_info.runlist_id,
+				dev_info.intr_id,
+				dev_info.reset_id,
+				dev_info.engine_type,
+				engine_enum,
+				dev_info.inst_id);
+		}
+	}
+	return 0;
+}
+
