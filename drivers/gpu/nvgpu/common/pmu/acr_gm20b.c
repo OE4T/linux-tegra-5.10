@@ -1106,7 +1106,7 @@ static int gm20b_acr_hs_bl_exec(struct gk20a *g, struct nvgpu_acr *acr,
 		hs_bl->bl_fw_name, acr_desc->acr_flcn->flcn_id);
 
 	if (hs_bl_fw == NULL) {
-		hs_bl_fw = nvgpu_request_firmware(g, hs_bl->bl_fw_name, 0U);
+		hs_bl_fw = nvgpu_request_firmware(g, hs_bl->bl_fw_name, 0);
 		if (hs_bl_fw == NULL) {
 			nvgpu_err(g, "ACR HS BL ucode load fail");
 			return -ENOENT;
@@ -1274,7 +1274,7 @@ int gm20b_bootstrap_hs_acr(struct gk20a *g, struct nvgpu_acr *acr,
 	u32 img_size_in_bytes = 0;
 	u32 *acr_ucode_data;
 	u32 *acr_ucode_header;
-	u32 status = 0U;
+	int status = 0;
 
 	nvgpu_pmu_dbg(g, "ACR TYPE %x ", acr_desc->acr_type);
 
@@ -1317,7 +1317,7 @@ int gm20b_bootstrap_hs_acr(struct gk20a *g, struct nvgpu_acr *acr,
 
 		status = nvgpu_dma_alloc_map_sys(vm, img_size_in_bytes,
 			acr_ucode_mem);
-		if (status != 0U) {
+		if (status != 0) {
 			status = -ENOMEM;
 			goto err_release_acr_fw;
 		}
@@ -1339,7 +1339,7 @@ int gm20b_bootstrap_hs_acr(struct gk20a *g, struct nvgpu_acr *acr,
 	}
 
 	status = gm20b_acr_hs_bl_exec(g, acr, acr_desc, true);
-	if (status != 0U) {
+	if (status != 0) {
 		goto err_free_ucode_map;
 	}
 

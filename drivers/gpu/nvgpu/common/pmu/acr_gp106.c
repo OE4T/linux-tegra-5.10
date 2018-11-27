@@ -455,7 +455,7 @@ release_img_fw:
 /*
  * Discover all supported shared data falcon SUB WPRs
  */
-static u32 lsfm_discover_and_add_sub_wprs(struct gk20a *g,
+static int lsfm_discover_and_add_sub_wprs(struct gk20a *g,
 		struct ls_flcn_mgr_v1 *plsfm)
 {
 	struct lsfm_sub_wpr *pnode;
