@@ -51,6 +51,7 @@
 #include <nvgpu/types.h>
 #include <nvgpu/vm_area.h>
 #include <nvgpu/top.h>
+#include <nvgpu/nvgpu_err.h>
 
 #include "mm_gk20a.h"
 
@@ -76,6 +77,23 @@ static const char *const pbdma_intr_fault_type_desc[] = {
 	"PRI forbidden", "ILLEGAL SYNCPT", "[NO_CTXSW_SEG]",
 	"PBSEG badsplit", "SIGNATURE bad"
 };
+
+void nvgpu_report_host_error(struct gk20a *g, u32 inst,
+		u32 err_id, u32 intr_info)
+{
+	int ret;
+
+	if (g->ops.fifo.err_ops.report_host_err == NULL) {
+		return ;
+	}
+	ret = g->ops.fifo.err_ops.report_host_err(g,
+			NVGPU_ERR_MODULE_HOST, inst, err_id, intr_info);
+	if (ret != 0) {
+		nvgpu_err(g, "Failed to report HOST error: \
+				inst=%u, err_id=%u, intr_info=%u, ret=%d",
+				inst, err_id, intr_info, ret);
+	}
+}
 
 u32 gk20a_fifo_get_engine_ids(struct gk20a *g,
 		u32 engine_id[], u32 engine_id_sz,
@@ -1152,6 +1170,8 @@ static void gk20a_fifo_handle_chsw_fault(struct gk20a *g)
 	u32 intr;
 
 	intr = gk20a_readl(g, fifo_intr_chsw_error_r());
+	nvgpu_report_host_error(g, 0,
+			GPU_HOST_PFIFO_CHSW_ERROR, intr);
 	nvgpu_err(g, "chsw: %08x", intr);
 	g->ops.gr.dump_gr_falcon_stats(g);
 	gk20a_writel(g, fifo_intr_chsw_error_r(), intr);
@@ -2000,6 +2020,8 @@ static u32 fifo_error_isr(struct gk20a *g, u32 fifo_intr)
 
 	if ((fifo_intr & fifo_intr_0_bind_error_pending_f()) != 0U) {
 		u32 bind_error = gk20a_readl(g, fifo_intr_bind_error_r());
+		nvgpu_report_host_error(g, 0,
+				GPU_HOST_PFIFO_BIND_ERROR, bind_error);
 		nvgpu_err(g, "fifo bind error: 0x%08x", bind_error);
 		handled |= fifo_intr_0_bind_error_pending_f();
 	}

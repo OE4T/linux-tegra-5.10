@@ -1967,4 +1967,7 @@ void gk20a_put(struct gk20a *g);
 
 bool nvgpu_has_syncpoints(struct gk20a *g);
 
+void nvgpu_report_host_error(struct gk20a *g,
+		u32 inst, u32 err_id, u32 intr_info);
+
 #endif /* GK20A_H */

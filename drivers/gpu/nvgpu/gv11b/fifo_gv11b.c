@@ -45,6 +45,7 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/channel.h>
 #include <nvgpu/unit.h>
+#include <nvgpu/nvgpu_err.h>
 
 #include "gk20a/fifo_gk20a.h"
 
@@ -1464,6 +1465,9 @@ bool gv11b_fifo_handle_sched_error(struct gk20a *g)
 		nvgpu_err(g, "fifo sched error code not supported");
 	}
 
+	nvgpu_report_host_error(g, 0,
+			GPU_HOST_PFIFO_SCHED_ERROR, sched_error);
+
 	if (sched_error == SCHED_ERROR_CODE_BAD_TSG ) {
 		/* id is unknown, preempt all runlists and do recovery */
 		gk20a_fifo_recover(g, 0, 0, false, false, false,
@@ -1643,6 +1647,66 @@ bool gv11b_fifo_handle_ctxsw_timeout(struct gk20a *g, u32 fifo_intr)
 	return ret;
 }
 
+static void report_pbdma_error(struct gk20a *g, u32 pbdma_id,
+		u32 pbdma_intr_0)
+{
+	u32 err_type = GPU_HOST_INVALID_ERROR;
+
+	/*
+	 * Multiple errors have been grouped as part of a single
+	 * top-level error.
+	 */
+	if ((pbdma_intr_0 & (
+		pbdma_intr_0_memreq_pending_f() |
+		pbdma_intr_0_memack_timeout_pending_f() |
+		pbdma_intr_0_memdat_timeout_pending_f() |
+		pbdma_intr_0_memflush_pending_f() |
+		pbdma_intr_0_memop_pending_f() |
+		pbdma_intr_0_lbconnect_pending_f() |
+		pbdma_intr_0_lback_timeout_pending_f() |
+		pbdma_intr_0_lbdat_timeout_pending_f())) != 0U) {
+			err_type = GPU_HOST_PBDMA_TIMEOUT_ERROR;
+	}
+	if ((pbdma_intr_0 & (
+		pbdma_intr_0_memack_extra_pending_f() |
+		pbdma_intr_0_memdat_extra_pending_f() |
+		pbdma_intr_0_lback_extra_pending_f() |
+		pbdma_intr_0_lbdat_extra_pending_f())) != 0U) {
+			err_type = GPU_HOST_PBDMA_EXTRA_ERROR;
+	}
+	if ((pbdma_intr_0 & (
+		pbdma_intr_0_gpfifo_pending_f() |
+		pbdma_intr_0_gpptr_pending_f() |
+		pbdma_intr_0_gpentry_pending_f() |
+		pbdma_intr_0_gpcrc_pending_f() |
+		pbdma_intr_0_pbptr_pending_f() |
+		pbdma_intr_0_pbentry_pending_f() |
+		pbdma_intr_0_pbcrc_pending_f())) != 0U) {
+			err_type = GPU_HOST_PBDMA_GPFIFO_PB_ERROR;
+	}
+	if ((pbdma_intr_0 & (
+		pbdma_intr_0_clear_faulted_error_pending_f() |
+		pbdma_intr_0_method_pending_f() |
+		pbdma_intr_0_methodcrc_pending_f() |
+		pbdma_intr_0_device_pending_f() |
+		pbdma_intr_0_eng_reset_pending_f() |
+		pbdma_intr_0_semaphore_pending_f() |
+		pbdma_intr_0_acquire_pending_f() |
+		pbdma_intr_0_pri_pending_f() |
+		pbdma_intr_0_pbseg_pending_f())) != 0U) {
+			err_type = GPU_HOST_PBDMA_METHOD_ERROR;
+	}
+	if ((pbdma_intr_0 &
+		pbdma_intr_0_signature_pending_f()) != 0U) {
+			err_type = GPU_HOST_PBDMA_SIGNATURE_ERROR;
+	}
+	if (err_type != GPU_HOST_INVALID_ERROR) {
+		nvgpu_report_host_error(g, pbdma_id,
+				err_type, pbdma_intr_0);
+	}
+	return;
+}
+
 unsigned int gv11b_fifo_handle_pbdma_intr_0(struct gk20a *g,
 			u32 pbdma_id, u32 pbdma_intr_0,
 			u32 *handled, u32 *error_notifier)
@@ -1666,7 +1730,7 @@ unsigned int gv11b_fifo_handle_pbdma_intr_0(struct gk20a *g,
 		*handled |= pbdma_intr_0_eng_reset_pending_f();
 		rc_type = RC_TYPE_PBDMA_FAULT;
 	}
-
+	report_pbdma_error(g, pbdma_id, pbdma_intr_0);
 	return rc_type;
 }
 
@@ -1708,6 +1772,9 @@ unsigned int gv11b_fifo_handle_pbdma_intr_1(struct gk20a *g,
 	if (pbdma_intr_1 == 0U) {
 		return RC_TYPE_NO_RC;
 	}
+
+	nvgpu_report_host_error(g, pbdma_id,
+			GPU_HOST_PBDMA_HCE_ERROR, pbdma_intr_1);
 
 	if ((pbdma_intr_1 & pbdma_intr_1_ctxnotvalid_pending_f()) != 0U) {
 		nvgpu_log(g, gpu_dbg_intr, "ctxnotvalid intr on pbdma id %d",
