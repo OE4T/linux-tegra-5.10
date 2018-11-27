@@ -80,7 +80,6 @@
 #include "gm20b/mm_gm20b.h"
 
 #include "gv100/clk_gv100.h"
-#include "gp106/clk_arb_gp106.h"
 #include "gp106/sec2_gp106.h"
 #include "gp106/bios_gp106.h"
 
@@ -827,10 +826,10 @@ static const struct gpu_ops tu104_ops = {
 		.suspend_clk_support = gv100_suspend_clk_support,
 	},
 	.clk_arb = {
-		.get_arbiter_clk_domains = gp106_get_arbiter_clk_domains,
-		.get_arbiter_clk_range = gp106_get_arbiter_clk_range,
-		.get_arbiter_clk_default = gp106_get_arbiter_clk_default,
-		.get_current_pstate = nvgpu_clk_arb_get_current_pstate,
+		.get_arbiter_clk_domains = NULL,
+		.get_arbiter_clk_range = NULL,
+		.get_arbiter_clk_default = NULL,
+		.get_current_pstate = NULL,
 	},
 	.regops = {
 		.exec_regops = exec_regops_gk20a,
