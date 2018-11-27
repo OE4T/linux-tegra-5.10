@@ -385,7 +385,7 @@ int nvgpu_pmu_process_init_msg(struct nvgpu_pmu *pmu,
 	}
 
 	nvgpu_falcon_copy_from_dmem(pmu->flcn, tail + PMU_MSG_HDR_SIZE,
-		(u8 *)&msg->msg, msg->hdr.size - PMU_MSG_HDR_SIZE, 0);
+		(u8 *)&msg->msg, (u32)msg->hdr.size - PMU_MSG_HDR_SIZE, 0);
 
 	if (msg->msg.init.msg_type != PMU_INIT_MSG_TYPE_PMU_INIT) {
 		nvgpu_err(g, "expecting init msg");
@@ -402,7 +402,7 @@ int nvgpu_pmu_process_init_msg(struct nvgpu_pmu *pmu,
 		nvgpu_falcon_copy_from_dmem(pmu->flcn,
 			pv->get_pmu_init_msg_pmu_sw_mg_off(init),
 			(u8 *)&gid_data,
-			sizeof(struct pmu_sha1_gid_data), 0);
+			(u32)sizeof(struct pmu_sha1_gid_data), 0);
 
 		pmu->gid_info.valid =
 			(*gid_hdr_data == PMU_SHA1_GID_SIGNATURE);

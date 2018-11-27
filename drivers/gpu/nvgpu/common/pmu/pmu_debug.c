@@ -36,7 +36,7 @@ void nvgpu_pmu_dump_elpg_stats(struct nvgpu_pmu *pmu)
 	nvgpu_err(g, "Print PG stats");
 	nvgpu_falcon_print_dmem(pmu->flcn,
 		pmu->stat_dmem_offset[PMU_PG_ELPG_ENGINE_ID_GRAPHICS],
-		sizeof(struct pmu_pg_stats_v2));
+		(u32)sizeof(struct pmu_pg_stats_v2));
 
 	g->ops.pmu.pmu_dump_elpg_stats(pmu);
 }

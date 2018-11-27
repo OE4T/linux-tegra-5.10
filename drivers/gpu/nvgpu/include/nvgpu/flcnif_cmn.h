@@ -98,8 +98,8 @@ struct pmu_hdr {
 
 #define  NV_FLCN_UNIT_ID_REWIND    (0x00U)
 
-#define PMU_MSG_HDR_SIZE	sizeof(struct pmu_hdr)
-#define PMU_CMD_HDR_SIZE	sizeof(struct pmu_hdr)
+#define PMU_MSG_HDR_SIZE	U32(sizeof(struct pmu_hdr))
+#define PMU_CMD_HDR_SIZE	U32(sizeof(struct pmu_hdr))
 
 #define nv_pmu_hdr pmu_hdr
 typedef u8 flcn_status;

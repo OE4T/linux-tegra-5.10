@@ -821,7 +821,7 @@ void gk20a_pmu_elpg_statistics(struct gk20a *g, u32 pg_engine_id,
 
 	nvgpu_falcon_copy_from_dmem(pmu->flcn,
 		pmu->stat_dmem_offset[pg_engine_id],
-		(u8 *)&stats, sizeof(struct pmu_pg_stats), 0);
+		(u8 *)&stats, (u32)sizeof(struct pmu_pg_stats), 0);
 
 	pg_stat_data->ingating_time = stats.pg_ingating_time_us;
 	pg_stat_data->ungating_time = stats.pg_ungating_time_us;
