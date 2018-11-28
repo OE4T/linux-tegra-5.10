@@ -278,6 +278,7 @@ nvgpu-y += \
 	common/fifo/channel.o \
 	common/fifo/submit.o \
 	common/fifo/tsg.o \
+	common/fifo/runlist.o \
 	common/ecc.o \
 	common/ce2.o \
 	common/debugger.o \

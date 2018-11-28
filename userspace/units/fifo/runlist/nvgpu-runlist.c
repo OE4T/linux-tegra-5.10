@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -26,6 +26,7 @@
 #include <unit/unit.h>
 
 #include <nvgpu/channel.h>
+#include <nvgpu/runlist.h>
 #include <nvgpu/gk20a.h>
 
 static void setup_fifo(struct gk20a *g, unsigned long *tsg_map,

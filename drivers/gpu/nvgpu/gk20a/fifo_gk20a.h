@@ -266,18 +266,9 @@ void gk20a_fifo_disable_tsg_sched(struct gk20a *g, struct tsg_gk20a *tsg);
 
 u32 gk20a_fifo_engines_on_ch(struct gk20a *g, u32 chid);
 
-int gk20a_fifo_reschedule_runlist(struct channel_gk20a *ch, bool preempt_next);
-int nvgpu_fifo_reschedule_runlist(struct channel_gk20a *ch, bool preempt_next,
-		bool wait_preempt);
 int gk20a_fifo_reschedule_preempt_next(struct channel_gk20a *ch,
 		bool wait_preempt);
 
-int gk20a_fifo_update_runlist(struct gk20a *g, u32 runlist_id, u32 chid,
-			      bool add, bool wait_for_finish);
-
-int gk20a_fifo_update_runlist_locked(struct gk20a *g, u32 runlist_id,
-					    u32 chid, bool add,
-					    bool wait_for_finish);
 int gk20a_fifo_suspend(struct gk20a *g);
 
 bool gk20a_fifo_mmu_fault_pending(struct gk20a *g);
@@ -312,15 +303,11 @@ int gk20a_fifo_set_runlist_interleave(struct gk20a *g,
 				u32 new_level);
 int gk20a_fifo_tsg_set_timeslice(struct tsg_gk20a *tsg, u32 timeslice);
 
-const char *gk20a_fifo_interleave_level_name(u32 interleave_level);
-
 enum fifo_engine gk20a_fifo_engine_enum_from_type(struct gk20a *g,
 				u32 engine_type);
 
 u32 gk20a_fifo_get_engine_ids(struct gk20a *g, u32 engine_id[],
 			u32 engine_id_sz, enum fifo_engine engine_enum);
-
-void gk20a_fifo_delete_runlist(struct fifo_gk20a *f);
 
 struct fifo_engine_info_gk20a *gk20a_fifo_get_engine_info(struct gk20a *g,
 							 u32 engine_id);
@@ -338,9 +325,6 @@ u32 gk20a_fifo_get_fast_ce_runlist_id(struct gk20a *g);
 u32 gk20a_fifo_get_gr_runlist_id(struct gk20a *g);
 
 bool gk20a_fifo_is_valid_runlist_id(struct gk20a *g, u32 runlist_id);
-
-int gk20a_fifo_update_runlist_ids(struct gk20a *g, u32 runlist_ids, u32 chid,
-		bool add, bool wait_for_finish);
 
 void gk20a_get_tsg_runlist_entry(struct tsg_gk20a *tsg, u32 *runlist);
 void gk20a_get_ch_runlist_entry(struct channel_gk20a *ch, u32 *runlist);
@@ -414,11 +398,6 @@ int gk20a_fifo_setup_userd(struct channel_gk20a *c);
 u32 gk20a_fifo_pbdma_acquire_val(u64 timeout);
 
 
-#define RUNLIST_APPEND_FAILURE 0xffffffffU
-u32 nvgpu_runlist_construct_locked(struct fifo_gk20a *f,
-				struct fifo_runlist_info_gk20a *runlist,
-				u32 buf_id,
-				u32 max_entries);
 void gk20a_fifo_runlist_hw_submit(struct gk20a *g, u32 runlist_id,
 	u32 count, u32 buffer_index);
 u32 gk20a_fifo_runlist_busy_engines(struct gk20a *g, u32 runlist_id);

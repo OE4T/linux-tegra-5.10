@@ -120,6 +120,7 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/debugger.h>
 #include <nvgpu/channel.h>
+#include <nvgpu/runlist.h>
 #include <nvgpu/perfbuf.h>
 #include <nvgpu/cyclestats_snapshot.h>
 

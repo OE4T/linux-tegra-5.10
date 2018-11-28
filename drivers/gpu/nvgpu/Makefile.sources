@@ -1,6 +1,6 @@
 # -*- mode: makefile -*-
 #
-# Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+# Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -150,6 +150,7 @@ srcs :=	os/posix/nvgpu.c \
 	common/fifo/channel.c \
 	common/fifo/submit.c \
 	common/fifo/tsg.c \
+	common/fifo/runlist.c \
 	common/mc/mc.c \
 	common/mc/mc_gm20b.c \
 	common/mc/mc_gp10b.c  \
