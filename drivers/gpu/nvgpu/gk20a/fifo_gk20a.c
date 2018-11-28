@@ -2938,13 +2938,22 @@ static void gk20a_fifo_sched_disable_rw(struct gk20a *g, u32 runlists_mask,
 					 u32 runlist_state)
 {
 	u32 reg_val;
+	u32 reg_mask = 0;
+	u32 i;
 
 	reg_val = gk20a_readl(g, fifo_sched_disable_r());
 
+	for (i = 0; runlists_mask != 0; i++) {
+		if ((runlists_mask & BIT32(i)) != 0U) {
+			reg_mask |= fifo_sched_disable_runlist_m(i);
+		}
+		runlists_mask &= ~BIT32(i);
+	}
+
 	if (runlist_state == RUNLIST_DISABLED) {
-		reg_val |= runlists_mask;
+		reg_val |= reg_mask;
 	} else {
-		reg_val &= (~runlists_mask);
+		reg_val &= ~reg_mask;
 	}
 
 	gk20a_writel(g, fifo_sched_disable_r(), reg_val);
@@ -2971,15 +2980,15 @@ void gk20a_fifo_set_runlist_state(struct gk20a *g, u32 runlists_mask,
 
 void gk20a_fifo_enable_tsg_sched(struct gk20a *g, struct tsg_gk20a *tsg)
 {
-	gk20a_fifo_set_runlist_state(g, fifo_sched_disable_runlist_m(
-					tsg->runlist_id), RUNLIST_ENABLED);
+	gk20a_fifo_set_runlist_state(g, BIT32(tsg->runlist_id),
+			RUNLIST_ENABLED);
 
 }
 
 void gk20a_fifo_disable_tsg_sched(struct gk20a *g, struct tsg_gk20a *tsg)
 {
-	gk20a_fifo_set_runlist_state(g, fifo_sched_disable_runlist_m(
-					tsg->runlist_id), RUNLIST_DISABLED);
+	gk20a_fifo_set_runlist_state(g, BIT32(tsg->runlist_id),
+			RUNLIST_DISABLED);
 }
 
 int gk20a_fifo_enable_engine_activity(struct gk20a *g,
@@ -2987,8 +2996,8 @@ int gk20a_fifo_enable_engine_activity(struct gk20a *g,
 {
 	nvgpu_log(g, gpu_dbg_info, "start");
 
-	gk20a_fifo_set_runlist_state(g, fifo_sched_disable_runlist_m(
-				eng_info->runlist_id), RUNLIST_ENABLED);
+	gk20a_fifo_set_runlist_state(g, BIT32(eng_info->runlist_id),
+			RUNLIST_ENABLED);
 	return 0;
 }
 
@@ -3033,8 +3042,8 @@ int gk20a_fifo_disable_engine_activity(struct gk20a *g,
 
 	mutex_ret = nvgpu_pmu_mutex_acquire(&g->pmu, PMU_MUTEX_ID_FIFO, &token);
 
-	gk20a_fifo_set_runlist_state(g, fifo_sched_disable_runlist_m(
-				eng_info->runlist_id), RUNLIST_DISABLED);
+	gk20a_fifo_set_runlist_state(g, BIT32(eng_info->runlist_id),
+			RUNLIST_DISABLED);
 
 	/* chid from pbdma status */
 	pbdma_stat = gk20a_readl(g, fifo_pbdma_status_r(eng_info->pbdma_id));

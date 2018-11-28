@@ -735,11 +735,9 @@ static u32 gv11b_fifo_get_runlists_mask(struct gk20a *g, u32 act_eng_bitmask,
 
 	if (id_type != ID_TYPE_UNKNOWN) {
 		if (id_type == ID_TYPE_TSG) {
-			runlists_mask |= fifo_sched_disable_runlist_m(
-						f->tsg[id].runlist_id);
+			runlists_mask |= BIT32(f->tsg[id].runlist_id);
 		} else {
-			runlists_mask |= fifo_sched_disable_runlist_m(
-						f->channel[id].runlist_id);
+			runlists_mask |= BIT32(f->channel[id].runlist_id);
 		}
 	}
 
@@ -753,13 +751,11 @@ static u32 gv11b_fifo_get_runlists_mask(struct gk20a *g, u32 act_eng_bitmask,
 			runlist = &f->runlist_info[rlid];
 
 			if ((runlist->eng_bitmask & act_eng_bitmask) != 0U) {
-				runlists_mask |=
-				 fifo_sched_disable_runlist_m(rlid);
+				runlists_mask |= BIT32(rlid);
 			}
 
 			if ((runlist->pbdma_bitmask & pbdma_bitmask) != 0U) {
-				runlists_mask |=
-				 fifo_sched_disable_runlist_m(rlid);
+				runlists_mask |= BIT32(rlid);
 			}
 		}
 	}
@@ -770,12 +766,10 @@ static u32 gv11b_fifo_get_runlists_mask(struct gk20a *g, u32 act_eng_bitmask,
 				/* eng ids are known */
 				runlist = &f->runlist_info[rlid];
 				if ((runlist->eng_bitmask & act_eng_bitmask) != 0U) {
-					runlists_mask |=
-					fifo_sched_disable_runlist_m(rlid);
+					runlists_mask |= BIT32(rlid);
                                 }
 			} else {
-				runlists_mask |=
-					fifo_sched_disable_runlist_m(rlid);
+				runlists_mask |= BIT32(rlid);
 			}
 		}
 	}
