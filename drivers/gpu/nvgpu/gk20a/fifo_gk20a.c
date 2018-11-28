@@ -2709,7 +2709,7 @@ void gk20a_fifo_isr(struct gk20a *g)
 		}
 
 		if (unlikely((fifo_intr & error_intr_mask) != 0U)) {
-			clear_intr = fifo_error_isr(g, fifo_intr);
+			clear_intr |= fifo_error_isr(g, fifo_intr);
 		}
 
 		nvgpu_mutex_release(&g->fifo.intr.isr.mutex);
