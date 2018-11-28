@@ -23,7 +23,7 @@
 
 #include <linux/cdev.h>
 #include <linux/nvhost.h>
-#include <uapi/linux/nvhost_ioctl.h>
+#include <linux/nvhost_ioctl.h>
 
 #include "nvhost_syncpt.h"
 #include "nvhost_channel.h"

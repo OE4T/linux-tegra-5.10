@@ -35,7 +35,7 @@
 #include "nvdla/nvdla.h"
 #include "nvdla/nvdla_debug.h"
 #include <uapi/linux/nvdev_fence.h>
-#include <uapi/linux/nvhost_nvdla_ioctl.h>
+#include <linux/nvhost_nvdla_ioctl.h>
 #include "dla_os_interface.h"
 
 /**

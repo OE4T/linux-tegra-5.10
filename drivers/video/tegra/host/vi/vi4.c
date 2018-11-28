@@ -33,7 +33,7 @@
 #include "vi_notify.h"
 #include <video/vi4.h>
 #include "t186/t186.h"
-#include <uapi/linux/nvhost_vi_ioctl.h>
+#include <linux/nvhost_vi_ioctl.h>
 #include <media/mc_common.h>
 #include <media/tegra_camera_platform.h>
 #include "camera/vi/vi4_fops.h"

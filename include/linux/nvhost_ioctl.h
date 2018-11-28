@@ -20,11 +20,11 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-#ifndef __UAPI_LINUX_NVHOST_IOCTL_H
-#define __UAPI_LINUX_NVHOST_IOCTL_H
+#ifndef __LINUX_NVHOST_IOCTL_H
+#define __LINUX_NVHOST_IOCTL_H
 
-#include <uapi/linux/ioctl.h>
-#include <uapi/linux/types.h>
+#include <linux/ioctl.h>
+#include <linux/types.h>
 
 #if !defined(__KERNEL__)
 #define __user

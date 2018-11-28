@@ -34,7 +34,7 @@
 #include <linux/version.h>
 
 #include <linux/tegra_pm_domains.h>
-#include <uapi/linux/nvhost_nvdec_ioctl.h>
+#include <linux/nvhost_nvdec_ioctl.h>
 
 #include <linux/platform/tegra/mc.h>
 #include <soc/tegra/chip-id.h>

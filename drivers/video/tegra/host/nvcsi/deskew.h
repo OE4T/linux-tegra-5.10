@@ -23,7 +23,7 @@
 #define __DESKEW_H__
 
 #include <linux/completion.h>
-#include <uapi/linux/nvhost_nvcsi_ioctl.h>
+#include <linux/nvhost_nvcsi_ioctl.h>
 #include <media/csi.h>
 
 

@@ -27,7 +27,7 @@
 #include "vhost/vhost.h"
 
 #include <trace/events/nvhost.h>
-#include <uapi/linux/nvhost_ioctl.h>
+#include <linux/nvhost_ioctl.h>
 #include <linux/delay.h>
 #include <linux/nvhost.h>
 #include <linux/slab.h>

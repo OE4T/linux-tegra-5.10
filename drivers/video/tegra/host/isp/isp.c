@@ -42,7 +42,7 @@
 
 #include <linux/uaccess.h>
 #include <linux/fs.h>
-#include <uapi/linux/nvhost_isp_ioctl.h>
+#include <linux/nvhost_isp_ioctl.h>
 #include <linux/platform/tegra/latency_allowance.h>
 #include "isp.h"
 #include <media/tegra_camera_platform.h>
