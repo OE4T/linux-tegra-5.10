@@ -26,6 +26,7 @@
 #include <linux/of_gpio.h>
 #include <asm/arch_timer.h>
 #include <linux/platform/tegra/ptp-notifier.h>
+#include <linux/time.h>
 #include <linux/nvpps_ioctl.h>
 
 
@@ -67,6 +68,7 @@ struct nvpps_device_data {
 	u64			irq_latency;
 	u64			tsc_res_ns;
 	raw_spinlock_t		lock;
+	struct mutex		ts_lock;
 
 	u32			evt_mode;
 	u32			tsc_mode;
@@ -452,6 +454,59 @@ static long nvpps_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 			break;
 		}
 
+		case NVPPS_GETTIMESTAMP: {
+			struct nvpps_timestamp_struct	time_stamp;
+			u64	ns;
+			u32	reminder;
+			u64	tsc1, tsc2;
+
+			tsc1 = __arch_counter_get_cntvct();
+
+			dev_dbg(pdev_data->dev, "NVPPS_GETTIMESTAMP\n");
+
+			err = copy_from_user(&time_stamp, uarg,
+				sizeof(struct nvpps_timestamp_struct));
+			if (err)
+				return -EFAULT;
+
+			mutex_lock(&pdev_data->ts_lock);
+			switch (time_stamp.clockid) {
+			case CLOCK_REALTIME:
+				ktime_get_real_ts(&time_stamp.kernel_ts);
+				break;
+
+			case CLOCK_MONOTONIC:
+				ktime_get_ts(&time_stamp.kernel_ts);
+				break;
+
+			default:
+				dev_dbg(pdev_data->dev,
+					"ioctl: Unsupported clockid\n");
+			}
+
+			err = get_ptp_hwtime(&ns);
+			mutex_unlock(&pdev_data->ts_lock);
+			if (err) {
+				dev_dbg(pdev_data->dev,
+					"pdev_data->dev, HW PTP not running\n");
+				return err;
+			}
+			time_stamp.hw_ptp_ts.tv_sec = div_u64_rem(ns,
+							1000000000ULL,
+							&reminder);
+			time_stamp.hw_ptp_ts.tv_nsec = reminder;
+
+			tsc2 = __arch_counter_get_cntvct();
+			time_stamp.extra[0] =
+				(tsc2 - tsc1) * pdev_data->tsc_res_ns;
+
+			err = copy_to_user(uarg, &time_stamp,
+				sizeof(struct nvpps_timestamp_struct));
+			if (err)
+				return -EFAULT;
+			break;
+		}
+
 		default:
 			return -ENOTTY;
 	}
@@ -594,6 +649,7 @@ static int nvpps_probe(struct platform_device *pdev)
 
 	init_waitqueue_head(&pdev_data->pps_event_queue);
 	raw_spin_lock_init(&pdev_data->lock);
+	mutex_init(&pdev_data->ts_lock);
 	pdev_data->pdev = pdev;
 	pdev_data->evt_mode = 0; /* NVPPS_MODE_GPIO */
 	pdev_data->tsc_mode = NVPPS_TSC_NSEC;
