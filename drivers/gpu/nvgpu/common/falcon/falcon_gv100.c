@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -19,17 +19,13 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#include <nvgpu/falcon.h>
-#include <nvgpu/pmu.h>
 #include <nvgpu/gk20a.h>
 
 #include "falcon_gk20a.h"
 #include "falcon_gp106.h"
 #include "falcon_gv100.h"
+#include "falcon_priv.h"
 #include "gv100/gsp_gv100.h"
-
-#include <nvgpu/hw/gv100/hw_falcon_gv100.h>
-#include <nvgpu/hw/gv100/hw_pgsp_gv100.h>
 
 static void gv100_falcon_engine_dependency_ops(struct nvgpu_falcon *flcn)
 {

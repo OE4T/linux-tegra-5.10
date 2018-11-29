@@ -21,9 +21,9 @@
  */
 
 #include <nvgpu/lock.h>
-#include <nvgpu/timers.h>
 #include <nvgpu/pmu.h>
-#include <nvgpu/falcon.h>
+
+#include "falcon_priv.h"
 
 /* common falcon queue ops */
 static int falcon_queue_head(struct nvgpu_falcon *flcn,

@@ -19,10 +19,10 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#include <nvgpu/lock.h>
-#include <nvgpu/timers.h>
-#include <nvgpu/falcon.h>
 #include <nvgpu/gk20a.h>
+#include <nvgpu/timers.h>
+
+#include "falcon_priv.h"
 
 /* Delay depends on memory size and pwr_clk
  * delay = (MAX {IMEM_SIZE, DMEM_SIZE} * 64 + 1) / pwr_clk

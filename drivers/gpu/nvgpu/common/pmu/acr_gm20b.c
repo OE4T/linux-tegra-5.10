@@ -44,7 +44,6 @@
 #include "pmu_gm20b.h"
 #include "acr_gm20b.h"
 
-#include <nvgpu/hw/gm20b/hw_falcon_gm20b.h>
 #include <nvgpu/hw/gm20b/hw_pwr_gm20b.h>
 
 typedef int (*gm20b_get_ucode_details)(struct gk20a *g,

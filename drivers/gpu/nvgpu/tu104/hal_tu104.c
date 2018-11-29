@@ -69,8 +69,6 @@
 #include "common/pmu/acr_gp106.h"
 #include "common/pmu/acr_tu104.h"
 #include "common/falcon/falcon_gk20a.h"
-#include "common/falcon/falcon_gp106.h"
-#include "common/falcon/falcon_gv100.h"
 #include "common/falcon/falcon_tu104.h"
 #include "common/nvdec/nvdec_tu104.h"
 #include "common/top/top_gm20b.h"

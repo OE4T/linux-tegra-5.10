@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -19,16 +19,13 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#include <nvgpu/falcon.h>
 #include <nvgpu/gk20a.h>
 
 #include "falcon_gk20a.h"
 #include "falcon_gv100.h"
 #include "falcon_tu104.h"
+#include "falcon_priv.h"
 #include "tu104/sec2_tu104.h"
-
-#include <nvgpu/hw/tu104/hw_psec_tu104.h>
-#include <nvgpu/hw/tu104/hw_pnvdec_tu104.h>
 
 static void tu104_falcon_engine_dependency_ops(struct nvgpu_falcon *flcn)
 {

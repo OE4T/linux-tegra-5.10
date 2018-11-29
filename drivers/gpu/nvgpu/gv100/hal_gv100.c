@@ -66,7 +66,6 @@
 #include "common/pmu/pmu_gv11b.h"
 #include "common/pmu/pmu_gv100.h"
 #include "common/falcon/falcon_gk20a.h"
-#include "common/falcon/falcon_gp106.h"
 #include "common/falcon/falcon_gv100.h"
 #include "common/nvdec/nvdec_gp106.h"
 #include "common/nvlink/nvlink_gv100.h"
