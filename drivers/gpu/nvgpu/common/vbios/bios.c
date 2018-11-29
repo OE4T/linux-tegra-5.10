@@ -431,8 +431,9 @@ static void nvgpu_bios_parse_nvinit_ptrs(struct gk20a *g, int offset)
 	g->bios.nvlink_config_data_offset = nvinit_ptrs.nvlink_config_data_ptr;
 }
 
-u32 nvgpu_bios_get_nvlink_config_data(struct gk20a *g)
+int nvgpu_bios_get_nvlink_config_data(struct gk20a *g)
 {
+	int ret = 0;
 	struct nvlink_config_data_hdr_v1 config;
 
 	if (g->bios.nvlink_config_data_offset == 0U) {
@@ -452,10 +453,17 @@ u32 nvgpu_bios_get_nvlink_config_data(struct gk20a *g)
 	switch (config.hdr_size) {
 	case NVLINK_CONFIG_DATA_HDR_12_SIZE:
 		g->nvlink.ac_coupling_mask = config.ac_coupling_mask;
-		/* Fall through */
+		g->nvlink.train_at_boot = config.train_at_boot;
+		g->nvlink.link_disable_mask = config.link_disable_mask;
+		g->nvlink.link_mode_mask = config.link_mode_mask;
+		g->nvlink.link_refclk_mask = config.link_refclk_mask;
+		break;
 	case NVLINK_CONFIG_DATA_HDR_11_SIZE:
 		g->nvlink.train_at_boot = config.train_at_boot;
-		/* Fall through */
+		g->nvlink.link_disable_mask = config.link_disable_mask;
+		g->nvlink.link_mode_mask = config.link_mode_mask;
+		g->nvlink.link_refclk_mask = config.link_refclk_mask;
+		break;
 	case NVLINK_CONFIG_DATA_HDR_10_SIZE:
 		g->nvlink.link_disable_mask = config.link_disable_mask;
 		g->nvlink.link_mode_mask = config.link_mode_mask;
@@ -463,10 +471,11 @@ u32 nvgpu_bios_get_nvlink_config_data(struct gk20a *g)
 		break;
 	default:
 		nvgpu_err(g, "invalid nvlink bios config size");
-		return -EINVAL;
+		ret = -EINVAL;
+		break;
 	}
 
-	return 0;
+	return ret;
 }
 
 int nvgpu_bios_get_lpwr_nvlink_table_hdr(struct gk20a *g)
@@ -510,16 +519,18 @@ static void nvgpu_bios_parse_memory_ptrs(struct gk20a *g, int offset, u8 version
 		nvgpu_memcpy((u8 *)&v1, &g->bios.data[offset], sizeof(v1));
 		g->bios.mem_strap_data_count = v1.mem_strap_data_count;
 		g->bios.mem_strap_xlat_tbl_ptr = v1.mem_strap_xlat_tbl_ptr;
-		return;
+		break;
 	case MEMORY_PTRS_V2:
 		nvgpu_memcpy((u8 *)&v2, &g->bios.data[offset], sizeof(v2));
 		g->bios.mem_strap_data_count = v2.mem_strap_data_count;
 		g->bios.mem_strap_xlat_tbl_ptr = v2.mem_strap_xlat_tbl_ptr;
-		return;
+		break;
 	default:
 		nvgpu_err(g, "unknown vbios memory table version %x", version);
-		return;
+		break;
 	}
+
+	return;
 }
 
 static void nvgpu_bios_parse_devinit_appinfo(struct gk20a *g, int dmem_offset)
@@ -583,6 +594,7 @@ static int nvgpu_bios_parse_falcon_ucode_desc(struct gk20a *g,
 	struct falcon_ucode_desc_v2 desc;
 	u8 version;
 	u16 desc_size;
+	int ret = 0;
 
 	nvgpu_memcpy((u8 *)&udesc, &g->bios.data[offset], sizeof(udesc));
 
@@ -614,7 +626,11 @@ static int nvgpu_bios_parse_falcon_ucode_desc(struct gk20a *g,
 		break;
 	default:
 		nvgpu_log_info(g, "invalid version");
-		return -EINVAL;
+		ret = -EINVAL;
+		break;
+	}
+	if (ret != 0) {
+		return ret;
 	}
 
 	nvgpu_log_info(g, "falcon ucode desc version %x len %x", version, desc_size);
@@ -647,9 +663,11 @@ static int nvgpu_bios_parse_falcon_ucode_desc(struct gk20a *g,
 	ucode->dmem_phys_base = desc.dmem_phys_base;
 	ucode->dmem_size = desc.dmem_load_size;
 
-	return nvgpu_bios_parse_appinfo_table(g,
+	ret = nvgpu_bios_parse_appinfo_table(g,
 			offset + desc_size +
 			desc.dmem_offset + desc.interface_offset);
+
+	return ret;
 }
 
 static int nvgpu_bios_parse_falcon_ucode_table(struct gk20a *g, int offset)
@@ -845,7 +863,10 @@ static void nvgpu_bios_parse_bit(struct gk20a *g, int offset)
 		case TOKEN_ID_MEMORY_PTRS:
 			nvgpu_bios_parse_memory_ptrs(g, bit_token.data_ptr,
 				bit_token.data_version);
+			break;
 		default:
+			nvgpu_log_info(g, "Token id %d not supported",
+							bit_token.token_id);
 			break;
 		}
 

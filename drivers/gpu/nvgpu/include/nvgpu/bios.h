@@ -1164,6 +1164,6 @@ u32 nvgpu_bios_read_u32(struct gk20a *g, u32 offset);
 void *nvgpu_bios_get_perf_table_ptrs(struct gk20a *g,
 		struct bit_token *ptoken, u8 table_id);
 int nvgpu_bios_execute_script(struct gk20a *g, u32 offset);
-u32 nvgpu_bios_get_nvlink_config_data(struct gk20a *g);
+int nvgpu_bios_get_nvlink_config_data(struct gk20a *g);
 int nvgpu_bios_get_lpwr_nvlink_table_hdr(struct gk20a *g);
 #endif
