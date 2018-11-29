@@ -432,7 +432,7 @@ clean_up:
 int nvgpu_pmu_cmd_post(struct gk20a *g, struct pmu_cmd *cmd,
 		struct pmu_msg *msg, struct pmu_payload *payload,
 		u32 queue_id, pmu_callback callback, void *cb_param,
-		u32 *seq_desc, unsigned long timeout)
+		u32 *seq_desc)
 {
 	struct nvgpu_pmu *pmu = &g->pmu;
 	struct pmu_sequence *seq = NULL;
@@ -488,7 +488,7 @@ int nvgpu_pmu_cmd_post(struct gk20a *g, struct pmu_cmd *cmd,
 
 	seq->state = PMU_SEQ_STATE_USED;
 
-	err = pmu_write_cmd(pmu, cmd, queue_id, timeout);
+	err = pmu_write_cmd(pmu, cmd, queue_id, ~0UL);
 	if (err != 0) {
 		seq->state = PMU_SEQ_STATE_PENDING;
 	}
@@ -940,7 +940,7 @@ int nvgpu_pmu_rpc_execute(struct nvgpu_pmu *pmu, struct nv_pmu_rpc_header *rpc,
 
 	status = nvgpu_pmu_cmd_post(g, &cmd, NULL, &payload,
 			PMU_COMMAND_QUEUE_LPQ, callback,
-			rpc_payload, &seq, ~0);
+			rpc_payload, &seq);
 	if (status != 0) {
 		nvgpu_err(g, "Failed to execute RPC status=0x%x, func=0x%x",
 				status, rpc->function);

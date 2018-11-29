@@ -431,7 +431,7 @@ int nvgpu_pmu_queue_init(struct nvgpu_pmu *pmu, u32 id,
 int nvgpu_pmu_cmd_post(struct gk20a *g, struct pmu_cmd *cmd,
 		struct pmu_msg *msg, struct pmu_payload *payload,
 		u32 queue_id, pmu_callback callback, void *cb_param,
-		u32 *seq_desc, unsigned long timeout);
+		u32 *seq_desc);
 
 int nvgpu_pmu_process_message(struct nvgpu_pmu *pmu);
 

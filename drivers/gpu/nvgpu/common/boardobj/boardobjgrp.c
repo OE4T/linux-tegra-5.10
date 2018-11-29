@@ -1011,7 +1011,7 @@ static int boardobjgrp_pmucmdsend(struct gk20a *g,
 				PMU_COMMAND_QUEUE_LPQ,
 				boardobjgrp_pmucmdhandler,
 				(void *)&handlerparams,
-				&seqdesc, ~0);
+				&seqdesc);
 	if (status != 0) {
 		nvgpu_err(g,
 			"unable to post boardobj grp cmd for unit %x cmd id %x",

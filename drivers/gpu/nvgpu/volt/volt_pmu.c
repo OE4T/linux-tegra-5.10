@@ -100,7 +100,7 @@ static int volt_pmu_rpc_execute(struct gk20a *g,
 	status = nvgpu_pmu_cmd_post(g, &cmd, NULL, &payload,
 			PMU_COMMAND_QUEUE_LPQ,
 			volt_rpc_pmucmdhandler, (void *)&handler,
-			&seqdesc, ~0);
+			&seqdesc);
 	if (status != 0) {
 		nvgpu_err(g, "unable to post volt RPC cmd %x",
 			cmd.cmd.volt.cmd_type);

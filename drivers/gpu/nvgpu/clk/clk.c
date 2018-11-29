@@ -107,7 +107,7 @@ int clk_pmu_freq_effective_avg_load(struct gk20a *g, bool bload)
 	status = nvgpu_pmu_cmd_post(g, &cmd, NULL, &payload,
 			PMU_COMMAND_QUEUE_LPQ,
 			clkrpc_pmucmdhandler, (void *)&handler,
-			&seqdesc, ~0ULL);
+			&seqdesc);
 	if (status != 0) {
 		nvgpu_err(g, "unable to post clk RPC cmd %x",
 			cmd.cmd.clk.cmd_type);
@@ -169,7 +169,7 @@ int clk_freq_effective_avg(struct gk20a *g, u32 *freqkHz, u32 clkDomainMask) {
 	status = nvgpu_pmu_cmd_post(g, &cmd, NULL, &payload,
 			PMU_COMMAND_QUEUE_LPQ,
 			clkrpc_pmucmdhandler, (void *)&handler,
-			&seqdesc, ~0ULL);
+			&seqdesc);
 	if (status != 0) {
 		nvgpu_err(g, "unable to post clk RPC cmd %x",
 			cmd.cmd.clk.cmd_type);
@@ -276,7 +276,7 @@ int clk_pmu_freq_controller_load(struct gk20a *g, bool bload, u8 bit_idx)
 	status = nvgpu_pmu_cmd_post(g, &cmd, NULL, &payload,
 			PMU_COMMAND_QUEUE_LPQ,
 			clkrpc_pmucmdhandler, (void *)&handler,
-			&seqdesc, ~0ULL);
+			&seqdesc);
 
 	if (status != 0) {
 		nvgpu_err(g, "unable to post clk RPC cmd %x",
@@ -340,7 +340,7 @@ int clk_pmu_vin_load(struct gk20a *g)
 	status = nvgpu_pmu_cmd_post(g, &cmd, NULL, &payload,
 			PMU_COMMAND_QUEUE_LPQ,
 			clkrpc_pmucmdhandler, (void *)&handler,
-			&seqdesc, ~0ULL);
+			&seqdesc);
 
 	if (status != 0) {
 		nvgpu_err(g, "unable to post clk RPC cmd %x",
@@ -490,7 +490,7 @@ static int clk_pmu_vf_inject(struct gk20a *g, struct set_fll_clk *setfllclk)
 	status = nvgpu_pmu_cmd_post(g, &cmd, NULL, &payload,
 			PMU_COMMAND_QUEUE_LPQ,
 			clkrpc_pmucmdhandler, (void *)&handler,
-			&seqdesc, ~0ULL);
+			&seqdesc);
 
 	if (status != 0) {
 		nvgpu_err(g, "unable to post clk RPC cmd %x",

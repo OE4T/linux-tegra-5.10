@@ -566,7 +566,7 @@ void gk20a_pmu_save_zbc(struct gk20a *g, u32 entries)
 
 	gk20a_dbg_pmu(g, "cmd post ZBC_TABLE_UPDATE");
 	nvgpu_pmu_cmd_post(g, &cmd, NULL, NULL, PMU_COMMAND_QUEUE_HPQ,
-			   pmu_handle_zbc_msg, pmu, &seq, ~0);
+			   pmu_handle_zbc_msg, pmu, &seq);
 	pmu_wait_message_cond(pmu, gk20a_get_gr_idle_timeout(g),
 			      &pmu->zbc_save_done, 1);
 	if (!pmu->zbc_save_done) {

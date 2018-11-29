@@ -122,7 +122,7 @@ int nvgpu_pmu_init_perfmon(struct nvgpu_pmu *pmu)
 
 	nvgpu_pmu_dbg(g, "cmd post PMU_PERFMON_CMD_ID_INIT");
 	nvgpu_pmu_cmd_post(g, &cmd, NULL, &payload, PMU_COMMAND_QUEUE_LPQ,
-			NULL, NULL, &seq, ~0);
+			NULL, NULL, &seq);
 
 	return 0;
 }
@@ -174,7 +174,7 @@ int nvgpu_pmu_perfmon_start_sampling(struct nvgpu_pmu *pmu)
 
 	nvgpu_pmu_dbg(g, "cmd post PMU_PERFMON_CMD_ID_START");
 	nvgpu_pmu_cmd_post(g, &cmd, NULL, &payload, PMU_COMMAND_QUEUE_LPQ,
-			NULL, NULL, &seq, ~0);
+			NULL, NULL, &seq);
 
 	return 0;
 }
@@ -201,7 +201,7 @@ int nvgpu_pmu_perfmon_stop_sampling(struct nvgpu_pmu *pmu)
 
 	nvgpu_pmu_dbg(g, "cmd post PMU_PERFMON_CMD_ID_STOP");
 	nvgpu_pmu_cmd_post(g, &cmd, NULL, NULL, PMU_COMMAND_QUEUE_LPQ,
-			NULL, NULL, &seq, ~0);
+			NULL, NULL, &seq);
 	return 0;
 }
 

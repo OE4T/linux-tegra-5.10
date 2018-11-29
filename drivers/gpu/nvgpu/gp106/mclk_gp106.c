@@ -3428,7 +3428,7 @@ int gp106_mclk_change(struct gk20a *g, u16 val)
 	status = nvgpu_pmu_cmd_post(g, (struct pmu_cmd *)&cmd, NULL, &payload,
 			PMU_COMMAND_QUEUE_LPQ,
 			mclk_seq_pmucmdhandler,
-			&seq_running, &seqdesc, ~0UL);
+			&seq_running, &seqdesc);
 	if (status != 0) {
 		nvgpu_err(g, "unable to post seq script exec cmd for unit %x",
 			cmd.hdr.unit_id);

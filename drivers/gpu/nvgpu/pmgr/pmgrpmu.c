@@ -123,7 +123,7 @@ static int pmgr_pmu_set_object(struct gk20a *g,
 				PMU_COMMAND_QUEUE_LPQ,
 				pmgr_pmucmdhandler,
 				(void *)&handlerparams,
-				&seqdesc, ~0);
+				&seqdesc);
 	if (status != 0) {
 		nvgpu_err(g,
 			"unable to post pmgr cmd for unit %x cmd id %x obj type %x",
@@ -423,7 +423,7 @@ int pmgr_pmu_pwr_devices_query_blocking(
 				PMU_COMMAND_QUEUE_LPQ,
 				pmgr_pmucmdhandler,
 				(void *)&handlerparams,
-				&seqdesc, ~0);
+				&seqdesc);
 	if (status != 0) {
 		nvgpu_err(g,
 			"unable to post pmgr query cmd for unit %x cmd id %x dev mask %x",
@@ -467,7 +467,7 @@ static int pmgr_pmu_load_blocking(struct gk20a *g)
 				PMU_COMMAND_QUEUE_LPQ,
 				pmgr_pmucmdhandler,
 				(void *)&handlerparams,
-				&seqdesc, ~0);
+				&seqdesc);
 	if (status != 0) {
 		nvgpu_err(g,
 			"unable to post pmgr load cmd for unit %x cmd id %x",

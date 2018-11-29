@@ -140,7 +140,7 @@ int gp106_pg_param_init(struct gk20a *g, u32 pg_engine_id)
 
 		gp106_dbg_pmu(g, "cmd post GR PMU_PG_CMD_ID_PG_PARAM");
 		nvgpu_pmu_cmd_post(g, &cmd, NULL, NULL, PMU_COMMAND_QUEUE_HPQ,
-				pmu_handle_param_msg, pmu, &seq, ~0);
+				pmu_handle_param_msg, pmu, &seq);
 	} else if (pg_engine_id == PMU_PG_ELPG_ENGINE_ID_MS) {
 		cmd.hdr.unit_id = PMU_UNIT_PG;
 		cmd.hdr.size = PMU_CMD_HDR_SIZE +
@@ -157,7 +157,7 @@ int gp106_pg_param_init(struct gk20a *g, u32 pg_engine_id)
 
 		gp106_dbg_pmu(g, "cmd post MS PMU_PG_CMD_ID_PG_PARAM");
 		nvgpu_pmu_cmd_post(g, &cmd, NULL, NULL, PMU_COMMAND_QUEUE_HPQ,
-			pmu_handle_param_msg, pmu, &seq, ~0);
+			pmu_handle_param_msg, pmu, &seq);
 	}
 
 	return 0;
@@ -264,7 +264,7 @@ static void gp106_pmu_load_multiple_falcons(struct gk20a *g, u32 falconidmask,
 		gp106_dbg_pmu(g, "PMU_ACR_CMD_ID_BOOTSTRAP_MULTIPLE_FALCONS:%x\n",
 				falconidmask);
 		nvgpu_pmu_cmd_post(g, &cmd, NULL, NULL, PMU_COMMAND_QUEUE_HPQ,
-				pmu_handle_fecs_boot_acr_msg, pmu, &seq, ~0);
+				pmu_handle_fecs_boot_acr_msg, pmu, &seq);
 	}
 
 	nvgpu_log_fn(g, "done");

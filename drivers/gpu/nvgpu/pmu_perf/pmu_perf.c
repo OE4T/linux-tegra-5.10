@@ -108,7 +108,7 @@ int perf_pmu_vfe_load(struct gk20a *g)
 	status = nvgpu_pmu_cmd_post(g, &cmd, NULL, &payload,
 			PMU_COMMAND_QUEUE_LPQ,
 			perfrpc_pmucmdhandler, (void *)&handler,
-			&seqdesc, ~0);
+			&seqdesc);
 
 	if (status != 0) {
 		nvgpu_err(g, "unable to post perf RPC cmd %x",

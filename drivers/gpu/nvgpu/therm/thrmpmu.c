@@ -87,7 +87,7 @@ exit:
 static int therm_pmu_cmd_post(struct gk20a *g, struct pmu_cmd *cmd,
 		struct pmu_msg *msg, struct pmu_payload *payload,
 		u32 queue_id, pmu_callback callback, void* cb_param,
-		u32 *seq_desc, unsigned long timeout)
+		u32 *seq_desc)
 {
 	int status;
 	struct therm_pmucmdhandler_params *handlerparams = NULL;
@@ -96,8 +96,7 @@ static int therm_pmu_cmd_post(struct gk20a *g, struct pmu_cmd *cmd,
 				queue_id,
 				callback,
 				cb_param,
-				seq_desc,
-				timeout);
+				seq_desc);
 	if (status != 0) {
 		nvgpu_err(g,
 			"unable to post therm cmd for unit %x cmd id %x size %x",
@@ -170,7 +169,7 @@ static int therm_set_warn_temp_limit(struct gk20a *g)
 				PMU_COMMAND_QUEUE_LPQ,
 				therm_pmucmdhandler,
 				(void *)&handlerparams,
-				&seqdesc, ~0);
+				&seqdesc);
 }
 
 static int therm_enable_slct_notification_request(struct gk20a *g)
@@ -190,7 +189,7 @@ static int therm_enable_slct_notification_request(struct gk20a *g)
 				PMU_COMMAND_QUEUE_LPQ,
 				NULL,
 				NULL,
-				&seqdesc, ~0);
+				&seqdesc);
 }
 
 static int therm_send_slct_configuration_to_pmu(struct gk20a *g)
@@ -239,7 +238,7 @@ static int therm_send_slct_configuration_to_pmu(struct gk20a *g)
 				PMU_COMMAND_QUEUE_LPQ,
 				therm_pmucmdhandler,
 				(void *)&handlerparams,
-				&seqdesc, ~0);
+				&seqdesc);
 }
 
 int therm_configure_therm_alert(struct gk20a *g)
