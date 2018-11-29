@@ -149,8 +149,11 @@ struct nvgpu_pd_cache {
 
 static u32 nvgpu_pd_cache_nr(u32 bytes)
 {
-	return ilog2((unsigned long)bytes >>
+	unsigned long tmp = ilog2((unsigned long)bytes >>
 			((unsigned long)NVGPU_PD_CACHE_MIN_SHIFT - 1UL));
+
+	nvgpu_assert(tmp <= U32_MAX);
+	return (u32)tmp;
 }
 
 static u32 nvgpu_pd_cache_get_nr_entries(struct nvgpu_pd_mem_entry *pentry)
@@ -327,7 +330,8 @@ static int nvgpu_pd_cache_alloc_from_partial(struct gk20a *g,
 	 * Find and allocate an open PD.
 	 */
 	bit_offs = find_first_zero_bit(pentry->alloc_map, nr_bits);
-	mem_offs = bit_offs * pentry->pd_size;
+	nvgpu_assert(bit_offs <= U32_MAX);
+	mem_offs = (u32)bit_offs * pentry->pd_size;
 
 	pd_dbg(g, "PD-Alloc [C]   Partial: offs=%lu nr_bits=%d src=0x%p",
 	       bit_offs, nr_bits, pentry);
@@ -522,7 +526,7 @@ static void nvgpu_pd_cache_free(struct gk20a *g, struct nvgpu_pd_cache *cache,
 
 	pentry = nvgpu_pd_cache_look_up(g, cache, pd);
 	if (pentry == NULL) {
-		(void) WARN(1, "Attempting to free non-existent pd");
+		(void) WARN(true, "Attempting to free non-existent pd");
 		return;
 	}
 
