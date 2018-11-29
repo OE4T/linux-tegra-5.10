@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -108,6 +108,8 @@ bool nvgpu_tsg_check_ctxsw_timeout(struct tsg_gk20a *tsg,
 int gk20a_tsg_set_runlist_interleave(struct tsg_gk20a *tsg, u32 level);
 int gk20a_tsg_set_timeslice(struct tsg_gk20a *tsg, u32 timeslice);
 u32 gk20a_tsg_get_timeslice(struct tsg_gk20a *tsg);
+void gk20a_tsg_enable_sched(struct gk20a *g, struct tsg_gk20a *tsg);
+void gk20a_tsg_disable_sched(struct gk20a *g, struct tsg_gk20a *tsg);
 int gk20a_tsg_set_priority(struct gk20a *g, struct tsg_gk20a *tsg,
 				u32 priority);
 int gk20a_tsg_alloc_sm_error_states_mem(struct gk20a *g,

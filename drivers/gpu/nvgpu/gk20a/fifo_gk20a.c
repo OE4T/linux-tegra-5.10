@@ -2513,37 +2513,6 @@ void gk20a_fifo_runlist_write_state(struct gk20a *g, u32 runlists_mask,
 
 }
 
-void gk20a_fifo_set_runlist_state(struct gk20a *g, u32 runlists_mask,
-		u32 runlist_state)
-{
-	u32 token = PMU_INVALID_MUTEX_OWNER_ID;
-	int mutex_ret;
-
-	nvgpu_log(g, gpu_dbg_info, "runlist mask = 0x%08x state = 0x%08x",
-			runlists_mask, runlist_state);
-
-	mutex_ret = nvgpu_pmu_mutex_acquire(&g->pmu, PMU_MUTEX_ID_FIFO, &token);
-
-	g->ops.fifo.runlist_write_state(g, runlists_mask, runlist_state);
-
-	if (mutex_ret == 0) {
-		nvgpu_pmu_mutex_release(&g->pmu, PMU_MUTEX_ID_FIFO, &token);
-	}
-}
-
-void gk20a_fifo_enable_tsg_sched(struct gk20a *g, struct tsg_gk20a *tsg)
-{
-	gk20a_fifo_set_runlist_state(g, BIT32(tsg->runlist_id),
-			RUNLIST_ENABLED);
-
-}
-
-void gk20a_fifo_disable_tsg_sched(struct gk20a *g, struct tsg_gk20a *tsg)
-{
-	gk20a_fifo_set_runlist_state(g, BIT32(tsg->runlist_id),
-			RUNLIST_DISABLED);
-}
-
 int gk20a_fifo_enable_engine_activity(struct gk20a *g,
 				struct fifo_engine_info_gk20a *eng_info)
 {

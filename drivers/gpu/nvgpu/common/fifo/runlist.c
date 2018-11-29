@@ -507,6 +507,24 @@ const char *gk20a_fifo_interleave_level_name(u32 interleave_level)
 	return ret_string;
 }
 
+void gk20a_fifo_set_runlist_state(struct gk20a *g, u32 runlists_mask,
+		u32 runlist_state)
+{
+	u32 token = PMU_INVALID_MUTEX_OWNER_ID;
+	int mutex_ret;
+
+	nvgpu_log(g, gpu_dbg_info, "runlist mask = 0x%08x state = 0x%08x",
+			runlists_mask, runlist_state);
+
+	mutex_ret = nvgpu_pmu_mutex_acquire(&g->pmu, PMU_MUTEX_ID_FIFO, &token);
+
+	g->ops.fifo.runlist_write_state(g, runlists_mask, runlist_state);
+
+	if (mutex_ret == 0) {
+		nvgpu_pmu_mutex_release(&g->pmu, PMU_MUTEX_ID_FIFO, &token);
+	}
+}
+
 void gk20a_fifo_delete_runlist(struct fifo_gk20a *f)
 {
 	u32 i;

@@ -891,7 +891,7 @@ int gv11b_fifo_preempt_tsg(struct gk20a *g, struct tsg_gk20a *tsg)
 	nvgpu_mutex_acquire(&f->runlist_info[runlist_id].runlist_lock);
 
 	/* WAR for Bug 2065990 */
-	gk20a_fifo_disable_tsg_sched(g, tsg);
+	gk20a_tsg_disable_sched(g, tsg);
 
 	mutex_ret = nvgpu_pmu_mutex_acquire(&g->pmu, PMU_MUTEX_ID_FIFO, &token);
 
@@ -902,7 +902,7 @@ int gv11b_fifo_preempt_tsg(struct gk20a *g, struct tsg_gk20a *tsg)
 	}
 
 	/* WAR for Bug 2065990 */
-	gk20a_fifo_enable_tsg_sched(g, tsg);
+	gk20a_tsg_enable_sched(g, tsg);
 
 	nvgpu_mutex_release(&f->runlist_info[runlist_id].runlist_lock);
 

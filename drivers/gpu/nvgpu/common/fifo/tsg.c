@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -43,7 +43,7 @@ int gk20a_enable_tsg(struct tsg_gk20a *tsg)
 	struct channel_gk20a *ch;
 	bool is_next, is_ctx_reload;
 
-	gk20a_fifo_disable_tsg_sched(g, tsg);
+	gk20a_tsg_disable_sched(g, tsg);
 
 	/*
 	 * Due to h/w bug that exists in Maxwell and Pascal,
@@ -72,7 +72,7 @@ int gk20a_enable_tsg(struct tsg_gk20a *tsg)
 	}
 	nvgpu_rwsem_up_read(&tsg->ch_list_lock);
 
-	gk20a_fifo_enable_tsg_sched(g, tsg);
+	gk20a_tsg_enable_sched(g, tsg);
 
 	return 0;
 }
@@ -403,6 +403,19 @@ u32 gk20a_tsg_get_timeslice(struct tsg_gk20a *tsg)
 	}
 
 	return tsg->timeslice_us;
+}
+
+void gk20a_tsg_enable_sched(struct gk20a *g, struct tsg_gk20a *tsg)
+{
+	gk20a_fifo_set_runlist_state(g, BIT32(tsg->runlist_id),
+			RUNLIST_ENABLED);
+
+}
+
+void gk20a_tsg_disable_sched(struct gk20a *g, struct tsg_gk20a *tsg)
+{
+	gk20a_fifo_set_runlist_state(g, BIT32(tsg->runlist_id),
+			RUNLIST_DISABLED);
 }
 
 static void release_used_tsg(struct fifo_gk20a *f, struct tsg_gk20a *tsg)
