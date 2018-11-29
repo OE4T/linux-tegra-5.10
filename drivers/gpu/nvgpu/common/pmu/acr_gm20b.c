@@ -333,7 +333,8 @@ int gm20b_alloc_blob_space(struct gk20a *g,
 {
 	int err;
 
-	err = nvgpu_dma_alloc_sys(g, size, mem);
+	err = nvgpu_dma_alloc_flags_sys(g,
+		NVGPU_DMA_PHYSICALLY_ADDRESSED, size, mem);
 
 	return err;
 }

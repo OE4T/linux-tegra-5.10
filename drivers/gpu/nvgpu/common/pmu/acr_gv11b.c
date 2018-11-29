@@ -53,18 +53,6 @@
 
 /*Forwards*/
 
-int gv11b_alloc_blob_space(struct gk20a *g,
-		size_t size, struct nvgpu_mem *mem)
-{
-	int err;
-
-	gv11b_dbg_pmu(g, "alloc blob space: NVGPU_DMA_FORCE_CONTIGUOUS");
-	err = nvgpu_dma_alloc_flags_sys(g, NVGPU_DMA_FORCE_CONTIGUOUS,
-						size, mem);
-
-	return err;
-}
-
 void gv11b_setup_apertures(struct gk20a *g)
 {
 	struct mm_gk20a *mm = &g->mm;
@@ -171,7 +159,7 @@ void nvgpu_gv11b_acr_sw_init(struct gk20a *g, struct nvgpu_acr *acr)
 	gv11b_acr_default_sw_init(g, &acr->acr);
 
 	acr->get_wpr_info = gm20b_wpr_info;
-	acr->alloc_blob_space = gv11b_alloc_blob_space;
+	acr->alloc_blob_space = gm20b_alloc_blob_space;
 	acr->bootstrap_hs_acr = gm20b_bootstrap_hs_acr;
 	acr->patch_wpr_info_to_ucode = gv11b_acr_patch_wpr_info_to_ucode;
 	acr->acr_fill_bl_dmem_desc =
