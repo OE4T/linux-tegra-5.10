@@ -706,6 +706,7 @@ static const struct gpu_ops tu104_ops = {
 		.init_pdb_cache_war = tu104_init_pdb_cache_war,
 		.deinit_pdb_cache_war = tu104_deinit_pdb_cache_war,
 		.set_sm_exception_type_mask = gk20a_tsg_set_sm_exception_type_mask,
+		.runlist_busy_engines = gk20a_fifo_runlist_busy_engines,
 	},
 	.netlist = {
 		.get_netlist_name = tu104_netlist_get_name,

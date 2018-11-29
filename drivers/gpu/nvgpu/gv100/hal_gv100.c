@@ -683,6 +683,7 @@ static const struct gpu_ops gv100_ops = {
 		.set_sm_exception_type_mask = gk20a_tsg_set_sm_exception_type_mask,
 		.usermode_base = gv11b_fifo_usermode_base,
 		.doorbell_token = gv11b_fifo_doorbell_token,
+		.runlist_busy_engines = gk20a_fifo_runlist_busy_engines,
 	},
 	.netlist = {
 		.get_netlist_name = gv100_netlist_get_name,

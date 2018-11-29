@@ -3125,23 +3125,31 @@ int gk20a_fifo_disable_all_engine_activity(struct gk20a *g,
 	return ret;
 }
 
-static void gk20a_fifo_runlist_reset_engines(struct gk20a *g, u32 runlist_id)
+u32 gk20a_fifo_runlist_busy_engines(struct gk20a *g, u32 runlist_id)
 {
 	struct fifo_gk20a *f = &g->fifo;
 	u32 engines = 0;
 	unsigned int i;
 
 	for (i = 0; i < f->num_engines; i++) {
-		u32 active_engine_id = g->fifo.active_engines_list[i];
-		u32 status = gk20a_readl(g, fifo_engine_status_r(active_engine_id));
+		u32 active_engine_id = f->active_engines_list[i];
+		u32 engine_runlist = f->engine_info[active_engine_id].runlist_id;
+		u32 status_reg = fifo_engine_status_r(active_engine_id);
+		u32 status = gk20a_readl(g, status_reg);
 		bool engine_busy = fifo_engine_status_engine_v(status) ==
 			fifo_engine_status_engine_busy_v();
 
-		if (engine_busy &&
-		    (f->engine_info[active_engine_id].runlist_id == runlist_id)) {
+		if (engine_busy && engine_runlist == runlist_id) {
 			engines |= BIT(active_engine_id);
 		}
 	}
+
+	return engines;
+}
+
+static void gk20a_fifo_runlist_reset_engines(struct gk20a *g, u32 runlist_id)
+{
+	u32 engines = g->ops.fifo.runlist_busy_engines(g, runlist_id);
 
 	if (engines != 0U) {
 		gk20a_fifo_recover(g, engines, ~(u32)0, false, false, true,

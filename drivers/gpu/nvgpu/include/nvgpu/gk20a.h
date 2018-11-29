@@ -781,6 +781,7 @@ struct gpu_ops {
 		void (*deinit_pdb_cache_war)(struct gk20a *g);
 		int (*set_sm_exception_type_mask)(struct channel_gk20a *ch,
 				u32 exception_mask);
+		u32 (*runlist_busy_engines)(struct gk20a *g, u32 runlist_id);
 	} fifo;
 	struct pmu_v {
 		u32 (*get_pmu_cmdline_args_size)(struct nvgpu_pmu *pmu);
