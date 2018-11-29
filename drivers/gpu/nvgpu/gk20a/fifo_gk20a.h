@@ -269,6 +269,8 @@ int gk20a_fifo_disable_engine_activity(struct gk20a *g,
 			bool wait_for_idle);
 int gk20a_fifo_disable_all_engine_activity(struct gk20a *g,
 				bool wait_for_idle);
+void gk20a_fifo_runlist_write_state(struct gk20a *g, u32 runlists_mask,
+					 u32 runlist_state);
 void gk20a_fifo_enable_tsg_sched(struct gk20a *g, struct tsg_gk20a *tsg);
 void gk20a_fifo_disable_tsg_sched(struct gk20a *g, struct tsg_gk20a *tsg);
 

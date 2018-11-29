@@ -2989,21 +2989,22 @@ int gk20a_fifo_preempt(struct gk20a *g, struct channel_gk20a *ch)
 	return err;
 }
 
-static void gk20a_fifo_sched_disable_rw(struct gk20a *g, u32 runlists_mask,
+void gk20a_fifo_runlist_write_state(struct gk20a *g, u32 runlists_mask,
 					 u32 runlist_state)
 {
 	u32 reg_val;
-	u32 reg_mask = 0;
-	u32 i;
+	u32 reg_mask = 0U;
+	u32 i = 0U;
 
-	reg_val = gk20a_readl(g, fifo_sched_disable_r());
-
-	for (i = 0; runlists_mask != 0; i++) {
+	while (runlists_mask != 0U) {
 		if ((runlists_mask & BIT32(i)) != 0U) {
 			reg_mask |= fifo_sched_disable_runlist_m(i);
 		}
 		runlists_mask &= ~BIT32(i);
+		i++;
 	}
+
+	reg_val = gk20a_readl(g, fifo_sched_disable_r());
 
 	if (runlist_state == RUNLIST_DISABLED) {
 		reg_val |= reg_mask;
@@ -3026,7 +3027,7 @@ void gk20a_fifo_set_runlist_state(struct gk20a *g, u32 runlists_mask,
 
 	mutex_ret = nvgpu_pmu_mutex_acquire(&g->pmu, PMU_MUTEX_ID_FIFO, &token);
 
-	gk20a_fifo_sched_disable_rw(g, runlists_mask, runlist_state);
+	g->ops.fifo.runlist_write_state(g, runlists_mask, runlist_state);
 
 	if (mutex_ret == 0) {
 		nvgpu_pmu_mutex_release(&g->pmu, PMU_MUTEX_ID_FIFO, &token);

@@ -606,6 +606,7 @@ static const struct gpu_ops gp10b_ops = {
 		.add_sema_cmd = gk20a_fifo_add_sema_cmd,
 		.set_sm_exception_type_mask = gk20a_tsg_set_sm_exception_type_mask,
 		.runlist_busy_engines = gk20a_fifo_runlist_busy_engines,
+		.runlist_write_state = gk20a_fifo_runlist_write_state,
 	},
 	.netlist = {
 		.get_netlist_name = gp10b_netlist_get_name,

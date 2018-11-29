@@ -780,6 +780,7 @@ static const struct gpu_ops gv100_ops = {
 		.usermode_base = gv11b_fifo_usermode_base,
 		.doorbell_token = gv11b_fifo_doorbell_token,
 		.runlist_busy_engines = gk20a_fifo_runlist_busy_engines,
+		.runlist_write_state = gk20a_fifo_runlist_write_state,
 	},
 	.netlist = {
 		.get_netlist_name = gv100_netlist_get_name,
