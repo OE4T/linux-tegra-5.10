@@ -30,108 +30,39 @@
 #include "common/fuse/fuse_gm20b.h"
 
 #include "nvgpu-fuse-priv.h"
-#include "nvgpu-fuse-gp106.h"
+#include "nvgpu-fuse-gv100.h"
 
 
 /* register definitions for this block */
-#define GP106_FUSE_REG_BASE			0x00021000U
-#define GP106_FUSE_STATUS_OPT_PRIV_SEC_EN	(GP106_FUSE_REG_BASE+0x434U)
-#define GP106_FUSE_OPT_ADC_CAL_FUSE_REV		(GP106_FUSE_REG_BASE+0x64CU)
-#define GP106_FUSE_OPT_ADC_CAL_GPC0		(GP106_FUSE_REG_BASE+0x650U)
-#define GP106_FUSE_OPT_ADC_CAL_GPC1_DELTA	(GP106_FUSE_REG_BASE+0x654U)
-#define GP106_FUSE_OPT_ADC_CAL_GPC2_DELTA	(GP106_FUSE_REG_BASE+0x658U)
-#define GP106_FUSE_OPT_ADC_CAL_GPC3_DELTA	(GP106_FUSE_REG_BASE+0x65CU)
-#define GP106_FUSE_OPT_ADC_CAL_GPC4_DELTA	(GP106_FUSE_REG_BASE+0x660U)
-#define GP106_FUSE_OPT_ADC_CAL_GPC5_DELTA	(GP106_FUSE_REG_BASE+0x664U)
-#define GP106_FUSE_OPT_ADC_CAL_SHARED_DELTA	(GP106_FUSE_REG_BASE+0x668U)
-#define GP106_FUSE_OPT_ADC_CAL_SRAM_DELTA	(GP106_FUSE_REG_BASE+0x66CU)
+#define GV100_FUSE_REG_BASE			0x00021000U
+#define GV100_FUSE_STATUS_OPT_PRIV_SEC_EN	(GV100_FUSE_REG_BASE+0x434U)
+#define GV100_FUSE_OPT_ADC_CAL_FUSE_REV		(GV100_FUSE_REG_BASE+0x64CU)
+#define GV100_FUSE_OPT_ADC_CAL_GPC0		(GV100_FUSE_REG_BASE+0x650U)
+#define GV100_FUSE_OPT_ADC_CAL_GPC1_DELTA	(GV100_FUSE_REG_BASE+0x654U)
+#define GV100_FUSE_OPT_ADC_CAL_GPC2_DELTA	(GV100_FUSE_REG_BASE+0x658U)
+#define GV100_FUSE_OPT_ADC_CAL_GPC3_DELTA	(GV100_FUSE_REG_BASE+0x65CU)
+#define GV100_FUSE_OPT_ADC_CAL_GPC4_DELTA	(GV100_FUSE_REG_BASE+0x660U)
+#define GV100_FUSE_OPT_ADC_CAL_GPC5_DELTA	(GV100_FUSE_REG_BASE+0x664U)
+#define GV100_FUSE_OPT_ADC_CAL_SHARED_DELTA	(GV100_FUSE_REG_BASE+0x668U)
+
 
 /* for common init args */
-struct fuse_test_args gp106_init_args = {
-	.gpu_arch = 0x13,
-	.gpu_impl = 0x6,
-	.fuse_base_addr = GP106_FUSE_REG_BASE,
-	.sec_fuse_addr = GP106_FUSE_STATUS_OPT_PRIV_SEC_EN,
+struct fuse_test_args gv100_init_args = {
+	.gpu_arch = 0x14,
+	.gpu_impl = 0x0,
+	.fuse_base_addr = GV100_FUSE_REG_BASE,
+	.sec_fuse_addr = GV100_FUSE_STATUS_OPT_PRIV_SEC_EN,
 };
 
-/*
- * Verify fuse API check_priv_security() when security fuse is enabled.
- * Tests with secure debug enabled and disabled.
- */
-int test_fuse_gp106_check_sec(struct unit_module *m,
-			      struct gk20a *g, void *__args)
-{
-	int ret = UNIT_SUCCESS;
-	int result;
-
-	nvgpu_posix_io_writel_reg_space(g, GP106_FUSE_STATUS_OPT_PRIV_SEC_EN,
-					0x1);
-
-	result = g->ops.fuse.check_priv_security(g);
-	if (result != 0) {
-		unit_err(m, "%s: fuse_check_priv_security returned "
-				"error %d\n", __func__, result);
-		ret = UNIT_FAIL;
-	}
-
-	if (!nvgpu_is_enabled(g, NVGPU_SEC_PRIVSECURITY)) {
-		unit_err(m, "%s: NVGPU_SEC_PRIVSECURITY disabled\n",
-				__func__);
-		ret = UNIT_FAIL;
-	}
-
-	if (!nvgpu_is_enabled(g, NVGPU_SEC_SECUREGPCCS)) {
-		unit_err(m, "%s: NVGPU_SEC_SECUREGPCCS disabled\n",
-				__func__);
-		ret = UNIT_FAIL;
-	}
-
-	return ret;
-}
-
-/*
- * Verify fuse API check_priv_security() when security fuse is enabled.
- * GP106 always has security enabled.
- */
-int test_fuse_gp106_check_non_sec(struct unit_module *m,
-				  struct gk20a *g, void *__args)
-{
-	int ret = UNIT_SUCCESS;
-	int result;
-
-	nvgpu_posix_io_writel_reg_space(g, GP106_FUSE_STATUS_OPT_PRIV_SEC_EN,
-					0x0);
-
-	result = g->ops.fuse.check_priv_security(g);
-	if (result != 0) {
-		unit_err(m, "%s: fuse_check_priv_security returned "
-				"error %d\n", __func__, result);
-		ret = UNIT_FAIL;
-	}
-
-	if (!nvgpu_is_enabled(g, NVGPU_SEC_PRIVSECURITY)) {
-		unit_err(m, "%s: NVGPU_SEC_PRIVSECURITY enabled\n", __func__);
-		ret = UNIT_FAIL;
-	}
-
-	if (!nvgpu_is_enabled(g, NVGPU_SEC_SECUREGPCCS)) {
-		unit_err(m, "%s: NVGPU_SEC_SECUREGPCCS enabled\n", __func__);
-		ret = UNIT_FAIL;
-	}
-
-	return ret;
-}
-
-
 /* Verify fuse API to read cal fuse revision */
-int test_fuse_gp106_vin_cal_rev(struct unit_module *m,
+int test_fuse_gv100_vin_cal_rev(struct unit_module *m,
 				struct gk20a *g, void *__args)
 {
 	const u32 rev = 0x3;
 	u32 val;
 	int ret = UNIT_SUCCESS;
 
-	nvgpu_posix_io_writel_reg_space(g, GP106_FUSE_OPT_ADC_CAL_FUSE_REV,
+	nvgpu_posix_io_writel_reg_space(g, GV100_FUSE_OPT_ADC_CAL_FUSE_REV,
 					rev);
 
 	val = g->ops.fuse.read_vin_cal_fuse_rev(g);
@@ -203,30 +134,6 @@ static u32 gpc1_expected_intercept(u32 gpc0_fuse, u32 gpc1_fuse)
 	}
 }
 
-/* calculate slope value from GPC0 and delta SRAM fuse */
-static u32 sram_expected_slope(u32 gpc0_fuse, u32 sram_fuse)
-{
-	/*
-	 * same calculation as GPC1, et al, but for consistency, make
-	 * a new function
-	 */
-	return gpc1_expected_slope(gpc0_fuse, sram_fuse);
-}
-
-/* calculate intercept value from GPC0 and delta SRAM fuse */
-static u32 sram_expected_intercept(u32 gpc0_fuse, u32 sram_fuse)
-{
-	u32 gpc0_intercept = gpc0_expected_intercept(gpc0_fuse, gpc0_fuse);
-	u32 sram_delta = calculate_cal_unsigned(sram_fuse, 13, 9, 12, 1);
-	u32 sram_delta_positive = ((sram_fuse >> 22) & 0x1) == 0;
-
-	if (sram_delta_positive) {
-		return gpc0_intercept + sram_delta;
-	} else {
-		return gpc0_intercept - sram_delta;
-	}
-}
-
 static s8 fuse_expected_gain(u32 this_fuse)
 {
 	return (s8)((this_fuse >> 16U) & 0x1fU);
@@ -242,7 +149,7 @@ static s8 fuse_expected_offset(u32 this_fuse)
  *   Loops through table of fuse values and expected results
  *   Validates invalid data checks
  */
-int test_fuse_gp106_vin_cal_slope_intercept(struct unit_module *m,
+int test_fuse_gv100_vin_cal_slope_intercept(struct unit_module *m,
 					    struct gk20a *g, void *__args)
 {
 	int result;
@@ -261,59 +168,49 @@ int test_fuse_gp106_vin_cal_slope_intercept(struct unit_module *m,
 	};
 	struct vin_test_struct vin_test_table[] = {
 		{
-		 CTRL_CLK_VIN_ID_GPC0, GP106_FUSE_OPT_ADC_CAL_GPC0,
+		 CTRL_CLK_VIN_ID_GPC0, GV100_FUSE_OPT_ADC_CAL_GPC0,
 		 0x00214421, 0x00214421,
 		 gpc0_expected_slope, gpc0_expected_intercept,
 		},
 		{
-		 CTRL_CLK_VIN_ID_GPC1, GP106_FUSE_OPT_ADC_CAL_GPC1_DELTA,
+		 CTRL_CLK_VIN_ID_GPC1, GV100_FUSE_OPT_ADC_CAL_GPC1_DELTA,
 		 0x00214421, 0x00214421,
 		 gpc1_expected_slope, gpc1_expected_intercept,
 		},
 		{
-		 CTRL_CLK_VIN_ID_GPC2, GP106_FUSE_OPT_ADC_CAL_GPC2_DELTA,
+		 CTRL_CLK_VIN_ID_GPC2, GV100_FUSE_OPT_ADC_CAL_GPC2_DELTA,
 		 0x00000000, 0x00614c21,
 		 gpc1_expected_slope, gpc1_expected_intercept,
 		},
 		{
-		 CTRL_CLK_VIN_ID_GPC3, GP106_FUSE_OPT_ADC_CAL_GPC3_DELTA,
+		 CTRL_CLK_VIN_ID_GPC3, GV100_FUSE_OPT_ADC_CAL_GPC3_DELTA,
 		 0x00214421, 0xaaaaaaaa,
 		 gpc1_expected_slope, gpc1_expected_intercept,
 		},
 		{
-		 CTRL_CLK_VIN_ID_GPC4, GP106_FUSE_OPT_ADC_CAL_GPC4_DELTA,
+		 CTRL_CLK_VIN_ID_GPC4, GV100_FUSE_OPT_ADC_CAL_GPC4_DELTA,
 		 0x00214421, 0x55555555,
 		 gpc1_expected_slope, gpc1_expected_intercept,
 		},
 		{
-		 CTRL_CLK_VIN_ID_GPC5, GP106_FUSE_OPT_ADC_CAL_GPC5_DELTA,
+		 CTRL_CLK_VIN_ID_GPC5, GV100_FUSE_OPT_ADC_CAL_GPC5_DELTA,
 		 0x00214421, 0xefffffff,
 		 gpc1_expected_slope, gpc1_expected_intercept,
 		},
 		{
-		 CTRL_CLK_VIN_ID_SYS, GP106_FUSE_OPT_ADC_CAL_SHARED_DELTA,
+		 CTRL_CLK_VIN_ID_SYS, GV100_FUSE_OPT_ADC_CAL_SHARED_DELTA,
 		 0x00214421, 0xfffffffe,
 		 gpc1_expected_slope, gpc1_expected_intercept,
 		},
 		{
-		 CTRL_CLK_VIN_ID_XBAR, GP106_FUSE_OPT_ADC_CAL_SHARED_DELTA,
+		 CTRL_CLK_VIN_ID_XBAR, GV100_FUSE_OPT_ADC_CAL_SHARED_DELTA,
 		 0x00214421, 0x11111111,
 		 gpc1_expected_slope, gpc1_expected_intercept,
 		},
 		{
-		 CTRL_CLK_VIN_ID_LTC, GP106_FUSE_OPT_ADC_CAL_SHARED_DELTA,
+		 CTRL_CLK_VIN_ID_LTC, GV100_FUSE_OPT_ADC_CAL_SHARED_DELTA,
 		 0x00214421, 0x00000001,
 		 gpc1_expected_slope, gpc1_expected_intercept,
-		},
-		{
-		 CTRL_CLK_VIN_ID_SRAM, GP106_FUSE_OPT_ADC_CAL_SRAM_DELTA,
-		 0x00214421, 0xaaaaaaaa,
-		 sram_expected_slope, sram_expected_intercept,
-		},
-		{
-		 CTRL_CLK_VIN_ID_SRAM, GP106_FUSE_OPT_ADC_CAL_SRAM_DELTA,
-		 0x00214421, 0x55555555,
-		 sram_expected_slope, sram_expected_intercept,
 		},
 	};
 	int vin_table_len = sizeof(vin_test_table)/sizeof(vin_test_table[0]);
@@ -325,7 +222,7 @@ int test_fuse_gp106_vin_cal_slope_intercept(struct unit_module *m,
 		u32 expected_slope, expected_intercept;
 		s8 expected_gain, expected_offset;
 
-		nvgpu_posix_io_writel_reg_space(g, GP106_FUSE_OPT_ADC_CAL_GPC0,
+		nvgpu_posix_io_writel_reg_space(g, GV100_FUSE_OPT_ADC_CAL_GPC0,
 						gpc0_fuse_val);
 		nvgpu_posix_io_writel_reg_space(g,
 					vin_test_table[i].fuse_addr,
@@ -388,7 +285,7 @@ int test_fuse_gp106_vin_cal_slope_intercept(struct unit_module *m,
 	}
 
 	/* test invalid GPC0 data special case */
-	nvgpu_posix_io_writel_reg_space(g, GP106_FUSE_OPT_ADC_CAL_GPC0,
+	nvgpu_posix_io_writel_reg_space(g, GV100_FUSE_OPT_ADC_CAL_GPC0,
 					~0U);
 	result = g->ops.fuse.read_vin_cal_slope_intercept_fuse(g,
 						CTRL_CLK_VIN_ID_GPC0,
@@ -407,11 +304,11 @@ int test_fuse_gp106_vin_cal_slope_intercept(struct unit_module *m,
 		ret = UNIT_FAIL;
 	}
 	/* restore valid data */
-	nvgpu_posix_io_writel_reg_space(g, GP106_FUSE_OPT_ADC_CAL_GPC0,
+	nvgpu_posix_io_writel_reg_space(g, GV100_FUSE_OPT_ADC_CAL_GPC0,
 					0U);
 
 	/* test invalid GPC1 data for the bad delta data case */
-	nvgpu_posix_io_writel_reg_space(g, GP106_FUSE_OPT_ADC_CAL_GPC1_DELTA,
+	nvgpu_posix_io_writel_reg_space(g, GV100_FUSE_OPT_ADC_CAL_GPC1_DELTA,
 					~0U);
 	result = g->ops.fuse.read_vin_cal_slope_intercept_fuse(g,
 						CTRL_CLK_VIN_ID_GPC1,
@@ -422,7 +319,7 @@ int test_fuse_gp106_vin_cal_slope_intercept(struct unit_module *m,
 		ret = UNIT_FAIL;
 	}
 	/* restore valid data */
-	nvgpu_posix_io_writel_reg_space(g, GP106_FUSE_OPT_ADC_CAL_GPC1_DELTA,
+	nvgpu_posix_io_writel_reg_space(g, GV100_FUSE_OPT_ADC_CAL_GPC1_DELTA,
 					0U);
 	/* test invalid VIN ID */
 	result = g->ops.fuse.read_vin_cal_slope_intercept_fuse(g,

@@ -31,7 +31,7 @@
 #include "nvgpu-fuse-priv.h"
 #include "nvgpu-fuse-gp10b.h"
 #include "nvgpu-fuse-gm20b.h"
-#include "nvgpu-fuse-gp106.h"
+#include "nvgpu-fuse-gv100.h"
 
 /*
  * Mock I/O
@@ -174,18 +174,14 @@ struct unit_module_test fuse_tests[] = {
 	UNIT_TEST(fuse_gm20b_cleanup, test_fuse_device_common_cleanup,
 		  &gm20b_init_args),
 
-	UNIT_TEST(fuse_gp106_init, test_fuse_device_common_init,
-		  &gp106_init_args),
-	UNIT_TEST(fuse_gp106_check_sec, test_fuse_gp106_check_sec, NULL),
-	UNIT_TEST(fuse_gp106_check_non_sec,
-		  test_fuse_gp106_check_non_sec,
+	UNIT_TEST(fuse_gv100_init, test_fuse_device_common_init,
+		  &gv100_init_args),
+	UNIT_TEST(fuse_gv100_vin_cal_rev, test_fuse_gv100_vin_cal_rev, NULL),
+	UNIT_TEST(fuse_gv100_vin_cal_slope_intercept,
+		  test_fuse_gv100_vin_cal_slope_intercept,
 		  NULL),
-	UNIT_TEST(fuse_gp106_vin_cal_rev, test_fuse_gp106_vin_cal_rev, NULL),
-	UNIT_TEST(fuse_gp106_vin_cal_slope_intercept,
-		  test_fuse_gp106_vin_cal_slope_intercept,
-		  NULL),
-	UNIT_TEST(fuse_gp106_cleanup, test_fuse_device_common_cleanup,
-		  &gp106_init_args),
+	UNIT_TEST(fuse_gv100_cleanup, test_fuse_device_common_cleanup,
+		  &gv100_init_args),
 };
 
 UNIT_MODULE(fuse, fuse_tests, UNIT_PRIO_NVGPU_TEST);

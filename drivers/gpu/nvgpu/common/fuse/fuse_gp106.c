@@ -30,14 +30,6 @@
 
 #include <nvgpu/hw/gp106/hw_fuse_gp106.h>
 
-int gp106_fuse_check_priv_security(struct gk20a *g)
-{
-	__nvgpu_set_enabled(g, NVGPU_SEC_PRIVSECURITY, true);
-	__nvgpu_set_enabled(g, NVGPU_SEC_SECUREGPCCS, true);
-
-	return 0;
-}
-
 u32 gp106_fuse_read_vin_cal_fuse_rev(struct gk20a *g)
 {
 	return fuse_vin_cal_fuse_rev_data_v(
@@ -91,10 +83,6 @@ int gp106_fuse_read_vin_cal_slope_intercept_fuse(struct gk20a *g,
 		data = gk20a_readl(g, fuse_vin_cal_shared_delta_r());
 		break;
 
-	case CTRL_CLK_VIN_ID_SRAM:
-		data = gk20a_readl(g, fuse_vin_cal_sram_delta_r());
-		break;
-
 	default:
 		return -EINVAL;
 	}
@@ -127,14 +115,6 @@ int gp106_fuse_read_vin_cal_slope_intercept_fuse(struct gk20a *g,
 				fuse_vin_cal_gpc1_delta_icpt_frac_data_s();
 		break;
 
-	case CTRL_CLK_VIN_ID_SRAM:
-		interceptdata = (fuse_vin_cal_sram_delta_icpt_int_data_v(data) <<
-				 fuse_vin_cal_sram_delta_icpt_frac_data_s()) +
-				fuse_vin_cal_sram_delta_icpt_frac_data_v(data);
-		interceptdata = (interceptdata * 1000U) >>
-				fuse_vin_cal_sram_delta_icpt_frac_data_s();
-		break;
-
 	default:
 		return -EINVAL;
 	}
@@ -163,7 +143,6 @@ int gp106_fuse_read_vin_cal_slope_intercept_fuse(struct gk20a *g,
 	case CTRL_CLK_VIN_ID_SYS:
 	case CTRL_CLK_VIN_ID_XBAR:
 	case CTRL_CLK_VIN_ID_LTC:
-	case CTRL_CLK_VIN_ID_SRAM:
 		slopedata =
 			(fuse_vin_cal_gpc1_delta_slope_int_data_v(data)) * 1000U;
 		break;
@@ -216,10 +195,6 @@ int gp106_fuse_read_vin_cal_gain_offset_fuse(struct gk20a *g,
 	case CTRL_CLK_VIN_ID_XBAR:
 	case CTRL_CLK_VIN_ID_LTC:
 		reg_val = gk20a_readl(g, fuse_vin_cal_shared_delta_r());
-		break;
-
-	case CTRL_CLK_VIN_ID_SRAM:
-		reg_val = gk20a_readl(g, fuse_vin_cal_sram_delta_r());
 		break;
 
 	default:
