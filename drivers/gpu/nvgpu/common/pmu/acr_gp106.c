@@ -531,7 +531,10 @@ int gp106_prepare_ucode_blob(struct gk20a *g)
 	}
 
 	if (nvgpu_is_enabled(g, NVGPU_SUPPORT_MULTIPLE_WPR)) {
-		lsfm_discover_and_add_sub_wprs(g, plsfm);
+		err = lsfm_discover_and_add_sub_wprs(g, plsfm);
+		if (err != 0) {
+			goto exit_err;
+		}
 	}
 
 	if ((plsfm->managed_flcn_cnt != 0U) &&
