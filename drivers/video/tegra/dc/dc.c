@@ -4,7 +4,7 @@
  * Copyright (C) 2010 Google, Inc.
  * Author: Erik Gilling <konkers@android.com>
  *
- * Copyright (c) 2010-2018, NVIDIA CORPORATION, All rights reserved.
+ * Copyright (c) 2010-2019, NVIDIA CORPORATION, All rights reserved.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -82,6 +82,7 @@ EXPORT_TRACEPOINT_SYMBOL(display_readl);
 #include "dc_common.h"
 
 #include "edid.h"
+#include <linux/nospec.h>
 
 #ifdef CONFIG_TEGRA_DC_FAKE_PANEL_SUPPORT
 #include "fake_panel.h"
@@ -1289,6 +1290,11 @@ static ssize_t dbg_dc_out_type_set(struct file *file,
 		dev_err(&dc->ndev->dev, "Unknown out_type 0x%lx\n", out_type);
 		return -EINVAL;
 	}
+	/*
+	 * Updating dc with dc->dbg_dc_out_info[out_type].
+	 * out_type is coming from user.
+	 */
+	out_type = array_index_nospec(out_type, TEGRA_DC_OUT_MAX);
 
 	if (boot_out_type[dc->ndev->id] == -1)
 		boot_out_type[dc->ndev->id] = dc->pdata->default_out->type;
@@ -1933,6 +1939,8 @@ static int tegra_dc_topology_parse(char *buf, int nargs,
 				args[i] > TEGRA_DC_TOPOLOGY_ARG_MAX)
 			break;
 	}
+	/* topology's disp_id, protocol and conn_list are coming from user. */
+	speculation_barrier();
 
 	kfree(orig_b);
 
@@ -2041,6 +2049,8 @@ static ssize_t dbg_nvdisp_topology_write(struct file *file,
 			topology.conn_inst);
 		return -EINVAL;
 	}
+	/* topology is coming from user. */
+	speculation_barrier();
 
 	if (is_topology_reset(topology)) {
 		/* Reset topology */
@@ -7125,7 +7135,7 @@ module_param_call(suspend, suspend_set, suspend_get, &suspend, 0644);
 #ifndef MODULE
 static int __init parse_disp_params(char *options, struct tegra_dc_mode *mode)
 {
-	int i, params[11];
+	int i, params[11], ret = 0;
 	char *p;
 
 	memset(params, 0, ARRAY_SIZE(params) * sizeof(int));
@@ -7133,9 +7143,15 @@ static int __init parse_disp_params(char *options, struct tegra_dc_mode *mode)
 		if ((p = strsep(&options, ",")) != NULL) {
 			if (*p)
 				params[i] = simple_strtoul(p, &p, 10);
-		} else
-			return -EINVAL;
+		} else {
+			ret = -EINVAL;
+			break;
+		}
 	}
+	/* mode configuration is coming via command line argument to kernel */
+	speculation_barrier();
+	if (ret < 0)
+		return ret;
 
 	if ((mode->pclk = params[0]) == 0)
 		return -EINVAL;

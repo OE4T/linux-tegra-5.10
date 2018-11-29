@@ -4,7 +4,7 @@
  * Copyright (C) 2010 Google, Inc.
  * Author: Erik Gilling <konkers@android.com>
  *
- * Copyright (c) 2010-2018, NVIDIA CORPORATION, All rights reserved.
+ * Copyright (c) 2010-2019, NVIDIA CORPORATION, All rights reserved.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -507,7 +507,12 @@ static int tegra_edid_parse_ext_block(const u8 *raw, int idx,
 			break;
 		}
 	}
-
+	/*
+	 * Copying user data from raw to edid.
+	 * raw is being copied from edid->dc->vedid_data in calling function.
+	 * edid->dc->vedid_data is being populated through debugfs(edid_fops).
+	 */
+	speculation_barrier();
 	return 0;
 }
 

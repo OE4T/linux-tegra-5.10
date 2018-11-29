@@ -46,6 +46,7 @@
 #include "dc/dc_priv.h"
 #include "dc/edid.h"
 #include "dc/dc_config.h"
+#include <linux/nospec.h>
 
 /* Pad pitch to 64-byte boundary. */
 #define TEGRA_LINEAR_PITCH_ALIGNMENT 64
@@ -334,7 +335,11 @@ static int tegra_fb_setcolreg(unsigned regno, unsigned red, unsigned green,
 		v = (red << var->red.offset) |
 			(green << var->green.offset) |
 			(blue << var->blue.offset);
-
+		/*
+		 * Index(regno) and data(v) both are coming
+		 * from user via ioctl call in kernel.
+		 */
+		regno = array_index_nospec(regno, 16);
 		((u32 *)info->pseudo_palette)[regno] = v;
 	}
 
@@ -402,6 +407,8 @@ static int tegra_fb_setcmap(struct fb_cmap *cmap, struct fb_info *info)
 						(((u64)*blue++ >> 8) << 32));
 				}
 			}
+			/* data(red, green and blue) is coming from user. */
+			speculation_barrier();
 			tegra_dc_update_lut(dc, -1, -1);
 		}
 	}
@@ -955,6 +962,8 @@ void tegra_fb_update_monspecs(struct tegra_fb_info *fb_info,
 					 &fb_info->info->modelist);
 		}
 	}
+	/* specs are coming from user. */
+	speculation_barrier();
 
 	if (dc->out_ops->vrr_update_monspecs)
 		dc->out_ops->vrr_update_monspecs(dc,

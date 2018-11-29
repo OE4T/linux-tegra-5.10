@@ -1297,6 +1297,8 @@ static void tegra_dc_ext_flip_worker(struct kthread_work *work)
 #endif
 	kfree(data);
 	kfree(blank_win);
+	/* Updating wins with coming user data */
+	speculation_barrier();
 }
 
 static int lock_windows_for_flip(struct tegra_dc_ext_user *user,
@@ -1373,7 +1375,7 @@ static int sanitize_flip_args(struct tegra_dc_ext_user *user,
 			      struct tegra_dc_ext_flip_windowattr *win_list,
 			      int win_num, __u16 **dirty_rect)
 {
-	int i, used_windows = 0;
+	int i, used_windows = 0, ret = 0;
 	struct tegra_dc *dc = user->ext->dc;
 
 	if (win_num > tegra_dc_get_numof_dispwindows())
@@ -1389,12 +1391,14 @@ static int sanitize_flip_args(struct tegra_dc_ext_user *user,
 			continue;
 
 		if (index >= tegra_dc_get_numof_dispwindows() ||
-			!test_bit(index, &dc->valid_windows))
-			return -EINVAL;
-
-		if (used_windows & BIT(index))
-			return -EINVAL;
-
+			!test_bit(index, &dc->valid_windows)) {
+			ret = -EINVAL;
+			goto flip_fail;
+		}
+		if (used_windows & BIT(index)) {
+			ret = -EINVAL;
+			goto flip_fail;
+		}
 		used_windows |= BIT(index);
 
 		/*
@@ -1411,7 +1415,8 @@ static int sanitize_flip_args(struct tegra_dc_ext_user *user,
 			dev_err(&dc->ndev->dev,
 			"%s: WIN %d invalid size:w=%u,h=%u,out_w=%u,out_h=%u\n",
 				__func__, index, w, h, win->out_w, win->out_h);
-			return -EINVAL;
+			ret = -EINVAL;
+			goto flip_fail;
 		}
 
 		/*
@@ -1425,19 +1430,23 @@ static int sanitize_flip_args(struct tegra_dc_ext_user *user,
 			"Invalid out_w + out_x (%u) > hActive (%u)\n OR/AND out_h + out_y (%u) > vActive (%u)\n for WIN %d\n",
 				win->out_w + win->out_x, dc->mode.h_active,
 				win->out_h + win->out_y, dc->mode.v_active, i);
-			return -EINVAL;
+			ret = -EINVAL;
+			goto flip_fail;
 		}
 
 		if (tegra_dc_is_nvdisplay()) {
 			if (tegra_nvdisp_verify_win_properties(dc, win)) {
 				/* Error in window properties */
-				return -EINVAL;
+				ret = -EINVAL;
+				goto flip_fail;
 			}
 		}
 	}
 
-	if (!used_windows)
-		return -EINVAL;
+	if (!used_windows) {
+		ret = -EINVAL;
+		goto flip_fail;
+	}
 
 	if (*dirty_rect) {
 		unsigned int xoff = (*dirty_rect)[0];
@@ -1458,9 +1467,10 @@ static int sanitize_flip_args(struct tegra_dc_ext_user *user,
 		} else {
 			if (!width || !height ||
 				(xoff + width) > dc->mode.h_active ||
-				(yoff + height) > dc->mode.v_active)
-				return -EINVAL;
-
+				(yoff + height) > dc->mode.v_active) {
+				ret = -EINVAL;
+				goto flip_fail;
+			}
 			/* Constraint 7: H/V_DISP_ACTIVE >= 16.
 			 * Make sure the minimal size of dirty region is 16*16.
 			 * If not, extend the dirty region. */
@@ -1479,7 +1489,10 @@ static int sanitize_flip_args(struct tegra_dc_ext_user *user,
 		}
 	}
 
-	return 0;
+flip_fail:
+	/* Flip args are coming from user. */
+	speculation_barrier();
+	return ret;
 }
 
 static int tegra_dc_ext_pin_windows(struct tegra_dc_ext_user *user,
@@ -1493,8 +1506,12 @@ static int tegra_dc_ext_pin_windows(struct tegra_dc_ext_user *user,
 	struct tegra_dc *dc = user->ext->dc;
 
 	for (i = 0; i < win_num; i++) {
-		struct tegra_dc_ext_flip_win *flip_win = &flip_wins[i];
-		int index = wins[i].index;
+		struct tegra_dc_ext_flip_win *flip_win =  NULL;
+		int index;
+
+		i = array_index_nospec(i, win_num);
+		flip_win = &flip_wins[i];
+		index = wins[i].index;
 
 		memcpy(&flip_win->attr, &wins[i], sizeof(flip_win->attr));
 
@@ -1729,6 +1746,8 @@ static int tegra_dc_ext_read_nvdisp_win_csc_user_data(
 
 end:
 	kfree(entry);
+	/* entry is coming from user. */
+	speculation_barrier();
 	return ret;
 }
 
@@ -1754,6 +1773,8 @@ static int tegra_dc_ext_read_user_data(struct tegra_dc_ext_flip_data *data,
 	bool nvdisp_win_csc_present = false;
 
 	for (i = 0; i < nr_user_data; i++) {
+		i = array_index_nospec(i, nr_user_data);
+
 		switch (flip_user_data[i].data_type) {
 		case TEGRA_DC_EXT_FLIP_USER_DATA_HDR_DATA:
 		{
@@ -2166,6 +2187,8 @@ static int set_lut_channel(u16 __user *channel_from_user,
 		for (i = 0; i < len; i++)
 			channel_to[start+i] = start+i;
 	}
+	/* data is coming from user. */
+	speculation_barrier();
 
 	return 0;
 }
@@ -2173,7 +2196,7 @@ static int set_lut_channel(u16 __user *channel_from_user,
 static int set_nvdisp_lut_channel(struct tegra_dc_ext_lut *new_lut,
 			   u64 *channel_to)
 {
-	int i, j;
+	int i, j, ret = 0;
 	u16 lut16bpp[256];
 	u64 inlut = 0;
 	u16 __user *channel_from_user;
@@ -2191,9 +2214,10 @@ static int set_nvdisp_lut_channel(struct tegra_dc_ext_lut *new_lut,
 
 		if (channel_from_user) {
 			if (copy_from_user(lut16bpp,
-					channel_from_user, len<<1))
-				return 1;
-
+					channel_from_user, len<<1)) {
+				ret = 1;
+				break;
+			}
 			for (i = 0; i < len; i++) {
 				inlut = (u64)lut16bpp[i];
 				/*16bit data in MSB format*/
@@ -2207,7 +2231,9 @@ static int set_nvdisp_lut_channel(struct tegra_dc_ext_lut *new_lut,
 			}
 		}
 	}
-	return 0;
+	/* data is coming from user. */
+	speculation_barrier();
+	return ret;
 }
 
 static int tegra_dc_ext_set_lut(struct tegra_dc_ext_user *user,
@@ -2324,7 +2350,8 @@ static int tegra_dc_ext_set_nvdisp_cmu(struct tegra_dc_ext_user *user,
 	lut_size = args->lut_size;
 	for (i = 0; i < lut_size; i++)
 		nvdisp_cmu->rgb[i] = args->rgb[i];
-
+	/* data is coming from user. */
+	speculation_barrier();
 	tegra_nvdisp_update_cmu(dc, nvdisp_cmu);
 	tegra_dc_scrncapt_disp_pause_unlock(dc);
 
@@ -2392,7 +2419,8 @@ static int tegra_dc_ext_set_cmu(struct tegra_dc_ext_user *user,
 
 	for (i = 0; i < 960; i++)
 		cmu->lut2[i] = args->lut2[i];
-
+	/* data is coming from user. */
+	speculation_barrier();
 	tegra_dc_update_cmu(dc, cmu);
 
 	kfree(cmu);
@@ -2425,7 +2453,8 @@ static int tegra_dc_ext_set_cmu_aligned(struct tegra_dc_ext_user *user,
 
 	for (i = 0; i < 960; i++)
 		cmu->lut2[i] = args->lut2[i];
-
+	/* data is coming from user. */
+	speculation_barrier();
 	tegra_dc_update_cmu_aligned(dc, cmu);
 
 	kfree(cmu);
@@ -2480,12 +2509,14 @@ static int tegra_dc_ext_negotiate_bw(struct tegra_dc_ext_user *user,
 	for (i = 0; i < win_num; i++) {
 		if (wins[i].index >= tegra_dc_get_numof_dispwindows())
 			return -EINVAL;
-		wins[i].index = array_index_nospec(wins[i].index,
-					tegra_dc_get_numof_dispwindows());
 	}
+	/* wins are coming from user. */
+	speculation_barrier();
 
 	for (i = 0; i < win_num; i++) {
-		int idx = wins[i].index;
+		int idx;
+
+		idx = wins[i].index;
 
 		if (wins[i].buff_id > 0) {
 			tegra_dc_ext_set_windowattr_basic(&dc->tmp_wins[idx],
@@ -2496,6 +2527,11 @@ static int tegra_dc_ext_negotiate_bw(struct tegra_dc_ext_user *user,
 		}
 		dc_wins[i] = &dc->tmp_wins[idx];
 	}
+	/*
+	 * dc->tmp_wins[] is being populated with wins.
+	 * wins are coming from user.
+	 */
+	speculation_barrier();
 
 	ret = tegra_dc_bandwidth_negotiate_bw(dc, dc_wins, win_num);
 
@@ -2528,50 +2564,65 @@ static int dev_cpy_from_usr_compat(
 			struct tegra_dc_ext_flip_windowattr *outptr,
 			void *inptr, u32 usr_win_size, u32 win_num)
 {
-	int i = 0;
+	int i = 0, ret = 0;
 	u8 *srcptr;
 
 	for (i = 0; i < win_num; i++) {
 		srcptr  = (u8 *)inptr + (usr_win_size * i);
 
 		if (copy_from_user(&outptr[i],
-			compat_ptr((uintptr_t)srcptr), usr_win_size))
-			return -EFAULT;
+			compat_ptr((uintptr_t)srcptr), usr_win_size)) {
+			ret = -EFAULT;
+			break;
+		}
 	}
-	return 0;
+	/* data is coming from user. */
+	speculation_barrier();
+	return ret;
 }
 #endif
 
 static int dev_cpy_from_usr(struct tegra_dc_ext_flip_windowattr *outptr,
 				void *inptr, u32 usr_win_size, u32 win_num)
 {
-	int i = 0;
+	int i = 0, ret = 0;
 	u8 *srcptr;
 
 	for (i = 0; i < win_num; i++) {
 		srcptr  = (u8 *)inptr + (usr_win_size * i);
 
 		if (copy_from_user(&outptr[i],
-			(void __user *) (uintptr_t)srcptr, usr_win_size))
-			return -EFAULT;
+			(void __user *) (uintptr_t)srcptr, usr_win_size)) {
+			ret = -EFAULT;
+			break;
+		}
 	}
-	return 0;
+	/* data is coming from user. */
+	speculation_barrier();
+	return ret;
 }
 
 static int dev_cpy_to_usr(void *outptr, u32 usr_win_size,
 		struct tegra_dc_ext_flip_windowattr *inptr, u32 win_num)
 {
-	int i = 0;
+	int i = 0, ret = 0;
 	u8 *dstptr;
 
 	for (i = 0; i < win_num; i++) {
 		dstptr  = (u8 *)outptr + (usr_win_size * i);
 
 		if (copy_to_user((void __user *) (uintptr_t)dstptr,
-			&inptr[i], usr_win_size))
-			return -EFAULT;
+			&inptr[i], usr_win_size)) {
+			ret = -EFAULT;
+			break;
+		}
 	}
-	return 0;
+	/*
+	 * Both index(dstptr) and data(inptr)
+	 * depends upon incoming args.
+	 */
+	speculation_barrier();
+	return ret;
 }
 
 static int tegra_dc_get_cap_hdr_info(struct tegra_dc_ext_user *user,
@@ -2649,6 +2700,8 @@ static int tegra_dc_copy_syncpts_from_user(struct tegra_dc *dc,
 			*syncpt_idx = i;
 		}
 	}
+	/* flip_user_data is coming from user. */
+	speculation_barrier();
 
 	if (syncpt_user_data) {
 		struct tegra_dc_ext_syncpt *ext_syncpt;
@@ -2702,7 +2755,12 @@ static int tegra_dc_crc_sanitize_args(struct tegra_dc_ext_crc_arg *args)
 	if (args->num_conf >
 		TEGRA_DC_EXT_CRC_TYPE_MAX - 1 + TEGRA_DC_EXT_MAX_REGIONS)
 		return -EINVAL;
-
+	/*
+	 * args->num_conf is coming from user.
+	 * it is being used as index in code.
+	 */
+	args->num_conf = array_index_nospec(args->num_conf,
+		TEGRA_DC_EXT_CRC_TYPE_MAX + TEGRA_DC_EXT_MAX_REGIONS);
 	return 0;
 }
 
@@ -2870,6 +2928,11 @@ static long tegra_dc_ioctl(struct file *filp, unsigned int cmd,
 		 * copy them back.
 		 */
 		if (syncpt_idx > -1) {
+			/*
+			 * destptr depends upon syncpt_idx.
+			 * flip_user_data is coming from user.
+			 */
+			speculation_barrier();
 			args.post_syncpt_fd = -1;
 			ret = tegra_dc_copy_syncpts_to_user(flip_user_data,
 					syncpt_idx, (u8 *)(void *)args.data);
