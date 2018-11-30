@@ -44,7 +44,6 @@
 
 #include <nvgpu/hw/gp10b/hw_gr_gp10b.h>
 #include <nvgpu/hw/gp10b/hw_fifo_gp10b.h>
-#include <nvgpu/hw/gp10b/hw_ctxsw_prog_gp10b.h>
 
 #define GFXP_WFI_TIMEOUT_COUNT_DEFAULT 100000U
 
@@ -1134,83 +1133,27 @@ fail_free_gk20a_ctx:
 void gr_gp10b_dump_ctxsw_stats(struct gk20a *g, struct vm_gk20a *vm,
 			       struct nvgpu_gr_ctx *gr_ctx)
 {
-	struct nvgpu_mem *mem = &gr_ctx->mem;
-
-	nvgpu_err(g, "ctxsw_prog_main_image_magic_value_o : %x (expect %x)",
-		nvgpu_mem_rd(g, mem,
-				ctxsw_prog_main_image_magic_value_o()),
-		ctxsw_prog_main_image_magic_value_v_value_v());
-
-	nvgpu_err(g, "ctxsw_prog_main_image_context_timestamp_buffer_ptr_hi : %x",
-		nvgpu_mem_rd(g, mem,
-				ctxsw_prog_main_image_context_timestamp_buffer_ptr_hi_o()));
-
-	nvgpu_err(g, "ctxsw_prog_main_image_context_timestamp_buffer_ptr : %x",
-		nvgpu_mem_rd(g, mem,
-				ctxsw_prog_main_image_context_timestamp_buffer_ptr_o()));
-
-	nvgpu_err(g, "ctxsw_prog_main_image_context_timestamp_buffer_control : %x",
-		nvgpu_mem_rd(g, mem,
-				ctxsw_prog_main_image_context_timestamp_buffer_control_o()));
-
-	nvgpu_err(g, "NUM_SAVE_OPERATIONS : %d",
-		nvgpu_mem_rd(g, mem,
-			ctxsw_prog_main_image_num_save_ops_o()));
-	nvgpu_err(g, "WFI_SAVE_OPERATIONS : %d",
-		nvgpu_mem_rd(g, mem,
-			ctxsw_prog_main_image_num_wfi_save_ops_o()));
-	nvgpu_err(g, "CTA_SAVE_OPERATIONS : %d",
-		nvgpu_mem_rd(g, mem,
-			ctxsw_prog_main_image_num_cta_save_ops_o()));
-	nvgpu_err(g, "GFXP_SAVE_OPERATIONS : %d",
-		nvgpu_mem_rd(g, mem,
-			ctxsw_prog_main_image_num_gfxp_save_ops_o()));
-	nvgpu_err(g, "CILP_SAVE_OPERATIONS : %d",
-		nvgpu_mem_rd(g, mem,
-			ctxsw_prog_main_image_num_cilp_save_ops_o()));
-	nvgpu_err(g,
-		"image gfx preemption option (GFXP is 1) %x",
-		nvgpu_mem_rd(g, mem,
-			ctxsw_prog_main_image_graphics_preemption_options_o()));
-	nvgpu_err(g,
-		"image compute preemption option (CTA is 1) %x",
-		nvgpu_mem_rd(g, mem,
-			ctxsw_prog_main_image_compute_preemption_options_o()));
+	g->ops.gr.ctxsw_prog.dump_ctxsw_stats(g, &gr_ctx->mem);
 }
 
 void gr_gp10b_update_ctxsw_preemption_mode(struct gk20a *g,
 		struct nvgpu_gr_ctx *gr_ctx, struct nvgpu_mem *ctxheader)
 {
 	struct nvgpu_mem *mem = &gr_ctx->mem;
-	u32 gfxp_preempt_option =
-		ctxsw_prog_main_image_graphics_preemption_options_control_gfxp_f();
-	u32 cilp_preempt_option =
-		ctxsw_prog_main_image_compute_preemption_options_control_cilp_f();
-	u32 cta_preempt_option =
-		ctxsw_prog_main_image_compute_preemption_options_control_cta_f();
 	int err;
 
 	nvgpu_log_fn(g, " ");
 
 	if (gr_ctx->graphics_preempt_mode == NVGPU_PREEMPTION_MODE_GRAPHICS_GFXP) {
-		nvgpu_log_info(g, "GfxP: %x", gfxp_preempt_option);
-		nvgpu_mem_wr(g, mem,
-				ctxsw_prog_main_image_graphics_preemption_options_o(),
-				gfxp_preempt_option);
+		g->ops.gr.ctxsw_prog.set_graphics_preemption_mode_gfxp(g, mem);
 	}
 
 	if (gr_ctx->compute_preempt_mode == NVGPU_PREEMPTION_MODE_COMPUTE_CILP) {
-		nvgpu_log_info(g, "CILP: %x", cilp_preempt_option);
-		nvgpu_mem_wr(g, mem,
-				ctxsw_prog_main_image_compute_preemption_options_o(),
-				cilp_preempt_option);
+		g->ops.gr.ctxsw_prog.set_compute_preemption_mode_cilp(g, mem);
 	}
 
 	if (gr_ctx->compute_preempt_mode == NVGPU_PREEMPTION_MODE_COMPUTE_CTA) {
-		nvgpu_log_info(g, "CTA: %x", cta_preempt_option);
-		nvgpu_mem_wr(g, mem,
-				ctxsw_prog_main_image_compute_preemption_options_o(),
-				cta_preempt_option);
+		g->ops.gr.ctxsw_prog.set_compute_preemption_mode_cta(g, mem);
 	}
 
 	if (gr_ctx->preempt_ctxsw_buffer.gpu_va != 0ULL) {
@@ -2226,12 +2169,10 @@ enable_ch:
 }
 
 void gr_gp10b_update_boosted_ctx(struct gk20a *g, struct nvgpu_mem *mem,
-				       struct nvgpu_gr_ctx *gr_ctx) {
-	u32 v;
-
-	v = ctxsw_prog_main_image_pmu_options_boost_clock_frequencies_f(
+				       struct nvgpu_gr_ctx *gr_ctx)
+{
+	g->ops.gr.ctxsw_prog.set_pmu_options_boost_clock_frequencies(g, mem,
 		gr_ctx->boosted_ctx);
-	nvgpu_mem_wr(g, mem, ctxsw_prog_main_image_pmu_options_o(), v);
 }
 
 int gr_gp10b_set_preemption_mode(struct channel_gk20a *ch,
@@ -2357,11 +2298,7 @@ int gr_gp10b_init_preemption_state(struct gk20a *g)
 void gr_gp10b_set_preemption_buffer_va(struct gk20a *g,
 			struct nvgpu_mem *mem, u64 gpu_va)
 {
-	u32 va = u64_lo32(gpu_va >> 8);
-
-	nvgpu_mem_wr(g, mem,
-			ctxsw_prog_main_image_full_preemption_ptr_o(), va);
-
+	g->ops.gr.ctxsw_prog.set_full_preemption_ptr(g, mem, gpu_va);
 }
 
 void gr_gp10b_init_czf_bypass(struct gk20a *g)
@@ -2384,20 +2321,6 @@ int gr_gp10b_set_czf_bypass(struct gk20a *g, struct channel_gk20a *ch)
 		g->gr.czf_bypass);
 
 	return __gr_gk20a_exec_ctx_ops(ch, &ops, 1, 1, 0, false);
-}
-
-void gr_gp10b_init_ctxsw_hdr_data(struct gk20a *g, struct nvgpu_mem *mem)
-{
-	gk20a_gr_init_ctxsw_hdr_data(g, mem);
-
-	nvgpu_mem_wr(g, mem,
-			ctxsw_prog_main_image_num_wfi_save_ops_o(), 0);
-	nvgpu_mem_wr(g, mem,
-			ctxsw_prog_main_image_num_cta_save_ops_o(), 0);
-	nvgpu_mem_wr(g, mem,
-			ctxsw_prog_main_image_num_gfxp_save_ops_o(), 0);
-	nvgpu_mem_wr(g, mem,
-			ctxsw_prog_main_image_num_cilp_save_ops_o(), 0);
 }
 
 void gr_gp10b_init_gfxp_wfi_timeout_count(struct gk20a *g)

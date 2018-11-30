@@ -738,12 +738,6 @@ int gr_gk20a_init_sm_id_table(struct gk20a *g);
 
 int gr_gk20a_commit_inst(struct channel_gk20a *c, u64 gpu_va);
 
-void gr_gk20a_write_zcull_ptr(struct gk20a *g,
-				struct nvgpu_mem *mem, u64 gpu_va);
-
-void gr_gk20a_write_pm_ptr(struct gk20a *g,
-				struct nvgpu_mem *mem, u64 gpu_va);
-
 u32 gk20a_gr_gpc_offset(struct gk20a *g, u32 gpc);
 u32 gk20a_gr_tpc_offset(struct gk20a *g, u32 tpc);
 void gk20a_gr_get_esr_sm_sel(struct gk20a *g, u32 gpc, u32 tpc,
@@ -751,8 +745,6 @@ void gk20a_gr_get_esr_sm_sel(struct gk20a *g, u32 gpc, u32 tpc,
 void gk20a_gr_init_ovr_sm_dsm_perf(void);
 void gk20a_gr_get_ovr_perf_regs(struct gk20a *g, u32 *num_ovr_perf_regs,
 					       u32 **ovr_perf_regs);
-void gk20a_gr_init_ctxsw_hdr_data(struct gk20a *g,
-					struct nvgpu_mem *mem);
 u32 gr_gk20a_get_patch_slots(struct gk20a *g);
 int gk20a_gr_handle_notify_pending(struct gk20a *g,
 				struct gr_gk20a_isr_data *isr_data);

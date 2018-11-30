@@ -20,39 +20,27 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NVGPU_FECS_TRACE_H
-#define NVGPU_FECS_TRACE_H
+#ifndef NVGPU_CTXSW_PROG_GP10B_H
+#define NVGPU_CTXSW_PROG_GP10B_H
+
+#include <nvgpu/types.h>
 
 struct gk20a;
+struct nvgpu_mem;
 
-/*
- * If HW circular buffer is getting too many "buffer full" conditions,
- * increasing this constant should help (it drives Linux' internal buffer size).
- */
-#define GK20A_FECS_TRACE_NUM_RECORDS		(1 << 10)
-#define GK20A_FECS_TRACE_HASH_BITS		8 /* 2^8 */
-#define GK20A_FECS_TRACE_FRAME_PERIOD_US	(1000000ULL/60ULL)
-#define GK20A_FECS_TRACE_PTIMER_SHIFT		5
+void gp10b_ctxsw_prog_set_graphics_preemption_mode_gfxp(struct gk20a *g,
+	struct nvgpu_mem *ctx_mem);
+void gp10b_ctxsw_prog_set_compute_preemption_mode_cta(struct gk20a *g,
+	struct nvgpu_mem *ctx_mem);
+void gp10b_ctxsw_prog_set_compute_preemption_mode_cilp(struct gk20a *g,
+	struct nvgpu_mem *ctx_mem);
+void gp10b_ctxsw_prog_set_pmu_options_boost_clock_frequencies(struct gk20a *g,
+	struct nvgpu_mem *ctx_mem, u32 boosted_ctx);
+void gp10b_ctxsw_prog_set_full_preemption_ptr(struct gk20a *g,
+	struct nvgpu_mem *ctx_mem, u64 addr);
+void gp10b_ctxsw_prog_init_ctxsw_hdr_data(struct gk20a *g,
+	struct nvgpu_mem *ctx_mem);
+void gp10b_ctxsw_prog_dump_ctxsw_stats(struct gk20a *g,
+	struct nvgpu_mem *ctx_mem);
 
-struct gk20a_fecs_trace_record {
-	u32 magic_lo;
-	u32 magic_hi;
-	u32 context_id;
-	u32 context_ptr;
-	u32 new_context_id;
-	u32 new_context_ptr;
-	u64 ts[];
-};
-
-#ifdef CONFIG_GK20A_CTXSW_TRACE
-int gk20a_fecs_trace_num_ts(struct gk20a *g);
-struct gk20a_fecs_trace_record *gk20a_fecs_trace_get_record(struct gk20a *g,
-	int idx);
-bool gk20a_fecs_trace_is_valid_record(struct gk20a *g,
-	struct gk20a_fecs_trace_record *r);
-int gk20a_fecs_trace_get_read_index(struct gk20a *g);
-int gk20a_fecs_trace_get_write_index(struct gk20a *g);
-
-#endif /* CONFIG_GK20A_CTXSW_TRACE */
-
-#endif
+#endif /* NVGPU_CTXSW_PROG_GP10B_H */

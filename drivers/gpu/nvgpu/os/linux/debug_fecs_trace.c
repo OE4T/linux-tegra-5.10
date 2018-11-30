@@ -55,23 +55,24 @@ static int gk20a_fecs_trace_debugfs_ring_seq_show(
 	struct gk20a_fecs_trace_record *r =
 		gk20a_fecs_trace_get_record(g, *pos);
 	int i;
-	const u32 invalid_tag = gk20a_fecs_trace_record_ts_tag_invalid_ts_v();
+	const u32 invalid_tag =
+		g->ops.gr.ctxsw_prog.hw_get_ts_tag_invalid_timestamp();
 	u32 tag;
 	u64 timestamp;
 
 	seq_printf(s, "record #%lld (%p)\n", *pos, r);
 	seq_printf(s, "\tmagic_lo=%08x\n", r->magic_lo);
 	seq_printf(s, "\tmagic_hi=%08x\n", r->magic_hi);
-	if (gk20a_fecs_trace_is_valid_record(r)) {
+	if (gk20a_fecs_trace_is_valid_record(g, r)) {
 		seq_printf(s, "\tcontext_ptr=%08x\n", r->context_ptr);
 		seq_printf(s, "\tcontext_id=%08x\n", r->context_id);
 		seq_printf(s, "\tnew_context_ptr=%08x\n", r->new_context_ptr);
 		seq_printf(s, "\tnew_context_id=%08x\n", r->new_context_id);
-		for (i = 0; i < gk20a_fecs_trace_num_ts(); i++) {
-			tag = gk20a_fecs_trace_record_ts_tag_v(r->ts[i]);
+		for (i = 0; i < gk20a_fecs_trace_num_ts(g); i++) {
+			tag = g->ops.gr.ctxsw_prog.hw_get_ts_tag(r->ts[i]);
 			if (tag == invalid_tag)
 				continue;
-			timestamp = gk20a_fecs_trace_record_ts_timestamp_v(r->ts[i]);
+			timestamp = g->ops.gr.ctxsw_prog.hw_record_ts_timestamp(r->ts[i]);
 			timestamp <<= GK20A_FECS_TRACE_PTIMER_SHIFT;
 			seq_printf(s, "\ttag=%02x timestamp=%012llx\n", tag, timestamp);
 		}

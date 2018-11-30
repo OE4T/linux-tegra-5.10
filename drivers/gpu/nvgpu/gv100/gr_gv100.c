@@ -37,7 +37,6 @@
 #include <nvgpu/hw/gv100/hw_gr_gv100.h>
 #include <nvgpu/hw/gv100/hw_proj_gv100.h>
 #include <nvgpu/hw/gv100/hw_top_gv100.h>
-#include <nvgpu/hw/gv100/hw_ctxsw_prog_gv100.h>
 #include <nvgpu/hw/gv100/hw_perf_gv100.h>
 
 
@@ -427,11 +426,6 @@ void gr_gv100_split_fbpa_broadcast_addr(struct gk20a *g, u32 addr,
 					pri_fbpa_addr_mask(g, addr), fbpa_id);
 		}
 	}
-}
-
-u32 gr_gv100_get_hw_accessor_stream_out_mode(void)
-{
-	return ctxsw_prog_main_image_pm_mode_stream_out_ctxsw_f();
 }
 
 void gr_gv100_set_pmm_register(struct gk20a *g, u32 offset, u32 val,

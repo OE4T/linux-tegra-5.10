@@ -62,6 +62,10 @@ static inline u32 ctxsw_prog_fecs_header_v(void)
 {
 	return 0x00000100U;
 }
+static inline u32 ctxsw_prog_gpccs_header_stride_v(void)
+{
+	return 0x00000100U;
+}
 static inline u32 ctxsw_prog_main_image_num_gpcs_o(void)
 {
 	return 0x00000008U;
@@ -101,6 +105,10 @@ static inline u32 ctxsw_prog_main_image_pm_o(void)
 static inline u32 ctxsw_prog_main_image_pm_mode_m(void)
 {
 	return U32(0x7U) << 0U;
+}
+static inline u32 ctxsw_prog_main_image_pm_mode_ctxsw_f(void)
+{
+	return 0x1U;
 }
 static inline u32 ctxsw_prog_main_image_pm_mode_no_ctxsw_f(void)
 {

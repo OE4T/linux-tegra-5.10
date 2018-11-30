@@ -342,7 +342,6 @@ struct gpu_ops {
 		int (*update_smpc_ctxsw_mode)(struct gk20a *g,
 				struct channel_gk20a *c,
 				bool enable);
-		u32 (*get_hw_accessor_stream_out_mode)(void);
 		int (*update_hwpm_ctxsw_mode)(struct gk20a *g,
 				struct channel_gk20a *c,
 				u64 gpu_va,
@@ -454,10 +453,6 @@ struct gpu_ops {
 		int (*commit_global_timeslice)(struct gk20a *g,
 					struct channel_gk20a *c);
 		int (*commit_inst)(struct channel_gk20a *c, u64 gpu_va);
-		void (*write_zcull_ptr)(struct gk20a *g,
-					struct nvgpu_mem *mem, u64 gpu_va);
-		void (*write_pm_ptr)(struct gk20a *g,
-					struct nvgpu_mem *mem, u64 gpu_va);
 		void (*set_preemption_buffer_va)(struct gk20a *g,
 					struct nvgpu_mem *mem, u64 gpu_va);
 		void (*load_tpc_mask)(struct gk20a *g);
@@ -479,8 +474,6 @@ struct gpu_ops {
 				u32 gpc, u32 tpc, u32 sm);
 		void (*resume_all_sms)(struct gk20a *g);
 		void (*disable_rd_coalesce)(struct gk20a *g);
-		void (*init_ctxsw_hdr_data)(struct gk20a *g,
-					struct nvgpu_mem *mem);
 		void (*init_gfxp_wfi_timeout_count)(struct gk20a *g);
 		unsigned long (*get_max_gfxp_wfi_timeout_count)
 					(struct gk20a *g);
@@ -539,6 +532,96 @@ struct gpu_ops {
 			  struct nvgpu_gr_ctx *gr_ctx, struct vm_gk20a *vm);
 		void (*commit_gfxp_rtv_cb)(struct gk20a *g,
 			  struct nvgpu_gr_ctx *gr_ctx, bool patch);
+		struct {
+			u32 (*hw_get_fecs_header_size)(void);
+			u32 (*hw_get_gpccs_header_size)(void);
+			u32 (*hw_get_extended_buffer_segments_size_in_bytes)(void);
+			u32 (*hw_extended_marker_size_in_bytes)(void);
+			u32 (*hw_get_perf_counter_control_register_stride)(void);
+			u32 (*hw_get_perf_counter_register_stride)(void);
+			u32 (*get_main_image_ctx_id)(struct gk20a *g,
+				struct nvgpu_mem *ctx_mem);
+			u32 (*get_patch_count)(struct gk20a *g,
+				struct nvgpu_mem *ctx_mem);
+			void (*set_patch_count)(struct gk20a *g,
+				struct nvgpu_mem *ctx_mem, u32 count);
+			void (*set_patch_addr)(struct gk20a *g,
+				struct nvgpu_mem *ctx_mem, u64 addr);
+			void (*set_zcull_ptr)(struct gk20a *g,
+				struct nvgpu_mem *ctx_mem, u64 addr);
+			void (*set_zcull)(struct gk20a *g,
+				struct nvgpu_mem *ctx_mem, u32 mode);
+			void (*set_zcull_mode_no_ctxsw)(struct gk20a *g,
+				struct nvgpu_mem *ctx_mem);
+			bool (*is_zcull_mode_separate_buffer)(u32 mode);
+			void (*set_pm_ptr)(struct gk20a *g,
+				struct nvgpu_mem *ctx_mem, u64 addr);
+			void (*set_pm_mode)(struct gk20a *g,
+				struct nvgpu_mem *ctx_mem, u32 mode);
+			void (*set_pm_smpc_mode)(struct gk20a *g,
+				struct nvgpu_mem *ctx_mem, bool enable);
+			u32 (*set_pm_mode_no_ctxsw)(struct gk20a *g,
+				struct nvgpu_mem *ctx_mem);
+			u32 (*set_pm_mode_ctxsw)(struct gk20a *g,
+				struct nvgpu_mem *ctx_mem);
+			u32 (*set_pm_mode_stream_out_ctxsw)(struct gk20a *g,
+				struct nvgpu_mem *ctx_mem);
+			u32 (*hw_get_pm_mode_no_ctxsw)(void);
+			u32 (*hw_get_pm_mode_ctxsw)(void);
+			u32 (*hw_get_pm_mode_stream_out_ctxsw)(void);
+			void (*init_ctxsw_hdr_data)(struct gk20a *g,
+				struct nvgpu_mem *ctx_mem);
+			void (*set_compute_preemption_mode_cta)(struct gk20a *g,
+				struct nvgpu_mem *ctx_mem);
+			void (*set_compute_preemption_mode_cilp)(struct gk20a *g,
+				struct nvgpu_mem *ctx_mem);
+			void (*set_graphics_preemption_mode_gfxp)(struct gk20a *g,
+				struct nvgpu_mem *ctx_mem);
+			void (*set_cde_enabled)(struct gk20a *g,
+				struct nvgpu_mem *ctx_mem);
+			void (*set_pc_sampling)(struct gk20a *g,
+				struct nvgpu_mem *ctx_mem, bool enable);
+			void (*set_priv_access_map_config_mode)(struct gk20a *g,
+				struct nvgpu_mem *ctx_mem, bool allow_all);
+			void (*set_priv_access_map_addr)(struct gk20a *g,
+				struct nvgpu_mem *ctx_mem, u64 addr);
+			void (*disable_verif_features)(struct gk20a *g,
+				struct nvgpu_mem *ctx_mem);
+			bool (*check_main_image_header_magic)(u8 *context);
+			bool (*check_local_header_magic)(u8 *context);
+			u32 (*get_num_gpcs)(u8 *context);
+			u32 (*get_num_tpcs)(u8 *context);
+			void (*get_extended_buffer_size_offset)(u8 *context,
+				u32 *size, u32 *offset);
+			void (*get_ppc_info)(u8 *context,
+				u32 *num_ppcs, u32 *ppc_mask);
+			u32 (*get_local_priv_register_ctl_offset)(u8 *context);
+			u32 (*hw_get_ts_tag_invalid_timestamp)(void);
+			u32 (*hw_get_ts_tag)(u64 ts);
+			u64 (*hw_record_ts_timestamp)(u64 ts);
+			u32 (*hw_get_ts_record_size_in_bytes)(void);
+			u32 (*is_ts_valid_record)(u32 magic_hi);
+			u32 (*get_ts_buffer_aperture_mask)(struct gk20a *g,
+				struct nvgpu_mem *ctx_mem);
+			void (*set_ts_num_records)(struct gk20a *g,
+				struct nvgpu_mem *ctx_mem, u32 num);
+			void (*set_ts_buffer_ptr)(struct gk20a *g,
+				struct nvgpu_mem *ctx_mem, u64 addr,
+				u32 aperture_mask);
+			void (*set_pmu_options_boost_clock_frequencies)(
+				struct gk20a *g,
+				struct nvgpu_mem *ctx_mem, u32 boosted_ctx);
+			void (*set_context_buffer_ptr)(struct gk20a *g,
+				struct nvgpu_mem *ctx_mem, u64 addr);
+			void (*set_full_preemption_ptr)(struct gk20a *g,
+				struct nvgpu_mem *ctx_mem, u64 addr);
+			void (*set_full_preemption_ptr_veid0)(struct gk20a *g,
+				struct nvgpu_mem *ctx_mem, u64 addr);
+			void (*set_type_per_veid_header)(struct gk20a *g,
+				struct nvgpu_mem *ctx_mem);
+			void (*dump_ctxsw_stats)(struct gk20a *g,
+				struct nvgpu_mem *ctx_mem);
+		} ctxsw_prog;
 	} gr;
 	struct {
 		void (*init_hw)(struct gk20a *g);

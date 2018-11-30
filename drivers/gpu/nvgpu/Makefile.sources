@@ -106,6 +106,9 @@ srcs :=	os/posix/nvgpu.c \
 	common/falcon/falcon_gp106.c \
 	common/falcon/falcon_gv100.c \
 	common/falcon/falcon_tu104.c \
+	common/gr/ctxsw_prog/ctxsw_prog_gm20b.c \
+	common/gr/ctxsw_prog/ctxsw_prog_gp10b.c \
+	common/gr/ctxsw_prog/ctxsw_prog_gv11b.c \
 	common/netlist/netlist.c \
 	common/netlist/netlist_sim.c \
 	common/netlist/netlist_gm20b.c \

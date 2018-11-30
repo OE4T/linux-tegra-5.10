@@ -27,7 +27,6 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/channel.h>
 
-#include <nvgpu/hw/gv11b/hw_ctxsw_prog_gv11b.h>
 
 int vgpu_gv11b_alloc_subctx_header(struct channel_gk20a *c)
 {
@@ -41,8 +40,8 @@ int vgpu_gv11b_alloc_subctx_header(struct channel_gk20a *c)
 	msg.handle = vgpu_get_handle(c->g);
 	p->ch_handle = c->virt_ctx;
 	p->ctx_header_va = __nvgpu_vm_alloc_va(c->vm,
-				ctxsw_prog_fecs_header_v(),
-				GMMU_PAGE_SIZE_KERNEL);
+			c->g->ops.gr.ctxsw_prog.hw_get_fecs_header_size(),
+			GMMU_PAGE_SIZE_KERNEL);
 	if (!p->ctx_header_va) {
 		nvgpu_err(c->g, "alloc va failed for ctx_header");
 		return -ENOMEM;

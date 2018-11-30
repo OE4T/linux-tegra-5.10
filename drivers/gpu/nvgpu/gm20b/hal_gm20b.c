@@ -41,6 +41,7 @@
 #include "common/ptimer/ptimer_gk20a.h"
 #include "common/fb/fb_gm20b.h"
 #include "common/netlist/netlist_gm20b.h"
+#include "common/gr/ctxsw_prog/ctxsw_prog_gm20b.h"
 #include "common/therm/therm_gm20b.h"
 #include "common/ltc/ltc_gm20b.h"
 #include "common/fuse/fuse_gm20b.h"
@@ -288,8 +289,6 @@ static const struct gpu_ops gm20b_ops = {
 		.program_zcull_mapping = gr_gk20a_program_zcull_mapping,
 		.commit_global_timeslice = gr_gk20a_commit_global_timeslice,
 		.commit_inst = gr_gk20a_commit_inst,
-		.write_zcull_ptr = gr_gk20a_write_zcull_ptr,
-		.write_pm_ptr = gr_gk20a_write_pm_ptr,
 		.load_tpc_mask = gr_gm20b_load_tpc_mask,
 		.trigger_suspend = gr_gk20a_trigger_suspend,
 		.wait_for_pause = gr_gk20a_wait_for_pause,
@@ -312,7 +311,6 @@ static const struct gpu_ops gm20b_ops = {
 		.init_ovr_sm_dsm_perf =  gk20a_gr_init_ovr_sm_dsm_perf,
 		.get_ovr_perf_regs = gk20a_gr_get_ovr_perf_regs,
 		.disable_rd_coalesce = gm20a_gr_disable_rd_coalesce,
-		.init_ctxsw_hdr_data = gk20a_gr_init_ctxsw_hdr_data,
 		.fecs_host_int_enable = gr_gk20a_fecs_host_int_enable,
 		.handle_notify_pending = gk20a_gr_handle_notify_pending,
 		.handle_semaphore_pending = gk20a_gr_handle_semaphore_pending,
@@ -335,6 +333,72 @@ static const struct gpu_ops gm20b_ops = {
 			gk20a_gr_get_fecs_ctx_state_store_major_rev_id,
 		.alloc_gfxp_rtv_cb = NULL,
 		.commit_gfxp_rtv_cb = NULL,
+		.ctxsw_prog = {
+			.hw_get_fecs_header_size =
+				gm20b_ctxsw_prog_hw_get_fecs_header_size,
+			.hw_get_gpccs_header_size =
+				gm20b_ctxsw_prog_hw_get_gpccs_header_size,
+			.hw_get_extended_buffer_segments_size_in_bytes =
+				gm20b_ctxsw_prog_hw_get_extended_buffer_segments_size_in_bytes,
+			.hw_extended_marker_size_in_bytes =
+				gm20b_ctxsw_prog_hw_extended_marker_size_in_bytes,
+			.hw_get_perf_counter_control_register_stride =
+				gm20b_ctxsw_prog_hw_get_perf_counter_control_register_stride,
+			.get_main_image_ctx_id =
+				gm20b_ctxsw_prog_get_main_image_ctx_id,
+			.get_patch_count = gm20b_ctxsw_prog_get_patch_count,
+			.set_patch_count = gm20b_ctxsw_prog_set_patch_count,
+			.set_patch_addr = gm20b_ctxsw_prog_set_patch_addr,
+			.set_zcull_ptr = gm20b_ctxsw_prog_set_zcull_ptr,
+			.set_zcull = gm20b_ctxsw_prog_set_zcull,
+			.set_zcull_mode_no_ctxsw =
+				gm20b_ctxsw_prog_set_zcull_mode_no_ctxsw,
+			.is_zcull_mode_separate_buffer =
+				gm20b_ctxsw_prog_is_zcull_mode_separate_buffer,
+			.set_pm_ptr = gm20b_ctxsw_prog_set_pm_ptr,
+			.set_pm_mode = gm20b_ctxsw_prog_set_pm_mode,
+			.set_pm_smpc_mode = gm20b_ctxsw_prog_set_pm_smpc_mode,
+			.set_pm_mode_no_ctxsw =
+				gm20b_ctxsw_prog_set_pm_mode_no_ctxsw,
+			.set_pm_mode_ctxsw = gm20b_ctxsw_prog_set_pm_mode_ctxsw,
+			.hw_get_pm_mode_no_ctxsw =
+				gm20b_ctxsw_prog_hw_get_pm_mode_no_ctxsw,
+			.hw_get_pm_mode_ctxsw = gm20b_ctxsw_prog_hw_get_pm_mode_ctxsw,
+			.init_ctxsw_hdr_data = gm20b_ctxsw_prog_init_ctxsw_hdr_data,
+			.set_compute_preemption_mode_cta =
+				gm20b_ctxsw_prog_set_compute_preemption_mode_cta,
+			.set_cde_enabled = gm20b_ctxsw_prog_set_cde_enabled,
+			.set_pc_sampling = gm20b_ctxsw_prog_set_pc_sampling,
+			.set_priv_access_map_config_mode =
+				gm20b_ctxsw_prog_set_priv_access_map_config_mode,
+			.set_priv_access_map_addr =
+				gm20b_ctxsw_prog_set_priv_access_map_addr,
+			.disable_verif_features =
+				gm20b_ctxsw_prog_disable_verif_features,
+			.check_main_image_header_magic =
+				gm20b_ctxsw_prog_check_main_image_header_magic,
+			.check_local_header_magic =
+				gm20b_ctxsw_prog_check_local_header_magic,
+			.get_num_gpcs = gm20b_ctxsw_prog_get_num_gpcs,
+			.get_num_tpcs = gm20b_ctxsw_prog_get_num_tpcs,
+			.get_extended_buffer_size_offset =
+				gm20b_ctxsw_prog_get_extended_buffer_size_offset,
+			.get_ppc_info = gm20b_ctxsw_prog_get_ppc_info,
+			.get_local_priv_register_ctl_offset =
+				gm20b_ctxsw_prog_get_local_priv_register_ctl_offset,
+			.hw_get_ts_tag_invalid_timestamp =
+				gm20b_ctxsw_prog_hw_get_ts_tag_invalid_timestamp,
+			.hw_get_ts_tag = gm20b_ctxsw_prog_hw_get_ts_tag,
+			.hw_record_ts_timestamp =
+				gm20b_ctxsw_prog_hw_record_ts_timestamp,
+			.hw_get_ts_record_size_in_bytes =
+				gm20b_ctxsw_prog_hw_get_ts_record_size_in_bytes,
+			.is_ts_valid_record = gm20b_ctxsw_prog_is_ts_valid_record,
+			.get_ts_buffer_aperture_mask =
+				gm20b_ctxsw_prog_get_ts_buffer_aperture_mask,
+			.set_ts_num_records = gm20b_ctxsw_prog_set_ts_num_records,
+			.set_ts_buffer_ptr = gm20b_ctxsw_prog_set_ts_buffer_ptr,
+		}
 	},
 	.fb = {
 		.init_hw = gm20b_fb_init_hw,
@@ -695,6 +759,7 @@ int gm20b_init_hal(struct gk20a *g)
 	gops->ltc = gm20b_ops.ltc;
 	gops->ce2 = gm20b_ops.ce2;
 	gops->gr = gm20b_ops.gr;
+	gops->gr.ctxsw_prog = gm20b_ops.gr.ctxsw_prog;
 	gops->fb = gm20b_ops.fb;
 	gops->clock_gating = gm20b_ops.clock_gating;
 	gops->fifo = gm20b_ops.fifo;

@@ -31,7 +31,6 @@
 #include "os_linux.h"
 #include "ioctl_tsg.h"
 
-#include <nvgpu/hw/gk20a/hw_ctxsw_prog_gk20a.h>
 #include <nvgpu/hw/gk20a/hw_gr_gk20a.h>
 
 ssize_t gk20a_sched_dev_read(struct file *filp, char __user *buf,

@@ -39,7 +39,6 @@
 #include "gk20a/fecs_trace_gk20a.h"
 
 #include <nvgpu/hw/gk20a/hw_gr_gk20a.h>
-#include <nvgpu/hw/gk20a/hw_ctxsw_prog_gk20a.h>
 
 void vgpu_gr_detect_sm_arch(struct gk20a *g)
 {
@@ -614,7 +613,7 @@ int vgpu_gr_alloc_obj_ctx(struct channel_gk20a  *c, u32 class_num, u32 flags)
 	}
 
 	/* PM ctxt switch is off by default */
-	gr_ctx->pm_ctx.pm_mode = ctxsw_prog_main_image_pm_mode_no_ctxsw_f();
+	gr_ctx->pm_ctx.pm_mode = g->ops.gr.ctxsw_prog.hw_get_pm_mode_no_ctxsw();
 
 	nvgpu_log_fn(g, "done");
 	return 0;
@@ -1087,18 +1086,21 @@ int vgpu_gr_update_hwpm_ctxsw_mode(struct gk20a *g,
 		 * will return an error due to using the same GPU VA twice.
 		 */
 
-		if (pm_ctx->pm_mode == ctxsw_prog_main_image_pm_mode_ctxsw_f()) {
+		if (pm_ctx->pm_mode ==
+				g->ops.gr.ctxsw_prog.hw_get_pm_mode_ctxsw()) {
 			return 0;
 		}
 		p->mode = TEGRA_VGPU_CTXSW_MODE_CTXSW;
 	} else if (mode == NVGPU_DBG_HWPM_CTXSW_MODE_NO_CTXSW) {
-		if (pm_ctx->pm_mode == ctxsw_prog_main_image_pm_mode_no_ctxsw_f()) {
+		if (pm_ctx->pm_mode ==
+				g->ops.gr.ctxsw_prog.hw_get_pm_mode_no_ctxsw()) {
 			return 0;
 		}
 		p->mode = TEGRA_VGPU_CTXSW_MODE_NO_CTXSW;
 	} else if ((mode == NVGPU_DBG_HWPM_CTXSW_MODE_STREAM_OUT_CTXSW) &&
-			(g->ops.gr.get_hw_accessor_stream_out_mode)){
-		if (pm_ctx->pm_mode == g->ops.gr.get_hw_accessor_stream_out_mode()) {
+			g->ops.gr.ctxsw_prog.hw_get_pm_mode_stream_out_ctxsw()) {
+		if (pm_ctx->pm_mode ==
+				g->ops.gr.ctxsw_prog.hw_get_pm_mode_stream_out_ctxsw()) {
 			return 0;
 		}
 		p->mode = TEGRA_VGPU_CTXSW_MODE_STREAM_OUT_CTXSW;
@@ -1130,11 +1132,14 @@ int vgpu_gr_update_hwpm_ctxsw_mode(struct gk20a *g,
 	err = err ? err : msg.ret;
 	if (!err) {
 		if (mode == NVGPU_DBG_HWPM_CTXSW_MODE_CTXSW) {
-			pm_ctx->pm_mode = ctxsw_prog_main_image_pm_mode_ctxsw_f();
+			pm_ctx->pm_mode =
+				g->ops.gr.ctxsw_prog.hw_get_pm_mode_ctxsw();
 		} else if (mode == NVGPU_DBG_HWPM_CTXSW_MODE_NO_CTXSW) {
-			pm_ctx->pm_mode = ctxsw_prog_main_image_pm_mode_no_ctxsw_f();
+			pm_ctx->pm_mode =
+				g->ops.gr.ctxsw_prog.hw_get_pm_mode_no_ctxsw();
 		} else {
-			pm_ctx->pm_mode = g->ops.gr.get_hw_accessor_stream_out_mode();
+			pm_ctx->pm_mode =
+				g->ops.gr.ctxsw_prog.hw_get_pm_mode_stream_out_ctxsw();
 		}
 	}
 

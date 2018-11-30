@@ -1,0 +1,95 @@
+/*
+ * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
+ * THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+ * DEALINGS IN THE SOFTWARE.
+ */
+
+#ifndef NVGPU_CTXSW_PROG_GM20B_H
+#define NVGPU_CTXSW_PROG_GM20B_H
+
+#include <nvgpu/types.h>
+
+struct gk20a;
+struct nvgpu_mem;
+
+u32 gm20b_ctxsw_prog_hw_get_fecs_header_size(void);
+u32 gm20b_ctxsw_prog_hw_get_gpccs_header_size(void);
+u32 gm20b_ctxsw_prog_hw_get_extended_buffer_segments_size_in_bytes(void);
+u32 gm20b_ctxsw_prog_hw_extended_marker_size_in_bytes(void);
+u32 gm20b_ctxsw_prog_hw_get_perf_counter_control_register_stride(void);
+u32 gm20b_ctxsw_prog_get_main_image_ctx_id(struct gk20a *g, struct nvgpu_mem *ctx_mem);
+u32 gm20b_ctxsw_prog_get_patch_count(struct gk20a *g, struct nvgpu_mem *ctx_mem);
+void gm20b_ctxsw_prog_set_patch_count(struct gk20a *g,
+	struct nvgpu_mem *ctx_mem, u32 count);
+void gm20b_ctxsw_prog_set_patch_addr(struct gk20a *g,
+	struct nvgpu_mem *ctx_mem, u64 addr);
+void gm20b_ctxsw_prog_set_zcull_ptr(struct gk20a *g, struct nvgpu_mem *ctx_mem,
+	u64 addr);
+void gm20b_ctxsw_prog_set_zcull(struct gk20a *g, struct nvgpu_mem *ctx_mem,
+	u32 mode);
+void gm20b_ctxsw_prog_set_zcull_mode_no_ctxsw(struct gk20a *g,
+	struct nvgpu_mem *ctx_mem);
+bool gm20b_ctxsw_prog_is_zcull_mode_separate_buffer(u32 mode);
+void gm20b_ctxsw_prog_set_pm_ptr(struct gk20a *g, struct nvgpu_mem *ctx_mem,
+	u64 addr);
+void gm20b_ctxsw_prog_set_pm_mode(struct gk20a *g,
+	struct nvgpu_mem *ctx_mem, u32 mode);
+void gm20b_ctxsw_prog_set_pm_smpc_mode(struct gk20a *g,
+	struct nvgpu_mem *ctx_mem, bool enable);
+u32 gm20b_ctxsw_prog_set_pm_mode_no_ctxsw(struct gk20a *g,
+	struct nvgpu_mem *ctx_mem);
+u32 gm20b_ctxsw_prog_set_pm_mode_ctxsw(struct gk20a *g,
+	struct nvgpu_mem *ctx_mem);
+u32 gm20b_ctxsw_prog_hw_get_pm_mode_no_ctxsw(void);
+u32 gm20b_ctxsw_prog_hw_get_pm_mode_ctxsw(void);
+void gm20b_ctxsw_prog_init_ctxsw_hdr_data(struct gk20a *g,
+	struct nvgpu_mem *ctx_mem);
+void gm20b_ctxsw_prog_set_compute_preemption_mode_cta(struct gk20a *g,
+	struct nvgpu_mem *ctx_mem);
+void gm20b_ctxsw_prog_set_cde_enabled(struct gk20a *g,
+	struct nvgpu_mem *ctx_mem);
+void gm20b_ctxsw_prog_set_pc_sampling(struct gk20a *g,
+	struct nvgpu_mem *ctx_mem, bool enable);
+void gm20b_ctxsw_prog_set_priv_access_map_config_mode(struct gk20a *g,
+	struct nvgpu_mem *ctx_mem, bool allow_all);
+void gm20b_ctxsw_prog_set_priv_access_map_addr(struct gk20a *g,
+	struct nvgpu_mem *ctx_mem, u64 addr);
+void gm20b_ctxsw_prog_disable_verif_features(struct gk20a *g,
+	struct nvgpu_mem *ctx_mem);
+bool gm20b_ctxsw_prog_check_main_image_header_magic(u8 *context);
+bool gm20b_ctxsw_prog_check_local_header_magic(u8 *context);
+u32 gm20b_ctxsw_prog_get_num_gpcs(u8 *context);
+u32 gm20b_ctxsw_prog_get_num_tpcs(u8 *context);
+void gm20b_ctxsw_prog_get_extended_buffer_size_offset(u8 *context,
+	u32 *size, u32 *offset);
+void gm20b_ctxsw_prog_get_ppc_info(u8 *context, u32 *num_ppcs, u32 *ppc_mask);
+u32 gm20b_ctxsw_prog_get_local_priv_register_ctl_offset(u8 *context);
+u32 gm20b_ctxsw_prog_hw_get_ts_tag_invalid_timestamp(void);
+u32 gm20b_ctxsw_prog_hw_get_ts_tag(u64 ts);
+u64 gm20b_ctxsw_prog_hw_record_ts_timestamp(u64 ts);
+u32 gm20b_ctxsw_prog_hw_get_ts_record_size_in_bytes(void);
+u32 gm20b_ctxsw_prog_is_ts_valid_record(u32 magic_hi);
+u32 gm20b_ctxsw_prog_get_ts_buffer_aperture_mask(struct gk20a *g,
+	struct nvgpu_mem *ctx_mem);
+void gm20b_ctxsw_prog_set_ts_num_records(struct gk20a *g,
+	struct nvgpu_mem *ctx_mem, u32 num);
+void gm20b_ctxsw_prog_set_ts_buffer_ptr(struct gk20a *g,
+	struct nvgpu_mem *ctx_mem, u64 addr, u32 aperture_mask);
+
+#endif /* NVGPU_CTXSW_PROG_GM20B_H */

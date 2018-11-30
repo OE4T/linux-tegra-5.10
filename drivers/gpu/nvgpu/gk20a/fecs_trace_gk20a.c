@@ -43,7 +43,6 @@
 #include <nvgpu/log.h>
 #include <nvgpu/fecs_trace.h>
 
-#include <nvgpu/hw/gk20a/hw_ctxsw_prog_gk20a.h>
 #include <nvgpu/hw/gk20a/hw_gr_gk20a.h>
 
 struct gk20a_fecs_trace_hash_ent {
@@ -62,29 +61,14 @@ struct gk20a_fecs_trace {
 };
 
 #ifdef CONFIG_GK20A_CTXSW_TRACE
-u32 gk20a_fecs_trace_record_ts_tag_invalid_ts_v(void)
-{
-	return ctxsw_prog_record_timestamp_timestamp_hi_tag_invalid_timestamp_v();
-}
-
-u32 gk20a_fecs_trace_record_ts_tag_v(u64 ts)
-{
-	return ctxsw_prog_record_timestamp_timestamp_hi_tag_v((u32) (ts >> 32));
-}
-
-u64 gk20a_fecs_trace_record_ts_timestamp_v(u64 ts)
-{
-	return ts & ~(((u64)ctxsw_prog_record_timestamp_timestamp_hi_tag_m()) << 32);
-}
-
 static u32 gk20a_fecs_trace_fecs_context_ptr(struct gk20a *g, struct channel_gk20a *ch)
 {
 	return (u32) (nvgpu_inst_block_addr(g, &ch->inst_block) >> 12LL);
 }
 
-int gk20a_fecs_trace_num_ts(void)
+int gk20a_fecs_trace_num_ts(struct gk20a *g)
 {
-	return (ctxsw_prog_record_timestamp_record_size_in_bytes_v()
+	return (g->ops.gr.ctxsw_prog.hw_get_ts_record_size_in_bytes()
 		- sizeof(struct gk20a_fecs_trace_record)) / sizeof(u64);
 }
 
@@ -94,18 +78,18 @@ struct gk20a_fecs_trace_record *gk20a_fecs_trace_get_record(
 	struct nvgpu_mem *mem = &g->gr.global_ctx_buffer[FECS_TRACE_BUFFER].mem;
 
 	return (struct gk20a_fecs_trace_record *)
-		((u8 *) mem->cpu_va
-		+ (idx * ctxsw_prog_record_timestamp_record_size_in_bytes_v()));
+		((u8 *) mem->cpu_va +
+		(idx * g->ops.gr.ctxsw_prog.hw_get_ts_record_size_in_bytes()));
 }
 
-bool gk20a_fecs_trace_is_valid_record(struct gk20a_fecs_trace_record *r)
+bool gk20a_fecs_trace_is_valid_record(struct gk20a *g,
+	struct gk20a_fecs_trace_record *r)
 {
 	/*
 	 * testing magic_hi should suffice. magic_lo is sometimes used
 	 * as a sequence number in experimental ucode.
 	 */
-	return (r->magic_hi
-		== ctxsw_prog_record_timestamp_magic_value_hi_v_value_v());
+	return g->ops.gr.ctxsw_prog.is_ts_valid_record(r->magic_hi);
 }
 
 int gk20a_fecs_trace_get_read_index(struct gk20a *g)
@@ -254,7 +238,7 @@ static int gk20a_fecs_trace_ring_read(struct gk20a *g, int index)
 	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_ctxsw,
 		"consuming record trace=%p read=%d record=%p", trace, index, r);
 
-	if (unlikely(!gk20a_fecs_trace_is_valid_record(r))) {
+	if (unlikely(!gk20a_fecs_trace_is_valid_record(g, r))) {
 		nvgpu_warn(g,
 			"trace=%p read=%d record=%p magic_lo=%08x magic_hi=%08x (invalid)",
 			trace, index, r, r->magic_lo, r->magic_hi);
@@ -278,10 +262,11 @@ static int gk20a_fecs_trace_ring_read(struct gk20a *g, int index)
 	entry.vmid = vmid;
 
 	/* break out FECS record into trace events */
-	for (i = 0; i < gk20a_fecs_trace_num_ts(); i++) {
+	for (i = 0; i < gk20a_fecs_trace_num_ts(g); i++) {
 
-		entry.tag = gk20a_fecs_trace_record_ts_tag_v(r->ts[i]);
-		entry.timestamp = gk20a_fecs_trace_record_ts_timestamp_v(r->ts[i]);
+		entry.tag = g->ops.gr.ctxsw_prog.hw_get_ts_tag(r->ts[i]);
+		entry.timestamp =
+			g->ops.gr.ctxsw_prog.hw_record_ts_timestamp(r->ts[i]);
 		entry.timestamp <<= GK20A_FECS_TRACE_PTIMER_SHIFT;
 
 		nvgpu_log(g, gpu_dbg_ctxsw,
@@ -402,7 +387,7 @@ static int gk20a_fecs_trace_periodic_polling(void *arg)
 size_t gk20a_fecs_trace_buffer_size(struct gk20a *g)
 {
 	return GK20A_FECS_TRACE_NUM_RECORDS
-			* ctxsw_prog_record_timestamp_record_size_in_bytes_v();
+			* g->ops.gr.ctxsw_prog.hw_get_ts_record_size_in_bytes();
 }
 
 int gk20a_fecs_trace_init(struct gk20a *g)
@@ -449,8 +434,6 @@ int gk20a_fecs_trace_bind_channel(struct gk20a *g,
 	 * in the context header.
 	 */
 
-	u32 lo;
-	u32 hi;
 	u64 addr;
 	struct gk20a_fecs_trace *trace = g->fecs_trace;
 	struct nvgpu_mem *mem;
@@ -475,37 +458,24 @@ int gk20a_fecs_trace_bind_channel(struct gk20a *g,
 	} else {
 		addr = nvgpu_inst_block_addr(g, mem);
 		nvgpu_log(g, gpu_dbg_ctxsw, "pa=%llx", addr);
-		aperture_mask = nvgpu_aperture_mask(g, mem,
-			ctxsw_prog_main_image_context_timestamp_buffer_ptr_hi_target_sys_mem_noncoherent_f(),
-			ctxsw_prog_main_image_context_timestamp_buffer_ptr_hi_target_sys_mem_coherent_f(),
-			ctxsw_prog_main_image_context_timestamp_buffer_ptr_hi_target_vid_mem_f());
+		aperture_mask =
+		       g->ops.gr.ctxsw_prog.get_ts_buffer_aperture_mask(g, mem);
 	}
 	if (!addr)
 		return -ENOMEM;
 
-	lo = u64_lo32(addr);
-	hi = u64_hi32(addr);
-
 	mem = &gr_ctx->mem;
 
-	nvgpu_log(g, gpu_dbg_ctxsw, "addr_hi=%x addr_lo=%x count=%d", hi,
-		lo, GK20A_FECS_TRACE_NUM_RECORDS);
+	nvgpu_log(g, gpu_dbg_ctxsw, "addr=%llx count=%d", addr,
+		GK20A_FECS_TRACE_NUM_RECORDS);
 
-	nvgpu_mem_wr(g, mem,
-		ctxsw_prog_main_image_context_timestamp_buffer_control_o(),
-		ctxsw_prog_main_image_context_timestamp_buffer_control_num_records_f(
-			GK20A_FECS_TRACE_NUM_RECORDS));
+	g->ops.gr.ctxsw_prog.set_ts_num_records(g, mem,
+		GK20A_FECS_TRACE_NUM_RECORDS);
 
 	if (nvgpu_is_enabled(g, NVGPU_FECS_TRACE_VA))
 		mem = &ch->ctx_header;
 
-	nvgpu_mem_wr(g, mem,
-		ctxsw_prog_main_image_context_timestamp_buffer_ptr_o(),
-		lo);
-	nvgpu_mem_wr(g, mem,
-		ctxsw_prog_main_image_context_timestamp_buffer_ptr_hi_o(),
-		ctxsw_prog_main_image_context_timestamp_buffer_ptr_v_f(hi) |
-		aperture_mask);
+	g->ops.gr.ctxsw_prog.set_ts_buffer_ptr(g, mem, addr, aperture_mask);
 
 	/* pid (process identifier) in user space, corresponds to tgid (thread
 	 * group id) in kernel space.
@@ -573,7 +543,7 @@ int gk20a_gr_max_entries(struct gk20a *g,
 	int tag;
 
 	/* Compute number of entries per record, with given filter */
-	for (n = 0, tag = 0; tag < gk20a_fecs_trace_num_ts(); tag++)
+	for (n = 0, tag = 0; tag < gk20a_fecs_trace_num_ts(g); tag++)
 		n += (NVGPU_GPU_CTXSW_FILTER_ISSET(tag, filter) != 0);
 
 	/* Return max number of entries generated for the whole ring */

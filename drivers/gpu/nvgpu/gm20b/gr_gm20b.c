@@ -39,7 +39,6 @@
 #include <nvgpu/hw/gm20b/hw_gr_gm20b.h>
 #include <nvgpu/hw/gm20b/hw_fifo_gm20b.h>
 #include <nvgpu/hw/gm20b/hw_top_gm20b.h>
-#include <nvgpu/hw/gm20b/hw_ctxsw_prog_gm20b.h>
 #include <nvgpu/hw/gm20b/hw_perf_gm20b.h>
 
 void gr_gm20b_init_gpc_mmu(struct gk20a *g)
@@ -537,7 +536,7 @@ void gr_gm20b_get_sm_dsm_perf_ctrl_regs(struct gk20a *g,
 	*sm_dsm_perf_ctrl_regs = _sm_dsm_perf_ctrl_regs;
 
 	*ctrl_register_stride =
-	    ctxsw_prog_extended_sm_dsm_perf_counter_control_register_stride_v();
+	    g->ops.gr.ctxsw_prog.hw_get_perf_counter_control_register_stride();
 }
 
 u32 gr_gm20b_get_gpc_mask(struct gk20a *g)
@@ -908,16 +907,11 @@ int gr_gm20b_alloc_gr_ctx(struct gk20a *g,
 void gr_gm20b_update_ctxsw_preemption_mode(struct gk20a *g,
 		struct nvgpu_gr_ctx *gr_ctx, struct nvgpu_mem *ctxheader)
 {
-	u32 cta_preempt_option =
-		ctxsw_prog_main_image_preemption_options_control_cta_enabled_f();
-
 	nvgpu_log_fn(g, " ");
 
 	if (gr_ctx->compute_preempt_mode == NVGPU_PREEMPTION_MODE_COMPUTE_CTA) {
-		nvgpu_log_info(g, "CTA: %x", cta_preempt_option);
-		nvgpu_mem_wr(g, &gr_ctx->mem,
-				ctxsw_prog_main_image_preemption_options_o(),
-				cta_preempt_option);
+		g->ops.gr.ctxsw_prog.set_compute_preemption_mode_cta(g,
+			&gr_ctx->mem);
 	}
 
 	nvgpu_log_fn(g, "done");
@@ -1069,7 +1063,6 @@ int gr_gm20b_update_pc_sampling(struct channel_gk20a *c,
 	struct tsg_gk20a *tsg;
 	struct nvgpu_gr_ctx *gr_ctx;
 	struct nvgpu_mem *mem;
-	u32 v;
 
 	nvgpu_log_fn(c->g, " ");
 
@@ -1084,11 +1077,7 @@ int gr_gm20b_update_pc_sampling(struct channel_gk20a *c,
 		return -EINVAL;
 	}
 
-
-	v = nvgpu_mem_rd(c->g, mem, ctxsw_prog_main_image_pm_o());
-	v &= ~ctxsw_prog_main_image_pm_pc_sampling_m();
-	v |= ctxsw_prog_main_image_pm_pc_sampling_f(enable);
-	nvgpu_mem_wr(c->g, mem, ctxsw_prog_main_image_pm_o(), v);
+	c->g->ops.gr.ctxsw_prog.set_pc_sampling(c->g, mem, enable);
 
 	nvgpu_log_fn(c->g, "done");
 
@@ -1176,11 +1165,7 @@ void gr_gm20b_init_cyclestats(struct gk20a *g)
 
 void gr_gm20b_enable_cde_in_fecs(struct gk20a *g, struct nvgpu_mem *mem)
 {
-	u32 cde_v;
-
-	cde_v = nvgpu_mem_rd(g, mem, ctxsw_prog_main_image_ctl_o());
-	cde_v |=  ctxsw_prog_main_image_ctl_cde_enabled_f();
-	nvgpu_mem_wr(g, mem, ctxsw_prog_main_image_ctl_o(), cde_v);
+	g->ops.gr.ctxsw_prog.set_cde_enabled(g, mem);
 }
 
 void gr_gm20b_bpt_reg_info(struct gk20a *g, struct nvgpu_warpstate *w_state)
