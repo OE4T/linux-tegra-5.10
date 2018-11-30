@@ -156,6 +156,10 @@ static int _clk_domains_pmudatainit_3x(struct gk20a *g,
 				pdomains->master_domains_mask.super.bitcount,
 				&pset->master_domains_mask.super);
 
+	status = boardobjgrpmask_export(
+		&pdomains->prog_domains_mask.super,
+		pdomains->prog_domains_mask.super.bitcount,
+		&pset->prog_domains_mask.super);
 	nvgpu_memcpy((u8 *)&pset->deltas, (u8 *)&pdomains->deltas,
 		(sizeof(struct ctrl_clk_clk_delta)));
 
