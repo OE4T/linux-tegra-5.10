@@ -168,7 +168,6 @@ static inline u64 get_systime(struct nvpps_device_data *pdev_data, u64 *tsc)
 /*
  * Report the PPS event
  */
-__attribute__((optimize("align-functions=64")))
 static void nvpps_get_ts(struct nvpps_device_data *pdev_data, bool in_isr)
 {
 	u64		tsc;
@@ -268,7 +267,6 @@ static void nvpps_get_ts(struct nvpps_device_data *pdev_data, bool in_isr)
 }
 
 
-__attribute__((optimize("align-functions=64")))
 static irqreturn_t nvpps_gpio_isr(int irq, void *data)
 {
 	struct nvpps_device_data	*pdev_data = (struct nvpps_device_data *)data;
@@ -280,7 +278,6 @@ static irqreturn_t nvpps_gpio_isr(int irq, void *data)
 }
 
 
-__attribute__((optimize("align-functions=64")))
 static void nvpps_timer_callback(unsigned long data)
 {
 	struct nvpps_device_data	*pdev_data = (struct nvpps_device_data *)data;
