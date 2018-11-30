@@ -11,4 +11,5 @@ obj-$(CONFIG_ARCH_TEGRA_23x_SOC)        += tegra234-mc-sid.o
 
 ifeq ($(CONFIG_ARCH_TEGRA_23x_SOC),y)
 obj-y += mc-t23x.o
+obj-y += mcerr-t23x.o
 endif
