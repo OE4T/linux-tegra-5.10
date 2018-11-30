@@ -41,18 +41,18 @@ struct nvgpu_mem;
  * Don't create a virtual kernel mapping for the buffer but only allocate it;
  * this may save some resources. The buffer can be mapped later explicitly.
  */
-#define NVGPU_DMA_NO_KERNEL_MAPPING	BIT32(0)
+#define NVGPU_DMA_NO_KERNEL_MAPPING	BIT64(0)
 
 /*
  * Don't allow building the buffer from individual pages but require a
  * physically contiguous block.
  */
-#define NVGPU_DMA_FORCE_CONTIGUOUS	BIT32(1)
+#define NVGPU_DMA_FORCE_CONTIGUOUS	BIT64(1)
 
 /*
  * Make the mapping read-only.
  */
-#define NVGPU_DMA_READ_ONLY		BIT32(2)
+#define NVGPU_DMA_READ_ONLY		BIT64(2)
 
 /*
  * Buffer is physically addressed from the GPU.
@@ -60,7 +60,7 @@ struct nvgpu_mem;
  * the buffer from individual pages, but require a physically contiguous
  * block.
  */
-#define NVGPU_DMA_PHYSICALLY_ADDRESSED	BIT32(3)
+#define NVGPU_DMA_PHYSICALLY_ADDRESSED	BIT64(3)
 
 
 /**

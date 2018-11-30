@@ -75,14 +75,14 @@ struct nvgpu_mem {
 	 * Set when a nvgpu_mem struct is not a "real" nvgpu_mem struct. Instead
 	 * the struct is just a copy of another nvgpu_mem struct.
 	 */
-#define NVGPU_MEM_FLAG_SHADOW_COPY		 (1 << 0)
+#define NVGPU_MEM_FLAG_SHADOW_COPY		 BIT64(0)
 
 	/*
 	 * Specify that the GVA mapping is a fixed mapping - that is the caller
 	 * chose the GPU VA, not the GMMU mapping function. Only relevant for
 	 * VIDMEM.
 	 */
-#define NVGPU_MEM_FLAG_FIXED			 (1 << 1)
+#define NVGPU_MEM_FLAG_FIXED			 BIT64(1)
 
 	/*
 	 * Set for user generated VIDMEM allocations. This triggers a special
@@ -90,7 +90,7 @@ struct nvgpu_mem {
 	 * zeroed on boot this means that all user vidmem allocations are
 	 * therefor zeroed (to prevent leaking information in VIDMEM buffers).
 	 */
-#define NVGPU_MEM_FLAG_USER_MEM			 (1 << 2)
+#define NVGPU_MEM_FLAG_USER_MEM			 BIT64(2)
 
 	/*
 	 * Internal flag that specifies this struct has not been made with DMA
@@ -100,7 +100,7 @@ struct nvgpu_mem {
 	 * However, this will not stop the DMA API from freeing other parts of
 	 * nvgpu_mem in a system specific way.
 	 */
-#define __NVGPU_MEM_FLAG_NO_DMA			 (1 << 3)
+#define __NVGPU_MEM_FLAG_NO_DMA			 BIT64(3)
 	/*
 	 * Some nvgpu_mem objects act as facades to memory buffers owned by
 	 * someone else. This internal flag specifies that the sgt field is
@@ -109,7 +109,7 @@ struct nvgpu_mem {
 	 * Of course the caller will have to make sure that the sgt owner
 	 * outlives the nvgpu_mem.
 	 */
-#define NVGPU_MEM_FLAG_FOREIGN_SGT		 (1 << 4)
+#define NVGPU_MEM_FLAG_FOREIGN_SGT		 BIT64(4)
 	unsigned long				 mem_flags;
 
 	/*

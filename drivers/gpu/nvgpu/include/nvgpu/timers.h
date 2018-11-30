@@ -68,8 +68,8 @@ struct nvgpu_timeout {
 /*
  * Bit 0 specifies the type of timer: CPU or retry.
  */
-#define NVGPU_TIMER_CPU_TIMER		(0x0)
-#define NVGPU_TIMER_RETRY_TIMER		(0x1)
+#define NVGPU_TIMER_CPU_TIMER		(0x0U)
+#define NVGPU_TIMER_RETRY_TIMER		(0x1U)
 
 /*
  * Bits 1 through 7 are reserved; bits 8 and up are flags:
