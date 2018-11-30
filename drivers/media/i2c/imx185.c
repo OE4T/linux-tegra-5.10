@@ -559,6 +559,7 @@ static struct camera_common_pdata *imx185_parse_dt(struct tegracam_device *tc_de
 	const struct of_device_id *match;
 	struct camera_common_pdata *ret = NULL;
 	int err;
+	int gpio;
 
 	if (!np)
 		return NULL;
@@ -579,13 +580,14 @@ static struct camera_common_pdata *imx185_parse_dt(struct tegracam_device *tc_de
 	if (err)
 		dev_err(dev, "mclk not in DT\n");
 
-	board_priv_pdata->reset_gpio = of_get_named_gpio(np, "reset-gpios", 0);
-	if (board_priv_pdata->reset_gpio < 0) {
-		if (board_priv_pdata->reset_gpio == -EPROBE_DEFER)
+	gpio = of_get_named_gpio(np, "reset-gpios", 0);
+	if (gpio < 0) {
+		if (gpio == -EPROBE_DEFER)
 			ret = ERR_PTR(-EPROBE_DEFER);
 		dev_err(dev, "reset-gpios not found %d\n", err);
 		goto error;
 	}
+	board_priv_pdata->reset_gpio = (unsigned int)gpio;
 
 	return board_priv_pdata;
 
