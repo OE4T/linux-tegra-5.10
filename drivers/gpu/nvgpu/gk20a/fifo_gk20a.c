@@ -4499,19 +4499,27 @@ u32 gk20a_fifo_pbdma_acquire_val(u64 timeout)
 
 const char *gk20a_fifo_interleave_level_name(u32 interleave_level)
 {
+	const char *ret_string = NULL;
+
 	switch (interleave_level) {
 	case NVGPU_FIFO_RUNLIST_INTERLEAVE_LEVEL_LOW:
-		return "LOW";
+		ret_string = "LOW";
+		break;
 
 	case NVGPU_FIFO_RUNLIST_INTERLEAVE_LEVEL_MEDIUM:
-		return "MEDIUM";
+		ret_string = "MEDIUM";
+		break;
 
 	case NVGPU_FIFO_RUNLIST_INTERLEAVE_LEVEL_HIGH:
-		return "HIGH";
+		ret_string = "HIGH";
+		break;
 
 	default:
-		return "?";
+		ret_string = "?";
+		break;
 	}
+
+	return ret_string;
 }
 
 u32 gk20a_fifo_get_sema_wait_cmd_size(void)
