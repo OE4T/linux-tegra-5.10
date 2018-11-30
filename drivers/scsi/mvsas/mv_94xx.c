@@ -60,14 +60,26 @@ static void set_phy_tuning(struct mvs_info *mvi, int phy_id,
 		case 0:
 			setting_0 = GENERATION_1_SETTING;
 			setting_1 = GENERATION_1_2_SETTING;
+			phy_tuning.trans_emp_en = 0x1;
+			phy_tuning.trans_emp_amp = 0x2;
+			phy_tuning.trans_amp = 0xE;
+			phy_tuning.trans_amp_adj = 0x1;
 			break;
 		case 1:
 			setting_0 = GENERATION_1_2_SETTING;
 			setting_1 = GENERATION_2_3_SETTING;
+			phy_tuning.trans_emp_en = 0x1;
+			phy_tuning.trans_emp_amp = 0x4;
+			phy_tuning.trans_amp = 0x11;
+			phy_tuning.trans_amp_adj = 0x1;
 			break;
 		case 2:
 			setting_0 = GENERATION_2_3_SETTING;
 			setting_1 = GENERATION_3_4_SETTING;
+			phy_tuning.trans_emp_en = 0x1;
+			phy_tuning.trans_emp_amp = 0x6;
+			phy_tuning.trans_amp = 0x15;
+			phy_tuning.trans_amp_adj = 0x1;
 			break;
 		}
 
@@ -90,7 +102,21 @@ static void set_phy_tuning(struct mvs_info *mvi, int phy_id,
 		tmp = mvs_read_port_vsr_data(mvi, phy_id);
 		tmp &= ~(0xC000);
 		tmp |= (phy_tuning.trans_amp_adj << 14);
+		if (i == 2) {
+			/* Clear:
+			 * G3_DFE_EN, G3_SELMUFF, G3_SELMUFI
+			 */
+			tmp &= ~(0xFF0);
+		}
 		mvs_write_port_vsr_data(mvi, phy_id, tmp);
+
+		/* Set R100[20:16] to 4 to indicate 50MHz reference clk */
+		mvs_write_port_vsr_addr(mvi, phy_id, VSR_PHY_PWR_PLL_CONTROL);
+		tmp = mvs_read_port_vsr_data(mvi, phy_id);
+		tmp &= ~(0x1F0000);
+		tmp |= (0x4 << 16);
+		mvs_write_port_vsr_data(mvi, phy_id, tmp);
+
 	}
 }
 
@@ -138,14 +164,9 @@ static void set_phy_ffe_tuning(struct mvs_info *mvi, int phy_id,
 	 *
 	 * DFE_UPDATE_EN        [11:6]
 	 * DFE_FX_FORCE         [5:0]
+	 *
+	 * Leave at reset values.
 	 */
-	mvs_write_port_vsr_addr(mvi, phy_id, VSR_PHY_DFE_UPDATE_CRTL);
-	tmp = mvs_read_port_vsr_data(mvi, phy_id);
-	tmp &= ~0xFFF;
-	/* Hard coding */
-	/* No defines in HBA_Info_Page */
-	tmp |= ((0x3F << 6) | (0x0 << 0));
-	mvs_write_port_vsr_data(mvi, phy_id, tmp);
 
 	/* R1A0h Interface and Digital Reference Clock Control/Reserved_50h
 	 *
