@@ -230,8 +230,8 @@ static void mvs_94xx_config_reg_from_hba(struct mvs_info *mvi, int phy_id)
 
 	temp = (u8)(*(u8 *)&mvi->hba_info_param.phy_rate[phy_id]);
 	if (temp == 0xFFL)
-		/*set default phy_rate = 6Gbps*/
-		mvi->hba_info_param.phy_rate[phy_id] = 0x2;
+		/*set default phy_rate = 3Gbps*/
+		mvi->hba_info_param.phy_rate[phy_id] = 0x1;
 
 	set_phy_tuning(mvi, phy_id,
 		mvi->hba_info_param.phy_tuning[phy_id]);
