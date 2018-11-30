@@ -2921,9 +2921,9 @@ static void tegra_pcie_dw_scan_bus(struct pcie_port *pp)
 	struct tegra_pcie_dw *pcie = dw_pcie_to_tegra_pcie(pci);
 	struct resource_entry *win;
 	struct pci_dev *pdev = NULL, *ppdev = NULL;
-	u32 width = 0, speed = 0, data = 0, pos = 0;
+	u32 speed = 0, data = 0, pos = 0;
 	struct pci_bus *child;
-	unsigned long freq;
+	unsigned long freq, width = 0;
 
 	if (!tegra_pcie_dw_link_up(pci))
 		return;
@@ -2931,8 +2931,8 @@ static void tegra_pcie_dw_scan_bus(struct pcie_port *pp)
 	/* Make EMC FLOOR freq request based on link width and speed */
 	data = readl(pci->dbi_base + CFG_LINK_STATUS_CONTROL);
 	width = ((data >> 16) & PCI_EXP_LNKSTA_NLW) >> 4;
-	width = find_first_bit((const unsigned long *)&width,
-			       sizeof(width));
+	/* Here 6 is size of PCIE_CAP_NEGO_LINK_WIDTH register field*/
+	width = find_first_bit((const unsigned long *)&width, 6);
 	speed = ((data >> 16) & PCI_EXP_LNKSTA_CLS);
 	freq = pcie->dvfs_tbl[width][speed - 1];
 	dev_dbg(pcie->dev, "EMC Freq requested = %lu\n", freq);
