@@ -213,8 +213,8 @@ void nvgpu_pd_cache_fini(struct gk20a *g)
 	}
 
 	for (i = 0U; i < NVGPU_PD_CACHE_COUNT; i++) {
-		WARN_ON(!nvgpu_list_empty(&cache->full[i]));
-		WARN_ON(!nvgpu_list_empty(&cache->partial[i]));
+		(void) WARN_ON(!nvgpu_list_empty(&cache->full[i]));
+		(void) WARN_ON(!nvgpu_list_empty(&cache->partial[i]));
 	}
 
 	nvgpu_kfree(g, g->mm.pd_cache);
