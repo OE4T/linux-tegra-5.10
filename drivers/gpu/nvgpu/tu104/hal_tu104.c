@@ -1088,6 +1088,14 @@ int tu104_init_hal(struct gk20a *g)
 	gops->pmu_perf.support_vfe = false;
 	gops->clk.support_vf_point = false;
 
+	/* dGpu VDK support */
+	if (nvgpu_is_enabled(g, NVGPU_IS_FMODEL)){
+		/* Disable compression */
+		gops->ltc.cbc_ctrl = NULL;
+		gops->ltc.init_comptags = NULL;
+		gops->fb.init_cbc = NULL;
+	}
+
 	g->pmu_lsf_pmu_wpr_init_done = 0;
 
 	g->name = "tu10x";
