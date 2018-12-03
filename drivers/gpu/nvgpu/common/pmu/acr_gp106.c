@@ -50,8 +50,8 @@
 #define gp106_dbg_pmu(g, fmt, arg...) \
 	nvgpu_log(g, gpu_dbg_pmu, fmt, ##arg)
 
-typedef int (*get_ucode_details)(struct gk20a *g,
-		struct flcn_ucode_img_v1 *udata);
+typedef int (*gp106_get_ucode_details)(struct gk20a *g,
+				       struct flcn_ucode_img_v1 *udata);
 
 /* Both size and address of WPR need to be 128K-aligned */
 #define WPR_ALIGNMENT	0x20000
@@ -64,7 +64,7 @@ typedef int (*get_ucode_details)(struct gk20a *g,
 /*Forwards*/
 
 /*Globals*/
-static get_ucode_details pmu_acr_supp_ucode_list[] = {
+static gp106_get_ucode_details pmu_acr_supp_ucode_list[] = {
 	pmu_ucode_details,
 	fecs_ucode_details,
 	gpccs_ucode_details,

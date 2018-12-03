@@ -47,7 +47,8 @@
 #include <nvgpu/hw/gm20b/hw_falcon_gm20b.h>
 #include <nvgpu/hw/gm20b/hw_pwr_gm20b.h>
 
-typedef int (*get_ucode_details)(struct gk20a *g, struct flcn_ucode_img *udata);
+typedef int (*gm20b_get_ucode_details)(struct gk20a *g,
+				       struct flcn_ucode_img *udata);
 
 /*Externs*/
 
@@ -69,7 +70,7 @@ static void lsfm_init_wpr_contents(struct gk20a *g, struct ls_flcn_mgr *plsfm,
 static void free_acr_resources(struct gk20a *g, struct ls_flcn_mgr *plsfm);
 
 /*Globals*/
-static get_ucode_details pmu_acr_supp_ucode_list[] = {
+static gm20b_get_ucode_details pmu_acr_supp_ucode_list[] = {
 	pmu_ucode_details,
 	fecs_ucode_details,
 	gpccs_ucode_details,
