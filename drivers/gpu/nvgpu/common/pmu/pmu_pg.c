@@ -114,7 +114,7 @@ static void pmu_handle_pg_elpg_msg(struct gk20a *g, struct pmu_msg *msg,
 /* PG enable/disable */
 int nvgpu_pmu_pg_global_enable(struct gk20a *g, bool enable_pg)
 {
-	u32 status = 0;
+	int status = 0;
 
 	if (enable_pg) {
 		if (g->ops.pmu.pmu_pg_engines_feature_list != NULL &&
@@ -145,18 +145,21 @@ int nvgpu_pmu_pg_global_enable(struct gk20a *g, bool enable_pg)
 	return status;
 }
 
-static int pmu_enable_elpg_locked(struct gk20a *g, u32 pg_engine_id)
+static int pmu_enable_elpg_locked(struct gk20a *g, u8 pg_engine_id)
 {
 	struct nvgpu_pmu *pmu = &g->pmu;
 	struct pmu_cmd cmd;
-	u32 seq, status;
+	u32 seq;
+	int status;
+	u64 tmp;
 
 	nvgpu_log_fn(g, " ");
 
 	(void) memset(&cmd, 0, sizeof(struct pmu_cmd));
 	cmd.hdr.unit_id = PMU_UNIT_PG;
-	cmd.hdr.size = PMU_CMD_HDR_SIZE +
-		sizeof(struct pmu_pg_cmd_elpg_cmd);
+	tmp = PMU_CMD_HDR_SIZE + sizeof(struct pmu_pg_cmd_elpg_cmd);
+	nvgpu_assert(tmp <= U8_MAX);
+	cmd.hdr.size = (u8)tmp;
 	cmd.cmd.pg.elpg_cmd.cmd_type = PMU_PG_CMD_ID_ELPG_CMD;
 	cmd.cmd.pg.elpg_cmd.engine_id = pg_engine_id;
 	cmd.cmd.pg.elpg_cmd.cmd = PMU_PG_ELPG_CMD_ALLOW;
@@ -174,7 +177,7 @@ static int pmu_enable_elpg_locked(struct gk20a *g, u32 pg_engine_id)
 	status = nvgpu_pmu_cmd_post(g, &cmd, NULL, NULL,
 		PMU_COMMAND_QUEUE_HPQ, pmu_handle_pg_elpg_msg,
 		pmu, &seq);
-	WARN_ON(status != 0U);
+	WARN_ON(status != 0);
 
 	nvgpu_log_fn(g, "done");
 	return 0;
@@ -184,7 +187,7 @@ int nvgpu_pmu_enable_elpg(struct gk20a *g)
 {
 	struct nvgpu_pmu *pmu = &g->pmu;
 	struct gr_gk20a *gr = &g->gr;
-	u32 pg_engine_id;
+	u8 pg_engine_id;
 	u32 pg_engine_id_list = 0;
 
 	int ret = 0;
@@ -252,9 +255,10 @@ int nvgpu_pmu_disable_elpg(struct gk20a *g)
 	struct pmu_cmd cmd;
 	u32 seq;
 	int ret = 0;
-	u32 pg_engine_id;
+	u8 pg_engine_id;
 	u32 pg_engine_id_list = 0;
 	u32 *ptr = NULL;
+	u64 tmp;
 
 	nvgpu_log_fn(g, " ");
 
@@ -317,8 +321,10 @@ int nvgpu_pmu_disable_elpg(struct gk20a *g)
 		if ((BIT32(pg_engine_id) & pg_engine_id_list) != 0U) {
 			(void) memset(&cmd, 0, sizeof(struct pmu_cmd));
 			cmd.hdr.unit_id = PMU_UNIT_PG;
-			cmd.hdr.size = PMU_CMD_HDR_SIZE +
+			tmp = PMU_CMD_HDR_SIZE +
 				sizeof(struct pmu_pg_cmd_elpg_cmd);
+			nvgpu_assert(tmp <= U8_MAX);
+			cmd.hdr.size = (u8)tmp;
 			cmd.cmd.pg.elpg_cmd.cmd_type = PMU_PG_CMD_ID_ELPG_CMD;
 			cmd.cmd.pg.elpg_cmd.engine_id = pg_engine_id;
 			cmd.cmd.pg.elpg_cmd.cmd = PMU_PG_ELPG_CMD_DISALLOW;
@@ -385,12 +391,13 @@ static void pmu_handle_pg_stat_msg(struct gk20a *g, struct pmu_msg *msg,
 	}
 }
 
-static int pmu_pg_init_send(struct gk20a *g, u32 pg_engine_id)
+static int pmu_pg_init_send(struct gk20a *g, u8 pg_engine_id)
 {
 	struct nvgpu_pmu *pmu = &g->pmu;
 	struct pmu_cmd cmd;
 	u32 seq;
 	int err = 0;
+	u64 tmp;
 
 	nvgpu_log_fn(g, " ");
 
@@ -403,9 +410,11 @@ static int pmu_pg_init_send(struct gk20a *g, u32 pg_engine_id)
 	/* init ELPG */
 	(void) memset(&cmd, 0, sizeof(struct pmu_cmd));
 	cmd.hdr.unit_id = PMU_UNIT_PG;
-	cmd.hdr.size = PMU_CMD_HDR_SIZE + sizeof(struct pmu_pg_cmd_elpg_cmd);
+	tmp = PMU_CMD_HDR_SIZE + sizeof(struct pmu_pg_cmd_elpg_cmd);
+	nvgpu_assert(tmp <= U8_MAX);
+	cmd.hdr.size = (u8)tmp;
 	cmd.cmd.pg.elpg_cmd.cmd_type = PMU_PG_CMD_ID_ELPG_CMD;
-	cmd.cmd.pg.elpg_cmd.engine_id = pg_engine_id;
+	cmd.cmd.pg.elpg_cmd.engine_id = (u8)pg_engine_id;
 	cmd.cmd.pg.elpg_cmd.cmd = PMU_PG_ELPG_CMD_INIT;
 
 	nvgpu_pmu_dbg(g, "cmd post PMU_PG_ELPG_CMD_INIT");
@@ -419,7 +428,9 @@ static int pmu_pg_init_send(struct gk20a *g, u32 pg_engine_id)
 	pmu->stat_dmem_offset[pg_engine_id] = 0;
 	(void) memset(&cmd, 0, sizeof(struct pmu_cmd));
 	cmd.hdr.unit_id = PMU_UNIT_PG;
-	cmd.hdr.size = PMU_CMD_HDR_SIZE + sizeof(struct pmu_pg_cmd_stat);
+	tmp = PMU_CMD_HDR_SIZE + sizeof(struct pmu_pg_cmd_stat);
+	nvgpu_assert(tmp <= U8_MAX);
+	cmd.hdr.size = (u8)tmp;
 	cmd.cmd.pg.stat.cmd_type = PMU_PG_CMD_ID_PG_STAT;
 	cmd.cmd.pg.stat.engine_id = pg_engine_id;
 	cmd.cmd.pg.stat.sub_cmd_id = PMU_PG_STAT_CMD_ALLOC_DMEM;
@@ -443,7 +454,9 @@ static int pmu_pg_init_send(struct gk20a *g, u32 pg_engine_id)
 	}
 	(void) memset(&cmd, 0, sizeof(struct pmu_cmd));
 	cmd.hdr.unit_id = PMU_UNIT_PG;
-	cmd.hdr.size = PMU_CMD_HDR_SIZE + sizeof(struct pmu_pg_cmd_elpg_cmd);
+	tmp = PMU_CMD_HDR_SIZE + sizeof(struct pmu_pg_cmd_elpg_cmd);
+	nvgpu_assert(tmp <= U8_MAX);
+	cmd.hdr.size = (u8)tmp;
 	cmd.cmd.pg.elpg_cmd.cmd_type = PMU_PG_CMD_ID_ELPG_CMD;
 	cmd.cmd.pg.elpg_cmd.engine_id = pg_engine_id;
 	cmd.cmd.pg.elpg_cmd.cmd = PMU_PG_ELPG_CMD_DISALLOW;
@@ -464,7 +477,7 @@ static int pmu_pg_init_send(struct gk20a *g, u32 pg_engine_id)
 
 int nvgpu_pmu_init_powergating(struct gk20a *g)
 {
-	u32 pg_engine_id;
+	u8 pg_engine_id;
 	u32 pg_engine_id_list = 0;
 	struct nvgpu_pmu *pmu = &g->pmu;
 
@@ -664,12 +677,15 @@ int nvgpu_pmu_ap_send_command(struct gk20a *g,
 	struct pmu_cmd cmd;
 	u32 seq;
 	pmu_callback p_callback = NULL;
+	u64 tmp;
 
 	(void) memset(&cmd, 0, sizeof(struct pmu_cmd));
 
 	/* Copy common members */
 	cmd.hdr.unit_id = PMU_UNIT_PG;
-	cmd.hdr.size = PMU_CMD_HDR_SIZE + sizeof(union pmu_ap_cmd);
+	tmp = PMU_CMD_HDR_SIZE + sizeof(union pmu_ap_cmd);
+	nvgpu_assert(tmp <= U8_MAX);
+	cmd.hdr.size = (u8)tmp;
 
 	cmd.cmd.pg.ap_cmd.cmn.cmd_type = PMU_PG_CMD_ID_AP;
 	cmd.cmd.pg.ap_cmd.cmn.cmd_id = p_ap_cmd->cmn.cmd_id;
