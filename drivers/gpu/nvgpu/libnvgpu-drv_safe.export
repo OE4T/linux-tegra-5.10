@@ -74,6 +74,9 @@ nvgpu_channel_sync_create
 nvgpu_dma_alloc
 nvgpu_dma_alloc_get_fault_injection
 nvgpu_dma_free
+nvgpu_falcon_get_instance
+nvgpu_falcon_sw_free
+nvgpu_falcon_sw_init
 nvgpu_fifo_init_support
 nvgpu_free
 nvgpu_free_enabled_flags

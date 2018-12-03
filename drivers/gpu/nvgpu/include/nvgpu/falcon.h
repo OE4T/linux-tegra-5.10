@@ -153,6 +153,7 @@ int nvgpu_falcon_get_mem_size(struct nvgpu_falcon *flcn,
 			      enum falcon_mem_type type, u32 *size);
 u32 nvgpu_falcon_get_id(struct nvgpu_falcon *flcn);
 
+struct nvgpu_falcon *nvgpu_falcon_get_instance(struct gk20a *g, u32 flcn_id);
 int nvgpu_falcon_sw_init(struct gk20a *g, u32 flcn_id);
 void nvgpu_falcon_sw_free(struct gk20a *g, u32 flcn_id);
 

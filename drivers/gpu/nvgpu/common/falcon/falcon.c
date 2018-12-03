@@ -643,7 +643,7 @@ u32 nvgpu_falcon_get_id(struct nvgpu_falcon *flcn)
 	return flcn->flcn_id;
 }
 
-static struct nvgpu_falcon *falcon_get_instance(struct gk20a *g, u32 flcn_id)
+struct nvgpu_falcon *nvgpu_falcon_get_instance(struct gk20a *g, u32 flcn_id)
 {
 	struct nvgpu_falcon *flcn = NULL;
 
@@ -717,7 +717,7 @@ int nvgpu_falcon_sw_init(struct gk20a *g, u32 flcn_id)
 	struct nvgpu_falcon *flcn = NULL;
 	int err = 0;
 
-	flcn = falcon_get_instance(g, flcn_id);
+	flcn = nvgpu_falcon_get_instance(g, flcn_id);
 	if (flcn == NULL) {
 		return -ENODEV;
 	}
@@ -750,7 +750,7 @@ void nvgpu_falcon_sw_free(struct gk20a *g, u32 flcn_id)
 {
 	struct nvgpu_falcon *flcn = NULL;
 
-	flcn = falcon_get_instance(g, flcn_id);
+	flcn = nvgpu_falcon_get_instance(g, flcn_id);
 	if (flcn == NULL) {
 		return;
 	}
