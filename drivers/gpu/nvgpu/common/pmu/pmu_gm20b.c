@@ -230,7 +230,7 @@ int gm20b_load_falcon_ucode(struct gk20a *g, u32 falconidmask)
 	unsigned long timeout = gk20a_get_gr_idle_timeout(g);
 
 	/* GM20B PMU supports loading FECS only */
-	if (!(falconidmask == (1 << LSF_FALCON_ID_FECS))) {
+	if (!(falconidmask == (1 << FALCON_ID_FECS))) {
 		return -EINVAL;
 	}
 	/* check whether pmu is ready to bootstrap lsf if not wait for it */
@@ -247,7 +247,7 @@ int gm20b_load_falcon_ucode(struct gk20a *g, u32 falconidmask)
 	/* load FECS */
 	gk20a_writel(g,
 		gr_fecs_ctxsw_mailbox_clear_r(0), ~0x0);
-	gm20b_pmu_load_lsf(g, LSF_FALCON_ID_FECS, flags);
+	gm20b_pmu_load_lsf(g, FALCON_ID_FECS, flags);
 	err = pmu_gm20b_ctx_wait_lsf_ready(g, timeout,
 			0x55AA55AA);
 	return err;

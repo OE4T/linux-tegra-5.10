@@ -36,6 +36,8 @@
 #define FALCON_ID_NVDEC     (4U)
 #define FALCON_ID_SEC2      (7U)
 #define FALCON_ID_MINION    (10U)
+#define FALCON_ID_END	    (11U)
+#define FALCON_ID_INVALID   0xFFFFFFFFU
 
 /*
  * Falcon Base address Defines

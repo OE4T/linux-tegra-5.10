@@ -792,19 +792,19 @@ int gr_gm20b_load_ctxsw_ucode(struct gk20a *g)
 		if (!nvgpu_is_enabled(g, NVGPU_SEC_SECUREGPCCS)) {
 			gr_gm20b_load_gpccs_with_bootloader(g);
 			err = g->ops.pmu.load_lsfalcon_ucode(g,
-					(1 << LSF_FALCON_ID_FECS));
+					(1 << FALCON_ID_FECS));
 		} else {
 			/* bind WPR VA inst block */
 			gr_gk20a_load_falcon_bind_instblk(g);
 			if (nvgpu_is_enabled(g, NVGPU_SUPPORT_SEC2_RTOS)) {
 				err = nvgpu_sec2_bootstrap_ls_falcons(g, &g->sec2,
-						LSF_FALCON_ID_FECS);
+						FALCON_ID_FECS);
 				err = nvgpu_sec2_bootstrap_ls_falcons(g, &g->sec2,
-						LSF_FALCON_ID_GPCCS);
+						FALCON_ID_GPCCS);
 			} else {
 				err = g->ops.pmu.load_lsfalcon_ucode(g,
-					(1 << LSF_FALCON_ID_FECS) |
-					(1 << LSF_FALCON_ID_GPCCS));
+					(1 << FALCON_ID_FECS) |
+					(1 << FALCON_ID_GPCCS));
 			}
 		}
 		if (err != 0) {
@@ -820,18 +820,18 @@ int gr_gm20b_load_ctxsw_ucode(struct gk20a *g)
 		} else {
 			/* bind WPR VA inst block */
 			gr_gk20a_load_falcon_bind_instblk(g);
-			if (g->ops.pmu.is_lazy_bootstrap(LSF_FALCON_ID_FECS)) {
-				falcon_id_mask |= BIT8(LSF_FALCON_ID_FECS);
+			if (g->ops.pmu.is_lazy_bootstrap(FALCON_ID_FECS)) {
+				falcon_id_mask |= BIT8(FALCON_ID_FECS);
 			}
-			if (g->ops.pmu.is_lazy_bootstrap(LSF_FALCON_ID_GPCCS)) {
-				falcon_id_mask |= BIT8(LSF_FALCON_ID_GPCCS);
+			if (g->ops.pmu.is_lazy_bootstrap(FALCON_ID_GPCCS)) {
+				falcon_id_mask |= BIT8(FALCON_ID_GPCCS);
 			}
 
 			if (nvgpu_is_enabled(g, NVGPU_SUPPORT_SEC2_RTOS)) {
 				err = nvgpu_sec2_bootstrap_ls_falcons(g, &g->sec2,
-						LSF_FALCON_ID_FECS);
+						FALCON_ID_FECS);
 				err = nvgpu_sec2_bootstrap_ls_falcons(g, &g->sec2,
-						LSF_FALCON_ID_GPCCS);
+						FALCON_ID_GPCCS);
 			} else {
 				err = g->ops.pmu.load_lsfalcon_ucode(g, falcon_id_mask);
 			}

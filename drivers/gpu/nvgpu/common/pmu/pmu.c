@@ -312,7 +312,7 @@ int nvgpu_init_pmu_support(struct gk20a *g)
 
 				/* Bootstrap PMU from SEC2 RTOS*/
 				err = nvgpu_sec2_bootstrap_ls_falcons(g, &g->sec2,
-					LSF_FALCON_ID_PMU);
+					FALCON_ID_PMU);
 				if (err != 0) {
 					goto exit;
 				}

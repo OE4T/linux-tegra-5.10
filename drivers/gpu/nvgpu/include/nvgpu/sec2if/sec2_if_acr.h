@@ -43,7 +43,7 @@ struct nv_sec2_acr_cmd_bootstrap_falcon {
 	/* Additional bootstrapping flags */
 	u32 flags;
 
-	/* ID to identify Falcon, ref LSF_FALCON_ID_<XYZ> */
+	/* ID to identify Falcon, ref FALCON_ID_<XYZ> */
 	u32 falcon_id;
 };
 

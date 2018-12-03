@@ -147,10 +147,10 @@ bool gv11b_is_lazy_bootstrap(u32 falcon_id)
 	bool enable_status = false;
 
 	switch (falcon_id) {
-	case LSF_FALCON_ID_FECS:
+	case FALCON_ID_FECS:
 		enable_status = true;
 		break;
-	case LSF_FALCON_ID_GPCCS:
+	case FALCON_ID_GPCCS:
 		enable_status = true;
 		break;
 	default:
@@ -165,10 +165,10 @@ bool gv11b_is_priv_load(u32 falcon_id)
 	bool enable_status = false;
 
 	switch (falcon_id) {
-	case LSF_FALCON_ID_FECS:
+	case FALCON_ID_FECS:
 		enable_status = false;
 		break;
-	case LSF_FALCON_ID_GPCCS:
+	case FALCON_ID_GPCCS:
 		enable_status = true;
 		break;
 	default:

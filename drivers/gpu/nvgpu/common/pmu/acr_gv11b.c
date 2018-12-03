@@ -155,7 +155,7 @@ void nvgpu_gv11b_acr_sw_init(struct gk20a *g, struct nvgpu_acr *acr)
 
 	acr->g = g;
 
-	acr->bootstrap_owner = LSF_FALCON_ID_PMU;
+	acr->bootstrap_owner = FALCON_ID_PMU;
 	acr->max_supported_lsfm = MAX_SUPPORTED_LSFM;
 
 	gv11b_acr_default_sw_init(g, &acr->acr);

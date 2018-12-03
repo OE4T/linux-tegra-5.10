@@ -44,18 +44,6 @@
 #define LSF_WPR_REGION_ALLOW_WRITE_MISMATCH_NO	(0x0U)
 
 /*
- * Falcon Id Defines
- * Defines a common Light Secure Falcon identifier.
- */
-#define LSF_FALCON_ID_PMU	0U
-#define LSF_FALCON_ID_GSPLITE	1U
-#define LSF_FALCON_ID_FECS	2U
-#define LSF_FALCON_ID_GPCCS	3U
-#define LSF_FALCON_ID_SEC2	7U
-#define LSF_FALCON_ID_END	11U
-#define LSF_FALCON_ID_INVALID	0xFFFFFFFFU
-
-/*
  * Light Secure Falcon Ucode Description Defines
  * This structure is prelim and may change as the ucode signing flow evolves.
  */
@@ -76,7 +64,7 @@ struct lsf_ucode_desc_v1 {
 	u32 bsupports_versioning;
 	u32 version;
 	u32 dep_map_count;
-	u8  dep_map[LSF_FALCON_ID_END * 2 * 4];
+	u8  dep_map[FALCON_ID_END * 2 * 4];
 	u8  kdf[16];
 };
 
@@ -139,7 +127,7 @@ enum {
 /*
  * Bootstrap Owner Defines
  */
-#define LSF_BOOTSTRAP_OWNER_DEFAULT (LSF_FALCON_ID_PMU)
+#define LSF_BOOTSTRAP_OWNER_DEFAULT (FALCON_ID_PMU)
 
 /*
  * Image Status Defines
@@ -215,7 +203,7 @@ struct lsf_lsb_header_v1 {
  * Maximum WPR Header size
  */
 #define LSF_WPR_HEADERS_TOTAL_SIZE_MAX	\
-	(ALIGN_UP(((u32)sizeof(struct lsf_wpr_header_v1) * LSF_FALCON_ID_END), \
+	(ALIGN_UP(((u32)sizeof(struct lsf_wpr_header_v1) * FALCON_ID_END), \
 		LSF_WPR_HEADER_ALIGNMENT))
 #define LSF_LSB_HEADER_TOTAL_SIZE_MAX	(\
 	ALIGN_UP(sizeof(struct lsf_lsb_header_v1), LSF_LSB_HEADER_ALIGNMENT))

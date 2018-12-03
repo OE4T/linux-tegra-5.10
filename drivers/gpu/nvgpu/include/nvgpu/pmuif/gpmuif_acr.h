@@ -138,7 +138,7 @@ struct nv_pmu_rpc_struct_acr_init_wpr_region {
 struct nv_pmu_rpc_struct_acr_bootstrap_gr_falcons {
 	/*[IN/OUT] Must be first field in RPC structure */
 	struct nv_pmu_rpc_header hdr;
-	/* [IN] Mask of falcon IDs @ref LSF_FALCON_ID_<XYZ> */
+	/* [IN] Mask of falcon IDs @ref FALCON_ID_<XYZ> */
 	u32  falcon_id_mask;
 	/*
 	 * [IN] Boostrapping flags @ref

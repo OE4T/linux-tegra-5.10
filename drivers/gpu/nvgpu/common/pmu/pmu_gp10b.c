@@ -182,8 +182,8 @@ int gp10b_load_falcon_ucode(struct gk20a *g, u32 falconidmask)
 		return -EINVAL;
 	}
 	if ((falconidmask &
-		~(BIT32(LSF_FALCON_ID_FECS) |
-		  BIT32(LSF_FALCON_ID_GPCCS))) != 0U) {
+		~(BIT32(FALCON_ID_FECS) |
+		  BIT32(FALCON_ID_GPCCS))) != 0U) {
 		return -EINVAL;
 	}
 	g->pmu_lsf_loaded_falcon_id = 0;
@@ -309,10 +309,10 @@ bool gp10b_is_lazy_bootstrap(u32 falcon_id)
 	bool enable_status = false;
 
 	switch (falcon_id) {
-	case LSF_FALCON_ID_FECS:
+	case FALCON_ID_FECS:
 		enable_status = false;
 		break;
-	case LSF_FALCON_ID_GPCCS:
+	case FALCON_ID_GPCCS:
 		enable_status = true;
 		break;
 	default:
@@ -327,10 +327,10 @@ bool gp10b_is_priv_load(u32 falcon_id)
 	bool enable_status = false;
 
 	switch (falcon_id) {
-	case LSF_FALCON_ID_FECS:
+	case FALCON_ID_FECS:
 		enable_status = false;
 		break;
-	case LSF_FALCON_ID_GPCCS:
+	case FALCON_ID_GPCCS:
 		enable_status = true;
 		break;
 	default:
