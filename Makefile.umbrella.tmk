@@ -33,6 +33,7 @@ NV_REPOSITORY_COMPONENTS += userspace/units/mm/pd_cache
 NV_REPOSITORY_COMPONENTS += userspace/units/mm/page_table
 NV_REPOSITORY_COMPONENTS += userspace/units/fifo/runlist
 NV_REPOSITORY_COMPONENTS += userspace/units/fuse
+NV_REPOSITORY_COMPONENTS += userspace/units/list
 endif
 
 # Local Variables:
