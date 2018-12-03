@@ -29,8 +29,6 @@
 #include <nvgpu/log2.h>
 #include <nvgpu/gk20a.h>
 
-#include "gk20a/mm_gk20a.h"
-
 #define pd_dbg(g, fmt, args...) nvgpu_log(g, gpu_dbg_pd_cache, fmt, ##args)
 
 /**
