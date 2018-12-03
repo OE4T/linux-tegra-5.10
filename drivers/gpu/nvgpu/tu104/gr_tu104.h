@@ -72,8 +72,6 @@ int gr_tu104_commit_global_ctx_buffers(struct gk20a *g,
 void gr_tu104_bundle_cb_defaults(struct gk20a *g);
 void gr_tu104_cb_size_default(struct gk20a *g);
 
-int gr_tu104_get_preemption_mode_flags(struct gk20a *g,
-	struct nvgpu_preemption_modes_rec *preemption_modes_rec);
 void gr_tu104_enable_gpc_exceptions(struct gk20a *g);
 
 int gr_tu104_get_offset_in_gpccs_segment(struct gk20a *g,

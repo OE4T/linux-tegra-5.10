@@ -333,24 +333,6 @@ void gr_tu104_cb_size_default(struct gk20a *g)
 		gr_gpc0_ppc0_cbm_beta_cb_size_v_gfxp_v();
 }
 
-int gr_tu104_get_preemption_mode_flags(struct gk20a *g,
-	struct nvgpu_preemption_modes_rec *preemption_modes_rec)
-{
-	preemption_modes_rec->graphics_preemption_mode_flags = (
-			NVGPU_PREEMPTION_MODE_GRAPHICS_WFI);
-	preemption_modes_rec->compute_preemption_mode_flags = (
-			NVGPU_PREEMPTION_MODE_COMPUTE_WFI |
-			NVGPU_PREEMPTION_MODE_COMPUTE_CTA |
-			NVGPU_PREEMPTION_MODE_COMPUTE_CILP);
-
-	preemption_modes_rec->default_graphics_preempt_mode =
-			NVGPU_PREEMPTION_MODE_GRAPHICS_WFI;
-	preemption_modes_rec->default_compute_preempt_mode =
-			NVGPU_PREEMPTION_MODE_COMPUTE_WFI;
-
-	return 0;
-}
-
 void gr_tu104_free_gr_ctx(struct gk20a *g,
 			  struct vm_gk20a *vm, struct nvgpu_gr_ctx *gr_ctx)
 {
