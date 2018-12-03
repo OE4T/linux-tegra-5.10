@@ -61,6 +61,7 @@
 #include "common/pmu/pmu_gp106.h"
 #include "common/pmu/pmu_gv100.h"
 #include "common/pmu/pmu_gv11b.h"
+#include "common/pmu/pmu_tu104.h"
 #include "common/pmu/acr_gm20b.h"
 #include "common/pmu/acr_gp106.h"
 #include "common/pmu/acr_tu104.h"
@@ -799,7 +800,7 @@ static const struct gpu_ops tu104_ops = {
 		.pmu_dump_elpg_stats = gk20a_pmu_dump_elpg_stats,
 		.pmu_dump_falcon_stats = gk20a_pmu_dump_falcon_stats,
 		.pmu_enable_irq = gk20a_pmu_enable_irq,
-		.is_pmu_supported = gp106_is_pmu_supported,
+		.is_pmu_supported = tu104_is_pmu_supported,
 		.pmu_pg_supported_engines_list = gp106_pmu_pg_engines_list,
 		.pmu_elpg_statistics = gp106_pmu_elpg_statistics,
 		.pmu_init_perfmon = nvgpu_pmu_init_perfmon,

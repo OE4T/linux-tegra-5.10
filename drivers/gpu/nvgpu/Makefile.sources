@@ -126,6 +126,7 @@ srcs :=	os/posix/nvgpu.c \
 	common/pmu/pmu_gp106.c \
 	common/pmu/pmu_gv11b.c \
 	common/pmu/pmu_gv100.c \
+	common/pmu/pmu_tu104.c \
 	common/pmu/acr_gm20b.c \
 	common/pmu/acr_gp106.c \
 	common/pmu/acr_gv11b.c \

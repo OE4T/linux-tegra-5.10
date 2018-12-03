@@ -251,6 +251,7 @@ nvgpu-y += \
 	common/pmu/pmu_gp106.o \
 	common/pmu/pmu_gv11b.o \
 	common/pmu/pmu_gv100.o \
+	common/pmu/pmu_tu104.o \
 	common/pmu/acr_gm20b.o \
 	common/pmu/acr_gp106.o \
 	common/pmu/acr_gv11b.o \
