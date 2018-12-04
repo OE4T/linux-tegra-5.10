@@ -168,7 +168,6 @@ struct mrq_response {
 #define MRQ_QUERY_FW_TAG	71
 #define MRQ_FMON		72
 #define MRQ_EC			73
-#define MRQ_FBVOLT_STATUS	74
 #define MRQ_DEBUG		75
 
 /** @} */
@@ -805,7 +804,7 @@ struct cmd_debug_fread_response {
  * Value is derived from memory available in message payload while
  * using @ref cmd_debug_fwrite_request.
  */
-#define DEBUG_WRITE_MAX_SZ	(MSG_DATA_MIN_SZ - 8)
+#define DEBUG_WRITE_MAX_SZ	(MSG_DATA_MIN_SZ - 12)
 
 /**
  * @ingroup Debugfs
@@ -2829,38 +2828,6 @@ struct mrq_ec_response {
 	union {
 		struct cmd_ec_status_get_response ec_status_get;
 	} BPMP_UNION_ANON;
-} BPMP_ABI_PACKED;
-
-/** @} */
-/** @endcond */
-
-/**
- * @ingroup MRQ_Codes
- * @def MRQ_FBVOLT_STATUS
- * @brief Provides status information about voltage state for fuse burning
- *
- * * Platforms: T194 onwards
- * @cond bpmp_t194
- * * Initiators: CCPLEX
- * * Target: BPMP
- * * Request Payload: None
- * * Response Payload: @ref mrq_fbvolt_status_response
- * @{
- */
-
-/**
- * @ingroup Fbvolt_status
- * @brief Response to #MRQ_FBVOLT_STATUS
- *
- * Value of #ready reflects if core voltages are in a suitable state for buring
- * fuses. A value of 0x1 indicates that core voltages are ready for burning
- * fuses. A value of 0x0 indicates that core voltages are not ready.
- */
-struct mrq_fbvolt_status_response {
-	/** @brief Bit [0:0] - ready status, bits [31:1] - reserved */
-	uint32_t ready;
-	/** @brief Reserved */
-	uint32_t unused;
 } BPMP_ABI_PACKED;
 
 /** @} */
