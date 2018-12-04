@@ -543,7 +543,7 @@ static void log_fault(int src_chan, const struct mc_error *fault)
 	}
 
 	mcerr_pr("(%d) %s: %s\n", client->swgid, client->name, fault->msg);
-	mcerr_pr("  status = 0x%08x; addr = 0x%08llx; hi_adr_reg=%x08\n",
+	mcerr_pr("  status = 0x%08x; addr = 0x%16llx; hi_adr_reg=0x%x\n",
 		status, (long long unsigned int)addr, high_addr_reg);
 	mcerr_pr("  secure: %s, access-type: %s\n",
 		secure ? "yes" : "no", write ? "write" : "read");
