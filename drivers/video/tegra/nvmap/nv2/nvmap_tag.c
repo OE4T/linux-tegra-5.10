@@ -17,7 +17,6 @@
 
 #define pr_fmt(fmt)	"%s: " fmt, __func__
 
-#include <linux/rtmutex.h>
 #include <linux/rbtree.h>
 #include <linux/moduleparam.h>
 #include <linux/slab.h>
