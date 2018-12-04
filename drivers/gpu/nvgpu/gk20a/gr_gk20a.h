@@ -66,6 +66,9 @@
 #define NVGPU_PREEMPTION_MODE_COMPUTE_CTA	BIT32(1)
 #define NVGPU_PREEMPTION_MODE_COMPUTE_CILP	BIT32(2)
 
+#define CTXSW_INTR0				BIT32(0)
+#define CTXSW_INTR1				BIT32(1)
+
 struct tsg_gk20a;
 struct channel_gk20a;
 struct nvgpu_warpstate;
