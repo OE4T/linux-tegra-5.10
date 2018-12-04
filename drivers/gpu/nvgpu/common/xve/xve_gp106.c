@@ -257,6 +257,7 @@ static int __do_xve_set_speed_gp106(struct gk20a *g, u32 next_link_speed)
 
 	xv_sc_dbg(g, LINK_SETTINGS, "Preparing next link settings");
 	pl_link_config &= ~xp_pl_link_config_max_link_rate_m();
+
 	switch (next_link_speed) {
 	case GPU_XVE_SPEED_2P5:
 		link_speed_setting =
@@ -278,6 +279,7 @@ static int __do_xve_set_speed_gp106(struct gk20a *g, u32 next_link_speed)
 		break;
 	default:
 		BUG(); /* Should never be hit. */
+		break;
 	}
 
 	link_control_status =
