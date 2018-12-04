@@ -25,6 +25,7 @@
 
 /* TODO: Restructure code to remove handle global variable */
 static struct smmu_debugfs_info *smmu_handle;
+static s8 debug_smmu_id;
 
 #define defreg(_name)				\
 	{					\
@@ -177,7 +178,7 @@ static void debugfs_create_smmu_cb(struct smmu_debugfs_info *smmu, u8 cbndx)
 	cb = smmu->regset + 1 + cbndx;
 	cb->regs = arm_smmu_cb_regs;
 	cb->nregs = ARRAY_SIZE(arm_smmu_cb_regs);
-	cb->base = smmu->base + (smmu->size >> 1) +
+	cb->base = smmu->bases[0] + (smmu->size >> 1) +
 		cbndx * (1 << smmu->pgshift);
 	debugfs_create_regset32("regdump", S_IRUGO, dent, cb);
 }
@@ -186,7 +187,7 @@ static int smmu_reg32_debugfs_set(void *data, u64 val)
 {
 	struct debugfs_reg32 *regs = (struct debugfs_reg32 *)data;
 
-	writel(val, (smmu_handle->base + regs->offset));
+	writel(val, (smmu_handle->bases[debug_smmu_id] + regs->offset));
 	return 0;
 }
 
@@ -194,7 +195,7 @@ static int smmu_reg32_debugfs_get(void *data, u64 *val)
 {
 	struct debugfs_reg32 *regs = (struct debugfs_reg32 *)data;
 
-	*val = readl(smmu_handle->base + regs->offset);
+	*val = readl(smmu_handle->bases[debug_smmu_id] + regs->offset);
 	return 0;
 }
 
@@ -249,6 +250,29 @@ void arm_smmu_regs_debugfs_delete(struct smmu_debugfs_info *smmu)
 	debugfs_remove_recursive(smmu->debugfs_root);
 }
 
+static int debug_smmu_id_debugfs_set(void *data, u64 val)
+{
+	struct smmu_debugfs_info *smmu = (struct smmu_debugfs_info *)data;
+
+	if (val < 0 || val >= smmu->num_smmus)
+		return -EINVAL;
+
+	debug_smmu_id = (s8)val;
+	smmu->regset->base = smmu->bases[debug_smmu_id];
+	smmu->perf_regset->base = smmu->regset->base + 3 * (1 << smmu->pgshift);
+	return 0;
+}
+
+static int debug_smmu_id_debugfs_get(void *data, u64 *val)
+{
+	*val = debug_smmu_id;
+	return 0;
+}
+
+DEFINE_SIMPLE_ATTRIBUTE(debug_smmu_id_debugfs_fops,
+			debug_smmu_id_debugfs_get,
+			debug_smmu_id_debugfs_set, "%08llx\n");
+
 int arm_smmu_regs_debugfs_create(struct smmu_debugfs_info *smmu)
 {
 	int i;
@@ -260,6 +284,9 @@ int arm_smmu_regs_debugfs_create(struct smmu_debugfs_info *smmu)
 
 	if (!smmu->debugfs_root)
 		return -1;
+
+	debugfs_create_file("debug_smmu_id", S_IRUGO | S_IWUSR,
+			smmu->debugfs_root, smmu, &debug_smmu_id_debugfs_fops);
 
 	dent_gr = debugfs_create_dir("gr", smmu->debugfs_root);
 	if (!dent_gr)
@@ -284,7 +311,7 @@ int arm_smmu_regs_debugfs_create(struct smmu_debugfs_info *smmu)
 	if (!smmu->regset)
 		goto err_out;
 
-	smmu->regset->base = smmu->base;
+	smmu->regset->base = smmu->bases[0];
 	smmu->regset->nregs = ARRAY_SIZE(arm_smmu_gr0_regs) +
 		4 * smmu->num_context_banks;
 	smmu->regset->regs = (struct debugfs_reg32 *)(smmu->regset +
@@ -354,7 +381,7 @@ int arm_smmu_regs_debugfs_create(struct smmu_debugfs_info *smmu)
 	 * perf_regset base address is placed at offset (3 * smmu_pagesize)
 	 * from smmu->base address
 	 */
-	smmu->perf_regset->base = smmu->base + 3 * (1 << smmu->pgshift);
+	smmu->perf_regset->base = smmu->bases[0] + 3 * (1 << smmu->pgshift);
 	smmu->perf_regset->nregs = ARRAY_SIZE(arm_smmu_gnsr0_regs) +
 		2 * PMCG_SIZE + 2 * PMEV_SIZE;
 	smmu->perf_regset->regs =
