@@ -356,6 +356,9 @@ struct nv_pmu_clk_clk_vf_point_boardobjgrp_set_header {
 	struct nv_pmu_boardobjgrp_e255 super;
 };
 
+struct nv_pmu_clk_clk_vf_point_sec_boardobjgrp_set_header {
+	struct nv_pmu_boardobjgrp_e255 super;
+};
 struct nv_pmu_clk_clk_vf_point_boardobj_set {
 	struct nv_pmu_boardobj super;
 	u8 vfe_equ_idx;
@@ -374,6 +377,11 @@ struct nv_pmu_clk_clk_vf_point_volt_boardobj_set {
 	struct ctrl_clk_freq_delta freq_delta;
 };
 
+struct nv_pmu_clk_clk_vf_point_volt_35_sec_boardobj_set {
+	struct nv_pmu_clk_clk_vf_point_volt_boardobj_set super;
+	u8 dvco_offset_code_override;
+};
+
 union nv_pmu_clk_clk_vf_point_boardobj_set_union {
 	struct nv_pmu_boardobj board_obj;
 	struct nv_pmu_clk_clk_vf_point_boardobj_set super;
@@ -381,11 +389,41 @@ union nv_pmu_clk_clk_vf_point_boardobj_set_union {
 	struct nv_pmu_clk_clk_vf_point_volt_boardobj_set volt;
 };
 
+union nv_pmu_clk_clk_vf_point_sec_boardobj_set_union {
+	struct nv_pmu_boardobj board_obj;
+	struct nv_pmu_clk_clk_vf_point_boardobj_set super;
+	struct nv_pmu_clk_clk_vf_point_freq_boardobj_set freq;
+	struct nv_pmu_clk_clk_vf_point_volt_boardobj_set volt;
+	struct nv_pmu_clk_clk_vf_point_volt_35_sec_boardobj_set v35_volt_sec;
+};
+
 NV_PMU_BOARDOBJ_GRP_SET_MAKE_E255(clk, clk_vf_point);
+NV_PMU_BOARDOBJ_GRP_SET_MAKE_E255(clk, clk_vf_point_sec);
 
 struct nv_pmu_clk_clk_vf_point_boardobjgrp_get_status_header {
 	struct nv_pmu_boardobjgrp_e255 super;
 	u32 vf_points_cahce_counter;
+};
+
+struct nv_pmu_clk_clk_vf_point_35_freq_boardobj_get_status {
+	struct nv_pmu_boardobj super;
+	struct ctrl_clk_vf_point_base_vf_tuple base_vf_tuple;
+	struct ctrl_clk_vf_point_vf_tuple
+		offseted_vf_tuple[CTRL_CLK_CLK_VF_POINT_FREQ_TUPLE_MAX_SIZE];
+};
+
+struct nv_pmu_clk_clk_vf_point_35_volt_pri_boardobj_get_status {
+	struct nv_pmu_boardobj super;
+	struct ctrl_clk_vf_point_base_vf_tuple base_vf_tuple;
+	struct ctrl_clk_vf_point_vf_tuple
+		offseted_vf_tuple[CTRL_CLK_CLK_VF_POINT_FREQ_TUPLE_MAX_SIZE];
+};
+
+struct nv_pmu_clk_clk_vf_point_35_volt_sec_boardobj_get_status {
+	struct nv_pmu_boardobj super;
+	struct ctrl_clk_vf_point_base_vf_tuple_sec base_vf_tuple;
+	struct ctrl_clk_vf_point_vf_tuple
+		offseted_vf_tuple[CTRL_CLK_CLK_VF_POINT_FREQ_TUPLE_MAX_SIZE];
 };
 
 struct nv_pmu_clk_clk_vf_point_boardobj_get_status {
@@ -403,6 +441,9 @@ union nv_pmu_clk_clk_vf_point_boardobj_get_status_union {
 	struct nv_pmu_boardobj board_obj;
 	struct nv_pmu_clk_clk_vf_point_boardobj_get_status super;
 	struct nv_pmu_clk_clk_vf_point_volt_boardobj_get_status volt;
+	struct nv_pmu_clk_clk_vf_point_35_freq_boardobj_get_status v35_freq;
+	struct nv_pmu_clk_clk_vf_point_35_volt_pri_boardobj_get_status v35_volt_pri;
+	struct nv_pmu_clk_clk_vf_point_35_volt_sec_boardobj_get_status v35_volt_sec;
 };
 
 NV_PMU_BOARDOBJ_GRP_GET_STATUS_MAKE_E255(clk, clk_vf_point);

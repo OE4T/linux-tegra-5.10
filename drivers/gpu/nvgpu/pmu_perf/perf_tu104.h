@@ -22,14 +22,14 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NVGPU_PERF_GV100_H
-#define NVGPU_PERF_GV100_H
+#ifndef NVGPU_PERF_TU104_H
+#define NVGPU_PERF_TU104_H
 
 #include <nvgpu/pmuif/nvgpu_gpmu_cmdif.h>
 
 struct gk20a;
 
-u32 perf_pmu_init_vfe_perf_event(struct gk20a *g);
-int gv100_perf_pmu_vfe_load(struct gk20a *g);
+int tu104_perf_pmu_init_vfe_perf_event(struct gk20a *g);
+int tu104_perf_pmu_vfe_load(struct gk20a *g);
 
-#endif /* NVGPU_PERF_GV100_H */
+#endif /* NVGPU_PERF_TU104_H */

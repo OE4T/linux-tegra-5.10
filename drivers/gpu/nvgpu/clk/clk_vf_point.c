@@ -96,6 +96,7 @@ int clk_vf_point_sw_setup(struct gk20a *g)
 {
 	int status;
 	struct boardobjgrp *pboardobjgrp = NULL;
+	u32 ver = g->params.gpu_arch + g->params.gpu_impl;
 
 	nvgpu_log_info(g, " ");
 
@@ -111,25 +112,48 @@ int clk_vf_point_sw_setup(struct gk20a *g)
 
 	BOARDOBJGRP_PMU_CONSTRUCT(pboardobjgrp, CLK, CLK_VF_POINT);
 
-	status = BOARDOBJGRP_PMU_CMD_GRP_SET_CONSTRUCT(g, pboardobjgrp,
-			clk, CLK, clk_vf_point, CLK_VF_POINT);
-	if (status != 0) {
-		nvgpu_err(g,
-			"error constructing PMU_BOARDOBJ_CMD_GRP_SET interface - 0x%x",
-			status);
-		goto done;
-	}
-
-	status = BOARDOBJGRP_PMU_CMD_GRP_GET_STATUS_CONSTRUCT(g,
-				&g->clk_pmu->clk_vf_pointobjs.super.super,
+	if (ver == NVGPU_GPUID_TU104) {
+		status = BOARDOBJGRP_PMU_CMD_GRP_SET_CONSTRUCT_35(g, pboardobjgrp,
 				clk, CLK, clk_vf_point, CLK_VF_POINT);
-	if (status != 0) {
-		nvgpu_err(g,
-			"error constructing PMU_BOARDOBJ_CMD_GRP_SET interface - 0x%x",
-			status);
-		goto done;
-	}
+		if (status != 0) {
+			nvgpu_err(g,
+				"error constructing PMU_BOARDOBJ_CMD_GRP_SET interface - 0x%x",
+				status);
+			goto done;
+		}
 
+		status = BOARDOBJGRP_PMU_CMD_GRP_GET_STATUS_CONSTRUCT_35(g,
+					&g->clk_pmu->clk_vf_pointobjs.super.super,
+					clk, CLK, clk_vf_point, CLK_VF_POINT);
+		if (status != 0) {
+			nvgpu_err(g,
+				"error constructing PMU_BOARDOBJ_CMD_GRP_SET interface - 0x%x",
+				status);
+			goto done;
+		}
+	}
+	else {
+		status = BOARDOBJGRP_PMU_CMD_GRP_SET_CONSTRUCT(g, pboardobjgrp,
+				clk, CLK, clk_vf_point, CLK_VF_POINT);
+		if (status != 0) {
+			nvgpu_err(g,
+				"error constructing PMU_BOARDOBJ_CMD_GRP_SET interface - 0x%x",
+				status);
+			goto done;
+		}
+
+		nvgpu_err(g,"GV100 vf_point ss_offset %x", pboardobjgrp->pmu.set.super_surface_offset);
+
+		status = BOARDOBJGRP_PMU_CMD_GRP_GET_STATUS_CONSTRUCT(g,
+					&g->clk_pmu->clk_vf_pointobjs.super.super,
+					clk, CLK, clk_vf_point, CLK_VF_POINT);
+		if (status != 0) {
+			nvgpu_err(g,
+				"error constructing PMU_BOARDOBJ_CMD_GRP_SET interface - 0x%x",
+				status);
+			goto done;
+		}
+	}
 	pboardobjgrp->pmudatainit = _clk_vf_points_pmudatainit;
 	pboardobjgrp->pmudatainstget  = _clk_vf_points_pmudata_instget;
 	pboardobjgrp->pmustatusinstget  = _clk_vf_points_pmustatus_instget;
@@ -303,6 +327,68 @@ static int clk_vf_point_construct_freq(struct gk20a *g,
 	return status;
 }
 
+static int clk_vf_point_construct_volt_35(struct gk20a *g,
+				       struct boardobj **ppboardobj,
+				       u16 size, void *pargs)
+{
+	struct boardobj *ptmpobj = (struct boardobj *)pargs;
+	struct clk_vf_point_volt *pclkvfpoint;
+	struct clk_vf_point_volt *ptmpvfpoint =
+			(struct clk_vf_point_volt *)pargs;
+	int status = 0;
+
+	if (BOARDOBJ_GET_TYPE(pargs) != CTRL_CLK_CLK_VF_POINT_TYPE_35_VOLT) {
+		return -EINVAL;
+	}
+
+	ptmpobj->type_mask = (u32) BIT(CTRL_CLK_CLK_VF_POINT_TYPE_35_VOLT);
+	status = clk_vf_point_construct_super(g, ppboardobj, size, pargs);
+	if (status != 0) {
+		return -EINVAL;
+	}
+
+	pclkvfpoint = (struct clk_vf_point_volt *) (void *) *ppboardobj;
+
+	pclkvfpoint->super.super.pmudatainit =
+			_clk_vf_point_pmudatainit_volt;
+
+	pclkvfpoint->source_voltage_uv = ptmpvfpoint->source_voltage_uv;
+	pclkvfpoint->freq_delta = ptmpvfpoint->freq_delta;
+
+	return status;
+}
+
+static int clk_vf_point_construct_freq_35(struct gk20a *g,
+				       struct boardobj **ppboardobj,
+				       u16 size, void *pargs)
+{
+	struct boardobj *ptmpobj = (struct boardobj *)pargs;
+	struct clk_vf_point_freq *pclkvfpoint;
+	struct clk_vf_point_freq *ptmpvfpoint =
+			(struct clk_vf_point_freq *)pargs;
+	int status = 0;
+
+	if (BOARDOBJ_GET_TYPE(pargs) != CTRL_CLK_CLK_VF_POINT_TYPE_35_FREQ) {
+		return -EINVAL;
+	}
+
+	ptmpobj->type_mask = (u32) BIT(CTRL_CLK_CLK_VF_POINT_TYPE_35_FREQ);
+	status = clk_vf_point_construct_super(g, ppboardobj, size, pargs);
+	if (status != 0) {
+		return -EINVAL;
+	}
+
+	pclkvfpoint = (struct clk_vf_point_freq *)(void*) *ppboardobj;
+
+	pclkvfpoint->super.super.pmudatainit =
+			_clk_vf_point_pmudatainit_freq;
+
+	clkvfpointfreqmhzset(g, &pclkvfpoint->super,
+		clkvfpointfreqmhzget(g, &ptmpvfpoint->super));
+
+	return status;
+}
+
 struct clk_vf_point *construct_clk_vf_point(struct gk20a *g, void *pargs)
 {
 	struct boardobj *board_obj_ptr = NULL;
@@ -317,6 +403,16 @@ struct clk_vf_point *construct_clk_vf_point(struct gk20a *g, void *pargs)
 
 	case CTRL_CLK_CLK_VF_POINT_TYPE_VOLT:
 		status = clk_vf_point_construct_volt(g, &board_obj_ptr,
+			sizeof(struct clk_vf_point_volt), pargs);
+		break;
+
+	case CTRL_CLK_CLK_VF_POINT_TYPE_35_FREQ:
+		status = clk_vf_point_construct_freq_35(g, &board_obj_ptr,
+			sizeof(struct clk_vf_point_freq), pargs);
+		break;
+
+	case CTRL_CLK_CLK_VF_POINT_TYPE_35_VOLT:
+		status = clk_vf_point_construct_volt_35(g, &board_obj_ptr,
 			sizeof(struct clk_vf_point_volt), pargs);
 		break;
 

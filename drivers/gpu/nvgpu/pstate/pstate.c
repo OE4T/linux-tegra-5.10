@@ -277,16 +277,16 @@ int gk20a_init_pstate_pmu_support(struct gk20a *g)
 		return err;
 	}
 
-	if (g->ops.clk.support_vf_point &&
-		g->ops.pmu_perf.support_vfe) {
-		err = clk_vf_point_pmu_setup(g);
+	if (g->ops.clk.support_clk_freq_controller) {
+		err = clk_freq_controller_pmu_setup(g);
 		if (err != 0U) {
 			return err;
 		}
 	}
 
-	if (g->ops.clk.support_clk_freq_controller) {
-		err = clk_freq_controller_pmu_setup(g);
+	if (g->ops.clk.support_vf_point &&
+		g->ops.pmu_perf.support_vfe) {
+		err = clk_vf_point_pmu_setup(g);
 		if (err != 0U) {
 			return err;
 		}

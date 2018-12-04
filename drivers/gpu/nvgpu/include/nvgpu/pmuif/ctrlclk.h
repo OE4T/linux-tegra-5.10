@@ -200,6 +200,40 @@ struct ctrl_clk_vf_pair {
 	u32 voltage_uv;
 };
 
+#define CTRL_CLK_CLK_VF_POINT_FREQ_TUPLE_MAX_SIZE		0x5U
+
+struct ctrl_clk_vf_point_freq_tuple {
+    u16   freqMHz;
+};
+
+struct ctrl_clk_vf_point_base_vf_tuple {
+	struct ctrl_clk_vf_point_freq_tuple
+        freqTuple[CTRL_CLK_CLK_VF_POINT_FREQ_TUPLE_MAX_SIZE];
+    u32   voltageuV;
+};
+
+#define CTRL_CLK_CLK_VF_POINT_DVCO_OFFSET_CODE_INVALID   0xFFU
+
+struct ctrl_clk_vf_point_base_vf_tuple_sec {
+	struct ctrl_clk_vf_point_base_vf_tuple  super;
+    u8    dvco_offset_code;
+};
+
+struct ctrl_clk_vf_point_vf_tuple {
+    u16   freqMHz;
+    u32   voltageuV;
+};
+
+struct ctrl_clk_vf_input {
+	u8 flags;
+	u32 value;
+};
+
+struct ctrl_clk_vf_output {
+	u32 input_best_match;
+	u32 value;
+};
+
 struct ctrl_clk_clk_domain_list_item {
 	u32  clk_domain;
 	u32  clk_freq_khz;

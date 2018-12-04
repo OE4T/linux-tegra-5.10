@@ -339,6 +339,20 @@ do {                                                                          \
 	(u32)offsetof(struct nv_pmu_super_surface, eng.class##_grp_set), \
 	NV_PMU_RPC_ID_##ENG##_BOARD_OBJ_GRP_CMD)
 
+#define BOARDOBJGRP_PMU_CMD_GRP_SET_CONSTRUCT_35(g, pboardobjgrp, eng, ENG, \
+	class, CLASS)                                                 \
+	g->ops.pmu_ver.boardobj.boardobjgrp_pmucmd_construct_impl(    \
+	g,                                              /* pgpu */    \
+	pboardobjgrp,                                      /* pboardobjgrp */ \
+	&((pboardobjgrp)->pmu.set),                        /* pcmd */         \
+	NV_PMU_##ENG##_CMD_ID_BOARDOBJ_GRP_SET,               /* id */        \
+	NV_PMU_##ENG##_MSG_ID_BOARDOBJ_GRP_SET,               /* msgid */     \
+	(u32)sizeof(union nv_pmu_##eng##_##class##_boardobjgrp_set_header_aligned), \
+	(u32)sizeof(union nv_pmu_##eng##_##class##_boardobj_set_union_aligned), \
+	(u32)sizeof(struct nv_pmu_##eng##_##class##_boardobj_grp_set),	\
+	(u32)offsetof(struct nv_pmu_super_surface, eng##_35.class##_grp_set), \
+	NV_PMU_RPC_ID_##ENG##_BOARD_OBJ_GRP_CMD)
+
 #define BOARDOBJGRP_PMU_CMD_GRP_GET_STATUS_CONSTRUCT(g, pboardobjgrp, \
 	eng, ENG, class, CLASS)                                       \
 	(g)->ops.pmu_ver.boardobj.boardobjgrp_pmucmd_construct_impl(    \
@@ -351,6 +365,20 @@ do {                                                                          \
 	(u32)sizeof(union nv_pmu_##eng##_##class##_boardobj_get_status_union_aligned), \
 	(u32)sizeof(struct nv_pmu_##eng##_##class##_boardobj_grp_get_status),	\
 	(u32)offsetof(struct nv_pmu_super_surface, eng.class##_grp_get_status), \
+	NV_PMU_RPC_ID_##ENG##_BOARD_OBJ_GRP_CMD)
+
+#define BOARDOBJGRP_PMU_CMD_GRP_GET_STATUS_CONSTRUCT_35(g, pboardobjgrp, \
+	eng, ENG, class, CLASS)                                       \
+	g->ops.pmu_ver.boardobj.boardobjgrp_pmucmd_construct_impl(    \
+	g,                                              /* pGpu */    \
+	pboardobjgrp,                                      /* pBoardObjGrp */ \
+	&((pboardobjgrp)->pmu.getstatus),                  /* pCmd */         \
+	NV_PMU_##ENG##_CMD_ID_BOARDOBJ_GRP_GET_STATUS,        /* id */        \
+	NV_PMU_##ENG##_MSG_ID_BOARDOBJ_GRP_GET_STATUS,        /* msgid */     \
+	(u32)sizeof(union nv_pmu_##eng##_##class##_boardobjgrp_get_status_header_aligned), \
+	(u32)sizeof(union nv_pmu_##eng##_##class##_boardobj_get_status_union_aligned), \
+	(u32)sizeof(struct nv_pmu_##eng##_##class##_boardobj_grp_get_status),	\
+	(u32)offsetof(struct nv_pmu_super_surface, eng##_35.class##_grp_get_status), \
 	NV_PMU_RPC_ID_##ENG##_BOARD_OBJ_GRP_CMD)
 
 #define BOARDOBJGRP_PMU_CMD_GRP_SET_PACK_CONSTRUCT(g, pboardobjgrp, eng, ENG, \
@@ -366,6 +394,7 @@ do {                                                                          \
 	(u32)sizeof(struct nv_pmu_##eng##_##class##_boardobj_grp_set_pack),	\
 	(u32)offsetof(struct nv_pmu_super_surface, eng.class##_grp_set), \
 	NV_PMU_RPC_ID_##ENG##_BOARD_OBJ_GRP_CMD)
+
 
 #define BOARDOBJGRP_PMU_CMD_GRP_GET_STATUS_PACK_CONSTRUCT(g, pboardobjgrp, \
 	eng, ENG, class, CLASS)                                       \

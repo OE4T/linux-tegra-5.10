@@ -1378,6 +1378,7 @@ static int vfflatten_prog_1x_master(struct gk20a *g,
 	u8 freq_step_size_mhz = 0;
 	u8 vf_point_idx;
 	u8 vf_rail_idx;
+	u32 ver = g->params.gpu_arch + g->params.gpu_impl;
 
 	nvgpu_log_info(g, " ");
 	(void) memset(&vf_point_data, 0x0, sizeof(vf_point_data));
@@ -1414,10 +1415,16 @@ static int vfflatten_prog_1x_master(struct gk20a *g,
 			/* Intentional fall-through.*/
 
 		case CTRL_CLK_PROG_1X_SOURCE_ONE_SOURCE:
-			vf_point_data.board_obj.type =
-				CTRL_CLK_CLK_VF_POINT_TYPE_FREQ;
-			do {
-				clkvfpointfreqmhzset(g, &vf_point_data.vf_point,
+			 if (ver == NVGPU_GPUID_TU104) {
+				 vf_point_data.board_obj.type =
+						 CTRL_CLK_CLK_VF_POINT_TYPE_35_FREQ;
+			 }
+			 else {
+				 vf_point_data.board_obj.type =
+						 CTRL_CLK_CLK_VF_POINT_TYPE_FREQ;
+			 }
+			 do {
+				 clkvfpointfreqmhzset(g, &vf_point_data.vf_point,
 					p1xmaster->super.freq_max_mhz -
 					  U16(step_count) *
 					  U16(freq_step_size_mhz));
@@ -1437,8 +1444,14 @@ static int vfflatten_prog_1x_master(struct gk20a *g,
 			step_count = CLK_FLL_LUT_VF_NUM_ENTRIES(pclk);
 
 			/* FLL sources use a voltage-based VF_POINT.*/
-			vf_point_data.board_obj.type =
-				CTRL_CLK_CLK_VF_POINT_TYPE_VOLT;
+			if (ver == NVGPU_GPUID_TU104) {
+				vf_point_data.board_obj.type =
+					CTRL_CLK_CLK_VF_POINT_TYPE_35_VOLT;
+			}
+			else {
+				vf_point_data.board_obj.type =
+					CTRL_CLK_CLK_VF_POINT_TYPE_VOLT;
+			 }
 			for (i = 0; i < step_count; i++) {
 				vf_point_data.volt.source_voltage_uv =
 					voltage_min_uv + i * voltage_step_size_uv;

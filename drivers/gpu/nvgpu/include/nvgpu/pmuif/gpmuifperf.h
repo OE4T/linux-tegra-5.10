@@ -61,6 +61,7 @@
 struct nv_pmu_rpc_struct_perf_load {
 	/*[IN/OUT] Must be first field in RPC structure */
     struct nv_pmu_rpc_header hdr;
+    bool b_load;
 	u32  scratch[1];
 };
 
@@ -124,6 +125,7 @@ struct nv_pmu_perf_rpc {
 #define NV_PMU_PERF_MSG_ID_BOARDOBJ_GRP_SET                      (0x00000004U)
 #define NV_PMU_PERF_MSG_ID_BOARDOBJ_GRP_GET_STATUS               (0x00000006U)
 #define NV_PMU_PERF_MSG_ID_VFE_CALLBACK                          (0x00000005U)
+#define NV_PMU_PERF_MSG_ID_CHANGE_SEQ_COMPLETION                 (0x00000007U)
 
 /*!
 * Message carrying the result of the perf RPC execution.

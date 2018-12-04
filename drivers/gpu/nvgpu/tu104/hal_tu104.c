@@ -116,6 +116,7 @@
 #include "gv100/gr_gv100.h"
 #include "gv100/mm_gv100.h"
 #include "gv100/regops_gv100.h"
+#include "pmu_perf/perf_tu104.h"
 
 #include "tu104/fifo_tu104.h"
 #include "tu104/gr_tu104.h"
@@ -942,6 +943,7 @@ static const struct gpu_ops tu104_ops = {
 		.get_rate_cntr = gv100_get_rate_cntr,
 		.measure_freq = gv100_clk_measure_freq,
 		.suspend_clk_support = gv100_suspend_clk_support,
+		.perf_pmu_vfe_load = tu104_perf_pmu_vfe_load,
 	},
 	.clk_arb = {
 		.get_arbiter_clk_domains = NULL,
@@ -1208,8 +1210,10 @@ int tu104_init_hal(struct gk20a *g)
 	gops->clk.support_lpwr_pg = false;
 	gops->clk.support_clk_freq_domain = true;
 	gops->pmu_perf.support_changeseq = true;
-	gops->pmu_perf.support_vfe = false;
-	gops->clk.support_vf_point = false;
+	gops->pmu_perf.support_vfe = true;
+	gops->clk.support_vf_point = true;
+	gops->clk.lut_num_entries = CTRL_CLK_LUT_NUM_ENTRIES_GV10x;
+	gops->clk.perf_pmu_vfe_load = tu104_perf_pmu_vfe_load;
 
 	/* dGpu VDK support */
 	if (nvgpu_is_enabled(g, NVGPU_IS_FMODEL)){

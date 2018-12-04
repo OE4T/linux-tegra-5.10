@@ -81,6 +81,12 @@ struct nv_pmu_super_surface {
 		struct perf_change_seq_pmu_script script_last;
 		struct perf_change_seq_pmu_script script_query;
 	} change_seq;
+	struct {
+		struct nv_pmu_clk_clk_vf_point_boardobj_grp_set clk_vf_point_grp_set;
+		struct nv_pmu_clk_clk_vf_point_boardobj_grp_set clk_vf_point_sec_grp_set;
+		struct nv_pmu_clk_clk_vf_point_boardobj_grp_get_status clk_vf_point_grp_get_status;
+	}clk_35;
+
 };
 
 #endif /* NVGPU_PMUIF_GPMU_SUPER_SURF_IF_H */
