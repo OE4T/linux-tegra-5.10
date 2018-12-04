@@ -1079,7 +1079,6 @@ int tu104_init_hal(struct gk20a *g)
 	__nvgpu_set_enabled(g, NVGPU_SUPPORT_SEC2_RTOS, true);
 
 	/* for now */
-	__nvgpu_set_enabled(g, NVGPU_PMU_PSTATE, true);
 	gops->clk.support_clk_freq_controller = false;
 	gops->clk.support_pmgr_domain = false;
 	gops->clk.support_lpwr_pg = false;
@@ -1094,6 +1093,11 @@ int tu104_init_hal(struct gk20a *g)
 		gops->ltc.cbc_ctrl = NULL;
 		gops->ltc.init_comptags = NULL;
 		gops->fb.init_cbc = NULL;
+
+		/* Disable pmu pstate, as there is no pmu support */
+		__nvgpu_set_enabled(g, NVGPU_PMU_PSTATE, false);
+	} else {
+		__nvgpu_set_enabled(g, NVGPU_PMU_PSTATE, true);
 	}
 
 	g->pmu_lsf_pmu_wpr_init_done = 0;
