@@ -83,7 +83,7 @@ int gr_tu104_init_sw_bundle64(struct gk20a *g)
 	u32 i;
 	u32 last_bundle_data_lo = 0;
 	u32 last_bundle_data_hi = 0;
-	u32 err = 0;
+	int err = 0;
 	struct netlist_av64_list *sw_bundle64_init =
 			&g->netlist_vars->sw_bundle64_init;
 
@@ -105,13 +105,16 @@ int gr_tu104_init_sw_bundle64(struct gk20a *g)
 
 		if (gr_pipe_bundle_address_value_v(sw_bundle64_init->l[i].addr)
 				== GR_GO_IDLE_BUNDLE) {
-			err |= gr_gk20a_wait_idle(g,
+			err = gr_gk20a_wait_idle(g,
 				gk20a_get_gr_idle_timeout(g),
 				GR_IDLE_CHECK_DEFAULT);
 		} else if (nvgpu_platform_is_silicon(g)) {
-			err |= gr_gk20a_wait_fe_idle(g,
+			err = gr_gk20a_wait_fe_idle(g,
 				gk20a_get_gr_idle_timeout(g),
 				GR_IDLE_CHECK_DEFAULT);
+		}
+		if (err != 0) {
+			break;
 		}
 	}
 
