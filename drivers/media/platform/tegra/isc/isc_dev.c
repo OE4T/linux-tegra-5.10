@@ -638,3 +638,4 @@ module_i2c_driver(isc_dev_drv);
 MODULE_DESCRIPTION("ISC Generic I2C driver");
 MODULE_AUTHOR("Charlie Huang <chahuang@nvidia.com>");
 MODULE_LICENSE("GPL v2");
+MODULE_SOFTDEP("pre: isc_gpio");

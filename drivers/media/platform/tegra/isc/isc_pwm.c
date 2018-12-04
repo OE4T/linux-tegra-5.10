@@ -251,3 +251,4 @@ MODULE_AUTHOR("Junghyun Kim <juskim@nvidia.com>");
 MODULE_DESCRIPTION("ISC PWM driver");
 MODULE_LICENSE("GPL v2");
 MODULE_DEVICE_TABLE(of, isc_pwm_of_match);
+MODULE_SOFTDEP("pre: isc_dev");

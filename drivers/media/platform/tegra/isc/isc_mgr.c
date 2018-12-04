@@ -1180,3 +1180,4 @@ MODULE_DESCRIPTION("tegra auto isc manager driver");
 MODULE_AUTHOR("Songhee Baek <sbeak@nvidia.com>");
 MODULE_LICENSE("GPL v2");
 MODULE_ALIAS("platform:isc_mgr");
+MODULE_SOFTDEP("pre: isc_pwm");
