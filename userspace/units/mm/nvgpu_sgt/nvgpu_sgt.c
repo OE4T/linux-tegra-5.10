@@ -74,11 +74,20 @@ static int test_nvgpu_sgt_basic_apis(struct unit_module *m, struct gk20a *g,
 	struct nvgpu_os_posix *p = nvgpu_os_posix_from_gk20a(g);
 	struct nvgpu_mem mem = { };
 	struct nvgpu_sgt *sgt;
-	struct nvgpu_mem_sgl *sgl;
 	struct nvgpu_sgt_ops const *saved_ops_ptr;
 	struct nvgpu_gmmu_attrs attrs;
+	const u64 dma_addr = 0x200000000;
+	const u64 phys_addr = 0x400000000;
+	struct nvgpu_mem_sgl sgl_list[] = {
+		{ .length = SZ_1M, .dma = dma_addr, .phys = phys_addr, },
+	};
 
-	mem.size = SZ_1M;
+	if (nvgpu_mem_posix_create_from_list(g, &mem, sgl_list,
+					     ARRAY_SIZE(sgl_list)) != 0) {
+		unit_err(m, "%s: nvgpu_mem_posix_create_from_list failed\n",
+			 __func__);
+		return UNIT_FAIL;
+	}
 	mem.cpu_va = (void *)0x10000000;
 	sgt = nvgpu_sgt_create_from_mem(g, &mem);
 	if (sgt == NULL) {
@@ -86,14 +95,12 @@ static int test_nvgpu_sgt_basic_apis(struct unit_module *m, struct gk20a *g,
 		ret = UNIT_FAIL;
 		goto end;
 	}
-	sgl = (struct nvgpu_mem_sgl *)sgt->sgl;
-	sgl->dma = 0x200000000;
-	if (nvgpu_sgt_get_phys(g, sgt, sgt->sgl) != U64(mem.cpu_va)) {
+	if (nvgpu_sgt_get_phys(g, sgt, sgt->sgl) != phys_addr) {
 		unit_err(m, "%s: bad phys returned\n", __func__);
 		ret = UNIT_FAIL;
 	}
 
-	if (nvgpu_sgt_get_dma(sgt, sgt->sgl) != U64(sgl->dma)) {
+	if (nvgpu_sgt_get_dma(sgt, sgt->sgl) != dma_addr) {
 		unit_err(m, "%s: bad dma address returned\n", __func__);
 		ret = UNIT_FAIL;
 	}
@@ -150,9 +157,9 @@ static int test_nvgpu_sgt_basic_apis(struct unit_module *m, struct gk20a *g,
 	/* restore default ops */
 	sgt->ops = saved_ops_ptr;
 
+end:
 	nvgpu_sgt_free(g, sgt);
 
-end:
 	return ret;
 }
 
@@ -165,51 +172,32 @@ static int test_nvgpu_sgt_get_next(struct unit_module *m, struct gk20a *g,
 				   void *args)
 {
 	int ret = UNIT_SUCCESS;
-	struct nvgpu_mem mem;
 	struct nvgpu_sgt *sgt;
-	struct nvgpu_sgl *created_sgl, *api_ptr;
-	struct nvgpu_mem_sgl *sgl_ptr, *test_sgl = NULL;
+	struct nvgpu_sgl *api_ptr;
+	struct nvgpu_mem_sgl *sgl_ptr;
 	int i;
 #define SGL_LEN 100
+	struct nvgpu_mem_sgl sgl_table[SGL_LEN];
+	u64 size;
 
-	/* create sgl for this test */
+	/* create sgl table for this test */
 	for (i = 0; i < SGL_LEN; i++) {
-		struct nvgpu_mem_sgl *tptr;
-
-		tptr = (struct nvgpu_mem_sgl *)nvgpu_kzalloc(g,
-					sizeof(struct nvgpu_mem_sgl));
-		if (tptr == NULL) {
-			unit_err(m, "%s: failed to alloc sgl\n", __func__);
-			ret = UNIT_FAIL;
-			goto dealloc_sgls;
-		}
-
-		if (i == 0) {
-			sgl_ptr = tptr;
-			test_sgl = sgl_ptr;
-		} else {
-			sgl_ptr->next = tptr;
-			sgl_ptr = sgl_ptr->next;
-		}
-		sgl_ptr->next = NULL;
-		sgl_ptr->phys = i;
-		sgl_ptr->dma = i;
-		sgl_ptr->length = i;
+		sgl_table[i].next = NULL;
+		sgl_table[i].phys = i;
+		sgl_table[i].dma = i;
+		sgl_table[i].length = i;
 	}
 
-	sgt = nvgpu_sgt_create_from_mem(g, &mem);
+	sgt = nvgpu_mem_sgt_posix_create_from_list(g, sgl_table, SGL_LEN,
+						   &size);
 	if (sgt == NULL) {
-		unit_err(m, "%s: nvgpu_sgt_create_from_mem failed\n",
+		unit_err(m, "%s: nvgpu_mem_sgt_posix_create_from_list failed\n",
 			 __func__);
-		ret = UNIT_FAIL;
-		goto dealloc_sgls;
+		return UNIT_FAIL;
 	}
-	/* save this for freeing later */
-	created_sgl = sgt->sgl;
-	sgt->sgl = (struct nvgpu_sgl *)test_sgl;
 
 	api_ptr = sgt->sgl;
-	sgl_ptr = test_sgl;
+	sgl_ptr = (struct nvgpu_mem_sgl *)sgt->sgl;
 	for (i = 0; i < SGL_LEN; i++) {
 		api_ptr = nvgpu_sgt_get_next(sgt, api_ptr);
 		if ((struct nvgpu_mem_sgl *)api_ptr != sgl_ptr->next) {
@@ -226,67 +214,101 @@ static int test_nvgpu_sgt_get_next(struct unit_module *m, struct gk20a *g,
 	}
 
 free_sgt:
-	/* free everything */
-	sgt->sgl = created_sgl;
 	nvgpu_sgt_free(g, sgt);
-
-dealloc_sgls:
-	while (test_sgl != NULL) {
-		sgl_ptr = test_sgl->next;
-		nvgpu_kfree(g, test_sgl);
-		test_sgl = sgl_ptr;
-	}
 
 	return ret;
 }
 
 /* structures to make a table for testing the alignment API */
-struct sgt_test_align_table {
-	u64 addr;
-	u64 length;
-};
-
 #define TEST_ALIGN_TABLE_MAX 100
 struct sgt_test_align_args {
 	u64 test_align_result;
 	u32 test_align_table_len;
-	struct sgt_test_align_table test_align_table[TEST_ALIGN_TABLE_MAX];
+	struct nvgpu_mem_sgl test_align_table[TEST_ALIGN_TABLE_MAX];
 };
 
 /* table of sgls for testing calculation of alignment */
 static struct sgt_test_align_args sgt_align_test_array[] = {
 	{
 		.test_align_table = {
-			{.addr = 0x00000000,	.length = SZ_1M},
-			{.addr = 0x00400000,	.length = SZ_1M},
-			{.addr = 0x00200000,	.length = SZ_1M},
+			{
+				.phys = 0x00000000,
+				.dma  = 0x00000000,
+				.length = SZ_1M,
+			},
+			{
+				.phys = 0x00400000,
+				.dma  = 0x00400000,
+				.length = SZ_1M,
+			},
+			{
+				.phys = 0x00200000,
+				.dma  = 0x00200000,
+				.length = SZ_1M,
+			},
 		},
 		.test_align_table_len = 3,
 		.test_align_result = SZ_1M,
 	},
 	{
 		.test_align_table = {
-			{.addr = 0x00000000,	.length = SZ_4K},
-			{.addr = 0x00200000,	.length = SZ_64K},
-			{.addr = 0x00100000,	.length = SZ_1M},
+			{
+				.phys = 0x00000000,
+				.dma  = 0x00000000,
+				.length = SZ_4K,
+			},
+			{
+				.phys = 0x00200000,
+				.dma  = 0x00200000,
+				.length = SZ_64K,
+			},
+			{
+				.phys = 0x00100000,
+				.dma  = 0x00100000,
+				.length = SZ_1M,
+			},
 		},
 		.test_align_table_len = 3,
 		.test_align_result = SZ_4K,
 	},
 	{
 		.test_align_table = {
-			{.addr = 0x00100000,	.length = SZ_1M},
-			{.addr = 0x00010000,	.length = SZ_64K},
-			{.addr = 0x00001000,	.length = SZ_4K},
+			{
+				.phys = 0x00100000,
+				.dma  = 0x00100000,
+				.length = SZ_1M,
+			},
+			{
+				.phys = 0x00010000,
+				.dma  = 0x00010000,
+				.length = SZ_64K,
+			},
+			{
+				.phys = 0x00001000,
+				.dma  = 0x00001000,
+				.length = SZ_4K,
+			},
 		},
 		.test_align_table_len = 3,
 		.test_align_result = SZ_4K,
 	},
 	{
 		.test_align_table = {
-			{.addr = 0x00100000,	.length = SZ_1M},
-			{.addr = 0x00010000,	.length = SZ_64K},
-			{.addr = 0x00001000,	.length = SZ_128K},
+			{
+				.phys = 0x00100000,
+				.dma  = 0x00100000,
+				.length = SZ_1M,
+			},
+			{
+				.phys = 0x00010000,
+				.dma  = 0x00010000,
+				.length = SZ_64K,
+			},
+			{
+				.phys = 0x00001000,
+				.dma  = 0x00001000,
+				.length = SZ_128K,
+			},
 		},
 		.test_align_table_len = 3,
 		.test_align_result = SZ_4K,
@@ -298,48 +320,17 @@ static int test_table_nvgpu_sgt_alignment_non_iommu(struct unit_module *m,
 					struct sgt_test_align_args *args)
 {
 	int ret = UNIT_SUCCESS;
-	struct nvgpu_mem mem;
 	struct nvgpu_sgt *sgt;
-	struct nvgpu_sgl *created_sgl;
-	struct nvgpu_mem_sgl *sgl_ptr, *test_sgl = NULL;
-	u32 i;
+	u64 size;
 	u64 alignment;
 
-	/* create sgl for this test */
-	for (i = 0; i < args->test_align_table_len; i++) {
-		struct nvgpu_mem_sgl *tptr;
-
-		tptr = (struct nvgpu_mem_sgl *)nvgpu_kzalloc(g,
-						sizeof(struct nvgpu_mem_sgl));
-		if (tptr == NULL) {
-			unit_err(m, "%s: failed to alloc sgl\n", __func__);
-			ret = UNIT_FAIL;
-			goto dealloc_sgls;
-		}
-
-		if (i == 0) {
-			sgl_ptr = tptr;
-			test_sgl = sgl_ptr;
-		} else {
-			sgl_ptr->next = tptr;
-			sgl_ptr = sgl_ptr->next;
-		}
-		sgl_ptr->next = NULL;
-		sgl_ptr->phys = args->test_align_table[i].addr;
-		sgl_ptr->dma = args->test_align_table[i].addr;
-		sgl_ptr->length = args->test_align_table[i].length;
-	}
-
-	sgt = nvgpu_sgt_create_from_mem(g, &mem);
+	sgt = nvgpu_mem_sgt_posix_create_from_list(g, args->test_align_table,
+				args->test_align_table_len, &size);
 	if (sgt == NULL) {
 		unit_err(m, "%s: nvgpu_sgt_create_from_mem failed\n",
 			 __func__);
-		ret = UNIT_FAIL;
-		goto dealloc_sgls;
+		return UNIT_FAIL;
 	}
-	/* save this for freeing later */
-	created_sgl = sgt->sgl;
-	sgt->sgl = (struct nvgpu_sgl *)test_sgl;
 
 	alignment = nvgpu_sgt_alignment(g, sgt);
 	if (alignment != args->test_align_result) {
@@ -348,16 +339,7 @@ static int test_table_nvgpu_sgt_alignment_non_iommu(struct unit_module *m,
 		ret = UNIT_FAIL;
 	}
 
-	/* free everything */
-	sgt->sgl = created_sgl;
 	nvgpu_sgt_free(g, sgt);
-
-dealloc_sgls:
-	while (test_sgl != NULL) {
-		sgl_ptr = test_sgl->next;
-		nvgpu_kfree(g, test_sgl);
-		test_sgl = sgl_ptr;
-	}
 
 	return ret;
 }
