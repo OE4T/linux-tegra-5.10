@@ -1214,11 +1214,11 @@ int gr_gk20a_fecs_ctx_image_save(struct channel_gk20a *c, u32 save_type)
 	return ret;
 }
 
-u32 gk20a_init_sw_bundle(struct gk20a *g)
+int gk20a_init_sw_bundle(struct gk20a *g)
 {
 	struct netlist_av_list *sw_bundle_init = &g->netlist_vars->sw_bundle_init;
 	u32 last_bundle_data = 0;
-	u32 err = 0;
+	int err = 0;
 	unsigned int i;
 
 	/* disable fe_go_idle */
@@ -1244,28 +1244,28 @@ u32 gk20a_init_sw_bundle(struct gk20a *g)
 			err = gr_gk20a_wait_idle(g,
 						  gk20a_get_gr_idle_timeout(g),
 						  GR_IDLE_CHECK_DEFAULT);
-			if (err != 0U) {
+			if (err != 0) {
 				goto error;
 			}
 		}
 
 		err = gr_gk20a_wait_fe_idle(g, gk20a_get_gr_idle_timeout(g),
 					    GR_IDLE_CHECK_DEFAULT);
-		if (err != 0U) {
+		if (err != 0) {
 			goto error;
 		}
 	}
 
-	if ((err == 0U) && (g->ops.gr.init_sw_veid_bundle != NULL)) {
+	if ((err == 0) && (g->ops.gr.init_sw_veid_bundle != NULL)) {
 		err = g->ops.gr.init_sw_veid_bundle(g);
-		if (err != 0U) {
+		if (err != 0) {
 			goto error;
 		}
 	}
 
 	if (g->ops.gr.init_sw_bundle64 != NULL) {
 		err = g->ops.gr.init_sw_bundle64(g);
-		if (err != 0U) {
+		if (err != 0) {
 			goto error;
 		}
 	}
@@ -1308,7 +1308,7 @@ static int gr_gk20a_init_golden_ctx_image(struct gk20a *g,
 	u32 data;
 	struct nvgpu_mem *gold_mem = &gr->global_ctx_buffer[GOLDEN_CTX].mem;
 	struct nvgpu_mem *gr_mem;
-	u32 err = 0;
+	int err = 0;
 	struct netlist_aiv_list *sw_ctx_load = &g->netlist_vars->sw_ctx_load;
 	struct netlist_av_list *sw_method_init = &g->netlist_vars->sw_method_init;
 	u32 last_method_data = 0;
@@ -1396,7 +1396,7 @@ static int gr_gk20a_init_golden_ctx_image(struct gk20a *g,
 		gr_scc_init_ram_trigger_f());
 
 	err = gr_gk20a_fecs_ctx_bind_channel(g, c);
-	if (err != 0U) {
+	if (err != 0) {
 		goto clean_up;
 	}
 
@@ -1419,7 +1419,7 @@ static int gr_gk20a_init_golden_ctx_image(struct gk20a *g,
 
 	err = gr_gk20a_wait_idle(g, gk20a_get_gr_idle_timeout(g),
 				 GR_IDLE_CHECK_DEFAULT);
-	if (err != 0U) {
+	if (err != 0) {
 		goto clean_up;
 	}
 
@@ -1428,7 +1428,7 @@ static int gr_gk20a_init_golden_ctx_image(struct gk20a *g,
 		gr_fe_go_idle_timeout_count_disabled_f());
 
 	err = g->ops.gr.commit_global_ctx_buffers(g, gr_ctx, false);
-	if (err != 0U) {
+	if (err != 0) {
 		goto clean_up;
 	}
 
@@ -1437,18 +1437,18 @@ static int gr_gk20a_init_golden_ctx_image(struct gk20a *g,
 
 	/* floorsweep anything left */
 	err = g->ops.gr.init_fs_state(g);
-	if (err != 0U) {
+	if (err != 0) {
 		goto clean_up;
 	}
 
 	err = gr_gk20a_wait_idle(g, gk20a_get_gr_idle_timeout(g),
 				 GR_IDLE_CHECK_DEFAULT);
-	if (err != 0U) {
+	if (err != 0) {
 		goto restore_fe_go_idle;
 	}
 
 	err = gk20a_init_sw_bundle(g);
-	if (err != 0U) {
+	if (err != 0) {
 		goto clean_up;
 	}
 
@@ -1457,7 +1457,7 @@ restore_fe_go_idle:
 	gk20a_writel(g, gr_fe_go_idle_timeout_r(),
 		     gr_fe_go_idle_timeout_count_prod_f());
 
-	if ((err != 0U) || (gr_gk20a_wait_idle(g, gk20a_get_gr_idle_timeout(g),
+	if ((err != 0) || (gr_gk20a_wait_idle(g, gk20a_get_gr_idle_timeout(g),
 				      GR_IDLE_CHECK_DEFAULT) != 0)) {
 		goto clean_up;
 	}
@@ -1484,7 +1484,7 @@ restore_fe_go_idle:
 
 	err = gr_gk20a_wait_idle(g, gk20a_get_gr_idle_timeout(g),
 				 GR_IDLE_CHECK_DEFAULT);
-	if (err != 0U) {
+	if (err != 0) {
 		goto clean_up;
 	}
 
@@ -1503,7 +1503,7 @@ restore_fe_go_idle:
 	g->ops.gr.write_zcull_ptr(g, gold_mem, 0);
 
 	err = g->ops.gr.commit_inst(c, gr_ctx->global_ctx_buffer_va[GOLDEN_CTX_VA]);
-	if (err != 0U) {
+	if (err != 0) {
 		goto clean_up;
 	}
 
@@ -1527,7 +1527,7 @@ restore_fe_go_idle:
 	}
 
 	err = g->ops.gr.commit_inst(c, gr_mem->gpu_va);
-	if (err != 0U) {
+	if (err != 0) {
 		goto clean_up;
 	}
 
@@ -1537,7 +1537,7 @@ restore_fe_go_idle:
 		gr_fecs_current_ctx_valid_false_f());
 
 clean_up:
-	if (err != 0U) {
+	if (err != 0) {
 		nvgpu_err(g, "fail");
 	} else {
 		nvgpu_log_fn(g, "done");
