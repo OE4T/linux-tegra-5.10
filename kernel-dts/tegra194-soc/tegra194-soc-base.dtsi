@@ -57,7 +57,7 @@
 	interrupt-parent = <&intc>;
 	#address-cells = <2>;
 	#size-cells = <2>;
-	dma-ranges = <0x0 0x0 0x0 0x0 0x2 0x00000000>;
+	dma-ranges = <0x0 0x0 0x0 0x0 0x7f 0xffff0000>;
 
 	tegra-cvnas {
 		compatible = "nvidia,tegra-cvnas";
