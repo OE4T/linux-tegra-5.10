@@ -109,10 +109,10 @@ typedef u8 flcn_status;
 
 #define PMU_CMD_FLAGS_PMU_MASK		(0xF0)
 
-#define PMU_CMD_FLAGS_STATUS		BIT(0)
-#define PMU_CMD_FLAGS_INTR		BIT(1)
-#define PMU_CMD_FLAGS_EVENT		BIT(2)
-#define PMU_CMD_FLAGS_WATERMARK		BIT(3)
+#define PMU_CMD_FLAGS_STATUS		BIT8(0)
+#define PMU_CMD_FLAGS_INTR		BIT8(1)
+#define PMU_CMD_FLAGS_EVENT		BIT8(2)
+#define PMU_CMD_FLAGS_WATERMARK		BIT8(3)
 
 #define ALIGN_UP(v, gran)       (((v) + ((gran) - 1)) & ~((gran)-1))
 
