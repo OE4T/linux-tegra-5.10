@@ -232,7 +232,7 @@ invalid_cmd:
 }
 
 static int pmu_write_cmd(struct nvgpu_pmu *pmu, struct pmu_cmd *cmd,
-			u32 queue_id, unsigned long timeout_ms)
+			u32 queue_id)
 {
 	struct gk20a *g = gk20a_from_pmu(pmu);
 	struct nvgpu_falcon_queue *queue;
@@ -242,7 +242,7 @@ static int pmu_write_cmd(struct nvgpu_pmu *pmu, struct pmu_cmd *cmd,
 	nvgpu_log_fn(g, " ");
 
 	queue = &pmu->queue[queue_id];
-	nvgpu_timeout_init(g, &timeout, timeout_ms, NVGPU_TIMER_CPU_TIMER);
+	nvgpu_timeout_init(g, &timeout, U32_MAX, NVGPU_TIMER_CPU_TIMER);
 
 	do {
 		err = nvgpu_falcon_queue_push(pmu->flcn, queue, cmd, cmd->hdr.size);
@@ -490,7 +490,7 @@ int nvgpu_pmu_cmd_post(struct gk20a *g, struct pmu_cmd *cmd,
 
 	seq->state = PMU_SEQ_STATE_USED;
 
-	err = pmu_write_cmd(pmu, cmd, queue_id, ~0UL);
+	err = pmu_write_cmd(pmu, cmd, queue_id);
 	if (err != 0) {
 		seq->state = PMU_SEQ_STATE_PENDING;
 	}
