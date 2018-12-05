@@ -1070,7 +1070,6 @@ int tu104_init_hal(struct gk20a *g)
 	gops->get_litter_value = tu104_ops.get_litter_value;
 	gops->semaphore_wakeup = gk20a_channel_semaphore_wakeup;
 
-	__nvgpu_set_enabled(g, NVGPU_GR_USE_DMA_FOR_FW_BOOTSTRAP, true);
 	__nvgpu_set_enabled(g, NVGPU_SEC_PRIVSECURITY, true);
 	__nvgpu_set_enabled(g, NVGPU_SEC_SECUREGPCCS, true);
 	__nvgpu_set_enabled(g, NVGPU_PMU_FECS_BOOTSTRAP_DONE, false);
@@ -1094,10 +1093,17 @@ int tu104_init_hal(struct gk20a *g)
 		gops->ltc.init_comptags = NULL;
 		gops->fb.init_cbc = NULL;
 
+		/* Disable acr init */
+		gops->acr.acr_sw_init = NULL;
+
 		/* Disable pmu pstate, as there is no pmu support */
 		__nvgpu_set_enabled(g, NVGPU_PMU_PSTATE, false);
+
+		__nvgpu_set_enabled(g, NVGPU_GR_USE_DMA_FOR_FW_BOOTSTRAP,
+									false);
 	} else {
 		__nvgpu_set_enabled(g, NVGPU_PMU_PSTATE, true);
+		__nvgpu_set_enabled(g, NVGPU_GR_USE_DMA_FOR_FW_BOOTSTRAP, true);
 	}
 
 	g->pmu_lsf_pmu_wpr_init_done = 0;
