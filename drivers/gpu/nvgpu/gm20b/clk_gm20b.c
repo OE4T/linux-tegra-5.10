@@ -1347,6 +1347,8 @@ long gm20b_round_rate(struct clk_gk20a *clk, unsigned long rate,
 		freq = gpc_pll_params.max_freq;
 	} else if (freq < gpc_pll_params.min_freq) {
 		freq = gpc_pll_params.min_freq;
+	} else {
+		nvgpu_log_info(g, "frequency within range");
 	}
 
 	tmp_pll = clk->gpc_pll;
@@ -1417,6 +1419,8 @@ static int set_pll_target(struct gk20a *g, u32 freq, u32 old_freq)
 		freq = gpc_pll_params.max_freq;
 	} else if (freq < gpc_pll_params.min_freq) {
 		freq = gpc_pll_params.min_freq;
+	} else {
+		nvgpu_log_info(g, "frequency within range");
 	}
 
 	if (freq != old_freq) {

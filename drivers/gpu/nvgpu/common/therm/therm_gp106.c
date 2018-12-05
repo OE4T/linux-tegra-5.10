@@ -51,6 +51,8 @@ int gp106_get_internal_sensor_curr_temp(struct gk20a *g, u32 *temp_f24_8)
 	} else if ((therm_temp_sensor_tsense_state_v(readval) &
 		   therm_temp_sensor_tsense_state_shadow_v()) != 0U) {
 		nvgpu_err(g, "Reading temperature from SHADOWed sensor!");
+	} else {
+		nvgpu_log_info(g, "Finished reading temperature");
 	}
 
 	// Convert from F9.5 -> F27.5 -> F24.8.

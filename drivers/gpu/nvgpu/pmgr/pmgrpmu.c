@@ -47,7 +47,7 @@ static void pmgr_pmucmdhandler(struct gk20a *g, struct pmu_msg *msg,
 	if ((msg->msg.pmgr.msg_type != NV_PMU_PMGR_MSG_ID_SET_OBJECT) &&
 		(msg->msg.pmgr.msg_type != NV_PMU_PMGR_MSG_ID_QUERY) &&
 		(msg->msg.pmgr.msg_type != NV_PMU_PMGR_MSG_ID_LOAD)) {
-		nvgpu_err(g, "unknow msg %x", msg->msg.pmgr.msg_type);
+		nvgpu_err(g, "unknown msg %x", msg->msg.pmgr.msg_type);
 		return;
 	}
 
@@ -80,6 +80,9 @@ static void pmgr_pmucmdhandler(struct gk20a *g, struct pmu_msg *msg,
 				msg->msg.pmgr.load.flcnstatus);
 			return;
 		}
+	} else {
+		/*Will not hit this case due to check in the beginning itself*/
+		nvgpu_err(g, "unknown msg %x", msg->msg.pmgr.msg_type);
 	}
 
 	phandlerparams->success = 1;
