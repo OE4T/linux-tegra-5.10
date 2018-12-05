@@ -1373,6 +1373,7 @@
 			status = "disabled";
 			compatible = "nvidia,tegra194-sor";
 			reg = <0x0 0x15B00000 0x0 0x40000>;
+			interrupts = <0 157 0x4>;
 
 			nvidia,sor-ctrlnum = <0>;
 			nvidia,dpaux = <&dpaux0>;
@@ -1411,6 +1412,7 @@
 			status = "disabled";
 			compatible = "nvidia,tegra194-sor";
 			reg = <0x0 0x15B40000 0x0 0x40000>;
+			interrupts = <0 158 0x4>;
 
 			nvidia,sor-ctrlnum = <1>;
 			nvidia,dpaux = <&dpaux1>;
@@ -1449,6 +1451,7 @@
 			status = "disabled";
 			compatible = "nvidia,tegra194-sor";
 			reg = <0x0 0x15B80000 0x0 0x40000>;
+			interrupts = <0 243 0x4>;
 
 			nvidia,sor-ctrlnum = <2>;
 			nvidia,dpaux = <&dpaux2>;
@@ -1487,6 +1490,7 @@
 			status = "disabled";
 			compatible = "nvidia,tegra194-sor";
 			reg = <0x0 0x15BC0000 0x0 0x40000>;
+			interrupts = <0 244 0x4>;
 
 			nvidia,sor-ctrlnum = <3>;
 			nvidia,dpaux = <&dpaux3>;
