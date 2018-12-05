@@ -2959,6 +2959,22 @@ DEFINE_SIMPLE_ATTRIBUTE(debug_smmu_id_debugfs_fops,
 			debug_smmu_id_debugfs_get,
 			debug_smmu_id_debugfs_set, "%08llx\n");
 
+static int num_smmus_debugfs_set(void *data, u64 val)
+{
+	return 0;
+}
+
+static int num_smmus_debugfs_get(void *data, u64 *val)
+{
+	struct arm_smmu_device *smmu = (struct arm_smmu_device *)data;
+	*val = smmu->num_smmus;
+	return 0;
+}
+
+DEFINE_SIMPLE_ATTRIBUTE(num_smmus_debugfs_fops,
+			num_smmus_debugfs_get,
+			num_smmus_debugfs_set, "%08llx\n");
+
 static void arm_smmu_debugfs_create(struct arm_smmu_device *smmu)
 {
 	int i;
@@ -2972,6 +2988,9 @@ static void arm_smmu_debugfs_create(struct arm_smmu_device *smmu)
 
 	debugfs_create_file("debug_smmu_id", S_IRUGO | S_IWUSR,
 			smmu->debugfs_root, smmu, &debug_smmu_id_debugfs_fops);
+
+	debugfs_create_file("num_smmus", S_IRUSR, smmu->debugfs_root,
+					 smmu, &num_smmus_debugfs_fops);
 
 	dent_gr = debugfs_create_dir("gr", smmu->debugfs_root);
 	if (!dent_gr)
