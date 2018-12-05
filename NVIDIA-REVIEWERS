@@ -106,8 +106,11 @@ F:	drivers/video/tegra/camera/*
 F:	drivers/video/tegra/host/vi/*
 F:	drivers/video/tegra/host/isp/*
 F:	drivers/video/tegra/host/nvcsi/*
+F:	drivers/video/tegra/host/camera_events.json
+F:	drivers/video/tegra/host/eventlib_schema.h
 F:	drivers/media/spi/*
 F:	drivers/i2c/i2c-tegra-vi/*
+F:	include/uapi/linux/camera_events.h
 
 CPU
 M:	Alexander Van Brunt <avanbrunt@nvidia.com>

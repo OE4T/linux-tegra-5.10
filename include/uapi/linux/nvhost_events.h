@@ -129,6 +129,67 @@ struct nvhost_pva_task_state {
 	u32 operation;
 } __packed;
 
+
+
+
+/* Marks that the task is submitted to hardware */
+struct nv_camera_task_submit {
+	/* Engine class ID */
+	u32 class_id;
+
+	/* Syncpoint ID */
+	u32 syncpt_id;
+
+	/* Threshold for task completion */
+	u32 syncpt_thresh;
+
+	/* PID */
+	u32 pid;
+
+	/* TID */
+	u32 tid;
+} __packed;
+
+/* Marks that the task is moving to execution */
+struct nv_camera_task_begin {
+	/* Engine class ID */
+	u32 class_id;
+
+	/* Syncpoint ID */
+	u32 syncpt_id;
+
+	/* Threshold for task completion */
+	u32 syncpt_thresh;
+} __packed;
+
+/* Marks that the task is completed */
+struct nv_camera_task_end {
+	/* Engine class ID */
+	u32 class_id;
+
+	/* Syncpoint ID */
+	u32 syncpt_id;
+
+	/* Threshold for task completion */
+	u32 syncpt_thresh;
+} __packed;
+
+/* Marks that we are logging a general task */
+struct nv_camera_task_log {
+
+	/* Engine class ID */
+	u32 class_id;
+
+	/* PID */
+	u32 pid;
+
+	/* TID */
+	u32 tid;
+} __packed;
+
+
+
+
 enum {
 	/* struct nvhost_task_submit */
 	NVHOST_TASK_SUBMIT = 0,
@@ -157,7 +218,67 @@ enum {
 	NVHOST_PVA_POST_BEGIN = 14,
 	NVHOST_PVA_POST_END = 15,
 
-	NVHOST_NUM_EVENT_TYPES = 16
+	/* struct nv_camera_vi_capture_setup */
+	NVHOST_CAMERA_VI_CAPTURE_SETUP = 16,
+
+	/* struct nv_camera_vi_capture_reset */
+	NVHOST_CAMERA_VI_CAPTURE_RESET = 17,
+
+	/* struct nv_camera_vi_capture_release */
+	NVHOST_CAMERA_VI_CAPTURE_RELEASE = 18,
+
+	/* struct nv_camera_vi_capture_get_info */
+	NVHOST_CAMERA_VI_CAPTURE_GET_INFO = 19,
+
+	/* struct nv_camera_vi_capture_set_config */
+	NVHOST_CAMERA_VI_CAPTURE_SET_CONFIG = 20,
+
+	/* struct nv_camera_vi_capture_request */
+	NVHOST_CAMERA_VI_CAPTURE_REQUEST = 21,
+
+	/* struct nv_camera_vi_capture_status */
+	NVHOST_CAMERA_VI_CAPTURE_STATUS = 22,
+
+	/* struct nv_camera_vi_capture_set_compand */
+	NVHOST_CAMERA_VI_CAPTURE_SET_COMPAND = 23,
+
+	/* struct nv_camera_vi_capture_set_progress_status */
+	NVHOST_CAMERA_VI_CAPTURE_SET_PROGRESS_STATUS = 24,
+
+	/* struct nv_camera_isp_capture_setup */
+	NVHOST_CAMERA_ISP_CAPTURE_SETUP = 25,
+
+	/* struct nv_camera_isp_capture_reset */
+	NVHOST_CAMERA_ISP_CAPTURE_RESET = 26,
+
+	/* struct nv_camera_isp_capture_release */
+	NVHOST_CAMERA_ISP_CAPTURE_RELEASE = 27,
+
+	/* struct nv_camera_isp_capture_get_info */
+	NVHOST_CAMERA_ISP_CAPTURE_GET_INFO = 28,
+
+	/* struct nv_camera_isp_capture_request */
+	NVHOST_CAMERA_ISP_CAPTURE_REQUEST = 29,
+
+	/* struct nv_camera_isp_capture_status */
+	NVHOST_CAMERA_ISP_CAPTURE_STATUS = 30,
+
+	/* struct nv_camera_isp_capture_program_request */
+	NVHOST_CAMERA_ISP_CAPTURE_PROGRAM_REQUEST = 31,
+
+	/* struct nv_camera_isp_capture_program_status */
+	NVHOST_CAMERA_ISP_CAPTURE_PROGRAM_STATUS = 32,
+
+	/* struct nv_camera_isp_capture_request_ex */
+	NVHOST_CAMERA_ISP_CAPTURE_REQUEST_EX = 33,
+
+	/* struct nv_camera_isp_capture_set_progress_status */
+	NVHOST_CAMERA_ISP_CAPTURE_SET_PROGRESS_STATUS = 34,
+
+	/* struct nv_camera_task_log */
+	NVHOST_CAMERA_TASK_LOG = 35,
+
+	NVHOST_NUM_EVENT_TYPES = 36
 };
 
 enum {

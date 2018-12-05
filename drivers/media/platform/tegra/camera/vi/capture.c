@@ -20,6 +20,8 @@
 #include <linux/tegra-capture-ivc.h>
 #include <asm/arch_timer.h>
 #include <media/capture.h>
+#include <uapi/linux/nvhost_events.h>
+#include <camera/nvcamera_log.h>
 
 #define CAPTURE_CHANNEL_UNKNOWN_RESP 0xFFFFFFFF
 #define CAPTURE_CHANNEL_INVALID_ID 0xFFFF
@@ -364,6 +366,10 @@ int vi_capture_setup(struct tegra_vi_channel *chan,
 	int i;
 #endif
 
+	nv_camera_log(chan->ndev,
+		arch_counter_get_cntvct(),
+		NVHOST_CAMERA_VI_CAPTURE_SETUP);
+
 	if (setup->mem == 0 && setup->iova == 0) {
 		dev_err(chan->dev,
 			"%s: request buffer is NULL\n", __func__);
@@ -499,6 +505,10 @@ int vi_capture_reset(struct tegra_vi_channel *chan,
 	struct CAPTURE_CONTROL_MSG *resp_msg = &capture->control_resp_msg;
 	int err = 0;
 
+	nv_camera_log(chan->ndev,
+		arch_counter_get_cntvct(),
+		NVHOST_CAMERA_VI_CAPTURE_RESET);
+
 	if (capture == NULL) {
 		dev_err(chan->dev,
 			 "%s: vi capture uninitialized\n", __func__);
@@ -550,10 +560,6 @@ int vi_capture_reset(struct tegra_vi_channel *chan,
 		err = -EINVAL;
 	}
 
-	mutex_unlock(&capture->reset_lock);
-
-	return err;
-
 submit_fail:
 	mutex_unlock(&capture->reset_lock);
 	return err;
@@ -568,6 +574,10 @@ int vi_capture_set_compand(struct tegra_vi_channel *chan,
 	int32_t result;
 	struct vi_compand_config *desc_compand;
 	int err = 0;
+
+	nv_camera_log(chan->ndev,
+		arch_counter_get_cntvct(),
+		NVHOST_CAMERA_VI_CAPTURE_SET_COMPAND);
 
 	if (capture == NULL) {
 		dev_err(chan->dev,
@@ -695,6 +705,10 @@ int vi_capture_release(struct tegra_vi_channel *chan,
 	int ret = 0;
 	int i = 0;
 
+	nv_camera_log(chan->ndev,
+		arch_counter_get_cntvct(),
+		NVHOST_CAMERA_VI_CAPTURE_RELEASE);
+
 	if (capture == NULL) {
 		dev_err(chan->dev,
 			 "%s: vi capture uninitialized\n", __func__);
@@ -779,6 +793,10 @@ int vi_capture_get_info(struct tegra_vi_channel *chan,
 	struct vi_capture *capture = chan->capture_data;
 	int err;
 
+	nv_camera_log(chan->ndev,
+		arch_counter_get_cntvct(),
+		NVHOST_CAMERA_VI_CAPTURE_GET_INFO);
+
 	if (capture == NULL) {
 		dev_err(chan->dev,
 			 "%s: vi capture uninitialized\n", __func__);
@@ -829,6 +847,10 @@ int vi_capture_control_message(struct tegra_vi_channel *chan,
 	struct CAPTURE_CONTROL_MSG *req_msg = NULL;
 	struct CAPTURE_CONTROL_MSG *resp_msg = &capture->control_resp_msg;
 	int err = 0;
+
+	nv_camera_log(chan->ndev,
+		arch_counter_get_cntvct(),
+		NVHOST_CAMERA_VI_CAPTURE_SET_CONFIG);
 
 	if (capture == NULL) {
 		dev_err(chan->dev,
@@ -942,6 +964,10 @@ int vi_capture_request(struct tegra_vi_channel *chan,
 	struct CAPTURE_MSG capture_desc;
 	int err = 0;
 
+	nv_camera_log(chan->ndev,
+		arch_counter_get_cntvct(),
+		NVHOST_CAMERA_VI_CAPTURE_REQUEST);
+
 	if (capture == NULL) {
 		dev_err(chan->dev,
 			"%s: vi capture uninitialized\n", __func__);
@@ -995,6 +1021,10 @@ int vi_capture_status(struct tegra_vi_channel *chan,
 	struct vi_capture *capture = chan->capture_data;
 	int ret = 0;
 
+	nv_camera_log(chan->ndev,
+		arch_counter_get_cntvct(),
+		NVHOST_CAMERA_VI_CAPTURE_STATUS);
+
 	if (capture == NULL) {
 		dev_err(chan->dev,
 			 "%s: vi capture uninitialized\n", __func__);
@@ -1038,6 +1068,10 @@ int vi_capture_set_progress_status_notifier(struct tegra_vi_channel *chan,
 {
 	int err = 0;
 	struct vi_capture *capture = chan->capture_data;
+
+	nv_camera_log(chan->ndev,
+		arch_counter_get_cntvct(),
+		NVHOST_CAMERA_VI_CAPTURE_SET_PROGRESS_STATUS);
 
 	if (req->mem == 0 ||
 		req->buffer_depth == 0) {

@@ -29,6 +29,9 @@
 
 #include <soc/tegra/chip-id.h>
 
+#include <camera/nvcamera_log.h>
+#include <uapi/linux/nvhost_events.h>
+
 #define CAPTURE_CHANNEL_UNKNOWN_RESP 0xFFFFFFFF
 #define CAPTURE_CHANNEL_ISP_INVALID_ID 0xFFFF
 
@@ -422,6 +425,10 @@ int isp_capture_setup(struct tegra_isp_channel *chan,
 	int i;
 #endif
 
+	nv_camera_log(chan->ndev,
+		arch_counter_get_cntvct(),
+		NVHOST_CAMERA_ISP_CAPTURE_SETUP);
+
 	if (capture == NULL) {
 		dev_err(chan->isp_dev,
 			 "%s: isp capture uninitialized\n", __func__);
@@ -630,6 +637,10 @@ int isp_capture_reset(struct tegra_isp_channel *chan,
 	int i;
 	int err = 0;
 
+	nv_camera_log(chan->ndev,
+		arch_counter_get_cntvct(),
+		NVHOST_CAMERA_ISP_CAPTURE_RESET);
+
 	if (capture == NULL) {
 		dev_err(chan->isp_dev,
 			 "%s: isp capture uninitialized\n", __func__);
@@ -694,9 +705,7 @@ int isp_capture_reset(struct tegra_isp_channel *chan,
 		complete(&capture->capture_resp);
 	}
 
-	mutex_unlock(&capture->reset_lock);
-
-	return 0;
+	err = 0;
 
 error:
 	mutex_unlock(&capture->reset_lock);
@@ -711,6 +720,10 @@ int isp_capture_release(struct tegra_isp_channel *chan,
 	struct CAPTURE_CONTROL_MSG *resp_msg = &capture->control_resp_msg;
 	int i;
 	int err = 0;
+
+	nv_camera_log(chan->ndev,
+		arch_counter_get_cntvct(),
+		NVHOST_CAMERA_ISP_CAPTURE_RELEASE);
 
 	if (capture == NULL) {
 		dev_err(chan->isp_dev,
@@ -960,6 +973,10 @@ int isp_capture_get_info(struct tegra_isp_channel *chan,
 	struct isp_capture *capture = chan->capture_data;
 	int err;
 
+	nv_camera_log(chan->ndev,
+		arch_counter_get_cntvct(),
+		NVHOST_CAMERA_ISP_CAPTURE_GET_INFO);
+
 	if (capture == NULL) {
 		dev_err(chan->isp_dev,
 			 "%s: isp capture uninitialized\n", __func__);
@@ -1040,6 +1057,10 @@ int isp_capture_program_request(struct tegra_isp_channel *chan,
 	struct CAPTURE_MSG capture_msg;
 	int err = 0;
 	struct capture_common_pin_req cap_common_req;
+
+	nv_camera_log(chan->ndev,
+		arch_counter_get_cntvct(),
+		NVHOST_CAMERA_ISP_CAPTURE_REQUEST);
 
 	if (capture == NULL) {
 		dev_err(chan->isp_dev,
@@ -1129,6 +1150,10 @@ int isp_capture_program_status(struct tegra_isp_channel *chan)
 {
 	struct isp_capture *capture = chan->capture_data;
 	int err = 0;
+
+	nv_camera_log(chan->ndev,
+		arch_counter_get_cntvct(),
+		NVHOST_CAMERA_ISP_CAPTURE_PROGRAM_STATUS);
 
 	if (capture == NULL) {
 		dev_err(chan->isp_dev,
@@ -1283,6 +1308,10 @@ int isp_capture_status(struct tegra_isp_channel *chan,
 	struct isp_capture *capture = chan->capture_data;
 	int err = 0;
 
+	nv_camera_log(chan->ndev,
+		arch_counter_get_cntvct(),
+		NVHOST_CAMERA_ISP_CAPTURE_STATUS);
+
 	if (capture == NULL) {
 		dev_err(chan->isp_dev,
 			 "%s: isp capture uninitialized\n", __func__);
@@ -1336,6 +1365,10 @@ int isp_capture_request_ex(struct tegra_isp_channel *chan,
 {
 	int ret = isp_capture_request(chan, &capture_req_ex->capture_req);
 
+	nv_camera_log(chan->ndev,
+		arch_counter_get_cntvct(),
+		NVHOST_CAMERA_ISP_CAPTURE_REQUEST_EX);
+
 	/* Handle program request if process request is successful */
 	if (ret == 0 && capture_req_ex->program_req.buffer_index != U32_MAX) {
 		ret = isp_capture_program_request(chan,
@@ -1350,6 +1383,10 @@ int isp_capture_set_progress_status_notifier(struct tegra_isp_channel *chan,
 {
 	int err = 0;
 	struct isp_capture *capture = chan->capture_data;
+
+	nv_camera_log(chan->ndev,
+		arch_counter_get_cntvct(),
+		NVHOST_CAMERA_ISP_CAPTURE_SET_PROGRESS_STATUS);
 
 	if (req->mem == 0 ||
 		req->process_buffer_depth == 0) {
