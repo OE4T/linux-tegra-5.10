@@ -102,11 +102,20 @@ static bool nvgpu_mem_sgt_iommuable(struct gk20a *g, struct nvgpu_sgt *sgt)
 	return p->mm_sgt_is_iommuable;
 }
 
+void nvgpu_mem_sgl_free(struct gk20a *g, struct nvgpu_mem_sgl *sgl)
+{
+	struct nvgpu_mem_sgl *tptr;
+
+	while (sgl != NULL) {
+		tptr = sgl->next;
+		nvgpu_kfree(g, sgl);
+		sgl = tptr;
+	}
+}
+
 static void nvgpu_mem_sgt_free(struct gk20a *g, struct nvgpu_sgt *sgt)
 {
-	if (sgt->sgl != NULL) {
-		nvgpu_kfree(g, sgt->sgl);
-	}
+	nvgpu_mem_sgl_free(g, (struct nvgpu_mem_sgl *)sgt->sgl);
 	nvgpu_kfree(g, sgt);
 }
 
@@ -121,6 +130,79 @@ static struct nvgpu_sgt_ops nvgpu_sgt_posix_ops = {
 	.sgt_iommuable	= nvgpu_mem_sgt_iommuable,
 	.sgt_free	= nvgpu_mem_sgt_free,
 };
+
+struct nvgpu_mem_sgl *nvgpu_mem_sgl_posix_create_from_list(struct gk20a *g,
+				struct nvgpu_mem_sgl *sgl_list, u32 nr_sgls,
+				u64 *total_size)
+{
+	struct nvgpu_mem_sgl *sgl_ptr, *tptr, *head = NULL;
+	u32 i;
+
+	*total_size = 0;
+	for (i = 0; i < nr_sgls; i++) {
+		tptr = (struct nvgpu_mem_sgl *)nvgpu_kzalloc(g,
+						sizeof(struct nvgpu_mem_sgl));
+		if (tptr == NULL) {
+			return NULL;
+		}
+
+		if (i == 0U) {
+			sgl_ptr = tptr;
+			head = sgl_ptr;
+		} else {
+			sgl_ptr->next = tptr;
+			sgl_ptr = sgl_ptr->next;
+		}
+		sgl_ptr->next = NULL;
+		sgl_ptr->phys = sgl_list[i].phys;
+		sgl_ptr->dma = sgl_list[i].dma;
+		sgl_ptr->length = sgl_list[i].length;
+		*total_size += sgl_list[i].length;
+	}
+
+	return head;
+}
+
+struct nvgpu_sgt *nvgpu_mem_sgt_posix_create_from_list(struct gk20a *g,
+				struct nvgpu_mem_sgl *sgl_list, u32 nr_sgls,
+				u64 *total_size)
+{
+	struct nvgpu_sgt *sgt = nvgpu_kzalloc(g, sizeof(struct nvgpu_sgt));
+	struct nvgpu_mem_sgl *sgl;
+
+	if (sgt == NULL) {
+		return NULL;
+	}
+
+	sgl = nvgpu_mem_sgl_posix_create_from_list(g, sgl_list, nr_sgls,
+				total_size);
+	if (sgl == NULL) {
+		nvgpu_kfree(g, sgt);
+		return NULL;
+	}
+	sgt->sgl = (struct nvgpu_sgl *)sgl;
+	sgt->ops = &nvgpu_sgt_posix_ops;
+
+	return sgt;
+}
+
+int nvgpu_mem_posix_create_from_list(struct gk20a *g, struct nvgpu_mem *mem,
+				struct nvgpu_mem_sgl *sgl_list, u32 nr_sgls)
+{
+	u64 sgl_size;
+
+	mem->priv.sgt = nvgpu_mem_sgt_posix_create_from_list(g, sgl_list,
+				nr_sgls, &sgl_size);
+	if (mem->priv.sgt == NULL) {
+		return -ENOMEM;
+	}
+
+	mem->aperture = APERTURE_SYSMEM;
+	mem->aligned_size = PAGE_ALIGN(sgl_size);
+	mem->size = sgl_size;
+
+	return 0;
+}
 
 struct nvgpu_sgt *nvgpu_sgt_os_create_from_mem(struct gk20a *g,
 					       struct nvgpu_mem *mem)
@@ -138,16 +220,20 @@ struct nvgpu_sgt *nvgpu_sgt_os_create_from_mem(struct gk20a *g,
 	 */
 	sgt->ops = &nvgpu_sgt_posix_ops;
 
-	sgl = (struct nvgpu_mem_sgl *) nvgpu_kzalloc(g, sizeof(
-		struct nvgpu_mem_sgl));
-	if (sgl == NULL) {
-		nvgpu_kfree(g, sgt);
-		return NULL;
-	}
+	if (mem->priv.sgt != NULL) {
+		return mem->priv.sgt;
+	} else {
+		sgl = (struct nvgpu_mem_sgl *) nvgpu_kzalloc(g, sizeof(
+			struct nvgpu_mem_sgl));
+		if (sgl == NULL) {
+			nvgpu_kfree(g, sgt);
+			return NULL;
+		}
 
-	sgl->length = mem->size;
-	sgl->phys   = (u64) mem->cpu_va;
-	sgt->sgl    = (struct nvgpu_sgl *) sgl;
+		sgl->length = mem->size;
+		sgl->phys   = (u64) mem->cpu_va;
+		sgt->sgl    = (struct nvgpu_sgl *) sgl;
+	}
 
 	return sgt;
 }
