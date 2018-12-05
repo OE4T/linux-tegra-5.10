@@ -40,7 +40,7 @@ void nvgpu_pmu_seq_init(struct nvgpu_pmu *pmu)
 		sizeof(pmu->pmu_seq_tbl));
 
 	for (i = 0; i < PMU_MAX_NUM_SEQUENCES; i++) {
-		pmu->seq[i].id = i;
+		pmu->seq[i].id = (u8)i;
 	}
 }
 
@@ -49,7 +49,7 @@ static int pmu_seq_acquire(struct nvgpu_pmu *pmu,
 {
 	struct gk20a *g = gk20a_from_pmu(pmu);
 	struct pmu_sequence *seq;
-	u32 index;
+	unsigned long index;
 
 	nvgpu_mutex_acquire(&pmu->pmu_seq_lock);
 	index = find_first_zero_bit(pmu->pmu_seq_tbl,
@@ -59,7 +59,8 @@ static int pmu_seq_acquire(struct nvgpu_pmu *pmu,
 		nvgpu_mutex_release(&pmu->pmu_seq_lock);
 		return -EAGAIN;
 	}
-	set_bit(index, pmu->pmu_seq_tbl);
+	nvgpu_assert(index <= INT_MAX);
+	set_bit((int)index, pmu->pmu_seq_tbl);
 	nvgpu_mutex_release(&pmu->pmu_seq_lock);
 
 	seq = &pmu->seq[index];
@@ -85,7 +86,7 @@ static void pmu_seq_release(struct nvgpu_pmu *pmu,
 	g->ops.pmu_ver.pmu_allocation_set_dmem_size(pmu,
 		g->ops.pmu_ver.get_pmu_seq_out_a_ptr(seq), 0);
 
-	clear_bit(seq->id, pmu->pmu_seq_tbl);
+	clear_bit((int)seq->id, pmu->pmu_seq_tbl);
 }
 /* mutex */
 int nvgpu_pmu_mutex_acquire(struct nvgpu_pmu *pmu, u32 id, u32 *token)
@@ -268,6 +269,7 @@ static int pmu_cmd_payload_extract_rpc(struct gk20a *g, struct pmu_cmd *cmd,
 	struct nvgpu_pmu *pmu = &g->pmu;
 	struct pmu_v *pv = &g->ops.pmu_ver;
 	u16 dmem_alloc_size = 0;
+	u64 tmp;
 	u32 dmem_alloc_offset = 0;
 	int err = 0;
 
@@ -275,7 +277,9 @@ static int pmu_cmd_payload_extract_rpc(struct gk20a *g, struct pmu_cmd *cmd,
 
 	dmem_alloc_size = payload->rpc.size_rpc +
 		payload->rpc.size_scratch;
-	dmem_alloc_offset = nvgpu_alloc(&pmu->dmem, dmem_alloc_size);
+	tmp = nvgpu_alloc(&pmu->dmem, dmem_alloc_size);
+	nvgpu_assert(tmp <= U32_MAX);
+	dmem_alloc_offset = (u32)tmp;
 	if (dmem_alloc_offset == 0U) {
 		err = -ENOMEM;
 		goto clean_up;
@@ -312,6 +316,7 @@ static int pmu_cmd_payload_extract(struct gk20a *g, struct pmu_cmd *cmd,
 	struct pmu_v *pv = &g->ops.pmu_ver;
 	void *in = NULL, *out = NULL;
 	int err = 0;
+	u64 tmp;
 
 	nvgpu_log_fn(g, " ");
 
@@ -331,9 +336,10 @@ static int pmu_cmd_payload_extract(struct gk20a *g, struct pmu_cmd *cmd,
 			(u16)max(payload->in.size, payload->out.size));
 		}
 
-		*(pv->pmu_allocation_get_dmem_offset_addr(pmu, in)) =
-			nvgpu_alloc(&pmu->dmem,
+		tmp = nvgpu_alloc(&pmu->dmem,
 				pv->pmu_allocation_get_dmem_size(pmu, in));
+		nvgpu_assert(tmp <= U32_MAX);
+		*(pv->pmu_allocation_get_dmem_offset_addr(pmu, in)) = (u32)tmp;
 		if (*(pv->pmu_allocation_get_dmem_offset_addr(pmu, in)) == 0U) {
 			goto clean_up;
 		}
@@ -375,10 +381,12 @@ static int pmu_cmd_payload_extract(struct gk20a *g, struct pmu_cmd *cmd,
 		(u16)payload->out.size);
 
 		if (payload->in.buf != payload->out.buf) {
-			*(pv->pmu_allocation_get_dmem_offset_addr(pmu, out)) =
-				nvgpu_alloc(&pmu->dmem,
+			tmp = nvgpu_alloc(&pmu->dmem,
 					pv->pmu_allocation_get_dmem_size(pmu,
 					out));
+			nvgpu_assert(tmp <= U32_MAX);
+			*(pv->pmu_allocation_get_dmem_offset_addr(pmu, out)) =
+					(u32)tmp;
 			if (*(pv->pmu_allocation_get_dmem_offset_addr(pmu,
 					out)) == 0U) {
 				goto clean_up;
@@ -742,7 +750,7 @@ int pmu_wait_message_cond(struct nvgpu_pmu *pmu, u32 timeout_ms,
 {
 	struct gk20a *g = gk20a_from_pmu(pmu);
 	struct nvgpu_timeout timeout;
-	unsigned long delay = GR_IDLE_CHECK_DEFAULT;
+	unsigned int delay = GR_IDLE_CHECK_DEFAULT;
 
 	nvgpu_timeout_init(g, &timeout, timeout_ms, NVGPU_TIMER_CPU_TIMER);
 
@@ -789,7 +797,7 @@ static void pmu_rpc_handler(struct gk20a *g, struct pmu_msg *msg,
 		case NV_PMU_RPC_ID_ACR_INIT_WPR_REGION:
 			nvgpu_pmu_dbg(g,
 				"reply NV_PMU_RPC_ID_ACR_INIT_WPR_REGION");
-			g->pmu_lsf_pmu_wpr_init_done = 1;
+			g->pmu_lsf_pmu_wpr_init_done = true;
 			break;
 		case NV_PMU_RPC_ID_ACR_BOOTSTRAP_GR_FALCONS:
 			nvgpu_pmu_dbg(g,
@@ -804,7 +812,7 @@ static void pmu_rpc_handler(struct gk20a *g, struct pmu_msg *msg,
 		case NV_PMU_RPC_ID_PERFMON_T18X_INIT:
 			nvgpu_pmu_dbg(g,
 				"reply NV_PMU_RPC_ID_PERFMON_INIT");
-			pmu->perfmon_ready = 1;
+			pmu->perfmon_ready = true;
 			break;
 		case NV_PMU_RPC_ID_PERFMON_T18X_START:
 			nvgpu_pmu_dbg(g,
@@ -934,7 +942,7 @@ int nvgpu_pmu_rpc_execute(struct nvgpu_pmu *pmu, struct nv_pmu_rpc_header *rpc,
 	(void) memset(&payload, 0, sizeof(struct pmu_payload));
 
 	cmd.hdr.unit_id = rpc->unit_id;
-	cmd.hdr.size = PMU_CMD_HDR_SIZE + sizeof(struct nv_pmu_rpc_cmd);
+	cmd.hdr.size = (u8)(PMU_CMD_HDR_SIZE + sizeof(struct nv_pmu_rpc_cmd));
 	cmd.cmd.rpc.cmd_type = NV_PMU_RPC_CMD_ID;
 	cmd.cmd.rpc.flags = rpc->flags;
 
@@ -960,7 +968,7 @@ int nvgpu_pmu_rpc_execute(struct nvgpu_pmu *pmu, struct nv_pmu_rpc_header *rpc,
 	if (is_copy_back) {
 		/* wait till RPC execute in PMU & ACK */
 		pmu_wait_message_cond(pmu, gk20a_get_gr_idle_timeout(g),
-			&rpc_payload->complete, true);
+			&rpc_payload->complete, 1);
 		/* copy back data to caller */
 		nvgpu_memcpy((u8 *)rpc, (u8 *)rpc_buff, size_rpc);
 		/* free allocated memory */
