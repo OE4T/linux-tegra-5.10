@@ -173,6 +173,8 @@ struct ctrl_clk_vin_v10 {
 struct ctrl_clk_vin_v20 {
 	s8 offset;
 	s8 gain;
+	u8 coarse_control;
+	u8 offset_vfe_idx;
 };
 
 union ctrl_clk_vin_data_v20 {

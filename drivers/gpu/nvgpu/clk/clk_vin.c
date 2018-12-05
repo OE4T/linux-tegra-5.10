@@ -352,6 +352,8 @@ static int devinit_get_vin_device_table(struct gk20a *g,
 			vin_device_data.vin_device_v20.data.cal_type = (u8) cal_type;
 			vin_device_data.vin_device_v20.data.vin_cal.cal_v20.offset = offset;
 			vin_device_data.vin_device_v20.data.vin_cal.cal_v20.gain = gain;
+			vin_device_data.vin_device_v20.data.vin_cal.cal_v20.offset_vfe_idx =
+					CTRL_CLK_VIN_VFE_IDX_INVALID;
 			break;
 		default:
 			status = -1;
@@ -428,6 +430,7 @@ static int vin_device_construct_v20(struct gk20a *g,
 	pvin_device_v20->data.cal_type = ptmpvin_device_v20->data.cal_type;
 	pvin_device_v20->data.vin_cal.cal_v20.offset = ptmpvin_device_v20->data.vin_cal.cal_v20.offset;
 	pvin_device_v20->data.vin_cal.cal_v20.gain = ptmpvin_device_v20->data.vin_cal.cal_v20.gain;
+	pvin_device_v20->data.vin_cal.cal_v20.offset_vfe_idx = ptmpvin_device_v20->data.vin_cal.cal_v20.offset_vfe_idx;
 
 	return status;
 }
@@ -537,6 +540,8 @@ static int vin_device_init_pmudata_v20(struct gk20a *g,
 	perf_pmu_data->data.cal_type = pvin_dev_v20->data.cal_type;
 	perf_pmu_data->data.vin_cal.cal_v20.offset = pvin_dev_v20->data.vin_cal.cal_v20.offset;
 	perf_pmu_data->data.vin_cal.cal_v20.gain = pvin_dev_v20->data.vin_cal.cal_v20.gain;
+	perf_pmu_data->data.vin_cal.cal_v20.offset_vfe_idx =
+			pvin_dev_v20->data.vin_cal.cal_v20.offset_vfe_idx;
 
 	nvgpu_log_info(g, " Done");
 

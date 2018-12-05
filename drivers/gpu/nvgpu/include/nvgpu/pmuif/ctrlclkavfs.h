@@ -49,6 +49,8 @@
 #define CTRL_CLK_VIN_CAL_TYPE_V10           (0x00000000U)
 #define CTRL_CLK_VIN_CAL_TYPE_V20           (0x00000001U)
 
+#define CTRL_CLK_VIN_VFE_IDX_INVALID		(0xFFU)
+
 /*!
  * Mask of all GPC VIN IDs supported by RM
  */
