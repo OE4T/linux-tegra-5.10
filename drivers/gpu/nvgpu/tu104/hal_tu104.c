@@ -308,7 +308,7 @@ static int tu104_init_gpu_characteristics(struct gk20a *g)
 
 static const struct gpu_ops tu104_ops = {
 	.bios = {
-		.init = gp106_bios_init,
+		.init = tu104_bios_init,
 		.preos_wait_for_halt = NULL,
 		.preos_reload_check = NULL,
 		.devinit = NULL,

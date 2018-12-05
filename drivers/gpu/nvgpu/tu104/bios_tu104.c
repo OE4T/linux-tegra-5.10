@@ -26,6 +26,7 @@
 #include <nvgpu/gk20a.h>
 
 #include "tu104/bios_tu104.h"
+#include "gp106/bios_gp106.h"
 
 #include "nvgpu/hw/tu104/hw_gc6_tu104.h"
 
@@ -62,4 +63,13 @@ int tu104_bios_verify_devinit(struct gk20a *g)
 	} while (nvgpu_timeout_expired(&timeout) == 0);
 
 	return -ETIMEDOUT;
+}
+
+int tu104_bios_init(struct gk20a *g)
+{
+	if (nvgpu_is_enabled(g, NVGPU_IS_FMODEL)) {
+		return 0;
+	}
+
+	return gp106_bios_init(g);
 }

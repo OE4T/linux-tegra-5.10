@@ -26,5 +26,6 @@
 struct gk20a;
 
 int tu104_bios_verify_devinit(struct gk20a *g);
+int tu104_bios_init(struct gk20a *g);
 
 #endif /* NVGPU_BIOS_TU104_H */
