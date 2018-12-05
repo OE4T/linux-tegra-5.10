@@ -62,7 +62,7 @@ static u32 nvgpu_bios_rdu32(struct gk20a *g, int offset)
 	return val;
 }
 
-struct bit {
+struct bios_bit {
 	u16 id;
 	u32 signature;
 	u16 bcd_version;
@@ -815,7 +815,7 @@ void *nvgpu_bios_get_perf_table_ptrs(struct gk20a *g,
 
 static void nvgpu_bios_parse_bit(struct gk20a *g, int offset)
 {
-	struct bit bit;
+	struct bios_bit bit;
 	struct bit_token bit_token;
 	int i;
 
