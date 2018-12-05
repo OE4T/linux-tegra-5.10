@@ -3,7 +3,7 @@
  *
  * Author: Mike Lavender, mike@steroidmicros.com
  * Copyright (c) 2005, Intec Automation Inc.
- * Copyright (C) 2013-2018 NVIDIA Corporation. All rights reserved.
+ * Copyright (C) 2013-2019 NVIDIA Corporation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -369,6 +369,8 @@ struct qspi {
 	u8			qspi_bus_width;
 	u8			qspi_bits_per_word;
 #endif
+	u8			rwar_cr1v_value;
+	u8			rwar_cr2v_value;
 };
 
 /*
