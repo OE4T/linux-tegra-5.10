@@ -37,7 +37,6 @@
 
 struct vm_gk20a;
 struct nvgpu_mem;
-struct nvgpu_gmmu_pd;
 
 #define GMMU_PAGE_SIZE_SMALL	0U
 #define GMMU_PAGE_SIZE_BIG	1U
@@ -48,6 +47,29 @@ enum gk20a_mem_rw_flag {
 	gk20a_mem_flag_none = 0,	/* RW */
 	gk20a_mem_flag_read_only = 1,	/* RO */
 	gk20a_mem_flag_write_only = 2,	/* WO */
+};
+
+/*
+ * GMMU page directory. This is the kernel's tracking of a list of PDEs or PTEs
+ * in the GMMU.
+ */
+struct nvgpu_gmmu_pd {
+	/*
+	 * DMA memory describing the PTEs or PDEs. @mem_offs describes the
+	 * offset of the PDE table in @mem. @cached specifies if this PD is
+	 * using pd_cache memory.
+	 */
+	struct nvgpu_mem	*mem;
+	u32			 mem_offs;
+	bool			 cached;
+	u32			 pd_size; /* In bytes. */
+
+	/*
+	 * List of pointers to the next level of page tables. Will not be
+	 * populated when this PD is pointing to PTEs.
+	 */
+	struct nvgpu_gmmu_pd	*entries;
+	int			 num_entries;
 };
 
 /*
@@ -162,6 +184,27 @@ u64 nvgpu_gmmu_map_fixed(struct vm_gk20a *vm,
 void nvgpu_gmmu_unmap(struct vm_gk20a *vm,
 		      struct nvgpu_mem *mem,
 		      u64 gpu_va);
+
+int nvgpu_pd_alloc(struct vm_gk20a *vm, struct nvgpu_gmmu_pd *pd, u32 bytes);
+void nvgpu_pd_free(struct vm_gk20a *vm, struct nvgpu_gmmu_pd *pd);
+int nvgpu_pd_cache_init(struct gk20a *g);
+void nvgpu_pd_cache_fini(struct gk20a *g);
+u64 nvgpu_pde_gpu_addr(struct gk20a *g, struct nvgpu_gmmu_pd *pd);
+
+/*
+ * Some useful routines that are shared across chips.
+ */
+static inline u32 pd_offset_from_index(const struct gk20a_mmu_level *l,
+				       u32 pd_idx)
+{
+	return (pd_idx * l->entry_size) / U32(sizeof(u32));
+}
+
+static inline void pd_write(struct gk20a *g, struct nvgpu_gmmu_pd *pd,
+			    size_t w, size_t data)
+{
+	nvgpu_mem_wr32(g, pd->mem, (pd->mem_offs / sizeof(u32)) + w, data);
+}
 
 /**
  * __nvgpu_pte_words - Compute number of words in a PTE.

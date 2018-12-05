@@ -44,7 +44,6 @@
 #include <nvgpu/utils.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/channel.h>
-#include <nvgpu/pd_cache.h>
 
 #include "mm_gk20a.h"
 #include "fence_gk20a.h"
@@ -163,7 +162,7 @@ static void update_gmmu_pde_locked(struct vm_gk20a *vm,
 {
 	struct gk20a *g = gk20a_from_vm(vm);
 	bool small_valid, big_valid;
-	u32 pd_offset = nvgpu_pd_offset_from_index(l, pd_idx);
+	u32 pd_offset = pd_offset_from_index(l, pd_idx);
 	u32 pde_v[2] = {0, 0};
 
 	small_valid = attrs->pgsz == GMMU_PAGE_SIZE_SMALL;
@@ -191,8 +190,8 @@ static void update_gmmu_pde_locked(struct vm_gk20a *vm,
 		virt_addr, phys_addr,
 		pde_v[1], pde_v[0]);
 
-	nvgpu_pd_write(g, &vm->pdb, (size_t)pd_offset + (size_t)0, pde_v[0]);
-	nvgpu_pd_write(g, &vm->pdb, (size_t)pd_offset + (size_t)1, pde_v[1]);
+	pd_write(g, &vm->pdb, (size_t)pd_offset + (size_t)0, pde_v[0]);
+	pd_write(g, &vm->pdb, (size_t)pd_offset + (size_t)1, pde_v[1]);
 }
 
 static void __update_pte_sparse(u32 *pte_w)
@@ -269,7 +268,7 @@ static void update_gmmu_pte_locked(struct vm_gk20a *vm,
 {
 	struct gk20a *g = gk20a_from_vm(vm);
 	u32 page_size  = vm->gmmu_page_sizes[attrs->pgsz];
-	u32 pd_offset = nvgpu_pd_offset_from_index(l, pd_idx);
+	u32 pd_offset = pd_offset_from_index(l, pd_idx);
 	u32 pte_w[2] = {0, 0};
 	int ctag_shift = 0;
 	int shamt = ilog2(g->ops.fb.compression_page_size(g));
@@ -305,8 +304,8 @@ static void update_gmmu_pte_locked(struct vm_gk20a *vm,
 		(u32)attrs->ctag >> ctag_shift,
 		pte_w[1], pte_w[0]);
 
-	nvgpu_pd_write(g, pd, (size_t)pd_offset + (size_t)0, pte_w[0]);
-	nvgpu_pd_write(g, pd, (size_t)pd_offset + (size_t)1, pte_w[1]);
+	pd_write(g, pd, (size_t)pd_offset + (size_t)0, pte_w[0]);
+	pd_write(g, pd, (size_t)pd_offset + (size_t)1, pte_w[1]);
 }
 
 u32 gk20a_get_pde_pgsz(struct gk20a *g, const struct gk20a_mmu_level *l,
@@ -377,7 +376,7 @@ int gk20a_vm_bind_channel(struct vm_gk20a *vm, struct channel_gk20a *ch)
 void gk20a_mm_init_pdb(struct gk20a *g, struct nvgpu_mem *inst_block,
 		struct vm_gk20a *vm)
 {
-	u64 pdb_addr = nvgpu_pd_gpu_addr(g, &vm->pdb);
+	u64 pdb_addr = nvgpu_pde_gpu_addr(g, &vm->pdb);
 	u32 pdb_addr_lo = u64_lo32(pdb_addr >> ram_in_base_shift_v());
 	u32 pdb_addr_hi = u64_hi32(pdb_addr);
 

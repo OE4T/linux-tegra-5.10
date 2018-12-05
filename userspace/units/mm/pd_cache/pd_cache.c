@@ -26,7 +26,6 @@
 
 #include <nvgpu/gk20a.h>
 #include <nvgpu/gmmu.h>
-#include <nvgpu/pd_cache.h>
 #include <nvgpu/enabled.h>
 
 #include <nvgpu/posix/kmem.h>

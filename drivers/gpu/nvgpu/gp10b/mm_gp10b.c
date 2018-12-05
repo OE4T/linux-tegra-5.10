@@ -25,7 +25,6 @@
 #include <nvgpu/mm.h>
 #include <nvgpu/dma.h>
 #include <nvgpu/gmmu.h>
-#include <nvgpu/pd_cache.h>
 #include <nvgpu/sizes.h>
 #include <nvgpu/utils.h>
 #include <nvgpu/gk20a.h>
@@ -89,7 +88,7 @@ static void update_gmmu_pde3_locked(struct vm_gk20a *vm,
 {
 	struct gk20a *g = gk20a_from_vm(vm);
 	struct nvgpu_gmmu_pd *next_pd = &pd->entries[pd_idx];
-	u32 pd_offset = nvgpu_pd_offset_from_index(l, pd_idx);
+	u32 pd_offset = pd_offset_from_index(l, pd_idx);
 	u32 pde_v[2] = {0, 0};
 
 	phys_addr >>= gmmu_new_pde_address_shift_v();
@@ -102,8 +101,8 @@ static void update_gmmu_pde3_locked(struct vm_gk20a *vm,
 	pde_v[0] |= gmmu_new_pde_vol_true_f();
 	pde_v[1] |= phys_addr >> 24;
 
-	nvgpu_pd_write(g, pd, (size_t)pd_offset + (size_t)0, pde_v[0]);
-	nvgpu_pd_write(g, pd, (size_t)pd_offset + (size_t)1, pde_v[1]);
+	pd_write(g, pd, (size_t)pd_offset + (size_t)0, pde_v[0]);
+	pd_write(g, pd, (size_t)pd_offset + (size_t)1, pde_v[1]);
 
 	pte_dbg(g, attrs,
 		"PDE: i=%-4u size=%-2u offs=%-4u pgsz: -- | "
@@ -126,7 +125,7 @@ static void update_gmmu_pde0_locked(struct vm_gk20a *vm,
 	struct nvgpu_gmmu_pd *next_pd = &pd->entries[pd_idx];
 	bool small_valid, big_valid;
 	u32 small_addr = 0, big_addr = 0;
-	u32 pd_offset = nvgpu_pd_offset_from_index(l, pd_idx);
+	u32 pd_offset = pd_offset_from_index(l, pd_idx);
 	u32 pde_v[4] = {0, 0, 0, 0};
 
 	small_valid = attrs->pgsz == GMMU_PAGE_SIZE_SMALL;
@@ -161,10 +160,10 @@ static void update_gmmu_pde0_locked(struct vm_gk20a *vm,
 		pde_v[1] |= big_addr >> 28;
 	}
 
-	nvgpu_pd_write(g, pd, (size_t)pd_offset + (size_t)0, pde_v[0]);
-	nvgpu_pd_write(g, pd, (size_t)pd_offset + (size_t)1, pde_v[1]);
-	nvgpu_pd_write(g, pd, (size_t)pd_offset + (size_t)2, pde_v[2]);
-	nvgpu_pd_write(g, pd, (size_t)pd_offset + (size_t)3, pde_v[3]);
+	pd_write(g, pd, (size_t)pd_offset + (size_t)0, pde_v[0]);
+	pd_write(g, pd, (size_t)pd_offset + (size_t)1, pde_v[1]);
+	pd_write(g, pd, (size_t)pd_offset + (size_t)2, pde_v[2]);
+	pd_write(g, pd, (size_t)pd_offset + (size_t)3, pde_v[3]);
 
 	pte_dbg(g, attrs,
 		"PDE: i=%-4u size=%-2u offs=%-4u pgsz: %c%c | "
@@ -241,7 +240,7 @@ static void update_gmmu_pte_locked(struct vm_gk20a *vm,
 {
 	struct gk20a *g = vm->mm->g;
 	u32 page_size  = vm->gmmu_page_sizes[attrs->pgsz];
-	u32 pd_offset = nvgpu_pd_offset_from_index(l, pd_idx);
+	u32 pd_offset = pd_offset_from_index(l, pd_idx);
 	u32 pte_w[2] = {0, 0};
 
 	if (phys_addr != 0ULL) {
@@ -272,8 +271,8 @@ static void update_gmmu_pte_locked(struct vm_gk20a *vm,
 		(u32)attrs->ctag / g->ops.fb.compression_page_size(g),
 		pte_w[1], pte_w[0]);
 
-	nvgpu_pd_write(g, pd, (size_t)pd_offset + (size_t)0, pte_w[0]);
-	nvgpu_pd_write(g, pd, (size_t)pd_offset + (size_t)1, pte_w[1]);
+	pd_write(g, pd, (size_t)pd_offset + (size_t)0, pte_w[0]);
+	pd_write(g, pd, (size_t)pd_offset + (size_t)1, pte_w[1]);
 }
 
 #define GP10B_PDE0_ENTRY_SIZE 16U
@@ -288,7 +287,7 @@ static u32 gp10b_get_pde0_pgsz(struct gk20a *g, const struct gk20a_mmu_level *l,
 				struct nvgpu_gmmu_pd *pd, u32 pd_idx)
 {
 	u32 pde_base = pd->mem_offs / sizeof(u32);
-	u32 pde_offset = pde_base + nvgpu_pd_offset_from_index(l, pd_idx);
+	u32 pde_offset = pde_base + pd_offset_from_index(l, pd_idx);
 	u32 pde_v[GP10B_PDE0_ENTRY_SIZE >> 2];
 	u32 i;
 	u32 pgsz = GMMU_NR_PAGE_SIZES;
@@ -381,7 +380,7 @@ const struct gk20a_mmu_level *gp10b_mm_get_mmu_levels(struct gk20a *g,
 void gp10b_mm_init_pdb(struct gk20a *g, struct nvgpu_mem *inst_block,
 		struct vm_gk20a *vm)
 {
-	u64 pdb_addr = nvgpu_pd_gpu_addr(g, &vm->pdb);
+	u64 pdb_addr = nvgpu_pde_gpu_addr(g, &vm->pdb);
 	u32 pdb_addr_lo = u64_lo32(pdb_addr >> ram_in_base_shift_v());
 	u32 pdb_addr_hi = u64_hi32(pdb_addr);
 
