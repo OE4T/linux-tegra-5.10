@@ -325,7 +325,7 @@ static inline u32 compute_dda_inc(fixed20_12 in, unsigned out_int,
 	 * Where the value of MAX is as follows:
 	 * For V_DDA_INCREMENT: 15.0 (0xF000)
 	 * For H_DDA_INCREMENT:  4.0 (0x4000) for 4 Bytes/pix formats.
-	 *			 8.0 (0x8000) for 2 Bytes/pix formats.
+	 *			 8.0 (0x8000) for all other formats.
 	 */
 
 	fixed20_12 out = dfixed_init(out_int);
@@ -339,11 +339,12 @@ static inline u32 compute_dda_inc(fixed20_12 in, unsigned out_int,
 		default:
 			WARN_ON_ONCE(1);
 			/* fallthrough */
-		case 4:
-			max = 4;
-			break;
+		case 1:
 		case 2:
 			max = 8;
+			break;
+		case 4:
+			max = 4;
 			break;
 		}
 	}
