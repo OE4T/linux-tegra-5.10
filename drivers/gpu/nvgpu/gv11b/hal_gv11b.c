@@ -1,7 +1,7 @@
 /*
  * GV11B Tegra HAL interface
  *
- * Copyright (c) 2016-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -943,6 +943,7 @@ static const struct gpu_ops gv11b_ops = {
 #endif
 	.falcon = {
 		.falcon_hal_sw_init = gk20a_falcon_hal_sw_init,
+		.falcon_hal_sw_free = gk20a_falcon_hal_sw_free,
 	},
 	.priv_ring = {
 		.enable_priv_ring = gm20b_priv_ring_enable,

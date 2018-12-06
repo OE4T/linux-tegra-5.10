@@ -101,6 +101,12 @@ int gk20a_prepare_poweroff(struct gk20a *g)
 	ret |= nvgpu_mm_suspend(g);
 	ret |= gk20a_fifo_suspend(g);
 
+	nvgpu_falcon_sw_free(g, FALCON_ID_FECS);
+	nvgpu_falcon_sw_free(g, FALCON_ID_GSPLITE);
+	nvgpu_falcon_sw_free(g, FALCON_ID_NVDEC);
+	nvgpu_falcon_sw_free(g, FALCON_ID_SEC2);
+	nvgpu_falcon_sw_free(g, FALCON_ID_PMU);
+
 	gk20a_ce_suspend(g);
 
 	/* Disable GPCPLL */
@@ -151,27 +157,27 @@ int gk20a_finalize_poweron(struct gk20a *g)
 	err = nvgpu_falcon_sw_init(g, FALCON_ID_PMU);
 	if (err != 0) {
 		nvgpu_err(g, "failed to sw init FALCON_ID_PMU");
-		goto done;
+		goto exit;
 	}
 	err = nvgpu_falcon_sw_init(g, FALCON_ID_SEC2);
 	if (err != 0) {
 		nvgpu_err(g, "failed to sw init FALCON_ID_SEC2");
-		goto done;
+		goto done_pmu;
 	}
 	err = nvgpu_falcon_sw_init(g, FALCON_ID_NVDEC);
 	if (err != 0) {
 		nvgpu_err(g, "failed to sw init FALCON_ID_NVDEC");
-		goto done;
+		goto done_sec2;
 	}
 	err = nvgpu_falcon_sw_init(g, FALCON_ID_GSPLITE);
 	if (err != 0) {
 		nvgpu_err(g, "failed to sw init FALCON_ID_GSPLITE");
-		goto done;
+		goto done_nvdec;
 	}
 	err = nvgpu_falcon_sw_init(g, FALCON_ID_FECS);
 	if (err != 0) {
 		nvgpu_err(g, "failed to sw init FALCON_ID_FECS");
-		goto done;
+		goto done_gsp;
 	}
 
 	if (g->ops.pmu.is_pmu_supported(g)) {
@@ -437,7 +443,19 @@ int gk20a_finalize_poweron(struct gk20a *g)
 		g->ops.fifo.channel_resume(g);
 	}
 
+	goto exit;
+
 done:
+	nvgpu_falcon_sw_free(g, FALCON_ID_FECS);
+done_gsp:
+	nvgpu_falcon_sw_free(g, FALCON_ID_GSPLITE);
+done_nvdec:
+	nvgpu_falcon_sw_free(g, FALCON_ID_NVDEC);
+done_sec2:
+	nvgpu_falcon_sw_free(g, FALCON_ID_SEC2);
+done_pmu:
+	nvgpu_falcon_sw_free(g, FALCON_ID_PMU);
+exit:
 	if (err != 0) {
 		g->power_on = false;
 	}

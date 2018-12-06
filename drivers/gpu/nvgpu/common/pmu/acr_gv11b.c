@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -144,7 +144,7 @@ static void gv11b_acr_default_sw_init(struct gk20a *g, struct hs_acr *hs_acr)
 	hs_acr->ptr_bl_dmem_desc = &hs_acr->bl_dmem_desc_v1;
 	hs_acr->bl_dmem_desc_size = (u32)sizeof(struct flcn_bl_dmem_desc_v1);
 
-	hs_acr->acr_flcn = &g->pmu_flcn;
+	hs_acr->acr_flcn = g->pmu.flcn;
 	hs_acr->acr_flcn_setup_hw_and_bl_bootstrap =
 		gm20b_pmu_setup_hw_and_bl_bootstrap;
 }

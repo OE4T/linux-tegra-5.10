@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -127,7 +127,7 @@ static int sec2_write_cmd(struct nvgpu_sec2 *sec2,
 	nvgpu_timeout_init(g, &timeout, timeout_ms, NVGPU_TIMER_CPU_TIMER);
 
 	do {
-		err = nvgpu_falcon_queue_push(&g->sec2_flcn, queue, cmd,
+		err = nvgpu_falcon_queue_push(g->sec2.flcn, queue, cmd,
 				cmd->hdr.size);
 		if ((err == -EAGAIN) && (nvgpu_timeout_expired(&timeout) == 0)) {
 			nvgpu_usleep_range(1000U, 2000U);

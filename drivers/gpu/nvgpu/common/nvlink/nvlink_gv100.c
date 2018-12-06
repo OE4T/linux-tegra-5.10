@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -470,7 +470,7 @@ static u32 gv100_nvlink_minion_load(struct gk20a *g)
 	}
 
 	/* nvdec falcon reset */
-	nvgpu_falcon_reset(&g->minion_flcn);
+	nvgpu_falcon_reset(g->minion_flcn);
 
 	/* Read ucode header */
 	minion_hdr->os_code_offset = minion_extract_word(nvgpu_minion_fw,
@@ -593,17 +593,17 @@ static u32 gv100_nvlink_minion_load(struct gk20a *g)
 		"  - Ucode Data Size = %u", minion_hdr->ucode_data_size);
 
 	/* Clear interrupts */
-	nvgpu_falcon_set_irq(&g->minion_flcn, true, MINION_FALCON_INTR_MASK,
+	nvgpu_falcon_set_irq(g->minion_flcn, true, MINION_FALCON_INTR_MASK,
 						MINION_FALCON_INTR_DEST);
 
 	/* Copy Non Secure IMEM code */
-	nvgpu_falcon_copy_to_imem(&g->minion_flcn, 0,
+	nvgpu_falcon_copy_to_imem(g->minion_flcn, 0,
 		(u8 *)&ndev->minion_img[minion_hdr->os_code_offset],
 		minion_hdr->os_code_size, 0, false,
 		GET_IMEM_TAG(minion_hdr->os_code_offset));
 
 	/* Copy Non Secure DMEM code */
-	nvgpu_falcon_copy_to_dmem(&g->minion_flcn, 0,
+	nvgpu_falcon_copy_to_dmem(g->minion_flcn, 0,
 		(u8 *)&ndev->minion_img[minion_hdr->os_data_offset],
 		minion_hdr->os_data_size, 0);
 
@@ -615,21 +615,21 @@ static u32 gv100_nvlink_minion_load(struct gk20a *g)
 		u32 app_data_size = minion_hdr->app_data_sizes[app];
 
 		if (app_code_size)
-			nvgpu_falcon_copy_to_imem(&g->minion_flcn,
+			nvgpu_falcon_copy_to_imem(g->minion_flcn,
 				app_code_start,
 				(u8 *)&ndev->minion_img[app_code_start],
 				app_code_size, 0, true,
 				GET_IMEM_TAG(app_code_start));
 
 		if (app_data_size)
-			nvgpu_falcon_copy_to_dmem(&g->minion_flcn,
+			nvgpu_falcon_copy_to_dmem(g->minion_flcn,
 				app_data_start,
 				(u8 *)&ndev->minion_img[app_data_start],
 				app_data_size, 0);
 	}
 
 	/* set BOOTVEC to start of non-secure code */
-	nvgpu_falcon_bootstrap(&g->minion_flcn, 0x0);
+	nvgpu_falcon_bootstrap(g->minion_flcn, 0x0);
 
 	nvgpu_timeout_init(g, &timeout, gk20a_get_gr_idle_timeout(g),
 		NVGPU_TIMER_CPU_TIMER);
@@ -2246,6 +2246,8 @@ int gv100_nvlink_reg_init(struct gk20a *g)
  */
 int gv100_nvlink_shutdown(struct gk20a *g)
 {
+	nvgpu_falcon_sw_free(g, FALCON_ID_MINION);
+
 	return 0;
 }
 
@@ -2661,18 +2663,18 @@ int gv100_nvlink_early_init(struct gk20a *g)
 	err = nvgpu_bios_get_lpwr_nvlink_table_hdr(g);
 	if (err != 0) {
 		nvgpu_err(g, "Failed to read LWPR_NVLINK_TABLE header\n");
-		goto nvlink_init_exit;
+		goto exit;
 	}
 
 	err = nvgpu_bios_get_nvlink_config_data(g);
 	if (err != 0) {
 		nvgpu_err(g, "failed to read nvlink vbios data");
-		goto nvlink_init_exit;
+		goto exit;
 	}
 
 	err = g->ops.nvlink.discover_ioctrl(g);
 	if (err != 0)
-		goto nvlink_init_exit;
+		goto exit;
 
 	/* Enable NVLINK in MC */
 	mc_reset_nvlink_mask = BIT32(g->nvlink.ioctrl_table[0].reset_enum);
@@ -2683,13 +2685,13 @@ int gv100_nvlink_early_init(struct gk20a *g)
 	err = g->ops.nvlink.discover_link(g);
 	if ((err != 0) || (g->nvlink.discovered_links == 0)) {
 		nvgpu_err(g, "No links available");
-		goto nvlink_init_exit;
+		goto exit;
 	}
 
 	err = nvgpu_falcon_sw_init(g, FALCON_ID_MINION);
 	if (err != 0) {
 		nvgpu_err(g, "failed to sw init FALCON_ID_MINION");
-		goto nvlink_init_exit;
+		goto exit;
 	}
 
 	g->nvlink.discovered_links &= ~g->nvlink.link_disable_mask;
@@ -2740,6 +2742,8 @@ int gv100_nvlink_early_init(struct gk20a *g)
 	gv100_nvlink_prog_alt_clk(g);
 
 nvlink_init_exit:
+	nvgpu_falcon_sw_free(g, FALCON_ID_MINION);
+exit:
 	return err;
 }
 

@@ -1,7 +1,7 @@
 /*
  * GK20A Graphics
  *
- * Copyright (c) 2011-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -103,7 +103,7 @@ void gk20a_fecs_dump_falcon_stats(struct gk20a *g)
 {
 	unsigned int i;
 
-	nvgpu_falcon_dump_stats(&g->fecs_flcn);
+	nvgpu_falcon_dump_stats(g->fecs_flcn);
 
 	for (i = 0; i < g->ops.gr.fecs_ctxsw_mailbox_size(); i++) {
 		nvgpu_err(g, "gr_fecs_ctxsw_mailbox_r(%d) : 0x%x",

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -755,4 +755,17 @@ int gk20a_falcon_hal_sw_init(struct nvgpu_falcon *flcn)
 	}
 
 	return err;
+}
+
+void gk20a_falcon_hal_sw_free(struct nvgpu_falcon *flcn)
+{
+	struct gk20a *g = flcn->g;
+
+	if (flcn->is_falcon_supported) {
+		nvgpu_mutex_destroy(&flcn->copy_lock);
+		flcn->is_falcon_supported = false;
+	} else {
+		nvgpu_log_info(g, "falcon 0x%x not supported on %s",
+			flcn->flcn_id, g->name);
+	}
 }

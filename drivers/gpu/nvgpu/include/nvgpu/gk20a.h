@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * GK20A Graphics
  *
@@ -1409,6 +1409,7 @@ struct gpu_ops {
 	} xve;
 	struct {
 		int (*falcon_hal_sw_init)(struct nvgpu_falcon *flcn);
+		void (*falcon_hal_sw_free)(struct nvgpu_falcon *flcn);
 	} falcon;
 	struct {
 		void (*enable_priv_ring)(struct gk20a *g);
@@ -1606,13 +1607,11 @@ struct gk20a {
 	struct nvgpu_netlist_vars *netlist_vars;
 	bool netlist_valid;
 
-	struct nvgpu_falcon pmu_flcn;
-	struct nvgpu_falcon sec2_flcn;
-	struct nvgpu_falcon fecs_flcn;
-	struct nvgpu_falcon gpccs_flcn;
-	struct nvgpu_falcon nvdec_flcn;
-	struct nvgpu_falcon minion_flcn;
-	struct nvgpu_falcon gsp_flcn;
+	struct nvgpu_falcon *fecs_flcn;
+	struct nvgpu_falcon *gpccs_flcn;
+	struct nvgpu_falcon *nvdec_flcn;
+	struct nvgpu_falcon *minion_flcn;
+	struct nvgpu_falcon *gsp_flcn;
 	struct clk_gk20a clk;
 	struct fifo_gk20a fifo;
 	struct nvgpu_nvlink_dev nvlink;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -68,7 +68,7 @@ static int gsp_flcn_bl_bootstrap(struct gk20a *g,
 	data |= pgsp_falcon_engctl_switch_context_true_f();
 	gk20a_writel(g, pgsp_falcon_engctl_r(), data);
 
-	status = nvgpu_falcon_bl_bootstrap(&g->gsp_flcn, bl_info);
+	status = nvgpu_falcon_bl_bootstrap(g->gsp_flcn, bl_info);
 
 	return status;
 }
@@ -80,7 +80,7 @@ int gv100_gsp_setup_hw_and_bl_bootstrap(struct gk20a *g,
 	u32 data = 0;
 	int err = 0;
 
-	err = nvgpu_falcon_reset(&g->gsp_flcn);
+	err = nvgpu_falcon_reset(g->gsp_flcn);
 	if (err != 0) {
 		goto exit;
 	}

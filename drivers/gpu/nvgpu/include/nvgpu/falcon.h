@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -296,5 +296,6 @@ u32 nvgpu_falcon_queue_get_index(struct nvgpu_falcon_queue *queue);
 u32 nvgpu_falcon_queue_get_size(struct nvgpu_falcon_queue *queue);
 
 int nvgpu_falcon_sw_init(struct gk20a *g, u32 flcn_id);
+void nvgpu_falcon_sw_free(struct gk20a *g, u32 flcn_id);
 
 #endif /* NVGPU_FALCON_H */

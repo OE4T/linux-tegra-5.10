@@ -1,8 +1,8 @@
 /*
  * GM20B PMU
  *
- * Copyright (c) 2015-2018, NVIDIA CORPORATION.  All rights reserved.
-*
+ * Copyright (c) 2015-2019, NVIDIA CORPORATION.  All rights reserved.
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
  * to deal in the Software without restriction, including without limitation
@@ -363,7 +363,7 @@ static int gm20b_bl_bootstrap(struct gk20a *g,
 		  pwr_pmu_new_instblk_target_sys_coh_f() :
 		  pwr_pmu_new_instblk_target_sys_ncoh_f())) ;
 
-	nvgpu_falcon_bl_bootstrap(&g->pmu_flcn, bl_info);
+	nvgpu_falcon_bl_bootstrap(g->pmu.flcn, bl_info);
 
 	return 0;
 }

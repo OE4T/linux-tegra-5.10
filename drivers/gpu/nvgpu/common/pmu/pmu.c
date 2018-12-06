@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -310,7 +310,7 @@ int nvgpu_init_pmu_support(struct gk20a *g)
 
 			if (nvgpu_is_enabled(g, NVGPU_SUPPORT_SEC2_RTOS)) {
 				/* Reset PMU engine */
-				err = nvgpu_falcon_reset(&g->pmu_flcn);
+				err = nvgpu_falcon_reset(g->pmu.flcn);
 
 				/* Bootstrap PMU from SEC2 RTOS*/
 				err = nvgpu_sec2_bootstrap_ls_falcons(g, &g->sec2,
@@ -324,7 +324,7 @@ int nvgpu_init_pmu_support(struct gk20a *g)
 			 * clear halt interrupt to avoid PMU-RTOS ucode
 			 * hitting breakpoint due to PMU halt
 			 */
-			err = nvgpu_falcon_clear_halt_intr_status(&g->pmu_flcn,
+			err = nvgpu_falcon_clear_halt_intr_status(g->pmu.flcn,
 				gk20a_get_gr_idle_timeout(g));
 			if (err != 0) {
 				goto exit;
