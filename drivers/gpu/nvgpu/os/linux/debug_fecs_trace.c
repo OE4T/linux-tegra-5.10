@@ -125,7 +125,15 @@ static const struct file_operations gk20a_fecs_trace_debugfs_ring_fops = {
 
 static int gk20a_fecs_trace_debugfs_read(void *arg, u64 *val)
 {
-	*val = gk20a_fecs_trace_get_read_index((struct gk20a *)arg);
+	struct gk20a *g = (struct gk20a *)arg;
+	int err = gk20a_busy(g);
+	if (err != 0) {
+		return err;
+	}
+
+	*val = gk20a_fecs_trace_get_read_index(g);
+
+	gk20a_idle(g);
 	return 0;
 }
 DEFINE_SIMPLE_ATTRIBUTE(gk20a_fecs_trace_debugfs_read_fops,
@@ -133,7 +141,15 @@ DEFINE_SIMPLE_ATTRIBUTE(gk20a_fecs_trace_debugfs_read_fops,
 
 static int gk20a_fecs_trace_debugfs_write(void *arg, u64 *val)
 {
-	*val = gk20a_fecs_trace_get_write_index((struct gk20a *)arg);
+	struct gk20a *g = (struct gk20a *)arg;
+	int err = gk20a_busy(g);
+	if (err != 0) {
+		return err;
+	}
+
+	*val = gk20a_fecs_trace_get_write_index(g);
+
+	gk20a_idle(g);
 	return 0;
 }
 DEFINE_SIMPLE_ATTRIBUTE(gk20a_fecs_trace_debugfs_write_fops,
