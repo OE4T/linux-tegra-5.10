@@ -111,7 +111,7 @@ static int therm_pmu_cmd_post(struct gk20a *g, struct pmu_cmd *cmd,
 				gk20a_get_gr_idle_timeout(g),
 				&handlerparams->success, 1);
 
-		if (handlerparams->success == 0) {
+		if (handlerparams->success == 0U) {
 			nvgpu_err(g, "could not process cmd");
 			status = -ETIMEDOUT;
 			goto exit;

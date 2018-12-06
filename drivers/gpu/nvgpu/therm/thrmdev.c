@@ -45,7 +45,7 @@ static int _therm_device_pmudata_instget(struct gk20a *g,
 
 	/*check whether pmuboardobjgrp has a valid boardobj in index*/
 	if (((u32)BIT(idx) &
-			pgrp_set->hdr.data.super.obj_mask.super.data[0]) == 0) {
+			pgrp_set->hdr.data.super.obj_mask.super.data[0]) == 0U) {
 		return -EINVAL;
 	}
 

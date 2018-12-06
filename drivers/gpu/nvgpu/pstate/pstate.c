@@ -267,7 +267,7 @@ int gk20a_init_pstate_pmu_support(struct gk20a *g)
 
 	if (g->ops.clk.support_clk_freq_domain) {
 		err = nvgpu_clk_freq_domain_pmu_setup(g);
-		if (err != 0) {
+		if (err != 0U) {
 			return err;
 		}
 	}
@@ -393,7 +393,7 @@ static int parse_pstate_entry_5x(struct gk20a *g,
 
 	(void) memset(pstate, 0, sizeof(struct pstate));
 	pstate->super.type = CTRL_PERF_PSTATE_TYPE_3X;
-	pstate->num = 0x0F - entry->pstate_level;
+	pstate->num = 0x0FU - U32(entry->pstate_level);
 	pstate->clklist.num_info = hdr->clock_entry_count;
 	pstate->lpwr_entry_idx = entry->lpwr_entry_idx;
 
@@ -443,7 +443,7 @@ static int parse_pstate_table_5x(struct gk20a *g,
 	int err = 0;
 
 	if ((hdr->header_size != VBIOS_PSTATE_HEADER_5X_SIZE_10) ||
-		(hdr->base_entry_count == 0) ||
+		(hdr->base_entry_count == 0U) ||
 		((hdr->base_entry_size != VBIOS_PSTATE_BASE_ENTRY_5X_SIZE_2) &&
 		 (hdr->base_entry_size != VBIOS_PSTATE_BASE_ENTRY_5X_SIZE_3) &&
 		 (hdr->base_entry_size != VBIOS_PSTATE_BASE_ENTRY_6X_SIZE_5)) ||

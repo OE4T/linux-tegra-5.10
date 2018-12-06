@@ -51,13 +51,13 @@ static int gr_gv100_scg_estimate_perf(struct gk20a *g,
 {
 	struct gr_gk20a *gr = &g->gr;
 	int err = 0;
-	u32 scale_factor = 512UL; /* Use fx23.9 */
-	u32 pix_scale = 1024*1024UL;	/* Pix perf in [29:20] */
-	u32 world_scale = 1024UL;	/* World performance in [19:10] */
-	u32 tpc_scale = 1;		/* TPC balancing in [9:0] */
-	u32 scg_num_pes = 0;
+	u32 scale_factor = 512U; /* Use fx23.9 */
+	u32 pix_scale = 1024U*1024U;	/* Pix perf in [29:20] */
+	u32 world_scale = 1024U;	/* World performance in [19:10] */
+	u32 tpc_scale = 1U;		/* TPC balancing in [9:0] */
+	u32 scg_num_pes = 0U;
 	u32 min_scg_gpc_pix_perf = scale_factor; /* Init perf as maximum */
-	u32 average_tpcs = 0;		/* Average of # of TPCs per GPC */
+	u32 average_tpcs = 0U;		/* Average of # of TPCs per GPC */
 	u32 deviation;			/* absolute diff between TPC# and
 					 * average_tpcs, averaged across GPCs
 					 */
@@ -70,7 +70,7 @@ static int gr_gv100_scg_estimate_perf(struct gk20a *g,
 	int diff;
 	bool is_tpc_removed_gpc = false;
 	bool is_tpc_removed_pes = false;
-	u32 max_tpc_gpc = 0;
+	u32 max_tpc_gpc = 0U;
 	u32 num_tpc_mask;
 	u32 *num_tpc_gpc = nvgpu_kzalloc(g, sizeof(u32) *
 				nvgpu_get_litter_value(g, GPU_LIT_NUM_GPCS));
@@ -91,7 +91,7 @@ static int gr_gv100_scg_estimate_perf(struct gk20a *g,
 				goto free_resources;
 			}
 			/* Remove logical TPC from set */
-			num_tpc_mask &= ~(0x1 << disable_tpc_id);
+			num_tpc_mask &= ~(BIT32(disable_tpc_id));
 			is_tpc_removed_gpc = true;
 		}
 
@@ -128,7 +128,7 @@ static int gr_gv100_scg_estimate_perf(struct gk20a *g,
 					err = -EINVAL;
 					goto free_resources;
 				}
-				num_tpc_mask &= ~(0x1 << disable_tpc_id);
+				num_tpc_mask &= ~(BIT32(disable_tpc_id));
 				is_tpc_removed_pes = true;
 			}
 			if (hweight32(num_tpc_mask) != 0UL) {
@@ -142,7 +142,7 @@ static int gr_gv100_scg_estimate_perf(struct gk20a *g,
 		goto free_resources;
 	}
 
-	if (max_tpc_gpc == 0) {
+	if (max_tpc_gpc == 0U) {
 		*perf = 0;
 		goto free_resources;
 	}
@@ -156,7 +156,7 @@ static int gr_gv100_scg_estimate_perf(struct gk20a *g,
 		if (diff < 0) {
 			diff = -diff;
 		}
-		deviation += diff;
+		deviation += U32(diff);
 	}
 
 	deviation /= gr->gpc_count;
@@ -262,7 +262,7 @@ int gr_gv100_init_sm_id_table(struct gk20a *g)
 				}
 			}
 		}
-		gpc_tpc_mask[gpc_table[gtpc]] &= ~(0x1 << tpc_table[gtpc]);
+		gpc_tpc_mask[gpc_table[gtpc]] &= ~(BIT64(tpc_table[gtpc]));
 	}
 
 	for (tpc = 0, sm_id = 0;  sm_id < num_sm; tpc++, sm_id += sm_per_tpc) {
@@ -307,13 +307,13 @@ u32 gr_gv100_get_patch_slots(struct gk20a *g)
 	 * Update PE table contents
 	 * for PE table, each patch buffer update writes 32 TPCs
 	 */
-	size += DIV_ROUND_UP(gr->tpc_count, 32);
+	size += DIV_ROUND_UP(gr->tpc_count, 32U);
 
 	/*
 	 * Update the PL table contents
 	 * For PL table, each patch buffer update configures 4 TPCs
 	 */
-	size += DIV_ROUND_UP(gr->tpc_count, 4);
+	size += DIV_ROUND_UP(gr->tpc_count, 4U);
 
 	/*
 	 * We need this for all subcontexts
@@ -325,7 +325,7 @@ u32 gr_gv100_get_patch_slots(struct gk20a *g)
 	 * reserve two slots since DYNAMIC -> STATIC requires
 	 * DYNAMIC -> NONE -> STATIC
 	 */
-	size += 2;
+	size += 2U;
 
 	/*
 	 * Add current patch buffer size
@@ -340,7 +340,7 @@ u32 gr_gv100_get_patch_slots(struct gk20a *g)
 	/*
 	 * Increase the size to accommodate for additional TPC partition update
 	 */
-	size += 2 * PATCH_CTX_SLOTS_PER_PAGE;
+	size += 2U * PATCH_CTX_SLOTS_PER_PAGE;
 
 	return size;
 }
@@ -361,7 +361,7 @@ static u32 gr_gv100_get_active_fpba_mask(struct gk20a *g)
 	 */
 	active_fbpa_mask = g->ops.fuse.fuse_status_opt_fbio(g);
 	active_fbpa_mask = ~active_fbpa_mask;
-	active_fbpa_mask = active_fbpa_mask & ((1 << num_fbpas) - 1);
+	active_fbpa_mask = active_fbpa_mask & (BIT32(num_fbpas) - 1U);
 
 	return active_fbpa_mask;
 }
@@ -392,7 +392,7 @@ int gr_gv100_add_ctxsw_reg_pm_fbpa(struct gk20a *g,
 						(regs->l[idx].addr & mask) +
 						(fbpa_id * stride);
 				map[cnt++].offset = off;
-				off += 4;
+				off += 4U;
 			}
 		}
 	}

@@ -273,7 +273,7 @@ int nvgpu_lwpr_mclk_change(struct gk20a *g, u32 pstate)
 
 		pmu_wait_message_cond(&g->pmu, gk20a_get_gr_idle_timeout(g),
 			&ack_status, 1);
-		if (ack_status == 0) {
+		if (ack_status == 0U) {
 			status = -EINVAL;
 			nvgpu_err(g, "MCLK-CHANGE ACK failed");
 		}
@@ -306,7 +306,7 @@ u32 nvgpu_lpwr_post_init(struct gk20a *g)
 
 	pmu_wait_message_cond(&g->pmu, gk20a_get_gr_idle_timeout(g),
 		&ack_status, 1);
-	if (ack_status == 0) {
+	if (ack_status == 0U) {
 		status = -EINVAL;
 		nvgpu_err(g, "post-init ack failed");
 	}

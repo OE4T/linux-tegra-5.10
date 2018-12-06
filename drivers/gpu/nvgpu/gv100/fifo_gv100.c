@@ -41,14 +41,14 @@ u32 gv100_fifo_get_num_fifos(struct gk20a *g)
 
 u32 gv100_fifo_get_preempt_timeout(struct gk20a *g)
 {
-	return g->fifo_eng_timeout_us / 1000 ;
+	return g->fifo_eng_timeout_us / 1000U;
 }
 
 void gv100_apply_ctxsw_timeout_intr(struct gk20a *g)
 {
 	u32 timeout;
 
-	timeout = g->ch_wdt_timeout_ms*1000;
+	timeout = g->ch_wdt_timeout_ms*1000U;
 	timeout = scale_ptimer(timeout,
 		ptimer_scalingfactor10x(g->ptimer_src_freq));
 	timeout |= fifo_eng_timeout_detection_enabled_f();

@@ -25,14 +25,14 @@
 
 #include <nvgpu/flcnif_cmn.h>
 
-#define NV_PMU_THERM_CMD_ID_RPC                                      0x00000002
-#define NV_PMU_THERM_MSG_ID_RPC                                      0x00000002
-#define NV_PMU_THERM_RPC_ID_SLCT                                     0x00000000
-#define NV_PMU_THERM_RPC_ID_SLCT_EVENT_TEMP_TH_SET                   0x00000006
-#define NV_PMU_THERM_EVENT_THERMAL_1                                 0x00000004
-#define NV_PMU_THERM_CMD_ID_HW_SLOWDOWN_NOTIFICATION                 0x00000001
-#define NV_RM_PMU_THERM_HW_SLOWDOWN_NOTIFICATION_REQUEST_ENABLE      0x00000001
-#define NV_PMU_THERM_MSG_ID_EVENT_HW_SLOWDOWN_NOTIFICATION           0x00000001
+#define NV_PMU_THERM_CMD_ID_RPC                                      0x00000002U
+#define NV_PMU_THERM_MSG_ID_RPC                                      0x00000002U
+#define NV_PMU_THERM_RPC_ID_SLCT                                     0x00000000U
+#define NV_PMU_THERM_RPC_ID_SLCT_EVENT_TEMP_TH_SET                   0x00000006U
+#define NV_PMU_THERM_EVENT_THERMAL_1                                 0x00000004U
+#define NV_PMU_THERM_CMD_ID_HW_SLOWDOWN_NOTIFICATION                 0x00000001U
+#define NV_RM_PMU_THERM_HW_SLOWDOWN_NOTIFICATION_REQUEST_ENABLE      0x00000001U
+#define NV_PMU_THERM_MSG_ID_EVENT_HW_SLOWDOWN_NOTIFICATION           0x00000001U
 
 struct nv_pmu_therm_rpc_slct_event_temp_th_set {
 	s32 temp_threshold;

@@ -31,24 +31,24 @@
 
 #include <nvgpu/hw/gv100/hw_pwr_gv100.h>
 
-#define PMU_BOOT_TIMEOUT_DEFAULT	100 /* usec */
-#define PMU_BOOT_TIMEOUT_MAX		2000000 /* usec */
+#define PMU_BOOT_TIMEOUT_DEFAULT	100U /* usec */
+#define PMU_BOOT_TIMEOUT_MAX		2000000U /* usec */
 
-#define SCRATCH_PREOS_PROGRESS	6
-#define PREOS_PROGRESS_MASK(r)		(((r) >> 12) & 0xf)
-#define PREOS_PROGRESS_NOT_STARTED	0
-#define PREOS_PROGRESS_STARTED		1
-#define PREOS_PROGRESS_EXIT		2
-#define PREOS_PROGRESS_EXIT_SECUREMODE	3
-#define PREOS_PROGRESS_ABORTED		6
+#define SCRATCH_PREOS_PROGRESS	6U
+#define PREOS_PROGRESS_MASK(r)		(((r) >> 12U) & 0xfU)
+#define PREOS_PROGRESS_NOT_STARTED	0U
+#define PREOS_PROGRESS_STARTED		1U
+#define PREOS_PROGRESS_EXIT		2U
+#define PREOS_PROGRESS_EXIT_SECUREMODE	3U
+#define PREOS_PROGRESS_ABORTED		6U
 
-#define SCRATCH_PMU_EXIT_AND_HALT	1
-#define PMU_EXIT_AND_HALT_SET(r, v)	(((r) & ~0x200UL) | (v))
-#define PMU_EXIT_AND_HALT_YES		(0x1UL << 9)
+#define SCRATCH_PMU_EXIT_AND_HALT	1U
+#define PMU_EXIT_AND_HALT_SET(r, v)	(((r) & ~0x200U) | (v))
+#define PMU_EXIT_AND_HALT_YES		BIT32(9)
 
-#define SCRATCH_PRE_OS_RELOAD		1
-#define PRE_OS_RELOAD_SET(r, v)		(((r) & ~0x100UL) | (v))
-#define PRE_OS_RELOAD_YES		(0x1UL << 8)
+#define SCRATCH_PRE_OS_RELOAD		1U
+#define PRE_OS_RELOAD_SET(r, v)		(((r) & ~0x100U) | (v))
+#define PRE_OS_RELOAD_YES		BIT32(8)
 
 
 void gv100_bios_preos_reload_check(struct gk20a *g)

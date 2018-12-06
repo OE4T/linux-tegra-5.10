@@ -26,13 +26,13 @@
 
 #include "clk/clk.h"
 
-#define CTRL_PERF_PSTATE_TYPE_3X	0x3
+#define CTRL_PERF_PSTATE_TYPE_3X	0x3U
 
-#define CTRL_PERF_PSTATE_P0		0
-#define CTRL_PERF_PSTATE_P5		5
-#define CTRL_PERF_PSTATE_P8		8
+#define CTRL_PERF_PSTATE_P0		0U
+#define CTRL_PERF_PSTATE_P5		5U
+#define CTRL_PERF_PSTATE_P8		8U
 
-#define CLK_SET_INFO_MAX_SIZE		(32)
+#define CLK_SET_INFO_MAX_SIZE		(32U)
 
 struct gk20a;
 

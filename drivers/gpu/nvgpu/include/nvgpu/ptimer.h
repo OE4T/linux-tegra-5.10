@@ -33,7 +33,7 @@ struct nvgpu_cpu_time_correlation_sample {
 
 /* PTIMER_REF_FREQ_HZ corresponds to a period of 32 nanoseconds.
     32 ns is the resolution of ptimer. */
-#define PTIMER_REF_FREQ_HZ                      31250000
+#define PTIMER_REF_FREQ_HZ                      31250000U
 
 static inline u32 ptimer_scalingfactor10x(u32 ptimer_src_freq)
 {
@@ -42,10 +42,10 @@ static inline u32 ptimer_scalingfactor10x(u32 ptimer_src_freq)
 
 static inline u32 scale_ptimer(u32 timeout , u32 scale10x)
 {
-	if (((timeout*10) % scale10x) >= (scale10x/2)) {
-		return ((timeout * 10) / scale10x) + 1;
+	if (((timeout*10U) % scale10x) >= (scale10x/2U)) {
+		return ((timeout * 10U) / scale10x) + 1U;
 	} else {
-		return (timeout * 10) / scale10x;
+		return (timeout * 10U) / scale10x;
 	}
 }
 
