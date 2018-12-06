@@ -155,5 +155,13 @@ int core_parse_args(struct unit_fw *fw, int argc, char **argv)
 		}
 	}
 
+	/*
+	 * If there is an extra argument after the command-line options, then
+	 * it is a unit test name that need to be specifically run.
+	 */
+	if (optind < argc) {
+		args->unit_to_run = argv[optind];
+	}
+
 	return 0;
 }

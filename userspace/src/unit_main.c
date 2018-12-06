@@ -70,14 +70,24 @@ int main(int argc, char **argv)
 	if (ret != 0)
 		return ret;
 
+	if (fw->results == NULL) {
+		core_msg(fw, "No tests were run!\n");
+		return -1;
+	}
+
 	core_print_test_status(fw);
 
-	if (fw->results->nr_tests == 0) {
-		/* No tests were run */
-		return -1;
-	} else if ((fw->results->nr_tests - fw->results->nr_passing) != 0) {
+	if ((fw->results->nr_tests - fw->results->nr_passing) != 0) {
 		/* Some tests failed */
 		return -1;
+	}
+
+	if (fw->args->unit_to_run != NULL) {
+		/*
+		 * Just in case (especially when running in automation), return
+		 * a failure if only executed a subset of the units
+		 */
+		return -2;
 	}
 
 	return 0;

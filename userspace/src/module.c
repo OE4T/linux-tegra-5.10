@@ -77,6 +77,14 @@ static struct unit_module *load_one_module(struct unit_fw *fw,
 
 	core_vbs(fw, 1, "Loading: %s\n", dent->d_name);
 
+	if (fw->args->unit_to_run != NULL) {
+		if (strstr(dent->d_name, fw->args->unit_to_run) == NULL) {
+			core_vbs(fw, 1, "  Skipping unit (not *%s*)\n",
+				fw->args->unit_to_run);
+			return NULL;
+		}
+	}
+
 	lib_handle = dlopen(dent->d_name, RTLD_NOW);
 	if (lib_handle == NULL) {
 		core_err(fw, "Failed to load %s: %s\n",

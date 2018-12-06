@@ -48,6 +48,7 @@ struct unit_fw_args {
 
 	const char	*unit_name;
 	const char	*unit_load_path;
+	const char	*unit_to_run;
 };
 
 int core_parse_args(struct unit_fw *fw, int argc, char **argv);
