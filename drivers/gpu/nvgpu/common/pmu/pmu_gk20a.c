@@ -1,7 +1,7 @@
 /*
  * GK20A PMU (aka. gPMU outside gk20a context)
  *
- * Copyright (c) 2011-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -746,7 +746,7 @@ void gk20a_pmu_isr(struct gk20a *g)
 	gk20a_writel(g, pwr_falcon_irqsclr_r(), intr);
 
 	if (recheck) {
-		queue = &pmu->queue[PMU_MESSAGE_QUEUE];
+		queue = pmu->queue[PMU_MESSAGE_QUEUE];
 		if (!nvgpu_falcon_queue_is_empty(pmu->flcn, queue)) {
 			gk20a_writel(g, pwr_falcon_irqsset_r(),
 				pwr_falcon_irqsset_swgen0_set_f());

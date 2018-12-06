@@ -88,7 +88,7 @@ static bool sec2_validate_cmd(struct nvgpu_sec2 *sec2,
 		goto invalid_cmd;
 	}
 
-	queue = &sec2->queue[queue_id];
+	queue = sec2->queue[queue_id];
 	if (cmd->hdr.size < PMU_CMD_HDR_SIZE) {
 		goto invalid_cmd;
 	}
@@ -123,7 +123,7 @@ static int sec2_write_cmd(struct nvgpu_sec2 *sec2,
 
 	nvgpu_log_fn(g, " ");
 
-	queue = &sec2->queue[queue_id];
+	queue = sec2->queue[queue_id];
 	nvgpu_timeout_init(g, &timeout, timeout_ms, NVGPU_TIMER_CPU_TIMER);
 
 	do {
@@ -334,7 +334,7 @@ static int sec2_process_init_msg(struct nvgpu_sec2 *sec2,
 {
 	struct gk20a *g = sec2->g;
 	struct sec2_init_msg_sec2_init *sec2_init;
-	u32 i, tail = 0;
+	u32 i, j, tail = 0;
 	int err = 0;
 
 	g->ops.sec2.msgq_tail(g, sec2, &tail, QUEUE_GET);
@@ -369,7 +369,14 @@ static int sec2_process_init_msg(struct nvgpu_sec2 *sec2,
 	sec2_init = &msg->msg.init.sec2_init;
 
 	for (i = 0; i < SEC2_QUEUE_NUM; i++) {
-		nvgpu_sec2_queue_init(sec2, i, sec2_init);
+		err = nvgpu_sec2_queue_init(sec2, i, sec2_init);
+		if (err != 0) {
+			for (j = 0; j < i; j++) {
+				nvgpu_sec2_queue_free(sec2, j);
+			}
+			nvgpu_err(g, "SEC2 queue init failed");
+			return err;
+		}
 	}
 
 	if (!nvgpu_alloc_initialized(&sec2->dmem)) {
@@ -404,7 +411,7 @@ int nvgpu_sec2_process_message(struct nvgpu_sec2 *sec2)
 	}
 
 	while (sec2_read_message(sec2,
-		&sec2->queue[SEC2_NV_MSGQ_LOG_ID], &msg, &status)) {
+		sec2->queue[SEC2_NV_MSGQ_LOG_ID], &msg, &status)) {
 
 		nvgpu_sec2_dbg(g, "read msg hdr: ");
 		nvgpu_sec2_dbg(g, "unit_id = 0x%08x, size = 0x%08x",

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -149,6 +149,24 @@ exit:
 	return err;
 }
 
+void nvgpu_pmu_queue_free(struct nvgpu_pmu *pmu, u32 id)
+{
+	struct gk20a *g = gk20a_from_pmu(pmu);
+
+	if (!PMU_IS_COMMAND_QUEUE(id) && !PMU_IS_MESSAGE_QUEUE(id)) {
+		nvgpu_err(g, "invalid queue-id %d", id);
+		goto exit;
+	}
+
+	if (pmu->queue[id] == NULL) {
+		goto exit;
+	}
+
+	nvgpu_falcon_queue_free(pmu->flcn, &pmu->queue[id]);
+exit:
+	return;
+}
+
 static bool pmu_validate_cmd(struct nvgpu_pmu *pmu, struct pmu_cmd *cmd,
 			struct pmu_msg *msg, struct pmu_payload *payload,
 			u32 queue_id)
@@ -162,7 +180,7 @@ static bool pmu_validate_cmd(struct nvgpu_pmu *pmu, struct pmu_cmd *cmd,
 		goto invalid_cmd;
 	}
 
-	queue = &pmu->queue[queue_id];
+	queue = pmu->queue[queue_id];
 	queue_size = nvgpu_falcon_queue_get_size(queue);
 	if (cmd->hdr.size < PMU_CMD_HDR_SIZE) {
 		goto invalid_cmd;
@@ -243,7 +261,7 @@ static int pmu_write_cmd(struct nvgpu_pmu *pmu, struct pmu_cmd *cmd,
 
 	nvgpu_log_fn(g, " ");
 
-	queue = &pmu->queue[queue_id];
+	queue = pmu->queue[queue_id];
 	nvgpu_timeout_init(g, &timeout, U32_MAX, NVGPU_TIMER_CPU_TIMER);
 
 	do {
@@ -744,7 +762,7 @@ int nvgpu_pmu_process_message(struct nvgpu_pmu *pmu)
 	}
 
 	while (pmu_read_message(pmu,
-		&pmu->queue[PMU_MESSAGE_QUEUE], &msg, &status)) {
+		pmu->queue[PMU_MESSAGE_QUEUE], &msg, &status)) {
 
 		nvgpu_pmu_dbg(g, "read msg hdr: ");
 		nvgpu_pmu_dbg(g, "unit_id = 0x%08x, size = 0x%08x",

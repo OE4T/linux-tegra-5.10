@@ -278,7 +278,7 @@ u32 nvgpu_falcon_get_id(struct nvgpu_falcon *flcn);
 
 /* queue public functions */
 int nvgpu_falcon_queue_init(struct nvgpu_falcon *flcn,
-	struct nvgpu_falcon_queue *queue,
+	struct nvgpu_falcon_queue **queue_p,
 	struct nvgpu_falcon_queue_params params);
 bool nvgpu_falcon_queue_is_empty(struct nvgpu_falcon *flcn,
 	struct nvgpu_falcon_queue *queue);
@@ -290,7 +290,7 @@ int nvgpu_falcon_queue_pop(struct nvgpu_falcon *flcn,
 int nvgpu_falcon_queue_push(struct nvgpu_falcon *flcn,
 	struct nvgpu_falcon_queue *queue, void *data, u32 size);
 void nvgpu_falcon_queue_free(struct nvgpu_falcon *flcn,
-	struct nvgpu_falcon_queue *queue);
+	struct nvgpu_falcon_queue **queue_p);
 u32 nvgpu_falcon_queue_get_id(struct nvgpu_falcon_queue *queue);
 u32 nvgpu_falcon_queue_get_index(struct nvgpu_falcon_queue *queue);
 u32 nvgpu_falcon_queue_get_size(struct nvgpu_falcon_queue *queue);

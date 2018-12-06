@@ -79,6 +79,24 @@ exit:
 	return err;
 }
 
+void nvgpu_sec2_queue_free(struct nvgpu_sec2 *sec2, u32 id)
+{
+	struct gk20a *g = sec2->g;
+
+	if (!(id == SEC2_NV_CMDQ_LOG_ID) && !(id == SEC2_NV_MSGQ_LOG_ID)) {
+		nvgpu_err(g, "invalid queue-id %d", id);
+		goto exit;
+	}
+
+	if (sec2->queue[id] == NULL) {
+		goto exit;
+	}
+
+	nvgpu_falcon_queue_free(sec2->flcn, &sec2->queue[id]);
+exit:
+	return;
+}
+
 static void sec2_seq_init(struct nvgpu_sec2 *sec2)
 {
 	u32 i = 0;
@@ -177,7 +195,7 @@ int nvgpu_sec2_destroy(struct gk20a *g)
 	nvgpu_mutex_release(&sec2->isr_mutex);
 
 	for (i = 0; i < SEC2_QUEUE_NUM; i++) {
-		nvgpu_falcon_queue_free(sec2->flcn, &sec2->queue[i]);
+		nvgpu_sec2_queue_free(sec2, i);
 	}
 
 	sec2->sec2_ready = false;

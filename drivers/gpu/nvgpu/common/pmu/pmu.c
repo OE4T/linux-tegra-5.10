@@ -371,7 +371,8 @@ int nvgpu_pmu_process_init_msg(struct nvgpu_pmu *pmu,
 	struct pmu_v *pv = &g->ops.pmu_ver;
 	union pmu_init_msg_pmu *init;
 	struct pmu_sha1_gid_data gid_data;
-	u32 i, tail = 0;
+	u32 i, j, tail = 0;
+	int err;
 
 	nvgpu_log_fn(g, " ");
 
@@ -421,7 +422,14 @@ int nvgpu_pmu_process_init_msg(struct nvgpu_pmu *pmu,
 	}
 
 	for (i = 0; i < PMU_QUEUE_COUNT; i++) {
-		nvgpu_pmu_queue_init(pmu, i, init);
+		err = nvgpu_pmu_queue_init(pmu, i, init);
+		if (err != 0) {
+			for (j = 0; j < i; j++) {
+				nvgpu_pmu_queue_free(pmu, j);
+			}
+			nvgpu_err(g, "PMU queue init failed");
+			return err;
+		}
 	}
 
 	if (!nvgpu_alloc_initialized(&pmu->dmem)) {
@@ -587,7 +595,7 @@ int nvgpu_pmu_destroy(struct gk20a *g)
 	nvgpu_mutex_release(&pmu->isr_mutex);
 
 	for (i = 0U; i < PMU_QUEUE_COUNT; i++) {
-		nvgpu_falcon_queue_free(pmu->flcn, &pmu->queue[i]);
+		nvgpu_pmu_queue_free(pmu, i);
 	}
 
 	nvgpu_pmu_state_change(g, PMU_STATE_OFF, false);

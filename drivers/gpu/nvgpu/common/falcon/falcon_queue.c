@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -330,6 +330,10 @@ int nvgpu_falcon_queue_push(struct nvgpu_falcon *flcn,
 {
 	int err = 0;
 
+	if ((flcn == NULL) || (queue == NULL)) {
+		return -EINVAL;
+	}
+
 	if (queue->oflag != OFLAG_WRITE) {
 		nvgpu_err(flcn->g, "flcn-%d, queue-%d not opened for write",
 			flcn->flcn_id, queue->id);
@@ -370,6 +374,10 @@ int nvgpu_falcon_queue_pop(struct nvgpu_falcon *flcn,
 	u32 *bytes_read)
 {
 	int err = 0;
+
+	if ((flcn == NULL) || (queue == NULL)) {
+		return -EINVAL;
+	}
 
 	if (queue->oflag != OFLAG_READ) {
 		nvgpu_err(flcn->g, "flcn-%d, queue-%d, not opened for read",
@@ -412,6 +420,10 @@ int nvgpu_falcon_queue_rewind(struct nvgpu_falcon *flcn,
 {
 	int err = 0;
 
+	if ((flcn == NULL) || (queue == NULL)) {
+		return -EINVAL;
+	}
+
 	/* acquire mutex */
 	nvgpu_mutex_acquire(&queue->mutex);
 
@@ -432,6 +444,10 @@ bool nvgpu_falcon_queue_is_empty(struct nvgpu_falcon *flcn,
 	u32 q_head = 0;
 	u32 q_tail = 0;
 	int err = 0;
+
+	if ((flcn == NULL) || (queue == NULL)) {
+		return true;
+	}
 
 	/* acquire mutex */
 	nvgpu_mutex_acquire(&queue->mutex);
@@ -458,16 +474,25 @@ exit:
 }
 
 void nvgpu_falcon_queue_free(struct nvgpu_falcon *flcn,
-	struct nvgpu_falcon_queue *queue)
+	struct nvgpu_falcon_queue **queue_p)
 {
-	nvgpu_log(flcn->g, gpu_dbg_pmu, "flcn id-%d q-id %d: index %d ",
-		flcn->flcn_id, queue->id, queue->index);
+	struct nvgpu_falcon_queue *queue = NULL;
+	struct gk20a *g = flcn->g;
+
+	if ((queue_p == NULL) || (*queue_p == NULL)) {
+		return;
+	}
+
+	queue = *queue_p;
+
+	nvgpu_pmu_dbg(g, "flcn id-%d q-id %d: index %d ",
+		      flcn->flcn_id, queue->id, queue->index);
 
 	/* destroy mutex */
 	nvgpu_mutex_destroy(&queue->mutex);
 
-	/* clear data*/
-	(void) memset(queue, 0, sizeof(struct nvgpu_falcon_queue));
+	nvgpu_kfree(g, queue);
+	*queue_p = NULL;
 }
 
 u32 nvgpu_falcon_queue_get_id(struct nvgpu_falcon_queue *queue)
@@ -486,11 +511,23 @@ u32 nvgpu_falcon_queue_get_size(struct nvgpu_falcon_queue *queue)
 }
 
 int nvgpu_falcon_queue_init(struct nvgpu_falcon *flcn,
-	struct nvgpu_falcon_queue *queue,
+	struct nvgpu_falcon_queue **queue_p,
 	struct nvgpu_falcon_queue_params params)
 {
+	struct nvgpu_falcon_queue *queue = NULL;
 	struct gk20a *g = flcn->g;
 	int err = 0;
+
+	if (queue_p == NULL) {
+		return -EINVAL;
+	}
+
+	queue = (struct nvgpu_falcon_queue *)
+		   nvgpu_kmalloc(g, sizeof(struct nvgpu_falcon_queue));
+
+	if (queue == NULL) {
+		return -ENOMEM;
+	}
 
 	queue->id = params.id;
 	queue->index = params.index;
@@ -514,19 +551,23 @@ int nvgpu_falcon_queue_init(struct nvgpu_falcon *flcn,
 		break;
 	default:
 		err = -EINVAL;
-		goto exit;
 		break;
+	}
+
+	if (err != 0) {
+		nvgpu_err(flcn->g, "flcn-%d queue-%d, init failed",
+			flcn->flcn_id, queue->id);
+		nvgpu_kfree(g, queue);
+		goto exit;
 	}
 
 	/* init mutex */
 	err = nvgpu_mutex_init(&queue->mutex);
-
-exit:
 	if (err != 0) {
-		nvgpu_err(flcn->g, "flcn-%d queue-%d, init failed",
-			flcn->flcn_id, queue->id);
+		goto exit;
 	}
 
+	*queue_p = queue;
+exit:
 	return err;
 }
-

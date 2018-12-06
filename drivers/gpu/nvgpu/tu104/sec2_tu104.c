@@ -425,7 +425,7 @@ void tu104_sec2_isr(struct gk20a *g)
 	gk20a_writel(g, psec_falcon_irqsclr_r(), intr);
 
 	if (recheck) {
-		queue = &sec2->queue[SEC2_NV_MSGQ_LOG_ID];
+		queue = sec2->queue[SEC2_NV_MSGQ_LOG_ID];
 		if (!nvgpu_falcon_queue_is_empty(sec2->flcn, queue)) {
 			gk20a_writel(g, psec_falcon_irqsset_r(),
 				psec_falcon_irqsset_swgen0_set_f());
