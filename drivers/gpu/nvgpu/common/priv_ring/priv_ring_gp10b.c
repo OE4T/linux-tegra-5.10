@@ -96,6 +96,9 @@ void gp10b_priv_ring_decode_error_code(struct gk20a *g,
 			nvgpu_err(g, "%s",
 				error_type_badf5xyy[error_type_index]);
 		}
+	} else {
+		nvgpu_log_info(g, "Decoding error code 0x%x not supported.",
+				error_code);
 	}
 }
 
