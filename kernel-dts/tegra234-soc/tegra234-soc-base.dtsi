@@ -500,7 +500,6 @@
 				 <&bpmp_clks TEGRA194_CLK_NVCSI>,
 				 <&bpmp_clks TEGRA194_CLK_NVCSILP>;
 			clock-names = "vi", "vi-const", "nvcsi", "nvcsilp";
-			power-domains = <&bpmp TEGRA194_POWER_DOMAIN_VE>;
 
 			nvidia,vi-falcon-device = <&vi_thi>;
 
@@ -516,7 +515,6 @@
 			clocks = <&bpmp_clks TEGRA194_CLK_VI>,
 			         <&bpmp_clks TEGRA194_CLK_VI_CONST>;
 			clock-names = "vi", "vi-const";
-			power-domains = <&bpmp TEGRA194_POWER_DOMAIN_VE>;
 		};
 
 		isp: isp@14800000 {
@@ -527,7 +525,6 @@
 			reset-names = "isp";
 			clocks = <&bpmp_clks TEGRA194_CLK_ISP>;
 			clock-names = "isp";
-			power-domains = <&bpmp TEGRA194_POWER_DOMAIN_ISPA>;
 
 			nvidia,isp-falcon-device = <&isp_thi>;
 
