@@ -74,7 +74,7 @@ int test_dma_alloc_init(struct unit_module *m,
 int test_dma_alloc_fi_default(struct unit_module *m,
 			      struct gk20a *g, void *__args)
 {
-	struct nvgpu_mem mem;
+	struct nvgpu_mem mem = { };
 	int result;
 	int ret = UNIT_SUCCESS;
 
@@ -118,7 +118,7 @@ test_exit:
 int test_dma_alloc_fi_enabled(struct unit_module *m,
 			      struct gk20a *g, void *__args)
 {
-	struct nvgpu_mem mem;
+	struct nvgpu_mem mem = { };
 	int result;
 	int ret = UNIT_SUCCESS;
 
@@ -164,9 +164,9 @@ test_exit:
 int test_dma_alloc_fi_delayed_enable(struct unit_module *m,
 				     struct gk20a *g, void *__args)
 {
-	const unsigned int fail_after = 2;
+#define FAIL_AFTER 2
 	unsigned int call_count = 0;
-	struct nvgpu_mem mem[fail_after+1];
+	struct nvgpu_mem mem[FAIL_AFTER+1] = { };
 	int result = 0;
 	int ret = UNIT_SUCCESS;
 
@@ -177,7 +177,7 @@ int test_dma_alloc_fi_delayed_enable(struct unit_module *m,
 	}
 
 	/* enable fault injection after delay */
-	nvgpu_posix_enable_fault_injection(dma_fi, true, fail_after);
+	nvgpu_posix_enable_fault_injection(dma_fi, true, FAIL_AFTER);
 	if (nvgpu_posix_is_fault_injection_triggered(dma_fi)) {
 		unit_err(m, "Fault injection errantly enabled too soon\n");
 		ret = UNIT_FAIL;
@@ -185,17 +185,17 @@ int test_dma_alloc_fi_delayed_enable(struct unit_module *m,
 	}
 
 	call_count = 1;
-	while (call_count <= (fail_after+1)){
+	while (call_count <= (FAIL_AFTER+1)) {
 		result = nvgpu_dma_alloc(g, TEST_DEFAULT_SIZE,
 					 &mem[call_count-1]);
 
-		if ((call_count <= fail_after) && (result != 0U)) {
+		if ((call_count <= FAIL_AFTER) && (result != 0U)) {
 			unit_err(m, "nvgpu_dma_alloc returned error when fault "
 				    "injection disabled\n");
 			ret = UNIT_FAIL;
 			/* no reason to go on */
 			break;
-		} else if ((call_count > fail_after) && (result == 0U)) {
+		} else if ((call_count > FAIL_AFTER) && (result == 0U)) {
 			unit_err(m, "nvgpu_dma_alloc returned success when "
 				    "fault injection enabled\n");
 			ret = UNIT_FAIL;

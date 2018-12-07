@@ -272,7 +272,7 @@ static int test_pramin_rd_n_single(struct unit_module *m, struct gk20a *g,
 				void *__args)
 {
 	u32 *dest;
-	struct nvgpu_mem mem;
+	struct nvgpu_mem mem = { };
 	struct nvgpu_mem_sgl *sgl;
 	u32 byte_cnt = TEST_SIZE;
 	bool success = false;
@@ -336,7 +336,7 @@ static int test_pramin_wr_n_multi(struct unit_module *m, struct gk20a *g,
 				void *__args)
 {
 	u32 *src;
-	struct nvgpu_mem mem;
+	struct nvgpu_mem mem = { };
 	struct nvgpu_mem_sgl *sgl1, *sgl2, *sgl3;
 	u32 byte_cnt = TEST_SIZE;
 	u32 byte_offset = SZ_128K;
@@ -425,7 +425,7 @@ free_src:
 static int test_pramin_memset(struct unit_module *m, struct gk20a *g,
 				void *__args)
 {
-	struct nvgpu_mem mem;
+	struct nvgpu_mem mem = { };
 	struct nvgpu_mem_sgl *sgl;
 	u32 byte_cnt = TEST_SIZE;
 	u32 word_cnt = byte_cnt / sizeof(u32);

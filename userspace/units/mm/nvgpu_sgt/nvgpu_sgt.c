@@ -72,7 +72,7 @@ static int test_nvgpu_sgt_basic_apis(struct unit_module *m, struct gk20a *g,
 {
 	int ret = UNIT_SUCCESS;
 	struct nvgpu_os_posix *p = nvgpu_os_posix_from_gk20a(g);
-	struct nvgpu_mem mem;
+	struct nvgpu_mem mem = { };
 	struct nvgpu_sgt *sgt;
 	struct nvgpu_mem_sgl *sgl;
 	struct nvgpu_sgt_ops const *saved_ops_ptr;
@@ -404,7 +404,7 @@ static int test_nvgpu_sgt_alignment_with_iommu(struct unit_module *m,
 {
 	int ret = UNIT_SUCCESS;
 	struct nvgpu_os_posix *p = nvgpu_os_posix_from_gk20a(g);
-	struct nvgpu_mem mem;
+	struct nvgpu_mem mem = { };
 	struct nvgpu_sgt *sgt;
 	struct nvgpu_mem_sgl *sgl;
 	u64 alignment;

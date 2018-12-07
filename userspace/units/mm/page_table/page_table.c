@@ -344,7 +344,7 @@ static u64 pte_get_phys_addr(u32 *pte)
 static int test_nvgpu_gmmu_map_unmap(struct unit_module *m,
 					struct gk20a *g, void *args)
 {
-	struct nvgpu_mem mem;
+	struct nvgpu_mem mem = { };
 	u32 pte[2];
 	int result;
 	struct nvgpu_os_posix *p = nvgpu_os_posix_from_gk20a(g);
@@ -443,7 +443,7 @@ static int test_nvgpu_gmmu_map_unmap(struct unit_module *m,
 static int test_nvgpu_gmmu_set_pte(struct unit_module *m,
 					struct gk20a *g, void *args)
 {
-	struct nvgpu_mem mem;
+	struct nvgpu_mem mem = { };
 	u32 pte[2];
 	int result;
 	struct nvgpu_os_posix *p = nvgpu_os_posix_from_gk20a(g);
@@ -582,7 +582,7 @@ static void gmmu_unmap_advanced(struct vm_gk20a *vm, struct nvgpu_mem *mem,
 static int test_nvgpu_gmmu_map_unmap_adv(struct unit_module *m,
 					struct gk20a *g, void *args)
 {
-	struct nvgpu_mem mem;
+	struct nvgpu_mem mem = { };
 	u64 vaddr;
 
 	struct test_parameters *params = (struct test_parameters *) args;
@@ -609,7 +609,7 @@ static int test_nvgpu_gmmu_map_unmap_adv(struct unit_module *m,
 static int test_nvgpu_gmmu_map_unmap_batched(struct unit_module *m,
 					struct gk20a *g, void *args)
 {
-	struct nvgpu_mem mem, mem2;
+	struct nvgpu_mem mem = { }, mem2 = { };
 	u64 vaddr, vaddr2;
 	struct vm_gk20a_mapping_batch batch;
 
