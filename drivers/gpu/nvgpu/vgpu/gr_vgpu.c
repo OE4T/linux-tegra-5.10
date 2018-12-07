@@ -631,6 +631,7 @@ static int vgpu_gr_init_gr_config(struct gk20a *g, struct gr_gk20a *gr)
 	struct vgpu_priv_data *priv = vgpu_get_priv_data(g);
 	u32 gpc_index;
 	u32 sm_per_tpc;
+	u32 pes_index;
 	int err = -ENOMEM;
 
 	nvgpu_log_fn(g, " ");
@@ -669,6 +670,56 @@ static int vgpu_gr_init_gr_config(struct gk20a *g, struct gr_gk20a *gr)
 				g->ops.gr.get_gpc_tpc_mask(g, gpc_index);
 	}
 
+	gr->pe_count_per_gpc =
+		nvgpu_get_litter_value(g, GPU_LIT_NUM_PES_PER_GPC);
+	if (WARN(gr->pe_count_per_gpc > GK20A_GR_MAX_PES_PER_GPC,
+		 "too many pes per gpc %u\n", gr->pe_count_per_gpc)) {
+		goto cleanup;
+	}
+	if (gr->pe_count_per_gpc > TEGRA_VGPU_MAX_PES_COUNT_PER_GPC) {
+		nvgpu_err(g, "pe_count_per_gpc %d is too big!",
+				gr->pe_count_per_gpc);
+		goto cleanup;
+	}
+
+	if (gr->gpc_ppc_count == NULL) {
+		gr->gpc_ppc_count = nvgpu_kzalloc(g, gr->gpc_count *
+					sizeof(u32));
+	} else {
+		(void) memset(gr->gpc_ppc_count, 0, gr->gpc_count *
+					sizeof(u32));
+	}
+
+	for (gpc_index = 0; gpc_index < gr->gpc_count; gpc_index++) {
+		gr->gpc_ppc_count[gpc_index] =
+			priv->constants.gpc_ppc_count[gpc_index];
+
+		for (pes_index = 0u; pes_index < gr->pe_count_per_gpc;
+				pes_index++) {
+			u32 pes_tpc_count, pes_tpc_mask;
+
+			if (gr->pes_tpc_count[pes_index] == NULL) {
+				gr->pes_tpc_count[pes_index] = nvgpu_kzalloc(g,
+					gr->gpc_count * sizeof(u32));
+				gr->pes_tpc_mask[pes_index] = nvgpu_kzalloc(g,
+					gr->gpc_count * sizeof(u32));
+				if (gr->pes_tpc_count[pes_index] == NULL ||
+					gr->pes_tpc_mask[pes_index] == NULL) {
+					goto cleanup;
+				}
+			}
+
+			pes_tpc_count = priv->constants.
+				pes_tpc_count[TEGRA_VGPU_MAX_PES_COUNT_PER_GPC *
+				gpc_index + pes_index];
+			pes_tpc_mask = priv->constants.
+				pes_tpc_mask[TEGRA_VGPU_MAX_PES_COUNT_PER_GPC *
+				gpc_index + pes_index];
+			gr->pes_tpc_count[pes_index][gpc_index] = pes_tpc_count;
+			gr->pes_tpc_mask[pes_index][gpc_index] = pes_tpc_mask;
+		}
+	}
+
 	g->ops.gr.bundle_cb_defaults(g);
 	g->ops.gr.cb_size_default(g);
 	g->ops.gr.calc_global_ctx_buffer_size(g);
@@ -678,6 +729,16 @@ static int vgpu_gr_init_gr_config(struct gk20a *g, struct gr_gk20a *gr)
 	return 0;
 cleanup:
 	nvgpu_err(g, "out of memory");
+
+	for (pes_index = 0u; pes_index < gr->pe_count_per_gpc; pes_index++) {
+		nvgpu_kfree(g, gr->pes_tpc_count[pes_index]);
+		gr->pes_tpc_count[pes_index] = NULL;
+		nvgpu_kfree(g, gr->pes_tpc_mask[pes_index]);
+		gr->pes_tpc_mask[pes_index] = NULL;
+	}
+
+	nvgpu_kfree(g, gr->gpc_ppc_count);
+	gr->gpc_ppc_count = NULL;
 
 	nvgpu_kfree(g, gr->gpc_tpc_count);
 	gr->gpc_tpc_count = NULL;

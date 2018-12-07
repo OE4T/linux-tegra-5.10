@@ -491,8 +491,9 @@ struct tegra_vgpu_engines_info {
 	} info[TEGRA_VGPU_MAX_ENGINES];
 };
 
-#define TEGRA_VGPU_MAX_GPC_COUNT 16
-#define TEGRA_VGPU_MAX_TPC_COUNT_PER_GPC 16
+#define TEGRA_VGPU_MAX_GPC_COUNT 2
+#define TEGRA_VGPU_MAX_TPC_COUNT_PER_GPC 4
+#define TEGRA_VGPU_MAX_PES_COUNT_PER_GPC 3
 #define TEGRA_VGPU_L2_EN_MASK 32
 
 struct tegra_vgpu_constants_params {
@@ -524,6 +525,11 @@ struct tegra_vgpu_constants_params {
 	 * TEGRA_VGPU_MAX_TPC_COUNT_PER_GPC
 	 */
 	u16 gpc_tpc_mask[TEGRA_VGPU_MAX_GPC_COUNT];
+	u16 gpc_ppc_count[TEGRA_VGPU_MAX_GPC_COUNT];
+	u32 pes_tpc_count[TEGRA_VGPU_MAX_PES_COUNT_PER_GPC
+			* TEGRA_VGPU_MAX_GPC_COUNT];
+	u32 pes_tpc_mask[TEGRA_VGPU_MAX_PES_COUNT_PER_GPC
+			* TEGRA_VGPU_MAX_GPC_COUNT];
 	u32 hwpm_ctx_size;
 	u8 force_preempt_mode;
 	u8 can_set_clkrate;
