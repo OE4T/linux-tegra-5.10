@@ -283,6 +283,9 @@ struct nvgpu_gpu_characteristics {
 	__s16 ctxsw_ioctl_nr_last;
 	__u8 reserved2[6];
 
+	__u32 max_ctxsw_ring_buffer_size;
+	__u32 reserved3;
+
 	/* Notes:
 	   - This struct can be safely appended with new fields. However, always
 	     keep the structure size multiple of 8 and make sure that the binary

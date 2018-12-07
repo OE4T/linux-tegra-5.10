@@ -580,6 +580,8 @@ int gk20a_ctxsw_trace_init(struct gk20a *g)
 	if (unlikely(err))
 		goto fail;
 
+	g->gr.max_ctxsw_ring_buffer_size = GK20A_CTXSW_TRACE_MAX_VM_RING_SIZE;
+
 	return 0;
 
 fail:
