@@ -731,6 +731,11 @@ static int nvgpu_bios_parse_falcon_ucode_table(struct gk20a *g, u32 offset)
 				nvgpu_err(g,
 					  "could not parse preos ucode desc");
 			}
+		} else {
+			nvgpu_log_info(g, "App_id: %u and target_id: %u"
+					" combination not supported.",
+					entry.application_id,
+					entry.target_id);
 		}
 
 		offset += hdr.entry_size;
