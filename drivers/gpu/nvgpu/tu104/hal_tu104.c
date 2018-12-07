@@ -662,7 +662,7 @@ static const struct gpu_ops tu104_ops = {
 		.is_fault_buf_enabled = gv11b_fb_is_fault_buf_enabled,
 		.fault_buf_set_state_hw = gv11b_fb_fault_buf_set_state_hw,
 		.fault_buf_configure_hw = gv11b_fb_fault_buf_configure_hw,
-		.get_vidmem_size = gv100_fb_get_vidmem_size,
+		.get_vidmem_size = tu104_fb_get_vidmem_size,
 		.apply_pdb_cache_war = tu104_fb_apply_pdb_cache_war,
 	},
 	.nvdec = {

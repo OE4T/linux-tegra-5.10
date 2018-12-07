@@ -31,6 +31,7 @@
 #include <nvgpu/gk20a.h>
 
 #include "common/fb/fb_gv11b.h"
+#include "common/fb/fb_gv100.h"
 #include "common/mc/mc_tu104.h"
 
 #include "tu104/func_tu104.h"
@@ -573,4 +574,19 @@ int tu104_fb_apply_pdb_cache_war(struct gk20a *g)
 	}
 
 	return 0;
+}
+
+size_t tu104_fb_get_vidmem_size(struct gk20a *g)
+{
+	u32 range = gk20a_readl(g, fb_mmu_local_memory_range_r());
+	u32 mag = fb_mmu_local_memory_range_lower_mag_v(range);
+	u32 scale = fb_mmu_local_memory_range_lower_scale_v(range);
+	size_t bytes = ((size_t)mag << scale) * SZ_1M;
+
+	if (nvgpu_is_enabled(g, NVGPU_IS_FMODEL) && (bytes == 0)) {
+		/* 192 MB */
+		bytes = 192*1024*1024;
+	}
+
+	return gv100_fb_get_vidmem_size(g);
 }

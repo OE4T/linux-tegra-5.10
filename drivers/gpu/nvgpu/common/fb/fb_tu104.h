@@ -58,5 +58,6 @@ int fb_tu104_mmu_invalidate_replay(struct gk20a *g,
 void fb_tu104_init_cbc(struct gk20a *g, struct gr_gk20a *gr);
 
 int tu104_fb_apply_pdb_cache_war(struct gk20a *g);
+size_t tu104_fb_get_vidmem_size(struct gk20a *g);
 
 #endif /* NVGPU_FB_TU104_H */
