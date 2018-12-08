@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -480,7 +480,8 @@ int nvgpu_pmu_sysmem_surface_alloc(struct gk20a *g, struct nvgpu_mem *mem,
 		u32 size);
 
 /* PMU F/W support */
-int nvgpu_init_pmu_fw_support(struct nvgpu_pmu *pmu);
+int nvgpu_init_pmu_fw_ver_ops(struct nvgpu_pmu *pmu);
+int nvgpu_early_init_pmu_sw(struct gk20a *g, struct nvgpu_pmu *pmu);
 int nvgpu_pmu_prepare_ns_ucode_blob(struct gk20a *g);
 
 /* PG init*/

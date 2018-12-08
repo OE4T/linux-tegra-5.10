@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -1117,7 +1117,7 @@ static void pg_cmd_eng_buf_load_set_dma_idx_v2(struct pmu_pg_cmd *pg,
 	pg->eng_buf_load_v2.dma_desc.params |= (U32(value) << U32(24));
 }
 
-static int nvgpu_init_pmu_fw_ver_ops(struct nvgpu_pmu *pmu)
+int nvgpu_init_pmu_fw_ver_ops(struct nvgpu_pmu *pmu)
 {
 	struct gk20a *g = gk20a_from_pmu(pmu);
 	struct pmu_v *pv = &g->ops.pmu_ver;
@@ -1664,12 +1664,13 @@ static void nvgpu_remove_pmu_support(struct nvgpu_pmu *pmu)
 	nvgpu_mutex_destroy(&pmu->pmu_seq_lock);
 }
 
-int nvgpu_init_pmu_fw_support(struct nvgpu_pmu *pmu)
+int nvgpu_early_init_pmu_sw(struct gk20a *g, struct nvgpu_pmu *pmu)
 {
-	struct gk20a *g = gk20a_from_pmu(pmu);
 	int err = 0;
 
 	nvgpu_log_fn(g, " ");
+
+	pmu->g = g;
 
 	err = nvgpu_mutex_init(&pmu->elpg_mutex);
 	if (err != 0) {
@@ -1698,15 +1699,8 @@ int nvgpu_init_pmu_fw_support(struct nvgpu_pmu *pmu)
 
 	pmu->remove_support = nvgpu_remove_pmu_support;
 
-	err = nvgpu_init_pmu_fw_ver_ops(pmu);
-	if (err != 0) {
-		goto fail_pmu_seq;
-	}
-
 	goto exit;
 
-fail_pmu_seq:
-	nvgpu_mutex_destroy(&pmu->pmu_seq_lock);
 fail_pmu_copy:
 	nvgpu_mutex_destroy(&pmu->pmu_copy_lock);
 fail_isr:
@@ -1729,7 +1723,11 @@ int nvgpu_pmu_prepare_ns_ucode_blob(struct gk20a *g)
 	nvgpu_log_fn(g, " ");
 
 	if (pmu->fw != NULL) {
-		return nvgpu_init_pmu_fw_support(pmu);
+		err = nvgpu_init_pmu_fw_ver_ops(pmu);
+		if (err != 0) {
+			nvgpu_err(g, "failed to set function pointers");
+		}
+		return err;
 	}
 
 	pmu->fw = nvgpu_request_firmware(g, NVGPU_PMU_NS_UCODE_IMAGE, 0);
@@ -1753,7 +1751,12 @@ int nvgpu_pmu_prepare_ns_ucode_blob(struct gk20a *g)
 	nvgpu_mem_wr_n(g, &pmu->ucode, 0, pmu->ucode_image,
 			pmu->desc->app_start_offset + pmu->desc->app_size);
 
-	return nvgpu_init_pmu_fw_support(pmu);
+	err = nvgpu_init_pmu_fw_ver_ops(pmu);
+	if (err != 0) {
+		nvgpu_err(g, "failed to set function pointers");
+	}
+
+	return err;
 
  err_release_fw:
 	nvgpu_release_firmware(g, pmu->fw);

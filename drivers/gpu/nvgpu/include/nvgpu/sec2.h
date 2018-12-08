@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -106,6 +106,7 @@ int nvgpu_sec2_bootstrap_ls_falcons(struct gk20a *g, struct nvgpu_sec2 *sec2,
 	u32 falcon_id);
 
 /* sec2 init */
+int nvgpu_init_sec2_setup_sw(struct gk20a *g, struct nvgpu_sec2 *sec2);
 int nvgpu_init_sec2_support(struct gk20a *g);
 int nvgpu_sec2_destroy(struct gk20a *g);
 int nvgpu_sec2_queue_init(struct nvgpu_sec2 *sec2, u32 id,

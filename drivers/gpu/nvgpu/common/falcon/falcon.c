@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -443,13 +443,11 @@ int nvgpu_falcon_sw_init(struct gk20a *g, u32 flcn_id)
 		flcn = &g->pmu_flcn;
 		flcn->flcn_id = flcn_id;
 		g->pmu.flcn = &g->pmu_flcn;
-		g->pmu.g = g;
 		break;
 	case FALCON_ID_SEC2:
 		flcn = &g->sec2_flcn;
 		flcn->flcn_id = flcn_id;
 		g->sec2.flcn = &g->sec2_flcn;
-		g->sec2.g = g;
 		break;
 	case FALCON_ID_FECS:
 		flcn = &g->fecs_flcn;

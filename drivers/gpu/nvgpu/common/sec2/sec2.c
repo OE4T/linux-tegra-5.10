@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -106,11 +106,13 @@ static void nvgpu_remove_sec2_support(struct nvgpu_sec2 *sec2)
 	nvgpu_mutex_destroy(&sec2->isr_mutex);
 }
 
-static int nvgpu_init_sec2_setup_sw(struct gk20a *g, struct nvgpu_sec2 *sec2)
+int nvgpu_init_sec2_setup_sw(struct gk20a *g, struct nvgpu_sec2 *sec2)
 {
 	int err = 0;
 
 	nvgpu_log_fn(g, " ");
+
+	sec2->g = g;
 
 	sec2->seq = nvgpu_kzalloc(g, SEC2_MAX_NUM_SEQUENCES *
 		sizeof(struct sec2_sequence));
@@ -151,11 +153,6 @@ int nvgpu_init_sec2_support(struct gk20a *g)
 
 	nvgpu_log_fn(g, " ");
 
-	err = nvgpu_init_sec2_setup_sw(g, sec2);
-	if (err != 0) {
-		goto exit;
-	}
-
 	/* Enable irq*/
 	nvgpu_mutex_acquire(&sec2->isr_mutex);
 	g->ops.sec2.enable_irq(sec2, true);
@@ -165,7 +162,6 @@ int nvgpu_init_sec2_support(struct gk20a *g)
 	/* execute SEC2 in secure mode to boot RTOS */
 	g->ops.sec2.secured_sec2_start(g);
 
-exit:
 	return err;
 }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -149,7 +149,7 @@ int pmu_ucode_details(struct gk20a *g, struct flcn_ucode_img_v1 *p_img)
 	pmu->ucode_image = (u32 *)pmu_fw->data;
 	g->acr.pmu_desc = pmu_desc;
 
-	err = nvgpu_init_pmu_fw_support(pmu);
+	err = nvgpu_init_pmu_fw_ver_ops(pmu);
 	if (err != 0) {
 		nvgpu_err(g, "failed to set function pointers");
 		goto release_sig;
@@ -489,12 +489,11 @@ int gp106_prepare_ucode_blob(struct gk20a *g)
 	if (g->acr.ucode_blob.cpu_va != NULL) {
 		/*Recovery case, we do not need to form
 		non WPR blob of ucodes*/
-		err = nvgpu_init_pmu_fw_support(pmu);
+		err = nvgpu_init_pmu_fw_ver_ops(pmu);
 		if (err != 0) {
 			gp106_dbg_pmu(g, "failed to set function pointers\n");
-			return err;
 		}
-		return 0;
+		return err;
 	}
 	plsfm = &lsfm_l;
 	(void) memset((void *)plsfm, 0, sizeof(struct ls_flcn_mgr_v1));

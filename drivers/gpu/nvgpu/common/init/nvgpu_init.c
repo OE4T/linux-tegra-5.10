@@ -1,7 +1,7 @@
 /*
  * GK20A Graphics
  *
- * Copyright (c) 2011-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -172,6 +172,22 @@ int gk20a_finalize_poweron(struct gk20a *g)
 	if (err != 0) {
 		nvgpu_err(g, "failed to sw init FALCON_ID_FECS");
 		goto done;
+	}
+
+	if (g->ops.pmu.is_pmu_supported(g)) {
+		err = nvgpu_early_init_pmu_sw(g, &g->pmu);
+		if (err != 0) {
+			nvgpu_err(g, "failed to early init pmu sw");
+			goto done;
+		}
+	}
+
+	if (nvgpu_is_enabled(g, NVGPU_SUPPORT_SEC2_RTOS)) {
+		err = nvgpu_init_sec2_setup_sw(g, &g->sec2);
+		if (err != 0) {
+			nvgpu_err(g, "failed to init sec2 sw setup");
+			goto done;
+		}
 	}
 
 	if (g->ops.acr.acr_sw_init != NULL &&
