@@ -878,3 +878,8 @@ void gk20a_pmu_elpg_statistics(struct gk20a *g, u32 pg_engine_id,
 	pg_stat_data->avg_entry_latency_us = stats.pg_avg_entry_time_us;
 	pg_stat_data->avg_exit_latency_us = stats.pg_avg_exit_time_us;
 }
+
+u32 gk20a_pmu_falcon_base_addr(void)
+{
+	return pwr_falcon_irqsset_r();
+}

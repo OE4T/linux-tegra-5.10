@@ -43,5 +43,6 @@ bool gp106_pmu_is_engine_in_reset(struct gk20a *g);
 int gp106_pmu_engine_reset(struct gk20a *g, bool do_reset);
 void gp106_update_lspmu_cmdline_args(struct gk20a *g);
 void gp106_pmu_setup_apertures(struct gk20a *g);
+u32 gp106_pmu_falcon_base_addr(void);
 
 #endif /* NVGPU_PMU_GP106_H */

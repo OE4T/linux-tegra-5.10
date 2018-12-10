@@ -842,6 +842,7 @@ static const struct gpu_ops gv100_ops = {
 		.configure_therm_alert = gp106_configure_therm_alert,
 	},
 	.pmu = {
+		.falcon_base_addr = gp106_pmu_falcon_base_addr,
 		.init_wpr_region = gv100_pmu_init_acr,
 		.load_lsfalcon_ucode = gv100_load_falcon_ucode,
 		.is_lazy_bootstrap = gp106_is_lazy_bootstrap,

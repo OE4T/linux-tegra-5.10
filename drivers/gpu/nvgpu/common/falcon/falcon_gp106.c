@@ -61,7 +61,7 @@ int gp106_falcon_hal_sw_init(struct nvgpu_falcon *flcn)
 
 	switch (flcn->flcn_id) {
 	case FALCON_ID_PMU:
-		flcn->flcn_base = FALCON_PWR_BASE;
+		flcn->flcn_base = g->ops.pmu.falcon_base_addr();
 		flcn->is_falcon_supported = true;
 		flcn->is_interrupt_enabled = true;
 		break;

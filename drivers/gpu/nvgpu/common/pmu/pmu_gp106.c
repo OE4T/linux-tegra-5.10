@@ -363,3 +363,8 @@ void gp106_pmu_setup_apertures(struct gk20a *g)
 			pwr_pmu_new_instblk_target_sys_coh_f(),
 			pwr_pmu_new_instblk_target_fb_f()));
 }
+
+u32 gp106_pmu_falcon_base_addr(void)
+{
+	return pwr_falcon_irqsset_r();
+}

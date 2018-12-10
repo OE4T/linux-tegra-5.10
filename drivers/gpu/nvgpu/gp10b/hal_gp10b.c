@@ -664,6 +664,7 @@ static const struct gpu_ops gp10b_ops = {
 		.elcg_init_idle_filters = gp10b_elcg_init_idle_filters,
 	},
 	.pmu = {
+		.falcon_base_addr = gk20a_pmu_falcon_base_addr,
 		.pmu_setup_elpg = gp10b_pmu_setup_elpg,
 		.pmu_get_queue_head = pwr_pmu_queue_head_r,
 		.pmu_get_queue_head_size = pwr_pmu_queue_head__size_1_v,
