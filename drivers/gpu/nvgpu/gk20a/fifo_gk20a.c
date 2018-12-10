@@ -1822,33 +1822,6 @@ u32 gk20a_fifo_engines_on_id(struct gk20a *g, u32 id, bool is_tsg)
 	return engines;
 }
 
-void gk20a_fifo_recover_tsg(struct gk20a *g, struct tsg_gk20a *tsg,
-			 bool verbose, u32 rc_type)
-{
-	u32 engines;
-
-	/* stop context switching to prevent engine assignments from
-	   changing until TSG is recovered */
-	nvgpu_mutex_acquire(&g->dbg_sessions_lock);
-	gr_gk20a_disable_ctxsw(g);
-
-	engines = g->ops.fifo.get_engines_mask_on_id(g, tsg->tsgid, true);
-
-	if (engines != 0U) {
-		gk20a_fifo_recover(g, engines, tsg->tsgid, true, true, verbose,
-					rc_type);
-	} else {
-		if (nvgpu_tsg_mark_error(g, tsg) && verbose) {
-			gk20a_debug_dump(g);
-		}
-
-		gk20a_fifo_abort_tsg(g, tsg, false);
-	}
-
-	gr_gk20a_enable_ctxsw(g);
-	nvgpu_mutex_release(&g->dbg_sessions_lock);
-}
-
 void gk20a_fifo_teardown_ch_tsg(struct gk20a *g, u32 __engine_ids,
 			u32 hw_id, unsigned int id_type, unsigned int rc_type,
 			 struct mmu_fault_info *mmfault)
@@ -1993,8 +1966,7 @@ int gk20a_fifo_force_reset_ch(struct channel_gk20a *ch,
 		}
 
 		nvgpu_rwsem_up_read(&tsg->ch_list_lock);
-		gk20a_fifo_recover_tsg(g, tsg, verbose,
-				RC_TYPE_FORCE_RESET);
+		nvgpu_tsg_recover(g, tsg, verbose, RC_TYPE_FORCE_RESET);
 	} else {
 		g->ops.fifo.set_error_notifier(ch, err_code);
 		nvgpu_channel_recover(g, ch, verbose,
@@ -2467,7 +2439,7 @@ static void gk20a_fifo_pbdma_fault_rc(struct gk20a *g,
 			}
 		}
 		nvgpu_rwsem_up_read(&tsg->ch_list_lock);
-		gk20a_fifo_recover_tsg(g, tsg, true, RC_TYPE_PBDMA_FAULT);
+		nvgpu_tsg_recover(g, tsg, true, RC_TYPE_PBDMA_FAULT);
 	}
 }
 
@@ -2652,7 +2624,7 @@ void gk20a_fifo_preempt_timeout_rc_tsg(struct gk20a *g, struct tsg_gk20a *tsg)
 		gk20a_channel_put(ch);
 	}
 	nvgpu_rwsem_up_read(&tsg->ch_list_lock);
-	gk20a_fifo_recover_tsg(g, tsg, true, RC_TYPE_PREEMPT_TIMEOUT);
+	nvgpu_tsg_recover(g, tsg, true, RC_TYPE_PREEMPT_TIMEOUT);
 }
 
 void gk20a_fifo_preempt_timeout_rc(struct gk20a *g, struct channel_gk20a *ch)

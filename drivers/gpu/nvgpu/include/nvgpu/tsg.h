@@ -94,6 +94,8 @@ int gk20a_disable_tsg(struct tsg_gk20a *tsg);
 int gk20a_tsg_bind_channel(struct tsg_gk20a *tsg,
 			struct channel_gk20a *ch);
 int gk20a_tsg_unbind_channel(struct channel_gk20a *ch);
+void nvgpu_tsg_recover(struct gk20a *g, struct tsg_gk20a *tsg,
+			 bool verbose, u32 rc_type);
 
 void nvgpu_tsg_set_ctx_mmu_error(struct gk20a *g,
 		struct tsg_gk20a *tsg);

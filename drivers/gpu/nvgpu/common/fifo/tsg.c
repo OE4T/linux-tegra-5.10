@@ -21,6 +21,7 @@
  */
 
 #include <nvgpu/bug.h>
+#include <nvgpu/debug.h>
 #include <nvgpu/kmem.h>
 #include <nvgpu/log.h>
 #include <nvgpu/os_sched.h>
@@ -28,6 +29,8 @@
 #include <nvgpu/tsg.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/error_notifier.h>
+
+#include "gk20a/gr_gk20a.h"
 
 bool gk20a_is_channel_marked_as_tsg(struct channel_gk20a *ch)
 {
@@ -182,6 +185,35 @@ int gk20a_tsg_unbind_channel(struct channel_gk20a *ch)
 
 	return 0;
 }
+
+
+void nvgpu_tsg_recover(struct gk20a *g, struct tsg_gk20a *tsg,
+			 bool verbose, u32 rc_type)
+{
+	u32 engines;
+
+	/* stop context switching to prevent engine assignments from
+	   changing until TSG is recovered */
+	nvgpu_mutex_acquire(&g->dbg_sessions_lock);
+	gr_gk20a_disable_ctxsw(g);
+
+	engines = g->ops.fifo.get_engines_mask_on_id(g, tsg->tsgid, true);
+
+	if (engines != 0U) {
+		gk20a_fifo_recover(g, engines, tsg->tsgid, true, true, verbose,
+					rc_type);
+	} else {
+		if (nvgpu_tsg_mark_error(g, tsg) && verbose) {
+			gk20a_debug_dump(g);
+		}
+
+		gk20a_fifo_abort_tsg(g, tsg, false);
+	}
+
+	gr_gk20a_enable_ctxsw(g);
+	nvgpu_mutex_release(&g->dbg_sessions_lock);
+}
+
 
 int gk20a_init_tsg_support(struct gk20a *g, u32 tsgid)
 {

@@ -287,8 +287,6 @@ void gk20a_fifo_recover(struct gk20a *g,
 			u32 hw_id, /* if ~0, will be queried from HW */
 			bool id_is_tsg, /* ignored if hw_id == ~0 */
 			bool id_is_known, bool verbose, u32 rc_type);
-void gk20a_fifo_recover_tsg(struct gk20a *g, struct tsg_gk20a *tsg,
-			 bool verbose, u32 rc_type);
 int gk20a_fifo_force_reset_ch(struct channel_gk20a *ch,
 				u32 err_code, bool verbose);
 void gk20a_fifo_reset_engine(struct gk20a *g, u32 engine_id);
