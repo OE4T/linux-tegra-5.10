@@ -622,6 +622,7 @@ struct gpu_ops {
 			void (*dump_ctxsw_stats)(struct gk20a *g,
 				struct nvgpu_mem *ctx_mem);
 		} ctxsw_prog;
+		u32 (*fecs_falcon_base_addr)(void);
 	} gr;
 	struct {
 		void (*init_hw)(struct gk20a *g);

@@ -8681,3 +8681,8 @@ u32 gk20a_gr_get_fecs_ctx_state_store_major_rev_id(struct gk20a *g)
 {
 	return nvgpu_readl(g, gr_fecs_ctx_state_store_major_rev_id_r());
 }
+
+u32 gr_gk20a_fecs_falcon_base_addr(void)
+{
+	return gr_fecs_irqsset_r();
+}

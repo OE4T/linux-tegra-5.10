@@ -42,7 +42,6 @@
 /*
  * Falcon Base address Defines
  */
-#define FALCON_FECS_BASE   0x00409000U
 #define FALCON_GPCCS_BASE  0x0041a000U
 
 /* Falcon Register index */

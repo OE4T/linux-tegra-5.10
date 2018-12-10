@@ -40,5 +40,6 @@ int gr_gp106_set_ctxsw_preemption_mode(struct gk20a *g,
 				struct vm_gk20a *vm, u32 class,
 				u32 graphics_preempt_mode,
 				u32 compute_preempt_mode);
+u32 gr_gp106_fecs_falcon_base_addr(void);
 
 #endif /* NVGPU_GR_GP106_H */

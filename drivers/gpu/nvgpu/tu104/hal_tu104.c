@@ -88,6 +88,8 @@
 #include "gp106/sec2_gp106.h"
 #include "gp106/bios_gp106.h"
 
+#include "gp106/gr_gp106.h"
+
 #include "gp10b/gr_gp10b.h"
 #include "gp10b/ce_gp10b.h"
 #include "gp10b/fifo_gp10b.h"
@@ -368,6 +370,7 @@ static const struct gpu_ops tu104_ops = {
 		.get_sm_dsm_perf_ctrl_regs = gr_tu104_get_sm_dsm_perf_ctrl_regs,
 		.init_fs_state = gr_gv11b_init_fs_state,
 		.set_hww_esr_report_mask = gv11b_gr_set_hww_esr_report_mask,
+		.fecs_falcon_base_addr = gr_gp106_fecs_falcon_base_addr,
 		.falcon_load_ucode = gr_gm20b_load_ctxsw_ucode_segments,
 		.load_ctxsw_ucode = gr_gm20b_load_ctxsw_ucode,
 		.set_gpc_tpc_mask = gr_gv100_set_gpc_tpc_mask,

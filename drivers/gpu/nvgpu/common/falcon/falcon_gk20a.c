@@ -728,7 +728,7 @@ int gk20a_falcon_hal_sw_init(struct nvgpu_falcon *flcn)
 		flcn->is_interrupt_enabled = true;
 		break;
 	case FALCON_ID_FECS:
-		flcn->flcn_base = FALCON_FECS_BASE;
+		flcn->flcn_base = g->ops.gr.fecs_falcon_base_addr();
 		flcn->is_falcon_supported = true;
 		flcn->is_interrupt_enabled = false;
 		break;
