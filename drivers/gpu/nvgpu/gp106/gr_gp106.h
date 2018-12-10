@@ -27,10 +27,8 @@
 
 struct gk20a;
 
-enum {
-	PASCAL_B                 = 0xC197,
-	PASCAL_COMPUTE_B         = 0xC1C0,
-};
+#define	PASCAL_B		0xC197U
+#define	PASCAL_COMPUTE_B	0xC1C0U
 
 bool gr_gp106_is_valid_class(struct gk20a *g, u32 class_num);
 u32 gr_gp106_pagepool_default_size(struct gk20a *g);

@@ -46,7 +46,7 @@
 
 #define SEC2_INVALID_SEQ_DESC	(~0U)
 
-enum {
+enum sec2_seq_state {
 	SEC2_SEQ_STATE_FREE = 0U,
 	SEC2_SEQ_STATE_PENDING,
 	SEC2_SEQ_STATE_USED,
@@ -58,7 +58,7 @@ typedef void (*sec2_callback)(struct gk20a *g, struct nv_flcn_msg_sec2 *msg,
 
 struct sec2_sequence {
 	u8 id;
-	u32 state;
+	enum sec2_seq_state state;
 	u32 desc;
 	struct nv_flcn_msg_sec2 *msg;
 	u8 *out_payload;

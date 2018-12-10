@@ -29,7 +29,7 @@
 #endif
 
 #define GPUFREQ_TABLE_END     ~(u32)1
-enum {
+enum gpc_pll_id {
 	/* only one PLL for gk20a */
 	GK20A_GPC_PLL = 0,
 	/* 2 PLL revisions for gm20b */
@@ -53,7 +53,7 @@ struct na_dvfs {
 };
 
 struct pll {
-	u32 id;
+	enum gpc_pll_id id;
 	u32 clk_in;	/* KHz */
 	u32 M;
 	u32 N;

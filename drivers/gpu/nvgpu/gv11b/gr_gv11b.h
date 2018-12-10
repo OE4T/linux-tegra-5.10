@@ -48,12 +48,10 @@ struct gr_ctx_desc;
 struct gr_gk20a_isr_data;
 struct gk20a_debug_output;
 
-enum {
-	VOLTA_CHANNEL_GPFIFO_A  = 0xC36F,
-	VOLTA_A                 = 0xC397,
-	VOLTA_COMPUTE_A         = 0xC3C0,
-	VOLTA_DMA_COPY_A        = 0xC3B5,
-};
+#define	VOLTA_CHANNEL_GPFIFO_A	0xC36FU
+#define	VOLTA_A			0xC397U
+#define	VOLTA_COMPUTE_A		0xC3C0U
+#define	VOLTA_DMA_COPY_A	0xC3B5U
 
 #define NVC397_SET_SHADER_EXCEPTIONS		0x1528U
 #define NVC397_SET_CIRCULAR_BUFFER_SIZE 	0x1280U

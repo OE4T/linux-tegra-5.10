@@ -34,13 +34,11 @@ struct zbc_entry;
 struct nvgpu_preemption_modes_rec;
 struct gk20a_debug_output;
 
-enum {
-	PASCAL_CHANNEL_GPFIFO_A  = 0xC06F,
-	PASCAL_A                 = 0xC097,
-	PASCAL_COMPUTE_A         = 0xC0C0,
-	PASCAL_DMA_COPY_A        = 0xC0B5,
-	PASCAL_DMA_COPY_B        = 0xC1B5,
-};
+#define	PASCAL_CHANNEL_GPFIFO_A		0xC06FU
+#define	PASCAL_A			0xC097U
+#define	PASCAL_COMPUTE_A		0xC0C0U
+#define	PASCAL_DMA_COPY_A		0xC0B5U
+#define	PASCAL_DMA_COPY_B		0xC1B5U
 
 #define NVC097_SET_GO_IDLE_TIMEOUT		0x022cU
 #define NVC097_SET_ALPHA_CIRCULAR_BUFFER_SIZE	0x02dcU

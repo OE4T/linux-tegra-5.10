@@ -29,12 +29,10 @@ struct gk20a;
 struct nvgpu_preemption_modes_rec;
 struct nvgpu_gr_ctx;
 
-enum {
-	TURING_CHANNEL_GPFIFO_A	= 0xC46F,
-	TURING_A		= 0xC597,
-	TURING_COMPUTE_A	= 0xC5C0,
-	TURING_DMA_COPY_A	= 0xC5B5,
-};
+#define	TURING_CHANNEL_GPFIFO_A	0xC46FU
+#define	TURING_A		0xC597U
+#define	TURING_COMPUTE_A	0xC5C0U
+#define	TURING_DMA_COPY_A	0xC5B5U
 
 #define NVC5C0_SET_SHADER_EXCEPTIONS            0x1528U
 #define NVC5C0_SET_SKEDCHECK                    0x23cU

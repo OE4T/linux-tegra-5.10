@@ -103,7 +103,7 @@ enum  /*global_ctx_buffer_va */ {
 	NR_GLOBAL_CTX_BUF_VA	= 7
 };
 
-enum {
+enum wait_ucode_status {
 	WAIT_UCODE_LOOP,
 	WAIT_UCODE_TIMEOUT,
 	WAIT_UCODE_ERROR,

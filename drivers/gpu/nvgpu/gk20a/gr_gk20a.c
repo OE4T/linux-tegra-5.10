@@ -322,7 +322,7 @@ int gr_gk20a_ctx_wait_ucode(struct gk20a *g, u32 mailbox_id,
 {
 	struct nvgpu_timeout timeout;
 	u32 delay = GR_FECS_POLL_INTERVAL;
-	u32 check = WAIT_UCODE_LOOP;
+	enum wait_ucode_status check = WAIT_UCODE_LOOP;
 	u32 reg;
 
 	nvgpu_log_fn(g, " ");

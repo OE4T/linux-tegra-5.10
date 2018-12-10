@@ -113,7 +113,7 @@
 #define	GK20A_PMU_DMAIDX_PELPG		U32(6)
 #define	GK20A_PMU_DMAIDX_END		U32(7)
 
-enum {
+enum pmu_seq_state {
 	PMU_SEQ_STATE_FREE = 0,
 	PMU_SEQ_STATE_PENDING,
 	PMU_SEQ_STATE_USED,
@@ -274,7 +274,7 @@ struct pmu_mutex {
 
 struct pmu_sequence {
 	u8 id;
-	u32 state;
+	enum pmu_seq_state state;
 	u32 desc;
 	struct pmu_msg *msg;
 	union {
