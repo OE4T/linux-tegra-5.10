@@ -642,4 +642,24 @@ static inline u32 ltc_ltc0_lts0_tstg_info_1_slices_per_l2_v(u32 r)
 {
 	return (r >> 16U) & 0x1fU;
 }
+static inline u32 ltc_ltcs_ltss_tstg_set_mgmt_1_r(void)
+{
+	return 0x0017e39cU;
+}
+static inline u32 ltc_ltcs_ltss_tstg_set_mgmt_1_plc_recompress_plc_m(void)
+{
+	return U32(0x1U) << 7U;
+}
+static inline u32 ltc_ltcs_ltss_tstg_set_mgmt_1_plc_recompress_plc_disabled_f(void)
+{
+	return 0x0U;
+}
+static inline u32 ltc_ltcs_ltss_tstg_set_mgmt_1_plc_recompress_rmw_m(void)
+{
+	return U32(0x1U) << 29U;
+}
+static inline u32 ltc_ltcs_ltss_tstg_set_mgmt_1_plc_recompress_rmw_disabled_f(void)
+{
+	return 0x0U;
+}
 #endif

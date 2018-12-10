@@ -47,6 +47,16 @@ void ltc_tu104_init_fs_state(struct gk20a *g)
 		ltc_ltcs_ltss_cbc_param2_slices_per_ltc_v(reg);
 	gr->cacheline_size =
 		U32(512) << ltc_ltcs_ltss_cbc_param2_cache_line_size_v(reg);
+
+	/* disable PLC compression */
+	reg = nvgpu_readl(g, ltc_ltcs_ltss_tstg_set_mgmt_1_r());
+	reg = set_field(reg,
+		ltc_ltcs_ltss_tstg_set_mgmt_1_plc_recompress_plc_m(),
+		ltc_ltcs_ltss_tstg_set_mgmt_1_plc_recompress_plc_disabled_f());
+	reg = set_field(reg,
+		ltc_ltcs_ltss_tstg_set_mgmt_1_plc_recompress_rmw_m(),
+		ltc_ltcs_ltss_tstg_set_mgmt_1_plc_recompress_rmw_disabled_f());
+	nvgpu_writel(g, ltc_ltcs_ltss_tstg_set_mgmt_1_r(), reg);
 }
 
 u64 ltc_tu104_get_cbc_base_divisor(struct gk20a *g)
