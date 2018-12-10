@@ -72,6 +72,7 @@
 #include "common/falcon/falcon_gp106.h"
 #include "common/falcon/falcon_gv100.h"
 #include "common/falcon/falcon_tu104.h"
+#include "common/nvdec/nvdec_tu104.h"
 
 #include "gk20a/fifo_gk20a.h"
 #include "gk20a/fecs_trace_gk20a.h"
@@ -658,6 +659,9 @@ static const struct gpu_ops tu104_ops = {
 		.get_vidmem_size = gv100_fb_get_vidmem_size,
 		.apply_pdb_cache_war = tu104_fb_apply_pdb_cache_war,
 	},
+	.nvdec = {
+		.falcon_base_addr = tu104_nvdec_falcon_base_addr,
+	},
 	.clock_gating = {
 		.slcg_bus_load_gating_prod =
 			tu104_slcg_bus_load_gating_prod,
@@ -1118,6 +1122,7 @@ int tu104_init_hal(struct gk20a *g)
 	gops->gr = tu104_ops.gr;
 	gops->gr.ctxsw_prog = tu104_ops.gr.ctxsw_prog;
 	gops->fb = tu104_ops.fb;
+	gops->nvdec = tu104_ops.nvdec;
 	gops->clock_gating = tu104_ops.clock_gating;
 	gops->fifo = tu104_ops.fifo;
 	gops->netlist = tu104_ops.netlist;

@@ -42,7 +42,6 @@
 /*
  * Falcon Base address Defines
  */
-#define FALCON_NVDEC_BASE  0x00084000U
 #define FALCON_PWR_BASE    0x0010a000U
 #define FALCON_SEC_BASE    0x00087000U
 #define FALCON_FECS_BASE   0x00409000U

@@ -54,6 +54,7 @@
 #include "common/pmu/acr_gp106.h"
 #include "common/falcon/falcon_gk20a.h"
 #include "common/falcon/falcon_gp106.h"
+#include "common/nvdec/nvdec_gp106.h"
 #include "pmu_perf/pmu_perf.h"
 
 #include "gk20a/fifo_gk20a.h"
@@ -511,6 +512,9 @@ static const struct gpu_ops gp106_ops = {
 		.mem_unlock = NULL,
 		.get_vidmem_size = gp106_fb_get_vidmem_size,
 	},
+	.nvdec = {
+		.falcon_base_addr = gp106_nvdec_falcon_base_addr,
+	},
 	.clock_gating = {
 		.slcg_bus_load_gating_prod =
 			gp106_slcg_bus_load_gating_prod,
@@ -928,6 +932,7 @@ int gp106_init_hal(struct gk20a *g)
 	gops->gr = gp106_ops.gr;
 	gops->gr.ctxsw_prog = gp106_ops.gr.ctxsw_prog;
 	gops->fb = gp106_ops.fb;
+	gops->nvdec = gp106_ops.nvdec;
 	gops->clock_gating = gp106_ops.clock_gating;
 	gops->fifo = gp106_ops.fifo;
 	gops->netlist = gp106_ops.netlist;

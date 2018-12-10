@@ -158,6 +158,8 @@ srcs :=	os/posix/nvgpu.c \
 	common/boardobj/boardobjgrpmask.c \
 	common/boardobj/boardobjgrp_e255.c \
 	common/boardobj/boardobjgrp_e32.c \
+	common/nvdec/nvdec_gp106.c \
+	common/nvdec/nvdec_tu104.c \
 	pstate/pstate.c \
 	volt/volt_dev.c \
 	volt/volt_pmu.c \

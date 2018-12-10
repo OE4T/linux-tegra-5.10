@@ -698,6 +698,9 @@ struct gpu_ops {
 		int (*apply_pdb_cache_war)(struct gk20a *g);
 	} fb;
 	struct {
+		u32 (*falcon_base_addr)(void);
+	} nvdec;
+	struct {
 		void (*slcg_bus_load_gating_prod)(struct gk20a *g, bool prod);
 		void (*slcg_ce2_load_gating_prod)(struct gk20a *g, bool prod);
 		void (*slcg_chiplet_load_gating_prod)(struct gk20a *g, bool prod);

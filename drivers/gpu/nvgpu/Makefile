@@ -78,7 +78,9 @@ nvgpu-y += common/bus/bus_gk20a.o \
 	common/netlist/netlist_gp10b.o \
 	common/netlist/netlist_gv100.o \
 	common/netlist/netlist_gv11b.o \
-	common/netlist/netlist_tu104.o
+	common/netlist/netlist_tu104.o \
+	common/nvdec/nvdec_gp106.o \
+	common/nvdec/nvdec_tu104.o
 
 # Linux specific parts of nvgpu.
 nvgpu-y += \
