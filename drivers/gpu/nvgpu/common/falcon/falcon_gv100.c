@@ -59,7 +59,7 @@ int gv100_falcon_hal_sw_init(struct nvgpu_falcon *flcn)
 
 	switch (flcn->flcn_id) {
 	case FALCON_ID_MINION:
-		flcn->flcn_base = g->nvlink.minion_base;
+		flcn->flcn_base = g->ops.nvlink.falcon_base_addr(g);
 		flcn->is_falcon_supported = true;
 		flcn->is_interrupt_enabled = true;
 		break;

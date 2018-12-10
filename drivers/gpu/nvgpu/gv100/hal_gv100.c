@@ -1048,6 +1048,7 @@ static const struct gpu_ops gv100_ops = {
 	},
 #if defined(CONFIG_TEGRA_NVLINK)
 	.nvlink = {
+		.falcon_base_addr = gv100_nvlink_falcon_base_addr,
 		.discover_ioctrl = gv100_nvlink_discover_ioctrl,
 		.discover_link = gv100_nvlink_discover_link,
 		.init = gv100_nvlink_init,

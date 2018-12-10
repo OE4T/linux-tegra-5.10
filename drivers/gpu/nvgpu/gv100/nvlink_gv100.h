@@ -55,4 +55,5 @@ int gv100_nvlink_reg_init(struct gk20a *g);
 int gv100_nvlink_shutdown(struct gk20a *g);
 int gv100_nvlink_early_init(struct gk20a *g);
 int gv100_nvlink_speed_config(struct gk20a *g);
+u32 gv100_nvlink_falcon_base_addr(struct gk20a *g);
 #endif

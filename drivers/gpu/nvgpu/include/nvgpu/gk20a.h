@@ -1438,6 +1438,7 @@ struct gpu_ops {
 		int (*read_gcplex_config_fuse)(struct gk20a *g, u32 *val);
 	} fuse;
 	struct {
+		u32 (*falcon_base_addr)(struct gk20a *g);
 		int (*init)(struct gk20a *g);
 		int (*discover_ioctrl)(struct gk20a *g);
 		int (*discover_link)(struct gk20a *g);

@@ -2773,4 +2773,9 @@ int gv100_nvlink_speed_config(struct gk20a *g)
 	g->nvlink.initpll_cmd = minion_nvlink_dl_cmd_command_initpll_1_v();
 	return 0;
 }
+
+u32 gv100_nvlink_falcon_base_addr(struct gk20a *g)
+{
+	return g->nvlink.minion_base;
+}
 #endif /* CONFIG_TEGRA_NVLINK */
