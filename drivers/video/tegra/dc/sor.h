@@ -26,6 +26,7 @@
 #include <uapi/video/tegra_dc_ext.h>
 #include "dc_priv.h"
 #include "sor_regs.h"
+#include <linux/interrupt.h>
 
 /* Handle to a training pattern data object. Serves as the sole interface of
  * APIs and data structures to the training pattern data object
@@ -208,6 +209,14 @@ struct tegra_dc_sor_data {
 	int powergate_id;
 	struct rw_semaphore reset_lock;
 	struct dentry	*debugdir;
+	unsigned int irq;
+	struct delayed_work work;
+	struct {
+		unsigned int sample_rate;
+		unsigned int channels;
+		unsigned int is_pcm_format;
+		bool valid;
+	} audio;
 };
 
 #define TEGRA_SOR_TIMEOUT_MS		1000

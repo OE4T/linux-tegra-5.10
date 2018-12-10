@@ -30,12 +30,33 @@
 #include "hdmi2.0.h"
 #include "dp.h"
 #include "hda_dc.h"
+#include <sound/hda_verbs.h>
 
 static struct tegra_hda_inst *hda_inst;
 static DEFINE_MUTEX(global_hda_lock);
 
 #define to_hdmi(DATA)	((struct tegra_hdmi *)DATA)
 #define to_dp(DATA)	((struct tegra_dc_dp_data *)DATA)
+
+void tegra_hda_parse_format(unsigned int format, unsigned int *rate,
+			   unsigned int *channels, unsigned int *is_pcm_format)
+{
+	unsigned int mul, div;
+
+	if (format & AC_FMT_BASE_44K)
+		*rate = 44100;
+	else
+		*rate = 48000;
+
+	mul = (format & AC_FMT_MULT_MASK) >> AC_FMT_MULT_SHIFT;
+	div = (format & AC_FMT_DIV_MASK) >> AC_FMT_DIV_SHIFT;
+
+	*rate = *rate * (mul + 1) / (div + 1);
+
+	*channels = ((format & AC_FMT_CHAN_MASK) >> AC_FMT_CHAN_SHIFT) + 1;
+	*is_pcm_format = ((format &
+			(1 << AC_FMT_TYPE_SHIFT)) == (AC_FMT_TYPE_PCM));
+}
 
 int tegra_hda_get_dev_id(struct tegra_dc_sor_data *sor)
 {

@@ -18,6 +18,7 @@
 #include <linux/err.h>
 #include <linux/nvhost.h>
 #include <linux/kernel.h>
+#include <linux/interrupt.h>
 #include <linux/fb.h>
 #include <linux/delay.h>
 #include <linux/seq_file.h>
@@ -29,6 +30,7 @@
 #include <linux/version.h>
 #include <linux/tegra_pm_domains.h>
 #include <uapi/video/tegra_dc_ext.h>
+#include <linux/of_irq.h>
 
 #include "dc.h"
 #include "sor.h"
@@ -36,6 +38,8 @@
 #include "dc_priv.h"
 #include "dp.h"
 #include "dc_common.h"
+#include "hda_dc.h"
+#include <video/tegra_hdmi_audio.h>
 
 static const struct tegra_dc_sor_link_speed link_speed_table[] = {
 	[TEGRA_DC_SOR_LINK_SPEED_G1_62] = {
@@ -176,6 +180,92 @@ static struct tegra_dc_mode min_mode = {
 	.h_front_porch = 1,
 	.v_front_porch = 2,
 };
+
+/*
+ * This work queue handles the completion of SOR hda register configuration
+ */
+static void tegra_sor_hda_config(struct work_struct *work)
+{
+	struct tegra_dc_sor_data *sor =
+	container_of(to_delayed_work(work), struct tegra_dc_sor_data, work);
+	int value, dev_id;
+
+	mutex_lock(&sor->dc->lock);
+	if (!tegra_dc_is_powered(sor->dc) || !sor->dc->enabled) {
+		mutex_unlock(&sor->dc->lock);
+		return;
+	}
+	tegra_dc_io_start(sor->dc);
+
+	/* Read the dev_id of the sor */
+	dev_id = tegra_sor_readl(sor, NV_SOR_AUDIO_GEN_CTRL);
+	dev_id = (dev_id >> NV_SOR_AUDIO_GEN_CTRL_DEV_ID_SHIFT) &
+			NV_SOR_AUDIO_GEN_CTRL_DEV_ID_MASK;
+	/* Read the scratch register value */
+	value = tegra_sor_readl(sor, NV_SOR_AUDIO_HDA_CODEC_SCRATCH0);
+
+	if (value & NV_SOR_AUDIO_HDA_CODEC_SCRATCH0_VALID) {
+		unsigned int format, sample_rate, channels;
+		unsigned int is_pcm_format;
+
+		format = value &
+			NV_SOR_AUDIO_HDA_CODEC_SCRATCH0_FMT_MASK;
+
+		tegra_hda_parse_format(format, &sample_rate, &channels,
+					&is_pcm_format);
+
+		sor->audio.sample_rate = sample_rate;
+		sor->audio.channels = channels;
+		sor->audio.is_pcm_format = is_pcm_format;
+		sor->audio.valid = true;
+
+		/* inject null samples for stereo and pcm format */
+		if ((sor->audio.channels == 2) &&
+					sor->audio.is_pcm_format)
+			tegra_hdmi_audio_null_sample_inject(true,
+							dev_id);
+		else
+			tegra_hdmi_audio_null_sample_inject(false,
+							dev_id);
+
+		/* Set hdmi:audio freq and source selection*/
+		tegra_hdmi_setup_audio_freq_source(
+						sor->audio.sample_rate,
+						0, dev_id);
+
+	} else {
+		sor->audio.valid = false;
+		tegra_hdmi_audio_null_sample_inject(false, dev_id);
+	}
+	tegra_dc_io_end(sor->dc);
+	mutex_unlock(&sor->dc->lock);
+}
+
+static irqreturn_t tegra_sor_irq(int irq, void *data)
+{
+	struct tegra_dc_sor_data *sor = data;
+	int status;
+
+
+	mutex_lock(&sor->dc->lock);
+	if (!tegra_dc_is_powered(sor->dc) || !sor->dc->enabled) {
+		mutex_unlock(&sor->dc->lock);
+		return IRQ_HANDLED;
+	}
+	tegra_dc_io_start(sor->dc);
+
+	/* Read the Int status */
+	status = tegra_sor_readl(sor, NV_SOR_INT_STATUS);
+	tegra_sor_writel(sor, NV_SOR_INT_STATUS, status);
+
+	tegra_dc_io_end(sor->dc);
+	mutex_unlock(&sor->dc->lock);
+
+	if (status & NV_SOR_INT_CODEC_SCRATCH0)
+		schedule_delayed_work(&sor->work, 0);
+
+	return IRQ_HANDLED;
+}
 
 unsigned long
 tegra_dc_sor_poll_register(struct tegra_dc_sor_data *sor,
@@ -742,7 +832,7 @@ struct tegra_dc_sor_data *tegra_dc_sor_init(struct tegra_dc *dc,
 				const struct tegra_dc_dp_link_config *cfg)
 {
 	u32 temp;
-	int err, i;
+	int err = 0, i;
 	char res_name[CHAR_BUF_SIZE_MAX] = {0};
 	char io_pinctrl_en_name[CHAR_BUF_SIZE_MAX] = {0};
 	char io_pinctrl_dis_name[CHAR_BUF_SIZE_MAX] = {0};
@@ -770,6 +860,21 @@ struct tegra_dc_sor_data *tegra_dc_sor_init(struct tegra_dc *dc,
 	if (!sor) {
 		err = -ENOMEM;
 		goto err_allocate;
+	}
+
+	INIT_DELAYED_WORK(&sor->work, tegra_sor_hda_config);
+
+	sor->irq = of_irq_to_resource(sor_np, 0, NULL);
+	if (!(sor->irq < 0)) {
+		err = request_threaded_irq(sor->irq,
+				NULL, tegra_sor_irq,
+				IRQF_ONESHOT,
+				dev_name(&dc->ndev->dev), sor);
+		if (err) {
+			dev_err(&dc->ndev->dev,
+				"hdmi: request_threaded_irq failed: %d\n", err);
+			goto err_free_sor;
+		}
 	}
 
 	sor->link_speeds = link_speed_table;
@@ -994,6 +1099,8 @@ void tegra_dc_sor_destroy(struct tegra_dc_sor_data *sor)
 	devm_pinctrl_put(sor->pinctrl_sor);
 	sor->dpd_enable = NULL;
 	sor->dpd_disable = NULL;
+	if (!(sor->irq < 0))
+		free_irq(sor->irq, sor);
 
 	if (tegra_dc_is_nvdisplay())
 		devm_kfree(dev, sor->win_state_arr);
@@ -1883,6 +1990,14 @@ void tegra_dc_sor_attach(struct tegra_dc_sor_data *sor)
 		NV_SOR_SUPER_STATE1_ATTACHED_YES);
 	tegra_dc_sor_super_update(sor);
 
+	/*
+	 * Enable and unmask the HDA codec SCRATCH0 register interrupt. This
+	 * is used for interoperability between the HDA codec driver and the
+	 * HDMI/DP driver.
+	 */
+	tegra_sor_writel(sor, NV_SOR_INT_ENABLE, NV_SOR_INT_CODEC_SCRATCH0);
+	tegra_sor_writel(sor, NV_SOR_INT_MASK, NV_SOR_INT_CODEC_SCRATCH0);
+
 	tegra_dc_writel(dc, reg_val, DC_CMD_STATE_ACCESS);
 	tegra_dc_put(dc);
 
@@ -2074,6 +2189,8 @@ void tegra_dc_sor_detach(struct tegra_dc_sor_data *sor)
 		return;
 
 	tegra_dc_get(dc);
+
+	cancel_delayed_work_sync(&sor->work);
 
 	/* Mask DC interrupts during the 2 dummy frames required for detach */
 	dc_int_mask = tegra_dc_readl(dc, DC_CMD_INT_MASK);
