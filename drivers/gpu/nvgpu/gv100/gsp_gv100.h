@@ -27,5 +27,6 @@ int gv100_gsp_reset(struct gk20a *g);
 int gv100_gsp_setup_hw_and_bl_bootstrap(struct gk20a *g,
 	struct hs_acr *acr_desc,
 	struct nvgpu_falcon_bl_info *bl_info);
+u32 gv100_gsp_falcon_base_addr(void);
 
 #endif /*GSP_GV100_H */

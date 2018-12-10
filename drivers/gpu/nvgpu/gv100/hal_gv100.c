@@ -100,6 +100,7 @@
 
 #include "gv100.h"
 #include "hal_gv100.h"
+#include "gsp_gv100.h"
 #include "gv100/bios_gv100.h"
 #include "gv100/fifo_gv100.h"
 #include "gv100/gr_gv100.h"
@@ -1089,6 +1090,9 @@ static const struct gpu_ops gv100_ops = {
 	.sec2 = {
 		.falcon_base_addr = gp106_sec2_falcon_base_addr,
 	},
+	.gsp = {
+		.falcon_base_addr = gv100_gsp_falcon_base_addr,
+	},
 	.chip_init_gpu_characteristics = gv100_init_gpu_characteristics,
 	.get_litter_value = gv100_get_litter_value,
 };
@@ -1133,6 +1137,7 @@ int gv100_init_hal(struct gk20a *g)
 	gops->top = gv100_ops.top;
 	gops->acr = gv100_ops.acr;
 	gops->sec2 = gv100_ops.sec2;
+	gops->gsp = gv100_ops.gsp;
 
 	/* clocks */
 	gops->clk.init_clk_support = gv100_ops.clk.init_clk_support;

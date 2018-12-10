@@ -111,3 +111,8 @@ int gv100_gsp_setup_hw_and_bl_bootstrap(struct gk20a *g,
 exit:
 	return err;
 }
+
+u32 gv100_gsp_falcon_base_addr(void)
+{
+	return pgsp_falcon_irqsset_r();
+}

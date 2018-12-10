@@ -77,7 +77,6 @@
 #include "gp10b/gr_gp10b.h"
 #include "gp10b/clk_arb_gp10b.h"
 
-
 #include "gv100/gr_gv100.h"
 
 #include "hal_gv11b.h"

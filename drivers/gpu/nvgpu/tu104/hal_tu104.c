@@ -85,6 +85,8 @@
 #include "gm20b/mm_gm20b.h"
 
 #include "gv100/clk_gv100.h"
+#include "gv100/gsp_gv100.h"
+
 #include "gp106/sec2_gp106.h"
 #include "gp106/bios_gp106.h"
 
@@ -1114,6 +1116,9 @@ static const struct gpu_ops tu104_ops = {
 		.msgq_tail = tu104_sec2_msgq_tail,
 		.falcon_base_addr = tu104_sec2_falcon_base_addr,
 	},
+	.gsp = {
+		.falcon_base_addr = gv100_gsp_falcon_base_addr,
+	},
 	.chip_init_gpu_characteristics = tu104_init_gpu_characteristics,
 	.get_litter_value = tu104_get_litter_value,
 };
@@ -1157,6 +1162,7 @@ int tu104_init_hal(struct gk20a *g)
 	gops->nvlink = tu104_ops.nvlink;
 	gops->acr = tu104_ops.acr;
 	gops->sec2 = tu104_ops.sec2;
+	gops->gsp = tu104_ops.gsp;
 
 	/* clocks */
 	gops->clk.init_clk_support = tu104_ops.clk.init_clk_support;

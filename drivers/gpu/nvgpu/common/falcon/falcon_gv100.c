@@ -64,7 +64,7 @@ int gv100_falcon_hal_sw_init(struct nvgpu_falcon *flcn)
 		flcn->is_interrupt_enabled = true;
 		break;
 	case FALCON_ID_GSPLITE:
-		flcn->flcn_base = pgsp_falcon_irqsset_r();
+		flcn->flcn_base = g->ops.gsp.falcon_base_addr();
 		flcn->is_falcon_supported = true;
 		flcn->is_interrupt_enabled = false;
 		break;

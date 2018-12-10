@@ -1484,6 +1484,9 @@ struct gpu_ops {
 			u32 *tail, bool set);
 		u32 (*falcon_base_addr)(void);
 	} sec2;
+	struct {
+		u32 (*falcon_base_addr)(void);
+	} gsp;
 	void (*semaphore_wakeup)(struct gk20a *g, bool post_events);
 };
 
