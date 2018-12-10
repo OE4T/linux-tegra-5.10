@@ -49,6 +49,7 @@
 #include <nvgpu/channel_sync.h>
 
 #include "gk20a/fence_gk20a.h"
+#include "gk20a/gr_gk20a.h"
 
 static void free_channel(struct fifo_gk20a *f, struct channel_gk20a *ch);
 static void gk20a_channel_dump_ref_actions(struct channel_gk20a *ch);
@@ -1449,6 +1450,34 @@ bool nvgpu_channel_check_ctxsw_timeout(struct channel_gk20a *ch,
 	}
 
 	return recover;
+}
+
+
+void nvgpu_channel_recover(struct gk20a *g, struct channel_gk20a *ch,
+	bool verbose, u32 rc_type)
+{
+	u32 engines;
+
+	/* stop context switching to prevent engine assignments from
+	   changing until channel is recovered */
+	nvgpu_mutex_acquire(&g->dbg_sessions_lock);
+	gr_gk20a_disable_ctxsw(g);
+
+	engines = g->ops.fifo.get_engines_mask_on_id(g, ch->chid, false);
+
+	if (engines != 0U) {
+		gk20a_fifo_recover(g, engines, ch->chid, false, true, verbose,
+					rc_type);
+	} else {
+		gk20a_channel_abort(ch, false);
+
+		if (nvgpu_channel_mark_error(g, ch)) {
+			gk20a_debug_dump(g);
+		}
+	}
+
+	gr_gk20a_enable_ctxsw(g);
+	nvgpu_mutex_release(&g->dbg_sessions_lock);
 }
 
 u32 nvgpu_get_gp_free_count(struct channel_gk20a *c)
