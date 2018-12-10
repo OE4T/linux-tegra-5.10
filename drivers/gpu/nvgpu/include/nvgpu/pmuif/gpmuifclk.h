@@ -156,7 +156,7 @@ struct nv_pmu_clk_clk_domain_35_prog_boardobj_set {
 struct nv_pmu_clk_clk_domain_35_master_boardobj_set {
 	struct nv_pmu_clk_clk_domain_35_prog_boardobj_set super;
 	struct nv_pmu_clk_clk_domain_3x_master_boardobj_set master;
-	u32 master_slave_domains_grp_mask;
+	struct ctrl_boardobjgrp_mask_e32 master_slave_domains_grp_mask;
 };
 
 

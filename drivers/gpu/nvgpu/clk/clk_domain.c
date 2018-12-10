@@ -59,7 +59,7 @@ static struct vbios_clocks_table_1x_hal_clock_entry
  */
 static struct vbios_clocks_table_1x_hal_clock_entry
 		vbiosclktbl1xhalentry_gv[] = {
-	{ CLKWHICH_GPCCLK,     true,    2, },
+	{ CLKWHICH_GPCCLK,     true,    1, },
 	{ CLKWHICH_XBARCLK,    true,    1, },
 	{ CLKWHICH_MCLK,       false,   1, },
 	{ CLKWHICH_SYSCLK,     true,    1, },
@@ -287,6 +287,13 @@ int clk_domain_sw_setup(struct gk20a *g)
 			if (status != 0) {
 				goto done;
 			}
+			pdomain_master_35 =
+				(struct clk_domain_35_master *)pdomain;
+			status = boardobjgrpmask_bitset(
+					&pdomain_master_35->master_slave_domains_grp_mask.super, i);
+			if (status != 0) {
+				goto done;
+			}
 		}
 
 		if (pdomain->super.implements(g, &pdomain->super,
@@ -309,6 +316,11 @@ int clk_domain_sw_setup(struct gk20a *g)
 					(CLK_CLK_DOMAIN_GET((g->clk_pmu),
 					pdomain_slave_35->slave.master_idx));
 			pdomain_master_35->master.slave_idxs_mask |= BIT(i);
+			status = boardobjgrpmask_bitset(
+					&pdomain_master_35->master_slave_domains_grp_mask.super, i);
+			if (status != 0) {
+				goto done;
+			}
 		}
 
 	}
@@ -1491,6 +1503,11 @@ static int clk_domain_pmudatainit_35_master(struct gk20a *g,
 
 	pset->master.slave_idxs_mask = pclk_domain_35_master->master.slave_idxs_mask;
 
+	status = boardobjgrpmask_export(
+				&pclk_domain_35_master->master_slave_domains_grp_mask.super,
+				pclk_domain_35_master->master_slave_domains_grp_mask.super.bitcount,
+				&pset->master_slave_domains_grp_mask.super);
+
 	return status;
 }
 
@@ -1545,6 +1562,8 @@ static int clk_domain_construct_35_master(struct gk20a *g,
 				clkdomainclkproglink_3x_master;
 
 	pdomain->master.slave_idxs_mask = 0;
+
+	boardobjgrpmask_e32_init(&pdomain->master_slave_domains_grp_mask, NULL);
 
 	return status;
 }
