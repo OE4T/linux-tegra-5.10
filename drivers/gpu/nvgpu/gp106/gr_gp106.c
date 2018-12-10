@@ -261,3 +261,8 @@ u32 gr_gp106_fecs_falcon_base_addr(void)
 {
 	return gr_fecs_irqsset_r();
 }
+
+u32 gr_gp106_gpccs_falcon_base_addr(void)
+{
+	return gr_gpcs_gpccs_irqsset_r();
+}

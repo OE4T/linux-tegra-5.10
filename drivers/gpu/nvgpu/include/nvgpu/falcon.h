@@ -39,11 +39,6 @@
 #define FALCON_ID_END	    (11U)
 #define FALCON_ID_INVALID   0xFFFFFFFFU
 
-/*
- * Falcon Base address Defines
- */
-#define FALCON_GPCCS_BASE  0x0041a000U
-
 /* Falcon Register index */
 #define FALCON_REG_R0		(0U)
 #define FALCON_REG_R1		(1U)

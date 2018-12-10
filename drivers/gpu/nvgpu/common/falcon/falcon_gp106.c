@@ -76,7 +76,7 @@ int gp106_falcon_hal_sw_init(struct nvgpu_falcon *flcn)
 		flcn->is_interrupt_enabled = false;
 		break;
 	case FALCON_ID_GPCCS:
-		flcn->flcn_base = FALCON_GPCCS_BASE;
+		flcn->flcn_base = g->ops.gr.gpccs_falcon_base_addr();
 		flcn->is_falcon_supported = true;
 		flcn->is_interrupt_enabled = false;
 		break;
