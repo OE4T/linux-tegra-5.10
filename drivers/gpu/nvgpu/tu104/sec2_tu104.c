@@ -442,3 +442,8 @@ void tu104_start_sec2_secure(struct gk20a *g)
 	gk20a_writel(g, psec_falcon_cpuctl_alias_r(),
 		psec_falcon_cpuctl_alias_startcpu_f(1U));
 }
+
+u32 tu104_sec2_falcon_base_addr(void)
+{
+	return psec_falcon_irqsset_r();
+}

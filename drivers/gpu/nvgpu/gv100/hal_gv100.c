@@ -1083,6 +1083,9 @@ static const struct gpu_ops gv100_ops = {
 	.acr = {
 		.acr_sw_init = nvgpu_gp106_acr_sw_init,
 	},
+	.sec2 = {
+		.falcon_base_addr = gp106_sec2_falcon_base_addr,
+	},
 	.chip_init_gpu_characteristics = gv100_init_gpu_characteristics,
 	.get_litter_value = gv100_get_litter_value,
 };
@@ -1126,6 +1129,7 @@ int gv100_init_hal(struct gk20a *g)
 	gops->nvlink = gv100_ops.nvlink;
 	gops->top = gv100_ops.top;
 	gops->acr = gv100_ops.acr;
+	gops->sec2 = gv100_ops.sec2;
 
 	/* clocks */
 	gops->clk.init_clk_support = gv100_ops.clk.init_clk_support;

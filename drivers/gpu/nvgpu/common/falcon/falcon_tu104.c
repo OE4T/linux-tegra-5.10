@@ -63,7 +63,7 @@ int tu104_falcon_hal_sw_init(struct nvgpu_falcon *flcn)
 
 	switch (flcn->flcn_id) {
 	case FALCON_ID_SEC2:
-		flcn->flcn_base = psec_falcon_irqsset_r();
+		flcn->flcn_base = g->ops.sec2.falcon_base_addr();
 		flcn->is_falcon_supported = true;
 		flcn->is_interrupt_enabled = true;
 		break;

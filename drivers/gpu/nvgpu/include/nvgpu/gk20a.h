@@ -1480,6 +1480,7 @@ struct gpu_ops {
 		void (*isr)(struct gk20a *g);
 		void (*msgq_tail)(struct gk20a *g, struct nvgpu_sec2 *sec2,
 			u32 *tail, bool set);
+		u32 (*falcon_base_addr)(void);
 	} sec2;
 	void (*semaphore_wakeup)(struct gk20a *g, bool post_events);
 };

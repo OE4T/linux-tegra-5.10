@@ -29,4 +29,6 @@ int gp106_sec2_setup_hw_and_bl_bootstrap(struct gk20a *g,
 	struct hs_acr *acr_desc,
 	struct nvgpu_falcon_bl_info *bl_info);
 
+u32 gp106_sec2_falcon_base_addr(void);
+
 #endif /* NVGPU_SEC2_GP106_H */

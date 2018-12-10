@@ -115,3 +115,8 @@ int gp106_sec2_setup_hw_and_bl_bootstrap(struct gk20a *g,
 
 	return sec2_flcn_bl_bootstrap(g, bl_info);
 }
+
+u32 gp106_sec2_falcon_base_addr(void)
+{
+	return psec_falcon_irqsset_r();
+}

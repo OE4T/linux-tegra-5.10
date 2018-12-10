@@ -1108,6 +1108,7 @@ static const struct gpu_ops tu104_ops = {
 		.is_interrupted = tu104_sec2_is_interrupted,
 		.isr = tu104_sec2_isr,
 		.msgq_tail = tu104_sec2_msgq_tail,
+		.falcon_base_addr = tu104_sec2_falcon_base_addr,
 	},
 	.chip_init_gpu_characteristics = tu104_init_gpu_characteristics,
 	.get_litter_value = tu104_get_litter_value,

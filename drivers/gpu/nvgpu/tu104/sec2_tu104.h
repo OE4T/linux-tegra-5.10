@@ -45,5 +45,6 @@ void tu104_sec2_isr(struct gk20a *g);
 bool tu104_sec2_is_interrupted(struct nvgpu_sec2 *sec2);
 void tu104_sec2_enable_irq(struct nvgpu_sec2 *sec2, bool enable);
 void tu104_start_sec2_secure(struct gk20a *g);
+u32 tu104_sec2_falcon_base_addr(void);
 
 #endif /* NVGPU_SEC2_TU104_H */
