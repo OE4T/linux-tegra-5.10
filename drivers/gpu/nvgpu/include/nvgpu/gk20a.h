@@ -784,6 +784,8 @@ struct gpu_ops {
 		void (*tsg_release)(struct tsg_gk20a *tsg);
 		u32 (*eng_runlist_base_size)(void);
 		int (*init_engine_info)(struct fifo_gk20a *f);
+		u32 (*get_engines_mask_on_id)(struct gk20a *g,
+			u32 id, bool is_tsg);
 		u32 (*runlist_entry_size)(void);
 		void (*get_tsg_runlist_entry)(struct tsg_gk20a *tsg,
 					u32 *runlist);

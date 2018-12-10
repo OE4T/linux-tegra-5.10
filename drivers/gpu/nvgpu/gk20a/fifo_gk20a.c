@@ -62,8 +62,6 @@
 #define FECS_METHOD_WFI_RESTORE 0x80000U
 #define FECS_MAILBOX_0_ACK_RESTORE 0x4U
 
-static u32 gk20a_fifo_engines_on_id(struct gk20a *g, u32 id, bool is_tsg);
-
 static const char *const pbdma_intr_fault_type_desc[] = {
 	"MEMREQ timeout", "MEMACK_TIMEOUT", "MEMACK_EXTRA acks",
 	"MEMDAT_TIMEOUT", "MEMDAT_EXTRA acks", "MEMFLUSH noack",
@@ -1466,9 +1464,11 @@ int gk20a_fifo_deferred_reset(struct gk20a *g, struct channel_gk20a *ch)
 	}
 
 	if (gk20a_is_channel_marked_as_tsg(ch)) {
-		engines = gk20a_fifo_engines_on_id(g, ch->tsgid, true);
+		engines = g->ops.fifo.get_engines_mask_on_id(g,
+				ch->tsgid, true);
 	} else {
-		engines = gk20a_fifo_engines_on_id(g, ch->chid, false);
+		engines = g->ops.fifo.get_engines_mask_on_id(g,
+				ch->chid, false);
 	}
 	if (engines == 0U) {
 		goto clean_up;
@@ -1789,7 +1789,7 @@ static void gk20a_fifo_get_faulty_id_type(struct gk20a *g, u32 engine_id,
 		fifo_engine_status_id_type_v(status);
 }
 
-static u32 gk20a_fifo_engines_on_id(struct gk20a *g, u32 id, bool is_tsg)
+u32 gk20a_fifo_engines_on_id(struct gk20a *g, u32 id, bool is_tsg)
 {
 	unsigned int i;
 	u32 engines = 0;
@@ -1832,7 +1832,7 @@ void gk20a_fifo_recover_ch(struct gk20a *g, struct channel_gk20a *ch,
 	nvgpu_mutex_acquire(&g->dbg_sessions_lock);
 	gr_gk20a_disable_ctxsw(g);
 
-	engines = gk20a_fifo_engines_on_id(g, ch->chid, false);
+	engines = g->ops.fifo.get_engines_mask_on_id(g, ch->chid, false);
 
 	if (engines != 0U) {
 		gk20a_fifo_recover(g, engines, ch->chid, false, true, verbose,
@@ -1859,7 +1859,7 @@ void gk20a_fifo_recover_tsg(struct gk20a *g, struct tsg_gk20a *tsg,
 	nvgpu_mutex_acquire(&g->dbg_sessions_lock);
 	gr_gk20a_disable_ctxsw(g);
 
-	engines = gk20a_fifo_engines_on_id(g, tsg->tsgid, true);
+	engines = g->ops.fifo.get_engines_mask_on_id(g, tsg->tsgid, true);
 
 	if (engines != 0U) {
 		gk20a_fifo_recover(g, engines, tsg->tsgid, true, true, verbose,
@@ -1898,7 +1898,8 @@ void gk20a_fifo_teardown_ch_tsg(struct gk20a *g, u32 __engine_ids,
 	}
 
 	if (id_is_known) {
-		engine_ids = gk20a_fifo_engines_on_id(g, hw_id, id_is_tsg);
+		engine_ids = g->ops.fifo.get_engines_mask_on_id(g,
+				hw_id, id_is_tsg);
 		ref_id = hw_id;
 		ref_type = id_is_tsg ?
 			fifo_engine_status_id_type_tsgid_v() :

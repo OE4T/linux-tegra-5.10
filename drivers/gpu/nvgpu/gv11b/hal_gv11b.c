@@ -681,6 +681,7 @@ static const struct gpu_ops gv11b_ops = {
 		.device_info_data_parse = gp10b_device_info_data_parse,
 		.eng_runlist_base_size = fifo_eng_runlist_base__size_1_v,
 		.init_engine_info = gk20a_fifo_init_engine_info,
+		.get_engines_mask_on_id = gk20a_fifo_engines_on_id,
 		.runlist_entry_size = ram_rl_entry_size_v,
 		.get_tsg_runlist_entry = gv11b_get_tsg_runlist_entry,
 		.get_ch_runlist_entry = gv11b_get_ch_runlist_entry,
