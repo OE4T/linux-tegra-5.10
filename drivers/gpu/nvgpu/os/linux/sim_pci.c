@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -27,6 +27,7 @@
 #include <nvgpu/sim.h>
 #include <nvgpu/io.h>
 #include <nvgpu/gk20a.h>
+#include <nvgpu/soc.h>
 
 #include "os_linux.h"
 #include "module.h"
@@ -36,9 +37,16 @@ static bool _nvgpu_pci_is_simulation(struct gk20a *g, u32 sim_base)
 	u32 cfg;
 	bool is_simulation = false;
 
+	if (nvgpu_platform_is_silicon(g)) {
+		return is_simulation;
+	}
+
 	cfg = nvgpu_readl(g, sim_base + sim_config_r());
-	if (sim_config_mode_v(cfg) == sim_config_mode_enabled_v())
+
+	if ((sim_config_simulation_v(cfg) == sim_config_simulation_fmodel_v())
+	    || (sim_config_mode_v(cfg) == sim_config_mode_enabled_v())) {
 		is_simulation = true;
+	}
 
 	return is_simulation;
 }
