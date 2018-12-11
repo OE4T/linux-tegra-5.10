@@ -1367,6 +1367,48 @@ u32 nvgpu_gp_free_count(struct channel_gk20a *c)
 		c->gpfifo.entry_num;
 }
 
+static bool nvgpu_channel_timeout_debug_dump_state(struct gk20a *g,
+		struct channel_gk20a *ch)
+{
+	bool verbose = true;
+	if (nvgpu_is_error_notifier_set(ch,
+			NVGPU_ERR_NOTIFIER_FIFO_ERROR_IDLE_TIMEOUT)) {
+		verbose = ch->timeout_debug_dump;
+	}
+
+	return verbose;
+}
+
+static void nvgpu_channel_set_has_timedout_and_wakeup_wqs(struct gk20a *g,
+		struct channel_gk20a *ch)
+{
+	/* mark channel as faulted */
+	gk20a_channel_set_timedout(ch);
+
+	/* unblock pending waits */
+	nvgpu_cond_broadcast_interruptible(&ch->semaphore_wq);
+	nvgpu_cond_broadcast_interruptible(&ch->notifier_wq);
+}
+
+bool nvgpu_channel_mark_error(struct gk20a *g, struct channel_gk20a *ch)
+{
+	bool verbose;
+
+	verbose = nvgpu_channel_timeout_debug_dump_state(g, ch);
+	nvgpu_channel_set_has_timedout_and_wakeup_wqs(g, ch);
+
+	return verbose;
+}
+
+void nvgpu_channel_set_ctx_mmu_error(struct gk20a *g,
+		struct channel_gk20a *ch)
+{
+	nvgpu_err(g,
+		"channel %d generated a mmu fault", ch->chid);
+	g->ops.fifo.set_error_notifier(ch,
+				NVGPU_ERR_NOTIFIER_FIFO_ERROR_MMU_ERR_FLT);
+}
+
 bool gk20a_channel_update_and_check_timeout(struct channel_gk20a *ch,
 		u32 timeout_delta_ms, bool *progress)
 {
@@ -1387,6 +1429,26 @@ bool gk20a_channel_update_and_check_timeout(struct channel_gk20a *ch,
 
 	return nvgpu_is_timeouts_enabled(ch->g) &&
 		ch->timeout_accumulated_ms > ch->timeout_ms_max;
+}
+
+bool nvgpu_channel_check_ctxsw_timeout(struct channel_gk20a *ch,
+		bool *verbose, u32 *ms)
+{
+	bool recover = false;
+	bool progress = false;
+	struct gk20a *g = ch->g;
+
+	recover = gk20a_channel_update_and_check_timeout(ch,
+			g->fifo_eng_timeout_us / 1000U,
+			&progress);
+	*verbose = ch->timeout_debug_dump;
+	*ms = ch->timeout_accumulated_ms;
+	if (recover) {
+		g->ops.fifo.set_error_notifier(ch,
+				NVGPU_ERR_NOTIFIER_FIFO_ERROR_IDLE_TIMEOUT);
+	}
+
+	return recover;
 }
 
 u32 nvgpu_get_gp_free_count(struct channel_gk20a *c)

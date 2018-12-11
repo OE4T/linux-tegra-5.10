@@ -364,8 +364,14 @@ int gk20a_init_channel_support(struct gk20a *g, u32 chid);
 void gk20a_channel_close(struct channel_gk20a *ch);
 void __gk20a_channel_kill(struct channel_gk20a *ch);
 
+void nvgpu_channel_set_ctx_mmu_error(struct gk20a *g,
+		struct channel_gk20a *ch);
+bool nvgpu_channel_mark_error(struct gk20a *g, struct channel_gk20a *ch);
+
 bool gk20a_channel_update_and_check_timeout(struct channel_gk20a *ch,
 		u32 timeout_delta_ms, bool *progress);
+bool nvgpu_channel_check_ctxsw_timeout(struct channel_gk20a *ch,
+		bool *verbose, u32 *ms);
 void gk20a_disable_channel(struct channel_gk20a *ch);
 void gk20a_channel_abort(struct channel_gk20a *ch, bool channel_preempt);
 void gk20a_channel_abort_clean_up(struct channel_gk20a *ch);

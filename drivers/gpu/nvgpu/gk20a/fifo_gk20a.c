@@ -1428,49 +1428,6 @@ bool gk20a_fifo_should_defer_engine_reset(struct gk20a *g, u32 engine_id,
 	return g->ops.fifo.is_fault_engine_subid_gpc(g, engine_subid);
 }
 
-/* caller must hold a channel reference */
-static bool gk20a_fifo_ch_timeout_debug_dump_state(struct gk20a *g,
-		struct channel_gk20a *refch)
-{
-	bool verbose = true;
-	if (refch == NULL) {
-		return verbose;
-	}
-
-	if (nvgpu_is_error_notifier_set(refch,
-			NVGPU_ERR_NOTIFIER_FIFO_ERROR_IDLE_TIMEOUT)) {
-		verbose = refch->timeout_debug_dump;
-	}
-
-	return verbose;
-}
-
-/* caller must hold a channel reference */
-static void gk20a_fifo_set_has_timedout_and_wake_up_wqs(struct gk20a *g,
-		struct channel_gk20a *refch)
-{
-	if (refch != NULL) {
-		/* mark channel as faulted */
-		gk20a_channel_set_timedout(refch);
-
-		/* unblock pending waits */
-		nvgpu_cond_broadcast_interruptible(&refch->semaphore_wq);
-		nvgpu_cond_broadcast_interruptible(&refch->notifier_wq);
-	}
-}
-
-/* caller must hold a channel reference */
-bool gk20a_fifo_error_ch(struct gk20a *g,
-		struct channel_gk20a *refch)
-{
-	bool verbose;
-
-	verbose = gk20a_fifo_ch_timeout_debug_dump_state(g, refch);
-	gk20a_fifo_set_has_timedout_and_wake_up_wqs(g, refch);
-
-	return verbose;
-}
-
 bool gk20a_fifo_error_tsg(struct gk20a *g,
 		struct tsg_gk20a *tsg)
 {
@@ -1480,7 +1437,7 @@ bool gk20a_fifo_error_tsg(struct gk20a *g,
 	nvgpu_rwsem_down_read(&tsg->ch_list_lock);
 	nvgpu_list_for_each_entry(ch, &tsg->ch_list, channel_gk20a, ch_entry) {
 		if (gk20a_channel_get(ch) != NULL) {
-			if (gk20a_fifo_error_ch(g, ch)) {
+			if (nvgpu_channel_mark_error(g, ch)) {
 				verbose = true;
 			}
 			gk20a_channel_put(ch);
@@ -1490,15 +1447,6 @@ bool gk20a_fifo_error_tsg(struct gk20a *g,
 
 	return verbose;
 
-}
-/* caller must hold a channel reference */
-void gk20a_fifo_set_ctx_mmu_error_ch(struct gk20a *g,
-		struct channel_gk20a *refch)
-{
-	nvgpu_err(g,
-		"channel %d generated a mmu fault", refch->chid);
-	g->ops.fifo.set_error_notifier(refch,
-				NVGPU_ERR_NOTIFIER_FIFO_ERROR_MMU_ERR_FLT);
 }
 
 void gk20a_fifo_set_ctx_mmu_error_tsg(struct gk20a *g,
@@ -1512,7 +1460,7 @@ void gk20a_fifo_set_ctx_mmu_error_tsg(struct gk20a *g,
 	nvgpu_rwsem_down_read(&tsg->ch_list_lock);
 	nvgpu_list_for_each_entry(ch, &tsg->ch_list, channel_gk20a, ch_entry) {
 		if (gk20a_channel_get(ch) != NULL) {
-			gk20a_fifo_set_ctx_mmu_error_ch(g, ch);
+			nvgpu_channel_set_ctx_mmu_error(g, ch);
 			gk20a_channel_put(ch);
 		}
 	}
@@ -1789,11 +1737,11 @@ static bool gk20a_fifo_handle_mmu_fault_locked(
 					g->ops.fifo.disable_channel(ch);
 				} else {
 					if (!fake_fault) {
-						gk20a_fifo_set_ctx_mmu_error_ch(
+						nvgpu_channel_set_ctx_mmu_error(
 							g, refch);
 					}
 
-					verbose = gk20a_fifo_error_ch(g,
+					verbose = nvgpu_channel_mark_error(g,
 							 refch);
 					gk20a_channel_abort(ch, false);
 				}
@@ -1932,7 +1880,7 @@ void gk20a_fifo_recover_ch(struct gk20a *g, struct channel_gk20a *ch,
 	} else {
 		gk20a_channel_abort(ch, false);
 
-		if (gk20a_fifo_error_ch(g, ch)) {
+		if (nvgpu_channel_mark_error(g, ch)) {
 			gk20a_debug_dump(g);
 		}
 	}
@@ -2272,29 +2220,6 @@ u32 gk20a_fifo_get_failing_engine_data(struct gk20a *g,
 	return active_engine_id;
 }
 
-bool gk20a_fifo_check_ch_ctxsw_timeout(struct channel_gk20a *ch,
-		bool *verbose, u32 *ms)
-{
-	bool recover = false;
-	bool progress = false;
-	struct gk20a *g = ch->g;
-
-	if (gk20a_channel_get(ch) != NULL) {
-		recover = gk20a_channel_update_and_check_timeout(ch,
-				g->fifo_eng_timeout_us / 1000U,
-				&progress);
-		*verbose = ch->timeout_debug_dump;
-		*ms = ch->timeout_accumulated_ms;
-		if (recover) {
-			g->ops.fifo.set_error_notifier(ch,
-					NVGPU_ERR_NOTIFIER_FIFO_ERROR_IDLE_TIMEOUT);
-		}
-
-		gk20a_channel_put(ch);
-	}
-	return recover;
-}
-
 bool gk20a_fifo_check_tsg_ctxsw_timeout(struct tsg_gk20a *tsg,
 		bool *verbose, u32 *ms)
 {
@@ -2380,6 +2305,7 @@ bool gk20a_fifo_handle_sched_error(struct gk20a *g)
 	u32 id = U32_MAX;
 	bool is_tsg = false;
 	bool ret = false;
+	struct channel_gk20a *ch = NULL;
 
 	/* read the scheduler error register */
 	sched_error = gk20a_readl(g, fifo_intr_sched_error_r());
@@ -2411,8 +2337,16 @@ bool gk20a_fifo_handle_sched_error(struct gk20a *g)
 			ret = g->ops.fifo.check_tsg_ctxsw_timeout(
 					&f->tsg[id], &verbose, &ms);
 		} else {
-			ret = g->ops.fifo.check_ch_ctxsw_timeout(
-					&f->channel[id], &verbose, &ms);
+			ch = gk20a_channel_from_id(g, id);
+			if (ch != NULL) {
+				ret = g->ops.fifo.check_ch_ctxsw_timeout(
+					ch, &verbose, &ms);
+
+				gk20a_channel_put(ch);
+			} else {
+				/* skip recovery since channel is null */
+				ret = false;
+			}
 		}
 
 		if (ret) {
