@@ -992,8 +992,8 @@ static void gv11b_fifo_locked_abort_runlist_active_tsgs(struct gk20a *g,
 #endif
 			if (!g->fifo.deferred_reset_pending) {
 				if (rc_type == RC_TYPE_MMU_FAULT) {
-					gk20a_fifo_set_ctx_mmu_error_tsg(g, tsg);
-					gk20a_fifo_error_tsg(g, tsg);
+					nvgpu_tsg_set_ctx_mmu_error(g, tsg);
+					nvgpu_tsg_mark_error(g, tsg);
 				}
 			}
 
@@ -1213,7 +1213,7 @@ void gv11b_fifo_teardown_ch_tsg(struct gk20a *g, u32 act_eng_bitmask,
 			gk20a_disable_tsg(tsg);
 		} else {
 			if (rc_type == RC_TYPE_MMU_FAULT) {
-				gk20a_fifo_set_ctx_mmu_error_tsg(g, tsg);
+				nvgpu_tsg_set_ctx_mmu_error(g, tsg);
 			}
 
 			gk20a_fifo_abort_tsg(g, tsg, false);
@@ -1608,7 +1608,7 @@ bool gv11b_fifo_handle_ctxsw_timeout(struct gk20a *g, u32 fifo_intr)
 				continue;
 			}
 
-			if (g->ops.fifo.check_tsg_ctxsw_timeout(
+			if (nvgpu_tsg_check_ctxsw_timeout(
 				&f->tsg[tsgid], &verbose, &ms)) {
 				ret = true;
 

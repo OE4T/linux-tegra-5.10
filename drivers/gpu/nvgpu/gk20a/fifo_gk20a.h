@@ -314,11 +314,7 @@ u32 gk20a_fifo_act_eng_interrupt_mask(struct gk20a *g, u32 act_eng_id);
 u32 gk20a_fifo_get_pbdma_signature(struct gk20a *g);
 u32 gk20a_fifo_get_failing_engine_data(struct gk20a *g,
 		u32 *__id, bool *__is_tsg);
-void gk20a_fifo_set_ctx_mmu_error_tsg(struct gk20a *g,
-		struct tsg_gk20a *tsg);
 void gk20a_fifo_abort_tsg(struct gk20a *g, struct tsg_gk20a *tsg, bool preempt);
-bool gk20a_fifo_error_tsg(struct gk20a *g, struct tsg_gk20a *tsg);
-
 void gk20a_fifo_issue_preempt(struct gk20a *g, u32 id, bool is_tsg);
 int gk20a_fifo_set_runlist_interleave(struct gk20a *g,
 				u32 id,
@@ -449,8 +445,6 @@ void gk20a_fifo_teardown_ch_tsg(struct gk20a *g, u32 __engine_ids,
 			u32 hw_id, unsigned int id_type, unsigned int rc_type,
 			 struct mmu_fault_info *mmfault);
 
-bool gk20a_fifo_check_tsg_ctxsw_timeout(struct tsg_gk20a *tsg,
-			bool *verbose, u32 *ms);
 bool gk20a_fifo_handle_sched_error(struct gk20a *g);
 
 void gk20a_fifo_reset_pbdma_method(struct gk20a *g, u32 pbdma_id,
