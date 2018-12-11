@@ -39,11 +39,13 @@ static void pmu_handle_rppg_init_msg(struct gk20a *g, struct pmu_msg *msg,
 			nvgpu_pmu_dbg(g, "RPPG is acknowledged from PMU %x",
 				msg->msg.pg.msg_type);
 			break;
+		default:
+			*success = 0;
+			nvgpu_err(g, "Invalid message ID:%u",
+				msg->msg.pg.rppg_msg.cmn.msg_id);
+			break;
 		}
 	}
-
-	nvgpu_pmu_dbg(g, "RPPG is acknowledged from PMU %x",
-				msg->msg.pg.msg_type);
 }
 
 static int rppg_send_cmd(struct gk20a *g, struct nv_pmu_rppg_cmd *prppg_cmd)
@@ -120,8 +122,13 @@ static int rppg_ctrl_init(struct gk20a *g, u8 ctrl_id)
 
 	switch (ctrl_id) {
 	case NV_PMU_RPPG_CTRL_ID_GR:
+		rppg_cmd.init_ctrl.domain_id = NV_PMU_RPPG_DOMAIN_ID_GFX;
+		break;
 	case NV_PMU_RPPG_CTRL_ID_MS:
 		rppg_cmd.init_ctrl.domain_id = NV_PMU_RPPG_DOMAIN_ID_GFX;
+		break;
+	default:
+		nvgpu_err(g, "Invalid ctrl_id %u for %s", ctrl_id, __func__);
 		break;
 	}
 

@@ -387,6 +387,8 @@ static void pmu_handle_pg_stat_msg(struct gk20a *g, struct pmu_msg *msg,
 			msg->msg.pg.stat.data;
 		break;
 	default:
+		nvgpu_err(g, "Invalid msg id:%u",
+				msg->msg.pg.stat.sub_msg_id);
 		break;
 	}
 }
@@ -788,6 +790,7 @@ int nvgpu_aelpg_init_and_enable(struct gk20a *g, u8 ctrl_id)
 	case PMU_AP_CTRL_ID_GRAPHICS:
 		break;
 	default:
+		nvgpu_err(g, "Invalid ctrl_id:%u for %s", ctrl_id, __func__);
 		break;
 	}
 

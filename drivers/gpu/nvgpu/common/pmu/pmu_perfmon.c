@@ -326,6 +326,8 @@ int nvgpu_pmu_handle_perfmon_event(struct nvgpu_pmu *pmu,
 		nvgpu_pmu_dbg(g, "perfmon init event");
 		break;
 	default:
+		nvgpu_pmu_dbg(g, "Invalid msgtype:%u for %s",
+					msg->msg_type, __func__);
 		break;
 	}
 
