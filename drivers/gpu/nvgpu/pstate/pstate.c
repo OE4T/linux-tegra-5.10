@@ -46,8 +46,6 @@ void gk20a_deinit_pstate_support(struct gk20a *g)
 	if (g->ops.clk.mclk_deinit != NULL) {
 		g->ops.clk.mclk_deinit(g);
 	}
-
-	nvgpu_mutex_destroy(&g->perf_pmu->pstatesobjs.pstate_mutex);
 }
 
 /*sw setup for pstate components*/
