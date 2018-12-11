@@ -21,8 +21,9 @@
 # DEALINGS IN THE SOFTWARE.
 
 include $(NVGPU_SRC)/Makefile.sources
+include $(NVGPU_NEXT_SRC)/Makefile.sources
 
-OBJS := $(srcs:%.c=$(NVGPU_OUT)/%.o)
+OBJS := $(srcs:%.c=$(NVGPU_OUT)/%.o) $(srcs_next:%.c=$(NVGPU_OUT)/%.o)
 
 HEADERS :=	\
 	$(NVGPU_SRC)/include/nvgpu/*.h		\

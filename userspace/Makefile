@@ -1,4 +1,4 @@
-# Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+# Copyright (c) 2018-2020, NVIDIA CORPORATION.  All rights reserved.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -38,6 +38,8 @@ CORE_OUT=$(OUT)/nvgpu_unit_core
 
 # Nvgpu driver code.
 NVGPU_SRC=$(TWD)/../drivers/gpu/nvgpu
+# Nvgpu-next driver code.
+NVGPU_NEXT_SRC=$(TWD)/../../nvgpu-next/drivers/gpu/nvgpu
 NVGPU_OUT=$(OUT)/libnvgpu
 
 # Unit tests themselves.
@@ -47,6 +49,8 @@ UNIT_OUT=$(OUT)/units
 INCLUDES= 				\
 	-I$(NVGPU_SRC)			\
 	-I$(NVGPU_SRC)/include		\
+	-I$(NVGPU_NEXT_SRC)		\
+	-I$(NVGPU_NEXT_SRC)/include	\
 	-I$(TWD)/../include		\
 	-I$(TWD)/../include/uapi	\
 	-I$(TWD)/include		\
@@ -132,6 +136,14 @@ $(NVGPU_OUT)/%.o : $(NVGPU_SRC)/%.c $(HEADERS)
 		mkdir -p $(dir $@) ; \
 	fi
 	$(CC) --coverage $(CFLAGS) -c -o $@ $<
+
+# Default build target for all the nvgpu-next driver object files we want to
+# build in userspace. These too get bundled into libnvgpu-drv.so.
+$(NVGPU_OUT)/%.o : $(NVGPU_NEXT_SRC)/%.c $(HEADERS) $(HEADERS_NEXT)
+	@if [ ! -d $(dir $@) ] ; then \
+		mkdir -p $(dir $@) ; \
+	fi
+	$(CC) --coverage $(CFLAGS) $(configs) -c -o $@ $<
 
 # Build target for unit test files. These are not part of the libnvgpu-drv.so.
 # These comprise the unit test framework.
