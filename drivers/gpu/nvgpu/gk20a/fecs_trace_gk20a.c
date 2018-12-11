@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -436,7 +436,7 @@ clean:
 }
 
 int gk20a_fecs_trace_bind_channel(struct gk20a *g,
-		struct channel_gk20a *ch, struct nvgpu_gr_ctx *gr_ctx)
+		struct channel_gk20a *ch, u32 vmid, struct nvgpu_gr_ctx *gr_ctx)
 {
 	/*
 	 * map our circ_buf to the context space and store the GPU VA

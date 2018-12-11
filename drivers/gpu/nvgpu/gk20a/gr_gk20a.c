@@ -2772,7 +2772,7 @@ int gk20a_alloc_obj_ctx(struct channel_gk20a  *c, u32 class_num, u32 flags)
 		}
 #ifdef CONFIG_GK20A_CTXSW_TRACE
 		if (g->ops.fecs_trace.bind_channel && !c->vpr) {
-			err = g->ops.fecs_trace.bind_channel(g, c, gr_ctx);
+			err = g->ops.fecs_trace.bind_channel(g, c, 0, gr_ctx);
 			if (err != 0) {
 				nvgpu_warn(g,
 					"fail to bind channel for ctxsw trace");
@@ -2797,7 +2797,7 @@ int gk20a_alloc_obj_ctx(struct channel_gk20a  *c, u32 class_num, u32 flags)
 		}
 #ifdef CONFIG_GK20A_CTXSW_TRACE
 		if (g->ops.fecs_trace.bind_channel && !c->vpr) {
-			err = g->ops.fecs_trace.bind_channel(g, c, gr_ctx);
+			err = g->ops.fecs_trace.bind_channel(g, c, 0, gr_ctx);
 			if (err != 0) {
 				nvgpu_warn(g,
 					"fail to bind channel for ctxsw trace");
