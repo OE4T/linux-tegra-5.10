@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -210,7 +210,7 @@ static int therm_send_slct_configuration_to_pmu(struct gk20a *g)
 
 	rpccall.function = NV_PMU_THERM_RPC_ID_SLCT;
 	rpccall.params.slct.mask_enabled =
-		(1 << NV_PMU_THERM_EVENT_THERMAL_1);
+		BIT32(NV_PMU_THERM_EVENT_THERMAL_1);
 	rpccall.b_supported = 0;
 
 	cmd.hdr.unit_id = PMU_UNIT_THERM;

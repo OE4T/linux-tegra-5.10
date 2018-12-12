@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -79,7 +79,7 @@ static int _pwr_domains_pmudatainit_ina3221(struct gk20a *g,
 	ina3221_desc->configuration = ina3221->configuration;
 	ina3221_desc->mask_enable = ina3221->mask_enable;
 	/* configure NV_PMU_THERM_EVENT_EXT_OVERT */
-	ina3221_desc->event_mask = (1 << 0);
+	ina3221_desc->event_mask = BIT32(0);
 	ina3221_desc->curr_correct_m  = ina3221->curr_correct_m;
 	ina3221_desc->curr_correct_b  = ina3221->curr_correct_b;
 

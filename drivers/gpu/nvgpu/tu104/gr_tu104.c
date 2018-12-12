@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -347,12 +347,12 @@ void gr_tu104_enable_gpc_exceptions(struct gk20a *g)
 			gr_gpcs_tpcs_tpccs_tpc_exception_en_sm_enabled_f());
 
 	tpc_mask =
-		gr_gpcs_gpccs_gpc_exception_en_tpc_f((1 << gr->max_tpc_per_gpc_count) - 1);
+		gr_gpcs_gpccs_gpc_exception_en_tpc_f(BIT32(gr->max_tpc_per_gpc_count) - 1U);
 
 	gk20a_writel(g, gr_gpcs_gpccs_gpc_exception_en_r(),
-		(tpc_mask | gr_gpcs_gpccs_gpc_exception_en_gcc_f(1) |
-			    gr_gpcs_gpccs_gpc_exception_en_gpccs_f(1) |
-			    gr_gpcs_gpccs_gpc_exception_en_gpcmmu_f(1)));
+		(tpc_mask | gr_gpcs_gpccs_gpc_exception_en_gcc_f(1U) |
+			    gr_gpcs_gpccs_gpc_exception_en_gpccs_f(1U) |
+			    gr_gpcs_gpccs_gpc_exception_en_gpcmmu_f(1U)));
 }
 
 int gr_tu104_get_offset_in_gpccs_segment(struct gk20a *g,

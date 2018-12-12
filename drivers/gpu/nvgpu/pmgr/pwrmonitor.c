@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -267,7 +267,7 @@ static int devinit_get_pwr_topology_table(struct gk20a *g,
 		pwr_topology_data.boardobj.type = CTRL_PMGR_PWR_CHANNEL_TYPE_SENSOR;
 		pwr_topology_data.pwrchannel.pwr_rail = (u8)pwr_topology_table_entry.pwr_rail;
 		pwr_topology_data.pwrchannel.volt_fixed_uv = pwr_topology_table_entry.param0;
-		pwr_topology_data.pwrchannel.pwr_corr_slope = (1 << 12);
+		pwr_topology_data.pwrchannel.pwr_corr_slope = BIT32(12);
 		pwr_topology_data.pwrchannel.pwr_corr_offset_mw = 0;
 		pwr_topology_data.pwrchannel.curr_corr_slope  =
 			(u32)pwr_topology_table_entry.curr_corr_slope;

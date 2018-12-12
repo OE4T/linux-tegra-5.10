@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -1113,7 +1113,7 @@ static int devinit_get_vfe_var_table(struct gk20a *g,
 					var.param3;
 			} else {
 				var_data.single_sensed_fuse.vfield_info.hw_correction_scale =
-					1 << 12;
+					BIT32(12);
 				var_data.single_sensed_fuse.vfield_info.hw_correction_offset =
 					0;
 				if ((var_data.single_sensed_fuse.vfield_info.v_field_id ==
@@ -1121,7 +1121,7 @@ static int devinit_get_vfe_var_table(struct gk20a *g,
 				    (var_data.single_sensed_fuse.vfield_info.v_field_id ==
 				     VFIELD_ID_STRAP_IDDQ_1)) {
 					var_data.single_sensed_fuse.vfield_info.hw_correction_scale =
-						50 << 12;
+						50U << 12U;
 				}
 			}
 			break;
