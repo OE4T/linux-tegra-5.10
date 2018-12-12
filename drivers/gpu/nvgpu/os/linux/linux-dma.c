@@ -49,7 +49,7 @@
  * added it must be added here as well!!
  */
 #define NVGPU_DMA_STR_SIZE					\
-	sizeof("NO_KERNEL_MAPPING FORCE_CONTIGUOUS")
+	sizeof("NO_KERNEL_MAPPING FORCE_CONTIGUOUS PHYSICALLY_ADDRESSED")
 
 /*
  * The returned string is kmalloc()ed here but must be freed by the caller.
