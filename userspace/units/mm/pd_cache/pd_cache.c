@@ -628,6 +628,96 @@ fail:
 	return err;
 }
 
+/*
+ * Ensure that we can efficiently pack N pd_size PDs into a page.
+ */
+static int do_test_pd_cache_packing_size(struct unit_module *m, struct gk20a *g,
+					 struct vm_gk20a *vm, u32 pd_size)
+{
+	int err;
+	u32 i;
+	u32 n = PAGE_SIZE / pd_size;
+	struct nvgpu_gmmu_pd pds[n], pd;
+	struct nvgpu_posix_fault_inj *dma_fi =
+		nvgpu_dma_alloc_get_fault_injection();
+
+	unit_info(m, "Alloc %u PDs in page; PD size=%u bytes\n", n, pd_size);
+
+	/*
+	 * Only allow one DMA alloc to happen. If before we alloc N PDs we
+	 * see an OOM return then we failed to pack sufficient PDs into the
+	 * single DMA page.
+	 */
+	nvgpu_posix_enable_fault_injection(dma_fi, true, 1);
+
+	for (i = 0U; i < n; i++) {
+		err = nvgpu_pd_alloc(vm, &pds[i], pd_size);
+		if (err) {
+			err = UNIT_FAIL;
+			goto cleanup;
+		}
+	}
+
+	/*
+	 * Let's just ensure that we trigger the fault on the next alloc.
+	 */
+	err = nvgpu_pd_alloc(vm, &pd, pd_size);
+	if (err) {
+		err = UNIT_SUCCESS;
+	} else {
+		nvgpu_pd_free(vm, &pd);
+		err = UNIT_FAIL;
+	}
+
+cleanup:
+	/*
+	 * If there was a failure don't try and free un-allocated PDs.
+	 * Effectively a noop if this test passes.
+	 */
+	n = i;
+
+	for (i = 0; i < n; i++) {
+		nvgpu_pd_free(vm, &pds[i]);
+	}
+	nvgpu_posix_enable_fault_injection(dma_fi, false, 0);
+	return err;
+}
+
+/*
+ * Requirement NVGPU-RQCD-68.C3
+ *
+ * C3: Valid/Invalid: 16 256B, 8 512B, etc, PDs can/cannot fit into a single
+ *                    page sized DMA allocation.
+ */
+static int test_pd_cache_packing(struct unit_module *m,
+				 struct gk20a *g, void *args)
+{
+	int err;
+	u32 pd_size;
+	struct vm_gk20a vm;
+
+	err = init_pd_cache(m, g, &vm);
+	if (err != UNIT_SUCCESS) {
+		return err;
+	}
+
+	pd_size = 256U; /* 256 bytes is the min PD size. */
+	while (pd_size < PAGE_SIZE) {
+		err = do_test_pd_cache_packing_size(m, g, &vm, pd_size);
+		if (err) {
+			err = UNIT_FAIL;
+			goto cleanup;
+		}
+
+		pd_size *= 2U;
+	}
+
+	err = UNIT_SUCCESS;
+
+cleanup:
+	nvgpu_pd_cache_fini(g);
+	return err;
+}
 
 /*
  * Init the global env - just make sure we don't try and allocate from VIDMEM
@@ -651,6 +741,8 @@ struct unit_module_test pd_cache_tests[] = {
 	 */
 	UNIT_TEST_REQ("NVGPU-RQCD-68.C1,2", PD_CACHE_REQ1_UID, "V4",
 		      valid_alloc,			test_pd_cache_valid_alloc, NULL),
+	UNIT_TEST_REQ("NVGPU-RQCD-68.C3",   PD_CACHE_REQ1_UID, "V4",
+		      pd_packing,			test_pd_cache_packing, NULL),
 
 	/*
 	 * Direct allocs.
