@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -24,13 +24,13 @@
 
 /*perfmon task defines*/
 
-#define PMU_DOMAIN_GROUP_PSTATE		0
-#define PMU_DOMAIN_GROUP_GPC2CLK	1
-#define PMU_DOMAIN_GROUP_NUM		2
+#define PMU_DOMAIN_GROUP_PSTATE		0U
+#define PMU_DOMAIN_GROUP_GPC2CLK	1U
+#define PMU_DOMAIN_GROUP_NUM		2U
 
-#define PMU_PERFMON_FLAG_ENABLE_INCREASE	(0x00000001)
-#define PMU_PERFMON_FLAG_ENABLE_DECREASE	(0x00000002)
-#define PMU_PERFMON_FLAG_CLEAR_PREV		(0x00000004)
+#define PMU_PERFMON_FLAG_ENABLE_INCREASE	BIT8(0)
+#define PMU_PERFMON_FLAG_ENABLE_DECREASE	BIT8(1)
+#define PMU_PERFMON_FLAG_CLEAR_PREV		BIT8(2)
 
 #define NV_PMU_PERFMON_MAX_COUNTERS     10U
 

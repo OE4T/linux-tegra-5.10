@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -113,7 +113,7 @@ static int nvgpu_netlist_init_ctx_vars_fw(struct gk20a *g)
 	struct nvgpu_firmware *netlist_fw;
 	struct netlist_image *netlist = NULL;
 	char name[MAX_NETLIST_NAME];
-	u32 i, major_v = ~0, major_v_hw, netlist_num;
+	u32 i, major_v = ~U32(0U), major_v_hw, netlist_num;
 	int net, max, err = -ENOENT;
 
 	nvgpu_log_fn(g, " ");
@@ -121,7 +121,7 @@ static int nvgpu_netlist_init_ctx_vars_fw(struct gk20a *g)
 	if (g->ops.netlist.is_fw_defined()) {
 		net = NETLIST_FINAL;
 		max = 0;
-		major_v_hw = ~0;
+		major_v_hw = ~U32(0U);
 		netlist_vars->dynamic = false;
 	} else {
 		net = NETLIST_SLOT_A;

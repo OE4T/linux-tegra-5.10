@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -102,9 +102,9 @@ int ltc_tu104_init_comptags(struct gk20a *g, struct gr_gk20a *gr)
 		ltc_ltcs_ltss_cbc_param_bytes_per_comptagline_per_slice_v(cbc_param);
 	ctags_per_cacheline = gr->cacheline_size / ctags_size;
 
-	amap_divide_rounding = (2 * 1024) <<
+	amap_divide_rounding = (U32(2U) * U32(1024U)) <<
 		ltc_ltcs_ltss_cbc_param_amap_divide_rounding_v(cbc_param);
-	amap_swizzle_rounding = (64 * 1024) <<
+	amap_swizzle_rounding = (U32(64U) * U32(1024U)) <<
 		ltc_ltcs_ltss_cbc_param_amap_swizzle_rounding_v(cbc_param);
 
 	compbit_backing_size =

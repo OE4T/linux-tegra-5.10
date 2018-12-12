@@ -248,7 +248,7 @@ static void sec2_load_ls_falcons(struct gk20a *g, struct nvgpu_sec2 *sec2,
 
 	command_ack = false;
 	err = nvgpu_sec2_cmd_post(g, &cmd, NULL, PMU_COMMAND_QUEUE_HPQ,
-		sec2_handle_lsfm_boot_acr_msg, &command_ack, &seq, ~0);
+		sec2_handle_lsfm_boot_acr_msg, &command_ack, &seq, ~0UL);
 	if (err != 0) {
 		nvgpu_err(g, "command post failed");
 	}

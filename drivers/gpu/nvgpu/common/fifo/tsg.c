@@ -466,14 +466,14 @@ int gk20a_tsg_open_common(struct gk20a *g, struct tsg_gk20a *tsg)
 	}
 
 	tsg->g = g;
-	tsg->num_active_channels = 0;
+	tsg->num_active_channels = 0U;
 	nvgpu_ref_init(&tsg->refcount);
 
 	tsg->vm = NULL;
 	tsg->interleave_level = NVGPU_FIFO_RUNLIST_INTERLEAVE_LEVEL_LOW;
-	tsg->timeslice_us = 0;
-	tsg->timeslice_timeout = 0;
-	tsg->timeslice_scale = 0;
+	tsg->timeslice_us = 0U;
+	tsg->timeslice_timeout = 0U;
+	tsg->timeslice_scale = 0U;
 	tsg->runlist_id = FIFO_INVAL_TSG_ID;
 	tsg->sm_exception_mask_type = NVGPU_SM_EXCEPTION_TYPE_MASK_NONE;
 	tsg->gr_ctx = nvgpu_kzalloc(g, sizeof(*tsg->gr_ctx));

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -184,9 +184,9 @@ struct mm_gk20a {
 #define gk20a_from_mm(mm) ((mm)->g)
 #define gk20a_from_vm(vm) ((vm)->mm->g)
 
-static inline int bar1_aperture_size_mb_gk20a(void)
+static inline u32 bar1_aperture_size_mb_gk20a(void)
 {
-	return 16; /* 16MB is more than enough atm. */
+	return 16U; /* 16MB is more than enough atm. */
 }
 
 /* The maximum GPU VA range supported */

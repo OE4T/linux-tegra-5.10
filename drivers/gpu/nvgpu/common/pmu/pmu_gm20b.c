@@ -246,7 +246,7 @@ int gm20b_load_falcon_ucode(struct gk20a *g, u32 falconidmask)
 	}
 	/* load FECS */
 	gk20a_writel(g,
-		gr_fecs_ctxsw_mailbox_clear_r(0), ~0x0);
+		gr_fecs_ctxsw_mailbox_clear_r(0), ~U32(0x0U));
 	gm20b_pmu_load_lsf(g, FALCON_ID_FECS, flags);
 	err = pmu_gm20b_ctx_wait_lsf_ready(g, timeout,
 			0x55AA55AA);
