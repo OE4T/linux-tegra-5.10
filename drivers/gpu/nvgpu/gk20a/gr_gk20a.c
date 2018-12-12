@@ -524,9 +524,9 @@ static int gr_gk20a_ctrl_ctxsw(struct gk20a *g, u32 fecs_method, u32 *ret)
 	return gr_gk20a_submit_fecs_method_op(g,
 	      (struct fecs_method_op_gk20a) {
 		      .method.addr = fecs_method,
-		      .method.data = ~0,
-		      .mailbox = { .id   = 1, /*sideband?*/
-				   .data = ~0, .clr = ~0, .ret = ret,
+		      .method.data = ~U32(0U),
+		      .mailbox = { .id   = 1U, /*sideband?*/
+				   .data = ~U32(0U), .clr = ~U32(0U), .ret = ret,
 				   .ok   = gr_fecs_ctxsw_mailbox_value_pass_v(),
 				   .fail = gr_fecs_ctxsw_mailbox_value_fail_v(), },
 		      .cond.ok = GR_IS_UCODE_OP_EQUAL,
@@ -576,9 +576,9 @@ int gr_gk20a_halt_pipe(struct gk20a *g)
 	      (struct fecs_method_op_gk20a) {
 		      .method.addr =
 				gr_fecs_method_push_adr_halt_pipeline_v(),
-		      .method.data = ~0,
-		      .mailbox = { .id   = 1, /*sideband?*/
-				.data = ~0, .clr = ~0, .ret = NULL,
+		      .method.data = ~U32(0U),
+		      .mailbox = { .id   = 1U, /*sideband?*/
+				.data = ~U32(0U), .clr = ~U32(0U), .ret = NULL,
 				.ok   = gr_fecs_ctxsw_mailbox_value_pass_v(),
 				.fail = gr_fecs_ctxsw_mailbox_value_fail_v(), },
 		      .cond.ok = GR_IS_UCODE_OP_EQUAL,
@@ -1782,14 +1782,14 @@ static void gr_gk20a_start_falcon_ucode(struct gk20a *g)
 {
 	nvgpu_log_fn(g, " ");
 
-	gk20a_writel(g, gr_fecs_ctxsw_mailbox_clear_r(0),
-		     gr_fecs_ctxsw_mailbox_clear_value_f(~0));
+	gk20a_writel(g, gr_fecs_ctxsw_mailbox_clear_r(0U),
+		     gr_fecs_ctxsw_mailbox_clear_value_f(~U32(0U)));
 
-	gk20a_writel(g, gr_gpccs_dmactl_r(), gr_gpccs_dmactl_require_ctx_f(0));
-	gk20a_writel(g, gr_fecs_dmactl_r(), gr_fecs_dmactl_require_ctx_f(0));
+	gk20a_writel(g, gr_gpccs_dmactl_r(), gr_gpccs_dmactl_require_ctx_f(0U));
+	gk20a_writel(g, gr_fecs_dmactl_r(), gr_fecs_dmactl_require_ctx_f(0U));
 
-	gk20a_writel(g, gr_gpccs_cpuctl_r(), gr_gpccs_cpuctl_startcpu_f(1));
-	gk20a_writel(g, gr_fecs_cpuctl_r(), gr_fecs_cpuctl_startcpu_f(1));
+	gk20a_writel(g, gr_gpccs_cpuctl_r(), gr_gpccs_cpuctl_startcpu_f(1U));
+	gk20a_writel(g, gr_fecs_cpuctl_r(), gr_fecs_cpuctl_startcpu_f(1U));
 
 	nvgpu_log_fn(g, "done");
 }
@@ -2255,9 +2255,9 @@ int gr_gk20a_init_ctx_state(struct gk20a *g)
 {
 	int ret;
 	struct fecs_method_op_gk20a op = {
-		.mailbox = { .id = 0, .data = 0,
-			     .clr = ~0, .ok = 0, .fail = 0},
-		.method.data = 0,
+		.mailbox = { .id = 0U, .data = 0U,
+			     .clr = ~U32(0U), .ok = 0U, .fail = 0U},
+		.method.data = 0U,
 		.cond.ok = GR_IS_UCODE_OP_NOT_EQUAL,
 		.cond.fail = GR_IS_UCODE_OP_SKIP,
 		};
@@ -3242,7 +3242,7 @@ static int gr_gk20a_init_map_tiles(struct gk20a *g, struct gr_gk20a *gr)
 		}
 
 		mul_factor = S32(gr->gpc_count) * S32(max_tpc_count);
-		if ((mul_factor & 0x1) != 0) {
+		if ((U32(mul_factor) & 0x1U) != 0U) {
 			mul_factor = 2;
 		} else {
 			mul_factor = 1;
@@ -4088,7 +4088,7 @@ void gk20a_gr_enable_gpc_exceptions(struct gk20a *g)
 			gr_gpcs_tpcs_tpccs_tpc_exception_en_sm_enabled_f());
 
 	tpc_mask =
-		gr_gpcs_gpccs_gpc_exception_en_tpc_f((1 << gr->max_tpc_per_gpc_count) - 1);
+		gr_gpcs_gpccs_gpc_exception_en_tpc_f(BIT32(gr->max_tpc_per_gpc_count) - 1U);
 
 	gk20a_writel(g, gr_gpcs_gpccs_gpc_exception_en_r(), tpc_mask);
 }
@@ -4404,8 +4404,8 @@ static int gk20a_init_gr_reset_enable_hw(struct gk20a *g)
 	nvgpu_log_fn(g, " ");
 
 	/* enable interrupts */
-	gk20a_writel(g, gr_intr_r(), ~0);
-	gk20a_writel(g, gr_intr_en_r(), ~0);
+	gk20a_writel(g, gr_intr_r(), ~U32(0U));
+	gk20a_writel(g, gr_intr_en_r(), ~U32(0U));
 
 	/* load non_ctx init */
 	for (i = 0; i < sw_non_ctx_load->count; i++) {
@@ -5146,7 +5146,7 @@ int gk20a_gr_handle_notify_pending(struct gk20a *g,
 			case BAR0_WRITE32:
 				v = 0;
 				if ((unsigned int)mask_orig !=
-				    (unsigned int)~0) {
+							~((unsigned int)0)) {
 					v = (unsigned int)
 						(raw_reg & ~mask_orig);
 				}
@@ -5918,16 +5918,16 @@ int gr_gk20a_fecs_get_reglist_img_size(struct gk20a *g, u32 *size)
 	BUG_ON(size == NULL);
 	return gr_gk20a_submit_fecs_method_op(g,
 		   (struct fecs_method_op_gk20a) {
-			   .mailbox.id = 0,
-			   .mailbox.data = 0,
-			   .mailbox.clr = ~0,
-			   .method.data = 1,
+			   .mailbox.id = 0U,
+			   .mailbox.data = 0U,
+			   .mailbox.clr = ~U32(0U),
+			   .method.data = 1U,
 			   .method.addr = gr_fecs_method_push_adr_discover_reglist_image_size_v(),
 			   .mailbox.ret = size,
 			   .cond.ok = GR_IS_UCODE_OP_NOT_EQUAL,
-			   .mailbox.ok = 0,
+			   .mailbox.ok = 0U,
 			   .cond.fail = GR_IS_UCODE_OP_SKIP,
-			   .mailbox.fail = 0}, false);
+			   .mailbox.fail = 0U}, false);
 }
 
 int gr_gk20a_fecs_set_reglist_bind_inst(struct gk20a *g,
@@ -5937,32 +5937,32 @@ int gr_gk20a_fecs_set_reglist_bind_inst(struct gk20a *g,
 
 	return gr_gk20a_submit_fecs_method_op(g,
 		   (struct fecs_method_op_gk20a){
-			   .mailbox.id = 4,
+			   .mailbox.id = 4U,
 			   .mailbox.data = data,
-			   .mailbox.clr = ~0,
-			   .method.data = 1,
+			   .mailbox.clr = ~U32(0U),
+			   .method.data = 1U,
 			   .method.addr = gr_fecs_method_push_adr_set_reglist_bind_instance_v(),
 			   .mailbox.ret = NULL,
 			   .cond.ok = GR_IS_UCODE_OP_EQUAL,
-			   .mailbox.ok = 1,
+			   .mailbox.ok = 1U,
 			   .cond.fail = GR_IS_UCODE_OP_SKIP,
-			   .mailbox.fail = 0}, false);
+			   .mailbox.fail = 0U}, false);
 }
 
 int gr_gk20a_fecs_set_reglist_virtual_addr(struct gk20a *g, u64 pmu_va)
 {
 	return gr_gk20a_submit_fecs_method_op(g,
 		   (struct fecs_method_op_gk20a) {
-			   .mailbox.id = 4,
+			   .mailbox.id = 4U,
 			   .mailbox.data = u64_lo32(pmu_va >> 8),
-			   .mailbox.clr = ~0,
-			   .method.data = 1,
+			   .mailbox.clr = ~U32(0U),
+			   .method.data = 1U,
 			   .method.addr = gr_fecs_method_push_adr_set_reglist_virtual_address_v(),
 			   .mailbox.ret = NULL,
 			   .cond.ok = GR_IS_UCODE_OP_EQUAL,
-			   .mailbox.ok = 1,
+			   .mailbox.ok = 1U,
 			   .cond.fail = GR_IS_UCODE_OP_SKIP,
-			   .mailbox.fail = 0}, false);
+			   .mailbox.fail = 0U}, false);
 }
 
 int gk20a_gr_suspend(struct gk20a *g)
@@ -6511,7 +6511,7 @@ static int gr_gk20a_ctx_patch_smpc(struct gk20a *g,
 	return 0;
 }
 
-#define ILLEGAL_ID ((u32)~0)
+#define ILLEGAL_ID	~U32(0U)
 
 void gk20a_gr_get_ovr_perf_regs(struct gk20a *g, u32 *num_ovr_perf_regs,
 					       u32 **ovr_perf_regs)
@@ -7335,21 +7335,21 @@ static int add_ctxsw_buffer_map_entries_gpcs(struct gk20a *g,
 		base = NV_XBAR_MXBAR_PRI_GPC_GNIC_STRIDE * gpc_num;
 		if (add_ctxsw_buffer_map_entries(map,
 					&g->netlist_vars->ctxsw_regs.pm_ucgpc,
-					count, offset, max_cnt, base, ~0) != 0) {
+					count, offset, max_cnt, base, ~U32(0U)) != 0) {
 			return -EINVAL;
 		}
 
 		base = (g->ops.gr.get_pmm_per_chiplet_offset() * gpc_num);
 		if (add_ctxsw_buffer_map_entries(map,
 					&g->netlist_vars->ctxsw_regs.perf_gpc,
-					count, offset, max_cnt, base, ~0) != 0) {
+					count, offset, max_cnt, base, ~U32(0U)) != 0) {
 			return -EINVAL;
 		}
 
 		base = (NV_PERF_PMMGPCROUTER_STRIDE * gpc_num);
 		if (add_ctxsw_buffer_map_entries(map,
 					&g->netlist_vars->ctxsw_regs.gpc_router,
-					count, offset, max_cnt, base, ~0) != 0) {
+					count, offset, max_cnt, base, ~U32(0U)) != 0) {
 			return -EINVAL;
 		}
 
@@ -7473,19 +7473,19 @@ static int gr_gk20a_create_hwpm_ctxsw_buffer_offset_map(struct gk20a *g)
 
 	/* Add entries from _LIST_pm_ctx_reg_SYS */
 	if (add_ctxsw_buffer_map_entries_pmsys(map, &g->netlist_vars->ctxsw_regs.pm_sys,
-				&count, &offset, hwpm_ctxsw_reg_count_max, 0, ~0) != 0) {
+				&count, &offset, hwpm_ctxsw_reg_count_max, 0, ~U32(0U)) != 0) {
 		goto cleanup;
 	}
 
 	/* Add entries from _LIST_nv_perf_ctx_reg_SYS */
 	if (add_ctxsw_buffer_map_entries(map, &g->netlist_vars->ctxsw_regs.perf_sys,
-				&count, &offset, hwpm_ctxsw_reg_count_max, 0, ~0) != 0) {
+				&count, &offset, hwpm_ctxsw_reg_count_max, 0, ~U32(0U)) != 0) {
 		goto cleanup;
 	}
 
 	/* Add entries from _LIST_nv_perf_sysrouter_ctx_reg*/
 	if (add_ctxsw_buffer_map_entries(map, &g->netlist_vars->ctxsw_regs.perf_sys_router,
-				&count, &offset, hwpm_ctxsw_reg_count_max, 0, ~0) != 0) {
+				&count, &offset, hwpm_ctxsw_reg_count_max, 0, ~U32(0U)) != 0) {
 		goto cleanup;
 	}
 
@@ -7493,7 +7493,7 @@ static int gr_gk20a_create_hwpm_ctxsw_buffer_offset_map(struct gk20a *g)
 	ret = g->ops.gr.add_ctxsw_reg_perf_pma(map,
 					&g->netlist_vars->ctxsw_regs.perf_pma,
 					&count, &offset,
-					hwpm_ctxsw_reg_count_max, 0, ~0);
+					hwpm_ctxsw_reg_count_max, 0, ~U32(0U));
 	if (ret != 0) {
 		goto cleanup;
 	}
@@ -7507,7 +7507,7 @@ static int gr_gk20a_create_hwpm_ctxsw_buffer_offset_map(struct gk20a *g)
 					hwpm_ctxsw_reg_count_max, 0,
 					g->gr.num_fbps,
 					g->ops.gr.get_pmm_per_chiplet_offset(),
-					~0) != 0) {
+					~U32(0U)) != 0) {
 		goto cleanup;
 	}
 
@@ -7516,7 +7516,7 @@ static int gr_gk20a_create_hwpm_ctxsw_buffer_offset_map(struct gk20a *g)
 					&g->netlist_vars->ctxsw_regs.fbp_router,
 					&count, &offset,
 					hwpm_ctxsw_reg_count_max, 0, g->gr.num_fbps,
-					NV_PERF_PMM_FBP_ROUTER_STRIDE, ~0) != 0) {
+					NV_PERF_PMM_FBP_ROUTER_STRIDE, ~U32(0U)) != 0) {
 		goto cleanup;
 	}
 
@@ -7525,7 +7525,7 @@ static int gr_gk20a_create_hwpm_ctxsw_buffer_offset_map(struct gk20a *g)
 					&g->netlist_vars->ctxsw_regs.pm_fbpa,
 					&count, &offset,
 					hwpm_ctxsw_reg_count_max, 0,
-					num_fbpas, fbpa_stride, ~0);
+					num_fbpas, fbpa_stride, ~U32(0U));
 	if (ret != 0) {
 		goto cleanup;
 	}
@@ -7534,7 +7534,7 @@ static int gr_gk20a_create_hwpm_ctxsw_buffer_offset_map(struct gk20a *g)
 	if (add_ctxsw_buffer_map_entries(map,
 					&g->netlist_vars->ctxsw_regs.pm_rop,
 					&count, &offset,
-					hwpm_ctxsw_reg_count_max, 0, ~0) != 0) {
+					hwpm_ctxsw_reg_count_max, 0, ~U32(0U)) != 0) {
 		goto cleanup;
 	}
 
@@ -7543,7 +7543,7 @@ static int gr_gk20a_create_hwpm_ctxsw_buffer_offset_map(struct gk20a *g)
 					&g->netlist_vars->ctxsw_regs.pm_ltc,
 					&count, &offset,
 					hwpm_ctxsw_reg_count_max, 0,
-					num_ltc, ltc_stride, ~0) != 0) {
+					num_ltc, ltc_stride, ~U32(0U)) != 0) {
 		goto cleanup;
 	}
 

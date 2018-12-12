@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -234,7 +234,7 @@ static void __update_pte(struct vm_gk20a *vm,
 					 gmmu_pte_aperture_sys_mem_coh_f(),
 					 gmmu_pte_aperture_video_memory_f()) |
 		gmmu_pte_kind_f(attrs->kind_v) |
-		gmmu_pte_comptagline_f((u32)(attrs->ctag >> ctag_shift));
+		gmmu_pte_comptagline_f((U32(attrs->ctag) >> U32(ctag_shift)));
 
 	if ((attrs->ctag != 0ULL) &&
 	     vm->mm->use_full_comp_tag_line &&
@@ -302,7 +302,7 @@ static void update_gmmu_pte_locked(struct vm_gk20a *vm,
 		attrs->priv      ? 'P' : '-',
 		attrs->coherent  ? 'I' : '-',
 		attrs->valid     ? 'V' : '-',
-		(u32)attrs->ctag >> ctag_shift,
+		U32(attrs->ctag) >> U32(ctag_shift),
 		pte_w[1], pte_w[0]);
 
 	nvgpu_pd_write(g, pd, (size_t)pd_offset + (size_t)0, pte_w[0]);
