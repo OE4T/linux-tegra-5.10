@@ -733,6 +733,10 @@ void gk20a_remove_support(struct gk20a *g)
 	if (g->pmu.remove_support)
 		g->pmu.remove_support(&g->pmu);
 
+	if (nvgpu_is_enabled(g, NVGPU_PMU_PSTATE)) {
+		gk20a_deinit_pstate_support(g);
+	}
+
 	if (g->sec2.remove_support != NULL) {
 		g->sec2.remove_support(&g->sec2);
 	}
