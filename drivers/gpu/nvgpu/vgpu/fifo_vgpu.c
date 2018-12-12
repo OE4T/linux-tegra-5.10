@@ -375,7 +375,7 @@ int vgpu_init_fifo_setup_hw(struct gk20a *g)
 		nvgpu_err(g, "userd allocation failed, err=%d", err);
 		return err;
 	}
-	mem->gpu_va = g->ops.mm.bar1_map(g, mem, 0);
+	mem->gpu_va = g->ops.mm.bar1_map_userd(g, mem, 0);
 	f->userd_gpu_va = mem->gpu_va;
 
 	/* test write, read through bar1 @ userd region before

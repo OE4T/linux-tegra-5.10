@@ -668,7 +668,7 @@ const struct gk20a_mmu_level *gk20a_mm_get_mmu_levels(struct gk20a *g,
 		 gk20a_mm_levels_64k : gk20a_mm_levels_128k;
 }
 
-u64 gk20a_mm_bar1_map(struct gk20a *g, struct nvgpu_mem *mem, u32 offset)
+u64 gk20a_mm_bar1_map_userd(struct gk20a *g, struct nvgpu_mem *mem, u32 offset)
 {
 	struct fifo_gk20a *f = &g->fifo;
 	u64 gpu_va = f->userd_gpu_va + offset;

@@ -155,7 +155,7 @@ void vgpu_vm_remove(struct vm_gk20a *vm)
 	WARN_ON(err || msg.ret);
 }
 
-u64 vgpu_bar1_map(struct gk20a *g, struct nvgpu_mem *mem, u32 offset)
+u64 vgpu_mm_bar1_map_userd(struct gk20a *g, struct nvgpu_mem *mem, u32 offset)
 {
 	u64 addr = nvgpu_mem_get_addr(g, mem);
 	struct tegra_vgpu_cmd_msg msg;

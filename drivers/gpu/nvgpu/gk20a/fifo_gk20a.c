@@ -953,8 +953,8 @@ int gk20a_fifo_init_userd_slabs(struct gk20a *g)
 	f->num_userd_slabs =
 		DIV_ROUND_UP(f->num_channels, f->num_channels_per_slab);
 
-	f->userd_slabs = nvgpu_kcalloc(g, f->num_userd_slabs,
-				       sizeof(struct nvgpu_mem));
+	f->userd_slabs = nvgpu_big_zalloc(g, f->num_userd_slabs *
+				          sizeof(struct nvgpu_mem));
 	if (f->userd_slabs == NULL) {
 		nvgpu_err(g, "could not allocate userd slabs");
 		return -ENOMEM;
@@ -987,7 +987,7 @@ int gk20a_fifo_init_userd(struct gk20a *g, struct channel_gk20a *c)
 		}
 
 		if (g->ops.mm.is_bar1_supported(g)) {
-			mem->gpu_va = g->ops.mm.bar1_map(g, mem,
+			mem->gpu_va = g->ops.mm.bar1_map_userd(g, mem,
 							 slab * PAGE_SIZE);
 		}
 	}
@@ -1015,7 +1015,7 @@ void gk20a_fifo_free_userd_slabs(struct gk20a *g)
 	for (slab = 0; slab < f->num_userd_slabs; slab++) {
 		nvgpu_dma_free(g, &f->userd_slabs[slab]);
 	}
-	nvgpu_kfree(g, f->userd_slabs);
+	nvgpu_big_free(g, f->userd_slabs);
 	f->userd_slabs = NULL;
 }
 
