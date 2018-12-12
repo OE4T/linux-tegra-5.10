@@ -1,7 +1,7 @@
 /*
  * GP10B MMU
  *
- * Copyright (c) 2014-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -309,7 +309,7 @@ static u32 gp10b_get_pde0_pgsz(struct gk20a *g, const struct gk20a_mmu_level *l,
 		 gmmu_new_dual_pde_aperture_small_sys_mem_coh_f() |
 		 gmmu_new_dual_pde_aperture_small_video_memory_f())) != 0U) {
 		u64 addr = ((U64(pde_v[3]) << U64(32)) | (U64(pde_v[2]) &
-			U64(gmmu_new_dual_pde_address_small_sys_f(~0)))) <<
+			U64(gmmu_new_dual_pde_address_small_sys_f(~U32(0U))))) <<
 			U64(gmmu_new_dual_pde_address_shift_v());
 
 		if (addr != 0ULL) {
@@ -322,7 +322,7 @@ static u32 gp10b_get_pde0_pgsz(struct gk20a *g, const struct gk20a_mmu_level *l,
 		 gmmu_new_dual_pde_aperture_big_sys_mem_coh_f() |
 		 gmmu_new_dual_pde_aperture_big_video_memory_f())) != 0U) {
 		u64 addr = ((U64(pde_v[1]) << U64(32)) | (U64(pde_v[0]) &
-			U64(gmmu_new_dual_pde_address_big_sys_f(~0)))) <<
+			U64(gmmu_new_dual_pde_address_big_sys_f(~U32(0U))))) <<
 			U64(gmmu_new_dual_pde_address_big_shift_v());
 
 		if (addr != 0ULL) {

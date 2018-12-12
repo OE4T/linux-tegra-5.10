@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -97,11 +97,11 @@ struct nvgpu_clk_session;
 /*
  * NVGPU_POLL* defines equivalent to the POLL* linux defines
  */
-#define NVGPU_POLLIN (1 << 0)
-#define NVGPU_POLLPRI (1 << 1)
-#define NVGPU_POLLOUT (1 << 2)
-#define NVGPU_POLLRDNORM (1 << 3)
-#define NVGPU_POLLHUP (1 << 4)
+#define NVGPU_POLLIN		BIT32(0)
+#define NVGPU_POLLPRI		BIT32(1)
+#define NVGPU_POLLOUT		BIT32(2)
+#define NVGPU_POLLRDNORM	BIT32(3)
+#define NVGPU_POLLHUP		BIT32(4)
 
 /* NVGPU_CLK_DOMAIN_* defines equivalent to NVGPU_GPU_CLK_DOMAIN_*
  * defines in uapi header

@@ -592,9 +592,9 @@ u32 gr_gp10b_calc_global_ctx_buffer_size(struct gk20a *g)
 	gr->alpha_cb_size = gr->alpha_cb_default_size;
 
 	gr->attrib_cb_size = min(gr->attrib_cb_size,
-		 gr_gpc0_ppc0_cbm_beta_cb_size_v_f(~0) / g->gr.tpc_count);
+		 gr_gpc0_ppc0_cbm_beta_cb_size_v_f(~U32(0U)) / g->gr.tpc_count);
 	gr->alpha_cb_size = min(gr->alpha_cb_size,
-		 gr_gpc0_ppc0_cbm_alpha_cb_size_v_f(~0) / g->gr.tpc_count);
+		 gr_gpc0_ppc0_cbm_alpha_cb_size_v_f(~U32(0U)) / g->gr.tpc_count);
 
 	size = gr->attrib_cb_size *
 		gr_gpc0_ppc0_cbm_beta_cb_size_v_granularity_v() *
@@ -767,7 +767,7 @@ void gr_gp10b_set_alpha_circular_buffer_size(struct gk20a *g, u32 data)
 
 	gk20a_writel(g, gr_ds_tga_constraintlogic_alpha_r(),
 		(gk20a_readl(g, gr_ds_tga_constraintlogic_alpha_r()) &
-		 ~gr_ds_tga_constraintlogic_alpha_cbsize_f(~0)) |
+		 ~gr_ds_tga_constraintlogic_alpha_cbsize_f(~U32(0U))) |
 		 gr_ds_tga_constraintlogic_alpha_cbsize_f(alpha_cb_size));
 
 	pd_ab_max_output = alpha_cb_size *
@@ -830,7 +830,7 @@ void gr_gp10b_set_circular_buffer_size(struct gk20a *g, u32 data)
 
 	gk20a_writel(g, gr_ds_tga_constraintlogic_beta_r(),
 		(gk20a_readl(g, gr_ds_tga_constraintlogic_beta_r()) &
-		 ~gr_ds_tga_constraintlogic_beta_cbsize_f(~0)) |
+		 ~gr_ds_tga_constraintlogic_beta_cbsize_f(~U32(0U))) |
 		 gr_ds_tga_constraintlogic_beta_cbsize_f(cb_size_steady));
 
 	for (gpc_index = 0; gpc_index < gr->gpc_count; gpc_index++) {
@@ -876,9 +876,9 @@ void gr_gp10b_set_circular_buffer_size(struct gk20a *g, u32 data)
 int gr_gp10b_init_ctx_state(struct gk20a *g)
 {
 	struct fecs_method_op_gk20a op = {
-		.mailbox = { .id = 0, .data = 0,
-			     .clr = ~0, .ok = 0, .fail = 0},
-		.method.data = 0,
+		.mailbox = { .id = 0U, .data = 0U,
+			     .clr = ~U32(0U), .ok = 0U, .fail = 0U},
+		.method.data = 0U,
 		.cond.ok = GR_IS_UCODE_OP_NOT_EQUAL,
 		.cond.fail = GR_IS_UCODE_OP_SKIP,
 		};
@@ -1686,10 +1686,10 @@ int gr_gp10b_set_cilp_preempt_pending(struct gk20a *g,
 			.method.addr =
 			gr_fecs_method_push_adr_configure_interrupt_completion_option_v(),
 			.mailbox = {
-			.id = 1 /* sideband */, .data = 0,
-			.clr = ~0, .ret = NULL,
+			.id = 1U /* sideband */, .data = 0U,
+			.clr = ~U32(0U), .ret = NULL,
 			.ok = gr_fecs_ctxsw_mailbox_value_pass_v(),
-			.fail = 0},
+			.fail = 0U},
 			.cond.ok = GR_IS_UCODE_OP_EQUAL,
 			.cond.fail = GR_IS_UCODE_OP_SKIP});
 
