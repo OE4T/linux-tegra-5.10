@@ -90,6 +90,7 @@ struct fll_descriptor_header {
 
 #define FLL_DESCRIPTOR_HEADER_10_SIZE_4     4U
 #define FLL_DESCRIPTOR_HEADER_10_SIZE_6     6U
+#define FLL_DESCRIPTOR_HEADER_10_SIZE_7     7U
 
 struct fll_descriptor_header_10 {
 	u8 version;

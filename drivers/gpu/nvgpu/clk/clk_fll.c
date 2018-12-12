@@ -257,16 +257,20 @@ static int devinit_get_fll_device_table(struct gk20a *g,
 
 	nvgpu_memcpy((u8 *)&fll_desc_table_header_sz, fll_table_ptr,
 			sizeof(struct fll_descriptor_header));
-	if (fll_desc_table_header_sz.size >= FLL_DESCRIPTOR_HEADER_10_SIZE_6) {
-		desctablesize = FLL_DESCRIPTOR_HEADER_10_SIZE_6;
+	if (fll_desc_table_header_sz.size >= FLL_DESCRIPTOR_HEADER_10_SIZE_7) {
+		desctablesize = FLL_DESCRIPTOR_HEADER_10_SIZE_7;
 	} else {
-		desctablesize = FLL_DESCRIPTOR_HEADER_10_SIZE_4;
+		if (fll_desc_table_header_sz.size == FLL_DESCRIPTOR_HEADER_10_SIZE_6) {
+			desctablesize = FLL_DESCRIPTOR_HEADER_10_SIZE_6;
+		} else {
+			desctablesize = FLL_DESCRIPTOR_HEADER_10_SIZE_4;
+		}
 	}
 
 	nvgpu_memcpy((u8 *)&fll_desc_table_header, fll_table_ptr,
 		desctablesize);
 
-	if (desctablesize == FLL_DESCRIPTOR_HEADER_10_SIZE_6) {
+	if (desctablesize >= FLL_DESCRIPTOR_HEADER_10_SIZE_6) {
 		pfllobjs->max_min_freq_mhz =
 			fll_desc_table_header.max_min_freq_mhz;
 	} else {
