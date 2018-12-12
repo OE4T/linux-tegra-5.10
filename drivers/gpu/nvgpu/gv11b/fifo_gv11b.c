@@ -1026,10 +1026,10 @@ void gv11b_fifo_teardown_ch_tsg(struct gk20a *g, u32 act_eng_bitmask,
 	unsigned long pbdma_id;
 	struct fifo_runlist_info_gk20a *runlist = NULL;
 	unsigned long engine_id;
-	u32 client_type = ~0;
+	u32 client_type = ~U32(0U);
 	struct fifo_gk20a *f = &g->fifo;
 	u32 runlist_id = FIFO_INVAL_RUNLIST_ID;
-	u32 num_runlists = 0;
+	u32 num_runlists = 0U;
 	unsigned long runlist_served_pbdmas;
 
 	nvgpu_log_fn(g, "acquire runlist_lock for all runlists");
@@ -1358,8 +1358,8 @@ int gv11b_init_fifo_reset_enable_hw(struct gk20a *g)
 
 	/* clear and enable pbdma interrupt */
 	for (i = 0; i < host_num_pbdma; i++) {
-		gk20a_writel(g, pbdma_intr_0_r(i), 0xFFFFFFFF);
-		gk20a_writel(g, pbdma_intr_1_r(i), 0xFFFFFFFF);
+		gk20a_writel(g, pbdma_intr_0_r(i), 0xFFFFFFFFU);
+		gk20a_writel(g, pbdma_intr_1_r(i), 0xFFFFFFFFU);
 
 		intr_stall = gk20a_readl(g, pbdma_intr_stall_r(i));
 		nvgpu_log_info(g, "pbdma id:%u, intr_en_0 0x%08x", i, intr_stall);
@@ -1376,7 +1376,7 @@ int gv11b_init_fifo_reset_enable_hw(struct gk20a *g)
 	}
 
 	/* clear ctxsw timeout interrupts */
-	gk20a_writel(g, fifo_intr_ctxsw_timeout_r(), ~0);
+	gk20a_writel(g, fifo_intr_ctxsw_timeout_r(), ~U32(0U));
 
 	if (nvgpu_platform_is_silicon(g)) {
 		/* enable ctxsw timeout */
@@ -1400,15 +1400,15 @@ int gv11b_init_fifo_reset_enable_hw(struct gk20a *g)
 	}
 
 	/* clear runlist interrupts */
-	gk20a_writel(g, fifo_intr_runlist_r(), ~0);
+	gk20a_writel(g, fifo_intr_runlist_r(), ~U32(0U));
 
 	/* clear and enable pfifo interrupt */
-	gk20a_writel(g, fifo_intr_0_r(), 0xFFFFFFFF);
+	gk20a_writel(g, fifo_intr_0_r(), 0xFFFFFFFFU);
 	mask = gv11b_fifo_intr_0_en_mask(g);
 	nvgpu_log_info(g, "fifo_intr_en_0 0x%08x", mask);
 	gk20a_writel(g, fifo_intr_en_0_r(), mask);
 	nvgpu_log_info(g, "fifo_intr_en_1 = 0x80000000");
-	gk20a_writel(g, fifo_intr_en_1_r(), 0x80000000);
+	gk20a_writel(g, fifo_intr_en_1_r(), 0x80000000U);
 
 	nvgpu_log_fn(g, "done");
 

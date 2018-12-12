@@ -1,7 +1,7 @@
 /*
  * GV11b GPU GR
  *
- * Copyright (c) 2016-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -441,8 +441,8 @@ void gr_gv11b_enable_exceptions(struct gk20a *g)
 	 */
 
 	/* enable exceptions */
-	gk20a_writel(g, gr_exception2_en_r(), 0x0); /* BE not enabled */
-	gk20a_writel(g, gr_exception1_en_r(), (1 << gr->gpc_count) - 1);
+	gk20a_writel(g, gr_exception2_en_r(), 0x0U); /* BE not enabled */
+	gk20a_writel(g, gr_exception1_en_r(), BIT32(gr->gpc_count) - 1U);
 
 	reg_val = gr_exception_en_fe_enabled_f() |
 			gr_exception_en_memfmt_enabled_f() |
@@ -1133,12 +1133,12 @@ void gr_gv11b_enable_gpc_exceptions(struct gk20a *g)
 
 	tpc_mask =
 		gr_gpcs_gpccs_gpc_exception_en_tpc_f(
-			(1 << gr->max_tpc_per_gpc_count) - 1);
+			BIT32(gr->max_tpc_per_gpc_count) - 1U);
 
 	gk20a_writel(g, gr_gpcs_gpccs_gpc_exception_en_r(),
-		(tpc_mask | gr_gpcs_gpccs_gpc_exception_en_gcc_f(1) |
-			    gr_gpcs_gpccs_gpc_exception_en_gpccs_f(1) |
-			    gr_gpcs_gpccs_gpc_exception_en_gpcmmu_f(1)));
+		(tpc_mask | gr_gpcs_gpccs_gpc_exception_en_gcc_f(1U) |
+			    gr_gpcs_gpccs_gpc_exception_en_gpccs_f(1U) |
+			    gr_gpcs_gpccs_gpc_exception_en_gpcmmu_f(1U)));
 }
 
 int gr_gv11b_handle_tex_exception(struct gk20a *g, u32 gpc, u32 tpc,
@@ -1302,9 +1302,9 @@ u32 gr_gv11b_calc_global_ctx_buffer_size(struct gk20a *g)
 	gr->alpha_cb_size = gr->alpha_cb_default_size;
 
 	gr->attrib_cb_size = min(gr->attrib_cb_size,
-		 gr_gpc0_ppc0_cbm_beta_cb_size_v_f(~0) / g->gr.tpc_count);
+		 gr_gpc0_ppc0_cbm_beta_cb_size_v_f(~U32(0U)) / g->gr.tpc_count);
 	gr->alpha_cb_size = min(gr->alpha_cb_size,
-		 gr_gpc0_ppc0_cbm_alpha_cb_size_v_f(~0) / g->gr.tpc_count);
+		 gr_gpc0_ppc0_cbm_alpha_cb_size_v_f(~U32(0U)) / g->gr.tpc_count);
 
 	size = gr->attrib_cb_size *
 		gr_gpc0_ppc0_cbm_beta_cb_size_v_granularity_v() *
@@ -1527,7 +1527,7 @@ void gr_gv11b_set_alpha_circular_buffer_size(struct gk20a *g, u32 data)
 
 	gk20a_writel(g, gr_ds_tga_constraintlogic_alpha_r(),
 		(gk20a_readl(g, gr_ds_tga_constraintlogic_alpha_r()) &
-		 ~gr_ds_tga_constraintlogic_alpha_cbsize_f(~0)) |
+		 ~gr_ds_tga_constraintlogic_alpha_cbsize_f(~U32(0U))) |
 		 gr_ds_tga_constraintlogic_alpha_cbsize_f(alpha_cb_size));
 
 	pd_ab_max_output = alpha_cb_size *
@@ -1582,7 +1582,7 @@ void gr_gv11b_set_circular_buffer_size(struct gk20a *g, u32 data)
 
 	gk20a_writel(g, gr_ds_tga_constraintlogic_beta_r(),
 		(gk20a_readl(g, gr_ds_tga_constraintlogic_beta_r()) &
-		 ~gr_ds_tga_constraintlogic_beta_cbsize_f(~0)) |
+		 ~gr_ds_tga_constraintlogic_beta_cbsize_f(~U32(0U))) |
 		 gr_ds_tga_constraintlogic_beta_cbsize_f(cb_size_steady));
 
 	for (gpc_index = 0; gpc_index < gr->gpc_count; gpc_index++) {
