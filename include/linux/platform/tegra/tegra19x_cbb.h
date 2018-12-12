@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -11,14 +11,97 @@
  * more details.
  */
 
-#include <linux/platform/tegra/tegra_cbb.h>
+#define  OFF_ERRLOGGER_0_ID_COREID_0            0x00000000
+#define  OFF_ERRLOGGER_0_ID_REVISIONID_0        0x00000004
+#define  OFF_ERRLOGGER_0_FAULTEN_0              0x00000008
+#define  OFF_ERRLOGGER_0_ERRVLD_0               0x0000000c
+#define  OFF_ERRLOGGER_0_ERRCLR_0               0x00000010
+#define  OFF_ERRLOGGER_0_ERRLOG0_0              0x00000014
+#define  OFF_ERRLOGGER_0_ERRLOG1_0              0x00000018
+#define  OFF_ERRLOGGER_0_RESERVED_00_0          0x0000001c
+#define  OFF_ERRLOGGER_0_ERRLOG3_0              0x00000020
+#define  OFF_ERRLOGGER_0_ERRLOG4_0              0x00000024
+#define  OFF_ERRLOGGER_0_ERRLOG5_0              0x00000028
+#define  OFF_ERRLOGGER_0_STALLEN_0              0x00000038
 
-extern int nvcvnas_busy(void);
-extern int nvcvnas_idle(void);
-extern int is_nvcvnas_probed(void);
-extern int nvcvnas_busy_no_rpm(void);
-extern int nvcvnas_idle_no_rpm(void);
-extern int is_nvcvnas_clk_enabled(void);
+#define  OFF_ERRLOGGER_1_ID_COREID_0            0x00000080
+#define  OFF_ERRLOGGER_1_ID_REVISIONID_0        0x00000084
+#define  OFF_ERRLOGGER_1_FAULTEN_0              0x00000088
+#define  OFF_ERRLOGGER_1_ERRVLD_0               0x0000008c
+#define  OFF_ERRLOGGER_1_ERRCLR_0               0x00000090
+#define  OFF_ERRLOGGER_1_ERRLOG0_0              0x00000094
+#define  OFF_ERRLOGGER_1_ERRLOG1_0              0x00000098
+#define  OFF_ERRLOGGER_1_RESERVED_00_0          0x0000009c
+#define  OFF_ERRLOGGER_1_ERRLOG3_0              0x000000A0
+#define  OFF_ERRLOGGER_1_ERRLOG4_0              0x000000A4
+#define  OFF_ERRLOGGER_1_ERRLOG5_0              0x000000A8
+#define  OFF_ERRLOGGER_1_STALLEN_0              0x000000b8
+
+#define  OFF_ERRLOGGER_2_ID_COREID_0            0x00000100
+#define  OFF_ERRLOGGER_2_ID_REVISIONID_0        0x00000104
+#define  OFF_ERRLOGGER_2_FAULTEN_0              0x00000108
+#define  OFF_ERRLOGGER_2_ERRVLD_0               0x0000010c
+#define  OFF_ERRLOGGER_2_ERRCLR_0               0x00000110
+#define  OFF_ERRLOGGER_2_ERRLOG0_0              0x00000114
+#define  OFF_ERRLOGGER_2_ERRLOG1_0              0x00000118
+#define  OFF_ERRLOGGER_2_RESERVED_00_0          0x0000011c
+#define  OFF_ERRLOGGER_2_ERRLOG3_0              0x00000120
+#define  OFF_ERRLOGGER_2_ERRLOG4_0              0x00000124
+#define  OFF_ERRLOGGER_2_ERRLOG5_0              0x00000128
+#define  OFF_ERRLOGGER_2_STALLEN_0              0x00000138
+
+#define get_noc_errlog_subfield(_x_, _msb_, _lsb_) \
+	CBB_EXTRACT(_x_, _msb_, _lsb_)
+
+extern int tegra_cbb_axi2apb_bridge_data(struct platform_device *pdev,
+					int *apb_bridge_cnt,
+					void __iomem ***axi2abp_bases);
+
+static struct tegra_noc_errors tegra194_noc_errors[] = {
+	{.errcode = "SLV",
+	 .src = "Target",
+	 .type = "Target error detected by CBB slave"
+	},
+	{.errcode = "DEC",
+	 .src = "Initiator NIU",
+	 .type = "Address decode error"
+	},
+	{.errcode = "UNS",
+	 .src = "Target NIU",
+	 .type = "Unsupported request. Not a valid transaction"
+	},
+	{.errcode = "DISC",                     /* Not Supported by CBB */
+	 .src = "Power Disconnect",
+	 .type = "Disconnected target or domain"
+	},
+	{.errcode = "SEC",
+	 .src = "Initiator NIU or Firewall",
+	 .type = "Security violation. Firewall error"
+	},
+	{.errcode = "HIDE",                     /* Not Supported by CBB */
+	 .src = "Firewall",
+	 .type = "Hidden security violation, reported as OK to initiator"
+	},
+	{.errcode = "TMO",
+	 .src = "Target NIU",
+	 .type = "Target time-out error"
+	},
+	{.errcode = "RSV",
+	 .src = "None",
+	 .type = "Reserved"
+	}
+};
+
+static char *tegra194_noc_opc_trantype[] = {
+	"RD  - Read, Incrementing",
+	"RDW - Read, Wrap",                     /* Not Supported by CBB */
+	"RDX - Exclusive Read",                 /* Not Supported by CBB */
+	"RDL - Linked Read",                    /* Not Supported by CBB */
+	"WR  - Write, Incrementing",
+	"WRW - Write, Wrap",                    /* Not Supported by CBB */
+	"WRC - Exclusive Write",                /* Not Supported by CBB */
+	"PRE - Preamble Sequence for Fixed Accesses"
+};
 
 static char *t194_master_id[] = {
 	"CCPLEX",                               /* 0x1 */
@@ -963,7 +1046,6 @@ static struct tegra_lookup_noc_aperture t194_aonnoc_aperture_lookup[] = {
 	{ 0x3, 0x38, 0x1,  0,	0x0,  0,  0x0 },
 	{ 0x3, 0x39, 0x0,  0,	0xc280000,  0,  0x0 }
 };
-
 
 
 /*
