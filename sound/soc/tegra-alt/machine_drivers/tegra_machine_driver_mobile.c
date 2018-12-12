@@ -96,7 +96,6 @@ struct tegra_machine_soc_data {
 static int tegra_machine_driver_remove(struct platform_device *);
 static int tegra_machine_driver_probe(struct platform_device *);
 static void dai_link_setup(struct platform_device *);
-static void ignore_suspend(struct snd_soc_card *);
 static int tegra_machine_sfc_init(struct snd_soc_pcm_runtime *);
 static int tegra_machine_rt565x_init(struct snd_soc_pcm_runtime *);
 
@@ -993,14 +992,6 @@ static const struct of_device_id tegra_machine_of_match[] = {
 	{},
 };
 
-static void __maybe_unused ignore_suspend(struct snd_soc_card *card)
-{
-	struct snd_soc_pcm_runtime *rtd;
-	list_for_each_entry(rtd, &card->rtd_list, list) {
-		rtd->dai_link->ignore_suspend = true;
-	}
-}
-
 static int tegra_machine_driver_probe(struct platform_device *pdev)
 {
 	struct device_node *np = pdev->dev.of_node;
@@ -1096,10 +1087,6 @@ static int tegra_machine_driver_probe(struct platform_device *pdev)
 			ret);
 		goto err_alloc_dai_link;
 	}
-
-#ifdef CONFIG_ANDROID
-	ignore_suspend(card);
-#endif
 
 	tegra_machine_add_i2s_codec_controls(card,
 					machine->soc_data->num_xbar_dai_links +
