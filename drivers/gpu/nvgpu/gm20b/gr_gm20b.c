@@ -1,7 +1,7 @@
 /*
  * GM20B GPC MMU
  *
- * Copyright (c) 2011-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -336,7 +336,7 @@ void gr_gm20b_set_alpha_circular_buffer_size(struct gk20a *g, u32 data)
 
 	gk20a_writel(g, gr_ds_tga_constraintlogic_r(),
 		(gk20a_readl(g, gr_ds_tga_constraintlogic_r()) &
-		 ~gr_ds_tga_constraintlogic_alpha_cbsize_f(~0)) |
+		 ~gr_ds_tga_constraintlogic_alpha_cbsize_f(~U32(0U))) |
 		 gr_ds_tga_constraintlogic_alpha_cbsize_f(alpha_cb_size));
 
 	pd_ab_max_output = alpha_cb_size *
@@ -384,7 +384,7 @@ void gr_gm20b_set_circular_buffer_size(struct gk20a *g, u32 data)
 
 	gk20a_writel(g, gr_ds_tga_constraintlogic_r(),
 		(gk20a_readl(g, gr_ds_tga_constraintlogic_r()) &
-		 ~gr_ds_tga_constraintlogic_beta_cbsize_f(~0)) |
+		 ~gr_ds_tga_constraintlogic_beta_cbsize_f(~U32(0U))) |
 		 gr_ds_tga_constraintlogic_beta_cbsize_f(cb_size));
 
 	for (gpc_index = 0; gpc_index < gr->gpc_count; gpc_index++) {
@@ -791,7 +791,7 @@ int gr_gm20b_load_ctxsw_ucode(struct gk20a *g)
 		if (!nvgpu_is_enabled(g, NVGPU_SEC_SECUREGPCCS)) {
 			gr_gm20b_load_gpccs_with_bootloader(g);
 			err = g->ops.pmu.load_lsfalcon_ucode(g,
-					(1 << FALCON_ID_FECS));
+					BIT32(FALCON_ID_FECS));
 		} else {
 			/* bind WPR VA inst block */
 			gr_gk20a_load_falcon_bind_instblk(g);
@@ -802,8 +802,8 @@ int gr_gm20b_load_ctxsw_ucode(struct gk20a *g)
 						FALCON_ID_GPCCS);
 			} else {
 				err = g->ops.pmu.load_lsfalcon_ucode(g,
-					(1 << FALCON_ID_FECS) |
-					(1 << FALCON_ID_GPCCS));
+					BIT32(FALCON_ID_FECS) |
+					BIT32(FALCON_ID_GPCCS));
 			}
 		}
 		if (err != 0) {
@@ -846,19 +846,19 @@ int gr_gm20b_load_ctxsw_ucode(struct gk20a *g)
 	if (nvgpu_is_enabled(g, NVGPU_SEC_SECUREGPCCS)) {
 		gk20a_writel(g, reg_offset +
 			gr_fecs_cpuctl_alias_r(),
-			gr_gpccs_cpuctl_startcpu_f(1));
+			gr_gpccs_cpuctl_startcpu_f(1U));
 	} else {
 		gk20a_writel(g, gr_gpccs_dmactl_r(),
-			gr_gpccs_dmactl_require_ctx_f(0));
+			gr_gpccs_dmactl_require_ctx_f(0U));
 		gk20a_writel(g, gr_gpccs_cpuctl_r(),
-			gr_gpccs_cpuctl_startcpu_f(1));
+			gr_gpccs_cpuctl_startcpu_f(1U));
 	}
 	/* start fecs */
-	gk20a_writel(g, gr_fecs_ctxsw_mailbox_clear_r(0), ~0x0);
-	gk20a_writel(g, gr_fecs_ctxsw_mailbox_r(1), 0x1);
-	gk20a_writel(g, gr_fecs_ctxsw_mailbox_clear_r(6), 0xffffffff);
+	gk20a_writel(g, gr_fecs_ctxsw_mailbox_clear_r(0U), ~U32(0U));
+	gk20a_writel(g, gr_fecs_ctxsw_mailbox_r(1U), 1U);
+	gk20a_writel(g, gr_fecs_ctxsw_mailbox_clear_r(6U), 0xffffffffU);
 	gk20a_writel(g, gr_fecs_cpuctl_alias_r(),
-			gr_fecs_cpuctl_startcpu_f(1));
+			gr_fecs_cpuctl_startcpu_f(1U));
 	nvgpu_log_fn(g, "done");
 
 	return 0;
@@ -1124,7 +1124,7 @@ u32 *gr_gm20b_rop_l2_en_mask(struct gk20a *g)
 	tmp = gk20a_readl(g, top_num_fbps_r());
 	max_fbps_count = top_num_fbps_value_v(tmp);
 	max_ltc_per_fbp = gr_gm20b_get_max_ltc_per_fbp(g);
-	rop_l2_all_en = (1 << max_ltc_per_fbp) - 1;
+	rop_l2_all_en = BIT32(max_ltc_per_fbp) - 1U;
 	fbp_en_mask = gr_gm20b_get_fbp_en_mask(g);
 
 	/* mask of Rop_L2 for each FBP */

@@ -1,7 +1,7 @@
 /*
  * GM20B Clocks
  *
- * Copyright (c) 2014-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -149,7 +149,7 @@ static int clk_config_pll(struct clk_gk20a *clk, struct pll *pll,
 	u32 m, n, n2;
 	u32 target_vco_f, vco_f;
 	u32 ref_clk_f, target_clk_f, u_f;
-	u32 delta, lwv, best_delta = ~0;
+	u32 delta, lwv, best_delta = ~U32(0U);
 	u32 pl;
 
 	BUG_ON(target_freq == NULL);
@@ -354,7 +354,7 @@ static void clk_config_dvfs_detection(int mv, struct na_dvfs *d)
 
 	d->dfs_ext_cal = DIV_ROUND_CLOSEST(mv * 1000 - p->uvdet_offs,
 					   p->uvdet_slope);
-	BUG_ON(abs(d->dfs_ext_cal) >= (1 << DFS_DET_RANGE));
+	BUG_ON(U32(abs(d->dfs_ext_cal)) >= BIT32(DFS_DET_RANGE));
 	d->uv_cal = p->uvdet_offs + d->dfs_ext_cal * p->uvdet_slope;
 	d->dfs_det_max = 0;
 }

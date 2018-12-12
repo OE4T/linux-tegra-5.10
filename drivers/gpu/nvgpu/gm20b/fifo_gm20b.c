@@ -63,7 +63,7 @@ void channel_gm20b_bind(struct channel_gk20a *c)
 
 	gk20a_writel(g, ccsr_channel_r(c->chid),
 		(gk20a_readl(g, ccsr_channel_r(c->chid)) &
-		 ~ccsr_channel_enable_set_f(~0)) |
+		 ~ccsr_channel_enable_set_f(~U32(0U))) |
 		 ccsr_channel_enable_set_true_f());
 	nvgpu_smp_wmb();
 	nvgpu_atomic_set(&c->bound, true);
@@ -101,7 +101,7 @@ void gm20b_fifo_trigger_mmu_fault(struct gk20a *g,
 								engine_id);
 			if (mmu_id != FIFO_INVAL_MMU_ID) {
 				gk20a_writel(g, fifo_trigger_mmu_fault_r(mmu_id),
-					     fifo_trigger_mmu_fault_enable_f(1));
+					     fifo_trigger_mmu_fault_enable_f(1U));
 			}
 		}
 	}
