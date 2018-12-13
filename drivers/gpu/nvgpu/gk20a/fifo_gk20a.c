@@ -1253,7 +1253,8 @@ void gk20a_fifo_abort_tsg(struct gk20a *g, struct tsg_gk20a *tsg, bool preempt)
 
 int gk20a_fifo_deferred_reset(struct gk20a *g, struct channel_gk20a *ch)
 {
-	unsigned long engine_id, engines;
+	unsigned long engine_id, engines = 0U;
+	struct tsg_gk20a *tsg;
 
 	nvgpu_mutex_acquire(&g->dbg_sessions_lock);
 	gr_gk20a_disable_ctxsw(g);
@@ -1262,13 +1263,14 @@ int gk20a_fifo_deferred_reset(struct gk20a *g, struct channel_gk20a *ch)
 		goto clean_up;
 	}
 
-	if (gk20a_is_channel_marked_as_tsg(ch)) {
+	tsg = tsg_gk20a_from_ch(ch);
+	if (tsg != NULL) {
 		engines = g->ops.fifo.get_engines_mask_on_id(g,
-				ch->tsgid, true);
+				tsg->tsgid, true);
 	} else {
-		engines = g->ops.fifo.get_engines_mask_on_id(g,
-				ch->chid, false);
+		nvgpu_err(g, "chid: %d is not bound to tsg", ch->chid);
 	}
+
 	if (engines == 0U) {
 		goto clean_up;
 	}
@@ -1426,16 +1428,18 @@ static bool gk20a_fifo_handle_mmu_fault_locked(
 			} else if (type == fifo_engine_status_id_type_chid_v()) {
 				ch = &g->fifo.channel[id];
 				refch = gk20a_channel_get(ch);
+				if (refch != NULL) {
+					tsg = tsg_gk20a_from_ch(refch);
+				}
 			}
 		} else {
 			/* Look up channel from the inst block pointer. */
 			ch = gk20a_refch_from_inst_ptr(g,
 					mmfault_info.inst_ptr);
 			refch = ch;
-		}
-
-		if ((ch != NULL) && gk20a_is_channel_marked_as_tsg(ch)) {
-			tsg = &g->fifo.tsg[ch->tsgid];
+			if (refch != NULL) {
+				tsg = tsg_gk20a_from_ch(refch);
+			}
 		}
 
 		/* check if engine reset should be deferred */
@@ -1462,16 +1466,10 @@ static bool gk20a_fifo_handle_mmu_fault_locked(
 		}
 
 #ifdef CONFIG_GK20A_CTXSW_TRACE
-		/*
-		 * For non fake mmu fault, both tsg and ch pointers
-		 * could be valid. Check tsg first.
-		 */
-		if (tsg != NULL)
+		if (tsg != NULL) {
 			gk20a_ctxsw_trace_tsg_reset(g, tsg);
-		else if (ch)
-			gk20a_ctxsw_trace_channel_reset(g, ch);
+		}
 #endif
-
 		/*
 		 * Disable the channel/TSG from hw and increment syncpoints.
 		 */
@@ -1490,25 +1488,10 @@ static bool gk20a_fifo_handle_mmu_fault_locked(
 			if (refch != NULL) {
 				gk20a_channel_put(ch);
 			}
-		} else if (ch != NULL) {
-			if (refch != NULL) {
-				if (g->fifo.deferred_reset_pending) {
-					g->ops.fifo.disable_channel(ch);
-				} else {
-					if (!fake_fault) {
-						nvgpu_channel_set_ctx_mmu_error(
-							g, refch);
-					}
-
-					verbose = nvgpu_channel_mark_error(g,
-							 refch);
-					gk20a_channel_abort(ch, false);
-				}
-				gk20a_channel_put(ch);
-			} else {
-				nvgpu_err(g, "mmu error in freed channel %d",
+		} else if (refch != NULL) {
+			nvgpu_err(g, "mmu error in unbound channel %d",
 					  ch->chid);
-			}
+			gk20a_channel_put(ch);
 		} else if (mmfault_info.inst_ptr ==
 				nvgpu_inst_block_addr(g, &g->mm.bar1.inst_block)) {
 			nvgpu_err(g, "mmu fault from bar1");
@@ -1742,7 +1725,7 @@ void gk20a_fifo_recover(struct gk20a *g, u32 engine_ids,
 					 rc_type, NULL);
 }
 
-/* force reset channel and tsg (if it's part of one) */
+/* force reset channel and tsg */
 int gk20a_fifo_force_reset_ch(struct channel_gk20a *ch,
 				u32 err_code, bool verbose)
 {
@@ -1752,7 +1735,6 @@ int gk20a_fifo_force_reset_ch(struct channel_gk20a *ch,
 	struct tsg_gk20a *tsg = tsg_gk20a_from_ch(ch);
 
 	if (tsg != NULL) {
-
 		nvgpu_rwsem_down_read(&tsg->ch_list_lock);
 
 		nvgpu_list_for_each_entry(ch_tsg, &tsg->ch_list,
@@ -1767,9 +1749,7 @@ int gk20a_fifo_force_reset_ch(struct channel_gk20a *ch,
 		nvgpu_rwsem_up_read(&tsg->ch_list_lock);
 		nvgpu_tsg_recover(g, tsg, verbose, RC_TYPE_FORCE_RESET);
 	} else {
-		g->ops.fifo.set_error_notifier(ch, err_code);
-		nvgpu_channel_recover(g, ch, verbose,
-				RC_TYPE_FORCE_RESET);
+		nvgpu_err(g, "chid: %d is not bound to tsg", ch->chid);
 	}
 
 	return 0;
