@@ -50,10 +50,6 @@ struct voltage_device_entry {
 	u32  voltage_uv;
 };
 
-struct voltage_device_metadata {
-	struct boardobjgrp_e32 volt_devices;
-};
-
 /*!
  * Extends VOLTAGE_DEVICE providing attributes specific to PWM controllers.
  */
@@ -70,8 +66,5 @@ struct voltage_device_pwm_entry {
 	u32 duty_cycle;
 };
 /* PWM end */
-
-int volt_dev_sw_setup(struct gk20a *g);
-int volt_dev_pmu_setup(struct gk20a *g);
 
 #endif /* NVGPU_VOLT_DEV_H */

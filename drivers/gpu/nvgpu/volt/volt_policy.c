@@ -31,6 +31,7 @@
 #include "gp106/bios_gp106.h"
 
 #include "volt.h"
+#include "volt_policy.h"
 
 static int volt_policy_pmu_data_init_super(struct gk20a *g,
 	struct boardobj *pboardobj, struct nv_pmu_boardobj *ppmudata)

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2016-2018, NVIDIA CORPORATION.  All rights reserved.
+* Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
 *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -20,20 +20,9 @@
  * DEALINGS IN THE SOFTWARE.
 */
 
-#ifndef NVGPU_VOLT_H
-#define NVGPU_VOLT_H
-
-#include "volt_rail.h"
-#include "volt_dev.h"
-#include "volt_policy.h"
-#include "volt_pmu.h"
+#ifndef NVGPU_VOLT_VOLT_H
+#define NVGPU_VOLT_VOLT_H
 
 #define VOLTAGE_DESCRIPTOR_TABLE_ENTRY_INVALID	0xFF
 
-struct obj_volt {
-	struct voltage_rail_metadata volt_rail_metadata;
-	struct voltage_device_metadata volt_dev_metadata;
-	struct voltage_policy_metadata volt_policy_metadata;
-};
-
-#endif /* NVGPU_VOLT_H */
+#endif /* NVGPU_VOLT_VOLT_H */

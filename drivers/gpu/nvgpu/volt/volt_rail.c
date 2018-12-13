@@ -31,6 +31,7 @@
 #include "gp106/bios_gp106.h"
 
 #include "volt.h"
+#include "volt_rail.h"
 
 u8 volt_rail_volt_domain_convert_to_idx(struct gk20a *g, u8 volt_domain)
 {

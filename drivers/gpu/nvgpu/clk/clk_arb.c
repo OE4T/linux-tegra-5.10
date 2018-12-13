@@ -34,10 +34,10 @@
 #include <nvgpu/timers.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/pmu/pstate.h>
+#include <nvgpu/pmu/volt.h>
 
 #include "clk/clk.h"
 #include "lpwr/lpwr.h"
-#include "volt/volt.h"
 
 int nvgpu_clk_notification_queue_alloc(struct gk20a *g,
 				struct nvgpu_clk_notification_queue *queue,

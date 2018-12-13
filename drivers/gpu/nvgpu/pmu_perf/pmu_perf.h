@@ -23,11 +23,11 @@
 #define NVGPU_PERF_H
 
 #include <nvgpu/pmu/pstate.h>
+#include <nvgpu/pmu/volt.h>
 #include <nvgpu/pmuif/nvgpu_gpmu_cmdif.h>
 
 #include "vfe_equ.h"
 #include "vfe_var.h"
-#include "volt/volt.h"
 #include "lpwr/lpwr.h"
 #include "change_seq.h"
 

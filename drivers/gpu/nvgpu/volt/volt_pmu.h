@@ -24,23 +24,7 @@
 #define NVGPU_VOLT_PMU_H
 
 u32 volt_pmu_send_load_cmd_to_pmu(struct gk20a *g);
-int volt_set_voltage(struct gk20a *g, u32 logic_voltage_uv,
-		u32 sram_voltage_uv);
-int volt_get_voltage(struct gk20a *g, u32 volt_domain, u32 *voltage_uv);
 int volt_set_noiseaware_vmin(struct gk20a *g, u32 logic_voltage_uv,
 		u32 sram_voltage_uv);
-
-int nvgpu_volt_set_voltage_gp10x(struct gk20a *g, u32 logic_voltage_uv,
-	u32 sram_voltage_uv);
-int nvgpu_volt_rail_get_voltage_gp10x(struct gk20a *g,
-	u8 volt_domain, u32 *pvoltage_uv);
-int nvgpu_volt_send_load_cmd_to_pmu_gp10x(struct gk20a *g);
-
-int nvgpu_volt_set_voltage_gv10x(struct gk20a *g, u32 logic_voltage_uv,
-	u32 sram_voltage_uv);
-int nvgpu_volt_rail_get_voltage_gv10x(struct gk20a *g,
-	u8 volt_domain, u32 *pvoltage_uv);
-int nvgpu_volt_send_load_cmd_to_pmu_gv10x(struct gk20a *g);
-
 
 #endif /* NVGPU_VOLT_PMU_H */

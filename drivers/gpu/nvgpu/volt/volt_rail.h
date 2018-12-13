@@ -65,26 +65,10 @@ struct voltage_rail {
 	s32  volt_delta_uv[CTRL_VOLT_RAIL_VOLT_DELTA_MAX_ENTRIES];
 };
 
-/*!
- * metadata of voltage rail functionality.
- */
-struct voltage_rail_metadata {
-	u8 volt_domain_hal;
-	u8 pct_delta;
-	u32 ext_rel_delta_uv[CTRL_VOLT_RAIL_VOLT_DELTA_MAX_ENTRIES];
-	u8 logic_rail_idx;
-	u8 sram_rail_idx;
-	struct boardobjgrp_e32 volt_rails;
-};
-
 u8 volt_rail_vbios_volt_domain_convert_to_internal
 	(struct gk20a *g, u8 vbios_volt_domain);
 
 int volt_rail_volt_dev_register(struct gk20a *g, struct voltage_rail
 	*pvolt_rail, u8 volt_dev_idx, u8 operation_type);
 
-u8 volt_rail_volt_domain_convert_to_idx(struct gk20a *g, u8 volt_domain);
-
-int volt_rail_sw_setup(struct gk20a *g);
-int volt_rail_pmu_setup(struct gk20a *g);
 #endif /* NVGPU_VOLT_RAIL_H */

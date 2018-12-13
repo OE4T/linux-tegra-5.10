@@ -33,6 +33,8 @@
 #include "gp106/bios_gp106.h"
 
 #include "volt.h"
+#include "volt_rail.h"
+#include "volt_pmu.h"
 
 #define RAIL_COUNT_GP 2
 #define RAIL_COUNT_GV 1

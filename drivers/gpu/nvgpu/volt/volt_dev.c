@@ -35,6 +35,8 @@
 #include "gp106/bios_gp106.h"
 
 #include "volt.h"
+#include "volt_dev.h"
+#include "volt_rail.h"
 
 #define VOLT_DEV_PWM_VOLTAGE_STEPS_INVALID	0U
 #define VOLT_DEV_PWM_VOLTAGE_STEPS_DEFAULT	1U

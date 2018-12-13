@@ -35,11 +35,6 @@ struct voltage_policy {
 	struct boardobj super;
 };
 
-struct voltage_policy_metadata {
-	u8 perf_core_vf_seq_policy_idx;
-	struct boardobjgrp_e32 volt_policies;
-};
-
 /*!
  * extends voltage_policy providing attributes
  * common to all voltage_policy_split_rail.
@@ -75,6 +70,4 @@ struct voltage_policy_single_rail_multi_step {
 	u32 ramp_down_step_size_uv;
 };
 
-int volt_policy_sw_setup(struct gk20a *g);
-int volt_policy_pmu_setup(struct gk20a *g);
 #endif /* NVGPU_VOLT_POLICY_H */
