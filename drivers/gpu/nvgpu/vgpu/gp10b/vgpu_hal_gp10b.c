@@ -155,7 +155,6 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 		.wait_empty = NULL,
 		.init_cyclestats = vgpu_gr_gm20b_init_cyclestats,
 		.set_sm_debug_mode = vgpu_gr_set_sm_debug_mode,
-		.enable_cde_in_fecs = gr_gm20b_enable_cde_in_fecs,
 		.bpt_reg_info = NULL,
 		.get_access_map = gr_gp10b_get_access_map,
 		.handle_fecs_error = NULL,
@@ -207,7 +206,6 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 		.pre_process_sm_exception = NULL,
 		.set_preemption_buffer_va = gr_gp10b_set_preemption_buffer_va,
 		.init_preemption_state = NULL,
-		.update_boosted_ctx = NULL,
 		.set_bes_crop_debug3 = NULL,
 		.set_bes_crop_debug4 = NULL,
 		.set_ctxsw_preemption_mode =
@@ -298,8 +296,7 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 				gm20b_ctxsw_prog_get_ts_buffer_aperture_mask,
 			.set_ts_num_records = gm20b_ctxsw_prog_set_ts_num_records,
 			.set_ts_buffer_ptr = gm20b_ctxsw_prog_set_ts_buffer_ptr,
-			.set_pmu_options_boost_clock_frequencies =
-				gp10b_ctxsw_prog_set_pmu_options_boost_clock_frequencies,
+			.set_pmu_options_boost_clock_frequencies = NULL,
 			.set_full_preemption_ptr =
 				gp10b_ctxsw_prog_set_full_preemption_ptr,
 			.dump_ctxsw_stats = gp10b_ctxsw_prog_dump_ctxsw_stats,

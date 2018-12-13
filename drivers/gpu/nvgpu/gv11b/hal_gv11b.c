@@ -344,7 +344,6 @@ static const struct gpu_ops gv11b_ops = {
 		.wait_empty = gr_gv11b_wait_empty,
 		.init_cyclestats = gr_gm20b_init_cyclestats,
 		.set_sm_debug_mode = gv11b_gr_set_sm_debug_mode,
-		.enable_cde_in_fecs = NULL,
 		.bpt_reg_info = gv11b_gr_bpt_reg_info,
 		.get_access_map = gr_gv11b_get_access_map,
 		.handle_fecs_error = gr_gv11b_handle_fecs_error,
@@ -398,7 +397,6 @@ static const struct gpu_ops gv11b_ops = {
 		.pre_process_sm_exception = gr_gv11b_pre_process_sm_exception,
 		.set_preemption_buffer_va = gr_gv11b_set_preemption_buffer_va,
 		.init_preemption_state = gr_gv11b_init_preemption_state,
-		.update_boosted_ctx = gr_gp10b_update_boosted_ctx,
 		.set_bes_crop_debug3 = gr_gp10b_set_bes_crop_debug3,
 		.set_bes_crop_debug4 = gr_gp10b_set_bes_crop_debug4,
 		.init_ecc = gv11b_ecc_init,
@@ -496,7 +494,7 @@ static const struct gpu_ops gv11b_ops = {
 				gp10b_ctxsw_prog_set_compute_preemption_mode_cilp,
 			.set_graphics_preemption_mode_gfxp =
 				gp10b_ctxsw_prog_set_graphics_preemption_mode_gfxp,
-			.set_cde_enabled = gm20b_ctxsw_prog_set_cde_enabled,
+			.set_cde_enabled = NULL,
 			.set_pc_sampling = gm20b_ctxsw_prog_set_pc_sampling,
 			.set_priv_access_map_config_mode =
 				gm20b_ctxsw_prog_set_priv_access_map_config_mode,

@@ -2156,8 +2156,10 @@ int gr_gp10b_set_boosted_ctx(struct channel_gk20a *ch,
 		goto enable_ch;
 	}
 
-	if (g->ops.gr.update_boosted_ctx != NULL) {
-		g->ops.gr.update_boosted_ctx(g, mem, gr_ctx);
+	if (g->ops.gr.ctxsw_prog.set_pmu_options_boost_clock_frequencies !=
+			NULL) {
+		g->ops.gr.ctxsw_prog.set_pmu_options_boost_clock_frequencies(g,
+			mem, gr_ctx->boosted_ctx);
 	} else {
 		err = -ENOSYS;
 	}
@@ -2166,13 +2168,6 @@ enable_ch:
 	gk20a_enable_channel_tsg(g, ch);
 
 	return err;
-}
-
-void gr_gp10b_update_boosted_ctx(struct gk20a *g, struct nvgpu_mem *mem,
-				       struct nvgpu_gr_ctx *gr_ctx)
-{
-	g->ops.gr.ctxsw_prog.set_pmu_options_boost_clock_frequencies(g, mem,
-		gr_ctx->boosted_ctx);
 }
 
 int gr_gp10b_set_preemption_mode(struct channel_gk20a *ch,

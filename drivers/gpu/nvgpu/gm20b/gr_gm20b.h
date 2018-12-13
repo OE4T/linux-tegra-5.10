@@ -109,7 +109,6 @@ u32 gr_gm20b_get_max_lts_per_ltc(struct gk20a *g);
 u32 *gr_gm20b_rop_l2_en_mask(struct gk20a *g);
 u32 gr_gm20b_get_max_fbps_count(struct gk20a *g);
 void gr_gm20b_init_cyclestats(struct gk20a *g);
-void gr_gm20b_enable_cde_in_fecs(struct gk20a *g, struct nvgpu_mem *mem);
 void gr_gm20b_bpt_reg_info(struct gk20a *g, struct nvgpu_warpstate *w_state);
 void gr_gm20b_get_access_map(struct gk20a *g,
 				   u32 **whitelist, int *num_entries);

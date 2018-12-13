@@ -1163,11 +1163,6 @@ void gr_gm20b_init_cyclestats(struct gk20a *g)
 #endif
 }
 
-void gr_gm20b_enable_cde_in_fecs(struct gk20a *g, struct nvgpu_mem *mem)
-{
-	g->ops.gr.ctxsw_prog.set_cde_enabled(g, mem);
-}
-
 void gr_gm20b_bpt_reg_info(struct gk20a *g, struct nvgpu_warpstate *w_state)
 {
 	/* Check if we have at least one valid warp */

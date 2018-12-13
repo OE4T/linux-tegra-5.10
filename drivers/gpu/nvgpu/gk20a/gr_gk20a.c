@@ -1746,8 +1746,8 @@ int gr_gk20a_load_golden_ctx_image(struct gk20a *g,
 		g->ops.gr.ctxsw_prog.init_ctxsw_hdr_data(g, mem);
 	}
 
-	if ((g->ops.gr.enable_cde_in_fecs != NULL) && c->cde) {
-		g->ops.gr.enable_cde_in_fecs(g, mem);
+	if ((g->ops.gr.ctxsw_prog.set_cde_enabled != NULL) && c->cde) {
+		g->ops.gr.ctxsw_prog.set_cde_enabled(g, mem);
 	}
 
 	/* set priv access map */
@@ -1763,8 +1763,10 @@ int gr_gk20a_load_golden_ctx_image(struct gk20a *g,
 		g->ops.gr.update_ctxsw_preemption_mode(g, gr_ctx, &c->ctx_header);
 	}
 
-	if (g->ops.gr.update_boosted_ctx != NULL) {
-		g->ops.gr.update_boosted_ctx(g, mem, gr_ctx);
+	if (g->ops.gr.ctxsw_prog.set_pmu_options_boost_clock_frequencies !=
+			NULL) {
+		g->ops.gr.ctxsw_prog.set_pmu_options_boost_clock_frequencies(g,
+			mem, gr_ctx->boosted_ctx);
 	}
 
 	nvgpu_log(g, gpu_dbg_info, "write patch count = %d",

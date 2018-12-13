@@ -365,8 +365,6 @@ struct gpu_ops {
 		int (*wait_empty)(struct gk20a *g, unsigned long duration_ms,
 				  u32 expect_delay);
 		void (*init_cyclestats)(struct gk20a *g);
-		void (*enable_cde_in_fecs)(struct gk20a *g,
-				struct nvgpu_mem *mem);
 		int (*set_sm_debug_mode)(struct gk20a *g, struct channel_gk20a *ch,
 					u64 sms, bool enable);
 		void (*bpt_reg_info)(struct gk20a *g,
@@ -438,9 +436,6 @@ struct gpu_ops {
 				u32 graphics_preempt_mode,
 				u32 compute_preempt_mode);
 		int (*set_boosted_ctx)(struct channel_gk20a *ch, bool boost);
-		void (*update_boosted_ctx)(struct gk20a *g,
-					   struct nvgpu_mem *mem,
-					   struct nvgpu_gr_ctx *gr_ctx);
 		int (*init_sm_id_table)(struct gk20a *g);
 		int (*load_smid_config)(struct gk20a *g);
 		void (*program_sm_id_numbering)(struct gk20a *g,

@@ -134,8 +134,6 @@ int gr_gp10b_suspend_contexts(struct gk20a *g,
 				int *ctx_resident_ch_fd);
 int gr_gp10b_set_boosted_ctx(struct channel_gk20a *ch,
 				    bool boost);
-void gr_gp10b_update_boosted_ctx(struct gk20a *g, struct nvgpu_mem *mem,
-				       struct nvgpu_gr_ctx *gr_ctx);
 int gr_gp10b_set_preemption_mode(struct channel_gk20a *ch,
 					u32 graphics_preempt_mode,
 					u32 compute_preempt_mode);

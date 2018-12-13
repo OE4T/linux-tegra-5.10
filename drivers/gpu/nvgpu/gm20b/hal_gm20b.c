@@ -268,7 +268,6 @@ static const struct gpu_ops gm20b_ops = {
 		.wait_empty = gr_gk20a_wait_idle,
 		.init_cyclestats = gr_gm20b_init_cyclestats,
 		.set_sm_debug_mode = gr_gk20a_set_sm_debug_mode,
-		.enable_cde_in_fecs = gr_gm20b_enable_cde_in_fecs,
 		.bpt_reg_info = gr_gm20b_bpt_reg_info,
 		.get_access_map = gr_gm20b_get_access_map,
 		.handle_fecs_error = gk20a_gr_handle_fecs_error,
