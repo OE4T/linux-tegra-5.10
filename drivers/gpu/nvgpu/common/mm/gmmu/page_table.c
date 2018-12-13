@@ -353,6 +353,7 @@ static int pd_allocate_children(struct vm_gk20a *vm,
 	pd->entries = nvgpu_vzalloc(g, sizeof(struct nvgpu_gmmu_pd) *
 				(unsigned long)pd->num_entries);
 	if (pd->entries == NULL) {
+		pd->num_entries = 0;
 		return -ENOMEM;
 	}
 
