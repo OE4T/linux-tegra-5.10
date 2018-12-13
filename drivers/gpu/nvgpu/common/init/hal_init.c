@@ -30,7 +30,6 @@
 
 #include "gm20b/hal_gm20b.h"
 #include "gp10b/hal_gp10b.h"
-#include "gp106/hal_gp106.h"
 #include "gv100/hal_gv100.h"
 #include "gv11b/hal_gv11b.h"
 #include "tu104/hal_tu104.h"
@@ -55,16 +54,6 @@ int nvgpu_init_hal(struct gk20a *g)
 		break;
 	case NVGPU_GPUID_GP10B:
 		if (gp10b_init_hal(g) != 0) {
-			return -ENODEV;
-		}
-		break;
-	case NVGPU_GPUID_GP104:
-		if (gp106_init_hal(g) != 0) {
-			return -ENODEV;
-		}
-		break;
-	case NVGPU_GPUID_GP106:
-		if (gp106_init_hal(g) != 0) {
 			return -ENODEV;
 		}
 		break;

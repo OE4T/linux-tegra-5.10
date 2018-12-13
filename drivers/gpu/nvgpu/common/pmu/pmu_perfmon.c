@@ -40,10 +40,6 @@ static u8 get_perfmon_id(struct nvgpu_pmu *pmu)
 		unit_id = PMU_UNIT_PERFMON;
 		break;
 	case NVGPU_GPUID_GP10B:
-	case NVGPU_GPUID_GP104:
-	case NVGPU_GPUID_GP106:
-		unit_id = PMU_UNIT_PERFMON_T18X;
-		break;
 	case NVGPU_GPUID_GV11B:
 		unit_id = PMU_UNIT_PERFMON_T18X;
 		break;

@@ -73,154 +73,6 @@ static long nvgpu_pci_clk_round_rate(struct device *dev, unsigned long rate)
 }
 
 static struct gk20a_platform nvgpu_pci_device[] = {
-	{ /* DEVICE=0x1c35 */
-	/* ptimer src frequency in hz */
-	.ptimer_src_freq	= 31250000,
-
-	.probe = nvgpu_pci_tegra_probe,
-	.remove = nvgpu_pci_tegra_remove,
-
-	/* power management configuration */
-	.railgate_delay_init	= 500,
-	.can_railgate_init	= false,
-	.can_elpg_init = true,
-	.enable_elpg = true,
-	.enable_elcg = false,
-	.enable_slcg = true,
-	.enable_blcg = true,
-	.enable_mscg = true,
-	.can_slcg    = true,
-	.can_blcg    = true,
-	.can_elcg    = true,
-
-	.disable_aspm = true,
-
-	/* power management callbacks */
-	.is_railgated = nvgpu_pci_tegra_is_railgated,
-	.clk_round_rate = nvgpu_pci_clk_round_rate,
-
-	.ch_wdt_timeout_ms = 7000,
-
-	.unify_address_spaces = true,
-	.honors_aperture = true,
-	.dma_mask = DMA_BIT_MASK(40),
-	.vbios_min_version = 0x86063000,
-	.hardcode_sw_threshold = true,
-	.ina3221_dcb_index = 0,
-	.ina3221_i2c_address = 0x84,
-	.ina3221_i2c_port = 0x2,
-	},
-	{ /* DEVICE=0x1c36 */
-	/* ptimer src frequency in hz */
-	.ptimer_src_freq	= 31250000,
-
-	.probe = nvgpu_pci_tegra_probe,
-	.remove = nvgpu_pci_tegra_remove,
-
-	/* power management configuration */
-	.railgate_delay_init	= 500,
-	.can_railgate_init	= false,
-	.can_elpg_init = true,
-	.enable_elpg = true,
-	.enable_elcg = false,
-	.enable_slcg = true,
-	.enable_blcg = true,
-	.enable_mscg = true,
-	.can_slcg    = true,
-	.can_blcg    = true,
-	.can_elcg    = true,
-
-	.disable_aspm = true,
-
-	/* power management callbacks */
-	.is_railgated = nvgpu_pci_tegra_is_railgated,
-	.clk_round_rate = nvgpu_pci_clk_round_rate,
-
-	.ch_wdt_timeout_ms = 7000,
-
-	.unify_address_spaces = true,
-	.honors_aperture = true,
-	.dma_mask = DMA_BIT_MASK(40),
-	.vbios_min_version = 0x86062d00,
-	.hardcode_sw_threshold = true,
-	.ina3221_dcb_index = 0,
-	.ina3221_i2c_address = 0x84,
-	.ina3221_i2c_port = 0x2,
-	},
-	{ /* DEVICE=0x1c37 */
-	/* ptimer src frequency in hz */
-	.ptimer_src_freq	= 31250000,
-
-	.probe = nvgpu_pci_tegra_probe,
-	.remove = nvgpu_pci_tegra_remove,
-
-	/* power management configuration */
-	.railgate_delay_init	= 500,
-	.can_railgate_init	= false,
-	.can_elpg_init = true,
-	.enable_elpg = true,
-	.enable_elcg = false,
-	.enable_slcg = true,
-	.enable_blcg = true,
-	.enable_mscg = true,
-	.can_slcg    = true,
-	.can_blcg    = true,
-	.can_elcg    = true,
-
-	.disable_aspm = true,
-
-	/* power management callbacks */
-	.is_railgated = nvgpu_pci_tegra_is_railgated,
-	.clk_round_rate = nvgpu_pci_clk_round_rate,
-
-	.ch_wdt_timeout_ms = 7000,
-
-	.unify_address_spaces = true,
-	.honors_aperture = true,
-	.dma_mask = DMA_BIT_MASK(40),
-	.vbios_min_version = 0x86063000,
-	.hardcode_sw_threshold = true,
-	.ina3221_dcb_index = 0,
-	.ina3221_i2c_address = 0x84,
-	.ina3221_i2c_port = 0x2,
-	},
-	{ /* DEVICE=0x1c75 */
-	/* ptimer src frequency in hz */
-	.ptimer_src_freq	= 31250000,
-
-	.probe = nvgpu_pci_tegra_probe,
-	.remove = nvgpu_pci_tegra_remove,
-
-	/* power management configuration */
-	.railgate_delay_init	= 500,
-	.can_railgate_init	= false,
-	.can_elpg_init = true,
-	.enable_elpg = true,
-	.enable_elcg = false,
-	.enable_slcg = true,
-	.enable_blcg = true,
-	.enable_mscg = true,
-	.can_slcg    = true,
-	.can_blcg    = true,
-	.can_elcg    = true,
-
-	.disable_aspm = true,
-
-	/* power management callbacks */
-	.is_railgated = nvgpu_pci_tegra_is_railgated,
-	.clk_round_rate = nvgpu_pci_clk_round_rate,
-
-	.ch_wdt_timeout_ms = 7000,
-
-	.unify_address_spaces = true,
-	.honors_aperture = true,
-	.dma_mask = DMA_BIT_MASK(40),
-	.vbios_min_version = 0x86065300,
-	.hardcode_sw_threshold = false,
-	.ina3221_dcb_index = 1,
-	.ina3221_i2c_address = 0x80,
-	.ina3221_i2c_port = 0x1,
-	},
 	{ /* DEVICE=PG503 SKU 201 */
 	/* ptimer src frequency in hz */
 	.ptimer_src_freq	= 31250000,
@@ -440,70 +292,46 @@ static struct gk20a_platform nvgpu_pci_device[] = {
 
 static struct pci_device_id nvgpu_pci_table[] = {
 	{
-		PCI_DEVICE(PCI_VENDOR_ID_NVIDIA, 0x1c35),
+		PCI_DEVICE(PCI_VENDOR_ID_NVIDIA, 0x1db1),
 		.class = PCI_BASE_CLASS_DISPLAY << 16,
 		.class_mask = 0xff << 16,
 		.driver_data = 0,
 	},
 	{
-		PCI_DEVICE(PCI_VENDOR_ID_NVIDIA, 0x1c36),
+		PCI_DEVICE(PCI_VENDOR_ID_NVIDIA, 0x1db0),
 		.class = PCI_BASE_CLASS_DISPLAY << 16,
 		.class_mask = 0xff << 16,
 		.driver_data = 1,
 	},
 	{
-		PCI_DEVICE(PCI_VENDOR_ID_NVIDIA, 0x1c37),
+		PCI_DEVICE(PCI_VENDOR_ID_NVIDIA, 0x1dbe),
 		.class = PCI_BASE_CLASS_DISPLAY << 16,
 		.class_mask = 0xff << 16,
 		.driver_data = 2,
 	},
 	{
-		PCI_DEVICE(PCI_VENDOR_ID_NVIDIA, 0x1c75),
+		PCI_DEVICE(PCI_VENDOR_ID_NVIDIA, 0x1df1),
 		.class = PCI_BASE_CLASS_DISPLAY << 16,
 		.class_mask = 0xff << 16,
 		.driver_data = 3,
 	},
 	{
-		PCI_DEVICE(PCI_VENDOR_ID_NVIDIA, 0x1db1),
+		PCI_DEVICE(PCI_VENDOR_ID_NVIDIA, 0x1e3f),
 		.class = PCI_BASE_CLASS_DISPLAY << 16,
 		.class_mask = 0xff << 16,
 		.driver_data = 4,
 	},
 	{
-		PCI_DEVICE(PCI_VENDOR_ID_NVIDIA, 0x1db0),
+		PCI_DEVICE(PCI_VENDOR_ID_NVIDIA, 0x1eba),
 		.class = PCI_BASE_CLASS_DISPLAY << 16,
 		.class_mask = 0xff << 16,
 		.driver_data = 5,
 	},
 	{
-		PCI_DEVICE(PCI_VENDOR_ID_NVIDIA, 0x1dbe),
-		.class = PCI_BASE_CLASS_DISPLAY << 16,
-		.class_mask = 0xff << 16,
-		.driver_data = 6,
-	},
-	{
-		PCI_DEVICE(PCI_VENDOR_ID_NVIDIA, 0x1df1),
-		.class = PCI_BASE_CLASS_DISPLAY << 16,
-		.class_mask = 0xff << 16,
-		.driver_data = 7,
-	},
-	{
-		PCI_DEVICE(PCI_VENDOR_ID_NVIDIA, 0x1e3f),
-		.class = PCI_BASE_CLASS_DISPLAY << 16,
-		.class_mask = 0xff << 16,
-		.driver_data = 8,
-	},
-	{
-		PCI_DEVICE(PCI_VENDOR_ID_NVIDIA, 0x1eba),
-		.class = PCI_BASE_CLASS_DISPLAY << 16,
-		.class_mask = 0xff << 16,
-		.driver_data = 9,
-	},
-	{
 		PCI_DEVICE(PCI_VENDOR_ID_NVIDIA, 0x1efa),
 		.class = PCI_BASE_CLASS_DISPLAY << 16,
 		.class_mask = 0xff << 16,
-		.driver_data = 9,
+		.driver_data = 5,
 	},
 	{}
 };

@@ -194,16 +194,6 @@ int fecs_ucode_details(struct gk20a *g, struct flcn_ucode_img_v1 *p_img)
 	int err;
 
 	switch (ver) {
-		case NVGPU_GPUID_GP104:
-			fecs_sig = nvgpu_request_firmware(g,
-					GP104_FECS_UCODE_SIG,
-					NVGPU_REQUEST_FIRMWARE_NO_SOC);
-			break;
-		case NVGPU_GPUID_GP106:
-			fecs_sig = nvgpu_request_firmware(g,
-					GP106_FECS_UCODE_SIG,
-					NVGPU_REQUEST_FIRMWARE_NO_SOC);
-			break;
 		case NVGPU_GPUID_GV11B:
 			fecs_sig = nvgpu_request_firmware(g,
 					GM20B_FECS_UCODE_SIG, 0);
@@ -296,16 +286,6 @@ int gpccs_ucode_details(struct gk20a *g, struct flcn_ucode_img_v1 *p_img)
 	}
 
 	switch (ver) {
-		case NVGPU_GPUID_GP104:
-			gpccs_sig = nvgpu_request_firmware(g,
-					GP104_GPCCS_UCODE_SIG,
-					NVGPU_REQUEST_FIRMWARE_NO_SOC);
-			break;
-		case NVGPU_GPUID_GP106:
-			gpccs_sig = nvgpu_request_firmware(g,
-					GP106_GPCCS_UCODE_SIG,
-					NVGPU_REQUEST_FIRMWARE_NO_SOC);
-			break;
 		case NVGPU_GPUID_GV11B:
 			gpccs_sig = nvgpu_request_firmware(g,
 					T18x_GPCCS_UCODE_SIG, 0);

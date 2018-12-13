@@ -74,7 +74,6 @@ nvgpu-y += common/bus/bus_gk20a.o \
 	common/netlist/netlist.o \
 	common/netlist/netlist_sim.o \
 	common/netlist/netlist_gm20b.o \
-	common/netlist/netlist_gp106.o \
 	common/netlist/netlist_gp10b.o \
 	common/netlist/netlist_gv100.o \
 	common/netlist/netlist_gv11b.o \
@@ -87,7 +86,6 @@ nvgpu-y += \
 	os/linux/os_ops.o \
 	os/linux/os_ops_gm20b.o \
 	os/linux/os_ops_gp10b.o \
-	os/linux/os_ops_gp106.o \
 	os/linux/os_ops_gv100.o \
 	os/linux/os_ops_gv11b.o \
 	os/linux/kmem.o \
@@ -334,12 +332,9 @@ nvgpu-y += \
 	gp10b/fecs_trace_gp10b.o \
 	gp10b/gp10b.o \
 	gp10b/ecc_gp10b.o \
-	gp106/hal_gp106.o \
 	gp106/mclk_gp106.o \
 	gp106/gr_gp106.o \
 	gp106/sec2_gp106.o \
-	gp106/fifo_gp106.o \
-	gp106/regops_gp106.o \
 	gp106/bios_gp106.o \
 	gv11b/gv11b.o  \
 	gv11b/hal_gv11b.o \
@@ -385,7 +380,6 @@ nvgpu-y += \
 	pmu_perf/change_seq.o \
 	clk/clk.o \
 	gp106/clk_gp106.o \
-	gp106/clk_arb_gp106.o \
 	pmgr/pwrdev.o \
 	pmgr/pmgr.o \
 	pmgr/pmgrpmu.o \

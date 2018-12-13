@@ -112,7 +112,6 @@ srcs :=	os/posix/nvgpu.c \
 	common/netlist/netlist.c \
 	common/netlist/netlist_sim.c \
 	common/netlist/netlist_gm20b.c \
-	common/netlist/netlist_gp106.c \
 	common/netlist/netlist_gp10b.c \
 	common/netlist/netlist_gv100.c \
 	common/netlist/netlist_gv11b.c \
@@ -221,15 +220,11 @@ srcs :=	os/posix/nvgpu.c \
 	gv11b/subctx_gv11b.c \
 	gv11b/regops_gv11b.c \
 	gv11b/ecc_gv11b.c \
-	gp106/hal_gp106.c \
 	gp106/mclk_gp106.c \
 	gp106/gr_gp106.c \
 	gp106/sec2_gp106.c \
-	gp106/fifo_gp106.c \
-	gp106/regops_gp106.c \
 	gp106/bios_gp106.c \
 	gp106/clk_gp106.c \
-	gp106/clk_arb_gp106.c \
 	gv100/mm_gv100.c \
 	gv100/bios_gv100.c \
 	gv100/fifo_gv100.c \

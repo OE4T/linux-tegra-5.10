@@ -23,12 +23,6 @@
 #ifndef NVGPU_ACR_GP106_H
 #define NVGPU_ACR_GP106_H
 
-#define GP106_FECS_UCODE_SIG "gp106/fecs_sig.bin"
-#define GP106_GPCCS_UCODE_SIG "gp106/gpccs_sig.bin"
-#define GP104_FECS_UCODE_SIG "gp104/fecs_sig.bin"
-#define GP104_GPCCS_UCODE_SIG "gp104/gpccs_sig.bin"
-
-
 int gp106_bootstrap_hs_flcn(struct gk20a *g);
 int gp106_prepare_ucode_blob(struct gk20a *g);
 int gp106_alloc_blob_space(struct gk20a *g,
