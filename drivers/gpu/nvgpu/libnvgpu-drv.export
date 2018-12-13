@@ -57,7 +57,9 @@ nvgpu_dma_free
 nvgpu_free
 nvgpu_free_enabled_flags
 nvgpu_free_fixed
+nvgpu_gmmu_init_page_table
 nvgpu_gmmu_map
+nvgpu_gmmu_map_fixed
 nvgpu_gmmu_unmap
 nvgpu_init_enabled_flags
 nvgpu_init_hal
@@ -69,6 +71,13 @@ nvgpu_kmem_cache_create
 nvgpu_kmem_cache_destroy
 nvgpu_kmem_cache_free
 nvgpu_kmem_get_fault_injection
+nvgpu_mem_sgl_dma
+nvgpu_mem_sgl_gpu_addr
+nvgpu_mem_sgl_length
+nvgpu_mem_sgl_next
+nvgpu_mem_sgl_phys
+nvgpu_mem_sgt_free
+nvgpu_mem_sgt_iommuable
 nvgpu_pd_alloc
 nvgpu_pd_cache_fini
 nvgpu_pd_cache_init

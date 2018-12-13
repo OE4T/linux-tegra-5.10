@@ -31,6 +31,7 @@
 #include <nvgpu/vm.h>
 #include <nvgpu/nvgpu_sgt.h>
 #include <os/posix/os_posix.h>
+#include <nvgpu/posix/posix-fault-injection.h>
 
 #include <gk20a/mm_gk20a.h>
 #include <gm20b/mm_gm20b.h>
@@ -48,9 +49,16 @@
 #define TEST_SIZE (1 * SZ_1M)
 #define TEST_SIZE_64KB_PAGES 16
 
+/* Some special failure cases */
+#define SPECIAL_MAP_FAIL_FI_NULL_SGT		0
+#define SPECIAL_MAP_FAIL_VM_ALLOC		1
+#define SPECIAL_MAP_FAIL_PD_ALLOCATE		2
+#define SPECIAL_MAP_FAIL_PD_ALLOCATE_CHILD	3
+
 struct test_parameters {
 	enum nvgpu_aperture aperture;
 	bool is_iommuable;
+	bool is_sgt_iommuable;
 	enum gk20a_mem_rw_flag rw_flag;
 	u32 flags;
 	bool priv;
@@ -59,8 +67,9 @@ struct test_parameters {
 	bool sparse;
 	u32 ctag_offset;
 	/* Below are flags for special cases, default to disabled */
-	bool special_2_sgl;
 	bool special_null_phys;
+	bool special_map_fixed;
+	bool special_sgl_skip;
 };
 
 static struct test_parameters test_iommu_sysmem = {
@@ -77,6 +86,15 @@ static struct test_parameters test_iommu_sysmem_ro = {
 	.rw_flag = gk20a_mem_flag_read_only,
 	.flags = NVGPU_VM_MAP_CACHEABLE,
 	.priv = true,
+};
+
+static struct test_parameters test_iommu_sysmem_ro_fixed = {
+	.aperture = APERTURE_SYSMEM,
+	.is_iommuable = true,
+	.rw_flag = gk20a_mem_flag_read_only,
+	.flags = NVGPU_VM_MAP_CACHEABLE,
+	.priv = true,
+	.special_map_fixed = true,
 };
 
 static struct test_parameters test_iommu_sysmem_coh = {
@@ -116,6 +134,17 @@ static struct test_parameters test_iommu_sysmem_adv_ctag = {
 	.offset_pages = 10,
 	.sparse = false,
 	.ctag_offset = TEST_COMP_TAG,
+};
+
+static struct test_parameters test_iommu_sysmem_sgl_skip = {
+	.aperture = APERTURE_SYSMEM,
+	.is_iommuable = true,
+	.rw_flag = gk20a_mem_flag_none,
+	.flags = NVGPU_VM_MAP_CACHEABLE,
+	.priv = true,
+	.offset_pages = 32,
+	.sparse = false,
+	.special_sgl_skip = true,
 };
 
 static struct test_parameters test_iommu_sysmem_adv_big = {
@@ -187,10 +216,49 @@ static struct test_parameters test_no_iommu_unmapped = {
 	.priv = false,
 };
 
+static struct test_parameters test_sgt_iommu_sysmem = {
+	.aperture = APERTURE_SYSMEM,
+	.is_iommuable = true,
+	.is_sgt_iommuable = true,
+	.rw_flag = NVGPU_VM_MAP_CACHEABLE,
+	.flags = 0,
+	.priv = false,
+};
+
+/*
+ * mvgpu_mem ops function used in the test_iommu_sysmem_sgl_skip test case.
+ * It will return IPA=PA and a length that is always half the page offset.
+ * This is used to test a corner case in __nvgpu_gmmu_do_update_page_table()
+ */
+static u64 nvgpu_mem_sgl_ipa_to_pa_by_half(struct gk20a *g,
+		struct nvgpu_sgl *sgl, u64 ipa, u64 *pa_len)
+{
+	*pa_len = test_iommu_sysmem_sgl_skip.offset_pages * SZ_4K / 2;
+
+	return nvgpu_mem_sgl_phys(g, sgl);
+}
+
+/* SGT ops for test_iommu_sysmem_sgl_skip test case */
+static const struct nvgpu_sgt_ops nvgpu_sgt_posix_ops = {
+	.sgl_next	= nvgpu_mem_sgl_next,
+	.sgl_phys	= nvgpu_mem_sgl_phys,
+	.sgl_ipa	= nvgpu_mem_sgl_phys,
+	.sgl_ipa_to_pa	= nvgpu_mem_sgl_ipa_to_pa_by_half,
+	.sgl_dma	= nvgpu_mem_sgl_dma,
+	.sgl_length	= nvgpu_mem_sgl_length,
+	.sgl_gpu_addr	= nvgpu_mem_sgl_gpu_addr,
+	.sgt_iommuable	= nvgpu_mem_sgt_iommuable,
+	.sgt_free	= nvgpu_mem_sgt_free,
+};
+
+
 static void init_platform(struct unit_module *m, struct gk20a *g, bool is_iGPU)
 {
 	if (is_iGPU) {
 		__nvgpu_set_enabled(g, NVGPU_MM_UNIFIED_MEMORY, true);
+		/* Features below are mostly to cover corner cases */
+		__nvgpu_set_enabled(g, NVGPU_USE_COHERENT_SYSMEM, true);
+		__nvgpu_set_enabled(g, NVGPU_SUPPORT_NVLINK, true);
 	} else {
 		__nvgpu_set_enabled(g, NVGPU_MM_UNIFIED_MEMORY, false);
 	}
@@ -351,11 +419,21 @@ static int test_nvgpu_gmmu_map_unmap(struct unit_module *m,
 	struct test_parameters *params = (struct test_parameters *) args;
 
 	p->mm_is_iommuable = params->is_iommuable;
+	p->mm_sgt_is_iommuable = params->is_sgt_iommuable;
 	mem.size = TEST_SIZE;
 	mem.cpu_va = (void *) TEST_PA_ADDRESS;
-	mem.gpu_va = nvgpu_gmmu_map(g->mm.pmu.vm, &mem, mem.size,
-			params->flags, params->rw_flag, params->priv,
-			params->aperture);
+
+	if (params->special_map_fixed) {
+		/* Special case: use a fixed address */
+		mem.gpu_va = nvgpu_gmmu_map_fixed(g->mm.pmu.vm, &mem,
+				TEST_PA_ADDRESS, mem.size,
+				params->flags, params->rw_flag, params->priv,
+				params->aperture);
+	} else {
+		mem.gpu_va = nvgpu_gmmu_map(g->mm.pmu.vm, &mem, mem.size,
+				params->flags, params->rw_flag, params->priv,
+				params->aperture);
+	}
 
 	if (mem.gpu_va == 0) {
 		unit_return_fail(m, "Failed to map GMMU page");
@@ -432,6 +510,90 @@ static int test_nvgpu_gmmu_map_unmap(struct unit_module *m,
 		unit_return_fail(m, "PTE still valid for unmapped memory\n");
 	}
 
+	return UNIT_SUCCESS;
+}
+
+/*
+ * Test: test_nvgpu_gmmu_map_unmap_map_fail
+ * Test special corner cases causing map to fail. Mostly to cover error
+ * handling and some branches.
+ */
+static int test_nvgpu_gmmu_map_unmap_map_fail(struct unit_module *m,
+					struct gk20a *g, void *args)
+{
+	struct nvgpu_mem mem;
+	struct nvgpu_posix_fault_inj *kmem_fi =
+		nvgpu_kmem_get_fault_injection();
+	struct nvgpu_os_posix *p = nvgpu_os_posix_from_gk20a(g);
+	u64 scenario = (u64) args;
+
+	p->mm_is_iommuable = true;
+	mem.size = TEST_SIZE;
+	mem.cpu_va = (void *) TEST_PA_ADDRESS;
+	mem.priv.sgt = NULL;
+
+	if (scenario == SPECIAL_MAP_FAIL_FI_NULL_SGT) {
+		/* Special case: use fault injection to trigger a NULL SGT */
+		nvgpu_posix_enable_fault_injection(kmem_fi, true, 0);
+	}
+
+	if (scenario == SPECIAL_MAP_FAIL_PD_ALLOCATE) {
+		/*
+		 * Special case: use fault injection to trigger a failure in
+		 * pd_allocate(). It is the 3rd malloc.
+		 */
+		nvgpu_posix_enable_fault_injection(kmem_fi, true, 3);
+	}
+
+	if (scenario == SPECIAL_MAP_FAIL_PD_ALLOCATE_CHILD) {
+		/*
+		 * Special case: use fault injection to trigger a failure in
+		 * pd_allocate_children(). It is the 3rd malloc (assuming the
+		 * SPECIAL_MAP_FAIL_PD_ALLOCATE case ran first)
+		 */
+		nvgpu_posix_enable_fault_injection(kmem_fi, true, 3);
+	}
+
+	if (scenario == SPECIAL_MAP_FAIL_VM_ALLOC) {
+		/* Special case: cause __nvgpu_vm_alloc_va to fail */
+		g->mm.pmu.vm->guest_managed = true;
+	}
+
+	mem.gpu_va = nvgpu_gmmu_map(g->mm.pmu.vm, &mem, mem.size,
+				NVGPU_VM_MAP_CACHEABLE, gk20a_mem_flag_none,
+				true, APERTURE_SYSMEM);
+
+	nvgpu_posix_enable_fault_injection(kmem_fi, false, 0);
+	g->mm.pmu.vm->guest_managed = false;
+
+	if (mem.gpu_va != 0) {
+		unit_return_fail(m, "map did not fail as expected\n");
+	}
+
+	return UNIT_SUCCESS;
+}
+
+/*
+ * Test: test_nvgpu_gmmu_init_page_table_fail
+ * Test special corner cases causing nvgpu_gmmu_init_page_table to fail
+ * Mostly to cover error handling and some branches.
+ */
+static int test_nvgpu_gmmu_init_page_table_fail(struct unit_module *m,
+					struct gk20a *g, void *args)
+{
+	int err;
+	struct nvgpu_posix_fault_inj *kmem_fi =
+		nvgpu_kmem_get_fault_injection();
+
+	nvgpu_posix_enable_fault_injection(kmem_fi, true, 0);
+
+	err = nvgpu_gmmu_init_page_table(g->mm.pmu.vm);
+
+	nvgpu_posix_enable_fault_injection(kmem_fi, false, 0);
+
+	if (err == 0) {
+		unit_return_fail(m, "init_pt did not fail as expected\n");
+	}
 	return UNIT_SUCCESS;
 }
 
@@ -515,11 +677,32 @@ static u64 gmmu_map_advanced(struct unit_module *m, struct gk20a *g,
 		mem->cpu_va = NULL;
 	}
 
-	sgt = nvgpu_sgt_create_from_mem(g, mem);
+	if (params->special_sgl_skip) {
+		struct nvgpu_mem_sgl sgl_list[] = {
+			{ .length = mem->size, .phys = (u64) mem->cpu_va, },
+			{ .length = mem->size, .phys = ((u64) mem->cpu_va) +
+				mem->size, },
+		};
 
-	if (sgt == NULL) {
-		unit_err(m, "Failed to create SGT\n");
-		return 0;
+		if (nvgpu_mem_posix_create_from_list(g, mem, sgl_list,
+					     ARRAY_SIZE(sgl_list)) != 0) {
+			unit_err(m, "Failed to create mem from SGL list\n");
+			return 0;
+		}
+		sgt = nvgpu_sgt_create_from_mem(g, mem);
+		if (sgt == NULL) {
+			unit_err(m, "Failed to create SGT\n");
+			return 0;
+		}
+
+		sgt->ops = &nvgpu_sgt_posix_ops;
+	} else {
+		sgt = nvgpu_sgt_create_from_mem(g, mem);
+
+		if (sgt == NULL) {
+			unit_err(m, "Failed to create SGT\n");
+			return 0;
+		}
 	}
 
 	if (nvgpu_is_enabled(g, NVGPU_USE_COHERENT_SYSMEM)) {
@@ -652,10 +835,22 @@ static int test_nvgpu_gmmu_map_unmap_batched(struct unit_module *m,
 struct unit_module_test nvgpu_gmmu_tests[] = {
 	UNIT_TEST(gmmu_init, test_nvgpu_gmmu_init, (void *) 1),
 
+	/*
+	 * These 2 tests must run first in the order below to avoid caching
+	 * issues */
+	UNIT_TEST(map_fail_pd_allocate,
+		test_nvgpu_gmmu_map_unmap_map_fail,
+		(void *) SPECIAL_MAP_FAIL_PD_ALLOCATE),
+	UNIT_TEST(map_fail_pd_allocate,
+		test_nvgpu_gmmu_map_unmap_map_fail,
+		(void *) SPECIAL_MAP_FAIL_PD_ALLOCATE_CHILD),
+
 	UNIT_TEST(gmmu_map_unmap_iommu_sysmem, test_nvgpu_gmmu_map_unmap,
 		(void *) &test_iommu_sysmem),
 	UNIT_TEST(gmmu_map_unmap_iommu_sysmem_ro, test_nvgpu_gmmu_map_unmap,
 		(void *) &test_iommu_sysmem_ro),
+	UNIT_TEST(gmmu_map_unmap_iommu_sysmem_ro_f, test_nvgpu_gmmu_map_unmap,
+		(void *) &test_iommu_sysmem_ro_fixed),
 	UNIT_TEST(gmmu_map_unmap_no_iommu_sysmem, test_nvgpu_gmmu_map_unmap,
 		(void *) &test_no_iommu_sysmem),
 	UNIT_TEST(gmmu_map_unmap_vidmem, test_nvgpu_gmmu_map_unmap,
@@ -682,6 +877,9 @@ struct unit_module_test nvgpu_gmmu_tests[] = {
 	UNIT_TEST(gmmu_map_unmap_no_iommu_sysmem_noncacheable,
 		test_nvgpu_gmmu_map_unmap,
 		(void *) &test_no_iommu_sysmem_noncacheable),
+	UNIT_TEST(gmmu_map_unmap_sgt_iommu_sysmem,
+		test_nvgpu_gmmu_map_unmap,
+		(void *) &test_sgt_iommu_sysmem),
 	UNIT_TEST(gmmu_map_unmap_iommu_sysmem_adv_small_pages_sparse,
 		test_nvgpu_gmmu_map_unmap_adv,
 		(void *) &test_iommu_sysmem_adv_ctag),
@@ -690,6 +888,18 @@ struct unit_module_test nvgpu_gmmu_tests[] = {
 		(void *) &test_iommu_sysmem_adv_big),
 	UNIT_TEST(gmmu_map_unmap_unmapped, test_nvgpu_gmmu_map_unmap,
 		(void *) &test_no_iommu_unmapped),
+	UNIT_TEST(gmmu_map_unmap_iommu_sysmem_adv_sgl_skip,
+		test_nvgpu_gmmu_map_unmap_adv,
+		(void *) &test_iommu_sysmem_sgl_skip),
+	UNIT_TEST(map_fail_fi_null_sgt,
+		test_nvgpu_gmmu_map_unmap_map_fail,
+		(void *) SPECIAL_MAP_FAIL_FI_NULL_SGT),
+	UNIT_TEST(map_fail_fi_vm_alloc,
+		test_nvgpu_gmmu_map_unmap_map_fail,
+		(void *) SPECIAL_MAP_FAIL_VM_ALLOC),
+	UNIT_TEST(init_page_table_fail,
+		test_nvgpu_gmmu_init_page_table_fail,
+		NULL),
 
 	UNIT_TEST(gmmu_clean, test_nvgpu_gmmu_clean, NULL),
 };
