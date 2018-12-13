@@ -279,15 +279,9 @@ static struct tsg_gk20a *gk20a_tsg_acquire_unused_tsg(struct fifo_gk20a *f)
 	return tsg;
 }
 
-struct tsg_gk20a *gk20a_tsg_open(struct gk20a *g, pid_t pid)
+int gk20a_tsg_open_common(struct gk20a *g, struct tsg_gk20a *tsg)
 {
-	struct tsg_gk20a *tsg;
 	int err;
-
-	tsg = gk20a_tsg_acquire_unused_tsg(&g->fifo);
-	if (tsg == NULL) {
-		return NULL;
-	}
 
 	/* we need to allocate this after g->ops.gr.init_fs_state() since
 	 * we initialize gr->no_of_sm in this function
@@ -295,12 +289,12 @@ struct tsg_gk20a *gk20a_tsg_open(struct gk20a *g, pid_t pid)
 	if (g->gr.no_of_sm == 0U) {
 		nvgpu_err(g, "no_of_sm %d not set, failed allocation",
 				  g->gr.no_of_sm);
-		return NULL;
+		return -EINVAL;
 	}
 
 	err = gk20a_tsg_alloc_sm_error_states_mem(g, tsg, g->gr.no_of_sm);
 	if (err != 0) {
-		return NULL;
+		return err;
 	}
 
 	tsg->g = g;
@@ -312,11 +306,11 @@ struct tsg_gk20a *gk20a_tsg_open(struct gk20a *g, pid_t pid)
 	tsg->timeslice_us = 0;
 	tsg->timeslice_timeout = 0;
 	tsg->timeslice_scale = 0;
-	tsg->runlist_id = ~0;
-	tsg->tgid = pid;
+	tsg->runlist_id = ~0u;
 	tsg->sm_exception_mask_type = NVGPU_SM_EXCEPTION_TYPE_MASK_NONE;
 	tsg->gr_ctx = nvgpu_kzalloc(g, sizeof(*tsg->gr_ctx));
 	if (tsg->gr_ctx == NULL) {
+		err = -ENOMEM;
 		goto clean_up;
 	}
 
@@ -333,34 +327,43 @@ struct tsg_gk20a *gk20a_tsg_open(struct gk20a *g, pid_t pid)
 		}
 	}
 
+	return 0;
+
+clean_up:
+	gk20a_tsg_release_common(g, tsg);
+	nvgpu_ref_put(&tsg->refcount, NULL);
+
+	return err;
+}
+
+struct tsg_gk20a *gk20a_tsg_open(struct gk20a *g, pid_t pid)
+{
+	struct tsg_gk20a *tsg;
+	int err;
+
+	tsg = gk20a_tsg_acquire_unused_tsg(&g->fifo);
+	if (tsg == NULL) {
+		return NULL;
+	}
+
+	err = gk20a_tsg_open_common(g, tsg);
+	if (err != 0) {
+		release_used_tsg(&g->fifo, tsg);
+		nvgpu_err(g, "tsg %d open failed %d", tsg->tsgid, err);
+		return NULL;
+	}
+
+	tsg->tgid = pid;
+
 	nvgpu_log(g, gpu_dbg_fn, "tsg opened %d\n", tsg->tsgid);
 
 	return tsg;
-
-clean_up:
-	nvgpu_kfree(g, tsg->gr_ctx);
-	tsg->gr_ctx = NULL;
-	if(tsg->sm_error_states != NULL) {
-		nvgpu_kfree(g, tsg->sm_error_states);
-		tsg->sm_error_states = NULL;
-	}
-
-	nvgpu_ref_put(&tsg->refcount, gk20a_tsg_release);
-	return NULL;
 }
 
-void gk20a_tsg_release(struct nvgpu_ref *ref)
+void gk20a_tsg_release_common(struct gk20a *g, struct tsg_gk20a *tsg)
 {
-	struct tsg_gk20a *tsg = container_of(ref, struct tsg_gk20a, refcount);
-	struct gk20a *g = tsg->g;
-	struct gk20a_event_id_data *event_id_data, *event_id_data_temp;
-
 	if (g->ops.fifo.tsg_release != NULL) {
 		g->ops.fifo.tsg_release(tsg);
-	}
-
-	if (tsg->gr_ctx != NULL && nvgpu_mem_is_valid(&tsg->gr_ctx->mem)) {
-		gr_gk20a_free_tsg_gr_ctx(tsg);
 	}
 
 	nvgpu_kfree(g, tsg->gr_ctx);
@@ -380,6 +383,17 @@ void gk20a_tsg_release(struct nvgpu_ref *ref)
 		tsg->sm_error_states = NULL;
 		nvgpu_mutex_destroy(&tsg->sm_exception_mask_lock);
 	}
+}
+
+void gk20a_tsg_release(struct nvgpu_ref *ref)
+{
+	struct tsg_gk20a *tsg = container_of(ref, struct tsg_gk20a, refcount);
+	struct gk20a *g = tsg->g;
+	struct gk20a_event_id_data *event_id_data, *event_id_data_temp;
+
+	if (tsg->gr_ctx != NULL && nvgpu_mem_is_valid(&tsg->gr_ctx->mem)) {
+		gr_gk20a_free_tsg_gr_ctx(tsg);
+	}
 
 	/* unhook all events created on this TSG */
 	nvgpu_mutex_acquire(&tsg->event_id_list_lock);
@@ -391,10 +405,8 @@ void gk20a_tsg_release(struct nvgpu_ref *ref)
 	}
 	nvgpu_mutex_release(&tsg->event_id_list_lock);
 
+	gk20a_tsg_release_common(g, tsg);
 	release_used_tsg(&g->fifo, tsg);
-
-	tsg->runlist_id = ~0;
-	tsg->sm_exception_mask_type = NVGPU_SM_EXCEPTION_TYPE_MASK_NONE;
 
 	nvgpu_log(g, gpu_dbg_fn, "tsg released %d\n", tsg->tsgid);
 }

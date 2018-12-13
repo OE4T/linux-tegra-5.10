@@ -34,13 +34,6 @@ struct gk20a;
 struct channel_gk20a;
 struct nvgpu_gr_ctx;
 
-bool gk20a_is_channel_marked_as_tsg(struct channel_gk20a *ch);
-struct tsg_gk20a *gk20a_tsg_open(struct gk20a *g, pid_t pid);
-void gk20a_tsg_release(struct nvgpu_ref *ref);
-
-int gk20a_init_tsg_support(struct gk20a *g, u32 tsgid);
-struct tsg_gk20a *tsg_gk20a_from_ch(struct channel_gk20a *ch);
-
 struct nvgpu_tsg_sm_error_state {
 	u32 hww_global_esr;
 	u32 hww_warp_esr;
@@ -86,6 +79,15 @@ struct tsg_gk20a {
 	u32 sm_exception_mask_type;
 	struct nvgpu_mutex sm_exception_mask_lock;
 };
+
+bool gk20a_is_channel_marked_as_tsg(struct channel_gk20a *ch);
+int gk20a_tsg_open_common(struct gk20a *g, struct tsg_gk20a *tsg);
+struct tsg_gk20a *gk20a_tsg_open(struct gk20a *g, pid_t pid);
+void gk20a_tsg_release_common(struct gk20a *g, struct tsg_gk20a *tsg);
+void gk20a_tsg_release(struct nvgpu_ref *ref);
+
+int gk20a_init_tsg_support(struct gk20a *g, u32 tsgid);
+struct tsg_gk20a *tsg_gk20a_from_ch(struct channel_gk20a *ch);
 
 int gk20a_enable_tsg(struct tsg_gk20a *tsg);
 int gk20a_disable_tsg(struct tsg_gk20a *tsg);
