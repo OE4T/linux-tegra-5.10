@@ -1,7 +1,7 @@
 /*
  * general clock structures & definitions
  *
- * Copyright (c) 2016-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -124,8 +124,6 @@ struct vbios_clocks_table_1x_hal_clock_entry {
 #define PERF_CLK_XBAR2CLK       11U
 #define PERF_CLK_PCIEGENCLK     12U
 #define PERF_CLK_NUM            13U
-
-#define BOOT_GPC2CLK_MHZ	2581U
 
 int clk_init_pmupstate(struct gk20a *g);
 void clk_free_pmupstate(struct gk20a *g);

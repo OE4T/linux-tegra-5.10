@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -45,7 +45,8 @@
 
 #include "driver_common.h"
 
-#define PCI_INTERFACE_NAME "card-%s%%s"
+#define BOOT_GPC2CLK_MHZ	2581U
+#define PCI_INTERFACE_NAME	"card-%s%%s"
 
 static int nvgpu_pci_tegra_probe(struct device *dev)
 {

@@ -33,7 +33,6 @@
 #include "clk.h"
 #include <nvgpu/timers.h>
 
-#define BOOT_GPC2CLK_MHZ  2581U
 #define BOOT_MCLK_MHZ     3003U
 
 struct clkrpc_pmucmdhandler_params {
