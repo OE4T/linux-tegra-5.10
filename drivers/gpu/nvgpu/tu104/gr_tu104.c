@@ -41,6 +41,7 @@
 
 bool gr_tu104_is_valid_class(struct gk20a *g, u32 class_num)
 {
+	nvgpu_speculation_barrier();
 	switch (class_num) {
 	case TURING_CHANNEL_GPFIFO_A:
 	case TURING_A:
@@ -56,6 +57,7 @@ bool gr_tu104_is_valid_class(struct gk20a *g, u32 class_num)
 
 bool gr_tu104_is_valid_gfx_class(struct gk20a *g, u32 class_num)
 {
+	nvgpu_speculation_barrier();
 	switch (class_num) {
 	case TURING_A:
 		return true;
@@ -68,6 +70,7 @@ bool gr_tu104_is_valid_gfx_class(struct gk20a *g, u32 class_num)
 
 bool gr_tu104_is_valid_compute_class(struct gk20a *g, u32 class_num)
 {
+	nvgpu_speculation_barrier();
 	switch (class_num) {
 	case TURING_COMPUTE_A:
 		return true;
