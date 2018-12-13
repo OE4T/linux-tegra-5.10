@@ -307,8 +307,9 @@ static struct boardobj *construct_pwr_policy(struct gk20a *g,
 			break;
 
 		default:
-		nvgpu_err(g, "Error: unrecognized Power Policy filter type: %d",
-			pwrpolicy->filter_type);
+			nvgpu_err(g, "Error: unrecognized Power Policy filter type: %d",
+				pwrpolicy->filter_type);
+			break;
 	}
 
 	_pwr_policy_limitarbconstruct(&pwrpolicy->limit_arb_curr, false);

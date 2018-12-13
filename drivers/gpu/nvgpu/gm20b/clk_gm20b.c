@@ -608,6 +608,7 @@ static void clk_setup_slide(struct gk20a *g, u32 clk_u)
 	default:
 		nvgpu_err(g, "Unexpected reference rate %u kHz", clk_u);
 		BUG();
+		break;
 	}
 
 	/* setup */

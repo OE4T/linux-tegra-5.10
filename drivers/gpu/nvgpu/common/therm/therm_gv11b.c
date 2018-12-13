@@ -129,6 +129,7 @@ void gv11b_therm_init_elcg_mode(struct gk20a *g, u32 mode, u32 engine)
 		break;
 	default:
 		nvgpu_err(g, "invalid elcg mode %d", mode);
+		break;
 	}
 
 	gk20a_writel(g, therm_gate_ctrl_r(engine), gate_ctrl);

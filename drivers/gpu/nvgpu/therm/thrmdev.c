@@ -232,6 +232,7 @@ static int devinit_get_therm_device_table(struct gk20a *g,
 	u32 index;
 	u32 obj_index = 0;
 	u8 class_id = 0;
+	bool error_status = false;
 	union {
 		struct boardobj boardobj;
 		struct therm_device therm_device;
@@ -297,6 +298,11 @@ static int devinit_get_therm_device_table(struct gk20a *g,
 			nvgpu_err(g,
 				"Unknown thermal device class i - %x, class - %x",
 				index, class_id);
+			error_status = true;
+			break;
+		}
+
+		if (error_status == true) {
 			goto done;
 		}
 
