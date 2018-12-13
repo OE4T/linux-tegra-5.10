@@ -31,8 +31,9 @@
 #include "pmu_perf/pmu_perf.h"
 #include "pmu_perf/change_seq.h"
 #include "pmgr/pmgr.h"
-#include "pstate/pstate.h"
 #include "therm/thrm.h"
+
+#include "pstate.h"
 
 static int pstate_sw_setup(struct gk20a *g);
 

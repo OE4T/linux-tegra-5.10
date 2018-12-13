@@ -35,9 +35,9 @@ struct gk20a;
 #include <nvgpu/log.h>
 #include <nvgpu/barrier.h>
 #include <nvgpu/cond.h>
+#include <nvgpu/pmu/pstate.h>
 
 #include "clk/clk.h"
-#include "pstate/pstate.h"
 #include "lpwr/lpwr.h"
 #include "volt/volt.h"
 

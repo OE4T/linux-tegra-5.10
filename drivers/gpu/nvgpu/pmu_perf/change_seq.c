@@ -26,9 +26,10 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/timers.h>
 #include <nvgpu/pmuif/ctrlclk.h>
+#include <nvgpu/pmu/pstate.h>
 
+#include "clk/clk.h"
 #include "clk/clk_domain.h"
-#include "pstate/pstate.h"
 #include "pmu_perf.h"
 
 #include "change_seq.h"

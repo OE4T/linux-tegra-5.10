@@ -28,13 +28,15 @@
 #include <nvgpu/utils.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/string.h>
+#include <nvgpu/pmu/pstate.h>
 
 #ifdef CONFIG_DEBUG_FS
 #include <linux/debugfs.h>
 #include "os/linux/os_linux.h"
 #endif
-#include "pstate/pstate.h"
 #include "gp106/mclk_gp106.h"
+#include "clk/clk.h"
+#include "clk/clk_mclk.h"
 
 #include <nvgpu/hw/gk20a/hw_pwr_gk20a.h>
 #include <nvgpu/hw/gp106/hw_fb_gp106.h>

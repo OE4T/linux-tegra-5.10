@@ -40,12 +40,11 @@
 #include <nvgpu/mc.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/channel_sync.h>
+#include <nvgpu/pmu/pstate.h>
 
 #include <trace/events/gk20a.h>
 
 #include "gk20a/ce2_gk20a.h"
-
-#include "pstate/pstate.h"
 
 void __nvgpu_check_gpu_state(struct gk20a *g)
 {

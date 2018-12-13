@@ -25,9 +25,9 @@
 #include <nvgpu/clk_arb.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/string.h>
+#include <nvgpu/pmu/pstate.h>
 
 #include "gp106/bios_gp106.h"
-#include "pstate/pstate.h"
 #include "pmu_perf/pmu_perf.h"
 #include "lpwr.h"
 

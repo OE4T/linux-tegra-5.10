@@ -27,11 +27,11 @@
 #include <nvgpu/pmuif/ctrlvolt.h>
 #include <nvgpu/bug.h>
 #include <nvgpu/pmuif/ctrlperf.h>
+#include <nvgpu/pmu/pstate.h>
 
 #include "clk.h"
 #include <nvgpu/timers.h>
 #include "volt/volt.h"
-#include "pstate/pstate.h"
 
 #define BOOT_GPC2CLK_MHZ  2581U
 #define BOOT_MCLK_MHZ     3003U

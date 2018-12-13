@@ -21,9 +21,53 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef NVGPU_PSTATE_PSTATE_H
-#define NVGPU_PSTATE_PSTATE_H
+#ifndef NVGPU_PMU_PSTATE_H
+#define NVGPU_PMU_PSTATE_H
 
-#define CTRL_PERF_PSTATE_TYPE_3X	0x3U
+#include <nvgpu/types.h>
+#include <nvgpu/boardobj.h>
+#include <nvgpu/boardobjgrp_e32.h>
 
-#endif /* NVGPU_PSTATE_PSTATE_H */
+#define CTRL_PERF_PSTATE_P0		0U
+#define CTRL_PERF_PSTATE_P5		5U
+#define CTRL_PERF_PSTATE_P8		8U
+
+#define CLK_SET_INFO_MAX_SIZE		(32U)
+
+struct gk20a;
+
+struct clk_set_info {
+	u32 clkwhich;
+	u32 nominal_mhz;
+	u16 min_mhz;
+	u16 max_mhz;
+};
+
+struct clk_set_info_list {
+	u32 num_info;
+	struct clk_set_info clksetinfo[CLK_SET_INFO_MAX_SIZE];
+};
+
+struct pstate {
+	struct boardobj super;
+	u32 num;
+	u8 lpwr_entry_idx;
+	struct clk_set_info_list clklist;
+};
+
+struct pstates {
+	struct boardobjgrp_e32 super;
+	u32  num_levels;
+	struct nvgpu_cond pstate_notifier_wq;
+	u32 is_pstate_switch_on;
+	struct nvgpu_mutex pstate_mutex; /* protect is_pstate_switch_on */
+};
+
+int gk20a_init_pstate_support(struct gk20a *g);
+void gk20a_deinit_pstate_support(struct gk20a *g);
+int gk20a_init_pstate_pmu_support(struct gk20a *g);
+struct clk_set_info *pstate_get_clk_set_info(struct gk20a *g, u32 pstate_num,
+		u32 clkwhich);
+struct pstate *pstate_find(struct gk20a *g, u32 num);
+
+#endif /* NVGPU_PMU_PSTATE_H */

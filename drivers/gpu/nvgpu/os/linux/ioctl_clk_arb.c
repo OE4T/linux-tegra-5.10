@@ -37,9 +37,9 @@
 #include <nvgpu/clk_arb.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/enabled.h>
+#include <nvgpu/pmu/pstate.h>
 
 #include "clk/clk.h"
-#include "pstate/pstate.h"
 #include "lpwr/lpwr.h"
 #include "volt/volt.h"
 
