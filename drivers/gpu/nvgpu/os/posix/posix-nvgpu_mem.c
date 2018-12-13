@@ -45,41 +45,41 @@ u64 nvgpu_mem_get_phys_addr(struct gk20a *g, struct nvgpu_mem *mem)
 	return (u64)(uintptr_t)mem->cpu_va;
 }
 
-static struct nvgpu_sgl *nvgpu_mem_sgl_next(struct nvgpu_sgl *sgl)
+struct nvgpu_sgl *nvgpu_mem_sgl_next(struct nvgpu_sgl *sgl)
 {
 	struct nvgpu_mem_sgl *mem = (struct nvgpu_mem_sgl *)sgl;
 
 	return (struct nvgpu_sgl *) mem->next;
 }
 
-static u64 nvgpu_mem_sgl_phys(struct gk20a *g, struct nvgpu_sgl *sgl)
+u64 nvgpu_mem_sgl_phys(struct gk20a *g, struct nvgpu_sgl *sgl)
 {
 	struct nvgpu_mem_sgl *mem = (struct nvgpu_mem_sgl *)sgl;
 
 	return (u64)(uintptr_t)mem->phys;
 }
 
-static u64 nvgpu_mem_sgl_ipa_to_pa(struct gk20a *g, struct nvgpu_sgl *sgl,
+u64 nvgpu_mem_sgl_ipa_to_pa(struct gk20a *g, struct nvgpu_sgl *sgl,
 		u64 ipa, u64 *pa_len)
 {
 	return nvgpu_mem_sgl_phys(g, sgl);
 }
 
-static u64 nvgpu_mem_sgl_dma(struct nvgpu_sgl *sgl)
+u64 nvgpu_mem_sgl_dma(struct nvgpu_sgl *sgl)
 {
 	struct nvgpu_mem_sgl *mem = (struct nvgpu_mem_sgl *)sgl;
 
 	return (u64)(uintptr_t)mem->dma;
 }
 
-static u64 nvgpu_mem_sgl_length(struct nvgpu_sgl *sgl)
+u64 nvgpu_mem_sgl_length(struct nvgpu_sgl *sgl)
 {
 	struct nvgpu_mem_sgl *mem = (struct nvgpu_mem_sgl *)sgl;
 
 	return (u64)mem->length;
 }
 
-static u64 nvgpu_mem_sgl_gpu_addr(struct gk20a *g, struct nvgpu_sgl *sgl,
+u64 nvgpu_mem_sgl_gpu_addr(struct gk20a *g, struct nvgpu_sgl *sgl,
 				  struct nvgpu_gmmu_attrs *attrs)
 {
 	struct nvgpu_mem_sgl *mem = (struct nvgpu_mem_sgl *)sgl;
@@ -95,7 +95,7 @@ static u64 nvgpu_mem_sgl_gpu_addr(struct gk20a *g, struct nvgpu_sgl *sgl,
 	return nvgpu_mem_iommu_translate(g, mem->dma);
 }
 
-static bool nvgpu_mem_sgt_iommuable(struct gk20a *g, struct nvgpu_sgt *sgt)
+bool nvgpu_mem_sgt_iommuable(struct gk20a *g, struct nvgpu_sgt *sgt)
 {
 	struct nvgpu_os_posix *p = nvgpu_os_posix_from_gk20a(g);
 
@@ -113,7 +113,7 @@ void nvgpu_mem_sgl_free(struct gk20a *g, struct nvgpu_mem_sgl *sgl)
 	}
 }
 
-static void nvgpu_mem_sgt_free(struct gk20a *g, struct nvgpu_sgt *sgt)
+void nvgpu_mem_sgt_free(struct gk20a *g, struct nvgpu_sgt *sgt)
 {
 	nvgpu_mem_sgl_free(g, (struct nvgpu_mem_sgl *)sgt->sgl);
 	nvgpu_kfree(g, sgt);
