@@ -881,19 +881,11 @@ u32 gr_gm20b_pagepool_default_size(struct gk20a *g)
 	return gr_scc_pagepool_total_pages_hwmax_value_v();
 }
 
-int gr_gm20b_alloc_gr_ctx(struct gk20a *g,
-			  struct nvgpu_gr_ctx *gr_ctx, struct vm_gk20a *vm,
-			  u32 class,
-			  u32 flags)
+int gr_gm20b_init_ctxsw_preemption_mode(struct gk20a *g,
+	struct nvgpu_gr_ctx *gr_ctx, struct vm_gk20a *vm,
+	u32 class, u32 flags)
 {
-	int err;
-
 	nvgpu_log_fn(g, " ");
-
-	err = gr_gk20a_alloc_gr_ctx(g, gr_ctx, vm, class, flags);
-	if (err != 0) {
-		return err;
-	}
 
 	if (class == MAXWELL_COMPUTE_B) {
 		gr_ctx->compute_preempt_mode = NVGPU_PREEMPTION_MODE_COMPUTE_CTA;

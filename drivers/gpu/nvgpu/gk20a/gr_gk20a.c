@@ -2637,9 +2637,7 @@ clean_up:
 }
 
 int gr_gk20a_alloc_gr_ctx(struct gk20a *g,
-			  struct nvgpu_gr_ctx *gr_ctx, struct vm_gk20a *vm,
-			  u32 class,
-			  u32 padding)
+	struct nvgpu_gr_ctx *gr_ctx, struct vm_gk20a *vm)
 {
 	struct gr_gk20a *gr = &g->gr;
 	int err = 0;
@@ -2813,8 +2811,7 @@ int gk20a_alloc_obj_ctx(struct channel_gk20a  *c, u32 class_num, u32 flags)
 	if (!nvgpu_mem_is_valid(&gr_ctx->mem)) {
 		tsg->vm = c->vm;
 		nvgpu_vm_get(tsg->vm);
-		err = g->ops.gr.alloc_gr_ctx(g, gr_ctx, tsg->vm, class_num,
-				flags);
+		err = g->ops.gr.alloc_gr_ctx(g, gr_ctx, tsg->vm);
 		if (err != 0) {
 			nvgpu_err(g,
 				"fail to allocate TSG gr ctx buffer");
@@ -2836,6 +2833,9 @@ int gk20a_alloc_obj_ctx(struct channel_gk20a  *c, u32 class_num, u32 flags)
 				goto out;
 			}
 		}
+
+		g->ops.gr.init_ctxsw_preemption_mode(g, gr_ctx, tsg->vm,
+			class_num, flags);
 
 		/* map global buffer to channel gpu_va and commit */
 		err = g->ops.gr.map_global_ctx_buffers(g, tsg->vm, gr_ctx,

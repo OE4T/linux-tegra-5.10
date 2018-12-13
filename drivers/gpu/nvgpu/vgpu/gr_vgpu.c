@@ -297,9 +297,7 @@ static void vgpu_gr_unmap_global_ctx_buffers(struct tsg_gk20a *tsg)
 
 int vgpu_gr_alloc_gr_ctx(struct gk20a *g,
 			struct nvgpu_gr_ctx *gr_ctx,
-			struct vm_gk20a *vm,
-			u32 class,
-			u32 flags)
+			struct vm_gk20a *vm)
 {
 	struct tegra_vgpu_cmd_msg msg = {0};
 	struct tegra_vgpu_gr_ctx_params *p = &msg.params.gr_ctx;
@@ -328,7 +326,6 @@ int vgpu_gr_alloc_gr_ctx(struct gk20a *g,
 	msg.handle = vgpu_get_handle(g);
 	p->as_handle = vm->handle;
 	p->gr_ctx_va = gr_ctx->mem.gpu_va;
-	p->class_num = class;
 	p->tsg_id = gr_ctx->tsgid;
 	err = vgpu_comm_sendrecv(&msg, sizeof(msg), sizeof(msg));
 	err = err ? err : msg.ret;
@@ -533,9 +530,7 @@ int vgpu_gr_alloc_obj_ctx(struct channel_gk20a  *c, u32 class_num, u32 flags)
 		nvgpu_vm_get(tsg->vm);
 		gr_ctx->tsgid = tsg->tsgid;
 		err = g->ops.gr.alloc_gr_ctx(g, gr_ctx,
-					c->vm,
-					class_num,
-					flags);
+					c->vm);
 		if (!err) {
 			gr_ctx->tsgid = tsg->tsgid;
 			err = vgpu_gr_tsg_bind_gr_ctx(tsg);
@@ -560,6 +555,11 @@ int vgpu_gr_alloc_obj_ctx(struct channel_gk20a  *c, u32 class_num, u32 flags)
 			nvgpu_err(g, "fail to allocate patch buffer");
 			goto out;
 		}
+
+		g->ops.gr.init_ctxsw_preemption_mode(g, gr_ctx,
+						c->vm,
+						class_num,
+						flags);
 
 		/* map global buffer to channel gpu_va and commit */
 		err = vgpu_gr_map_global_ctx_buffers(g, c);

@@ -85,9 +85,7 @@ u64 vgpu_bar1_map(struct gk20a *g, struct nvgpu_mem *mem, u32 offset);
 int vgpu_gr_isr(struct gk20a *g, struct tegra_vgpu_gr_intr_info *info);
 int vgpu_gr_alloc_gr_ctx(struct gk20a *g,
 			struct nvgpu_gr_ctx *gr_ctx,
-			struct vm_gk20a *vm,
-			u32 class,
-			u32 flags);
+			struct vm_gk20a *vm);
 void vgpu_gr_free_gr_ctx(struct gk20a *g, struct vm_gk20a *vm,
 			struct nvgpu_gr_ctx *gr_ctx);
 void vgpu_gr_handle_sm_esr_event(struct gk20a *g,

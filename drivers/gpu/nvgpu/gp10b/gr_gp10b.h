@@ -100,10 +100,9 @@ int gr_gp10b_set_ctxsw_preemption_mode(struct gk20a *g,
 				struct vm_gk20a *vm, u32 class,
 				u32 graphics_preempt_mode,
 				u32 compute_preempt_mode);
-int gr_gp10b_alloc_gr_ctx(struct gk20a *g,
-			  struct nvgpu_gr_ctx *gr_ctx, struct vm_gk20a *vm,
-			  u32 class,
-			  u32 flags);
+int gr_gp10b_init_ctxsw_preemption_mode(struct gk20a *g,
+	struct nvgpu_gr_ctx *gr_ctx, struct vm_gk20a *vm,
+	u32 class, u32 flags);
 void gr_gp10b_update_ctxsw_preemption_mode(struct gk20a *g,
 		struct nvgpu_gr_ctx *gr_ctx, struct nvgpu_mem *ctxheader);
 int gr_gp10b_dump_gr_status_regs(struct gk20a *g,

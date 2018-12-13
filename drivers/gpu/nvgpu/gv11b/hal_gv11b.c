@@ -328,9 +328,11 @@ static const struct gpu_ops gv11b_ops = {
 		.add_zbc = gr_gk20a_add_zbc,
 		.pagepool_default_size = gr_gv11b_pagepool_default_size,
 		.init_ctx_state = gr_gp10b_init_ctx_state,
-		.alloc_gr_ctx = gr_gp10b_alloc_gr_ctx,
+		.alloc_gr_ctx = gr_gk20a_alloc_gr_ctx,
 		.free_gr_ctx = gr_gk20a_free_gr_ctx,
 		.powergate_tpc = gr_gv11b_powergate_tpc,
+		.init_ctxsw_preemption_mode =
+			gr_gp10b_init_ctxsw_preemption_mode,
 		.update_ctxsw_preemption_mode =
 			gr_gv11b_update_ctxsw_preemption_mode,
 		.dump_gr_regs = gr_gv11b_dump_gr_status_regs,

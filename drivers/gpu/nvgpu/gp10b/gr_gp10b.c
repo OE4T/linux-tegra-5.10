@@ -1082,21 +1082,15 @@ fail:
 	return err;
 }
 
-int gr_gp10b_alloc_gr_ctx(struct gk20a *g,
-			  struct nvgpu_gr_ctx *gr_ctx, struct vm_gk20a *vm,
-			  u32 class,
-			  u32 flags)
+int gr_gp10b_init_ctxsw_preemption_mode(struct gk20a *g,
+	struct nvgpu_gr_ctx *gr_ctx, struct vm_gk20a *vm,
+	u32 class, u32 flags)
 {
 	int err;
 	u32 graphics_preempt_mode = 0;
 	u32 compute_preempt_mode = 0;
 
 	nvgpu_log_fn(g, " ");
-
-	err = gr_gk20a_alloc_gr_ctx(g, gr_ctx, vm, class, flags);
-	if (err != 0) {
-		return err;
-	}
 
 	gr_ctx->ctx_id_valid = false;
 
@@ -1113,21 +1107,16 @@ int gr_gp10b_alloc_gr_ctx(struct gk20a *g,
 			    class, graphics_preempt_mode, compute_preempt_mode);
 			if (err != 0) {
 				nvgpu_err(g, "set_ctxsw_preemption_mode failed");
-				goto fail_free_gk20a_ctx;
+				return err;
 			}
 		} else {
-			goto fail_free_gk20a_ctx;
+			return -EINVAL;
 		}
 	}
 
 	nvgpu_log_fn(g, "done");
 
 	return 0;
-
-fail_free_gk20a_ctx:
-	gr_gk20a_free_gr_ctx(g, vm, gr_ctx);
-
-	return err;
 }
 
 void gr_gp10b_dump_ctxsw_stats(struct gk20a *g, struct vm_gk20a *vm,

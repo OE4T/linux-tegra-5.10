@@ -36,6 +36,22 @@
 
 int vgpu_gr_gp10b_alloc_gr_ctx(struct gk20a *g,
 				struct nvgpu_gr_ctx *gr_ctx,
+				struct vm_gk20a *vm)
+{
+	int err;
+
+	nvgpu_log_fn(g, " ");
+
+	err = vgpu_gr_alloc_gr_ctx(g, gr_ctx, vm);
+	if (err)
+		return err;
+
+	nvgpu_log_fn(g, "done");
+	return 0;
+}
+
+int vgpu_gr_gp10b_init_ctxsw_preemption_mode(struct gk20a *g,
+				struct nvgpu_gr_ctx *gr_ctx,
 				struct vm_gk20a *vm,
 				u32 class,
 				u32 flags)
@@ -46,10 +62,6 @@ int vgpu_gr_gp10b_alloc_gr_ctx(struct gk20a *g,
 	int err;
 
 	nvgpu_log_fn(g, " ");
-
-	err = vgpu_gr_alloc_gr_ctx(g, gr_ctx, vm, class, flags);
-	if (err)
-		return err;
 
 	if (flags & NVGPU_OBJ_CTX_FLAGS_SUPPORT_GFXP)
 		graphics_preempt_mode = NVGPU_PREEMPTION_MODE_GRAPHICS_GFXP;
@@ -72,20 +84,15 @@ int vgpu_gr_gp10b_alloc_gr_ctx(struct gk20a *g,
 			if (err) {
 				nvgpu_err(g,
 					"set_ctxsw_preemption_mode failed");
-				goto fail;
+				return err;
 			}
 		} else {
-			err = -ENOSYS;
-			goto fail;
+			return -ENOSYS;
 		}
 	}
 
 	nvgpu_log_fn(g, "done");
-	return err;
-
-fail:
-	vgpu_gr_free_gr_ctx(g, vm, gr_ctx);
-	return err;
+	return 0;
 }
 
 int vgpu_gr_gp10b_set_ctxsw_preemption_mode(struct gk20a *g,

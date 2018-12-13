@@ -331,11 +331,13 @@ struct gpu_ops {
 		u32 (*pagepool_default_size)(struct gk20a *g);
 		int (*init_ctx_state)(struct gk20a *g);
 		int (*alloc_gr_ctx)(struct gk20a *g,
-			  struct nvgpu_gr_ctx *gr_ctx, struct vm_gk20a *vm,
-			  u32 class, u32 padding);
+			  struct nvgpu_gr_ctx *gr_ctx, struct vm_gk20a *vm);
 		void (*free_gr_ctx)(struct gk20a *g,
 				    struct vm_gk20a *vm, struct nvgpu_gr_ctx *gr_ctx);
 		void (*powergate_tpc)(struct gk20a *g);
+		int (*init_ctxsw_preemption_mode)(struct gk20a *g,
+			  struct nvgpu_gr_ctx *gr_ctx, struct vm_gk20a *vm,
+			  u32 class, u32 padding);
 		void (*update_ctxsw_preemption_mode)(struct gk20a *g,
 				struct nvgpu_gr_ctx *gr_ctx,
 				struct nvgpu_mem *ctxheader);
