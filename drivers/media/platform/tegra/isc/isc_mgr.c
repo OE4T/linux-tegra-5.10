@@ -602,6 +602,7 @@ static long isc_mgr_ioctl(
 	struct file *file, unsigned int cmd, unsigned long arg)
 {
 	struct isc_mgr_priv *isc_mgr = file->private_data;
+	struct isc_mgr_platform_data *pd = isc_mgr->pdata;
 	int err = 0;
 	unsigned long flags;
 
@@ -672,6 +673,15 @@ static long isc_mgr_ioctl(
 	case ISC_MGR_IOCTL_ABORT_WAIT_ERR:
 		isc_mgr->err_irq_recvd = true;
 		wake_up_interruptible(&isc_mgr->err_queue);
+		break;
+	case ISC_MGR_IOCTL_GET_EXT_PWR_CTRL:
+		if (copy_to_user((void __user *)arg,
+				&pd->ext_pwr_ctrl,
+				sizeof(u8))) {
+			dev_err(isc_mgr->pdev, "%s: failed to copy to user\n",
+				__func__);
+			return -EFAULT;
+		}
 		break;
 	default:
 		dev_err(isc_mgr->pdev, "%s unsupported ioctl: %x\n",
@@ -899,6 +909,7 @@ static struct isc_mgr_platform_data *of_isc_mgr_pdata(struct platform_device
 	struct device_node *np = pdev->dev.of_node;
 	struct isc_mgr_platform_data *pd = NULL;
 	int err;
+	bool ext_pwr_ctrl_des = false, ext_pwr_ctrl_sensor = false;
 
 	dev_dbg(&pdev->dev, "%s\n", __func__);
 	pd = devm_kzalloc(&pdev->dev, sizeof(*pd), GFP_KERNEL);
@@ -942,6 +953,15 @@ static struct isc_mgr_platform_data *of_isc_mgr_pdata(struct platform_device
 	pd->default_pwr_on = of_property_read_bool(np, "default-power-on");
 	pd->runtime_pwrctrl_off =
 		of_property_read_bool(np, "runtime-pwrctrl-off");
+
+	pd->ext_pwr_ctrl = 0;
+	ext_pwr_ctrl_des =
+		of_property_read_bool(np, "ext-pwr-ctrl-deserializer");
+	if (ext_pwr_ctrl_des == true)
+		pd->ext_pwr_ctrl |= 1 << 0;
+	ext_pwr_ctrl_sensor = of_property_read_bool(np, "ext-pwr-ctrl-sensor");
+	if (ext_pwr_ctrl_sensor == true)
+		pd->ext_pwr_ctrl |= 1 << 1;
 
 	err = isc_mgr_get_pwr_map(&pdev->dev, np, pd);
 	if (err)
