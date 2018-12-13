@@ -30,8 +30,6 @@
 #include <nvgpu/boardobjgrp_e255.h>
 #include <nvgpu/boardobjgrpmask.h>
 
-int clk_prog_sw_setup(struct gk20a *g);
-int clk_prog_pmu_setup(struct gk20a *g);
 struct clk_prog_1x_master;
 
 typedef int vf_flatten(struct gk20a *g, struct clk_pmupstate *pclk,
@@ -53,13 +51,6 @@ typedef int get_fpoints(struct gk20a *g, struct clk_pmupstate *pclk,
 			u32 *pfpointscount,
 			u16 **ppfreqpointsinmhz, u8 rail);
 
-
-struct clk_progs {
-	struct boardobjgrp_e255 super;
-	u8 slave_entry_count;
-	u8 vf_entry_count;
-	u8 vf_sec_entry_count;
-};
 
 struct clk_prog {
 	struct boardobj super;

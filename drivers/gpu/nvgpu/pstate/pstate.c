@@ -25,9 +25,8 @@
 #include <nvgpu/bios.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/pmu.h>
+#include <nvgpu/pmu/clk.h>
 
-#include "clk/clk.h"
-#include "clk/clk_freq_domain.h"
 #include "pmu_perf/pmu_perf.h"
 #include "pmu_perf/change_seq.h"
 #include "pmgr/pmgr.h"

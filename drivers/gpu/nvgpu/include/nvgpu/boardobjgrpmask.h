@@ -24,6 +24,7 @@
 #define NVGPU_BOARDOBJGRPMASK_H
 
 #include <nvgpu/types.h>
+#include <nvgpu/pmuif/ctrlboardobj.h>
 
 struct ctrl_boardobjgrp_mask;
 

@@ -33,12 +33,4 @@ struct nvgpu_clk_freq_domain {
 	u32 clk_domain;
 };
 
-struct nvgpu_clk_freq_domain_grp {
-	struct boardobjgrp_e32 super;
-	u32 init_flags;
-};
-
-int nvgpu_clk_freq_domain_sw_setup(struct gk20a *g);
-int nvgpu_clk_freq_domain_pmu_setup(struct gk20a *g);
-
 #endif /* NVGPU_CLK_FREQ_DOMAIN_H */

@@ -31,8 +31,6 @@
 #include <nvgpu/string.h>
 
 #include "nvlink.h"
-#include "clk/clk.h"
-#include "clk/clk_mclk.h"
 #include "module.h"
 #include "intr.h"
 #include "sysfs.h"

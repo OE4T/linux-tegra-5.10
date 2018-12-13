@@ -22,7 +22,10 @@
 
 #include <nvgpu/gk20a.h>
 #include <nvgpu/clk_arb.h>
+#include <nvgpu/pmu/clk.h>
+
 #include "clk_arb_gv100.h"
+#include "clk/clk.h"
 
 u32 gv100_get_arbiter_clk_domains(struct gk20a *g)
 {

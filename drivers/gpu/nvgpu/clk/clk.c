@@ -29,6 +29,7 @@
 #include <nvgpu/pmuif/ctrlperf.h>
 #include <nvgpu/pmu/pstate.h>
 #include <nvgpu/pmu/volt.h>
+#include <nvgpu/pmu/clk.h>
 
 #include "clk.h"
 #include <nvgpu/timers.h>

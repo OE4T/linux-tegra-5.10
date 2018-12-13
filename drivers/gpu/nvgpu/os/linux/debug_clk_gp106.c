@@ -17,6 +17,7 @@
 #include <linux/debugfs.h>
 
 #include <nvgpu/clk.h>
+#include <nvgpu/boardobjgrpmask.h>
 
 #include "os_linux.h"
 #include "clk/clk.h"

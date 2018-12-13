@@ -27,20 +27,8 @@
 #include <nvgpu/boardobjgrp_e32.h>
 #include <nvgpu/boardobjgrpmask.h>
 
-/*data and function definition to talk to driver*/
-int clk_fll_sw_setup(struct gk20a *g);
-int clk_fll_pmu_setup(struct gk20a *g);
-
-struct avfsfllobjs {
-	struct boardobjgrp_e32 super;
-	struct boardobjgrpmask_e32 lut_prog_master_mask;
-	u32 lut_step_size_uv;
-	u32 lut_min_voltage_uv;
-	u8 lut_num_entries;
-	u16 max_min_freq_mhz;
-};
-
 struct fll_device;
+struct avfsfllobjs;
 
 typedef u32 fll_lut_broadcast_slave_register(struct gk20a *g,
 	struct avfsfllobjs *pfllobjs,
@@ -66,9 +54,6 @@ struct fll_device {
 	struct boardobjgrpmask_e32 lut_prog_broadcast_slave_mask;
 	fll_lut_broadcast_slave_register *lut_broadcast_slave_register;
 };
-
-u32 nvgpu_clk_get_vbios_clk_domain_gv10x( u32 vbios_domain);
-u32 nvgpu_clk_get_vbios_clk_domain_gp10x( u32 vbios_domain);
 
 #define CLK_FLL_LUT_VF_NUM_ENTRIES(pclk) \
 	((pclk)->avfs_fllobjs.lut_num_entries)

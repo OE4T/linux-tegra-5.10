@@ -28,6 +28,7 @@
 #include <nvgpu/pmuif/nvgpu_gpmu_cmdif.h>
 #include <nvgpu/boardobjgrp_e32.h>
 #include <nvgpu/boardobjgrpmask.h>
+#include <nvgpu/pmu/clk.h>
 
 #define CLK_DOMAIN_BOARDOBJGRP_VERSION 0x30
 #define CLK_DOMAIN_BOARDOBJGRP_VERSION_35 0x35
@@ -38,57 +39,9 @@
 struct clk_domains;
 struct clk_domain;
 
-/*data and function definition to talk to driver*/
-int clk_domain_sw_setup(struct gk20a *g);
-int clk_domain_pmu_setup(struct gk20a *g);
-
-typedef int clkproglink(struct gk20a *g, struct clk_pmupstate *pclk,
-			struct clk_domain *pdomain);
-
-typedef int clkvfsearch(struct gk20a *g, struct clk_pmupstate *pclk,
-			struct clk_domain *pdomain, u16 *clkmhz,
-			u32 *voltuv, u8 rail);
-
 typedef int clkgetslaveclk(struct gk20a *g, struct clk_pmupstate *pclk,
 			struct clk_domain *pdomain, u16 *clkmhz,
 			u16 masterclkmhz);
-
-typedef int clkgetfpoints(struct gk20a *g, struct clk_pmupstate *pclk,
-			struct clk_domain *pdomain, u32 *pfpointscount,
-			  u16 *pfreqpointsinmhz, u8 rail);
-
-struct clk_domains {
-	struct boardobjgrp_e32 super;
-	u8 n_num_entries;
-	u8 version;
-	bool b_enforce_vf_monotonicity;
-	bool b_enforce_vf_smoothening;
-	bool b_override_o_v_o_c;
-	bool b_debug_mode;
-	u32 vbios_domains;
-	u16 cntr_sampling_periodms;
-	struct boardobjgrpmask_e32 prog_domains_mask;
-	struct boardobjgrpmask_e32 master_domains_mask;
-	struct ctrl_clk_clk_delta  deltas;
-
-	struct clk_domain *ordered_noise_aware_list[CTRL_BOARDOBJ_MAX_BOARD_OBJECTS];
-
-	struct clk_domain *ordered_noise_unaware_list[CTRL_BOARDOBJ_MAX_BOARD_OBJECTS];
-};
-
-struct clk_domain {
-	struct boardobj super;
-	u32 api_domain;
-	u32 part_mask;
-	u32 domain;
-	u8 perf_domain_index;
-	u8 perf_domain_grp_idx;
-	u8 ratio_domain;
-	u8 usage;
-	clkproglink *clkdomainclkproglink;
-	clkvfsearch *clkdomainclkvfsearch;
-	clkgetfpoints *clkdomainclkgetfpoints;
-};
 
 struct clk_domain_3x {
 	struct clk_domain super;

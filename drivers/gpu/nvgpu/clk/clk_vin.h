@@ -30,12 +30,6 @@
 struct vin_device;
 struct clk_pmupstate;
 
-struct avfsvinobjs {
-	struct boardobjgrp_e32 super;
-	u8 calibration_rev_vbios;
-	u8 calibration_rev_fused;
-	bool vin_is_disable_allowed;
-};
 typedef u32 vin_device_state_load(struct gk20a *g,
 			struct clk_pmupstate *clk, struct vin_device *pdev);
 
@@ -69,13 +63,6 @@ int construct_vindevice(struct gk20a *g, struct boardobj **ppboardobj,
 int vindeviceinit_pmudata_super(struct gk20a *g, struct boardobj *pboardobj,
 			struct nv_pmu_boardobj *pmudata);
 
-int clk_vin_sw_setup(struct gk20a *g);
-int clk_vin_pmu_setup(struct gk20a *g);
-int clk_avfs_get_vin_cal_fuse_v10(struct gk20a *g,
-					struct avfsvinobjs *pvinobjs,
-					struct vin_device_v20 *pvindev);
-int clk_avfs_get_vin_cal_fuse_v20(struct gk20a *g,
-					struct avfsvinobjs *pvinobjs,
-					struct vin_device_v20 *pvindev);
+struct avfsvinobjs;
 
 #endif /* NVGPU_CLK_VIN_H */

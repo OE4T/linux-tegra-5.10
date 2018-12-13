@@ -34,6 +34,7 @@
 #include <nvgpu/timers.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/clk.h>
+#include <nvgpu/pmu/clk.h>
 
 #include "clk_gv100.h"
 

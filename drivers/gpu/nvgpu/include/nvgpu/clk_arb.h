@@ -39,8 +39,6 @@ struct gk20a;
 #include <nvgpu/pmu/volt.h>
 #include <nvgpu/pmu/lpwr.h>
 
-#include "clk/clk.h"
-
 #define MAX_F_POINTS 256
 #define DEFAULT_EVENT_NUMBER 32
 

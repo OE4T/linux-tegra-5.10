@@ -36,25 +36,4 @@ enum gk20a_mclk_speed {
 	gk20a_mclk_high_speed,
 };
 
-struct clk_mclk_state {
-	u32 speed;
-	struct nvgpu_mutex mclk_lock;
-	struct nvgpu_mutex data_lock;
-
-	u16 p5_min;
-	u16 p0_min;
-
-	void *vreg_buf;
-	bool init;
-
-#ifdef CONFIG_DEBUG_FS
-	s64 switch_max;
-	s64 switch_min;
-	u64 switch_num;
-	s64 switch_avg;
-	s64 switch_std;
-	bool debugfs_set;
-#endif
-};
-
 #endif /* NVGPU_CLK_MCLK_H */

@@ -34,8 +34,6 @@
 #include "pmu_gp106.h"
 #include "acr_gp106.h"
 
-#include "clk/clk_mclk.h"
-
 #include <nvgpu/hw/gp106/hw_psec_gp106.h>
 #include <nvgpu/hw/gp106/hw_pwr_gp106.h>
 

@@ -70,15 +70,4 @@ struct clk_freq_controller_pi {
 	bool bpoison;
 };
 
-struct clk_freq_controllers {
-	struct boardobjgrp_e32 super;
-	u32 sampling_period_ms;
-	struct boardobjgrpmask_e32 freq_ctrl_load_mask;
-	u8 volt_policy_idx;
-	void *pprereq_load;
-};
-
-int clk_freq_controller_sw_setup(struct gk20a *g);
-int clk_freq_controller_pmu_setup(struct gk20a *g);
-
 #endif /* NVGPU_CLK_FREQ_CONTROLLER_H */

@@ -25,10 +25,10 @@
 #include <nvgpu/pmu.h>
 #include <nvgpu/bug.h>
 #include <nvgpu/gk20a.h>
+#include <nvgpu/pmu/clk.h>
 
-#include "clk/clk.h"
 #include "perf_gv100.h"
-#include "pmu_perf/pmu_perf.h"
+#include "pmu_perf.h"
 
 static int pmu_set_boot_clk_runcb_fn(void *arg)
 {

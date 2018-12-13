@@ -27,9 +27,8 @@
 #include <nvgpu/timers.h>
 #include <nvgpu/pmuif/ctrlclk.h>
 #include <nvgpu/pmu/pstate.h>
+#include <nvgpu/pmu/clk.h>
 
-#include "clk/clk.h"
-#include "clk/clk_domain.h"
 #include "pmu_perf.h"
 
 #include "change_seq.h"

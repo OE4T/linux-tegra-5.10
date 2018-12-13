@@ -41,8 +41,6 @@
 #include <nvgpu/pmu/volt.h>
 #include <nvgpu/pmu/lpwr.h>
 
-#include "clk/clk.h"
-
 #ifdef CONFIG_DEBUG_FS
 #include "os_linux.h"
 #endif
