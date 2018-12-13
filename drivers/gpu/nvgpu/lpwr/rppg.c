@@ -23,9 +23,9 @@
 #include <nvgpu/pmu.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/pmu/pstate.h>
+#include <nvgpu/pmu/lpwr.h>
 
 #include "gp106/bios_gp106.h"
-#include "lpwr/rppg.h"
 
 static void pmu_handle_rppg_init_msg(struct gk20a *g, struct pmu_msg *msg,
 	void *param, u32 handle, u32 status)

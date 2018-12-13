@@ -25,6 +25,7 @@
 #include <nvgpu/io.h>
 #include <nvgpu/clk_arb.h>
 #include <nvgpu/gk20a.h>
+#include <nvgpu/pmu/lpwr.h>
 
 #include "pmu_gk20a.h"
 #include "acr_gm20b.h"
@@ -34,9 +35,6 @@
 #include "acr_gp106.h"
 
 #include "clk/clk_mclk.h"
-
-#include "lpwr/lpwr.h"
-#include "lpwr/rppg.h"
 
 #include <nvgpu/hw/gp106/hw_psec_gp106.h>
 #include <nvgpu/hw/gp106/hw_pwr_gp106.h>

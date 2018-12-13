@@ -24,11 +24,11 @@
 
 #include <nvgpu/pmu/pstate.h>
 #include <nvgpu/pmu/volt.h>
+#include <nvgpu/pmu/lpwr.h>
 #include <nvgpu/pmuif/nvgpu_gpmu_cmdif.h>
 
 #include "vfe_equ.h"
 #include "vfe_var.h"
-#include "lpwr/lpwr.h"
 #include "change_seq.h"
 
 #define CTRL_PERF_VFE_VAR_TYPE_INVALID                               0x00U

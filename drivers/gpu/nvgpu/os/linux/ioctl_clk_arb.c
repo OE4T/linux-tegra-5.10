@@ -39,9 +39,9 @@
 #include <nvgpu/enabled.h>
 #include <nvgpu/pmu/pstate.h>
 #include <nvgpu/pmu/volt.h>
+#include <nvgpu/pmu/lpwr.h>
 
 #include "clk/clk.h"
-#include "lpwr/lpwr.h"
 
 #ifdef CONFIG_DEBUG_FS
 #include "os_linux.h"
