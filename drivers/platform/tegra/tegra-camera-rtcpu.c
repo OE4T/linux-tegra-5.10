@@ -54,7 +54,6 @@
 #include "rtcpu/hsp-combo.h"
 
 #include "soc/tegra/camrtc-commands.h"
-#include "soc/tegra/camrtc-ctrl-commands.h"
 #include <linux/tegra-rtcpu-coverage.h>
 
 #ifndef RTCPU_DRIVER_SM5_VERSION
@@ -442,9 +441,7 @@ static int tegra_camrtc_cmd_pm_suspend(struct device *dev, long *timeout)
 {
 	struct tegra_cam_rtcpu *rtcpu = dev_get_drvdata(dev);
 	u32 command = RTCPU_COMMAND(PM_SUSPEND, 0);
-	int expect = RTCPU_COMMAND(PM_SUSPEND,
-			(CAMRTC_PM_CTRL_STATE_SUSPEND << 8) |
-			CAMRTC_PM_CTRL_STATUS_OK);
+	int expect = RTCPU_COMMAND(PM_SUSPEND, RTCPU_PM_SUSPEND_SUCCESS);
 	int err = camrtc_hsp_command(rtcpu->hsp, command, timeout);
 
 	if (err == expect)
