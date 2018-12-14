@@ -87,7 +87,7 @@ int nvgpu_perf_change_seq_sw_setup(struct gk20a *g)
 	/*exclude MCLK, may not be needed as MCLK is already fixed */
 	perf_change_seq_pmu->super.clk_domains_exclusion_mask.super.data[0]
 		= 0x04U;
-	perf_change_seq_pmu->b_vf_point_check_ignore = true;
+	perf_change_seq_pmu->b_vf_point_check_ignore = false;
 	perf_change_seq_pmu->b_lock = false;
 	perf_change_seq_pmu->cpu_step_id_mask = 0;
 	perf_change_seq_pmu->cpu_adverised_step_id_mask = 0;
