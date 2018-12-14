@@ -1,5 +1,5 @@
 /*
- * general thermal table structures & definitions
+ * general thermal pmu control structures & definitions
  *
  * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
  *
@@ -21,15 +21,15 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef NVGPU_THERM_THRM_H
-#define NVGPU_THERM_THRM_H
+#ifndef NVGPU_PMU_THERM_H
+#define NVGPU_PMU_THERM_H
 
-#include "thrmdev.h"
-#include "thrmchannel.h"
+struct gk20a;
 
-struct therm_pmupstate {
-	struct therm_devices therm_deviceobjs;
-	struct therm_channels therm_channelobjs;
-};
+int therm_domain_sw_setup(struct gk20a *g);
+u32 therm_domain_pmu_setup(struct gk20a *g);
+int therm_pmu_init_pmupstate(struct gk20a *g);
+void therm_pmu_free_pmupstate(struct gk20a *g);
+int therm_configure_therm_alert(struct gk20a *g);
 
-#endif /* NVGPU_THERM_THRM_H */
+#endif /* NVGPU_PMU_THREM_H */

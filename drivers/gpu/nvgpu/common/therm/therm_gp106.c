@@ -22,9 +22,9 @@
 
 #include <nvgpu/io.h>
 #include <nvgpu/gk20a.h>
+#include <nvgpu/pmu/therm.h>
 
 #include "therm_gp106.h"
-#include "therm/thrmpmu.h"
 
 #include <nvgpu/hw/gp106/hw_therm_gp106.h>
 
