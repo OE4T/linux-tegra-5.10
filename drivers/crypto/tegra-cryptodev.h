@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017, NVIDIA Corporation. All Rights Reserved.
+ * Copyright (c) 2010-2018, NVIDIA Corporation. All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -172,6 +172,7 @@ struct tegra_crypt_req_32 {
 	unsigned int plaintext_sz;
 	unsigned int skip_key;
 	unsigned int skip_iv;
+	bool skip_exit;
 };
 #define TEGRA_CRYPTO_IOCTL_PROCESS_REQ_32	\
 		_IOWR(0x98, 121, struct tegra_crypt_req_32)
