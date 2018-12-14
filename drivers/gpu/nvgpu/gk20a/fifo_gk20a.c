@@ -918,6 +918,12 @@ int gk20a_init_fifo_setup_sw_common(struct gk20a *g)
 		goto clean_up;
 	}
 
+	err = gk20a_fifo_init_userd_slabs(g);
+	if (err != 0) {
+		nvgpu_err(g, "userd slabs init fail, err=%d", err);
+		goto clean_up;
+	}
+
 	nvgpu_log_fn(g, "done");
 	return 0;
 
@@ -1036,12 +1042,6 @@ int gk20a_init_fifo_setup_sw(struct gk20a *g)
 	err = gk20a_init_fifo_setup_sw_common(g);
 	if (err != 0) {
 		nvgpu_err(g, "fail: err: %d", err);
-		return err;
-	}
-
-	err = gk20a_fifo_init_userd_slabs(g);
-	if (err != 0) {
-		nvgpu_err(g, "userd slabs init fail, err=%d", err);
 		return err;
 	}
 
