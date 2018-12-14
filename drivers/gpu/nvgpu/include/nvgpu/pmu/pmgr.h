@@ -21,17 +21,20 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef NVGPU_PMGR_PMGR_H
-#define NVGPU_PMGR_PMGR_H
+#ifndef NVGPU_PMU_PMGR_H
+#define NVGPU_PMU_PMGR_H
 
-#include "pwrdev.h"
-#include "pwrmonitor.h"
-#include "pwrpolicy.h"
+#include <nvgpu/types.h>
 
-struct pmgr_pmupstate {
-	struct pwr_devices pmgr_deviceobjs;
-	struct pmgr_pwr_monitor pmgr_monitorobjs;
-	struct pmgr_pwr_policy pmgr_policyobjs;
-};
+struct gk20a;
 
-#endif /* NVGPU_PMGR_PMGR_H */
+int pmgr_pwr_devices_get_current(struct gk20a *g, u32 *val);
+int pmgr_pwr_devices_get_voltage(struct gk20a *g, u32 *val);
+int pmgr_pwr_devices_get_power(struct gk20a *g, u32 *val);
+int pmgr_domain_sw_setup(struct gk20a *g);
+int pmgr_domain_pmu_setup(struct gk20a *g);
+int pmgr_pmu_init_pmupstate(struct gk20a *g);
+void pmgr_pmu_free_pmupstate(struct gk20a *g);
+
+
+#endif /* NVGPU_PMU_PMGR_H */
