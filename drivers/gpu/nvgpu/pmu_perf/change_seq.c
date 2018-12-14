@@ -28,6 +28,7 @@
 #include <nvgpu/pmuif/ctrlclk.h>
 #include <nvgpu/pmu/pstate.h>
 #include <nvgpu/pmu/clk.h>
+#include <nvgpu/pmu/perf.h>
 
 #include "pmu_perf.h"
 

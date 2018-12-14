@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -19,17 +19,8 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef NVGPU_PERF_H
-#define NVGPU_PERF_H
-
-#include <nvgpu/pmu/pstate.h>
-#include <nvgpu/pmu/volt.h>
-#include <nvgpu/pmu/lpwr.h>
-#include <nvgpu/pmuif/nvgpu_gpmu_cmdif.h>
-
-#include "vfe_equ.h"
-#include "vfe_var.h"
-#include "change_seq.h"
+#ifndef NVGPU_PMU_PERF_PERF_H
+#define NVGPU_PMU_PERF_PERF_H
 
 #define CTRL_PERF_VFE_VAR_TYPE_INVALID                               0x00U
 #define CTRL_PERF_VFE_VAR_TYPE_DERIVED                               0x01U
@@ -72,26 +63,4 @@
 #define CTRL_PERF_VFE_EQU_COMPARE_FUNCTION_GREATER_EQ                0x01U
 #define CTRL_PERF_VFE_EQU_COMPARE_FUNCTION_GREATER                   0x02U
 
-struct gk20a;
-
-struct nvgpu_vfe_invalidate {
-	bool state_change;
-	struct nvgpu_cond wq;
-	struct nvgpu_thread state_task;
-};
-
-struct perf_pmupstate {
-	struct vfe_vars vfe_varobjs;
-	struct vfe_equs vfe_equobjs;
-	struct pstates pstatesobjs;
-	struct obj_volt volt;
-	struct obj_lwpr lpwr;
-	struct nvgpu_vfe_invalidate vfe_init;
-	struct change_seq_pmu changeseq_pmu;
-};
-
-int perf_pmu_init_pmupstate(struct gk20a *g);
-void perf_pmu_free_pmupstate(struct gk20a *g);
-int perf_pmu_vfe_load(struct gk20a *g);
-
-#endif /* NVGPU_PERF_H */
+#endif /* NVGPU_PMU_PERF_PERF_H */

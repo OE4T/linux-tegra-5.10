@@ -28,9 +28,7 @@
 #include <nvgpu/pmu/clk.h>
 #include <nvgpu/pmu/pmgr.h>
 #include <nvgpu/pmu/therm.h>
-
-#include "pmu_perf/pmu_perf.h"
-#include "pmu_perf/change_seq.h"
+#include <nvgpu/pmu/perf.h>
 
 #include "pstate.h"
 

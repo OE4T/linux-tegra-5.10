@@ -26,8 +26,8 @@
 #include <nvgpu/boardobjgrp_e32.h>
 #include <nvgpu/string.h>
 #include <nvgpu/pmuif/ctrlvolt.h>
+#include <nvgpu/pmu/perf.h>
 
-#include "pmu_perf/pmu_perf.h"
 #include "gp106/bios_gp106.h"
 
 #include "volt.h"

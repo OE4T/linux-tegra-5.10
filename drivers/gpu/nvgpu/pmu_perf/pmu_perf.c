@@ -24,6 +24,7 @@
 #include <nvgpu/pmu.h>
 #include <nvgpu/clk_arb.h>
 #include <nvgpu/gk20a.h>
+#include <nvgpu/pmu/perf.h>
 
 #include "pmu_perf.h"
 

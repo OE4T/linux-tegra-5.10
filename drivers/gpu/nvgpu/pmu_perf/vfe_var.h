@@ -28,9 +28,6 @@
 #include <nvgpu/boardobjgrp_e255.h>
 #include <nvgpu/pmuif/nvgpu_gpmu_cmdif.h>
 
-int vfe_var_sw_setup(struct gk20a *g);
-int vfe_var_pmu_setup(struct gk20a *g);
-
 #define VFE_VAR_GET(_pperf, _idx)                                              \
 	((struct vfe_var)BOARDOBJGRP_OBJ_GET_BY_IDX(                           \
 	&((_pperf)->vfe.vars.super.super), (_idx)))
@@ -46,11 +43,6 @@ struct vfe_var {
 	struct boardobjgrpmask_e255 mask_dependent_equs;
 	bool b_is_dynamic_valid;
 	bool b_is_dynamic;
-};
-
-struct vfe_vars {
-	struct boardobjgrp_e32 super;
-	u8 polling_periodms;
 };
 
 struct vfe_var_derived {

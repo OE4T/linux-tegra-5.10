@@ -28,9 +28,6 @@
 #include "vfe_var.h"
 #include <nvgpu/pmuif/nvgpu_gpmu_cmdif.h>
 
-int vfe_equ_sw_setup(struct gk20a *g);
-int vfe_equ_pmu_setup(struct gk20a *g);
-
 #define VFE_EQU_GET(_pperf, _idx)                                              \
 	((struct vfe_equ *)BOARDOBJGRP_OBJ_GET_BY_IDX(                         \
 		&((_pperf)->vfe.equs.super.super), (_idx)))
@@ -55,10 +52,6 @@ struct vfe_equ {
 
 	bool b_is_dynamic_valid;
 	bool b_is_dynamic;
-};
-
-struct vfe_equs {
-	struct boardobjgrp_e255 super;
 };
 
 struct vfe_equ_compare {

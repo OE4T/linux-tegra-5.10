@@ -28,6 +28,7 @@
 #include <nvgpu/pmuif/ctrlclk.h>
 #include <nvgpu/pmuif/ctrlvolt.h>
 #include <nvgpu/pmuif/ctrlperf.h>
+#include <nvgpu/pmu/perf.h>
 
 #include "pmu_perf.h"
 #include "vfe_var.h"

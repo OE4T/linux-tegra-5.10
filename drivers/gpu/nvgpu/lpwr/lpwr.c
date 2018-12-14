@@ -26,9 +26,9 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/string.h>
 #include <nvgpu/pmu/pstate.h>
+#include <nvgpu/pmu/perf.h>
 
 #include "gp106/bios_gp106.h"
-#include "pmu_perf/pmu_perf.h"
 #include "lpwr.h"
 
 static int get_lpwr_idx_table(struct gk20a *g)

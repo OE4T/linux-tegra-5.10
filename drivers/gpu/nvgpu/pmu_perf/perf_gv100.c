@@ -26,6 +26,7 @@
 #include <nvgpu/bug.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/pmu/clk.h>
+#include <nvgpu/pmu/perf.h>
 
 #include "perf_gv100.h"
 #include "pmu_perf.h"
