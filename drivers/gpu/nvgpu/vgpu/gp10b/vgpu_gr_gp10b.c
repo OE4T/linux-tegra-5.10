@@ -34,22 +34,6 @@
 
 #include <nvgpu/hw/gp10b/hw_gr_gp10b.h>
 
-int vgpu_gr_gp10b_alloc_gr_ctx(struct gk20a *g,
-				struct nvgpu_gr_ctx *gr_ctx,
-				struct vm_gk20a *vm)
-{
-	int err;
-
-	nvgpu_log_fn(g, " ");
-
-	err = vgpu_gr_alloc_gr_ctx(g, gr_ctx, vm);
-	if (err)
-		return err;
-
-	nvgpu_log_fn(g, "done");
-	return 0;
-}
-
 int vgpu_gr_gp10b_init_ctxsw_preemption_mode(struct gk20a *g,
 				struct nvgpu_gr_ctx *gr_ctx,
 				struct vm_gk20a *vm,

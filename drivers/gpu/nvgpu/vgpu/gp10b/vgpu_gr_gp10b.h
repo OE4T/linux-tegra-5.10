@@ -30,9 +30,6 @@ struct nvgpu_gr_ctx;
 struct vm_gk20a;
 struct channel_gk20a;
 
-int vgpu_gr_gp10b_alloc_gr_ctx(struct gk20a *g,
-				struct nvgpu_gr_ctx *gr_ctx,
-				struct vm_gk20a *vm);
 int vgpu_gr_gp10b_init_ctxsw_preemption_mode(struct gk20a *g,
 				struct nvgpu_gr_ctx *gr_ctx,
 				struct vm_gk20a *vm,
