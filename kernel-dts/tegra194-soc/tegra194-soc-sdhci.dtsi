@@ -28,7 +28,7 @@
 	};
 
 	sdmmc4: sdhci@3460000 { /* Used for eMMC */
-		compatible = "nvidia,tegra194-sdhci";
+		compatible = "nvidia,tegra194-sdhci", "nvidia,tegra186-sdhci";
 		reg = <0x0 0x3460000 0x0 0x00020000>;
 		interrupts = < 0 TEGRA194_IRQ_SDMMC4 0x04>;
 		iommus = <&smmu TEGRA_SID_SDMMC4A>;
@@ -64,7 +64,7 @@
 	};
 
 	sdmmc3: sdhci@3440000 {
-		compatible = "nvidia,tegra194-sdhci";
+		compatible = "nvidia,tegra194-sdhci", "nvidia,tegra186-sdhci";
 		reg = <0x0 0x3440000 0x0 0x00020000>;
 		interrupts = < 0 TEGRA194_IRQ_SDMMC3 0x04>;
 		iommus = <&smmu TEGRA_SID_SDMMC3A>;
@@ -103,7 +103,7 @@
 	 };
 
 	sdmmc1: sdhci@3400000 {
-		compatible = "nvidia,tegra194-sdhci";
+		compatible = "nvidia,tegra194-sdhci", "nvidia,tegra186-sdhci";
 		reg = <0x0 0x3400000 0x0 0x00020000>;
 		interrupts = < 0 TEGRA194_IRQ_SDMMC1 0x04>;
 		iommus = <&smmu TEGRA_SID_SDMMC1A>;
