@@ -56,8 +56,11 @@ enum apm_mbx_cmd {
  * a input fetch request is pending. Usually a one shot mode ADMA
  * fetches input data when required and signals event to wake up APM.
  */
-#define NVFX_APM_INPUT_MODE_PUSH	0
-#define NVFX_APM_INPUT_MODE_PULL	1
+enum {
+	NVFX_APM_INPUT_MODE_PUSH = 0,
+	NVFX_APM_INPUT_MODE_PULL,
+	NVFX_APM_INPUT_MODE_MAX = NVFX_APM_INPUT_MODE_PULL,
+};
 
 enum {
 	/* NVFX APM params */

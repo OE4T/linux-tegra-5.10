@@ -808,6 +808,32 @@ static int tegra210_adsp_send_data_request_msg(struct tegra210_adsp_app *app,
 	return tegra210_adsp_send_msg(app, &apm_msg, flags);
 }
 
+static int tegra210_adsp_send_app_priority(struct tegra210_adsp_app *app)
+{
+	apm_msg_t msg;
+
+	msg.msgq_msg.size = MSGQ_MSG_WSIZE(apm_set_priority_params_t);
+	msg.msg.call_params.size = sizeof(apm_set_priority_params_t);
+	msg.msg.call_params.method = nvfx_apm_method_set_priority;
+	msg.msg.priority_params.priority = app->priority;
+
+	return tegra210_adsp_send_msg(app, &msg, TEGRA210_ADSP_MSG_FLAG_SEND |
+				      TEGRA210_ADSP_MSG_FLAG_NEED_ACK);
+}
+
+static int tegra210_adsp_send_app_inputmode(struct tegra210_adsp_app *app)
+{
+	apm_msg_t msg;
+
+	msg.msgq_msg.size = MSGQ_MSG_WSIZE(apm_set_input_mode_params_t);
+	msg.msg.call_params.size = sizeof(apm_set_input_mode_params_t);
+	msg.msg.call_params.method = nvfx_apm_method_set_input_mode;
+	msg.msg.input_mode_params.mode = app->input_mode;
+
+	return tegra210_adsp_send_msg(app, &msg, TEGRA210_ADSP_MSG_FLAG_SEND |
+				      TEGRA210_ADSP_MSG_FLAG_NEED_ACK);
+}
+
 /* ADSP app init/de-init APIs */
 static int tegra210_adsp_app_init(struct tegra210_adsp *adsp,
 				struct tegra210_adsp_app *app)
@@ -876,6 +902,18 @@ static int tegra210_adsp_app_init(struct tegra210_adsp *adsp,
 		apm_out->adsp = app->adsp;
 		apm_out->apm_mbox = app->apm_mbox;
 		apm_out->msg_complete = app->msg_complete;
+
+		ret = tegra210_adsp_send_app_priority(app);
+		if (ret < 0) {
+			dev_err(adsp->dev, "Failed to send app priority!\n");
+			goto err_mbox_close;
+		}
+
+		ret = tegra210_adsp_send_app_inputmode(app);
+		if (ret < 0) {
+			dev_err(adsp->dev, "Failed to send app input mode!\n");
+			goto err_mbox_close;
+		}
 	} else if (IS_ADMA(app->reg)) {
 		app->adma_chan = find_first_zero_bit(adsp->adma_usage,
 					adsp->adma_ch_cnt);
@@ -5015,14 +5053,7 @@ static int tegra210_adsp_apm_put(struct snd_kcontrol *kcontrol,
 	struct snd_soc_component *cmpnt = snd_soc_kcontrol_component(kcontrol);
 	struct tegra210_adsp *adsp = snd_soc_component_get_drvdata(cmpnt);
 	struct tegra210_adsp_app *app = &adsp->apps[mc->reg];
-	apm_msg_t apm_msg;
-	bool send_msg = 0;
 	int ret = 0;
-
-	if (!adsp->init_done || adsp->is_shutdown) {
-		dev_warn(adsp->dev, "ADSP is not booted yet\n");
-		return -EPERM;
-	}
 
 	/* Controls here may execute whether or not APM is initialized */
 	if (strstr(kcontrol->id.name, "Min ADSP Clock")) {
@@ -5036,45 +5067,28 @@ static int tegra210_adsp_apm_put(struct snd_kcontrol *kcontrol,
 		return 0;
 	}
 
-	/* Check for APM initialized */
-	if (!app->plugin) {
-		dev_warn(adsp->dev, "Unable to set %s, APM %d not initialized\n",
-			kcontrol->id.name, mc->reg);
-		return -EPERM;
-	}
-
-	if (strstr(kcontrol->id.name, "Priority")) {
-		apm_msg.msgq_msg.size = MSGQ_MSG_WSIZE(apm_set_priority_params_t);
-		apm_msg.msg.call_params.size = sizeof(apm_set_priority_params_t);
-		apm_msg.msg.call_params.method = nvfx_apm_method_set_priority;
-		apm_msg.msg.priority_params.priority =
-			ucontrol->value.integer.value[0];
+	if (strstr(kcontrol->id.name, "Priority"))
 		app->priority = ucontrol->value.integer.value[0];
-		send_msg = true;
-	} else if (strstr(kcontrol->id.name, "Input Mode")) {
-		apm_msg.msgq_msg.size =
-			MSGQ_MSG_WSIZE(apm_set_input_mode_params_t);
-		apm_msg.msg.call_params.size =
-			sizeof(apm_set_input_mode_params_t);
-		apm_msg.msg.call_params.method = nvfx_apm_method_set_input_mode;
-		apm_msg.msg.input_mode_params.mode =
-			ucontrol->value.integer.value[0];
+	else if (strstr(kcontrol->id.name, "Input Mode"))
 		app->input_mode = ucontrol->value.integer.value[0];
-		send_msg = true;
+
+	if (!adsp->init_done || adsp->is_shutdown || !app->plugin)
+		return 0;
+
+	ret = pm_runtime_get_sync(adsp->dev);
+	if (ret < 0) {
+		dev_err(adsp->dev, "%s pm_runtime_get_sync error 0x%x\n",
+			__func__, ret);
+		return ret;
 	}
 
-	if (send_msg) {
-		ret = pm_runtime_get_sync(adsp->dev);
-		if (ret < 0) {
-			dev_err(adsp->dev, "%s pm_runtime_get_sync error 0x%x\n",
-				__func__, ret);
-			return ret;
-		}
-		ret = tegra210_adsp_send_msg(app, &apm_msg,
-				TEGRA210_ADSP_MSG_FLAG_SEND |
-				TEGRA210_ADSP_MSG_FLAG_NEED_ACK);
-		pm_runtime_put(adsp->dev);
-	}
+	if (strstr(kcontrol->id.name, "Priority"))
+		ret = tegra210_adsp_send_app_priority(app);
+	else if (strstr(kcontrol->id.name, "Input Mode"))
+		ret = tegra210_adsp_send_app_inputmode(app);
+
+	pm_runtime_put(adsp->dev);
+
 
 	return ret;
 }
@@ -5483,7 +5497,7 @@ static int tegra210_adsp_audio_platform_probe(struct platform_device *pdev)
 
 	for (i = 0; i < TEGRA210_ADSP_VIRT_REG_MAX; i++) {
 		adsp->apps[i].reg = i;
-		adsp->apps[i].priority = 0;
+		adsp->apps[i].priority = APM_PRIORITY_DEFAULT;
 		adsp->apps[i].min_adsp_clock = 0;
 		adsp->apps[i].secure_mode = false;
 		adsp->apps[i].input_mode = NVFX_APM_INPUT_MODE_PUSH;
