@@ -361,6 +361,69 @@ done:
 	return status;
 }
 
+int clk_pmu_clk_domains_load(struct gk20a *g)
+{
+	struct pmu_cmd cmd;
+	struct pmu_payload payload;
+	struct nv_pmu_clk_rpc rpccall;
+	struct clkrpc_pmucmdhandler_params handler;
+	struct nv_pmu_clk_load *clkload;
+	int status;
+	u32 seqdesc;
+
+	(void) memset(&payload, 0, sizeof(struct pmu_payload));
+	(void) memset(&rpccall, 0, sizeof(struct nv_pmu_clk_rpc));
+	(void) memset(&handler, 0, sizeof(struct clkrpc_pmucmdhandler_params));
+
+	rpccall.function = NV_PMU_CLK_RPC_ID_LOAD;
+	clkload = &rpccall.params.clk_load;
+	clkload->feature = NV_NV_PMU_CLK_LOAD_FEATURE_CLK_DOMAIN;
+
+	cmd.hdr.unit_id = PMU_UNIT_CLK;
+	cmd.hdr.size =  (u32)sizeof(struct nv_pmu_clk_cmd) +
+			(u32)sizeof(struct pmu_hdr);
+
+	cmd.cmd.clk.cmd_type = NV_PMU_CLK_CMD_ID_RPC;
+	cmd.cmd.clk.generic.b_perf_daemon_cmd = false;
+
+	payload.in.buf = (u8 *)&rpccall;
+	payload.in.size = (u32)sizeof(struct nv_pmu_clk_rpc);
+	payload.in.fb_size = PMU_CMD_SUBMIT_PAYLOAD_PARAMS_FB_SIZE_UNUSED;
+	nvgpu_assert(NV_PMU_CLK_CMD_RPC_ALLOC_OFFSET < U64(U32_MAX));
+	payload.in.offset = (u32)NV_PMU_CLK_CMD_RPC_ALLOC_OFFSET;
+
+	payload.out.buf = (u8 *)&rpccall;
+	payload.out.size = (u32)sizeof(struct nv_pmu_clk_rpc);
+	payload.out.fb_size = PMU_CMD_SUBMIT_PAYLOAD_PARAMS_FB_SIZE_UNUSED;
+	nvgpu_assert(NV_PMU_CLK_MSG_RPC_ALLOC_OFFSET < U64(U32_MAX));
+	payload.out.offset = (u32)NV_PMU_CLK_MSG_RPC_ALLOC_OFFSET;
+
+	handler.prpccall = &rpccall;
+	handler.success = 0;
+	status = nvgpu_pmu_cmd_post(g, &cmd, NULL, &payload,
+			PMU_COMMAND_QUEUE_LPQ,
+			clkrpc_pmucmdhandler, (void *)&handler,
+			&seqdesc);
+
+	if (status != 0) {
+		nvgpu_err(g, "unable to post clk RPC cmd %x",
+			cmd.cmd.clk.cmd_type);
+		goto done;
+	}
+
+	(void) pmu_wait_message_cond(&g->pmu,
+			gk20a_get_gr_idle_timeout(g),
+			&handler.success, 1);
+
+	if (handler.success == 0U) {
+		nvgpu_err(g, "rpc call to load clk_domains cal failed");
+		status = -EINVAL;
+	}
+
+done:
+	return status;
+}
+
 u32 nvgpu_clk_vf_change_inject_data_fill_gp10x(struct gk20a *g,
 	struct nv_pmu_clk_rpc *rpccall,
 	struct set_fll_clk *setfllclk)
@@ -982,7 +1045,6 @@ int nvgpu_clk_set_boot_fll_clk_tu10x(struct gk20a *g)
 
 	return status;
 }
-
 
 int clk_domain_get_f_or_v(
 	struct gk20a *g,

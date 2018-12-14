@@ -124,6 +124,7 @@ struct vbios_clocks_table_1x_hal_clock_entry {
 int clk_init_pmupstate(struct gk20a *g);
 void clk_free_pmupstate(struct gk20a *g);
 int clk_pmu_vin_load(struct gk20a *g);
+int clk_pmu_clk_domains_load(struct gk20a *g);
 int clk_domain_print_vf_table(struct gk20a *g, u32 clkapidomain);
 int clk_domain_get_f_or_v(
 	struct gk20a *g,

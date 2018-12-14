@@ -433,6 +433,7 @@ struct nv_pmu_clk_vf_change_inject_v1 {
 	struct nv_pmu_volt_volt_rail_list_v1 volt_list;
 };
 
+#define NV_NV_PMU_CLK_LOAD_FEATURE_CLK_DOMAIN                      (0x00000005U)
 #define NV_NV_PMU_CLK_LOAD_FEATURE_VIN                             (0x00000002U)
 #define NV_NV_PMU_CLK_LOAD_ACTION_MASK_VIN_HW_CAL_PROGRAM_YES      (0x00000001U)
 
