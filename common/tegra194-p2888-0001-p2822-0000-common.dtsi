@@ -33,7 +33,7 @@
 	compatible = "nvidia,galen", "nvidia,tegra194";
 
 	chosen {
-		bootargs ="console=ttyTCU0,115200";
+		bootargs ="console=ttyTCU0,115200 mem=62G@2G";
 		board-has-eeprom;
 	};
 
