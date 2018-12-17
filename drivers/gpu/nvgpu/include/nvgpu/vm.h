@@ -295,16 +295,16 @@ int nvgpu_insert_mapped_buf(struct vm_gk20a *vm,
 /*
  * Initialize a preallocated vm
  */
-int __nvgpu_vm_init(struct mm_gk20a *mm,
-			   struct vm_gk20a *vm,
-			   u32 big_page_size,
-			   u64 low_hole,
-			   u64 kernel_reserved,
-			   u64 aperture_size,
-			   bool big_pages,
-			   bool userspace_managed,
-			   bool unified_va,
-			   const char *name);
+int nvgpu_vm_do_init(struct mm_gk20a *mm,
+		     struct vm_gk20a *vm,
+		     u32 big_page_size,
+		     u64 low_hole,
+		     u64 kernel_reserved,
+		     u64 aperture_size,
+		     bool big_pages,
+		     bool userspace_managed,
+		     bool unified_va,
+		     const char *name);
 
 struct vm_gk20a *nvgpu_vm_init(struct gk20a *g,
 			       u32 big_page_size,
