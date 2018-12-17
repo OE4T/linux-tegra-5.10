@@ -821,7 +821,7 @@ u64 gk20a_locked_gmmu_map(struct vm_gk20a *vm,
 	 * GPU VA range. This facilitates fixed mappings.
 	 */
 	if (vaddr == 0ULL) {
-		vaddr = __nvgpu_vm_alloc_va(vm, size, pgsz_idx);
+		vaddr = nvgpu_vm_alloc_va(vm, size, pgsz_idx);
 		if (vaddr == 0ULL) {
 			nvgpu_err(g, "failed to allocate va space");
 			err = -ENOMEM;
@@ -847,7 +847,7 @@ u64 gk20a_locked_gmmu_map(struct vm_gk20a *vm,
 
 fail_validate:
 	if (allocated) {
-		__nvgpu_vm_free_va(vm, vaddr, pgsz_idx);
+		nvgpu_vm_free_va(vm, vaddr, pgsz_idx);
 	}
 fail_alloc:
 	nvgpu_err(g, "%s: failed with err=%d", __func__, err);
@@ -879,7 +879,7 @@ void gk20a_locked_gmmu_unmap(struct vm_gk20a *vm,
 	};
 
 	if (va_allocated) {
-		__nvgpu_vm_free_va(vm, vaddr, pgsz_idx);
+		nvgpu_vm_free_va(vm, vaddr, pgsz_idx);
 	}
 
 	/* unmap here needs to know the page size we assigned at mapping */

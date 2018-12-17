@@ -324,9 +324,7 @@ struct vm_gk20a *nvgpu_vm_init(struct gk20a *g,
  * Ideally the RM server can just batch mappings but until such a time this
  * will be used by the vgpu code.
  */
-u64 __nvgpu_vm_alloc_va(struct vm_gk20a *vm, u64 size,
-				u32 pgsz_idx);
-void __nvgpu_vm_free_va(struct vm_gk20a *vm, u64 addr,
-				u32 pgsz_idx);
+u64 nvgpu_vm_alloc_va(struct vm_gk20a *vm, u64 size, u32 pgsz_idx);
+void nvgpu_vm_free_va(struct vm_gk20a *vm, u64 addr, u32 pgsz_idx);
 
 #endif /* NVGPU_VM_H */

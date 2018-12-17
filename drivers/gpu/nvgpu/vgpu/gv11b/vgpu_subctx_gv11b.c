@@ -39,7 +39,7 @@ int vgpu_gv11b_alloc_subctx_header(struct channel_gk20a *c)
 	msg.cmd = TEGRA_VGPU_CMD_ALLOC_CTX_HEADER;
 	msg.handle = vgpu_get_handle(c->g);
 	p->ch_handle = c->virt_ctx;
-	p->ctx_header_va = __nvgpu_vm_alloc_va(c->vm,
+	p->ctx_header_va = nvgpu_vm_alloc_va(c->vm,
 			c->g->ops.gr.ctxsw_prog.hw_get_fecs_header_size(),
 			GMMU_PAGE_SIZE_KERNEL);
 	if (!p->ctx_header_va) {
@@ -50,7 +50,7 @@ int vgpu_gv11b_alloc_subctx_header(struct channel_gk20a *c)
 	err = err ? err : msg.ret;
 	if (unlikely(err)) {
 		nvgpu_err(c->g, "alloc ctx_header failed err %d", err);
-		__nvgpu_vm_free_va(c->vm, p->ctx_header_va,
+		nvgpu_vm_free_va(c->vm, p->ctx_header_va,
 			GMMU_PAGE_SIZE_KERNEL);
 		return err;
 	}
@@ -75,8 +75,8 @@ void vgpu_gv11b_free_subctx_header(struct channel_gk20a *c)
 		err = err ? err : msg.ret;
 		if (unlikely(err))
 			nvgpu_err(c->g, "free ctx_header failed err %d", err);
-		__nvgpu_vm_free_va(c->vm, ctxheader->gpu_va,
-				GMMU_PAGE_SIZE_KERNEL);
+		nvgpu_vm_free_va(c->vm, ctxheader->gpu_va,
+				 GMMU_PAGE_SIZE_KERNEL);
 		ctxheader->gpu_va = 0;
 	}
 }

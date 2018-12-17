@@ -124,8 +124,7 @@ static void nvgpu_vm_free_entries(struct vm_gk20a *vm,
 	pdb->entries = NULL;
 }
 
-u64 __nvgpu_vm_alloc_va(struct vm_gk20a *vm, u64 size, u32 pgsz_idx)
-
+u64 nvgpu_vm_alloc_va(struct vm_gk20a *vm, u64 size, u32 pgsz_idx)
 {
 	struct gk20a *g = vm->mm->g;
 	struct nvgpu_allocator *vma = NULL;
@@ -161,7 +160,7 @@ u64 __nvgpu_vm_alloc_va(struct vm_gk20a *vm, u64 size, u32 pgsz_idx)
 	return addr;
 }
 
-void __nvgpu_vm_free_va(struct vm_gk20a *vm, u64 addr, u32 pgsz_idx)
+void nvgpu_vm_free_va(struct vm_gk20a *vm, u64 addr, u32 pgsz_idx)
 {
 	struct nvgpu_allocator *vma = vm->vma[pgsz_idx];
 

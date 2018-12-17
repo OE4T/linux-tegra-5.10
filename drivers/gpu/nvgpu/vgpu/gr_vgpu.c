@@ -190,7 +190,7 @@ static int vgpu_gr_map_global_ctx_buffers(struct gk20a *g,
 	g_bfr_size = tsg->gr_ctx->global_ctx_buffer_size;
 
 	/* Circular Buffer */
-	gpu_va = __nvgpu_vm_alloc_va(ch_vm,
+	gpu_va = nvgpu_vm_alloc_va(ch_vm,
 			gr->global_ctx_buffer[CIRCULAR].mem.size,
 			GMMU_PAGE_SIZE_KERNEL);
 
@@ -200,7 +200,7 @@ static int vgpu_gr_map_global_ctx_buffers(struct gk20a *g,
 	g_bfr_size[CIRCULAR_VA] = gr->global_ctx_buffer[CIRCULAR].mem.size;
 
 	/* Attribute Buffer */
-	gpu_va = __nvgpu_vm_alloc_va(ch_vm,
+	gpu_va = nvgpu_vm_alloc_va(ch_vm,
 			gr->global_ctx_buffer[ATTRIBUTE].mem.size,
 			GMMU_PAGE_SIZE_KERNEL);
 
@@ -210,7 +210,7 @@ static int vgpu_gr_map_global_ctx_buffers(struct gk20a *g,
 	g_bfr_size[ATTRIBUTE_VA] = gr->global_ctx_buffer[ATTRIBUTE].mem.size;
 
 	/* Page Pool */
-	gpu_va = __nvgpu_vm_alloc_va(ch_vm,
+	gpu_va = nvgpu_vm_alloc_va(ch_vm,
 			gr->global_ctx_buffer[PAGEPOOL].mem.size,
 			GMMU_PAGE_SIZE_KERNEL);
 	if (!gpu_va)
@@ -219,7 +219,7 @@ static int vgpu_gr_map_global_ctx_buffers(struct gk20a *g,
 	g_bfr_size[PAGEPOOL_VA] = gr->global_ctx_buffer[PAGEPOOL].mem.size;
 
 	/* Priv register Access Map */
-	gpu_va = __nvgpu_vm_alloc_va(ch_vm,
+	gpu_va = nvgpu_vm_alloc_va(ch_vm,
 			gr->global_ctx_buffer[PRIV_ACCESS_MAP].mem.size,
 			GMMU_PAGE_SIZE_KERNEL);
 	if (!gpu_va)
@@ -230,7 +230,7 @@ static int vgpu_gr_map_global_ctx_buffers(struct gk20a *g,
 
 	/* FECS trace Buffer */
 #ifdef CONFIG_GK20A_CTXSW_TRACE
-	gpu_va = __nvgpu_vm_alloc_va(ch_vm,
+	gpu_va = nvgpu_vm_alloc_va(ch_vm,
 		gr->global_ctx_buffer[FECS_TRACE_BUFFER].mem.size,
 		GMMU_PAGE_SIZE_KERNEL);
 
@@ -261,8 +261,8 @@ static int vgpu_gr_map_global_ctx_buffers(struct gk20a *g,
  clean_up:
 	for (i = 0; i < NR_GLOBAL_CTX_BUF_VA; i++) {
 		if (g_bfr_va[i]) {
-			__nvgpu_vm_free_va(ch_vm, g_bfr_va[i],
-					   GMMU_PAGE_SIZE_KERNEL);
+			nvgpu_vm_free_va(ch_vm, g_bfr_va[i],
+					 GMMU_PAGE_SIZE_KERNEL);
 			g_bfr_va[i] = 0;
 		}
 	}
@@ -284,8 +284,8 @@ static void vgpu_gr_unmap_global_ctx_buffers(struct tsg_gk20a *tsg)
 
 		for (i = 0; i < NR_GLOBAL_CTX_BUF_VA; i++) {
 			if (g_bfr_va[i]) {
-				__nvgpu_vm_free_va(ch_vm, g_bfr_va[i],
-						   GMMU_PAGE_SIZE_KERNEL);
+				nvgpu_vm_free_va(ch_vm, g_bfr_va[i],
+						 GMMU_PAGE_SIZE_KERNEL);
 				g_bfr_va[i] = 0;
 				g_bfr_size[i] = 0;
 			}
@@ -313,9 +313,9 @@ int vgpu_gr_alloc_gr_ctx(struct gk20a *g,
 	gr->ctx_vars.buffer_size = gr->ctx_vars.golden_image_size;
 	gr->ctx_vars.buffer_total_size = gr->ctx_vars.golden_image_size;
 
-	gr_ctx->mem.gpu_va = __nvgpu_vm_alloc_va(vm,
-						gr->ctx_vars.buffer_total_size,
-						GMMU_PAGE_SIZE_KERNEL);
+	gr_ctx->mem.gpu_va = nvgpu_vm_alloc_va(vm,
+					       gr->ctx_vars.buffer_total_size,
+					       GMMU_PAGE_SIZE_KERNEL);
 
 	if (!gr_ctx->mem.gpu_va)
 		return -ENOMEM;
@@ -332,8 +332,8 @@ int vgpu_gr_alloc_gr_ctx(struct gk20a *g,
 
 	if (unlikely(err)) {
 		nvgpu_err(g, "fail to alloc gr_ctx");
-		__nvgpu_vm_free_va(vm, gr_ctx->mem.gpu_va,
-				   GMMU_PAGE_SIZE_KERNEL);
+		nvgpu_vm_free_va(vm, gr_ctx->mem.gpu_va,
+				 GMMU_PAGE_SIZE_KERNEL);
 		gr_ctx->mem.aperture = APERTURE_INVALID;
 	}
 
@@ -358,9 +358,9 @@ static int vgpu_gr_alloc_channel_patch_ctx(struct gk20a *g,
 
 	patch_ctx = &tsg->gr_ctx->patch_ctx;
 	patch_ctx->mem.size = 128 * sizeof(u32);
-	patch_ctx->mem.gpu_va = __nvgpu_vm_alloc_va(ch_vm,
-						patch_ctx->mem.size,
-						GMMU_PAGE_SIZE_KERNEL);
+	patch_ctx->mem.gpu_va = nvgpu_vm_alloc_va(ch_vm,
+						  patch_ctx->mem.size,
+						  GMMU_PAGE_SIZE_KERNEL);
 	if (!patch_ctx->mem.gpu_va)
 		return -ENOMEM;
 
@@ -370,8 +370,8 @@ static int vgpu_gr_alloc_channel_patch_ctx(struct gk20a *g,
 	p->patch_ctx_va = patch_ctx->mem.gpu_va;
 	err = vgpu_comm_sendrecv(&msg, sizeof(msg), sizeof(msg));
 	if (err || msg.ret) {
-		__nvgpu_vm_free_va(ch_vm, patch_ctx->mem.gpu_va,
-				   GMMU_PAGE_SIZE_KERNEL);
+		nvgpu_vm_free_va(ch_vm, patch_ctx->mem.gpu_va,
+				 GMMU_PAGE_SIZE_KERNEL);
 		err = -ENOMEM;
 	}
 
@@ -388,8 +388,8 @@ static void vgpu_gr_free_channel_patch_ctx(struct tsg_gk20a *tsg)
 	if (patch_ctx->mem.gpu_va) {
 		/* server will free on channel close */
 
-		__nvgpu_vm_free_va(tsg->vm, patch_ctx->mem.gpu_va,
-				   GMMU_PAGE_SIZE_KERNEL);
+		nvgpu_vm_free_va(tsg->vm, patch_ctx->mem.gpu_va,
+				 GMMU_PAGE_SIZE_KERNEL);
 		patch_ctx->mem.gpu_va = 0;
 	}
 }
@@ -408,8 +408,8 @@ static void vgpu_gr_free_channel_pm_ctx(struct tsg_gk20a *tsg)
 
 	/* server will free on channel close */
 
-	__nvgpu_vm_free_va(tsg->vm, pm_ctx->mem.gpu_va,
-			   GMMU_PAGE_SIZE_KERNEL);
+	nvgpu_vm_free_va(tsg->vm, pm_ctx->mem.gpu_va,
+			 GMMU_PAGE_SIZE_KERNEL);
 	pm_ctx->mem.gpu_va = 0;
 }
 
@@ -431,8 +431,8 @@ void vgpu_gr_free_gr_ctx(struct gk20a *g,
 		err = vgpu_comm_sendrecv(&msg, sizeof(msg), sizeof(msg));
 		WARN_ON(err || msg.ret);
 
-		__nvgpu_vm_free_va(vm, gr_ctx->mem.gpu_va,
-				   GMMU_PAGE_SIZE_KERNEL);
+		nvgpu_vm_free_va(vm, gr_ctx->mem.gpu_va,
+				 GMMU_PAGE_SIZE_KERNEL);
 
 		tsg = &g->fifo.tsg[gr_ctx->tsgid];
 		vgpu_gr_unmap_global_ctx_buffers(tsg);
@@ -1110,7 +1110,7 @@ int vgpu_gr_update_hwpm_ctxsw_mode(struct gk20a *g,
 	if (mode != NVGPU_DBG_HWPM_CTXSW_MODE_NO_CTXSW) {
 		/* Allocate buffer if necessary */
 		if (pm_ctx->mem.gpu_va == 0) {
-			pm_ctx->mem.gpu_va = __nvgpu_vm_alloc_va(ch->vm,
+			pm_ctx->mem.gpu_va = nvgpu_vm_alloc_va(ch->vm,
 					g->gr.ctx_vars.pm_ctxsw_image_size,
 					GMMU_PAGE_SIZE_KERNEL);
 
