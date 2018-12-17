@@ -128,11 +128,28 @@ static int run_format_test(struct unit_module *m, struct fifo_gk20a *f,
 	return UNIT_SUCCESS;
 }
 
+static struct tsg_fmt_test_args {
+	u32 channels;
+	u32 level;
+	u32 timeslice;
+	u32 expect_header[2];
+} tsg_fmt_tests[] = {
+	/* priority 0, one channel */
+	{ 1, 0, 0, { 0x0600e000, 0 } },
+	/* priority 1, two channels */
+	{ 2, 1, 0, { 0x0a00e000, 0 } },
+	/* priority 2, five channels */
+	{ 5, 2, 0, { 0x1600e000, 0 } },
+	/* priority 0, one channel, nondefault timeslice timeout */
+	{ 1, 0, 0xaa, { 0x06a8e000, 0 } },
+};
+
 /*
  * Check that inserting a single tsg of any level with a number of channels
  * works as expected.
  */
-static int test_tsg_format(struct unit_module *m, struct gk20a *g, void *args)
+static int test_tsg_format_gen(struct unit_module *m, struct gk20a *g,
+		void *args)
 {
 	struct fifo_gk20a *f = &g->fifo;
 	struct fifo_runlist_info_gk20a runlist;
@@ -144,12 +161,6 @@ static int test_tsg_format(struct unit_module *m, struct gk20a *g, void *args)
 	const u32 entries_in_list_max = 1 + 5;
 	u32 rl_data[2 * entries_in_list_max];
 	u32 ret;
-	/* top bits: number of active channels. two u32s per entry */
-	u32 expect_header_prio[3][2] = {
-		{ 0x0600e000, 0 },
-		{ 0x0a00e000, 0 },
-		{ 0x1600e000, 0 }
-	};
 	u32 expect_channel[] = {
 		0, 0,
 		1, 0,
@@ -157,29 +168,20 @@ static int test_tsg_format(struct unit_module *m, struct gk20a *g, void *args)
 		3, 0,
 		4, 0
 	};
+	struct tsg_fmt_test_args *test_args = args;
+	(void)test_args->timeslice;
 
 	setup_fifo(g, &active_tsgs_map, &active_chs_map, &tsg, chs, 1, 6,
 			&runlist, rl_data, false);
 
-	/* priority 0, one channel */
-	ret = run_format_test(m, f, &tsg, chs, 0, 1, rl_data,
-			expect_header_prio[0], expect_channel);
-	if (ret != 0) {
-		unit_return_fail(m, "bad format, channels: 1\n");
-	}
+	tsg.timeslice_timeout = test_args->timeslice;
+	tsg.timeslice_scale = NVGPU_FIFO_DEFAULT_TIMESLICE_SCALE;
 
-	/* priority 1, two channels */
-	ret = run_format_test(m, f, &tsg, chs, 1, 2, rl_data,
-			expect_header_prio[1], expect_channel);
+	ret = run_format_test(m, f, &tsg, chs, test_args->level,
+			test_args->channels, rl_data,
+			test_args->expect_header, expect_channel);
 	if (ret != 0) {
-		unit_return_fail(m, "bad format, channels: 2\n");
-	}
-
-	/* priority 2, five channels */
-	ret = run_format_test(m, f, &tsg, chs, 2, 5, rl_data,
-			expect_header_prio[2], expect_channel);
-	if (ret != 0) {
-		unit_return_fail(m, "bad format, channels: 5\n");
+		unit_return_fail(m, "bad format\n");
 	}
 
 	return UNIT_SUCCESS;
@@ -488,7 +490,11 @@ static int test_interleaving_l0_l2(struct unit_module *m,
 }
 
 struct unit_module_test nvgpu_runlist_tests[] = {
-	UNIT_TEST(tsg_format, test_tsg_format, NULL),
+	UNIT_TEST(tsg_format_ch1, test_tsg_format_gen, &tsg_fmt_tests[0]),
+	UNIT_TEST(tsg_format_ch2, test_tsg_format_gen, &tsg_fmt_tests[1]),
+	UNIT_TEST(tsg_format_ch5, test_tsg_format_gen, &tsg_fmt_tests[2]),
+	UNIT_TEST(tsg_format_ch1_timeslice, test_tsg_format_gen,
+			&tsg_fmt_tests[3]),
 
 	UNIT_TEST(flat, test_flat, NULL),
 
