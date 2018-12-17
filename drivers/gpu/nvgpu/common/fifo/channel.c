@@ -936,7 +936,7 @@ int channel_gk20a_alloc_job(struct channel_gk20a *c,
 		 */
 		nvgpu_smp_rmb();
 
-		if (CIRC_SPACE(put, get, c->joblist.pre_alloc.length)) {
+		if (CIRC_SPACE(put, get, c->joblist.pre_alloc.length) != 0) {
 			*job_out = &c->joblist.pre_alloc.jobs[put];
 		} else {
 			nvgpu_warn(c->g,

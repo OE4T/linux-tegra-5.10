@@ -2215,7 +2215,7 @@ static u32 fifo_error_isr(struct gk20a *g, u32 fifo_intr)
 		/* pio mode is unused.  this shouldn't happen, ever. */
 		/* should we clear it or just leave it pending? */
 		nvgpu_err(g, "fifo pio error!");
-		BUG_ON(1);
+		BUG();
 	}
 
 	if ((fifo_intr & fifo_intr_0_bind_error_pending_f()) != 0U) {

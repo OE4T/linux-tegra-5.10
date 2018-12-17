@@ -250,7 +250,7 @@ bool nvgpu_tsg_mark_error(struct gk20a *g,
 
 	nvgpu_rwsem_down_read(&tsg->ch_list_lock);
 	nvgpu_list_for_each_entry(ch, &tsg->ch_list, channel_gk20a, ch_entry) {
-		if (gk20a_channel_get(ch)) {
+		if (gk20a_channel_get(ch) != NULL) {
 			if (nvgpu_channel_mark_error(g, ch)) {
 				verbose = true;
 			}
@@ -272,7 +272,7 @@ void nvgpu_tsg_set_ctx_mmu_error(struct gk20a *g,
 
 	nvgpu_rwsem_down_read(&tsg->ch_list_lock);
 	nvgpu_list_for_each_entry(ch, &tsg->ch_list, channel_gk20a, ch_entry) {
-		if (gk20a_channel_get(ch)) {
+		if (gk20a_channel_get(ch) != NULL) {
 			nvgpu_channel_set_ctx_mmu_error(g, ch);
 			gk20a_channel_put(ch);
 		}

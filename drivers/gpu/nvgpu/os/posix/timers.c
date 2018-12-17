@@ -42,7 +42,7 @@ static bool time_after(s64 a, s64 b)
 int nvgpu_timeout_init(struct gk20a *g, struct nvgpu_timeout *timeout,
 		       u32 duration, unsigned long flags)
 {
-	if (flags & ~NVGPU_TIMER_FLAG_MASK)
+	if ((flags & ~NVGPU_TIMER_FLAG_MASK) != 0U)
 		return -EINVAL;
 
 	(void) memset(timeout, 0, sizeof(*timeout));
@@ -50,7 +50,7 @@ int nvgpu_timeout_init(struct gk20a *g, struct nvgpu_timeout *timeout,
 	timeout->g = g;
 	timeout->flags = flags;
 
-	if (flags & NVGPU_TIMER_RETRY_TIMER)
+	if ((flags & NVGPU_TIMER_RETRY_TIMER) != 0U)
 		timeout->retries.max = duration;
 	else
 		timeout->time = nvgpu_current_time_ms() + (s64)duration;
@@ -109,7 +109,7 @@ int __nvgpu_timeout_expired_msg(struct nvgpu_timeout *timeout,
 	va_list args;
 
 	va_start(args, fmt);
-	if (timeout->flags & NVGPU_TIMER_RETRY_TIMER)
+	if ((timeout->flags & NVGPU_TIMER_RETRY_TIMER) != 0U)
 		ret = __nvgpu_timeout_expired_msg_retry(timeout, caller, fmt,
 						      args);
 	else
@@ -122,7 +122,7 @@ int __nvgpu_timeout_expired_msg(struct nvgpu_timeout *timeout,
 
 int nvgpu_timeout_peek_expired(struct nvgpu_timeout *timeout)
 {
-	if (timeout->flags & NVGPU_TIMER_RETRY_TIMER)
+	if ((timeout->flags & NVGPU_TIMER_RETRY_TIMER) != 0U)
 		return timeout->retries.attempted >= timeout->retries.max;
 	else
 		return time_after(now(), timeout->time);
