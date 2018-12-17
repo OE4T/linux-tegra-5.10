@@ -374,57 +374,29 @@ static int test_interleaving_gen_all(struct unit_module *m, struct gk20a *g,
 			expected, ARRAY_SIZE(expected));
 }
 
-/*
- * Test construction of all priority items.
- */
-static int test_interleaving(struct unit_module *m, struct gk20a *g, void *args)
-{
-	return test_interleaving_gen_all(m, g, 0);
-}
+static struct interleave_test_args {
+	u32 sizelimit;
+} interleave_tests[] = {
+/* All priority items. */
+	{ 0 },
+/* Fail at level 2 immediately: space for just a tsg header, no ch entries. */
+	{ 1 },
+/* Insert both l2 entries, then fail at l1 level. */
+	{ 2 * 2 },
+/* Insert both l2 entries, one l1, and just one l2: fail at last l2. */
+	{ (2 + 1 + 1) * 2 },
+/* Stop at exactly the first l2 entry in the first l1-l0 transition. */
+	{ (2 + 1 + 2 + 1) * 2 },
+/* Stop at exactly the first l0 entry that doesn't fit. */
+	{ (2 + 1 + 2 + 1 + 2) * 2 },
+};
 
-/*
- * Fail at level 2 immediately: space for just a tsg header.
- */
-static int test_interleaving_oversize_tiny(struct unit_module *m,
+static int test_interleaving_gen_all_run(struct unit_module *m,
 		struct gk20a *g, void *args)
 {
-	return test_interleaving_gen_all(m, g, 1);
-}
+	struct interleave_test_args *test_args = args;
 
-/*
- * Insert both l2 entries, then fail at l1 level.
- */
-static int test_interleaving_oversize_l2(struct unit_module *m,
-		struct gk20a *g, void *args)
-{
-	return test_interleaving_gen_all(m, g, 2 * 2);
-}
-
-/*
- * Insert both l2 entries, one l1, and just one l2: fail at last l2.
- */
-static int test_interleaving_oversize_l2_l1_l2(struct unit_module *m,
-		struct gk20a *g, void *args)
-{
-	return test_interleaving_gen_all(m, g, (2 + 1 + 1) * 2);
-}
-
-/*
- * Stop at exactly the first l2 entry in the first l1-l0 transition.
- */
-static int test_interleaving_oversize_l2_l1_l2_l1(struct unit_module *m,
-		struct gk20a *g, void *args)
-{
-	return test_interleaving_gen_all(m, g, (2 + 1 + 2 + 1) * 2);
-}
-
-/*
- * Stop at exactly the first l0 entry that doesn't fit.
- */
-static int test_interleaving_oversize_l2_l1_l2_l1_l2(struct unit_module *m,
-		struct gk20a *g, void *args)
-{
-	return test_interleaving_gen_all(m, g, (2 + 1 + 2 + 1 + 2) * 2);
+	return test_interleaving_gen_all(m, g, test_args->sizelimit);
 }
 
 /*
@@ -526,18 +498,19 @@ struct unit_module_test nvgpu_runlist_tests[] = {
 	UNIT_TEST(flat_oversize_two, test_flat_oversize_two, NULL),
 	UNIT_TEST(flat_oversize_end, test_flat_oversize_end, NULL),
 
-	UNIT_TEST(interleaving, test_interleaving, NULL),
+	UNIT_TEST(interleaving,
+		  test_interleaving_gen_all_run, &interleave_tests[0]),
 
 	UNIT_TEST(interleaving_oversize_tiny,
-			test_interleaving_oversize_tiny, NULL),
+		  test_interleaving_gen_all_run, &interleave_tests[1]),
 	UNIT_TEST(interleaving_oversize_l2,
-		  test_interleaving_oversize_l2, NULL),
+		  test_interleaving_gen_all_run, &interleave_tests[2]),
 	UNIT_TEST(interleaving_oversize_l2_l1_l2,
-		  test_interleaving_oversize_l2_l1_l2, NULL),
+		  test_interleaving_gen_all_run, &interleave_tests[3]),
 	UNIT_TEST(interleaving_oversize_l2_l1_l2_l1,
-		  test_interleaving_oversize_l2_l1_l2_l1, NULL),
+		  test_interleaving_gen_all_run, &interleave_tests[4]),
 	UNIT_TEST(interleaving_oversize_l2_l1_l2_l1_l2,
-		  test_interleaving_oversize_l2_l1_l2_l1_l2, NULL),
+		  test_interleaving_gen_all_run, &interleave_tests[5]),
 
 	UNIT_TEST(interleaving_l0, test_interleaving_l0, NULL),
 	UNIT_TEST(interleaving_l1, test_interleaving_l1, NULL),
