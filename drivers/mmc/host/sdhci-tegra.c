@@ -141,7 +141,7 @@
 #define NVQUIRK_CQHCI_DCMD_R1B_CMD_TIMING		BIT(9)
 #define NVQUIRK_HW_TAP_CONFIG				BIT(10)
 #define NVQUIRK_SDMMC_CLK_OVERRIDE			BIT(11)
-
+#define NVQUIRK_UPDATE_PIN_CNTRL_REG			BIT(12)
 
 #define MAX_TAP_VALUE		256
 
@@ -231,6 +231,8 @@ struct sdhci_tegra {
 	unsigned long curr_clk_rate;
 	u8 tuned_tap_delay;
 	struct tegra_prod *prods;
+	struct pinctrl_state *schmitt_enable[2];
+	struct pinctrl_state *schmitt_disable[2];
 	u8 uhs_mask;
 	bool force_non_rem_rescan;
 	int volt_switch_gpio;
@@ -244,6 +246,9 @@ static void sdhci_tegra_debugfs_init(struct sdhci_host *host);
 
 /* Module params */
 static unsigned int en_boot_part_access;
+
+static void tegra_sdhci_update_sdmmc_pinctrl_register(struct sdhci_host *sdhci,
+               bool set);
 
 static u16 tegra_sdhci_readw(struct sdhci_host *host, int reg)
 {
@@ -1472,12 +1477,14 @@ static int sdhci_tegra_start_signal_voltage_switch(struct mmc_host *mmc,
 		ret = tegra_sdhci_set_padctrl(host, ios->signal_voltage, true);
 		if (ret < 0)
 			return ret;
+		tegra_sdhci_update_sdmmc_pinctrl_register(host, false);
 		ret = sdhci_start_signal_voltage_switch(mmc, ios);
 	} else if (ios->signal_voltage == MMC_SIGNAL_VOLTAGE_180) {
 		ret = sdhci_start_signal_voltage_switch(mmc, ios);
 		if (ret < 0)
 			return ret;
 		ret = tegra_sdhci_set_padctrl(host, ios->signal_voltage, true);
+		tegra_sdhci_update_sdmmc_pinctrl_register(host, true);
 	}
 
 	if (tegra_host->pad_calib_required)
@@ -1505,6 +1512,9 @@ static bool tegra_sdhci_skip_retuning(struct sdhci_host *host)
 static int tegra_sdhci_init_pinctrl_info(struct device *dev,
 					 struct sdhci_tegra *tegra_host)
 {
+	const struct sdhci_tegra_soc_data *soc_data = tegra_host->soc_data;
+	int i, ret;
+
 	tegra_host->prods = devm_tegra_prod_get(dev);
 	if (IS_ERR_OR_NULL(tegra_host->prods)) {
 		dev_err(dev, "Prod-setting not available\n");
@@ -1550,8 +1560,76 @@ static int tegra_sdhci_init_pinctrl_info(struct device *dev,
 
 	tegra_host->pad_control_available = true;
 
+	if (soc_data->nvquirks & NVQUIRK_UPDATE_PIN_CNTRL_REG) {
+		tegra_host->schmitt_enable[0] =
+			pinctrl_lookup_state(tegra_host->pinctrl_sdmmc,
+			"sdmmc_schmitt_enable");
+		if (IS_ERR_OR_NULL(tegra_host->schmitt_enable[0]))
+			dev_err(dev, "Missing schmitt enable state\n");
+
+		tegra_host->schmitt_enable[1] =
+			pinctrl_lookup_state(tegra_host->pinctrl_sdmmc,
+			"sdmmc_clk_schmitt_enable");
+		if (IS_ERR_OR_NULL(tegra_host->schmitt_enable[1]))
+			dev_err(dev, "Missing clk schmitt enable state\n");
+
+		tegra_host->schmitt_disable[0] =
+			pinctrl_lookup_state(tegra_host->pinctrl_sdmmc,
+			"sdmmc_schmitt_disable");
+		if (IS_ERR_OR_NULL(tegra_host->schmitt_disable[0]))
+			dev_err(dev, "Missing schmitt disable state\n");
+
+		tegra_host->schmitt_disable[1] =
+			pinctrl_lookup_state(tegra_host->pinctrl_sdmmc,
+			"sdmmc_clk_schmitt_disable");
+		if (IS_ERR_OR_NULL(tegra_host->schmitt_disable[1]))
+			dev_err(dev, "Missing clk schmitt disable state\n");
+
+		for (i = 0; i < 2; i++) {
+			if (!IS_ERR_OR_NULL(tegra_host->schmitt_disable[i])) {
+				ret = pinctrl_select_state(tegra_host->pinctrl_sdmmc,
+					tegra_host->schmitt_disable[i]);
+				if (ret < 0)
+					dev_warn(dev, "setting schmitt state failed\n");
+			}
+		}
+	}
+
 	return 0;
 }
+
+static void tegra_sdhci_update_sdmmc_pinctrl_register(struct sdhci_host *sdhci,
+       bool set)
+{
+	struct sdhci_pltfm_host *pltfm_host = sdhci_priv(sdhci);
+	struct sdhci_tegra *tegra_host = sdhci_pltfm_priv(pltfm_host);
+	const struct sdhci_tegra_soc_data *soc_data = tegra_host->soc_data;
+	struct pinctrl_state *set_schmitt[2];
+	int ret;
+	int i;
+
+	if (!(soc_data->nvquirks & NVQUIRK_UPDATE_PIN_CNTRL_REG))
+		return;
+
+	if (set) {
+		set_schmitt[0] = tegra_host->schmitt_enable[0];
+		set_schmitt[1] = tegra_host->schmitt_enable[1];
+	} else {
+		set_schmitt[0] = tegra_host->schmitt_disable[0];
+		set_schmitt[1] = tegra_host->schmitt_disable[1];
+	}
+
+	for (i = 0; i < 2; i++) {
+		if (IS_ERR_OR_NULL(set_schmitt[i]))
+			continue;
+		ret = pinctrl_select_state(tegra_host->pinctrl_sdmmc,
+			set_schmitt[i]);
+		if (ret < 0)
+			dev_warn(mmc_dev(sdhci->mmc),
+				"setting schmitt state failed\n");
+	}
+}
+
 
 static void tegra_sdhci_voltage_switch(struct sdhci_host *host)
 {
@@ -1921,6 +1999,7 @@ static const struct sdhci_tegra_soc_data soc_data_tegra210 = {
 		    NVQUIRK_HAS_PADCALIB |
 		    NVQUIRK_DIS_CARD_CLK_CONFIG_TAP |
 		    NVQUIRK_ENABLE_SDR50 |
+		    NVQUIRK_UPDATE_PIN_CNTRL_REG |
 		    NVQUIRK_ENABLE_SDR104,
 	.min_tap_delay = 106,
 	.max_tap_delay = 185,
