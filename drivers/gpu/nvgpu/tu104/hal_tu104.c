@@ -1206,6 +1206,8 @@ int tu104_init_hal(struct gk20a *g)
 		/* Disable acr init */
 		gops->acr.acr_sw_init = NULL;
 
+		gops->gr.load_ctxsw_ucode = gr_gk20a_load_ctxsw_ucode;
+
 		/* Disable pmu pstate, as there is no pmu support */
 		__nvgpu_set_enabled(g, NVGPU_PMU_PSTATE, false);
 
