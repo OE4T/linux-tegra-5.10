@@ -83,9 +83,9 @@ int nvgpu_vm_pde_coverage_bit_count(struct vm_gk20a *vm)
 	return vm->mmu_levels[final_pde_level].lo_bit[0];
 }
 
-static void __nvgpu_vm_free_entries(struct vm_gk20a *vm,
-				    struct nvgpu_gmmu_pd *pd,
-				    int level)
+static void nvgpu_vm_do_free_entries(struct vm_gk20a *vm,
+				     struct nvgpu_gmmu_pd *pd,
+				     int level)
 {
 	int i;
 
@@ -96,8 +96,8 @@ static void __nvgpu_vm_free_entries(struct vm_gk20a *vm,
 
 	if (pd->entries != NULL) {
 		for (i = 0; i < pd->num_entries; i++) {
-			__nvgpu_vm_free_entries(vm, &pd->entries[i],
-					      level + 1);
+			nvgpu_vm_do_free_entries(vm, &pd->entries[i],
+						 level + 1);
 		}
 		nvgpu_vfree(vm->mm->g, pd->entries);
 		pd->entries = NULL;
@@ -117,7 +117,7 @@ static void nvgpu_vm_free_entries(struct vm_gk20a *vm,
 	}
 
 	for (i = 0; i < pdb->num_entries; i++) {
-		__nvgpu_vm_free_entries(vm, &pdb->entries[i], 1);
+		nvgpu_vm_do_free_entries(vm, &pdb->entries[i], 1);
 	}
 
 	nvgpu_vfree(g, pdb->entries);
@@ -600,7 +600,7 @@ struct vm_gk20a *nvgpu_vm_init(struct gk20a *g,
 /*
  * Cleanup the VM!
  */
-static void __nvgpu_vm_remove(struct vm_gk20a *vm)
+static void nvgpu_vm_remove(struct vm_gk20a *vm)
 {
 	struct nvgpu_mapped_buf *mapped_buffer;
 	struct nvgpu_vm_area *vm_area, *vm_area_tmp;
@@ -665,11 +665,11 @@ static void __nvgpu_vm_remove(struct vm_gk20a *vm)
 	nvgpu_kfree(g, vm);
 }
 
-static void __nvgpu_vm_remove_ref(struct nvgpu_ref *ref)
+static void nvgpu_vm_remove_ref(struct nvgpu_ref *ref)
 {
 	struct vm_gk20a *vm = container_of(ref, struct vm_gk20a, ref);
 
-	__nvgpu_vm_remove(vm);
+	nvgpu_vm_remove(vm);
 }
 
 void nvgpu_vm_get(struct vm_gk20a *vm)
@@ -679,7 +679,7 @@ void nvgpu_vm_get(struct vm_gk20a *vm)
 
 void nvgpu_vm_put(struct vm_gk20a *vm)
 {
-	nvgpu_ref_put(&vm->ref, __nvgpu_vm_remove_ref);
+	nvgpu_ref_put(&vm->ref, nvgpu_vm_remove_ref);
 }
 
 int nvgpu_insert_mapped_buf(struct vm_gk20a *vm,
