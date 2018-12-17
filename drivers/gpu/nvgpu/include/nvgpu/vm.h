@@ -275,7 +275,7 @@ void nvgpu_vm_unmap_system(struct nvgpu_mapped_buf *mapped_buffer);
 /*
  * Don't use this outside of the core VM code!
  */
-void __nvgpu_vm_unmap_ref(struct nvgpu_ref *ref);
+void nvgpu_vm_unmap_ref_internal(struct nvgpu_ref *ref);
 
 u64 nvgpu_os_buf_get_size(struct nvgpu_os_buffer *os_buf);
 

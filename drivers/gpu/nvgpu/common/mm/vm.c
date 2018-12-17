@@ -54,8 +54,8 @@ struct nvgpu_ctag_buffer_info {
 static int nvgpu_vm_compute_compression(struct vm_gk20a *vm,
 					struct nvgpu_ctag_buffer_info *binfo);
 
-static void __nvgpu_vm_unmap(struct nvgpu_mapped_buf *mapped_buffer,
-			     struct vm_gk20a_mapping_batch *batch);
+static void nvgpu_vm_do_unmap(struct nvgpu_mapped_buf *mapped_buffer,
+			      struct vm_gk20a_mapping_batch *batch);
 
 int vm_aspace_id(struct vm_gk20a *vm)
 {
@@ -630,7 +630,7 @@ static void __nvgpu_vm_remove(struct vm_gk20a *vm)
 	nvgpu_rbtree_enum_start(0, &node, vm->mapped_buffers);
 	while (node != NULL) {
 		mapped_buffer = mapped_buffer_from_rbtree_node(node);
-		__nvgpu_vm_unmap(mapped_buffer, NULL);
+		nvgpu_vm_do_unmap(mapped_buffer, NULL);
 		nvgpu_rbtree_enum_start(0, &node, vm->mapped_buffers);
 	}
 
@@ -802,7 +802,8 @@ void nvgpu_vm_put_buffers(struct vm_gk20a *vm,
 	vm->kref_put_batch = &batch;
 
 	for (i = 0; i < num_buffers; ++i) {
-		nvgpu_ref_put(&mapped_buffers[i]->ref, __nvgpu_vm_unmap_ref);
+		nvgpu_ref_put(&mapped_buffers[i]->ref,
+			      nvgpu_vm_unmap_ref_internal);
 	}
 
 	vm->kref_put_batch = NULL;
@@ -1116,8 +1117,8 @@ clean_up_nolock:
  * Really unmap. This does the real GMMU unmap and removes the mapping from the
  * VM map tracking tree (and vm_area list if necessary).
  */
-static void __nvgpu_vm_unmap(struct nvgpu_mapped_buf *mapped_buffer,
-			     struct vm_gk20a_mapping_batch *batch)
+static void nvgpu_vm_do_unmap(struct nvgpu_mapped_buf *mapped_buffer,
+			      struct vm_gk20a_mapping_batch *batch)
 {
 	struct vm_gk20a *vm = mapped_buffer->vm;
 	struct gk20a *g = vm->mm->g;
@@ -1155,12 +1156,12 @@ static void __nvgpu_vm_unmap(struct nvgpu_mapped_buf *mapped_buffer,
  * before calling nvgpu_ref_put() with this function as the unref function
  * argument since this can modify the tree of maps.
  */
-void __nvgpu_vm_unmap_ref(struct nvgpu_ref *ref)
+void nvgpu_vm_unmap_ref_internal(struct nvgpu_ref *ref)
 {
 	struct nvgpu_mapped_buf *mapped_buffer =
 		container_of(ref, struct nvgpu_mapped_buf, ref);
 
-	__nvgpu_vm_unmap(mapped_buffer, mapped_buffer->vm->kref_put_batch);
+	nvgpu_vm_do_unmap(mapped_buffer, mapped_buffer->vm->kref_put_batch);
 }
 
 /*
@@ -1230,7 +1231,7 @@ void nvgpu_vm_unmap(struct vm_gk20a *vm, u64 offset,
 	 * the unmap_ref function.
 	 */
 	vm->kref_put_batch = batch;
-	nvgpu_ref_put(&mapped_buffer->ref, __nvgpu_vm_unmap_ref);
+	nvgpu_ref_put(&mapped_buffer->ref, nvgpu_vm_unmap_ref_internal);
 	vm->kref_put_batch = NULL;
 
 done:
