@@ -282,11 +282,11 @@ u64 nvgpu_os_buf_get_size(struct nvgpu_os_buffer *os_buf);
 /*
  * These all require the VM update lock to be held.
  */
-struct nvgpu_mapped_buf *__nvgpu_vm_find_mapped_buf(
+struct nvgpu_mapped_buf *nvgpu_vm_find_mapped_buf(
 	struct vm_gk20a *vm, u64 addr);
-struct nvgpu_mapped_buf *__nvgpu_vm_find_mapped_buf_range(
+struct nvgpu_mapped_buf *nvgpu_vm_find_mapped_buf_range(
 	struct vm_gk20a *vm, u64 addr);
-struct nvgpu_mapped_buf *__nvgpu_vm_find_mapped_buf_less_than(
+struct nvgpu_mapped_buf *nvgpu_vm_find_mapped_buf_less_than(
 	struct vm_gk20a *vm, u64 addr);
 
 int nvgpu_insert_mapped_buf(struct vm_gk20a *vm,

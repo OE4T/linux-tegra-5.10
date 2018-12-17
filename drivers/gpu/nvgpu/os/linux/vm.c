@@ -62,7 +62,7 @@ static u32 nvgpu_vm_translate_linux_flags(struct gk20a *g, u32 flags)
 	return core_flags;
 }
 
-static struct nvgpu_mapped_buf *__nvgpu_vm_find_mapped_buf_reverse(
+static struct nvgpu_mapped_buf *nvgpu_vm_find_mapped_buf_reverse(
 	struct vm_gk20a *vm, struct dma_buf *dmabuf, u32 kind)
 {
 	struct nvgpu_rbtree_node *node = NULL;
@@ -95,7 +95,7 @@ int nvgpu_vm_find_buf(struct vm_gk20a *vm, u64 gpu_va,
 
 	nvgpu_mutex_acquire(&vm->update_gmmu_lock);
 
-	mapped_buffer = __nvgpu_vm_find_mapped_buf_range(vm, gpu_va);
+	mapped_buffer = nvgpu_vm_find_mapped_buf_range(vm, gpu_va);
 	if (!mapped_buffer) {
 		nvgpu_mutex_release(&vm->update_gmmu_lock);
 		return -EINVAL;
@@ -129,7 +129,7 @@ struct nvgpu_mapped_buf *nvgpu_vm_find_mapping(struct vm_gk20a *vm,
 	struct nvgpu_mapped_buf *mapped_buffer = NULL;
 
 	if (flags & NVGPU_VM_MAP_FIXED_OFFSET) {
-		mapped_buffer = __nvgpu_vm_find_mapped_buf(vm, map_addr);
+		mapped_buffer = nvgpu_vm_find_mapped_buf(vm, map_addr);
 		if (!mapped_buffer)
 			return NULL;
 
@@ -138,9 +138,9 @@ struct nvgpu_mapped_buf *nvgpu_vm_find_mapping(struct vm_gk20a *vm,
 			return NULL;
 	} else {
 		mapped_buffer =
-			__nvgpu_vm_find_mapped_buf_reverse(vm,
-							   os_buf->dmabuf,
-							   kind);
+			nvgpu_vm_find_mapped_buf_reverse(vm,
+							 os_buf->dmabuf,
+							 kind);
 		if (!mapped_buffer)
 			return NULL;
 	}

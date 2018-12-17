@@ -80,7 +80,7 @@ int nvgpu_vm_area_validate_buffer(struct vm_gk20a *vm,
 	/* check that this mapping does not collide with existing
 	 * mappings by checking the buffer with the highest GPU VA
 	 * that is less than our buffer end */
-	buffer = __nvgpu_vm_find_mapped_buf_less_than(
+	buffer = nvgpu_vm_find_mapped_buf_less_than(
 		vm, map_addr + map_size);
 	if (buffer != NULL && buffer->addr + buffer->size > map_addr) {
 		nvgpu_warn(g, "overlapping buffer map requested");

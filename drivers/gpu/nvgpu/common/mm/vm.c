@@ -701,7 +701,7 @@ static void nvgpu_remove_mapped_buf(struct vm_gk20a *vm,
 	vm->num_user_mapped_buffers--;
 }
 
-struct nvgpu_mapped_buf *__nvgpu_vm_find_mapped_buf(
+struct nvgpu_mapped_buf *nvgpu_vm_find_mapped_buf(
 	struct vm_gk20a *vm, u64 addr)
 {
 	struct nvgpu_rbtree_node *node = NULL;
@@ -715,7 +715,7 @@ struct nvgpu_mapped_buf *__nvgpu_vm_find_mapped_buf(
 	return mapped_buffer_from_rbtree_node(node);
 }
 
-struct nvgpu_mapped_buf *__nvgpu_vm_find_mapped_buf_range(
+struct nvgpu_mapped_buf *nvgpu_vm_find_mapped_buf_range(
 	struct vm_gk20a *vm, u64 addr)
 {
 	struct nvgpu_rbtree_node *node = NULL;
@@ -729,7 +729,7 @@ struct nvgpu_mapped_buf *__nvgpu_vm_find_mapped_buf_range(
 	return mapped_buffer_from_rbtree_node(node);
 }
 
-struct nvgpu_mapped_buf *__nvgpu_vm_find_mapped_buf_less_than(
+struct nvgpu_mapped_buf *nvgpu_vm_find_mapped_buf_less_than(
 	struct vm_gk20a *vm, u64 addr)
 {
 	struct nvgpu_rbtree_node *node = NULL;
@@ -1210,7 +1210,7 @@ void nvgpu_vm_unmap(struct vm_gk20a *vm, u64 offset,
 
 	nvgpu_mutex_acquire(&vm->update_gmmu_lock);
 
-	mapped_buffer = __nvgpu_vm_find_mapped_buf(vm, offset);
+	mapped_buffer = nvgpu_vm_find_mapped_buf(vm, offset);
 	if (mapped_buffer == NULL) {
 		goto done;
 	}
