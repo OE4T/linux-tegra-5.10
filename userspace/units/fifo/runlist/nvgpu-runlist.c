@@ -345,7 +345,20 @@ static int test_interleaving_gen(struct unit_module *m, struct gk20a *g,
 static int test_interleaving_gen_all(struct unit_module *m, struct gk20a *g,
 		u32 sizelimit)
 {
-	/* Named channel ids for us humans to parse */
+	/*
+	 * Named channel ids for us humans to parse.
+	 *
+	 * This works such that the first two TSGs, IDs 0 and 1 (with just one
+	 * channel each) are at interleave level "low" ("l0"), the next IDs 2
+	 * and 3 are at level "med" ("l2"), and the last IDs 4 and 5 are at
+	 * level "hi" ("l2"). Runlist construction doesn't care, so we use an
+	 * easy to understand order.
+	 *
+	 * When debugging this test and/or the runlist code, the logs of any
+	 * interleave test should follow the order in the "expected" array. We
+	 * start at the highest level, so the first IDs added should be h1 and
+	 * h2, i.e., 4 and 5, etc.
+	 */
 	u32 l1 = 0, l2 = 1;
 	u32 m1 = 2, m2 = 3;
 	u32 h1 = 4, h2 = 5;
@@ -370,7 +383,7 @@ static int test_interleaving(struct unit_module *m, struct gk20a *g, void *args)
 }
 
 /*
- * Fail at level 0 immediately: space for just a tsg header.
+ * Fail at level 2 immediately: space for just a tsg header.
  */
 static int test_interleaving_oversize_tiny(struct unit_module *m,
 		struct gk20a *g, void *args)
@@ -379,31 +392,39 @@ static int test_interleaving_oversize_tiny(struct unit_module *m,
 }
 
 /*
- * Insert a single l0 entry, then descend to l2 and fail there after one l2
- * entry.
+ * Insert both l2 entries, then fail at l1 level.
  */
-static int test_interleaving_oversize_l0_l2(struct unit_module *m,
+static int test_interleaving_oversize_l2(struct unit_module *m,
 		struct gk20a *g, void *args)
 {
-	return test_interleaving_gen_all(m, g, (1 + 1) * 2);
+	return test_interleaving_gen_all(m, g, 2 * 2);
 }
 
 /*
- * Insert a single l0 entry, both l2 entries, one l1, then next l2 won't fit.
+ * Insert both l2 entries, one l1, and just one l2: fail at last l2.
  */
-static int test_interleaving_oversize_l0_l2_l1(struct unit_module *m,
+static int test_interleaving_oversize_l2_l1_l2(struct unit_module *m,
 		struct gk20a *g, void *args)
 {
-	return test_interleaving_gen_all(m, g, (1 + 2 + 1) * 2);
+	return test_interleaving_gen_all(m, g, (2 + 1 + 1) * 2);
 }
 
 /*
- * Stop at the second l0 entry that doesn't fit.
+ * Stop at exactly the first l2 entry in the first l1-l0 transition.
  */
-static int test_interleaving_oversize_l0_l2_l1_l2_l1_l2(struct unit_module *m,
+static int test_interleaving_oversize_l2_l1_l2_l1(struct unit_module *m,
 		struct gk20a *g, void *args)
 {
-	return test_interleaving_gen_all(m, g, (1 + 2 + 1 + 2 + 1 + 2) * 2);
+	return test_interleaving_gen_all(m, g, (2 + 1 + 2 + 1) * 2);
+}
+
+/*
+ * Stop at exactly the first l0 entry that doesn't fit.
+ */
+static int test_interleaving_oversize_l2_l1_l2_l1_l2(struct unit_module *m,
+		struct gk20a *g, void *args)
+{
+	return test_interleaving_gen_all(m, g, (2 + 1 + 2 + 1 + 2) * 2);
 }
 
 /*
@@ -509,12 +530,14 @@ struct unit_module_test nvgpu_runlist_tests[] = {
 
 	UNIT_TEST(interleaving_oversize_tiny,
 			test_interleaving_oversize_tiny, NULL),
-	UNIT_TEST(interleaving_oversize_l0_l2,
-		  test_interleaving_oversize_l0_l2, NULL),
-	UNIT_TEST(interleaving_oversize_l0_l2_l1,
-		  test_interleaving_oversize_l0_l2_l1, NULL),
-	UNIT_TEST(interleaving_oversize_l0_l2_l1_l2_l1_l2,
-		  test_interleaving_oversize_l0_l2_l1_l2_l1_l2, NULL),
+	UNIT_TEST(interleaving_oversize_l2,
+		  test_interleaving_oversize_l2, NULL),
+	UNIT_TEST(interleaving_oversize_l2_l1_l2,
+		  test_interleaving_oversize_l2_l1_l2, NULL),
+	UNIT_TEST(interleaving_oversize_l2_l1_l2_l1,
+		  test_interleaving_oversize_l2_l1_l2_l1, NULL),
+	UNIT_TEST(interleaving_oversize_l2_l1_l2_l1_l2,
+		  test_interleaving_oversize_l2_l1_l2_l1_l2, NULL),
 
 	UNIT_TEST(interleaving_l0, test_interleaving_l0, NULL),
 	UNIT_TEST(interleaving_l1, test_interleaving_l1, NULL),
