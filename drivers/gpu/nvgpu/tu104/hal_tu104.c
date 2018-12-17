@@ -1211,6 +1211,8 @@ int tu104_init_hal(struct gk20a *g)
 
 		__nvgpu_set_enabled(g, NVGPU_GR_USE_DMA_FOR_FW_BOOTSTRAP,
 									false);
+		/* Disable fb mem_unlock */
+		gops->fb.mem_unlock = NULL;
 	} else {
 		__nvgpu_set_enabled(g, NVGPU_PMU_PSTATE, true);
 		__nvgpu_set_enabled(g, NVGPU_GR_USE_DMA_FOR_FW_BOOTSTRAP, true);
