@@ -3,7 +3,7 @@
  *
  * structure declarations for nvmem and nvmap user-space ioctls
  *
- * Copyright (c) 2009-2018, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2009-2019, NVIDIA CORPORATION. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -16,7 +16,9 @@
  */
 
 #include <linux/types.h>
+#include <linux/bitmap.h>
 #include <linux/device.h>
+#include <linux/spinlock.h>
 
 #ifndef _LINUX_NVMAP_T19x_H
 #define _LINUX_NVMAP_T19x_H
@@ -28,16 +30,26 @@ int nvmap_register_cvsram_carveout(struct device *dma_dev,
 		phys_addr_t base, size_t size,
 		int (*pmops_busy)(void), int (*pmops_idle)(void));
 
+#define NVMAP_MAX_GOS_COUNT		64
+#define NVMAP_MAX_GOS_PAGES		12
+
 struct cv_dev_info {
 	struct device_node *np;
 	struct sg_table *sgt;
 	void *cpu_addr;
-	struct device offset_dev; /* used to alloc/free semaphore offsets within GoS */
-	int idx; /* index to use by firmware to identify the client */
+	int idx; /* index uses to identify the gos area */
 	int count; /* number of sgt */
+	spinlock_t goslock;
+	DECLARE_BITMAP(gosmap, NVMAP_MAX_GOS_COUNT);
 };
 
 struct cv_dev_info *nvmap_fetch_cv_dev_info(struct device *dev);
+
+int nvmap_alloc_gos_slot(struct device *dev,
+		u32 *return_index,
+		u32 *return_offset,
+		u32 **return_address);
+void nvmap_free_gos_slot(u32 index, u32 offset);
 
 struct nvmap_handle_t19x {
 	atomic_t nc_pin; /* no. of pins from non io coherent devices */

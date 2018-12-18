@@ -1,7 +1,7 @@
 /*
  * drivers/video/tegra/nvmap/nvmap_init_t19x.c
  *
- * Copyright (c) 2016-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -20,11 +20,20 @@
 #include <linux/of_reserved_mem.h>
 #include <linux/platform_device.h>
 #include <linux/nvmap_t19x.h>
+#include <linux/io.h>
 
 #include "nvmap_priv.h"
 
 bool nvmap_version_t19x;
 extern struct static_key nvmap_updated_cache_config;
+
+struct gosmem_priv {
+	struct device *dev;
+	void *cpu_addr;
+	void *memremap_addr;
+	dma_addr_t dma_addr;
+};
+static struct gosmem_priv gos;
 
 const struct of_device_id nvmap_of_ids[] = {
 	{ .compatible = "nvidia,carveouts" },
@@ -58,25 +67,30 @@ int nvmap_register_cvsram_carveout(struct device *dma_dev,
 }
 EXPORT_SYMBOL(nvmap_register_cvsram_carveout);
 
-static struct nvmap_platform_carveout gosmem = {
-	.name = "gosmem",
-	.usage_mask = NVMAP_HEAP_CARVEOUT_GOS,
-};
-
 static struct cv_dev_info *cvdev_info;
-static int count = 0;
+static int cvdev_count = 0;
 
 static void nvmap_gosmem_device_release(struct reserved_mem *rmem,
 		struct device *dev)
 {
+	struct sg_table *sgt;
 	int i;
-	struct reserved_mem_ops *rmem_ops =
-		(struct reserved_mem_ops *)rmem->ops;
 
-	for (i = 0; i < count; i++)
+	sgt = (struct sg_table *)(cvdev_info + cvdev_count);
+
+	for (i = 0; i < (cvdev_count * cvdev_count); i++)
+		sg_free_table(sgt++);
+
+	for (i = 0; i < cvdev_count; i++)
 		of_node_put(cvdev_info[i].np);
+
+	dma_free_coherent(gos.dev, cvdev_count * SZ_4K, gos.cpu_addr,
+			gos.dma_addr);
+	memunmap(gos.memremap_addr);
+
 	kfree(cvdev_info);
-	rmem_ops->device_release(rmem, dev);
+	cvdev_info = NULL;
+	cvdev_count = 0;
 }
 
 static int __init nvmap_gosmem_device_init(struct reserved_mem *rmem,
@@ -85,11 +99,7 @@ static int __init nvmap_gosmem_device_init(struct reserved_mem *rmem,
 	struct of_phandle_args outargs;
 	struct device_node *np;
 	DEFINE_DMA_ATTRS(attrs);
-	dma_addr_t dma_addr;
-	void *cpu_addr;
 	int ret = 0, i, idx, bytes;
-	struct reserved_mem_ops *rmem_ops =
-		(struct reserved_mem_ops *)rmem->priv;
 	struct sg_table *sgt;
 
 	dma_set_attr(DMA_ATTR_ALLOC_EXACT_SIZE, __DMA_ATTR(attrs));
@@ -100,26 +110,29 @@ static int __init nvmap_gosmem_device_init(struct reserved_mem *rmem,
 		return -ENODEV;
 	}
 
-	if (count) {
+	if (cvdev_count) {
 		pr_err("Gosmem initialized already\n");
 		return -EBUSY;
 	}
 
-	count = of_count_phandle_with_args(np, "cvdevs", NULL);
-	if (!count) {
+	cvdev_count = of_count_phandle_with_args(np, "cvdevs", NULL);
+	if (!cvdev_count) {
 		pr_err("No cvdevs to use the gosmem!!\n");
 		return -EINVAL;
 	}
 
-	cpu_addr = dma_alloc_coherent(gosmem.dma_dev, count * SZ_4K,
-				&dma_addr, GFP_KERNEL);
-	if (!cpu_addr) {
+	gos.cpu_addr = dma_alloc_coherent(dev, cvdev_count * SZ_4K,
+				&gos.dma_addr, GFP_KERNEL);
+	if (!gos.cpu_addr) {
 		pr_err("Failed to allocate from Gos mem carveout\n");
 		return -ENOMEM;
 	}
 
-	bytes = sizeof(*cvdev_info) * count;
-	bytes += sizeof(struct sg_table) * count * count;
+	gos.memremap_addr = memremap(virt_to_phys(gos.cpu_addr),
+			cvdev_count * SZ_4K, MEMREMAP_WB);
+
+	bytes = sizeof(*cvdev_info) * cvdev_count;
+	bytes += sizeof(struct sg_table) * cvdev_count * cvdev_count;
 	cvdev_info = kzalloc(bytes, GFP_KERNEL);
 	if (!cvdev_info) {
 		pr_err("kzalloc failed. No memory!!!\n");
@@ -127,7 +140,7 @@ static int __init nvmap_gosmem_device_init(struct reserved_mem *rmem,
 		goto unmap_dma;
 	}
 
-	for (idx = 0; idx < count; idx++) {
+	for (idx = 0; idx < cvdev_count; idx++) {
 		struct device_node *temp;
 
 		ret = of_parse_phandle_with_args(np, "cvdevs",
@@ -141,17 +154,18 @@ static int __init nvmap_gosmem_device_init(struct reserved_mem *rmem,
 		}
 		temp = outargs.np;
 
+		spin_lock_init(&cvdev_info[idx].goslock);
 		cvdev_info[idx].np = of_node_get(temp);
 		if (!cvdev_info[idx].np)
 			continue;
-		cvdev_info[idx].count = count;
+		cvdev_info[idx].count = cvdev_count;
 		cvdev_info[idx].idx = idx;
 		cvdev_info[idx].sgt =
-			(struct sg_table *)(cvdev_info + count);
-		cvdev_info[idx].sgt += idx * count;
-		cvdev_info[idx].cpu_addr = cpu_addr + idx * SZ_4K;
+			(struct sg_table *)(cvdev_info + cvdev_count);
+		cvdev_info[idx].sgt += idx * cvdev_count;
+		cvdev_info[idx].cpu_addr = gos.memremap_addr + idx * SZ_4K;
 
-		for (i = 0; i < count; i++) {
+		for (i = 0; i < cvdev_count; i++) {
 			sgt = cvdev_info[idx].sgt + i;
 
 			ret = sg_alloc_table(sgt, 1, GFP_KERNEL);
@@ -160,22 +174,22 @@ static int __init nvmap_gosmem_device_init(struct reserved_mem *rmem,
 				goto free;
 			}
 			sg_set_buf(sgt->sgl,
-				(cpu_addr + i * SZ_4K), SZ_4K);
+				(gos.memremap_addr + i * SZ_4K), SZ_4K);
 		}
 	}
-	rmem->priv = &gosmem;
-	ret = rmem_ops->device_init(rmem, dev);
-	if (ret)
-		goto free;
-	return ret;
+
+	return 0;
 free:
-	sgt = (struct sg_table *)(cvdev_info + count);
-	for (i = 0; i < count * count; i++)
+	sgt = (struct sg_table *)(cvdev_info + cvdev_count);
+	for (i = 0; i < cvdev_count * cvdev_count; i++)
 		sg_free_table(sgt++);
 free_cvdev:
 	kfree(cvdev_info);
+	cvdev_info = NULL;
+	cvdev_count = 0;
 unmap_dma:
-	dma_free_coherent(gosmem.dma_dev, count * SZ_4K, cpu_addr, dma_addr);
+	dma_free_coherent(dev, cvdev_count * SZ_4K, gos.cpu_addr, gos.dma_addr);
+	memunmap(gos.memremap_addr);
 	return ret;
 }
 
@@ -186,18 +200,12 @@ static struct reserved_mem_ops gosmem_rmem_ops = {
 
 static int __init nvmap_gosmem_setup(struct reserved_mem *rmem)
 {
-	int ret;
-
-	rmem->priv = &gosmem;
-	ret = nvmap_co_setup(rmem);
-	if (ret)
-		return ret;
-
-	rmem->priv = (struct reserved_mem_ops *)rmem->ops;
+	rmem->priv = NULL;
 	rmem->ops = &gosmem_rmem_ops;
+
 	return 0;
 }
-RESERVEDMEM_OF_DECLARE(nvmap_co, "nvidia,gosmem", nvmap_gosmem_setup);
+RESERVEDMEM_OF_DECLARE(nvmap_gosmem, "nvidia,gosmem", nvmap_gosmem_setup);
 
 struct cv_dev_info *nvmap_fetch_cv_dev_info(struct device *dev);
 
@@ -205,7 +213,7 @@ static int nvmap_gosmem_notifier(struct notifier_block *nb,
 		unsigned long event, void *_dev)
 {
 	struct device *dev = _dev;
-	int ents, i, ret;
+	int ents, i;
 	struct cv_dev_info *gos_owner;
 
 	if ((event != BUS_NOTIFY_BOUND_DRIVER) &&
@@ -235,18 +243,7 @@ static int nvmap_gosmem_notifier(struct notifier_block *nb,
 	if (!gos_owner)
 		return NOTIFY_DONE;
 
-	ret = _dma_declare_coherent_memory(&gos_owner->offset_dev, 0, 0, SZ_256,
-				ffs(sizeof(u32)) - ffs(sizeof(u8)), DMA_MEMORY_NOMAP);
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 14, 0)
-	if (ret) {
-#else
-	if (!(ret & DMA_MEMORY_NOMAP)) {
-#endif
-		dev_err(dev, "declare coherent memory for gosmem chunk failed\n");
-		return NOTIFY_DONE;
-	}
-
-	for (i = 0; i < count; i++) {
+	for (i = 0; i < cvdev_count; i++) {
 		DEFINE_DMA_ATTRS(attrs);
 		enum dma_data_direction dir;
 
@@ -296,8 +293,55 @@ struct cv_dev_info *nvmap_fetch_cv_dev_info(struct device *dev)
 	if (!dev || !cvdev_info || !dev->of_node)
 		return NULL;
 
-	for (i = 0; i < count; i++)
+	for (i = 0; i < cvdev_count; i++)
 		if (cvdev_info[i].np == dev->of_node)
 			return &cvdev_info[i];
 	return NULL;
+}
+
+int nvmap_alloc_gos_slot(struct device *dev,
+		u32 *return_index,
+		u32 *return_offset,
+		u32 **return_address)
+{
+	u32 offset;
+	int i;
+
+	for (i = 0; i < cvdev_count; i++) {
+		if (cvdev_info[i].np != dev->of_node)
+			continue;
+
+		spin_lock(&cvdev_info[i].goslock);
+
+		offset = find_first_zero_bit(cvdev_info[i].gosmap, NVMAP_MAX_GOS_COUNT);
+		if (offset < NVMAP_MAX_GOS_COUNT)
+			set_bit(offset, cvdev_info[i].gosmap);
+
+		spin_unlock(&cvdev_info[i].goslock);
+
+		if (offset >= NVMAP_MAX_GOS_COUNT)
+			continue;
+
+		*return_index = cvdev_info[i].idx;
+		*return_offset = offset;
+		*return_address = (u32 *)
+			(cvdev_info[i].cpu_addr + (offset * sizeof(u32)));
+
+		return 0;
+	}
+
+	return -EBUSY;
+}
+
+void nvmap_free_gos_slot(u32 index, u32 offset)
+{
+	if (WARN_ON(index >= cvdev_count) ||
+		WARN_ON(offset >= NVMAP_MAX_GOS_COUNT))
+		return;
+
+	spin_lock(&cvdev_info[index].goslock);
+
+	clear_bit(offset, cvdev_info[index].gosmap);
+
+	spin_unlock(&cvdev_info[index].goslock);
 }
