@@ -154,6 +154,11 @@ enum {
 	nvfx_method_error_event,
 	nvfx_method_set_apr_params,
 
+	/*
+	 * CPU to ADSP : Used to indicate end of stream
+	 * ADSP to CPU : Used to notify that all input data is consumed
+	 */
+	nvfx_method_set_eos,
 	nvfx_method_external_start = 65536,
 
 	nvfx_method_force32 = 0x7fffffff
