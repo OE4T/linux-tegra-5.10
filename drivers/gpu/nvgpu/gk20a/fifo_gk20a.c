@@ -3368,7 +3368,7 @@ end:
 }
 
 /* trigger host preempt of GR pending load ctx if that ctx is not for ch */
-static int __locked_fifo_reschedule_preempt_next(struct channel_gk20a *ch,
+int gk20a_fifo_reschedule_preempt_next(struct channel_gk20a *ch,
 		bool wait_preempt)
 {
 	struct gk20a *g = ch->g;
@@ -3455,7 +3455,7 @@ int nvgpu_fifo_reschedule_runlist(struct channel_gk20a *ch, bool preempt_next,
 		g, ch->runlist_id, runlist->count, runlist->cur_buffer);
 
 	if (preempt_next) {
-		__locked_fifo_reschedule_preempt_next(ch, wait_preempt);
+		g->ops.fifo.reschedule_preempt_next_locked(ch, wait_preempt);
 	}
 
 	gk20a_fifo_runlist_wait_pending(g, ch->runlist_id);

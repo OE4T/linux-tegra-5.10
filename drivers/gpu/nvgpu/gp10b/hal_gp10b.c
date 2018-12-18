@@ -545,6 +545,7 @@ static const struct gpu_ops gp10b_ops = {
 		.tsg_verify_channel_status = gk20a_fifo_tsg_unbind_channel_verify_status,
 		.tsg_verify_status_ctx_reload = gm20b_fifo_tsg_verify_status_ctx_reload,
 		.reschedule_runlist = gk20a_fifo_reschedule_runlist,
+		.reschedule_preempt_next_locked = gk20a_fifo_reschedule_preempt_next,
 		.update_runlist = gk20a_fifo_update_runlist,
 		.trigger_mmu_fault = gm20b_fifo_trigger_mmu_fault,
 		.get_mmu_fault_info = gp10b_fifo_get_mmu_fault_info,

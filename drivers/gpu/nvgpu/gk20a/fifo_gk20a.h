@@ -1,7 +1,7 @@
 /*
  * GK20A graphics fifo (gr host)
  *
- * Copyright (c) 2011-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -268,6 +268,8 @@ u32 gk20a_fifo_engines_on_ch(struct gk20a *g, u32 chid);
 
 int gk20a_fifo_reschedule_runlist(struct channel_gk20a *ch, bool preempt_next);
 int nvgpu_fifo_reschedule_runlist(struct channel_gk20a *ch, bool preempt_next,
+		bool wait_preempt);
+int gk20a_fifo_reschedule_preempt_next(struct channel_gk20a *ch,
 		bool wait_preempt);
 
 int gk20a_fifo_update_runlist(struct gk20a *g, u32 runlist_id, u32 chid,

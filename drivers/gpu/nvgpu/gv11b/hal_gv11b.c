@@ -666,6 +666,7 @@ static const struct gpu_ops gv11b_ops = {
 		.tsg_verify_status_ctx_reload = gm20b_fifo_tsg_verify_status_ctx_reload,
 		.tsg_verify_status_faulted = gv11b_fifo_tsg_verify_status_faulted,
 		.reschedule_runlist = gv11b_fifo_reschedule_runlist,
+		.reschedule_preempt_next_locked = gk20a_fifo_reschedule_preempt_next,
 		.update_runlist = gk20a_fifo_update_runlist,
 		.trigger_mmu_fault = NULL,
 		.get_mmu_fault_info = NULL,

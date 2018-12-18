@@ -760,6 +760,8 @@ struct gpu_ops {
 		void (*tsg_verify_status_faulted)(struct channel_gk20a *ch);
 		int (*reschedule_runlist)(struct channel_gk20a *ch,
 				bool preempt_next);
+		int (*reschedule_preempt_next_locked)(struct channel_gk20a *ch,
+				bool wait_preempt);
 		int (*update_runlist)(struct gk20a *g, u32 runlist_id,
 				u32 chid, bool add,
 				bool wait_for_finish);
