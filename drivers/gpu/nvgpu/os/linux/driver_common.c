@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -50,8 +50,8 @@ static void nvgpu_init_vars(struct gk20a *g)
 	struct device *dev = dev_from_gk20a(g);
 	struct gk20a_platform *platform = dev_get_drvdata(dev);
 
-	nvgpu_cond_init(&l->sw_irq_stall_last_handled_wq);
-	nvgpu_cond_init(&l->sw_irq_nonstall_last_handled_wq);
+	nvgpu_cond_init(&g->sw_irq_stall_last_handled_cond);
+	nvgpu_cond_init(&g->sw_irq_nonstall_last_handled_cond);
 
 	init_rwsem(&l->busy_lock);
 	nvgpu_rwsem_init(&g->deterministic_busy);
@@ -295,46 +295,6 @@ int nvgpu_probe(struct gk20a *g,
 	nvgpu_ref_init(&g->refcount);
 
 	return 0;
-}
-
-/**
- * cyclic_delta - Returns delta of cyclic integers a and b.
- *
- * @a - First integer
- * @b - Second integer
- *
- * Note: if a is ahead of b, delta is positive.
- */
-static int cyclic_delta(int a, int b)
-{
-	return a - b;
-}
-
-/**
- * nvgpu_wait_for_deferred_interrupts - Wait for interrupts to complete
- *
- * @g - The GPU to wait on.
- *
- * Waits until all interrupt handlers that have been scheduled to run have
- * completed.
- */
-void nvgpu_wait_for_deferred_interrupts(struct gk20a *g)
-{
-	struct nvgpu_os_linux *l = nvgpu_os_linux_from_gk20a(g);
-	int stall_irq_threshold = atomic_read(&l->hw_irq_stall_count);
-	int nonstall_irq_threshold = atomic_read(&l->hw_irq_nonstall_count);
-
-	/* wait until all stalling irqs are handled */
-	NVGPU_COND_WAIT(&l->sw_irq_stall_last_handled_wq,
-		   cyclic_delta(stall_irq_threshold,
-				atomic_read(&l->sw_irq_stall_last_handled))
-		   <= 0, 0);
-
-	/* wait until all non-stalling irqs are handled */
-	NVGPU_COND_WAIT(&l->sw_irq_nonstall_last_handled_wq,
-		   cyclic_delta(nonstall_irq_threshold,
-				atomic_read(&l->sw_irq_nonstall_last_handled))
-		   <= 0, 0);
 }
 
 static void nvgpu_free_gk20a(struct gk20a *g)

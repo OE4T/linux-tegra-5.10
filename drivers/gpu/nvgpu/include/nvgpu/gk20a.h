@@ -1745,6 +1745,16 @@ struct gk20a {
 	bool pmu_lsf_pmu_wpr_init_done;
 	u32 pmu_lsf_loaded_falcon_id;
 
+	/* Needed to keep track of deferred interrupts */
+	nvgpu_atomic_t hw_irq_stall_count;
+	nvgpu_atomic_t hw_irq_nonstall_count;
+
+	struct nvgpu_cond sw_irq_stall_last_handled_cond;
+	nvgpu_atomic_t sw_irq_stall_last_handled;
+
+	struct nvgpu_cond sw_irq_nonstall_last_handled_cond;
+	nvgpu_atomic_t sw_irq_nonstall_last_handled;
+
 	int irqs_enabled;
 	int irq_stall; /* can be same as irq_nonstall in case of PCI */
 	int irq_nonstall;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -108,16 +108,7 @@ struct nvgpu_os_linux {
 
 	struct device_dma_parameters dma_parms;
 
-	atomic_t hw_irq_stall_count;
-	atomic_t hw_irq_nonstall_count;
-
-	struct nvgpu_cond sw_irq_stall_last_handled_wq;
-	atomic_t sw_irq_stall_last_handled;
-
 	atomic_t nonstall_ops;
-
-	struct nvgpu_cond sw_irq_nonstall_last_handled_wq;
-	atomic_t sw_irq_nonstall_last_handled;
 
 	struct work_struct nonstall_fn_work;
 	struct workqueue_struct *nonstall_work_queue;

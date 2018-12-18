@@ -1,7 +1,7 @@
 /*
  * GK20A Master Control
  *
- * Copyright (c) 2014-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -50,4 +50,43 @@ u32 nvgpu_mc_boot_0(struct gk20a *g, u32 *arch, u32 *impl, u32 *rev)
 	}
 
 	return val;
+}
+
+/**
+ * cyclic_delta - Returns delta of cyclic integers a and b.
+ *
+ * @a - First integer
+ * @b - Second integer
+ *
+ * Note: if a is ahead of b, delta is positive.
+ */
+static int cyclic_delta(int a, int b)
+{
+	return a - b;
+}
+
+/**
+ * nvgpu_wait_for_deferred_interrupts - Wait for interrupts to complete
+ *
+ * @g - The GPU to wait on.
+ *
+ * Waits until all interrupt handlers that have been scheduled to run have
+ * completed.
+ */
+void nvgpu_wait_for_deferred_interrupts(struct gk20a *g)
+{
+	int stall_irq_threshold = nvgpu_atomic_read(&g->hw_irq_stall_count);
+	int nonstall_irq_threshold = nvgpu_atomic_read(&g->hw_irq_nonstall_count);
+
+	/* wait until all stalling irqs are handled */
+	NVGPU_COND_WAIT(&g->sw_irq_stall_last_handled_cond,
+		cyclic_delta(stall_irq_threshold,
+			nvgpu_atomic_read(&g->sw_irq_stall_last_handled))
+		<= 0, 0);
+
+	/* wait until all non-stalling irqs are handled */
+	NVGPU_COND_WAIT(&g->sw_irq_nonstall_last_handled_cond,
+		cyclic_delta(nonstall_irq_threshold,
+			nvgpu_atomic_read(&g->sw_irq_nonstall_last_handled))
+		<= 0, 0);
 }

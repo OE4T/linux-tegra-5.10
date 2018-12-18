@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -22,7 +22,6 @@
 
 irqreturn_t nvgpu_intr_stall(struct gk20a *g)
 {
-	struct nvgpu_os_linux *l = nvgpu_os_linux_from_gk20a(g);
 	u32 mc_intr_0;
 
 	trace_mc_gk20a_intr_stall(g->name);
@@ -37,7 +36,7 @@ irqreturn_t nvgpu_intr_stall(struct gk20a *g)
 
 	g->ops.mc.intr_stall_pause(g);
 
-	atomic_inc(&l->hw_irq_stall_count);
+	nvgpu_atomic_inc(&g->hw_irq_stall_count);
 
 	trace_mc_gk20a_intr_stall_done(g->name);
 
@@ -46,20 +45,19 @@ irqreturn_t nvgpu_intr_stall(struct gk20a *g)
 
 irqreturn_t nvgpu_intr_thread_stall(struct gk20a *g)
 {
-	struct nvgpu_os_linux *l = nvgpu_os_linux_from_gk20a(g);
 	int hw_irq_count;
 
 	nvgpu_log(g, gpu_dbg_intr, "interrupt thread launched");
 
 	trace_mc_gk20a_intr_thread_stall(g->name);
 
-	hw_irq_count = atomic_read(&l->hw_irq_stall_count);
+	hw_irq_count = nvgpu_atomic_read(&g->hw_irq_stall_count);
 	g->ops.mc.isr_stall(g);
 	g->ops.mc.intr_stall_resume(g);
 	/* sync handled irq counter before re-enabling interrupts */
-	atomic_set(&l->sw_irq_stall_last_handled, hw_irq_count);
+	nvgpu_atomic_set(&g->sw_irq_stall_last_handled, hw_irq_count);
 
-	nvgpu_cond_broadcast(&l->sw_irq_stall_last_handled_wq);
+	nvgpu_cond_broadcast(&g->sw_irq_stall_last_handled_cond);
 
 	trace_mc_gk20a_intr_thread_stall_done(g->name);
 
@@ -94,14 +92,14 @@ irqreturn_t nvgpu_intr_nonstall(struct gk20a *g)
 		queue_work(l->nonstall_work_queue, &l->nonstall_fn_work);
 	}
 
-	hw_irq_count = atomic_inc_return(&l->hw_irq_nonstall_count);
+	hw_irq_count = nvgpu_atomic_inc_return(&g->hw_irq_nonstall_count);
 
 	/* sync handled irq counter before re-enabling interrupts */
-	atomic_set(&l->sw_irq_nonstall_last_handled, hw_irq_count);
+	nvgpu_atomic_set(&g->sw_irq_nonstall_last_handled, hw_irq_count);
 
 	g->ops.mc.intr_nonstall_resume(g);
 
-	nvgpu_cond_broadcast(&l->sw_irq_nonstall_last_handled_wq);
+	nvgpu_cond_broadcast(&g->sw_irq_nonstall_last_handled_cond);
 
 	return IRQ_HANDLED;
 }
