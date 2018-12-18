@@ -460,9 +460,12 @@ static int tegra_crypt_rsa(struct file *filp, struct tegra_crypto_ctx *ctx,
 		ctx->rsa_tfm[rsa_req->algo] = tfm;
 		filp->private_data = ctx;
 		return 0;
-	} else {
-		ctx = filp->private_data;
-		tfm =  ctx->rsa_tfm[rsa_req->algo];
+	}
+	ctx = filp->private_data;
+	tfm =  ctx->rsa_tfm[rsa_req->algo];
+	if (tfm == NULL) {
+		pr_err("%s: uninitialized tfm\n", __func__);
+		return -EINVAL;
 	}
 
 	if ((rsa_req->op_mode == RSA_SET_PUB) ||
@@ -1091,9 +1094,12 @@ static int tegra_crypt_pka1_rsa(struct file *filp, struct tegra_crypto_ctx *ctx,
 
 		return 0;
 	}
-
 	ctx = filp->private_data;
 	tfm =  ctx->pka1_rsa_tfm;
+	if (tfm == NULL) {
+		pr_err("%s: uninitialized tfm\n", __func__);
+		return -EINVAL;
+	}
 
 	if ((rsa_req->op_mode == RSA_SET_PUB) ||
 	    (rsa_req->op_mode == RSA_SET_PRIV)) {
