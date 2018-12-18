@@ -1,7 +1,7 @@
 /**
  * TEGRA_V4L2_CAMERA.h - utilities for tegra camera driver
  *
- * Copyright (c) 2017-2018, NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2017-2019, NVIDIA Corporation.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -104,7 +104,8 @@ struct sensor_signal_properties {
 	__u32 phy_mode;
 	__u32 deskew_initial_enable;
 	__u32 deskew_periodic_enable;
-	__u32 reserved[4];
+	union __u64val serdes_pixel_clock;
+	__u32 reserved[2];
 };
 
 struct sensor_image_properties {

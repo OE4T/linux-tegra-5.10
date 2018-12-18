@@ -1620,7 +1620,10 @@ static u64 tegra_channel_get_max_pixelclock(struct tegra_channel *chan)
 
 	for (i = 0; i < s_data->sensor_props.num_modes; i++) {
 		sensor_mode = &s_data->sensor_props.sensor_modes[i];
-		val = sensor_mode->signal_properties.pixel_clock.val;
+		if (sensor_mode->signal_properties.serdes_pixel_clock.val != 0ULL)
+			val = sensor_mode->signal_properties.serdes_pixel_clock.val;
+		else
+			val = sensor_mode->signal_properties.pixel_clock.val;
 		/* Select the mode with largest pixel rate */
 		if (pixelclock < val)
 			pixelclock = val;
