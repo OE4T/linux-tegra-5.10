@@ -232,7 +232,8 @@ srcs :=	os/posix/nvgpu.c \
 	gv100/fifo_gv100.c \
 	gv100/gr_gv100.c \
 	gv100/regops_gv100.c \
-	gv100/nvlink_gv100.c \
+	common/nvlink/nvlink_gv100.c \
+	common/nvlink/nvlink_tu104.c	\
 	gv100/hal_gv100.c \
 	gv100/gsp_gv100.c \
 	gv100/clk_gv100.c \
@@ -246,7 +247,6 @@ srcs :=	os/posix/nvgpu.c \
 	tu104/fifo_tu104.c	\
 	tu104/gr_tu104.c	\
 	tu104/hal_tu104.c	\
-	tu104/nvlink_tu104.c	\
 	tu104/sec2_tu104.c	\
 	tu104/func_tu104.c	\
 	tu104/regops_tu104.c

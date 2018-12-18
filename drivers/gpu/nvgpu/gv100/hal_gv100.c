@@ -69,6 +69,8 @@
 #include "common/falcon/falcon_gp106.h"
 #include "common/falcon/falcon_gv100.h"
 #include "common/nvdec/nvdec_gp106.h"
+#include "common/nvlink/nvlink_gv100.h"
+#include "common/nvlink/nvlink_tu104.h"
 #include "pmu_perf/perf_gv100.h"
 
 #include "gk20a/fifo_gk20a.h"
@@ -107,7 +109,6 @@
 #include "gv100/fifo_gv100.h"
 #include "gv100/gr_gv100.h"
 #include "gv100/mm_gv100.h"
-#include "gv100/nvlink_gv100.h"
 #include "gv100/regops_gv100.h"
 #include "gv100/clk_gv100.h"
 

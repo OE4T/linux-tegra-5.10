@@ -558,7 +558,7 @@ int nvgpu_nvlink_remove(struct gk20a *g)
 		return -ENODEV;
 
 	ndev = g->nvlink.priv;
-	if(!ndev)
+	if (!ndev)
 		return -ENODEV;
 
 	__nvgpu_set_enabled(g, NVGPU_SUPPORT_NVLINK, false);

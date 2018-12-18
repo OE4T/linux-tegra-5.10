@@ -233,7 +233,6 @@ nvgpu-y += \
 	common/mm/dma.o \
 	common/enabled.o \
 	common/string.o \
-	common/nvlink.o \
 	common/pramin.o \
 	common/semaphore.o \
 	common/as.o \
@@ -281,6 +280,9 @@ nvgpu-y += \
 	common/ecc.o \
 	common/ce2.o \
 	common/debugger.o \
+	common/nvlink/nvlink.o \
+	common/nvlink/nvlink_gv100.o \
+	common/nvlink/nvlink_tu104.o \
 	gk20a/ce2_gk20a.o \
 	gk20a/fifo_gk20a.o \
 	gk20a/regops_gk20a.o \
@@ -355,7 +357,6 @@ nvgpu-y += \
 	gv100/fifo_gv100.o \
 	gv100/gr_gv100.o \
 	gv100/regops_gv100.o \
-	gv100/nvlink_gv100.o \
 	gv100/hal_gv100.o \
 	gv100/gsp_gv100.o \
 	gv100/clk_gv100.o \
@@ -364,7 +365,6 @@ nvgpu-y += \
 	tu104/gr_tu104.o \
 	tu104/func_tu104.o \
 	tu104/bios_tu104.o \
-	tu104/nvlink_tu104.o \
 	tu104/fbpa_tu104.o \
 	tu104/sec2_tu104.o \
 	tu104/ecc_tu104.o \

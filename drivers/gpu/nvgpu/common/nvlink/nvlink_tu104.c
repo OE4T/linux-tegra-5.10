@@ -31,7 +31,7 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/bios.h>
 
-#include "gv100/nvlink_gv100.h"
+#include "nvlink_gv100.h"
 #include "nvlink_tu104.h"
 
 #include <nvgpu/hw/tu104/hw_minion_tu104.h>

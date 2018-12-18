@@ -75,6 +75,8 @@
 #include "common/nvdec/nvdec_tu104.h"
 #include "common/top/top_gm20b.h"
 #include "common/top/top_gp10b.h"
+#include "common/nvlink/nvlink_gv100.h"
+#include "common/nvlink/nvlink_tu104.h"
 
 #include "gk20a/fifo_gk20a.h"
 #include "gk20a/fecs_trace_gk20a.h"
@@ -113,7 +115,6 @@
 #include "gv100/fifo_gv100.h"
 #include "gv100/gr_gv100.h"
 #include "gv100/mm_gv100.h"
-#include "gv100/nvlink_gv100.h"
 #include "gv100/regops_gv100.h"
 
 #include "tu104/fifo_tu104.h"
@@ -121,7 +122,6 @@
 #include "tu104/bios_tu104.h"
 #include "tu104/fbpa_tu104.h"
 #include "tu104/sec2_tu104.h"
-#include "tu104/nvlink_tu104.h"
 #include "tu104/ecc_tu104.h"
 #include "tu104/hal_tu104.h"
 #include "tu104/regops_tu104.h"
