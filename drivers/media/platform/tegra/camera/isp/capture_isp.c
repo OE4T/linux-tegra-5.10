@@ -3,7 +3,7 @@
  *
  * Tegra NvCapture ISP KMD
  *
- * Copyright (c) 2017-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Author: Sudhir Vyas <svyas@nvidia.com>
  *
@@ -122,6 +122,74 @@ static void isp_capture_request_unpin(struct tegra_isp_channel *chan,
 static void isp_capture_program_request_unpin(struct tegra_isp_channel *chan,
 		uint32_t buffer_index);
 
+static inline void isp_capture_ivc_capture_cleanup(struct isp_capture *capture,
+	uint32_t buffer_index)
+{
+	struct tegra_isp_channel *chan = capture->isp_channel;
+
+	isp_capture_request_unpin(chan, buffer_index);
+	dma_sync_single_range_for_cpu(capture->rtcpu_dev,
+		capture->capture_desc_ctx.requests.iova,
+		buffer_index * capture->capture_desc_ctx.request_size,
+		capture->capture_desc_ctx.request_size,
+		DMA_FROM_DEVICE);
+}
+
+static inline void isp_capture_ivc_capture_signal(struct isp_capture *capture,
+	uint32_t buffer_index)
+{
+	if (capture->is_progress_status_notifier_set) {
+		(void)capture_common_set_progress_status(
+			&capture->progress_status_notifier,
+			buffer_index,
+			capture->capture_desc_ctx.progress_status_buffer_depth,
+			PROGRESS_STATUS_DONE);
+	} else {
+		/*
+		 * Only fire completions if not using
+		 * the new progress status buffer mechanism
+		 */
+		complete(&capture->capture_resp);
+	}
+}
+
+static inline void isp_capture_ivc_program_cleanup(struct isp_capture *capture,
+	uint32_t buffer_index)
+{
+	struct tegra_isp_channel *chan = capture->isp_channel;
+
+	isp_capture_program_request_unpin(chan, buffer_index);
+	dma_sync_single_range_for_cpu(capture->rtcpu_dev,
+		capture->program_desc_ctx.requests.iova,
+		buffer_index * capture->program_desc_ctx.request_size,
+		capture->program_desc_ctx.request_size,
+		DMA_FROM_DEVICE);
+}
+
+static inline void isp_capture_ivc_program_signal(struct isp_capture *capture,
+	uint32_t buffer_index)
+{
+	if (capture->is_progress_status_notifier_set) {
+		/*
+		 * Program status notifiers are after the process status
+		 * notifiers; add the process status buffer depth as an offset.
+		 */
+		(void)capture_common_set_progress_status(
+			&capture->progress_status_notifier,
+			buffer_index +
+			capture->capture_desc_ctx.progress_status_buffer_depth,
+			capture->program_desc_ctx.progress_status_buffer_depth +
+			capture->capture_desc_ctx.progress_status_buffer_depth,
+			PROGRESS_STATUS_DONE);
+	} else {
+		/*
+		 * Only fire completions if not using
+		 * the new progress status buffer mechanism
+		 */
+		complete(&capture->capture_program_resp);
+	}
+}
+
 static void isp_capture_ivc_status_callback(const void *ivc_resp,
 		const void *pcontext)
 {
@@ -143,27 +211,8 @@ static void isp_capture_ivc_status_callback(const void *ivc_resp,
 	switch (status_msg->header.msg_id) {
 	case CAPTURE_ISP_STATUS_IND:
 		buffer_index = status_msg->capture_isp_status_ind.buffer_index;
-		isp_capture_request_unpin(chan, buffer_index);
-		dma_sync_single_range_for_cpu(capture->rtcpu_dev,
-			capture->capture_desc_ctx.requests.iova,
-			buffer_index * capture->capture_desc_ctx.request_size,
-			capture->capture_desc_ctx.request_size,
-			DMA_FROM_DEVICE);
-
-		if (capture->is_progress_status_notifier_set) {
-			capture_common_set_progress_status(
-				&capture->progress_status_notifier,
-				buffer_index,
-				capture->capture_desc_ctx.progress_status_buffer_depth,
-				PROGRESS_STATUS_DONE);
-		} else {
-			/*
-			 * Only fire completions if not using
-			 * the new progress status buffer mechanism
-			 */
-			complete(&capture->capture_resp);
-		}
-
+		isp_capture_ivc_capture_cleanup(capture, buffer_index);
+		isp_capture_ivc_capture_signal(capture, buffer_index);
 		dev_dbg(chan->isp_dev, "%s: status chan_id %u msg_id %u\n",
 			__func__, status_msg->header.channel_id,
 			status_msg->header.msg_id);
@@ -171,35 +220,25 @@ static void isp_capture_ivc_status_callback(const void *ivc_resp,
 	case CAPTURE_ISP_PROGRAM_STATUS_IND:
 		buffer_index =
 			status_msg->capture_isp_program_status_ind.buffer_index;
-		isp_capture_program_request_unpin(chan, buffer_index);
-		dma_sync_single_range_for_cpu(capture->rtcpu_dev,
-			capture->program_desc_ctx.requests.iova,
-			buffer_index * capture->program_desc_ctx.request_size,
-			capture->program_desc_ctx.request_size,
-			DMA_FROM_DEVICE);
-
-		if (capture->is_progress_status_notifier_set) {
-			/*
-			 * Program status notifiers are after the process status notifiers;
-			 * add the process status buffer depth as an offset.
-			 */
-			capture_common_set_progress_status(
-				&capture->progress_status_notifier,
-				buffer_index +
-					capture->capture_desc_ctx.progress_status_buffer_depth,
-				capture->program_desc_ctx.progress_status_buffer_depth +
-					capture->capture_desc_ctx.progress_status_buffer_depth,
-				PROGRESS_STATUS_DONE);
-		} else {
-			/*
-			 * Only fire completions if not using
-			 * the new progress status buffer mechanism
-			 */
-			complete(&capture->capture_program_resp);
-		}
-
+		isp_capture_ivc_program_cleanup(capture, buffer_index);
+		isp_capture_ivc_program_signal(capture, buffer_index);
 		dev_dbg(chan->isp_dev,
 			"%s: isp_ program status chan_id %u msg_id %u\n",
+			__func__, status_msg->header.channel_id,
+			status_msg->header.msg_id);
+		break;
+	case CAPTURE_ISP_EX_STATUS_IND:
+		buffer_index =
+			status_msg->capture_isp_ex_status_ind
+			.process_buffer_index;
+		isp_capture_ivc_program_cleanup(capture,
+			status_msg->capture_isp_ex_status_ind
+			.program_buffer_index);
+		isp_capture_ivc_capture_cleanup(capture, buffer_index);
+		isp_capture_ivc_capture_signal(capture, buffer_index);
+
+		dev_dbg(chan->isp_dev,
+			"%s: isp extended status chan_id %u msg_id %u\n",
 			__func__, status_msg->header.channel_id,
 			status_msg->header.msg_id);
 		break;
@@ -1050,17 +1089,12 @@ static void isp_capture_program_request_unpin(struct tegra_isp_channel *chan,
 	mutex_unlock(&capture->program_desc_ctx.unpins_list_lock);
 }
 
-int isp_capture_program_request(struct tegra_isp_channel *chan,
+static int isp_capture_program_prepare(struct tegra_isp_channel *chan,
 		struct isp_program_req *req)
 {
 	struct isp_capture *capture = chan->capture_data;
-	struct CAPTURE_MSG capture_msg;
 	int err = 0;
 	struct capture_common_pin_req cap_common_req;
-
-	nv_camera_log(chan->ndev,
-		arch_counter_get_cntvct(),
-		NVHOST_CAMERA_ISP_CAPTURE_REQUEST);
 
 	if (capture == NULL) {
 		dev_err(chan->isp_dev,
@@ -1094,12 +1128,6 @@ int isp_capture_program_request(struct tegra_isp_channel *chan,
 	}
 	capture->reset_capture_program_flag = false;
 
-	memset(&capture_msg, 0, sizeof(capture_msg));
-	capture_msg.header.msg_id = CAPTURE_ISP_PROGRAM_REQUEST_REQ;
-	capture_msg.header.channel_id = capture->channel_id;
-	capture_msg.capture_isp_program_request_req.buffer_index =
-				req->buffer_index;
-
 	/* memory pin and reloc */
 	cap_common_req.dev = chan->isp_dev;
 	cap_common_req.rtcpu_dev = capture->rtcpu_dev;
@@ -1126,6 +1154,34 @@ int isp_capture_program_request(struct tegra_isp_channel *chan,
 		cap_common_req.unpins;
 	mutex_unlock(&capture->program_desc_ctx.unpins_list_lock);
 
+fail:
+	mutex_unlock(&capture->reset_lock);
+	return err;
+}
+
+int isp_capture_program_request(struct tegra_isp_channel *chan,
+		struct isp_program_req *req)
+{
+	struct isp_capture *capture = chan->capture_data;
+	struct CAPTURE_MSG capture_msg;
+	int err = 0;
+
+	nv_camera_log(chan->ndev,
+		arch_counter_get_cntvct(),
+		NVHOST_CAMERA_ISP_CAPTURE_PROGRAM_REQUEST);
+
+	err = isp_capture_program_prepare(chan, req);
+	if (err < 0) {
+		/* no cleanup needed */
+		return err;
+	}
+
+	memset(&capture_msg, 0, sizeof(capture_msg));
+	capture_msg.header.msg_id = CAPTURE_ISP_PROGRAM_REQUEST_REQ;
+	capture_msg.header.channel_id = capture->channel_id;
+	capture_msg.capture_isp_program_request_req.buffer_index =
+				req->buffer_index;
+
 	dev_dbg(chan->isp_dev, "%s: sending chan_id %u msg_id %u buf:%u\n",
 			__func__, capture_msg.header.channel_id,
 			capture_msg.header.msg_id, req->buffer_index);
@@ -1134,16 +1190,11 @@ int isp_capture_program_request(struct tegra_isp_channel *chan,
 			sizeof(capture_msg));
 	if (err < 0) {
 		dev_err(chan->isp_dev, "IVC program submit failed\n");
-		goto fail;
+		isp_capture_program_request_unpin(chan, req->buffer_index);
+		return err;
 	}
-	mutex_unlock(&capture->reset_lock);
 
 	return 0;
-
-fail:
-	mutex_unlock(&capture->reset_lock);
-	isp_capture_program_request_unpin(chan, req->buffer_index);
-	return err;
 }
 
 int isp_capture_program_status(struct tegra_isp_channel *chan)
@@ -1363,19 +1414,50 @@ int isp_capture_status(struct tegra_isp_channel *chan,
 int isp_capture_request_ex(struct tegra_isp_channel *chan,
 		struct isp_capture_req_ex *capture_req_ex)
 {
-	int ret = isp_capture_request(chan, &capture_req_ex->capture_req);
+	int err;
 
 	nv_camera_log(chan->ndev,
 		arch_counter_get_cntvct(),
 		NVHOST_CAMERA_ISP_CAPTURE_REQUEST_EX);
 
-	/* Handle program request if process request is successful */
-	if (ret == 0 && capture_req_ex->program_req.buffer_index != U32_MAX) {
-		ret = isp_capture_program_request(chan,
-				&capture_req_ex->program_req);
+	if (capture_req_ex->program_req.buffer_index != U32_MAX) {
+		/* FIXME: bug 2484221
+		 * for backward compatibility, __pad field is temporarily used
+		 * to indicate if an extra program ivc request is required.
+		 * remove this if after UMD activate the program binding flag in
+		 * capture descriptor.
+		 */
+		if (capture_req_ex->program_req.__pad != 0u) {
+			/* prepare program only */
+			err = isp_capture_program_prepare(
+				chan, &capture_req_ex->program_req);
+		} else {
+			/* prepare and submit program request */
+			err = isp_capture_program_request(
+				chan, &capture_req_ex->program_req);
+		}
+
+		if (err < 0) {
+			/* no cleanup needed */
+			return err;
+		}
 	}
 
-	return ret;
+	err = isp_capture_request(chan, &capture_req_ex->capture_req);
+
+	if (err < 0) {
+		if (capture_req_ex->program_req.__pad != 0u) {
+			/* FIXME: bug 2484221
+			 * unpin if program ivc request was not submitted to
+			 * rtcpu.
+			 */
+			isp_capture_program_request_unpin(chan,
+				capture_req_ex->program_req.buffer_index);
+		}
+		return err;
+	}
+
+	return 0;
 }
 
 int isp_capture_set_progress_status_notifier(struct tegra_isp_channel *chan,
