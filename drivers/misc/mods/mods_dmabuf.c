@@ -27,6 +27,10 @@
 
 #include "mods_internal.h"
 
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 14, 0)
+extern const struct dma_map_ops swiotlb_dma_ops;
+#endif
+
 static void dummy_release(struct device *dev)
 {
 }
@@ -147,6 +151,10 @@ int mods_init_dmabuf(void)
 		return ret;
 	}
 
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 14, 0)
+	if (!dummy_device.dev.dma_ops)
+		dummy_device.dev.dma_ops = &swiotlb_dma_ops;
+#endif
 	dummy_device_registered = true;
 
 	return 0;
