@@ -24,7 +24,7 @@ static int bios_version_show(struct seq_file *s, void *unused)
 {
 	struct gk20a *g = s->private;
 
-	seq_printf(s, "Version %02x.%02x.%02x.%02x.%02x\n",
+	seq_printf(s, "Version %02X.%02X.%02X.%02X.%02X\n",
 		(g->bios.vbios_version >> 24) & 0xFF,
 		(g->bios.vbios_version >> 16) & 0xFF,
 		(g->bios.vbios_version >> 8) & 0xFF,
