@@ -55,5 +55,6 @@
 
 #define TEGRA_SID_VI_VM2	0x62	/* 98 */
 #define TEGRA_SID_VI_VM3	0x63	/* 99 */
+#define TEGRA_SID_RCE_SERVER	0x64	/* 100 */
 
 #endif
