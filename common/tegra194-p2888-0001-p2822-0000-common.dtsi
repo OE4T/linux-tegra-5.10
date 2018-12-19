@@ -77,9 +77,15 @@
 		status = "disabled";
 	};
 
+#if TEGRA_PMC_VERSION >= DT_VERSION_2
+	pmc@c360000 {
+		nvidia,invert-interrupt;
+	};
+#else
 	pmc@c370000 {
 		nvidia,invert-interrupt;
 	};
+#endif
 
 	i2c@c240000 {
 		ucsi_ccg: ucsi_ccg@8 {
