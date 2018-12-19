@@ -42,19 +42,14 @@
 	sizeof("NO_KERNEL_MAPPING FORCE_CONTIGUOUS PHYSICALLY_ADDRESSED")
 
 /*
- * The returned string is kmalloc()ed here but must be freed by the caller.
+ * This function can't fail. It will always at minimum memset() the buf which
+ * is assumed to be able to hold at least %NVGPU_DMA_STR_SIZE bytes.
  */
-static char *nvgpu_dma_flags_to_str(struct gk20a *g, unsigned long flags)
+void nvgpu_dma_flags_to_str(struct gk20a *g, unsigned long flags, char *buf)
 {
-	char *buf = nvgpu_kzalloc(g, NVGPU_DMA_STR_SIZE);
 	int bytes_available = NVGPU_DMA_STR_SIZE;
 
-	/*
-	 * Return the empty buffer if there's no flags. Makes it easier on the
-	 * calling code to just print it instead of any if (NULL) type logic.
-	 */
-	if (!flags)
-		return buf;
+	memset(buf, 0, NVGPU_DMA_STR_SIZE);
 
 #define APPEND_FLAG(flag, str_flag)					\
 	do {								\
@@ -68,8 +63,6 @@ static char *nvgpu_dma_flags_to_str(struct gk20a *g, unsigned long flags)
 	APPEND_FLAG(NVGPU_DMA_FORCE_CONTIGUOUS,     "FORCE_CONTIGUOUS ");
 	APPEND_FLAG(NVGPU_DMA_PHYSICALLY_ADDRESSED, "PHYSICALLY_ADDRESSED");
 #undef APPEND_FLAG
-
-	return buf;
 }
 
 /**
@@ -90,16 +83,15 @@ static void __dma_dbg(struct gk20a *g, size_t size, unsigned long flags,
 		      const char *type, const char *what,
 		      const char *func, int line)
 {
-	char *flags_str = NULL;
+	char flags_str[NVGPU_DMA_STR_SIZE];
 
 	/*
-	 * Don't bother making the flags_str if debugging is
-	 * not enabled. This saves a malloc and a free.
+	 * Don't bother making the flags_str if debugging is not enabled.
 	 */
 	if (!nvgpu_log_mask_enabled(g, gpu_dbg_dma))
 		return;
 
-	flags_str = nvgpu_dma_flags_to_str(g, flags);
+	nvgpu_dma_flags_to_str(g, flags, flags_str);
 
 	__nvgpu_log_dbg(g, gpu_dbg_dma,
 			func, line,
@@ -109,9 +101,6 @@ static void __dma_dbg(struct gk20a *g, size_t size, unsigned long flags,
 			size, PAGE_ALIGN(size),
 			g->dma_memory_used >> 10,
 			flags_str);
-
-	if (flags_str)
-		nvgpu_kfree(g, flags_str);
 }
 
 #define dma_dbg_alloc(g, size, flags, type)				\
