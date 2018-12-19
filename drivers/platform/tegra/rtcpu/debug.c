@@ -40,6 +40,25 @@
 #include <linux/platform/tegra/emc_bwmgr.h>
 #include <linux/platform/tegra/tegra-mc-sid.h>
 
+struct camrtc_test_mem {
+	u32 index;
+	size_t used;
+	size_t size;
+	void *ptr;
+	dma_addr_t iova;
+};
+
+struct camrtc_falcon_coverage {
+	u8 id;
+	bool enabled;
+	struct camrtc_test_mem mem;
+	struct sg_table sgt;
+	u64 falc_iova;
+	struct tegra_ivc_channel *ch;
+	struct device *rce_dev;
+	struct device *falcon_dev;
+};
+
 struct camrtc_debug {
 	struct tegra_ivc_channel *channel;
 	struct mutex mutex;
@@ -53,13 +72,10 @@ struct camrtc_debug {
 		u32 test_timeout;
 		unsigned long test_bw;
 	} parameters;
-	struct camrtc_test_mem {
-		u32 index;
-		size_t used;
-		size_t size;
-		void *ptr;
-		dma_addr_t iova;
-	} mem[CAMRTC_DBG_NUM_MEM_TEST_MEM];
+	struct camrtc_falcon_coverage vi_falc_coverage;
+	struct camrtc_falcon_coverage isp_falc_coverage;
+
+	struct camrtc_test_mem mem[CAMRTC_DBG_NUM_MEM_TEST_MEM];
 	struct device *mem_devices[3];
 	struct camrtc_dbg_streamids streamids;
 	struct ast_regset {
@@ -68,6 +84,7 @@ struct camrtc_debug {
 };
 
 #define NV(x) "nvidia," #x
+#define FALCON_COVERAGE_MEM_SIZE (1024 * 128) /* 128kB */
 
 /* Get a camera-rtcpu device */
 static struct device *camrtc_get_device(struct tegra_ivc_channel *ch)
@@ -838,6 +855,220 @@ static int camrtc_dbgfs_show_test_list(struct seq_file *file, void *data)
 
 DEFINE_SEQ_FOPS(camrtc_dbgfs_fops_test_list, camrtc_dbgfs_show_test_list);
 
+static int camrtc_coverage_msg(struct camrtc_falcon_coverage *cov,
+			struct camrtc_dbg_response *resp,
+			bool flush, bool reset)
+{
+	struct camrtc_dbg_request req = {
+		.req_type = CAMRTC_REQ_SET_FALCON_COVERAGE,
+		.data = {
+			.coverage_data = {
+				.falcon_id = cov->id,
+				.size = cov->enabled ? cov->mem.size : 0,
+				.iova = cov->enabled ? cov->falc_iova : 0,
+				.flush = flush ? 1 : 0,
+				.reset = reset ? 1 : 0,
+			},
+		},
+	};
+	struct tegra_ivc_channel *ch = cov->ch;
+	int ret;
+
+	ret = camrtc_ivc_dbg_xact(ch, &req, resp, 200);
+
+	if (ret || (resp->status != CAMRTC_STATUS_OK)) {
+		dev_warn(&ch->dev, "Coverage IVC error: %d, status %u, id %u\n",
+				ret, resp->status, cov->id);
+		ret = -ENODEV;
+	}
+
+	return ret;
+}
+
+static bool camrtc_coverage_is_supported(struct camrtc_falcon_coverage *cov)
+{
+	struct camrtc_dbg_response resp;
+
+	(void)camrtc_coverage_msg(cov, &resp, false, false);
+
+	return (resp.status == CAMRTC_STATUS_OK);
+}
+
+static ssize_t camrtc_read_falcon_coverage(struct file *file,
+		char __user *buf, size_t count, loff_t *f_pos)
+{
+	struct camrtc_falcon_coverage *cov = file->f_inode->i_private;
+	struct camrtc_dbg_response resp;
+	ssize_t ret = 0;
+
+	if (!cov->enabled) {
+		ret = -ENODEV;
+		goto done;
+	}
+
+	/* In the beginning, do a flush */
+	if (*f_pos == 0) {
+		/* Flush falcon buffer */
+		ret = camrtc_coverage_msg(cov, &resp, true, false);
+
+		if (ret)
+			goto done;
+
+		cov->mem.used = resp.data.coverage_stat.bytes_written;
+
+		dma_sync_single_for_device(cov->rce_dev, cov->mem.iova,
+				cov->mem.size, DMA_FROM_DEVICE);
+	}
+
+	ret = simple_read_from_buffer(buf, count, f_pos,
+			cov->mem.ptr, cov->mem.used);
+done:
+	return ret;
+}
+
+static ssize_t camrtc_write_falcon_coverage(struct file *file,
+		const char __user *buf, size_t count, loff_t *f_pos)
+{
+	struct camrtc_falcon_coverage *cov = file->f_inode->i_private;
+	struct camrtc_dbg_response resp;
+	ssize_t ret = count;
+
+	if (cov->enabled) {
+		memset(cov->mem.ptr, 0, cov->mem.size);
+		if (camrtc_coverage_msg(cov, &resp, false, true))
+			ret = -ENODEV;
+		else
+			*f_pos += count;
+	} else {
+		ret = -ENODEV;
+	}
+
+	return ret;
+}
+static const struct file_operations camrtc_dbgfs_fops_falcon_coverage = {
+	.read = camrtc_read_falcon_coverage,
+	.write = camrtc_write_falcon_coverage,
+};
+
+static int camrtc_falcon_coverage_enable(struct camrtc_falcon_coverage *cov)
+{
+	struct tegra_ivc_channel *ch = cov->ch;
+	struct device *rce_dev = cov->rce_dev;
+	struct device *falcon_dev = cov->falcon_dev;
+	struct camrtc_dbg_response resp;
+	int ret = 0;
+
+	if (cov->enabled)
+		goto done;
+
+	if (!camrtc_coverage_is_supported(cov)) {
+		ret = -ENODEV;
+		goto done;
+	}
+
+	cov->mem.ptr = dma_alloc_coherent(rce_dev,
+				FALCON_COVERAGE_MEM_SIZE,
+				&cov->mem.iova,
+				GFP_KERNEL | __GFP_ZERO);
+	if (cov->mem.ptr == NULL) {
+		dev_warn(&ch->dev,
+			"Failed to allocate Falcon 0x%02x coverage memory!\n",
+			cov->id);
+		goto error;
+	}
+
+	cov->mem.size = FALCON_COVERAGE_MEM_SIZE;
+	if (camrtc_run_mem_map(ch, falcon_dev, &cov->sgt, &cov->mem)) {
+		dev_warn(&ch->dev,
+			"Failed to map Falcon 0x%02x coverage memory\n",
+			cov->id);
+		goto clean_mem;
+	}
+
+	cov->falc_iova = cov->sgt.sgl->dma_address;
+
+	/* Keep rtcpu alive when falcon coverage is in use. */
+	tegra_ivc_channel_runtime_get(ch);
+
+	cov->enabled = true;
+
+	/* Sync state with rtcpu */
+	camrtc_coverage_msg(cov, &resp, false, false);
+
+	dev_dbg(&ch->dev, "Falcon 0x%02x code coverage enabled.\n",
+			cov->id);
+
+done:
+	return ret;
+
+clean_mem:
+	dma_free_coherent(rce_dev, cov->mem.size, cov->mem.ptr, cov->mem.iova);
+	memset(&cov->mem, 0, sizeof(struct camrtc_test_mem));
+	cov->enabled = false;
+
+error:
+	return ret;
+}
+
+static void camrtc_falcon_coverage_disable(struct camrtc_falcon_coverage *cov)
+{
+	struct tegra_ivc_channel *ch = cov->ch;
+	struct device *rce_dev = cov->rce_dev;
+	struct device *falcon_dev = cov->falcon_dev;
+	struct camrtc_dbg_response resp;
+
+	if (!cov->enabled)
+		return;
+
+	/* Disable and sync with rtpcu */
+	cov->enabled = false;
+	camrtc_coverage_msg(cov, &resp, false, false);
+
+	if (cov->sgt.sgl) {
+		dma_unmap_sg(falcon_dev, cov->sgt.sgl,
+			cov->sgt.orig_nents, DMA_BIDIRECTIONAL);
+		sg_free_table(&cov->sgt);
+	}
+
+	if (cov->mem.ptr) {
+		dma_free_coherent(rce_dev, cov->mem.size,
+			cov->mem.ptr, cov->mem.iova);
+		memset(&cov->mem, 0, sizeof(struct camrtc_test_mem));
+	}
+
+	tegra_ivc_channel_runtime_put(ch);
+}
+
+static int camrtc_dbgfs_show_coverage_enable(void *data, u64 *val)
+{
+	struct camrtc_falcon_coverage *cov = data;
+
+	*val = cov->enabled ? 1 : 0;
+
+	return 0;
+}
+
+static int camrtc_dbgfs_store_coverage_enable(void *data, u64 val)
+{
+	struct camrtc_falcon_coverage *cov = data;
+	bool enable = (val != 0) ? true : false;
+	int ret = 0;
+
+	if (cov->enabled != enable) {
+		if (enable)
+			ret = camrtc_falcon_coverage_enable(cov);
+		else
+			camrtc_falcon_coverage_disable(cov);
+	}
+
+	return ret;
+}
+
+DEFINE_SIMPLE_ATTRIBUTE(camrtc_dbgfs_fops_coverage_enable,
+			camrtc_dbgfs_show_coverage_enable,
+			camrtc_dbgfs_store_coverage_enable,
+			"%lld\n");
+
 #define TEGRA_APS_AST_CONTROL			0x0
 #define TEGRA_APS_AST_STREAMID_CTL		0x20
 #define TEGRA_APS_AST_REGION_0_SLAVE_BASE_LO	0x100
@@ -1079,6 +1310,9 @@ static int camrtc_debug_populate(struct tegra_ivc_channel *ch)
 {
 	struct camrtc_debug *crd = tegra_ivc_channel_get_drvdata(ch);
 	struct dentry *dir;
+	struct dentry *coverage;
+	struct dentry *vi;
+	struct dentry *isp;
 	struct camrtc_dbgfs_ast_node *ast_nodes;
 	unsigned int i, dma, region;
 	char const *name = "camrtc";
@@ -1088,6 +1322,32 @@ static int camrtc_debug_populate(struct tegra_ivc_channel *ch)
 	crd->root = dir = debugfs_create_dir(name, NULL);
 	if (dir == NULL)
 		return -ENOMEM;
+
+	coverage = debugfs_create_dir("coverage", dir);
+	if (coverage == NULL)
+		goto error;
+	vi = debugfs_create_dir("vi", coverage);
+	if (coverage == NULL)
+		goto error;
+	isp = debugfs_create_dir("isp", coverage);
+	if (coverage == NULL)
+		goto error;
+	if (!debugfs_create_file("data", 0600, vi,
+			&crd->vi_falc_coverage,
+			&camrtc_dbgfs_fops_falcon_coverage))
+		goto error;
+	if (!debugfs_create_file("enable", 0600, vi,
+			&crd->vi_falc_coverage,
+			&camrtc_dbgfs_fops_coverage_enable))
+		goto error;
+	if (!debugfs_create_file("data", 0600, isp,
+			&crd->isp_falc_coverage,
+			&camrtc_dbgfs_fops_falcon_coverage))
+		goto error;
+	if (!debugfs_create_file("enable", 0600, isp,
+			&crd->isp_falc_coverage,
+			&camrtc_dbgfs_fops_coverage_enable))
+		goto error;
 
 	if (!debugfs_create_file("version", 0444, dir, ch,
 			&camrtc_dbgfs_fops_version))
@@ -1274,6 +1534,16 @@ static int camrtc_debug_probe(struct tegra_ivc_channel *ch)
 	crd->mem_devices[1] = camrtc_get_linked_device(dev, NV(mem-map), 1);
 	crd->mem_devices[2] = camrtc_get_linked_device(dev, NV(mem-map), 2);
 
+	crd->vi_falc_coverage.id = CAMRTC_DBG_FALCON_ID_VI;
+	crd->vi_falc_coverage.falcon_dev = crd->mem_devices[1];
+	crd->vi_falc_coverage.rce_dev = crd->mem_devices[0];
+	crd->vi_falc_coverage.ch = ch;
+
+	crd->isp_falc_coverage.id = CAMRTC_DBG_FALCON_ID_ISP;
+	crd->isp_falc_coverage.falcon_dev = crd->mem_devices[2];
+	crd->isp_falc_coverage.rce_dev = crd->mem_devices[0];
+	crd->isp_falc_coverage.ch = ch;
+
 	if (of_property_read_u32(dev->of_node, NV(test-bw), &bw) == 0) {
 		unsigned long test_bw;
 
@@ -1307,6 +1577,9 @@ static void camrtc_debug_remove(struct tegra_ivc_channel *ch)
 	struct camrtc_debug *crd = tegra_ivc_channel_get_drvdata(ch);
 	int i;
 	struct device *mem_dev = crd->mem_devices[0];
+
+	camrtc_falcon_coverage_disable(&crd->vi_falc_coverage);
+	camrtc_falcon_coverage_disable(&crd->isp_falc_coverage);
 
 	for (i = 0; i < ARRAY_SIZE(crd->mem); i++) {
 		struct camrtc_test_mem *mem = &crd->mem[i];
