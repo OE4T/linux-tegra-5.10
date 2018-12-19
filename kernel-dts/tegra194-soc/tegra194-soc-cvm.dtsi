@@ -225,9 +225,11 @@
 		status = "okay";
 	};
 
+#if TEGRA_PMC_VERSION < DT_VERSION_2
 	pmc@c370000 {
 		status = "okay";
 	};
+#endif
 
 	rtc@c2a0000 {
 		status = "okay";

@@ -2018,9 +2018,21 @@
 
 	tegra_pmc: pmc@c360000 {
 		compatible = "nvidia,tegra194-pmc";
+#if TEGRA_PMC_VERSION >= DT_VERSION_2
+		reg = <0x0 0x0c360000 0x0 0x10000>,
+		      <0x0 0x0c370000 0x0 0x10000>,
+		      <0x0 0x0c380000 0x0 0x10000>,
+		      <0x0 0x0c390000 0x0 0x10000>,
+		      <0x0 0x0c3a0000 0x0 0x10000>;
+		reg-names = "pmc", "wake", "aotag", "scratch", "misc";
+
+		#interrupt-cells = <2>;
+		interrupt-controller;
+#else
 		reg = <0x0 0xC360000 0x0 0x400
 			0x0 0xC390000 0x0 0x2fff
 			0x0 0xC3a0000 0x0 0xfff>;
+#endif
 		#padcontroller-cells = <1>;
 		nvidia,restrict-voltage-switch;
 		pinctrl-names = "default";
@@ -2086,12 +2098,13 @@
 		};
 	};
 
+#if TEGRA_PMC_VERSION < DT_VERSION_2
 	tegra_aowake: pmc@c370000 {
 		compatible = "nvidia,tegra194-aowake";
 		reg = <0x0 0xc370000 0x0 0x600>;
 		status = "disabled";
 	};
-
+#endif
 
 #if TEGRA_XUSB_PADCONTROL_VERSION >= DT_VERSION_2
 
