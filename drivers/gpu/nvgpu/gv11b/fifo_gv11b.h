@@ -100,27 +100,12 @@ void gv11b_fifo_init_eng_method_buffers(struct gk20a *g,
 					struct tsg_gk20a *tsg);
 void gv11b_fifo_deinit_eng_method_buffers(struct gk20a *g,
 					struct tsg_gk20a *tsg);
-int gv11b_fifo_alloc_syncpt_buf(struct channel_gk20a *c,
-			u32 syncpt_id, struct nvgpu_mem *syncpt_buf);
-void gv11b_fifo_free_syncpt_buf(struct channel_gk20a *c,
-					struct nvgpu_mem *syncpt_buf);
-int gv11b_fifo_get_sync_ro_map(struct vm_gk20a *vm,
-	u64 *base_gpuva, u32 *sync_size);
 u32 gv11b_fifo_get_sema_wait_cmd_size(void);
 u32 gv11b_fifo_get_sema_incr_cmd_size(void);
 void gv11b_fifo_add_sema_cmd(struct gk20a *g,
 	struct nvgpu_semaphore *s, u64 sema_va,
 	struct priv_cmd_entry *cmd,
 	u32 off, bool acquire, bool wfi);
-void gv11b_fifo_add_syncpt_wait_cmd(struct gk20a *g,
-		struct priv_cmd_entry *cmd, u32 off,
-		u32 id, u32 thresh, u64 gpu_va_base);
-u32 gv11b_fifo_get_syncpt_wait_cmd_size(void);
-u32 gv11b_fifo_get_syncpt_incr_per_release(void);
-void gv11b_fifo_add_syncpt_incr_cmd(struct gk20a *g,
-		bool wfi_cmd, struct priv_cmd_entry *cmd,
-		u32 id, u64 gpu_va_base);
-u32 gv11b_fifo_get_syncpt_incr_cmd_size(bool wfi_cmd);
 int gv11b_init_fifo_setup_hw(struct gk20a *g);
 
 void gv11b_fifo_tsg_verify_status_faulted(struct channel_gk20a *ch);

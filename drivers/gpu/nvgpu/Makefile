@@ -244,7 +244,8 @@ nvgpu-$(CONFIG_GK20A_PCI) += \
 
 nvgpu-$(CONFIG_TEGRA_GK20A_NVHOST) += \
 	os/linux/nvhost.o \
-	common/sync/syncpt_cmdbuf_gk20a.o
+	common/sync/syncpt_cmdbuf_gk20a.o \
+	common/sync/syncpt_cmdbuf_gv11b.o
 
 nvgpu-$(CONFIG_TEGRA_GR_VIRTUALIZATION) += \
 	os/linux/vgpu/platform_vgpu_tegra.o \

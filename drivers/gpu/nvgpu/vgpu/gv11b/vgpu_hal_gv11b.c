@@ -40,6 +40,7 @@
 #include "common/ltc/ltc_gv11b.h"
 #include "common/fuse/fuse_gm20b.h"
 #include "common/fuse/fuse_gp10b.h"
+#include "common/sync/syncpt_cmdbuf_gv11b.h"
 #include "common/regops/regops_gv11b.h"
 #include "common/fifo/runlist_gv11b.h"
 
@@ -489,12 +490,12 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 #ifdef CONFIG_TEGRA_GK20A_NVHOST
 		.alloc_syncpt_buf = vgpu_gv11b_fifo_alloc_syncpt_buf,
 		.free_syncpt_buf = vgpu_gv11b_fifo_free_syncpt_buf,
-		.add_syncpt_wait_cmd = gv11b_fifo_add_syncpt_wait_cmd,
-		.get_syncpt_wait_cmd_size = gv11b_fifo_get_syncpt_wait_cmd_size,
+		.add_syncpt_wait_cmd = gv11b_add_syncpt_wait_cmd,
+		.get_syncpt_wait_cmd_size = gv11b_get_syncpt_wait_cmd_size,
 		.get_syncpt_incr_per_release =
-                                gv11b_fifo_get_syncpt_incr_per_release,
-		.add_syncpt_incr_cmd = gv11b_fifo_add_syncpt_incr_cmd,
-		.get_syncpt_incr_cmd_size = gv11b_fifo_get_syncpt_incr_cmd_size,
+                                gv11b_get_syncpt_incr_per_release,
+		.add_syncpt_incr_cmd = gv11b_add_syncpt_incr_cmd,
+		.get_syncpt_incr_cmd_size = gv11b_get_syncpt_incr_cmd_size,
 		.get_sync_ro_map = vgpu_gv11b_fifo_get_sync_ro_map,
 #endif
 		.get_sema_wait_cmd_size = gv11b_fifo_get_sema_wait_cmd_size,
