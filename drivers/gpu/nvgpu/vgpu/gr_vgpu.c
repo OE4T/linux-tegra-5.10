@@ -34,6 +34,7 @@
 #include <nvgpu/channel.h>
 #include <nvgpu/tsg.h>
 #include <nvgpu/string.h>
+#include <nvgpu/gr/global_ctx.h>
 
 #include "gr_vgpu.h"
 #include "gk20a/fecs_trace_gk20a.h"
@@ -132,36 +133,49 @@ int vgpu_gr_init_ctx_state(struct gk20a *g)
 static int vgpu_gr_alloc_global_ctx_buffers(struct gk20a *g)
 {
 	struct gr_gk20a *gr = &g->gr;
-	u32 attr_buffer_size;
-
-	u32 cb_buffer_size = gr->bundle_cb_default_size *
-		gr_scc_bundle_cb_size_div_256b_byte_granularity_v();
-
-	u32 pagepool_buffer_size = g->ops.gr.pagepool_default_size(g) *
-		gr_scc_pagepool_total_pages_byte_granularity_v();
+	u32 size;
 
 	nvgpu_log_fn(g, " ");
 
-	attr_buffer_size = g->ops.gr.calc_global_ctx_buffer_size(g);
+	gr->global_ctx_buffer = nvgpu_gr_global_ctx_desc_alloc(g);
+	if (gr->global_ctx_buffer == NULL) {
+		return -ENOMEM;
+	}
 
-	nvgpu_log_info(g, "cb_buffer_size : %d", cb_buffer_size);
-	gr->global_ctx_buffer[CIRCULAR].mem.size = cb_buffer_size;
+	size = gr->bundle_cb_default_size *
+		gr_scc_bundle_cb_size_div_256b_byte_granularity_v();
+	nvgpu_log_info(g, "cb_buffer_size : %d", size);
 
-	nvgpu_log_info(g, "pagepool_buffer_size : %d", pagepool_buffer_size);
-	gr->global_ctx_buffer[PAGEPOOL].mem.size = pagepool_buffer_size;
+	nvgpu_gr_global_ctx_set_size(gr->global_ctx_buffer,
+		NVGPU_GR_GLOBAL_CTX_CIRCULAR, size);
 
-	nvgpu_log_info(g, "attr_buffer_size : %u", attr_buffer_size);
-	gr->global_ctx_buffer[ATTRIBUTE].mem.size = attr_buffer_size;
+	size = g->ops.gr.pagepool_default_size(g) *
+		gr_scc_pagepool_total_pages_byte_granularity_v();
+	nvgpu_log_info(g, "pagepool_buffer_size : %d", size);
 
-	nvgpu_log_info(g, "priv access map size : %d",
+	nvgpu_gr_global_ctx_set_size(gr->global_ctx_buffer,
+		NVGPU_GR_GLOBAL_CTX_PAGEPOOL, size);
+
+	size = g->ops.gr.calc_global_ctx_buffer_size(g);
+	nvgpu_log_info(g, "attr_buffer_size : %u", size);
+
+	nvgpu_gr_global_ctx_set_size(gr->global_ctx_buffer,
+		NVGPU_GR_GLOBAL_CTX_ATTRIBUTE, size);
+
+	nvgpu_log_info(g, "priv_access_map_size : %d",
+		   gr->ctx_vars.priv_access_map_size);
+
+	nvgpu_gr_global_ctx_set_size(gr->global_ctx_buffer,
+		NVGPU_GR_GLOBAL_CTX_PRIV_ACCESS_MAP,
 		gr->ctx_vars.priv_access_map_size);
-	gr->global_ctx_buffer[PRIV_ACCESS_MAP].mem.size =
-		gr->ctx_vars.priv_access_map_size;
+
 #ifdef CONFIG_GK20A_CTXSW_TRACE
 	nvgpu_log_info(g, "fecs_trace_buffer_size : %d",
+		   gr->ctx_vars.fecs_trace_buffer_size);
+
+	nvgpu_gr_global_ctx_set_size(gr->global_ctx_buffer,
+		NVGPU_GR_GLOBAL_CTX_FECS_TRACE_BUFFER,
 		gr->ctx_vars.fecs_trace_buffer_size);
-	gr->global_ctx_buffer[FECS_TRACE_BUFFER].mem.size =
-		gr->ctx_vars.fecs_trace_buffer_size;
 #endif
 	return 0;
 }
@@ -174,7 +188,6 @@ static int vgpu_gr_map_global_ctx_buffers(struct gk20a *g,
 	struct vm_gk20a *ch_vm = c->vm;
 	struct tsg_gk20a *tsg;
 	u64 *g_bfr_va;
-	u64 *g_bfr_size;
 	struct gr_gk20a *gr = &g->gr;
 	u64 gpu_va;
 	u32 i;
@@ -187,59 +200,56 @@ static int vgpu_gr_map_global_ctx_buffers(struct gk20a *g,
 		return -EINVAL;
 
 	g_bfr_va = tsg->gr_ctx->global_ctx_buffer_va;
-	g_bfr_size = tsg->gr_ctx->global_ctx_buffer_size;
 
 	/* Circular Buffer */
 	gpu_va = nvgpu_vm_alloc_va(ch_vm,
-			gr->global_ctx_buffer[CIRCULAR].mem.size,
+			nvgpu_gr_global_ctx_get_size(gr->global_ctx_buffer,
+				NVGPU_GR_GLOBAL_CTX_CIRCULAR),
 			GMMU_PAGE_SIZE_KERNEL);
 
 	if (!gpu_va)
 		goto clean_up;
 	g_bfr_va[CIRCULAR_VA] = gpu_va;
-	g_bfr_size[CIRCULAR_VA] = gr->global_ctx_buffer[CIRCULAR].mem.size;
 
 	/* Attribute Buffer */
 	gpu_va = nvgpu_vm_alloc_va(ch_vm,
-			gr->global_ctx_buffer[ATTRIBUTE].mem.size,
+			nvgpu_gr_global_ctx_get_size(gr->global_ctx_buffer,
+				NVGPU_GR_GLOBAL_CTX_ATTRIBUTE),
 			GMMU_PAGE_SIZE_KERNEL);
 
 	if (!gpu_va)
 		goto clean_up;
 	g_bfr_va[ATTRIBUTE_VA] = gpu_va;
-	g_bfr_size[ATTRIBUTE_VA] = gr->global_ctx_buffer[ATTRIBUTE].mem.size;
 
 	/* Page Pool */
 	gpu_va = nvgpu_vm_alloc_va(ch_vm,
-			gr->global_ctx_buffer[PAGEPOOL].mem.size,
+			nvgpu_gr_global_ctx_get_size(gr->global_ctx_buffer,
+				NVGPU_GR_GLOBAL_CTX_PAGEPOOL),
 			GMMU_PAGE_SIZE_KERNEL);
 	if (!gpu_va)
 		goto clean_up;
 	g_bfr_va[PAGEPOOL_VA] = gpu_va;
-	g_bfr_size[PAGEPOOL_VA] = gr->global_ctx_buffer[PAGEPOOL].mem.size;
 
 	/* Priv register Access Map */
 	gpu_va = nvgpu_vm_alloc_va(ch_vm,
-			gr->global_ctx_buffer[PRIV_ACCESS_MAP].mem.size,
+			nvgpu_gr_global_ctx_get_size(gr->global_ctx_buffer,
+				NVGPU_GR_GLOBAL_CTX_PRIV_ACCESS_MAP),
 			GMMU_PAGE_SIZE_KERNEL);
 	if (!gpu_va)
 		goto clean_up;
 	g_bfr_va[PRIV_ACCESS_MAP_VA] = gpu_va;
-	g_bfr_size[PRIV_ACCESS_MAP_VA] =
-		gr->global_ctx_buffer[PRIV_ACCESS_MAP].mem.size;
 
 	/* FECS trace Buffer */
 #ifdef CONFIG_GK20A_CTXSW_TRACE
 	gpu_va = nvgpu_vm_alloc_va(ch_vm,
-		gr->global_ctx_buffer[FECS_TRACE_BUFFER].mem.size,
+		nvgpu_gr_global_ctx_get_size(gr->global_ctx_buffer,
+			NVGPU_GR_GLOBAL_CTX_FECS_TRACE_BUFFER),
 		GMMU_PAGE_SIZE_KERNEL);
 
 	if (!gpu_va)
 		goto clean_up;
 
 	g_bfr_va[FECS_TRACE_BUFFER_VA] = gpu_va;
-	g_bfr_size[FECS_TRACE_BUFFER_VA] =
-		gr->global_ctx_buffer[FECS_TRACE_BUFFER].mem.size;
 #endif
 	msg.cmd = TEGRA_VGPU_CMD_CHANNEL_MAP_GR_GLOBAL_CTX;
 	msg.handle = vgpu_get_handle(g);
@@ -273,7 +283,6 @@ static void vgpu_gr_unmap_global_ctx_buffers(struct tsg_gk20a *tsg)
 {
 	struct vm_gk20a *ch_vm = tsg->vm;
 	u64 *g_bfr_va = tsg->gr_ctx->global_ctx_buffer_va;
-	u64 *g_bfr_size = tsg->gr_ctx->global_ctx_buffer_size;
 	u32 i;
 	struct gk20a *g = tsg->g;
 
@@ -287,7 +296,6 @@ static void vgpu_gr_unmap_global_ctx_buffers(struct tsg_gk20a *tsg)
 				nvgpu_vm_free_va(ch_vm, g_bfr_va[i],
 						 GMMU_PAGE_SIZE_KERNEL);
 				g_bfr_va[i] = 0;
-				g_bfr_size[i] = 0;
 			}
 		}
 

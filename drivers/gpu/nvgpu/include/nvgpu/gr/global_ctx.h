@@ -1,0 +1,81 @@
+/*
+ * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
+ * THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+ * DEALINGS IN THE SOFTWARE.
+ */
+#ifndef NVGPU_GR_GLOBAL_CTX_H
+#define NVGPU_GR_GLOBAL_CTX_H
+
+struct gk20a;
+struct nvgpu_mem;
+
+enum nvgpu_gr_global_ctx_index {
+	NVGPU_GR_GLOBAL_CTX_CIRCULAR			= 0,
+	NVGPU_GR_GLOBAL_CTX_PAGEPOOL			= 1,
+	NVGPU_GR_GLOBAL_CTX_ATTRIBUTE			= 2,
+	NVGPU_GR_GLOBAL_CTX_CIRCULAR_VPR		= 3,
+	NVGPU_GR_GLOBAL_CTX_PAGEPOOL_VPR		= 4,
+	NVGPU_GR_GLOBAL_CTX_ATTRIBUTE_VPR		= 5,
+	NVGPU_GR_GLOBAL_CTX_GOLDEN_CTX			= 6,
+	NVGPU_GR_GLOBAL_CTX_PRIV_ACCESS_MAP		= 7,
+	NVGPU_GR_GLOBAL_CTX_RTV_CIRCULAR_BUFFER		= 8,
+	NVGPU_GR_GLOBAL_CTX_FECS_TRACE_BUFFER		= 9,
+	NVGPU_GR_GLOBAL_CTX_COUNT 			= 10
+};
+
+struct nvgpu_gr_global_ctx_buffer_desc {
+	struct nvgpu_mem mem;
+	size_t size;
+
+	void (*destroy)(struct gk20a *g,
+		struct nvgpu_gr_global_ctx_buffer_desc *desc,
+		enum nvgpu_gr_global_ctx_index index);
+};
+
+struct nvgpu_gr_global_ctx_buffer_desc *nvgpu_gr_global_ctx_desc_alloc(
+	struct gk20a *g);
+void nvgpu_gr_global_ctx_desc_free(struct gk20a *g,
+	struct nvgpu_gr_global_ctx_buffer_desc *desc);
+
+void nvgpu_gr_global_ctx_set_size(struct nvgpu_gr_global_ctx_buffer_desc *desc,
+	enum nvgpu_gr_global_ctx_index index, size_t size);
+size_t nvgpu_gr_global_ctx_get_size(struct nvgpu_gr_global_ctx_buffer_desc *desc,
+	enum nvgpu_gr_global_ctx_index index);
+
+int nvgpu_gr_global_ctx_buffer_alloc(struct gk20a *g,
+	struct nvgpu_gr_global_ctx_buffer_desc *desc);
+void nvgpu_gr_global_ctx_buffer_free(struct gk20a *g,
+	struct nvgpu_gr_global_ctx_buffer_desc *desc);
+
+u64 nvgpu_gr_global_ctx_buffer_map(struct nvgpu_gr_global_ctx_buffer_desc *desc,
+	enum nvgpu_gr_global_ctx_index index,
+	struct vm_gk20a *vm, u32 flags, bool priv);
+void nvgpu_gr_global_ctx_buffer_unmap(
+	struct nvgpu_gr_global_ctx_buffer_desc *desc,
+	enum nvgpu_gr_global_ctx_index index,
+	struct vm_gk20a *vm, u64 gpu_va);
+
+struct nvgpu_mem *nvgpu_gr_global_ctx_buffer_get_mem(
+	struct nvgpu_gr_global_ctx_buffer_desc *desc,
+	enum nvgpu_gr_global_ctx_index index);
+bool nvgpu_gr_global_ctx_buffer_ready(
+	struct nvgpu_gr_global_ctx_buffer_desc *desc,
+	enum nvgpu_gr_global_ctx_index index);
+
+#endif /* NVGPU_GR_GLOBAL_CTX_H */

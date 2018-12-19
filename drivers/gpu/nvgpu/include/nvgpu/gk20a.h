@@ -40,6 +40,7 @@ struct gk20a_debug_output;
 struct nvgpu_clk_pll_debug_data;
 struct nvgpu_nvhost_dev;
 struct nvgpu_netlist_vars;
+struct nvgpu_gr_global_ctx_buffer_desc;
 struct nvgpu_cpu_time_correlation_sample;
 struct nvgpu_mem_sgt;
 struct nvgpu_warpstate;
@@ -1108,7 +1109,7 @@ struct gpu_ops {
 	 * size).
 	 */
 	int (*secure_alloc)(struct gk20a *g,
-				struct gr_ctx_buffer_desc *desc,
+				struct nvgpu_gr_global_ctx_buffer_desc *desc,
 				size_t size);
 	struct {
 		void (*exit)(struct gk20a *g, struct nvgpu_mem *mem,

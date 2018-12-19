@@ -43,6 +43,7 @@
 #include <nvgpu/bug.h>
 #include <nvgpu/enabled.h>
 #include <nvgpu/gk20a.h>
+#include <nvgpu/gr/global_ctx.h>
 #include <nvgpu/nvhost.h>
 
 #include <nvgpu/linux/dma.h>
@@ -101,7 +102,7 @@ static void gk20a_tegra_secure_page_destroy(struct gk20a *g,
 }
 
 static int gk20a_tegra_secure_alloc(struct gk20a *g,
-			     struct gr_ctx_buffer_desc *desc,
+			     struct nvgpu_gr_global_ctx_buffer_desc *desc,
 			     size_t size)
 {
 	struct device *dev = dev_from_gk20a(g);

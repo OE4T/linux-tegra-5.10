@@ -27,6 +27,7 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/channel.h>
 #include <nvgpu/netlist.h>
+#include <nvgpu/gr/global_ctx.h>
 
 #include "gk20a/gr_gk20a.h"
 #include "gk20a/gr_pri_gk20a.h"
@@ -139,26 +140,16 @@ int gr_tu104_alloc_global_ctx_buffers(struct gk20a *g)
 	nvgpu_log_info(g, "rtv_circular_buffer_size : %u",
 		rtv_circular_buffer_size);
 
-	err = gk20a_gr_alloc_ctx_buffer(g,
-			&gr->global_ctx_buffer[RTV_CIRCULAR_BUFFER],
-			rtv_circular_buffer_size);
+	nvgpu_gr_global_ctx_set_size(gr->global_ctx_buffer,
+		NVGPU_GR_GLOBAL_CTX_RTV_CIRCULAR_BUFFER,
+		rtv_circular_buffer_size);
+
+	err = gr_gk20a_alloc_global_ctx_buffers(g);
 	if (err != 0) {
 		return err;
 	}
 
-	err = gr_gk20a_alloc_global_ctx_buffers(g);
-	if (err != 0) {
-		goto clean_up;
-	}
-
 	return 0;
-
-clean_up:
-	nvgpu_err(g, "fail");
-	gk20a_gr_destroy_ctx_buffer(g,
-		&gr->global_ctx_buffer[RTV_CIRCULAR_BUFFER]);
-
-	return err;
 }
 
 int gr_tu104_map_global_ctx_buffers(struct gk20a *g, struct vm_gk20a *vm,
@@ -166,29 +157,26 @@ int gr_tu104_map_global_ctx_buffers(struct gk20a *g, struct vm_gk20a *vm,
 {
 	int err;
 	u64 *g_bfr_va;
-	u64 *g_bfr_size;
 	int *g_bfr_index;
 	struct gr_gk20a *gr = &g->gr;
-	struct nvgpu_mem *mem;
 	u64 gpu_va;
 
 	nvgpu_log_fn(g, " ");
 
 	g_bfr_va = gr_ctx->global_ctx_buffer_va;
-	g_bfr_size = gr_ctx->global_ctx_buffer_size;
 	g_bfr_index = gr_ctx->global_ctx_buffer_index;
 
 	/* RTV circular buffer */
-	mem = &gr->global_ctx_buffer[RTV_CIRCULAR_BUFFER].mem;
-	gpu_va = nvgpu_gmmu_map(vm, mem, mem->size, 0,
-			gk20a_mem_flag_none, true, mem->aperture);
+	gpu_va = nvgpu_gr_global_ctx_buffer_map(gr->global_ctx_buffer,
+			NVGPU_GR_GLOBAL_CTX_RTV_CIRCULAR_BUFFER,
+			vm, 0, true);
 	if (gpu_va == 0ULL) {
 		return -ENOMEM;
 	}
 
 	g_bfr_va[RTV_CIRCULAR_BUFFER_VA] = gpu_va;
-	g_bfr_size[RTV_CIRCULAR_BUFFER_VA] = mem->size;
-	g_bfr_index[RTV_CIRCULAR_BUFFER_VA] = RTV_CIRCULAR_BUFFER;
+	g_bfr_index[RTV_CIRCULAR_BUFFER_VA] =
+		NVGPU_GR_GLOBAL_CTX_RTV_CIRCULAR_BUFFER;
 
 	err = gr_gk20a_map_global_ctx_buffers(g, vm, gr_ctx, vpr);
 	if (err != 0) {
@@ -199,7 +187,9 @@ int gr_tu104_map_global_ctx_buffers(struct gk20a *g, struct vm_gk20a *vm,
 
 clean_up:
 	nvgpu_err(g, "fail");
-	nvgpu_gmmu_unmap(vm, mem, gpu_va);
+	nvgpu_gr_global_ctx_buffer_unmap(gr->global_ctx_buffer,
+		NVGPU_GR_GLOBAL_CTX_RTV_CIRCULAR_BUFFER,
+		vm, gpu_va);
 
 	return err;
 }

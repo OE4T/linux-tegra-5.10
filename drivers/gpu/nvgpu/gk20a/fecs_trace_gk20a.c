@@ -36,6 +36,7 @@
 #include <nvgpu/timers.h>
 #include <nvgpu/channel.h>
 #include <nvgpu/gk20a.h>
+#include <nvgpu/gr/global_ctx.h>
 
 #include "fecs_trace_gk20a.h"
 #include "gr_gk20a.h"
@@ -75,7 +76,12 @@ int gk20a_fecs_trace_num_ts(struct gk20a *g)
 struct gk20a_fecs_trace_record *gk20a_fecs_trace_get_record(
 	struct gk20a *g, int idx)
 {
-	struct nvgpu_mem *mem = &g->gr.global_ctx_buffer[FECS_TRACE_BUFFER].mem;
+	struct nvgpu_mem *mem = nvgpu_gr_global_ctx_buffer_get_mem(
+					g->gr.global_ctx_buffer,
+					NVGPU_GR_GLOBAL_CTX_FECS_TRACE_BUFFER);
+	if (mem == NULL) {
+		return NULL;
+	}
 
 	return (struct gk20a_fecs_trace_record *)
 		((u8 *) mem->cpu_va +
@@ -234,6 +240,9 @@ static int gk20a_fecs_trace_ring_read(struct gk20a *g, int index)
 
 	struct gk20a_fecs_trace_record *r =
 		gk20a_fecs_trace_get_record(g, index);
+	if (r == NULL) {
+		return -EINVAL;
+	}
 
 	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_ctxsw,
 		"consuming record trace=%p read=%d record=%p", trace, index, r);
@@ -449,7 +458,11 @@ int gk20a_fecs_trace_bind_channel(struct gk20a *g,
 	if (!trace)
 		return -ENOMEM;
 
-	mem = &g->gr.global_ctx_buffer[FECS_TRACE_BUFFER].mem;
+	mem = nvgpu_gr_global_ctx_buffer_get_mem(g->gr.global_ctx_buffer,
+					NVGPU_GR_GLOBAL_CTX_FECS_TRACE_BUFFER);
+	if (mem == NULL) {
+		return -EINVAL;
+	}
 
 	if (nvgpu_is_enabled(g, NVGPU_FECS_TRACE_VA)) {
 		addr = gr_ctx->global_ctx_buffer_va[FECS_TRACE_BUFFER_VA];

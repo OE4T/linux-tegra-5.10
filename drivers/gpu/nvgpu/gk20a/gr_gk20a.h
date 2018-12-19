@@ -72,22 +72,9 @@
 struct tsg_gk20a;
 struct channel_gk20a;
 struct nvgpu_warpstate;
+struct nvgpu_gr_global_ctx_buffer_desc;
 
 enum ctxsw_addr_type;
-
-enum /* global_ctx_buffer */ {
-	CIRCULAR		= 0,
-	PAGEPOOL		= 1,
-	ATTRIBUTE		= 2,
-	CIRCULAR_VPR		= 3,
-	PAGEPOOL_VPR		= 4,
-	ATTRIBUTE_VPR		= 5,
-	GOLDEN_CTX		= 6,
-	PRIV_ACCESS_MAP		= 7,
-	RTV_CIRCULAR_BUFFER	= 8,
-	FECS_TRACE_BUFFER	= 9,
-	NR_GLOBAL_CTX_BUF	= 10
-};
 
 /* either ATTRIBUTE or ATTRIBUTE_VPR maps to ATTRIBUTE_VA */
 enum  /*global_ctx_buffer_va */ {
@@ -342,7 +329,7 @@ struct gr_gk20a {
 	 */
 	u32 comptag_mem_deduct;
 
-	struct gr_ctx_buffer_desc global_ctx_buffer[NR_GLOBAL_CTX_BUF];
+	struct nvgpu_gr_global_ctx_buffer_desc *global_ctx_buffer;
 
 	u8 *map_tiles;
 	u32 map_tile_count;
@@ -418,7 +405,6 @@ struct nvgpu_gr_ctx {
 	struct zcull_ctx_desc	zcull_ctx;
 	struct pm_ctx_desc	pm_ctx;
 	u64	global_ctx_buffer_va[NR_GLOBAL_CTX_BUF_VA];
-	u64	global_ctx_buffer_size[NR_GLOBAL_CTX_BUF_VA];
 	int	global_ctx_buffer_index[NR_GLOBAL_CTX_BUF_VA];
 	bool	global_ctx_buffer_mapped;
 
