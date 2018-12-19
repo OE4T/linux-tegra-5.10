@@ -3,6 +3,7 @@
  *      uvc_driver.c  --  USB Video Class driver
  *
  *      Copyright (C) 2005-2010
+ *      Copyright (C) 2020, NVIDIA CORPORATION. All rights reserved.
  *          Laurent Pinchart (laurent.pinchart@ideasonboard.com)
  */
 
@@ -2297,7 +2298,8 @@ static int uvc_probe(struct usb_interface *intf,
 	}
 
 	uvc_trace(UVC_TRACE_PROBE, "UVC device initialized.\n");
-	usb_enable_autosuspend(udev);
+	if (!(dev->quirks & UVC_QUIRK_DISABLE_AUTOSUSPEND))
+		usb_enable_autosuspend(udev);
 	return 0;
 
 error:
@@ -2577,7 +2579,8 @@ static const struct usb_device_id uvc_ids[] = {
 	  .bInterfaceClass	= USB_CLASS_VIDEO,
 	  .bInterfaceSubClass	= 1,
 	  .bInterfaceProtocol	= 0,
-	  .driver_info		= UVC_INFO_QUIRK(UVC_QUIRK_RESTORE_CTRLS_ON_INIT) },
+	  .driver_info		= UVC_INFO_QUIRK(UVC_QUIRK_RESTORE_CTRLS_ON_INIT
+					| UVC_QUIRK_DISABLE_AUTOSUSPEND) },
 	/* Chicony CNF7129 (Asus EEE 100HE) */
 	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
 				| USB_DEVICE_ID_MATCH_INT_INFO,
