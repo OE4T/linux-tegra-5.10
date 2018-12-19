@@ -47,14 +47,13 @@
 #define NV_PMU_RPC_ID_PERF_CHANGE_SEQ_SET_CONTROL                0x04U
 #define NV_PMU_RPC_ID_PERF_CHANGE_SEQ_QUEUE_CHANGE               0x05U
 #define NV_PMU_RPC_ID_PERF_CHANGE_SEQ_LOCK                       0x06U
-#define NV_PMU_RPC_ID_PERF_CHANGE_SEQ_LOAD                       0x07U
-#define NV_PMU_RPC_ID_PERF_CHANGE_SEQ_QUERY                      0x08U
-#define NV_PMU_RPC_ID_PERF_PERF_LIMITS_INVALIDATE                0x09U
-#define NV_PMU_RPC_ID_PERF_VFE_EQU_EVAL                          0x0AU
-#define NV_PMU_RPC_ID_PERF_VFE_INVALIDATE                        0x0BU
-#define NV_PMU_RPC_ID_PERF_VFE_EQU_MONITOR_SET                   0x0CU
-#define NV_PMU_RPC_ID_PERF_VFE_EQU_MONITOR_GET                   0x0DU
-#define NV_PMU_RPC_ID_PERF__COUNT                                0x0EU
+#define NV_PMU_RPC_ID_PERF_CHANGE_SEQ_QUERY                      0x07U
+#define NV_PMU_RPC_ID_PERF_PERF_LIMITS_INVALIDATE                0x08U
+#define NV_PMU_RPC_ID_PERF_VFE_EQU_EVAL                          0x09U
+#define NV_PMU_RPC_ID_PERF_VFE_INVALIDATE                        0x0AU
+#define NV_PMU_RPC_ID_PERF_VFE_EQU_MONITOR_SET                   0x0BU
+#define NV_PMU_RPC_ID_PERF_VFE_EQU_MONITOR_GET                   0x0CU
+#define NV_PMU_RPC_ID_PERF__COUNT                                0x0DU
 /*
  * Defines the structure that holds data
  * used to execute LOAD RPC.

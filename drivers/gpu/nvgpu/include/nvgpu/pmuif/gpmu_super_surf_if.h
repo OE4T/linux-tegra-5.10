@@ -56,11 +56,11 @@ struct nv_pmu_super_surface {
 		struct nv_pmu_clk_clk_vf_point_boardobj_grp_set clk_vf_point_grp_set;
 		struct nv_pmu_clk_clk_vin_device_boardobj_grp_get_status clk_vin_device_grp_get_status;
 		struct nv_pmu_clk_clk_fll_device_boardobj_grp_get_status clk_fll_device_grp_get_status;
-		struct nv_pmu_clk_clk_vf_point_boardobj_grp_get_status clk_vf_point_grp_get_status;
 		u8 clk_rsvd3[0x200];
+		struct nv_pmu_clk_clk_vf_point_boardobj_grp_get_status clk_vf_point_grp_get_status;
 		struct nv_pmu_clk_clk_freq_domain_boardobj_grp_set clk_freq_domain_grp_set;
 
-		u8 clk_rsvd[0x4660];
+		u8 clk_rsvd[0x4250];
 	} clk;
 	struct {
 		struct nv_pmu_perf_vfe_equ_boardobj_grp_set_pack vfe_equ_grp_set;
