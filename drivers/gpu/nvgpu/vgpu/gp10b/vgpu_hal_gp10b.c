@@ -55,6 +55,7 @@
 
 #include "common/falcon/falcon_gk20a.h"
 #include "common/sync/syncpt_cmdbuf_gk20a.h"
+#include "common/sync/sema_cmdbuf_gk20a.h"
 
 #include "gp10b/mm_gp10b.h"
 #include "gp10b/ce_gp10b.h"
@@ -420,9 +421,9 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 		.get_syncpt_incr_cmd_size = gk20a_get_syncpt_incr_cmd_size,
 		.get_sync_ro_map = NULL,
 #endif
-		.get_sema_wait_cmd_size = gk20a_fifo_get_sema_wait_cmd_size,
-		.get_sema_incr_cmd_size = gk20a_fifo_get_sema_incr_cmd_size,
-		.add_sema_cmd = gk20a_fifo_add_sema_cmd,
+		.get_sema_wait_cmd_size = gk20a_get_sema_wait_cmd_size,
+		.get_sema_incr_cmd_size = gk20a_get_sema_incr_cmd_size,
+		.add_sema_cmd = gk20a_add_sema_cmd,
 	},
 	.runlist = {
 		.reschedule_runlist = NULL,

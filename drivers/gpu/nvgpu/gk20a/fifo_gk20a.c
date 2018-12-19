@@ -3467,60 +3467,6 @@ u32 gk20a_fifo_pbdma_acquire_val(u64 timeout)
 	return val;
 }
 
-u32 gk20a_fifo_get_sema_wait_cmd_size(void)
-{
-	return 8;
-}
-
-u32 gk20a_fifo_get_sema_incr_cmd_size(void)
-{
-	return 10;
-}
-
-void gk20a_fifo_add_sema_cmd(struct gk20a *g,
-	struct nvgpu_semaphore *s, u64 sema_va,
-	struct priv_cmd_entry *cmd,
-	u32 off, bool acquire, bool wfi)
-{
-	nvgpu_log_fn(g, " ");
-
-	/* semaphore_a */
-	nvgpu_mem_wr32(g, cmd->mem, off++, 0x20010004U);
-	/* offset_upper */
-	nvgpu_mem_wr32(g, cmd->mem, off++, (u32)(sema_va >> 32) & 0xffU);
-	/* semaphore_b */
-	nvgpu_mem_wr32(g, cmd->mem, off++, 0x20010005U);
-	/* offset */
-	nvgpu_mem_wr32(g, cmd->mem, off++, (u32)sema_va & 0xffffffffU);
-
-	if (acquire) {
-		/* semaphore_c */
-		nvgpu_mem_wr32(g, cmd->mem, off++, 0x20010006U);
-		/* payload */
-		nvgpu_mem_wr32(g, cmd->mem, off++,
-			       nvgpu_semaphore_get_value(s));
-		/* semaphore_d */
-		nvgpu_mem_wr32(g, cmd->mem, off++, 0x20010007U);
-		/* operation: acq_geq, switch_en */
-		nvgpu_mem_wr32(g, cmd->mem, off++, 0x4U | BIT32(12));
-	} else {
-		/* semaphore_c */
-		nvgpu_mem_wr32(g, cmd->mem, off++, 0x20010006U);
-		/* payload */
-		nvgpu_mem_wr32(g, cmd->mem, off++,
-			       nvgpu_semaphore_get_value(s));
-		/* semaphore_d */
-		nvgpu_mem_wr32(g, cmd->mem, off++, 0x20010007U);
-		/* operation: release, wfi */
-		nvgpu_mem_wr32(g, cmd->mem, off++,
-				0x2UL | ((wfi ? 0x0UL : 0x1UL) << 20));
-		/* non_stall_int */
-		nvgpu_mem_wr32(g, cmd->mem, off++, 0x20010008U);
-		/* ignored */
-		nvgpu_mem_wr32(g, cmd->mem, off++, 0U);
-	}
-}
-
 bool gk20a_fifo_find_pbdma_for_runlist(struct fifo_gk20a *f, u32 runlist_id,
 								u32 *pbdma_id)
 {

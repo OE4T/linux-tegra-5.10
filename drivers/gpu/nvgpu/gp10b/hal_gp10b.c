@@ -66,6 +66,7 @@
 #include "common/top/top_gm20b.h"
 #include "common/top/top_gp10b.h"
 #include "common/sync/syncpt_cmdbuf_gk20a.h"
+#include "common/sync/sema_cmdbuf_gk20a.h"
 #include "common/regops/regops_gp10b.h"
 #include "common/fifo/runlist_gk20a.h"
 
@@ -599,9 +600,9 @@ static const struct gpu_ops gp10b_ops = {
 		.get_syncpt_incr_cmd_size = gk20a_get_syncpt_incr_cmd_size,
 		.get_sync_ro_map = NULL,
 #endif
-		.get_sema_wait_cmd_size = gk20a_fifo_get_sema_wait_cmd_size,
-		.get_sema_incr_cmd_size = gk20a_fifo_get_sema_incr_cmd_size,
-		.add_sema_cmd = gk20a_fifo_add_sema_cmd,
+		.get_sema_wait_cmd_size = gk20a_get_sema_wait_cmd_size,
+		.get_sema_incr_cmd_size = gk20a_get_sema_incr_cmd_size,
+		.add_sema_cmd = gk20a_add_sema_cmd,
 	},
 	.runlist = {
 		.reschedule_runlist = gk20a_fifo_reschedule_runlist,
