@@ -407,22 +407,6 @@ u32 gk20a_fifo_handle_pbdma_intr(struct gk20a *g, struct fifo_gk20a *f,
 
 u32 gk20a_fifo_default_timeslice_us(struct gk20a *g);
 
-#ifdef CONFIG_TEGRA_GK20A_NVHOST
-void gk20a_fifo_add_syncpt_wait_cmd(struct gk20a *g,
-			struct priv_cmd_entry *cmd, u32 off,
-			u32 id, u32 thresh, u64 gpu_va);
-u32 gk20a_fifo_get_syncpt_wait_cmd_size(void);
-u32 gk20a_fifo_get_syncpt_incr_per_release(void);
-void gk20a_fifo_add_syncpt_incr_cmd(struct gk20a *g,
-			bool wfi_cmd, struct priv_cmd_entry *cmd,
-			u32 id, u64 gpu_va);
-u32 gk20a_fifo_get_syncpt_incr_cmd_size(bool wfi_cmd);
-void gk20a_fifo_free_syncpt_buf(struct channel_gk20a *c,
-			struct nvgpu_mem *syncpt_buf);
-int gk20a_fifo_alloc_syncpt_buf(struct channel_gk20a *c,
-			u32 syncpt_id, struct nvgpu_mem *syncpt_buf);
-#endif
-
 void gk20a_fifo_get_mmu_fault_info(struct gk20a *g, u32 mmu_fault_id,
 				struct mmu_fault_info *mmfault);
 void gk20a_fifo_get_mmu_fault_desc(struct mmu_fault_info *mmfault);

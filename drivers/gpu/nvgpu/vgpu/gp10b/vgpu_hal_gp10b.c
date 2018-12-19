@@ -54,6 +54,7 @@
 #include "vgpu_fuse_gp10b.h"
 
 #include "common/falcon/falcon_gk20a.h"
+#include "common/sync/syncpt_cmdbuf_gk20a.h"
 
 #include "gp10b/mm_gp10b.h"
 #include "gp10b/ce_gp10b.h"
@@ -409,14 +410,14 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 	},
 	.sync = {
 #ifdef CONFIG_TEGRA_GK20A_NVHOST
-		.alloc_syncpt_buf = gk20a_fifo_alloc_syncpt_buf,
-		.free_syncpt_buf = gk20a_fifo_free_syncpt_buf,
-		.add_syncpt_wait_cmd = gk20a_fifo_add_syncpt_wait_cmd,
-		.get_syncpt_wait_cmd_size = gk20a_fifo_get_syncpt_wait_cmd_size,
+		.alloc_syncpt_buf = gk20a_alloc_syncpt_buf,
+		.free_syncpt_buf = gk20a_free_syncpt_buf,
+		.add_syncpt_wait_cmd = gk20a_add_syncpt_wait_cmd,
+		.get_syncpt_wait_cmd_size = gk20a_get_syncpt_wait_cmd_size,
 		.get_syncpt_incr_per_release =
-				gk20a_fifo_get_syncpt_incr_per_release,
-		.add_syncpt_incr_cmd = gk20a_fifo_add_syncpt_incr_cmd,
-		.get_syncpt_incr_cmd_size = gk20a_fifo_get_syncpt_incr_cmd_size,
+				gk20a_get_syncpt_incr_per_release,
+		.add_syncpt_incr_cmd = gk20a_add_syncpt_incr_cmd,
+		.get_syncpt_incr_cmd_size = gk20a_get_syncpt_incr_cmd_size,
 		.get_sync_ro_map = NULL,
 #endif
 		.get_sema_wait_cmd_size = gk20a_fifo_get_sema_wait_cmd_size,
