@@ -703,6 +703,20 @@ static const struct gpu_ops gv11b_ops = {
 		.channel_resume = gk20a_channel_resume,
 		.set_error_notifier = nvgpu_set_error_notifier_if_empty,
 		.setup_sw = gk20a_init_fifo_setup_sw,
+		.resetup_ramfc = NULL,
+		.free_channel_ctx_header = gv11b_free_subctx_header,
+		.handle_ctxsw_timeout = gv11b_fifo_handle_ctxsw_timeout,
+		.ring_channel_doorbell = gv11b_ring_channel_doorbell,
+		.set_sm_exception_type_mask = gk20a_tsg_set_sm_exception_type_mask,
+		.usermode_base = gv11b_fifo_usermode_base,
+		.doorbell_token = gv11b_fifo_doorbell_token,
+		.runlist_busy_engines = gk20a_fifo_runlist_busy_engines,
+		.find_pbdma_for_runlist = gk20a_fifo_find_pbdma_for_runlist,
+		.init_ce_engine_info = gp10b_fifo_init_ce_engine_info,
+		.read_pbdma_data = gk20a_fifo_read_pbdma_data,
+		.reset_pbdma_header = gk20a_fifo_reset_pbdma_header,
+	},
+	.sync = {
 #ifdef CONFIG_TEGRA_GK20A_NVHOST
 		.alloc_syncpt_buf = gv11b_fifo_alloc_syncpt_buf,
 		.free_syncpt_buf = gv11b_fifo_free_syncpt_buf,
@@ -714,21 +728,9 @@ static const struct gpu_ops gv11b_ops = {
 			gv11b_fifo_get_syncpt_incr_per_release,
 		.get_sync_ro_map = gv11b_fifo_get_sync_ro_map,
 #endif
-		.resetup_ramfc = NULL,
-		.free_channel_ctx_header = gv11b_free_subctx_header,
-		.handle_ctxsw_timeout = gv11b_fifo_handle_ctxsw_timeout,
-		.ring_channel_doorbell = gv11b_ring_channel_doorbell,
 		.get_sema_wait_cmd_size = gv11b_fifo_get_sema_wait_cmd_size,
 		.get_sema_incr_cmd_size = gv11b_fifo_get_sema_incr_cmd_size,
 		.add_sema_cmd = gv11b_fifo_add_sema_cmd,
-		.set_sm_exception_type_mask = gk20a_tsg_set_sm_exception_type_mask,
-		.usermode_base = gv11b_fifo_usermode_base,
-		.doorbell_token = gv11b_fifo_doorbell_token,
-		.runlist_busy_engines = gk20a_fifo_runlist_busy_engines,
-		.find_pbdma_for_runlist = gk20a_fifo_find_pbdma_for_runlist,
-		.init_ce_engine_info = gp10b_fifo_init_ce_engine_info,
-		.read_pbdma_data = gk20a_fifo_read_pbdma_data,
-		.reset_pbdma_header = gk20a_fifo_reset_pbdma_header,
 	},
 	.runlist = {
 		.reschedule_runlist = gv11b_fifo_reschedule_runlist,
@@ -1004,6 +1006,7 @@ int gv11b_init_hal(struct gk20a *g)
 	gops->clock_gating = gv11b_ops.clock_gating;
 	gops->fifo = gv11b_ops.fifo;
 	gops->runlist = gv11b_ops.runlist;
+	gops->sync = gv11b_ops.sync;
 	gops->netlist = gv11b_ops.netlist;
 	gops->mm = gv11b_ops.mm;
 #ifdef CONFIG_GK20A_CTXSW_TRACE

@@ -404,6 +404,10 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 		.channel_resume = gk20a_channel_resume,
 		.set_error_notifier = nvgpu_set_error_notifier,
 		.setup_sw = gk20a_init_fifo_setup_sw,
+		.resetup_ramfc = NULL,
+		.set_sm_exception_type_mask = vgpu_set_sm_exception_type_mask,
+	},
+	.sync = {
 #ifdef CONFIG_TEGRA_GK20A_NVHOST
 		.alloc_syncpt_buf = gk20a_fifo_alloc_syncpt_buf,
 		.free_syncpt_buf = gk20a_fifo_free_syncpt_buf,
@@ -415,11 +419,9 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 		.get_syncpt_incr_cmd_size = gk20a_fifo_get_syncpt_incr_cmd_size,
 		.get_sync_ro_map = NULL,
 #endif
-		.resetup_ramfc = NULL,
 		.get_sema_wait_cmd_size = gk20a_fifo_get_sema_wait_cmd_size,
 		.get_sema_incr_cmd_size = gk20a_fifo_get_sema_incr_cmd_size,
 		.add_sema_cmd = gk20a_fifo_add_sema_cmd,
-		.set_sm_exception_type_mask = vgpu_set_sm_exception_type_mask,
 	},
 	.runlist = {
 		.reschedule_runlist = NULL,
@@ -659,6 +661,7 @@ int vgpu_gp10b_init_hal(struct gk20a *g)
 	gops->clock_gating = vgpu_gp10b_ops.clock_gating;
 	gops->fifo = vgpu_gp10b_ops.fifo;
 	gops->runlist = vgpu_gp10b_ops.runlist;
+	gops->sync = vgpu_gp10b_ops.sync;
 	gops->netlist = vgpu_gp10b_ops.netlist;
 #ifdef CONFIG_GK20A_CTXSW_TRACE
 	gops->fecs_trace = vgpu_gp10b_ops.fecs_trace;

@@ -827,32 +827,9 @@ struct gpu_ops {
 		int (*channel_suspend)(struct gk20a *g);
 		int (*channel_resume)(struct gk20a *g);
 		void (*set_error_notifier)(struct channel_gk20a *ch, u32 error);
-#ifdef CONFIG_TEGRA_GK20A_NVHOST
-		int (*alloc_syncpt_buf)(struct channel_gk20a *c,
-				u32 syncpt_id, struct nvgpu_mem *syncpt_buf);
-		void (*free_syncpt_buf)(struct channel_gk20a *c,
-				struct nvgpu_mem *syncpt_buf);
-		void (*add_syncpt_wait_cmd)(struct gk20a *g,
-					struct priv_cmd_entry *cmd, u32 off,
-					u32 id, u32 thresh, u64 gpu_va);
-		u32 (*get_syncpt_wait_cmd_size)(void);
-		void (*add_syncpt_incr_cmd)(struct gk20a *g,
-			bool wfi_cmd, struct priv_cmd_entry *cmd,
-			u32 id, u64 gpu_va);
-		u32 (*get_syncpt_incr_cmd_size)(bool wfi_cmd);
-		int (*get_sync_ro_map)(struct vm_gk20a *vm,
-				u64 *base_gpuva, u32 *sync_size);
-		u32 (*get_syncpt_incr_per_release)(void);
-#endif
 		void (*ring_channel_doorbell)(struct channel_gk20a *c);
 		u64 (*usermode_base)(struct gk20a *g);
 		u32 (*doorbell_token)(struct channel_gk20a *c);
-		u32 (*get_sema_wait_cmd_size)(void);
-		u32 (*get_sema_incr_cmd_size)(void);
-		void (*add_sema_cmd)(struct gk20a *g,
-			struct nvgpu_semaphore *s, u64 sema_va,
-			struct priv_cmd_entry *cmd,
-			u32 off, bool acquire, bool wfi);
 		int (*init_pdb_cache_war)(struct gk20a *g);
 		void (*deinit_pdb_cache_war)(struct gk20a *g);
 		int (*set_sm_exception_type_mask)(struct channel_gk20a *ch,
@@ -892,6 +869,32 @@ struct gpu_ops {
 		void (*runlist_write_state)(struct gk20a *g, u32 runlists_mask,
 				u32 runlist_state);
 	} runlist;
+
+	struct {
+#ifdef CONFIG_TEGRA_GK20A_NVHOST
+		int (*alloc_syncpt_buf)(struct channel_gk20a *c,
+				u32 syncpt_id, struct nvgpu_mem *syncpt_buf);
+		void (*free_syncpt_buf)(struct channel_gk20a *c,
+				struct nvgpu_mem *syncpt_buf);
+		void (*add_syncpt_wait_cmd)(struct gk20a *g,
+					struct priv_cmd_entry *cmd, u32 off,
+					u32 id, u32 thresh, u64 gpu_va);
+		u32 (*get_syncpt_wait_cmd_size)(void);
+		void (*add_syncpt_incr_cmd)(struct gk20a *g,
+			bool wfi_cmd, struct priv_cmd_entry *cmd,
+			u32 id, u64 gpu_va);
+		u32 (*get_syncpt_incr_cmd_size)(bool wfi_cmd);
+		int (*get_sync_ro_map)(struct vm_gk20a *vm,
+				u64 *base_gpuva, u32 *sync_size);
+		u32 (*get_syncpt_incr_per_release)(void);
+#endif
+		u32 (*get_sema_wait_cmd_size)(void);
+		u32 (*get_sema_incr_cmd_size)(void);
+		void (*add_sema_cmd)(struct gk20a *g,
+			struct nvgpu_semaphore *s, u64 sema_va,
+			struct priv_cmd_entry *cmd,
+			u32 off, bool acquire, bool wfi);
+	} sync;
 	struct pmu_v {
 		u32 (*get_pmu_cmdline_args_size)(struct nvgpu_pmu *pmu);
 		void (*set_pmu_cmdline_args_cpu_freq)(struct nvgpu_pmu *pmu,

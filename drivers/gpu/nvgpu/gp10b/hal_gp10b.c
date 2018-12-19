@@ -578,6 +578,15 @@ static const struct gpu_ops gp10b_ops = {
 		.channel_resume = gk20a_channel_resume,
 		.set_error_notifier = nvgpu_set_error_notifier,
 		.setup_sw = gk20a_init_fifo_setup_sw,
+		.resetup_ramfc = gp10b_fifo_resetup_ramfc,
+		.set_sm_exception_type_mask = gk20a_tsg_set_sm_exception_type_mask,
+		.runlist_busy_engines = gk20a_fifo_runlist_busy_engines,
+		.find_pbdma_for_runlist = gk20a_fifo_find_pbdma_for_runlist,
+		.init_ce_engine_info = gp10b_fifo_init_ce_engine_info,
+		.read_pbdma_data = gk20a_fifo_read_pbdma_data,
+		.reset_pbdma_header = gk20a_fifo_reset_pbdma_header,
+	},
+	.sync = {
 #ifdef CONFIG_TEGRA_GK20A_NVHOST
 		.alloc_syncpt_buf = gk20a_fifo_alloc_syncpt_buf,
 		.free_syncpt_buf = gk20a_fifo_free_syncpt_buf,
@@ -589,16 +598,9 @@ static const struct gpu_ops gp10b_ops = {
 		.get_syncpt_incr_cmd_size = gk20a_fifo_get_syncpt_incr_cmd_size,
 		.get_sync_ro_map = NULL,
 #endif
-		.resetup_ramfc = gp10b_fifo_resetup_ramfc,
 		.get_sema_wait_cmd_size = gk20a_fifo_get_sema_wait_cmd_size,
 		.get_sema_incr_cmd_size = gk20a_fifo_get_sema_incr_cmd_size,
 		.add_sema_cmd = gk20a_fifo_add_sema_cmd,
-		.set_sm_exception_type_mask = gk20a_tsg_set_sm_exception_type_mask,
-		.runlist_busy_engines = gk20a_fifo_runlist_busy_engines,
-		.find_pbdma_for_runlist = gk20a_fifo_find_pbdma_for_runlist,
-		.init_ce_engine_info = gp10b_fifo_init_ce_engine_info,
-		.read_pbdma_data = gk20a_fifo_read_pbdma_data,
-		.reset_pbdma_header = gk20a_fifo_reset_pbdma_header,
 	},
 	.runlist = {
 		.reschedule_runlist = gk20a_fifo_reschedule_runlist,
@@ -867,6 +869,7 @@ int gp10b_init_hal(struct gk20a *g)
 	gops->clock_gating = gp10b_ops.clock_gating;
 	gops->fifo = gp10b_ops.fifo;
 	gops->runlist = gp10b_ops.runlist;
+	gops->sync = gp10b_ops.sync;
 	gops->netlist = gp10b_ops.netlist;
 #ifdef CONFIG_GK20A_CTXSW_TRACE
 	gops->fecs_trace = gp10b_ops.fecs_trace;
