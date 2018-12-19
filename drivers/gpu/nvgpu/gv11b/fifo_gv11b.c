@@ -1881,55 +1881,6 @@ void gv11b_fifo_deinit_eng_method_buffers(struct gk20a *g,
 	nvgpu_log_info(g, "eng method buffers de-allocated");
 }
 
-u32 gv11b_fifo_get_sema_wait_cmd_size(void)
-{
-	return 10;
-}
-
-u32 gv11b_fifo_get_sema_incr_cmd_size(void)
-{
-	return 12;
-}
-
-void gv11b_fifo_add_sema_cmd(struct gk20a *g,
-	struct nvgpu_semaphore *s, u64 sema_va,
-	struct priv_cmd_entry *cmd,
-	u32 off, bool acquire, bool wfi)
-{
-	nvgpu_log_fn(g, " ");
-
-	/* sema_addr_lo */
-	nvgpu_mem_wr32(g, cmd->mem, off++, 0x20010017);
-	nvgpu_mem_wr32(g, cmd->mem, off++, sema_va & 0xffffffffULL);
-
-	/* sema_addr_hi */
-	nvgpu_mem_wr32(g, cmd->mem, off++, 0x20010018);
-	nvgpu_mem_wr32(g, cmd->mem, off++, (sema_va >> 32ULL) & 0xffULL);
-
-	/* payload_lo */
-	nvgpu_mem_wr32(g, cmd->mem, off++, 0x20010019);
-	nvgpu_mem_wr32(g, cmd->mem, off++, nvgpu_semaphore_get_value(s));
-
-	/* payload_hi : ignored */
-	nvgpu_mem_wr32(g, cmd->mem, off++, 0x2001001a);
-	nvgpu_mem_wr32(g, cmd->mem, off++, 0);
-
-	if (acquire) {
-		/* sema_execute : acq_strict_geq | switch_en | 32bit */
-		nvgpu_mem_wr32(g, cmd->mem, off++, 0x2001001b);
-		nvgpu_mem_wr32(g, cmd->mem, off++, U32(0x2) | BIT32(12));
-	} else {
-		/* sema_execute : release | wfi | 32bit */
-		nvgpu_mem_wr32(g, cmd->mem, off++, 0x2001001b);
-		nvgpu_mem_wr32(g, cmd->mem, off++,
-			U32(0x1) | ((wfi ? U32(0x1) : U32(0x0)) << 20U));
-
-		/* non_stall_int : payload is ignored */
-		nvgpu_mem_wr32(g, cmd->mem, off++, 0x20010008);
-		nvgpu_mem_wr32(g, cmd->mem, off++, 0);
-	}
-}
-
 int gv11b_init_fifo_setup_hw(struct gk20a *g)
 {
 	struct fifo_gk20a *f = &g->fifo;

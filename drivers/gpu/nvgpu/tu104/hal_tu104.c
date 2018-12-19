@@ -77,6 +77,7 @@
 #include "common/nvlink/nvlink_gv100.h"
 #include "common/nvlink/nvlink_tu104.h"
 #include "common/sync/syncpt_cmdbuf_gv11b.h"
+#include "common/sync/sema_cmdbuf_gv11b.h"
 #include "common/regops/regops_tu104.h"
 #include "common/fifo/runlist_gk20a.h"
 #include "common/fifo/runlist_gv11b.h"
@@ -806,9 +807,9 @@ static const struct gpu_ops tu104_ops = {
                                 gv11b_get_syncpt_incr_per_release,
 		.get_sync_ro_map = gv11b_get_sync_ro_map,
 #endif
-		.get_sema_wait_cmd_size = gv11b_fifo_get_sema_wait_cmd_size,
-		.get_sema_incr_cmd_size = gv11b_fifo_get_sema_incr_cmd_size,
-		.add_sema_cmd = gv11b_fifo_add_sema_cmd,
+		.get_sema_wait_cmd_size = gv11b_get_sema_wait_cmd_size,
+		.get_sema_incr_cmd_size = gv11b_get_sema_incr_cmd_size,
+		.add_sema_cmd = gv11b_add_sema_cmd,
 	},
 	.runlist = {
 		.update_runlist = gk20a_fifo_update_runlist,

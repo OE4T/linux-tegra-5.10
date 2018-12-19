@@ -100,12 +100,6 @@ void gv11b_fifo_init_eng_method_buffers(struct gk20a *g,
 					struct tsg_gk20a *tsg);
 void gv11b_fifo_deinit_eng_method_buffers(struct gk20a *g,
 					struct tsg_gk20a *tsg);
-u32 gv11b_fifo_get_sema_wait_cmd_size(void);
-u32 gv11b_fifo_get_sema_incr_cmd_size(void);
-void gv11b_fifo_add_sema_cmd(struct gk20a *g,
-	struct nvgpu_semaphore *s, u64 sema_va,
-	struct priv_cmd_entry *cmd,
-	u32 off, bool acquire, bool wfi);
 int gv11b_init_fifo_setup_hw(struct gk20a *g);
 
 void gv11b_fifo_tsg_verify_status_faulted(struct channel_gk20a *ch);

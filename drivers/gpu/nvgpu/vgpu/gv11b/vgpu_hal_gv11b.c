@@ -41,6 +41,7 @@
 #include "common/fuse/fuse_gm20b.h"
 #include "common/fuse/fuse_gp10b.h"
 #include "common/sync/syncpt_cmdbuf_gv11b.h"
+#include "common/sync/sema_cmdbuf_gv11b.h"
 #include "common/regops/regops_gv11b.h"
 #include "common/fifo/runlist_gv11b.h"
 
@@ -498,9 +499,9 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 		.get_syncpt_incr_cmd_size = gv11b_get_syncpt_incr_cmd_size,
 		.get_sync_ro_map = vgpu_gv11b_fifo_get_sync_ro_map,
 #endif
-		.get_sema_wait_cmd_size = gv11b_fifo_get_sema_wait_cmd_size,
-		.get_sema_incr_cmd_size = gv11b_fifo_get_sema_incr_cmd_size,
-		.add_sema_cmd = gv11b_fifo_add_sema_cmd,
+		.get_sema_wait_cmd_size = gv11b_get_sema_wait_cmd_size,
+		.get_sema_incr_cmd_size = gv11b_get_sema_incr_cmd_size,
+		.add_sema_cmd = gv11b_add_sema_cmd,
 	},
 	.runlist = {
 		.reschedule_runlist = NULL,
