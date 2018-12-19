@@ -103,6 +103,21 @@ static void __dma_dbg(struct gk20a *g, size_t size, unsigned long flags,
 			flags_str);
 }
 
+static void nvgpu_dma_print_err(struct gk20a *g, size_t size,
+				const char *type, const char *what,
+				unsigned long flags)
+{
+	char flags_str[NVGPU_DMA_STR_SIZE];
+
+	nvgpu_dma_flags_to_str(g, flags, flags_str);
+
+	nvgpu_err(g,
+		  "DMA %s FAILED: [%s] size=%-7zu "
+		  "aligned=%-7zu flags:%s",
+		  what, type,
+		  size, PAGE_ALIGN(size), flags_str);
+}
+
 #define dma_dbg_alloc(g, size, flags, type)				\
 	__dma_dbg(g, size, flags, type, "alloc", __func__, __LINE__)
 #define dma_dbg_free(g, size, flags, type)				\
@@ -149,10 +164,10 @@ int nvgpu_dma_alloc_flags_sys(struct gk20a *g, unsigned long flags,
 		size_t size, struct nvgpu_mem *mem)
 {
 	struct device *d = dev_from_gk20a(g);
-	int err;
 	dma_addr_t iova;
 	unsigned long dma_attrs = 0;
 	void *alloc_ret;
+	int err;
 
 	if (nvgpu_mem_is_valid(mem)) {
 		nvgpu_warn(g, "memory leak !!");
@@ -181,11 +196,12 @@ int nvgpu_dma_alloc_flags_sys(struct gk20a *g, unsigned long flags,
 	size = PAGE_ALIGN(size);
 
 	nvgpu_dma_flags_to_attrs(&dma_attrs, flags);
-
 	alloc_ret = dma_alloc_attrs(d, size, &iova,
 				    GFP_KERNEL|__GFP_ZERO, dma_attrs);
-	if (!alloc_ret)
-		return -ENOMEM;
+	if (!alloc_ret) {
+		err = -ENOMEM;
+		goto print_dma_err;
+	}
 
 	if (flags & NVGPU_DMA_NO_KERNEL_MAPPING) {
 		mem->priv.pages = alloc_ret;
@@ -214,6 +230,8 @@ fail_free_dma:
 	mem->priv.sgt = NULL;
 	mem->size = 0;
 	g->dma_memory_used -= mem->aligned_size;
+print_dma_err:
+	nvgpu_dma_print_err(g, size, "sysmem", "alloc", flags);
 	return err;
 }
 
@@ -238,8 +256,10 @@ int nvgpu_dma_alloc_flags_vid_at(struct gk20a *g, unsigned long flags,
 	mem->size = size;
 	size = PAGE_ALIGN(size);
 
-	if (!nvgpu_alloc_initialized(&g->mm.vidmem.allocator))
-		return -ENOSYS;
+	if (!nvgpu_alloc_initialized(&g->mm.vidmem.allocator)) {
+		err = -ENOSYS;
+		goto print_dma_err;
+	}
 
 	/*
 	 * Our own allocator doesn't have any flags yet, and we can't
@@ -256,10 +276,12 @@ int nvgpu_dma_alloc_flags_vid_at(struct gk20a *g, unsigned long flags,
 		 * If memory is known to be freed soon, let the user know that
 		 * it may be available after a while.
 		 */
-		if (before_pending)
+		if (before_pending) {
 			return -EAGAIN;
-		else
-			return -ENOMEM;
+		} else {
+			err = -ENOMEM;
+			goto print_dma_err;
+		}
 	}
 
 	if (at)
@@ -295,6 +317,8 @@ fail_kfree:
 fail_physfree:
 	nvgpu_free(&g->mm.vidmem.allocator, addr);
 	mem->size = 0;
+print_dma_err:
+	nvgpu_dma_print_err(g, size, "vidmem", "alloc", flags);
 	return err;
 #else
 	return -ENOSYS;
