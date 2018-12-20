@@ -450,32 +450,6 @@ void vgpu_gr_free_gr_ctx(struct gk20a *g,
 	}
 }
 
-static int vgpu_gr_ch_bind_gr_ctx(struct channel_gk20a *c)
-{
-	struct tsg_gk20a *tsg;
-	struct nvgpu_gr_ctx *gr_ctx;
-	struct tegra_vgpu_cmd_msg msg = {0};
-	struct tegra_vgpu_channel_bind_gr_ctx_params *p =
-				&msg.params.ch_bind_gr_ctx;
-	int err;
-
-	tsg = tsg_gk20a_from_ch(c);
-	if (!tsg)
-		return -EINVAL;
-
-	gr_ctx = tsg->gr_ctx;
-
-	msg.cmd = TEGRA_VGPU_CMD_CHANNEL_BIND_GR_CTX;
-	msg.handle = vgpu_get_handle(c->g);
-	p->ch_handle = c->virt_ctx;
-	p->gr_ctx_handle = gr_ctx->virt_ctx;
-	err = vgpu_comm_sendrecv(&msg, sizeof(msg), sizeof(msg));
-	err = err ? err : msg.ret;
-	WARN_ON(err);
-
-	return err;
-}
-
 static int vgpu_gr_tsg_bind_gr_ctx(struct tsg_gk20a *tsg)
 {
 	struct nvgpu_gr_ctx *gr_ctx = tsg->gr_ctx;
@@ -543,12 +517,6 @@ int vgpu_gr_alloc_obj_ctx(struct channel_gk20a  *c, u32 class_num, u32 flags)
 			goto out;
 		}
 
-		err = vgpu_gr_ch_bind_gr_ctx(c);
-		if (err) {
-			nvgpu_err(g, "fail to bind gr ctx buffer");
-			goto out;
-		}
-
 		/* allocate patch buffer */
 		err = vgpu_gr_alloc_channel_patch_ctx(g, c);
 		if (err) {
@@ -589,12 +557,6 @@ int vgpu_gr_alloc_obj_ctx(struct channel_gk20a  *c, u32 class_num, u32 flags)
 			goto out;
 		}
 	} else {
-		err = vgpu_gr_ch_bind_gr_ctx(c);
-		if (err) {
-			nvgpu_err(g, "fail to bind gr ctx buffer");
-			goto out;
-		}
-
 		/* commit gr ctx buffer */
 		err = g->ops.gr.commit_inst(c, gr_ctx->mem.gpu_va);
 		if (err) {
