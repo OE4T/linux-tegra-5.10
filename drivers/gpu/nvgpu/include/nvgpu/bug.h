@@ -45,18 +45,21 @@
  */
 #if defined(__KERNEL__)
 #define nvgpu_assert(cond)	WARN_ON(!(cond))
-#elif defined(__NVGPU_POSIX__)
+#else
 /*
- * A static inline for POSIX so that we can hide the branch in BUG_ON() from the
- * branch analysis for users of this function. When this assert fails the
- * function will not return.
+ * A static inline for POSIX/QNX/etc so that we can hide the branch in BUG_ON()
+ * from the branch analyzer. This prevents unit testing branch analysis from
+ * marking this as an untested branch everywhere the nvgpu_assert() macro is
+ * used. Similarly for MISRA this hides the messy BUG_ON() macro from users of
+ * this function. This means the MISRA scanner will only trigger 1 issue for
+ * this instead of 1 for every place it's used.
+ *
+ * When this assert fails the function will not return.
  */
 static inline void nvgpu_assert(bool cond)
 {
 	BUG_ON(!cond);
 }
-#else
-#define nvgpu_assert(cond)	BUG_ON(!(cond))
 #endif
 
 #endif /* NVGPU_BUG_H */
