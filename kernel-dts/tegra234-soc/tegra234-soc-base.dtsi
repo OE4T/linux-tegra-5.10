@@ -16,12 +16,16 @@
  *
  */
 
+/* FIXME: remove all the tegra194-*** headers */
 #include <dt-bindings/version.h>
 #include <dt-bindings/clock/tegra194-clock.h>
+#include <dt-bindings/clock/tegra234-clock.h>
 #include <dt-bindings/reset/tegra194-reset.h>
+#include <dt-bindings/reset/tegra234-reset.h>
 #include "dt-bindings/interrupt/tegra194-irq.h"
 #include "dt-bindings/interrupt-controller/arm-gic.h"
 #include "dt-bindings/soc/tegra194-powergate.h"
+#include "dt-bindings/soc/tegra234-powergate.h"
 #include <dt-bindings/interrupt-controller/irq.h>
 #include <dt-bindings/gpio/tegra194-gpio.h>
 #include <dt-bindings/memory/tegra-swgroup.h>
@@ -333,12 +337,12 @@
 
 		vic@15340000 {
 			compatible = "nvidia,tegra194-vic";
-			power-domains = <&bpmp TEGRA194_POWER_DOMAIN_VIC>;
+			power-domains = <&bpmp TEGRA234_POWER_DOMAIN_VIC>;
 			reg = <0x0 0x15340000 0x0 0x00040000>;
 			interrupts = <0 206 0x04>;
 
-			resets = <&bpmp_resets TEGRA194_RESET_VIC>;
-			clocks = <&bpmp_clks TEGRA194_CLK_VIC>;
+			resets = <&bpmp_resets TEGRA234_RESET_VIC>;
+			clocks = <&bpmp_clks TEGRA234_CLK_VIC>;
 			clock-names = "vic";
 
 			iommus = <&smmu TEGRA_SID_VIC>;
@@ -347,10 +351,10 @@
 
 		nvjpg@15380000 {
 			compatible = "nvidia,tegra194-nvjpg";
-			power-domains = <&bpmp TEGRA194_POWER_DOMAIN_NVJPG>;
+			power-domains = <&bpmp TEGRA234_POWER_DOMAIN_NVJPG>;
 			reg = <0x0 0x15380000 0x0 0x00040000>;
-			resets = <&bpmp_resets TEGRA194_RESET_NVJPG>;
-			clocks = <&bpmp_clks TEGRA194_CLK_NVJPG>;
+			resets = <&bpmp_resets TEGRA234_RESET_NVJPG>;
+			clocks = <&bpmp_clks TEGRA234_CLK_NVJPG>;
 			clock-names = "nvjpg";
 
 			iommus = <&smmu TEGRA_SID_NVJPG>;
@@ -360,8 +364,8 @@
 		tsec@15500000 {
 			compatible = "nvidia,tegra194-tsec";
 			reg = <0x0 0x15500000 0x0 0x00040000>;
-			resets = <&bpmp_resets TEGRA194_RESET_TSEC>;
-			clocks = <&bpmp_clks TEGRA194_CLK_TSEC>;
+			resets = <&bpmp_resets TEGRA234_RESET_TSEC>;
+			clocks = <&bpmp_clks TEGRA234_CLK_TSEC>;
 			clock-names = "tsec";
 
 			iommus = <&smmu TEGRA_SID_TSEC>;
@@ -371,8 +375,8 @@
 		tsecb@15100000 {
 			compatible = "nvidia,tegra194-tsec";
 			reg = <0x0 0x15100000 0x0 0x00040000>;
-			resets = <&bpmp_resets TEGRA194_RESET_TSECB>;
-			clocks = <&bpmp_clks TEGRA194_CLK_TSECB>;
+			resets = <&bpmp_resets TEGRA234_RESET_TSECB>;
+			clocks = <&bpmp_clks TEGRA234_CLK_TSECB>;
 			clock-names = "tsecb";
 
 			iommus = <&smmu TEGRA_SID_TSECB>;
@@ -381,12 +385,12 @@
 
 		nvdec@15480000 {
 			compatible = "nvidia,tegra194-nvdec";
-			power-domains = <&bpmp TEGRA194_POWER_DOMAIN_NVDECA>;
+			power-domains = <&bpmp TEGRA234_POWER_DOMAIN_NVDECA>;
 			reg = <0x0 0x15480000 0x0 0x00040000>;
 			resets = <&bpmp_resets TEGRA194_RESET_NVDEC>;
-			clocks = <&bpmp_clks TEGRA194_CLK_NVDEC>,
-				 <&bpmp_clks TEGRA194_CLK_KFUSE>,
-				 <&bpmp_clks TEGRA194_CLK_FUSE>;
+			clocks = <&bpmp_clks TEGRA234_CLK_NVDEC>,
+				 <&bpmp_clks TEGRA234_CLK_KFUSE>,
+				 <&bpmp_clks TEGRA234_CLK_FUSE>;
 			clock-names = "nvdec", "kfuse", "efuse";
 
 			iommus = <&smmu TEGRA_SID_NVDEC>;
@@ -395,12 +399,12 @@
 
 		nvdec1@15140000 {
 			compatible = "nvidia,tegra194-nvdec";
-			power-domains = <&bpmp TEGRA194_POWER_DOMAIN_NVDECB>;
+			power-domains = <&bpmp TEGRA234_POWER_DOMAIN_NVDECB>;
 			reg = <0x0 0x15140000 0x0 0x00040000>;
-			resets = <&bpmp_resets TEGRA194_RESET_NVDEC1>;
-			clocks = <&bpmp_clks TEGRA194_CLK_NVDEC1>,
-				 <&bpmp_clks TEGRA194_CLK_KFUSE>,
-				 <&bpmp_clks TEGRA194_CLK_FUSE>;
+			resets = <&bpmp_resets TEGRA234_RESET_NVDEC1>;
+			clocks = <&bpmp_clks TEGRA234_CLK_NVDEC1>,
+				 <&bpmp_clks TEGRA234_CLK_KFUSE>,
+				 <&bpmp_clks TEGRA234_CLK_FUSE>;
 			clock-names = "nvdec", "kfuse", "efuse";
 
 			iommus = <&smmu TEGRA_SID_NVDEC1>;
@@ -409,10 +413,10 @@
 
 		nvenc@154c0000 {
 			compatible = "nvidia,tegra194-nvenc";
-			power-domains = <&bpmp TEGRA194_POWER_DOMAIN_NVENCA>;
+			power-domains = <&bpmp TEGRA234_POWER_DOMAIN_NVENCA>;
 			reg = <0x0 0x154c0000 0x0 0x00040000>;
-			resets = <&bpmp_resets TEGRA194_RESET_NVENC>;
-			clocks = <&bpmp_clks TEGRA194_CLK_NVENC>;
+			resets = <&bpmp_resets TEGRA234_RESET_NVENC>;
+			clocks = <&bpmp_clks TEGRA234_CLK_NVENC>;
 			clock-names = "nvenc";
 
 			iommus = <&smmu TEGRA_SID_NVENC>;
@@ -421,10 +425,10 @@
 
 		nvenc1@15a80000 {
 			compatible = "nvidia,tegra194-nvenc";
-			power-domains = <&bpmp TEGRA194_POWER_DOMAIN_NVENCB>;
+			power-domains = <&bpmp TEGRA234_POWER_DOMAIN_NVENCB>;
 			reg = <0x0 0x15a80000 0x0 0x00040000>;
-			resets = <&bpmp_resets TEGRA194_RESET_NVENC1>;
-			clocks = <&bpmp_clks TEGRA194_CLK_NVENC1>;
+			resets = <&bpmp_resets TEGRA234_RESET_NVENC1>;
+			clocks = <&bpmp_clks TEGRA234_CLK_NVENC1>;
 			clock-names = "nvenc";
 
 			iommus = <&smmu TEGRA_SID_NVENC1>;
@@ -433,13 +437,13 @@
 
 		nvdla0: nvdla0@15880000 {
 			compatible = "nvidia,tegra194-nvdla";
-			power-domains = <&bpmp TEGRA194_POWER_DOMAIN_DLAA>;
+			power-domains = <&bpmp TEGRA234_POWER_DOMAIN_DLAA>;
 			reg = <0x0 0x15880000 0x0 0x00040000>;
 			interrupts = <0 236 0x04>;
 
-			resets = <&bpmp_resets TEGRA194_RESET_DLA0>;
-			clocks = <&bpmp_clks TEGRA194_CLK_DLA0_CORE>,
-				 <&bpmp_clks TEGRA194_CLK_DLA0_FALCON>;
+			resets = <&bpmp_resets TEGRA234_RESET_DLA0>;
+			clocks = <&bpmp_clks TEGRA234_CLK_DLA0_CORE>,
+				 <&bpmp_clks TEGRA234_CLK_DLA0_FALCON>;
 			clock-names = "nvdla0", "nvdla0_flcn";
 
 			iommus = <&smmu TEGRA_SID_NVDLA0>;
@@ -448,13 +452,13 @@
 
 		nvdla1: nvdla1@158c0000 {
 			compatible = "nvidia,tegra194-nvdla";
-			power-domains = <&bpmp TEGRA194_POWER_DOMAIN_DLAB>;
+			power-domains = <&bpmp TEGRA234_POWER_DOMAIN_DLAB>;
 			reg = <0x0 0x158c0000 0x0 0x00040000>;
 			interrupts = <0 237 0x04>;
 
-			resets = <&bpmp_resets TEGRA194_RESET_DLA1>;
-			clocks = <&bpmp_clks TEGRA194_CLK_DLA1_CORE>,
-				 <&bpmp_clks TEGRA194_CLK_DLA1_FALCON>;
+			resets = <&bpmp_resets TEGRA234_RESET_DLA1>;
+			clocks = <&bpmp_clks TEGRA234_CLK_DLA1_CORE>,
+				 <&bpmp_clks TEGRA234_CLK_DLA1_FALCON>;
 			clock-names = "nvdla1", "nvdla1_flcn";
 
 			iommus = <&smmu TEGRA_SID_NVDLA1>;
@@ -475,13 +479,13 @@
 			/* cfg page is used by slvsec as well as ch35 */
 			reg = <0x0 0x15c10000 0x0 0x00230000>,
 				<0x0 0x15f00000 0x0 0x00100000>;
-			resets = <&bpmp_resets TEGRA194_RESET_VI>,
-				 <&bpmp_resets TEGRA194_RESET_TSCTNVI>;
+			resets = <&bpmp_resets TEGRA234_RESET_VI>,
+				 <&bpmp_resets TEGRA234_RESET_TSCTNVI>;
 			reset-names = "vi", "tsctnvi";
-			clocks = <&bpmp_clks TEGRA194_CLK_VI>,
-				 <&bpmp_clks TEGRA194_CLK_VI_CONST>,
-				 <&bpmp_clks TEGRA194_CLK_NVCSI>,
-				 <&bpmp_clks TEGRA194_CLK_NVCSILP>;
+			clocks = <&bpmp_clks TEGRA234_CLK_VI>,
+				 <&bpmp_clks TEGRA234_CLK_VI_CONST>,
+				 <&bpmp_clks TEGRA234_CLK_NVCSI>,
+				 <&bpmp_clks TEGRA234_CLK_NVCSILP>;
 			clock-names = "vi", "vi-const", "nvcsi", "nvcsilp";
 
 			nvidia,vi-falcon-device = <&vi_thi>;
@@ -495,8 +499,8 @@
 			compatible = "nvidia,tegra194-vi-thi";
 
 			/* vi-thi host1x is used for pixel injection tests */
-			clocks = <&bpmp_clks TEGRA194_CLK_VI>,
-			         <&bpmp_clks TEGRA194_CLK_VI_CONST>;
+			clocks = <&bpmp_clks TEGRA234_CLK_VI>,
+			         <&bpmp_clks TEGRA234_CLK_VI_CONST>;
 			clock-names = "vi", "vi-const";
 		};
 
@@ -504,9 +508,9 @@
 			compatible = "nvidia,tegra194-isp";
 			reg = <0x0 0x14800000 0x0 0x00010000>;
 
-			resets = <&bpmp_resets TEGRA194_RESET_ISP>;
+			resets = <&bpmp_resets TEGRA234_RESET_ISP>;
 			reset-names = "isp";
-			clocks = <&bpmp_clks TEGRA194_CLK_ISP>;
+			clocks = <&bpmp_clks TEGRA234_CLK_ISP>;
 			clock-names = "isp";
 
 			nvidia,isp-falcon-device = <&isp_thi>;
@@ -523,47 +527,25 @@
 		nvcsi: nvcsi@15a00000 {
 			compatible = "nvidia,tegra194-nvcsi";
 			reg = <0x0 0x15a00000 0x0 0x00050000>;
-			power-domains = <&bpmp TEGRA194_POWER_DOMAIN_VE>;
-			resets = <&bpmp_resets TEGRA194_RESET_NVCSI>;
-			clocks = <&bpmp_clks TEGRA194_CLK_NVCSI>,
-				 <&bpmp_clks TEGRA194_CLK_NVCSILP>;
+			power-domains = <&bpmp TEGRA234_POWER_DOMAIN_VE>;
+			resets = <&bpmp_resets TEGRA234_RESET_NVCSI>;
+			clocks = <&bpmp_clks TEGRA234_CLK_NVCSI>,
+				 <&bpmp_clks TEGRA234_CLK_NVCSILP>;
 			clock-names = "nvcsi", "nvcsilp";
 			interrupts = <0 119 0x04>;
 			num-ports = <6>;
 		};
 
-		slvs_ec: slvs-ec@15ac0000 {
-			compatible = "nvidia,tegra-slvs-ec";
-			power-domains = <&bpmp TEGRA194_POWER_DOMAIN_VE>;
-			reg = <0x0 0x15ac0000 0x0 0x00040000>,
-				/* Aperture for VI CFG page */
-				<0x0 0x15c00000 0x0 0x00010000>,
-				/* Aperture for VI channel #35 */
-				<0x0 0x15e40000 0x0 0x00010000>;
-			resets = <&bpmp_resets TEGRA194_RESET_SLVSEC>;
-			reset-names = "slvs-ec";
-			clocks = <&bpmp_clks TEGRA194_CLK_SLVSEC>,
-				 <&bpmp_clks TEGRA194_CLK_SLVSEC_PADCTRL>,
-				 <&bpmp_clks TEGRA194_CLK_PLLP_OUT0>;
-			clock-names = "slvs-ec", "slvs-ec-lp", "slvs-ec-parent";
-			interrupts = <0 74 0x04>,
-				/* syncgen uses VI VM8 interrupt (255) */
-				<0 255 0x04>;
-			nvidia,vi-device = <&vi_thi>;
-			interrupt-names = "slvs-ec", "syncgen";
-			status = "disabled";
-		};
-
 		pva0: pva0 {
 			compatible = "nvidia,tegra194-pva";
-			power-domains = <&bpmp TEGRA194_POWER_DOMAIN_PVAA>;
+			power-domains = <&bpmp TEGRA234_POWER_DOMAIN_PVAA>;
 			reg = <0x0 0x16000000 0x0 0x800000>;
 			interrupts = <0 234 0x04>;
 
-			resets = <&bpmp_resets TEGRA194_RESET_PVA0_ALL>;
-			clocks = <&bpmp_clks TEGRA194_CLK_PVA0_AXI>,
-				 <&bpmp_clks TEGRA194_CLK_PVA0_VPS0>,
-				 <&bpmp_clks TEGRA194_CLK_PVA0_VPS1>;
+			resets = <&bpmp_resets TEGRA234_RESET_PVA0_ALL>;
+			clocks = <&bpmp_clks TEGRA234_CLK_PVA0_AXI>,
+				 <&bpmp_clks TEGRA234_CLK_PVA0_VPS0>,
+				 <&bpmp_clks TEGRA234_CLK_PVA0_VPS1>;
 			clock-names = "axi", "vps0", "vps1";
 
 			iommus = <&smmu TEGRA_SID_PVA0>;
@@ -572,14 +554,14 @@
 
 		pva1: pva1 {
 			compatible = "nvidia,tegra194-pva";
-			power-domains = <&bpmp TEGRA194_POWER_DOMAIN_PVAB>;
+			power-domains = <&bpmp TEGRA234_POWER_DOMAIN_PVAB>;
 			reg = <0x0 0x16800000 0x0 0x800000>;
 			interrupts = <0 235 0x04>;
 
-			resets = <&bpmp_resets TEGRA194_RESET_PVA1_ALL>;
-			clocks = <&bpmp_clks TEGRA194_CLK_PVA1_AXI>,
-				 <&bpmp_clks TEGRA194_CLK_PVA1_VPS0>,
-				 <&bpmp_clks TEGRA194_CLK_PVA1_VPS1>;
+			resets = <&bpmp_resets TEGRA234_RESET_PVA1_ALL>;
+			clocks = <&bpmp_clks TEGRA234_CLK_PVA1_AXI>,
+				 <&bpmp_clks TEGRA234_CLK_PVA1_VPS0>,
+				 <&bpmp_clks TEGRA234_CLK_PVA1_VPS1>;
 			clock-names = "axi", "vps0", "vps1";
 
 			iommus = <&smmu TEGRA_SID_PVA1>;
@@ -592,8 +574,8 @@
 			supported-algos = "drbg";
 			nvidia,io-coherent;
 			opcode_addr = <0x204>;
-			resets = <&bpmp_resets TEGRA194_RESET_SE>;
-			clocks = <&bpmp_clks TEGRA194_CLK_SE>;
+			resets = <&bpmp_resets TEGRA234_RESET_SE>;
+			clocks = <&bpmp_clks TEGRA234_CLK_SE>;
 			clock-names = "se";
 
 			iommus = <&smmu TEGRA_SID_SE>;
@@ -608,8 +590,8 @@
 			supported-algos = "xts", "aes", "cmac";
 			nvidia,io-coherent;
 			opcode_addr = <0x404>;
-			resets = <&bpmp_resets TEGRA194_RESET_SE>;
-			clocks = <&bpmp_clks TEGRA194_CLK_SE>;
+			resets = <&bpmp_resets TEGRA234_RESET_SE>;
+			clocks = <&bpmp_clks TEGRA234_CLK_SE>;
 			clock-names = "se";
 
 			iommus = <&smmu TEGRA_SID_SE1>;
@@ -624,8 +606,8 @@
 			supported-algos = "rsa";
 			nvidia,io-coherent;
 			opcode_addr = <0x604>;
-			resets = <&bpmp_resets TEGRA194_RESET_SE>;
-			clocks = <&bpmp_clks TEGRA194_CLK_SE>;
+			resets = <&bpmp_resets TEGRA234_RESET_SE>;
+			clocks = <&bpmp_clks TEGRA234_CLK_SE>;
 			clock-names = "se";
 
 			iommus = <&smmu TEGRA_SID_SE2>;
@@ -640,8 +622,8 @@
 			supported-algos = "sha";
 			nvidia,io-coherent;
 			opcode_addr = <0x104>;
-			resets = <&bpmp_resets TEGRA194_RESET_SE>;
-			clocks = <&bpmp_clks TEGRA194_CLK_SE>;
+			resets = <&bpmp_resets TEGRA234_RESET_SE>;
+			clocks = <&bpmp_clks TEGRA234_CLK_SE>;
 			clock-names = "se";
 
 			iommus = <&smmu TEGRA_SID_SE3>;
