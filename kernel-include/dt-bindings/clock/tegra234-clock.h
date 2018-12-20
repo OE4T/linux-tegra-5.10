@@ -704,8 +704,12 @@
 #define TEGRA234_CLK_NAFLL_SE1			335U
 /** @brief CLK_RST_CONTROLLER_CLK_SOURCE_SE1 switch divider gated output */
 #define TEGRA234_CLK_SE1			336U
+/** @brief output of mux controlled by CLK_RST_CONTROLLER_CLK_SOURCE_SPI4 */
+#define TEGRA234_CLK_SPI4			337U
+/** @brief output of mux controlled by CLK_RST_CONTROLLER_CLK_SOURCE_SPI5 */
+#define TEGRA234_CLK_SPI5			338U
 
-#define TEGRA234_MAX_PUBLIC_CLK_ID		336U
+#define TEGRA234_MAX_PUBLIC_CLK_ID		338U
 
 /** @} */
 
