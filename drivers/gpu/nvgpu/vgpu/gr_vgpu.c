@@ -450,25 +450,6 @@ void vgpu_gr_free_gr_ctx(struct gk20a *g,
 	}
 }
 
-static int vgpu_gr_tsg_bind_gr_ctx(struct tsg_gk20a *tsg)
-{
-	struct nvgpu_gr_ctx *gr_ctx = tsg->gr_ctx;
-	struct tegra_vgpu_cmd_msg msg = {0};
-	struct tegra_vgpu_tsg_bind_gr_ctx_params *p =
-					&msg.params.tsg_bind_gr_ctx;
-	int err;
-
-	msg.cmd = TEGRA_VGPU_CMD_TSG_BIND_GR_CTX;
-	msg.handle = vgpu_get_handle(tsg->g);
-	p->tsg_id = tsg->tsgid;
-	p->gr_ctx_handle = gr_ctx->virt_ctx;
-	err = vgpu_comm_sendrecv(&msg, sizeof(msg), sizeof(msg));
-	err = err ? err : msg.ret;
-	WARN_ON(err);
-
-	return err;
-}
-
 int vgpu_gr_alloc_obj_ctx(struct channel_gk20a  *c, u32 class_num, u32 flags)
 {
 	struct gk20a *g = c->g;
@@ -505,10 +486,6 @@ int vgpu_gr_alloc_obj_ctx(struct channel_gk20a  *c, u32 class_num, u32 flags)
 		gr_ctx->tsgid = tsg->tsgid;
 		err = g->ops.gr.alloc_gr_ctx(g, gr_ctx,
 					c->vm);
-		if (!err) {
-			gr_ctx->tsgid = tsg->tsgid;
-			err = vgpu_gr_tsg_bind_gr_ctx(tsg);
-		}
 		if (err) {
 			nvgpu_err(g,
 				"fail to allocate TSG gr ctx buffer, err=%d", err);

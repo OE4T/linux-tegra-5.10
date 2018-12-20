@@ -87,7 +87,6 @@ enum {
 	TEGRA_VGPU_CMD_CHANNEL_FREE_HWPM_CTX = 47,
 	TEGRA_VGPU_CMD_GR_CTX_ALLOC = 48,
 	TEGRA_VGPU_CMD_GR_CTX_FREE = 49,
-	TEGRA_VGPU_CMD_TSG_BIND_GR_CTX = 51,
 	TEGRA_VGPU_CMD_TSG_BIND_CHANNEL = 52,
 	TEGRA_VGPU_CMD_TSG_UNBIND_CHANNEL = 53,
 	TEGRA_VGPU_CMD_TSG_PREEMPT = 54,
@@ -403,11 +402,6 @@ struct tegra_vgpu_gr_ctx_params {
 	u32 tsg_id;
 };
 
-struct tegra_vgpu_tsg_bind_gr_ctx_params {
-	u32 tsg_id;
-	u64 gr_ctx_handle;
-};
-
 struct tegra_vgpu_tsg_bind_unbind_channel_params {
 	u32 tsg_id;
 	u64 ch_handle;
@@ -655,7 +649,6 @@ struct tegra_vgpu_cmd_msg {
 		struct tegra_vgpu_channel_set_ctxsw_mode set_ctxsw_mode;
 		struct tegra_vgpu_channel_free_hwpm_ctx free_hwpm_ctx;
 		struct tegra_vgpu_gr_ctx_params gr_ctx;
-		struct tegra_vgpu_tsg_bind_gr_ctx_params tsg_bind_gr_ctx;
 		struct tegra_vgpu_tsg_bind_unbind_channel_params tsg_bind_unbind_channel;
 		struct tegra_vgpu_tsg_open_rel_params tsg_open;
 		struct tegra_vgpu_tsg_open_rel_params tsg_release;
