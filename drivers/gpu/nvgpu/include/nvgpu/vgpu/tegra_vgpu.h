@@ -71,7 +71,7 @@ enum {
 	TEGRA_VGPU_CMD_ZBC_SET_TABLE = 31,
 	TEGRA_VGPU_CMD_ZBC_QUERY_TABLE = 32,
 	TEGRA_VGPU_CMD_AS_MAP_EX = 33,
-	TEGRA_VGPU_CMD_CHANNEL_BIND_GR_CTXSW_BUFFERS = 34,
+	TEGRA_VGPU_CMD_BIND_GR_CTXSW_BUFFERS = 34,
 	TEGRA_VGPU_CMD_SET_MMU_DEBUG_MODE = 35,
 	TEGRA_VGPU_CMD_SET_SM_DEBUG_MODE = 36,
 	TEGRA_VGPU_CMD_REG_OPS = 37,
@@ -299,11 +299,10 @@ enum {
 };
 
 struct tegra_vgpu_gr_bind_ctxsw_buffers_params {
-	u64 handle;	/* deprecated */
+	u32 tsg_id;
 	u64 gpu_va[TEGRA_VGPU_GR_BIND_CTXSW_BUFFER_LAST];
 	u64 size[TEGRA_VGPU_GR_BIND_CTXSW_BUFFER_LAST];
 	u32 mode;
-	u64 gr_ctx_handle;
 };
 
 struct tegra_vgpu_mmu_debug_mode {

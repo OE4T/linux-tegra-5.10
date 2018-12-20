@@ -215,9 +215,9 @@ int vgpu_gr_gp10b_set_ctxsw_preemption_mode(struct gk20a *g,
 	}
 
 	if (gr_ctx->graphics_preempt_mode || gr_ctx->compute_preempt_mode) {
-		msg.cmd = TEGRA_VGPU_CMD_CHANNEL_BIND_GR_CTXSW_BUFFERS;
+		msg.cmd = TEGRA_VGPU_CMD_BIND_GR_CTXSW_BUFFERS;
 		msg.handle = vgpu_get_handle(g);
-		p->gr_ctx_handle = gr_ctx->virt_ctx;
+		p->tsg_id = gr_ctx->tsgid;
 		err = vgpu_comm_sendrecv(&msg, sizeof(msg), sizeof(msg));
 		if (err || msg.ret) {
 			err = -ENOMEM;
