@@ -96,6 +96,7 @@ struct platform_device *iommu_context_dev_allocate(void *identifier)
 	}
 
 	if (ctx_new) {
+#ifdef CONFIG_NVMAP
 		if (dirty) {
 			/*
 			 * Ensure that all stashed mappings are removed from this context device
@@ -103,7 +104,7 @@ struct platform_device *iommu_context_dev_allocate(void *identifier)
 			 */
 			dma_buf_release_stash(&ctx_new->pdev->dev);
 		}
-
+#endif
 		ctx_new->prev_identifier = identifier;
 		ctx_new->allocated = true;
 		mutex_unlock(&iommu_ctx_list_mutex);
@@ -221,8 +222,10 @@ static int iommu_context_dev_probe(struct platform_device *pdev)
 	pdev->dev.dma_parms = &ctx->dma_parms;
 	dma_set_max_seg_size(&pdev->dev, UINT_MAX);
 
+#ifdef CONFIG_NVMAP
 	/* flag required to handle stashings in context devices */
 	pdev->dev.context_dev = true;
+#endif
 
 	dev_info(&pdev->dev, "initialized (streamid=%d)",
 		 iommu_get_hwid(pdev->dev.archdata.iommu, &pdev->dev, 0));
