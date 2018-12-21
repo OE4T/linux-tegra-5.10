@@ -560,6 +560,44 @@ int gk20a_init_fifo_reset_enable_hw(struct gk20a *g)
 	return 0;
 }
 
+static int nvgpu_init_runlist_enginfo(struct gk20a *g, struct fifo_gk20a *f)
+{
+	struct fifo_runlist_info_gk20a *runlist;
+	struct fifo_engine_info_gk20a *engine_info;
+	unsigned int runlist_id;
+	u32 active_engine_id, pbdma_id, engine_id;
+
+	nvgpu_log_fn(g, " ");
+
+	for (runlist_id = 0; runlist_id < f->max_runlists; runlist_id++) {
+		runlist = &f->runlist_info[runlist_id];
+
+		for (pbdma_id = 0; pbdma_id < f->num_pbdma; pbdma_id++) {
+			if ((f->pbdma_map[pbdma_id] & BIT32(runlist_id)) != 0U) {
+				runlist->pbdma_bitmask |= BIT32(pbdma_id);
+			}
+		}
+		nvgpu_log(g, gpu_dbg_info, "runlist %d : pbdma bitmask 0x%x",
+				 runlist_id, runlist->pbdma_bitmask);
+
+		for (engine_id = 0; engine_id < f->num_engines; ++engine_id) {
+			active_engine_id = f->active_engines_list[engine_id];
+			engine_info = &f->engine_info[active_engine_id];
+
+			if ((engine_info != NULL) &&
+			    (engine_info->runlist_id == runlist_id)) {
+				runlist->eng_bitmask |= BIT(active_engine_id);
+			}
+		}
+		nvgpu_log(g, gpu_dbg_info, "runlist %d : act eng bitmask 0x%x",
+				 runlist_id, runlist->eng_bitmask);
+	}
+
+	nvgpu_log_fn(g, "done");
+
+	return 0;
+}
+
 int gk20a_init_fifo_setup_sw_common(struct gk20a *g)
 {
 	struct fifo_gk20a *f = &g->fifo;
@@ -622,6 +660,12 @@ int gk20a_init_fifo_setup_sw_common(struct gk20a *g)
 	err = nvgpu_init_runlist(g, f);
 	if (err != 0) {
 		nvgpu_err(g, "failed to init runlist");
+		goto clean_up;
+	}
+
+	nvgpu_init_runlist_enginfo(g, f);
+	if (err != 0) {
+		nvgpu_err(g, "failed to init runlist engine info");
 		goto clean_up;
 	}
 

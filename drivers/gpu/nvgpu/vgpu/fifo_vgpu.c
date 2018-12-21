@@ -223,59 +223,6 @@ int vgpu_fifo_init_engine_info(struct fifo_gk20a *f)
 	return 0;
 }
 
-static int init_runlist(struct gk20a *g, struct fifo_gk20a *f)
-{
-	struct fifo_runlist_info_gk20a *runlist;
-	unsigned int runlist_id = -1;
-	u32 i;
-	u64 runlist_size;
-
-	nvgpu_log_fn(g, " ");
-
-	f->max_runlists = g->ops.fifo.eng_runlist_base_size();
-	f->runlist_info = nvgpu_kzalloc(g,
-				sizeof(struct fifo_runlist_info_gk20a) *
-				f->max_runlists);
-	if (!f->runlist_info)
-		goto clean_up_runlist;
-
-	(void) memset(f->runlist_info, 0,
-		(sizeof(struct fifo_runlist_info_gk20a) * f->max_runlists));
-
-	for (runlist_id = 0; runlist_id < f->max_runlists; runlist_id++) {
-		runlist = &f->runlist_info[runlist_id];
-
-		runlist->active_channels =
-			nvgpu_kzalloc(g, DIV_ROUND_UP(f->num_channels,
-						      BITS_PER_BYTE));
-		if (!runlist->active_channels)
-			goto clean_up_runlist;
-
-		runlist_size  = sizeof(u16) * f->num_channels;
-		for (i = 0; i < MAX_RUNLIST_BUFFERS; i++) {
-			int err = nvgpu_dma_alloc_sys(g, runlist_size,
-						&runlist->mem[i]);
-			if (err) {
-				nvgpu_err(g, "memory allocation failed");
-				goto clean_up_runlist;
-			}
-		}
-		nvgpu_mutex_init(&runlist->runlist_lock);
-
-		/* None of buffers is pinned if this value doesn't change.
-		    Otherwise, one of them (cur_buffer) must have been pinned. */
-		runlist->cur_buffer = MAX_RUNLIST_BUFFERS;
-	}
-
-	nvgpu_log_fn(g, "done");
-	return 0;
-
-clean_up_runlist:
-	gk20a_fifo_delete_runlist(f);
-	nvgpu_log_fn(g, "fail");
-	return -ENOMEM;
-}
-
 static int vgpu_init_fifo_setup_sw(struct gk20a *g)
 {
 	struct fifo_gk20a *f = &g->fifo;
@@ -292,6 +239,8 @@ static int vgpu_init_fifo_setup_sw(struct gk20a *g)
 
 	f->g = g;
 	f->num_channels = priv->constants.num_channels;
+	f->runlist_entry_size = (u32)sizeof(u16);
+	f->num_runlist_entries = f->num_channels;
 	f->max_engines = nvgpu_get_litter_value(g, GPU_LIT_HOST_NUM_ENGINES);
 
 	f->userd_entry_size = 1 << ram_userd_base_shift_v();
@@ -317,7 +266,11 @@ static int vgpu_init_fifo_setup_sw(struct gk20a *g)
 
 	g->ops.fifo.init_engine_info(f);
 
-	init_runlist(g, f);
+	err = nvgpu_init_runlist(g, f);
+	if (err != 0) {
+		nvgpu_err(g, "failed to init runlist");
+		goto clean_up;
+	}
 
 	nvgpu_init_list_node(&f->free_chs);
 	nvgpu_mutex_init(&f->free_chs_mutex);
