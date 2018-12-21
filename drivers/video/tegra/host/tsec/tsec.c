@@ -54,7 +54,7 @@
 #include "tsec_drv.h"
 #include "nvhost_vm.h"
 
-#ifdef CONFIG_ARCH_TEGRA_18x_SOC
+#if defined(CONFIG_ARCH_TEGRA_18x_SOC) || defined(CONFIG_ARCH_TEGRA_186_SOC)
 #include "t186/t186.h"
 #endif
 #ifdef CONFIG_TEGRA_T19X_GRHOST
@@ -760,7 +760,7 @@ static struct of_device_id tegra_tsec_of_match[] = {
 		.compatible = "nvidia,tegra210-tsec",
 		.data = (struct nvhost_device_data *)&t21_tsecb_info },
 #endif
-#ifdef CONFIG_ARCH_TEGRA_18x_SOC
+#if defined(CONFIG_ARCH_TEGRA_18x_SOC) || defined(CONFIG_ARCH_TEGRA_186_SOC)
 	{ .name = "tsec",
 		.compatible = "nvidia,tegra186-tsec",
 		.data = (struct nvhost_device_data *)&t18_tsec_info },
@@ -906,7 +906,7 @@ static struct of_device_id tegra_tsec_domain_match[] = {
 	{.compatible = "nvidia,tegra210-tsec-pd",
 	 .data = (struct nvhost_device_data *)&t21_tsec_info},
 #endif
-#ifdef CONFIG_ARCH_TEGRA_18x_SOC
+#if defined(CONFIG_ARCH_TEGRA_18x_SOC) || defined(CONFIG_ARCH_TEGRA_186_SOC)
 	{.compatible = "nvidia,tegra186-tsec-pd",
 	 .data = (struct nvhost_device_data *)&t18_tsec_info},
 #endif

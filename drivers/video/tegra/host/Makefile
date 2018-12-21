@@ -32,8 +32,14 @@ obj-$(CONFIG_TEGRA_GRHOST) += t210/
 obj-$(CONFIG_TEGRA_GRHOST_SCALE) += scale_emc.o nvhost_scale.o
 
 ifeq ($(CONFIG_ARCH_TEGRA_18x_SOC),y)
-obj-$(CONFIG_TEGRA_GRHOST) += iommu_context_dev.o
+TEGRA_18X_GRHOST := y
+endif
+ifeq ($(CONFIG_ARCH_TEGRA_186_SOC),y)
+TEGRA_18X_GRHOST := y
+endif
 
+ifeq ($(TEGRA_18X_GRHOST),y)
+obj-$(CONFIG_TEGRA_GRHOST) += iommu_context_dev.o
 obj-$(CONFIG_TEGRA_GRHOST) += t186/
 endif
 

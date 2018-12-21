@@ -36,7 +36,7 @@
 #include "t124/t124.h"
 #include "t210/t210.h"
 
-#ifdef CONFIG_ARCH_TEGRA_18x_SOC
+#if defined(CONFIG_ARCH_TEGRA_18x_SOC) || defined(CONFIG_ARCH_TEGRA_186_SOC)
 #include "t186/t186.h"
 #endif
 
@@ -68,7 +68,7 @@ static struct of_device_id tegra_isp_of_match[] = {
 	{ .compatible = "nvidia,tegra210-isp",
 		.data = (struct nvhost_device_data *)&t21_isp_info },
 #endif
-#ifdef CONFIG_ARCH_TEGRA_18x_SOC
+#if defined(CONFIG_ARCH_TEGRA_18x_SOC) || defined(CONFIG_ARCH_TEGRA_186_SOC)
 	{ .compatible = "nvidia,tegra186-isp",
 		.data = (struct nvhost_device_data *)&t18_isp_info },
 #endif
@@ -469,7 +469,7 @@ static struct of_device_id tegra_isp_domain_match[] = {
 	{.compatible = "nvidia,tegra210-ve2-pd",
 	 .data = (struct nvhost_device_data *)&t21_ispb_info},
 #endif
-#ifdef CONFIG_ARCH_TEGRA_18x_SOC
+#if defined(CONFIG_ARCH_TEGRA_18x_SOC) || defined(CONFIG_ARCH_TEGRA_186_SOC)
 	{.compatible = "nvidia,tegra186-ispa-pd",
 	 .data = (struct nvhost_device_data *)&t18_isp_info},
 #endif

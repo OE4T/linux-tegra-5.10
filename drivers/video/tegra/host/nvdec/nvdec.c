@@ -59,7 +59,7 @@
 #include <linux/ote_protocol.h>
 #endif
 
-#ifdef CONFIG_ARCH_TEGRA_18x_SOC
+#if defined(CONFIG_ARCH_TEGRA_18x_SOC) || defined(CONFIG_ARCH_TEGRA_186_SOC)
 #include "t186/t186.h"
 #endif
 #ifdef CONFIG_TEGRA_T19X_GRHOST
@@ -377,7 +377,7 @@ static struct of_device_id tegra_nvdec_of_match[] = {
 	{ .compatible = "nvidia,tegra210-nvdec",
 		.data = (struct nvhost_device_data *)&t21_nvdec_info },
 #endif
-#ifdef CONFIG_ARCH_TEGRA_18x_SOC
+#if defined(CONFIG_ARCH_TEGRA_18x_SOC) || defined(CONFIG_ARCH_TEGRA_186_SOC)
 	{ .compatible = "nvidia,tegra186-nvdec",
 		.data = (struct nvhost_device_data *)&t18_nvdec_info },
 #endif
@@ -556,7 +556,7 @@ static struct of_device_id tegra_nvdec_domain_match[] = {
 	{ .compatible = "nvidia,tegra210-nvdec-pd",
 	.data = (struct nvhost_device_data *)&t21_nvdec_info},
 #endif
-#ifdef CONFIG_ARCH_TEGRA_18x_SOC
+#if defined(CONFIG_ARCH_TEGRA_18x_SOC) || defined(CONFIG_ARCH_TEGRA_186_SOC)
 	{ .compatible = "nvidia,tegra186-nvdec-pd",
 	.data = (struct nvhost_device_data *)&t18_nvdec_info},
 #endif
