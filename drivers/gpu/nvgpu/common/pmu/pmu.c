@@ -674,7 +674,7 @@ int nvgpu_pmu_wait_ready(struct gk20a *g)
 {
 	int status = 0;
 
-	status = pmu_wait_message_cond(&g->pmu,
+	status = pmu_wait_message_cond_status(&g->pmu,
 		gk20a_get_gr_idle_timeout(g),
 		&g->pmu.pmu_ready, (u8)true);
 	if (status != 0) {

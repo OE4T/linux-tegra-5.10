@@ -764,14 +764,20 @@ int nvgpu_pmu_process_message(struct nvgpu_pmu *pmu)
 	return 0;
 }
 
-int pmu_wait_message_cond(struct nvgpu_pmu *pmu, u32 timeout_ms,
+int pmu_wait_message_cond_status(struct nvgpu_pmu *pmu, u32 timeout_ms,
 				 void *var, u8 val)
 {
 	struct gk20a *g = gk20a_from_pmu(pmu);
 	struct nvgpu_timeout timeout;
+	int err;
 	unsigned int delay = GR_IDLE_CHECK_DEFAULT;
 
-	nvgpu_timeout_init(g, &timeout, timeout_ms, NVGPU_TIMER_CPU_TIMER);
+	err = nvgpu_timeout_init(g, &timeout, timeout_ms,
+		NVGPU_TIMER_CPU_TIMER);
+	if (err != 0) {
+		nvgpu_err(g, "PMU wait timeout init failed.");
+		return err;
+	}
 
 	do {
 		nvgpu_rmb();
@@ -789,6 +795,16 @@ int pmu_wait_message_cond(struct nvgpu_pmu *pmu, u32 timeout_ms,
 	} while (nvgpu_timeout_expired(&timeout) == 0);
 
 	return -ETIMEDOUT;
+}
+
+void pmu_wait_message_cond(struct nvgpu_pmu *pmu, u32 timeout_ms,
+			void *var, u8 val)
+{
+	struct gk20a *g = gk20a_from_pmu(pmu);
+
+	if (pmu_wait_message_cond_status(pmu, timeout_ms, var, val) != 0) {
+		nvgpu_err(g, "PMU wait timeout expired.");
+	}
 }
 
 static void pmu_rpc_handler(struct gk20a *g, struct pmu_msg *msg,
