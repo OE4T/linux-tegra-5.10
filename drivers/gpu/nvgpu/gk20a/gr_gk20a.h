@@ -416,10 +416,6 @@ struct nvgpu_gr_ctx {
 	bool boosted_ctx;
 	bool golden_img_loaded;
 
-#ifdef CONFIG_TEGRA_GR_VIRTUALIZATION
-	u64 virt_ctx;
-#endif
-
 	struct patch_desc	patch_ctx;
 	struct zcull_ctx_desc	zcull_ctx;
 	struct pm_ctx_desc	pm_ctx;

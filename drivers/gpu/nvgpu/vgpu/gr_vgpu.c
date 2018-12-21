@@ -335,8 +335,6 @@ int vgpu_gr_alloc_gr_ctx(struct gk20a *g,
 		__nvgpu_vm_free_va(vm, gr_ctx->mem.gpu_va,
 				   GMMU_PAGE_SIZE_KERNEL);
 		gr_ctx->mem.aperture = APERTURE_INVALID;
-	} else {
-		gr_ctx->virt_ctx = p->gr_ctx_handle;
 	}
 
 	return err;
@@ -429,7 +427,7 @@ void vgpu_gr_free_gr_ctx(struct gk20a *g,
 
 		msg.cmd = TEGRA_VGPU_CMD_GR_CTX_FREE;
 		msg.handle = vgpu_get_handle(g);
-		p->gr_ctx_handle = gr_ctx->virt_ctx;
+		p->tsg_id = gr_ctx->tsgid;
 		err = vgpu_comm_sendrecv(&msg, sizeof(msg), sizeof(msg));
 		WARN_ON(err || msg.ret);
 

@@ -395,7 +395,6 @@ struct tegra_vgpu_ecc_counter_params {
 };
 
 struct tegra_vgpu_gr_ctx_params {
-	u64 gr_ctx_handle;
 	u64 as_handle;
 	u64 gr_ctx_va;
 	u32 class_num;
