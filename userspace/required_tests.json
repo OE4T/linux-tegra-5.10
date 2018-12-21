@@ -390,6 +390,34 @@
         "unit": "page_table"
     },
     {
+        "test": "clean",
+        "unit": "page_table_faults"
+    },
+    {
+        "test": "disable_hw",
+        "unit": "page_table_faults"
+    },
+    {
+        "test": "init",
+        "unit": "page_table_faults"
+    },
+    {
+        "test": "inst_block_s0",
+        "unit": "page_table_faults"
+    },
+    {
+        "test": "inst_block_s1",
+        "unit": "page_table_faults"
+    },
+    {
+        "test": "inst_block_s2",
+        "unit": "page_table_faults"
+    },
+    {
+        "test": "pending",
+        "unit": "page_table_faults"
+    },
+    {
         "test": "alloc_1024x256B_x11x3",
         "unit": "pd_cache"
     },
