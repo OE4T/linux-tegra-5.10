@@ -444,8 +444,8 @@ struct pwr_policy_3x_header_unpacked {
 };
 
 #define __UNPACK_FIELD(unpacked, packed, field)	\
-	__builtin_memcpy(&unpacked->field, &packed->field, \
-		sizeof(unpacked->field))
+	((void) memcpy(&(unpacked)->field, &(packed)->field, \
+		sizeof((unpacked)->field)))
 
 static inline void devinit_unpack_pwr_policy_header(
 	struct pwr_policy_3x_header_unpacked *unpacked,
