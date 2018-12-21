@@ -113,10 +113,17 @@ static void do_module_reset_locked(struct platform_device *dev)
 	}
 }
 
+#ifdef CONFIG_TEGRA_BWMGR
 static unsigned long nvhost_emc_bw_to_freq_req(unsigned long rate)
 {
 	return tegra_emc_bw_to_freq_req((unsigned long)(rate));
 }
+#else
+static unsigned long nvhost_emc_bw_to_freq_req(unsigned long rate)
+{
+	return 0;
+}
+#endif
 
 void nvhost_module_reset(struct platform_device *dev, bool reboot)
 {
