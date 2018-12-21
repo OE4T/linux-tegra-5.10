@@ -759,6 +759,8 @@ static const struct gpu_ops gv11b_ops = {
 		.bind_channel = gk20a_fecs_trace_bind_channel,
 		.unbind_channel = gk20a_fecs_trace_unbind_channel,
 		.max_entries = gk20a_gr_max_entries,
+		.get_buffer_full_mailbox_val =
+			gk20a_fecs_trace_get_buffer_full_mailbox_val,
 	},
 #endif /* CONFIG_GK20A_CTXSW_TRACE */
 	.mm = {

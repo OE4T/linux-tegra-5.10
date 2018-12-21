@@ -125,6 +125,7 @@
 #include "tu104/ecc_tu104.h"
 #include "tu104/hal_tu104.h"
 #include "tu104/regops_tu104.h"
+#include "tu104/fecs_trace_tu104.h"
 
 #include <nvgpu/ptimer.h>
 #include <nvgpu/debug.h>
@@ -835,6 +836,8 @@ static const struct gpu_ops tu104_ops = {
 		.bind_channel = gk20a_fecs_trace_bind_channel,
 		.unbind_channel = gk20a_fecs_trace_unbind_channel,
 		.max_entries = gk20a_gr_max_entries,
+		.get_buffer_full_mailbox_val =
+			tu104_fecs_trace_get_buffer_full_mailbox_val,
 	},
 #endif /* CONFIG_GK20A_CTXSW_TRACE */
 	.mm = {

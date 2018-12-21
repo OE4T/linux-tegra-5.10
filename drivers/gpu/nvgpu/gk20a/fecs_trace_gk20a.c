@@ -603,4 +603,9 @@ void gk20a_fecs_trace_reset_buffer(struct gk20a *g)
 	gk20a_fecs_trace_set_read_index(g,
 		gk20a_fecs_trace_get_write_index(g));
 }
+
+u32 gk20a_fecs_trace_get_buffer_full_mailbox_val(void)
+{
+	return 0x26;
+}
 #endif /* CONFIG_GK20A_CTXSW_TRACE */

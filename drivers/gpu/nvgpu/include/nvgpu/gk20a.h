@@ -1039,6 +1039,7 @@ struct gpu_ops {
 					struct vm_area_struct *vma);
 		int (*set_filter)(struct gk20a *g,
 			struct nvgpu_gpu_ctxsw_trace_filter *filter);
+		u32 (*get_buffer_full_mailbox_val)(void);
 	} fecs_trace;
 #endif
 	struct {
