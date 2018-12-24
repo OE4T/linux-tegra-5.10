@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -77,9 +77,14 @@ static int rppg_send_cmd(struct gk20a *g, struct nv_pmu_rppg_cmd *prppg_cmd)
 			prppg_cmd->stats_reset.ctrl_id;
 		break;
 	default:
-		nvgpu_err(g, "Inivalid RPPG command %d",
+		nvgpu_err(g, "Invalid RPPG command %d",
 			prppg_cmd->cmn.cmd_id);
-		return -1;
+		status = -1;
+		break;
+	}
+
+	if (status != 0) {
+		goto exit;
 	}
 
 	status = nvgpu_pmu_cmd_post(g, &cmd, NULL, NULL, PMU_COMMAND_QUEUE_HPQ,

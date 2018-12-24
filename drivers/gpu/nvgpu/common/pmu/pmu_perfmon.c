@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -47,6 +47,7 @@ static u8 get_perfmon_id(struct nvgpu_pmu *pmu)
 		unit_id = PMU_UNIT_INVALID;
 		nvgpu_err(g, "no support for %x", ver);
 		WARN_ON(true);
+		break;
 	}
 
 	return unit_id;

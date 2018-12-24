@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -108,6 +108,7 @@ static void pmu_handle_pg_elpg_msg(struct gk20a *g, struct pmu_msg *msg,
 	default:
 		nvgpu_err(g,
 			"unsupported ELPG message : 0x%04x", elpg_msg->msg);
+		break;
 	}
 }
 
@@ -735,7 +736,12 @@ int nvgpu_pmu_ap_send_command(struct gk20a *g,
 	default:
 		nvgpu_pmu_dbg(g, "%s: Invalid Adaptive Power command %d\n",
 			__func__, p_ap_cmd->cmn.cmd_id);
-		return 0x2f;
+		status = 0x2f;
+		break;
+	}
+
+	if (status != 0) {
+		goto err_return;
 	}
 
 	status = nvgpu_pmu_cmd_post(g, &cmd, NULL, NULL, PMU_COMMAND_QUEUE_HPQ,
