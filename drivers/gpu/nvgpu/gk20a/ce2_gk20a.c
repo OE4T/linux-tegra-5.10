@@ -576,7 +576,8 @@ void gk20a_ce_delete_context_priv(struct gk20a *g,
 	struct gk20a_ce_app *ce_app = g->ce_app;
 	struct gk20a_gpu_ctx *ce_ctx, *ce_ctx_save;
 
-	if (!ce_app->initialised || ce_app->app_state != NVGPU_CE_ACTIVE) {
+	if (ce_app == NULL || !ce_app->initialised ||
+		ce_app->app_state != NVGPU_CE_ACTIVE) {
 		return;
 	}
 
