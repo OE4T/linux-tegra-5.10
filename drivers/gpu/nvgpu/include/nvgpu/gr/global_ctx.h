@@ -22,8 +22,11 @@
 #ifndef NVGPU_GR_GLOBAL_CTX_H
 #define NVGPU_GR_GLOBAL_CTX_H
 
+#include <nvgpu/nvgpu_mem.h>
+
 struct gk20a;
 struct nvgpu_mem;
+struct vm_gk20a;
 
 enum nvgpu_gr_global_ctx_index {
 	NVGPU_GR_GLOBAL_CTX_CIRCULAR			= 0,
@@ -45,6 +48,11 @@ struct nvgpu_gr_global_ctx_buffer_desc {
 	void (*destroy)(struct gk20a *g,
 		struct nvgpu_gr_global_ctx_buffer_desc *desc,
 		enum nvgpu_gr_global_ctx_index index);
+};
+
+struct nvgpu_gr_global_ctx_local_golden_image {
+	u32 *context;
+	size_t size;
 };
 
 struct nvgpu_gr_global_ctx_buffer_desc *nvgpu_gr_global_ctx_desc_alloc(
@@ -76,5 +84,16 @@ struct nvgpu_mem *nvgpu_gr_global_ctx_buffer_get_mem(
 bool nvgpu_gr_global_ctx_buffer_ready(
 	struct nvgpu_gr_global_ctx_buffer_desc *desc,
 	enum nvgpu_gr_global_ctx_index index);
+
+struct nvgpu_gr_global_ctx_local_golden_image *
+nvgpu_gr_global_ctx_init_local_golden_image(struct gk20a *g,
+	struct nvgpu_mem *source_mem, size_t size);
+void nvgpu_gr_global_ctx_load_local_golden_image(struct gk20a *g,
+	struct nvgpu_gr_global_ctx_local_golden_image *local_golden_image,
+	struct nvgpu_mem *target_mem);
+void nvgpu_gr_global_ctx_deinit_local_golden_image(struct gk20a *g,
+	struct nvgpu_gr_global_ctx_local_golden_image *local_golden_image);
+u32 *nvgpu_gr_global_ctx_get_local_golden_image_ptr(
+	struct nvgpu_gr_global_ctx_local_golden_image *local_golden_image);
 
 #endif /* NVGPU_GR_GLOBAL_CTX_H */

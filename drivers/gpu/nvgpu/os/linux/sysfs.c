@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -22,6 +22,7 @@
 #include <nvgpu/nvhost.h>
 #include <nvgpu/ptimer.h>
 #include <nvgpu/string.h>
+#include <nvgpu/gr/global_ctx.h>
 
 #include "os_linux.h"
 #include "sysfs.h"
@@ -943,8 +944,9 @@ static ssize_t tpc_fs_mask_store(struct device *dev,
 
 		g->ops.gr.set_gpc_tpc_mask(g, 0);
 
-		nvgpu_vfree(g, g->gr.ctx_vars.local_golden_image);
-		g->gr.ctx_vars.local_golden_image = NULL;
+		nvgpu_gr_global_ctx_deinit_local_golden_image(g,
+			g->gr.local_golden_image);
+		g->gr.local_golden_image = NULL;
 		g->gr.ctx_vars.golden_image_initialized = false;
 		g->gr.ctx_vars.golden_image_size = 0;
 		/* Cause next poweron to reinit just gr */

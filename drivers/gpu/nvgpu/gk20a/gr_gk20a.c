@@ -1472,19 +1472,12 @@ restore_fe_go_idle:
 
 	gr_gk20a_fecs_ctx_image_save(c, gr_fecs_method_push_adr_wfi_golden_save_v());
 
-	if (gr->ctx_vars.local_golden_image == NULL) {
-
-		gr->ctx_vars.local_golden_image =
-			nvgpu_vzalloc(g, gr->ctx_vars.golden_image_size);
-
-		if (gr->ctx_vars.local_golden_image == NULL) {
-			err = -ENOMEM;
-			goto clean_up;
-		}
-		nvgpu_mem_rd_n(g, gr_mem, 0,
-			gr->ctx_vars.local_golden_image,
+	gr->local_golden_image =
+		nvgpu_gr_global_ctx_init_local_golden_image(g, gr_mem,
 			gr->ctx_vars.golden_image_size);
-
+	if (gr->local_golden_image == NULL) {
+		err = -ENOMEM;
+		goto clean_up;
 	}
 
 	gr->ctx_vars.golden_image_initialized = true;
@@ -1709,17 +1702,9 @@ int gr_gk20a_load_golden_ctx_image(struct gk20a *g,
 	nvgpu_log_fn(g, " ");
 
 	mem = &gr_ctx->mem;
-	if (gr->ctx_vars.local_golden_image == NULL) {
-		return -EINVAL;
-	}
 
-	/* Channel gr_ctx buffer is gpu cacheable.
-	   Flush and invalidate before cpu update. */
-	g->ops.mm.l2_flush(g, true);
-
-	nvgpu_mem_wr_n(g, mem, 0,
-		gr->ctx_vars.local_golden_image,
-		gr->ctx_vars.golden_image_size);
+	nvgpu_gr_global_ctx_load_local_golden_image(g,
+		gr->local_golden_image, mem);
 
 	if (g->ops.gr.ctxsw_prog.init_ctxsw_hdr_data != NULL) {
 		g->ops.gr.ctxsw_prog.init_ctxsw_hdr_data(g, mem);
@@ -2810,8 +2795,8 @@ static void gk20a_remove_gr_support(struct gr_gk20a *gr)
 
 	nvgpu_netlist_deinit_ctx_vars(g);
 
-	nvgpu_vfree(g, gr->ctx_vars.local_golden_image);
-	gr->ctx_vars.local_golden_image = NULL;
+	nvgpu_gr_global_ctx_deinit_local_golden_image(g, gr->local_golden_image);
+	gr->local_golden_image = NULL;
 
 	if (gr->ctx_vars.hwpm_ctxsw_buffer_offset_map != NULL) {
 		nvgpu_big_free(g, gr->ctx_vars.hwpm_ctxsw_buffer_offset_map);
@@ -6294,7 +6279,7 @@ int gr_gk20a_get_ctx_buffer_offsets(struct gk20a *g,
 		num_registers = 1;
 	}
 
-	if (g->gr.ctx_vars.local_golden_image == NULL) {
+	if (!g->gr.ctx_vars.golden_image_initialized) {
 		nvgpu_log_fn(g, "no context switch header info to work with");
 		err = -EINVAL;
 		goto cleanup;
@@ -6302,11 +6287,12 @@ int gr_gk20a_get_ctx_buffer_offsets(struct gk20a *g,
 
 	for (i = 0; i < num_registers; i++) {
 		err = gr_gk20a_find_priv_offset_in_buffer(g,
-						  priv_registers[i],
-						  is_quad, quad,
-						  g->gr.ctx_vars.local_golden_image,
-						  g->gr.ctx_vars.golden_image_size,
-						  &priv_offset);
+			  priv_registers[i],
+			  is_quad, quad,
+			  nvgpu_gr_global_ctx_get_local_golden_image_ptr(
+				g->gr.local_golden_image),
+			  g->gr.ctx_vars.golden_image_size,
+			  &priv_offset);
 		if (err != 0) {
 			nvgpu_log_fn(g, "Could not determine priv_offset for addr:0x%x",
 				      addr); /*, grPriRegStr(addr)));*/
@@ -6374,7 +6360,7 @@ int gr_gk20a_get_pm_ctx_buffer_offsets(struct gk20a *g,
 		num_registers = 1;
 	}
 
-	if (g->gr.ctx_vars.local_golden_image == NULL) {
+	if (!g->gr.ctx_vars.golden_image_initialized) {
 		nvgpu_log_fn(g, "no context switch header info to work with");
 		err = -EINVAL;
 		goto cleanup;

@@ -247,3 +247,52 @@ bool nvgpu_gr_global_ctx_buffer_ready(
 	}
 	return false;
 }
+
+struct nvgpu_gr_global_ctx_local_golden_image *
+nvgpu_gr_global_ctx_init_local_golden_image(struct gk20a *g,
+	struct nvgpu_mem *source_mem, size_t size)
+{
+	struct nvgpu_gr_global_ctx_local_golden_image *local_golden_image;
+
+	local_golden_image = nvgpu_kzalloc(g, sizeof(*local_golden_image));
+	if (local_golden_image == NULL) {
+		return NULL;
+	}
+
+	local_golden_image->context = nvgpu_vzalloc(g, size);
+	if (local_golden_image->context == NULL) {
+		nvgpu_kfree(g, local_golden_image);
+		return NULL;
+	}
+
+	local_golden_image->size = size;
+
+	nvgpu_mem_rd_n(g, source_mem, 0, local_golden_image->context, size);
+
+	return local_golden_image;
+}
+
+void nvgpu_gr_global_ctx_load_local_golden_image(struct gk20a *g,
+	struct nvgpu_gr_global_ctx_local_golden_image *local_golden_image,
+	struct nvgpu_mem *target_mem)
+{
+	/* Channel gr_ctx buffer is gpu cacheable.
+	   Flush and invalidate before cpu update. */
+	g->ops.mm.l2_flush(g, true);
+
+	nvgpu_mem_wr_n(g, target_mem, 0, local_golden_image->context,
+					 local_golden_image->size);
+}
+
+void nvgpu_gr_global_ctx_deinit_local_golden_image(struct gk20a *g,
+	struct nvgpu_gr_global_ctx_local_golden_image *local_golden_image)
+{
+	nvgpu_vfree(g, local_golden_image->context);
+	nvgpu_kfree(g, local_golden_image);
+}
+
+u32 *nvgpu_gr_global_ctx_get_local_golden_image_ptr(
+	struct nvgpu_gr_global_ctx_local_golden_image *local_golden_image)
+{
+	return local_golden_image->context;
+}

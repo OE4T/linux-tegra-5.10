@@ -73,6 +73,7 @@ struct tsg_gk20a;
 struct channel_gk20a;
 struct nvgpu_warpstate;
 struct nvgpu_gr_global_ctx_buffer_desc;
+struct nvgpu_gr_global_ctx_local_golden_image;
 
 enum ctxsw_addr_type;
 
@@ -251,7 +252,6 @@ struct gr_gk20a {
 
 		bool golden_image_initialized;
 		u32 golden_image_size;
-		u32 *local_golden_image;
 
 		u32 hwpm_ctxsw_buffer_offset_map_count;
 		struct ctxsw_buf_offset_map_entry *hwpm_ctxsw_buffer_offset_map;
@@ -329,6 +329,7 @@ struct gr_gk20a {
 	u32 comptag_mem_deduct;
 
 	struct nvgpu_gr_global_ctx_buffer_desc *global_ctx_buffer;
+	struct nvgpu_gr_global_ctx_local_golden_image *local_golden_image;
 
 	u8 *map_tiles;
 	u32 map_tile_count;
