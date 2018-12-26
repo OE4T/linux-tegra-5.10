@@ -19,7 +19,7 @@
  */
 
 #include <linux/nvhost.h>
-#include <linux/nvhost_ioctl.h>
+#include <uapi/linux/nvhost_ioctl.h>
 #include <linux/platform_device.h>
 #include <linux/slab.h>
 #include <linux/stat.h>
