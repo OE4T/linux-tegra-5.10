@@ -16,7 +16,7 @@
 
 #include <linux/nvhost.h>
 #include <linux/nvhost_t194.h>
-#include <linux/nvhost_ioctl.h>
+#include <uapi/linux/nvhost_ioctl.h>
 #include <linux/of_platform.h>
 
 #include <nvgpu/gk20a.h>
