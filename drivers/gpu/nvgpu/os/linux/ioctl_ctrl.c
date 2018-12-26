@@ -942,13 +942,15 @@ static int nvgpu_gpu_alloc_vidmem(struct gk20a *g,
 
 	nvgpu_log_fn(g, " ");
 
-	/* not yet supported */
-	if (WARN_ON(args->in.flags & NVGPU_GPU_ALLOC_VIDMEM_FLAG_CPU_MASK)) {
+	if (args->in.flags & NVGPU_GPU_ALLOC_VIDMEM_FLAG_CPU_MASK) {
+		nvgpu_warn(g,
+			"Allocating vidmem with FLAG_CPU_MASK is not yet supported");
 		return -EINVAL;
 	}
 
-	/* not yet supported */
-	if (WARN_ON(args->in.flags & NVGPU_GPU_ALLOC_VIDMEM_FLAG_VPR)) {
+	if (args->in.flags & NVGPU_GPU_ALLOC_VIDMEM_FLAG_VPR) {
+		nvgpu_warn(g,
+			"Allocating vidmem with FLAG_VPR is not yet supported");
 		return -EINVAL;
 	}
 
