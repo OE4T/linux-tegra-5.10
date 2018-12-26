@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -38,6 +38,7 @@ struct device;
 struct vm_gk20a;
 struct vm_gk20a_mapping_batch;
 struct nvgpu_vm_area;
+enum gk20a_mem_rw_flag;
 
 struct nvgpu_os_buffer {
 	struct dma_buf *dmabuf;
@@ -59,7 +60,7 @@ int nvgpu_vm_map_linux(struct vm_gk20a *vm,
 		       u32 page_size,
 		       s16 compr_kind,
 		       s16 incompr_kind,
-		       int rw_flag,
+		       enum gk20a_mem_rw_flag rw_flag,
 		       u64 buffer_offset,
 		       u64 mapping_size,
 		       struct vm_gk20a_mapping_batch *mapping_batch,

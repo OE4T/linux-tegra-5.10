@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -256,7 +256,7 @@ struct nvgpu_mapped_buf *nvgpu_vm_map(struct vm_gk20a *vm,
 				      u64 map_addr,
 				      u64 map_size,
 				      u64 phys_offset,
-				      int rw,
+				      enum gk20a_mem_rw_flag rw,
 				      u32 flags,
 				      s16 compr_kind,
 				      s16 incompr_kind,
