@@ -649,8 +649,6 @@ void _gk20a_channel_put(struct channel_gk20a *ch, const char *caller)
 struct channel_gk20a *_gk20a_channel_from_id(struct gk20a *g, u32 chid,
 					 const char *caller)
 {
-	nvgpu_log_fn(g, " ");
-
 	if (chid == FIFO_INVAL_CHANNEL_ID) {
 		return NULL;
 	}
