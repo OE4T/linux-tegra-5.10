@@ -24,9 +24,14 @@
 #define __NVGPU_POSIX_COND_H__
 
 #include <nvgpu/bug.h>
+#include <nvgpu/lock.h>
+#include <nvgpu/posix/thread.h>
 
 struct nvgpu_cond {
-	/* Place holder until this can be properly implemented. */
+	bool initialized;
+	struct nvgpu_mutex mutex;
+	pthread_cond_t cond;
+	pthread_condattr_t attr;
 };
 
 /**
@@ -39,8 +44,30 @@ struct nvgpu_cond {
  * Wait for a condition to become true. Returns -ETIMEOUT if
  * the wait timed out with condition false.
  */
-#define NVGPU_COND_WAIT(c, condition, timeout_ms)	\
-	({BUG(); 1; })
+#define NVGPU_COND_WAIT(c, condition, timeout_ms)			\
+({									\
+	int ret = 0;							\
+	struct timespec ts;						\
+	nvgpu_mutex_acquire(&(c)->mutex);				\
+	if (timeout_ms == 0) {						\
+		ret = pthread_cond_wait(&(c)->cond,			\
+			&(c)->mutex.lock.mutex);			\
+	} else {							\
+		clock_gettime(CLOCK_REALTIME, &ts);			\
+		ts.tv_sec += timeout_ms / 1000;				\
+		ts.tv_nsec += (timeout_ms % 1000) * 1000000;		\
+		if (ts.tv_nsec >= 1000000000) {				\
+			ts.tv_sec += 1;					\
+			ts.tv_nsec %= 1000000000;			\
+		}							\
+		while (!(condition) && ret == 0) {			\
+			ret = pthread_cond_timedwait(&(c)->cond,	\
+				&(c)->mutex.lock.mutex, &ts);		\
+		}							\
+	}								\
+	nvgpu_mutex_release(&(c)->mutex);				\
+	ret; 								\
+})
 
 /**
  * NVGPU_COND_WAIT_INTERRUPTIBLE - Wait for a condition to be true
@@ -54,6 +81,6 @@ struct nvgpu_cond {
  * signal.
  */
 #define NVGPU_COND_WAIT_INTERRUPTIBLE(c, condition, timeout_ms) \
-	({BUG(); 1; })
+				NVGPU_COND_WAIT(c, condition, timeout_ms)
 
 #endif

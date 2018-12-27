@@ -26,30 +26,75 @@
 
 int nvgpu_cond_init(struct nvgpu_cond *cond)
 {
-	return -ENOSYS;
+	int ret;
+	ret = nvgpu_mutex_init(&cond->mutex);
+	if (ret != 0) {
+		return ret;
+	}
+	ret = pthread_cond_init(&cond->cond, NULL);
+	if (ret != 0) {
+		nvgpu_mutex_destroy(&cond->mutex);
+		return ret;
+	}
+	cond->initialized = true;
+	return ret;
 }
 
 int nvgpu_cond_signal(struct nvgpu_cond *cond)
 {
-	return -ENOSYS;
+	int ret;
+	if (cond == NULL || !cond->initialized) {
+		BUG();
+	}
+	nvgpu_mutex_acquire(&cond->mutex);
+	ret = pthread_cond_signal(&cond->cond);
+	nvgpu_mutex_release(&cond->mutex);
+	return ret;
 }
 
 int nvgpu_cond_signal_interruptible(struct nvgpu_cond *cond)
 {
-	return -ENOSYS;
+	int ret;
+	if (cond == NULL || !cond->initialized) {
+		BUG();
+	}
+	nvgpu_mutex_acquire(&cond->mutex);
+	ret = pthread_cond_signal(&cond->cond);
+	nvgpu_mutex_release(&cond->mutex);
+	return ret;
 }
 
 int nvgpu_cond_broadcast(struct nvgpu_cond *cond)
 {
-	return -ENOSYS;
+	int ret;
+	if (cond == NULL || !cond->initialized) {
+		BUG();
+	}
+	nvgpu_mutex_acquire(&cond->mutex);
+	ret = pthread_cond_broadcast(&cond->cond);
+	nvgpu_mutex_release(&cond->mutex);
+	return ret;
 }
 
 int nvgpu_cond_broadcast_interruptible(struct nvgpu_cond *cond)
 {
-	return -ENOSYS;
+	int ret;
+	if (cond == NULL || !cond->initialized) {
+		BUG();
+	}
+	nvgpu_mutex_acquire(&cond->mutex);
+	ret = pthread_cond_broadcast(&cond->cond);
+	nvgpu_mutex_release(&cond->mutex);
+	return ret;
 }
 
 void nvgpu_cond_destroy(struct nvgpu_cond *cond)
 {
-
+	if (cond == NULL || !cond->initialized) {
+		BUG();
+	}
+	nvgpu_mutex_destroy(&cond->mutex);
+	pthread_cond_destroy(&cond->cond);
+	cond->initialized = false;
+	return;
 }

@@ -36,13 +36,6 @@
 
 #include "os_posix.h"
 
-void nvgpu_wait_for_deferred_interrupts(struct gk20a *g)
-{
-	/*
-	 * No interrupts in userspace so nothing to wait for.
-	 */
-}
-
 int nvgpu_current_pid(struct gk20a *g)
 {
 	/*
