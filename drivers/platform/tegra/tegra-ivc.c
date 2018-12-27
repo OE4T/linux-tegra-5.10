@@ -866,18 +866,18 @@ static int tegra_ivc_init_body(struct ivc *ivc, uintptr_t rx_base,
 	ivc->tx_channel = (struct ivc_channel_header *)tx_base;
 
 	if (peer_device) {
-		if (rx_handle != DMA_ERROR_CODE) {
+		if (rx_handle && !dma_mapping_error(peer_device, rx_handle)) {
 			ivc->rx_handle = rx_handle;
 			ivc->tx_handle = tx_handle;
 		} else {
 			ivc->rx_handle = dma_map_single(peer_device,
 				ivc->rx_channel, queue_size, DMA_BIDIRECTIONAL);
-			if (ivc->rx_handle == DMA_ERROR_CODE)
+			if (dma_mapping_error(peer_device, ivc->rx_handle))
 				return -ENOMEM;
 
 			ivc->tx_handle = dma_map_single(peer_device,
 				ivc->tx_channel, queue_size, DMA_BIDIRECTIONAL);
-			if (ivc->tx_handle == DMA_ERROR_CODE) {
+			if (dma_mapping_error(peer_device, ivc->tx_handle)) {
 				dma_unmap_single(peer_device, ivc->rx_handle,
 					queue_size, DMA_BIDIRECTIONAL);
 				return -ENOMEM;
@@ -904,8 +904,8 @@ int tegra_ivc_init(struct ivc *ivc, uintptr_t rx_base, uintptr_t tx_base,
 		unsigned nframes, unsigned frame_size,
 		struct device *peer_device, void (*notify)(struct ivc *))
 {
-	return tegra_ivc_init_body(ivc, rx_base, DMA_ERROR_CODE, tx_base,
-		DMA_ERROR_CODE, nframes, frame_size, peer_device, notify);
+	return tegra_ivc_init_body(ivc, rx_base, 0, tx_base,
+		0, nframes, frame_size, peer_device, notify);
 }
 EXPORT_SYMBOL(tegra_ivc_init);
 
