@@ -380,7 +380,7 @@ static const struct file_operations debug_power_stats_fops = {
 	.release	= single_release,
 };
 
-#if !IS_ENABLED(CONFIG_PCIE_TEGRA_DW) ||		\
+#if (!IS_ENABLED(CONFIG_PCIE_TEGRA_DW) && !IS_ENABLED(CONFIG_PCIE_TEGRA)) || \
 	!IS_ENABLED(CONFIG_ARCH_TEGRA_19x_SOC) ||	\
 	LINUX_VERSION_CODE < KERNEL_VERSION(4, 9, 0)
 void *tegra_pcie_detach_controller(struct pci_dev *pdev)
