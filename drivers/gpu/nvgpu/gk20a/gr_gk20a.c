@@ -1278,16 +1278,12 @@ error:
 
 /* init global golden image from a fresh gr_ctx in channel ctx.
    save a copy in local_golden_image in ctx_vars */
-static int gr_gk20a_init_golden_ctx_image(struct gk20a *g,
+int gr_gk20a_init_golden_ctx_image(struct gk20a *g,
 					  struct channel_gk20a *c,
 					  struct nvgpu_gr_ctx *gr_ctx)
 {
 	struct gr_gk20a *gr = &g->gr;
-	u32 ctx_header_bytes = g->ops.gr.ctxsw_prog.hw_get_fecs_header_size();
-	u32 ctx_header_words;
 	u32 i;
-	u32 data;
-	struct nvgpu_mem *gold_mem;
 	struct nvgpu_mem *gr_mem;
 	int err = 0;
 	struct netlist_aiv_list *sw_ctx_load = &g->netlist_vars->sw_ctx_load;
@@ -1297,12 +1293,6 @@ static int gr_gk20a_init_golden_ctx_image(struct gk20a *g,
 	nvgpu_log_fn(g, " ");
 
 	gr_mem = &gr_ctx->mem;
-
-	gold_mem = nvgpu_gr_global_ctx_buffer_get_mem(gr->global_ctx_buffer,
-			NVGPU_GR_GLOBAL_CTX_GOLDEN_CTX);
-	if (gold_mem == NULL) {
-		return -EINVAL;
-	}
 
 	/* golden ctx is global to all channels. Although only the first
 	   channel initializes golden image, driver needs to prevent multiple
@@ -1475,27 +1465,12 @@ restore_fe_go_idle:
 		goto clean_up;
 	}
 
-	ctx_header_words =  roundup(ctx_header_bytes, sizeof(u32));
-	ctx_header_words >>= 2;
-
 	g->ops.mm.l2_flush(g, true);
+	g->ops.gr.ctxsw_prog.set_zcull_mode_no_ctxsw(g, gr_mem);
 
-	for (i = 0; i < ctx_header_words; i++) {
-		data = nvgpu_mem_rd32(g, gr_mem, i);
-		nvgpu_mem_wr32(g, gold_mem, i, data);
-	}
-	g->ops.gr.ctxsw_prog.set_zcull_mode_no_ctxsw(g, gold_mem);
-
-	g->ops.gr.ctxsw_prog.set_zcull_ptr(g, gold_mem, 0);
-
-	err = g->ops.gr.commit_inst(c, gr_ctx->global_ctx_buffer_va[GOLDEN_CTX_VA]);
-	if (err != 0) {
-		goto clean_up;
-	}
+	g->ops.gr.ctxsw_prog.set_zcull_ptr(g, gr_mem, 0);
 
 	gr_gk20a_fecs_ctx_image_save(c, gr_fecs_method_push_adr_wfi_golden_save_v());
-
-
 
 	if (gr->ctx_vars.local_golden_image == NULL) {
 
@@ -1506,15 +1481,10 @@ restore_fe_go_idle:
 			err = -ENOMEM;
 			goto clean_up;
 		}
-		nvgpu_mem_rd_n(g, gold_mem, 0,
+		nvgpu_mem_rd_n(g, gr_mem, 0,
 			gr->ctx_vars.local_golden_image,
 			gr->ctx_vars.golden_image_size);
 
-	}
-
-	err = g->ops.gr.commit_inst(c, gr_mem->gpu_va);
-	if (err != 0) {
-		goto clean_up;
 	}
 
 	gr->ctx_vars.golden_image_initialized = true;
@@ -2367,12 +2337,6 @@ int gr_gk20a_alloc_global_ctx_buffers(struct gk20a *g)
 	nvgpu_gr_global_ctx_set_size(gr->global_ctx_buffer,
 		NVGPU_GR_GLOBAL_CTX_ATTRIBUTE_VPR, size);
 
-	nvgpu_log_info(g, "golden_image_size : %d",
-		   gr->ctx_vars.golden_image_size);
-
-	nvgpu_gr_global_ctx_set_size(gr->global_ctx_buffer,
-		NVGPU_GR_GLOBAL_CTX_GOLDEN_CTX, gr->ctx_vars.golden_image_size);
-
 	nvgpu_log_info(g, "priv_access_map_size : %d",
 		   gr->ctx_vars.priv_access_map_size);
 
@@ -2488,17 +2452,6 @@ int gr_gk20a_map_global_ctx_buffers(struct gk20a *g, struct vm_gk20a *vm,
 	}
 
 	g_bfr_va[PAGEPOOL_VA] = gpu_va;
-
-	/* Golden Image */
-	gpu_va = nvgpu_gr_global_ctx_buffer_map(gr->global_ctx_buffer,
-			NVGPU_GR_GLOBAL_CTX_GOLDEN_CTX,
-			vm, 0, true);
-	if (gpu_va == 0ULL) {
-		goto clean_up;
-	}
-
-	g_bfr_va[GOLDEN_CTX_VA] = gpu_va;
-	g_bfr_index[GOLDEN_CTX_VA] = NVGPU_GR_GLOBAL_CTX_GOLDEN_CTX;
 
 	/* Priv register Access Map */
 	gpu_va = nvgpu_gr_global_ctx_buffer_map(gr->global_ctx_buffer,

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -32,11 +32,10 @@ enum nvgpu_gr_global_ctx_index {
 	NVGPU_GR_GLOBAL_CTX_CIRCULAR_VPR		= 3,
 	NVGPU_GR_GLOBAL_CTX_PAGEPOOL_VPR		= 4,
 	NVGPU_GR_GLOBAL_CTX_ATTRIBUTE_VPR		= 5,
-	NVGPU_GR_GLOBAL_CTX_GOLDEN_CTX			= 6,
-	NVGPU_GR_GLOBAL_CTX_PRIV_ACCESS_MAP		= 7,
-	NVGPU_GR_GLOBAL_CTX_RTV_CIRCULAR_BUFFER		= 8,
-	NVGPU_GR_GLOBAL_CTX_FECS_TRACE_BUFFER		= 9,
-	NVGPU_GR_GLOBAL_CTX_COUNT 			= 10
+	NVGPU_GR_GLOBAL_CTX_PRIV_ACCESS_MAP		= 6,
+	NVGPU_GR_GLOBAL_CTX_RTV_CIRCULAR_BUFFER		= 7,
+	NVGPU_GR_GLOBAL_CTX_FECS_TRACE_BUFFER		= 8,
+	NVGPU_GR_GLOBAL_CTX_COUNT 			= 9
 };
 
 struct nvgpu_gr_global_ctx_buffer_desc {

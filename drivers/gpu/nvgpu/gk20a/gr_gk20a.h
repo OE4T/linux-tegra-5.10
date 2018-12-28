@@ -1,7 +1,7 @@
 /*
  * GK20A Graphics Engine
  *
- * Copyright (c) 2011-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -81,11 +81,10 @@ enum  /*global_ctx_buffer_va */ {
 	CIRCULAR_VA		= 0,
 	PAGEPOOL_VA		= 1,
 	ATTRIBUTE_VA		= 2,
-	GOLDEN_CTX_VA		= 3,
-	PRIV_ACCESS_MAP_VA	= 4,
-	RTV_CIRCULAR_BUFFER_VA	= 5,
-	FECS_TRACE_BUFFER_VA	= 6,
-	NR_GLOBAL_CTX_BUF_VA	= 7
+	PRIV_ACCESS_MAP_VA	= 3,
+	RTV_CIRCULAR_BUFFER_VA	= 4,
+	FECS_TRACE_BUFFER_VA	= 5,
+	NR_GLOBAL_CTX_BUF_VA	= 6
 };
 
 enum wait_ucode_status {
@@ -492,6 +491,9 @@ struct nvgpu_warpstate {
 };
 
 struct gpu_ops;
+int gr_gk20a_init_golden_ctx_image(struct gk20a *g,
+					  struct channel_gk20a *c,
+					  struct nvgpu_gr_ctx *gr_ctx);
 int gr_gk20a_load_golden_ctx_image(struct gk20a *g,
 		struct channel_gk20a *c,
 		struct nvgpu_gr_ctx *gr_ctx);

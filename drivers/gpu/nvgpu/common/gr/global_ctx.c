@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -133,7 +133,6 @@ int nvgpu_gr_global_ctx_buffer_alloc(struct gk20a *g,
 	    desc[NVGPU_GR_GLOBAL_CTX_CIRCULAR_VPR].size == 0U ||
 	    desc[NVGPU_GR_GLOBAL_CTX_PAGEPOOL_VPR].size == 0U ||
 	    desc[NVGPU_GR_GLOBAL_CTX_ATTRIBUTE_VPR].size == 0U ||
-	    desc[NVGPU_GR_GLOBAL_CTX_GOLDEN_CTX].size == 0U ||
 	    desc[NVGPU_GR_GLOBAL_CTX_PRIV_ACCESS_MAP].size == 0U) {
 		return -EINVAL;
 	}
@@ -152,12 +151,6 @@ int nvgpu_gr_global_ctx_buffer_alloc(struct gk20a *g,
 
 	err = nvgpu_gr_global_ctx_buffer_alloc_sys(g, desc,
 		NVGPU_GR_GLOBAL_CTX_ATTRIBUTE);
-	if (err != 0) {
-		goto clean_up;
-	}
-
-	err = nvgpu_gr_global_ctx_buffer_alloc_sys(g, desc,
-		NVGPU_GR_GLOBAL_CTX_GOLDEN_CTX);
 	if (err != 0) {
 		goto clean_up;
 	}
