@@ -6721,6 +6721,7 @@ bool gk20a_is_channel_ctx_resident(struct channel_gk20a *ch)
 	struct gk20a *g = ch->g;
 	struct channel_gk20a *curr_ch;
 	bool ret = false;
+	struct tsg_gk20a *tsg;
 
 	curr_gr_ctx  = gk20a_readl(g, gr_fecs_current_ctx_r());
 
@@ -6752,7 +6753,8 @@ bool gk20a_is_channel_ctx_resident(struct channel_gk20a *ch)
 		ret = true;
 	}
 
-	if (gk20a_is_channel_marked_as_tsg(ch) && (ch->tsgid == curr_gr_tsgid)) {
+	tsg = tsg_gk20a_from_ch(ch);
+	if ((tsg != NULL) && (tsg->tsgid == curr_gr_tsgid)) {
 		ret = true;
 	}
 

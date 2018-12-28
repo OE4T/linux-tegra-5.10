@@ -1594,10 +1594,14 @@ int gk20a_fifo_tsg_unbind_channel_verify_status(struct channel_gk20a *ch)
 int gk20a_fifo_tsg_unbind_channel(struct channel_gk20a *ch)
 {
 	struct gk20a *g = ch->g;
-	struct fifo_gk20a *f = &g->fifo;
-	struct tsg_gk20a *tsg = &f->tsg[ch->tsgid];
+        struct tsg_gk20a *tsg = tsg_gk20a_from_ch(ch);
 	int err;
 	bool tsg_timedout = false;
+
+	if (tsg == NULL) {
+		nvgpu_err(g, "chid: %d is not bound to tsg", ch->chid);
+		return 0;
+	}
 
 	/* If one channel in TSG times out, we disable all channels */
 	nvgpu_rwsem_down_write(&tsg->ch_list_lock);
@@ -1628,6 +1632,7 @@ int gk20a_fifo_tsg_unbind_channel(struct channel_gk20a *ch)
 	/* Remove channel from TSG and re-enable rest of the channels */
 	nvgpu_rwsem_down_write(&tsg->ch_list_lock);
 	nvgpu_list_del(&ch->ch_entry);
+	ch->tsgid = NVGPU_INVALID_TSG_ID;
 	nvgpu_rwsem_up_write(&tsg->ch_list_lock);
 
 	/*

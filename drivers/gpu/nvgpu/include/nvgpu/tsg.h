@@ -81,7 +81,6 @@ struct tsg_gk20a {
 	struct nvgpu_mutex sm_exception_mask_lock;
 };
 
-bool gk20a_is_channel_marked_as_tsg(struct channel_gk20a *ch);
 int gk20a_tsg_open_common(struct gk20a *g, struct tsg_gk20a *tsg);
 struct tsg_gk20a *gk20a_tsg_open(struct gk20a *g, pid_t pid);
 void gk20a_tsg_release_common(struct gk20a *g, struct tsg_gk20a *tsg);
