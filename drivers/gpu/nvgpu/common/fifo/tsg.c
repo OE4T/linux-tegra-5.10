@@ -382,7 +382,11 @@ int gk20a_tsg_set_runlist_interleave(struct tsg_gk20a *tsg, u32 level)
 		break;
 	}
 
-	return (ret != 0) ? ret : g->ops.fifo.update_runlist(g, tsg->runlist_id, ~0, true, true);
+	return (ret != 0) ? ret : g->ops.fifo.update_runlist(g,
+							tsg->runlist_id,
+							FIFO_INVAL_CHANNEL_ID,
+							true,
+							true);
 }
 
 int gk20a_tsg_set_timeslice(struct tsg_gk20a *tsg, u32 timeslice)
@@ -470,7 +474,7 @@ int gk20a_tsg_open_common(struct gk20a *g, struct tsg_gk20a *tsg)
 	tsg->timeslice_us = 0;
 	tsg->timeslice_timeout = 0;
 	tsg->timeslice_scale = 0;
-	tsg->runlist_id = ~0u;
+	tsg->runlist_id = FIFO_INVAL_TSG_ID;
 	tsg->sm_exception_mask_type = NVGPU_SM_EXCEPTION_TYPE_MASK_NONE;
 	tsg->gr_ctx = nvgpu_kzalloc(g, sizeof(*tsg->gr_ctx));
 	if (tsg->gr_ctx == NULL) {

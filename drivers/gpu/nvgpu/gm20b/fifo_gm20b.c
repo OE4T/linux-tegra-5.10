@@ -71,7 +71,7 @@ void channel_gm20b_bind(struct channel_gk20a *c)
 
 static inline u32 gm20b_engine_id_to_mmu_id(struct gk20a *g, u32 engine_id)
 {
-	u32 fault_id = ~0;
+	u32 fault_id = FIFO_INVAL_MMU_ID;
 	struct fifo_engine_info_gk20a *engine_info;
 
 	engine_info = gk20a_fifo_get_engine_info(g, engine_id);
@@ -99,7 +99,7 @@ void gm20b_fifo_trigger_mmu_fault(struct gk20a *g,
 		} else {
 			u32 mmu_id = gm20b_engine_id_to_mmu_id(g,
 								engine_id);
-			if (mmu_id != (u32)~0) {
+			if (mmu_id != FIFO_INVAL_MMU_ID) {
 				gk20a_writel(g, fifo_trigger_mmu_fault_r(mmu_id),
 					     fifo_trigger_mmu_fault_enable_f(1));
 			}

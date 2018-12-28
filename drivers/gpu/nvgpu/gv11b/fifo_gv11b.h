@@ -1,7 +1,7 @@
 /*
  * GV11B Fifo
  *
- * Copyright (c) 2016-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -27,8 +27,8 @@
 
 #define PBDMA_SUBDEVICE_ID  1U
 
-#define FIFO_INVAL_PBDMA_ID	((u32)~0)
-#define FIFO_INVAL_VEID		((u32)~0)
+#define FIFO_INVAL_PBDMA_ID	(~U32(0U))
+#define FIFO_INVAL_VEID		(~U32(0U))
 
 /* engine context-switch request occurred while the engine was in reset */
 #define SCHED_ERROR_CODE_ENGINE_RESET      0x00000005U

@@ -39,14 +39,15 @@ struct tsg_gk20a;
 
 #define MAX_RUNLIST_BUFFERS		2U
 
-#define FIFO_INVAL_ENGINE_ID		((u32)~0)
-#define FIFO_INVAL_CHANNEL_ID		((u32)~0)
-#define FIFO_INVAL_TSG_ID		((u32)~0)
-#define FIFO_INVAL_RUNLIST_ID		((u32)~0)
+#define FIFO_INVAL_ENGINE_ID		(~U32(0U))
+#define FIFO_INVAL_MMU_ID		(~U32(0U))
+#define FIFO_INVAL_CHANNEL_ID		(~U32(0U))
+#define FIFO_INVAL_TSG_ID		(~U32(0U))
+#define FIFO_INVAL_RUNLIST_ID		(~U32(0U))
 
 #define ID_TYPE_CHANNEL			0U
 #define ID_TYPE_TSG			1U
-#define ID_TYPE_UNKNOWN			((u32)~0)
+#define ID_TYPE_UNKNOWN			(~U32(0U))
 
 #define RC_YES				1U
 #define RC_NO				0U

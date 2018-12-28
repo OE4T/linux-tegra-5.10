@@ -2429,7 +2429,11 @@ int gk20a_channel_suspend(struct gk20a *g)
 	}
 
 	if (channels_in_use) {
-		gk20a_fifo_update_runlist_ids(g, active_runlist_ids, ~0, false, true);
+		gk20a_fifo_update_runlist_ids(g,
+					active_runlist_ids,
+					FIFO_INVAL_CHANNEL_ID,
+					false,
+					true);
 
 		for (chid = 0; chid < f->num_channels; chid++) {
 			struct channel_gk20a *ch = gk20a_channel_from_id(g, chid);
@@ -2479,7 +2483,11 @@ int gk20a_channel_resume(struct gk20a *g)
 	}
 
 	if (channels_in_use) {
-		gk20a_fifo_update_runlist_ids(g, active_runlist_ids, ~0, true, true);
+		gk20a_fifo_update_runlist_ids(g,
+					active_runlist_ids,
+					FIFO_INVAL_CHANNEL_ID,
+					true,
+					true);
 	}
 
 	nvgpu_log_fn(g, "done");

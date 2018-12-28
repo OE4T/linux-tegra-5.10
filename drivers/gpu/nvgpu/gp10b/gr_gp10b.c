@@ -1616,7 +1616,11 @@ static int gr_gp10b_disable_channel_or_tsg(struct gk20a *g, struct channel_gk20a
 		return ret;
 	}
 
-	ret = g->ops.fifo.update_runlist(g, fault_ch->runlist_id, ~0, true, false);
+	ret = g->ops.fifo.update_runlist(g,
+					fault_ch->runlist_id,
+					FIFO_INVAL_CHANNEL_ID,
+					true,
+					false);
 	if (ret != 0) {
 		nvgpu_err(g,
 				"CILP: failed to restart runlist 0!");
