@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -23,6 +23,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <pthread.h>
+#include <stdio.h>
 
 #include <unit/io.h>
 #include <unit/core.h>
@@ -114,6 +115,40 @@ done:
 	return err;
 }
 
+static void dump_test_record(FILE *logfile, struct unit_test_record *rec,
+				bool status, bool first)
+{
+	first ? fprintf(logfile, "\t{") : fprintf(logfile, ",\n\t{");
+	fprintf(logfile, "\"unit\": \"%s\", ", rec->mod->name);
+	fprintf(logfile, "\"test\": \"%s\", ", rec->test->name);
+	fprintf(logfile, "\"status\": %s, ", status ? "true":"false");
+	fprintf(logfile, "\"uid\": \"%s\", ", rec->test->jama.unique_id);
+	fprintf(logfile, "\"vc\": \"%s\", ",
+		rec->test->jama.verification_criteria);
+	fprintf(logfile, "\"req\": \"%s\"", rec->test->jama.requirement);
+	fprintf(logfile, "}");
+}
+
+static void dump_test_log(struct unit_fw *fw, struct unit_test_list
+			*passing_tests, struct unit_test_list *failing_tests)
+{
+	struct unit_test_record *rec;
+	int count = 0;
+	FILE *logfile = fopen("results.json", "w+");
+
+	fprintf(logfile, "[\n");
+	for_record_in_test_list(passing_tests, rec) {
+		dump_test_record(logfile, rec, true, count == 0);
+		count++;
+	}
+	for_record_in_test_list(failing_tests, rec) {
+		dump_test_record(logfile, rec, false, count == 0);
+		count++;
+	}
+	fprintf(logfile, "\n]\n");
+	fclose(logfile);
+}
+
 void core_print_test_status(struct unit_fw *fw)
 {
 	struct unit_test_list *failing_tests = &fw->results->failing;
@@ -139,4 +174,6 @@ void core_print_test_status(struct unit_fw *fw)
 			 rec->mod->name,
 			 rec->test->name);
 	}
+
+	dump_test_log(fw, &fw->results->passing, &fw->results->failing);
 }

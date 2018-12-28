@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright (c) 2018, NVIDIA CORPORATION.  All Rights Reserved.
+# Copyright (c) 2019, NVIDIA CORPORATION.  All Rights Reserved.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -47,5 +47,10 @@ echo "$ $NVGPU_UNIT $*"
 
 $NVGPU_UNIT $*
 rc=$?
+if [ $rc -eq "0" ]; then
+	echo "Checking executed tests against list of required tests:"
+	./testlist.py --html
+	rc=$?
+fi
 popd
 exit $rc

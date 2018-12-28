@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright (c) 2018, NVIDIA CORPORATION.  All Rights Reserved.
+# Copyright (c) 2019, NVIDIA CORPORATION.  All Rights Reserved.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -118,6 +118,9 @@ jcp $nvgpu_bins/userspace-l4t_64/libnvgpu_unit-lib.so    nvgpu_unit/libnvgpu-uni
 jcp $nvgpu_bins/drivers/gpu/nvgpu-l4t_64/libnvgpu-drv.so nvgpu_unit/libnvgpu-drv.so
 jcp $TOP/kernel/nvgpu/userspace/unit.sh                  nvgpu_unit/unit.sh
 jcp $TOP/kernel/nvgpu/userspace/gcov.sh                  nvgpu_unit/gcov.sh
+jcp $TOP/kernel/nvgpu/userspace/testlist.py              nvgpu_unit/testlist.py
+jcp $TOP/kernel/nvgpu/userspace/required_tests.json      \
+	nvgpu_unit/required_tests.json
 
 find $nvgpu_bins/userspace/units -name "*.so" -not -path "*unit.so" \
     -not -path "*drv.so" -exec ls {} \; | while read unit_so ; do

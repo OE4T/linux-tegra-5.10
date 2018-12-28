@@ -1,0 +1,616 @@
+[
+    {
+        "test": "cache_default",
+        "unit": "fault_injection"
+    },
+    {
+        "test": "cache_delayed_disable",
+        "unit": "fault_injection"
+    },
+    {
+        "test": "cache_delayed_enable",
+        "unit": "fault_injection"
+    },
+    {
+        "test": "cache_enabled",
+        "unit": "fault_injection"
+    },
+    {
+        "test": "dma_alloc_default",
+        "unit": "fault_injection"
+    },
+    {
+        "test": "dma_alloc_delayed_enable",
+        "unit": "fault_injection"
+    },
+    {
+        "test": "dma_alloc_enabled",
+        "unit": "fault_injection"
+    },
+    {
+        "test": "dma_alloc_init",
+        "unit": "fault_injection"
+    },
+    {
+        "test": "fault_injection_init",
+        "unit": "fault_injection"
+    },
+    {
+        "test": "init",
+        "unit": "fault_injection"
+    },
+    {
+        "test": "kmalloc_default",
+        "unit": "fault_injection"
+    },
+    {
+        "test": "kmalloc_delayed_disable",
+        "unit": "fault_injection"
+    },
+    {
+        "test": "kmalloc_delayed_enable",
+        "unit": "fault_injection"
+    },
+    {
+        "test": "kmalloc_enabled",
+        "unit": "fault_injection"
+    },
+    {
+        "test": "fuse_gm20b_basic_fuses",
+        "unit": "fuse"
+    },
+    {
+        "test": "fuse_gm20b_check_fmodel",
+        "unit": "fuse"
+    },
+    {
+        "test": "fuse_gm20b_check_gcplex_fail",
+        "unit": "fuse"
+    },
+    {
+        "test": "fuse_gm20b_check_non_sec",
+        "unit": "fuse"
+    },
+    {
+        "test": "fuse_gm20b_check_sec",
+        "unit": "fuse"
+    },
+    {
+        "test": "fuse_gm20b_check_sec_invalid_gcplex",
+        "unit": "fuse"
+    },
+    {
+        "test": "fuse_gm20b_cleanup",
+        "unit": "fuse"
+    },
+    {
+        "test": "fuse_gm20b_init",
+        "unit": "fuse"
+    },
+    {
+        "test": "fuse_gp10b_check_fmodel",
+        "unit": "fuse"
+    },
+    {
+        "test": "fuse_gp10b_check_gcplex_fail",
+        "unit": "fuse"
+    },
+    {
+        "test": "fuse_gp10b_check_non_sec",
+        "unit": "fuse"
+    },
+    {
+        "test": "fuse_gp10b_check_sec",
+        "unit": "fuse"
+    },
+    {
+        "test": "fuse_gp10b_check_sec_invalid_gcplex",
+        "unit": "fuse"
+    },
+    {
+        "test": "fuse_gp10b_cleanup",
+        "unit": "fuse"
+    },
+    {
+        "test": "fuse_gp10b_ecc",
+        "unit": "fuse"
+    },
+    {
+        "test": "fuse_gp10b_feature_override_disable",
+        "unit": "fuse"
+    },
+    {
+        "test": "fuse_gp10b_init",
+        "unit": "fuse"
+    },
+    {
+        "test": "fuse_gv100_cleanup",
+        "unit": "fuse"
+    },
+    {
+        "test": "fuse_gv100_init",
+        "unit": "fuse"
+    },
+    {
+        "test": "fuse_gv100_vin_cal_rev",
+        "unit": "fuse"
+    },
+    {
+        "test": "fuse_gv100_vin_cal_slope_intercept",
+        "unit": "fuse"
+    },
+    {
+        "test": "list_all_head",
+        "unit": "list"
+    },
+    {
+        "test": "list_all_tail",
+        "unit": "list"
+    },
+    {
+        "test": "list_move",
+        "unit": "list"
+    },
+    {
+        "test": "list_replace",
+        "unit": "list"
+    },
+    {
+        "test": "alloc_destroy",
+        "unit": "nvgpu_allocator"
+    },
+    {
+        "test": "alloc_ops",
+        "unit": "nvgpu_allocator"
+    },
+    {
+        "test": "common_init",
+        "unit": "nvgpu_allocator"
+    },
+    {
+        "test": "gmmu_clean",
+        "unit": "nvgpu_gmmu"
+    },
+    {
+        "test": "gmmu_init",
+        "unit": "nvgpu_gmmu"
+    },
+    {
+        "test": "gmmu_map_unmap_iommu_sysmem",
+        "unit": "nvgpu_gmmu"
+    },
+    {
+        "test": "gmmu_map_unmap_iommu_sysmem_adv_big_pages",
+        "unit": "nvgpu_gmmu"
+    },
+    {
+        "test": "gmmu_map_unmap_iommu_sysmem_adv_big_pages_batched",
+        "unit": "nvgpu_gmmu"
+    },
+    {
+        "test": "gmmu_map_unmap_iommu_sysmem_adv_big_pages_offset",
+        "unit": "nvgpu_gmmu"
+    },
+    {
+        "test": "gmmu_map_unmap_iommu_sysmem_adv_ctag",
+        "unit": "nvgpu_gmmu"
+    },
+    {
+        "test": "gmmu_map_unmap_iommu_sysmem_adv_kernel_pages",
+        "unit": "nvgpu_gmmu"
+    },
+    {
+        "test": "gmmu_map_unmap_iommu_sysmem_adv_sgl_skip",
+        "unit": "nvgpu_gmmu"
+    },
+    {
+        "test": "gmmu_map_unmap_iommu_sysmem_adv_small_pages_sparse",
+        "unit": "nvgpu_gmmu"
+    },
+    {
+        "test": "gmmu_map_unmap_iommu_sysmem_coh",
+        "unit": "nvgpu_gmmu"
+    },
+    {
+        "test": "gmmu_map_unmap_iommu_sysmem_ro",
+        "unit": "nvgpu_gmmu"
+    },
+    {
+        "test": "gmmu_map_unmap_iommu_sysmem_ro_f",
+        "unit": "nvgpu_gmmu"
+    },
+    {
+        "test": "gmmu_map_unmap_no_iommu_sysmem",
+        "unit": "nvgpu_gmmu"
+    },
+    {
+        "test": "gmmu_map_unmap_no_iommu_sysmem_adv_big_pages_offset_large",
+        "unit": "nvgpu_gmmu"
+    },
+    {
+        "test": "gmmu_map_unmap_no_iommu_sysmem_noncacheable",
+        "unit": "nvgpu_gmmu"
+    },
+    {
+        "test": "gmmu_map_unmap_sgt_iommu_sysmem",
+        "unit": "nvgpu_gmmu"
+    },
+    {
+        "test": "gmmu_map_unmap_unmapped",
+        "unit": "nvgpu_gmmu"
+    },
+    {
+        "test": "gmmu_map_unmap_vidmem",
+        "unit": "nvgpu_gmmu"
+    },
+    {
+        "test": "gmmu_set_pte",
+        "unit": "nvgpu_gmmu"
+    },
+    {
+        "test": "init_page_table_fail",
+        "unit": "nvgpu_gmmu"
+    },
+    {
+        "test": "map_fail_fi_null_sgt",
+        "unit": "nvgpu_gmmu"
+    },
+    {
+        "test": "map_fail_fi_vm_alloc",
+        "unit": "nvgpu_gmmu"
+    },
+    {
+        "test": "map_fail_pd_allocate",
+        "unit": "nvgpu_gmmu"
+    },
+    {
+        "test": "map_fail_pd_allocate_child",
+        "unit": "nvgpu_gmmu"
+    },
+    {
+        "test": "flat",
+        "unit": "nvgpu_runlist"
+    },
+    {
+        "test": "flat_oversize_end",
+        "unit": "nvgpu_runlist"
+    },
+    {
+        "test": "flat_oversize_onehalf",
+        "unit": "nvgpu_runlist"
+    },
+    {
+        "test": "flat_oversize_single",
+        "unit": "nvgpu_runlist"
+    },
+    {
+        "test": "flat_oversize_tiny",
+        "unit": "nvgpu_runlist"
+    },
+    {
+        "test": "flat_oversize_two",
+        "unit": "nvgpu_runlist"
+    },
+    {
+        "test": "interleaving",
+        "unit": "nvgpu_runlist"
+    },
+    {
+        "test": "interleaving_l0",
+        "unit": "nvgpu_runlist"
+    },
+    {
+        "test": "interleaving_l0_l1",
+        "unit": "nvgpu_runlist"
+    },
+    {
+        "test": "interleaving_l0_l2",
+        "unit": "nvgpu_runlist"
+    },
+    {
+        "test": "interleaving_l1",
+        "unit": "nvgpu_runlist"
+    },
+    {
+        "test": "interleaving_l1_l2",
+        "unit": "nvgpu_runlist"
+    },
+    {
+        "test": "interleaving_l2",
+        "unit": "nvgpu_runlist"
+    },
+    {
+        "test": "interleaving_oversize_l2",
+        "unit": "nvgpu_runlist"
+    },
+    {
+        "test": "interleaving_oversize_l2_l1_l2",
+        "unit": "nvgpu_runlist"
+    },
+    {
+        "test": "interleaving_oversize_l2_l1_l2_l1",
+        "unit": "nvgpu_runlist"
+    },
+    {
+        "test": "interleaving_oversize_l2_l1_l2_l1_l2",
+        "unit": "nvgpu_runlist"
+    },
+    {
+        "test": "interleaving_oversize_tiny",
+        "unit": "nvgpu_runlist"
+    },
+    {
+        "test": "tsg_format_ch1",
+        "unit": "nvgpu_runlist"
+    },
+    {
+        "test": "tsg_format_ch1_timeslice",
+        "unit": "nvgpu_runlist"
+    },
+    {
+        "test": "tsg_format_ch2",
+        "unit": "nvgpu_runlist"
+    },
+    {
+        "test": "tsg_format_ch3_inactive2",
+        "unit": "nvgpu_runlist"
+    },
+    {
+        "test": "tsg_format_ch5",
+        "unit": "nvgpu_runlist"
+    },
+    {
+        "test": "sgt_alignment_non_iommu",
+        "unit": "nvgpu_sgt"
+    },
+    {
+        "test": "sgt_alignment_with_iommu",
+        "unit": "nvgpu_sgt"
+    },
+    {
+        "test": "sgt_basic_apis",
+        "unit": "nvgpu_sgt"
+    },
+    {
+        "test": "sgt_get_next",
+        "unit": "nvgpu_sgt"
+    },
+    {
+        "test": "alloc_1024x256B_x11x3",
+        "unit": "pd_cache"
+    },
+    {
+        "test": "alloc_1024x256B_x16x1",
+        "unit": "pd_cache"
+    },
+    {
+        "test": "alloc_1024x256B_x16x15",
+        "unit": "pd_cache"
+    },
+    {
+        "test": "alloc_1024x256B_x32x1",
+        "unit": "pd_cache"
+    },
+    {
+        "test": "alloc_1x1024B",
+        "unit": "pd_cache"
+    },
+    {
+        "test": "alloc_1x2048B",
+        "unit": "pd_cache"
+    },
+    {
+        "test": "alloc_1x256B",
+        "unit": "pd_cache"
+    },
+    {
+        "test": "alloc_1x512B",
+        "unit": "pd_cache"
+    },
+    {
+        "test": "alloc_direct_1024x16PAGE",
+        "unit": "pd_cache"
+    },
+    {
+        "test": "alloc_direct_1024xPAGE",
+        "unit": "pd_cache"
+    },
+    {
+        "test": "alloc_direct_1024xPAGE_x16x1",
+        "unit": "pd_cache"
+    },
+    {
+        "test": "alloc_direct_1024xPAGE_x16x15",
+        "unit": "pd_cache"
+    },
+    {
+        "test": "alloc_direct_1024xPAGE_x16x4",
+        "unit": "pd_cache"
+    },
+    {
+        "test": "alloc_direct_1024xPAGE_x32x24",
+        "unit": "pd_cache"
+    },
+    {
+        "test": "alloc_direct_1x16PAGE",
+        "unit": "pd_cache"
+    },
+    {
+        "test": "alloc_direct_1xPAGE",
+        "unit": "pd_cache"
+    },
+    {
+        "test": "alloc_direct_oom",
+        "unit": "pd_cache"
+    },
+    {
+        "test": "alloc_oom",
+        "unit": "pd_cache"
+    },
+    {
+        "test": "env_init",
+        "unit": "pd_cache"
+    },
+    {
+        "test": "fini",
+        "unit": "pd_cache"
+    },
+    {
+        "test": "free_empty",
+        "unit": "pd_cache"
+    },
+    {
+        "test": "init",
+        "unit": "pd_cache"
+    },
+    {
+        "test": "invalid_pd_alloc",
+        "unit": "pd_cache"
+    },
+    {
+        "test": "pd_packing",
+        "req": "NVGPU-RQCD-68.C3",
+        "vc": "V4",
+        "uid": "6439202",
+        "unit": "pd_cache"
+    },
+    {
+        "test": "valid_alloc",
+        "req": "NVGPU-RQCD-68.C1,2",
+        "vc": "V4",
+        "uid": "6439202",
+        "unit": "pd_cache"
+    },
+    {
+        "test": "bit_clear",
+        "unit": "posix_bitops"
+    },
+    {
+        "test": "bit_set",
+        "unit": "posix_bitops"
+    },
+    {
+        "test": "bitmap_clear",
+        "unit": "posix_bitops"
+    },
+    {
+        "test": "bitmap_set",
+        "unit": "posix_bitops"
+    },
+    {
+        "test": "ffs",
+        "unit": "posix_bitops"
+    },
+    {
+        "test": "ffz",
+        "unit": "posix_bitops"
+    },
+    {
+        "test": "find_first_bit",
+        "unit": "posix_bitops"
+    },
+    {
+        "test": "find_first_zero_bit",
+        "unit": "posix_bitops"
+    },
+    {
+        "test": "find_next_bit",
+        "unit": "posix_bitops"
+    },
+    {
+        "test": "find_zero_area",
+        "unit": "posix_bitops"
+    },
+    {
+        "test": "fls",
+        "unit": "posix_bitops"
+    },
+    {
+        "test": "info",
+        "unit": "posix_bitops"
+    },
+    {
+        "test": "single_bitops",
+        "unit": "posix_bitops"
+    },
+    {
+        "test": "test_and_clear_bit",
+        "unit": "posix_bitops"
+    },
+    {
+        "test": "test_and_set_bit",
+        "unit": "posix_bitops"
+    },
+    {
+        "test": "endianness",
+        "unit": "posix_env"
+    },
+    {
+        "test": "ptr_in_u64",
+        "unit": "posix_env"
+    },
+    {
+        "test": "signage",
+        "unit": "posix_env"
+    },
+    {
+        "test": "sizes",
+        "unit": "posix_env"
+    },
+    {
+        "test": "__readl",
+        "unit": "posix_mockio"
+    },
+    {
+        "test": "bar1_readl",
+        "unit": "posix_mockio"
+    },
+    {
+        "test": "bar1_writel",
+        "unit": "posix_mockio"
+    },
+    {
+        "test": "readl",
+        "unit": "posix_mockio"
+    },
+    {
+        "test": "register_io_callbacks",
+        "unit": "posix_mockio"
+    },
+    {
+        "test": "test_register_space",
+        "unit": "posix_mockio"
+    },
+    {
+        "test": "usermode_writel",
+        "unit": "posix_mockio"
+    },
+    {
+        "test": "writel",
+        "unit": "posix_mockio"
+    },
+    {
+        "test": "writel_check",
+        "unit": "posix_mockio"
+    },
+    {
+        "test": "nvgpu_pramin_dying",
+        "unit": "pramin"
+    },
+    {
+        "test": "nvgpu_pramin_free_test_env",
+        "unit": "pramin"
+    },
+    {
+        "test": "nvgpu_pramin_memset",
+        "unit": "pramin"
+    },
+    {
+        "test": "nvgpu_pramin_rd_n_1_sgl",
+        "unit": "pramin"
+    },
+    {
+        "test": "nvgpu_pramin_wr_n_3_sgl",
+        "unit": "pramin"
+    }
+]
