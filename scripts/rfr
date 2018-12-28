@@ -33,7 +33,10 @@ import smtplib
 
 from email.mime.text import MIMEText
 
-VERSION = '1.0.2'
+VERSION = '1.0.3'
+
+# Default email address.
+to_addr = 'SW-Mobile-nvgpu-core <SW-Mobile-nvgpu-core@exchange.nvidia.com>'
 
 # Gerrit commit URL formats. These are regular expressions to match the
 # incoming URLs against.
@@ -83,8 +86,11 @@ Otherwise it's treated as a git commit ID.
     parser.add_argument('-R', '--sender', action='store', default=None,
                         help='Specify a special from: email address.')
     parser.add_argument('-t', '--to', action='append', default=[],
-                        help='Specify an additional To: email address. '
+                        help='Specify an additional To: email address.'
                         'Can be repeated (-t a -t b).')
+    parser.add_argument('-c', '--cc', action='append', default=[],
+                        help='Specify an additional Cc: email address.'
+                        'Can be repeated (-c a -c b).')
     parser.add_argument('-F', '--file', action='store', default=None,
                         help='File with commits, one per line')
 
@@ -285,21 +291,26 @@ Thanks!
                                  extra_message=extra_message,
                                  cmt_verbose=cmt_verbose)
 
-def format_to_comment(to_addrs):
+def format_msg_comment(subject, to_addrs, cc_addrs):
     """
     Take the list of to_addrs and format them into a comment so that the sender
     knows who they are sending an email to.
     """
 
-    to_comment = """# Lines that begin with a '#' will be ignored in the final
+    msg_comment = """# Lines that begin with a '#' will be ignored in the final
 # message. This includes white space so ' # blah', for example,
 # will _not_ be ignored.
 #
 """
-    for addr in to_addrs:
-        to_comment += '# To: %s\n' % addr
 
-    return to_comment
+    msg_comment += '# Subject: %s\n' % subject
+
+    for addr in to_addrs:
+        msg_comment += '# To: %s\n' % addr
+    for addr in cc_addrs:
+        msg_comment += '# Cc: %s\n' % addr
+
+    return msg_comment
 
 def display_commits(commits_info, extra_message):
     """
@@ -313,13 +324,14 @@ def email_commits(commits_info, sender, subject, args):
     Directly email commits to the nvgpu-core mailing list for review!
     """
 
-    to_addr = 'SW-Mobile-nvgpu-core <SW-Mobile-nvgpu-core@exchange.nvidia.com>'
     to_addrs = [to_addr] + args.to
+    cc_addrs = args.cc
 
     if args.no_msg:
         args.msg = None
 
-    body = format_to_comment(to_addrs) + format_commits(commits_info, args.msg)
+    body = format_msg_comment(subject, to_addrs, cc_addrs) + \
+           format_commits(commits_info, args.msg)
 
     # Most people like to write a little description of their patch series
     # in the email body. This aims to take care of that.
@@ -346,6 +358,7 @@ def email_commits(commits_info, sender, subject, args):
         msg = MIMEText(body)
 
     msg['To'] = ", ".join(to_addrs)
+    msg['Cc'] = ", ".join(cc_addrs)
     msg['From'] = sender
     msg['Subject'] = subject
 
