@@ -3,7 +3,7 @@
  *
  * GK20A graphics copy engine (gr host)
  *
- * Copyright (c) 2011-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -32,6 +32,8 @@ struct gk20a;
 
 void gk20a_ce2_isr(struct gk20a *g, u32 inst_id, u32 pri_base);
 u32 gk20a_ce2_nonstall_isr(struct gk20a *g, u32 inst_id, u32 pri_base);
+
+#define NVGPU_CE_INVAL_CTX_ID	~U32(0U)
 
 /* CE command utility macros */
 #define NVGPU_CE_LOWER_ADDRESS_OFFSET_MASK 0xffffffffU

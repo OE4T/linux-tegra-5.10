@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -161,11 +161,11 @@ static void nvgpu_remove_mm_ce_support(struct mm_gk20a *mm)
 {
 	struct gk20a *g = gk20a_from_mm(mm);
 
-	if (mm->vidmem.ce_ctx_id != (u32)~0) {
+	if (mm->vidmem.ce_ctx_id != NVGPU_CE_INVAL_CTX_ID) {
 		gk20a_ce_delete_context_priv(g, mm->vidmem.ce_ctx_id);
 	}
 
-	mm->vidmem.ce_ctx_id = (u32)~0;
+	mm->vidmem.ce_ctx_id = NVGPU_CE_INVAL_CTX_ID;
 
 	nvgpu_vm_put(mm->ce.vm);
 }
@@ -332,14 +332,15 @@ static int nvgpu_init_mmu_debug(struct mm_gk20a *mm)
 void nvgpu_init_mm_ce_context(struct gk20a *g)
 {
 #if defined(CONFIG_GK20A_VIDMEM)
-	if (g->mm.vidmem.size && (g->mm.vidmem.ce_ctx_id == (u32)~0)) {
+	if (g->mm.vidmem.size &&
+	   (g->mm.vidmem.ce_ctx_id == NVGPU_CE_INVAL_CTX_ID)) {
 		g->mm.vidmem.ce_ctx_id =
 			gk20a_ce_create_context(g,
 				gk20a_fifo_get_fast_ce_runlist_id(g),
 				-1,
 				-1);
 
-		if (g->mm.vidmem.ce_ctx_id == (u32)~0)
+		if (g->mm.vidmem.ce_ctx_id == NVGPU_CE_INVAL_CTX_ID)
 			nvgpu_err(g,
 				"Failed to allocate CE context for vidmem page clearing support");
 	}
@@ -437,7 +438,7 @@ static int nvgpu_init_mm_setup_sw(struct gk20a *g)
 
 	nvgpu_init_pramin(mm);
 
-	mm->vidmem.ce_ctx_id = (u32)~0;
+	mm->vidmem.ce_ctx_id = NVGPU_CE_INVAL_CTX_ID;
 
 	err = nvgpu_vidmem_init(mm);
 	if (err != 0) {

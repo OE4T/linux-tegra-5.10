@@ -1,7 +1,7 @@
 /*
  * GK20A Graphics Copy Engine  (gr host)
  *
- * Copyright (c) 2011-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -446,7 +446,7 @@ u32 gk20a_ce_create_context(struct gk20a *g,
 	struct gk20a_gpu_ctx *ce_ctx;
 	struct gk20a_ce_app *ce_app = g->ce_app;
 	struct nvgpu_setup_bind_args setup_bind_args;
-	u32 ctx_id = ~0;
+	u32 ctx_id = NVGPU_CE_INVAL_CTX_ID;
 	int err = 0;
 
 	if (!ce_app->initialised || ce_app->app_state != NVGPU_CE_ACTIVE) {
@@ -555,7 +555,7 @@ u32 gk20a_ce_create_context(struct gk20a *g,
 	ce_ctx->gpu_ctx_state = NVGPU_CE_GPU_CTX_ALLOCATED;
 
 end:
-	if (ctx_id == (u32)~0) {
+	if (ctx_id == NVGPU_CE_INVAL_CTX_ID) {
 		nvgpu_mutex_acquire(&ce_app->app_mutex);
 		gk20a_ce_delete_gpu_context(ce_ctx);
 		nvgpu_mutex_release(&ce_app->app_mutex);
