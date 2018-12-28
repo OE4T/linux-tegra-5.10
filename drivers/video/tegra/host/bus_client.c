@@ -1207,48 +1207,6 @@ static long nvhost_channelctl(struct file *filp,
 
 	dev = &priv->pdev->dev;
 	switch (cmd) {
-	case NVHOST_IOCTL_CHANNEL_OPEN:
-	{
-		int fd;
-		struct file *file;
-		char *name;
-
-		err = get_unused_fd_flags(O_RDWR);
-		if (err < 0) {
-			nvhost_err(dev, "failed to get unused fd");
-			break;
-		}
-		fd = err;
-
-		name = kasprintf(GFP_KERNEL, "nvhost-%s-fd%d",
-				dev_name(dev), fd);
-		if (!name) {
-			nvhost_err(dev, "failed to allocate name");
-			err = -ENOMEM;
-			put_unused_fd(fd);
-			break;
-		}
-
-		file = anon_inode_getfile(name, filp->f_op, NULL, O_RDWR);
-		kfree(name);
-		if (IS_ERR(file)) {
-			nvhost_err(dev, "failed to get file");
-			err = PTR_ERR(file);
-			put_unused_fd(fd);
-			break;
-		}
-
-		err = __nvhost_channelopen(NULL, priv->pdev, file);
-		if (err) {
-			put_unused_fd(fd);
-			fput(file);
-			break;
-		}
-
-		((struct nvhost_channel_open_args *)buf)->channel_fd = fd;
-		fd_install(fd, file);
-		break;
-	}
 	case NVHOST_IOCTL_CHANNEL_GET_SYNCPOINTS:
 	{
 		((struct nvhost_get_param_args *)buf)->value =
