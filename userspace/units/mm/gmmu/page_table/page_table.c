@@ -841,7 +841,7 @@ struct unit_module_test nvgpu_gmmu_tests[] = {
 	UNIT_TEST(map_fail_pd_allocate,
 		test_nvgpu_gmmu_map_unmap_map_fail,
 		(void *) SPECIAL_MAP_FAIL_PD_ALLOCATE),
-	UNIT_TEST(map_fail_pd_allocate,
+	UNIT_TEST(map_fail_pd_allocate_child,
 		test_nvgpu_gmmu_map_unmap_map_fail,
 		(void *) SPECIAL_MAP_FAIL_PD_ALLOCATE_CHILD),
 
@@ -880,7 +880,7 @@ struct unit_module_test nvgpu_gmmu_tests[] = {
 	UNIT_TEST(gmmu_map_unmap_sgt_iommu_sysmem,
 		test_nvgpu_gmmu_map_unmap,
 		(void *) &test_sgt_iommu_sysmem),
-	UNIT_TEST(gmmu_map_unmap_iommu_sysmem_adv_small_pages_sparse,
+	UNIT_TEST(gmmu_map_unmap_iommu_sysmem_adv_ctag,
 		test_nvgpu_gmmu_map_unmap_adv,
 		(void *) &test_iommu_sysmem_adv_ctag),
 	UNIT_TEST(gmmu_map_unmap_iommu_sysmem_adv_big_pages_batched,
