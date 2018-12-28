@@ -33,7 +33,7 @@ import smtplib
 
 from email.mime.text import MIMEText
 
-VERSION = '1.0.1'
+VERSION = '1.0.2'
 
 # Gerrit commit URL formats. These are regular expressions to match the
 # incoming URLs against.
@@ -232,7 +232,9 @@ def get_user_message(start_msg):
             return None
 
         filp.seek(0)
-        return filp.read()
+        lines = filp.readlines()
+
+        return ''.join(filter(lambda l: not l.startswith('#'), lines))
 
 def indent_lines(text, ind):
     """
@@ -246,8 +248,7 @@ def format_commits(commits_info, extra_message):
     text to print. This can either be directly printed or emailed.
     """
 
-    whole_template = """
-Hi All,
+    whole_template = """Hi All,
 
 I would like you to review the following changes.
 {extra_message}
@@ -284,6 +285,22 @@ Thanks!
                                  extra_message=extra_message,
                                  cmt_verbose=cmt_verbose)
 
+def format_to_comment(to_addrs):
+    """
+    Take the list of to_addrs and format them into a comment so that the sender
+    knows who they are sending an email to.
+    """
+
+    to_comment = """# Lines that begin with a '#' will be ignored in the final
+# message. This includes white space so ' # blah', for example,
+# will _not_ be ignored.
+#
+"""
+    for addr in to_addrs:
+        to_comment += '# To: %s\n' % addr
+
+    return to_comment
+
 def display_commits(commits_info, extra_message):
     """
     Print the list of commits to the directly to the terminal.
@@ -297,11 +314,12 @@ def email_commits(commits_info, sender, subject, args):
     """
 
     to_addr = 'SW-Mobile-nvgpu-core <SW-Mobile-nvgpu-core@exchange.nvidia.com>'
+    to_addrs = [to_addr] + args.to
 
     if args.no_msg:
         args.msg = None
 
-    body = format_commits(commits_info, args.msg)
+    body = format_to_comment(to_addrs) + format_commits(commits_info, args.msg)
 
     # Most people like to write a little description of their patch series
     # in the email body. This aims to take care of that.
@@ -326,8 +344,6 @@ def email_commits(commits_info, sender, subject, args):
         msg = MIMEText(text)
     else:
         msg = MIMEText(body)
-
-    to_addrs = [to_addr] + args.to
 
     msg['To'] = ", ".join(to_addrs)
     msg['From'] = sender
