@@ -97,11 +97,7 @@ static void add_sync_waits(struct nvhost_channel *ch, int fd)
 	struct nvhost_master *host = nvhost_get_host(ch->dev);
 	struct nvhost_syncpt *sp = &host->syncpt;
 	struct sync_fence *fence;
-#if LINUX_VERSION_CODE < KERNEL_VERSION(3,18,0)
-	struct list_head *pos;
-#else
 	int i;
-#endif
 
 	if (fd < 0)
 		return;
@@ -111,13 +107,8 @@ static void add_sync_waits(struct nvhost_channel *ch, int fd)
 		return;
 
 	/* validate syncpt ids */
-#if LINUX_VERSION_CODE < KERNEL_VERSION(3,18,0)
-	list_for_each(pos, &fence->pt_list_head) {
-		struct sync_pt *pt = container_of(pos, struct sync_pt, pt_list);
-#else
 	for (i = 0; i < fence->num_fences; i++) {
 		struct sync_pt *pt = sync_pt_from_fence(fence->cbs[i].sync_pt);
-#endif
 		u32 id = nvhost_sync_pt_id(pt);
 		if (!id || !nvhost_syncpt_is_valid_hw_pt(sp, id)) {
 			sync_fence_put(fence);
@@ -133,13 +124,8 @@ static void add_sync_waits(struct nvhost_channel *ch, int fd)
 	 * overwrite the RESTART opcode at the end of the push
 	 * buffer.
 	 */
-#if LINUX_VERSION_CODE < KERNEL_VERSION(3,18,0)
-	list_for_each(pos, &fence->pt_list_head) {
-		struct sync_pt *pt = container_of(pos, struct sync_pt, pt_list);
-#else
 	for (i = 0; i < fence->num_fences; i++) {
 		struct sync_pt *pt = sync_pt_from_fence(fence->cbs[i].sync_pt);
-#endif
 		u32 id = nvhost_sync_pt_id(pt);
 		u32 thresh = nvhost_sync_pt_thresh(pt);
 

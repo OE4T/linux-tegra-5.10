@@ -21,7 +21,6 @@
 #ifndef __NVHOST_PVA_H__
 #define __NVHOST_PVA_H__
 
-#include <linux/dma-attrs.h>
 #include <linux/mutex.h>
 #include <linux/version.h>
 
@@ -105,7 +104,6 @@ struct pva_dma_alloc_info {
  * priv1_buffer		pva_dma_alloc_info for priv1_buffer
  * priv2_buffer		pva_dma_alloc_info for priv2_buffer
  * priv2_reg_offset	priv2 register offset from uCode
- * attrs		dma_attrs struct information
  * trace_buffer_size	buffer size for trace log
  *
  */
@@ -115,11 +113,6 @@ struct pva_fw {
 	struct pva_dma_alloc_info priv1_buffer;
 	struct pva_dma_alloc_info priv2_buffer;
 	u32 priv2_reg_offset;
-#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 9, 0)
-	struct dma_attrs attrs;
-#else
-	unsigned long attrs;
-#endif
 
 	u32 trace_buffer_size;
 };

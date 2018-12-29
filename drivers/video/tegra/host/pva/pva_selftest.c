@@ -41,22 +41,13 @@ int pva_run_ucode_selftest(struct platform_device *pdev)
 	void *selftest_cpuaddr;
 	dma_addr_t base_iova = PVA_SELF_TESTMODE_START_ADDR;
 
-#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 9, 0)
-	struct dma_attrs attrs;
-
-	init_dma_attrs(&attrs);
-#else
-	unsigned long attrs = 0;
-#endif
-
 	/* Map static memory for self test mode */
 	nvhost_dbg_info("uCode TESTMODE Enabled");
-	dma_set_attr(DMA_ATTR_SKIP_CPU_SYNC, __DMA_ATTR(attrs));
-	dma_set_attr(DMA_ATTR_SKIP_IOVA_GAP, __DMA_ATTR(attrs));
 
 	selftest_cpuaddr = dma_alloc_at_attrs(&pdev->dev,
 			PVA_SELF_TESTMODE_ADDR_SIZE, &base_iova,
-			GFP_KERNEL|__GFP_ZERO, __DMA_ATTR(attrs));
+			GFP_KERNEL|__GFP_ZERO,
+			DMA_ATTR_SKIP_CPU_SYNC | DMA_ATTR_SKIP_IOVA_GAP);
 
 	if (!selftest_cpuaddr) {
 		dev_warn(&pdev->dev, "Failed to get Selftest Static memory\n");
@@ -105,8 +96,8 @@ err_selftest:
 	if (selftest_cpuaddr)
 		dma_free_attrs(&pdev->dev,
 			PVA_SELF_TESTMODE_ADDR_SIZE, selftest_cpuaddr,
-			PVA_SELF_TESTMODE_START_ADDR, __DMA_ATTR(attrs));
-
+			PVA_SELF_TESTMODE_START_ADDR,
+			DMA_ATTR_SKIP_CPU_SYNC | DMA_ATTR_SKIP_IOVA_GAP);
 	return err;
 
 }

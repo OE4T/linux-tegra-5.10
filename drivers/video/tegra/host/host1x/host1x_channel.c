@@ -137,12 +137,8 @@ static void add_sync_waits(struct nvhost_channel *ch, int fd)
 
 	i = id = thresh = 0;
 	/* validate syncpt ids */
-#if LINUX_VERSION_CODE < KERNEL_VERSION(3, 18, 0)
-	list_for_each_entry(pt, &fence->pt_list_head, pt_list) {
-#else
 	for (i = 0; i < fence->num_fences; i++) {
 		pt = sync_pt_from_fence(fence->cbs[i].sync_pt);
-#endif
 		id = nvhost_sync_pt_id(pt);
 		if (!id || !nvhost_syncpt_is_valid_hw_pt(sp, id)) {
 			sync_fence_put(fence);
@@ -159,12 +155,8 @@ static void add_sync_waits(struct nvhost_channel *ch, int fd)
 	 * buffer.
 	 */
 
-#if LINUX_VERSION_CODE < KERNEL_VERSION(3, 18, 0)
-	list_for_each_entry(pt, &fence->pt_list_head, pt_list) {
-#else
 	for (i = 0; i < fence->num_fences; i++) {
 		pt = sync_pt_from_fence(fence->cbs[i].sync_pt);
-#endif
 		id = nvhost_sync_pt_id(pt);
 		thresh = nvhost_sync_pt_thresh(pt);
 

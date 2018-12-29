@@ -211,14 +211,12 @@ static int pva_free_fw(struct platform_device *pdev, struct pva *pva)
 	struct pva_fw *fw_info = &pva->fw_info;
 
 	if (pva->priv1_dma.va)
-		dma_free_attrs(&pdev->dev, pva->priv1_dma.size,
-		pva->priv1_dma.va, pva->priv1_dma.pa,
-		__DMA_ATTR(fw_info->attrs));
+		dma_free_coherent(&pdev->dev, pva->priv1_dma.size,
+		pva->priv1_dma.va, pva->priv1_dma.pa);
 
 	if (pva->priv2_dma.va)
-		dma_free_attrs(&pdev->dev, pva->priv2_dma.size,
-		pva->priv2_dma.va, pva->priv2_dma.pa,
-		__DMA_ATTR(fw_info->attrs));
+		dma_free_coherent(&pdev->dev, pva->priv2_dma.size,
+		pva->priv2_dma.va, pva->priv2_dma.pa);
 
 	memset(fw_info, 0, sizeof(struct pva_fw));
 
@@ -243,12 +241,6 @@ static int pva_read_ucode(struct platform_device *pdev,
 
 	nvhost_dbg_fn("");
 
-#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 9, 0)
-	init_dma_attrs(&fw_info->attrs);
-#else
-	fw_info->attrs = 0;
-#endif
-
 	ucode_fw = nvhost_client_request_firmware(pdev, fw_name);
 	if (!ucode_fw) {
 		nvhost_dbg_fn("pva firmware request failed");
@@ -267,10 +259,10 @@ static int pva_read_ucode(struct platform_device *pdev,
 	pva->priv1_dma.size = ALIGN(fw_info->priv1_buffer.size + SZ_4K, SZ_4K);
 
 	/* Allocate memory to R5 for app code, data or to log information */
-	pva->priv1_dma.va = dma_alloc_attrs(&pdev->dev,
+	pva->priv1_dma.va = dma_alloc_coherent(&pdev->dev,
 				pva->priv1_dma.size,
 				&pva->priv1_dma.pa,
-				GFP_KERNEL, __DMA_ATTR(fw_info->attrs));
+				GFP_KERNEL);
 
 	if (!pva->priv1_dma.va) {
 		err = -ENOMEM;
@@ -351,10 +343,10 @@ static int pva_read_ucode(struct platform_device *pdev,
 	pva->priv2_dma.size = ALIGN(fw_info->priv2_buffer.size + SZ_4K, SZ_4K);
 
 	/* Allocate memory to R5 for app code, data or to log information */
-	pva->priv2_dma.va = dma_alloc_attrs(&pdev->dev,
+	pva->priv2_dma.va = dma_alloc_coherent(&pdev->dev,
 				pva->priv2_dma.size,
 				&pva->priv2_dma.pa,
-				GFP_KERNEL, __DMA_ATTR(fw_info->attrs));
+				GFP_KERNEL);
 
 	if (!pva->priv2_dma.va) {
 		err = -ENOMEM;
