@@ -316,6 +316,8 @@ int clk_domain_sw_setup(struct gk20a *g)
 					(CLK_CLK_DOMAIN_GET((g->clk_pmu),
 					pdomain_slave_35->slave.master_idx));
 			pdomain_master_35->master.slave_idxs_mask |= BIT(i);
+			pdomain_slave_35->super.clk_pos = boardobjgrpmask_bitsetcount(
+					&pdomain_master_35->master_slave_domains_grp_mask.super);
 			status = boardobjgrpmask_bitset(
 					&pdomain_master_35->master_slave_domains_grp_mask.super, i);
 			if (status != 0) {
@@ -1562,6 +1564,7 @@ static int clk_domain_construct_35_master(struct gk20a *g,
 				clkdomainclkproglink_3x_master;
 
 	pdomain->master.slave_idxs_mask = 0;
+	pdomain->super.clk_pos = 0;
 
 	boardobjgrpmask_e32_init(&pdomain->master_slave_domains_grp_mask, NULL);
 
