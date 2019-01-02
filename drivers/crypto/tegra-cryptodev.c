@@ -3,7 +3,7 @@
  *
  * crypto dev node for NVIDIA tegra aes hardware
  *
- * Copyright (c) 2010-2018, NVIDIA Corporation. All Rights Reserved.
+ * Copyright (c) 2010-2019, NVIDIA Corporation. All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -1584,6 +1584,12 @@ static long tegra_crypto_dev_ioctl(struct file *filp,
 			}
 		}
 
+		if (rng_req.nbytes == 0U || rng_req.nbytes > PAGE_SIZE) {
+			pr_err("%s: invalid random number request size: %u\n",
+				__func__, rng_req.nbytes);
+			return -EINVAL;
+		}
+
 		rng = kzalloc(rng_req.nbytes, GFP_KERNEL);
 		if (!rng) {
 			if (rng_req.type == RNG_DRBG)
@@ -1790,6 +1796,12 @@ rng_out:
 			pr_err("%s: copy_from_user fail(%d)\n",
 					__func__, ret);
 			return -EFAULT;
+		}
+
+		if (rng_req.nbytes == 0U || rng_req.nbytes > PAGE_SIZE) {
+			pr_err("%s: invalid random number request size: %u\n",
+				__func__, rng_req.nbytes);
+			return -EINVAL;
 		}
 
 		rng = kzalloc(rng_req.nbytes, GFP_KERNEL);
