@@ -225,6 +225,7 @@ nvgpu-y += \
 	common/mm/allocators/lockless_allocator.o \
 	common/mm/gmmu/page_table.o \
 	common/mm/gmmu/pd_cache.o \
+	common/mm/as.o \
 	common/mm/vm.o \
 	common/mm/vm_area.o \
 	common/mm/nvgpu_mem.o \
@@ -236,7 +237,6 @@ nvgpu-y += \
 	common/string.o \
 	common/pramin.o \
 	common/semaphore.o \
-	common/as.o \
 	common/rbtree.o \
 	common/vbios/bios.o \
 	common/falcon/falcon.o \

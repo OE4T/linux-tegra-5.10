@@ -53,6 +53,7 @@ srcs :=	os/posix/nvgpu.c \
 	common/mm/allocators/lockless_allocator.c \
 	common/mm/gmmu/page_table.c \
 	common/mm/gmmu/pd_cache.c \
+	common/mm/as.c \
 	common/mm/vm.c \
 	common/mm/vm_area.c \
 	common/mm/nvgpu_mem.c \
@@ -91,7 +92,6 @@ srcs :=	os/posix/nvgpu.c \
 	common/pramin.c \
 	common/semaphore.c \
 	common/string.c \
-	common/as.c \
 	common/rbtree.c \
 	common/ltc/ltc.c \
 	common/ltc/ltc_gm20b.c \
