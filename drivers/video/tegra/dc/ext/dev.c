@@ -1,7 +1,7 @@
 /*
  * dev.c: Device interface for tegradc ext.
  *
- * Copyright (c) 2011-2018, NVIDIA CORPORATION, All rights reserved.
+ * Copyright (c) 2011-2019, NVIDIA CORPORATION, All rights reserved.
  *
  * Author: Robert Morell <rmorell@nvidia.com>
  * Some code based on fbdev extensions written by:
@@ -2314,6 +2314,10 @@ static int tegra_dc_ext_set_nvdisp_cmu(struct tegra_dc_ext_user *user,
 	nvdisp_cmu = &dc->nvdisp_postcomp_lut;
 	if (!nvdisp_cmu)
 		return -ENOMEM;
+
+	if ((int)args->lut_size > (TEGRA_DC_EXT_LUT_SIZE_1025 + 1)) {
+		return -EINVAL;
+	}
 
 	tegra_dc_scrncapt_disp_pause_lock(dc);
 	dc->pdata->cmu_enable = args->cmu_enable;
