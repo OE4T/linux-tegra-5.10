@@ -23,4 +23,4 @@
 OBJS   = nvgpu_allocator.o
 MODULE = nvgpu_allocator
 
-include ../../Makefile.units
+include ../../../Makefile.units
