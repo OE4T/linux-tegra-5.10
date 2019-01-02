@@ -20,7 +20,7 @@
 
 .SUFFIXES:
 
-OBJS   = pd_cache.o
-MODULE = pd_cache
+OBJS   = page_table.o
+MODULE = page_table
 
-include ../../Makefile.units
+include ../../../Makefile.units

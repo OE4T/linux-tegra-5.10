@@ -55,8 +55,8 @@ UNITS :=				\
 	$(UNIT_SRC)/fuse		\
 	$(UNIT_SRC)/mm/nvgpu_allocator	\
 	$(UNIT_SRC)/mm/nvgpu_sgt	\
-	$(UNIT_SRC)/mm/pd_cache		\
-	$(UNIT_SRC)/mm/page_table	\
+	$(UNIT_SRC)/mm/gmmu/pd_cache	\
+	$(UNIT_SRC)/mm/gmmu/page_table	\
 	$(UNIT_SRC)/fifo/runlist	\
 	$(UNIT_SRC)/list
 

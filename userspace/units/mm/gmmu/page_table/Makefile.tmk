@@ -12,9 +12,9 @@
 #
 ###############################################################################
 
-NVGPU_UNIT_NAME=pd_cache
+NVGPU_UNIT_NAME=page_table
 
-include $(NV_COMPONENT_DIR)/../../Makefile.units.common.tmk
+include $(NV_COMPONENT_DIR)/../../../Makefile.units.common.tmk
 
 # Local Variables:
 # indent-tabs-mode: t
