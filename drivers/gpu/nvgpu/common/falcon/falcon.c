@@ -253,6 +253,9 @@ int nvgpu_falcon_copy_from_emem(struct nvgpu_falcon *flcn,
 
 	if (flcn_dops->copy_from_emem != NULL) {
 		status = flcn_dops->copy_from_emem(flcn, src, dst, size, port);
+	} else {
+		nvgpu_warn(flcn->g, "Invalid op on falcon 0x%x ",
+			flcn->flcn_id);
 	}
 
 	return status;
@@ -272,6 +275,9 @@ int nvgpu_falcon_copy_to_emem(struct nvgpu_falcon *flcn,
 
 	if (flcn_dops->copy_to_emem != NULL) {
 		status = flcn_dops->copy_to_emem(flcn, dst, src, size, port);
+	} else {
+		nvgpu_warn(flcn->g, "Invalid op on falcon 0x%x ",
+			flcn->flcn_id);
 	}
 
 	return status;
@@ -281,6 +287,7 @@ int nvgpu_falcon_copy_from_dmem(struct nvgpu_falcon *flcn,
 	u32 src, u8 *dst, u32 size, u8 port)
 {
 	struct nvgpu_falcon_ops *flcn_ops;
+	int status = -EINVAL;
 
 	if (flcn == NULL) {
 		return -EINVAL;
@@ -288,13 +295,21 @@ int nvgpu_falcon_copy_from_dmem(struct nvgpu_falcon *flcn,
 
 	flcn_ops = &flcn->flcn_ops;
 
-	return flcn_ops->copy_from_dmem(flcn, src, dst, size, port);
+	if (flcn_ops->copy_from_dmem != NULL) {
+		status = flcn_ops->copy_from_dmem(flcn, src, dst, size, port);
+	} else {
+		nvgpu_warn(flcn->g, "Invalid op on falcon 0x%x ",
+			flcn->flcn_id);
+	}
+
+	return status;
 }
 
 int nvgpu_falcon_copy_to_dmem(struct nvgpu_falcon *flcn,
 	u32 dst, u8 *src, u32 size, u8 port)
 {
 	struct nvgpu_falcon_ops *flcn_ops;
+	int status = -EINVAL;
 
 	if (flcn == NULL) {
 		return -EINVAL;
@@ -302,7 +317,14 @@ int nvgpu_falcon_copy_to_dmem(struct nvgpu_falcon *flcn,
 
 	flcn_ops = &flcn->flcn_ops;
 
-	return flcn_ops->copy_to_dmem(flcn, dst, src, size, port);
+	if (flcn_ops->copy_to_dmem != NULL) {
+		status = flcn_ops->copy_to_dmem(flcn, dst, src, size, port);
+	} else {
+		nvgpu_warn(flcn->g, "Invalid op on falcon 0x%x ",
+			flcn->flcn_id);
+	}
+
+	return status;
 }
 
 int nvgpu_falcon_copy_from_imem(struct nvgpu_falcon *flcn,
