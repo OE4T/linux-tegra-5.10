@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2018-2019, NVIDIA Corporation.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -18,6 +18,7 @@
 
 #include "os/linux/debug_therm_gp106.h"
 #include "os/linux/debug_clk_gv100.h"
+#include "os/linux/debug_volt.h"
 
 static struct nvgpu_os_linux_ops tu104_os_linux_ops = {
 	.therm = {
@@ -26,10 +27,14 @@ static struct nvgpu_os_linux_ops tu104_os_linux_ops = {
 	.clk = {
 		.init_debugfs = gv100_clk_init_debugfs,
 	},
+	.volt = {
+		.init_debugfs = nvgpu_volt_init_debugfs,
+	},
 };
 
 void nvgpu_tu104_init_os_ops(struct nvgpu_os_linux *l)
 {
 	l->ops.therm = tu104_os_linux_ops.therm;
 	l->ops.clk = tu104_os_linux_ops.clk;
+	l->ops.volt = tu104_os_linux_ops.volt;
 }
