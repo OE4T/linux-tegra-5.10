@@ -249,6 +249,52 @@ out:
 }
 
 /*
+ * Valid/Invalid: Passing valid ID should succeed the call to function
+ * nvgpu_falcon_sw_init|free. Otherwise it should fail with error.
+ */
+static int test_falcon_sw_init_free(struct unit_module *m, struct gk20a *g,
+				    void *__args)
+{
+	int err;
+
+	/* verify that sw_init fails when g->params.gpu_arch|impl are invalid */
+	err = nvgpu_falcon_sw_init(g, FALCON_ID_FECS);
+	if (err != -EINVAL) {
+		unit_return_fail(m, "falcon initialized for invalid GPU\n");
+	}
+
+	nvgpu_falcon_sw_free(g, FALCON_ID_FECS);
+
+	/* initialize test setup */
+	if (init_falcon_test_env(m, g) != 0) {
+		unit_return_fail(m, "Module init failed\n");
+	}
+
+	err = nvgpu_falcon_sw_init(g, FALCON_ID_INVALID);
+	if (err != -ENODEV) {
+		unit_return_fail(m, "falcon with invalid id initialized\n");
+	}
+
+	nvgpu_falcon_sw_free(g, FALCON_ID_INVALID);
+
+	err = nvgpu_falcon_sw_init(g, FALCON_ID_FECS);
+	if (err != 0) {
+		unit_return_fail(m, "falcon init with valid ID failed\n");
+	}
+
+	nvgpu_falcon_sw_free(g, FALCON_ID_FECS);
+
+	err = nvgpu_falcon_sw_init(g, FALCON_ID_SEC2);
+	if (err != 0) {
+		unit_return_fail(m, "falcon init with valid ID failed\n");
+	}
+
+	nvgpu_falcon_sw_free(g, FALCON_ID_SEC2);
+
+	return UNIT_SUCCESS;
+}
+
+/*
  * Valid/Invalid: Status of read and write from Falcon
  * Valid: Read and write from initialized Falcon succeeds.
  * Invalid: Read and write for uninitialized Falcon fails
@@ -259,11 +305,6 @@ static int test_falcon_mem_rw_init(struct unit_module *m, struct gk20a *g,
 {
 	u32 dst = 0;
 	int err = 0, i;
-
-	/* initialize falcons */
-	if (init_falcon_test_env(m, g) != 0) {
-		unit_return_fail(m, "Module init failed\n");
-	}
 
 	/* write/read to/from uninitialized falcon */
 	for (i = 0; i < MAX_MEM_TYPE; i++) {
@@ -433,6 +474,7 @@ static int test_falcon_mem_rw_zero(struct unit_module *m, struct gk20a *g,
 }
 
 struct unit_module_test falcon_tests[] = {
+	UNIT_TEST(falcon_sw_init_free, test_falcon_sw_init_free, NULL, 0),
 	UNIT_TEST(falcon_mem_rw_init, test_falcon_mem_rw_init, NULL, 0),
 	UNIT_TEST(falcon_mem_rw_range, test_falcon_mem_rw_range, NULL, 0),
 	UNIT_TEST(falcon_mem_rw_aligned, test_falcon_mem_rw_aligned, NULL, 0),
