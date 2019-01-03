@@ -2585,9 +2585,9 @@ void gr_gk20a_free_gr_ctx(struct gk20a *g,
 		gr_gk20a_free_channel_patch_ctx(g, vm, gr_ctx);
 		gr_gk20a_free_channel_pm_ctx(g, vm, gr_ctx);
 
-		if ((g->ops.gr.dump_ctxsw_stats != NULL) &&
+		if ((g->ops.gr.ctxsw_prog.dump_ctxsw_stats != NULL) &&
 		     g->gr.ctx_vars.dump_ctxsw_stats_on_channel_close) {
-			g->ops.gr.dump_ctxsw_stats(g, vm, gr_ctx);
+			g->ops.gr.ctxsw_prog.dump_ctxsw_stats(g, &gr_ctx->mem);
 		}
 
 		nvgpu_dma_unmap_free(vm, &gr_ctx->pagepool_ctxsw_buffer);

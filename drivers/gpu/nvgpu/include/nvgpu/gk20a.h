@@ -484,8 +484,6 @@ struct gpu_ops {
 		void (*ecc_init_scrub_reg)(struct gk20a *g);
 		u32 (*get_gpcs_swdx_dss_zbc_c_format_reg)(struct gk20a *g);
 		u32 (*get_gpcs_swdx_dss_zbc_z_format_reg)(struct gk20a *g);
-		void (*dump_ctxsw_stats)(struct gk20a *g, struct vm_gk20a *vm,
-					 struct nvgpu_gr_ctx *gr_ctx);
 		void (*fecs_host_int_enable)(struct gk20a *g);
 		int (*handle_ssync_hww)(struct gk20a *g);
 		int (*handle_notify_pending)(struct gk20a *g,

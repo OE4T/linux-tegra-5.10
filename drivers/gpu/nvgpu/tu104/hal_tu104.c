@@ -500,7 +500,6 @@ static const struct gpu_ops tu104_ops = {
 				gr_gv11b_init_gfxp_wfi_timeout_count,
 		.get_max_gfxp_wfi_timeout_count =
 			gr_gv11b_get_max_gfxp_wfi_timeout_count,
-		.dump_ctxsw_stats = gr_gp10b_dump_ctxsw_stats,
 		.fecs_host_int_enable = gr_gv11b_fecs_host_int_enable,
 		.handle_ssync_hww = gr_gv11b_handle_ssync_hww,
 		.handle_notify_pending = gk20a_gr_handle_notify_pending,
