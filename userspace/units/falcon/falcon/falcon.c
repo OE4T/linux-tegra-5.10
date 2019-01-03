@@ -27,10 +27,12 @@
 #include <nvgpu/hal_init.h>
 #include <nvgpu/posix/io.h>
 #include <nvgpu/hw/gp10b/hw_fuse_gp10b.h>
+#include <nvgpu/hw/gv11b/hw_falcon_gv11b.h>
 
 #include "../falcon_utf.h"
 
 static struct nvgpu_falcon *pmu_flcn;
+static struct nvgpu_falcon *gpccs_flcn;
 static struct nvgpu_falcon *uninit_flcn;
 static u32 *rand_test_data;
 
@@ -88,8 +90,14 @@ static int init_falcon_test_env(struct unit_module *m, struct gk20a *g)
 		return err;
 	}
 
+	err = nvgpu_utf_falcon_init(m, g, FALCON_ID_GPCCS);
+	if (err) {
+		return err;
+	}
+
 	/* Set falcons for test usage */
 	pmu_flcn = &g->pmu_flcn;
+	gpccs_flcn = &g->gpccs_flcn;
 	uninit_flcn = &g->fecs_flcn;
 
 	/* Create a test buffer to be filled with random data */
@@ -294,6 +302,80 @@ static int test_falcon_sw_init_free(struct unit_module *m, struct gk20a *g,
 	return UNIT_SUCCESS;
 }
 
+static void flcn_mem_scrub_pass(void *data)
+{
+	struct nvgpu_falcon *flcn = (struct nvgpu_falcon *) data;
+	u32 dmactl_addr = flcn->flcn_base + falcon_falcon_dmactl_r();
+	struct gk20a *g = flcn->g;
+	u32 unit_status;
+
+	unit_status = nvgpu_posix_io_readl_reg_space(g, dmactl_addr);
+	unit_status &= ~(falcon_falcon_dmactl_dmem_scrubbing_m() |
+			 falcon_falcon_dmactl_imem_scrubbing_m());
+	nvgpu_posix_io_writel_reg_space(g, dmactl_addr, unit_status);
+}
+
+static int flcn_reset_state_check(void *data)
+{
+	struct nvgpu_falcon *flcn = (struct nvgpu_falcon *) data;
+	struct gk20a *g = flcn->g;
+	u32 unit_status;
+
+	unit_status = nvgpu_posix_io_readl_reg_space(g, flcn->flcn_base +
+						     falcon_falcon_cpuctl_r());
+	if (unit_status | falcon_falcon_cpuctl_hreset_f(1))
+		return 0;
+	else
+		return -1;
+}
+
+/*
+ * Valid: Reset of initialized Falcon succeeds and if not backed by engine
+ *        dependent reset then check CPU control register for bit
+ *        falcon_falcon_cpuctl_hreset_f(1).
+ * Invalid: Reset of uninitialized and null falcon fails with error -EINVAL.
+ */
+static int test_falcon_reset(struct unit_module *m, struct gk20a *g,
+			     void *__args)
+{
+	struct {
+		struct nvgpu_falcon *flcn;
+		void (*pre_reset)(void *);
+		int exp_err;
+		int (*reset_state_check)(void *);
+	} test_data[] = {{NULL, NULL, -EINVAL, NULL},
+			 {uninit_flcn, NULL, -EINVAL, NULL},
+			 {gpccs_flcn, flcn_mem_scrub_pass, 0,
+			  flcn_reset_state_check} };
+	int size = ARRAY_SIZE(test_data);
+	void *data;
+	int err, i;
+
+	for (i = 0; i < size; i++) {
+		if (test_data[i].pre_reset) {
+			test_data[i].pre_reset((void *)test_data[i].flcn);
+		}
+
+		err = nvgpu_falcon_reset(test_data[i].flcn);
+		if (err != test_data[i].exp_err) {
+			unit_return_fail(m, "falcon reset err: %d "
+					    "expected err: %d\n",
+					 err, test_data[i].exp_err);
+		}
+
+		if (test_data[i].reset_state_check) {
+			data = (void *)test_data[i].flcn;
+			err = test_data[i].reset_state_check(data);
+			if (err) {
+				unit_return_fail(m, "falcon reset state "
+						    "mismatch\n");
+			}
+		}
+	}
+
+	return UNIT_SUCCESS;
+}
+
 /*
  * Valid/Invalid: Status of read and write from Falcon
  * Valid: Read and write from initialized Falcon succeeds.
@@ -475,6 +557,7 @@ static int test_falcon_mem_rw_zero(struct unit_module *m, struct gk20a *g,
 
 struct unit_module_test falcon_tests[] = {
 	UNIT_TEST(falcon_sw_init_free, test_falcon_sw_init_free, NULL, 0),
+	UNIT_TEST(falcon_reset, test_falcon_reset, NULL, 0),
 	UNIT_TEST(falcon_mem_rw_init, test_falcon_mem_rw_init, NULL, 0),
 	UNIT_TEST(falcon_mem_rw_range, test_falcon_mem_rw_range, NULL, 0),
 	UNIT_TEST(falcon_mem_rw_aligned, test_falcon_mem_rw_aligned, NULL, 0),
