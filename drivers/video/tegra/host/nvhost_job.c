@@ -437,8 +437,12 @@ static int do_relocs(struct nvhost_job *job,
 			if (cmdbuf_page_addr) {
 				dma_buf_kunmap(buf, last_page,
 						cmdbuf_page_addr);
+#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 19, 0)
 				dma_buf_end_cpu_access(buf, last_offset,
 					PAGE_SIZE, DMA_TO_DEVICE);
+#else
+				dma_buf_end_cpu_access(buf, DMA_TO_DEVICE);
+#endif
 			}
 
 			cmdbuf_page_addr = dma_buf_kmap(buf,
@@ -451,8 +455,12 @@ static int do_relocs(struct nvhost_job *job,
 				return -ENOMEM;
 			}
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 19, 0)
 			err = dma_buf_begin_cpu_access(buf, last_offset,
 					PAGE_SIZE, DMA_TO_DEVICE);
+#else
+			err = dma_buf_begin_cpu_access(buf, DMA_TO_DEVICE);
+#endif
 			if (err) {
 				nvhost_err(&pdata->pdev->dev,
 					"begin_cpu_access() failed for patching reloc %d",
@@ -498,8 +506,12 @@ static int do_relocs(struct nvhost_job *job,
 
 	if (cmdbuf_page_addr) {
 		dma_buf_kunmap(buf, last_page, cmdbuf_page_addr);
+#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 19, 0)
 		dma_buf_end_cpu_access(buf, last_offset,
 				PAGE_SIZE, DMA_TO_DEVICE);
+#else
+		dma_buf_end_cpu_access(buf, DMA_TO_DEVICE);
+#endif
 	}
 
 	return 0;
