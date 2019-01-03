@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -81,7 +81,7 @@ int gr_tu104_get_offset_in_gpccs_segment(struct gk20a *g,
 int gr_tu104_handle_sw_method(struct gk20a *g, u32 addr,
 			      u32 class_num, u32 offset, u32 data);
 
-int gr_tu104_alloc_gfxp_rtv_cb(struct gk20a *g,
+int gr_tu104_init_gfxp_rtv_cb(struct gk20a *g,
 		  struct nvgpu_gr_ctx *gr_ctx, struct vm_gk20a *vm);
 void gr_tu104_commit_gfxp_rtv_cb(struct gk20a *g,
 		  struct nvgpu_gr_ctx *gr_ctx, bool patch);

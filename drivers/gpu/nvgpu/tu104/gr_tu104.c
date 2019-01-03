@@ -28,6 +28,7 @@
 #include <nvgpu/channel.h>
 #include <nvgpu/netlist.h>
 #include <nvgpu/gr/global_ctx.h>
+#include <nvgpu/gr/ctx.h>
 
 #include "gk20a/gr_gk20a.h"
 #include "gk20a/gr_pri_gk20a.h"
@@ -249,10 +250,9 @@ int gr_tu104_commit_global_ctx_buffers(struct gk20a *g,
 	return 0;
 }
 
-int gr_tu104_alloc_gfxp_rtv_cb(struct gk20a *g,
+int gr_tu104_init_gfxp_rtv_cb(struct gk20a *g,
 		  struct nvgpu_gr_ctx *gr_ctx, struct vm_gk20a *vm)
 {
-	int err;
 	u32 rtv_cb_size;
 
 	nvgpu_log_fn(g, " ");
@@ -263,11 +263,10 @@ int gr_tu104_alloc_gfxp_rtv_cb(struct gk20a *g,
 		gr_scc_rm_rtv_cb_size_div_256b_gfxp_adder_f()) *
 		gr_scc_rm_rtv_cb_size_div_256b_byte_granularity_v();
 
-	err = gr_gp10b_alloc_buffer(vm,
-				rtv_cb_size,
-				&gr_ctx->gfxp_rtvcb_ctxsw_buffer);
+	nvgpu_gr_ctx_set_size(g->gr.gr_ctx_desc,
+		NVGPU_GR_CTX_GFXP_RTVCB_CTXSW, rtv_cb_size);
 
-	return err;
+	return 0;
 }
 
 void gr_tu104_commit_gfxp_rtv_cb(struct gk20a *g,

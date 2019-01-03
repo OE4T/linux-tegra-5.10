@@ -70,23 +70,14 @@
 #define CTXSW_INTR1				BIT32(1)
 
 struct tsg_gk20a;
+struct nvgpu_gr_ctx;
 struct channel_gk20a;
 struct nvgpu_warpstate;
+struct nvgpu_gr_ctx_desc;
 struct nvgpu_gr_global_ctx_buffer_desc;
 struct nvgpu_gr_global_ctx_local_golden_image;
 
 enum ctxsw_addr_type;
-
-/* either ATTRIBUTE or ATTRIBUTE_VPR maps to ATTRIBUTE_VA */
-enum  /*global_ctx_buffer_va */ {
-	CIRCULAR_VA		= 0,
-	PAGEPOOL_VA		= 1,
-	ATTRIBUTE_VA		= 2,
-	PRIV_ACCESS_MAP_VA	= 3,
-	RTV_CIRCULAR_BUFFER_VA	= 4,
-	FECS_TRACE_BUFFER_VA	= 5,
-	NR_GLOBAL_CTX_BUF_VA	= 6
-};
 
 enum wait_ucode_status {
 	WAIT_UCODE_LOOP,
@@ -247,9 +238,6 @@ struct nvgpu_preemption_modes_rec {
 struct gr_gk20a {
 	struct gk20a *g;
 	struct {
-		u32 buffer_size;
-		u32 buffer_total_size;
-
 		bool golden_image_initialized;
 		u32 golden_image_size;
 
@@ -331,6 +319,8 @@ struct gr_gk20a {
 	struct nvgpu_gr_global_ctx_buffer_desc *global_ctx_buffer;
 	struct nvgpu_gr_global_ctx_local_golden_image *local_golden_image;
 
+	struct nvgpu_gr_ctx_desc *gr_ctx_desc;
+
 	u8 *map_tiles;
 	u32 map_tile_count;
 	u32 map_row_offset;
@@ -382,34 +372,6 @@ struct gr_gk20a {
 };
 
 void gk20a_fecs_dump_falcon_stats(struct gk20a *g);
-
-/* contexts associated with a TSG */
-struct nvgpu_gr_ctx {
-	struct nvgpu_mem mem;
-
-	u32 graphics_preempt_mode;
-	u32 compute_preempt_mode;
-
-	struct nvgpu_mem preempt_ctxsw_buffer;
-	struct nvgpu_mem spill_ctxsw_buffer;
-	struct nvgpu_mem betacb_ctxsw_buffer;
-	struct nvgpu_mem pagepool_ctxsw_buffer;
-	struct nvgpu_mem gfxp_rtvcb_ctxsw_buffer;
-	u32 ctx_id;
-	bool ctx_id_valid;
-	bool cilp_preempt_pending;
-	bool boosted_ctx;
-	bool golden_img_loaded;
-
-	struct patch_desc	patch_ctx;
-	struct zcull_ctx_desc	zcull_ctx;
-	struct pm_ctx_desc	pm_ctx;
-	u64	global_ctx_buffer_va[NR_GLOBAL_CTX_BUF_VA];
-	int	global_ctx_buffer_index[NR_GLOBAL_CTX_BUF_VA];
-	bool	global_ctx_buffer_mapped;
-
-	u32 tsgid;
-};
 
 struct gk20a_ctxsw_ucode_segment {
 	u32 offset;
@@ -588,7 +550,6 @@ int gr_gk20a_update_hwpm_ctxsw_mode(struct gk20a *g,
 				  u64 gpu_va,
 				  u32 mode);
 
-struct nvgpu_gr_ctx;
 void gr_gk20a_ctx_patch_write(struct gk20a *g, struct nvgpu_gr_ctx *gr_ctx,
 				    u32 addr, u32 data, bool patch);
 int gr_gk20a_ctx_patch_write_begin(struct gk20a *g,

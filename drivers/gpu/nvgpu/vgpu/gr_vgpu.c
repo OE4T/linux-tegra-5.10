@@ -1,7 +1,7 @@
 /*
  * Virtualized GPU Graphics
  *
- * Copyright (c) 2014-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -35,6 +35,7 @@
 #include <nvgpu/tsg.h>
 #include <nvgpu/string.h>
 #include <nvgpu/gr/global_ctx.h>
+#include <nvgpu/gr/ctx.h>
 
 #include "gr_vgpu.h"
 #include "gk20a/fecs_trace_gk20a.h"
@@ -109,7 +110,6 @@ static int vgpu_gr_load_golden_ctx_image(struct gk20a *g,
 
 int vgpu_gr_init_ctx_state(struct gk20a *g)
 {
-	struct gr_gk20a *gr = &g->gr;
 	struct vgpu_priv_data *priv = vgpu_get_priv_data(g);
 
 	nvgpu_log_fn(g, " ");
@@ -122,7 +122,6 @@ int vgpu_gr_init_ctx_state(struct gk20a *g)
 		!g->gr.ctx_vars.pm_ctxsw_image_size)
 		return -ENXIO;
 
-	gr->ctx_vars.buffer_size = g->gr.ctx_vars.golden_image_size;
 	g->gr.ctx_vars.priv_access_map_size = 512 * 1024;
 #ifdef CONFIG_GK20A_CTXSW_TRACE
 	g->gr.ctx_vars.fecs_trace_buffer_size = gk20a_fecs_trace_buffer_size(g);
@@ -314,20 +313,16 @@ int vgpu_gr_alloc_gr_ctx(struct gk20a *g,
 
 	nvgpu_log_fn(g, " ");
 
-	if (gr->ctx_vars.buffer_size == 0)
-		return 0;
-
-	/* alloc channel gr ctx buffer */
-	gr->ctx_vars.buffer_size = gr->ctx_vars.golden_image_size;
-	gr->ctx_vars.buffer_total_size = gr->ctx_vars.golden_image_size;
+	if (gr->ctx_vars.golden_image_size == 0)
+		return -EINVAL;
 
 	gr_ctx->mem.gpu_va = nvgpu_vm_alloc_va(vm,
-					       gr->ctx_vars.buffer_total_size,
-					       GMMU_PAGE_SIZE_KERNEL);
+				       gr->ctx_vars.golden_image_size,
+				       GMMU_PAGE_SIZE_KERNEL);
 
 	if (!gr_ctx->mem.gpu_va)
 		return -ENOMEM;
-	gr_ctx->mem.size = gr->ctx_vars.buffer_total_size;
+	gr_ctx->mem.size = gr->ctx_vars.golden_image_size;
 	gr_ctx->mem.aperture = APERTURE_SYSMEM;
 
 	msg.cmd = TEGRA_VGPU_CMD_GR_CTX_ALLOC;
@@ -936,6 +931,11 @@ static int vgpu_gr_init_gr_setup_sw(struct gk20a *g)
 	err = vgpu_gr_alloc_global_ctx_buffers(g);
 	if (err)
 		goto clean_up;
+
+	gr->gr_ctx_desc = nvgpu_gr_ctx_desc_alloc(g);
+	if (gr->gr_ctx_desc == NULL) {
+		goto clean_up;
+	}
 
 	nvgpu_mutex_init(&gr->ctx_mutex);
 	nvgpu_spinlock_init(&gr->ch_tlb_lock);

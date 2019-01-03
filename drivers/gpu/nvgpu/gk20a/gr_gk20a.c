@@ -49,6 +49,7 @@
 #include <nvgpu/unit.h>
 #include <nvgpu/string.h>
 #include <nvgpu/gr/global_ctx.h>
+#include <nvgpu/gr/ctx.h>
 
 #include "gr_gk20a.h"
 #include "gk20a/fecs_trace_gk20a.h"
@@ -74,14 +75,6 @@
 #define FECS_ARB_CMD_TIMEOUT_DEFAULT 2
 
 static int gk20a_init_gr_bind_fecs_elpg(struct gk20a *g);
-
-static void gr_gk20a_free_channel_pm_ctx(struct gk20a *g,
-					 struct vm_gk20a *vm,
-					 struct nvgpu_gr_ctx *gr_ctx);
-
-static void gr_gk20a_free_channel_patch_ctx(struct gk20a *g,
-					    struct vm_gk20a *vm,
-					    struct nvgpu_gr_ctx *gr_ctx);
 
 /*elcg init */
 static void gr_gk20a_enable_elcg(struct gk20a *g);
@@ -1622,29 +1615,18 @@ int gr_gk20a_update_hwpm_ctxsw_mode(struct gk20a *g,
 	if (mode != NVGPU_DBG_HWPM_CTXSW_MODE_NO_CTXSW) {
 		/* Allocate buffer if necessary */
 		if (pm_ctx->mem.gpu_va == 0ULL) {
-			ret = nvgpu_dma_alloc_sys(g,
-					g->gr.ctx_vars.pm_ctxsw_image_size,
-					&pm_ctx->mem);
+			nvgpu_gr_ctx_set_size(g->gr.gr_ctx_desc,
+				NVGPU_GR_CTX_PM_CTX,
+				g->gr.ctx_vars.pm_ctxsw_image_size);
+
+			ret = nvgpu_gr_ctx_alloc_pm_ctx(g, gr_ctx,
+				g->gr.gr_ctx_desc, c->vm,
+				gpu_va);
 			if (ret != 0) {
 				c->g->ops.fifo.enable_channel(c);
 				nvgpu_err(g,
 					"failed to allocate pm ctxt buffer");
 				return ret;
-			}
-
-			pm_ctx->mem.gpu_va = nvgpu_gmmu_map_fixed(c->vm,
-							&pm_ctx->mem,
-							gpu_va,
-							pm_ctx->mem.size,
-							NVGPU_VM_MAP_CACHEABLE,
-							gk20a_mem_flag_none, true,
-							pm_ctx->mem.aperture);
-			if (pm_ctx->mem.gpu_va == 0ULL) {
-				nvgpu_err(g,
-					"failed to map pm ctxt buffer");
-				nvgpu_dma_free(g, &pm_ctx->mem);
-				c->g->ops.fifo.enable_channel(c);
-				return -ENOMEM;
 			}
 		}
 
@@ -2482,35 +2464,15 @@ int gr_gk20a_alloc_gr_ctx(struct gk20a *g,
 
 	nvgpu_log_fn(g, " ");
 
-	if (gr->ctx_vars.buffer_size == 0U) {
-		return 0;
-	}
+	nvgpu_gr_ctx_set_size(gr->gr_ctx_desc, NVGPU_GR_CTX_CTX,
+		gr->ctx_vars.golden_image_size);
 
-	/* alloc channel gr ctx buffer */
-	gr->ctx_vars.buffer_size = gr->ctx_vars.golden_image_size;
-	gr->ctx_vars.buffer_total_size = gr->ctx_vars.golden_image_size;
-
-	err = nvgpu_dma_alloc(g, gr->ctx_vars.buffer_total_size, &gr_ctx->mem);
+	err = nvgpu_gr_ctx_alloc(g, gr_ctx, gr->gr_ctx_desc, vm);
 	if (err != 0) {
 		return err;
 	}
 
-	gr_ctx->mem.gpu_va = nvgpu_gmmu_map(vm,
-					&gr_ctx->mem,
-					gr_ctx->mem.size,
-					0, /* not GPU-cacheable */
-					gk20a_mem_flag_none, true,
-					gr_ctx->mem.aperture);
-	if (gr_ctx->mem.gpu_va == 0ULL) {
-		goto err_free_mem;
-	}
-
 	return 0;
-
- err_free_mem:
-	nvgpu_dma_free(g, &gr_ctx->mem);
-
-	return err;
 }
 
 void gr_gk20a_free_gr_ctx(struct gk20a *g,
@@ -2519,22 +2481,13 @@ void gr_gk20a_free_gr_ctx(struct gk20a *g,
 	nvgpu_log_fn(g, " ");
 
 	if (gr_ctx != NULL) {
-		gr_gk20a_unmap_global_ctx_buffers(g, vm, gr_ctx);
-		gr_gk20a_free_channel_patch_ctx(g, vm, gr_ctx);
-		gr_gk20a_free_channel_pm_ctx(g, vm, gr_ctx);
-
 		if ((g->ops.gr.ctxsw_prog.dump_ctxsw_stats != NULL) &&
 		     g->gr.ctx_vars.dump_ctxsw_stats_on_channel_close) {
 			g->ops.gr.ctxsw_prog.dump_ctxsw_stats(g, &gr_ctx->mem);
 		}
 
-		nvgpu_dma_unmap_free(vm, &gr_ctx->pagepool_ctxsw_buffer);
-		nvgpu_dma_unmap_free(vm, &gr_ctx->betacb_ctxsw_buffer);
-		nvgpu_dma_unmap_free(vm, &gr_ctx->spill_ctxsw_buffer);
-		nvgpu_dma_unmap_free(vm, &gr_ctx->preempt_ctxsw_buffer);
-		nvgpu_dma_unmap_free(vm, &gr_ctx->mem);
-
-		(void) memset(gr_ctx, 0, sizeof(*gr_ctx));
+		gr_gk20a_unmap_global_ctx_buffers(g, vm, gr_ctx);
+		nvgpu_gr_ctx_free(g, vm, gr_ctx);
 	}
 }
 
@@ -2552,65 +2505,6 @@ void gr_gk20a_free_tsg_gr_ctx(struct tsg_gk20a *tsg)
 u32 gr_gk20a_get_patch_slots(struct gk20a *g)
 {
 	return PATCH_CTX_SLOTS_PER_PAGE;
-}
-
-static int gr_gk20a_alloc_channel_patch_ctx(struct gk20a *g,
-				struct vm_gk20a *ch_vm,
-				struct nvgpu_gr_ctx *gr_ctx)
-{
-	struct patch_desc *patch_ctx;
-	u32 alloc_size;
-	int err = 0;
-
-	nvgpu_log_fn(g, " ");
-
-	patch_ctx = &gr_ctx->patch_ctx;
-	alloc_size = g->ops.gr.get_patch_slots(g) *
-		PATCH_CTX_SLOTS_REQUIRED_PER_ENTRY;
-
-	nvgpu_log(g, gpu_dbg_info, "patch buffer size in entries: %d",
-		alloc_size);
-
-	err = nvgpu_dma_alloc_map_sys(ch_vm,
-			alloc_size * sizeof(u32), &patch_ctx->mem);
-	if (err != 0) {
-		return err;
-	}
-
-	nvgpu_log_fn(g, "done");
-	return 0;
-}
-
-static void gr_gk20a_free_channel_patch_ctx(struct gk20a *g,
-					    struct vm_gk20a *vm,
-					    struct nvgpu_gr_ctx *gr_ctx)
-{
-	struct patch_desc *patch_ctx = &gr_ctx->patch_ctx;
-
-	nvgpu_log_fn(g, " ");
-
-	if (patch_ctx->mem.gpu_va != 0ULL) {
-		nvgpu_gmmu_unmap(vm, &patch_ctx->mem,
-				 patch_ctx->mem.gpu_va);
-	}
-
-	nvgpu_dma_free(g, &patch_ctx->mem);
-	patch_ctx->data_count = 0;
-}
-
-static void gr_gk20a_free_channel_pm_ctx(struct gk20a *g,
-					 struct vm_gk20a *vm,
-					 struct nvgpu_gr_ctx *gr_ctx)
-{
-	struct pm_ctx_desc *pm_ctx = &gr_ctx->pm_ctx;
-
-	nvgpu_log_fn(g, " ");
-
-	if (pm_ctx->mem.gpu_va != 0ULL) {
-		nvgpu_gmmu_unmap(vm, &pm_ctx->mem, pm_ctx->mem.gpu_va);
-
-		nvgpu_dma_free(g, &pm_ctx->mem);
-	}
 }
 
 int gk20a_alloc_obj_ctx(struct channel_gk20a  *c, u32 class_num, u32 flags)
@@ -2663,8 +2557,14 @@ int gk20a_alloc_obj_ctx(struct channel_gk20a  *c, u32 class_num, u32 flags)
 		/* allocate patch buffer */
 		if (!nvgpu_mem_is_valid(&gr_ctx->patch_ctx.mem)) {
 			gr_ctx->patch_ctx.data_count = 0;
-			err = gr_gk20a_alloc_channel_patch_ctx(g, c->vm,
-					gr_ctx);
+
+			nvgpu_gr_ctx_set_size(g->gr.gr_ctx_desc,
+				NVGPU_GR_CTX_PATCH_CTX,
+				g->ops.gr.get_patch_slots(g) *
+					PATCH_CTX_SLOTS_REQUIRED_PER_ENTRY);
+
+			err = nvgpu_gr_ctx_alloc_patch_ctx(g, gr_ctx,
+				g->gr.gr_ctx_desc, c->vm);
 			if (err != 0) {
 				nvgpu_err(g,
 					"fail to allocate patch buffer");
@@ -2765,6 +2665,8 @@ static void gk20a_remove_gr_support(struct gr_gk20a *gr)
 
 	nvgpu_gr_global_ctx_buffer_free(g, gr->global_ctx_buffer);
 	nvgpu_gr_global_ctx_desc_free(g, gr->global_ctx_buffer);
+
+	nvgpu_gr_ctx_desc_free(g, gr->gr_ctx_desc);
 
 	nvgpu_dma_free(g, &gr->compbit_store.mem);
 
@@ -3312,7 +3214,6 @@ int gr_gk20a_bind_ctxsw_zcull(struct gk20a *g, struct gr_gk20a *gr,
 			struct channel_gk20a *c, u64 zcull_va, u32 mode)
 {
 	struct tsg_gk20a *tsg;
-	struct zcull_ctx_desc *zcull_ctx;
 	struct nvgpu_gr_ctx *gr_ctx;
 
 	tsg = tsg_gk20a_from_ch(c);
@@ -3321,10 +3222,7 @@ int gr_gk20a_bind_ctxsw_zcull(struct gk20a *g, struct gr_gk20a *gr,
 	}
 
 	gr_ctx = tsg->gr_ctx;
-
-	zcull_ctx = &gr_ctx->zcull_ctx;
-	zcull_ctx->ctx_sw_mode = mode;
-	zcull_ctx->gpu_va = zcull_va;
+	nvgpu_gr_ctx_set_zcull_ctx(g, gr_ctx, mode, zcull_va);
 
 	/* TBD: don't disable channel in sw method processing */
 	return gr_gk20a_ctx_zcull_setup(g, c, gr_ctx);
@@ -4500,9 +4398,14 @@ static int gk20a_init_gr_setup_sw(struct gk20a *g)
 		goto clean_up;
 	}
 
+	gr->gr_ctx_desc = nvgpu_gr_ctx_desc_alloc(g);
+	if (gr->gr_ctx_desc == NULL) {
+		goto clean_up;
+	}
+
 	gr->global_ctx_buffer = nvgpu_gr_global_ctx_desc_alloc(g);
 	if (gr->global_ctx_buffer == NULL) {
-		return -ENOMEM;
+		goto clean_up;
 	}
 
 	err = g->ops.gr.alloc_global_ctx_buffers(g);
@@ -4524,8 +4427,6 @@ static int gk20a_init_gr_setup_sw(struct gk20a *g)
 	if (g->ops.gr.init_gfxp_wfi_timeout_count != NULL) {
 		g->ops.gr.init_gfxp_wfi_timeout_count(g);
 	}
-
-	g->gr.ctx_vars.buffer_size = g->netlist_vars->buffer_size;
 
 	err = nvgpu_mutex_init(&gr->ctx_mutex);
 	if (err != 0) {

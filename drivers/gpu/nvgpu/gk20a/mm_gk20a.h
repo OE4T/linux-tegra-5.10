@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -31,22 +31,6 @@
 #include <nvgpu/kref.h>
 
 enum gk20a_mem_rw_flag;
-
-struct patch_desc {
-	struct nvgpu_mem mem;
-	u32 data_count;
-};
-
-struct zcull_ctx_desc {
-	u64 gpu_va;
-	u32 ctx_attr;
-	u32 ctx_sw_mode;
-};
-
-struct pm_ctx_desc {
-	struct nvgpu_mem mem;
-	u32 pm_mode;
-};
 
 struct compbit_store_desc {
 	struct nvgpu_mem mem;

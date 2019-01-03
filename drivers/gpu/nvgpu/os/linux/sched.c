@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -25,6 +25,7 @@
 #include <nvgpu/barrier.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/string.h>
+#include <nvgpu/gr/ctx.h>
 
 #include "gk20a/gr_gk20a.h"
 #include "sched.h"

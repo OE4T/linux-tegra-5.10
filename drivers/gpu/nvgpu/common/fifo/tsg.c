@@ -29,6 +29,7 @@
 #include <nvgpu/tsg.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/error_notifier.h>
+#include <nvgpu/gr/ctx.h>
 
 #include "gk20a/gr_gk20a.h"
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017-2018 NVIDIA Corporation.  All rights reserved.
+ * Copyright (C) 2017-2019 NVIDIA Corporation.  All rights reserved.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -21,6 +21,7 @@
 #include <nvgpu/sort.h>
 #include <nvgpu/timers.h>
 #include <nvgpu/channel.h>
+#include <nvgpu/gr/ctx.h>
 
 void __gk20a_fifo_profile_free(struct nvgpu_ref *ref);
 

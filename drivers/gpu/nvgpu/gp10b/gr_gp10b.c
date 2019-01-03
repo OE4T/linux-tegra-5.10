@@ -35,6 +35,7 @@
 #include <nvgpu/utils.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/channel.h>
+#include <nvgpu/gr/ctx.h>
 
 #include "gk20a/gr_gk20a.h"
 #include "gk20a/regops_gk20a.h"
@@ -910,39 +911,6 @@ int gr_gp10b_init_ctx_state(struct gk20a *g)
 	return 0;
 }
 
-int gr_gp10b_alloc_buffer(struct vm_gk20a *vm, size_t size,
-			struct nvgpu_mem *mem)
-{
-	int err;
-	struct gk20a *g = gk20a_from_vm(vm);
-
-	nvgpu_log_fn(g, " ");
-
-	err = nvgpu_dma_alloc_sys(vm->mm->g, size, mem);
-	if (err != 0) {
-		return err;
-	}
-
-	mem->gpu_va = nvgpu_gmmu_map(vm,
-				mem,
-				mem->aligned_size,
-				NVGPU_VM_MAP_CACHEABLE,
-				gk20a_mem_flag_none,
-				false,
-				mem->aperture);
-
-	if (mem->gpu_va == 0ULL) {
-		err = -ENOMEM;
-		goto fail_free;
-	}
-
-	return 0;
-
-fail_free:
-	nvgpu_dma_free(vm->mm->g, mem);
-	return err;
-}
-
 int gr_gp10b_set_ctxsw_preemption_mode(struct gk20a *g,
 				struct nvgpu_gr_ctx *gr_ctx,
 				struct vm_gk20a *vm, u32 class,
@@ -1004,44 +972,29 @@ int gr_gp10b_set_ctxsw_preemption_mode(struct gk20a *g,
 		nvgpu_log_info(g, "gfxp context attrib_cb_size=%d",
 				attrib_cb_size);
 
-		err = gr_gp10b_alloc_buffer(vm,
-					g->gr.ctx_vars.preempt_image_size,
-					&gr_ctx->preempt_ctxsw_buffer);
-		if (err != 0) {
-			nvgpu_err(g, "cannot allocate preempt buffer");
-			goto fail;
-		}
+		nvgpu_gr_ctx_set_size(g->gr.gr_ctx_desc,
+			NVGPU_GR_CTX_PREEMPT_CTXSW,
+			g->gr.ctx_vars.preempt_image_size);
+		nvgpu_gr_ctx_set_size(g->gr.gr_ctx_desc,
+			NVGPU_GR_CTX_SPILL_CTXSW, spill_size);
+		nvgpu_gr_ctx_set_size(g->gr.gr_ctx_desc,
+			NVGPU_GR_CTX_BETACB_CTXSW, attrib_cb_size);
+		nvgpu_gr_ctx_set_size(g->gr.gr_ctx_desc,
+			NVGPU_GR_CTX_PAGEPOOL_CTXSW, pagepool_size);
 
-		err = gr_gp10b_alloc_buffer(vm,
-					spill_size,
-					&gr_ctx->spill_ctxsw_buffer);
-		if (err != 0) {
-			nvgpu_err(g, "cannot allocate spill buffer");
-			goto fail_free_preempt;
-		}
-
-		err = gr_gp10b_alloc_buffer(vm,
-					attrib_cb_size,
-					&gr_ctx->betacb_ctxsw_buffer);
-		if (err != 0) {
-			nvgpu_err(g, "cannot allocate beta buffer");
-			goto fail_free_spill;
-		}
-
-		err = gr_gp10b_alloc_buffer(vm,
-					pagepool_size,
-					&gr_ctx->pagepool_ctxsw_buffer);
-		if (err != 0) {
-			nvgpu_err(g, "cannot allocate page pool");
-			goto fail_free_betacb;
-		}
-
-		if (g->ops.gr.alloc_gfxp_rtv_cb != NULL) {
-			err = g->ops.gr.alloc_gfxp_rtv_cb(g, gr_ctx, vm);
+		if (g->ops.gr.init_gfxp_rtv_cb != NULL) {
+			err = g->ops.gr.init_gfxp_rtv_cb(g, gr_ctx, vm);
 			if (err != 0) {
 				nvgpu_err(g, "cannot allocate gfxp rtv_cb");
-				goto fail_free_pagepool;
+				goto fail;
 			}
+		}
+
+		err = nvgpu_gr_ctx_alloc_ctxsw_buffers(g, gr_ctx,
+			g->gr.gr_ctx_desc, vm);
+		if (err != 0) {
+			nvgpu_err(g, "cannot allocate ctxsw buffers");
+			goto fail;
 		}
 
 		gr_ctx->graphics_preempt_mode = graphics_preempt_mode;
@@ -1071,14 +1024,6 @@ int gr_gp10b_set_ctxsw_preemption_mode(struct gk20a *g,
 
 	return 0;
 
-fail_free_pagepool:
-	nvgpu_dma_unmap_free(vm, &gr_ctx->pagepool_ctxsw_buffer);
-fail_free_betacb:
-	nvgpu_dma_unmap_free(vm, &gr_ctx->betacb_ctxsw_buffer);
-fail_free_spill:
-	nvgpu_dma_unmap_free(vm, &gr_ctx->spill_ctxsw_buffer);
-fail_free_preempt:
-	nvgpu_dma_unmap_free(vm, &gr_ctx->preempt_ctxsw_buffer);
 fail:
 	return err;
 }

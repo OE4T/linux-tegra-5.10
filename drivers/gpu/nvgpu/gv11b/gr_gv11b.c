@@ -37,6 +37,7 @@
 #include <nvgpu/utils.h>
 #include <nvgpu/bitops.h>
 #include <nvgpu/gk20a.h>
+#include <nvgpu/gr/ctx.h>
 #include <nvgpu/channel.h>
 #include <nvgpu/nvgpu_err.h>
 
@@ -1719,36 +1720,29 @@ int gr_gv11b_set_ctxsw_preemption_mode(struct gk20a *g,
 		nvgpu_log_info(g, "gfxp context attrib_cb_size=%d",
 				attrib_cb_size);
 
-		err = gr_gp10b_alloc_buffer(vm,
-					g->gr.ctx_vars.preempt_image_size,
-					&gr_ctx->preempt_ctxsw_buffer);
+		nvgpu_gr_ctx_set_size(g->gr.gr_ctx_desc,
+			NVGPU_GR_CTX_PREEMPT_CTXSW,
+			g->gr.ctx_vars.preempt_image_size);
+		nvgpu_gr_ctx_set_size(g->gr.gr_ctx_desc,
+			NVGPU_GR_CTX_SPILL_CTXSW, spill_size);
+		nvgpu_gr_ctx_set_size(g->gr.gr_ctx_desc,
+			NVGPU_GR_CTX_BETACB_CTXSW, attrib_cb_size);
+		nvgpu_gr_ctx_set_size(g->gr.gr_ctx_desc,
+			NVGPU_GR_CTX_PAGEPOOL_CTXSW, pagepool_size);
+
+		if (g->ops.gr.init_gfxp_rtv_cb != NULL) {
+			err = g->ops.gr.init_gfxp_rtv_cb(g, gr_ctx, vm);
+			if (err != 0) {
+				nvgpu_err(g, "cannot allocate gfxp rtv_cb");
+				goto fail;
+			}
+		}
+
+		err = nvgpu_gr_ctx_alloc_ctxsw_buffers(g, gr_ctx,
+			g->gr.gr_ctx_desc, vm);
 		if (err != 0) {
-			nvgpu_err(g, "cannot allocate preempt buffer");
+			nvgpu_err(g, "cannot allocate ctxsw buffers");
 			goto fail;
-		}
-
-		err = gr_gp10b_alloc_buffer(vm,
-					spill_size,
-					&gr_ctx->spill_ctxsw_buffer);
-		if (err != 0) {
-			nvgpu_err(g, "cannot allocate spill buffer");
-			goto fail_free_preempt;
-		}
-
-		err = gr_gp10b_alloc_buffer(vm,
-					attrib_cb_size,
-					&gr_ctx->betacb_ctxsw_buffer);
-		if (err != 0) {
-			nvgpu_err(g, "cannot allocate beta buffer");
-			goto fail_free_spill;
-		}
-
-		err = gr_gp10b_alloc_buffer(vm,
-					pagepool_size,
-					&gr_ctx->pagepool_ctxsw_buffer);
-		if (err != 0) {
-			nvgpu_err(g, "cannot allocate page pool");
-			goto fail_free_betacb;
 		}
 
 		gr_ctx->graphics_preempt_mode = graphics_preempt_mode;
@@ -1778,12 +1772,6 @@ int gr_gv11b_set_ctxsw_preemption_mode(struct gk20a *g,
 
 	return 0;
 
-fail_free_betacb:
-	nvgpu_dma_unmap_free(vm, &gr_ctx->betacb_ctxsw_buffer);
-fail_free_spill:
-	nvgpu_dma_unmap_free(vm, &gr_ctx->spill_ctxsw_buffer);
-fail_free_preempt:
-	nvgpu_dma_unmap_free(vm, &gr_ctx->preempt_ctxsw_buffer);
 fail:
 	return err;
 }

@@ -1,7 +1,7 @@
 /*
  * Volta GPU series Subcontext
  *
- * Copyright (c) 2016-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -29,6 +29,7 @@
 #include <nvgpu/gmmu.h>
 #include <nvgpu/utils.h>
 #include <nvgpu/channel.h>
+#include <nvgpu/gr/ctx.h>
 
 #include <nvgpu/hw/gv11b/hw_ram_gv11b.h>
 #include <nvgpu/hw/gv11b/hw_gr_gv11b.h>

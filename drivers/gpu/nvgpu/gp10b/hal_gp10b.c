@@ -374,7 +374,7 @@ static const struct gpu_ops gp10b_ops = {
 		.dump_gr_falcon_stats = gk20a_fecs_dump_falcon_stats,
 		.get_fecs_ctx_state_store_major_rev_id =
 			gk20a_gr_get_fecs_ctx_state_store_major_rev_id,
-		.alloc_gfxp_rtv_cb = NULL,
+		.init_gfxp_rtv_cb = NULL,
 		.commit_gfxp_rtv_cb = NULL,
 		.ctxsw_prog = {
 			.hw_get_fecs_header_size =

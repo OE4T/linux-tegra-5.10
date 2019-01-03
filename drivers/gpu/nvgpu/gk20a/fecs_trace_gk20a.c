@@ -37,6 +37,7 @@
 #include <nvgpu/channel.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/gr/global_ctx.h>
+#include <nvgpu/gr/ctx.h>
 
 #include "fecs_trace_gk20a.h"
 #include "gr_gk20a.h"
