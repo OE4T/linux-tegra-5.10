@@ -4,7 +4,7 @@
  *
  * Support for Tegra Virtual Security Engine hardware crypto algorithms.
  *
- * Copyright (c) 2016-2018, NVIDIA Corporation. All Rights Reserved.
+ * Copyright (c) 2016-2019, NVIDIA Corporation. All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -327,6 +327,8 @@ struct tegra_virtual_se_aes_context {
 	bool key_in_mem;
 	/* To store key if is_key_in_mem set */
 	u8 key[32];
+	/* Whether key is a keyslot label */
+	bool is_keyslot_label;
 };
 
 enum tegra_virtual_se_aes_op_mode {
@@ -1718,7 +1720,7 @@ static void tegra_hv_vse_aes_cra_exit(struct crypto_tfm *tfm)
 	if (ctx->key_in_mem)
 		return;
 
-	if (!se_dev->disable_keyslot_label)
+	if (ctx->is_keyslot_label)
 		return;
 
 	ivc_req_msg =
@@ -2708,7 +2710,9 @@ static int tegra_hv_vse_aes_setkey(struct crypto_ablkcipher *tfm,
 			ctx->keylen = keylen;
 			ctx->aes_keyslot = (u32)slot;
 			ctx->is_key_slot_allocated = true;
-			return 0;
+			ctx->is_keyslot_label = is_keyslot_label;
+			return tegra_hv_vse_aes_set_keyiv(se_dev, (u8 *)key,
+					keylen, (u8)slot, AES_KEYTBL_TYPE_KEY);
 		}
 	}
 
