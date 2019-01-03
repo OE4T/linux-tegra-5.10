@@ -355,11 +355,13 @@ static int pin_job_mem(struct nvhost_job *job)
 
 	for (i = 0; i < job->num_relocs; i++) {
 		struct nvhost_reloc *reloc = &job->relocarray[i];
-		struct nvhost_reloc_type *type = &job->reloctypearray[i];
 		enum dma_data_direction direction = DMA_BIDIRECTIONAL;
 
+#if defined(CONFIG_MODS)
+		struct nvhost_reloc_type *type = &job->reloctypearray[i];
 		if (type->reloc_type == NVHOST_RELOC_TYPE_NVLINK)
 			direction |= DMA_FOR_NVLINK;
+#endif
 
 		job->pin_ids[count].id = reloc->target;
 		job->pin_ids[count].direction = direction;
