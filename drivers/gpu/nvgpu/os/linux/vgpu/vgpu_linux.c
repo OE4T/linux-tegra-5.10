@@ -185,49 +185,9 @@ int vgpu_pm_finalize_poweron(struct device *dev)
 
 	g->power_on = true;
 
-	vgpu_detect_chip(g);
-	err = vgpu_init_hal(g);
+	err = vgpu_finalize_poweron_common(g);
 	if (err)
 		goto done;
-
-	if (g->ops.ltc.init_fs_state)
-		g->ops.ltc.init_fs_state(g);
-
-	err = nvgpu_init_ltc_support(g);
-	if (err) {
-		nvgpu_err(g, "failed to init ltc");
-		goto done;
-	}
-
-	err = vgpu_init_mm_support(g);
-	if (err) {
-		nvgpu_err(g, "failed to init gk20a mm");
-		goto done;
-	}
-
-	err = vgpu_init_fifo_support(g);
-	if (err) {
-		nvgpu_err(g, "failed to init gk20a fifo");
-		goto done;
-	}
-
-	err = vgpu_init_gr_support(g);
-	if (err) {
-		nvgpu_err(g, "failed to init gk20a gr");
-		goto done;
-	}
-
-	err = nvgpu_clk_arb_init_arbiter(g);
-	if (err) {
-		nvgpu_err(g, "failed to init clk arb");
-		goto done;
-	}
-
-	err = g->ops.chip_init_gpu_characteristics(g);
-	if (err) {
-		nvgpu_err(g, "failed to init gk20a gpu characteristics");
-		goto done;
-	}
 
 	/* Initialize linux specific flags */
 	gk20a_init_linux_characteristics(g);
@@ -236,11 +196,7 @@ int vgpu_pm_finalize_poweron(struct device *dev)
 	if (err)
 		goto done;
 
-#ifdef CONFIG_GK20A_CTXSW_TRACE
-	gk20a_ctxsw_trace_init(g);
-#endif
 	gk20a_sched_ctrl_init(g);
-	gk20a_channel_resume(g);
 
 	g->sw_ready = true;
 

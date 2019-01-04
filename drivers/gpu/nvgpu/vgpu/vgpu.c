@@ -29,6 +29,8 @@
 #include <nvgpu/channel.h>
 #include <nvgpu/clk_arb.h>
 #include <nvgpu/string.h>
+#include <nvgpu/ltc.h>
+#include <nvgpu/ctxsw_trace.h>
 
 #include "fecs_trace_vgpu.h"
 
@@ -397,5 +399,65 @@ int vgpu_get_constants(struct gk20a *g)
 	}
 
 	priv->constants = *p;
+	return 0;
+}
+
+int vgpu_finalize_poweron_common(struct gk20a *g)
+{
+	int err;
+
+	nvgpu_log_fn(g, " ");
+
+	vgpu_detect_chip(g);
+	err = vgpu_init_hal(g);
+	if (err != 0) {
+		return err;
+	}
+
+	if (g->ops.ltc.init_fs_state != NULL) {
+		g->ops.ltc.init_fs_state(g);
+	}
+
+	err = nvgpu_init_ltc_support(g);
+	if (err != 0) {
+		nvgpu_err(g, "failed to init ltc");
+		return err;
+	}
+
+	err = vgpu_init_mm_support(g);
+	if (err != 0) {
+		nvgpu_err(g, "failed to init gk20a mm");
+		return err;
+	}
+
+	err = vgpu_init_fifo_support(g);
+	if (err != 0) {
+		nvgpu_err(g, "failed to init gk20a fifo");
+		return err;
+	}
+
+	err = vgpu_init_gr_support(g);
+	if (err != 0) {
+		nvgpu_err(g, "failed to init gk20a gr");
+		return err;
+	}
+
+	err = nvgpu_clk_arb_init_arbiter(g);
+	if (err != 0) {
+		nvgpu_err(g, "failed to init clk arb");
+		return err;
+	}
+
+	err = g->ops.chip_init_gpu_characteristics(g);
+	if (err != 0) {
+		nvgpu_err(g, "failed to init gk20a gpu characteristics");
+		return err;
+	}
+
+#ifdef CONFIG_GK20A_CTXSW_TRACE
+	gk20a_ctxsw_trace_init(g);
+#endif
+	g->ops.fifo.channel_resume(g);
+
 	return 0;
 }

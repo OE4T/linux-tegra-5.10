@@ -102,5 +102,6 @@ int vgpu_gp10b_init_hal(struct gk20a *g);
 int vgpu_gv11b_init_hal(struct gk20a *g);
 
 bool vgpu_is_reduced_bar1(struct gk20a *g);
+int vgpu_finalize_poweron_common(struct gk20a *g);
 
 #endif
