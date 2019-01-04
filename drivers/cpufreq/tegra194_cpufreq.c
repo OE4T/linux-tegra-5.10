@@ -39,7 +39,7 @@
 #include <linux/workqueue.h>
 #include <linux/tegra-cpufreq.h>
 #include <soc/tegra/virt/syscalls.h>
-
+#include "tegra194-cpufreq.h"
 
 /* cpufreq transisition latency */
 #define TEGRA_CPUFREQ_TRANSITION_LATENCY (300 * 1000) /* unit in nanoseconds */
@@ -61,17 +61,9 @@ struct cpu_emc_map {
 };
 static struct cpu_emc_map *cpu_emc_map_ptr;
 static uint16_t cpu_emc_map_num;
-static uint8_t tegra_hypervisor_mode;
+static bool tegra_hypervisor_mode;
 
 static int cpufreq_single_policy;
-
-enum cluster {
-	CLUSTER0,
-	CLUSTER1,
-	CLUSTER2,
-	CLUSTER3,
-	MAX_CLUSTERS,
-};
 
 struct cc3_params {
 	u32 ndiv;
@@ -95,12 +87,6 @@ struct tegra_cpufreq_data {
 };
 
 static struct tegra_cpufreq_data tfreq_data;
-struct tegra_cpu_ctr {
-	uint32_t cpu;
-	uint32_t delay;
-	uint32_t coreclk_cnt, last_coreclk_cnt;
-	uint32_t refclk_cnt, last_refclk_cnt;
-};
 
 static struct workqueue_struct *read_counters_wq;
 struct read_counters_work {
@@ -127,7 +113,8 @@ static uint64_t read_freq_feedback(void)
 	return val;
 }
 
-static inline uint16_t clamp_ndiv(struct mrq_cpu_ndiv_limits_response *nltbl,
+
+uint16_t clamp_ndiv(struct mrq_cpu_ndiv_limits_response *nltbl,
 				uint16_t ndiv)
 {
 	uint16_t min = nltbl->ndiv_min;
@@ -141,7 +128,7 @@ static inline uint16_t clamp_ndiv(struct mrq_cpu_ndiv_limits_response *nltbl,
 	return ndiv;
 }
 
-static inline uint16_t map_freq_to_ndiv(struct mrq_cpu_ndiv_limits_response
+uint16_t map_freq_to_ndiv(struct mrq_cpu_ndiv_limits_response
 	*nltbl, uint32_t freq)
 {
 	return DIV_ROUND_UP(freq * nltbl->pdiv * nltbl->mdiv,
@@ -336,6 +323,16 @@ static void tegra_update_cpu_speed(uint32_t rate, uint8_t cpu)
 
 	val = (uint64_t)ndiv;
 	smp_call_function_single(cpu, write_ndiv_request, &val, 1);
+}
+
+struct mrq_cpu_ndiv_limits_response *get_ndiv_limits(enum cluster cl)
+{
+	struct mrq_cpu_ndiv_limits_response *nltbl  = NULL;
+
+	if (cl < MAX_CLUSTERS)
+		nltbl = &tfreq_data.pcluster[cl].ndiv_limits_tbl;
+
+	return nltbl;
 }
 
 /**
@@ -980,8 +977,11 @@ static int __init get_ndiv_limits_tbl_from_bpmp(void)
 	bool ok = false;
 
 	LOOP_FOR_EACH_CLUSTER(cl) {
-		if (!tfreq_data.pcluster[cl].configured)
-			continue;
+		/* Need all cluster tables in virtualization mode */
+		if (!tegra_hypervisor_mode)
+			if (!tfreq_data.pcluster[cl].configured)
+				continue;
+
 		nltbl = &tfreq_data.pcluster[cl].ndiv_limits_tbl;
 		md.cluster_id = cl;
 
@@ -1133,6 +1133,9 @@ static int __init tegra194_cpufreq_probe(struct platform_device *pdev)
 	ret = init_freqtbls(dn);
 	if (ret)
 		goto err_free_res;
+
+	if (tegra_hypervisor_mode)
+		cpufreq_hv_init(&(pdev->dev.kobj));
 
 	ret = cpufreq_register_driver(&tegra_cpufreq_driver);
 	if (ret)
