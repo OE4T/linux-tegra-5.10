@@ -33,7 +33,7 @@
 
 int nvgpu_falcon_wait_idle(struct nvgpu_falcon *flcn)
 {
-	struct gk20a *g = flcn->g;
+	struct gk20a *g;
 	struct nvgpu_falcon_ops *flcn_ops;
 	struct nvgpu_timeout timeout;
 	u32 idle_stat;
@@ -42,6 +42,7 @@ int nvgpu_falcon_wait_idle(struct nvgpu_falcon *flcn)
 		return -EINVAL;
 	}
 
+	g = flcn->g;
 	flcn_ops = &flcn->flcn_ops;
 
 	if (flcn_ops->is_falcon_idle == NULL) {
@@ -206,7 +207,7 @@ int nvgpu_falcon_wait_for_halt(struct nvgpu_falcon *flcn, unsigned int timeout)
 int nvgpu_falcon_clear_halt_intr_status(struct nvgpu_falcon *flcn,
 	unsigned int timeout)
 {
-	struct gk20a *g = flcn->g;
+	struct gk20a *g;
 	struct nvgpu_falcon_ops *flcn_ops;
 	struct nvgpu_timeout to;
 	int status = 0;
@@ -215,6 +216,7 @@ int nvgpu_falcon_clear_halt_intr_status(struct nvgpu_falcon *flcn,
 		return -EINVAL;
 	}
 
+	g = flcn->g;
 	flcn_ops = &flcn->flcn_ops;
 
 	if (flcn_ops->clear_halt_interrupt_status == NULL) {
