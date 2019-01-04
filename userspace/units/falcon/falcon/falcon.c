@@ -495,6 +495,69 @@ static int test_falcon_idle(struct unit_module *m, struct gk20a *g,
 	return UNIT_SUCCESS;
 }
 
+static void flcn_halt_pass(void *data)
+{
+	struct nvgpu_falcon *flcn = (struct nvgpu_falcon *) data;
+	u32 cpuctl_addr = flcn->flcn_base + falcon_falcon_cpuctl_r();
+	struct gk20a *g = flcn->g;
+	u32 unit_status;
+
+	unit_status = nvgpu_posix_io_readl_reg_space(g, cpuctl_addr);
+	unit_status |= falcon_falcon_cpuctl_halt_intr_m();
+	nvgpu_posix_io_writel_reg_space(g, cpuctl_addr, unit_status);
+}
+
+static void flcn_halt_fail(void *data)
+{
+	struct nvgpu_falcon *flcn = (struct nvgpu_falcon *) data;
+	u32 cpuctl_addr = flcn->flcn_base + falcon_falcon_cpuctl_r();
+	struct gk20a *g = flcn->g;
+	u32 unit_status;
+
+	unit_status = nvgpu_posix_io_readl_reg_space(g, cpuctl_addr);
+	unit_status &= ~falcon_falcon_cpuctl_halt_intr_m();
+	nvgpu_posix_io_writel_reg_space(g, cpuctl_addr, unit_status);
+}
+
+/*
+ * Invalid: Calling this interface on uninitialized falcon should return
+ *          -EINVAL.
+ *
+ * Valid: Set the Falcon halt state as halted in falcon_falcon_cpuctl_r and
+ *        call should return 0. Set it to non-halted and call should return
+ *        -ETIMEDOUT.
+ */
+static int test_falcon_halt(struct unit_module *m, struct gk20a *g,
+			    void *__args)
+{
+#define FALCON_WAIT_HALT 200
+	struct {
+		struct nvgpu_falcon *flcn;
+		void (*pre_halt)(void *);
+		int exp_err;
+	} test_data[] = {{uninit_flcn, NULL, -EINVAL},
+			 {gpccs_flcn, flcn_halt_pass, 0},
+			 {gpccs_flcn, flcn_halt_fail, -ETIMEDOUT} };
+	int size = ARRAY_SIZE(test_data);
+	int err, i;
+
+	for (i = 0; i < size; i++) {
+		if (test_data[i].pre_halt) {
+			test_data[i].pre_halt(test_data[i].flcn);
+		}
+
+		err = nvgpu_falcon_wait_for_halt(test_data[i].flcn,
+						 FALCON_WAIT_HALT);
+		if (err != test_data[i].exp_err) {
+			unit_return_fail(m, "falcon wait for idle err: %d "
+					    "expected err: %d\n",
+					 err, test_data[i].exp_err);
+		}
+	}
+
+	return UNIT_SUCCESS;
+}
+
 /*
  * Valid/Invalid: Status of read and write from Falcon
  * Valid: Read and write from initialized Falcon succeeds.
@@ -679,6 +742,7 @@ struct unit_module_test falcon_tests[] = {
 	UNIT_TEST(falcon_reset, test_falcon_reset, NULL, 0),
 	UNIT_TEST(falcon_mem_scrub, test_falcon_mem_scrub, NULL, 0),
 	UNIT_TEST(falcon_idle, test_falcon_idle, NULL, 0),
+	UNIT_TEST(falcon_halt, test_falcon_halt, NULL, 0),
 	UNIT_TEST(falcon_mem_rw_init, test_falcon_mem_rw_init, NULL, 0),
 	UNIT_TEST(falcon_mem_rw_range, test_falcon_mem_rw_range, NULL, 0),
 	UNIT_TEST(falcon_mem_rw_aligned, test_falcon_mem_rw_aligned, NULL, 0),
