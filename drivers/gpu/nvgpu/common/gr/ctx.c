@@ -21,9 +21,15 @@
  */
 
 #include <nvgpu/gk20a.h>
+#include <nvgpu/gr/global_ctx.h>
 #include <nvgpu/gr/ctx.h>
 #include <nvgpu/vm.h>
 #include <nvgpu/gmmu.h>
+
+static void nvgpu_gr_ctx_unmap_global_ctx_buffers(struct gk20a *g,
+	struct nvgpu_gr_ctx *gr_ctx,
+	struct nvgpu_gr_global_ctx_buffer_desc *global_ctx_buffer,
+	struct vm_gk20a *vm);
 
 struct nvgpu_gr_ctx_desc *
 nvgpu_gr_ctx_desc_alloc(struct gk20a *g)
@@ -82,11 +88,16 @@ err_free_mem:
 }
 
 void nvgpu_gr_ctx_free(struct gk20a *g,
-	struct vm_gk20a *vm, struct nvgpu_gr_ctx *gr_ctx)
+	struct nvgpu_gr_ctx *gr_ctx,
+	struct nvgpu_gr_global_ctx_buffer_desc *global_ctx_buffer,
+	struct vm_gk20a *vm)
 {
 	nvgpu_log_fn(g, " ");
 
 	if (gr_ctx != NULL) {
+		nvgpu_gr_ctx_unmap_global_ctx_buffers(g, gr_ctx,
+			global_ctx_buffer, vm);
+
 		nvgpu_gr_ctx_free_pm_ctx(g, vm, gr_ctx);
 		nvgpu_gr_ctx_free_patch_ctx(g, vm, gr_ctx);
 
@@ -290,4 +301,155 @@ fail_free_preempt:
 	nvgpu_dma_unmap_free(vm, &gr_ctx->preempt_ctxsw_buffer);
 fail:
 	return err;
+}
+
+static void nvgpu_gr_ctx_unmap_global_ctx_buffers(struct gk20a *g,
+	struct nvgpu_gr_ctx *gr_ctx,
+	struct nvgpu_gr_global_ctx_buffer_desc *global_ctx_buffer,
+	struct vm_gk20a *vm)
+{
+	u64 *g_bfr_va = gr_ctx->global_ctx_buffer_va;
+	int *g_bfr_index = gr_ctx->global_ctx_buffer_index;
+	u32 i;
+
+	nvgpu_log_fn(g, " ");
+
+	for (i = 0; i < NVGPU_GR_CTX_VA_COUNT; i++) {
+		nvgpu_gr_global_ctx_buffer_unmap(global_ctx_buffer,
+			g_bfr_index[i], vm, g_bfr_va[i]);
+	}
+
+	(void) memset(g_bfr_va, 0, sizeof(gr_ctx->global_ctx_buffer_va));
+	(void) memset(g_bfr_index, 0, sizeof(gr_ctx->global_ctx_buffer_index));
+
+	gr_ctx->global_ctx_buffer_mapped = false;
+}
+
+int nvgpu_gr_ctx_map_global_ctx_buffers(struct gk20a *g,
+	struct nvgpu_gr_ctx *gr_ctx,
+	struct nvgpu_gr_global_ctx_buffer_desc *global_ctx_buffer,
+	struct vm_gk20a *vm, bool vpr)
+{
+	u64 *g_bfr_va;
+	int *g_bfr_index;
+	u64 gpu_va = 0ULL;
+
+	nvgpu_log_fn(g, " ");
+
+	g_bfr_va = gr_ctx->global_ctx_buffer_va;
+	g_bfr_index = gr_ctx->global_ctx_buffer_index;
+
+	/* Circular Buffer */
+	if (vpr && nvgpu_gr_global_ctx_buffer_ready(global_ctx_buffer,
+			NVGPU_GR_GLOBAL_CTX_CIRCULAR_VPR)) {
+		gpu_va = nvgpu_gr_global_ctx_buffer_map(global_ctx_buffer,
+				NVGPU_GR_GLOBAL_CTX_CIRCULAR_VPR,
+				vm, NVGPU_VM_MAP_CACHEABLE, true);
+		g_bfr_index[NVGPU_GR_CTX_CIRCULAR_VA] = NVGPU_GR_GLOBAL_CTX_CIRCULAR_VPR;
+	} else {
+		gpu_va = nvgpu_gr_global_ctx_buffer_map(global_ctx_buffer,
+				NVGPU_GR_GLOBAL_CTX_CIRCULAR,
+				vm, NVGPU_VM_MAP_CACHEABLE, true);
+		g_bfr_index[NVGPU_GR_CTX_CIRCULAR_VA] = NVGPU_GR_GLOBAL_CTX_CIRCULAR;
+	}
+	if (gpu_va == 0ULL) {
+		goto clean_up;
+	}
+
+	g_bfr_va[NVGPU_GR_CTX_CIRCULAR_VA] = gpu_va;
+
+	/* Attribute Buffer */
+	if (vpr && nvgpu_gr_global_ctx_buffer_ready(global_ctx_buffer,
+			NVGPU_GR_GLOBAL_CTX_ATTRIBUTE_VPR)) {
+		gpu_va = nvgpu_gr_global_ctx_buffer_map(global_ctx_buffer,
+				NVGPU_GR_GLOBAL_CTX_ATTRIBUTE_VPR,
+				vm, NVGPU_VM_MAP_CACHEABLE, false);
+		g_bfr_index[NVGPU_GR_CTX_ATTRIBUTE_VA] = NVGPU_GR_GLOBAL_CTX_ATTRIBUTE_VPR;
+	} else {
+		gpu_va = nvgpu_gr_global_ctx_buffer_map(global_ctx_buffer,
+				NVGPU_GR_GLOBAL_CTX_ATTRIBUTE,
+				vm, NVGPU_VM_MAP_CACHEABLE, false);
+		g_bfr_index[NVGPU_GR_CTX_ATTRIBUTE_VA] = NVGPU_GR_GLOBAL_CTX_ATTRIBUTE;
+	}
+	if (gpu_va == 0ULL) {
+		goto clean_up;
+	}
+
+	g_bfr_va[NVGPU_GR_CTX_ATTRIBUTE_VA] = gpu_va;
+
+	/* Page Pool */
+	if (vpr && nvgpu_gr_global_ctx_buffer_ready(global_ctx_buffer,
+			NVGPU_GR_GLOBAL_CTX_PAGEPOOL_VPR)) {
+		gpu_va = nvgpu_gr_global_ctx_buffer_map(global_ctx_buffer,
+				NVGPU_GR_GLOBAL_CTX_PAGEPOOL_VPR,
+				vm, NVGPU_VM_MAP_CACHEABLE, true);
+		g_bfr_index[NVGPU_GR_CTX_PAGEPOOL_VA] = NVGPU_GR_GLOBAL_CTX_PAGEPOOL_VPR;
+	} else {
+		gpu_va = nvgpu_gr_global_ctx_buffer_map(global_ctx_buffer,
+				NVGPU_GR_GLOBAL_CTX_PAGEPOOL,
+				vm, NVGPU_VM_MAP_CACHEABLE, true);
+		g_bfr_index[NVGPU_GR_CTX_PAGEPOOL_VA] = NVGPU_GR_GLOBAL_CTX_PAGEPOOL;
+	}
+	if (gpu_va == 0ULL) {
+		goto clean_up;
+	}
+
+	g_bfr_va[NVGPU_GR_CTX_PAGEPOOL_VA] = gpu_va;
+
+	/* Priv register Access Map */
+	gpu_va = nvgpu_gr_global_ctx_buffer_map(global_ctx_buffer,
+			NVGPU_GR_GLOBAL_CTX_PRIV_ACCESS_MAP,
+			vm, 0, true);
+	if (gpu_va == 0ULL) {
+		goto clean_up;
+	}
+
+	g_bfr_va[NVGPU_GR_CTX_PRIV_ACCESS_MAP_VA] = gpu_va;
+	g_bfr_index[NVGPU_GR_CTX_PRIV_ACCESS_MAP_VA] = NVGPU_GR_GLOBAL_CTX_PRIV_ACCESS_MAP;
+
+#ifdef CONFIG_GK20A_CTXSW_TRACE
+	/* FECS trace buffer */
+	if (nvgpu_is_enabled(g, NVGPU_FECS_TRACE_VA)) {
+		gpu_va = nvgpu_gr_global_ctx_buffer_map(global_ctx_buffer,
+				NVGPU_GR_GLOBAL_CTX_FECS_TRACE_BUFFER,
+				vm, 0, true);
+		if (gpu_va == 0ULL) {
+			goto clean_up;
+		}
+
+		g_bfr_va[NVGPU_GR_CTX_FECS_TRACE_BUFFER_VA] = gpu_va;
+		g_bfr_index[NVGPU_GR_CTX_FECS_TRACE_BUFFER_VA] =
+			NVGPU_GR_GLOBAL_CTX_FECS_TRACE_BUFFER;
+	}
+#endif
+
+	/* RTV circular buffer */
+	if (nvgpu_gr_global_ctx_buffer_ready(global_ctx_buffer,
+			NVGPU_GR_GLOBAL_CTX_RTV_CIRCULAR_BUFFER)) {
+		gpu_va = nvgpu_gr_global_ctx_buffer_map(global_ctx_buffer,
+				NVGPU_GR_GLOBAL_CTX_RTV_CIRCULAR_BUFFER,
+				vm, 0, true);
+		if (gpu_va == 0ULL) {
+			goto clean_up;
+		}
+
+		g_bfr_va[NVGPU_GR_CTX_RTV_CIRCULAR_BUFFER_VA] = gpu_va;
+		g_bfr_index[NVGPU_GR_CTX_RTV_CIRCULAR_BUFFER_VA] =
+			NVGPU_GR_GLOBAL_CTX_RTV_CIRCULAR_BUFFER;
+	}
+
+	gr_ctx->global_ctx_buffer_mapped = true;
+
+	return 0;
+
+clean_up:
+	nvgpu_gr_ctx_unmap_global_ctx_buffers(g, gr_ctx, global_ctx_buffer, vm);
+
+	return -ENOMEM;
+}
+
+u64 nvgpu_gr_ctx_get_global_ctx_va(struct nvgpu_gr_ctx *gr_ctx,
+	enum nvgpu_gr_ctx_global_ctx_va index)
+{
+	return gr_ctx->global_ctx_buffer_va[index];
 }

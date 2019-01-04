@@ -41,15 +41,17 @@ enum nvgpu_gr_ctx_index {
 	NVGPU_GR_CTX_COUNT
 };
 
-/* either ATTRIBUTE or ATTRIBUTE_VPR maps to ATTRIBUTE_VA */
-enum  /*global_ctx_buffer_va */ {
-	CIRCULAR_VA		= 0,
-	PAGEPOOL_VA		= 1,
-	ATTRIBUTE_VA		= 2,
-	PRIV_ACCESS_MAP_VA	= 3,
-	RTV_CIRCULAR_BUFFER_VA	= 4,
-	FECS_TRACE_BUFFER_VA	= 5,
-	NR_GLOBAL_CTX_BUF_VA	= 6
+/*
+ * either ATTRIBUTE or ATTRIBUTE_VPR maps to NVGPU_GR_CTX_ATTRIBUTE_VA
+*/
+enum nvgpu_gr_ctx_global_ctx_va {
+	NVGPU_GR_CTX_CIRCULAR_VA		= 0,
+	NVGPU_GR_CTX_PAGEPOOL_VA		= 1,
+	NVGPU_GR_CTX_ATTRIBUTE_VA		= 2,
+	NVGPU_GR_CTX_PRIV_ACCESS_MAP_VA		= 3,
+	NVGPU_GR_CTX_RTV_CIRCULAR_BUFFER_VA	= 4,
+	NVGPU_GR_CTX_FECS_TRACE_BUFFER_VA	= 5,
+	NVGPU_GR_CTX_VA_COUNT			= 6
 };
 
 struct patch_desc {
@@ -97,9 +99,8 @@ struct nvgpu_gr_ctx {
 	u64 virt_ctx;
 #endif
 
-	u64	global_ctx_buffer_va[NR_GLOBAL_CTX_BUF_VA];
-	u64	global_ctx_buffer_size[NR_GLOBAL_CTX_BUF_VA];
-	int	global_ctx_buffer_index[NR_GLOBAL_CTX_BUF_VA];
+	u64	global_ctx_buffer_va[NVGPU_GR_CTX_VA_COUNT];
+	int	global_ctx_buffer_index[NVGPU_GR_CTX_VA_COUNT];
 	bool	global_ctx_buffer_mapped;
 
 	u32 tsgid;
@@ -118,7 +119,9 @@ int nvgpu_gr_ctx_alloc(struct gk20a *g,
 	struct nvgpu_gr_ctx_desc *gr_ctx_desc,
 	struct vm_gk20a *vm);
 void nvgpu_gr_ctx_free(struct gk20a *g,
-	struct vm_gk20a *vm, struct nvgpu_gr_ctx *gr_ctx);
+	struct nvgpu_gr_ctx *gr_ctx,
+	struct nvgpu_gr_global_ctx_buffer_desc *global_ctx_buffer,
+	struct vm_gk20a *vm);
 
 int nvgpu_gr_ctx_alloc_pm_ctx(struct gk20a *g,
 	struct nvgpu_gr_ctx *gr_ctx,
@@ -142,5 +145,12 @@ int nvgpu_gr_ctx_alloc_ctxsw_buffers(struct gk20a *g,
 	struct nvgpu_gr_ctx *gr_ctx,
 	struct nvgpu_gr_ctx_desc *gr_ctx_desc,
 	struct vm_gk20a *vm);
+
+int nvgpu_gr_ctx_map_global_ctx_buffers(struct gk20a *g,
+	struct nvgpu_gr_ctx *gr_ctx,
+	struct nvgpu_gr_global_ctx_buffer_desc *global_ctx_buffer,
+	struct vm_gk20a *vm, bool vpr);
+u64 nvgpu_gr_ctx_get_global_ctx_va(struct nvgpu_gr_ctx *gr_ctx,
+	enum nvgpu_gr_ctx_global_ctx_va index);
 
 #endif /* NVGPU_INCLUDE_GR_CTX_H */

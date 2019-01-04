@@ -153,48 +153,6 @@ int gr_tu104_alloc_global_ctx_buffers(struct gk20a *g)
 	return 0;
 }
 
-int gr_tu104_map_global_ctx_buffers(struct gk20a *g, struct vm_gk20a *vm,
-		struct nvgpu_gr_ctx *gr_ctx, bool vpr)
-{
-	int err;
-	u64 *g_bfr_va;
-	int *g_bfr_index;
-	struct gr_gk20a *gr = &g->gr;
-	u64 gpu_va;
-
-	nvgpu_log_fn(g, " ");
-
-	g_bfr_va = gr_ctx->global_ctx_buffer_va;
-	g_bfr_index = gr_ctx->global_ctx_buffer_index;
-
-	/* RTV circular buffer */
-	gpu_va = nvgpu_gr_global_ctx_buffer_map(gr->global_ctx_buffer,
-			NVGPU_GR_GLOBAL_CTX_RTV_CIRCULAR_BUFFER,
-			vm, 0, true);
-	if (gpu_va == 0ULL) {
-		return -ENOMEM;
-	}
-
-	g_bfr_va[RTV_CIRCULAR_BUFFER_VA] = gpu_va;
-	g_bfr_index[RTV_CIRCULAR_BUFFER_VA] =
-		NVGPU_GR_GLOBAL_CTX_RTV_CIRCULAR_BUFFER;
-
-	err = gr_gk20a_map_global_ctx_buffers(g, vm, gr_ctx, vpr);
-	if (err != 0) {
-		goto clean_up;
-	}
-
-	return 0;
-
-clean_up:
-	nvgpu_err(g, "fail");
-	nvgpu_gr_global_ctx_buffer_unmap(gr->global_ctx_buffer,
-		NVGPU_GR_GLOBAL_CTX_RTV_CIRCULAR_BUFFER,
-		vm, gpu_va);
-
-	return err;
-}
-
 static void gr_tu104_commit_rtv_circular_buffer(struct gk20a *g,
 	struct nvgpu_gr_ctx *gr_ctx,
 	u64 addr, u32 size, u32 gfxpAddSize, bool patch)
@@ -234,7 +192,8 @@ int gr_tu104_commit_global_ctx_buffers(struct gk20a *g,
 	}
 
 	/* RTV circular buffer */
-	addr = gr_ctx->global_ctx_buffer_va[RTV_CIRCULAR_BUFFER_VA] >>
+	addr = nvgpu_gr_ctx_get_global_ctx_va(gr_ctx,
+			NVGPU_GR_CTX_RTV_CIRCULAR_BUFFER_VA) >>
 		U64(gr_scc_rm_rtv_cb_base_addr_39_8_align_bits_f());
 
 	size = (gr_scc_rm_rtv_cb_size_div_256b_default_f() +

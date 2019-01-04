@@ -226,7 +226,6 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 			gr_gm20b_get_pmm_per_chiplet_offset,
 		.split_fbpa_broadcast_addr = gr_gk20a_split_fbpa_broadcast_addr,
 		.alloc_global_ctx_buffers = gr_gk20a_alloc_global_ctx_buffers,
-		.map_global_ctx_buffers = gr_gk20a_map_global_ctx_buffers,
 		.commit_global_ctx_buffers = gr_gk20a_commit_global_ctx_buffers,
 		.get_offset_in_gpccs_segment =
 			gr_gk20a_get_offset_in_gpccs_segment,

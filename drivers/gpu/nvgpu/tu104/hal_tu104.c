@@ -516,7 +516,6 @@ static const struct gpu_ops tu104_ops = {
 		.init_sw_bundle64 = gr_tu104_init_sw_bundle64,
 		.fecs_ctxsw_mailbox_size = gr_fecs_ctxsw_mailbox__size_1_v,
 		.alloc_global_ctx_buffers = gr_tu104_alloc_global_ctx_buffers,
-		.map_global_ctx_buffers = gr_tu104_map_global_ctx_buffers,
 		.commit_global_ctx_buffers = gr_tu104_commit_global_ctx_buffers,
 		.get_nonpes_aware_tpc = gr_gv11b_get_nonpes_aware_tpc,
 		.get_offset_in_gpccs_segment =

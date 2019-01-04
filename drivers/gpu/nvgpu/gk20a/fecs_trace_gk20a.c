@@ -466,7 +466,8 @@ int gk20a_fecs_trace_bind_channel(struct gk20a *g,
 	}
 
 	if (nvgpu_is_enabled(g, NVGPU_FECS_TRACE_VA)) {
-		addr = gr_ctx->global_ctx_buffer_va[FECS_TRACE_BUFFER_VA];
+		addr = nvgpu_gr_ctx_get_global_ctx_va(gr_ctx,
+				NVGPU_GR_CTX_FECS_TRACE_BUFFER_VA);
 		nvgpu_log(g, gpu_dbg_ctxsw, "gpu_va=%llx", addr);
 		aperture_mask = 0;
 	} else {

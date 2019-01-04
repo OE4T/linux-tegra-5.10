@@ -208,7 +208,7 @@ static int vgpu_gr_map_global_ctx_buffers(struct gk20a *g,
 
 	if (!gpu_va)
 		goto clean_up;
-	g_bfr_va[CIRCULAR_VA] = gpu_va;
+	g_bfr_va[NVGPU_GR_CTX_CIRCULAR_VA] = gpu_va;
 
 	/* Attribute Buffer */
 	gpu_va = nvgpu_vm_alloc_va(ch_vm,
@@ -218,7 +218,7 @@ static int vgpu_gr_map_global_ctx_buffers(struct gk20a *g,
 
 	if (!gpu_va)
 		goto clean_up;
-	g_bfr_va[ATTRIBUTE_VA] = gpu_va;
+	g_bfr_va[NVGPU_GR_CTX_ATTRIBUTE_VA] = gpu_va;
 
 	/* Page Pool */
 	gpu_va = nvgpu_vm_alloc_va(ch_vm,
@@ -227,7 +227,7 @@ static int vgpu_gr_map_global_ctx_buffers(struct gk20a *g,
 			GMMU_PAGE_SIZE_KERNEL);
 	if (!gpu_va)
 		goto clean_up;
-	g_bfr_va[PAGEPOOL_VA] = gpu_va;
+	g_bfr_va[NVGPU_GR_CTX_PAGEPOOL_VA] = gpu_va;
 
 	/* Priv register Access Map */
 	gpu_va = nvgpu_vm_alloc_va(ch_vm,
@@ -236,7 +236,7 @@ static int vgpu_gr_map_global_ctx_buffers(struct gk20a *g,
 			GMMU_PAGE_SIZE_KERNEL);
 	if (!gpu_va)
 		goto clean_up;
-	g_bfr_va[PRIV_ACCESS_MAP_VA] = gpu_va;
+	g_bfr_va[NVGPU_GR_CTX_PRIV_ACCESS_MAP_VA] = gpu_va;
 
 	/* FECS trace Buffer */
 #ifdef CONFIG_GK20A_CTXSW_TRACE
@@ -248,17 +248,17 @@ static int vgpu_gr_map_global_ctx_buffers(struct gk20a *g,
 	if (!gpu_va)
 		goto clean_up;
 
-	g_bfr_va[FECS_TRACE_BUFFER_VA] = gpu_va;
+	g_bfr_va[NVGPU_GR_CTX_FECS_TRACE_BUFFER_VA] = gpu_va;
 #endif
 	msg.cmd = TEGRA_VGPU_CMD_CHANNEL_MAP_GR_GLOBAL_CTX;
 	msg.handle = vgpu_get_handle(g);
 	p->handle = c->virt_ctx;
-	p->cb_va = g_bfr_va[CIRCULAR_VA];
-	p->attr_va = g_bfr_va[ATTRIBUTE_VA];
-	p->page_pool_va = g_bfr_va[PAGEPOOL_VA];
-	p->priv_access_map_va = g_bfr_va[PRIV_ACCESS_MAP_VA];
+	p->cb_va = g_bfr_va[NVGPU_GR_CTX_CIRCULAR_VA];
+	p->attr_va = g_bfr_va[NVGPU_GR_CTX_ATTRIBUTE_VA];
+	p->page_pool_va = g_bfr_va[NVGPU_GR_CTX_PAGEPOOL_VA];
+	p->priv_access_map_va = g_bfr_va[NVGPU_GR_CTX_PRIV_ACCESS_MAP_VA];
 #ifdef CONFIG_GK20A_CTXSW_TRACE
-	p->fecs_trace_va = g_bfr_va[FECS_TRACE_BUFFER_VA];
+	p->fecs_trace_va = g_bfr_va[NVGPU_GR_CTX_FECS_TRACE_BUFFER_VA];
 #endif
 	err = vgpu_comm_sendrecv(&msg, sizeof(msg), sizeof(msg));
 	if (err || msg.ret)
@@ -268,7 +268,7 @@ static int vgpu_gr_map_global_ctx_buffers(struct gk20a *g,
 	return 0;
 
  clean_up:
-	for (i = 0; i < NR_GLOBAL_CTX_BUF_VA; i++) {
+	for (i = 0; i < NVGPU_GR_CTX_VA_COUNT; i++) {
 		if (g_bfr_va[i]) {
 			nvgpu_vm_free_va(ch_vm, g_bfr_va[i],
 					 GMMU_PAGE_SIZE_KERNEL);
@@ -290,7 +290,7 @@ static void vgpu_gr_unmap_global_ctx_buffers(struct tsg_gk20a *tsg)
 	if (tsg->gr_ctx->global_ctx_buffer_mapped) {
 		/* server will unmap on channel close */
 
-		for (i = 0; i < NR_GLOBAL_CTX_BUF_VA; i++) {
+		for (i = 0; i < NVGPU_GR_CTX_VA_COUNT; i++) {
 			if (g_bfr_va[i]) {
 				nvgpu_vm_free_va(ch_vm, g_bfr_va[i],
 						 GMMU_PAGE_SIZE_KERNEL);
