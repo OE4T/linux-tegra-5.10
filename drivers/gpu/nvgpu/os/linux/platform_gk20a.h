@@ -1,7 +1,7 @@
 /*
  * GK20A Platform (SoC) Interface
  *
- * Copyright (c) 2014-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -50,7 +50,7 @@ struct nvgpu_pci_gpios {
 
 /* delays in milliseconds (ms) */
 #define PCI_VBAR_PWR_ON_DELAY_MS	15
-#define PCI_PWR_ON_DELAY_MS		150
+#define PCI_PWR_ON_DELAY_MS		250
 #define PCI_VBAR_PWR_OFF_DELAY_MS	2
 #define PCI_PWR_OFF_DELAY_MS		2
 
