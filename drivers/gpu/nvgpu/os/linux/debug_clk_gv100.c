@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, NVIDIA Corporation. All rights reserved.
+ * Copyright (c) 2018-2019, NVIDIA Corporation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -15,13 +15,13 @@
  */
 
 #include <linux/debugfs.h>
-
-#include <nvgpu/clk.h>
-
-#include "common/pmu/clk/clk.h"
-#include "gv100/clk_gv100.h"
+#include <linux/seq_file.h>
 
 #include "os_linux.h"
+
+#include <nvgpu/clk.h>
+#include "common/pmu/clk/clk.h"
+#include "gv100/clk_gv100.h"
 
 void nvgpu_clk_arb_pstate_change_lock(struct gk20a *g, bool lock);
 
@@ -149,6 +149,44 @@ static int gpc_cfc_write(void *data , u64 val)
 }
 DEFINE_SIMPLE_ATTRIBUTE(gpc_cfc_fops, gpc_cfc_read, gpc_cfc_write, "%llu\n");
 
+static int vftable_show(struct seq_file *s, void *unused)
+{
+	struct gk20a *g = s->private;
+	int status;
+	u8 index;
+	u32 voltage_min_uv, voltage_step_size_uv;
+	u32 gpcclk_clkmhz = 0, gpcclk_voltuv = 0;
+
+	voltage_min_uv = g->clk_pmu->avfs_fllobjs.lut_min_voltage_uv;
+	voltage_step_size_uv = g->clk_pmu->avfs_fllobjs.lut_step_size_uv;
+
+	for (index = 0; index < CTRL_CLK_LUT_NUM_ENTRIES_GV10x; index++) {
+		gpcclk_voltuv = voltage_min_uv + index * voltage_step_size_uv;
+		status = clk_domain_volt_to_freq(g, 0, &gpcclk_clkmhz,
+				&gpcclk_voltuv, CTRL_VOLT_DOMAIN_LOGIC);
+
+		if (status != 0) {
+			nvgpu_err(g, "Failed to get freq for requested volt");
+			return status;
+		}
+		seq_printf(s, "Voltage: %duV  Frequency: %dMHz\n",
+			gpcclk_voltuv, gpcclk_clkmhz);
+	}
+	return 0;
+}
+
+static int vftable_open(struct inode *inode, struct file *file)
+{
+	return single_open(file, vftable_show, inode->i_private);
+}
+
+static const struct file_operations vftable_fops = {
+	.open = vftable_open,
+	.read = seq_read,
+	.llseek = seq_lseek,
+	.release = single_release,
+};
+
 int gv100_clk_init_debugfs(struct gk20a *g)
 {
 	struct nvgpu_os_linux *l = nvgpu_os_linux_from_gk20a(g);
@@ -187,6 +225,11 @@ int gv100_clk_init_debugfs(struct gk20a *g)
 				goto err_out;
 		}
 	}
+
+	d = debugfs_create_file("vftable", S_IRUGO,
+			clocks_root, g, &vftable_fops);
+	if (!d)
+		goto err_out;
 	return 0;
 
 err_out:
