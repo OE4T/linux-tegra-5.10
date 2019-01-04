@@ -1,7 +1,7 @@
 /*
  * GP10B fifo
  *
- * Copyright (c) 2015-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2015-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -200,12 +200,12 @@ int gp10b_fifo_init_ce_engine_info(struct fifo_gk20a *f)
 	u32 lce_num_entries = 0;
 
 	gr_runlist_id = gk20a_fifo_get_gr_runlist_id(g);
-	nvgpu_info(g, "gr_runlist_id: %d", gr_runlist_id);
+	nvgpu_log_info(g, "gr_runlist_id: %d", gr_runlist_id);
 
 	if (g->ops.top.get_num_engine_type_entries != NULL) {
 		lce_num_entries = g->ops.top.get_num_engine_type_entries(g,
 							NVGPU_ENGINE_LCE);
-		nvgpu_info(g, "lce_num_entries: %d", lce_num_entries);
+		nvgpu_log_info(g, "lce_num_entries: %d", lce_num_entries);
 	}
 
 	for (i = 0; i < lce_num_entries; i++) {
@@ -266,7 +266,7 @@ int gp10b_fifo_init_ce_engine_info(struct fifo_gk20a *f)
 		f->active_engines_list[f->num_engines] =
 						dev_info.engine_id;
 		++f->num_engines;
-		nvgpu_info(g, "gr info: engine_id %d runlist_id %d "
+		nvgpu_log_info(g, "gr info: engine_id %d runlist_id %d "
 			"intr_id %d reset_id %d engine_type %d "
 			"engine_enum %d inst_id %d",
 			dev_info.engine_id,

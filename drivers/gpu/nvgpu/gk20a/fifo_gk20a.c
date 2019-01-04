@@ -1,7 +1,7 @@
 /*
  * GK20A Graphics FIFO (gr host)
  *
- * Copyright (c) 2011-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -4291,7 +4291,7 @@ bool gk20a_fifo_find_pbdma_for_runlist(struct fifo_gk20a *f, u32 runlist_id,
 	runlist_bit = BIT32(runlist_id);
 	for (id = 0; id < f->num_pbdma; id++) {
 		if ((f->pbdma_map[id] & runlist_bit) != 0U) {
-			nvgpu_info(g, "gr info: pbdma_map[%d]=%d", id,
+			nvgpu_log_info(g, "gr info: pbdma_map[%d]=%d", id,
 							f->pbdma_map[id]);
 			found_pbdma_for_runlist = true;
 			break;

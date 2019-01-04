@@ -1,7 +1,7 @@
 /*
  * GM20B Fifo
  *
- * Copyright (c) 2014-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -287,7 +287,7 @@ int gm20b_fifo_init_engine_info(struct fifo_gk20a *f)
 		/* engine_id starts from 0 to NV_HOST_NUM_ENGINES */
 		f->active_engines_list[f->num_engines] = dev_info.engine_id;
 		++f->num_engines;
-		nvgpu_info(g, "gr info: engine_id %d runlist_id %d intr_id %d "
+		nvgpu_log_info(g, "gr info: engine_id %d runlist_id %d intr_id %d "
 			"reset_id %d engine_type %d engine_enum %d inst_id %d",
 					dev_info.engine_id,
 					dev_info.runlist_id,
@@ -314,7 +314,7 @@ int gm20b_fifo_init_ce_engine_info(struct fifo_gk20a *f)
 	bool found_pbdma_for_runlist = false;
 
 	gr_runlist_id = gk20a_fifo_get_gr_runlist_id(g);
-	nvgpu_info(g, "gr_runlist_id: %d", gr_runlist_id);
+	nvgpu_log_info(g, "gr_runlist_id: %d", gr_runlist_id);
 
 	if (g->ops.top.get_device_info != NULL) {
 		for (i = NVGPU_ENGINE_COPY0;  i <= NVGPU_ENGINE_COPY2; i++) {
@@ -377,7 +377,7 @@ int gm20b_fifo_init_ce_engine_info(struct fifo_gk20a *f)
 			f->active_engines_list[f->num_engines] =
 							dev_info.engine_id;
 			++f->num_engines;
-			nvgpu_info(g, "gr info: engine_id %d runlist_id %d "
+			nvgpu_log_info(g, "gr info: engine_id %d runlist_id %d "
 				"intr_id %d reset_id %d engine_type %d "
 				"engine_enum %d inst_id %d",
 				dev_info.engine_id,

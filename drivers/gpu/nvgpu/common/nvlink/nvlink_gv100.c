@@ -2107,7 +2107,7 @@ int gv100_nvlink_discover_ioctrl(struct gk20a *g)
 	if (g->ops.top.get_num_engine_type_entries) {
 		ioctrl_num_entries = g->ops.top.get_num_engine_type_entries(g,
 							NVGPU_ENGINE_IOCTRL);
-		nvgpu_info(g, "ioctrl_num_entries: %d", ioctrl_num_entries);
+		nvgpu_log_info(g, "ioctrl_num_entries: %d", ioctrl_num_entries);
 	}
 
 	if (ioctrl_num_entries == 0) {
