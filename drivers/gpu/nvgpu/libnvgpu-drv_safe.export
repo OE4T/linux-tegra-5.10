@@ -85,6 +85,7 @@ nvgpu_falcon_mem_scrub_wait
 nvgpu_falcon_reset
 nvgpu_falcon_sw_free
 nvgpu_falcon_sw_init
+nvgpu_falcon_wait_idle
 nvgpu_fifo_init_support
 nvgpu_free
 nvgpu_free_enabled_flags

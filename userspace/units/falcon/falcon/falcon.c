@@ -428,6 +428,74 @@ static int test_falcon_mem_scrub(struct unit_module *m, struct gk20a *g,
 }
 
 /*
+ * FIXME: Following masks are not yet available in the hw headers.
+ */
+#define falcon_falcon_idlestate_falcon_busy_m()		(U32(0x1U) << 0U)
+#define falcon_falcon_idlestate_ext_busy_m()		(U32(0x7fffU) << 1U)
+
+static void flcn_idle_pass(void *data)
+{
+	struct nvgpu_falcon *flcn = (struct nvgpu_falcon *) data;
+	u32 idlestate_addr = flcn->flcn_base + falcon_falcon_idlestate_r();
+	struct gk20a *g = flcn->g;
+	u32 unit_status;
+
+	unit_status = nvgpu_posix_io_readl_reg_space(g, idlestate_addr);
+	unit_status &= ~(falcon_falcon_idlestate_falcon_busy_m() |
+			 falcon_falcon_idlestate_ext_busy_m());
+	nvgpu_posix_io_writel_reg_space(g, idlestate_addr, unit_status);
+}
+
+static void flcn_idle_fail(void *data)
+{
+	struct nvgpu_falcon *flcn = (struct nvgpu_falcon *) data;
+	u32 idlestate_addr = flcn->flcn_base + falcon_falcon_idlestate_r();
+	struct gk20a *g = flcn->g;
+	u32 unit_status;
+
+	unit_status = nvgpu_posix_io_readl_reg_space(g, idlestate_addr);
+	unit_status |= (falcon_falcon_idlestate_falcon_busy_m() |
+			falcon_falcon_idlestate_ext_busy_m());
+	nvgpu_posix_io_writel_reg_space(g, idlestate_addr, unit_status);
+}
+
+/*
+ * Invalid: Calling this interface on uninitialized falcon should
+ *          return -EINVAL.
+ * Valid: Set the Falcon idle state as idle in falcon_falcon_idlestate_r and
+ *        call should return 0. Set it to non-idle and call should return
+ *        -ETIMEDOUT.
+ */
+static int test_falcon_idle(struct unit_module *m, struct gk20a *g,
+			    void *__args)
+{
+	struct {
+		struct nvgpu_falcon *flcn;
+		void (*pre_idle)(void *);
+		int exp_err;
+	} test_data[] = {{uninit_flcn, NULL, -EINVAL},
+			 {gpccs_flcn, flcn_idle_pass, 0},
+			 {gpccs_flcn, flcn_idle_fail, -ETIMEDOUT} };
+	int size = ARRAY_SIZE(test_data);
+	int err, i;
+
+	for (i = 0; i < size; i++) {
+		if (test_data[i].pre_idle) {
+			test_data[i].pre_idle(test_data[i].flcn);
+		}
+
+		err = nvgpu_falcon_wait_idle(test_data[i].flcn);
+		if (err != test_data[i].exp_err) {
+			unit_return_fail(m, "falcon wait for idle err: %d "
+					    "expected err: %d\n",
+					 err, test_data[i].exp_err);
+		}
+	}
+
+	return UNIT_SUCCESS;
+}
+
+/*
  * Valid/Invalid: Status of read and write from Falcon
  * Valid: Read and write from initialized Falcon succeeds.
  * Invalid: Read and write for uninitialized Falcon fails
@@ -610,6 +678,7 @@ struct unit_module_test falcon_tests[] = {
 	UNIT_TEST(falcon_sw_init_free, test_falcon_sw_init_free, NULL, 0),
 	UNIT_TEST(falcon_reset, test_falcon_reset, NULL, 0),
 	UNIT_TEST(falcon_mem_scrub, test_falcon_mem_scrub, NULL, 0),
+	UNIT_TEST(falcon_idle, test_falcon_idle, NULL, 0),
 	UNIT_TEST(falcon_mem_rw_init, test_falcon_mem_rw_init, NULL, 0),
 	UNIT_TEST(falcon_mem_rw_range, test_falcon_mem_rw_range, NULL, 0),
 	UNIT_TEST(falcon_mem_rw_aligned, test_falcon_mem_rw_aligned, NULL, 0),
