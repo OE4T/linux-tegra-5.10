@@ -20,6 +20,8 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
+#include <pthread.h>
+
 #include <unit/unit.h>
 #include <unit/io.h>
 
@@ -329,6 +331,19 @@ static int flcn_reset_state_check(void *data)
 		return -1;
 }
 
+static void flcn_mem_scrub_fail(void *data)
+{
+	struct nvgpu_falcon *flcn = (struct nvgpu_falcon *) data;
+	u32 dmactl_addr = flcn->flcn_base + falcon_falcon_dmactl_r();
+	struct gk20a *g = flcn->g;
+	u32 unit_status;
+
+	unit_status = nvgpu_posix_io_readl_reg_space(g, dmactl_addr);
+	unit_status |= (falcon_falcon_dmactl_dmem_scrubbing_m() |
+			falcon_falcon_dmactl_imem_scrubbing_m());
+	nvgpu_posix_io_writel_reg_space(g, dmactl_addr, unit_status);
+}
+
 /*
  * Valid: Reset of initialized Falcon succeeds and if not backed by engine
  *        dependent reset then check CPU control register for bit
@@ -370,6 +385,42 @@ static int test_falcon_reset(struct unit_module *m, struct gk20a *g,
 				unit_return_fail(m, "falcon reset state "
 						    "mismatch\n");
 			}
+		}
+	}
+
+	return UNIT_SUCCESS;
+}
+
+/*
+ * Invalid: Calling this interface on uninitialized falcon should
+ *          return -EINVAL.
+ * Valid: Set the mem scrubbing status as done and call should return 0.
+ *        Set the mem scrubbing status as pending and call should return
+ *        -ETIMEDOUT.
+ */
+static int test_falcon_mem_scrub(struct unit_module *m, struct gk20a *g,
+				 void *__args)
+{
+	struct {
+		struct nvgpu_falcon *flcn;
+		void (*pre_scrub)(void *);
+		int exp_err;
+	} test_data[] = {{uninit_flcn, NULL, -EINVAL},
+			 {gpccs_flcn, flcn_mem_scrub_pass, 0},
+			 {gpccs_flcn, flcn_mem_scrub_fail, -ETIMEDOUT} };
+	int size = ARRAY_SIZE(test_data);
+	int err, i;
+
+	for (i = 0; i < size; i++) {
+		if (test_data[i].pre_scrub) {
+			test_data[i].pre_scrub(test_data[i].flcn);
+		}
+
+		err = nvgpu_falcon_mem_scrub_wait(test_data[i].flcn);
+		if (err != test_data[i].exp_err) {
+			unit_return_fail(m, "falcon mem scrub err: %d "
+					    "expected err: %d\n",
+					 err, test_data[i].exp_err);
 		}
 	}
 
@@ -558,6 +609,7 @@ static int test_falcon_mem_rw_zero(struct unit_module *m, struct gk20a *g,
 struct unit_module_test falcon_tests[] = {
 	UNIT_TEST(falcon_sw_init_free, test_falcon_sw_init_free, NULL, 0),
 	UNIT_TEST(falcon_reset, test_falcon_reset, NULL, 0),
+	UNIT_TEST(falcon_mem_scrub, test_falcon_mem_scrub, NULL, 0),
 	UNIT_TEST(falcon_mem_rw_init, test_falcon_mem_rw_init, NULL, 0),
 	UNIT_TEST(falcon_mem_rw_range, test_falcon_mem_rw_range, NULL, 0),
 	UNIT_TEST(falcon_mem_rw_aligned, test_falcon_mem_rw_aligned, NULL, 0),
