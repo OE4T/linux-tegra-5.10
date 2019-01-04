@@ -363,6 +363,10 @@ int vgpu_init_hal(struct gk20a *g)
 		break;
 	}
 
+	if (err == 0) {
+		err = vgpu_init_hal_os(g);
+	}
+
 	return err;
 }
 

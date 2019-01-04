@@ -545,3 +545,8 @@ int vgpu_tegra_resume(struct device *dev)
 
 	return err;
 }
+
+int vgpu_init_hal_os(struct gk20a *g)
+{
+	return 0;
+}
