@@ -1,7 +1,7 @@
 /*
  * tegra210_adx_alt.c - Tegra210 ADX driver
  *
- * Copyright (c) 2014-2017 NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2019 NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -653,6 +653,7 @@ static int tegra210_adx_platform_probe(struct platform_device *pdev)
 
 	adx->soc_data = soc_data;
 	adx->is_shutdown = false;
+	dev_set_drvdata(&pdev->dev, adx);
 
 	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	if (!mem) {
@@ -708,8 +709,6 @@ static int tegra210_adx_platform_probe(struct platform_device *pdev)
 		dev_err(&pdev->dev, "Could not register CODEC: %d\n", ret);
 		goto err_suspend;
 	}
-
-	dev_set_drvdata(&pdev->dev, adx);
 
 	return 0;
 
