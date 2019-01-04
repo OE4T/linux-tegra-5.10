@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014-2017, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (C) 2014-2019, NVIDIA CORPORATION. All rights reserved.
  *
  * Hypervisor interfaces
  *
@@ -49,6 +49,7 @@
 
 #define GUEST_PRIMARY		0
 #define GUEST_IVC_SERVER	0
+#define HVC_NR_CPU_FREQ		0xC6000022
 
 #define NGUESTS_MAX 16
 
@@ -318,6 +319,121 @@ static inline uint64_t hyp_sysinfo_ipa(void)
 		: "x1", "x2", "x3", _X4_X17);
 
 	return r0;
+}
+
+static inline int hyp_read_freq_feedback(uint64_t *value)
+{
+	register uint64_t r0 asm("x0") = HVC_NR_CPU_FREQ;
+	register uint64_t r1 asm("x1") = 1U;
+
+	asm volatile("hvc #0"
+		: "+r"(r0), "+r"(r1)
+		:
+		: "x2", "x3", _X4_X17);
+
+	if (r0 == 1 &&  value != 0)
+		*value = r1;
+
+	return (int16_t)r0;
+}
+
+static inline int hyp_read_freq_request(uint64_t *value)
+{
+	register uint64_t r0 asm("x0") = HVC_NR_CPU_FREQ;
+	register uint64_t r1 asm("x1") = 0U;
+
+	asm volatile("hvc #0"
+		: "+r"(r0), "+r"(r1)
+		:
+		: "x2", "x3", _X4_X17);
+
+	if (r0 == 1 &&  value != 0)
+		*value = r1;
+
+	return (int16_t)r0;
+}
+
+static inline int hyp_write_freq_request(uint64_t value)
+{
+	register uint64_t r0 asm("x0") = HVC_NR_CPU_FREQ;
+	register uint64_t r1 asm("x1") = 2U;
+	register uint64_t r2 asm("x2") = value;
+
+	asm volatile("hvc #0"
+		: "+r"(r0)
+		: "r"(r1), "r"(r2)
+		: "x3", _X4_X17);
+
+	return (int16_t)r0;
+}
+
+static inline int hyp_pct_cpu_id_read_freq_feedback(uint8_t cpu_id,
+							uint64_t *value)
+{
+	register uint64_t r0 asm("x0") = HVC_NR_CPU_FREQ;
+	register uint64_t r1 asm("x1") = 4U;
+	register uint64_t r2 asm("x2") = cpu_id;
+
+	asm volatile("hvc #0"
+		: "+r"(r0), "+r"(r1)
+		: "r"(r2)
+		: "x3", _X4_X17);
+
+	if (r0 == 1 &&  value != 0)
+		*value = r1;
+
+	return (int16_t)r0;
+
+}
+
+static inline int hyp_pct_cpu_id_read_freq_request(uint8_t cpu_id,
+							uint64_t *value)
+{
+	register uint64_t r0 asm("x0") = HVC_NR_CPU_FREQ;
+	register uint64_t r1 asm("x1") = 3U;
+	register uint64_t r2 asm("x2") = cpu_id;
+
+	asm volatile("hvc #0"
+		: "+r"(r0), "+r"(r1)
+		: "r"(r2)
+		: "x3", _X4_X17);
+
+	if (r0 == 1 &&  value != 0)
+		*value = r1;
+
+	return (int16_t)r0;
+}
+
+static inline int hyp_pct_cpu_id_write_freq_request(uint8_t cpu_id,
+							uint64_t value)
+{
+	register uint64_t r0 asm("x0") = HVC_NR_CPU_FREQ;
+	register uint64_t r1 asm("x1") = 5U;
+	register uint64_t r2 asm("x2") = value;
+	register uint64_t r3 asm("x3") = cpu_id;
+
+	asm volatile("hvc #0"
+		: "+r"(r0)
+		: "r"(r1), "r"(r2), "r"(r3)
+		: _X4_X17);
+
+	return (int16_t)r0;
+}
+
+static inline uint8_t hyp_get_cpu_count(void)
+{
+	register uint64_t r0 asm("x0") = HVC_NR_CPU_FREQ;
+	register uint64_t r1 asm("x1") = 6U;
+
+	asm volatile("hvc #0"
+		: "+r"(r0), "+r"(r1)
+		:
+		: "x2", "x3", _X4_X17);
+
+	if (r0 == 1)
+		return r1;
+
+	return 0;
 }
 
 #undef _X3_X17

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -38,6 +38,8 @@
 #include <linux/pm_qos.h>
 #include <linux/workqueue.h>
 #include <linux/tegra-cpufreq.h>
+#include <soc/tegra/virt/syscalls.h>
+
 
 /* cpufreq transisition latency */
 #define TEGRA_CPUFREQ_TRANSITION_LATENCY (300 * 1000) /* unit in nanoseconds */
@@ -113,9 +115,14 @@ static enum cluster get_cpu_cluster(uint8_t cpu)
 
 static uint64_t read_freq_feedback(void)
 {
-	uint64_t val;
+	uint64_t val = 0;
 
-	asm volatile("mrs %0, s3_0_c15_c0_5" : "=r" (val) : );
+	if (tegra_hypervisor_mode) {
+		if (!hyp_read_freq_feedback(&val))
+			pr_err("%s:failed\n", __func__);
+	} else {
+		asm volatile("mrs %0, s3_0_c15_c0_5" : "=r" (val) : );
+	}
 
 	return val;
 }
@@ -281,7 +288,12 @@ static void write_ndiv_request(void *val)
 {
 	uint64_t regval = *((uint64_t *) val);
 
-	asm volatile("msr s3_0_c15_c0_4, %0" : : "r" (regval));
+	if (tegra_hypervisor_mode) {
+		if (!hyp_write_freq_request(regval))
+			pr_info("%s: Write didn't succeed\n", __func__);
+	} else {
+		asm volatile("msr s3_0_c15_c0_4, %0" : : "r" (regval));
+	}
 }
 
 #ifdef CONFIG_DEBUG_FS
@@ -290,7 +302,13 @@ static void read_ndiv_request(void *ret)
 {
 	uint64_t val = 0;
 
-	asm volatile("mrs %0, s3_0_c15_c0_4" : "=r" (val) : );
+	if (tegra_hypervisor_mode) {
+		if (!hyp_read_freq_request(&val))
+			pr_info("%s: Write didn't succeed\n", __func__);
+	} else {
+
+		asm volatile("mrs %0, s3_0_c15_c0_4" : "=r" (val) : );
+	}
 	*((uint64_t *) ret) = val;
 }
 #endif
@@ -347,16 +365,8 @@ static int tegra194_set_speed(struct cpufreq_policy *policy, unsigned int index)
 
 	cl = get_cpu_cluster(policy->cpu);
 
-	/*
-	 * In hypervisor case cpufreq server will take care of
-	 * updating frequency for each cpu in a cluster. So no
-	 * need to run through the loop.
-	 */
-	if (tegra_hypervisor_mode)
-		t194_update_cpu_speed_hv(tgt_freq, policy->cpu);
-	else
-		for_each_cpu(cpu, policy->cpus)
-			tegra_update_cpu_speed(tgt_freq, cpu);
+	for_each_cpu(cpu, policy->cpus)
+		tegra_update_cpu_speed(tgt_freq, cpu);
 
 	if (tfreq_data.pcluster[cl].bwmgr)
 		set_cpufreq_to_emcfreq(cl, tgt_freq);
@@ -463,10 +473,7 @@ static int freq_set(void *data, u64 val)
 	uint32_t freq = val;
 
 	if (val) {
-		if (tegra_hypervisor_mode)
-			t194_update_cpu_speed_hv(freq, cpu);
-		else
-			tegra_update_cpu_speed(freq, cpu);
+		tegra_update_cpu_speed(freq, cpu);
 	}
 
 	return 0;
@@ -1096,15 +1103,6 @@ static int __init tegra194_cpufreq_probe(struct platform_device *pdev)
 	}
 
 	set_cpu_mask();
-
-	if (tegra_hypervisor_mode) {
-		ret = parse_hv_dt_data(dn);
-		if (ret)
-			goto err_free_res;
-	}
-
-	if (tegra_hypervisor_mode)
-		tegra_cpufreq_driver.get = t194_get_cpu_speed_hv;
 
 	ret = register_with_emc_bwmgr();
 	if (ret) {
