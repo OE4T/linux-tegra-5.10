@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,6 +31,10 @@
 #include <dt-bindings/memory/tegra-swgroup.h>
 #include <dt-bindings/memory/tegra194-swgroup.h>
 #include "dt-bindings/soc/tegra194-powergate.h"
+/* Minimal.dtsi is to be included first as subsequent headers can
+ *override the nodes.
+ */
+#include "tegra234-soc/tegra234-soc-minimal.dtsi"
 #include "tegra234-soc/tegra234-soc-sata.dtsi"
 #include "tegra234-soc/tegra234-soc-power-domain.dtsi"
 #include "tegra234-soc-memory.dtsi"
@@ -54,23 +58,6 @@
 #include "dt-bindings/soc/tegra-io-pads.h"
 
 / {
-	compatible = "nvidia,tegra186";
-	interrupt-parent = <&intc>;
-	#address-cells = <2>;
-	#size-cells = <2>;
-
-	timer {
-		compatible = "arm,armv8-timer";
-		interrupts = <GIC_PPI 13
-				(GIC_CPU_MASK_SIMPLE(8) | IRQ_TYPE_LEVEL_LOW)>,
-			     <GIC_PPI 14
-				(GIC_CPU_MASK_SIMPLE(8) | IRQ_TYPE_LEVEL_LOW)>,
-			     <GIC_PPI 11
-				(GIC_CPU_MASK_SIMPLE(8) | IRQ_TYPE_LEVEL_LOW)>,
-			     <GIC_PPI 10
-				(GIC_CPU_MASK_SIMPLE(8) | IRQ_TYPE_LEVEL_LOW)>;
-		status = "disabled";
-	};
 
 	timer@3010000 {
 		/* Do not enable this node (SOC Timer) as ARM Generic Timer
@@ -119,16 +106,6 @@
 		reg = <0x0 0x0c2a0000 0x0 0x00010000>;
 		interrupt-parent = <&tegra_pm_irq>;
 		interrupts = <0 10 0x04>;
-		status = "disabled";
-	};
-
-	intc: interrupt-controller@f400000 {
-		compatible = "arm,gic-v3";
-		#interrupt-cells = <3>;
-		#redistributor-regions = <1>;
-		interrupt-controller;
-		reg = <0x0 0x0f400000 0x0 0x00010000    /* GICD */
-		       0x0 0x0f440000 0x0 0x00200000>;  /* GICR CPU 0-15 */
 		status = "disabled";
 	};
 
