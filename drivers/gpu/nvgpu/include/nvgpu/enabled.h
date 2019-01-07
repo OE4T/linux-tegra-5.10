@@ -190,15 +190,21 @@ struct gk20a;
 bool nvgpu_is_enabled(struct gk20a *g, int flag);
 
 /**
- * __nvgpu_set_enabled - Set the state of a flag.
+ * nvgpu_set_enabled - Set the state of a flag.
  *
  * @g     - The GPU.
  * @flag  - Which flag to modify.
  * @state - The state to set the flag to.
  *
  * Set the state of the passed @flag to @state.
+ *
+ * This is generally a somewhat low level operation with lots of potential
+ * side effects. Be weary about where and when you use this. Typically a bunch
+ * of calls to this early in the driver boot sequence makes sense (as
+ * information is determined about the GPU at run time). Calling this in steady
+ * state operation is probably an incorrect thing to do.
  */
-void __nvgpu_set_enabled(struct gk20a *g, int flag, bool state);
+void nvgpu_set_enabled(struct gk20a *g, int flag, bool state);
 
 int nvgpu_init_enabled_flags(struct gk20a *g);
 void nvgpu_free_enabled_flags(struct gk20a *g);

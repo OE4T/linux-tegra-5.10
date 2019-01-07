@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -48,7 +48,7 @@ int nvgpu_get_nvhost_dev(struct gk20a *g)
 	} else {
 		if (nvgpu_has_syncpoints(g)) {
 			nvgpu_warn(g, "host1x reference not found. assuming no syncpoints support");
-			__nvgpu_set_enabled(g, NVGPU_HAS_SYNCPOINTS, false);
+			nvgpu_set_enabled(g, NVGPU_HAS_SYNCPOINTS, false);
 		}
 		return 0;
 	}
@@ -270,7 +270,7 @@ int nvgpu_nvhost_syncpt_init(struct gk20a *g)
 	err = nvgpu_get_nvhost_dev(g);
 	if (err) {
 		nvgpu_err(g, "host1x device not available");
-		__nvgpu_set_enabled(g, NVGPU_HAS_SYNCPOINTS, false);
+		nvgpu_set_enabled(g, NVGPU_HAS_SYNCPOINTS, false);
 		return -ENOSYS;
 	}
 
@@ -280,7 +280,7 @@ int nvgpu_nvhost_syncpt_init(struct gk20a *g)
 			&g->syncpt_unit_size);
 	if (err) {
 		nvgpu_err(g, "Failed to get syncpt interface");
-		__nvgpu_set_enabled(g, NVGPU_HAS_SYNCPOINTS, false);
+		nvgpu_set_enabled(g, NVGPU_HAS_SYNCPOINTS, false);
 		return -ENOSYS;
 	}
 

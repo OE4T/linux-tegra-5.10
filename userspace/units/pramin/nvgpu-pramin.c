@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -483,7 +483,7 @@ static int test_pramin_nvgpu_dying(struct unit_module *m, struct gk20a *g,
 	if (init_test_env(m, g) != 0) {
 		unit_return_fail(m, "Module init failed\n");
 	}
-	__nvgpu_set_enabled(g, NVGPU_DRIVER_IS_DYING, true);
+	nvgpu_set_enabled(g, NVGPU_DRIVER_IS_DYING, true);
 	/*
 	 * When the GPU is dying, PRAMIN should prevent any accesses, so
 	 * pointers to nvgpu_mem and destination data don't matter and can be
@@ -493,7 +493,7 @@ static int test_pramin_nvgpu_dying(struct unit_module *m, struct gk20a *g,
 	nvgpu_pramin_rd_n(g, NULL, 0, 1, NULL);
 
 	/* Restore GPU driver state for other tests */
-	__nvgpu_set_enabled(g, NVGPU_DRIVER_IS_DYING, false);
+	nvgpu_set_enabled(g, NVGPU_DRIVER_IS_DYING, false);
 	return UNIT_SUCCESS;
 }
 

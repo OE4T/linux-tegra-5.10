@@ -1,4 +1,4 @@
-# Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+# Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
 __bug
 __nvgpu_get_pte
 __nvgpu_kfree
@@ -8,7 +8,6 @@ __nvgpu_log_dbg
 __nvgpu_posix_ffs
 __nvgpu_posix_fls
 __nvgpu_readl
-__nvgpu_set_enabled
 __nvgpu_set_pte
 bitmap_clear
 bitmap_find_next_zero_area_off
@@ -109,6 +108,7 @@ nvgpu_pramin_wr_n
 nvgpu_readl
 nvgpu_runlist_construct_locked
 nvgpu_rwsem_init
+nvgpu_set_enabled
 nvgpu_sgt_create_from_mem
 nvgpu_sgt_alignment
 nvgpu_sgt_free

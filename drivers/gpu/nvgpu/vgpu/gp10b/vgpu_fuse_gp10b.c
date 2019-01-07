@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -28,11 +28,11 @@
 int vgpu_gp10b_fuse_check_priv_security(struct gk20a *g)
 {
 	if (nvgpu_is_enabled(g, NVGPU_IS_FMODEL)) {
-		__nvgpu_set_enabled(g, NVGPU_SEC_PRIVSECURITY, false);
-		__nvgpu_set_enabled(g, NVGPU_SEC_SECUREGPCCS, false);
+		nvgpu_set_enabled(g, NVGPU_SEC_PRIVSECURITY, false);
+		nvgpu_set_enabled(g, NVGPU_SEC_SECUREGPCCS, false);
 	} else {
-		__nvgpu_set_enabled(g, NVGPU_SEC_PRIVSECURITY, true);
-		__nvgpu_set_enabled(g, NVGPU_SEC_SECUREGPCCS, true);
+		nvgpu_set_enabled(g, NVGPU_SEC_PRIVSECURITY, true);
+		nvgpu_set_enabled(g, NVGPU_SEC_SECUREGPCCS, true);
 	}
 
 	return 0;

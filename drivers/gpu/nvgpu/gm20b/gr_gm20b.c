@@ -814,7 +814,7 @@ int gr_gm20b_load_ctxsw_ucode(struct gk20a *g)
 
 	} else {
 		/* cold boot or rg exit */
-		__nvgpu_set_enabled(g, NVGPU_PMU_FECS_BOOTSTRAP_DONE, true);
+		nvgpu_set_enabled(g, NVGPU_PMU_FECS_BOOTSTRAP_DONE, true);
 		if (!nvgpu_is_enabled(g, NVGPU_SEC_SECUREGPCCS)) {
 			gr_gm20b_load_gpccs_with_bootloader(g);
 		} else {
@@ -1148,8 +1148,8 @@ u32 gr_gm20b_get_max_fbps_count(struct gk20a *g)
 void gr_gm20b_init_cyclestats(struct gk20a *g)
 {
 #if defined(CONFIG_GK20A_CYCLE_STATS)
-	__nvgpu_set_enabled(g, NVGPU_SUPPORT_CYCLE_STATS, true);
-	__nvgpu_set_enabled(g, NVGPU_SUPPORT_CYCLE_STATS_SNAPSHOT, true);
+	nvgpu_set_enabled(g, NVGPU_SUPPORT_CYCLE_STATS, true);
+	nvgpu_set_enabled(g, NVGPU_SUPPORT_CYCLE_STATS_SNAPSHOT, true);
 	g->gr.max_css_buffer_size = 0xffffffffU;
 #else
 	(void)g;

@@ -556,8 +556,8 @@ static int nvgpu_pci_probe(struct pci_dev *pdev,
 
 	np = nvgpu_get_node(g);
 	if (of_dma_is_coherent(np)) {
-		__nvgpu_set_enabled(g, NVGPU_USE_COHERENT_SYSMEM, true);
-		__nvgpu_set_enabled(g, NVGPU_SUPPORT_IO_COHERENCE, true);
+		nvgpu_set_enabled(g, NVGPU_USE_COHERENT_SYSMEM, true);
+		nvgpu_set_enabled(g, NVGPU_SUPPORT_IO_COHERENCE, true);
 	}
 
 	err = pci_enable_device(pdev);
@@ -643,8 +643,8 @@ static int nvgpu_pci_probe(struct pci_dev *pdev,
 			goto err_free_irq;
 		}
 		/* Enable Semaphore SHIM on nvlink only for now. */
-		__nvgpu_set_enabled(g, NVGPU_SUPPORT_NVLINK, false);
-		__nvgpu_set_enabled(g, NVGPU_HAS_SYNCPOINTS, false);
+		nvgpu_set_enabled(g, NVGPU_SUPPORT_NVLINK, false);
+		nvgpu_set_enabled(g, NVGPU_HAS_SYNCPOINTS, false);
 	} else {
 		err = nvgpu_nvhost_syncpt_init(g);
 		if (err) {

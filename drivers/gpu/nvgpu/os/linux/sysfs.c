@@ -328,10 +328,10 @@ static ssize_t railgate_enable_store(struct device *dev,
 		return -EINVAL;
 
 	if (railgate_enable && !enabled) {
-		__nvgpu_set_enabled(g, NVGPU_CAN_RAILGATE, true);
+		nvgpu_set_enabled(g, NVGPU_CAN_RAILGATE, true);
 		pm_runtime_set_autosuspend_delay(dev, g->railgate_delay);
 	} else if (railgate_enable == 0 && enabled) {
-		__nvgpu_set_enabled(g, NVGPU_CAN_RAILGATE, false);
+		nvgpu_set_enabled(g, NVGPU_CAN_RAILGATE, false);
 		pm_runtime_set_autosuspend_delay(dev, -1);
 	}
 	/* wake-up system to make rail-gating setting effective */

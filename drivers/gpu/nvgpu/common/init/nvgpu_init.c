@@ -504,11 +504,11 @@ int gk20a_wait_for_idle(struct gk20a *g)
 
 int gk20a_init_gpu_characteristics(struct gk20a *g)
 {
-	__nvgpu_set_enabled(g, NVGPU_SUPPORT_MAP_DIRECT_KIND_CTRL, true);
-	__nvgpu_set_enabled(g, NVGPU_SUPPORT_MAP_BUFFER_BATCH, true);
+	nvgpu_set_enabled(g, NVGPU_SUPPORT_MAP_DIRECT_KIND_CTRL, true);
+	nvgpu_set_enabled(g, NVGPU_SUPPORT_MAP_BUFFER_BATCH, true);
 
 	if ((g->ops.mm.support_sparse != NULL) && g->ops.mm.support_sparse(g)) {
-		__nvgpu_set_enabled(g, NVGPU_SUPPORT_SPARSE_ALLOCS, true);
+		nvgpu_set_enabled(g, NVGPU_SUPPORT_SPARSE_ALLOCS, true);
 	}
 
 	/*
@@ -516,7 +516,7 @@ int gk20a_init_gpu_characteristics(struct gk20a *g)
 	 * anything that depends on job tracking. (Here, fast means strictly no
 	 * metadata, just the gpfifo contents are copied and gp_put updated).
 	 */
-	__nvgpu_set_enabled(g,
+	nvgpu_set_enabled(g,
 			NVGPU_SUPPORT_DETERMINISTIC_SUBMIT_NO_JOBTRACKING,
 			true);
 
@@ -527,16 +527,16 @@ int gk20a_init_gpu_characteristics(struct gk20a *g)
 	 * that depends on deferred cleanup.
 	 */
 	if (!nvgpu_channel_sync_needs_os_fence_framework(g)) {
-		__nvgpu_set_enabled(g,
+		nvgpu_set_enabled(g,
 				NVGPU_SUPPORT_DETERMINISTIC_SUBMIT_FULL,
 				true);
 	}
 
-	__nvgpu_set_enabled(g, NVGPU_SUPPORT_TSG, true);
+	nvgpu_set_enabled(g, NVGPU_SUPPORT_TSG, true);
 
 	if (g->ops.clk_arb.get_arbiter_clk_domains != NULL &&
 		g->ops.clk.support_clk_freq_controller) {
-		__nvgpu_set_enabled(g, NVGPU_SUPPORT_CLOCK_CONTROLS, true);
+		nvgpu_set_enabled(g, NVGPU_SUPPORT_CLOCK_CONTROLS, true);
 	}
 
 	g->ops.gr.detect_sm_arch(g);

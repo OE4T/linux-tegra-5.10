@@ -84,7 +84,7 @@ int nvgpu_init_sim_support_linux_pci(struct gk20a *g)
 	bool is_simulation;
 
 	is_simulation = _nvgpu_pci_is_simulation(g, sim_r());
-	__nvgpu_set_enabled(g, NVGPU_IS_FMODEL, is_simulation);
+	nvgpu_set_enabled(g, NVGPU_IS_FMODEL, is_simulation);
 
 	if (!is_simulation)
 		return 0;

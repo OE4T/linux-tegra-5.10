@@ -96,7 +96,7 @@ static void nvgpu_init_vars(struct gk20a *g)
 	nvgpu_init_list_node(&g->boardobj_head);
 	nvgpu_init_list_node(&g->boardobjgrp_head);
 
-	__nvgpu_set_enabled(g, NVGPU_HAS_SYNCPOINTS, platform->has_syncpoints);
+	nvgpu_set_enabled(g, NVGPU_HAS_SYNCPOINTS, platform->has_syncpoints);
 }
 
 static void nvgpu_init_gr_vars(struct gk20a *g)
@@ -161,11 +161,11 @@ static void nvgpu_init_pm_vars(struct gk20a *g)
 	g->can_elpg =
 		nvgpu_platform_is_silicon(g) ? platform->can_elpg_init : false;
 
-	__nvgpu_set_enabled(g, NVGPU_GPU_CAN_ELCG,
+	nvgpu_set_enabled(g, NVGPU_GPU_CAN_ELCG,
 		nvgpu_platform_is_silicon(g) ? platform->can_elcg : false);
-	__nvgpu_set_enabled(g, NVGPU_GPU_CAN_SLCG,
+	nvgpu_set_enabled(g, NVGPU_GPU_CAN_SLCG,
 		nvgpu_platform_is_silicon(g) ? platform->can_slcg : false);
-	__nvgpu_set_enabled(g, NVGPU_GPU_CAN_BLCG,
+	nvgpu_set_enabled(g, NVGPU_GPU_CAN_BLCG,
 		nvgpu_platform_is_silicon(g) ? platform->can_blcg : false);
 
 	g->aggressive_sync_destroy = platform->aggressive_sync_destroy;
@@ -175,7 +175,7 @@ static void nvgpu_init_pm_vars(struct gk20a *g)
 #endif
 	g->ptimer_src_freq = platform->ptimer_src_freq;
 	g->support_pmu = support_gk20a_pmu(dev_from_gk20a(g));
-	__nvgpu_set_enabled(g, NVGPU_CAN_RAILGATE, platform->can_railgate_init);
+	nvgpu_set_enabled(g, NVGPU_CAN_RAILGATE, platform->can_railgate_init);
 	g->can_tpc_powergate = platform->can_tpc_powergate;
 
 	for (i = 0; i < MAX_TPC_PG_CONFIGS; i++)
@@ -187,7 +187,7 @@ static void nvgpu_init_pm_vars(struct gk20a *g)
 		g->railgate_delay = platform->railgate_delay_init;
 	else
 		g->railgate_delay = NVGPU_DEFAULT_RAILGATE_IDLE_TIMEOUT;
-	__nvgpu_set_enabled(g, NVGPU_PMU_PERFMON, platform->enable_perfmon);
+	nvgpu_set_enabled(g, NVGPU_PMU_PERFMON, platform->enable_perfmon);
 
 	/* set default values to aelpg parameters */
 	g->pmu.aelpg_param[0] = APCTRL_SAMPLING_PERIOD_PG_DEFAULT_US;
@@ -196,14 +196,14 @@ static void nvgpu_init_pm_vars(struct gk20a *g)
 	g->pmu.aelpg_param[3] = APCTRL_POWER_BREAKEVEN_DEFAULT_US;
 	g->pmu.aelpg_param[4] = APCTRL_CYCLES_PER_SAMPLE_MAX_DEFAULT;
 
-	__nvgpu_set_enabled(g, NVGPU_SUPPORT_ASPM, !platform->disable_aspm);
+	nvgpu_set_enabled(g, NVGPU_SUPPORT_ASPM, !platform->disable_aspm);
 }
 
 static void nvgpu_init_vbios_vars(struct gk20a *g)
 {
 	struct gk20a_platform *platform = dev_get_drvdata(dev_from_gk20a(g));
 
-	__nvgpu_set_enabled(g, NVGPU_PMU_RUN_PREOS, platform->run_preos);
+	nvgpu_set_enabled(g, NVGPU_PMU_RUN_PREOS, platform->run_preos);
 	g->vbios_min_version = platform->vbios_min_version;
 }
 
@@ -219,13 +219,13 @@ static void nvgpu_init_mm_vars(struct gk20a *g)
 	struct gk20a_platform *platform = dev_get_drvdata(dev_from_gk20a(g));
 
 	g->mm.disable_bigpage = platform->disable_bigpage;
-	__nvgpu_set_enabled(g, NVGPU_MM_HONORS_APERTURE,
+	nvgpu_set_enabled(g, NVGPU_MM_HONORS_APERTURE,
 			    platform->honors_aperture);
-	__nvgpu_set_enabled(g, NVGPU_MM_UNIFIED_MEMORY,
+	nvgpu_set_enabled(g, NVGPU_MM_UNIFIED_MEMORY,
 			    platform->unified_memory);
-	__nvgpu_set_enabled(g, NVGPU_MM_UNIFY_ADDRESS_SPACES,
+	nvgpu_set_enabled(g, NVGPU_MM_UNIFY_ADDRESS_SPACES,
 			    platform->unify_address_spaces);
-	__nvgpu_set_enabled(g, NVGPU_MM_FORCE_128K_PMU_VM,
+	nvgpu_set_enabled(g, NVGPU_MM_FORCE_128K_PMU_VM,
 			    platform->force_128K_pmu_vm);
 
 	nvgpu_mutex_init(&g->mm.tlb_lock);

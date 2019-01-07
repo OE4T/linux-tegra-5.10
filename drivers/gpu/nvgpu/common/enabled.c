@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-18, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -53,7 +53,7 @@ bool nvgpu_is_enabled(struct gk20a *g, int flag)
 	return test_bit(flag, g->enabled_flags);
 }
 
-void __nvgpu_set_enabled(struct gk20a *g, int flag, bool state)
+void nvgpu_set_enabled(struct gk20a *g, int flag, bool state)
 {
 	if (state) {
 		set_bit(flag, g->enabled_flags);

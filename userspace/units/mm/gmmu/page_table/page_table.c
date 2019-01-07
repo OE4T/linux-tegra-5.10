@@ -266,12 +266,12 @@ static const struct nvgpu_sgt_ops nvgpu_sgt_posix_ops = {
 static void init_platform(struct unit_module *m, struct gk20a *g, bool is_iGPU)
 {
 	if (is_iGPU) {
-		__nvgpu_set_enabled(g, NVGPU_MM_UNIFIED_MEMORY, true);
+		nvgpu_set_enabled(g, NVGPU_MM_UNIFIED_MEMORY, true);
 		/* Features below are mostly to cover corner cases */
-		__nvgpu_set_enabled(g, NVGPU_USE_COHERENT_SYSMEM, true);
-		__nvgpu_set_enabled(g, NVGPU_SUPPORT_NVLINK, true);
+		nvgpu_set_enabled(g, NVGPU_USE_COHERENT_SYSMEM, true);
+		nvgpu_set_enabled(g, NVGPU_SUPPORT_NVLINK, true);
 	} else {
-		__nvgpu_set_enabled(g, NVGPU_MM_UNIFIED_MEMORY, false);
+		nvgpu_set_enabled(g, NVGPU_MM_UNIFIED_MEMORY, false);
 	}
 }
 

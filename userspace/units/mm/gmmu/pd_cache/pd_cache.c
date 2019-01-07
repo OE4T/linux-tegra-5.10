@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -726,7 +726,7 @@ cleanup:
 static int test_pd_cache_env_init(struct unit_module *m,
 				  struct gk20a *g, void *args)
 {
-	__nvgpu_set_enabled(g, NVGPU_MM_UNIFIED_MEMORY, true);
+	nvgpu_set_enabled(g, NVGPU_MM_UNIFIED_MEMORY, true);
 
 	return UNIT_SUCCESS;
 }

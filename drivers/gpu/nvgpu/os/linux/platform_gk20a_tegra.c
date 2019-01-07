@@ -1,7 +1,7 @@
 /*
  * GK20A Tegra Platform Interface
  *
- * Copyright (c) 2014-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -646,7 +646,7 @@ int gk20a_tegra_init_secure_alloc(struct gk20a_platform *platform)
 	secure_buffer->destroy = gk20a_tegra_secure_page_destroy;
 
 	g->ops.secure_alloc = gk20a_tegra_secure_alloc;
-	__nvgpu_set_enabled(g, NVGPU_SUPPORT_VPR, true);
+	nvgpu_set_enabled(g, NVGPU_SUPPORT_VPR, true);
 
 	return 0;
 }
@@ -796,7 +796,7 @@ static int gk20a_tegra_probe(struct device *dev)
 
 	if (joint_xpu_rail) {
 		nvgpu_log_info(g, "XPU rails are joint\n");
-		__nvgpu_set_enabled(g, NVGPU_CAN_RAILGATE, false);
+		nvgpu_set_enabled(g, NVGPU_CAN_RAILGATE, false);
 	}
 
 	platform->g->clk.gpc_pll.id = GK20A_GPC_PLL;

@@ -1,7 +1,7 @@
 /*
  * Virtualized GPU for Linux
  *
- * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -91,12 +91,12 @@ static void vgpu_init_vars(struct gk20a *g, struct gk20a_platform *platform)
 
 	g->aggressive_sync_destroy = platform->aggressive_sync_destroy;
 	g->aggressive_sync_destroy_thresh = platform->aggressive_sync_destroy_thresh;
-	__nvgpu_set_enabled(g, NVGPU_HAS_SYNCPOINTS, platform->has_syncpoints);
+	nvgpu_set_enabled(g, NVGPU_HAS_SYNCPOINTS, platform->has_syncpoints);
 	g->ptimer_src_freq = platform->ptimer_src_freq;
-	__nvgpu_set_enabled(g, NVGPU_CAN_RAILGATE, platform->can_railgate_init);
+	nvgpu_set_enabled(g, NVGPU_CAN_RAILGATE, platform->can_railgate_init);
 	g->railgate_delay = platform->railgate_delay_init;
 
-	__nvgpu_set_enabled(g, NVGPU_MM_UNIFY_ADDRESS_SPACES,
+	nvgpu_set_enabled(g, NVGPU_MM_UNIFY_ADDRESS_SPACES,
 			    platform->unify_address_spaces);
 }
 
@@ -334,7 +334,7 @@ int vgpu_probe(struct platform_device *pdev)
 
 	l->dev = dev;
 	if (tegra_platform_is_vdk())
-		__nvgpu_set_enabled(gk20a, NVGPU_IS_FMODEL, true);
+		nvgpu_set_enabled(gk20a, NVGPU_IS_FMODEL, true);
 
 	gk20a->is_virtual = true;
 

@@ -1,7 +1,7 @@
 /*
  * GV11B Graphics
  *
- * Copyright (c) 2016-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -30,12 +30,12 @@
 int gv11b_init_gpu_characteristics(struct gk20a *g)
 {
 	gk20a_init_gpu_characteristics(g);
-	__nvgpu_set_enabled(g, NVGPU_SUPPORT_TSG_SUBCONTEXTS, true);
-	__nvgpu_set_enabled(g, NVGPU_SUPPORT_SCG, true);
-	__nvgpu_set_enabled(g, NVGPU_SUPPORT_RESCHEDULE_RUNLIST, true);
-	__nvgpu_set_enabled(g, NVGPU_SUPPORT_SYNCPOINT_ADDRESS, true);
-	__nvgpu_set_enabled(g, NVGPU_SUPPORT_USER_SYNCPOINT, true);
-	__nvgpu_set_enabled(g, NVGPU_SUPPORT_USERMODE_SUBMIT, true);
+	nvgpu_set_enabled(g, NVGPU_SUPPORT_TSG_SUBCONTEXTS, true);
+	nvgpu_set_enabled(g, NVGPU_SUPPORT_SCG, true);
+	nvgpu_set_enabled(g, NVGPU_SUPPORT_RESCHEDULE_RUNLIST, true);
+	nvgpu_set_enabled(g, NVGPU_SUPPORT_SYNCPOINT_ADDRESS, true);
+	nvgpu_set_enabled(g, NVGPU_SUPPORT_USER_SYNCPOINT, true);
+	nvgpu_set_enabled(g, NVGPU_SUPPORT_USERMODE_SUBMIT, true);
 
 	return 0;
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2015-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -33,7 +33,7 @@ void vgpu_gr_gm20b_init_cyclestats(struct gk20a *g)
 	bool snapshots_supported = true;
 
 	/* cyclestats not supported on vgpu */
-	__nvgpu_set_enabled(g, NVGPU_SUPPORT_CYCLE_STATS, false);
+	nvgpu_set_enabled(g, NVGPU_SUPPORT_CYCLE_STATS, false);
 
 	g->gr.max_css_buffer_size = vgpu_css_get_buffer_size(g);
 
@@ -41,8 +41,7 @@ void vgpu_gr_gm20b_init_cyclestats(struct gk20a *g)
 	if (g->gr.max_css_buffer_size == 0)
 		snapshots_supported = false;
 
-	__nvgpu_set_enabled(g, NVGPU_SUPPORT_CYCLE_STATS_SNAPSHOT,
+	nvgpu_set_enabled(g, NVGPU_SUPPORT_CYCLE_STATS_SNAPSHOT,
 							snapshots_supported);
 #endif
 }
-

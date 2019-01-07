@@ -55,7 +55,7 @@ int vgpu_fecs_trace_init(struct gk20a *g)
 		nvgpu_info(g, "does not support fecs trace");
 		goto fail;
 	}
-	__nvgpu_set_enabled(g, NVGPU_SUPPORT_FECS_CTXSW_TRACE, true);
+	nvgpu_set_enabled(g, NVGPU_SUPPORT_FECS_CTXSW_TRACE, true);
 
 	vcst->cookie = vgpu_ivm_mempool_reserve(mempool);
 	if (IS_ERR(vcst->cookie)) {

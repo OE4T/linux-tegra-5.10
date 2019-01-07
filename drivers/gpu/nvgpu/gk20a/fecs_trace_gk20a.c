@@ -422,7 +422,7 @@ int gk20a_fecs_trace_init(struct gk20a *g)
 	BUG_ON(!is_power_of_2(GK20A_FECS_TRACE_NUM_RECORDS));
 	hash_init(trace->pid_hash_table);
 
-	__nvgpu_set_enabled(g, NVGPU_SUPPORT_FECS_CTXSW_TRACE, true);
+	nvgpu_set_enabled(g, NVGPU_SUPPORT_FECS_CTXSW_TRACE, true);
 
 	trace->init = true;
 

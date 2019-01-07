@@ -1,7 +1,7 @@
 /*
  * GP10B FUSE
  *
- * Copyright (c) 2017-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -40,8 +40,8 @@ int gp10b_fuse_check_priv_security(struct gk20a *g)
 	bool is_auto_fetch_disable = false;
 
 	if (nvgpu_is_enabled(g, NVGPU_IS_FMODEL)) {
-		__nvgpu_set_enabled(g, NVGPU_SEC_PRIVSECURITY, false);
-		__nvgpu_set_enabled(g, NVGPU_SEC_SECUREGPCCS, false);
+		nvgpu_set_enabled(g, NVGPU_SEC_PRIVSECURITY, false);
+		nvgpu_set_enabled(g, NVGPU_SEC_SECUREGPCCS, false);
 		nvgpu_log(g, gpu_dbg_info, "priv sec is disabled in fmodel");
 		return 0;
 	}
@@ -58,8 +58,8 @@ int gp10b_fuse_check_priv_security(struct gk20a *g)
 		 * set to 0. In this case gmmu tries to pull wpr
 		 * and vpr settings from tegra mc
 		 */
-		__nvgpu_set_enabled(g, NVGPU_SEC_PRIVSECURITY, true);
-		__nvgpu_set_enabled(g, NVGPU_SEC_SECUREGPCCS, true);
+		nvgpu_set_enabled(g, NVGPU_SEC_PRIVSECURITY, true);
+		nvgpu_set_enabled(g, NVGPU_SEC_SECUREGPCCS, true);
 		is_wpr_enabled =
 			(gcplex_config & GCPLEX_CONFIG_WPR_ENABLED_MASK) != 0U;
 		is_auto_fetch_disable =
@@ -85,8 +85,8 @@ int gp10b_fuse_check_priv_security(struct gk20a *g)
 			return -EINVAL;
 		}
 	} else {
-		__nvgpu_set_enabled(g, NVGPU_SEC_PRIVSECURITY, false);
-		__nvgpu_set_enabled(g, NVGPU_SEC_SECUREGPCCS, false);
+		nvgpu_set_enabled(g, NVGPU_SEC_PRIVSECURITY, false);
+		nvgpu_set_enabled(g, NVGPU_SEC_SECUREGPCCS, false);
 		nvgpu_log(g, gpu_dbg_info,
 				"gcplex_config = 0x%08x, non secure mode",
 				gcplex_config);

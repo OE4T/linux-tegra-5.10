@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -533,7 +533,7 @@ int nvgpu_nvlink_probe(struct gk20a *g)
 	}
 
 	/* Enable NVLINK support */
-	__nvgpu_set_enabled(g, NVGPU_SUPPORT_NVLINK, true);
+	nvgpu_set_enabled(g, NVGPU_SUPPORT_NVLINK, true);
 	return 0;
 
 unregister_ndev:
@@ -561,7 +561,7 @@ int nvgpu_nvlink_remove(struct gk20a *g)
 	if (!ndev)
 		return -ENODEV;
 
-	__nvgpu_set_enabled(g, NVGPU_SUPPORT_NVLINK, false);
+	nvgpu_set_enabled(g, NVGPU_SUPPORT_NVLINK, false);
 
 	err = nvlink_unregister_link(&ndev->link);
 	if (err != 0) {

@@ -1712,7 +1712,7 @@ int gv100_nvlink_init(struct gk20a *g)
 	}
 
 	/* Set HSHUB and SG_PHY */
-	__nvgpu_set_enabled(g, NVGPU_MM_USE_PHYSICAL_SG, true);
+	nvgpu_set_enabled(g, NVGPU_MM_USE_PHYSICAL_SG, true);
 
 	err = g->ops.fb.enable_nvlink(g);
 	if (err != 0) {
@@ -1723,8 +1723,8 @@ int gv100_nvlink_init(struct gk20a *g)
 	return err;
 
 fail:
-	__nvgpu_set_enabled(g, NVGPU_MM_USE_PHYSICAL_SG, false);
-	__nvgpu_set_enabled(g, NVGPU_SUPPORT_NVLINK, false);
+	nvgpu_set_enabled(g, NVGPU_MM_USE_PHYSICAL_SG, false);
+	nvgpu_set_enabled(g, NVGPU_SUPPORT_NVLINK, false);
 	return err;
 }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -309,7 +309,7 @@ int test_fuse_gm20b_check_fmodel(struct unit_module *m,
 	int ret = UNIT_SUCCESS;
 	int result;
 
-	__nvgpu_set_enabled(g, NVGPU_IS_FMODEL, true);
+	nvgpu_set_enabled(g, NVGPU_IS_FMODEL, true);
 
 	result = g->ops.fuse.check_priv_security(g);
 	if (result != 0) {
@@ -328,6 +328,6 @@ int test_fuse_gm20b_check_fmodel(struct unit_module *m,
 		ret = UNIT_FAIL;
 	}
 
-	__nvgpu_set_enabled(g, NVGPU_IS_FMODEL, false);
+	nvgpu_set_enabled(g, NVGPU_IS_FMODEL, false);
 	return ret;
 }

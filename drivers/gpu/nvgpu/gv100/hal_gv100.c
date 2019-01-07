@@ -289,14 +289,14 @@ int gv100_init_gpu_characteristics(struct gk20a *g)
 		return err;
 	}
 
-	__nvgpu_set_enabled(g, NVGPU_SUPPORT_TSG_SUBCONTEXTS, true);
-	__nvgpu_set_enabled(g, NVGPU_SUPPORT_GET_TEMPERATURE, true);
+	nvgpu_set_enabled(g, NVGPU_SUPPORT_TSG_SUBCONTEXTS, true);
+	nvgpu_set_enabled(g, NVGPU_SUPPORT_GET_TEMPERATURE, true);
 	if (nvgpu_has_syncpoints(g)) {
-		__nvgpu_set_enabled(g, NVGPU_SUPPORT_SYNCPOINT_ADDRESS, true);
-		__nvgpu_set_enabled(g, NVGPU_SUPPORT_USER_SYNCPOINT, true);
+		nvgpu_set_enabled(g, NVGPU_SUPPORT_SYNCPOINT_ADDRESS, true);
+		nvgpu_set_enabled(g, NVGPU_SUPPORT_USER_SYNCPOINT, true);
 	}
 
-	__nvgpu_set_enabled(g, NVGPU_SUPPORT_USERMODE_SUBMIT, true);
+	nvgpu_set_enabled(g, NVGPU_SUPPORT_USERMODE_SUBMIT, true);
 
 	return 0;
 }
@@ -1168,15 +1168,15 @@ int gv100_init_hal(struct gk20a *g)
 	gops->get_litter_value = gv100_ops.get_litter_value;
 	gops->semaphore_wakeup = gk20a_channel_semaphore_wakeup;
 
-	__nvgpu_set_enabled(g, NVGPU_GR_USE_DMA_FOR_FW_BOOTSTRAP, true);
-	__nvgpu_set_enabled(g, NVGPU_SEC_PRIVSECURITY, true);
-	__nvgpu_set_enabled(g, NVGPU_SEC_SECUREGPCCS, true);
-	__nvgpu_set_enabled(g, NVGPU_PMU_FECS_BOOTSTRAP_DONE, false);
-	__nvgpu_set_enabled(g, NVGPU_SUPPORT_MULTIPLE_WPR, false);
-	__nvgpu_set_enabled(g, NVGPU_FECS_TRACE_VA, true);
+	nvgpu_set_enabled(g, NVGPU_GR_USE_DMA_FOR_FW_BOOTSTRAP, true);
+	nvgpu_set_enabled(g, NVGPU_SEC_PRIVSECURITY, true);
+	nvgpu_set_enabled(g, NVGPU_SEC_SECUREGPCCS, true);
+	nvgpu_set_enabled(g, NVGPU_PMU_FECS_BOOTSTRAP_DONE, false);
+	nvgpu_set_enabled(g, NVGPU_SUPPORT_MULTIPLE_WPR, false);
+	nvgpu_set_enabled(g, NVGPU_FECS_TRACE_VA, true);
 
 	/* for now */
-	__nvgpu_set_enabled(g, NVGPU_PMU_PSTATE, true);
+	nvgpu_set_enabled(g, NVGPU_PMU_PSTATE, true);
 
 	g->pmu_lsf_pmu_wpr_init_done = 0;
 	gops->clk.split_rail_support = false;

@@ -1,7 +1,7 @@
 /*
  * GK20A Graphics
  *
- * Copyright (c) 2011-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -86,7 +86,7 @@ static int nvgpu_kernel_shutdown_notification(struct notifier_block *nb,
 						nvgpu_reboot_nb);
 	struct gk20a *g = &l->g;
 
-	__nvgpu_set_enabled(g, NVGPU_KERNEL_IS_DYING, true);
+	nvgpu_set_enabled(g, NVGPU_KERNEL_IS_DYING, true);
 	return NOTIFY_DONE;
 }
 
@@ -246,12 +246,12 @@ int nvgpu_finalize_poweron_linux(struct nvgpu_os_linux *l)
 
 void gk20a_init_linux_characteristics(struct gk20a *g)
 {
-	__nvgpu_set_enabled(g, NVGPU_SUPPORT_PARTIAL_MAPPINGS, true);
-	__nvgpu_set_enabled(g, NVGPU_SUPPORT_DETERMINISTIC_OPTS, true);
-	__nvgpu_set_enabled(g, NVGPU_SUPPORT_USERSPACE_MANAGED_AS, true);
+	nvgpu_set_enabled(g, NVGPU_SUPPORT_PARTIAL_MAPPINGS, true);
+	nvgpu_set_enabled(g, NVGPU_SUPPORT_DETERMINISTIC_OPTS, true);
+	nvgpu_set_enabled(g, NVGPU_SUPPORT_USERSPACE_MANAGED_AS, true);
 
 	if (IS_ENABLED(CONFIG_SYNC)) {
-		__nvgpu_set_enabled(g, NVGPU_SUPPORT_SYNC_FENCE_FDS, true);
+		nvgpu_set_enabled(g, NVGPU_SUPPORT_SYNC_FENCE_FDS, true);
 	}
 }
 
@@ -1176,7 +1176,7 @@ int nvgpu_start_gpu_idle(struct gk20a *g)
 	 * Set NVGPU_DRIVER_IS_DYING to avoid gpu being marked
 	 * busy to submit new work to gpu.
 	 */
-	__nvgpu_set_enabled(g, NVGPU_DRIVER_IS_DYING, true);
+	nvgpu_set_enabled(g, NVGPU_DRIVER_IS_DYING, true);
 
 	up_write(&l->busy_lock);
 
@@ -1208,7 +1208,7 @@ void gk20a_driver_start_unload(struct gk20a *g)
 	nvgpu_log(g, gpu_dbg_shutdown, "Driver is now going down!\n");
 
 	down_write(&l->busy_lock);
-	__nvgpu_set_enabled(g, NVGPU_DRIVER_IS_DYING, true);
+	nvgpu_set_enabled(g, NVGPU_DRIVER_IS_DYING, true);
 	/* GR SW ready needs to be invalidated at this time with the busy lock
 	 * held to prevent a racing condition on the gr/mm code */
 	g->gr.sw_ready = false;
@@ -1326,12 +1326,12 @@ static int gk20a_probe(struct platform_device *dev)
 
 	np = nvgpu_get_node(gk20a);
 	if (of_dma_is_coherent(np)) {
-		__nvgpu_set_enabled(gk20a, NVGPU_USE_COHERENT_SYSMEM, true);
-		__nvgpu_set_enabled(gk20a, NVGPU_SUPPORT_IO_COHERENCE, true);
+		nvgpu_set_enabled(gk20a, NVGPU_USE_COHERENT_SYSMEM, true);
+		nvgpu_set_enabled(gk20a, NVGPU_SUPPORT_IO_COHERENCE, true);
 	}
 
 	if (nvgpu_platform_is_simulation(gk20a))
-		__nvgpu_set_enabled(gk20a, NVGPU_IS_FMODEL, true);
+		nvgpu_set_enabled(gk20a, NVGPU_IS_FMODEL, true);
 
 	gk20a->irq_stall = platform_get_irq(dev, 0);
 	gk20a->irq_nonstall = platform_get_irq(dev, 1);

@@ -1030,7 +1030,7 @@ int gv11b_init_hal(struct gk20a *g)
 	gops->get_litter_value = gv11b_ops.get_litter_value;
 	gops->semaphore_wakeup = gk20a_channel_semaphore_wakeup;
 
-	__nvgpu_set_enabled(g, NVGPU_GR_USE_DMA_FOR_FW_BOOTSTRAP, false);
+	nvgpu_set_enabled(g, NVGPU_GR_USE_DMA_FOR_FW_BOOTSTRAP, false);
 
 	/* Read fuses to check if gpu needs to boot in secure/non-secure mode */
 	if (gops->fuse.check_priv_security(g) != 0) {
@@ -1069,10 +1069,10 @@ int gv11b_init_hal(struct gk20a *g)
 		gops->gr.load_ctxsw_ucode = gr_gk20a_load_ctxsw_ucode;
 	}
 
-	__nvgpu_set_enabled(g, NVGPU_PMU_FECS_BOOTSTRAP_DONE, false);
-	__nvgpu_set_enabled(g, NVGPU_FECS_TRACE_VA, true);
+	nvgpu_set_enabled(g, NVGPU_PMU_FECS_BOOTSTRAP_DONE, false);
+	nvgpu_set_enabled(g, NVGPU_FECS_TRACE_VA, true);
 
-	__nvgpu_set_enabled(g, NVGPU_SUPPORT_MULTIPLE_WPR, false);
+	nvgpu_set_enabled(g, NVGPU_SUPPORT_MULTIPLE_WPR, false);
 
 	g->name = "gv11b";
 

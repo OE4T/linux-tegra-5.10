@@ -4575,16 +4575,16 @@ static void gr_gv11b_detect_ecc_enabled_units(struct gk20a *g)
 
 	if (opt_feature_fuses_override_disable) {
 		if (opt_ecc_en) {
-			__nvgpu_set_enabled(g,
+			nvgpu_set_enabled(g,
 					NVGPU_ECC_ENABLED_SM_LRF, true);
-			__nvgpu_set_enabled(g,
+			nvgpu_set_enabled(g,
 					NVGPU_ECC_ENABLED_SM_L1_DATA, true);
-			__nvgpu_set_enabled(g,
+			nvgpu_set_enabled(g,
 					NVGPU_ECC_ENABLED_SM_L1_TAG, true);
-			__nvgpu_set_enabled(g,
+			nvgpu_set_enabled(g,
 					NVGPU_ECC_ENABLED_SM_ICACHE, true);
-			__nvgpu_set_enabled(g, NVGPU_ECC_ENABLED_LTC, true);
-			__nvgpu_set_enabled(g, NVGPU_ECC_ENABLED_SM_CBU, true);
+			nvgpu_set_enabled(g, NVGPU_ECC_ENABLED_LTC, true);
+			nvgpu_set_enabled(g, NVGPU_ECC_ENABLED_SM_CBU, true);
 		}
 	} else {
 		/* SM LRF */
@@ -4592,12 +4592,12 @@ static void gr_gv11b_detect_ecc_enabled_units(struct gk20a *g)
 				fecs_feature_override_ecc) == 1U) {
 			if (gr_fecs_feature_override_ecc_sm_lrf_v(
 				fecs_feature_override_ecc) == 1U) {
-				__nvgpu_set_enabled(g,
+				nvgpu_set_enabled(g,
 						NVGPU_ECC_ENABLED_SM_LRF, true);
 			}
 		} else {
 			if (opt_ecc_en) {
-				__nvgpu_set_enabled(g,
+				nvgpu_set_enabled(g,
 						NVGPU_ECC_ENABLED_SM_LRF, true);
 			}
 		}
@@ -4606,12 +4606,12 @@ static void gr_gv11b_detect_ecc_enabled_units(struct gk20a *g)
 				fecs_feature_override_ecc) == 1U) {
 			if (gr_fecs_feature_override_ecc_sm_l1_data_v(
 				fecs_feature_override_ecc) == 1U) {
-				__nvgpu_set_enabled(g,
+				nvgpu_set_enabled(g,
 					NVGPU_ECC_ENABLED_SM_L1_DATA, true);
 			}
 		} else {
 			if (opt_ecc_en) {
-				__nvgpu_set_enabled(g,
+				nvgpu_set_enabled(g,
 					NVGPU_ECC_ENABLED_SM_L1_DATA, true);
 			}
 		}
@@ -4620,12 +4620,12 @@ static void gr_gv11b_detect_ecc_enabled_units(struct gk20a *g)
 				fecs_feature_override_ecc) == 1U) {
 			if (gr_fecs_feature_override_ecc_sm_l1_tag_v(
 				fecs_feature_override_ecc) == 1U) {
-				__nvgpu_set_enabled(g,
+				nvgpu_set_enabled(g,
 					NVGPU_ECC_ENABLED_SM_L1_TAG, true);
 			}
 		} else {
 			if (opt_ecc_en) {
-				__nvgpu_set_enabled(g,
+				nvgpu_set_enabled(g,
 					NVGPU_ECC_ENABLED_SM_L1_TAG, true);
 			}
 		}
@@ -4638,12 +4638,12 @@ static void gr_gv11b_detect_ecc_enabled_units(struct gk20a *g)
 					fecs_feature_override_ecc) == 1U) &&
 				(gr_fecs_feature_override_ecc_1_sm_l1_icache_v(
 					fecs_feature_override_ecc) == 1U)) {
-				__nvgpu_set_enabled(g,
+				nvgpu_set_enabled(g,
 					NVGPU_ECC_ENABLED_SM_ICACHE, true);
 			}
 		} else {
 			if (opt_ecc_en) {
-				__nvgpu_set_enabled(g,
+				nvgpu_set_enabled(g,
 					NVGPU_ECC_ENABLED_SM_ICACHE, true);
 			}
 		}
@@ -4652,12 +4652,12 @@ static void gr_gv11b_detect_ecc_enabled_units(struct gk20a *g)
 				fecs_feature_override_ecc) == 1U) {
 			if (gr_fecs_feature_override_ecc_ltc_v(
 				fecs_feature_override_ecc) == 1U) {
-				__nvgpu_set_enabled(g,
+				nvgpu_set_enabled(g,
 						NVGPU_ECC_ENABLED_LTC, true);
 			}
 		} else {
 			if (opt_ecc_en) {
-				__nvgpu_set_enabled(g,
+				nvgpu_set_enabled(g,
 						NVGPU_ECC_ENABLED_LTC, true);
 			}
 		}
@@ -4666,12 +4666,12 @@ static void gr_gv11b_detect_ecc_enabled_units(struct gk20a *g)
 				fecs_feature_override_ecc) == 1U) {
 			if (gr_fecs_feature_override_ecc_sm_cbu_v(
 				fecs_feature_override_ecc) == 1U) {
-				__nvgpu_set_enabled(g,
+				nvgpu_set_enabled(g,
 					NVGPU_ECC_ENABLED_SM_CBU, true);
 			}
 		} else {
 			if (opt_ecc_en) {
-				__nvgpu_set_enabled(g,
+				nvgpu_set_enabled(g,
 					NVGPU_ECC_ENABLED_SM_CBU, true);
 			}
 		}
