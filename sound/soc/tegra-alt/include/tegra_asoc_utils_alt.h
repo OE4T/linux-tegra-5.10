@@ -78,8 +78,6 @@ int tegra_alt_asoc_utils_init(struct tegra_asoc_audio_clock_info *data,
 
 int tegra_alt_asoc_utils_set_extern_parent(
 	struct tegra_asoc_audio_clock_info *data, const char *parent);
-int tegra_alt_asoc_utils_set_parent(struct tegra_asoc_audio_clock_info *data,
-				int is_i2s_master);
 int tegra_alt_asoc_utils_clk_enable(struct tegra_asoc_audio_clock_info *data);
 int tegra_alt_asoc_utils_clk_disable(struct tegra_asoc_audio_clock_info *data);
 int tegra_alt_asoc_utils_register_ctls(struct tegra_asoc_audio_clock_info *data);

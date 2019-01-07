@@ -1,7 +1,7 @@
 /*
  * tegra186_m3420_alt.c - Tegra t186ref m3402 Machine driver
  *
- * Copyright (c) 2017 NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2019 NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -596,7 +596,8 @@ static int tegra186_m3420_driver_probe(struct platform_device *pdev)
 	if (err)
 		goto err_remove_dai_link;
 
-	tegra_alt_asoc_utils_set_parent(&machine->audio_clock, true);
+	tegra_alt_asoc_utils_set_extern_parent(&machine->audio_clock,
+					       "pll_a_out0");
 
 	err = snd_soc_register_card(card);
 	if (err) {
