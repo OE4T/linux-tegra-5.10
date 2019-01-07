@@ -1310,10 +1310,9 @@ static bool gr_activity_empty_or_preempted(u32 val)
 	return true;
 }
 
-int gr_gp10b_wait_empty(struct gk20a *g, unsigned long duration_ms,
-			       u32 expect_delay)
+int gr_gp10b_wait_empty(struct gk20a *g)
 {
-	u32 delay = expect_delay;
+	u32 delay = GR_IDLE_CHECK_DEFAULT;
 	bool ctxsw_active;
 	bool gr_busy;
 	u32 gr_status;
@@ -1322,7 +1321,8 @@ int gr_gp10b_wait_empty(struct gk20a *g, unsigned long duration_ms,
 
 	nvgpu_log_fn(g, " ");
 
-	nvgpu_timeout_init(g, &timeout, duration_ms, NVGPU_TIMER_CPU_TIMER);
+	nvgpu_timeout_init(g, &timeout, gk20a_get_gr_idle_timeout(g),
+			   NVGPU_TIMER_CPU_TIMER);
 
 	do {
 		/* fmodel: host gets fifo_engine_status(gr) from gr

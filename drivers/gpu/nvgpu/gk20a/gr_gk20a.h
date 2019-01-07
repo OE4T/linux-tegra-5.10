@@ -596,8 +596,7 @@ int gr_gk20a_add_zbc_depth(struct gk20a *g, struct gr_gk20a *gr,
 int _gk20a_gr_zbc_set_table(struct gk20a *g, struct gr_gk20a *gr,
 			struct zbc_entry *zbc_val);
 void gr_gk20a_pmu_save_zbc(struct gk20a *g, u32 entries);
-int gr_gk20a_wait_idle(struct gk20a *g, unsigned long duration_ms,
-		       u32 expect_delay);
+int gr_gk20a_wait_idle(struct gk20a *g);
 int gr_gk20a_handle_sm_exception(struct gk20a *g, u32 gpc, u32 tpc, u32 sm,
 		bool *post_event, struct channel_gk20a *fault_ch,
 		u32 *hww_global_esr);
@@ -655,8 +654,7 @@ u32 gr_gk20a_get_ctx_id(struct gk20a *g, struct nvgpu_mem *ctx_mem);
 u32 gk20a_gr_get_sm_hww_warp_esr(struct gk20a *g, u32 gpc, u32 tpc, u32 sm);
 u32 gk20a_gr_get_sm_hww_global_esr(struct gk20a *g, u32 gpc, u32 tpc, u32 sm);
 
-int gr_gk20a_wait_fe_idle(struct gk20a *g, unsigned long duration_ms,
-			  u32 expect_delay);
+int gr_gk20a_wait_fe_idle(struct gk20a *g);
 
 struct dbg_session_gk20a;
 

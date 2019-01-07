@@ -2124,10 +2124,9 @@ static bool gr_activity_empty_or_preempted(u32 val)
 	return true;
 }
 
-int gr_gv11b_wait_empty(struct gk20a *g, unsigned long duration_ms,
-		       u32 expect_delay)
+int gr_gv11b_wait_empty(struct gk20a *g)
 {
-	u32 delay = expect_delay;
+	u32 delay = GR_IDLE_CHECK_DEFAULT;
 	bool ctxsw_active;
 	bool gr_busy;
 	u32 gr_status;
@@ -2136,7 +2135,8 @@ int gr_gv11b_wait_empty(struct gk20a *g, unsigned long duration_ms,
 
 	nvgpu_log_fn(g, " ");
 
-	nvgpu_timeout_init(g, &timeout, duration_ms, NVGPU_TIMER_CPU_TIMER);
+	nvgpu_timeout_init(g, &timeout, gk20a_get_gr_idle_timeout(g),
+			   NVGPU_TIMER_CPU_TIMER);
 
 	do {
 		/* fmodel: host gets fifo_engine_status(gr) from gr
@@ -2801,8 +2801,7 @@ static int gv11b_write_bundle_veid_state(struct gk20a *g, u32 index)
 			sw_veid_bundle_init->l[index].addr |
 			gr_pipe_bundle_address_veid_f(j));
 
-		err = gr_gk20a_wait_fe_idle(g, gk20a_get_gr_idle_timeout(g),
-					    GR_IDLE_CHECK_DEFAULT);
+		err = gr_gk20a_wait_fe_idle(g);
 	}
 	return err;
 }
@@ -2832,9 +2831,7 @@ int gr_gv11b_init_sw_veid_bundle(struct gk20a *g)
 			nvgpu_log_fn(g, "go idle bundle");
 				gk20a_writel(g, gr_pipe_bundle_address_r(),
 					sw_veid_bundle_init->l[i].addr);
-				err = gr_gk20a_wait_idle(g,
-						gk20a_get_gr_idle_timeout(g),
-						GR_IDLE_CHECK_DEFAULT);
+				err = gr_gk20a_wait_idle(g);
 		} else {
 			err = gv11b_write_bundle_veid_state(g, i);
 		}

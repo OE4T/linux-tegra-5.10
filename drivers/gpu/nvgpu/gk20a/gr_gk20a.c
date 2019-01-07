@@ -224,10 +224,9 @@ static void gr_gk20a_load_falcon_imem(struct gk20a *g)
 	}
 }
 
-int gr_gk20a_wait_idle(struct gk20a *g, unsigned long duration_ms,
-		       u32 expect_delay)
+int gr_gk20a_wait_idle(struct gk20a *g)
 {
-	u32 delay = expect_delay;
+	u32 delay = GR_IDLE_CHECK_DEFAULT;
 	bool ctxsw_active;
 	bool gr_busy;
 	u32 gr_engine_id;
@@ -239,7 +238,8 @@ int gr_gk20a_wait_idle(struct gk20a *g, unsigned long duration_ms,
 
 	gr_engine_id = gk20a_fifo_get_gr_engine_id(g);
 
-	nvgpu_timeout_init(g, &timeout, duration_ms, NVGPU_TIMER_CPU_TIMER);
+	nvgpu_timeout_init(g, &timeout, gk20a_get_gr_idle_timeout(g),
+			   NVGPU_TIMER_CPU_TIMER);
 
 	do {
 		/* fmodel: host gets fifo_engine_status(gr) from gr
@@ -276,11 +276,10 @@ int gr_gk20a_wait_idle(struct gk20a *g, unsigned long duration_ms,
 	return -EAGAIN;
 }
 
-int gr_gk20a_wait_fe_idle(struct gk20a *g, unsigned long duration_ms,
-			  u32 expect_delay)
+int gr_gk20a_wait_fe_idle(struct gk20a *g)
 {
 	u32 val;
-	u32 delay = expect_delay;
+	u32 delay = GR_IDLE_CHECK_DEFAULT;
 	struct nvgpu_timeout timeout;
 
 	if (nvgpu_is_enabled(g, NVGPU_IS_FMODEL)) {
@@ -289,7 +288,8 @@ int gr_gk20a_wait_fe_idle(struct gk20a *g, unsigned long duration_ms,
 
 	nvgpu_log_fn(g, " ");
 
-	nvgpu_timeout_init(g, &timeout, duration_ms, NVGPU_TIMER_CPU_TIMER);
+	nvgpu_timeout_init(g, &timeout, gk20a_get_gr_idle_timeout(g),
+			   NVGPU_TIMER_CPU_TIMER);
 
 	do {
 		val = gk20a_readl(g, gr_status_r());
@@ -1218,16 +1218,13 @@ int gk20a_init_sw_bundle(struct gk20a *g)
 
 		if (gr_pipe_bundle_address_value_v(sw_bundle_init->l[i].addr) ==
 		    GR_GO_IDLE_BUNDLE) {
-			err = gr_gk20a_wait_idle(g,
-						  gk20a_get_gr_idle_timeout(g),
-						  GR_IDLE_CHECK_DEFAULT);
+			err = gr_gk20a_wait_idle(g);
 			if (err != 0) {
 				goto error;
 			}
 		}
 
-		err = gr_gk20a_wait_fe_idle(g, gk20a_get_gr_idle_timeout(g),
-					    GR_IDLE_CHECK_DEFAULT);
+		err = gr_gk20a_wait_fe_idle(g);
 		if (err != 0) {
 			goto error;
 		}
@@ -1251,8 +1248,7 @@ int gk20a_init_sw_bundle(struct gk20a *g)
 	gk20a_writel(g, gr_pipe_bundle_config_r(),
 		     gr_pipe_bundle_config_override_pipe_mode_disabled_f());
 
-	err = gr_gk20a_wait_idle(g, gk20a_get_gr_idle_timeout(g),
-				 GR_IDLE_CHECK_DEFAULT);
+	err = gr_gk20a_wait_idle(g);
 
 	/* restore fe_go_idle */
 	gk20a_writel(g, gr_fe_go_idle_timeout_r(),
@@ -1373,8 +1369,7 @@ int gr_gk20a_init_golden_ctx_image(struct gk20a *g,
 		goto clean_up;
 	}
 
-	err = gr_gk20a_wait_idle(g, gk20a_get_gr_idle_timeout(g),
-				 GR_IDLE_CHECK_DEFAULT);
+	err = gr_gk20a_wait_idle(g);
 
 	/* load ctx init */
 	for (i = 0; i < sw_ctx_load->count; i++) {
@@ -1390,8 +1385,7 @@ int gr_gk20a_init_golden_ctx_image(struct gk20a *g,
 		g->ops.clock_gating.blcg_gr_load_gating_prod(g, g->blcg_enabled);
 	}
 
-	err = gr_gk20a_wait_idle(g, gk20a_get_gr_idle_timeout(g),
-				 GR_IDLE_CHECK_DEFAULT);
+	err = gr_gk20a_wait_idle(g);
 	if (err != 0) {
 		goto clean_up;
 	}
@@ -1414,8 +1408,7 @@ int gr_gk20a_init_golden_ctx_image(struct gk20a *g,
 		goto clean_up;
 	}
 
-	err = gr_gk20a_wait_idle(g, gk20a_get_gr_idle_timeout(g),
-				 GR_IDLE_CHECK_DEFAULT);
+	err = gr_gk20a_wait_idle(g);
 	if (err != 0) {
 		goto restore_fe_go_idle;
 	}
@@ -1430,8 +1423,7 @@ restore_fe_go_idle:
 	gk20a_writel(g, gr_fe_go_idle_timeout_r(),
 		     gr_fe_go_idle_timeout_count_prod_f());
 
-	if ((err != 0) || (gr_gk20a_wait_idle(g, gk20a_get_gr_idle_timeout(g),
-				      GR_IDLE_CHECK_DEFAULT) != 0)) {
+	if ((err != 0) || (gr_gk20a_wait_idle(g) != 0)) {
 		goto clean_up;
 	}
 
@@ -1455,8 +1447,7 @@ restore_fe_go_idle:
 			sw_method_init->l[i].addr);
 	}
 
-	err = gr_gk20a_wait_idle(g, gk20a_get_gr_idle_timeout(g),
-				 GR_IDLE_CHECK_DEFAULT);
+	err = gr_gk20a_wait_idle(g);
 	if (err != 0) {
 		goto clean_up;
 	}
@@ -3222,8 +3213,7 @@ void gr_gk20a_pmu_save_zbc(struct gk20a *g, u32 entries)
 		return;
 	}
 
-	ret = g->ops.gr.wait_empty(g, gk20a_get_gr_idle_timeout(g),
-				   GR_IDLE_CHECK_DEFAULT);
+	ret = g->ops.gr.wait_empty(g);
 	if (ret != 0) {
 		nvgpu_err(g,
 			"failed to idle graphics");
@@ -3566,8 +3556,7 @@ int _gk20a_gr_zbc_set_table(struct gk20a *g, struct gr_gk20a *gr,
 		return ret;
 	}
 
-	ret = g->ops.gr.wait_empty(g, gk20a_get_gr_idle_timeout(g),
-				   GR_IDLE_CHECK_DEFAULT);
+	ret = g->ops.gr.wait_empty(g);
 	if (ret != 0) {
 		nvgpu_err(g,
 			"failed to idle graphics");
@@ -3953,8 +3942,7 @@ static int gk20a_init_gr_setup_hw(struct gk20a *g)
 			     sw_ctx_load->l[i].value);
 	}
 
-	err = gr_gk20a_wait_idle(g, gk20a_get_gr_idle_timeout(g),
-				 GR_IDLE_CHECK_DEFAULT);
+	err = gr_gk20a_wait_idle(g);
 	if (err != 0U) {
 		goto out;
 	}
@@ -3979,8 +3967,7 @@ static int gk20a_init_gr_setup_hw(struct gk20a *g)
 		goto out;
 	}
 
-	err = gr_gk20a_wait_idle(g, gk20a_get_gr_idle_timeout(g),
-				 GR_IDLE_CHECK_DEFAULT);
+	err = gr_gk20a_wait_idle(g);
 	if (err != 0U) {
 		goto restore_fe_go_idle;
 	}
@@ -3990,8 +3977,7 @@ restore_fe_go_idle:
 	gk20a_writel(g, gr_fe_go_idle_timeout_r(),
 		     gr_fe_go_idle_timeout_count_prod_f());
 
-	if ((err != 0U) || (gr_gk20a_wait_idle(g, gk20a_get_gr_idle_timeout(g),
-				      GR_IDLE_CHECK_DEFAULT) != 0)) {
+	if ((err != 0U) || (gr_gk20a_wait_idle(g) != 0)) {
 		goto out;
 	}
 
@@ -4015,8 +4001,7 @@ restore_fe_go_idle:
 			sw_method_init->l[i].addr);
 	}
 
-	err = gr_gk20a_wait_idle(g, gk20a_get_gr_idle_timeout(g),
-				 GR_IDLE_CHECK_DEFAULT);
+	err = gr_gk20a_wait_idle(g);
 out:
 	nvgpu_log_fn(g, "done");
 	return err;
@@ -4177,8 +4162,7 @@ static int gk20a_init_gr_reset_enable_hw(struct gk20a *g)
 		goto out;
 	}
 
-	err = gr_gk20a_wait_idle(g, gk20a_get_gr_idle_timeout(g),
-				 GR_IDLE_CHECK_DEFAULT);
+	err = gr_gk20a_wait_idle(g);
 	if (err != 0U) {
 		goto out;
 	}
@@ -5733,8 +5717,7 @@ int gk20a_gr_suspend(struct gk20a *g)
 
 	nvgpu_log_fn(g, " ");
 
-	ret = g->ops.gr.wait_empty(g, gk20a_get_gr_idle_timeout(g),
-				   GR_IDLE_CHECK_DEFAULT);
+	ret = g->ops.gr.wait_empty(g);
 	if (ret != 0U) {
 		return ret;
 	}
