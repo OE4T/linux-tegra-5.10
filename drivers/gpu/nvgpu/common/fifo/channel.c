@@ -405,6 +405,7 @@ static void gk20a_free_channel(struct channel_gk20a *ch, bool force)
 
 	if (g->ops.fifo.free_channel_ctx_header != NULL) {
 		g->ops.fifo.free_channel_ctx_header(ch);
+		ch->subctx = NULL;
 	}
 
 	if (ch->usermode_submit_enabled) {

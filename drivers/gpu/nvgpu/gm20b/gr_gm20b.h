@@ -97,7 +97,7 @@ int gr_gm20b_init_ctxsw_preemption_mode(struct gk20a *g,
 	struct nvgpu_gr_ctx *gr_ctx, struct vm_gk20a *vm,
 	u32 class, u32 flags);
 void gr_gm20b_update_ctxsw_preemption_mode(struct gk20a *g,
-		struct nvgpu_gr_ctx *gr_ctx, struct nvgpu_mem *ctxheader);
+		struct nvgpu_gr_ctx *gr_ctx, struct nvgpu_gr_subctx *subctx);
 int gr_gm20b_dump_gr_status_regs(struct gk20a *g,
 			   struct gk20a_debug_output *o);
 int gr_gm20b_update_pc_sampling(struct channel_gk20a *c,

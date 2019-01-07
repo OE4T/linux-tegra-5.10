@@ -50,6 +50,7 @@
 #include <nvgpu/string.h>
 #include <nvgpu/regops.h>
 #include <nvgpu/gr/global_ctx.h>
+#include <nvgpu/gr/subctx.h>
 #include <nvgpu/gr/ctx.h>
 
 #include "gr_gk20a.h"
@@ -649,7 +650,6 @@ static int gr_gk20a_ctx_zcull_setup(struct gk20a *g, struct channel_gk20a *c,
 		struct nvgpu_gr_ctx *gr_ctx)
 {
 	struct nvgpu_mem *mem = NULL;
-	struct nvgpu_mem *ctxheader = &c->ctx_header;
 	int ret = 0;
 
 	nvgpu_log_fn(g, " ");
@@ -676,8 +676,8 @@ static int gr_gk20a_ctx_zcull_setup(struct gk20a *g, struct channel_gk20a *c,
 
 	g->ops.gr.ctxsw_prog.set_zcull(g, mem, gr_ctx->zcull_ctx.ctx_sw_mode);
 
-	if (ctxheader->gpu_va != 0ULL) {
-		g->ops.gr.ctxsw_prog.set_zcull_ptr(g, ctxheader,
+	if (c->subctx != NULL) {
+		g->ops.gr.ctxsw_prog.set_zcull_ptr(g, &c->subctx->ctx_header,
 			gr_ctx->zcull_ctx.gpu_va);
 	} else {
 		g->ops.gr.ctxsw_prog.set_zcull_ptr(g, mem,
@@ -1492,7 +1492,6 @@ int gr_gk20a_update_hwpm_ctxsw_mode(struct gk20a *g,
 	struct nvgpu_gr_ctx *gr_ctx;
 	struct pm_ctx_desc *pm_ctx;
 	u64 virt_addr = 0;
-	struct nvgpu_mem *ctxheader = &c->ctx_header;
 	int ret;
 
 	nvgpu_log_fn(g, " ");
@@ -1604,12 +1603,12 @@ int gr_gk20a_update_hwpm_ctxsw_mode(struct gk20a *g,
 		virt_addr = 0;
 	}
 
-	if (ctxheader->gpu_va != 0ULL) {
+	if (c->subctx != NULL) {
 		struct channel_gk20a *ch;
 
 		nvgpu_rwsem_down_read(&tsg->ch_list_lock);
 		nvgpu_list_for_each_entry(ch, &tsg->ch_list, channel_gk20a, ch_entry) {
-			g->ops.gr.ctxsw_prog.set_pm_ptr(g, &ch->ctx_header,
+			g->ops.gr.ctxsw_prog.set_pm_ptr(g, &ch->subctx->ctx_header,
 				virt_addr);
 		}
 		nvgpu_rwsem_up_read(&tsg->ch_list_lock);
@@ -2366,7 +2365,7 @@ int gk20a_alloc_obj_ctx(struct channel_gk20a  *c, u32 class_num, u32 flags)
 
 		if (g->ops.gr.update_ctxsw_preemption_mode != NULL) {
 			g->ops.gr.update_ctxsw_preemption_mode(g, gr_ctx,
-				&c->ctx_header);
+				c->subctx);
 		}
 
 #ifdef CONFIG_GK20A_CTXSW_TRACE
@@ -6124,7 +6123,6 @@ static int gr_gk20a_ctx_patch_smpc(struct gk20a *g,
 	u32 *ovr_perf_regs = NULL;
 	u32 gpc_stride = nvgpu_get_litter_value(g, GPU_LIT_GPC_STRIDE);
 	u32 tpc_in_gpc_stride = nvgpu_get_litter_value(g, GPU_LIT_TPC_IN_GPC_STRIDE);
-	struct nvgpu_mem *ctxheader = &ch->ctx_header;
 
 	g->ops.gr.init_ovr_sm_dsm_perf();
 	g->ops.gr.init_sm_dsm_reg_info();
@@ -6158,9 +6156,9 @@ static int gr_gk20a_ctx_patch_smpc(struct gk20a *g,
 				g->ops.gr.ctxsw_prog.set_patch_count(g, mem,
 					gr_ctx->patch_ctx.data_count);
 
-				if (ctxheader->gpu_va != 0ULL) {
+				if (ch->subctx != NULL) {
 					g->ops.gr.ctxsw_prog.set_patch_addr(g,
-						ctxheader,
+						&ch->subctx->ctx_header,
 						gr_ctx->patch_ctx.mem.gpu_va);
 				} else {
 					g->ops.gr.ctxsw_prog.set_patch_addr(g,

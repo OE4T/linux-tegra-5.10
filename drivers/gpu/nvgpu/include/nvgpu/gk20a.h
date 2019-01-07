@@ -62,6 +62,7 @@ struct boardobjgrpmask;
 struct nvgpu_sgt;
 struct nvgpu_sgl;
 struct nvgpu_device_info;
+struct nvgpu_gr_subctx;
 
 #include <nvgpu/lock.h>
 #include <nvgpu/thread.h>
@@ -347,7 +348,7 @@ struct gpu_ops {
 			  u32 class, u32 padding);
 		void (*update_ctxsw_preemption_mode)(struct gk20a *g,
 				struct nvgpu_gr_ctx *gr_ctx,
-				struct nvgpu_mem *ctxheader);
+				struct nvgpu_gr_subctx *subctx);
 		int (*update_smpc_ctxsw_mode)(struct gk20a *g,
 				struct channel_gk20a *c,
 				bool enable);

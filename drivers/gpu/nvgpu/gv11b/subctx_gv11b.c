@@ -29,6 +29,7 @@
 #include <nvgpu/gmmu.h>
 #include <nvgpu/utils.h>
 #include <nvgpu/channel.h>
+#include <nvgpu/gr/subctx.h>
 #include <nvgpu/gr/ctx.h>
 
 #include <nvgpu/hw/gv11b/hw_ram_gv11b.h>
@@ -44,47 +45,9 @@ static void gv11b_subctx_commit_pdb(struct vm_gk20a *vm,
 
 void gv11b_free_subctx_header(struct channel_gk20a *c)
 {
-	struct nvgpu_mem *ctxheader = &c->ctx_header;
-	struct gk20a *g = c->g;
-
-	nvgpu_log(g, gpu_dbg_fn, "gv11b_free_subctx_header");
-
-	if (ctxheader->gpu_va != 0ULL) {
-		nvgpu_gmmu_unmap(c->vm, ctxheader, ctxheader->gpu_va);
-
-		nvgpu_dma_free(g, ctxheader);
+	if (c->subctx != NULL) {
+		nvgpu_gr_subctx_free(c->g, c->subctx, c->vm);
 	}
-}
-
-int gv11b_alloc_subctx_header(struct channel_gk20a *c)
-{
-	struct nvgpu_mem *ctxheader = &c->ctx_header;
-	struct gk20a *g = c->g;
-	int ret = 0;
-
-	nvgpu_log(g, gpu_dbg_fn, "gv11b_alloc_subctx_header");
-
-	if (!nvgpu_mem_is_valid(ctxheader)) {
-		ret = nvgpu_dma_alloc_sys(g,
-				g->ops.gr.ctxsw_prog.hw_get_fecs_header_size(),
-				ctxheader);
-		if (ret != 0) {
-			nvgpu_err(g, "failed to allocate sub ctx header");
-			return ret;
-		}
-		ctxheader->gpu_va = nvgpu_gmmu_map(c->vm,
-					ctxheader,
-					ctxheader->size,
-					0, /* not GPU-cacheable */
-					gk20a_mem_flag_none, true,
-					ctxheader->aperture);
-		if (ctxheader->gpu_va == 0ULL) {
-			nvgpu_err(g, "failed to map ctx header");
-			nvgpu_dma_free(g, ctxheader);
-			return -ENOMEM;
-		}
-	}
-	return ret;
 }
 
 void gv11b_init_subcontext_pdb(struct vm_gk20a *vm,
@@ -94,47 +57,6 @@ void gv11b_init_subcontext_pdb(struct vm_gk20a *vm,
 	gv11b_subctx_commit_pdb(vm, inst_block, replayable);
 	gv11b_subctx_commit_valid_mask(vm, inst_block);
 
-}
-
-int gv11b_update_subctx_header(struct channel_gk20a *c, u64 gpu_va)
-{
-	struct nvgpu_mem *ctxheader = &c->ctx_header;
-	struct gk20a *g = c->g;
-	struct tsg_gk20a *tsg;
-	struct nvgpu_gr_ctx *gr_ctx;
-	int err = 0;
-
-	tsg = tsg_gk20a_from_ch(c);
-	if (tsg == NULL) {
-		return -EINVAL;
-	}
-
-	gr_ctx = tsg->gr_ctx;
-
-	err = g->ops.mm.l2_flush(g, true);
-	if (err != 0) {
-		nvgpu_err(g, "l2_flush failed");
-		return err;
-	}
-
-	/* set priv access map */
-	g->ops.gr.ctxsw_prog.set_priv_access_map_addr(g, ctxheader,
-		nvgpu_gr_ctx_get_global_ctx_va(gr_ctx,
-			NVGPU_GR_CTX_PRIV_ACCESS_MAP_VA));
-
-	g->ops.gr.ctxsw_prog.set_patch_addr(g, ctxheader,
-		gr_ctx->patch_ctx.mem.gpu_va);
-
-	g->ops.gr.ctxsw_prog.set_pm_ptr(g, ctxheader,
-		gr_ctx->pm_ctx.mem.gpu_va);
-	g->ops.gr.ctxsw_prog.set_zcull_ptr(g, ctxheader,
-		gr_ctx->zcull_ctx.gpu_va);
-
-	g->ops.gr.ctxsw_prog.set_context_buffer_ptr(g, ctxheader, gpu_va);
-
-	g->ops.gr.ctxsw_prog.set_type_per_veid_header(g, ctxheader);
-
-	return err;
 }
 
 static void gv11b_subctx_commit_valid_mask(struct vm_gk20a *vm,

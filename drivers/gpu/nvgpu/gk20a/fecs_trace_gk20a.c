@@ -37,6 +37,7 @@
 #include <nvgpu/channel.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/gr/global_ctx.h>
+#include <nvgpu/gr/subctx.h>
 #include <nvgpu/gr/ctx.h>
 
 #include "fecs_trace_gk20a.h"
@@ -493,8 +494,8 @@ int gk20a_fecs_trace_bind_channel(struct gk20a *g,
 	g->ops.gr.ctxsw_prog.set_ts_num_records(g, mem,
 		GK20A_FECS_TRACE_NUM_RECORDS);
 
-	if (nvgpu_is_enabled(g, NVGPU_FECS_TRACE_VA))
-		mem = &ch->ctx_header;
+	if (nvgpu_is_enabled(g, NVGPU_FECS_TRACE_VA) && ch->subctx != NULL)
+		mem = &ch->subctx->ctx_header;
 
 	g->ops.gr.ctxsw_prog.set_ts_buffer_ptr(g, mem, addr, aperture_mask);
 

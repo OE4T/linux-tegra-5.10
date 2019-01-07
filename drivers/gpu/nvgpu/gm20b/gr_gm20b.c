@@ -899,7 +899,7 @@ int gr_gm20b_init_ctxsw_preemption_mode(struct gk20a *g,
 }
 
 void gr_gm20b_update_ctxsw_preemption_mode(struct gk20a *g,
-		struct nvgpu_gr_ctx *gr_ctx, struct nvgpu_mem *ctxheader)
+		struct nvgpu_gr_ctx *gr_ctx, struct nvgpu_gr_subctx *subctx)
 {
 	nvgpu_log_fn(g, " ");
 

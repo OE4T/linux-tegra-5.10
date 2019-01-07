@@ -37,6 +37,7 @@ struct gk20a_fence;
 struct fifo_profile_gk20a;
 struct nvgpu_channel_sync;
 struct nvgpu_gpfifo_userdata;
+struct nvgpu_gr_subctx;
 
 /* Flags to be passed to nvgpu_channel_setup_bind() */
 #define NVGPU_SETUP_BIND_FLAGS_SUPPORT_VPR		BIT32(0)
@@ -300,7 +301,7 @@ struct channel_gk20a {
 	u64 virt_ctx;
 #endif
 
-	struct nvgpu_mem ctx_header;
+	struct nvgpu_gr_subctx *subctx;
 
 	struct nvgpu_spinlock ch_timedout_lock;
 	bool ch_timedout;

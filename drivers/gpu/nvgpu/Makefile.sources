@@ -128,6 +128,7 @@ srcs += common/sim.c \
 	common/gr/ctxsw_prog/ctxsw_prog_gp10b.c \
 	common/gr/ctxsw_prog/ctxsw_prog_gv11b.c \
 	common/gr/global_ctx.c \
+	common/gr/subctx.c \
 	common/gr/ctx.c \
 	common/netlist/netlist.c \
 	common/netlist/netlist_sim.c \

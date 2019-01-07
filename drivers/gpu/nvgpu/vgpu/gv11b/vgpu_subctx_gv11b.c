@@ -26,15 +26,24 @@
 #include <nvgpu/vgpu/tegra_vgpu.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/channel.h>
+#include <nvgpu/gr/subctx.h>
 
 
 int vgpu_gv11b_alloc_subctx_header(struct channel_gk20a *c)
 {
-	struct nvgpu_mem *ctxheader = &c->ctx_header;
+	struct nvgpu_mem *ctxheader;
 	struct tegra_vgpu_cmd_msg msg = {};
 	struct tegra_vgpu_alloc_ctx_header_params *p =
 				&msg.params.alloc_ctx_header;
+	struct gk20a *g = c->g;
 	int err;
+
+	c->subctx = nvgpu_kzalloc(g, sizeof(*c->subctx));
+	if (c->subctx == NULL) {
+		return -ENOMEM;
+	}
+
+	ctxheader = &c->subctx->ctx_header;
 
 	msg.cmd = TEGRA_VGPU_CMD_ALLOC_CTX_HEADER;
 	msg.handle = vgpu_get_handle(c->g);
@@ -44,7 +53,8 @@ int vgpu_gv11b_alloc_subctx_header(struct channel_gk20a *c)
 			GMMU_PAGE_SIZE_KERNEL);
 	if (!p->ctx_header_va) {
 		nvgpu_err(c->g, "alloc va failed for ctx_header");
-		return -ENOMEM;
+		err = -ENOMEM;
+		goto fail;
 	}
 	err = vgpu_comm_sendrecv(&msg, sizeof(msg), sizeof(msg));
 	err = err ? err : msg.ret;
@@ -52,22 +62,30 @@ int vgpu_gv11b_alloc_subctx_header(struct channel_gk20a *c)
 		nvgpu_err(c->g, "alloc ctx_header failed err %d", err);
 		nvgpu_vm_free_va(c->vm, p->ctx_header_va,
 			GMMU_PAGE_SIZE_KERNEL);
-		return err;
+		goto fail;
 	}
 	ctxheader->gpu_va = p->ctx_header_va;
 
+	return err;
+
+fail:
+	nvgpu_kfree(g, c->subctx);
 	return err;
 }
 
 void vgpu_gv11b_free_subctx_header(struct channel_gk20a *c)
 {
-	struct nvgpu_mem *ctxheader = &c->ctx_header;
+	struct nvgpu_gr_subctx *subctx = c->subctx;
+	struct nvgpu_mem *ctxheader;
 	struct tegra_vgpu_cmd_msg msg = {};
 	struct tegra_vgpu_free_ctx_header_params *p =
 				&msg.params.free_ctx_header;
+	struct gk20a *g = c->g;
 	int err;
 
-	if (ctxheader->gpu_va) {
+	if (subctx != NULL) {
+		ctxheader = &subctx->ctx_header;
+
 		msg.cmd = TEGRA_VGPU_CMD_FREE_CTX_HEADER;
 		msg.handle = vgpu_get_handle(c->g);
 		p->ch_handle = c->virt_ctx;
@@ -78,5 +96,6 @@ void vgpu_gv11b_free_subctx_header(struct channel_gk20a *c)
 		nvgpu_vm_free_va(c->vm, ctxheader->gpu_va,
 				 GMMU_PAGE_SIZE_KERNEL);
 		ctxheader->gpu_va = 0;
+		nvgpu_kfree(g, subctx);
 	}
 }

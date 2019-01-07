@@ -36,6 +36,7 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/channel.h>
 #include <nvgpu/regops.h>
+#include <nvgpu/gr/subctx.h>
 #include <nvgpu/gr/ctx.h>
 
 #include "gk20a/gr_gk20a.h"
@@ -1066,7 +1067,7 @@ int gr_gp10b_init_ctxsw_preemption_mode(struct gk20a *g,
 }
 
 void gr_gp10b_update_ctxsw_preemption_mode(struct gk20a *g,
-		struct nvgpu_gr_ctx *gr_ctx, struct nvgpu_mem *ctxheader)
+		struct nvgpu_gr_ctx *gr_ctx, struct nvgpu_gr_subctx *subctx)
 {
 	struct nvgpu_mem *mem = &gr_ctx->mem;
 	int err;
@@ -1091,9 +1092,10 @@ void gr_gp10b_update_ctxsw_preemption_mode(struct gk20a *g,
 		u32 cbes_reserve;
 
 		if (g->ops.gr.set_preemption_buffer_va != NULL) {
-			if (ctxheader->gpu_va != 0ULL) {
-				g->ops.gr.set_preemption_buffer_va(g, ctxheader,
-				gr_ctx->preempt_ctxsw_buffer.gpu_va);
+			if (subctx != NULL) {
+				g->ops.gr.set_preemption_buffer_va(g,
+					&subctx->ctx_header,
+					gr_ctx->preempt_ctxsw_buffer.gpu_va);
 			} else {
 				g->ops.gr.set_preemption_buffer_va(g, mem,
 				gr_ctx->preempt_ctxsw_buffer.gpu_va);
@@ -2176,7 +2178,7 @@ int gr_gp10b_set_preemption_mode(struct channel_gk20a *ch,
 
 	if (g->ops.gr.update_ctxsw_preemption_mode != NULL) {
 		g->ops.gr.update_ctxsw_preemption_mode(ch->g, gr_ctx,
-				&ch->ctx_header);
+				ch->subctx);
 
 		err = nvgpu_gr_ctx_patch_write_begin(g, gr_ctx, true);
 		if (err != 0) {

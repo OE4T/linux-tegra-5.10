@@ -1,8 +1,5 @@
 /*
- *
- * Volta GPU series Subcontext
- *
- * Copyright (c) 2016 - 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -22,13 +19,28 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef NVGPU_SUBCTX_GV11B_H
-#define NVGPU_SUBCTX_GV11B_H
 
-void gv11b_free_subctx_header(struct channel_gk20a *c);
+#ifndef NVGPU_GR_SUBCTX_H
+#define NVGPU_GR_SUBCTX_H
 
-void gv11b_init_subcontext_pdb(struct vm_gk20a *vm,
-				struct nvgpu_mem *inst_block,
-				bool replayable);
+#include <nvgpu/types.h>
+#include <nvgpu/nvgpu_mem.h>
 
-#endif /* NVGPU_SUBCTX_GV11B_H */
+struct gk20a;
+struct vm_gk20a;
+
+struct nvgpu_gr_subctx {
+	struct nvgpu_mem ctx_header;
+};
+
+struct nvgpu_gr_subctx *nvgpu_gr_subctx_alloc(struct gk20a *g,
+	struct vm_gk20a *vm);
+void nvgpu_gr_subctx_free(struct gk20a *g,
+	struct nvgpu_gr_subctx *subctx,
+	struct vm_gk20a *vm);
+
+void nvgpu_gr_subctx_load_ctx_header(struct gk20a *g,
+	struct nvgpu_gr_subctx *subctx,
+	struct nvgpu_gr_ctx *gr_ctx, u64 gpu_va);
+
+#endif /* NVGPU_GR_SUBCTX_H */

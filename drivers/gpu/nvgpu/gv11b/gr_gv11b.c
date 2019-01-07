@@ -38,6 +38,7 @@
 #include <nvgpu/bitops.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/regops.h>
+#include <nvgpu/gr/subctx.h>
 #include <nvgpu/gr/ctx.h>
 #include <nvgpu/channel.h>
 #include <nvgpu/nvgpu_err.h>
@@ -1735,7 +1736,7 @@ fail:
 }
 
 void gr_gv11b_update_ctxsw_preemption_mode(struct gk20a *g,
-		struct nvgpu_gr_ctx *gr_ctx, struct nvgpu_mem *ctxheader)
+		struct nvgpu_gr_ctx *gr_ctx, struct nvgpu_gr_subctx *subctx)
 {
 	struct nvgpu_mem *mem = &gr_ctx->mem;
 	int err;
@@ -1763,9 +1764,10 @@ void gr_gv11b_update_ctxsw_preemption_mode(struct gk20a *g,
 		u32 cbes_reserve;
 
 		if (g->ops.gr.set_preemption_buffer_va != NULL) {
-			if (ctxheader->gpu_va != 0ULL) {
-				g->ops.gr.set_preemption_buffer_va(g, ctxheader,
-				gr_ctx->preempt_ctxsw_buffer.gpu_va);
+			if (subctx != NULL) {
+				g->ops.gr.set_preemption_buffer_va(g,
+					&subctx->ctx_header,
+					gr_ctx->preempt_ctxsw_buffer.gpu_va);
 			} else {
 				g->ops.gr.set_preemption_buffer_va(g, mem,
 				gr_ctx->preempt_ctxsw_buffer.gpu_va);
@@ -2956,22 +2958,26 @@ int gr_gv11b_commit_inst(struct channel_gk20a *c, u64 gpu_va)
 	u32 addr_lo;
 	u32 addr_hi;
 	struct nvgpu_mem *ctxheader;
-	int err;
 	struct gk20a *g = c->g;
+	struct tsg_gk20a *tsg;
 
 	nvgpu_log_fn(g, " ");
 
-	err = gv11b_alloc_subctx_header(c);
-	if (err != 0) {
-		return err;
+	tsg = tsg_gk20a_from_ch(c);
+	if (tsg == NULL) {
+		return -EINVAL;
 	}
 
-	err = gv11b_update_subctx_header(c, gpu_va);
-	if (err != 0) {
-		return err;
+	if (c->subctx == NULL) {
+		c->subctx = nvgpu_gr_subctx_alloc(g, c->vm);
+		if (c->subctx == NULL) {
+			return -ENOMEM;
+		}
 	}
 
-	ctxheader = &c->ctx_header;
+	nvgpu_gr_subctx_load_ctx_header(g, c->subctx, tsg->gr_ctx, gpu_va);
+
+	ctxheader = &c->subctx->ctx_header;
 	addr_lo = u64_lo32(ctxheader->gpu_va) >> ram_in_base_shift_v();
 	addr_hi = u64_hi32(ctxheader->gpu_va);
 
