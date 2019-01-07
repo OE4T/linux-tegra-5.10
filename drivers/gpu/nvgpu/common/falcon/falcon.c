@@ -36,7 +36,6 @@ int nvgpu_falcon_wait_idle(struct nvgpu_falcon *flcn)
 	struct gk20a *g;
 	struct nvgpu_falcon_ops *flcn_ops;
 	struct nvgpu_timeout timeout;
-	u32 idle_stat;
 
 	if (flcn == NULL) {
 		return -EINVAL;
@@ -54,15 +53,13 @@ int nvgpu_falcon_wait_idle(struct nvgpu_falcon *flcn)
 
 	/* wait for falcon idle */
 	do {
-		idle_stat = flcn_ops->is_falcon_idle(flcn);
-
-		if (idle_stat != 0U) {
+		if (flcn_ops->is_falcon_idle(flcn)) {
 			break;
 		}
 
 		if (nvgpu_timeout_expired_msg(&timeout,
-			"waiting for falcon idle: 0x%08x", idle_stat) != 0) {
-			return -EBUSY;
+			"waiting for falcon idle") != 0) {
+			return -ETIMEDOUT;
 		}
 
 		nvgpu_usleep_range(100, 200);
@@ -71,27 +68,21 @@ int nvgpu_falcon_wait_idle(struct nvgpu_falcon *flcn)
 	return 0;
 }
 
-static bool falcon_get_mem_scrubbing_status(struct nvgpu_falcon *flcn)
-{
-	struct nvgpu_falcon_ops *flcn_ops = &flcn->flcn_ops;
-	bool status = false;
-
-	if (flcn_ops->is_falcon_scrubbing_done != NULL) {
-		status = flcn_ops->is_falcon_scrubbing_done(flcn);
-	} else {
-		nvgpu_warn(flcn->g, "Invalid op on falcon 0x%x ",
-			flcn->flcn_id);
-	}
-
-	return status;
-}
-
 int nvgpu_falcon_mem_scrub_wait(struct nvgpu_falcon *flcn)
 {
+	struct nvgpu_falcon_ops *flcn_ops;
 	struct nvgpu_timeout timeout;
 	int status = 0;
 
 	if (flcn == NULL) {
+		return -EINVAL;
+	}
+
+	flcn_ops = &flcn->flcn_ops;
+
+	if (flcn_ops->is_falcon_scrubbing_done == NULL) {
+		nvgpu_warn(flcn->g, "Invalid op on falcon 0x%x ",
+			flcn->flcn_id);
 		return -EINVAL;
 	}
 
@@ -101,7 +92,7 @@ int nvgpu_falcon_mem_scrub_wait(struct nvgpu_falcon *flcn)
 		MEM_SCRUBBING_TIMEOUT_DEFAULT,
 		NVGPU_TIMER_RETRY_TIMER);
 	do {
-		if (falcon_get_mem_scrubbing_status(flcn)) {
+		if (flcn_ops->is_falcon_scrubbing_done(flcn)) {
 			goto exit;
 		}
 		nvgpu_udelay(MEM_SCRUBBING_TIMEOUT_DEFAULT);
@@ -161,23 +152,9 @@ void nvgpu_falcon_set_irq(struct nvgpu_falcon *flcn, bool enable,
 	}
 }
 
-static bool falcon_get_cpu_halted_status(struct nvgpu_falcon *flcn)
-{
-	struct nvgpu_falcon_ops *flcn_ops = &flcn->flcn_ops;
-	bool status = false;
-
-	if (flcn_ops->is_falcon_cpu_halted != NULL) {
-		status = flcn_ops->is_falcon_cpu_halted(flcn);
-	} else {
-		nvgpu_warn(flcn->g, "Invalid op on falcon 0x%x ",
-			flcn->flcn_id);
-	}
-
-	return status;
-}
-
 int nvgpu_falcon_wait_for_halt(struct nvgpu_falcon *flcn, unsigned int timeout)
 {
+	struct nvgpu_falcon_ops *flcn_ops;
 	struct gk20a *g;
 	struct nvgpu_timeout to;
 	int status = 0;
@@ -187,10 +164,17 @@ int nvgpu_falcon_wait_for_halt(struct nvgpu_falcon *flcn, unsigned int timeout)
 	}
 
 	g = flcn->g;
+	flcn_ops = &flcn->flcn_ops;
+
+	if (flcn_ops->is_falcon_cpu_halted == NULL) {
+		nvgpu_warn(flcn->g, "Invalid op on falcon 0x%x ",
+			flcn->flcn_id);
+		return -EINVAL;
+	}
 
 	nvgpu_timeout_init(g, &to, timeout, NVGPU_TIMER_CPU_TIMER);
 	do {
-		if (falcon_get_cpu_halted_status(flcn)) {
+		if (flcn_ops->is_falcon_cpu_halted(flcn)) {
 			break;
 		}
 
@@ -198,7 +182,7 @@ int nvgpu_falcon_wait_for_halt(struct nvgpu_falcon *flcn, unsigned int timeout)
 	} while (nvgpu_timeout_expired(&to) == 0);
 
 	if (nvgpu_timeout_peek_expired(&to) != 0) {
-		status = -EBUSY;
+		status = -ETIMEDOUT;
 	}
 
 	return status;
@@ -235,7 +219,7 @@ int nvgpu_falcon_clear_halt_intr_status(struct nvgpu_falcon *flcn,
 	} while (nvgpu_timeout_expired(&to) == 0);
 
 	if (nvgpu_timeout_peek_expired(&to) != 0) {
-		status = -EBUSY;
+		status = -ETIMEDOUT;
 	}
 
 	return status;

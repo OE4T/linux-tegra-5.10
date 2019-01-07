@@ -136,14 +136,8 @@ out:
 
 int gp106_bios_preos_wait_for_halt(struct gk20a *g)
 {
-	int err = 0;
-
-	if (nvgpu_falcon_wait_for_halt(g->pmu.flcn,
-					PMU_BOOT_TIMEOUT_MAX / 1000) != 0) {
-		err = -ETIMEDOUT;
-	}
-
-	return err;
+	return nvgpu_falcon_wait_for_halt(g->pmu.flcn,
+					PMU_BOOT_TIMEOUT_MAX / 1000);
 }
 
 int gp106_bios_preos(struct gk20a *g)
