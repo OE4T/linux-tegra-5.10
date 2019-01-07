@@ -22,10 +22,7 @@
 #include <linux/mmc/ioctl.h>
 #include "tegra_vblk.h"
 
-#define VBLK_MMC_MAX_IOC_SIZE (256 * 1024)
-
 int vblk_prep_mmc_multi_ioc(struct vblk_dev *vblkdev,
-		struct vblk_ioctl_req *ioctl_req,
 		void __user *user,
 		uint32_t cmd)
 {
@@ -38,15 +35,10 @@ int vblk_prep_mmc_multi_ioc(struct vblk_dev *vblkdev,
 	struct mmc_ioc_multi_cmd __user *user_cmd;
 	struct mmc_ioc_cmd __user *usr_ptr;
 	uint32_t combo_cmd_size;
-	uint32_t ioctl_bytes = VBLK_MMC_MAX_IOC_SIZE;
+	uint32_t ioctl_bytes = VBLK_MAX_IOCTL_SIZE;
 	uint8_t *tmpaddr;
-	void *ioctl_buf;
-
-	ioctl_buf = kmalloc(ioctl_bytes,
-			GFP_KERNEL);
-	if (ioctl_buf == NULL) {
-		return -ENOMEM;
-	}
+	struct vblk_ioctl_req *ioctl_req = &vblkdev->ioctl_req;
+	void *ioctl_buf = &ioctl_req->ioctl_buf;
 
 	combo_info = (struct combo_info_t *)ioctl_buf;
 	combo_cmd_size = sizeof(uint32_t);
@@ -56,12 +48,12 @@ int vblk_prep_mmc_multi_ioc(struct vblk_dev *vblkdev,
 		if (copy_from_user(&num_cmd, &user_cmd->num_of_cmds,
 				sizeof(num_cmd))) {
 			err = -EFAULT;
-			goto free_ioc_buf;
+			goto exit;
 		}
 
 		if (num_cmd > MMC_IOC_MAX_CMDS) {
 			err = -EINVAL;
-			goto free_ioc_buf;
+			goto exit;
 		}
 
 		usr_ptr = (void * __user)&user_cmd->cmds;
@@ -80,21 +72,21 @@ int vblk_prep_mmc_multi_ioc(struct vblk_dev *vblkdev,
 		dev_err(vblkdev->device,
 			"combo_cmd_size is overflowing!\n");
 		err = -EINVAL;
-		goto free_ioc_buf;
+		goto exit;
 	}
 
 	if (combo_cmd_size > ioctl_bytes) {
 		dev_err(vblkdev->device,
 			" buffer has no enough space to serve ioctl\n");
 		err = -EFAULT;
-		goto free_ioc_buf;
+		goto exit;
 	}
 
 	tmpaddr = (uint8_t *)&ic;
 	for (i = 0; i < combo_info->count; i++) {
 		if (copy_from_user((void *)tmpaddr, usr_ptr, sizeof(ic))) {
 			err = -EFAULT;
-			goto free_ioc_buf;
+			goto exit;
 		}
 		combo_cmd->cmd = ic.opcode;
 		combo_cmd->arg = ic.arg;
@@ -107,7 +99,7 @@ int vblk_prep_mmc_multi_ioc(struct vblk_dev *vblkdev,
 			dev_err(vblkdev->device,
 				" buffer has no enough space to serve ioctl\n");
 			err = -EFAULT;
-			goto free_ioc_buf;
+			goto exit;
 		}
 
 		if (ic.write_flag && combo_cmd->data_len) {
@@ -120,7 +112,7 @@ int vblk_prep_mmc_multi_ioc(struct vblk_dev *vblkdev,
 				dev_err(vblkdev->device,
 					"copy from user failed for data!\n");
 				err = -EFAULT;
-				goto free_ioc_buf;
+				goto exit;
 			}
 		}
 		combo_cmd++;
@@ -128,18 +120,13 @@ int vblk_prep_mmc_multi_ioc(struct vblk_dev *vblkdev,
 	}
 
 	ioctl_req->ioctl_id = VBLK_MMC_MULTI_IOC_ID;
-	ioctl_req->ioctl_buf = ioctl_buf;
 	ioctl_req->ioctl_len = ioctl_bytes;
 
-free_ioc_buf:
-	if (err && ioctl_buf)
-		kfree (ioctl_buf);
-
+exit:
 	return err;
 }
 
 int vblk_complete_mmc_multi_ioc(struct vblk_dev *vblkdev,
-		struct vblk_ioctl_req *ioctl_req,
 		void __user *user,
 		uint32_t cmd)
 {
@@ -151,19 +138,20 @@ int vblk_complete_mmc_multi_ioc(struct vblk_dev *vblkdev,
 	struct combo_cmd_t *combo_cmd;
 	uint32_t i;
 	int err = 0;
-	void *ioctl_buf = ioctl_req->ioctl_buf;
+	struct vblk_ioctl_req *ioctl_req = &vblkdev->ioctl_req;
+	void *ioctl_buf = &ioctl_req->ioctl_buf;
 
 	if (cmd == MMC_IOC_MULTI_CMD) {
 		user_cmd = (struct mmc_ioc_multi_cmd __user *)user;
 		if (copy_from_user(&num_cmd, &user_cmd->num_of_cmds,
 				sizeof(num_cmd))) {
 			err = -EFAULT;
-			goto free_ioc_buf;
+			goto exit;
 		}
 
 		if (num_cmd > MMC_IOC_MAX_CMDS) {
 			err = -EINVAL;
-			goto free_ioc_buf;
+			goto exit;
 		}
 
 		usr_ptr = (void * __user)&user_cmd->cmds;
@@ -179,13 +167,13 @@ int vblk_complete_mmc_multi_ioc(struct vblk_dev *vblkdev,
 		if (copy_from_user((void *)ic_ptr, usr_ptr,
 			sizeof(struct mmc_ioc_cmd))) {
 			err = -EFAULT;
-			goto free_ioc_buf;
+			goto exit;
 		}
 
 		if (copy_to_user(&(usr_ptr->response), combo_cmd->response,
 			sizeof(combo_cmd->response))) {
 			err = -EFAULT;
-			goto free_ioc_buf;
+			goto exit;
 		}
 
 		if (!ic.write_flag && combo_cmd->data_len) {
@@ -197,16 +185,13 @@ int vblk_complete_mmc_multi_ioc(struct vblk_dev *vblkdev,
 				dev_err(vblkdev->device,
 					"copy to user of ioctl data failed!\n");
 				err = -EFAULT;
-				goto free_ioc_buf;
+				goto exit;
 			}
 		}
 		combo_cmd++;
 		usr_ptr++;
 	}
 
-free_ioc_buf:
-	if (ioctl_buf)
-		kfree(ioctl_buf);
-
+exit:
 	return err;
 }

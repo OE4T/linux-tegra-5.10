@@ -26,38 +26,23 @@
 #include <linux/version.h>
 #include "tegra_vblk.h"
 
-int vblk_complete_ioctl_req(struct vblk_dev *vblkdev,
-	struct vsc_request *vsc_req)
+void vblk_complete_ioctl_req(struct vblk_dev *vblkdev,
+		struct vsc_request *vsc_req,
+		int status)
 {
-	struct vblk_ioctl_req *ioctl_req = vsc_req->ioctl_req;
-	int32_t ret = 0;
+	struct vblk_ioctl_req *ioctl_req = &vblkdev->ioctl_req;
 
-	if (ioctl_req == NULL) {
-		dev_err(vblkdev->device,
-			"Invalid ioctl request for completion!\n");
-		ret = -EINVAL;
-		goto comp_exit;
-	}
-
+	ioctl_req->status = status;
 	memcpy(ioctl_req->ioctl_buf, vsc_req->mempool_virt,
 			ioctl_req->ioctl_len);
-comp_exit:
-	return ret;
 }
 
 int vblk_prep_ioctl_req(struct vblk_dev *vblkdev,
-		struct vblk_ioctl_req *ioctl_req,
 		struct vsc_request *vsc_req)
 {
 	int32_t ret = 0;
 	struct vs_request *vs_req;
-
-	if (ioctl_req == NULL) {
-		dev_err(vblkdev->device,
-			"Invalid ioctl request for preparation!\n");
-		return -EINVAL;
-	}
-
+	struct vblk_ioctl_req *ioctl_req = &vblkdev->ioctl_req;
 
 	if (ioctl_req->ioctl_len > vsc_req->mempool_len) {
 		dev_err(vblkdev->device,
@@ -65,21 +50,13 @@ int vblk_prep_ioctl_req(struct vblk_dev *vblkdev,
 		return -EINVAL;
 	}
 
-	if (ioctl_req->ioctl_buf == NULL) {
-		dev_err(vblkdev->device,
-			"Ioctl buffer invalid!\n");
-		return -EINVAL;
-	}
-
 	vs_req = &vsc_req->vs_req;
 	vs_req->blkdev_req.req_op = VS_BLK_IOCTL;
-	memcpy(vsc_req->mempool_virt, ioctl_req->ioctl_buf,
+	memcpy(vsc_req->mempool_virt, &ioctl_req->ioctl_buf,
 			ioctl_req->ioctl_len);
 	vs_req->blkdev_req.ioctl_req.ioctl_id = ioctl_req->ioctl_id;
 	vs_req->blkdev_req.ioctl_req.data_offset = vsc_req->mempool_offset;
 	vs_req->blkdev_req.ioctl_req.ioctl_len = ioctl_req->ioctl_len;
-
-	vsc_req->ioctl_req = ioctl_req;
 
 	return ret;
 }
@@ -88,7 +65,7 @@ int vblk_submit_ioctl_req(struct block_device *bdev,
 		unsigned int cmd, void __user *user)
 {
 	struct vblk_dev *vblkdev = bdev->bd_disk->private_data;
-	struct vblk_ioctl_req *ioctl_req = NULL;
+	struct vblk_ioctl_req *ioctl_req = &vblkdev->ioctl_req;
 	struct request *rq;
 	int err;
 
@@ -100,31 +77,22 @@ int vblk_submit_ioctl_req(struct block_device *bdev,
 	if ((!capable(CAP_SYS_RAWIO)) || (bdev != bdev->bd_contains))
 		return -EPERM;
 
-	ioctl_req = kmalloc(sizeof(struct vblk_ioctl_req), GFP_KERNEL);
-	if (!ioctl_req) {
-		dev_err(vblkdev->device,
-			"failed to alloc memory for ioctl req!\n");
-		return -ENOMEM;
-	}
-
 	switch (cmd) {
 	case SG_IO:
-		err = vblk_prep_sg_io(vblkdev, ioctl_req,
-			user);
+		err = vblk_prep_sg_io(vblkdev, user);
 		break;
 	case MMC_IOC_MULTI_CMD:
 	case MMC_IOC_CMD:
-		err = vblk_prep_mmc_multi_ioc(vblkdev, ioctl_req,
-			user, cmd);
+		err = vblk_prep_mmc_multi_ioc(vblkdev, user, cmd);
 		break;
 	default:
 		dev_err(vblkdev->device, "unsupported command %x!\n", cmd);
 		err = -EINVAL;
-		goto free_ioctl_req;
+		goto exit;
 	}
 
 	if (err)
-		goto free_ioctl_req;
+		goto exit;
 
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(4,14,0)
 	rq = blk_get_request(vblkdev->queue, REQ_OP_DRV_IN, GFP_KERNEL);
@@ -135,10 +103,8 @@ int vblk_submit_ioctl_req(struct block_device *bdev,
 		dev_err(vblkdev->device,
 			"Failed to get handle to a request!\n");
 		err = PTR_ERR(rq);
-		goto free_ioctl_req;
+		goto exit;
 	}
-
-	rq->special = (void *)ioctl_req;
 
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(4,14,0)
 	blk_execute_rq(vblkdev->queue, vblkdev->gd, rq, 0);
@@ -149,29 +115,29 @@ int vblk_submit_ioctl_req(struct block_device *bdev,
 	blk_put_request(rq);
 
 	if (err)
-		goto free_ioctl_req;
+		goto exit;
 #endif
+
+	if (ioctl_req->status) {
+		err = ioctl_req->status;
+		goto exit;
+	}
 
 	switch (cmd) {
 	case SG_IO:
-		err = vblk_complete_sg_io(vblkdev, ioctl_req,
-			user);
+		err = vblk_complete_sg_io(vblkdev, user);
 		break;
 	case MMC_IOC_MULTI_CMD:
 	case MMC_IOC_CMD:
-		err = vblk_complete_mmc_multi_ioc(vblkdev, ioctl_req,
-			user, cmd);
+		err = vblk_complete_mmc_multi_ioc(vblkdev, user, cmd);
 		break;
 	default:
 		dev_err(vblkdev->device, "unsupported command %x!\n", cmd);
 		err = -EINVAL;
-		goto free_ioctl_req;
+		goto exit;
 	}
 
-free_ioctl_req:
-	if (ioctl_req)
-		kfree(ioctl_req);
-
+exit:
 	return err;
 }
 

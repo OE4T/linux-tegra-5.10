@@ -37,17 +37,19 @@
 
 #define MAX_VSC_REQS 32
 
+#define VBLK_MAX_IOCTL_SIZE (256 * 1024)
+
 struct vblk_ioctl_req {
 	uint32_t ioctl_id;
-	void *ioctl_buf;
 	uint32_t ioctl_len;
+	uint8_t ioctl_buf[VBLK_MAX_IOCTL_SIZE];
+	int32_t status;
 };
 
 struct vsc_request {
 	struct vs_request vs_req;
 	struct request *req;
 	struct req_iterator iter;
-	struct vblk_ioctl_req *ioctl_req;
 	void *mempool_virt;
 	uint32_t mempool_offset;
 	uint32_t mempool_len;
@@ -83,6 +85,7 @@ struct vblk_dev {
 	struct workqueue_struct *wq;
 	struct device *device;
 	void *shared_buffer;
+	struct vblk_ioctl_req ioctl_req;
 	struct mutex ioctl_lock;
 	spinlock_t queue_lock;
 	struct vsc_request reqs[MAX_VSC_REQS];
@@ -94,28 +97,24 @@ struct vblk_dev {
 	struct completion req_queue_empty;
 };
 
-int vblk_complete_ioctl_req(struct vblk_dev *vblkdev,
-		struct vsc_request *vsc_req);
+void vblk_complete_ioctl_req(struct vblk_dev *vblkdev,
+		struct vsc_request *vsc_req,
+		int32_t status);
 
 int vblk_prep_ioctl_req(struct vblk_dev *vblkdev,
-		struct vblk_ioctl_req *ioctl_req,
 		struct vsc_request *vsc_req);
 
 int vblk_prep_sg_io(struct vblk_dev *vblkdev,
-		struct vblk_ioctl_req *ioctl_req,
 		void __user *user);
 
 int vblk_complete_sg_io(struct vblk_dev *vblkdev,
-		struct vblk_ioctl_req *ioctl_req,
 		void __user *user);
 
 int vblk_prep_mmc_multi_ioc(struct vblk_dev *vblkdev,
-		struct vblk_ioctl_req *ioctl_req,
 		void __user *user,
 		uint32_t cmd);
 
 int vblk_complete_mmc_multi_ioc(struct vblk_dev *vblkdev,
-		struct vblk_ioctl_req *ioctl_req,
 		void __user *user,
 		uint32_t cmd);
 
