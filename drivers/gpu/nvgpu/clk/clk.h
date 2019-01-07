@@ -78,6 +78,12 @@ struct set_fll_clk {
 		u16 xbar2clkmhz;
 		u8 current_regime_id_xbar;
 		u8 target_regime_id_xbar;
+		u16 nvdclkmhz;
+		u8 current_regime_id_nvd;
+		u8 target_regime_id_nvd;
+		u16 hostclkmhz;
+		u8 current_regime_id_host;
+		u8 target_regime_id_host;
 };
 
 #define NV_PERF_HEADER_4X_CLOCKS_DOMAINS_MAX_NUMCLKS         9U
@@ -126,20 +132,12 @@ void clk_free_pmupstate(struct gk20a *g);
 int clk_pmu_vin_load(struct gk20a *g);
 int clk_pmu_clk_domains_load(struct gk20a *g);
 int clk_domain_print_vf_table(struct gk20a *g, u32 clkapidomain);
-int clk_domain_get_f_or_v(
-	struct gk20a *g,
-	u32 clkapidomain,
-	u16 *pclkmhz,
-	u32 *pvoltuv,
-	u8 railidx
-);
-int clk_domain_freq_to_volt(
-	struct gk20a *g,
-	u8 clkdomain_idx,
-	u32 *pclkmhz,
-	u32 *pvoltuv,
-	u8 railidx
-);
+int clk_domain_get_f_or_v(struct gk20a *g, u32 clkapidomain,
+	u16 *pclkmhz, u32 *pvoltuv, u8 railidx);
+int clk_domain_freq_to_volt(struct gk20a *g, u8 clkdomain_idx,
+	u32 *pclkmhz, u32 *pvoltuv, u8 railidx);
+int clk_domain_volt_to_freq( struct gk20a *g, u8 clkdomain_idx,
+	u32 *pclkmhz, u32 *pvoltuv, u8 railidx);
 int clk_get_fll_clks(struct gk20a *g, struct set_fll_clk *setfllclk);
 int clk_set_fll_clks(struct gk20a *g, struct set_fll_clk *setfllclk);
 int clk_pmu_freq_controller_load(struct gk20a *g, bool bload, u8 bit_idx);

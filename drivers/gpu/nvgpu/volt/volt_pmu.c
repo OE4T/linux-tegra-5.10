@@ -375,11 +375,9 @@ int volt_set_noiseaware_vmin(struct gk20a *g, u32 logic_voltage_uv,
 	int status = 0;
 	struct ctrl_volt_volt_rail_list rail_list = { 0 };
 
-	rail_list.num_rails = RAIL_COUNT_GP;
+	rail_list.num_rails = RAIL_COUNT_GV;
 	rail_list.rails[0].rail_idx = 0;
 	rail_list.rails[0].voltage_uv = logic_voltage_uv;
-	rail_list.rails[1].rail_idx = 1;
-	rail_list.rails[1].voltage_uv = sram_voltage_uv;
 
 	status = volt_policy_set_noiseaware_vmin(g, &rail_list);
 

@@ -112,27 +112,25 @@ int nvgpu_clk_arb_update_vf_table(struct nvgpu_clk_arb *arb)
 
 	u32 i, j;
 	int status = -EINVAL;
-	u32 gpc2clk_voltuv = 0, mclk_voltuv = 0;
-	u32 gpc2clk_voltuv_sram = 0, mclk_voltuv_sram = 0;
 	u16 clk_cur;
 	u32 num_points;
 
-	struct clk_set_info *p5_info, *p0_info;
+	struct clk_set_info *p0_info;
 
 	table = NV_ACCESS_ONCE(arb->current_vf_table);
 	/* make flag visible when all data has resolved in the tables */
 	nvgpu_smp_rmb();
-
 	table = (table == &arb->vf_table_pool[0]) ? &arb->vf_table_pool[1] :
 		&arb->vf_table_pool[0];
 
 	/* Get allowed memory ranges */
-	if (g->ops.clk_arb.get_arbiter_clk_range(g, CTRL_CLK_DOMAIN_GPC2CLK,
+	if (g->ops.clk_arb.get_arbiter_clk_range(g, CTRL_CLK_DOMAIN_GPCCLK,
 						&arb->gpc2clk_min,
 						&arb->gpc2clk_max) < 0) {
 		nvgpu_err(g, "failed to fetch GPC2CLK range");
 		goto exit_vf_table;
 	}
+
 	if (g->ops.clk_arb.get_arbiter_clk_range(g, CTRL_CLK_DOMAIN_MCLK,
 						&arb->mclk_min,
 						&arb->mclk_max) < 0) {
@@ -142,102 +140,22 @@ int nvgpu_clk_arb_update_vf_table(struct nvgpu_clk_arb *arb)
 
 	table->gpc2clk_num_points = MAX_F_POINTS;
 	table->mclk_num_points = MAX_F_POINTS;
-
-	if (g->ops.clk.clk_domain_get_f_points(arb->g, CTRL_CLK_DOMAIN_GPC2CLK,
+	if (g->ops.clk.clk_domain_get_f_points(arb->g, CTRL_CLK_DOMAIN_GPCCLK,
 		&table->gpc2clk_num_points, arb->gpc2clk_f_points)) {
 		nvgpu_err(g, "failed to fetch GPC2CLK frequency points");
 		goto exit_vf_table;
 	}
-
-	if (g->ops.clk.clk_domain_get_f_points(arb->g, CTRL_CLK_DOMAIN_MCLK,
-		&table->mclk_num_points, arb->mclk_f_points)) {
-		nvgpu_err(g, "failed to fetch MCLK frequency points");
-		goto exit_vf_table;
-	}
-	if (!table->mclk_num_points || !table->gpc2clk_num_points) {
-		nvgpu_err(g, "empty queries to f points mclk %d gpc2clk %d",
-			table->mclk_num_points, table->gpc2clk_num_points);
+	if (!table->gpc2clk_num_points) {
+		nvgpu_err(g, "empty queries to f points gpc2clk %d", table->gpc2clk_num_points);
 		status = -EINVAL;
 		goto exit_vf_table;
 	}
 
-	(void) memset(table->mclk_points, 0,
-		table->mclk_num_points*sizeof(struct nvgpu_clk_vf_point));
 	(void) memset(table->gpc2clk_points, 0,
 		table->gpc2clk_num_points*sizeof(struct nvgpu_clk_vf_point));
 
-	p5_info = pstate_get_clk_set_info(g,
-			CTRL_PERF_PSTATE_P5, CLKWHICH_MCLK);
-	if (!p5_info) {
-		nvgpu_err(g, "failed to get MCLK P5 info");
-		goto exit_vf_table;
-	}
 	p0_info = pstate_get_clk_set_info(g,
-			CTRL_PERF_PSTATE_P0, CLKWHICH_MCLK);
-	if (!p0_info) {
-		nvgpu_err(g, "failed to get MCLK P0 info");
-		goto exit_vf_table;
-	}
-
-	for (i = 0, j = 0, num_points = 0, clk_cur = 0;
-			i < table->mclk_num_points; i++) {
-
-		if ((arb->mclk_f_points[i] >= arb->mclk_min) &&
-			(arb->mclk_f_points[i] <= arb->mclk_max) &&
-			(arb->mclk_f_points[i] != clk_cur)) {
-
-			table->mclk_points[j].mem_mhz = arb->mclk_f_points[i];
-			mclk_voltuv = mclk_voltuv_sram = 0;
-
-			status = clk_domain_get_f_or_v(g, CTRL_CLK_DOMAIN_MCLK,
-				&table->mclk_points[j].mem_mhz, &mclk_voltuv,
-				CTRL_VOLT_DOMAIN_LOGIC);
-			if (status < 0) {
-				nvgpu_err(g,
-					"failed to get MCLK LOGIC voltage");
-				goto exit_vf_table;
-			}
-			status = clk_domain_get_f_or_v(g, CTRL_CLK_DOMAIN_MCLK,
-				&table->mclk_points[j].mem_mhz,
-				&mclk_voltuv_sram,
-				CTRL_VOLT_DOMAIN_SRAM);
-			if (status < 0) {
-				nvgpu_err(g, "failed to get MCLK SRAM voltage");
-				goto exit_vf_table;
-			}
-
-			table->mclk_points[j].uvolt = mclk_voltuv;
-			table->mclk_points[j].uvolt_sram = mclk_voltuv_sram;
-			clk_cur = table->mclk_points[j].mem_mhz;
-
-			if ((clk_cur >= p5_info->min_mhz) &&
-					(clk_cur <= p5_info->max_mhz))
-				VF_POINT_SET_PSTATE_SUPPORTED(
-					&table->mclk_points[j],
-					CTRL_PERF_PSTATE_P5);
-			if ((clk_cur >= p0_info->min_mhz) &&
-					(clk_cur <= p0_info->max_mhz))
-				VF_POINT_SET_PSTATE_SUPPORTED(
-					&table->mclk_points[j],
-					CTRL_PERF_PSTATE_P0);
-
-			j++;
-			num_points++;
-
-		}
-	}
-	table->mclk_num_points = num_points;
-
-	p5_info = pstate_get_clk_set_info(g,
-			CTRL_PERF_PSTATE_P5, CLKWHICH_GPC2CLK);
-	if (!p5_info) {
-		status = -EINVAL;
-		nvgpu_err(g, "failed to get GPC2CLK P5 info");
-		goto exit_vf_table;
-	}
-
-	p0_info = pstate_get_clk_set_info(g,
-			CTRL_PERF_PSTATE_P0, CLKWHICH_GPC2CLK);
+			CTRL_PERF_PSTATE_P0, CLKWHICH_GPCCLK);
 	if (!p0_info) {
 		status = -EINVAL;
 		nvgpu_err(g, "failed to get GPC2CLK P0 info");
@@ -247,7 +165,7 @@ int nvgpu_clk_arb_update_vf_table(struct nvgpu_clk_arb *arb)
 	/* GPC2CLK needs to be checked in two passes. The first determines the
 	 * relationships between GPC2CLK, SYS2CLK and XBAR2CLK, while the
 	 * second verifies that the clocks minimum is satisfied and sets
-	 * the voltages
+	 * the voltages,the later part is done in nvgpu_clk_set_req_fll_clk_ps35
 	 */
 	for (i = 0, j = 0, num_points = 0, clk_cur = 0;
 			i < table->gpc2clk_num_points; i++) {
@@ -260,6 +178,7 @@ int nvgpu_clk_arb_update_vf_table(struct nvgpu_clk_arb *arb)
 			table->gpc2clk_points[j].gpc_mhz =
 				arb->gpc2clk_f_points[i];
 			setfllclk.gpc2clkmhz = arb->gpc2clk_f_points[i];
+
 			status = clk_get_fll_clks(g, &setfllclk);
 			if (status < 0) {
 				nvgpu_err(g,
@@ -271,14 +190,13 @@ int nvgpu_clk_arb_update_vf_table(struct nvgpu_clk_arb *arb)
 				setfllclk.sys2clkmhz;
 			table->gpc2clk_points[j].xbar_mhz =
 				setfllclk.xbar2clkmhz;
+			table->gpc2clk_points[j].nvd_mhz =
+				setfllclk.nvdclkmhz;
+			table->gpc2clk_points[j].host_mhz =
+				setfllclk.hostclkmhz;
 
 			clk_cur = table->gpc2clk_points[j].gpc_mhz;
 
-			if ((clk_cur >= p5_info->min_mhz) &&
-					(clk_cur <= p5_info->max_mhz))
-				VF_POINT_SET_PSTATE_SUPPORTED(
-					&table->gpc2clk_points[j],
-					CTRL_PERF_PSTATE_P5);
 			if ((clk_cur >= p0_info->min_mhz) &&
 					(clk_cur <= p0_info->max_mhz))
 				VF_POINT_SET_PSTATE_SUPPORTED(
@@ -290,110 +208,6 @@ int nvgpu_clk_arb_update_vf_table(struct nvgpu_clk_arb *arb)
 		}
 	}
 	table->gpc2clk_num_points = num_points;
-
-	/* Second pass */
-	for (i = 0, j = 0; i < table->gpc2clk_num_points; i++) {
-
-		u16 alt_gpc2clk = table->gpc2clk_points[i].gpc_mhz;
-
-		gpc2clk_voltuv = gpc2clk_voltuv_sram = 0;
-
-		/* Check sysclk */
-		p5_info = pstate_get_clk_set_info(g,
-			VF_POINT_GET_PSTATE(&table->gpc2clk_points[i]),
-			CLKWHICH_SYS2CLK);
-		if (!p5_info) {
-			status = -EINVAL;
-			nvgpu_err(g, "failed to get SYS2CLK P5 info");
-			goto exit_vf_table;
-		}
-
-		/* sys2clk below clk min, need to find correct clock */
-		if (table->gpc2clk_points[i].sys_mhz < p5_info->min_mhz) {
-			for (j = i + 1; j < table->gpc2clk_num_points; j++) {
-
-				if (table->gpc2clk_points[j].sys_mhz >=
-							p5_info->min_mhz) {
-
-
-					table->gpc2clk_points[i].sys_mhz =
-						p5_info->min_mhz;
-
-					alt_gpc2clk = alt_gpc2clk <
-						table->gpc2clk_points[j].
-							gpc_mhz ?
-						table->gpc2clk_points[j].
-							gpc_mhz :
-						alt_gpc2clk;
-					break;
-				}
-			}
-			/* no VF exists that satisfies condition */
-			if (j == table->gpc2clk_num_points) {
-				nvgpu_err(g, "NO SYS2CLK VF point possible");
-				status = -EINVAL;
-				goto exit_vf_table;
-			}
-		}
-
-		/* Check xbarclk */
-		p5_info = pstate_get_clk_set_info(g,
-			VF_POINT_GET_PSTATE(&table->gpc2clk_points[i]),
-			CLKWHICH_XBAR2CLK);
-		if (!p5_info) {
-			status = -EINVAL;
-			nvgpu_err(g, "failed to get SYS2CLK P5 info");
-			goto exit_vf_table;
-		}
-
-		/* xbar2clk below clk min, need to find correct clock */
-		if (table->gpc2clk_points[i].xbar_mhz < p5_info->min_mhz) {
-			for (j = i; j < table->gpc2clk_num_points; j++) {
-				if (table->gpc2clk_points[j].xbar_mhz >=
-							p5_info->min_mhz) {
-
-					table->gpc2clk_points[i].xbar_mhz =
-						p5_info->min_mhz;
-
-					alt_gpc2clk = alt_gpc2clk <
-						table->gpc2clk_points[j].
-							gpc_mhz ?
-						table->gpc2clk_points[j].
-							gpc_mhz :
-						alt_gpc2clk;
-					break;
-				}
-			}
-			/* no VF exists that satisfies condition */
-			if (j == table->gpc2clk_num_points) {
-				status = -EINVAL;
-				nvgpu_err(g, "NO XBAR2CLK VF point possible");
-
-				goto exit_vf_table;
-			}
-		}
-
-		/* Calculate voltages */
-		status = clk_domain_get_f_or_v(g, CTRL_CLK_DOMAIN_GPC2CLK,
-						&alt_gpc2clk, &gpc2clk_voltuv,
-						CTRL_VOLT_DOMAIN_LOGIC);
-		if (status < 0) {
-			nvgpu_err(g, "failed to get GPC2CLK LOGIC voltage");
-			goto exit_vf_table;
-		}
-
-		status = clk_domain_get_f_or_v(g, CTRL_CLK_DOMAIN_GPC2CLK,
-						&alt_gpc2clk,
-						&gpc2clk_voltuv_sram,
-						CTRL_VOLT_DOMAIN_SRAM);
-		if (status < 0) {
-			nvgpu_err(g, "failed to get GPC2CLK SRAM voltage");
-			goto exit_vf_table;
-		}
-
-		table->gpc2clk_points[i].uvolt = gpc2clk_voltuv;
-		table->gpc2clk_points[i].uvolt_sram = gpc2clk_voltuv_sram;
-	}
 
 	/* make table visible when all data has resolved in the tables */
 	nvgpu_smp_wmb();
@@ -758,11 +572,10 @@ int nvgpu_clk_arb_init_arbiter(struct gk20a *g)
 {
 	int err = 0;
 
-	if (!g->ops.clk.support_clk_freq_controller ||
+	if (!g->ops.clk.support_clk_freq_controller &&
 		!g->ops.clk_arb.get_arbiter_clk_domains) {
 		return 0;
 	}
-
 	nvgpu_mutex_acquire(&g->clk_arb_enable_lock);
 
 	err = g->ops.clk_arb.arbiter_clk_init(g);
@@ -822,7 +635,7 @@ int nvgpu_clk_arb_init_session(struct gk20a *g,
 
 	clk_arb_dbg(g, " ");
 
-	if (!g->ops.clk.support_clk_freq_controller ||
+	if (!g->ops.clk.support_clk_freq_controller &&
 		!g->ops.clk_arb.get_arbiter_clk_domains) {
 		return 0;
 	}
@@ -941,7 +754,7 @@ bool nvgpu_clk_arb_is_valid_domain(struct gk20a *g, u32 api_domain)
 		return (clk_domains & CTRL_CLK_DOMAIN_MCLK) != 0;
 
 	case NVGPU_CLK_DOMAIN_GPCCLK:
-		return (clk_domains & CTRL_CLK_DOMAIN_GPC2CLK) != 0;
+		return (clk_domains & CTRL_CLK_DOMAIN_GPCCLK) != 0;
 
 	default:
 		return false;
@@ -961,11 +774,7 @@ int nvgpu_clk_arb_get_arbiter_clk_range(struct gk20a *g, u32 api_domain,
 
 	case NVGPU_CLK_DOMAIN_GPCCLK:
 		ret = g->ops.clk_arb.get_arbiter_clk_range(g,
-				CTRL_CLK_DOMAIN_GPC2CLK, min_mhz, max_mhz);
-		if (ret == 0) {
-			*min_mhz /= 2;
-			*max_mhz /= 2;
-		}
+				CTRL_CLK_DOMAIN_GPCCLK, min_mhz, max_mhz);
 		return ret;
 
 	default:
@@ -977,16 +786,13 @@ int nvgpu_clk_arb_get_arbiter_clk_f_points(struct gk20a *g,
 	u32 api_domain, u32 *max_points, u16 *fpoints)
 {
 	int err;
-	u32 i;
 
 	switch (api_domain) {
 	case NVGPU_CLK_DOMAIN_GPCCLK:
 		err = g->ops.clk_arb.get_arbiter_f_points(g,
-			CTRL_CLK_DOMAIN_GPC2CLK, max_points, fpoints);
+			CTRL_CLK_DOMAIN_GPCCLK, max_points, fpoints);
 		if (err || !fpoints)
 			return err;
-		for (i = 0; i < *max_points; i++)
-			fpoints[i] /= 2;
 		return 0;
 	case NVGPU_CLK_DOMAIN_MCLK:
 		return g->ops.clk_arb.get_arbiter_f_points(g,
@@ -1012,7 +818,7 @@ int nvgpu_clk_arb_get_session_target_mhz(struct nvgpu_clk_session *session,
 			break;
 
 		case NVGPU_CLK_DOMAIN_GPCCLK:
-			*freq_mhz = target->gpc2clk / 2ULL;
+			*freq_mhz = target->gpc2clk;
 			break;
 
 		default:
@@ -1039,7 +845,7 @@ int nvgpu_clk_arb_get_arbiter_actual_mhz(struct gk20a *g,
 			break;
 
 		case NVGPU_CLK_DOMAIN_GPCCLK:
-			*freq_mhz = actual->gpc2clk / 2ULL;
+			*freq_mhz = actual->gpc2clk ;
 			break;
 
 		default:
@@ -1054,8 +860,8 @@ unsigned long nvgpu_clk_measure_freq(struct gk20a *g, u32 api_domain)
 	unsigned long freq = 0UL;
 
 	switch (api_domain) {
-	case CTRL_CLK_DOMAIN_GPC2CLK:
-		freq = g->ops.clk.get_rate(g, CTRL_CLK_DOMAIN_GPCCLK) * 2UL;
+	case CTRL_CLK_DOMAIN_GPCCLK:
+		freq = g->ops.clk.get_rate(g, CTRL_CLK_DOMAIN_GPCCLK);
 		break;
 	default:
 		break;
@@ -1077,8 +883,8 @@ int nvgpu_clk_arb_get_arbiter_effective_mhz(struct gk20a *g,
 		return 0;
 
 	case NVGPU_CLK_DOMAIN_GPCCLK:
-		*freq_mhz = g->ops.clk.measure_freq(g,
-			CTRL_CLK_DOMAIN_GPC2CLK) / 2000000ULL;
+		*freq_mhz = g->ops.clk.measure_freq(g, CTRL_CLK_DOMAIN_GPCCLK) /
+			1000000ULL;
 		return 0;
 
 	default:

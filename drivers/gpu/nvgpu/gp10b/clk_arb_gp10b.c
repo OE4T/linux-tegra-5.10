@@ -29,33 +29,20 @@ u32 gp10b_get_arbiter_clk_domains(struct gk20a *g)
 {
 	(void)g;
 	clk_arb_dbg(g, " ");
-	return CTRL_CLK_DOMAIN_GPC2CLK;
+	return CTRL_CLK_DOMAIN_GPCCLK;
 }
 
 int gp10b_get_arbiter_f_points(struct gk20a *g,u32 api_domain,
 				u32 *num_points, u16 *freqs_in_mhz)
 {
 	int ret = 0;
-	u32 i;
-	bool is_freq_list_available = false;
-
-	if (*num_points != 0U) {
-		is_freq_list_available = true;
-	}
 
 	clk_arb_dbg(g, " ");
 
 	switch (api_domain) {
-	case CTRL_CLK_DOMAIN_GPC2CLK:
+	case CTRL_CLK_DOMAIN_GPCCLK:
 		ret = g->ops.clk.clk_domain_get_f_points(g, CTRL_CLK_DOMAIN_GPCCLK,
 			num_points, freqs_in_mhz);
-
-		/* multiply by 2 for GPC2CLK */
-		if (ret == 0 && is_freq_list_available) {
-			for (i = 0U; i < *num_points; i++) {
-				freqs_in_mhz[i] *= 2U;
-			}
-		}
 		break;
 	default:
 		ret = -EINVAL;
@@ -73,14 +60,9 @@ int gp10b_get_arbiter_clk_range(struct gk20a *g, u32 api_domain,
 	clk_arb_dbg(g, " ");
 
 	switch (api_domain) {
-	case CTRL_CLK_DOMAIN_GPC2CLK:
+	case CTRL_CLK_DOMAIN_GPCCLK:
 		ret = g->ops.clk.get_clk_range(g, CTRL_CLK_DOMAIN_GPCCLK,
 			min_mhz, max_mhz);
-
-		if (ret == 0) {
-			*min_mhz *= 2U;
-			*max_mhz *= 2U;
-		}
 		break;
 
 	default:
@@ -100,7 +82,7 @@ int gp10b_get_arbiter_clk_default(struct gk20a *g, u32 api_domain,
 	clk_arb_dbg(g, " ");
 
 	switch (api_domain) {
-	case CTRL_CLK_DOMAIN_GPC2CLK:
+	case CTRL_CLK_DOMAIN_GPCCLK:
 		ret = gp10b_get_arbiter_clk_range(g, api_domain,
 			&min_mhz, &max_mhz);
 
@@ -168,7 +150,7 @@ int gp10b_init_clk_arbiter(struct gk20a *g)
 	arb->g = g;
 
 	err =  g->ops.clk_arb.get_arbiter_clk_default(g,
-			CTRL_CLK_DOMAIN_GPC2CLK, &default_mhz);
+			CTRL_CLK_DOMAIN_GPCCLK, &default_mhz);
 	if (err < 0) {
 		err = -EINVAL;
 		goto init_fail;
@@ -176,7 +158,7 @@ int gp10b_init_clk_arbiter(struct gk20a *g)
 
 	arb->gpc2clk_default_mhz = default_mhz;
 
-	err = g->ops.clk_arb.get_arbiter_clk_range(g, CTRL_CLK_DOMAIN_GPC2CLK,
+	err = g->ops.clk_arb.get_arbiter_clk_range(g, CTRL_CLK_DOMAIN_GPCCLK,
 		&arb->gpc2clk_min, &arb->gpc2clk_max);
 
 	if (err < 0) {
@@ -325,11 +307,8 @@ void gp10b_clk_arb_run_arbiter_cb(struct nvgpu_clk_arb *arb)
 
 	nvgpu_mutex_acquire(&arb->pstate_lock);
 
-  /* get the rounded_rate in terms of Hz for igpu
-   * pass (gpcclk) freq = (gpc2clk) freq / 2
-   */
 	status = g->ops.clk.clk_get_round_rate(g,
-		CTRL_CLK_DOMAIN_GPCCLK, ((unsigned long)gpc2clk_session_target / 2UL) * 1000000UL, &rounded_rate);
+		CTRL_CLK_DOMAIN_GPCCLK, gpc2clk_session_target * 1000000UL, &rounded_rate);
 
 	clk_arb_dbg(g, "rounded_rate: %lu\n",
 		rounded_rate);

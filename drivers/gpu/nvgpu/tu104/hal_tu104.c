@@ -114,6 +114,7 @@
 #include "gv100/gr_gv100.h"
 #include "gv100/mm_gv100.h"
 #include "gv100/regops_gv100.h"
+#include "gv100/clk_arb_gv100.h"
 #include "pmu_perf/perf_tu104.h"
 
 #include "tu104/fifo_tu104.h"
@@ -942,12 +943,17 @@ static const struct gpu_ops tu104_ops = {
 		.measure_freq = gv100_clk_measure_freq,
 		.suspend_clk_support = gv100_suspend_clk_support,
 		.perf_pmu_vfe_load = tu104_perf_pmu_vfe_load,
+		.clk_domain_get_f_points = gv100_clk_domain_get_f_points,
 	},
 	.clk_arb = {
-		.get_arbiter_clk_domains = NULL,
-		.get_arbiter_clk_range = NULL,
-		.get_arbiter_clk_default = NULL,
-		.get_current_pstate = NULL,
+		.get_arbiter_clk_domains = gv100_get_arbiter_clk_domains,
+		.get_arbiter_f_points = gv100_get_arbiter_f_points,
+		.get_arbiter_clk_range = gv100_get_arbiter_clk_range,
+		.get_arbiter_clk_default = gv100_get_arbiter_clk_default,
+		.get_current_pstate = nvgpu_clk_arb_get_current_pstate,
+		.arbiter_clk_init = gv100_init_clk_arbiter,
+		.clk_arb_run_arbiter_cb = gv100_clk_arb_run_arbiter_cb,
+		.clk_arb_cleanup = gv100_clk_arb_cleanup,
 	},
 	.regops = {
 		.exec_regops = exec_regops_gk20a,
@@ -1189,6 +1195,9 @@ int tu104_init_hal(struct gk20a *g)
 	gops->clk.get_crystal_clk_hz = tu104_ops.clk.get_crystal_clk_hz;
 	gops->clk.measure_freq = tu104_ops.clk.measure_freq;
 	gops->clk.suspend_clk_support = tu104_ops.clk.suspend_clk_support;
+	gops->clk_arb = tu104_ops.clk_arb;
+	gops->clk.clk_domain_get_f_points = tu104_ops.clk.clk_domain_get_f_points;
+	gops->clk = tu104_ops.clk;
 
 	/* Lone functions */
 	gops->chip_init_gpu_characteristics =
@@ -1204,7 +1213,7 @@ int tu104_init_hal(struct gk20a *g)
 	__nvgpu_set_enabled(g, NVGPU_SUPPORT_SEC2_RTOS, true);
 
 	/* for now */
-	gops->clk.support_clk_freq_controller = false;
+	gops->clk.support_clk_freq_controller = true;
 	gops->clk.support_pmgr_domain = false;
 	gops->clk.support_lpwr_pg = false;
 	gops->clk.support_clk_freq_domain = true;

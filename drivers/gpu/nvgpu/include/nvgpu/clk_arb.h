@@ -138,6 +138,8 @@ struct nvgpu_clk_vf_point {
 			u16 gpc_mhz;
 			u16 sys_mhz;
 			u16 xbar_mhz;
+			u16 host_mhz;
+			u16 nvd_mhz;
 		};
 		u16 mem_mhz;
 	};

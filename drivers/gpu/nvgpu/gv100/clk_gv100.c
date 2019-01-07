@@ -83,7 +83,7 @@ unsigned long gv100_clk_measure_freq(struct gk20a *g, u32 api_domain)
 	}
 
 	/* Convert to HZ */
-	return freq_khz * 1000UL;
+	return (freq_khz * 1000UL);
 }
 
 int gv100_init_clk_support(struct gk20a *g)
@@ -173,6 +173,7 @@ u32 gv100_get_rate_cntr(struct gk20a *g, struct namemap_cfg *c) {
 	u32 cntr = 0;
 	u64 cntr_start = 0;
 	u64 cntr_stop = 0;
+	u64 start_time, stop_time;
 
 	struct clk_gk20a *clk = &g->clk;
 
@@ -188,17 +189,48 @@ u32 gv100_get_rate_cntr(struct gk20a *g, struct namemap_cfg *c) {
 	/* Counter is 36bits , 32 bits on addr[0] and 4 lsb on addr[1] others zero*/
 	cntr_start = (u64)gk20a_readl(g, c->cntr.reg_cntr_addr[0]);
 	cntr_start += ((u64)gk20a_readl(g, c->cntr.reg_cntr_addr[1]) << 32);
+	start_time = (u64)nvgpu_current_time_ms();
 	nvgpu_udelay(XTAL_CNTR_DELAY);
-	cntr_stop = (u64) gk20a_readl(g, c->cntr.reg_cntr_addr[0]);
+	stop_time = (u64)nvgpu_current_time_ms();
+	cntr_stop = (u64)gk20a_readl(g, c->cntr.reg_cntr_addr[0]);
 	cntr_stop += ((u64)gk20a_readl(g, c->cntr.reg_cntr_addr[1]) << 32);
-	/*Calculate the difference and convert to KHz*/
-	cntr = (u32)((cntr_stop - cntr_start) / 10ULL);
+	/*Calculate the difference with Acutal time and convert to KHz*/
+	cntr = ((u32)(cntr_stop - cntr_start) / (u32)(stop_time-start_time));
 	nvgpu_mutex_release(&clk->clk_mutex);
 
 	return cntr;
 
 }
 
+int gv100_clk_domain_get_f_points(
+	struct gk20a *g,
+	u32 clkapidomain,
+	u32 *pfpointscount,
+	u16 *pfreqpointsinmhz)
+{
+	int status = -EINVAL;
+	struct clk_domain *pdomain;
+	u8 i;
+	struct clk_pmupstate *pclk = g->clk_pmu;
+	if (pfpointscount == NULL) {
+		return -EINVAL;
+	}
+
+	if ((pfreqpointsinmhz == NULL) && (*pfpointscount != 0U)) {
+		return -EINVAL;
+	}
+	BOARDOBJGRP_FOR_EACH(&(pclk->clk_domainobjs.super.super),
+			struct clk_domain *, pdomain, i) {
+		if (pdomain->api_domain == clkapidomain) {
+			status = pdomain->clkdomainclkgetfpoints(g, pclk,
+				pdomain, pfpointscount,
+				pfreqpointsinmhz,
+				CLK_PROG_VFE_ENTRY_LOGIC);
+			return status;
+		}
+	}
+	return status;
+}
 int gv100_suspend_clk_support(struct gk20a *g)
 {
 	nvgpu_mutex_destroy(&g->clk.clk_mutex);

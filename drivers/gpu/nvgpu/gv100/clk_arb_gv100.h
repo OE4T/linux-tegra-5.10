@@ -19,20 +19,22 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef CLK_GV100_H
-#define CLK_GV100_H
+#ifndef CLK_ARB_GV100_H
+#define CLK_ARB_GV100_H
 
-#include <nvgpu/lock.h>
-#include <nvgpu/gk20a.h>
+struct nvgpu_clk_session;
+struct nvgpu_clk_arb;
 
-u32 gv100_get_rate_cntr(struct gk20a *g, struct namemap_cfg *c);
-int gv100_init_clk_support(struct gk20a *g);
-u32 gv100_crystal_clk_hz(struct gk20a *g);
-unsigned long gv100_clk_measure_freq(struct gk20a *g, u32 api_domain);
-int gv100_suspend_clk_support(struct gk20a *g);
-int gv100_clk_domain_get_f_points(
-	struct gk20a *g,
-	u32 clkapidomain,
-	u32 *pfpointscount,
-	u16 *pfreqpointsinmhz);
-#endif /* CLK_GV100_H */
+
+u32 gv100_get_arbiter_clk_domains(struct gk20a *g);
+int gv100_get_arbiter_f_points(struct gk20a *g,u32 api_domain,
+				u32 *num_points, u16 *freqs_in_mhz);
+int gv100_get_arbiter_clk_range(struct gk20a *g, u32 api_domain,
+		u16 *min_mhz, u16 *max_mhz);
+int gv100_get_arbiter_clk_default(struct gk20a *g, u32 api_domain,
+		u16 *default_mhz);
+int gv100_init_clk_arbiter(struct gk20a *g);
+void gv100_clk_arb_run_arbiter_cb(struct nvgpu_clk_arb *arb);
+void gv100_clk_arb_cleanup(struct nvgpu_clk_arb *arb);
+
+#endif /* CLK_ARB_GV100_H */

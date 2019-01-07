@@ -480,7 +480,7 @@ int nvgpu_clk_arb_set_session_target_mhz(struct nvgpu_clk_session *session,
 		break;
 
 	case NVGPU_CLK_DOMAIN_GPCCLK:
-		dev->gpc2clk_target_mhz = target_mhz * 2ULL;
+		dev->gpc2clk_target_mhz = target_mhz;
 		break;
 
 	default:
@@ -497,7 +497,7 @@ u32 nvgpu_clk_arb_get_arbiter_clk_domains(struct gk20a *g)
 	u32 clk_domains = g->ops.clk_arb.get_arbiter_clk_domains(g);
 	u32 api_domains = 0;
 
-	if (clk_domains & CTRL_CLK_DOMAIN_GPC2CLK)
+	if (clk_domains & CTRL_CLK_DOMAIN_GPCCLK)
 		api_domains |= BIT(NVGPU_GPU_CLK_DOMAIN_GPCCLK);
 
 	if (clk_domains & CTRL_CLK_DOMAIN_MCLK)

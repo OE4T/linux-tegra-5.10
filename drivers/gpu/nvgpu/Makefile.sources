@@ -240,6 +240,7 @@ srcs :=	os/posix/nvgpu.c \
 	gv100/hal_gv100.c \
 	gv100/gsp_gv100.c \
 	gv100/clk_gv100.c \
+	gv100/clk_arb_gv100.c \
 	common/bus/bus_tu104.c	\
 	common/fb/fb_tu104.c	\
 	common/ltc/ltc_tu104.c	\

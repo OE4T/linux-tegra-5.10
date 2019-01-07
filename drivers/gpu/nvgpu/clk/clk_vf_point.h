@@ -28,9 +28,22 @@
 #include <nvgpu/boardobjgrp_e32.h>
 #include <nvgpu/boardobjgrpmask.h>
 
+#define VMIN_PAD_UV 50000U
+
 int clk_vf_point_sw_setup(struct gk20a *g);
 int clk_vf_point_pmu_setup(struct gk20a *g);
 int clk_vf_point_cache(struct gk20a *g);
+struct nvgpu_clk_arb;
+struct nvgpu_clk_slave_freq{
+	u16 gpc_mhz;
+	u16 sys_mhz;
+	u16 xbar_mhz;
+	u16 host_mhz;
+	u16 nvd_mhz;
+};
+
+int nvgpu_clk_set_req_fll_clk_ps35(struct gk20a *g, struct nvgpu_clk_slave_freq *vf_point);
+int nvgpu_clk_arb_find_slave_points(struct nvgpu_clk_arb *arb,struct nvgpu_clk_slave_freq *vf_point);
 
 struct clk_vf_points {
 	struct boardobjgrp_e255 super;

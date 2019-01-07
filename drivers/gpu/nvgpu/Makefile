@@ -405,4 +405,5 @@ nvgpu-y += \
 	therm/thrmchannel.o \
 	therm/thrmpmu.o \
 	lpwr/rppg.o \
-	lpwr/lpwr.o
+	lpwr/lpwr.o \
+	gv100/clk_arb_gv100.o

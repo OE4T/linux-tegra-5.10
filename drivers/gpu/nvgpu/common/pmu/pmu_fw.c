@@ -1329,8 +1329,7 @@ int nvgpu_init_pmu_fw_ver_ops(struct nvgpu_pmu *pmu)
 				g->ops.pmu_ver.clk.clk_set_boot_clk =
 					nvgpu_clk_set_boot_fll_clk_gv10x;
 			} else {
-				g->ops.pmu_ver.clk.clk_set_boot_clk =
-					nvgpu_clk_set_boot_fll_clk_tu10x;
+				g->ops.pmu_ver.clk.clk_set_boot_clk = NULL;
 			}
 		} else {
 			g->ops.pmu_ver.get_pmu_init_msg_pmu_queue_params =

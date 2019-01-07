@@ -1673,7 +1673,7 @@ static int getfpoints_prog_1x_master
 	pvfentry = (struct ctrl_clk_clk_prog_1x_master_vf_entry *)(
 			(u8 *)pvfentry +
 			((u8)sizeof(struct ctrl_clk_clk_prog_1x_master_vf_entry) *
-			(rail+1U)));
+			rail));
 
 	fpointscount = (u32)pvfentry->vf_point_idx_last -
 		(u32)pvfentry->vf_point_idx_first + 1U;
@@ -1707,10 +1707,11 @@ static int getslaveclk_prog_1x_master(struct gk20a *g,
 {
 	struct clk_progs *pclkprogobjs;
 	struct clk_prog_1x_master_ratio *p1xmasterratio;
+	struct clk_prog_35_master_ratio *p35masterratio;
 	u8 slaveentrycount;
 	u8 i;
 	struct ctrl_clk_clk_prog_1x_master_ratio_slave_entry *pslaveents;
-
+	u32 ver = g->params.gpu_arch + g->params.gpu_impl;
 	if (pclkmhz == NULL) {
 		return -EINVAL;
 	}
@@ -1723,27 +1724,50 @@ static int getslaveclk_prog_1x_master(struct gk20a *g,
 	pclkprogobjs = &(pclk->clk_progobjs);
 
 	slaveentrycount = pclkprogobjs->slave_entry_count;
-
-	if (p1xmaster->super.super.super.implements(g,
-		&p1xmaster->super.super.super,
-		CTRL_CLK_CLK_PROG_TYPE_1X_MASTER_RATIO)) {
-		p1xmasterratio =
-		(struct clk_prog_1x_master_ratio *)p1xmaster;
-		pslaveents = p1xmasterratio->p_slave_entries;
-		for (i = 0; i < slaveentrycount;  i++) {
-			if (pslaveents->clk_dom_idx ==
-				slave_clk_domain) {
-				break;
+	if(ver == NVGPU_GPUID_GV100) {
+		if (p1xmaster->super.super.super.implements(g,
+			&p1xmaster->super.super.super,
+			CTRL_CLK_CLK_PROG_TYPE_1X_MASTER_RATIO)) {
+			p1xmasterratio =
+			(struct clk_prog_1x_master_ratio *)p1xmaster;
+			pslaveents = p1xmasterratio->p_slave_entries;
+			for (i = 0; i < slaveentrycount;  i++) {
+				if (pslaveents->clk_dom_idx ==
+					slave_clk_domain) {
+					break;
+				}
+				pslaveents++;
 			}
-			pslaveents++;
-		}
-		if (i == slaveentrycount) {
+			if (i == slaveentrycount) {
+				return -EINVAL;
+			}
+			*pclkmhz = (masterclkmhz * pslaveents->ratio)/100U;
+		} else {
+			/* only support ratio for now */
 			return -EINVAL;
 		}
-		*pclkmhz = (masterclkmhz * pslaveents->ratio)/100U;
 	} else {
-		/* only support ratio for now */
-		return -EINVAL;
+		if (p1xmaster->super.super.super.implements(g,
+			&p1xmaster->super.super.super,
+			CTRL_CLK_CLK_PROG_TYPE_35_MASTER_RATIO)) {
+			p35masterratio =
+			(struct clk_prog_35_master_ratio *)p1xmaster;
+			pslaveents = p35masterratio->ratio.p_slave_entries;
+			for (i = 0; i < slaveentrycount;  i++) {
+				if (pslaveents->clk_dom_idx ==
+					slave_clk_domain) {
+					break;
+				}
+				pslaveents++;
+			}
+			if (i == slaveentrycount) {
+				return -EINVAL;
+			}
+			*pclkmhz = (masterclkmhz * pslaveents->ratio)/100U;
+		} else {
+			/* only support ratio for now */
+			return -EINVAL;
+		}
 	}
 	return 0;
 }

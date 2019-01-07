@@ -25,7 +25,7 @@
 #include <nvgpu/pmu.h>
 #include <nvgpu/bug.h>
 #include <nvgpu/gk20a.h>
-
+#include <nvgpu/clk_arb.h>
 #include "perf_tu104.h"
 #include "pmu_perf/pmu_perf.h"
 
@@ -68,6 +68,7 @@ static int tu104_pmu_handle_perf_event(struct gk20a *g, void *pmumsg)
 	case NV_PMU_PERF_MSG_ID_VFE_CALLBACK:
 		perf_pmu->vfe_init.state_change = true;
 		(void) nvgpu_cond_signal(&perf_pmu->vfe_init.wq);
+		nvgpu_clk_arb_schedule_vf_table_update(g);
 		break;
 	case NV_PMU_PERF_MSG_ID_CHANGE_SEQ_COMPLETION:
 		nvgpu_log_fn(g, "Change Seq Completed");

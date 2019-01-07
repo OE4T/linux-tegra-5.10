@@ -965,8 +965,9 @@ static int clkdomaingetslaveclk(struct gk20a *g,
 	struct clk_prog *pprog = NULL;
 	struct clk_prog_1x_master *pprog1xmaster = NULL;
 	u8 slaveidx;
+	struct clk_domain_35_master *p35master;
 	struct clk_domain_3x_master *p3xmaster;
-
+	u32 ver = g->params.gpu_arch + g->params.gpu_impl;
 	nvgpu_log_info(g, " ");
 
 	if (pclkmhz == NULL) {
@@ -977,16 +978,30 @@ static int clkdomaingetslaveclk(struct gk20a *g,
 		return -EINVAL;
 	}
 
-	slaveidx = BOARDOBJ_GET_IDX(pdomain);
-	p3xmaster = (struct clk_domain_3x_master *)
-			CLK_CLK_DOMAIN_GET(pclk,
-			((struct clk_domain_3x_slave *)
-				pdomain)->master_idx);
-	pprog = CLK_CLK_PROG_GET(pclk, p3xmaster->super.clk_prog_idx_first);
-	pprog1xmaster = (struct clk_prog_1x_master *)pprog;
+	if(ver == NVGPU_GPUID_GV100) {
+		slaveidx = BOARDOBJ_GET_IDX(pdomain);
+		p3xmaster = (struct clk_domain_3x_master *)
+				CLK_CLK_DOMAIN_GET(pclk,
+				((struct clk_domain_3x_slave *)
+					pdomain)->master_idx);
+		pprog = CLK_CLK_PROG_GET(pclk, p3xmaster->super.clk_prog_idx_first);
+		pprog1xmaster = (struct clk_prog_1x_master *)pprog;
 
-	status = pprog1xmaster->getslaveclk(g, pclk, pprog1xmaster,
-			slaveidx, pclkmhz, masterclkmhz);
+		status = pprog1xmaster->getslaveclk(g, pclk, pprog1xmaster,
+				slaveidx, pclkmhz, masterclkmhz);
+	} else {
+		slaveidx = BOARDOBJ_GET_IDX(pdomain);
+		p35master = (struct clk_domain_35_master *)
+				CLK_CLK_DOMAIN_GET(pclk,
+				((struct clk_domain_35_slave *)
+					pdomain)->slave.master_idx);
+
+		pprog = CLK_CLK_PROG_GET(pclk, p35master->master.super.clk_prog_idx_first);
+		pprog1xmaster = (struct clk_prog_1x_master *)pprog;
+
+		status = pprog1xmaster->getslaveclk(g, pclk, pprog1xmaster,
+				slaveidx, pclkmhz, masterclkmhz);
+	}
 	return status;
 }
 
