@@ -33,7 +33,7 @@ struct gk20a;
  */
 #define NVGPU_IS_FMODEL				1
 #define NVGPU_DRIVER_IS_DYING			2
-#define NVGPU_GR_USE_DMA_FOR_FW_BOOTSTRAP 3
+#define NVGPU_GR_USE_DMA_FOR_FW_BOOTSTRAP	3
 #define NVGPU_FECS_TRACE_VA			4
 #define NVGPU_CAN_RAILGATE			5
 #define NVGPU_KERNEL_IS_DYING			6
@@ -130,13 +130,13 @@ struct gk20a;
  * PMU flags.
  */
 /* perfmon enabled or disabled for PMU */
-#define NVGPU_PMU_PERFMON				48
-#define NVGPU_PMU_PSTATE				49
-#define NVGPU_PMU_ZBC_SAVE				50
-#define NVGPU_PMU_FECS_BOOTSTRAP_DONE			51
-#define NVGPU_GPU_CAN_BLCG                              52
-#define NVGPU_GPU_CAN_SLCG                              53
-#define NVGPU_GPU_CAN_ELCG                              54
+#define NVGPU_PMU_PERFMON			48
+#define NVGPU_PMU_PSTATE			49
+#define NVGPU_PMU_ZBC_SAVE			50
+#define NVGPU_PMU_FECS_BOOTSTRAP_DONE		51
+#define NVGPU_GPU_CAN_BLCG			52
+#define NVGPU_GPU_CAN_SLCG			53
+#define NVGPU_GPU_CAN_ELCG			54
 /* Clock control support */
 #define NVGPU_SUPPORT_CLOCK_CONTROLS		55
 /* NVGPU_GPU_IOCTL_GET_VOLTAGE is available */
@@ -169,10 +169,10 @@ struct gk20a;
 #define NVGPU_SUPPORT_USERMODE_SUBMIT		67
 
 /* Multiple WPR support */
-#define NVGPU_SUPPORT_MULTIPLE_WPR	68
+#define NVGPU_SUPPORT_MULTIPLE_WPR		68
 
 /* SEC2 RTOS support*/
-#define NVGPU_SUPPORT_SEC2_RTOS		69
+#define NVGPU_SUPPORT_SEC2_RTOS			69
 
 /*
  * Must be greater than the largest bit offset in the above list.
