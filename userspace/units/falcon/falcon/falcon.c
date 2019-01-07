@@ -737,6 +737,57 @@ static int test_falcon_mem_rw_zero(struct unit_module *m, struct gk20a *g,
 	return UNIT_SUCCESS;
 }
 
+/*
+ * Invalid: Calling read interface on uninitialized falcon should return value 0
+ *          and do nothing with write interface.
+ * Invalid: Pass invalid mailbox number and verify that read returns zero and
+ *          write does not fail.
+ *
+ * Valid: Write the value of a mailbox register through this interface and
+ *        verify the expected value in register falcon_falcon_mailbox0_r.
+ *        Read the value through this interface and verify that it matches
+ *        the register value.
+ */
+static int test_falcon_mailbox(struct unit_module *m, struct gk20a *g,
+			       void *__args)
+{
+#define	SAMPLE_MAILBOX_DATA	0xDEADBEED
+	u32 val, reg_data, mailbox_addr, i;
+
+	nvgpu_falcon_mailbox_write(uninit_flcn, FALCON_MAILBOX_0,
+				   SAMPLE_MAILBOX_DATA);
+	val = nvgpu_falcon_mailbox_read(uninit_flcn, FALCON_MAILBOX_0);
+	if (val != 0) {
+		unit_return_fail(m, "Invalid falcon's mailbox read"
+				    "should return zero\n");
+	}
+
+	for (i = FALCON_MAILBOX_0; i <= FALCON_MAILBOX_COUNT; i++) {
+		nvgpu_falcon_mailbox_write(gpccs_flcn, i, SAMPLE_MAILBOX_DATA);
+		val = nvgpu_falcon_mailbox_read(gpccs_flcn, i);
+
+		if (i == FALCON_MAILBOX_COUNT) {
+			if (val != 0) {
+				unit_return_fail(m, "Invalid mailbox read "
+						    "should return zero\n");
+			} else {
+				continue;
+			}
+		}
+
+		mailbox_addr = i != 0U ? falcon_falcon_mailbox1_r() :
+					 falcon_falcon_mailbox0_r();
+		mailbox_addr = gpccs_flcn->flcn_base + mailbox_addr;
+		reg_data = nvgpu_posix_io_readl_reg_space(g, mailbox_addr);
+
+		if (val != SAMPLE_MAILBOX_DATA || val != reg_data) {
+			unit_return_fail(m, "Failed reading/writing mailbox\n");
+		}
+	}
+
+	return UNIT_SUCCESS;
+}
+
 struct unit_module_test falcon_tests[] = {
 	UNIT_TEST(falcon_sw_init_free, test_falcon_sw_init_free, NULL, 0),
 	UNIT_TEST(falcon_reset, test_falcon_reset, NULL, 0),
@@ -747,6 +798,7 @@ struct unit_module_test falcon_tests[] = {
 	UNIT_TEST(falcon_mem_rw_range, test_falcon_mem_rw_range, NULL, 0),
 	UNIT_TEST(falcon_mem_rw_aligned, test_falcon_mem_rw_aligned, NULL, 0),
 	UNIT_TEST(falcon_mem_rw_zero, test_falcon_mem_rw_zero, NULL, 0),
+	UNIT_TEST(falcon_mailbox, test_falcon_mailbox, NULL, 0),
 
 	/* Cleanup */
 	UNIT_TEST(falcon_free_test_env, free_falcon_test_env, NULL, 0),
