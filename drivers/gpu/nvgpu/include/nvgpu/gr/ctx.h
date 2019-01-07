@@ -153,4 +153,9 @@ int nvgpu_gr_ctx_map_global_ctx_buffers(struct gk20a *g,
 u64 nvgpu_gr_ctx_get_global_ctx_va(struct nvgpu_gr_ctx *gr_ctx,
 	enum nvgpu_gr_ctx_global_ctx_va index);
 
+int nvgpu_gr_ctx_load_golden_ctx_image(struct gk20a *g,
+	struct nvgpu_gr_ctx *gr_ctx,
+	struct nvgpu_gr_global_ctx_local_golden_image *local_golden_image,
+	bool cde);
+
 #endif /* NVGPU_INCLUDE_GR_CTX_H */

@@ -1668,80 +1668,6 @@ int gr_gk20a_update_hwpm_ctxsw_mode(struct gk20a *g,
 	return 0;
 }
 
-/* load saved fresh copy of gloden image into channel gr_ctx */
-int gr_gk20a_load_golden_ctx_image(struct gk20a *g,
-					struct channel_gk20a *c,
-					struct nvgpu_gr_ctx *gr_ctx)
-{
-	struct gr_gk20a *gr = &g->gr;
-	u64 virt_addr = 0;
-	struct nvgpu_mem *mem;
-
-	nvgpu_log_fn(g, " ");
-
-	mem = &gr_ctx->mem;
-
-	nvgpu_gr_global_ctx_load_local_golden_image(g,
-		gr->local_golden_image, mem);
-
-	if (g->ops.gr.ctxsw_prog.init_ctxsw_hdr_data != NULL) {
-		g->ops.gr.ctxsw_prog.init_ctxsw_hdr_data(g, mem);
-	}
-
-	if ((g->ops.gr.ctxsw_prog.set_cde_enabled != NULL) && c->cde) {
-		g->ops.gr.ctxsw_prog.set_cde_enabled(g, mem);
-	}
-
-	/* set priv access map */
-	g->ops.gr.ctxsw_prog.set_priv_access_map_config_mode(g, mem,
-		g->allow_all);
-	g->ops.gr.ctxsw_prog.set_priv_access_map_addr(g, mem,
-		nvgpu_gr_ctx_get_global_ctx_va(gr_ctx,
-			NVGPU_GR_CTX_PRIV_ACCESS_MAP_VA));
-
-	/* disable verif features */
-	g->ops.gr.ctxsw_prog.disable_verif_features(g, mem);
-
-	if (g->ops.gr.update_ctxsw_preemption_mode != NULL) {
-		g->ops.gr.update_ctxsw_preemption_mode(g, gr_ctx, &c->ctx_header);
-	}
-
-	if (g->ops.gr.ctxsw_prog.set_pmu_options_boost_clock_frequencies !=
-			NULL) {
-		g->ops.gr.ctxsw_prog.set_pmu_options_boost_clock_frequencies(g,
-			mem, gr_ctx->boosted_ctx);
-	}
-
-	nvgpu_log(g, gpu_dbg_info, "write patch count = %d",
-			gr_ctx->patch_ctx.data_count);
-	g->ops.gr.ctxsw_prog.set_patch_count(g, mem,
-		gr_ctx->patch_ctx.data_count);
-	g->ops.gr.ctxsw_prog.set_patch_addr(g, mem,
-		gr_ctx->patch_ctx.mem.gpu_va);
-
-	/* Update main header region of the context buffer with the info needed
-	 * for PM context switching, including mode and possibly a pointer to
-	 * the PM backing store.
-	 */
-	if (gr_ctx->pm_ctx.pm_mode !=
-	    g->ops.gr.ctxsw_prog.hw_get_pm_mode_no_ctxsw()) {
-		if (gr_ctx->pm_ctx.mem.gpu_va == 0ULL) {
-			nvgpu_err(g,
-				"context switched pm with no pm buffer!");
-			return -EFAULT;
-		}
-
-		virt_addr = gr_ctx->pm_ctx.mem.gpu_va;
-	} else {
-		virt_addr = 0;
-	}
-
-	g->ops.gr.ctxsw_prog.set_pm_mode(g, mem, gr_ctx->pm_ctx.pm_mode);
-	g->ops.gr.ctxsw_prog.set_pm_ptr(g, mem, virt_addr);
-
-	return 0;
-}
-
 static void gr_gk20a_start_falcon_ucode(struct gk20a *g)
 {
 	nvgpu_log_fn(g, " ");
@@ -2476,12 +2402,19 @@ int gk20a_alloc_obj_ctx(struct channel_gk20a  *c, u32 class_num, u32 flags)
 		}
 
 		/* load golden image */
-		gr_gk20a_load_golden_ctx_image(g, c, gr_ctx);
+		nvgpu_gr_ctx_load_golden_ctx_image(g, gr_ctx,
+			g->gr.local_golden_image, c->cde);
 		if (err != 0) {
 			nvgpu_err(g,
 				"fail to load golden ctx image");
 			goto out;
 		}
+
+		if (g->ops.gr.update_ctxsw_preemption_mode != NULL) {
+			g->ops.gr.update_ctxsw_preemption_mode(g, gr_ctx,
+				&c->ctx_header);
+		}
+
 #ifdef CONFIG_GK20A_CTXSW_TRACE
 		if (g->ops.fecs_trace.bind_channel && !c->vpr) {
 			err = g->ops.fecs_trace.bind_channel(g, c, 0, gr_ctx);

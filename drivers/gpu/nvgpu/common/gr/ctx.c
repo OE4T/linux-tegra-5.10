@@ -458,3 +458,73 @@ u64 nvgpu_gr_ctx_get_global_ctx_va(struct nvgpu_gr_ctx *gr_ctx,
 {
 	return gr_ctx->global_ctx_buffer_va[index];
 }
+
+/* load saved fresh copy of gloden image into channel gr_ctx */
+int nvgpu_gr_ctx_load_golden_ctx_image(struct gk20a *g,
+	struct nvgpu_gr_ctx *gr_ctx,
+	struct nvgpu_gr_global_ctx_local_golden_image *local_golden_image,
+	bool cde)
+{
+	u64 virt_addr = 0;
+	struct nvgpu_mem *mem;
+
+	nvgpu_log_fn(g, " ");
+
+	mem = &gr_ctx->mem;
+
+	nvgpu_gr_global_ctx_load_local_golden_image(g,
+		local_golden_image, mem);
+
+	if (g->ops.gr.ctxsw_prog.init_ctxsw_hdr_data != NULL) {
+		g->ops.gr.ctxsw_prog.init_ctxsw_hdr_data(g, mem);
+	}
+
+	if ((g->ops.gr.ctxsw_prog.set_cde_enabled != NULL) && cde) {
+		g->ops.gr.ctxsw_prog.set_cde_enabled(g, mem);
+	}
+
+	/* set priv access map */
+	g->ops.gr.ctxsw_prog.set_priv_access_map_config_mode(g, mem,
+		g->allow_all);
+	g->ops.gr.ctxsw_prog.set_priv_access_map_addr(g, mem,
+		nvgpu_gr_ctx_get_global_ctx_va(gr_ctx,
+			NVGPU_GR_CTX_PRIV_ACCESS_MAP_VA));
+
+	/* disable verif features */
+	g->ops.gr.ctxsw_prog.disable_verif_features(g, mem);
+
+	if (g->ops.gr.ctxsw_prog.set_pmu_options_boost_clock_frequencies !=
+			NULL) {
+		g->ops.gr.ctxsw_prog.set_pmu_options_boost_clock_frequencies(g,
+			mem, gr_ctx->boosted_ctx);
+	}
+
+	nvgpu_log(g, gpu_dbg_info, "write patch count = %d",
+			gr_ctx->patch_ctx.data_count);
+	g->ops.gr.ctxsw_prog.set_patch_count(g, mem,
+		gr_ctx->patch_ctx.data_count);
+	g->ops.gr.ctxsw_prog.set_patch_addr(g, mem,
+		gr_ctx->patch_ctx.mem.gpu_va);
+
+	/* Update main header region of the context buffer with the info needed
+	 * for PM context switching, including mode and possibly a pointer to
+	 * the PM backing store.
+	 */
+	if (gr_ctx->pm_ctx.pm_mode !=
+	    g->ops.gr.ctxsw_prog.hw_get_pm_mode_no_ctxsw()) {
+		if (gr_ctx->pm_ctx.mem.gpu_va == 0ULL) {
+			nvgpu_err(g,
+				"context switched pm with no pm buffer!");
+			return -EFAULT;
+		}
+
+		virt_addr = gr_ctx->pm_ctx.mem.gpu_va;
+	} else {
+		virt_addr = 0;
+	}
+
+	g->ops.gr.ctxsw_prog.set_pm_mode(g, mem, gr_ctx->pm_ctx.pm_mode);
+	g->ops.gr.ctxsw_prog.set_pm_ptr(g, mem, virt_addr);
+
+	return 0;
+}
