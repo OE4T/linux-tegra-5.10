@@ -788,6 +788,120 @@ static int test_falcon_mailbox(struct unit_module *m, struct gk20a *g,
 	return UNIT_SUCCESS;
 }
 
+static bool falcon_check_reg_group(struct gk20a *g,
+				   struct nvgpu_reg_access *sequence,
+				   u32 size)
+{
+	u32 i;
+
+	for (i = 0; i < size; i++) {
+		if (nvgpu_posix_io_readl_reg_space(g, sequence->addr) !=
+		    sequence->value) {
+			break;
+		}
+	}
+
+	return i == size;
+}
+
+/*
+ * Invalid: Calling these interfaces on uninitialized falcon should return
+ *          -EINVAL.
+ * Invalid: Invoke nvgpu_falcon_bl_bootstrap with invalid parameters filled in
+ *          nvgpu_falcon_bl_info struct and verify that nvgpu_falcon_bootstrap
+ *          fails.
+ *
+ * Valid: Invoke nvgpu_falcon_bootstrap with boot_vector value and verify the
+ *        expected state of Falcon registers - falcon_falcon_dmactl_r,
+ *        falcon_falcon_bootvec_r, falcon_falcon_cpuctl_r
+ * Valid: Invoke nvgpu_falcon_bl_bootstrap with sample parameters filled in
+ *        nvgpu_falcon_bl_info struct and verify IMEM, DMEM and registers
+ *        related to nvgpu_falcon_bootstrap interface.
+ */
+static int test_falcon_bootstrap(struct unit_module *m, struct gk20a *g,
+				 void *__args)
+{
+#define BL_DESC_SIZE	64
+	struct nvgpu_falcon_bl_info bl_info;
+	u32 boot_vector = 0xF000;
+	/* Define a group of expected register writes */
+	struct nvgpu_reg_access bootstrap_group[] = {
+		{ .addr = 0x0010a10c,
+			.value = falcon_falcon_dmactl_require_ctx_f(0) },
+		{ .addr = 0x0010a104,
+			.value = falcon_falcon_bootvec_vec_f(boot_vector) },
+		{ .addr = 0x0010a100,
+			.value = falcon_falcon_cpuctl_startcpu_f(1) },
+	};
+	u32 i;
+	int err;
+
+	err = nvgpu_falcon_bootstrap(uninit_flcn, boot_vector);
+	if (err != -EINVAL) {
+		unit_return_fail(m, "Invalid falcon bootstrap should "
+				    "fail\n");
+	}
+
+	err = nvgpu_falcon_bl_bootstrap(uninit_flcn, &bl_info);
+	if (err != -EINVAL) {
+		unit_return_fail(m, "Invalid falcon bl_bootstrap "
+				    "should fail\n");
+	}
+
+	err = nvgpu_falcon_bootstrap(pmu_flcn, boot_vector);
+	if (err) {
+		unit_return_fail(m, "PMU falcon bootstrap failed\n");
+	}
+
+	if (falcon_check_reg_group(g, bootstrap_group,
+				   ARRAY_SIZE(bootstrap_group)) == false) {
+		unit_return_fail(m, "Failed checking bootstrap sequence\n");
+	}
+
+	bl_info.bl_desc = (u8 *) malloc(BL_DESC_SIZE);
+	if (!bl_info.bl_desc) {
+		unit_return_fail(m, "Failed creating BL info\n");
+	}
+
+	for (i = 0; i < BL_DESC_SIZE; i++) {
+		bl_info.bl_desc[i] = (u8)(rand() & 0xff);
+	}
+
+	bl_info.bl_desc_size = BL_DESC_SIZE;
+	bl_info.bl_src = (void *)rand_test_data;
+	bl_info.bl_size = RAND_DATA_SIZE;
+	bl_info.bl_start_tag = 0x0;
+
+	err = nvgpu_falcon_bl_bootstrap(pmu_flcn, &bl_info);
+	if (err) {
+		unit_return_fail(m, "PMU falcon bl bootstrap failed\n");
+	}
+
+	if (falcon_check_reg_group(g, bootstrap_group,
+				   ARRAY_SIZE(bootstrap_group)) == false) {
+		unit_return_fail(m, "Failed checking bootstrap sequence\n");
+	}
+
+	/* Set the bootloader source size to greater than imem size */
+	bl_info.bl_size = UTF_FALCON_IMEM_DMEM_SIZE + 1;
+	err = nvgpu_falcon_bl_bootstrap(pmu_flcn, &bl_info);
+	if (!err) {
+		unit_return_fail(m, "PMU falcon bl bootstrap passed with "
+				    "invalid bl_info\n");
+	}
+
+	/* Set the bootloader desc size to greater than dmem size */
+	bl_info.bl_size = RAND_DATA_SIZE;
+	bl_info.bl_desc_size = UTF_FALCON_IMEM_DMEM_SIZE + 1;
+	err = nvgpu_falcon_bl_bootstrap(pmu_flcn, &bl_info);
+	if (!err) {
+		unit_return_fail(m, "PMU falcon bl bootstrap passed with "
+				    "invalid bl_info\n");
+	}
+
+	return UNIT_SUCCESS;
+}
+
 struct unit_module_test falcon_tests[] = {
 	UNIT_TEST(falcon_sw_init_free, test_falcon_sw_init_free, NULL, 0),
 	UNIT_TEST(falcon_reset, test_falcon_reset, NULL, 0),
@@ -799,6 +913,7 @@ struct unit_module_test falcon_tests[] = {
 	UNIT_TEST(falcon_mem_rw_aligned, test_falcon_mem_rw_aligned, NULL, 0),
 	UNIT_TEST(falcon_mem_rw_zero, test_falcon_mem_rw_zero, NULL, 0),
 	UNIT_TEST(falcon_mailbox, test_falcon_mailbox, NULL, 0),
+	UNIT_TEST(falcon_bootstrap, test_falcon_bootstrap, NULL, 0),
 
 	/* Cleanup */
 	UNIT_TEST(falcon_free_test_env, free_falcon_test_env, NULL, 0),
