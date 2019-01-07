@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2013-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -226,18 +226,18 @@ static int bpmp_setup_allocator(struct device *dev)
 	virt_base = ioremap_cache(ivm->ipa, ivm->size);
 
 	flags = DMA_MEMORY_EXCLUSIVE;
-#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 14, 0)
 	flags |= DMA_MEMORY_NOMAP;
-#endif
 	ret = dma_declare_coherent_memory(dev, ivm->ipa, 0, ivm->size,
 			flags);
 
 #if LINUX_VERSION_CODE < KERNEL_VERSION(4, 14, 0)
 	if (!(ret & DMA_MEMORY_NOMAP)) {
+#else
+	if (ret) {
+#endif
 		dev_err(dev, "dma_declare_coherent_memory failed (%x)\n", ret);
 		return ret;
 	}
-#endif
 
 	hv_virt_base = virt_base;
 
