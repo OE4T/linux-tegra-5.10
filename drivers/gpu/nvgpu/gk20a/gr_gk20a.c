@@ -599,66 +599,6 @@ int gr_gk20a_commit_inst(struct channel_gk20a *c, u64 gpu_va)
 	return 0;
 }
 
-/*
- * Context state can be written directly, or "patched" at times. So that code
- * can be used in either situation it is written using a series of
- * _ctx_patch_write(..., patch) statements. However any necessary map overhead
- * should be minimized; thus, bundle the sequence of these writes together, and
- * set them up and close with _ctx_patch_write_begin/_ctx_patch_write_end.
- */
-
-int gr_gk20a_ctx_patch_write_begin(struct gk20a *g,
-					  struct nvgpu_gr_ctx *gr_ctx,
-					  bool update_patch_count)
-{
-	if (update_patch_count) {
-		/* reset patch count if ucode has already processed it */
-		gr_ctx->patch_ctx.data_count =
-			g->ops.gr.ctxsw_prog.get_patch_count(g, &gr_ctx->mem);
-		nvgpu_log(g, gpu_dbg_info, "patch count reset to %d",
-					gr_ctx->patch_ctx.data_count);
-	}
-	return 0;
-}
-
-void gr_gk20a_ctx_patch_write_end(struct gk20a *g,
-					struct nvgpu_gr_ctx *gr_ctx,
-					bool update_patch_count)
-{
-	/* Write context count to context image if it is mapped */
-	if (update_patch_count) {
-		g->ops.gr.ctxsw_prog.set_patch_count(g, &gr_ctx->mem,
-			     gr_ctx->patch_ctx.data_count);
-		nvgpu_log(g, gpu_dbg_info, "write patch count %d",
-			gr_ctx->patch_ctx.data_count);
-	}
-}
-
-void gr_gk20a_ctx_patch_write(struct gk20a *g,
-				    struct nvgpu_gr_ctx *gr_ctx,
-				    u32 addr, u32 data, bool patch)
-{
-	if (patch) {
-		u32 patch_slot = gr_ctx->patch_ctx.data_count *
-				PATCH_CTX_SLOTS_REQUIRED_PER_ENTRY;
-		if (patch_slot > (PATCH_CTX_ENTRIES_FROM_SIZE(
-					gr_ctx->patch_ctx.mem.size) -
-				PATCH_CTX_SLOTS_REQUIRED_PER_ENTRY)) {
-			nvgpu_err(g, "failed to access patch_slot %d",
-				patch_slot);
-			return;
-		}
-		nvgpu_mem_wr32(g, &gr_ctx->patch_ctx.mem, patch_slot, addr);
-		nvgpu_mem_wr32(g, &gr_ctx->patch_ctx.mem, patch_slot + 1U, data);
-		gr_ctx->patch_ctx.data_count++;
-		nvgpu_log(g, gpu_dbg_info,
-			"patch addr = 0x%x data = 0x%x data_count %d",
-			addr, data, gr_ctx->patch_ctx.data_count);
-	} else {
-		gk20a_writel(g, addr, data);
-	}
-}
-
 static u32 fecs_current_ctx_data(struct gk20a *g, struct nvgpu_mem *inst_block)
 {
 	u64 ptr = nvgpu_inst_block_addr(g, inst_block) >>
@@ -774,7 +714,7 @@ int gr_gk20a_commit_global_ctx_buffers(struct gk20a *g,
 
 	if (patch) {
 		int err;
-		err = gr_gk20a_ctx_patch_write_begin(g, gr_ctx, false);
+		err = nvgpu_gr_ctx_patch_write_begin(g, gr_ctx, false);
 		if (err != 0) {
 			return err;
 		}
@@ -820,7 +760,7 @@ int gr_gk20a_commit_global_ctx_buffers(struct gk20a *g,
 	g->ops.gr.commit_global_cb_manager(g, gr_ctx, patch);
 
 	if (patch) {
-		gr_gk20a_ctx_patch_write_end(g, gr_ctx, false);
+		nvgpu_gr_ctx_patch_write_end(g, gr_ctx, false);
 	}
 
 	return 0;
@@ -855,22 +795,22 @@ int gr_gk20a_commit_global_timeslice(struct gk20a *g, struct channel_gk20a *c)
 		ds_debug = gr_ds_debug_timeslice_mode_enable_f() | ds_debug;
 		mpc_vtg_debug = gr_gpcs_tpcs_mpc_vtg_debug_timeslice_mode_enabled_f() | mpc_vtg_debug;
 
-		gr_gk20a_ctx_patch_write(g, gr_ctx, gr_gpcs_gpm_pd_cfg_r(), gpm_pd_cfg, false);
-		gr_gk20a_ctx_patch_write(g, gr_ctx, gr_gpcs_tpcs_pe_vaf_r(), pe_vaf, false);
-		gr_gk20a_ctx_patch_write(g, gr_ctx, gr_gpcs_tpcs_pes_vsc_vpc_r(), pe_vsc_vpc, false);
-		gr_gk20a_ctx_patch_write(g, gr_ctx, gr_pd_ab_dist_cfg0_r(), pd_ab_dist_cfg0, false);
-		gr_gk20a_ctx_patch_write(g, gr_ctx, gr_ds_debug_r(), ds_debug, false);
-		gr_gk20a_ctx_patch_write(g, gr_ctx, gr_gpcs_tpcs_mpc_vtg_debug_r(), mpc_vtg_debug, false);
+		nvgpu_gr_ctx_patch_write(g, gr_ctx, gr_gpcs_gpm_pd_cfg_r(), gpm_pd_cfg, false);
+		nvgpu_gr_ctx_patch_write(g, gr_ctx, gr_gpcs_tpcs_pe_vaf_r(), pe_vaf, false);
+		nvgpu_gr_ctx_patch_write(g, gr_ctx, gr_gpcs_tpcs_pes_vsc_vpc_r(), pe_vsc_vpc, false);
+		nvgpu_gr_ctx_patch_write(g, gr_ctx, gr_pd_ab_dist_cfg0_r(), pd_ab_dist_cfg0, false);
+		nvgpu_gr_ctx_patch_write(g, gr_ctx, gr_ds_debug_r(), ds_debug, false);
+		nvgpu_gr_ctx_patch_write(g, gr_ctx, gr_gpcs_tpcs_mpc_vtg_debug_r(), mpc_vtg_debug, false);
 	} else {
 		gpm_pd_cfg = gr_gpcs_gpm_pd_cfg_timeslice_mode_disable_f() | gpm_pd_cfg;
 		pd_ab_dist_cfg0 = gr_pd_ab_dist_cfg0_timeslice_enable_dis_f() | pd_ab_dist_cfg0;
 		ds_debug = gr_ds_debug_timeslice_mode_disable_f() | ds_debug;
 		mpc_vtg_debug = gr_gpcs_tpcs_mpc_vtg_debug_timeslice_mode_disabled_f() | mpc_vtg_debug;
 
-		gr_gk20a_ctx_patch_write(g, gr_ctx, gr_gpcs_gpm_pd_cfg_r(), gpm_pd_cfg, false);
-		gr_gk20a_ctx_patch_write(g, gr_ctx, gr_pd_ab_dist_cfg0_r(), pd_ab_dist_cfg0, false);
-		gr_gk20a_ctx_patch_write(g, gr_ctx, gr_ds_debug_r(), ds_debug, false);
-		gr_gk20a_ctx_patch_write(g, gr_ctx, gr_gpcs_tpcs_mpc_vtg_debug_r(), mpc_vtg_debug, false);
+		nvgpu_gr_ctx_patch_write(g, gr_ctx, gr_gpcs_gpm_pd_cfg_r(), gpm_pd_cfg, false);
+		nvgpu_gr_ctx_patch_write(g, gr_ctx, gr_pd_ab_dist_cfg0_r(), pd_ab_dist_cfg0, false);
+		nvgpu_gr_ctx_patch_write(g, gr_ctx, gr_ds_debug_r(), ds_debug, false);
+		nvgpu_gr_ctx_patch_write(g, gr_ctx, gr_gpcs_tpcs_mpc_vtg_debug_r(), mpc_vtg_debug, false);
 	}
 
 	return 0;
@@ -6166,7 +6106,7 @@ static int gr_gk20a_ctx_patch_smpc(struct gk20a *g,
 					gr_ctx->patch_ctx.data_count = 0;
 				}
 
-				gr_gk20a_ctx_patch_write(g, gr_ctx,
+				nvgpu_gr_ctx_patch_write(g, gr_ctx,
 							 addr, data, true);
 
 				g->ops.gr.ctxsw_prog.set_patch_count(g, mem,
@@ -7450,7 +7390,7 @@ int __gr_gk20a_exec_ctx_ops(struct channel_gk20a *ch,
 	}
 	offset_addrs = offsets + max_offsets;
 
-	err = gr_gk20a_ctx_patch_write_begin(g, gr_ctx, false);
+	err = nvgpu_gr_ctx_patch_write_begin(g, gr_ctx, false);
 	if (err != 0) {
 		goto cleanup;
 	}
@@ -7582,7 +7522,7 @@ int __gr_gk20a_exec_ctx_ops(struct channel_gk20a *ch,
 	}
 
 	if (gr_ctx->patch_ctx.mem.cpu_va != NULL) {
-		gr_gk20a_ctx_patch_write_end(g, gr_ctx, gr_ctx_ready);
+		nvgpu_gr_ctx_patch_write_end(g, gr_ctx, gr_ctx_ready);
 	}
 
 	return err;
@@ -7632,20 +7572,20 @@ void gr_gk20a_commit_global_pagepool(struct gk20a *g,
 					    u64 addr, u32 size, bool patch)
 {
 	BUG_ON(u64_hi32(addr) != 0U);
-	gr_gk20a_ctx_patch_write(g, gr_ctx, gr_scc_pagepool_base_r(),
+	nvgpu_gr_ctx_patch_write(g, gr_ctx, gr_scc_pagepool_base_r(),
 		gr_scc_pagepool_base_addr_39_8_f((u32)addr), patch);
 
-	gr_gk20a_ctx_patch_write(g, gr_ctx, gr_scc_pagepool_r(),
+	nvgpu_gr_ctx_patch_write(g, gr_ctx, gr_scc_pagepool_r(),
 		gr_scc_pagepool_total_pages_f(size) |
 		gr_scc_pagepool_valid_true_f(), patch);
 
-	gr_gk20a_ctx_patch_write(g, gr_ctx, gr_gpcs_gcc_pagepool_base_r(),
+	nvgpu_gr_ctx_patch_write(g, gr_ctx, gr_gpcs_gcc_pagepool_base_r(),
 		gr_gpcs_gcc_pagepool_base_addr_39_8_f((u32)addr), patch);
 
-	gr_gk20a_ctx_patch_write(g, gr_ctx, gr_gpcs_gcc_pagepool_r(),
+	nvgpu_gr_ctx_patch_write(g, gr_ctx, gr_gpcs_gcc_pagepool_r(),
 		gr_gpcs_gcc_pagepool_total_pages_f(size), patch);
 
-	gr_gk20a_ctx_patch_write(g, gr_ctx, gr_pd_pagepool_r(),
+	nvgpu_gr_ctx_patch_write(g, gr_ctx, gr_pd_pagepool_r(),
 		gr_pd_pagepool_total_pages_f(size) |
 		gr_pd_pagepool_valid_true_f(), patch);
 }

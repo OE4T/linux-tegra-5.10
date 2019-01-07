@@ -153,13 +153,13 @@ static void gr_tu104_commit_rtv_circular_buffer(struct gk20a *g,
 	struct nvgpu_gr_ctx *gr_ctx,
 	u64 addr, u32 size, u32 gfxpAddSize, bool patch)
 {
-	gr_gk20a_ctx_patch_write(g, gr_ctx, gr_scc_rm_rtv_cb_base_r(),
+	nvgpu_gr_ctx_patch_write(g, gr_ctx, gr_scc_rm_rtv_cb_base_r(),
 		gr_scc_rm_rtv_cb_base_addr_39_8_f(addr), patch);
-	gr_gk20a_ctx_patch_write(g, gr_ctx, gr_scc_rm_rtv_cb_size_r(),
+	nvgpu_gr_ctx_patch_write(g, gr_ctx, gr_scc_rm_rtv_cb_size_r(),
 		gr_scc_rm_rtv_cb_size_div_256b_f(size), patch);
-	gr_gk20a_ctx_patch_write(g, gr_ctx, gr_gpcs_gcc_rm_rtv_cb_base_r(),
+	nvgpu_gr_ctx_patch_write(g, gr_ctx, gr_gpcs_gcc_rm_rtv_cb_base_r(),
 		gr_gpcs_gcc_rm_rtv_cb_base_addr_39_8_f(addr), patch);
-	gr_gk20a_ctx_patch_write(g, gr_ctx, gr_scc_rm_gfxp_reserve_r(),
+	nvgpu_gr_ctx_patch_write(g, gr_ctx, gr_scc_rm_gfxp_reserve_r(),
 		gr_scc_rm_gfxp_reserve_rtv_cb_size_div_256b_f(gfxpAddSize),
 		patch);
 }
@@ -181,7 +181,7 @@ int gr_tu104_commit_global_ctx_buffers(struct gk20a *g,
 
 	if (patch) {
 		int err;
-		err = gr_gk20a_ctx_patch_write_begin(g, gr_ctx, false);
+		err = nvgpu_gr_ctx_patch_write_begin(g, gr_ctx, false);
 		if (err != 0) {
 			return err;
 		}
@@ -199,7 +199,7 @@ int gr_tu104_commit_global_ctx_buffers(struct gk20a *g,
 						gfxpaddsize, patch);
 
 	if (patch) {
-		gr_gk20a_ctx_patch_write_end(g, gr_ctx, false);
+		nvgpu_gr_ctx_patch_write_end(g, gr_ctx, false);
 	}
 
 	return 0;

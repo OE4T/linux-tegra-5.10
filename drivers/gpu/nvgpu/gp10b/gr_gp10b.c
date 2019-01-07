@@ -416,9 +416,9 @@ int gr_gp10b_commit_global_cb_manager(struct gk20a *g,
 		cb_attrib_cache_size_init = gr->attrib_cb_default_size;
 	}
 
-	gr_gk20a_ctx_patch_write(g, gr_ctx, gr_ds_tga_constraintlogic_beta_r(),
+	nvgpu_gr_ctx_patch_write(g, gr_ctx, gr_ds_tga_constraintlogic_beta_r(),
 		gr->attrib_cb_default_size, patch);
-	gr_gk20a_ctx_patch_write(g, gr_ctx, gr_ds_tga_constraintlogic_alpha_r(),
+	nvgpu_gr_ctx_patch_write(g, gr_ctx, gr_ds_tga_constraintlogic_alpha_r(),
 		gr->alpha_cb_default_size, patch);
 
 	pd_ab_max_output = (gr->alpha_cb_default_size *
@@ -426,11 +426,11 @@ int gr_gp10b_commit_global_cb_manager(struct gk20a *g,
 		gr_pd_ab_dist_cfg1_max_output_granularity_v();
 
 	if (g->gr.pd_max_batches != 0U) {
-		gr_gk20a_ctx_patch_write(g, gr_ctx, gr_pd_ab_dist_cfg1_r(),
+		nvgpu_gr_ctx_patch_write(g, gr_ctx, gr_pd_ab_dist_cfg1_r(),
 			gr_pd_ab_dist_cfg1_max_output_f(pd_ab_max_output) |
 			gr_pd_ab_dist_cfg1_max_batches_f(g->gr.pd_max_batches), patch);
 	} else {
-		gr_gk20a_ctx_patch_write(g, gr_ctx, gr_pd_ab_dist_cfg1_r(),
+		nvgpu_gr_ctx_patch_write(g, gr_ctx, gr_pd_ab_dist_cfg1_r(),
 			gr_pd_ab_dist_cfg1_max_output_f(pd_ab_max_output) |
 			gr_pd_ab_dist_cfg1_max_batches_init_f(), patch);
 	}
@@ -450,17 +450,17 @@ int gr_gp10b_commit_global_cb_manager(struct gk20a *g,
 			cbm_cfg_size_steadystate = gr->attrib_cb_default_size *
 				gr->pes_tpc_count[ppc_index][gpc_index];
 
-			gr_gk20a_ctx_patch_write(g, gr_ctx,
+			nvgpu_gr_ctx_patch_write(g, gr_ctx,
 				gr_gpc0_ppc0_cbm_beta_cb_size_r() + temp +
 				ppc_in_gpc_stride * ppc_index,
 				cbm_cfg_size_beta, patch);
 
-			gr_gk20a_ctx_patch_write(g, gr_ctx,
+			nvgpu_gr_ctx_patch_write(g, gr_ctx,
 				gr_gpc0_ppc0_cbm_beta_cb_offset_r() + temp +
 				ppc_in_gpc_stride * ppc_index,
 				attrib_offset_in_chunk, patch);
 
-			gr_gk20a_ctx_patch_write(g, gr_ctx,
+			nvgpu_gr_ctx_patch_write(g, gr_ctx,
 				gr_gpc0_ppc0_cbm_beta_steady_state_cb_size_r() + temp +
 				ppc_in_gpc_stride * ppc_index,
 				cbm_cfg_size_steadystate,
@@ -469,12 +469,12 @@ int gr_gp10b_commit_global_cb_manager(struct gk20a *g,
 			attrib_offset_in_chunk += attrib_size_in_chunk *
 				gr->pes_tpc_count[ppc_index][gpc_index];
 
-			gr_gk20a_ctx_patch_write(g, gr_ctx,
+			nvgpu_gr_ctx_patch_write(g, gr_ctx,
 				gr_gpc0_ppc0_cbm_alpha_cb_size_r() + temp +
 				ppc_in_gpc_stride * ppc_index,
 				cbm_cfg_size_alpha, patch);
 
-			gr_gk20a_ctx_patch_write(g, gr_ctx,
+			nvgpu_gr_ctx_patch_write(g, gr_ctx,
 				gr_gpc0_ppc0_cbm_alpha_cb_offset_r() + temp +
 				ppc_in_gpc_stride * ppc_index,
 				alpha_offset_in_chunk, patch);
@@ -482,7 +482,7 @@ int gr_gp10b_commit_global_cb_manager(struct gk20a *g,
 			alpha_offset_in_chunk += gr->alpha_cb_size *
 				gr->pes_tpc_count[ppc_index][gpc_index];
 
-			gr_gk20a_ctx_patch_write(g, gr_ctx,
+			nvgpu_gr_ctx_patch_write(g, gr_ctx,
 				gr_gpcs_swdx_tc_beta_cb_size_r(ppc_index + temp2),
 				gr_gpcs_swdx_tc_beta_cb_size_v_f(cbm_cfg_size_steadystate),
 				patch);
@@ -496,17 +496,17 @@ void gr_gp10b_commit_global_pagepool(struct gk20a *g,
 					    struct nvgpu_gr_ctx *gr_ctx,
 					    u64 addr, u32 size, bool patch)
 {
-	gr_gk20a_ctx_patch_write(g, gr_ctx, gr_scc_pagepool_base_r(),
+	nvgpu_gr_ctx_patch_write(g, gr_ctx, gr_scc_pagepool_base_r(),
 		gr_scc_pagepool_base_addr_39_8_f(addr), patch);
 
-	gr_gk20a_ctx_patch_write(g, gr_ctx, gr_scc_pagepool_r(),
+	nvgpu_gr_ctx_patch_write(g, gr_ctx, gr_scc_pagepool_r(),
 		gr_scc_pagepool_total_pages_f(size) |
 		gr_scc_pagepool_valid_true_f(), patch);
 
-	gr_gk20a_ctx_patch_write(g, gr_ctx, gr_gpcs_gcc_pagepool_base_r(),
+	nvgpu_gr_ctx_patch_write(g, gr_ctx, gr_gpcs_gcc_pagepool_base_r(),
 		gr_gpcs_gcc_pagepool_base_addr_39_8_f(addr), patch);
 
-	gr_gk20a_ctx_patch_write(g, gr_ctx, gr_gpcs_gcc_pagepool_r(),
+	nvgpu_gr_ctx_patch_write(g, gr_ctx, gr_gpcs_gcc_pagepool_r(),
 		gr_gpcs_gcc_pagepool_total_pages_f(size), patch);
 }
 
@@ -1100,7 +1100,7 @@ void gr_gp10b_update_ctxsw_preemption_mode(struct gk20a *g,
 			}
 		}
 
-		err = gr_gk20a_ctx_patch_write_begin(g, gr_ctx, true);
+		err = nvgpu_gr_ctx_patch_write_begin(g, gr_ctx, true);
 		if (err != 0) {
 			nvgpu_err(g, "can't map patch context");
 			goto out;
@@ -1133,28 +1133,28 @@ void gr_gp10b_update_ctxsw_preemption_mode(struct gk20a *g,
 		size = gr_ctx->spill_ctxsw_buffer.size /
 			gr_gpc0_swdx_rm_spill_buffer_size_256b_byte_granularity_v();
 
-		gr_gk20a_ctx_patch_write(g, gr_ctx,
+		nvgpu_gr_ctx_patch_write(g, gr_ctx,
 				gr_gpc0_swdx_rm_spill_buffer_addr_r(),
 				gr_gpc0_swdx_rm_spill_buffer_addr_39_8_f(addr),
 				true);
-		gr_gk20a_ctx_patch_write(g, gr_ctx,
+		nvgpu_gr_ctx_patch_write(g, gr_ctx,
 				gr_gpc0_swdx_rm_spill_buffer_size_r(),
 				gr_gpc0_swdx_rm_spill_buffer_size_256b_f(size),
 				true);
 
 		cbes_reserve = gr_gpcs_swdx_beta_cb_ctrl_cbes_reserve_gfxp_v();
-		gr_gk20a_ctx_patch_write(g, gr_ctx,
+		nvgpu_gr_ctx_patch_write(g, gr_ctx,
 				gr_gpcs_swdx_beta_cb_ctrl_r(),
 				gr_gpcs_swdx_beta_cb_ctrl_cbes_reserve_f(
 					cbes_reserve),
 				true);
-		gr_gk20a_ctx_patch_write(g, gr_ctx,
+		nvgpu_gr_ctx_patch_write(g, gr_ctx,
 				gr_gpcs_ppcs_cbm_beta_cb_ctrl_r(),
 				gr_gpcs_ppcs_cbm_beta_cb_ctrl_cbes_reserve_f(
 					cbes_reserve),
 				true);
 
-		gr_gk20a_ctx_patch_write_end(g, gr_ctx, true);
+		nvgpu_gr_ctx_patch_write_end(g, gr_ctx, true);
 	}
 
 out:
@@ -1373,14 +1373,14 @@ void gr_gp10b_commit_global_attrib_cb(struct gk20a *g,
 
 	gr_gm20b_commit_global_attrib_cb(g, gr_ctx, addr, patch);
 
-	gr_gk20a_ctx_patch_write(g, gr_ctx, gr_gpcs_tpcs_mpc_vtg_cb_global_base_addr_r(),
+	nvgpu_gr_ctx_patch_write(g, gr_ctx, gr_gpcs_tpcs_mpc_vtg_cb_global_base_addr_r(),
 		gr_gpcs_tpcs_mpc_vtg_cb_global_base_addr_v_f(addr) |
 		gr_gpcs_tpcs_mpc_vtg_cb_global_base_addr_valid_true_f(), patch);
 
-	gr_gk20a_ctx_patch_write(g, gr_ctx, gr_gpcs_tpcs_tex_rm_cb_0_r(),
+	nvgpu_gr_ctx_patch_write(g, gr_ctx, gr_gpcs_tpcs_tex_rm_cb_0_r(),
 		gr_gpcs_tpcs_tex_rm_cb_0_base_addr_43_12_f(addr), patch);
 
-	gr_gk20a_ctx_patch_write(g, gr_ctx, gr_gpcs_tpcs_tex_rm_cb_1_r(),
+	nvgpu_gr_ctx_patch_write(g, gr_ctx, gr_gpcs_tpcs_tex_rm_cb_1_r(),
 		gr_gpcs_tpcs_tex_rm_cb_1_size_div_128b_f(attrBufferSize) |
 		gr_gpcs_tpcs_tex_rm_cb_1_valid_true_f(), patch);
 }
@@ -1391,17 +1391,17 @@ void gr_gp10b_commit_global_bundle_cb(struct gk20a *g,
 {
 	u32 data;
 
-	gr_gk20a_ctx_patch_write(g, gr_ctx, gr_scc_bundle_cb_base_r(),
+	nvgpu_gr_ctx_patch_write(g, gr_ctx, gr_scc_bundle_cb_base_r(),
 		gr_scc_bundle_cb_base_addr_39_8_f(addr), patch);
 
-	gr_gk20a_ctx_patch_write(g, gr_ctx, gr_scc_bundle_cb_size_r(),
+	nvgpu_gr_ctx_patch_write(g, gr_ctx, gr_scc_bundle_cb_size_r(),
 		gr_scc_bundle_cb_size_div_256b_f(size) |
 		gr_scc_bundle_cb_size_valid_true_f(), patch);
 
-	gr_gk20a_ctx_patch_write(g, gr_ctx, gr_gpcs_swdx_bundle_cb_base_r(),
+	nvgpu_gr_ctx_patch_write(g, gr_ctx, gr_gpcs_swdx_bundle_cb_base_r(),
 		gr_gpcs_swdx_bundle_cb_base_addr_39_8_f(addr), patch);
 
-	gr_gk20a_ctx_patch_write(g, gr_ctx, gr_gpcs_swdx_bundle_cb_size_r(),
+	nvgpu_gr_ctx_patch_write(g, gr_ctx, gr_gpcs_swdx_bundle_cb_size_r(),
 		gr_gpcs_swdx_bundle_cb_size_div_256b_f(size) |
 		gr_gpcs_swdx_bundle_cb_size_valid_true_f(), patch);
 
@@ -1415,7 +1415,7 @@ void gr_gp10b_commit_global_bundle_cb(struct gk20a *g,
 	nvgpu_log_info(g, "bundle cb token limit : %d, state limit : %d",
 		   g->gr.bundle_cb_token_limit, data);
 
-	gr_gk20a_ctx_patch_write(g, gr_ctx, gr_pd_ab_dist_cfg2_r(),
+	nvgpu_gr_ctx_patch_write(g, gr_ctx, gr_pd_ab_dist_cfg2_r(),
 		gr_pd_ab_dist_cfg2_token_limit_f(g->gr.bundle_cb_token_limit) |
 		gr_pd_ab_dist_cfg2_state_limit_f(data), patch);
 }
@@ -2172,13 +2172,13 @@ int gr_gp10b_set_preemption_mode(struct channel_gk20a *ch,
 		g->ops.gr.update_ctxsw_preemption_mode(ch->g, gr_ctx,
 				&ch->ctx_header);
 
-		err = gr_gk20a_ctx_patch_write_begin(g, gr_ctx, true);
+		err = nvgpu_gr_ctx_patch_write_begin(g, gr_ctx, true);
 		if (err != 0) {
 			nvgpu_err(g, "can't map patch context");
 			goto enable_ch;
 		}
 		g->ops.gr.commit_global_cb_manager(g, gr_ctx, true);
-		gr_gk20a_ctx_patch_write_end(g, gr_ctx, true);
+		nvgpu_gr_ctx_patch_write_end(g, gr_ctx, true);
 	}
 
 enable_ch:

@@ -24,6 +24,7 @@
 #include <nvgpu/gr/global_ctx.h>
 #include <nvgpu/gr/ctx.h>
 #include <nvgpu/vm.h>
+#include <nvgpu/io.h>
 #include <nvgpu/gmmu.h>
 
 static void nvgpu_gr_ctx_unmap_global_ctx_buffers(struct gk20a *g,
@@ -527,4 +528,66 @@ int nvgpu_gr_ctx_load_golden_ctx_image(struct gk20a *g,
 	g->ops.gr.ctxsw_prog.set_pm_ptr(g, mem, virt_addr);
 
 	return 0;
+}
+
+/*
+ * Context state can be written directly, or "patched" at times. So that code
+ * can be used in either situation it is written using a series of
+ * _ctx_patch_write(..., patch) statements. However any necessary map overhead
+ * should be minimized; thus, bundle the sequence of these writes together, and
+ * set them up and close with _ctx_patch_write_begin/_ctx_patch_write_end.
+ */
+int nvgpu_gr_ctx_patch_write_begin(struct gk20a *g,
+	struct nvgpu_gr_ctx *gr_ctx,
+	bool update_patch_count)
+{
+	if (update_patch_count) {
+		/* reset patch count if ucode has already processed it */
+		gr_ctx->patch_ctx.data_count =
+			g->ops.gr.ctxsw_prog.get_patch_count(g, &gr_ctx->mem);
+		nvgpu_log(g, gpu_dbg_info, "patch count reset to %d",
+					gr_ctx->patch_ctx.data_count);
+	}
+	return 0;
+}
+
+void nvgpu_gr_ctx_patch_write_end(struct gk20a *g,
+	struct nvgpu_gr_ctx *gr_ctx,
+	bool update_patch_count)
+{
+	/* Write context count to context image if it is mapped */
+	if (update_patch_count) {
+		g->ops.gr.ctxsw_prog.set_patch_count(g, &gr_ctx->mem,
+			     gr_ctx->patch_ctx.data_count);
+		nvgpu_log(g, gpu_dbg_info, "write patch count %d",
+			gr_ctx->patch_ctx.data_count);
+	}
+}
+
+void nvgpu_gr_ctx_patch_write(struct gk20a *g,
+	struct nvgpu_gr_ctx *gr_ctx,
+	u32 addr, u32 data, bool patch)
+{
+	if (patch) {
+		u32 patch_slot = gr_ctx->patch_ctx.data_count *
+				PATCH_CTX_SLOTS_REQUIRED_PER_ENTRY;
+
+		if (patch_slot > (PATCH_CTX_ENTRIES_FROM_SIZE(
+					gr_ctx->patch_ctx.mem.size) -
+				PATCH_CTX_SLOTS_REQUIRED_PER_ENTRY)) {
+			nvgpu_err(g, "failed to access patch_slot %d",
+				patch_slot);
+			return;
+		}
+
+		nvgpu_mem_wr32(g, &gr_ctx->patch_ctx.mem, patch_slot, addr);
+		nvgpu_mem_wr32(g, &gr_ctx->patch_ctx.mem, patch_slot + 1U, data);
+		gr_ctx->patch_ctx.data_count++;
+
+		nvgpu_log(g, gpu_dbg_info,
+			"patch addr = 0x%x data = 0x%x data_count %d",
+			addr, data, gr_ctx->patch_ctx.data_count);
+	} else {
+		nvgpu_writel(g, addr, data);
+	}
 }

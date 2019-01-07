@@ -1,7 +1,7 @@
 /*
  * GV100 GPU GR
  *
- * Copyright (c) 2017-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -27,6 +27,7 @@
 #include <nvgpu/enabled.h>
 #include <nvgpu/io.h>
 #include <nvgpu/gk20a.h>
+#include <nvgpu/gr/ctx.h>
 
 #include "gk20a/gr_gk20a.h"
 #include "gk20a/gr_pri_gk20a.h"

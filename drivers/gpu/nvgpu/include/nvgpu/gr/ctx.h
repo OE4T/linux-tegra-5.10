@@ -26,6 +26,15 @@
 #include <nvgpu/types.h>
 #include <nvgpu/nvgpu_mem.h>
 
+/*
+ * allocate a minimum of 1 page (4KB) worth of patch space, this is 512 entries
+ * of address and data pairs
+ */
+#define PATCH_CTX_SLOTS_REQUIRED_PER_ENTRY	2U
+#define PATCH_CTX_SLOTS_PER_PAGE \
+	(PAGE_SIZE/(PATCH_CTX_SLOTS_REQUIRED_PER_ENTRY * (u32)sizeof(u32)))
+#define PATCH_CTX_ENTRIES_FROM_SIZE(size) ((size)/sizeof(u32))
+
 struct gk20a;
 struct vm_gk20a;
 
@@ -157,5 +166,15 @@ int nvgpu_gr_ctx_load_golden_ctx_image(struct gk20a *g,
 	struct nvgpu_gr_ctx *gr_ctx,
 	struct nvgpu_gr_global_ctx_local_golden_image *local_golden_image,
 	bool cde);
+
+int nvgpu_gr_ctx_patch_write_begin(struct gk20a *g,
+	struct nvgpu_gr_ctx *gr_ctx,
+	bool update_patch_count);
+void nvgpu_gr_ctx_patch_write_end(struct gk20a *g,
+	struct nvgpu_gr_ctx *gr_ctx,
+	bool update_patch_count);
+void nvgpu_gr_ctx_patch_write(struct gk20a *g,
+	struct nvgpu_gr_ctx *gr_ctx,
+	u32 addr, u32 data, bool patch);
 
 #endif /* NVGPU_INCLUDE_GR_CTX_H */

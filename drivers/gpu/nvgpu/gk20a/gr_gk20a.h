@@ -50,15 +50,6 @@
 #define NVGPU_OBJ_CTX_FLAGS_SUPPORT_GFXP		BIT32(1)
 #define NVGPU_OBJ_CTX_FLAGS_SUPPORT_CILP		BIT32(2)
 
-/*
- * allocate a minimum of 1 page (4KB) worth of patch space, this is 512 entries
- * of address and data pairs
- */
-#define PATCH_CTX_SLOTS_REQUIRED_PER_ENTRY	2U
-#define PATCH_CTX_SLOTS_PER_PAGE \
-	(PAGE_SIZE/(PATCH_CTX_SLOTS_REQUIRED_PER_ENTRY * (u32)sizeof(u32)))
-#define PATCH_CTX_ENTRIES_FROM_SIZE(size) ((size)/sizeof(u32))
-
 #define NVGPU_PREEMPTION_MODE_GRAPHICS_WFI	BIT32(0)
 #define NVGPU_PREEMPTION_MODE_GRAPHICS_GFXP	BIT32(1)
 
@@ -547,14 +538,6 @@ int gr_gk20a_update_hwpm_ctxsw_mode(struct gk20a *g,
 				  u64 gpu_va,
 				  u32 mode);
 
-void gr_gk20a_ctx_patch_write(struct gk20a *g, struct nvgpu_gr_ctx *gr_ctx,
-				    u32 addr, u32 data, bool patch);
-int gr_gk20a_ctx_patch_write_begin(struct gk20a *g,
-					  struct nvgpu_gr_ctx *gr_ctx,
-					  bool update_patch_count);
-void gr_gk20a_ctx_patch_write_end(struct gk20a *g,
-					struct nvgpu_gr_ctx *gr_ctx,
-					bool update_patch_count);
 void gr_gk20a_commit_global_pagepool(struct gk20a *g,
 				     struct nvgpu_gr_ctx *gr_ctx,
 				     u64 addr, u32 size, bool patch);
