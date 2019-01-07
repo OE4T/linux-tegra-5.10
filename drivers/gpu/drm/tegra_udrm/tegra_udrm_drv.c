@@ -17,6 +17,7 @@
 #include <drm/drmP.h>
 #include <linux/dma-buf.h>
 #include <linux/shmem_fs.h>
+#include <linux/version.h>
 
 #include <uapi/drm/tegra_udrm.h>
 
@@ -273,7 +274,9 @@ static int tegra_udrm_send_vblank_event_ioctl(struct drm_device *drm,
 
 	/* make event */
 	e->pipe = 0;
+#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 14, 0)
 	e->base.pid = current->pid;
+#endif
 	e->event.base.type = args->vblank.base.type;
 	e->event.base.length = sizeof(e->event);
 	e->event.user_data = args->vblank.user_data;
