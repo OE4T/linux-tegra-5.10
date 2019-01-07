@@ -189,8 +189,6 @@ EXPORT_SYMBOL_GPL(tegra_alt_asoc_utils_clk_disable);
 int tegra_alt_asoc_utils_init(struct tegra_asoc_audio_clock_info *data,
 			  struct device *dev, struct snd_soc_card *card)
 {
-	int ret;
-
 	data->dev = dev;
 	data->card = card;
 	data->mclk_scale = 256;
@@ -209,56 +207,47 @@ int tegra_alt_asoc_utils_init(struct tegra_asoc_audio_clock_info *data,
 	data->clk_m = devm_clk_get(dev, "clk_m");
 	if (IS_ERR(data->clk_m)) {
 		dev_err(data->dev, "Can't retrieve clk clk_m\n");
-		ret = PTR_ERR(data->clk_m);
-		goto err;
+		return PTR_ERR(data->clk_m);
 	}
 
 	data->clk_pll_a = devm_clk_get(dev, "pll_a");
 	if (IS_ERR(data->clk_pll_a)) {
 		dev_err(data->dev, "Can't retrieve clk pll_a\n");
-		ret = PTR_ERR(data->clk_pll_a);
-		goto err;
+		return PTR_ERR(data->clk_pll_a);
 	}
 
 	data->clk_pll_a_out0 = devm_clk_get(dev, "pll_a_out0");
 	if (IS_ERR(data->clk_pll_a_out0)) {
 		dev_err(data->dev, "Can't retrieve clk pll_a_out0\n");
-		ret = PTR_ERR(data->clk_pll_a_out0);
-		goto err;
+		return PTR_ERR(data->clk_pll_a_out0);
 	}
 
 	data->clk_cdev1 = devm_clk_get(dev, "extern1");
 	if (IS_ERR(data->clk_cdev1)) {
 		dev_err(data->dev, "Can't retrieve clk cdev1\n");
-		ret = PTR_ERR(data->clk_cdev1);
-		goto err;
+		return PTR_ERR(data->clk_cdev1);
 	}
 
 	if (data->soc > TEGRA_ASOC_UTILS_SOC_TEGRA210) {
 		data->clk_ahub = devm_clk_get(dev, "ahub");
 		if (IS_ERR(data->clk_ahub)) {
 			dev_err(data->dev, "Can't retrieve clk ahub\n");
-			ret = PTR_ERR(data->clk_ahub);
-			goto err;
-		}
-
-		if (data->soc == TEGRA_ASOC_UTILS_SOC_TEGRA186) {
-			data->clk_cdev1_rst = devm_reset_control_get(dev,
-							"extern1_rst");
-			if (IS_ERR(data->clk_cdev1_rst)) {
-				dev_err(dev,
-				"Reset control is not found, err: %ld\n",
-				PTR_ERR(data->clk_cdev1_rst));
-				return PTR_ERR(data->clk_cdev1_rst);
-			}
-			reset_control_reset(data->clk_cdev1_rst);
+			return PTR_ERR(data->clk_ahub);
 		}
 	}
 
-	return 0;
+	if (data->soc == TEGRA_ASOC_UTILS_SOC_TEGRA186) {
+		data->clk_cdev1_rst = devm_reset_control_get(dev,
+							     "extern1_rst");
+		if (IS_ERR(data->clk_cdev1_rst)) {
+			dev_err(dev, "Reset control is not found, err: %ld\n",
+				PTR_ERR(data->clk_cdev1_rst));
+			return PTR_ERR(data->clk_cdev1_rst);
+		}
+		reset_control_reset(data->clk_cdev1_rst);
+	}
 
-err:
-	return ret;
+	return 0;
 }
 EXPORT_SYMBOL_GPL(tegra_alt_asoc_utils_init);
 
