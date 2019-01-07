@@ -262,35 +262,6 @@ err:
 }
 EXPORT_SYMBOL_GPL(tegra_alt_asoc_utils_init);
 
-int tegra_alt_asoc_utils_set_parent(struct tegra_asoc_audio_clock_info *data,
-			int is_i2s_master)
-{
-	int ret = -ENODEV;
-
-	if (is_i2s_master) {
-		ret = clk_set_parent(data->clk_cdev1, data->clk_pll_a_out0);
-		if (ret) {
-			dev_err(data->dev, "Can't set clk cdev1/extern1 parent");
-			return ret;
-		}
-	} else {
-		ret = clk_set_parent(data->clk_cdev1, data->clk_m);
-		if (ret) {
-			dev_err(data->dev, "Can't set clk cdev1/extern1 parent");
-			return ret;
-		}
-
-		ret = clk_set_rate(data->clk_cdev1, 13000000);
-		if (ret) {
-			dev_err(data->dev, "Can't set clk rate");
-			return ret;
-		}
-	}
-
-	return 0;
-}
-EXPORT_SYMBOL_GPL(tegra_alt_asoc_utils_set_parent);
-
 int tegra_alt_asoc_utils_set_extern_parent(
 	struct tegra_asoc_audio_clock_info *data, const char *parent)
 {
