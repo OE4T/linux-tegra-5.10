@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -664,9 +664,15 @@ static void nvgpu_vm_remove(struct vm_gk20a *vm)
 	nvgpu_kfree(g, vm);
 }
 
+static struct vm_gk20a *vm_gk20a_from_ref(struct nvgpu_ref *ref)
+{
+	return (struct vm_gk20a *)
+		((uintptr_t)ref - offsetof(struct vm_gk20a, ref));
+}
+
 static void nvgpu_vm_remove_ref(struct nvgpu_ref *ref)
 {
-	struct vm_gk20a *vm = container_of(ref, struct vm_gk20a, ref);
+	struct vm_gk20a *vm = vm_gk20a_from_ref(ref);
 
 	nvgpu_vm_remove(vm);
 }
@@ -1150,6 +1156,12 @@ static void nvgpu_vm_do_unmap(struct nvgpu_mapped_buf *mapped_buffer,
 	nvgpu_kfree(g, mapped_buffer);
 }
 
+static struct nvgpu_mapped_buf *nvgpu_mapped_buf_from_ref(struct nvgpu_ref *ref)
+{
+	return (struct nvgpu_mapped_buf *)
+		((uintptr_t)ref - offsetof(struct nvgpu_mapped_buf, ref));
+}
+
 /*
  * Note: the update_gmmu_lock of the VM that owns this buffer must be locked
  * before calling nvgpu_ref_put() with this function as the unref function
@@ -1157,8 +1169,7 @@ static void nvgpu_vm_do_unmap(struct nvgpu_mapped_buf *mapped_buffer,
  */
 void nvgpu_vm_unmap_ref_internal(struct nvgpu_ref *ref)
 {
-	struct nvgpu_mapped_buf *mapped_buffer =
-		container_of(ref, struct nvgpu_mapped_buf, ref);
+	struct nvgpu_mapped_buf *mapped_buffer = nvgpu_mapped_buf_from_ref(ref);
 
 	nvgpu_vm_do_unmap(mapped_buffer, mapped_buffer->vm->kref_put_batch);
 }

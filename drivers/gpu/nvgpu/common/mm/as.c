@@ -1,7 +1,7 @@
 /*
  * GK20A Address Spaces
  *
- * Copyright (c) 2011-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -183,5 +183,5 @@ release_fail:
 
 struct gk20a *gk20a_from_as(struct gk20a_as *as)
 {
-	return container_of(as, struct gk20a, as);
+	return (struct gk20a *)((uintptr_t)as - offsetof(struct gk20a, as));
 }
