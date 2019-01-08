@@ -785,7 +785,7 @@ int gr_gk20a_commit_global_ctx_buffers(struct gk20a *g,
 			NVGPU_GR_CTX_PAGEPOOL_VA) >>
 		U64(gr_scc_pagepool_base_addr_39_8_align_bits_v());
 
-	size = nvgpu_gr_global_ctx_get_size(gr->global_ctx_buffer,
+	size = (u32)nvgpu_gr_global_ctx_get_size(gr->global_ctx_buffer,
 			NVGPU_GR_GLOBAL_CTX_PAGEPOOL) /
 		gr_scc_pagepool_total_pages_byte_granularity_v();
 
@@ -1136,12 +1136,14 @@ int gr_gk20a_init_fs_state(struct gk20a *g)
 	for (gpc_index = 0;
 	     gpc_index < gr_pd_dist_skip_table__size_1_v() * 4U;
 	     gpc_index += 4U) {
+		bool skip_mask =
+			(gr_pd_dist_skip_table_gpc_4n0_mask_f(gr->gpc_skip_mask[gpc_index]) != 0U) ||
+			(gr_pd_dist_skip_table_gpc_4n1_mask_f(gr->gpc_skip_mask[gpc_index + 1U]) != 0U) ||
+			(gr_pd_dist_skip_table_gpc_4n2_mask_f(gr->gpc_skip_mask[gpc_index + 2U]) != 0U) ||
+			(gr_pd_dist_skip_table_gpc_4n3_mask_f(gr->gpc_skip_mask[gpc_index + 3U]) != 0U);
 
 		gk20a_writel(g, gr_pd_dist_skip_table_r(gpc_index/4U),
-			     (gr_pd_dist_skip_table_gpc_4n0_mask_f(gr->gpc_skip_mask[gpc_index]) != 0U) ||
-			     (gr_pd_dist_skip_table_gpc_4n1_mask_f(gr->gpc_skip_mask[gpc_index + 1U]) != 0U) ||
-			     (gr_pd_dist_skip_table_gpc_4n2_mask_f(gr->gpc_skip_mask[gpc_index + 2U]) != 0U) ||
-			     (gr_pd_dist_skip_table_gpc_4n3_mask_f(gr->gpc_skip_mask[gpc_index + 3U]) != 0U));
+			     (u32)skip_mask);
 	}
 
 	fuse_tpc_mask = g->ops.gr.get_gpc_tpc_mask(g, 0);
@@ -1151,7 +1153,7 @@ int gr_gk20a_init_fs_state(struct gk20a *g)
 		val &= BIT32(gr->max_tpc_count) - U32(1);
 		gk20a_writel(g, gr_cwd_fs_r(),
 			gr_cwd_fs_num_gpcs_f(gr->gpc_count) |
-			gr_cwd_fs_num_tpcs_f(hweight32(val)));
+			gr_cwd_fs_num_tpcs_f((u32)hweight32(val)));
 	} else {
 		gk20a_writel(g, gr_cwd_fs_r(),
 			gr_cwd_fs_num_gpcs_f(gr->gpc_count) |
@@ -1870,12 +1872,12 @@ int gr_gk20a_init_ctxsw_ucode(struct gk20a *g)
 	ucode_size = 0;
 	gr_gk20a_init_ctxsw_ucode_segments(&ucode_info->fecs, &ucode_size,
 		fecs_boot_desc,
-		g->netlist_vars->ucode.fecs.inst.count * sizeof(u32),
-		g->netlist_vars->ucode.fecs.data.count * sizeof(u32));
+		g->netlist_vars->ucode.fecs.inst.count * (u32)sizeof(u32),
+		g->netlist_vars->ucode.fecs.data.count * (u32)sizeof(u32));
 	gr_gk20a_init_ctxsw_ucode_segments(&ucode_info->gpccs, &ucode_size,
 		gpccs_boot_desc,
-		g->netlist_vars->ucode.gpccs.inst.count * sizeof(u32),
-		g->netlist_vars->ucode.gpccs.data.count * sizeof(u32));
+		g->netlist_vars->ucode.gpccs.inst.count * (u32)sizeof(u32),
+		g->netlist_vars->ucode.gpccs.data.count * (u32)sizeof(u32));
 
 	err = nvgpu_dma_alloc_sys(g, ucode_size, &ucode_info->surface_desc);
 	if (err != 0) {
@@ -1957,7 +1959,8 @@ void gr_gk20a_load_falcon_bind_instblk(struct gk20a *g)
 {
 	struct gk20a_ctxsw_ucode_info *ucode_info = &g->ctxsw_ucode_info;
 	int retries = FECS_ARB_CMD_TIMEOUT_MAX / FECS_ARB_CMD_TIMEOUT_DEFAULT;
-	u64 inst_ptr;
+	u64 inst_ptr_shifted_u64;
+	u32 inst_ptr_shifted_u32;
 
 	while (((gk20a_readl(g, gr_fecs_ctxsw_status_1_r()) &
 			gr_fecs_ctxsw_status_1_arb_busy_m()) != 0U) &&
@@ -1973,9 +1976,13 @@ void gr_gk20a_load_falcon_bind_instblk(struct gk20a *g)
 
 	gk20a_writel(g, gr_fecs_arb_ctx_adr_r(), 0x0);
 
-	inst_ptr = nvgpu_inst_block_addr(g, &ucode_info->inst_blk_desc);
+	inst_ptr_shifted_u64 = nvgpu_inst_block_addr(g,
+					&ucode_info->inst_blk_desc);
+	inst_ptr_shifted_u64 >>= 12;
+	BUG_ON(u64_hi32(inst_ptr_shifted_u64) != 0U);
+	inst_ptr_shifted_u32 = (u32)inst_ptr_shifted_u64;
 	gk20a_writel(g, gr_fecs_new_ctx_r(),
-		     gr_fecs_new_ctx_ptr_f(inst_ptr >> 12) |
+		     gr_fecs_new_ctx_ptr_f(inst_ptr_shifted_u32) |
 		     nvgpu_aperture_mask(g, &ucode_info->inst_blk_desc,
 				gr_fecs_new_ctx_target_sys_mem_ncoh_f(),
 				gr_fecs_new_ctx_target_sys_mem_coh_f(),
@@ -1983,7 +1990,7 @@ void gr_gk20a_load_falcon_bind_instblk(struct gk20a *g)
 		     gr_fecs_new_ctx_valid_m());
 
 	gk20a_writel(g, gr_fecs_arb_ctx_ptr_r(),
-		     gr_fecs_arb_ctx_ptr_ptr_f(inst_ptr >> 12) |
+		     gr_fecs_arb_ctx_ptr_ptr_f(inst_ptr_shifted_u32) |
 		     nvgpu_aperture_mask(g, &ucode_info->inst_blk_desc,
 				gr_fecs_arb_ctx_ptr_target_sys_mem_ncoh_f(),
 				gr_fecs_arb_ctx_ptr_target_sys_mem_coh_f(),
@@ -1995,7 +2002,7 @@ void gr_gk20a_load_falcon_bind_instblk(struct gk20a *g)
 	gr_gk20a_wait_for_fecs_arb_idle(g);
 
 	gk20a_writel(g, gr_fecs_current_ctx_r(),
-			gr_fecs_current_ctx_ptr_f(inst_ptr >> 12) |
+			gr_fecs_current_ctx_ptr_f(inst_ptr_shifted_u32) |
 			gr_fecs_current_ctx_target_m() |
 			gr_fecs_current_ctx_valid_m());
 	/* Send command to arbiter to flush */
@@ -4202,11 +4209,11 @@ static int gr_gk20a_init_access_map(struct gk20a *g)
 		map_shift = map_bit & 0x7U; /* i.e. 0-7 */
 		nvgpu_log_info(g, "access map addr:0x%x byte:0x%x bit:%d",
 			       whitelist[w], map_byte, map_shift);
-		x = nvgpu_mem_rd32(g, mem, map_byte / sizeof(u32));
+		x = nvgpu_mem_rd32(g, mem, map_byte / (u32)sizeof(u32));
 		x |= BIT32(
 			   (map_byte % sizeof(u32) * BITS_PER_BYTE)
 			  + map_shift);
-		nvgpu_mem_wr32(g, mem, map_byte / sizeof(u32), x);
+		nvgpu_mem_wr32(g, mem, map_byte / (u32)sizeof(u32), x);
 	}
 
 	return 0;
@@ -7205,7 +7212,7 @@ static int gr_gk20a_create_hwpm_ctxsw_buffer_offset_map(struct gk20a *g)
 	}
 
 	hwpm_ctxsw_reg_count_max = hwpm_ctxsw_buffer_size >> 2;
-	map_size = hwpm_ctxsw_reg_count_max * sizeof(*map);
+	map_size = hwpm_ctxsw_reg_count_max * (u32)sizeof(*map);
 
 	map = nvgpu_big_zalloc(g, map_size);
 	if (map == NULL) {
@@ -7691,15 +7698,16 @@ void gr_gk20a_commit_global_pagepool(struct gk20a *g,
 					    struct nvgpu_gr_ctx *gr_ctx,
 					    u64 addr, u32 size, bool patch)
 {
+	BUG_ON(u64_hi32(addr) != 0U);
 	gr_gk20a_ctx_patch_write(g, gr_ctx, gr_scc_pagepool_base_r(),
-		gr_scc_pagepool_base_addr_39_8_f(addr), patch);
+		gr_scc_pagepool_base_addr_39_8_f((u32)addr), patch);
 
 	gr_gk20a_ctx_patch_write(g, gr_ctx, gr_scc_pagepool_r(),
 		gr_scc_pagepool_total_pages_f(size) |
 		gr_scc_pagepool_valid_true_f(), patch);
 
 	gr_gk20a_ctx_patch_write(g, gr_ctx, gr_gpcs_gcc_pagepool_base_r(),
-		gr_gpcs_gcc_pagepool_base_addr_39_8_f(addr), patch);
+		gr_gpcs_gcc_pagepool_base_addr_39_8_f((u32)addr), patch);
 
 	gr_gk20a_ctx_patch_write(g, gr_ctx, gr_gpcs_gcc_pagepool_r(),
 		gr_gpcs_gcc_pagepool_total_pages_f(size), patch);
