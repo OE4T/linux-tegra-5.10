@@ -578,9 +578,6 @@ static int nvgpu_pci_probe(struct pci_dev *pdev,
 	g->ina3221_i2c_port = platform->ina3221_i2c_port;
 	g->hardcode_sw_threshold = platform->hardcode_sw_threshold;
 
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 14, 0)
-	nvgpu_info(g, "MSI are disabled");
-#else
 #if defined(CONFIG_PCI_MSI)
 	err = pci_enable_msi(pdev);
 	if (err) {
@@ -589,7 +586,6 @@ static int nvgpu_pci_probe(struct pci_dev *pdev,
 		g->msi_enabled = false;
 	} else
 		g->msi_enabled = true;
-#endif
 #endif
 
 	g->irq_stall = pdev->irq;
