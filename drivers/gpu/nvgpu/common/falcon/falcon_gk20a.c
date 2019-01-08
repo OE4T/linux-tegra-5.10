@@ -454,6 +454,7 @@ static int gk20a_falcon_bl_bootstrap(struct nvgpu_falcon *flcn,
 	struct gk20a *g = flcn->g;
 	u32 base_addr = flcn->flcn_base;
 	u32 virt_addr = 0;
+	u32 imem_size;
 	u32 dst = 0;
 	int err = 0;
 
@@ -465,8 +466,15 @@ static int gk20a_falcon_bl_bootstrap(struct nvgpu_falcon *flcn,
 	}
 
 	/* copy bootloader to TOP of IMEM */
-	dst = (falcon_falcon_hwcfg_imem_size_v(gk20a_readl(g,
-		base_addr + falcon_falcon_hwcfg_r())) << 8) - bl_info->bl_size;
+	imem_size = falcon_falcon_hwcfg_imem_size_v(gk20a_readl(g,
+			base_addr + falcon_falcon_hwcfg_r())) << 8;
+
+	if (bl_info->bl_size > imem_size) {
+		err = -EINVAL;
+		goto exit;
+	}
+
+	dst = imem_size - bl_info->bl_size;
 
 	err = gk20a_falcon_copy_to_imem(flcn, dst, (u8 *)(bl_info->bl_src),
 		bl_info->bl_size, (u8)0, false, bl_info->bl_start_tag);
