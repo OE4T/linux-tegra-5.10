@@ -215,12 +215,12 @@ static int vgpu_qos_notify(struct notifier_block *nb,
 			container_of(nb, struct gk20a_scale_profile,
 			qos_notify_block);
 	struct gk20a *g = get_gk20a(profile->dev);
-	u32 max_freq;
+	u64 max_freq;
 	int err;
 
 	nvgpu_log_fn(g, " ");
 
-	max_freq = (u32)pm_qos_read_max_bound(PM_QOS_GPU_FREQ_BOUNDS);
+	max_freq = (u64)pm_qos_read_max_bound(PM_QOS_GPU_FREQ_BOUNDS) * 1000UL;
 	err = vgpu_plat_clk_cap_rate(profile->dev, max_freq);
 	if (err)
 		nvgpu_err(g, "%s failed, err=%d", __func__, err);
