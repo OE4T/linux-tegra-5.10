@@ -1245,22 +1245,22 @@ int nvgpu_channel_setup_bind(struct channel_gk20a *c,
 
 	if (!c->usermode_submit_enabled) {
 		g->ops.fifo.setup_userd(c);
-	}
 
-	if (g->aggressive_sync_destroy_thresh == 0U) {
-		nvgpu_mutex_acquire(&c->sync_lock);
-		c->sync = nvgpu_channel_sync_create(c, false);
-		if (c->sync == NULL) {
-			err = -ENOMEM;
+		if (g->aggressive_sync_destroy_thresh == 0U) {
+			nvgpu_mutex_acquire(&c->sync_lock);
+			c->sync = nvgpu_channel_sync_create(c, false);
+			if (c->sync == NULL) {
+				err = -ENOMEM;
+				nvgpu_mutex_release(&c->sync_lock);
+				goto clean_up_unmap;
+			}
 			nvgpu_mutex_release(&c->sync_lock);
-			goto clean_up_unmap;
-		}
-		nvgpu_mutex_release(&c->sync_lock);
 
-		if (g->ops.fifo.resetup_ramfc != NULL) {
-			err = g->ops.fifo.resetup_ramfc(c);
-			if (err != 0) {
-				goto clean_up_sync;
+			if (g->ops.fifo.resetup_ramfc != NULL) {
+				err = g->ops.fifo.resetup_ramfc(c);
+				if (err != 0) {
+					goto clean_up_sync;
+				}
 			}
 		}
 	}
