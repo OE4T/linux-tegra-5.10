@@ -1,7 +1,7 @@
 /*
  * GV100 PERF
  *
- * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -44,8 +44,11 @@ static int pmu_set_boot_clk_runcb_fn(void *arg)
 
 	while (true) {
 		NVGPU_COND_WAIT_INTERRUPTIBLE(&vfe_init->wq,
-			(vfe_init->state_change == true), 0);
-
+			(vfe_init->state_change ||
+			nvgpu_thread_should_stop(&vfe_init->state_task)), 0);
+		if (nvgpu_thread_should_stop(&vfe_init->state_task)) {
+			break;
+		}
 		vfe_init->state_change = false;
 
 		(void) memset(&rpc, 0,

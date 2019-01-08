@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -144,8 +144,20 @@ int perf_pmu_init_pmupstate(struct gk20a *g)
 	return 0;
 }
 
+static void vfe_thread_stop_cb(void *data)
+{
+	struct nvgpu_cond *cond = (struct nvgpu_cond *)data;
+
+	(void)nvgpu_cond_signal(cond);
+}
+
 void perf_pmu_free_pmupstate(struct gk20a *g)
 {
+	if (nvgpu_thread_is_running(&g->perf_pmu->vfe_init.state_task)) {
+		nvgpu_thread_stop_graceful(&g->perf_pmu->vfe_init.state_task,
+				vfe_thread_stop_cb, &g->perf_pmu->vfe_init.wq);
+	}
+	nvgpu_cond_destroy(&g->perf_pmu->vfe_init.wq);
 	nvgpu_mutex_destroy(&g->perf_pmu->pstatesobjs.pstate_mutex);
 	nvgpu_kfree(g, g->perf_pmu);
 	g->perf_pmu = NULL;
