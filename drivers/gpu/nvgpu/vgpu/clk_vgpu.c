@@ -46,7 +46,7 @@ static unsigned long vgpu_clk_get_rate(struct gk20a *g, u32 api_domain)
 			nvgpu_err(g, "%s failed - %d", __func__, err);
 		else
 			/* return frequency in Hz */
-			ret = p->rate * 1000;
+			ret = p->rate;
 		break;
 	case CTRL_CLK_DOMAIN_PWRCLK:
 		nvgpu_err(g, "unsupported clock: %u", api_domain);
@@ -73,8 +73,7 @@ static int vgpu_clk_set_rate(struct gk20a *g,
 		msg.cmd = TEGRA_VGPU_CMD_SET_GPU_CLK_RATE;
 		msg.handle = vgpu_get_handle(g);
 
-		/* server dvfs framework requires frequency in kHz */
-		p->rate = (u32)(rate / 1000);
+		p->rate = rate;
 		err = vgpu_comm_sendrecv(&msg, sizeof(msg), sizeof(msg));
 		err = err ? err : msg.ret;
 		if (err)
@@ -224,7 +223,7 @@ int vgpu_clk_get_freqs(struct gk20a *g, unsigned long **freqs_out,
 	struct tegra_vgpu_get_gpu_freq_table_params *p =
 					&msg.params.get_gpu_freq_table;
 	struct vgpu_priv_data *priv = vgpu_get_priv_data(g);
-	u32 *freqs;
+	u64 *freqs;
 	int err = 0;
 	void *handle = NULL;
 	size_t oob_size;
@@ -267,7 +266,7 @@ int vgpu_clk_get_freqs(struct gk20a *g, unsigned long **freqs_out,
 
 	for (i = 0; i < priv->num_freqs; i++) {
 		/* store frequency in Hz */
-		priv->freqs[i] = (unsigned long)(freqs[i] * 1000);
+		priv->freqs[i] = (unsigned long)(freqs[i]);
 	}
 
 	vgpu_ivc_oob_put_ptr(handle);
@@ -293,7 +292,7 @@ int vgpu_clk_cap_rate(struct gk20a *g, unsigned long rate)
 
 	msg.cmd = TEGRA_VGPU_CMD_CAP_GPU_CLK_RATE;
 	msg.handle = vgpu_get_handle(g);
-	p->rate = (u32)rate;
+	p->rate = rate;
 	err = vgpu_comm_sendrecv(&msg, sizeof(msg), sizeof(msg));
 	err = err ? err : msg.ret;
 	if (err) {

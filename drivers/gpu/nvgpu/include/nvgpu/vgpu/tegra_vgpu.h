@@ -1,7 +1,7 @@
 /*
  * Tegra GPU Virtualization Interfaces to Server
  *
- * Copyright (c) 2014-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -452,7 +452,7 @@ struct tegra_vgpu_set_powergate_params {
 };
 
 struct tegra_vgpu_gpu_clk_rate_params {
-	u32 rate; /* in kHz */
+	u64 rate; /* in Hz */
 };
 
 struct tegra_vgpu_set_sm_exception_type_mask_params {
@@ -486,7 +486,7 @@ struct tegra_vgpu_constants_params {
 	u32 arch;
 	u32 impl;
 	u32 rev;
-	u32 max_freq;
+	u64 max_freq;
 	u32 num_channels;
 	u32 golden_ctx_size;
 	u32 zcull_ctx_size;
