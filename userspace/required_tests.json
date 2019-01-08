@@ -168,106 +168,6 @@
         "unit": "nvgpu_allocator"
     },
     {
-        "test": "gmmu_clean",
-        "unit": "nvgpu_gmmu"
-    },
-    {
-        "test": "gmmu_init",
-        "unit": "nvgpu_gmmu"
-    },
-    {
-        "test": "gmmu_map_unmap_iommu_sysmem",
-        "unit": "nvgpu_gmmu"
-    },
-    {
-        "test": "gmmu_map_unmap_iommu_sysmem_adv_big_pages",
-        "unit": "nvgpu_gmmu"
-    },
-    {
-        "test": "gmmu_map_unmap_iommu_sysmem_adv_big_pages_batched",
-        "unit": "nvgpu_gmmu"
-    },
-    {
-        "test": "gmmu_map_unmap_iommu_sysmem_adv_big_pages_offset",
-        "unit": "nvgpu_gmmu"
-    },
-    {
-        "test": "gmmu_map_unmap_iommu_sysmem_adv_ctag",
-        "unit": "nvgpu_gmmu"
-    },
-    {
-        "test": "gmmu_map_unmap_iommu_sysmem_adv_kernel_pages",
-        "unit": "nvgpu_gmmu"
-    },
-    {
-        "test": "gmmu_map_unmap_iommu_sysmem_adv_sgl_skip",
-        "unit": "nvgpu_gmmu"
-    },
-    {
-        "test": "gmmu_map_unmap_iommu_sysmem_adv_small_pages_sparse",
-        "unit": "nvgpu_gmmu"
-    },
-    {
-        "test": "gmmu_map_unmap_iommu_sysmem_coh",
-        "unit": "nvgpu_gmmu"
-    },
-    {
-        "test": "gmmu_map_unmap_iommu_sysmem_ro",
-        "unit": "nvgpu_gmmu"
-    },
-    {
-        "test": "gmmu_map_unmap_iommu_sysmem_ro_f",
-        "unit": "nvgpu_gmmu"
-    },
-    {
-        "test": "gmmu_map_unmap_no_iommu_sysmem",
-        "unit": "nvgpu_gmmu"
-    },
-    {
-        "test": "gmmu_map_unmap_no_iommu_sysmem_adv_big_pages_offset_large",
-        "unit": "nvgpu_gmmu"
-    },
-    {
-        "test": "gmmu_map_unmap_no_iommu_sysmem_noncacheable",
-        "unit": "nvgpu_gmmu"
-    },
-    {
-        "test": "gmmu_map_unmap_sgt_iommu_sysmem",
-        "unit": "nvgpu_gmmu"
-    },
-    {
-        "test": "gmmu_map_unmap_unmapped",
-        "unit": "nvgpu_gmmu"
-    },
-    {
-        "test": "gmmu_map_unmap_vidmem",
-        "unit": "nvgpu_gmmu"
-    },
-    {
-        "test": "gmmu_set_pte",
-        "unit": "nvgpu_gmmu"
-    },
-    {
-        "test": "init_page_table_fail",
-        "unit": "nvgpu_gmmu"
-    },
-    {
-        "test": "map_fail_fi_null_sgt",
-        "unit": "nvgpu_gmmu"
-    },
-    {
-        "test": "map_fail_fi_vm_alloc",
-        "unit": "nvgpu_gmmu"
-    },
-    {
-        "test": "map_fail_pd_allocate",
-        "unit": "nvgpu_gmmu"
-    },
-    {
-        "test": "map_fail_pd_allocate_child",
-        "unit": "nvgpu_gmmu"
-    },
-    {
         "test": "flat",
         "unit": "nvgpu_runlist"
     },
@@ -374,6 +274,120 @@
     {
         "test": "sgt_get_next",
         "unit": "nvgpu_sgt"
+    },
+    {
+        "test": "gmmu_clean",
+        "unit": "page_table"
+    },
+    {
+        "test": "gmmu_init",
+        "unit": "page_table"
+    },
+    {
+        "test": "gmmu_map_unmap_iommu_sysmem",
+        "unit": "page_table"
+    },
+    {
+        "test": "gmmu_map_unmap_iommu_sysmem_adv_big_pages",
+        "unit": "page_table"
+    },
+    {
+        "test": "gmmu_map_unmap_iommu_sysmem_adv_big_pages_batched",
+        "unit": "page_table"
+    },
+    {
+        "test": "gmmu_map_unmap_iommu_sysmem_adv_big_pages_offset",
+        "unit": "page_table"
+    },
+    {
+        "test": "gmmu_map_unmap_iommu_sysmem_adv_ctag",
+        "unit": "page_table"
+    },
+    {
+        "test": "gmmu_map_unmap_iommu_sysmem_adv_kernel_pages",
+        "unit": "page_table"
+    },
+    {
+        "test": "gmmu_map_unmap_iommu_sysmem_adv_sgl_skip",
+        "unit": "page_table"
+    },
+    {
+        "test": "gmmu_map_unmap_iommu_sysmem_adv_small_pages_sparse",
+        "unit": "page_table"
+    },
+    {
+        "test": "gmmu_map_unmap_iommu_sysmem_coh",
+        "unit": "page_table"
+    },
+    {
+        "test": "gmmu_map_unmap_iommu_sysmem_ro",
+        "unit": "page_table"
+    },
+    {
+        "test": "gmmu_map_unmap_iommu_sysmem_ro_f",
+        "unit": "page_table"
+    },
+    {
+        "test": "gmmu_map_unmap_no_iommu_sysmem",
+        "unit": "page_table"
+    },
+    {
+        "test": "gmmu_map_unmap_no_iommu_sysmem_adv_big_pages_offset_large",
+        "unit": "page_table"
+    },
+    {
+        "test": "gmmu_map_unmap_no_iommu_sysmem_noncacheable",
+        "unit": "page_table"
+    },
+    {
+        "test": "gmmu_map_unmap_sgt_iommu_sysmem",
+        "unit": "page_table"
+    },
+    {
+        "test": "gmmu_map_unmap_unmapped",
+        "unit": "page_table"
+    },
+    {
+        "test": "gmmu_map_unmap_vidmem",
+        "unit": "page_table"
+    },
+    {
+        "test": "gmmu_set_pte",
+        "unit": "page_table"
+    },
+    {
+        "test": "init_page_table_fail",
+        "unit": "page_table"
+    },
+    {
+        "test": "map_fail_fi_null_sgt",
+        "unit": "page_table"
+    },
+    {
+        "test": "map_fail_fi_vm_alloc",
+        "unit": "page_table"
+    },
+    {
+        "test": "map_fail_pd_allocate",
+        "unit": "page_table"
+    },
+    {
+        "test": "map_fail_pd_allocate_child",
+        "unit": "page_table"
+    },
+    {
+        "test": "req_fixed_address",
+        "req": "NVGPU-RQCD-45.C2",
+        "vc": "V4",
+        "uid": "6439094",
+        "unit": "page_table"
+    },
+    {
+        "test": "req_multiple_alignments",
+        "req": "NVGPU-RQCD-45.C1",
+        "vc": "V4",
+        "uid": "6439094",
+        "unit": "page_table"
     },
     {
         "test": "alloc_1024x256B_x11x3",

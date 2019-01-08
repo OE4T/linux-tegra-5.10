@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -22,6 +22,7 @@
 
 #include <unit/io.h>
 #include <unit/unit.h>
+#include <unit/unit-requirement-ids.h>
 
 #include <nvgpu/gk20a.h>
 #include <nvgpu/types.h>
@@ -41,7 +42,11 @@
 #include <common/fb/fb_gm20b.h>
 #include <nvgpu/hw/gv11b/hw_gmmu_gv11b.h>
 
-#define TEST_PA_ADDRESS 0xEFAD80000000
+#define TEST_PA_ADDRESS     0xEFAD80000000
+#define TEST_GPU_VA         0x102040600000
+#define TEST_PA_ADDRESS_64K 0x1FAD80010000
+#define TEST_PA_ADDRESS_4K  0x2FAD80001000
+#define TEST_HOLE_SIZE      0x100000
 #define TEST_COMP_TAG 0xEF
 #define TEST_INVALID_ADDRESS 0xAAC0000000
 
@@ -54,6 +59,12 @@
 #define SPECIAL_MAP_FAIL_VM_ALLOC		1
 #define SPECIAL_MAP_FAIL_PD_ALLOCATE		2
 #define SPECIAL_MAP_FAIL_PD_ALLOCATE_CHILD	3
+
+/* Consts for requirements C1/C2 testing */
+#define REQ_C1_NUM_MEMS		3
+#define REQ_C1_IDX_64K_ALIGN	0
+#define REQ_C1_IDX_4K_ALIGN	1
+#define REQ_C1_IDX_MIXED	2
 
 struct test_parameters {
 	enum nvgpu_aperture aperture;
@@ -301,6 +312,10 @@ static int init_mm(struct unit_module *m, struct gk20a *g)
 	low_hole = SZ_4K * 16UL;
 	aperture_size = GK20A_PMU_VA_SIZE;
 	mm->pmu.aperture_size = GK20A_PMU_VA_SIZE;
+	mm->channel.user_size = NV_MM_DEFAULT_USER_SIZE -
+					NV_MM_DEFAULT_KERNEL_SIZE;
+	mm->channel.kernel_size = NV_MM_DEFAULT_KERNEL_SIZE;
+
 
 	mm->pmu.vm = nvgpu_vm_init(g, g->ops.mm.get_default_big_page_size(),
 				   low_hole,
@@ -656,36 +671,19 @@ static int test_nvgpu_gmmu_set_pte(struct unit_module *m,
 }
 
 /*
- * Helper function to wrap calls to g->ops.mm.gmmu_map and thus giving
- * access to more parameters
+ * Helper function used to create custom SGTs from a provided nvgpu_mem with
+ * the option of providing a list of SGLs as well.
+ * The created SGT needs to be explicitly freed once used.
  */
-static u64 gmmu_map_advanced(struct unit_module *m, struct gk20a *g,
-	struct nvgpu_mem *mem, struct test_parameters *params,
-	struct vm_gk20a_mapping_batch *batch)
+static struct nvgpu_sgt *custom_sgt_create(struct unit_module *m,
+			struct gk20a *g, struct nvgpu_mem *mem,
+			struct nvgpu_mem_sgl *sgl_list, u32 nr_sgls)
 {
 	struct nvgpu_sgt *sgt;
-	u64 vaddr;
 
-	struct nvgpu_os_posix *p = nvgpu_os_posix_from_gk20a(g);
-	struct vm_gk20a *vm = g->mm.pmu.vm;
-	size_t offset = params->offset_pages *
-		vm->gmmu_page_sizes[params->page_size];
-
-	p->mm_is_iommuable = params->is_iommuable;
-
-	if (params->sparse && params->special_null_phys) {
-		mem->cpu_va = NULL;
-	}
-
-	if (params->special_sgl_skip) {
-		struct nvgpu_mem_sgl sgl_list[] = {
-			{ .length = mem->size, .phys = (u64) mem->cpu_va, },
-			{ .length = mem->size, .phys = ((u64) mem->cpu_va) +
-				mem->size, },
-		};
-
+	if (sgl_list != NULL) {
 		if (nvgpu_mem_posix_create_from_list(g, mem, sgl_list,
-					     ARRAY_SIZE(sgl_list)) != 0) {
+							nr_sgls) != 0) {
 			unit_err(m, "Failed to create mem from SGL list\n");
 			return 0;
 		}
@@ -703,6 +701,30 @@ static u64 gmmu_map_advanced(struct unit_module *m, struct gk20a *g,
 			unit_err(m, "Failed to create SGT\n");
 			return 0;
 		}
+	}
+
+	return sgt;
+}
+
+/*
+ * Helper function to wrap calls to g->ops.mm.gmmu_map and thus giving
+ * access to more parameters
+ */
+static u64 gmmu_map_advanced(struct unit_module *m, struct gk20a *g,
+	struct nvgpu_mem *mem, struct test_parameters *params,
+	struct vm_gk20a_mapping_batch *batch, struct vm_gk20a *vm,
+	struct nvgpu_sgt *sgt)
+{
+	u64 vaddr;
+
+	struct nvgpu_os_posix *p = nvgpu_os_posix_from_gk20a(g);
+	size_t offset = params->offset_pages *
+		vm->gmmu_page_sizes[params->page_size];
+
+	p->mm_is_iommuable = params->is_iommuable;
+
+	if (params->sparse && params->special_null_phys) {
+		mem->cpu_va = NULL;
 	}
 
 	if (nvgpu_is_enabled(g, NVGPU_USE_COHERENT_SYSMEM)) {
@@ -726,8 +748,6 @@ static u64 gmmu_map_advanced(struct unit_module *m, struct gk20a *g,
 				   batch,
 				   params->aperture);
 	nvgpu_mutex_release(&vm->update_gmmu_lock);
-
-	nvgpu_sgt_free(g, sgt);
 
 	return vaddr;
 }
@@ -767,13 +787,35 @@ static int test_nvgpu_gmmu_map_unmap_adv(struct unit_module *m,
 {
 	struct nvgpu_mem mem = { };
 	u64 vaddr;
+	u32 nr_sgls = 0;
+	struct nvgpu_mem_sgl *sgl_list = NULL;
+	struct nvgpu_sgt *sgt = NULL;
 
 	struct test_parameters *params = (struct test_parameters *) args;
 
 	mem.size = TEST_SIZE;
 	mem.cpu_va = (void *) TEST_PA_ADDRESS;
 
-	vaddr = gmmu_map_advanced(m, g, &mem, params, NULL);
+	struct nvgpu_mem_sgl special_sgl_list[] = {
+		{ .length = mem.size, .phys = (u64) mem.cpu_va, },
+		{ .length = mem.size, .phys = ((u64) mem.cpu_va) +
+			mem.size, },
+	};
+
+
+	if (params->special_sgl_skip) {
+		nr_sgls = ARRAY_SIZE(special_sgl_list);
+		sgl_list = special_sgl_list;
+	}
+
+	sgt = custom_sgt_create(m, g, &mem, sgl_list, nr_sgls);
+	if (sgt == 0) {
+		return UNIT_FAIL;
+	}
+
+	vaddr = gmmu_map_advanced(m, g, &mem, params, NULL, g->mm.pmu.vm, sgt);
+
+	nvgpu_sgt_free(g, sgt);
 
 	if (vaddr == 0ULL) {
 		unit_return_fail(m, "Failed to map buffer\n");
@@ -795,6 +837,7 @@ static int test_nvgpu_gmmu_map_unmap_batched(struct unit_module *m,
 	struct nvgpu_mem mem = { }, mem2 = { };
 	u64 vaddr, vaddr2;
 	struct vm_gk20a_mapping_batch batch;
+	struct nvgpu_sgt *sgt;
 
 	struct test_parameters *params = (struct test_parameters *) args;
 
@@ -803,15 +846,27 @@ static int test_nvgpu_gmmu_map_unmap_batched(struct unit_module *m,
 	mem2.size = TEST_SIZE;
 	mem2.cpu_va = (void *) (TEST_PA_ADDRESS + TEST_SIZE);
 
-	vaddr = gmmu_map_advanced(m, g, &mem, params, &batch);
+	sgt = custom_sgt_create(m, g, &mem, NULL, 0);
+	if (sgt == 0) {
+		return UNIT_FAIL;
+	}
+	vaddr = gmmu_map_advanced(m, g, &mem, params, &batch, g->mm.pmu.vm,
+				  sgt);
 	if (vaddr == 0ULL) {
 		unit_return_fail(m, "Failed to map buffer\n");
 	}
+	nvgpu_sgt_free(g, sgt);
 
-	vaddr2 = gmmu_map_advanced(m, g, &mem2, params, &batch);
+	sgt = custom_sgt_create(m, g, &mem2, NULL, 0);
+	if (sgt == 0) {
+		return UNIT_FAIL;
+	}
+	vaddr2 = gmmu_map_advanced(m, g, &mem2, params, &batch, g->mm.pmu.vm,
+				   sgt);
 	if (vaddr2 == 0ULL) {
 		unit_return_fail(m, "Failed to map buffer 2\n");
 	}
+	nvgpu_sgt_free(g, sgt);
 
 	if (!batch.need_tlb_invalidate) {
 		unit_return_fail(m, "TLB invalidate flag not set.\n");
@@ -831,6 +886,247 @@ static int test_nvgpu_gmmu_map_unmap_batched(struct unit_module *m,
 
 	return UNIT_SUCCESS;
 }
+
+static int check_pte_valid(struct unit_module *m, struct gk20a *g,
+			struct vm_gk20a *vm, struct nvgpu_mem *mem)
+{
+	u32 pte[2];
+	int result;
+
+	result = __nvgpu_get_pte(g, vm, mem->gpu_va, &pte[0]);
+	if (result != 0) {
+		unit_return_fail(m, "PTE lookup failed with code=%d\n", result);
+	}
+	nvgpu_log(g, gpu_dbg_map, "Found PTE=%08x %08x", pte[1], pte[0]);
+
+	/* Make sure PTE is valid */
+	if (!pte_is_valid(pte)) {
+		unit_return_fail(m, "Unexpected invalid PTE\n");
+	}
+
+	return 0;
+}
+
+static int check_pte_invalidated(struct unit_module *m, struct gk20a *g,
+			struct vm_gk20a *vm, struct nvgpu_mem *mem)
+{
+	u32 pte[2];
+	int result;
+
+	result = __nvgpu_get_pte(g, vm, mem->gpu_va, &pte[0]);
+	if (result != 0) {
+		unit_return_fail(m, "PTE lookup failed with code=%d\n", result);
+	}
+
+	if (pte_is_valid(pte)) {
+		unit_return_fail(m, "PTE still valid for unmapped memory\n");
+	}
+
+	return 0;
+}
+
+/* Create a VM based on requirements described in NVGPU-RQCD-45 */
+static struct vm_gk20a *init_test_req_vm(struct gk20a *g)
+{
+	u64 low_hole, aperture_size, kernel_reserved;
+	bool big_pages;
+
+	/* Init some common attributes */
+	struct nvgpu_os_posix *p = nvgpu_os_posix_from_gk20a(g);
+
+	p->mm_is_iommuable = true;
+	p->mm_sgt_is_iommuable = true;
+
+	/* 1. The VM shall:
+	 * 1.1. Support 64KB large pages */
+	big_pages = true;
+	/* 1.2. Have a low hole of 64KB */
+	low_hole = SZ_64K;
+	/* 1.3. Have a least 128GB of address space */
+	aperture_size = 128 * SZ_1G;
+	/* 1.4. Have a 4GB kernel reserved space */
+	kernel_reserved = 4 * SZ_1G;
+
+	return nvgpu_vm_init(g, g->ops.mm.get_default_big_page_size(), low_hole,
+			kernel_reserved - low_hole, aperture_size, big_pages,
+			true, true, "testmem");
+}
+
+/* Test case to cover NVGPU-RQCD-45 C1 */
+static int test_nvgpu_page_table_c1_full(struct unit_module *m,
+					struct gk20a *g, void *args)
+{
+	u32 mem_i;
+	struct nvgpu_mem mem[REQ_C1_NUM_MEMS] = {};
+	struct nvgpu_sgt *mixed_sgt = NULL;
+	u32 nr_sgls = 5;
+	struct nvgpu_mem_sgl *mixed_sgl_list = (struct nvgpu_mem_sgl *)
+		malloc(sizeof(struct nvgpu_mem_sgl) * nr_sgls);
+
+	/* 1. Initialize a VM.*/
+	struct vm_gk20a *vm = init_test_req_vm(g);
+
+	if (vm == NULL) {
+		unit_return_fail(m, "nvgpu_vm_init failed\n");
+	}
+
+	/* 2. Initialize several nvgpu_mem objects. Should cover: */
+	/* 2.1. 64K min alignment */
+	mem[REQ_C1_IDX_64K_ALIGN].size = TEST_SIZE;
+	mem[REQ_C1_IDX_64K_ALIGN].cpu_va = (void *) TEST_PA_ADDRESS_64K;
+
+	/* 2.2. 4K min alignment */
+	mem[REQ_C1_IDX_4K_ALIGN].size = TEST_SIZE;
+	mem[REQ_C1_IDX_4K_ALIGN].cpu_va = (void *) TEST_PA_ADDRESS_4K;
+
+	/* 2.3. Multiple discontiguous chunks both 4K, 64K, and a mixture of
+	 * 64KB */
+	mem[REQ_C1_IDX_MIXED].size = TEST_SIZE;
+	mem[REQ_C1_IDX_MIXED].cpu_va = (void *) TEST_PA_ADDRESS;
+
+	mixed_sgl_list[0].length = SZ_64K;
+	mixed_sgl_list[0].phys = (u64) mem[2].cpu_va;
+	mixed_sgl_list[1].length = SZ_4K;
+	mixed_sgl_list[1].phys = mixed_sgl_list[0].phys +
+				    mixed_sgl_list[0].length + TEST_HOLE_SIZE;
+	mixed_sgl_list[2].length = SZ_64K;
+	mixed_sgl_list[2].phys = mixed_sgl_list[1].phys +
+				    mixed_sgl_list[1].length + TEST_HOLE_SIZE;
+	mixed_sgl_list[3].length = SZ_4K;
+	mixed_sgl_list[3].phys = mixed_sgl_list[2].phys +
+				    mixed_sgl_list[2].length + TEST_HOLE_SIZE;
+	mixed_sgl_list[4].length = SZ_64K * 10;
+	mixed_sgl_list[4].phys = mixed_sgl_list[3].phys +
+				    mixed_sgl_list[3].length + TEST_HOLE_SIZE;
+
+	mixed_sgt = custom_sgt_create(m, g, &mem[2], mixed_sgl_list,
+				nr_sgls);
+	if (mixed_sgt == 0) {
+		return UNIT_FAIL;
+	}
+
+	/* 3. For each of the above nvgpu_mem: */
+	for (mem_i = 0; mem_i < REQ_C1_NUM_MEMS; mem_i++) {
+		/* 3.1. Map the nvgpu_mem */
+		if (mem_i == REQ_C1_IDX_MIXED) {
+			mem[mem_i].gpu_va = gmmu_map_advanced(m, g, &mem[mem_i],
+				&test_iommu_sysmem, NULL, vm, mixed_sgt);
+		} else {
+			mem[mem_i].gpu_va = nvgpu_gmmu_map(vm, &mem[mem_i],
+				mem[mem_i].size, NVGPU_VM_MAP_CACHEABLE,
+				gk20a_mem_flag_none, true, APERTURE_SYSMEM);
+		}
+
+		if (mem[mem_i].gpu_va == 0) {
+			unit_return_fail(m, "Failed to map i=%d", mem_i);
+		}
+
+		/*
+		 * 3.2. Verify that the programmed page table attributes are
+		 * correct
+		 */
+		if (check_pte_valid(m, g, vm, &mem[mem_i]) != 0) {
+			return UNIT_FAIL;
+		}
+
+		/* 3.3. Free the mapping */
+		nvgpu_gmmu_unmap(vm, &mem[mem_i], mem[mem_i].gpu_va);
+
+		/* 3.4. Verify that the mapping has been cleared */
+		if (check_pte_invalidated(m, g, vm, &mem[mem_i]) != 0) {
+			return UNIT_FAIL;
+		}
+	}
+
+	/* 4. Free the VM */
+	nvgpu_vm_put(vm);
+
+	return UNIT_SUCCESS;
+}
+
+static int c2_fixed_allocation(struct unit_module *m, struct gk20a *g,
+			struct vm_gk20a *vm, struct nvgpu_mem *mem_fixed)
+{
+	/* Map the nvgpu_mem with VA=PA */
+	mem_fixed->gpu_va = nvgpu_gmmu_map_fixed(vm, mem_fixed, TEST_GPU_VA,
+			mem_fixed->size, NVGPU_VM_MAP_CACHEABLE,
+			gk20a_mem_flag_none, true, APERTURE_SYSMEM);
+
+	if (mem_fixed->gpu_va == 0) {
+		unit_return_fail(m, "Failed to map mem_fixed");
+	}
+
+	/* Verify that the programmed page table attributes are correct */
+	if (check_pte_valid(m, g, vm, mem_fixed) != 0) {
+		return UNIT_FAIL;
+	}
+
+	/* Check that the GPU VA matches the requested address */
+	if (mem_fixed->gpu_va != TEST_GPU_VA) {
+		unit_return_fail(m, "GPU VA != requested address");
+	}
+
+	/* Free the mapping */
+	nvgpu_gmmu_unmap(vm, mem_fixed, mem_fixed->gpu_va);
+
+	/* Verify that the mapping has been cleared */
+	if (check_pte_invalidated(m, g, vm, mem_fixed) != 0) {
+		return UNIT_FAIL;
+	}
+
+	return UNIT_SUCCESS;
+}
+
+/* Test case to cover NVGPU-RQCD-45 C2 */
+static int test_nvgpu_page_table_c2_full(struct unit_module *m,
+					struct gk20a *g, void *args)
+{
+	int ret;
+	struct nvgpu_mem mem_fixed = {};
+
+	/* Initialize a VM.*/
+	struct vm_gk20a *vm = init_test_req_vm(g);
+
+	if (vm == NULL) {
+		unit_return_fail(m, "nvgpu_vm_init failed\n");
+	}
+
+	mem_fixed.size = TEST_SIZE;
+	mem_fixed.cpu_va = (void *) TEST_PA_ADDRESS_64K;
+
+	/*
+	 * Perform a first allocation/check/de-allocation
+	 */
+	ret = c2_fixed_allocation(m, g, vm, &mem_fixed);
+	if (ret != UNIT_SUCCESS) {
+		return ret;
+	}
+
+	/*
+	 * Repeat the same allocation to ensure it was properly cleared the
+	 * first time
+	 */
+	ret = c2_fixed_allocation(m, g, vm, &mem_fixed);
+	if (ret != UNIT_SUCCESS) {
+		return ret;
+	}
+
+	/*
+	 * Repeat the same allocation but with 4KB alignment to make sure page
+	 * markers have been cleared properly during the previous allocations.
+	 */
+	mem_fixed.cpu_va = (void *) (TEST_PA_ADDRESS_64K + SZ_4K);
+	ret = c2_fixed_allocation(m, g, vm, &mem_fixed);
+	if (ret != UNIT_SUCCESS) {
+		return ret;
+	}
+
+	/* Free the VM */
+	nvgpu_vm_put(vm);
+
+	return UNIT_SUCCESS;
+}
+
 
 struct unit_module_test nvgpu_gmmu_tests[] = {
 	UNIT_TEST(gmmu_init, test_nvgpu_gmmu_init, (void *) 1),
@@ -901,7 +1197,17 @@ struct unit_module_test nvgpu_gmmu_tests[] = {
 		test_nvgpu_gmmu_init_page_table_fail,
 		NULL),
 
+	/*
+	 * Requirement verification tests.
+	 */
+	UNIT_TEST_REQ("NVGPU-RQCD-45.C1", PAGE_TABLE_REQ1_UID, "V4",
+			req_multiple_alignments, test_nvgpu_page_table_c1_full,
+			NULL),
+	UNIT_TEST_REQ("NVGPU-RQCD-45.C2", PAGE_TABLE_REQ1_UID, "V4",
+			req_fixed_address, test_nvgpu_page_table_c2_full,
+			NULL),
+
 	UNIT_TEST(gmmu_clean, test_nvgpu_gmmu_clean, NULL),
 };
 
-UNIT_MODULE(nvgpu_gmmu, nvgpu_gmmu_tests, UNIT_PRIO_NVGPU_TEST);
+UNIT_MODULE(page_table, nvgpu_gmmu_tests, UNIT_PRIO_NVGPU_TEST);
