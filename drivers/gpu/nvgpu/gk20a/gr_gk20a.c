@@ -3870,7 +3870,8 @@ static int gk20a_init_gr_setup_hw(struct gk20a *g)
 	struct netlist_av_list *sw_method_init = &g->netlist_vars->sw_method_init;
 	u32 data;
 	u32 last_method_data = 0;
-	u32 i, err;
+	u32 i;
+	int err;
 
 	nvgpu_log_fn(g, " ");
 
@@ -3943,13 +3944,13 @@ static int gk20a_init_gr_setup_hw(struct gk20a *g)
 	}
 
 	err = gr_gk20a_wait_idle(g);
-	if (err != 0U) {
+	if (err != 0) {
 		goto out;
 	}
 
 	if (g->ops.gr.init_preemption_state != NULL) {
 		err = g->ops.gr.init_preemption_state(g);
-		if (err != 0U) {
+		if (err != 0) {
 			goto out;
 		}
 	}
@@ -3963,12 +3964,12 @@ static int gk20a_init_gr_setup_hw(struct gk20a *g)
 
 	/* floorsweep anything left */
 	err = g->ops.gr.init_fs_state(g);
-	if (err != 0U) {
+	if (err != 0) {
 		goto out;
 	}
 
 	err = gr_gk20a_wait_idle(g);
-	if (err != 0U) {
+	if (err != 0) {
 		goto restore_fe_go_idle;
 	}
 
@@ -3977,7 +3978,7 @@ restore_fe_go_idle:
 	gk20a_writel(g, gr_fe_go_idle_timeout_r(),
 		     gr_fe_go_idle_timeout_count_prod_f());
 
-	if ((err != 0U) || (gr_gk20a_wait_idle(g) != 0)) {
+	if ((err != 0) || (gr_gk20a_wait_idle(g) != 0)) {
 		goto out;
 	}
 
@@ -4114,20 +4115,20 @@ static int gr_gk20a_wait_mem_scrubbing(struct gk20a *g)
 
 static int gr_gk20a_init_ctxsw(struct gk20a *g)
 {
-	u32 err = 0;
+	int err = 0;
 
 	err = g->ops.gr.load_ctxsw_ucode(g);
-	if (err != 0U) {
+	if (err != 0) {
 		goto out;
 	}
 
 	err = gr_gk20a_wait_ctxsw_ready(g);
-	if (err != 0U) {
+	if (err != 0) {
 		goto out;
 	}
 
 out:
-	if (err != 0U) {
+	if (err != 0) {
 		nvgpu_err(g, "fail");
 	} else {
 		nvgpu_log_fn(g, "done");
@@ -4139,7 +4140,8 @@ out:
 static int gk20a_init_gr_reset_enable_hw(struct gk20a *g)
 {
 	struct netlist_av_list *sw_non_ctx_load = &g->netlist_vars->sw_non_ctx_load;
-	u32 i, err = 0;
+	u32 i;
+	int err = 0;
 
 	nvgpu_log_fn(g, " ");
 
@@ -4154,17 +4156,17 @@ static int gk20a_init_gr_reset_enable_hw(struct gk20a *g)
 	}
 
 	err = gr_gk20a_wait_mem_scrubbing(g);
-	if (err != 0U) {
+	if (err != 0) {
 		goto out;
 	}
 
 	err = gr_gk20a_wait_idle(g);
-	if (err != 0U) {
+	if (err != 0) {
 		goto out;
 	}
 
 out:
-	if (err != 0U) {
+	if (err != 0) {
 		nvgpu_err(g, "fail");
 	} else {
 		nvgpu_log_fn(g, "done");
@@ -5706,12 +5708,12 @@ int gr_gk20a_fecs_set_reglist_virtual_addr(struct gk20a *g, u64 pmu_va)
 
 int gk20a_gr_suspend(struct gk20a *g)
 {
-	u32 ret = 0;
+	int ret = 0;
 
 	nvgpu_log_fn(g, " ");
 
 	ret = g->ops.gr.wait_empty(g);
-	if (ret != 0U) {
+	if (ret != 0) {
 		return ret;
 	}
 
