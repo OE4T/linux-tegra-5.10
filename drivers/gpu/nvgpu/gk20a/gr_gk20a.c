@@ -249,15 +249,15 @@ int gr_gk20a_wait_idle(struct gk20a *g)
 		engine_status = gk20a_readl(g,
 					fifo_engine_status_r(gr_engine_id));
 
-		ctxsw_active = engine_status &
-			fifo_engine_status_ctxsw_in_progress_f();
+		ctxsw_active = (engine_status &
+			fifo_engine_status_ctxsw_in_progress_f()) != 0U;
 
 		ctx_status_invalid =
 			(fifo_engine_status_ctx_status_v(engine_status) ==
 			 fifo_engine_status_ctx_status_invalid_v());
 
-		gr_busy = gk20a_readl(g, gr_engine_status_r()) &
-			gr_engine_status_value_busy_f();
+		gr_busy = (gk20a_readl(g, gr_engine_status_r()) &
+			gr_engine_status_value_busy_f()) != 0U;
 
 		if (ctx_status_invalid || (!gr_busy && !ctxsw_active)) {
 			nvgpu_log_fn(g, "done");
@@ -2745,7 +2745,7 @@ static int gr_gk20a_init_gr_config(struct gk20a *g, struct gr_gk20a *gr)
 		    gr->pes_tpc_count[1][gpc_index] == 5U) {
 			pes_heavy_index =
 				gr->pes_tpc_count[0][gpc_index] >
-				gr->pes_tpc_count[1][gpc_index] ? 0 : 1;
+				gr->pes_tpc_count[1][gpc_index] ? 0U : 1U;
 
 			gpc_new_skip_mask =
 				gr->pes_tpc_mask[pes_heavy_index][gpc_index] ^
@@ -2759,7 +2759,7 @@ static int gr_gk20a_init_gr_config(struct gk20a *g, struct gr_gk20a *gr)
 			    gr->pes_tpc_count[1][gpc_index])) {
 				pes_heavy_index =
 				    gr->pes_tpc_count[0][gpc_index] >
-				    gr->pes_tpc_count[1][gpc_index] ? 0 : 1;
+				    gr->pes_tpc_count[1][gpc_index] ? 0U : 1U;
 
 			gpc_new_skip_mask =
 				gr->pes_tpc_mask[pes_heavy_index][gpc_index] ^
@@ -4934,7 +4934,7 @@ static struct channel_gk20a *gk20a_gr_get_channel_from_ctx(
 {
 	struct fifo_gk20a *f = &g->fifo;
 	struct gr_gk20a *gr = &g->gr;
-	u32 chid = -1;
+	u32 chid;
 	u32 tsgid = NVGPU_INVALID_TSG_ID;
 	u32 i;
 	struct channel_gk20a *ret = NULL;
@@ -6013,7 +6013,7 @@ int gr_gk20a_get_ctx_buffer_offsets(struct gk20a *g,
 	priv_registers = nvgpu_kzalloc(g, sizeof(u32) * potential_offsets);
 	if (priv_registers == NULL) {
 		nvgpu_log_fn(g, "failed alloc for potential_offsets=%d", potential_offsets);
-		err = PTR_ERR(priv_registers);
+		err = -ENOMEM;
 		goto cleanup;
 	}
 	(void) memset(offsets,      0, sizeof(u32) * max_offsets);
@@ -7375,7 +7375,7 @@ bool gk20a_is_channel_ctx_resident(struct channel_gk20a *ch)
 	 * valid context is currently resident.
 	 */
 	if (gr_fecs_current_ctx_valid_v(curr_gr_ctx) == 0U) {
-		return NULL;
+		return false;
 	}
 
 	curr_ch = gk20a_gr_get_channel_from_ctx(g, curr_gr_ctx,
