@@ -4061,10 +4061,8 @@ static void gr_gk20a_load_gating_prod(struct gk20a *g)
 	nvgpu_log_fn(g, "done");
 }
 
-static int gk20a_init_gr_prepare(struct gk20a *g)
+static void gk20a_init_gr_prepare(struct gk20a *g)
 {
-	u32 err = 0;
-
 	/* reset gr engine */
 	g->ops.mc.reset(g, g->ops.mc.reset_mask(g, NVGPU_UNIT_GRAPH) |
 			g->ops.mc.reset_mask(g, NVGPU_UNIT_BLG) |
@@ -4079,8 +4077,6 @@ static int gk20a_init_gr_prepare(struct gk20a *g)
 	gk20a_writel(g, gr_gpfifo_ctl_r(),
 		gr_gpfifo_ctl_access_enabled_f() |
 		gr_gpfifo_ctl_semaphore_access_enabled_f());
-
-	return err;
 }
 
 static int gr_gk20a_wait_mem_scrubbing(struct gk20a *g)
@@ -4473,10 +4469,7 @@ int gk20a_enable_gr_hw(struct gk20a *g)
 
 	nvgpu_log_fn(g, " ");
 
-	err = gk20a_init_gr_prepare(g);
-	if (err != 0) {
-		return err;
-	}
+	gk20a_init_gr_prepare(g);
 
 	err = nvgpu_netlist_init_ctx_vars(g);
 	if (err != 0) {
