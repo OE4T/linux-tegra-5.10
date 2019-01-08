@@ -4100,13 +4100,13 @@ static int gr_gk20a_wait_mem_scrubbing(struct gk20a *g)
 				CTXSW_MEM_SCRUBBING_TIMEOUT_DEFAULT,
 			   NVGPU_TIMER_RETRY_TIMER);
 	do {
-		fecs_scrubbing = gk20a_readl(g, gr_fecs_dmactl_r()) &
+		fecs_scrubbing = (gk20a_readl(g, gr_fecs_dmactl_r()) &
 			(gr_fecs_dmactl_imem_scrubbing_m() |
-			 gr_fecs_dmactl_dmem_scrubbing_m());
+			 gr_fecs_dmactl_dmem_scrubbing_m())) != 0U;
 
-		gpccs_scrubbing = gk20a_readl(g, gr_gpccs_dmactl_r()) &
+		gpccs_scrubbing = (gk20a_readl(g, gr_gpccs_dmactl_r()) &
 			(gr_gpccs_dmactl_imem_scrubbing_m() |
-			 gr_gpccs_dmactl_imem_scrubbing_m());
+			 gr_gpccs_dmactl_imem_scrubbing_m())) != 0U;
 
 		if (!fecs_scrubbing && !gpccs_scrubbing) {
 			nvgpu_log_fn(g, "done");
@@ -5356,7 +5356,7 @@ int gk20a_gr_isr(struct gk20a *g)
 
 	gr_engine_id = gk20a_fifo_get_gr_engine_id(g);
 	if (gr_engine_id != FIFO_INVAL_ENGINE_ID) {
-		gr_engine_id = BIT(gr_engine_id);
+		gr_engine_id = BIT32(gr_engine_id);
 	}
 
 	grfifo_ctl = gk20a_readl(g, gr_gpfifo_ctl_r());
@@ -7368,7 +7368,7 @@ static int gr_gk20a_find_priv_offset_in_pm_buffer(struct gk20a *g,
 
 bool gk20a_is_channel_ctx_resident(struct channel_gk20a *ch)
 {
-	int curr_gr_ctx;
+	u32 curr_gr_ctx;
 	u32 curr_gr_tsgid;
 	struct gk20a *g = ch->g;
 	struct channel_gk20a *curr_ch;

@@ -264,7 +264,7 @@ struct gr_gk20a {
 	struct nvgpu_mutex fecs_mutex; /* protect fecs method */
 
 	struct nvgpu_cond init_wq;
-	int initialized;
+	bool initialized;
 
 	u32 num_fbps;
 
