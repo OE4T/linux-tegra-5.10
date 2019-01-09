@@ -374,7 +374,7 @@ int wldev_get_mode(
 	error = wldev_ioctl(dev, WLC_GET_BSS_INFO, (void*)buf, WL_EXTRA_BUF_MAX, false);
 	if (error) {
 		WLDEV_ERROR(("%s:failed:%d\n", __FUNCTION__, error));
-		return -1;
+		goto exit;
 	}
 	bss = (struct  wl_bss_info *)(buf + 4);
 	chanspec = wl_chspec_driver_to_host(bss->chanspec);
@@ -401,10 +401,13 @@ int wldev_get_mode(
 				strcpy(cap, "a");
 		} else {
 			WLDEV_ERROR(("%s:Mode get failed\n", __FUNCTION__));
-			return -1;
+			error = -1;
+			goto exit;
 		}
 
 	}
+exit:
+	kfree(buf);
 	return error;
 }
 int wldev_set_country(
