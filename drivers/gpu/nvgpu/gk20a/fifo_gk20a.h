@@ -457,4 +457,6 @@ int gk20a_fifo_init_userd(struct gk20a *g, struct channel_gk20a *c);
 
 bool gk20a_fifo_find_pbdma_for_runlist(struct fifo_gk20a *f, u32 runlist_id,
 			u32 *pbdma_id);
+u32 gk20a_fifo_read_pbdma_data(struct gk20a *g, u32 pbdma_id);
+void gk20a_fifo_reset_pbdma_header(struct gk20a *g, u32 pbdma_id);
 #endif /* FIFO_GK20A_H */

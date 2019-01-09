@@ -557,6 +557,8 @@ static const struct gpu_ops gm20b_ops = {
 		.runlist_write_state = gk20a_fifo_runlist_write_state,
 		.find_pbdma_for_runlist = gk20a_fifo_find_pbdma_for_runlist,
 		.init_ce_engine_info = gm20b_fifo_init_ce_engine_info,
+		.read_pbdma_data = gk20a_fifo_read_pbdma_data,
+		.reset_pbdma_header = gk20a_fifo_reset_pbdma_header,
 	},
 	.netlist = {
 		.get_netlist_name = gm20b_netlist_get_name,

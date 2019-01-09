@@ -2049,7 +2049,7 @@ static u32 fifo_error_isr(struct gk20a *g, u32 fifo_intr)
 	return handled;
 }
 
-static inline void gk20a_fifo_reset_pbdma_header(struct gk20a *g, u32 pbdma_id)
+void gk20a_fifo_reset_pbdma_header(struct gk20a *g, u32 pbdma_id)
 {
 	gk20a_writel(g, pbdma_pb_header_r(pbdma_id),
 			pbdma_pb_header_first_true_f() |
@@ -2099,6 +2099,11 @@ static bool gk20a_fifo_is_sw_method_subch(struct gk20a *g, u32 pbdma_id,
 	return false;
 }
 
+u32 gk20a_fifo_read_pbdma_data(struct gk20a *g, u32 pbdma_id)
+{
+	return nvgpu_readl(g, pbdma_hdr_shadow_r(pbdma_id));
+}
+
 unsigned int gk20a_fifo_handle_pbdma_intr_0(struct gk20a *g, u32 pbdma_id,
 			u32 pbdma_intr_0, u32 *handled, u32 *error_notifier)
 {
@@ -2124,7 +2129,7 @@ unsigned int gk20a_fifo_handle_pbdma_intr_0(struct gk20a *g, u32 pbdma_id,
 			"M0: %08x %08x %08x %08x ",
 			pbdma_id, pbdma_intr_0,
 			gk20a_readl(g, pbdma_pb_header_r(pbdma_id)),
-			gk20a_readl(g, pbdma_hdr_shadow_r(pbdma_id)),
+			g->ops.fifo.read_pbdma_data(g, pbdma_id),
 			gk20a_readl(g, pbdma_gp_shadow_0_r(pbdma_id)),
 			gk20a_readl(g, pbdma_gp_shadow_1_r(pbdma_id)),
 			gk20a_readl(g, pbdma_method0_r(pbdma_id)),
@@ -2155,7 +2160,7 @@ unsigned int gk20a_fifo_handle_pbdma_intr_0(struct gk20a *g, u32 pbdma_id,
 	}
 
 	if ((pbdma_intr_0 & pbdma_intr_0_pbentry_pending_f()) != 0U) {
-		gk20a_fifo_reset_pbdma_header(g, pbdma_id);
+		g->ops.fifo.reset_pbdma_header(g, pbdma_id);
 		gk20a_fifo_reset_pbdma_method(g, pbdma_id, 0);
 		rc_type = RC_TYPE_PBDMA_FAULT;
 	}
@@ -2172,7 +2177,7 @@ unsigned int gk20a_fifo_handle_pbdma_intr_0(struct gk20a *g, u32 pbdma_id,
 	}
 
 	if ((pbdma_intr_0 & pbdma_intr_0_device_pending_f()) != 0U) {
-		gk20a_fifo_reset_pbdma_header(g, pbdma_id);
+		g->ops.fifo.reset_pbdma_header(g, pbdma_id);
 
 		for (i = 0U; i < 4U; i++) {
 			if (gk20a_fifo_is_sw_method_subch(g,

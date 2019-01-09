@@ -815,6 +815,8 @@ static const struct gpu_ops tu104_ops = {
 		.runlist_write_state = gk20a_fifo_runlist_write_state,
 		.find_pbdma_for_runlist = gk20a_fifo_find_pbdma_for_runlist,
 		.init_ce_engine_info = gp10b_fifo_init_ce_engine_info,
+		.read_pbdma_data = tu104_fifo_read_pbdma_data,
+		.reset_pbdma_header = tu104_fifo_reset_pbdma_header,
 	},
 	.netlist = {
 		.get_netlist_name = tu104_netlist_get_name,

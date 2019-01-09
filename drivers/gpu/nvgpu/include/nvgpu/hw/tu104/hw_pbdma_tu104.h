@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -158,6 +158,10 @@ static inline u32 pbdma_pb_header_first_true_f(void)
 {
 	return 0x400000U;
 }
+static inline u32 pbdma_pb_header_type_m(void)
+{
+	return U32(0x7U) << 29U;
+}
 static inline u32 pbdma_pb_header_type_inc_f(void)
 {
 	return 0x20000000U;
@@ -165,6 +169,10 @@ static inline u32 pbdma_pb_header_type_inc_f(void)
 static inline u32 pbdma_pb_header_type_non_inc_f(void)
 {
 	return 0x60000000U;
+}
+static inline u32 pbdma_pb_header_type_immd_f(void)
+{
+	return 0x80000000U;
 }
 static inline u32 pbdma_hdr_shadow_r(u32 i)
 {
@@ -233,6 +241,18 @@ static inline u32 pbdma_method2_r(u32 i)
 static inline u32 pbdma_method3_r(u32 i)
 {
 	return 0x000400d8U + i*8192U;
+}
+static inline u32 pbdma_pb_count_r(u32 i)
+{
+	return 0x00040088U + i*8192U;
+}
+static inline u32 pbdma_pb_count_value_v(u32 r)
+{
+	return (r >> 0U) & 0x1fffU;
+}
+static inline u32 pbdma_pb_count_value_zero_f(void)
+{
+	return 0x0U;
 }
 static inline u32 pbdma_data0_r(u32 i)
 {

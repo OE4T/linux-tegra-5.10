@@ -882,6 +882,8 @@ struct gpu_ops {
 		bool (*find_pbdma_for_runlist)(struct fifo_gk20a *f,
 				u32 runlist_id, u32 *pbdma_id);
 		int (*init_ce_engine_info)(struct fifo_gk20a *f);
+		u32 (*read_pbdma_data)(struct gk20a *g, u32 pbdma_id);
+		void (*reset_pbdma_header)(struct gk20a *g, u32 pbdma_id);
 		struct {
 			int (*report_host_err)(struct gk20a *g,
 					u32 hw_id, u32 inst, u32 err_id,
