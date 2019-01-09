@@ -3,7 +3,7 @@
  *
  * Tegra Graphics Host VI
  *
- * Copyright (c) 2017-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Author: David Wang <davidw@nvidia.com>
  *
@@ -64,9 +64,6 @@ static void vi_capture_ivc_control_callback(const void *ivc_resp,
 	case CAPTURE_CSI_STREAM_TPG_START_RATE_RESP:
 	case CAPTURE_CSI_STREAM_TPG_STOP_RESP:
 	case CAPTURE_CHANNEL_EI_RESP:
-	case CAPTURE_CHANNEL_TPG_SETUP_RESP:
-	case CAPTURE_CHANNEL_TPG_START_RESP:
-	case CAPTURE_CHANNEL_TPG_STOP_RESP:
 		memcpy(&capture->control_resp_msg, control_msg,
 				sizeof(*control_msg));
 		complete(&capture->control_resp);
@@ -927,15 +924,6 @@ int vi_capture_control_message(struct tegra_vi_channel *chan,
 		break;
 	case CAPTURE_CHANNEL_EI_REQ:
 		resp_id = CAPTURE_CHANNEL_EI_RESP;
-		break;
-	case CAPTURE_CHANNEL_TPG_SETUP_REQ:
-		resp_id = CAPTURE_CHANNEL_TPG_SETUP_RESP;
-		break;
-	case CAPTURE_CHANNEL_TPG_START_REQ:
-		resp_id = CAPTURE_CHANNEL_TPG_START_RESP;
-		break;
-	case CAPTURE_CHANNEL_TPG_STOP_REQ:
-		resp_id = CAPTURE_CHANNEL_TPG_STOP_RESP;
 		break;
 	default:
 		dev_err(chan->dev,
