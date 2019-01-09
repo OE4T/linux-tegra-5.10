@@ -1213,7 +1213,7 @@ int tu104_init_hal(struct gk20a *g)
 	__nvgpu_set_enabled(g, NVGPU_SUPPORT_SEC2_RTOS, true);
 
 	/* for now */
-	gops->clk.support_clk_freq_controller = true;
+	gops->clk.support_clk_freq_controller = false;
 	gops->clk.support_pmgr_domain = false;
 	gops->clk.support_lpwr_pg = false;
 	gops->clk.support_clk_freq_domain = true;
