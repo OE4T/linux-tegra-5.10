@@ -27,6 +27,7 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/channel.h>
 #include <nvgpu/gr/ctx.h>
+#include <nvgpu/log.h>
 
 #include "vgpu/gm20b/vgpu_gr_gm20b.h"
 
