@@ -1,7 +1,7 @@
 /*
  * gk20a event logging to ftrace.
  *
- * Copyright (c) 2014-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -634,6 +634,7 @@ DEFINE_EVENT(gk20a_cde, gk20a_cde_finished_ctx_cb,
 #define trace_gk20a_channel_put(arg...)			((void)(NULL))
 #define trace_gk20a_open_new_channel(arg...)		((void)(NULL))
 #define trace_gk20a_channel_update(arg...)		((void)(NULL))
+#define trace_gk20a_channel_reset(arg...)		((void)(NULL))
 
 #define trace_gk20a_mm_fb_flush(arg...)			((void)(NULL))
 #define trace_gk20a_mm_fb_flush_done(arg...)		((void)(NULL))
