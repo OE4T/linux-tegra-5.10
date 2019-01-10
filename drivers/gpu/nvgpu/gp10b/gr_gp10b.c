@@ -1561,7 +1561,7 @@ static int gr_gp10b_disable_channel_or_tsg(struct gk20a *g, struct channel_gk20a
 		return ret;
 	}
 
-	ret = g->ops.fifo.update_runlist(g,
+	ret = g->ops.runlist.update_runlist(g,
 					fault_ch->runlist_id,
 					FIFO_INVAL_CHANNEL_ID,
 					true,

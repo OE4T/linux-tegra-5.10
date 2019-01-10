@@ -754,13 +754,6 @@ struct gpu_ops {
 		int (*tsg_verify_channel_status)(struct channel_gk20a *ch);
 		void (*tsg_verify_status_ctx_reload)(struct channel_gk20a *ch);
 		void (*tsg_verify_status_faulted)(struct channel_gk20a *ch);
-		int (*reschedule_runlist)(struct channel_gk20a *ch,
-				bool preempt_next);
-		int (*reschedule_preempt_next_locked)(struct channel_gk20a *ch,
-				bool wait_preempt);
-		int (*update_runlist)(struct gk20a *g, u32 runlist_id,
-				u32 chid, bool add,
-				bool wait_for_finish);
 		void (*trigger_mmu_fault)(struct gk20a *g,
 				unsigned long engine_ids);
 		void (*get_mmu_fault_info)(struct gk20a *g, u32 mmu_fault_id,
@@ -774,9 +767,6 @@ struct gpu_ops {
 		int (*wait_engine_idle)(struct gk20a *g);
 		u32 (*get_num_fifos)(struct gk20a *g);
 		u32 (*get_pbdma_signature)(struct gk20a *g);
-		int (*set_runlist_interleave)(struct gk20a *g, u32 id,
-					u32 runlist_id,
-					u32 new_level);
 		int (*tsg_set_timeslice)(struct tsg_gk20a *tsg, u32 timeslice);
 		u32 (*default_timeslice_us)(struct gk20a *g);
 		int (*force_reset_ch)(struct channel_gk20a *ch,
@@ -786,15 +776,9 @@ struct gpu_ops {
 		int (*tsg_unbind_channel)(struct channel_gk20a *ch);
 		int (*tsg_open)(struct tsg_gk20a *tsg);
 		void (*tsg_release)(struct tsg_gk20a *tsg);
-		u32 (*eng_runlist_base_size)(void);
 		int (*init_engine_info)(struct fifo_gk20a *f);
 		u32 (*get_engines_mask_on_id)(struct gk20a *g,
 			u32 id, bool is_tsg);
-		u32 (*runlist_entry_size)(void);
-		void (*get_tsg_runlist_entry)(struct tsg_gk20a *tsg,
-					u32 *runlist);
-		void (*get_ch_runlist_entry)(struct channel_gk20a *ch,
-					u32 *runlist);
 		u32 (*userd_gp_get)(struct gk20a *g, struct channel_gk20a *ch);
 		void (*userd_gp_put)(struct gk20a *g, struct channel_gk20a *ch);
 		u64 (*userd_pb_get)(struct gk20a *g, struct channel_gk20a *ch);
@@ -860,9 +844,6 @@ struct gpu_ops {
 				u64 *base_gpuva, u32 *sync_size);
 		u32 (*get_syncpt_incr_per_release)(void);
 #endif
-		void (*runlist_hw_submit)(struct gk20a *g, u32 runlist_id,
-			u32 count, u32 buffer_index);
-		int (*runlist_wait_pending)(struct gk20a *g, u32 runlist_id);
 		void (*ring_channel_doorbell)(struct channel_gk20a *c);
 		u64 (*usermode_base)(struct gk20a *g);
 		u32 (*doorbell_token)(struct channel_gk20a *c);
@@ -877,8 +858,6 @@ struct gpu_ops {
 		int (*set_sm_exception_type_mask)(struct channel_gk20a *ch,
 				u32 exception_mask);
 		u32 (*runlist_busy_engines)(struct gk20a *g, u32 runlist_id);
-		void (*runlist_write_state)(struct gk20a *g, u32 runlists_mask,
-				u32 runlist_state);
 		bool (*find_pbdma_for_runlist)(struct fifo_gk20a *f,
 				u32 runlist_id, u32 *pbdma_id);
 		int (*init_ce_engine_info)(struct fifo_gk20a *f);
@@ -890,6 +869,29 @@ struct gpu_ops {
 					u32 intr_info);
 		} err_ops;
 	} fifo;
+	struct {
+		int (*reschedule_runlist)(struct channel_gk20a *ch,
+				bool preempt_next);
+		int (*reschedule_preempt_next_locked)(struct channel_gk20a *ch,
+				bool wait_preempt);
+		int (*update_runlist)(struct gk20a *g, u32 runlist_id,
+				u32 chid, bool add,
+				bool wait_for_finish);
+		int (*set_runlist_interleave)(struct gk20a *g, u32 id,
+					u32 runlist_id,
+					u32 new_level);
+		u32 (*eng_runlist_base_size)(void);
+		u32 (*runlist_entry_size)(void);
+		void (*get_tsg_runlist_entry)(struct tsg_gk20a *tsg,
+					u32 *runlist);
+		void (*get_ch_runlist_entry)(struct channel_gk20a *ch,
+					u32 *runlist);
+		void (*runlist_hw_submit)(struct gk20a *g, u32 runlist_id,
+			u32 count, u32 buffer_index);
+		int (*runlist_wait_pending)(struct gk20a *g, u32 runlist_id);
+		void (*runlist_write_state)(struct gk20a *g, u32 runlists_mask,
+				u32 runlist_state);
+	} runlist;
 	struct pmu_v {
 		u32 (*get_pmu_cmdline_args_size)(struct nvgpu_pmu *pmu);
 		void (*set_pmu_cmdline_args_cpu_freq)(struct nvgpu_pmu *pmu,

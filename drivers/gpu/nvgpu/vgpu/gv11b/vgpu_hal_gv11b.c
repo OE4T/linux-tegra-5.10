@@ -438,7 +438,6 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 		.tsg_verify_status_ctx_reload = NULL,
 		/* TODO: implement it for CE fault */
 		.tsg_verify_status_faulted = NULL,
-		.update_runlist = vgpu_fifo_update_runlist,
 		.trigger_mmu_fault = NULL,
 		.get_mmu_fault_info = NULL,
 		.get_mmu_fault_desc = NULL,
@@ -447,17 +446,12 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 		.wait_engine_idle = vgpu_fifo_wait_engine_idle,
 		.get_num_fifos = gv11b_fifo_get_num_fifos,
 		.get_pbdma_signature = gp10b_fifo_get_pbdma_signature,
-		.set_runlist_interleave = vgpu_fifo_set_runlist_interleave,
 		.tsg_set_timeslice = vgpu_tsg_set_timeslice,
 		.tsg_open = vgpu_tsg_open,
 		.tsg_release = vgpu_tsg_release,
 		.force_reset_ch = vgpu_fifo_force_reset_ch,
-		.eng_runlist_base_size = fifo_eng_runlist_base__size_1_v,
 		.init_engine_info = vgpu_fifo_init_engine_info,
 		.get_engines_mask_on_id = NULL,
-		.runlist_entry_size = ram_rl_entry_size_v,
-		.get_tsg_runlist_entry = gv11b_get_tsg_runlist_entry,
-		.get_ch_runlist_entry = gv11b_get_ch_runlist_entry,
 		.is_fault_engine_subid_gpc = gv11b_is_fault_engine_subid_gpc,
 		.dump_pbdma_status = NULL,
 		.dump_eng_status = NULL,
@@ -496,11 +490,8 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 		.get_sync_ro_map = vgpu_gv11b_fifo_get_sync_ro_map,
 #endif
 		.resetup_ramfc = NULL,
-		.reschedule_runlist = NULL,
 		.free_channel_ctx_header = vgpu_gv11b_free_subctx_header,
 		.handle_ctxsw_timeout = gv11b_fifo_handle_ctxsw_timeout,
-		.runlist_hw_submit = NULL,
-		.runlist_wait_pending = NULL,
 		.ring_channel_doorbell = gv11b_ring_channel_doorbell,
 		.get_sema_wait_cmd_size = gv11b_fifo_get_sema_wait_cmd_size,
 		.get_sema_incr_cmd_size = gv11b_fifo_get_sema_incr_cmd_size,
@@ -508,6 +499,17 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 		.set_sm_exception_type_mask = vgpu_set_sm_exception_type_mask,
 		.usermode_base = gv11b_fifo_usermode_base,
 		.doorbell_token = gv11b_fifo_doorbell_token,
+	},
+	.runlist = {
+		.reschedule_runlist = NULL,
+		.update_runlist = vgpu_fifo_update_runlist,
+		.set_runlist_interleave = vgpu_fifo_set_runlist_interleave,
+		.eng_runlist_base_size = fifo_eng_runlist_base__size_1_v,
+		.runlist_entry_size = ram_rl_entry_size_v,
+		.get_tsg_runlist_entry = gv11b_get_tsg_runlist_entry,
+		.get_ch_runlist_entry = gv11b_get_ch_runlist_entry,
+		.runlist_hw_submit = NULL,
+		.runlist_wait_pending = NULL,
 	},
 	.netlist = {
 		.get_netlist_name = gv11b_netlist_get_name,
@@ -734,6 +736,7 @@ int vgpu_gv11b_init_hal(struct gk20a *g)
 	gops->fb = vgpu_gv11b_ops.fb;
 	gops->clock_gating = vgpu_gv11b_ops.clock_gating;
 	gops->fifo = vgpu_gv11b_ops.fifo;
+	gops->runlist = vgpu_gv11b_ops.runlist;
 	gops->netlist = vgpu_gv11b_ops.netlist;
 	gops->mm = vgpu_gv11b_ops.mm;
 #ifdef CONFIG_GK20A_CTXSW_TRACE

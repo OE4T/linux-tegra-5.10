@@ -159,7 +159,8 @@ int gk20a_channel_get_timescale_from_timeslice(struct gk20a *g,
 
 int channel_gk20a_update_runlist(struct channel_gk20a *c, bool add)
 {
-	return c->g->ops.fifo.update_runlist(c->g, c->runlist_id, c->chid, add, true);
+	return c->g->ops.runlist.update_runlist(c->g, c->runlist_id,
+			c->chid, add, true);
 }
 
 int gk20a_enable_channel_tsg(struct gk20a *g, struct channel_gk20a *ch)

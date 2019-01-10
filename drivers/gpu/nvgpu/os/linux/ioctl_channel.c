@@ -1367,7 +1367,7 @@ long gk20a_channel_ioctl(struct file *filp,
 			err = -EPERM;
 			break;
 		}
-		if (!ch->g->ops.fifo.reschedule_runlist) {
+		if (!ch->g->ops.runlist.reschedule_runlist) {
 			err = -ENOSYS;
 			break;
 		}
@@ -1378,7 +1378,7 @@ long gk20a_channel_ioctl(struct file *filp,
 				__func__, cmd);
 			break;
 		}
-		err = ch->g->ops.fifo.reschedule_runlist(ch,
+		err = ch->g->ops.runlist.reschedule_runlist(ch,
 			NVGPU_RESCHEDULE_RUNLIST_PREEMPT_NEXT &
 			((struct nvgpu_reschedule_runlist_args *)buf)->flags);
 		gk20a_idle(ch->g);

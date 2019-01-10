@@ -643,7 +643,7 @@ int gk20a_init_fifo_setup_sw_common(struct gk20a *g)
 	g->ops.fifo.init_pbdma_intr_descs(f); /* just filling in data/tables */
 
 	f->num_channels = g->ops.fifo.get_num_fifos(g);
-	f->runlist_entry_size =  g->ops.fifo.runlist_entry_size();
+	f->runlist_entry_size =  g->ops.runlist.runlist_entry_size();
 	f->num_runlist_entries = fifo_eng_runlist_length_max_v();
 	f->num_pbdma = nvgpu_get_litter_value(g, GPU_LIT_HOST_NUM_PBDMA);
 	f->max_engines = nvgpu_get_litter_value(g, GPU_LIT_HOST_NUM_ENGINES);
@@ -2870,7 +2870,7 @@ int gk20a_fifo_tsg_set_timeslice(struct tsg_gk20a *tsg, u32 timeslice)
 
 	tsg->timeslice_us = timeslice;
 
-	return g->ops.fifo.update_runlist(g,
+	return g->ops.runlist.update_runlist(g,
 					tsg->runlist_id,
 					FIFO_INVAL_CHANNEL_ID,
 					true,

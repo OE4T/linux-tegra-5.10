@@ -45,7 +45,7 @@ static u32 nvgpu_runlist_append_tsg(struct gk20a *g,
 
 	/* add TSG entry */
 	nvgpu_log_info(g, "add TSG %d to runlist", tsg->tsgid);
-	g->ops.fifo.get_tsg_runlist_entry(tsg, *runlist_entry);
+	g->ops.runlist.get_tsg_runlist_entry(tsg, *runlist_entry);
 	nvgpu_log_info(g, "tsg rl entries left %d runlist [0] %x [1] %x",
 			*entries_left,
 			(*runlist_entry)[0], (*runlist_entry)[1]);
@@ -69,7 +69,7 @@ static u32 nvgpu_runlist_append_tsg(struct gk20a *g,
 
 		nvgpu_log_info(g, "add channel %d to runlist",
 			ch->chid);
-		g->ops.fifo.get_ch_runlist_entry(ch, *runlist_entry);
+		g->ops.runlist.get_ch_runlist_entry(ch, *runlist_entry);
 		nvgpu_log_info(g, "rl entries left %d runlist [0] %x [1] %x",
 			*entries_left,
 			(*runlist_entry)[0], (*runlist_entry)[1]);
@@ -350,10 +350,11 @@ int gk20a_fifo_update_runlist_locked(struct gk20a *g, u32 runlist_id,
 		runlist->count = 0;
 	}
 
-	g->ops.fifo.runlist_hw_submit(g, runlist_id, runlist->count, new_buf);
+	g->ops.runlist.runlist_hw_submit(g, runlist_id, runlist->count,
+			new_buf);
 
 	if (wait_for_finish) {
-		ret = g->ops.fifo.runlist_wait_pending(g, runlist_id);
+		ret = g->ops.runlist.runlist_wait_pending(g, runlist_id);
 
 		if (ret == -ETIMEDOUT) {
 			nvgpu_err(g, "runlist %d update timeout", runlist_id);
@@ -391,14 +392,14 @@ int nvgpu_fifo_reschedule_runlist(struct channel_gk20a *ch, bool preempt_next,
 			&g->pmu, PMU_MUTEX_ID_FIFO, &token);
 	}
 
-	g->ops.fifo.runlist_hw_submit(
+	g->ops.runlist.runlist_hw_submit(
 		g, ch->runlist_id, runlist->count, runlist->cur_buffer);
 
 	if (preempt_next) {
-		g->ops.fifo.reschedule_preempt_next_locked(ch, wait_preempt);
+		g->ops.runlist.reschedule_preempt_next_locked(ch, wait_preempt);
 	}
 
-	g->ops.fifo.runlist_wait_pending(g, ch->runlist_id);
+	g->ops.runlist.runlist_wait_pending(g, ch->runlist_id);
 
 	if (mutex_ret == 0) {
 		nvgpu_pmu_mutex_release(
@@ -474,8 +475,8 @@ int gk20a_fifo_update_runlist_ids(struct gk20a *g, u32 runlist_ids, u32 chid,
 	ret = 0;
 	for_each_set_bit(runlist_id, &ulong_runlist_ids, 32U) {
 		/* Capture the last failure error code */
-		errcode = g->ops.fifo.update_runlist(g, (u32)runlist_id, chid,
-						add, wait_for_finish);
+		errcode = g->ops.runlist.update_runlist(g, (u32)runlist_id,
+				chid, add, wait_for_finish);
 		if (errcode != 0) {
 			nvgpu_err(g,
 				"failed to update_runlist %lu %d",
@@ -526,7 +527,7 @@ void gk20a_fifo_set_runlist_state(struct gk20a *g, u32 runlists_mask,
 						PMU_MUTEX_ID_FIFO, &token);
 	}
 
-	g->ops.fifo.runlist_write_state(g, runlists_mask, runlist_state);
+	g->ops.runlist.runlist_write_state(g, runlists_mask, runlist_state);
 
 	if (mutex_ret == 0) {
 		nvgpu_pmu_mutex_release(&g->pmu, PMU_MUTEX_ID_FIFO, &token);
@@ -579,7 +580,7 @@ int nvgpu_init_runlist(struct gk20a *g, struct fifo_gk20a *f)
 
 	nvgpu_log_fn(g, " ");
 
-	f->max_runlists = g->ops.fifo.eng_runlist_base_size();
+	f->max_runlists = g->ops.runlist.eng_runlist_base_size();
 	f->runlist_info = nvgpu_kzalloc(g,
 					sizeof(struct fifo_runlist_info_gk20a) *
 					f->max_runlists);
