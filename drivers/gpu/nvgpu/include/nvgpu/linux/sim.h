@@ -29,9 +29,6 @@ struct sim_nvgpu_linux {
 	void (*remove_support_linux)(struct gk20a *g);
 };
 
-void sim_writel(struct sim_nvgpu *sim, u32 r, u32 v);
-u32 sim_readl(struct sim_nvgpu *sim, u32 r);
-
 int nvgpu_init_sim_support_linux(struct gk20a *g,
 		struct platform_device *dev);
 void nvgpu_remove_sim_support_linux(struct gk20a *g);

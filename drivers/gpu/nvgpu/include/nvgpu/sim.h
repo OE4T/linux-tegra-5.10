@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -54,5 +54,7 @@ int nvgpu_alloc_sim_buffer(struct gk20a *g, struct nvgpu_mem *mem);
 void nvgpu_free_sim_buffer(struct gk20a *g, struct nvgpu_mem *mem);
 void nvgpu_free_sim_support(struct gk20a *g);
 void nvgpu_remove_sim_support(struct gk20a *g);
+void sim_writel(struct sim_nvgpu *sim, u32 r, u32 v);
+u32 sim_readl(struct sim_nvgpu *sim, u32 r);
 
 #endif /* NVGPU_SIM_H */
