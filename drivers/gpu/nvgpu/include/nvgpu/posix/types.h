@@ -228,4 +228,6 @@ static inline bool IS_ERR_OR_NULL(const void *ptr)
 	return (ptr == NULL) || IS_ERR_VALUE((unsigned long)ptr);
 }
 
+#define ERESTARTSYS ERESTART
+
 #endif

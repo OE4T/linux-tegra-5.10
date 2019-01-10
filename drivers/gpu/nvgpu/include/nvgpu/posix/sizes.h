@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -31,6 +31,7 @@
 #define SZ_1M		(1UL << 20)
 #define SZ_16M		(SZ_1M << 4)
 #define SZ_256M		(SZ_1M << 8)
+#define SZ_512M		(SZ_1M << 9)
 
 #define SZ_1G		(1UL << 30)
 #define SZ_4G		(SZ_1G << 2)
