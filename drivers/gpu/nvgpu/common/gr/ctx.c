@@ -240,6 +240,11 @@ int nvgpu_gr_ctx_alloc_ctxsw_buffers(struct gk20a *g,
 {
 	int err;
 
+	/* nothing to do if already initialized */
+	if (nvgpu_mem_is_valid(&gr_ctx->preempt_ctxsw_buffer)) {
+		return 0;
+	}
+
 	if (gr_ctx_desc->size[NVGPU_GR_CTX_PREEMPT_CTXSW] == 0U ||
 	    gr_ctx_desc->size[NVGPU_GR_CTX_SPILL_CTXSW] == 0U ||
 	    gr_ctx_desc->size[NVGPU_GR_CTX_BETACB_CTXSW] == 0U ||
