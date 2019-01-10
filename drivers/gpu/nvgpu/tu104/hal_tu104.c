@@ -1241,6 +1241,11 @@ int tu104_init_hal(struct gk20a *g)
 									false);
 		/* Disable fb mem_unlock */
 		gops->fb.mem_unlock = NULL;
+
+		/* Disable clock support */
+		gops->clk_arb.get_arbiter_clk_domains = NULL;
+		gops->clk.support_clk_freq_controller = false;
+
 	} else {
 		__nvgpu_set_enabled(g, NVGPU_PMU_PSTATE, true);
 		__nvgpu_set_enabled(g, NVGPU_GR_USE_DMA_FOR_FW_BOOTSTRAP, true);
