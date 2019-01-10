@@ -2461,7 +2461,7 @@ int gk20a_fifo_preempt_channel(struct gk20a *g, struct channel_gk20a *ch)
 	struct fifo_gk20a *f = &g->fifo;
 	int ret = 0;
 	u32 token = PMU_INVALID_MUTEX_OWNER_ID;
-	int mutex_ret = 0;
+	int mutex_ret = -EINVAL;
 	u32 i;
 
 	nvgpu_log_fn(g, "chid: %d", ch->chid);
@@ -2471,7 +2471,10 @@ int gk20a_fifo_preempt_channel(struct gk20a *g, struct channel_gk20a *ch)
 		nvgpu_mutex_acquire(&f->runlist_info[i].runlist_lock);
 	}
 
-	mutex_ret = nvgpu_pmu_mutex_acquire(&g->pmu, PMU_MUTEX_ID_FIFO, &token);
+	if (g->ops.pmu.is_pmu_supported(g)) {
+		mutex_ret = nvgpu_pmu_mutex_acquire(&g->pmu,
+						PMU_MUTEX_ID_FIFO, &token);
+	}
 
 	ret = __locked_fifo_preempt(g, ch->chid, false);
 
@@ -2503,7 +2506,7 @@ int gk20a_fifo_preempt_tsg(struct gk20a *g, struct tsg_gk20a *tsg)
 	struct fifo_gk20a *f = &g->fifo;
 	int ret = 0;
 	u32 token = PMU_INVALID_MUTEX_OWNER_ID;
-	int mutex_ret = 0;
+	int mutex_ret = -EINVAL;
 	u32 i;
 
 	nvgpu_log_fn(g, "tsgid: %d", tsg->tsgid);
@@ -2513,7 +2516,10 @@ int gk20a_fifo_preempt_tsg(struct gk20a *g, struct tsg_gk20a *tsg)
 		nvgpu_mutex_acquire(&f->runlist_info[i].runlist_lock);
 	}
 
-	mutex_ret = nvgpu_pmu_mutex_acquire(&g->pmu, PMU_MUTEX_ID_FIFO, &token);
+	if (g->ops.pmu.is_pmu_supported(g)) {
+		mutex_ret = nvgpu_pmu_mutex_acquire(&g->pmu,
+						PMU_MUTEX_ID_FIFO, &token);
+	}
 
 	ret = __locked_fifo_preempt(g, tsg->tsgid, true);
 
@@ -2616,7 +2622,7 @@ int gk20a_fifo_disable_engine_activity(struct gk20a *g,
 	u32 pbdma_chid = FIFO_INVAL_CHANNEL_ID;
 	u32 engine_chid = FIFO_INVAL_CHANNEL_ID;
 	u32 token = PMU_INVALID_MUTEX_OWNER_ID;
-	int mutex_ret;
+	int mutex_ret = -EINVAL;
 	struct channel_gk20a *ch = NULL;
 	int err = 0;
 
@@ -2629,7 +2635,10 @@ int gk20a_fifo_disable_engine_activity(struct gk20a *g,
 		return -EBUSY;
 	}
 
-	mutex_ret = nvgpu_pmu_mutex_acquire(&g->pmu, PMU_MUTEX_ID_FIFO, &token);
+	if (g->ops.pmu.is_pmu_supported(g)) {
+		mutex_ret = nvgpu_pmu_mutex_acquire(&g->pmu,
+						PMU_MUTEX_ID_FIFO, &token);
+	}
 
 	gk20a_fifo_set_runlist_state(g, BIT32(eng_info->runlist_id),
 			RUNLIST_DISABLED);

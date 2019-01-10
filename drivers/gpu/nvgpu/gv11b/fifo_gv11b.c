@@ -878,7 +878,7 @@ int gv11b_fifo_preempt_tsg(struct gk20a *g, struct tsg_gk20a *tsg)
 	struct fifo_gk20a *f = &g->fifo;
 	int ret = 0;
 	u32 token = PMU_INVALID_MUTEX_OWNER_ID;
-	u32 mutex_ret = 0;
+	int mutex_ret = -EINVAL;
 	u32 runlist_id;
 
 	nvgpu_log_fn(g, "tsgid: %d", tsg->tsgid);
@@ -894,11 +894,14 @@ int gv11b_fifo_preempt_tsg(struct gk20a *g, struct tsg_gk20a *tsg)
 	/* WAR for Bug 2065990 */
 	gk20a_tsg_disable_sched(g, tsg);
 
-	mutex_ret = nvgpu_pmu_mutex_acquire(&g->pmu, PMU_MUTEX_ID_FIFO, &token);
+	if (g->ops.pmu.is_pmu_supported(g)) {
+		mutex_ret = nvgpu_pmu_mutex_acquire(&g->pmu,
+						PMU_MUTEX_ID_FIFO, &token);
+	}
 
 	ret = __locked_fifo_preempt(g, tsg->tsgid, true);
 
-	if (mutex_ret == 0U) {
+	if (mutex_ret == 0) {
 		nvgpu_pmu_mutex_release(&g->pmu, PMU_MUTEX_ID_FIFO, &token);
 	}
 
@@ -923,13 +926,16 @@ static void gv11b_fifo_locked_preempt_runlists_rc(struct gk20a *g,
 						u32 runlists_mask)
 {
 	u32 token = PMU_INVALID_MUTEX_OWNER_ID;
-	u32 mutex_ret = 0;
+	int mutex_ret = -EINVAL;
 	u32 rlid;
 
 	/* runlist_lock are locked by teardown and sched are disabled too */
 	nvgpu_log_fn(g, "preempt runlists_mask:0x%08x", runlists_mask);
 
-	mutex_ret = nvgpu_pmu_mutex_acquire(&g->pmu, PMU_MUTEX_ID_FIFO, &token);
+	if (g->ops.pmu.is_pmu_supported(g)) {
+		mutex_ret = nvgpu_pmu_mutex_acquire(&g->pmu,
+						PMU_MUTEX_ID_FIFO, &token);
+	}
 
 	/* issue runlist preempt */
 	gv11b_fifo_issue_runlist_preempt(g, runlists_mask);
@@ -947,7 +953,7 @@ static void gv11b_fifo_locked_preempt_runlists_rc(struct gk20a *g,
 		}
 	}
 
-	if (mutex_ret == 0U) {
+	if (mutex_ret == 0) {
 		nvgpu_pmu_mutex_release(&g->pmu, PMU_MUTEX_ID_FIFO, &token);
 	}
 }
@@ -961,14 +967,17 @@ static void gv11b_fifo_locked_abort_runlist_active_tsgs(struct gk20a *g,
 	u32 rlid;
 	struct fifo_runlist_info_gk20a *runlist = NULL;
 	u32 token = PMU_INVALID_MUTEX_OWNER_ID;
-	u32 mutex_ret = 0;
+	int mutex_ret = -EINVAL;
 	bool add = false, wait_for_finish = false;
 	int err;
 
 	nvgpu_err(g, "runlist id unknown, abort active tsgs in runlists");
 
 	/* runlist_lock  are locked by teardown */
-	mutex_ret = nvgpu_pmu_mutex_acquire(&g->pmu, PMU_MUTEX_ID_FIFO, &token);
+	if (g->ops.pmu.is_pmu_supported(g)) {
+		mutex_ret = nvgpu_pmu_mutex_acquire(&g->pmu,
+						PMU_MUTEX_ID_FIFO, &token);
+	}
 
 	for (rlid = 0; rlid < g->fifo.max_runlists;
 						 rlid++) {
@@ -1013,7 +1022,7 @@ static void gv11b_fifo_locked_abort_runlist_active_tsgs(struct gk20a *g,
 			nvgpu_log(g, gpu_dbg_info, "aborted tsg id %lu", tsgid);
 		}
 	}
-	if (mutex_ret == 0U) {
+	if (mutex_ret == 0) {
 		nvgpu_pmu_mutex_release(&g->pmu, PMU_MUTEX_ID_FIFO, &token);
 	}
 }
