@@ -1,6 +1,6 @@
 ################################### tell Emacs this is a -*- makefile-gmake -*-
 #
-# Copyright (c) 2018 NVIDIA CORPORATION.  All Rights Reserved.
+# Copyright (c) 2018-2019 NVIDIA CORPORATION.  All Rights Reserved.
 #
 # NVIDIA CORPORATION and its licensors retain all intellectual property
 # and proprietary rights in and to this software, related documentation
@@ -29,11 +29,21 @@ NV_COMPONENT_SOURCES		:= \
                                 $(NVGPU_UNIT_NAME).c
 endif
 
+ifdef NVGPU_UNIT_INCLUDES
+NV_COMPONENT_INCLUDES 		:= \
+				$(NVGPU_UNIT_INCLUDES)
+endif
+
 NV_COMPONENT_CFLAGS		+= -D__NVGPU_POSIX__
 
 NV_COMPONENT_NEEDED_INTERFACE_DIRS += \
                                 $(NV_SOURCE)/kernel/nvgpu/drivers/gpu/nvgpu \
                                 $(NV_SOURCE)/kernel/nvgpu/userspace
+
+ifdef NVGPU_UNIT_INTERFACE_DIRS
+NV_COMPONENT_NEEDED_INTERFACE_DIRS += \
+				$(NVGPU_UNIT_INTERFACE_DIRS)
+endif
 
 NV_COMPONENT_SYSTEMIMAGE_DIR    := $(NV_SYSTEMIMAGE_TEST_EXECUTABLE_DIR)/nvgpu_unit/units
 systemimage:: $(NV_COMPONENT_SYSTEMIMAGE_DIR)
