@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -94,7 +94,7 @@ static int rpc_send_message(struct gk20a *g)
 		sim_dma_status_valid_f() |
 		sim_dma_size_4kb_f() |
 		sim_dma_addr_lo_f(nvgpu_mem_get_phys_addr(g, &g->sim->msg_bfr)
-				>> PAGE_SHIFT);
+				>> sim_dma_addr_lo_b());
 
 	*sim_send_ring_bfr(g, dma_hi_offset*sizeof(u32)) =
 		u64_hi32(nvgpu_mem_get_phys_addr(g, &g->sim->msg_bfr));
@@ -140,7 +140,7 @@ static int rpc_recv_poll(struct gk20a *g)
 				*sim_recv_ring_bfr(g, dma_hi_offset*4));
 
 		recv_phys_addr = (u64)recv_phys_addr_hi << 32 |
-				 (u64)recv_phys_addr_lo << PAGE_SHIFT;
+				 (u64)recv_phys_addr_lo << sim_dma_addr_lo_b();
 
 		if (recv_phys_addr !=
 				nvgpu_mem_get_phys_addr(g, &g->sim->msg_bfr)) {
@@ -234,7 +234,7 @@ static void nvgpu_sim_init_late(struct gk20a *g)
 		   sim_send_ring_status_valid_f() |
 		   sim_send_ring_target_phys_pci_coherent_f() |
 		   sim_send_ring_size_4kb_f() |
-		   sim_send_ring_addr_lo_f(phys >> PAGE_SHIFT));
+		   sim_send_ring_addr_lo_f(phys >> sim_send_ring_addr_lo_b()));
 
 	/* repeat for recv ring (but swap put,get as roles are opposite) */
 	sim_writel(g->sim, sim_recv_ring_r(), sim_recv_ring_status_invalid_f());
@@ -251,7 +251,7 @@ static void nvgpu_sim_init_late(struct gk20a *g)
 		   sim_recv_ring_status_valid_f() |
 		   sim_recv_ring_target_phys_pci_coherent_f() |
 		   sim_recv_ring_size_4kb_f() |
-		   sim_recv_ring_addr_lo_f(phys >> PAGE_SHIFT));
+		   sim_recv_ring_addr_lo_f(phys >> sim_recv_ring_addr_lo_b()));
 }
 
 int nvgpu_init_sim_support_pci(struct gk20a *g)
