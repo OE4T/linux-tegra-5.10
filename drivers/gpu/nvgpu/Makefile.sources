@@ -38,7 +38,7 @@ srcs :=	os/posix/nvgpu.c \
 	os/posix/thread.c \
 	os/posix/error_notifier.c \
 	os/posix/fuse.c \
-	os/posix/clk_arb.c \
+	os/posix/posix-clk_arb.c \
 	os/posix/posix-channel.c \
 	os/posix/posix-tsg.c \
 	os/posix/nvlink.c \
@@ -178,6 +178,7 @@ srcs :=	os/posix/nvgpu.c \
 	common/pmu/clk/clk_prog.c \
 	common/pmu/clk/clk_vf_point.c \
 	common/pmu/clk/clk_vin.c \
+	common/pmu/clk/clk_arb.c \
 	common/pmu/therm/thrm.c \
 	common/pmu/therm/thrmchannel.c \
 	common/pmu/therm/thrmdev.c \
