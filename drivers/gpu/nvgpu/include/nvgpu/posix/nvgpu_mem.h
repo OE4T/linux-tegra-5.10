@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -39,5 +39,7 @@ struct nvgpu_sgt *nvgpu_mem_sgt_posix_create_from_list(struct gk20a *g,
 				u64 *total_size);
 int nvgpu_mem_posix_create_from_list(struct gk20a *g, struct nvgpu_mem *mem,
 				struct nvgpu_mem_sgl *sgl_list, u32 nr_sgls);
+int __nvgpu_mem_create_from_phys(struct gk20a *g, struct nvgpu_mem *dest,
+				  u64 src_phys, int nr_pages);
 
 #endif

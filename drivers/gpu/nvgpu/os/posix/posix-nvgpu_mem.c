@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -262,5 +262,12 @@ int nvgpu_mem_create_from_mem(struct gk20a *g,
 	dest->skip_wmb  = src->skip_wmb;
 	dest->size      = size;
 
+	return 0;
+}
+
+int __nvgpu_mem_create_from_phys(struct gk20a *g, struct nvgpu_mem *dest,
+				 u64 src_phys, int nr_pages)
+{
+	BUG();
 	return 0;
 }
