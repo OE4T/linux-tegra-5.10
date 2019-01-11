@@ -46,6 +46,12 @@ srcs :=	os/posix/nvgpu.c \
 	os/posix/stubs.c \
 	os/posix/posix-fault-injection.c \
 	os/posix/posix-sim.c \
+	os/posix/posix-nvhost.c \
+	os/posix/posix-vgpu.c \
+	os/posix/posix-dt.c \
+	os/posix/posix-vidmem.c \
+	common/sim.c \
+	common/sim_pci.c \
 	common/init/nvgpu_init.c \
 	common/mm/allocators/nvgpu_allocator.c \
 	common/mm/allocators/bitmap_allocator.c \
@@ -62,6 +68,7 @@ srcs :=	os/posix/nvgpu.c \
 	common/mm/comptags.c \
 	common/mm/mm.c \
 	common/mm/dma.c \
+	common/mm/vidmem.c \
 	common/bus/bus_gk20a.c \
 	common/bus/bus_gm20b.c \
 	common/bus/bus_gp10b.c \
@@ -83,6 +90,7 @@ srcs :=	os/posix/nvgpu.c \
 	common/perf/perf_gm20b.c \
 	common/perf/perf_gv11b.c \
 	common/perf/perfbuf.c \
+	common/perf/cyclestats_snapshot.c \
 	common/fuse/fuse_gm20b.c \
 	common/fuse/fuse_gp10b.c \
 	common/fuse/fuse_gp106.c \
@@ -142,6 +150,7 @@ srcs :=	os/posix/nvgpu.c \
 	common/sec2/sec2_ipc.c \
 	common/ptimer/ptimer.c \
 	common/sync/channel_sync.c \
+	common/sync/channel_sync_syncpt.c \
 	common/sync/channel_sync_semaphore.c \
 	common/clock_gating/gm20b_gating_reglist.c \
 	common/clock_gating/gp10b_gating_reglist.c \
@@ -255,4 +264,27 @@ srcs :=	os/posix/nvgpu.c \
 	tu104/hal_tu104.c	\
 	tu104/sec2_tu104.c	\
 	tu104/func_tu104.c	\
-	tu104/regops_tu104.c
+	tu104/regops_tu104.c	\
+	tu104/fecs_trace_tu104.c \
+	vgpu/vgpu.c		\
+	vgpu/fifo_vgpu.c	\
+	vgpu/tsg_vgpu.c		\
+	vgpu/css_vgpu.c		\
+	vgpu/fecs_trace_vgpu.c	\
+	vgpu/mm_vgpu.c		\
+	vgpu/gr_vgpu.c		\
+	vgpu/clk_vgpu.c		\
+	vgpu/dbg_vgpu.c		\
+	vgpu/ltc_vgpu.c		\
+	vgpu/ce2_vgpu.c		\
+	vgpu/gv11b/vgpu_gv11b.c	\
+	vgpu/gv11b/vgpu_hal_gv11b.c \
+	vgpu/gv11b/vgpu_fifo_gv11b.c \
+	vgpu/gv11b/vgpu_tsg_gv11b.c \
+	vgpu/gv11b/vgpu_subctx_gv11b.c \
+	vgpu/gv11b/vgpu_gr_gv11b.c \
+	vgpu/gp10b/vgpu_hal_gp10b.c \
+	vgpu/gp10b/vgpu_fuse_gp10b.c \
+	vgpu/gp10b/vgpu_mm_gp10b.c \
+	vgpu/gp10b/vgpu_gr_gp10b.c \
+	vgpu/gm20b/vgpu_gr_gm20b.c
