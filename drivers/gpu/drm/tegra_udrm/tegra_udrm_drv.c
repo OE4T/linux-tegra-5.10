@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -167,7 +167,11 @@ static int tegra_udrm_dmabuf_destroy_mappings_ioctl(struct drm_device *drm,
 	return -EINVAL;
 }
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 14, 0)
 static void tegra_udrm_preclose(struct drm_device *drm, struct drm_file *file)
+#else
+static void tegra_udrm_postclose(struct drm_device *drm, struct drm_file *file)
+#endif
 {
 	struct tegra_udrm_file *fpriv = file->driver_priv;
 	struct tegra_udrm_mmap_entry *mmap_entry;
@@ -351,7 +355,11 @@ static void tegra_udrm_master_drop(struct drm_device *dev,
 
 static struct drm_driver tegra_udrm_driver = {
 	.open              = tegra_udrm_open,
+#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 14, 0)
 	.preclose          = tegra_udrm_preclose,
+#else
+	.postclose         = tegra_udrm_postclose,
+#endif
 	.ioctls            = tegra_udrm_ioctls,
 	.num_ioctls        = ARRAY_SIZE(tegra_udrm_ioctls),
 	.fops              = &tegra_udrm_fops,
