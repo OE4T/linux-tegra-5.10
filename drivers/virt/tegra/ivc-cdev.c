@@ -45,6 +45,8 @@ struct ivc_dev {
 	 * IRQ handler's notification processing and file ops.
 	 */
 	struct mutex		file_lock;
+	/* Bool to store whether we received any ivc interrupt */
+	bool			ivc_intr_rcvd;
 };
 
 static dev_t ivc_dev;
@@ -52,16 +54,16 @@ static const struct ivc_info_page *info;
 
 static irqreturn_t ivc_dev_handler(int irq, void *data)
 {
-	struct ivc_dev *ivc = data;
+	struct ivc_dev *ivcd = data;
 
-	BUG_ON(!ivc->ivck);
+	WARN_ON(!ivcd->ivck);
 
-	mutex_lock(&ivc->file_lock);
-	tegra_ivc_channel_notified(tegra_hv_ivc_convert_cookie(ivc->ivck));
-	mutex_unlock(&ivc->file_lock);
+	mutex_lock(&ivcd->file_lock);
+	ivcd->ivc_intr_rcvd = true;
+	mutex_unlock(&ivcd->file_lock);
 
 	/* simple implementation, just kick all waiters */
-	wake_up_interruptible_all(&ivc->wq);
+	wake_up_interruptible_all(&ivcd->wq);
 
 	return IRQ_HANDLED;
 }
@@ -78,7 +80,7 @@ static irqreturn_t ivc_threaded_irq_handler(int irq, void *dev_id)
 static int ivc_dev_open(struct inode *inode, struct file *filp)
 {
 	struct cdev *cdev = inode->i_cdev;
-	struct ivc_dev *ivc = container_of(cdev, struct ivc_dev, cdev);
+	struct ivc_dev *ivcd = container_of(cdev, struct ivc_dev, cdev);
 	int ret;
 	struct tegra_hv_ivc_cookie *ivck;
 	struct ivc *ivcq;
@@ -87,49 +89,45 @@ static int ivc_dev_open(struct inode *inode, struct file *filp)
 	 * If we can reserve the corresponding IVC device successfully, then
 	 * we have exclusive access to the ivc device.
 	 */
-	ivck = tegra_hv_ivc_reserve(NULL, ivc->minor, NULL);
+	ivck = tegra_hv_ivc_reserve(NULL, ivcd->minor, NULL);
 	if (IS_ERR(ivck))
 		return PTR_ERR(ivck);
 
-	ivc->ivck = ivck;
+	ivcd->ivck = ivck;
 	ivcq = tegra_hv_ivc_convert_cookie(ivck);
 
-	mutex_lock(&ivc->file_lock);
-	tegra_ivc_channel_reset(ivcq);
-	mutex_unlock(&ivc->file_lock);
-
 	/* request our irq */
-	ret = devm_request_threaded_irq(ivc->device, ivck->irq,
+	ret = devm_request_threaded_irq(ivcd->device, ivck->irq,
 			ivc_threaded_irq_handler, ivc_dev_handler, 0,
-			dev_name(ivc->device), ivc);
+			dev_name(ivcd->device), ivcd);
 	if (ret < 0) {
-		dev_err(ivc->device, "Failed to request irq %d\n",
+		dev_err(ivcd->device, "Failed to request irq %d\n",
 				ivck->irq);
-		ivc->ivck = NULL;
+		ivcd->ivck = NULL;
 		tegra_hv_ivc_unreserve(ivck);
 		return ret;
 	}
 
 	/* all done */
-	filp->private_data = ivc;
+	filp->private_data = ivcd;
 
 	return 0;
 }
 
 static int ivc_dev_release(struct inode *inode, struct file *filp)
 {
-	struct ivc_dev *ivc = filp->private_data;
+	struct ivc_dev *ivcd = filp->private_data;
 	struct tegra_hv_ivc_cookie *ivck;
 
 	filp->private_data = NULL;
 
-	BUG_ON(!ivc);
+	WARN_ON(!ivcd);
 
-	ivck = ivc->ivck;
+	ivck = ivcd->ivck;
 
-	devm_free_irq(ivc->device, ivck->irq, ivc);
+	devm_free_irq(ivcd->device, ivck->irq, ivcd);
 
-	ivc->ivck = NULL;
+	ivcd->ivck = NULL;
 
 	/*
 	 * Unreserve after clearing ivck; we no longer have exclusive
@@ -140,100 +138,20 @@ static int ivc_dev_release(struct inode *inode, struct file *filp)
 	return 0;
 }
 
+/*
+ * Read/Write are not supported on ivc devices as it is now
+ * accessed via NvSciIpc library.
+ */
 static ssize_t ivc_dev_read(struct file *filp, char __user *buf,
 		size_t count, loff_t *ppos)
 {
-	struct ivc_dev *ivcd = filp->private_data;
-	struct ivc *ivc;
-	int left = count, ret = 0, chunk;
-
-	BUG_ON(!ivcd);
-	ivc = tegra_hv_ivc_convert_cookie(ivcd->ivck);
-
-	if (!tegra_ivc_can_read(ivc)) {
-		if (filp->f_flags & O_NONBLOCK)
-			return -EAGAIN;
-
-		ret = wait_event_interruptible(ivcd->wq,
-				tegra_ivc_can_read(ivc));
-		if (ret)
-			return ret;
-	}
-
-	while (left > 0 && tegra_ivc_can_read(ivc)) {
-
-		chunk = ivcd->qd->frame_size;
-		if (chunk > left)
-			chunk = left;
-		mutex_lock(&ivcd->file_lock);
-		ret = tegra_ivc_read_user(ivc, buf, chunk);
-		mutex_unlock(&ivcd->file_lock);
-		if (ret < 0)
-			break;
-
-		buf += chunk;
-		left -= chunk;
-	}
-
-	if (left >= count)
-		return ret;
-
-	return count - left;
+	return -EPERM;
 }
 
 static ssize_t ivc_dev_write(struct file *filp, const char __user *buf,
 		size_t count, loff_t *pos)
 {
-	struct ivc_dev *ivcd = filp->private_data;
-	struct ivc *ivc;
-	ssize_t done;
-	size_t left, chunk;
-	int ret = 0;
-
-	BUG_ON(!ivcd);
-	ivc = tegra_hv_ivc_convert_cookie(ivcd->ivck);
-
-	done = 0;
-	while (done < count) {
-
-		left = count - done;
-
-		if (left < ivcd->qd->frame_size)
-			chunk = left;
-		else
-			chunk = ivcd->qd->frame_size;
-
-		/* is queue full? */
-		if (!tegra_ivc_can_write(ivc)) {
-
-			/* check non-blocking mode */
-			if (filp->f_flags & O_NONBLOCK) {
-				ret = -EAGAIN;
-				break;
-			}
-
-			ret = wait_event_interruptible(ivcd->wq,
-					tegra_ivc_can_write(ivc));
-			if (ret)
-				break;
-		}
-
-		mutex_lock(&ivcd->file_lock);
-		ret = tegra_ivc_write_user(ivc, buf, chunk);
-		mutex_unlock(&ivcd->file_lock);
-		if (ret < 0)
-			break;
-
-		buf += chunk;
-
-		done += chunk;
-		*pos += chunk;
-	}
-
-	if (done == 0)
-		return ret;
-
-	return done;
+	return -EPERM;
 }
 
 static unsigned int ivc_dev_poll(struct file *filp, poll_table *wait)
@@ -242,17 +160,18 @@ static unsigned int ivc_dev_poll(struct file *filp, poll_table *wait)
 	struct ivc *ivc;
 	int mask = 0;
 
-	BUG_ON(!ivcd);
+	WARN_ON(!ivcd);
 	ivc = tegra_hv_ivc_convert_cookie(ivcd->ivck);
 
 	poll_wait(filp, &ivcd->wq, wait);
 
-	if (tegra_ivc_can_read(ivc))
-		mask = POLLIN | POLLRDNORM;
-
-	if (tegra_ivc_can_write(ivc))
-		mask |= POLLOUT | POLLWRNORM;
-
+	/* If we have rcvd ivc interrupt, inform the user */
+	mutex_lock(&ivcd->file_lock);
+	if (ivcd->ivc_intr_rcvd == true) {
+		mask |= POLLIN | POLLRDNORM;
+		ivcd->ivc_intr_rcvd = false;
+	}
+	mutex_unlock(&ivcd->file_lock);
 	/* no exceptions */
 
 	return mask;
@@ -265,7 +184,7 @@ static int ivc_dev_mmap(struct file *filp, struct vm_area_struct *vma)
 	uint64_t ivc_area_ipa, ivc_area_size;
 	int ret = -EFAULT;
 
-	BUG_ON(!ivcd);
+	WARN_ON(!ivcd);
 
 	ret = tegra_hv_ivc_get_info(ivcd->ivck, &ivc_area_ipa, &ivc_area_size);
 	if (ret < 0) {
