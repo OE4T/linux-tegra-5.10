@@ -554,9 +554,15 @@ void gk20a_tsg_release_common(struct gk20a *g, struct tsg_gk20a *tsg)
 	}
 }
 
+static struct tsg_gk20a *tsg_gk20a_from_ref(struct nvgpu_ref *ref)
+{
+	return (struct tsg_gk20a *)
+		((uintptr_t)ref - offsetof(struct tsg_gk20a, refcount));
+}
+
 void gk20a_tsg_release(struct nvgpu_ref *ref)
 {
-	struct tsg_gk20a *tsg = container_of(ref, struct tsg_gk20a, refcount);
+	struct tsg_gk20a *tsg = tsg_gk20a_from_ref(ref);
 	struct gk20a *g = tsg->g;
 	struct gk20a_event_id_data *event_id_data, *event_id_data_temp;
 

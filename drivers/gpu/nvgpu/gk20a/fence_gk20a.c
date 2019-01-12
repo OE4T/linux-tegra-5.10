@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -37,10 +37,16 @@ struct gk20a_fence_ops {
 	void *(*free)(struct nvgpu_ref *ref);
 };
 
+
+static struct gk20a_fence *gk20a_fence_from_ref(struct nvgpu_ref *ref)
+{
+	return (struct gk20a_fence *)((uintptr_t)ref -
+				offsetof(struct gk20a_fence, ref));
+}
+
 static void gk20a_fence_free(struct nvgpu_ref *ref)
 {
-	struct gk20a_fence *f =
-		container_of(ref, struct gk20a_fence, ref);
+	struct gk20a_fence *f = gk20a_fence_from_ref(ref);
 	struct gk20a *g = f->g;
 
 	if (nvgpu_os_fence_is_initialized(&f->os_fence)) {
