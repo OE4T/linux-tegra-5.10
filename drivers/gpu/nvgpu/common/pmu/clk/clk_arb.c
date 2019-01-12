@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -669,10 +669,16 @@ int nvgpu_clk_arb_init_session(struct gk20a *g,
 	return 0;
 }
 
+static struct nvgpu_clk_dev *
+nvgpu_clk_dev_from_refcount(struct nvgpu_ref *refcount)
+{
+	return (struct nvgpu_clk_dev *)
+	   ((uintptr_t)refcount - offsetof(struct nvgpu_clk_dev, refcount));
+};
+
 void nvgpu_clk_arb_free_fd(struct nvgpu_ref *refcount)
 {
-	struct nvgpu_clk_dev *dev = container_of(refcount,
-			struct nvgpu_clk_dev, refcount);
+	struct nvgpu_clk_dev *dev = nvgpu_clk_dev_from_refcount(refcount);
 	struct nvgpu_clk_session *session = dev->session;
 	struct gk20a *g = session->g;
 
@@ -682,10 +688,17 @@ void nvgpu_clk_arb_free_fd(struct nvgpu_ref *refcount)
 	nvgpu_kfree(g, dev);
 }
 
+static struct nvgpu_clk_session *
+nvgpu_clk_session_from_refcount(struct nvgpu_ref *refcount)
+{
+	return (struct nvgpu_clk_session *)
+	   ((uintptr_t)refcount - offsetof(struct nvgpu_clk_session, refcount));
+};
+
 void nvgpu_clk_arb_free_session(struct nvgpu_ref *refcount)
 {
-	struct nvgpu_clk_session *session = container_of(refcount,
-			struct nvgpu_clk_session, refcount);
+	struct nvgpu_clk_session *session =
+		nvgpu_clk_session_from_refcount(refcount);
 	struct nvgpu_clk_arb *arb = session->g->clk_arb;
 	struct gk20a *g = session->g;
 	struct nvgpu_clk_dev *dev, *tmp;
