@@ -1,7 +1,7 @@
 /*
  * GK20A Channel Synchronization Abstraction
  *
- * Copyright (c) 2014-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -48,6 +48,13 @@ struct nvgpu_channel_sync_semaphore {
 	struct nvgpu_semaphore_pool *pool;
 };
 
+static struct nvgpu_channel_sync_semaphore *
+nvgpu_channel_sync_semaphore_from_ops(struct nvgpu_channel_sync *ops)
+{
+	return (struct nvgpu_channel_sync_semaphore *)
+		((uintptr_t)ops -
+			offsetof(struct nvgpu_channel_sync_semaphore, ops));
+}
 
 static void add_sema_cmd(struct gk20a *g, struct channel_gk20a *c,
 			 struct nvgpu_semaphore *s, struct priv_cmd_entry *cmd,
@@ -114,7 +121,7 @@ static int channel_sync_semaphore_wait_fd(
 		struct priv_cmd_entry *entry, u32 max_wait_cmds)
 {
 	struct nvgpu_channel_sync_semaphore *sema =
-		container_of(s, struct nvgpu_channel_sync_semaphore, ops);
+		nvgpu_channel_sync_semaphore_from_ops(s);
 	struct channel_gk20a *c = sema->c;
 
 	struct nvgpu_os_fence os_fence = {0};
@@ -172,7 +179,7 @@ static int channel_sync_semaphore_incr_common(
 {
 	u32 incr_cmd_size;
 	struct nvgpu_channel_sync_semaphore *sp =
-		container_of(s, struct nvgpu_channel_sync_semaphore, ops);
+		nvgpu_channel_sync_semaphore_from_ops(s);
 	struct channel_gk20a *c = sp->c;
 	struct nvgpu_semaphore *semaphore;
 	int err = 0;
@@ -259,7 +266,7 @@ static int channel_sync_semaphore_incr_user(
 	return 0;
 #else
 	struct nvgpu_channel_sync_semaphore *sema =
-		container_of(s, struct nvgpu_channel_sync_semaphore, ops);
+		nvgpu_channel_sync_semaphore_from_ops(s);
 	nvgpu_err(sema->c->g,
 		  "trying to use sync fds with CONFIG_SYNC disabled");
 	return -ENODEV;
@@ -269,7 +276,7 @@ static int channel_sync_semaphore_incr_user(
 static void channel_sync_semaphore_set_min_eq_max(struct nvgpu_channel_sync *s)
 {
 	struct nvgpu_channel_sync_semaphore *sp =
-		container_of(s, struct nvgpu_channel_sync_semaphore, ops);
+		nvgpu_channel_sync_semaphore_from_ops(s);
 	struct channel_gk20a *c = sp->c;
 	bool updated;
 
@@ -292,7 +299,7 @@ static void channel_sync_semaphore_set_safe_state(struct nvgpu_channel_sync *s)
 static void channel_sync_semaphore_destroy(struct nvgpu_channel_sync *s)
 {
 	struct nvgpu_channel_sync_semaphore *sema =
-		container_of(s, struct nvgpu_channel_sync_semaphore, ops);
+		nvgpu_channel_sync_semaphore_from_ops(s);
 
 	struct channel_gk20a *c = sema->c;
 	struct gk20a *g = c->g;
@@ -316,7 +323,7 @@ struct nvgpu_channel_sync_semaphore *
 {
 	struct nvgpu_channel_sync_semaphore *sema = NULL;
 	if (sync->wait_fence_fd == channel_sync_semaphore_wait_fd) {
-		sema = container_of(sync, struct nvgpu_channel_sync_semaphore, ops);
+		sema = nvgpu_channel_sync_semaphore_from_ops(sync);
 	}
 
 	return sema;

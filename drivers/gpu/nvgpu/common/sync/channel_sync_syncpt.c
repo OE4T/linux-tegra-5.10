@@ -1,7 +1,7 @@
 /*
  * GK20A Channel Synchronization Abstraction
  *
- * Copyright (c) 2014-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -46,6 +46,14 @@ struct nvgpu_channel_sync_syncpt {
 	u32 id;
 	struct nvgpu_mem syncpt_buf;
 };
+
+static struct nvgpu_channel_sync_syncpt *
+nvgpu_channel_sync_syncpt_from_ops(struct nvgpu_channel_sync *ops)
+{
+	return (struct nvgpu_channel_sync_syncpt *)
+		((uintptr_t)ops -
+			offsetof(struct nvgpu_channel_sync_syncpt, ops));
+}
 
 static int channel_sync_syncpt_gen_wait_cmd(struct channel_gk20a *c,
 	u32 id, u32 thresh, struct priv_cmd_entry *wait_cmd,
@@ -103,7 +111,7 @@ static int channel_sync_syncpt_wait_fd(struct nvgpu_channel_sync *s, int fd,
 	struct nvgpu_os_fence os_fence = {0};
 	struct nvgpu_os_fence_syncpt os_fence_syncpt = {0};
 	struct nvgpu_channel_sync_syncpt *sp =
-		container_of(s, struct nvgpu_channel_sync_syncpt, ops);
+		nvgpu_channel_sync_syncpt_from_ops(s);
 	struct channel_gk20a *c = sp->c;
 	int err = 0;
 	u32 i, num_fences, wait_cmd_size;
@@ -182,7 +190,7 @@ static int channel_sync_syncpt_incr_common(struct nvgpu_channel_sync *s,
 	u32 thresh;
 	int err;
 	struct nvgpu_channel_sync_syncpt *sp =
-		container_of(s, struct nvgpu_channel_sync_syncpt, ops);
+		nvgpu_channel_sync_syncpt_from_ops(s);
 	struct channel_gk20a *c = sp->c;
 	struct nvgpu_os_fence os_fence = {0};
 
@@ -287,14 +295,14 @@ static int channel_sync_syncpt_incr_user(struct nvgpu_channel_sync *s,
 static void channel_sync_syncpt_set_min_eq_max(struct nvgpu_channel_sync *s)
 {
 	struct nvgpu_channel_sync_syncpt *sp =
-		container_of(s, struct nvgpu_channel_sync_syncpt, ops);
+		nvgpu_channel_sync_syncpt_from_ops(s);
 	nvgpu_nvhost_syncpt_set_min_eq_max_ext(sp->nvhost_dev, sp->id);
 }
 
 static void channel_sync_syncpt_set_safe_state(struct nvgpu_channel_sync *s)
 {
 	struct nvgpu_channel_sync_syncpt *sp =
-		container_of(s, struct nvgpu_channel_sync_syncpt, ops);
+		nvgpu_channel_sync_syncpt_from_ops(s);
 	nvgpu_nvhost_syncpt_set_safe_state(sp->nvhost_dev, sp->id);
 }
 
@@ -311,7 +319,7 @@ static u64 channel_sync_syncpt_get_address(struct nvgpu_channel_sync_syncpt *sp)
 static void channel_sync_syncpt_destroy(struct nvgpu_channel_sync *s)
 {
 	struct nvgpu_channel_sync_syncpt *sp =
-		container_of(s, struct nvgpu_channel_sync_syncpt, ops);
+		nvgpu_channel_sync_syncpt_from_ops(s);
 
 
 	sp->c->g->ops.fifo.free_syncpt_buf(sp->c, &sp->syncpt_buf);
@@ -343,7 +351,7 @@ nvgpu_channel_sync_to_syncpt(struct nvgpu_channel_sync *sync)
 	struct nvgpu_channel_sync_syncpt *syncpt = NULL;
 
 	if (sync->wait_fence_fd == channel_sync_syncpt_wait_fd) {
-		syncpt = container_of(sync, struct nvgpu_channel_sync_syncpt, ops);
+		syncpt = nvgpu_channel_sync_syncpt_from_ops(sync);
 	}
 
 	return syncpt;
