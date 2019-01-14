@@ -453,12 +453,20 @@ static int gv11b_fifo_poll_pbdma_chan_status(struct gk20a *g, u32 id,
 	unsigned long delay = GR_IDLE_CHECK_DEFAULT; /* in micro seconds */
 	u32 pbdma_stat;
 	u32 chan_stat;
-	int ret = -EBUSY;
+	int ret;
 	unsigned int loop_count = 0;
 
 	/* timeout in milli seconds */
-	nvgpu_timeout_init(g, &timeout, g->ops.fifo.get_preempt_timeout(g),
-			   NVGPU_TIMER_CPU_TIMER);
+	ret = nvgpu_timeout_init(g, &timeout,
+			g->ops.fifo.get_preempt_timeout(g),
+			NVGPU_TIMER_CPU_TIMER);
+	if (ret != 0) {
+		nvgpu_err(g, "timeout_init failed: %d", ret);
+		return ret;
+	}
+
+	/* Default return value */
+	ret = -EBUSY;
 
 	nvgpu_log(g, gpu_dbg_info, "wait preempt pbdma %d", pbdma_id);
 	/* Verify that ch/tsg is no longer on the pbdma */
@@ -483,7 +491,9 @@ static int gv11b_fifo_poll_pbdma_chan_status(struct gk20a *g, u32 id,
 		 * reported to SW.
 		 */
 
-		gk20a_fifo_handle_pbdma_intr(g, &g->fifo, pbdma_id, RC_NO);
+		/* Ignore un-needed return value "handled" */
+		(void) gk20a_fifo_handle_pbdma_intr(g, &g->fifo, pbdma_id,
+				RC_NO);
 
 		pbdma_stat = gk20a_readl(g, fifo_pbdma_status_r(pbdma_id));
 		chan_stat  = fifo_pbdma_status_chan_status_v(pbdma_stat);
@@ -539,13 +549,21 @@ static int gv11b_fifo_poll_eng_ctx_status(struct gk20a *g, u32 id,
 	unsigned long delay = GR_IDLE_CHECK_DEFAULT; /* in micro seconds */
 	u32 eng_stat;
 	u32 ctx_stat;
-	int ret = -EBUSY;
+	int ret;
 	unsigned int loop_count = 0;
 	u32 eng_intr_pending;
 
 	/* timeout in milli seconds */
-	nvgpu_timeout_init(g, &timeout, g->ops.fifo.get_preempt_timeout(g),
-			   NVGPU_TIMER_CPU_TIMER);
+	ret = nvgpu_timeout_init(g, &timeout,
+			g->ops.fifo.get_preempt_timeout(g),
+			NVGPU_TIMER_CPU_TIMER);
+	if (ret != 0) {
+		nvgpu_err(g, "timeout_init failed: %d", ret);
+		return ret;
+	}
+
+	/* Default return value */
+	ret = -EBUSY;
 
 	nvgpu_log(g, gpu_dbg_info, "wait preempt act engine id: %u",
 			act_eng_id);
@@ -902,7 +920,12 @@ int gv11b_fifo_preempt_tsg(struct gk20a *g, struct tsg_gk20a *tsg)
 	ret = __locked_fifo_preempt(g, tsg->tsgid, true);
 
 	if (mutex_ret == 0) {
-		nvgpu_pmu_mutex_release(&g->pmu, PMU_MUTEX_ID_FIFO, &token);
+		int err = nvgpu_pmu_mutex_release(&g->pmu, PMU_MUTEX_ID_FIFO,
+				&token);
+		if (err != 0) {
+			nvgpu_err(g, "PMU_MUTEX_ID_FIFO not released err=%d",
+					err);
+		}
 	}
 
 	/* WAR for Bug 2065990 */
@@ -954,7 +977,12 @@ static void gv11b_fifo_locked_preempt_runlists_rc(struct gk20a *g,
 	}
 
 	if (mutex_ret == 0) {
-		nvgpu_pmu_mutex_release(&g->pmu, PMU_MUTEX_ID_FIFO, &token);
+		int err = nvgpu_pmu_mutex_release(&g->pmu, PMU_MUTEX_ID_FIFO,
+				&token);
+		if (err != 0) {
+			nvgpu_err(g, "PMU_MUTEX_ID_FIFO not released err=%d",
+					err);
+		}
 	}
 }
 
@@ -1005,7 +1033,11 @@ static void gv11b_fifo_locked_abort_runlist_active_tsgs(struct gk20a *g,
 			if (!g->fifo.deferred_reset_pending) {
 				if (rc_type == RC_TYPE_MMU_FAULT) {
 					nvgpu_tsg_set_ctx_mmu_error(g, tsg);
-					nvgpu_tsg_mark_error(g, tsg);
+					/*
+					 * Mark error (returned verbose flag is
+					 * ignored since it is not needed here)
+					 */
+					(void) nvgpu_tsg_mark_error(g, tsg);
 				}
 			}
 
@@ -1023,7 +1055,12 @@ static void gv11b_fifo_locked_abort_runlist_active_tsgs(struct gk20a *g,
 		}
 	}
 	if (mutex_ret == 0) {
-		nvgpu_pmu_mutex_release(&g->pmu, PMU_MUTEX_ID_FIFO, &token);
+		err = nvgpu_pmu_mutex_release(&g->pmu, PMU_MUTEX_ID_FIFO,
+				&token);
+		if (err != 0) {
+			nvgpu_err(g, "PMU_MUTEX_ID_FIFO not released err=%d",
+					err);
+		}
 	}
 }
 
@@ -1169,7 +1206,10 @@ void gv11b_fifo_teardown_ch_tsg(struct gk20a *g, u32 act_eng_bitmask,
 			 * GPU. Any sort of hang indicates the entire GPU’s
 			 * memory system would be blocked.
 			 */
-			gv11b_fifo_poll_pbdma_chan_status(g, id, pbdma_id);
+			if (gv11b_fifo_poll_pbdma_chan_status(g, id,
+					pbdma_id) != 0) {
+				nvgpu_err(g, "PBDMA preempt failed");
+			}
 		}
 	}
 
