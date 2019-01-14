@@ -376,7 +376,6 @@ nvgpu-y += \
 	gp10b/fecs_trace_gp10b.o \
 	gp10b/gp10b.o \
 	gp10b/ecc_gp10b.o \
-	gp106/mclk_gp106.o \
 	gp106/gr_gp106.o \
 	gp106/sec2_gp106.o \
 	gp106/bios_gp106.o \

@@ -31,7 +31,6 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/boardobjgrp.h>
 
-#include "gp106/mclk_gp106.h"
 #include "common/pmu/clk/clk.h"
 
 #include "clk_gp106.h"

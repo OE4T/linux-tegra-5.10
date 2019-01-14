@@ -31,7 +31,6 @@
 
 #include "gm20b/fifo_gm20b.h"
 #include "bios_gp106.h"
-#include "gp106/mclk_gp106.h"
 
 #include <nvgpu/hw/gp106/hw_pwr_gp106.h>
 #include <nvgpu/hw/gp106/hw_top_gp106.h>

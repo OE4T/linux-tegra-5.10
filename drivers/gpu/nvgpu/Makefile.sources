@@ -226,7 +226,6 @@ srcs :=	os/posix/nvgpu.c \
 	gv11b/subctx_gv11b.c \
 	gv11b/regops_gv11b.c \
 	gv11b/ecc_gv11b.c \
-	gp106/mclk_gp106.c \
 	gp106/gr_gp106.c \
 	gp106/sec2_gp106.c \
 	gp106/bios_gp106.c \
