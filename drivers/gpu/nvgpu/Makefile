@@ -178,6 +178,7 @@ nvgpu-y += \
 	os/linux/sim.o \
 	os/linux/sim_pci.o \
 	os/linux/os_sched.o \
+	os/linux/nvlink_probe.o \
 	os/linux/nvlink.o \
 	os/linux/dt.o \
 	os/linux/ecc_sysfs.o \
@@ -328,6 +329,7 @@ nvgpu-y += \
 	common/ecc.o \
 	common/ce2.o \
 	common/debugger.o \
+	common/nvlink/probe.o \
 	common/nvlink/nvlink.o \
 	common/nvlink/nvlink_gv100.o \
 	common/nvlink/nvlink_tu104.o \

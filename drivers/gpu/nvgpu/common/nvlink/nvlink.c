@@ -22,6 +22,7 @@
 
 #include <nvgpu/gk20a.h>
 #include <nvgpu/nvlink.h>
+#include <nvgpu/nvlink_probe.h>
 #include <nvgpu/enabled.h>
 #include <nvgpu/firmware.h>
 
@@ -208,53 +209,6 @@ u32 nvgpu_nvlink_minion_extract_word(struct nvgpu_firmware *fw, u32 idx)
 }
 
 #endif
-
-int nvgpu_nvlink_probe(struct gk20a *g)
-{
-#ifdef CONFIG_TEGRA_NVLINK
-	int err;
-
-	err = nvgpu_nvlink_setup_ndev(g);
-	if (err != 0)
-		return err;
-
-	err = nvgpu_nvlink_read_dt_props(g);
-	if (err != 0)
-		goto free_ndev;
-
-	err = nvgpu_nvlink_init_ops(g);
-	if (err != 0)
-		goto free_ndev;
-
-	/* Register device with core driver*/
-	err = nvgpu_nvlink_register_device(g);
-	if (err != 0) {
-		nvgpu_err(g, "failed on nvlink device registration");
-		goto free_ndev;
-	}
-
-	/* Register link with core driver */
-	err = nvgpu_nvlink_register_link(g);
-	if (err != 0) {
-		nvgpu_err(g, "failed on nvlink link registration");
-		goto unregister_ndev;
-	}
-
-	/* Enable NVLINK support */
-	nvgpu_set_enabled(g, NVGPU_SUPPORT_NVLINK, true);
-	return 0;
-
-unregister_ndev:
-	nvgpu_nvlink_unregister_device(g);
-
-free_ndev:
-	nvgpu_kfree(g, g->nvlink.priv);
-	g->nvlink.priv = NULL;
-	return err;
-#else
-	return -ENODEV;
-#endif
-}
 
 int nvgpu_nvlink_remove(struct gk20a *g)
 {

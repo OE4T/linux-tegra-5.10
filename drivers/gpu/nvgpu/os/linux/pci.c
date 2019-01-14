@@ -24,7 +24,7 @@
 #include <nvgpu/nvgpu_common.h>
 #include <nvgpu/kmem.h>
 #include <nvgpu/enabled.h>
-#include <nvgpu/nvlink.h>
+#include <nvgpu/nvlink_probe.h>
 #include <nvgpu/soc.h>
 #include <nvgpu/sim.h>
 #include <nvgpu/gk20a.h>

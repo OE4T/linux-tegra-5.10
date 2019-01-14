@@ -227,7 +227,6 @@ struct nvgpu_nvlink_dev {
 void nvgpu_nvlink_free_minion_used_mem(struct gk20a *g,
 					struct nvgpu_firmware *nvgpu_minion_fw);
 u32 nvgpu_nvlink_minion_extract_word(struct nvgpu_firmware *fw, u32 idx);
-
 int nvgpu_nvlink_speed_config(struct gk20a *g);
 int nvgpu_nvlink_early_init(struct gk20a *g);
 int nvgpu_nvlink_link_early_init(struct gk20a *g);
@@ -243,18 +242,9 @@ void nvgpu_nvlink_get_rx_sublink_state(struct gk20a *g, u32 *state);
 u32 nvgpu_nvlink_get_sublink_mode(struct gk20a *g, bool is_rx_sublink);
 int nvgpu_nvlink_set_sublink_mode(struct gk20a *g,
 						bool is_rx_sublink, u32 mode);
-int nvgpu_nvlink_setup_ndev(struct gk20a *g);
-int nvgpu_nvlink_init_ops(struct gk20a *g);
 int nvgpu_nvlink_enumerate(struct gk20a *g);
 int nvgpu_nvlink_train(struct gk20a *g, u32 link_id, bool from_off);
-int nvgpu_nvlink_read_dt_props(struct gk20a *g);
-
-int nvgpu_nvlink_probe(struct gk20a *g);
 int nvgpu_nvlink_remove(struct gk20a *g);
-int nvgpu_nvlink_register_device(struct gk20a *g);
-int nvgpu_nvlink_unregister_device(struct gk20a *g);
-int nvgpu_nvlink_register_link(struct gk20a *g);
-int nvgpu_nvlink_unregister_link(struct gk20a *g);
 u32 nvgpu_nvlink_minion_load_ucode(struct gk20a *g,
 					struct nvgpu_firmware *nvgpu_minion_fw);
 void nvgpu_mss_nvlink_init_credits(struct gk20a *g);
