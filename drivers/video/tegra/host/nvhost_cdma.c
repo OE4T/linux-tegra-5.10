@@ -67,10 +67,6 @@ int nvhost_push_buffer_alloc(struct push_buffer *pb)
 		return -ENOMEM;
 	}
 
-	/* for now, map pushbuffer to all address spaces */
-	nvhost_vm_map_static(cdma_to_dev(cdma)->dev, pb->mapped,
-			     pb->dma_addr, PUSH_BUFFER_SIZE + 4);
-
 	return 0;
 }
 
