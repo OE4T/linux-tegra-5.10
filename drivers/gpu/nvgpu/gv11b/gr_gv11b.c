@@ -203,8 +203,8 @@ static int gr_gv11b_handle_l1_tag_exception(struct gk20a *g, u32 gpc, u32 tpc,
 	u32 l1_tag_ecc_uncorrected_err_status = 0;
 	u32 l1_tag_corrected_err_count_delta = 0;
 	u32 l1_tag_uncorrected_err_count_delta = 0;
-	bool is_l1_tag_ecc_corrected_total_err_overflow = 0;
-	bool is_l1_tag_ecc_uncorrected_total_err_overflow = 0;
+	bool is_l1_tag_ecc_corrected_total_err_overflow = false;
+	bool is_l1_tag_ecc_uncorrected_total_err_overflow = false;
 
 	/* Check for L1 tag ECC errors. */
 	l1_tag_ecc_status = gk20a_readl(g,
@@ -235,9 +235,9 @@ static int gr_gv11b_handle_l1_tag_exception(struct gk20a *g, u32 gpc, u32 tpc,
 				gr_pri_gpc0_tpc0_sm_l1_tag_ecc_uncorrected_err_count_r() +
 				offset));
 	is_l1_tag_ecc_corrected_total_err_overflow =
-		gr_pri_gpc0_tpc0_sm_l1_tag_ecc_status_corrected_err_total_counter_overflow_v(l1_tag_ecc_status);
+		gr_pri_gpc0_tpc0_sm_l1_tag_ecc_status_corrected_err_total_counter_overflow_v(l1_tag_ecc_status) != 0U;
 	is_l1_tag_ecc_uncorrected_total_err_overflow =
-		gr_pri_gpc0_tpc0_sm_l1_tag_ecc_status_uncorrected_err_total_counter_overflow_v(l1_tag_ecc_status);
+		gr_pri_gpc0_tpc0_sm_l1_tag_ecc_status_uncorrected_err_total_counter_overflow_v(l1_tag_ecc_status) != 0U;
 
 	if ((l1_tag_corrected_err_count_delta > 0U) || is_l1_tag_ecc_corrected_total_err_overflow) {
 		nvgpu_log(g, gpu_dbg_fn | gpu_dbg_intr,
@@ -296,8 +296,8 @@ static int gr_gv11b_handle_lrf_exception(struct gk20a *g, u32 gpc, u32 tpc,
 	u32 lrf_ecc_uncorrected_err_status = 0;
 	u32 lrf_corrected_err_count_delta = 0;
 	u32 lrf_uncorrected_err_count_delta = 0;
-	bool is_lrf_ecc_corrected_total_err_overflow = 0;
-	bool is_lrf_ecc_uncorrected_total_err_overflow = 0;
+	bool is_lrf_ecc_corrected_total_err_overflow = false;
+	bool is_lrf_ecc_uncorrected_total_err_overflow = false;
 
 	/* Check for LRF ECC errors. */
 	lrf_ecc_status = gk20a_readl(g,
@@ -336,9 +336,9 @@ static int gr_gv11b_handle_lrf_exception(struct gk20a *g, u32 gpc, u32 tpc,
 				gr_pri_gpc0_tpc0_sm_lrf_ecc_uncorrected_err_count_r() +
 				offset));
 	is_lrf_ecc_corrected_total_err_overflow =
-		gr_pri_gpc0_tpc0_sm_lrf_ecc_status_corrected_err_total_counter_overflow_v(lrf_ecc_status);
+		gr_pri_gpc0_tpc0_sm_lrf_ecc_status_corrected_err_total_counter_overflow_v(lrf_ecc_status) != 0U;
 	is_lrf_ecc_uncorrected_total_err_overflow =
-		gr_pri_gpc0_tpc0_sm_lrf_ecc_status_uncorrected_err_total_counter_overflow_v(lrf_ecc_status);
+		gr_pri_gpc0_tpc0_sm_lrf_ecc_status_uncorrected_err_total_counter_overflow_v(lrf_ecc_status) != 0U;
 
 	if ((lrf_corrected_err_count_delta > 0U) || is_lrf_ecc_corrected_total_err_overflow) {
 		nvgpu_log(g, gpu_dbg_fn | gpu_dbg_intr,
@@ -472,8 +472,8 @@ static int gr_gv11b_handle_cbu_exception(struct gk20a *g, u32 gpc, u32 tpc,
 	u32 cbu_ecc_uncorrected_err_status = 0;
 	u32 cbu_corrected_err_count_delta = 0;
 	u32 cbu_uncorrected_err_count_delta = 0;
-	bool is_cbu_ecc_corrected_total_err_overflow = 0;
-	bool is_cbu_ecc_uncorrected_total_err_overflow = 0;
+	bool is_cbu_ecc_corrected_total_err_overflow = false;
+	bool is_cbu_ecc_uncorrected_total_err_overflow = false;
 
 	/* Check for CBU ECC errors. */
 	cbu_ecc_status = gk20a_readl(g,
@@ -504,9 +504,9 @@ static int gr_gv11b_handle_cbu_exception(struct gk20a *g, u32 gpc, u32 tpc,
 				gr_pri_gpc0_tpc0_sm_cbu_ecc_uncorrected_err_count_r() +
 				offset));
 	is_cbu_ecc_corrected_total_err_overflow =
-		gr_pri_gpc0_tpc0_sm_cbu_ecc_status_corrected_err_total_counter_overflow_v(cbu_ecc_status);
+		gr_pri_gpc0_tpc0_sm_cbu_ecc_status_corrected_err_total_counter_overflow_v(cbu_ecc_status) != 0U;
 	is_cbu_ecc_uncorrected_total_err_overflow =
-		gr_pri_gpc0_tpc0_sm_cbu_ecc_status_uncorrected_err_total_counter_overflow_v(cbu_ecc_status);
+		gr_pri_gpc0_tpc0_sm_cbu_ecc_status_uncorrected_err_total_counter_overflow_v(cbu_ecc_status) != 0U;
 
 	if ((cbu_corrected_err_count_delta > 0U) || is_cbu_ecc_corrected_total_err_overflow) {
 		nvgpu_log(g, gpu_dbg_fn | gpu_dbg_intr,
@@ -565,8 +565,8 @@ static int gr_gv11b_handle_l1_data_exception(struct gk20a *g, u32 gpc, u32 tpc,
 	u32 l1_data_ecc_uncorrected_err_status = 0;
 	u32 l1_data_corrected_err_count_delta = 0;
 	u32 l1_data_uncorrected_err_count_delta = 0;
-	bool is_l1_data_ecc_corrected_total_err_overflow = 0;
-	bool is_l1_data_ecc_uncorrected_total_err_overflow = 0;
+	bool is_l1_data_ecc_corrected_total_err_overflow = false;
+	bool is_l1_data_ecc_uncorrected_total_err_overflow = false;
 
 	/* Check for L1 data ECC errors. */
 	l1_data_ecc_status = gk20a_readl(g,
@@ -593,9 +593,9 @@ static int gr_gv11b_handle_l1_data_exception(struct gk20a *g, u32 gpc, u32 tpc,
 				gr_pri_gpc0_tpc0_sm_l1_data_ecc_uncorrected_err_count_r() +
 				offset));
 	is_l1_data_ecc_corrected_total_err_overflow =
-		gr_pri_gpc0_tpc0_sm_l1_data_ecc_status_corrected_err_total_counter_overflow_v(l1_data_ecc_status);
+		gr_pri_gpc0_tpc0_sm_l1_data_ecc_status_corrected_err_total_counter_overflow_v(l1_data_ecc_status) != 0U;
 	is_l1_data_ecc_uncorrected_total_err_overflow =
-		gr_pri_gpc0_tpc0_sm_l1_data_ecc_status_uncorrected_err_total_counter_overflow_v(l1_data_ecc_status);
+		gr_pri_gpc0_tpc0_sm_l1_data_ecc_status_uncorrected_err_total_counter_overflow_v(l1_data_ecc_status) != 0U;
 
 	if ((l1_data_corrected_err_count_delta > 0U) || is_l1_data_ecc_corrected_total_err_overflow) {
 		nvgpu_log(g, gpu_dbg_fn | gpu_dbg_intr,
@@ -653,8 +653,8 @@ static int gr_gv11b_handle_icache_exception(struct gk20a *g, u32 gpc, u32 tpc,
 	u32 icache_ecc_uncorrected_err_status = 0;
 	u32 icache_corrected_err_count_delta = 0;
 	u32 icache_uncorrected_err_count_delta = 0;
-	bool is_icache_ecc_corrected_total_err_overflow = 0;
-	bool is_icache_ecc_uncorrected_total_err_overflow = 0;
+	bool is_icache_ecc_corrected_total_err_overflow = false;
+	bool is_icache_ecc_uncorrected_total_err_overflow = false;
 
 	/* Check for L0 && L1 icache ECC errors. */
 	icache_ecc_status = gk20a_readl(g,
@@ -685,9 +685,9 @@ static int gr_gv11b_handle_icache_exception(struct gk20a *g, u32 gpc, u32 tpc,
 				gr_pri_gpc0_tpc0_sm_icache_ecc_uncorrected_err_count_r() +
 				offset));
 	is_icache_ecc_corrected_total_err_overflow =
-		gr_pri_gpc0_tpc0_sm_icache_ecc_status_corrected_err_total_counter_overflow_v(icache_ecc_status);
+		gr_pri_gpc0_tpc0_sm_icache_ecc_status_corrected_err_total_counter_overflow_v(icache_ecc_status) != 0U;
 	is_icache_ecc_uncorrected_total_err_overflow =
-		gr_pri_gpc0_tpc0_sm_icache_ecc_status_uncorrected_err_total_counter_overflow_v(icache_ecc_status);
+		gr_pri_gpc0_tpc0_sm_icache_ecc_status_uncorrected_err_total_counter_overflow_v(icache_ecc_status) != 0U;
 
 	if ((icache_corrected_err_count_delta > 0U) || is_icache_ecc_corrected_total_err_overflow) {
 		nvgpu_log(g, gpu_dbg_fn | gpu_dbg_intr,
@@ -812,8 +812,8 @@ int gr_gv11b_handle_gcc_exception(struct gk20a *g, u32 gpc, u32 tpc,
 	u32 gcc_l15_ecc_uncorrected_err_status = 0;
 	u32 gcc_l15_corrected_err_count_delta = 0;
 	u32 gcc_l15_uncorrected_err_count_delta = 0;
-	bool is_gcc_l15_ecc_corrected_total_err_overflow = 0;
-	bool is_gcc_l15_ecc_uncorrected_total_err_overflow = 0;
+	bool is_gcc_l15_ecc_corrected_total_err_overflow = false;
+	bool is_gcc_l15_ecc_uncorrected_total_err_overflow = false;
 
 	/* Check for gcc l15 ECC errors. */
 	gcc_l15_ecc_status = gk20a_readl(g,
@@ -840,9 +840,9 @@ int gr_gv11b_handle_gcc_exception(struct gk20a *g, u32 gpc, u32 tpc,
 				gr_pri_gpc0_gcc_l15_ecc_uncorrected_err_count_r() +
 				offset));
 	is_gcc_l15_ecc_corrected_total_err_overflow =
-		gr_pri_gpc0_gcc_l15_ecc_status_corrected_err_total_counter_overflow_v(gcc_l15_ecc_status);
+		gr_pri_gpc0_gcc_l15_ecc_status_corrected_err_total_counter_overflow_v(gcc_l15_ecc_status) != 0U;
 	is_gcc_l15_ecc_uncorrected_total_err_overflow =
-		gr_pri_gpc0_gcc_l15_ecc_status_uncorrected_err_total_counter_overflow_v(gcc_l15_ecc_status);
+		gr_pri_gpc0_gcc_l15_ecc_status_uncorrected_err_total_counter_overflow_v(gcc_l15_ecc_status) != 0U;
 
 	if ((gcc_l15_corrected_err_count_delta > 0U) || is_gcc_l15_ecc_corrected_total_err_overflow) {
 		nvgpu_log(g, gpu_dbg_fn | gpu_dbg_intr,
@@ -1342,23 +1342,27 @@ void gr_gv11b_set_coalesce_buffer_size(struct gk20a *g, u32 data)
 void gr_gv11b_set_tex_in_dbg(struct gk20a *g, u32 data)
 {
 	u32 val;
-	bool flag;
+	u32 flag;
 
 	nvgpu_log_fn(g, " ");
 
 	val = gk20a_readl(g, gr_gpcs_tpcs_tex_in_dbg_r());
-	flag = (data & NVC397_SET_TEX_IN_DBG_TSL1_RVCH_INVALIDATE) != 0U;
+	flag = (data & NVC397_SET_TEX_IN_DBG_TSL1_RVCH_INVALIDATE) != 0U
+		? 1U : 0U;
 	val = set_field(val, gr_gpcs_tpcs_tex_in_dbg_tsl1_rvch_invalidate_m(),
 			gr_gpcs_tpcs_tex_in_dbg_tsl1_rvch_invalidate_f(flag));
 	gk20a_writel(g, gr_gpcs_tpcs_tex_in_dbg_r(), val);
 
 	val = gk20a_readl(g, gr_gpcs_tpcs_sm_l1tag_ctrl_r());
 	flag = (data &
-		NVC397_SET_TEX_IN_DBG_SM_L1TAG_CTRL_CACHE_SURFACE_LD) != 0U;
+		NVC397_SET_TEX_IN_DBG_SM_L1TAG_CTRL_CACHE_SURFACE_LD) != 0U
+		? 1U : 0U;
 	val = set_field(val, gr_gpcs_tpcs_sm_l1tag_ctrl_cache_surface_ld_m(),
 			gr_gpcs_tpcs_sm_l1tag_ctrl_cache_surface_ld_f(flag));
 	flag = (data &
-		NVC397_SET_TEX_IN_DBG_SM_L1TAG_CTRL_CACHE_SURFACE_ST) != 0U;
+		NVC397_SET_TEX_IN_DBG_SM_L1TAG_CTRL_CACHE_SURFACE_ST) != 0U
+		? 1U : 0U;
+
 	val = set_field(val, gr_gpcs_tpcs_sm_l1tag_ctrl_cache_surface_st_m(),
 			gr_gpcs_tpcs_sm_l1tag_ctrl_cache_surface_st_f(flag));
 	gk20a_writel(g, gr_gpcs_tpcs_sm_l1tag_ctrl_r(), val);
@@ -2110,7 +2114,7 @@ int gr_gv11b_wait_empty(struct gk20a *g)
 		   only when gr_status is read */
 		gr_status = gk20a_readl(g, gr_status_r());
 
-		ctxsw_active = gr_status & BIT32(7);
+		ctxsw_active = (gr_status & BIT32(7)) != 0U;
 
 		activity0 = gk20a_readl(g, gr_activity_0_r());
 		activity1 = gk20a_readl(g, gr_activity_1_r());
