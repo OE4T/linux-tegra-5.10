@@ -37,6 +37,7 @@
 #include "common/fuse/fuse_gm20b.h"
 #include "common/fuse/fuse_gp10b.h"
 #include "common/regops/regops_gp10b.h"
+#include "common/fifo/runlist_gk20a.h"
 
 #include "vgpu/fifo_vgpu.h"
 #include "vgpu/gr_vgpu.h"

@@ -60,8 +60,6 @@ void gv11b_fifo_reset_pbdma_and_eng_faulted(struct gk20a *g,
 void gv11b_mmu_fault_id_to_eng_pbdma_id_and_veid(struct gk20a *g,
 	u32 mmu_fault_id, u32 *active_engine_id, u32 *veid, u32 *pbdma_id);
 
-void gv11b_get_tsg_runlist_entry(struct tsg_gk20a *tsg, u32 *runlist);
-void gv11b_get_ch_runlist_entry(struct channel_gk20a *c, u32 *runlist);
 int channel_gv11b_setup_ramfc(struct channel_gk20a *c,
 		u64 gpfifo_base, u32 gpfifo_entries,
 		unsigned long acquire_timeout, u32 flags);
@@ -80,7 +78,6 @@ void gv11b_capture_channel_ram_dump(struct gk20a *g,
 void gv11b_dump_eng_status(struct gk20a *g,
 				 struct gk20a_debug_output *o);
 u32 gv11b_fifo_intr_0_error_mask(struct gk20a *g);
-int gv11b_fifo_reschedule_runlist(struct channel_gk20a *ch, bool preempt_next);
 int gv11b_fifo_is_preempt_pending(struct gk20a *g, u32 id,
 		 unsigned int id_type);
 int gv11b_fifo_preempt_channel(struct gk20a *g, struct channel_gk20a *ch);

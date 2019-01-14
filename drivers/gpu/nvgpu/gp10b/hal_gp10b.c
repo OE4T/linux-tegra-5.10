@@ -66,6 +66,7 @@
 #include "common/top/top_gm20b.h"
 #include "common/top/top_gp10b.h"
 #include "common/regops/regops_gp10b.h"
+#include "common/fifo/runlist_gk20a.h"
 
 #include "gk20a/fifo_gk20a.h"
 #include "gk20a/fecs_trace_gk20a.h"

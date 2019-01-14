@@ -317,6 +317,9 @@ nvgpu-y += \
 	common/fifo/submit.o \
 	common/fifo/tsg.o \
 	common/fifo/runlist.o \
+	common/fifo/runlist_gk20a.o \
+	common/fifo/runlist_gv11b.o \
+	common/fifo/runlist_tu104.o \
 	common/ecc.o \
 	common/ce2.o \
 	common/debugger.o \

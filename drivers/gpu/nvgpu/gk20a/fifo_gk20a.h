@@ -260,13 +260,8 @@ int gk20a_fifo_disable_engine_activity(struct gk20a *g,
 			bool wait_for_idle);
 int gk20a_fifo_disable_all_engine_activity(struct gk20a *g,
 				bool wait_for_idle);
-void gk20a_fifo_runlist_write_state(struct gk20a *g, u32 runlists_mask,
-					 u32 runlist_state);
 
 u32 gk20a_fifo_engines_on_ch(struct gk20a *g, u32 chid);
-
-int gk20a_fifo_reschedule_preempt_next(struct channel_gk20a *ch,
-		bool wait_preempt);
 
 int gk20a_fifo_suspend(struct gk20a *g);
 
@@ -296,10 +291,6 @@ u32 gk20a_fifo_get_failing_engine_data(struct gk20a *g,
 		u32 *__id, bool *__is_tsg);
 void gk20a_fifo_abort_tsg(struct gk20a *g, struct tsg_gk20a *tsg, bool preempt);
 void gk20a_fifo_issue_preempt(struct gk20a *g, u32 id, bool is_tsg);
-int gk20a_fifo_set_runlist_interleave(struct gk20a *g,
-				u32 id,
-				u32 runlist_id,
-				u32 new_level);
 int gk20a_fifo_tsg_set_timeslice(struct tsg_gk20a *tsg, u32 timeslice);
 
 enum fifo_engine gk20a_fifo_engine_enum_from_type(struct gk20a *g,
@@ -325,8 +316,6 @@ u32 gk20a_fifo_get_gr_runlist_id(struct gk20a *g);
 
 bool gk20a_fifo_is_valid_runlist_id(struct gk20a *g, u32 runlist_id);
 
-void gk20a_get_tsg_runlist_entry(struct tsg_gk20a *tsg, u32 *runlist);
-void gk20a_get_ch_runlist_entry(struct channel_gk20a *ch, u32 *runlist);
 void gk20a_fifo_set_runlist_state(struct gk20a *g, u32 runlists_mask,
 		 u32 runlist_state);
 
@@ -397,10 +386,7 @@ int gk20a_fifo_setup_userd(struct channel_gk20a *c);
 u32 gk20a_fifo_pbdma_acquire_val(u64 timeout);
 
 
-void gk20a_fifo_runlist_hw_submit(struct gk20a *g, u32 runlist_id,
-	u32 count, u32 buffer_index);
 u32 gk20a_fifo_runlist_busy_engines(struct gk20a *g, u32 runlist_id);
-int gk20a_fifo_runlist_wait_pending(struct gk20a *g, u32 runlist_id);
 int gk20a_init_fifo_setup_sw_common(struct gk20a *g);
 int gk20a_init_fifo_setup_sw(struct gk20a *g);
 void gk20a_fifo_handle_runlist_event(struct gk20a *g);

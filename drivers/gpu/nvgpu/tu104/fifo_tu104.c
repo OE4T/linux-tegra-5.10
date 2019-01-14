@@ -113,63 +113,6 @@ int channel_tu104_setup_ramfc(struct channel_gk20a *c,
 	return channel_gp10b_commit_userd(c);
 }
 
-void tu104_fifo_runlist_hw_submit(struct gk20a *g, u32 runlist_id,
-	u32 count, u32 buffer_index)
-{
-	struct fifo_runlist_info_gk20a *runlist = NULL;
-	u64 runlist_iova;
-	u32 runlist_iova_lo, runlist_iova_hi;
-
-	runlist = &g->fifo.runlist_info[runlist_id];
-	runlist_iova = nvgpu_mem_get_addr(g, &runlist->mem[buffer_index]);
-
-	runlist_iova_lo = u64_lo32(runlist_iova) >>
-				fifo_runlist_base_lo_ptr_align_shift_v();
-	runlist_iova_hi = u64_hi32(runlist_iova);
-
-	if (count != 0U) {
-		nvgpu_writel(g, fifo_runlist_base_lo_r(runlist_id),
-			fifo_runlist_base_lo_ptr_lo_f(runlist_iova_lo) |
-			nvgpu_aperture_mask(g, &runlist->mem[buffer_index],
-				fifo_runlist_base_lo_target_sys_mem_ncoh_f(),
-				fifo_runlist_base_lo_target_sys_mem_coh_f(),
-				fifo_runlist_base_lo_target_vid_mem_f()));
-
-		nvgpu_writel(g, fifo_runlist_base_hi_r(runlist_id),
-			fifo_runlist_base_hi_ptr_hi_f(runlist_iova_hi));
-	}
-
-	nvgpu_writel(g, fifo_runlist_submit_r(runlist_id),
-		fifo_runlist_submit_length_f(count));
-}
-
-int tu104_fifo_runlist_wait_pending(struct gk20a *g, u32 runlist_id)
-{
-	struct nvgpu_timeout timeout;
-	unsigned long delay = GR_IDLE_CHECK_DEFAULT;
-	int ret = -ETIMEDOUT;
-
-	ret = nvgpu_timeout_init(g, &timeout, gk20a_get_gr_idle_timeout(g),
-			   NVGPU_TIMER_CPU_TIMER);
-	if (ret != 0) {
-		return ret;
-	}
-
-	ret = -ETIMEDOUT;
-	do {
-		if ((nvgpu_readl(g, fifo_runlist_submit_info_r(runlist_id)) &
-			fifo_runlist_submit_info_pending_true_f()) == 0U) {
-			ret = 0;
-			break;
-		}
-
-		nvgpu_usleep_range(delay, delay * 2UL);
-		delay = min_t(u32, delay << 1, GR_IDLE_CHECK_MAX);
-	} while (nvgpu_timeout_expired(&timeout) == 0);
-
-	return ret;
-}
-
 int tu104_init_fifo_setup_hw(struct gk20a *g)
 {
 	u32 val;

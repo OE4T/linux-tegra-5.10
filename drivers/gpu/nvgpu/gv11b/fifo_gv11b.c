@@ -64,72 +64,6 @@
 #include "subctx_gv11b.h"
 #include "gr_gv11b.h"
 
-void gv11b_get_tsg_runlist_entry(struct tsg_gk20a *tsg, u32 *runlist)
-{
-	struct gk20a *g = tsg->g;
-	u32 runlist_entry_0 = ram_rl_entry_type_tsg_v();
-
-	if (tsg->timeslice_timeout != 0U) {
-		runlist_entry_0 |=
-		ram_rl_entry_tsg_timeslice_scale_f(tsg->timeslice_scale) |
-		ram_rl_entry_tsg_timeslice_timeout_f(tsg->timeslice_timeout);
-	} else {
-		runlist_entry_0 |=
-			ram_rl_entry_tsg_timeslice_scale_f(
-				ram_rl_entry_tsg_timeslice_scale_3_v()) |
-			ram_rl_entry_tsg_timeslice_timeout_f(
-				ram_rl_entry_tsg_timeslice_timeout_128_v());
-	}
-
-	runlist[0] = runlist_entry_0;
-	runlist[1] = ram_rl_entry_tsg_length_f(tsg->num_active_channels);
-	runlist[2] = ram_rl_entry_tsg_tsgid_f(tsg->tsgid);
-	runlist[3] = 0;
-
-	nvgpu_log_info(g, "gv11b tsg runlist [0] %x [1]  %x [2] %x [3] %x\n",
-		runlist[0], runlist[1], runlist[2], runlist[3]);
-
-}
-
-void gv11b_get_ch_runlist_entry(struct channel_gk20a *c, u32 *runlist)
-{
-	struct gk20a *g = c->g;
-	u32 addr_lo, addr_hi;
-	u32 runlist_entry;
-
-	/* Time being use 0 pbdma sequencer */
-	runlist_entry = ram_rl_entry_type_channel_v() |
-			ram_rl_entry_chan_runqueue_selector_f(
-						c->runqueue_sel) |
-			ram_rl_entry_chan_userd_target_f(
-				nvgpu_aperture_mask(g, c->userd_mem,
-					ram_rl_entry_chan_userd_target_sys_mem_ncoh_v(),
-					ram_rl_entry_chan_userd_target_sys_mem_coh_v(),
-					ram_rl_entry_chan_userd_target_vid_mem_v())) |
-			ram_rl_entry_chan_inst_target_f(
-				nvgpu_aperture_mask(g, &c->inst_block,
-					ram_rl_entry_chan_inst_target_sys_mem_ncoh_v(),
-					ram_rl_entry_chan_inst_target_sys_mem_coh_v(),
-					ram_rl_entry_chan_inst_target_vid_mem_v()));
-
-	addr_lo = u64_lo32(c->userd_iova) >>
-			ram_rl_entry_chan_userd_ptr_align_shift_v();
-	addr_hi = u64_hi32(c->userd_iova);
-	runlist[0] = runlist_entry | ram_rl_entry_chan_userd_ptr_lo_f(addr_lo);
-	runlist[1] = ram_rl_entry_chan_userd_ptr_hi_f(addr_hi);
-
-	addr_lo = u64_lo32(nvgpu_inst_block_addr(g, &c->inst_block)) >>
-			ram_rl_entry_chan_inst_ptr_align_shift_v();
-	addr_hi = u64_hi32(nvgpu_inst_block_addr(g, &c->inst_block));
-
-	runlist[2] = ram_rl_entry_chan_inst_ptr_lo_f(addr_lo) |
-				ram_rl_entry_chid_f(c->chid);
-	runlist[3] = ram_rl_entry_chan_inst_ptr_hi_f(addr_hi);
-
-	nvgpu_log_info(g, "gv11b channel runlist [0] %x [1]  %x [2] %x [3] %x\n",
-			runlist[0], runlist[1], runlist[2], runlist[3]);
-}
-
 void gv11b_userd_writeback_config(struct gk20a *g)
 {
 	gk20a_writel(g, fifo_userd_writeback_r(), fifo_userd_writeback_timer_f(
@@ -796,13 +730,6 @@ static u32 gv11b_fifo_get_runlists_mask(struct gk20a *g, u32 act_eng_bitmask,
 	}
 	nvgpu_log(g, gpu_dbg_info, "runlists_mask = 0x%08x", runlists_mask);
 	return runlists_mask;
-}
-
-int gv11b_fifo_reschedule_runlist(struct channel_gk20a *ch, bool preempt_next)
-{
-	/* gv11b allows multiple outstanding preempts,
-	   so always preempt next for best reschedule effect */
-	return nvgpu_fifo_reschedule_runlist(ch, true, false);
 }
 
 static void gv11b_fifo_issue_runlist_preempt(struct gk20a *g,

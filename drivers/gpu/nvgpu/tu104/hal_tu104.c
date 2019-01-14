@@ -77,6 +77,9 @@
 #include "common/nvlink/nvlink_gv100.h"
 #include "common/nvlink/nvlink_tu104.h"
 #include "common/regops/regops_tu104.h"
+#include "common/fifo/runlist_gk20a.h"
+#include "common/fifo/runlist_gv11b.h"
+#include "common/fifo/runlist_tu104.h"
 
 #include "gk20a/fifo_gk20a.h"
 #include "gk20a/fecs_trace_gk20a.h"

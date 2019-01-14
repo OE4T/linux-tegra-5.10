@@ -31,9 +31,6 @@ struct channel_gk20a;
 int channel_tu104_setup_ramfc(struct channel_gk20a *c,
                 u64 gpfifo_base, u32 gpfifo_entries,
                 unsigned long acquire_timeout, u32 flags);
-void tu104_fifo_runlist_hw_submit(struct gk20a *g, u32 runlist_id,
-	u32 count, u32 buffer_index);
-int tu104_fifo_runlist_wait_pending(struct gk20a *g, u32 runlist_id);
 int tu104_init_fifo_setup_hw(struct gk20a *g);
 void tu104_ring_channel_doorbell(struct channel_gk20a *c);
 u64 tu104_fifo_usermode_base(struct gk20a *g);

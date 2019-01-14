@@ -41,6 +41,7 @@
 #include "common/fuse/fuse_gm20b.h"
 #include "common/fuse/fuse_gp10b.h"
 #include "common/regops/regops_gv11b.h"
+#include "common/fifo/runlist_gv11b.h"
 
 #include <nvgpu/gk20a.h>
 #include <gv11b/hal_gv11b.h>
