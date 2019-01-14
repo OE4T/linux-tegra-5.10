@@ -129,7 +129,7 @@ struct tegra210_adsp_app {
 	uint32_t reg;
 	uint32_t adma_chan; /* Valid for only ADMA app */
 	uint32_t fe:1; /* Whether the app is used as a FE APM */
-	uint32_t fe_playback_triggered:1; /* if app is playback FE, indicates whether in triggered state or inactive */
+	int32_t fe_playback_triggered; /* if app is playback FE, indicates whether in triggered state or inactive */
 	uint32_t connect:1; /* if app is connected to a source */
 	uint32_t priority; /* Valid for only APM app */
 	uint32_t min_adsp_clock; /* Min ADSP clock required in MHz */
@@ -141,6 +141,7 @@ struct tegra210_adsp_app {
 	int (*msg_handler)(struct tegra210_adsp_app *, apm_msg_t *);
 	struct work_struct *override_freq_work;
 	spinlock_t apm_msg_queue_lock;
+	spinlock_t fe_playback_lock;
 };
 
 struct tegra210_adsp_pcm_rtd {
@@ -864,6 +865,7 @@ static int tegra210_adsp_app_init(struct tegra210_adsp *adsp,
 
 	spin_lock_init(&app->lock);
 	spin_lock_init(&app->apm_msg_queue_lock);
+	spin_lock_init(&app->fe_playback_lock);
 
 	app->adsp = adsp;
 	app->msg_handler = tegra210_adsp_app_default_msg_handler;
@@ -1732,6 +1734,18 @@ static struct snd_compr_ops tegra210_adsp_compr_ops = {
 };
 
 /* PCM APIs */
+static int tegra210_get_connected_be(struct tegra210_adsp *adsp, struct tegra210_adsp_app *app)
+{
+
+	uint32_t apm_out =  TEGRA210_ADSP_APM_OUT1 +  (app->reg -TEGRA210_ADSP_APM_IN1), i;
+	for (i = TEGRA210_ADSP_ADMAIF1; i < ADSP_NULL_SINK_START; i++)
+		if (tegra210_adsp_get_source(adsp, i) == apm_out)
+			return i;
+	return 0;
+
+
+}
+
 static int tegra210_adsp_pcm_open(struct snd_pcm_substream *substream)
 {
 	struct snd_soc_pcm_runtime *rtd = substream->private_data;
@@ -1788,6 +1802,13 @@ static int tegra210_adsp_pcm_open(struct snd_pcm_substream *substream)
 		devm_kfree(adsp->dev, prtd);
 		return -ENODEV;
 	}
+
+	if ((substream->stream == SNDRV_PCM_STREAM_PLAYBACK) &&
+		tegra210_get_connected_be(adsp, prtd->fe_apm) == 0) {
+		devm_kfree(adsp->dev, prtd);
+		return -ENODEV;
+	}
+
 	prtd->fe_apm->msg_handler = tegra210_adsp_pcm_msg_handler;
 	prtd->fe_apm->private_data = prtd;
 	prtd->fe_apm->fe = 1;
@@ -1853,6 +1874,14 @@ static int tegra210_adsp_pcm_close(struct snd_pcm_substream *substream)
 
 static int tegra210_adsp_pcm_prepare(struct snd_pcm_substream *substream)
 {
+	struct tegra210_adsp_pcm_rtd *prtd = substream->runtime->private_data;
+	struct tegra210_adsp_app *apm = prtd->fe_apm;
+	unsigned long flags;
+
+	spin_lock_irqsave(&apm->fe_playback_lock, flags);
+	apm->fe_playback_triggered = 0;
+	spin_unlock_irqrestore(&apm->fe_playback_lock, flags);
+
 	tegra_isomgr_adma_setbw(substream, true);
 
 	return 0;
@@ -2213,6 +2242,7 @@ static uint32_t tegra210_adsp_hv_pcm_trigger(
 	return ret;
 }
 
+
 static int tegra210_adsp_pcm_trigger(struct snd_pcm_substream *substream,
 				     int cmd)
 {
@@ -2221,34 +2251,41 @@ static int tegra210_adsp_pcm_trigger(struct snd_pcm_substream *substream,
 	struct tegra210_adsp *adsp = prtd->fe_apm->adsp;
 	struct device *dev = adsp->dev;
 	struct device_node *node = dev->of_node;
+	struct tegra210_adsp_app *apm = prtd->fe_apm;
+	unsigned long flags;
 	int ret = 0;
 
 	dev_vdbg(prtd->dev, "%s : state %d", __func__, cmd);
 
-	if (of_device_is_compatible(node, "nvidia,tegra210-adsp-audio-hv")) {
+	if ((substream->stream == SNDRV_PCM_STREAM_PLAYBACK) &&
+				tegra210_get_connected_be(adsp, apm) == 0) {
+		runtime->status->state = SNDRV_PCM_STATE_DISCONNECTED;
+		return -EBADF;
+	}
+	spin_lock_irqsave(&apm->fe_playback_lock, flags);
 
-		/*
-		 * Start playback/capture trigger handled here
-		 * Stop capture trigger handled here
-		 * Stop playback handled in fe_widget_event()
-		 */
-		if ((substream->stream == SNDRV_PCM_STREAM_PLAYBACK) && (cmd == SNDRV_PCM_TRIGGER_STOP)) {
-			prtd->fe_apm->fe_playback_triggered = 0;
+	if ((substream->stream == SNDRV_PCM_STREAM_PLAYBACK)
+			&& (cmd == SNDRV_PCM_TRIGGER_STOP)) {
+		if (apm->fe_playback_triggered == 1)
+			apm->fe_playback_triggered = 0;
+		else {
+			/*unlock and return */
+			spin_unlock_irqrestore(&apm->fe_playback_lock, flags);
 			return 0;
 		}
-
-		ret = tegra210_adsp_hv_pcm_trigger(adsp,
-					prtd->fe_apm->reg, /* apm_out_in */
-					substream->stream,
-					cmd);
-		if (ret < 0) {
-			dev_err(prtd->dev, "error on ivc_send");
-			return ret;
-		}
-
-		if ((substream->stream == SNDRV_PCM_STREAM_PLAYBACK) && (cmd == SNDRV_PCM_TRIGGER_START))
-			prtd->fe_apm->fe_playback_triggered = 1;
 	}
+
+	if ((substream->stream == SNDRV_PCM_STREAM_PLAYBACK)
+			&& (cmd == SNDRV_PCM_TRIGGER_START)) {
+		if (apm->fe_playback_triggered == 0)
+			apm->fe_playback_triggered = 1;
+		else {
+			spin_unlock_irqrestore(&apm->fe_playback_lock, flags);
+			return 0;
+		}
+	}
+	spin_unlock_irqrestore(&apm->fe_playback_lock, flags);
+
 
 	switch (cmd) {
 	case SNDRV_PCM_TRIGGER_START:
@@ -2307,6 +2344,19 @@ static int tegra210_adsp_pcm_trigger(struct snd_pcm_substream *substream,
 	default:
 		dev_err(prtd->dev, "Unsupported state.");
 		return -EINVAL;
+	}
+
+	if (of_device_is_compatible(node, "nvidia,tegra210-adsp-audio-hv")) {
+
+		ret = tegra210_adsp_hv_pcm_trigger(adsp,
+					prtd->fe_apm->reg, /* apm_out_in */
+					substream->stream,
+					cmd);
+		if (ret < 0) {
+			dev_err(prtd->dev, "error on ivc_send");
+			return ret;
+		}
+
 	}
 
 	return 0;
@@ -3337,6 +3387,7 @@ static int tegra210_adsp_fe_widget_event(struct snd_soc_dapm_widget *w,
 	uint32_t source;
 	struct snd_pcm_runtime *runtime;
 	struct tegra210_adsp_pcm_rtd *prtd = NULL;
+	unsigned long flags;
 
 	/* Handle only HV environment ADSP FE events */
 	if (!of_device_is_compatible(node, "nvidia,tegra210-adsp-audio-hv"))
@@ -3384,10 +3435,23 @@ static int tegra210_adsp_fe_widget_event(struct snd_soc_dapm_widget *w,
 		 * When ADSP FE is in triggered state, path disconnect and connect is done,
 		 * widget event will send IVC and ADSP messages
 		 */
+		spin_lock_irqsave(&apm->fe_playback_lock, flags);
 		if (!apm->fe_playback_triggered) {
 			ret = 0;
+			spin_unlock_irqrestore(&apm->fe_playback_lock, flags);
 			goto err_put;
 		}
+
+		apm->fe_playback_triggered = 1;
+		spin_unlock_irqrestore(&apm->fe_playback_lock, flags);
+
+		spin_lock_irqsave(&apm->lock, flags);
+		prtd = apm->private_data;
+
+		/* TODO can prtd be NULL here? */
+
+		runtime = prtd->substream->runtime;
+		runtime->status->state = SNDRV_PCM_STATE_RUNNING;
 
 		ret = tegra210_adsp_hv_pcm_trigger(adsp,
 					apm->reg,                  /* apm_out_in */
@@ -3399,20 +3463,31 @@ static int tegra210_adsp_fe_widget_event(struct snd_soc_dapm_widget *w,
 		}
 
 		ret = tegra210_adsp_send_state_msg(apm, nvfx_state_active,
-			TEGRA210_ADSP_MSG_FLAG_SEND | TEGRA210_ADSP_MSG_FLAG_NEED_ACK);
+						TEGRA210_ADSP_MSG_FLAG_SEND);
 		if (ret < 0) {
 			dev_err(adsp->dev, "Failed to set state active");
 			goto err_put;
 		}
+		spin_unlock_irqrestore(&apm->lock, flags);
 
 	} else if (event == SND_SOC_DAPM_POST_PMD) {
-		unsigned long flags;
 
 		dev_info(adsp->dev, "disconnect event on APM %d, ADSP-FE %d\n",
 				(i + 1) - APM_IN_START, w->reg);
 
+		spin_lock_irqsave(&apm->fe_playback_lock, flags);
+
+		if (!apm->fe_playback_triggered) {
+			ret = 0;
+			spin_unlock_irqrestore(&apm->fe_playback_lock, flags);
+			goto err_put;
+		}
+
+		apm->fe_playback_triggered = -1;
+		spin_unlock_irqrestore(&apm->fe_playback_lock, flags);
+
 		ret = tegra210_adsp_send_state_msg(apm, nvfx_state_inactive,
-			TEGRA210_ADSP_MSG_FLAG_SEND | TEGRA210_ADSP_MSG_FLAG_NEED_ACK);
+						TEGRA210_ADSP_MSG_FLAG_SEND);
 		if (ret < 0) {
 			dev_err(adsp->dev, "Failed to set state inactive.");
 			goto err_put;
