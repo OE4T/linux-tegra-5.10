@@ -50,6 +50,9 @@ int gk20a_fifo_update_runlist_ids(struct gk20a *g, u32 runlist_ids, u32 chid,
 
 const char *gk20a_fifo_interleave_level_name(u32 interleave_level);
 
+void gk20a_fifo_set_runlist_state(struct gk20a *g, u32 runlists_mask,
+		 u32 runlist_state);
+
 void gk20a_fifo_delete_runlist(struct fifo_gk20a *f);
 int nvgpu_init_runlist(struct gk20a *g, struct fifo_gk20a *f);
 

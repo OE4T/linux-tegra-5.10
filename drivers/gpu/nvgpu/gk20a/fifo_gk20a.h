@@ -316,9 +316,6 @@ u32 gk20a_fifo_get_gr_runlist_id(struct gk20a *g);
 
 bool gk20a_fifo_is_valid_runlist_id(struct gk20a *g, u32 runlist_id);
 
-void gk20a_fifo_set_runlist_state(struct gk20a *g, u32 runlists_mask,
-		 u32 runlist_state);
-
 u32 gk20a_fifo_userd_gp_get(struct gk20a *g, struct channel_gk20a *c);
 void gk20a_fifo_userd_gp_put(struct gk20a *g, struct channel_gk20a *c);
 u64 gk20a_fifo_userd_pb_get(struct gk20a *g, struct channel_gk20a *c);
