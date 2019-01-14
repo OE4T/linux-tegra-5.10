@@ -74,6 +74,7 @@
 #include "common/nvdec/nvdec_tu104.h"
 #include "common/top/top_gm20b.h"
 #include "common/top/top_gp10b.h"
+#include "common/nvlink/init/device_reginit_gv100.h"
 #include "common/nvlink/nvlink_gv100.h"
 #include "common/nvlink/nvlink_tu104.h"
 #include "common/sync/syncpt_cmdbuf_gv11b.h"

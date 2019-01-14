@@ -68,6 +68,7 @@
 #include "common/falcon/falcon_gk20a.h"
 #include "common/falcon/falcon_gv100.h"
 #include "common/nvdec/nvdec_gp106.h"
+#include "common/nvlink/init/device_reginit_gv100.h"
 #include "common/nvlink/nvlink_gv100.h"
 #include "common/nvlink/nvlink_tu104.h"
 #include "common/pmu/perf/perf_gv100.h"

@@ -263,6 +263,8 @@ srcs += common/sim.c \
 	gv100/fifo_gv100.c \
 	gv100/gr_gv100.c \
 	common/nvlink/probe.c \
+	common/nvlink/init/device_reginit.c \
+	common/nvlink/init/device_reginit_gv100.c \
 	common/nvlink/nvlink_gv100.c \
 	common/nvlink/nvlink_tu104.c	\
 	common/nvlink/nvlink.c \

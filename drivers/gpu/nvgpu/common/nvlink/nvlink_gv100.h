@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -51,7 +51,6 @@ int gv100_nvlink_link_set_sublink_mode(struct gk20a *g, u32 link_id,
 	bool is_rx_sublink, u32 mode);
 int gv100_nvlink_interface_init(struct gk20a *g);
 int gv100_nvlink_interface_disable(struct gk20a *g);
-int gv100_nvlink_reg_init(struct gk20a *g);
 int gv100_nvlink_shutdown(struct gk20a *g);
 int gv100_nvlink_early_init(struct gk20a *g);
 int gv100_nvlink_speed_config(struct gk20a *g);

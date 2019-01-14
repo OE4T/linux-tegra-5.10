@@ -94,100 +94,6 @@
 		minion_falcon_irqdest_target_swgen0_host_normal_f() | \
 		minion_falcon_irqdest_target_swgen1_host_normal_f())
 
-struct __nvlink_reginit {
-	u32 addr;
-	u32 value;
-};
-
-static const struct __nvlink_reginit  __nvlink_reginit_per_link_tegra[] = {
-	/* NVTLC when connected to Tegra */
-	{ 0x300U, 0x00800040U },
-	{ 0x304U, 0x00000000U },
-	{ 0x308U, 0x00000000U },
-	{ 0x30CU, 0x00000000U },
-	{ 0x310U, 0x00000000U },
-	{ 0x314U, 0x00800040U },
-	{ 0x318U, 0x00000000U },
-	{ 0x31CU, 0x00000000U },
-	{ 0x200U, 0x007F003FU },
-	{ 0x204U, 0x007F003FU },
-	{ 0x208U, 0x007F003FU },
-	{ 0x20CU, 0x007F003FU },
-	{ 0x210U, 0x007F003FU },
-	{ 0x214U, 0x00FF007FU },
-	{ 0x218U, 0x00FF007FU },
-	{ 0x21CU, 0x00FF007FU },
-	{ 0xB00U, 0x010000C0U },
-	{ 0xB04U, 0x00000000U },
-	{ 0xB08U, 0x00000000U },
-	{ 0xB0CU, 0x00000000U },
-	{ 0xB10U, 0x00000000U },
-	{ 0xB14U, 0x010000C0U },
-	{ 0xB18U, 0x00000000U },
-	{ 0xB1CU, 0x00000000U },
-	{ 0xA00U, 0x00FF00BFU },
-	{ 0xA04U, 0x00FF00BFU },
-	{ 0xA08U, 0x00FF00BFU },
-	{ 0xA0CU, 0x00FF00BFU },
-	{ 0xA10U, 0x00FF00BFU },
-	{ 0xA14U, 0x01FF017FU },
-	{ 0xA18U, 0x01FF017FU },
-	{ 0xA1CU, 0x01FF017FU },
-	{ 0xF04U, 0x00FFFFFFU },
-	{ 0xF0CU, 0x00FFFFFFU },
-	{ 0xF1CU, 0x003FFFFFU },
-	{ 0xF24U, 0x003FFFFFU },
-	{ 0x704U, 0x003FFFFFU },
-	{ 0x70CU, 0x003FFFFFU },
-	{ 0x400U, 0x00000001U },
-	{ 0xC00U, 0x00000001U },
-};
-
-static const struct __nvlink_reginit __nvlink_reginit_per_link_gpu[] = {
-	/* NVTLC for PEER GPU */
-	{ 0x300U, 0x00800040U },
-	{ 0x304U, 0x00000000U },
-	{ 0x308U, 0x00000000U },
-	{ 0x30CU, 0x00000000U },
-	{ 0x310U, 0x00000000U },
-	{ 0x314U, 0x00800040U },
-	{ 0x318U, 0x00000000U },
-	{ 0x31CU, 0x00000000U },
-	{ 0x200U, 0x007F003FU },
-	{ 0x204U, 0x007F003FU },
-	{ 0x208U, 0x007F003FU },
-	{ 0x20CU, 0x007F003FU },
-	{ 0x210U, 0x007F003FU },
-	{ 0x214U, 0x00FF007FU },
-	{ 0x218U, 0x00FF007FU },
-	{ 0x21CU, 0x00FF007FU },
-	{ 0xB00U, 0x010000C0U },
-	{ 0xB04U, 0x00000000U },
-	{ 0xB08U, 0x00000000U },
-	{ 0xB0CU, 0x00000000U },
-	{ 0xB10U, 0x00000000U },
-	{ 0xB14U, 0x010000C0U },
-	{ 0xB18U, 0x00000000U },
-	{ 0xB1CU, 0x00000000U },
-	{ 0xA00U, 0x00FF00BFU },
-	{ 0xA04U, 0x00FF00BFU },
-	{ 0xA08U, 0x00FF00BFU },
-	{ 0xA0CU, 0x00FF00BFU },
-	{ 0xA10U, 0x00FF00BFU },
-	{ 0xA14U, 0x01FF017FU },
-	{ 0xA18U, 0x01FF017FU },
-	{ 0xA1CU, 0x01FF017FU },
-	{ 0xF04U, 0x00FFFFFFU },
-	{ 0xF0CU, 0x00FFFFFFU },
-	{ 0xF1CU, 0x003FFFFFU },
-	{ 0xF24U, 0x003FFFFFU },
-	{ 0x704U, 0x003FFFFFU },
-	{ 0x70CU, 0x003FFFFFU },
-	{ 0x400U, 0x00000001U },
-	{ 0xC00U, 0x00000001U },
-};
-
-
 #define NVL_DEVICE(str) nvlinkip_discovery_common_device_##str##_v()
 
 static const char *__gv100_device_type_to_str(u32 type)
@@ -755,27 +661,6 @@ static int gv100_nvlink_minion_lane_shutdown(struct gk20a *g, u32 link_id,
  * TLC API
  *-----------------------------------------------------------------------------*
  */
-
-static int gv100_nvlink_get_tlc_reginit(enum nvgpu_nvlink_endp endp,
-		struct __nvlink_reginit **reg, u32 *count)
-{
-	switch(endp) {
-	case nvgpu_nvlink_endp_tegra:
-		*reg = (struct __nvlink_reginit *)
-			__nvlink_reginit_per_link_tegra;
-		*count = ARRAY_SIZE(__nvlink_reginit_per_link_tegra);
-		break;
-	case nvgpu_nvlink_endp_gpu:
-		*reg = (struct __nvlink_reginit *)
-			__nvlink_reginit_per_link_gpu;
-		*count = ARRAY_SIZE(__nvlink_reginit_per_link_gpu);
-		break;
-	default:
-		return -EINVAL;
-	}
-
-	return 0;
-}
 
 /*
  * Init TLC IP and prod regs
@@ -2030,39 +1915,6 @@ int gv100_nvlink_interface_init(struct gk20a *g)
 
 int gv100_nvlink_interface_disable(struct gk20a *g)
 {
-	return 0;
-}
-
-int gv100_nvlink_reg_init(struct gk20a *g)
-{
-	u32 i = 0;
-	u32 count = 0;
-	struct __nvlink_reginit *reg;
-	enum nvgpu_nvlink_endp endp;
-	int err;
-	u32 link_id;
-	unsigned long mask = g->nvlink.enabled_links;
-	struct nvgpu_nvlink_link *link;
-
-	/* Apply automated reg init flow for PROD settings */
-	for_each_set_bit(link_id, &mask, 32) {
-
-		link = &g->nvlink.links[link_id];
-		if (!link->remote_info.is_connected)
-			continue;
-
-		endp = link->remote_info.device_type;
-		err = gv100_nvlink_get_tlc_reginit(endp, &reg, &count);
-		if (err != 0) {
-			nvgpu_err(g, "no reginit for endp=%u", endp);
-			continue;
-		}
-
-		for (i = 0; i < count; i++) {
-			TLC_REG_WR32(g, link_id, reg->addr, reg->value);
-			reg++;
-		}
-	}
 	return 0;
 }
 

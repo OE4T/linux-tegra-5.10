@@ -102,15 +102,6 @@ int nvgpu_nvlink_dev_shutdown(struct gk20a *g)
 	return err;
 }
 
-int nvgpu_nvlink_reg_init(struct gk20a *g)
-{
-	int err;
-
-	err = g->ops.nvlink.reg_init(g);
-
-	return err;
-}
-
 u32 nvgpu_nvlink_get_link_mode(struct gk20a *g)
 {
 	u32 link_id;
