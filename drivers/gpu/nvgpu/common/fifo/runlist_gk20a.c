@@ -114,6 +114,16 @@ int gk20a_fifo_set_runlist_interleave(struct gk20a *g,
 	return 0;
 }
 
+u32 gk20a_fifo_runlist_base_size(void)
+{
+	return fifo_eng_runlist_base__size_1_v();
+}
+
+u32 gk20a_fifo_runlist_entry_size(void)
+{
+	return ram_rl_entry_size_v();
+}
+
 void gk20a_get_tsg_runlist_entry(struct tsg_gk20a *tsg, u32 *runlist)
 {
 

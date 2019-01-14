@@ -172,6 +172,7 @@ srcs += common/sim.c \
 	common/fifo/runlist.c \
 	common/fifo/runlist_gk20a.c \
 	common/fifo/runlist_gv11b.c \
+	common/fifo/runlist_gv100.c \
 	common/fifo/runlist_tu104.c \
 	common/mc/mc.c \
 	common/mc/mc_gm20b.c \

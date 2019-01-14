@@ -35,6 +35,8 @@ int gk20a_fifo_set_runlist_interleave(struct gk20a *g,
 		u32 id,
 		u32 runlist_id,
 		u32 new_level);
+u32 gk20a_fifo_runlist_base_size(void);
+u32 gk20a_fifo_runlist_entry_size(void);
 void gk20a_get_tsg_runlist_entry(struct tsg_gk20a *tsg, u32 *runlist);
 void gk20a_get_ch_runlist_entry(struct channel_gk20a *ch, u32 *runlist);
 void gk20a_fifo_runlist_hw_submit(struct gk20a *g, u32 runlist_id,

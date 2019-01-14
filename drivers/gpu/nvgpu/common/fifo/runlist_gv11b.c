@@ -38,6 +38,16 @@ int gv11b_fifo_reschedule_runlist(struct channel_gk20a *ch, bool preempt_next)
 	return nvgpu_fifo_reschedule_runlist(ch, true, false);
 }
 
+u32 gv11b_fifo_runlist_base_size(void)
+{
+	return fifo_eng_runlist_base__size_1_v();
+}
+
+u32 gv11b_fifo_runlist_entry_size(void)
+{
+	return ram_rl_entry_size_v();
+}
+
 void gv11b_get_tsg_runlist_entry(struct tsg_gk20a *tsg, u32 *runlist)
 {
 	struct gk20a *g = tsg->g;

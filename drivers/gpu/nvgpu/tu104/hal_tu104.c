@@ -142,8 +142,6 @@
 #include <nvgpu/regops.h>
 
 #include <nvgpu/hw/tu104/hw_proj_tu104.h>
-#include <nvgpu/hw/tu104/hw_fifo_tu104.h>
-#include <nvgpu/hw/tu104/hw_ram_tu104.h>
 #include <nvgpu/hw/tu104/hw_top_tu104.h>
 #include <nvgpu/hw/tu104/hw_pram_tu104.h>
 #include <nvgpu/hw/tu104/hw_pwr_tu104.h>
@@ -813,8 +811,8 @@ static const struct gpu_ops tu104_ops = {
 	.runlist = {
 		.update_runlist = gk20a_fifo_update_runlist,
 		.set_runlist_interleave = gk20a_fifo_set_runlist_interleave,
-		.eng_runlist_base_size = fifo_runlist_base_lo__size_1_v,
-		.runlist_entry_size = ram_rl_entry_size_v,
+		.eng_runlist_base_size = tu104_fifo_runlist_base_size,
+		.runlist_entry_size = tu104_fifo_runlist_entry_size,
 		.get_tsg_runlist_entry = gv11b_get_tsg_runlist_entry,
 		.get_ch_runlist_entry = gv11b_get_ch_runlist_entry,
 		.runlist_hw_submit = tu104_fifo_runlist_hw_submit,

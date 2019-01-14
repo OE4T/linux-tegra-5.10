@@ -90,8 +90,6 @@
 #include "hal_gp10b.h"
 
 #include <nvgpu/hw/gp10b/hw_proj_gp10b.h>
-#include <nvgpu/hw/gp10b/hw_fifo_gp10b.h>
-#include <nvgpu/hw/gp10b/hw_ram_gp10b.h>
 #include <nvgpu/hw/gp10b/hw_top_gp10b.h>
 #include <nvgpu/hw/gp10b/hw_pram_gp10b.h>
 #include <nvgpu/hw/gp10b/hw_pwr_gp10b.h>
@@ -607,8 +605,8 @@ static const struct gpu_ops gp10b_ops = {
 		.reschedule_preempt_next_locked = gk20a_fifo_reschedule_preempt_next,
 		.update_runlist = gk20a_fifo_update_runlist,
 		.set_runlist_interleave = gk20a_fifo_set_runlist_interleave,
-		.eng_runlist_base_size = fifo_eng_runlist_base__size_1_v,
-		.runlist_entry_size = ram_rl_entry_size_v,
+		.eng_runlist_base_size = gk20a_fifo_runlist_base_size,
+		.runlist_entry_size = gk20a_fifo_runlist_entry_size,
 		.get_tsg_runlist_entry = gk20a_get_tsg_runlist_entry,
 		.get_ch_runlist_entry = gk20a_get_ch_runlist_entry,
 		.runlist_hw_submit = gk20a_fifo_runlist_hw_submit,

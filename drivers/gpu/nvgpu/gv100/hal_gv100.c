@@ -74,6 +74,7 @@
 #include "common/regops/regops_gv100.h"
 #include "common/fifo/runlist_gk20a.h"
 #include "common/fifo/runlist_gv11b.h"
+#include "common/fifo/runlist_gv100.h"
 
 #include "gk20a/fifo_gk20a.h"
 #include "gk20a/fecs_trace_gk20a.h"
@@ -126,8 +127,6 @@
 #include <nvgpu/regops.h>
 
 #include <nvgpu/hw/gv100/hw_proj_gv100.h>
-#include <nvgpu/hw/gv100/hw_fifo_gv100.h>
-#include <nvgpu/hw/gv100/hw_ram_gv100.h>
 #include <nvgpu/hw/gv100/hw_top_gv100.h>
 #include <nvgpu/hw/gv100/hw_pram_gv100.h>
 #include <nvgpu/hw/gv100/hw_pwr_gv100.h>
@@ -781,8 +780,8 @@ static const struct gpu_ops gv100_ops = {
 	.runlist = {
 		.update_runlist = gk20a_fifo_update_runlist,
 		.set_runlist_interleave = gk20a_fifo_set_runlist_interleave,
-		.eng_runlist_base_size = fifo_eng_runlist_base__size_1_v,
-		.runlist_entry_size = ram_rl_entry_size_v,
+		.eng_runlist_base_size = gv100_fifo_runlist_base_size,
+		.runlist_entry_size = gv11b_fifo_runlist_entry_size,
 		.get_tsg_runlist_entry = gv11b_get_tsg_runlist_entry,
 		.get_ch_runlist_entry = gv11b_get_ch_runlist_entry,
 		.runlist_hw_submit = gk20a_fifo_runlist_hw_submit,

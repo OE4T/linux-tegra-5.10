@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -20,17 +20,11 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NVGPU_RUNLIST_GV11B_H
+#include "runlist_gv100.h"
 
-#include <nvgpu/types.h>
+#include <nvgpu/hw/gv100/hw_fifo_gv100.h>
 
-struct channel_gk20a;
-struct tsg_gk20a;
-
-int gv11b_fifo_reschedule_runlist(struct channel_gk20a *ch, bool preempt_next);
-u32 gv11b_fifo_runlist_base_size(void);
-u32 gv11b_fifo_runlist_entry_size(void);
-void gv11b_get_tsg_runlist_entry(struct tsg_gk20a *tsg, u32 *runlist);
-void gv11b_get_ch_runlist_entry(struct channel_gk20a *c, u32 *runlist);
-
-#endif /* NVGPU_RUNLIST_GV11B_H */
+u32 gv100_fifo_runlist_base_size(void)
+{
+	return fifo_eng_runlist_base__size_1_v();
+}

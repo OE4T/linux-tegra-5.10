@@ -32,6 +32,16 @@
 #include <nvgpu/hw/tu104/hw_fifo_tu104.h>
 #include <nvgpu/hw/tu104/hw_ram_tu104.h>
 
+u32 tu104_fifo_runlist_base_size(void)
+{
+	return fifo_runlist_base_lo__size_1_v();
+}
+
+u32 tu104_fifo_runlist_entry_size(void)
+{
+	return ram_rl_entry_size_v();
+}
+
 void tu104_fifo_runlist_hw_submit(struct gk20a *g, u32 runlist_id,
 	u32 count, u32 buffer_index)
 {
