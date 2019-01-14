@@ -944,10 +944,12 @@ static int gr_gv11b_handle_gpcmmu_ecc_exception(struct gk20a *g, u32 gpc,
 
 	/* Handle overflow */
 	if (corrected_overflow != 0U) {
-		corrected_delta += (0x1UL << gr_gpc0_mmu_l1tlb_ecc_corrected_err_count_total_s());
+		corrected_delta +=
+		     BIT32(gr_gpc0_mmu_l1tlb_ecc_corrected_err_count_total_s());
 	}
 	if (uncorrected_overflow != 0U) {
-		uncorrected_delta += (0x1UL << gr_gpc0_mmu_l1tlb_ecc_uncorrected_err_count_total_s());
+		uncorrected_delta +=
+		   BIT32(gr_gpc0_mmu_l1tlb_ecc_uncorrected_err_count_total_s());
 	}
 
 	g->ecc.gr.mmu_l1tlb_ecc_corrected_err_count[gpc].counter +=
@@ -1803,8 +1805,9 @@ void gr_gv11b_update_ctxsw_preemption_mode(struct gk20a *g,
 			gr_scc_pagepool_base_addr_39_8_align_bits_v()) |
 			(u64_hi32(gr_ctx->pagepool_ctxsw_buffer.gpu_va) <<
 			 (32U - gr_scc_pagepool_base_addr_39_8_align_bits_v()));
-		size = gr_ctx->pagepool_ctxsw_buffer.size;
 
+		BUG_ON(gr_ctx->pagepool_ctxsw_buffer.size > U32_MAX);
+		size = (u32)gr_ctx->pagepool_ctxsw_buffer.size;
 		if (size == g->ops.gr.pagepool_default_size(g)) {
 			size = gr_scc_pagepool_total_pages_hwmax_v();
 		}
@@ -1815,7 +1818,8 @@ void gr_gv11b_update_ctxsw_preemption_mode(struct gk20a *g,
 			gr_gpc0_swdx_rm_spill_buffer_addr_39_8_align_bits_v()) |
 			(u64_hi32(gr_ctx->spill_ctxsw_buffer.gpu_va) <<
 			 (32U - gr_gpc0_swdx_rm_spill_buffer_addr_39_8_align_bits_v()));
-		size = gr_ctx->spill_ctxsw_buffer.size /
+		BUG_ON(gr_ctx->spill_ctxsw_buffer.size > U32_MAX);
+		size = (u32)gr_ctx->spill_ctxsw_buffer.size /
 			gr_gpc0_swdx_rm_spill_buffer_size_256b_byte_granularity_v();
 
 		gr_gk20a_ctx_patch_write(g, gr_ctx,
@@ -2159,12 +2163,13 @@ void gr_gv11b_commit_global_attrib_cb(struct gk20a *g,
 
 	gr_gm20b_commit_global_attrib_cb(g, gr_ctx, addr, patch);
 
+	BUG_ON(u64_hi32(addr) != 0U);
 	gr_gk20a_ctx_patch_write(g, gr_ctx, gr_gpcs_tpcs_mpc_vtg_cb_global_base_addr_r(),
-		gr_gpcs_tpcs_mpc_vtg_cb_global_base_addr_v_f(addr) |
+		gr_gpcs_tpcs_mpc_vtg_cb_global_base_addr_v_f((u32)addr) |
 		gr_gpcs_tpcs_mpc_vtg_cb_global_base_addr_valid_true_f(), patch);
 
 	gr_gk20a_ctx_patch_write(g, gr_ctx, gr_gpcs_tpcs_tex_rm_cb_0_r(),
-		gr_gpcs_tpcs_tex_rm_cb_0_base_addr_43_12_f(addr), patch);
+		gr_gpcs_tpcs_tex_rm_cb_0_base_addr_43_12_f((u32)addr), patch);
 
 	gr_gk20a_ctx_patch_write(g, gr_ctx, gr_gpcs_tpcs_tex_rm_cb_1_r(),
 		gr_gpcs_tpcs_tex_rm_cb_1_size_div_128b_f(attrBufferSize) |
@@ -2232,9 +2237,11 @@ void gr_gv11b_get_access_map(struct gk20a *g,
 		0x419e84, /* gr_pri_gpcs_tpcs_sms_dbgr_control0 */
 		0x419ba4, /* gr_pri_gpcs_tpcs_sm_disp_ctrl     */
 	};
+	size_t array_size;
 
 	*whitelist = wl_addr_gv11b;
-	*num_entries = ARRAY_SIZE(wl_addr_gv11b);
+	array_size = ARRAY_SIZE(wl_addr_gv11b);
+	*num_entries = (int)array_size;
 }
 
 static int gr_gv11b_handle_warp_esr_error_mmu_nack(struct gk20a *g,
@@ -2762,7 +2769,8 @@ static int gv11b_write_bundle_veid_state(struct gk20a *g, u32 index)
 	struct netlist_av_list *sw_veid_bundle_init =
 			&g->netlist_vars->sw_veid_bundle_init;
 	u32 j;
-	u32  num_subctx, err = 0;
+	u32  num_subctx;
+	int err = 0;
 
 	num_subctx = g->fifo.max_subctx_count;
 
@@ -2871,7 +2879,7 @@ u32 gr_gv11b_get_nonpes_aware_tpc(struct gk20a *g, u32 gpc, u32 tpc)
 		tpc_new += gr->pes_tpc_count[pes][gpc];
 	}
 	temp = (BIT32(tpc) - 1U) & gr->pes_tpc_mask[pes][gpc];
-	temp = hweight32(temp);
+	temp = (u32)hweight32(temp);
 	tpc_new += temp;
 
 	nvgpu_log_info(g, "tpc: %d -> new tpc: %d", tpc, tpc_new);
