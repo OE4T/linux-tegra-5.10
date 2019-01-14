@@ -90,7 +90,7 @@ int gk20a_init_tsg_support(struct gk20a *g, u32 tsgid);
 struct tsg_gk20a *tsg_gk20a_from_ch(struct channel_gk20a *ch);
 
 int gk20a_enable_tsg(struct tsg_gk20a *tsg);
-int gk20a_disable_tsg(struct tsg_gk20a *tsg);
+void gk20a_disable_tsg(struct tsg_gk20a *tsg);
 int gk20a_tsg_bind_channel(struct tsg_gk20a *tsg,
 			struct channel_gk20a *ch);
 int gk20a_tsg_unbind_channel(struct channel_gk20a *ch);

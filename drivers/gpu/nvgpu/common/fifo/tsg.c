@@ -78,7 +78,7 @@ int gk20a_enable_tsg(struct tsg_gk20a *tsg)
 	return 0;
 }
 
-int gk20a_disable_tsg(struct tsg_gk20a *tsg)
+void gk20a_disable_tsg(struct tsg_gk20a *tsg)
 {
 	struct gk20a *g = tsg->g;
 	struct channel_gk20a *ch;
@@ -88,8 +88,6 @@ int gk20a_disable_tsg(struct tsg_gk20a *tsg)
 		g->ops.fifo.disable_channel(ch);
 	}
 	nvgpu_rwsem_up_read(&tsg->ch_list_lock);
-
-	return 0;
 }
 
 static bool gk20a_is_channel_active(struct gk20a *g, struct channel_gk20a *ch)
