@@ -673,41 +673,47 @@ static struct clk *gk20a_clk_get(struct gk20a *g)
 	return g->clk.tegra_clk;
 }
 
+static struct clk_gk20a *clk_gk20a_from_hw(struct clk_hw *hw)
+{
+	return (struct clk_gk20a *)
+		((uintptr_t)hw - offsetof(struct clk_gk20a, hw));
+}
+
 static int gm20b_clk_prepare_ops(struct clk_hw *hw)
 {
-	struct clk_gk20a *clk = to_clk_gk20a(hw);
+	struct clk_gk20a *clk = clk_gk20a_from_hw(hw);
 	return gm20b_clk_prepare(clk);
 }
 
 static void gm20b_clk_unprepare_ops(struct clk_hw *hw)
 {
-	struct clk_gk20a *clk = to_clk_gk20a(hw);
+	struct clk_gk20a *clk = clk_gk20a_from_hw(hw);
 	gm20b_clk_unprepare(clk);
 }
 
 static int gm20b_clk_is_prepared_ops(struct clk_hw *hw)
 {
-	struct clk_gk20a *clk = to_clk_gk20a(hw);
+	struct clk_gk20a *clk = clk_gk20a_from_hw(hw);
 	return gm20b_clk_is_prepared(clk);
 }
 
 static unsigned long gm20b_recalc_rate_ops(struct clk_hw *hw, unsigned long parent_rate)
 {
-	struct clk_gk20a *clk = to_clk_gk20a(hw);
+	struct clk_gk20a *clk = clk_gk20a_from_hw(hw);
 	return gm20b_recalc_rate(clk, parent_rate);
 }
 
 static int gm20b_gpcclk_set_rate_ops(struct clk_hw *hw, unsigned long rate,
 				 unsigned long parent_rate)
 {
-	struct clk_gk20a *clk = to_clk_gk20a(hw);
+	struct clk_gk20a *clk = clk_gk20a_from_hw(hw);
 	return gm20b_gpcclk_set_rate(clk, rate, parent_rate);
 }
 
 static long gm20b_round_rate_ops(struct clk_hw *hw, unsigned long rate,
 			     unsigned long *parent_rate)
 {
-	struct clk_gk20a *clk = to_clk_gk20a(hw);
+	struct clk_gk20a *clk = clk_gk20a_from_hw(hw);
 	return gm20b_round_rate(clk, rate, parent_rate);
 }
 

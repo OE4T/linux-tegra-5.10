@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011 - 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011 - 2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -112,10 +112,6 @@ struct clk_gk20a {
 	int pll_poweron_uv;
 	unsigned long dvfs_safe_max_freq;
 };
-
-#if defined(CONFIG_COMMON_CLK)
-#define to_clk_gk20a(_hw) container_of(_hw, struct clk_gk20a, hw)
-#endif
 
 struct gpu_ops;
 
