@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017 - 2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -3143,10 +3143,12 @@ static int tegra_pcie_dw_parse_dt(struct tegra_pcie_dw *pcie)
 	ret = of_property_read_u32(np, "nvidia,tsa-config",
 				   &pcie->tsa_config_addr);
 
-	pcie->phy_count = of_property_count_strings(np, "phy-names");
-	if (pcie->phy_count < 0) {
-		dev_err(pcie->dev, "unable to find phy entries\n");
-		return pcie->phy_count;
+	if (tegra_platform_is_silicon()) {
+		pcie->phy_count = of_property_count_strings(np, "phy-names");
+		if (pcie->phy_count < 0) {
+			dev_err(pcie->dev, "unable to find phy entries\n");
+			return pcie->phy_count;
+		}
 	}
 
 	if (of_property_read_bool(np, "nvidia,update_fc_fixup"))
@@ -4121,11 +4123,13 @@ static int tegra_pcie_dw_probe(struct platform_device *pdev)
 		}
 	}
 
-	pcie->pex_ctl_reg = devm_regulator_get(&pdev->dev, "vddio-pex-ctl");
-	if (IS_ERR(pcie->pex_ctl_reg)) {
-		dev_err(&pdev->dev, "fail to get regulator: %ld\n",
-			PTR_ERR(pcie->pex_ctl_reg));
-		return PTR_ERR(pcie->pex_ctl_reg);
+	if (tegra_platform_is_silicon()) {
+		pcie->pex_ctl_reg = devm_regulator_get(&pdev->dev, "vddio-pex-ctl");
+		if (IS_ERR(pcie->pex_ctl_reg)) {
+			dev_err(&pdev->dev, "fail to get regulator: %ld\n",
+					PTR_ERR(pcie->pex_ctl_reg));
+			return PTR_ERR(pcie->pex_ctl_reg);
+		}
 	}
 
 	pcie->core_clk = devm_clk_get(&pdev->dev, "core_clk");
@@ -4159,27 +4163,29 @@ static int tegra_pcie_dw_probe(struct platform_device *pdev)
 		return PTR_ERR(pcie->core_apb_rst);
 	}
 
-	phy = devm_kcalloc(pcie->dev, pcie->phy_count, sizeof(*phy),
+	if (tegra_platform_is_silicon()) {
+		phy = devm_kcalloc(pcie->dev, pcie->phy_count, sizeof(*phy),
 			   GFP_KERNEL);
-	if (!phy)
-		return PTR_ERR(phy);
+		if (!phy)
+			return PTR_ERR(phy);
 
-	for (i = 0; i < pcie->phy_count; i++) {
-		name = kasprintf(GFP_KERNEL, "pcie-p2u-%u", i);
-		if (!name) {
-			dev_err(pcie->dev, "failed to create p2u string\n");
-			return -ENOMEM;
+		for (i = 0; i < pcie->phy_count; i++) {
+			name = kasprintf(GFP_KERNEL, "pcie-p2u-%u", i);
+			if (!name) {
+				dev_err(pcie->dev, "failed to create p2u string\n");
+				return -ENOMEM;
+			}
+			phy[i] = devm_phy_get(pcie->dev, name);
+			kfree(name);
+			if (IS_ERR(phy[i])) {
+				ret = PTR_ERR(phy[i]);
+				dev_err(pcie->dev, "phy_get error: %d\n", ret);
+				return ret;
+			}
 		}
-		phy[i] = devm_phy_get(pcie->dev, name);
-		kfree(name);
-		if (IS_ERR(phy[i])) {
-			ret = PTR_ERR(phy[i]);
-			dev_err(pcie->dev, "phy_get error: %d\n", ret);
-			return ret;
-		}
+
+		pcie->phy = phy;
 	}
-
-	pcie->phy = phy;
 
 	pcie->dbi_res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "config");
 	if (!pcie->dbi_res) {
@@ -4374,12 +4380,14 @@ static int tegra_pcie_dw_remove(struct platform_device *pdev)
 			dev_err(pcie->dev, "EVENT: fifo is full\n");
 		kthread_stop(pcie->pcie_ep_task);
 
-		tegra_pcie_disable_phy(pcie);
+		if (tegra_platform_is_silicon()) {
+			tegra_pcie_disable_phy(pcie);
 
-		regulator_disable(pcie->pex_ctl_reg);
+			regulator_disable(pcie->pex_ctl_reg);
 
-		if (pcie->cid != CTRL_5)
-			uphy_bpmp_pcie_controller_state_set(pcie->cid, false);
+			if (pcie->cid != CTRL_5)
+				uphy_bpmp_pcie_controller_state_set(pcie->cid, false);
+		}
 	}
 	tegra_bwmgr_unregister(pcie->emc_bw);
 
@@ -4403,15 +4411,20 @@ static int tegra_pcie_dw_runtime_suspend(struct device *dev)
 	tegra_pcie_dw_pme_turnoff(pcie);
 
 	reset_control_assert(pcie->core_rst);
-	tegra_pcie_disable_phy(pcie);
+	if (tegra_platform_is_silicon()) {
+		tegra_pcie_disable_phy(pcie);
+	}
 	reset_control_assert(pcie->core_apb_rst);
 	clk_disable_unprepare(pcie->core_clk);
-	regulator_disable(pcie->pex_ctl_reg);
+	if (tegra_platform_is_silicon()) {
+		regulator_disable(pcie->pex_ctl_reg);
+	}
 	config_plat_gpio(pcie, 0);
 
-	if (pcie->cid != CTRL_5)
-		uphy_bpmp_pcie_controller_state_set(pcie->cid, false);
-
+	if (tegra_platform_is_silicon()) {
+		if (pcie->cid != CTRL_5)
+			uphy_bpmp_pcie_controller_state_set(pcie->cid, false);
+	}
 	return 0;
 }
 
@@ -4426,21 +4439,26 @@ static int tegra_pcie_dw_runtime_resume(struct device *dev)
 	if (pcie->mode == DW_PCIE_EP_TYPE)
 		return 0;
 
-	if (pcie->cid != CTRL_5) {
-		ret = uphy_bpmp_pcie_controller_state_set(pcie->cid, true);
-		if (ret) {
-			dev_err(pcie->dev, "Enabling controller-%d failed:%d\n",
-				pcie->cid, ret);
-			return ret;
+
+	if (tegra_platform_is_silicon()) {
+		if (pcie->cid != CTRL_5) {
+			ret = uphy_bpmp_pcie_controller_state_set(pcie->cid, true);
+			if (ret) {
+				dev_err(pcie->dev, "Enabling controller-%d failed:%d\n",
+						pcie->cid, ret);
+				return ret;
+			}
 		}
 	}
 
 	config_plat_gpio(pcie, 1);
 
-	ret = regulator_enable(pcie->pex_ctl_reg);
-	if (ret < 0) {
-		dev_err(pcie->dev, "regulator enable failed: %d\n", ret);
-		goto fail_reg_en;
+	if (tegra_platform_is_silicon()) {
+		ret = regulator_enable(pcie->pex_ctl_reg);
+		if (ret < 0) {
+			dev_err(pcie->dev, "regulator enable failed: %d\n", ret);
+			goto fail_reg_en;
+		}
 	}
 
 	ret = clk_prepare_enable(pcie->core_clk);
@@ -4451,10 +4469,12 @@ static int tegra_pcie_dw_runtime_resume(struct device *dev)
 
 	reset_control_deassert(pcie->core_apb_rst);
 
-	ret = tegra_pcie_enable_phy(pcie);
-	if (ret) {
-		dev_err(pcie->dev, "failed to enable phy\n");
-		goto fail_phy;
+	if (tegra_platform_is_silicon()) {
+		ret = tegra_pcie_enable_phy(pcie);
+		if (ret) {
+			dev_err(pcie->dev, "failed to enable phy\n");
+			goto fail_phy;
+		}
 	}
 
 	/* update CFG base address */
@@ -4507,16 +4527,22 @@ static int tegra_pcie_dw_runtime_resume(struct device *dev)
 
 fail_host_init:
 	reset_control_assert(pcie->core_rst);
-	tegra_pcie_disable_phy(pcie);
+	if (tegra_platform_is_silicon()) {
+		tegra_pcie_disable_phy(pcie);
+	}
 fail_phy:
 	reset_control_assert(pcie->core_apb_rst);
 	clk_disable_unprepare(pcie->core_clk);
 fail_core_clk:
-	regulator_disable(pcie->pex_ctl_reg);
+	if (tegra_platform_is_silicon()) {
+		regulator_disable(pcie->pex_ctl_reg);
+	}
 	config_plat_gpio(pcie, 0);
 fail_reg_en:
-	if (pcie->cid != CTRL_5)
-		uphy_bpmp_pcie_controller_state_set(pcie->cid, false);
+	if (tegra_platform_is_silicon()) {
+		if (pcie->cid != CTRL_5)
+			uphy_bpmp_pcie_controller_state_set(pcie->cid, false);
+	}
 
 	return ret;
 }
@@ -4555,17 +4581,23 @@ static int tegra_pcie_dw_suspend_noirq(struct device *dev)
 	tegra_pcie_downstream_dev_to_D0(pcie);
 	tegra_pcie_dw_pme_turnoff(pcie);
 	reset_control_assert(pcie->core_rst);
-	tegra_pcie_disable_phy(pcie);
+	if (tegra_platform_is_silicon()) {
+		tegra_pcie_disable_phy(pcie);
+	}
 	reset_control_assert(pcie->core_apb_rst);
 	clk_disable_unprepare(pcie->core_clk);
-	regulator_disable(pcie->pex_ctl_reg);
+	if (tegra_platform_is_silicon()) {
+		regulator_disable(pcie->pex_ctl_reg);
+	}
 	config_plat_gpio(pcie, 0);
-	if (pcie->cid != CTRL_5) {
-		ret = uphy_bpmp_pcie_controller_state_set(pcie->cid, false);
-		if (ret) {
-			dev_err(pcie->dev, "Disabling ctrl-%d failed:%d\n",
-				pcie->cid, ret);
-			return ret;
+	if (tegra_platform_is_silicon()) {
+		if (pcie->cid != CTRL_5) {
+			ret = uphy_bpmp_pcie_controller_state_set(pcie->cid, false);
+			if (ret) {
+				dev_err(pcie->dev, "Disabling ctrl-%d failed:%d\n",
+						pcie->cid, ret);
+				return ret;
+			}
 		}
 	}
 	if (gpio_is_valid(pcie->pex_wake) && device_may_wakeup(dev)) {
@@ -4592,21 +4624,24 @@ static int tegra_pcie_dw_resume_noirq(struct device *dev)
 			dev_err(dev, "disable wake irq failed: %d\n", ret);
 	}
 
-	if (pcie->cid != CTRL_5) {
-		ret = uphy_bpmp_pcie_controller_state_set(pcie->cid, true);
-		if (ret) {
-			dev_err(pcie->dev, "Enabling controller-%d failed:%d\n",
-				pcie->cid, ret);
-			return ret;
+	if (tegra_platform_is_silicon()) {
+		if (pcie->cid != CTRL_5) {
+			ret = uphy_bpmp_pcie_controller_state_set(pcie->cid, true);
+			if (ret) {
+				dev_err(pcie->dev, "Enabling controller-%d failed:%d\n",
+						pcie->cid, ret);
+				return ret;
+			}
 		}
 	}
-
 	config_plat_gpio(pcie, 1);
 
-	ret = regulator_enable(pcie->pex_ctl_reg);
-	if (ret < 0) {
-		dev_err(dev, "regulator enable failed: %d\n", ret);
-		return ret;
+	if (tegra_platform_is_silicon()) {
+		ret = regulator_enable(pcie->pex_ctl_reg);
+		if (ret < 0) {
+			dev_err(dev, "regulator enable failed: %d\n", ret);
+			return ret;
+		}
 	}
 
 	if (pcie->tsa_config_addr) {
@@ -4626,10 +4661,12 @@ static int tegra_pcie_dw_resume_noirq(struct device *dev)
 		goto fail_core_clk;
 	}
 	reset_control_deassert(pcie->core_apb_rst);
-	ret = tegra_pcie_enable_phy(pcie);
-	if (ret) {
-		dev_err(dev, "failed to enable phy\n");
-		goto fail_phy;
+	if (tegra_platform_is_silicon()) {
+		ret = tegra_pcie_enable_phy(pcie);
+		if (ret) {
+			dev_err(dev, "failed to enable phy\n");
+			goto fail_phy;
+		}
 	}
 
 	/* Enable HW_HOT_RST mode */
@@ -4684,7 +4721,9 @@ fail_phy:
 	reset_control_assert(pcie->core_apb_rst);
 	clk_disable_unprepare(pcie->core_clk);
 fail_core_clk:
-	regulator_disable(pcie->pex_ctl_reg);
+	if (tegra_platform_is_silicon()) {
+		regulator_disable(pcie->pex_ctl_reg);
+	}
 	config_plat_gpio(pcie, 0);
 	return ret;
 }
