@@ -550,13 +550,18 @@ int gk20a_init_gpu_characteristics(struct gk20a *g)
 	return 0;
 }
 
+static struct gk20a *gk20a_from_refcount(struct nvgpu_ref *refcount)
+{
+	return (struct gk20a *)((uintptr_t)refcount -
+				offsetof(struct gk20a, refcount));
+}
+
 /*
  * Free the gk20a struct.
  */
 static void gk20a_free_cb(struct nvgpu_ref *refcount)
 {
-	struct gk20a *g = container_of(refcount,
-		struct gk20a, refcount);
+	struct gk20a *g = gk20a_from_refcount(refcount);
 
 	nvgpu_log(g, gpu_dbg_shutdown, "Freeing GK20A struct!");
 
