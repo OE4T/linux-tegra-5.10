@@ -26,6 +26,7 @@
 #include <nvgpu/enabled.h>
 #include <nvgpu/vidmem.h>
 #include <nvgpu/gk20a.h>
+#include <nvgpu/nvgpu_sgt.h>
 
 #include <nvgpu/linux/dma.h>
 
@@ -345,11 +346,13 @@ void nvgpu_dma_free_sys(struct gk20a *g, struct nvgpu_mem *mem)
 	}
 
 	/*
-	 * When this flag is set we expect that pages is still populated but not
-	 * by the DMA API.
+	 * When this flag is set this means we are freeing a "phys" nvgpu_mem.
+	 * To handle this just nvgpu_kfree() the nvgpu_sgt and nvgpu_sgl.
 	 */
-	if (mem->mem_flags & __NVGPU_MEM_FLAG_NO_DMA)
-		nvgpu_kfree(g, mem->priv.pages);
+	if (mem->mem_flags & __NVGPU_MEM_FLAG_NO_DMA) {
+		nvgpu_kfree(g, mem->phys_sgt->sgl);
+		nvgpu_kfree(g, mem->phys_sgt);
+	}
 
 	if ((mem->mem_flags & NVGPU_MEM_FLAG_FOREIGN_SGT) == 0 &&
 			mem->priv.sgt != NULL) {

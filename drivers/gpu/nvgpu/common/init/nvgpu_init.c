@@ -432,7 +432,7 @@ int gk20a_finalize_poweron(struct gk20a *g)
 	if (nvgpu_has_syncpoints(g) && g->syncpt_unit_size) {
 		if (!nvgpu_mem_is_valid(&g->syncpt_mem)) {
 			nr_pages = DIV_ROUND_UP(g->syncpt_unit_size, PAGE_SIZE);
-			__nvgpu_mem_create_from_phys(g, &g->syncpt_mem,
+			nvgpu_mem_create_from_phys(g, &g->syncpt_mem,
 					g->syncpt_unit_base, nr_pages);
 		}
 	}

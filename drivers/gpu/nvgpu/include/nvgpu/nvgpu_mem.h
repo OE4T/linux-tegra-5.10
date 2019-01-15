@@ -42,6 +42,7 @@ struct gk20a;
 struct nvgpu_allocator;
 struct nvgpu_gmmu_attrs;
 struct nvgpu_page_alloc;
+struct nvgpu_sgt;
 
 #define NVGPU_MEM_DMA_ERROR		(~0ULL)
 
@@ -123,6 +124,11 @@ struct nvgpu_mem {
 	struct nvgpu_page_alloc			*vidmem_alloc;
 	struct nvgpu_allocator			*allocator;
 	struct nvgpu_list_node			 clear_list_entry;
+
+	/*
+	 * Fields for direct "physical" nvgpu_mem structs.
+	 */
+	struct nvgpu_sgt			*phys_sgt;
 
 	/*
 	 * This is defined by the system specific header. It can be empty if
@@ -211,6 +217,29 @@ static inline bool nvgpu_mem_is_valid(struct nvgpu_mem *mem)
 int nvgpu_mem_create_from_mem(struct gk20a *g,
 			      struct nvgpu_mem *dest, struct nvgpu_mem *src,
 			      u64 start_page, int nr_pages);
+
+/**
+ * nvgpu_mem_create_from_phys - Create an nvgpu_mem from physical mem.
+ *
+ * @g        - The GPU.
+ * @dest     - nvgpu_mem to initialize.
+ * @src_phys - start address of physical mem
+ * @nr_pages - The number of pages in phys.
+ *
+ * Create a new nvgpu_mem struct from a physical memory aperture. The physical
+ * memory aperture needs to be contiguous for requested @nr_pages. This API
+ * only works for SYSMEM. This also assumes a 4K page granule since the GMMU
+ * always supports 4K pages. If _system_ pages are larger than 4K then the
+ * resulting nvgpu_mem will represent less than 1 OS page worth of memory
+ *
+ * The resulting nvgpu_mem should be released with the nvgpu_dma_free() or the
+ * nvgpu_dma_unmap_free() function depending on whether or not the resulting
+ * nvgpu_mem has been mapped.
+ *
+ * Returns 0 on success, or a relevant error otherwise.
+ */
+int nvgpu_mem_create_from_phys(struct gk20a *g, struct nvgpu_mem *dest,
+			       u64 src_phys, u32 nr_pages);
 
 /*
  * Really free a vidmem buffer. There's a fair amount of work involved in

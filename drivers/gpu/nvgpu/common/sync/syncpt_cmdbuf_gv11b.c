@@ -72,7 +72,7 @@ int gv11b_alloc_syncpt_buf(struct channel_gk20a *c,
 		return err;
 
 	nr_pages = DIV_ROUND_UP(g->syncpt_size, PAGE_SIZE);
-	__nvgpu_mem_create_from_phys(g, syncpt_buf,
+	nvgpu_mem_create_from_phys(g, syncpt_buf,
 		(g->syncpt_unit_base +
 		nvgpu_nvhost_syncpt_unit_interface_get_byte_offset(syncpt_id)),
 		nr_pages);

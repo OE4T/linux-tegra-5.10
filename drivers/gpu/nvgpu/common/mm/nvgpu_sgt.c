@@ -22,6 +22,7 @@
 
 #include <nvgpu/dma.h>
 #include <nvgpu/bitops.h>
+#include <nvgpu/nvgpu_mem.h>
 #include <nvgpu/nvgpu_sgt.h>
 #include <nvgpu/nvgpu_sgt_os.h>
 
@@ -127,5 +128,9 @@ u64 nvgpu_sgt_alignment(struct gk20a *g, struct nvgpu_sgt *sgt)
 struct nvgpu_sgt *nvgpu_sgt_create_from_mem(struct gk20a *g,
 					    struct nvgpu_mem *mem)
 {
+	if ((mem->mem_flags & __NVGPU_MEM_FLAG_NO_DMA) != 0) {
+		return mem->phys_sgt;
+	}
+
 	return nvgpu_sgt_os_create_from_mem(g, mem);
 }

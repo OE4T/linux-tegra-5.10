@@ -188,66 +188,6 @@ int nvgpu_mem_create_from_mem(struct gk20a *g,
 	return ret;
 }
 
-int __nvgpu_mem_create_from_pages(struct gk20a *g, struct nvgpu_mem *dest,
-				  struct page **pages, int nr_pages)
-{
-	struct sg_table *sgt;
-	struct page **our_pages =
-		nvgpu_kmalloc(g, sizeof(struct page *) * nr_pages);
-
-	if (!our_pages)
-		return -ENOMEM;
-
-	nvgpu_memcpy((u8 *)our_pages, (u8 *)pages,
-		sizeof(struct page *) * nr_pages);
-
-	if (nvgpu_get_sgtable_from_pages(g, &sgt, pages, 0,
-					 nr_pages * PAGE_SIZE)) {
-		nvgpu_kfree(g, our_pages);
-		return -ENOMEM;
-	}
-
-	/*
-	 * If we are making an SGT from physical pages we can be reasonably
-	 * certain that this should bypass the SMMU - thus we set the DMA (aka
-	 * IOVA) address to 0. This tells the GMMU mapping code to not make a
-	 * mapping directed to the SMMU.
-	 */
-	sg_dma_address(sgt->sgl) = 0;
-
-	dest->mem_flags  = __NVGPU_MEM_FLAG_NO_DMA;
-	dest->aperture   = APERTURE_SYSMEM;
-	dest->skip_wmb   = 0;
-	dest->size       = PAGE_SIZE * nr_pages;
-
-	dest->priv.flags = 0;
-	dest->priv.pages = our_pages;
-	dest->priv.sgt   = sgt;
-
-	return 0;
-}
-
-#ifdef CONFIG_TEGRA_GK20A_NVHOST
-int __nvgpu_mem_create_from_phys(struct gk20a *g, struct nvgpu_mem *dest,
-				 u64 src_phys, int nr_pages)
-{
-	struct page **pages =
-		nvgpu_kmalloc(g, sizeof(struct page *) * nr_pages);
-	int i, ret = 0;
-
-	if (!pages)
-		return -ENOMEM;
-
-	for (i = 0; i < nr_pages; i++)
-		pages[i] = phys_to_page(src_phys + PAGE_SIZE * i);
-
-	ret = __nvgpu_mem_create_from_pages(g, dest, pages, nr_pages);
-	nvgpu_kfree(g, pages);
-
-	return ret;
-}
-#endif
-
 static struct nvgpu_sgl *nvgpu_mem_linux_sgl_next(struct nvgpu_sgl *sgl)
 {
 	return (struct nvgpu_sgl *)sg_next((struct scatterlist *)sgl);

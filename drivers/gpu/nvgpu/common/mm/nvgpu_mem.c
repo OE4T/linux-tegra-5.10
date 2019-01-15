@@ -23,6 +23,7 @@
 #include <nvgpu/bug.h>
 #include <nvgpu/kmem.h>
 #include <nvgpu/nvgpu_mem.h>
+#include <nvgpu/nvgpu_sgt.h>
 #include <nvgpu/dma.h>
 #include <nvgpu/vidmem.h>
 #include <nvgpu/gk20a.h>
@@ -221,4 +222,109 @@ void nvgpu_memset(struct gk20a *g, struct nvgpu_mem *mem, u32 offset,
 	} else {
 		(void)WARN(true, "Accessing unallocated nvgpu_mem");
 	}
+}
+
+static struct nvgpu_sgl *nvgpu_mem_phys_sgl_next(struct nvgpu_sgl *sgl)
+{
+	struct nvgpu_mem_sgl *sgl_impl = (struct nvgpu_mem_sgl *)sgl;
+
+	return (struct nvgpu_sgl *)sgl_impl->next;
+}
+
+/*
+ * Provided for compatibility - the DMA address is the same as the phys address
+ * for these nvgpu_mem's.
+ */
+static u64 nvgpu_mem_phys_sgl_dma(struct nvgpu_sgl *sgl)
+{
+	struct nvgpu_mem_sgl *sgl_impl = (struct nvgpu_mem_sgl *)sgl;
+
+	return sgl_impl->phys;
+}
+
+static u64 nvgpu_mem_phys_sgl_phys(struct gk20a *g, struct nvgpu_sgl *sgl)
+{
+	struct nvgpu_mem_sgl *sgl_impl = (struct nvgpu_mem_sgl *)sgl;
+
+	return sgl_impl->phys;
+}
+
+static u64 nvgpu_mem_phys_sgl_ipa_to_pa(struct gk20a *g,
+		struct nvgpu_sgl *sgl, u64 ipa, u64 *pa_len)
+{
+	return ipa;
+}
+
+static u64 nvgpu_mem_phys_sgl_length(struct nvgpu_sgl *sgl)
+{
+	struct nvgpu_mem_sgl *sgl_impl = (struct nvgpu_mem_sgl *)sgl;
+
+	return sgl_impl->length;
+}
+
+static u64 nvgpu_mem_phys_sgl_gpu_addr(struct gk20a *g,
+					 struct nvgpu_sgl *sgl,
+					 struct nvgpu_gmmu_attrs *attrs)
+{
+	struct nvgpu_mem_sgl *sgl_impl = (struct nvgpu_mem_sgl *)sgl;
+
+	return sgl_impl->phys;
+}
+
+static void nvgpu_mem_phys_sgt_free(struct gk20a *g, struct nvgpu_sgt *sgt)
+{
+	/*
+	 * No-op here. The free is handled by freeing the nvgpu_mem itself.
+	 */
+}
+
+static const struct nvgpu_sgt_ops nvgpu_mem_phys_ops = {
+	.sgl_next      = nvgpu_mem_phys_sgl_next,
+	.sgl_dma       = nvgpu_mem_phys_sgl_dma,
+	.sgl_phys      = nvgpu_mem_phys_sgl_phys,
+	.sgl_ipa       = nvgpu_mem_phys_sgl_phys,
+	.sgl_ipa_to_pa = nvgpu_mem_phys_sgl_ipa_to_pa,
+	.sgl_length    = nvgpu_mem_phys_sgl_length,
+	.sgl_gpu_addr  = nvgpu_mem_phys_sgl_gpu_addr,
+	.sgt_free      = nvgpu_mem_phys_sgt_free,
+
+	/*
+	 * The physical nvgpu_mems are never IOMMU'able by definition.
+	 */
+	.sgt_iommuable = NULL
+};
+
+int nvgpu_mem_create_from_phys(struct gk20a *g, struct nvgpu_mem *dest,
+			       u64 src_phys, u32 nr_pages)
+{
+	int ret = 0;
+	struct nvgpu_sgt *sgt;
+	struct nvgpu_mem_sgl *sgl;
+
+	/*
+	 * Do the two operations that can fail before touching *dest.
+	 */
+	sgt = nvgpu_kzalloc(g, sizeof(*sgt));
+	sgl = nvgpu_kzalloc(g, sizeof(*sgl));
+	if (sgt == NULL || sgl == NULL) {
+		nvgpu_kfree(g, sgt);
+		nvgpu_kfree(g, sgl);
+		return -ENOMEM;
+	}
+
+	(void) memset(dest, 0, sizeof(*dest));
+
+	dest->aperture     = APERTURE_SYSMEM;
+	dest->size         = (u64)nr_pages * SZ_4K;
+	dest->aligned_size = dest->size;
+	dest->mem_flags    = __NVGPU_MEM_FLAG_NO_DMA;
+	dest->phys_sgt     = sgt;
+
+	sgl->next   = NULL;
+	sgl->phys   = src_phys;
+	sgl->length = dest->size;
+	sgt->sgl    = (struct nvgpu_sgl *)sgl;
+	sgt->ops    = &nvgpu_mem_phys_ops;
+
+	return ret;
 }
