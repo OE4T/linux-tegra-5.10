@@ -1,7 +1,7 @@
 /*
  * general p state infrastructure
  *
- * Copyright (c) 2016-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -190,41 +190,41 @@ err_clk_init_pmupstate:
 /*sw setup for pstate components*/
 int gk20a_init_pstate_pmu_support(struct gk20a *g)
 {
-	u32 err;
+	int err;
 
 	nvgpu_log_fn(g, " ");
 
 	err = nvgpu_pmu_wait_ready(g);
-	if (err != 0U) {
+	if (err != 0) {
 		nvgpu_err(g, "PMU not ready to process pstate requests");
 		return err;
 	}
 
 	if (g->ops.clk.mclk_init != NULL) {
 		err = g->ops.clk.mclk_init(g);
-		if (err != 0U) {
+		if (err != 0) {
 			nvgpu_err(g, "failed to set mclk");
 			/* Indicate error and continue */
 		}
 	}
 
 	err = volt_rail_pmu_setup(g);
-	if (err != 0U) {
+	if (err != 0) {
 		return err;
 	}
 
 	err = volt_dev_pmu_setup(g);
-	if (err != 0U) {
+	if (err != 0) {
 		return err;
 	}
 
 	err = volt_policy_pmu_setup(g);
-	if (err != 0U) {
+	if (err != 0) {
 		return err;
 	}
 
 	err = g->ops.pmu_ver.volt.volt_send_load_cmd_to_pmu(g);
-	if (err != 0U) {
+	if (err != 0) {
 		nvgpu_err(g,
 			"Failed to send VOLT LOAD CMD to PMU: status = 0x%08x.",
 			err);
@@ -232,52 +232,52 @@ int gk20a_init_pstate_pmu_support(struct gk20a *g)
 	}
 
 	err = therm_domain_pmu_setup(g);
-	if (err != 0U) {
+	if (err != 0) {
 		return err;
 	}
 
 	if (g->ops.pmu_perf.support_vfe) {
 		err = vfe_var_pmu_setup(g);
-		if (err != 0U) {
+		if (err != 0) {
 			return err;
 		}
 
 		err = vfe_equ_pmu_setup(g);
-		if (err != 0U) {
+		if (err != 0) {
 			return err;
 		}
 	}
 
 	err = clk_domain_pmu_setup(g);
-	if (err != 0U) {
+	if (err != 0) {
 		return err;
 	}
 
 	err = clk_prog_pmu_setup(g);
-	if (err != 0U) {
+	if (err != 0) {
 		return err;
 	}
 
 	err = clk_vin_pmu_setup(g);
-	if (err != 0U) {
+	if (err != 0) {
 		return err;
 	}
 
 	if (g->ops.clk.support_clk_freq_domain) {
 		err = nvgpu_clk_freq_domain_pmu_setup(g);
-		if (err != 0U) {
+		if (err != 0) {
 			return err;
 		}
 	}
 
 	err = clk_fll_pmu_setup(g);
-	if (err != 0U) {
+	if (err != 0) {
 		return err;
 	}
 
 	if (g->ops.clk.support_clk_freq_controller) {
 		err = clk_freq_controller_pmu_setup(g);
-		if (err != 0U) {
+		if (err != 0) {
 			return err;
 		}
 	}
@@ -285,26 +285,26 @@ int gk20a_init_pstate_pmu_support(struct gk20a *g)
 	if (g->ops.clk.support_vf_point &&
 		g->ops.pmu_perf.support_vfe) {
 		err = clk_vf_point_pmu_setup(g);
-		if (err != 0U) {
+		if (err != 0) {
 			return err;
 		}
 	}
 
 	err = clk_pmu_vin_load(g);
-	if (err != 0U) {
+	if (err != 0) {
 		return err;
 	}
 
 	if (g->ops.clk.support_clk_freq_domain) {
 		err = clk_pmu_clk_domains_load(g);
-		if (err != 0U) {
+		if (err != 0) {
 			return err;
 		}
 	}
 
 	if (g->ops.pmu_perf.support_vfe) {
 		err = g->ops.clk.perf_pmu_vfe_load(g);
-		if (err != 0U) {
+		if (err != 0) {
 			return err;
 		}
 	}
@@ -315,7 +315,7 @@ int gk20a_init_pstate_pmu_support(struct gk20a *g)
 
 	if(g->ops.pmu_perf.support_changeseq) {
 		err = nvgpu_perf_change_seq_pmu_setup(g);
-		if (err != 0U) {
+		if (err != 0) {
 			return err;
 		}
 	}
@@ -349,7 +349,7 @@ static int pstate_construct_3x(struct gk20a *g, struct boardobj **ppboardobj,
 {
 	struct boardobj  *ptmpobj = (struct boardobj *)args;
 
-	ptmpobj->type_mask |= BIT(CTRL_PERF_PSTATE_TYPE_3X);
+	ptmpobj->type_mask |= BIT32(CTRL_PERF_PSTATE_TYPE_3X);
 	return pstate_construct_super(g, ppboardobj, size, args);
 }
 
@@ -360,7 +360,7 @@ static struct pstate *pstate_construct(struct gk20a *g, void *args)
 
 	if ((tmp->super.type != CTRL_PERF_PSTATE_TYPE_3X) ||
 	    (pstate_construct_3x(g, (struct boardobj **)&pstate,
-			    sizeof(struct pstate), args) != 0)) {
+			    (u16)sizeof(struct pstate), args) != 0)) {
 		nvgpu_err(g,
 			"error constructing pstate num=%u", tmp->num);
 	}
@@ -368,7 +368,7 @@ static struct pstate *pstate_construct(struct gk20a *g, void *args)
 	return pstate;
 }
 
-static int pstate_insert(struct gk20a *g, struct pstate *pstate, int index)
+static int pstate_insert(struct gk20a *g, struct pstate *pstate, u8 index)
 {
 	struct pstates *pstates = &(g->perf_pmu->pstatesobjs);
 	int err;
