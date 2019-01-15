@@ -313,14 +313,20 @@ void nvgpu_semaphore_pool_unmap(struct nvgpu_semaphore_pool *p,
 		     "Unmapped semaphore pool! (idx=%llu)", p->page_idx);
 }
 
+static struct nvgpu_semaphore_pool *
+nvgpu_semaphore_pool_from_ref(struct nvgpu_ref *ref)
+{
+	return (struct nvgpu_semaphore_pool *)
+		((uintptr_t)ref - offsetof(struct nvgpu_semaphore_pool, ref));
+}
+
 /*
  * Completely free a semaphore_pool. You should make sure this pool is not
  * mapped otherwise there's going to be a memory leak.
  */
 static void nvgpu_semaphore_pool_free(struct nvgpu_ref *ref)
 {
-	struct nvgpu_semaphore_pool *p =
-		container_of(ref, struct nvgpu_semaphore_pool, ref);
+	struct nvgpu_semaphore_pool *p = nvgpu_semaphore_pool_from_ref(ref);
 	struct nvgpu_semaphore_sea *s = p->sema_sea;
 
 	/* Freeing a mapped pool is a bad idea. */
@@ -469,10 +475,15 @@ struct nvgpu_semaphore *nvgpu_semaphore_alloc(struct channel_gk20a *ch)
 	return s;
 }
 
+static struct nvgpu_semaphore *nvgpu_semaphore_from_ref(struct nvgpu_ref *ref)
+{
+	return (struct nvgpu_semaphore *)
+		((uintptr_t)ref - offsetof(struct nvgpu_semaphore, ref));
+}
+
 static void nvgpu_semaphore_free(struct nvgpu_ref *ref)
 {
-	struct nvgpu_semaphore *s =
-		container_of(ref, struct nvgpu_semaphore, ref);
+	struct nvgpu_semaphore *s = nvgpu_semaphore_from_ref(ref);
 
 	nvgpu_semaphore_pool_put(s->location.pool);
 
