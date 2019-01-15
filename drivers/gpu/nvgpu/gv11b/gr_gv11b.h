@@ -80,8 +80,6 @@ struct gk20a_debug_output;
 
 #define NVA297_SET_SHADER_EXCEPTIONS_ENABLE_FALSE	U32(0)
 
-int gr_gv11b_alloc_buffer(struct vm_gk20a *vm, size_t size,
-                        struct nvgpu_mem *mem);
 /*zcull*/
 void gr_gv11b_program_zcull_mapping(struct gk20a *g, u32 zcull_num_entries,
 					u32 *zcull_map_tiles);

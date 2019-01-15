@@ -1626,39 +1626,6 @@ void gr_gv11b_set_circular_buffer_size(struct gk20a *g, u32 data)
 	}
 }
 
-int gr_gv11b_alloc_buffer(struct vm_gk20a *vm, size_t size,
-			struct nvgpu_mem *mem)
-{
-	int err;
-	struct gk20a *g = gk20a_from_vm(vm);
-
-	nvgpu_log_fn(g, " ");
-
-	err = nvgpu_dma_alloc_sys(vm->mm->g, size, mem);
-	if (err != 0) {
-		return err;
-	}
-
-	mem->gpu_va = nvgpu_gmmu_map(vm,
-				mem,
-				size,
-				NVGPU_VM_MAP_CACHEABLE,
-				gk20a_mem_flag_none,
-				false,
-				mem->aperture);
-
-	if (mem->gpu_va == 0ULL) {
-		err = -ENOMEM;
-		goto fail_free;
-	}
-
-	return 0;
-
-fail_free:
-	nvgpu_dma_free(vm->mm->g, mem);
-	return err;
-}
-
 int gr_gv11b_set_ctxsw_preemption_mode(struct gk20a *g,
 				struct nvgpu_gr_ctx *gr_ctx,
 				struct vm_gk20a *vm, u32 class,
