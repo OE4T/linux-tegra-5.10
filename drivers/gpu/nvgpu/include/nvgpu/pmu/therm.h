@@ -27,7 +27,7 @@
 struct gk20a;
 
 int therm_domain_sw_setup(struct gk20a *g);
-u32 therm_domain_pmu_setup(struct gk20a *g);
+int therm_domain_pmu_setup(struct gk20a *g);
 int therm_pmu_init_pmupstate(struct gk20a *g);
 void therm_pmu_free_pmupstate(struct gk20a *g);
 int therm_configure_therm_alert(struct gk20a *g);
