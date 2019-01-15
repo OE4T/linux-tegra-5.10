@@ -228,6 +228,8 @@ void gr_tu104_commit_gfxp_rtv_cb(struct gk20a *g,
 		  struct nvgpu_gr_ctx *gr_ctx, bool patch)
 {
 	u64 addr;
+	u64 addr_lo;
+	u64 addr_hi;
 	u32 rtv_cb_size;
 	u32 gfxp_addr_size;
 
@@ -240,11 +242,12 @@ void gr_tu104_commit_gfxp_rtv_cb(struct gk20a *g,
 	gfxp_addr_size = gr_scc_rm_rtv_cb_size_div_256b_gfxp_adder_f();
 
 	/* GFXP RTV circular buffer */
-	addr = (u64)(u64_lo32(gr_ctx->gfxp_rtvcb_ctxsw_buffer.gpu_va) >>
-	       gr_scc_rm_rtv_cb_base_addr_39_8_align_bits_f()) |
-	       (u64)(u64_hi32(gr_ctx->gfxp_rtvcb_ctxsw_buffer.gpu_va) <<
-		(32U - gr_scc_rm_rtv_cb_base_addr_39_8_align_bits_f()));
-
+	addr_lo = (u64)(u64_lo32(gr_ctx->gfxp_rtvcb_ctxsw_buffer.gpu_va) >>
+	       gr_scc_rm_rtv_cb_base_addr_39_8_align_bits_f());
+	addr_hi = (u64)(u64_hi32(gr_ctx->gfxp_rtvcb_ctxsw_buffer.gpu_va));
+	addr = addr_lo |
+	       (addr_hi <<
+	       (32U - gr_scc_rm_rtv_cb_base_addr_39_8_align_bits_f()));
 
 	gr_tu104_commit_rtv_circular_buffer(g, gr_ctx, addr,
 						rtv_cb_size,
