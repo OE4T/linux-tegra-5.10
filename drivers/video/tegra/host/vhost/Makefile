@@ -5,10 +5,6 @@ ccflags-y += -Werror
 
 nvhost-vhost-objs  = \
 	vhost.o \
-	vhost_intr.o \
-	vhost_syncpt.o \
-	vhost_channel.o \
-	vhost_cdma.o \
 	vhost_client.o
 
 obj-$(CONFIG_TEGRA_GRHOST) += nvhost-vhost.o

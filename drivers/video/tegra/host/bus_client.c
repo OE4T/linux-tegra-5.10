@@ -1,7 +1,7 @@
 /*
  * Tegra Graphics Host Client Module
  *
- * Copyright (c) 2010-2018, NVIDIA Corporation. All rights reserved.
+ * Copyright (c) 2010-2019, NVIDIA Corporation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -377,36 +377,10 @@ static int __nvhost_channelopen(struct inode *inode,
 	if (!pdata->keepalive)
 		nvhost_module_idle(pdev);
 
-	if (nvhost_dev_is_virtual(pdev) && !host->info.vmserver_owns_engines) {
-		/* If virtual, allocate a client id on the server side. This is
-		 * needed for channel recovery, to distinguish which clients
-		 * own which gathers.
-		 */
-
-		int virt_moduleid = vhost_virt_moduleid(pdata->moduleid);
-		struct nvhost_virt_ctx *virt_ctx =
-					nvhost_get_virt_data(pdev);
-
-		if (virt_moduleid < 0) {
-			ret = -EINVAL;
-			goto fail_virt_clientid;
-		}
-
-		priv->clientid =
-			vhost_channel_alloc_clientid(virt_ctx->handle,
-							virt_moduleid);
-		if (priv->clientid == 0) {
-			dev_err(&pdev->dev,
-				"vhost_channel_alloc_clientid failed\n");
-			ret = -ENOMEM;
-			goto fail_virt_clientid;
-		}
-	} else {
-		/* Get client id */
+	/* Get client id */
+	priv->clientid = atomic_add_return(1, &host->clientid);
+	if (!priv->clientid)
 		priv->clientid = atomic_add_return(1, &host->clientid);
-		if (!priv->clientid)
-			priv->clientid = atomic_add_return(1, &host->clientid);
-	}
 
 	/* Initialize private structure */
 	priv->timeout = host1x_pdata->nvhost_timeout_default;
@@ -439,7 +413,6 @@ static int __nvhost_channelopen(struct inode *inode,
 	return 0;
 
 fail_get_channel:
-fail_virt_clientid:
 	if (pdata->keepalive)
 		nvhost_module_idle(pdev);
 fail_power_on:

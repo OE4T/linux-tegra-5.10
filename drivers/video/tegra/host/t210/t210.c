@@ -1,7 +1,7 @@
 /*
  * Tegra Graphics Init for T210 Architecture Chips
  *
- * Copyright (c) 2011-2017, NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2011-2019, NVIDIA Corporation.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -460,9 +460,6 @@ int nvhost_init_t210_support(struct nvhost_master *host,
 
 	if (nvhost_dev_is_virtual(host->dev)) {
 		data->can_powergate = false;
-		vhost_init_host1x_syncpt_ops(&op->syncpt);
-		vhost_init_host1x_intr_ops(&op->intr);
-		vhost_init_host1x_cdma_ops(&op->cdma);
 		vhost_init_host1x_debug_ops(&op->debug);
 	}
 

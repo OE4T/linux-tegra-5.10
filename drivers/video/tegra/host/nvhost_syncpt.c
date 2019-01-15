@@ -3,7 +3,7 @@
  *
  * Tegra Graphics Host Syncpoints
  *
- * Copyright (c) 2010-2018, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2010-2019, NVIDIA CORPORATION. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -1133,17 +1133,6 @@ int nvhost_syncpt_init(struct platform_device *dev,
 		goto fail;
 	}
 #endif
-
-	if (nvhost_dev_is_virtual(dev)) {
-		struct nvhost_virt_ctx *ctx = nvhost_get_virt_data(dev);
-		u32 size;
-
-		err = vhost_syncpt_get_range(ctx->handle,
-					&host->info.pts_base, &size);
-		if (err)
-			goto fail;
-		host->info.pts_limit = host->info.pts_base + size;
-	}
 
 	if (!(sp->assigned && sp->client_managed && sp->min_val && sp->max_val
 		     && sp->lock_counts && sp->in_use && sp->ref)) {

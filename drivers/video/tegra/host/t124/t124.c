@@ -3,7 +3,7 @@
  *
  * Tegra Graphics Init for T124 Architecture Chips
  *
- * Copyright (c) 2011-2017, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2011-2019, NVIDIA CORPORATION. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -328,9 +328,6 @@ int nvhost_init_t124_support(struct nvhost_master *host,
 
 	if (nvhost_dev_is_virtual(host->dev)) {
 		data->can_powergate = false;
-		vhost_init_host1x_syncpt_ops(&op->syncpt);
-		vhost_init_host1x_intr_ops(&op->intr);
-		vhost_init_host1x_cdma_ops(&op->cdma);
 		vhost_init_host1x_debug_ops(&op->debug);
 	}
 
