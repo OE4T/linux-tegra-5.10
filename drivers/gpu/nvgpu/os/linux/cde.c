@@ -1,7 +1,7 @@
 /*
  * Color decompression engine support
  *
- * Copyright (c) 2014-2018, NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2014-2019, NVIDIA Corporation.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -1274,7 +1274,7 @@ __releases(&cde_app->mutex)
 		nvgpu_log_info(g, "double finish cde context %p on channel %p",
 				cde_ctx, ch);
 
-	if (gk20a_channel_check_timedout(ch)) {
+	if (gk20a_channel_check_unserviceable(ch)) {
 		if (cde_ctx->is_temporary) {
 			nvgpu_warn(g,
 					"cde: channel had timed out"
@@ -1301,7 +1301,7 @@ __releases(&cde_app->mutex)
 			msecs_to_jiffies(CTX_DELETE_TIME));
 	}
 
-	if (!gk20a_channel_check_timedout(ch)) {
+	if (!gk20a_channel_check_unserviceable(ch)) {
 		gk20a_cde_ctx_release(cde_ctx);
 	}
 }

@@ -303,8 +303,9 @@ struct channel_gk20a {
 
 	struct nvgpu_gr_subctx *subctx;
 
-	struct nvgpu_spinlock ch_timedout_lock;
-	bool ch_timedout;
+	struct nvgpu_spinlock unserviceable_lock;
+	bool unserviceable;
+
 	/* Any operating system specific data. */
 	void *os_priv;
 
@@ -480,8 +481,8 @@ static inline void trace_write_pushbuffers(struct channel_gk20a *c, u32 count)
 }
 #endif
 
-void gk20a_channel_set_timedout(struct channel_gk20a *ch);
-bool gk20a_channel_check_timedout(struct channel_gk20a *ch);
+void gk20a_channel_set_unserviceable(struct channel_gk20a *ch);
+bool gk20a_channel_check_unserviceable(struct channel_gk20a *ch);
 
 static inline u64 gk20a_channel_userd_addr(struct channel_gk20a *c)
 {

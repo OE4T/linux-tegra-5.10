@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -140,10 +140,10 @@ static int gk20a_tsg_unbind_channel_fd(struct tsg_gk20a *tsg, int ch_fd)
 	err = gk20a_tsg_unbind_channel(ch);
 
 	/*
-	 * Mark the channel timedout since channel unbound from TSG
+	 * Mark the channel unserviceable since channel unbound from TSG
 	 * has no context of its own so it can't serve any job
 	 */
-	gk20a_channel_set_timedout(ch);
+	gk20a_channel_set_unserviceable(ch);
 
 out:
 	gk20a_channel_put(ch);

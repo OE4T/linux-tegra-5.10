@@ -213,22 +213,22 @@ void gk20a_channel_abort_clean_up(struct channel_gk20a *ch)
 	gk20a_channel_update(ch);
 }
 
-void gk20a_channel_set_timedout(struct channel_gk20a *ch)
+void gk20a_channel_set_unserviceable(struct channel_gk20a *ch)
 {
-	nvgpu_spinlock_acquire(&ch->ch_timedout_lock);
-	ch->ch_timedout = true;
-	nvgpu_spinlock_release(&ch->ch_timedout_lock);
+	nvgpu_spinlock_acquire(&ch->unserviceable_lock);
+	ch->unserviceable = true;
+	nvgpu_spinlock_release(&ch->unserviceable_lock);
 }
 
-bool  gk20a_channel_check_timedout(struct channel_gk20a *ch)
+bool  gk20a_channel_check_unserviceable(struct channel_gk20a *ch)
 {
-	bool ch_timedout_status;
+	bool unserviceable_status;
 
-	nvgpu_spinlock_acquire(&ch->ch_timedout_lock);
-	ch_timedout_status = ch->ch_timedout;
-	nvgpu_spinlock_release(&ch->ch_timedout_lock);
+	nvgpu_spinlock_acquire(&ch->unserviceable_lock);
+	unserviceable_status = ch->unserviceable;
+	nvgpu_spinlock_release(&ch->unserviceable_lock);
 
-	return ch_timedout_status;
+	return unserviceable_status;
 }
 
 void gk20a_channel_abort(struct channel_gk20a *ch, bool channel_preempt)
@@ -436,9 +436,9 @@ static void gk20a_free_channel(struct channel_gk20a *ch, bool force)
 	if (ch->user_sync != NULL) {
 		/*
 		 * Set user managed syncpoint to safe state
-		 * But it's already done if channel has timedout
+		 * But it's already done if channel is recovered
 		 */
-		if (gk20a_channel_check_timedout(ch)) {
+		if (gk20a_channel_check_unserviceable(ch)) {
 			nvgpu_channel_sync_destroy(ch->user_sync, false);
 		} else {
 			nvgpu_channel_sync_destroy(ch->user_sync, true);
@@ -724,7 +724,7 @@ struct channel_gk20a *gk20a_open_new_channel(struct gk20a *g,
 	/* set gr host default timeout */
 	ch->timeout_ms_max = gk20a_get_gr_idle_timeout(g);
 	ch->timeout_debug_dump = true;
-	ch->ch_timedout = false;
+	ch->unserviceable = false;
 
 	/* init kernel watchdog timeout */
 	ch->timeout.enabled = true;
@@ -1381,7 +1381,7 @@ static void nvgpu_channel_set_has_timedout_and_wakeup_wqs(struct gk20a *g,
 		struct channel_gk20a *ch)
 {
 	/* mark channel as faulted */
-	gk20a_channel_set_timedout(ch);
+	gk20a_channel_set_unserviceable(ch);
 
 	/* unblock pending waits */
 	nvgpu_cond_broadcast_interruptible(&ch->semaphore_wq);
@@ -1485,7 +1485,7 @@ u32 nvgpu_get_gp_free_count(struct channel_gk20a *c)
 
 static void __gk20a_channel_timeout_start(struct channel_gk20a *ch)
 {
-	if (gk20a_channel_check_timedout(ch)) {
+	if (gk20a_channel_check_unserviceable(ch)) {
 		ch->timeout.running = false;
 		return;
 	}
@@ -1607,7 +1607,7 @@ void gk20a_channel_timeout_restart_all_channels(struct gk20a *g)
 		struct channel_gk20a *ch = gk20a_channel_from_id(g, chid);
 
 		if (ch != NULL) {
-			if (!gk20a_channel_check_timedout(ch)) {
+			if (!gk20a_channel_check_unserviceable(ch)) {
 				gk20a_channel_timeout_rewind(ch);
 			}
 			gk20a_channel_put(ch);
@@ -1635,7 +1635,7 @@ static void gk20a_channel_timeout_handler(struct channel_gk20a *ch)
 
 	nvgpu_log_fn(g, " ");
 
-	if (gk20a_channel_check_timedout(ch)) {
+	if (gk20a_channel_check_unserviceable(ch)) {
 		/* channel is already recovered */
 		gk20a_channel_timeout_stop(ch);
 		return;
@@ -1706,7 +1706,7 @@ static void gk20a_channel_poll_timeouts(struct gk20a *g)
 		struct channel_gk20a *ch = gk20a_channel_from_id(g, chid);
 
 		if (ch != NULL) {
-			if (!gk20a_channel_check_timedout(ch)) {
+			if (!gk20a_channel_check_unserviceable(ch)) {
 				gk20a_channel_timeout_check(ch);
 			}
 			gk20a_channel_put(ch);
@@ -2334,7 +2334,7 @@ int gk20a_init_channel_support(struct gk20a *g, u32 chid)
 	c->referenceable = false;
 	nvgpu_cond_init(&c->ref_count_dec_wq);
 
-	nvgpu_spinlock_init(&c->ch_timedout_lock);
+	nvgpu_spinlock_init(&c->unserviceable_lock);
 
 #if GK20A_CHANNEL_REFCOUNT_TRACKING
 	nvgpu_spinlock_init(&c->ref_actions_lock);
@@ -2416,7 +2416,7 @@ int gk20a_channel_suspend(struct gk20a *g)
 		if (ch == NULL) {
 			continue;
 		}
-		if (gk20a_channel_check_timedout(ch)) {
+		if (gk20a_channel_check_unserviceable(ch)) {
 			nvgpu_log_info(g, "do not suspend recovered "
 						"channel %d", chid);
 		} else {
@@ -2445,7 +2445,7 @@ int gk20a_channel_suspend(struct gk20a *g)
 			struct channel_gk20a *ch = gk20a_channel_from_id(g, chid);
 
 			if (ch != NULL) {
-				if (gk20a_channel_check_timedout(ch)) {
+				if (gk20a_channel_check_unserviceable(ch)) {
 					nvgpu_log_info(g, "do not unbind "
 							"recovered channel %d",
 							chid);
@@ -2476,7 +2476,7 @@ int gk20a_channel_resume(struct gk20a *g)
 		if (ch == NULL) {
 			continue;
 		}
-		if (gk20a_channel_check_timedout(ch)) {
+		if (gk20a_channel_check_unserviceable(ch)) {
 			nvgpu_log_info(g, "do not resume recovered "
 						"channel %d", chid);
 		} else {

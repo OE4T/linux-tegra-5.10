@@ -1050,7 +1050,7 @@ void gk20a_fifo_abort_tsg(struct gk20a *g, struct tsg_gk20a *tsg, bool preempt)
 	nvgpu_rwsem_down_read(&tsg->ch_list_lock);
 	nvgpu_list_for_each_entry(ch, &tsg->ch_list, channel_gk20a, ch_entry) {
 		if (gk20a_channel_get(ch) != NULL) {
-			gk20a_channel_set_timedout(ch);
+			gk20a_channel_set_unserviceable(ch);
 			if (ch->g->ops.fifo.ch_abort_clean_up != NULL) {
 				ch->g->ops.fifo.ch_abort_clean_up(ch);
 			}
@@ -1605,7 +1605,7 @@ int gk20a_fifo_tsg_unbind_channel(struct channel_gk20a *ch)
 
 	/* If one channel in TSG times out, we disable all channels */
 	nvgpu_rwsem_down_write(&tsg->ch_list_lock);
-	tsg_timedout = gk20a_channel_check_timedout(ch);
+	tsg_timedout = gk20a_channel_check_unserviceable(ch);
 	nvgpu_rwsem_up_write(&tsg->ch_list_lock);
 
 	/* Disable TSG and examine status before unbinding channel */

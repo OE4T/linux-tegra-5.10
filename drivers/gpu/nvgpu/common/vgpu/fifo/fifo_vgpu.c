@@ -476,7 +476,7 @@ int vgpu_fifo_force_reset_ch(struct channel_gk20a *ch,
 			if (gk20a_channel_get(ch_tsg)) {
 				g->ops.fifo.set_error_notifier(ch_tsg,
 								err_code);
-				gk20a_channel_set_timedout(ch_tsg);
+				gk20a_channel_set_unserviceable(ch_tsg);
 				gk20a_channel_put(ch_tsg);
 			}
 		}
@@ -510,7 +510,7 @@ static void vgpu_fifo_set_ctx_mmu_error_ch(struct gk20a *g,
 		NVGPU_ERR_NOTIFIER_FIFO_ERROR_MMU_ERR_FLT);
 
 	/* mark channel as faulted */
-	gk20a_channel_set_timedout(ch);
+	gk20a_channel_set_unserviceable(ch);
 
 	/* unblock pending waits */
 	nvgpu_cond_broadcast_interruptible(&ch->semaphore_wq);

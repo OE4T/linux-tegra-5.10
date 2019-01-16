@@ -663,7 +663,7 @@ static int gk20a_channel_wait_semaphore(struct channel_gk20a *ch,
 	int ret = 0;
 
 	/* do not wait if channel has timed out */
-	if (gk20a_channel_check_timedout(ch)) {
+	if (gk20a_channel_check_unserviceable(ch)) {
 		return -ETIMEDOUT;
 	}
 
@@ -685,7 +685,7 @@ static int gk20a_channel_wait_semaphore(struct channel_gk20a *ch,
 	ret = NVGPU_COND_WAIT_INTERRUPTIBLE(
 			&ch->semaphore_wq,
 			*semaphore == payload ||
-			gk20a_channel_check_timedout(ch),
+			gk20a_channel_check_unserviceable(ch),
 			timeout);
 
 	dma_buf_kunmap(dmabuf, offset >> PAGE_SHIFT, data);
@@ -709,7 +709,7 @@ static int gk20a_channel_wait(struct channel_gk20a *ch,
 
 	nvgpu_log_fn(g, " ");
 
-	if (gk20a_channel_check_timedout(ch)) {
+	if (gk20a_channel_check_unserviceable(ch)) {
 		return -ETIMEDOUT;
 	}
 
@@ -747,7 +747,7 @@ static int gk20a_channel_wait(struct channel_gk20a *ch,
 		remain = NVGPU_COND_WAIT_INTERRUPTIBLE(
 				&ch->notifier_wq,
 				notif->status == 0 ||
-				gk20a_channel_check_timedout(ch),
+				gk20a_channel_check_unserviceable(ch),
 				args->timeout);
 
 		if (remain == 0 && notif->status != 0) {
@@ -817,7 +817,7 @@ static int gk20a_ioctl_channel_submit_gpfifo(
 	profile = gk20a_fifo_profile_acquire(ch->g);
 	gk20a_fifo_profile_snapshot(profile, PROFILE_IOCTL_ENTRY);
 
-	if (gk20a_channel_check_timedout(ch)) {
+	if (gk20a_channel_check_unserviceable(ch)) {
 		return -ETIMEDOUT;
 	}
 
@@ -1320,7 +1320,7 @@ long gk20a_channel_ioctl(struct file *filp,
 	}
 	case NVGPU_IOCTL_CHANNEL_GET_TIMEDOUT:
 		((struct nvgpu_get_param_args *)buf)->value =
-			gk20a_channel_check_timedout(ch);
+			gk20a_channel_check_unserviceable(ch);
 		break;
 	case NVGPU_IOCTL_CHANNEL_ENABLE:
 		err = gk20a_busy(ch->g);
