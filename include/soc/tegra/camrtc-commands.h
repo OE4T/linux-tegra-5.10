@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2017, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2015-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * NVIDIA CORPORATION and its licensors retain all intellectual property
  * and proprietary rights in and to this software, related documentation
@@ -11,7 +11,7 @@
 #ifndef INCLUDE_CAMRTC_COMMANDS_H
 #define INCLUDE_CAMRTC_COMMANDS_H
 
-#define RTCPU_COMMAND(id, value)	((RTCPU_CMD_ ## id << 24U) | (value))
+#define RTCPU_COMMAND(id, value)	(((uint32_t)RTCPU_CMD_ ## id << 24U) | (value))
 
 #define RTCPU_GET_COMMAND_ID(value)	(((value) >> 24U) & 0x7fU)
 
