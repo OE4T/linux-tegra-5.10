@@ -160,7 +160,7 @@ static int test_tsg_format_gen(struct unit_module *m, struct gk20a *g,
 	struct fifo_runlist_info_gk20a runlist;
 	unsigned long active_tsgs_map = 0;
 	unsigned long active_chs_map = 0;
-	struct tsg_gk20a tsg = {0};
+	struct tsg_gk20a tsgs[1] = {{0}};
 	struct channel_gk20a chs[5] = {{0}};
 	/* header + at most five channels */
 	const u32 entries_in_list_max = 1 + 5;
@@ -169,15 +169,15 @@ static int test_tsg_format_gen(struct unit_module *m, struct gk20a *g,
 	struct tsg_fmt_test_args *test_args = args;
 	(void)test_args->timeslice;
 
-	setup_fifo(g, &active_tsgs_map, &active_chs_map, &tsg, chs, 1, 5,
+	setup_fifo(g, &active_tsgs_map, &active_chs_map, tsgs, chs, 1, 5,
 			&runlist, rl_data, false);
 
 	active_chs_map = test_args->chs_bitmap;
 
-	tsg.timeslice_timeout = test_args->timeslice;
-	tsg.timeslice_scale = NVGPU_FIFO_DEFAULT_TIMESLICE_SCALE;
+	tsgs[0].timeslice_timeout = test_args->timeslice;
+	tsgs[0].timeslice_scale = NVGPU_FIFO_DEFAULT_TIMESLICE_SCALE;
 
-	ret = run_format_test(m, f, &tsg, chs, test_args->level,
+	ret = run_format_test(m, f, &tsgs[0], chs, test_args->level,
 			test_args->channels, rl_data,
 			test_args->expect_header, test_args->expect_channel);
 	if (ret != 0) {
