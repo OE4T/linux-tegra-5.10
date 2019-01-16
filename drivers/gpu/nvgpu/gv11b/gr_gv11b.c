@@ -2271,7 +2271,7 @@ static int gr_gv11b_handle_warp_esr_error_mmu_nack(struct gk20a *g,
 	 * recovery path even if channel is invalid. We want to explicitly check
 	 * for teardown value in mmu fault handler.
 	 */
-	if (err == 0) {
+	if (err == 0 && fault_ch != NULL) {
 		gk20a_channel_put(fault_ch);
 	}
 
