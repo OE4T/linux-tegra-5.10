@@ -178,10 +178,15 @@ static int pmu_enable_elpg_locked(struct gk20a *g, u8 pg_engine_id)
 	status = nvgpu_pmu_cmd_post(g, &cmd, NULL, NULL,
 		PMU_COMMAND_QUEUE_HPQ, pmu_handle_pg_elpg_msg,
 		pmu, &seq);
-	WARN_ON(status != 0);
 
-	nvgpu_log_fn(g, "done");
-	return 0;
+	if (status != 0) {
+		nvgpu_log_fn(g, "pmu_enable_elpg_locked FAILED err=%d",
+				status);
+	} else {
+		nvgpu_log_fn(g, "done");
+	}
+
+	return status;
 }
 
 int nvgpu_pmu_enable_elpg(struct gk20a *g)

@@ -1279,7 +1279,9 @@ void gv11b_fifo_teardown_ch_tsg(struct gk20a *g, u32 act_eng_bitmask,
 
 	/* It is safe to enable ELPG again. */
 	if (g->support_pmu && g->elpg_enabled) {
-		nvgpu_pmu_enable_elpg(g);
+		if (nvgpu_pmu_enable_elpg(g) != 0) {
+			nvgpu_err(g, "ELPG enable failed");
+		}
 	}
 
 	/* release runlist_lock */
