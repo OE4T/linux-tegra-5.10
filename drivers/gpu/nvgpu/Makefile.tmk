@@ -15,8 +15,6 @@
 ifdef NV_COMPONENT_FLAG_SHARED_LIBRARY_SECTION
 include $(NV_BUILD_START_COMPONENT)
 
-include $(NV_COMPONENT_DIR)/Makefile.sources
-
 #
 # Include the nvgpu-next repo, if it's present. It's expected to be
 # located in the same directory as nvgpu, like so:
@@ -32,13 +30,11 @@ include $(NV_COMPONENT_DIR)/Makefile.sources
 # properly handle include paths.
 NVGPU_NEXT_SOURCE := \
 		$(NV_COMPONENT_DIR)/../../../../nvgpu-next/drivers/gpu/nvgpu
--include $(NVGPU_NEXT_SOURCE)/Makefile.sources
+
+NVGPU_POSIX			:= -D__NVGPU_POSIX__
 
 NV_COMPONENT_NAME		:= nvgpu-drv
 NV_COMPONENT_OWN_INTERFACE_DIR	:= .
-NV_COMPONENT_SOURCES		:=				\
-		$(srcs)			   			\
-		$(addprefix $(NVGPU_NEXT_SOURCE)/,$(srcs_next))
 NV_COMPONENT_INCLUDES		:=				\
 		.						\
 		include						\
@@ -49,7 +45,7 @@ NV_COMPONENT_INCLUDES		:=				\
 ifneq ($(NV_BUILD_CONFIGURATION_OS_IS_QNX),1)
 NV_COMPONENT_SYSTEM_SHARED_LIBRARIES += pthread
 endif
-NV_COMPONENT_CFLAGS		+= -D__NVGPU_POSIX__
+NV_COMPONENT_CFLAGS		+= $(NVGPU_POSIX)
 
 NV_COMPONENT_CFLAGS            	+= \
 	-DCONFIG_TEGRA_GK20A_NVHOST \
@@ -62,6 +58,13 @@ NV_COMPONENT_CFLAGS            	+= \
 	-DCONFIG_GK20A_VIDMEM=1 \
 	-DCONFIG_PCI_MSI
 _NV_TOOLCHAIN_CFLAGS            += -rdynamic -g
+
+-include $(NV_COMPONENT_DIR)/Makefile.sources
+-include $(NVGPU_NEXT_SOURCE)/Makefile.sources
+
+NV_COMPONENT_SOURCES		:=				\
+		$(srcs)			   			\
+		$(addprefix $(NVGPU_NEXT_SOURCE)/,$(srcs_next))
 
 NV_COMPONENT_SYSTEMIMAGE_DIR    := $(NV_SYSTEMIMAGE_TEST_EXECUTABLE_DIR)/nvgpu_unit
 systemimage:: $(NV_COMPONENT_SYSTEMIMAGE_DIR)
