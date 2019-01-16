@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-only
 /*
- * Copyright (C) 2011-2014 NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (C) 2011-2020 NVIDIA CORPORATION.  All rights reserved.
  */
 
 #include <linux/bitops.h>
@@ -10,14 +10,19 @@
 #include <linux/kernel.h>
 #include <linux/of.h>
 #include <linux/of_device.h>
+#include <linux/of_iommu.h>
 #include <linux/platform_device.h>
 #include <linux/slab.h>
 #include <linux/dma-iommu.h>
 #include <linux/dma-mapping.h>
+#include <linux/dma-iommu.h>
 #include <linux/pci.h>
 
 #include <soc/tegra/ahb.h>
 #include <soc/tegra/mc.h>
+
+#define MSI_IOVA_BASE	0x8000000
+#define MSI_IOVA_LENGTH	0x100000
 
 struct tegra_smmu_group {
 	struct list_head list;
@@ -960,6 +965,33 @@ static void tegra_smmu_iotlb_sync(struct iommu_domain *domain,
 	}
 }
 
+static void tegra_smmu_get_resv_regions(struct device *dev,
+					struct list_head *head)
+{
+	int prot = IOMMU_WRITE | IOMMU_NOEXEC | IOMMU_MMIO;
+	struct iommu_resv_region *region;
+
+	region = iommu_alloc_resv_region(MSI_IOVA_BASE, MSI_IOVA_LENGTH,
+					 prot, IOMMU_RESV_SW_MSI);
+	if (!region)
+		return;
+
+	list_add_tail(&region->list, head);
+
+	of_get_iommu_resv_regions(dev, head);
+
+	iommu_dma_get_resv_regions(dev, head);
+}
+
+static void tegra_smmu_put_resv_regions(struct device *dev,
+					struct list_head *head)
+{
+	struct iommu_resv_region *entry, *next;
+
+	list_for_each_entry_safe(entry, next, head, list)
+		kfree(entry);
+}
+
 static const struct iommu_ops tegra_smmu_ops = {
 	.capable = tegra_smmu_capable,
 	.domain_alloc = tegra_smmu_domain_alloc,
@@ -976,6 +1008,9 @@ static const struct iommu_ops tegra_smmu_ops = {
 	.iova_to_phys = tegra_smmu_iova_to_phys,
 	.of_xlate = tegra_smmu_of_xlate,
 	.pgsize_bitmap = SZ_4K,
+
+	.get_resv_regions = tegra_smmu_get_resv_regions,
+	.put_resv_regions = tegra_smmu_put_resv_regions,
 };
 
 static void tegra_smmu_ahb_enable(void)
