@@ -350,6 +350,8 @@
 
 		iommus = <&smmu TEGRA_SID_PCIE0>;
 		dma-coherent;
+		iommu-map = <0x0 &smmu TEGRA_SID_PCIE0 0x1000>;
+		iommu-map-mask = <0x0>;
 	};
 
 	pcie_ep@14100000 {
@@ -379,7 +381,10 @@
 
 		iommus = <&smmu TEGRA_SID_PCIE1>;
 		dma-coherent;
+		iommu-map = <0x0 &smmu TEGRA_SID_PCIE1 0x1000>;
+		iommu-map-mask = <0x0>;
 	};
+
 	pcie_ep@14160000 {
 		compatible = "nvidia,tegra194-pcie-ep";
 		power-domains = <&bpmp TEGRA194_POWER_DOMAIN_PCIEX4A>;
@@ -421,6 +426,8 @@
 
 		iommus = <&smmu TEGRA_SID_PCIE4>;
 		dma-coherent;
+		iommu-map = <0x0 &smmu TEGRA_SID_PCIE4 0x1000>;
+		iommu-map-mask = <0x0>;
 	};
 
 	pcie_ep@141a0000 {
@@ -469,6 +476,8 @@
 
 		iommus = <&smmu TEGRA_SID_PCIE5>;
 		dma-coherent;
+		iommu-map = <0x0 &smmu TEGRA_SID_PCIE5 0x1000>;
+		iommu-map-mask = <0x0>;
 	};
 
 	pcie@14180000 {
@@ -499,6 +508,8 @@
 
 		iommus = <&smmu TEGRA_SID_PCIE0>;
 		dma-coherent;
+		iommu-map = <0x0 &smmu TEGRA_SID_PCIE0 0x1000>;
+		iommu-map-mask = <0x0>;
 
 		#interrupt-cells = <1>;
 		interrupt-map-mask = <0 0 0 0>;
@@ -562,6 +573,8 @@
 
 		iommus = <&smmu TEGRA_SID_PCIE1>;
 		dma-coherent;
+		iommu-map = <0x0 &smmu TEGRA_SID_PCIE1 0x1000>;
+		iommu-map-mask = <0x0>;
 
 		#interrupt-cells = <1>;
 		interrupt-map-mask = <0 0 0 0>;
@@ -626,6 +639,8 @@
 
 		iommus = <&smmu TEGRA_SID_PCIE2>;
 		dma-coherent;
+		iommu-map = <0x0 &smmu TEGRA_SID_PCIE2 0x1000>;
+		iommu-map-mask = <0x0>;
 
 		#interrupt-cells = <1>;
 		interrupt-map-mask = <0 0 0 0>;
@@ -689,6 +704,8 @@
 
 		iommus = <&smmu TEGRA_SID_PCIE3>;
 		dma-coherent;
+		iommu-map = <0x0 &smmu TEGRA_SID_PCIE3 0x1000>;
+		iommu-map-mask = <0x0>;
 
 		#interrupt-cells = <1>;
 		interrupt-map-mask = <0 0 0 0>;
@@ -752,6 +769,8 @@
 
 		iommus = <&smmu TEGRA_SID_PCIE4>;
 		dma-coherent;
+		iommu-map = <0x0 &smmu TEGRA_SID_PCIE4 0x1000>;
+		iommu-map-mask = <0x0>;
 
 		#interrupt-cells = <1>;
 		interrupt-map-mask = <0 0 0 0>;
@@ -819,6 +838,8 @@
 
 		iommus = <&smmu TEGRA_SID_PCIE5>;
 		dma-coherent;
+		iommu-map = <0x0 &smmu TEGRA_SID_PCIE5 0x1000>;
+		iommu-map-mask = <0x0>;
 
 		#interrupt-cells = <1>;
 		interrupt-map-mask = <0 0 0 0>;
