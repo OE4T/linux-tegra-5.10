@@ -51,13 +51,14 @@ INCLUDES= 				\
 	-I$(TWD)/../include/uapi	\
 	-I$(TWD)/include
 
-CONFIGS=-D__NVGPU_POSIX__
+# Linuxy configs. We want these so that we can mirror builds from the actual
+# Linux kernel.
+include Makefile.configs
 
 # Compiler, c-flags, etc.
 
 # CC      = clang
 CC        = gcc
-CFLAGS    = -Wall -ggdb  -Werror -fPIC $(INCLUDES) $(CONFIGS)
 CFLAGS    = -Wall -Wextra -ggdb  -Werror -Wno-unused-parameter               \
 	    -Wno-missing-field-initializers -Wformat -Wchar-subscripts       \
 	    -Wparentheses -Wtrigraphs -Wpointer-arith -Wmissing-declarations \
@@ -71,10 +72,6 @@ LIBS      = -lpthread -pthread -lgcov -ldl
 
 # Source files. We expect $(OBJS) and $(HEADERS) to get filled in here.
 include Makefile.sources
-
-# Linuxy configs. We want these so that we can mirror builds from the actual
-# Linux kernel.
-include Makefile.configs
 
 all: $(OUT)/nvgpu_unit $(UNITS)
 
@@ -105,7 +102,7 @@ $(NVGPU_OUT)/%.o : $(NVGPU_SRC)/%.c $(HEADERS)
 	@if [ ! -d $(dir $@) ] ; then \
 		mkdir -p $(dir $@) ; \
 	fi
-	$(CC) --coverage $(CFLAGS) $(configs) -c -o $@ $<
+	$(CC) --coverage $(CFLAGS) -c -o $@ $<
 
 # Build target for unit test files. These are not part of the libnvgpu-drv.so.
 # These comprise the unit test framework.
@@ -113,7 +110,7 @@ $(CORE_OUT)/%.o : $(CORE_SRC)/%.c $(CORE_HEADERS)
 	@if [ ! -d $(dir $@) ] ; then \
 		mkdir -p $(dir $@) ; \
 	fi
-	$(CC) --coverage $(CFLAGS) $(configs) -c -o $@ $<
+	$(CC) --coverage $(CFLAGS) -c -o $@ $<
 
 # Certain variables should be exported to the unit test module builds.
 export TWD INCLUDES CONFIGS UNIT_SRC UNIT_OUT
