@@ -19,7 +19,7 @@
 / {
 	aon: aon@c000000 {
 		compatible = "nvidia,tegra186-aon";
-		status = "okay";
+		status = "disabled";
 		iommus = <&smmu TEGRA_SID_AON>;
 		dma-coherent;
 		reg = <0x0 0x0c1a0000 0x0 0x40000>; /* AON shared semaphore */
