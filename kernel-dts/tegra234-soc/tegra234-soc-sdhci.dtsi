@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -14,7 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <dt-bindings/clock/tegra194-clock.h>
+#include <dt-bindings/clock/tegra234-clock.h>
 #include <dt-bindings/reset/tegra194-reset.h>
 #include <dt-bindings/interrupt/tegra194-irq.h>
 #include "tegra234-pin-drive-sdmmc-common.dtsi"
@@ -53,10 +53,10 @@
 		pll_source = "pll_p", "pll_c4_out0_lj";
 		nvidia,set-parent-clk;
 		nvidia,parent_clk_list = "pll_p", "pll_p", "NULL", "NULL", "NULL", "NULL", "NULL", "NULL", "pll_p", "pll_c4_out0_lj", "pll_c4_out0_lj";
-		clocks = <&bpmp_clks TEGRA194_CLK_SDMMC4>,
-			<&bpmp_clks TEGRA194_CLK_PLLP_OUT0>,
-			<&bpmp_clks TEGRA194_CLK_PLLC4>,
-			<&bpmp_clks TEGRA194_CLK_SDMMC_LEGACY_TM>;
+		clocks = <&bpmp_clks TEGRA234_CLK_SDMMC4>,
+			<&bpmp_clks TEGRA234_CLK_PLLP_OUT0>,
+			<&bpmp_clks TEGRA234_CLK_PLLC4>,
+			<&bpmp_clks TEGRA234_CLK_SDMMC_LEGACY_TM>;
 		clock-names = "sdmmc", "pll_p", "pll_c4_out0_lj", "sdmmc_legacy_tm";
 		status = "disabled";
 	};
@@ -89,10 +89,10 @@
 		pll_source = "pll_p", "pll_c4_muxed";
 		nvidia,set-parent-clk;
 		nvidia,parent_clk_list = "pll_p", "pll_p", "pll_p", "pll_p", "pll_p", "pll_c4_muxed", "pll_c4_muxed", "pll_c4_muxed", "pll_c4_muxed", "pll_c4_muxed", "NULL";
-		clocks = <&bpmp_clks TEGRA194_CLK_SDMMC3>,
-			<&bpmp_clks TEGRA194_CLK_PLLP_OUT0>,
-			<&bpmp_clks TEGRA194_CLK_PLLC4_MUXED>,
-			<&bpmp_clks TEGRA194_CLK_SDMMC_LEGACY_TM>;
+		clocks = <&bpmp_clks TEGRA234_CLK_SDMMC3>,
+			<&bpmp_clks TEGRA234_CLK_PLLP_OUT0>,
+			<&bpmp_clks TEGRA234_CLK_PLLC4_MUXED>,
+			<&bpmp_clks TEGRA234_CLK_SDMMC_LEGACY_TM>;
 		clock-names = "sdmmc", "pll_p", "pll_c4_muxed", "sdmmc_legacy_tm";
 		uhs-mask = <0x08>;
 		nvidia,en-periodic-calib;
@@ -127,10 +127,10 @@
 		pll_source = "pll_p", "pll_c4_muxed";
 		nvidia,set-parent-clk;
 		nvidia,parent_clk_list = "pll_p", "pll_p", "pll_p", "pll_p", "pll_p", "pll_c4_muxed", "pll_c4_muxed", "pll_c4_muxed", "pll_c4_muxed", "pll_c4_muxed", "NULL";
-		clocks = <&bpmp_clks TEGRA194_CLK_SDMMC1>,
-			<&bpmp_clks TEGRA194_CLK_PLLP_OUT0>,
-			<&bpmp_clks TEGRA194_CLK_PLLC4_MUXED>,
-			<&bpmp_clks TEGRA194_CLK_SDMMC_LEGACY_TM>;
+		clocks = <&bpmp_clks TEGRA234_CLK_SDMMC1>,
+			<&bpmp_clks TEGRA234_CLK_PLLP_OUT0>,
+			<&bpmp_clks TEGRA234_CLK_PLLC4_MUXED>,
+			<&bpmp_clks TEGRA234_CLK_SDMMC_LEGACY_TM>;
 		clock-names = "sdmmc", "pll_p", "pll_c4_muxed", "sdmmc_legacy_tm";
 		uhs-mask = <0x08>;
 		nvidia,en-periodic-calib;

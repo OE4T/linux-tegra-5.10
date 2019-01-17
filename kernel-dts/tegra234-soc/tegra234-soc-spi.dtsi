@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2015-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -37,9 +37,9 @@
 		dma-names = "rx", "tx";
 		spi-max-frequency = <65000000>;
 		nvidia,clk-parents = "pll_p", "clk_m";
-		clocks = <&bpmp_clks TEGRA194_CLK_SPI1>,
-			<&bpmp_clks TEGRA194_CLK_PLLP_OUT0>,
-			<&bpmp_clks TEGRA194_CLK_CLK_M>;
+		clocks = <&bpmp_clks TEGRA234_CLK_SPI1>,
+			<&bpmp_clks TEGRA234_CLK_PLLP_OUT0>,
+			<&bpmp_clks TEGRA234_CLK_CLK_M>;
 		clock-names = "spi", "pll_p", "clk_m";
 		resets = <&bpmp_resets TEGRA194_RESET_SPI1>;
 		reset-names = "spi";
@@ -58,9 +58,9 @@
 		dma-names = "rx", "tx";
 		spi-max-frequency = <65000000>;
 		nvidia,clk-parents = "pll_p", "osc";
-		clocks = <&bpmp_clks TEGRA194_CLK_SPI2>,
-			<&bpmp_clks TEGRA194_CLK_PLLAON>,
-			<&bpmp_clks TEGRA194_CLK_OSC>;
+		clocks = <&bpmp_clks TEGRA234_CLK_SPI2>,
+			<&bpmp_clks TEGRA234_CLK_PLLAON>,
+			<&bpmp_clks TEGRA234_CLK_OSC>;
 		clock-names = "spi", "pll_p", "osc";
 		resets = <&bpmp_resets TEGRA194_RESET_SPI2>;
 		reset-names = "spi";
@@ -79,9 +79,9 @@
 		dma-names = "rx", "tx";
 		spi-max-frequency = <65000000>;
 		nvidia,clk-parents = "pll_p", "clk_m";
-		clocks = <&bpmp_clks TEGRA194_CLK_SPI3>,
-			<&bpmp_clks TEGRA194_CLK_PLLP_OUT0>,
-			<&bpmp_clks TEGRA194_CLK_CLK_M>;
+		clocks = <&bpmp_clks TEGRA234_CLK_SPI3>,
+			<&bpmp_clks TEGRA234_CLK_PLLP_OUT0>,
+			<&bpmp_clks TEGRA234_CLK_CLK_M>;
 		clock-names = "spi", "pll_p", "clk_m";
 		resets = <&bpmp_resets TEGRA194_RESET_SPI3>;
 		reset-names = "spi";
@@ -100,10 +100,10 @@
 		dma-names = "rx", "tx";
 		spi-max-frequency = <204000000>;
 		nvidia,clk-parents = "pllc", "pll_p";
-		clocks = <&bpmp_clks TEGRA194_CLK_QSPI0>,
-			 <&bpmp_clks TEGRA194_CLK_QSPI0_PM>,
-			 <&bpmp_clks TEGRA194_CLK_PLLC>,
-			 <&bpmp_clks TEGRA194_CLK_PLLP_OUT0>;
+		clocks = <&bpmp_clks TEGRA234_CLK_QSPI0>,
+			 <&bpmp_clks TEGRA234_CLK_QSPI0_PM>,
+			 <&bpmp_clks TEGRA234_CLK_PLLC>,
+			 <&bpmp_clks TEGRA234_CLK_PLLP_OUT0>;
 		clock-names = "qspi", "qspi_out", "pllc", "pll_p";
 		resets = <&bpmp_resets TEGRA194_RESET_QSPI0>;
 		reset-names = "qspi";
@@ -122,10 +122,10 @@
 		dma-names = "rx", "tx";
 		spi-max-frequency = <204000000>;
 		nvidia,clk-parents = "pllc", "pll_p";
-		clocks = <&bpmp_clks TEGRA194_CLK_QSPI1>,
-			 <&bpmp_clks TEGRA194_CLK_QSPI1_PM>,
-			 <&bpmp_clks TEGRA194_CLK_PLLC>,
-			 <&bpmp_clks TEGRA194_CLK_PLLP_OUT0>;
+		clocks = <&bpmp_clks TEGRA234_CLK_QSPI1>,
+			 <&bpmp_clks TEGRA234_CLK_QSPI1_PM>,
+			 <&bpmp_clks TEGRA234_CLK_PLLC>,
+			 <&bpmp_clks TEGRA234_CLK_PLLP_OUT0>;
 		clock-names = "qspi", "qspi_out", "pllc", "pll_p";
 		resets = <&bpmp_resets TEGRA194_RESET_QSPI1>;
 		reset-names = "qspi";

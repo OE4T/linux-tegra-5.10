@@ -1,7 +1,7 @@
 /*
  * tegra194-soc-eqos.dtsi: Ethernet QOS DTSI file.
  *
- * Copyright (c) 2017-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,7 +18,7 @@
  *
  */
 
-#include <dt-bindings/clock/tegra194-clock.h>
+#include <dt-bindings/clock/tegra234-clock.h>
 #include <dt-bindings/reset/tegra194-reset.h>
 
 #define MAKE_EQOS_TRIP(name, temp, hyst) \
@@ -51,11 +51,11 @@
 				<0 188 0x4>,	/* tx2 */
 				<0 193 0x4>,	/* rx3 */
 				<0 189 0x4>;	/* tx3 */
-		clocks = <&bpmp_clks TEGRA194_CLK_EQOS_AXI>,
-			<&bpmp_clks TEGRA194_CLK_EQOS_RX>,
-			<&bpmp_clks TEGRA194_CLK_EQOS_PTP_REF>,
-			<&bpmp_clks TEGRA194_CLK_EQOS_TX>,
-			<&bpmp_clks TEGRA194_CLK_AXI_CBB>;
+		clocks = <&bpmp_clks TEGRA234_CLK_EQOS_AXI>,
+			<&bpmp_clks TEGRA234_CLK_EQOS_RX>,
+			<&bpmp_clks TEGRA234_CLK_EQOS_PTP_REF>,
+			<&bpmp_clks TEGRA234_CLK_EQOS_TX>,
+			<&bpmp_clks TEGRA234_CLK_AXI_CBB>;
 		clock-names = "eqos_axi", "eqos_rx", "eqos_ptp_ref", "eqos_tx", "axi_cbb";
 		resets = <&bpmp_resets TEGRA194_RESET_EQOS>;
 		reset-names = "eqos_rst";

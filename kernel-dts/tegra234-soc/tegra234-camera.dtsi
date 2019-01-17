@@ -1,7 +1,7 @@
 /*
  * tegra194-camera.dtsi: Camera RTCPU DTSI file.
  *
- * Copyright (c) 2016-2017, NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2016-2019, NVIDIA Corporation.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -37,8 +37,8 @@
 				"ast-cpu", "ast-dma";
 
 		clocks =
-			<&bpmp_clks TEGRA194_CLK_RCE_CPU_NIC>,
-			<&bpmp_clks TEGRA194_CLK_RCE_NIC>;
+			<&bpmp_clks TEGRA234_CLK_RCE_CPU_NIC>,
+			<&bpmp_clks TEGRA234_CLK_RCE_NIC>;
 		clock-names = "rce-cpu-nic", "rce-nic";
 
 		nvidia,clock-rates =

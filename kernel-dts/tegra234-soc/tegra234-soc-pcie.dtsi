@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017 - 2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -14,7 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <dt-bindings/clock/tegra194-clock.h>
+#include <dt-bindings/clock/tegra234-clock.h>
 #include <dt-bindings/reset/tegra194-reset.h>
 
 / {
@@ -322,7 +322,7 @@
 
 		status = "disabled";
 
-		clocks = <&bpmp_clks TEGRA194_CLK_PEX0_CORE_0>;
+		clocks = <&bpmp_clks TEGRA234_CLK_PEX0_CORE_0>;
 		clock-names = "core_clk";
 
 		resets = <&bpmp_resets TEGRA194_RESET_PEX0_CORE_0_APB>,
@@ -367,7 +367,7 @@
 
 		status = "disabled";
 
-		clocks = <&bpmp_clks TEGRA194_CLK_PEX0_CORE_1>;
+		clocks = <&bpmp_clks TEGRA234_CLK_PEX0_CORE_1>;
 		clock-names = "core_clk";
 
 		resets = <&bpmp_resets TEGRA194_RESET_PEX0_CORE_1_APB>,
@@ -398,7 +398,7 @@
 
 		status = "disabled";
 
-		clocks = <&bpmp_clks TEGRA194_CLK_PEX0_CORE_4>;
+		clocks = <&bpmp_clks TEGRA234_CLK_PEX0_CORE_4>;
 		clock-names = "core_clk";
 
 		resets = <&bpmp_resets TEGRA194_RESET_PEX0_CORE_4_APB>,
@@ -443,7 +443,7 @@
 
 		status = "disabled";
 
-		clocks = <&bpmp_clks TEGRA194_CLK_PEX1_CORE_5>;
+		clocks = <&bpmp_clks TEGRA234_CLK_PEX1_CORE_5>;
 		clock-names = "core_clk";
 
 		resets = <&bpmp_resets TEGRA194_RESET_PEX1_CORE_5_APB>,
@@ -495,7 +495,7 @@
 		device_type = "pci";
 		num-lanes = <8>;
 
-		clocks = <&bpmp_clks TEGRA194_CLK_PEX0_CORE_0>;
+		clocks = <&bpmp_clks TEGRA234_CLK_PEX0_CORE_0>;
 		clock-names = "core_clk";
 
 		resets = <&bpmp_resets TEGRA194_RESET_PEX0_CORE_0_APB>,
@@ -560,7 +560,7 @@
 		device_type = "pci";
 		num-lanes = <1>;
 
-		clocks = <&bpmp_clks TEGRA194_CLK_PEX0_CORE_1>;
+		clocks = <&bpmp_clks TEGRA234_CLK_PEX0_CORE_1>;
 		clock-names = "core_clk";
 
 		resets = <&bpmp_resets TEGRA194_RESET_PEX0_CORE_1_APB>,
@@ -626,7 +626,7 @@
 		device_type = "pci";
 		num-lanes = <1>;
 
-		clocks = <&bpmp_clks TEGRA194_CLK_PEX0_CORE_2>;
+		clocks = <&bpmp_clks TEGRA234_CLK_PEX0_CORE_2>;
 		clock-names = "core_clk";
 
 		resets = <&bpmp_resets TEGRA194_RESET_PEX0_CORE_2_APB>,
@@ -691,7 +691,7 @@
 		device_type = "pci";
 		num-lanes = <1>;
 
-		clocks = <&bpmp_clks TEGRA194_CLK_PEX0_CORE_3>;
+		clocks = <&bpmp_clks TEGRA234_CLK_PEX0_CORE_3>;
 		clock-names = "core_clk";
 
 		resets = <&bpmp_resets TEGRA194_RESET_PEX0_CORE_3_APB>,
@@ -756,7 +756,7 @@
 		device_type = "pci";
 		num-lanes = <4>;
 
-		clocks = <&bpmp_clks TEGRA194_CLK_PEX0_CORE_4>;
+		clocks = <&bpmp_clks TEGRA234_CLK_PEX0_CORE_4>;
 		clock-names = "core_clk";
 
 		resets = <&bpmp_resets TEGRA194_RESET_PEX0_CORE_4_APB>,
@@ -821,7 +821,7 @@
 		device_type = "pci";
 		num-lanes = <8>;
 
-		clocks = <&bpmp_clks TEGRA194_CLK_PEX1_CORE_5>;
+		clocks = <&bpmp_clks TEGRA234_CLK_PEX1_CORE_5>;
 		clock-names = "core_clk";
 
 		resets = <&bpmp_resets TEGRA194_RESET_PEX1_CORE_5_APB>,

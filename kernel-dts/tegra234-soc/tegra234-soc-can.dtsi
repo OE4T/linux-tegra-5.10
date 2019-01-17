@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -14,7 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <dt-bindings/clock/tegra194-clock.h>
+#include <dt-bindings/clock/tegra234-clock.h>
 #include <dt-bindings/reset/tegra194-reset.h>
 
 / {
@@ -26,10 +26,10 @@
 		 reg-names = "can-regs", "glue-regs", "msg-ram";
 		 interrupts = <0 40 0x04 >;
 		 pll_source = "pllaon";
-		 clocks = <&bpmp_clks TEGRA194_CLK_CAN1_CORE>,
-			<&bpmp_clks TEGRA194_CLK_CAN1_HOST>,
-			<&bpmp_clks TEGRA194_CLK_CAN1>,
-			<&bpmp_clks TEGRA194_CLK_PLLAON>;
+		 clocks = <&bpmp_clks TEGRA234_CLK_CAN1_CORE>,
+			<&bpmp_clks TEGRA234_CLK_CAN1_HOST>,
+			<&bpmp_clks TEGRA234_CLK_CAN1>,
+			<&bpmp_clks TEGRA234_CLK_PLLAON>;
 		 clock-names = "can_core", "can_host","can","pllaon";
 		 resets = <&bpmp_resets TEGRA194_RESET_CAN1>;
 		 reset-names = "can";
@@ -47,10 +47,10 @@
 		 reg-names = "can-regs", "glue-regs", "msg-ram";
 		 interrupts = <0 42 0x04 >;
 		 pll_source = "pllaon";
-		 clocks = <&bpmp_clks TEGRA194_CLK_CAN2_CORE>,
-			<&bpmp_clks TEGRA194_CLK_CAN2_HOST>,
-			<&bpmp_clks TEGRA194_CLK_CAN2>,
-			<&bpmp_clks TEGRA194_CLK_PLLAON>;
+		 clocks = <&bpmp_clks TEGRA234_CLK_CAN2_CORE>,
+			<&bpmp_clks TEGRA234_CLK_CAN2_HOST>,
+			<&bpmp_clks TEGRA234_CLK_CAN2>,
+			<&bpmp_clks TEGRA234_CLK_PLLAON>;
 		 clock-names = "can_core", "can_host","can","pllaon";
 		 resets = <&bpmp_resets TEGRA194_RESET_CAN2>;
 		 reset-names = "can";

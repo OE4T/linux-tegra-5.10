@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2017, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2015-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -30,9 +30,9 @@
 		dma-coherent;
 		iommus = <&smmu TEGRA_SID_SATA2>;
 		power-domains = <&bpmp TEGRA194_POWER_DOMAIN_SAX>;
-		clocks = <&bpmp_clks TEGRA194_CLK_SATA>,
-			<&bpmp_clks TEGRA194_CLK_SATA_OOB>,
-			<&bpmp_clks TEGRA194_CLK_PLLP_OUT0>;
+		clocks = <&bpmp_clks TEGRA234_CLK_SATA>,
+			<&bpmp_clks TEGRA234_CLK_SATA_OOB>,
+			<&bpmp_clks TEGRA234_CLK_PLLP_OUT0>;
 		clock-names = "sata", "sata-oob", "pllp";
 		resets = <&bpmp_resets TEGRA194_RESET_SATA>,
 			<&bpmp_resets TEGRA194_RESET_SATACOLD>;
