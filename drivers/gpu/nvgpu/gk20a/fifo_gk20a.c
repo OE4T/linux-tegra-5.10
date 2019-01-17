@@ -2767,7 +2767,7 @@ int gk20a_fifo_tsg_set_timeslice(struct tsg_gk20a *tsg, u32 timeslice)
 
 	return g->ops.runlist.update_runlist(g,
 					tsg->runlist_id,
-					FIFO_INVAL_CHANNEL_ID,
+					NULL,
 					true,
 					true);
 }

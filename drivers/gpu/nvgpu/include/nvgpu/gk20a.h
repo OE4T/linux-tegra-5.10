@@ -852,7 +852,7 @@ struct gpu_ops {
 		int (*reschedule_preempt_next_locked)(struct channel_gk20a *ch,
 				bool wait_preempt);
 		int (*update_runlist)(struct gk20a *g, u32 runlist_id,
-				u32 chid, bool add,
+				struct channel_gk20a *ch, bool add,
 				bool wait_for_finish);
 		int (*set_runlist_interleave)(struct gk20a *g, u32 id,
 					u32 runlist_id,

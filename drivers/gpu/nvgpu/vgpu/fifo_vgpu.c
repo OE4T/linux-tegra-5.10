@@ -475,7 +475,7 @@ done:
 }
 
 static int vgpu_fifo_update_runlist_locked(struct gk20a *g, u32 runlist_id,
-					u32 chid, bool add,
+					struct channel_gk20a *ch, bool add,
 					bool wait_for_finish)
 {
 	struct fifo_gk20a *f = &g->fifo;
@@ -489,19 +489,19 @@ static int vgpu_fifo_update_runlist_locked(struct gk20a *g, u32 runlist_id,
 
 	/* valid channel, add/remove it from active list.
 	   Otherwise, keep active list untouched for suspend/resume. */
-	if (chid != (u32)~0) {
+	if (ch != NULL) {
 		if (add) {
-			if (test_and_set_bit(chid,
+			if (test_and_set_bit((int)ch->chid,
 				runlist->active_channels) == 1)
 				return 0;
 		} else {
-			if (test_and_clear_bit(chid,
+			if (test_and_clear_bit((int)ch->chid,
 				runlist->active_channels) == 0)
 				return 0;
 		}
 	}
 
-	if (chid != (u32)~0 || /* add/remove a valid channel */
+	if (ch != NULL || /* add/remove a valid channel */
 	    add /* resume to add all channels back */) {
 		u32 cid;
 
@@ -513,8 +513,10 @@ static int vgpu_fifo_update_runlist_locked(struct gk20a *g, u32 runlist_id,
 			runlist_entry++;
 			count++;
 		}
-	} else	/* suspend to remove all channels */
+	} else {
+		/* suspend to remove all channels */
 		count = 0;
+	}
 
 	return vgpu_submit_runlist(g, vgpu_get_handle(g), runlist_id,
 				runlist->mem[0].cpu_va, count);
@@ -522,10 +524,11 @@ static int vgpu_fifo_update_runlist_locked(struct gk20a *g, u32 runlist_id,
 
 /* add/remove a channel from runlist
    special cases below: runlist->active_channels will NOT be changed.
-   (chid == ~0 && !add) means remove all active channels from runlist.
-   (chid == ~0 &&  add) means restore all active channels on runlist. */
+   (ch == NULL && !add) means remove all active channels from runlist.
+   (ch == NULL &&  add) means restore all active channels on runlist. */
 int vgpu_fifo_update_runlist(struct gk20a *g, u32 runlist_id,
-				u32 chid, bool add, bool wait_for_finish)
+				struct channel_gk20a *ch,
+				bool add, bool wait_for_finish)
 {
 	struct fifo_runlist_info_gk20a *runlist = NULL;
 	struct fifo_gk20a *f = &g->fifo;
@@ -537,7 +540,7 @@ int vgpu_fifo_update_runlist(struct gk20a *g, u32 runlist_id,
 
 	nvgpu_mutex_acquire(&runlist->runlist_lock);
 
-	ret = vgpu_fifo_update_runlist_locked(g, runlist_id, chid, add,
+	ret = vgpu_fifo_update_runlist_locked(g, runlist_id, ch, add,
 					wait_for_finish);
 
 	nvgpu_mutex_release(&runlist->runlist_lock);

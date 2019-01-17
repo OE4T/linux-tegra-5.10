@@ -384,7 +384,7 @@ int gk20a_tsg_set_runlist_interleave(struct tsg_gk20a *tsg, u32 level)
 
 	return (ret != 0) ? ret : g->ops.runlist.update_runlist(g,
 							tsg->runlist_id,
-							FIFO_INVAL_CHANNEL_ID,
+							NULL,
 							true,
 							true);
 }

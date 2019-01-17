@@ -1563,7 +1563,7 @@ static int gr_gp10b_disable_channel_or_tsg(struct gk20a *g, struct channel_gk20a
 
 	ret = g->ops.runlist.update_runlist(g,
 					fault_ch->runlist_id,
-					FIFO_INVAL_CHANNEL_ID,
+					NULL,
 					true,
 					false);
 	if (ret != 0) {

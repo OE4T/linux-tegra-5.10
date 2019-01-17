@@ -275,7 +275,7 @@ u32 nvgpu_runlist_construct_locked(struct fifo_gk20a *f,
 }
 
 int gk20a_fifo_update_runlist_locked(struct gk20a *g, u32 runlist_id,
-					    u32 chid, bool add,
+					    struct channel_gk20a *ch, bool add,
 					    bool wait_for_finish)
 {
 	int ret = 0;
@@ -283,36 +283,34 @@ int gk20a_fifo_update_runlist_locked(struct gk20a *g, u32 runlist_id,
 	struct fifo_runlist_info_gk20a *runlist = NULL;
 	u64 runlist_iova;
 	u32 new_buf;
-	struct channel_gk20a *ch = NULL;
 	struct tsg_gk20a *tsg = NULL;
 
 	runlist = &f->runlist_info[runlist_id];
 
 	/* valid channel, add/remove it from active list.
 	   Otherwise, keep active list untouched for suspend/resume. */
-	if (chid != FIFO_INVAL_CHANNEL_ID) {
-		ch = &f->channel[chid];
+	if (ch != NULL) {
 		if (gk20a_is_channel_marked_as_tsg(ch)) {
 			tsg = &f->tsg[ch->tsgid];
 		}
 
 		if (add) {
-			if (test_and_set_bit(chid,
+			if (test_and_set_bit((int)ch->chid,
 				runlist->active_channels)) {
 				return 0;
 			}
 			if ((tsg != NULL) && (++tsg->num_active_channels != 0U)) {
-				set_bit((int)f->channel[chid].tsgid,
+				set_bit((int)tsg->tsgid,
 					runlist->active_tsgs);
 			}
 		} else {
-			if (!test_and_clear_bit(chid,
+			if (!test_and_clear_bit((int)ch->chid,
 				runlist->active_channels)) {
 				return 0;
 			}
 			if ((tsg != NULL) &&
 			    (--tsg->num_active_channels == 0U)) {
-				clear_bit((int)f->channel[chid].tsgid,
+				clear_bit((int)tsg->tsgid,
 					runlist->active_tsgs);
 			}
 		}
@@ -331,7 +329,7 @@ int gk20a_fifo_update_runlist_locked(struct gk20a *g, u32 runlist_id,
 		goto clean_up;
 	}
 
-	if (chid != FIFO_INVAL_CHANNEL_ID || /* add/remove a valid channel */
+	if (ch != NULL || /* add/remove a valid channel */
 	    add /* resume to add all channels back */) {
 		u32 num_entries;
 
@@ -422,9 +420,10 @@ static void gk20a_fifo_runlist_reset_engines(struct gk20a *g, u32 runlist_id)
 
 /* add/remove a channel from runlist
    special cases below: runlist->active_channels will NOT be changed.
-   (chid == ~0 && !add) means remove all active channels from runlist.
-   (chid == ~0 &&  add) means restore all active channels on runlist. */
-int gk20a_fifo_update_runlist(struct gk20a *g, u32 runlist_id, u32 chid,
+   (ch == NULL && !add) means remove all active channels from runlist.
+   (ch == NULL &&  add) means restore all active channels on runlist. */
+int gk20a_fifo_update_runlist(struct gk20a *g, u32 runlist_id,
+			      struct channel_gk20a *ch,
 			      bool add, bool wait_for_finish)
 {
 	struct fifo_runlist_info_gk20a *runlist = NULL;
@@ -444,7 +443,7 @@ int gk20a_fifo_update_runlist(struct gk20a *g, u32 runlist_id, u32 chid,
 						PMU_MUTEX_ID_FIFO, &token);
 	}
 
-	ret = gk20a_fifo_update_runlist_locked(g, runlist_id, chid, add,
+	ret = gk20a_fifo_update_runlist_locked(g, runlist_id, ch, add,
 					       wait_for_finish);
 
 	if (mutex_ret == 0) {
@@ -460,8 +459,8 @@ int gk20a_fifo_update_runlist(struct gk20a *g, u32 runlist_id, u32 chid,
 	return ret;
 }
 
-int gk20a_fifo_update_runlist_ids(struct gk20a *g, u32 runlist_ids, u32 chid,
-				bool add, bool wait_for_finish)
+int gk20a_fifo_update_runlist_ids(struct gk20a *g, u32 runlist_ids,
+				bool add)
 {
 	int ret = -EINVAL;
 	unsigned long runlist_id = 0;
@@ -476,7 +475,7 @@ int gk20a_fifo_update_runlist_ids(struct gk20a *g, u32 runlist_ids, u32 chid,
 	for_each_set_bit(runlist_id, &ulong_runlist_ids, 32U) {
 		/* Capture the last failure error code */
 		errcode = g->ops.runlist.update_runlist(g, (u32)runlist_id,
-				chid, add, wait_for_finish);
+				NULL, add, true);
 		if (errcode != 0) {
 			nvgpu_err(g,
 				"failed to update_runlist %lu %d",

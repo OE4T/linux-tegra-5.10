@@ -923,7 +923,6 @@ static void gv11b_fifo_locked_abort_runlist_active_tsgs(struct gk20a *g,
 	struct fifo_runlist_info_gk20a *runlist = NULL;
 	u32 token = PMU_INVALID_MUTEX_OWNER_ID;
 	int mutex_ret = -EINVAL;
-	bool add = false, wait_for_finish = false;
 	int err;
 
 	nvgpu_err(g, "runlist id unknown, abort active tsgs in runlists");
@@ -968,9 +967,12 @@ static void gv11b_fifo_locked_abort_runlist_active_tsgs(struct gk20a *g,
 				}
 			}
 
-			/* (chid == ~0 && !add) remove all act ch from runlist*/
+			/*
+			 * remove all entries from this runlist; don't wait for
+			 * the update to finish on hw.
+			 */
 			err = gk20a_fifo_update_runlist_locked(g, rlid,
-					FIFO_INVAL_CHANNEL_ID, add, wait_for_finish);
+					NULL, false, false);
 			if (err != 0) {
 				nvgpu_err(g, "runlist id %d is not cleaned up",
 					rlid);
