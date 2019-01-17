@@ -30,6 +30,7 @@
 
 #define SZ_1M		(1UL << 20)
 #define SZ_16M		(SZ_1M << 4)
+#define SZ_32M		(SZ_1M << 5)
 #define SZ_256M		(SZ_1M << 8)
 #define SZ_512M		(SZ_1M << 9)
 

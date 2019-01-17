@@ -302,6 +302,10 @@ int nvgpu_vidmem_init(struct mm_gk20a *mm)
 
 	vidmem_dbg(g, "init begin");
 
+	if (nvgpu_is_enabled(g, NVGPU_IS_FMODEL)) {
+		bootstrap_size = SZ_32M;
+	}
+
 	bootstrap_co.base = size - bootstrap_size;
 	bootstrap_co.length = bootstrap_size;
 
@@ -411,8 +415,6 @@ int nvgpu_vidmem_clear(struct gk20a *g, struct nvgpu_mem *mem)
 		return -EINVAL;
 
 	alloc = mem->vidmem_alloc;
-
-	vidmem_dbg(g, "Clearing VIDMEM buf:");
 
 	nvgpu_sgt_for_each_sgl(sgl, &alloc->sgt) {
 		if (gk20a_last_fence)
