@@ -121,7 +121,7 @@ bool nvgpu_dbg_gpu_broadcast_stop_trigger(struct channel_gk20a *ch)
 	return broadcast;
 }
 
-int nvgpu_dbg_gpu_clear_broadcast_stop_trigger(struct channel_gk20a *ch)
+void nvgpu_dbg_gpu_clear_broadcast_stop_trigger(struct channel_gk20a *ch)
 {
 	struct dbg_session_data *session_data;
 	struct dbg_session_gk20a *dbg_s;
@@ -143,8 +143,6 @@ int nvgpu_dbg_gpu_clear_broadcast_stop_trigger(struct channel_gk20a *ch)
 	}
 
 	nvgpu_mutex_release(&ch->dbg_s_lock);
-
-	return 0;
 }
 
 u32 nvgpu_set_powergate_locked(struct dbg_session_gk20a *dbg_s,

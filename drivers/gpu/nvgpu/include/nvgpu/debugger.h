@@ -118,7 +118,7 @@ dbg_profiler_object_data_from_prof_obj_entry(struct nvgpu_list_node *node)
 void nvgpu_dbg_gpu_post_events(struct channel_gk20a *ch);
 
 bool nvgpu_dbg_gpu_broadcast_stop_trigger(struct channel_gk20a *ch);
-int nvgpu_dbg_gpu_clear_broadcast_stop_trigger(struct channel_gk20a *ch);
+void nvgpu_dbg_gpu_clear_broadcast_stop_trigger(struct channel_gk20a *ch);
 
 int nvgpu_dbg_set_powergate(struct dbg_session_gk20a *dbg_s, bool disable_powergate);
 bool nvgpu_check_and_set_global_reservation(
