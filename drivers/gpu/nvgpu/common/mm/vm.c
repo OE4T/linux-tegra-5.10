@@ -129,7 +129,7 @@ u64 nvgpu_vm_alloc_va(struct vm_gk20a *vm, u64 size, u32 pgsz_idx)
 	struct gk20a *g = vm->mm->g;
 	struct nvgpu_allocator *vma = NULL;
 	u64 addr;
-	u64 page_size = vm->gmmu_page_sizes[pgsz_idx];
+	u32 page_size = vm->gmmu_page_sizes[pgsz_idx];
 
 	vma = vm->vma[pgsz_idx];
 
@@ -252,7 +252,7 @@ static int nvgpu_init_sema_pool(struct vm_gk20a *vm)
 					     vm->va_limit -
 					     mm->channel.kernel_size,
 					     512U * PAGE_SIZE,
-					     SZ_4K);
+					     (u32)SZ_4K);
 	if (sema_sea->gpu_va == 0ULL) {
 		nvgpu_free(&vm->kernel, sema_sea->gpu_va);
 		nvgpu_vm_put(vm);
@@ -307,9 +307,9 @@ int nvgpu_vm_do_init(struct mm_gk20a *mm,
 
 	vm->mm = mm;
 
-	vm->gmmu_page_sizes[GMMU_PAGE_SIZE_SMALL]  = SZ_4K;
+	vm->gmmu_page_sizes[GMMU_PAGE_SIZE_SMALL]  = (u32)SZ_4K;
 	vm->gmmu_page_sizes[GMMU_PAGE_SIZE_BIG]    = big_page_size;
-	vm->gmmu_page_sizes[GMMU_PAGE_SIZE_KERNEL] = SZ_4K;
+	vm->gmmu_page_sizes[GMMU_PAGE_SIZE_KERNEL] = (u32)SZ_4K;
 
 	/* Set up vma pointers. */
 	vm->vma[GMMU_PAGE_SIZE_SMALL]  = &vm->user;
@@ -1025,15 +1025,19 @@ struct nvgpu_mapped_buf *nvgpu_vm_map(struct vm_gk20a *vm,
 		/*
 		 * Adjust the ctag_offset as per the buffer map offset
 		 */
-		ctag_offset += phys_offset >>
-			ilog2(g->ops.fb.compression_page_size(g));
-		pte_kind = binfo.compr_kind;
+		ctag_offset += (u32)(phys_offset >>
+			ilog2(g->ops.fb.compression_page_size(g)));
+		nvgpu_assert((binfo.compr_kind >= 0) &&
+			     (binfo.compr_kind <= (s16)U8_MAX));
+		pte_kind = (u8)binfo.compr_kind;
 	} else if (binfo.incompr_kind != NVGPU_KIND_INVALID) {
 		/*
 		 * Incompressible kind, ctag offset will not be programmed
 		 */
 		ctag_offset = 0;
-		pte_kind = binfo.incompr_kind;
+		nvgpu_assert((binfo.incompr_kind >= 0) &&
+		             (binfo.incompr_kind <= (s16)U8_MAX));
+		pte_kind = (u8)binfo.incompr_kind;
 	} else {
 		/*
 		 * Caller required compression, but we cannot provide it
@@ -1079,7 +1083,8 @@ struct nvgpu_mapped_buf *nvgpu_vm_map(struct vm_gk20a *vm,
 	mapped_buffer->pgsz_idx     = binfo.pgsz_idx;
 	mapped_buffer->vm           = vm;
 	mapped_buffer->flags        = flags;
-	mapped_buffer->kind         = map_key_kind;
+	nvgpu_assert(map_key_kind >= 0);
+	mapped_buffer->kind         = (u32)map_key_kind;
 	mapped_buffer->va_allocated = va_allocated;
 	mapped_buffer->vm_area      = vm_area;
 
