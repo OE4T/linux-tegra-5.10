@@ -23,11 +23,9 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/enabled.h>
 
-int gk20a_init_gpu_characteristics(struct gk20a *g)
+void gk20a_init_gpu_characteristics(struct gk20a *g)
 {
 	BUG();
-
-	return 0;
 }
 
 struct gk20a * __must_check gk20a_get(struct gk20a *g)

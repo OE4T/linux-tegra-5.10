@@ -298,14 +298,9 @@ static u32 tu104_get_litter_value(struct gk20a *g, int value)
 	return ret;
 }
 
-static int tu104_init_gpu_characteristics(struct gk20a *g)
+static void tu104_init_gpu_characteristics(struct gk20a *g)
 {
-	int err;
-
-	err = gk20a_init_gpu_characteristics(g);
-	if (err != 0) {
-		return err;
-	}
+	gk20a_init_gpu_characteristics(g);
 
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_TSG_SUBCONTEXTS, true);
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_GET_TEMPERATURE, true);
@@ -315,8 +310,6 @@ static int tu104_init_gpu_characteristics(struct gk20a *g)
 	}
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_USERMODE_SUBMIT, true);
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_DEVICE_EVENTS, true);
-
-	return 0;
 }
 
 

@@ -27,7 +27,7 @@
 
 #include "gv11b/gv11b.h"
 
-int gv11b_init_gpu_characteristics(struct gk20a *g)
+void gv11b_init_gpu_characteristics(struct gk20a *g)
 {
 	gk20a_init_gpu_characteristics(g);
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_TSG_SUBCONTEXTS, true);
@@ -36,6 +36,4 @@ int gv11b_init_gpu_characteristics(struct gk20a *g)
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_SYNCPOINT_ADDRESS, true);
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_USER_SYNCPOINT, true);
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_USERMODE_SUBMIT, true);
-
-	return 0;
 }

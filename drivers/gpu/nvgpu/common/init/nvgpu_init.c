@@ -392,11 +392,7 @@ int gk20a_finalize_poweron(struct gk20a *g)
 		goto done;
 	}
 
-	err = g->ops.chip_init_gpu_characteristics(g);
-	if (err != 0) {
-		nvgpu_err(g, "failed to init gk20a gpu characteristics");
-		goto done;
-	}
+	g->ops.chip_init_gpu_characteristics(g);
 
 #ifdef CONFIG_GK20A_CTXSW_TRACE
 	err = gk20a_ctxsw_trace_init(g);
@@ -502,7 +498,7 @@ int gk20a_wait_for_idle(struct gk20a *g)
 	return 0;
 }
 
-int gk20a_init_gpu_characteristics(struct gk20a *g)
+void gk20a_init_gpu_characteristics(struct gk20a *g)
 {
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_MAP_DIRECT_KIND_CTRL, true);
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_MAP_BUFFER_BATCH, true);
@@ -546,8 +542,6 @@ int gk20a_init_gpu_characteristics(struct gk20a *g)
 	}
 
 	g->ops.gr.get_rop_l2_en_mask(g);
-
-	return 0;
 }
 
 static struct gk20a *gk20a_from_refcount(struct nvgpu_ref *refcount)

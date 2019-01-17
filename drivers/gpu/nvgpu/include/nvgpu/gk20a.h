@@ -1371,7 +1371,7 @@ struct gpu_ops {
 	} perfbuf;
 
 	u32 (*get_litter_value)(struct gk20a *g, int value);
-	int (*chip_init_gpu_characteristics)(struct gk20a *g);
+	void (*chip_init_gpu_characteristics)(struct gk20a *g);
 
 	struct {
 		void (*init_hw)(struct gk20a *g);
@@ -1965,7 +1965,7 @@ int gk20a_wait_for_idle(struct gk20a *g);
 #define NVGPU_GPUID_GV100   0x00000140U
 #define NVGPU_GPUID_TU104   0x00000164U
 
-int gk20a_init_gpu_characteristics(struct gk20a *g);
+void gk20a_init_gpu_characteristics(struct gk20a *g);
 
 int gk20a_prepare_poweroff(struct gk20a *g);
 int gk20a_finalize_poweron(struct gk20a *g);

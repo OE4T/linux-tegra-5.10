@@ -26,17 +26,11 @@
 
 #include "vgpu_gv11b.h"
 
-int vgpu_gv11b_init_gpu_characteristics(struct gk20a *g)
+void vgpu_gv11b_init_gpu_characteristics(struct gk20a *g)
 {
-	int err;
-
 	nvgpu_log_fn(g, " ");
 
-	err = vgpu_init_gpu_characteristics(g);
-	if (err) {
-		nvgpu_err(g, "vgpu_init_gpu_characteristics failed, err %d\n", err);
-		return err;
-	}
+	vgpu_init_gpu_characteristics(g);
 
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_TSG_SUBCONTEXTS, true);
 	nvgpu_set_enabled(g, NVGPU_USE_COHERENT_SYSMEM, true);
@@ -45,6 +39,4 @@ int vgpu_gv11b_init_gpu_characteristics(struct gk20a *g)
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_SYNCPOINT_ADDRESS, true);
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_USER_SYNCPOINT, true);
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_USERMODE_SUBMIT, true);
-
-	return 0;
 }

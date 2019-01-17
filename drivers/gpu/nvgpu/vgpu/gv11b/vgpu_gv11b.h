@@ -25,6 +25,6 @@
 
 struct gk20a;
 
-int vgpu_gv11b_init_gpu_characteristics(struct gk20a *g);
+void vgpu_gv11b_init_gpu_characteristics(struct gk20a *g);
 
 #endif

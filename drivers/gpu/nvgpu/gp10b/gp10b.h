@@ -27,6 +27,6 @@
 
 #include <nvgpu/gk20a.h>
 
-int gp10b_init_gpu_characteristics(struct gk20a *g);
+void gp10b_init_gpu_characteristics(struct gk20a *g);
 
 #endif /* GP10B_H */

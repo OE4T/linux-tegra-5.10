@@ -74,7 +74,7 @@ int vgpu_get_attribute(u64 handle, u32 attrib, u32 *value);
 int vgpu_intr_thread(void *dev_id);
 void vgpu_remove_support_common(struct gk20a *g);
 void vgpu_detect_chip(struct gk20a *g);
-int vgpu_init_gpu_characteristics(struct gk20a *g);
+void vgpu_init_gpu_characteristics(struct gk20a *g);
 int vgpu_read_ptimer(struct gk20a *g, u64 *value);
 int vgpu_get_timestamps_zipper(struct gk20a *g,
 		u32 source_id, u32 count,

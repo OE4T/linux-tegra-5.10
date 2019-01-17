@@ -270,22 +270,16 @@ void vgpu_detect_chip(struct gk20a *g)
 			p->gpu_rev);
 }
 
-int vgpu_init_gpu_characteristics(struct gk20a *g)
+void vgpu_init_gpu_characteristics(struct gk20a *g)
 {
-	int err;
-
 	nvgpu_log_fn(g, " ");
 
-	err = gk20a_init_gpu_characteristics(g);
-	if (err)
-		return err;
+	gk20a_init_gpu_characteristics(g);
 
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_MAP_BUFFER_BATCH, false);
 
 	/* features vgpu does not support */
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_RESCHEDULE_RUNLIST, false);
-
-	return 0;
 }
 
 int vgpu_read_ptimer(struct gk20a *g, u64 *value)
@@ -448,11 +442,7 @@ int vgpu_finalize_poweron_common(struct gk20a *g)
 		return err;
 	}
 
-	err = g->ops.chip_init_gpu_characteristics(g);
-	if (err != 0) {
-		nvgpu_err(g, "failed to init gk20a gpu characteristics");
-		return err;
-	}
+	g->ops.chip_init_gpu_characteristics(g);
 
 #ifdef CONFIG_GK20A_CTXSW_TRACE
 	gk20a_ctxsw_trace_init(g);

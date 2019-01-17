@@ -27,6 +27,6 @@
 
 #include <nvgpu/gk20a.h>
 
-int gv11b_init_gpu_characteristics(struct gk20a *g);
+void gv11b_init_gpu_characteristics(struct gk20a *g);
 
 #endif /* GV11B_H */
