@@ -224,7 +224,7 @@ int vgpu_vm_bind_channel(struct vm_gk20a *vm,
 	return err;
 }
 
-static void vgpu_cache_maint(u64 handle, u8 op)
+static int vgpu_cache_maint(u64 handle, u8 op)
 {
 	struct tegra_vgpu_cmd_msg msg;
 	struct tegra_vgpu_cache_maint_params *p = &msg.params.cache_maint;
@@ -235,6 +235,7 @@ static void vgpu_cache_maint(u64 handle, u8 op)
 	p->op = op;
 	err = vgpu_comm_sendrecv(&msg, sizeof(msg), sizeof(msg));
 	WARN_ON(err || msg.ret);
+	return err;
 }
 
 int vgpu_mm_fb_flush(struct gk20a *g)
@@ -242,8 +243,7 @@ int vgpu_mm_fb_flush(struct gk20a *g)
 
 	nvgpu_log_fn(g, " ");
 
-	vgpu_cache_maint(vgpu_get_handle(g), TEGRA_VGPU_FB_FLUSH);
-	return 0;
+	return vgpu_cache_maint(vgpu_get_handle(g), TEGRA_VGPU_FB_FLUSH);
 }
 
 void vgpu_mm_l2_invalidate(struct gk20a *g)
@@ -251,10 +251,10 @@ void vgpu_mm_l2_invalidate(struct gk20a *g)
 
 	nvgpu_log_fn(g, " ");
 
-	vgpu_cache_maint(vgpu_get_handle(g), TEGRA_VGPU_L2_MAINT_INV);
+	(void) vgpu_cache_maint(vgpu_get_handle(g), TEGRA_VGPU_L2_MAINT_INV);
 }
 
-void vgpu_mm_l2_flush(struct gk20a *g, bool invalidate)
+int vgpu_mm_l2_flush(struct gk20a *g, bool invalidate)
 {
 	u8 op;
 
@@ -265,7 +265,7 @@ void vgpu_mm_l2_flush(struct gk20a *g, bool invalidate)
 	else
 		op =  TEGRA_VGPU_L2_MAINT_FLUSH;
 
-	vgpu_cache_maint(vgpu_get_handle(g), op);
+	return vgpu_cache_maint(vgpu_get_handle(g), op);
 }
 
 int vgpu_mm_tlb_invalidate(struct gk20a *g, struct nvgpu_mem *pdb)

@@ -81,14 +81,17 @@ static void gr_gk20a_enable_elcg(struct gk20a *g);
 
 u32 gr_gk20a_get_ctx_id(struct gk20a *g, struct nvgpu_mem *ctx_mem)
 {
-	u32 ctx_id;
+	/* Initialize ctx_id to invalid value */
+	u32 ctx_id = 0;
 
 	/* Channel gr_ctx buffer is gpu cacheable.
 	   Flush and invalidate before cpu update. */
-	g->ops.mm.l2_flush(g, true);
-
-	ctx_id = g->ops.gr.ctxsw_prog.get_main_image_ctx_id(g, ctx_mem);
-	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_intr, "ctx_id: 0x%x", ctx_id);
+	if (g->ops.mm.l2_flush(g, true) != 0) {
+		nvgpu_err(g, "l2_flush failed");
+	} else {
+		ctx_id = g->ops.gr.ctxsw_prog.get_main_image_ctx_id(g, ctx_mem);
+		nvgpu_log(g, gpu_dbg_fn | gpu_dbg_intr, "ctx_id: 0x%x", ctx_id);
+	}
 	return ctx_id;
 }
 
@@ -1394,7 +1397,11 @@ restore_fe_go_idle:
 		goto clean_up;
 	}
 
-	g->ops.mm.l2_flush(g, true);
+	err = g->ops.mm.l2_flush(g, true);
+	if (err != 0) {
+		nvgpu_err(g, "l2_flush failed");
+		goto clean_up;
+	}
 	g->ops.gr.ctxsw_prog.set_zcull_mode_no_ctxsw(g, gr_mem);
 
 	g->ops.gr.ctxsw_prog.set_zcull_ptr(g, gr_mem, 0);
@@ -1462,7 +1469,11 @@ int gr_gk20a_update_smpc_ctxsw_mode(struct gk20a *g,
 
 	/* Channel gr_ctx buffer is gpu cacheable.
 	   Flush and invalidate before cpu update. */
-	g->ops.mm.l2_flush(g, true);
+	ret = g->ops.mm.l2_flush(g, true);
+	if (ret != 0) {
+		nvgpu_err(g, "l2_flush failed");
+		goto out;
+	}
 
 	g->ops.gr.ctxsw_prog.set_pm_smpc_mode(g, mem, enable_smpc_ctxsw);
 
@@ -1546,7 +1557,11 @@ int gr_gk20a_update_hwpm_ctxsw_mode(struct gk20a *g,
 
 	/* Channel gr_ctx buffer is gpu cacheable.
 	   Flush and invalidate before cpu update. */
-	g->ops.mm.l2_flush(g, true);
+	ret = g->ops.mm.l2_flush(g, true);
+	if (ret != 0) {
+		nvgpu_err(g, "l2_flush failed");
+		return ret;
+	}
 
 	if (mode != NVGPU_DBG_HWPM_CTXSW_MODE_NO_CTXSW) {
 		/* Allocate buffer if necessary */
@@ -7404,7 +7419,11 @@ int __gr_gk20a_exec_ctx_ops(struct channel_gk20a *ch,
 		goto cleanup;
 	}
 
-	g->ops.mm.l2_flush(g, true);
+	err = g->ops.mm.l2_flush(g, true);
+	if (err != 0) {
+		nvgpu_err(g, "l2_flush failed");
+		goto cleanup;
+	}
 
 	/* write to appropriate place in context image,
 	 * first have to figure out where that really is */

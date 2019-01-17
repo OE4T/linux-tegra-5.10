@@ -553,12 +553,13 @@ void gk20a_mm_l2_invalidate(struct gk20a *g)
 	gk20a_idle_nosuspend(g);
 }
 
-void gk20a_mm_l2_flush(struct gk20a *g, bool invalidate)
+int gk20a_mm_l2_flush(struct gk20a *g, bool invalidate)
 {
 	struct mm_gk20a *mm = &g->mm;
 	u32 data;
 	struct nvgpu_timeout timeout;
 	u32 retries = 2000;
+	int err = -ETIMEDOUT;
 
 	nvgpu_log_fn(g, " ");
 
@@ -592,6 +593,7 @@ void gk20a_mm_l2_flush(struct gk20a *g, bool invalidate)
 				nvgpu_log_info(g, "l2_flush_dirty 0x%x", data);
 				nvgpu_udelay(5);
 		} else {
+			err = 0;
 			break;
 		}
 	} while (nvgpu_timeout_expired_msg(&timeout,
@@ -607,6 +609,8 @@ void gk20a_mm_l2_flush(struct gk20a *g, bool invalidate)
 
 hw_was_off:
 	gk20a_idle_nosuspend(g);
+
+	return err;
 }
 
 void gk20a_mm_cbc_clean(struct gk20a *g)

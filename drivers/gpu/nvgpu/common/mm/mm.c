@@ -116,12 +116,18 @@ u32 nvgpu_vm_get_pte_size(struct vm_gk20a *vm, u64 base, u64 size)
 
 int nvgpu_mm_suspend(struct gk20a *g)
 {
+	int err;
+
 	nvgpu_log_info(g, "MM suspend running...");
 
 	nvgpu_vidmem_thread_pause_sync(&g->mm);
 
 	g->ops.mm.cbc_clean(g);
-	g->ops.mm.l2_flush(g, false);
+	err = g->ops.mm.l2_flush(g, false);
+	if (err != 0) {
+		nvgpu_err(g, "l2_flush failed");
+		return err;
+	}
 
 	if (g->ops.fb.disable_hub_intr != NULL) {
 		g->ops.fb.disable_hub_intr(g);
@@ -133,7 +139,7 @@ int nvgpu_mm_suspend(struct gk20a *g)
 
 	nvgpu_log_info(g, "MM suspend done!");
 
-	return 0;
+	return err;
 }
 
 u64 nvgpu_inst_block_addr(struct gk20a *g, struct nvgpu_mem *inst_block)

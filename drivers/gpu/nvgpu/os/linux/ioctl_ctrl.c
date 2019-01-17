@@ -607,11 +607,17 @@ static int nvgpu_gpu_ioctl_l2_fb_ops(struct gk20a *g,
 	    (!args->l2_flush && args->l2_invalidate))
 		return -EINVAL;
 
-	if (args->l2_flush)
-		g->ops.mm.l2_flush(g, args->l2_invalidate ? true : false);
+	if (args->l2_flush) {
+		err = g->ops.mm.l2_flush(g, args->l2_invalidate ? true : false);
+		if (err != 0) {
+			nvgpu_err(g, "l2_flush failed");
+			return err;
+		}
+	}
 
-	if (args->fb_flush)
+	if (args->fb_flush) {
 		g->ops.mm.fb_flush(g);
+	}
 
 	return err;
 }

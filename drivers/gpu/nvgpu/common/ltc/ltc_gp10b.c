@@ -260,7 +260,9 @@ void gp10b_ltc_lts_isr(struct gk20a *g,	unsigned int ltc, unsigned int slice)
 		nvgpu_writel_check(g,
 			ltc_ltc0_lts0_dstg_ecc_report_r() + offset,
 			ecc_stats_reg_val);
-		g->ops.mm.l2_flush(g, true);
+		if (g->ops.mm.l2_flush(g, true) != 0) {
+			nvgpu_err(g, "l2_flush failed");
+		}
 	}
 	if ((ltc_intr &
 	     ltc_ltcs_ltss_intr_ecc_ded_error_pending_f()) != 0U) {

@@ -33,7 +33,7 @@ void gv11b_init_inst_block(struct nvgpu_mem *inst_block,
 		struct vm_gk20a *vm, u32 big_page_size);
 bool gv11b_mm_mmu_fault_pending(struct gk20a *g);
 int gv11b_init_mm_setup_hw(struct gk20a *g);
-void gv11b_mm_l2_flush(struct gk20a *g, bool invalidate);
+int gv11b_mm_l2_flush(struct gk20a *g, bool invalidate);
 u64 gv11b_gpu_phys_addr(struct gk20a *g,
 			struct nvgpu_gmmu_attrs *attrs, u64 phys);
 void gv11b_mm_fault_info_mem_destroy(struct gk20a *g);

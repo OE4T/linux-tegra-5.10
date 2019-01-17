@@ -1094,7 +1094,7 @@ struct gpu_ops {
 				struct channel_gk20a *ch);
 		int (*fb_flush)(struct gk20a *g);
 		void (*l2_invalidate)(struct gk20a *g);
-		void (*l2_flush)(struct gk20a *g, bool invalidate);
+		int (*l2_flush)(struct gk20a *g, bool invalidate);
 		void (*cbc_clean)(struct gk20a *g);
 		void (*set_big_page_size)(struct gk20a *g,
 					  struct nvgpu_mem *mem, u32 size);

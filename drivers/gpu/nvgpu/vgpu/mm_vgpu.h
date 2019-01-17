@@ -42,7 +42,7 @@ int vgpu_vm_bind_channel(struct vm_gk20a *vm,
 				struct channel_gk20a *ch);
 int vgpu_mm_fb_flush(struct gk20a *g);
 void vgpu_mm_l2_invalidate(struct gk20a *g);
-void vgpu_mm_l2_flush(struct gk20a *g, bool invalidate);
+int vgpu_mm_l2_flush(struct gk20a *g, bool invalidate);
 int vgpu_mm_tlb_invalidate(struct gk20a *g, struct nvgpu_mem *pdb);
 void vgpu_mm_mmu_set_debug_mode(struct gk20a *g, bool enable);
 #endif

@@ -73,7 +73,7 @@ struct gk20a;
 struct channel_gk20a;
 
 int gk20a_mm_fb_flush(struct gk20a *g);
-void gk20a_mm_l2_flush(struct gk20a *g, bool invalidate);
+int gk20a_mm_l2_flush(struct gk20a *g, bool invalidate);
 void gk20a_mm_cbc_clean(struct gk20a *g);
 void gk20a_mm_l2_invalidate(struct gk20a *g);
 

@@ -102,6 +102,7 @@ int gv11b_update_subctx_header(struct channel_gk20a *c, u64 gpu_va)
 	struct gk20a *g = c->g;
 	struct tsg_gk20a *tsg;
 	struct nvgpu_gr_ctx *gr_ctx;
+	int err = 0;
 
 	tsg = tsg_gk20a_from_ch(c);
 	if (tsg == NULL) {
@@ -110,7 +111,11 @@ int gv11b_update_subctx_header(struct channel_gk20a *c, u64 gpu_va)
 
 	gr_ctx = tsg->gr_ctx;
 
-	g->ops.mm.l2_flush(g, true);
+	err = g->ops.mm.l2_flush(g, true);
+	if (err != 0) {
+		nvgpu_err(g, "l2_flush failed");
+		return err;
+	}
 
 	/* set priv access map */
 	g->ops.gr.ctxsw_prog.set_priv_access_map_addr(g, ctxheader,
@@ -129,7 +134,7 @@ int gv11b_update_subctx_header(struct channel_gk20a *c, u64 gpu_va)
 
 	g->ops.gr.ctxsw_prog.set_type_per_veid_header(g, ctxheader);
 
-	return 0;
+	return err;
 }
 
 static void gv11b_subctx_commit_valid_mask(struct vm_gk20a *vm,

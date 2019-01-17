@@ -203,18 +203,38 @@ int gv11b_init_mm_setup_hw(struct gk20a *g)
 	return err;
 }
 
-void gv11b_mm_l2_flush(struct gk20a *g, bool invalidate)
+int gv11b_mm_l2_flush(struct gk20a *g, bool invalidate)
 {
+	int err = 0;
+
 	nvgpu_log(g, gpu_dbg_fn, "gv11b_mm_l2_flush");
 
-	g->ops.mm.fb_flush(g);
-	gk20a_mm_l2_flush(g, invalidate);
-	if (g->ops.bus.bar1_bind != NULL) {
-		g->ops.fb.tlb_invalidate(g,
-				g->mm.bar1.vm->pdb.mem);
-	} else {
-		g->ops.mm.fb_flush(g);
+	err = g->ops.mm.fb_flush(g);
+	if (err != 0) {
+		nvgpu_err(g, "mm.fb_flush()[1] failed err=%d", err);
+		return err;
 	}
+	err = gk20a_mm_l2_flush(g, invalidate);
+	if (err != 0) {
+		nvgpu_err(g, "gk20a_mm_l2_flush failed");
+		return err;
+	}
+	if (g->ops.bus.bar1_bind != NULL) {
+		err = g->ops.fb.tlb_invalidate(g,
+				g->mm.bar1.vm->pdb.mem);
+		if (err != 0) {
+			nvgpu_err(g, "fb.tlb_invalidate() failed err=%d", err);
+			return err;
+		}
+	} else {
+		err = g->ops.mm.fb_flush(g);
+		if (err != 0) {
+			nvgpu_err(g, "mm.fb_flush()[2] failed err=%d", err);
+			return err;
+		}
+	}
+
+	return err;
 }
 
 /*
