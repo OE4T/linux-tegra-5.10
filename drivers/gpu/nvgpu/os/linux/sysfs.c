@@ -944,10 +944,12 @@ static ssize_t tpc_fs_mask_store(struct device *dev,
 
 		g->ops.gr.set_gpc_tpc_mask(g, 0);
 
-		nvgpu_gr_global_ctx_deinit_local_golden_image(g,
-			g->gr.local_golden_image);
-		g->gr.local_golden_image = NULL;
-		g->gr.ctx_vars.golden_image_initialized = false;
+		if (g->gr.local_golden_image != NULL) {
+			nvgpu_gr_global_ctx_deinit_local_golden_image(g,
+				g->gr.local_golden_image);
+			g->gr.local_golden_image = NULL;
+			g->gr.ctx_vars.golden_image_initialized = false;
+		}
 		g->gr.ctx_vars.golden_image_size = 0;
 		/* Cause next poweron to reinit just gr */
 		g->gr.sw_ready = false;

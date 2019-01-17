@@ -2444,8 +2444,12 @@ static void gk20a_remove_gr_support(struct gr_gk20a *gr)
 
 	nvgpu_netlist_deinit_ctx_vars(g);
 
-	nvgpu_gr_global_ctx_deinit_local_golden_image(g, gr->local_golden_image);
-	gr->local_golden_image = NULL;
+	if (gr->local_golden_image != NULL) {
+		nvgpu_gr_global_ctx_deinit_local_golden_image(g,
+			gr->local_golden_image);
+		gr->local_golden_image = NULL;
+		gr->ctx_vars.golden_image_initialized = false;
+	}
 
 	if (gr->ctx_vars.hwpm_ctxsw_buffer_offset_map != NULL) {
 		nvgpu_big_free(g, gr->ctx_vars.hwpm_ctxsw_buffer_offset_map);
