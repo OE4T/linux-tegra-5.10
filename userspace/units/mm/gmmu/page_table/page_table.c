@@ -956,7 +956,7 @@ static struct vm_gk20a *init_test_req_vm(struct gk20a *g)
 static int test_nvgpu_page_table_c1_full(struct unit_module *m,
 					struct gk20a *g, void *args)
 {
-	u32 mem_i;
+	u32 mem_i, i;
 	struct nvgpu_mem mem[REQ_C1_NUM_MEMS] = {};
 	struct nvgpu_sgt *mixed_sgt = NULL;
 	u32 nr_sgls = 5;
@@ -998,6 +998,9 @@ static int test_nvgpu_page_table_c1_full(struct unit_module *m,
 	mixed_sgl_list[4].length = SZ_64K * 10;
 	mixed_sgl_list[4].phys = mixed_sgl_list[3].phys +
 				    mixed_sgl_list[3].length + TEST_HOLE_SIZE;
+	for (i = 0; i < nr_sgls; i++) {
+		mixed_sgl_list[i].dma = 0;
+	}
 
 	mixed_sgt = custom_sgt_create(m, g, &mem[2], mixed_sgl_list,
 				nr_sgls);
