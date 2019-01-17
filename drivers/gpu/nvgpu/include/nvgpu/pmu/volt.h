@@ -80,5 +80,7 @@ u8 volt_rail_volt_domain_convert_to_idx(struct gk20a *g, u8 volt_domain);
 
 int volt_policy_sw_setup(struct gk20a *g);
 int volt_policy_pmu_setup(struct gk20a *g);
+int nvgpu_volt_rail_boardobj_grp_get_status(struct gk20a *g);
+int nvgpu_volt_get_vmin_tu10x(struct gk20a *g, u32 *vmin_uv);
 
 #endif /* NVGPU_PMU_VOLT_H */

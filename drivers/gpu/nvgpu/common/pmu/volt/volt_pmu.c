@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -385,5 +385,31 @@ int volt_set_noiseaware_vmin(struct gk20a *g, u32 logic_voltage_uv,
 
 	return status;
 
+}
+
+int nvgpu_volt_get_vmin_tu10x(struct gk20a *g, u32 *vmin_uv)
+{
+	struct boardobjgrp *pboardobjgrp;
+	struct boardobj *pboardobj = NULL;
+	struct voltage_rail *volt_rail = NULL;
+	int status;
+	u8 index;
+
+	status = nvgpu_volt_rail_boardobj_grp_get_status(g);
+	if (status != 0) {
+		nvgpu_err(g, "Vfe_var get status failed");
+		return status;
+	}
+
+	pboardobjgrp = &g->perf_pmu->volt.volt_rail_metadata.volt_rails.super;
+
+	BOARDOBJGRP_FOR_EACH(pboardobjgrp, struct boardobj*, pboardobj, index) {
+		volt_rail = (struct voltage_rail *)(void *)pboardobj;
+		if (volt_rail->vmin_limitu_v != 0U) {
+			*vmin_uv = volt_rail->vmin_limitu_v;
+			return status;
+		}
+	}
+	return status;
 }
 

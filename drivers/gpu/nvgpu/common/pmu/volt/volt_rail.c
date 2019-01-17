@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -412,6 +412,68 @@ static int _volt_rail_devgrp_pmustatus_instget(struct gk20a *g,
 
 	*ppboardobjpmustatus = (struct nv_pmu_boardobj_query *)
 			&pgrp_get_status->objects[idx].data.board_obj;
+	return 0;
+}
+
+static int volt_rail_obj_update(struct gk20a *g,
+		struct boardobj *board_obj_ptr,
+		struct nv_pmu_boardobj *ppmudata)
+{
+	struct voltage_rail *volt_rail_obj;
+	struct nv_pmu_volt_volt_rail_boardobj_get_status *pstatus;
+
+	nvgpu_log_info(g, " ");
+
+	volt_rail_obj = (struct voltage_rail *)(void *)board_obj_ptr;
+	pstatus = (struct nv_pmu_volt_volt_rail_boardobj_get_status *)
+		(void *)ppmudata;
+
+	if (pstatus->super.type != volt_rail_obj->super.type) {
+		nvgpu_err(g, "pmu data and boardobj type not matching");
+		return -EINVAL;
+	}
+
+	/* Updating only vmin as per requirement, later other fields can be added */
+	volt_rail_obj->vmin_limitu_v = pstatus->vmin_limitu_v;
+	return 0;
+}
+
+int nvgpu_volt_rail_boardobj_grp_get_status(struct gk20a *g)
+{
+	struct boardobjgrp *pboardobjgrp;
+	struct boardobjgrpmask *pboardobjgrpmask;
+	struct nv_pmu_boardobjgrp_super *pboardobjgrppmu;
+	struct boardobj *pboardobj = NULL;
+	struct nv_pmu_boardobj_query *pboardobjpmustatus = NULL;
+	int status;
+	u8 index;
+
+	nvgpu_log_info(g, " ");
+
+	pboardobjgrp = &g->perf_pmu->volt.volt_rail_metadata.volt_rails.super;
+	pboardobjgrpmask = &g->perf_pmu->volt.volt_rail_metadata.volt_rails.mask.super;
+	status = pboardobjgrp->pmugetstatus(g, pboardobjgrp, pboardobjgrpmask);
+	if (status != 0) {
+		nvgpu_err(g, "err getting boardobjs from pmu");
+		return status;
+	}
+	pboardobjgrppmu = pboardobjgrp->pmu.getstatus.buf;
+
+	BOARDOBJGRP_FOR_EACH(pboardobjgrp, struct boardobj*, pboardobj, index) {
+		status = pboardobjgrp->pmustatusinstget(g,
+				(struct nv_pmu_boardobjgrp *)(void *)pboardobjgrppmu,
+				&pboardobjpmustatus, index);
+		if (status != 0) {
+			nvgpu_err(g, "could not get status object instance");
+			return status;
+		}
+		status = volt_rail_obj_update(g, pboardobj,
+				(struct nv_pmu_boardobj *)(void *)pboardobjpmustatus);
+		if (status != 0) {
+			nvgpu_err(g, "could not update volt rail status");
+			return status;
+		}
+	}
 	return 0;
 }
 
