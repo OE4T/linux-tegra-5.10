@@ -192,7 +192,7 @@ u32 gv11b_gr_sm_offset(struct gk20a *g, u32 sm)
 	return sm_offset;
 }
 
-static int gr_gv11b_handle_l1_tag_exception(struct gk20a *g, u32 gpc, u32 tpc,
+static void gr_gv11b_handle_l1_tag_exception(struct gk20a *g, u32 gpc, u32 tpc,
 			bool *post_event, struct channel_gk20a *fault_ch,
 			u32 *hww_global_esr)
 {
@@ -221,7 +221,7 @@ static int gr_gv11b_handle_l1_tag_exception(struct gk20a *g, u32 gpc, u32 tpc,
 		 gr_pri_gpc0_tpc0_sm_l1_tag_ecc_status_uncorrected_err_miss_fifo_m());
 
 	if ((l1_tag_ecc_corrected_err_status == 0U) && (l1_tag_ecc_uncorrected_err_status == 0U)) {
-		return 0;
+		return;
 	}
 
 	l1_tag_corrected_err_count_delta =
@@ -280,12 +280,9 @@ static int gr_gv11b_handle_l1_tag_exception(struct gk20a *g, u32 gpc, u32 tpc,
 
 	gk20a_writel(g, gr_pri_gpc0_tpc0_sm_l1_tag_ecc_status_r() + offset,
 			gr_pri_gpc0_tpc0_sm_l1_tag_ecc_status_reset_task_f());
-
-	return 0;
-
 }
 
-static int gr_gv11b_handle_lrf_exception(struct gk20a *g, u32 gpc, u32 tpc,
+static void gr_gv11b_handle_lrf_exception(struct gk20a *g, u32 gpc, u32 tpc,
 			bool *post_event, struct channel_gk20a *fault_ch,
 			u32 *hww_global_esr)
 {
@@ -322,7 +319,7 @@ static int gr_gv11b_handle_lrf_exception(struct gk20a *g, u32 gpc, u32 tpc,
 		 gr_pri_gpc0_tpc0_sm_lrf_ecc_status_uncorrected_err_qrfdp7_m());
 
 	if ((lrf_ecc_corrected_err_status == 0U) && (lrf_ecc_uncorrected_err_status == 0U)) {
-		return 0;
+		return;
 	}
 
 	lrf_corrected_err_count_delta =
@@ -381,9 +378,6 @@ static int gr_gv11b_handle_lrf_exception(struct gk20a *g, u32 gpc, u32 tpc,
 
 	gk20a_writel(g, gr_pri_gpc0_tpc0_sm_lrf_ecc_status_r() + offset,
 			gr_pri_gpc0_tpc0_sm_lrf_ecc_status_reset_task_f());
-
-	return 0;
-
 }
 
 void gr_gv11b_enable_hww_exceptions(struct gk20a *g)
@@ -461,7 +455,7 @@ void gr_gv11b_enable_exceptions(struct gk20a *g)
 
 }
 
-static int gr_gv11b_handle_cbu_exception(struct gk20a *g, u32 gpc, u32 tpc,
+static void gr_gv11b_handle_cbu_exception(struct gk20a *g, u32 gpc, u32 tpc,
 			bool *post_event, struct channel_gk20a *fault_ch,
 			u32 *hww_global_esr)
 {
@@ -490,7 +484,7 @@ static int gr_gv11b_handle_cbu_exception(struct gk20a *g, u32 gpc, u32 tpc,
 		 gr_pri_gpc0_tpc0_sm_cbu_ecc_status_uncorrected_err_barrier_sm1_m());
 
 	if ((cbu_ecc_corrected_err_status == 0U) && (cbu_ecc_uncorrected_err_status == 0U)) {
-		return 0;
+		return;
 	}
 
 	cbu_corrected_err_count_delta =
@@ -549,12 +543,9 @@ static int gr_gv11b_handle_cbu_exception(struct gk20a *g, u32 gpc, u32 tpc,
 
 	gk20a_writel(g, gr_pri_gpc0_tpc0_sm_cbu_ecc_status_r() + offset,
 			gr_pri_gpc0_tpc0_sm_cbu_ecc_status_reset_task_f());
-
-	return 0;
-
 }
 
-static int gr_gv11b_handle_l1_data_exception(struct gk20a *g, u32 gpc, u32 tpc,
+static void gr_gv11b_handle_l1_data_exception(struct gk20a *g, u32 gpc, u32 tpc,
 			bool *post_event, struct channel_gk20a *fault_ch,
 			u32 *hww_global_esr)
 {
@@ -579,7 +570,7 @@ static int gr_gv11b_handle_l1_data_exception(struct gk20a *g, u32 gpc, u32 tpc,
 		 gr_pri_gpc0_tpc0_sm_l1_data_ecc_status_uncorrected_err_el1_1_m());
 
 	if ((l1_data_ecc_corrected_err_status == 0U) && (l1_data_ecc_uncorrected_err_status == 0U)) {
-		return 0;
+		return;
 	}
 
 	l1_data_corrected_err_count_delta =
@@ -637,12 +628,9 @@ static int gr_gv11b_handle_l1_data_exception(struct gk20a *g, u32 gpc, u32 tpc,
 	}
 	gk20a_writel(g, gr_pri_gpc0_tpc0_sm_l1_data_ecc_status_r() + offset,
 			gr_pri_gpc0_tpc0_sm_l1_data_ecc_status_reset_task_f());
-
-	return 0;
-
 }
 
-static int gr_gv11b_handle_icache_exception(struct gk20a *g, u32 gpc, u32 tpc,
+static void gr_gv11b_handle_icache_exception(struct gk20a *g, u32 gpc, u32 tpc,
 			bool *post_event, struct channel_gk20a *fault_ch,
 			u32 *hww_global_esr)
 {
@@ -671,7 +659,7 @@ static int gr_gv11b_handle_icache_exception(struct gk20a *g, u32 gpc, u32 tpc,
 		 gr_pri_gpc0_tpc0_sm_icache_ecc_status_uncorrected_err_l1_predecode_m());
 
 	if ((icache_ecc_corrected_err_status == 0U) && (icache_ecc_uncorrected_err_status == 0U)) {
-		return 0;
+		return;
 	}
 
 	icache_corrected_err_count_delta =
@@ -772,9 +760,6 @@ static int gr_gv11b_handle_icache_exception(struct gk20a *g, u32 gpc, u32 tpc,
 
 	gk20a_writel(g, gr_pri_gpc0_tpc0_sm_icache_ecc_status_r() + offset,
 			gr_pri_gpc0_tpc0_sm_icache_ecc_status_reset_task_f());
-
-	return 0;
-
 }
 
 int gr_gv11b_handle_tpc_sm_ecc_exception(struct gk20a *g,
@@ -1894,7 +1879,7 @@ static void gr_gv11b_dump_gr_per_sm_regs(struct gk20a *g,
 		gr_gpc0_tpc0_sm0_dbgr_status0_r() + offset));
 }
 
-static int gr_gv11b_dump_gr_sm_regs(struct gk20a *g,
+static void gr_gv11b_dump_gr_sm_regs(struct gk20a *g,
 			   struct gk20a_debug_output *o)
 {
 	u32 gpc, tpc, sm, sm_per_tpc;
@@ -1939,8 +1924,6 @@ static int gr_gv11b_dump_gr_sm_regs(struct gk20a *g,
 			}
 		}
 	}
-
-	return 0;
 }
 
 int gr_gv11b_dump_gr_status_regs(struct gk20a *g,
@@ -2107,11 +2090,16 @@ int gr_gv11b_wait_empty(struct gk20a *g)
 	u32 gr_status;
 	u32 activity0, activity1, activity2, activity4;
 	struct nvgpu_timeout timeout;
+	int err;
 
 	nvgpu_log_fn(g, " ");
 
-	nvgpu_timeout_init(g, &timeout, gk20a_get_gr_idle_timeout(g),
+	err = nvgpu_timeout_init(g, &timeout, gk20a_get_gr_idle_timeout(g),
 			   NVGPU_TIMER_CPU_TIMER);
+	if (err != 0) {
+		nvgpu_err(g, "timeout_init failed: %d", err);
+		return err;
+	}
 
 	do {
 		/* fmodel: host gets fifo_engine_status(gr) from gr
@@ -3143,7 +3131,11 @@ int gr_gv11b_init_fs_state(struct gk20a *g)
 	gk20a_writel(g, gr_bes_crop_settings_r(),
 		     gr_bes_crop_settings_num_active_ltcs_f(g->ltc_count));
 
-	g->ops.gr.load_smid_config(g);
+	err = g->ops.gr.load_smid_config(g);
+	if (err != 0) {
+		nvgpu_err(g, "load_smid_config failed err=%d", err);
+		return err;
+	}
 
 	return err;
 }
@@ -3767,6 +3759,7 @@ int gv11b_gr_wait_for_sm_lock_down(struct gk20a *g,
 	u32 dbgr_status0 = 0;
 	u32 warp_esr, global_esr;
 	struct nvgpu_timeout timeout;
+	int err;
 	u32 offset = gk20a_gr_gpc_offset(g, gpc) +
 			gk20a_gr_tpc_offset(g, tpc) +
 			gv11b_gr_sm_offset(g, sm);
@@ -3774,8 +3767,12 @@ int gv11b_gr_wait_for_sm_lock_down(struct gk20a *g,
 	nvgpu_log(g, gpu_dbg_intr | gpu_dbg_gpu_dbg,
 		"GPC%d TPC%d: locking down SM%d", gpc, tpc, sm);
 
-	nvgpu_timeout_init(g, &timeout, gk20a_get_gr_idle_timeout(g),
+	err = nvgpu_timeout_init(g, &timeout, gk20a_get_gr_idle_timeout(g),
 			   NVGPU_TIMER_CPU_TIMER);
+	if (err != 0) {
+		nvgpu_err(g, "timeout_init failed: %d", err);
+		return err;
+	}
 
 	/* wait for the sm to lock down */
 	do {
@@ -4407,10 +4404,15 @@ static int gr_gv11b_ecc_scrub_is_done(struct gk20a *g,
 	u32 gpc, tpc;
 	u32 gpc_offset, tpc_offset;
 
-	nvgpu_timeout_init(g, &timeout,
+	int err = nvgpu_timeout_init(g, &timeout,
 		ECC_SCRUBBING_TIMEOUT_MAX /
 		ECC_SCRUBBING_TIMEOUT_DEFAULT,
 		NVGPU_TIMER_RETRY_TIMER);
+
+	if (err != 0) {
+		nvgpu_err(g, "timeout_init failed: %d", err);
+		return err;
+	}
 
 	for (gpc = 0; gpc < g->gr.gpc_count; gpc++) {
 		gpc_offset = gk20a_gr_gpc_offset(g, gpc);
