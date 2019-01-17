@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -28,6 +28,7 @@
 #include <nvgpu/pmuif/ctrlvolt.h>
 #include <nvgpu/timers.h>
 #include <nvgpu/clk_arb.h>
+#include <nvgpu/pmu/volt.h>
 
 #include "clk.h"
 #include "clk_vf_point.h"
@@ -498,6 +499,7 @@ int nvgpu_clk_set_req_fll_clk_ps35(struct gk20a *g, struct nvgpu_clk_slave_freq 
 	u32 max_clkmhz;
 	u16 max_ratio;
 	struct clk_set_info *p0_info;
+	u32 vmin_uv = 0;
 
 	(void) memset(&change_input, 0,
 		sizeof(struct ctrl_perf_change_seq_change_input));
@@ -540,9 +542,11 @@ int nvgpu_clk_set_req_fll_clk_ps35(struct gk20a *g, struct nvgpu_clk_slave_freq 
 			}
 			change_input.clk[i].clk_freq_khz = (u32)vf_point->xbar_mhz * 1000U;
 			change_input.clk_domains_mask.super.data[0] |= (u32) BIT(i);
-			max_clkmhz = (((u32)vf_point->xbar_mhz * 100U)/ (u32)max_ratio);
-			if (gpcclk_clkmhz < max_clkmhz) {
-				gpcclk_clkmhz = max_clkmhz;
+			if (vf_point->gpc_mhz < vf_point->xbar_mhz) {
+				max_clkmhz = (((u32)vf_point->xbar_mhz * 100U) / (u32)max_ratio);
+				if (gpcclk_clkmhz < max_clkmhz) {
+					gpcclk_clkmhz = max_clkmhz;
+				}
 			}
 			break;
 		case CTRL_CLK_DOMAIN_SYSCLK:
@@ -561,9 +565,11 @@ int nvgpu_clk_set_req_fll_clk_ps35(struct gk20a *g, struct nvgpu_clk_slave_freq 
 			}
 			change_input.clk[i].clk_freq_khz = (u32)vf_point->sys_mhz * 1000U;
 			change_input.clk_domains_mask.super.data[0] |= (u32) BIT(i);
-			max_clkmhz = (((u32)vf_point->sys_mhz * 100U)/ (u32)max_ratio);
-			if (gpcclk_clkmhz < max_clkmhz) {
-				gpcclk_clkmhz = max_clkmhz;
+			if (vf_point->gpc_mhz < vf_point->sys_mhz) {
+				max_clkmhz = (((u32)vf_point->sys_mhz * 100U) / (u32)max_ratio);
+				if (gpcclk_clkmhz < max_clkmhz) {
+					gpcclk_clkmhz = max_clkmhz;
+				}
 			}
 			break;
 		case CTRL_CLK_DOMAIN_NVDCLK:
@@ -582,9 +588,11 @@ int nvgpu_clk_set_req_fll_clk_ps35(struct gk20a *g, struct nvgpu_clk_slave_freq 
 			}
 			change_input.clk[i].clk_freq_khz = (u32)vf_point->nvd_mhz * 1000U;
 			change_input.clk_domains_mask.super.data[0] |= (u32) BIT(i);
-			max_clkmhz = (((u32)vf_point->nvd_mhz * 100U)/ (u32)max_ratio);
-			if (gpcclk_clkmhz < max_clkmhz) {
-				gpcclk_clkmhz = max_clkmhz;
+			if (vf_point->gpc_mhz < vf_point->nvd_mhz) {
+				max_clkmhz = (((u32)vf_point->nvd_mhz * 100U) / (u32)max_ratio);
+				if (gpcclk_clkmhz < max_clkmhz) {
+					gpcclk_clkmhz = max_clkmhz;
+				}
 			}
 			break;
 		case CTRL_CLK_DOMAIN_HOSTCLK:
@@ -603,9 +611,11 @@ int nvgpu_clk_set_req_fll_clk_ps35(struct gk20a *g, struct nvgpu_clk_slave_freq 
 			}
 			change_input.clk[i].clk_freq_khz = (u32)vf_point->host_mhz * 1000U;
 			change_input.clk_domains_mask.super.data[0] |= (u32) BIT(i);
-			max_clkmhz = (((u32)vf_point->host_mhz * 100U)/ (u32)max_ratio);
-			if (gpcclk_clkmhz < max_clkmhz) {
-				gpcclk_clkmhz = max_clkmhz;
+			if (vf_point->gpc_mhz < vf_point->host_mhz) {
+				max_clkmhz = (((u32)vf_point->host_mhz * 100U) / (u32)max_ratio);
+				if (gpcclk_clkmhz < max_clkmhz) {
+					gpcclk_clkmhz = max_clkmhz;
+				}
 			}
 			break;
 		default:
@@ -620,7 +630,17 @@ int nvgpu_clk_set_req_fll_clk_ps35(struct gk20a *g, struct nvgpu_clk_slave_freq 
 
 	status = clk_domain_freq_to_volt(g, gpcclk_domain,
 	&gpcclk_clkmhz, &gpcclk_voltuv, CTRL_VOLT_DOMAIN_LOGIC);
-	gpcclk_voltuv += VMIN_PAD_UV;
+
+	status = g->ops.pmu_ver.volt.volt_get_vmin(g, &vmin_uv);
+	if (status != 0) {
+		nvgpu_err(g, "Failed to execute Vmin get_status status=0x%x",
+			status);
+	}
+	if ((status == 0) && (vmin_uv > gpcclk_voltuv)) {
+		gpcclk_voltuv = vmin_uv;
+		nvgpu_log_fn(g, "Vmin is higher than evaluated Volt");
+	}
+
 	change_input.volt[0].voltage_uv = gpcclk_voltuv;
 	change_input.volt[0].voltage_min_noise_unaware_uv = gpcclk_voltuv;
 	change_input.volt_rails_mask.super.data[0] = 1U;
