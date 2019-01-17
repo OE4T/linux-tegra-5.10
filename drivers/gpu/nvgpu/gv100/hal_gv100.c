@@ -69,6 +69,7 @@
 #include "common/falcon/falcon_gv100.h"
 #include "common/nvdec/nvdec_gp106.h"
 #include "common/nvlink/init/device_reginit_gv100.h"
+#include "common/nvlink/intr_and_err_handling_gv100.h"
 #include "common/nvlink/nvlink_gv100.h"
 #include "common/nvlink/nvlink_tu104.h"
 #include "common/pmu/perf/perf_gv100.h"
@@ -1061,7 +1062,6 @@ static const struct gpu_ops gv100_ops = {
 		.discover_ioctrl = gv100_nvlink_discover_ioctrl,
 		.discover_link = gv100_nvlink_discover_link,
 		.init = gv100_nvlink_init,
-		.isr = gv100_nvlink_isr,
 		.rxdet = NULL,
 		.setup_pll = gv100_nvlink_setup_pll,
 		.minion_data_ready_en = gv100_nvlink_minion_data_ready_en,
@@ -1082,6 +1082,19 @@ static const struct gpu_ops gv100_ops = {
 		.shutdown = gv100_nvlink_shutdown,
 		.early_init = gv100_nvlink_early_init,
 		.speed_config = gv100_nvlink_speed_config,
+		.intr = {
+			.minion_clear_interrupts =
+				gv100_nvlink_minion_clear_interrupts,
+			.init_minion_intr = gv100_nvlink_init_minion_intr,
+			.minion_falcon_isr = gv100_nvlink_minion_falcon_isr,
+			.common_intr_enable = gv100_nvlink_common_intr_enable,
+			.init_nvlipt_intr = gv100_nvlink_init_nvlipt_intr,
+			.enable_link_intr = gv100_nvlink_enable_link_intr,
+			.init_mif_intr = gv100_nvlink_init_mif_intr,
+			.mif_intr_enable = gv100_nvlink_mif_intr_enable,
+			.dlpl_intr_enable = gv100_nvlink_dlpl_intr_enable,
+			.isr = gv100_nvlink_isr,
+		}
 	},
 #endif
 	.top = {

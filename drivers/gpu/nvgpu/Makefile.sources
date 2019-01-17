@@ -266,6 +266,7 @@ srcs += common/sim.c \
 	common/nvlink/probe.c \
 	common/nvlink/init/device_reginit.c \
 	common/nvlink/init/device_reginit_gv100.c \
+	common/nvlink/intr_and_err_handling_gv100.c \
 	common/nvlink/nvlink_gv100.c \
 	common/nvlink/nvlink_tu104.c	\
 	common/nvlink/nvlink.c \

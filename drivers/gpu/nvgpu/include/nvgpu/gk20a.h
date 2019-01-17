@@ -1474,7 +1474,6 @@ struct gpu_ops {
 		int (*init)(struct gk20a *g);
 		int (*discover_ioctrl)(struct gk20a *g);
 		int (*discover_link)(struct gk20a *g);
-		int (*isr)(struct gk20a *g);
 		int (*rxdet)(struct gk20a *g, u32 link_id);
 		int (*setup_pll)(struct gk20a *g, unsigned long link_mask);
 		int (*minion_data_ready_en)(struct gk20a *g,
@@ -1498,6 +1497,22 @@ struct gpu_ops {
 		int (*shutdown)(struct gk20a *g);
 		int (*early_init)(struct gk20a *g);
 		int (*speed_config)(struct gk20a *g);
+		struct {
+			void (*minion_clear_interrupts)(struct gk20a *g);
+			void (*init_minion_intr)(struct gk20a *g);
+			bool (*minion_falcon_isr)(struct gk20a *g);
+			void (*common_intr_enable)(struct gk20a *g,
+							unsigned long mask);
+			void (*init_nvlipt_intr)(struct gk20a *g, u32 link_id);
+			void (*enable_link_intr)(struct gk20a *g, u32 link_id,
+							bool enable);
+			void (*init_mif_intr)(struct gk20a *g, u32 link_id);
+			void (*mif_intr_enable)(struct gk20a *g, u32 link_id,
+							bool enable);
+			void (*dlpl_intr_enable)(struct gk20a *g, u32 link_id,
+							bool enable);
+			int (*isr)(struct gk20a *g);
+		} intr;
 	} nvlink;
 	struct {
 		u32 (*get_nvhsclk_ctrl_e_clk_nvl)(struct gk20a *g);

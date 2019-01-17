@@ -333,6 +333,7 @@ nvgpu-y += \
 	common/nvlink/probe.o \
 	common/nvlink/init/device_reginit_gv100.o \
 	common/nvlink/init/device_reginit.o \
+	common/nvlink/intr_and_err_handling_gv100.o \
 	common/nvlink/nvlink.o \
 	common/nvlink/nvlink_gv100.o \
 	common/nvlink/nvlink_tu104.o \
