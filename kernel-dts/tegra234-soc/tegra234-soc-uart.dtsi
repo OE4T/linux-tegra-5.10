@@ -34,8 +34,8 @@
 		nvidia,memory-clients = <14>;
 		dmas = <&gpcdma 8>, <&gpcdma 8>;
 		dma-names = "rx", "tx";
-		clocks = <&bpmp_clks TEGRA194_CLK_UARTA>,
-			<&bpmp_clks TEGRA194_CLK_PLLP_OUT0>;
+		clocks = <&bpmp_clks TEGRA234_CLK_UARTA>,
+			<&bpmp_clks TEGRA234_CLK_PLLP_OUT0>;
 		clock-names = "serial", "parent";
 		resets = <&bpmp_resets TEGRA194_RESET_UARTA>;
 		reset-names = "serial";
@@ -52,8 +52,8 @@
 		nvidia,memory-clients = <14>;
 		dmas = <&gpcdma 9>, <&gpcdma 9>;
 		dma-names = "rx", "tx";
-		clocks = <&bpmp_clks TEGRA194_CLK_UARTB>,
-			<&bpmp_clks TEGRA194_CLK_PLLP_OUT0>;
+		clocks = <&bpmp_clks TEGRA234_CLK_UARTB>,
+			<&bpmp_clks TEGRA234_CLK_PLLP_OUT0>;
 		clock-names = "serial", "parent";
 		resets = <&bpmp_resets TEGRA194_RESET_UARTB>;
 		reset-names = "serial";
@@ -70,8 +70,8 @@
 		nvidia,memory-clients = <14>;
 		dmas = <&gpcdma 3>, <&gpcdma 3>;
 		dma-names = "rx", "tx";
-		clocks = <&bpmp_clks TEGRA194_CLK_UARTC>,
-			<&bpmp_clks TEGRA194_CLK_PLLP_OUT0>;
+		clocks = <&bpmp_clks TEGRA234_CLK_UARTC>,
+			<&bpmp_clks TEGRA234_CLK_PLLP_OUT0>;
 		clock-names = "serial", "parent";
 		resets = <&bpmp_resets TEGRA194_RESET_UARTC>;
 		reset-names = "serial";
@@ -88,8 +88,8 @@
 		nvidia,memory-clients = <14>;
 		dmas = <&gpcdma 19>, <&gpcdma 19>;
 		dma-names = "rx", "tx";
-		clocks = <&bpmp_clks TEGRA194_CLK_UARTD>,
-			<&bpmp_clks TEGRA194_CLK_PLLP_OUT0>;
+		clocks = <&bpmp_clks TEGRA234_CLK_UARTD>,
+			<&bpmp_clks TEGRA234_CLK_PLLP_OUT0>;
 		clock-names = "serial", "parent";
 		resets = <&bpmp_resets TEGRA194_RESET_UARTD>;
 		reset-names = "serial";
@@ -106,8 +106,8 @@
 		nvidia,memory-clients = <14>;
 		dmas = <&gpcdma 20>, <&gpcdma 20>;
 		dma-names = "rx", "tx";
-		clocks = <&bpmp_clks TEGRA194_CLK_UARTE>,
-			<&bpmp_clks TEGRA194_CLK_PLLP_OUT0>;
+		clocks = <&bpmp_clks TEGRA234_CLK_UARTE>,
+			<&bpmp_clks TEGRA234_CLK_PLLP_OUT0>;
 		clock-names = "serial", "parent";
 		resets = <&bpmp_resets TEGRA194_RESET_UARTE>;
 		reset-names = "serial";
@@ -124,8 +124,8 @@
 		nvidia,memory-clients = <14>;
 		dmas = <&gpcdma 12>, <&gpcdma 12>;
 		dma-names = "rx", "tx";
-		clocks = <&bpmp_clks TEGRA194_CLK_UARTF>,
-			<&bpmp_clks TEGRA194_CLK_PLLP_OUT0>;
+		clocks = <&bpmp_clks TEGRA234_CLK_UARTF>,
+			<&bpmp_clks TEGRA234_CLK_PLLP_OUT0>;
 		clock-names = "serial", "parent";
 		resets = <&bpmp_resets TEGRA194_RESET_UARTF>;
 		reset-names = "serial";
@@ -142,8 +142,8 @@
 		nvidia,memory-clients = <14>;
 		dmas = <&gpcdma 13>, <&gpcdma 13>;
 		dma-names = "rx", "tx";
-		clocks = <&bpmp_clks TEGRA194_CLK_UARTH>,
-			<&bpmp_clks TEGRA194_CLK_PLLP_OUT0>;
+		clocks = <&bpmp_clks TEGRA234_CLK_UARTH>,
+			<&bpmp_clks TEGRA234_CLK_PLLP_OUT0>;
 		clock-names = "serial", "parent";
 		resets = <&bpmp_resets TEGRA194_RESET_UARTH>;
 		reset-names = "serial";

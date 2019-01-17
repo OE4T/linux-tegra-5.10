@@ -18,7 +18,6 @@
 
 /* FIXME: remove all the tegra194-*** headers */
 #include <dt-bindings/version.h>
-#include <dt-bindings/clock/tegra194-clock.h>
 #include <dt-bindings/clock/tegra234-clock.h>
 #include <dt-bindings/reset/tegra194-reset.h>
 #include <dt-bindings/reset/tegra234-reset.h>
