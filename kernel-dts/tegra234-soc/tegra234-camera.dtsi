@@ -94,7 +94,7 @@
 			nvidia,frame-size = <8192>;
 			nvidia,ivc-timeout = <50>;
 			nvidia,test-timeout = <5000>;
-			nvidia,mem-map = <&tegra_rce &vi &isp>;
+			nvidia,mem-map = <&tegra_rce &vi0 &vi1 &isp>;
 			/* Max EMC bandwidth during tests */
 			nvidia,test-bw = <0xffFFffFF>;
 		};

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -66,7 +66,12 @@
 	 * iommus node are deleted for ISO-Clients which are
 	 * nvdisplay, vi and vi-thi */
 	host1x {
-		vi: vi@15c10000 {
+		vi0: vi0@15c00000 {
+                        /delete-property/ iommus;
+                        /delete-property/ iso-smmu;
+		};
+
+		vi1: vi1@14c0000 {
                         /delete-property/ iommus;
                         /delete-property/ iso-smmu;
 		};

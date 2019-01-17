@@ -450,10 +450,9 @@
 			clock-names = "cec";
 		};
 
-		vi: vi@15c10000 {
+		vi0: vi0@15c00000 {
 			compatible = "nvidia,tegra234-vi";
-			/* cfg page is used by slvsec as well as ch35 */
-			reg = <0x0 0x15c10000 0x0 0x00230000>,
+			reg = <0x0 0x15c00000 0x0 0x00300000>,
 				<0x0 0x15f00000 0x0 0x00100000>;
 			resets = <&bpmp_resets TEGRA234_RESET_VI>,
 				 <&bpmp_resets TEGRA234_RESET_TSCTNVI>;
@@ -467,6 +466,25 @@
 			nvidia,vi-falcon-device = <&vi_thi>;
 
 			iommus = <&smmu TEGRA_SID_VI>;
+			iso-smmu;
+			non-coherent;
+		};
+
+		vi1: vi1@14c00000 {
+			compatible = "nvidia,tegra234-vi";
+			reg = <0x0 0x14c00000 0x0 0x00300000>;
+			resets = <&bpmp_resets TEGRA234_RESET_VI>,
+				 <&bpmp_resets TEGRA234_RESET_TSCTNVI>;
+			reset-names = "vi", "tsctnvi";
+			clocks = <&bpmp_clks TEGRA234_CLK_VI>,
+				 <&bpmp_clks TEGRA234_CLK_VI_CONST>,
+				 <&bpmp_clks TEGRA234_CLK_NVCSI>,
+				 <&bpmp_clks TEGRA234_CLK_NVCSILP>;
+			clock-names = "vi", "vi-const", "nvcsi", "nvcsilp";
+
+			nvidia,vi-falcon-device = <&vi_thi>;
+
+			iommus = <&smmu TEGRA_SID_VI2>;
 			iso-smmu;
 			non-coherent;
 		};
