@@ -1,7 +1,7 @@
 /*
  * Tegra GK20A GPU Debugger/Profiler Driver
  *
- * Copyright (c) 2017-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -882,8 +882,9 @@ static int nvgpu_ioctl_channel_reg_ops(struct dbg_session_gk20a *dbg_s,
 			if (err)
 				break;
 
-			err = g->ops.regops.exec_regops(
-				dbg_s, g->dbg_regops_tmp_buf, num_ops, &is_current_ctx);
+			err = g->ops.regops.exec_regops(g, ch,
+				g->dbg_regops_tmp_buf, num_ops,
+				dbg_s->is_profiler, &is_current_ctx);
 
 			if (err) {
 				break;

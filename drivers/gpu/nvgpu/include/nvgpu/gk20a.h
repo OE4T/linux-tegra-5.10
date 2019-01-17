@@ -1284,9 +1284,11 @@ struct gpu_ops {
 		bool support_vfe;
 	} pmu_perf;
 	struct {
-		int (*exec_regops)(struct dbg_session_gk20a *dbg_s,
+		int (*exec_regops)(struct gk20a *g,
+			    struct channel_gk20a *ch,
 			    struct nvgpu_dbg_reg_op *ops,
 			    u64 num_ops,
+			    bool is_profiler,
 			    bool *is_current_ctx);
 		const struct regop_offset_range* (
 				*get_global_whitelist_ranges)(void);

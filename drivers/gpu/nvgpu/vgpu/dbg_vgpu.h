@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -27,11 +27,14 @@ struct dbg_session_gk20a;
 struct nvgpu_dbg_reg_op;
 struct dbg_profiler_object_data;
 struct gk20a;
+struct channel_gk20a;
 
-int vgpu_exec_regops(struct dbg_session_gk20a *dbg_s,
-		      struct nvgpu_dbg_reg_op *ops,
-		      u64 num_ops,
-		      bool *is_current_ctx);
+int vgpu_exec_regops(struct gk20a *g,
+		     struct channel_gk20a *ch,
+		     struct nvgpu_dbg_reg_op *ops,
+		     u64 num_ops,
+		     bool is_profiler,
+		     bool *is_current_ctx);
 int vgpu_dbg_set_powergate(struct dbg_session_gk20a *dbg_s, bool disable_powergate);
 bool vgpu_check_and_set_global_reservation(
 				struct dbg_session_gk20a *dbg_s,

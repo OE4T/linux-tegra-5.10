@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2015-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -32,19 +32,19 @@
 #include "gk20a/regops_gk20a.h"
 #include "dbg_vgpu.h"
 
-int vgpu_exec_regops(struct dbg_session_gk20a *dbg_s,
-		      struct nvgpu_dbg_reg_op *ops,
-		      u64 num_ops,
-		      bool *is_current_ctx)
+int vgpu_exec_regops(struct gk20a *g,
+		     struct channel_gk20a *ch,
+		     struct nvgpu_dbg_reg_op *ops,
+		     u64 num_ops,
+		     bool is_profiler,
+		     bool *is_current_ctx)
 {
-	struct channel_gk20a *ch;
 	struct tegra_vgpu_cmd_msg msg;
 	struct tegra_vgpu_reg_ops_params *p = &msg.params.reg_ops;
 	void *oob;
 	size_t oob_size, ops_size;
 	void *handle = NULL;
 	int err = 0;
-	struct gk20a *g = dbg_s->g;
 
 	nvgpu_log_fn(g, " ");
 	BUG_ON(sizeof(*ops) != sizeof(struct tegra_vgpu_reg_op));
@@ -64,11 +64,10 @@ int vgpu_exec_regops(struct dbg_session_gk20a *dbg_s,
 	nvgpu_memcpy((u8 *)oob, (u8 *)ops, ops_size);
 
 	msg.cmd = TEGRA_VGPU_CMD_REG_OPS;
-	msg.handle = vgpu_get_handle(dbg_s->g);
-	ch = nvgpu_dbg_gpu_get_session_channel(dbg_s);
+	msg.handle = vgpu_get_handle(g);
 	p->handle = ch ? ch->virt_ctx : 0;
 	p->num_ops = num_ops;
-	p->is_profiler = dbg_s->is_profiler;
+	p->is_profiler = is_profiler;
 	err = vgpu_comm_sendrecv(&msg, sizeof(msg), sizeof(msg));
 	err = err ? err : msg.ret;
 	if (err == 0) {
