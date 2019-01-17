@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -79,16 +79,19 @@ static u64 nvgpu_bitmap_alloc_fixed(struct nvgpu_allocator *na,
 	if (blks * a->blk_size != len) {
 		blks++;
 	}
+	nvgpu_assert(blks <= U32_MAX);
 
 	alloc_lock(na);
 
 	/* Check if the space requested is already occupied. */
-	ret = bitmap_find_next_zero_area(a->bitmap, a->num_bits, offs, blks, 0);
+	ret = bitmap_find_next_zero_area(a->bitmap, a->num_bits, offs,
+					(u32)blks, 0UL);
 	if (ret != offs) {
 		goto fail;
 	}
 
-	bitmap_set(a->bitmap, offs, blks);
+	nvgpu_assert(blks <= (u32)INT_MAX);
+	bitmap_set(a->bitmap, (u32)offs, (int)blks);
 
 	a->bytes_alloced += blks * a->blk_size;
 	a->nr_fixed_allocs++;
@@ -130,7 +133,9 @@ static void nvgpu_bitmap_free_fixed(struct nvgpu_allocator *na,
 	}
 
 	alloc_lock(na);
-	bitmap_clear(a->bitmap, offs, blks);
+	nvgpu_assert(offs <= U32_MAX);
+	nvgpu_assert(blks <= (u32)INT_MAX);
+	bitmap_clear(a->bitmap, (u32)offs, (int)blks);
 	a->bytes_freed += blks * a->blk_size;
 	alloc_unlock(na);
 
@@ -198,11 +203,14 @@ static int nvgpu_bitmap_store_alloc(struct nvgpu_bitmap_allocator *a,
  */
 static u64 nvgpu_bitmap_alloc(struct nvgpu_allocator *na, u64 len)
 {
-	u64 blks, addr;
+	u64 tmp_u64, addr;
+	u32 blks;
 	unsigned long offs, adjusted_offs, limit;
 	struct nvgpu_bitmap_allocator *a = bitmap_allocator(na);
 
-	blks = len >> a->blk_shift;
+	tmp_u64 = len >> a->blk_shift;
+	nvgpu_assert(tmp_u64 <= U32_MAX);
+	blks = (u32)tmp_u64;
 
 	if (blks * a->blk_size != len) {
 		blks++;
@@ -229,7 +237,9 @@ static u64 nvgpu_bitmap_alloc(struct nvgpu_allocator *na, u64 len)
 		}
 	}
 
-	bitmap_set(a->bitmap, offs, blks);
+	nvgpu_assert(blks <= (u64)INT_MAX);
+	nvgpu_assert(offs <= U32_MAX);
+	bitmap_set(a->bitmap, (u32)offs, (int)blks);
 	a->next_blk = offs + blks;
 
 	adjusted_offs = offs + a->bit_offs;
@@ -248,7 +258,7 @@ static u64 nvgpu_bitmap_alloc(struct nvgpu_allocator *na, u64 len)
 		goto fail_reset_bitmap;
 	}
 
-	alloc_dbg(na, "Alloc 0x%-10llx 0x%-5llx [bits=0x%llx (%llu)]",
+	alloc_dbg(na, "Alloc 0x%-10llx 0x%-5llx [bits=0x%x (%u)]",
 		  addr, len, blks, blks);
 
 	a->nr_allocs++;
@@ -258,7 +268,9 @@ static u64 nvgpu_bitmap_alloc(struct nvgpu_allocator *na, u64 len)
 	return addr;
 
 fail_reset_bitmap:
-	bitmap_clear(a->bitmap, offs, blks);
+	nvgpu_assert(blks <= (u32)INT_MAX);
+	nvgpu_assert(offs <= U32_MAX);
+	bitmap_clear(a->bitmap, (u32)offs, (int)blks);
 fail:
 	a->next_blk = 0;
 	alloc_unlock(na);
@@ -275,7 +287,7 @@ static void nvgpu_bitmap_free(struct nvgpu_allocator *na, u64 addr)
 	alloc_lock(na);
 
 	if ((a->flags & GPU_ALLOC_NO_ALLOC_PAGE) != 0ULL) {
-		(void) WARN(1,
+		(void) WARN(true,
 			"Using wrong free for NO_ALLOC_PAGE bitmap allocator");
 		goto done;
 	}
@@ -294,7 +306,9 @@ static void nvgpu_bitmap_free(struct nvgpu_allocator *na, u64 addr)
 	offs = adjusted_offs - a->bit_offs;
 	blks = alloc->length >> a->blk_shift;
 
-	bitmap_clear(a->bitmap, offs, blks);
+	nvgpu_assert(blks <= (u32)INT_MAX);
+	nvgpu_assert(offs <= U32_MAX);
+	bitmap_clear(a->bitmap, (u32)offs, (int)blks);
 	alloc_dbg(na, "Free  0x%-10llx", addr);
 
 	a->bytes_freed += alloc->length;
