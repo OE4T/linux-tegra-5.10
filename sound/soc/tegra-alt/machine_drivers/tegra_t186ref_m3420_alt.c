@@ -397,13 +397,7 @@ static int tegra186_m3420_suspend_pre(struct snd_soc_card *card)
 	struct snd_soc_pcm_runtime *rtd;
 
 	/* DAPM dai link stream work for non pcm links */
-#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 5, 0)
-	unsigned int idx;
-	for (idx = 0; idx < card->num_rtd; idx++) {
-		rtd = &card->rtd[idx];
-#else
 	list_for_each_entry(rtd, &card->rtd_list, list) {
-#endif
 		if (rtd->dai_link->params)
 			INIT_DELAYED_WORK(&rtd->delayed_work, NULL);
 	}

@@ -132,14 +132,9 @@ static int tegra186_hw_params(struct snd_pcm_substream *substream,
 
 	/* Update dai link hw_params for non pcm links */
 	i = 0;
-#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 5, 0)
-	for ( ; i < TEGRA186_DAI_LINK_ADMAIF20; ) {
-		rtd = &card->rtd[i];
-#else
 	list_for_each_entry(rtd, &card->rtd_list, list) {
 		if (i >= TEGRA186_DAI_LINK_ADMAIF20)
 			break;
-#endif
 		if (!rtd->dai_link->params) {
 			i++;
 			continue;
@@ -280,14 +275,7 @@ static int tegra186_suspend_pre(struct snd_soc_card *card)
 	struct snd_soc_pcm_runtime *rtd;
 
 	/* DAPM dai link stream work for non pcm links */
-#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 5, 0)
-	unsigned int idx;
-
-	for (idx = 0; idx < card->num_rtd; idx++) {
-		rtd = &card->rtd[idx];
-#else
 	list_for_each_entry(rtd, &card->rtd_list, list) {
-#endif
 		if (rtd->dai_link->params)
 			INIT_DELAYED_WORK(&rtd->delayed_work, NULL);
 	}

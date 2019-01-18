@@ -94,9 +94,8 @@ static int tegra_virt_machine_driver_probe(struct platform_device *pdev)
 	int32_t adsp_admaif_bits, adsp_admaif_format;
 	int32_t adsp_admaif_channels;
 	struct snd_soc_pcm_stream adsp_admaif_dt_params;
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 5, 0)
 	struct snd_soc_pcm_runtime *rtd;
-#endif
+
 	match = tegra_virt_machine_of_match;
 	if (of_device_is_compatible(pdev->dev.of_node,
 		"nvidia,tegra210-virt-pcm")) {
@@ -229,28 +228,7 @@ static int tegra_virt_machine_driver_probe(struct platform_device *pdev)
 		ret = -EPROBE_DEFER;
 		goto undo_register_codec;
 	}
-#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 5, 0)
-	for (i = 0; i < card->num_rtd; i++) {
-		struct snd_soc_dai *codec_dai = card->rtd[i].codec_dai;
-		struct snd_soc_dai_driver *codec_drv = codec_dai->driver;
-		struct snd_soc_dai *cpu_dai = card->rtd[i].cpu_dai;
-		struct snd_soc_dai_driver *cpu_drv = cpu_dai->driver;
 
-		cpu_drv->playback.rates = SNDRV_PCM_RATE_KNOT;
-		cpu_drv->playback.rate_min = 8000;
-		cpu_drv->playback.rate_max = 192000;
-		cpu_drv->capture.rates = SNDRV_PCM_RATE_KNOT;
-		cpu_drv->capture.rate_min = 8000;
-		cpu_drv->capture.rate_max = 192000;
-
-		codec_drv->playback.rates = SNDRV_PCM_RATE_KNOT;
-		codec_drv->playback.rate_min = 8000;
-		codec_drv->playback.rate_max = 192000;
-		codec_drv->capture.rates = SNDRV_PCM_RATE_KNOT;
-		codec_drv->capture.rate_min = 8000;
-		codec_drv->capture.rate_max = 192000;
-	}
-#else
 	list_for_each_entry(rtd, &card->rtd_list, list) {
 		struct snd_soc_dai *codec_dai = rtd->codec_dai;
 		struct snd_soc_dai_driver *codec_drv = codec_dai->driver;
@@ -271,7 +249,7 @@ static int tegra_virt_machine_driver_probe(struct platform_device *pdev)
 		codec_drv->capture.rate_min = 8000;
 		codec_drv->capture.rate_max = 192000;
 	}
-#endif
+
 	tegra_metadata_setup(pdev, &meta, card);
 	tegra_pd_add_device(&pdev->dev);
 	pm_runtime_forbid(&pdev->dev);
