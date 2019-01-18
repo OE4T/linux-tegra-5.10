@@ -408,13 +408,7 @@ static int tegra_machine_set_params(struct snd_soc_card *card,
 				(1ULL << SNDRV_PCM_FORMAT_S32_LE) : formats;
 
 	/* update dai link hw_params */
-#if KERNEL_VERSION(4, 5, 0) > LINUX_VERSION_CODE
-	for (idx = 0; idx < num_of_dai_links;) {
-		rtd = &card->rtd[idx];
-
-#else
 	list_for_each_entry(rtd, &card->rtd_list, list) {
-#endif
 		if (rtd->dai_link->params) {
 			struct snd_soc_pcm_stream *dai_params;
 
@@ -702,14 +696,7 @@ static int tegra_machine_suspend_pre(struct snd_soc_card *card)
 	struct snd_soc_pcm_runtime *rtd;
 
 	/* DAPM dai link stream work for non pcm links */
-#if KERNEL_VERSION(4, 5, 0) > LINUX_VERSION_CODE
-	unsigned int idx;
-
-	for (idx = 0; idx < card->num_rtd; idx++) {
-		rtd = &card->rtd[idx];
-#else
 	list_for_each_entry(rtd, &card->rtd_list, list) {
-#endif
 		if (rtd->dai_link->params)
 			INIT_DELAYED_WORK(&rtd->delayed_work, NULL);
 	}
@@ -1009,17 +996,7 @@ static const struct of_device_id tegra_machine_of_match[] = {
 static void __maybe_unused ignore_suspend(struct snd_soc_card *card)
 {
 	struct snd_soc_pcm_runtime *rtd;
-#if KERNEL_VERSION(4, 5, 0) > LINUX_VERSION_CODE
-	struct tegra_machine *machine = snd_soc_card_get_drvdata(card);
-	int idx;
-	int num_of_dai_links = machine->soc_data->num_xbar_dai_links +
-		machine->num_codec_links;
-
-	for (idx = 0; idx < num_of_dai_links; idx++) {
-		rtd = &card->rtd[idx];
-#else
 	list_for_each_entry(rtd, &card->rtd_list, list) {
-#endif
 		rtd->dai_link->ignore_suspend = true;
 	}
 }

@@ -3896,14 +3896,8 @@ int tegra_machine_add_i2s_codec_controls(struct snd_soc_card *card,
 	char name[SNDRV_CTL_ELEM_ID_NAME_MAXLEN];
 	unsigned int id;
 	int ret;
-#if KERNEL_VERSION(4, 5, 0) > LINUX_VERSION_CODE
-	unsigned int i;
 
-	for (i = 0; i < num_dai_links; i++) {
-		rtd = &card->rtd[i];
-#else
 	list_for_each_entry(rtd, &card->rtd_list, list) {
-#endif
 		np = rtd->dai_link->cpu_of_node;
 
 		if (!np)
