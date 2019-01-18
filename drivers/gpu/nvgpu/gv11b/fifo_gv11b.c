@@ -1141,7 +1141,7 @@ void gv11b_fifo_teardown_ch_tsg(struct gk20a *g, u32 act_eng_bitmask,
 			if (rc_type == RC_TYPE_MMU_FAULT) {
 				nvgpu_tsg_set_ctx_mmu_error(g, tsg);
 			}
-
+			(void)nvgpu_tsg_mark_error(g, tsg);
 			gk20a_fifo_abort_tsg(g, tsg, false);
 		}
 	} else {
