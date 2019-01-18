@@ -23,8 +23,11 @@ apply_rt_patches()
 		cp ../arch/arm64/configs/defconfig\
 			../arch/arm64/configs/.tmp.defconfig
 		./config --file ../arch/arm64/configs/defconfig\
-			--enable PREEMPT_RT_FULL  --disable CPU_IDLE_TEGRA18X\
-			--disable CPU_FREQ_GOV_INTERACTIVE || any_failure=1
+			--enable PREEMPT_RT_FULL  --disable DEBUG_PREEMPT\
+			--disable CPU_IDLE_TEGRA18X\
+			--disable CPU_FREQ_GOV_INTERACTIVE\
+			--disable CPU_FREQ_TIMES \
+			--disable FAIR_GROUP_SCHED || any_failure=1
 		echo "The PREEMPT RT patches have been successfully applied!"
 	fi
 }
