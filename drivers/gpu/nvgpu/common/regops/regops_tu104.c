@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -21,8 +21,7 @@
  */
 
 #include <nvgpu/gk20a.h>
-
-#include "gk20a/regops_gk20a.h"
+#include <nvgpu/regops.h>
 
 #include "regops_tu104.h"
 

@@ -1,7 +1,7 @@
 /*
  * Tegra GV11b GPU Driver Register Ops
  *
- * Copyright (c) 2017-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -23,8 +23,8 @@
  */
 
 #include <nvgpu/gk20a.h>
+#include <nvgpu/regops.h>
 
-#include "gk20a/regops_gk20a.h"
 #include "regops_gv11b.h"
 
 static const struct regop_offset_range gv11b_global_whitelist_ranges[] = {

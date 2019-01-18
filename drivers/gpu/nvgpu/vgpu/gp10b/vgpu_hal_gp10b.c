@@ -36,6 +36,7 @@
 #include "common/ltc/ltc_gp10b.h"
 #include "common/fuse/fuse_gm20b.h"
 #include "common/fuse/fuse_gp10b.h"
+#include "common/regops/regops_gp10b.h"
 
 #include "vgpu/fifo_vgpu.h"
 #include "vgpu/gr_vgpu.h"
@@ -57,7 +58,6 @@
 #include "gp10b/ce_gp10b.h"
 #include "gp10b/gr_gp10b.h"
 #include "gp10b/fifo_gp10b.h"
-#include "gp10b/regops_gp10b.h"
 #include "gp10b/clk_arb_gp10b.h"
 
 #include "gm20b/gr_gm20b.h"

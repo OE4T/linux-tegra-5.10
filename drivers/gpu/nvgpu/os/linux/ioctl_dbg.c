@@ -34,11 +34,11 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/channel.h>
 #include <nvgpu/tsg.h>
+#include <nvgpu/regops.h>
 
 #include <nvgpu/linux/vm.h>
 
 #include "gk20a/gr_gk20a.h"
-#include "gk20a/regops_gk20a.h"
 #include "os_linux.h"
 #include "platform_gk20a.h"
 #include "ioctl_dbg.h"

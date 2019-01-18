@@ -23,6 +23,7 @@
  */
 #include <nvgpu/gk20a.h>
 #include <nvgpu/fuse.h>
+#include <nvgpu/regops.h>
 
 #include "common/bus/bus_gk20a.h"
 #include "common/bus/bus_gp10b.h"
@@ -61,11 +62,11 @@
 #include "common/falcon/falcon_gk20a.h"
 #include "common/top/top_gm20b.h"
 #include "common/top/top_gp10b.h"
+#include "common/regops/regops_gv11b.h"
 
 #include "gk20a/fifo_gk20a.h"
 #include "gk20a/fecs_trace_gk20a.h"
 #include "gk20a/mm_gk20a.h"
-#include "gk20a/regops_gk20a.h"
 #include "gk20a/gr_gk20a.h"
 
 #include "gm20b/gr_gm20b.h"
@@ -87,7 +88,6 @@
 #include "ce_gv11b.h"
 #include "mm_gv11b.h"
 #include "fifo_gv11b.h"
-#include "regops_gv11b.h"
 #include "subctx_gv11b.h"
 #include "ecc_gv11b.h"
 

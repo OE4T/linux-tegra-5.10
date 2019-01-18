@@ -33,12 +33,12 @@
 #include <nvgpu/defaults.h>
 #include <nvgpu/ltc.h>
 #include <nvgpu/channel.h>
+#include <nvgpu/regops.h>
 #include <nvgpu/clk_arb.h>
 
 #include "vgpu_linux.h"
 #include "vgpu/fecs_trace_vgpu.h"
 #include "vgpu/clk_vgpu.h"
-#include "gk20a/regops_gk20a.h"
 #include "gm20b/hal_gm20b.h"
 
 #include "os/linux/module.h"

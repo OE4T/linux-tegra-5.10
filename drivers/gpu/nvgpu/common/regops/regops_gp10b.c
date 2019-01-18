@@ -1,7 +1,7 @@
 /*
  * Tegra GK20A GPU Debugger Driver Register Ops
  *
- * Copyright (c) 2015-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2015-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -23,8 +23,8 @@
  */
 
 #include <nvgpu/gk20a.h>
+#include <nvgpu/regops.h>
 
-#include "gk20a/regops_gk20a.h"
 #include "regops_gp10b.h"
 
 static const struct regop_offset_range gp10b_global_whitelist_ranges[] = {

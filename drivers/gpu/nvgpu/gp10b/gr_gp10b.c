@@ -35,10 +35,10 @@
 #include <nvgpu/utils.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/channel.h>
+#include <nvgpu/regops.h>
 #include <nvgpu/gr/ctx.h>
 
 #include "gk20a/gr_gk20a.h"
-#include "gk20a/regops_gk20a.h"
 
 #include "gm20b/gr_gm20b.h"
 #include "gp10b/gr_gp10b.h"

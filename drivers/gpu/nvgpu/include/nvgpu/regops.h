@@ -21,8 +21,8 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef REGOPS_GK20A_H
-#define REGOPS_GK20A_H
+#ifndef NVGPU_REGOPS_H
+#define NVGPU_REGOPS_H
 
 /*
  * Register operations
@@ -89,4 +89,4 @@ bool reg_op_is_gr_ctx(u8 type);
 bool reg_op_is_read(u8 op);
 bool is_bar0_global_offset_whitelisted_gk20a(struct gk20a *g, u32 offset);
 
-#endif /* REGOPS_GK20A_H */
+#endif /* NVGPU_REGOPS_H */

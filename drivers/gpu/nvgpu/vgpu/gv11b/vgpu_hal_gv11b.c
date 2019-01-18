@@ -40,6 +40,7 @@
 #include "common/ltc/ltc_gv11b.h"
 #include "common/fuse/fuse_gm20b.h"
 #include "common/fuse/fuse_gp10b.h"
+#include "common/regops/regops_gv11b.h"
 
 #include <nvgpu/gk20a.h>
 #include <gv11b/hal_gv11b.h>
@@ -72,7 +73,6 @@
 #include <gv11b/mm_gv11b.h>
 #include <gv11b/ce_gv11b.h>
 #include <gv11b/fifo_gv11b.h>
-#include <gv11b/regops_gv11b.h>
 #include <gv11b/gr_gv11b.h>
 
 #include <gv100/gr_gv100.h>

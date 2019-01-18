@@ -71,10 +71,10 @@
 #include "common/nvlink/nvlink_gv100.h"
 #include "common/nvlink/nvlink_tu104.h"
 #include "common/pmu/perf/perf_gv100.h"
+#include "common/regops/regops_gv100.h"
 
 #include "gk20a/fifo_gk20a.h"
 #include "gk20a/fecs_trace_gk20a.h"
-#include "gk20a/regops_gk20a.h"
 #include "gk20a/mm_gk20a.h"
 #include "gk20a/gr_gk20a.h"
 
@@ -98,7 +98,6 @@
 #include "gv11b/ce_gv11b.h"
 #include "gv11b/mm_gv11b.h"
 #include "gv11b/fifo_gv11b.h"
-#include "gv11b/regops_gv11b.h"
 #include "gv11b/subctx_gv11b.h"
 
 #include "gv100.h"
@@ -108,7 +107,6 @@
 #include "gv100/fifo_gv100.h"
 #include "gv100/gr_gv100.h"
 #include "gv100/mm_gv100.h"
-#include "gv100/regops_gv100.h"
 #include "gv100/clk_gv100.h"
 
 #include <nvgpu/ptimer.h>
@@ -123,6 +121,7 @@
 #include <nvgpu/runlist.h>
 #include <nvgpu/perfbuf.h>
 #include <nvgpu/cyclestats_snapshot.h>
+#include <nvgpu/regops.h>
 
 #include <nvgpu/hw/gv100/hw_proj_gv100.h>
 #include <nvgpu/hw/gv100/hw_fifo_gv100.h>

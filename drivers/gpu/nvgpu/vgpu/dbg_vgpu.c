@@ -28,8 +28,8 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/channel.h>
 #include <nvgpu/string.h>
+#include <nvgpu/regops.h>
 
-#include "gk20a/regops_gk20a.h"
 #include "dbg_vgpu.h"
 
 int vgpu_exec_regops(struct gk20a *g,

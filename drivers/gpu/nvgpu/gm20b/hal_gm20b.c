@@ -34,6 +34,7 @@
 #include <nvgpu/perfbuf.h>
 #include <nvgpu/cyclestats_snapshot.h>
 #include <nvgpu/fuse.h>
+#include <nvgpu/regops.h>
 
 #include "common/clock_gating/gm20b_gating_reglist.h"
 #include "common/bus/bus_gm20b.h"
@@ -53,18 +54,17 @@
 #include "common/pmu/acr_gm20b.h"
 #include "common/falcon/falcon_gk20a.h"
 #include "common/top/top_gm20b.h"
+#include "common/regops/regops_gm20b.h"
 
 #include "gk20a/ce2_gk20a.h"
 #include "gk20a/fifo_gk20a.h"
 #include "gk20a/mm_gk20a.h"
-#include "gk20a/regops_gk20a.h"
 #include "gk20a/gr_gk20a.h"
 
 #include "gr_gm20b.h"
 #include "fifo_gm20b.h"
 #include "mm_gm20b.h"
 #include "clk_gm20b.h"
-#include "regops_gm20b.h"
 #include "hal_gm20b.h"
 
 #include <nvgpu/hw/gm20b/hw_proj_gm20b.h>

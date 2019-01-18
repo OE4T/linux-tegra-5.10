@@ -1,5 +1,8 @@
 /*
- * Copyright (c) 2018, NVIDIA CORPORATION. All rights reserved.
+ *
+ * Tegra GK20A GPU Debugger Driver Register Ops
+ *
+ * Copyright (c) 2013-2019 NVIDIA CORPORATION. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -19,21 +22,20 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef NVGPU_REGOPS_TU104_H
-#define NVGPU_REGOPS_TU104_H
+#ifndef NVGPU_REGOPS_GM20B_H
+#define NVGPU_REGOPS_GM20B_H
 
-const struct regop_offset_range *tu104_get_global_whitelist_ranges(void);
-u64 tu104_get_global_whitelist_ranges_count(void);
-const struct regop_offset_range *tu104_get_context_whitelist_ranges(void);
-u64 tu104_get_context_whitelist_ranges_count(void);
-const u32 *tu104_get_runcontrol_whitelist(void);
-u64 tu104_get_runcontrol_whitelist_count(void);
-const struct regop_offset_range *tu104_get_runcontrol_whitelist_ranges(void);
-u64 tu104_get_runcontrol_whitelist_ranges_count(void);
-const u32 *tu104_get_qctl_whitelist(void);
-u64 tu104_get_qctl_whitelist_count(void);
-const struct regop_offset_range *tu104_get_qctl_whitelist_ranges(void);
-u64 tu104_get_qctl_whitelist_ranges_count(void);
-int tu104_apply_smpc_war(struct dbg_session_gk20a *dbg_s);
+const struct regop_offset_range *gm20b_get_global_whitelist_ranges(void);
+u64 gm20b_get_global_whitelist_ranges_count(void);
+const struct regop_offset_range *gm20b_get_context_whitelist_ranges(void);
+u64 gm20b_get_context_whitelist_ranges_count(void);
+const u32 *gm20b_get_runcontrol_whitelist(void);
+u64 gm20b_get_runcontrol_whitelist_count(void);
+const struct regop_offset_range *gm20b_get_runcontrol_whitelist_ranges(void);
+u64 gm20b_get_runcontrol_whitelist_ranges_count(void);
+const u32 *gm20b_get_qctl_whitelist(void);
+u64 gm20b_get_qctl_whitelist_count(void);
+const struct regop_offset_range *gm20b_get_qctl_whitelist_ranges(void);
+u64 gm20b_get_qctl_whitelist_ranges_count(void);
 
-#endif /* NVGPU_REGOPS_TU104_H */
+#endif /* NVGPU_REGOPS_GM20B_H */

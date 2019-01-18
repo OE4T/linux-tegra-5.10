@@ -48,13 +48,13 @@
 #include <nvgpu/channel.h>
 #include <nvgpu/unit.h>
 #include <nvgpu/string.h>
+#include <nvgpu/regops.h>
 #include <nvgpu/gr/global_ctx.h>
 #include <nvgpu/gr/ctx.h>
 
 #include "gr_gk20a.h"
 #include "gk20a/fecs_trace_gk20a.h"
 #include "gr_pri_gk20a.h"
-#include "regops_gk20a.h"
 
 #include <nvgpu/hw/gk20a/hw_fifo_gk20a.h>
 #include <nvgpu/hw/gk20a/hw_gr_gk20a.h>

@@ -29,13 +29,13 @@
 #include <nvgpu/debug.h>
 #include <nvgpu/sizes.h>
 #include <nvgpu/gk20a.h>
+#include <nvgpu/regops.h>
 
 #include "platform_gk20a.h"
 #include "module.h"
 #include "os_linux.h"
 #include "sysfs.h"
 #include "ioctl.h"
-#include "gk20a/regops_gk20a.h"
 
 #define EMC3D_DEFAULT_RATIO 750
 

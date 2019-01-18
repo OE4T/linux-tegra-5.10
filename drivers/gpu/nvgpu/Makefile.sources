@@ -180,6 +180,12 @@ srcs += common/sim.c \
 	common/boardobj/boardobjgrpmask.c \
 	common/boardobj/boardobjgrp_e255.c \
 	common/boardobj/boardobjgrp_e32.c \
+	common/regops/regops.c \
+	common/regops/regops_gm20b.c \
+	common/regops/regops_gp10b.c \
+	common/regops/regops_gv100.c \
+	common/regops/regops_gv11b.c \
+	common/regops/regops_tu104.c \
 	common/nvdec/nvdec_gp106.c \
 	common/nvdec/nvdec_tu104.c \
 	common/pmu/pstate/pstate.c \
@@ -216,7 +222,6 @@ srcs += common/sim.c \
 	common/ptimer/ptimer_gk20a.c \
 	gk20a/ce2_gk20a.c \
 	gk20a/fifo_gk20a.c \
-	gk20a/regops_gk20a.c \
 	gk20a/gr_gk20a.c \
 	gk20a/mm_gk20a.c \
 	gk20a/fence_gk20a.c \
@@ -225,13 +230,11 @@ srcs += common/sim.c \
 	gm20b/clk_gm20b.c \
 	gm20b/fifo_gm20b.c \
 	gm20b/mm_gm20b.c \
-	gm20b/regops_gm20b.c \
 	gp10b/gr_gp10b.c  \
 	gp10b/ce_gp10b.c \
 	gp10b/fifo_gp10b.c  \
 	gp10b/mm_gp10b.c \
 	gp10b/hal_gp10b.c \
-	gp10b/regops_gp10b.c \
 	gp10b/clk_arb_gp10b.c \
 	gp10b/fecs_trace_gp10b.c \
 	gp10b/gp10b.c \
@@ -243,7 +246,6 @@ srcs += common/sim.c \
 	gv11b/mm_gv11b.c \
 	gv11b/ce_gv11b.c \
 	gv11b/subctx_gv11b.c \
-	gv11b/regops_gv11b.c \
 	gv11b/ecc_gv11b.c \
 	gp106/gr_gp106.c \
 	gp106/sec2_gp106.c \
@@ -253,7 +255,6 @@ srcs += common/sim.c \
 	gv100/bios_gv100.c \
 	gv100/fifo_gv100.c \
 	gv100/gr_gv100.c \
-	gv100/regops_gv100.c \
 	common/nvlink/nvlink_gv100.c \
 	common/nvlink/nvlink_tu104.c	\
 	gv100/hal_gv100.c \
@@ -272,7 +273,6 @@ srcs += common/sim.c \
 	tu104/hal_tu104.c	\
 	tu104/sec2_tu104.c	\
 	tu104/func_tu104.c	\
-	tu104/regops_tu104.c	\
 	tu104/fecs_trace_tu104.c \
 	vgpu/vgpu.c		\
 	vgpu/fifo_vgpu.c	\
