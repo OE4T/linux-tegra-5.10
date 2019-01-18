@@ -2,7 +2,7 @@
 /*
  * mods_internal.h - This file is part of NVIDIA MODS kernel driver.
  *
- * Copyright (c) 2008-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2008-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * NVIDIA MODS kernel driver is free software: you can redistribute it and/or
  * modify it under the terms of the GNU General Public License,
@@ -123,7 +123,7 @@ struct MODS_PCI_RES_MAP_INFO {
 struct MODS_PHYS_CHUNK {
 	u64          dma_addr:58; /* phys addr (or machine addr on XEN) */
 	u32          order:5;     /* 1<<order = number of contig pages */
-	int          allocated:1;
+	int          mapped:1;
 	u64          dev_addr;    /* DMA map addr for default device */
 	struct page *p_page;
 };
@@ -140,7 +140,7 @@ struct MODS_DMA_MAP {
 struct MODS_MEM_INFO {
 	u64             logical_addr;   /* kernel logical address */
 	u32             num_pages;      /* number of allocated pages */
-	u8              alloc_type : 2; /* MODS_ALLOC_TYPE_* */
+	u8              alloc_type : 1; /* MODS_ALLOC_TYPE_* */
 	u8              cache_type : 3; /* MODS_MEMORY_* */
 	u8              addr_bits  : 7; /* phys addr size requested */
 	u32             length;         /* actual number of bytes allocated */
@@ -163,7 +163,6 @@ struct MODS_MEM_INFO {
 
 #define MODS_ALLOC_TYPE_NON_CONTIG	0
 #define MODS_ALLOC_TYPE_CONTIG		1
-#define MODS_ALLOC_TYPE_BIGPHYS_AREA	2
 
 /* map memory tracking */
 struct SYS_MAP_MEMORY {
@@ -356,6 +355,12 @@ struct mods_priv {
 #define MODS_ACPI_HANDLE(dev) DEVICE_ACPI_HANDLE(dev)
 #endif
 
+#ifdef MODS_HAS_OLD_PCI_DMA_MAPPING_ERROR
+#define MODS_PCI_DMA_MAPPING_ERROR(dev, addr) pci_dma_mapping_error(addr)
+#else
+#define MODS_PCI_DMA_MAPPING_ERROR(dev, addr) pci_dma_mapping_error(dev, addr)
+#endif
+
 static inline u8 get_client_id(struct file *fp)
 {
 	return ((struct mods_client *)(fp->private_data))->client_id;
@@ -429,16 +434,12 @@ int esc_mods_get_phys_addr(struct file *fp,
 			   struct MODS_GET_PHYSICAL_ADDRESS *p);
 int esc_mods_get_phys_addr_2(struct file *fp,
 			     struct MODS_GET_PHYSICAL_ADDRESS_3 *p);
-int esc_mods_get_phys_addr_range(struct file *fp,
-				 struct MODS_GET_ADDRESS_RANGE *p);
 int esc_mods_get_mapped_phys_addr(struct file *fp,
 			  struct MODS_GET_PHYSICAL_ADDRESS *p);
 int esc_mods_get_mapped_phys_addr_2(struct file *fp,
 				    struct MODS_GET_PHYSICAL_ADDRESS_2 *p);
 int esc_mods_get_mapped_phys_addr_3(struct file *fp,
 				    struct MODS_GET_PHYSICAL_ADDRESS_3 *p);
-int esc_mods_get_dma_addr_range(struct file *fp,
-				struct MODS_GET_ADDRESS_RANGE *p);
 int esc_mods_virtual_to_phys(struct file *fp,
 			     struct MODS_VIRTUAL_TO_PHYSICAL *p);
 int esc_mods_phys_to_virtual(struct file *fp,
@@ -469,6 +470,8 @@ int esc_mods_eval_dev_acpi_method(struct file *fp,
 				  struct MODS_EVAL_DEV_ACPI_METHOD *p);
 int esc_mods_eval_dev_acpi_method_2(struct file *fp,
 				    struct MODS_EVAL_DEV_ACPI_METHOD_2 *p);
+int esc_mods_eval_dev_acpi_method_3(struct file *fp,
+				    struct MODS_EVAL_DEV_ACPI_METHOD_3 *p);
 int esc_mods_acpi_get_ddc(struct file *fp, struct MODS_ACPI_GET_DDC *p);
 int esc_mods_acpi_get_ddc_2(struct file *fp, struct MODS_ACPI_GET_DDC_2 *p);
 #endif

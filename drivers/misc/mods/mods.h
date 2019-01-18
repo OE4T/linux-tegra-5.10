@@ -2,7 +2,7 @@
 /*
  * mods.h - This file is part of NVIDIA MODS kernel driver.
  *
- * Copyright (c) 2008-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2008-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * NVIDIA MODS kernel driver is free software: you can redistribute it and/or
  * modify it under the terms of the GNU General Public License,
@@ -25,7 +25,7 @@
 
 /* Driver version */
 #define MODS_DRIVER_VERSION_MAJOR 3
-#define MODS_DRIVER_VERSION_MINOR 89
+#define MODS_DRIVER_VERSION_MINOR 91
 #define MODS_DRIVER_VERSION ((MODS_DRIVER_VERSION_MAJOR << 8) | \
 			     ((MODS_DRIVER_VERSION_MINOR/10) << 4) | \
 			     (MODS_DRIVER_VERSION_MINOR%10))
@@ -123,21 +123,6 @@ struct MODS_GET_PHYSICAL_ADDRESS_3 {
 
 	/* OUT */
 	__u64                 physical_address;
-};
-
-#define MAX_PA_ENTRIES 64
-
-/* MODS_ESC_GET_PHYSICAL_ADDRESS_RANGE, MODS_ESC_GET_DMA_ADDRESS_RANGE */
-struct MODS_GET_ADDRESS_RANGE {
-	/* IN */
-	__u64                 memory_handle;
-	__u64                 offset;
-	__u32                 stride;
-	__u32                 num_entries;
-	struct mods_pci_dev_2 pci_device;
-
-	/* OUT */
-	__u64                 physical_addresses[MAX_PA_ENTRIES];
 };
 
 /* MODS_ESC_VIRTUAL_TO_PHYSICAL */
@@ -604,6 +589,7 @@ struct MODS_DT_INFO {
 
 #define ACPI_MODS_TYPE_INTEGER		1
 #define ACPI_MODS_TYPE_BUFFER		2
+#define ACPI_MODS_IGNORE_ACPI_ID	0xffffffff
 #define ACPI_MAX_BUFFER_LENGTH		4096
 #define ACPI_MAX_METHOD_LENGTH		12
 #define ACPI_MAX_ARGUMENT_NUMBER	12
@@ -637,6 +623,16 @@ struct MODS_EVAL_ACPI_METHOD {
 	/* OUT */
 	__u8		    out_buffer[ACPI_MAX_BUFFER_LENGTH];
 	__u32		    out_status;
+};
+
+/* MODS_ESC_EVAL_DEV_ACPI_METHOD_3 */
+struct MODS_EVAL_DEV_ACPI_METHOD_3 {
+	/* IN OUT */
+	struct MODS_EVAL_ACPI_METHOD method;
+
+	/* IN */
+	struct mods_pci_dev_2        device;
+	__u32                        acpi_id;
 };
 
 /* MODS_ESC_EVAL_DEV_ACPI_METHOD_2 */
@@ -1371,10 +1367,8 @@ struct MODS_MSR {
 		    _IOWR(MODS_IOC_MAGIC, 120, struct MODS_MSR)
 #define MODS_ESC_WRITE_MSR \
 		    _IOW(MODS_IOC_MAGIC, 121, struct MODS_MSR)
-#define MODS_ESC_GET_PHYSICAL_ADDRESS_RANGE    \
-		    _IOWR(MODS_IOC_MAGIC, 122, \
-			  struct MODS_GET_ADDRESS_RANGE)
-#define MODS_ESC_GET_DMA_ADDRESS_RANGE         \
-		    _IOWR(MODS_IOC_MAGIC, 123, \
-			  struct MODS_GET_ADDRESS_RANGE)
+#define MODS_ESC_EVAL_DEV_ACPI_METHOD_3		\
+		   _IOWR_BAD(MODS_IOC_MAGIC, 122,\
+		   struct MODS_EVAL_DEV_ACPI_METHOD_3)
+
 #endif /* _MODS_H_  */

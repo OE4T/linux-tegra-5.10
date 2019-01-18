@@ -2,7 +2,7 @@
 /*
  * mods_krnl.c - This file is part of NVIDIA MODS kernel driver.
  *
- * Copyright (c) 2008-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2008-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * NVIDIA MODS kernel driver is free software: you can redistribute it and/or
  * modify it under the terms of the GNU General Public License,
@@ -1546,12 +1546,6 @@ static long mods_krnl_ioctl(struct file  *fp,
 			   MODS_GET_PHYSICAL_ADDRESS_3);
 		break;
 
-	case MODS_ESC_GET_PHYSICAL_ADDRESS_RANGE:
-		MODS_IOCTL(MODS_ESC_GET_PHYSICAL_ADDRESS_RANGE,
-			   esc_mods_get_phys_addr_range,
-			   MODS_GET_ADDRESS_RANGE);
-		break;
-
 	case MODS_ESC_GET_MAPPED_PHYSICAL_ADDRESS:
 		MODS_IOCTL(MODS_ESC_GET_MAPPED_PHYSICAL_ADDRESS,
 			   esc_mods_get_mapped_phys_addr,
@@ -1568,12 +1562,6 @@ static long mods_krnl_ioctl(struct file  *fp,
 		MODS_IOCTL(MODS_ESC_GET_MAPPED_PHYSICAL_ADDRESS_3,
 			   esc_mods_get_mapped_phys_addr_3,
 			   MODS_GET_PHYSICAL_ADDRESS_3);
-		break;
-
-	case MODS_ESC_GET_DMA_ADDRESS_RANGE:
-		MODS_IOCTL(MODS_ESC_GET_DMA_ADDRESS_RANGE,
-			   esc_mods_get_dma_addr_range,
-			   MODS_GET_ADDRESS_RANGE);
 		break;
 
 	case MODS_ESC_SET_MEMORY_TYPE:
@@ -1708,6 +1696,12 @@ static long mods_krnl_ioctl(struct file  *fp,
 			   MODS_EVAL_DEV_ACPI_METHOD_2);
 		break;
 
+	case MODS_ESC_EVAL_DEV_ACPI_METHOD_3:
+		MODS_IOCTL(MODS_ESC_EVAL_DEV_ACPI_METHOD_3,
+			   esc_mods_eval_dev_acpi_method_3,
+			   MODS_EVAL_DEV_ACPI_METHOD_3);
+		break;
+
 	case MODS_ESC_ACPI_GET_DDC:
 		MODS_IOCTL(MODS_ESC_ACPI_GET_DDC,
 			   esc_mods_acpi_get_ddc, MODS_ACPI_GET_DDC);
@@ -1724,6 +1718,8 @@ static long mods_krnl_ioctl(struct file  *fp,
 	case MODS_ESC_EVAL_DEV_ACPI_METHOD:
 		/* fallthrough */
 	case MODS_ESC_EVAL_DEV_ACPI_METHOD_2:
+		/* fallthrough */
+	case MODS_ESC_EVAL_DEV_ACPI_METHOD_3:
 		/* fallthrough */
 	case MODS_ESC_ACPI_GET_DDC:
 		/* fallthrough */

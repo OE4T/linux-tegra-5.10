@@ -22,10 +22,6 @@
 
 #include <linux/pagemap.h>
 
-#ifdef CONFIG_BIGPHYS_AREA
-#include <linux/bigphysarea.h>
-#endif
-
 #if defined(MODS_HAS_SET_DMA_MASK)
 #include <linux/dma-mapping.h>
 #include <linux/of.h>
@@ -200,8 +196,8 @@ int mods_dma_unmap_all(struct MODS_MEM_INFO *p_mem_info,
 
 #ifdef CONFIG_PCI
 /* DMA map all pages in an allocation */
-static void mods_dma_map_pages(struct MODS_MEM_INFO *p_mem_info,
-			       struct MODS_DMA_MAP  *p_dma_map)
+static int mods_dma_map_pages(struct MODS_MEM_INFO *p_mem_info,
+			      struct MODS_DMA_MAP  *p_dma_map)
 {
 	int i;
 	struct pci_dev *dev = p_dma_map->dev;
@@ -216,6 +212,21 @@ static void mods_dma_map_pages(struct MODS_MEM_INFO *p_mem_info,
 					PAGE_SIZE << chunk->order,
 					DMA_BIDIRECTIONAL);
 
+		if (MODS_PCI_DMA_MAPPING_ERROR(dev, dev_addr)) {
+			mods_error_printk("failed to map page to device %04x:%02x:%02x.%x\n",
+					  pci_domain_nr(dev->bus),
+					  dev->bus->number,
+					  PCI_SLOT(dev->devfn),
+					  PCI_FUNC(dev->devfn));
+
+			while (--i >= 0)
+				mods_dma_unmap_page(dev,
+						    p_dma_map->dev_addr[i],
+						    chunk->order);
+
+			return -EINVAL;
+		}
+
 		dev_addr = mods_compress_nvlink_addr(dev, dev_addr);
 
 		p_dma_map->dev_addr[i] = dev_addr;
@@ -224,11 +235,13 @@ static void mods_dma_map_pages(struct MODS_MEM_INFO *p_mem_info,
 			"dma map dev_addr=0x%llx, phys_addr=0x%llx on dev %04x:%02x:%02x.%x\n",
 			(unsigned long long)dev_addr,
 			(unsigned long long)chunk->dma_addr,
-			pci_domain_nr(p_dma_map->dev->bus),
-			p_dma_map->dev->bus->number,
-			PCI_SLOT(p_dma_map->dev->devfn),
-			PCI_FUNC(p_dma_map->dev->devfn));
+			pci_domain_nr(dev->bus),
+			dev->bus->number,
+			PCI_SLOT(dev->devfn),
+			PCI_FUNC(dev->devfn));
 	}
+
+	return OK;
 }
 
 /* Create a DMA map on the specified allocation for the pci device.
@@ -239,6 +252,7 @@ static int mods_create_dma_map(struct MODS_MEM_INFO *p_mem_info,
 {
 	struct MODS_DMA_MAP *p_dma_map;
 	u32                  alloc_size;
+	int                  err;
 
 	alloc_size = sizeof(*p_dma_map) +
 		     (p_mem_info->num_chunks - 1) * sizeof(u64);
@@ -250,10 +264,80 @@ static int mods_create_dma_map(struct MODS_MEM_INFO *p_mem_info,
 	}
 
 	p_dma_map->dev = pci_dev_get(dev);
-	mods_dma_map_pages(p_mem_info, p_dma_map);
-	list_add(&p_dma_map->list, &p_mem_info->dma_map_list);
+	err = mods_dma_map_pages(p_mem_info, p_dma_map);
+
+	if (unlikely(err)) {
+		pci_dev_put(dev);
+		kfree(p_dma_map);
+	} else
+		list_add(&p_dma_map->list, &p_mem_info->dma_map_list);
+
+	return err;
+}
+
+static int mods_dma_map_default_page(struct MODS_PHYS_CHUNK *chunk,
+				     struct pci_dev         *dev)
+{
+	u64 dev_addr = pci_map_page(dev,
+				    chunk->p_page,
+				    0,
+				    PAGE_SIZE << chunk->order,
+				    DMA_BIDIRECTIONAL);
+
+	if (MODS_PCI_DMA_MAPPING_ERROR(dev, dev_addr)) {
+		mods_error_printk("failed to map page to device %04x:%02x:%02x.%x\n",
+				  pci_domain_nr(dev->bus),
+				  dev->bus->number,
+				  PCI_SLOT(dev->devfn),
+				  PCI_FUNC(dev->devfn));
+		return -EINVAL;
+	}
+
+	dev_addr = mods_compress_nvlink_addr(dev, dev_addr);
+	chunk->dev_addr = dev_addr;
+	chunk->mapped   = 1;
+
+	mods_debug_printk(DEBUG_MEM_DETAILED,
+		"auto dma map dev_addr=0x%llx, phys_addr=0x%llx on dev %04x:%02x:%02x.%x\n",
+		(unsigned long long)dev_addr,
+		(unsigned long long)chunk->dma_addr,
+		pci_domain_nr(dev->bus),
+		dev->bus->number,
+		PCI_SLOT(dev->devfn),
+		PCI_FUNC(dev->devfn));
 
 	return OK;
+}
+
+/* DMA-map memory to the device for which it has been allocated, if it hasn't
+ * been mapped already.
+ */
+static int mods_create_default_dma_map(struct MODS_MEM_INFO *p_mem_info)
+{
+	int             err = OK;
+	unsigned int    i;
+	struct pci_dev *dev = p_mem_info->dev;
+
+	for (i = 0; i < p_mem_info->num_chunks; i++) {
+		struct MODS_PHYS_CHUNK *chunk = &p_mem_info->pages[i];
+
+		if (chunk->mapped) {
+			mods_debug_printk(DEBUG_MEM_DETAILED,
+					  "memory %p already mapped to dev %04x:%02x:%02x.%x\n",
+					  p_mem_info,
+					  pci_domain_nr(dev->bus),
+					  dev->bus->number,
+					  PCI_SLOT(dev->devfn),
+					  PCI_FUNC(dev->devfn));
+			return OK;
+		}
+
+		err = mods_dma_map_default_page(chunk, dev);
+		if (err)
+			break;
+	}
+
+	return err;
 }
 #endif
 
@@ -306,7 +390,7 @@ static void mods_restore_cache(struct MODS_MEM_INFO *p_mem_info)
 	for (i = 0; i < p_mem_info->num_chunks; i++) {
 		struct MODS_PHYS_CHUNK *chunk = &p_mem_info->pages[i];
 
-		if (!chunk->allocated)
+		if (!chunk->p_page)
 			break;
 
 		mods_pre_free(chunk, p_mem_info);
@@ -323,30 +407,21 @@ static void mods_free_pages(struct MODS_MEM_INFO *p_mem_info)
 
 		--i;
 		chunk = &p_mem_info->pages[i];
-		if (!chunk->allocated)
+		if (!chunk->p_page)
 			continue;
 
-		if (p_mem_info->dev) {
-			u64 dev_addr = chunk->dev_addr;
-
-			dev_addr = mods_expand_nvlink_addr(p_mem_info->dev,
-							   dev_addr);
-
-			pci_unmap_page(p_mem_info->dev,
-				       dev_addr,
-				       PAGE_SIZE << chunk->order,
-				       DMA_BIDIRECTIONAL);
+#ifdef CONFIG_PCI
+		if (chunk->mapped) {
+			mods_dma_unmap_page(p_mem_info->dev,
+					    chunk->dev_addr,
+					    chunk->order);
+			chunk->mapped = 0;
 		}
-
-#ifdef CONFIG_BIGPHYS_AREA
-		if (p_mem_info->alloc_type == MODS_ALLOC_TYPE_BIGPHYS_AREA) {
-			bigphysarea_free_pages((void *)
-					       p_mem_info->logical_addr);
-		} else
 #endif
-			__free_pages(chunk->p_page, chunk->order);
 
-		chunk->allocated = 0;
+		__free_pages(chunk->p_page, chunk->order);
+
+		chunk->p_page = 0;
 	}
 }
 
@@ -389,29 +464,13 @@ static int mods_alloc_contig_sys_pages(struct MODS_MEM_INFO *p_mem_info)
 			mods_alloc_flags(p_mem_info),
 			order);
 
-#ifdef CONFIG_BIGPHYS_AREA
-	if (!p_mem_info->pages[0].p_page) {
-		mods_debug_printk(DEBUG_MEM, "falling back to bigphysarea\n");
-		p_mem_info->logical_addr = (u64)
-			bigphysarea_alloc_pages(1U << order, 0, GFP_KERNEL);
-		p_mem_info->alloc_type = MODS_ALLOC_TYPE_BIGPHYS_AREA;
-	}
-#endif
-
 	if (!p_mem_info->pages[0].p_page &&
 	    p_mem_info->logical_addr == 0) {
 		LOG_EXT();
 		return -ENOMEM;
 	}
 
-	p_mem_info->pages[0].allocated = 1;
-
-#ifdef CONFIG_BIGPHYS_AREA
-	if (p_mem_info->alloc_type == MODS_ALLOC_TYPE_BIGPHYS_AREA) {
-		phys_addr = __pa(p_mem_info->logical_addr);
-	} else
-#endif
-		phys_addr = page_to_phys(p_mem_info->pages[0].p_page);
+	phys_addr = page_to_phys(p_mem_info->pages[0].p_page);
 	if (phys_addr == 0) {
 		mods_error_printk("failed to determine physical address\n");
 		mods_free_pages(p_mem_info);
@@ -422,10 +481,8 @@ static int mods_alloc_contig_sys_pages(struct MODS_MEM_INFO *p_mem_info)
 	p_mem_info->pages[0].dma_addr = MODS_PHYS_TO_DMA(phys_addr);
 
 	mods_debug_printk(DEBUG_MEM,
-	    "alloc contig 0x%lx bytes%s, 2^%u pages, %s, node %d, addrbits %u, phys 0x%llx\n",
+	    "alloc contig 0x%lx bytes, 2^%u pages, %s, node %d, addrbits %u, phys 0x%llx\n",
 	    (unsigned long)p_mem_info->length,
-	    p_mem_info->alloc_type == MODS_ALLOC_TYPE_BIGPHYS_AREA ?
-		" bigphys" : "",
 	    p_mem_info->pages[0].order,
 	    mods_get_prot_str(p_mem_info->cache_type),
 	    p_mem_info->numa_node,
@@ -493,7 +550,6 @@ static int mods_alloc_noncontig_sys_pages(struct MODS_MEM_INFO *p_mem_info)
 			mods_error_printk("out of memory\n");
 			goto failed;
 		}
-		chunk->allocated = 1;
 
 		pages_left -= 1U << order;
 		chunk->order = order;
@@ -601,14 +657,14 @@ int mods_unregister_all_alloc(struct file *fp)
 	return err;
 }
 
-static int get_addr_range(struct file                   *fp,
-			  struct MODS_GET_ADDRESS_RANGE *p,
-			  struct mods_pci_dev_2         *pcidev)
+static int get_addr_range(struct file                        *fp,
+			  struct MODS_GET_PHYSICAL_ADDRESS_3 *p,
+			  struct mods_pci_dev_2              *pcidev)
 {
 	struct MODS_MEM_INFO *p_mem_info;
 	struct MODS_DMA_MAP  *p_dma_map = NULL;
 	u64                  *out;
-	u32                   num_out;
+	u32                   num_out   = 1;
 	u32                   skip_pages;
 	u32                   i;
 	int                   err       = OK;
@@ -634,26 +690,19 @@ static int get_addr_range(struct file                   *fp,
 		return -EINVAL;
 	}
 
-	if (unlikely(p->stride != PAGE_SIZE)) {
-		mods_error_printk("stride is 0x%x, but expected 0x%lx\n",
-				  p->stride, PAGE_SIZE);
-		LOG_EXT();
-		return -EINVAL;
-	}
+	out = &p->physical_address;
 
-	out     = &p->physical_addresses[0];
-	num_out = p->num_entries;
+	if (pcidev) {
+		if (mods_is_pci_dev(p_mem_info->dev, pcidev)) {
+			if (!p_mem_info->pages[0].mapped)
+				err = -EINVAL;
+		} else {
+			p_dma_map = find_dma_map(p_mem_info, pcidev);
+			if (!p_dma_map)
+				err = -EINVAL;
+		}
 
-	if (unlikely(num_out == 0 || num_out > MAX_PA_ENTRIES)) {
-		mods_error_printk("invalid number of pages requested: %u\n",
-				  num_out);
-		LOG_EXT();
-		return -EINVAL;
-	}
-
-	if (pcidev && !mods_is_pci_dev(p_mem_info->dev, pcidev)) {
-		p_dma_map = find_dma_map(p_mem_info, pcidev);
-		if (unlikely(!p_dma_map)) {
+		if (err) {
 			mods_error_printk("allocation %p is not mapped to device %04x:%02x:%02x.%x\n",
 					  p_mem_info,
 					  pcidev->domain,
@@ -661,7 +710,7 @@ static int get_addr_range(struct file                   *fp,
 					  pcidev->device,
 					  pcidev->function);
 			LOG_EXT();
-			return -EINVAL;
+			return err;
 		}
 	}
 
@@ -702,9 +751,8 @@ static int get_addr_range(struct file                   *fp,
 	}
 
 	if (unlikely(num_out)) {
-		mods_error_printk("invalid offset 0x%llx or size 0x%llx requested for allocation %p\n",
+		mods_error_printk("invalid offset 0x%llx requested for allocation %p\n",
 				  p->offset,
-				  (u64)p->stride * p->num_entries,
 				  p_mem_info);
 		err = -EINVAL;
 	}
@@ -797,7 +845,7 @@ static struct MODS_MEM_INFO *optimize_chunks(struct MODS_MEM_INFO *p_mem_info)
 	struct MODS_MEM_INFO *p_new_mem_info = NULL;
 
 	for (i = 0; i < p_mem_info->num_chunks; i++)
-		if (!p_mem_info->pages[i].allocated)
+		if (!p_mem_info->pages[i].p_page)
 			break;
 
 	num_chunks = i;
@@ -1073,21 +1121,19 @@ int esc_mods_set_mem_type(struct file *fp, struct MODS_MEMORY_TYPE *p)
 
 int esc_mods_get_phys_addr(struct file *fp, struct MODS_GET_PHYSICAL_ADDRESS *p)
 {
-	struct MODS_GET_ADDRESS_RANGE range;
+	struct MODS_GET_PHYSICAL_ADDRESS_3 range;
 	int err;
 
 	LOG_ENT();
 
 	range.memory_handle = p->memory_handle;
 	range.offset        = p->offset;
-	range.stride        = PAGE_SIZE;
-	range.num_entries   = 1;
 	memset(&range.pci_device, 0, sizeof(range.pci_device));
 
 	err = get_addr_range(fp, &range, NULL);
 
 	if (!err)
-		p->physical_address = range.physical_addresses[0];
+		p->physical_address = range.physical_address;
 
 	LOG_EXT();
 	return err;
@@ -1096,36 +1142,28 @@ int esc_mods_get_phys_addr(struct file *fp, struct MODS_GET_PHYSICAL_ADDRESS *p)
 int esc_mods_get_phys_addr_2(struct file *fp,
 			     struct MODS_GET_PHYSICAL_ADDRESS_3 *p)
 {
-	struct MODS_GET_ADDRESS_RANGE range;
+	struct MODS_GET_PHYSICAL_ADDRESS_3 range;
 	int err;
 
 	LOG_ENT();
 
 	range.memory_handle = p->memory_handle;
 	range.offset        = p->offset;
-	range.stride        = PAGE_SIZE;
-	range.num_entries   = 1;
 	memset(&range.pci_device, 0, sizeof(range.pci_device));
 
 	err = get_addr_range(fp, &range, NULL);
 
 	if (!err)
-		p->physical_address = range.physical_addresses[0];
+		p->physical_address = range.physical_address;
 
 	LOG_EXT();
 	return err;
 }
 
-int esc_mods_get_phys_addr_range(struct file *fp,
-				 struct MODS_GET_ADDRESS_RANGE *p)
-{
-	return get_addr_range(fp, p, NULL);
-}
-
 int esc_mods_get_mapped_phys_addr(struct file *fp,
 				  struct MODS_GET_PHYSICAL_ADDRESS *p)
 {
-	struct MODS_GET_ADDRESS_RANGE range;
+	struct MODS_GET_PHYSICAL_ADDRESS_3 range;
 	struct MODS_MEM_INFO *p_mem_info;
 	int err;
 
@@ -1133,8 +1171,6 @@ int esc_mods_get_mapped_phys_addr(struct file *fp,
 
 	range.memory_handle = p->memory_handle;
 	range.offset        = p->offset;
-	range.stride        = PAGE_SIZE;
-	range.num_entries   = 1;
 
 	p_mem_info = (struct MODS_MEM_INFO *)(size_t)p->memory_handle;
 	if (p_mem_info->dev) {
@@ -1154,7 +1190,7 @@ int esc_mods_get_mapped_phys_addr(struct file *fp,
 	}
 
 	if (!err)
-		p->physical_address = range.physical_addresses[0];
+		p->physical_address = range.physical_address;
 
 	LOG_EXT();
 	return err;
@@ -1163,21 +1199,19 @@ int esc_mods_get_mapped_phys_addr(struct file *fp,
 int esc_mods_get_mapped_phys_addr_2(struct file *fp,
 				  struct MODS_GET_PHYSICAL_ADDRESS_2 *p)
 {
-	struct MODS_GET_ADDRESS_RANGE range;
+	struct MODS_GET_PHYSICAL_ADDRESS_3 range;
 	int err;
 
 	LOG_ENT();
 
 	range.memory_handle = p->memory_handle;
 	range.offset        = p->offset;
-	range.stride        = PAGE_SIZE;
-	range.num_entries   = 1;
 	range.pci_device    = p->pci_device;
 
 	err = get_addr_range(fp, &range, &range.pci_device);
 
 	if (!err)
-		p->physical_address = range.physical_addresses[0];
+		p->physical_address = range.physical_address;
 
 	LOG_EXT();
 	return err;
@@ -1186,30 +1220,22 @@ int esc_mods_get_mapped_phys_addr_2(struct file *fp,
 int esc_mods_get_mapped_phys_addr_3(struct file *fp,
 				  struct MODS_GET_PHYSICAL_ADDRESS_3 *p)
 {
-	struct MODS_GET_ADDRESS_RANGE range;
+	struct MODS_GET_PHYSICAL_ADDRESS_3 range;
 	int err;
 
 	LOG_ENT();
 
 	range.memory_handle = p->memory_handle;
 	range.offset        = p->offset;
-	range.stride        = PAGE_SIZE;
-	range.num_entries   = 1;
 	range.pci_device    = p->pci_device;
 
 	err = get_addr_range(fp, &range, &range.pci_device);
 
 	if (!err)
-		p->physical_address = range.physical_addresses[0];
+		p->physical_address = range.physical_address;
 
 	LOG_EXT();
 	return err;
-}
-
-int esc_mods_get_dma_addr_range(struct file *fp,
-				struct MODS_GET_ADDRESS_RANGE *p)
-{
-	return get_addr_range(fp, p, &p->pci_device);
 }
 
 int esc_mods_virtual_to_phys(struct file *fp,
@@ -1398,15 +1424,9 @@ int esc_mods_dma_map_memory(struct file *fp,
 	}
 
 	if (mods_is_pci_dev(p_mem_info->dev, &p->pci_device)) {
-		mods_debug_printk(DEBUG_MEM_DETAILED,
-				  "memory %p already mapped to dev %04x:%02x:%02x.%x\n",
-				  p_mem_info,
-				  p->pci_device.domain,
-				  p->pci_device.bus,
-				  p->pci_device.device,
-				  p->pci_device.function);
+		err = mods_create_default_dma_map(p_mem_info);
 		LOG_EXT();
-		return 0;
+		return err;
 	}
 
 	p_dma_map = find_dma_map(p_mem_info, &p->pci_device);
@@ -1641,12 +1661,7 @@ static int mods_post_alloc(struct MODS_PHYS_CHUNK *chunk,
 		u64 ptr = 0;
 		int err = 0;
 
-#ifdef CONFIG_BIGPHYS_AREA
-		if (p_mem_info->alloc_type == MODS_ALLOC_TYPE_BIGPHYS_AREA) {
-			ptr = p_mem_info->logical_addr + (i << PAGE_SHIFT);
-		} else
-#endif
-			ptr = (u64)(size_t)kmap(chunk->p_page + i);
+		ptr = (u64)(size_t)kmap(chunk->p_page + i);
 		if (!ptr) {
 			mods_error_printk("kmap failed\n");
 			return -EINVAL;
@@ -1658,47 +1673,33 @@ static int mods_post_alloc(struct MODS_PHYS_CHUNK *chunk,
 #else
 		err = mods_set_mem_type(ptr, 1, p_mem_info->cache_type);
 #endif
-#ifdef CONFIG_BIGPHYS_AREA
-		if (p_mem_info->alloc_type != MODS_ALLOC_TYPE_BIGPHYS_AREA)
-#endif
-			kunmap((void *)(size_t)ptr);
+		kunmap((void *)(size_t)ptr);
 		if (err) {
 			mods_error_printk("set cache type failed\n");
 			return -EINVAL;
 		}
 	}
 
+#ifdef CONFIG_PCI
 	if (p_mem_info->dev) {
-		u64 dev_addr = pci_map_page(p_mem_info->dev,
-					    chunk->p_page,
-					    0,
-					    num_pages << PAGE_SHIFT,
-					    DMA_BIDIRECTIONAL);
+		struct pci_dev *dev = p_mem_info->dev;
+		int             err;
 
-		if (!dev_addr) {
-			struct pci_dev *dev = p_mem_info->dev;
+		/* On systems with SWIOTLB active, disable default DMA mapping
+		 * because we don't support scatter-gather lists.
+		 */
+#if defined(CONFIG_SWIOTLB) && defined(MODS_HAS_DMA_OPS) && \
+	defined(MODS_HAS_MAP_SG_ATTRS)
+		const struct dma_map_ops *ops = get_dma_ops(&dev->dev);
 
-			mods_error_printk("failed to map page to device %04x:%02x:%02x.%x\n",
-					  pci_domain_nr(dev->bus),
-					  dev->bus->number,
-					  PCI_SLOT(dev->devfn),
-					  PCI_FUNC(dev->devfn));
-			return -EINVAL;
-		}
-
-		dev_addr = mods_compress_nvlink_addr(p_mem_info->dev,
-						     dev_addr);
-		chunk->dev_addr = dev_addr;
-
-		mods_debug_printk(DEBUG_MEM_DETAILED,
-			"auto dma map dev_addr=0x%llx, phys_addr=0x%llx on dev %04x:%02x:%02x.%x\n",
-			(unsigned long long)dev_addr,
-			(unsigned long long)chunk->dma_addr,
-			pci_domain_nr(p_mem_info->dev->bus),
-			p_mem_info->dev->bus->number,
-			PCI_SLOT(p_mem_info->dev->devfn),
-			PCI_FUNC(p_mem_info->dev->devfn));
+		if (ops->map_sg == swiotlb_map_sg_attrs)
+			return OK;
+#endif
+		err = mods_dma_map_default_page(chunk, dev);
+		if (err)
+			return err;
 	}
+#endif
 
 	return 0;
 }
@@ -1710,18 +1711,11 @@ static void mods_pre_free(struct MODS_PHYS_CHUNK *chunk,
 	u32 i;
 
 	for (i = 0; i < num_pages; i++) {
-		u64 ptr = 0;
-#ifdef CONFIG_BIGPHYS_AREA
-		if (p_mem_info->alloc_type == MODS_ALLOC_TYPE_BIGPHYS_AREA)
-			ptr = p_mem_info->logical_addr + (i << PAGE_SHIFT);
-		else
-#endif
-			ptr = (u64)(size_t)kmap(chunk->p_page + i);
+		u64 ptr = (u64)(size_t)kmap(chunk->p_page + i);
+
 		if (ptr)
 			mods_restore_mem_type(ptr, 1, p_mem_info->cache_type);
-#ifdef CONFIG_BIGPHYS_AREA
-		if (p_mem_info->alloc_type != MODS_ALLOC_TYPE_BIGPHYS_AREA)
-#endif
-			kunmap((void *)(size_t)ptr);
+
+		kunmap((void *)(size_t)ptr);
 	}
 }

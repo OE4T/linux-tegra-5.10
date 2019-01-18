@@ -2,7 +2,7 @@
 /*
  * mods_acpi.c - This file is part of NVIDIA MODS kernel driver.
  *
- * Copyright (c) 2008-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2008-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * NVIDIA MODS kernel driver is free software: you can redistribute it and/or
  * modify it under the terms of the GNU General Public License,
@@ -157,7 +157,8 @@ static int mods_extract_acpi_object(
 
 static int mods_eval_acpi_method(struct file		      *pfile,
 				 struct MODS_EVAL_ACPI_METHOD *p,
-				 struct mods_pci_dev_2	      *pdevice)
+				 struct mods_pci_dev_2	      *pdevice,
+				 u32			       acpi_id)
 {
 	int err = OK;
 	int i;
@@ -168,6 +169,9 @@ static int mods_eval_acpi_method(struct file		      *pfile,
 	union acpi_object acpi_params[ACPI_MAX_ARGUMENT_NUMBER];
 	acpi_handle acpi_method_handler = NULL;
 	struct pci_dev *dev = NULL;
+	struct acpi_device *acpi_dev = NULL;
+	struct list_head *node = NULL;
+	struct list_head *next = NULL;
 
 	LOG_ENT();
 
@@ -201,6 +205,58 @@ static int mods_eval_acpi_method(struct file		      *pfile,
 	} else {
 		mods_debug_printk(DEBUG_ACPI, "ACPI %s\n", p->method_name);
 		mods_acpi_handle_init(p->method_name, &acpi_method_handler);
+	}
+
+	if (acpi_id != ACPI_MODS_IGNORE_ACPI_ID) {
+		status = acpi_bus_get_device(acpi_method_handler, &acpi_dev);
+		if (ACPI_FAILURE(status) || !acpi_dev) {
+			mods_error_printk("ACPI: device for %s not found\n",
+					   p->method_name);
+			pci_dev_put(dev);
+			LOG_EXT();
+			return -EINVAL;
+		}
+		acpi_method_handler = NULL;
+
+		list_for_each_safe(node, next, &acpi_dev->children) {
+#ifdef MODS_ACPI_DEVID_64
+			unsigned long long
+#else
+			unsigned long
+#endif
+				device_id = 0;
+
+			struct acpi_device *acpi_dev =
+				list_entry(node, struct acpi_device, node);
+
+			if (!acpi_dev)
+				continue;
+
+			status = acpi_evaluate_integer(acpi_dev->handle,
+						       "_ADR",
+						       NULL,
+						       &device_id);
+			if (ACPI_FAILURE(status))
+				/* Couldn't query device_id for this device */
+				continue;
+
+#ifdef MODS_ACPI_DEVID_64
+			if (device_id == acpi_id) {
+#else
+			if ((device_id & 0xffff) == (acpi_id & 0xffff)) {
+#endif
+				acpi_method_handler = acpi_dev->handle;
+				mods_debug_printk(DEBUG_ACPI,
+						  "ACPI: Found %s (id = 0x%x) on device %04x:%02x:%02x.%x\n",
+						  p->method_name,
+						  (unsigned int)device_id,
+						  pdevice->domain,
+						  pdevice->bus,
+						  pdevice->device,
+						  pdevice->function);
+				break;
+			}
+		}
 	}
 
 	if (!acpi_method_handler) {
@@ -436,13 +492,20 @@ static int mods_acpi_get_ddc(struct file *pfile,
 int esc_mods_eval_acpi_method(struct file *pfile,
 			      struct MODS_EVAL_ACPI_METHOD *p)
 {
-	return mods_eval_acpi_method(pfile, p, 0);
+	return mods_eval_acpi_method(pfile, p, 0, ACPI_MODS_IGNORE_ACPI_ID);
+}
+
+int esc_mods_eval_dev_acpi_method_3(struct file *pfile,
+				    struct MODS_EVAL_DEV_ACPI_METHOD_3 *p)
+{
+	return mods_eval_acpi_method(pfile, &p->method, &p->device, p->acpi_id);
 }
 
 int esc_mods_eval_dev_acpi_method_2(struct file *pfile,
 				    struct MODS_EVAL_DEV_ACPI_METHOD_2 *p)
 {
-	return mods_eval_acpi_method(pfile, &p->method, &p->device);
+	return mods_eval_acpi_method(pfile, &p->method, &p->device,
+				     ACPI_MODS_IGNORE_ACPI_ID);
 }
 
 int esc_mods_eval_dev_acpi_method(struct file *pfile,
@@ -454,7 +517,8 @@ int esc_mods_eval_dev_acpi_method(struct file *pfile,
 	device.bus		= p->device.bus;
 	device.device		= p->device.device;
 	device.function		= p->device.function;
-	return mods_eval_acpi_method(pfile, &p->method, &device);
+	return mods_eval_acpi_method(pfile, &p->method, &device,
+				     ACPI_MODS_IGNORE_ACPI_ID);
 }
 
 int esc_mods_acpi_get_ddc_2(struct file *pfile,
