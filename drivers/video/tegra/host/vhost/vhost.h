@@ -55,9 +55,6 @@ int vhost_resume(struct platform_device *pdev);
 int nvhost_virt_init(struct platform_device *dev, int moduleid);
 void nvhost_virt_deinit(struct platform_device *dev);
 
-int vhost_prod_apply(struct platform_device *pdev, u32 phy_mode);
-int vhost_cil_sw_reset(struct platform_device *pdev, u32 lanes, u32 enable);
-
 #else
 
 static inline void vhost_init_host1x_debug_ops(struct nvhost_debug_ops *ops)
@@ -93,17 +90,6 @@ static inline int nvhost_virt_init(struct platform_device *dev, int moduleid)
 }
 static inline void nvhost_virt_deinit(struct platform_device *dev)
 {
-}
-
-static inline int vhost_prod_apply(struct platform_device *pdev, u32 phy_mode)
-{
-	return -ENOTSUPP;
-}
-
-static inline int vhost_cil_sw_reset(struct platform_device *pdev, u32 lanes,
-				     u32 enable)
-{
-	return -ENOTSUPP;
 }
 
 #endif

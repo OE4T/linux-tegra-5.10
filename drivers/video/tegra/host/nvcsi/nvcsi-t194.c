@@ -1,7 +1,7 @@
 /*
  * NVCSI driver for T194
  *
- * Copyright (c) 2017-2018, NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2017-2019, NVIDIA Corporation.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -47,8 +47,6 @@
 #include "media/csi.h"
 
 #include "deskew.h"
-
-#include "vhost/vhost.h"
 
 /* PG rate based on max ISP throughput */
 #define PG_CLK_RATE	102000000
