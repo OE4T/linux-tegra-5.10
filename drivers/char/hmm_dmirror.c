@@ -1172,7 +1172,9 @@ static int dmirror_probe(struct platform_device *pdev)
 
 	ret = alloc_chrdev_region(&mdevice->dev, 0, 1, "HMM_DMIRROR");
 	if (ret < 0) {
+#if LINUX_VERSION_CODE <= KERNEL_VERSION(4, 14, 92)
 		hmm_devmem_remove(mdevice->devmem);
+#endif
 		hmm_device_put(mdevice->hmm_device);
 		return ret;
 	}
@@ -1180,7 +1182,9 @@ static int dmirror_probe(struct platform_device *pdev)
 	mdevice->cl = class_create(THIS_MODULE, "chardrv");
 	if (IS_ERR_OR_NULL(mdevice->cl)) {
 		unregister_chrdev_region(mdevice->dev, 1);
+#if LINUX_VERSION_CODE <= KERNEL_VERSION(4, 14, 92)
 		hmm_devmem_remove(mdevice->devmem);
+#endif
 		hmm_device_put(mdevice->hmm_device);
 		return PTR_ERR(mdevice->cl);
 	}
@@ -1190,7 +1194,9 @@ static int dmirror_probe(struct platform_device *pdev)
 	if (IS_ERR_OR_NULL(dev)) {
 		class_destroy(mdevice->cl);
 		unregister_chrdev_region(mdevice->dev, 1);
+#if LINUX_VERSION_CODE <= KERNEL_VERSION(4, 14, 92)
 		hmm_devmem_remove(mdevice->devmem);
+#endif
 		hmm_device_put(mdevice->hmm_device);
 		return PTR_ERR(dev);
 	}
@@ -1201,7 +1207,9 @@ static int dmirror_probe(struct platform_device *pdev)
 		device_destroy(mdevice->cl, mdevice->dev);
 		class_destroy(mdevice->cl);
 		unregister_chrdev_region(mdevice->dev, 1);
+#if LINUX_VERSION_CODE <= KERNEL_VERSION(4, 14, 92)
 		hmm_devmem_remove(mdevice->devmem);
+#endif
 		hmm_device_put(mdevice->hmm_device);
 		return ret;
 	}
@@ -1234,7 +1242,9 @@ static int dmirror_remove(struct platform_device *pdev)
 	device_destroy(mdevice->cl, mdevice->dev);
 	class_destroy(mdevice->cl);
 	unregister_chrdev_region(mdevice->dev, 1);
+#if LINUX_VERSION_CODE <= KERNEL_VERSION(4, 14, 92)
 	hmm_devmem_remove(mdevice->devmem);
+#endif
 	hmm_device_put(mdevice->hmm_device);
 	return 0;
 }
