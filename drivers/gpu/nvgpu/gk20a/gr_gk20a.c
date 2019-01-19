@@ -5058,7 +5058,7 @@ static int gk20a_gr_handle_tpc_exception(struct gk20a *g, u32 gpc, u32 tpc,
 		bool *post_event, struct channel_gk20a *fault_ch,
 		u32 *hww_global_esr)
 {
-	int ret = 0;
+	int tmp_ret, ret = 0;
 	u32 offset = gk20a_gr_gpc_offset(g, gpc) + gk20a_gr_tpc_offset(g, tpc);
 	u32 tpc_exception = gk20a_readl(g, gr_gpc0_tpc0_tpccs_tpc_exception_r()
 			+ offset);
@@ -5093,9 +5093,11 @@ static int gk20a_gr_handle_tpc_exception(struct gk20a *g, u32 gpc, u32 tpc,
 				"GPC%d TPC%d: SM%d exception pending",
 				 gpc, tpc, sm);
 
-			ret |= g->ops.gr.handle_sm_exception(g,
-				 gpc, tpc, sm, post_event, fault_ch,
-				hww_global_esr);
+			tmp_ret = g->ops.gr.handle_sm_exception(g,
+					gpc, tpc, sm, post_event, fault_ch,
+					hww_global_esr);
+			ret = (ret != 0) ? ret : tmp_ret;
+
 			/* clear the hwws, also causes tpc and gpc
 			 * exceptions to be cleared. Should be cleared
 			 * only if SM is locked down or empty.
@@ -5112,12 +5114,15 @@ static int gk20a_gr_handle_tpc_exception(struct gk20a *g, u32 gpc, u32 tpc,
 			gr_gpc0_tpc0_tpccs_tpc_exception_tex_pending_v()) {
 		nvgpu_log(g, gpu_dbg_intr | gpu_dbg_gpu_dbg,
 				"GPC%d TPC%d: TEX exception pending", gpc, tpc);
-		ret |= g->ops.gr.handle_tex_exception(g, gpc, tpc, post_event);
+		tmp_ret = g->ops.gr.handle_tex_exception(g, gpc,
+							tpc, post_event);
+		ret = (ret != 0) ? ret : tmp_ret;
 	}
 
 	if (g->ops.gr.handle_tpc_mpc_exception != NULL) {
-		ret |= g->ops.gr.handle_tpc_mpc_exception(g,
+		tmp_ret = g->ops.gr.handle_tpc_mpc_exception(g,
 					gpc, tpc, post_event);
+		ret = (ret != 0) ? ret : tmp_ret;
 	}
 
 	return ret;
@@ -5126,7 +5131,7 @@ static int gk20a_gr_handle_tpc_exception(struct gk20a *g, u32 gpc, u32 tpc,
 static int gk20a_gr_handle_gpc_exception(struct gk20a *g, bool *post_event,
 		struct channel_gk20a *fault_ch, u32 *hww_global_esr)
 {
-	int ret = 0;
+	int tmp_ret, ret = 0;
 	u32 gpc_offset, gpc, tpc;
 	struct gr_gk20a *gr = &g->gr;
 	u32 exception1 = gk20a_readl(g, gr_exception1_r());
@@ -5157,35 +5162,31 @@ static int gk20a_gr_handle_gpc_exception(struct gk20a *g, bool *post_event,
 			nvgpu_log(g, gpu_dbg_intr | gpu_dbg_gpu_dbg,
 				  "GPC%d: TPC%d exception pending", gpc, tpc);
 
-			ret |= gk20a_gr_handle_tpc_exception(g, gpc, tpc,
+			tmp_ret = gk20a_gr_handle_tpc_exception(g, gpc, tpc,
 					post_event, fault_ch, hww_global_esr);
-
+			ret = (ret != 0) ? ret : tmp_ret;
 		}
 
 		/* Handle GCC exception */
 		if ((gr_gpc0_gpccs_gpc_exception_gcc_v(gpc_exception) != 0U) &&
 				(g->ops.gr.handle_gcc_exception != NULL)) {
-			int gcc_ret = 0;
-			gcc_ret = g->ops.gr.handle_gcc_exception(g, gpc, tpc,
+			tmp_ret = g->ops.gr.handle_gcc_exception(g, gpc, tpc,
 				post_event, fault_ch, hww_global_esr);
-			ret |= (ret != 0) ? ret : gcc_ret;
+			ret = (ret != 0) ? ret : tmp_ret;
 		}
 
 		/* Handle GPCCS exceptions */
 		if (g->ops.gr.handle_gpc_gpccs_exception != NULL) {
-			int ret_ecc = 0;
-			ret_ecc = g->ops.gr.handle_gpc_gpccs_exception(g, gpc,
+			tmp_ret = g->ops.gr.handle_gpc_gpccs_exception(g, gpc,
 								gpc_exception);
-			ret |= (ret != 0) ? ret : ret_ecc;
+			ret = (ret != 0) ? ret : tmp_ret;
 		}
 
 		/* Handle GPCMMU exceptions */
 		if (g->ops.gr.handle_gpc_gpcmmu_exception != NULL) {
-			int ret_mmu = 0;
-
-			ret_mmu = g->ops.gr.handle_gpc_gpcmmu_exception(g, gpc,
+			tmp_ret = g->ops.gr.handle_gpc_gpcmmu_exception(g, gpc,
 								gpc_exception);
-			ret |= (ret != 0) ? ret : ret_mmu;
+			ret = (ret != 0) ? ret : tmp_ret;
 		}
 
 	}
