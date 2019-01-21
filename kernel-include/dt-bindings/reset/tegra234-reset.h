@@ -1,17 +1,11 @@
 /*
  * Copyright (c) 2018, NVIDIA CORPORATION. All rights reserved.
  *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms and conditions of the GNU General Public License,
- * version 2, as published by the Free Software Foundation.
- *
- * This program is distributed in the hope it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
- * more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * NVIDIA CORPORATION and its licensors retain all intellectual property
+ * and proprietary rights in and to this software, related documentation
+ * and any modifications thereto.  Any use, reproduction, disclosure or
+ * distribution of this software and related documentation without an express
+ * license agreement from NVIDIA CORPORATION is strictly prohibited.
  */
 
 #ifndef BPMP_ABI_MACH_T234_RESET_H
@@ -33,7 +27,7 @@
 #define TEGRA234_RESET_DPAUX			8
 #define TEGRA234_RESET_DPAUX1			9
 #define TEGRA234_RESET_DPAUX2			10
-#define TEGRA234_RESET_DPAUX3			11
+#define TEGRA234_RESET_RSVD_11			11
 #define TEGRA234_RESET_EQOS			17
 #define TEGRA234_RESET_GPCDMA			18
 #define TEGRA234_RESET_GPU			19
