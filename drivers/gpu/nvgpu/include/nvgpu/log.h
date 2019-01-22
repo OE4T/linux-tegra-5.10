@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -81,6 +81,7 @@ void __nvgpu_log_dbg(struct gk20a *g, u64 log_mask,
 #define	gpu_dbg_nvlink		BIT(25) /* nvlink Operation tracing. */
 #define	gpu_dbg_clk_arb		BIT(26) /* Clk arbiter debugging. */
 #define	gpu_dbg_event		BIT(27) /* Events to User debugging. */
+#define	gpu_dbg_vsrv		BIT(28) /* server debugging. */
 #define	gpu_dbg_mem		BIT(31) /* memory accesses; very verbose. */
 
 /**
