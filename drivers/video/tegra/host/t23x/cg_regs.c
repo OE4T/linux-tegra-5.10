@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2018, NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2017-2019, NVIDIA Corporation.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,7 +19,7 @@
 static struct nvhost_gating_register __attribute__((__unused__))
 	t23x_host1x_gating_registers[] = {
 	/* HOST1X_THOST_COMMON_ICG_EN_OVERRIDE_0 */
-	{ .addr = 0x00004ba8, .prod = 0x00000000, .disable = 0x00000001 },
+	{ .addr = 0x00004808, .prod = 0x00000000, .disable = 0x00000001 },
 	{}
 };
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -50,8 +50,10 @@
 #ifndef _hw_host1x7_channel_h_
 #define _hw_host1x7_channel_h_
 
+/* Channel Aperture Registers */
 static inline u32 host1x_channel_ch_aperture_start_r(void)
 {
+	/* HOST1X_THOST_CHANNEL0_FIRST_REG */
 	return 0x0;
 }
 static inline u32 host1x_channel_ch_aperture_size_r(void)
@@ -134,22 +136,6 @@ static inline u32 host1x_channel_cmdp_channelstat_r(void)
 {
 	return 0x38;
 }
-static inline u32 host1x_channel_mlock_en_r(void)
-{
-	return 0x2000;
-}
-static inline u32 host1x_channel_ch_hipri_r(void)
-{
-	return 0x2010;
-}
-static inline u32 host1x_channel_filter_gbuffer_r(void)
-{
-	return 0x2020;
-}
-static inline u32 host1x_channel_ch_vm_0_r(void)
-{
-	return 0x7f8;
-}
 static inline u32 host1x_channel_intrmask_r(void)
 {
 	return 0x80;
@@ -162,4 +148,15 @@ static inline u32 host1x_channel_mlock_timeout_r(void)
 {
 	return 0x88;
 }
+static inline u32 host1x_channel_filter_gbuffer_r(void)
+{
+	/* arhost: hyp: HOST1X_THOST_COMMON_CH_KERNEL_FILTER_GBUFFER_0 */
+	return 0x1728;
+}
+static inline u32 host1x_channel_ch_vm_0_r(void)
+{
+	/* arhost: hyp: HOST1X_THOST_COMMON_CH_VM_0 */
+	return 0x7f8;
+}
+
 #endif

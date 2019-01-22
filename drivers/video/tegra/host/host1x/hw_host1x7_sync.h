@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -52,6 +52,7 @@
 
 static inline u32 host1x_sync_intstatus_r(void)
 {
+	/* arhost: HOST1X_THOST_COMMON_THOST_INTRSTATUS_0_0 */
 	return 0x1c;
 }
 static inline u32 host1x_sync_intstatus_ip_read_int_v(u32 r)
@@ -72,19 +73,23 @@ static inline u32 host1x_sync_intstatus_illegal_client_access_v(u32 r)
 }
 static inline u32 host1x_sync_intmask_r(void)
 {
+	/* arhost: HOST1X_THOST_COMMON_THOST_INTRMASK_0_0 */
 	return 0x30;
 }
 static inline u32 host1x_sync_intgmask_r(void)
 {
+	/* arhost: HOST1X_THOST_COMMON_THOST_GLOBAL_INTRMASK_0 */
 	return 0x44;
 }
 static inline u32 host1x_sync_intc0mask_r(void)
 {
+	/* arhost: HOST1X_THOST_COMMON_INTR_CPU0_MASK_0_0 */
 	return 0x4;
 }
 static inline u32 host1x_sync_illegal_syncpt_access_frm_client_r(void)
 {
-	return 0x2268;
+	/* arhost: hyp: HOST1X_THOST_COMMON_ILLEGAL_SYNCPT_ACCESS_FRM_CLIENT_0 */
+	return 0x4268;
 }
 static inline u32 host1x_sync_illegal_syncpt_access_frm_client_syncpt_v(u32 r)
 {
@@ -96,7 +101,8 @@ static inline u32 host1x_sync_illegal_syncpt_access_frm_client_ch_v(u32 r)
 }
 static inline u32 host1x_sync_illegal_syncpt_access_frm_pb_r(void)
 {
-	return 0x2270;
+	/* arhost: hyp: HOST1X_THOST_COMMON_ILLEGAL_SYNCPT_ACCESS_FRM_PB_0 */
+	return 0x4270;
 }
 static inline u32 host1x_sync_illegal_syncpt_access_frm_pb_syncpt_v(u32 r)
 {
@@ -106,37 +112,30 @@ static inline u32 host1x_sync_illegal_syncpt_access_frm_pb_ch_v(u32 r)
 {
 	return (r >> 10) & 0x3f;
 }
-static inline u32 host1x_sync_cmdproc_stat_r(void)
-{
-	return 0x38;
-}
 static inline u32 host1x_sync_cmdproc_stop_r(void)
 {
-	return 0x48;
+	/* arhost: HOST1X_THOST_CHANNEL_CH0_CMDPROC_STOP_0 */
+	return 0x0048;
 }
 static inline u32 host1x_sync_ch_teardown_r(void)
 {
+	/* Offset from channel */
 	return 0x4c;
-}
-static inline u32 host1x_sync_usec_clk_r(void)
-{
-	return 0x2244;
 }
 static inline u32 host1x_sync_ctxsw_timeout_cfg_r(void)
 {
+	/* arhost: hyp: HOST1X_THOST_COMMON_CTXSW_TIMEOUT_CFG_0 */
 	return 0x42e0;
-}
-static inline u32 host1x_sync_ip_busy_timeout_r(void)
-{
-	return 0x2250;
 }
 static inline u32 host1x_sync_ip_read_timeout_addr_r(void)
 {
-	return 0x2254;
+	/* arhost: hyp: HOST1X_THOST_COMMON_AXIREAD_TIMEOUT_ADDR_0 */
+	return 0x4254;
 }
 static inline u32 host1x_sync_ip_write_timeout_addr_r(void)
 {
-	return 0x225c;
+	/* arhost: hyp: HOST1X_THOST_COMMON_AXIWRITE_TIMEOUT_ADDR_0 */
+	return 0x425c;
 }
 static inline u32 host1x_sync_mlock_0_r(void)
 {
@@ -160,7 +159,8 @@ static inline u32 host1x_sync_mlock_owner_0_mlock_ch_owns_0_v(u32 r)
 }
 static inline u32 host1x_sync_cfpeek_ctrl_r(void)
 {
-	return 0x233c;
+	/* arhost: hyp: HOST1X_THOST_COMMON_CMDFIFO_PEEK_CTRL_0 */
+	return 0x1604;
 }
 static inline u32 host1x_sync_cfpeek_ctrl_cfpeek_addr_f(u32 v)
 {
@@ -184,11 +184,13 @@ static inline u32 host1x_sync_cfpeek_ctrl_cfpeek_ena_f(u32 v)
 }
 static inline u32 host1x_sync_cfpeek_read_r(void)
 {
-	return 0x2340;
+	/* arhost: hyp: HOST1X_THOST_COMMON_CMDFIFO_PEEK_READ_0 */
+	return 0x1608;
 }
 static inline u32 host1x_sync_cfpeek_ptrs_r(void)
 {
-	return 0x2344;
+	/* arhost: hyp: HOST1X_THOST_COMMON_CMDFIFO_PEEK_PTRS_0 */
+	return 0x160c;
 }
 static inline u32 host1x_sync_cfpeek_ptrs_cf_rd_ptr_v(u32 r)
 {
@@ -200,7 +202,8 @@ static inline u32 host1x_sync_cfpeek_ptrs_cf_wr_ptr_v(u32 r)
 }
 static inline u32 host1x_sync_cf0_setup_r(void)
 {
-	return 0x2588;
+	/* arhost: hyp: HOST1X_THOST_COMMON_CH0_CMDFIFO_SETUP_0 */
+	return 0x4588;
 }
 static inline u32 host1x_sync_cf0_setup_cf0_base_v(u32 r)
 {
@@ -224,14 +227,17 @@ static inline u32 host1x_sync_cbclass_r(void)
 }
 static inline u32 host1x_sync_syncpt_thresh_cpu0_int_status_r(void)
 {
+	/* arhost: HOST1X_THOST_COMMON_VM1_SYNCPT_THRESH_INTRSTATUS_VM_0  */
 	return 0x6484;
 }
 static inline u32 host1x_sync_syncpt_thresh_int_disable_r(void)
 {
+	/* arhost: HOST1X_THOST_COMMON_VM1_SYNCPT_THRESH_INTRDISABLE_VM_0 */
 	return 0x6610;
 }
 static inline u32 host1x_sync_syncpt_thresh_int_enable_cpu0_r(void)
 {
+	/* arhost: HOST1X_THOST_COMMON_VM1_SYNCPT_THRESH_INTRENABLE_VM_0 */
 	return 0x658c;
 }
 static inline u32 host1x_sync_syncpt_intgmask_r(void)
@@ -240,19 +246,23 @@ static inline u32 host1x_sync_syncpt_intgmask_r(void)
 }
 static inline u32 host1x_sync_syncpt_cpu_incr_r(void)
 {
+	/* arhost: HOST1X_THOST_COMMON_VM1_SYNCPT_CPU_INCR_0 */
 	return 0x6400;
 }
 static inline u32 host1x_sync_syncpt_0_r(void)
 {
+	/* arhost: HOST1X_THOST_SYNCPT_SYNCPT_0 */
 	return 0x8080;
 }
 static inline u32 host1x_sync_syncpt_int_thresh_0_r(void)
 {
+	/* arhost: HOST1X_THOST_SYNCPT_SYNCPT_INTR_THRESH_VM_0  */
 	return 0xa088;
 }
 static inline u32 host1x_sync_syncpt_prot_en_0_r(void)
 {
-	return 0x1ac4;
+	/* arhost: hyp: HOST1X_THOST_COMMON_SYNCPT_PROT_EN_0 */
+	return 0x173c;
 }
 static inline u32 host1x_sync_syncpt_prot_en_0_app_en_f(u32 v)
 {
@@ -268,7 +278,8 @@ static inline u32 host1x_sync_syncpt_prot_en_0_vm_en_f(u32 v)
 }
 static inline u32 host1x_sync_syncpt_ch_app_0_r(void)
 {
-	return 0xa604;
+	/* arhost: HOST1X_THOST_SYNCPT_SYNCPT_CH_APP_0 */
+	return 0xb090;
 }
 static inline u32 host1x_sync_syncpt_ch_app_0_syncpt_ch_f(u32 v)
 {
@@ -280,11 +291,13 @@ static inline u32 host1x_sync_syncpt_ch_app_0_syncpt_app_f(u32 v)
 }
 static inline u32 host1x_sync_syncpt_vm_0_r(void)
 {
-	return 0x844;
+	/* arhost: hyp: HOST1X_THOST_COMMON_SYNCPT_VM_0 */
+	return 0x0;
 }
 static inline u32 host1x_sync_common_mlock_r(void)
 {
-	return 0x2030;
+	/* arhost: hyp: HOST1X_THOST_COMMON_THOST_MLOCK_0 */
+	return 0x4030;
 }
 static inline u32 host1x_sync_common_mlock_vm_f(u32 v)
 {
@@ -312,11 +325,12 @@ static inline u32 host1x_sync_common_mlock_locked_v(u32 r)
 }
 static inline u32 host1x_sync_common_icg_en_override_0_r(void)
 {
-	return 0x4ba8;
+	return 0x4808;
 }
 static inline u32 host1x_sync_syncpt_ram_init_0_r(void)
 {
-	return 0x2b54;
+	/* arhost: HOST1X_THOST_COMMON_SYNCPT_RAM_INIT_0 */
+	return 0x4b54;
 }
 static inline u32 host1x_sync_syncpt_ram_init_0_ram_init_v(u32 r)
 {
@@ -325,17 +339,5 @@ static inline u32 host1x_sync_syncpt_ram_init_0_ram_init_v(u32 r)
 static inline u32 host1x_sync_syncpt_ram_init_0_ram_init_done_v(u32 r)
 {
 	return (r >> 1) & 0x1;
-}
-static inline u32 host1x_sync_scr_prot_common_mod_clamp_en_set_0_r(void)
-{
-	return 0xc008;
-}
-static inline u32 host1x_sync_scr_prot_common_mod_clamp_en_clr_0_r(void)
-{
-	return 0xc00c;
-}
-static inline u32 host1x_sync_scr_prot_common_cv_cluster_clamp_0_r(void)
-{
-	return 0xc000;
 }
 #endif
