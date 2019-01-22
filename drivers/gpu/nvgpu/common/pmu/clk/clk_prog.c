@@ -1410,8 +1410,9 @@ static int vfflatten_prog_1x_master(struct gk20a *g,
 			freq_step_size_mhz =
 				p1xmaster->super.source_data.pll.freq_step_size_mhz;
 			step_count = (freq_step_size_mhz == 0U) ? 0U :
-				(p1xmaster->super.freq_max_mhz - *pfreqmaxlastmhz - 1U) /
-							freq_step_size_mhz;
+					(u8)(p1xmaster->super.freq_max_mhz -
+						*pfreqmaxlastmhz - 1U) /
+					freq_step_size_mhz;
 			/* Intentional fall-through.*/
 
 		case CTRL_CLK_PROG_1X_SOURCE_ONE_SOURCE:
