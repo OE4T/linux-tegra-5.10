@@ -92,7 +92,7 @@ void nvgpu_clk_arb_set_global_alarm(struct gk20a *g, u32 alarm)
 	u64 new_mask;
 
 	do {
-		current_mask = nvgpu_atomic64_read(&arb->alarm_mask);
+		current_mask = (u64)nvgpu_atomic64_read(&arb->alarm_mask);
 		/* atomic operations are strong so they do not need masks */
 
 		refcnt = ((u32) (current_mask >> 32)) + 1;
@@ -101,7 +101,7 @@ void nvgpu_clk_arb_set_global_alarm(struct gk20a *g, u32 alarm)
 
 	} while (unlikely(current_mask !=
 			(u64)nvgpu_atomic64_cmpxchg(&arb->alarm_mask,
-						current_mask, new_mask)));
+				(long int)current_mask, (long int)new_mask)));
 
 	nvgpu_clk_arb_queue_notification(g, &arb->notification_queue, alarm);
 }
@@ -261,14 +261,14 @@ u32 nvgpu_clk_arb_notify(struct nvgpu_clk_dev *dev,
 	size_t size;
 	int index;
 
-	enabled_mask = nvgpu_atomic_read(&dev->enabled_mask);
+	enabled_mask = (u32)nvgpu_atomic_read(&dev->enabled_mask);
 	size = arb->notification_queue.size;
 
 	/* queue global arbiter notifications in buffer */
 	do {
-		tail = nvgpu_atomic_read(&arb->notification_queue.tail);
+		tail = (u32)nvgpu_atomic_read(&arb->notification_queue.tail);
 		/* copy items to the queue */
-		queue_index = nvgpu_atomic_read(&dev->queue.tail);
+		queue_index = (u32)nvgpu_atomic_read(&dev->queue.tail);
 		head = dev->arb_queue_head;
 		head = (tail - head) < arb->notification_queue.size ?
 			head : tail - arb->notification_queue.size;
@@ -298,7 +298,7 @@ u32 nvgpu_clk_arb_notify(struct nvgpu_clk_dev *dev,
 	} while (unlikely(nvgpu_atomic_read(&arb->notification_queue.tail) !=
 			(int)tail));
 
-	nvgpu_atomic_set(&dev->queue.tail, queue_index);
+	nvgpu_atomic_set(&dev->queue.tail, (int)queue_index);
 	/* update the last notification we processed from global queue */
 
 	dev->arb_queue_head = tail;
@@ -336,7 +336,7 @@ u32 nvgpu_clk_arb_notify(struct nvgpu_clk_dev *dev,
 	}
 
 	if (poll_mask) {
-		nvgpu_atomic_set(&dev->poll_mask, poll_mask);
+		nvgpu_atomic_set(&dev->poll_mask, (int)poll_mask);
 		nvgpu_clk_arb_event_post_event(dev);
 	}
 
@@ -353,7 +353,7 @@ void nvgpu_clk_arb_clear_global_alarm(struct gk20a *g, u32 alarm)
 	u64 new_mask;
 
 	do {
-		current_mask = nvgpu_atomic64_read(&arb->alarm_mask);
+		current_mask = (u64)nvgpu_atomic64_read(&arb->alarm_mask);
 		/* atomic operations are strong so they do not need masks */
 
 		refcnt = ((u32) (current_mask >> 32)) + 1;
@@ -362,7 +362,7 @@ void nvgpu_clk_arb_clear_global_alarm(struct gk20a *g, u32 alarm)
 
 	} while (unlikely(current_mask !=
 			(u64)nvgpu_atomic64_cmpxchg(&arb->alarm_mask,
-					current_mask, new_mask)));
+				(long int)current_mask, (long int)new_mask)));
 }
 
 /*
