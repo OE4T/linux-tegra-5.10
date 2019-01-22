@@ -304,7 +304,7 @@ int clk_domain_sw_setup(struct gk20a *g)
 					(struct clk_domain_3x_master *)
 					(CLK_CLK_DOMAIN_GET((g->clk_pmu),
 					pdomain_slave->master_idx));
-			pdomain_master->slave_idxs_mask |= BIT(i);
+			pdomain_master->slave_idxs_mask |= BIT32(i);
 		}
 
 		if (pdomain->super.implements(g, &pdomain->super,
@@ -315,7 +315,7 @@ int clk_domain_sw_setup(struct gk20a *g)
 					(struct clk_domain_35_master *)
 					(CLK_CLK_DOMAIN_GET((g->clk_pmu),
 					pdomain_slave_35->slave.master_idx));
-			pdomain_master_35->master.slave_idxs_mask |= BIT(i);
+			pdomain_master_35->master.slave_idxs_mask |= BIT32(i);
 			pdomain_slave_35->super.clk_pos = boardobjgrpmask_bitsetcount(
 					&pdomain_master_35->master_slave_domains_grp_mask.super);
 			status = boardobjgrpmask_bitset(
@@ -641,8 +641,8 @@ static int devinit_get_clocks_table_1x(struct gk20a *g,
 		clk_domain_data.clk_domain.domain =
 				(u8) vbiosclktbl1xhalentry[index].domain;
 		clk_domain_data.clk_domain.api_domain =
-				clktranslatehalmumsettoapinumset(
-					BIT(clk_domain_data.clk_domain.domain));
+			clktranslatehalmumsettoapinumset(
+				BIT32(clk_domain_data.clk_domain.domain));
 		clk_domain_data.v3x.b_noise_aware_capable =
 			vbiosclktbl1xhalentry[index].b_noise_aware_capable;
 
@@ -915,7 +915,7 @@ static int clk_domain_construct_3x(struct gk20a *g,
 			(struct clk_domain_3x *)pargs;
 	int status = 0;
 
-	ptmpobj->type_mask = BIT(CTRL_CLK_CLK_DOMAIN_TYPE_3X);
+	ptmpobj->type_mask = BIT32(CTRL_CLK_CLK_DOMAIN_TYPE_3X);
 	status = clk_domain_construct_super(g, ppboardobj,
 					size, pargs);
 	if (status != 0) {
@@ -1249,7 +1249,7 @@ static int clk_domain_construct_35_prog(struct gk20a *g,
 			(struct clk_domain_35_prog *)pargs;
 	int status = 0;
 
-	ptmpobj->type_mask |= BIT(CTRL_CLK_CLK_DOMAIN_TYPE_35_PROG);
+	ptmpobj->type_mask |= BIT32(CTRL_CLK_CLK_DOMAIN_TYPE_35_PROG);
 	status = clk_domain_construct_3x(g, ppboardobj, size, pargs);
 	if (status != 0)
 	{
@@ -1259,7 +1259,7 @@ static int clk_domain_construct_35_prog(struct gk20a *g,
 	pdomain = (struct clk_domain_35_prog *)(void*) *ppboardobj;
 
 	pdomain->super.super.super.super.type_mask |=
-		BIT(CTRL_CLK_CLK_DOMAIN_TYPE_35_PROG);
+		BIT32(CTRL_CLK_CLK_DOMAIN_TYPE_35_PROG);
 
 	pdomain->super.super.super.super.pmudatainit =
 				clk_domain_pmudatainit_35_prog;
@@ -1302,7 +1302,7 @@ static int clk_domain_construct_3x_prog(struct gk20a *g,
 			(struct clk_domain_3x_prog *)pargs;
 	int status = 0;
 
-	ptmpobj->type_mask |= BIT(CTRL_CLK_CLK_DOMAIN_TYPE_3X_PROG);
+	ptmpobj->type_mask |= BIT32(CTRL_CLK_CLK_DOMAIN_TYPE_3X_PROG);
 	status = clk_domain_construct_3x(g, ppboardobj, size, pargs);
 	if (status != 0) {
 		return -EINVAL;
@@ -1401,7 +1401,7 @@ static int clk_domain_construct_35_slave(struct gk20a *g,
 		return -EINVAL;
 	}
 
-	ptmpobj->type_mask |= BIT(CTRL_CLK_CLK_DOMAIN_TYPE_35_SLAVE);
+	ptmpobj->type_mask |= BIT32(CTRL_CLK_CLK_DOMAIN_TYPE_35_SLAVE);
 	status = clk_domain_construct_35_prog(g, ppboardobj, size, pargs);
 	if (status != 0) {
 		return -EINVAL;
@@ -1434,7 +1434,7 @@ static int clk_domain_construct_3x_slave(struct gk20a *g,
 		return -EINVAL;
 	}
 
-	ptmpobj->type_mask |= BIT(CTRL_CLK_CLK_DOMAIN_TYPE_3X_SLAVE);
+	ptmpobj->type_mask |= BIT32(CTRL_CLK_CLK_DOMAIN_TYPE_3X_SLAVE);
 	status = clk_domain_construct_3x_prog(g, ppboardobj, size, pargs);
 	if (status != 0) {
 		return -EINVAL;
@@ -1565,7 +1565,7 @@ static int clk_domain_construct_35_master(struct gk20a *g,
 		return -EINVAL;
 	}
 
-	ptmpobj->type_mask |= BIT(CTRL_CLK_CLK_DOMAIN_TYPE_35_MASTER);
+	ptmpobj->type_mask |= BIT32(CTRL_CLK_CLK_DOMAIN_TYPE_35_MASTER);
 	status = clk_domain_construct_35_prog(g, ppboardobj, size, pargs);
 	if (status != 0) {
 		return -EINVAL;
@@ -1598,7 +1598,7 @@ static int clk_domain_construct_3x_master(struct gk20a *g,
 		return -EINVAL;
 	}
 
-	ptmpobj->type_mask |= BIT(CTRL_CLK_CLK_DOMAIN_TYPE_3X_MASTER);
+	ptmpobj->type_mask |= BIT32(CTRL_CLK_CLK_DOMAIN_TYPE_3X_MASTER);
 	status = clk_domain_construct_3x_prog(g, ppboardobj, size, pargs);
 	if (status != 0) {
 		return -EINVAL;
@@ -1663,7 +1663,7 @@ static int clk_domain_construct_3x_fixed(struct gk20a *g,
 		return -EINVAL;
 	}
 
-	ptmpobj->type_mask |= BIT(CTRL_CLK_CLK_DOMAIN_TYPE_3X_FIXED);
+	ptmpobj->type_mask |= BIT32(CTRL_CLK_CLK_DOMAIN_TYPE_3X_FIXED);
 	status = clk_domain_construct_3x(g, ppboardobj, size, pargs);
 	if (status != 0) {
 		return -EINVAL;
