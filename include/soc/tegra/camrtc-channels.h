@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2015-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * NVIDIA CORPORATION and its licensors retain all intellectual property
  * and proprietary rights in and to this software, related documentation
@@ -57,7 +57,6 @@ enum {
 	RTCPU_CH_ERR_INVALID_PARAM = U32_C(132),
 };
 
-#ifdef _BullseyeCoverage
 struct camrtc_coverage_memory_header {
 	uint64_t signature;
 	uint64_t length;
@@ -65,7 +64,6 @@ struct camrtc_coverage_memory_header {
 	uint32_t coverage_buffer_size;
 	uint32_t coverage_total_bytes;
 	uint32_t reserved; /* alignment */
-} __packed;
-#endif /* _BullseyeCoverage */
+};
 
 #endif /* INCLUDE_CAMRTC_CHANNELS_H */
