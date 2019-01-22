@@ -945,13 +945,13 @@ done:
 
 static int clk_prog_construct_super(struct gk20a *g,
 				    struct boardobj **ppboardobj,
-				    u16 size, void *pargs)
+				    size_t size, void *pargs)
 {
 	struct clk_prog *pclkprog;
 	int status = 0;
 
 	status = boardobj_construct_super(g, ppboardobj,
-		size, pargs);
+		(u16)size, pargs);
 	if (status != 0) {
 		return -EINVAL;
 	}
@@ -966,7 +966,7 @@ static int clk_prog_construct_super(struct gk20a *g,
 
 static int clk_prog_construct_1x(struct gk20a *g,
 				 struct boardobj **ppboardobj,
-				 u16 size, void *pargs)
+				 size_t size, void *pargs)
 {
 	struct boardobj *ptmpobj = (struct boardobj *)pargs;
 	struct clk_prog_1x *pclkprog;
@@ -995,7 +995,7 @@ static int clk_prog_construct_1x(struct gk20a *g,
 
 static int clk_prog_construct_35(struct gk20a *g,
 				 struct boardobj **ppboardobj,
-				 u16 size, void *pargs)
+				 size_t size, void *pargs)
 {
 	struct boardobj *ptmpobj = (struct boardobj *)pargs;
 	struct clk_prog_1x *pclkprog;
@@ -1024,7 +1024,7 @@ static int clk_prog_construct_35(struct gk20a *g,
 
 static int clk_prog_construct_1x_master(struct gk20a *g,
 					struct boardobj **ppboardobj,
-					u16 size, void *pargs)
+					size_t size, void *pargs)
 {
 	struct boardobj *ptmpobj = (struct boardobj *)pargs;
 	struct clk_prog_1x_master *pclkprog;
@@ -1082,7 +1082,7 @@ static int clk_prog_construct_1x_master(struct gk20a *g,
 
 static int clk_prog_construct_35_master(struct gk20a *g,
 					struct boardobj **ppboardobj,
-					u16 size, void *pargs)
+					size_t size, void *pargs)
 {
 	struct boardobj *ptmpobj = (struct boardobj *)pargs;
 	struct clk_prog_35_master *pclkprog;
@@ -1121,7 +1121,7 @@ static int clk_prog_construct_35_master(struct gk20a *g,
 
 static int clk_prog_construct_1x_master_ratio(struct gk20a *g,
 					      struct boardobj **ppboardobj,
-					      u16 size, void *pargs)
+					      size_t size, void *pargs)
 {
 	struct boardobj *ptmpobj = (struct boardobj *)pargs;
 	struct clk_prog_1x_master_ratio *pclkprog;
@@ -1164,7 +1164,7 @@ static int clk_prog_construct_1x_master_ratio(struct gk20a *g,
 
 static int clk_prog_construct_35_master_ratio(struct gk20a *g,
 					      struct boardobj **ppboardobj,
-					      u16 size, void *pargs)
+					      size_t size, void *pargs)
 {
 	struct boardobj *ptmpobj = (struct boardobj *)pargs;
 	struct clk_prog_35_master_ratio *pclkprog;
@@ -1207,7 +1207,7 @@ static int clk_prog_construct_35_master_ratio(struct gk20a *g,
 
 static int clk_prog_construct_1x_master_table(struct gk20a *g,
 					      struct boardobj **ppboardobj,
-					      u16 size, void *pargs)
+					      size_t size, void *pargs)
 {
 	struct boardobj *ptmpobj = (struct boardobj *)pargs;
 	struct clk_prog_1x_master_table *pclkprog;
@@ -1259,7 +1259,7 @@ exit:
 
 static int clk_prog_construct_35_master_table(struct gk20a *g,
 						struct boardobj **ppboardobj,
-						u16 size, void *pargs)
+						size_t size, void *pargs)
 {
 	struct boardobj *ptmpobj = (struct boardobj *)pargs;
 	struct clk_prog_35_master_table *pclkprog;
