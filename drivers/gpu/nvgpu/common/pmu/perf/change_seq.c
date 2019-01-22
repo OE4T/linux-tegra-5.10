@@ -34,6 +34,10 @@
 
 #include "change_seq.h"
 
+#define SEQ_SCRIPT_CURR  0x0U
+#define SEQ_SCRIPT_LAST  0x1U
+#define SEQ_SCRIPT_QUERY 0x2U
+
 static int perf_change_seq_sw_setup_super(struct gk20a *g,
 		struct change_seq *p_change_seq)
 {
@@ -111,8 +115,10 @@ static void build_change_seq_boot (struct gk20a *g)
 	nvgpu_log_fn(g, " ");
 
 	script_last->super_surface_offset =
-		(u32) offsetof(struct nv_pmu_super_surface,
-				change_seq.script_last);
+		nvgpu_pmu_get_ss_member_set_offset(pmu,
+		NV_PMU_SUPER_SURFACE_MEMBER_CHANGE_SEQ_GRP) +
+		(u32)(sizeof(struct perf_change_seq_pmu_script) *
+		SEQ_SCRIPT_LAST);
 
 	nvgpu_mem_rd_n(g, &pmu->super_surface_buf,
 		script_last->super_surface_offset,
@@ -211,8 +217,10 @@ int nvgpu_perf_change_seq_pmu_setup(struct gk20a *g)
 		perf_change_seq_pmu->b_lock;
 
 	perf_change_seq_pmu->script_last.super_surface_offset =
-		(u32) offsetof(struct nv_pmu_super_surface,
-				change_seq.script_last);
+		nvgpu_pmu_get_ss_member_set_offset(pmu,
+		NV_PMU_SUPER_SURFACE_MEMBER_CHANGE_SEQ_GRP) +
+		(u32)(sizeof(struct perf_change_seq_pmu_script) *
+		SEQ_SCRIPT_LAST);
 
 	nvgpu_mem_rd_n(g, &pmu->super_surface_buf,
 		perf_change_seq_pmu->script_last.super_surface_offset,
