@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -562,7 +562,7 @@ static int devinit_get_clocks_table_35(struct gk20a *g,
 		if (status != 0) {
 			nvgpu_err(g,
 			"unable to insert clock domain boardobj for %d", index);
-			status = (u32) -EINVAL;
+			status = -EINVAL;
 			goto done;
 		}
 		clocks_tbl_entry_ptr += clocks_table_header.entry_size;
@@ -741,7 +741,7 @@ static int devinit_get_clocks_table_1x(struct gk20a *g,
 		{
 			nvgpu_err(g,
 				  "error reading clock domain entry %d", index);
-			status = (u32) -EINVAL;
+			status = -EINVAL;
 			done = true;
 			break;
 		}
@@ -764,7 +764,7 @@ static int devinit_get_clocks_table_1x(struct gk20a *g,
 			nvgpu_err(g,
 				  "unable to construct clock domain boardobj for %d",
 				  index);
-			status = (u32) -EINVAL;
+			status = -EINVAL;
 			goto done;
 		}
 		status = boardobjgrp_objinsert(&pclkdomainobjs->super.super,
@@ -772,7 +772,7 @@ static int devinit_get_clocks_table_1x(struct gk20a *g,
 		if (status != 0) {
 			nvgpu_err(g,
 			"unable to insert clock domain boardobj for %d", index);
-			status = (u32) -EINVAL;
+			status = -EINVAL;
 			goto done;
 		}
 		clocks_tbl_entry_ptr += clocks_table_header.entry_size;
@@ -1253,7 +1253,7 @@ static int clk_domain_construct_35_prog(struct gk20a *g,
 	status = clk_domain_construct_3x(g, ppboardobj, size, pargs);
 	if (status != 0)
 	{
-		return (u32) -EINVAL;
+		return -EINVAL;
 	}
 
 	pdomain = (struct clk_domain_35_prog *)(void*) *ppboardobj;
@@ -1398,13 +1398,13 @@ static int clk_domain_construct_35_slave(struct gk20a *g,
 	int status = 0;
 
 	if (BOARDOBJ_GET_TYPE(pargs) != (u8) CTRL_CLK_CLK_DOMAIN_TYPE_35_SLAVE) {
-		return (u32) -EINVAL;
+		return -EINVAL;
 	}
 
 	ptmpobj->type_mask |= BIT(CTRL_CLK_CLK_DOMAIN_TYPE_35_SLAVE);
 	status = clk_domain_construct_35_prog(g, ppboardobj, size, pargs);
 	if (status != 0) {
-		return (u32) -EINVAL;
+		return -EINVAL;
 	}
 
 	pdomain = (struct clk_domain_35_slave *)(void*)*ppboardobj;
@@ -1568,7 +1568,7 @@ static int clk_domain_construct_35_master(struct gk20a *g,
 	ptmpobj->type_mask |= BIT(CTRL_CLK_CLK_DOMAIN_TYPE_35_MASTER);
 	status = clk_domain_construct_35_prog(g, ppboardobj, size, pargs);
 	if (status != 0) {
-		return (u32) -EINVAL;
+		return -EINVAL;
 	}
 
 	pdomain = (struct clk_domain_35_master *)(void*) *ppboardobj;
