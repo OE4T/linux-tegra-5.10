@@ -3,7 +3,7 @@
  *
  * Tegra Graphics Host Driver Entrypoint
  *
- * Copyright (c) 2010-2018, NVIDIA Corporation. All rights reserved.
+ * Copyright (c) 2010-2019, NVIDIA Corporation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -684,6 +684,9 @@ static int power_on_host(struct platform_device *dev)
 
 	if (host_device_op().load_gating_regs)
 		host_device_op().load_gating_regs(dev, pdata->engine_can_cg);
+
+	if (host_device_op().load_map_regs)
+		host_device_op().load_map_regs(dev);
 
 	nvhost_syncpt_reset(&host->syncpt);
 	nvhost_syncpt_initialize_unused(&host->syncpt);

@@ -63,6 +63,7 @@
 
 #include "streamid_regs.c"
 #include "cg_regs.c"
+#include "classid_vm_regs.c"
 
 static dma_addr_t nvhost_t23x_get_reloc_phys_addr(dma_addr_t phys_addr,
 						  u32 reloc_type)
@@ -646,10 +647,9 @@ static void t23x_remove_support(struct nvhost_chip_support *op)
 
 #define SYNCPT_RAM_INIT_TIMEOUT_MS	1000
 
-static void t23x_init_regs(struct platform_device *pdev, bool prod)
+static void t23x_init_gating_regs(struct platform_device *pdev, bool prod)
 {
 	struct nvhost_gating_register *cg_regs = t23x_host1x_gating_registers;
-	struct nvhost_streamid_mapping *map_regs = t23x_host1x_streamid_mapping;
 	ktime_t now, start = ktime_get();
 	u32 ram_init;
 
@@ -680,7 +680,21 @@ static void t23x_init_regs(struct platform_device *pdev, bool prod)
 		}
 	}
 
-	/* Write the map registers */
+	while (cg_regs->addr) {
+		u32 val = prod ? cg_regs->prod : cg_regs->disable;
+
+		host1x_hypervisor_writel(pdev, cg_regs->addr, val);
+		cg_regs++;
+	}
+
+}
+
+static void t23x_init_map_regs(struct platform_device *pdev)
+{
+	struct nvhost_streamid_mapping *map_regs = t23x_host1x_streamid_mapping;
+	u32 i;
+
+	/* Write the client streamid map registers */
 	while (map_regs->host1x_offset) {
 		host1x_hypervisor_writel(pdev,
 					 map_regs->host1x_offset,
@@ -691,11 +705,16 @@ static void t23x_init_regs(struct platform_device *pdev, bool prod)
 		map_regs++;
 	}
 
-	while (cg_regs->addr) {
-		u32 val = prod ? cg_regs->prod : cg_regs->disable;
+	/* Allow all VMs to access all streamid */
+	for (i = 0; i < strmid_vm_regs_nb; i++) {
+		host1x_hypervisor_writel(pdev, host1x_strmid_vm_r + (i * 4),
+					0xff);
+	}
 
-		host1x_hypervisor_writel(pdev, cg_regs->addr, val);
-		cg_regs++;
+	/* Update common_thost_classid registers */
+	for (i = 0; i < ARRAY_SIZE(host1x_classid_vm_r); i++) {
+		host1x_hypervisor_writel(pdev, host1x_classid_vm_r[i],
+					0xff);
 	}
 }
 
@@ -733,7 +752,8 @@ int nvhost_init_t23x_support(struct nvhost_master *host,
 #if defined(CONFIG_TEGRA_GRHOST_SCALE)
 	op->actmon = host1x_actmon_ops;
 #endif
-	op->nvhost_dev.load_gating_regs = t23x_init_regs;
+	op->nvhost_dev.load_gating_regs = t23x_init_gating_regs;
+	op->nvhost_dev.load_map_regs = t23x_init_map_regs;
 
 	op->syncpt.alloc = nvhost_syncpt_alloc_gos_backing;
 	op->syncpt.release = nvhost_syncpt_release_gos_backing;

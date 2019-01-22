@@ -3,7 +3,7 @@
  *
  * Tegra Graphics Host Chip Support
  *
- * Copyright (c) 2011-2018, NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2011-2019, NVIDIA Corporation.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -139,6 +139,7 @@ struct nvhost_dev_ops {
 	void (*free_nvhost_channel)(struct nvhost_channel *ch);
 	void (*set_nvhost_chanops)(struct nvhost_channel *ch);
 	void (*load_gating_regs)(struct platform_device *pdev, bool enable);
+	void (*load_map_regs)(struct platform_device *pdev);
 	void (*module_reset_clamp)(struct platform_device *pdev, bool enable);
 };
 
