@@ -48,7 +48,7 @@ struct nvgpu_clk_notification_queue;
 struct nvgpu_clk_session;
 
 #define VF_POINT_INVALID_PSTATE ~0U
-#define VF_POINT_SET_PSTATE_SUPPORTED(a, b) ((a)->pstates |= (1UL << (b)))
+#define VF_POINT_SET_PSTATE_SUPPORTED(a, b) ((a)->pstates |= (BIT16(b)))
 #define VF_POINT_GET_PSTATE(a)	(((a)->pstates) ?\
 	__fls((a)->pstates) :\
 	VF_POINT_INVALID_PSTATE)
@@ -85,7 +85,7 @@ struct nvgpu_clk_session;
 #define NVGPU_EVENT_LAST	NVGPU_EVENT_ALARM_GPU_LOST
 
 /* Local Alarms */
-#define EVENT(alarm)	(0x1UL << NVGPU_EVENT_##alarm)
+#define EVENT(alarm)	(BIT32(NVGPU_EVENT_##alarm))
 
 #define LOCAL_ALARM_MASK (EVENT(ALARM_LOCAL_TARGET_VF_NOT_POSSIBLE) | \
 				EVENT(VF_UPDATE))

@@ -256,10 +256,9 @@ u32 nvgpu_clk_arb_notify(struct nvgpu_clk_dev *dev,
 	u32 enabled_mask = 0;
 	u32 new_alarms_reported = 0;
 	u32 poll_mask = 0;
-	u32 tail, head;
+	u32 tail, head, index;
 	u32 queue_index;
 	size_t size;
-	int index;
 
 	enabled_mask = (u32)nvgpu_atomic_read(&dev->enabled_mask);
 	size = arb->notification_queue.size;
@@ -277,7 +276,7 @@ u32 nvgpu_clk_arb_notify(struct nvgpu_clk_dev *dev,
 			u32 alarm_detected;
 
 			notification = &arb->notification_queue.
-						notifications[(index+1) % size];
+					notifications[(index+1U) % size];
 			alarm_detected =
 				NV_ACCESS_ONCE(notification->notification);
 
@@ -526,7 +525,7 @@ void nvgpu_clk_arb_worker_enqueue(struct gk20a *g,
 	/*
 	 * Warn if worker thread cannot run
 	 */
-	if (WARN_ON(__nvgpu_clk_arb_worker_start(g))) {
+	if (WARN_ON(__nvgpu_clk_arb_worker_start(g) != 0)) {
 		nvgpu_warn(g, "clk arb worker cannot run!");
 		return;
 	}
@@ -595,7 +594,7 @@ bool nvgpu_clk_arb_has_active_req(struct gk20a *g)
 void nvgpu_clk_arb_send_thermal_alarm(struct gk20a *g)
 {
 	nvgpu_clk_arb_schedule_alarm(g,
-		(0x1UL << NVGPU_EVENT_ALARM_THERMAL_ABOVE_THRESHOLD));
+		BIT32(NVGPU_EVENT_ALARM_THERMAL_ABOVE_THRESHOLD));
 }
 
 void nvgpu_clk_arb_schedule_alarm(struct gk20a *g, u32 alarm)
@@ -887,22 +886,27 @@ unsigned long nvgpu_clk_measure_freq(struct gk20a *g, u32 api_domain)
 int nvgpu_clk_arb_get_arbiter_effective_mhz(struct gk20a *g,
 		u32 api_domain, u16 *freq_mhz)
 {
+	u64 freq_mhz_u64;
 	if (!nvgpu_clk_arb_is_valid_domain(g, api_domain)) {
 		return -EINVAL;
 	}
 
 	switch (api_domain) {
 	case NVGPU_CLK_DOMAIN_MCLK:
-		*freq_mhz = g->ops.clk.measure_freq(g, CTRL_CLK_DOMAIN_MCLK) /
-			1000000ULL;
-		return 0;
+		freq_mhz_u64 = g->ops.clk.measure_freq(g,
+					CTRL_CLK_DOMAIN_MCLK) /	1000000ULL;
+		break;
 
 	case NVGPU_CLK_DOMAIN_GPCCLK:
-		*freq_mhz = g->ops.clk.measure_freq(g, CTRL_CLK_DOMAIN_GPCCLK) /
-			1000000ULL;
-		return 0;
+		freq_mhz_u64 = g->ops.clk.measure_freq(g,
+					CTRL_CLK_DOMAIN_GPCCLK) / 1000000ULL;
+		break;
 
 	default:
 		return -EINVAL;
 	}
+
+	nvgpu_assert(freq_mhz_u64 <= (u64)U16_MAX);
+	*freq_mhz = (u16)freq_mhz_u64;
+	return 0;
 }
