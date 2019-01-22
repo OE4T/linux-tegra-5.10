@@ -142,6 +142,7 @@ srcs += common/sim.c \
 	common/pmu/pmu_fw.c \
 	common/pmu/pmu_pg.c \
 	common/pmu/pmu_perfmon.c \
+	common/pmu/pmu_super_surface.c \
 	common/pmu/pmu_debug.c \
 	common/pmu/pmu_gk20a.c \
 	common/pmu/pmu_gm20b.c \

@@ -549,10 +549,13 @@ int nvgpu_pmu_process_init_msg(struct nvgpu_pmu *pmu,
 			start, size, PMU_DMEM_ALLOC_ALIGNMENT, 0);
 	}
 
+	if (g->ops.pmu.create_ssmd_lookup_table != NULL) {
+		g->ops.pmu.create_ssmd_lookup_table(pmu);
+	}
+
 	pmu->pmu_ready = true;
 
 	nvgpu_pmu_state_change(g, PMU_STATE_INIT_RECEIVED, true);
-
 exit:
 	nvgpu_pmu_dbg(g, "init received end, err %x", err);
 	return err;
@@ -752,29 +755,6 @@ int nvgpu_pmu_sysmem_surface_alloc(struct gk20a *g, struct nvgpu_mem *mem,
 	}
 
 	return 0;
-}
-
-int nvgpu_pmu_super_surface_alloc(struct gk20a *g,
-	struct nvgpu_mem *mem_surface, u32 size)
-{
-	struct vm_gk20a *vm = g->mm.pmu.vm;
-	int err = 0;
-
-	nvgpu_log_fn(g, " ");
-
-	err = nvgpu_dma_alloc_map(vm, size, mem_surface);
-	if (err != 0) {
-		nvgpu_err(g, "failed to allocate pmu suffer surface\n");
-		err = -ENOMEM;
-	}
-
-	return err;
-}
-
-void nvgpu_pmu_surface_free(struct gk20a *g, struct nvgpu_mem *mem)
-{
-	nvgpu_dma_free(g, mem);
-	(void) memset(mem, 0, sizeof(struct nvgpu_mem));
 }
 
 struct gk20a *gk20a_from_pmu(struct nvgpu_pmu *pmu)

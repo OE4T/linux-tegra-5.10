@@ -1,0 +1,128 @@
+/*
+ * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
+ * THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+ * DEALINGS IN THE SOFTWARE.
+ */
+
+#include <nvgpu/pmu.h>
+#include <nvgpu/dma.h>
+#include <nvgpu/gk20a.h>
+#include <nvgpu/pmuif/gpmu_super_surf_if.h>
+
+int nvgpu_pmu_super_surface_alloc(struct gk20a *g,
+	struct nvgpu_mem *mem_surface, u32 size)
+{
+	struct vm_gk20a *vm = g->mm.pmu.vm;
+	int err = 0;
+
+	nvgpu_log_fn(g, " ");
+
+	err = nvgpu_dma_alloc_map(vm, size, mem_surface);
+	if (err != 0) {
+		nvgpu_err(g, "failed to allocate pmu suffer surface\n");
+	}
+
+	return err;
+}
+
+void nvgpu_pmu_surface_free(struct gk20a *g, struct nvgpu_mem *mem)
+{
+	nvgpu_log_fn(g, " ");
+
+	nvgpu_dma_free(g, mem);
+}
+
+/*
+ * Lookup table to hold info about super surface member,
+ * here member ID from nv_pmu_super_surface_member_descriptor
+ * used as a index to store the member info in two different
+ * table, i.e one table is for SET ID TYPE & second table for
+ * GET_STATUS ID_TYPE.
+ */
+void nvgpu_pmu_create_ssmd_lookup_table(struct nvgpu_pmu *pmu)
+{
+	struct gk20a *g = pmu->g;
+	struct nv_pmu_super_surface_member_descriptor ssmd;
+	u32 ssmd_size = (u32)sizeof(
+		struct nv_pmu_super_surface_member_descriptor);
+	u32 idx = 0U;
+
+	nvgpu_log_fn(g, " ");
+
+	for (idx = 0U; idx < NV_PMU_SUPER_SURFACE_MEMBER_DESCRIPTOR_COUNT;
+		idx++) {
+		(void) memset(&ssmd, 0x0, ssmd_size);
+
+		nvgpu_mem_rd_n(g, &pmu->super_surface_buf, idx * ssmd_size,
+			&ssmd, ssmd_size);
+
+		nvgpu_pmu_dbg(g, "ssmd: id-0x%x offset-0x%x size-%x rsvd-0x%x",
+			ssmd.id, ssmd.offset, ssmd.size, ssmd.rsvd);
+
+		/* Check member type from ID member & update respective table*/
+		if ((ssmd.id &
+			NV_RM_PMU_SUPER_SURFACE_MEMBER_ID_TYPE_SET) != 0U) {
+			/*
+			 * clear member type from member ID as we create
+			 * different table for each type & use ID as index
+			 * during member info fetch.
+			 */
+			ssmd.id &= 0xFFFFU;
+			/*use member ID as index for lookup table too*/
+			(void) memcpy(&pmu->ssmd_set[ssmd.id], &ssmd,
+				ssmd_size);
+		} else if ((ssmd.id &
+			NV_RM_PMU_SUPER_SURFACE_MEMBER_ID_TYPE_GET_STATUS) != 0U) {
+			/*
+			 * clear member type from member ID as we create
+			 * different table for each type & use ID as index
+			 * during member info fetch.
+			 */
+			ssmd.id &= 0xFFFFU;
+			/*use member ID as index for lookup table too*/
+			(void) memcpy(&pmu->ssmd_get_status[ssmd.id], &ssmd,
+				ssmd_size);
+		} else {
+			continue;
+		}
+	}
+}
+
+u32 nvgpu_pmu_get_ss_member_set_offset(struct nvgpu_pmu *pmu, u32 member_id)
+{
+	return pmu->ssmd_set[member_id].offset;
+}
+
+u32 nvgpu_pmu_get_ss_member_set_size(struct nvgpu_pmu *pmu, u32 member_id)
+{
+	return pmu->ssmd_set[member_id].size;
+}
+
+u32 nvgpu_pmu_get_ss_member_get_status_offset(struct nvgpu_pmu *pmu,
+	u32 member_id)
+{
+	return pmu->ssmd_get_status[member_id].offset;
+}
+
+u32 nvgpu_pmu_get_ss_member_get_status_size(struct nvgpu_pmu *pmu,
+	u32 member_id)
+{
+	return pmu->ssmd_get_status[member_id].size;
+}
+

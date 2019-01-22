@@ -32,6 +32,7 @@
 #include <nvgpu/nvgpu_common.h>
 #include <nvgpu/flcnif_cmn.h>
 #include <nvgpu/pmuif/nvgpu_gpmu_cmdif.h>
+#include <nvgpu/pmuif/gpmu_super_surf_if.h>
 #include <nvgpu/falcon.h>
 
 #define nvgpu_pmu_dbg(g, fmt, args...) \
@@ -338,7 +339,13 @@ struct nvgpu_pmu {
 	/* TBD: remove this if ZBC seq is fixed */
 	struct nvgpu_mem seq_buf;
 	struct nvgpu_mem trace_buf;
+
+	/* super surface members */
 	struct nvgpu_mem super_surface_buf;
+	struct nv_pmu_super_surface_member_descriptor
+		ssmd_set[NV_PMU_SUPER_SURFACE_MEMBER_DESCRIPTOR_COUNT];
+	struct nv_pmu_super_surface_member_descriptor
+		ssmd_get_status[NV_PMU_SUPER_SURFACE_MEMBER_DESCRIPTOR_COUNT];
 
 	bool buf_loaded;
 
@@ -537,6 +544,7 @@ int nvgpu_pmu_rpc_execute(struct nvgpu_pmu *pmu, struct nv_pmu_rpc_header *rpc,
 	u16 size_rpc, u16 size_scratch, pmu_callback caller_cb,
 	void *caller_cb_param, bool is_copy_back);
 
+
 /* PMU wait*/
 int pmu_wait_message_cond_status(struct nvgpu_pmu *pmu, u32 timeout_ms,
 				void *var, u8 val);
@@ -545,4 +553,15 @@ void pmu_wait_message_cond(struct nvgpu_pmu *pmu, u32 timeout_ms,
 int nvgpu_pmu_wait_ready(struct gk20a *g);
 
 struct gk20a *gk20a_from_pmu(struct nvgpu_pmu *pmu);
+
+/* super surface */
+void nvgpu_pmu_create_ssmd_lookup_table(struct nvgpu_pmu *pmu);
+u32 nvgpu_pmu_get_ss_member_set_offset(struct nvgpu_pmu *pmu, u32 member_id);
+u32 nvgpu_pmu_get_ss_member_get_status_offset(struct nvgpu_pmu *pmu,
+	u32 member_id);
+u32 nvgpu_pmu_get_ss_member_set_size(struct nvgpu_pmu *pmu, u32 member_id);
+u32 nvgpu_pmu_get_ss_member_get_status_size(struct nvgpu_pmu *pmu,
+	u32 member_id);
+
 #endif /* NVGPU_PMU_H */
+

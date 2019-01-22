@@ -103,6 +103,7 @@ nvgpu-y += common/bus/bus_gk20a.o \
 	common/pmu/pmu_fw.o \
 	common/pmu/pmu_pg.o \
 	common/pmu/pmu_perfmon.o \
+	common/pmu/pmu_super_surface.o \
 	common/pmu/pmu_debug.o \
 	common/pmu/pmu_gk20a.o \
 	common/pmu/pmu_gm20b.o \
