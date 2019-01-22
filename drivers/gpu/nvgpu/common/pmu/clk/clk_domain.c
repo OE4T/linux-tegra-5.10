@@ -846,14 +846,14 @@ static int clkdomaingetfpoints_stub(
 
 static int clk_domain_construct_super(struct gk20a *g,
 				      struct boardobj **ppboardobj,
-				      u16 size, void *pargs)
+				      size_t size, void *pargs)
 {
 	struct clk_domain *pdomain;
 	struct clk_domain *ptmpdomain = (struct clk_domain *)pargs;
 	int status = 0;
 
 	status = boardobj_construct_super(g, ppboardobj,
-		size, pargs);
+		(u16)size, pargs);
 
 	if (status != 0) {
 		return -EINVAL;
@@ -907,7 +907,7 @@ static int _clk_domain_pmudatainit_3x(struct gk20a *g,
 
 static int clk_domain_construct_3x(struct gk20a *g,
 				   struct boardobj **ppboardobj,
-				   u16 size, void *pargs)
+				   size_t size, void *pargs)
 {
 	struct boardobj *ptmpobj = (struct boardobj *)pargs;
 	struct clk_domain_3x *pdomain;
@@ -1241,7 +1241,7 @@ static int _clk_domain_pmudatainit_3x_prog(struct gk20a *g,
 
 static int clk_domain_construct_35_prog(struct gk20a *g,
 					struct boardobj **ppboardobj,
-					u16 size, void *pargs)
+					size_t size, void *pargs)
 {
 	struct boardobj *ptmpobj = (struct boardobj *)pargs;
 	struct clk_domain_35_prog *pdomain;
@@ -1294,7 +1294,7 @@ static int clk_domain_construct_35_prog(struct gk20a *g,
 
 static int clk_domain_construct_3x_prog(struct gk20a *g,
 					struct boardobj **ppboardobj,
-					u16 size, void *pargs)
+					size_t size, void *pargs)
 {
 	struct boardobj *ptmpobj = (struct boardobj *)pargs;
 	struct clk_domain_3x_prog *pdomain;
@@ -1389,7 +1389,7 @@ static int clk_domain_pmudatainit_3x_slave(struct gk20a *g,
 
 static int clk_domain_construct_35_slave(struct gk20a *g,
 					 struct boardobj **ppboardobj,
-					 u16 size, void *pargs)
+					 size_t size, void *pargs)
 {
 	struct boardobj *ptmpobj = (struct boardobj *)pargs;
 	struct clk_domain_35_slave *pdomain;
@@ -1422,7 +1422,7 @@ static int clk_domain_construct_35_slave(struct gk20a *g,
 
 static int clk_domain_construct_3x_slave(struct gk20a *g,
 					 struct boardobj **ppboardobj,
-					 u16 size, void *pargs)
+					 size_t size, void *pargs)
 {
 	struct boardobj *ptmpobj = (struct boardobj *)pargs;
 	struct clk_domain_3x_slave *pdomain;
@@ -1555,7 +1555,7 @@ static int _clk_domain_pmudatainit_3x_master(struct gk20a *g,
 
 static int clk_domain_construct_35_master(struct gk20a *g,
 					  struct boardobj **ppboardobj,
-					  u16 size, void *pargs)
+					  size_t size, void *pargs)
 {
 	struct boardobj *ptmpobj = (struct boardobj *)pargs;
 	struct clk_domain_35_master *pdomain;
@@ -1588,7 +1588,7 @@ static int clk_domain_construct_35_master(struct gk20a *g,
 
 static int clk_domain_construct_3x_master(struct gk20a *g,
 					  struct boardobj **ppboardobj,
-					  u16 size, void *pargs)
+					  size_t size, void *pargs)
 {
 	struct boardobj *ptmpobj = (struct boardobj *)pargs;
 	struct clk_domain_3x_master *pdomain;
@@ -1651,7 +1651,7 @@ static int _clk_domain_pmudatainit_3x_fixed(struct gk20a *g,
 
 static int clk_domain_construct_3x_fixed(struct gk20a *g,
 					 struct boardobj **ppboardobj,
-					 u16 size, void *pargs)
+					 size_t size, void *pargs)
 {
 	struct boardobj *ptmpobj = (struct boardobj *)pargs;
 	struct clk_domain_3x_fixed *pdomain;
