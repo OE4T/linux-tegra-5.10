@@ -114,11 +114,6 @@ static long t194_nvcsi_ioctl(struct file *file, unsigned int cmd,
 		ret = nvcsi_deskew_apply_check(&filepriv->deskew_ctx);
 		return ret;
 	}
-	case NVHOST_NVCSI_IOCTL_PROD_APPLY: {
-		/* no-op */
-		break;
-	}
-
 	}
 
 	return -ENOIOCTLCMD;

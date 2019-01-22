@@ -3,7 +3,7 @@
  *
  * Tegra NVCSI Driver
  *
- * Copyright (c) 2015-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2015-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -56,9 +56,6 @@
 #define PHY_3_CIL_B_IO1		15
 #define NVCSI_PHY_CIL_NUM_LANE	16
 
-#define PHY_DPHY_MODE		0
-#define PHY_CPHY_MODE		1
-
 #define NVCSI_PHY_0_NVCSI_CIL_A_IO0	(0x1 << PHY_0_CIL_A_IO0)
 #define NVCSI_PHY_0_NVCSI_CIL_A_IO1	(0x1 << PHY_0_CIL_A_IO1)
 #define NVCSI_PHY_0_NVCSI_CIL_B_IO0	(0x1 << PHY_0_CIL_B_IO0)
@@ -84,6 +81,5 @@
 
 #define NVHOST_NVCSI_IOCTL_DESKEW_SETUP	_IOW(NVHOST_NVCSI_IOCTL_MAGIC, 1, long)
 #define NVHOST_NVCSI_IOCTL_DESKEW_APPLY	_IOW(NVHOST_NVCSI_IOCTL_MAGIC, 2, long)
-#define NVHOST_NVCSI_IOCTL_PROD_APPLY	_IOW(NVHOST_NVCSI_IOCTL_MAGIC, 3, long)
 
 #endif
