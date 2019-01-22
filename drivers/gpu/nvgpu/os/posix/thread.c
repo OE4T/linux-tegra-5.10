@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -84,6 +84,16 @@ int nvgpu_thread_create(struct nvgpu_thread *thread,
 void nvgpu_thread_stop(struct nvgpu_thread *thread)
 {
 	thread->should_stop = true;
+}
+
+void nvgpu_thread_stop_graceful(struct nvgpu_thread *thread,
+		void (*thread_stop_fn)(void *data), void *data)
+{
+	thread->should_stop = true;
+	if (thread_stop_fn != NULL) {
+		thread_stop_fn(data);
+	}
+	nvgpu_thread_join(thread);
 }
 
 bool nvgpu_thread_should_stop(struct nvgpu_thread *thread)

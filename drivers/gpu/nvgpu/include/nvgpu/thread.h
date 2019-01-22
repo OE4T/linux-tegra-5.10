@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -60,6 +60,19 @@ int nvgpu_thread_create(struct nvgpu_thread *thread,
  * true and wait for thread to exit.
  */
 void nvgpu_thread_stop(struct nvgpu_thread *thread);
+
+/**
+ * nvgpu_thread_stop_graceful - Request a thread to be destroyed gracefully.
+ *
+ * @thread - thread to stop
+ * @cb - callback function to trigger graceful exit
+ * @data - thread data
+ *
+ * Request a thread to stop by setting nvgpu_thread_should_stop() to
+ * true and wait for thread to exit.
+ */
+void nvgpu_thread_stop_graceful(struct nvgpu_thread *thread,
+		void (*thread_stop_fn)(void *data), void *data);
 
 /**
  * nvgpu_thread_should_stop - Query if thread should stop

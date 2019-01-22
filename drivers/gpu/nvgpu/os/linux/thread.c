@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -51,6 +51,18 @@ void nvgpu_thread_stop(struct nvgpu_thread *thread)
 		kthread_stop(thread->task);
 		thread->task = NULL;
 	}
+};
+
+void nvgpu_thread_stop_graceful(struct nvgpu_thread *thread,
+		void (*thread_stop_fn)(void *data), void *data)
+{
+	/*
+	 * Threads waiting on wq's should have nvgpu_thread_should_stop()
+	 * as one of its wakeup condition. This allows the thread to be woken
+	 * up when kthread_stop() is invoked and does not require an additional
+	 * callback to wakeup the sleeping thread.
+	 */
+	nvgpu_thread_stop(thread);
 };
 
 bool nvgpu_thread_should_stop(struct nvgpu_thread *thread)
