@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -163,14 +163,8 @@ int nvgpu_mem_create_from_mem(struct gk20a *g,
 	dest->skip_wmb  = src->skip_wmb;
 	dest->size      = size;
 
-	/*
-	 * Re-use the CPU mapping only if the mapping was made by the DMA API.
-	 *
-	 * Bug 2040115: the DMA API wrapper makes the mapping that we should
-	 * re-use.
-	 */
-	if (!(src->priv.flags & NVGPU_DMA_NO_KERNEL_MAPPING) ||
-	    nvgpu_is_enabled(g, NVGPU_USE_COHERENT_SYSMEM))
+	/* Re-use the CPU mapping only if the mapping was made by the DMA API */
+	if (!(src->priv.flags & NVGPU_DMA_NO_KERNEL_MAPPING))
 		dest->cpu_va = src->cpu_va + (PAGE_SIZE * start_page);
 
 	dest->priv.pages = src->priv.pages + start_page;
