@@ -239,7 +239,13 @@ static int vgpu_init_fifo_setup_sw(struct gk20a *g)
 
 	f->g = g;
 	f->num_channels = priv->constants.num_channels;
+
+	/*
+	 * This is not the HW format you're looking for (see
+	 * vgpu_fifo_update_runlist_locked(), vgpu_submit_runlist())
+	 */
 	f->runlist_entry_size = (u32)sizeof(u16);
+
 	f->num_runlist_entries = f->num_channels;
 	f->max_engines = nvgpu_get_litter_value(g, GPU_LIT_HOST_NUM_ENGINES);
 
