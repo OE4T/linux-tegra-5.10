@@ -1,7 +1,7 @@
 /*
 * Tegra flcn common driver
 *
-* Copyright (c) 2011-2018, NVIDIA CORPORATION.  All rights reserved.
+* Copyright (c) 2011-2019, NVIDIA CORPORATION.  All rights reserved.
 *
 * This program is free software; you can redistribute it and/or modify it
 * under the terms and conditions of the GNU General Public License,
@@ -347,10 +347,8 @@ static int flcn_read_ucode(struct platform_device *dev,
 	const struct firmware *ucode_fw;
 	struct ucode_v1_flcn ucode;
 	int err;
-	DEFINE_DMA_ATTRS(attrs);
 
 	nvhost_dbg_fn("");
-	dma_set_attr(DMA_ATTR_READ_ONLY, __DMA_ATTR(attrs));
 	v->dma_addr = 0;
 	v->mapped = NULL;
 
@@ -364,7 +362,7 @@ static int flcn_read_ucode(struct platform_device *dev,
 
 	v->size = ucode_fw->size;
 	v->mapped = dma_alloc_attrs(&dev->dev, v->size, &v->dma_addr,
-				    GFP_KERNEL, __DMA_ATTR(attrs));
+				    GFP_KERNEL, DMA_ATTR_READ_ONLY);
 	if (!v->mapped) {
 		dev_err(&dev->dev, "dma memory allocation failed");
 		err = -ENOMEM;
@@ -391,7 +389,7 @@ static int flcn_read_ucode(struct platform_device *dev,
 clean_up:
 	if (v->mapped) {
 		dma_free_attrs(&dev->dev, v->size, v->mapped, v->dma_addr,
-			       __DMA_ATTR(attrs));
+			       DMA_ATTR_READ_ONLY);
 		v->mapped = NULL;
 		v->dma_addr = 0;
 	}
@@ -580,22 +578,13 @@ static int nvhost_flcn_init_sw(struct platform_device *dev)
 static int nvhost_flcn_deinit_sw(struct platform_device *dev)
 {
 	struct flcn *v = get_flcn(dev);
-#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 9, 0)
-	DEFINE_DMA_ATTRS(attrs);
-	dma_set_attr(DMA_ATTR_READ_ONLY, &attrs);
-#endif
 
 	if (!v)
 		return 0;
 
 	if (v->mapped) {
-#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 9, 0)
-		dma_free_attrs(&dev->dev, v->size, v->mapped, v->dma_addr,
-			       &attrs);
-#else
 		dma_free_attrs(&dev->dev, v->size, v->mapped, v->dma_addr,
 			       DMA_ATTR_READ_ONLY);
-#endif
 		v->mapped = NULL;
 		v->dma_addr = 0;
 	}

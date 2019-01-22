@@ -1,7 +1,7 @@
 /*
  * Host1x Application Specific Virtual Memory
  *
- * Copyright (c) 2015-2018, NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2015-2019, NVIDIA Corporation.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -127,30 +127,9 @@ void iommu_context_dev_release(struct platform_device *pdev)
 static int __iommu_context_dev_map_static(struct platform_device *pdev,
 					  struct iommu_static_mapping *mapping)
 {
-#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 9, 0)
-	DEFINE_DMA_ATTRS(attrs);
-#endif
 	const struct dma_map_ops *ops = get_dma_ops(&pdev->dev);
 	int num_pages = DIV_ROUND_UP(mapping->size, PAGE_SIZE);
-#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 4, 0)
-	dma_addr_t base_iova = mapping->paddr;
-#endif
 	int i, err;
-
-#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 9, 0)
-	dma_set_attr(DMA_ATTR_SKIP_IOVA_GAP, &attrs);
-#endif
-
-#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 4, 0)
-	/* allocate the area first */
-	base_iova = ops->iova_alloc_at(&pdev->dev, &mapping->paddr,
-				       num_pages * PAGE_SIZE, &attrs);
-	err = dma_mapping_error(&pdev->dev, base_iova);
-	if (err) {
-		dev_warn(&pdev->dev, "failed to allocate space\n");
-		return err;
-	}
-#endif
 
 	/* map each page of the buffer to this ctx dev */
 	for (i = 0; i < num_pages; i++) {
@@ -165,18 +144,9 @@ static int __iommu_context_dev_map_static(struct platform_device *pdev,
 		page = virt_addr_valid(va) ? virt_to_page(va) :
 			vmalloc_to_page(va);
 
-#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 4, 0)
-		iova = ops->map_page_at(&pdev->dev, page, iova,
-			     (unsigned long)va & ~PAGE_MASK, PAGE_SIZE,
-			     DMA_BIDIRECTIONAL, NULL);
-#elif LINUX_VERSION_CODE < KERNEL_VERSION(4, 9, 0)
-		iova = ops->map_at(&pdev->dev, iova, page_to_phys(page),
-					PAGE_SIZE, DMA_BIDIRECTIONAL, &attrs);
-#else
 		iova = ops->map_at(&pdev->dev, iova, page_to_phys(page),
 					PAGE_SIZE, DMA_BIDIRECTIONAL,
 					DMA_ATTR_SKIP_IOVA_GAP);
-#endif
 		err = dma_mapping_error(&pdev->dev, iova);
 		if (err) {
 			dev_warn(&pdev->dev, "failed to map page\n");

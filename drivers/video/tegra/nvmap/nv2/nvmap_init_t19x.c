@@ -1,7 +1,7 @@
 /*
  * drivers/video/tegra/nvmap/nvmap_init_t19x.c
  *
- * Copyright (c) 2016-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -94,15 +94,12 @@ static int __init nvmap_gosmem_device_init(struct reserved_mem *rmem,
 {
 	struct of_phandle_args outargs;
 	struct device_node *np;
-	DEFINE_DMA_ATTRS(attrs);
 	dma_addr_t dma_addr;
 	void *cpu_addr;
 	int ret = 0, i, idx, bytes;
 	struct reserved_mem_ops *rmem_ops =
 		(struct reserved_mem_ops *)rmem->priv;
 	struct sg_table *sgt;
-
-	dma_set_attr(DMA_ATTR_ALLOC_EXACT_SIZE, __DMA_ATTR(attrs));
 
 	np = of_find_node_by_phandle(rmem->phandle);
 	if (!np) {

@@ -1,7 +1,7 @@
 /*
  * NVDLA driver for T194
  *
- * Copyright (c) 2016-2018, NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2016-2019, NVIDIA Corporation.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -46,8 +46,6 @@
 #include "dla_os_interface.h"
 
 #include "class_ids_t194.h"
-
-static DEFINE_DMA_ATTRS(attrs);
 
 /*
  * Work to handle engine reset for error recovery
@@ -125,7 +123,7 @@ static int nvdla_alloc_cmd_memory(struct platform_device *pdev)
 	nvdla_dev->cmd_mem.va = dma_alloc_attrs(&pdev->dev,
 			MAX_CMD_SIZE * MAX_COMMANDS_PER_DEVICE,
 			&nvdla_dev->cmd_mem.pa, GFP_KERNEL,
-			__DMA_ATTR(attrs));
+			0);
 
 	if (nvdla_dev->cmd_mem.va == NULL) {
 		err = -ENOMEM;
@@ -148,7 +146,7 @@ static int nvdla_free_cmd_memory(struct platform_device *pdev)
 	dma_free_attrs(&pdev->dev,
 			MAX_CMD_SIZE * MAX_COMMANDS_PER_DEVICE,
 			nvdla_dev->cmd_mem.va, nvdla_dev->cmd_mem.pa,
-			__DMA_ATTR(attrs));
+			0);
 
 	nvdla_dev->cmd_mem.alloc_table = 0;
 
@@ -339,7 +337,7 @@ int nvdla_free_gcov_region(struct platform_device *pdev, bool update_region)
 		dma_free_attrs(&pdev->dev, GCOV_BUFFER_SIZE,
 			       nvdla_dev->gcov_dump_va,
 			       nvdla_dev->gcov_dump_pa,
-			       __DMA_ATTR(attrs));
+			       0);
 		nvdla_dev->gcov_dump_va = NULL;
 		nvdla_dev->gcov_dump_pa = 0;
 	}
@@ -358,7 +356,7 @@ int nvdla_alloc_gcov_region(struct platform_device *pdev)
 		/* allocate gcov region */
 		nvdla_dev->gcov_dump_va = dma_alloc_attrs(&pdev->dev,
 				   GCOV_BUFFER_SIZE, &nvdla_dev->gcov_dump_pa,
-				   GFP_KERNEL, __DMA_ATTR(attrs));
+				   GFP_KERNEL, 0);
 
 		if (!nvdla_dev->gcov_dump_va) {
 			nvdla_dbg_err(pdev,
@@ -392,7 +390,7 @@ static int nvdla_alloc_trace_region(struct platform_device *pdev)
 		/* allocate trace region */
 		nvdla_dev->trace_dump_va = dma_alloc_attrs(&pdev->dev,
 				   TRACE_BUFFER_SIZE, &nvdla_dev->trace_dump_pa,
-				   GFP_KERNEL, __DMA_ATTR(attrs));
+				   GFP_KERNEL, 0);
 
 		if (!nvdla_dev->trace_dump_va) {
 			nvdla_dbg_err(pdev,
@@ -439,7 +437,7 @@ alloc_trace_cmd_failed:
 	if (nvdla_dev->trace_dump_pa) {
 		dma_free_attrs(&pdev->dev, TRACE_BUFFER_SIZE,
 			nvdla_dev->trace_dump_va, nvdla_dev->trace_dump_pa,
-			__DMA_ATTR(attrs));
+			0);
 		nvdla_dev->trace_dump_va = NULL;
 
 		nvdla_dev->trace_dump_pa = 0;
@@ -467,7 +465,7 @@ static int nvdla_alloc_dump_region(struct platform_device *pdev)
 	if (!nvdla_dev->debug_dump_va) {
 		nvdla_dev->debug_dump_va = dma_alloc_attrs(&pdev->dev,
 				   DEBUG_BUFFER_SIZE, &nvdla_dev->debug_dump_pa,
-				   GFP_KERNEL, __DMA_ATTR(attrs));
+				   GFP_KERNEL, 0);
 		if (!nvdla_dev->debug_dump_va) {
 			nvdla_dbg_err(pdev, "debug dump dma alloc failed");
 			err = -ENOMEM;
@@ -512,7 +510,7 @@ set_region_failed:
 	if (nvdla_dev->debug_dump_pa) {
 		dma_free_attrs(&pdev->dev, DEBUG_BUFFER_SIZE,
 			nvdla_dev->debug_dump_va, nvdla_dev->debug_dump_pa,
-			__DMA_ATTR(attrs));
+			0);
 		nvdla_dev->debug_dump_va = NULL;
 		nvdla_dev->debug_dump_pa = 0;
 	}
@@ -827,7 +825,7 @@ static int __exit nvdla_remove(struct platform_device *pdev)
 		dma_free_attrs(&pdev->dev, TRACE_BUFFER_SIZE,
 			       nvdla_dev->trace_dump_va,
 			       nvdla_dev->trace_dump_pa,
-			       __DMA_ATTR(attrs));
+			       0);
 		nvdla_dev->trace_dump_va = NULL;
 		nvdla_dev->trace_dump_pa = 0;
 	}
@@ -836,7 +834,7 @@ static int __exit nvdla_remove(struct platform_device *pdev)
 		dma_free_attrs(&pdev->dev, DEBUG_BUFFER_SIZE,
 			       nvdla_dev->debug_dump_va,
 			       nvdla_dev->debug_dump_pa,
-			       __DMA_ATTR(attrs));
+			       0);
 		nvdla_dev->debug_dump_va = NULL;
 		nvdla_dev->debug_dump_pa = 0;
 	}

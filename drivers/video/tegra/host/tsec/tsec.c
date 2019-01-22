@@ -1,7 +1,7 @@
 /*
  * Tegra TSEC Module Support
  *
- * Copyright (c) 2012-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2012-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -89,7 +89,6 @@ static struct platform_device *tsec;
 int tsec_hdcp_create_context(struct hdcp_context_t *hdcp_context)
 {
 	int err = 0;
-	DEFINE_DMA_ATTRS(attrs);
 	if (!hdcp_context) {
 		err = -EINVAL;
 		goto exit;
@@ -98,7 +97,7 @@ int tsec_hdcp_create_context(struct hdcp_context_t *hdcp_context)
 					HDCP_SCRATCH_BUFFER_SIZE,
 					&hdcp_context->dma_handle_scratch,
 					GFP_KERNEL,
-					__DMA_ATTR(attrs));
+					0);
 	if (!hdcp_context->cpuvaddr_scratch) {
 		err = -ENOMEM;
 		goto exit;
@@ -107,7 +106,7 @@ int tsec_hdcp_create_context(struct hdcp_context_t *hdcp_context)
 					HDCP_DCP_KPUB_SIZE_ALIGNED,
 					&hdcp_context->dma_handle_dcp_kpub,
 					GFP_KERNEL,
-					__DMA_ATTR(attrs));
+					0);
 	if (!hdcp_context->cpuvaddr_dcp_kpub) {
 		err = -ENOMEM;
 		goto exit;
@@ -129,7 +128,7 @@ int tsec_hdcp_create_context(struct hdcp_context_t *hdcp_context)
 					HDCP_SRM_SIZE_ALIGNED,
 					&hdcp_context->dma_handle_srm,
 					GFP_KERNEL,
-					__DMA_ATTR(attrs));
+					0);
 	if (!hdcp_context->cpuvaddr_srm) {
 		err = -ENOMEM;
 		goto exit;
@@ -139,7 +138,7 @@ int tsec_hdcp_create_context(struct hdcp_context_t *hdcp_context)
 				HDCP_CERT_SIZE_ALIGNED,
 				&hdcp_context->dma_handle_cert,
 				GFP_KERNEL,
-				__DMA_ATTR(attrs));
+				0);
 
 	if (!hdcp_context->cpuvaddr_cert) {
 		err = -ENOMEM;
@@ -163,7 +162,7 @@ int tsec_hdcp_create_context(struct hdcp_context_t *hdcp_context)
 					HDCP_MTHD_BUF_SIZE,
 					&hdcp_context->dma_handle_mthd_buf,
 					GFP_KERNEL,
-					__DMA_ATTR(attrs));
+					0);
 	if (!hdcp_context->cpuvaddr_mthd_buf) {
 		err = -ENOMEM;
 		goto exit;
@@ -186,7 +185,7 @@ int tsec_hdcp_create_context(struct hdcp_context_t *hdcp_context)
 					HDCP_RCVR_ID_LIST_SIZE,
 					&hdcp_context->dma_handle_rcvr_id_list,
 					GFP_KERNEL,
-					__DMA_ATTR(attrs));
+					0);
 	if (!hdcp_context->cpuvaddr_rcvr_id_list) {
 		err = -ENOMEM;
 		goto exit;
@@ -196,7 +195,7 @@ int tsec_hdcp_create_context(struct hdcp_context_t *hdcp_context)
 					HDCP_CONTENT_BUF_SIZE,
 					&hdcp_context->dma_handle_input_buf,
 					GFP_KERNEL,
-					__DMA_ATTR(attrs));
+					0);
 	if (!hdcp_context->cpuvaddr_input_buf) {
 		err = -ENOMEM;
 		goto exit;
@@ -206,7 +205,7 @@ int tsec_hdcp_create_context(struct hdcp_context_t *hdcp_context)
 					HDCP_CONTENT_BUF_SIZE,
 					&hdcp_context->dma_handle_output_buf,
 					GFP_KERNEL,
-					__DMA_ATTR(attrs));
+					0);
 	if (!hdcp_context->cpuvaddr_output_buf) {
 		err = -ENOMEM;
 		goto exit;
@@ -218,7 +217,6 @@ exit:
 int tsec_hdcp_free_context(struct hdcp_context_t *hdcp_context)
 {
 	int err = 0;
-	DEFINE_DMA_ATTRS(attrs);
 	if (!hdcp_context) {
 		err = -EINVAL;
 		goto exit;
@@ -228,7 +226,7 @@ int tsec_hdcp_free_context(struct hdcp_context_t *hdcp_context)
 			HDCP_SCRATCH_BUFFER_SIZE,
 			hdcp_context->cpuvaddr_scratch,
 			hdcp_context->dma_handle_scratch,
-			__DMA_ATTR(attrs));
+			0);
 		hdcp_context->cpuvaddr_scratch = NULL;
 	}
 	if (hdcp_context->cpuvaddr_dcp_kpub) {
@@ -236,7 +234,7 @@ int tsec_hdcp_free_context(struct hdcp_context_t *hdcp_context)
 			HDCP_DCP_KPUB_SIZE_ALIGNED,
 			hdcp_context->cpuvaddr_dcp_kpub,
 			hdcp_context->dma_handle_dcp_kpub,
-			__DMA_ATTR(attrs));
+			0);
 		hdcp_context->cpuvaddr_dcp_kpub = NULL;
 	}
 	if (hdcp_context->cpuvaddr_srm) {
@@ -244,7 +242,7 @@ int tsec_hdcp_free_context(struct hdcp_context_t *hdcp_context)
 			HDCP_SRM_SIZE_ALIGNED,
 			hdcp_context->cpuvaddr_srm,
 			hdcp_context->dma_handle_srm,
-			__DMA_ATTR(attrs));
+			0);
 		hdcp_context->cpuvaddr_srm = NULL;
 	}
 
@@ -253,7 +251,7 @@ int tsec_hdcp_free_context(struct hdcp_context_t *hdcp_context)
 			HDCP_CERT_SIZE_ALIGNED,
 			hdcp_context->cpuvaddr_cert,
 			hdcp_context->dma_handle_cert,
-			__DMA_ATTR(attrs));
+			0);
 		hdcp_context->cpuvaddr_cert = NULL;
 	}
 
@@ -262,7 +260,7 @@ int tsec_hdcp_free_context(struct hdcp_context_t *hdcp_context)
 			HDCP_MTHD_BUF_SIZE,
 			hdcp_context->cpuvaddr_mthd_buf,
 			hdcp_context->dma_handle_mthd_buf,
-			__DMA_ATTR(attrs));
+			0);
 		hdcp_context->cpuvaddr_mthd_buf = NULL;
 	}
 
@@ -271,7 +269,7 @@ int tsec_hdcp_free_context(struct hdcp_context_t *hdcp_context)
 			HDCP_RCVR_ID_LIST_SIZE,
 			hdcp_context->cpuvaddr_rcvr_id_list,
 			hdcp_context->dma_handle_rcvr_id_list,
-			__DMA_ATTR(attrs));
+			0);
 		hdcp_context->cpuvaddr_rcvr_id_list = NULL;
 	}
 
@@ -280,7 +278,7 @@ int tsec_hdcp_free_context(struct hdcp_context_t *hdcp_context)
 			HDCP_CONTENT_BUF_SIZE,
 			hdcp_context->cpuvaddr_input_buf,
 			hdcp_context->dma_handle_input_buf,
-			__DMA_ATTR(attrs));
+			0);
 		hdcp_context->cpuvaddr_input_buf = NULL;
 	}
 
@@ -289,7 +287,7 @@ int tsec_hdcp_free_context(struct hdcp_context_t *hdcp_context)
 			HDCP_CONTENT_BUF_SIZE,
 			hdcp_context->cpuvaddr_output_buf,
 			hdcp_context->dma_handle_output_buf,
-			__DMA_ATTR(attrs));
+			0);
 		hdcp_context->cpuvaddr_output_buf = NULL;
 	}
 exit:
@@ -369,7 +367,6 @@ void tsec_send_method(struct hdcp_context_t *hdcp_context,
 	u32 *cpuvaddr = NULL;
 	u32 id = 0;
 	dma_addr_t dma_handle = 0;
-	DEFINE_DMA_ATTRS(attrs);
 	u32 increment_opcode;
 	struct nvhost_device_data *pdata = platform_get_drvdata(tsec);
 	struct nvhost_channel *channel = NULL;
@@ -397,7 +394,7 @@ void tsec_send_method(struct hdcp_context_t *hdcp_context,
 
 	cpuvaddr = dma_alloc_attrs(tsec->dev.parent, HDCP_MTHD_BUF_SIZE,
 			&dma_handle, GFP_KERNEL,
-			__DMA_ATTR(attrs));
+			0);
 	if (!cpuvaddr) {
 		nvhost_err(&tsec->dev, "Failed to allocate memory\n");
 		nvhost_syncpt_put_ref_ext(tsec, id);
@@ -475,7 +472,7 @@ void tsec_send_method(struct hdcp_context_t *hdcp_context,
 
 	dma_free_attrs(tsec->dev.parent,
 		HDCP_MTHD_BUF_SIZE, cpuvaddr,
-		dma_handle, __DMA_ATTR(attrs));
+		dma_handle, 0);
 }
 
 
@@ -652,7 +649,6 @@ static int tsec_read_ucode(struct platform_device *dev, const char *fw_name)
 	struct flcn *m = get_flcn(dev);
 	const struct firmware *ucode_fw;
 	int err;
-	DEFINE_DMA_ATTRS(attrs);
 
 	m->dma_addr = 0;
 	m->mapped = NULL;
@@ -664,9 +660,8 @@ static int tsec_read_ucode(struct platform_device *dev, const char *fw_name)
 	}
 
 	m->size = ucode_fw->size + TSEC_RESERVE;
-	dma_set_attr(DMA_ATTR_READ_ONLY, __DMA_ATTR(attrs));
 	m->mapped = dma_alloc_attrs(&dev->dev, m->size, &m->dma_addr,
-				    GFP_KERNEL, __DMA_ATTR(attrs));
+				    GFP_KERNEL, DMA_ATTR_READ_ONLY);
 	if (!m->mapped) {
 		dev_err(&dev->dev, "dma memory allocation failed");
 		err = -ENOMEM;
@@ -687,7 +682,7 @@ static int tsec_read_ucode(struct platform_device *dev, const char *fw_name)
 clean_up:
 	if (m->mapped) {
 		dma_free_attrs(&dev->dev, m->size, m->mapped, m->dma_addr,
-			       __DMA_ATTR(attrs));
+			       DMA_ATTR_READ_ONLY);
 		m->mapped = NULL;
 		m->dma_addr = 0;
 	}
@@ -808,7 +803,6 @@ static int tsec_probe(struct platform_device *dev)
 
 	node = of_get_child_by_name(dev->dev.of_node, "carveout");
 	if (node) {
-		DEFINE_DMA_ATTRS(attrs);
 		/* This is currently used only in T124. carveout_addr and
 		 * carveout_size are 32 bit. */
 		err = of_property_read_u32(node, "carveout_addr",
@@ -827,13 +821,11 @@ static int tsec_probe(struct platform_device *dev)
 		}
 		pdata->carveout_size = carveout_size;
 
-		dma_set_attr(DMA_ATTR_SKIP_IOVA_GAP, __DMA_ATTR(attrs));
-		dma_set_attr(DMA_ATTR_SKIP_CPU_SYNC, __DMA_ATTR(attrs));
 		pdata->carveout_addr = dma_map_single_attrs(&dev->dev,
 					       __va(pdata->carveout_addr),
 					       pdata->carveout_size,
 					       DMA_TO_DEVICE,
-					       __DMA_ATTR(attrs));
+					       DMA_ATTR_SKIP_IOVA_GAP | DMA_ATTR_SKIP_CPU_SYNC);
 		if (dma_mapping_error(&dev->dev, pdata->carveout_addr)) {
 			dev_err(&dev->dev, "mapping to iova failed\n");
 			return -EINVAL;

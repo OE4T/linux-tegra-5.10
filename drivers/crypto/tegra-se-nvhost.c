@@ -4,7 +4,7 @@
  *
  * Support for Tegra Security Engine hardware crypto algorithms.
  *
- * Copyright (c) 2015-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2015-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -325,7 +325,6 @@ static DEFINE_SPINLOCK(key_slot_lock);
 /* create a work for handling the async transfers */
 static void tegra_se_work_handler(struct work_struct *work);
 
-static DEFINE_DMA_ATTRS(attrs);
 static int force_reseed_count;
 
 #define GET_MSB(x)  ((x) >> (8 * sizeof(x) - 1))
@@ -3127,7 +3126,7 @@ static int tegra_se_send_rsa_data(struct tegra_se_dev *se_dev,
 
 	cmdbuf_cpuvaddr = dma_alloc_attrs(se_dev->dev->parent, SZ_4K,
 					  &cmdbuf_iova, GFP_KERNEL,
-					  __DMA_ATTR(attrs));
+					  0);
 	if (!cmdbuf_cpuvaddr) {
 		dev_err(se_dev->dev, "Failed to allocate memory for cmdbuf\n");
 		return -ENOMEM;
@@ -3164,7 +3163,7 @@ static int tegra_se_send_rsa_data(struct tegra_se_dev *se_dev,
 					     NONE);
 
 	dma_free_attrs(se_dev->dev->parent, SZ_4K, cmdbuf_cpuvaddr,
-		       cmdbuf_iova, __DMA_ATTR(attrs));
+		       cmdbuf_iova, 0);
 
 	return err;
 }
@@ -3230,7 +3229,7 @@ static int tegra_se_rsa_setkey(struct crypto_akcipher *tfm, const void *key,
 
 	cmdbuf_cpuvaddr = dma_alloc_attrs(se_dev->dev->parent, SZ_64K,
 					  &cmdbuf_iova, GFP_KERNEL,
-					  __DMA_ATTR(attrs));
+					  0);
 	if (!cmdbuf_cpuvaddr) {
 		tegra_se_rsa_free_key_slot(ctx->slot);
 		dev_err(se_dev->dev, "Failed to allocate memory for cmdbuf\n");
@@ -3294,7 +3293,7 @@ static int tegra_se_rsa_setkey(struct crypto_akcipher *tfm, const void *key,
 	if (err)
 		tegra_se_rsa_free_key_slot(ctx->slot);
 	dma_free_attrs(se_dev->dev->parent, SZ_64K, cmdbuf_cpuvaddr,
-		       cmdbuf_iova, __DMA_ATTR(attrs));
+		       cmdbuf_iova, 0);
 
 	return err;
 }
@@ -3499,7 +3498,7 @@ static int tegra_se_dh_setkey(struct crypto_kpp *tfm)
 
 	cmdbuf_cpuvaddr = dma_alloc_attrs(se_dev->dev->parent, SZ_64K,
 					  &cmdbuf_iova, GFP_KERNEL,
-					  __DMA_ATTR(attrs));
+					  0);
 	if (!cmdbuf_cpuvaddr) {
 		tegra_se_rsa_free_key_slot(ctx->slot);
 		dev_err(se_dev->dev, "Failed to allocate cmdbuf\n");
@@ -3564,7 +3563,7 @@ static int tegra_se_dh_setkey(struct crypto_kpp *tfm)
 		tegra_se_rsa_free_key_slot(ctx->slot);
 	}
 	dma_free_attrs(se_dev->dev->parent, SZ_64K, cmdbuf_cpuvaddr,
-		       cmdbuf_iova, __DMA_ATTR(attrs));
+		       cmdbuf_iova, 0);
 
 	return err;
 }
@@ -3682,7 +3681,7 @@ static int tegra_se_dh_compute_value(struct kpp_request *req)
 
 	cmdbuf_cpuvaddr = dma_alloc_attrs(se_dev->dev->parent, SZ_4K,
 					  &cmdbuf_iova, GFP_KERNEL,
-					  __DMA_ATTR(attrs));
+					  0);
 	if (!cmdbuf_cpuvaddr) {
 		dev_err(se_dev->dev, "%s: dma_alloc_attrs failed\n", __func__);
 		err = -ENOMEM;
@@ -3727,7 +3726,7 @@ static int tegra_se_dh_compute_value(struct kpp_request *req)
 				req->dst_len, false);
 exit:
 	dma_free_attrs(se_dev->dev->parent, SZ_4K, cmdbuf_cpuvaddr,
-		       cmdbuf_iova, __DMA_ATTR(attrs));
+		       cmdbuf_iova, 0);
 unmap_dst:
 	tegra_unmap_sg(se_dev->dev, req->dst, DMA_FROM_DEVICE, req->dst_len);
 unmap_src:
@@ -4481,7 +4480,7 @@ static int tegra_se_probe(struct platform_device *pdev)
 		se_dev->aes_cmdbuf_cpuvaddr = dma_alloc_attrs(
 			se_dev->dev->parent, SZ_16K * SE_MAX_SUBMIT_CHAIN_SZ,
 			&se_dev->aes_cmdbuf_iova, GFP_KERNEL,
-			__DMA_ATTR(attrs));
+			0);
 		if (!se_dev->aes_cmdbuf_cpuvaddr)
 			goto cmd_buf_alloc_fail;
 
@@ -4500,7 +4499,7 @@ static int tegra_se_probe(struct platform_device *pdev)
 dma_free:
 	dma_free_attrs(se_dev->dev->parent, SZ_16K * SE_MAX_SUBMIT_CHAIN_SZ,
 		       se_dev->aes_cmdbuf_cpuvaddr, se_dev->aes_cmdbuf_iova,
-		       __DMA_ATTR(attrs));
+		       0);
 cmd_buf_alloc_fail:
 	kfree(se_dev->total_aes_buf);
 aes_buf_alloc_fail:
@@ -4532,7 +4531,7 @@ static int tegra_se_remove(struct platform_device *pdev)
 		dma_free_attrs(
 		se_dev->dev->parent, SZ_16K * SE_MAX_SUBMIT_CHAIN_SZ,
 		se_dev->aes_cmdbuf_cpuvaddr, se_dev->aes_cmdbuf_iova,
-		__DMA_ATTR(attrs));
+		0);
 
 	node = of_node_get(se_dev->dev->of_node);
 	if (is_algo_supported(node, "drbg"))

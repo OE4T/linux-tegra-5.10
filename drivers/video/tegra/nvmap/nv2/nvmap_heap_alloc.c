@@ -3,7 +3,7 @@
  *
  * Handle allocation and freeing routines for nvmap
  *
- * Copyright (c) 2011-2018, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2011-2019, NVIDIA CORPORATION. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -269,7 +269,6 @@ struct page **nvmap_heap_alloc_dma_pages(size_t size, unsigned long type)
 {
 	struct page **pages;
 	struct device *dma_dev;
-	DEFINE_DMA_ATTRS(attrs);
 	dma_addr_t pa;
 
 	dma_dev = heap_pgalloc_dev(type);
@@ -277,13 +276,8 @@ struct page **nvmap_heap_alloc_dma_pages(size_t size, unsigned long type)
 		return ERR_PTR(-EINVAL);
 	}
 
-	dma_set_attr(DMA_ATTR_ALLOC_EXACT_SIZE, __DMA_ATTR(attrs));
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 4, 0)
-	dma_set_attr(DMA_ATTR_ALLOC_SINGLE_PAGES, __DMA_ATTR(attrs));
-#endif
-
 	pages = dma_alloc_attrs(dma_dev, size, &pa,
-			GFP_KERNEL, __DMA_ATTR(attrs));
+			GFP_KERNEL, DMA_ATTR_ALLOC_EXACT_SIZE | DMA_ATTR_ALLOC_SINGLE_PAGES);
 	if (dma_mapping_error(dma_dev, pa)) {
 		return ERR_PTR(-ENOMEM);
 	}
@@ -306,7 +300,6 @@ void nvmap_heap_dealloc_dma_pages(size_t size, unsigned long type,
 				struct page **pages)
 {
 	struct device *dma_dev;
-	DEFINE_DMA_ATTRS(attrs);
 	dma_addr_t pa = ~(dma_addr_t)0;
 
 	dma_dev = heap_pgalloc_dev(type);
@@ -314,13 +307,8 @@ void nvmap_heap_dealloc_dma_pages(size_t size, unsigned long type,
 		return;
 	}
 
-	dma_set_attr(DMA_ATTR_ALLOC_EXACT_SIZE, __DMA_ATTR(attrs));
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 4, 0)
-	dma_set_attr(DMA_ATTR_ALLOC_SINGLE_PAGES, __DMA_ATTR(attrs));
-#endif
-
 	dma_free_attrs(dma_dev, size, pages, pa,
-		       __DMA_ATTR(attrs));
+		       DMA_ATTR_ALLOC_EXACT_SIZE | DMA_ATTR_ALLOC_SINGLE_PAGES);
 }
 
 struct page **nvmap_heap_alloc_from_va(size_t size, ulong vaddr)

@@ -1,7 +1,7 @@
 /*
  * Engine side synchronization support
  *
- * Copyright (c) 2016-2018, NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2016-2019, NVIDIA Corporation.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -272,7 +272,6 @@ int nvhost_syncpt_alloc_gos_backing(struct platform_device *engine_pdev,
 	struct nvhost_master *host = nvhost_get_host(engine_pdev);
 	struct syncpt_gos_backing *syncpt_gos_backing;
 	struct cv_dev_info *cv_dev_info;
-	DEFINE_DMA_ATTRS(attrs);
 	dma_addr_t offset;
 	u32 *semaphore;
 	int err;
@@ -301,9 +300,8 @@ int nvhost_syncpt_alloc_gos_backing(struct platform_device *engine_pdev,
 		return -ENOMEM;
 	}
 
-	dma_set_attr(DMA_ATTR_NO_KERNEL_MAPPING, __DMA_ATTR(attrs));
 	dma_alloc_attrs(&cv_dev_info->offset_dev, sizeof(u32), &offset,
-			GFP_KERNEL, __DMA_ATTR(attrs));
+			GFP_KERNEL, DMA_ATTR_NO_KERNEL_MAPPING);
 	err = dma_mapping_error(&cv_dev_info->offset_dev, offset);
 	if (err) {
 		nvhost_err(&engine_pdev->dev, "failed to alloc attributes");
@@ -342,7 +340,6 @@ int nvhost_syncpt_release_gos_backing(struct nvhost_syncpt *sp,
 {
 	struct nvhost_master *host = syncpt_to_dev(sp);
 	struct syncpt_gos_backing *syncpt_gos_backing;
-	DEFINE_DMA_ATTRS(attrs);
 	dma_addr_t offset;
 
 	syncpt_gos_backing = nvhost_syncpt_find_gos_backing(host, syncpt_id);
@@ -350,9 +347,8 @@ int nvhost_syncpt_release_gos_backing(struct nvhost_syncpt *sp,
 		return -EINVAL;
 
 	offset = (dma_addr_t)syncpt_gos_backing->gos_offset;
-	dma_set_attr(DMA_ATTR_NO_KERNEL_MAPPING, __DMA_ATTR(attrs));
 	dma_free_attrs(syncpt_gos_backing->offset_dev, sizeof(u32),
-			NULL, offset, __DMA_ATTR(attrs));
+			NULL, offset, DMA_ATTR_NO_KERNEL_MAPPING);
 
 	rb_erase(&syncpt_gos_backing->syncpt_gos_backing_entry,
 		 &host->syncpt_backing_head);
@@ -481,18 +477,14 @@ int nvhost_syncpt_unit_interface_init(struct platform_device *engine_pdev)
 
 	/* If IOMMU is enabled, map it into the device memory */
 	if (engine_pdev->dev.archdata.iommu) {
-		DEFINE_DMA_ATTRS(attrs);
 		struct scatterlist sg;
-
-		/* The area doesn't really exist so we cannot do CPU sync */
-		dma_set_attr(DMA_ATTR_SKIP_CPU_SYNC, __DMA_ATTR(attrs));
 
 		/* Initialize the scatterlist to cover the whole range */
 		sg_init_table(&sg, 1);
 		sg_set_page(&sg, phys_to_page(res->start), range_size, 0);
 
 		err = dma_map_sg_attrs(&engine_pdev->dev, &sg, 1,
-				       DMA_BIDIRECTIONAL, __DMA_ATTR(attrs));
+				       DMA_BIDIRECTIONAL, DMA_ATTR_SKIP_CPU_SYNC);
 
 		/* dma_map_sg_attrs returns 0 on errors */
 		if (err == 0) {

@@ -1,7 +1,7 @@
 /*
  * Tegra NVDEC Module Support
  *
- * Copyright (c) 2013-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2013-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -275,9 +275,7 @@ static int nvdec_read_ucode(struct platform_device *dev,
 	const struct firmware *ucode_fw;
 	struct ucode_v1_flcn ucode;
 	int err;
-	DEFINE_DMA_ATTRS(attrs);
 
-	dma_set_attr(DMA_ATTR_READ_ONLY, __DMA_ATTR(attrs));
 	m->dma_addr = 0;
 	m->mapped = NULL;
 	ucode_fw  = nvhost_client_request_firmware(dev, fw_name);
@@ -290,7 +288,7 @@ static int nvdec_read_ucode(struct platform_device *dev,
 
 	m->size = ucode_fw->size;
 	m->mapped = dma_alloc_attrs(&dev->dev, m->size, &m->dma_addr,
-				    GFP_KERNEL, __DMA_ATTR(attrs));
+				    GFP_KERNEL, DMA_ATTR_READ_ONLY);
 	if (!m->mapped) {
 		dev_err(&dev->dev, "dma memory allocation failed");
 		err = -ENOMEM;
@@ -312,7 +310,7 @@ static int nvdec_read_ucode(struct platform_device *dev,
 clean_up:
 	if (m->mapped) {
 		dma_free_attrs(&dev->dev, m->size, m->mapped, m->dma_addr,
-			       __DMA_ATTR(attrs));
+			       DMA_ATTR_READ_ONLY);
 		m->mapped = NULL;
 		m->dma_addr = 0;
 	}

@@ -1,7 +1,7 @@
 /*
  * Tegra Graphics Host Virtual Memory
  *
- * Copyright (c) 2014-2018, NVIDIA Corporation. All rights reserved.
+ * Copyright (c) 2014-2019, NVIDIA Corporation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -83,17 +83,9 @@ int nvhost_vm_init(struct platform_device *pdev)
 	struct nvhost_master *host = nvhost_get_host(pdev);
 	struct nvhost_vm_firmware_area *firmware_area = &host->firmware_area;
 
-#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 9, 0)
-	DEFINE_DMA_ATTRS(attrs);
-#endif
-
 	/* No need to allocate firmware area */
 	if (!host->info.firmware_area_size)
 		return 0;
-
-#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 9, 0)
-	dma_set_attr(DMA_ATTR_READ_ONLY, &attrs);
-#endif
 
 	mutex_init(&firmware_area->mutex);
 
@@ -111,14 +103,9 @@ int nvhost_vm_init(struct platform_device *pdev)
 
 	/* allocate area */
 	firmware_area->vaddr =
-#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 9, 0)
-		dma_alloc_attrs(&pdev->dev, host->info.firmware_area_size,
-				&firmware_area->dma_addr, GFP_KERNEL, &attrs);
-#else
 		dma_alloc_attrs(&pdev->dev, host->info.firmware_area_size,
 				&firmware_area->dma_addr, GFP_KERNEL,
 				DMA_ATTR_READ_ONLY);
-#endif
 	if (!firmware_area->vaddr) {
 		nvhost_err(&pdev->dev, "failed to alloc attrs");
 		return -ENOMEM;

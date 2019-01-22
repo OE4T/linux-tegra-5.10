@@ -266,11 +266,7 @@ static int bpmp_linear_map_init(struct platform_device *pdev)
 	uint32_t of_start;
 	uint32_t of_size;
 	int ret;
-#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 9, 0)
-	DEFINE_DMA_ATTRS(attrs);
-#else
 	unsigned long attrs;
-#endif
 
 	node = pdev->dev.of_node;
 
@@ -282,14 +278,8 @@ static int bpmp_linear_map_init(struct platform_device *pdev)
 	if (ret)
 		return ret;
 
-#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 9, 0)
-	dma_set_attr(DMA_ATTR_SKIP_IOVA_GAP, &attrs);
-	dma_set_attr(DMA_ATTR_SKIP_CPU_SYNC, &attrs);
-	ret = dma_map_linear_attrs(&pdev->dev, of_start, of_size, 0, &attrs);
-#else
 	attrs = DMA_ATTR_SKIP_IOVA_GAP | DMA_ATTR_SKIP_CPU_SYNC;
 	ret = dma_map_linear_attrs(&pdev->dev, of_start, of_size, 0, attrs);
-#endif
 	if (ret == DMA_ERROR_CODE)
 		return -ENOMEM;
 

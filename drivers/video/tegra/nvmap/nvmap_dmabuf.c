@@ -1,7 +1,7 @@
 /*
  * dma_buf exporter for nvmap
  *
- * Copyright (c) 2012-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2012-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -149,7 +149,6 @@ static inline bool access_vpr_phys(struct device *dev)
 static void __nvmap_dmabuf_free_sgt_locked(struct nvmap_handle_sgt *nvmap_sgt)
 {
 	struct nvmap_handle_info *info = nvmap_sgt->owner;
-	DEFINE_DMA_ATTRS(attrs);
 
 	list_del(&nvmap_sgt->maps_entry);
 
@@ -159,11 +158,9 @@ static void __nvmap_dmabuf_free_sgt_locked(struct nvmap_handle_sgt *nvmap_sgt)
 			access_vpr_phys(nvmap_sgt->dev)) {
 		sg_dma_address(nvmap_sgt->sgt->sgl) = 0;
 	} else {
-		dma_set_attr(DMA_ATTR_SKIP_IOVA_GAP, __DMA_ATTR(attrs));
-		dma_set_attr(DMA_ATTR_SKIP_CPU_SYNC, __DMA_ATTR(attrs));
 		dma_unmap_sg_attrs(nvmap_sgt->dev,
 				   nvmap_sgt->sgt->sgl, nvmap_sgt->sgt->nents,
-				   nvmap_sgt->dir, __DMA_ATTR(attrs));
+				   nvmap_sgt->dir, DMA_ATTR_SKIP_IOVA_GAP | DMA_ATTR_SKIP_CPU_SYNC);
 	}
 	__nvmap_free_sg_table(NULL, info->handle, nvmap_sgt->sgt);
 

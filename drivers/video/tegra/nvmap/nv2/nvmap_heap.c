@@ -3,7 +3,7 @@
  *
  * GPU heap allocator.
  *
- * Copyright (c) 2011-2018, NVIDIA Corporation. All rights reserved.
+ * Copyright (c) 2011-2019, NVIDIA Corporation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -127,19 +127,17 @@ static void nvmap_free_mem(struct nvmap_heap *h, phys_addr_t base,
 				size_t len)
 {
 	struct device *dev = h->dma_dev;
-	DEFINE_DMA_ATTRS(attrs);
 
-	dma_set_attr(DMA_ATTR_ALLOC_EXACT_SIZE, __DMA_ATTR(attrs));
 	dev_dbg(dev, "Free base (%pa) size (%zu)\n", &base, len);
 #ifdef CONFIG_TEGRA_VIRTUALIZATION
 	if (h->is_ivm && !h->can_alloc) {
-		dma_mark_declared_memory_unoccupied(dev, base, len, __DMA_ATTR(attrs));
+		dma_mark_declared_memory_unoccupied(dev, base, len, DMA_ATTR_ALLOC_EXACT_SIZE);
 	} else
 #endif
 	{
 		dma_free_attrs(dev, len,
 			        (void *)(uintptr_t)base,
-			        (dma_addr_t)base, __DMA_ATTR(attrs));
+			        (dma_addr_t)base, DMA_ATTR_ALLOC_EXACT_SIZE);
 	}
 }
 

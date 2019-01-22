@@ -1,7 +1,7 @@
 /*
  * NVHOST queue management for T194
  *
- * Copyright (c) 2016-2018, NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2016-2019, NVIDIA Corporation.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -59,8 +59,6 @@ struct nvhost_queue_task_pool {
 	unsigned long max_task_cnt;
 };
 
-static DEFINE_DMA_ATTRS(task_dma_attrs);
-
 static int nvhost_queue_task_pool_alloc(struct platform_device *pdev,
 					struct nvhost_queue *queue,
 					unsigned int num_tasks)
@@ -86,7 +84,7 @@ static int nvhost_queue_task_pool_alloc(struct platform_device *pdev,
 	task_pool->va = dma_alloc_attrs(&pdev->dev,
 				queue->task_dma_size * num_tasks,
 				&task_pool->dma_addr, GFP_KERNEL,
-				__DMA_ATTR(task_dma_attrs));
+				0);
 
 	if (task_pool->va == NULL) {
 		nvhost_err(&pdev->dev, "failed to allocate task_pool->va");
@@ -114,7 +112,7 @@ static void nvhost_queue_task_free_pool(struct platform_device *pdev,
 	dma_free_attrs(&queue->vm_pdev->dev,
 			queue->task_dma_size * task_pool->max_task_cnt,
 			task_pool->va, task_pool->dma_addr,
-			__DMA_ATTR(task_dma_attrs));
+			0);
 
 	kfree(task_pool->kmem_addr);
 	task_pool->max_task_cnt = 0;
