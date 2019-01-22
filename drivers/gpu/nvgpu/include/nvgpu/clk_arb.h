@@ -40,7 +40,7 @@ struct gk20a;
 #include <nvgpu/pmu/lpwr.h>
 
 #define MAX_F_POINTS 256
-#define DEFAULT_EVENT_NUMBER 32
+#define DEFAULT_EVENT_NUMBER 32U
 
 struct nvgpu_clk_dev;
 struct nvgpu_clk_arb_target;
@@ -360,7 +360,7 @@ u32 nvgpu_clk_arb_notify(struct nvgpu_clk_dev *dev,
 
 int nvgpu_clk_notification_queue_alloc(struct gk20a *g,
 				struct nvgpu_clk_notification_queue *queue,
-				size_t events_number);
+				u32 events_number);
 
 void nvgpu_clk_notification_queue_free(struct gk20a *g,
 		struct nvgpu_clk_notification_queue *queue);

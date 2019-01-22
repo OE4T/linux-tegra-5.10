@@ -43,7 +43,7 @@
 
 int nvgpu_clk_notification_queue_alloc(struct gk20a *g,
 				struct nvgpu_clk_notification_queue *queue,
-				size_t events_number) {
+				u32 events_number) {
 	queue->notifications = nvgpu_kcalloc(g, events_number,
 		sizeof(struct nvgpu_clk_notification));
 	if (!queue->notifications)
