@@ -181,22 +181,6 @@ union nv_pmu_volt_volt_rail_boardobj_get_status_union {
 
 NV_PMU_BOARDOBJ_GRP_GET_STATUS_MAKE_E32(volt, volt_rail);
 
-/* ---------- VOLT_DEVICE's GRP_GET_STATUS defines and structures ---------- */
-struct nv_pmu_volt_volt_device_boardobjgrp_get_status_header {
-	struct nv_pmu_boardobjgrp_e32 super;
-};
-
-struct nv_pmu_volt_volt_device_boardobj_get_status {
-	struct nv_pmu_boardobj_query super;
-};
-
-union nv_pmu_volt_volt_device_boardobj_get_status_union {
-	struct nv_pmu_boardobj_query board_obj;
-	struct nv_pmu_volt_volt_device_boardobj_get_status super;
-};
-
-NV_PMU_BOARDOBJ_GRP_GET_STATUS_MAKE_E32(volt, volt_device);
-
 /* ---------- VOLT_POLICY's GRP_GET_STATUS defines and structures ---------- */
 struct nv_pmu_volt_volt_policy_boardobjgrp_get_status_header {
 	struct nv_pmu_boardobjgrp_e32 super;

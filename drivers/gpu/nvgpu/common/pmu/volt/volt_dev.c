@@ -457,25 +457,6 @@ static int _volt_device_devgrp_pmudata_instget(struct gk20a *g,
 	return 0;
 }
 
-static int _volt_device_devgrp_pmustatus_instget(struct gk20a *g,
-	void *pboardobjgrppmu,
-	struct nv_pmu_boardobj_query **ppboardobjpmustatus, u8 idx)
-{
-	struct nv_pmu_volt_volt_device_boardobj_grp_get_status *pgrp_get_status
-		= (struct nv_pmu_volt_volt_device_boardobj_grp_get_status *)
-			pboardobjgrppmu;
-
-	/*check whether pmuboardobjgrp has a valid boardobj in index*/
-	if (((u32)BIT(idx) &
-		pgrp_get_status->hdr.data.super.obj_mask.super.data[0]) == 0U) {
-		return -EINVAL;
-	}
-
-	*ppboardobjpmustatus = (struct nv_pmu_boardobj_query *)
-			&pgrp_get_status->objects[idx].data.board_obj;
-	return 0;
-}
-
 static int volt_device_volt_cmp(const void *a, const void *b)
 {
 	const struct voltage_device_entry *a_entry;
@@ -583,7 +564,6 @@ int volt_dev_sw_setup(struct gk20a *g)
 	pboardobjgrp = &g->perf_pmu->volt.volt_dev_metadata.volt_devices.super;
 
 	pboardobjgrp->pmudatainstget  = _volt_device_devgrp_pmudata_instget;
-	pboardobjgrp->pmustatusinstget  = _volt_device_devgrp_pmustatus_instget;
 
 	/* Obtain Voltage Rail Table from VBIOS */
 	status = volt_get_volt_devices_table(g, &g->perf_pmu->volt.
@@ -596,16 +576,6 @@ int volt_dev_sw_setup(struct gk20a *g)
 	BOARDOBJGRP_PMU_CONSTRUCT(pboardobjgrp, VOLT, VOLT_DEVICE);
 
 	status = BOARDOBJGRP_PMU_CMD_GRP_SET_CONSTRUCT(g, pboardobjgrp,
-			volt, VOLT, volt_device, VOLT_DEVICE);
-	if (status != 0) {
-		nvgpu_err(g,
-			"error constructing PMU_BOARDOBJ_CMD_GRP_SET interface - 0x%x",
-			status);
-		goto done;
-	}
-
-	status = BOARDOBJGRP_PMU_CMD_GRP_GET_STATUS_CONSTRUCT(g,
-			&g->perf_pmu->volt.volt_dev_metadata.volt_devices.super,
 			volt, VOLT, volt_device, VOLT_DEVICE);
 	if (status != 0) {
 		nvgpu_err(g,
