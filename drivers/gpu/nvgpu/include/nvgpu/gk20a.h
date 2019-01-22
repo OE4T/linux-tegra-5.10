@@ -1283,7 +1283,7 @@ struct gpu_ops {
 		/* This function is inherently unsafe to call while
 		 *  arbiter is running arbiter must be blocked
 		 *  before calling this function */
-		int (*get_current_pstate)(struct gk20a *g);
+		u32 (*get_current_pstate)(struct gk20a *g);
 		void (*clk_arb_cleanup)(struct nvgpu_clk_arb *arb);
 	} clk_arb;
 	struct {

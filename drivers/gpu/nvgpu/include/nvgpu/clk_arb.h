@@ -338,7 +338,7 @@ int nvgpu_clk_arb_install_request_fd(struct gk20a *g,
 
 void nvgpu_clk_arb_schedule_vf_table_update(struct gk20a *g);
 
-int nvgpu_clk_arb_get_current_pstate(struct gk20a *g);
+u32 nvgpu_clk_arb_get_current_pstate(struct gk20a *g);
 
 void nvgpu_clk_arb_pstate_change_lock(struct gk20a *g, bool lock);
 

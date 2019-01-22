@@ -745,7 +745,7 @@ void nvgpu_clk_arb_schedule_vf_table_update(struct gk20a *g)
 /* This function is inherently unsafe to call while arbiter is running
  * arbiter must be blocked before calling this function
  */
-int nvgpu_clk_arb_get_current_pstate(struct gk20a *g)
+u32 nvgpu_clk_arb_get_current_pstate(struct gk20a *g)
 {
 	return NV_ACCESS_ONCE(g->clk_arb->actual->pstate);
 }
