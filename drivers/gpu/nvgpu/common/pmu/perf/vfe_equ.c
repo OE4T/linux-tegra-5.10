@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -95,7 +95,7 @@ int vfe_equ_sw_setup(struct gk20a *g)
 
 	BOARDOBJGRP_PMU_CONSTRUCT(pboardobjgrp, PERF, VFE_EQU);
 
-	status = BOARDOBJGRP_PMU_CMD_GRP_SET_PACK_CONSTRUCT(g, pboardobjgrp,
+	status = BOARDOBJGRP_PMU_CMD_GRP_SET_CONSTRUCT(g, pboardobjgrp,
 			perf, PERF, vfe_equ, VFE_EQU);
 	if (status != 0) {
 		nvgpu_err(g,

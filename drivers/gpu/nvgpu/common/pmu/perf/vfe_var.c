@@ -124,7 +124,7 @@ int vfe_var_sw_setup(struct gk20a *g)
 
 	BOARDOBJGRP_PMU_CONSTRUCT(pboardobjgrp, PERF, VFE_VAR);
 
-	status = BOARDOBJGRP_PMU_CMD_GRP_SET_PACK_CONSTRUCT(g, pboardobjgrp,
+	status = BOARDOBJGRP_PMU_CMD_GRP_SET_CONSTRUCT(g, pboardobjgrp,
 			perf, PERF, vfe_var, VFE_VAR);
 	if (status != 0) {
 		nvgpu_err(g,
@@ -142,7 +142,7 @@ int vfe_var_sw_setup(struct gk20a *g)
 		goto done;
 	}
 
-	status = BOARDOBJGRP_PMU_CMD_GRP_GET_STATUS_PACK_CONSTRUCT(g,
+	status = BOARDOBJGRP_PMU_CMD_GRP_GET_STATUS_CONSTRUCT(g,
 				&g->perf_pmu->vfe_varobjs.super.super,
 				perf, PERF, vfe_var, VFE_VAR);
 	if (status != 0) {

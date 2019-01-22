@@ -99,7 +99,6 @@ int clk_vf_point_sw_setup(struct gk20a *g)
 {
 	int status;
 	struct boardobjgrp *pboardobjgrp = NULL;
-	u32 ver = g->params.gpu_arch + g->params.gpu_impl;
 
 	nvgpu_log_info(g, " ");
 
@@ -115,48 +114,25 @@ int clk_vf_point_sw_setup(struct gk20a *g)
 
 	BOARDOBJGRP_PMU_CONSTRUCT(pboardobjgrp, CLK, CLK_VF_POINT);
 
-	if (ver == NVGPU_GPUID_TU104) {
-		status = BOARDOBJGRP_PMU_CMD_GRP_SET_CONSTRUCT_35(g, pboardobjgrp,
-				clk, CLK, clk_vf_point, CLK_VF_POINT);
-		if (status != 0) {
-			nvgpu_err(g,
-				"error constructing PMU_BOARDOBJ_CMD_GRP_SET interface - 0x%x",
-				status);
-			goto done;
-		}
-
-		status = BOARDOBJGRP_PMU_CMD_GRP_GET_STATUS_CONSTRUCT_35(g,
-					&g->clk_pmu->clk_vf_pointobjs.super.super,
-					clk, CLK, clk_vf_point, CLK_VF_POINT);
-		if (status != 0) {
-			nvgpu_err(g,
-				"error constructing PMU_BOARDOBJ_CMD_GRP_SET interface - 0x%x",
-				status);
-			goto done;
-		}
+	status = BOARDOBJGRP_PMU_CMD_GRP_SET_CONSTRUCT(g, pboardobjgrp,
+			clk, CLK, clk_vf_point, CLK_VF_POINT);
+	if (status != 0) {
+		nvgpu_err(g,
+			"error constructing PMU_BOARDOBJ_CMD_GRP_SET interface - 0x%x",
+			status);
+		goto done;
 	}
-	else {
-		status = BOARDOBJGRP_PMU_CMD_GRP_SET_CONSTRUCT(g, pboardobjgrp,
-				clk, CLK, clk_vf_point, CLK_VF_POINT);
-		if (status != 0) {
-			nvgpu_err(g,
-				"error constructing PMU_BOARDOBJ_CMD_GRP_SET interface - 0x%x",
-				status);
-			goto done;
-		}
 
-		nvgpu_err(g,"GV100 vf_point ss_offset %x", pboardobjgrp->pmu.set.super_surface_offset);
-
-		status = BOARDOBJGRP_PMU_CMD_GRP_GET_STATUS_CONSTRUCT(g,
-					&g->clk_pmu->clk_vf_pointobjs.super.super,
-					clk, CLK, clk_vf_point, CLK_VF_POINT);
-		if (status != 0) {
-			nvgpu_err(g,
-				"error constructing PMU_BOARDOBJ_CMD_GRP_SET interface - 0x%x",
-				status);
-			goto done;
-		}
+	status = BOARDOBJGRP_PMU_CMD_GRP_GET_STATUS_CONSTRUCT(g,
+			&g->clk_pmu->clk_vf_pointobjs.super.super,
+			clk, CLK, clk_vf_point, CLK_VF_POINT);
+	if (status != 0) {
+		nvgpu_err(g,
+			"error constructing PMU_BOARDOBJ_CMD_GRP_SET interface - 0x%x",
+			status);
+		goto done;
 	}
+
 	pboardobjgrp->pmudatainit = _clk_vf_points_pmudatainit;
 	pboardobjgrp->pmudatainstget  = _clk_vf_points_pmudata_instget;
 	pboardobjgrp->pmustatusinstget  = _clk_vf_points_pmustatus_instget;
