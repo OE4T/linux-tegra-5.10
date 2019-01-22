@@ -27,6 +27,7 @@
  * Unit requirement test specification unique IDs.
  */
 #define PD_CACHE_REQ1_UID		"6439202"
+#define PD_CACHE_REQ2_UID		"6898078"
 #define PAGE_TABLE_REQ1_UID		"6439094"
 
 #endif

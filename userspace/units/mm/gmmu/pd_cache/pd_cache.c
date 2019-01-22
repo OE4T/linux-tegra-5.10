@@ -561,12 +561,14 @@ static int test_pd_cache_fini(struct unit_module *m,
 
 /*
  * Requirement NVGPU-RQCD-68.C1
+ *
+ *   Valid/Invalid: The pd_cache does/does not allocate a suitable DMA'able
+ *                  buffer of memory.
+ *
  * Requirement NVGPU-RQCD-68.C2
  *
- * Valid/Invalid: The pd_cache does/does not allocate a suitable DMA'able
- *                buffer of memory.
- * Valid/Invalid: The allocated PD is/is not sufficiently aligned for use by
- *                the GMMU.
+ *   Valid/Invalid: The allocated PD is/is not sufficiently aligned for use by
+ *                  the GMMU.
  */
 static int test_pd_cache_valid_alloc(struct unit_module *m,
 				     struct gk20a *g, void *args)
@@ -629,7 +631,10 @@ fail:
 }
 
 /*
- * Ensure that we can efficiently pack N pd_size PDs into a page.
+ * Requirement NVGPU-RQCD-68.C3
+ *
+ *   C3: Valid/Invalid: 16 256B, 8 512B, etc, PDs can/cannot fit into a single
+ *                      page sized DMA allocation.
  */
 static int do_test_pd_cache_packing_size(struct unit_module *m, struct gk20a *g,
 					 struct vm_gk20a *vm, u32 pd_size)
@@ -684,17 +689,64 @@ cleanup:
 }
 
 /*
- * Requirement NVGPU-RQCD-68.C3
+ * Requirement NVGPU-RQCD-118.C1
  *
- * C3: Valid/Invalid: 16 256B, 8 512B, etc, PDs can/cannot fit into a single
- *                    page sized DMA allocation.
+ *   C1: Valid/Invalid: Previously allocated PD entries are/are not re-usable.
  */
-static int test_pd_cache_packing(struct unit_module *m,
-				 struct gk20a *g, void *args)
+static int do_test_pd_reusability(struct unit_module *m, struct gk20a *g,
+				  struct vm_gk20a *vm, u32 pd_size)
+{
+	int err = UNIT_SUCCESS;
+	u32 i;
+	u32 n = PAGE_SIZE / pd_size;
+	struct nvgpu_gmmu_pd pds[n];
+	struct nvgpu_posix_fault_inj *dma_fi =
+		nvgpu_dma_alloc_get_fault_injection();
+
+	nvgpu_posix_enable_fault_injection(dma_fi, true, 1);
+
+	for (i = 0U; i < n; i++) {
+		err = nvgpu_pd_alloc(vm, &pds[i], pd_size);
+		if (err) {
+			err = UNIT_FAIL;
+			goto cleanup;
+		}
+	}
+
+	/* Free all but one PD so that we ensure the page stays cached. */
+	for (i = 1U; i < n; i++) {
+		nvgpu_pd_free(vm, &pds[i]);
+	}
+
+	/* Re-alloc. Will get a -ENOMEM if another page is alloced. */
+	for (i = 1U; i < n; i++) {
+		err = nvgpu_pd_alloc(vm, &pds[i], pd_size);
+		if (err) {
+			err = UNIT_FAIL;
+			goto cleanup;
+		}
+	}
+
+cleanup:
+	n = i;
+
+	/* Really cleanup. */
+	for (i = 0U; i < n; i++) {
+		nvgpu_pd_free(vm, &pds[i]);
+	}
+
+	nvgpu_posix_enable_fault_injection(dma_fi, false, 0);
+	return err;
+}
+
+static int test_per_pd_size(struct unit_module *m,
+			    struct gk20a *g, void *args)
 {
 	int err;
 	u32 pd_size;
 	struct vm_gk20a vm;
+	int (*fn)(struct unit_module *m, struct gk20a *g,
+		  struct vm_gk20a *vm, u32 pd_size) = args;
 
 	err = init_pd_cache(m, g, &vm);
 	if (err != UNIT_SUCCESS) {
@@ -703,7 +755,7 @@ static int test_pd_cache_packing(struct unit_module *m,
 
 	pd_size = 256U; /* 256 bytes is the min PD size. */
 	while (pd_size < PAGE_SIZE) {
-		err = do_test_pd_cache_packing_size(m, g, &vm, pd_size);
+		err = fn(m, g, &vm, pd_size);
 		if (err) {
 			err = UNIT_FAIL;
 			goto cleanup;
@@ -742,7 +794,9 @@ struct unit_module_test pd_cache_tests[] = {
 	UNIT_TEST_REQ("NVGPU-RQCD-68.C1,2", PD_CACHE_REQ1_UID, "V4",
 		      valid_alloc,			test_pd_cache_valid_alloc, NULL),
 	UNIT_TEST_REQ("NVGPU-RQCD-68.C3",   PD_CACHE_REQ1_UID, "V4",
-		      pd_packing,			test_pd_cache_packing, NULL),
+		      pd_packing,			test_per_pd_size, do_test_pd_cache_packing_size),
+	UNIT_TEST_REQ("NVGPU-RQCD-118.C1",  PD_CACHE_REQ2_UID, "V3",
+		      pd_reusability,			test_per_pd_size, do_test_pd_reusability),
 
 	/*
 	 * Direct allocs.

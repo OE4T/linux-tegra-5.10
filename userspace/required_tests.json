@@ -489,6 +489,13 @@
         "unit": "pd_cache"
     },
     {
+        "test": "pd_reusability",
+        "req": "NVGPU-RQCD-118.C1",
+        "vc": "V3",
+        "uid": "6898078",
+        "unit": "pd_cache"
+    },
+    {
         "test": "valid_alloc",
         "req": "NVGPU-RQCD-68.C1,2",
         "vc": "V4",
