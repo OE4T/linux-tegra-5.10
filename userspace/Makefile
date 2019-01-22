@@ -51,6 +51,9 @@ INCLUDES= 				\
 	-I$(TWD)/../include/uapi	\
 	-I$(TWD)/include
 
+# This Makefile is only for host POSIX builds
+NVGPU_POSIX=1
+
 # Linuxy configs. We want these so that we can mirror builds from the actual
 # Linux kernel.
 include Makefile.configs
