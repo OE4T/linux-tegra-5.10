@@ -41,7 +41,7 @@ static int vfflatten_prog_1x_master(struct gk20a *g,
 				    struct clk_pmupstate *pclk,
 				    struct clk_prog_1x_master *p1xmaster,
 				    u8 clk_domain_idx, u16 *pfreqmaxlastmhz);
-static u32 vflookup_prog_1x_master(struct gk20a *g,
+static int vflookup_prog_1x_master(struct gk20a *g,
 				   struct clk_pmupstate *pclk,
 				   struct clk_prog_1x_master *p1xmaster,
 				   u8 *slave_clk_domain,
@@ -1474,7 +1474,7 @@ done:
 	return status;
 }
 
-static u32 vflookup_prog_1x_master
+static int vflookup_prog_1x_master
 (
 	struct gk20a *g,
 	struct clk_pmupstate *pclk,

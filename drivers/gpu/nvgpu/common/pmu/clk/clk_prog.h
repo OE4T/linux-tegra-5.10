@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2016-2018, NVIDIA CORPORATION.  All rights reserved.
+* Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
 *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -36,7 +36,7 @@ typedef int vf_flatten(struct gk20a *g, struct clk_pmupstate *pclk,
 			struct clk_prog_1x_master *p1xmaster,
 			u8 clk_domain_idx, u16 *pfreqmaxlastmhz);
 
-typedef u32 vf_lookup(struct gk20a *g, struct clk_pmupstate *pclk,
+typedef int vf_lookup(struct gk20a *g, struct clk_pmupstate *pclk,
 			struct clk_prog_1x_master *p1xmaster,
 			u8 *slave_clk_domain_idx, u16 *pclkmhz,
 			u32 *pvoltuv, u8 rail);
