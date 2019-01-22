@@ -53,6 +53,12 @@ int gk20a_init_pstate_support(struct gk20a *g)
 
 	nvgpu_log_fn(g, " ");
 
+	err = nvgpu_pmu_wait_ready(g);
+	if (err != 0) {
+		nvgpu_err(g, "PMU not ready to process pstate requests");
+		return err;
+	}
+
 	err = clk_init_pmupstate(g);
 	if (err != 0) {
 		return err;
@@ -193,12 +199,6 @@ int gk20a_init_pstate_pmu_support(struct gk20a *g)
 	int err;
 
 	nvgpu_log_fn(g, " ");
-
-	err = nvgpu_pmu_wait_ready(g);
-	if (err != 0) {
-		nvgpu_err(g, "PMU not ready to process pstate requests");
-		return err;
-	}
 
 	if (g->ops.clk.mclk_init != NULL) {
 		err = g->ops.clk.mclk_init(g);

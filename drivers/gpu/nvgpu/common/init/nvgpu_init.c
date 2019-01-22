@@ -321,15 +321,6 @@ int gk20a_finalize_poweron(struct gk20a *g)
 		}
 	}
 
-	if (nvgpu_is_enabled(g, NVGPU_PMU_PSTATE)) {
-		err = gk20a_init_pstate_support(g);
-		if (err != 0) {
-			nvgpu_err(g, "failed to init pstates");
-			nvgpu_mutex_release(&g->tpc_pg_lock);
-			goto done;
-		}
-	}
-
 	if (g->acr.bootstrap_hs_acr != NULL &&
 		nvgpu_is_enabled(g, NVGPU_SEC_PRIVSECURITY)) {
 		err = g->acr.bootstrap_hs_acr(g, &g->acr, &g->acr.acr);
@@ -368,6 +359,13 @@ int gk20a_finalize_poweron(struct gk20a *g)
 	nvgpu_mutex_release(&g->tpc_pg_lock);
 
 	if (nvgpu_is_enabled(g, NVGPU_PMU_PSTATE)) {
+		err = gk20a_init_pstate_support(g);
+		if (err != 0) {
+			nvgpu_err(g, "failed to init pstates");
+			nvgpu_mutex_release(&g->tpc_pg_lock);
+			goto done;
+		}
+
 		err = gk20a_init_pstate_pmu_support(g);
 		if (err != 0) {
 			nvgpu_err(g, "failed to init pstates");
