@@ -117,7 +117,6 @@ srcs += common/sim.c \
 	common/io_common.c \
 	common/ecc.c \
 	common/ce2.c \
-	common/debugger.c \
 	common/vbios/bios.c \
 	common/falcon/falcon.c \
 	common/falcon/falcon_queue.c \
@@ -309,3 +308,7 @@ srcs += common/sim.c \
 	vgpu/gp10b/vgpu_mm_gp10b.c \
 	vgpu/gp10b/vgpu_gr_gp10b.c \
 	vgpu/gm20b/vgpu_gr_gm20b.c
+
+ifeq ($(NVGPU_DEBUGGER),1)
+srcs += common/debugger.c
+endif

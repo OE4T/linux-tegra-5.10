@@ -160,3 +160,10 @@ config NVGPU_SUPPORT_TURING
 	default y
 	help
 	  Support for NVIDIA Turing family of GPU
+
+config NVGPU_DEBUGGER
+	bool "Support debugger APIs"
+	depends on GK20A
+	default y
+	help
+	  Support for debugger APIs

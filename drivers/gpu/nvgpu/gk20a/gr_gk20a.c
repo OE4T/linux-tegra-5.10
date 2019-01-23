@@ -5477,11 +5477,13 @@ int gk20a_gr_isr(struct gk20a *g)
 				need_reset = true;
 			}
 
+#ifdef NVGPU_DEBUGGER
 			/* signal clients waiting on an event */
 			if (g->ops.gr.sm_debugger_attached(g) &&
 				post_event && (fault_ch != NULL)) {
 				g->ops.debugger.post_events(fault_ch);
 			}
+#endif
 		}
 
 		gk20a_writel(g, gr_intr_r(), gr_intr_exception_reset_f());

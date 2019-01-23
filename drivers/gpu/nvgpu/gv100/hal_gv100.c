@@ -965,6 +965,7 @@ static const struct gpu_ops gv100_ops = {
 	.debug = {
 		.show_dump = gk20a_debug_show_dump,
 	},
+#ifdef NVGPU_DEBUGGER
 	.debugger = {
 		.post_events = nvgpu_dbg_gpu_post_events,
 		.dbg_set_powergate = nvgpu_dbg_set_powergate,
@@ -975,6 +976,7 @@ static const struct gpu_ops gv100_ops = {
 		.release_profiler_reservation =
 			nvgpu_release_profiler_reservation,
 	},
+#endif
 	.perf = {
 		.enable_membuf = gv11b_perf_enable_membuf,
 		.disable_membuf = gv11b_perf_disable_membuf,
@@ -1154,7 +1156,9 @@ int gv100_init_hal(struct gk20a *g)
 	gops->regops = gv100_ops.regops;
 	gops->mc = gv100_ops.mc;
 	gops->debug = gv100_ops.debug;
+#ifdef NVGPU_DEBUGGER
 	gops->debugger = gv100_ops.debugger;
+#endif
 	gops->perf = gv100_ops.perf;
 	gops->perfbuf = gv100_ops.perfbuf;
 	gops->bus = gv100_ops.bus;

@@ -17,6 +17,10 @@ endif
 # Turn off when this is fixed upstream, if ever.
 ccflags-y += -D__NVGPU_PREVENT_UNTRUSTED_SPECULATION
 
+ifeq ($(CONFIG_NVGPU_DEBUGGER),y)
+ccflags-y += -DNVGPU_DEBUGGER
+endif
+
 obj-$(CONFIG_GK20A) := nvgpu.o
 
 # OS independent parts of nvgpu. The work to collect files here

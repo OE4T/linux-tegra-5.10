@@ -692,6 +692,7 @@ static const struct gpu_ops gm20b_ops = {
 	.debug = {
 		.show_dump = gk20a_debug_show_dump,
 	},
+#ifdef NVGPU_DEBUGGER
 	.debugger = {
 		.post_events = nvgpu_dbg_gpu_post_events,
 		.dbg_set_powergate = nvgpu_dbg_set_powergate,
@@ -702,6 +703,7 @@ static const struct gpu_ops gm20b_ops = {
 		.release_profiler_reservation =
 			nvgpu_release_profiler_reservation,
 	},
+#endif
 	.perf = {
 		.enable_membuf = gm20b_perf_enable_membuf,
 		.disable_membuf = gm20b_perf_disable_membuf,
@@ -814,7 +816,9 @@ int gm20b_init_hal(struct gk20a *g)
 	gops->perf = gm20b_ops.perf;
 	gops->perfbuf = gm20b_ops.perfbuf;
 	gops->debug = gm20b_ops.debug;
+#ifdef NVGPU_DEBUGGER
 	gops->debugger = gm20b_ops.debugger;
+#endif
 	gops->bus = gm20b_ops.bus;
 	gops->ptimer = gm20b_ops.ptimer;
 #if defined(CONFIG_GK20A_CYCLE_STATS)

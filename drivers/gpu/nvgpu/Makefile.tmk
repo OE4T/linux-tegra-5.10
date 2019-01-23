@@ -32,6 +32,7 @@ NVGPU_NEXT_SOURCE := \
 		$(NV_COMPONENT_DIR)/../../../../nvgpu-next/drivers/gpu/nvgpu
 
 NVGPU_POSIX			:= -D__NVGPU_POSIX__
+NVGPU_REDUCED			:= 1
 
 NV_COMPONENT_NAME		:= nvgpu-drv
 NV_COMPONENT_OWN_INTERFACE_DIR	:= .
@@ -58,6 +59,12 @@ NV_COMPONENT_CFLAGS            	+= \
 	-DCONFIG_GK20A_VIDMEM=1 \
 	-DCONFIG_PCI_MSI \
 	-DCONFIG_TEGRA_NVLINK
+
+ifeq ($(NVGPU_REDUCED), 0)
+# Enable debugger APIs for normal builds
+NVGPU_DEBUGGER                  := 1
+NV_COMPONENT_CFLAGS             += -DNVGPU_DEBUGGER
+endif
 
 _NV_TOOLCHAIN_CFLAGS            += -rdynamic -g
 

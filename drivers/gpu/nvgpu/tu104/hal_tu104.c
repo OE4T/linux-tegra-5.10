@@ -1004,6 +1004,7 @@ static const struct gpu_ops tu104_ops = {
 	.debug = {
 		.show_dump = gk20a_debug_show_dump,
 	},
+#ifdef NVGPU_DEBUGGER
 	.debugger = {
 		.post_events = nvgpu_dbg_gpu_post_events,
 		.dbg_set_powergate = nvgpu_dbg_set_powergate,
@@ -1014,6 +1015,7 @@ static const struct gpu_ops tu104_ops = {
 		.release_profiler_reservation =
 			nvgpu_release_profiler_reservation,
 	},
+#endif
 	.perf = {
 		.enable_membuf = gv11b_perf_enable_membuf,
 		.disable_membuf = gv11b_perf_disable_membuf,
@@ -1188,7 +1190,9 @@ int tu104_init_hal(struct gk20a *g)
 	gops->regops = tu104_ops.regops;
 	gops->mc = tu104_ops.mc;
 	gops->debug = tu104_ops.debug;
+#ifdef NVGPU_DEBUGGER
 	gops->debugger = tu104_ops.debugger;
+#endif
 	gops->perf = tu104_ops.perf;
 	gops->perfbuf = tu104_ops.perfbuf;
 	gops->bus = tu104_ops.bus;

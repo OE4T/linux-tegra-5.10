@@ -1341,6 +1341,7 @@ struct gpu_ops {
 		void (*show_dump)(struct gk20a *g,
 				struct gk20a_debug_output *o);
 	} debug;
+#ifdef NVGPU_DEBUGGER
 	struct {
 		void (*post_events)(struct channel_gk20a *ch);
 		int (*dbg_set_powergate)(struct dbg_session_gk20a *dbg_s,
@@ -1355,6 +1356,7 @@ struct gpu_ops {
 				struct dbg_session_gk20a *dbg_s,
 				struct dbg_profiler_object_data *prof_obj);
 	} debugger;
+#endif
 	struct {
 		void (*enable_membuf)(struct gk20a *g, u32 size,
 			u64 buf_addr, struct nvgpu_mem *inst_block);

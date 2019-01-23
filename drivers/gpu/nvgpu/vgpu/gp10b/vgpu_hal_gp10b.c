@@ -581,6 +581,7 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 	.debug = {
 		.show_dump = NULL,
 	},
+#ifdef NVGPU_DEBUGGER
 	.debugger = {
 		.post_events = nvgpu_dbg_gpu_post_events,
 		.dbg_set_powergate = vgpu_dbg_set_powergate,
@@ -591,6 +592,7 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 		.release_profiler_reservation =
 			vgpu_release_profiler_reservation,
 	},
+#endif
 	.perfbuf = {
 		.perfbuf_enable = vgpu_perfbuffer_enable,
 		.perfbuf_disable = vgpu_perfbuffer_disable,
@@ -676,7 +678,9 @@ int vgpu_gp10b_init_hal(struct gk20a *g)
 	gops->regops = vgpu_gp10b_ops.regops;
 	gops->mc = vgpu_gp10b_ops.mc;
 	gops->debug = vgpu_gp10b_ops.debug;
+#ifdef NVGPU_DEBUGGER
 	gops->debugger = vgpu_gp10b_ops.debugger;
+#endif
 	gops->perfbuf = vgpu_gp10b_ops.perfbuf;
 	gops->bus = vgpu_gp10b_ops.bus;
 	gops->ptimer = vgpu_gp10b_ops.ptimer;

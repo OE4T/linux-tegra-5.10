@@ -2232,6 +2232,7 @@ void gr_gv11b_get_access_map(struct gk20a *g,
 	*num_entries = (int)array_size;
 }
 
+#ifdef NVGPU_DEBUGGER
 static int gr_gv11b_handle_warp_esr_error_mmu_nack(struct gk20a *g,
 	u32 gpc, u32 tpc, u32 sm,
 	u32 warp_esr_error,
@@ -2398,6 +2399,7 @@ static int gr_gv11b_handle_all_warp_esr_errors(struct gk20a *g,
 	/* return error so that recovery is triggered by gk20a_gr_isr() */
 	return -EFAULT;
 }
+#endif
 
 /* @brief pre-process work on the SM exceptions to determine if we clear them or not.
  *
@@ -2408,12 +2410,9 @@ int gr_gv11b_pre_process_sm_exception(struct gk20a *g,
 		bool sm_debugger_attached, struct channel_gk20a *fault_ch,
 		bool *early_exit, bool *ignore_debugger)
 {
+#ifdef NVGPU_DEBUGGER
 	int ret;
 	bool cilp_enabled = false;
-	u32 global_mask = 0, dbgr_control0, global_esr_copy;
-	u32 offset = gk20a_gr_gpc_offset(g, gpc) +
-			gk20a_gr_tpc_offset(g, tpc) +
-			gv11b_gr_sm_offset(g, sm);
 	u32 warp_esr_error = gr_gpc0_tpc0_sm0_hww_warp_esr_error_v(warp_esr);
 	struct tsg_gk20a *tsg;
 
@@ -2454,6 +2453,11 @@ int gr_gv11b_pre_process_sm_exception(struct gk20a *g,
 			gpc, tpc, sm, global_esr);
 
 	if (cilp_enabled && sm_debugger_attached) {
+		u32 global_mask = 0, dbgr_control0, global_esr_copy;
+		u32 offset = gk20a_gr_gpc_offset(g, gpc) +
+				gk20a_gr_tpc_offset(g, tpc) +
+				gv11b_gr_sm_offset(g, sm);
+
 		if ((global_esr &
 		     gr_gpc0_tpc0_sm0_hww_global_esr_bpt_int_pending_f()) != 0U) {
 			gk20a_writel(g, gr_gpc0_tpc0_sm0_hww_global_esr_r() + offset,
@@ -2538,6 +2542,7 @@ int gr_gv11b_pre_process_sm_exception(struct gk20a *g,
 
 		*early_exit = true;
 	}
+#endif
 	return 0;
 }
 

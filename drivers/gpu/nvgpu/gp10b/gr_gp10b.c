@@ -1705,12 +1705,8 @@ int gr_gp10b_pre_process_sm_exception(struct gk20a *g,
 		bool sm_debugger_attached, struct channel_gk20a *fault_ch,
 		bool *early_exit, bool *ignore_debugger)
 {
-	int ret;
+#ifdef NVGPU_DEBUGGER
 	bool cilp_enabled = false;
-	u32 global_mask = 0, dbgr_control0, global_esr_copy;
-	u32 gpc_stride = nvgpu_get_litter_value(g, GPU_LIT_GPC_STRIDE);
-	u32 tpc_in_gpc_stride = nvgpu_get_litter_value(g, GPU_LIT_TPC_IN_GPC_STRIDE);
-	u32 offset = gpc_stride * gpc + tpc_in_gpc_stride * tpc;
 	struct tsg_gk20a *tsg;
 
 	*early_exit = false;
@@ -1730,6 +1726,12 @@ int gr_gp10b_pre_process_sm_exception(struct gk20a *g,
 			gpc, tpc, global_esr);
 
 	if (cilp_enabled && sm_debugger_attached) {
+		u32 gpc_stride = nvgpu_get_litter_value(g, GPU_LIT_GPC_STRIDE);
+		u32 tpc_in_gpc_stride = nvgpu_get_litter_value(g, GPU_LIT_TPC_IN_GPC_STRIDE);
+		u32 offset = gpc_stride * gpc + tpc_in_gpc_stride * tpc;
+		u32 global_mask = 0, dbgr_control0, global_esr_copy;
+		int ret;
+
 		if ((global_esr & gr_gpc0_tpc0_sm_hww_global_esr_bpt_int_pending_f()) != 0U) {
 			gk20a_writel(g, gr_gpc0_tpc0_sm_hww_global_esr_r() + offset,
 					gr_gpc0_tpc0_sm_hww_global_esr_bpt_int_pending_f());
@@ -1806,6 +1808,7 @@ int gr_gp10b_pre_process_sm_exception(struct gk20a *g,
 
 		*early_exit = true;
 	}
+#endif
 	return 0;
 }
 
@@ -1886,8 +1889,10 @@ int gr_gp10b_handle_fecs_error(struct gk20a *g,
 			goto clean_up;
 		}
 
+#ifdef NVGPU_DEBUGGER
 		/* Post events to UMD */
 		g->ops.debugger.post_events(ch);
+#endif
 
 		tsg = &g->fifo.tsg[ch->tsgid];
 
