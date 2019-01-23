@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2018, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -38,6 +38,7 @@
 #include "gpmuiftherm.h"
 #include "gpmuifthermsensor.h"
 #include "gpmuifseq.h"
+#include "gpmu_super_surf_if.h"
 
 /*
  * Command requesting execution of the RPC (Remote Procedure Call)
@@ -138,54 +139,5 @@ struct pmu_msg {
 
 #define PMU_UNIT_ID_IS_VALID(id)		\
 		(((id) < PMU_UNIT_END) || ((id) >= PMU_UNIT_TEST_START))
-
-/*
- * PMU Command structures for FB queue
- */
-
-/* Size of a single element in the CMD queue. */
-#define NV_PMU_FBQ_CMD_ELEMENT_SIZE		2048U
-
-/* Number of elements in each queue. */
-#define NV_PMU_FBQ_CMD_NUM_ELEMENTS		16U
-
-/* Total number of CMD queues. */
-#define NV_PMU_FBQ_CMD_COUNT		2U
-
-/* Size of a single element in the MSG queue. */
-#define NV_PMU_FBQ_MSG_ELEMENT_SIZE		64U
-
-/* Number of elements in each queue. */
-#define NV_PMU_FBQ_MSG_NUM_ELEMENTS		16U
-
-/* Single MSG (response) queue. */
-#define NV_PMU_FBQ_MSG_COUNT		1U
-
-/* structure for a single PMU FB CMD queue entry */
-struct nv_pmu_fbq_cmd_q_element {
-	struct nv_falcon_fbq_hdr fbq_hdr;
-	u8 data[NV_PMU_FBQ_CMD_ELEMENT_SIZE -
-			sizeof(struct nv_falcon_fbq_hdr)];
-};
-
-/* structure for a single PMU FB MSG queue entry */
-struct nv_pmu_fbq_msg_q_element {
-	u8 data[NV_PMU_FBQ_MSG_ELEMENT_SIZE];
-};
-
-/* structure for a single FB CMD queue */
-struct nv_pmu_fbq_cmd_queue {
-	struct nv_pmu_fbq_cmd_q_element element[NV_PMU_FBQ_CMD_NUM_ELEMENTS];
-};
-
-/* structure for a set of FB CMD queue */
-struct nv_pmu_fbq_cmd_queues {
-	struct nv_pmu_fbq_cmd_queue queue[NV_PMU_FBQ_CMD_COUNT];
-};
-
-/* structure for a single FB MSG queue */
-struct nv_pmu_fbq_msg_queue {
-	struct nv_pmu_fbq_msg_q_element element[NV_PMU_FBQ_MSG_NUM_ELEMENTS];
-};
 
 #endif /* NVGPU_PMUIF_NVGPU_GPMU_CMDIF_H*/

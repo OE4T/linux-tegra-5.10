@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2018, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -117,18 +117,5 @@ typedef u8 flcn_status;
 #define ALIGN_UP(v, gran)       (((v) + ((gran) - 1U)) & ~((gran)-1U))
 
 #define NV_UNSIGNED_ROUNDED_DIV(a, b)    (((a) + ((b) / 2U)) / (b))
-
-/* FB queue support interfaces */
-/* Header for a FBQ qntry */
-struct nv_falcon_fbq_hdr {
-	/* Element this CMD will use in the FB CMD Q. */
-	u8    element_index;
-	/* Pad bytes to keep 4 byte alignment. */
-	u8    padding[3];
-	/* Size of allocation in nvgpu managed heap. */
-	u16   heap_size;
-	/* Heap location this CMD will use in the nvgpu managed heap. */
-	u16   heap_offset;
-};
 
 #endif /* NVGPU_FLCNIF_CMN_H */
