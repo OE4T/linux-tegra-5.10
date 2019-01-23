@@ -177,4 +177,6 @@ void nvgpu_gr_ctx_patch_write(struct gk20a *g,
 	struct nvgpu_gr_ctx *gr_ctx,
 	u32 addr, u32 data, bool patch);
 
+u32 nvgpu_gr_ctx_get_ctx_id(struct gk20a *g, struct nvgpu_gr_ctx *gr_ctx);
+
 #endif /* NVGPU_INCLUDE_GR_CTX_H */

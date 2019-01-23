@@ -1058,8 +1058,6 @@ int gr_gp10b_init_ctxsw_preemption_mode(struct gk20a *g,
 
 	nvgpu_log_fn(g, " ");
 
-	gr_ctx->ctx_id_valid = false;
-
 	if ((flags & NVGPU_OBJ_CTX_FLAGS_SUPPORT_GFXP) != 0U) {
 		graphics_preempt_mode = NVGPU_PREEMPTION_MODE_GRAPHICS_GFXP;
 	}
@@ -1634,21 +1632,13 @@ int gr_gp10b_set_cilp_preempt_pending(struct gk20a *g,
 		return 0;
 	}
 
-	/* get ctx_id from the ucode image */
-	if (!gr_ctx->ctx_id_valid) {
-		nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gpu_dbg | gpu_dbg_intr,
-				"CILP: looking up ctx id");
-		gr_ctx->ctx_id = gr_gk20a_get_ctx_id(g, &gr_ctx->mem);
-		gr_ctx->ctx_id_valid = true;
-	}
-
 	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gpu_dbg | gpu_dbg_intr,
 			"CILP: ctx id is 0x%x", gr_ctx->ctx_id);
 
 	/* send ucode method to set ctxsw interrupt */
 	ret = gr_gk20a_submit_fecs_sideband_method_op(g,
 			(struct fecs_method_op_gk20a) {
-			.method.data = gr_ctx->ctx_id,
+			.method.data = nvgpu_gr_ctx_get_ctx_id(g, gr_ctx),
 			.method.addr =
 			gr_fecs_method_push_adr_configure_interrupt_completion_option_v(),
 			.mailbox = {

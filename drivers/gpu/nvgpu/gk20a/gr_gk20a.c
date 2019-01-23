@@ -81,22 +81,6 @@ static int gk20a_init_gr_bind_fecs_elpg(struct gk20a *g);
 /*elcg init */
 static void gr_gk20a_enable_elcg(struct gk20a *g);
 
-u32 gr_gk20a_get_ctx_id(struct gk20a *g, struct nvgpu_mem *ctx_mem)
-{
-	/* Initialize ctx_id to invalid value */
-	u32 ctx_id = 0;
-
-	/* Channel gr_ctx buffer is gpu cacheable.
-	   Flush and invalidate before cpu update. */
-	if (g->ops.mm.l2_flush(g, true) != 0) {
-		nvgpu_err(g, "l2_flush failed");
-	} else {
-		ctx_id = g->ops.gr.ctxsw_prog.get_main_image_ctx_id(g, ctx_mem);
-		nvgpu_log(g, gpu_dbg_fn | gpu_dbg_intr, "ctx_id: 0x%x", ctx_id);
-	}
-	return ctx_id;
-}
-
 void gk20a_fecs_dump_falcon_stats(struct gk20a *g)
 {
 	unsigned int i;

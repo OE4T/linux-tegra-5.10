@@ -80,6 +80,8 @@ int nvgpu_gr_ctx_alloc(struct gk20a *g,
 		goto err_free_mem;
 	}
 
+	gr_ctx->ctx_id_valid = false;
+
 	return 0;
 
 err_free_mem:
@@ -590,4 +592,23 @@ void nvgpu_gr_ctx_patch_write(struct gk20a *g,
 	} else {
 		nvgpu_writel(g, addr, data);
 	}
+}
+
+u32 nvgpu_gr_ctx_get_ctx_id(struct gk20a *g, struct nvgpu_gr_ctx *gr_ctx)
+{
+	if (!gr_ctx->ctx_id_valid) {
+		/* Channel gr_ctx buffer is gpu cacheable.
+		   Flush and invalidate before cpu update. */
+		if (g->ops.mm.l2_flush(g, true) != 0) {
+			nvgpu_err(g, "l2_flush failed");
+		}
+
+		gr_ctx->ctx_id = g->ops.gr.ctxsw_prog.get_main_image_ctx_id(g,
+					&gr_ctx->mem);
+		gr_ctx->ctx_id_valid = true;
+	}
+
+	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_intr, "ctx_id: 0x%x", gr_ctx->ctx_id);
+
+	return gr_ctx->ctx_id;
 }
