@@ -93,9 +93,10 @@ static struct host1x_device_info host1x04_info = {
 		"guest",
 		"hypervisor",
 		"actmon",
-		"sem-syncpt-shim"
+		"sem-syncpt-shim",
+		"common"
 	},
-	.nb_resources	= 4,
+	.nb_resources	= 5,
 	.secure_cmdfifo = true,
 };
 
@@ -683,7 +684,7 @@ static void t23x_init_gating_regs(struct platform_device *pdev, bool prod)
 	while (cg_regs->addr) {
 		u32 val = prod ? cg_regs->prod : cg_regs->disable;
 
-		host1x_hypervisor_writel(pdev, cg_regs->addr, val);
+		host1x_common_writel(pdev, cg_regs->addr, val);
 		cg_regs++;
 	}
 

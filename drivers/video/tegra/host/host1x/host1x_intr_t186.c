@@ -325,7 +325,7 @@ static void intr_resume(struct nvhost_intr *intr)
 	/* increase the auto-ack timout to the maximum value. 2d will hang
 	 * otherwise on ap20.
 	 */
-	host1x_hypervisor_writel(dev->dev,
+	host1x_common_writel(dev->dev,
 			host1x_sync_ctxsw_timeout_cfg_r(), 0xff);
 
 	/* enable graphics host syncpoint interrupt */

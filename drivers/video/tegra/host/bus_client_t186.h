@@ -23,6 +23,8 @@ enum host1x_aperture_e {
 	HOST1X_VM_APERTURE = 0,
 	HOST1X_HYPERVISOR_APERTURE = 1,
 	HOST1X_ACTMON_APERTURE = 2,
+	HOST1X_SYNCPT_SHIM_APERTURE = 3,
+	HOST1X_COMMON_APERTURE = 4
 };
 
 static inline
@@ -39,6 +41,47 @@ void host1x_hypervisor_writel(struct platform_device *pdev, u32 r, u32 v)
 static inline u32 host1x_hypervisor_readl(struct platform_device *pdev, u32 r)
 {
 	void __iomem *aperture = get_aperture(pdev, HOST1X_HYPERVISOR_APERTURE);
+	u32 v = 0;
+
+	if (aperture) {
+		nvhost_dbg(dbg_reg, " d=%s r=0x%x", pdev->name, r);
+		v = readl(aperture + r);
+		nvhost_dbg(dbg_reg, " d=%s r=0x%x v=0x%x", pdev->name, r, v);
+	}
+
+	return v;
+}
+
+static inline void __iomem *get_common_aperture(struct platform_device *pdev)
+{
+	void __iomem *aperture;
+	struct nvhost_device_data *pdata = platform_get_drvdata(pdev);
+	struct nvhost_master *host = nvhost_get_host(pdata->pdev);
+
+	if (host->info.nb_resources > HOST1X_COMMON_APERTURE) {
+		aperture = get_aperture(pdev, HOST1X_COMMON_APERTURE);
+	} else {
+		/* no common region try using hyp */
+		aperture = get_aperture(pdev, HOST1X_HYPERVISOR_APERTURE);
+	}
+
+	return aperture;
+}
+
+static inline
+void host1x_common_writel(struct platform_device *pdev, u32 r, u32 v)
+{
+	void __iomem *aperture = get_common_aperture(pdev);
+
+	if (aperture) {
+		nvhost_dbg(dbg_reg, " d=%s r=0x%x v=0x%x", pdev->name, r, v);
+		writel(v, aperture + r);
+	}
+}
+
+static inline u32 host1x_common_readl(struct platform_device *pdev, u32 r)
+{
+	void __iomem *aperture = get_common_aperture(pdev);
 	u32 v = 0;
 
 	if (aperture) {
