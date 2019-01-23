@@ -288,7 +288,7 @@ int nvgpu_gr_ctx_alloc_ctxsw_buffers(struct gk20a *g,
 	if (gr_ctx_desc->size[NVGPU_GR_CTX_GFXP_RTVCB_CTXSW] != 0U) {
 		err = nvgpu_gr_ctx_alloc_ctxsw_buffer(vm,
 			gr_ctx_desc->size[NVGPU_GR_CTX_GFXP_RTVCB_CTXSW],
-			&gr_ctx->pagepool_ctxsw_buffer);
+			&gr_ctx->gfxp_rtvcb_ctxsw_buffer);
 		if (err != 0) {
 			nvgpu_err(g, "cannot allocate gfxp rtvcb");
 			goto fail_free_pagepool;
