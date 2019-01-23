@@ -634,18 +634,9 @@ int gr_gk20a_fecs_ctx_bind_channel(struct gk20a *g,
 static int gr_gk20a_ctx_zcull_setup(struct gk20a *g, struct channel_gk20a *c,
 		struct nvgpu_gr_ctx *gr_ctx)
 {
-	struct nvgpu_mem *mem = NULL;
 	int ret = 0;
 
 	nvgpu_log_fn(g, " ");
-
-	mem = &gr_ctx->mem;
-
-	if (gr_ctx->zcull_ctx.gpu_va == 0ULL &&
-	    g->ops.gr.ctxsw_prog.is_zcull_mode_separate_buffer(
-			gr_ctx->zcull_ctx.ctx_sw_mode)) {
-		return -EINVAL;
-	}
 
 	ret = gk20a_disable_channel_tsg(g, c);
 	if (ret != 0) {
@@ -659,14 +650,13 @@ static int gr_gk20a_ctx_zcull_setup(struct gk20a *g, struct channel_gk20a *c,
 		return ret;
 	}
 
-	g->ops.gr.ctxsw_prog.set_zcull(g, mem, gr_ctx->zcull_ctx.ctx_sw_mode);
-
 	if (c->subctx != NULL) {
-		g->ops.gr.ctxsw_prog.set_zcull_ptr(g, &c->subctx->ctx_header,
-			gr_ctx->zcull_ctx.gpu_va);
+		ret = nvgpu_gr_ctx_zcull_setup(g, gr_ctx, false);
+		if (ret == 0) {
+			nvgpu_gr_subctx_zcull_setup(g, c->subctx, gr_ctx);
+		}
 	} else {
-		g->ops.gr.ctxsw_prog.set_zcull_ptr(g, mem,
-			gr_ctx->zcull_ctx.gpu_va);
+		ret = nvgpu_gr_ctx_zcull_setup(g, gr_ctx, true);
 	}
 
 	gk20a_enable_channel_tsg(g, c);

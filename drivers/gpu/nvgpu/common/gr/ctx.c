@@ -612,3 +612,25 @@ u32 nvgpu_gr_ctx_get_ctx_id(struct gk20a *g, struct nvgpu_gr_ctx *gr_ctx)
 
 	return gr_ctx->ctx_id;
 }
+
+int nvgpu_gr_ctx_zcull_setup(struct gk20a *g, struct nvgpu_gr_ctx *gr_ctx,
+	bool set_zcull_ptr)
+{
+	nvgpu_log_fn(g, " ");
+
+	if (gr_ctx->zcull_ctx.gpu_va == 0ULL &&
+	    g->ops.gr.ctxsw_prog.is_zcull_mode_separate_buffer(
+			gr_ctx->zcull_ctx.ctx_sw_mode)) {
+		return -EINVAL;
+	}
+
+	g->ops.gr.ctxsw_prog.set_zcull(g, &gr_ctx->mem,
+		gr_ctx->zcull_ctx.ctx_sw_mode);
+
+	if (set_zcull_ptr) {
+		g->ops.gr.ctxsw_prog.set_zcull_ptr(g, &gr_ctx->mem,
+			gr_ctx->zcull_ctx.gpu_va);
+	}
+
+	return 0;
+}
