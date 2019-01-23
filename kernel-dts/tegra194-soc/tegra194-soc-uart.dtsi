@@ -181,8 +181,8 @@
 #else
 	combined-uart {
 		compatible = "nvidia,tegra194-tcu";
-		mboxes = <&hsp_top TEGRA_HSP_MBOX_TYPE_SM 0>,
-			<&aon_hsp TEGRA_HSP_MBOX_TYPE_SM 1>;
+		mboxes = <&hsp_top TEGRA_HSP_MBOX_TYPE_SM TEGRA_HSP_SM_RX(0)>,
+			<&aon_hsp TEGRA_HSP_MBOX_TYPE_SM TEGRA_HSP_SM_TX(1)>;
 		mbox-names = "rx", "tx";
 		status = "disabled";
 	};
