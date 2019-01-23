@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -24,10 +24,8 @@
 
 #ifdef __KERNEL__
 #include <linux/bug.h>
-#elif defined(__NVGPU_POSIX__)
-#include <nvgpu/posix/bug.h>
 #else
-#include <nvgpu_rmos/include/bug.h>
+#include <nvgpu/posix/bug.h>
 #endif
 
 /*

@@ -25,7 +25,6 @@ srcs :=
 ifdef NVGPU_POSIX
 srcs +=	os/posix/nvgpu.c \
 	os/posix/bitmap.c \
-	os/posix/bug.c \
 	os/posix/log.c \
 	os/posix/kmem.c \
 	os/posix/io.c \
@@ -57,6 +56,9 @@ else
 # Causes duplicate file name if included
 srcs +=	common/nvlink/nvlink.c
 endif
+
+# POSIX sources shared between the POSIX and QNX builds.
+srcs += os/posix/bug.c \
 
 srcs += common/sim.c \
 	common/sim_pci.c \
