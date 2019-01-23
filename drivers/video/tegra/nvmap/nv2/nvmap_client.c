@@ -3,7 +3,7 @@
  *
  * Handle allocation and freeing routines for nvmap
  *
- * Copyright (c) 2009-2018, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2009-2019, NVIDIA CORPORATION. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -29,10 +29,15 @@
 #include <linux/nvmap.h>
 #include <linux/slab.h>
 #include <soc/tegra/chip-id.h>
+#include <linux/version.h>
 
 #include <asm/pgtable.h>
 
 #include <trace/events/nvmap.h>
+
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 14, 0)
+#include <linux/sched/task.h>
+#endif
 
 #include "nvmap_handle_ref.h"
 #include "nvmap_handle.h"
@@ -542,7 +547,6 @@ static int procrank_pte_entry(pte_t *pte, unsigned long addr, unsigned long end,
 
 	return 0;
 }
-
 
 void nvmap_client_calc_iovmm_mss(struct nvmap_client *client, u64 *pss,
 				   u64 *total)

@@ -3,7 +3,7 @@
  *
  * Memory manager for Tegra GPU
  *
- * Copyright (c) 2009-2018, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2009-2019, NVIDIA CORPORATION. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -32,6 +32,7 @@
 #include "nvmap_dev.h"
 #include "nvmap_misc.h"
 #include "nvmap_carveout.h"
+#include "nvmap_cache.h"
 
 pgprot_t nvmap_handle_pgprot(struct nvmap_handle *h, pgprot_t prot)
 {

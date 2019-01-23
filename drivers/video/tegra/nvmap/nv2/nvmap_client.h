@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2018-2019, NVIDIA CORPORATION. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -61,5 +61,8 @@ void nvmap_client_calc_iovmm_mss(struct nvmap_client *client, u64 *pss,
 
 struct nvmap_client *nvmap_client_from_list(struct list_head *n);
 void nvmap_client_del_list(struct nvmap_client *client);
+
+struct mm_struct *mm_access(struct task_struct *task, unsigned int mode);
+void mmput(struct mm_struct *mm);
 
 #endif /* __NVMAP_CLIENT_H */

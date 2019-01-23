@@ -1,7 +1,7 @@
 /*
  * drivers/video/tegra/nvmap/nvmap_fault.c
  *
- * Copyright (c) 2011-2018, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2011-2019, NVIDIA CORPORATION. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -147,7 +147,6 @@ static int nvmap_vma_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
 static int nvmap_vma_fault_k414(struct vm_fault *vmf)
 {
 	struct vm_area_struct *vma = vmf->vma;
-	unsigned long vmf_address = vmf->address;
 
 	return nvmap_vma_fault(vma, vmf, vmf->address);
 
