@@ -1355,14 +1355,10 @@ restore_fe_go_idle:
 		goto clean_up;
 	}
 
-	err = g->ops.mm.l2_flush(g, true);
+	err = nvgpu_gr_ctx_init_zcull(g, gr_ctx);
 	if (err != 0) {
-		nvgpu_err(g, "l2_flush failed");
 		goto clean_up;
 	}
-	g->ops.gr.ctxsw_prog.set_zcull_mode_no_ctxsw(g, gr_mem);
-
-	g->ops.gr.ctxsw_prog.set_zcull_ptr(g, gr_mem, 0);
 
 	gr_gk20a_fecs_ctx_image_save(c, gr_fecs_method_push_adr_wfi_golden_save_v());
 

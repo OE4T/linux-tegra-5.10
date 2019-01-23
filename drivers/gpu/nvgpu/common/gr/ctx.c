@@ -613,6 +613,22 @@ u32 nvgpu_gr_ctx_get_ctx_id(struct gk20a *g, struct nvgpu_gr_ctx *gr_ctx)
 	return gr_ctx->ctx_id;
 }
 
+int nvgpu_gr_ctx_init_zcull(struct gk20a *g, struct nvgpu_gr_ctx *gr_ctx)
+{
+	int err;
+
+	err = g->ops.mm.l2_flush(g, true);
+	if (err != 0) {
+		nvgpu_err(g, "l2_flush failed");
+		return err;
+	}
+
+	g->ops.gr.ctxsw_prog.set_zcull_mode_no_ctxsw(g, &gr_ctx->mem);
+	g->ops.gr.ctxsw_prog.set_zcull_ptr(g, &gr_ctx->mem, 0);
+
+	return err;
+}
+
 int nvgpu_gr_ctx_zcull_setup(struct gk20a *g, struct nvgpu_gr_ctx *gr_ctx,
 	bool set_zcull_ptr)
 {
