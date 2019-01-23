@@ -295,26 +295,6 @@ struct pmu_sequence {
 	u8 *out_payload;
 	pmu_callback callback;
 	void *cb_params;
-
-	/* fb queue that is associated with this seq */
-	struct nvgpu_falcon_queue *cmd_queue;
-	/* fbq element that is associated with this seq */
-	u8 *fbq_work_buffer;
-	u32 fbq_element_index;
-	/* flags if queue element has an in payload */
-	bool in_payload_fb_queue;
-	/* flags if queue element has an out payload */
-	bool out_payload_fb_queue;
-	/* Heap location this cmd will use in the nvgpu managed heap */
-	u16 fbq_heap_offset;
-	/*
-	 * Track the amount of the "work buffer" (queue_buffer) that
-	 * has been used so far, as the outbound frame is assembled
-	 * (first FB Queue hdr, then CMD, then payloads).
-	 */
-	 u32 buffer_size_used;
-	/* offset to out data in the queue element */
-	u16 fbq_out_offset_in_queue_element;
 };
 
 struct nvgpu_pg_init {

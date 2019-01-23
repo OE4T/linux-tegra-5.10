@@ -264,13 +264,7 @@ static bool pmu_validate_cmd(struct nvgpu_pmu *pmu, struct pmu_cmd *cmd,
 	}
 
 	queue = pmu->queue[queue_id];
-
-	if (pmu->queue_type == QUEUE_TYPE_FB) {
-		queue_size = nvgpu_falcon_fbq_get_element_size(queue);
-	} else {
-		queue_size = nvgpu_falcon_queue_get_size(queue);
-	}
-
+	queue_size = nvgpu_falcon_queue_get_size(queue);
 	if (cmd->hdr.size < PMU_CMD_HDR_SIZE) {
 		goto invalid_cmd;
 	}
@@ -371,84 +365,33 @@ static int pmu_write_cmd(struct nvgpu_pmu *pmu, struct pmu_cmd *cmd,
 	return err;
 }
 
-static int pmu_payload_allocate(struct gk20a *g, struct pmu_sequence *seq,
-	struct falcon_payload_alloc *alloc)
-{
-	struct nvgpu_pmu *pmu = &g->pmu;
-	u64 tmp;
-	int err = 0;
-
-	if (alloc->fb_surface == NULL &&
-		alloc->fb_size != 0x0U) {
-
-		alloc->fb_surface = nvgpu_kzalloc(g, sizeof(struct nvgpu_mem));
-		if (alloc->fb_surface == NULL) {
-			err = -ENOMEM;
-			goto clean_up;
-		}
-		nvgpu_pmu_vidmem_surface_alloc(g, alloc->fb_surface, alloc->fb_size);
-	}
-
-	if (pmu->queue_type == QUEUE_TYPE_FB) {
-		seq->fbq_out_offset_in_queue_element = seq->buffer_size_used;
-		/* Save target address in FBQ work buffer. */
-		alloc->dmem_offset = seq->buffer_size_used;
-		seq->buffer_size_used += alloc->dmem_size;
-	} else {
-		tmp = nvgpu_alloc(&pmu->dmem, alloc->dmem_size);
-		nvgpu_assert(tmp <= U32_MAX);
-		alloc->dmem_offset = (u32)tmp;
-		if (alloc->dmem_offset == 0U) {
-			err = -ENOMEM;
-			goto clean_up;
-		}
-	}
-
-clean_up:
-	return err;
-}
-
-static int pmu_cmd_payload_setup_rpc(struct gk20a *g, struct pmu_cmd *cmd,
+static int pmu_cmd_payload_extract_rpc(struct gk20a *g, struct pmu_cmd *cmd,
 	struct pmu_payload *payload, struct pmu_sequence *seq)
 {
 	struct nvgpu_pmu *pmu = &g->pmu;
 	struct pmu_v *pv = &g->ops.pmu_ver;
-	struct nvgpu_falcon_queue *queue = seq->cmd_queue;
-	struct falcon_payload_alloc alloc;
+	u16 dmem_alloc_size = 0;
+	u64 tmp;
+	u32 dmem_alloc_offset = 0;
 	int err = 0;
 
 	nvgpu_log_fn(g, " ");
 
-	memset(&alloc, 0, sizeof(struct falcon_payload_alloc));
-
-	alloc.dmem_size = payload->rpc.size_rpc +
+	dmem_alloc_size = payload->rpc.size_rpc +
 		payload->rpc.size_scratch;
-
-	err = pmu_payload_allocate(g, seq, &alloc);
-	if (err != 0) {
+	tmp = nvgpu_alloc(&pmu->dmem, dmem_alloc_size);
+	nvgpu_assert(tmp <= U32_MAX);
+	dmem_alloc_offset = (u32)tmp;
+	if (dmem_alloc_offset == 0U) {
+		err = -ENOMEM;
 		goto clean_up;
 	}
 
-	alloc.dmem_size = payload->rpc.size_rpc;
-
-	if (pmu->queue_type == QUEUE_TYPE_FB) {
-		/* copy payload to FBQ work buffer */
-		nvgpu_memcpy((u8 *)
-			nvgpu_falcon_queue_get_fbq_work_buffer(queue) +
-			alloc.dmem_offset,
-			(u8 *)payload->rpc.prpc, payload->rpc.size_rpc);
-
-		alloc.dmem_offset += seq->fbq_heap_offset;
-
-		seq->in_payload_fb_queue = true;
-		seq->out_payload_fb_queue = true;
-	} else {
-		nvgpu_falcon_copy_to_dmem(pmu->flcn, alloc.dmem_offset,
-			payload->rpc.prpc, payload->rpc.size_rpc, 0);
-	}
+	nvgpu_falcon_copy_to_dmem(pmu->flcn, dmem_alloc_offset,
+		payload->rpc.prpc, payload->rpc.size_rpc, 0);
 
 	cmd->cmd.rpc.rpc_dmem_size = payload->rpc.size_rpc;
-	cmd->cmd.rpc.rpc_dmem_ptr  = alloc.dmem_offset;
+	cmd->cmd.rpc.rpc_dmem_ptr  = dmem_alloc_offset;
 
 	seq->out_payload = payload->rpc.prpc;
 	pv->pmu_allocation_set_dmem_size(pmu,
@@ -456,7 +399,7 @@ static int pmu_cmd_payload_setup_rpc(struct gk20a *g, struct pmu_cmd *cmd,
 		payload->rpc.size_rpc);
 	pv->pmu_allocation_set_dmem_offset(pmu,
 		pv->get_pmu_seq_out_a_ptr(seq),
-		alloc.dmem_offset);
+		dmem_alloc_offset);
 
 clean_up:
 	if (err != 0) {
@@ -468,22 +411,20 @@ clean_up:
 	return err;
 }
 
-static int pmu_cmd_payload_setup(struct gk20a *g, struct pmu_cmd *cmd,
+static int pmu_cmd_payload_extract(struct gk20a *g, struct pmu_cmd *cmd,
 	struct pmu_payload *payload, struct pmu_sequence *seq)
 {
 	struct nvgpu_pmu *pmu = &g->pmu;
 	struct pmu_v *pv = &g->ops.pmu_ver;
 	void *in = NULL, *out = NULL;
-	struct falcon_payload_alloc alloc;
 	int err = 0;
+	u64 tmp;
 
 	nvgpu_log_fn(g, " ");
 
 	if (payload != NULL) {
 		seq->out_payload = payload->out.buf;
 	}
-
-	memset(&alloc, 0, sizeof(struct falcon_payload_alloc));
 
 	if (payload != NULL && payload->in.offset != 0U) {
 		pv->set_pmu_allocation_ptr(pmu, &in,
@@ -497,22 +438,24 @@ static int pmu_cmd_payload_setup(struct gk20a *g, struct pmu_cmd *cmd,
 			(u16)max(payload->in.size, payload->out.size));
 		}
 
-		alloc.dmem_size = pv->pmu_allocation_get_dmem_size(pmu, in);
-
-		if (payload->in.fb_size != 0x0U) {
-			alloc.fb_size = payload->in.fb_size;
-		}
-
-		err = pmu_payload_allocate(g, seq, &alloc);
-		if (err != 0) {
+		tmp = nvgpu_alloc(&pmu->dmem,
+				pv->pmu_allocation_get_dmem_size(pmu, in));
+		nvgpu_assert(tmp <= U32_MAX);
+		*(pv->pmu_allocation_get_dmem_offset_addr(pmu, in)) = (u32)tmp;
+		if (*(pv->pmu_allocation_get_dmem_offset_addr(pmu, in)) == 0U) {
 			goto clean_up;
 		}
 
-		*(pv->pmu_allocation_get_dmem_offset_addr(pmu, in)) =
-			alloc.dmem_offset;
-
 		if (payload->in.fb_size != 0x0U) {
-			seq->in_mem = alloc.fb_surface;
+			seq->in_mem = nvgpu_kzalloc(g,
+					sizeof(struct nvgpu_mem));
+			if (seq->in_mem == NULL) {
+				err = -ENOMEM;
+				goto clean_up;
+			}
+
+			nvgpu_pmu_vidmem_surface_alloc(g, seq->in_mem,
+				payload->in.fb_size);
 			nvgpu_pmu_surface_describe(g, seq->in_mem,
 				(struct flcn_mem_desc_v0 *)
 				pv->pmu_allocation_get_fb_addr(pmu, in));
@@ -520,30 +463,10 @@ static int pmu_cmd_payload_setup(struct gk20a *g, struct pmu_cmd *cmd,
 			nvgpu_mem_wr_n(g, seq->in_mem, 0,
 				payload->in.buf, payload->in.fb_size);
 
-			if (pmu->queue_type == QUEUE_TYPE_FB) {
-				alloc.dmem_offset += seq->fbq_heap_offset;
-				*(pv->pmu_allocation_get_dmem_offset_addr(pmu, in)) =
-					alloc.dmem_offset;
-			}
 		} else {
-			if (pmu->queue_type == QUEUE_TYPE_FB) {
-				/* copy payload to FBQ work buffer */
-				nvgpu_memcpy((u8 *)
-					nvgpu_falcon_queue_get_fbq_work_buffer(seq->cmd_queue) +
-					alloc.dmem_offset,
-					(u8 *)payload->in.buf,
-					payload->in.size);
-
-				alloc.dmem_offset += seq->fbq_heap_offset;
-				*(pv->pmu_allocation_get_dmem_offset_addr(pmu, in)) =
-					alloc.dmem_offset;
-
-				seq->in_payload_fb_queue = true;
-			} else {
-				nvgpu_falcon_copy_to_dmem(pmu->flcn,
-						(pv->pmu_allocation_get_dmem_offset(pmu, in)),
-						payload->in.buf, payload->in.size, 0);
-			}
+			nvgpu_falcon_copy_to_dmem(pmu->flcn,
+				(pv->pmu_allocation_get_dmem_offset(pmu, in)),
+				payload->in.buf, payload->in.size, 0);
 		}
 		pv->pmu_allocation_set_dmem_size(pmu,
 		pv->get_pmu_seq_in_a_ptr(seq),
@@ -560,49 +483,44 @@ static int pmu_cmd_payload_setup(struct gk20a *g, struct pmu_cmd *cmd,
 		(u16)payload->out.size);
 
 		if (payload->in.buf != payload->out.buf) {
-			alloc.dmem_size = pv->pmu_allocation_get_dmem_size(pmu, out);
-
-			if (payload->out.fb_size != 0x0U) {
-				alloc.fb_size = payload->out.fb_size;
-			}
-
-			err = pmu_payload_allocate(g, seq, &alloc);
-			if (err != 0) {
+			tmp = nvgpu_alloc(&pmu->dmem,
+					pv->pmu_allocation_get_dmem_size(pmu,
+					out));
+			nvgpu_assert(tmp <= U32_MAX);
+			*(pv->pmu_allocation_get_dmem_offset_addr(pmu, out)) =
+					(u32)tmp;
+			if (*(pv->pmu_allocation_get_dmem_offset_addr(pmu,
+					out)) == 0U) {
 				goto clean_up;
 			}
 
-			*(pv->pmu_allocation_get_dmem_offset_addr(pmu, out)) =
-				alloc.dmem_offset;
-			seq->out_mem = alloc.fb_surface;
+			if (payload->out.fb_size != 0x0U) {
+				seq->out_mem = nvgpu_kzalloc(g,
+					sizeof(struct nvgpu_mem));
+				if (seq->out_mem == NULL) {
+					err = -ENOMEM;
+					goto clean_up;
+				}
+				nvgpu_pmu_vidmem_surface_alloc(g, seq->out_mem,
+					payload->out.fb_size);
+				nvgpu_pmu_surface_describe(g, seq->out_mem,
+					(struct flcn_mem_desc_v0 *)
+					pv->pmu_allocation_get_fb_addr(pmu,
+					out));
+			}
 		} else {
 			BUG_ON(in == NULL);
 			seq->out_mem = seq->in_mem;
 			pv->pmu_allocation_set_dmem_offset(pmu, out,
 			pv->pmu_allocation_get_dmem_offset(pmu, in));
 		}
-
-		if (payload->out.fb_size != 0x0U) {
-			nvgpu_pmu_surface_describe(g, seq->out_mem,
-				(struct flcn_mem_desc_v0 *)
-				pv->pmu_allocation_get_fb_addr(pmu,
-				out));
-		}
-
-		if (pmu->queue_type == QUEUE_TYPE_FB) {
-			if (payload->in.buf != payload->out.buf) {
-				*(pv->pmu_allocation_get_dmem_offset_addr(pmu,
-					out)) += seq->fbq_heap_offset;
-			}
-
-			seq->out_payload_fb_queue = true;
-		}
-
 		pv->pmu_allocation_set_dmem_size(pmu,
 		pv->get_pmu_seq_out_a_ptr(seq),
 		pv->pmu_allocation_get_dmem_size(pmu, out));
 		pv->pmu_allocation_set_dmem_offset(pmu,
 		pv->get_pmu_seq_out_a_ptr(seq),
 		pv->pmu_allocation_get_dmem_offset(pmu, out));
+
 	}
 
 clean_up:
@@ -623,95 +541,6 @@ clean_up:
 	return err;
 }
 
-static int pmu_fbq_cmd_setup(struct gk20a *g, struct pmu_cmd *cmd,
-	struct nvgpu_falcon_queue *queue, struct pmu_payload *payload,
-	struct pmu_sequence *seq)
-{
-	struct nvgpu_pmu *pmu = &g->pmu;
-	struct nv_falcon_fbq_hdr *fbq_hdr = NULL;
-	struct pmu_cmd *flcn_cmd = NULL;
-	u16 fbq_size_needed = 0;
-	u16 heap_offset = 0;
-	u64 tmp;
-	int err = 0;
-
-	/* allocate work buffer for current FBQ element */
-	nvgpu_falcon_queue_allocate_fbq_work_buffer(queue);
-
-	fbq_hdr = (struct nv_falcon_fbq_hdr *)
-		nvgpu_falcon_queue_get_fbq_work_buffer(queue);
-
-	flcn_cmd = (struct pmu_cmd *)
-		(nvgpu_falcon_queue_get_fbq_work_buffer(queue) +
-		sizeof(struct nv_falcon_fbq_hdr));
-
-	if (cmd->cmd.rpc.cmd_type == NV_PMU_RPC_CMD_ID) {
-		if (payload != NULL) {
-			fbq_size_needed = payload->rpc.size_rpc +
-			payload->rpc.size_scratch;
-		}
-	} else {
-		if (payload != NULL) {
-			if (payload->in.offset != 0U) {
-				if (payload->in.buf != payload->out.buf) {
-					fbq_size_needed = (u16)payload->in.size;
-				} else {
-					fbq_size_needed = (u16)max(payload->in.size,
-						payload->out.size);
-				}
-			}
-
-			if (payload->out.offset != 0U) {
-				if (payload->out.buf != payload->in.buf) {
-					fbq_size_needed += (u16)payload->out.size;
-				}
-			}
-		}
-	}
-
-	fbq_size_needed = fbq_size_needed +
-		sizeof(struct nv_falcon_fbq_hdr) +
-		cmd->hdr.size;
-
-	fbq_size_needed = ALIGN_UP(fbq_size_needed, 4);
-
-	tmp = nvgpu_alloc(&pmu->dmem, fbq_size_needed);
-	nvgpu_assert(tmp <= U32_MAX);
-	heap_offset = (u16) tmp;
-	if (heap_offset == 0U) {
-		err = -ENOMEM;
-		goto exit;
-	}
-
-	seq->in_payload_fb_queue = false;
-	seq->out_payload_fb_queue = false;
-
-	/* clear work queue buffer */
-	memset(nvgpu_falcon_queue_get_fbq_work_buffer(queue), 0,
-		nvgpu_falcon_fbq_get_element_size(queue));
-
-	/* Need to save room for both FBQ hdr, and the CMD */
-	seq->buffer_size_used = sizeof(struct nv_falcon_fbq_hdr) +
-		cmd->hdr.size;
-
-	/* copy cmd into the work buffer */
-	nvgpu_memcpy((u8 *)flcn_cmd, (u8 *)cmd, cmd->hdr.size);
-
-	/* Fill in FBQ hdr, and offset in seq structure */
-	fbq_hdr->heap_size = fbq_size_needed;
-	fbq_hdr->heap_offset = heap_offset;
-	seq->fbq_heap_offset = heap_offset;
-
-	/*
-	 * save queue index in seq structure
-	 * so can free queue element when response is received
-	 */
-	seq->fbq_element_index = nvgpu_falcon_queue_get_position(queue);
-
-exit:
-	return err;
-}
-
 int nvgpu_pmu_cmd_post(struct gk20a *g, struct pmu_cmd *cmd,
 		struct pmu_msg *msg, struct pmu_payload *payload,
 		u32 queue_id, pmu_callback callback, void *cb_param,
@@ -719,7 +548,6 @@ int nvgpu_pmu_cmd_post(struct gk20a *g, struct pmu_cmd *cmd,
 {
 	struct nvgpu_pmu *pmu = &g->pmu;
 	struct pmu_sequence *seq = NULL;
-	struct nvgpu_falcon_queue *queue = pmu->queue[queue_id];
 	int err;
 
 	nvgpu_log_fn(g, " ");
@@ -752,9 +580,6 @@ int nvgpu_pmu_cmd_post(struct gk20a *g, struct pmu_cmd *cmd,
 	cmd->hdr.ctrl_flags |= PMU_CMD_FLAGS_STATUS;
 	cmd->hdr.ctrl_flags |= PMU_CMD_FLAGS_INTR;
 
-	/* Save the queue in the seq structure. */
-	seq->cmd_queue = queue;
-
 	seq->callback = callback;
 	seq->cb_params = cb_param;
 	seq->msg = msg;
@@ -763,24 +588,10 @@ int nvgpu_pmu_cmd_post(struct gk20a *g, struct pmu_cmd *cmd,
 
 	*seq_desc = seq->desc;
 
-	if (pmu->queue_type == QUEUE_TYPE_FB) {
-		/* Create FBQ work buffer & copy cmd to FBQ work buffer */
-		err = pmu_fbq_cmd_setup(g, cmd, queue, payload, seq);
-
-		/*
-		 * change cmd pointer to point to FBQ work
-		 * buffer as cmd copied to FBQ work buffer
-		 * in call pmu_fgq_cmd_setup()
-		 */
-		cmd = (struct pmu_cmd *)
-			(nvgpu_falcon_queue_get_fbq_work_buffer(queue) +
-			sizeof(struct nv_falcon_fbq_hdr));
-	}
-
 	if (cmd->cmd.rpc.cmd_type == NV_PMU_RPC_CMD_ID) {
-		err = pmu_cmd_payload_setup_rpc(g, cmd, payload, seq);
+		err = pmu_cmd_payload_extract_rpc(g, cmd, payload, seq);
 	} else {
-		err = pmu_cmd_payload_setup(g, cmd, payload, seq);
+		err = pmu_cmd_payload_extract(g, cmd, payload, seq);
 	}
 
 	if (err != 0) {
@@ -805,29 +616,39 @@ clean_up:
 	return err;
 }
 
-static void pmu_payload_extract(struct nvgpu_pmu *pmu,
-	struct pmu_msg *msg, struct pmu_sequence *seq)
+static int pmu_response_handle(struct nvgpu_pmu *pmu,
+			struct pmu_msg *msg)
 {
 	struct gk20a *g = gk20a_from_pmu(pmu);
+	struct pmu_sequence *seq;
 	struct pmu_v *pv = &g->ops.pmu_ver;
-	u32 fbq_payload_offset = 0U;
+	int ret = 0;
 
 	nvgpu_log_fn(g, " ");
 
-	if (seq->out_payload_fb_queue) {
-		fbq_payload_offset =
-			nvgpu_falcon_queue_get_fbq_offset(seq->cmd_queue) +
-			seq->fbq_out_offset_in_queue_element + (seq->fbq_element_index *
-				nvgpu_falcon_fbq_get_element_size(seq->cmd_queue));
+	seq = &pmu->seq[msg->hdr.seq_id];
 
-		nvgpu_mem_rd_n(g, &pmu->super_surface_buf, fbq_payload_offset,
-			seq->out_payload,
-			pv->pmu_allocation_get_dmem_size(pmu,
-			pv->get_pmu_seq_out_a_ptr(seq)));
+	if (seq->state != PMU_SEQ_STATE_USED &&
+	    seq->state != PMU_SEQ_STATE_CANCELLED) {
+		nvgpu_err(g, "msg for an unknown sequence %d", seq->id);
+		return -EINVAL;
+	}
 
-	} else {
+	if (msg->hdr.unit_id == PMU_UNIT_RC &&
+	    msg->msg.rc.msg_type == PMU_RC_MSG_TYPE_UNHANDLED_CMD) {
+		nvgpu_err(g, "unhandled cmd: seq %d", seq->id);
+	} else if (seq->state != PMU_SEQ_STATE_CANCELLED) {
+		if (seq->msg != NULL) {
+			if (seq->msg->hdr.size >= msg->hdr.size) {
+				nvgpu_memcpy((u8 *)seq->msg, (u8 *)msg,
+					msg->hdr.size);
+			}  else {
+				nvgpu_err(g, "sequence %d msg buffer too small",
+					seq->id);
+			}
+		}
 		if (pv->pmu_allocation_get_dmem_size(pmu,
-			pv->get_pmu_seq_out_a_ptr(seq)) != 0U) {
+		pv->get_pmu_seq_out_a_ptr(seq)) != 0U) {
 			nvgpu_falcon_copy_from_dmem(pmu->flcn,
 			pv->pmu_allocation_get_dmem_offset(pmu,
 			pv->get_pmu_seq_out_a_ptr(seq)),
@@ -835,66 +656,22 @@ static void pmu_payload_extract(struct nvgpu_pmu *pmu,
 			pv->pmu_allocation_get_dmem_size(pmu,
 			pv->get_pmu_seq_out_a_ptr(seq)), 0);
 		}
-	}
-}
-
-static void pmu_payload_extract_rpc(struct nvgpu_pmu *pmu,
-		struct pmu_msg *msg, struct pmu_sequence *seq)
-{
-	nvgpu_log_fn(pmu->g, " ");
-
-	pmu_payload_extract(pmu, msg, seq);
-}
-
-static void pmu_payload_fbq_free(struct nvgpu_pmu *pmu,
-	 struct pmu_sequence *seq)
-{
-	nvgpu_log_fn(pmu->g, " ");
-
-	seq->out_payload_fb_queue = false;
-	seq->in_payload_fb_queue = false;
-
-	nvgpu_free(&pmu->dmem, seq->fbq_heap_offset);
-	seq->fbq_heap_offset = 0;
-
-	/*
-	 * free FBQ allocated work buffer
-	 * set FBQ element work buffer to NULL
-	 * Clear the in use bit for the queue entry this CMD used.
-	 */
-	nvgpu_falcon_queue_free_fbq_element(pmu->flcn, seq->cmd_queue,
-		seq->fbq_element_index);
-}
-
-static void pmu_payload_free(struct nvgpu_pmu *pmu,
-	struct pmu_msg *msg, struct pmu_sequence *seq)
-{
-	struct gk20a *g = gk20a_from_pmu(pmu);
-	struct pmu_v *pv = &g->ops.pmu_ver;
-
-	nvgpu_log_fn(g, " ");
-
-	/* free FBQ payload*/
-	if (pmu->queue_type == QUEUE_TYPE_FB) {
-		pmu_payload_fbq_free(pmu, seq);
 	} else {
-		/* free DMEM space payload*/
-		if (pv->pmu_allocation_get_dmem_size(pmu,
+		seq->callback = NULL;
+	}
+	if (pv->pmu_allocation_get_dmem_size(pmu,
 			pv->get_pmu_seq_in_a_ptr(seq)) != 0U) {
-			nvgpu_free(&pmu->dmem,
-				pv->pmu_allocation_get_dmem_offset(pmu,
-				pv->get_pmu_seq_in_a_ptr(seq)));
-		}
-
-		if (pv->pmu_allocation_get_dmem_size(pmu,
+		nvgpu_free(&pmu->dmem,
+			pv->pmu_allocation_get_dmem_offset(pmu,
+			pv->get_pmu_seq_in_a_ptr(seq)));
+	}
+	if (pv->pmu_allocation_get_dmem_size(pmu,
 			pv->get_pmu_seq_out_a_ptr(seq)) != 0U) {
-			nvgpu_free(&pmu->dmem,
-				pv->pmu_allocation_get_dmem_offset(pmu,
-				pv->get_pmu_seq_out_a_ptr(seq)));
-		}
+		nvgpu_free(&pmu->dmem,
+			pv->pmu_allocation_get_dmem_offset(pmu,
+			pv->get_pmu_seq_out_a_ptr(seq)));
 	}
 
-	/* free FB surface payload */
 	if (seq->out_mem != NULL) {
 		(void) memset(pv->pmu_allocation_get_fb_addr(pmu,
 			pv->get_pmu_seq_out_a_ptr(seq)), 0x0,
@@ -919,73 +696,18 @@ static void pmu_payload_free(struct nvgpu_pmu *pmu,
 		nvgpu_kfree(g, seq->in_mem);
 		seq->in_mem = NULL;
 	}
-}
-
-static int pmu_response_handle(struct nvgpu_pmu *pmu,
-			struct pmu_msg *msg)
-{
-	struct gk20a *g = gk20a_from_pmu(pmu);
-	struct pmu_sequence *seq;
-	int err = 0;
-
-	nvgpu_log_fn(g, " ");
-
-	seq = &pmu->seq[msg->hdr.seq_id];
-
-	if (seq->state != PMU_SEQ_STATE_USED &&
-		seq->state != PMU_SEQ_STATE_CANCELLED) {
-		nvgpu_err(g, "msg for an unknown sequence %d", seq->id);
-		err = -EINVAL;
-		goto exit;
-	}
-
-	if (msg->hdr.unit_id == PMU_UNIT_RC &&
-		msg->msg.rc.msg_type == PMU_RC_MSG_TYPE_UNHANDLED_CMD) {
-		nvgpu_err(g, "unhandled cmd: seq %d", seq->id);
-		err = -EINVAL;
-	} else if (seq->state != PMU_SEQ_STATE_CANCELLED) {
-
-		if (msg->hdr.size > PMU_MSG_HDR_SIZE &&
-			msg->msg.rc.msg_type == NV_PMU_RPC_MSG_ID) {
-			pmu_payload_extract_rpc(pmu, msg, seq);
-		} else {
-			if (seq->msg != NULL) {
-				if (seq->msg->hdr.size >= msg->hdr.size) {
-					nvgpu_memcpy((u8 *)seq->msg, (u8 *)msg,
-						msg->hdr.size);
-				}  else {
-					nvgpu_err(g, "sequence %d msg buffer too small",
-						seq->id);
-					err = -EINVAL;
-				}
-			}
-
-			pmu_payload_extract(pmu, msg, seq);
-		}
-	} else {
-		seq->callback = NULL;
-	}
-
-exit:
-	/*
-	 * free allocated space for payload in
-	 * DMEM/FB-surface/FB_QUEUE as data is
-	 * copied to buffer pointed by
-	 * seq->out_payload
-	 */
-	pmu_payload_free(pmu, msg, seq);
 
 	if (seq->callback != NULL) {
-		seq->callback(g, msg, seq->cb_params, seq->desc, err);
+		seq->callback(g, msg, seq->cb_params, seq->desc, ret);
 	}
 
 	pmu_seq_release(pmu, seq);
 
 	/* TBD: notify client waiting for available dmem */
 
-	nvgpu_log_fn(g, "done err %d", err);
+	nvgpu_log_fn(g, "done");
 
-	return err;
+	return 0;
 }
 
 static int pmu_handle_event(struct nvgpu_pmu *pmu, struct pmu_msg *msg)
