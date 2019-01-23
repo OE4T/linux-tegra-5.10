@@ -206,50 +206,6 @@ err:
 	return ret;
 }
 
-static int flcn_setup_ucode_fce(struct platform_device *dev,
-				struct flcn *v,
-				struct ucode_v1_flcn *ucode)
-{
-	u32 *ucode_ptr = v->mapped;
-	struct nvhost_device_data *pdata = platform_get_drvdata(dev);
-
-	if (ucode->bin_header->fce_bin_header_offset == 0xa5a5a5a5)
-		return 0;
-
-	ucode->fce_header = (struct ucode_fce_header_v1_flcn *)
-			(((void *)ucode_ptr) +
-		 ucode->bin_header->fce_bin_header_offset);
-
-	nvhost_dbg_info("fce ucode header: offset, buffer_size, size: 0x%x 0x%x 0x%x",
-			ucode->fce_header->fce_ucode_offset,
-			ucode->fce_header->fce_ucode_buffer_size,
-			ucode->fce_header->fce_ucode_size);
-
-	/* if isolation is enabled.. */
-	if (pdata->isolate_contexts) {
-		/* create and map fce shadow to all contexts */
-		v->fce_mapped = nvhost_vm_allocate_firmware_area(dev,
-					ucode->fce_header->fce_ucode_size,
-					&v->fce_dma_addr);
-		if (!v->fce_mapped)
-			return -ENOMEM;
-
-		memcpy(v->fce_mapped, (u8 *)v->mapped +
-			ucode->bin_header->fce_bin_data_offset,
-			ucode->fce_header->fce_ucode_size);
-	} else {
-		/* ..otherwise use the one in firmware image */
-		v->fce_dma_addr = v->dma_addr +
-					ucode->bin_header->fce_bin_data_offset;
-	}
-
-	v->fce.size = ucode->fce_header->fce_ucode_size;
-	v->fce.data_offset = ucode->bin_header->fce_bin_data_offset;
-
-	return 0;
-}
-
-
 int flcn_setup_ucode_image(struct platform_device *dev,
 			   struct flcn *v,
 			   const struct firmware *ucode_fw,
@@ -292,10 +248,6 @@ int flcn_setup_ucode_image(struct platform_device *dev,
 			ucode->bin_header->os_bin_header_offset,
 			ucode->bin_header->os_bin_data_offset,
 			ucode->bin_header->os_bin_size);
-	nvhost_dbg_info("ucode bin header: fce bin (header,data) offset size: 0x%x, 0x%x %d",
-			ucode->bin_header->fce_bin_header_offset,
-			ucode->bin_header->fce_bin_data_offset,
-			ucode->bin_header->fce_bin_size);
 
 	ucode->os_header = (struct ucode_os_header_v1_flcn *)
 		(((void *)ucode_ptr) + ucode->bin_header->os_bin_header_offset);
@@ -370,12 +322,6 @@ static int flcn_read_ucode(struct platform_device *dev,
 	err = flcn_setup_ucode_image(dev, v, ucode_fw, &ucode);
 	if (err) {
 		dev_err(&dev->dev, "failed to parse firmware image\n");
-		goto clean_up;
-	}
-
-	err = flcn_setup_ucode_fce(dev, v, &ucode);
-	if (err) {
-		dev_err(&dev->dev, "failed to parse fce image\n");
 		goto clean_up;
 	}
 
@@ -605,13 +551,6 @@ int nvhost_vic_finalize_poweron(struct platform_device *pdev)
 	host1x_writel(pdev, FLCN_UCLASS_METHOD_OFFSET * 4,
 		      NVA0B6_VIDEO_COMPOSITOR_SET_APPLICATION_ID >> 2);
 	host1x_writel(pdev, FLCN_UCLASS_METHOD_DATA * 4, 1);
-	host1x_writel(pdev, FLCN_UCLASS_METHOD_OFFSET * 4,
-		      NVA0B6_VIDEO_COMPOSITOR_SET_FCE_UCODE_SIZE >> 2);
-	host1x_writel(pdev, FLCN_UCLASS_METHOD_DATA * 4, v->fce.size);
-	host1x_writel(pdev, FLCN_UCLASS_METHOD_OFFSET * 4,
-		      NVA0B6_VIDEO_COMPOSITOR_SET_FCE_UCODE_OFFSET >> 2);
-	host1x_writel(pdev, FLCN_UCLASS_METHOD_DATA * 4,
-		      (v->dma_addr + v->fce.data_offset) >> 8);
 
 	return 0;
 }
@@ -636,25 +575,6 @@ int nvhost_vic_init_context(struct platform_device *pdev,
 	nvhost_cdma_push(cdma,
 		nvhost_opcode_setclass(NV_GRAPHICS_VIC_CLASS_ID,
 				       FLCN_UCLASS_METHOD_DATA, 1), 1);
-
-	/* set fce ucode size */
-	nvhost_cdma_push(cdma,
-		nvhost_opcode_setclass(NV_GRAPHICS_VIC_CLASS_ID,
-			FLCN_UCLASS_METHOD_OFFSET, 1),
-		NVA0B6_VIDEO_COMPOSITOR_SET_FCE_UCODE_SIZE >> 2);
-	nvhost_cdma_push(cdma,
-		nvhost_opcode_setclass(NV_GRAPHICS_VIC_CLASS_ID,
-			FLCN_UCLASS_METHOD_DATA, 1), v->fce.size);
-
-	/* set fce ucode offset */
-	nvhost_cdma_push(cdma,
-		nvhost_opcode_setclass(NV_GRAPHICS_VIC_CLASS_ID,
-			FLCN_UCLASS_METHOD_OFFSET, 1),
-		NVA0B6_VIDEO_COMPOSITOR_SET_FCE_UCODE_OFFSET >> 2);
-	nvhost_cdma_push(cdma,
-		nvhost_opcode_setclass(NV_GRAPHICS_VIC_CLASS_ID,
-			FLCN_UCLASS_METHOD_DATA, 1),
-		v->fce_dma_addr >> 8);
 
 	return 0;
 }

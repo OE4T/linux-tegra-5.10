@@ -87,7 +87,6 @@ static struct host1x_device_info host1x04_info = {
 	.pts_limit	= NV_HOST1X_SYNCPT_NB_PTS,
 	.syncpt_policy	= SYNCPT_PER_CHANNEL_INSTANCE,
 	.channel_policy	= MAP_CHANNEL_ON_SUBMIT,
-	.firmware_area_size = SZ_1M,
 	.nb_actmons	= 1,
 	.use_cross_vm_interrupts = 1,
 	.resources	= {

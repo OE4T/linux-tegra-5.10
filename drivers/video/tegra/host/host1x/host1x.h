@@ -77,7 +77,6 @@ struct host1x_device_info {
 	int		(*initialize_chip_support)(struct nvhost_master *,
 						struct nvhost_chip_support *);
 	int		nb_actmons;
-	size_t		firmware_area_size;
 	/* true if host1x access direct but engines are not owned */
 	bool		vmserver_owns_engines;
 	/* true if hw supports remote syncpoint interrupts */
@@ -89,17 +88,6 @@ struct host1x_device_info {
 
 	/* cmdfifo only accessible from hypervisor? */
 	bool		secure_cmdfifo;
-};
-
-struct nvhost_vm_firmware_area {
-	void *vaddr;
-	dma_addr_t dma_addr;
-
-	unsigned long *bitmap;
-	unsigned long bitmap_size_bits;
-	unsigned long bitmap_size_bytes;
-
-	struct mutex mutex;
 };
 
 struct nvhost_master {
@@ -128,8 +116,6 @@ struct nvhost_master {
 	unsigned long allocated_channels[2];
 
 	/* nvhost vm specific structures */
-	struct nvhost_vm_firmware_area firmware_area;
-	struct list_head static_mappings_list;
 	struct list_head vm_list;
 	struct mutex vm_mutex;
 	struct mutex vm_alloc_mutex;

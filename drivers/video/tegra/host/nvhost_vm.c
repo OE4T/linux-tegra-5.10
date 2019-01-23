@@ -27,95 +27,8 @@
 #include "nvhost_vm.h"
 #include "dev.h"
 
-void nvhost_vm_release_firmware_area(struct platform_device *pdev,
-				     size_t size, dma_addr_t dma_addr)
-{
-	struct nvhost_master *host = nvhost_get_host(pdev);
-	struct nvhost_vm_firmware_area *firmware_area = &host->firmware_area;
-	int region = (dma_addr - firmware_area->dma_addr) / SZ_4K;
-	int order = get_order(size);
-
-	if (!host->info.firmware_area_size) {
-		nvhost_err(&pdev->dev, "no firmware area allocated");
-		return;
-	}
-
-	/* release the allocated area */
-	mutex_lock(&firmware_area->mutex);
-	bitmap_release_region(firmware_area->bitmap, region, order);
-	mutex_unlock(&firmware_area->mutex);
-}
-
-void *nvhost_vm_allocate_firmware_area(struct platform_device *pdev,
-				       size_t size, dma_addr_t *dma_addr)
-{
-	struct nvhost_master *host = nvhost_get_host(pdev);
-	struct nvhost_vm_firmware_area *firmware_area = &host->firmware_area;
-	int order = get_order(size);
-	int region;
-
-	if (!host->info.firmware_area_size) {
-		nvhost_err(&pdev->dev, "no firmware area allocated");
-		return ERR_PTR(-ENODEV);
-	}
-
-	/* find free area */
-	mutex_lock(&firmware_area->mutex);
-	region = bitmap_find_free_region(firmware_area->bitmap,
-					 firmware_area->bitmap_size_bits,
-					 order);
-	mutex_unlock(&firmware_area->mutex);
-	if (region < 0) {
-		nvhost_err(&pdev->dev, "no free region in firmware area");
-		goto err_allocate_vm_firmware_area;
-	}
-
-	/* return the alloacted area */
-	*dma_addr = firmware_area->dma_addr + (region * SZ_4K);
-	return firmware_area->vaddr + (region * SZ_4K);
-
-err_allocate_vm_firmware_area:
-	return NULL;
-}
-
 int nvhost_vm_init(struct platform_device *pdev)
 {
-	struct nvhost_master *host = nvhost_get_host(pdev);
-	struct nvhost_vm_firmware_area *firmware_area = &host->firmware_area;
-
-	/* No need to allocate firmware area */
-	if (!host->info.firmware_area_size)
-		return 0;
-
-	mutex_init(&firmware_area->mutex);
-
-	/* initialize bitmap */
-	firmware_area->bitmap_size_bits =
-		DIV_ROUND_UP(host->info.firmware_area_size, SZ_4K);
-	firmware_area->bitmap_size_bytes =
-		DIV_ROUND_UP(firmware_area->bitmap_size_bits, 8);
-	firmware_area->bitmap = devm_kzalloc(&pdev->dev,
-		firmware_area->bitmap_size_bytes, GFP_KERNEL);
-	if (!firmware_area->bitmap) {
-		nvhost_err(&pdev->dev, "failed to allocate fw area bitmap");
-		return -ENOMEM;
-	}
-
-	/* allocate area */
-	firmware_area->vaddr =
-		dma_alloc_attrs(&pdev->dev, host->info.firmware_area_size,
-				&firmware_area->dma_addr, GFP_KERNEL,
-				DMA_ATTR_READ_ONLY);
-	if (!firmware_area->vaddr) {
-		nvhost_err(&pdev->dev, "failed to alloc attrs");
-		return -ENOMEM;
-	}
-
-	/* ..otherwise pin the firmware to all address spaces */
-	nvhost_vm_map_static(pdev, firmware_area->vaddr,
-			     firmware_area->dma_addr,
-			     host->info.firmware_area_size);
-
 	return 0;
 }
 
@@ -140,17 +53,6 @@ int nvhost_vm_get_id(struct nvhost_vm *vm)
 	trace_nvhost_vm_get_id(vm, id);
 
 	return id;
-}
-
-int nvhost_vm_map_static(struct platform_device *pdev,
-			 void *vaddr, dma_addr_t paddr,
-			 size_t size)
-{
-	/* if static mappings are not supported, exit */
-	if (!vm_op().pin_static_buffer)
-		return 0;
-
-	return vm_op().pin_static_buffer(pdev, vaddr, paddr, size);
 }
 
 static void nvhost_vm_deinit(struct kref *kref)

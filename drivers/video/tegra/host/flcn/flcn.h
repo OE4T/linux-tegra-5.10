@@ -30,9 +30,7 @@ struct ucode_bin_header_v1_flcn {
 	u32 os_bin_header_offset;
 	u32 os_bin_data_offset;
 	u32 os_bin_size;
-	u32 fce_bin_header_offset;
-	u32 fce_bin_data_offset;
-	u32 fce_bin_size;
+	u32 reserved[3];
 	u32 bin_ver_tag;
 };
 
@@ -44,16 +42,9 @@ struct ucode_os_header_v1_flcn {
 	u32 num_apps;
 };
 
-struct ucode_fce_header_v1_flcn {
-	u32 fce_ucode_offset;
-	u32 fce_ucode_buffer_size;
-	u32 fce_ucode_size;
-};
-
 struct ucode_v1_flcn {
 	struct ucode_bin_header_v1_flcn *bin_header;
 	struct ucode_os_header_v1_flcn  *os_header;
-	struct ucode_fce_header_v1_flcn *fce_header;
 	bool valid;
 };
 
@@ -79,9 +70,6 @@ struct flcn {
 
 	dma_addr_t dma_addr;
 	u32 *mapped;
-
-	dma_addr_t fce_dma_addr;
-	u32 *fce_mapped;
 };
 
 static inline struct flcn *get_flcn(struct platform_device *dev)

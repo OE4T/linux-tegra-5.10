@@ -55,7 +55,6 @@ struct iommu_ctx {
 };
 
 static LIST_HEAD(iommu_ctx_list);
-static LIST_HEAD(iommu_static_mappings_list);
 static DEFINE_MUTEX(iommu_ctx_list_mutex);
 
 struct platform_device *iommu_context_dev_allocate(void *identifier)
@@ -125,72 +124,8 @@ void iommu_context_dev_release(struct platform_device *pdev)
 	mutex_unlock(&iommu_ctx_list_mutex);
 }
 
-static int __iommu_context_dev_map_static(struct platform_device *pdev,
-					  struct iommu_static_mapping *mapping)
-{
-	const struct dma_map_ops *ops = get_dma_ops(&pdev->dev);
-	int num_pages = DIV_ROUND_UP(mapping->size, PAGE_SIZE);
-	int i, err;
-
-	/* map each page of the buffer to this ctx dev */
-	for (i = 0; i < num_pages; i++) {
-		dma_addr_t iova = mapping->paddr + PAGE_SIZE * i;
-		void *va = mapping->vaddr + PAGE_SIZE * i;
-		struct page *page;
-
-		/* hack: the memory may be allocated from vmalloc
-		 * pool. this happens if dma_alloc_attrs() is called
-		 * with a device that is attached to smmu domain. */
-
-		page = virt_addr_valid(va) ? virt_to_page(va) :
-			vmalloc_to_page(va);
-
-		iova = ops->map_at(&pdev->dev, iova, page_to_phys(page),
-					PAGE_SIZE, DMA_BIDIRECTIONAL,
-					DMA_ATTR_SKIP_IOVA_GAP);
-		err = dma_mapping_error(&pdev->dev, iova);
-		if (err) {
-			dev_warn(&pdev->dev, "failed to map page\n");
-			return err;
-		}
-	}
-
-	return 0;
-}
-
-int iommu_context_dev_map_static(void *vaddr, dma_addr_t paddr, size_t size)
-{
-	struct iommu_static_mapping *mapping;
-	struct iommu_ctx *ctx;
-
-	mapping = kzalloc(sizeof(*mapping), GFP_KERNEL);
-	if (!mapping) {
-		dev_err(NULL, "%s: could not allocate mapping struct\n",
-			   __func__);
-		return -ENOMEM;
-	}
-
-	INIT_LIST_HEAD(&mapping->list);
-	mapping->vaddr = vaddr;
-	mapping->paddr = paddr;
-	mapping->size = size;
-
-	mutex_lock(&iommu_ctx_list_mutex);
-
-	list_add_tail(&mapping->list, &iommu_static_mappings_list);
-
-	/* go through context devices */
-	list_for_each_entry(ctx, &iommu_ctx_list, list)
-		__iommu_context_dev_map_static(ctx->pdev, mapping);
-
-	mutex_unlock(&iommu_ctx_list_mutex);
-
-	return 0;
-}
-
 static int iommu_context_dev_probe(struct platform_device *pdev)
 {
-	struct iommu_static_mapping *mapping;
 	struct iommu_ctx *ctx;
 
 	if (!pdev->dev.archdata.iommu) {
@@ -210,11 +145,6 @@ static int iommu_context_dev_probe(struct platform_device *pdev)
 
 	mutex_lock(&iommu_ctx_list_mutex);
 	list_add_tail(&ctx->list, &iommu_ctx_list);
-
-	/* map all static buffers to this address space */
-	list_for_each_entry(mapping, &iommu_static_mappings_list, list)
-		__iommu_context_dev_map_static(pdev, mapping);
-
 	mutex_unlock(&iommu_ctx_list_mutex);
 
 	platform_set_drvdata(pdev, ctx);

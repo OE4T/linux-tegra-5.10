@@ -1172,7 +1172,6 @@ static int nvhost_probe(struct platform_device *dev)
 	}
 
 	host->dev = dev;
-	INIT_LIST_HEAD(&host->static_mappings_list);
 	INIT_LIST_HEAD(&host->vm_list);
 	host->syncpt_backing_head = RB_ROOT;
 	mutex_init(&host->vm_mutex);

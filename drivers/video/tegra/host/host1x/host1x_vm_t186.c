@@ -118,17 +118,9 @@ static void host1x_vm_deinit(struct nvhost_vm *vm)
 	iommu_context_dev_release(vm->pdev);
 }
 
-static int host1x_vm_pin_static_buffer(struct platform_device *pdev,
-				       void *vaddr, dma_addr_t paddr,
-				       size_t size)
-{
-	return iommu_context_dev_map_static(vaddr, paddr, size);
-}
-
 static const struct nvhost_vm_ops host1x_vm_ops = {
 	.init = host1x_vm_init,
 	.deinit = host1x_vm_deinit,
-	.pin_static_buffer = host1x_vm_pin_static_buffer,
 	.get_id = host1x_vm_get_id,
 	.init_device = host1x_vm_init_device,
 };
