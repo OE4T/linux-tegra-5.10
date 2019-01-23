@@ -1291,10 +1291,8 @@ static struct iommu_domain *arm_smmu_domain_alloc(unsigned type)
 	 */
 	smmu_domain->domain.pgsize_bitmap = ALL_PGSIZES_BITMAP;
 
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 9, 0)
 	if (iommu_get_dma_cookie(&smmu_domain->domain))
 		goto out_free_domain;
-#endif
 
 	return &smmu_domain->domain;
 
@@ -1374,9 +1372,7 @@ static void arm_smmu_domain_free(struct iommu_domain *domain)
 	 * Free the domain resources. We assume that all devices have
 	 * already been detached.
 	 */
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 9, 0)
 	iommu_put_dma_cookie(domain);
-#endif
 	arm_smmu_destroy_domain_context(domain);
 	arm_smmu_free_pgtables(smmu_domain);
 	kfree(smmu_domain);
@@ -1820,14 +1816,12 @@ static int arm_smmu_attach_dev(struct iommu_domain *domain, struct device *dev)
 				find_smmu_master(smmu, dev_get_dev_node(dev)));
 	}
 
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 9, 0)
 	if (iommu_dma_init_domain(domain,
 				domain->geometry.aperture_start,
 				domain->geometry.aperture_end -
 				domain->geometry.aperture_start, dev))
 		pr_err("iommu_dma_init_domain failed, %s\n",
 				dev_name(dev));
-#endif
 
 	arm_smmu_do_linear_map(dev);
 
@@ -2238,34 +2232,6 @@ out_unlock:
 	return ret;
 }
 
-#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 9, 0)
-static size_t arm_smmu_map_sg(struct iommu_domain *domain, unsigned long iova,
-			struct scatterlist *sgl, unsigned int npages,
-			unsigned long prot)
-{
-	int i;
-	struct scatterlist *sg;
-	struct arm_smmu_domain *smmu_domain = to_smmu_domain(domain);
-
-	for (i = 0, sg = sgl; i < npages; sg = sg_next(sg)) {
-		int err;
-		phys_addr_t pa = sg_phys(sg) & PAGE_MASK;
-		unsigned int len = PAGE_ALIGN(sg->offset + sg->length);
-
-		pr_debug("%s() iova=%pad pa=%pap size=%x\n",
-			__func__, &iova, &pa, len);
-		err = arm_smmu_handle_mapping(smmu_domain, iova, pa, len, prot);
-		if (err)
-			return err;
-
-		i += len >> PAGE_SHIFT;
-		iova += len;
-	}
-
-	return 0;
-}
-#endif
-
 static int arm_smmu_map(struct iommu_domain *domain, unsigned long iova,
 			phys_addr_t paddr, size_t size, unsigned long prot)
 {
@@ -2473,20 +2439,14 @@ static const struct iommu_ops arm_smmu_ops = {
 	.attach_dev	= arm_smmu_attach_dev,
 	.detach_dev	= arm_smmu_detach_dev,
 	.get_hwid	= arm_smmu_get_hwid,
-#if LINUX_VERSION_CODE  > KERNEL_VERSION(4, 9, 0)
 	.map_sg		= default_iommu_map_sg,
-#else
-	.map_sg		= arm_smmu_map_sg,
-#endif
 	.map		= arm_smmu_map,
 	.unmap		= arm_smmu_unmap,
 	.iova_to_phys	= arm_smmu_iova_to_phys,
 	.add_device	= arm_smmu_add_device,
 	.remove_device	= arm_smmu_remove_device,
 	.pgsize_bitmap	= ALL_PGSIZES_BITMAP,
-#if LINUX_VERSION_CODE  > KERNEL_VERSION(4, 9, 0)
 	.ignore_align	= 1,
-#endif
 };
 
 static void arm_smmu_device_reset(struct arm_smmu_device *smmu)
