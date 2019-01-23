@@ -650,3 +650,26 @@ int nvgpu_gr_ctx_zcull_setup(struct gk20a *g, struct nvgpu_gr_ctx *gr_ctx,
 
 	return 0;
 }
+
+int nvgpu_gr_ctx_set_smpc_mode(struct gk20a *g, struct nvgpu_gr_ctx *gr_ctx,
+	bool enable)
+{
+	int err;
+
+	if (!nvgpu_mem_is_valid(&gr_ctx->mem)) {
+		nvgpu_err(g, "no graphics context allocated");
+		return -EFAULT;
+	}
+
+	/* Channel gr_ctx buffer is gpu cacheable.
+	   Flush and invalidate before cpu update. */
+	err = g->ops.mm.l2_flush(g, true);
+	if (err != 0) {
+		nvgpu_err(g, "l2_flush failed");
+		return err;
+	}
+
+	g->ops.gr.ctxsw_prog.set_pm_smpc_mode(g, &gr_ctx->mem, enable);
+
+	return err;
+}

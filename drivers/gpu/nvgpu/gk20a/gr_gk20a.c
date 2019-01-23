@@ -1391,8 +1391,6 @@ int gr_gk20a_update_smpc_ctxsw_mode(struct gk20a *g,
 				    bool enable_smpc_ctxsw)
 {
 	struct tsg_gk20a *tsg;
-	struct nvgpu_gr_ctx *gr_ctx = NULL;
-	struct nvgpu_mem *mem = NULL;
 	int ret;
 
 	nvgpu_log_fn(g, " ");
@@ -1400,13 +1398,6 @@ int gr_gk20a_update_smpc_ctxsw_mode(struct gk20a *g,
 	tsg = tsg_gk20a_from_ch(c);
 	if (tsg == NULL) {
 		return -EINVAL;
-	}
-
-	gr_ctx = tsg->gr_ctx;
-	mem = &gr_ctx->mem;
-	if (!nvgpu_mem_is_valid(mem)) {
-		nvgpu_err(g, "no graphics context allocated");
-		return -EFAULT;
 	}
 
 	ret = gk20a_disable_channel_tsg(g, c);
@@ -1421,15 +1412,7 @@ int gr_gk20a_update_smpc_ctxsw_mode(struct gk20a *g,
 		goto out;
 	}
 
-	/* Channel gr_ctx buffer is gpu cacheable.
-	   Flush and invalidate before cpu update. */
-	ret = g->ops.mm.l2_flush(g, true);
-	if (ret != 0) {
-		nvgpu_err(g, "l2_flush failed");
-		goto out;
-	}
-
-	g->ops.gr.ctxsw_prog.set_pm_smpc_mode(g, mem, enable_smpc_ctxsw);
+	ret = nvgpu_gr_ctx_set_smpc_mode(g, tsg->gr_ctx, enable_smpc_ctxsw);
 
 out:
 	gk20a_enable_channel_tsg(g, c);
