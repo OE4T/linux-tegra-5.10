@@ -938,6 +938,7 @@ static const struct gpu_ops tu104_ops = {
 			gp106_update_lspmu_cmdline_args,
 		.setup_apertures = gp106_pmu_setup_apertures,
 		.secured_pmu_start = gm20b_secured_pmu_start,
+		.create_ssmd_lookup_table = nvgpu_pmu_create_ssmd_lookup_table,
 	},
 	.clk = {
 		.init_clk_support = gv100_init_clk_support,
