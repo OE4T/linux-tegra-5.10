@@ -7233,7 +7233,7 @@ static int gr_gk20a_find_priv_offset_in_pm_buffer(struct gk20a *g,
 	count = gr->ctx_vars.hwpm_ctxsw_buffer_offset_map_count;
 
 	map_key.addr = addr;
-	result = bsearch(&map_key, map, count, sizeof(*map), map_cmp);
+	result = nvgpu_bsearch(&map_key, map, count, sizeof(*map), map_cmp);
 
 	if (result != NULL) {
 		*priv_offset = result->offset;

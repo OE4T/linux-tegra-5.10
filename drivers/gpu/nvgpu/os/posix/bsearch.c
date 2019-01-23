@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -19,12 +19,12 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef NVGPU_BSEARCH_H
-#define NVGPU_BSEARCH_H
 
-#include <nvgpu/types.h>
+#include <nvgpu/bsearch.h>
+#include <stdlib.h>
 
 void *nvgpu_bsearch(const void *key, const void *base, size_t nitems, size_t size,
-		int (*compar)(const void *a, const void *b));
-
-#endif /*NVGPU_BSEARCH_H*/
+		int (*compar)(const void *a, const void *b))
+{
+	return bsearch(key, base, nitems, size, compar);
+}

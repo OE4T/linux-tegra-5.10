@@ -280,7 +280,7 @@ static bool check_whitelists(struct gk20a *g,
 	if (op->type == REGOP(TYPE_GLOBAL)) {
 		/* search global list */
 		valid = (g->ops.regops.get_global_whitelist_ranges != NULL) &&
-		        (bsearch(&offset,
+		        (nvgpu_bsearch(&offset,
 			        g->ops.regops.get_global_whitelist_ranges(),
 			        g->ops.regops.get_global_whitelist_ranges_count(),
 			        sizeof(*g->ops.regops.get_global_whitelist_ranges()),
@@ -290,7 +290,7 @@ static bool check_whitelists(struct gk20a *g,
 		if ((!valid) && (!is_profiler)) {
 			/* binary search context list */
 			valid = (g->ops.regops.get_context_whitelist_ranges != NULL) &&
-			        (bsearch(&offset,
+			        (nvgpu_bsearch(&offset,
 				        g->ops.regops.get_context_whitelist_ranges(),
 				        g->ops.regops.get_context_whitelist_ranges_count(),
 				        sizeof(*g->ops.regops.get_context_whitelist_ranges()),
@@ -307,7 +307,7 @@ static bool check_whitelists(struct gk20a *g,
 	} else if (op->type == REGOP(TYPE_GR_CTX)) {
 		/* binary search context list */
 		valid = (g->ops.regops.get_context_whitelist_ranges != NULL) &&
-		        (bsearch(&offset,
+		        (nvgpu_bsearch(&offset,
 			        g->ops.regops.get_context_whitelist_ranges(),
 			        g->ops.regops.get_context_whitelist_ranges_count(),
 			        sizeof(*g->ops.regops.get_context_whitelist_ranges()),
@@ -447,7 +447,7 @@ static bool validate_reg_ops(struct gk20a *g,
 /* exported for tools like cyclestats, etc */
 bool is_bar0_global_offset_whitelisted_gk20a(struct gk20a *g, u32 offset)
 {
-	bool valid = bsearch(&offset,
+	bool valid = nvgpu_bsearch(&offset,
 			g->ops.regops.get_global_whitelist_ranges(),
 			g->ops.regops.get_global_whitelist_ranges_count(),
 			sizeof(*g->ops.regops.get_global_whitelist_ranges()),
