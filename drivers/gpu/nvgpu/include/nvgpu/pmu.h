@@ -325,7 +325,6 @@ struct nvgpu_pmu {
 	struct pmu_sha1_gid gid_info;
 
 	struct nvgpu_falcon_queue *queue[PMU_QUEUE_COUNT];
-	u32 queue_type;
 
 	struct pmu_sequence *seq;
 	unsigned long pmu_seq_tbl[PMU_SEQ_TBL_SIZE];
@@ -431,9 +430,6 @@ int nvgpu_pmu_mutex_release(struct nvgpu_pmu *pmu, u32 id, u32 *token);
 int nvgpu_pmu_queue_init(struct nvgpu_pmu *pmu, u32 id,
 	union pmu_init_msg_pmu *init);
 void nvgpu_pmu_queue_free(struct nvgpu_pmu *pmu, u32 id);
-
-int nvgpu_pmu_queue_init_fb(struct nvgpu_pmu *pmu,
-	u32 id, union pmu_init_msg_pmu *init);
 
 /* send a cmd to pmu */
 int nvgpu_pmu_cmd_post(struct gk20a *g, struct pmu_cmd *cmd,

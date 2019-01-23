@@ -88,7 +88,7 @@ struct pmu_sha1_gid_data {
 
 /* PMU INIT MSG */
 enum {
-	PMU_INIT_MSG_TYPE_PMU_INIT = 0U,
+	PMU_INIT_MSG_TYPE_PMU_INIT = 0,
 };
 
 struct pmu_init_msg_pmu_v1 {

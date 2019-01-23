@@ -365,101 +365,6 @@ exit:
 	return err;
 }
 
-static void pmu_read_init_msg_fb(struct gk20a *g, struct nvgpu_pmu *pmu,
-	u32 element_index, u32 size, void *buffer)
-{
-	u32 fbq_msg_queue_ss_offset = 0U;
-
-	fbq_msg_queue_ss_offset = (u32)offsetof(
-		struct nv_pmu_super_surface,
-		fbq.msg_queue.element[element_index]);
-
-	nvgpu_mem_rd_n(g, &pmu->super_surface_buf, fbq_msg_queue_ss_offset,
-		buffer, size);
-}
-
-static int pmu_process_init_msg_fb(struct gk20a *g, struct nvgpu_pmu *pmu,
-	struct pmu_msg *msg)
-{
-	u32 tail = 0U;
-	int err = 0;
-
-	nvgpu_log_fn(g, " ");
-
-	g->ops.pmu.pmu_msgq_tail(pmu, &tail, QUEUE_GET);
-
-	pmu_read_init_msg_fb(g, pmu, tail, PMU_MSG_HDR_SIZE,
-		(void *)&msg->hdr);
-
-	if (msg->hdr.unit_id != PMU_UNIT_INIT) {
-		nvgpu_err(g, "FB MSG Q: expecting init msg");
-		err = -EINVAL;
-		goto exit;
-	}
-
-	pmu_read_init_msg_fb(g, pmu, tail, msg->hdr.size,
-		(void *)&msg->hdr);
-
-	if (msg->msg.init.msg_type != PMU_INIT_MSG_TYPE_PMU_INIT) {
-		nvgpu_err(g, "FB MSG Q: expecting pmu init msg");
-		err = -EINVAL;
-		goto exit;
-	}
-
-	/* Queue is not yet constructed, so inline next element code here.*/
-	tail++;
-	if (tail >= NV_PMU_FBQ_MSG_NUM_ELEMENTS) {
-		tail = 0U;
-	}
-
-	g->ops.pmu.pmu_msgq_tail(pmu, &tail, QUEUE_SET);
-
-exit:
-	return err;
-}
-
-static int pmu_process_init_msg_dmem(struct gk20a *g, struct nvgpu_pmu *pmu,
-	struct pmu_msg *msg)
-{
-	u32 tail = 0U;
-	int err = 0;
-
-	nvgpu_log_fn(g, " ");
-
-	g->ops.pmu.pmu_msgq_tail(pmu, &tail, QUEUE_GET);
-
-	err = nvgpu_falcon_copy_from_dmem(pmu->flcn, tail,
-		(u8 *)&msg->hdr, PMU_MSG_HDR_SIZE, 0);
-	if (err != 0) {
-		nvgpu_err(g, "PMU falcon DMEM copy failed");
-		goto exit;
-	}
-	if (msg->hdr.unit_id != PMU_UNIT_INIT) {
-		nvgpu_err(g, "expecting init msg");
-		err = -EINVAL;
-		goto exit;
-	}
-
-	err = nvgpu_falcon_copy_from_dmem(pmu->flcn, tail + PMU_MSG_HDR_SIZE,
-		(u8 *)&msg->msg, (u32)msg->hdr.size - PMU_MSG_HDR_SIZE, 0);
-	if (err != 0) {
-		nvgpu_err(g, "PMU falcon DMEM copy failed");
-		goto exit;
-	}
-
-	if (msg->msg.init.msg_type != PMU_INIT_MSG_TYPE_PMU_INIT) {
-		nvgpu_err(g, "expecting pmu init msg");
-		err = -EINVAL;
-		goto exit;
-	}
-
-	tail += ALIGN(msg->hdr.size, PMU_DMEM_ALIGNMENT);
-	g->ops.pmu.pmu_msgq_tail(pmu, &tail, QUEUE_SET);
-
-exit:
-	return err;
-}
-
 int nvgpu_pmu_process_init_msg(struct nvgpu_pmu *pmu,
 			struct pmu_msg *msg)
 {
@@ -467,24 +372,32 @@ int nvgpu_pmu_process_init_msg(struct nvgpu_pmu *pmu,
 	struct pmu_v *pv = &g->ops.pmu_ver;
 	union pmu_init_msg_pmu *init;
 	struct pmu_sha1_gid_data gid_data;
-	int err = 0;
-	u32 i = 0U;
-	u32 j = 0U;
+	u32 i, j, tail = 0;
+	int err;
 
 	nvgpu_log_fn(g, " ");
 
 	nvgpu_pmu_dbg(g, "init received\n");
 
-	if (nvgpu_is_enabled(g, NVGPU_SUPPORT_PMU_RTOS_FBQ)) {
-		err = pmu_process_init_msg_fb(g, pmu, msg);
-	} else {
-		err = pmu_process_init_msg_dmem(g, pmu, msg);
+	g->ops.pmu.pmu_msgq_tail(pmu, &tail, QUEUE_GET);
+
+	nvgpu_falcon_copy_from_dmem(pmu->flcn, tail,
+		(u8 *)&msg->hdr, PMU_MSG_HDR_SIZE, 0);
+	if (msg->hdr.unit_id != PMU_UNIT_INIT) {
+		nvgpu_err(g, "expecting init msg");
+		return -EINVAL;
 	}
 
-	/* error check for above init message process*/
-	if (err != 0) {
-		goto exit;
+	nvgpu_falcon_copy_from_dmem(pmu->flcn, tail + PMU_MSG_HDR_SIZE,
+		(u8 *)&msg->msg, (u32)msg->hdr.size - PMU_MSG_HDR_SIZE, 0);
+
+	if (msg->msg.init.msg_type != PMU_INIT_MSG_TYPE_PMU_INIT) {
+		nvgpu_err(g, "expecting init msg");
+		return -EINVAL;
 	}
+
+	tail += ALIGN(msg->hdr.size, PMU_DMEM_ALIGNMENT);
+	g->ops.pmu.pmu_msgq_tail(pmu, &tail, QUEUE_SET);
 
 	init = pv->get_pmu_msg_pmu_init_msg_ptr(&(msg->msg.init));
 	if (!pmu->gid_info.valid) {
@@ -509,30 +422,14 @@ int nvgpu_pmu_process_init_msg(struct nvgpu_pmu *pmu,
 		}
 	}
 
-
-	if (nvgpu_is_enabled(g, NVGPU_SUPPORT_PMU_RTOS_FBQ)) {
-		pmu->queue_type = QUEUE_TYPE_FB;
-		for (i = 0; i < PMU_QUEUE_COUNT; i++) {
-			err = nvgpu_pmu_queue_init_fb(pmu, i, init);
-			if (err != 0) {
-				for (j = 0; j < i; j++) {
-					nvgpu_pmu_queue_free(pmu, j);
-				}
-				nvgpu_err(g, "PMU queue init failed");
-				return err;
+	for (i = 0; i < PMU_QUEUE_COUNT; i++) {
+		err = nvgpu_pmu_queue_init(pmu, i, init);
+		if (err != 0) {
+			for (j = 0; j < i; j++) {
+				nvgpu_pmu_queue_free(pmu, j);
 			}
-		}
-	} else {
-		pmu->queue_type = QUEUE_TYPE_DMEM;
-		for (i = 0; i < PMU_QUEUE_COUNT; i++) {
-			err = nvgpu_pmu_queue_init(pmu, i, init);
-			if (err != 0) {
-				for (j = 0; j < i; j++) {
-					nvgpu_pmu_queue_free(pmu, j);
-				}
-				nvgpu_err(g, "PMU queue init failed");
-				return err;
-			}
+			nvgpu_err(g, "PMU queue init failed");
+			return err;
 		}
 	}
 
@@ -553,9 +450,9 @@ int nvgpu_pmu_process_init_msg(struct nvgpu_pmu *pmu,
 
 	nvgpu_pmu_state_change(g, PMU_STATE_INIT_RECEIVED, true);
 
-exit:
-	nvgpu_pmu_dbg(g, "init received end, err %x", err);
-	return err;
+	nvgpu_pmu_dbg(g, "init received end\n");
+
+	return 0;
 }
 
 static void pmu_setup_hw_enable_elpg(struct gk20a *g)
