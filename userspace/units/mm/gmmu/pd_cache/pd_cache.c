@@ -633,8 +633,8 @@ fail:
 /*
  * Requirement NVGPU-RQCD-68.C3
  *
- *   C3: Valid/Invalid: 16 256B, 8 512B, etc, PDs can/cannot fit into a single
- *                      page sized DMA allocation.
+ *   Valid/Invalid: 16 256B, 8 512B, etc, PDs can/cannot fit into a single
+ *                  page sized DMA allocation.
  */
 static int do_test_pd_cache_packing_size(struct unit_module *m, struct gk20a *g,
 					 struct vm_gk20a *vm, u32 pd_size)
@@ -691,7 +691,7 @@ cleanup:
 /*
  * Requirement NVGPU-RQCD-118.C1
  *
- *   C1: Valid/Invalid: Previously allocated PD entries are/are not re-usable.
+ *   Valid/Invalid: Previously allocated PD entries are/are not re-usable.
  */
 static int do_test_pd_reusability(struct unit_module *m, struct gk20a *g,
 				  struct vm_gk20a *vm, u32 pd_size)
