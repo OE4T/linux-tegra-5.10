@@ -594,6 +594,28 @@ void nvgpu_gr_ctx_patch_write(struct gk20a *g,
 	}
 }
 
+void nvgpu_gr_ctx_reset_patch_count(struct gk20a *g,
+	struct nvgpu_gr_ctx *gr_ctx)
+{
+	u32 tmp;
+
+	tmp = g->ops.gr.ctxsw_prog.get_patch_count(g, &gr_ctx->mem);
+	if (tmp == 0U) {
+		gr_ctx->patch_ctx.data_count = 0;
+	}
+}
+
+void nvgpu_gr_ctx_set_patch_ctx(struct gk20a *g, struct nvgpu_gr_ctx *gr_ctx,
+	bool set_patch_addr)
+{
+	g->ops.gr.ctxsw_prog.set_patch_count(g, &gr_ctx->mem,
+		gr_ctx->patch_ctx.data_count);
+	if (set_patch_addr) {
+		g->ops.gr.ctxsw_prog.set_patch_addr(g, &gr_ctx->mem,
+			gr_ctx->patch_ctx.mem.gpu_va);
+	}
+}
+
 u32 nvgpu_gr_ctx_get_ctx_id(struct gk20a *g, struct nvgpu_gr_ctx *gr_ctx)
 {
 	if (!gr_ctx->ctx_id_valid) {

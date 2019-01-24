@@ -5608,7 +5608,6 @@ static int gr_gk20a_ctx_patch_smpc(struct gk20a *g,
 	u32 num_tpc;
 	u32 tpc, gpc, reg;
 	u32 chk_addr;
-	u32 tmp;
 	u32 num_ovr_perf_regs = 0;
 	u32 *ovr_perf_regs = NULL;
 	u32 gpc_stride = nvgpu_get_litter_value(g, GPU_LIT_GPC_STRIDE);
@@ -5633,27 +5632,19 @@ static int gr_gk20a_ctx_patch_smpc(struct gk20a *g,
 				/* reset the patch count from previous
 				   runs,if ucode has already processed
 				   it */
-				tmp = g->ops.gr.ctxsw_prog.get_patch_count(g,
-					mem);
-
-				if (tmp == 0U) {
-					gr_ctx->patch_ctx.data_count = 0;
-				}
+				nvgpu_gr_ctx_reset_patch_count(g, gr_ctx);
 
 				nvgpu_gr_ctx_patch_write(g, gr_ctx,
 							 addr, data, true);
 
-				g->ops.gr.ctxsw_prog.set_patch_count(g, mem,
-					gr_ctx->patch_ctx.data_count);
-
 				if (ch->subctx != NULL) {
-					g->ops.gr.ctxsw_prog.set_patch_addr(g,
-						&ch->subctx->ctx_header,
-						gr_ctx->patch_ctx.mem.gpu_va);
+					nvgpu_gr_ctx_set_patch_ctx(g, gr_ctx,
+						false);
+					nvgpu_gr_subctx_set_patch_ctx(g,
+						ch->subctx, gr_ctx);
 				} else {
-					g->ops.gr.ctxsw_prog.set_patch_addr(g,
-						mem,
-						gr_ctx->patch_ctx.mem.gpu_va);
+					nvgpu_gr_ctx_set_patch_ctx(g, gr_ctx,
+						true);
 				}
 
 				/* we're not caching these on cpu side,

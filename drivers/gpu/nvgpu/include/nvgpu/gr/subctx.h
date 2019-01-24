@@ -49,4 +49,7 @@ void nvgpu_gr_subctx_zcull_setup(struct gk20a *g, struct nvgpu_gr_subctx *subctx
 void nvgpu_gr_subctx_set_hwpm_mode(struct gk20a *g,
 	struct nvgpu_gr_subctx *subctx, struct nvgpu_gr_ctx *gr_ctx);
 
+void nvgpu_gr_subctx_set_patch_ctx(struct gk20a *g,
+	struct nvgpu_gr_subctx *subctx, struct nvgpu_gr_ctx *gr_ctx);
+
 #endif /* NVGPU_GR_SUBCTX_H */
