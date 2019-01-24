@@ -696,12 +696,15 @@ int gr_gm20b_init_fs_state(struct gk20a *g)
 		     gk20a_readl(g, gr_be0_crop_debug3_r()) |
 		     gr_bes_crop_debug3_comp_vdc_4to2_disable_m());
 
-	g->ops.gr.load_smid_config(g);
+	err = g->ops.gr.load_smid_config(g);
+	if (err != 0) {
+		nvgpu_err(g, "load_smid_config failed err=%d", err);
+	}
 
 	return err;
 }
 
-int gr_gm20b_load_ctxsw_ucode_segments(struct gk20a *g, u64 addr_base,
+void gr_gm20b_load_ctxsw_ucode_segments(struct gk20a *g, u64 addr_base,
 	struct gk20a_ctxsw_ucode_segments *segments, u32 reg_offset)
 {
 	gk20a_writel(g, reg_offset + gr_fecs_dmactl_r(),
@@ -716,8 +719,6 @@ int gr_gm20b_load_ctxsw_ucode_segments(struct gk20a *g, u64 addr_base,
 		gk20a_writel(g, reg_offset + gr_fecs_cpuctl_r(),
 				gr_fecs_cpuctl_startcpu_f(0x01));
 	}
-
-	return 0;
 }
 
 static bool gr_gm20b_is_tpc_addr_shared(struct gk20a *g, u32 addr)

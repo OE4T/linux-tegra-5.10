@@ -139,7 +139,7 @@ static u32 get_interim_pldiv(struct gk20a *g, u32 old_pl, u32 new_pl)
     vco_f = u_f * N = ref_clk_f * N / M;
     PLL output = gpc2clk = target clock frequency = vco_f / pl_to_pdiv(PL);
     gpcclk = gpc2clk / 2; */
-static int clk_config_pll(struct clk_gk20a *clk, struct pll *pll,
+static void clk_config_pll(struct clk_gk20a *clk, struct pll *pll,
 	struct pll_parms *pll_params, u32 *target_freq, bool best_fit)
 {
 	struct gk20a *g = clk->g;
@@ -258,8 +258,6 @@ found_match:
 		*target_freq, pll->M, pll->N, pll->PL, nvgpu_pl_to_div(pll->PL));
 
 	nvgpu_log_fn(g, "done");
-
-	return 0;
 }
 
 /* GPCPLL NA/DVFS mode methods */
@@ -312,7 +310,7 @@ static bool nvgpu_fuse_can_use_na_gpcpll(struct gk20a *g)
  * Read ADC characteristic parmeters from fuses.
  * Determine clibration settings.
  */
-static int clk_config_calibration_params(struct gk20a *g)
+static void clk_config_calibration_params(struct gk20a *g)
 {
 	int slope, offs;
 	struct pll_parms *p = &gpc_pll_params;
@@ -329,9 +327,7 @@ static int clk_config_calibration_params(struct gk20a *g)
 		 * boot internal calibration with default slope.
 		 */
 		nvgpu_err(g, "ADC coeff are not fused");
-		return -EINVAL;
 	}
-	return 0;
 }
 
 /*
@@ -735,7 +731,7 @@ static u32 throttle_disable(struct gk20a *g)
 }
 
 /* GPCPLL bypass methods */
-static int clk_change_pldiv_under_bypass(struct gk20a *g, struct pll *gpll)
+static void clk_change_pldiv_under_bypass(struct gk20a *g, struct pll *gpll)
 {
 	u32 data, coeff, throt;
 
@@ -762,11 +758,9 @@ static int clk_change_pldiv_under_bypass(struct gk20a *g, struct pll *gpll)
 		trim_sys_sel_vco_gpc2clk_out_vco_f());
 	gk20a_writel(g, trim_sys_sel_vco_r(), data);
 	throttle_enable(g, throt);
-
-	return 0;
 }
 
-static int clk_lock_gpc_pll_under_bypass(struct gk20a *g, struct pll *gpll)
+static void clk_lock_gpc_pll_under_bypass(struct gk20a *g, struct pll *gpll)
 {
 	u32 data, cfg, coeff, timeout, throt;
 
@@ -863,7 +857,6 @@ static int clk_lock_gpc_pll_under_bypass(struct gk20a *g, struct pll *gpll)
 	/* PLL is messed up. What can we do here? */
 	dump_gpc_pll(g, gpll, cfg);
 	BUG();
-	return -EBUSY;
 
 pll_locked:
 	gk20a_dbg_clk(g, "locked config_pll under bypass r=0x%x v=0x%x",
@@ -882,8 +875,6 @@ pll_locked:
 		trim_sys_sel_vco_gpc2clk_out_vco_f());
 	gk20a_writel(g, trim_sys_sel_vco_r(), data);
 	throttle_enable(g, throt);
-
-	return 0;
 }
 
 /*
@@ -1144,11 +1135,12 @@ static int clk_program_na_gpc_pll(struct gk20a *g, struct pll *gpll_new,
 	return clk_program_gpc_pll(g, gpll_new, true);
 }
 
-static int clk_disable_gpcpll(struct gk20a *g, bool allow_slide)
+static void clk_disable_gpcpll(struct gk20a *g, bool allow_slide)
 {
 	u32 cfg, coeff, throt;
 	struct clk_gk20a *clk = &g->clk;
 	struct pll gpll = clk->gpc_pll;
+	int err = 0;
 
 	/* slide to VCO min */
 	cfg = gk20a_readl(g, trim_sys_gpcpll_cfg_r());
@@ -1160,7 +1152,10 @@ static int clk_disable_gpcpll(struct gk20a *g, bool allow_slide)
 		if (gpll.mode == GPC_PLL_MODE_DVFS) {
 			clk_config_dvfs_ndiv(gpll.dvfs.mv, gpll.N, &gpll.dvfs);
 		}
-		clk_slide_gpc_pll(g, &gpll);
+		err = clk_slide_gpc_pll(g, &gpll);
+		if (err != 0) {
+			nvgpu_err(g, "slide_gpc failed, err=%d", err);
+		}
 	}
 
 	/* put PLL in bypass before disabling it */
@@ -1186,7 +1181,6 @@ static int clk_disable_gpcpll(struct gk20a *g, bool allow_slide)
 
 	clk->gpc_pll.enabled = false;
 	clk->gpc_pll_last.enabled = false;
-	return 0;
 }
 
 struct pll_parms *gm20b_get_gpc_pll_parms(void)
@@ -1426,11 +1420,8 @@ static int set_pll_target(struct gk20a *g, u32 freq, u32 old_freq)
 
 	if (freq != old_freq) {
 		/* gpc_pll.freq is changed to new value here */
-		if (clk_config_pll(clk, &clk->gpc_pll, &gpc_pll_params,
-				   &freq, true) != 0) {
-			nvgpu_err(g, "failed to set pll target for %d", freq);
-			return -EINVAL;
-		}
+		clk_config_pll(clk, &clk->gpc_pll, &gpc_pll_params, &freq,
+				true);
 	}
 	return 0;
 }
@@ -1511,7 +1502,7 @@ int gm20b_suspend_clk_support(struct gk20a *g)
 	/* The prev call may not disable PLL if gbus is unbalanced - force it */
 	nvgpu_mutex_acquire(&g->clk.clk_mutex);
 	if (g->clk.gpc_pll.enabled) {
-		ret = clk_disable_gpcpll(g, true);
+		clk_disable_gpcpll(g, true);
 	}
 	g->clk.clk_hw_on = false;
 	nvgpu_mutex_release(&g->clk.clk_mutex);

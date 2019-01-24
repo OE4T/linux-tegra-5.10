@@ -284,7 +284,7 @@ struct gpu_ops {
 		void (*set_hww_esr_report_mask)(struct gk20a *g);
 		int (*setup_alpha_beta_tables)(struct gk20a *g,
 					      struct gr_gk20a *gr);
-		int (*falcon_load_ucode)(struct gk20a *g,
+		void (*falcon_load_ucode)(struct gk20a *g,
 				u64 addr_base,
 				struct gk20a_ctxsw_ucode_segments *segments,
 				u32 reg_offset);

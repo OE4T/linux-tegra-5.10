@@ -86,7 +86,7 @@ void gr_gm20b_load_tpc_mask(struct gk20a *g);
 void gr_gm20b_program_sm_id_numbering(struct gk20a *g,
 					     u32 gpc, u32 tpc, u32 smid);
 int gr_gm20b_load_smid_config(struct gk20a *g);
-int gr_gm20b_load_ctxsw_ucode_segments(struct gk20a *g, u64 addr_base,
+void gr_gm20b_load_ctxsw_ucode_segments(struct gk20a *g, u64 addr_base,
 	struct gk20a_ctxsw_ucode_segments *segments, u32 reg_offset);
 bool gr_gm20b_is_tpc_addr(struct gk20a *g, u32 addr);
 u32 gr_gm20b_get_tpc_num(struct gk20a *g, u32 addr);

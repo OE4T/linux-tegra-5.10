@@ -89,7 +89,7 @@ void gm20b_fifo_trigger_mmu_fault(struct gk20a *g,
 {
 	unsigned long delay = GR_IDLE_CHECK_DEFAULT;
 	unsigned long engine_id;
-	int ret = -EBUSY;
+	int ret;
 	struct nvgpu_timeout timeout;
 
 	/* trigger faults for all bad engines */
@@ -106,10 +106,14 @@ void gm20b_fifo_trigger_mmu_fault(struct gk20a *g,
 		}
 	}
 
-	nvgpu_timeout_init(g, &timeout, gk20a_get_gr_idle_timeout(g),
+	ret = nvgpu_timeout_init(g, &timeout, gk20a_get_gr_idle_timeout(g),
 			   NVGPU_TIMER_CPU_TIMER);
+	if (ret != 0) {
+		nvgpu_err(g, "timeout init failed err=%d", ret);
+	}
 
 	/* Wait for MMU fault to trigger */
+	ret = -EBUSY;
 	do {
 		if ((gk20a_readl(g, fifo_intr_0_r()) &
 		     fifo_intr_0_mmu_fault_pending_f()) != 0U) {
