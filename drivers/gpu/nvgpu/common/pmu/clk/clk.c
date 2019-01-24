@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2018, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -990,7 +990,6 @@ int nvgpu_clk_set_boot_fll_clk_tu10x(struct gk20a *g)
 	int status = 0;
 	u8 i = 0, gpcclk_domain=0;
 	u32 gpcclk_clkmhz=0, gpcclk_voltuv=0;
-	u32 vmin_uv = 0;
 
 	(void) memset(&change_input, 0,
 		sizeof(struct ctrl_perf_change_seq_change_input));
@@ -1029,16 +1028,6 @@ int nvgpu_clk_set_boot_fll_clk_tu10x(struct gk20a *g)
 
 	status = clk_domain_freq_to_volt(g, gpcclk_domain,
 		&gpcclk_clkmhz, &gpcclk_voltuv, CTRL_VOLT_DOMAIN_LOGIC);
-
-	status = g->ops.pmu_ver.volt.volt_get_vmin(g, &vmin_uv);
-	if(status != 0)
-	{
-		nvgpu_pmu_dbg(g, "Get vmin failed, proceeding with freq_to_volt value");
-	}
-	if((status == 0) && (vmin_uv > gpcclk_voltuv)) {
-		gpcclk_voltuv = vmin_uv;
-		nvgpu_pmu_dbg(g, "Vmin is higher than evaluated Volt");
-	}
 
 	change_input.volt[0].voltage_uv = gpcclk_voltuv;
 	change_input.volt[0].voltage_min_noise_unaware_uv = gpcclk_voltuv;

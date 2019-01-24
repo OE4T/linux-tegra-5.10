@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
+* Copyright (c) 2016-2018, NVIDIA CORPORATION.  All rights reserved.
 *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -63,7 +63,6 @@ struct voltage_rail {
 	u32 ov_limit_vfe_equ_mon_handle;
 	struct boardobjgrpmask_e32 volt_dev_mask;
 	s32  volt_delta_uv[CTRL_VOLT_RAIL_VOLT_DELTA_MAX_ENTRIES];
-	u32 vmin_limitu_v;
 };
 
 u8 volt_rail_vbios_volt_domain_convert_to_internal
