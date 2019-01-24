@@ -20,7 +20,6 @@
 #include <linux/delay.h>
 #include <uapi/linux/nvgpu.h>
 #include <linux/dma-buf.h>
-#include <linux/dma-attrs.h>
 #include <linux/nvmap.h>
 #include <linux/reset.h>
 #if defined(CONFIG_TEGRA_DVFS)
@@ -92,11 +91,9 @@ struct gk20a_emc_params {
 static void gk20a_tegra_secure_page_destroy(struct gk20a *g,
 				       struct secure_page_buffer *secure_buffer)
 {
-	DEFINE_DMA_ATTRS(attrs);
-	dma_set_attr(DMA_ATTR_NO_KERNEL_MAPPING, __DMA_ATTR(attrs));
 	dma_free_attrs(&tegra_vpr_dev, secure_buffer->size,
 			(void *)(uintptr_t)secure_buffer->phys,
-			secure_buffer->phys, __DMA_ATTR(attrs));
+			secure_buffer->phys, DMA_ATTR_NO_KERNEL_MAPPING);
 
 	secure_buffer->destroy = NULL;
 }
@@ -624,7 +621,6 @@ int gk20a_tegra_init_secure_alloc(struct gk20a_platform *platform)
 {
 	struct gk20a *g = platform->g;
 	struct secure_page_buffer *secure_buffer = &platform->secure_buffer;
-	DEFINE_DMA_ATTRS(attrs);
 	dma_addr_t iova;
 
 	if (nvgpu_is_enabled(g, NVGPU_IS_FMODEL))
@@ -633,9 +629,8 @@ int gk20a_tegra_init_secure_alloc(struct gk20a_platform *platform)
 #if PAGE_SIZE > 4096
 	platform->secure_buffer_size += SZ_64K;
 #endif
-	dma_set_attr(DMA_ATTR_NO_KERNEL_MAPPING, __DMA_ATTR(attrs));
 	(void)dma_alloc_attrs(&tegra_vpr_dev, platform->secure_buffer_size, &iova,
-				      GFP_KERNEL, __DMA_ATTR(attrs));
+				      GFP_KERNEL, DMA_ATTR_NO_KERNEL_MAPPING);
 	/* Some platforms disable VPR. In that case VPR allocations always
 	 * fail. Just disable VPR usage in nvgpu in that case. */
 	if (dma_mapping_error(&tegra_vpr_dev, iova))

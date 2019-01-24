@@ -33,17 +33,6 @@
 #include "os_linux.h"
 #include "dmabuf_vidmem.h"
 
-#ifdef __DMA_ATTRS_LONGS
-#define NVGPU_DEFINE_DMA_ATTRS(x)                                     \
-        struct dma_attrs x = {                                  \
-                .flags = { [0 ... __DMA_ATTRS_LONGS-1] = 0 },   \
-        }
-#define NVGPU_DMA_ATTR(attrs) &attrs
-#else
-#define NVGPU_DEFINE_DMA_ATTRS(attrs) unsigned long attrs = 0
-#define NVGPU_DMA_ATTR(attrs) attrs
-#endif
-
 /*
  * Enough to hold all the possible flags in string form. When a new flag is
  * added it must be added here as well!!
@@ -157,21 +146,13 @@ static u64 __nvgpu_dma_alloc(struct nvgpu_allocator *allocator, u64 at,
 }
 #endif
 
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 9, 0)
 static void nvgpu_dma_flags_to_attrs(unsigned long *attrs,
 		unsigned long flags)
-#define ATTR_ARG(x) *x
-#else
-static void nvgpu_dma_flags_to_attrs(struct dma_attrs *attrs,
-		unsigned long flags)
-#define ATTR_ARG(x) x
-#endif
 {
 	if (flags & NVGPU_DMA_NO_KERNEL_MAPPING)
-		dma_set_attr(DMA_ATTR_NO_KERNEL_MAPPING, ATTR_ARG(attrs));
+		*attrs |= DMA_ATTR_NO_KERNEL_MAPPING;
 	if (flags & NVGPU_DMA_FORCE_CONTIGUOUS)
-		dma_set_attr(DMA_ATTR_FORCE_CONTIGUOUS, ATTR_ARG(attrs));
-#undef ATTR_ARG
+		*attrs |= DMA_ATTR_FORCE_CONTIGUOUS;
 }
 
 int nvgpu_dma_alloc_flags_sys(struct gk20a *g, unsigned long flags,
@@ -180,7 +161,7 @@ int nvgpu_dma_alloc_flags_sys(struct gk20a *g, unsigned long flags,
 	struct device *d = dev_from_gk20a(g);
 	int err;
 	dma_addr_t iova;
-	NVGPU_DEFINE_DMA_ATTRS(dma_attrs);
+	unsigned long dma_attrs = 0;
 	void *alloc_ret;
 
 	if (nvgpu_mem_is_valid(mem)) {
@@ -212,8 +193,7 @@ int nvgpu_dma_alloc_flags_sys(struct gk20a *g, unsigned long flags,
 	nvgpu_dma_flags_to_attrs(&dma_attrs, flags);
 
 	alloc_ret = dma_alloc_attrs(d, size, &iova,
-				    GFP_KERNEL|__GFP_ZERO,
-				    NVGPU_DMA_ATTR(dma_attrs));
+				    GFP_KERNEL|__GFP_ZERO, dma_attrs);
 	if (!alloc_ret)
 		return -ENOMEM;
 
@@ -239,7 +219,7 @@ int nvgpu_dma_alloc_flags_sys(struct gk20a *g, unsigned long flags,
 	return 0;
 
 fail_free_dma:
-	dma_free_attrs(d, size, alloc_ret, iova, NVGPU_DMA_ATTR(dma_attrs));
+	dma_free_attrs(d, size, alloc_ret, iova, dma_attrs);
 	mem->cpu_va = NULL;
 	mem->priv.sgt = NULL;
 	mem->size = 0;
@@ -334,6 +314,7 @@ fail_physfree:
 void nvgpu_dma_free_sys(struct gk20a *g, struct nvgpu_mem *mem)
 {
 	struct device *d = dev_from_gk20a(g);
+	unsigned long dma_attrs = 0;
 
 	g->dma_memory_used -= mem->aligned_size;
 
@@ -343,18 +324,17 @@ void nvgpu_dma_free_sys(struct gk20a *g, struct nvgpu_mem *mem)
 	    !(mem->mem_flags & __NVGPU_MEM_FLAG_NO_DMA) &&
 	    (mem->cpu_va || mem->priv.pages)) {
 		if (mem->priv.flags) {
-			NVGPU_DEFINE_DMA_ATTRS(dma_attrs);
 
 			nvgpu_dma_flags_to_attrs(&dma_attrs, mem->priv.flags);
 
 			if (mem->priv.flags & NVGPU_DMA_NO_KERNEL_MAPPING) {
 				dma_free_attrs(d, mem->aligned_size, mem->priv.pages,
 					sg_dma_address(mem->priv.sgt->sgl),
-					NVGPU_DMA_ATTR(dma_attrs));
+					dma_attrs);
 			} else {
 				dma_free_attrs(d, mem->aligned_size, mem->cpu_va,
 					sg_dma_address(mem->priv.sgt->sgl),
-					NVGPU_DMA_ATTR(dma_attrs));
+					dma_attrs);
 			}
 		} else {
 			dma_free_coherent(d, mem->aligned_size, mem->cpu_va,
@@ -427,7 +407,7 @@ int nvgpu_get_sgtable_attrs(struct gk20a *g, struct sg_table **sgt,
 {
 	int err = 0;
 	struct sg_table *tbl;
-	NVGPU_DEFINE_DMA_ATTRS(dma_attrs);
+	unsigned long dma_attrs = 0;
 
 	tbl = nvgpu_kzalloc(g, sizeof(struct sg_table));
 	if (!tbl) {
@@ -437,7 +417,7 @@ int nvgpu_get_sgtable_attrs(struct gk20a *g, struct sg_table **sgt,
 
 	nvgpu_dma_flags_to_attrs(&dma_attrs, flags);
 	err = dma_get_sgtable_attrs(dev_from_gk20a(g), tbl, cpuva, iova,
-					size, NVGPU_DMA_ATTR(dma_attrs));
+					size, dma_attrs);
 	if (err)
 		goto fail;
 
