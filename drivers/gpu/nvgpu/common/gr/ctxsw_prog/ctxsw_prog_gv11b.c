@@ -54,14 +54,6 @@ u32 gv11b_ctxsw_prog_hw_get_pm_mode_stream_out_ctxsw(void)
 	return ctxsw_prog_main_image_pm_mode_stream_out_ctxsw_f();
 }
 
-u32 gv11b_ctxsw_prog_set_pm_mode_stream_out_ctxsw(struct gk20a *g,
-	struct nvgpu_mem *ctx_mem)
-{
-	gm20b_ctxsw_prog_set_pm_mode(g, ctx_mem,
-		ctxsw_prog_main_image_pm_mode_stream_out_ctxsw_f());
-	return ctxsw_prog_main_image_pm_mode_stream_out_ctxsw_f();
-}
-
 void gv11b_ctxsw_prog_set_full_preemption_ptr(struct gk20a *g,
 	struct nvgpu_mem *ctx_mem, u64 addr)
 {

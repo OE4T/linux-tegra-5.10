@@ -559,12 +559,6 @@ struct gpu_ops {
 				struct nvgpu_mem *ctx_mem, u32 mode);
 			void (*set_pm_smpc_mode)(struct gk20a *g,
 				struct nvgpu_mem *ctx_mem, bool enable);
-			u32 (*set_pm_mode_no_ctxsw)(struct gk20a *g,
-				struct nvgpu_mem *ctx_mem);
-			u32 (*set_pm_mode_ctxsw)(struct gk20a *g,
-				struct nvgpu_mem *ctx_mem);
-			u32 (*set_pm_mode_stream_out_ctxsw)(struct gk20a *g,
-				struct nvgpu_mem *ctx_mem);
 			u32 (*hw_get_pm_mode_no_ctxsw)(void);
 			u32 (*hw_get_pm_mode_ctxsw)(void);
 			u32 (*hw_get_pm_mode_stream_out_ctxsw)(void);

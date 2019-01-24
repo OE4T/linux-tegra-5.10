@@ -73,8 +73,17 @@ struct zcull_ctx_desc {
 	u32 ctx_sw_mode;
 };
 
+ /* PM Context Switch Mode */
+/*This mode says that the pms are not to be context switched. */
+#define NVGPU_GR_CTX_HWPM_CTXSW_MODE_NO_CTXSW               (0x00000000U)
+/* This mode says that the pms in Mode-B are to be context switched */
+#define NVGPU_GR_CTX_HWPM_CTXSW_MODE_CTXSW                  (0x00000001U)
+/* This mode says that the pms in Mode-E (stream out) are to be context switched. */
+#define NVGPU_GR_CTX_HWPM_CTXSW_MODE_STREAM_OUT_CTXSW       (0x00000002U)
+
 struct pm_ctx_desc {
 	struct nvgpu_mem mem;
+	u64 gpu_va;
 	u32 pm_mode;
 };
 
@@ -185,4 +194,10 @@ int nvgpu_gr_ctx_zcull_setup(struct gk20a *g, struct nvgpu_gr_ctx *gr_ctx,
 
 int nvgpu_gr_ctx_set_smpc_mode(struct gk20a *g, struct nvgpu_gr_ctx *gr_ctx,
 	bool enable);
+
+int nvgpu_gr_ctx_prepare_hwpm_mode(struct gk20a *g, struct nvgpu_gr_ctx *gr_ctx,
+	u32 mode, bool *skip_update);
+int nvgpu_gr_ctx_set_hwpm_mode(struct gk20a *g, struct nvgpu_gr_ctx *gr_ctx,
+	bool set_pm_ptr);
+
 #endif /* NVGPU_INCLUDE_GR_CTX_H */

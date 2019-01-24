@@ -35,6 +35,7 @@
 #include <nvgpu/channel.h>
 #include <nvgpu/tsg.h>
 #include <nvgpu/regops.h>
+#include <nvgpu/gr/ctx.h>
 
 #include <nvgpu/linux/vm.h>
 
@@ -1007,11 +1008,11 @@ static u32 nvgpu_hwpm_ctxsw_mode_to_common_mode(u32 mode)
 	nvgpu_speculation_barrier();
 	switch (mode){
 	case NVGPU_DBG_GPU_HWPM_CTXSW_MODE_NO_CTXSW:
-		return NVGPU_DBG_HWPM_CTXSW_MODE_NO_CTXSW;
+		return NVGPU_GR_CTX_HWPM_CTXSW_MODE_NO_CTXSW;
 	case NVGPU_DBG_GPU_HWPM_CTXSW_MODE_CTXSW:
-		return NVGPU_DBG_HWPM_CTXSW_MODE_CTXSW;
+		return NVGPU_GR_CTX_HWPM_CTXSW_MODE_CTXSW;
 	case NVGPU_DBG_GPU_HWPM_CTXSW_MODE_STREAM_OUT_CTXSW:
-		return NVGPU_DBG_HWPM_CTXSW_MODE_STREAM_OUT_CTXSW;
+		return NVGPU_GR_CTX_HWPM_CTXSW_MODE_STREAM_OUT_CTXSW;
 	}
 
 	return mode;

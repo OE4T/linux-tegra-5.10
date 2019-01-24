@@ -1425,10 +1425,8 @@ int gr_gk20a_update_hwpm_ctxsw_mode(struct gk20a *g,
 				  u32 mode)
 {
 	struct tsg_gk20a *tsg;
-	struct nvgpu_mem *gr_mem = NULL;
 	struct nvgpu_gr_ctx *gr_ctx;
-	struct pm_ctx_desc *pm_ctx;
-	u64 virt_addr = 0;
+	bool skip_update = false;
 	int ret;
 
 	nvgpu_log_fn(g, " ");
@@ -1439,43 +1437,33 @@ int gr_gk20a_update_hwpm_ctxsw_mode(struct gk20a *g,
 	}
 
 	gr_ctx = tsg->gr_ctx;
-	pm_ctx = &gr_ctx->pm_ctx;
-	gr_mem = &gr_ctx->mem;
-	if (!nvgpu_mem_is_valid(gr_mem)) {
-		nvgpu_err(g, "no graphics context allocated");
-		return -EFAULT;
+
+	if (mode != NVGPU_GR_CTX_HWPM_CTXSW_MODE_NO_CTXSW) {
+		nvgpu_gr_ctx_set_size(g->gr.gr_ctx_desc,
+			NVGPU_GR_CTX_PM_CTX,
+			g->gr.ctx_vars.pm_ctxsw_image_size);
+
+		ret = nvgpu_gr_ctx_alloc_pm_ctx(g, gr_ctx,
+			g->gr.gr_ctx_desc, c->vm,
+			gpu_va);
+		if (ret != 0) {
+			nvgpu_err(g,
+				"failed to allocate pm ctxt buffer");
+			return ret;
+		}
+
+		if ((mode == NVGPU_GR_CTX_HWPM_CTXSW_MODE_STREAM_OUT_CTXSW) &&
+			(g->ops.gr.init_hwpm_pmm_register != NULL)) {
+			g->ops.gr.init_hwpm_pmm_register(g);
+		}
 	}
 
-	if ((mode == NVGPU_DBG_HWPM_CTXSW_MODE_STREAM_OUT_CTXSW) &&
-			(g->ops.gr.ctxsw_prog.hw_get_pm_mode_stream_out_ctxsw ==
-			NULL)) {
-		nvgpu_err(g,
-			"Mode-E hwpm context switch mode is not supported");
-		return -EINVAL;
+	ret = nvgpu_gr_ctx_prepare_hwpm_mode(g, gr_ctx, mode, &skip_update);
+	if (ret != 0) {
+		return ret;
 	}
-
-	switch (mode) {
-	case NVGPU_DBG_HWPM_CTXSW_MODE_CTXSW:
-		if (pm_ctx->pm_mode ==
-		    g->ops.gr.ctxsw_prog.hw_get_pm_mode_ctxsw()) {
-			return 0;
-		}
-		break;
-	case  NVGPU_DBG_HWPM_CTXSW_MODE_NO_CTXSW:
-		if (pm_ctx->pm_mode ==
-		    g->ops.gr.ctxsw_prog.hw_get_pm_mode_no_ctxsw()) {
-			return 0;
-		}
-		break;
-	case NVGPU_DBG_HWPM_CTXSW_MODE_STREAM_OUT_CTXSW:
-		if (pm_ctx->pm_mode ==
-		    g->ops.gr.ctxsw_prog.hw_get_pm_mode_stream_out_ctxsw()) {
-			return 0;
-		}
-		break;
-	default:
-		nvgpu_err(g, "invalid hwpm context switch mode");
-		return -EINVAL;
+	if (skip_update) {
+		return 0;
 	}
 
 	ret = gk20a_disable_channel_tsg(g, c);
@@ -1491,72 +1479,26 @@ int gr_gk20a_update_hwpm_ctxsw_mode(struct gk20a *g,
 		return ret;
 	}
 
-	/* Channel gr_ctx buffer is gpu cacheable.
-	   Flush and invalidate before cpu update. */
-	ret = g->ops.mm.l2_flush(g, true);
-	if (ret != 0) {
-		nvgpu_err(g, "l2_flush failed");
-		return ret;
-	}
-
-	if (mode != NVGPU_DBG_HWPM_CTXSW_MODE_NO_CTXSW) {
-		/* Allocate buffer if necessary */
-		if (pm_ctx->mem.gpu_va == 0ULL) {
-			nvgpu_gr_ctx_set_size(g->gr.gr_ctx_desc,
-				NVGPU_GR_CTX_PM_CTX,
-				g->gr.ctx_vars.pm_ctxsw_image_size);
-
-			ret = nvgpu_gr_ctx_alloc_pm_ctx(g, gr_ctx,
-				g->gr.gr_ctx_desc, c->vm,
-				gpu_va);
-			if (ret != 0) {
-				c->g->ops.fifo.enable_channel(c);
-				nvgpu_err(g,
-					"failed to allocate pm ctxt buffer");
-				return ret;
-			}
-		}
-
-		if ((mode == NVGPU_DBG_HWPM_CTXSW_MODE_STREAM_OUT_CTXSW) &&
-			(g->ops.gr.init_hwpm_pmm_register != NULL)) {
-			g->ops.gr.init_hwpm_pmm_register(g);
-		}
-	}
-
-	switch (mode) {
-	case  NVGPU_DBG_HWPM_CTXSW_MODE_CTXSW:
-		pm_ctx->pm_mode =
-			g->ops.gr.ctxsw_prog.set_pm_mode_ctxsw(g, gr_mem);
-		virt_addr = pm_ctx->mem.gpu_va;
-		break;
-	case NVGPU_DBG_HWPM_CTXSW_MODE_STREAM_OUT_CTXSW:
-		pm_ctx->pm_mode =
-			g->ops.gr.ctxsw_prog.set_pm_mode_stream_out_ctxsw(g, gr_mem);
-		virt_addr = pm_ctx->mem.gpu_va;
-		break;
-	case NVGPU_DBG_HWPM_CTXSW_MODE_NO_CTXSW:
-		pm_ctx->pm_mode =
-			g->ops.gr.ctxsw_prog.set_pm_mode_no_ctxsw(g, gr_mem);
-		virt_addr = 0;
-	}
-
 	if (c->subctx != NULL) {
 		struct channel_gk20a *ch;
 
 		nvgpu_rwsem_down_read(&tsg->ch_list_lock);
 		nvgpu_list_for_each_entry(ch, &tsg->ch_list, channel_gk20a, ch_entry) {
-			g->ops.gr.ctxsw_prog.set_pm_ptr(g, &ch->subctx->ctx_header,
-				virt_addr);
+			ret = nvgpu_gr_ctx_set_hwpm_mode(g, gr_ctx, false);
+			if (ret == 0) {
+				nvgpu_gr_subctx_set_hwpm_mode(g, ch->subctx,
+					gr_ctx);
+			}
 		}
 		nvgpu_rwsem_up_read(&tsg->ch_list_lock);
 	} else {
-		g->ops.gr.ctxsw_prog.set_pm_ptr(g, gr_mem, virt_addr);
+		ret = nvgpu_gr_ctx_set_hwpm_mode(g, gr_ctx, true);
 	}
 
 	/* enable channel */
 	gk20a_enable_channel_tsg(g, c);
 
-	return 0;
+	return ret;
 }
 
 static void gr_gk20a_start_falcon_ucode(struct gk20a *g)

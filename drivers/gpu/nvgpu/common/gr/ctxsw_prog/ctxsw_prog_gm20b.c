@@ -141,23 +141,6 @@ void gm20b_ctxsw_prog_set_pm_smpc_mode(struct gk20a *g,
 	nvgpu_mem_wr(g, ctx_mem, ctxsw_prog_main_image_pm_o(), data);
 }
 
-u32 gm20b_ctxsw_prog_set_pm_mode_no_ctxsw(struct gk20a *g,
-	struct nvgpu_mem *ctx_mem)
-{
-	gm20b_ctxsw_prog_set_pm_mode(g, ctx_mem,
-		ctxsw_prog_main_image_pm_mode_no_ctxsw_f());
-	return ctxsw_prog_main_image_pm_mode_no_ctxsw_f();
-}
-
-u32 gm20b_ctxsw_prog_set_pm_mode_ctxsw(struct gk20a *g,
-	struct nvgpu_mem *ctx_mem)
-{
-	gm20b_ctxsw_prog_set_pm_mode(g, ctx_mem,
-		ctxsw_prog_main_image_pm_mode_ctxsw_f());
-	return ctxsw_prog_main_image_pm_mode_ctxsw_f();
-}
-
-
 u32 gm20b_ctxsw_prog_hw_get_pm_mode_no_ctxsw(void)
 {
 	return ctxsw_prog_main_image_pm_mode_no_ctxsw_f();

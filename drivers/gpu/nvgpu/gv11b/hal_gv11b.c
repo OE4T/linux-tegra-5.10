@@ -483,16 +483,11 @@ static const struct gpu_ops gv11b_ops = {
 			.set_pm_ptr = gv11b_ctxsw_prog_set_pm_ptr,
 			.set_pm_mode = gm20b_ctxsw_prog_set_pm_mode,
 			.set_pm_smpc_mode = gm20b_ctxsw_prog_set_pm_smpc_mode,
-			.set_pm_mode_no_ctxsw =
-				gm20b_ctxsw_prog_set_pm_mode_no_ctxsw,
-			.set_pm_mode_ctxsw = gm20b_ctxsw_prog_set_pm_mode_ctxsw,
 			.hw_get_pm_mode_no_ctxsw =
 				gm20b_ctxsw_prog_hw_get_pm_mode_no_ctxsw,
 			.hw_get_pm_mode_ctxsw = gm20b_ctxsw_prog_hw_get_pm_mode_ctxsw,
 			.hw_get_pm_mode_stream_out_ctxsw =
 				gv11b_ctxsw_prog_hw_get_pm_mode_stream_out_ctxsw,
-			.set_pm_mode_stream_out_ctxsw =
-				gv11b_ctxsw_prog_set_pm_mode_stream_out_ctxsw,
 			.init_ctxsw_hdr_data = gp10b_ctxsw_prog_init_ctxsw_hdr_data,
 			.set_compute_preemption_mode_cta =
 				gp10b_ctxsw_prog_set_compute_preemption_mode_cta,

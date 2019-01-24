@@ -403,9 +403,6 @@ static const struct gpu_ops gp10b_ops = {
 			.set_pm_ptr = gm20b_ctxsw_prog_set_pm_ptr,
 			.set_pm_mode = gm20b_ctxsw_prog_set_pm_mode,
 			.set_pm_smpc_mode = gm20b_ctxsw_prog_set_pm_smpc_mode,
-			.set_pm_mode_no_ctxsw =
-				gm20b_ctxsw_prog_set_pm_mode_no_ctxsw,
-			.set_pm_mode_ctxsw = gm20b_ctxsw_prog_set_pm_mode_ctxsw,
 			.hw_get_pm_mode_no_ctxsw =
 				gm20b_ctxsw_prog_hw_get_pm_mode_no_ctxsw,
 			.hw_get_pm_mode_ctxsw = gm20b_ctxsw_prog_hw_get_pm_mode_ctxsw,

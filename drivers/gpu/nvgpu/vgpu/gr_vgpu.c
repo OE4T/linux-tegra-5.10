@@ -1125,7 +1125,7 @@ int vgpu_gr_update_hwpm_ctxsw_mode(struct gk20a *g,
 	ch_ctx = tsg->gr_ctx;
 	pm_ctx = &ch_ctx->pm_ctx;
 
-	if (mode == NVGPU_DBG_HWPM_CTXSW_MODE_CTXSW) {
+	if (mode == NVGPU_GR_CTX_HWPM_CTXSW_MODE_CTXSW) {
 		/*
 		 * send command to enable HWPM only once - otherwise server
 		 * will return an error due to using the same GPU VA twice.
@@ -1136,13 +1136,13 @@ int vgpu_gr_update_hwpm_ctxsw_mode(struct gk20a *g,
 			return 0;
 		}
 		p->mode = TEGRA_VGPU_CTXSW_MODE_CTXSW;
-	} else if (mode == NVGPU_DBG_HWPM_CTXSW_MODE_NO_CTXSW) {
+	} else if (mode == NVGPU_GR_CTX_HWPM_CTXSW_MODE_NO_CTXSW) {
 		if (pm_ctx->pm_mode ==
 				g->ops.gr.ctxsw_prog.hw_get_pm_mode_no_ctxsw()) {
 			return 0;
 		}
 		p->mode = TEGRA_VGPU_CTXSW_MODE_NO_CTXSW;
-	} else if ((mode == NVGPU_DBG_HWPM_CTXSW_MODE_STREAM_OUT_CTXSW) &&
+	} else if ((mode == NVGPU_GR_CTX_HWPM_CTXSW_MODE_STREAM_OUT_CTXSW) &&
 			g->ops.gr.ctxsw_prog.hw_get_pm_mode_stream_out_ctxsw()) {
 		if (pm_ctx->pm_mode ==
 				g->ops.gr.ctxsw_prog.hw_get_pm_mode_stream_out_ctxsw()) {
@@ -1154,7 +1154,7 @@ int vgpu_gr_update_hwpm_ctxsw_mode(struct gk20a *g,
 		return -EINVAL;
 	}
 
-	if (mode != NVGPU_DBG_HWPM_CTXSW_MODE_NO_CTXSW) {
+	if (mode != NVGPU_GR_CTX_HWPM_CTXSW_MODE_NO_CTXSW) {
 		/* Allocate buffer if necessary */
 		if (pm_ctx->mem.gpu_va == 0) {
 			pm_ctx->mem.gpu_va = nvgpu_vm_alloc_va(ch->vm,
@@ -1177,10 +1177,10 @@ int vgpu_gr_update_hwpm_ctxsw_mode(struct gk20a *g,
 	WARN_ON(err || msg.ret);
 	err = err ? err : msg.ret;
 	if (!err) {
-		if (mode == NVGPU_DBG_HWPM_CTXSW_MODE_CTXSW) {
+		if (mode == NVGPU_GR_CTX_HWPM_CTXSW_MODE_CTXSW) {
 			pm_ctx->pm_mode =
 				g->ops.gr.ctxsw_prog.hw_get_pm_mode_ctxsw();
-		} else if (mode == NVGPU_DBG_HWPM_CTXSW_MODE_NO_CTXSW) {
+		} else if (mode == NVGPU_GR_CTX_HWPM_CTXSW_MODE_NO_CTXSW) {
 			pm_ctx->pm_mode =
 				g->ops.gr.ctxsw_prog.hw_get_pm_mode_no_ctxsw();
 		} else {

@@ -673,3 +673,83 @@ int nvgpu_gr_ctx_set_smpc_mode(struct gk20a *g, struct nvgpu_gr_ctx *gr_ctx,
 
 	return err;
 }
+
+int nvgpu_gr_ctx_prepare_hwpm_mode(struct gk20a *g, struct nvgpu_gr_ctx *gr_ctx,
+	u32 mode, bool *skip_update)
+{
+	struct pm_ctx_desc *pm_ctx = &gr_ctx->pm_ctx;
+
+	*skip_update = false;
+
+	if (!nvgpu_mem_is_valid(&gr_ctx->mem)) {
+		nvgpu_err(g, "no graphics context allocated");
+		return -EFAULT;
+	}
+
+	if ((mode == NVGPU_GR_CTX_HWPM_CTXSW_MODE_STREAM_OUT_CTXSW) &&
+	    (g->ops.gr.ctxsw_prog.hw_get_pm_mode_stream_out_ctxsw == NULL)) {
+		nvgpu_err(g,
+			"Mode-E hwpm context switch mode is not supported");
+		return -EINVAL;
+	}
+
+	switch (mode) {
+	case NVGPU_GR_CTX_HWPM_CTXSW_MODE_CTXSW:
+		if (pm_ctx->pm_mode ==
+		    g->ops.gr.ctxsw_prog.hw_get_pm_mode_ctxsw()) {
+			*skip_update = true;
+			return 0;
+		}
+		pm_ctx->pm_mode = g->ops.gr.ctxsw_prog.hw_get_pm_mode_ctxsw();
+		pm_ctx->gpu_va = pm_ctx->mem.gpu_va;
+		break;
+	case  NVGPU_GR_CTX_HWPM_CTXSW_MODE_NO_CTXSW:
+		if (pm_ctx->pm_mode ==
+		    g->ops.gr.ctxsw_prog.hw_get_pm_mode_no_ctxsw()) {
+			*skip_update = true;
+			return 0;
+		}
+		pm_ctx->pm_mode =
+			g->ops.gr.ctxsw_prog.hw_get_pm_mode_no_ctxsw();
+		pm_ctx->gpu_va = 0;
+		break;
+	case NVGPU_GR_CTX_HWPM_CTXSW_MODE_STREAM_OUT_CTXSW:
+		if (pm_ctx->pm_mode ==
+		    g->ops.gr.ctxsw_prog.hw_get_pm_mode_stream_out_ctxsw()) {
+			*skip_update = true;
+			return 0;
+		}
+		pm_ctx->pm_mode =
+			g->ops.gr.ctxsw_prog.hw_get_pm_mode_stream_out_ctxsw();
+		pm_ctx->gpu_va = pm_ctx->mem.gpu_va;
+		break;
+	default:
+		nvgpu_err(g, "invalid hwpm context switch mode");
+		return -EINVAL;
+	}
+
+	return 0;
+}
+
+int nvgpu_gr_ctx_set_hwpm_mode(struct gk20a *g, struct nvgpu_gr_ctx *gr_ctx,
+	bool set_pm_ptr)
+{
+	int err;
+
+	/* Channel gr_ctx buffer is gpu cacheable.
+	   Flush and invalidate before cpu update. */
+	err = g->ops.mm.l2_flush(g, true);
+	if (err != 0) {
+		nvgpu_err(g, "l2_flush failed");
+		return err;
+	}
+
+	g->ops.gr.ctxsw_prog.set_pm_mode(g, &gr_ctx->mem,
+			gr_ctx->pm_ctx.pm_mode);
+	if (set_pm_ptr) {
+		g->ops.gr.ctxsw_prog.set_pm_ptr(g, &gr_ctx->mem,
+			gr_ctx->pm_ctx.gpu_va);
+	}
+
+	return err;
+}

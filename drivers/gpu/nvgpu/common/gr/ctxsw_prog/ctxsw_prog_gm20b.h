@@ -52,10 +52,6 @@ void gm20b_ctxsw_prog_set_pm_mode(struct gk20a *g,
 	struct nvgpu_mem *ctx_mem, u32 mode);
 void gm20b_ctxsw_prog_set_pm_smpc_mode(struct gk20a *g,
 	struct nvgpu_mem *ctx_mem, bool enable);
-u32 gm20b_ctxsw_prog_set_pm_mode_no_ctxsw(struct gk20a *g,
-	struct nvgpu_mem *ctx_mem);
-u32 gm20b_ctxsw_prog_set_pm_mode_ctxsw(struct gk20a *g,
-	struct nvgpu_mem *ctx_mem);
 u32 gm20b_ctxsw_prog_hw_get_pm_mode_no_ctxsw(void);
 u32 gm20b_ctxsw_prog_hw_get_pm_mode_ctxsw(void);
 void gm20b_ctxsw_prog_init_ctxsw_hdr_data(struct gk20a *g,
