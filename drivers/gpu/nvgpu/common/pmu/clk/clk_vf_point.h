@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
+* Copyright (c) 2016-2018, NVIDIA CORPORATION.  All rights reserved.
 *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -30,7 +30,6 @@
 #include <nvgpu/boardobjgrpmask.h>
 
 #define VMIN_PAD_UV 50000U
-#define FREQ_STEP_SIZE_MHZ	15U
 
 int clk_vf_point_cache(struct gk20a *g);
 struct nvgpu_clk_arb;

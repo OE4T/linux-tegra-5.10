@@ -311,7 +311,6 @@ static int tu104_init_gpu_characteristics(struct gk20a *g)
 		nvgpu_set_enabled(g, NVGPU_SUPPORT_USER_SYNCPOINT, true);
 	}
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_USERMODE_SUBMIT, true);
-	nvgpu_set_enabled(g, NVGPU_SUPPORT_DEVICE_EVENTS, true);
 
 	return 0;
 }
