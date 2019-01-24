@@ -5601,7 +5601,6 @@ void gk20a_gr_init_ovr_sm_dsm_perf(void)
 static int gr_gk20a_ctx_patch_smpc(struct gk20a *g,
 			    struct channel_gk20a *ch,
 			    u32 addr, u32 data,
-			    struct nvgpu_mem *mem,
 			    struct nvgpu_gr_ctx *gr_ctx)
 {
 	u32 num_gpc = nvgpu_gr_config_get_gpc_count(g->gr.config);
@@ -7018,11 +7017,13 @@ int __gr_gk20a_exec_ctx_ops(struct channel_gk20a *ch,
 							   offsets[j] + 4U, v);
 					}
 
-					/* check to see if we need to add a special WAR
-					   for some of the SMPC perf regs */
-					gr_gk20a_ctx_patch_smpc(g, ch, offset_addrs[j],
-							v, current_mem, gr_ctx);
-
+					if (current_mem == &gr_ctx->mem) {
+						/* check to see if we need to add a special WAR
+						   for some of the SMPC perf regs */
+						gr_gk20a_ctx_patch_smpc(g, ch,
+							offset_addrs[j],
+							v, gr_ctx);
+					}
 				} else { /* read pass */
 					ctx_ops[i].value_lo =
 						nvgpu_mem_rd(g, current_mem, offsets[0]);
