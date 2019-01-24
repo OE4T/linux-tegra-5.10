@@ -1,7 +1,7 @@
 /*
  * drivers/video/tegra/nvmap/nvmap_cache.c
  *
- * Copyright (c) 2011-2018, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2011-2019, NVIDIA CORPORATION. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -195,11 +195,7 @@ void nvmap_cache_inner_clean_all(void)
 void nvmap_cache_inner_maint(unsigned int op, void *vaddr, size_t size)
 {
 	if (op == NVMAP_CACHE_OP_WB_INV) {
-#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 9, 0)
-		__dma_flush_range(vaddr, vaddr + size);
-#else
 		__dma_flush_area(vaddr, size);
-#endif
 	} else if (op == NVMAP_CACHE_OP_INV) {
 		__dma_map_area(vaddr, size, DMA_FROM_DEVICE);
 	} else {
@@ -301,11 +297,7 @@ void nvmap_cache_maint_heap_page_outer(struct page **pages,
 void nvmap_cache_maint_inner(unsigned int op, void *vaddr, size_t size)
 {
 	if (op == NVMAP_CACHE_OP_WB_INV) {
-#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 9, 0)
-		__dma_flush_range(vaddr, vaddr + size);
-#else
 		__dma_flush_area(vaddr, size);
-#endif
 	} else if (op == NVMAP_CACHE_OP_INV) {
 		__dma_map_area(vaddr, size, DMA_FROM_DEVICE);
 	} else {

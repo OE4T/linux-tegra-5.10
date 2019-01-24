@@ -3,7 +3,7 @@
  *
  * Manage page pools to speed up page allocation.
  *
- * Copyright (c) 2009-2018, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2009-2019, NVIDIA CORPORATION. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -206,15 +206,7 @@ static int nvmap_background_zero_thread(void *arg)
 
 static void nvmap_pgcount(struct page *page, bool incr)
 {
-#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 9, 0)
-	if (incr) {
-		atomic_inc(&page->_count);
-	} else {
-		atomic_dec(&page->_count);
-	}
-#else
 	page_ref_add(page, incr ? 1 : -1);
-#endif
 }
 
 /*

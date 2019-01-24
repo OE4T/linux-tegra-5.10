@@ -1,7 +1,7 @@
 /*
  * dma_buf exporter for nvmap
  *
- * Copyright (c) 2012-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2012-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -61,7 +61,6 @@ void nvmap_dmabuf_install_fd(struct dma_buf *dmabuf, int nv_fd)
 	fd_install((unsigned int) nv_fd, dmabuf->file);
 }
 
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 4, 0)
 static struct dma_buf *nvmap_dma_buf_export(void * priv,
 					size_t size)
 {
@@ -76,10 +75,6 @@ static struct dma_buf *nvmap_dma_buf_export(void * priv,
 
 	return dma_buf_export(&exp_info);
 }
-#else
-#define nvmap_dma_buf_export(priv, size) \
-	dma_buf_export(priv, &nvmap_dma_buf_ops, size, O_RDWR, NULL)
-#endif
 
 /*
  * Make a dmabuf object for an nvmap handle.

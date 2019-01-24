@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2018-2019, NVIDIA CORPORATION. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -95,16 +95,9 @@ int nvmap_get_user_pages(ulong vaddr, int nr_page, struct page **pages)
 	int ret = 0;
 	int user_pages;
 	down_read(&current->mm->mmap_sem);
-#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 9, 0)
-        user_pages = get_user_pages(current, current->mm,
-			      vaddr & PAGE_MASK, nr_page,
-			      1/*write*/, 1, /* force */
-			      pages, NULL);
-#else
 	user_pages = get_user_pages(vaddr & PAGE_MASK, nr_page,
 			      FOLL_WRITE | FOLL_FORCE,
 			      pages, NULL);
-#endif
 	up_read(&current->mm->mmap_sem);
 	if (user_pages != nr_page) {
 		ret = user_pages < 0 ? user_pages : -ENOMEM;

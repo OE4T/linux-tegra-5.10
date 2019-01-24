@@ -3,7 +3,7 @@
  *
  * Handle allocation and freeing routines for nvmap
  *
- * Copyright (c) 2018, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2018-2019, NVIDIA CORPORATION. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -935,7 +935,6 @@ static int handle_write(struct nvmap_handle *h, unsigned long h_offs,
 {
 	int ret = 0;
 
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 9, 0)
 	if (h->heap_type == NVMAP_HEAP_CARVEOUT_VPR) {
 		uaccess_enable();
 		memcpy_toio(addr, (void *)sys_addr, elem_size);
@@ -944,9 +943,6 @@ static int handle_write(struct nvmap_handle *h, unsigned long h_offs,
 	} else {
 		ret = copy_from_user(addr, (void *)sys_addr, elem_size);
 	}
-#else
-	ret = copy_from_user(addr, (void *)sys_addr, elem_size);
-#endif
 
 	if (ret) {
 		return ret;

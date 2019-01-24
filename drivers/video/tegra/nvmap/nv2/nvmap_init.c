@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2018, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2014-2019, NVIDIA CORPORATION. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -30,9 +30,7 @@
 #include <linux/sched/clock.h>
 #endif
 
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 4, 0)
 #include <linux/cma.h>
-#endif
 
 #include <asm/dma-contiguous.h>
 
@@ -41,11 +39,7 @@
 #include <linux/platform/tegra/common.h>
 
 #ifdef CONFIG_TEGRA_VIRTUALIZATION
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 4, 0)
 #include <soc/tegra/virt/syscalls.h>
-#else
-#include "../../../drivers/virt/tegra/syscalls.h"
-#endif
 #endif
 
 #include "nvmap_carveout.h"

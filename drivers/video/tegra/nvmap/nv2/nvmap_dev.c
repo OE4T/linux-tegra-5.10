@@ -3,7 +3,7 @@
  *
  * User-space interface to nvmap
  *
- * Copyright (c) 2011-2018, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2011-2019, NVIDIA CORPORATION. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -47,9 +47,7 @@
 #include <linux/sched/mm.h>
 #endif
 
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 4, 0)
 #include <linux/backing-dev.h>
-#endif
 
 #include <asm/cputype.h>
 
@@ -85,7 +83,7 @@ static int nvmap_open(struct inode *inode, struct file *filp);
 static int nvmap_release(struct inode *inode, struct file *filp);
 static long nvmap_ioctl(struct file *filp, unsigned int cmd, unsigned long arg);
 static int nvmap_map(struct file *filp, struct vm_area_struct *vma);
-#if !defined(CONFIG_MMU) && (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 4, 0))
+#if !defined(CONFIG_MMU)
 static unsigned nvmap_mmap_capabilities(struct file *filp);
 #endif
 
@@ -98,7 +96,7 @@ static const struct file_operations nvmap_user_fops = {
 	.compat_ioctl = nvmap_ioctl,
 #endif
 	.mmap		= nvmap_map,
-#if !defined(CONFIG_MMU) && (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 4, 0))
+#if !defined(CONFIG_MMU)
 	.mmap_capabilities = nvmap_mmap_capabilities,
 #endif
 };

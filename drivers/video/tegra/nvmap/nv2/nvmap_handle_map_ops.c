@@ -3,7 +3,7 @@
  *
  * Memory manager for Tegra GPU
  *
- * Copyright (c) 2009-2018, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2009-2019, NVIDIA CORPORATION. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -133,11 +133,7 @@ void __nvmap_kunmap(struct nvmap_handle *h, unsigned int pagenum,
 
 	if (h->flags != NVMAP_HANDLE_UNCACHEABLE &&
 	    h->flags != NVMAP_HANDLE_WRITE_COMBINE) {
-#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 9, 0)
-		__dma_flush_range(addr, addr + PAGE_SIZE);
-#else
 		__dma_flush_area(addr, PAGE_SIZE);
-#endif
 		outer_flush_range(paddr, paddr + PAGE_SIZE); /* FIXME */
 	}
 
