@@ -628,6 +628,10 @@
 		compatible = "nvidia,dma_test";
 	};
 
+	mods_test: mods_test {
+		compatible = "nvidia,mods_test";
+	};
+
 	tegra_udrm: tegra_udrm {
 		compatible = "nvidia,tegra-udrm";
 	};
