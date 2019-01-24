@@ -23,6 +23,8 @@
 #ifdef MODS_HAS_DMABUF
 
 #include <linux/dma-buf.h>
+#include <linux/module.h>
+#include <linux/dma-mapping.h>
 #include <linux/platform_device.h>
 
 #include "mods_internal.h"
@@ -31,22 +33,7 @@
 extern const struct dma_map_ops swiotlb_dma_ops;
 #endif
 
-static void dummy_release(struct device *dev)
-{
-}
-
-static struct device_dma_parameters dma_parms = {
-	.max_segment_size = UINT_MAX,
-};
-
-static struct platform_device dummy_device = {
-	.name = "nvidia_mods_dummy_device",
-	.id = -1,
-	.dev = {
-		.dma_parms = &dma_parms,
-		.release   = dummy_release,
-	},
-};
+static struct device *dummy_device;
 
 static bool dummy_device_registered;
 
@@ -79,7 +66,7 @@ int esc_mods_dmabuf_get_phys_addr(struct file *filp,
 	}
 
 	WARN_ON(!dummy_device_registered);
-	attachment = dma_buf_attach(dmabuf, &dummy_device.dev);
+	attachment = dma_buf_attach(dmabuf, dummy_device);
 	if (IS_ERR_OR_NULL(attachment)) {
 		mods_error_printk("%s: failed to attach dma buf\n", __func__);
 		err = IS_ERR(attachment) ? PTR_ERR(attachment) : -EFAULT;
@@ -139,33 +126,43 @@ buf_attach_fail:
 	return err;
 }
 
+static int mods_dmabuf_probe(struct platform_device *pdev)
+{
+	dma_set_mask(&pdev->dev, DMA_BIT_MASK(39));
+	dummy_device = &pdev->dev;
+
+	dummy_device_registered = true;
+	return 0;
+}
+
+static int mods_dmabuf_remove(struct platform_device *pdev)
+{
+	return 0;
+}
+
+static const struct of_device_id of_ids[] = {
+	{ .compatible = "nvidia,mods_test" },
+	{ }
+};
+
+static struct platform_driver mods_dummy_driver = {
+	.probe  = mods_dmabuf_probe,
+	.remove = mods_dmabuf_remove,
+	.driver = {
+		.name   = "nvidia_mods_dummy_driver",
+		.owner  = THIS_MODULE,
+		.of_match_table = of_ids,
+	},
+};
+
 int mods_init_dmabuf(void)
 {
-	int ret;
-
-	WARN_ON(dummy_device_registered);
-
-	ret = platform_device_register(&dummy_device);
-	if (ret) {
-		mods_error_printk("failed to register %s\n", dummy_device.name);
-		return ret;
-	}
-
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 14, 0)
-	if (!dummy_device.dev.dma_ops)
-		dummy_device.dev.dma_ops = &swiotlb_dma_ops;
-#endif
-	dummy_device_registered = true;
-
-	return 0;
+	return platform_driver_register(&mods_dummy_driver);
 }
 
 void mods_exit_dmabuf(void)
 {
-	if (dummy_device_registered) {
-		platform_device_unregister(&dummy_device);
-		dummy_device_registered = false;
-	}
+	platform_driver_unregister(&mods_dummy_driver);
 }
 
 #endif
