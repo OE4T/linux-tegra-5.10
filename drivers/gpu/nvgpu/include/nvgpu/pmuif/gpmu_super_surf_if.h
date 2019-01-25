@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -22,6 +22,8 @@
 #ifndef NVGPU_PMUIF_GPMU_SUPER_SURF_IF_H
 #define NVGPU_PMUIF_GPMU_SUPER_SURF_IF_H
 
+#include <nvgpu/pmuif/nvgpu_gpmu_cmdif.h>
+
 struct nv_pmu_super_surface_hdr {
     u32 memberMask;
     u16 dmemBufferSizeMax;
@@ -35,6 +37,12 @@ NV_PMU_MAKE_ALIGNED_STRUCT(nv_pmu_super_surface_hdr,
  * NOTE: Any new substructures or entries must be aligned.
  */
 struct nv_pmu_super_surface {
+
+	struct {
+		struct nv_pmu_fbq_cmd_queues cmd_queues;
+		struct nv_pmu_fbq_msg_queue msg_queue;
+	} fbq;
+
 	union nv_pmu_super_surface_hdr_aligned hdr;
 
 	struct {
