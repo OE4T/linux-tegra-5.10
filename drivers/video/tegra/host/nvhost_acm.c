@@ -3,7 +3,7 @@
  *
  * Tegra Graphics Host Automatic Clock Management
  *
- * Copyright (c) 2010-2018, NVIDIA Corporation. All rights reserved.
+ * Copyright (c) 2010-2019, NVIDIA Corporation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -728,15 +728,11 @@ int nvhost_module_init(struct platform_device *dev)
 
 #if LINUX_VERSION_CODE < KERNEL_VERSION(4, 14, 0)
 	if (nvhost_is_210()) {
-		struct generic_pm_domain *gpd = pd_to_genpd(dev->dev.pm_domain);
-
 		/* needed to WAR MBIST issue */
 		if (pdata->poweron_toggle_slcg) {
 			pdata->toggle_slcg_notifier.notifier_call =
 				&nvhost_module_toggle_slcg;
 		}
-
-		nvhost_pd_slcg_install_workaround(pdata, gpd);
 	}
 #endif
 
@@ -836,14 +832,6 @@ void nvhost_module_deinit(struct platform_device *dev)
 	int i;
 	struct kobj_attribute *attr = NULL;
 	struct nvhost_device_data *pdata = platform_get_drvdata(dev);
-
-#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 14, 0)
-	if (nvhost_is_210()) {
-		struct generic_pm_domain *gpd = pd_to_genpd(dev->dev.pm_domain);
-
-		nvhost_pd_slcg_remove_workaround(pdata, gpd);
-	}
-#endif
 
 	devfreq_suspend_device(pdata->power_manager);
 

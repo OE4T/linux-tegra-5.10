@@ -6431,9 +6431,6 @@ static int tegra_dc_probe(struct platform_device *ndev)
 #ifdef CONFIG_TEGRA_ISOMGR
 			isomgr_client_id = TEGRA_ISO_CLIENT_DISP_0;
 #endif
-			dc->slgc_notifier.notifier_call = tegra_dc_slgc_disp0;
-			slcg_register_notifier(dc->powergate_id,
-					&dc->slgc_notifier);
 #endif
 		} else if (dc->ctrl_num == 1) {
 			dc->vblank_syncpt = NVSYNCPT_VBLANK1;

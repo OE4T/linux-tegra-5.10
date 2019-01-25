@@ -3,7 +3,7 @@
  *
  * Tegra Graphics Host Legacy Power Domain Provider
  *
- * Copyright (c) 2017-2018, NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2017-2019, NVIDIA Corporation.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -183,31 +183,3 @@ int nvhost_domain_init(struct of_device_id *matches)
 
 }
 EXPORT_SYMBOL(nvhost_domain_init);
-
-#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 14, 0)
-void nvhost_pd_slcg_install_workaround(struct nvhost_device_data *pdata,
-				       struct generic_pm_domain *genpd)
-{
-	struct nvhost_pm_domain *pd = genpd_to_nvhost_pd(genpd);
-
-	/* needed to WAR MBIST issue */
-	if (pdata->poweron_toggle_slcg || pdata->slcg_notifier_enable) {
-		if (pd->powergate_id != -1)
-			slcg_register_notifier(pd->powergate_id,
-					       &pdata->toggle_slcg_notifier);
-	}
-}
-
-void nvhost_pd_slcg_remove_workaround(struct nvhost_device_data *pdata,
-				      struct generic_pm_domain *genpd)
-{
-	struct nvhost_pm_domain *pd = genpd_to_nvhost_pd(genpd);
-
-	if ((pdata->poweron_toggle_slcg || pdata->slcg_notifier_enable) &&
-	    pd->powergate_id != 1)
-	{
-		slcg_unregister_notifier(pd->powergate_id,
-					 &pdata->toggle_slcg_notifier);
-	}
-}
-#endif
