@@ -73,7 +73,7 @@ struct pll_parms *gm20b_get_gpc_pll_parms(void);
 
 int gm20b_clk_pll_reg_write(struct gk20a *g, u32 reg, u32 val);
 int gm20b_init_clk_support(struct gk20a *g);
-int gm20b_suspend_clk_support(struct gk20a *g);
+void gm20b_suspend_clk_support(struct gk20a *g);
 int gm20b_clk_get_voltage(struct clk_gk20a *clk, u64 *val);
 int gm20b_clk_get_gpcclk_clock_counter(struct clk_gk20a *clk, u64 *val);
 int gm20b_clk_get_pll_debug_data(struct gk20a *g,

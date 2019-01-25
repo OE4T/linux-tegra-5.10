@@ -29,7 +29,7 @@ u32 gv100_get_rate_cntr(struct gk20a *g, struct namemap_cfg *c);
 int gv100_init_clk_support(struct gk20a *g);
 u32 gv100_crystal_clk_hz(struct gk20a *g);
 unsigned long gv100_clk_measure_freq(struct gk20a *g, u32 api_domain);
-int gv100_suspend_clk_support(struct gk20a *g);
+void gv100_suspend_clk_support(struct gk20a *g);
 int gv100_clk_domain_get_f_points(
 	struct gk20a *g,
 	u32 clkapidomain,

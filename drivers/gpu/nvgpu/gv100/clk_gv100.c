@@ -232,8 +232,7 @@ int gv100_clk_domain_get_f_points(
 	}
 	return status;
 }
-int gv100_suspend_clk_support(struct gk20a *g)
+void gv100_suspend_clk_support(struct gk20a *g)
 {
 	nvgpu_mutex_destroy(&g->clk.clk_mutex);
-	return 0;
 }

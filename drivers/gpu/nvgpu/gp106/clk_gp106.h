@@ -29,7 +29,7 @@ u32 gp106_get_rate_cntr(struct gk20a *g, struct namemap_cfg *c);
 int gp106_init_clk_support(struct gk20a *g);
 u32 gp106_crystal_clk_hz(struct gk20a *g);
 unsigned long gp106_clk_measure_freq(struct gk20a *g, u32 api_domain);
-int gp106_suspend_clk_support(struct gk20a *g);
+void gp106_suspend_clk_support(struct gk20a *g);
 int gp106_clk_domain_get_f_points(
 	struct gk20a *g,
 	u32 clkapidomain,

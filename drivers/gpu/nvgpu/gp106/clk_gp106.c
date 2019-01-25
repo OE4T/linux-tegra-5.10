@@ -281,8 +281,7 @@ int gp106_clk_domain_get_f_points(
 	return status;
 }
 
-int gp106_suspend_clk_support(struct gk20a *g)
+void gp106_suspend_clk_support(struct gk20a *g)
 {
 	nvgpu_mutex_destroy(&g->clk.clk_mutex);
-	return 0;
 }

@@ -1493,10 +1493,8 @@ int gm20b_init_clk_support(struct gk20a *g)
 	return err;
 }
 
-int gm20b_suspend_clk_support(struct gk20a *g)
+void gm20b_suspend_clk_support(struct gk20a *g)
 {
-	int ret = 0;
-
 	g->ops.clk.disable_unprepare(&g->clk);
 
 	/* The prev call may not disable PLL if gbus is unbalanced - force it */
@@ -1508,8 +1506,6 @@ int gm20b_suspend_clk_support(struct gk20a *g)
 	nvgpu_mutex_release(&g->clk.clk_mutex);
 
 	nvgpu_mutex_destroy(&g->clk.clk_mutex);
-
-	return ret;
 }
 
 int gm20b_clk_get_voltage(struct clk_gk20a *clk, u64 *val)

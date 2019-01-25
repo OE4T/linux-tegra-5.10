@@ -110,7 +110,7 @@ int gk20a_prepare_poweroff(struct gk20a *g)
 
 	/* Disable GPCPLL */
 	if (g->ops.clk.suspend_clk_support != NULL) {
-		ret |= g->ops.clk.suspend_clk_support(g);
+		g->ops.clk.suspend_clk_support(g);
 	}
 	gk20a_mask_interrupts(g);
 
