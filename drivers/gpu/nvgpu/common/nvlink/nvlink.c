@@ -99,7 +99,7 @@ int nvgpu_nvlink_dev_shutdown(struct gk20a *g)
 	int err;
 
 	err = g->ops.nvlink.shutdown(g);
-	return 0;
+	return err;
 }
 
 int nvgpu_nvlink_reg_init(struct gk20a *g)

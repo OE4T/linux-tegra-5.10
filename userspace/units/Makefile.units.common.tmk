@@ -50,7 +50,9 @@ NV_COMPONENT_CFLAGS            	+= \
 	-DCONFIG_ARCH_TEGRA_18x_SOC=1 \
 	-DCONFIG_GK20A_VIDMEM=1 \
 	-DCONFIG_PCI_MSI \
-	-DCONFIG_SUPPORT_PMU_PSTATE
+	-DCONFIG_SUPPORT_PMU_PSTATE \
+	-DCONFIG_TEGRA_NVLINK
+
 NV_COMPONENT_NEEDED_INTERFACE_DIRS += \
                                 $(NV_SOURCE)/kernel/nvgpu/drivers/gpu/nvgpu \
                                 $(NV_SOURCE)/kernel/nvgpu/userspace

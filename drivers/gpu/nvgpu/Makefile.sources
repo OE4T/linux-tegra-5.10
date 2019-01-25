@@ -43,7 +43,7 @@ srcs +=	os/posix/nvgpu.c \
 	os/posix/posix-clk_arb.c \
 	os/posix/posix-channel.c \
 	os/posix/posix-tsg.c \
-	os/posix/nvlink.c \
+	os/posix/posix-nvlink.c \
 	os/posix/lock.c \
 	os/posix/stubs.c \
 	os/posix/posix-fault-injection.c \
@@ -52,9 +52,6 @@ srcs +=	os/posix/nvgpu.c \
 	os/posix/posix-vgpu.c \
 	os/posix/posix-dt.c \
 	os/posix/posix-vidmem.c
-else
-# Causes duplicate file name if included
-srcs +=	common/nvlink/nvlink.c
 endif
 
 # POSIX sources shared between the POSIX and QNX builds.
@@ -268,6 +265,7 @@ srcs += common/sim.c \
 	common/nvlink/probe.c \
 	common/nvlink/nvlink_gv100.c \
 	common/nvlink/nvlink_tu104.c	\
+	common/nvlink/nvlink.c \
 	gv100/hal_gv100.c \
 	gv100/gsp_gv100.c \
 	gv100/clk_gv100.c \
