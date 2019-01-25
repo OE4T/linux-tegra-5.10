@@ -48,8 +48,6 @@ static inline void *nvhost_get_virt_data(struct platform_device *dev)
 void vhost_init_host1x_debug_ops(struct nvhost_debug_ops *ops);
 int vhost_sendrecv(struct tegra_vhost_cmd_msg *msg);
 int vhost_virt_moduleid(int moduleid);
-int vhost_rdwr_module_regs(struct platform_device *ndev, u32 count,
-	u32 block_size, u32 __user *offsets, u32 __user *values, u32 write);
 int vhost_suspend(struct platform_device *pdev);
 int vhost_resume(struct platform_device *pdev);
 int nvhost_virt_init(struct platform_device *dev, int moduleid);
@@ -60,12 +58,6 @@ void nvhost_virt_deinit(struct platform_device *dev);
 static inline void vhost_init_host1x_debug_ops(struct nvhost_debug_ops *ops)
 { }
 static inline int vhost_virt_moduleid(int moduleid)
-{
-	return -ENOTSUPP;
-}
-static inline int vhost_rdwr_module_regs(struct platform_device *ndev,
-	u32 count, u32 block_size, u32 __user *offsets, u32 __user *values,
-	u32 write)
 {
 	return -ENOTSUPP;
 }

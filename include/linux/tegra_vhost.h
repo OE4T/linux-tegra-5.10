@@ -46,7 +46,6 @@ enum {
 	TEGRA_VHOST_CMD_CONNECT = 0,
 	TEGRA_VHOST_CMD_DISCONNECT,
 	TEGRA_VHOST_CMD_ABORT,
-	TEGRA_VHOST_CMD_HOST1X_REGRDWR,
 	TEGRA_VHOST_CMD_SUSPEND,
 	TEGRA_VHOST_CMD_RESUME,
 	TEGRA_VHOST_CMD_GET_CONNECTION_ID,
@@ -57,21 +56,12 @@ struct tegra_vhost_connect_params {
 	u64 handle;
 };
 
-#define REGRDWR_ARRAY_SIZE (u32)4
-struct tegra_vhost_channel_regrdwr_params {
-	u32 moduleid;
-	u32 count;
-	u32 write;
-	u32 regs[REGRDWR_ARRAY_SIZE];
-};
-
 struct tegra_vhost_cmd_msg {
 	u32 cmd;
 	int ret;
 	u64 handle;
 	union {
 		struct tegra_vhost_connect_params connect;
-		struct tegra_vhost_channel_regrdwr_params regrdwr;
 	} params;
 };
 

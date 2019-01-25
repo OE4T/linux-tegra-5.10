@@ -942,9 +942,10 @@ static int nvhost_ioctl_channel_module_regrdwr(
 
 	ndev = ctx->pdev;
 
-	if (nvhost_dev_is_virtual(ndev))
-		return vhost_rdwr_module_regs(ndev, num_offsets,
-				args->block_size, offsets, values, args->write);
+	if (nvhost_dev_is_virtual(ndev)) {
+		nvhost_err(&ctx->pdev->dev, "not supported");
+		return -EINVAL;
+	}
 
 	while (num_offsets--) {
 		int err;
