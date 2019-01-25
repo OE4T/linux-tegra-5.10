@@ -23,13 +23,10 @@
 #ifndef NVGPU_POSIX_RWSEM_H
 #define NVGPU_POSIX_RWSEM_H
 
-#include <nvgpu/lock.h>
+#include <pthread.h>
 
 struct nvgpu_rwsem {
-	struct nvgpu_spinlock lock;
-
-	int readers;
-	int writers;
+	pthread_rwlock_t rw_sem;
 };
 
 #endif /* NVGPU_POSIX_RWSEM_H */

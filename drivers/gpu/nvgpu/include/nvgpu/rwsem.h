@@ -24,10 +24,8 @@
 
 #ifdef __KERNEL__
 #include <nvgpu/linux/rwsem.h>
-#elif defined(__NVGPU_POSIX__)
-#include <nvgpu/posix/rwsem.h>
 #else
-#include <nvgpu_rmos/include/rwsem.h>
+#include <nvgpu/posix/rwsem.h>
 #endif
 
 /*
