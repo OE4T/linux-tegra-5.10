@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -1765,6 +1765,8 @@ static int getslaveclk_prog_1x_master(struct gk20a *g,
 				return -EINVAL;
 			}
 			*pclkmhz = (masterclkmhz * pslaveents->ratio)/100U;
+			/* Floor/Quantize all the slave clocks to the multiple of step size*/
+			*pclkmhz = (*pclkmhz / FREQ_STEP_SIZE_MHZ) * FREQ_STEP_SIZE_MHZ;
 		} else {
 			/* only support ratio for now */
 			return -EINVAL;
