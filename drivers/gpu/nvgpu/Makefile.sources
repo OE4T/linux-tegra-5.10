@@ -44,7 +44,6 @@ srcs +=	os/posix/nvgpu.c \
 	os/posix/posix-channel.c \
 	os/posix/posix-tsg.c \
 	os/posix/posix-nvlink.c \
-	os/posix/lock.c \
 	os/posix/stubs.c \
 	os/posix/posix-fault-injection.c \
 	os/posix/posix-sim.c \
@@ -56,7 +55,8 @@ endif
 
 # POSIX sources shared between the POSIX and QNX builds.
 srcs += os/posix/bug.c \
-	os/posix/bsearch.c
+	os/posix/bsearch.c \
+	os/posix/lock.c
 
 srcs += common/sim.c \
 	common/sim_pci.c \

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -21,7 +21,6 @@
  */
 
 #include <nvgpu/lock.h>
-#include <nvgpu/posix/lock.h>
 
 int nvgpu_mutex_init(struct nvgpu_mutex *mutex)
 {
@@ -40,7 +39,7 @@ void nvgpu_mutex_release(struct nvgpu_mutex *mutex)
 
 int nvgpu_mutex_tryacquire(struct nvgpu_mutex *mutex)
 {
-	return __nvgpu_posix_lock_try_acquire(&mutex->lock);
+	return ((__nvgpu_posix_lock_try_acquire(&mutex->lock) == 0) ? 1 : 0);
 }
 
 void nvgpu_mutex_destroy(struct nvgpu_mutex *mutex)
