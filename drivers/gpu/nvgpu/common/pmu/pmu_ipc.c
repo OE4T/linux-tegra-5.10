@@ -26,6 +26,7 @@
 #include <nvgpu/timers.h>
 #include <nvgpu/bug.h>
 #include <nvgpu/pmuif/nvgpu_gpmu_cmdif.h>
+#include <nvgpu/pmuif/gpmu_super_surf_if.h>
 #include <nvgpu/falcon.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/string.h>
@@ -103,7 +104,89 @@ int nvgpu_pmu_mutex_release(struct nvgpu_pmu *pmu, u32 id, u32 *token)
 	return g->ops.pmu.pmu_mutex_release(pmu, id, token);
 }
 
-/* PMU falcon queue init */
+/* FB queue init */
+int nvgpu_pmu_queue_init_fb(struct nvgpu_pmu *pmu,
+		u32 id, union pmu_init_msg_pmu *init)
+{
+	struct gk20a *g = gk20a_from_pmu(pmu);
+	struct nvgpu_falcon_queue_params params = {0};
+	u32 oflag = 0;
+	int err = 0;
+	u32 tmp_id = id;
+
+	/* init queue parameters */
+	if (PMU_IS_COMMAND_QUEUE(id)) {
+
+		/* currently PMU FBQ support SW command queue only */
+		if (!PMU_IS_SW_COMMAND_QUEUE(id)) {
+			pmu->queue[id] = NULL;
+			err = 0;
+			goto exit;
+		}
+
+		/*
+		 * set OFLAG_WRITE for command queue
+		 * i.e, push from nvgpu &
+		 * pop form falcon ucode
+		 */
+		oflag = OFLAG_WRITE;
+
+		params.super_surface_mem =
+			&pmu->super_surface_buf;
+		params.fbq_offset = (u32)offsetof(
+			struct nv_pmu_super_surface,
+			fbq.cmd_queues.queue[id]);
+		params.size = NV_PMU_FBQ_CMD_NUM_ELEMENTS;
+		params.fbq_element_size = NV_PMU_FBQ_CMD_ELEMENT_SIZE;
+	} else if (PMU_IS_MESSAGE_QUEUE(id)) {
+		/*
+		 * set OFLAG_READ for message queue
+		 * i.e, push from falcon ucode &
+		 * pop form nvgpu
+		 */
+		oflag = OFLAG_READ;
+
+		params.super_surface_mem =
+				&pmu->super_surface_buf;
+		params.fbq_offset = (u32)offsetof(
+				struct nv_pmu_super_surface,
+				fbq.msg_queue);
+		params.size = NV_PMU_FBQ_MSG_NUM_ELEMENTS;
+		params.fbq_element_size = NV_PMU_FBQ_MSG_ELEMENT_SIZE;
+	} else {
+		nvgpu_err(g, "invalid queue-id %d", id);
+		err = -EINVAL;
+		goto exit;
+	}
+
+	params.id = id;
+	params.oflag = oflag;
+	params.queue_type = QUEUE_TYPE_FB;
+
+	if (tmp_id == PMU_COMMAND_QUEUE_HPQ) {
+		tmp_id = PMU_QUEUE_HPQ_IDX_FOR_V3;
+	} else if (tmp_id == PMU_COMMAND_QUEUE_LPQ) {
+		tmp_id = PMU_QUEUE_LPQ_IDX_FOR_V3;
+	} else if (tmp_id == PMU_MESSAGE_QUEUE) {
+		tmp_id = PMU_QUEUE_MSG_IDX_FOR_V5;
+	} else {
+		/* return if queue id not supported*/
+		goto exit;
+	}
+	params.index = init->v5.queue_index[tmp_id];
+
+	params.offset = init->v5.queue_offset;
+
+	err = nvgpu_falcon_queue_init(pmu->flcn, &pmu->queue[id], params);
+	if (err != 0) {
+		nvgpu_err(g, "queue-%d init failed", id);
+	}
+
+exit:
+	return err;
+}
+
+/* DMEM queue init */
 int nvgpu_pmu_queue_init(struct nvgpu_pmu *pmu,
 		u32 id, union pmu_init_msg_pmu *init)
 {
