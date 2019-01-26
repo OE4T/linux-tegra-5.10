@@ -73,7 +73,7 @@ static DECLARE_WAIT_QUEUE_HEAD(wq_worker);
 #define HDCP_INFINITE_RETRIES		-1
 #define HDCP_DEBUG                      0
 #define SEQ_NUM_M_MAX_RETRIES		1
-#define AKE_INIT_RESPONSE_DELAY		100
+#define AKE_INIT_RESPONSE_DELAY		1000
 
 #define HDCP_FALLBACK_1X                0xdeadbeef
 #define HDCP_NON_22_RX                  0x0300
@@ -2088,11 +2088,11 @@ failure:
 	nvhdcp->fail_count++;
 	if (nvhdcp->max_retries <= HDCP_INFINITE_RETRIES ||
 		nvhdcp->fail_count < nvhdcp->max_retries) {
-		nvhdcp_err("nvhdcp failure - renegotiating in 1 second\n");
+		nvhdcp_err("nvhdcp failure - renegotiating in 750ms\n");
 		if (!nvhdcp_is_plugged(nvhdcp))
 			goto lost_hdmi;
 		queue_delayed_work(nvhdcp->downstream_wq, &nvhdcp->work,
-						msecs_to_jiffies(1000));
+						msecs_to_jiffies(750));
 	} else
 		nvhdcp_err("nvhdcp failure - too many failures, giving up!\n");
 
