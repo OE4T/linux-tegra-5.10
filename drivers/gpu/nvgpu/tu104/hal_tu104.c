@@ -527,6 +527,7 @@ static const struct gpu_ops tu104_ops = {
 		.dump_gr_falcon_stats = gk20a_fecs_dump_falcon_stats,
 		.get_fecs_ctx_state_store_major_rev_id =
 			gk20a_gr_get_fecs_ctx_state_store_major_rev_id,
+		.log_mme_exception = gr_tu104_log_mme_exception,
 		.ctxsw_prog = {
 			.hw_get_fecs_header_size =
 				gm20b_ctxsw_prog_hw_get_fecs_header_size,

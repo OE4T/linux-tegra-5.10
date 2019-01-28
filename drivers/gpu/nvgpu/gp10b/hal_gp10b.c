@@ -376,6 +376,7 @@ static const struct gpu_ops gp10b_ops = {
 			gk20a_gr_get_fecs_ctx_state_store_major_rev_id,
 		.init_gfxp_rtv_cb = NULL,
 		.commit_gfxp_rtv_cb = NULL,
+		.log_mme_exception = NULL,
 		.ctxsw_prog = {
 			.hw_get_fecs_header_size =
 				gm20b_ctxsw_prog_hw_get_fecs_header_size,

@@ -92,4 +92,5 @@ void gr_tu104_init_sm_dsm_reg_info(void);
 void gr_tu104_get_sm_dsm_perf_ctrl_regs(struct gk20a *g,
 	u32 *num_sm_dsm_perf_ctrl_regs, u32 **sm_dsm_perf_ctrl_regs,
 	u32 *ctrl_register_stride);
+void gr_tu104_log_mme_exception(struct gk20a *g);
 #endif /* NVGPU_GR_TU104_H */

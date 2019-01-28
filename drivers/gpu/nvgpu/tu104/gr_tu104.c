@@ -491,3 +491,78 @@ void gr_tu104_get_sm_dsm_perf_ctrl_regs(struct gk20a *g,
 	*sm_dsm_perf_ctrl_regs = NULL;
 	*ctrl_register_stride = 0;
 }
+
+void gr_tu104_log_mme_exception(struct gk20a *g)
+{
+	u32 mme_hww_esr = nvgpu_readl(g, gr_mme_hww_esr_r());
+	u32 mme_hww_info = nvgpu_readl(g, gr_mme_hww_esr_info_r());
+
+	if ((mme_hww_esr &
+	     gr_mme_hww_esr_missing_macro_data_pending_f()) != 0U) {
+		nvgpu_log(g, gpu_dbg_intr | gpu_dbg_gpu_dbg,
+			 "GR MME EXCEPTION: MISSING_MACRO_DATA");
+	}
+
+	if ((mme_hww_esr &
+	     gr_mme_hww_esr_illegal_mme_method_pending_f()) != 0U) {
+		nvgpu_log(g, gpu_dbg_intr | gpu_dbg_gpu_dbg,
+			 "GR MME EXCEPTION: ILLEGAL_MME_METHOD");
+	}
+
+	if ((mme_hww_esr &
+	     gr_mme_hww_esr_dma_dram_access_pending_f()) != 0U) {
+		nvgpu_log(g, gpu_dbg_intr | gpu_dbg_gpu_dbg,
+			 "GR MME EXCEPTION: DMA_DRAM_ACCESS_OUT_OF_BOUNDS");
+	}
+
+	if ((mme_hww_esr &
+	     gr_mme_hww_esr_dma_illegal_fifo_pending_f()) != 0U) {
+		nvgpu_log(g, gpu_dbg_intr | gpu_dbg_gpu_dbg,
+			 "GR MME EXCEPTION: DMA_ILLEGAL_FIFO_CONFIG");
+	}
+
+	if ((mme_hww_esr &
+	     gr_mme_hww_esr_dma_read_overflow_pending_f()) != 0U) {
+		nvgpu_log(g, gpu_dbg_intr | gpu_dbg_gpu_dbg,
+			 "GR MME EXCEPTION: DMA_READ_FIFOED_OVERFLOW");
+	}
+
+	if ((mme_hww_esr &
+	     gr_mme_hww_esr_dma_fifo_resized_pending_f()) != 0U) {
+		nvgpu_log(g, gpu_dbg_intr | gpu_dbg_gpu_dbg,
+			 "GR MME EXCEPTION: DMA_FIFO_RESIZED_WHEN_NONIDLE");
+	}
+
+	if ((mme_hww_esr & gr_mme_hww_esr_illegal_opcode_pending_f()) != 0U) {
+		nvgpu_log(g, gpu_dbg_intr | gpu_dbg_gpu_dbg,
+			 "GR MME EXCEPTION: ILLEGAL_OPCODE");
+	}
+
+	if ((mme_hww_esr & gr_mme_hww_esr_branch_in_delay_pending_f()) != 0U) {
+		nvgpu_log(g, gpu_dbg_intr | gpu_dbg_gpu_dbg,
+			 "GR MME EXCEPTION: BRANCH_IN_DELAY_SHOT");
+	}
+
+	if ((mme_hww_esr & gr_mme_hww_esr_inst_ram_acess_pending_f()) != 0U) {
+		nvgpu_log(g, gpu_dbg_intr | gpu_dbg_gpu_dbg,
+			 "GR MME EXCEPTION: INSTR_RAM_ACCESS_OUT_OF_BOUNDS");
+	}
+
+	if ((mme_hww_esr & gr_mme_hww_esr_data_ram_access_pending_f()) != 0U) {
+		nvgpu_log(g, gpu_dbg_intr | gpu_dbg_gpu_dbg,
+			 "GR MME EXCEPTION: DATA_RAM_ACCESS_OUT_OF_BOUNDS");
+	}
+
+	if ((mme_hww_esr & gr_mme_hww_esr_dma_read_pb_pending_f()) != 0U) {
+		nvgpu_log(g, gpu_dbg_intr | gpu_dbg_gpu_dbg,
+			 "GR MME EXCEPTION: DMA_READ_FIFOED_FROM_PB");
+	}
+
+	if (gr_mme_hww_esr_info_pc_valid_v(mme_hww_info) == 0x1U) {
+		nvgpu_log(g, gpu_dbg_intr | gpu_dbg_gpu_dbg,
+			 "GR MME EXCEPTION: INFO2 0x%x, INFO3 0x%x, INFO4 0x%x",
+			 nvgpu_readl(g, gr_mme_hww_esr_info2_r()),
+			 nvgpu_readl(g, gr_mme_hww_esr_info3_r()),
+			 nvgpu_readl(g, gr_mme_hww_esr_info4_r()));
+	}
+}

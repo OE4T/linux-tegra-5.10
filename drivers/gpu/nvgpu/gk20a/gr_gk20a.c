@@ -5427,6 +5427,10 @@ int gk20a_gr_isr(struct gk20a *g)
 
 			nvgpu_err(g, "mme exception: esr 0x%08x info:0x%08x",
 					mme, info);
+			if (g->ops.gr.log_mme_exception != NULL) {
+				g->ops.gr.log_mme_exception(g);
+			}
+
 			gk20a_writel(g, gr_mme_hww_esr_r(),
 				gr_mme_hww_esr_reset_active_f());
 			need_reset = true;

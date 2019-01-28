@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -1050,6 +1050,50 @@ static inline u32 gr_mme_hww_esr_r(void)
 {
 	return 0x00404490U;
 }
+static inline u32 gr_mme_hww_esr_missing_macro_data_pending_f(void)
+{
+	return 0x1U;
+}
+static inline u32 gr_mme_hww_esr_illegal_opcode_pending_f(void)
+{
+	return 0x4U;
+}
+static inline u32 gr_mme_hww_esr_branch_in_delay_pending_f(void)
+{
+	return 0x8U;
+}
+static inline u32 gr_mme_hww_esr_inst_ram_acess_pending_f(void)
+{
+	return 0x20U;
+}
+static inline u32 gr_mme_hww_esr_data_ram_access_pending_f(void)
+{
+	return 0x40U;
+}
+static inline u32 gr_mme_hww_esr_illegal_mme_method_pending_f(void)
+{
+	return 0x80U;
+}
+static inline u32 gr_mme_hww_esr_dma_dram_access_pending_f(void)
+{
+	return 0x10000U;
+}
+static inline u32 gr_mme_hww_esr_dma_read_pb_pending_f(void)
+{
+	return 0x20000U;
+}
+static inline u32 gr_mme_hww_esr_dma_illegal_fifo_pending_f(void)
+{
+	return 0x40000U;
+}
+static inline u32 gr_mme_hww_esr_dma_read_overflow_pending_f(void)
+{
+	return 0x80000U;
+}
+static inline u32 gr_mme_hww_esr_dma_fifo_resized_pending_f(void)
+{
+	return 0x100000U;
+}
 static inline u32 gr_mme_hww_esr_reset_active_f(void)
 {
 	return 0x40000000U;
@@ -1061,6 +1105,22 @@ static inline u32 gr_mme_hww_esr_en_enable_f(void)
 static inline u32 gr_mme_hww_esr_info_r(void)
 {
 	return 0x00404494U;
+}
+static inline u32 gr_mme_hww_esr_info_pc_valid_v(u32 r)
+{
+	return (r >> 28U) & 0x1U;
+}
+static inline u32 gr_mme_hww_esr_info2_r(void)
+{
+	return 0x0040449cU;
+}
+static inline u32 gr_mme_hww_esr_info3_r(void)
+{
+	return 0x004044a8U;
+}
+static inline u32 gr_mme_hww_esr_info4_r(void)
+{
+	return 0x004044acU;
 }
 static inline u32 gr_memfmt_hww_esr_r(void)
 {

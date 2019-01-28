@@ -530,6 +530,7 @@ struct gpu_ops {
 			  struct nvgpu_gr_ctx *gr_ctx, struct vm_gk20a *vm);
 		void (*commit_gfxp_rtv_cb)(struct gk20a *g,
 			  struct nvgpu_gr_ctx *gr_ctx, bool patch);
+		void (*log_mme_exception)(struct gk20a *g);
 		struct {
 			u32 (*hw_get_fecs_header_size)(void);
 			u32 (*hw_get_gpccs_header_size)(void);
