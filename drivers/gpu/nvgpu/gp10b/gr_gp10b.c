@@ -110,19 +110,16 @@ static void gr_gp10b_sm_lrf_ecc_overcount_war(bool single_err,
 	/* One overcount for each partition on which a SBE occurred but not a
 	   DBE (or vice-versa) */
 	if (single_err) {
-		over_count =
-			hweight32(sed_status & ~ded_status);
+		over_count = (u32)hweight32(sed_status & ~ded_status);
 	} else {
-		over_count =
-			hweight32(ded_status & ~sed_status);
+		over_count = (u32)hweight32(ded_status & ~sed_status);
 	}
 
 	/* If both a SBE and a DBE occur on the same partition, then we have an
 	   overcount for the subpartition if the opposite error counts are
 	   zero. */
 	if (((sed_status & ded_status) != 0U) && (opposite_count == 0U)) {
-		over_count +=
-			hweight32(sed_status & ded_status);
+		over_count += (u32)hweight32(sed_status & ded_status);
 	}
 
 	if (*count_to_adjust > over_count) {
@@ -506,15 +503,17 @@ void gr_gp10b_commit_global_pagepool(struct gk20a *g,
 					    struct nvgpu_gr_ctx *gr_ctx,
 					    u64 addr, u32 size, bool patch)
 {
+	nvgpu_assert(u64_hi32(addr) == 0U);
+
 	nvgpu_gr_ctx_patch_write(g, gr_ctx, gr_scc_pagepool_base_r(),
-		gr_scc_pagepool_base_addr_39_8_f(addr), patch);
+		gr_scc_pagepool_base_addr_39_8_f((u32)addr), patch);
 
 	nvgpu_gr_ctx_patch_write(g, gr_ctx, gr_scc_pagepool_r(),
 		gr_scc_pagepool_total_pages_f(size) |
 		gr_scc_pagepool_valid_true_f(), patch);
 
 	nvgpu_gr_ctx_patch_write(g, gr_ctx, gr_gpcs_gcc_pagepool_base_r(),
-		gr_gpcs_gcc_pagepool_base_addr_39_8_f(addr), patch);
+		gr_gpcs_gcc_pagepool_base_addr_39_8_f((u32)addr), patch);
 
 	nvgpu_gr_ctx_patch_write(g, gr_ctx, gr_gpcs_gcc_pagepool_r(),
 		gr_gpcs_gcc_pagepool_total_pages_f(size), patch);
@@ -1137,7 +1136,8 @@ void gr_gp10b_update_ctxsw_preemption_mode(struct gk20a *g,
 			gr_scc_pagepool_base_addr_39_8_align_bits_v()) |
 			(u64_hi32(gr_ctx->pagepool_ctxsw_buffer.gpu_va) <<
 			 (32U - gr_scc_pagepool_base_addr_39_8_align_bits_v()));
-		size = gr_ctx->pagepool_ctxsw_buffer.size;
+		nvgpu_assert(gr_ctx->pagepool_ctxsw_buffer.size <= U32_MAX);
+		size = (u32)gr_ctx->pagepool_ctxsw_buffer.size;
 
 		if (size == g->ops.gr.pagepool_default_size(g)) {
 			size = gr_scc_pagepool_total_pages_hwmax_v();
@@ -1149,7 +1149,8 @@ void gr_gp10b_update_ctxsw_preemption_mode(struct gk20a *g,
 			gr_gpc0_swdx_rm_spill_buffer_addr_39_8_align_bits_v()) |
 			(u64_hi32(gr_ctx->spill_ctxsw_buffer.gpu_va) <<
 			 (32U - gr_gpc0_swdx_rm_spill_buffer_addr_39_8_align_bits_v()));
-		size = gr_ctx->spill_ctxsw_buffer.size /
+		nvgpu_assert(gr_ctx->spill_ctxsw_buffer.size <= U32_MAX);
+		size = (u32)gr_ctx->spill_ctxsw_buffer.size /
 			gr_gpc0_swdx_rm_spill_buffer_size_256b_byte_granularity_v();
 
 		nvgpu_gr_ctx_patch_write(g, gr_ctx,
@@ -1348,7 +1349,7 @@ int gr_gp10b_wait_empty(struct gk20a *g)
 		   only when gr_status is read */
 		gr_status = gk20a_readl(g, gr_status_r());
 
-		ctxsw_active = gr_status & BIT32(7);
+		ctxsw_active = (gr_status & BIT32(7)) != 0U;
 
 		activity0 = gk20a_readl(g, gr_activity_0_r());
 		activity1 = gk20a_readl(g, gr_activity_1_r());
@@ -1392,12 +1393,13 @@ void gr_gp10b_commit_global_attrib_cb(struct gk20a *g,
 
 	gr_gm20b_commit_global_attrib_cb(g, gr_ctx, addr, patch);
 
+	nvgpu_assert(u64_hi32(addr) == 0U);
 	nvgpu_gr_ctx_patch_write(g, gr_ctx, gr_gpcs_tpcs_mpc_vtg_cb_global_base_addr_r(),
-		gr_gpcs_tpcs_mpc_vtg_cb_global_base_addr_v_f(addr) |
+		gr_gpcs_tpcs_mpc_vtg_cb_global_base_addr_v_f((u32)addr) |
 		gr_gpcs_tpcs_mpc_vtg_cb_global_base_addr_valid_true_f(), patch);
 
 	nvgpu_gr_ctx_patch_write(g, gr_ctx, gr_gpcs_tpcs_tex_rm_cb_0_r(),
-		gr_gpcs_tpcs_tex_rm_cb_0_base_addr_43_12_f(addr), patch);
+		gr_gpcs_tpcs_tex_rm_cb_0_base_addr_43_12_f((u32)addr), patch);
 
 	nvgpu_gr_ctx_patch_write(g, gr_ctx, gr_gpcs_tpcs_tex_rm_cb_1_r(),
 		gr_gpcs_tpcs_tex_rm_cb_1_size_div_128b_f(attrBufferSize) |
@@ -1410,18 +1412,20 @@ void gr_gp10b_commit_global_bundle_cb(struct gk20a *g,
 {
 	u32 data;
 
+	nvgpu_assert(u64_hi32(addr) == 0U);
 	nvgpu_gr_ctx_patch_write(g, gr_ctx, gr_scc_bundle_cb_base_r(),
-		gr_scc_bundle_cb_base_addr_39_8_f(addr), patch);
+		gr_scc_bundle_cb_base_addr_39_8_f((u32)addr), patch);
 
+	nvgpu_assert(size <= U32_MAX);
 	nvgpu_gr_ctx_patch_write(g, gr_ctx, gr_scc_bundle_cb_size_r(),
-		gr_scc_bundle_cb_size_div_256b_f(size) |
+		gr_scc_bundle_cb_size_div_256b_f((u32)size) |
 		gr_scc_bundle_cb_size_valid_true_f(), patch);
 
 	nvgpu_gr_ctx_patch_write(g, gr_ctx, gr_gpcs_swdx_bundle_cb_base_r(),
-		gr_gpcs_swdx_bundle_cb_base_addr_39_8_f(addr), patch);
+		gr_gpcs_swdx_bundle_cb_base_addr_39_8_f((u32)addr), patch);
 
 	nvgpu_gr_ctx_patch_write(g, gr_ctx, gr_gpcs_swdx_bundle_cb_size_r(),
-		gr_gpcs_swdx_bundle_cb_size_div_256b_f(size) |
+		gr_gpcs_swdx_bundle_cb_size_div_256b_f((u32)size) |
 		gr_gpcs_swdx_bundle_cb_size_valid_true_f(), patch);
 
 	/* data for state_limit */
@@ -1565,9 +1569,11 @@ void gr_gp10b_get_access_map(struct gk20a *g,
 		0x419e10, /* gr_pri_gpcs_tpcs_sm_dbgr_control0 */
 		0x419f78, /* gr_pri_gpcs_tpcs_sm_disp_ctrl     */
 	};
+	size_t array_size;
 
 	*whitelist = wl_addr_gp10b;
-	*num_entries = ARRAY_SIZE(wl_addr_gp10b);
+	array_size = ARRAY_SIZE(wl_addr_gp10b);
+	*num_entries = (int)array_size;
 }
 
 static int gr_gp10b_disable_channel_or_tsg(struct gk20a *g, struct channel_gk20a *fault_ch)
