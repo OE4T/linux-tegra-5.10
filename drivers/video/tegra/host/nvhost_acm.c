@@ -1128,7 +1128,7 @@ static int nvhost_module_finalize_poweron(struct device *dev)
 	struct platform_device *pdev = to_platform_device(dev);
 	struct nvhost_master *host;
 	struct nvhost_device_data *pdata;
-	int retry_count, ret = 0, i;
+	int ret = 0, i;
 
 	pdata = dev_get_drvdata(dev);
 	if (!pdata) {
@@ -1137,47 +1137,28 @@ static int nvhost_module_finalize_poweron(struct device *dev)
 	}
 
 	host = nvhost_get_host(pdata->pdev);
-	/* WAR to bug 1588951: Retry booting 3 times */
 
-	for (retry_count = 0; retry_count < 3; retry_count++) {
-		if (!pdata->poweron_toggle_slcg) {
-			if (pdata->poweron_reset)
-				nvhost_module_reset(pdev, false);
+	if (pdata->poweron_reset)
+		nvhost_module_reset(pdev, false);
 
-			/* Load clockgating registers */
-			nvhost_module_load_regs(pdev, pdata->engine_can_cg);
-		} else {
-			/* If poweron_toggle_slcg is set, following is already
-			 * executed once. Skip to avoid doing it twice. */
-			if (retry_count > 0) {
-				/* First, reset module */
-				nvhost_module_reset(pdev, false);
+	/* Load clockgating registers */
+	nvhost_module_load_regs(pdev, pdata->engine_can_cg);
 
-				/* Disable SLCG, wait and re-enable it */
-				nvhost_module_load_regs(pdev, false);
-				udelay(1);
-				if (pdata->engine_can_cg)
-					nvhost_module_load_regs(pdev, true);
-			}
-		}
-
-		/* initialize device vm */
-		ret = nvhost_vm_init_device(pdev);
-		if (ret)
-			continue;
-
-		if (pdata->finalize_poweron)
-			ret = pdata->finalize_poweron(to_platform_device(dev));
-
-		/* Exit loop if we pass module specific initialization */
-		if (!ret)
-			break;
+	/* initialize device vm */
+	ret = nvhost_vm_init_device(pdev);
+	if (ret) {
+		nvhost_err(dev, "failed to initialize device vm");
+		goto out;
 	}
 
-	/* Failed to start the device */
-	if (ret) {
-		nvhost_err(dev, "failed to start the device");
-		goto out;
+	if (pdata->finalize_poweron) {
+		ret = pdata->finalize_poweron(to_platform_device(dev));
+
+		/* Failed to start the device */
+		if (ret) {
+			nvhost_err(dev, "failed to start the device");
+			goto out;
+		}
 	}
 
 	/* set default EMC rate to zero */
