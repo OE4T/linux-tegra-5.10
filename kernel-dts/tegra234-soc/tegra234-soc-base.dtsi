@@ -449,7 +449,7 @@
 		};
 
 		vi: vi@15c10000 {
-			compatible = "nvidia,tegra194-vi";
+			compatible = "nvidia,tegra234-vi";
 			/* cfg page is used by slvsec as well as ch35 */
 			reg = <0x0 0x15c10000 0x0 0x00230000>,
 				<0x0 0x15f00000 0x0 0x00100000>;
