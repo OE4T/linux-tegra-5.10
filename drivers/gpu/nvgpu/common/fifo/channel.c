@@ -159,7 +159,7 @@ int gk20a_channel_get_timescale_from_timeslice(struct gk20a *g,
 
 int channel_gk20a_update_runlist(struct channel_gk20a *c, bool add)
 {
-	return c->g->ops.runlist.update_runlist(c->g, c->runlist_id,
+	return c->g->ops.runlist.update_for_channel(c->g, c->runlist_id,
 			c, add, true);
 }
 
@@ -2430,7 +2430,7 @@ int gk20a_channel_suspend(struct gk20a *g)
 	}
 
 	if (channels_in_use) {
-		gk20a_fifo_update_runlist_ids(g, active_runlist_ids, false);
+		nvgpu_runlist_reload_ids(g, active_runlist_ids, false);
 
 		for (chid = 0; chid < f->num_channels; chid++) {
 			struct channel_gk20a *ch = gk20a_channel_from_id(g, chid);
@@ -2480,7 +2480,7 @@ int gk20a_channel_resume(struct gk20a *g)
 	}
 
 	if (channels_in_use) {
-		gk20a_fifo_update_runlist_ids(g, active_runlist_ids, true);
+		nvgpu_runlist_reload_ids(g, active_runlist_ids, true);
 	}
 
 	nvgpu_log_fn(g, "done");

@@ -507,7 +507,8 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 	},
 	.runlist = {
 		.reschedule_runlist = NULL,
-		.update_runlist = vgpu_fifo_update_runlist,
+		.update_for_channel = vgpu_runlist_update_for_channel,
+		.reload = vgpu_runlist_reload,
 		.set_runlist_interleave = vgpu_fifo_set_runlist_interleave,
 		.eng_runlist_base_size = gv11b_fifo_runlist_base_size,
 		.runlist_entry_size = NULL,

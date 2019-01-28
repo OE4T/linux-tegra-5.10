@@ -2747,11 +2747,7 @@ int gk20a_fifo_tsg_set_timeslice(struct tsg_gk20a *tsg, u32 timeslice)
 
 	tsg->timeslice_us = timeslice;
 
-	return g->ops.runlist.update_runlist(g,
-					tsg->runlist_id,
-					NULL,
-					true,
-					true);
+	return g->ops.runlist.reload(g, tsg->runlist_id, true, true);
 }
 
 int gk20a_fifo_suspend(struct gk20a *g)

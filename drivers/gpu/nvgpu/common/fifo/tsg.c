@@ -376,6 +376,8 @@ int gk20a_tsg_set_runlist_interleave(struct tsg_gk20a *tsg, u32 level)
 							0, level);
 		if (ret == 0) {
 			tsg->interleave_level = level;
+			ret = g->ops.runlist.reload(g, tsg->runlist_id,
+					true, true);
 		}
 		break;
 	default:
@@ -383,11 +385,7 @@ int gk20a_tsg_set_runlist_interleave(struct tsg_gk20a *tsg, u32 level)
 		break;
 	}
 
-	return (ret != 0) ? ret : g->ops.runlist.update_runlist(g,
-							tsg->runlist_id,
-							NULL,
-							true,
-							true);
+	return ret;
 }
 
 int gk20a_tsg_set_timeslice(struct tsg_gk20a *tsg, u32 timeslice)

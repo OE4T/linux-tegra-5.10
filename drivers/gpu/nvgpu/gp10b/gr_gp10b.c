@@ -1593,11 +1593,7 @@ static int gr_gp10b_disable_channel_or_tsg(struct gk20a *g, struct channel_gk20a
 		return ret;
 	}
 
-	ret = g->ops.runlist.update_runlist(g,
-					fault_ch->runlist_id,
-					NULL,
-					true,
-					false);
+	ret = g->ops.runlist.reload(g, fault_ch->runlist_id, true, false);
 	if (ret != 0) {
 		nvgpu_err(g,
 				"CILP: failed to restart runlist 0!");

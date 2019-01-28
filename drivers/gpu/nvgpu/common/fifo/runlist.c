@@ -348,7 +348,7 @@ static int gk20a_runlist_reconstruct_locked(struct gk20a *g, u32 runlist_id,
 	return 0;
 }
 
-int gk20a_fifo_update_runlist_locked(struct gk20a *g, u32 runlist_id,
+int gk20a_runlist_update_locked(struct gk20a *g, u32 runlist_id,
 					    struct channel_gk20a *ch, bool add,
 					    bool wait_for_finish)
 {
@@ -454,7 +454,7 @@ static void gk20a_fifo_runlist_reset_engines(struct gk20a *g, u32 runlist_id)
    special cases below: runlist->active_channels will NOT be changed.
    (ch == NULL && !add) means remove all active channels from runlist.
    (ch == NULL &&  add) means restore all active channels on runlist. */
-int gk20a_fifo_update_runlist(struct gk20a *g, u32 runlist_id,
+static int gk20a_runlist_update(struct gk20a *g, u32 runlist_id,
 			      struct channel_gk20a *ch,
 			      bool add, bool wait_for_finish)
 {
@@ -475,7 +475,7 @@ int gk20a_fifo_update_runlist(struct gk20a *g, u32 runlist_id,
 						PMU_MUTEX_ID_FIFO, &token);
 	}
 
-	ret = gk20a_fifo_update_runlist_locked(g, runlist_id, ch, add,
+	ret = gk20a_runlist_update_locked(g, runlist_id, ch, add,
 					       wait_for_finish);
 
 	if (mutex_ret == 0) {
@@ -491,8 +491,22 @@ int gk20a_fifo_update_runlist(struct gk20a *g, u32 runlist_id,
 	return ret;
 }
 
-int gk20a_fifo_update_runlist_ids(struct gk20a *g, u32 runlist_ids,
-				bool add)
+int gk20a_runlist_update_for_channel(struct gk20a *g, u32 runlist_id,
+			      struct channel_gk20a *ch,
+			      bool add, bool wait_for_finish)
+{
+	nvgpu_assert(ch != NULL);
+
+	return gk20a_runlist_update(g, runlist_id, ch, add, wait_for_finish);
+}
+
+int gk20a_runlist_reload(struct gk20a *g, u32 runlist_id,
+			      bool add, bool wait_for_finish)
+{
+	return gk20a_runlist_update(g, runlist_id, NULL, add, wait_for_finish);
+}
+
+int nvgpu_runlist_reload_ids(struct gk20a *g, u32 runlist_ids, bool add)
 {
 	int ret = -EINVAL;
 	unsigned long runlist_id = 0;
@@ -506,8 +520,7 @@ int gk20a_fifo_update_runlist_ids(struct gk20a *g, u32 runlist_ids,
 	ret = 0;
 	for_each_set_bit(runlist_id, &ulong_runlist_ids, 32U) {
 		/* Capture the last failure error code */
-		errcode = g->ops.runlist.update_runlist(g, (u32)runlist_id,
-				NULL, add, true);
+		errcode = g->ops.runlist.reload(g, (u32)runlist_id, add, true);
 		if (errcode != 0) {
 			nvgpu_err(g,
 				"failed to update_runlist %lu %d",

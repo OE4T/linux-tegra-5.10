@@ -566,7 +566,8 @@ static const struct gpu_ops gm20b_ops = {
 		.add_sema_cmd = gk20a_add_sema_cmd,
 	},
 	.runlist = {
-		.update_runlist = gk20a_fifo_update_runlist,
+		.update_for_channel = gk20a_runlist_update_for_channel,
+		.reload = gk20a_runlist_reload,
 		.set_runlist_interleave = gk20a_fifo_set_runlist_interleave,
 		.eng_runlist_base_size = gk20a_fifo_runlist_base_size,
 		.runlist_entry_size = gk20a_fifo_runlist_entry_size,
