@@ -29,6 +29,7 @@
 #include <nvgpu/sizes.h>
 #include <nvgpu/utils.h>
 #include <nvgpu/gk20a.h>
+#include <nvgpu/bug.h>
 
 #include "gm20b/mm_gm20b.h"
 #include "mm_gp10b.h"
@@ -38,7 +39,7 @@
 
 u32 gp10b_mm_get_default_big_page_size(void)
 {
-	return SZ_64K;
+	return (u32)SZ_64K;
 }
 
 u32 gp10b_mm_get_iommu_bit(struct gk20a *g)
@@ -100,7 +101,8 @@ static void update_gmmu_pde3_locked(struct vm_gk20a *vm,
 					gmmu_new_pde_aperture_video_memory_f());
 	pde_v[0] |= gmmu_new_pde_address_sys_f(u64_lo32(phys_addr));
 	pde_v[0] |= gmmu_new_pde_vol_true_f();
-	pde_v[1] |= phys_addr >> 24;
+	nvgpu_assert(u64_hi32(phys_addr >> 24) == 0U);
+	pde_v[1] |= (u32)(phys_addr >> 24);
 
 	nvgpu_pd_write(g, pd, (size_t)pd_offset + (size_t)0, pde_v[0]);
 	nvgpu_pd_write(g, pd, (size_t)pd_offset + (size_t)1, pde_v[1]);
@@ -128,16 +130,21 @@ static void update_gmmu_pde0_locked(struct vm_gk20a *vm,
 	u32 small_addr = 0, big_addr = 0;
 	u32 pd_offset = nvgpu_pd_offset_from_index(l, pd_idx);
 	u32 pde_v[4] = {0, 0, 0, 0};
+	u64 tmp_addr;
 
 	small_valid = attrs->pgsz == GMMU_PAGE_SIZE_SMALL;
 	big_valid   = attrs->pgsz == GMMU_PAGE_SIZE_BIG;
 
 	if (small_valid) {
-		small_addr = phys_addr >> gmmu_new_dual_pde_address_shift_v();
+		tmp_addr = phys_addr >> gmmu_new_dual_pde_address_shift_v();
+		nvgpu_assert(u64_hi32(tmp_addr) == 0U);
+		small_addr = (u32)tmp_addr;
 	}
 
 	if (big_valid) {
-		big_addr = phys_addr >> gmmu_new_dual_pde_address_big_shift_v();
+		tmp_addr = phys_addr >> gmmu_new_dual_pde_address_big_shift_v();
+		nvgpu_assert(u64_hi32(tmp_addr) == 0U);
+		big_addr = (u32)tmp_addr;
 	}
 
 	if (small_valid) {
@@ -188,15 +195,16 @@ static void __update_pte(struct vm_gk20a *vm,
 	u32 pte_valid = attrs->valid ?
 		gmmu_new_pte_valid_true_f() :
 		gmmu_new_pte_valid_false_f();
-	u32 phys_shifted = phys_addr >> gmmu_new_pte_address_shift_v();
+	u64 phys_shifted = phys_addr >> gmmu_new_pte_address_shift_v();
 	u32 pte_addr = attrs->aperture == APERTURE_SYSMEM ?
-		gmmu_new_pte_address_sys_f(phys_shifted) :
-		gmmu_new_pte_address_vid_f(phys_shifted);
+		gmmu_new_pte_address_sys_f(u64_lo32(phys_shifted)) :
+		gmmu_new_pte_address_vid_f(u64_lo32(phys_shifted));
 	u32 pte_tgt = nvgpu_aperture_mask_coh(g,
 					attrs->aperture,
 					gmmu_new_pte_aperture_sys_mem_ncoh_f(),
 					gmmu_new_pte_aperture_sys_mem_coh_f(),
 					gmmu_new_pte_aperture_video_memory_f());
+	u64 tmp_addr;
 
 	pte_w[0] = pte_valid | pte_addr | pte_tgt;
 
@@ -204,7 +212,9 @@ static void __update_pte(struct vm_gk20a *vm,
 		pte_w[0] |= gmmu_new_pte_privilege_true_f();
 	}
 
-	pte_w[1] = phys_addr >> (24U + gmmu_new_pte_address_shift_v()) |
+	tmp_addr = phys_addr >> (24U + gmmu_new_pte_address_shift_v());
+	nvgpu_assert(u64_hi32(tmp_addr) == 0U);
+	pte_w[1] = (u32)tmp_addr |
 		gmmu_new_pte_kind_f(attrs->kind_v) |
 		gmmu_new_pte_comptagline_f((u32)(attrs->ctag /
 						 ctag_granularity));
@@ -287,7 +297,7 @@ static void update_gmmu_pte_locked(struct vm_gk20a *vm,
 static u32 gp10b_get_pde0_pgsz(struct gk20a *g, const struct gk20a_mmu_level *l,
 				struct nvgpu_gmmu_pd *pd, u32 pd_idx)
 {
-	u32 pde_base = pd->mem_offs / sizeof(u32);
+	u32 pde_base = pd->mem_offs / (u32)sizeof(u32);
 	u32 pde_offset = pde_base + nvgpu_pd_offset_from_index(l, pd_idx);
 	u32 pde_v[GP10B_PDE0_ENTRY_SIZE >> 2];
 	u32 i;
