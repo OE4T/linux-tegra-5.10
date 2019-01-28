@@ -480,52 +480,90 @@ done:
 	return err;
 }
 
+static bool vgpu_runlist_modify_active_locked(struct gk20a *g, u32 runlist_id,
+					    struct channel_gk20a *ch, bool add)
+{
+	struct fifo_gk20a *f = &g->fifo;
+	struct fifo_runlist_info_gk20a *runlist;
+
+	runlist = &f->runlist_info[runlist_id];
+
+	if (add) {
+		if (test_and_set_bit((int)ch->chid,
+				runlist->active_channels)) {
+			return false;
+			/* was already there */
+		}
+	} else {
+		if (!test_and_clear_bit((int)ch->chid,
+				runlist->active_channels)) {
+			/* wasn't there */
+			return false;
+		}
+	}
+
+	return true;
+}
+
+static void vgpu_runlist_reconstruct_locked(struct gk20a *g, u32 runlist_id,
+				     bool add_entries)
+{
+	struct fifo_gk20a *f = &g->fifo;
+	struct fifo_runlist_info_gk20a *runlist;
+
+	runlist = &f->runlist_info[runlist_id];
+
+	if (add_entries) {
+		u16 *runlist_entry;
+		u32 count = 0;
+		unsigned long chid;
+
+		runlist_entry = runlist->mem[0].cpu_va;
+
+		nvgpu_assert(f->num_channels <= (unsigned int)U16_MAX);
+		for_each_set_bit(chid,
+				runlist->active_channels, f->num_channels) {
+			nvgpu_log_info(g, "add channel %lu to runlist", chid);
+			*runlist_entry++ = (u16)chid;
+			count++;
+		}
+
+		runlist->count = count;
+	} else {
+		runlist->count = 0;
+	}
+}
+
 static int vgpu_fifo_update_runlist_locked(struct gk20a *g, u32 runlist_id,
 					struct channel_gk20a *ch, bool add,
 					bool wait_for_finish)
 {
 	struct fifo_gk20a *f = &g->fifo;
 	struct fifo_runlist_info_gk20a *runlist;
-	u16 *runlist_entry = NULL;
-	u32 count = 0;
+	bool add_entries;
 
 	nvgpu_log_fn(g, " ");
 
+	if (ch != NULL) {
+		bool update = vgpu_runlist_modify_active_locked(g, runlist_id,
+				ch, add);
+		if (!update) {
+			/* no change in runlist contents */
+			return 0;
+		}
+		/* had a channel to update, so reconstruct */
+		add_entries = true;
+	} else {
+		/* no channel; add means update all, !add means clear all */
+		add_entries = add;
+	}
+
 	runlist = &f->runlist_info[runlist_id];
 
-	/* valid channel, add/remove it from active list.
-	   Otherwise, keep active list untouched for suspend/resume. */
-	if (ch != NULL) {
-		if (add) {
-			if (test_and_set_bit((int)ch->chid,
-				runlist->active_channels) == 1)
-				return 0;
-		} else {
-			if (test_and_clear_bit((int)ch->chid,
-				runlist->active_channels) == 0)
-				return 0;
-		}
-	}
-
-	if (ch != NULL || /* add/remove a valid channel */
-	    add /* resume to add all channels back */) {
-		u32 cid;
-
-		runlist_entry = runlist->mem[0].cpu_va;
-		for_each_set_bit(cid,
-			runlist->active_channels, f->num_channels) {
-			nvgpu_log_info(g, "add channel %d to runlist", cid);
-			runlist_entry[0] = cid;
-			runlist_entry++;
-			count++;
-		}
-	} else {
-		/* suspend to remove all channels */
-		count = 0;
-	}
+	vgpu_runlist_reconstruct_locked(g, runlist_id, add_entries);
 
 	return vgpu_submit_runlist(g, vgpu_get_handle(g), runlist_id,
-				runlist->mem[0].cpu_va, count);
+				runlist->mem[0].cpu_va, runlist->count);
 }
 
 /* add/remove a channel from runlist
