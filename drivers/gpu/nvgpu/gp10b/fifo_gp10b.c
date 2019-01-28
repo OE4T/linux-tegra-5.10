@@ -90,7 +90,7 @@ int channel_gp10b_setup_ramfc(struct channel_gk20a *c,
 
 	nvgpu_mem_wr32(g, mem, ram_fc_gp_base_hi_w(),
 		pbdma_gp_base_hi_offset_f(u64_hi32(gpfifo_base)) |
-		pbdma_gp_base_hi_limit2_f(ilog2(gpfifo_entries)));
+		pbdma_gp_base_hi_limit2_f((u32)ilog2(gpfifo_entries)));
 
 	nvgpu_mem_wr32(g, mem, ram_fc_signature_w(),
 		 c->g->ops.fifo.get_pbdma_signature(c->g));

@@ -956,7 +956,7 @@ int gp10b_init_hal(struct gk20a *g)
 	}
 
 	nvgpu_set_enabled(g, NVGPU_PMU_FECS_BOOTSTRAP_DONE, false);
-	g->pmu_lsf_pmu_wpr_init_done = 0;
+	g->pmu_lsf_pmu_wpr_init_done = false;
 
 	g->name = "gp10b";
 

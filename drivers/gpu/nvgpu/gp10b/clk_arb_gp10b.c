@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -368,7 +368,9 @@ exit_arb:
 	nvgpu_spinlock_acquire(&arb->requests_lock);
 	nvgpu_list_for_each_entry_safe(dev, tmp, &arb->requests,
 			nvgpu_clk_dev, node) {
-		nvgpu_atomic_set(&dev->poll_mask, NVGPU_POLLIN | NVGPU_POLLRDNORM);
+		u32 tmp_poll_mask = NVGPU_POLLIN | NVGPU_POLLRDNORM;
+		nvgpu_atomic_set(&dev->poll_mask,
+			(int)tmp_poll_mask);
 		nvgpu_clk_arb_event_post_event(dev);
 		nvgpu_ref_put(&dev->refcount, nvgpu_clk_arb_free_fd);
 		nvgpu_list_del(&dev->node);
