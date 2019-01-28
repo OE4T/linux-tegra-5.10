@@ -11,24 +11,27 @@
 #ifndef INCLUDE_CAMRTC_COMMANDS_H
 #define INCLUDE_CAMRTC_COMMANDS_H
 
-#define RTCPU_COMMAND(id, value)	(((uint32_t)RTCPU_CMD_ ## id << 24U) | (value))
+#include "camrtc-common.h"
 
-#define RTCPU_GET_COMMAND_ID(value)	(((value) >> 24U) & 0x7fU)
+#define RTCPU_COMMAND(id, value) \
+	(((uint32_t)RTCPU_CMD_ ## id << U32_C(24)) | ((uint32_t)value))
 
-#define RTCPU_GET_COMMAND_VALUE(value)	((value) & 0xffffffU)
+#define RTCPU_GET_COMMAND_ID(value) \
+	((((uint32_t)value) >> U32_C(24)) & U32_C(0x7f))
 
-enum {
-	RTCPU_CMD_INIT = 0U,
-	RTCPU_CMD_FW_VERSION = 1U,
-	RTCPU_CMD_IVC_READY = 2U,
-	RTCPU_CMD_PING = 3U,
-	RTCPU_CMD_PM_SUSPEND = 4U,
-	RTCPU_CMD_FW_HASH = 5U,
-	RTCPU_CMD_CH_SETUP = 6U,
-	RTCPU_CMD_PREFIX = 0x7dU,
-	RTCPU_CMD_DOORBELL = 0x7eU,
-	RTCPU_CMD_ERROR = 0x7fU,
-};
+#define RTCPU_GET_COMMAND_VALUE(value) \
+	(((uint32_t)value) & U32_C(0xffffff))
+
+#define RTCPU_CMD_INIT		U32_C(0)
+#define RTCPU_CMD_FW_VERSION	U32_C(1)
+#define RTCPU_CMD_IVC_READY	U32_C(2)
+#define RTCPU_CMD_PING		U32_C(3)
+#define RTCPU_CMD_PM_SUSPEND	U32_C(4)
+#define RTCPU_CMD_FW_HASH	U32_C(5)
+#define RTCPU_CMD_CH_SETUP	U32_C(6)
+#define RTCPU_CMD_PREFIX	U32_C(0x7d)
+#define RTCPU_CMD_DOORBELL	U32_C(0x7e)
+#define RTCPU_CMD_ERROR		U32_C(0x7f)
 
 #define RTCPU_FW_DB_VERSION 0U
 #define RTCPU_FW_VERSION 1U
