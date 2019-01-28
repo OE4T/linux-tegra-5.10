@@ -98,6 +98,8 @@
 			/* Max EMC bandwidth during tests */
 			nvidia,test-bw = <0xffFFffFF>;
 		};
+		/* capture support is currently not available in rce fw. */
+		/* Disable the channels for now */
 		ivccontrol@3 {
 			compatible = "nvidia,tegra186-camera-ivc-protocol-capture-control";
 			nvidia,service = "capture-control";
@@ -105,6 +107,7 @@
 			nvidia,group = <1>;
 			nvidia,frame-count = <64>;
 			nvidia,frame-size = <320>;
+			status = "disabled";
 		};
 		ivccapture@4 {
 			compatible = "nvidia,tegra186-camera-ivc-protocol-capture";
@@ -113,6 +116,7 @@
 			nvidia,group = <1>;
 			nvidia,frame-count = <512>;
 			nvidia,frame-size = <64>;
+			status = "disabled";
 		};
 	};
 
