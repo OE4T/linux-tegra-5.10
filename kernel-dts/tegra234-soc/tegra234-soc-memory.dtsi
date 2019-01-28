@@ -417,17 +417,9 @@
 				address-space = <&camera_vm1_as>;
 				sid-list = <TEGRA_SID(RCE)>;
 			};
-			sata2_domain {
-				address-space = <&common_as>;
-				sid-list = <TEGRA_SID_SATA2>;
-			};
 			sdmmc1a_domain {
 				address-space = <&common_as>;
 				sid-list = <TEGRA_SID_SDMMC1A>;
-			};
-			sdmmc3a_domain {
-				address-space = <&common_as>;
-				sid-list = <TEGRA_SID_SDMMC3A>;
 			};
 			sdmmc4a_domain {
 				address-space = <&common_as>;
@@ -437,8 +429,7 @@
 				address-space = <&se_client_as>;
 				sid-list = <TEGRA_SID(SE)
 					    TEGRA_SID(SE1)
-					    TEGRA_SID(SE2)
-					    TEGRA_SID(SE3)>;
+					    TEGRA_SID(SE2)>;
 			};
 			smmu_test_domain {
 				address-space = <&common_as>;

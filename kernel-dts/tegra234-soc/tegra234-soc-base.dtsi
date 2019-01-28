@@ -30,11 +30,11 @@
 #include <dt-bindings/memory/tegra-swgroup.h>
 #include <dt-bindings/memory/tegra194-swgroup.h>
 #include "dt-bindings/soc/tegra194-powergate.h"
+#include <dt-bindings/pinctrl/pinctrl-tegra.h>
 /* Minimal.dtsi is to be included first as subsequent headers can
  *override the nodes.
  */
 #include "tegra234-soc/tegra234-soc-minimal.dtsi"
-#include "tegra234-soc/tegra234-soc-sata.dtsi"
 #include "tegra234-soc/tegra234-soc-power-domain.dtsi"
 #include "tegra234-soc-memory.dtsi"
 #include "tegra234-trusty.dtsi"
@@ -576,22 +576,6 @@
 			status = "disabled";
 		};
 
-		se@15830000 {
-			compatible = "nvidia,tegra186-se3-nvhost";
-			reg = <0x0 0x15830000 0x0 0x10000>;
-			supported-algos = "rsa";
-			nvidia,io-coherent;
-			opcode_addr = <0x604>;
-			resets = <&bpmp_resets TEGRA234_RESET_SE>;
-			clocks = <&bpmp_clks TEGRA234_CLK_SE>;
-			clock-names = "se";
-
-			iommus = <&smmu TEGRA_SID_SE2>;
-			dma-coherent;
-
-			status = "disabled";
-		};
-
 		se@15840000 {
 			compatible = "nvidia,tegra186-se4-nvhost";
 			reg = <0x0 0x15840000 0x0 0x10000>;
@@ -602,7 +586,7 @@
 			clocks = <&bpmp_clks TEGRA234_CLK_SE>;
 			clock-names = "se";
 
-			iommus = <&smmu TEGRA_SID_SE3>;
+			iommus = <&smmu TEGRA_SID_SE2>;
 			dma-coherent;
 
 			status = "disabled";
