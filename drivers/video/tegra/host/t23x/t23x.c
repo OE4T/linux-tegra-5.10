@@ -1,7 +1,7 @@
 /*
  * Tegra Graphics Init for T23X Architecture Chips
  *
- * Copyright (c) 2016-2018, NVIDIA Corporation. All rights reserved.
+ * Copyright (c) 2016-2019, NVIDIA Corporation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -56,7 +56,7 @@
 #endif
 
 #if defined(CONFIG_VIDEO_TEGRA_VI)
-#include "vi/vi5.h"
+#include "vi/vi6.h"
 #endif
 
 #include "chip_support.h"
@@ -161,7 +161,7 @@ struct nvhost_device_data t23x_vi_thi_info = {
 	.can_powergate		= true,
 };
 
-struct nvhost_device_data t23x_vi5_info = {
+struct nvhost_device_data t23x_vi6_info = {
 	.devfs_name		= "vi",
 	.class			= NV_VIDEO_STREAMING_VI_CLASS_ID,
 	.keepalive		= true,
@@ -176,10 +176,10 @@ struct nvhost_device_data t23x_vi5_info = {
 	},
 	.version		= NVHOST_ENCODE_FLCN_VER(5, 0),
 	.num_ppc		= 8,
-	.aggregate_constraints	= nvhost_vi5_aggregate_constraints,
+	.aggregate_constraints	= nvhost_vi6_aggregate_constraints,
 	.can_powergate		= true,
-	.pre_virt_init		= vi5_priv_early_probe,
-	.post_virt_init		= vi5_priv_late_probe,
+	.pre_virt_init		= vi6_priv_early_probe,
+	.post_virt_init		= vi6_priv_late_probe,
 };
 #endif
 
