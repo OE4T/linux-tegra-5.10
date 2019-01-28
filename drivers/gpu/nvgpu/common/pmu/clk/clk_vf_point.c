@@ -282,7 +282,7 @@ static int clk_vf_point_construct_volt(struct gk20a *g,
 		return -EINVAL;
 	}
 
-	ptmpobj->type_mask = BIT(CTRL_CLK_CLK_VF_POINT_TYPE_VOLT);
+	ptmpobj->type_mask = BIT32(CTRL_CLK_CLK_VF_POINT_TYPE_VOLT);
 	status = clk_vf_point_construct_super(g, ppboardobj, size, pargs);
 	if (status != 0) {
 		return -EINVAL;
@@ -313,7 +313,7 @@ static int clk_vf_point_construct_freq(struct gk20a *g,
 		return -EINVAL;
 	}
 
-	ptmpobj->type_mask = BIT(CTRL_CLK_CLK_VF_POINT_TYPE_FREQ);
+	ptmpobj->type_mask = BIT32(CTRL_CLK_CLK_VF_POINT_TYPE_FREQ);
 	status = clk_vf_point_construct_super(g, ppboardobj, size, pargs);
 	if (status != 0) {
 		return -EINVAL;
@@ -401,22 +401,22 @@ struct clk_vf_point *construct_clk_vf_point(struct gk20a *g, void *pargs)
 	switch (BOARDOBJ_GET_TYPE(pargs)) {
 	case CTRL_CLK_CLK_VF_POINT_TYPE_FREQ:
 		status = clk_vf_point_construct_freq(g, &board_obj_ptr,
-			sizeof(struct clk_vf_point_freq), pargs);
+			(u16)sizeof(struct clk_vf_point_freq), pargs);
 		break;
 
 	case CTRL_CLK_CLK_VF_POINT_TYPE_VOLT:
 		status = clk_vf_point_construct_volt(g, &board_obj_ptr,
-			sizeof(struct clk_vf_point_volt), pargs);
+			(u16)sizeof(struct clk_vf_point_volt), pargs);
 		break;
 
 	case CTRL_CLK_CLK_VF_POINT_TYPE_35_FREQ:
 		status = clk_vf_point_construct_freq_35(g, &board_obj_ptr,
-			sizeof(struct clk_vf_point_freq), pargs);
+			(u16)sizeof(struct clk_vf_point_freq), pargs);
 		break;
 
 	case CTRL_CLK_CLK_VF_POINT_TYPE_35_VOLT:
 		status = clk_vf_point_construct_volt_35(g, &board_obj_ptr,
-			sizeof(struct clk_vf_point_volt), pargs);
+			(u16)sizeof(struct clk_vf_point_volt), pargs);
 		break;
 
 	default:

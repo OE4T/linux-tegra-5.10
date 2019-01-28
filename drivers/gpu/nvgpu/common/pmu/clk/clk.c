@@ -1024,7 +1024,7 @@ int nvgpu_clk_set_boot_fll_clk_tu10x(struct gk20a *g)
 	}
 
 	change_input.pstate_index = 0U;
-	change_input.flags = CTRL_PERF_CHANGE_SEQ_CHANGE_FORCE;
+	change_input.flags = (u32)CTRL_PERF_CHANGE_SEQ_CHANGE_FORCE;
 	change_input.vf_points_cache_counter = 0xFFFFFFFFU;
 
 	status = clk_domain_freq_to_volt(g, gpcclk_domain,

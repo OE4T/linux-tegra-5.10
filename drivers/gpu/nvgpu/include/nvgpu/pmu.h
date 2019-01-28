@@ -169,7 +169,7 @@ enum pmu_seq_state {
 		(_prpc)->hdr.flags    = 0x0;    \
 		\
 		_stat = nvgpu_pmu_rpc_execute(_pmu, &((_prpc)->hdr),    \
-			(sizeof(*(_prpc)) - sizeof((_prpc)->scratch)),\
+			(u16)(sizeof(*(_prpc)) - sizeof((_prpc)->scratch)),\
 			(_size), NULL, NULL, true);	\
 	} while (false)
 

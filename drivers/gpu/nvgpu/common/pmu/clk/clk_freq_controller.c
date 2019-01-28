@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -169,7 +169,7 @@ static struct clk_freq_controller *clk_clk_freq_controller_construct(
 	}
 
 	status = clk_freq_controller_construct_pi(g, &board_obj_ptr,
-				sizeof(struct clk_freq_controller_pi), pargs);
+			(u16)sizeof(struct clk_freq_controller_pi), pargs);
 	if (status != 0) {
 		return NULL;
 	}

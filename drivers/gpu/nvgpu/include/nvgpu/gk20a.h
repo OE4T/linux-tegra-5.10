@@ -1268,7 +1268,7 @@ struct gpu_ops {
 		int (*perf_pmu_vfe_load)(struct gk20a *g);
 		bool support_clk_freq_domain;
 		bool support_vf_point;
-		u32 lut_num_entries;
+		u8 lut_num_entries;
 	} clk;
 	struct {
 		int (*arbiter_clk_init)(struct gk20a *g);

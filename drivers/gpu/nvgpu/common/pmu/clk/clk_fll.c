@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -297,7 +297,7 @@ static int devinit_get_fll_device_table(struct gk20a *g,
 			if (pvin_dev == NULL) {
 				return -EINVAL;
 			} else {
-				pvin_dev->flls_shared_mask |= BIT(fll_id);
+				pvin_dev->flls_shared_mask |= BIT32(fll_id);
 			}
 		} else {
 			/* Return if Logic ADC device index is invalid*/
@@ -315,7 +315,7 @@ static int devinit_get_fll_device_table(struct gk20a *g,
 			if (pvin_dev == NULL) {
 				return -EINVAL;
 			} else {
-				pvin_dev->flls_shared_mask |= BIT(fll_id);
+				pvin_dev->flls_shared_mask |= BIT32(fll_id);
 			}
 		} else {
 			/* Make sure VSELECT mode is set correctly to _LOGIC*/
@@ -406,7 +406,7 @@ u32 nvgpu_clk_get_vbios_clk_domain_gp10x( u32 vbios_domain)
 	return 0;
 }
 
-static u32 lutbroadcastslaveregister(struct gk20a *g,
+static int lutbroadcastslaveregister(struct gk20a *g,
 				     struct avfsfllobjs *pfllobjs,
 				     struct fll_device *pfll,
 				     struct fll_device *pfll_slave)
@@ -430,7 +430,7 @@ static struct fll_device *construct_fll_device(struct gk20a *g,
 
 	nvgpu_log_info(g, " ");
 	status = boardobj_construct_super(g, &board_obj_ptr,
-		sizeof(struct fll_device), pargs);
+		(u32)sizeof(struct fll_device), pargs);
 	if (status != 0) {
 		return NULL;
 	}

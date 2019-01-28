@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -25,6 +25,7 @@
 #include <nvgpu/boardobjgrp.h>
 #include <nvgpu/boardobjgrp_e32.h>
 #include <nvgpu/pmuif/ctrlclk.h>
+#include <nvgpu/bug.h>
 
 #include "clk.h"
 #include "clk_freq_domain.h"
@@ -139,8 +140,9 @@ int nvgpu_clk_freq_domain_sw_setup(struct gk20a *g)
 	struct boardobj *pboardobj = NULL;
 	struct nvgpu_clk_freq_domain *pfreq_domain = NULL;
 	struct nvgpu_clk_freq_domain_grp *pfreq_domain_grp = NULL;
-	u8 num_of_domains = sizeof(clk_freq_domain_type) /
+	size_t tmp_num_of_domains = sizeof(clk_freq_domain_type) /
 		sizeof(struct domain_type);
+	u8 num_of_domains;
 	int status = 0;
 	u8 idx = 0;
 
@@ -148,6 +150,9 @@ int nvgpu_clk_freq_domain_sw_setup(struct gk20a *g)
 		struct boardobj super;
 		struct nvgpu_clk_freq_domain freq_domain;
 	}freq_domain_data;
+
+	nvgpu_assert(tmp_num_of_domains <= U8_MAX);
+	num_of_domains = (u8)tmp_num_of_domains;
 
 	pboardobjgrp = &g->clk_pmu->freq_domain_grp_objs.super.super;
 	pfreq_domain_grp = &g->clk_pmu->freq_domain_grp_objs;
@@ -189,7 +194,7 @@ int nvgpu_clk_freq_domain_sw_setup(struct gk20a *g)
 
 		pboardobj = NULL;
 		status = boardobj_construct_super(g,&pboardobj,
-			sizeof(struct nvgpu_clk_freq_domain),
+			(u16)sizeof(struct nvgpu_clk_freq_domain),
 			(void*)&freq_domain_data);
 		if(status != 0) {
 			nvgpu_err(g, "Failed to construct nvgpu_clk_freq_domain Board obj");

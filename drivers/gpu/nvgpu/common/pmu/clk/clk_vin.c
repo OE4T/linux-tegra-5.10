@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -386,7 +386,7 @@ static int vin_device_construct_v10(struct gk20a *g,
 		return -EINVAL;
 	}
 
-	ptmpobj->type_mask |= BIT(CTRL_CLK_VIN_TYPE_V10);
+	ptmpobj->type_mask |= BIT32(CTRL_CLK_VIN_TYPE_V10);
 	status = vin_device_construct_super(g, ppboardobj, size, pargs);
 	if (status != 0) {
 		return -EINVAL;
@@ -416,7 +416,7 @@ static int vin_device_construct_v20(struct gk20a *g,
 		return -EINVAL;
 	}
 
-	ptmpobj->type_mask |= BIT(CTRL_CLK_VIN_TYPE_V20);
+	ptmpobj->type_mask |= BIT32(CTRL_CLK_VIN_TYPE_V20);
 	status = vin_device_construct_super(g, ppboardobj, size, pargs);
 	if (status != 0) {
 		return -EINVAL;
@@ -468,12 +468,12 @@ static struct vin_device *construct_vin_device(struct gk20a *g, void *pargs)
 	switch (BOARDOBJ_GET_TYPE(pargs)) {
 	case CTRL_CLK_VIN_TYPE_V10:
 		status = vin_device_construct_v10(g, &board_obj_ptr,
-			sizeof(struct vin_device_v10), pargs);
+			(u16)sizeof(struct vin_device_v10), pargs);
 		break;
 
 	case CTRL_CLK_VIN_TYPE_V20:
 		status = vin_device_construct_v20(g, &board_obj_ptr,
-			sizeof(struct vin_device_v20), pargs);
+			(u16)sizeof(struct vin_device_v20), pargs);
 		break;
 
 	default:
