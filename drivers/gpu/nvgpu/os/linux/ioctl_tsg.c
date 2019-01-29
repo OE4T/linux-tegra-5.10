@@ -256,8 +256,14 @@ static unsigned int gk20a_event_id_poll(struct file *filep, poll_table *wait)
 static int gk20a_event_id_release(struct inode *inode, struct file *filp)
 {
 	struct gk20a_event_id_data *event_id_data = filp->private_data;
-	struct gk20a *g = event_id_data->g;
-	struct tsg_gk20a *tsg = g->fifo.tsg + event_id_data->id;
+	struct gk20a *g;
+	struct tsg_gk20a *tsg;
+
+	if (event_id_data == NULL)
+		return -EINVAL;
+
+	g = event_id_data->g;
+	tsg = g->fifo.tsg + event_id_data->id;
 
 	nvgpu_mutex_acquire(&tsg->event_id_list_lock);
 	nvgpu_list_del(&event_id_data->event_id_node);
