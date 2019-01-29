@@ -554,7 +554,8 @@ static int read_max_cfg_reg(struct qspi *flash, uint8_t *regval)
 	return status;
 }
 
-static int qspi_write_status_reg(struct qspi *flash, uint8_t sr, uint8_t cfgr)
+static int qspi_write_status_cfgr_reg(struct qspi *flash, uint8_t sr,
+				      uint8_t cfgr, bool write_cfg)
 {
 	uint8_t tx_buf[3];
 	int err, status = PASS;
@@ -570,7 +571,8 @@ static int qspi_write_status_reg(struct qspi *flash, uint8_t sr, uint8_t cfgr)
 
 	tx_buf[0] = code;
 	tx_buf[1] = sr;
-	tx_buf[2] = cfgr;
+	if (write_cfg)
+		tx_buf[2] = cfgr;
 
 	err = qspi_write_en(flash, TRUE, FALSE);
 	if (err) {
@@ -581,7 +583,10 @@ static int qspi_write_status_reg(struct qspi *flash, uint8_t sr, uint8_t cfgr)
 	spi_message_init(&m);
 
 	memset(&t, 0, sizeof(t));
-	t.len = COMMAND_WIDTH + 2;
+	if (write_cfg)
+		t.len = COMMAND_WIDTH + 2;
+	else
+		t.len = COMMAND_WIDTH + 1;
 	t.tx_buf = tx_buf;
 	t.bits_per_word = BITS8_PER_WORD;
 
@@ -596,6 +601,11 @@ static int qspi_write_status_reg(struct qspi *flash, uint8_t sr, uint8_t cfgr)
 	}
 
 	return status;
+}
+
+static int qspi_write_status_reg(struct qspi *flash, uint8_t sr, uint8_t cfgr)
+{
+	return qspi_write_status_cfgr_reg(flash, sr, cfgr, TRUE);
 }
 
 /*
@@ -863,8 +873,14 @@ static int qspi_quad_flag_set(struct qspi *flash, uint8_t is_set)
 		(!flash->is_quad_set && !is_set)) {
 		return status;
 	}
-
-	if (flash->flash_info->jedec_id == JEDEC_ID_MX25U51279G) {
+	if (flash->flash_info->jedec_id == JEDEC_ID_MX25U3235F) {
+		read_sr1_reg(flash, &my_status);
+		if (is_set)
+			my_status |= MX_QUAD_ENABLE;
+		else
+			my_status &= ~MX_QUAD_ENABLE;
+		qspi_write_status_cfgr_reg(flash, my_status, 0, FALSE);
+	} else if (flash->flash_info->jedec_id == JEDEC_ID_MX25U51279G) {
 		read_sr1_reg(flash, &my_status);
 		read_max_cfg_reg(flash, &my_cfg);
 
@@ -1101,11 +1117,9 @@ static int erase_sector(struct qspi *flash, u32 offset,
 			"error: %s: WE failed: Status: x%x ", __func__, err);
 		return err;
 	}
-	copy_cmd_default(&flash->cmd_table,
-				&flash->cmd_info_table[ERASE_SECT]);
 
 	/* Set up command buffer. */
-	cmd_addr_buf[0] = erase_opcode = flash->cmd_table.qcmd.op_code;
+	cmd_addr_buf[0] = erase_opcode;
 	if (flash->cmd_table.qaddr.len == 3) {
 		cmd_addr_buf[1] = (offset >> 16) & 0xFF;
 		cmd_addr_buf[2] = (offset >> 8) & 0xFF;
