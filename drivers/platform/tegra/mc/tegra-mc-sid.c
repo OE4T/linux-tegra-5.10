@@ -1,7 +1,7 @@
 /*
  * MC StreamID configuration
  *
- * Copyright (c) 2015-2017, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2015-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -145,9 +145,9 @@ void platform_override_streamid(int sid)
 
 #if defined(CONFIG_DEBUG_FS)
 
-enum { ORD, SEC, TXN, MAX_REGS_TYPE};
+enum { ORD, SEC, MAX_REGS_TYPE};
 
-static const char * const mc_regs_type[] = { "ord", "sec", "txn", };
+static const char * const mc_regs_type[] = { "ord", "sec", };
 
 static int mc_reg32_debugfs_set(void *data, u64 val)
 {
@@ -179,8 +179,6 @@ static void tegra_mc_sid_create_debugfs(void)
 
 		if (i == SEC)
 			base = mc_sid->sid_base + sizeof(u32);
-		else if (i == TXN)
-			base = mc_sid->base + 0x1000;
 		else
 			base = mc_sid->sid_base;
 
@@ -240,17 +238,6 @@ int tegra_mc_sid_probe(struct platform_device *pdev,
 				"nvidia,by-pass-smmu-streamid",
 				&mc_sid->smmu_bypass_sid))
 		mc_sid->smmu_bypass_sid = SMMU_BYPASS_SID;
-
-	/* FIXME: wait for MC driver */
-	res = platform_get_resource(pdev, IORESOURCE_MEM, 1);
-	addr = devm_ioremap_resource(&pdev->dev, res);
-	if (IS_ERR(addr))
-		return PTR_ERR(addr);
-
-	mc_sid->base = addr;
-
-	writel_relaxed(TBU_BYPASS_SID,
-		mc_sid->base + MC_SMMU_BYPASS_CONFIG_0);
 
 	tegra_mc_sid_create_debugfs();
 
