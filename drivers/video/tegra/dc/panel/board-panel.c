@@ -1,7 +1,7 @@
 /*
  * board-panel.c: Functions definitions for general panel.
  *
- * Copyright (c) 2013-2018, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2013-2019, NVIDIA CORPORATION. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -28,7 +28,6 @@
 #include <linux/of.h>
 #include <linux/of_address.h>
 #include <soc/tegra/common.h>
-
 #include "../dc.h"
 #include "../dc_priv.h"
 #include "board-panel.h"
@@ -74,7 +73,7 @@ int tegra_bl_notify(struct device *dev, int brightness)
 			bl_curve = lp->pdata->bl_curve;
 		}
 	}
-
+	speculation_barrier();
 	if (bl_curve)
 		brightness = bl_curve[brightness];
 
