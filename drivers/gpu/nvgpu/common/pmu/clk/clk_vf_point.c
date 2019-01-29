@@ -702,7 +702,13 @@ int nvgpu_clk_set_req_fll_clk_ps35(struct gk20a *g, struct nvgpu_clk_slave_freq 
 				break;
 			}
 		}
-		vf_point->gpc_mhz = gpc2clk_target < vf_point->gpc_mhz ? gpc2clk_target : vf_point->gpc_mhz;
+		/*
+		 * If the requested freq is lower than available
+		 * one in VF table, use the VF table freq
+		 */
+		if (gpc2clk_target > vf_point->gpc_mhz) {
+			vf_point->gpc_mhz = gpc2clk_target;
+		}
 	} while ((table == NULL) ||
 		(NV_ACCESS_ONCE(arb->current_vf_table) != table));
 
