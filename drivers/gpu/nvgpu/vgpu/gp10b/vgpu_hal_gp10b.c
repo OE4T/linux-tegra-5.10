@@ -462,8 +462,6 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 	},
 #endif /* CONFIG_GK20A_CTXSW_TRACE */
 	.mm = {
-		/* FIXME: add support for sparse mappings */
-		.support_sparse = NULL,
 		.gmmu_map = vgpu_gp10b_locked_gmmu_map,
 		.gmmu_unmap = vgpu_locked_gmmu_unmap,
 		.vm_bind_channel = vgpu_vm_bind_channel,

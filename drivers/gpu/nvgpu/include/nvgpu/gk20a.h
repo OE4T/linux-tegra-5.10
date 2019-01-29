@@ -1067,7 +1067,6 @@ struct gpu_ops {
 	} fecs_trace;
 #endif
 	struct {
-		bool (*support_sparse)(struct gk20a *g);
 		u64 (*gmmu_map)(struct vm_gk20a *vm,
 				u64 map_offset,
 				struct nvgpu_sgt *sgt,

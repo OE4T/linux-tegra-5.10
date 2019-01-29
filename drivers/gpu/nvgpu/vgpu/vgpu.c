@@ -285,10 +285,10 @@ void vgpu_init_gpu_characteristics(struct gk20a *g)
 
 	gk20a_init_gpu_characteristics(g);
 
-	nvgpu_set_enabled(g, NVGPU_SUPPORT_MAP_BUFFER_BATCH, false);
-
 	/* features vgpu does not support */
+	nvgpu_set_enabled(g, NVGPU_SUPPORT_MAP_BUFFER_BATCH, false);
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_RESCHEDULE_RUNLIST, false);
+	nvgpu_set_enabled(g, NVGPU_SUPPORT_SPARSE_ALLOCS, false);
 }
 
 int vgpu_read_ptimer(struct gk20a *g, u64 *value)

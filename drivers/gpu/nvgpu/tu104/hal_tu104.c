@@ -844,7 +844,6 @@ static const struct gpu_ops tu104_ops = {
 	},
 #endif /* CONFIG_GK20A_CTXSW_TRACE */
 	.mm = {
-		.support_sparse = gm20b_mm_support_sparse,
 		.gmmu_map = gk20a_locked_gmmu_map,
 		.gmmu_unmap = gk20a_locked_gmmu_unmap,
 		.vm_bind_channel = gk20a_vm_bind_channel,
