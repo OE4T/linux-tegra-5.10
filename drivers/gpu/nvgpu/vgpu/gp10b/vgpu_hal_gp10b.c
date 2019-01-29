@@ -700,6 +700,9 @@ int vgpu_gp10b_init_hal(struct gk20a *g)
 
 	if (priv->constants.can_set_clkrate) {
 		gops->clk.support_clk_freq_controller = true;
+	} else {
+		gops->clk.support_clk_freq_controller = false;
+		gops->clk_arb.get_arbiter_clk_domains = NULL;
 	}
 
 	g->name = "gp10b";
