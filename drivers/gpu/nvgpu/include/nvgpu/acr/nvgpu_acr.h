@@ -167,8 +167,6 @@ struct nvgpu_acr {
 	struct hs_acr acr_asb;
 
 	u32 pmu_args;
-	struct nvgpu_firmware *pmu_fw;
-	struct nvgpu_firmware *pmu_desc;
 
 	int (*prepare_ucode_blob)(struct gk20a *g, struct nvgpu_acr *acr);
 	void (*get_wpr_info)(struct gk20a *g, struct wpr_carveout_info *inf);

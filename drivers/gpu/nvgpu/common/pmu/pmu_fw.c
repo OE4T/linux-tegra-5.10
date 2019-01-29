@@ -37,6 +37,10 @@
 /* PMU NS UCODE IMG */
 #define NVGPU_PMU_NS_UCODE_IMAGE	"gpmu_ucode.bin"
 
+#define NVGPU_PMU_UCODE_IMAGE "gpmu_ucode_image.bin"
+#define NVGPU_PMU_UCODE_DESC "gpmu_ucode_desc.bin"
+#define NVGPU_PMU_UCODE_SIG "pmu_sig.bin"
+
 /* PMU F/W version */
 #define APP_VERSION_TU10X	25467803U
 #define APP_VERSION_GV11B	25005711U
@@ -1114,7 +1118,7 @@ static void pg_cmd_eng_buf_load_set_dma_idx_v2(struct pmu_pg_cmd *pg,
 	pg->eng_buf_load_v2.dma_desc.params |= (U32(value) << U32(24));
 }
 
-int nvgpu_init_pmu_fw_ver_ops(struct nvgpu_pmu *pmu)
+static int init_pmu_fw_ver_ops(struct nvgpu_pmu *pmu, u32 app_version)
 {
 	struct gk20a *g = gk20a_from_pmu(pmu);
 	struct pmu_v *pv = &g->ops.pmu_ver;
@@ -1122,7 +1126,7 @@ int nvgpu_init_pmu_fw_ver_ops(struct nvgpu_pmu *pmu)
 
 	nvgpu_log_fn(g, " ");
 
-	switch (pmu->desc->app_version) {
+	switch (app_version) {
 	case APP_VERSION_GP10B:
 		g->ops.pmu_ver.pg_cmd_eng_buf_load_size =
 				pg_cmd_eng_buf_load_size_v1;
@@ -1292,8 +1296,8 @@ int nvgpu_init_pmu_fw_ver_ops(struct nvgpu_pmu *pmu)
 				pmu_allocation_get_fb_addr_v3;
 		g->ops.pmu_ver.pmu_allocation_get_fb_size =
 				pmu_allocation_get_fb_size_v3;
-		if (pmu->desc->app_version == APP_VERSION_GV10X ||
-			pmu->desc->app_version == APP_VERSION_TU10X) {
+		if (app_version == APP_VERSION_GV10X ||
+			app_version == APP_VERSION_TU10X) {
 			g->ops.pmu_ver.get_pmu_init_msg_pmu_queue_params =
 				get_pmu_init_msg_pmu_queue_params_v5;
 			g->ops.pmu_ver.get_pmu_msg_pmu_init_msg_ptr =
@@ -1322,7 +1326,7 @@ int nvgpu_init_pmu_fw_ver_ops(struct nvgpu_pmu *pmu)
 					clk_avfs_get_vin_cal_fuse_v20;
 			g->ops.pmu_ver.clk.clk_vf_change_inject_data_fill =
 					nvgpu_clk_vf_change_inject_data_fill_gv10x;
-			if (pmu->desc->app_version == APP_VERSION_GV10X) {
+			if (app_version == APP_VERSION_GV10X) {
 				g->ops.pmu_ver.clk.clk_set_boot_clk =
 					nvgpu_clk_set_boot_fll_clk_gv10x;
 			} else {
@@ -1606,8 +1610,9 @@ int nvgpu_init_pmu_fw_ver_ops(struct nvgpu_pmu *pmu)
 		break;
 	default:
 		nvgpu_err(g, "PMU code version not supported version: %d\n",
-			pmu->desc->app_version);
+			app_version);
 		err = -EINVAL;
+		break;
 	}
 	pv->set_perfmon_cntr_index(pmu, 3); /* GR & CE2 */
 	pv->set_perfmon_cntr_group_id(pmu, PMU_DOMAIN_GROUP_PSTATE);
@@ -1639,27 +1644,104 @@ static void nvgpu_remove_pmu_support(struct nvgpu_pmu *pmu)
 		pboardobj->destruct(pboardobj);
 	}
 
-	if (pmu->fw != NULL) {
-		nvgpu_release_firmware(g, pmu->fw);
+	if (pmu->fw_image != NULL) {
+		nvgpu_release_firmware(g, pmu->fw_image);
 	}
 
-	if (g->acr.pmu_fw != NULL) {
-		nvgpu_release_firmware(g, g->acr.pmu_fw);
+	if (pmu->fw_desc != NULL) {
+		nvgpu_release_firmware(g, pmu->fw_desc);
 	}
 
-	if (g->acr.pmu_desc != NULL) {
-		nvgpu_release_firmware(g, g->acr.pmu_desc);
+	if (pmu->fw_sig != NULL) {
+		nvgpu_release_firmware(g, pmu->fw_sig);
 	}
 
-	nvgpu_dma_unmap_free(vm, &pmu->seq_buf);
+	if (nvgpu_mem_is_valid(&pmu->ucode)) {
+		nvgpu_dma_unmap_free(vm, &pmu->ucode);
+	}
 
-	nvgpu_dma_unmap_free(vm, &pmu->super_surface_buf);
+	if (nvgpu_mem_is_valid(&pmu->seq_buf)) {
+		nvgpu_dma_unmap_free(vm, &pmu->seq_buf);
+	}
+
+	if (nvgpu_mem_is_valid(&pmu->super_surface_buf)) {
+		nvgpu_dma_unmap_free(vm, &pmu->super_surface_buf);
+	}
 
 	nvgpu_mutex_destroy(&pmu->elpg_mutex);
 	nvgpu_mutex_destroy(&pmu->pg_mutex);
 	nvgpu_mutex_destroy(&pmu->isr_mutex);
 	nvgpu_mutex_destroy(&pmu->pmu_copy_lock);
 	nvgpu_mutex_destroy(&pmu->pmu_seq_lock);
+}
+
+static int init_pmu_ucode(struct nvgpu_pmu *pmu)
+{
+	struct gk20a *g = gk20a_from_pmu(pmu);
+	struct pmu_ucode_desc *desc;
+	int err = 0;
+
+	if (pmu->fw_image != NULL) {
+		goto exit;
+	}
+
+	if (!nvgpu_is_enabled(g, NVGPU_SEC_PRIVSECURITY)) {
+		/* non-secure PMU boot uocde */
+		pmu->fw_image = nvgpu_request_firmware(g,
+				NVGPU_PMU_NS_UCODE_IMAGE, 0);
+		if (pmu->fw_image == NULL) {
+			nvgpu_err(g,
+				"failed to load non-secure pmu ucode!!");
+			goto exit;
+		}
+
+		desc = (struct pmu_ucode_desc *)
+			(void *)pmu->fw_image->data;
+	} else {
+		/* secure boot ucodes's */
+		nvgpu_pmu_dbg(g, "requesting PMU ucode image");
+		pmu->fw_image = nvgpu_request_firmware(g, NVGPU_PMU_UCODE_IMAGE, 0);
+		if (pmu->fw_image == NULL) {
+			nvgpu_err(g, "failed to load pmu ucode!!");
+			err = -ENOENT;
+			goto exit;
+		}
+
+		nvgpu_pmu_dbg(g, "requesting PMU ucode desc");
+		pmu->fw_desc = nvgpu_request_firmware(g, NVGPU_PMU_UCODE_DESC, 0);
+		if (pmu->fw_desc == NULL) {
+			nvgpu_err(g, "failed to load pmu ucode desc!!");
+			err = -ENOENT;
+			goto release_img_fw;
+		}
+
+		nvgpu_pmu_dbg(g, "requesting PMU ucode sign");
+		pmu->fw_sig = nvgpu_request_firmware(g, NVGPU_PMU_UCODE_SIG, 0);
+		if (pmu->fw_sig == NULL) {
+			nvgpu_err(g, "failed to load pmu sig!!");
+			err = -ENOENT;
+			goto release_desc;
+		}
+
+		desc = (struct pmu_ucode_desc *)(void *)pmu->fw_desc->data;
+	}
+
+	err = init_pmu_fw_ver_ops(pmu, desc->app_version);
+	if (err != 0) {
+		nvgpu_err(g, "failed to set function pointers");
+		goto release_sig;
+	}
+
+	goto exit;
+
+release_sig:
+	nvgpu_release_firmware(g, pmu->fw_sig);
+release_desc:
+	nvgpu_release_firmware(g, pmu->fw_desc);
+release_img_fw:
+	nvgpu_release_firmware(g, pmu->fw_image);
+exit:
+	return err;
 }
 
 int nvgpu_early_init_pmu_sw(struct gk20a *g, struct nvgpu_pmu *pmu)
@@ -1695,10 +1777,17 @@ int nvgpu_early_init_pmu_sw(struct gk20a *g, struct nvgpu_pmu *pmu)
 		goto fail_pmu_copy;
 	}
 
+	err = init_pmu_ucode(pmu);
+	if (err != 0) {
+		goto fail_seq_lock;
+	}
+
 	pmu->remove_support = nvgpu_remove_pmu_support;
 
 	goto exit;
 
+fail_seq_lock:
+nvgpu_mutex_destroy(&pmu->pmu_seq_lock);
 fail_pmu_copy:
 	nvgpu_mutex_destroy(&pmu->pmu_copy_lock);
 fail_isr:
@@ -1714,52 +1803,27 @@ exit:
 int nvgpu_pmu_prepare_ns_ucode_blob(struct gk20a *g)
 {
 	struct nvgpu_pmu *pmu = &g->pmu;
-	int err = 0;
 	struct mm_gk20a *mm = &g->mm;
 	struct vm_gk20a *vm = mm->pmu.vm;
+	struct pmu_ucode_desc *desc;
+	u32 *ucode_image = NULL;
+	int err = 0;
 
 	nvgpu_log_fn(g, " ");
 
-	if (pmu->fw != NULL) {
-		err = nvgpu_init_pmu_fw_ver_ops(pmu);
-		if (err != 0) {
-			nvgpu_err(g, "failed to set function pointers");
-		}
-		return err;
-	}
-
-	pmu->fw = nvgpu_request_firmware(g, NVGPU_PMU_NS_UCODE_IMAGE, 0);
-	if (pmu->fw == NULL) {
-		nvgpu_err(g, "failed to load pmu ucode!!");
-		return err;
-	}
-
-	nvgpu_log_fn(g, "firmware loaded");
-
-	pmu->desc = (struct pmu_ucode_desc *)pmu->fw->data;
-	pmu->ucode_image = (u32 *)((u8 *)pmu->desc +
-			pmu->desc->descriptor_size);
+	desc = (struct pmu_ucode_desc *)(void *)pmu->fw_image->data;
+	ucode_image = (u32 *)(void *)((u8 *)desc + desc->descriptor_size);
 
 	err = nvgpu_dma_alloc_map_sys(vm, GK20A_PMU_UCODE_SIZE_MAX,
 			&pmu->ucode);
 	if (err != 0) {
-		goto err_release_fw;
+		goto exit;
 	}
 
-	nvgpu_mem_wr_n(g, &pmu->ucode, 0, pmu->ucode_image,
-			pmu->desc->app_start_offset + pmu->desc->app_size);
+	nvgpu_mem_wr_n(g, &pmu->ucode, 0, ucode_image,
+		desc->app_start_offset + desc->app_size);
 
-	err = nvgpu_init_pmu_fw_ver_ops(pmu);
-	if (err != 0) {
-		nvgpu_err(g, "failed to set function pointers");
-	}
-
-	return err;
-
- err_release_fw:
-	nvgpu_release_firmware(g, pmu->fw);
-	pmu->fw = NULL;
-
+exit:
 	return err;
 }
 

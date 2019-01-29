@@ -87,68 +87,29 @@ bool gm20b_is_pmu_supported(struct gk20a *g)
 
 static int pmu_ucode_details(struct gk20a *g, struct flcn_ucode_img *p_img)
 {
-	struct nvgpu_firmware *pmu_fw, *pmu_desc, *pmu_sig;
 	struct nvgpu_pmu *pmu = &g->pmu;
 	struct lsf_ucode_desc *lsf_desc;
-	int err;
-	nvgpu_pmu_dbg(g, "requesting PMU ucode in GM20B\n");
-	pmu_fw = nvgpu_request_firmware(g, GM20B_PMU_UCODE_IMAGE, 0);
-	if (pmu_fw == NULL) {
-		nvgpu_err(g, "failed to load pmu ucode!!");
-		return -ENOENT;
-	}
-	g->acr.pmu_fw = pmu_fw;
-	nvgpu_pmu_dbg(g, "Loaded PMU ucode in for blob preparation");
-
-	nvgpu_pmu_dbg(g, "requesting PMU ucode desc in GM20B\n");
-	pmu_desc = nvgpu_request_firmware(g, GM20B_PMU_UCODE_DESC, 0);
-	if (pmu_desc == NULL) {
-		nvgpu_err(g, "failed to load pmu ucode desc!!");
-		err = -ENOENT;
-		goto release_img_fw;
-	}
-	pmu_sig = nvgpu_request_firmware(g, GM20B_PMU_UCODE_SIG, 0);
-	if (pmu_sig == NULL) {
-		nvgpu_err(g, "failed to load pmu sig!!");
-		err = -ENOENT;
-		goto release_desc;
-	}
-	pmu->desc = (struct pmu_ucode_desc *)pmu_desc->data;
-	pmu->ucode_image = (u32 *)pmu_fw->data;
-	g->acr.pmu_desc = pmu_desc;
-
-	err = nvgpu_init_pmu_fw_ver_ops(pmu);
-	if (err != 0) {
-		nvgpu_pmu_dbg(g, "failed to set function pointers");
-		goto release_sig;
-	}
+	int err = 0;
 
 	lsf_desc = nvgpu_kzalloc(g, sizeof(struct lsf_ucode_desc));
 	if (lsf_desc == NULL) {
 		err = -ENOMEM;
-		goto release_sig;
+		goto exit;
 	}
-	nvgpu_memcpy((u8 *)lsf_desc, (u8 *)pmu_sig->data,
-			min_t(size_t, sizeof(*lsf_desc), pmu_sig->size));
+
+	nvgpu_memcpy((u8 *)lsf_desc, (u8 *)pmu->fw_sig->data,
+		min_t(size_t, sizeof(*lsf_desc), pmu->fw_sig->size));
+
 	lsf_desc->falcon_id = FALCON_ID_PMU;
 
-	p_img->desc = pmu->desc;
-	p_img->data = pmu->ucode_image;
-	p_img->data_size = pmu->desc->image_size;
+	p_img->desc = (struct pmu_ucode_desc *)(void *)pmu->fw_desc->data;
+	p_img->data = (u32 *)(void *)pmu->fw_image->data;
+	p_img->data_size = p_img->desc->image_size;
 	p_img->fw_ver = NULL;
 	p_img->header = NULL;
 	p_img->lsf_desc = (struct lsf_ucode_desc *)lsf_desc;
-	nvgpu_pmu_dbg(g, "requesting PMU ucode in GM20B exit\n");
-	nvgpu_release_firmware(g, pmu_sig);
-	return 0;
-release_sig:
-	nvgpu_release_firmware(g, pmu_sig);
-release_desc:
-	nvgpu_release_firmware(g, pmu_desc);
-	g->acr.pmu_desc = NULL;
-release_img_fw:
-	nvgpu_release_firmware(g, pmu_fw);
-	g->acr.pmu_fw = NULL;
+
+exit:
 	return err;
 }
 
@@ -343,18 +304,13 @@ int gm20b_alloc_blob_space(struct gk20a *g,
 int prepare_ucode_blob(struct gk20a *g)
 {
 
-	int err;
+	int err = 0;
 	struct ls_flcn_mgr lsfm_l, *plsfm;
-	struct nvgpu_pmu *pmu = &g->pmu;
 	struct wpr_carveout_info wpr_inf;
 
 	if (g->acr.ucode_blob.cpu_va != NULL) {
 		/*Recovery case, we do not need to form
 		non WPR blob of ucodes*/
-		err = nvgpu_init_pmu_fw_ver_ops(pmu);
-		if (err != 0) {
-			nvgpu_pmu_dbg(g, "failed to set function pointers\n");
-		}
 		return err;
 	}
 	plsfm = &lsfm_l;

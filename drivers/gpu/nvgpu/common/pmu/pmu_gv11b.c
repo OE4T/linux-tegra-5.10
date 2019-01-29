@@ -30,6 +30,7 @@
 #include <nvgpu/utils.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/nvgpu_err.h>
+#include <nvgpu/firmware.h>
 
 #include "pmu_gp10b.h"
 #include "pmu_gp106.h"
@@ -201,7 +202,8 @@ int gv11b_pmu_bootstrap(struct nvgpu_pmu *pmu)
 {
 	struct gk20a *g = gk20a_from_pmu(pmu);
 	struct mm_gk20a *mm = &g->mm;
-	struct pmu_ucode_desc *desc = pmu->desc;
+	struct pmu_ucode_desc *desc =
+		(struct pmu_ucode_desc *)(void *)pmu->fw_image->data;
 	u64 addr_code_lo, addr_data_lo, addr_load_lo;
 	u64 addr_code_hi, addr_data_hi;
 	u32 i, blocks, addr_args;

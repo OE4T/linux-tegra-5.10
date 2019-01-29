@@ -327,10 +327,10 @@ struct nvgpu_pmu {
 	struct gk20a *g;
 	struct nvgpu_falcon *flcn;
 
-	union {
-		struct pmu_ucode_desc *desc;
-		struct pmu_ucode_desc_v1 *desc_v1;
-	};
+	struct nvgpu_firmware *fw_desc;
+	struct nvgpu_firmware *fw_image;
+	struct nvgpu_firmware *fw_sig;
+
 	struct nvgpu_mem ucode;
 
 	struct nvgpu_mem pg_buf;
@@ -359,7 +359,6 @@ struct nvgpu_pmu {
 
 	struct nvgpu_allocator dmem;
 
-	u32 *ucode_image;
 	bool pmu_ready;
 
 	u32 perfmon_query;
@@ -414,8 +413,6 @@ struct nvgpu_pmu {
 	u32 falcon_id;
 	u32 aelpg_param[5];
 	u32 override_done;
-
-	struct nvgpu_firmware *fw;
 };
 
 struct pmu_surface {
@@ -505,7 +502,6 @@ int nvgpu_pmu_sysmem_surface_alloc(struct gk20a *g, struct nvgpu_mem *mem,
 		u32 size);
 
 /* PMU F/W support */
-int nvgpu_init_pmu_fw_ver_ops(struct nvgpu_pmu *pmu);
 int nvgpu_early_init_pmu_sw(struct gk20a *g, struct nvgpu_pmu *pmu);
 int nvgpu_pmu_prepare_ns_ucode_blob(struct gk20a *g);
 

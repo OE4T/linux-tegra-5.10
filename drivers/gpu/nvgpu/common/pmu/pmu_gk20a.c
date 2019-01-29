@@ -187,7 +187,8 @@ int pmu_bootstrap(struct nvgpu_pmu *pmu)
 {
 	struct gk20a *g = gk20a_from_pmu(pmu);
 	struct mm_gk20a *mm = &g->mm;
-	struct pmu_ucode_desc *desc = pmu->desc;
+	struct pmu_ucode_desc *desc =
+		(struct pmu_ucode_desc *)(void *)pmu->fw_image->data;
 	u64 addr_code, addr_data, addr_load;
 	u32 i, blocks, addr_args;
 
