@@ -880,6 +880,8 @@ static int camrtc_coverage_msg(struct camrtc_falcon_coverage *cov,
 		dev_warn(&ch->dev, "Coverage IVC error: %d, status %u, id %u\n",
 				ret, resp->status, cov->id);
 		ret = -ENODEV;
+	} else if (resp->data.coverage_stat.full == 1) {
+		ret = -EOVERFLOW;
 	}
 
 	return ret;
