@@ -2,6 +2,8 @@
 /*
  *  linux/include/linux/mmc/card.h
  *
+ *  Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
+ *
  *  Card driver specific definitions.
  */
 #ifndef LINUX_MMC_CARD_H
@@ -10,6 +12,7 @@
 #include <linux/device.h>
 #include <linux/mod_devicetable.h>
 
+#define MAX_CARDS_NUM 4
 struct mmc_cid {
 	unsigned int		manfid;
 	char			prod_name[8];
@@ -315,6 +318,8 @@ static inline bool mmc_large_sector(struct mmc_card *card)
 {
 	return card->ext_csd.data_sector_size == 4096;
 }
+
+extern struct mmc_card *mmc_cards[MAX_CARDS_NUM];
 
 bool mmc_card_is_blockaddr(struct mmc_card *card);
 

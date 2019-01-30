@@ -4,6 +4,7 @@
  *
  *  Copyright (C) 2003 Russell King, All Rights Reserved.
  *  Copyright (C) 2007 Pierre Ossman
+ *  Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  *  MMC card bus driver model
  */
@@ -26,6 +27,11 @@
 #include "bus.h"
 
 #define to_mmc_driver(d)	container_of(d, struct mmc_driver, drv)
+
+struct mmc_card *mmc_cards[MAX_CARDS_NUM];
+EXPORT_SYMBOL(mmc_cards);
+
+static int card_idx;
 
 static ssize_t type_show(struct device *dev,
 	struct device_attribute *attr, char *buf)
@@ -110,6 +116,13 @@ static int mmc_bus_probe(struct device *dev)
 {
 	struct mmc_driver *drv = to_mmc_driver(dev->driver);
 	struct mmc_card *card = mmc_dev_to_card(dev);
+
+	if (card_idx == MAX_CARDS_NUM) {
+		pr_err("Exceeded the total number of cards allowed");
+		return -EINVAL;
+	} else {
+		mmc_cards[card_idx++] = card;
+	}
 
 	return drv->probe(card);
 }
