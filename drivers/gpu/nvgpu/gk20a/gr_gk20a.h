@@ -323,7 +323,7 @@ struct gr_gk20a {
 
 	u32 fecs_feature_override_ecc_val;
 
-	int cilp_preempt_pending_chid;
+	u32 cilp_preempt_pending_chid;
 
 	u32 fbp_en_mask;
 	u32 *fbp_rop_l2_en_mask;

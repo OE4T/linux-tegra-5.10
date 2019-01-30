@@ -1708,7 +1708,7 @@ static int gr_gp10b_clear_cilp_preempt_pending(struct gk20a *g,
 	}
 
 	gr_ctx->cilp_preempt_pending = false;
-	g->gr.cilp_preempt_pending_chid = -1;
+	g->gr.cilp_preempt_pending_chid = FIFO_INVAL_CHANNEL_ID;
 
 	return 0;
 }
@@ -1829,15 +1829,18 @@ int gr_gp10b_pre_process_sm_exception(struct gk20a *g,
 	return 0;
 }
 
-static int gr_gp10b_get_cilp_preempt_pending_chid(struct gk20a *g, int *__chid)
+static int gr_gp10b_get_cilp_preempt_pending_chid(struct gk20a *g, u32 *__chid)
 {
 	struct nvgpu_gr_ctx *gr_ctx;
 	struct channel_gk20a *ch;
 	struct tsg_gk20a *tsg;
-	int chid;
+	u32 chid;
 	int ret = -EINVAL;
 
 	chid = g->gr.cilp_preempt_pending_chid;
+	if (chid == FIFO_INVAL_CHANNEL_ID) {
+		return ret;
+	}
 
 	ch = gk20a_channel_from_id(g, chid);
 	if (ch == NULL) {
@@ -1868,7 +1871,7 @@ int gr_gp10b_handle_fecs_error(struct gk20a *g,
 {
 	u32 gr_fecs_intr = gk20a_readl(g, gr_fecs_host_int_status_r());
 	struct channel_gk20a *ch;
-	int chid = -1;
+	u32 chid = FIFO_INVAL_CHANNEL_ID;
 	int ret = 0;
 	struct tsg_gk20a *tsg;
 
@@ -1888,7 +1891,7 @@ int gr_gp10b_handle_fecs_error(struct gk20a *g,
 				gr_fecs_host_int_clear_ctxsw_intr1_clear_f());
 
 		ret = gr_gp10b_get_cilp_preempt_pending_chid(g, &chid);
-		if (ret != 0) {
+		if ((ret != 0) || (chid == FIFO_INVAL_CHANNEL_ID)) {
 			goto clean_up;
 		}
 
