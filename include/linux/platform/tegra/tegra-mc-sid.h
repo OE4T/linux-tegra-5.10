@@ -66,7 +66,11 @@ int tegra_mc_sid_probe(struct platform_device *pdev,
 			const struct tegra_mc_sid_soc_data *soc_data);
 int tegra_mc_sid_remove(struct platform_device *pdev);
 
+#ifdef CONFIG_NV_TEGRA_MC
 u32 tegra_mc_get_smmu_bypass_sid(void);
+#else
+static inline u32 tegra_mc_get_smmu_bypass_sid(void) { return 0x7f; }
+#endif
 const char *tegra_mc_get_sid_name(int sid);
 
 #endif
