@@ -23,6 +23,7 @@
 #include <nvgpu/ptimer.h>
 #include <nvgpu/string.h>
 #include <nvgpu/gr/global_ctx.h>
+#include <nvgpu/gr/config.h>
 
 #include "os_linux.h"
 #include "sysfs.h"
@@ -930,16 +931,17 @@ static ssize_t tpc_fs_mask_store(struct device *dev,
 	struct device_attribute *attr, const char *buf, size_t count)
 {
 	struct gk20a *g = get_gk20a(dev);
+	struct nvgpu_gr_config *config = g->gr.config;
 	unsigned long val = 0;
 
 	if (kstrtoul(buf, 10, &val) < 0)
 		return -EINVAL;
 
-	if (!g->gr.gpc_tpc_mask)
+	if (!config->gpc_tpc_mask)
 		return -ENODEV;
 
-	if (val && val != g->gr.gpc_tpc_mask[0] && g->ops.gr.set_gpc_tpc_mask) {
-		g->gr.gpc_tpc_mask[0] = val;
+	if (val && val != config->gpc_tpc_mask[0] && g->ops.gr.set_gpc_tpc_mask) {
+		config->gpc_tpc_mask[0] = val;
 		g->tpc_fs_mask_user = val;
 
 		g->ops.gr.set_gpc_tpc_mask(g, 0);
@@ -951,6 +953,7 @@ static ssize_t tpc_fs_mask_store(struct device *dev,
 			g->gr.ctx_vars.golden_image_initialized = false;
 		}
 		g->gr.ctx_vars.golden_image_size = 0;
+		nvgpu_gr_config_deinit(g, g->gr.config);
 		/* Cause next poweron to reinit just gr */
 		g->gr.sw_ready = false;
 	}
@@ -971,11 +974,13 @@ static ssize_t tpc_fs_mask_read(struct device *dev,
 	if (err)
 		return err;
 
-	for (gpc_index = 0; gpc_index < gr->gpc_count; gpc_index++) {
-		if (g->ops.gr.get_gpc_tpc_mask)
+	for (gpc_index = 0;
+	     gpc_index < nvgpu_gr_config_get_gpc_count(gr->config);
+	     gpc_index++) {
+		if (g->ops.gr.config.get_gpc_tpc_mask)
 			tpc_fs_mask |=
-				g->ops.gr.get_gpc_tpc_mask(g, gpc_index) <<
-				(gr->max_tpc_per_gpc_count * gpc_index);
+				g->ops.gr.config.get_gpc_tpc_mask(g, gr->config, gpc_index) <<
+				(nvgpu_gr_config_get_max_tpc_per_gpc_count(gr->config) * gpc_index);
 	}
 
 	gk20a_idle(g);

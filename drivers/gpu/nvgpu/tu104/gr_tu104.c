@@ -29,6 +29,7 @@
 #include <nvgpu/netlist.h>
 #include <nvgpu/gr/global_ctx.h>
 #include <nvgpu/gr/ctx.h>
+#include <nvgpu/gr/config.h>
 
 #include "gk20a/gr_gk20a.h"
 #include "gk20a/gr_pri_gk20a.h"
@@ -304,7 +305,8 @@ void gr_tu104_enable_gpc_exceptions(struct gk20a *g)
 			gr_gpcs_tpcs_tpccs_tpc_exception_en_sm_enabled_f());
 
 	tpc_mask =
-		gr_gpcs_gpccs_gpc_exception_en_tpc_f(BIT32(gr->max_tpc_per_gpc_count) - 1U);
+		gr_gpcs_gpccs_gpc_exception_en_tpc_f(
+			BIT32(nvgpu_gr_config_get_max_tpc_per_gpc_count(gr->config)) - 1U);
 
 	gk20a_writel(g, gr_gpcs_gpccs_gpc_exception_en_r(),
 		(tpc_mask | gr_gpcs_gpccs_gpc_exception_en_gcc_f(1U) |

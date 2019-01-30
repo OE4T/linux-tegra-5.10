@@ -21,6 +21,7 @@
  */
 
 #include <nvgpu/gk20a.h>
+#include <nvgpu/gr/config.h>
 
 static void nvgpu_ecc_stat_add(struct gk20a *g, struct nvgpu_ecc_stat *stat)
 {
@@ -44,16 +45,17 @@ int nvgpu_ecc_counter_init_per_tpc(struct gk20a *g,
 {
 	struct gr_gk20a *gr = &g->gr;
 	struct nvgpu_ecc_stat **stats;
+	u32 gpc_count = nvgpu_gr_config_get_gpc_count(gr->config);
 	u32 gpc, tpc;
 	int err = 0;
 
-	stats = nvgpu_kzalloc(g, sizeof(*stats) * gr->gpc_count);
+	stats = nvgpu_kzalloc(g, sizeof(*stats) * gpc_count);
 	if (stats == NULL) {
 		return -ENOMEM;
 	}
-	for (gpc = 0; gpc < gr->gpc_count; gpc++) {
-		stats[gpc] = nvgpu_kzalloc(g,
-				sizeof(*stats[gpc]) * gr->gpc_tpc_count[gpc]);
+	for (gpc = 0; gpc < gpc_count; gpc++) {
+		stats[gpc] = nvgpu_kzalloc(g, sizeof(*stats[gpc]) *
+				nvgpu_gr_config_get_gpc_tpc_count(gr->config, gpc));
 		if (stats[gpc] == NULL) {
 			err = -ENOMEM;
 			break;
@@ -69,8 +71,10 @@ int nvgpu_ecc_counter_init_per_tpc(struct gk20a *g,
 		return err;
 	}
 
-	for (gpc = 0; gpc < gr->gpc_count; gpc++) {
-		for (tpc = 0; tpc < gr->gpc_tpc_count[gpc]; tpc++) {
+	for (gpc = 0; gpc < gpc_count; gpc++) {
+		for (tpc = 0;
+		     tpc < nvgpu_gr_config_get_gpc_tpc_count(gr->config, gpc);
+		     tpc++) {
 			(void) snprintf(stats[gpc][tpc].name,
 					NVGPU_ECC_STAT_NAME_MAX_SIZE,
 					"gpc%d_tpc%d_%s", gpc, tpc, name);
@@ -87,13 +91,14 @@ int nvgpu_ecc_counter_init_per_gpc(struct gk20a *g,
 {
 	struct gr_gk20a *gr = &g->gr;
 	struct nvgpu_ecc_stat *stats;
+	u32 gpc_count = nvgpu_gr_config_get_gpc_count(gr->config);
 	u32 gpc;
 
-	stats = nvgpu_kzalloc(g, sizeof(*stats) * gr->gpc_count);
+	stats = nvgpu_kzalloc(g, sizeof(*stats) * gpc_count);
 	if (stats == NULL) {
 		return -ENOMEM;
 	}
-	for (gpc = 0; gpc < gr->gpc_count; gpc++) {
+	for (gpc = 0; gpc < gpc_count; gpc++) {
 		(void) snprintf(stats[gpc].name, NVGPU_ECC_STAT_NAME_MAX_SIZE,
 				"gpc%d_%s", gpc, name);
 		nvgpu_ecc_stat_add(g, &stats[gpc]);
@@ -189,9 +194,10 @@ void nvgpu_ecc_free(struct gk20a *g)
 {
 	struct nvgpu_ecc *ecc = &g->ecc;
 	struct gr_gk20a *gr = &g->gr;
+	u32 gpc_count = nvgpu_gr_config_get_gpc_count(gr->config);
 	u32 i;
 
-	for (i = 0; i < gr->gpc_count; i++) {
+	for (i = 0; i < gpc_count; i++) {
 		if (ecc->gr.sm_lrf_ecc_single_err_count != NULL) {
 			nvgpu_kfree(g, ecc->gr.sm_lrf_ecc_single_err_count[i]);
 		}

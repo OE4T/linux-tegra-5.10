@@ -25,6 +25,7 @@
 #include <nvgpu/dma.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/gr/ctx.h>
+#include <nvgpu/gr/config.h>
 
 #include "gk20a/gr_gk20a.h"
 #include "gm20b/gr_gm20b.h"
@@ -182,7 +183,7 @@ int gr_gp106_set_ctxsw_preemption_mode(struct gk20a *g,
 				   gr_gpc0_ppc0_cbm_beta_cb_size_v_default_v());
 		u32 attrib_cb_size = (betacb_size + g->gr.alpha_cb_size) *
 				  gr_gpc0_ppc0_cbm_beta_cb_size_v_granularity_v() *
-				  g->gr.max_tpc_count;
+				  nvgpu_gr_config_get_max_tpc_count(g->gr.config);
 		attrib_cb_size = ALIGN(attrib_cb_size, 128);
 
 		nvgpu_log_info(g, "gfxp context spill_size=%d", spill_size);

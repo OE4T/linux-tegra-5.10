@@ -27,6 +27,7 @@
 #include <nvgpu/enabled.h>
 #include <nvgpu/io.h>
 #include <nvgpu/utils.h>
+#include <nvgpu/gr/config.h>
 #include <nvgpu/gk20a.h>
 
 #include <nvgpu/hw/gp10b/hw_pri_ringmaster_gp10b.h>
@@ -157,7 +158,7 @@ void gp10b_priv_ring_isr(struct gk20a *g)
 
 	if (status1 != 0U) {
 		gpc_stride = nvgpu_get_litter_value(g, GPU_LIT_GPC_PRIV_STRIDE);
-		for (gpc = 0; gpc < g->gr.gpc_count; gpc++) {
+		for (gpc = 0; gpc < nvgpu_gr_config_get_gpc_count(g->gr.config); gpc++) {
 			offset = gpc * gpc_stride;
 			if ((status1 & BIT32(gpc)) != 0U) {
 				error_info = gk20a_readl(g,

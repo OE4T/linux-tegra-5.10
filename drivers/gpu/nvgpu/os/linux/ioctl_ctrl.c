@@ -32,6 +32,7 @@
 #include <nvgpu/list.h>
 #include <nvgpu/clk_arb.h>
 #include <nvgpu/gk20a.h>
+#include <nvgpu/gr/config.h>
 #include <nvgpu/channel.h>
 #include <nvgpu/pmu/pmgr.h>
 
@@ -281,10 +282,10 @@ gk20a_ctrl_ioctl_gpu_characteristics(
 	gpu.L2_cache_size = g->ops.ltc.determine_L2_size_bytes(g);
 	gpu.on_board_video_memory_size = 0; /* integrated GPU */
 
-	gpu.num_gpc = g->gr.gpc_count;
-	gpu.max_gpc_count = g->gr.max_gpc_count;
+	gpu.num_gpc = nvgpu_gr_config_get_gpc_count(g->gr.config);
+	gpu.max_gpc_count = nvgpu_gr_config_get_max_gpc_count(g->gr.config);
 
-	gpu.num_tpc_per_gpc = g->gr.max_tpc_per_gpc_count;
+	gpu.num_tpc_per_gpc = nvgpu_gr_config_get_max_tpc_per_gpc_count(g->gr.config);
 
 	gpu.bus_type = NVGPU_GPU_BUS_TYPE_AXI; /* always AXI for now */
 
@@ -293,7 +294,7 @@ gk20a_ctrl_ioctl_gpu_characteristics(
 	if (g->ops.gr.get_gpc_mask) {
 		gpu.gpc_mask = g->ops.gr.get_gpc_mask(g);
 	} else {
-		gpu.gpc_mask = BIT32(g->gr.gpc_count) - 1;
+		gpu.gpc_mask = BIT32(gpu.num_gpc) - 1;
 	}
 
 	gpu.flags = nvgpu_ctrl_ioctl_gpu_characteristics_flags(g);
@@ -553,7 +554,7 @@ static int gk20a_ctrl_get_tpc_masks(struct gk20a *g,
 {
 	struct gr_gk20a *gr = &g->gr;
 	int err = 0;
-	const u32 gpc_tpc_mask_size = sizeof(u32) * gr->max_gpc_count;
+	const u32 gpc_tpc_mask_size = sizeof(u32) * gr->config->max_gpc_count;
 
 	if (args->mask_buf_size > 0) {
 		size_t write_size = gpc_tpc_mask_size;
@@ -564,7 +565,7 @@ static int gk20a_ctrl_get_tpc_masks(struct gk20a *g,
 
 		err = copy_to_user((void __user *)(uintptr_t)
 				   args->mask_buf_addr,
-				   gr->gpc_tpc_mask, write_size);
+				   gr->config->gpc_tpc_mask, write_size);
 	}
 
 	if (err == 0)
@@ -687,7 +688,8 @@ static int nvgpu_gpu_ioctl_wait_for_pause(struct gk20a *g,
 	struct nvgpu_warpstate *w_state = NULL;
 	u32 sm_count, ioctl_size, size, sm_id;
 
-	sm_count = g->gr.gpc_count * g->gr.tpc_count;
+	sm_count = nvgpu_gr_config_get_gpc_count(g->gr.config) *
+		   nvgpu_gr_config_get_tpc_count(g->gr.config);
 
 	ioctl_size = sm_count * sizeof(struct warpstate);
 	ioctl_w_state = nvgpu_kzalloc(g, ioctl_size);

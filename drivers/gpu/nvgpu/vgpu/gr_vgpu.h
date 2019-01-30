@@ -43,7 +43,8 @@ int vgpu_gr_bind_ctxsw_zcull(struct gk20a *g, struct gr_gk20a *gr,
 				u32 mode);
 int vgpu_gr_get_zcull_info(struct gk20a *g, struct gr_gk20a *gr,
 				struct gr_zcull_info *zcull_params);
-u32 vgpu_gr_get_gpc_tpc_mask(struct gk20a *g, u32 gpc_index);
+u32 vgpu_gr_get_gpc_tpc_mask(struct gk20a *g, struct nvgpu_gr_config *config,
+	u32 gpc_index);
 u32 vgpu_gr_get_max_fbps_count(struct gk20a *g);
 u32 vgpu_gr_get_fbp_en_mask(struct gk20a *g);
 u32 vgpu_gr_get_max_ltc_per_fbp(struct gk20a *g);

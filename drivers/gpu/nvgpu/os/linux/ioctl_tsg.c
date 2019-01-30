@@ -26,6 +26,7 @@
 #include <nvgpu/log.h>
 #include <nvgpu/os_sched.h>
 #include <nvgpu/gk20a.h>
+#include <nvgpu/gr/config.h>
 #include <nvgpu/channel.h>
 #include <nvgpu/tsg.h>
 
@@ -84,8 +85,9 @@ static int gk20a_tsg_ioctl_bind_channel_ex(struct gk20a *g,
 	}
 
 	if (arg->tpc_pg_enabled && (!tsg->tpc_num_initialized)) {
-		if ((arg->num_active_tpcs > gr->max_tpc_count) ||
-				!(arg->num_active_tpcs)) {
+		if ((arg->num_active_tpcs >
+				nvgpu_gr_config_get_max_tpc_count(gr->config)) ||
+		    !(arg->num_active_tpcs)) {
 			nvgpu_err(g, "Invalid num of active TPCs");
 			err = -EINVAL;
 			goto ch_put;

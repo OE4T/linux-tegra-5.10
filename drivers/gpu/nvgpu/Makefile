@@ -88,6 +88,8 @@ nvgpu-y += common/bus/bus_gk20a.o \
 	common/gr/global_ctx.o \
 	common/gr/ctx.o \
 	common/gr/subctx.o \
+	common/gr/config/gr_config.o \
+	common/gr/config/gr_config_gm20b.o \
 	common/netlist/netlist.o \
 	common/netlist/netlist_sim.o \
 	common/netlist/netlist_gm20b.o \

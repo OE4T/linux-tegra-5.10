@@ -30,6 +30,7 @@
 #include "common/netlist/netlist_gp10b.h"
 #include "common/gr/ctxsw_prog/ctxsw_prog_gm20b.h"
 #include "common/gr/ctxsw_prog/ctxsw_prog_gp10b.h"
+#include "common/gr/config/gr_config_gm20b.h"
 #include "common/therm/therm_gm20b.h"
 #include "common/therm/therm_gp10b.h"
 #include "common/ltc/ltc_gm20b.h"
@@ -128,7 +129,6 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 		.falcon_load_ucode = NULL,
 		.load_ctxsw_ucode = NULL,
 		.set_gpc_tpc_mask = NULL,
-		.get_gpc_tpc_mask = vgpu_gr_get_gpc_tpc_mask,
 		.alloc_obj_ctx = vgpu_gr_alloc_obj_ctx,
 		.bind_ctxsw_zcull = vgpu_gr_bind_ctxsw_zcull,
 		.get_zcull_info = vgpu_gr_get_zcull_info,
@@ -304,6 +304,9 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 			.set_full_preemption_ptr =
 				gp10b_ctxsw_prog_set_full_preemption_ptr,
 			.dump_ctxsw_stats = gp10b_ctxsw_prog_dump_ctxsw_stats,
+		},
+		.config = {
+			.get_gpc_tpc_mask = vgpu_gr_get_gpc_tpc_mask,
 		}
 	},
 	.fb = {
@@ -659,6 +662,7 @@ int vgpu_gp10b_init_hal(struct gk20a *g)
 	gops->ce2 = vgpu_gp10b_ops.ce2;
 	gops->gr = vgpu_gp10b_ops.gr;
 	gops->gr.ctxsw_prog = vgpu_gp10b_ops.gr.ctxsw_prog;
+	gops->gr.config = vgpu_gp10b_ops.gr.config;
 	gops->fb = vgpu_gp10b_ops.fb;
 	gops->clock_gating = vgpu_gp10b_ops.clock_gating;
 	gops->fifo = vgpu_gp10b_ops.fifo;

@@ -28,6 +28,7 @@
 #include <nvgpu/io.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/gr/ctx.h>
+#include <nvgpu/gr/config.h>
 
 #include "gk20a/gr_gk20a.h"
 #include "gk20a/gr_pri_gk20a.h"
@@ -81,7 +82,9 @@ static int gr_gv100_scg_estimate_perf(struct gk20a *g,
 	}
 
 	/* Calculate pix-perf-reduction-rate per GPC and find bottleneck TPC */
-	for (gpc_id = 0; gpc_id < gr->gpc_count; gpc_id++) {
+	for (gpc_id = 0;
+	     gpc_id < nvgpu_gr_config_get_gpc_count(gr->config);
+	     gpc_id++) {
 		num_tpc_mask = gpc_tpc_mask[gpc_id];
 
 		if ((gpc_id == disable_gpc_id) &&
@@ -110,16 +113,19 @@ static int gr_gv100_scg_estimate_perf(struct gk20a *g,
 		 * ratio represents relative throughput of the GPC
 		 */
 		scg_gpc_pix_perf = scale_factor * num_tpc_gpc[gpc_id] /
-					gr->gpc_tpc_count[gpc_id];
+				nvgpu_gr_config_get_gpc_tpc_count(gr->config, gpc_id);
 
 		if (min_scg_gpc_pix_perf > scg_gpc_pix_perf) {
 			min_scg_gpc_pix_perf = scg_gpc_pix_perf;
 		}
 
 		/* Calculate # of surviving PES */
-		for (pes_id = 0; pes_id < gr->gpc_ppc_count[gpc_id]; pes_id++) {
+		for (pes_id = 0;
+		     pes_id < nvgpu_gr_config_get_gpc_ppc_count(gr->config, gpc_id);
+		     pes_id++) {
 			/* Count the number of TPC on the set */
-			num_tpc_mask = gr->pes_tpc_mask[pes_id][gpc_id] &
+			num_tpc_mask = nvgpu_gr_config_get_pes_tpc_mask(
+						gr->config, gpc_id, pes_id) &
 					gpc_tpc_mask[gpc_id];
 
 			if ((gpc_id == disable_gpc_id) &&
@@ -149,10 +155,14 @@ static int gr_gv100_scg_estimate_perf(struct gk20a *g,
 	}
 
 	/* Now calculate perf */
-	scg_world_perf = (scale_factor * scg_num_pes) / gr->ppc_count;
+	scg_world_perf = (scale_factor * scg_num_pes) /
+		nvgpu_gr_config_get_ppc_count(gr->config);
 	deviation = 0;
-	average_tpcs = scale_factor * average_tpcs / gr->gpc_count;
-	for (gpc_id =0; gpc_id < gr->gpc_count; gpc_id++) {
+	average_tpcs = scale_factor * average_tpcs /
+			nvgpu_gr_config_get_gpc_count(gr->config);
+	for (gpc_id =0;
+	     gpc_id < nvgpu_gr_config_get_gpc_count(gr->config);
+	     gpc_id++) {
 		diff = average_tpcs - scale_factor * num_tpc_gpc[gpc_id];
 		if (diff < 0) {
 			diff = -diff;
@@ -160,7 +170,7 @@ static int gr_gv100_scg_estimate_perf(struct gk20a *g,
 		deviation += U32(diff);
 	}
 
-	deviation /= gr->gpc_count;
+	deviation /= nvgpu_gr_config_get_gpc_count(gr->config);
 
 	norm_tpc_deviation = deviation / max_tpc_gpc;
 
@@ -216,14 +226,17 @@ int gr_gv100_init_sm_id_table(struct gk20a *g)
 	u32 gpc, sm, pes, gtpc;
 	u32 sm_id = 0;
 	u32 sm_per_tpc = nvgpu_get_litter_value(g, GPU_LIT_NUM_SM_PER_TPC);
-	u32 num_sm = sm_per_tpc * g->gr.tpc_count;
+	struct gr_gk20a *gr = &g->gr;
+	u32 num_sm = sm_per_tpc * nvgpu_gr_config_get_tpc_count(gr->config);
 	int perf, maxperf;
 	int err = 0;
 	unsigned long *gpc_tpc_mask;
 	u32 *tpc_table, *gpc_table;
 
-	gpc_table = nvgpu_kzalloc(g, g->gr.tpc_count * sizeof(u32));
-	tpc_table = nvgpu_kzalloc(g, g->gr.tpc_count * sizeof(u32));
+	gpc_table = nvgpu_kzalloc(g, nvgpu_gr_config_get_tpc_count(gr->config) *
+					sizeof(u32));
+	tpc_table = nvgpu_kzalloc(g, nvgpu_gr_config_get_tpc_count(gr->config) *
+					sizeof(u32));
 	gpc_tpc_mask = nvgpu_kzalloc(g, sizeof(unsigned long) *
 			nvgpu_get_litter_value(g, GPU_LIT_NUM_GPCS));
 
@@ -235,17 +248,20 @@ int gr_gv100_init_sm_id_table(struct gk20a *g)
 		goto exit_build_table;
 	}
 
-	for (gpc = 0; gpc < g->gr.gpc_count; gpc++) {
-		for (pes = 0; pes < g->gr.gpc_ppc_count[gpc]; pes++) {
-			gpc_tpc_mask[gpc] |= g->gr.pes_tpc_mask[pes][gpc];
+	for (gpc = 0; gpc < nvgpu_gr_config_get_gpc_count(gr->config); gpc++) {
+		for (pes = 0;
+		     pes < nvgpu_gr_config_get_gpc_ppc_count(g->gr.config, gpc);
+		     pes++) {
+			gpc_tpc_mask[gpc] |= nvgpu_gr_config_get_pes_tpc_mask(
+						g->gr.config, gpc, pes);
 		}
 	}
 
-	for (gtpc = 0; gtpc < g->gr.tpc_count; gtpc++) {
+	for (gtpc = 0; gtpc < nvgpu_gr_config_get_tpc_count(gr->config); gtpc++) {
 		maxperf = -1;
-		for (gpc = 0; gpc < g->gr.gpc_count; gpc++) {
+		for (gpc = 0; gpc < nvgpu_gr_config_get_gpc_count(gr->config); gpc++) {
 			for_each_set_bit(tpc, &gpc_tpc_mask[gpc],
-						g->gr.gpc_tpc_count[gpc]) {
+					nvgpu_gr_config_get_gpc_tpc_count(g->gr.config, gpc)) {
 				perf = -1;
 				err = gr_gv100_scg_estimate_perf(g,
 						gpc_tpc_mask, gpc, tpc, &perf);
@@ -308,13 +324,13 @@ u32 gr_gv100_get_patch_slots(struct gk20a *g)
 	 * Update PE table contents
 	 * for PE table, each patch buffer update writes 32 TPCs
 	 */
-	size += DIV_ROUND_UP(gr->tpc_count, 32U);
+	size += DIV_ROUND_UP(nvgpu_gr_config_get_tpc_count(gr->config), 32U);
 
 	/*
 	 * Update the PL table contents
 	 * For PL table, each patch buffer update configures 4 TPCs
 	 */
-	size += DIV_ROUND_UP(gr->tpc_count, 4U);
+	size += DIV_ROUND_UP(nvgpu_gr_config_get_tpc_count(gr->config), 4U);
 
 	/*
 	 * We need this for all subcontexts
@@ -515,5 +531,6 @@ void gr_gv100_init_hwpm_pmm_register(struct gk20a *g)
 	g->ops.gr.set_pmm_register(g, perf_pmmfbp_engine_sel_r(0),
 		0xFFFFFFFFU, g->gr.num_fbps, num_fbp_perfmon);
 	g->ops.gr.set_pmm_register(g, perf_pmmgpc_engine_sel_r(0),
-		0xFFFFFFFFU, g->gr.gpc_count, num_gpc_perfmon);
+		0xFFFFFFFFU, nvgpu_gr_config_get_gpc_count(g->gr.config),
+		num_gpc_perfmon);
 }

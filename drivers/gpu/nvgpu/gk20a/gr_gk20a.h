@@ -36,13 +36,10 @@
 #define GR_IDLE_CHECK_MAX		200U /* usec */
 #define GR_FECS_POLL_INTERVAL		5U /* usec */
 
-#define INVALID_SCREEN_TILE_ROW_OFFSET	0xFFFFFFFFU
 #define INVALID_MAX_WAYS		0xFFFFFFFFU
 
 #define GK20A_FECS_UCODE_IMAGE	"fecs.bin"
 #define GK20A_GPCCS_UCODE_IMAGE	"gpccs.bin"
-
-#define GK20A_GR_MAX_PES_PER_GPC 3U
 
 #define GK20A_TIMEOUT_FPGA		100000U /* 100 sec */
 
@@ -258,6 +255,7 @@ struct gr_gk20a {
 	bool initialized;
 
 	u32 num_fbps;
+	u32 max_fbps_count;
 
 	u32 max_comptag_lines;
 	u32 compbit_backing_size;
@@ -265,26 +263,6 @@ struct gr_gk20a {
 	u32 slices_per_ltc;
 	u32 cacheline_size;
 	u32 gobs_per_comptagline_per_slice;
-
-	u32 max_gpc_count;
-	u32 max_fbps_count;
-	u32 max_tpc_per_gpc_count;
-	u32 max_zcull_per_gpc_count;
-	u32 max_tpc_count;
-
-	u32 sys_count;
-	u32 gpc_count;
-	u32 pe_count_per_gpc;
-	u32 ppc_count;
-	u32 *gpc_ppc_count;
-	u32 tpc_count;
-	u32 *gpc_tpc_count;
-	u32 *gpc_tpc_mask;
-	u32 zcb_count;
-	u32 *gpc_zcb_count;
-	u32 *pes_tpc_count[GK20A_GR_MAX_PES_PER_GPC];
-	u32 *pes_tpc_mask[GK20A_GR_MAX_PES_PER_GPC];
-	u32 *gpc_skip_mask;
 
 	u32 bundle_cb_default_size;
 	u32 min_gpm_fifo_depth;
@@ -312,9 +290,7 @@ struct gr_gk20a {
 
 	struct nvgpu_gr_ctx_desc *gr_ctx_desc;
 
-	u8 *map_tiles;
-	u32 map_tile_count;
-	u32 map_row_offset;
+	struct nvgpu_gr_config *config;
 
 	u32 max_comptag_mem; /* max memory size (MB) for comptag */
 	struct compbit_store_desc compbit_store;
@@ -565,7 +541,6 @@ void gk20a_gr_suspend_single_sm(struct gk20a *g,
 		u32 global_esr_mask, bool check_errors);
 void gk20a_gr_suspend_all_sms(struct gk20a *g,
 		u32 global_esr_mask, bool check_errors);
-u32 gr_gk20a_get_tpc_count(struct gr_gk20a *gr, u32 gpc_index);
 int gr_gk20a_set_sm_debug_mode(struct gk20a *g,
 	struct channel_gk20a *ch, u64 sms, bool enable);
 bool gk20a_is_channel_ctx_resident(struct channel_gk20a *ch);

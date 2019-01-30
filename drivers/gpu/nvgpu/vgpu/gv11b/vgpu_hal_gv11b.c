@@ -143,7 +143,6 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 		.falcon_load_ucode = NULL,
 		.load_ctxsw_ucode = NULL,
 		.set_gpc_tpc_mask = NULL,
-		.get_gpc_tpc_mask = vgpu_gr_get_gpc_tpc_mask,
 		.alloc_obj_ctx = vgpu_gr_alloc_obj_ctx,
 		.bind_ctxsw_zcull = vgpu_gr_bind_ctxsw_zcull,
 		.get_zcull_info = vgpu_gr_get_zcull_info,
@@ -351,6 +350,9 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 			.set_type_per_veid_header =
 				gv11b_ctxsw_prog_set_type_per_veid_header,
 			.dump_ctxsw_stats = gp10b_ctxsw_prog_dump_ctxsw_stats,
+		},
+		.config = {
+			.get_gpc_tpc_mask = vgpu_gr_get_gpc_tpc_mask,
 		}
 	},
 	.fb = {
@@ -736,6 +738,7 @@ int vgpu_gv11b_init_hal(struct gk20a *g)
 	gops->ce2 = vgpu_gv11b_ops.ce2;
 	gops->gr = vgpu_gv11b_ops.gr;
 	gops->gr.ctxsw_prog = vgpu_gv11b_ops.gr.ctxsw_prog;
+	gops->gr.config = vgpu_gv11b_ops.gr.config;
 	gops->fb = vgpu_gv11b_ops.fb;
 	gops->clock_gating = vgpu_gv11b_ops.clock_gating;
 	gops->fifo = vgpu_gv11b_ops.fifo;

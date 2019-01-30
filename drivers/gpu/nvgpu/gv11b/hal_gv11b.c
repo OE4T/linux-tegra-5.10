@@ -39,6 +39,7 @@
 #include "common/gr/ctxsw_prog/ctxsw_prog_gm20b.h"
 #include "common/gr/ctxsw_prog/ctxsw_prog_gp10b.h"
 #include "common/gr/ctxsw_prog/ctxsw_prog_gv11b.h"
+#include "common/gr/config/gr_config_gm20b.h"
 #include "common/therm/therm_gm20b.h"
 #include "common/therm/therm_gp10b.h"
 #include "common/therm/therm_gv11b.h"
@@ -314,7 +315,6 @@ static const struct gpu_ops gv11b_ops = {
 		.falcon_load_ucode = gr_gm20b_load_ctxsw_ucode_segments,
 		.load_ctxsw_ucode = gr_gk20a_load_ctxsw_ucode,
 		.set_gpc_tpc_mask = gr_gv11b_set_gpc_tpc_mask,
-		.get_gpc_tpc_mask = gr_gm20b_get_gpc_tpc_mask,
 		.alloc_obj_ctx = gk20a_alloc_obj_ctx,
 		.bind_ctxsw_zcull = gr_gk20a_bind_ctxsw_zcull,
 		.get_zcull_info = gr_gk20a_get_zcull_info,
@@ -544,6 +544,16 @@ static const struct gpu_ops gv11b_ops = {
 			.set_type_per_veid_header =
 				gv11b_ctxsw_prog_set_type_per_veid_header,
 			.dump_ctxsw_stats = gp10b_ctxsw_prog_dump_ctxsw_stats,
+		},
+		.config = {
+			.get_gpc_tpc_mask = gm20b_gr_config_get_gpc_tpc_mask,
+			.get_tpc_count_in_gpc =
+				gm20b_gr_config_get_tpc_count_in_gpc,
+			.get_zcull_count_in_gpc =
+				gm20b_gr_config_get_zcull_count_in_gpc,
+			.get_pes_tpc_mask = gm20b_gr_config_get_pes_tpc_mask,
+			.get_pd_dist_skip_table_size =
+				gm20b_gr_config_get_pd_dist_skip_table_size,
 		}
 	},
 	.fb = {
@@ -1006,6 +1016,7 @@ int gv11b_init_hal(struct gk20a *g)
 	gops->ce2 = gv11b_ops.ce2;
 	gops->gr = gv11b_ops.gr;
 	gops->gr.ctxsw_prog = gv11b_ops.gr.ctxsw_prog;
+	gops->gr.config = gv11b_ops.gr.config;
 	gops->fb = gv11b_ops.fb;
 	gops->clock_gating = gv11b_ops.clock_gating;
 	gops->fifo = gv11b_ops.fifo;
