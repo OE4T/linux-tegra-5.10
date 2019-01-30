@@ -23,6 +23,11 @@
 
 #include <linux/version.h>
 
+#ifdef CONFIG_TEGRA_GRHOST_LEGACY_PD
 int nvhost_domain_init(struct of_device_id *matches);
+#else
+static inline int nvhost_domain_init(struct of_device_id *matches)
+{ return 0; }
+#endif
 
 #endif

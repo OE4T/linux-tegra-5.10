@@ -50,4 +50,12 @@ config TEGRA_NVDLA_TRACE_PRINTK
 	bool "Enable trace_printk debugging in NVDLA driver"
 	depends on FTRACE_PRINTK && TEGRA_GRHOST_NVDLA
 
+config TEGRA_GRHOST_LEGACY_PD
+	bool "Tegra legacy power domain API support"
+	depends on TEGRA_GRHOST
+	default TEGRA_POWERGATE
+	help
+	  Enables support for Tegra legacy power domain API
+	  Say Y if using kernel version 4.9 or earlier
+
 endif
