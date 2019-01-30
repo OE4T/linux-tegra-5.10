@@ -40,28 +40,24 @@ int nvgpu_cond_init(struct nvgpu_cond *cond)
 	return ret;
 }
 
-int nvgpu_cond_signal(struct nvgpu_cond *cond)
+void nvgpu_cond_signal(struct nvgpu_cond *cond)
 {
-	int ret;
 	if (cond == NULL || !cond->initialized) {
 		BUG();
 	}
 	nvgpu_mutex_acquire(&cond->mutex);
-	ret = pthread_cond_signal(&cond->cond);
+	(void) pthread_cond_signal(&cond->cond);
 	nvgpu_mutex_release(&cond->mutex);
-	return ret;
 }
 
-int nvgpu_cond_signal_interruptible(struct nvgpu_cond *cond)
+void nvgpu_cond_signal_interruptible(struct nvgpu_cond *cond)
 {
-	int ret;
 	if (cond == NULL || !cond->initialized) {
 		BUG();
 	}
 	nvgpu_mutex_acquire(&cond->mutex);
-	ret = pthread_cond_signal(&cond->cond);
+	(void) pthread_cond_signal(&cond->cond);
 	nvgpu_mutex_release(&cond->mutex);
-	return ret;
 }
 
 int nvgpu_cond_broadcast(struct nvgpu_cond *cond)

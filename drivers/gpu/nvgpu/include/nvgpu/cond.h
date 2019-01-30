@@ -57,7 +57,7 @@ int nvgpu_cond_init(struct nvgpu_cond *cond);
  *
  * The waiter is using an uninterruptible wait.
  */
-int nvgpu_cond_signal(struct nvgpu_cond *cond);
+void nvgpu_cond_signal(struct nvgpu_cond *cond);
 
 /**
  * nvgpu_cond_signal_interruptible - Signal a condition variable
@@ -69,7 +69,7 @@ int nvgpu_cond_signal(struct nvgpu_cond *cond);
  *
  * The waiter is using an interruptible wait.
  */
-int nvgpu_cond_signal_interruptible(struct nvgpu_cond *cond);
+void nvgpu_cond_signal_interruptible(struct nvgpu_cond *cond);
 
 /**
  * nvgpu_cond_broadcast - Signal all waiters of a condition variable

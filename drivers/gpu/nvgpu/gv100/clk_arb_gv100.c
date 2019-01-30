@@ -651,7 +651,7 @@ void gv100_clk_arb_run_arbiter_cb(struct nvgpu_clk_arb *arb)
 	/* VF Update complete */
 	nvgpu_clk_arb_set_global_alarm(g, EVENT(VF_UPDATE));
 
-	(void)nvgpu_cond_signal_interruptible(&arb->request_wq);
+	nvgpu_cond_signal_interruptible(&arb->request_wq);
 #ifdef CONFIG_DEBUG_FS
 	g->ops.ptimer.read_ptimer(g, &t1);
 

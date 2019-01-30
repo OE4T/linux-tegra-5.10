@@ -148,7 +148,7 @@ static void vfe_thread_stop_cb(void *data)
 {
 	struct nvgpu_cond *cond = (struct nvgpu_cond *)data;
 
-	(void)nvgpu_cond_signal(cond);
+	nvgpu_cond_signal(cond);
 }
 
 void perf_pmu_free_pmupstate(struct gk20a *g)
