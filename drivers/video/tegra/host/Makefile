@@ -5,7 +5,7 @@ ccflags-y += -Idrivers/video/tegra/host
 ccflags-y += -Idrivers/devfreq
 ccflags-y += -Wno-multichar
 
-subdir-ccflags-y := -Werror
+subdir-ccflags-y := -Werror -Wno-vla
 
 nvhost-objs = \
 	nvhost_acm.o \
