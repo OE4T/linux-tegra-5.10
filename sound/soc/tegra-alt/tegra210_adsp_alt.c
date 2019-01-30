@@ -408,9 +408,9 @@ static int tegra210_adsp_init(struct tegra210_adsp *adsp)
 		adsp_app_desc[i].handle = nvadsp_app_load(
 				adsp_app_desc[i].name,
 				adsp_app_desc[i].fw_name);
-		if (!adsp_app_desc[i].handle) {
-			dev_err(adsp->dev, "Failed to load app %s",
-						adsp_app_desc[i].name);
+		if (adsp_app_desc[i].handle) {
+			dev_info(adsp->dev, "Loaded app %s",
+				 adsp_app_desc[i].name);
 		}
 	}
 
