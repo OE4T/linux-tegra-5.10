@@ -18,7 +18,6 @@
 #include <linux/slab.h>
 #include <linux/io.h>
 
-#include <linux/tegra-powergate.h>
 #include <soc/tegra/chip-id.h>
 
 #include <linux/platform/tegra/mc.h>

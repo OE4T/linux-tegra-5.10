@@ -32,7 +32,6 @@
 #include <linux/reset.h>
 #include <soc/tegra/chip-id.h>
 #include <trace/events/nvhost.h>
-#include <linux/tegra_pm_domains.h>
 #include <uapi/linux/nvhost_ioctl.h>
 #include <linux/version.h>
 #include <linux/dma-mapping.h>

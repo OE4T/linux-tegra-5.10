@@ -18,7 +18,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include <linux/slab.h>
-#include <linux/tegra-powergate.h>
 #include <soc/tegra/fuse.h>
 
 #include <linux/platform/tegra/mc.h>
