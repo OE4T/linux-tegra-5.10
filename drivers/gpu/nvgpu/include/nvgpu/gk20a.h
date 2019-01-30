@@ -1169,7 +1169,6 @@ struct gpu_ops {
 	struct {
 		bool (*is_pmu_supported)(struct gk20a *g);
 		u32 (*falcon_base_addr)(void);
-		int (*prepare_ucode)(struct gk20a *g);
 		int (*pmu_setup_hw_and_bootstrap)(struct gk20a *g);
 		int (*pmu_nsbootstrap)(struct nvgpu_pmu *pmu);
 		int (*pmu_init_perfmon)(struct nvgpu_pmu *pmu);

@@ -310,19 +310,15 @@ int gk20a_finalize_poweron(struct gk20a *g)
 		goto done;
 	}
 
-	if (g->ops.pmu.is_pmu_supported(g)) {
-		if (g->ops.pmu.prepare_ucode != NULL) {
-			err = g->ops.pmu.prepare_ucode(g);
-		}
+	if (g->acr.bootstrap_hs_acr != NULL &&
+		nvgpu_is_enabled(g, NVGPU_SEC_PRIVSECURITY)) {
+		err = g->acr.prepare_ucode_blob(g);
 		if (err != 0) {
-			nvgpu_err(g, "failed to init pmu ucode");
+			nvgpu_err(g, "ACR ucode blob prepare failed");
 			nvgpu_mutex_release(&g->tpc_pg_lock);
 			goto done;
 		}
-	}
 
-	if (g->acr.bootstrap_hs_acr != NULL &&
-		nvgpu_is_enabled(g, NVGPU_SEC_PRIVSECURITY)) {
 		err = g->acr.bootstrap_hs_acr(g, &g->acr, &g->acr.acr);
 		if (err != 0) {
 			nvgpu_err(g, "ACR bootstrap failed");

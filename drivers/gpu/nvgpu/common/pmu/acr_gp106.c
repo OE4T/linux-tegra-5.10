@@ -1311,6 +1311,7 @@ void nvgpu_gp106_acr_sw_init(struct gk20a *g, struct nvgpu_acr *acr)
 
 	nvgpu_gp106_acr_default_sw_init(g, &acr->acr);
 
+	acr->prepare_ucode_blob = gp106_prepare_ucode_blob;
 	acr->get_wpr_info = gp106_wpr_info;
 	acr->alloc_blob_space = gp106_alloc_blob_space;
 	acr->bootstrap_hs_acr = gm20b_bootstrap_hs_acr;

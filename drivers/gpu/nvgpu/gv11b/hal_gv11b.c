@@ -1067,7 +1067,6 @@ int gv11b_init_hal(struct gk20a *g)
 	/* priv security dependent ops */
 	if (nvgpu_is_enabled(g, NVGPU_SEC_PRIVSECURITY)) {
 		/* Add in ops from gm20b acr */
-		gops->pmu.prepare_ucode = gp106_prepare_ucode_blob,
 		gops->pmu.pmu_populate_loader_cfg =
 			gp106_pmu_populate_loader_cfg,
 		gops->pmu.flcn_populate_bl_dmem_desc =
@@ -1085,7 +1084,6 @@ int gv11b_init_hal(struct gk20a *g)
 		gops->gr.load_ctxsw_ucode = gr_gm20b_load_ctxsw_ucode;
 	} else {
 		/* Inherit from gk20a */
-		gops->pmu.prepare_ucode = nvgpu_pmu_prepare_ns_ucode_blob,
 		gops->pmu.pmu_setup_hw_and_bootstrap =
 			gm20b_ns_pmu_setup_hw_and_bootstrap;
 

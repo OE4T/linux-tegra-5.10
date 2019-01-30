@@ -1379,6 +1379,7 @@ void nvgpu_gm20b_acr_sw_init(struct gk20a *g, struct nvgpu_acr *acr)
 
 	gm20b_acr_default_sw_init(g, &acr->acr);
 
+	acr->prepare_ucode_blob = prepare_ucode_blob;
 	acr->get_wpr_info = gm20b_wpr_info;
 	acr->alloc_blob_space = gm20b_alloc_blob_space;
 	acr->bootstrap_hs_acr = gm20b_bootstrap_hs_acr;

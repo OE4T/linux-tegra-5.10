@@ -347,6 +347,9 @@ int nvgpu_init_pmu_support(struct gk20a *g)
 				g->ops.pmu.secured_pmu_start(g);
 			}
 		} else {
+			/* prepare blob for non-secure PMU boot */
+			err = nvgpu_pmu_prepare_ns_ucode_blob(g);
+
 			/* Do non-secure PMU boot */
 			err = g->ops.pmu.pmu_setup_hw_and_bootstrap(g);
 			if (err != 0) {

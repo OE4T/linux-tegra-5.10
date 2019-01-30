@@ -145,6 +145,7 @@ void nvgpu_tu104_acr_sw_init(struct gk20a *g, struct nvgpu_acr *acr)
 	/* Inherit settings from older chip */
 	nvgpu_gp106_acr_sw_init(g, acr);
 
+	acr->prepare_ucode_blob = gp106_prepare_ucode_blob;
 	acr->bootstrap_owner = FALCON_ID_GSPLITE;
 	acr->max_supported_lsfm = TU104_MAX_SUPPORTED_LSFM;
 	acr->bootstrap_hs_acr = tu104_bootstrap_hs_acr;

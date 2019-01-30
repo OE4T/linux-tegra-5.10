@@ -870,7 +870,6 @@ static const struct gpu_ops gv100_ops = {
 		.load_lsfalcon_ucode = gv100_load_falcon_ucode,
 		.is_lazy_bootstrap = gp106_is_lazy_bootstrap,
 		.is_priv_load = gp106_is_priv_load,
-		.prepare_ucode = gp106_prepare_ucode_blob,
 		.pmu_populate_loader_cfg = gp106_pmu_populate_loader_cfg,
 		.flcn_populate_bl_dmem_desc = gp106_flcn_populate_bl_dmem_desc,
 		.pmu_queue_tail = gk20a_pmu_queue_tail,

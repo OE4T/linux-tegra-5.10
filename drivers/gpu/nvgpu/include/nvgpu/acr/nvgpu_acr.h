@@ -168,7 +168,7 @@ struct nvgpu_acr {
 
 	u32 pmu_args;
 
-	int (*prepare_ucode_blob)(struct gk20a *g, struct nvgpu_acr *acr);
+	int (*prepare_ucode_blob)(struct gk20a *g);
 	void (*get_wpr_info)(struct gk20a *g, struct wpr_carveout_info *inf);
 	int (*alloc_blob_space)(struct gk20a *g, size_t size,
 		struct nvgpu_mem *mem);

@@ -935,7 +935,6 @@ int gp10b_init_hal(struct gk20a *g)
 	if (nvgpu_is_enabled(g, NVGPU_SEC_PRIVSECURITY)) {
 		/* Add in ops from gm20b acr */
 		gops->pmu.is_pmu_supported = gm20b_is_pmu_supported,
-		gops->pmu.prepare_ucode = prepare_ucode_blob,
 		gops->pmu.is_lazy_bootstrap = gm20b_is_lazy_bootstrap,
 		gops->pmu.is_priv_load = gm20b_is_priv_load,
 		gops->pmu.pmu_populate_loader_cfg =
@@ -956,7 +955,6 @@ int gp10b_init_hal(struct gk20a *g)
 	} else {
 		/* Inherit from gk20a */
 		gops->pmu.is_pmu_supported = gk20a_is_pmu_supported,
-		gops->pmu.prepare_ucode = nvgpu_pmu_prepare_ns_ucode_blob,
 		gops->pmu.pmu_setup_hw_and_bootstrap =
 			gm20b_ns_pmu_setup_hw_and_bootstrap;
 		gops->pmu.pmu_nsbootstrap = pmu_bootstrap,
