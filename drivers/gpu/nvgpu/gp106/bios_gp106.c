@@ -128,10 +128,15 @@ int gp106_bios_devinit(struct gk20a *g)
 
 	if (nvgpu_timeout_peek_expired(&timeout) != 0) {
 		err = -ETIMEDOUT;
+		goto out;
 	}
 
-	nvgpu_falcon_clear_halt_intr_status(g->pmu.flcn,
+	err = nvgpu_falcon_clear_halt_intr_status(g->pmu.flcn,
 		gk20a_get_gr_idle_timeout(g));
+	if (err != 0) {
+		nvgpu_err(g, "falcon_clear_halt_intr_status failed %d", err);
+		goto out;
+	}
 
 out:
 	nvgpu_log_fn(g, "done");
@@ -180,9 +185,17 @@ int gp106_bios_preos(struct gk20a *g)
 	}
 
 	err = g->ops.bios.preos_wait_for_halt(g);
+	if (err != 0) {
+		nvgpu_err(g, "preos_wait_for_halt failed %d", err);
+		goto out;
+	}
 
-	nvgpu_falcon_clear_halt_intr_status(g->pmu.flcn,
+	err = nvgpu_falcon_clear_halt_intr_status(g->pmu.flcn,
 			gk20a_get_gr_idle_timeout(g));
+	if (err != 0) {
+		nvgpu_err(g, "falcon_clear_halt_intr_status failed %d", err);
+		goto out;
+	}
 
 out:
 	nvgpu_log_fn(g, "done");
