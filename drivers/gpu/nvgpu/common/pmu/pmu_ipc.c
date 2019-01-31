@@ -811,12 +811,13 @@ exit:
 	return err;
 }
 
-static void pmu_payload_extract(struct nvgpu_pmu *pmu,
+static int pmu_payload_extract(struct nvgpu_pmu *pmu,
 	struct pmu_msg *msg, struct pmu_sequence *seq)
 {
 	struct gk20a *g = gk20a_from_pmu(pmu);
 	struct pmu_v *pv = &g->ops.pmu_ver;
 	u32 fbq_payload_offset = 0U;
+	int err = 0;
 
 	nvgpu_log_fn(g, " ");
 
@@ -834,22 +835,20 @@ static void pmu_payload_extract(struct nvgpu_pmu *pmu,
 	} else {
 		if (pv->pmu_allocation_get_dmem_size(pmu,
 			pv->get_pmu_seq_out_a_ptr(seq)) != 0U) {
-			nvgpu_falcon_copy_from_dmem(pmu->flcn,
-			pv->pmu_allocation_get_dmem_offset(pmu,
-			pv->get_pmu_seq_out_a_ptr(seq)),
-			seq->out_payload,
-			pv->pmu_allocation_get_dmem_size(pmu,
-			pv->get_pmu_seq_out_a_ptr(seq)), 0);
+			err = nvgpu_falcon_copy_from_dmem(pmu->flcn,
+					pv->pmu_allocation_get_dmem_offset(pmu,
+					pv->get_pmu_seq_out_a_ptr(seq)),
+					seq->out_payload,
+					pv->pmu_allocation_get_dmem_size(pmu,
+					pv->get_pmu_seq_out_a_ptr(seq)), 0);
+			if (err != 0) {
+				nvgpu_err(g, "PMU falcon DMEM copy failed");
+				return err;
+			}
 		}
 	}
-}
 
-static void pmu_payload_extract_rpc(struct nvgpu_pmu *pmu,
-		struct pmu_msg *msg, struct pmu_sequence *seq)
-{
-	nvgpu_log_fn(pmu->g, " ");
-
-	pmu_payload_extract(pmu, msg, seq);
+	return err;
 }
 
 static void pmu_payload_fbq_free(struct nvgpu_pmu *pmu,
@@ -953,7 +952,7 @@ static int pmu_response_handle(struct nvgpu_pmu *pmu,
 
 		if (msg->hdr.size > PMU_MSG_HDR_SIZE &&
 			msg->msg.rc.msg_type == NV_PMU_RPC_MSG_ID) {
-			pmu_payload_extract_rpc(pmu, msg, seq);
+			err = pmu_payload_extract(pmu, msg, seq);
 		} else {
 			if (seq->msg != NULL) {
 				if (seq->msg->hdr.size >= msg->hdr.size) {
@@ -963,10 +962,11 @@ static int pmu_response_handle(struct nvgpu_pmu *pmu,
 					nvgpu_err(g, "sequence %d msg buffer too small",
 						seq->id);
 					err = -EINVAL;
+					goto exit;
 				}
 			}
 
-			pmu_payload_extract(pmu, msg, seq);
+			err = pmu_payload_extract(pmu, msg, seq);
 		}
 	} else {
 		seq->callback = NULL;
