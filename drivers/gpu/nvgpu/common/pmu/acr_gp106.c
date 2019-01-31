@@ -493,99 +493,47 @@ int gp106_prepare_ucode_blob(struct gk20a *g)
 	return err;
 }
 
-static bool lsfm_falcon_disabled(struct gk20a *g, struct ls_flcn_mgr_v1 *plsfm,
-	u32 falcon_id)
-{
-	return ((plsfm->disable_mask >> falcon_id) & 0x1U) != 0U;
-}
-
 /* Discover all managed falcon ucode images */
 int lsfm_discover_ucode_images(struct gk20a *g,
 	struct ls_flcn_mgr_v1 *plsfm)
 {
-	struct nvgpu_pmu *pmu = &g->pmu;
 	struct flcn_ucode_img_v1 ucode_img;
 	u32 falcon_id;
 	u32 i;
-	int status;
+	int err = 0;
 
-	/* LSFM requires a secure PMU, discover it first.*/
-	/* Obtain the PMU ucode image and add it to the list if required*/
-	(void) memset(&ucode_img, 0, sizeof(ucode_img));
-	status = pmu_ucode_details(g, &ucode_img);
-	if (status != 0) {
-		return status;
-	}
-
-	if (ucode_img.lsf_desc != NULL) {
-		/* The falon_id is formed by grabbing the static base
-		 * falon_id from the image and adding the
-		 * engine-designated falcon instance.
-		 */
-		pmu->pmu_mode |= PMU_SECURE_MODE;
-		falcon_id = ucode_img.lsf_desc->falcon_id +
-			ucode_img.flcn_inst;
-
-		if (!lsfm_falcon_disabled(g, plsfm, falcon_id)) {
-			pmu->falcon_id = falcon_id;
-			if (lsfm_add_ucode_img(g, plsfm, &ucode_img,
-				pmu->falcon_id) == 0) {
-				pmu->pmu_mode |= PMU_LSFM_MANAGED;
-			}
-			plsfm->managed_flcn_cnt++;
-		} else {
-			gp106_dbg_pmu(g, "id not managed %d\n",
-				ucode_img.lsf_desc->falcon_id);
-		}
-	}
-
-	/*Free any ucode image resources if not managing this falcon*/
-	if ((pmu->pmu_mode & PMU_LSFM_MANAGED) == 0U) {
-		gp106_dbg_pmu(g, "pmu is not LSFM managed\n");
-		lsfm_free_ucode_img_res(g, &ucode_img);
-	}
-
-	/* Enumerate all constructed falcon objects,
-	 as we need the ucode image info and total falcon count.*/
-
-	/*0th index is always PMU which is already handled in earlier
-	if condition*/
-	for (i = 1; i < g->acr.max_supported_lsfm; i++) {
+	/*
+	 * Enumerate all constructed falcon objects, as we need the ucode
+	 * image info and total falcon count
+	 */
+	for (i = 0U; i < g->acr.max_supported_lsfm; i++) {
 		(void) memset(&ucode_img, 0, sizeof(ucode_img));
+
 		if (pmu_acr_supp_ucode_list[i](g, &ucode_img) == 0) {
 			if (ucode_img.lsf_desc != NULL) {
-				/* We have engine sigs, ensure that this falcon
-				is aware of the secure mode expectations
-				(ACR status)*/
-
-				/* falon_id is formed by grabbing the static
-				base falonId from the image and adding the
-				engine-designated falcon instance. */
+				/*
+				 * falon_id is formed by grabbing the static
+				 * base falonId from the image and adding the
+				 * engine-designated falcon instance.
+				 */
 				falcon_id = ucode_img.lsf_desc->falcon_id +
 					ucode_img.flcn_inst;
 
-				if (!lsfm_falcon_disabled(g, plsfm,
-					falcon_id)) {
-					/* Do not manage non-FB ucode*/
-					if (lsfm_add_ucode_img(g,
-						plsfm, &ucode_img, falcon_id)
-						== 0) {
-						plsfm->managed_flcn_cnt++;
-					}
-				} else {
-					gp106_dbg_pmu(g, "not managed %d\n",
-						ucode_img.lsf_desc->falcon_id);
-					lsfm_free_nonpmu_ucode_img_res(g,
-						&ucode_img);
+				err = lsfm_add_ucode_img(g, plsfm, &ucode_img,
+					falcon_id);
+				if (err != 0) {
+					nvgpu_err(g, " Failed to add falcon-%d to LSFM ",
+						falcon_id);
+					goto exit;
 				}
+
+				plsfm->managed_flcn_cnt++;
 			}
-		} else {
-			/* Consumed all available falcon objects */
-			gp106_dbg_pmu(g, "Done checking for ucodes %d\n", i);
-			break;
 		}
 	}
-	return 0;
+
+exit:
+	return err;
 }
 
 int gp106_pmu_populate_loader_cfg(struct gk20a *g,
@@ -736,9 +684,7 @@ int gp106_flcn_populate_bl_dmem_desc(struct gk20a *g,
 int lsfm_fill_flcn_bl_gen_desc(struct gk20a *g,
 		struct lsfm_managed_ucode_img_v2 *pnode)
 {
-
-	struct nvgpu_pmu *pmu = &g->pmu;
-	if (pnode->wpr_header.falcon_id != pmu->falcon_id) {
+	if (pnode->wpr_header.falcon_id != FALCON_ID_PMU) {
 		gp106_dbg_pmu(g, "non pmu. write flcn bl gen desc\n");
 		g->ops.pmu.flcn_populate_bl_dmem_desc(g,
 				pnode, &pnode->bl_gen_desc_size,
@@ -746,12 +692,10 @@ int lsfm_fill_flcn_bl_gen_desc(struct gk20a *g,
 		return 0;
 	}
 
-	if ((pmu->pmu_mode & PMU_LSFM_MANAGED) != 0U) {
+	if (pnode->wpr_header.falcon_id == FALCON_ID_PMU) {
 		gp106_dbg_pmu(g, "pmu write flcn bl gen desc\n");
-		if (pnode->wpr_header.falcon_id == pmu->falcon_id) {
-			return g->ops.pmu.pmu_populate_loader_cfg(g, pnode,
-				&pnode->bl_gen_desc_size);
-		}
+		return g->ops.pmu.pmu_populate_loader_cfg(g, pnode,
+			&pnode->bl_gen_desc_size);
 	}
 
 	/* Failed to find the falcon requested. */
@@ -940,8 +884,6 @@ static int lsfm_parse_no_loader_ucode(u32 *p_ucodehdr,
 void lsfm_fill_static_lsb_hdr_info(struct gk20a *g,
 	u32 falcon_id, struct lsfm_managed_ucode_img_v2 *pnode)
 {
-
-	struct nvgpu_pmu *pmu = &g->pmu;
 	u32 full_app_size = 0;
 	u32 data = 0;
 
@@ -998,7 +940,7 @@ void lsfm_fill_static_lsb_hdr_info(struct gk20a *g,
 			flags should be populated.*/
 		pnode->lsb_header.flags = 0;
 
-		if (falcon_id == pmu->falcon_id) {
+		if (falcon_id == FALCON_ID_PMU) {
 			data = NV_FLCN_ACR_LSF_FLAG_DMACTL_REQ_CTX_TRUE;
 			pnode->lsb_header.flags = data;
 		}

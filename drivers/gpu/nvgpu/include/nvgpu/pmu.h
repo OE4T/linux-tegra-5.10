@@ -416,8 +416,6 @@ struct nvgpu_pmu {
 	};
 	unsigned long perfmon_events_cnt;
 	bool perfmon_sampling_enabled;
-	u8 pmu_mode; /*Added for GM20b, and ACR*/
-	u32 falcon_id;
 	u32 aelpg_param[5];
 	u32 override_done;
 };

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -52,9 +52,6 @@ struct nvgpu_acr;
 #define MAX_SUPPORTED_LSFM 3U /*PMU, FECS, GPCCS*/
 
 #define ACR_COMPLETION_TIMEOUT_MS 10000U /*in msec */
-
-#define PMU_SECURE_MODE  BIT8(0)
-#define PMU_LSFM_MANAGED BIT8(1)
 
 struct bin_hdr {
 	/* 0x10de */

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 NVIDIA Corporation.  All rights reserved.
+ * Copyright (C) 2018-2019, NVIDIA Corporation.  All rights reserved.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -399,9 +399,9 @@ static int security_show(struct seq_file *s, void *data)
 {
 	struct gk20a *g = s->private;
 
-	seq_printf(s, "%d\n", g->pmu.pmu_mode);
-	return 0;
+	seq_printf(s, "%d\n", nvgpu_is_enabled(g, NVGPU_SEC_PRIVSECURITY));
 
+	return 0;
 }
 
 static int security_open(struct inode *inode, struct file *file)
