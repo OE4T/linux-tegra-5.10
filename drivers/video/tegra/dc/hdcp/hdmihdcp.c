@@ -73,7 +73,7 @@ static DECLARE_WAIT_QUEUE_HEAD(wq_worker);
 #define HDCP_INFINITE_RETRIES		-1
 #define HDCP_DEBUG                      0
 #define SEQ_NUM_M_MAX_RETRIES		1
-#define AKE_INIT_RESPONSE_DELAY		1000
+#define RX_CERT_POLL_TIME		1000
 
 #define HDCP_FALLBACK_1X                0xdeadbeef
 #define HDCP_NON_22_RX                  0x0300
@@ -99,6 +99,7 @@ static DECLARE_WAIT_QUEUE_HEAD(wq_worker);
 #define HDCP_CMD_OFFSET			1
 #define HDCP_CMD_BYTE_OFFSET		8
 #define HDCP_AUTH_CMD			0x5
+#define MAX_CERT_RETRY			10
 
 #ifdef VERBOSE_DEBUG
 #define nvhdcp_vdbg(...)	\
@@ -1156,6 +1157,7 @@ static int tsec_hdcp_authentication(struct tegra_nvhdcp *nvhdcp,
 	u16 txcaps = 0x0;
 	uint64_t *pkt = NULL;
 	unsigned char nonce[HDCP_NONCE_SIZE];
+	int cert_retry_count;
 
 	pkt = kzalloc(PKT_SIZE, GFP_KERNEL);
 
@@ -1192,13 +1194,48 @@ static int tsec_hdcp_authentication(struct tegra_nvhdcp *nvhdcp,
 	if (err)
 		goto exit;
 
-	err = nvhdcp_poll_ready(nvhdcp, AKE_INIT_RESPONSE_DELAY);
-	if (err)
-		goto exit;
-	err = nvhdcp_ake_cert_receive(nvhdcp,
-		&hdcp_context->msg.ake_send_cert_msg_id);
-	if (err)
-		goto exit;
+
+	/* Certain receivers show a latency between asserting the ready bit on
+	 * rxstatus register and writing the certificate on the i2c channel.
+	 * Since the number of such receivers is quite high in the field,
+	 * we do not want to regress by not letting those TVs authenticate HDCP.
+	 * The fallback option is to give some time to the TVs to be ready to
+	 *  write on the channel
+	 */
+	cert_retry_count = MAX_CERT_RETRY;
+	while (cert_retry_count != 0) {
+
+		err = nvhdcp_poll_ready(nvhdcp, RX_CERT_POLL_TIME);
+		if (err != 0) {
+			/* RX should be ready for ceritificate within the
+			 * stipulated period of time
+			 */
+			nvhdcp_err("Rx not ready yet, bailing out!\n");
+			goto exit;
+		} else {
+			/* else if rx is claiming to be ready within the
+			 * retry count, read the certificate,
+			 * clear old messages
+			 */
+			memset(&hdcp_context->msg, 0,
+					sizeof(hdcp_context->msg));
+			err = nvhdcp_ake_cert_receive(nvhdcp,
+				&hdcp_context->msg.ake_send_cert_msg_id);
+			if (err != 0)
+				goto exit;
+			if (hdcp_context->msg.ake_send_cert_msg_id
+				!= (u8)ID_AKE_SEND_CERT) {
+				nvhdcp_err("Not ID_AKE_SEND_CERT but %d instead\n",
+				hdcp_context->msg.ake_send_cert_msg_id);
+			} else {
+				/* received the cert, move ahead */
+				break;
+			}
+		}
+		cert_retry_count--;
+		/* sleep because there is nothing better to do */
+		usleep_range(1000, 1500);
+	}
 	if (hdcp_context->msg.ake_send_cert_msg_id != ID_AKE_SEND_CERT) {
 		nvhdcp_err("Not ID_AKE_SEND_CERT but %d instead\n",
 			hdcp_context->msg.ake_send_cert_msg_id);
