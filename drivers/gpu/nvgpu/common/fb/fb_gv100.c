@@ -214,7 +214,11 @@ int gv100_fb_memory_unlock(struct gk20a *g)
 		FALCON_MAILBOX_0, 0xdeadbeefU);
 
 	/* set BOOTVEC to start of non-secure code */
-	nvgpu_falcon_bootstrap(g->nvdec_flcn, 0);
+	err = nvgpu_falcon_bootstrap(g->nvdec_flcn, 0);
+	if (err != 0) {
+		nvgpu_err(g, "falcon bootstrap failed %d", err);
+		goto exit;
+	}
 
 	/* wait for complete & halt */
 	nvgpu_falcon_wait_for_halt(g->nvdec_flcn, MEM_UNLOCK_TIMEOUT);

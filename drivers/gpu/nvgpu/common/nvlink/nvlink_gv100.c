@@ -120,9 +120,9 @@ static bool gv100_nvlink_minion_is_running(struct gk20a *g)
 /*
  * Load minion FW and set up bootstrap
  */
-static u32 gv100_nvlink_minion_load(struct gk20a *g)
+static int gv100_nvlink_minion_load(struct gk20a *g)
 {
-	u32 err = 0;
+	int err = 0;
 	struct nvgpu_firmware *nvgpu_minion_fw = NULL;
 	struct nvgpu_timeout timeout;
 	u32 delay = GR_IDLE_CHECK_DEFAULT;
@@ -154,7 +154,10 @@ static u32 gv100_nvlink_minion_load(struct gk20a *g)
 	}
 
 	/* set BOOTVEC to start of non-secure code */
-	nvgpu_falcon_bootstrap(g->minion_flcn, 0x0);
+	err = nvgpu_falcon_bootstrap(g->minion_flcn, 0x0);
+	if (err != 0) {
+		goto exit;
+	}
 
 	nvgpu_timeout_init(g, &timeout, gk20a_get_gr_idle_timeout(g),
 		NVGPU_TIMER_CPU_TIMER);
@@ -462,7 +465,7 @@ static u32 gv100_nvlink_get_link_reset_mask(struct gk20a *g)
 	return ioctrl_reset_linkreset_v(reg_data);
 }
 
-static u32 gv100_nvlink_state_load_hal(struct gk20a *g)
+static int gv100_nvlink_state_load_hal(struct gk20a *g)
 {
 	unsigned long discovered = g->nvlink.discovered_links;
 

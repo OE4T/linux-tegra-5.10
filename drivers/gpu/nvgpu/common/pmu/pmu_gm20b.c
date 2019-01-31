@@ -363,9 +363,7 @@ static int gm20b_bl_bootstrap(struct gk20a *g,
 		  pwr_pmu_new_instblk_target_sys_coh_f() :
 		  pwr_pmu_new_instblk_target_sys_ncoh_f())) ;
 
-	nvgpu_falcon_bl_bootstrap(g->pmu.flcn, bl_info);
-
-	return 0;
+	return nvgpu_falcon_bl_bootstrap(g->pmu.flcn, bl_info);
 }
 
 int gm20b_pmu_setup_hw_and_bl_bootstrap(struct gk20a *g,

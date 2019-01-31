@@ -79,7 +79,7 @@ int nvgpu_nvlink_read_dt_props(struct gk20a *g)
 	return 0;
 }
 
-u32 nvgpu_nvlink_minion_load_ucode(struct gk20a *g,
+int nvgpu_nvlink_minion_load_ucode(struct gk20a *g,
 					struct nvgpu_firmware *nvgpu_minion_fw)
 {
 	BUG();

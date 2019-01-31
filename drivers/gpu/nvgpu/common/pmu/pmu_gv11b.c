@@ -207,6 +207,7 @@ int gv11b_pmu_bootstrap(struct nvgpu_pmu *pmu)
 	u64 addr_code_lo, addr_data_lo, addr_load_lo;
 	u64 addr_code_hi, addr_data_hi;
 	u32 i, blocks, addr_args;
+	int err;
 
 	nvgpu_log_fn(g, " ");
 
@@ -302,11 +303,11 @@ int gv11b_pmu_bootstrap(struct nvgpu_pmu *pmu)
 			pwr_falcon_dmatrfcmd_ctxdma_f(GK20A_PMU_DMAIDX_UCODE));
 	}
 
-	nvgpu_falcon_bootstrap(pmu->flcn, desc->bootloader_entry_point);
+	err = nvgpu_falcon_bootstrap(pmu->flcn, desc->bootloader_entry_point);
 
 	gk20a_writel(g, pwr_falcon_os_r(), desc->app_version);
 
-	return 0;
+	return err;
 }
 
 void gv11b_pmu_handle_ext_irq(struct gk20a *g, u32 intr0)

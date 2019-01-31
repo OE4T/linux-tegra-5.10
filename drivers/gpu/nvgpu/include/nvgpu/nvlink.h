@@ -244,7 +244,7 @@ int nvgpu_nvlink_set_sublink_mode(struct gk20a *g,
 int nvgpu_nvlink_enumerate(struct gk20a *g);
 int nvgpu_nvlink_train(struct gk20a *g, u32 link_id, bool from_off);
 int nvgpu_nvlink_remove(struct gk20a *g);
-u32 nvgpu_nvlink_minion_load_ucode(struct gk20a *g,
+int nvgpu_nvlink_minion_load_ucode(struct gk20a *g,
 					struct nvgpu_firmware *nvgpu_minion_fw);
 void nvgpu_mss_nvlink_init_credits(struct gk20a *g);
 

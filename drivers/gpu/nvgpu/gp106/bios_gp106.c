@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2015-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -107,7 +107,12 @@ int gp106_bios_devinit(struct gk20a *g)
 			g->bios.bootscripts_size,
 			0);
 
-	nvgpu_falcon_bootstrap(g->pmu.flcn, g->bios.devinit.code_entry_point);
+	err = nvgpu_falcon_bootstrap(g->pmu.flcn,
+					g->bios.devinit.code_entry_point);
+	if (err != 0) {
+		nvgpu_err(g, "falcon bootstrap failed %d", err);
+		goto out;
+	}
 
 	nvgpu_timeout_init(g, &timeout,
 			   PMU_BOOT_TIMEOUT_MAX /
@@ -167,7 +172,12 @@ int gp106_bios_preos(struct gk20a *g)
 			g->bios.preos.dmem_size,
 			0);
 
-	nvgpu_falcon_bootstrap(g->pmu.flcn, g->bios.preos.code_entry_point);
+	err = nvgpu_falcon_bootstrap(g->pmu.flcn,
+					g->bios.preos.code_entry_point);
+	if (err != 0) {
+		nvgpu_err(g, "falcon bootstrap failed %d", err);
+		goto out;
+	}
 
 	err = g->ops.bios.preos_wait_for_halt(g);
 

@@ -72,10 +72,10 @@ void nvgpu_nvlink_free_minion_used_mem(struct gk20a *g,
 /*
  * Load minion FW
  */
-u32 nvgpu_nvlink_minion_load_ucode(struct gk20a *g,
+int nvgpu_nvlink_minion_load_ucode(struct gk20a *g,
 					struct nvgpu_firmware *nvgpu_minion_fw)
 {
-	u32 err = 0;
+	int err = 0;
 	struct nvlink_device *ndev = (struct nvlink_device *) g->nvlink.priv;
 	struct minion_hdr *minion_hdr = &ndev->minion_hdr;
 	u32 data_idx = 0;
