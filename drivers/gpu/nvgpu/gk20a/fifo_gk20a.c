@@ -1232,6 +1232,8 @@ void gk20a_fifo_abort_tsg(struct gk20a *g, struct tsg_gk20a *tsg, bool preempt)
 
 	nvgpu_log_fn(g, " ");
 
+	WARN_ON(tsg->abortable == false);
+
 	g->ops.fifo.disable_tsg(tsg);
 
 	if (preempt) {

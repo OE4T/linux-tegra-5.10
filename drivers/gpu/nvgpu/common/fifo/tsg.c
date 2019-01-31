@@ -228,6 +228,7 @@ int gk20a_init_tsg_support(struct gk20a *g, u32 tsgid)
 
 	tsg->in_use = false;
 	tsg->tsgid = tsgid;
+	tsg->abortable = true;
 
 	nvgpu_init_list_node(&tsg->ch_list);
 	nvgpu_rwsem_init(&tsg->ch_list_lock);

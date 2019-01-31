@@ -128,6 +128,7 @@ static void gk20a_ce_delete_gpu_context(struct gk20a_gpu_ctx *ce_ctx)
 	struct nvgpu_list_node *list = &ce_ctx->list;
 
 	ce_ctx->gpu_ctx_state = NVGPU_CE_GPU_CTX_DELETED;
+	ce_ctx->tsg->abortable = true;
 
 	nvgpu_mutex_acquire(&ce_ctx->gpu_ctx_mutex);
 
@@ -477,6 +478,9 @@ u32 gk20a_ce_create_context(struct gk20a *g,
 		err = -ENOMEM;
 		goto end;
 	}
+
+	/* this TSG should never be aborted */
+	ce_ctx->tsg->abortable = false;
 
 	/* always kernel client needs privileged channel */
 	ce_ctx->ch = gk20a_open_new_channel(g, runlist_id, true,

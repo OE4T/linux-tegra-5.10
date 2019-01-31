@@ -71,6 +71,7 @@ struct tsg_gk20a {
 	u8   tpc_pg_enabled;
 	bool tpc_num_initialized;
 	bool in_use;
+	bool abortable;
 
 	struct nvgpu_tsg_sm_error_state *sm_error_states;
 

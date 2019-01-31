@@ -944,8 +944,16 @@ static void gv11b_fifo_locked_abort_runlist_active_tsgs(struct gk20a *g,
 
 		for_each_set_bit(tsgid, runlist->active_tsgs,
 			g->fifo.num_channels) {
-			nvgpu_log(g, gpu_dbg_info, "abort tsg id %lu", tsgid);
 			tsg = &g->fifo.tsg[tsgid];
+
+			if (!tsg->abortable) {
+				nvgpu_log(g, gpu_dbg_info,
+					  "tsg %lu is not abortable, skipping",
+					  tsgid);
+				continue;
+			}
+			nvgpu_log(g, gpu_dbg_info, "abort tsg id %lu", tsgid);
+
 			gk20a_disable_tsg(tsg);
 
 			/* assume all pbdma and eng faulted are set */
