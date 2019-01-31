@@ -1420,44 +1420,27 @@ int isp_capture_request_ex(struct tegra_isp_channel *chan,
 		arch_counter_get_cntvct(),
 		NVHOST_CAMERA_ISP_CAPTURE_REQUEST_EX);
 
-	if (capture_req_ex->program_req.buffer_index != U32_MAX) {
-		/* FIXME: bug 2484221
-		 * for backward compatibility, __pad field is temporarily used
-		 * to indicate if an extra program ivc request is required.
-		 * remove this if after UMD activate the program binding flag in
-		 * capture descriptor.
-		 */
-		if (capture_req_ex->program_req.__pad != 0u) {
-			/* prepare program only */
-			err = isp_capture_program_prepare(
-				chan, &capture_req_ex->program_req);
-		} else {
-			/* prepare and submit program request */
-			err = isp_capture_program_request(
-				chan, &capture_req_ex->program_req);
-		}
+	if (capture_req_ex->program_req.buffer_index == U32_MAX) {
+		/* forward to capture request */
+		return isp_capture_request(chan, &capture_req_ex->capture_req);
+	}
 
-		if (err < 0) {
-			/* no cleanup needed */
-			return err;
-		}
+	err = isp_capture_program_prepare(chan, &capture_req_ex->program_req);
+
+	if (err < 0) {
+		/* no cleanup required */
+		return err;
 	}
 
 	err = isp_capture_request(chan, &capture_req_ex->capture_req);
 
 	if (err < 0) {
-		if (capture_req_ex->program_req.__pad != 0u) {
-			/* FIXME: bug 2484221
-			 * unpin if program ivc request was not submitted to
-			 * rtcpu.
-			 */
-			isp_capture_program_request_unpin(chan,
-				capture_req_ex->program_req.buffer_index);
-		}
-		return err;
+		/* unpin prepared program */
+		isp_capture_program_request_unpin(
+			chan, capture_req_ex->program_req.buffer_index);
 	}
 
-	return 0;
+	return err;
 }
 
 int isp_capture_set_progress_status_notifier(struct tegra_isp_channel *chan,
