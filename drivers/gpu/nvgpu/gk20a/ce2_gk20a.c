@@ -429,7 +429,7 @@ void gk20a_ce_suspend(struct gk20a *g)
 {
 	struct gk20a_ce_app *ce_app = g->ce_app;
 
-	if (!ce_app->initialised) {
+	if (ce_app == NULL || !ce_app->initialised) {
 		return;
 	}
 
