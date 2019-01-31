@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -37,7 +37,7 @@ bool gp106_is_lazy_bootstrap(u32 falcon_id);
 bool gp106_is_priv_load(u32 falcon_id);
 int gp106_load_falcon_ucode(struct gk20a *g, u32 falconidmask);
 
-void gp106_pmu_elpg_statistics(struct gk20a *g, u32 pg_engine_id,
+int gp106_pmu_elpg_statistics(struct gk20a *g, u32 pg_engine_id,
 		struct pmu_pg_stats_data *pg_stat_data);
 bool gp106_pmu_is_engine_in_reset(struct gk20a *g);
 int gp106_pmu_engine_reset(struct gk20a *g, bool do_reset);

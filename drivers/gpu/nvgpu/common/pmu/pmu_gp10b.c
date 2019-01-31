@@ -257,21 +257,28 @@ int gp10b_pg_gr_init(struct gk20a *g, u32 pg_engine_id)
 	return 0;
 }
 
-void gp10b_pmu_elpg_statistics(struct gk20a *g, u32 pg_engine_id,
+int gp10b_pmu_elpg_statistics(struct gk20a *g, u32 pg_engine_id,
 		struct pmu_pg_stats_data *pg_stat_data)
 {
 	struct nvgpu_pmu *pmu = &g->pmu;
 	struct pmu_pg_stats_v1 stats;
+	int err;
 
-	nvgpu_falcon_copy_from_dmem(pmu->flcn,
+	err = nvgpu_falcon_copy_from_dmem(pmu->flcn,
 		pmu->stat_dmem_offset[pg_engine_id],
 		(u8 *)&stats, (u32)sizeof(struct pmu_pg_stats_v1), 0);
+	if (err != 0) {
+		nvgpu_err(g, "PMU falcon DMEM copy failed");
+		return err;
+	}
 
 	pg_stat_data->ingating_time = stats.total_sleep_timeus;
 	pg_stat_data->ungating_time = stats.total_nonsleep_timeus;
 	pg_stat_data->gating_cnt = stats.entry_count;
 	pg_stat_data->avg_entry_latency_us = stats.entrylatency_avgus;
 	pg_stat_data->avg_exit_latency_us = stats.exitlatency_avgus;
+
+	return err;
 }
 
 int gp10b_pmu_setup_elpg(struct gk20a *g)

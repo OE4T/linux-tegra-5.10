@@ -632,6 +632,7 @@ int nvgpu_pmu_get_pg_stats(struct gk20a *g, u32 pg_engine_id,
 {
 	struct nvgpu_pmu *pmu = &g->pmu;
 	u32 pg_engine_id_list = 0;
+	int err = 0;
 
 	if (!pmu->initialized) {
 		pg_stat_data->ingating_time = 0;
@@ -645,11 +646,11 @@ int nvgpu_pmu_get_pg_stats(struct gk20a *g, u32 pg_engine_id,
 	}
 
 	if ((BIT32(pg_engine_id) & pg_engine_id_list) != 0U) {
-		g->ops.pmu.pmu_elpg_statistics(g, pg_engine_id,
+		err = g->ops.pmu.pmu_elpg_statistics(g, pg_engine_id,
 			pg_stat_data);
 	}
 
-	return 0;
+	return err;
 }
 
 /* AELPG */
