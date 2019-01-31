@@ -30,16 +30,19 @@ int nvgpu_nvlink_probe(struct gk20a *g)
 	int err;
 
 	err = nvgpu_nvlink_setup_ndev(g);
-	if (err != 0)
+	if (err != 0) {
 		return err;
+	}
 
 	err = nvgpu_nvlink_read_dt_props(g);
-	if (err != 0)
+	if (err != 0) {
 		goto free_ndev;
+	}
 
 	err = nvgpu_nvlink_init_ops(g);
-	if (err != 0)
+	if (err != 0) {
 		goto free_ndev;
+	}
 
 	/* Register device with core driver*/
 	err = nvgpu_nvlink_register_device(g);

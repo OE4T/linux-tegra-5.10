@@ -100,10 +100,11 @@ static void gv100_nvlink_minion_link_intr_enable(struct gk20a *g, u32 link_id,
 	intr = MINION_REG_RD32(g, minion_minion_intr_stall_en_r());
 	links = minion_minion_intr_stall_en_link_v(intr);
 
-	if (enable)
+	if (enable) {
 		links |= BIT(link_id);
-	else
+	} else {
 		links &= ~BIT(link_id);
+	}
 
 	intr = set_field(intr, minion_minion_intr_stall_en_link_m(),
 		minion_minion_intr_stall_en_link_f(links));
@@ -162,8 +163,9 @@ bool gv100_nvlink_minion_falcon_isr(struct gk20a *g)
 	intr = MINION_REG_RD32(g, minion_falcon_irqstat_r()) &
 		MINION_REG_RD32(g, minion_falcon_irqmask_r());
 
-	if (!intr)
+	if (!intr) {
 		return true;
+	}
 
 	if (intr & minion_falcon_irqstat_exterr_true_f()) {
 		nvgpu_err(g, "FALCON EXT ADDR: 0x%x 0x%x 0x%x",
@@ -216,8 +218,9 @@ static bool gv100_nvlink_minion_link_isr(struct gk20a *g, u32 link_id)
 		fatal = true;
 	}
 
-	if (fatal)
+	if (fatal) {
 		gv100_nvlink_minion_link_intr_enable(g, link_id, false);
+	}
 
 	intr = set_field(intr, minion_nvlink_link_intr_state_m(),
 		minion_nvlink_link_intr_state_f(1));
@@ -238,8 +241,9 @@ static bool gv100_nvlink_minion_isr(struct gk20a *g) {
 		MINION_REG_RD32(g, minion_minion_intr_stall_en_r());
 
 	if (minion_minion_intr_falcon_stall_v(intr) ||
-			minion_minion_intr_falcon_nostall_v(intr))
+			minion_minion_intr_falcon_nostall_v(intr)) {
 		gv100_nvlink_minion_falcon_isr(g);
+	}
 
 	if (minion_minion_intr_fatal_v(intr)) {
 		gv100_nvlink_minion_falcon_intr_enable(g, false);
@@ -247,15 +251,18 @@ static bool gv100_nvlink_minion_isr(struct gk20a *g) {
 					minion_minion_intr_fatal_f(1));
 	}
 
-	if (minion_minion_intr_nonfatal_v(intr))
+	if (minion_minion_intr_nonfatal_v(intr)) {
 		MINION_REG_WR32(g, minion_minion_intr_r(),
 					minion_minion_intr_nonfatal_f(1));
+	}
 
 	links = minion_minion_intr_link_v(intr) & g->nvlink.enabled_links;
 
-	if (links)
-		for_each_set_bit(i, &links, 32)
+	if (links) {
+		for_each_set_bit(i, &links, 32) {
 			gv100_nvlink_minion_link_isr(g, i);
+		}
+	}
 
 	/* Re-test interrupt status */
 	intr = MINION_REG_RD32(g, minion_minion_intr_r()) &
@@ -401,8 +408,9 @@ static void gv100_nvlink_dlpl_isr(struct gk20a *g, u32 link_id)
 	intr = DLPL_REG_RD32(g, link_id, nvl_intr_r()) &
 		DLPL_REG_RD32(g, link_id, nvl_intr_stall_en_r());
 
-	if (!intr)
+	if (!intr) {
 		return;
+	}
 
 	fatal_mask = intr & DLPL_FATAL_INTR_MASK;
 	non_fatal_mask = intr & DLPL_NON_FATAL_INTR_MASK;
@@ -411,18 +419,22 @@ static void gv100_nvlink_dlpl_isr(struct gk20a *g, u32 link_id)
 		link_id, fatal_mask, non_fatal_mask);
 
 	/* Check if we are not handling an interupt */
-	if ((fatal_mask | non_fatal_mask) & ~intr)
+	if ((fatal_mask | non_fatal_mask) & ~intr) {
 		nvgpu_err(g, "Unable to service DLPL intr on link %d", link_id);
+	}
 
-	if (non_fatal_mask & nvl_intr_tx_recovery_long_f(1))
+	if (non_fatal_mask & nvl_intr_tx_recovery_long_f(1)) {
 		retrain = true;
-	if (fatal_mask)
+	}
+	if (fatal_mask) {
 		retrain = false;
+	}
 
 	if (retrain) {
 		err = nvgpu_nvlink_train(g, link_id, false);
-		if (err != 0)
+		if (err != 0) {
 			nvgpu_err(g, "failed to retrain link %d", link_id);
+		}
 	}
 
 	/* Clear interrupts */
@@ -597,8 +609,9 @@ static void gv100_nvlink_nvlipt_intr_enable(struct gk20a *g, u32 link_id,
 	u32 val = 0;
 	u32 reg;
 
-	if (enable)
+	if (enable) {
 		val = 1;
+	}
 
 	reg = IPT_REG_RD32(g, IPT_INTR_CONTROL_LINK(link_id));
 	reg = set_field(reg, nvlipt_intr_control_link0_stallenable_m(),

@@ -155,8 +155,9 @@ int gv100_nvlink_reg_init(struct gk20a *g)
 	for_each_set_bit(link_id, &mask, 32) {
 
 		link = &g->nvlink.links[link_id];
-		if (!link->remote_info.is_connected)
+		if (!link->remote_info.is_connected) {
 			continue;
+		}
 
 		endp = link->remote_info.device_type;
 		err = gv100_nvlink_get_tlc_reginit(endp, &reg, &count);

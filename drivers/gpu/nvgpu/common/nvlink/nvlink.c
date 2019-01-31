@@ -36,17 +36,20 @@ static u32 nvgpu_nvlink_get_link(struct gk20a *g)
 {
 	u32 link_id;
 
-	if (!g)
+	if (!g) {
 		return NVLINK_MAX_LINKS_SW;
+	}
 
 	/* Lets find the detected link */
-	if (g->nvlink.initialized_links)
+	if (g->nvlink.initialized_links) {
 		link_id = ffs(g->nvlink.initialized_links) - 1;
-	else
+	} else {
 		return NVLINK_MAX_LINKS_SW;
+	}
 
-	if (g->nvlink.links[link_id].remote_info.is_connected)
+	if (g->nvlink.links[link_id].remote_info.is_connected) {
 		return link_id;
+	}
 
 	return NVLINK_MAX_LINKS_SW;
 }
@@ -89,8 +92,9 @@ int nvgpu_nvlink_interface_disable(struct gk20a *g)
 {
 	int err = 0;
 
-	if (g->ops.nvlink.interface_disable)
+	if (g->ops.nvlink.interface_disable) {
 		err = g->ops.nvlink.interface_disable(g);
+	}
 	return err;
 }
 
@@ -107,8 +111,9 @@ u32 nvgpu_nvlink_get_link_mode(struct gk20a *g)
 	u32 link_id;
 
 	link_id = nvgpu_nvlink_get_link(g);
-	if (link_id == NVLINK_MAX_LINKS_SW)
+	if (link_id == NVLINK_MAX_LINKS_SW) {
 		return -EINVAL;
+	}
 
 	return g->ops.nvlink.link_get_mode(g, link_id);
 }
@@ -118,8 +123,9 @@ u32 nvgpu_nvlink_get_link_state(struct gk20a *g)
 	u32 link_id;
 
 	link_id = nvgpu_nvlink_get_link(g);
-	if (link_id == NVLINK_MAX_LINKS_SW)
+	if (link_id == NVLINK_MAX_LINKS_SW) {
 		return -EINVAL;
+	}
 
 	return g->ops.nvlink.link_get_state(g, link_id);
 }
@@ -130,8 +136,9 @@ int nvgpu_nvlink_set_link_mode(struct gk20a *g, u32 mode)
 	u32 link_id;
 
 	link_id = nvgpu_nvlink_get_link(g);
-	if (link_id == NVLINK_MAX_LINKS_SW)
+	if (link_id == NVLINK_MAX_LINKS_SW) {
 		return -EINVAL;
+	}
 
 	return g->ops.nvlink.link_set_mode(g, link_id, mode);
 }
@@ -141,10 +148,12 @@ void nvgpu_nvlink_get_tx_sublink_state(struct gk20a *g, u32 *state)
 	u32 link_id;
 
 	link_id = nvgpu_nvlink_get_link(g);
-	if (link_id == NVLINK_MAX_LINKS_SW)
+	if (link_id == NVLINK_MAX_LINKS_SW) {
 		return;
-	if (state)
+	}
+	if (state) {
 		*state = g->ops.nvlink.get_tx_sublink_state(g, link_id);
+	}
 }
 
 void nvgpu_nvlink_get_rx_sublink_state(struct gk20a *g, u32 *state)
@@ -152,10 +161,12 @@ void nvgpu_nvlink_get_rx_sublink_state(struct gk20a *g, u32 *state)
 	u32 link_id;
 
 	link_id = nvgpu_nvlink_get_link(g);
-	if (link_id == NVLINK_MAX_LINKS_SW)
+	if (link_id == NVLINK_MAX_LINKS_SW) {
 		return;
-	if (state)
+	}
+	if (state) {
 		*state = g->ops.nvlink.get_rx_sublink_state(g, link_id);
+	}
 }
 
 u32 nvgpu_nvlink_get_sublink_mode(struct gk20a *g, bool is_rx_sublink)
@@ -163,8 +174,9 @@ u32 nvgpu_nvlink_get_sublink_mode(struct gk20a *g, bool is_rx_sublink)
 	u32 link_id;
 
 	link_id = nvgpu_nvlink_get_link(g);
-	if (link_id == NVLINK_MAX_LINKS_SW)
+	if (link_id == NVLINK_MAX_LINKS_SW) {
 		return -EINVAL;
+	}
 
 	return g->ops.nvlink.get_sublink_mode(g, link_id, is_rx_sublink);
 
@@ -177,8 +189,9 @@ int nvgpu_nvlink_set_sublink_mode(struct gk20a *g,
 	u32 link_id;
 
 	link_id = nvgpu_nvlink_get_link(g);
-	if (link_id == NVLINK_MAX_LINKS_SW)
+	if (link_id == NVLINK_MAX_LINKS_SW) {
 		return -EINVAL;
+	}
 
 
 	return g->ops.nvlink.set_sublink_mode(g, link_id, is_rx_sublink, mode);
@@ -206,8 +219,9 @@ int nvgpu_nvlink_remove(struct gk20a *g)
 #ifdef CONFIG_TEGRA_NVLINK
 	int err;
 
-	if (!nvgpu_is_enabled(g, NVGPU_SUPPORT_NVLINK))
+	if (!nvgpu_is_enabled(g, NVGPU_SUPPORT_NVLINK)) {
 		return -ENODEV;
+	}
 
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_NVLINK, false);
 

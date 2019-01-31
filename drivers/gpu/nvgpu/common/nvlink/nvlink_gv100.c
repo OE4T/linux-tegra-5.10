@@ -48,26 +48,36 @@
 
 static const char *__gv100_device_type_to_str(u32 type)
 {
-	if (type == NVL_DEVICE(ioctrl))
+	if (type == NVL_DEVICE(ioctrl)) {
 		return "IOCTRL";
-	if (type == NVL_DEVICE(dlpl))
+	}
+	if (type == NVL_DEVICE(dlpl)) {
 		return "DL/PL";
-	if (type == NVL_DEVICE(nvltlc))
+	}
+	if (type == NVL_DEVICE(nvltlc)) {
 		return "NVLTLC";
-	if (type == NVL_DEVICE(ioctrlmif))
+	}
+	if (type == NVL_DEVICE(ioctrlmif)) {
 		return "IOCTRLMIF";
-	if (type == NVL_DEVICE(nvlipt))
+	}
+	if (type == NVL_DEVICE(nvlipt)) {
 		return "NVLIPT";
-	if (type == NVL_DEVICE(minion))
+	}
+	if (type == NVL_DEVICE(minion)) {
 		return "MINION";
-	if (type == NVL_DEVICE(dlpl_multicast))
+	}
+	if (type == NVL_DEVICE(dlpl_multicast)) {
 		return "DL/PL MULTICAST";
-	if (type == NVL_DEVICE(nvltlc_multicast))
+	}
+	if (type == NVL_DEVICE(nvltlc_multicast)) {
 		return "NVLTLC MULTICAST";
-	if (type == NVL_DEVICE(ioctrlmif_multicast))
+	}
+	if (type == NVL_DEVICE(ioctrlmif_multicast)) {
 		return "IOCTRLMIF MULTICAST";
-	if (type == NVL_DEVICE(nvltlc_multicast))
+	}
+	if (type == NVL_DEVICE(nvltlc_multicast)) {
 		return "NVLTLC MULTICAST";
+	}
 	return "UNKNOWN";
 }
 
@@ -100,8 +110,9 @@ static bool __gv100_nvlink_minion_is_running(struct gk20a *g)
 	if ((MINION_REG_RD32(g, minion_minion_status_r()) &
 				minion_minion_status_status_f(1)) &&
 	    (!minion_falcon_irqstat_halt_v(
-			MINION_REG_RD32(g, minion_falcon_irqstat_r()))))
+			MINION_REG_RD32(g, minion_falcon_irqstat_r())))) {
 		return true;
+	}
 
 	return false;
 }
@@ -119,8 +130,9 @@ static u32 gv100_nvlink_minion_load(struct gk20a *g)
 
 	nvgpu_log_fn(g, " ");
 
-	if (__gv100_nvlink_minion_is_running(g))
+	if (__gv100_nvlink_minion_is_running(g)) {
 		return 0;
+	}
 
 	/* get mem unlock ucode binary */
 	nvgpu_minion_fw = nvgpu_request_firmware(g, "minion.bin", 0);
@@ -226,8 +238,9 @@ static u32 gv100_nvlink_minion_command_complete(struct gk20a *g, u32 link_id)
 
 	} while (!nvgpu_timeout_expired_msg(&timeout, " minion cmd timeout"));
 
-	if (nvgpu_timeout_peek_expired(&timeout))
+	if (nvgpu_timeout_peek_expired(&timeout)) {
 		return -ETIMEDOUT;
+	}
 
 	nvgpu_log(g, gpu_dbg_nvlink, "minion cmd Complete");
 	return 0;
@@ -243,22 +256,25 @@ int gv100_nvlink_minion_send_command(struct gk20a *g, u32 link_id,
 
 	/* Check last command succeded */
 	err = gv100_nvlink_minion_command_complete(g, link_id);
-	if (err != 0)
+	if (err != 0) {
 		return -EINVAL;
+	}
 
 	nvgpu_log(g, gpu_dbg_nvlink,
 		"sending MINION command 0x%x to link %d", command, link_id);
 
-	if (command == minion_nvlink_dl_cmd_command_configeom_v())
+	if (command == minion_nvlink_dl_cmd_command_configeom_v()) {
 		MINION_REG_WR32(g, minion_misc_0_r(),
 				minion_misc_0_scratch_swrw_0_f(scratch_0));
+	}
 
 	MINION_REG_WR32(g, minion_nvlink_dl_cmd_r(link_id),
 		minion_nvlink_dl_cmd_command_f(command) |
 		minion_nvlink_dl_cmd_fault_f(1));
 
-	if (sync)
+	if (sync) {
 		err = gv100_nvlink_minion_command_complete(g, link_id);
+	}
 
 	return err;
 }
@@ -286,13 +302,15 @@ static int gv100_nvlink_minion_init_uphy(struct gk20a *g, unsigned long mask,
 		master_state = nvl_link_state_state_init_v();
 		slave_state = nvl_link_state_state_init_v();
 
-		if (BIT(master_pll) & link_enable)
+		if (BIT(master_pll) & link_enable) {
 			master_state = nvl_link_state_state_v(
 				g->ops.nvlink.link_get_state(g, master_pll));
+		}
 
-		if (BIT(slave_pll) & link_enable)
+		if (BIT(slave_pll) & link_enable) {
 			slave_state = nvl_link_state_state_v(
 				g->ops.nvlink.link_get_state(g, slave_pll));
+		}
 
 		if ((slave_state != nvl_link_state_state_init_v()) ||
 		   (master_state != nvl_link_state_state_init_v())) {
@@ -355,8 +373,9 @@ static int gv100_nvlink_minion_configure_ac_coupling(struct gk20a *g,
 		err = gv100_nvlink_minion_send_command(g, i,
 			minion_nvlink_dl_cmd_command_setacmode_v(), 0, sync);
 
-		if (err != 0)
+		if (err != 0) {
 			return err;
+		}
 	}
 
 	return err;
@@ -404,8 +423,9 @@ static int gv100_nvlink_minion_lane_disable(struct gk20a *g, u32 link_id,
 	err = gv100_nvlink_minion_send_command(g, link_id,
 			minion_nvlink_dl_cmd_command_lanedisable_v(), 0, sync);
 
-	if (err != 0)
+	if (err != 0) {
 		nvgpu_err(g, " failed to disable lane on %d", link_id);
+	}
 
 	return err;
 }
@@ -421,8 +441,9 @@ static int gv100_nvlink_minion_lane_shutdown(struct gk20a *g, u32 link_id,
 	err = gv100_nvlink_minion_send_command(g, link_id,
 			minion_nvlink_dl_cmd_command_laneshutdown_v(), 0, sync);
 
-	if (err != 0)
+	if (err != 0) {
 		nvgpu_err(g, " failed to shutdown lane on %d", link_id);
+	}
 
 	return err;
 }
@@ -506,16 +527,18 @@ int gv100_nvlink_setup_pll(struct gk20a *g, unsigned long link_mask)
 	do {
 		for_each_set_bit(i, &link_mask, 32) {
 			reg = gk20a_readl(g, TRIM_SYS_NVLINK_STATUS(i));
-			if (trim_sys_nvlink0_status_pll_off_v(reg) == 0)
+			if (trim_sys_nvlink0_status_pll_off_v(reg) == 0) {
 				links_off &= ~BIT(i);
+			}
 		}
 		nvgpu_udelay(5);
 
 	} while((!nvgpu_timeout_expired_msg(&timeout, "timeout on pll on")) &&
 								links_off);
 
-	if (nvgpu_timeout_peek_expired(&timeout))
+	if (nvgpu_timeout_peek_expired(&timeout)) {
 		return -ETIMEDOUT;
+	}
 
 	return 0;
 }
@@ -570,8 +593,9 @@ static int gv100_nvlink_enable_links_pre_top(struct gk20a *g, u32 links)
 		 */
 		if (g->ops.nvlink.rxdet) {
 			err = g->ops.nvlink.rxdet(g, link_id);
-			if (err != 0)
+			if (err != 0) {
 				return err;
+			}
 		}
 
 		/* Enable Link DLPL for AN0 */
@@ -606,8 +630,9 @@ static int gv100_nvlink_enable_links_pre_top(struct gk20a *g, u32 links)
 	nvgpu_log(g, gpu_dbg_nvlink, "enabled_links=0x%08x",
 		g->nvlink.enabled_links);
 
-	if (g->nvlink.enabled_links)
+	if (g->nvlink.enabled_links) {
 		return 0;
+	}
 
 	nvgpu_err(g, " No links were enabled");
 	return -EINVAL;
@@ -633,8 +658,9 @@ static int gv100_nvlink_enable_links_post_top(struct gk20a *g, u32 links)
 			~g->nvlink.initialized_links;
 
 	for_each_set_bit(link_id, &enabled_links, 32) {
-		if (g->ops.nvlink.set_sw_war)
+		if (g->ops.nvlink.set_sw_war) {
 			g->ops.nvlink.set_sw_war(g, link_id);
+		}
 		g->ops.nvlink.intr.init_nvlipt_intr(g, link_id);
 		g->ops.nvlink.intr.enable_link_intr(g, link_id, true);
 
@@ -686,14 +712,16 @@ static int gv100_nvlink_rxcal_en(struct gk20a *g, unsigned long mask)
 			reg = DLPL_REG_RD32(g, link_id,
 						nvl_br0_cfg_status_cal_r());
 
-			if (nvl_br0_cfg_status_cal_rxcal_done_v(reg) == 1)
+			if (nvl_br0_cfg_status_cal_rxcal_done_v(reg) == 1) {
 				break;
+			}
 			nvgpu_udelay(5);
 		} while(!nvgpu_timeout_expired_msg(&timeout,
 						"timeout on rxcal"));
 
-		if (nvgpu_timeout_peek_expired(&timeout))
+		if (nvgpu_timeout_peek_expired(&timeout)) {
 			return -ETIMEDOUT;
+		}
 	}
 
 	return 0;
@@ -713,8 +741,9 @@ int gv100_nvlink_init(struct gk20a *g)
 {
 	int err = 0;
 
-	if (!nvgpu_is_enabled(g, NVGPU_SUPPORT_NVLINK))
+	if (!nvgpu_is_enabled(g, NVGPU_SUPPORT_NVLINK)) {
 		return -ENODEV;
+	}
 
 	err = nvgpu_nvlink_enumerate(g);
 	if (err != 0) {
@@ -796,8 +825,9 @@ int gv100_nvlink_discover_link(struct gk20a *g)
 		ioctrl_info_entry_type = nvlinkip_discovery_common_entry_v(table_entry);
 
 		if (ioctrl_info_entry_type ==
-				nvlinkip_discovery_common_entry_invalid_v())
+				nvlinkip_discovery_common_entry_invalid_v()) {
 			continue;
+		}
 
 		if (ioctrl_info_entry_type ==
 				nvlinkip_discovery_common_entry_enum_v()) {
@@ -966,10 +996,10 @@ int gv100_nvlink_discover_link(struct gk20a *g)
 					NVLINK_MAX_LINKS_SW;
 
 				/* Update Pll master */
-				if (device_table[i].pll_master)
+				if (device_table[i].pll_master) {
 					g->nvlink.links[device_table[i].device_id].pll_master_link_id =
 						g->nvlink.links[device_table[i].device_id].link_id;
-				else {
+				} else {
 					g->nvlink.links[device_table[i].device_id].pll_master_link_id =
 						device_table[i].pll_master_id;
 					g->nvlink.links[device_table[i].device_id].pll_slave_link_id =
@@ -1242,28 +1272,37 @@ u32 gv100_nvlink_link_get_state(struct gk20a *g, u32 link_id)
 u32 gv100_nvlink_link_get_mode(struct gk20a *g, u32 link_id)
 {
 	u32 state;
-	if (!(BIT(link_id) & g->nvlink.discovered_links))
+	if (!(BIT(link_id) & g->nvlink.discovered_links)) {
 		return nvgpu_nvlink_link__last;
+	}
 
 	state = nvl_link_state_state_v(
 			g->ops.nvlink.link_get_state(g, link_id));
 
-	if (state == nvl_link_state_state_init_v())
+	if (state == nvl_link_state_state_init_v()) {
 		return nvgpu_nvlink_link_off;
-	if (state == nvl_link_state_state_hwcfg_v())
+	}
+	if (state == nvl_link_state_state_hwcfg_v()) {
 		return nvgpu_nvlink_link_detect;
-	if (state == nvl_link_state_state_swcfg_v())
+	}
+	if (state == nvl_link_state_state_swcfg_v()) {
 		return nvgpu_nvlink_link_safe;
-	if (state == nvl_link_state_state_active_v())
+	}
+	if (state == nvl_link_state_state_active_v()) {
 		return nvgpu_nvlink_link_hs;
-	if (state == nvl_link_state_state_fault_v())
+	}
+	if (state == nvl_link_state_state_fault_v()) {
 		return nvgpu_nvlink_link_fault;
-	if (state == nvl_link_state_state_rcvy_ac_v())
+	}
+	if (state == nvl_link_state_state_rcvy_ac_v()) {
 		return nvgpu_nvlink_link_rcvy_ac;
-	if (state == nvl_link_state_state_rcvy_sw_v())
+	}
+	if (state == nvl_link_state_state_rcvy_sw_v()) {
 		return nvgpu_nvlink_link_rcvy_sw;
-	if (state == nvl_link_state_state_rcvy_rx_v())
+	}
+	if (state == nvl_link_state_state_rcvy_rx_v()) {
 		return nvgpu_nvlink_link_rcvy_rx;
+	}
 
 	return nvgpu_nvlink_link_off;
 }
@@ -1277,8 +1316,9 @@ int gv100_nvlink_link_set_mode(struct gk20a *g, u32 link_id, u32 mode)
 
 	nvgpu_log(g, gpu_dbg_nvlink, "link :%d, mode:%u", link_id, mode);
 
-	if (!(BIT(link_id) & g->nvlink.enabled_links))
+	if (!(BIT(link_id) & g->nvlink.enabled_links)) {
 		return -EINVAL;
+	}
 
 	state = nvl_link_state_state_v(
 			g->ops.nvlink.link_get_state(g, link_id));
@@ -1385,8 +1425,9 @@ static u32 gv100_nvlink_link_sublink_check_change(struct gk20a *g, u32 link_id)
 		reg = DLPL_REG_RD32(g, link_id, nvl_sublink_change_r());
 
 		if (nvl_sublink_change_status_v(reg) ==
-				nvl_sublink_change_status_done_v())
+				nvl_sublink_change_status_done_v()) {
 			break;
+		}
 		if (nvl_sublink_change_status_v(reg) ==
 				nvl_sublink_change_status_fault_v()) {
 			nvgpu_err(g, "Fault detected in sublink change");
@@ -1395,8 +1436,9 @@ static u32 gv100_nvlink_link_sublink_check_change(struct gk20a *g, u32 link_id)
 		nvgpu_udelay(5);
 	} while(!nvgpu_timeout_expired_msg(&timeout, "timeout on sublink rdy"));
 
-	if (nvgpu_timeout_peek_expired(&timeout))
+	if (nvgpu_timeout_peek_expired(&timeout)) {
 		return -ETIMEDOUT;
+	}
 	return-0;
 }
 
@@ -1408,19 +1450,22 @@ int gv100_nvlink_link_set_sublink_mode(struct gk20a *g, u32 link_id,
 	u32 tx_sublink_state = nvgpu_nvlink_sublink_tx__last;
 	u32 reg;
 
-	if (!(BIT(link_id) & g->nvlink.enabled_links))
+	if (!(BIT(link_id) & g->nvlink.enabled_links)) {
 		return -EINVAL;
+	}
 
 	err = gv100_nvlink_link_sublink_check_change(g, link_id);
-	if (err != 0)
+	if (err != 0) {
 		return err;
+	}
 
-	if (is_rx_sublink)
+	if (is_rx_sublink) {
 		rx_sublink_state = g->ops.nvlink.get_rx_sublink_state(g,
 								link_id);
-	else
+	} else {
 		tx_sublink_state = g->ops.nvlink.get_tx_sublink_state(g,
 								link_id);
+	}
 
 	switch (mode) {
 	case nvgpu_nvlink_sublink_tx_hs:
@@ -1557,8 +1602,9 @@ int gv100_nvlink_link_set_sublink_mode(struct gk20a *g, u32 link_id,
 		nvgpu_err(g, "MODE %u", mode);
 	}
 
-	if (err != 0)
+	if (err != 0) {
 		nvgpu_err(g, " failed on set_sublink_mode");
+	}
 	return err;
 }
 
@@ -1568,32 +1614,41 @@ u32 gv100_nvlink_link_get_sublink_mode(struct gk20a *g, u32 link_id,
 	u32 state;
 
 	if (!(BIT(link_id) & g->nvlink.discovered_links)) {
-		if (!is_rx_sublink)
+		if (!is_rx_sublink) {
 			return nvgpu_nvlink_sublink_tx__last;
+		}
 		return nvgpu_nvlink_sublink_rx__last;
 	}
 
 	if (!is_rx_sublink) {
 		state = g->ops.nvlink.get_tx_sublink_state(g, link_id);
-		if (state == nvl_sl0_slsm_status_tx_primary_state_hs_v())
+		if (state == nvl_sl0_slsm_status_tx_primary_state_hs_v()) {
 			return nvgpu_nvlink_sublink_tx_hs;
-		if (state == nvl_sl0_slsm_status_tx_primary_state_eighth_v())
+		}
+		if (state == nvl_sl0_slsm_status_tx_primary_state_eighth_v()) {
 			return nvgpu_nvlink_sublink_tx_single_lane;
-		if (state == nvl_sl0_slsm_status_tx_primary_state_safe_v())
+		}
+		if (state == nvl_sl0_slsm_status_tx_primary_state_safe_v()) {
 			return nvgpu_nvlink_sublink_tx_safe;
-		if (state == nvl_sl0_slsm_status_tx_primary_state_off_v())
+		}
+		if (state == nvl_sl0_slsm_status_tx_primary_state_off_v()) {
 			return nvgpu_nvlink_sublink_tx_off;
+		}
 		return nvgpu_nvlink_sublink_tx__last;
 	} else {
 		state = g->ops.nvlink.get_rx_sublink_state(g, link_id);
-		if (state == nvl_sl1_slsm_status_rx_primary_state_hs_v())
+		if (state == nvl_sl1_slsm_status_rx_primary_state_hs_v()) {
 			return nvgpu_nvlink_sublink_rx_hs;
-		if (state == nvl_sl1_slsm_status_rx_primary_state_eighth_v())
+		}
+		if (state == nvl_sl1_slsm_status_rx_primary_state_eighth_v()) {
 			return nvgpu_nvlink_sublink_rx_single_lane;
-		if (state == nvl_sl1_slsm_status_rx_primary_state_safe_v())
+		}
+		if (state == nvl_sl1_slsm_status_rx_primary_state_safe_v()) {
 			return nvgpu_nvlink_sublink_rx_safe;
-		if (state == nvl_sl1_slsm_status_rx_primary_state_off_v())
+		}
+		if (state == nvl_sl1_slsm_status_rx_primary_state_off_v()) {
 			return nvgpu_nvlink_sublink_rx_off;
+		}
 		return nvgpu_nvlink_sublink_rx__last;
 	}
 	return nvgpu_nvlink_sublink_tx__last;
@@ -1635,8 +1690,9 @@ int gv100_nvlink_early_init(struct gk20a *g)
 	int err = 0;
 	u32 mc_reset_nvlink_mask;
 
-	if (!nvgpu_is_enabled(g, NVGPU_SUPPORT_NVLINK))
+	if (!nvgpu_is_enabled(g, NVGPU_SUPPORT_NVLINK)) {
 		return -EINVAL;
+	}
 
 	err = nvgpu_bios_get_lpwr_nvlink_table_hdr(g);
 	if (err != 0) {
@@ -1651,8 +1707,9 @@ int gv100_nvlink_early_init(struct gk20a *g)
 	}
 
 	err = g->ops.nvlink.discover_ioctrl(g);
-	if (err != 0)
+	if (err != 0) {
 		goto exit;
+	}
 
 	/* Enable NVLINK in MC */
 	mc_reset_nvlink_mask = BIT32(g->nvlink.ioctrl_table[0].reset_enum);
