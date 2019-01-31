@@ -486,10 +486,14 @@ int nvgpu_pmu_process_init_msg(struct nvgpu_pmu *pmu,
 	if (!pmu->gid_info.valid) {
 		u32 *gid_hdr_data = (u32 *)(gid_data.signature);
 
-		nvgpu_falcon_copy_from_dmem(pmu->flcn,
+		err = nvgpu_falcon_copy_from_dmem(pmu->flcn,
 			pv->get_pmu_init_msg_pmu_sw_mg_off(init),
 			(u8 *)&gid_data,
 			(u32)sizeof(struct pmu_sha1_gid_data), 0);
+		if (err != 0) {
+			nvgpu_err(g, "PMU falcon DMEM copy failed");
+			goto exit;
+		}
 
 		pmu->gid_info.valid =
 			(*gid_hdr_data == PMU_SHA1_GID_SIGNATURE);
