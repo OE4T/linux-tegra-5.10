@@ -1,7 +1,7 @@
 /*
  * tegra194-camera.dtsi: Camera RTCPU DTSI file.
  *
- * Copyright (c) 2016-2018, NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2016-2019, NVIDIA Corporation.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,6 +17,8 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  *
  */
+
+#include <dt-bindings/soc/nvidia,tegra186-hsp.h>
 
 / {
 	aliases { /* RCE is the Camera RTCPU */
@@ -70,11 +72,51 @@
 
 		nvidia,autosuspend-delay-ms = <5000>;
 
+		hsp-vm1 {
+			compatible = "nvidia,tegra-camrtc-hsp-vm";
+			mboxes =
+				<&hsp_rce TEGRA_HSP_MBOX_TYPE_SM TEGRA_HSP_SM_TX(0)>,
+				<&hsp_rce TEGRA_HSP_MBOX_TYPE_SM TEGRA_HSP_SM_RX(1)>,
+				<&hsp_rce TEGRA_HSP_MBOX_TYPE_SS 0>;
+			mbox-names = "vm-tx", "vm-rx", "vm-ss";
+		};
+
+		hsp-vm2 {
+			compatible = "nvidia,tegra-camrtc-hsp-vm";
+			mboxes =
+				<&hsp_rce TEGRA_HSP_MBOX_TYPE_SM TEGRA_HSP_SM_TX(2)>,
+				<&hsp_rce TEGRA_HSP_MBOX_TYPE_SM TEGRA_HSP_SM_RX(3)>,
+				<&hsp_rce TEGRA_HSP_MBOX_TYPE_SS 1>;
+			mbox-names = "vm-tx", "vm-rx", "vm-ss";
+			status = "disabled";
+		};
+
+		hsp-vm3 {
+			compatible = "nvidia,tegra-camrtc-hsp-vm";
+			mboxes =
+				<&hsp_rce TEGRA_HSP_MBOX_TYPE_SM TEGRA_HSP_SM_TX(4)>,
+				<&hsp_rce TEGRA_HSP_MBOX_TYPE_SM TEGRA_HSP_SM_RX(5)>,
+				<&hsp_rce TEGRA_HSP_MBOX_TYPE_SS 2>;
+			mbox-names = "vm-tx", "vm-rx", "vm-ss";
+			status = "disabled";
+		};
+
+		hsp-cem {
+			compatible = "nvidia,tegra-camrtc-hsp-cem";
+			mboxes =
+				<&hsp_rce TEGRA_HSP_MBOX_TYPE_SM TEGRA_HSP_SM_RX(6)>,
+				<&hsp_rce TEGRA_HSP_MBOX_TYPE_SM TEGRA_HSP_SM_TX(7)>,
+				<&hsp_rce TEGRA_HSP_MBOX_TYPE_SS 3>;
+			mbox-names = "cem-rx", "cem-tx", "cem-ss";
+		};
+
 		hsp {
+			/* This is used only if above are not supported */
 			compatible = "nvidia,tegra186-hsp-mailbox";
-			nvidia,hsp-shared-mailbox = <&hsp_rce 1 &hsp_rce 6>;
+			nvidia,hsp-shared-mailbox = <&hsp_rce 1>, <&hsp_rce 6>;
 			nvidia,hsp-shared-mailbox-names = "ivc-pair", "cmd-pair";
 		};
+
 	};
 
 	camera-ivc-channels {
