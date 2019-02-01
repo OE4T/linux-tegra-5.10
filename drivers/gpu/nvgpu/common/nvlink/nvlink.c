@@ -36,7 +36,7 @@ static u32 nvgpu_nvlink_get_link(struct gk20a *g)
 {
 	u32 link_id;
 
-	if (!g) {
+	if (g == NULL) {
 		return NVLINK_MAX_LINKS_SW;
 	}
 

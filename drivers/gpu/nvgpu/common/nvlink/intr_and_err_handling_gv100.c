@@ -163,7 +163,7 @@ bool gv100_nvlink_minion_falcon_isr(struct gk20a *g)
 	intr = MINION_REG_RD32(g, minion_falcon_irqstat_r()) &
 		MINION_REG_RD32(g, minion_falcon_irqmask_r());
 
-	if (!intr) {
+	if (intr == 0U) {
 		return true;
 	}
 
@@ -240,25 +240,25 @@ static bool gv100_nvlink_minion_isr(struct gk20a *g) {
 	intr = MINION_REG_RD32(g, minion_minion_intr_r()) &
 		MINION_REG_RD32(g, minion_minion_intr_stall_en_r());
 
-	if (minion_minion_intr_falcon_stall_v(intr) ||
-			minion_minion_intr_falcon_nostall_v(intr)) {
+	if ((minion_minion_intr_falcon_stall_v(intr) != 0U) ||
+			(minion_minion_intr_falcon_nostall_v(intr) != 0U)) {
 		gv100_nvlink_minion_falcon_isr(g);
 	}
 
-	if (minion_minion_intr_fatal_v(intr)) {
+	if (minion_minion_intr_fatal_v(intr) != 0U) {
 		gv100_nvlink_minion_falcon_intr_enable(g, false);
 		MINION_REG_WR32(g, minion_minion_intr_r(),
 					minion_minion_intr_fatal_f(1));
 	}
 
-	if (minion_minion_intr_nonfatal_v(intr)) {
+	if (minion_minion_intr_nonfatal_v(intr) != 0U) {
 		MINION_REG_WR32(g, minion_minion_intr_r(),
 					minion_minion_intr_nonfatal_f(1));
 	}
 
 	links = minion_minion_intr_link_v(intr) & g->nvlink.enabled_links;
 
-	if (links) {
+	if (links != 0UL) {
 		for_each_set_bit(i, &links, 32) {
 			gv100_nvlink_minion_link_isr(g, i);
 		}
@@ -310,7 +310,7 @@ static void gv100_nvlink_tlc_get_intr(struct gk20a *g, u32 link_id)
 static void gv100_nvlink_tlc_isr(struct gk20a *g, u32 link_id)
 {
 
-	if (g->nvlink.tlc_rx_err_status_0[link_id]) {
+	if (g->nvlink.tlc_rx_err_status_0[link_id] != 0U) {
 		/* All TLC RX 0 errors are fatal. Notify and disable */
 		nvgpu_err(g, "Fatal TLC RX 0 interrupt on link %d mask: %x",
 			link_id, g->nvlink.tlc_rx_err_status_0[link_id]);
@@ -319,7 +319,7 @@ static void gv100_nvlink_tlc_isr(struct gk20a *g, u32 link_id)
 		TLC_REG_WR32(g, link_id, nvtlc_rx_err_status_0_r(),
 				g->nvlink.tlc_rx_err_status_0[link_id]);
 	}
-	if (g->nvlink.tlc_rx_err_status_1[link_id]) {
+	if (g->nvlink.tlc_rx_err_status_1[link_id] != 0U) {
 		/* All TLC RX 1 errors are fatal. Notify and disable */
 		nvgpu_err(g, "Fatal TLC RX 1 interrupt on link %d mask: %x",
 			link_id, g->nvlink.tlc_rx_err_status_1[link_id]);
@@ -328,7 +328,7 @@ static void gv100_nvlink_tlc_isr(struct gk20a *g, u32 link_id)
 		TLC_REG_WR32(g, link_id, nvtlc_rx_err_status_1_r(),
 				g->nvlink.tlc_rx_err_status_1[link_id]);
 	}
-	if (g->nvlink.tlc_tx_err_status_0[link_id]) {
+	if (g->nvlink.tlc_tx_err_status_0[link_id] != 0U) {
 		/* All TLC TX 0 errors are fatal. Notify and disable */
 		nvgpu_err(g, "Fatal TLC TX 0 interrupt on link %d mask: %x",
 			link_id, g->nvlink.tlc_tx_err_status_0[link_id]);
@@ -408,7 +408,7 @@ static void gv100_nvlink_dlpl_isr(struct gk20a *g, u32 link_id)
 	intr = DLPL_REG_RD32(g, link_id, nvl_intr_r()) &
 		DLPL_REG_RD32(g, link_id, nvl_intr_stall_en_r());
 
-	if (!intr) {
+	if (intr == 0U) {
 		return;
 	}
 

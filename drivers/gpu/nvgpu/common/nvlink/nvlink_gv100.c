@@ -107,10 +107,10 @@ static bool gv100_nvlink_minion_is_running(struct gk20a *g)
 {
 
 	/* if minion is booted and not halted, it is running */
-	if ((MINION_REG_RD32(g, minion_minion_status_r()) &
-				minion_minion_status_status_f(1)) &&
-	    (!minion_falcon_irqstat_halt_v(
-			MINION_REG_RD32(g, minion_falcon_irqstat_r())))) {
+	if (((MINION_REG_RD32(g, minion_minion_status_r()) &
+				minion_minion_status_status_f(1)) != 0U) &&
+		((minion_falcon_irqstat_halt_v(
+		MINION_REG_RD32(g, minion_falcon_irqstat_r()))) == 0U)) {
 		return true;
 	}
 
@@ -136,7 +136,7 @@ static int gv100_nvlink_minion_load(struct gk20a *g)
 
 	/* get mem unlock ucode binary */
 	nvgpu_minion_fw = nvgpu_request_firmware(g, "minion.bin", 0);
-	if (!nvgpu_minion_fw) {
+	if (nvgpu_minion_fw == NULL) {
 		nvgpu_err(g, "minion ucode get fail");
 		err = -ENOENT;
 		goto exit;
@@ -185,7 +185,8 @@ static int gv100_nvlink_minion_load(struct gk20a *g)
 		nvgpu_usleep_range(delay, delay * 2);
 		delay = min_t(unsigned long,
 				delay << 1, GR_IDLE_CHECK_MAX);
-	} while (!nvgpu_timeout_expired_msg(&timeout, " minion boot timeout"));
+	} while (nvgpu_timeout_expired_msg(&timeout,
+						"minion boot timeout") == 0);
 
 	/* Service interrupts */
 	g->ops.nvlink.intr.minion_falcon_isr(g);
@@ -239,9 +240,10 @@ static u32 gv100_nvlink_minion_command_complete(struct gk20a *g, u32 link_id)
 		delay = min_t(unsigned long,
 				delay << 1, GR_IDLE_CHECK_MAX);
 
-	} while (!nvgpu_timeout_expired_msg(&timeout, " minion cmd timeout"));
+	} while (nvgpu_timeout_expired_msg(&timeout,
+					"minion cmd timeout") == 0);
 
-	if (nvgpu_timeout_peek_expired(&timeout)) {
+	if (nvgpu_timeout_peek_expired(&timeout) != 0) {
 		return -ETIMEDOUT;
 	}
 
@@ -323,7 +325,7 @@ static int gv100_nvlink_minion_init_uphy(struct gk20a *g, unsigned long mask,
 		}
 
 		/* Check if INIT PLL is done on link */
-		if (!(BIT(master_pll) & g->nvlink.init_pll_done)) {
+		if ((BIT(master_pll) & g->nvlink.init_pll_done) == 0U) {
 			err = gv100_nvlink_minion_send_command(g, master_pll,
 						g->nvlink.initpll_cmd, 0, sync);
 			if (err != 0) {
@@ -536,10 +538,10 @@ int gv100_nvlink_setup_pll(struct gk20a *g, unsigned long link_mask)
 		}
 		nvgpu_udelay(5);
 
-	} while((!nvgpu_timeout_expired_msg(&timeout, "timeout on pll on")) &&
-								links_off);
+	} while ((nvgpu_timeout_expired_msg(&timeout, "timeout on pll on") == 0)
+						&& (links_off != 0U));
 
-	if (nvgpu_timeout_peek_expired(&timeout)) {
+	if (nvgpu_timeout_peek_expired(&timeout) != 0) {
 		return -ETIMEDOUT;
 	}
 
@@ -719,10 +721,10 @@ static int gv100_nvlink_rxcal_en(struct gk20a *g, unsigned long mask)
 				break;
 			}
 			nvgpu_udelay(5);
-		} while(!nvgpu_timeout_expired_msg(&timeout,
-						"timeout on rxcal"));
+		} while (nvgpu_timeout_expired_msg(&timeout,
+						"timeout on rxcal") == 0);
 
-		if (nvgpu_timeout_peek_expired(&timeout)) {
+		if (nvgpu_timeout_peek_expired(&timeout) != 0) {
 			return -ETIMEDOUT;
 		}
 	}
@@ -792,7 +794,8 @@ int gv100_nvlink_discover_link(struct gk20a *g)
 	/*
 	 * Process Entry 0 & 1 of IOCTRL table to find table size
 	 */
-	if (g->nvlink.ioctrl_table && g->nvlink.ioctrl_table[0].pri_base_addr) {
+	if ((g->nvlink.ioctrl_table != NULL) &&
+			(g->nvlink.ioctrl_table[0].pri_base_addr != 0U)) {
 		ioctrl_entry_addr = g->nvlink.ioctrl_table[0].pri_base_addr;
 		table_entry = gk20a_readl(g, ioctrl_entry_addr);
 		ioctrl_info_entry_type = nvlinkip_discovery_common_device_v(table_entry);
@@ -813,7 +816,7 @@ int gv100_nvlink_discover_link(struct gk20a *g)
 
 	device_table = nvgpu_kzalloc(g, ioctrl_discovery_size *
 			sizeof(struct nvgpu_nvlink_device_list));
-	if (!device_table) {
+	if (device_table == NULL) {
 		nvgpu_err(g, " Unable to allocate nvlink device table");
 		return -ENOMEM;
 	}
@@ -1126,7 +1129,7 @@ int gv100_nvlink_discover_link(struct gk20a *g)
 	nvgpu_log(g, gpu_dbg_nvlink, "+ TLC MCAST Base: 0x%08x", g->nvlink.tl_multicast_base);
 	nvgpu_log(g, gpu_dbg_nvlink, "+ MIF MCAST Base: 0x%08x", g->nvlink.mif_multicast_base);
 
-	if (!g->nvlink.minion_version) {
+	if (g->nvlink.minion_version == 0U) {
 		nvgpu_err(g, "Unsupported MINION version");
 
 		nvgpu_kfree(g, device_table);
@@ -1161,7 +1164,7 @@ int gv100_nvlink_discover_ioctrl(struct gk20a *g)
 
 	ioctrl_table = nvgpu_kzalloc(g, ioctrl_num_entries *
 				sizeof(struct nvgpu_nvlink_ioctrl_list));
-	if (!ioctrl_table) {
+	if (ioctrl_table == NULL) {
 		nvgpu_err(g, "Failed to allocate memory for nvlink io table");
 		return -ENOMEM;
 	}
@@ -1171,7 +1174,7 @@ int gv100_nvlink_discover_ioctrl(struct gk20a *g)
 
 		ret = g->ops.top.get_device_info(g, &dev_info,
 						NVGPU_ENGINE_IOCTRL, i);
-		if (ret) {
+		if (ret != 0) {
 			nvgpu_err(g, "Failed to parse dev_info table"
 					"for engine %d",
 					NVGPU_ENGINE_IOCTRL);
@@ -1275,7 +1278,7 @@ u32 gv100_nvlink_link_get_state(struct gk20a *g, u32 link_id)
 u32 gv100_nvlink_link_get_mode(struct gk20a *g, u32 link_id)
 {
 	u32 state;
-	if (!(BIT(link_id) & g->nvlink.discovered_links)) {
+	if ((BIT(link_id) & g->nvlink.discovered_links) == 0U) {
 		return nvgpu_nvlink_link__last;
 	}
 
@@ -1319,7 +1322,7 @@ int gv100_nvlink_link_set_mode(struct gk20a *g, u32 link_id, u32 mode)
 
 	nvgpu_log(g, gpu_dbg_nvlink, "link :%d, mode:%u", link_id, mode);
 
-	if (!(BIT(link_id) & g->nvlink.enabled_links)) {
+	if ((BIT(link_id) & g->nvlink.enabled_links) == 0U) {
 		return -EINVAL;
 	}
 
@@ -1438,9 +1441,10 @@ static u32 gv100_nvlink_link_sublink_check_change(struct gk20a *g, u32 link_id)
 			return -EFAULT;
 		}
 		nvgpu_udelay(5);
-	} while(!nvgpu_timeout_expired_msg(&timeout, "timeout on sublink rdy"));
+	} while (nvgpu_timeout_expired_msg(&timeout,
+					"timeout on sublink rdy") == 0);
 
-	if (nvgpu_timeout_peek_expired(&timeout)) {
+	if (nvgpu_timeout_peek_expired(&timeout) != 0) {
 		return -ETIMEDOUT;
 	}
 	return-0;
@@ -1454,7 +1458,7 @@ int gv100_nvlink_link_set_sublink_mode(struct gk20a *g, u32 link_id,
 	u32 tx_sublink_state = nvgpu_nvlink_sublink_tx__last;
 	u32 reg;
 
-	if (!(BIT(link_id) & g->nvlink.enabled_links)) {
+	if ((BIT(link_id) & g->nvlink.enabled_links) == 0U) {
 		return -EINVAL;
 	}
 
@@ -1619,7 +1623,7 @@ u32 gv100_nvlink_link_get_sublink_mode(struct gk20a *g, u32 link_id,
 {
 	u32 state;
 
-	if (!(BIT(link_id) & g->nvlink.discovered_links)) {
+	if ((BIT(link_id) & g->nvlink.discovered_links) == 0U) {
 		if (!is_rx_sublink) {
 			return nvgpu_nvlink_sublink_tx__last;
 		}

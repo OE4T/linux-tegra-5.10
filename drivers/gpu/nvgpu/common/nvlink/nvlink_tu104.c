@@ -81,10 +81,10 @@ int tu104_nvlink_rxdet(struct gk20a *g, u32 link_id)
 			break;
 		}
 		nvgpu_udelay(NV_NVLINK_TIMEOUT_DELAY_US);
-	} while (!nvgpu_timeout_expired_msg(
+	} while (nvgpu_timeout_expired_msg(
 				&timeout,
 				"RXDET status check timed out on link %u",
-				link_id));
+				link_id) == 0);
 	return -ETIMEDOUT;
 }
 
@@ -121,10 +121,10 @@ int tu104_nvlink_setup_pll(struct gk20a *g, unsigned long link_mask)
 				break;
 			}
 			nvgpu_udelay(NV_NVLINK_TIMEOUT_DELAY_US);
-		} while ((!nvgpu_timeout_expired_msg(&timeout,
+		} while (nvgpu_timeout_expired_msg(&timeout,
 					"Timed out setting pll on link %u",
-					link_id)));
-		if (nvgpu_timeout_peek_expired(&timeout)) {
+					link_id) == 0);
+		if (nvgpu_timeout_peek_expired(&timeout) != 0) {
 			return -ETIMEDOUT;
 		}
 	}
@@ -152,8 +152,8 @@ u32 tu104_nvlink_link_get_tx_sublink_state(struct gk20a *g, u32 link_id)
 			return nvl_sl0_slsm_status_tx_primary_state_v(reg);
 		}
 		nvgpu_udelay(NV_NVLINK_TIMEOUT_DELAY_US);
-	} while (!nvgpu_timeout_expired_msg(&timeout,
-				"Timeout on TX SLSM substate = stable check"));
+	} while (nvgpu_timeout_expired_msg(&timeout,
+			"Timeout on TX SLSM substate = stable check") == 0);
 
 	nvgpu_log(g, gpu_dbg_nvlink, "TX SLSM primary state :%u, substate:%u",
 				nvl_sl0_slsm_status_tx_primary_state_v(reg),
@@ -184,8 +184,8 @@ u32 tu104_nvlink_link_get_rx_sublink_state(struct gk20a *g, u32 link_id)
 			return nvl_sl1_slsm_status_rx_primary_state_v(reg);
 		}
 		nvgpu_udelay(NV_NVLINK_TIMEOUT_DELAY_US);
-	} while (!nvgpu_timeout_expired_msg(&timeout,
-				"Timeout on RX SLSM substate = stable check"));
+	} while (nvgpu_timeout_expired_msg(&timeout,
+			"Timeout on RX SLSM substate = stable check") == 0);
 
 	nvgpu_log(g, gpu_dbg_nvlink, "RX SLSM primary state :%u, substate:%u",
 				nvl_sl1_slsm_status_rx_primary_state_v(reg),
