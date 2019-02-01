@@ -163,8 +163,29 @@ struct nvhost_device_data t23x_vi_thi_info = {
 	.can_powergate		= true,
 };
 
-struct nvhost_device_data t23x_vi6_info = {
-	.devfs_name		= "vi",
+struct nvhost_device_data t23x_vi0_info = {
+	.devfs_name		= "vi0",
+	.class			= NV_VIDEO_STREAMING_VI_CLASS_ID,
+	.keepalive		= true,
+	.autosuspend_delay	= 500,
+	.poweron_reset		= true,
+	.moduleid		= NVHOST_MODULE_VI,
+	.clocks = {
+		{"vi", UINT_MAX},
+		{"vi-const", UINT_MAX},
+		{"nvcsi", 400000000},
+		{"nvcsilp", 204000000},
+	},
+	.version		= NVHOST_ENCODE_FLCN_VER(5, 0),
+	.num_ppc		= 8,
+	.aggregate_constraints	= nvhost_vi6_aggregate_constraints,
+	.can_powergate		= true,
+	.pre_virt_init		= vi6_priv_early_probe,
+	.post_virt_init		= vi6_priv_late_probe,
+};
+
+struct nvhost_device_data t23x_vi1_info = {
+	.devfs_name		= "vi1",
 	.class			= NV_VIDEO_STREAMING_VI_CLASS_ID,
 	.keepalive		= true,
 	.autosuspend_delay	= 500,

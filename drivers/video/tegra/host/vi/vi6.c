@@ -243,8 +243,14 @@ static int vi6_remove(struct platform_device *pdev)
 
 static const struct of_device_id tegra_vi6_of_match[] = {
 	{
+		.name = "vi0",
 		.compatible = "nvidia,tegra234-vi",
-		.data = &t23x_vi6_info,
+		.data = &t23x_vi0_info,
+	},
+	{
+		.name = "vi1",
+		.compatible = "nvidia,tegra234-vi",
+		.data = &t23x_vi1_info,
 	},
 	{ },
 };

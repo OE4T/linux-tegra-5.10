@@ -27,7 +27,8 @@ extern struct nvhost_device_data t23x_host1x_hv_info;
 extern struct nvhost_device_data t23x_host1xb_info;
 #if defined(CONFIG_VIDEO_TEGRA_VI)
 extern struct nvhost_device_data t23x_vi_thi_info;
-extern struct nvhost_device_data t23x_vi6_info;
+extern struct nvhost_device_data t23x_vi0_info;
+extern struct nvhost_device_data t23x_vi1_info;
 #endif
 #if defined(CONFIG_TEGRA_GRHOST_NVCSI)
 extern struct nvhost_device_data t23x_nvcsi_info;
