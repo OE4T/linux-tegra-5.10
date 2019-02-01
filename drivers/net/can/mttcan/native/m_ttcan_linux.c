@@ -1,7 +1,7 @@
 /*
  * "drivers/staging/mttcan/m_ttcan_linux.c"
  *
- * Copyright (c) 2015-2018, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2015-2019, NVIDIA CORPORATION. All rights reserved.
  *
  * References are taken from "Bosch C_CAN controller" at
  * "drivers/net/can/c_can/c_can.c"
@@ -24,7 +24,7 @@
 
 static void mttcan_start(struct net_device *dev);
 
-static __init int mttcan_hw_init(struct mttcan_priv *priv)
+static int mttcan_hw_init(struct mttcan_priv *priv)
 {
 	int err = 0;
 	u32 ie = 0, ttie = 0, gfc_reg = 0;
@@ -123,7 +123,7 @@ static inline void mttcan_hw_deinit(const struct mttcan_priv *priv)
 	ttcan_set_init(ttcan);
 }
 
-static __init int mttcan_hw_reinit(const struct mttcan_priv *priv)
+static int mttcan_hw_reinit(const struct mttcan_priv *priv)
 {
 	int err = 0;
 
