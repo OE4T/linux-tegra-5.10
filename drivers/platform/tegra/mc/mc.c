@@ -2,7 +2,7 @@
  * arch/arm/mach-tegra/mc.c
  *
  * Copyright (C) 2010 Google, Inc.
- * Copyright (C) 2011-2018, NVIDIA Corporation.  All rights reserved.
+ * Copyright (C) 2011-2019, NVIDIA Corporation.  All rights reserved.
  *
  * Author:
  *	Erik Gilling <konkers@google.com>
@@ -365,6 +365,7 @@ err_out:
 __weak const struct of_device_id tegra_mc_of_ids[] = {
 	{ .compatible = "nvidia,tegra-mc" },
 	{ .compatible = "nvidia,tegra-t18x-mc" },
+	{ .compatible = "nvidia,tegra-t19x-mc" },
 	{ }
 };
 
