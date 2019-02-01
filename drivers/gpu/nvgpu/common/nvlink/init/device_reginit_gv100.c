@@ -26,12 +26,12 @@
 #include "device_reginit_gv100.h"
 
 #ifdef CONFIG_TEGRA_NVLINK
-struct __nvlink_reginit {
+struct nvlink_reginit {
 	u32 addr;
 	u32 value;
 };
 
-static const struct __nvlink_reginit  __nvlink_reginit_per_link_tegra[] = {
+static const struct nvlink_reginit  nvlink_reginit_per_link_tegra[] = {
 	/* NVTLC when connected to Tegra */
 	{ 0x300U, 0x00800040U },
 	{ 0x304U, 0x00000000U },
@@ -75,7 +75,7 @@ static const struct __nvlink_reginit  __nvlink_reginit_per_link_tegra[] = {
 	{ 0xC00U, 0x00000001U },
 };
 
-static const struct __nvlink_reginit __nvlink_reginit_per_link_gpu[] = {
+static const struct nvlink_reginit nvlink_reginit_per_link_gpu[] = {
 	/* NVTLC for PEER GPU */
 	{ 0x300U, 0x00800040U },
 	{ 0x304U, 0x00000000U },
@@ -120,18 +120,18 @@ static const struct __nvlink_reginit __nvlink_reginit_per_link_gpu[] = {
 };
 
 static int gv100_nvlink_get_tlc_reginit(enum nvgpu_nvlink_endp endp,
-		struct __nvlink_reginit **reg, u32 *count)
+		struct nvlink_reginit **reg, u32 *count)
 {
 	switch(endp) {
 	case nvgpu_nvlink_endp_tegra:
-		*reg = (struct __nvlink_reginit *)
-			__nvlink_reginit_per_link_tegra;
-		*count = ARRAY_SIZE(__nvlink_reginit_per_link_tegra);
+		*reg = (struct nvlink_reginit *)
+			nvlink_reginit_per_link_tegra;
+		*count = ARRAY_SIZE(nvlink_reginit_per_link_tegra);
 		break;
 	case nvgpu_nvlink_endp_gpu:
-		*reg = (struct __nvlink_reginit *)
-			__nvlink_reginit_per_link_gpu;
-		*count = ARRAY_SIZE(__nvlink_reginit_per_link_gpu);
+		*reg = (struct nvlink_reginit *)
+			nvlink_reginit_per_link_gpu;
+		*count = ARRAY_SIZE(nvlink_reginit_per_link_gpu);
 		break;
 	default:
 		return -EINVAL;
@@ -144,7 +144,7 @@ int gv100_nvlink_reg_init(struct gk20a *g)
 {
 	u32 i = 0;
 	u32 count = 0;
-	struct __nvlink_reginit *reg;
+	struct nvlink_reginit *reg;
 	enum nvgpu_nvlink_endp endp;
 	int err;
 	u32 link_id;

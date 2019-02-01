@@ -46,7 +46,7 @@
 
 #define NVL_DEVICE(str) nvlinkip_discovery_common_device_##str##_v()
 
-static const char *__gv100_device_type_to_str(u32 type)
+static const char *gv100_device_type_to_str(u32 type)
 {
 	if (type == NVL_DEVICE(ioctrl)) {
 		return "IOCTRL";
@@ -84,7 +84,7 @@ static const char *__gv100_device_type_to_str(u32 type)
 /*
  * Function prototypes
  */
-static u32 __gv100_nvlink_get_link_reset_mask(struct gk20a *g);
+static u32 gv100_nvlink_get_link_reset_mask(struct gk20a *g);
 static int gv100_nvlink_rxcal_en(struct gk20a *g, unsigned long mask);
 
 
@@ -103,7 +103,7 @@ static int gv100_nvlink_rxcal_en(struct gk20a *g, unsigned long mask);
 /*
  * Check if minion is up
  */
-static bool __gv100_nvlink_minion_is_running(struct gk20a *g)
+static bool gv100_nvlink_minion_is_running(struct gk20a *g)
 {
 
 	/* if minion is booted and not halted, it is running */
@@ -130,7 +130,7 @@ static u32 gv100_nvlink_minion_load(struct gk20a *g)
 
 	nvgpu_log_fn(g, " ");
 
-	if (__gv100_nvlink_minion_is_running(g)) {
+	if (gv100_nvlink_minion_is_running(g)) {
 		return 0;
 	}
 
@@ -293,7 +293,7 @@ static int gv100_nvlink_minion_init_uphy(struct gk20a *g, unsigned long mask,
 
 	unsigned long link_enable;
 
-	link_enable = __gv100_nvlink_get_link_reset_mask(g);
+	link_enable = gv100_nvlink_get_link_reset_mask(g);
 
 	for_each_set_bit(link_id, &mask, 32) {
 		master_pll = g->nvlink.links[link_id].pll_master_link_id;
@@ -453,7 +453,7 @@ static int gv100_nvlink_minion_lane_shutdown(struct gk20a *g, u32 link_id,
  *******************************************************************************
  */
 
-static u32 __gv100_nvlink_get_link_reset_mask(struct gk20a *g)
+static u32 gv100_nvlink_get_link_reset_mask(struct gk20a *g)
 {
 	u32 reg_data;
 
@@ -462,7 +462,7 @@ static u32 __gv100_nvlink_get_link_reset_mask(struct gk20a *g)
 	return ioctrl_reset_linkreset_v(reg_data);
 }
 
-static u32 __gv100_nvlink_state_load_hal(struct gk20a *g)
+static u32 gv100_nvlink_state_load_hal(struct gk20a *g)
 {
 	unsigned long discovered = g->nvlink.discovered_links;
 
@@ -941,7 +941,7 @@ int gv100_nvlink_discover_link(struct gk20a *g)
 	for (i = 0; i < nvlink_num_devices; i++) {
 		if (device_table[i].valid) {
 			nvgpu_log(g, gpu_dbg_nvlink, "Device %d - %s", i,
-				__gv100_device_type_to_str(
+				gv100_device_type_to_str(
 						device_table[i].device_type));
 			nvgpu_log(g, gpu_dbg_nvlink, "+Link/Device Id: %d", device_table[i].device_id);
 			nvgpu_log(g, gpu_dbg_nvlink, "+Version: %d", device_table[i].device_version);
@@ -1734,7 +1734,7 @@ int gv100_nvlink_early_init(struct gk20a *g)
 		g->nvlink.link_disable_mask);
 
 	/* Links in reset should be removed from initialized link sw state */
-	g->nvlink.initialized_links &= __gv100_nvlink_get_link_reset_mask(g);
+	g->nvlink.initialized_links &= gv100_nvlink_get_link_reset_mask(g);
 
 	/* VBIOS link_disable_mask should be sufficient to find the connected
 	 * links. As VBIOS is not updated with correct mask, we parse the DT
@@ -1761,7 +1761,7 @@ int gv100_nvlink_early_init(struct gk20a *g)
 		goto nvlink_init_exit;
 	}
 
-	err = __gv100_nvlink_state_load_hal(g);
+	err = gv100_nvlink_state_load_hal(g);
 	if (err != 0) {
 		nvgpu_err(g, " failed Nvlink state load");
 		goto nvlink_init_exit;
