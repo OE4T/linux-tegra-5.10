@@ -765,7 +765,7 @@ static int channel_gk20a_alloc_priv_cmdbuf(struct channel_gk20a *c,
 	struct gk20a *g = c->g;
 	struct vm_gk20a *ch_vm = c->vm;
 	struct priv_cmd_queue *q = &c->priv_cmd_q;
-	u32 size;
+	u64 size, tmp_size;
 	int err = 0;
 	bool gpfifo_based = false;
 
@@ -798,12 +798,14 @@ static int channel_gk20a_alloc_priv_cmdbuf(struct channel_gk20a *c,
 	 *
 	 *   num_in_flight * (8 + 10) * 4 bytes
 	 */
-	size = num_in_flight * 18U * (u32)sizeof(u32);
+	size = num_in_flight * 18UL * sizeof(u32);
 	if (gpfifo_based) {
 		size = 2U * size / 3U;
 	}
 
-	size = PAGE_ALIGN(roundup_pow_of_two(size));
+	tmp_size = PAGE_ALIGN(roundup_pow_of_two(size));
+	nvgpu_assert(tmp_size <= U32_MAX);
+	size = (u32)tmp_size;
 
 	err = nvgpu_dma_alloc_map_sys(ch_vm, size, &q->mem);
 	if (err != 0) {
@@ -811,7 +813,9 @@ static int channel_gk20a_alloc_priv_cmdbuf(struct channel_gk20a *c,
 		goto clean_up;
 	}
 
-	q->size = q->mem.size / sizeof (u32);
+	tmp_size = q->mem.size / sizeof(u32);
+	nvgpu_assert(tmp_size <= U32_MAX);
+	q->size = (u32)tmp_size;
 
 	return 0;
 
@@ -914,8 +918,8 @@ int channel_gk20a_alloc_job(struct channel_gk20a *c,
 	int err = 0;
 
 	if (channel_gk20a_is_prealloc_enabled(c)) {
-		int put = c->joblist.pre_alloc.put;
-		int get = c->joblist.pre_alloc.get;
+		u32 put = c->joblist.pre_alloc.put;
+		u32 get = c->joblist.pre_alloc.get;
 
 		/*
 		 * ensure all subsequent reads happen after reading get.
@@ -982,7 +986,7 @@ void channel_gk20a_joblist_unlock(struct channel_gk20a *c)
 static struct channel_gk20a_job *channel_gk20a_joblist_peek(
 		struct channel_gk20a *c)
 {
-	int get;
+	u32 get;
 	struct channel_gk20a_job *job = NULL;
 
 	if (channel_gk20a_is_prealloc_enabled(c)) {
@@ -1025,8 +1029,8 @@ static void channel_gk20a_joblist_delete(struct channel_gk20a *c,
 bool channel_gk20a_joblist_is_empty(struct channel_gk20a *c)
 {
 	if (channel_gk20a_is_prealloc_enabled(c)) {
-		int get = c->joblist.pre_alloc.get;
-		int put = c->joblist.pre_alloc.put;
+		u32 get = c->joblist.pre_alloc.get;
+		u32 put = c->joblist.pre_alloc.put;
 		return !(CIRC_CNT(put, get, c->joblist.pre_alloc.length));
 	}
 
@@ -2319,7 +2323,7 @@ int gk20a_init_channel_support(struct gk20a *g, u32 chid)
 
 	c->g = NULL;
 	c->chid = chid;
-	nvgpu_atomic_set(&c->bound, false);
+	nvgpu_atomic_set(&c->bound, 0);
 	nvgpu_spinlock_init(&c->ref_obtain_lock);
 	nvgpu_atomic_set(&c->ref_count, 0);
 	c->referenceable = false;

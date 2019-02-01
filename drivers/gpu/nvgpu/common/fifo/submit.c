@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -27,6 +27,7 @@
 #include <nvgpu/utils.h>
 #include <nvgpu/channel_sync.h>
 #include <nvgpu/channel_sync_syncpt.h>
+#include <nvgpu/bug.h>
 
 #include <nvgpu/hw/gk20a/hw_pbdma_gk20a.h>
 
@@ -98,7 +99,8 @@ static int nvgpu_submit_prepare_syncs(struct channel_gk20a *c,
 		}
 
 		if (sync_fence) {
-			wait_fence_fd = fence->id;
+			nvgpu_assert(fence->id <= (u32)INT_MAX);
+			wait_fence_fd = (int)fence->id;
 			err = nvgpu_channel_sync_wait_fence_fd(c->sync,
 				wait_fence_fd, job->wait_cmd, max_wait_cmds);
 		} else {
@@ -194,8 +196,8 @@ static void nvgpu_submit_append_priv_cmdbuf(struct channel_gk20a *c,
 			pbdma_gp_entry1_length_f(cmd->size)
 	};
 
-	nvgpu_mem_wr_n(g, gpfifo_mem, c->gpfifo.put * sizeof(x),
-			&x, sizeof(x));
+	nvgpu_mem_wr_n(g, gpfifo_mem, c->gpfifo.put * (u32)sizeof(x),
+			&x, (u32)sizeof(x));
 
 	if (cmd->mem->aperture == APERTURE_SYSMEM) {
 		trace_gk20a_push_cmdbuf(g->name, 0, cmd->size, 0,
@@ -255,9 +257,9 @@ static void nvgpu_submit_append_gpfifo_common(struct channel_gk20a *c,
 	struct nvgpu_mem *gpfifo_mem = &c->gpfifo.mem;
 	/* in bytes */
 	u32 gpfifo_size =
-		c->gpfifo.entry_num * sizeof(struct nvgpu_gpfifo_entry);
-	u32 len = num_entries * sizeof(struct nvgpu_gpfifo_entry);
-	u32 start = c->gpfifo.put * sizeof(struct nvgpu_gpfifo_entry);
+		c->gpfifo.entry_num * (u32)sizeof(struct nvgpu_gpfifo_entry);
+	u32 len = num_entries * (u32)sizeof(struct nvgpu_gpfifo_entry);
+	u32 start = c->gpfifo.put * (u32)sizeof(struct nvgpu_gpfifo_entry);
 	u32 end = start + len; /* exclusive */
 
 	if (end > gpfifo_size) {

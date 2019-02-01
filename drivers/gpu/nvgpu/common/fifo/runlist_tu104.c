@@ -75,7 +75,7 @@ void tu104_fifo_runlist_hw_submit(struct gk20a *g, u32 runlist_id,
 int tu104_fifo_runlist_wait_pending(struct gk20a *g, u32 runlist_id)
 {
 	struct nvgpu_timeout timeout;
-	unsigned long delay = GR_IDLE_CHECK_DEFAULT;
+	u32 delay = GR_IDLE_CHECK_DEFAULT;
 	int ret = -ETIMEDOUT;
 
 	ret = nvgpu_timeout_init(g, &timeout, gk20a_get_gr_idle_timeout(g),
@@ -92,7 +92,7 @@ int tu104_fifo_runlist_wait_pending(struct gk20a *g, u32 runlist_id)
 			break;
 		}
 
-		nvgpu_usleep_range(delay, delay * 2UL);
+		nvgpu_usleep_range(delay, delay * 2U);
 		delay = min_t(u32, delay << 1, GR_IDLE_CHECK_MAX);
 	} while (nvgpu_timeout_expired(&timeout) == 0);
 
