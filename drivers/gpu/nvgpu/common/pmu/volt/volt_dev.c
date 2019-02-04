@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -88,7 +88,7 @@ static int volt_device_pmu_data_init_pwm(struct gk20a *g,
 }
 
 static int construct_volt_device(struct gk20a *g,
-	struct boardobj **ppboardobj, u16 size, void *pargs)
+	struct boardobj **ppboardobj, size_t size, void *pargs)
 {
 	struct voltage_device *ptmp_dev = (struct voltage_device *)pargs;
 	struct voltage_device *pvolt_dev = NULL;
@@ -118,7 +118,7 @@ static int construct_volt_device(struct gk20a *g,
 
 static int construct_pwm_volt_device(struct gk20a *g,
 		struct boardobj **ppboardobj,
-		u16 size, void *pargs)
+		size_t size, void *pargs)
 {
 	struct boardobj *pboard_obj = NULL;
 	struct voltage_device_pwm *ptmp_dev =

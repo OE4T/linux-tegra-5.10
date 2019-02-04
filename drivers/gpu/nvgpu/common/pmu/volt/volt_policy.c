@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -40,7 +40,7 @@ static int volt_policy_pmu_data_init_super(struct gk20a *g,
 }
 
 static int construct_volt_policy(struct gk20a *g,
-	struct boardobj  **ppboardobj, u16 size, void *pArgs)
+	struct boardobj  **ppboardobj, size_t size, void *pArgs)
 {
 	struct voltage_policy *pvolt_policy = NULL;
 	int status = 0;
@@ -58,7 +58,7 @@ static int construct_volt_policy(struct gk20a *g,
 }
 
 static int construct_volt_policy_split_rail(struct gk20a *g,
-	struct boardobj **ppboardobj, u16 size, void *pArgs)
+	struct boardobj **ppboardobj, size_t size, void *pArgs)
 {
 	struct voltage_policy_split_rail *ptmp_policy  =
 			(struct voltage_policy_split_rail *)pArgs;
@@ -83,7 +83,7 @@ static int construct_volt_policy_split_rail(struct gk20a *g,
 }
 
 static int construct_volt_policy_single_rail(struct gk20a *g,
-	struct boardobj **ppboardobj, u16 size, void *pArgs)
+	struct boardobj **ppboardobj, size_t size, void *pArgs)
 {
 	struct voltage_policy_single_rail *ptmp_policy  =
 			(struct voltage_policy_single_rail *)pArgs;
@@ -124,7 +124,7 @@ done:
 }
 
 static int volt_construct_volt_policy_single_rail(struct gk20a *g,
-	struct boardobj **ppboardobj, u16 size, void *pArgs)
+	struct boardobj **ppboardobj, size_t size, void *pArgs)
 {
 	struct boardobj *pboardobj = NULL;
 	int status = 0;
@@ -165,7 +165,7 @@ done:
 }
 
 static int volt_construct_volt_policy_single_rail_multi_step(struct gk20a *g,
-	struct boardobj **ppboardobj, u16 size, void *pargs)
+	struct boardobj **ppboardobj, size_t size, void *pargs)
 {
 	struct boardobj *pboardobj   = NULL;
 	struct voltage_policy_single_rail_multi_step *p_volt_policy = NULL;
@@ -222,7 +222,7 @@ done:
 }
 
 static int volt_construct_volt_policy_split_rail_single_step(struct gk20a *g,
-	struct boardobj **ppboardobj, u16 size, void *pargs)
+	struct boardobj **ppboardobj, size_t size, void *pargs)
 {
 	struct boardobj *pboardobj   = NULL;
 	int status = 0;
