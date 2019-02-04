@@ -19,6 +19,7 @@
 #include "os/linux/debug_therm_gp106.h"
 #include "os/linux/debug_clk_gv100.h"
 #include "os/linux/debug_volt.h"
+#include "os/linux/debug_s_param.h"
 
 static struct nvgpu_os_linux_ops tu104_os_linux_ops = {
 	.therm = {
@@ -30,6 +31,9 @@ static struct nvgpu_os_linux_ops tu104_os_linux_ops = {
 	.volt = {
 		.init_debugfs = nvgpu_volt_init_debugfs,
 	},
+	.s_param = {
+		.init_debugfs = nvgpu_s_param_init_debugfs,
+	},
 };
 
 void nvgpu_tu104_init_os_ops(struct nvgpu_os_linux *l)
@@ -37,4 +41,5 @@ void nvgpu_tu104_init_os_ops(struct nvgpu_os_linux *l)
 	l->ops.therm = tu104_os_linux_ops.therm;
 	l->ops.clk = tu104_os_linux_ops.clk;
 	l->ops.volt = tu104_os_linux_ops.volt;
+	l->ops.s_param = tu104_os_linux_ops.s_param;
 }

@@ -536,6 +536,7 @@ struct vbios_vfe_3x_equ_entry_struct {
 
 #define VFIELD_CODE(pvregentry) ((pvregentry->strap_reg_desc & 0xE0U) >> 5U)
 
+#define VFIELD_ID_S_PARAM                       0x07U
 #define VFIELD_ID_STRAP_IDDQ                    0x09U
 #define VFIELD_ID_STRAP_IDDQ_1                  0x0BU
 

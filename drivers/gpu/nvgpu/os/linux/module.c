@@ -241,6 +241,14 @@ int nvgpu_finalize_poweron_linux(struct nvgpu_os_linux *l)
 		}
 	}
 
+	if (l->ops.s_param.init_debugfs) {
+		err = l->ops.s_param.init_debugfs(g);
+		if (err) {
+			nvgpu_err(g, "failed to init linux s_param trace debugfs");
+			return err;
+		}
+	}
+
 	err = nvgpu_pmgr_init_debugfs_linux(l);
 	if (err) {
 		nvgpu_err(g, "failed to init linux pmgr debugfs");

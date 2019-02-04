@@ -56,6 +56,10 @@ struct nvgpu_os_linux_ops {
 	struct {
 		int (*init_debugfs)(struct gk20a *g);
 	} volt;
+
+	struct {
+		int (*init_debugfs)(struct gk20a *g);
+	} s_param;
 };
 
 struct nvgpu_os_linux {

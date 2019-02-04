@@ -102,6 +102,85 @@ static int vfe_vars_pmustatus_instget(struct gk20a *g, void *pboardobjgrppmu,
 	return 0;
 }
 
+static int vfe_var_get_s_param_value(struct gk20a *g,
+		struct vfe_var_single_sensed_fuse *fuse_value,
+		struct nv_pmu_boardobj *ppmudata)
+{
+    struct nv_pmu_perf_vfe_var_single_sensed_fuse_get_status *pstatus;
+    pstatus = (struct nv_pmu_perf_vfe_var_single_sensed_fuse_get_status *)
+		(void *)ppmudata;
+
+    nvgpu_log_info(g, " ");
+
+    if (pstatus->super.board_obj.type !=
+    		fuse_value->super.super.super.super.type) {
+    	nvgpu_err(g,"pmu data and boardobj type not matching");
+        return -EINVAL;
+    }
+
+    if(pstatus->fuse_value_integer.b_signed) {
+        fuse_value->b_fuse_value_signed =
+        	pstatus->fuse_value_integer.b_signed;
+        fuse_value->fuse_value_integer =
+        	(u32)pstatus->fuse_value_integer.data.signed_value;
+        fuse_value->fuse_value_hw_integer =
+        	(u32)pstatus->fuse_value_hw_integer.data.signed_value;
+    } else {
+        fuse_value->b_fuse_value_signed =
+        	pstatus->fuse_value_integer.b_signed;
+        fuse_value->fuse_value_integer =
+        	pstatus->fuse_value_integer.data.unsigned_value;
+        fuse_value->fuse_value_hw_integer =
+        	pstatus->fuse_value_hw_integer.data.unsigned_value;
+    }
+    return 0;
+}
+
+int nvgpu_vfe_var_boardobj_grp_get_status(struct gk20a *g) {
+    struct boardobjgrp *pboardobjgrp;
+    struct boardobjgrpmask *pboardobjgrpmask;
+    struct nv_pmu_boardobjgrp_super *pboardobjgrppmu;
+    struct boardobj *pboardobj = NULL;
+    struct nv_pmu_boardobj_query *pboardobjpmustatus = NULL;
+    struct vfe_var_single_sensed_fuse *single_sensed_fuse = NULL;
+    int status;
+    u8 index;
+
+    nvgpu_log_info(g, " ");
+    pboardobjgrp = &g->perf_pmu->vfe_varobjs.super.super;
+    pboardobjgrpmask = &g->perf_pmu->vfe_varobjs.super.mask.super;
+    status = pboardobjgrp->pmugetstatus(g, pboardobjgrp, pboardobjgrpmask);
+    if (status != 0) {
+        nvgpu_err(g, "err getting boardobjs from pmu");
+        return status;
+    }
+    pboardobjgrppmu = pboardobjgrp->pmu.getstatus.buf;
+
+    BOARDOBJGRP_FOR_EACH(pboardobjgrp, struct boardobj*, pboardobj, index) {
+        single_sensed_fuse = (struct vfe_var_single_sensed_fuse *)
+				(void *)pboardobj;
+        status = pboardobjgrp->pmustatusinstget(g,
+        		(struct nv_pmu_boardobjgrp *)(void *)pboardobjgrppmu,
+				&pboardobjpmustatus, index);
+        if (status != 0) {
+            nvgpu_err(g, "could not get status object instance");
+            return status;
+        }
+       /* At present we are updating only s_param,
+        * in future we can add other fields if required */
+        if (single_sensed_fuse->vfield_info.v_field_id ==
+        	VFIELD_ID_S_PARAM) {
+        	status = vfe_var_get_s_param_value(g, single_sensed_fuse,
+        			(struct nv_pmu_boardobj *)(void *)pboardobjpmustatus);
+        	if (status != 0) {
+        		nvgpu_err(g, "could not get single sensed fuse value");
+        		return status;
+        	}
+        	break;
+        }
+    }
+    return 0;
+}
 
 int vfe_var_sw_setup(struct gk20a *g)
 {

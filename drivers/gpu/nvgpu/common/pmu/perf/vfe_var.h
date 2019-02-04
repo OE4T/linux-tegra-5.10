@@ -106,4 +106,6 @@ struct vfe_var_single_sensed_temp {
 	int temp_default;
 };
 
+int nvgpu_vfe_var_boardobj_grp_get_status(struct gk20a *g);
+
 #endif /* NVGPU_PERF_VFE_VAR_H */
