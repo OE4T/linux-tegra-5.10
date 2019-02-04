@@ -96,7 +96,7 @@ int nvgpu_lpwr_enable_pg(struct gk20a *g, bool pstate_lock);
 int nvgpu_lpwr_disable_pg(struct gk20a *g, bool pstate_lock);
 bool nvgpu_lpwr_is_mscg_supported(struct gk20a *g, u32 pstate_num);
 bool nvgpu_lpwr_is_rppg_supported(struct gk20a *g, u32 pstate_num);
-u32 nvgpu_lpwr_post_init(struct gk20a *g);
+int nvgpu_lpwr_post_init(struct gk20a *g);
 
 int init_rppg(struct gk20a *g);
 

@@ -24,6 +24,7 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/pmu/pstate.h>
 #include <nvgpu/pmu/lpwr.h>
+#include <nvgpu/bug.h>
 
 #include "gp106/bios_gp106.h"
 
@@ -54,11 +55,12 @@ static int rppg_send_cmd(struct gk20a *g, struct nv_pmu_rppg_cmd *prppg_cmd)
 	u32 seq;
 	int status = 0;
 	u32 success = 0;
+	size_t tmp_size = PMU_CMD_HDR_SIZE + sizeof(struct nv_pmu_rppg_cmd);
 
 	(void) memset(&cmd, 0, sizeof(struct pmu_cmd));
 	cmd.hdr.unit_id = PMU_UNIT_PG;
-	cmd.hdr.size   = PMU_CMD_HDR_SIZE +
-			sizeof(struct nv_pmu_rppg_cmd);
+	nvgpu_assert(tmp_size <= U8_MAX);
+	cmd.hdr.size = (u8)tmp_size;
 
 	cmd.cmd.pg.rppg_cmd.cmn.cmd_type = PMU_PMU_PG_CMD_ID_RPPG;
 	cmd.cmd.pg.rppg_cmd.cmn.cmd_id   = prppg_cmd->cmn.cmd_id;

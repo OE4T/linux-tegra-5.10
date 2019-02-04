@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -235,7 +235,8 @@ static void nvgpu_pmu_handle_param_lpwr_msg(struct gk20a *g,
 int nvgpu_lwpr_mclk_change(struct gk20a *g, u32 pstate)
 {
 	struct pmu_cmd cmd;
-	u32 seq, status = 0;
+	u32 seq;
+	int status = 0;
 	u32 payload = NV_PMU_PG_PARAM_MCLK_CHANGE_MS_SWASR_ENABLED;
 	struct clk_set_info *pstate_info;
 	u32 ack_status = 0;
@@ -255,11 +256,13 @@ int nvgpu_lwpr_mclk_change(struct gk20a *g, u32 pstate)
 	}
 
 	if (payload != g->perf_pmu->lpwr.mclk_change_cache) {
+		size_t tmp_size = PMU_CMD_HDR_SIZE +
+			sizeof(struct pmu_pg_cmd_mclk_change);
 		g->perf_pmu->lpwr.mclk_change_cache = payload;
 
 		cmd.hdr.unit_id = PMU_UNIT_PG;
-		cmd.hdr.size = PMU_CMD_HDR_SIZE +
-			sizeof(struct pmu_pg_cmd_mclk_change);
+		nvgpu_assert(tmp_size <= U8_MAX);
+		cmd.hdr.size = (u8)(tmp_size);
 		cmd.cmd.pg.mclk_change.cmd_type =
 			PMU_PG_CMD_ID_PG_PARAM;
 		cmd.cmd.pg.mclk_change.cmd_id =
@@ -282,17 +285,20 @@ int nvgpu_lwpr_mclk_change(struct gk20a *g, u32 pstate)
 	return status;
 }
 
-u32 nvgpu_lpwr_post_init(struct gk20a *g)
+int nvgpu_lpwr_post_init(struct gk20a *g)
 {
 	struct pmu_cmd cmd;
 	u32 seq;
-	u32 status = 0;
+	int status = 0;
 	u32 ack_status = 0;
+	size_t tmp_size = PMU_CMD_HDR_SIZE +
+		sizeof(struct pmu_pg_cmd_post_init_param);
 
 	(void) memset(&cmd, 0, sizeof(struct pmu_cmd));
+
 	cmd.hdr.unit_id = PMU_UNIT_PG;
-	cmd.hdr.size   = PMU_CMD_HDR_SIZE +
-		sizeof(struct pmu_pg_cmd_post_init_param);
+	nvgpu_assert(tmp_size <= U8_MAX);
+	cmd.hdr.size   = (u8)tmp_size;
 
 	cmd.cmd.pg.post_init.cmd_type =
 		PMU_PG_CMD_ID_PG_PARAM;
@@ -364,7 +370,7 @@ bool nvgpu_lpwr_is_rppg_supported(struct gk20a *g, u32 pstate_num)
 int nvgpu_lpwr_enable_pg(struct gk20a *g, bool pstate_lock)
 {
 	struct nvgpu_pmu *pmu = &g->pmu;
-	u32  status = 0;
+	int  status = 0;
 	bool is_mscg_supported = false;
 	bool is_rppg_supported = false;
 	u32 present_pstate = 0;

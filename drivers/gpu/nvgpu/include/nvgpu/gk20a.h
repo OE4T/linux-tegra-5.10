@@ -1232,7 +1232,7 @@ struct gpu_ops {
 			u32 feature_id);
 		int (*pmu_lpwr_enable_pg)(struct gk20a *g, bool pstate_lock);
 		int (*pmu_lpwr_disable_pg)(struct gk20a *g, bool pstate_lock);
-		u32 (*pmu_pg_param_post_init)(struct gk20a *g);
+		int (*pmu_pg_param_post_init)(struct gk20a *g);
 		void (*dump_secure_fuses)(struct gk20a *g);
 		int (*reset_engine)(struct gk20a *g, bool do_reset);
 		bool (*is_engine_in_reset)(struct gk20a *g);
