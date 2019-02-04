@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -21,7 +21,7 @@
 
 #include <linux/mm.h>
 
-#include "vgpu/fecs_trace_vgpu.h"
+#include "common/vgpu/fecs_trace_vgpu.h"
 
 void vgpu_fecs_trace_data_update(struct gk20a *g)
 {

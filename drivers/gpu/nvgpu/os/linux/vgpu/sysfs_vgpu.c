@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -19,7 +19,7 @@
 
 #include "os/linux/platform_gk20a.h"
 #include "os/linux/os_linux.h"
-#include "vgpu/ecc_vgpu.h"
+#include "common/vgpu/ecc_vgpu.h"
 
 static ssize_t vgpu_load_show(struct device *dev,
 			      struct device_attribute *attr,

@@ -307,28 +307,28 @@ srcs += common/sim.c \
 	tu104/sec2_tu104.c	\
 	tu104/func_tu104.c	\
 	tu104/fecs_trace_tu104.c \
-	vgpu/vgpu.c		\
-	vgpu/fifo_vgpu.c	\
-	vgpu/tsg_vgpu.c		\
-	vgpu/css_vgpu.c		\
-	vgpu/fecs_trace_vgpu.c	\
-	vgpu/mm_vgpu.c		\
-	vgpu/gr_vgpu.c		\
-	vgpu/clk_vgpu.c		\
-	vgpu/dbg_vgpu.c		\
-	vgpu/ltc_vgpu.c		\
-	vgpu/ce2_vgpu.c		\
-	vgpu/gv11b/vgpu_gv11b.c	\
-	vgpu/gv11b/vgpu_hal_gv11b.c \
-	vgpu/gv11b/vgpu_fifo_gv11b.c \
-	vgpu/gv11b/vgpu_tsg_gv11b.c \
-	vgpu/gv11b/vgpu_subctx_gv11b.c \
-	vgpu/gv11b/vgpu_gr_gv11b.c \
-	vgpu/gp10b/vgpu_hal_gp10b.c \
-	vgpu/gp10b/vgpu_fuse_gp10b.c \
-	vgpu/gp10b/vgpu_mm_gp10b.c \
-	vgpu/gp10b/vgpu_gr_gp10b.c \
-	vgpu/gm20b/vgpu_gr_gm20b.c
+	common/vgpu/vgpu.c \
+	common/vgpu/fifo_vgpu.c	\
+	common/vgpu/tsg_vgpu.c \
+	common/vgpu/css_vgpu.c \
+	common/vgpu/fecs_trace_vgpu.c \
+	common/vgpu/mm_vgpu.c \
+	common/vgpu/gr_vgpu.c \
+	common/vgpu/clk_vgpu.c \
+	common/vgpu/dbg_vgpu.c \
+	common/vgpu/ltc_vgpu.c \
+	common/vgpu/ce2_vgpu.c \
+	common/vgpu/gv11b/vgpu_gv11b.c \
+	common/vgpu/gv11b/vgpu_hal_gv11b.c \
+	common/vgpu/gv11b/vgpu_fifo_gv11b.c \
+	common/vgpu/gv11b/vgpu_tsg_gv11b.c \
+	common/vgpu/gv11b/vgpu_subctx_gv11b.c \
+	common/vgpu/gv11b/vgpu_gr_gv11b.c \
+	common/vgpu/gp10b/vgpu_hal_gp10b.c \
+	common/vgpu/gp10b/vgpu_fuse_gp10b.c \
+	common/vgpu/gp10b/vgpu_mm_gp10b.c \
+	common/vgpu/gp10b/vgpu_gr_gp10b.c \
+	common/vgpu/gm20b/vgpu_gr_gm20b.c
 
 ifeq ($(NVGPU_DEBUGGER),1)
 srcs += common/debugger.c

@@ -383,29 +383,29 @@ nvgpu-$(CONFIG_GK20A_VIDMEM) += \
 	common/mm/vidmem.o
 
 nvgpu-$(CONFIG_TEGRA_GR_VIRTUALIZATION) += \
-	vgpu/ltc_vgpu.o \
-	vgpu/gr_vgpu.o \
-	vgpu/fifo_vgpu.o \
-	vgpu/ce2_vgpu.o \
-	vgpu/mm_vgpu.o \
-	vgpu/vgpu.o \
-	vgpu/dbg_vgpu.o \
-	vgpu/tsg_vgpu.o \
-	vgpu/css_vgpu.o \
-	vgpu/ecc_vgpu.o \
-	vgpu/clk_vgpu.o \
-	vgpu/fecs_trace_vgpu.o \
-	vgpu/gm20b/vgpu_gr_gm20b.o \
-	vgpu/gp10b/vgpu_hal_gp10b.o  \
-	vgpu/gp10b/vgpu_gr_gp10b.o  \
-	vgpu/gp10b/vgpu_fuse_gp10b.o  \
-	vgpu/gp10b/vgpu_mm_gp10b.o \
-	vgpu/gv11b/vgpu_gv11b.o \
-	vgpu/gv11b/vgpu_hal_gv11b.o \
-	vgpu/gv11b/vgpu_gr_gv11b.o \
-	vgpu/gv11b/vgpu_fifo_gv11b.o \
-	vgpu/gv11b/vgpu_subctx_gv11b.o \
-	vgpu/gv11b/vgpu_tsg_gv11b.o \
+	common/vgpu/ltc_vgpu.o \
+	common/vgpu/gr_vgpu.o \
+	common/vgpu/fifo_vgpu.o \
+	common/vgpu/ce2_vgpu.o \
+	common/vgpu/mm_vgpu.o \
+	common/vgpu/vgpu.o \
+	common/vgpu/dbg_vgpu.o \
+	common/vgpu/tsg_vgpu.o \
+	common/vgpu/css_vgpu.o \
+	common/vgpu/ecc_vgpu.o \
+	common/vgpu/clk_vgpu.o \
+	common/vgpu/fecs_trace_vgpu.o \
+	common/vgpu/gm20b/vgpu_gr_gm20b.o \
+	common/vgpu/gp10b/vgpu_hal_gp10b.o  \
+	common/vgpu/gp10b/vgpu_gr_gp10b.o  \
+	common/vgpu/gp10b/vgpu_fuse_gp10b.o  \
+	common/vgpu/gp10b/vgpu_mm_gp10b.o \
+	common/vgpu/gv11b/vgpu_gv11b.o \
+	common/vgpu/gv11b/vgpu_hal_gv11b.o \
+	common/vgpu/gv11b/vgpu_gr_gv11b.o \
+	common/vgpu/gv11b/vgpu_fifo_gv11b.o \
+	common/vgpu/gv11b/vgpu_subctx_gv11b.o \
+	common/vgpu/gv11b/vgpu_tsg_gv11b.o \
 
 nvgpu-$(CONFIG_GK20A_CYCLE_STATS) += \
 	common/perf/cyclestats_snapshot.o

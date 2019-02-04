@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -21,7 +21,7 @@
 #include <nvgpu/nvhost.h>
 #include <nvgpu/gk20a.h>
 
-#include "vgpu/clk_vgpu.h"
+#include "common/vgpu/clk_vgpu.h"
 #include "os/linux/platform_gk20a.h"
 #include "os/linux/os_linux.h"
 #include "os/linux/vgpu/vgpu_linux.h"

@@ -37,8 +37,8 @@
 #include <nvgpu/clk_arb.h>
 
 #include "vgpu_linux.h"
-#include "vgpu/fecs_trace_vgpu.h"
-#include "vgpu/clk_vgpu.h"
+#include "common/vgpu/fecs_trace_vgpu.h"
+#include "common/vgpu/clk_vgpu.h"
 #include "gm20b/hal_gm20b.h"
 
 #include "os/linux/module.h"

@@ -1,5 +1,7 @@
 /*
- * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Virtualized GPU CE2
+ *
+ * Copyright (c) 2015-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -22,23 +24,12 @@
 
 #include <nvgpu/gk20a.h>
 
-#include "vgpu/gr_vgpu.h"
-#include "vgpu_subctx_gv11b.h"
-#include "vgpu_gr_gv11b.h"
+#include <nvgpu/bug.h>
+#include <nvgpu/vgpu/vgpu.h>
 
-int vgpu_gr_gv11b_commit_inst(struct channel_gk20a *c, u64 gpu_va)
+u32 vgpu_ce_get_num_pce(struct gk20a *g)
 {
-	int err;
+	struct vgpu_priv_data *priv = vgpu_get_priv_data(g);
 
-	err = vgpu_gv11b_alloc_subctx_header(c);
-	if (err) {
-		return err;
-	}
-
-	err = vgpu_gr_commit_inst(c, gpu_va);
-	if (err) {
-		vgpu_gv11b_free_subctx_header(c);
-	}
-
-	return err;
+	return priv->constants.num_pce;
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -24,66 +24,83 @@
 #include "common/bus/bus_gm20b.h"
 #include "common/priv_ring/priv_ring_gm20b.h"
 #include "common/priv_ring/priv_ring_gp10b.h"
-#include "common/clock_gating/gp10b_gating_reglist.h"
+#include "common/clock_gating/gv11b_gating_reglist.h"
 #include "common/fb/fb_gm20b.h"
 #include "common/fb/fb_gp10b.h"
-#include "common/netlist/netlist_gp10b.h"
+#include "common/fb/fb_gv11b.h"
+#include "common/netlist/netlist_gv11b.h"
 #include "common/gr/ctxsw_prog/ctxsw_prog_gm20b.h"
 #include "common/gr/ctxsw_prog/ctxsw_prog_gp10b.h"
-#include "common/gr/config/gr_config_gm20b.h"
+#include "common/gr/ctxsw_prog/ctxsw_prog_gv11b.h"
 #include "common/therm/therm_gm20b.h"
 #include "common/therm/therm_gp10b.h"
+#include "common/therm/therm_gv11b.h"
 #include "common/ltc/ltc_gm20b.h"
 #include "common/ltc/ltc_gp10b.h"
+#include "common/ltc/ltc_gv11b.h"
 #include "common/fuse/fuse_gm20b.h"
 #include "common/fuse/fuse_gp10b.h"
-#include "common/regops/regops_gp10b.h"
-#include "common/fifo/runlist_gk20a.h"
-#include "common/fifo/channel_gm20b.h"
+#include "common/sync/syncpt_cmdbuf_gv11b.h"
+#include "common/sync/sema_cmdbuf_gv11b.h"
+#include "common/regops/regops_gv11b.h"
+#include "common/fifo/runlist_gv11b.h"
+#include "common/fifo/channel_gv11b.h"
+#include "common/fifo/engine_status_gv100.h"
 
-#include "vgpu/fifo_vgpu.h"
-#include "vgpu/gr_vgpu.h"
-#include "vgpu/ltc_vgpu.h"
-#include "vgpu/mm_vgpu.h"
-#include "vgpu/dbg_vgpu.h"
-#include "vgpu/fecs_trace_vgpu.h"
-#include "vgpu/css_vgpu.h"
-#include "gp10b/gp10b.h"
-#include "gp10b/hal_gp10b.h"
-#include "vgpu/gm20b/vgpu_gr_gm20b.h"
-#include "vgpu_gr_gp10b.h"
-#include "vgpu_mm_gp10b.h"
-#include "vgpu_fuse_gp10b.h"
+#include <nvgpu/gk20a.h>
+#include <gv11b/hal_gv11b.h>
+#include <nvgpu/vgpu/vgpu.h>
+#include <nvgpu/error_notifier.h>
+
+#include "common/vgpu/fifo_vgpu.h"
+#include "common/vgpu/gr_vgpu.h"
+#include "common/vgpu/ltc_vgpu.h"
+#include "common/vgpu/mm_vgpu.h"
+#include "common/vgpu/dbg_vgpu.h"
+#include "common/vgpu/fecs_trace_vgpu.h"
+#include "common/vgpu/css_vgpu.h"
+#include "common/vgpu/gm20b/vgpu_gr_gm20b.h"
+#include "common/vgpu/gp10b/vgpu_mm_gp10b.h"
+#include "common/vgpu/gp10b/vgpu_gr_gp10b.h"
 
 #include "common/falcon/falcon_gk20a.h"
-#include "common/sync/syncpt_cmdbuf_gk20a.h"
-#include "common/sync/sema_cmdbuf_gk20a.h"
 
-#include "gp10b/mm_gp10b.h"
-#include "gp10b/ce_gp10b.h"
+#include <gm20b/gr_gm20b.h>
+#include <gm20b/fifo_gm20b.h>
+#include <gm20b/mm_gm20b.h>
+
+#include <gp10b/mm_gp10b.h>
+#include <gp10b/ce_gp10b.h>
 #include "gp10b/gr_gp10b.h"
-#include "gp10b/fifo_gp10b.h"
+#include <gp10b/fifo_gp10b.h>
 #include "gp10b/clk_arb_gp10b.h"
 
-#include "gm20b/gr_gm20b.h"
-#include "gm20b/fifo_gm20b.h"
-#include "gm20b/mm_gm20b.h"
+#include <gv11b/mm_gv11b.h>
+#include <gv11b/ce_gv11b.h>
+#include <gv11b/fifo_gv11b.h>
+#include <gv11b/gr_gv11b.h>
+
+#include <gv100/gr_gv100.h>
 
 #include "gk20a/fecs_trace_gk20a.h"
 
 #include <nvgpu/debugger.h>
 #include <nvgpu/enabled.h>
-#include <nvgpu/vgpu/vgpu.h>
-#include <nvgpu/error_notifier.h>
 #include <nvgpu/channel.h>
 
-#include <nvgpu/hw/gp10b/hw_top_gp10b.h>
-#include <nvgpu/hw/gp10b/hw_pram_gp10b.h>
-#include <nvgpu/hw/gp10b/hw_pwr_gp10b.h>
+#include "vgpu_gv11b.h"
+#include "vgpu_gr_gv11b.h"
+#include "vgpu_fifo_gv11b.h"
+#include "vgpu_subctx_gv11b.h"
+#include "vgpu_tsg_gv11b.h"
 
-static const struct gpu_ops vgpu_gp10b_ops = {
+#include <nvgpu/hw/gv11b/hw_top_gv11b.h>
+#include <nvgpu/hw/gv11b/hw_pwr_gv11b.h>
+
+static const struct gpu_ops vgpu_gv11b_ops = {
 	.ltc = {
 		.determine_L2_size_bytes = vgpu_determine_L2_size_bytes,
+		.set_zbc_s_entry = NULL,
 		.set_zbc_color_entry = NULL,
 		.set_zbc_depth_entry = NULL,
 		.init_cbc = NULL,
@@ -91,7 +108,6 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 		.init_comptags = vgpu_ltc_init_comptags,
 		.cbc_ctrl = NULL,
 		.isr = NULL,
-		.cbc_fix_config = NULL,
 		.flush = NULL,
 		.set_enabled = NULL,
 		.pri_is_ltc_addr = gm20b_ltc_pri_is_ltc_addr,
@@ -106,13 +122,12 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 		.get_num_pce = vgpu_ce_get_num_pce,
 	},
 	.gr = {
-		.get_patch_slots = gr_gk20a_get_patch_slots,
 		.init_gpc_mmu = NULL,
-		.bundle_cb_defaults = gr_gm20b_bundle_cb_defaults,
-		.cb_size_default = gr_gp10b_cb_size_default,
+		.bundle_cb_defaults = gr_gv11b_bundle_cb_defaults,
+		.cb_size_default = gr_gv11b_cb_size_default,
 		.calc_global_ctx_buffer_size =
-			gr_gp10b_calc_global_ctx_buffer_size,
-		.commit_global_attrib_cb = gr_gp10b_commit_global_attrib_cb,
+			gr_gv11b_calc_global_ctx_buffer_size,
+		.commit_global_attrib_cb = gr_gv11b_commit_global_attrib_cb,
 		.commit_global_bundle_cb = gr_gp10b_commit_global_bundle_cb,
 		.commit_global_cb_manager = gr_gp10b_commit_global_cb_manager,
 		.commit_global_pagepool = gr_gp10b_commit_global_pagepool,
@@ -120,11 +135,11 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 		.set_alpha_circular_buffer_size = NULL,
 		.set_circular_buffer_size = NULL,
 		.enable_hww_exceptions = NULL,
-		.is_valid_class = gr_gp10b_is_valid_class,
-		.is_valid_gfx_class = gr_gp10b_is_valid_gfx_class,
-		.is_valid_compute_class = gr_gp10b_is_valid_compute_class,
-		.get_sm_dsm_perf_regs = gr_gm20b_get_sm_dsm_perf_regs,
-		.get_sm_dsm_perf_ctrl_regs = gr_gm20b_get_sm_dsm_perf_ctrl_regs,
+		.is_valid_class = gr_gv11b_is_valid_class,
+		.is_valid_gfx_class = gr_gv11b_is_valid_gfx_class,
+		.is_valid_compute_class = gr_gv11b_is_valid_compute_class,
+		.get_sm_dsm_perf_regs = gv11b_gr_get_sm_dsm_perf_regs,
+		.get_sm_dsm_perf_ctrl_regs = gv11b_gr_get_sm_dsm_perf_ctrl_regs,
 		.init_fs_state = vgpu_gr_init_fs_state,
 		.set_hww_esr_report_mask = NULL,
 		.falcon_load_ucode = NULL,
@@ -136,14 +151,14 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 		.is_tpc_addr = gr_gm20b_is_tpc_addr,
 		.get_tpc_num = gr_gm20b_get_tpc_num,
 		.detect_sm_arch = vgpu_gr_detect_sm_arch,
-		.pagepool_default_size = gr_gp10b_pagepool_default_size,
+		.pagepool_default_size = gr_gv11b_pagepool_default_size,
 		.init_ctx_state = vgpu_gr_gp10b_init_ctx_state,
 		.alloc_gr_ctx = vgpu_gr_alloc_gr_ctx,
 		.free_gr_ctx = vgpu_gr_free_gr_ctx,
 		.init_ctxsw_preemption_mode =
 			vgpu_gr_gp10b_init_ctxsw_preemption_mode,
 		.update_ctxsw_preemption_mode =
-			gr_gp10b_update_ctxsw_preemption_mode,
+			gr_gv11b_update_ctxsw_preemption_mode,
 		.dump_gr_regs = NULL,
 		.update_pc_sampling = vgpu_gr_update_pc_sampling,
 		.get_fbp_en_mask = vgpu_gr_get_fbp_en_mask,
@@ -151,12 +166,12 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 		.get_max_lts_per_ltc = vgpu_gr_get_max_lts_per_ltc,
 		.get_rop_l2_en_mask = vgpu_gr_rop_l2_en_mask,
 		.get_max_fbps_count = vgpu_gr_get_max_fbps_count,
-		.init_sm_dsm_reg_info = gr_gm20b_init_sm_dsm_reg_info,
+		.init_sm_dsm_reg_info = gv11b_gr_init_sm_dsm_reg_info,
 		.wait_empty = NULL,
 		.init_cyclestats = vgpu_gr_gm20b_init_cyclestats,
 		.set_sm_debug_mode = vgpu_gr_set_sm_debug_mode,
 		.bpt_reg_info = NULL,
-		.get_access_map = gr_gp10b_get_access_map,
+		.get_access_map = gr_gv11b_get_access_map,
 		.handle_fecs_error = NULL,
 		.handle_sm_exception = NULL,
 		.handle_tex_exception = NULL,
@@ -165,7 +180,7 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 		.get_lrf_tex_ltc_dram_override = NULL,
 		.update_smpc_ctxsw_mode = vgpu_gr_update_smpc_ctxsw_mode,
 		.update_hwpm_ctxsw_mode = vgpu_gr_update_hwpm_ctxsw_mode,
-		.record_sm_error_state = gm20b_gr_record_sm_error_state,
+		.record_sm_error_state = gv11b_gr_record_sm_error_state,
 		.clear_sm_error_state = vgpu_gr_clear_sm_error_state,
 		.suspend_contexts = vgpu_gr_suspend_contexts,
 		.resume_contexts = vgpu_gr_resume_contexts,
@@ -176,14 +191,14 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 		.setup_rop_mapping = NULL,
 		.program_zcull_mapping = NULL,
 		.commit_global_timeslice = NULL,
-		.commit_inst = vgpu_gr_commit_inst,
+		.commit_inst = vgpu_gr_gv11b_commit_inst,
 		.load_tpc_mask = NULL,
 		.trigger_suspend = NULL,
 		.wait_for_pause = gr_gk20a_wait_for_pause,
 		.resume_from_pause = NULL,
 		.clear_sm_errors = gr_gk20a_clear_sm_errors,
 		.tpc_enabled_exceptions = NULL,
-		.get_esr_sm_sel = gk20a_gr_get_esr_sm_sel,
+		.get_esr_sm_sel = gv11b_gr_get_esr_sm_sel,
 		.sm_debugger_attached = NULL,
 		.suspend_single_sm = NULL,
 		.suspend_all_sms = NULL,
@@ -192,37 +207,52 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 		.get_sm_hww_warp_esr = NULL,
 		.get_sm_hww_global_esr = NULL,
 		.get_sm_no_lock_down_hww_global_esr_mask =
-			gk20a_gr_get_sm_no_lock_down_hww_global_esr_mask,
+			gv11b_gr_get_sm_no_lock_down_hww_global_esr_mask,
 		.lock_down_sm = NULL,
 		.wait_for_sm_lock_down = NULL,
 		.clear_sm_hww = NULL,
-		.init_ovr_sm_dsm_perf =  gk20a_gr_init_ovr_sm_dsm_perf,
-		.get_ovr_perf_regs = gk20a_gr_get_ovr_perf_regs,
+		.init_ovr_sm_dsm_perf =  gv11b_gr_init_ovr_sm_dsm_perf,
+		.get_ovr_perf_regs = gv11b_gr_get_ovr_perf_regs,
 		.disable_rd_coalesce = NULL,
 		.set_boosted_ctx = NULL,
 		.set_preemption_mode = vgpu_gr_gp10b_set_preemption_mode,
 		.set_czf_bypass = NULL,
-		.init_czf_bypass = gr_gp10b_init_czf_bypass,
 		.pre_process_sm_exception = NULL,
-		.set_preemption_buffer_va = gr_gp10b_set_preemption_buffer_va,
+		.set_preemption_buffer_va = gr_gv11b_set_preemption_buffer_va,
 		.init_preemption_state = NULL,
 		.set_bes_crop_debug3 = NULL,
 		.set_bes_crop_debug4 = NULL,
-		.set_ctxsw_preemption_mode =
-					vgpu_gr_gp10b_set_ctxsw_preemption_mode,
+		.set_ctxsw_preemption_mode = vgpu_gr_gp10b_set_ctxsw_preemption_mode,
+		.is_etpc_addr = gv11b_gr_pri_is_etpc_addr,
+		.egpc_etpc_priv_addr_table = gv11b_gr_egpc_etpc_priv_addr_table,
+		.handle_tpc_mpc_exception = gr_gv11b_handle_tpc_mpc_exception,
+		.handle_gpc_gpcmmu_exception =
+			gr_gv11b_handle_gpc_gpcmmu_exception,
+		.get_egpc_base = gv11b_gr_get_egpc_base,
+		.get_egpc_etpc_num = gv11b_gr_get_egpc_etpc_num,
+		.handle_gpc_gpccs_exception =
+			gr_gv11b_handle_gpc_gpccs_exception,
+		.access_smpc_reg = gv11b_gr_access_smpc_reg,
+		.is_egpc_addr = gv11b_gr_pri_is_egpc_addr,
+		.handle_gcc_exception = gr_gv11b_handle_gcc_exception,
+		.init_sw_veid_bundle = gr_gv11b_init_sw_veid_bundle,
+		.handle_tpc_sm_ecc_exception =
+			gr_gv11b_handle_tpc_sm_ecc_exception,
+		.decode_egpc_addr = gv11b_gr_decode_egpc_addr,
 		.init_gfxp_wfi_timeout_count =
-			gr_gp10b_init_gfxp_wfi_timeout_count,
+			gr_gv11b_init_gfxp_wfi_timeout_count,
 		.get_max_gfxp_wfi_timeout_count =
-			gr_gp10b_get_max_gfxp_wfi_timeout_count,
+			gr_gv11b_get_max_gfxp_wfi_timeout_count,
 		.add_ctxsw_reg_pm_fbpa = gr_gk20a_add_ctxsw_reg_pm_fbpa,
 		.add_ctxsw_reg_perf_pma = gr_gk20a_add_ctxsw_reg_perf_pma,
-		.decode_priv_addr = gr_gk20a_decode_priv_addr,
-		.create_priv_addr_table = gr_gk20a_create_priv_addr_table,
+		.decode_priv_addr = gr_gv11b_decode_priv_addr,
+		.create_priv_addr_table = gr_gv11b_create_priv_addr_table,
 		.get_pmm_per_chiplet_offset =
-			gr_gm20b_get_pmm_per_chiplet_offset,
+			gr_gv11b_get_pmm_per_chiplet_offset,
 		.split_fbpa_broadcast_addr = gr_gk20a_split_fbpa_broadcast_addr,
 		.alloc_global_ctx_buffers = gr_gk20a_alloc_global_ctx_buffers,
 		.commit_global_ctx_buffers = gr_gk20a_commit_global_ctx_buffers,
+		.get_nonpes_aware_tpc = gr_gv11b_get_nonpes_aware_tpc,
 		.get_offset_in_gpccs_segment =
 			gr_gk20a_get_offset_in_gpccs_segment,
 		.set_debug_mode = gm20b_gr_set_debug_mode,
@@ -242,18 +272,20 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 			.get_patch_count = gm20b_ctxsw_prog_get_patch_count,
 			.set_patch_count = gm20b_ctxsw_prog_set_patch_count,
 			.set_patch_addr = gm20b_ctxsw_prog_set_patch_addr,
-			.set_zcull_ptr = gm20b_ctxsw_prog_set_zcull_ptr,
+			.set_zcull_ptr = gv11b_ctxsw_prog_set_zcull_ptr,
 			.set_zcull = gm20b_ctxsw_prog_set_zcull,
 			.set_zcull_mode_no_ctxsw =
 				gm20b_ctxsw_prog_set_zcull_mode_no_ctxsw,
 			.is_zcull_mode_separate_buffer =
 				gm20b_ctxsw_prog_is_zcull_mode_separate_buffer,
-			.set_pm_ptr = gm20b_ctxsw_prog_set_pm_ptr,
+			.set_pm_ptr = gv11b_ctxsw_prog_set_pm_ptr,
 			.set_pm_mode = gm20b_ctxsw_prog_set_pm_mode,
 			.set_pm_smpc_mode = gm20b_ctxsw_prog_set_pm_smpc_mode,
 			.hw_get_pm_mode_no_ctxsw =
 				gm20b_ctxsw_prog_hw_get_pm_mode_no_ctxsw,
 			.hw_get_pm_mode_ctxsw = gm20b_ctxsw_prog_hw_get_pm_mode_ctxsw,
+			.hw_get_pm_mode_stream_out_ctxsw =
+				gv11b_ctxsw_prog_hw_get_pm_mode_stream_out_ctxsw,
 			.init_ctxsw_hdr_data = gp10b_ctxsw_prog_init_ctxsw_hdr_data,
 			.set_compute_preemption_mode_cta =
 				gp10b_ctxsw_prog_set_compute_preemption_mode_cta,
@@ -294,7 +326,15 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 			.set_ts_buffer_ptr = gm20b_ctxsw_prog_set_ts_buffer_ptr,
 			.set_pmu_options_boost_clock_frequencies = NULL,
 			.set_full_preemption_ptr =
-				gp10b_ctxsw_prog_set_full_preemption_ptr,
+				gv11b_ctxsw_prog_set_full_preemption_ptr,
+			.set_full_preemption_ptr_veid0 =
+				gv11b_ctxsw_prog_set_full_preemption_ptr_veid0,
+			.hw_get_perf_counter_register_stride =
+				gv11b_ctxsw_prog_hw_get_perf_counter_register_stride,
+			.set_context_buffer_ptr =
+				gv11b_ctxsw_prog_set_context_buffer_ptr,
+			.set_type_per_veid_header =
+				gv11b_ctxsw_prog_set_type_per_veid_header,
 			.dump_ctxsw_stats = gp10b_ctxsw_prog_dump_ctxsw_stats,
 		},
 		.config = {
@@ -306,11 +346,12 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 			.set_table = vgpu_gr_add_zbc,
 			.query_table = vgpu_gr_query_zbc,
 			.pmu_save = NULL,
-			.stencil_query_table = NULL,
-			.load_stencil_default_tbl = NULL,
-			.add_type_stencil = NULL,
-			.load_stencil_tbl = NULL,
-			.add_stencil = NULL,
+			.stencil_query_table = gr_gv11b_zbc_s_query_table,
+			.load_stencil_default_tbl =
+					gr_gv11b_load_stencil_default_tbl,
+			.add_type_stencil = gr_gv11b_add_zbc_type_s,
+			.load_stencil_tbl = gr_gv11b_load_stencil_tbl,
+			.add_stencil = gr_gv11b_add_zbc_stencil,
 			.get_gpcs_swdx_dss_zbc_c_format_reg = NULL,
 			.get_gpcs_swdx_dss_zbc_z_format_reg = NULL,
 		}
@@ -318,6 +359,7 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 	.fb = {
 		.init_hw = NULL,
 		.init_fs_state = NULL,
+		.init_cbc = NULL,
 		.set_mmu_page_size = NULL,
 		.set_use_full_comp_tag_line = NULL,
 		.compression_page_size = gp10b_fb_compression_page_size,
@@ -330,6 +372,26 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 		.is_debug_mode_enabled = NULL,
 		.set_debug_mode = vgpu_mm_mmu_set_debug_mode,
 		.tlb_invalidate = vgpu_mm_tlb_invalidate,
+		.hub_isr = gv11b_fb_hub_isr,
+		.enable_hub_intr = gv11b_fb_enable_hub_intr,
+		.disable_hub_intr = gv11b_fb_disable_hub_intr,
+		.write_mmu_fault_buffer_lo_hi =
+				fb_gv11b_write_mmu_fault_buffer_lo_hi,
+		.write_mmu_fault_buffer_get =
+				fb_gv11b_write_mmu_fault_buffer_get,
+		.write_mmu_fault_buffer_size =
+				fb_gv11b_write_mmu_fault_buffer_size,
+		.write_mmu_fault_status = fb_gv11b_write_mmu_fault_status,
+		.read_mmu_fault_buffer_get =
+				fb_gv11b_read_mmu_fault_buffer_get,
+		.read_mmu_fault_buffer_put =
+				fb_gv11b_read_mmu_fault_buffer_put,
+		.read_mmu_fault_buffer_size =
+				fb_gv11b_read_mmu_fault_buffer_size,
+		.read_mmu_fault_addr_lo_hi = fb_gv11b_read_mmu_fault_addr_lo_hi,
+		.read_mmu_fault_inst_lo_hi = fb_gv11b_read_mmu_fault_inst_lo_hi,
+		.read_mmu_fault_info = fb_gv11b_read_mmu_fault_info,
+		.read_mmu_fault_status = fb_gv11b_read_mmu_fault_status,
 	},
 	.clock_gating = {
 		.slcg_bus_load_gating_prod = NULL,
@@ -358,27 +420,29 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 		.pg_gr_load_gating_prod = NULL,
 	},
 	.fifo = {
-		.init_fifo_setup_hw = vgpu_init_fifo_setup_hw,
+		.init_fifo_setup_hw = vgpu_gv11b_init_fifo_setup_hw,
 		.alloc_inst = vgpu_channel_alloc_inst,
 		.free_inst = vgpu_channel_free_inst,
 		.setup_ramfc = vgpu_channel_setup_ramfc,
 		.default_timeslice_us = vgpu_fifo_default_timeslice_us,
 		.setup_userd = gk20a_fifo_setup_userd,
-		.userd_gp_get = gk20a_fifo_userd_gp_get,
-		.userd_gp_put = gk20a_fifo_userd_gp_put,
-		.userd_pb_get = gk20a_fifo_userd_pb_get,
+		.userd_gp_get = gv11b_userd_gp_get,
+		.userd_gp_put = gv11b_userd_gp_put,
+		.userd_pb_get = gv11b_userd_pb_get,
 		.pbdma_acquire_val = gk20a_fifo_pbdma_acquire_val,
 		.preempt_channel = vgpu_fifo_preempt_channel,
 		.preempt_tsg = vgpu_fifo_preempt_tsg,
-		.enable_tsg = vgpu_enable_tsg,
+		.enable_tsg = vgpu_gv11b_enable_tsg,
 		.disable_tsg = gk20a_disable_tsg,
 		.tsg_verify_channel_status = NULL,
 		.tsg_verify_status_ctx_reload = NULL,
+		/* TODO: implement it for CE fault */
+		.tsg_verify_status_faulted = NULL,
 		.trigger_mmu_fault = NULL,
 		.get_mmu_fault_info = NULL,
-		.get_mmu_fault_desc = gp10b_fifo_get_mmu_fault_desc,
-		.get_mmu_fault_client_desc = gp10b_fifo_get_mmu_fault_client_desc,
-		.get_mmu_fault_gpc_desc = gm20b_fifo_get_mmu_fault_gpc_desc,
+		.get_mmu_fault_desc = NULL,
+		.get_mmu_fault_client_desc = NULL,
+		.get_mmu_fault_gpc_desc = NULL,
 		.wait_engine_idle = vgpu_fifo_wait_engine_idle,
 		.get_pbdma_signature = gp10b_fifo_get_pbdma_signature,
 		.tsg_set_timeslice = vgpu_tsg_set_timeslice,
@@ -387,20 +451,23 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 		.force_reset_ch = vgpu_fifo_force_reset_ch,
 		.init_engine_info = vgpu_fifo_init_engine_info,
 		.get_engines_mask_on_id = NULL,
-		.is_fault_engine_subid_gpc = gk20a_is_fault_engine_subid_gpc,
+		.is_fault_engine_subid_gpc = gv11b_is_fault_engine_subid_gpc,
 		.dump_pbdma_status = NULL,
 		.dump_eng_status = NULL,
 		.dump_channel_status_ramfc = NULL,
 		.capture_channel_ram_dump = NULL,
-		.intr_0_error_mask = gk20a_fifo_intr_0_error_mask,
-		.is_preempt_pending = NULL,
-		.init_pbdma_intr_descs = gp10b_fifo_init_pbdma_intr_descs,
+		.intr_0_error_mask = gv11b_fifo_intr_0_error_mask,
+		.is_preempt_pending = gv11b_fifo_is_preempt_pending,
+		.init_pbdma_intr_descs = gv11b_fifo_init_pbdma_intr_descs,
 		.reset_enable_hw = NULL,
 		.teardown_ch_tsg = NULL,
 		.handle_sched_error = NULL,
 		.handle_pbdma_intr_0 = NULL,
-		.handle_pbdma_intr_1 = gk20a_fifo_handle_pbdma_intr_1,
-		.tsg_bind_channel = vgpu_tsg_bind_channel,
+		.handle_pbdma_intr_1 = gv11b_fifo_handle_pbdma_intr_1,
+		.init_eng_method_buffers = gv11b_fifo_init_eng_method_buffers,
+		.deinit_eng_method_buffers =
+			gv11b_fifo_deinit_eng_method_buffers,
+		.tsg_bind_channel = vgpu_gv11b_tsg_bind_channel,
 		.tsg_unbind_channel = vgpu_tsg_unbind_channel,
 		.post_event_id = gk20a_tsg_event_id_post_event,
 		.ch_abort_clean_up = gk20a_channel_abort_clean_up,
@@ -411,23 +478,28 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 		.set_error_notifier = nvgpu_set_error_notifier,
 		.setup_sw = gk20a_init_fifo_setup_sw,
 		.resetup_ramfc = NULL,
+		.free_channel_ctx_header = vgpu_gv11b_free_subctx_header,
+		.handle_ctxsw_timeout = gv11b_fifo_handle_ctxsw_timeout,
+		.ring_channel_doorbell = gv11b_ring_channel_doorbell,
 		.set_sm_exception_type_mask = vgpu_set_sm_exception_type_mask,
+		.usermode_base = gv11b_fifo_usermode_base,
+		.doorbell_token = gv11b_fifo_doorbell_token,
 	},
 	.sync = {
 #ifdef CONFIG_TEGRA_GK20A_NVHOST
-		.alloc_syncpt_buf = gk20a_alloc_syncpt_buf,
-		.free_syncpt_buf = gk20a_free_syncpt_buf,
-		.add_syncpt_wait_cmd = gk20a_add_syncpt_wait_cmd,
-		.get_syncpt_wait_cmd_size = gk20a_get_syncpt_wait_cmd_size,
+		.alloc_syncpt_buf = vgpu_gv11b_fifo_alloc_syncpt_buf,
+		.free_syncpt_buf = vgpu_gv11b_fifo_free_syncpt_buf,
+		.add_syncpt_wait_cmd = gv11b_add_syncpt_wait_cmd,
+		.get_syncpt_wait_cmd_size = gv11b_get_syncpt_wait_cmd_size,
 		.get_syncpt_incr_per_release =
-				gk20a_get_syncpt_incr_per_release,
-		.add_syncpt_incr_cmd = gk20a_add_syncpt_incr_cmd,
-		.get_syncpt_incr_cmd_size = gk20a_get_syncpt_incr_cmd_size,
-		.get_sync_ro_map = NULL,
+                                gv11b_get_syncpt_incr_per_release,
+		.add_syncpt_incr_cmd = gv11b_add_syncpt_incr_cmd,
+		.get_syncpt_incr_cmd_size = gv11b_get_syncpt_incr_cmd_size,
+		.get_sync_ro_map = vgpu_gv11b_fifo_get_sync_ro_map,
 #endif
-		.get_sema_wait_cmd_size = gk20a_get_sema_wait_cmd_size,
-		.get_sema_incr_cmd_size = gk20a_get_sema_incr_cmd_size,
-		.add_sema_cmd = gk20a_add_sema_cmd,
+		.get_sema_wait_cmd_size = gv11b_get_sema_wait_cmd_size,
+		.get_sema_incr_cmd_size = gv11b_get_sema_incr_cmd_size,
+		.add_sema_cmd = gv11b_add_sema_cmd,
 	},
 	.engine_status = {
 		.read_engine_status_info = NULL,
@@ -440,10 +512,10 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 		.update_for_channel = vgpu_runlist_update_for_channel,
 		.reload = vgpu_runlist_reload,
 		.set_interleave = vgpu_runlist_set_interleave,
-		.count_max = gk20a_runlist_count_max,
+		.count_max = gv11b_runlist_count_max,
 		.entry_size = NULL,
-		.get_tsg_entry = gk20a_runlist_get_tsg_entry,
-		.get_ch_entry = gk20a_runlist_get_ch_entry,
+		.get_tsg_entry = gv11b_runlist_get_tsg_entry,
+		.get_ch_entry = gv11b_runlist_get_ch_entry,
 		.hw_submit = NULL,
 		.wait_pending = NULL,
 	},
@@ -452,11 +524,11 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 		.unbind = vgpu_channel_unbind,
 		.enable = vgpu_channel_enable,
 		.disable = vgpu_channel_disable,
-		.count = gm20b_channel_count,
+		.count = gv11b_channel_count,
 	},
 	.netlist = {
-		.get_netlist_name = gp10b_netlist_get_name,
-		.is_fw_defined = gp10b_netlist_is_firmware_defined,
+		.get_netlist_name = gv11b_netlist_get_name,
+		.is_fw_defined = gv11b_netlist_is_firmware_defined,
 	},
 #ifdef CONFIG_GK20A_CTXSW_TRACE
 	.fecs_trace = {
@@ -495,17 +567,15 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 		.get_mmu_levels = gp10b_mm_get_mmu_levels,
 		.init_pdb = gp10b_mm_init_pdb,
 		.init_mm_setup_hw = vgpu_gp10b_init_mm_setup_hw,
-		.is_bar1_supported = gm20b_mm_is_bar1_supported,
-		.init_inst_block = gk20a_init_inst_block,
+		.is_bar1_supported = gv11b_mm_is_bar1_supported,
+		.init_inst_block = gv11b_init_inst_block,
 		.mmu_fault_pending = NULL,
-		.init_bar2_vm = gp10b_init_bar2_vm,
-		.remove_bar2_vm = gp10b_remove_bar2_vm,
 		.get_kind_invalid = gm20b_get_kind_invalid,
 		.get_kind_pitch = gm20b_get_kind_pitch,
+		.init_bar2_vm = gp10b_init_bar2_vm,
+		.remove_bar2_vm = gp10b_remove_bar2_vm,
+		.fault_info_mem_destroy = gv11b_mm_fault_info_mem_destroy,
 		.bar1_map_userd = vgpu_mm_bar1_map_userd,
-	},
-	.pramin = {
-		.data032_r = NULL,
 	},
 	.therm = {
 		.init_therm_setup_hw = NULL,
@@ -542,12 +612,16 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 		.pmu_init_perfmon = NULL,
 		.pmu_perfmon_start_sampling = NULL,
 		.pmu_perfmon_stop_sampling = NULL,
+		.pmu_perfmon_get_samples_rpc = NULL,
 		.pmu_pg_init_param = NULL,
 		.pmu_pg_supported_engines_list = NULL,
 		.pmu_pg_engines_feature_list = NULL,
 		.dump_secure_fuses = NULL,
 		.reset_engine = NULL,
 		.is_engine_in_reset = NULL,
+		.pmu_nsbootstrap = NULL,
+		.pmu_pg_set_sub_feature_mask = NULL,
+		.is_pmu_supported = NULL,
 	},
 	.clk_arb = {
 		.check_clk_arb_support = gp10b_check_clk_arb_support,
@@ -562,18 +636,18 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 	.regops = {
 		.exec_regops = vgpu_exec_regops,
 		.get_global_whitelist_ranges =
-			gp10b_get_global_whitelist_ranges,
+			gv11b_get_global_whitelist_ranges,
 		.get_global_whitelist_ranges_count =
-			gp10b_get_global_whitelist_ranges_count,
+			gv11b_get_global_whitelist_ranges_count,
 		.get_context_whitelist_ranges =
-			gp10b_get_context_whitelist_ranges,
+			gv11b_get_context_whitelist_ranges,
 		.get_context_whitelist_ranges_count =
-			gp10b_get_context_whitelist_ranges_count,
-		.get_runcontrol_whitelist = gp10b_get_runcontrol_whitelist,
+			gv11b_get_context_whitelist_ranges_count,
+		.get_runcontrol_whitelist = gv11b_get_runcontrol_whitelist,
 		.get_runcontrol_whitelist_count =
-			gp10b_get_runcontrol_whitelist_count,
-		.get_qctl_whitelist = gp10b_get_qctl_whitelist,
-		.get_qctl_whitelist_count = gp10b_get_qctl_whitelist_count,
+			gv11b_get_runcontrol_whitelist_count,
+		.get_qctl_whitelist = gv11b_get_qctl_whitelist,
+		.get_qctl_whitelist_count = gv11b_get_qctl_whitelist_count,
 	},
 	.mc = {
 		.intr_mask = NULL,
@@ -591,7 +665,8 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 		.disable = NULL,
 		.reset = NULL,
 		.is_intr1_pending = NULL,
-		.log_pending_intrs = NULL,
+		.is_intr_hub_pending = NULL,
+		.log_pending_intrs = NULL	,
 		.reset_mask = NULL,
 		.is_enabled = NULL,
 		.fb_reset = NULL,
@@ -649,7 +724,6 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 		.enum_ltc = NULL,
 	},
 	.fuse = {
-		.check_priv_security = vgpu_gp10b_fuse_check_priv_security,
 		.is_opt_ecc_enable = NULL,
 		.is_opt_feature_override_disable = NULL,
 		.fuse_status_opt_fbio = NULL,
@@ -663,66 +737,57 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 		.read_vin_cal_slope_intercept_fuse = NULL,
 		.read_vin_cal_gain_offset_fuse = NULL,
 	},
-	.acr = {
-		.acr_sw_init = NULL,
-	},
-	.chip_init_gpu_characteristics = vgpu_init_gpu_characteristics,
-	.get_litter_value = gp10b_get_litter_value,
+	.chip_init_gpu_characteristics = vgpu_gv11b_init_gpu_characteristics,
+	.get_litter_value = gv11b_get_litter_value,
 };
 
-int vgpu_gp10b_init_hal(struct gk20a *g)
+int vgpu_gv11b_init_hal(struct gk20a *g)
 {
 	struct gpu_ops *gops = &g->ops;
 	struct vgpu_priv_data *priv = vgpu_get_priv_data(g);
 
-	gops->ltc = vgpu_gp10b_ops.ltc;
-	gops->ce2 = vgpu_gp10b_ops.ce2;
-	gops->gr = vgpu_gp10b_ops.gr;
-	gops->gr.ctxsw_prog = vgpu_gp10b_ops.gr.ctxsw_prog;
-	gops->gr.config = vgpu_gp10b_ops.gr.config;
-	gops->fb = vgpu_gp10b_ops.fb;
-	gops->clock_gating = vgpu_gp10b_ops.clock_gating;
-	gops->fifo = vgpu_gp10b_ops.fifo;
-	gops->runlist = vgpu_gp10b_ops.runlist;
-	gops->channel = vgpu_gp10b_ops.channel;
-	gops->sync = vgpu_gp10b_ops.sync;
-	gops->engine_status = vgpu_gp10b_ops.engine_status;
-	gops->pbdma_status = vgpu_gp10b_ops.pbdma_status;
-	gops->netlist = vgpu_gp10b_ops.netlist;
+	gops->ltc = vgpu_gv11b_ops.ltc;
+	gops->ce2 = vgpu_gv11b_ops.ce2;
+	gops->gr = vgpu_gv11b_ops.gr;
+	gops->gr.ctxsw_prog = vgpu_gv11b_ops.gr.ctxsw_prog;
+	gops->gr.config = vgpu_gv11b_ops.gr.config;
+	gops->fb = vgpu_gv11b_ops.fb;
+	gops->clock_gating = vgpu_gv11b_ops.clock_gating;
+	gops->fifo = vgpu_gv11b_ops.fifo;
+	gops->runlist = vgpu_gv11b_ops.runlist;
+	gops->channel = vgpu_gv11b_ops.channel;
+	gops->sync = vgpu_gv11b_ops.sync;
+	gops->engine_status = vgpu_gv11b_ops.engine_status;
+	gops->pbdma_status = vgpu_gv11b_ops.pbdma_status;
+	gops->netlist = vgpu_gv11b_ops.netlist;
+	gops->mm = vgpu_gv11b_ops.mm;
 #ifdef CONFIG_GK20A_CTXSW_TRACE
-	gops->fecs_trace = vgpu_gp10b_ops.fecs_trace;
+	gops->fecs_trace = vgpu_gv11b_ops.fecs_trace;
 #endif
-	gops->mm = vgpu_gp10b_ops.mm;
-	gops->pramin = vgpu_gp10b_ops.pramin;
-	gops->therm = vgpu_gp10b_ops.therm;
-	gops->pmu = vgpu_gp10b_ops.pmu;
-	gops->clk_arb = vgpu_gp10b_ops.clk_arb;
-	gops->regops = vgpu_gp10b_ops.regops;
-	gops->mc = vgpu_gp10b_ops.mc;
-	gops->debug = vgpu_gp10b_ops.debug;
+	gops->therm = vgpu_gv11b_ops.therm;
+	gops->pmu = vgpu_gv11b_ops.pmu;
+	gops->clk_arb = vgpu_gv11b_ops.clk_arb;
+	gops->regops = vgpu_gv11b_ops.regops;
+	gops->mc = vgpu_gv11b_ops.mc;
+	gops->debug = vgpu_gv11b_ops.debug;
 #ifdef NVGPU_DEBUGGER
-	gops->debugger = vgpu_gp10b_ops.debugger;
+	gops->debugger = vgpu_gv11b_ops.debugger;
 #endif
-	gops->perfbuf = vgpu_gp10b_ops.perfbuf;
-	gops->bus = vgpu_gp10b_ops.bus;
-	gops->ptimer = vgpu_gp10b_ops.ptimer;
+	gops->perfbuf = vgpu_gv11b_ops.perfbuf;
+	gops->bus = vgpu_gv11b_ops.bus;
+	gops->ptimer = vgpu_gv11b_ops.ptimer;
 #if defined(CONFIG_GK20A_CYCLE_STATS)
-	gops->css = vgpu_gp10b_ops.css;
+	gops->css = vgpu_gv11b_ops.css;
 #endif
-	gops->falcon = vgpu_gp10b_ops.falcon;
+	gops->falcon = vgpu_gv11b_ops.falcon;
+	gops->priv_ring = vgpu_gv11b_ops.priv_ring;
+	gops->fuse = vgpu_gv11b_ops.fuse;
 
-	gops->priv_ring = vgpu_gp10b_ops.priv_ring;
-
-	gops->fuse = vgpu_gp10b_ops.fuse;
-	gops->acr = vgpu_gp10b_ops.acr;
-
-	/* Lone Functions */
+	/* Lone functions */
 	gops->chip_init_gpu_characteristics =
-		vgpu_gp10b_ops.chip_init_gpu_characteristics;
-	gops->get_litter_value = vgpu_gp10b_ops.get_litter_value;
+		vgpu_gv11b_ops.chip_init_gpu_characteristics;
+	gops->get_litter_value = vgpu_gv11b_ops.get_litter_value;
 	gops->semaphore_wakeup = gk20a_channel_semaphore_wakeup;
-
-	g->pmu_lsf_pmu_wpr_init_done = 0;
 
 	if (priv->constants.can_set_clkrate) {
 		gops->clk.support_clk_freq_controller = true;
@@ -731,7 +796,7 @@ int vgpu_gp10b_init_hal(struct gk20a *g)
 		gops->clk_arb.get_arbiter_clk_domains = NULL;
 	}
 
-	g->name = "gp10b";
+	g->name = "gv11b";
 
 	return 0;
 }

@@ -30,7 +30,7 @@
 #include <nvgpu/gr/config.h>
 #include <nvgpu/log.h>
 
-#include "vgpu/gm20b/vgpu_gr_gm20b.h"
+#include "common/vgpu/gm20b/vgpu_gr_gm20b.h"
 
 #include "gp10b/gr_gp10b.h"
 #include "vgpu_gr_gp10b.h"

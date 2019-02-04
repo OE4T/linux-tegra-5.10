@@ -1,7 +1,5 @@
 /*
- * Virtualized GPU CE2
- *
- * Copyright (c) 2015-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2015-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -23,13 +21,28 @@
  */
 
 #include <nvgpu/gk20a.h>
+#include <nvgpu/enabled.h>
+#include <nvgpu/cyclestats_snapshot.h>
 
-#include <nvgpu/bug.h>
-#include <nvgpu/vgpu/vgpu.h>
+#include "common/vgpu/css_vgpu.h"
+#include "vgpu_gr_gm20b.h"
 
-u32 vgpu_ce_get_num_pce(struct gk20a *g)
+void vgpu_gr_gm20b_init_cyclestats(struct gk20a *g)
 {
-	struct vgpu_priv_data *priv = vgpu_get_priv_data(g);
+#if defined(CONFIG_GK20A_CYCLE_STATS)
+	bool snapshots_supported = true;
 
-	return priv->constants.num_pce;
+	/* cyclestats not supported on vgpu */
+	nvgpu_set_enabled(g, NVGPU_SUPPORT_CYCLE_STATS, false);
+
+	g->gr.max_css_buffer_size = vgpu_css_get_buffer_size(g);
+
+	/* snapshots not supported if the buffer size is 0 */
+	if (g->gr.max_css_buffer_size == 0) {
+		snapshots_supported = false;
+	}
+
+	nvgpu_set_enabled(g, NVGPU_SUPPORT_CYCLE_STATS_SNAPSHOT,
+							snapshots_supported);
+#endif
 }
