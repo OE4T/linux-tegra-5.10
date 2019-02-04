@@ -4681,8 +4681,9 @@ static inline bool is_valid_cyclestats_bar0_offset_gk20a(struct gk20a *g,
 	/* support only 24-bit 4-byte aligned offsets */
 	bool valid = !(offset & 0xFF000003U);
 
-	if (g->allow_all)
+	if (g->allow_all) {
 		return true;
+	}
 
 	/* whitelist check */
 	valid = valid &&
@@ -4711,8 +4712,10 @@ int gk20a_gr_handle_notify_pending(struct gk20a *g,
 
 #if defined(CONFIG_GK20A_CYCLE_STATS)
 	/* GL will never use payload 0 for cycle state */
-	if ((ch->cyclestate.cyclestate_buffer == NULL) || (isr_data->data_lo == 0))
+	if ((ch->cyclestate.cyclestate_buffer == NULL) ||
+	    (isr_data->data_lo == 0)) {
 		return 0;
+	}
 
 	nvgpu_mutex_acquire(&ch->cyclestate.cyclestate_buffer_mutex);
 

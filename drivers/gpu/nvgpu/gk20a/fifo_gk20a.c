@@ -3016,13 +3016,14 @@ void gk20a_dump_channel_status_ramfc(struct gk20a *g,
 #ifdef CONFIG_TEGRA_GK20A_NVHOST
 	if ((pbdma_syncpointb_op_v(syncpointb) == pbdma_syncpointb_op_wait_v())
 		&& (pbdma_syncpointb_wait_switch_v(syncpointb) ==
-			pbdma_syncpointb_wait_switch_en_v()))
+			pbdma_syncpointb_wait_switch_en_v())) {
 		gk20a_debug_output(o, "%s on syncpt %u (%s) val %u",
 			(status == 3 || status == 8) ? "Waiting" : "Waited",
 			pbdma_syncpointb_syncpt_index_v(syncpointb),
 			nvgpu_nvhost_syncpt_get_name(g->nvhost_dev,
 				pbdma_syncpointb_syncpt_index_v(syncpointb)),
 			pbdma_syncpointa_payload_v(syncpointa));
+	}
 #endif
 
 	gk20a_debug_output(o, " ");

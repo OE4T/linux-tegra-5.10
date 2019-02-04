@@ -300,8 +300,9 @@ int gk20a_fence_from_syncpt(
 	struct gk20a_fence *f = fence_out;
 
 	gk20a_init_fence(f, &gk20a_syncpt_fence_ops, os_fence);
-	if (!f)
+	if (!f) {
 		return -EINVAL;
+	}
 
 	f->nvhost_dev = nvhost_dev;
 	f->syncpt_id = id;
