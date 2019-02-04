@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -37,14 +37,21 @@
 int core_load_nvgpu(struct unit_fw *fw)
 {
 	const char *msg;
+	int flag = RTLD_NOW;
 
-	/*
-	 * Specify a GLOBAL binding so that subsequently loaded unit tests see
-	 * the nvgpu-drv library. They will of course need it (and will access
-	 * it directly). I.e they will link against nvgpu-drv and this should
-	 * satisfy that linkage.
-	 */
-	fw->nvgpu_so = dlopen("libnvgpu-drv.so", RTLD_NOW | RTLD_GLOBAL);
+	if (fw->args->is_qnx == 0) {
+		/*
+		 * Specify a GLOBAL binding so that subsequently loaded
+		 * unit tests see the nvgpu-drv library. They will of course
+		 * need it (and will access it directly). I.e they will link
+		 * against nvgpu-drv and this should satisfy that linkage.
+		 */
+		flag |= RTLD_GLOBAL;
+	}
+
+	/* TODO: WAR: remove this dependency of libnvgpu-drv.so for qnx unit
+	 * test, refer NVGPU-1935 for more detail */
+	fw->nvgpu_so = dlopen("libnvgpu-drv.so", flag);
 
 	if (fw->nvgpu_so == NULL) {
 		msg = dlerror();
