@@ -527,8 +527,9 @@ clean_up_page_tables:
 	nvgpu_pd_free(vm, &vm->pdb);
 clean_up_vgpu_vm:
 #ifdef CONFIG_TEGRA_GR_VIRTUALIZATION
-	if (g->is_virtual)
+	if (g->is_virtual) {
 		vgpu_vm_remove(vm);
+	}
 #endif
 	return err;
 }
@@ -654,8 +655,9 @@ static void nvgpu_vm_remove(struct vm_gk20a *vm)
 	nvgpu_vm_free_entries(vm, &vm->pdb);
 
 #ifdef CONFIG_TEGRA_GR_VIRTUALIZATION
-	if (g->is_virtual)
+	if (g->is_virtual) {
 		vgpu_vm_remove(vm);
+	}
 #endif
 
 	nvgpu_mutex_release(&vm->update_gmmu_lock);

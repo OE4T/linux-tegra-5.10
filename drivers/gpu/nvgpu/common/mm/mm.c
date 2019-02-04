@@ -346,9 +346,10 @@ void nvgpu_init_mm_ce_context(struct gk20a *g)
 				-1,
 				-1);
 
-		if (g->mm.vidmem.ce_ctx_id == NVGPU_CE_INVAL_CTX_ID)
+		if (g->mm.vidmem.ce_ctx_id == NVGPU_CE_INVAL_CTX_ID) {
 			nvgpu_err(g,
 				"Failed to allocate CE context for vidmem page clearing support");
+		}
 	}
 #endif
 }

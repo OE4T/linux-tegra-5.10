@@ -43,8 +43,9 @@ void nvgpu_vidmem_destroy(struct gk20a *g)
 {
 	struct nvgpu_timeout timeout;
 
-	if (!g->ops.fb.get_vidmem_size)
+	if (!g->ops.fb.get_vidmem_size) {
 		return;
+	}
 
 	nvgpu_timeout_init(g, &timeout, 100, NVGPU_TIMER_RETRY_TIMER);
 
@@ -65,8 +66,9 @@ void nvgpu_vidmem_destroy(struct gk20a *g)
 		empty = nvgpu_list_empty(&g->mm.vidmem.clear_list_head);
 		nvgpu_mutex_release(&g->mm.vidmem.clear_list_mutex);
 
-		if (empty)
+		if (empty) {
 			break;
+		}
 
 		nvgpu_msleep(10);
 	} while (!nvgpu_timeout_expired(&timeout));
@@ -77,11 +79,13 @@ void nvgpu_vidmem_destroy(struct gk20a *g)
 	 */
 	nvgpu_thread_stop(&g->mm.vidmem.clearing_thread);
 
-	if (nvgpu_alloc_initialized(&g->mm.vidmem.allocator))
+	if (nvgpu_alloc_initialized(&g->mm.vidmem.allocator)) {
 		nvgpu_alloc_destroy(&g->mm.vidmem.allocator);
+	}
 
-	if (nvgpu_alloc_initialized(&g->mm.vidmem.bootstrap_allocator))
+	if (nvgpu_alloc_initialized(&g->mm.vidmem.bootstrap_allocator)) {
 		nvgpu_alloc_destroy(&g->mm.vidmem.bootstrap_allocator);
+	}
 }
 
 static int __nvgpu_vidmem_do_clear_all(struct gk20a *g)
@@ -90,8 +94,9 @@ static int __nvgpu_vidmem_do_clear_all(struct gk20a *g)
 	struct gk20a_fence *gk20a_fence_out = NULL;
 	int err = 0;
 
-	if (mm->vidmem.ce_ctx_id == NVGPU_CE_INVAL_CTX_ID)
+	if (mm->vidmem.ce_ctx_id == NVGPU_CE_INVAL_CTX_ID) {
 		return -EINVAL;
+	}
 
 	vidmem_dbg(g, "Clearing all VIDMEM:");
 
@@ -153,8 +158,9 @@ void nvgpu_vidmem_thread_pause_sync(struct mm_gk20a *mm)
 	 * released by the clearing thread in case the thread is currently
 	 * processing work items.
 	 */
-	if (nvgpu_atomic_inc_return(&mm->vidmem.pause_count) == 1)
+	if (nvgpu_atomic_inc_return(&mm->vidmem.pause_count) == 1) {
 		nvgpu_mutex_acquire(&mm->vidmem.clearing_thread_lock);
+	}
 
 	vidmem_dbg(mm->g, "Clearing thread paused; new count=%d",
 		   nvgpu_atomic_read(&mm->vidmem.pause_count));
@@ -188,8 +194,9 @@ int nvgpu_vidmem_clear_list_enqueue(struct gk20a *g, struct nvgpu_mem *mem)
 	 * free function which will attempt to enqueue the vidmem into the
 	 * vidmem clearing thread.
 	 */
-	if (nvgpu_is_enabled(g, NVGPU_DRIVER_IS_DYING))
+	if (nvgpu_is_enabled(g, NVGPU_DRIVER_IS_DYING)) {
 		return -ENOSYS;
+	}
 
 	nvgpu_mutex_acquire(&mm->vidmem.clear_list_mutex);
 	nvgpu_list_add_tail(&mem->clear_list_entry,
@@ -265,16 +272,18 @@ static int nvgpu_vidmem_clear_pending_allocs_thr(void *mm_ptr)
 					&mm->vidmem.clearing_thread) ||
 				!nvgpu_list_empty(&mm->vidmem.clear_list_head),
 				0);
-		if (ret == -ERESTARTSYS)
+		if (ret == -ERESTARTSYS) {
 			continue;
+		}
 
 		/*
 		 * Use this lock to implement a pause mechanism. By taking this
 		 * lock some other code can prevent this thread from processing
 		 * work items.
 		 */
-		if (!nvgpu_mutex_tryacquire(&mm->vidmem.clearing_thread_lock))
+		if (!nvgpu_mutex_tryacquire(&mm->vidmem.clearing_thread_lock)) {
 			continue;
+		}
 
 		nvgpu_vidmem_clear_pending_allocs(mm);
 
@@ -297,8 +306,9 @@ int nvgpu_vidmem_init(struct mm_gk20a *mm)
 
 	size = g->ops.fb.get_vidmem_size ?
 			g->ops.fb.get_vidmem_size(g) : 0;
-	if (!size)
+	if (!size) {
 		return 0;
+	}
 
 	vidmem_dbg(g, "init begin");
 
@@ -342,8 +352,9 @@ int nvgpu_vidmem_init(struct mm_gk20a *mm)
 	mm->vidmem.bootstrap_size = bootstrap_size;
 
 	err = nvgpu_cond_init(&mm->vidmem.clearing_thread_cond);
-	if (err != 0)
+	if (err != 0) {
 		goto fail;
+	}
 
 	nvgpu_atomic64_set(&mm->vidmem.bytes_pending, 0);
 	nvgpu_init_list_node(&mm->vidmem.clear_list_head);
@@ -364,8 +375,9 @@ int nvgpu_vidmem_init(struct mm_gk20a *mm)
 	err = nvgpu_thread_create(&mm->vidmem.clearing_thread, mm,
 				  nvgpu_vidmem_clear_pending_allocs_thr,
 				  "vidmem-clear");
-	if (err != 0)
+	if (err != 0) {
 		goto fail;
+	}
 
 	vidmem_dbg(g, "VIDMEM Total: %zu MB", size >> 20);
 	vidmem_dbg(g, "VIDMEM Ranges:");
@@ -393,8 +405,9 @@ int nvgpu_vidmem_get_space(struct gk20a *g, u64 *space)
 
 	nvgpu_log_fn(g, " ");
 
-	if (!nvgpu_alloc_initialized(allocator))
+	if (!nvgpu_alloc_initialized(allocator)) {
 		return -ENOSYS;
+	}
 
 	nvgpu_mutex_acquire(&g->mm.vidmem.clear_list_mutex);
 	*space = nvgpu_alloc_space(allocator) +
@@ -411,14 +424,16 @@ int nvgpu_vidmem_clear(struct gk20a *g, struct nvgpu_mem *mem)
 	struct nvgpu_sgl *sgl = NULL;
 	int err = 0;
 
-	if (g->mm.vidmem.ce_ctx_id == NVGPU_CE_INVAL_CTX_ID)
+	if (g->mm.vidmem.ce_ctx_id == NVGPU_CE_INVAL_CTX_ID) {
 		return -EINVAL;
+	}
 
 	alloc = mem->vidmem_alloc;
 
 	nvgpu_sgt_for_each_sgl(sgl, &alloc->sgt) {
-		if (gk20a_last_fence)
+		if (gk20a_last_fence) {
 			gk20a_fence_put(gk20a_last_fence);
+		}
 
 		err = gk20a_ce_execute_ops(g,
 			g->mm.vidmem.ce_ctx_id,
@@ -458,9 +473,10 @@ int nvgpu_vidmem_clear(struct gk20a *g, struct nvgpu_mem *mem)
 			 !nvgpu_timeout_expired(&timeout));
 
 		gk20a_fence_put(gk20a_last_fence);
-		if (err != 0)
+		if (err != 0) {
 			nvgpu_err(g,
 				"fence wait failed for CE execute ops");
+		}
 	}
 
 	vidmem_dbg(g, "  Done");
@@ -472,8 +488,9 @@ static int nvgpu_vidmem_clear_all(struct gk20a *g)
 {
 	int err;
 
-	if (g->mm.vidmem.cleared)
+	if (g->mm.vidmem.cleared) {
 		return 0;
+	}
 
 	nvgpu_mutex_acquire(&g->mm.vidmem.first_clear_mutex);
 	if (!g->mm.vidmem.cleared) {
@@ -495,12 +512,14 @@ struct nvgpu_vidmem_buf *nvgpu_vidmem_user_alloc(struct gk20a *g, size_t bytes)
 	int err;
 
 	err = nvgpu_vidmem_clear_all(g);
-	if (err != 0)
+	if (err != 0) {
 		return ERR_PTR(-ENOMEM);
+	}
 
 	buf = nvgpu_kzalloc(g, sizeof(*buf));
-	if (!buf)
+	if (!buf) {
 		return ERR_PTR(-ENOMEM);
+	}
 
 	buf->g = g;
 	buf->mem = nvgpu_kzalloc(g, sizeof(*buf->mem));
@@ -510,8 +529,9 @@ struct nvgpu_vidmem_buf *nvgpu_vidmem_user_alloc(struct gk20a *g, size_t bytes)
 	}
 
 	err = nvgpu_dma_alloc_vid(g, bytes, buf->mem);
-	if (err != 0)
+	if (err != 0) {
 		goto fail;
+	}
 
 	/*
 	 * Alerts the DMA API that when we free this vidmem buf we have to
@@ -533,8 +553,9 @@ void nvgpu_vidmem_buf_free(struct gk20a *g, struct nvgpu_vidmem_buf *buf)
 	/*
 	 * In some error paths it's convenient to be able to "free" a NULL buf.
 	 */
-	if (IS_ERR_OR_NULL(buf))
+	if (IS_ERR_OR_NULL(buf)) {
 		return;
+	}
 
 	nvgpu_dma_free(g, buf->mem);
 

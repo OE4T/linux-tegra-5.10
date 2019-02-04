@@ -39,8 +39,9 @@ int nvgpu_alloc_sim_buffer(struct gk20a *g, struct nvgpu_mem *mem)
 
 void nvgpu_free_sim_buffer(struct gk20a *g, struct nvgpu_mem *mem)
 {
-	if (nvgpu_mem_is_valid(mem))
+	if (nvgpu_mem_is_valid(mem)) {
 		nvgpu_dma_free(g, mem);
+	}
 
 	(void) memset(mem, 0, sizeof(*mem));
 }
@@ -54,8 +55,9 @@ void nvgpu_free_sim_support(struct gk20a *g)
 
 void nvgpu_remove_sim_support(struct gk20a *g)
 {
-	if (g->sim)
+	if (g->sim) {
 		nvgpu_free_sim_support(g);
+	}
 }
 
 static inline u32 sim_msg_header_size(void)
@@ -246,8 +248,9 @@ static void nvgpu_sim_init_late(struct gk20a *g)
 {
 	u64 phys;
 
-	if (!g->sim)
+	if (!g->sim) {
 		return;
+	}
 
 	nvgpu_info(g, "sim init late");
 	/*mark send ring invalid*/
@@ -291,16 +294,18 @@ int nvgpu_init_sim_support(struct gk20a *g)
 {
 	int err = -ENOMEM;
 
-	if (!g->sim)
+	if (!g->sim) {
 		return 0;
+	}
 
 	/* allocate sim event/msg buffers */
 	err = nvgpu_alloc_sim_buffer(g, &g->sim->send_bfr);
 	err = err || nvgpu_alloc_sim_buffer(g, &g->sim->recv_bfr);
 	err = err || nvgpu_alloc_sim_buffer(g, &g->sim->msg_bfr);
 
-	if (err != 0)
+	if (err != 0) {
 		goto fail;
+	}
 
 	g->sim->sim_init_late = nvgpu_sim_init_late;
 	g->sim->remove_support = nvgpu_remove_sim_support;

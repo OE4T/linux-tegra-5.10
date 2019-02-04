@@ -1,7 +1,7 @@
 /*
  * GK20A syncpt cmdbuf
  *
- * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
 *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -85,10 +85,11 @@ void gk20a_add_syncpt_incr_cmd(struct gk20a *g,
 
 u32 gk20a_get_syncpt_incr_cmd_size(bool wfi_cmd)
 {
-	if (wfi_cmd)
+	if (wfi_cmd) {
 		return 8U;
-	else
+	} else {
 		return 6U;
+	}
 }
 
 void gk20a_free_syncpt_buf(struct channel_gk20a *c,

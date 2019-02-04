@@ -2355,11 +2355,13 @@ int gk20a_init_channel_support(struct gk20a *g, u32 chid)
 	}
 #if defined(CONFIG_GK20A_CYCLE_STATS)
 	err = nvgpu_mutex_init(&c->cyclestate.cyclestate_buffer_mutex);
-	if (err != 0)
+	if (err != 0) {
 		goto fail_4;
+	}
 	err = nvgpu_mutex_init(&c->cs_client_mutex);
-	if (err != 0)
+	if (err != 0) {
 		goto fail_5;
+	}
 #endif
 	err = nvgpu_mutex_init(&c->dbg_s_lock);
 	if (err != 0) {

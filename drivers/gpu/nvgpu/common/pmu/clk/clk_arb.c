@@ -46,8 +46,9 @@ int nvgpu_clk_notification_queue_alloc(struct gk20a *g,
 				u32 events_number) {
 	queue->notifications = nvgpu_kcalloc(g, events_number,
 		sizeof(struct nvgpu_clk_notification));
-	if (!queue->notifications)
+	if (!queue->notifications) {
 		return -ENOMEM;
+	}
 	queue->size = events_number;
 
 	nvgpu_atomic_set(&queue->head, 0);
@@ -200,10 +201,11 @@ int nvgpu_clk_arb_update_vf_table(struct nvgpu_clk_arb *arb)
 			clk_cur = table->gpc2clk_points[j].gpc_mhz;
 
 			if ((clk_cur >= p0_info->min_mhz) &&
-					(clk_cur <= p0_info->max_mhz))
+					(clk_cur <= p0_info->max_mhz)) {
 				VF_POINT_SET_PSTATE_SUPPORTED(
 					&table->gpc2clk_points[j],
 					CTRL_PERF_PSTATE_P0);
+			}
 
 			j++;
 			num_points++;
@@ -217,9 +219,10 @@ int nvgpu_clk_arb_update_vf_table(struct nvgpu_clk_arb *arb)
 
 exit_vf_table:
 
-	if (status < 0)
+	if (status < 0) {
 		nvgpu_clk_arb_set_global_alarm(g,
 			EVENT(ALARM_VF_TABLE_UPDATE_FAILED));
+	}
 	nvgpu_clk_arb_worker_enqueue(g, &arb->update_arb_work_item);
 
 	return status;
@@ -280,8 +283,9 @@ u32 nvgpu_clk_arb_notify(struct nvgpu_clk_dev *dev,
 			alarm_detected =
 				NV_ACCESS_ONCE(notification->notification);
 
-			if (!(enabled_mask & alarm_detected))
+			if (!(enabled_mask & alarm_detected)) {
 				continue;
+			}
 
 			queue_index++;
 			dev->queue.notifications[
@@ -314,8 +318,9 @@ u32 nvgpu_clk_arb_notify(struct nvgpu_clk_dev *dev,
 	}
 
 	/* Check if there is a new VF update */
-	if (queue_alarm_mask & EVENT(VF_UPDATE))
+	if (queue_alarm_mask & EVENT(VF_UPDATE)) {
 		poll_mask |= (NVGPU_POLLIN | NVGPU_POLLRDNORM);
+	}
 
 	/* Notify sticky alarms that were not reported on previous run*/
 	new_alarms_reported = (queue_alarm_mask |
@@ -323,8 +328,9 @@ u32 nvgpu_clk_arb_notify(struct nvgpu_clk_dev *dev,
 
 	if (new_alarms_reported & ~LOCAL_ALARM_MASK) {
 		/* check that we are not re-reporting */
-		if (new_alarms_reported & EVENT(ALARM_GPU_LOST))
+		if (new_alarms_reported & EVENT(ALARM_GPU_LOST)) {
 			poll_mask |= NVGPU_POLLHUP;
+		}
 
 		poll_mask |= (NVGPU_POLLIN | NVGPU_POLLPRI);
 		/* On next run do not report global alarms that were already
@@ -374,10 +380,11 @@ static void nvgpu_clk_arb_worker_process_item(
 
 	clk_arb_dbg(g, " ");
 
-	if (work_item->item_type == CLK_ARB_WORK_UPDATE_VF_TABLE)
+	if (work_item->item_type == CLK_ARB_WORK_UPDATE_VF_TABLE) {
 		nvgpu_clk_arb_run_vf_table_cb(work_item->arb);
-	else if (work_item->item_type == CLK_ARB_WORK_UPDATE_ARB)
+	} else if (work_item->item_type == CLK_ARB_WORK_UPDATE_ARB) {
 		g->ops.clk_arb.clk_arb_run_arbiter_cb(work_item->arb);
+	}
 }
 
 /**
@@ -472,8 +479,9 @@ static int nvgpu_clk_arb_poll_worker(void *arg)
 			break;
 		}
 
-		if (ret == 0)
+		if (ret == 0) {
 			nvgpu_clk_arb_worker_process(g, &get);
+		}
 	}
 	return 0;
 }
@@ -483,8 +491,9 @@ static int __nvgpu_clk_arb_worker_start(struct gk20a *g)
 	char thread_name[64];
 	int err = 0;
 
-	if (nvgpu_thread_is_running(&g->clk_arb_worker.poll_task))
+	if (nvgpu_thread_is_running(&g->clk_arb_worker.poll_task)) {
 		return err;
+	}
 
 	nvgpu_mutex_acquire(&g->clk_arb_worker.start_lock);
 
@@ -557,8 +566,9 @@ int nvgpu_clk_arb_worker_init(struct gk20a *g)
 	nvgpu_init_list_node(&g->clk_arb_worker.items);
 	nvgpu_spinlock_init(&g->clk_arb_worker.items_lock);
 	err = nvgpu_mutex_init(&g->clk_arb_worker.start_lock);
-	if (err != 0)
+	if (err != 0) {
 		goto error_check;
+	}
 
 	err = __nvgpu_clk_arb_worker_start(g);
 error_check:
@@ -642,8 +652,9 @@ int nvgpu_clk_arb_init_session(struct gk20a *g,
 	}
 
 	session = nvgpu_kzalloc(g, sizeof(struct nvgpu_clk_session));
-	if (!session)
+	if (!session) {
 		return -ENOMEM;
+	}
 	session->g = g;
 
 	nvgpu_ref_init(&session->refcount);
@@ -730,8 +741,9 @@ void nvgpu_clk_arb_release_session(struct gk20a *g,
 
 	session->zombie = true;
 	nvgpu_ref_put(&session->refcount, nvgpu_clk_arb_free_session);
-	if (arb)
+	if (arb) {
 		nvgpu_clk_arb_worker_enqueue(g, &arb->update_arb_work_item);
+	}
 }
 
 void nvgpu_clk_arb_schedule_vf_table_update(struct gk20a *g)
@@ -753,10 +765,11 @@ void nvgpu_clk_arb_pstate_change_lock(struct gk20a *g, bool lock)
 {
 	struct nvgpu_clk_arb *arb = g->clk_arb;
 
-	if (lock)
+	if (lock) {
 		nvgpu_mutex_acquire(&arb->pstate_lock);
-	else
+	} else {
 		nvgpu_mutex_release(&arb->pstate_lock);
+	}
 }
 
 bool nvgpu_clk_arb_is_valid_domain(struct gk20a *g, u32 api_domain)
@@ -805,8 +818,9 @@ int nvgpu_clk_arb_get_arbiter_clk_f_points(struct gk20a *g,
 	case NVGPU_CLK_DOMAIN_GPCCLK:
 		err = g->ops.clk_arb.get_arbiter_f_points(g,
 			CTRL_CLK_DOMAIN_GPCCLK, max_points, fpoints);
-		if (err || !fpoints)
+		if (err || !fpoints) {
 			return err;
+		}
 		return 0;
 	case NVGPU_CLK_DOMAIN_MCLK:
 		return g->ops.clk_arb.get_arbiter_f_points(g,

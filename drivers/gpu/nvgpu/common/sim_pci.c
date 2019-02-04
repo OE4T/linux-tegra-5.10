@@ -215,8 +215,9 @@ static void nvgpu_sim_init_late(struct gk20a *g)
 {
 	u64 phys;
 
-	if (!g->sim)
+	if (!g->sim) {
 		return;
+	}
 
 	nvgpu_info(g, "sim init late pci");
 	/* mark send ring invalid */
@@ -258,16 +259,18 @@ int nvgpu_init_sim_support_pci(struct gk20a *g)
 {
 	int err = -ENOMEM;
 
-	if(!g->sim)
+	if(!g->sim) {
 		return 0;
+	}
 
 	/* allocate sim event/msg buffers */
 	err = nvgpu_alloc_sim_buffer(g, &g->sim->send_bfr);
 	err = err || nvgpu_alloc_sim_buffer(g, &g->sim->recv_bfr);
 	err = err || nvgpu_alloc_sim_buffer(g, &g->sim->msg_bfr);
 
-	if (err != 0)
+	if (err != 0) {
 		goto fail;
+	}
 
 	g->sim->sim_init_late = nvgpu_sim_init_late;
 	g->sim->remove_support = nvgpu_remove_sim_support;
