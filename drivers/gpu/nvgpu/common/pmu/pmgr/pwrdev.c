@@ -92,7 +92,7 @@ done:
 }
 
 static struct boardobj *construct_pwr_device(struct gk20a *g,
-			void *pargs, u16 pargs_size, u8 type)
+			void *pargs, size_t pargs_size, u8 type)
 {
 	struct boardobj *board_obj_ptr = NULL;
 	int status;
@@ -142,7 +142,7 @@ static int devinit_get_pwr_device_table(struct gk20a *g,
 	struct pwr_sensors_2x_entry pwr_sensor_table_entry = { 0 };
 	u32 index;
 	u32 obj_index = 0;
-	u16 pwr_device_size;
+	size_t pwr_device_size;
 	union {
 		struct boardobj boardobj;
 		struct pwr_device pwrdev;

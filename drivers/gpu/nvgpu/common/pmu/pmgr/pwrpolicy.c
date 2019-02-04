@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -256,7 +256,7 @@ done:
 }
 
 static struct boardobj *construct_pwr_policy(struct gk20a *g,
-			void *pargs, u16 pargs_size, u8 type)
+			void *pargs, size_t pargs_size, u8 type)
 {
 	struct boardobj *board_obj_ptr = NULL;
 	int status;
@@ -372,7 +372,7 @@ static struct boardobj *construct_pwr_policy(struct gk20a *g,
 static int _pwr_policy_construct_WAR_SW_Threshold_policy(struct gk20a *g,
 			struct pmgr_pwr_policy *ppwrpolicyobjs,
 			union pwr_policy_data_union *ppwrpolicydata,
-			u16 pwr_policy_size,
+			size_t pwr_policy_size,
 			u32 obj_index)
 {
 	int status = 0;
@@ -528,7 +528,7 @@ static int devinit_get_pwr_policy_table(struct gk20a *g,
 	struct pwr_policy_3x_header_unpacked hdr;
 	u32 index;
 	u32 obj_index = 0;
-	u16 pwr_policy_size;
+	size_t pwr_policy_size;
 	bool integral_control = false;
 	u32 hw_threshold_policy_index = 0;
 	union pwr_policy_data_union pwr_policy_data;
