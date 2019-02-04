@@ -210,8 +210,9 @@ struct nvgpu_sgt *nvgpu_sgt_os_create_from_mem(struct gk20a *g,
 	struct nvgpu_mem_sgl *sgl;
 	struct nvgpu_sgt *sgt = nvgpu_kzalloc(g, sizeof(*sgt));
 
-	if (sgt == NULL)
+	if (sgt == NULL) {
 		return NULL;
+	}
 
 	/*
 	 * The userspace implementation is simple: a single 'entry' (which we
@@ -245,14 +246,17 @@ int nvgpu_mem_create_from_mem(struct gk20a *g,
 	u64 start = start_page * U64(PAGE_SIZE);
 	u64 size = U64(nr_pages) * U64(PAGE_SIZE);
 
-	if (src->aperture != APERTURE_SYSMEM)
+	if (src->aperture != APERTURE_SYSMEM) {
 		return -EINVAL;
+	}
 
 	/* Some silly things a caller might do... */
-	if (size > src->size)
+	if (size > src->size) {
 		return -EINVAL;
-	if ((start + size) > src->size)
+	}
+	if ((start + size) > src->size) {
 		return -EINVAL;
+	}
 
 	(void) memset(dest, 0, sizeof(*dest));
 

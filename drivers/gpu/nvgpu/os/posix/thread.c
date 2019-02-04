@@ -69,8 +69,9 @@ int nvgpu_thread_create(struct nvgpu_thread *thread,
 	ret = pthread_create(&thread->thread, NULL,
 			     __nvgpu_posix_thread_wrapper,
 			     &thread->nvgpu);
-	if (ret != 0)
+	if (ret != 0) {
 		return ret;
+	}
 
 #ifdef _GNU_SOURCE
 	pthread_setname_np(thread->thread, thread->tname);

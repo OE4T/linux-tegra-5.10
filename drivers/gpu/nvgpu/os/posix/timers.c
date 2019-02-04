@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -42,18 +42,20 @@ static bool time_after(s64 a, s64 b)
 int nvgpu_timeout_init(struct gk20a *g, struct nvgpu_timeout *timeout,
 		       u32 duration, unsigned long flags)
 {
-	if ((flags & ~NVGPU_TIMER_FLAG_MASK) != 0U)
+	if ((flags & ~NVGPU_TIMER_FLAG_MASK) != 0U) {
 		return -EINVAL;
+	}
 
 	(void) memset(timeout, 0, sizeof(*timeout));
 
 	timeout->g = g;
 	timeout->flags = flags;
 
-	if ((flags & NVGPU_TIMER_RETRY_TIMER) != 0U)
+	if ((flags & NVGPU_TIMER_RETRY_TIMER) != 0U) {
 		timeout->retries.max = duration;
-	else
+	} else {
 		timeout->time = nvgpu_current_time_ms() + (s64)duration;
+	}
 
 	return 0;
 }
@@ -109,12 +111,13 @@ int __nvgpu_timeout_expired_msg(struct nvgpu_timeout *timeout,
 	va_list args;
 
 	va_start(args, fmt);
-	if ((timeout->flags & NVGPU_TIMER_RETRY_TIMER) != 0U)
+	if ((timeout->flags & NVGPU_TIMER_RETRY_TIMER) != 0U) {
 		ret = __nvgpu_timeout_expired_msg_retry(timeout, caller, fmt,
 						      args);
-	else
+	} else {
 		ret = __nvgpu_timeout_expired_msg_cpu(timeout, caller, fmt,
 						    args);
+	}
 	va_end(args);
 
 	return ret;
@@ -122,10 +125,11 @@ int __nvgpu_timeout_expired_msg(struct nvgpu_timeout *timeout,
 
 int nvgpu_timeout_peek_expired(struct nvgpu_timeout *timeout)
 {
-	if ((timeout->flags & NVGPU_TIMER_RETRY_TIMER) != 0U)
+	if ((timeout->flags & NVGPU_TIMER_RETRY_TIMER) != 0U) {
 		return timeout->retries.attempted >= timeout->retries.max;
-	else
+	} else {
 		return time_after(now(), timeout->time);
+	}
 }
 
 void nvgpu_udelay(unsigned int usecs)
@@ -150,8 +154,9 @@ static inline s64 __nvgpu_current_time_us(void)
 	int ret;
 
 	ret = gettimeofday(&now, NULL);
-	if (ret != 0)
+	if (ret != 0) {
 		BUG();
+	}
 
 	time_now = ((s64)now.tv_sec * (s64)1000000) + (s64)now.tv_usec;
 

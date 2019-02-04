@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -53,8 +53,9 @@ struct nvgpu_kmem_cache *nvgpu_kmem_cache_create(struct gk20a *g, size_t size)
 	}
 
 	cache = malloc(sizeof(struct nvgpu_kmem_cache));
-	if (cache == NULL)
+	if (cache == NULL) {
 		return NULL;
+	}
 
 	cache->alloc_size = size;
 

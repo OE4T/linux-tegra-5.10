@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -94,8 +94,9 @@ void __bug(const char *fmt, ...)
 
 bool __warn(bool cond, const char *fmt, ...)
 {
-	if (!cond)
+	if (!cond) {
 		goto done;
+	}
 
 	nvgpu_warn(NULL, "WARNING detected!");
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -75,8 +75,9 @@ static unsigned long __find_next_bit(const unsigned long *addr,
 	 */
 	unsigned long invert_mask = invert ? ~0UL : 0UL;
 
-	if (start >= n)
+	if (start >= n) {
 		return n;
+	}
 
 	start_mask = ~0UL << (start & (BITS_PER_LONG - 1));
 
@@ -129,16 +130,18 @@ void bitmap_set(unsigned long *map, unsigned int start, int len)
 	/*
 	 * Super slow naive implementation. But speed isn't what matters here.
 	 */
-	while (start < end)
+	while (start < end) {
 		set_bit(start++, map);
+	}
 }
 
 void bitmap_clear(unsigned long *map, unsigned int start, int len)
 {
 	unsigned int end = start + len;
 
-	while (start < end)
+	while (start < end) {
 		clear_bit(start++, map);
+	}
 }
 
 /*
@@ -165,13 +168,15 @@ unsigned long bitmap_find_next_zero_area_off(unsigned long *map,
 		/*
 		 * Not enough space left to satisfy the requested area.
 		 */
-		if ((start + nr) > size)
+		if ((start + nr) > size) {
 			return size;
+		}
 
 		offs = find_next_bit(map, size, start);
 
-		if ((offs - start) >= nr)
+		if ((offs - start) >= nr) {
 			return start;
+		}
 
 		start = offs + 1;
 	}

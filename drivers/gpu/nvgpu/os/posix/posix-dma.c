@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -58,8 +58,9 @@ static int __nvgpu_do_dma_alloc(struct gk20a *g, unsigned long flags,
 
 	memory = malloc(PAGE_ALIGN(size));
 
-	if (memory == NULL)
+	if (memory == NULL) {
 		return -ENOMEM;
+	}
 
 	mem->cpu_va       = memory;
 	mem->aperture     = ap;
@@ -97,8 +98,9 @@ int nvgpu_dma_alloc_flags_vid_at(struct gk20a *g, unsigned long flags,
 
 void nvgpu_dma_free_sys(struct gk20a *g, struct nvgpu_mem *mem)
 {
-	if (!(mem->mem_flags & NVGPU_MEM_FLAG_SHADOW_COPY))
+	if (!(mem->mem_flags & NVGPU_MEM_FLAG_SHADOW_COPY)) {
 		free(mem->cpu_va);
+	}
 
 	(void) memset(mem, 0, sizeof(*mem));
 }

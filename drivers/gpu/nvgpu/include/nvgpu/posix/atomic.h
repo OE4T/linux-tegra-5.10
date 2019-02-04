@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -86,8 +86,9 @@ static inline int __nvgpu_atomic_dec_return(nvgpu_atomic_t *v)
 
 static inline int __nvgpu_atomic_cmpxchg(nvgpu_atomic_t *v, int old, int new)
 {
-	if (v->v == old)
+	if (v->v == old) {
 		v->v = new;
+	}
 
 	return v->v;
 }
@@ -124,8 +125,9 @@ static inline int __nvgpu_atomic_add_return(int i, nvgpu_atomic_t *v)
 
 static inline int __nvgpu_atomic_add_unless(nvgpu_atomic_t *v, int a, int u)
 {
-	if (v->v != u)
+	if (v->v != u) {
 		v->v += a;
+	}
 
 	return v->v;
 }
@@ -171,8 +173,9 @@ static inline long __nvgpu_atomic64_cmpxchg(nvgpu_atomic64_t *v,
 					long old, long new)
 {
 
-	if (v->v == old)
+	if (v->v == old) {
 		v->v = new;
+	}
 
 	return v->v;
 }
