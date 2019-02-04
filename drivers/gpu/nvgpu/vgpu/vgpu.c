@@ -92,8 +92,9 @@ int vgpu_get_attribute(u64 handle, u32 attrib, u32 *value)
 	p->attrib = attrib;
 	err = vgpu_comm_sendrecv(&msg, sizeof(msg), sizeof(msg));
 
-	if (err || msg.ret)
+	if (err || msg.ret) {
 		return -1;
+	}
 
 	*value = p->value;
 	return 0;
@@ -162,8 +163,9 @@ int vgpu_intr_thread(void *dev_id)
 
 		err = vgpu_ivc_recv(TEGRA_VGPU_QUEUE_INTR, &handle,
 					(void **)&msg, &size, &sender);
-		if (err == -ETIME)
+		if (err == -ETIME) {
 			continue;
+		}
 		if (WARN_ON(err)) {
 			continue;
 		}
@@ -175,10 +177,11 @@ int vgpu_intr_thread(void *dev_id)
 
 		switch (msg->event) {
 		case TEGRA_VGPU_EVENT_INTR:
-			if (msg->unit == TEGRA_VGPU_INTR_GR)
+			if (msg->unit == TEGRA_VGPU_INTR_GR) {
 				vgpu_gr_isr(g, &msg->info.gr_intr);
-			else if (msg->unit == TEGRA_VGPU_INTR_FIFO)
+			} else if (msg->unit == TEGRA_VGPU_INTR_FIFO) {
 				vgpu_fifo_isr(g, &msg->info.fifo_intr);
+			}
 			break;
 #ifdef CONFIG_GK20A_CTXSW_TRACE
 		case TEGRA_VGPU_EVENT_FECS_TRACE:
@@ -211,8 +214,9 @@ int vgpu_intr_thread(void *dev_id)
 		vgpu_ivc_release(handle);
 	}
 
-	while (!nvgpu_thread_should_stop(&priv->intr_handler))
+	while (!nvgpu_thread_should_stop(&priv->intr_handler)) {
 		nvgpu_msleep(10);
+	}
 	return 0;
 }
 
@@ -222,24 +226,29 @@ void vgpu_remove_support_common(struct gk20a *g)
 	struct tegra_vgpu_intr_msg msg;
 	int err;
 
-	if (g->dbg_regops_tmp_buf)
+	if (g->dbg_regops_tmp_buf) {
 		nvgpu_kfree(g, g->dbg_regops_tmp_buf);
+	}
 
-	if (g->pmu.remove_support)
+	if (g->pmu.remove_support) {
 		g->pmu.remove_support(&g->pmu);
+	}
 
 	if (g->acr.remove_support != NULL) {
 		g->acr.remove_support(&g->acr);
 	}
 
-	if (g->gr.remove_support)
+	if (g->gr.remove_support) {
 		g->gr.remove_support(&g->gr);
+	}
 
-	if (g->fifo.remove_support)
+	if (g->fifo.remove_support) {
 		g->fifo.remove_support(&g->fifo);
+	}
 
-	if (g->mm.remove_support)
+	if (g->mm.remove_support) {
 		g->mm.remove_support(&g->mm);
+	}
 
 	msg.event = TEGRA_VGPU_EVENT_ABORT;
 	err = vgpu_ivc_send(vgpu_ivc_get_peer_self(), TEGRA_VGPU_QUEUE_INTR,
@@ -295,10 +304,11 @@ int vgpu_read_ptimer(struct gk20a *g, u64 *value)
 
 	err = vgpu_comm_sendrecv(&msg, sizeof(msg), sizeof(msg));
 	err = err ? err : msg.ret;
-	if (!err)
+	if (!err) {
 		*value = p->time;
-	else
+	} else {
 		nvgpu_err(g, "vgpu read ptimer failed, err=%d", err);
+	}
 
 	return err;
 }

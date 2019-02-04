@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -31,12 +31,14 @@ int vgpu_gr_gv11b_commit_inst(struct channel_gk20a *c, u64 gpu_va)
 	int err;
 
 	err = vgpu_gv11b_alloc_subctx_header(c);
-	if (err)
+	if (err) {
 		return err;
+	}
 
 	err = vgpu_gr_commit_inst(c, gpu_va);
-	if (err)
+	if (err) {
 		vgpu_gv11b_free_subctx_header(c);
+	}
 
 	return err;
 }

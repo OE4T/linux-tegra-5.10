@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -80,8 +80,9 @@ int vgpu_enable_tsg(struct tsg_gk20a *tsg)
 	struct channel_gk20a *ch;
 
 	nvgpu_rwsem_down_read(&tsg->ch_list_lock);
-	nvgpu_list_for_each_entry(ch, &tsg->ch_list, channel_gk20a, ch_entry)
+	nvgpu_list_for_each_entry(ch, &tsg->ch_list, channel_gk20a, ch_entry) {
 		g->ops.fifo.enable_channel(ch);
+	}
 	nvgpu_rwsem_up_read(&tsg->ch_list_lock);
 
 	return 0;
@@ -99,8 +100,9 @@ int vgpu_tsg_bind_channel(struct tsg_gk20a *tsg,
 	nvgpu_log_fn(g, " ");
 
 	err = gk20a_tsg_bind_channel(tsg, ch);
-	if (err)
+	if (err) {
 		return err;
+	}
 
 	msg.cmd = TEGRA_VGPU_CMD_TSG_BIND_CHANNEL;
 	msg.handle = vgpu_get_handle(tsg->g);
@@ -129,8 +131,9 @@ int vgpu_tsg_unbind_channel(struct channel_gk20a *ch)
 	nvgpu_log_fn(g, " ");
 
 	err = gk20a_fifo_tsg_unbind_channel(ch);
-	if (err)
+	if (err) {
 		return err;
+	}
 
 	msg.cmd = TEGRA_VGPU_CMD_TSG_UNBIND_CHANNEL;
 	msg.handle = vgpu_get_handle(ch->g);
@@ -159,8 +162,9 @@ int vgpu_tsg_set_timeslice(struct tsg_gk20a *tsg, u32 timeslice)
 	err = vgpu_comm_sendrecv(&msg, sizeof(msg), sizeof(msg));
 	err = err ? err : msg.ret;
 	WARN_ON(err);
-	if (!err)
+	if (!err) {
 		tsg->timeslice_us = timeslice;
+	}
 
 	return err;
 }

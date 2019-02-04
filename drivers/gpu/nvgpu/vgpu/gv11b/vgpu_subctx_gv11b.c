@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -91,8 +91,9 @@ void vgpu_gv11b_free_subctx_header(struct channel_gk20a *c)
 		p->ch_handle = c->virt_ctx;
 		err = vgpu_comm_sendrecv(&msg, sizeof(msg), sizeof(msg));
 		err = err ? err : msg.ret;
-		if (unlikely(err))
+		if (unlikely(err)) {
 			nvgpu_err(c->g, "free ctx_header failed err %d", err);
+		}
 		nvgpu_vm_free_va(c->vm, ctxheader->gpu_va,
 				 GMMU_PAGE_SIZE_KERNEL);
 		ctxheader->gpu_va = 0;

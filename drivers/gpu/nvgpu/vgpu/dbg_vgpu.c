@@ -52,8 +52,9 @@ int vgpu_exec_regops(struct gk20a *g,
 	handle = vgpu_ivc_oob_get_ptr(vgpu_ivc_get_server_vmid(),
 					TEGRA_VGPU_QUEUE_CMD,
 					&oob, &oob_size);
-	if (!handle)
+	if (!handle) {
 		return -EINVAL;
+	}
 
 	ops_size = sizeof(*ops) * num_ops;
 	if (oob_size < ops_size) {
@@ -94,13 +95,15 @@ int vgpu_dbg_set_powergate(struct dbg_session_gk20a *dbg_s, bool disable_powerga
 
 	/* Just return if requested mode is the same as the session's mode */
 	if (disable_powergate) {
-		if (dbg_s->is_pg_disabled)
+		if (dbg_s->is_pg_disabled) {
 			return 0;
+		}
 		dbg_s->is_pg_disabled = true;
 		mode = TEGRA_VGPU_POWERGATE_MODE_DISABLE;
 	} else {
-		if (!dbg_s->is_pg_disabled)
+		if (!dbg_s->is_pg_disabled) {
 			return 0;
+		}
 		dbg_s->is_pg_disabled = false;
 		mode = TEGRA_VGPU_POWERGATE_MODE_ENABLE;
 	}
@@ -135,8 +138,9 @@ bool vgpu_check_and_set_global_reservation(
 {
 	struct gk20a *g = dbg_s->g;
 
-	if (g->profiler_reservation_count > 0)
+	if (g->profiler_reservation_count > 0) {
 		return false;
+	}
 
 	/* Check that another guest OS doesn't already have a reservation */
 	if (!vgpu_sendrecv_prof_cmd(dbg_s, TEGRA_VGPU_PROF_GET_GLOBAL)) {
@@ -180,13 +184,15 @@ void vgpu_release_profiler_reservation(
 
 	dbg_s->has_profiler_reservation = false;
 	prof_obj->has_reservation = false;
-	if (prof_obj->ch == NULL)
+	if (prof_obj->ch == NULL) {
 		g->global_profiler_reservation_held = false;
+	}
 
 	/* If new reservation count is zero, notify server */
 	g->profiler_reservation_count--;
-	if (g->profiler_reservation_count == 0)
+	if (g->profiler_reservation_count == 0) {
 		vgpu_sendrecv_prof_cmd(dbg_s, TEGRA_VGPU_PROF_RELEASE);
+	}
 }
 
 static int vgpu_sendrecv_perfbuf_cmd(struct gk20a *g, u64 offset, u32 size)

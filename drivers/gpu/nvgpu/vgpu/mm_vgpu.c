@@ -1,7 +1,7 @@
 /*
  * Virtualized GPU Memory Management
  *
- * Copyright (c) 2014-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -73,11 +73,13 @@ int vgpu_init_mm_support(struct gk20a *g)
 	nvgpu_log_fn(g, " ");
 
 	err = vgpu_init_mm_setup_sw(g);
-	if (err)
+	if (err) {
 		return err;
+	}
 
-	if (g->ops.mm.init_mm_setup_hw)
+	if (g->ops.mm.init_mm_setup_hw) {
 		err = g->ops.mm.init_mm_setup_hw(g);
+	}
 
 	return err;
 }
@@ -103,8 +105,9 @@ void vgpu_locked_gmmu_unmap(struct vm_gk20a *vm,
 	p->handle = vm->handle;
 	p->gpu_va = vaddr;
 	err = vgpu_comm_sendrecv(&msg, sizeof(msg), sizeof(msg));
-	if (err || msg.ret)
+	if (err || msg.ret) {
 		nvgpu_err(g, "failed to update gmmu ptes on unmap");
+	}
 
 	if (va_allocated) {
 		nvgpu_vm_free_va(vm, vaddr, pgsz_idx);
@@ -129,8 +132,9 @@ int vgpu_vm_init(struct gk20a *g, struct vm_gk20a *vm)
 	p->big_page_size = vm->big_page_size;
 
 	err = vgpu_comm_sendrecv(&msg, sizeof(msg), sizeof(msg));
-	if (err || msg.ret)
+	if (err || msg.ret) {
 		return -ENOMEM;
+	}
 
 	vm->handle = p->handle;
 
@@ -218,8 +222,9 @@ int vgpu_vm_bind_channel(struct vm_gk20a *vm,
 		err = -ENOMEM;
 	}
 
-	if (ch->vm)
+	if (ch->vm) {
 		nvgpu_vm_get(ch->vm);
+	}
 
 	return err;
 }
@@ -260,10 +265,11 @@ int vgpu_mm_l2_flush(struct gk20a *g, bool invalidate)
 
 	nvgpu_log_fn(g, " ");
 
-	if (invalidate)
+	if (invalidate) {
 		op = TEGRA_VGPU_L2_MAINT_FLUSH_INV;
-	else
+	} else {
 		op =  TEGRA_VGPU_L2_MAINT_FLUSH;
+	}
 
 	return vgpu_cache_maint(vgpu_get_handle(g), op);
 }

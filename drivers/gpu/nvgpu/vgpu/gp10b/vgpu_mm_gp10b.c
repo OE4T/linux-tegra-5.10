@@ -1,7 +1,7 @@
 /*
  * Virtualized GPU Memory Management
  *
- * Copyright (c) 2015-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2015-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -41,8 +41,9 @@ int vgpu_gp10b_init_mm_setup_hw(struct gk20a *g)
 static inline int add_mem_desc(struct tegra_vgpu_mem_desc *mem_desc,
 				u64 addr, u64 size, size_t *oob_size)
 {
-	if (*oob_size < sizeof(*mem_desc))
+	if (*oob_size < sizeof(*mem_desc)) {
 		return -ENOMEM;
+	}
 
 	mem_desc->addr = addr;
 	mem_desc->length = size;
@@ -88,8 +89,9 @@ u64 vgpu_gp10b_locked_gmmu_map(struct vm_gk20a *vm,
 		return 0;
 	}
 
-	if (space_to_skip & (page_size - 1))
+	if (space_to_skip & (page_size - 1)) {
 		return 0;
+	}
 
 	(void) memset(&msg, 0, sizeof(msg));
 
@@ -143,16 +145,18 @@ u64 vgpu_gp10b_locked_gmmu_map(struct vm_gk20a *vm,
 		size -= chunk_length;
 		sgl   = nvgpu_sgt_get_next(sgt, sgl);
 
-		if (size == 0)
+		if (size == 0) {
 			break;
+		}
 	}
 
-	if (rw_flag == gk20a_mem_flag_read_only)
+	if (rw_flag == gk20a_mem_flag_read_only) {
 		prot = TEGRA_VGPU_MAP_PROT_READ_ONLY;
-	else if (rw_flag == gk20a_mem_flag_write_only)
+	} else if (rw_flag == gk20a_mem_flag_write_only) {
 		prot = TEGRA_VGPU_MAP_PROT_WRITE_ONLY;
-	else
+	} else {
 		prot = TEGRA_VGPU_MAP_PROT_NONE;
+	}
 
 	if (pgsz_idx == GMMU_PAGE_SIZE_KERNEL) {
 		if (page_size == vm->gmmu_page_sizes[GMMU_PAGE_SIZE_SMALL]) {
@@ -176,26 +180,31 @@ u64 vgpu_gp10b_locked_gmmu_map(struct vm_gk20a *vm,
 	p->pgsz_idx = pgsz_idx;
 	p->iova = 0;
 	p->kind = kind_v;
-	if (flags & NVGPU_VM_MAP_CACHEABLE)
+	if (flags & NVGPU_VM_MAP_CACHEABLE) {
 		p->flags = TEGRA_VGPU_MAP_CACHEABLE;
-	if (flags & NVGPU_VM_MAP_IO_COHERENT)
+	}
+	if (flags & NVGPU_VM_MAP_IO_COHERENT) {
 		p->flags |= TEGRA_VGPU_MAP_IO_COHERENT;
-	if (flags & NVGPU_VM_MAP_L3_ALLOC)
+	}
+	if (flags & NVGPU_VM_MAP_L3_ALLOC) {
 		p->flags |= TEGRA_VGPU_MAP_L3_ALLOC;
+	}
 	p->prot = prot;
 	p->ctag_offset = ctag_offset;
 	p->clear_ctags = clear_ctags;
 	err = vgpu_comm_sendrecv(&msg, sizeof(msg), sizeof(msg));
-	if (err || msg.ret)
+	if (err || msg.ret) {
 		goto fail;
+	}
 
 	/* TLB invalidate handled on server side */
 
 	vgpu_ivc_oob_put_ptr(handle);
 	return map_offset;
 fail:
-	if (handle)
+	if (handle) {
 		vgpu_ivc_oob_put_ptr(handle);
+	}
 	nvgpu_err(g, "Failed: err=%d, msg.ret=%d", err, msg.ret);
 	nvgpu_err(g,
 		  "  Map: %-5s GPU virt %#-12llx +%#-9llx "
@@ -205,9 +214,10 @@ fail:
 		  vm->gmmu_page_sizes[pgsz_idx] >> 10,
 		  nvgpu_gmmu_perm_str(rw_flag),
 		  kind_v, "SYSMEM");
-	for (i = 0; i < mem_desc_count; i++)
+	for (i = 0; i < mem_desc_count; i++) {
 		nvgpu_err(g, "  > 0x%010llx + 0x%llx",
 			  mem_desc[i].addr, mem_desc[i].length);
+	}
 
 	return 0;
 }

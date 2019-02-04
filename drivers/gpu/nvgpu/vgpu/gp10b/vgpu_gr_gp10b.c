@@ -49,10 +49,12 @@ int vgpu_gr_gp10b_init_ctxsw_preemption_mode(struct gk20a *g,
 
 	nvgpu_log_fn(g, " ");
 
-	if (flags & NVGPU_OBJ_CTX_FLAGS_SUPPORT_GFXP)
+	if (flags & NVGPU_OBJ_CTX_FLAGS_SUPPORT_GFXP) {
 		graphics_preempt_mode = NVGPU_PREEMPTION_MODE_GRAPHICS_GFXP;
-	if (flags & NVGPU_OBJ_CTX_FLAGS_SUPPORT_CILP)
+	}
+	if (flags & NVGPU_OBJ_CTX_FLAGS_SUPPORT_CILP) {
 		compute_preempt_mode = NVGPU_PREEMPTION_MODE_COMPUTE_CILP;
+	}
 
 	if (priv->constants.force_preempt_mode && !graphics_preempt_mode &&
 		!compute_preempt_mode) {
@@ -93,20 +95,24 @@ int vgpu_gr_gp10b_set_ctxsw_preemption_mode(struct gk20a *g,
 	int err = 0;
 
 	if (g->ops.gr.is_valid_gfx_class(g, class) &&
-			g->gr.ctx_vars.force_preemption_gfxp)
+			g->gr.ctx_vars.force_preemption_gfxp) {
 		graphics_preempt_mode = NVGPU_PREEMPTION_MODE_GRAPHICS_GFXP;
+	}
 
 	if (g->ops.gr.is_valid_compute_class(g, class) &&
-			g->gr.ctx_vars.force_preemption_cilp)
+			g->gr.ctx_vars.force_preemption_cilp) {
 		compute_preempt_mode = NVGPU_PREEMPTION_MODE_COMPUTE_CILP;
+	}
 
 	/* check for invalid combinations */
-	if ((graphics_preempt_mode == 0) && (compute_preempt_mode == 0))
+	if ((graphics_preempt_mode == 0) && (compute_preempt_mode == 0)) {
 		return -EINVAL;
+	}
 
 	if ((graphics_preempt_mode == NVGPU_PREEMPTION_MODE_GRAPHICS_GFXP) &&
-		   (compute_preempt_mode == NVGPU_PREEMPTION_MODE_COMPUTE_CILP))
+		   (compute_preempt_mode == NVGPU_PREEMPTION_MODE_COMPUTE_CILP)) {
 		return -EINVAL;
+	}
 
 	/* set preemption modes */
 	switch (graphics_preempt_mode) {
@@ -235,27 +241,32 @@ int vgpu_gr_gp10b_set_preemption_mode(struct channel_gk20a *ch,
 	int err;
 
 	class = ch->obj_class;
-	if (!class)
+	if (!class) {
 		return -EINVAL;
+	}
 
 	tsg = tsg_gk20a_from_ch(ch);
-	if (!tsg)
+	if (!tsg) {
 		return -EINVAL;
+	}
 
 	vm = tsg->vm;
 	gr_ctx = tsg->gr_ctx;
 
 	/* skip setting anything if both modes are already set */
 	if (graphics_preempt_mode &&
-	   (graphics_preempt_mode == gr_ctx->graphics_preempt_mode))
+	   (graphics_preempt_mode == gr_ctx->graphics_preempt_mode)) {
 		graphics_preempt_mode = 0;
+	}
 
 	if (compute_preempt_mode &&
-	   (compute_preempt_mode == gr_ctx->compute_preempt_mode))
+	   (compute_preempt_mode == gr_ctx->compute_preempt_mode)) {
 		compute_preempt_mode = 0;
+	}
 
-	if (graphics_preempt_mode == 0 && compute_preempt_mode == 0)
+	if (graphics_preempt_mode == 0 && compute_preempt_mode == 0) {
 		return 0;
+	}
 
 	if (g->ops.gr.set_ctxsw_preemption_mode) {
 		err = g->ops.gr.set_ctxsw_preemption_mode(g, gr_ctx, vm, class,
@@ -280,13 +291,15 @@ int vgpu_gr_gp10b_init_ctx_state(struct gk20a *g)
 	nvgpu_log_fn(g, " ");
 
 	err = vgpu_gr_init_ctx_state(g);
-	if (err)
+	if (err) {
 		return err;
+	}
 
 	g->gr.ctx_vars.preempt_image_size =
 			priv->constants.preempt_ctx_size;
-	if (!g->gr.ctx_vars.preempt_image_size)
+	if (!g->gr.ctx_vars.preempt_image_size) {
 		return -EINVAL;
+	}
 
 	return 0;
 }

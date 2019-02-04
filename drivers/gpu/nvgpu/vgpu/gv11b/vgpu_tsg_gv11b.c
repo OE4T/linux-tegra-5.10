@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -39,8 +39,9 @@ int vgpu_gv11b_tsg_bind_channel(struct tsg_gk20a *tsg,
 	nvgpu_log_fn(g, " ");
 
 	err = gk20a_tsg_bind_channel(tsg, ch);
-	if (err)
+	if (err) {
 		return err;
+	}
 
 	msg.cmd = TEGRA_VGPU_CMD_TSG_BIND_CHANNEL_EX;
 	msg.handle = vgpu_get_handle(tsg->g);
@@ -73,8 +74,9 @@ int vgpu_gv11b_enable_tsg(struct tsg_gk20a *tsg)
 	}
 	nvgpu_rwsem_up_read(&tsg->ch_list_lock);
 
-	if (last_ch)
+	if (last_ch) {
 		g->ops.fifo.ring_channel_doorbell(last_ch);
+	}
 
 	return 0;
 }

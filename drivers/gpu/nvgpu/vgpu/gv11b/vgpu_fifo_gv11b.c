@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -39,8 +39,9 @@ static int set_syncpt_ro_map_gpu_va_locked(struct vm_gk20a *vm)
 	struct tegra_vgpu_cmd_msg msg = {};
 	struct tegra_vgpu_map_syncpt_params *p = &msg.params.map_syncpt;
 
-	if (vm->syncpt_ro_map_gpu_va)
+	if (vm->syncpt_ro_map_gpu_va) {
 		return 0;
+	}
 
 	vm->syncpt_ro_map_gpu_va = nvgpu_vm_alloc_va(vm,
 			g->syncpt_unit_size,
@@ -88,8 +89,9 @@ int vgpu_gv11b_fifo_alloc_syncpt_buf(struct channel_gk20a *c,
 	nvgpu_mutex_acquire(&c->vm->syncpt_ro_map_lock);
 	err = set_syncpt_ro_map_gpu_va_locked(c->vm);
 	nvgpu_mutex_release(&c->vm->syncpt_ro_map_lock);
-	if (err)
+	if (err) {
 		return err;
+	}
 
 	syncpt_buf->gpu_va = nvgpu_vm_alloc_va(c->vm, g->syncpt_size,
 			GMMU_PAGE_SIZE_KERNEL);
@@ -135,8 +137,9 @@ int vgpu_gv11b_fifo_get_sync_ro_map(struct vm_gk20a *vm,
 	nvgpu_mutex_acquire(&vm->syncpt_ro_map_lock);
 	err = set_syncpt_ro_map_gpu_va_locked(vm);
 	nvgpu_mutex_release(&vm->syncpt_ro_map_lock);
-	if (err)
+	if (err) {
 		return err;
+	}
 
 	*base_gpuva = vm->syncpt_ro_map_gpu_va;
 	*sync_size = g->syncpt_size;

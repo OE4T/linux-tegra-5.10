@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -42,11 +42,12 @@ static unsigned long vgpu_clk_get_rate(struct gk20a *g, u32 api_domain)
 		msg.handle = vgpu_get_handle(g);
 		err = vgpu_comm_sendrecv(&msg, sizeof(msg), sizeof(msg));
 		err = err ? err : msg.ret;
-		if (err)
+		if (err) {
 			nvgpu_err(g, "%s failed - %d", __func__, err);
-		else
+		} else {
 			/* return frequency in Hz */
 			ret = p->rate;
+		}
 		break;
 	case CTRL_CLK_DOMAIN_PWRCLK:
 		nvgpu_err(g, "unsupported clock: %u", api_domain);
@@ -76,8 +77,9 @@ static int vgpu_clk_set_rate(struct gk20a *g,
 		p->rate = rate;
 		err = vgpu_comm_sendrecv(&msg, sizeof(msg), sizeof(msg));
 		err = err ? err : msg.ret;
-		if (err)
+		if (err) {
 			nvgpu_err(g, "%s failed - %d", __func__, err);
+		}
 		break;
 	case CTRL_CLK_DOMAIN_PWRCLK:
 		nvgpu_err(g, "unsupported clock: %u", api_domain);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -68,8 +68,9 @@ u32 vgpu_css_get_buffer_size(struct gk20a *g)
 	}
 
 	cookie = vgpu_css_reserve_mempool(g);
-	if (IS_ERR(cookie))
+	if (IS_ERR(cookie)) {
 		return 0;
+	}
 
 	size = vgpu_ivm_get_size(cookie);
 
@@ -88,12 +89,14 @@ static int vgpu_css_init_snapshot_buffer(struct gr_gk20a *gr)
 
 	nvgpu_log_fn(g, " ");
 
-	if (data->hw_snapshot)
+	if (data->hw_snapshot) {
 		return 0;
+	}
 
 	css_cookie = vgpu_css_reserve_mempool(g);
-	if (IS_ERR(css_cookie))
+	if (IS_ERR(css_cookie)) {
 		return PTR_ERR(css_cookie);
+	}
 
 	size = vgpu_ivm_get_size(css_cookie);
 	/* Make sure buffer size is large enough */
@@ -127,8 +130,9 @@ void vgpu_css_release_snapshot_buffer(struct gr_gk20a *gr)
 	struct gk20a_cs_snapshot *data = gr->cs_data;
 	struct gk20a *g = gr->g;
 
-	if (!data->hw_snapshot)
+	if (!data->hw_snapshot) {
 		return;
+	}
 
 	vgpu_ivm_mempool_unmap(css_cookie, data->hw_snapshot);
 	data->hw_snapshot = NULL;
@@ -187,10 +191,11 @@ static int vgpu_css_attach(struct channel_gk20a *ch,
 
 	err = vgpu_comm_sendrecv(&msg, sizeof(msg), sizeof(msg));
 	err = err ? err : msg.ret;
-	if (err)
+	if (err) {
 		nvgpu_err(g, "failed");
-	else
+	} else {
 		cs_client->perfmon_start = p->perfmon_start;
+	}
 
 	return err;
 }
@@ -215,8 +220,9 @@ int vgpu_css_detach(struct channel_gk20a *ch,
 
 	err = vgpu_comm_sendrecv(&msg, sizeof(msg), sizeof(msg));
 	err = err ? err : msg.ret;
-	if (err)
+	if (err) {
 		nvgpu_err(g, "failed");
+	}
 
 	return err;
 }
@@ -227,8 +233,9 @@ int vgpu_css_enable_snapshot_buffer(struct channel_gk20a *ch,
 	int ret;
 
 	ret = vgpu_css_attach(ch, cs_client);
-	if (ret)
+	if (ret) {
 		return ret;
+	}
 
 	ret = vgpu_css_init_snapshot_buffer(&ch->g->gr);
 	return ret;

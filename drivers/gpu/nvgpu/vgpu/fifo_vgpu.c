@@ -288,8 +288,9 @@ static int vgpu_init_fifo_setup_sw(struct gk20a *g)
 	nvgpu_mutex_init(&f->tsg_inuse_mutex);
 
 	err = nvgpu_channel_worker_init(g);
-	if (err)
+	if (err) {
 		goto clean_up;
+	}
 
 	f->deferred_reset_pending = false;
 	nvgpu_mutex_init(&f->deferred_reset_mutex);
@@ -385,11 +386,13 @@ int vgpu_init_fifo_support(struct gk20a *g)
 	nvgpu_log_fn(g, " ");
 
 	err = vgpu_init_fifo_setup_sw(g);
-	if (err)
+	if (err) {
 		return err;
+	}
 
-	if (g->ops.fifo.init_fifo_setup_hw)
+	if (g->ops.fifo.init_fifo_setup_hw) {
 		err = g->ops.fifo.init_fifo_setup_hw(g);
+	}
 	return err;
 }
 
@@ -402,8 +405,9 @@ int vgpu_fifo_preempt_channel(struct gk20a *g, struct channel_gk20a *ch)
 
 	nvgpu_log_fn(g, " ");
 
-	if (!nvgpu_atomic_read(&ch->bound))
+	if (!nvgpu_atomic_read(&ch->bound)) {
 		return 0;
+	}
 
 	msg.cmd = TEGRA_VGPU_CMD_CHANNEL_PREEMPT;
 	msg.handle = vgpu_get_handle(g);
@@ -455,8 +459,9 @@ static int vgpu_submit_runlist(struct gk20a *g, u64 handle, u8 runlist_id,
 	oob_handle = vgpu_ivc_oob_get_ptr(vgpu_ivc_get_server_vmid(),
 			TEGRA_VGPU_QUEUE_CMD,
 			&oob, &oob_size);
-	if (!oob_handle)
+	if (!oob_handle) {
 		return -EINVAL;
+	}
 
 	size = sizeof(*runlist) * num_entries;
 	if (oob_size < size) {
@@ -656,8 +661,9 @@ int vgpu_fifo_force_reset_ch(struct channel_gk20a *ch,
 	p->handle = ch->virt_ctx;
 	err = vgpu_comm_sendrecv(&msg, sizeof(msg), sizeof(msg));
 	WARN_ON(err || msg.ret);
-	if (!err)
+	if (!err) {
 		gk20a_channel_abort(ch, false);
+	}
 	return err ? err : msg.ret;
 }
 
@@ -710,8 +716,9 @@ int vgpu_fifo_isr(struct gk20a *g, struct tegra_vgpu_fifo_intr_info *info)
 	struct channel_gk20a *ch = gk20a_channel_from_id(g, info->chid);
 
 	nvgpu_log_fn(g, " ");
-	if (!ch)
+	if (!ch) {
 		return 0;
+	}
 
 	nvgpu_err(g, "fifo intr (%d) on ch %u",
 		info->type, info->chid);
