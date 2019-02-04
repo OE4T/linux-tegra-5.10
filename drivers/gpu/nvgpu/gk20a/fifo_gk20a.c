@@ -53,6 +53,7 @@
 #include <nvgpu/top.h>
 #include <nvgpu/nvgpu_err.h>
 #include <nvgpu/engine_status.h>
+#include <nvgpu/engines.h>
 
 #include "mm_gk20a.h"
 
@@ -94,143 +95,10 @@ void nvgpu_report_host_error(struct gk20a *g, u32 inst,
 	}
 }
 
-u32 gk20a_fifo_get_engine_ids(struct gk20a *g,
-		u32 engine_id[], u32 engine_id_sz,
-		enum fifo_engine engine_enum)
-{
-	struct fifo_gk20a *f = NULL;
-	u32 instance_cnt = 0;
-	u32 engine_id_idx;
-	u32 active_engine_id = 0;
-	struct fifo_engine_info_gk20a *info = NULL;
-
-	if ((g != NULL) &&
-	    (engine_id_sz != 0U) &&
-	    (engine_enum < ENGINE_INVAL_GK20A)) {
-		f = &g->fifo;
-		for (engine_id_idx = 0; engine_id_idx < f->num_engines; ++engine_id_idx) {
-			active_engine_id = f->active_engines_list[engine_id_idx];
-			info = &f->engine_info[active_engine_id];
-
-			if (info->engine_enum == engine_enum) {
-				if (instance_cnt < engine_id_sz) {
-					engine_id[instance_cnt] = active_engine_id;
-					++instance_cnt;
-				} else {
-					nvgpu_log_info(g, "warning engine_id table sz is small %d",
-							engine_id_sz);
-				}
-			}
-		}
-	}
-	return instance_cnt;
-}
-
-struct fifo_engine_info_gk20a *gk20a_fifo_get_engine_info(struct gk20a *g, u32 engine_id)
-{
-	struct fifo_gk20a *f = NULL;
-	u32 engine_id_idx;
-	struct fifo_engine_info_gk20a *info = NULL;
-
-	if (g == NULL) {
-		return info;
-	}
-
-	f = &g->fifo;
-
-	if (engine_id < f->max_engines) {
-		for (engine_id_idx = 0; engine_id_idx < f->num_engines; ++engine_id_idx) {
-			if (engine_id == f->active_engines_list[engine_id_idx]) {
-				info = &f->engine_info[engine_id];
-				break;
-			}
-		}
-	}
-
-	if (info == NULL) {
-		nvgpu_err(g, "engine_id is not in active list/invalid %d", engine_id);
-	}
-
-	return info;
-}
-
-bool gk20a_fifo_is_valid_engine_id(struct gk20a *g, u32 engine_id)
-{
-	struct fifo_gk20a *f = NULL;
-	u32 engine_id_idx;
-	bool valid = false;
-
-	if (g == NULL) {
-		return valid;
-	}
-
-	f = &g->fifo;
-
-	if (engine_id < f->max_engines) {
-		for (engine_id_idx = 0; engine_id_idx < f->num_engines; ++engine_id_idx) {
-			if (engine_id == f->active_engines_list[engine_id_idx]) {
-				valid = true;
-				break;
-			}
-		}
-	}
-
-	if (!valid) {
-		nvgpu_err(g, "engine_id is not in active list/invalid %d", engine_id);
-	}
-
-	return valid;
-}
-
-u32 gk20a_fifo_get_gr_engine_id(struct gk20a *g)
-{
-	u32 gr_engine_cnt = 0;
-	u32 gr_engine_id = FIFO_INVAL_ENGINE_ID;
-
-	/* Consider 1st available GR engine */
-	gr_engine_cnt = gk20a_fifo_get_engine_ids(g, &gr_engine_id,
-			1, ENGINE_GR_GK20A);
-
-	if (gr_engine_cnt == 0U) {
-		nvgpu_err(g, "No GR engine available on this device!");
-	}
-
-	return gr_engine_id;
-}
-
-u32 gk20a_fifo_get_all_ce_engine_reset_mask(struct gk20a *g)
-{
-	u32 reset_mask = 0;
-	enum fifo_engine engine_enum = ENGINE_INVAL_GK20A;
-	struct fifo_gk20a *f = NULL;
-	u32 engine_id_idx;
-	struct fifo_engine_info_gk20a *engine_info;
-	u32 active_engine_id = 0;
-
-	if (g == NULL) {
-		return reset_mask;
-	}
-
-	f = &g->fifo;
-
-	for (engine_id_idx = 0; engine_id_idx < f->num_engines; ++engine_id_idx) {
-		active_engine_id = f->active_engines_list[engine_id_idx];
-		engine_info = &f->engine_info[active_engine_id];
-		engine_enum = engine_info->engine_enum;
-
-		if ((engine_enum == ENGINE_GRCE_GK20A) ||
-			(engine_enum == ENGINE_ASYNC_CE_GK20A)) {
-				reset_mask |= engine_info->reset_mask;
-		}
-	}
-
-	return reset_mask;
-}
-
 u32 gk20a_fifo_get_fast_ce_runlist_id(struct gk20a *g)
 {
 	u32 ce_runlist_id = gk20a_fifo_get_gr_runlist_id(g);
-	enum fifo_engine engine_enum = ENGINE_INVAL_GK20A;
+	enum nvgpu_fifo_engine engine_enum = NVGPU_ENGINE_INVAL_GK20A;
 	struct fifo_gk20a *f = NULL;
 	u32 engine_id_idx;
 	struct fifo_engine_info_gk20a *engine_info;
@@ -248,7 +116,7 @@ u32 gk20a_fifo_get_fast_ce_runlist_id(struct gk20a *g)
 		engine_enum = engine_info->engine_enum;
 
 		/* selecet last available ASYNC_CE if available */
-		if (engine_enum == ENGINE_ASYNC_CE_GK20A) {
+		if (engine_enum == NVGPU_ENGINE_ASYNC_CE_GK20A) {
 			ce_runlist_id = engine_info->runlist_id;
 		}
 	}
@@ -264,8 +132,8 @@ u32 gk20a_fifo_get_gr_runlist_id(struct gk20a *g)
 	u32 gr_runlist_id = U32_MAX;
 
 	/* Consider 1st available GR engine */
-	gr_engine_cnt = gk20a_fifo_get_engine_ids(g, &gr_engine_id,
-			1, ENGINE_GR_GK20A);
+	gr_engine_cnt = nvgpu_engine_get_ids(g, &gr_engine_id,
+			1, NVGPU_ENGINE_GR_GK20A);
 
 	if (gr_engine_cnt == 0U) {
 		nvgpu_err(g,
@@ -273,7 +141,7 @@ u32 gk20a_fifo_get_gr_runlist_id(struct gk20a *g)
 		goto end;
 	}
 
-	engine_info = gk20a_fifo_get_engine_info(g, gr_engine_id);
+	engine_info = nvgpu_engine_get_active_eng_info(g, gr_engine_id);
 
 	if (engine_info != NULL) {
 		gr_runlist_id = engine_info->runlist_id;
@@ -301,7 +169,7 @@ bool gk20a_fifo_is_valid_runlist_id(struct gk20a *g, u32 runlist_id)
 
 	for (engine_id_idx = 0; engine_id_idx < f->num_engines; ++engine_id_idx) {
 		active_engine_id = f->active_engines_list[engine_id_idx];
-		engine_info = gk20a_fifo_get_engine_info(g, active_engine_id);
+		engine_info = nvgpu_engine_get_active_eng_info(g, active_engine_id);
 		if ((engine_info != NULL) &&
 		    (engine_info->runlist_id == runlist_id)) {
 			return true;
@@ -320,7 +188,7 @@ static inline u32 gk20a_engine_id_to_mmu_id(struct gk20a *g, u32 engine_id)
 	u32 fault_id = FIFO_INVAL_ENGINE_ID;
 	struct fifo_engine_info_gk20a *engine_info;
 
-	engine_info = gk20a_fifo_get_engine_info(g, engine_id);
+	engine_info = nvgpu_engine_get_active_eng_info(g, engine_id);
 
 	if (engine_info != NULL) {
 		fault_id = engine_info->fault_id;
@@ -347,68 +215,6 @@ static inline u32 gk20a_mmu_id_to_engine_id(struct gk20a *g, u32 fault_id)
 		active_engine_id = FIFO_INVAL_ENGINE_ID;
 	}
 	return active_engine_id;
-}
-
-enum fifo_engine gk20a_fifo_engine_enum_from_type(struct gk20a *g,
-					u32 engine_type)
-{
-	enum fifo_engine ret = ENGINE_INVAL_GK20A;
-
-	if ((g->ops.top.is_engine_gr != NULL) &&
-					(g->ops.top.is_engine_ce != NULL)) {
-		if (g->ops.top.is_engine_gr(g, engine_type)) {
-			ret = ENGINE_GR_GK20A;
-		} else if (g->ops.top.is_engine_ce(g, engine_type)) {
-			/* Lets consider all the CE engine have separate
-			 * runlist at this point. We can identify the
-			 * ENGINE_GRCE_GK20A type CE using runlist_id
-			 * comparsion logic with GR runlist_id in
-			 * init_engine_info()
-			 */
-			ret = ENGINE_ASYNC_CE_GK20A;
-		} else {
-			ret = ENGINE_INVAL_GK20A;
-		}
-	}
-
-	return ret;
-}
-
-u32 gk20a_fifo_act_eng_interrupt_mask(struct gk20a *g, u32 act_eng_id)
-{
-	struct fifo_engine_info_gk20a *engine_info = NULL;
-
-	engine_info = gk20a_fifo_get_engine_info(g, act_eng_id);
-	if (engine_info != NULL) {
-		return engine_info->intr_mask;
-	}
-
-	return 0;
-}
-
-u32 gk20a_fifo_engine_interrupt_mask(struct gk20a *g)
-{
-	u32 eng_intr_mask = 0;
-	unsigned int i;
-	u32 active_engine_id = 0;
-	enum fifo_engine engine_enum = ENGINE_INVAL_GK20A;
-
-	for (i = 0; i < g->fifo.num_engines; i++) {
-		u32 intr_mask;
-		active_engine_id = g->fifo.active_engines_list[i];
-		intr_mask = g->fifo.engine_info[active_engine_id].intr_mask;
-		engine_enum = g->fifo.engine_info[active_engine_id].engine_enum;
-		if (((engine_enum == ENGINE_GRCE_GK20A) ||
-		     (engine_enum == ENGINE_ASYNC_CE_GK20A)) &&
-		    ((g->ops.ce2.isr_stall == NULL) ||
-		     (g->ops.ce2.isr_nonstall == NULL))) {
-				continue;
-		}
-
-		eng_intr_mask |= intr_mask;
-	}
-
-	return eng_intr_mask;
 }
 
 static void gk20a_remove_fifo_support(struct fifo_gk20a *f)
@@ -1104,7 +910,7 @@ void gk20a_fifo_get_mmu_fault_info(struct gk20a *g, u32 mmu_fault_id,
 
 void gk20a_fifo_reset_engine(struct gk20a *g, u32 engine_id)
 {
-	enum fifo_engine engine_enum = ENGINE_INVAL_GK20A;
+	enum nvgpu_fifo_engine engine_enum = NVGPU_ENGINE_INVAL_GK20A;
 	struct fifo_engine_info_gk20a *engine_info;
 
 	nvgpu_log_fn(g, " ");
@@ -1113,17 +919,17 @@ void gk20a_fifo_reset_engine(struct gk20a *g, u32 engine_id)
 		return;
 	}
 
-	engine_info = gk20a_fifo_get_engine_info(g, engine_id);
+	engine_info = nvgpu_engine_get_active_eng_info(g, engine_id);
 
 	if (engine_info != NULL) {
 		engine_enum = engine_info->engine_enum;
 	}
 
-	if (engine_enum == ENGINE_INVAL_GK20A) {
+	if (engine_enum == NVGPU_ENGINE_INVAL_GK20A) {
 		nvgpu_err(g, "unsupported engine_id %d", engine_id);
 	}
 
-	if (engine_enum == ENGINE_GR_GK20A) {
+	if (engine_enum == NVGPU_ENGINE_GR_GK20A) {
 		if (g->support_pmu && g->can_elpg) {
 			if (nvgpu_pmu_disable_elpg(g) != 0) {
 				nvgpu_err(g, "failed to set disable elpg");
@@ -1158,8 +964,8 @@ void gk20a_fifo_reset_engine(struct gk20a *g, u32 engine_id)
 			nvgpu_pmu_enable_elpg(g);
 		}
 	}
-	if ((engine_enum == ENGINE_GRCE_GK20A) ||
-		(engine_enum == ENGINE_ASYNC_CE_GK20A)) {
+	if ((engine_enum == NVGPU_ENGINE_GRCE_GK20A) ||
+		(engine_enum == NVGPU_ENGINE_ASYNC_CE_GK20A)) {
 			g->ops.mc.reset(g, engine_info->reset_mask);
 	}
 }
@@ -1190,20 +996,20 @@ bool gk20a_is_fault_engine_subid_gpc(struct gk20a *g, u32 engine_subid)
 bool gk20a_fifo_should_defer_engine_reset(struct gk20a *g, u32 engine_id,
 		u32 engine_subid, bool fake_fault)
 {
-	enum fifo_engine engine_enum = ENGINE_INVAL_GK20A;
+	enum nvgpu_fifo_engine engine_enum = NVGPU_ENGINE_INVAL_GK20A;
 	struct fifo_engine_info_gk20a *engine_info;
 
 	if (g == NULL) {
 		return false;
 	}
 
-	engine_info = gk20a_fifo_get_engine_info(g, engine_id);
+	engine_info = nvgpu_engine_get_active_eng_info(g, engine_id);
 
 	if (engine_info != NULL) {
 		engine_enum = engine_info->engine_enum;
 	}
 
-	if (engine_enum == ENGINE_INVAL_GK20A) {
+	if (engine_enum == NVGPU_ENGINE_INVAL_GK20A) {
 		return false;
 	}
 
@@ -1219,7 +1025,7 @@ bool gk20a_fifo_should_defer_engine_reset(struct gk20a *g, u32 engine_id,
 		return false;
 	}
 
-	if (engine_enum != ENGINE_GR_GK20A) {
+	if (engine_enum != NVGPU_ENGINE_GR_GK20A) {
 		return false;
 	}
 
@@ -1919,7 +1725,7 @@ bool gk20a_fifo_handle_sched_error(struct gk20a *g)
 	engine_id = gk20a_fifo_get_failing_engine_data(g, &id, &is_tsg);
 
 	/* could not find the engine - should never happen */
-	if (!gk20a_fifo_is_valid_engine_id(g, engine_id)) {
+	if (!nvgpu_engine_check_valid_eng_id(g, engine_id)) {
 		nvgpu_err(g, "fifo sched error : 0x%08x, failed to find engine",
 			sched_error);
 		ret = false;

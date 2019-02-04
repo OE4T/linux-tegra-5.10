@@ -343,6 +343,7 @@ nvgpu-y += \
 	common/fifo/channel_gv11b.o \
 	common/fifo/channel_gv100.o \
 	common/fifo/engine_status.o \
+	common/fifo/engines.o \
 	common/fifo/engine_status_gm20b.o \
 	common/fifo/engine_status_gv100.o \
 	common/ecc.o \

@@ -33,6 +33,7 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/channel.h>
 #include <nvgpu/top.h>
+#include <nvgpu/engines.h>
 
 #include "gk20a/fifo_gk20a.h"
 #include "fifo_gm20b.h"
@@ -46,7 +47,7 @@ static inline u32 gm20b_engine_id_to_mmu_id(struct gk20a *g, u32 engine_id)
 	u32 fault_id = FIFO_INVAL_MMU_ID;
 	struct fifo_engine_info_gk20a *engine_info;
 
-	engine_info = gk20a_fifo_get_engine_info(g, engine_id);
+	engine_info = nvgpu_engine_get_active_eng_info(g, engine_id);
 
 	if (engine_info != NULL) {
 		fault_id = engine_info->fault_id;
@@ -66,7 +67,7 @@ void gm20b_fifo_trigger_mmu_fault(struct gk20a *g,
 
 	/* trigger faults for all bad engines */
 	for_each_set_bit(engine_id, &engine_ids, 32UL) {
-		if (!gk20a_fifo_is_valid_engine_id(g, engine_id)) {
+		if (!nvgpu_engine_check_valid_eng_id(g, engine_id)) {
 			nvgpu_err(g, "faulting unknown engine %ld", engine_id);
 		} else {
 			u32 mmu_id = gm20b_engine_id_to_mmu_id(g,
@@ -208,7 +209,7 @@ int gm20b_fifo_init_engine_info(struct fifo_gk20a *f)
 {
 	struct gk20a *g = f->g;
 	int ret = 0;
-	enum fifo_engine engine_enum;
+	enum nvgpu_fifo_engine engine_enum;
 	u32 pbdma_id = U32_MAX;
 	bool found_pbdma_for_runlist = false;
 
@@ -234,7 +235,7 @@ int gm20b_fifo_init_engine_info(struct fifo_gk20a *f)
 			return -EINVAL;
 		}
 
-		engine_enum = gk20a_fifo_engine_enum_from_type(g,
+		engine_enum = nvgpu_engine_enum_from_type(g,
 							dev_info.engine_type);
 
 		info = &g->fifo.engine_info[dev_info.engine_id];
@@ -272,7 +273,7 @@ int gm20b_fifo_init_ce_engine_info(struct fifo_gk20a *f)
 	struct gk20a *g = f->g;
 	int ret = 0;
 	u32 i;
-	enum fifo_engine engine_enum;
+	enum nvgpu_fifo_engine engine_enum;
 	u32 pbdma_id = U32_MAX;
 	u32 gr_runlist_id;
 	bool found_pbdma_for_runlist = false;
@@ -309,13 +310,13 @@ int gm20b_fifo_init_ce_engine_info(struct fifo_gk20a *f)
 
 			info = &g->fifo.engine_info[dev_info.engine_id];
 
-			engine_enum = gk20a_fifo_engine_enum_from_type(g,
+			engine_enum = nvgpu_engine_enum_from_type(g,
 							dev_info.engine_type);
 
 			/* GR and GR_COPY shares same runlist_id */
-			if ((engine_enum == ENGINE_ASYNC_CE_GK20A) &&
+			if ((engine_enum == NVGPU_ENGINE_ASYNC_CE_GK20A) &&
 				(gr_runlist_id == dev_info.runlist_id)) {
-					engine_enum = ENGINE_GRCE_GK20A;
+					engine_enum = NVGPU_ENGINE_GRCE_GK20A;
 			}
 			info->engine_enum = engine_enum;
 
@@ -325,7 +326,7 @@ int gm20b_fifo_init_ce_engine_info(struct fifo_gk20a *f)
 			}
 
 			if ((dev_info.fault_id == 0U) &&
-					(engine_enum == ENGINE_GRCE_GK20A)) {
+					(engine_enum == NVGPU_ENGINE_GRCE_GK20A)) {
 				dev_info.fault_id = 0x1b;
 			}
 			info->fault_id = dev_info.fault_id;

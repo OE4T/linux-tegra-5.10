@@ -25,6 +25,7 @@
 #include <nvgpu/utils.h>
 #include <nvgpu/mc.h>
 #include <nvgpu/gk20a.h>
+#include <nvgpu/engines.h>
 
 #include "common/mc/mc_gp10b.h"
 #include "mc_tu104.h"
@@ -134,7 +135,7 @@ bool intr_tu104_vector_intr_pending(struct gk20a *g, u32 intr_vector)
 
 static void intr_tu104_stall_enable(struct gk20a *g)
 {
-	u32 eng_intr_mask = gk20a_fifo_engine_interrupt_mask(g);
+	u32 eng_intr_mask = nvgpu_engine_interrupt_mask(g);
 
 	nvgpu_writel(g, mc_intr_en_clear_r(NVGPU_MC_INTR_STALLING),
 				0xffffffffU);

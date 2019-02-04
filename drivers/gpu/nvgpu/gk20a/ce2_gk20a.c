@@ -31,6 +31,7 @@
 #include <nvgpu/utils.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/channel.h>
+#include <nvgpu/engines.h>
 
 #include "gk20a/fence_gk20a.h"
 #include "gk20a/ce2_gk20a.h"
@@ -349,7 +350,7 @@ int gk20a_init_ce_support(struct gk20a *g)
 		g->ce_app = ce_app;
 	}
 
-	ce_reset_mask = gk20a_fifo_get_all_ce_engine_reset_mask(g);
+	ce_reset_mask = nvgpu_engine_get_all_ce_eng_reset_mask(g);
 
 	g->ops.mc.reset(g, ce_reset_mask);
 

@@ -28,6 +28,7 @@
 #include <nvgpu/utils.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/string.h>
+#include <nvgpu/engines.h>
 
 /* state transition :
  * OFF => [OFF_ON_PENDING optional] => ON_PENDING => ON => OFF
@@ -554,7 +555,7 @@ int nvgpu_pmu_init_bind_fecs(struct gk20a *g)
 
 	nvgpu_log_fn(g, " ");
 
-	gr_engine_id = gk20a_fifo_get_gr_engine_id(g);
+	gr_engine_id = nvgpu_engine_get_gr_eng_id(g);
 
 	(void) memset(&cmd, 0, sizeof(struct pmu_cmd));
 	cmd.hdr.unit_id = PMU_UNIT_PG;
@@ -595,7 +596,7 @@ void nvgpu_pmu_setup_hw_load_zbc(struct gk20a *g)
 	u32 gr_engine_id;
 	int err = 0;
 
-	gr_engine_id = gk20a_fifo_get_gr_engine_id(g);
+	gr_engine_id = nvgpu_engine_get_gr_eng_id(g);
 
 	(void) memset(&cmd, 0, sizeof(struct pmu_cmd));
 	cmd.hdr.unit_id = PMU_UNIT_PG;

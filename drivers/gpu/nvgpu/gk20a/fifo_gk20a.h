@@ -26,6 +26,7 @@
 
 #include <nvgpu/kref.h>
 #include <nvgpu/fifo.h>
+#include <nvgpu/engines.h>
 
 struct gk20a_debug_output;
 struct mmu_fault_info;
@@ -90,13 +91,6 @@ struct fifo_runlist_info_gk20a {
 	struct nvgpu_mutex runlist_lock;
 };
 
-enum fifo_engine {
-	ENGINE_GR_GK20A	       = 0U,
-	ENGINE_GRCE_GK20A      = 1U,
-	ENGINE_ASYNC_CE_GK20A  = 2U,
-	ENGINE_INVAL_GK20A     = 3U,
-};
-
 struct fifo_pbdma_exception_info_gk20a {
 	u32 status_r; /* raw register value from hardware */
 	u32 id, next_id;
@@ -122,7 +116,7 @@ struct fifo_engine_info_gk20a {
 	u32 inst_id;
 	u32 pri_base;
 	u32 fault_id;
-	enum fifo_engine engine_enum;
+	enum nvgpu_fifo_engine engine_enum;
 	struct fifo_pbdma_exception_info_gk20a pbdma_exception_info;
 	struct fifo_engine_exception_info_gk20a engine_exception_info;
 };
@@ -286,8 +280,6 @@ void fifo_gk20a_finish_mmu_fault_handling(struct gk20a *g,
 		unsigned long fault_id);
 int gk20a_fifo_wait_engine_idle(struct gk20a *g);
 bool gk20a_fifo_is_engine_busy(struct gk20a *g);
-u32 gk20a_fifo_engine_interrupt_mask(struct gk20a *g);
-u32 gk20a_fifo_act_eng_interrupt_mask(struct gk20a *g, u32 act_eng_id);
 u32 gk20a_fifo_get_pbdma_signature(struct gk20a *g);
 u32 gk20a_fifo_get_failing_engine_data(struct gk20a *g,
 		u32 *__id, bool *__is_tsg);
@@ -295,22 +287,7 @@ void gk20a_fifo_abort_tsg(struct gk20a *g, struct tsg_gk20a *tsg, bool preempt);
 void gk20a_fifo_issue_preempt(struct gk20a *g, u32 id, bool is_tsg);
 int gk20a_fifo_tsg_set_timeslice(struct tsg_gk20a *tsg, u32 timeslice);
 
-enum fifo_engine gk20a_fifo_engine_enum_from_type(struct gk20a *g,
-				u32 engine_type);
-
-u32 gk20a_fifo_get_engine_ids(struct gk20a *g, u32 engine_id[],
-			u32 engine_id_sz, enum fifo_engine engine_enum);
-
-struct fifo_engine_info_gk20a *gk20a_fifo_get_engine_info(struct gk20a *g,
-							 u32 engine_id);
-
-bool gk20a_fifo_is_valid_engine_id(struct gk20a *g, u32 engine_id);
-
-u32 gk20a_fifo_get_gr_engine_id(struct gk20a *g);
-
 int gk20a_fifo_deferred_reset(struct gk20a *g, struct channel_gk20a *ch);
-
-u32 gk20a_fifo_get_all_ce_engine_reset_mask(struct gk20a *g);
 
 u32 gk20a_fifo_get_fast_ce_runlist_id(struct gk20a *g);
 

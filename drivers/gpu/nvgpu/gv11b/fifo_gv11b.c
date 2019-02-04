@@ -1869,7 +1869,7 @@ static u32 gv11b_mmu_fault_id_to_eng_id_and_veid(struct gk20a *g,
 		active_engine_id = f->active_engines_list[engine_id];
 		engine_info = &g->fifo.engine_info[active_engine_id];
 
-		if (active_engine_id == ENGINE_GR_GK20A) {
+		if (active_engine_id == NVGPU_ENGINE_GR_GK20A) {
 			/* get faulted subctx id */
 			*veid = gv11b_mmu_fault_id_to_gr_veid(g,
 					engine_info->fault_id, mmu_fault_id);

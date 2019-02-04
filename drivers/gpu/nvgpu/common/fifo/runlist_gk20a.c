@@ -25,6 +25,7 @@
 #include <nvgpu/runlist.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/engine_status.h>
+#include <nvgpu/engines.h>
 
 #include <gk20a/fifo_gk20a.h>
 
@@ -56,8 +57,8 @@ int gk20a_fifo_reschedule_preempt_next(struct channel_gk20a *ch,
 	u32 preempt_type = 0;
 	struct nvgpu_engine_status_info engine_status;
 
-	if (1U != gk20a_fifo_get_engine_ids(
-		g, &gr_eng_id, 1, ENGINE_GR_GK20A)) {
+	if (1U != nvgpu_engine_get_ids(
+		g, &gr_eng_id, 1, NVGPU_ENGINE_GR_GK20A)) {
 		return ret;
 	}
 	if ((runlist->eng_bitmask & BIT32(gr_eng_id)) == 0U) {

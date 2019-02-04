@@ -28,6 +28,7 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/unit.h>
 #include <nvgpu/bug.h>
+#include <nvgpu/engines.h>
 
 #include "mc_gp10b.h"
 #include "mc_gv100.h"
@@ -36,7 +37,7 @@
 
 void mc_gv100_intr_enable(struct gk20a *g)
 {
-	u32 eng_intr_mask = gk20a_fifo_engine_interrupt_mask(g);
+	u32 eng_intr_mask = nvgpu_engine_interrupt_mask(g);
 
 	gk20a_writel(g, mc_intr_en_clear_r(NVGPU_MC_INTR_STALLING),
 				0xffffffffU);
@@ -74,7 +75,7 @@ bool gv100_mc_is_stall_and_eng_intr_pending(struct gk20a *g, u32 act_eng_id,
 	u32 mc_intr_0 = gk20a_readl(g, mc_intr_r(0));
 	u32 stall_intr, eng_intr_mask;
 
-	eng_intr_mask = gk20a_fifo_act_eng_interrupt_mask(g, act_eng_id);
+	eng_intr_mask = nvgpu_engine_act_interrupt_mask(g, act_eng_id);
 	*eng_intr_pending = mc_intr_0 & eng_intr_mask;
 
 	stall_intr = mc_intr_pfifo_pending_f() |

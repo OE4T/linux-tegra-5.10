@@ -53,6 +53,7 @@
 #include <nvgpu/gr/subctx.h>
 #include <nvgpu/gr/ctx.h>
 #include <nvgpu/gr/config.h>
+#include <nvgpu/engines.h>
 #include <nvgpu/engine_status.h>
 
 #include "gr_gk20a.h"
@@ -227,7 +228,7 @@ int gr_gk20a_wait_idle(struct gk20a *g)
 
 	nvgpu_log_fn(g, " ");
 
-	gr_engine_id = gk20a_fifo_get_gr_engine_id(g);
+	gr_engine_id = nvgpu_engine_get_gr_eng_id(g);
 
 	nvgpu_timeout_init(g, &timeout, gk20a_get_gr_idle_timeout(g),
 			   NVGPU_TIMER_CPU_TIMER);
@@ -2568,7 +2569,7 @@ void gr_gk20a_pmu_save_zbc(struct gk20a *g, u32 entries)
 	int ret;
 	u32 engine_id;
 
-	engine_id = gk20a_fifo_get_gr_engine_id(g);
+	engine_id = nvgpu_engine_get_gr_eng_id(g);
 	gr_info = (f->engine_info + engine_id);
 
 	ret = gk20a_fifo_disable_engine_activity(g, gr_info, true);
@@ -2911,7 +2912,7 @@ int _gk20a_gr_zbc_set_table(struct gk20a *g, struct gr_gk20a *gr,
 	int ret;
 	u32 engine_id;
 
-	engine_id = gk20a_fifo_get_gr_engine_id(g);
+	engine_id = nvgpu_engine_get_gr_eng_id(g);
 	gr_info = (f->engine_info + engine_id);
 
 	ret = gk20a_fifo_disable_engine_activity(g, gr_info, true);
@@ -2961,7 +2962,7 @@ void gr_gk20a_init_cg_mode(struct gk20a *g, u32 cgmode, u32 mode_config)
 
 		/* gr_engine supports both BLCG and ELCG */
 		if ((cgmode == BLCG_MODE) &&
-			(engine_info->engine_enum == ENGINE_GR_GK20A)) {
+			(engine_info->engine_enum == NVGPU_ENGINE_GR_GK20A)) {
 				g->ops.therm.init_blcg_mode(g, mode_config, active_engine_id);
 				break;
 		} else if (cgmode == ELCG_MODE) {
@@ -4743,7 +4744,7 @@ int gk20a_gr_isr(struct gk20a *g)
 		return 0;
 	}
 
-	gr_engine_id = gk20a_fifo_get_gr_engine_id(g);
+	gr_engine_id = nvgpu_engine_get_gr_eng_id(g);
 	if (gr_engine_id != FIFO_INVAL_ENGINE_ID) {
 		gr_engine_id = BIT32(gr_engine_id);
 	}

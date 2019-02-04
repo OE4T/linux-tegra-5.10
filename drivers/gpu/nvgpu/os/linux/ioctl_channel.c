@@ -472,7 +472,7 @@ channel_release:
 	return 0;
 }
 
-/* note: runlist_id -1 is synonym for the ENGINE_GR_GK20A runlist id */
+/* note: runlist_id -1 is synonym for the NVGPU_ENGINE_GR_GK20A runlist id */
 static int __gk20a_channel_open(struct gk20a *g,
 				struct file *filp, s32 runlist_id)
 {

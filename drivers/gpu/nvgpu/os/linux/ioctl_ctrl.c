@@ -882,7 +882,7 @@ static int nvgpu_gpu_get_engine_info(
 	struct nvgpu_gpu_get_engine_info_args *args)
 {
 	int err = 0;
-	u32 engine_enum = ENGINE_INVAL_GK20A;
+	u32 engine_enum = NVGPU_ENGINE_INVAL_GK20A;
 	u32 report_index = 0;
 	u32 engine_id_idx;
 	const u32 max_buffer_engines = args->engine_info_buf_size /
@@ -902,15 +902,15 @@ static int nvgpu_gpu_get_engine_info(
 		engine_enum = src_info->engine_enum;
 
 		switch (engine_enum) {
-		case ENGINE_GR_GK20A:
+		case NVGPU_ENGINE_GR_GK20A:
 			dst_info.engine_id = NVGPU_GPU_ENGINE_ID_GR;
 			break;
 
-		case ENGINE_GRCE_GK20A:
+		case NVGPU_ENGINE_GRCE_GK20A:
 			dst_info.engine_id = NVGPU_GPU_ENGINE_ID_GR_COPY;
 			break;
 
-		case ENGINE_ASYNC_CE_GK20A:
+		case NVGPU_ENGINE_ASYNC_CE_GK20A:
 			dst_info.engine_id = NVGPU_GPU_ENGINE_ID_ASYNC_COPY;
 			break;
 

@@ -22,6 +22,7 @@
 #include <nvgpu/timers.h>
 #include <nvgpu/channel.h>
 #include <nvgpu/gr/ctx.h>
+#include <nvgpu/engines.h>
 
 void __gk20a_fifo_profile_free(struct nvgpu_ref *ref);
 
@@ -69,7 +70,7 @@ static int gk20a_fifo_sched_debugfs_seq_show(
 	int ret = SEQ_SKIP;
 	u32 engine_id;
 
-	engine_id = gk20a_fifo_get_gr_engine_id(g);
+	engine_id = nvgpu_engine_get_gr_eng_id(g);
 	engine_info = (f->engine_info + engine_id);
 	runlist_id = engine_info->runlist_id;
 	runlist = &f->runlist_info[runlist_id];

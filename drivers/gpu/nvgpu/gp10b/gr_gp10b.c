@@ -39,6 +39,7 @@
 #include <nvgpu/gr/subctx.h>
 #include <nvgpu/gr/ctx.h>
 #include <nvgpu/gr/config.h>
+#include <nvgpu/engines.h>
 #include <nvgpu/engine_status.h>
 
 #include "gk20a/gr_gk20a.h"
@@ -1189,7 +1190,7 @@ int gr_gp10b_dump_gr_status_regs(struct gk20a *g,
 	u32 gr_engine_id;
 	struct nvgpu_engine_status_info engine_status;
 
-	gr_engine_id = gk20a_fifo_get_gr_engine_id(g);
+	gr_engine_id = nvgpu_engine_get_gr_eng_id(g);
 
 	gk20a_debug_output(o, "NV_PGRAPH_STATUS: 0x%x\n",
 		gk20a_readl(g, gr_status_r()));

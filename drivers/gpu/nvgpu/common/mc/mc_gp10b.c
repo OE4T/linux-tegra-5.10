@@ -25,6 +25,7 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/io.h>
 #include <nvgpu/mc.h>
+#include <nvgpu/engines.h>
 
 #include "mc_gp10b.h"
 
@@ -46,7 +47,7 @@ void mc_gp10b_intr_mask(struct gk20a *g)
 
 void mc_gp10b_intr_enable(struct gk20a *g)
 {
-	u32 eng_intr_mask = gk20a_fifo_engine_interrupt_mask(g);
+	u32 eng_intr_mask = nvgpu_engine_interrupt_mask(g);
 
 	gk20a_writel(g, mc_intr_en_clear_r(NVGPU_MC_INTR_STALLING),
 				0xffffffffU);
@@ -95,7 +96,7 @@ void mc_gp10b_isr_stall(struct gk20a *g)
 
 	u32 engine_id_idx;
 	u32 active_engine_id = 0;
-	u32 engine_enum = ENGINE_INVAL_GK20A;
+	u32 engine_enum = NVGPU_ENGINE_INVAL_GK20A;
 
 	mc_intr_0 = gk20a_readl(g, mc_intr_r(0));
 
@@ -107,13 +108,13 @@ void mc_gp10b_isr_stall(struct gk20a *g)
 		if ((mc_intr_0 & g->fifo.engine_info[active_engine_id].intr_mask) != 0U) {
 			engine_enum = g->fifo.engine_info[active_engine_id].engine_enum;
 			/* GR Engine */
-			if (engine_enum == ENGINE_GR_GK20A) {
+			if (engine_enum == NVGPU_ENGINE_GR_GK20A) {
 				gr_gk20a_elpg_protected_call(g, gk20a_gr_isr(g));
 			}
 
 			/* CE Engine */
-			if (((engine_enum == ENGINE_GRCE_GK20A) ||
-				(engine_enum == ENGINE_ASYNC_CE_GK20A)) &&
+			if (((engine_enum == NVGPU_ENGINE_GRCE_GK20A) ||
+				(engine_enum == NVGPU_ENGINE_ASYNC_CE_GK20A)) &&
 				(g->ops.ce2.isr_stall != NULL)) {
 					g->ops.ce2.isr_stall(g,
 					g->fifo.engine_info[active_engine_id].inst_id,
