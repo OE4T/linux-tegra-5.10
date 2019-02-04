@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -58,19 +58,19 @@ static int _therm_device_pmudata_instget(struct gk20a *g,
 }
 
 static int construct_therm_device(struct gk20a *g,
-	struct boardobj **ppboardobj, u16 size, void *pargs)
+	struct boardobj **ppboardobj, size_t size, void *pargs)
 {
 	return boardobj_construct_super(g, ppboardobj, size, pargs);
 }
 
 static int construct_therm_device_gpu(struct gk20a *g,
-	struct boardobj **ppboardobj, u16 size, void *pargs)
+	struct boardobj **ppboardobj, size_t size, void *pargs)
 {
 	return construct_therm_device(g, ppboardobj, size, pargs);
 }
 
 static int construct_therm_device_gpu_sci(struct gk20a *g,
-	struct boardobj **ppboardobj, u16 size, void *pargs)
+	struct boardobj **ppboardobj, size_t size, void *pargs)
 {
 	return construct_therm_device(g, ppboardobj, size, pargs);
 }
@@ -99,7 +99,7 @@ exit:
 }
 
 static int construct_therm_device_gpu_tsosc(struct gk20a *g,
-	struct boardobj **ppboardobj, u16 size, void *pargs)
+	struct boardobj **ppboardobj, size_t size, void *pargs)
 {
 	struct therm_device_gpu_gpc_tsosc *pdev = NULL;
 	struct therm_device_gpu_gpc_tsosc *ptmp_dev =
@@ -144,7 +144,7 @@ exit:
 }
 
 static int construct_therm_device_hbm2_site(struct gk20a *g,
-	struct boardobj **ppboardobj, u16 size, void *pargs)
+	struct boardobj **ppboardobj, size_t size, void *pargs)
 {
 	struct therm_device_hbm2_site *pdev = NULL;
 	struct therm_device_hbm2_site *ptmp_dev =
@@ -167,7 +167,7 @@ static int construct_therm_device_hbm2_site(struct gk20a *g,
 }
 
 static int construct_therm_device_hbm2_combined(struct gk20a *g,
-	struct boardobj **ppboardobj, u16 size, void *pargs)
+	struct boardobj **ppboardobj, size_t size, void *pargs)
 {
 	return construct_therm_device(g, ppboardobj, size, pargs);
 }

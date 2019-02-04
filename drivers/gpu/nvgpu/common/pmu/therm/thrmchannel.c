@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -65,7 +65,7 @@ done:
 	return status;
 }
 static struct boardobj *construct_channel_device(struct gk20a *g,
-			void *pargs, u16 pargs_size, u8 type)
+			void *pargs, size_t pargs_size, u8 type)
 {
 	struct boardobj *board_obj_ptr = NULL;
 	struct therm_channel *pchannel;
@@ -135,7 +135,7 @@ static int devinit_get_therm_channel_table(struct gk20a *g,
 	struct therm_channel_1x_entry *therm_channel_table_entry = NULL;
 	u32 index;
 	u32 obj_index = 0;
-	u16 therm_channel_size = 0;
+	size_t therm_channel_size = 0;
 	union {
 		struct boardobj boardobj;
 		struct therm_channel therm_channel;
