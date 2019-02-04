@@ -430,7 +430,7 @@ static struct fll_device *construct_fll_device(struct gk20a *g,
 
 	nvgpu_log_info(g, " ");
 	status = boardobj_construct_super(g, &board_obj_ptr,
-		(u32)sizeof(struct fll_device), pargs);
+		sizeof(struct fll_device), pargs);
 	if (status != 0) {
 		return NULL;
 	}

@@ -97,7 +97,7 @@ static int clk_freq_controller_pmudatainit_pi(struct gk20a *g,
 
 static int clk_freq_controller_construct_super(struct gk20a *g,
 	struct boardobj **ppboardobj,
-	u16 size, void *pargs)
+	size_t size, void *pargs)
 {
 	struct clk_freq_controller *pfreq_cntlr = NULL;
 	struct clk_freq_controller *pfreq_cntlr_tmp = NULL;
@@ -128,7 +128,7 @@ static int clk_freq_controller_construct_super(struct gk20a *g,
 
 static int clk_freq_controller_construct_pi(struct gk20a *g,
 	struct boardobj **ppboardobj,
-	u16 size, void *pargs)
+	size_t size, void *pargs)
 {
 	struct clk_freq_controller_pi *pfreq_cntlr_pi = NULL;
 	struct clk_freq_controller_pi *pfreq_cntlr_pi_tmp = NULL;
@@ -169,7 +169,7 @@ static struct clk_freq_controller *clk_clk_freq_controller_construct(
 	}
 
 	status = clk_freq_controller_construct_pi(g, &board_obj_ptr,
-			(u16)sizeof(struct clk_freq_controller_pi), pargs);
+			sizeof(struct clk_freq_controller_pi), pargs);
 	if (status != 0) {
 		return NULL;
 	}

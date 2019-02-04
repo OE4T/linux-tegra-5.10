@@ -951,7 +951,7 @@ static int clk_prog_construct_super(struct gk20a *g,
 	int status = 0;
 
 	status = boardobj_construct_super(g, ppboardobj,
-		(u16)size, pargs);
+		size, pargs);
 	if (status != 0) {
 		return -EINVAL;
 	}

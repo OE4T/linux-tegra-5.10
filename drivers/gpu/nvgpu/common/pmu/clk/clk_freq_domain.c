@@ -194,7 +194,7 @@ int nvgpu_clk_freq_domain_sw_setup(struct gk20a *g)
 
 		pboardobj = NULL;
 		status = boardobj_construct_super(g,&pboardobj,
-			(u16)sizeof(struct nvgpu_clk_freq_domain),
+			sizeof(struct nvgpu_clk_freq_domain),
 			(void*)&freq_domain_data);
 		if(status != 0) {
 			nvgpu_err(g, "Failed to construct nvgpu_clk_freq_domain Board obj");

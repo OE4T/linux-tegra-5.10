@@ -39,13 +39,13 @@ static int devinit_get_vin_device_table(struct gk20a *g,
 
 static int vin_device_construct_v10(struct gk20a *g,
 					struct boardobj **ppboardobj,
-					u16 size, void *pargs);
+					size_t size, void *pargs);
 static int vin_device_construct_v20(struct gk20a *g,
 					struct boardobj **ppboardobj,
-					u16 size, void *pargs);
+					size_t size, void *pargs);
 static int vin_device_construct_super(struct gk20a *g,
 					struct boardobj **ppboardobj,
-					u16 size, void *pargs);
+					size_t size, void *pargs);
 static struct vin_device *construct_vin_device(struct gk20a *g, void *pargs);
 
 static int vin_device_init_pmudata_v10(struct gk20a *g,
@@ -375,7 +375,7 @@ done:
 
 static int vin_device_construct_v10(struct gk20a *g,
 					struct boardobj **ppboardobj,
-					u16 size, void *pargs)
+					size_t size, void *pargs)
 {
 	struct boardobj *ptmpobj = (struct boardobj *)pargs;
 	struct vin_device_v10 *pvin_device_v10;
@@ -405,7 +405,7 @@ static int vin_device_construct_v10(struct gk20a *g,
 
 static int vin_device_construct_v20(struct gk20a *g,
 					struct boardobj **ppboardobj,
-					u16 size, void *pargs)
+					size_t size, void *pargs)
 {
 	struct boardobj *ptmpobj = (struct boardobj *)pargs;
 	struct vin_device_v20 *pvin_device_v20;
@@ -436,7 +436,7 @@ static int vin_device_construct_v20(struct gk20a *g,
 }
 static int vin_device_construct_super(struct gk20a *g,
 					struct boardobj **ppboardobj,
-					u16 size, void *pargs)
+					size_t size, void *pargs)
 {
 	struct vin_device *pvin_device;
 	struct vin_device *ptmpvin_device = (struct vin_device *)pargs;
@@ -468,12 +468,12 @@ static struct vin_device *construct_vin_device(struct gk20a *g, void *pargs)
 	switch (BOARDOBJ_GET_TYPE(pargs)) {
 	case CTRL_CLK_VIN_TYPE_V10:
 		status = vin_device_construct_v10(g, &board_obj_ptr,
-			(u16)sizeof(struct vin_device_v10), pargs);
+			sizeof(struct vin_device_v10), pargs);
 		break;
 
 	case CTRL_CLK_VIN_TYPE_V20:
 		status = vin_device_construct_v20(g, &board_obj_ptr,
-			(u16)sizeof(struct vin_device_v20), pargs);
+			sizeof(struct vin_device_v20), pargs);
 		break;
 
 	default:
