@@ -88,6 +88,8 @@
 #include <nvgpu/enabled.h>
 #include <nvgpu/channel.h>
 
+#include <nvgpu/vgpu/ce_vgpu.h>
+
 #include "vgpu_gv11b.h"
 #include "vgpu_gr_gv11b.h"
 #include "vgpu_fifo_gv11b.h"

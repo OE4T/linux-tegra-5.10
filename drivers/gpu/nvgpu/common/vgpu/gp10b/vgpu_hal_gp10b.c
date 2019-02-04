@@ -77,6 +77,8 @@
 #include <nvgpu/error_notifier.h>
 #include <nvgpu/channel.h>
 
+#include <nvgpu/vgpu/ce_vgpu.h>
+
 #include <nvgpu/hw/gp10b/hw_top_gp10b.h>
 #include <nvgpu/hw/gp10b/hw_pram_gp10b.h>
 #include <nvgpu/hw/gp10b/hw_pwr_gp10b.h>

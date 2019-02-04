@@ -93,7 +93,7 @@ void vgpu_gr_handle_sm_esr_event(struct gk20a *g,
 			struct tegra_vgpu_sm_esr_info *info);
 int vgpu_gr_init_ctx_state(struct gk20a *g);
 int vgpu_fifo_isr(struct gk20a *g, struct tegra_vgpu_fifo_intr_info *info);
-u32 vgpu_ce_get_num_pce(struct gk20a *g);
+
 int vgpu_init_mm_support(struct gk20a *g);
 int vgpu_init_gr_support(struct gk20a *g);
 int vgpu_init_fifo_support(struct gk20a *g);

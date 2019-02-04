@@ -386,7 +386,7 @@ nvgpu-$(CONFIG_TEGRA_GR_VIRTUALIZATION) += \
 	common/vgpu/ltc_vgpu.o \
 	common/vgpu/gr_vgpu.o \
 	common/vgpu/fifo_vgpu.o \
-	common/vgpu/ce2_vgpu.o \
+	common/vgpu/ce_vgpu.o \
 	common/vgpu/mm_vgpu.o \
 	common/vgpu/vgpu.o \
 	common/vgpu/dbg_vgpu.o \

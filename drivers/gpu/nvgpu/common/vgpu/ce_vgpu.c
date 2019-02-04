@@ -26,6 +26,7 @@
 
 #include <nvgpu/bug.h>
 #include <nvgpu/vgpu/vgpu.h>
+#include <nvgpu/vgpu/ce_vgpu.h>
 
 u32 vgpu_ce_get_num_pce(struct gk20a *g)
 {
