@@ -1,7 +1,7 @@
 /*
  * drivers/video/tegra/dc/nvdisplay/nvdisp.c
  *
- * Copyright (c) 2014-2018, NVIDIA CORPORATION, All rights reserved.
+ * Copyright (c) 2014-2019, NVIDIA CORPORATION, All rights reserved.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -1158,15 +1158,19 @@ static void tegra_nvdisp_init_common_imp_data(void)
 							&g_imp.emc_dvfs_table;
 	uint32_t cur_max_latency = 0;
 	int i;
+	int ret;
 
 	INIT_LIST_HEAD(&g_imp.imp_settings_queue);
 
 	tegra_nvdisp_init_imp_wqs();
 
-	tegra_bpmp_send_receive(MRQ_EMC_DVFS_LATENCY, NULL, 0,
+	ret = tegra_bpmp_send_receive(MRQ_EMC_DVFS_LATENCY, NULL, 0,
 			emc_dvfs_table,
 			sizeof(*emc_dvfs_table));
-
+	if (ret != 0) {
+		pr_warn("%s: IPC failed: %d\n", __func__, ret);
+		emc_dvfs_table->num_pairs = 0;
+	}
 
 	for (i = emc_dvfs_table->num_pairs - 1; i >= 0; i--) {
 		struct emc_dvfs_latency *dvfs_pair = &emc_dvfs_table->pairs[i];
