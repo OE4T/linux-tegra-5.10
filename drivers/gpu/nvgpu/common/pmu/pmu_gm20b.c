@@ -28,6 +28,7 @@
 #include <nvgpu/enabled.h>
 #include <nvgpu/io.h>
 #include <nvgpu/gk20a.h>
+#include <nvgpu/bug.h>
 
 #include "pmu_gk20a.h"
 #include "pmu_gm20b.h"
@@ -99,14 +100,13 @@ static struct pg_init_sequence_list _pginitseq_gm20b[] = {
 int gm20b_pmu_setup_elpg(struct gk20a *g)
 {
 	int ret = 0;
-	u32 reg_writes;
-	u32 index;
+	size_t reg_writes;
+	size_t index;
 
 	nvgpu_log_fn(g, " ");
 
 	if (g->elpg_enabled) {
-		reg_writes = ((sizeof(_pginitseq_gm20b) /
-				sizeof((_pginitseq_gm20b)[0])));
+		reg_writes = ARRAY_SIZE(_pginitseq_gm20b);
 		/* Initialize registers with production values*/
 		for (index = 0; index < reg_writes; index++) {
 			gk20a_writel(g, _pginitseq_gm20b[index].regaddr,
@@ -137,14 +137,17 @@ int gm20b_pmu_init_acr(struct gk20a *g)
 	struct nvgpu_pmu *pmu = &g->pmu;
 	struct pmu_cmd cmd;
 	u32 seq;
+	size_t tmp_size;
 
 	nvgpu_log_fn(g, " ");
 
 	/* init ACR */
 	(void) memset(&cmd, 0, sizeof(struct pmu_cmd));
 	cmd.hdr.unit_id = PMU_UNIT_ACR;
-	cmd.hdr.size = PMU_CMD_HDR_SIZE +
-	  sizeof(struct pmu_acr_cmd_init_wpr_details);
+	tmp_size = PMU_CMD_HDR_SIZE +
+		   sizeof(struct pmu_acr_cmd_init_wpr_details);
+	nvgpu_assert(tmp_size <= (size_t)U8_MAX);
+	cmd.hdr.size = (u8)tmp_size;
 	cmd.cmd.acr.init_wpr.cmd_type = PMU_ACR_CMD_ID_INIT_WPR_REGION;
 	cmd.cmd.acr.init_wpr.regionid = 0x01U;
 	cmd.cmd.acr.init_wpr.wproffset = 0x00U;
@@ -173,7 +176,7 @@ void pmu_handle_fecs_boot_acr_msg(struct gk20a *g, struct pmu_msg *msg,
 static int pmu_gm20b_ctx_wait_lsf_ready(struct gk20a *g, u32 timeout_ms,
 					u32 val)
 {
-	unsigned long delay = GR_FECS_POLL_INTERVAL;
+	u32 delay = GR_FECS_POLL_INTERVAL;
 	u32 reg;
 	struct nvgpu_timeout timeout;
 
@@ -198,6 +201,7 @@ void gm20b_pmu_load_lsf(struct gk20a *g, u32 falcon_id, u32 flags)
 	struct nvgpu_pmu *pmu = &g->pmu;
 	struct pmu_cmd cmd;
 	u32 seq;
+	size_t tmp_size;
 
 	nvgpu_log_fn(g, " ");
 
@@ -206,8 +210,10 @@ void gm20b_pmu_load_lsf(struct gk20a *g, u32 falcon_id, u32 flags)
 		/* send message to load FECS falcon */
 		(void) memset(&cmd, 0, sizeof(struct pmu_cmd));
 		cmd.hdr.unit_id = PMU_UNIT_ACR;
-		cmd.hdr.size = PMU_CMD_HDR_SIZE +
-		  sizeof(struct pmu_acr_cmd_bootstrap_falcon);
+		tmp_size = PMU_CMD_HDR_SIZE +
+				sizeof(struct pmu_acr_cmd_bootstrap_falcon);
+		nvgpu_assert(tmp_size <= (size_t)U8_MAX);
+		cmd.hdr.size = (u8)tmp_size;
 		cmd.cmd.acr.bootstrap_falcon.cmd_type =
 		  PMU_ACR_CMD_ID_BOOTSTRAP_FALCON;
 		cmd.cmd.acr.bootstrap_falcon.flags = flags;
@@ -224,9 +230,9 @@ void gm20b_pmu_load_lsf(struct gk20a *g, u32 falcon_id, u32 flags)
 
 int gm20b_load_falcon_ucode(struct gk20a *g, u32 falconidmask)
 {
-	u32  err = 0;
+	int  err = 0;
 	u32 flags = PMU_ACR_CMD_BOOTSTRAP_FALCON_FLAGS_RESET_YES;
-	unsigned long timeout = gk20a_get_gr_idle_timeout(g);
+	u32 timeout = gk20a_get_gr_idle_timeout(g);
 
 	/* GM20B PMU supports loading FECS only */
 	if (!(falconidmask == BIT32(FALCON_ID_FECS))) {
@@ -352,15 +358,17 @@ static int gm20b_bl_bootstrap(struct gk20a *g,
 	struct nvgpu_falcon_bl_info *bl_info)
 {
 	struct mm_gk20a *mm = &g->mm;
+	u64 tmp_addr;
 
 	nvgpu_log_fn(g, " ");
 
 	gk20a_writel(g, pwr_falcon_itfen_r(),
 			gk20a_readl(g, pwr_falcon_itfen_r()) |
 			pwr_falcon_itfen_ctxen_enable_f());
+	tmp_addr = nvgpu_inst_block_addr(g, &mm->pmu.inst_block) >> 12U;
+	nvgpu_assert(u64_hi32(tmp_addr) == 0U);
 	gk20a_writel(g, pwr_pmu_new_instblk_r(),
-		pwr_pmu_new_instblk_ptr_f(
-		nvgpu_inst_block_addr(g, &mm->pmu.inst_block) >> 12U) |
+		pwr_pmu_new_instblk_ptr_f((u32)tmp_addr) |
 		pwr_pmu_new_instblk_valid_f(1U) |
 		 (nvgpu_is_enabled(g, NVGPU_USE_COHERENT_SYSMEM) ?
 		  pwr_pmu_new_instblk_target_sys_coh_f() :

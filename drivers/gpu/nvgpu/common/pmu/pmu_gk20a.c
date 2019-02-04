@@ -49,7 +49,7 @@
 
 bool nvgpu_find_hex_in_string(char *strings, struct gk20a *g, u32 *hex_pos)
 {
-	u32 i = 0, j = strlen(strings);
+	u32 i = 0, j = (u32)strlen(strings);
 
 	for (; i < j; i++) {
 		if (strings[i] == '%') {
@@ -59,7 +59,7 @@ bool nvgpu_find_hex_in_string(char *strings, struct gk20a *g, u32 *hex_pos)
 			}
 		}
 	}
-	*hex_pos = -1;
+	*hex_pos = U32_MAX;
 	return false;
 }
 
@@ -189,18 +189,20 @@ int pmu_bootstrap(struct nvgpu_pmu *pmu)
 	struct mm_gk20a *mm = &g->mm;
 	struct pmu_ucode_desc *desc =
 		(struct pmu_ucode_desc *)(void *)pmu->fw_image->data;
-	u64 addr_code, addr_data, addr_load;
+	u32 addr_code, addr_data, addr_load;
 	u32 i, blocks, addr_args;
 	int err;
+	u64 tmp_addr;
 
 	nvgpu_log_fn(g, " ");
 
 	gk20a_writel(g, pwr_falcon_itfen_r(),
 		gk20a_readl(g, pwr_falcon_itfen_r()) |
 		pwr_falcon_itfen_ctxen_enable_f());
+	tmp_addr = nvgpu_inst_block_addr(g, &mm->pmu.inst_block) >> 12;
+	nvgpu_assert(u64_hi32(tmp_addr) == 0U);
 	gk20a_writel(g, pwr_pmu_new_instblk_r(),
-		pwr_pmu_new_instblk_ptr_f(
-			nvgpu_inst_block_addr(g, &mm->pmu.inst_block) >> 12) |
+		pwr_pmu_new_instblk_ptr_f((u32)tmp_addr) |
 		pwr_pmu_new_instblk_valid_f(1) |
 		pwr_pmu_new_instblk_target_sys_coh_f());
 
@@ -249,7 +251,7 @@ int pmu_bootstrap(struct nvgpu_pmu *pmu)
 	gk20a_writel(g, pwr_falcon_dmemd_r(0), addr_args);
 
 	g->ops.pmu.write_dmatrfbase(g,
-			U32(addr_load) - (desc->bootloader_imem_offset >> U32(8)));
+			addr_load - (desc->bootloader_imem_offset >> U32(8)));
 
 	blocks = ((desc->bootloader_size + 0xFFU) & ~0xFFU) >> 8;
 
@@ -528,7 +530,7 @@ bool gk20a_is_pmu_supported(struct gk20a *g)
 
 u32 gk20a_pmu_pg_engines_list(struct gk20a *g)
 {
-	return BIT(PMU_PG_ELPG_ENGINE_ID_GRAPHICS);
+	return BIT32(PMU_PG_ELPG_ENGINE_ID_GRAPHICS);
 }
 
 u32 gk20a_pmu_pg_feature_list(struct gk20a *g, u32 pg_engine_id)
@@ -553,6 +555,7 @@ void gk20a_pmu_save_zbc(struct gk20a *g, u32 entries)
 	struct nvgpu_pmu *pmu = &g->pmu;
 	struct pmu_cmd cmd;
 	u32 seq;
+	size_t tmp_size;
 
 	if (!pmu->pmu_ready || (entries == 0U) || !pmu->zbc_ready) {
 		return;
@@ -560,7 +563,9 @@ void gk20a_pmu_save_zbc(struct gk20a *g, u32 entries)
 
 	(void) memset(&cmd, 0, sizeof(struct pmu_cmd));
 	cmd.hdr.unit_id = PMU_UNIT_PG;
-	cmd.hdr.size = PMU_CMD_HDR_SIZE + sizeof(struct pmu_zbc_cmd);
+	tmp_size = PMU_CMD_HDR_SIZE + sizeof(struct pmu_zbc_cmd);
+	nvgpu_assert(tmp_size <= (size_t)U8_MAX);
+	cmd.hdr.size = (u8)tmp_size;
 	cmd.cmd.zbc.cmd_type = g->pmu_ver_cmd_id_zbc_table_update;
 	cmd.cmd.zbc.entry_mask = ZBC_MASK(entries);
 

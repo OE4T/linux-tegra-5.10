@@ -31,6 +31,7 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/nvgpu_err.h>
 #include <nvgpu/firmware.h>
+#include <nvgpu/bug.h>
 
 #include "pmu_gp10b.h"
 #include "pmu_gp106.h"
@@ -136,14 +137,13 @@ static void gv11b_pmu_report_ecc_error(struct gk20a *g, u32 inst,
 int gv11b_pmu_setup_elpg(struct gk20a *g)
 {
 	int ret = 0;
-	u32 reg_writes;
-	u32 index;
+	size_t reg_writes;
+	size_t index;
 
 	nvgpu_log_fn(g, " ");
 
 	if (g->elpg_enabled) {
-		reg_writes = ((sizeof(_pginitseq_gv11b) /
-				sizeof((_pginitseq_gv11b)[0])));
+		reg_writes = ARRAY_SIZE(_pginitseq_gv11b);
 		/* Initialize registers with production values*/
 		for (index = 0; index < reg_writes; index++) {
 			gk20a_writel(g, _pginitseq_gv11b[index].regaddr,
@@ -166,10 +166,11 @@ int gv11b_pmu_bootstrap(struct nvgpu_pmu *pmu)
 	struct mm_gk20a *mm = &g->mm;
 	struct pmu_ucode_desc *desc =
 		(struct pmu_ucode_desc *)(void *)pmu->fw_image->data;
-	u64 addr_code_lo, addr_data_lo, addr_load_lo;
-	u64 addr_code_hi, addr_data_hi;
+	u32 addr_code_lo, addr_data_lo, addr_load_lo;
+	u32 addr_code_hi, addr_data_hi;
 	u32 i, blocks, addr_args;
 	int err;
+	u64 tmp_addr;
 
 	nvgpu_log_fn(g, " ");
 
@@ -177,9 +178,10 @@ int gv11b_pmu_bootstrap(struct nvgpu_pmu *pmu)
 		gk20a_readl(g, pwr_falcon_itfen_r()) |
 		pwr_falcon_itfen_ctxen_enable_f());
 
+	tmp_addr = nvgpu_inst_block_addr(g, &mm->pmu.inst_block) >> ALIGN_4KB;
+	nvgpu_assert(u64_hi32(tmp_addr) == 0U);
 	gk20a_writel(g, pwr_pmu_new_instblk_r(),
-		pwr_pmu_new_instblk_ptr_f(
-		nvgpu_inst_block_addr(g, &mm->pmu.inst_block) >> ALIGN_4KB) |
+		pwr_pmu_new_instblk_ptr_f((u32)tmp_addr) |
 		     pwr_pmu_new_instblk_valid_f(1) |
 		     (nvgpu_is_enabled(g, NVGPU_USE_COHERENT_SYSMEM) ?
 		      pwr_pmu_new_instblk_target_sys_coh_f() :
@@ -248,7 +250,7 @@ int gv11b_pmu_bootstrap(struct nvgpu_pmu *pmu)
 	gk20a_writel(g, pwr_falcon_dmemd_r(0), addr_args);
 
 	g->ops.pmu.write_dmatrfbase(g,
-				U32(addr_load_lo) -
+				addr_load_lo -
 				(desc->bootloader_imem_offset >> U32(8)));
 
 	blocks = ((desc->bootloader_size + 0xFFU) & ~0xFFU) >> 8U;
@@ -325,10 +327,10 @@ void gv11b_pmu_handle_ext_irq(struct gk20a *g, u32 intr0)
 
 			/* update counters per slice */
 			if (corrected_overflow != 0U) {
-				corrected_delta += (0x1UL << pwr_pmu_falcon_ecc_corrected_err_count_total_s());
+				corrected_delta += BIT32(pwr_pmu_falcon_ecc_corrected_err_count_total_s());
 			}
 			if (uncorrected_overflow != 0U) {
-				uncorrected_delta += (0x1UL << pwr_pmu_falcon_ecc_uncorrected_err_count_total_s());
+				uncorrected_delta += BIT32(pwr_pmu_falcon_ecc_uncorrected_err_count_total_s());
 			}
 
 			g->ecc.pmu.pmu_ecc_corrected_err_count[0].counter += corrected_delta;
@@ -446,12 +448,15 @@ int gv11b_pg_gr_init(struct gk20a *g, u32 pg_engine_id)
 	struct nvgpu_pmu *pmu = &g->pmu;
 	struct pmu_cmd cmd;
 	u32 seq;
+	size_t tmp_size;
 
 	if (pg_engine_id == PMU_PG_ELPG_ENGINE_ID_GRAPHICS) {
 		(void) memset(&cmd, 0, sizeof(struct pmu_cmd));
 		cmd.hdr.unit_id = PMU_UNIT_PG;
-		cmd.hdr.size = PMU_CMD_HDR_SIZE +
+		tmp_size = PMU_CMD_HDR_SIZE +
 				sizeof(struct pmu_pg_cmd_gr_init_param_v1);
+		nvgpu_assert(tmp_size <= (size_t)U8_MAX);
+		cmd.hdr.size = (u8)tmp_size;
 		cmd.cmd.pg.gr_init_param_v1.cmd_type =
 				PMU_PG_CMD_ID_PG_PARAM;
 		cmd.cmd.pg.gr_init_param_v1.sub_cmd_id =
@@ -475,12 +480,15 @@ int gv11b_pg_set_subfeature_mask(struct gk20a *g, u32 pg_engine_id)
 	struct nvgpu_pmu *pmu = &g->pmu;
 	struct pmu_cmd cmd;
 	u32 seq;
+	size_t tmp_size;
 
 	if (pg_engine_id == PMU_PG_ELPG_ENGINE_ID_GRAPHICS) {
 		(void) memset(&cmd, 0, sizeof(struct pmu_cmd));
 		cmd.hdr.unit_id = PMU_UNIT_PG;
-		cmd.hdr.size = PMU_CMD_HDR_SIZE +
+		tmp_size = PMU_CMD_HDR_SIZE +
 			sizeof(struct pmu_pg_cmd_sub_feature_mask_update);
+		nvgpu_assert(tmp_size <= (size_t)U8_MAX);
+		cmd.hdr.size = (u8)tmp_size;
 		cmd.cmd.pg.sf_mask_update.cmd_type =
 				PMU_PG_CMD_ID_PG_PARAM;
 		cmd.cmd.pg.sf_mask_update.sub_cmd_id =

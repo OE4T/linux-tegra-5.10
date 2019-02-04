@@ -28,6 +28,7 @@
 #include <nvgpu/enabled.h>
 #include <nvgpu/io.h>
 #include <nvgpu/gk20a.h>
+#include <nvgpu/bug.h>
 
 #include "pmu_gk20a.h"
 #include "pmu_gm20b.h"
@@ -144,6 +145,7 @@ static void gp10b_pmu_load_multiple_falcons(struct gk20a *g, u32 falconidmask,
 	struct nvgpu_pmu *pmu = &g->pmu;
 	struct pmu_cmd cmd;
 	u32 seq;
+	size_t tmp_size;
 
 	nvgpu_log_fn(g, " ");
 
@@ -152,8 +154,10 @@ static void gp10b_pmu_load_multiple_falcons(struct gk20a *g, u32 falconidmask,
 		/* send message to load FECS falcon */
 		(void) memset(&cmd, 0, sizeof(struct pmu_cmd));
 		cmd.hdr.unit_id = PMU_UNIT_ACR;
-		cmd.hdr.size = PMU_CMD_HDR_SIZE +
-		  sizeof(struct pmu_acr_cmd_bootstrap_multiple_falcons);
+		tmp_size = PMU_CMD_HDR_SIZE +
+			sizeof(struct pmu_acr_cmd_bootstrap_multiple_falcons);
+		nvgpu_assert(tmp_size <= (size_t)U8_MAX);
+		cmd.hdr.size = (u8)tmp_size;
 		cmd.cmd.acr.boot_falcons.cmd_type =
 		  PMU_ACR_CMD_ID_BOOTSTRAP_MULTIPLE_FALCONS;
 		cmd.cmd.acr.boot_falcons.flags = flags;
@@ -199,9 +203,10 @@ int gp10b_load_falcon_ucode(struct gk20a *g, u32 falconidmask)
 	}
 	/* load falcon(s) */
 	gp10b_pmu_load_multiple_falcons(g, falconidmask, flags);
+	nvgpu_assert(falconidmask <= U8_MAX);
 	pmu_wait_message_cond(&g->pmu,
 			gk20a_get_gr_idle_timeout(g),
-			&g->pmu_lsf_loaded_falcon_id, falconidmask);
+			&g->pmu_lsf_loaded_falcon_id, (u8)falconidmask);
 	if (g->pmu_lsf_loaded_falcon_id != falconidmask) {
 		return -ETIMEDOUT;
 	}
@@ -230,12 +235,15 @@ int gp10b_pg_gr_init(struct gk20a *g, u32 pg_engine_id)
 	struct nvgpu_pmu *pmu = &g->pmu;
 	struct pmu_cmd cmd;
 	u32 seq;
+	size_t tmp_size;
 
 	if (pg_engine_id == PMU_PG_ELPG_ENGINE_ID_GRAPHICS) {
 		(void) memset(&cmd, 0, sizeof(struct pmu_cmd));
 		cmd.hdr.unit_id = PMU_UNIT_PG;
-		cmd.hdr.size = PMU_CMD_HDR_SIZE +
+		tmp_size = PMU_CMD_HDR_SIZE +
 				sizeof(struct pmu_pg_cmd_gr_init_param_v2);
+		nvgpu_assert(tmp_size <= (size_t)U8_MAX);
+		cmd.hdr.size = (u8)tmp_size;
 		cmd.cmd.pg.gr_init_param_v2.cmd_type =
 				PMU_PG_CMD_ID_PG_PARAM;
 		cmd.cmd.pg.gr_init_param_v2.sub_cmd_id =
@@ -283,14 +291,13 @@ int gp10b_pmu_elpg_statistics(struct gk20a *g, u32 pg_engine_id,
 int gp10b_pmu_setup_elpg(struct gk20a *g)
 {
 	int ret = 0;
-	u32 reg_writes;
-	u32 index;
+	size_t reg_writes;
+	size_t index;
 
 	nvgpu_log_fn(g, " ");
 
 	if (g->elpg_enabled) {
-		reg_writes = ((sizeof(_pginitseq_gp10b) /
-				sizeof((_pginitseq_gp10b)[0])));
+		reg_writes = ARRAY_SIZE(_pginitseq_gp10b);
 		/* Initialize registers with production values*/
 		for (index = 0; index < reg_writes; index++) {
 			gk20a_writel(g, _pginitseq_gp10b[index].regaddr,

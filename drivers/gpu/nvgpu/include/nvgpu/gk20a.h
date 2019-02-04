@@ -1813,7 +1813,7 @@ struct gk20a {
 	struct gpu_ops ops;
 	u32 mc_intr_mask_restore[4];
 	/*used for change of enum zbc update cmd id from ver 0 to ver1*/
-	u32 pmu_ver_cmd_id_zbc_table_update;
+	u8 pmu_ver_cmd_id_zbc_table_update;
 	bool pmu_lsf_pmu_wpr_init_done;
 	u32 pmu_lsf_loaded_falcon_id;
 
