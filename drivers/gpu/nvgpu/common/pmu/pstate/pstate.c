@@ -323,7 +323,7 @@ int gk20a_init_pstate_pmu_support(struct gk20a *g)
 }
 
 static int pstate_construct_super(struct gk20a *g, struct boardobj **ppboardobj,
-				u16 size, void *args)
+				size_t size, void *args)
 {
 	struct pstate *ptmppstate = (struct pstate *)args;
 	struct pstate *pstate;
@@ -344,7 +344,7 @@ static int pstate_construct_super(struct gk20a *g, struct boardobj **ppboardobj,
 }
 
 static int pstate_construct_3x(struct gk20a *g, struct boardobj **ppboardobj,
-				u16 size, void *args)
+				size_t size, void *args)
 {
 	struct boardobj  *ptmpobj = (struct boardobj *)args;
 
@@ -359,7 +359,7 @@ static struct pstate *pstate_construct(struct gk20a *g, void *args)
 
 	if ((tmp->super.type != CTRL_PERF_PSTATE_TYPE_3X) ||
 	    (pstate_construct_3x(g, (struct boardobj **)&pstate,
-			    (u16)sizeof(struct pstate), args) != 0)) {
+			    sizeof(struct pstate), args) != 0)) {
 		nvgpu_err(g,
 			"error constructing pstate num=%u", tmp->num);
 	}
