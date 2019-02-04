@@ -30,7 +30,7 @@
 #include <nvgpu/string.h>
 #include <nvgpu/regops.h>
 
-#include "dbg_vgpu.h"
+#include "debugger_vgpu.h"
 
 int vgpu_exec_regops(struct gk20a *g,
 		     struct channel_gk20a *ch,
@@ -83,7 +83,8 @@ fail:
 	return err;
 }
 
-int vgpu_dbg_set_powergate(struct dbg_session_gk20a *dbg_s, bool disable_powergate)
+int vgpu_dbg_set_powergate(struct dbg_session_gk20a *dbg_s,
+			bool disable_powergate)
 {
 	struct tegra_vgpu_cmd_msg msg;
 	struct tegra_vgpu_set_powergate_params *p = &msg.params.set_powergate;
