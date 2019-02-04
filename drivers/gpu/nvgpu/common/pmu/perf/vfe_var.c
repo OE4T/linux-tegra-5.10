@@ -37,7 +37,7 @@ static int devinit_get_vfe_var_table(struct gk20a *g,
 				     struct vfe_vars *pvfevarobjs);
 static int vfe_var_construct_single(struct gk20a *g,
 				    struct boardobj **ppboardobj,
-				    u16 size, void *pargs);
+				    size_t size, void *pargs);
 
 static int vfe_vars_pmudatainit(struct gk20a *g,
 				 struct boardobjgrp *pboardobjgrp,
@@ -334,7 +334,7 @@ static int vfe_var_pmudatainit_super(struct gk20a *g,
 
 static int vfe_var_construct_super(struct gk20a *g,
 				   struct boardobj **ppboardobj,
-				   u16 size, void *pargs)
+				   size_t size, void *pargs)
 {
 	struct vfe_var *pvfevar;
 	struct vfe_var *ptmpvar = (struct vfe_var *)pargs;
@@ -377,7 +377,7 @@ static int vfe_var_pmudatainit_derived(struct gk20a *g,
 
 static int vfe_var_construct_derived(struct gk20a *g,
 				     struct boardobj **ppboardobj,
-				     u16 size, void *pargs)
+				     size_t size, void *pargs)
 {
 	struct boardobj *ptmpobj = (struct boardobj *)pargs;
 	int status = 0;
@@ -424,7 +424,7 @@ static int vfe_var_pmudatainit_derived_product(struct gk20a *g,
 
 static int vfe_var_construct_derived_product(struct gk20a *g,
 					     struct boardobj **ppboardobj,
-					     u16 size, void *pargs)
+					     size_t size, void *pargs)
 {
 	struct boardobj *ptmpobj = (struct boardobj *)pargs;
 	struct vfe_var_derived_product *pvfevar;
@@ -481,7 +481,7 @@ static int vfe_var_pmudatainit_derived_sum(struct gk20a *g,
 
 static int vfe_var_construct_derived_sum(struct gk20a *g,
 					 struct boardobj **ppboardobj,
-					 u16 size, void *pargs)
+					 size_t size, void *pargs)
 {
 	struct boardobj *ptmpobj = (struct boardobj *)pargs;
 	struct vfe_var_derived_sum *pvfevar;
@@ -558,7 +558,7 @@ static int vfe_var_pmudatainit_single_frequency(struct gk20a *g,
 
 static int vfe_var_construct_single_frequency(struct gk20a *g,
 					      struct boardobj **ppboardobj,
-					      u16 size, void *pargs)
+					      size_t size, void *pargs)
 {
 	struct boardobj *ptmpobj = (struct boardobj *)pargs;
 	struct vfe_var_single_frequency *pvfevar;
@@ -616,7 +616,7 @@ static int vfe_var_pmudatainit_single_caller_specified(struct gk20a *g,
 
 static int vfe_var_construct_single_caller_specified(struct gk20a *g,
 					      struct boardobj **ppboardobj,
-					      u16 size, void *pargs)
+					      size_t size, void *pargs)
 {
 	struct boardobj *ptmpobj = (struct boardobj *)pargs;
 	struct vfe_var_single_caller_specified *pvfevar;
@@ -701,7 +701,7 @@ static int vfe_var_pmudatainit_single_sensed_fuse(struct gk20a *g,
 
 static int vfe_var_construct_single_sensed(struct gk20a *g,
 					   struct boardobj **ppboardobj,
-					   u16 size, void *pargs)
+					   size_t size, void *pargs)
 {
 	struct boardobj *ptmpobj = (struct boardobj *)pargs;
 	struct vfe_var_single_sensed *pvfevar;
@@ -728,7 +728,7 @@ static int vfe_var_construct_single_sensed(struct gk20a *g,
 
 static int vfe_var_construct_single_sensed_fuse(struct gk20a *g,
 						struct boardobj **ppboardobj,
-						u16 size, void *pargs)
+						size_t size, void *pargs)
 {
 	struct boardobj *ptmpobj = (struct boardobj *)pargs;
 	struct vfe_var_single_sensed_fuse *pvfevar;
@@ -827,7 +827,7 @@ static int vfe_var_pmudatainit_single_sensed_temp(struct gk20a *g,
 
 static int vfe_var_construct_single_sensed_temp(struct gk20a *g,
 						struct boardobj **ppboardobj,
-						u16 size, void *pargs)
+						size_t size, void *pargs)
 {
 	struct boardobj *ptmpobj = (struct boardobj *)pargs;
 	struct vfe_var_single_sensed_temp *pvfevar;
@@ -879,7 +879,7 @@ static int vfe_var_pmudatainit_single_voltage(struct gk20a *g,
 
 static int vfe_var_construct_single_voltage(struct gk20a *g,
 					    struct boardobj **ppboardobj,
-					    u16 size, void *pargs)
+					    size_t size, void *pargs)
 {
 	struct boardobj *ptmpobj = (struct boardobj *)pargs;
 	struct vfe_var_single_voltage *pvfevar;
@@ -1190,7 +1190,7 @@ done:
 
 static int vfe_var_construct_single(struct gk20a *g,
 				    struct boardobj **ppboardobj,
-				    u16 size, void *pargs)
+				    size_t size, void *pargs)
 {
 	struct boardobj *ptmpobj = (struct boardobj *)pargs;
 	struct vfe_var_single *pvfevar;

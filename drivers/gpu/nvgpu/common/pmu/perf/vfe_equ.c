@@ -436,7 +436,7 @@ static int vfe_equ_pmudatainit_super(struct gk20a *g,
 
 static int vfe_equ_construct_super(struct gk20a *g,
 				   struct boardobj **ppboardobj,
-				   u16 size, void *pargs)
+				   size_t size, void *pargs)
 {
 	struct vfe_equ *pvfeequ;
 	struct vfe_equ *ptmpequ = (struct vfe_equ *)pargs;
@@ -492,7 +492,7 @@ static int vfe_equ_pmudatainit_compare(struct gk20a *g,
 
 static int vfe_equ_construct_compare(struct gk20a *g,
 				     struct boardobj **ppboardobj,
-				     u16 size, void *pargs)
+				     size_t size, void *pargs)
 {
 	struct boardobj *ptmpobj = (struct boardobj *)pargs;
 	struct vfe_equ_compare *pvfeequ;
@@ -553,7 +553,7 @@ static int vfe_equ_pmudatainit_minmax(struct gk20a *g,
 
 static int vfe_equ_construct_minmax(struct gk20a *g,
 				    struct boardobj **ppboardobj,
-				    u16 size, void *pargs)
+				    size_t size, void *pargs)
 {
 	struct boardobj *ptmpobj = (struct boardobj *)pargs;
 	struct vfe_equ_minmax *pvfeequ;
@@ -611,7 +611,7 @@ static int vfe_equ_pmudatainit_quadratic(struct gk20a *g,
 
 static int vfe_equ_construct_quadratic(struct gk20a *g,
 				       struct boardobj **ppboardobj,
-				       u16 size, void *pargs)
+				       size_t size, void *pargs)
 {
 	struct boardobj *ptmpobj = (struct boardobj *)pargs;
 	struct vfe_equ_quadratic *pvfeequ;
@@ -669,7 +669,7 @@ static int vfe_equ_pmudatainit_scalar(struct gk20a *g,
 
 static int vfe_equ_construct_scalar(struct gk20a *g,
 				       struct boardobj **ppboardobj,
-				       u16 size, void *pargs)
+				       size_t size, void *pargs)
 {
 	struct boardobj *ptmpobj = (struct boardobj *)pargs;
 	struct vfe_equ_scalar *pvfeequ;
