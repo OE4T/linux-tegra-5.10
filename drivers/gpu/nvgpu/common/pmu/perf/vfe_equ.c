@@ -274,6 +274,10 @@ static int devinit_get_vfe_equ_table(struct gk20a *g,
 			equ_data.super.output_type =
 				(u8)CTRL_PERF_VFE_EQU_OUTPUT_TYPE_VIN_CODE;
 			break;
+		case VBIOS_VFE_3X_EQU_ENTRY_PAR3_OUTPUT_TYPE_THRESHOLD:
+			equ_data.super.output_type =
+				(u8)VBIOS_VFE_3X_EQU_ENTRY_PAR3_OUTPUT_TYPE_THRESHOLD;
+			break;
 
 		default:
 			nvgpu_err(g, "unrecognized output id @vfeequ index %d",

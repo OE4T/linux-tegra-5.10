@@ -519,6 +519,7 @@ struct vbios_vfe_3x_equ_entry_struct {
 #define VBIOS_VFE_3X_EQU_ENTRY_PAR3_OUTPUT_TYPE_POWER_MW                     0x9U
 #define VBIOS_VFE_3X_EQU_ENTRY_PAR3_OUTPUT_TYPE_PWR_OVER_UTIL_SLOPE          0xAU
 #define VBIOS_VFE_3X_EQU_ENTRY_PAR3_OUTPUT_TYPE_VIN_CODE                     0xBU
+#define VBIOS_VFE_3X_EQU_ENTRY_PAR3_OUTPUT_TYPE_THRESHOLD                    0xCU
 
 #define NV_VFIELD_DESC_SIZE_BYTE            0x00000000U
 #define NV_VFIELD_DESC_SIZE_WORD            0x00000001U
