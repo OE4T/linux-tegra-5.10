@@ -1,6 +1,6 @@
 /*
-* Copyright (c) 2016-2018, NVIDIA CORPORATION.  All rights reserved.
-*
+ * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
  * to deal in the Software without restriction, including without limitation
@@ -18,7 +18,7 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
-*/
+ */
 
 #ifndef NVGPU_BOARDOBJ_H
 #define NVGPU_BOARDOBJ_H
@@ -50,7 +50,7 @@ int boardobj_pmudatainit_super(struct gk20a *g, struct boardobj *pboardobj,
 * implementation of the BOARDOBJ interface to initialize the board object.
 */
 int boardobj_construct_super(struct gk20a *g, struct boardobj **ppboardobj,
-				u16 size, void *args);
+				size_t size, void *args);
 
 /*
 * Destructor for the base board object. Called by each device-Specific
