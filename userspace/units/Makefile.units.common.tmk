@@ -34,7 +34,12 @@ NV_COMPONENT_INCLUDES 		:= \
 				$(NVGPU_UNIT_INCLUDES)
 endif
 
+ifdef NVGPU_CFLAGS
+NV_COMPONENT_CFLAGS		:= \
+				$(NVGPU_CFLAGS)
+else
 NV_COMPONENT_CFLAGS		+= -D__NVGPU_POSIX__
+endif
 
 NV_COMPONENT_CFLAGS            	+= \
 	-DCONFIG_TEGRA_19x_GPU \
@@ -53,13 +58,16 @@ NV_COMPONENT_CFLAGS            	+= \
 	-DCONFIG_SUPPORT_PMU_PSTATE \
 	-DCONFIG_TEGRA_NVLINK
 
-NV_COMPONENT_NEEDED_INTERFACE_DIRS += \
-                                $(NV_SOURCE)/kernel/nvgpu/drivers/gpu/nvgpu \
+
+NV_COMPONENT_NEEDED_INTERFACE_DIRS := \
                                 $(NV_SOURCE)/kernel/nvgpu/userspace
 
 ifdef NVGPU_UNIT_INTERFACE_DIRS
 NV_COMPONENT_NEEDED_INTERFACE_DIRS += \
 				$(NVGPU_UNIT_INTERFACE_DIRS)
+else
+NV_COMPONENT_NEEDED_INTERFACE_DIRS += \
+                                $(NV_SOURCE)/kernel/nvgpu/drivers/gpu/nvgpu
 endif
 
 NV_COMPONENT_SYSTEMIMAGE_DIR    := $(NV_SYSTEMIMAGE_TEST_EXECUTABLE_DIR)/nvgpu_unit/units
