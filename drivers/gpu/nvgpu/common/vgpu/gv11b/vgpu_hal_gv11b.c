@@ -57,6 +57,7 @@
 #include "common/vgpu/ltc_vgpu.h"
 #include "common/vgpu/mm_vgpu.h"
 #include "common/vgpu/debugger_vgpu.h"
+#include "common/vgpu/perf/perf_vgpu.h"
 #include "common/vgpu/fecs_trace_vgpu.h"
 #include "common/vgpu/perf/cyclestats_snapshot_vgpu.h"
 #include "common/vgpu/gm20b/vgpu_gr_gm20b.h"

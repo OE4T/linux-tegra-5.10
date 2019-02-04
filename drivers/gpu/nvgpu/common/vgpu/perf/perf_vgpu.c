@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -20,31 +20,40 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NVGPU_DBG_VGPU_H
-#define NVGPU_DBG_VGPU_H
+#include <nvgpu/vgpu/vgpu_ivc.h>
+#include <nvgpu/vgpu/tegra_vgpu.h>
+#include <nvgpu/vgpu/vgpu.h>
+#include <nvgpu/gk20a.h>
 
-struct dbg_session_gk20a;
-struct nvgpu_dbg_reg_op;
-struct dbg_profiler_object_data;
-struct gk20a;
-struct channel_gk20a;
+#include "perf_vgpu.h"
 
-int vgpu_exec_regops(struct gk20a *g,
-		     struct channel_gk20a *ch,
-		     struct nvgpu_dbg_reg_op *ops,
-		     u64 num_ops,
-		     bool is_profiler,
-		     bool *is_current_ctx);
-int vgpu_dbg_set_powergate(struct dbg_session_gk20a *dbg_s,
-			bool disable_powergate);
-bool vgpu_check_and_set_global_reservation(
-				struct dbg_session_gk20a *dbg_s,
-				struct dbg_profiler_object_data *prof_obj);
-bool vgpu_check_and_set_context_reservation(
-				struct dbg_session_gk20a *dbg_s,
-				struct dbg_profiler_object_data *prof_obj);
+static int vgpu_sendrecv_perfbuf_cmd(struct gk20a *g, u64 offset, u32 size)
+{
+	struct mm_gk20a *mm = &g->mm;
+	struct vm_gk20a *vm = mm->perfbuf.vm;
+	struct tegra_vgpu_cmd_msg msg;
+	struct tegra_vgpu_perfbuf_mgt_params *p =
+						&msg.params.perfbuf_management;
+	int err;
 
-void vgpu_release_profiler_reservation(
-				struct dbg_session_gk20a *dbg_s,
-				struct dbg_profiler_object_data *prof_obj);
-#endif /* NVGPU_DBG_VGPU_H */
+	msg.cmd = TEGRA_VGPU_CMD_PERFBUF_MGT;
+	msg.handle = vgpu_get_handle(g);
+
+	p->vm_handle = vm->handle;
+	p->offset = offset;
+	p->size = size;
+
+	err = vgpu_comm_sendrecv(&msg, sizeof(msg), sizeof(msg));
+	err = err ? err : msg.ret;
+	return err;
+}
+
+int vgpu_perfbuffer_enable(struct gk20a *g, u64 offset, u32 size)
+{
+	return vgpu_sendrecv_perfbuf_cmd(g, offset, size);
+}
+
+int vgpu_perfbuffer_disable(struct gk20a *g)
+{
+	return vgpu_sendrecv_perfbuf_cmd(g, 0, 0);
+}

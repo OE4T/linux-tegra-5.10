@@ -392,6 +392,7 @@ nvgpu-$(CONFIG_TEGRA_GR_VIRTUALIZATION) += \
 	common/vgpu/debugger_vgpu.o \
 	common/vgpu/tsg_vgpu.o \
 	common/vgpu/perf/cyclestats_snapshot_vgpu.o \
+	common/vgpu/perf/perf_vgpu.o \
 	common/vgpu/ecc_vgpu.o \
 	common/vgpu/clk_vgpu.o \
 	common/vgpu/fecs_trace_vgpu.o \

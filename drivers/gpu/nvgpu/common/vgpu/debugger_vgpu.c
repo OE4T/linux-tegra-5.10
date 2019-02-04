@@ -195,34 +195,3 @@ void vgpu_release_profiler_reservation(
 		vgpu_sendrecv_prof_cmd(dbg_s, TEGRA_VGPU_PROF_RELEASE);
 	}
 }
-
-static int vgpu_sendrecv_perfbuf_cmd(struct gk20a *g, u64 offset, u32 size)
-{
-	struct mm_gk20a *mm = &g->mm;
-	struct vm_gk20a *vm = mm->perfbuf.vm;
-	struct tegra_vgpu_cmd_msg msg;
-	struct tegra_vgpu_perfbuf_mgt_params *p =
-						&msg.params.perfbuf_management;
-	int err;
-
-	msg.cmd = TEGRA_VGPU_CMD_PERFBUF_MGT;
-	msg.handle = vgpu_get_handle(g);
-
-	p->vm_handle = vm->handle;
-	p->offset = offset;
-	p->size = size;
-
-	err = vgpu_comm_sendrecv(&msg, sizeof(msg), sizeof(msg));
-	err = err ? err : msg.ret;
-	return err;
-}
-
-int vgpu_perfbuffer_enable(struct gk20a *g, u64 offset, u32 size)
-{
-	return vgpu_sendrecv_perfbuf_cmd(g, offset, size);
-}
-
-int vgpu_perfbuffer_disable(struct gk20a *g)
-{
-	return vgpu_sendrecv_perfbuf_cmd(g, 0, 0);
-}

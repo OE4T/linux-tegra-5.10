@@ -311,6 +311,7 @@ srcs += common/sim.c \
 	common/vgpu/fifo_vgpu.c	\
 	common/vgpu/tsg_vgpu.c \
 	common/vgpu/perf/cyclestats_snapshot_vgpu.c \
+	common/vgpu/perf/perf_vgpu.c \
 	common/vgpu/fecs_trace_vgpu.c \
 	common/vgpu/mm_vgpu.c \
 	common/vgpu/gr_vgpu.c \
