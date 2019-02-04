@@ -210,10 +210,6 @@ static int nvgpu_init_pmu_setup_sw(struct gk20a *g)
 
 	/* TBD: sysmon subtask */
 
-	if (IS_ENABLED(CONFIG_TEGRA_GK20A_PERFMON)) {
-		pmu->perfmon_sampling_enabled = true;
-	}
-
 	pmu->mutex_cnt = g->ops.pmu.pmu_mutex_size();
 	pmu->mutex = nvgpu_kzalloc(g, pmu->mutex_cnt *
 		sizeof(struct pmu_mutex));
