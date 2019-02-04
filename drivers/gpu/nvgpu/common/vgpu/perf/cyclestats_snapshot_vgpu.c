@@ -30,7 +30,7 @@
 #include <nvgpu/channel.h>
 #include <nvgpu/cyclestats_snapshot.h>
 
-#include "common/vgpu/css_vgpu.h"
+#include "cyclestats_snapshot_vgpu.h"
 
 static struct tegra_hv_ivm_cookie *css_cookie;
 

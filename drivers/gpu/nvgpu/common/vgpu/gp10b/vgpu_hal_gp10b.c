@@ -47,7 +47,7 @@
 #include "common/vgpu/mm_vgpu.h"
 #include "common/vgpu/dbg_vgpu.h"
 #include "common/vgpu/fecs_trace_vgpu.h"
-#include "common/vgpu/css_vgpu.h"
+#include "common/vgpu/perf/cyclestats_snapshot_vgpu.h"
 #include "gp10b/gp10b.h"
 #include "gp10b/hal_gp10b.h"
 #include "common/vgpu/gm20b/vgpu_gr_gm20b.h"

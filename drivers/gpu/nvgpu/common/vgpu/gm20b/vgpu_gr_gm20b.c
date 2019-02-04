@@ -24,7 +24,7 @@
 #include <nvgpu/enabled.h>
 #include <nvgpu/cyclestats_snapshot.h>
 
-#include "common/vgpu/css_vgpu.h"
+#include "common/vgpu/perf/cyclestats_snapshot_vgpu.h"
 #include "vgpu_gr_gm20b.h"
 
 void vgpu_gr_gm20b_init_cyclestats(struct gk20a *g)
