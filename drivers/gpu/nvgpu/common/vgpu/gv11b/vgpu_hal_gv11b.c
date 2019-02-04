@@ -52,7 +52,8 @@
 #include <nvgpu/vgpu/vgpu.h>
 #include <nvgpu/error_notifier.h>
 
-#include "common/vgpu/fifo_vgpu.h"
+#include "common/vgpu/fifo/fifo_vgpu.h"
+#include "common/vgpu/fifo/runlist_vgpu.h"
 #include "common/vgpu/gr_vgpu.h"
 #include "common/vgpu/ltc_vgpu.h"
 #include "common/vgpu/mm_vgpu.h"
@@ -60,6 +61,7 @@
 #include "common/vgpu/perf/perf_vgpu.h"
 #include "common/vgpu/fecs_trace_vgpu.h"
 #include "common/vgpu/perf/cyclestats_snapshot_vgpu.h"
+#include "common/vgpu/fifo/vgpu_fifo_gv11b.h"
 #include "common/vgpu/gm20b/vgpu_gr_gm20b.h"
 #include "common/vgpu/gp10b/vgpu_mm_gp10b.h"
 #include "common/vgpu/gp10b/vgpu_gr_gp10b.h"
@@ -93,7 +95,7 @@
 
 #include "vgpu_gv11b.h"
 #include "vgpu_gr_gv11b.h"
-#include "vgpu_fifo_gv11b.h"
+
 #include "vgpu_subctx_gv11b.h"
 #include "vgpu_tsg_gv11b.h"
 

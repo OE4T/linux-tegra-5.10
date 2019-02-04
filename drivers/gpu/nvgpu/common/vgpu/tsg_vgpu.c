@@ -28,7 +28,7 @@
 #include <nvgpu/vgpu/tegra_vgpu.h>
 #include <nvgpu/vgpu/vgpu.h>
 
-#include "fifo_vgpu.h"
+#include "fifo/fifo_vgpu.h"
 
 int vgpu_tsg_open(struct tsg_gk20a *tsg)
 {

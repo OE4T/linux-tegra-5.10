@@ -41,7 +41,8 @@
 #include "common/fifo/runlist_gk20a.h"
 #include "common/fifo/channel_gm20b.h"
 
-#include "common/vgpu/fifo_vgpu.h"
+#include "common/vgpu/fifo/fifo_vgpu.h"
+#include "common/vgpu/fifo/runlist_vgpu.h"
 #include "common/vgpu/gr_vgpu.h"
 #include "common/vgpu/ltc_vgpu.h"
 #include "common/vgpu/mm_vgpu.h"

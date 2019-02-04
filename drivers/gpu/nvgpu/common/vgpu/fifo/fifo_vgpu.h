@@ -43,16 +43,7 @@ int vgpu_channel_setup_ramfc(struct channel_gk20a *ch, u64 gpfifo_base,
 int vgpu_fifo_init_engine_info(struct fifo_gk20a *f);
 int vgpu_fifo_preempt_channel(struct gk20a *g, struct channel_gk20a *ch);
 int vgpu_fifo_preempt_tsg(struct gk20a *g, struct tsg_gk20a *tsg);
-int vgpu_runlist_update_for_channel(struct gk20a *g, u32 runlist_id,
-			      struct channel_gk20a *ch,
-			      bool add, bool wait_for_finish);
-int vgpu_runlist_reload(struct gk20a *g, u32 runlist_id,
-			      bool add, bool wait_for_finish);
 int vgpu_fifo_wait_engine_idle(struct gk20a *g);
-int vgpu_runlist_set_interleave(struct gk20a *g,
-					u32 id,
-					u32 runlist_id,
-					u32 new_level);
 int vgpu_channel_set_timeslice(struct channel_gk20a *ch, u32 timeslice);
 int vgpu_fifo_force_reset_ch(struct channel_gk20a *ch,
 					u32 err_code, bool verbose);
