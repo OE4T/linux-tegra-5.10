@@ -25,9 +25,10 @@
 #include <nvgpu/fuse.h>
 #include <nvgpu/regops.h>
 
-#include "common/bus/bus_gk20a.h"
-#include "common/bus/bus_gp10b.h"
-#include "common/bus/bus_gm20b.h"
+#include "hal/bus/bus_gk20a.h"
+#include "hal/bus/bus_gp10b.h"
+#include "hal/bus/bus_gm20b.h"
+
 #include "common/priv_ring/priv_ring_gm20b.h"
 #include "common/priv_ring/priv_ring_gp10b.h"
 #include "common/clock_gating/gv11b_gating_reglist.h"

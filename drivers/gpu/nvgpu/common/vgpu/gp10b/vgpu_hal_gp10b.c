@@ -20,8 +20,9 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#include "common/bus/bus_gk20a.h"
-#include "common/bus/bus_gm20b.h"
+#include "hal/bus/bus_gk20a.h"
+#include "hal/bus/bus_gm20b.h"
+
 #include "common/priv_ring/priv_ring_gm20b.h"
 #include "common/priv_ring/priv_ring_gp10b.h"
 #include "common/clock_gating/gp10b_gating_reglist.h"

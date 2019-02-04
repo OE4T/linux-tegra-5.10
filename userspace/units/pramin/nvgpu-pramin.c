@@ -34,9 +34,10 @@
 #include <nvgpu/enabled.h>
 #include <nvgpu/dma.h>
 #include <nvgpu/bug.h>
-
 #include <nvgpu/gk20a.h>
-#include <common/bus/bus_gk20a.h>
+
+#include "hal/bus/bus_gk20a.h"
+
 #include <nvgpu/hw/gk20a/hw_pram_gk20a.h>
 #include <nvgpu/hw/gk20a/hw_bus_gk20a.h>
 

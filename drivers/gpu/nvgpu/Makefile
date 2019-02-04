@@ -26,11 +26,7 @@ obj-$(CONFIG_GK20A) := nvgpu.o
 # OS independent parts of nvgpu. The work to collect files here
 # is in progress.
 
-nvgpu-y += common/bus/bus_gk20a.o \
-	common/bus/bus_gm20b.o \
-	common/bus/bus_gp10b.o \
-	common/bus/bus_gv100.o \
-	common/bus/bus_tu104.o \
+nvgpu-y += \
 	common/priv_ring/priv_ring_gm20b.o \
 	common/priv_ring/priv_ring_gp10b.o \
 	common/ptimer/ptimer.o \
@@ -158,7 +154,12 @@ nvgpu-y += common/bus/bus_gk20a.o \
 	common/pmu/clk/clk_vf_point.o \
 	common/pmu/clk/clk_arb.o \
 	common/pmu/clk/clk_freq_controller.o \
-	common/pmu/clk/clk.o
+	common/pmu/clk/clk.o \
+	hal/bus/bus_gk20a.o \
+	hal/bus/bus_gm20b.o \
+	hal/bus/bus_gp10b.o \
+	hal/bus/bus_gv100.o \
+	hal/bus/bus_tu104.o
 
 # Linux specific parts of nvgpu.
 nvgpu-y += \
