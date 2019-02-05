@@ -1365,7 +1365,7 @@ static int tegra_crypto_sha_shash(struct tegra_crypto_ctx *ctx,
 	struct tegra_crypto_completion sha_complete;
 	void *shash_buff;
 	unsigned long *xbuf[XBUFSIZE];
-	int ret = -ENOMEM, i;
+	int ret = -ENOMEM;
 	char sha_algo[5][10] = {"sha1", "sha224", "sha256",
 				"sha384", "sha512"};
 
@@ -1374,24 +1374,26 @@ static int tegra_crypto_sha_shash(struct tegra_crypto_ctx *ctx,
 		return -EINVAL;
 	}
 
-	stfm = crypto_alloc_shash(sha_req_shash->algo, 0, 0);
+	if (sha_req_shash->algo > SHA512 || sha_req_shash->algo < 0) {
+		pr_err("alg: shash: invalid index algo in sha_req_shash\n");
+		return -EINVAL;
+	}
+
+	sha_req_shash->algo = array_index_nospec(sha_req_shash->algo, SHA512);
+
+	stfm = crypto_alloc_shash(sha_algo[sha_req_shash->algo], 0, 0);
 	if (IS_ERR(stfm)) {
 		pr_err("alg:shash:Failed to load transform for %s:%ld\n",
-			sha_req_shash->algo, PTR_ERR(stfm));
+			sha_algo[sha_req_shash->algo], PTR_ERR(stfm));
 		goto out_alloc;
 	}
 
-	for (i = 0; i < 5; i++) {
-		if (!strcmp(sha_req_shash->algo, sha_algo[i])) {
-			ctx->shash_tfm[i] = stfm;
-			break;
-		}
-	}
+	ctx->shash_tfm[sha_req_shash->algo] = stfm;
 
 	desc = shash_request_alloc(stfm, GFP_KERNEL);
 	if (!desc) {
 		pr_err("alg:shash:Failed to allocate request for %s\n",
-			sha_req_shash->algo);
+			sha_algo[sha_req_shash->algo]);
 		goto out_noreq;
 	}
 
@@ -1416,7 +1418,7 @@ static int tegra_crypto_sha_shash(struct tegra_crypto_ctx *ctx,
 	ret = sha_shash_hash_op(desc, &sha_complete, crypto_shash_init(desc));
 	if (ret) {
 		pr_err("alg: shash: init failed for %s: ret=%d\n",
-			sha_req_shash->algo, ret);
+			sha_algo[sha_req_shash->algo], ret);
 		goto out;
 	}
 
@@ -1425,7 +1427,7 @@ static int tegra_crypto_sha_shash(struct tegra_crypto_ctx *ctx,
 					sha_req_shash->plaintext_sz));
 	if (ret) {
 		pr_err("alg: shash: update failed for %s: ret=%d\n",
-			sha_req_shash->algo, ret);
+			sha_algo[sha_req_shash->algo], ret);
 		goto out;
 	}
 
@@ -1433,7 +1435,7 @@ static int tegra_crypto_sha_shash(struct tegra_crypto_ctx *ctx,
 			crypto_shash_final(desc, result));
 	if (ret) {
 		pr_err("alg: shash: final failed for %s: ret=%d\n",
-			sha_req_shash->algo, ret);
+			sha_algo[sha_req_shash->algo], ret);
 		goto out;
 	}
 
@@ -1442,7 +1444,7 @@ static int tegra_crypto_sha_shash(struct tegra_crypto_ctx *ctx,
 	if (ret) {
 		ret = -EFAULT;
 		pr_err("alg: shash: copy_to_user failed (%d) for %s\n",
-				ret, sha_req_shash->algo);
+				ret, sha_algo[sha_req_shash->algo]);
 	}
 
 out:

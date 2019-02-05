@@ -74,6 +74,15 @@ enum tegra_rsa_op_mode {
 	RSA_EXIT,
 };
 
+enum sha_algo {
+	SHA1,
+	SHA224,
+	SHA256,
+	SHA384,
+	SHA512,
+	CMAC_AES,
+};
+
 struct tegra_se_rng1_request {
 	unsigned int size;
 	__u32 *rdata;
@@ -268,7 +277,7 @@ struct tegra_sha_req {
 struct tegra_sha_req_shash {
 	char key[TEGRA_CRYPTO_MAX_KEY_SIZE];
 	unsigned int keylen;
-	unsigned char *algo;
+	enum sha_algo algo;
 	unsigned char *plaintext;
 	unsigned char *result;
 	unsigned int plaintext_sz;
