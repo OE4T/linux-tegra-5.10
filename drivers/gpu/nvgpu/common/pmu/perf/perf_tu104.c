@@ -53,11 +53,12 @@ static int pmu_set_boot_clk_runcb_fn(void *arg)
 
 		(void) memset(&rpc, 0,
 			sizeof(struct nv_pmu_rpc_struct_perf_load));
-		PMU_RPC_EXECUTE_CPB(status, pmu, PERF, LOAD, &rpc, 0);
+		PMU_RPC_EXECUTE_CPB(status, pmu, PERF, VFE_INVALIDATE, &rpc, 0);
 		if (status != 0) {
 			nvgpu_err(g, "Failed to execute RPC status=0x%x",
 					status);
 		}
+		nvgpu_clk_arb_schedule_vf_table_update(g);
 	}
 
 	return 0;
@@ -72,8 +73,7 @@ static int tu104_pmu_handle_perf_event(struct gk20a *g, void *pmumsg)
 	switch (msg->msg_type) {
 	case NV_PMU_PERF_MSG_ID_VFE_CALLBACK:
 		perf_pmu->vfe_init.state_change = true;
-		nvgpu_cond_signal(&perf_pmu->vfe_init.wq);
-		nvgpu_clk_arb_schedule_vf_table_update(g);
+		(void) nvgpu_cond_signal(&perf_pmu->vfe_init.wq);
 		break;
 	case NV_PMU_PERF_MSG_ID_CHANGE_SEQ_COMPLETION:
 		nvgpu_log_fn(g, "Change Seq Completed");

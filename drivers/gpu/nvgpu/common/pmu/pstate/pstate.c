@@ -302,13 +302,6 @@ int gk20a_init_pstate_pmu_support(struct gk20a *g)
 		}
 	}
 
-	if (g->ops.pmu_perf.support_vfe) {
-		err = g->ops.clk.perf_pmu_vfe_load(g);
-		if (err != 0) {
-			return err;
-		}
-	}
-
 	if (g->ops.clk.support_pmgr_domain) {
 		err = pmgr_domain_pmu_setup(g);
 	}
@@ -320,6 +313,12 @@ int gk20a_init_pstate_pmu_support(struct gk20a *g)
 		}
 	}
 
+	if (g->ops.pmu_perf.support_vfe) {
+		err = g->ops.clk.perf_pmu_vfe_load(g);
+		if (err != 0) {
+			return err;
+		}
+	}
 	return err;
 }
 

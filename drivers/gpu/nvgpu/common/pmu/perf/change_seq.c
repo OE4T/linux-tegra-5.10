@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -158,21 +158,6 @@ static void build_change_seq_boot (struct gk20a *g)
 	return;
 }
 
-static int perf_pmu_load(struct gk20a *g)
-{
-	int status = 0;
-	struct nv_pmu_rpc_struct_perf_load rpc;
-	struct nvgpu_pmu *pmu = &g->pmu;
-
-	(void) memset(&rpc, 0, sizeof(struct nv_pmu_rpc_struct_perf_load));
-	PMU_RPC_EXECUTE_CPB(status, pmu, PERF, LOAD, &rpc, 0);
-	if (status != 0) {
-		nvgpu_err(g, "Failed to execute RPC status=0x%x",
-				status);
-	}
-	return status;
-}
-
 int nvgpu_perf_change_seq_pmu_setup(struct gk20a *g)
 {
 	struct nv_pmu_rpc_perf_change_seq_info_get info_get;
@@ -249,12 +234,6 @@ int nvgpu_perf_change_seq_pmu_setup(struct gk20a *g)
 			"Failed to execute Change Seq SET RPC status=0x%x",
 			status);
 		goto perf_change_seq_pmu_setup_exit;
-	}
-
-	/* Perf Load*/
-	status = perf_pmu_load(g);
-	if (status != 0) {
-		nvgpu_err(g, "Failed to Load Perf");
 	}
 
 perf_change_seq_pmu_setup_exit:
