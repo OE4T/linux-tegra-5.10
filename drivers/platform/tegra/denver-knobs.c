@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, NVIDIA Corporation. All rights reserved.
+ * Copyright (c) 2018-2019, NVIDIA Corporation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -27,6 +27,7 @@
 #include <linux/proc_fs.h>
 #include <linux/seq_file.h>
 #include <linux/version.h>
+#include <linux/platform/tegra/tegra-cpu.h>
 
 #include <asm/traps.h>
 #include <asm/cputype.h>
@@ -178,9 +179,10 @@ struct nvmstat {
 	u64 stat1;
 	u64 bg;
 	u64 fg;
+	int cpu;
 };
 
-static struct nvmstat nvmstat_agg;
+static struct nvmstat nvmstat_agg[CONFIG_NR_CPUS];
 
 static void _get_stats(void *_stat)
 {
@@ -190,14 +192,14 @@ static void _get_stats(void *_stat)
 	/* read nvmstat0 */
 	asm volatile("mrs %0, s3_0_c15_c0_0" : "=r" (stat->stat0) : );
 	stat->tot = (u32)(stat->stat0 >> 32);
-	nvmstat_agg.tot += stat->tot;
+	nvmstat_agg[stat->cpu].tot += stat->tot;
 
 	/* read nvmstat1 */
 	asm volatile("mrs %0, s3_0_c15_c0_1" : "=r" (stat->stat1) : );
 	stat->bg = (u32)(stat->stat1);
-	nvmstat_agg.bg += stat->bg;
+	nvmstat_agg[stat->cpu].bg += stat->bg;
 	stat->fg = (u32)(stat->stat1 >> 32);
-	nvmstat_agg.fg += stat->fg;
+	nvmstat_agg[stat->cpu].fg += stat->fg;
 
 	/* reset nvmstat0 */
 	stat0 = 0;
@@ -231,13 +233,24 @@ static void print_stats(struct seq_file *s, struct nvmstat *stat)
 	seq_printf(s, "nvmstat1_fg = %llu\n",  stat->fg);
 }
 
+static struct dentry *nvmstats_dir;
+static struct dentry *nvmcpu_dir[CONFIG_NR_CPUS];
+
 static int inst_stats_show(struct seq_file *s, void *data)
 {
 	struct nvmstat stat;
+	struct dentry **nvmcpu_entry;
 
-	if (!get_stats(&stat)) {
-		seq_puts(s, "No Denver cores online\n");
-		return 0;
+	if (s->private) {
+		nvmcpu_entry = (struct dentry **)s->private;
+		stat.cpu = nvmcpu_entry - nvmcpu_dir;
+		smp_call_function_single(stat.cpu, _get_stats, &stat, 1);
+	} else {
+		stat.cpu = 0;
+		if (!get_stats(&stat)) {
+			seq_puts(s, "No Denver cores online\n");
+			return 0;
+		}
 	}
 	print_stats(s, &stat);
 	return 0;
@@ -258,12 +271,20 @@ static const struct file_operations inst_stats_fops = {
 static int agg_stats_show(struct seq_file *s, void *data)
 {
 	struct nvmstat stat;
+	struct dentry **nvmcpu_entry;
 
-	if (!get_stats(&stat)) {
-		seq_puts(s, "No Denver cores online\n");
-		return 0;
+	if (s->private) {
+		nvmcpu_entry = (struct dentry **)s->private;
+		stat.cpu = nvmcpu_entry - nvmcpu_dir;
+		smp_call_function_single(stat.cpu, _get_stats, &stat, 1);
+	} else {
+		stat.cpu = 0;
+		if (!get_stats(&stat)) {
+			seq_puts(s, "No Denver cores online\n");
+			return 0;
+		}
 	}
-	print_stats(s, &nvmstat_agg);
+	print_stats(s, &nvmstat_agg[stat.cpu]);
 	return 0;
 }
 
@@ -281,14 +302,12 @@ static const struct file_operations agg_stats_fops = {
 
 static int __init create_denver_nvmstats(void)
 {
-	struct dentry *nvmstats_dir;
-
-	nvmstats_dir = debugfs_create_dir("nvmstats", denver_debugfs_root);
-	if (!nvmstats_dir) {
-		pr_err("%s: Couldn't create the \"nvmstats\" debugfs node.\n",
-			__func__);
-		return -1;
-	}
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 14, 0)
+	/* these nodes are per-cpu for carmel, so don't do it here */
+	/* we are not fixing it up for K4.9 just yet */
+	if (tegra_is_cpu_carmel(0))
+		return 0;
+#endif
 
 	if (!debugfs_create_file("instantaneous_stats",
 				S_IRUGO,
@@ -431,7 +450,53 @@ arch_initcall(denver_pmic_init);
 static u32 mts_version;
 
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 14, 0)
-static int denver_cpu_online(unsigned int cpu)
+static int carmel_cpu_online(unsigned int cpu)
+{
+	char cpustring[6];
+
+	/* create debugfs for this CPU node */
+	memset(cpustring, 0, sizeof(cpustring));
+	snprintf(cpustring, sizeof(cpustring), "cpu%u", cpu);
+	nvmcpu_dir[cpu] = debugfs_create_dir(cpustring, nvmstats_dir);
+	if (!nvmcpu_dir[cpu]) {
+		pr_err("Couldn't create debugfs for cpu%u stats\n",
+				cpu);
+		return -1;
+	}
+	if (!debugfs_create_file("instantaneous_stats",
+			S_IRUGO,
+			nvmcpu_dir[cpu],
+			nvmcpu_dir+cpu,
+			&inst_stats_fops)) {
+		pr_err("%s: Couldn't create "
+			"the \"instantaneous_stats\" debugfs node.\n",
+			__func__);
+		return -1;
+	}
+
+	if (!debugfs_create_file("aggregated_stats",
+			S_IRUGO,
+			nvmcpu_dir[cpu],
+			nvmcpu_dir+cpu,
+			&agg_stats_fops)) {
+		pr_err("%s: Couldn't create "
+			"the \"aggregated_stats\" debugfs node.\n",
+			__func__);
+		return -1;
+	}
+
+	return 0;
+}
+
+/* remove debugfs for this CPU node */
+static int carmel_cpu_offline(unsigned int cpu)
+{
+	if (!nvmcpu_dir[cpu])
+		return 0;
+	debugfs_remove_recursive(nvmcpu_dir[cpu]);
+	return 0;
+}
+static int mts_version_cpu_online(unsigned int cpu)
 {
 	/* Record MTS version if the current CPU is Denver */
 	if (!mts_version && ((read_cpuid_id() >> 24) == 'N'))
@@ -457,7 +522,7 @@ static int __init denver_knobs_init_early(void)
 {
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 14, 0)
 	return cpuhp_setup_state_nocalls(CPUHP_AP_ONLINE_DYN,
-		"denver:cpu:online", denver_cpu_online, NULL);
+		"denver:cpu:online", mts_version_cpu_online, NULL);
 #else
 	return register_cpu_notifier(&mts_version_cpu_nb);
 #endif
@@ -494,10 +559,22 @@ static int __init denver_knobs_init(void)
 	if (error)
 		return error;
 
+	nvmstats_dir = debugfs_create_dir("nvmstats", denver_debugfs_root);
+	if (!nvmstats_dir) {
+		pr_err("%s: Couldn't create the \"nvmstats\" debugfs node.\n",
+			__func__);
+		return -1;
+	}
+
 	error = create_denver_nvmstats();
 	if (error)
 		return error;
 
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 14, 0)
+	if (tegra_is_cpu_carmel(0))
+		cpuhp_setup_state(CPUHP_AP_ONLINE_DYN, "carmel:cpu:online",
+					carmel_cpu_online, carmel_cpu_offline);
+#endif
 
 	/* Cancel the notifier as mts_version should be set now. */
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 14, 0)
