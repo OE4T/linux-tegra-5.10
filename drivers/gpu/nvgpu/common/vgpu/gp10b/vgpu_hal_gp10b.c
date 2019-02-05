@@ -46,7 +46,7 @@
 #include "common/vgpu/fifo/runlist_vgpu.h"
 #include "common/vgpu/gr/gr_vgpu.h"
 #include "common/vgpu/gr/ctx_vgpu.h"
-#include "common/vgpu/ltc_vgpu.h"
+#include "common/vgpu/ltc/ltc_vgpu.h"
 #include "common/vgpu/mm_vgpu.h"
 #include "common/vgpu/debugger_vgpu.h"
 #include "common/vgpu/fecs_trace_vgpu.h"

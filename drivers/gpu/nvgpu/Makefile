@@ -397,7 +397,7 @@ nvgpu-$(CONFIG_GK20A_VIDMEM) += \
 	common/mm/vidmem.o
 
 nvgpu-$(CONFIG_TEGRA_GR_VIRTUALIZATION) += \
-	common/vgpu/ltc_vgpu.o \
+	common/vgpu/ltc/ltc_vgpu.o \
 	common/vgpu/gr/gr_vgpu.o \
 	common/vgpu/gr/ctx_vgpu.o \
 	common/vgpu/fifo/fifo_vgpu.o \
