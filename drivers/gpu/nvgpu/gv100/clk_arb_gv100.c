@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -23,6 +23,7 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/clk_arb.h>
 #include <nvgpu/pmu/clk.h>
+#include <nvgpu/timers.h>
 
 #include "clk_arb_gv100.h"
 #include "common/pmu/clk/clk.h"
@@ -478,7 +479,7 @@ void gv100_clk_arb_run_arbiter_cb(struct nvgpu_clk_arb *arb)
 	struct nvgpu_clk_slave_freq vf_point;
 
 #ifdef CONFIG_DEBUG_FS
-	u64 t0, t1;
+	s64 t0, t1;
 	struct nvgpu_clk_arb_debug *debug;
 
 #endif
@@ -491,7 +492,7 @@ void gv100_clk_arb_run_arbiter_cb(struct nvgpu_clk_arb *arb)
 	}
 
 #ifdef CONFIG_DEBUG_FS
-	g->ops.ptimer.read_ptimer(g, &t0);
+	t0 = nvgpu_current_time_ns();
 #endif
 
 	/* Only one arbiter should be running */
@@ -653,7 +654,7 @@ void gv100_clk_arb_run_arbiter_cb(struct nvgpu_clk_arb *arb)
 
 	nvgpu_cond_signal_interruptible(&arb->request_wq);
 #ifdef CONFIG_DEBUG_FS
-	g->ops.ptimer.read_ptimer(g, &t1);
+	t1 = nvgpu_current_time_ns();
 
 	debug = arb->debug == &arb->debug_pool[0] ?
 		&arb->debug_pool[1] : &arb->debug_pool[0];

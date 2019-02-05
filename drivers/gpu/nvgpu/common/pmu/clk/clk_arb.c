@@ -473,7 +473,8 @@ static int nvgpu_clk_arb_poll_worker(void *arg)
 
 		ret = NVGPU_COND_WAIT_INTERRUPTIBLE(
 				&worker->wq,
-				nvgpu_clk_arb_worker_pending(g, get), 0);
+				nvgpu_clk_arb_worker_pending(g, get) ||
+				nvgpu_thread_should_stop(&worker->poll_task), 0);
 
 		if (nvgpu_thread_should_stop(&worker->poll_task)) {
 			break;
@@ -617,8 +618,6 @@ void nvgpu_clk_arb_schedule_alarm(struct gk20a *g, u32 alarm)
 
 static void nvgpu_clk_arb_worker_deinit(struct gk20a *g)
 {
-	nvgpu_atomic_inc(&g->clk_arb_worker.put);
-
 	nvgpu_mutex_acquire(&g->clk_arb_worker.start_lock);
 	nvgpu_thread_stop(&g->clk_arb_worker.poll_task);
 	nvgpu_mutex_release(&g->clk_arb_worker.start_lock);
