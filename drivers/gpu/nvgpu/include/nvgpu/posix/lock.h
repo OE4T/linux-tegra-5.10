@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -20,8 +20,8 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef __NVGPU_POSIX_LOCK_H__
-#define __NVGPU_POSIX_LOCK_H__
+#ifndef NVGPU_POSIX_LOCK_H
+#define NVGPU_POSIX_LOCK_H
 
 #include <stdlib.h>
 
@@ -66,4 +66,4 @@ struct nvgpu_raw_spinlock {
 	struct __nvgpu_posix_lock lock;
 };
 
-#endif /* NVGPU_LOCK_LINUX_H */
+#endif /* NVGPU_POSIX_LOCK_H */

@@ -20,8 +20,8 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef __NVGPU_POSIX_SIZES_H__
-#define __NVGPU_POSIX_SIZES_H__
+#ifndef NVGPU_POSIX_SIZES_H
+#define NVGPU_POSIX_SIZES_H
 
 #define SZ_1K		(1UL << 10)
 #define SZ_4K		(SZ_1K << 2)
@@ -37,4 +37,4 @@
 #define SZ_1G		(1UL << 30)
 #define SZ_4G		(SZ_1G << 2)
 
-#endif
+#endif /* NVGPU_POSIX_SIZES_H */

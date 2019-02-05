@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -20,8 +20,8 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef __NVGPU_POSIX_SORT_H__
-#define __NVGPU_POSIX_SORT_H__
+#ifndef NVGPU_POSIX_SORT_H
+#define NVGPU_POSIX_SORT_H
 
 #include <nvgpu/bug.h>
 
@@ -32,4 +32,4 @@ static void sort(void *base, size_t num, size_t size,
 	__bug("sort() not implemented yet!");
 }
 
-#endif
+#endif /* NVGPU_POSIX_SORT_H */

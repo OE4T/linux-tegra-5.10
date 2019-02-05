@@ -20,8 +20,8 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef __NVGPU_POSIX_TYPES_H__
-#define __NVGPU_POSIX_TYPES_H__
+#ifndef NVGPU_POSIX_TYPES_H
+#define NVGPU_POSIX_TYPES_H
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -230,4 +230,4 @@ static inline bool IS_ERR_OR_NULL(const void *ptr)
 
 #define ERESTARTSYS ERESTART
 
-#endif
+#endif /* NVGPU_POSIX_TYPES_H */

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -20,8 +20,8 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef __NVGPU_POSIX_RWSEM_H__
-#define __NVGPU_POSIX_RWSEM_H__
+#ifndef NVGPU_POSIX_RWSEM_H
+#define NVGPU_POSIX_RWSEM_H
 
 #include <nvgpu/lock.h>
 
@@ -32,4 +32,4 @@ struct nvgpu_rwsem {
 	int writers;
 };
 
-#endif
+#endif /* NVGPU_POSIX_RWSEM_H */

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -20,8 +20,8 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef __NVGPU_POSIX_KMEM_H__
-#define __NVGPU_POSIX_KMEM_H__
+#ifndef NVGPU_POSIX_KMEM_H
+#define NVGPU_POSIX_KMEM_H
 
 #include <nvgpu/types.h>
 
@@ -35,4 +35,4 @@ void __nvgpu_vfree(struct gk20a *g, void *addr);
 
 struct nvgpu_posix_fault_inj *nvgpu_kmem_get_fault_injection(void);
 
-#endif
+#endif /* NVGPU_POSIX_KMEM_H */

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -20,8 +20,8 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef __NVGPU_POSIX_BITOPS_H__
-#define __NVGPU_POSIX_BITOPS_H__
+#ifndef NVGPU_POSIX_BITOPS_H
+#define NVGPU_POSIX_BITOPS_H
 
 #include <nvgpu/types.h>
 
@@ -93,4 +93,4 @@ unsigned long bitmap_find_next_zero_area(unsigned long *map,
 					 unsigned int nr,
 					 unsigned long align_mask);
 
-#endif
+#endif /* NVGPU_POSIX_BITOPS_H */

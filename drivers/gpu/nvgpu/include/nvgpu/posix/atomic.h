@@ -20,8 +20,8 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef __NVGPU_POSIX_ATOMIC_H__
-#define __NVGPU_POSIX_ATOMIC_H__
+#ifndef NVGPU_POSIX_ATOMIC_H
+#define NVGPU_POSIX_ATOMIC_H
 
 #include <nvgpu/types.h>
 
@@ -191,4 +191,4 @@ static inline long __nvgpu_atomic64_sub_return(long x, nvgpu_atomic64_t *v)
 	return v->v;
 }
 
-#endif
+#endif /* NVGPU_POSIX_ATOMIC_H */
