@@ -335,7 +335,7 @@ int nvmap_ioctl_alloc(struct file *filp, unsigned int cmd, void __user *arg)
 	}
 
 	h = nvmap_handle_from_fd(handle);
-	if (!h) {
+	if (IS_ERR_OR_NULL(h)) {
 		return -EINVAL;
 	}
 	h = nvmap_handle_get(h);
@@ -407,7 +407,7 @@ static int ioctl_alloc_handle_by_ivmid(struct nvmap_client *client, u64 ivm_id)
 	}
 
 	handle = nvmap_handle_from_fd(fd);
-	if (!handle) {
+	if (IS_ERR_OR_NULL(handle)) {
 		return -1;
 	}
 
@@ -536,7 +536,7 @@ int nvmap_ioctl_get_ivcid(struct file *filp, void __user *arg)
 	}
 
 	h = nvmap_handle_from_fd(op.ivm_handle);
-	if (!h) {
+	if (IS_ERR_OR_NULL(h)) {
 		return -EINVAL;
 	}
 
@@ -600,6 +600,10 @@ int nvmap_ioctl_cache_maint(struct file *filp, void __user *arg, int op_size)
 	}
 
 	handle = nvmap_handle_from_fd(op.handle);
+	if (IS_ERR_OR_NULL(handle)) {
+		return -EINVAL;
+	}
+
 	handle = nvmap_handle_get(handle);
 	if (!handle) {
 		return -EINVAL;
@@ -773,6 +777,10 @@ int nvmap_ioctl_rw_handle(struct file *filp, int is_read, void __user *arg,
 	}
 
 	h = nvmap_handle_from_fd(fd);
+	if (IS_ERR_OR_NULL(h)) {
+		return -EINVAL;
+	}
+
 	h = nvmap_handle_get(h);
 	if (!h) {
 		return -EINVAL;
@@ -842,6 +850,10 @@ int nvmap_ioctl_gup_test(struct file *filp, void __user *arg)
 	}
 
 	handle = nvmap_handle_from_fd(op.handle);
+	if (IS_ERR_OR_NULL(handle)) {
+		goto exit;
+	}
+
 	nvmap_handle_get(handle);
 	if (!handle) {
 		goto exit;
