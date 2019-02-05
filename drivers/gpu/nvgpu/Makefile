@@ -404,7 +404,9 @@ nvgpu-$(CONFIG_TEGRA_GR_VIRTUALIZATION) += \
 	common/vgpu/fifo/runlist_vgpu.o \
 	common/vgpu/fifo/vgpu_fifo_gv11b.o \
 	common/vgpu/ce_vgpu.o \
-	common/vgpu/mm_vgpu.o \
+	common/vgpu/mm/mm_vgpu.o \
+	common/vgpu/mm/vm_vgpu.o \
+	common/vgpu/mm/vgpu_mm_gp10b.o \
 	common/vgpu/vgpu.o \
 	common/vgpu/debugger_vgpu.o \
 	common/vgpu/tsg_vgpu.o \
@@ -415,7 +417,6 @@ nvgpu-$(CONFIG_TEGRA_GR_VIRTUALIZATION) += \
 	common/vgpu/fecs_trace_vgpu.o \
 	common/vgpu/gp10b/vgpu_hal_gp10b.o  \
 	common/vgpu/gp10b/vgpu_fuse_gp10b.o  \
-	common/vgpu/gp10b/vgpu_mm_gp10b.o \
 	common/vgpu/gv11b/vgpu_gv11b.o \
 	common/vgpu/gv11b/vgpu_hal_gv11b.o \
 	common/vgpu/gv11b/vgpu_subctx_gv11b.o \

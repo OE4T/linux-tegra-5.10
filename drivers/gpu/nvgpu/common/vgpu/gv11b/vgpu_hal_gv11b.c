@@ -59,13 +59,13 @@
 #include "common/vgpu/gr/gr_vgpu.h"
 #include "common/vgpu/gr/ctx_vgpu.h"
 #include "common/vgpu/ltc/ltc_vgpu.h"
-#include "common/vgpu/mm_vgpu.h"
+#include "common/vgpu/mm/mm_vgpu.h"
 #include "common/vgpu/debugger_vgpu.h"
 #include "common/vgpu/perf/perf_vgpu.h"
 #include "common/vgpu/fecs_trace_vgpu.h"
 #include "common/vgpu/perf/cyclestats_snapshot_vgpu.h"
 #include "common/vgpu/fifo/vgpu_fifo_gv11b.h"
-#include "common/vgpu/gp10b/vgpu_mm_gp10b.h"
+#include "common/vgpu/mm/vgpu_mm_gp10b.h"
 
 #include "common/falcon/falcon_gk20a.h"
 

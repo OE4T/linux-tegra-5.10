@@ -25,12 +25,9 @@
 #include <nvgpu/kmem.h>
 #include <nvgpu/dma.h>
 #include <nvgpu/bug.h>
-#include <nvgpu/vm.h>
-#include <nvgpu/vm_area.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/channel.h>
 
-#include <nvgpu/vgpu/vm.h>
 #include <nvgpu/vgpu/vgpu.h>
 
 #include "mm_vgpu.h"
@@ -113,50 +110,6 @@ void vgpu_locked_gmmu_unmap(struct vm_gk20a *vm,
 		nvgpu_vm_free_va(vm, vaddr, pgsz_idx);
 	}
 	/* TLB invalidate handled on server side */
-}
-
-/*
- * This is called by the common VM init routine to handle vGPU specifics of
- * intializing a VM on a vGPU. This alone is not enough to init a VM. See
- * nvgpu_vm_init().
- */
-int vgpu_vm_init(struct gk20a *g, struct vm_gk20a *vm)
-{
-	struct tegra_vgpu_cmd_msg msg;
-	struct tegra_vgpu_as_share_params *p = &msg.params.as_share;
-	int err;
-
-	msg.cmd = TEGRA_VGPU_CMD_AS_ALLOC_SHARE;
-	msg.handle = vgpu_get_handle(g);
-	p->size = vm->va_limit;
-	p->big_page_size = vm->big_page_size;
-
-	err = vgpu_comm_sendrecv(&msg, sizeof(msg), sizeof(msg));
-	if (err || msg.ret) {
-		return -ENOMEM;
-	}
-
-	vm->handle = p->handle;
-
-	return 0;
-}
-
-/*
- * Similar to vgpu_vm_init() this is called as part of the cleanup path for
- * VMs. This alone is not enough to remove a VM - see nvgpu_vm_remove().
- */
-void vgpu_vm_remove(struct vm_gk20a *vm)
-{
-	struct gk20a *g = gk20a_from_vm(vm);
-	struct tegra_vgpu_cmd_msg msg;
-	struct tegra_vgpu_as_share_params *p = &msg.params.as_share;
-	int err;
-
-	msg.cmd = TEGRA_VGPU_CMD_AS_FREE_SHARE;
-	msg.handle = vgpu_get_handle(g);
-	p->handle = vm->handle;
-	err = vgpu_comm_sendrecv(&msg, sizeof(msg), sizeof(msg));
-	WARN_ON(err || msg.ret);
 }
 
 u64 vgpu_mm_bar1_map_userd(struct gk20a *g, struct nvgpu_mem *mem, u32 offset)
