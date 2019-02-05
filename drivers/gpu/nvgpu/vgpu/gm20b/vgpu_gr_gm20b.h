@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2015-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -20,11 +20,11 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef __VGPU_GR_GM20B_H__
-#define __VGPU_GR_GM20B_H__
+#ifndef NVGPU_VGPU_GR_GM20B_H
+#define NVGPU_VGPU_GR_GM20B_H
 
 struct gk20a;
 
 void vgpu_gr_gm20b_init_cyclestats(struct gk20a *g);
 
-#endif
+#endif /* NVGPU_VGPU_GR_GM20B_H */

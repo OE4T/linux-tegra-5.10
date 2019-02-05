@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2015-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -20,8 +20,8 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef __VGPU_GR_GP10B_H__
-#define __VGPU_GR_GP10B_H__
+#ifndef NVGPU_VGPU_GR_GP10B_H
+#define NVGPU_VGPU_GR_GP10B_H
 
 #include <nvgpu/types.h>
 
@@ -45,4 +45,4 @@ int vgpu_gr_gp10b_set_preemption_mode(struct channel_gk20a *ch,
 					u32 compute_preempt_mode);
 int vgpu_gr_gp10b_init_ctx_state(struct gk20a *g);
 
-#endif
+#endif /* NVGPU_VGPU_GR_GP10B_H */

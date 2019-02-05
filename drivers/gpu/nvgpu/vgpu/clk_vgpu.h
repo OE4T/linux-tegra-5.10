@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -20,10 +20,10 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef _CLK_VGPU_H_
-#define _CLK_VGPU_H_
+#ifndef NVGPU_CLK_VGPU_H
+#define NVGPU_CLK_VGPU_H
 
 void vgpu_init_clk_support(struct gk20a *g);
 int vgpu_clk_get_freqs(struct gk20a *g, unsigned long **freqs, int *num_freqs);
 int vgpu_clk_cap_rate(struct gk20a *g, unsigned long rate);
-#endif
+#endif /* NVGPU_CLK_VGPU_H */

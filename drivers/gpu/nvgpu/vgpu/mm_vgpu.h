@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -20,8 +20,8 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef _MM_VGPU_H_
-#define _MM_VGPU_H_
+#ifndef NVGPU_MM_VGPU_H
+#define NVGPU_MM_VGPU_H
 
 struct nvgpu_mem;
 struct channel_gk20a;
@@ -45,4 +45,4 @@ void vgpu_mm_l2_invalidate(struct gk20a *g);
 int vgpu_mm_l2_flush(struct gk20a *g, bool invalidate);
 int vgpu_mm_tlb_invalidate(struct gk20a *g, struct nvgpu_mem *pdb);
 void vgpu_mm_mmu_set_debug_mode(struct gk20a *g, bool enable);
-#endif
+#endif /* NVGPU_MM_VGPU_H */

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -20,8 +20,8 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef _FIFO_VGPU_H_
-#define _FIFO_VGPU_H_
+#ifndef NVGPU_FIFO_VGPU_H
+#define NVGPU_FIFO_VGPU_H
 
 #include <nvgpu/types.h>
 
@@ -63,4 +63,4 @@ int vgpu_tsg_unbind_channel(struct channel_gk20a *ch);
 int vgpu_tsg_set_timeslice(struct tsg_gk20a *tsg, u32 timeslice);
 int vgpu_enable_tsg(struct tsg_gk20a *tsg);
 int vgpu_set_sm_exception_type_mask(struct channel_gk20a *ch, u32 mask);
-#endif
+#endif /* NVGPU_FIFO_VGPU_H */

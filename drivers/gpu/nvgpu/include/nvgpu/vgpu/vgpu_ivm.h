@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -20,8 +20,8 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef __VGPU_IVM_H__
-#define __VGPU_IVM_H__
+#ifndef NVGPU_VGPU_IVM_H
+#define NVGPU_VGPU_IVM_H
 
 #include <nvgpu/types.h>
 
@@ -34,4 +34,4 @@ u64 vgpu_ivm_get_size(struct tegra_hv_ivm_cookie *cookie);
 void *vgpu_ivm_mempool_map(struct tegra_hv_ivm_cookie *cookie);
 void vgpu_ivm_mempool_unmap(struct tegra_hv_ivm_cookie *cookie,
 		void *addr);
-#endif
+#endif /* NVGPU_VGPU_IVM_H */

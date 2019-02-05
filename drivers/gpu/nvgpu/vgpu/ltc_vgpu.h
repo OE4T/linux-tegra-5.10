@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -20,8 +20,8 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef _LTC_VGPU_H_
-#define _LTC_VGPU_H_
+#ifndef NVGPU_LTC_VGPU_H
+#define NVGPU_LTC_VGPU_H
 
 struct gk20a;
 struct gr_gk20a;
@@ -30,4 +30,4 @@ int vgpu_determine_L2_size_bytes(struct gk20a *g);
 int vgpu_ltc_init_comptags(struct gk20a *g, struct gr_gk20a *gr);
 void vgpu_ltc_init_fs_state(struct gk20a *g);
 
-#endif
+#endif /* NVGPU_LTC_VGPU_H */

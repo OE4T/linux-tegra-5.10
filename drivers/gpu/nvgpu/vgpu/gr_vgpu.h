@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -20,8 +20,8 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef _GR_VGPU_H_
-#define _GR_VGPU_H_
+#ifndef NVGPU_GR_VGPU_H
+#define NVGPU_GR_VGPU_H
 
 #include <nvgpu/types.h>
 
@@ -71,4 +71,4 @@ int vgpu_gr_commit_inst(struct channel_gk20a *c, u64 gpu_va);
 int vgpu_gr_init_sm_id_table(struct gk20a *g);
 int vgpu_gr_init_fs_state(struct gk20a *g);
 int vgpu_gr_update_pc_sampling(struct channel_gk20a *ch, bool enable);
-#endif
+#endif /* NVGPU_GR_VGPU_H */

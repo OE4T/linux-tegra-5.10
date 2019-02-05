@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -20,8 +20,8 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef __VGPU_COMMON_H__
-#define __VGPU_COMMON_H__
+#ifndef NVGPU_VGPU_H
+#define NVGPU_VGPU_H
 
 #include <nvgpu/types.h>
 #include <nvgpu/thread.h>
@@ -104,4 +104,4 @@ int vgpu_gv11b_init_hal(struct gk20a *g);
 bool vgpu_is_reduced_bar1(struct gk20a *g);
 int vgpu_finalize_poweron_common(struct gk20a *g);
 
-#endif
+#endif /* NVGPU_VGPU_H */

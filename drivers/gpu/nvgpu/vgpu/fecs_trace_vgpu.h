@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -20,8 +20,8 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef __FECS_TRACE_VGPU_H
-#define __FECS_TRACE_VGPU_H
+#ifndef NVGPU_FECS_TRACE_VGPU_H
+#define NVGPU_FECS_TRACE_VGPU_H
 
 #include <nvgpu/types.h>
 
@@ -57,4 +57,4 @@ int vgpu_fecs_trace_set_filter(struct gk20a *g,
 			struct nvgpu_gpu_ctxsw_trace_filter *filter);
 struct tegra_hv_ivm_cookie *vgpu_fecs_trace_get_ivm(struct gk20a *g);
 
-#endif /* __FECS_TRACE_VGPU_H */
+#endif /* NVGPU_FECS_TRACE_VGPU_H */

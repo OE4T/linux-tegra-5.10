@@ -20,8 +20,8 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef _DBG_VGPU_H_
-#define _DBG_VGPU_H_
+#ifndef NVGPU_DBG_VGPU_H
+#define NVGPU_DBG_VGPU_H
 
 struct dbg_session_gk20a;
 struct nvgpu_dbg_reg_op;
@@ -48,4 +48,4 @@ void vgpu_release_profiler_reservation(
 				struct dbg_profiler_object_data *prof_obj);
 int vgpu_perfbuffer_enable(struct gk20a *g, u64 offset, u32 size);
 int vgpu_perfbuffer_disable(struct gk20a *g);
-#endif
+#endif /* NVGPU_DBG_VGPU_H */

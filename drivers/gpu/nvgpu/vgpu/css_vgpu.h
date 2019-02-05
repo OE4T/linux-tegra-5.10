@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -20,8 +20,8 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef _CSS_VGPU_H_
-#define _CSS_VGPU_H_
+#ifndef NVGPU_CSS_VGPU_H
+#define NVGPU_CSS_VGPU_H
 
 #include <nvgpu/types.h>
 
@@ -37,4 +37,4 @@ int vgpu_css_detach(struct channel_gk20a *ch,
 int vgpu_css_enable_snapshot_buffer(struct channel_gk20a *ch,
 				struct gk20a_cs_snapshot_client *cs_client);
 u32 vgpu_css_get_buffer_size(struct gk20a *g);
-#endif
+#endif /* NVGPU_CSS_VGPU_H */
