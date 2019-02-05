@@ -54,7 +54,6 @@
 #include "common/vgpu/perf/cyclestats_snapshot_vgpu.h"
 #include "gp10b/gp10b.h"
 #include "gp10b/hal_gp10b.h"
-#include "vgpu_fuse_gp10b.h"
 
 #include "common/falcon/falcon_gk20a.h"
 #include "common/sync/syncpt_cmdbuf_gk20a.h"
@@ -651,7 +650,7 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 		.enum_ltc = NULL,
 	},
 	.fuse = {
-		.check_priv_security = vgpu_gp10b_fuse_check_priv_security,
+		.check_priv_security = NULL,
 		.is_opt_ecc_enable = NULL,
 		.is_opt_feature_override_disable = NULL,
 		.fuse_status_opt_fbio = NULL,

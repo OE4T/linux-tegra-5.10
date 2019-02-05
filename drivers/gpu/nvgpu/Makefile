@@ -415,7 +415,6 @@ nvgpu-$(CONFIG_TEGRA_GR_VIRTUALIZATION) += \
 	common/vgpu/clk_vgpu.o \
 	common/vgpu/fecs_trace_vgpu.o \
 	common/vgpu/gp10b/vgpu_hal_gp10b.o  \
-	common/vgpu/gp10b/vgpu_fuse_gp10b.o  \
 	common/vgpu/gv11b/vgpu_gv11b.o \
 	common/vgpu/gv11b/vgpu_hal_gv11b.o \
 	common/vgpu/gv11b/vgpu_subctx_gv11b.o \

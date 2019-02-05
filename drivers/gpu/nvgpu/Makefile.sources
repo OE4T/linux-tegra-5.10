@@ -324,7 +324,6 @@ srcs += common/sim.c \
 	common/vgpu/gv11b/vgpu_tsg_gv11b.c \
 	common/vgpu/gv11b/vgpu_subctx_gv11b.c \
 	common/vgpu/gp10b/vgpu_hal_gp10b.c \
-	common/vgpu/gp10b/vgpu_fuse_gp10b.c \
 	hal/bus/bus_gk20a.c	\
 	hal/bus/bus_gm20b.c	\
 	hal/bus/bus_gp10b.c	\

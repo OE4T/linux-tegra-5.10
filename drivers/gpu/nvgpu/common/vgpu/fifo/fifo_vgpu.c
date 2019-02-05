@@ -41,7 +41,6 @@
 
 #include "fifo_vgpu.h"
 
-#include <nvgpu/hw/gk20a/hw_fifo_gk20a.h>
 #include <nvgpu/hw/gk20a/hw_ram_gk20a.h>
 
 void vgpu_channel_bind(struct channel_gk20a *ch)
