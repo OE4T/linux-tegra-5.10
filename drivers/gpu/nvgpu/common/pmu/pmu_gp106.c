@@ -312,6 +312,9 @@ int gp106_load_falcon_ucode(struct gk20a *g, u32 falconidmask)
 void gp106_update_lspmu_cmdline_args(struct gk20a *g)
 {
 	struct nvgpu_pmu *pmu = &g->pmu;
+	u32 cmd_line_args_offset = 0;
+
+	nvgpu_pmu_get_cmd_line_args_offset(g, &cmd_line_args_offset);
 
 	/*Copying pmu cmdline args*/
 	g->ops.pmu_ver.set_pmu_cmdline_args_cpu_freq(pmu, 0);
@@ -325,7 +328,7 @@ void gp106_update_lspmu_cmdline_args(struct gk20a *g)
 		g->ops.pmu_ver.config_pmu_cmdline_args_super_surface(pmu);
 	}
 
-	nvgpu_falcon_copy_to_dmem(pmu->flcn, g->acr.pmu_args,
+	nvgpu_falcon_copy_to_dmem(pmu->flcn, cmd_line_args_offset,
 		(u8 *)(g->ops.pmu_ver.get_pmu_cmdline_args_ptr(pmu)),
 		g->ops.pmu_ver.get_pmu_cmdline_args_size(pmu), 0);
 

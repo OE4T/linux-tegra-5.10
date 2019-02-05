@@ -543,6 +543,26 @@ void nvgpu_falcon_get_ctls(struct nvgpu_falcon *flcn, u32 *sctl, u32 *cpuctl)
 	}
 }
 
+int nvgpu_falcon_get_dmem_size(struct nvgpu_falcon *flcn, u32 *dmem_size)
+{
+	struct nvgpu_falcon_ops *flcn_ops;
+
+	if (flcn == NULL) {
+		return -EINVAL;
+	}
+
+	flcn_ops = &flcn->flcn_ops;
+
+	if (flcn_ops->get_mem_size != NULL) {
+		*dmem_size = flcn_ops->get_mem_size(flcn, MEM_DMEM);
+	} else {
+		nvgpu_warn(flcn->g, "Invalid op on falcon 0x%x ",
+			flcn->flcn_id);
+	}
+
+	return 0;
+}
+
 struct gk20a *nvgpu_falcon_to_gk20a(struct nvgpu_falcon *flcn)
 {
 	return flcn->g;

@@ -44,8 +44,6 @@
 #include "pmu_gm20b.h"
 #include "acr_gm20b.h"
 
-#include <nvgpu/hw/gm20b/hw_pwr_gm20b.h>
-
 typedef int (*gm20b_get_ucode_details)(struct gk20a *g,
 				       struct flcn_ucode_img *udata);
 
@@ -404,7 +402,6 @@ int gm20b_pmu_populate_loader_cfg(struct gk20a *g,
 	void *lsfm, u32 *p_bl_gen_desc_size)
 {
 	struct wpr_carveout_info wpr_inf;
-	struct nvgpu_pmu *pmu = &g->pmu;
 	struct lsfm_managed_ucode_img *p_lsfm =
 			(struct lsfm_managed_ucode_img *)lsfm;
 	struct flcn_ucode_img *p_img = &(p_lsfm->ucode_img);
@@ -413,7 +410,6 @@ int gm20b_pmu_populate_loader_cfg(struct gk20a *g,
 	struct pmu_ucode_desc *desc;
 	u64 tmp;
 	u32 addr_code, addr_data;
-	u32 addr_args;
 
 	if (p_img->desc == NULL) {
 		/*
@@ -452,13 +448,6 @@ int gm20b_pmu_populate_loader_cfg(struct gk20a *g,
 		desc->app_resident_data_offset);
 	nvgpu_pmu_dbg(g, "bl start off %d\n", desc->bootloader_start_offset);
 
-	addr_args = ((pwr_falcon_hwcfg_dmem_size_v(
-			gk20a_readl(g, pwr_falcon_hwcfg_r())))
-			<< GK20A_PMU_DMEM_BLKSIZE2);
-	addr_args -= g->ops.pmu_ver.get_pmu_cmdline_args_size(pmu);
-
-	nvgpu_pmu_dbg(g, "addr_args %x\n", addr_args);
-
 	/* Populate the loader_config state*/
 	ldr_cfg->dma_idx = GK20A_PMU_DMAIDX_UCODE;
 	ldr_cfg->code_dma_base = addr_code;
@@ -474,10 +463,9 @@ int gm20b_pmu_populate_loader_cfg(struct gk20a *g,
 
 	/* Update the argc/argv members*/
 	ldr_cfg->argc = 1;
-	ldr_cfg->argv = addr_args;
+	nvgpu_pmu_get_cmd_line_args_offset(g, &ldr_cfg->argv);
 
 	*p_bl_gen_desc_size = (u32)sizeof(struct loader_config);
-	g->acr.pmu_args = addr_args;
 	return 0;
 }
 

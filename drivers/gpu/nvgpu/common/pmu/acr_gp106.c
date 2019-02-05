@@ -43,9 +43,6 @@
 #include "acr_gv100.h"
 #include "acr_tu104.h"
 
-#include <nvgpu/hw/gp106/hw_psec_gp106.h>
-#include <nvgpu/hw/gp106/hw_pwr_gp106.h>
-
 /*Defines*/
 #define gp106_dbg_pmu(g, fmt, arg...) \
 	nvgpu_log(g, gpu_dbg_pmu, fmt, ##arg)
@@ -540,7 +537,6 @@ int gp106_pmu_populate_loader_cfg(struct gk20a *g,
 	void *lsfm, u32 *p_bl_gen_desc_size)
 {
 	struct wpr_carveout_info wpr_inf;
-	struct nvgpu_pmu *pmu = &g->pmu;
 	struct lsfm_managed_ucode_img_v2 *p_lsfm =
 		(struct lsfm_managed_ucode_img_v2 *)lsfm;
 	struct flcn_ucode_img_v1 *p_img = &(p_lsfm->ucode_img);
@@ -549,7 +545,6 @@ int gp106_pmu_populate_loader_cfg(struct gk20a *g,
 	u64 addr_base;
 	struct pmu_ucode_desc_v1 *desc;
 	u64 addr_code, addr_data;
-	u32 addr_args;
 
 	if (p_img->desc == NULL) {
 		/* This means its a header based ucode,
@@ -584,14 +579,6 @@ int gp106_pmu_populate_loader_cfg(struct gk20a *g,
 		desc->app_resident_data_offset);
 	gp106_dbg_pmu(g, "bl start off %d\n", desc->bootloader_start_offset);
 
-	addr_args = ((pwr_falcon_hwcfg_dmem_size_v(
-			gk20a_readl(g, pwr_falcon_hwcfg_r())))
-			<< GK20A_PMU_DMEM_BLKSIZE2);
-
-	addr_args -= g->ops.pmu_ver.get_pmu_cmdline_args_size(pmu);
-
-	gp106_dbg_pmu(g, "addr_args %x\n", addr_args);
-
 	/* Populate the LOADER_CONFIG state */
 	(void) memset((void *) ldr_cfg, 0,
 		sizeof(struct flcn_bl_dmem_desc_v1));
@@ -605,11 +592,10 @@ int gp106_pmu_populate_loader_cfg(struct gk20a *g,
 
 	/* Update the argc/argv members*/
 	ldr_cfg->argc = 1;
-	ldr_cfg->argv = addr_args;
+	nvgpu_pmu_get_cmd_line_args_offset(g, &ldr_cfg->argv);
 
 	*p_bl_gen_desc_size = (u32)sizeof(struct flcn_bl_dmem_desc_v1);
 
-	g->acr.pmu_args = addr_args;
 	return 0;
 }
 

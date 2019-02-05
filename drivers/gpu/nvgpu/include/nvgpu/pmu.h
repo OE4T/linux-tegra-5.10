@@ -550,6 +550,9 @@ void pmu_wait_message_cond(struct nvgpu_pmu *pmu, u32 timeout_ms,
 				void *var, u8 val);
 int nvgpu_pmu_wait_ready(struct gk20a *g);
 
+void nvgpu_pmu_get_cmd_line_args_offset(struct gk20a *g,
+	u32 *args_offset);
+
 struct gk20a *gk20a_from_pmu(struct nvgpu_pmu *pmu);
 
 /* super surface */

@@ -331,6 +331,10 @@ void gm20b_pmu_setup_apertures(struct gk20a *g)
 void gm20b_update_lspmu_cmdline_args(struct gk20a *g)
 {
 	struct nvgpu_pmu *pmu = &g->pmu;
+	u32 cmd_line_args_offset = 0;
+
+	nvgpu_pmu_get_cmd_line_args_offset(g, &cmd_line_args_offset);
+
 	/*Copying pmu cmdline args*/
 	g->ops.pmu_ver.set_pmu_cmdline_args_cpu_freq(pmu,
 		g->ops.clk.get_rate(g, CTRL_CLK_DOMAIN_PWRCLK));
@@ -340,7 +344,7 @@ void gm20b_update_lspmu_cmdline_args(struct gk20a *g)
 	g->ops.pmu_ver.set_pmu_cmdline_args_trace_dma_base(pmu);
 	g->ops.pmu_ver.set_pmu_cmdline_args_trace_dma_idx(
 		pmu, GK20A_PMU_DMAIDX_VIRT);
-	nvgpu_falcon_copy_to_dmem(pmu->flcn, g->acr.pmu_args,
+	nvgpu_falcon_copy_to_dmem(pmu->flcn, cmd_line_args_offset,
 		(u8 *)(g->ops.pmu_ver.get_pmu_cmdline_args_ptr(pmu)),
 		g->ops.pmu_ver.get_pmu_cmdline_args_size(pmu), 0);
 }

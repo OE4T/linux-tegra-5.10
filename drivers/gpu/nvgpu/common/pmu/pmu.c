@@ -778,3 +778,20 @@ int nvgpu_pmu_wait_ready(struct gk20a *g)
 
 	return status;
 }
+
+void nvgpu_pmu_get_cmd_line_args_offset(struct gk20a *g,
+	u32 *args_offset)
+{
+	struct nvgpu_pmu *pmu = &g->pmu;
+	u32 dmem_size = 0;
+	int err = 0;
+
+	err = nvgpu_falcon_get_dmem_size(pmu->flcn, &dmem_size);
+	if (err != 0) {
+		nvgpu_err(g, "dmem size request failed");
+		*args_offset = 0;
+		return;
+	}
+
+	*args_offset = dmem_size - g->ops.pmu_ver.get_pmu_cmdline_args_size(pmu);
+}

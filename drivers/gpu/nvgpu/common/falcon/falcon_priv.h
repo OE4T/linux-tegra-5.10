@@ -196,6 +196,8 @@ struct nvgpu_falcon_ops {
 		struct nvgpu_falcon_bl_info *bl_info);
 	void (*get_falcon_ctls)(struct nvgpu_falcon *flcn, u32 *sctl,
 		u32 *cpuctl);
+	u32 (*get_mem_size)(struct nvgpu_falcon *flcn,
+		enum falcon_mem_type mem_type);
 };
 
 struct nvgpu_falcon {

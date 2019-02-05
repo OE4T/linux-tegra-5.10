@@ -720,6 +720,7 @@ void gk20a_falcon_ops(struct nvgpu_falcon *flcn)
 	flcn_ops->mailbox_write = gk20a_falcon_mailbox_write;
 	flcn_ops->bl_bootstrap = gk20a_falcon_bl_bootstrap;
 	flcn_ops->get_falcon_ctls = gk20a_falcon_get_ctls;
+	flcn_ops->get_mem_size = gk20a_falcon_get_mem_size;
 
 	gk20a_falcon_engine_dependency_ops(flcn);
 }
