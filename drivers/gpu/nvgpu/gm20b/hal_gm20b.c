@@ -61,6 +61,7 @@
 #include "common/fifo/runlist_gk20a.h"
 #include "common/fifo/channel_gk20a.h"
 #include "common/fifo/channel_gm20b.h"
+#include "common/fifo/engine_status_gm20b.h"
 
 #include "gk20a/ce2_gk20a.h"
 #include "gk20a/fifo_gk20a.h"
@@ -559,6 +560,10 @@ static const struct gpu_ops gm20b_ops = {
 		.get_sema_incr_cmd_size = gk20a_get_sema_incr_cmd_size,
 		.add_sema_cmd = gk20a_add_sema_cmd,
 	},
+	.engine_status = {
+		.read_engine_status_info =
+			gm20b_read_engine_status_info,
+	},
 	.runlist = {
 		.update_for_channel = gk20a_runlist_update_for_channel,
 		.reload = gk20a_runlist_reload,
@@ -809,6 +814,7 @@ int gm20b_init_hal(struct gk20a *g)
 	gops->runlist = gm20b_ops.runlist;
 	gops->channel = gm20b_ops.channel;
 	gops->sync = gm20b_ops.sync;
+	gops->engine_status = gm20b_ops.engine_status;
 	gops->netlist = gm20b_ops.netlist;
 	gops->mm = gm20b_ops.mm;
 	gops->therm = gm20b_ops.therm;

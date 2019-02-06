@@ -45,6 +45,7 @@
 #include "common/regops/regops_gv11b.h"
 #include "common/fifo/runlist_gv11b.h"
 #include "common/fifo/channel_gv11b.h"
+#include "common/fifo/engine_status_gv100.h"
 
 #include <nvgpu/gk20a.h>
 #include <gv11b/hal_gv11b.h>
@@ -496,6 +497,9 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 		.get_sema_incr_cmd_size = gv11b_get_sema_incr_cmd_size,
 		.add_sema_cmd = gv11b_add_sema_cmd,
 	},
+	.engine_status = {
+		.read_engine_status_info = NULL,
+	},
 	.runlist = {
 		.reschedule_runlist = NULL,
 		.update_for_channel = vgpu_runlist_update_for_channel,
@@ -745,6 +749,7 @@ int vgpu_gv11b_init_hal(struct gk20a *g)
 	gops->runlist = vgpu_gv11b_ops.runlist;
 	gops->channel = vgpu_gv11b_ops.channel;
 	gops->sync = vgpu_gv11b_ops.sync;
+	gops->engine_status = vgpu_gv11b_ops.engine_status;
 	gops->netlist = vgpu_gv11b_ops.netlist;
 	gops->mm = vgpu_gv11b_ops.mm;
 #ifdef CONFIG_GK20A_CTXSW_TRACE

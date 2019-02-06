@@ -421,6 +421,9 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 		.get_sema_incr_cmd_size = gk20a_get_sema_incr_cmd_size,
 		.add_sema_cmd = gk20a_add_sema_cmd,
 	},
+	.engine_status = {
+		.read_engine_status_info = NULL,
+	},
 	.runlist = {
 		.reschedule_runlist = NULL,
 		.update_for_channel = vgpu_runlist_update_for_channel,
@@ -671,6 +674,7 @@ int vgpu_gp10b_init_hal(struct gk20a *g)
 	gops->runlist = vgpu_gp10b_ops.runlist;
 	gops->channel = vgpu_gp10b_ops.channel;
 	gops->sync = vgpu_gp10b_ops.sync;
+	gops->engine_status = vgpu_gp10b_ops.engine_status;
 	gops->netlist = vgpu_gp10b_ops.netlist;
 #ifdef CONFIG_GK20A_CTXSW_TRACE
 	gops->fecs_trace = vgpu_gp10b_ops.fecs_trace;

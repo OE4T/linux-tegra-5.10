@@ -89,6 +89,7 @@
 #include "common/fifo/channel_gm20b.h"
 #include "common/fifo/channel_gv11b.h"
 #include "common/fifo/channel_gv100.h"
+#include "common/fifo/engine_status_gv100.h"
 
 #include "gk20a/fifo_gk20a.h"
 #include "gk20a/fecs_trace_gk20a.h"
@@ -812,6 +813,10 @@ static const struct gpu_ops tu104_ops = {
 		.get_sema_incr_cmd_size = gv11b_get_sema_incr_cmd_size,
 		.add_sema_cmd = gv11b_add_sema_cmd,
 	},
+	.engine_status = {
+		.read_engine_status_info =
+			read_engine_status_info_gv100,
+	},
 	.runlist = {
 		.update_for_channel = gk20a_runlist_update_for_channel,
 		.reload = gk20a_runlist_reload,
@@ -1192,6 +1197,7 @@ int tu104_init_hal(struct gk20a *g)
 	gops->runlist = tu104_ops.runlist;
 	gops->channel = tu104_ops.channel;
 	gops->sync = tu104_ops.sync;
+	gops->engine_status = tu104_ops.engine_status;
 	gops->netlist = tu104_ops.netlist;
 	gops->mm = tu104_ops.mm;
 #ifdef CONFIG_GK20A_CTXSW_TRACE

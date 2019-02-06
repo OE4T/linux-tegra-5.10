@@ -52,6 +52,7 @@
 #include <nvgpu/vm_area.h>
 #include <nvgpu/top.h>
 #include <nvgpu/nvgpu_err.h>
+#include <nvgpu/engine_status.h>
 
 #include "mm_gk20a.h"
 
@@ -1308,6 +1309,7 @@ static bool gk20a_fifo_handle_mmu_fault_locked(
 	unsigned long engine_mmu_fault_id;
 	bool verbose = true;
 	u32 grfifo_ctl;
+	struct nvgpu_engine_status_info engine_status;
 
 	nvgpu_log_fn(g, " ");
 
@@ -1362,15 +1364,12 @@ static bool gk20a_fifo_handle_mmu_fault_locked(
 		struct channel_gk20a *ch = NULL;
 		struct tsg_gk20a *tsg = NULL;
 		struct channel_gk20a *refch = NULL;
+		bool ctxsw;
 		/* read and parse engine status */
-		u32 status = gk20a_readl(g, fifo_engine_status_r(engine_id));
-		u32 ctx_status = fifo_engine_status_ctx_status_v(status);
-		bool ctxsw = (ctx_status ==
-				fifo_engine_status_ctx_status_ctxsw_switch_v()
-				|| ctx_status ==
-				fifo_engine_status_ctx_status_ctxsw_save_v()
-				|| ctx_status ==
-				fifo_engine_status_ctx_status_ctxsw_load_v());
+		g->ops.engine_status.read_engine_status_info(g, engine_id,
+			&engine_status);
+
+		ctxsw = nvgpu_engine_status_is_ctxsw(&engine_status);
 
 		get_exception_mmu_fault_info(g, (u32)engine_mmu_fault_id,
 						 &mmfault_info);
@@ -1409,24 +1408,24 @@ static bool gk20a_fifo_handle_mmu_fault_locked(
 			u32 id, type;
 
 			if (hw_id == ~(u32)0) {
-				id = (ctx_status ==
-				      fifo_engine_status_ctx_status_ctxsw_load_v()) ?
-					fifo_engine_status_next_id_v(status) :
-					fifo_engine_status_id_v(status);
-				type = (ctx_status ==
-					fifo_engine_status_ctx_status_ctxsw_load_v()) ?
-					fifo_engine_status_next_id_type_v(status) :
-					fifo_engine_status_id_type_v(status);
+				if (nvgpu_engine_status_is_ctxsw_load(
+					&engine_status)) {
+					nvgpu_engine_status_get_next_ctx_id_type(
+						&engine_status, &id, &type);
+				} else {
+					nvgpu_engine_status_get_ctx_id_type(
+						&engine_status, &id, &type);
+				}
 			} else {
 				id = hw_id;
 				type = id_is_tsg ?
-					fifo_engine_status_id_type_tsgid_v() :
-					fifo_engine_status_id_type_chid_v();
+					ENGINE_STATUS_CTX_ID_TYPE_TSGID :
+					ENGINE_STATUS_CTX_ID_TYPE_CHID;
 			}
 
-			if (type == fifo_engine_status_id_type_tsgid_v()) {
+			if (type == ENGINE_STATUS_CTX_ID_TYPE_TSGID) {
 				tsg = &g->fifo.tsg[id];
-			} else if (type == fifo_engine_status_id_type_chid_v()) {
+			} else if (type == ENGINE_STATUS_CTX_ID_TYPE_CHID) {
 				ch = &g->fifo.channel[id];
 				refch = gk20a_channel_get(ch);
 				if (refch != NULL) {
@@ -1557,46 +1556,51 @@ static bool gk20a_fifo_handle_mmu_fault(
 static void gk20a_fifo_get_faulty_id_type(struct gk20a *g, u32 engine_id,
 					  u32 *id, u32 *type)
 {
-	u32 status = gk20a_readl(g, fifo_engine_status_r(engine_id));
-	u32 ctx_status = fifo_engine_status_ctx_status_v(status);
+	struct nvgpu_engine_status_info engine_status;
+
+	g->ops.engine_status.read_engine_status_info(g, engine_id, &engine_status);
 
 	/* use next_id if context load is failing */
-	*id = (ctx_status ==
-		fifo_engine_status_ctx_status_ctxsw_load_v()) ?
-		fifo_engine_status_next_id_v(status) :
-		fifo_engine_status_id_v(status);
-
-	*type = (ctx_status ==
-		fifo_engine_status_ctx_status_ctxsw_load_v()) ?
-		fifo_engine_status_next_id_type_v(status) :
-		fifo_engine_status_id_type_v(status);
+	if (nvgpu_engine_status_is_ctxsw_load(
+		&engine_status)) {
+		nvgpu_engine_status_get_next_ctx_id_type(
+			&engine_status, id, type);
+	} else {
+		nvgpu_engine_status_get_ctx_id_type(
+			&engine_status, id, type);
+	}
 }
 
 u32 gk20a_fifo_engines_on_id(struct gk20a *g, u32 id, bool is_tsg)
 {
 	unsigned int i;
 	u32 engines = 0;
+	struct nvgpu_engine_status_info engine_status;
+	u32 ctx_id;
+	u32 type;
+	bool busy;
 
 	for (i = 0; i < g->fifo.num_engines; i++) {
 		u32 active_engine_id = g->fifo.active_engines_list[i];
-		u32 status = gk20a_readl(g, fifo_engine_status_r(active_engine_id));
-		u32 ctx_status =
-			fifo_engine_status_ctx_status_v(status);
-		u32 ctx_id = (ctx_status ==
-			fifo_engine_status_ctx_status_ctxsw_load_v()) ?
-			fifo_engine_status_next_id_v(status) :
-			fifo_engine_status_id_v(status);
-		u32 type = (ctx_status ==
-			fifo_engine_status_ctx_status_ctxsw_load_v()) ?
-			fifo_engine_status_next_id_type_v(status) :
-			fifo_engine_status_id_type_v(status);
-		bool busy = fifo_engine_status_engine_v(status) ==
-			fifo_engine_status_engine_busy_v();
+		g->ops.engine_status.read_engine_status_info(g,
+			active_engine_id, &engine_status);
+
+		if (nvgpu_engine_status_is_ctxsw_load(
+			&engine_status)) {
+			nvgpu_engine_status_get_next_ctx_id_type(
+				&engine_status, &ctx_id, &type);
+		} else {
+			nvgpu_engine_status_get_ctx_id_type(
+				&engine_status, &ctx_id, &type);
+		}
+
+		busy = engine_status.is_busy;
+
 		if (busy && ctx_id == id) {
 			if ((is_tsg && type ==
-					fifo_engine_status_id_type_tsgid_v()) ||
+					ENGINE_STATUS_CTX_ID_TYPE_TSGID) ||
 				    (!is_tsg && type ==
-					fifo_engine_status_id_type_chid_v())) {
+					ENGINE_STATUS_CTX_ID_TYPE_CHID)) {
 				engines |= BIT(active_engine_id);
 			}
 		}
@@ -1850,55 +1854,46 @@ u32 gk20a_fifo_get_failing_engine_data(struct gk20a *g,
 	bool is_tsg = false;
 	u32 mailbox2;
 	u32 active_engine_id = FIFO_INVAL_ENGINE_ID;
+	struct nvgpu_engine_status_info engine_status;
 
 	for (engine_id = 0; engine_id < g->fifo.num_engines; engine_id++) {
-		u32 status;
-		u32 ctx_status;
 		bool failing_engine;
 
 		active_engine_id = g->fifo.active_engines_list[engine_id];
-		status = gk20a_readl(g, fifo_engine_status_r(active_engine_id));
-		ctx_status = fifo_engine_status_ctx_status_v(status);
+		g->ops.engine_status.read_engine_status_info(g, active_engine_id,
+			&engine_status);
 
 		/* we are interested in busy engines */
-		failing_engine = fifo_engine_status_engine_v(status) ==
-			fifo_engine_status_engine_busy_v();
+		failing_engine = engine_status.is_busy;
 
 		/* ..that are doing context switch */
 		failing_engine = failing_engine &&
-			(ctx_status ==
-				fifo_engine_status_ctx_status_ctxsw_switch_v()
-			|| ctx_status ==
-				fifo_engine_status_ctx_status_ctxsw_save_v()
-			|| ctx_status ==
-				fifo_engine_status_ctx_status_ctxsw_load_v());
+			nvgpu_engine_status_is_ctxsw(&engine_status);
 
 		if (!failing_engine) {
 		    active_engine_id = FIFO_INVAL_ENGINE_ID;
 			continue;
 		}
 
-		if (ctx_status ==
-				fifo_engine_status_ctx_status_ctxsw_load_v()) {
-			id = fifo_engine_status_next_id_v(status);
-			is_tsg = fifo_engine_status_next_id_type_v(status) !=
-				fifo_engine_status_next_id_type_chid_v();
-		} else if (ctx_status ==
-			       fifo_engine_status_ctx_status_ctxsw_switch_v()) {
+		if (nvgpu_engine_status_is_ctxsw_load(&engine_status)) {
+			id = engine_status.ctx_next_id;
+			is_tsg = nvgpu_engine_status_is_next_ctx_type_tsg(
+					&engine_status);
+		} else if (nvgpu_engine_status_is_ctxsw_switch(&engine_status)) {
 			mailbox2 = gk20a_readl(g, gr_fecs_ctxsw_mailbox_r(2));
 			if ((mailbox2 & FECS_METHOD_WFI_RESTORE) != 0U) {
-				id = fifo_engine_status_next_id_v(status);
-				is_tsg = fifo_engine_status_next_id_type_v(status) !=
-					fifo_engine_status_next_id_type_chid_v();
+				id = engine_status.ctx_next_id;
+				is_tsg = nvgpu_engine_status_is_next_ctx_type_tsg(
+						&engine_status);
 			} else {
-				id = fifo_engine_status_id_v(status);
-				is_tsg = fifo_engine_status_id_type_v(status) !=
-					fifo_engine_status_id_type_chid_v();
+				id = engine_status.ctx_id;
+				is_tsg = nvgpu_engine_status_is_ctx_type_tsg(
+						&engine_status);
 			}
 		} else {
-			id = fifo_engine_status_id_v(status);
-			is_tsg = fifo_engine_status_id_type_v(status) !=
-				fifo_engine_status_id_type_chid_v();
+			id = engine_status.ctx_id;
+			is_tsg = nvgpu_engine_status_is_ctx_type_tsg(
+					&engine_status);
 		}
 		break;
 	}
@@ -2579,20 +2574,20 @@ int gk20a_fifo_disable_engine_activity(struct gk20a *g,
 				struct fifo_engine_info_gk20a *eng_info,
 				bool wait_for_idle)
 {
-	u32 gr_stat, pbdma_stat, chan_stat, eng_stat, ctx_stat;
+	u32 pbdma_stat, chan_stat;
 	u32 pbdma_chid = FIFO_INVAL_CHANNEL_ID;
 	u32 engine_chid = FIFO_INVAL_CHANNEL_ID;
 	u32 token = PMU_INVALID_MUTEX_OWNER_ID;
 	int mutex_ret = -EINVAL;
 	struct channel_gk20a *ch = NULL;
 	int err = 0;
+	struct nvgpu_engine_status_info engine_status;
 
 	nvgpu_log_fn(g, " ");
 
-	gr_stat =
-		gk20a_readl(g, fifo_engine_status_r(eng_info->engine_id));
-	if (fifo_engine_status_engine_v(gr_stat) ==
-	    fifo_engine_status_engine_busy_v() && !wait_for_idle) {
+	g->ops.engine_status.read_engine_status_info(g, eng_info->engine_id,
+		 &engine_status);
+	if (engine_status.is_busy && !wait_for_idle) {
 		return -EBUSY;
 	}
 
@@ -2627,14 +2622,14 @@ int gk20a_fifo_disable_engine_activity(struct gk20a *g,
 	}
 
 	/* chid from engine status */
-	eng_stat = gk20a_readl(g, fifo_engine_status_r(eng_info->engine_id));
-	ctx_stat  = fifo_engine_status_ctx_status_v(eng_stat);
-	if (ctx_stat == fifo_engine_status_ctx_status_valid_v() ||
-	    ctx_stat == fifo_engine_status_ctx_status_ctxsw_save_v()) {
-		engine_chid = fifo_engine_status_id_v(eng_stat);
-	} else if (ctx_stat == fifo_engine_status_ctx_status_ctxsw_load_v() ||
-		 ctx_stat == fifo_engine_status_ctx_status_ctxsw_switch_v()) {
-		engine_chid = fifo_engine_status_next_id_v(eng_stat);
+	g->ops.engine_status.read_engine_status_info(g, eng_info->engine_id,
+		 &engine_status);
+	if (nvgpu_engine_status_is_ctxsw_valid(&engine_status) ||
+	    nvgpu_engine_status_is_ctxsw_save(&engine_status)) {
+		engine_chid = engine_status.ctx_id;
+	} else if (nvgpu_engine_status_is_ctxsw_switch(&engine_status) ||
+	    nvgpu_engine_status_is_ctxsw_load(&engine_status)) {
+		engine_chid = engine_status.ctx_next_id;
 	}
 
 	if (engine_chid != FIFO_INVAL_ENGINE_ID && engine_chid != pbdma_chid) {
@@ -2706,14 +2701,15 @@ u32 gk20a_fifo_runlist_busy_engines(struct gk20a *g, u32 runlist_id)
 	struct fifo_gk20a *f = &g->fifo;
 	u32 engines = 0;
 	unsigned int i;
+	struct nvgpu_engine_status_info engine_status;
 
 	for (i = 0; i < f->num_engines; i++) {
 		u32 active_engine_id = f->active_engines_list[i];
 		u32 engine_runlist = f->engine_info[active_engine_id].runlist_id;
-		u32 status_reg = fifo_engine_status_r(active_engine_id);
-		u32 status = gk20a_readl(g, status_reg);
-		bool engine_busy = fifo_engine_status_engine_v(status) ==
-			fifo_engine_status_engine_busy_v();
+		bool engine_busy;
+		g->ops.engine_status.read_engine_status_info(g, active_engine_id,
+			&engine_status);
+		engine_busy = engine_status.is_busy;
 
 		if (engine_busy && engine_runlist == runlist_id) {
 			engines |= BIT(active_engine_id);
@@ -2783,13 +2779,14 @@ bool gk20a_fifo_mmu_fault_pending(struct gk20a *g)
 bool gk20a_fifo_is_engine_busy(struct gk20a *g)
 {
 	u32 i, host_num_engines;
+	struct nvgpu_engine_status_info engine_status;
 
 	host_num_engines = nvgpu_get_litter_value(g, GPU_LIT_HOST_NUM_ENGINES);
 
 	for (i = 0; i < host_num_engines; i++) {
-		u32 status = gk20a_readl(g, fifo_engine_status_r(i));
-		if (fifo_engine_status_engine_v(status) ==
-			fifo_engine_status_engine_busy_v()) {
+		g->ops.engine_status.read_engine_status_info(g, i,
+			&engine_status);
+		if (engine_status.is_busy) {
 			return true;
 		}
 	}
@@ -2801,7 +2798,8 @@ int gk20a_fifo_wait_engine_idle(struct gk20a *g)
 	struct nvgpu_timeout timeout;
 	u32 delay = GR_IDLE_CHECK_DEFAULT;
 	int ret = 0;
-	u32 i, host_num_engines, status;
+	u32 i, host_num_engines;
+	struct nvgpu_engine_status_info engine_status;
 
 	nvgpu_log_fn(g, " ");
 
@@ -2814,9 +2812,9 @@ int gk20a_fifo_wait_engine_idle(struct gk20a *g)
 	for (i = 0; i < host_num_engines; i++) {
 		ret = -ETIMEDOUT;
 		do {
-			status = gk20a_readl(g, fifo_engine_status_r(i));
-			if (fifo_engine_status_engine_v(status) ==
-				fifo_engine_status_engine_idle_v()) {
+			g->ops.engine_status.read_engine_status_info(g, i,
+				&engine_status);
+			if (!engine_status.is_busy) {
 				ret = 0;
 				break;
 			}
@@ -2832,7 +2830,8 @@ int gk20a_fifo_wait_engine_idle(struct gk20a *g)
 			 * elcg_init_idle_filters and init_therm_setup_hw
 			 */
 			nvgpu_err(g, "cannot idle engine: %u "
-					"engine_status: 0x%08x", i, status);
+					"engine_status: 0x%08x", i,
+					engine_status.reg_data);
 			break;
 		}
 	}
@@ -3101,6 +3100,7 @@ void gk20a_dump_eng_status(struct gk20a *g,
 				 struct gk20a_debug_output *o)
 {
 	u32 i, host_num_engines;
+	struct nvgpu_engine_status_info engine_status;
 
 	host_num_engines = nvgpu_get_litter_value(g, GPU_LIT_HOST_NUM_ENGINES);
 
@@ -3108,27 +3108,27 @@ void gk20a_dump_eng_status(struct gk20a *g,
 	gk20a_debug_output(o, "--------------------------");
 
 	for (i = 0; i < host_num_engines; i++) {
-		u32 status = gk20a_readl(g, fifo_engine_status_r(i));
-		u32 ctx_status = fifo_engine_status_ctx_status_v(status);
+		g->ops.engine_status.read_engine_status_info(g, i, &engine_status);
 
 		gk20a_debug_output(o,
 			"Engine %d | "
 			"ID: %d - %-9s next_id: %d %-9s | status: %s",
 			i,
-			fifo_engine_status_id_v(status),
-			(fifo_engine_status_id_type_v(status) ==
-				fifo_engine_status_id_type_tsgid_v()) ?
+			engine_status.ctx_id,
+			nvgpu_engine_status_is_ctx_type_tsg(
+				&engine_status) ?
 				"[tsg]" : "[channel]",
-			fifo_engine_status_next_id_v(status),
-			(fifo_engine_status_next_id_type_v(status) ==
-				fifo_engine_status_next_id_type_tsgid_v()) ?
+			engine_status.ctx_next_id,
+			nvgpu_engine_status_is_next_ctx_type_tsg(
+				&engine_status) ?
 				"[tsg]" : "[channel]",
-			gk20a_decode_pbdma_chan_eng_ctx_status(ctx_status));
+			gk20a_decode_pbdma_chan_eng_ctx_status(
+				engine_status.ctxsw_state));
 
-		if (fifo_engine_status_faulted_v(status) != 0U) {
+		if (engine_status.is_faulted) {
 			gk20a_debug_output(o, "  State: faulted");
 		}
-		if (fifo_engine_status_engine_v(status) != 0U) {
+		if (engine_status.is_busy) {
 			gk20a_debug_output(o, "  State: busy");
 		}
 	}

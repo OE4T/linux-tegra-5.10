@@ -46,6 +46,7 @@
 #include <nvgpu/channel.h>
 #include <nvgpu/unit.h>
 #include <nvgpu/nvgpu_err.h>
+#include <nvgpu/engine_status.h>
 
 #include "gk20a/fifo_gk20a.h"
 
@@ -296,31 +297,34 @@ void gv11b_dump_eng_status(struct gk20a *g,
 				 struct gk20a_debug_output *o)
 {
 	u32 i, host_num_engines;
+	struct nvgpu_engine_status_info engine_status;
 
 	host_num_engines = nvgpu_get_litter_value(g, GPU_LIT_HOST_NUM_ENGINES);
 
 	for (i = 0; i < host_num_engines; i++) {
-		u32 status = gk20a_readl(g, fifo_engine_status_r(i));
-		u32 ctx_status = fifo_engine_status_ctx_status_v(status);
+		g->ops.engine_status.read_engine_status_info(g, i, &engine_status);
 
 		gk20a_debug_output(o, "%s eng %d: ", g->name, i);
 		gk20a_debug_output(o,
 			"id: %d (%s), next_id: %d (%s), ctx status: %s ",
-			fifo_engine_status_id_v(status),
-			(fifo_engine_status_id_type_v(status) ==
-			 fifo_engine_status_id_type_tsgid_v()) ? "tsg" : "channel",
-			fifo_engine_status_next_id_v(status),
-			(fifo_engine_status_next_id_type_v(status) ==
-			 fifo_engine_status_next_id_type_tsgid_v()) ? "tsg" : "channel",
-			gk20a_decode_pbdma_chan_eng_ctx_status(ctx_status));
+			engine_status.ctx_id,
+			nvgpu_engine_status_is_ctx_type_tsg(
+				&engine_status) ?
+				"tsg" : "channel",
+			engine_status.ctx_next_id,
+			nvgpu_engine_status_is_next_ctx_type_tsg(
+				&engine_status) ?
+				"tsg" : "channel",
+			gk20a_decode_pbdma_chan_eng_ctx_status(
+				engine_status.ctxsw_state));
 
-		if (fifo_engine_status_eng_reload_v(status) != 0U) {
+		if (engine_status.in_reload_status) {
 			gk20a_debug_output(o, "ctx_reload ");
 		}
-		if (fifo_engine_status_faulted_v(status) != 0U) {
+		if (engine_status.is_faulted) {
 			gk20a_debug_output(o, "faulted ");
 		}
-		if (fifo_engine_status_engine_v(status) != 0U) {
+		if (engine_status.is_busy) {
 			gk20a_debug_output(o, "busy ");
 		}
 		gk20a_debug_output(o, "\n");

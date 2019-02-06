@@ -24,6 +24,7 @@
 #include <nvgpu/channel.h>
 #include <nvgpu/runlist.h>
 #include <nvgpu/gk20a.h>
+#include <nvgpu/engine_status.h>
 
 #include <gk20a/fifo_gk20a.h>
 
@@ -50,9 +51,10 @@ int gk20a_fifo_reschedule_preempt_next(struct channel_gk20a *ch,
 		&g->fifo.runlist_info[ch->runlist_id];
 	int ret = 0;
 	u32 gr_eng_id = 0;
-	u32 engstat = 0, ctxstat = 0, fecsstat0 = 0, fecsstat1 = 0;
+	u32 fecsstat0 = 0, fecsstat1 = 0;
 	u32 preempt_id;
 	u32 preempt_type = 0;
+	struct nvgpu_engine_status_info engine_status;
 
 	if (1U != gk20a_fifo_get_engine_ids(
 		g, &gr_eng_id, 1, ENGINE_GR_GK20A)) {
@@ -68,12 +70,10 @@ int gk20a_fifo_reschedule_preempt_next(struct channel_gk20a *ch,
 	}
 
 	fecsstat0 = gk20a_readl(g, gr_fecs_ctxsw_mailbox_r(0));
-	engstat = gk20a_readl(g, fifo_engine_status_r(gr_eng_id));
-	ctxstat = fifo_engine_status_ctx_status_v(engstat);
-	if (ctxstat == fifo_engine_status_ctx_status_ctxsw_switch_v()) {
-		/* host switching to next context, preempt that if needed */
-		preempt_id = fifo_engine_status_next_id_v(engstat);
-		preempt_type = fifo_engine_status_next_id_type_v(engstat);
+	g->ops.engine_status.read_engine_status_info(g, gr_eng_id, &engine_status);
+	if (nvgpu_engine_status_is_ctxsw_switch(&engine_status)) {
+		nvgpu_engine_status_get_next_ctx_id_type(&engine_status,
+			&preempt_id, &preempt_type);
 	} else {
 		return ret;
 	}
@@ -89,7 +89,8 @@ int gk20a_fifo_reschedule_preempt_next(struct channel_gk20a *ch,
 
 	gk20a_fifo_issue_preempt(g, preempt_id, preempt_type != 0U);
 #ifdef TRACEPOINTS_ENABLED
-	trace_gk20a_reschedule_preempt_next(ch->chid, fecsstat0, engstat,
+	trace_gk20a_reschedule_preempt_next(ch->chid, fecsstat0,
+		engine_status.reg_data,
 		fecsstat1, gk20a_readl(g, gr_fecs_ctxsw_mailbox_r(0)),
 		gk20a_readl(g, fifo_preempt_r()));
 #endif

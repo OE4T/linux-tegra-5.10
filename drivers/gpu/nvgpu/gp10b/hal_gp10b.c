@@ -73,6 +73,7 @@
 #include "common/fifo/runlist_gk20a.h"
 #include "common/fifo/channel_gk20a.h"
 #include "common/fifo/channel_gm20b.h"
+#include "common/fifo/engine_status_gm20b.h"
 
 #include "gk20a/fifo_gk20a.h"
 #include "gk20a/fecs_trace_gk20a.h"
@@ -610,6 +611,10 @@ static const struct gpu_ops gp10b_ops = {
 		.get_sema_incr_cmd_size = gk20a_get_sema_incr_cmd_size,
 		.add_sema_cmd = gk20a_add_sema_cmd,
 	},
+	.engine_status = {
+		.read_engine_status_info =
+			gm20b_read_engine_status_info,
+	},
 	.runlist = {
 		.reschedule_runlist = gk20a_fifo_reschedule_runlist,
 		.reschedule_preempt_next_locked = gk20a_fifo_reschedule_preempt_next,
@@ -892,6 +897,7 @@ int gp10b_init_hal(struct gk20a *g)
 	gops->runlist = gp10b_ops.runlist;
 	gops->channel = gp10b_ops.channel;
 	gops->sync = gp10b_ops.sync;
+	gops->engine_status = gp10b_ops.engine_status;
 	gops->netlist = gp10b_ops.netlist;
 #ifdef CONFIG_GK20A_CTXSW_TRACE
 	gops->fecs_trace = gp10b_ops.fecs_trace;

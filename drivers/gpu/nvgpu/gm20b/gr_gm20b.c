@@ -33,6 +33,7 @@
 #include <nvgpu/channel.h>
 #include <nvgpu/gr/ctx.h>
 #include <nvgpu/gr/config.h>
+#include <nvgpu/engine_status.h>
 
 #include "gk20a/gr_gk20a.h"
 
@@ -929,6 +930,7 @@ int gr_gm20b_dump_gr_status_regs(struct gk20a *g,
 {
 	struct gr_gk20a *gr = &g->gr;
 	u32 gr_engine_id;
+	struct nvgpu_engine_status_info engine_status;
 
 	gr_engine_id = gk20a_fifo_get_gr_engine_id(g);
 
@@ -950,8 +952,10 @@ int gr_gm20b_dump_gr_status_regs(struct gk20a *g,
 		gk20a_readl(g, gr_exception_r()));
 	gk20a_debug_output(o, "NV_PGRAPH_FECS_INTR  : 0x%x\n",
 		gk20a_readl(g, gr_fecs_intr_r()));
+	g->ops.engine_status.read_engine_status_info(g, gr_engine_id,
+		&engine_status);
 	gk20a_debug_output(o, "NV_PFIFO_ENGINE_STATUS(GR) : 0x%x\n",
-		gk20a_readl(g, fifo_engine_status_r(gr_engine_id)));
+		engine_status.reg_data);
 	gk20a_debug_output(o, "NV_PGRAPH_ACTIVITY0: 0x%x\n",
 		gk20a_readl(g, gr_activity_0_r()));
 	gk20a_debug_output(o, "NV_PGRAPH_ACTIVITY1: 0x%x\n",

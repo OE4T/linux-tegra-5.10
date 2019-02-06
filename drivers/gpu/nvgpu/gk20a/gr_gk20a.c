@@ -53,6 +53,7 @@
 #include <nvgpu/gr/subctx.h>
 #include <nvgpu/gr/ctx.h>
 #include <nvgpu/gr/config.h>
+#include <nvgpu/engine_status.h>
 
 #include "gr_gk20a.h"
 #include "gk20a/fecs_trace_gk20a.h"
@@ -219,7 +220,8 @@ int gr_gk20a_wait_idle(struct gk20a *g)
 	bool ctxsw_active;
 	bool gr_busy;
 	u32 gr_engine_id;
-	u32 engine_status;
+
+	struct nvgpu_engine_status_info engine_status;
 	bool ctx_status_invalid;
 	struct nvgpu_timeout timeout;
 
@@ -235,15 +237,13 @@ int gr_gk20a_wait_idle(struct gk20a *g)
 		   only when gr_status is read */
 		(void) gk20a_readl(g, gr_status_r());
 
-		engine_status = gk20a_readl(g,
-					fifo_engine_status_r(gr_engine_id));
+		g->ops.engine_status.read_engine_status_info(g, gr_engine_id,
+			&engine_status);
 
-		ctxsw_active = (engine_status &
-			fifo_engine_status_ctxsw_in_progress_f()) != 0U;
+		ctxsw_active = engine_status.ctxsw_in_progress;
 
-		ctx_status_invalid =
-			(fifo_engine_status_ctx_status_v(engine_status) ==
-			 fifo_engine_status_ctx_status_invalid_v());
+		ctx_status_invalid = nvgpu_engine_status_is_ctxsw_invalid(
+			&engine_status);
 
 		gr_busy = (gk20a_readl(g, gr_engine_status_r()) &
 			gr_engine_status_value_busy_f()) != 0U;
