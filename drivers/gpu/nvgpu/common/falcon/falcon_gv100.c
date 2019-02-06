@@ -70,12 +70,7 @@ int gv100_falcon_hal_sw_init(struct nvgpu_falcon *flcn)
 	}
 
 	if (flcn->is_falcon_supported) {
-		err = nvgpu_mutex_init(&flcn->copy_lock);
-		if (err != 0) {
-			nvgpu_err(g, "Error in flcn.copy_lock mutex initialization");
-		} else {
-			gv100_falcon_ops(flcn);
-		}
+		gv100_falcon_ops(flcn);
 	} else {
 		/*
 		 * Forward call to previous chips HAL

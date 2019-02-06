@@ -207,8 +207,6 @@ static int gk20a_falcon_copy_from_dmem(struct nvgpu_falcon *flcn,
 		return -EINVAL;
 	}
 
-	nvgpu_mutex_acquire(&flcn->copy_lock);
-
 	words = size >> 2;
 	bytes = size & 0x3U;
 
@@ -232,7 +230,6 @@ static int gk20a_falcon_copy_from_dmem(struct nvgpu_falcon *flcn,
 		}
 	}
 
-	nvgpu_mutex_release(&flcn->copy_lock);
 	return 0;
 }
 
@@ -251,8 +248,6 @@ static int gk20a_falcon_copy_to_dmem(struct nvgpu_falcon *flcn,
 		nvgpu_err(g, "incorrect parameters");
 		return -EINVAL;
 	}
-
-	nvgpu_mutex_acquire(&flcn->copy_lock);
 
 	words = size >> 2;
 	bytes = size & 0x3U;
@@ -286,8 +281,6 @@ static int gk20a_falcon_copy_to_dmem(struct nvgpu_falcon *flcn,
 			data - dst, size);
 	}
 
-	nvgpu_mutex_release(&flcn->copy_lock);
-
 	return 0;
 }
 
@@ -309,8 +302,6 @@ static int gk20a_falcon_copy_from_imem(struct nvgpu_falcon *flcn, u32 src,
 		nvgpu_err(g, "incorrect parameters");
 		return -EINVAL;
 	}
-
-	nvgpu_mutex_acquire(&flcn->copy_lock);
 
 	words = size >> 2;
 	bytes = size & 0x3U;
@@ -336,8 +327,6 @@ static int gk20a_falcon_copy_from_imem(struct nvgpu_falcon *flcn, u32 src,
 		}
 	}
 
-	nvgpu_mutex_release(&flcn->copy_lock);
-
 	return 0;
 }
 
@@ -357,8 +346,6 @@ static int gk20a_falcon_copy_to_imem(struct nvgpu_falcon *flcn, u32 dst,
 		nvgpu_err(g, "incorrect parameters");
 		return -EINVAL;
 	}
-
-	nvgpu_mutex_acquire(&flcn->copy_lock);
 
 	words = size >> 2;
 	blk = dst >> 8;
@@ -390,8 +377,6 @@ static int gk20a_falcon_copy_to_imem(struct nvgpu_falcon *flcn, u32 dst,
 		gk20a_writel(g, base_addr + falcon_falcon_imemd_r(port), 0);
 		i++;
 	}
-
-	nvgpu_mutex_release(&flcn->copy_lock);
 
 	return 0;
 }
@@ -753,12 +738,7 @@ int gk20a_falcon_hal_sw_init(struct nvgpu_falcon *flcn)
 	}
 
 	if (flcn->is_falcon_supported) {
-		err = nvgpu_mutex_init(&flcn->copy_lock);
-		if (err != 0) {
-			nvgpu_err(g, "Error in flcn.copy_lock mutex initialization");
-		} else {
-			gk20a_falcon_ops(flcn);
-		}
+		gk20a_falcon_ops(flcn);
 	} else {
 		nvgpu_log_info(g, "falcon 0x%x not supported on %s",
 			flcn->flcn_id, g->name);
@@ -772,7 +752,6 @@ void gk20a_falcon_hal_sw_free(struct nvgpu_falcon *flcn)
 	struct gk20a *g = flcn->g;
 
 	if (flcn->is_falcon_supported) {
-		nvgpu_mutex_destroy(&flcn->copy_lock);
 		flcn->is_falcon_supported = false;
 	} else {
 		nvgpu_log_info(g, "falcon 0x%x not supported on %s",
