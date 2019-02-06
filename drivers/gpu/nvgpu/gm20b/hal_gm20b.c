@@ -862,10 +862,6 @@ int gm20b_init_hal(struct gk20a *g)
 	if (nvgpu_is_enabled(g, NVGPU_SEC_PRIVSECURITY)) {
 		/* Add in ops from gm20b acr */
 		gops->pmu.is_pmu_supported = gm20b_is_pmu_supported;
-		gops->pmu.pmu_populate_loader_cfg =
-			gm20b_pmu_populate_loader_cfg;
-		gops->pmu.flcn_populate_bl_dmem_desc =
-			gm20b_flcn_populate_bl_dmem_desc;
 		gops->pmu.update_lspmu_cmdline_args =
 			gm20b_update_lspmu_cmdline_args;
 		gops->pmu.setup_apertures = gm20b_pmu_setup_apertures;

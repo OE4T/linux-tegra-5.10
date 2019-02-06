@@ -362,7 +362,7 @@ exit:
 	return err;
 }
 
-int gm20b_pmu_populate_loader_cfg(struct gk20a *g,
+static int gm20b_pmu_populate_loader_cfg(struct gk20a *g,
 	void *lsfm, u32 *p_bl_gen_desc_size)
 {
 	struct wpr_carveout_info wpr_inf;
@@ -433,7 +433,7 @@ int gm20b_pmu_populate_loader_cfg(struct gk20a *g,
 	return 0;
 }
 
-int gm20b_flcn_populate_bl_dmem_desc(struct gk20a *g,
+static int gm20b_flcn_populate_bl_dmem_desc(struct gk20a *g,
 	void *lsfm, u32 *p_bl_gen_desc_size, u32 falconid)
 {
 	struct wpr_carveout_info wpr_inf;
@@ -504,7 +504,7 @@ static int lsfm_fill_flcn_bl_gen_desc(struct gk20a *g,
 
 	if (pnode->wpr_header.falcon_id != FALCON_ID_PMU) {
 		nvgpu_pmu_dbg(g, "non pmu. write flcn bl gen desc\n");
-		g->ops.pmu.flcn_populate_bl_dmem_desc(g,
+		gm20b_flcn_populate_bl_dmem_desc(g,
 				pnode, &pnode->bl_gen_desc_size,
 				pnode->wpr_header.falcon_id);
 		return 0;
@@ -512,7 +512,7 @@ static int lsfm_fill_flcn_bl_gen_desc(struct gk20a *g,
 
 	if (pnode->wpr_header.falcon_id == FALCON_ID_PMU) {
 		nvgpu_pmu_dbg(g, "pmu write flcn bl gen desc\n");
-		return g->ops.pmu.pmu_populate_loader_cfg(g, pnode,
+		return gm20b_pmu_populate_loader_cfg(g, pnode,
 				&pnode->bl_gen_desc_size);
 	}
 
@@ -1251,7 +1251,7 @@ static u32 gm20b_acr_lsf_pmu(struct gk20a *g,
 	lsf->is_lazy_bootstrap = false;
 	lsf->is_priv_load = false;
 	lsf->get_lsf_ucode_details = NULL;
-	lsf->get_cmd_line_args_offset = NULL;
+	lsf->get_cmd_line_args_offset = nvgpu_pmu_get_cmd_line_args_offset;
 
 	return BIT32(lsf->falcon_id);
 }

@@ -35,10 +35,6 @@
 
 bool gm20b_is_pmu_supported(struct gk20a *g);
 int prepare_ucode_blob(struct gk20a *g);
-int gm20b_pmu_populate_loader_cfg(struct gk20a *g,
-	void *lsfm, u32 *p_bl_gen_desc_size);
-int gm20b_flcn_populate_bl_dmem_desc(struct gk20a *g,
-	void *lsfm, u32 *p_bl_gen_desc_size, u32 falconid);
 
 int acr_ucode_patch_sig(struct gk20a *g,
 		unsigned int *p_img,

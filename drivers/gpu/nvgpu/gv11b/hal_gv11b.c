@@ -1067,10 +1067,6 @@ int gv11b_init_hal(struct gk20a *g)
 	/* priv security dependent ops */
 	if (nvgpu_is_enabled(g, NVGPU_SEC_PRIVSECURITY)) {
 		/* Add in ops from gm20b acr */
-		gops->pmu.pmu_populate_loader_cfg =
-			gp106_pmu_populate_loader_cfg,
-		gops->pmu.flcn_populate_bl_dmem_desc =
-			gp106_flcn_populate_bl_dmem_desc,
 		gops->pmu.update_lspmu_cmdline_args =
 			gm20b_update_lspmu_cmdline_args;
 		gops->pmu.setup_apertures = gv11b_setup_apertures;

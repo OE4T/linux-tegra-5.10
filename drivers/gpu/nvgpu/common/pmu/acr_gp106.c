@@ -533,73 +533,7 @@ exit:
 	return err;
 }
 
-int gp106_pmu_populate_loader_cfg(struct gk20a *g,
-	void *lsfm, u32 *p_bl_gen_desc_size)
-{
-	struct wpr_carveout_info wpr_inf;
-	struct lsfm_managed_ucode_img_v2 *p_lsfm =
-		(struct lsfm_managed_ucode_img_v2 *)lsfm;
-	struct flcn_ucode_img_v1 *p_img = &(p_lsfm->ucode_img);
-	struct flcn_bl_dmem_desc_v1 *ldr_cfg =
-				&(p_lsfm->bl_gen_desc.bl_dmem_desc_v1);
-	u64 addr_base;
-	struct pmu_ucode_desc_v1 *desc;
-	u64 addr_code, addr_data;
-
-	if (p_img->desc == NULL) {
-		/* This means its a header based ucode,
-		 * and so we do not fill BL gen desc structure
-		 */
-		return -EINVAL;
-	}
-	desc = p_img->desc;
-	/*
-	 * Calculate physical and virtual addresses for various portions of
-	 * the PMU ucode image
-	 * Calculate the 32-bit addresses for the application code, application
-	 * data, and bootloader code. These values are all based on IM_BASE.
-	 * The 32-bit addresses will be the upper 32-bits of the virtual or
-	 * physical addresses of each respective segment.
-	 */
-	addr_base = p_lsfm->lsb_header.ucode_off;
-	g->acr.get_wpr_info(g, &wpr_inf);
-	addr_base += (wpr_inf.wpr_base);
-
-	gp106_dbg_pmu(g, "pmu loader cfg addrbase 0x%llx\n", addr_base);
-	/*From linux*/
-	addr_code = addr_base +
-				desc->app_start_offset +
-				desc->app_resident_code_offset;
-	gp106_dbg_pmu(g, "app start %d app res code off %d\n",
-		desc->app_start_offset, desc->app_resident_code_offset);
-	addr_data = addr_base +
-				desc->app_start_offset +
-				desc->app_resident_data_offset;
-	gp106_dbg_pmu(g, "app res data offset%d\n",
-		desc->app_resident_data_offset);
-	gp106_dbg_pmu(g, "bl start off %d\n", desc->bootloader_start_offset);
-
-	/* Populate the LOADER_CONFIG state */
-	(void) memset((void *) ldr_cfg, 0,
-		sizeof(struct flcn_bl_dmem_desc_v1));
-	ldr_cfg->ctx_dma = g->acr.lsf[FALCON_ID_PMU].falcon_dma_idx;
-	flcn64_set_dma(&ldr_cfg->code_dma_base, addr_code);
-	ldr_cfg->non_sec_code_off = desc->app_resident_code_offset;
-	ldr_cfg->non_sec_code_size = desc->app_resident_code_size;
-	flcn64_set_dma(&ldr_cfg->data_dma_base, addr_data);
-	ldr_cfg->data_size = desc->app_resident_data_size;
-	ldr_cfg->code_entry_point = desc->app_imem_entry;
-
-	/* Update the argc/argv members*/
-	ldr_cfg->argc = 1;
-	nvgpu_pmu_get_cmd_line_args_offset(g, &ldr_cfg->argv);
-
-	*p_bl_gen_desc_size = (u32)sizeof(struct flcn_bl_dmem_desc_v1);
-
-	return 0;
-}
-
-int gp106_flcn_populate_bl_dmem_desc(struct gk20a *g,
+static int gp106_flcn_populate_bl_dmem_desc(struct gk20a *g,
 	void *lsfm, u32 *p_bl_gen_desc_size, u32 falconid)
 {
 	struct wpr_carveout_info wpr_inf;
@@ -634,11 +568,8 @@ int gp106_flcn_populate_bl_dmem_desc(struct gk20a *g,
 
 	gp106_dbg_pmu(g, "falcon ID %x", p_lsfm->wpr_header.falcon_id);
 	gp106_dbg_pmu(g, "gen loader cfg addrbase %llx ", addr_base);
-	addr_code = addr_base +
-				desc->app_start_offset +
-				desc->app_resident_code_offset;
-	addr_data = addr_base +
-				desc->app_start_offset +
+	addr_code = addr_base + desc->app_start_offset;
+	addr_data = addr_base + desc->app_start_offset +
 				desc->app_resident_data_offset;
 
 	gp106_dbg_pmu(g, "gen cfg addrcode %llx data %llx load offset %x",
@@ -648,19 +579,20 @@ int gp106_flcn_populate_bl_dmem_desc(struct gk20a *g,
 	(void) memset((void *) ldr_cfg, 0,
 		sizeof(struct flcn_bl_dmem_desc_v1));
 
-	if (falconid == FALCON_ID_SEC2) {
-		addr_code = addr_base + desc->app_start_offset;
-		ldr_cfg->ctx_dma = g->acr.lsf[falconid].falcon_dma_idx;
-		ldr_cfg->non_sec_code_off = desc->app_resident_code_offset;
-	} else {
-		ldr_cfg->ctx_dma = g->acr.lsf[falconid].falcon_dma_idx;
-	}
-
+	ldr_cfg->ctx_dma = g->acr.lsf[falconid].falcon_dma_idx;
 	flcn64_set_dma(&ldr_cfg->code_dma_base, addr_code);
+	ldr_cfg->non_sec_code_off = desc->app_resident_code_offset;
 	ldr_cfg->non_sec_code_size = desc->app_resident_code_size;
 	flcn64_set_dma(&ldr_cfg->data_dma_base, addr_data);
 	ldr_cfg->data_size = desc->app_resident_data_size;
 	ldr_cfg->code_entry_point = desc->app_imem_entry;
+
+	/* Update the argc/argv members*/
+	ldr_cfg->argc = 1;
+	if (g->acr.lsf[falconid].get_cmd_line_args_offset != NULL) {
+		g->acr.lsf[falconid].get_cmd_line_args_offset(g,
+			&ldr_cfg->argv);
+	}
 
 	*p_bl_gen_desc_size = (u32)sizeof(struct flcn_bl_dmem_desc_v1);
 	return 0;
@@ -670,22 +602,9 @@ int gp106_flcn_populate_bl_dmem_desc(struct gk20a *g,
 int lsfm_fill_flcn_bl_gen_desc(struct gk20a *g,
 		struct lsfm_managed_ucode_img_v2 *pnode)
 {
-	if (pnode->wpr_header.falcon_id != FALCON_ID_PMU) {
-		gp106_dbg_pmu(g, "non pmu. write flcn bl gen desc\n");
-		g->ops.pmu.flcn_populate_bl_dmem_desc(g,
-				pnode, &pnode->bl_gen_desc_size,
-					pnode->wpr_header.falcon_id);
-		return 0;
-	}
-
-	if (pnode->wpr_header.falcon_id == FALCON_ID_PMU) {
-		gp106_dbg_pmu(g, "pmu write flcn bl gen desc\n");
-		return g->ops.pmu.pmu_populate_loader_cfg(g, pnode,
-			&pnode->bl_gen_desc_size);
-	}
-
-	/* Failed to find the falcon requested. */
-	return -ENOENT;
+	return gp106_flcn_populate_bl_dmem_desc(g, pnode,
+		&pnode->bl_gen_desc_size,
+		pnode->wpr_header.falcon_id);
 }
 
 static u32 lsfm_init_sub_wpr_contents(struct gk20a *g,
@@ -1219,7 +1138,7 @@ static u32 gp106_acr_lsf_pmu(struct gk20a *g,
 	lsf->is_lazy_bootstrap = false;
 	lsf->is_priv_load = false;
 	lsf->get_lsf_ucode_details = NULL;
-	lsf->get_cmd_line_args_offset = NULL;
+	lsf->get_cmd_line_args_offset = nvgpu_pmu_get_cmd_line_args_offset;
 
 	return BIT32(lsf->falcon_id);
 }

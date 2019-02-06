@@ -39,8 +39,6 @@ int lsf_gen_wpr_requirements(struct gk20a *g,
 void free_acr_resources(struct gk20a *g, struct ls_flcn_mgr_v1 *plsfm);
 void lsfm_fill_static_lsb_hdr_info(struct gk20a *g,
 	u32 falcon_id, struct lsfm_managed_ucode_img_v2 *pnode);
-int gp106_pmu_populate_loader_cfg(struct gk20a *g,
-	void *lsfm, u32 *p_bl_gen_desc_size);
 
 int pmu_ucode_details(struct gk20a *g, struct flcn_ucode_img_v1 *p_img);
 int fecs_ucode_details(struct gk20a *g,
@@ -54,8 +52,6 @@ int lsfm_discover_ucode_images(struct gk20a *g,
 	struct ls_flcn_mgr_v1 *plsfm);
 void lsfm_init_wpr_contents(struct gk20a *g,
 		struct ls_flcn_mgr_v1 *plsfm, struct nvgpu_mem *ucode);
-int gp106_flcn_populate_bl_dmem_desc(struct gk20a *g,
-	void *lsfm, u32 *p_bl_gen_desc_size, u32 falconid);
 int lsfm_fill_flcn_bl_gen_desc(struct gk20a *g,
 		struct lsfm_managed_ucode_img_v2 *pnode);
 int gp106_acr_fill_bl_dmem_desc(struct gk20a *g,

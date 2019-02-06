@@ -1221,10 +1221,6 @@ struct gpu_ops {
 		void (*dump_secure_fuses)(struct gk20a *g);
 		int (*reset_engine)(struct gk20a *g, bool do_reset);
 		bool (*is_engine_in_reset)(struct gk20a *g);
-		int (*pmu_populate_loader_cfg)(struct gk20a *g,
-			void *lsfm,	u32 *p_bl_gen_desc_size);
-		int (*flcn_populate_bl_dmem_desc)(struct gk20a *g,
-			void *lsfm,	u32 *p_bl_gen_desc_size, u32 falconid);
 		void (*handle_ext_irq)(struct gk20a *g, u32 intr);
 		void (*set_irqmask)(struct gk20a *g);
 		void (*update_lspmu_cmdline_args)(struct gk20a *g);
