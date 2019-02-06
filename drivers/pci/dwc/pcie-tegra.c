@@ -2959,12 +2959,14 @@ static void tegra_pcie_dw_scan_bus(struct pcie_port *pp)
 			/* program iATU for Non-prefetchable MEM mapping */
 			outbound_atu(pp, PCIE_ATU_REGION_INDEX3,
 				     PCIE_ATU_TYPE_MEM, win->res->start,
-				     win->res->start, resource_size(win->res));
+				     win->res->start - win->offset,
+				     resource_size(win->res));
 		} else if (win->res->flags & IORESOURCE_MEM) {
 			/* program iATU for Non-prefetchable MEM mapping */
 			outbound_atu(pp, PCIE_ATU_REGION_INDEX2,
 				     PCIE_ATU_TYPE_MEM, win->res->start,
-				     win->res->start, resource_size(win->res));
+				     win->res->start - win->offset,
+				     resource_size(win->res));
 		}
 	}
 
