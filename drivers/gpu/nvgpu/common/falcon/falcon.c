@@ -608,23 +608,30 @@ int nvgpu_falcon_bl_bootstrap(struct nvgpu_falcon *flcn,
 	struct nvgpu_falcon_bl_info *bl_info)
 {
 	struct nvgpu_falcon_ops *flcn_ops;
-	int status = 0;
+	int status = -EINVAL;
+	u32 imem_size;
 
 	if (flcn == NULL) {
-		return -EINVAL;
+		goto exit;
 	}
 
 	flcn_ops = &flcn->flcn_ops;
 
-	if (flcn_ops->bl_bootstrap != NULL) {
-		status = flcn_ops->bl_bootstrap(flcn, bl_info);
-	}
-	else {
+	if (flcn_ops->bl_bootstrap == NULL) {
 		nvgpu_warn(flcn->g, "Invalid op on falcon 0x%x ",
 			flcn->flcn_id);
-		status = -EINVAL;
+		goto exit;
 	}
 
+	imem_size = flcn_ops->get_mem_size(flcn, MEM_IMEM);
+	if (bl_info->bl_size > imem_size) {
+		nvgpu_err(flcn->g, "bootloader size greater than IMEM size");
+		goto exit;
+	}
+
+	status = flcn_ops->bl_bootstrap(flcn, bl_info);
+
+exit:
 	return status;
 }
 
