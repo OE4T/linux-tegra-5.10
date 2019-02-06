@@ -148,34 +148,6 @@ static u32 gk20a_falcon_get_mem_size(struct nvgpu_falcon *flcn,
 	return mem_size;
 }
 
-static int falcon_mem_overflow_check(struct nvgpu_falcon *flcn,
-		u32 offset, u32 size, enum falcon_mem_type mem_type)
-{
-	struct gk20a *g = flcn->g;
-	u32 mem_size = 0;
-
-	if (size == 0U) {
-		nvgpu_err(g, "size is zero");
-		return -EINVAL;
-	}
-
-	if ((offset & 0x3U) != 0U) {
-		nvgpu_err(g, "offset (0x%08x) not 4-byte aligned", offset);
-		return -EINVAL;
-	}
-
-	mem_size = gk20a_falcon_get_mem_size(flcn, mem_type);
-	if (!(offset <= mem_size && (offset + size) <= mem_size)) {
-		nvgpu_err(g, "flcn-id 0x%x, copy overflow ",
-			flcn->flcn_id);
-		nvgpu_err(g, "total size 0x%x, offset 0x%x, copy size 0x%x",
-			mem_size, offset, size);
-		return -EINVAL;
-	}
-
-	return 0;
-}
-
 static int gk20a_falcon_copy_from_dmem(struct nvgpu_falcon *flcn,
 		u32 src, u8 *dst, u32 size, u8 port)
 {
@@ -186,11 +158,6 @@ static int gk20a_falcon_copy_from_dmem(struct nvgpu_falcon *flcn,
 	u32 *dst_u32 = (u32 *)dst;
 
 	nvgpu_log_fn(g, " src dmem offset - %x, size - %x", src, size);
-
-	if (falcon_mem_overflow_check(flcn, src, size, MEM_DMEM) != 0) {
-		nvgpu_err(g, "incorrect parameters");
-		return -EINVAL;
-	}
 
 	words = size >> 2;
 	bytes = size & 0x3U;
@@ -228,11 +195,6 @@ static int gk20a_falcon_copy_to_dmem(struct nvgpu_falcon *flcn,
 	u32 *src_u32 = (u32 *)src;
 
 	nvgpu_log_fn(g, "dest dmem offset - %x, size - %x", dst, size);
-
-	if (falcon_mem_overflow_check(flcn, dst, size, MEM_DMEM) != 0) {
-		nvgpu_err(g, "incorrect parameters");
-		return -EINVAL;
-	}
 
 	words = size >> 2;
 	bytes = size & 0x3U;
@@ -283,11 +245,6 @@ static int gk20a_falcon_copy_from_imem(struct nvgpu_falcon *flcn, u32 src,
 
 	nvgpu_log_info(g, "download %d bytes from 0x%x", size, src);
 
-	if (falcon_mem_overflow_check(flcn, src, size, MEM_IMEM) != 0) {
-		nvgpu_err(g, "incorrect parameters");
-		return -EINVAL;
-	}
-
 	words = size >> 2;
 	bytes = size & 0x3U;
 	blk = src >> 8;
@@ -326,11 +283,6 @@ static int gk20a_falcon_copy_to_imem(struct nvgpu_falcon *flcn, u32 dst,
 	u32 i = 0;
 
 	nvgpu_log_info(g, "upload %d bytes to 0x%x", size, dst);
-
-	if (falcon_mem_overflow_check(flcn, dst, size, MEM_IMEM) != 0) {
-		nvgpu_err(g, "incorrect parameters");
-		return -EINVAL;
-	}
 
 	words = size >> 2;
 	blk = dst >> 8;

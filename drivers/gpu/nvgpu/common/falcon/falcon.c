@@ -281,6 +281,45 @@ int nvgpu_falcon_copy_to_emem(struct nvgpu_falcon *flcn,
 	return status;
 }
 
+static int falcon_memcpy_params_check(struct nvgpu_falcon *flcn,
+		u32 offset, u32 size, enum falcon_mem_type mem_type)
+{
+	struct nvgpu_falcon_ops *flcn_ops = &flcn->flcn_ops;
+	struct gk20a *g = flcn->g;
+	u32 mem_size = 0;
+	int ret = -EINVAL;
+
+	if (size == 0U) {
+		nvgpu_err(g, "size is zero");
+		goto exit;
+	}
+
+	if ((offset & 0x3U) != 0U) {
+		nvgpu_err(g, "offset (0x%08x) not 4-byte aligned", offset);
+		goto exit;
+	}
+
+	if (flcn_ops->get_mem_size == NULL) {
+		nvgpu_warn(flcn->g, "Invalid op on falcon 0x%x ",
+			flcn->flcn_id);
+		goto exit;
+	}
+
+	mem_size = flcn_ops->get_mem_size(flcn, mem_type);
+	if (!(offset <= mem_size && (offset + size) <= mem_size)) {
+		nvgpu_err(g, "flcn-id 0x%x, copy overflow ",
+			flcn->flcn_id);
+		nvgpu_err(g, "total size 0x%x, offset 0x%x, copy size 0x%x",
+			mem_size, offset, size);
+		goto exit;
+	}
+
+	ret = 0;
+
+exit:
+	return ret;
+}
+
 int nvgpu_falcon_copy_from_dmem(struct nvgpu_falcon *flcn,
 	u32 src, u8 *dst, u32 size, u8 port)
 {
@@ -288,20 +327,27 @@ int nvgpu_falcon_copy_from_dmem(struct nvgpu_falcon *flcn,
 	int status = -EINVAL;
 
 	if (flcn == NULL) {
-		return -EINVAL;
+		goto exit;
 	}
 
 	flcn_ops = &flcn->flcn_ops;
 
-	if (flcn_ops->copy_from_dmem != NULL) {
-		nvgpu_mutex_acquire(&flcn->copy_lock);
-		status = flcn_ops->copy_from_dmem(flcn, src, dst, size, port);
-		nvgpu_mutex_release(&flcn->copy_lock);
-	} else {
+	if (flcn_ops->copy_from_dmem == NULL) {
 		nvgpu_warn(flcn->g, "Invalid op on falcon 0x%x ",
 			flcn->flcn_id);
+		goto exit;
 	}
 
+	if (falcon_memcpy_params_check(flcn, src, size, MEM_DMEM) != 0) {
+		nvgpu_err(flcn->g, "incorrect parameters");
+		goto exit;
+	}
+
+	nvgpu_mutex_acquire(&flcn->copy_lock);
+	status = flcn_ops->copy_from_dmem(flcn, src, dst, size, port);
+	nvgpu_mutex_release(&flcn->copy_lock);
+
+exit:
 	return status;
 }
 
@@ -312,20 +358,27 @@ int nvgpu_falcon_copy_to_dmem(struct nvgpu_falcon *flcn,
 	int status = -EINVAL;
 
 	if (flcn == NULL) {
-		return -EINVAL;
+		goto exit;
 	}
 
 	flcn_ops = &flcn->flcn_ops;
 
-	if (flcn_ops->copy_to_dmem != NULL) {
-		nvgpu_mutex_acquire(&flcn->copy_lock);
-		status = flcn_ops->copy_to_dmem(flcn, dst, src, size, port);
-		nvgpu_mutex_release(&flcn->copy_lock);
-	} else {
+	if (flcn_ops->copy_to_dmem == NULL) {
 		nvgpu_warn(flcn->g, "Invalid op on falcon 0x%x ",
 			flcn->flcn_id);
+		goto exit;
 	}
 
+	if (falcon_memcpy_params_check(flcn, dst, size, MEM_DMEM) != 0) {
+		nvgpu_err(flcn->g, "incorrect parameters");
+		goto exit;
+	}
+
+	nvgpu_mutex_acquire(&flcn->copy_lock);
+	status = flcn_ops->copy_to_dmem(flcn, dst, src, size, port);
+	nvgpu_mutex_release(&flcn->copy_lock);
+
+exit:
 	return status;
 }
 
@@ -336,20 +389,27 @@ int nvgpu_falcon_copy_from_imem(struct nvgpu_falcon *flcn,
 	int status = -EINVAL;
 
 	if (flcn == NULL) {
-		return -EINVAL;
+		goto exit;
 	}
 
 	flcn_ops = &flcn->flcn_ops;
 
-	if (flcn_ops->copy_from_imem != NULL) {
-		nvgpu_mutex_acquire(&flcn->copy_lock);
-		status = flcn_ops->copy_from_imem(flcn, src, dst, size, port);
-		nvgpu_mutex_release(&flcn->copy_lock);
-	} else {
+	if (flcn_ops->copy_from_imem == NULL) {
 		nvgpu_warn(flcn->g, "Invalid op on falcon 0x%x ",
 			flcn->flcn_id);
+		goto exit;
 	}
 
+	if (falcon_memcpy_params_check(flcn, src, size, MEM_IMEM) != 0) {
+		nvgpu_err(flcn->g, "incorrect parameters");
+		goto exit;
+	}
+
+	nvgpu_mutex_acquire(&flcn->copy_lock);
+	status = flcn_ops->copy_from_imem(flcn, src, dst, size, port);
+	nvgpu_mutex_release(&flcn->copy_lock);
+
+exit:
 	return status;
 }
 
@@ -360,21 +420,28 @@ int nvgpu_falcon_copy_to_imem(struct nvgpu_falcon *flcn,
 	int status = -EINVAL;
 
 	if (flcn == NULL) {
-		return -EINVAL;
+		goto exit;
 	}
 
 	flcn_ops = &flcn->flcn_ops;
 
-	if (flcn_ops->copy_to_imem != NULL) {
-		nvgpu_mutex_acquire(&flcn->copy_lock);
-		status = flcn_ops->copy_to_imem(flcn, dst, src, size, port,
-					sec, tag);
-		nvgpu_mutex_release(&flcn->copy_lock);
-	} else {
+	if (flcn_ops->copy_to_imem == NULL) {
 		nvgpu_warn(flcn->g, "Invalid op on falcon 0x%x ",
 			flcn->flcn_id);
+		goto exit;
 	}
 
+	if (falcon_memcpy_params_check(flcn, dst, size, MEM_IMEM) != 0) {
+		nvgpu_err(flcn->g, "incorrect parameters");
+		goto exit;
+	}
+
+	nvgpu_mutex_acquire(&flcn->copy_lock);
+	status = flcn_ops->copy_to_imem(flcn, dst, src, size, port,
+				sec, tag);
+	nvgpu_mutex_release(&flcn->copy_lock);
+
+exit:
 	return status;
 }
 
