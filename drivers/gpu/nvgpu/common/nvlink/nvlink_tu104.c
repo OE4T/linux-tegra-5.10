@@ -94,8 +94,10 @@ int tu104_nvlink_setup_pll(struct gk20a *g, unsigned long link_mask)
 	u32 link_id;
 	u32 reg;
 	struct nvgpu_timeout timeout;
+	unsigned long bit;
 
-	for_each_set_bit(link_id, &link_mask, 32) {
+	for_each_set_bit(bit, &link_mask, NVLINK_MAX_LINKS_SW) {
+		link_id = (u32)bit;
 		ret = gv100_nvlink_minion_send_command(g, link_id,
 			minion_nvlink_dl_cmd_command_txclkswitch_pll_v(),
 			0, true);
@@ -200,6 +202,7 @@ int tu104_nvlink_minion_data_ready_en(struct gk20a *g,
 {
 	int ret = 0;
 	u32 link_id;
+	unsigned long bit;
 
 	/* On Volta, the order of INIT* DLCMDs was arbitrary.
 	 * On Turing, the INIT* DLCMDs need to be executed in the following
@@ -207,7 +210,8 @@ int tu104_nvlink_minion_data_ready_en(struct gk20a *g,
 	 * INITDLPL -> INITL -> INITLANEENABLE.
 	 * INITDLPL_TO_CHIPA is needed additionally when connected  to 2.0 dev.
 	 */
-	for_each_set_bit(link_id, &link_mask, 32) {
+	for_each_set_bit(bit, &link_mask, NVLINK_MAX_LINKS_SW) {
+		link_id = (u32)bit;
 		ret = gv100_nvlink_minion_send_command(g, link_id,
 			minion_nvlink_dl_cmd_command_initdlpl_v(), 0,
 									sync);
@@ -217,7 +221,8 @@ int tu104_nvlink_minion_data_ready_en(struct gk20a *g,
 			return ret;
 		}
 	}
-	for_each_set_bit(link_id, &link_mask, 32) {
+	for_each_set_bit(bit, &link_mask, NVLINK_MAX_LINKS_SW) {
+		link_id = (u32)bit;
 		ret = gv100_nvlink_minion_send_command(g, link_id,
 			minion_nvlink_dl_cmd_command_turing_initdlpl_to_chipa_v(),
 								0, sync);
@@ -227,7 +232,8 @@ int tu104_nvlink_minion_data_ready_en(struct gk20a *g,
 			return ret;
 		}
 	}
-	for_each_set_bit(link_id, &link_mask, 32) {
+	for_each_set_bit(bit, &link_mask, NVLINK_MAX_LINKS_SW) {
+		link_id = (u32)bit;
 		ret = gv100_nvlink_minion_send_command(g, link_id,
 			minion_nvlink_dl_cmd_command_inittl_v(), 0,
 									sync);
@@ -237,7 +243,8 @@ int tu104_nvlink_minion_data_ready_en(struct gk20a *g,
 			return ret;
 		}
 	}
-	for_each_set_bit(link_id, &link_mask, 32) {
+	for_each_set_bit(bit, &link_mask, NVLINK_MAX_LINKS_SW) {
+		link_id = (u32)bit;
 		ret = gv100_nvlink_minion_send_command(g, link_id,
 			minion_nvlink_dl_cmd_command_initlaneenable_v(), 0,
 									sync);

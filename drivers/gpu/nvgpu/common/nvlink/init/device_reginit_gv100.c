@@ -128,12 +128,12 @@ static int gv100_nvlink_get_tlc_reginit(enum nvgpu_nvlink_endp endp,
 	case nvgpu_nvlink_endp_tegra:
 		*reg = (struct nvlink_reginit *)
 			nvlink_reginit_per_link_tegra;
-		*count = ARRAY_SIZE(nvlink_reginit_per_link_tegra);
+		*count = (u32)ARRAY_SIZE(nvlink_reginit_per_link_tegra);
 		break;
 	case nvgpu_nvlink_endp_gpu:
 		*reg = (struct nvlink_reginit *)
 			nvlink_reginit_per_link_gpu;
-		*count = ARRAY_SIZE(nvlink_reginit_per_link_gpu);
+		*count = (u32)ARRAY_SIZE(nvlink_reginit_per_link_gpu);
 		break;
 	default:
 		ret = -EINVAL;
@@ -153,10 +153,11 @@ int gv100_nvlink_reg_init(struct gk20a *g)
 	u32 link_id;
 	unsigned long mask = g->nvlink.enabled_links;
 	struct nvgpu_nvlink_link *link;
+	unsigned long bit;
 
 	/* Apply automated reg init flow for PROD settings */
-	for_each_set_bit(link_id, &mask, 32) {
-
+	for_each_set_bit(bit, &mask, NVLINK_MAX_LINKS_SW) {
+		link_id = (u32)bit;
 		link = &g->nvlink.links[link_id];
 		if (!link->remote_info.is_connected) {
 			continue;

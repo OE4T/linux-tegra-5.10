@@ -25,6 +25,8 @@
 
 #include <nvgpu/types.h>
 
+#define NVLINK_MAX_LINKS_SW			6U
+
 #define NV_NVLINK_REG_POLL_TIMEOUT_MS           3000
 #define NV_NVLINK_TIMEOUT_DELAY_US              5
 
@@ -58,7 +60,7 @@ struct nvgpu_nvlink_device_list {
 	bool valid;
 	u8 device_type;
 	u8 device_id;
-	u8 device_version;
+	u32 device_version;
 	u32 pri_base_addr;
 	u8 intr_enum;
 	u8 reset_enum;
@@ -127,13 +129,13 @@ struct nvgpu_nvlink_link {
 	u8 link_id;
 
 	u32 dlpl_base;
-	u8 dlpl_version;
+	u32 dlpl_version;
 
 	u32 tl_base;
-	u8 tl_version;
+	u32 tl_version;
 
 	u32 mif_base;
-	u8 mif_version;
+	u32 mif_version;
 
 	u8 intr_enum;
 	u8 reset_enum;
@@ -147,7 +149,6 @@ struct nvgpu_nvlink_link {
 	void *priv;
 };
 
-#define NVLINK_MAX_LINKS_SW 6
 
 
 enum nvgpu_nvlink_speed {
@@ -176,18 +177,18 @@ struct nvgpu_nvlink_dev {
 
 	u8 ipt_type;
 	u32 ipt_base;
-	u8 ipt_version;
+	u32 ipt_version;
 
 	u8 dlpl_multicast_type;
-	u8 dlpl_multicast_version;
+	u32 dlpl_multicast_version;
 	u32 dlpl_multicast_base;
 
 	u8 tl_multicast_type;
-	u8 tl_multicast_version;
+	u32 tl_multicast_version;
 	u32 tl_multicast_base;
 
 	u8 mif_multicast_type;
-	u8 mif_multicast_version;
+	u32 mif_multicast_version;
 	u32 mif_multicast_base;
 
 	u8 ioctrl_type;
@@ -195,7 +196,7 @@ struct nvgpu_nvlink_dev {
 
 	u8 minion_type;
 	u32 minion_base;
-	u8 minion_version;
+	u32 minion_version;
 
 	u32 discovered_links;
 
@@ -233,14 +234,17 @@ int nvgpu_nvlink_link_early_init(struct gk20a *g);
 int nvgpu_nvlink_interface_init(struct gk20a *g);
 int nvgpu_nvlink_interface_disable(struct gk20a *g);
 int nvgpu_nvlink_dev_shutdown(struct gk20a *g);
-u32 nvgpu_nvlink_get_link_mode(struct gk20a *g);
+enum nvgpu_nvlink_link_mode nvgpu_nvlink_get_link_mode(struct gk20a *g);
 u32 nvgpu_nvlink_get_link_state(struct gk20a *g);
-int nvgpu_nvlink_set_link_mode(struct gk20a *g, u32 mode);
+int nvgpu_nvlink_set_link_mode(struct gk20a *g,
+					enum nvgpu_nvlink_link_mode mode);
 void nvgpu_nvlink_get_tx_sublink_state(struct gk20a *g, u32 *state);
 void nvgpu_nvlink_get_rx_sublink_state(struct gk20a *g, u32 *state);
-u32 nvgpu_nvlink_get_sublink_mode(struct gk20a *g, bool is_rx_sublink);
+enum nvgpu_nvlink_sublink_mode nvgpu_nvlink_get_sublink_mode(struct gk20a *g,
+							bool is_rx_sublink);
 int nvgpu_nvlink_set_sublink_mode(struct gk20a *g,
-						bool is_rx_sublink, u32 mode);
+					bool is_rx_sublink,
+					enum nvgpu_nvlink_sublink_mode mode);
 int nvgpu_nvlink_enumerate(struct gk20a *g);
 int nvgpu_nvlink_train(struct gk20a *g, u32 link_id, bool from_off);
 int nvgpu_nvlink_remove(struct gk20a *g);

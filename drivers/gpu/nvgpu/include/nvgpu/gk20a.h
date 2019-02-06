@@ -1511,15 +1511,19 @@ struct gpu_ops {
 		void (*set_sw_war)(struct gk20a *g, u32 link_id);
 		/* API */
 		int (*link_early_init)(struct gk20a *g, unsigned long mask);
-		u32 (*link_get_mode)(struct gk20a *g, u32 link_id);
+		enum nvgpu_nvlink_link_mode (*link_get_mode)(struct gk20a *g,
+								u32 link_id);
 		u32 (*link_get_state)(struct gk20a *g, u32 link_id);
-		int (*link_set_mode)(struct gk20a *g, u32 link_id, u32 mode);
-		u32 (*get_sublink_mode)(struct gk20a *g, u32 link_id,
-			bool is_rx_sublink);
+		int (*link_set_mode)(struct gk20a *g, u32 link_id,
+					enum nvgpu_nvlink_link_mode mode);
+		enum nvgpu_nvlink_sublink_mode (*get_sublink_mode)(
+					struct gk20a *g, u32 link_id,
+					bool is_rx_sublink);
 		u32 (*get_rx_sublink_state)(struct gk20a *g, u32 link_id);
 		u32 (*get_tx_sublink_state)(struct gk20a *g, u32 link_id);
 		int (*set_sublink_mode)(struct gk20a *g, u32 link_id,
-			bool is_rx_sublink, u32 mode);
+					bool is_rx_sublink,
+					enum nvgpu_nvlink_sublink_mode mode);
 		int (*interface_init)(struct gk20a *g);
 		int (*interface_disable)(struct gk20a *g);
 		int (*reg_init)(struct gk20a *g);

@@ -39,15 +39,17 @@ void gv100_nvlink_get_connected_link_mask(u32 *link_mask);
 void gv100_nvlink_set_sw_war(struct gk20a *g, u32 link_id);
 /* API */
 int gv100_nvlink_link_early_init(struct gk20a *g, unsigned long mask);
-u32 gv100_nvlink_link_get_mode(struct gk20a *g, u32 link_id);
+enum nvgpu_nvlink_link_mode gv100_nvlink_link_get_mode(struct gk20a *g,
+								u32 link_id);
 u32 gv100_nvlink_link_get_state(struct gk20a *g, u32 link_id);
-int gv100_nvlink_link_set_mode(struct gk20a *g, u32 link_id, u32 mode);
-u32 gv100_nvlink_link_get_sublink_mode(struct gk20a *g, u32 link_id,
-	bool is_rx_sublink);
+int gv100_nvlink_link_set_mode(struct gk20a *g, u32 link_id,
+					enum nvgpu_nvlink_link_mode mode);
+enum nvgpu_nvlink_sublink_mode gv100_nvlink_link_get_sublink_mode(
+	struct gk20a *g, u32 link_id, bool is_rx_sublink);
 u32 gv100_nvlink_link_get_tx_sublink_state(struct gk20a *g, u32 link_id);
 u32 gv100_nvlink_link_get_rx_sublink_state(struct gk20a *g, u32 link_id);
 int gv100_nvlink_link_set_sublink_mode(struct gk20a *g, u32 link_id,
-	bool is_rx_sublink, u32 mode);
+	bool is_rx_sublink, enum nvgpu_nvlink_sublink_mode mode);
 int gv100_nvlink_interface_init(struct gk20a *g);
 int gv100_nvlink_interface_disable(struct gk20a *g);
 int gv100_nvlink_shutdown(struct gk20a *g);

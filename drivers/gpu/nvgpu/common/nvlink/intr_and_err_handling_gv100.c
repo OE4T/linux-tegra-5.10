@@ -101,9 +101,9 @@ static void gv100_nvlink_minion_link_intr_enable(struct gk20a *g, u32 link_id,
 	links = minion_minion_intr_stall_en_link_v(intr);
 
 	if (enable) {
-		links |= BIT(link_id);
+		links |= BIT32(link_id);
 	} else {
-		links &= ~BIT(link_id);
+		links &= ~BIT32(link_id);
 	}
 
 	intr = set_field(intr, minion_minion_intr_stall_en_link_m(),
@@ -234,8 +234,9 @@ static bool gv100_nvlink_minion_link_isr(struct gk20a *g, u32 link_id)
  */
 static bool gv100_nvlink_minion_isr(struct gk20a *g) {
 
-	u32 intr, i;
+	u32 intr, link_id;
 	unsigned long links;
+	unsigned long bit;
 
 	intr = MINION_REG_RD32(g, minion_minion_intr_r()) &
 		MINION_REG_RD32(g, minion_minion_intr_stall_en_r());
@@ -259,8 +260,9 @@ static bool gv100_nvlink_minion_isr(struct gk20a *g) {
 	links = minion_minion_intr_link_v(intr) & g->nvlink.enabled_links;
 
 	if (links != 0UL) {
-		for_each_set_bit(i, &links, 32) {
-			gv100_nvlink_minion_link_isr(g, i);
+		for_each_set_bit(bit, &links, NVLINK_MAX_LINKS_SW) {
+			link_id = (u32)bit;
+			gv100_nvlink_minion_link_isr(g, link_id);
 		}
 	}
 
@@ -647,16 +649,18 @@ static bool gv100_nvlink_nvlipt_isr(struct gk20a *g, u32 link_id)
  */
 void gv100_nvlink_common_intr_enable(struct gk20a *g, unsigned long mask)
 {
-	u32 reg, i;
+	u32 reg, link_id;
+	unsigned long bit;
 
 	/* Init IOCTRL */
-	for_each_set_bit(i, &mask, 32) {
-		reg = IOCTRL_REG_RD32(g, ioctrl_link_intr_0_mask_r(i));
+	for_each_set_bit(bit, &mask, NVLINK_MAX_LINKS_SW) {
+		link_id = (u32)bit;
+		reg = IOCTRL_REG_RD32(g, ioctrl_link_intr_0_mask_r(link_id));
 		reg |= (ioctrl_link_intr_0_mask_fatal_f(1)       |
 			ioctrl_link_intr_0_mask_nonfatal_f(1)    |
 			ioctrl_link_intr_0_mask_correctable_f(1) |
 			ioctrl_link_intr_0_mask_intra_f(1));
-		IOCTRL_REG_WR32(g, ioctrl_link_intr_0_mask_r(i), reg);
+		IOCTRL_REG_WR32(g, ioctrl_link_intr_0_mask_r(link_id), reg);
 	}
 
 	reg = IOCTRL_REG_RD32(g, ioctrl_common_intr_0_mask_r());
@@ -691,6 +695,7 @@ int gv100_nvlink_isr(struct gk20a *g)
 {
 	unsigned long links;
 	u32 link_id;
+	unsigned long bit;
 
 	links = ioctrl_top_intr_0_status_link_v(
 			IOCTRL_REG_RD32(g, ioctrl_top_intr_0_status_r()));
@@ -699,7 +704,8 @@ int gv100_nvlink_isr(struct gk20a *g)
 	/* As per ARCH minion must be serviced first */
 	gv100_nvlink_minion_isr(g);
 
-	for_each_set_bit(link_id, &links, 32) {
+	for_each_set_bit(bit, &links, NVLINK_MAX_LINKS_SW) {
+		link_id = (u32)bit;
 		/* Cache error logs from TLC, DL handler may clear them */
 		gv100_nvlink_tlc_get_intr(g, link_id);
 		gv100_nvlink_dlpl_isr(g, link_id);

@@ -138,7 +138,7 @@ static int nvgpu_nvlink_ops_reg_init(struct nvlink_device *ndev)
 static u32 nvgpu_nvlink_ops_get_link_mode(struct nvlink_device *ndev)
 {
 	struct gk20a *g = (struct gk20a *) ndev->priv;
-	u32 mode;
+	enum nvgpu_nvlink_link_mode mode;
 
 	mode = nvgpu_nvlink_get_link_mode(g);
 
@@ -189,7 +189,7 @@ static u32 nvgpu_nvlink_ops_get_link_state(struct nvlink_device *ndev)
 static int nvgpu_nvlink_ops_set_link_mode(struct nvlink_device *ndev, u32 mode)
 {
 	struct gk20a *g = (struct gk20a *) ndev->priv;
-	u32 mode_sw;
+	enum nvgpu_nvlink_link_mode mode_sw;
 
 	switch (mode) {
 	case NVLINK_LINK_OFF:
@@ -261,7 +261,7 @@ static u32 nvgpu_nvlink_ops_get_sublink_mode(struct nvlink_device *ndev,
 					bool is_rx_sublink)
 {
 	struct gk20a *g = (struct gk20a *) ndev->priv;
-	u32 mode;
+	enum nvgpu_nvlink_sublink_mode mode;
 
 	mode = nvgpu_nvlink_get_sublink_mode(g, is_rx_sublink);
 
@@ -314,7 +314,7 @@ static int nvgpu_nvlink_ops_set_sublink_mode(struct nvlink_device *ndev,
 						bool is_rx_sublink, u32 mode)
 {
 	struct gk20a *g = (struct gk20a *) ndev->priv;
-	u32 mode_sw;
+	enum nvgpu_nvlink_sublink_mode mode_sw;
 
 	if (!is_rx_sublink) {
 		switch (mode) {

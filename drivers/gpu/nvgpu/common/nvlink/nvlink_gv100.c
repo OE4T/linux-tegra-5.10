@@ -183,7 +183,7 @@ static int gv100_nvlink_minion_load(struct gk20a *g)
 		}
 
 		nvgpu_usleep_range(delay, delay * 2);
-		delay = min_t(unsigned long,
+		delay = min_t(unsigned int,
 				delay << 1, GR_IDLE_CHECK_MAX);
 	} while (nvgpu_timeout_expired_msg(&timeout,
 						"minion boot timeout") == 0);
@@ -207,7 +207,7 @@ exit:
 /*
  * Check if MINION command is complete
  */
-static u32 gv100_nvlink_minion_command_complete(struct gk20a *g, u32 link_id)
+static int gv100_nvlink_minion_command_complete(struct gk20a *g, u32 link_id)
 {
 	u32 reg;
 	struct nvgpu_timeout timeout;
@@ -237,7 +237,7 @@ static u32 gv100_nvlink_minion_command_complete(struct gk20a *g, u32 link_id)
 			break;
 		}
 		nvgpu_usleep_range(delay, delay * 2);
-		delay = min_t(unsigned long,
+		delay = min_t(unsigned int,
 				delay << 1, GR_IDLE_CHECK_MAX);
 
 	} while (nvgpu_timeout_expired_msg(&timeout,
@@ -295,24 +295,25 @@ static int gv100_nvlink_minion_init_uphy(struct gk20a *g, unsigned long mask,
 	int err = 0;
 	u32 link_id, master_pll, slave_pll;
 	u32 master_state, slave_state;
-
-	unsigned long link_enable;
+	u32 link_enable;
+	unsigned long bit;
 
 	link_enable = gv100_nvlink_get_link_reset_mask(g);
 
-	for_each_set_bit(link_id, &mask, 32) {
+	for_each_set_bit(bit, &mask, NVLINK_MAX_LINKS_SW) {
+		link_id = (u32)bit;
 		master_pll = g->nvlink.links[link_id].pll_master_link_id;
 		slave_pll = g->nvlink.links[link_id].pll_slave_link_id;
 
 		master_state = nvl_link_state_state_init_v();
 		slave_state = nvl_link_state_state_init_v();
 
-		if (BIT(master_pll) & link_enable) {
+		if (BIT32(master_pll) & link_enable) {
 			master_state = nvl_link_state_state_v(
 				g->ops.nvlink.link_get_state(g, master_pll));
 		}
 
-		if (BIT(slave_pll) & link_enable) {
+		if (BIT32(slave_pll) & link_enable) {
 			slave_state = nvl_link_state_state_v(
 				g->ops.nvlink.link_get_state(g, slave_pll));
 		}
@@ -333,7 +334,7 @@ static int gv100_nvlink_minion_init_uphy(struct gk20a *g, unsigned long mask,
 				return err;
 			}
 
-			g->nvlink.init_pll_done |= BIT(master_pll);
+			g->nvlink.init_pll_done |= BIT32(master_pll);
 		}
 	}
 
@@ -344,7 +345,8 @@ static int gv100_nvlink_minion_init_uphy(struct gk20a *g, unsigned long mask,
 	}
 
 	/* INITPHY commands */
-	for_each_set_bit(link_id, &mask, 32) {
+	for_each_set_bit(bit, &mask, NVLINK_MAX_LINKS_SW) {
+		link_id = (u32)bit;
 		err = gv100_nvlink_minion_send_command(g, link_id,
 			minion_nvlink_dl_cmd_command_initphy_v(), 0, sync);
 		if (err != 0) {
@@ -364,18 +366,19 @@ static int gv100_nvlink_minion_configure_ac_coupling(struct gk20a *g,
 	unsigned long mask, bool sync)
 {
 	int err = 0;
-	u32 i;
+	u32 link_id;
 	u32 temp;
+	unsigned long bit;
 
-	for_each_set_bit(i, &mask, 32) {
-
-		temp = DLPL_REG_RD32(g, i, nvl_link_config_r());
+	for_each_set_bit(bit, &mask, NVLINK_MAX_LINKS_SW) {
+		link_id = (u32)bit;
+		temp = DLPL_REG_RD32(g, link_id, nvl_link_config_r());
 		temp &= ~nvl_link_config_ac_safe_en_m();
 		temp |= nvl_link_config_ac_safe_en_on_f();
 
-		DLPL_REG_WR32(g, i, nvl_link_config_r(), temp);
+		DLPL_REG_WR32(g, link_id, nvl_link_config_r(), temp);
 
-		err = gv100_nvlink_minion_send_command(g, i,
+		err = gv100_nvlink_minion_send_command(g, link_id,
 			minion_nvlink_dl_cmd_command_setacmode_v(), 0, sync);
 
 		if (err != 0) {
@@ -394,8 +397,10 @@ int gv100_nvlink_minion_data_ready_en(struct gk20a *g,
 {
 	int ret = 0;
 	u32 link_id;
+	unsigned long bit;
 
-	for_each_set_bit(link_id, &link_mask, 32) {
+	for_each_set_bit(bit, &link_mask, NVLINK_MAX_LINKS_SW) {
+		link_id = (u32)bit;
 		ret = gv100_nvlink_minion_send_command(g, link_id,
 			minion_nvlink_dl_cmd_command_initlaneenable_v(), 0,
 									sync);
@@ -406,7 +411,8 @@ int gv100_nvlink_minion_data_ready_en(struct gk20a *g,
 		}
 	}
 
-	for_each_set_bit(link_id, &link_mask, 32) {
+	for_each_set_bit(bit, &link_mask, NVLINK_MAX_LINKS_SW) {
+		link_id = (u32)bit;
 		ret = gv100_nvlink_minion_send_command(g, link_id,
 			minion_nvlink_dl_cmd_command_initdlpl_v(), 0, sync);
 		if (ret != 0) {
@@ -481,12 +487,13 @@ static int gv100_nvlink_state_load_hal(struct gk20a *g)
 int gv100_nvlink_setup_pll(struct gk20a *g, unsigned long link_mask)
 {
 	u32 reg;
-	u32 i;
+	u32 link_id;
 	u32 links_off;
 	struct nvgpu_timeout timeout;
 	u32 pad_ctrl = 0;
 	u32 swap_ctrl = 0;
 	u32 pll_id;
+	unsigned long bit;
 
 	reg = gk20a_readl(g, trim_sys_nvlink_uphy_cfg_r());
 	reg = set_field(reg, trim_sys_nvlink_uphy_cfg_phy2clks_use_lockdet_m(),
@@ -500,13 +507,14 @@ int gv100_nvlink_setup_pll(struct gk20a *g, unsigned long link_mask)
 		swap_ctrl = g->ops.top.get_nvhsclk_ctrl_swap_clk_nvl(g);
 	}
 
-	for_each_set_bit(i, &link_mask, 32) {
+	for_each_set_bit(bit, &link_mask, NVLINK_MAX_LINKS_SW) {
+		link_id = (u32)bit;
 		/* There are 3 PLLs for 6 links. We have 3 bits for each PLL.
 		 * The PLL bit corresponding to a link is /2 of its master link.
                  */
-		pll_id = g->nvlink.links[i].pll_master_link_id >> 1;
-		pad_ctrl  |= BIT(pll_id);
-		swap_ctrl |= BIT(pll_id);
+		pll_id = g->nvlink.links[link_id].pll_master_link_id >> 1;
+		pad_ctrl  |= BIT32(pll_id);
+		swap_ctrl |= BIT32(pll_id);
 	}
 
 	if (g->ops.top.set_nvhsclk_ctrl_e_clk_nvl) {
@@ -516,24 +524,26 @@ int gv100_nvlink_setup_pll(struct gk20a *g, unsigned long link_mask)
 		g->ops.top.set_nvhsclk_ctrl_swap_clk_nvl(g, swap_ctrl);
 	}
 
-	for_each_set_bit(i, &link_mask, 32) {
-		reg = gk20a_readl(g, TRIM_SYS_NVLINK_CTRL(i));
+	for_each_set_bit(bit, &link_mask, NVLINK_MAX_LINKS_SW) {
+		link_id = (u32)bit;
+		reg = gk20a_readl(g, TRIM_SYS_NVLINK_CTRL(link_id));
 		reg = set_field(reg,
 			trim_sys_nvlink0_ctrl_unit2clks_pll_turn_off_m(),
 			trim_sys_nvlink0_ctrl_unit2clks_pll_turn_off_f(0));
-		gk20a_writel(g, TRIM_SYS_NVLINK_CTRL(i), reg);
+		gk20a_writel(g, TRIM_SYS_NVLINK_CTRL(link_id), reg);
 	}
 
 	/* Poll for links to go up */
-	links_off = link_mask;
+	links_off = (u32) link_mask;
 
 	nvgpu_timeout_init(g, &timeout,
 		NVLINK_PLL_ON_TIMEOUT_MS, NVGPU_TIMER_CPU_TIMER);
 	do {
-		for_each_set_bit(i, &link_mask, 32) {
-			reg = gk20a_readl(g, TRIM_SYS_NVLINK_STATUS(i));
+		for_each_set_bit(bit, &link_mask, NVLINK_MAX_LINKS_SW) {
+			link_id = (u32)bit;
+			reg = gk20a_readl(g, TRIM_SYS_NVLINK_STATUS(link_id));
 			if (trim_sys_nvlink0_status_pll_off_v(reg) == 0) {
-				links_off &= ~BIT(i);
+				links_off &= ~BIT32(link_id);
 			}
 		}
 		nvgpu_udelay(5);
@@ -559,25 +569,27 @@ static void gv100_nvlink_prog_alt_clk(struct gk20a *g)
 	gk20a_writel(g, trim_sys_nvl_common_clk_alt_switch_r(), tmp);
 }
 
-static int gv100_nvlink_enable_links_pre_top(struct gk20a *g, u32 links)
+static int gv100_nvlink_enable_links_pre_top(struct gk20a *g,
+							unsigned long links)
 {
 	u32 link_id;
-	unsigned long enabled_links = links;
 	u32 tmp;
 	u32 reg;
 	u32 delay = ioctrl_reset_sw_post_reset_delay_microseconds_v();
 	int err;
+	unsigned long bit;
 
-	nvgpu_log(g, gpu_dbg_nvlink, " enabling 0x%lx links", enabled_links);
+	nvgpu_log(g, gpu_dbg_nvlink, " enabling 0x%lx links", links);
 	/* Take links out of reset */
-	for_each_set_bit(link_id, &enabled_links, 32) {
+	for_each_set_bit(bit, &links, NVLINK_MAX_LINKS_SW) {
+		link_id = (u32)bit;
 		reg = IOCTRL_REG_RD32(g, ioctrl_reset_r());
 
-		tmp = (BIT(link_id) |
-			BIT(g->nvlink.links[link_id].pll_master_link_id));
+		tmp = (BIT32(link_id) |
+			BIT32(g->nvlink.links[link_id].pll_master_link_id));
 
 		reg = set_field(reg, ioctrl_reset_linkreset_m(),
-			ioctrl_reset_linkreset_f( ioctrl_reset_linkreset_v(reg) |
+			ioctrl_reset_linkreset_f(ioctrl_reset_linkreset_v(reg) |
 			tmp));
 
 		IOCTRL_REG_WR32(g, ioctrl_reset_r(), reg);
@@ -585,11 +597,11 @@ static int gv100_nvlink_enable_links_pre_top(struct gk20a *g, u32 links)
 
 		reg = IOCTRL_REG_RD32(g, ioctrl_debug_reset_r());
 
-		reg &= ~ioctrl_debug_reset_link_f(BIT(link_id));
+		reg &= ~ioctrl_debug_reset_link_f(BIT32(link_id));
 		IOCTRL_REG_WR32(g, ioctrl_debug_reset_r(), reg);
 		nvgpu_udelay(delay);
 
-		reg |= ioctrl_debug_reset_link_f(BIT(link_id));
+		reg |= ioctrl_debug_reset_link_f(BIT32(link_id));
 		IOCTRL_REG_WR32(g, ioctrl_debug_reset_r(), reg);
 		nvgpu_udelay(delay);
 
@@ -610,26 +622,27 @@ static int gv100_nvlink_enable_links_pre_top(struct gk20a *g, u32 links)
 		DLPL_REG_WR32(g, link_id, nvl_link_config_r(), reg);
 
 		/* This should be done by the NVLINK API */
-		err = gv100_nvlink_minion_init_uphy(g, BIT(link_id), true);
+		err = gv100_nvlink_minion_init_uphy(g, BIT64(link_id), true);
 		if (err != 0) {
 			nvgpu_err(g, "Failed to init phy of link: %u", link_id);
 			return err;
 		}
 
-		err = gv100_nvlink_rxcal_en(g, BIT(link_id));
+		err = gv100_nvlink_rxcal_en(g, BIT64(link_id));
 		if (err != 0) {
 			nvgpu_err(g, "Failed to RXcal on link: %u", link_id);
 			return err;
 		}
 
-		err = gv100_nvlink_minion_data_ready_en(g, BIT(link_id), true);
+		err = gv100_nvlink_minion_data_ready_en(g, BIT64(link_id),
+									true);
 		if (err != 0) {
 			nvgpu_err(g, "Failed to set data ready link:%u",
 				link_id);
 			return err;
 		}
 
-		g->nvlink.enabled_links |= BIT(link_id);
+		g->nvlink.enabled_links |= BIT32(link_id);
 	}
 
 	nvgpu_log(g, gpu_dbg_nvlink, "enabled_links=0x%08x",
@@ -656,31 +669,36 @@ void gv100_nvlink_set_sw_war(struct gk20a *g, u32 link_id)
 	DLPL_REG_WR32(g, link_id, nvl_sl0_safe_ctrl2_tx_r(), reg);
 }
 
-static int gv100_nvlink_enable_links_post_top(struct gk20a *g, u32 links)
+static int gv100_nvlink_enable_links_post_top(struct gk20a *g,
+							unsigned long links)
 {
 	u32 link_id;
+	unsigned long bit;
 	unsigned long enabled_links = (links & g->nvlink.enabled_links) &
 			~g->nvlink.initialized_links;
 
-	for_each_set_bit(link_id, &enabled_links, 32) {
+	for_each_set_bit(bit, &enabled_links, NVLINK_MAX_LINKS_SW) {
+		link_id = (u32)bit;
 		if (g->ops.nvlink.set_sw_war) {
 			g->ops.nvlink.set_sw_war(g, link_id);
 		}
 		g->ops.nvlink.intr.init_nvlipt_intr(g, link_id);
 		g->ops.nvlink.intr.enable_link_intr(g, link_id, true);
 
-		g->nvlink.initialized_links |= BIT(link_id);
+		g->nvlink.initialized_links |= BIT32(link_id);
 	};
 
 	return 0;
 }
 
-static u32 gv100_nvlink_prbs_gen_en(struct gk20a *g, unsigned long mask)
+static int gv100_nvlink_prbs_gen_en(struct gk20a *g, unsigned long mask)
 {
 	u32 reg;
 	u32 link_id;
+	unsigned long bit;
 
-	for_each_set_bit(link_id, &mask, 32) {
+	for_each_set_bit(bit, &mask, NVLINK_MAX_LINKS_SW) {
+		link_id = (u32)bit;
 		/* Write is required as part of HW sequence */
 		DLPL_REG_WR32(g, link_id, nvl_sl1_rxslsm_timeout_2_r(), 0);
 
@@ -703,8 +721,10 @@ static int gv100_nvlink_rxcal_en(struct gk20a *g, unsigned long mask)
 	u32 link_id;
 	struct nvgpu_timeout timeout;
 	u32 reg;
+	unsigned long bit;
 
-	for_each_set_bit(link_id, &mask, 32) {
+	for_each_set_bit(bit, &mask, NVLINK_MAX_LINKS_SW) {
+		link_id = (u32)bit;
 		/* Timeout from HW specs */
 		nvgpu_timeout_init(g, &timeout,
 			8*NVLINK_SUBLINK_TIMEOUT_MS, NVGPU_TIMER_CPU_TIMER);
@@ -780,16 +800,18 @@ fail:
 int gv100_nvlink_discover_link(struct gk20a *g)
 {
 	u32 i;
+	u32 link_id;
 	u32 ioctrl_entry_addr;
-	u8 ioctrl_device_type;
+	u32 ioctrl_device_type;
 	u32 table_entry;
 	u32 ioctrl_info_entry_type;
-	u8 ioctrl_discovery_size;
+	u32 ioctrl_discovery_size;
 	bool is_chain = false;
 	u8 nvlink_num_devices = 0;
 	unsigned long available_links = 0;
 	struct nvgpu_nvlink_device_list *device_table;
-	u32 err = 0;
+	int err = 0;
+	unsigned long bit;
 
 	/*
 	 * Process Entry 0 & 1 of IOCTRL table to find table size
@@ -856,9 +878,9 @@ int gv100_nvlink_discover_link(struct gk20a *g)
 			is_chain = true;
 			device_table[nvlink_num_devices].valid = true;
 			device_table[nvlink_num_devices].device_type =
-				ioctrl_device_type;
+				(u8)ioctrl_device_type;
 			device_table[nvlink_num_devices].device_id =
-				nvlinkip_discovery_common_id_v(table_entry);
+				(u8)nvlinkip_discovery_common_id_v(table_entry);
 			device_table[nvlink_num_devices].device_version =
 				nvlinkip_discovery_common_version_v(
 								table_entry);
@@ -875,11 +897,11 @@ int gv100_nvlink_discover_link(struct gk20a *g)
 						table_entry) << 12;
 
 				device_table[nvlink_num_devices].intr_enum =
-					nvlinkip_discovery_common_intr_v(
+					(u8)nvlinkip_discovery_common_intr_v(
 						table_entry);
 
 				device_table[nvlink_num_devices].reset_enum =
-					nvlinkip_discovery_common_reset_v(
+					(u8)nvlinkip_discovery_common_reset_v(
 						table_entry);
 
 				nvgpu_log(g, gpu_dbg_nvlink, "IOCTRL entry %d type = %d base: 0x%08x intr: %d reset: %d",
@@ -892,9 +914,9 @@ int gv100_nvlink_discover_link(struct gk20a *g)
 				if (device_table[nvlink_num_devices].device_type ==
 					NVL_DEVICE(dlpl)) {
 					device_table[nvlink_num_devices].num_tx =
-						nvlinkip_discovery_common_dlpl_num_tx_v(table_entry);
+						(u8)nvlinkip_discovery_common_dlpl_num_tx_v(table_entry);
 					device_table[nvlink_num_devices].num_rx =
-						nvlinkip_discovery_common_dlpl_num_rx_v(table_entry);
+						(u8)nvlinkip_discovery_common_dlpl_num_rx_v(table_entry);
 
 					nvgpu_log(g, gpu_dbg_nvlink, "DLPL tx: %d rx: %d",
 						device_table[nvlink_num_devices].num_tx,
@@ -919,9 +941,9 @@ int gv100_nvlink_discover_link(struct gk20a *g)
 			if (is_chain) {
 				if (nvlinkip_discovery_common_dlpl_data2_type_v(table_entry)) {
 					device_table[nvlink_num_devices].pll_master =
-						nvlinkip_discovery_common_dlpl_data2_master_v(table_entry);
+						(u8)nvlinkip_discovery_common_dlpl_data2_master_v(table_entry);
 					device_table[nvlink_num_devices].pll_master_id =
-						nvlinkip_discovery_common_dlpl_data2_masterid_v(table_entry);
+						(u8)nvlinkip_discovery_common_dlpl_data2_masterid_v(table_entry);
 					nvgpu_log(g, gpu_dbg_nvlink, "PLL info: Master: %d, Master ID: %d",
 						device_table[nvlink_num_devices].pll_master,
 						device_table[nvlink_num_devices].pll_master_id);
@@ -1014,7 +1036,8 @@ int gv100_nvlink_discover_link(struct gk20a *g)
 						g->nvlink.links[device_table[i].device_id].link_id;
 				}
 
-				available_links |= BIT(device_table[i].device_id);
+				available_links |= BIT64(
+						device_table[i].device_id);
 				continue;
 			}
 
@@ -1117,9 +1140,10 @@ int gv100_nvlink_discover_link(struct gk20a *g)
 	nvgpu_log(g, gpu_dbg_nvlink, "+ Available Links: 0x%08lx", available_links);
 	nvgpu_log(g, gpu_dbg_nvlink, "+ Per-Link Devices:");
 
-	for_each_set_bit(i, &available_links, 32) {
+	for_each_set_bit(bit, &available_links, NVLINK_MAX_LINKS_SW) {
+		link_id = (u32)bit;
 		nvgpu_log(g, gpu_dbg_nvlink, "-- Link %d Dl/Pl Base: 0x%08x TLC Base: 0x%08x MIF Base: 0x%08x",
-			i, g->nvlink.dlpl_base[i], g->nvlink.tl_base[i], g->nvlink.mif_base[i]);
+			link_id, g->nvlink.dlpl_base[link_id], g->nvlink.tl_base[link_id], g->nvlink.mif_base[link_id]);
 	}
 
 	nvgpu_log(g, gpu_dbg_nvlink, "+ IOCTRL Base: 0x%08x", g->nvlink.ioctrl_base);
@@ -1183,8 +1207,8 @@ int gv100_nvlink_discover_ioctrl(struct gk20a *g)
 		}
 
 		ioctrl_table[i].valid = true;
-		ioctrl_table[i].intr_enum = dev_info.intr_id;
-		ioctrl_table[i].reset_enum = dev_info.reset_id;
+		ioctrl_table[i].intr_enum = (u8)dev_info.intr_id;
+		ioctrl_table[i].reset_enum = (u8)dev_info.reset_id;
 		ioctrl_table[i].pri_base_addr = dev_info.pri_base;
 		nvgpu_log(g, gpu_dbg_nvlink,
 			"Dev %d: Pri_Base = 0x%0x Intr = %d Reset = %d",
@@ -1214,7 +1238,7 @@ int gv100_nvlink_link_early_init(struct gk20a *g, unsigned long mask)
 
 	err = gv100_nvlink_enable_links_pre_top(g, mask);
 	if (err != 0) {
-		nvgpu_err(g, "Pre topology failed for links %lx", mask);
+		nvgpu_err(g, "Pre topology failed for links 0x%lx", mask);
 		return err;
 	}
 
@@ -1234,8 +1258,10 @@ int gv100_nvlink_interface_init(struct gk20a *g)
 	unsigned long mask = g->nvlink.enabled_links;
 	u32 link_id;
 	int err;
+	unsigned long bit;
 
-	for_each_set_bit(link_id, &mask, 32) {
+	for_each_set_bit(bit, &mask, NVLINK_MAX_LINKS_SW) {
+		link_id = (u32)bit;
 		g->ops.nvlink.intr.init_mif_intr(g, link_id);
 		g->ops.nvlink.intr.mif_intr_enable(g, link_id, true);
 	}
@@ -1275,7 +1301,8 @@ u32 gv100_nvlink_link_get_state(struct gk20a *g, u32 link_id)
 }
 
 /* Get link mode */
-u32 gv100_nvlink_link_get_mode(struct gk20a *g, u32 link_id)
+enum nvgpu_nvlink_link_mode gv100_nvlink_link_get_mode(struct gk20a *g,
+								u32 link_id)
 {
 	u32 state;
 	if ((BIT(link_id) & g->nvlink.discovered_links) == 0U) {
@@ -1314,7 +1341,8 @@ u32 gv100_nvlink_link_get_mode(struct gk20a *g, u32 link_id)
 }
 
 /* Set Link mode */
-int gv100_nvlink_link_set_mode(struct gk20a *g, u32 link_id, u32 mode)
+int gv100_nvlink_link_set_mode(struct gk20a *g, u32 link_id,
+					enum nvgpu_nvlink_link_mode mode)
 {
 	u32 state;
 	u32 reg;
@@ -1420,7 +1448,7 @@ int gv100_nvlink_link_set_mode(struct gk20a *g, u32 link_id, u32 mode)
 	return err;
 }
 
-static u32 gv100_nvlink_link_sublink_check_change(struct gk20a *g, u32 link_id)
+static int gv100_nvlink_link_sublink_check_change(struct gk20a *g, u32 link_id)
 {
 	struct nvgpu_timeout timeout;
 	u32 reg;
@@ -1447,15 +1475,16 @@ static u32 gv100_nvlink_link_sublink_check_change(struct gk20a *g, u32 link_id)
 	if (nvgpu_timeout_peek_expired(&timeout) != 0) {
 		return -ETIMEDOUT;
 	}
-	return-0;
+	return 0;
 }
 
 int gv100_nvlink_link_set_sublink_mode(struct gk20a *g, u32 link_id,
-					bool is_rx_sublink, u32 mode)
+					bool is_rx_sublink,
+					enum nvgpu_nvlink_sublink_mode mode)
 {
 	int err = 0;
-	u32 rx_sublink_state = nvgpu_nvlink_sublink_rx__last;
-	u32 tx_sublink_state = nvgpu_nvlink_sublink_tx__last;
+	u32 rx_sublink_state = U32_MAX;
+	u32 tx_sublink_state = U32_MAX;
 	u32 reg;
 
 	if ((BIT(link_id) & g->nvlink.enabled_links) == 0U) {
@@ -1503,16 +1532,16 @@ int gv100_nvlink_link_set_sublink_mode(struct gk20a *g, u32 link_id,
 		}
 		break;
 	case nvgpu_nvlink_sublink_tx_common:
-		err = gv100_nvlink_minion_init_uphy(g, BIT(link_id), true);
+		err = gv100_nvlink_minion_init_uphy(g, BIT64(link_id), true);
 		break;
 	case nvgpu_nvlink_sublink_tx_common_disable:
 		/* NOP */
 		break;
 	case nvgpu_nvlink_sublink_tx_data_ready:
-		err = gv100_nvlink_minion_data_ready_en(g, BIT(link_id), true);
+		err = gv100_nvlink_minion_data_ready_en(g, BIT64(link_id), true);
 		break;
 	case nvgpu_nvlink_sublink_tx_prbs_en:
-		err = gv100_nvlink_prbs_gen_en(g, BIT(link_id));
+		err = gv100_nvlink_prbs_gen_en(g, BIT64(link_id));
 		break;
 	case nvgpu_nvlink_sublink_tx_safe:
 		if (tx_sublink_state ==
@@ -1594,7 +1623,7 @@ int gv100_nvlink_link_set_sublink_mode(struct gk20a *g, u32 link_id,
 		}
 		break;
 	case nvgpu_nvlink_sublink_rx_rxcal:
-		err = gv100_nvlink_rxcal_en(g, BIT(link_id));
+		err = gv100_nvlink_rxcal_en(g, BIT64(link_id));
 		break;
 
 	default:
@@ -1618,8 +1647,9 @@ int gv100_nvlink_link_set_sublink_mode(struct gk20a *g, u32 link_id,
 	return err;
 }
 
-u32 gv100_nvlink_link_get_sublink_mode(struct gk20a *g, u32 link_id,
-							bool is_rx_sublink)
+enum nvgpu_nvlink_sublink_mode gv100_nvlink_link_get_sublink_mode(
+						struct gk20a *g, u32 link_id,
+						bool is_rx_sublink)
 {
 	u32 state;
 
