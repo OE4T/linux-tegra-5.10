@@ -109,23 +109,28 @@ exit:
 int nvgpu_falcon_reset(struct nvgpu_falcon *flcn)
 {
 	struct nvgpu_falcon_ops *flcn_ops;
+	struct gk20a *g;
 	int status = 0;
 
 	if (flcn == NULL) {
 		return -EINVAL;
 	}
 
+	g = flcn->g;
 	flcn_ops = &flcn->flcn_ops;
 
-	if (flcn_ops->reset != NULL) {
-		status = flcn_ops->reset(flcn);
-		if (status == 0) {
-			status = nvgpu_falcon_mem_scrub_wait(flcn);
-                }
+	if (flcn->flcn_engine_dep_ops.reset_eng != NULL) {
+		/* falcon & engine reset */
+		status = flcn->flcn_engine_dep_ops.reset_eng(g);
+	} else if (flcn_ops->reset != NULL) {
+		flcn_ops->reset(flcn);
 	} else {
-		nvgpu_warn(flcn->g, "Invalid op on falcon 0x%x ",
-			flcn->flcn_id);
+		nvgpu_warn(g, "Invalid op on falcon 0x%x ", flcn->flcn_id);
 		status = -EINVAL;
+	}
+
+	if (status == 0) {
+		status = nvgpu_falcon_mem_scrub_wait(flcn);
 	}
 
 	return status;

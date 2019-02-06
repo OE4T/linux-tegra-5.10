@@ -28,25 +28,17 @@
 
 #include <nvgpu/hw/gm20b/hw_falcon_gm20b.h>
 
-static int gk20a_falcon_reset(struct nvgpu_falcon *flcn)
+static void gk20a_falcon_reset(struct nvgpu_falcon *flcn)
 {
 	struct gk20a *g = flcn->g;
 	u32 base_addr = flcn->flcn_base;
 	u32 unit_status = 0;
-	int status = 0;
 
-	if (flcn->flcn_engine_dep_ops.reset_eng != NULL) {
-		/* falcon & engine reset */
-		status = flcn->flcn_engine_dep_ops.reset_eng(g);
-	} else {
-		/* do falcon CPU hard reset */
-		unit_status = gk20a_readl(g, base_addr +
-				falcon_falcon_cpuctl_r());
-		gk20a_writel(g, base_addr + falcon_falcon_cpuctl_r(),
-			(unit_status | falcon_falcon_cpuctl_hreset_f(1)));
-	}
-
-	return status;
+	/* do falcon CPU hard reset */
+	unit_status = gk20a_readl(g, base_addr +
+			falcon_falcon_cpuctl_r());
+	gk20a_writel(g, base_addr + falcon_falcon_cpuctl_r(),
+		(unit_status | falcon_falcon_cpuctl_hreset_f(1)));
 }
 
 static bool gk20a_falcon_clear_halt_interrupt_status(struct nvgpu_falcon *flcn)
