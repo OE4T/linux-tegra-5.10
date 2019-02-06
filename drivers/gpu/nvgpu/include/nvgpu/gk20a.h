@@ -64,6 +64,7 @@ struct nvgpu_sgl;
 struct nvgpu_device_info;
 struct nvgpu_gr_subctx;
 struct nvgpu_channel_hw_state;
+struct nvgpu_engine_status_info;
 
 #include <nvgpu/lock.h>
 #include <nvgpu/thread.h>
@@ -914,6 +915,10 @@ struct gpu_ops {
 		void (*reset_faulted)(struct gk20a *g, struct channel_gk20a *ch,
 				bool eng, bool pbdma);
 	} channel;
+	struct {
+		void (*read_engine_status_info) (struct gk20a *g,
+			u32 engine_id, struct nvgpu_engine_status_info *status);
+	} engine_status;
 	struct pmu_v {
 		u32 (*get_pmu_cmdline_args_size)(struct nvgpu_pmu *pmu);
 		void (*set_pmu_cmdline_args_cpu_freq)(struct nvgpu_pmu *pmu,
