@@ -536,18 +536,25 @@ u32 nvgpu_falcon_mailbox_read(struct nvgpu_falcon *flcn, u32 mailbox_index)
 	u32 data = 0;
 
 	if (flcn == NULL) {
-		return 0;
+		goto exit;
 	}
 
 	flcn_ops = &flcn->flcn_ops;
 
-	if (flcn_ops->mailbox_read != NULL) {
-		data = flcn_ops->mailbox_read(flcn, mailbox_index);
-	} else {
+	if (flcn_ops->mailbox_read == NULL) {
 		nvgpu_warn(flcn->g, "Invalid op on falcon 0x%x ",
 			flcn->flcn_id);
+		goto exit;
 	}
 
+	if (mailbox_index >= FALCON_MAILBOX_COUNT) {
+		nvgpu_err(flcn->g, "incorrect mailbox id %d", mailbox_index);
+		goto exit;
+	}
+
+	data = flcn_ops->mailbox_read(flcn, mailbox_index);
+
+exit:
 	return data;
 }
 
@@ -557,17 +564,26 @@ void nvgpu_falcon_mailbox_write(struct nvgpu_falcon *flcn, u32 mailbox_index,
 	struct nvgpu_falcon_ops *flcn_ops;
 
 	if (flcn == NULL) {
-		return;
+		goto exit;
 	}
 
 	flcn_ops = &flcn->flcn_ops;
 
-	if (flcn_ops->mailbox_write != NULL) {
-		flcn_ops->mailbox_write(flcn, mailbox_index, data);
-	} else {
+	if (flcn_ops->mailbox_write == NULL) {
 		nvgpu_warn(flcn->g, "Invalid op on falcon 0x%x ",
 			flcn->flcn_id);
+		goto exit;
 	}
+
+	if (mailbox_index >= FALCON_MAILBOX_COUNT) {
+		nvgpu_err(flcn->g, "incorrect mailbox id %d", mailbox_index);
+		goto exit;
+	}
+
+	flcn_ops->mailbox_write(flcn, mailbox_index, data);
+
+exit:
+	return;
 }
 
 void nvgpu_falcon_dump_stats(struct nvgpu_falcon *flcn)

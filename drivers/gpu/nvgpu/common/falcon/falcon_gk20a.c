@@ -344,13 +344,9 @@ static u32 gk20a_falcon_mailbox_read(struct nvgpu_falcon *flcn,
 	struct gk20a *g = flcn->g;
 	u32 data = 0;
 
-	if (mailbox_index < FALCON_MAILBOX_COUNT) {
-		data =  gk20a_readl(g, flcn->flcn_base + (mailbox_index != 0U ?
-						falcon_falcon_mailbox1_r() :
-						falcon_falcon_mailbox0_r()));
-	} else {
-		nvgpu_err(g, "incorrect mailbox id %d", mailbox_index);
-	}
+	data =  gk20a_readl(g, flcn->flcn_base + (mailbox_index != 0U ?
+					falcon_falcon_mailbox1_r() :
+					falcon_falcon_mailbox0_r()));
 
 	return data;
 }
@@ -360,15 +356,11 @@ static void gk20a_falcon_mailbox_write(struct nvgpu_falcon *flcn,
 {
 	struct gk20a *g = flcn->g;
 
-	if (mailbox_index < FALCON_MAILBOX_COUNT) {
-		gk20a_writel(g,
-			    flcn->flcn_base + (mailbox_index != 0U ?
-					     falcon_falcon_mailbox1_r() :
-					     falcon_falcon_mailbox0_r()),
-			    data);
-	} else {
-		nvgpu_err(g, "incorrect mailbox id %d", mailbox_index);
-	}
+	gk20a_writel(g,
+		    flcn->flcn_base + (mailbox_index != 0U ?
+				     falcon_falcon_mailbox1_r() :
+				     falcon_falcon_mailbox0_r()),
+		    data);
 }
 
 static int gk20a_falcon_bl_bootstrap(struct nvgpu_falcon *flcn,
