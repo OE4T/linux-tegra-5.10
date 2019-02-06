@@ -143,9 +143,7 @@ void nvgpu_falcon_set_irq(struct nvgpu_falcon *flcn, bool enable,
 	flcn_ops = &flcn->flcn_ops;
 
 	if (flcn_ops->set_irq != NULL) {
-		flcn->intr_mask = intr_mask;
-		flcn->intr_dest = intr_dest;
-		flcn_ops->set_irq(flcn, enable);
+		flcn_ops->set_irq(flcn, enable, intr_mask, intr_dest);
 	} else {
 		nvgpu_warn(flcn->g, "Invalid op on falcon 0x%x ",
 			flcn->flcn_id);

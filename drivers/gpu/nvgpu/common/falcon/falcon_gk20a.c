@@ -70,7 +70,8 @@ static bool gk20a_falcon_clear_halt_interrupt_status(struct nvgpu_falcon *flcn)
 	return status;
 }
 
-static void gk20a_falcon_set_irq(struct nvgpu_falcon *flcn, bool enable)
+static void gk20a_falcon_set_irq(struct nvgpu_falcon *flcn, bool enable,
+	u32 intr_mask, u32 intr_dest)
 {
 	struct gk20a *g = flcn->g;
 	u32 base_addr = flcn->flcn_base;
@@ -84,9 +85,9 @@ static void gk20a_falcon_set_irq(struct nvgpu_falcon *flcn, bool enable)
 
 	if (enable) {
 		gk20a_writel(g, base_addr + falcon_falcon_irqmset_r(),
-			flcn->intr_mask);
+			intr_mask);
 		gk20a_writel(g, base_addr + falcon_falcon_irqdest_r(),
-			flcn->intr_dest);
+			intr_dest);
 	} else {
 		gk20a_writel(g, base_addr + falcon_falcon_irqmclr_r(),
 			0xffffffffU);

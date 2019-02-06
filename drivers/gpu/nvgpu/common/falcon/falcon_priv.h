@@ -174,7 +174,8 @@ struct nvgpu_falcon_engine_dependency_ops {
 
 struct nvgpu_falcon_ops {
 	int (*reset)(struct nvgpu_falcon *flcn);
-	void (*set_irq)(struct nvgpu_falcon *flcn, bool enable);
+	void (*set_irq)(struct nvgpu_falcon *flcn, bool enable,
+			u32 intr_mask, u32 intr_dest);
 	bool (*clear_halt_interrupt_status)(struct nvgpu_falcon *flcn);
 	bool (*is_falcon_cpu_halted)(struct nvgpu_falcon *flcn);
 	bool (*is_falcon_idle)(struct nvgpu_falcon *flcn);
@@ -204,13 +205,8 @@ struct nvgpu_falcon {
 	struct gk20a *g;
 	u32 flcn_id;
 	u32 flcn_base;
-	u32 flcn_core_rev;
 	bool is_falcon_supported;
 	bool is_interrupt_enabled;
-	u32 intr_mask;
-	u32 intr_dest;
-	bool isr_enabled;
-	struct nvgpu_mutex isr_mutex;
 	struct nvgpu_mutex copy_lock;
 	struct nvgpu_falcon_ops flcn_ops;
 	struct nvgpu_falcon_engine_dependency_ops flcn_engine_dep_ops;
