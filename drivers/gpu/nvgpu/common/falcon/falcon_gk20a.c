@@ -68,13 +68,6 @@ static void gk20a_falcon_set_irq(struct nvgpu_falcon *flcn, bool enable,
 	struct gk20a *g = flcn->g;
 	u32 base_addr = flcn->flcn_base;
 
-	if (!flcn->is_interrupt_enabled) {
-		nvgpu_warn(g, "Interrupt not supported on flcn 0x%x ",
-			flcn->flcn_id);
-		/* Keep interrupt disabled */
-		enable = false;
-	}
-
 	if (enable) {
 		gk20a_writel(g, base_addr + falcon_falcon_irqmset_r(),
 			intr_mask);

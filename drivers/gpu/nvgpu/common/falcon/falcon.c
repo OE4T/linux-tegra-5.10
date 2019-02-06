@@ -140,19 +140,28 @@ void nvgpu_falcon_set_irq(struct nvgpu_falcon *flcn, bool enable,
 	u32 intr_mask, u32 intr_dest)
 {
 	struct nvgpu_falcon_ops *flcn_ops;
+	struct gk20a *g;
 
 	if (flcn == NULL) {
 		return;
 	}
 
+	g = flcn->g;
 	flcn_ops = &flcn->flcn_ops;
 
-	if (flcn_ops->set_irq != NULL) {
-		flcn_ops->set_irq(flcn, enable, intr_mask, intr_dest);
-	} else {
-		nvgpu_warn(flcn->g, "Invalid op on falcon 0x%x ",
-			flcn->flcn_id);
+	if (flcn_ops->set_irq == NULL) {
+		nvgpu_warn(g, "Invalid op on falcon 0x%x ", flcn->flcn_id);
+		return;
 	}
+
+	if (!flcn->is_interrupt_enabled) {
+		nvgpu_warn(g, "Interrupt not supported on flcn 0x%x ",
+			flcn->flcn_id);
+		/* Keep interrupt disabled */
+		enable = false;
+	}
+
+	flcn_ops->set_irq(flcn, enable, intr_mask, intr_dest);
 }
 
 int nvgpu_falcon_wait_for_halt(struct nvgpu_falcon *flcn, unsigned int timeout)
