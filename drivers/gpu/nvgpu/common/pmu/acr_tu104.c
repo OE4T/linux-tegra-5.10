@@ -29,6 +29,7 @@
 #include <nvgpu/pmu.h>
 #include <nvgpu/dma.h>
 #include <nvgpu/gk20a.h>
+#include <nvgpu/sec2if/sec2_if_cmn.h>
 
 #include "gv100/gsp_gv100.h"
 #include "tu104/sec2_tu104.h"
@@ -57,6 +58,21 @@ static int tu104_bootstrap_hs_acr(struct gk20a *g, struct nvgpu_acr *acr,
 
 exit:
 	return err;
+}
+
+/* LSF init */
+static u32 tu104_acr_lsf_sec2(struct gk20a *g,
+		struct acr_lsf_config *lsf)
+{
+	/* SEC2 LS falcon info */
+	lsf->falcon_id = FALCON_ID_SEC2;
+	lsf->falcon_dma_idx = NV_SEC2_DMAIDX_UCODE;
+	lsf->is_lazy_bootstrap = false;
+	lsf->is_priv_load = false;
+	lsf->get_lsf_ucode_details = NULL;
+	lsf->get_cmd_line_args_offset = NULL;
+
+	return BIT32(lsf->falcon_id);
 }
 
 /* ACR-AHESASC(ACR hub encryption setter and signature checker) init*/
@@ -144,6 +160,9 @@ void nvgpu_tu104_acr_sw_init(struct gk20a *g, struct nvgpu_acr *acr)
 
 	/* Inherit settings from older chip */
 	nvgpu_gp106_acr_sw_init(g, acr);
+
+	acr->lsf_enable_mask |= tu104_acr_lsf_sec2(g,
+		&acr->lsf[FALCON_ID_SEC2]);
 
 	acr->prepare_ucode_blob = gp106_prepare_ucode_blob;
 	acr->bootstrap_owner = FALCON_ID_GSPLITE;

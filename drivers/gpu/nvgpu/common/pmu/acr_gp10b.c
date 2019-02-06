@@ -1,7 +1,5 @@
 /*
- * GV11B PMU
- *
- * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -22,17 +20,38 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NVGPU_PMU_GV11B_H
-#define NVGPU_PMU_GV11B_H
+#include <nvgpu/types.h>
+#include <nvgpu/acr/nvgpu_acr.h>
+#include <nvgpu/gk20a.h>
+#include <nvgpu/pmu.h>
 
-struct gk20a;
+#include "acr_gm20b.h"
+#include "acr_gp10b.h"
 
-bool gv11b_is_pmu_supported(struct gk20a *g);
-int gv11b_pmu_bootstrap(struct nvgpu_pmu *pmu);
-int gv11b_pg_gr_init(struct gk20a *g, u32 pg_engine_id);
-int gv11b_pg_set_subfeature_mask(struct gk20a *g, u32 pg_engine_id);
-int gv11b_pmu_setup_elpg(struct gk20a *g);
 
-u32 gv11b_pmu_get_irqdest(struct gk20a *g);
-void gv11b_pmu_handle_ext_irq(struct gk20a *g, u32 intr0);
-#endif /* NVGPU_PMU_GV11B_H */
+/* LSF static config functions */
+static u32 gp10b_acr_lsf_gpccs(struct gk20a *g,
+		struct acr_lsf_config *lsf)
+{
+	/* GPCCS LS falcon info */
+	lsf->falcon_id = FALCON_ID_GPCCS;
+	lsf->falcon_dma_idx = GK20A_PMU_DMAIDX_UCODE;
+	lsf->is_lazy_bootstrap = true;
+	lsf->is_priv_load = true;
+	lsf->get_lsf_ucode_details = NULL;
+	lsf->get_cmd_line_args_offset = NULL;
+
+	return BIT32(lsf->falcon_id);
+}
+
+void nvgpu_gp10b_acr_sw_init(struct gk20a *g, struct nvgpu_acr *acr)
+{
+	nvgpu_log_fn(g, " ");
+
+	/* inherit the gm20b config data */
+	nvgpu_gm20b_acr_sw_init(g, acr);
+
+	/* gp10b supports LSF gpccs bootstrap */
+	acr->lsf_enable_mask |= gp10b_acr_lsf_gpccs(g,
+		&acr->lsf[FALCON_ID_GPCCS]);
+}

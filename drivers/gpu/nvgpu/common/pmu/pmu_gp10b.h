@@ -27,9 +27,6 @@
 
 struct gk20a;
 
-
-bool gp10b_is_lazy_bootstrap(u32 falcon_id);
-bool gp10b_is_priv_load(u32 falcon_id);
 bool gp10b_is_pmu_supported(struct gk20a *g);
 int gp10b_pmu_elpg_statistics(struct gk20a *g, u32 pg_engine_id,
 		struct pmu_pg_stats_data *pg_stat_data);

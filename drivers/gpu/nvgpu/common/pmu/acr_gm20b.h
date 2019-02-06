@@ -35,8 +35,6 @@
 
 bool gm20b_is_pmu_supported(struct gk20a *g);
 int prepare_ucode_blob(struct gk20a *g);
-bool gm20b_is_lazy_bootstrap(u32 falcon_id);
-bool gm20b_is_priv_load(u32 falcon_id);
 int gm20b_pmu_populate_loader_cfg(struct gk20a *g,
 	void *lsfm, u32 *p_bl_gen_desc_size);
 int gm20b_flcn_populate_bl_dmem_desc(struct gk20a *g,

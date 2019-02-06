@@ -1078,8 +1078,6 @@ int gv11b_init_hal(struct gk20a *g)
 
 		gops->pmu.init_wpr_region = gm20b_pmu_init_acr;
 		gops->pmu.load_lsfalcon_ucode = gp10b_load_falcon_ucode;
-		gops->pmu.is_lazy_bootstrap = gv11b_is_lazy_bootstrap,
-		gops->pmu.is_priv_load = gv11b_is_priv_load,
 
 		gops->gr.load_ctxsw_ucode = gr_gm20b_load_ctxsw_ucode;
 	} else {

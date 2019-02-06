@@ -203,42 +203,6 @@ bool gp106_pmu_is_lpwr_feature_supported(struct gk20a *g, u32 feature_id)
 	return is_feature_supported;
 }
 
-bool gp106_is_lazy_bootstrap(u32 falcon_id)
-{
-	bool enable_status = false;
-
-	switch (falcon_id) {
-	case FALCON_ID_FECS:
-		enable_status = true;
-		break;
-	case FALCON_ID_GPCCS:
-		enable_status = true;
-		break;
-	default:
-		break;
-	}
-
-	return enable_status;
-}
-
-bool gp106_is_priv_load(u32 falcon_id)
-{
-	bool enable_status = false;
-
-	switch (falcon_id) {
-	case FALCON_ID_FECS:
-		enable_status = true;
-		break;
-	case FALCON_ID_GPCCS:
-		enable_status = true;
-		break;
-	default:
-		break;
-	}
-
-	return enable_status;
-}
-
 static void gp106_pmu_load_multiple_falcons(struct gk20a *g, u32 falconidmask,
 					 u32 flags)
 {

@@ -130,6 +130,62 @@ int gv11b_acr_patch_wpr_info_to_ucode(struct gk20a *g, struct nvgpu_acr *acr,
 	return 0;
 }
 
+/* LSF static config functions */
+static u32 gv11b_acr_lsf_pmu(struct gk20a *g,
+		struct acr_lsf_config *lsf)
+{
+	/* PMU LS falcon info */
+	lsf->falcon_id = FALCON_ID_PMU;
+	lsf->falcon_dma_idx = GK20A_PMU_DMAIDX_UCODE;
+	lsf->is_lazy_bootstrap = false;
+	lsf->is_priv_load = false;
+	lsf->get_lsf_ucode_details = NULL;
+	lsf->get_cmd_line_args_offset = NULL;
+
+	return BIT32(lsf->falcon_id);
+}
+
+/* LSF init */
+static u32 gv11b_acr_lsf_fecs(struct gk20a *g,
+		struct acr_lsf_config *lsf)
+{
+	/* FECS LS falcon info */
+	lsf->falcon_id = FALCON_ID_FECS;
+	lsf->falcon_dma_idx = GK20A_PMU_DMAIDX_UCODE;
+	lsf->is_lazy_bootstrap = true;
+	lsf->is_priv_load = false;
+	lsf->get_lsf_ucode_details = NULL;
+	lsf->get_cmd_line_args_offset = NULL;
+
+	return BIT32(lsf->falcon_id);
+}
+
+static u32 gv11b_acr_lsf_gpccs(struct gk20a *g,
+		struct acr_lsf_config *lsf)
+{
+	/* FECS LS falcon info */
+	lsf->falcon_id = FALCON_ID_GPCCS;
+	lsf->falcon_dma_idx = GK20A_PMU_DMAIDX_UCODE;
+	lsf->is_lazy_bootstrap = true;
+	lsf->is_priv_load = true;
+	lsf->get_lsf_ucode_details = NULL;
+	lsf->get_cmd_line_args_offset = NULL;
+
+	return BIT32(lsf->falcon_id);
+}
+
+static u32 gv11b_acr_lsf_conifg(struct gk20a *g,
+	struct nvgpu_acr *acr)
+{
+	u32 lsf_enable_mask = 0;
+
+	lsf_enable_mask |= gv11b_acr_lsf_pmu(g, &acr->lsf[FALCON_ID_PMU]);
+	lsf_enable_mask |= gv11b_acr_lsf_fecs(g, &acr->lsf[FALCON_ID_FECS]);
+	lsf_enable_mask |= gv11b_acr_lsf_gpccs(g, &acr->lsf[FALCON_ID_GPCCS]);
+
+	return lsf_enable_mask;
+}
+
 static void gv11b_acr_default_sw_init(struct gk20a *g, struct hs_acr *hs_acr)
 {
 	struct hs_flcn_bl *hs_bl = &hs_acr->acr_hs_bl;
@@ -157,6 +213,8 @@ void nvgpu_gv11b_acr_sw_init(struct gk20a *g, struct nvgpu_acr *acr)
 
 	acr->bootstrap_owner = FALCON_ID_PMU;
 	acr->max_supported_lsfm = MAX_SUPPORTED_LSFM;
+
+	acr->lsf_enable_mask = gv11b_acr_lsf_conifg(g, acr);
 
 	gv11b_acr_default_sw_init(g, &acr->acr);
 

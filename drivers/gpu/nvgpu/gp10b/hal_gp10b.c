@@ -63,6 +63,7 @@
 #include "common/pmu/pmu_gm20b.h"
 #include "common/pmu/pmu_gp10b.h"
 #include "common/pmu/acr_gm20b.h"
+#include "common/pmu/acr_gp10b.h"
 #include "common/falcon/falcon_gk20a.h"
 #include "common/top/top_gm20b.h"
 #include "common/top/top_gp10b.h"
@@ -856,7 +857,7 @@ static const struct gpu_ops gp10b_ops = {
 				nvgpu_tegra_fuse_read_gcplex_config_fuse,
 	},
 	.acr = {
-		.acr_sw_init = nvgpu_gm20b_acr_sw_init,
+		.acr_sw_init = nvgpu_gp10b_acr_sw_init,
 	},
 	.top = {
 		.device_info_parse_enum = gm20b_device_info_parse_enum,
@@ -935,8 +936,6 @@ int gp10b_init_hal(struct gk20a *g)
 	if (nvgpu_is_enabled(g, NVGPU_SEC_PRIVSECURITY)) {
 		/* Add in ops from gm20b acr */
 		gops->pmu.is_pmu_supported = gm20b_is_pmu_supported,
-		gops->pmu.is_lazy_bootstrap = gm20b_is_lazy_bootstrap,
-		gops->pmu.is_priv_load = gm20b_is_priv_load,
 		gops->pmu.pmu_populate_loader_cfg =
 			gm20b_pmu_populate_loader_cfg,
 		gops->pmu.flcn_populate_bl_dmem_desc =
@@ -948,8 +947,6 @@ int gp10b_init_hal(struct gk20a *g)
 
 		gops->pmu.init_wpr_region = gm20b_pmu_init_acr;
 		gops->pmu.load_lsfalcon_ucode = gp10b_load_falcon_ucode;
-		gops->pmu.is_lazy_bootstrap = gp10b_is_lazy_bootstrap;
-		gops->pmu.is_priv_load = gp10b_is_priv_load;
 
 		gops->gr.load_ctxsw_ucode = gr_gm20b_load_ctxsw_ucode;
 	} else {

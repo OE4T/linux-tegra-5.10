@@ -252,42 +252,6 @@ rel_sig:
 	return err;
 }
 
-bool gm20b_is_lazy_bootstrap(u32 falcon_id)
-{
-	bool enable_status = false;
-
-	switch (falcon_id) {
-	case FALCON_ID_FECS:
-		enable_status = false;
-		break;
-	case FALCON_ID_GPCCS:
-		enable_status = false;
-		break;
-	default:
-		break;
-	}
-
-	return enable_status;
-}
-
-bool gm20b_is_priv_load(u32 falcon_id)
-{
-	bool enable_status = false;
-
-	switch (falcon_id) {
-	case FALCON_ID_FECS:
-		enable_status = false;
-		break;
-	case FALCON_ID_GPCCS:
-		enable_status = false;
-		break;
-	default:
-		break;
-	}
-
-	return enable_status;
-}
-
 int gm20b_alloc_blob_space(struct gk20a *g,
 		size_t size, struct nvgpu_mem *mem)
 {
@@ -449,7 +413,7 @@ int gm20b_pmu_populate_loader_cfg(struct gk20a *g,
 	nvgpu_pmu_dbg(g, "bl start off %d\n", desc->bootloader_start_offset);
 
 	/* Populate the loader_config state*/
-	ldr_cfg->dma_idx = GK20A_PMU_DMAIDX_UCODE;
+	ldr_cfg->dma_idx = g->acr.lsf[FALCON_ID_PMU].falcon_dma_idx;
 	ldr_cfg->code_dma_base = addr_code;
 	ldr_cfg->code_dma_base1 = 0x0;
 	ldr_cfg->code_size_total = desc->app_size;
@@ -523,7 +487,7 @@ int gm20b_flcn_populate_bl_dmem_desc(struct gk20a *g,
 
 	/* Populate the LOADER_CONFIG state */
 	(void) memset((void *) ldr_cfg, 0, sizeof(struct flcn_bl_dmem_desc));
-	ldr_cfg->ctx_dma = GK20A_PMU_DMAIDX_UCODE;
+	ldr_cfg->ctx_dma = g->acr.lsf[falconid].falcon_dma_idx;
 	ldr_cfg->code_dma_base = addr_code;
 	ldr_cfg->non_sec_code_size = desc->app_resident_code_size;
 	ldr_cfg->data_dma_base = addr_data;
@@ -759,7 +723,7 @@ static void lsfm_fill_static_lsb_hdr_info(struct gk20a *g,
 			pnode->lsb_header.flags = data;
 		}
 
-		if (g->ops.pmu.is_priv_load(falcon_id)) {
+		if (g->acr.lsf[falcon_id].is_priv_load) {
 			pnode->lsb_header.flags |=
 				NV_FLCN_ACR_LSF_FLAG_FORCE_PRIV_LOAD_TRUE;
 		}
@@ -787,7 +751,7 @@ static int lsfm_add_ucode_img(struct gk20a *g, struct ls_flcn_mgr *plsfm,
 	pnode->wpr_header.status = LSF_IMAGE_STATUS_COPY;
 
 	pnode->wpr_header.lazy_bootstrap =
-			(u32)g->ops.pmu.is_lazy_bootstrap(falcon_id);
+			(u32)g->acr.lsf[falcon_id].is_lazy_bootstrap;
 
 	/*TODO to check if PDB_PROP_FLCN_LAZY_BOOTSTRAP is to be supported by
 	Android */
@@ -1277,6 +1241,46 @@ void gm20b_remove_acr_support(struct nvgpu_acr *acr)
 	}
 }
 
+/* LSF static config functions */
+static u32 gm20b_acr_lsf_pmu(struct gk20a *g,
+		struct acr_lsf_config *lsf)
+{
+	/* PMU LS falcon info */
+	lsf->falcon_id = FALCON_ID_PMU;
+	lsf->falcon_dma_idx = GK20A_PMU_DMAIDX_UCODE;
+	lsf->is_lazy_bootstrap = false;
+	lsf->is_priv_load = false;
+	lsf->get_lsf_ucode_details = NULL;
+	lsf->get_cmd_line_args_offset = NULL;
+
+	return BIT32(lsf->falcon_id);
+}
+
+static u32 gm20b_acr_lsf_fecs(struct gk20a *g,
+		struct acr_lsf_config *lsf)
+{
+	/* FECS LS falcon info */
+	lsf->falcon_id = FALCON_ID_FECS;
+	lsf->falcon_dma_idx = GK20A_PMU_DMAIDX_UCODE;
+	lsf->is_lazy_bootstrap = false;
+	lsf->is_priv_load = false;
+	lsf->get_lsf_ucode_details = NULL;
+	lsf->get_cmd_line_args_offset = NULL;
+
+	return BIT32(lsf->falcon_id);
+}
+
+static u32 gm20b_acr_lsf_conifg(struct gk20a *g,
+	struct nvgpu_acr *acr)
+{
+	u32 lsf_enable_mask = 0;
+
+	lsf_enable_mask |= gm20b_acr_lsf_pmu(g, &acr->lsf[FALCON_ID_PMU]);
+	lsf_enable_mask |= gm20b_acr_lsf_fecs(g, &acr->lsf[FALCON_ID_FECS]);
+
+	return lsf_enable_mask;
+}
+
 static void gm20b_acr_default_sw_init(struct gk20a *g, struct hs_acr *hs_acr)
 {
 	struct hs_flcn_bl *hs_bl = &hs_acr->acr_hs_bl;
@@ -1308,6 +1312,8 @@ void nvgpu_gm20b_acr_sw_init(struct gk20a *g, struct nvgpu_acr *acr)
 
 	acr->bootstrap_owner = FALCON_ID_PMU;
 	acr->max_supported_lsfm = MAX_SUPPORTED_LSFM;
+
+	acr->lsf_enable_mask = gm20b_acr_lsf_conifg(g, acr);
 
 	gm20b_acr_default_sw_init(g, &acr->acr);
 

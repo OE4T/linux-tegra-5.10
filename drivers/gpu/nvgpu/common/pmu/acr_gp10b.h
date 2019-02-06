@@ -1,7 +1,5 @@
 /*
- * GV11B PMU
- *
- * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -22,17 +20,9 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NVGPU_PMU_GV11B_H
-#define NVGPU_PMU_GV11B_H
+#ifndef NVGPU_ACR_GP10B_H
+#define NVGPU_ACR_GP10B_H
 
-struct gk20a;
+void nvgpu_gp10b_acr_sw_init(struct gk20a *g, struct nvgpu_acr *acr);
 
-bool gv11b_is_pmu_supported(struct gk20a *g);
-int gv11b_pmu_bootstrap(struct nvgpu_pmu *pmu);
-int gv11b_pg_gr_init(struct gk20a *g, u32 pg_engine_id);
-int gv11b_pg_set_subfeature_mask(struct gk20a *g, u32 pg_engine_id);
-int gv11b_pmu_setup_elpg(struct gk20a *g);
-
-u32 gv11b_pmu_get_irqdest(struct gk20a *g);
-void gv11b_pmu_handle_ext_irq(struct gk20a *g, u32 intr0);
-#endif /* NVGPU_PMU_GV11B_H */
+#endif /* NVGPU_ACR_GP10B_H */

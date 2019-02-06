@@ -582,7 +582,7 @@ int gp106_pmu_populate_loader_cfg(struct gk20a *g,
 	/* Populate the LOADER_CONFIG state */
 	(void) memset((void *) ldr_cfg, 0,
 		sizeof(struct flcn_bl_dmem_desc_v1));
-	ldr_cfg->ctx_dma = GK20A_PMU_DMAIDX_UCODE;
+	ldr_cfg->ctx_dma = g->acr.lsf[FALCON_ID_PMU].falcon_dma_idx;
 	flcn64_set_dma(&ldr_cfg->code_dma_base, addr_code);
 	ldr_cfg->non_sec_code_off = desc->app_resident_code_offset;
 	ldr_cfg->non_sec_code_size = desc->app_resident_code_size;
@@ -650,10 +650,10 @@ int gp106_flcn_populate_bl_dmem_desc(struct gk20a *g,
 
 	if (falconid == FALCON_ID_SEC2) {
 		addr_code = addr_base + desc->app_start_offset;
-		ldr_cfg->ctx_dma = NV_SEC2_DMAIDX_UCODE;
+		ldr_cfg->ctx_dma = g->acr.lsf[falconid].falcon_dma_idx;
 		ldr_cfg->non_sec_code_off = desc->app_resident_code_offset;
 	} else {
-		ldr_cfg->ctx_dma = GK20A_PMU_DMAIDX_UCODE;
+		ldr_cfg->ctx_dma = g->acr.lsf[falconid].falcon_dma_idx;
 	}
 
 	flcn64_set_dma(&ldr_cfg->code_dma_base, addr_code);
@@ -931,7 +931,7 @@ void lsfm_fill_static_lsb_hdr_info(struct gk20a *g,
 			pnode->lsb_header.flags = data;
 		}
 
-		if (g->ops.pmu.is_priv_load(falcon_id)) {
+		if (g->acr.lsf[falcon_id].is_priv_load) {
 			pnode->lsb_header.flags |=
 				NV_FLCN_ACR_LSF_FLAG_FORCE_PRIV_LOAD_TRUE;
 		}
@@ -959,7 +959,7 @@ int lsfm_add_ucode_img(struct gk20a *g, struct ls_flcn_mgr_v1 *plsfm,
 	pnode->wpr_header.status = LSF_IMAGE_STATUS_COPY;
 
 	pnode->wpr_header.lazy_bootstrap =
-			(u32)g->ops.pmu.is_lazy_bootstrap(falcon_id);
+			(u32)g->acr.lsf[falcon_id].is_lazy_bootstrap;
 
 	/*TODO to check if PDB_PROP_FLCN_LAZY_BOOTSTRAP is to be supported by
 	Android */
@@ -1209,6 +1209,61 @@ int gp106_acr_fill_bl_dmem_desc(struct gk20a *g,
 	return 0;
 }
 
+/* LSF init */
+static u32 gp106_acr_lsf_pmu(struct gk20a *g,
+		struct acr_lsf_config *lsf)
+{
+	/* PMU LS falcon info */
+	lsf->falcon_id = FALCON_ID_PMU;
+	lsf->falcon_dma_idx = GK20A_PMU_DMAIDX_UCODE;
+	lsf->is_lazy_bootstrap = false;
+	lsf->is_priv_load = false;
+	lsf->get_lsf_ucode_details = NULL;
+	lsf->get_cmd_line_args_offset = NULL;
+
+	return BIT32(lsf->falcon_id);
+}
+
+static u32 gp106_acr_lsf_fecs(struct gk20a *g,
+		struct acr_lsf_config *lsf)
+{
+	/* FECS LS falcon info */
+	lsf->falcon_id = FALCON_ID_FECS;
+	lsf->falcon_dma_idx = GK20A_PMU_DMAIDX_UCODE;
+	lsf->is_lazy_bootstrap = true;
+	lsf->is_priv_load = true;
+	lsf->get_lsf_ucode_details = NULL;
+	lsf->get_cmd_line_args_offset = NULL;
+
+	return BIT32(lsf->falcon_id);
+}
+
+static u32 gp106_acr_lsf_gpccs(struct gk20a *g,
+		struct acr_lsf_config *lsf)
+{
+	/* FECS LS falcon info */
+	lsf->falcon_id = FALCON_ID_GPCCS;
+	lsf->falcon_dma_idx = GK20A_PMU_DMAIDX_UCODE;
+	lsf->is_lazy_bootstrap = true;
+	lsf->is_priv_load = true;
+	lsf->get_lsf_ucode_details = NULL;
+	lsf->get_cmd_line_args_offset = NULL;
+
+	return BIT32(lsf->falcon_id);
+}
+
+static u32 gp106_acr_lsf_conifg(struct gk20a *g,
+	struct nvgpu_acr *acr)
+{
+	u32 lsf_enable_mask = 0;
+
+	lsf_enable_mask |= gp106_acr_lsf_pmu(g, &acr->lsf[FALCON_ID_PMU]);
+	lsf_enable_mask |= gp106_acr_lsf_fecs(g, &acr->lsf[FALCON_ID_FECS]);
+	lsf_enable_mask |= gp106_acr_lsf_gpccs(g, &acr->lsf[FALCON_ID_GPCCS]);
+
+	return lsf_enable_mask;
+}
+
 static void nvgpu_gp106_acr_default_sw_init(struct gk20a *g, struct hs_acr *hs_acr)
 {
 	struct hs_flcn_bl *hs_bl = &hs_acr->acr_hs_bl;
@@ -1236,6 +1291,8 @@ void nvgpu_gp106_acr_sw_init(struct gk20a *g, struct nvgpu_acr *acr)
 
 	acr->bootstrap_owner = FALCON_ID_SEC2;
 	acr->max_supported_lsfm = MAX_SUPPORTED_LSFM;
+
+	acr->lsf_enable_mask = gp106_acr_lsf_conifg(g, acr);
 
 	nvgpu_gp106_acr_default_sw_init(g, &acr->acr);
 

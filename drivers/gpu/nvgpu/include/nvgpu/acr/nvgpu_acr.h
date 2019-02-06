@@ -93,6 +93,17 @@ struct wpr_carveout_info {
 
 /* ACR interfaces */
 
+struct acr_lsf_config {
+	u32 falcon_id;
+	u32 falcon_dma_idx;
+	bool is_lazy_bootstrap;
+	bool is_priv_load;
+
+	int (*get_lsf_ucode_details)(struct gk20a *g, struct nvgpu_acr *acr,
+		struct flcn_ucode_img_v1 *udata);
+	void (*get_cmd_line_args_offset)(struct gk20a *g, u32 *args_offset);
+};
+
 struct hs_flcn_bl {
 	const char *bl_fw_name;
 	struct nvgpu_firmware *hs_bl_fw;
@@ -142,7 +153,9 @@ struct nvgpu_acr {
 
 	u32 bootstrap_owner;
 	u32 max_supported_lsfm;
-	u32 capabilities;
+
+	u32 lsf_enable_mask;
+	struct acr_lsf_config lsf[FALCON_ID_END];
 
 	/*
 	 * non-wpr space to hold LSF ucodes,

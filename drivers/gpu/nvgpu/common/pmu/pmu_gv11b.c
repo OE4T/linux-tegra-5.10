@@ -162,42 +162,6 @@ bool gv11b_is_pmu_supported(struct gk20a *g)
 	return true;
 }
 
-bool gv11b_is_lazy_bootstrap(u32 falcon_id)
-{
-	bool enable_status = false;
-
-	switch (falcon_id) {
-	case FALCON_ID_FECS:
-		enable_status = true;
-		break;
-	case FALCON_ID_GPCCS:
-		enable_status = true;
-		break;
-	default:
-		break;
-	}
-
-	return enable_status;
-}
-
-bool gv11b_is_priv_load(u32 falcon_id)
-{
-	bool enable_status = false;
-
-	switch (falcon_id) {
-	case FALCON_ID_FECS:
-		enable_status = false;
-		break;
-	case FALCON_ID_GPCCS:
-		enable_status = true;
-		break;
-	default:
-		break;
-	}
-
-	return enable_status;
-}
-
 int gv11b_pmu_bootstrap(struct nvgpu_pmu *pmu)
 {
 	struct gk20a *g = gk20a_from_pmu(pmu);

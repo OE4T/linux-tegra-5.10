@@ -834,10 +834,10 @@ int gr_gm20b_load_ctxsw_ucode(struct gk20a *g)
 		} else {
 			/* bind WPR VA inst block */
 			gr_gk20a_load_falcon_bind_instblk(g);
-			if (g->ops.pmu.is_lazy_bootstrap(FALCON_ID_FECS)) {
+			if (g->acr.lsf[FALCON_ID_FECS].is_lazy_bootstrap) {
 				falcon_id_mask |= BIT8(FALCON_ID_FECS);
 			}
-			if (g->ops.pmu.is_lazy_bootstrap(FALCON_ID_GPCCS)) {
+			if (g->acr.lsf[FALCON_ID_GPCCS].is_lazy_bootstrap) {
 				falcon_id_mask |= BIT8(FALCON_ID_GPCCS);
 			}
 

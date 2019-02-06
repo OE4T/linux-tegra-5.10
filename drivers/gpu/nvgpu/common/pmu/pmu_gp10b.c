@@ -311,42 +311,6 @@ void gp10b_write_dmatrfbase(struct gk20a *g, u32 addr)
 				0x0U);
 }
 
-bool gp10b_is_lazy_bootstrap(u32 falcon_id)
-{
-	bool enable_status = false;
-
-	switch (falcon_id) {
-	case FALCON_ID_FECS:
-		enable_status = false;
-		break;
-	case FALCON_ID_GPCCS:
-		enable_status = true;
-		break;
-	default:
-		break;
-	}
-
-	return enable_status;
-}
-
-bool gp10b_is_priv_load(u32 falcon_id)
-{
-	bool enable_status = false;
-
-	switch (falcon_id) {
-	case FALCON_ID_FECS:
-		enable_status = false;
-		break;
-	case FALCON_ID_GPCCS:
-		enable_status = true;
-		break;
-	default:
-		break;
-	}
-
-	return enable_status;
-}
-
 bool gp10b_is_pmu_supported(struct gk20a *g)
 {
 	return true;

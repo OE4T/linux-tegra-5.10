@@ -1221,8 +1221,6 @@ struct gpu_ops {
 		void (*dump_secure_fuses)(struct gk20a *g);
 		int (*reset_engine)(struct gk20a *g, bool do_reset);
 		bool (*is_engine_in_reset)(struct gk20a *g);
-		bool (*is_lazy_bootstrap)(u32 falcon_id);
-		bool (*is_priv_load)(u32 falcon_id);
 		int (*pmu_populate_loader_cfg)(struct gk20a *g,
 			void *lsfm,	u32 *p_bl_gen_desc_size);
 		int (*flcn_populate_bl_dmem_desc)(struct gk20a *g,

@@ -33,8 +33,6 @@ u32 gp106_pmu_pg_feature_list(struct gk20a *g, u32 pg_engine_id);
 u32 gp106_pmu_pg_engines_list(struct gk20a *g);
 int gp106_pg_param_init(struct gk20a *g, u32 pg_engine_id);
 bool gp106_pmu_is_lpwr_feature_supported(struct gk20a *g, u32 feature_id);
-bool gp106_is_lazy_bootstrap(u32 falcon_id);
-bool gp106_is_priv_load(u32 falcon_id);
 int gp106_load_falcon_ucode(struct gk20a *g, u32 falconidmask);
 
 int gp106_pmu_elpg_statistics(struct gk20a *g, u32 pg_engine_id,
