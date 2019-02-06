@@ -229,7 +229,7 @@ static void __update_pte(struct vm_gk20a *vm,
 		pte_w[0] |= gmmu_pte_privilege_true_f();
 	}
 
-	pte_w[1] = nvgpu_aperture_mask_coh(g, attrs->aperture,
+	pte_w[1] = nvgpu_aperture_mask_raw(g, attrs->aperture,
 					 gmmu_pte_aperture_sys_mem_ncoh_f(),
 					 gmmu_pte_aperture_sys_mem_coh_f(),
 					 gmmu_pte_aperture_video_memory_f()) |

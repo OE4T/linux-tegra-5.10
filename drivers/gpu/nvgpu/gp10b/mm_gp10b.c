@@ -80,6 +80,32 @@ clean_up_va:
 	return err;
 }
 
+/*
+ * For GV11B and TU104 MSS NVLINK HW settings are in force_snoop mode.
+ * This will force all the GPU mappings to be coherent.
+ * By default the mem aperture sets as sysmem_non_coherent and will use L2 mode.
+ * Change target pte aperture to sysmem_coherent if mem attribute requests for
+ * platform atomics to use rmw atomic capability.
+ *
+ */
+static u32 gmmu_aperture_mask(struct gk20a *g,
+				  enum nvgpu_aperture mem_ap,
+				  bool platform_atomic_attr,
+				  u32 sysmem_mask,
+				  u32 sysmem_coh_mask,
+				  u32 vidmem_mask)
+{
+	if (nvgpu_is_enabled(g, NVGPU_SUPPORT_PLATFORM_ATOMIC) &&
+			     platform_atomic_attr) {
+		mem_ap = APERTURE_SYSMEM_COH;
+	}
+
+	return nvgpu_aperture_mask_raw(g, mem_ap,
+				sysmem_mask,
+				sysmem_coh_mask,
+				vidmem_mask);
+}
+
 static void update_gmmu_pde3_locked(struct vm_gk20a *vm,
 				    const struct gk20a_mmu_level *l,
 				    struct nvgpu_gmmu_pd *pd,
@@ -199,8 +225,9 @@ static void __update_pte(struct vm_gk20a *vm,
 	u32 pte_addr = attrs->aperture == APERTURE_SYSMEM ?
 		gmmu_new_pte_address_sys_f(u64_lo32(phys_shifted)) :
 		gmmu_new_pte_address_vid_f(u64_lo32(phys_shifted));
-	u32 pte_tgt = nvgpu_aperture_mask_coh(g,
+	u32 pte_tgt = gmmu_aperture_mask(g,
 					attrs->aperture,
+					attrs->platform_atomic,
 					gmmu_new_pte_aperture_sys_mem_ncoh_f(),
 					gmmu_new_pte_aperture_sys_mem_coh_f(),
 					gmmu_new_pte_aperture_video_memory_f());
@@ -264,7 +291,7 @@ static void update_gmmu_pte_locked(struct vm_gk20a *vm,
 		"vm=%s "
 		"PTE: i=%-4u size=%-2u | "
 		"GPU %#-12llx  phys %#-12llx "
-		"pgsz: %3dkb perm=%-2s kind=%#02x APT=%-6s %c%c%c%c "
+		"pgsz: %3dkb perm=%-2s kind=%#02x APT=%-6s %c%c%c%c%c "
 		"ctag=0x%08x "
 		"[0x%08x, 0x%08x]",
 		vm->name,
@@ -278,6 +305,7 @@ static void update_gmmu_pte_locked(struct vm_gk20a *vm,
 		attrs->sparse    ? 'S' : '-',
 		attrs->priv      ? 'P' : '-',
 		attrs->valid     ? 'V' : '-',
+		attrs->platform_atomic ? 'A' : '-',
 		(u32)attrs->ctag / g->ops.fb.compression_page_size(g),
 		pte_w[1], pte_w[0]);
 

@@ -57,17 +57,19 @@ enum gk20a_mem_rw_flag {
  * The following fields are set statically and do not change throughout the
  * mapping call:
  *
- *   pgsz:        Index into the page size table.
- *   kind_v:      Kind attributes for mapping.
- *   cacheable:   Cacheability of the mapping.
- *   rw_flag:     Flag from enum gk20a_mem_rw_flag
- *   sparse:      Set if the mapping should be sparse.
- *   priv:        Privilidged mapping.
- *   valid:       Set if the PTE should be marked valid.
- *   aperture:    VIDMEM or SYSMEM.
- *   debug:       When set print debugging info.
+ *   pgsz:            Index into the page size table.
+ *   kind_v:          Kind attributes for mapping.
+ *   cacheable:       Cacheability of the mapping.
+ *   rw_flag:         Flag from enum gk20a_mem_rw_flag
+ *   sparse:          True if the mapping should be sparse.
+ *   priv:            Privilidged mapping.
+ *   valid:           True if the PTE should be marked valid.
+ *   aperture:        VIDMEM or SYSMEM.
+ *   debug:           When set print debugging info.
+ *   l3_alloc:        True if l3_alloc flag is valid.
+ *   platform_atomic: True if platform_atomic flag is valid.
  *
- * These fields are dynamically updated as necessary during the map:
+ *   These fields are dynamically updated as necessary during the map:
  *
  *   ctag:        Comptag line in the comptag cache;
  *                updated every time we write a PTE.
@@ -83,8 +85,8 @@ struct nvgpu_gmmu_attrs {
 	bool			 valid;
 	enum nvgpu_aperture	 aperture;
 	bool			 debug;
-
 	bool			 l3_alloc;
+	bool			 platform_atomic;
 };
 
 struct gk20a_mmu_level {

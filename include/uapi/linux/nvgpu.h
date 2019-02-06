@@ -1927,6 +1927,7 @@ struct nvgpu_as_bind_channel_args {
 #define NVGPU_AS_MAP_BUFFER_FLAGS_MAPPABLE_COMPBITS (1 << 6)
 #define NVGPU_AS_MAP_BUFFER_FLAGS_L3_ALLOC          (1 << 7)
 #define NVGPU_AS_MAP_BUFFER_FLAGS_DIRECT_KIND_CTRL  (1 << 8)
+#define NVGPU_AS_MAP_BUFFER_FLAGS_PLATFORM_ATOMIC   (1 << 9)
 
 /*
  * VM map buffer IOCTL
@@ -1974,6 +1975,10 @@ struct nvgpu_as_bind_channel_args {
  *
  *     Set when userspace plans to pass in @compr_kind and @incompr_kind
  *     instead of letting the kernel work out kind fields.
+ *
+ *   %NVGPU_AS_MAP_BUFFER_FLAGS_PLATFORM_ATOMIC
+ *
+ *     Specify that a mapping should use platform atomics.
  *
  * @kind  [IN]
  *

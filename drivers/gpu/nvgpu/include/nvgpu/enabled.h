@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -180,10 +180,13 @@ struct gk20a;
 /* ZBC STENCIL support*/
 #define NVGPU_SUPPORT_ZBC_STENCIL		71
 
+/* PLATFORM_ATOMIC support */
+#define NVGPU_SUPPORT_PLATFORM_ATOMIC		72
+
 /*
  * Must be greater than the largest bit offset in the above list.
  */
-#define NVGPU_MAX_ENABLED_BITS			72U
+#define NVGPU_MAX_ENABLED_BITS			73U
 
 /**
  * nvgpu_is_enabled - Check if the passed flag is enabled.
