@@ -85,7 +85,7 @@ static void gv11b_gr_report_ecc_error(struct gk20a *g, u32 hw_module,
 	u32 inst = 0U;
 
 	if (g->ops.gr.err_ops.report_ecc_parity_err == NULL) {
-		return ;
+		return;
 	}
 	if (tpc < 256U) {
 		inst = (gpc << 8) | tpc;
@@ -255,9 +255,25 @@ static void gr_gv11b_handle_l1_tag_exception(struct gk20a *g, u32 gpc, u32 tpc,
 		}
 		g->ecc.gr.sm_l1_tag_ecc_corrected_err_count[gpc][tpc].counter +=
 							l1_tag_corrected_err_count_delta;
-		gv11b_gr_report_ecc_error(g, NVGPU_ERR_MODULE_SM, gpc, tpc,
-				GPU_SM_L1_TAG_ECC_CORRECTED, 0,
-				g->ecc.gr.sm_l1_tag_ecc_corrected_err_count[gpc][tpc].counter);
+		if ((l1_tag_ecc_status &
+			(gr_pri_gpc0_tpc0_sm_l1_tag_ecc_status_corrected_err_el1_0_m() |
+			 gr_pri_gpc0_tpc0_sm_l1_tag_ecc_status_corrected_err_el1_1_m())) != 0U) {
+				gv11b_gr_report_ecc_error(g, NVGPU_ERR_MODULE_SM, gpc, tpc,
+					GPU_SM_L1_TAG_ECC_CORRECTED, 0,
+					g->ecc.gr.sm_l1_tag_ecc_corrected_err_count[gpc][tpc].counter);
+		}
+		if ((l1_tag_ecc_status &
+			gr_pri_gpc0_tpc0_sm_l1_tag_ecc_status_corrected_err_miss_fifo_m()) != 0U) {
+				gv11b_gr_report_ecc_error(g, NVGPU_ERR_MODULE_SM, gpc, tpc,
+					GPU_SM_L1_TAG_MISS_FIFO_ECC_CORRECTED, 0,
+					g->ecc.gr.sm_l1_tag_ecc_corrected_err_count[gpc][tpc].counter);
+		}
+		if ((l1_tag_ecc_status &
+			gr_pri_gpc0_tpc0_sm_l1_tag_ecc_status_corrected_err_pixrpf_m()) != 0U) {
+				gv11b_gr_report_ecc_error(g, NVGPU_ERR_MODULE_SM, gpc, tpc,
+					GPU_SM_L1_TAG_S2R_PIXPRF_ECC_CORRECTED, 0,
+					g->ecc.gr.sm_l1_tag_ecc_corrected_err_count[gpc][tpc].counter);
+		}
 		gk20a_writel(g,
 			gr_pri_gpc0_tpc0_sm_l1_tag_ecc_corrected_err_count_r() + offset,
 			0);
@@ -274,9 +290,25 @@ static void gr_gv11b_handle_l1_tag_exception(struct gk20a *g, u32 gpc, u32 tpc,
 		}
 		g->ecc.gr.sm_l1_tag_ecc_uncorrected_err_count[gpc][tpc].counter +=
 							l1_tag_uncorrected_err_count_delta;
-		gv11b_gr_report_ecc_error(g, NVGPU_ERR_MODULE_SM, gpc, tpc,
-				GPU_SM_L1_TAG_ECC_UNCORRECTED, 0,
-				g->ecc.gr.sm_l1_tag_ecc_uncorrected_err_count[gpc][tpc].counter);
+		if ((l1_tag_ecc_status &
+			(gr_pri_gpc0_tpc0_sm_l1_tag_ecc_status_uncorrected_err_el1_0_m() |
+			 gr_pri_gpc0_tpc0_sm_l1_tag_ecc_status_uncorrected_err_el1_1_m())) != 0U) {
+				gv11b_gr_report_ecc_error(g, NVGPU_ERR_MODULE_SM, gpc, tpc,
+					GPU_SM_L1_TAG_ECC_UNCORRECTED, 0,
+					g->ecc.gr.sm_l1_tag_ecc_uncorrected_err_count[gpc][tpc].counter);
+		}
+		if ((l1_tag_ecc_status &
+			gr_pri_gpc0_tpc0_sm_l1_tag_ecc_status_uncorrected_err_miss_fifo_m()) != 0U) {
+				gv11b_gr_report_ecc_error(g, NVGPU_ERR_MODULE_SM, gpc, tpc,
+					GPU_SM_L1_TAG_MISS_FIFO_ECC_UNCORRECTED, 0,
+					g->ecc.gr.sm_l1_tag_ecc_uncorrected_err_count[gpc][tpc].counter);
+		}
+		if ((l1_tag_ecc_status &
+			gr_pri_gpc0_tpc0_sm_l1_tag_ecc_status_uncorrected_err_pixrpf_m()) != 0U) {
+				gv11b_gr_report_ecc_error(g, NVGPU_ERR_MODULE_SM, gpc, tpc,
+					GPU_SM_L1_TAG_S2R_PIXPRF_ECC_UNCORRECTED, 0,
+					g->ecc.gr.sm_l1_tag_ecc_uncorrected_err_count[gpc][tpc].counter);
+		}
 		gk20a_writel(g,
 			gr_pri_gpc0_tpc0_sm_l1_tag_ecc_uncorrected_err_count_r() + offset,
 			0);
