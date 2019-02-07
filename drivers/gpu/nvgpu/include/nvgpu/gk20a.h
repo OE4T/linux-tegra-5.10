@@ -718,6 +718,12 @@ struct gpu_ops {
 		void (*fault_buf_configure_hw)(struct gk20a *g, u32 index);
 		size_t (*get_vidmem_size)(struct gk20a *g);
 		int (*apply_pdb_cache_war)(struct gk20a *g);
+		struct {
+			int (*report_ecc_parity_err)(struct gk20a *g,
+					u32 hw_id, u32 inst,
+					u32 err_id, u64 err_addr,
+					u64 err_cnt);
+		} err_ops;
 	} fb;
 	struct {
 		u32 (*falcon_base_addr)(void);

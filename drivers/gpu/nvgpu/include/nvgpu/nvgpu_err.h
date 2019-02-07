@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -32,7 +32,8 @@
 #define NVGPU_ERR_MODULE_PWR		6U
 #define NVGPU_ERR_MODULE_FE		7U
 #define NVGPU_ERR_MODULE_LTC		8U
-#define NVGPU_ERR_MODULE_INVALID	9U
+#define NVGPU_ERR_MODULE_HUBMMU		9U
+#define NVGPU_ERR_MODULE_INVALID	10U
 
 #define GPU_HOST_PFIFO_BIND_ERROR		0U
 #define GPU_HOST_PFIFO_SCHED_ERROR		1U
@@ -122,5 +123,15 @@
 #define LTC_CACHE_RSTG_ECC_CORRECTED		4U
 #define LTC_CACHE_RSTG_ECC_UNCORRECTED		5U
 #define LTC_INVALID_ERROR			6U
+
+#define GPU_HUBMMU_L2TLB_SA_DATA_ECC_CORRECTED		0U
+#define GPU_HUBMMU_L2TLB_SA_DATA_ECC_UNCORRECTED	1U
+#define GPU_HUBMMU_TLB_SA_DATA_ECC_CORRECTED		2U
+#define GPU_HUBMMU_TLB_SA_DATA_ECC_UNCORRECTED		3U
+#define GPU_HUBMMU_PTE_DATA_ECC_CORRECTED		4U
+#define GPU_HUBMMU_PTE_DATA_ECC_UNCORRECTED		5U
+#define GPU_HUBMMU_PDE0_DATA_ECC_CORRECTED		6U
+#define GPU_HUBMMU_PDE0_DATA_ECC_UNCORRECTED		7U
+#define GPU_HUBMMU_INVALID_ERROR			8U
 
 #endif

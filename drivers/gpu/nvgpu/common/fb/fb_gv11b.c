@@ -36,6 +36,7 @@
 #include <nvgpu/fifo.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/channel.h>
+#include <nvgpu/nvgpu_err.h>
 
 #include "gk20a/mm_gk20a.h"
 
@@ -48,6 +49,24 @@
 
 #include <nvgpu/hw/gv11b/hw_fb_gv11b.h>
 #include <nvgpu/hw/gv11b/hw_gmmu_gv11b.h>
+
+static void gv11b_hubmmu_report_ecc_error(struct gk20a *g, u32 inst,
+		u32 err_type, u64 err_addr, u64 err_cnt)
+{
+	int ret = 0;
+
+	if (g->ops.fb.err_ops.report_ecc_parity_err == NULL) {
+		return;
+	}
+	ret = g->ops.fb.err_ops.report_ecc_parity_err(g,
+			NVGPU_ERR_MODULE_HUBMMU, inst, err_type, err_addr,
+			err_cnt);
+	if (ret != 0) {
+		nvgpu_err(g, "Failed to report HUBMMU error: inst=%u, "
+				"err_type=%u, err_addr=%llu, err_cnt=%llu",
+				inst, err_type, err_addr, err_cnt);
+	}
+}
 
 static int gv11b_fb_fix_page_fault(struct gk20a *g,
 		 struct mmu_fault_info *mmfault);
@@ -465,10 +484,18 @@ void gv11b_handle_l2tlb_ecc_isr(struct gk20a *g, u32 ecc_status)
 
 	if ((ecc_status &
              fb_mmu_l2tlb_ecc_status_corrected_err_l2tlb_sa_data_m()) != 0U) {
+		gv11b_hubmmu_report_ecc_error(g, 0,
+				GPU_HUBMMU_L2TLB_SA_DATA_ECC_CORRECTED,
+				ecc_addr,
+				g->ecc.fb.mmu_l2tlb_ecc_corrected_err_count[0].counter);
 		nvgpu_log(g, gpu_dbg_intr, "corrected ecc sa data error");
 	}
 	if ((ecc_status &
              fb_mmu_l2tlb_ecc_status_uncorrected_err_l2tlb_sa_data_m()) != 0U) {
+		gv11b_hubmmu_report_ecc_error(g, 0,
+				GPU_HUBMMU_L2TLB_SA_DATA_ECC_UNCORRECTED,
+				ecc_addr,
+				g->ecc.fb.mmu_l2tlb_ecc_uncorrected_err_count[0].counter);
 		nvgpu_log(g, gpu_dbg_intr, "uncorrected ecc sa data error");
 	}
 	if ((corrected_overflow != 0U) || (uncorrected_overflow != 0U)) {
@@ -532,10 +559,18 @@ void gv11b_handle_hubtlb_ecc_isr(struct gk20a *g, u32 ecc_status)
 
 	if ((ecc_status &
 	     fb_mmu_hubtlb_ecc_status_corrected_err_sa_data_m()) != 0U) {
+		gv11b_hubmmu_report_ecc_error(g, 0,
+				GPU_HUBMMU_TLB_SA_DATA_ECC_CORRECTED,
+				ecc_addr,
+				g->ecc.fb.mmu_hubtlb_ecc_corrected_err_count[0].counter);
 		nvgpu_log(g, gpu_dbg_intr, "corrected ecc sa data error");
 	}
 	if ((ecc_status &
 	     fb_mmu_hubtlb_ecc_status_uncorrected_err_sa_data_m()) != 0U) {
+		gv11b_hubmmu_report_ecc_error(g, 0,
+				GPU_HUBMMU_TLB_SA_DATA_ECC_UNCORRECTED,
+				ecc_addr,
+				g->ecc.fb.mmu_hubtlb_ecc_uncorrected_err_count[0].counter);
 		nvgpu_log(g, gpu_dbg_intr, "uncorrected ecc sa data error");
 	}
 	if ((corrected_overflow != 0U) || (uncorrected_overflow != 0U)) {
@@ -599,18 +634,34 @@ void gv11b_handle_fillunit_ecc_isr(struct gk20a *g, u32 ecc_status)
 
 	if ((ecc_status &
              fb_mmu_fillunit_ecc_status_corrected_err_pte_data_m()) != 0U) {
+		gv11b_hubmmu_report_ecc_error(g, 0,
+				GPU_HUBMMU_PTE_DATA_ECC_CORRECTED,
+				ecc_addr,
+				g->ecc.fb.mmu_fillunit_ecc_corrected_err_count[0].counter);
 		nvgpu_log(g, gpu_dbg_intr, "corrected ecc pte data error");
 	}
 	if ((ecc_status &
              fb_mmu_fillunit_ecc_status_uncorrected_err_pte_data_m()) != 0U) {
+		gv11b_hubmmu_report_ecc_error(g, 0,
+				GPU_HUBMMU_PTE_DATA_ECC_UNCORRECTED,
+				ecc_addr,
+				g->ecc.fb.mmu_fillunit_ecc_uncorrected_err_count[0].counter);
 		nvgpu_log(g, gpu_dbg_intr, "uncorrected ecc pte data error");
 	}
 	if ((ecc_status &
              fb_mmu_fillunit_ecc_status_corrected_err_pde0_data_m()) != 0U) {
+		gv11b_hubmmu_report_ecc_error(g, 0,
+				GPU_HUBMMU_PDE0_DATA_ECC_CORRECTED,
+				ecc_addr,
+				g->ecc.fb.mmu_fillunit_ecc_corrected_err_count[0].counter);
 		nvgpu_log(g, gpu_dbg_intr, "corrected ecc pde0 data error");
 	}
 	if ((ecc_status &
              fb_mmu_fillunit_ecc_status_uncorrected_err_pde0_data_m()) != 0U) {
+		gv11b_hubmmu_report_ecc_error(g, 0,
+				GPU_HUBMMU_PDE0_DATA_ECC_UNCORRECTED,
+				ecc_addr,
+				g->ecc.fb.mmu_fillunit_ecc_uncorrected_err_count[0].counter);
 		nvgpu_log(g, gpu_dbg_intr, "uncorrected ecc pde0 data error");
 	}
 
