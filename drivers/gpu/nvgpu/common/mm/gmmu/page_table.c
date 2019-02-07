@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2018, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -83,6 +83,14 @@ static u64 __nvgpu_gmmu_map(struct vm_gk20a *vm,
 
 	if (sgt == NULL) {
 		return 0;
+	}
+
+	/*
+	 * If the GPU is IO coherent and the DMA API is giving us IO coherent
+	 * CPU mappings then we gotta make sure we use the IO coherent aperture.
+	 */
+	if (nvgpu_is_enabled(g, NVGPU_USE_COHERENT_SYSMEM)) {
+		flags |= NVGPU_VM_MAP_IO_COHERENT;
 	}
 
 	/*

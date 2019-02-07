@@ -64,6 +64,16 @@ u32 nvgpu_aperture_mask(struct gk20a *g, struct nvgpu_mem *mem,
 {
 	enum nvgpu_aperture ap = mem->aperture;
 
+	/*
+	 * Handle the coherent aperture: ideally most of the driver is not
+	 * aware of the difference between coherent and non-coherent sysmem so
+	 * we add this translation step here.
+	 */
+	if (nvgpu_is_enabled(g, NVGPU_USE_COHERENT_SYSMEM) &&
+	    ap == APERTURE_SYSMEM) {
+		ap = APERTURE_SYSMEM_COH;
+	}
+
 	return nvgpu_aperture_mask_coh(g, ap,
 				       sysmem_mask,
 				       sysmem_coh_mask,
