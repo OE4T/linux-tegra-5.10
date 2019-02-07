@@ -1093,6 +1093,7 @@ static const struct gpu_ops tu104_ops = {
 		.decode_error_code = gp10b_priv_ring_decode_error_code,
 		.set_ppriv_timeout_settings = NULL,
 		.enum_ltc = gm20b_priv_ring_enum_ltc,
+		.get_gpc_count = gm20b_priv_ring_get_gpc_count,
 	},
 	.fuse = {
 		.is_opt_ecc_enable = gp10b_fuse_is_opt_ecc_enable,

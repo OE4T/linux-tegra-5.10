@@ -1054,6 +1054,7 @@ static const struct gpu_ops gv100_ops = {
 		.set_ppriv_timeout_settings =
 			gm20b_priv_set_timeout_settings,
 		.enum_ltc = gm20b_priv_ring_enum_ltc,
+		.get_gpc_count = gm20b_priv_ring_get_gpc_count,
 	},
 	.fuse = {
 		.is_opt_ecc_enable = gp10b_fuse_is_opt_ecc_enable,

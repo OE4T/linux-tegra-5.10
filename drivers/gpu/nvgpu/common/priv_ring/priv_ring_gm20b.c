@@ -123,3 +123,11 @@ u32 gm20b_priv_ring_enum_ltc(struct gk20a *g)
 {
 	return gk20a_readl(g, pri_ringmaster_enum_ltc_r());
 }
+
+u32 gm20b_priv_ring_get_gpc_count(struct gk20a *g)
+{
+	u32 tmp;
+
+	tmp = nvgpu_readl(g, pri_ringmaster_enum_gpc_r());
+	return pri_ringmaster_enum_gpc_count_v(tmp);
+}

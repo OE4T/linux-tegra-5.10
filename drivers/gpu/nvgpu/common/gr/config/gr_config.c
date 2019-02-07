@@ -24,8 +24,6 @@
 #include <nvgpu/io.h>
 #include <nvgpu/gr/config.h>
 
-#include <nvgpu/hw/gm20b/hw_pri_ringmaster_gm20b.h>
-
 struct nvgpu_gr_config *nvgpu_gr_config_init(struct gk20a *g)
 {
 	struct nvgpu_gr_config *config;
@@ -34,7 +32,6 @@ struct nvgpu_gr_config *nvgpu_gr_config_init(struct gk20a *g)
 	u32 pes_tpc_count;
 	u32 pes_heavy_index;
 	u32 gpc_new_skip_mask;
-	u32 tmp;
 
 	config = nvgpu_kzalloc(g, sizeof(*config));
 	if (config == NULL) {
@@ -48,8 +45,7 @@ struct nvgpu_gr_config *nvgpu_gr_config_init(struct gk20a *g)
 	config->max_tpc_count = config->max_gpc_count *
 				config->max_tpc_per_gpc_count;
 
-	tmp = nvgpu_readl(g, pri_ringmaster_enum_gpc_r());
-	config->gpc_count = pri_ringmaster_enum_gpc_count_v(tmp);
+	config->gpc_count = g->ops.priv_ring.get_gpc_count(g);
 	if (config->gpc_count == 0U) {
 		nvgpu_err(g, "gpc_count==0!");
 		goto clean_up;

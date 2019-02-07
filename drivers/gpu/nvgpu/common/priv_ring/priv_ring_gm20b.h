@@ -29,4 +29,6 @@ void gm20b_priv_ring_enable(struct gk20a *g);
 void gm20b_priv_set_timeout_settings(struct gk20a *g);
 u32 gm20b_priv_ring_enum_ltc(struct gk20a *g);
 
+u32 gm20b_priv_ring_get_gpc_count(struct gk20a *g);
+
 #endif /* NVGPU_PRIV_RING_GM20B_H */

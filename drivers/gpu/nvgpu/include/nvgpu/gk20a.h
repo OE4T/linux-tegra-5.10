@@ -1466,6 +1466,7 @@ struct gpu_ops {
 		void (*decode_error_code)(struct gk20a *g, u32 error_code);
 		void (*set_ppriv_timeout_settings)(struct gk20a *g);
 		u32 (*enum_ltc)(struct gk20a *g);
+		u32 (*get_gpc_count)(struct gk20a *g);
 	} priv_ring;
 	struct {
 		int (*check_priv_security)(struct gk20a *g);
