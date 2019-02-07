@@ -1175,6 +1175,9 @@ static const struct gpu_ops tu104_ops = {
 		.is_engine_gr = gm20b_is_engine_gr,
 		.is_engine_ce = gp10b_is_engine_ce,
 		.get_ce_inst_id = NULL,
+		.get_max_gpc_count = gm20b_top_get_max_gpc_count,
+		.get_max_tpc_per_gpc_count =
+			gm20b_top_get_max_tpc_per_gpc_count,
 	},
 	.chip_init_gpu_characteristics = tu104_init_gpu_characteristics,
 	.get_litter_value = tu104_get_litter_value,

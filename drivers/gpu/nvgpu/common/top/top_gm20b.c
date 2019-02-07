@@ -205,3 +205,19 @@ u32 gm20b_get_ce_inst_id(struct gk20a *g, u32 engine_type)
 	/* inst_id starts from CE0 to CE2 */
 	return (engine_type - NVGPU_ENGINE_COPY0);
 }
+
+u32 gm20b_top_get_max_gpc_count(struct gk20a *g)
+{
+	u32 tmp;
+
+	tmp = nvgpu_readl(g, top_num_gpcs_r());
+	return top_num_gpcs_value_v(tmp);
+}
+
+u32 gm20b_top_get_max_tpc_per_gpc_count(struct gk20a *g)
+{
+	u32 tmp;
+
+	tmp = nvgpu_readl(g, top_tpc_per_gpc_r());
+	return top_tpc_per_gpc_value_v(tmp);
+}

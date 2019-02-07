@@ -1553,6 +1553,8 @@ struct gpu_ops {
 		bool (*is_engine_gr)(struct gk20a *g, u32 engine_type);
 		bool (*is_engine_ce)(struct gk20a *g, u32 engine_type);
 		u32 (*get_ce_inst_id)(struct gk20a *g, u32 engine_type);
+		u32 (*get_max_gpc_count)(struct gk20a *g);
+		u32 (*get_max_tpc_per_gpc_count)(struct gk20a *g);
 	} top;
 	struct {
 		void (*acr_sw_init)(struct gk20a *g, struct nvgpu_acr *acr);

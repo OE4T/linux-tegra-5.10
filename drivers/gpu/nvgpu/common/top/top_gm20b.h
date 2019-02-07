@@ -41,4 +41,7 @@ bool gm20b_is_engine_gr(struct gk20a *g, u32 engine_type);
 bool gm20b_is_engine_ce(struct gk20a *g, u32 engine_type);
 u32 gm20b_get_ce_inst_id(struct gk20a *g, u32 engine_type);
 
+u32 gm20b_top_get_max_gpc_count(struct gk20a *g);
+u32 gm20b_top_get_max_tpc_per_gpc_count(struct gk20a *g);
+
 #endif

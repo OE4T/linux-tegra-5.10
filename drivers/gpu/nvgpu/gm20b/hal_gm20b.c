@@ -794,6 +794,9 @@ static const struct gpu_ops gm20b_ops = {
 		.is_engine_gr = gm20b_is_engine_gr,
 		.is_engine_ce = gm20b_is_engine_ce,
 		.get_ce_inst_id = gm20b_get_ce_inst_id,
+		.get_max_gpc_count = gm20b_top_get_max_gpc_count,
+		.get_max_tpc_per_gpc_count =
+			gm20b_top_get_max_tpc_per_gpc_count,
 	},
 	.chip_init_gpu_characteristics = gk20a_init_gpu_characteristics,
 	.get_litter_value = gm20b_get_litter_value,

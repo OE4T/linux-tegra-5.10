@@ -24,7 +24,6 @@
 #include <nvgpu/io.h>
 #include <nvgpu/gr/config.h>
 
-#include <nvgpu/hw/gm20b/hw_top_gm20b.h>
 #include <nvgpu/hw/gm20b/hw_pri_ringmaster_gm20b.h>
 
 struct nvgpu_gr_config *nvgpu_gr_config_init(struct gk20a *g)
@@ -42,11 +41,9 @@ struct nvgpu_gr_config *nvgpu_gr_config_init(struct gk20a *g)
 		return NULL;;
 	}
 
-	tmp = nvgpu_readl(g, top_num_gpcs_r());
-	config->max_gpc_count = top_num_gpcs_value_v(tmp);
+	config->max_gpc_count = g->ops.top.get_max_gpc_count(g);
 
-	tmp = nvgpu_readl(g, top_tpc_per_gpc_r());
-	config->max_tpc_per_gpc_count = top_tpc_per_gpc_value_v(tmp);
+	config->max_tpc_per_gpc_count = g->ops.top.get_max_tpc_per_gpc_count(g);
 
 	config->max_tpc_count = config->max_gpc_count *
 				config->max_tpc_per_gpc_count;
