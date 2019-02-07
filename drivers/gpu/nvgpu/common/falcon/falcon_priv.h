@@ -63,6 +63,7 @@
 
 struct gk20a;
 struct nvgpu_falcon;
+struct nvgpu_falcon_bl_info;
 
 enum falcon_mem_type {
 	MEM_DMEM = 0,

@@ -316,11 +316,14 @@ nvgpu-y += \
 	common/rbtree.o \
 	common/vbios/bios.o \
 	common/falcon/falcon.o \
-	common/falcon/falcon_queue.o \
 	common/falcon/falcon_gk20a.o \
 	common/falcon/falcon_gp106.o \
 	common/falcon/falcon_gv100.o \
 	common/falcon/falcon_tu104.o \
+	common/falcon/falcon_queue.o \
+	common/falcon/falcon_dmem_queue.o \
+	common/falcon/falcon_emem_queue.o \
+	common/falcon/falcon_fb_queue.o \
 	common/init/hal_init.o \
 	common/sec2/sec2.o \
 	common/sec2/sec2_ipc.o \
