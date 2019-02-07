@@ -1,7 +1,7 @@
 /*
  * tegracam_ctrls - control framework for tegra camera drivers
  *
- * Copyright (c) 2017-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -228,6 +228,15 @@ static int tegracam_set_ctrls(struct tegracam_ctrl_handler *handler,
 	int err = 0;
 	u32 status = 0;
 
+	/* For controls that are independent of power state */
+	switch (ctrl->id) {
+	case TEGRA_CAMERA_CID_SENSOR_MODE_ID:
+		s_data->sensor_mode_id = (int) (*ctrl->p_new.p_s64);
+		return 0;
+	case TEGRA_CAMERA_CID_HDR_EN:
+		return 0;
+	}
+
 	if (v4l2_subdev_call(&s_data->subdev, video,
 				g_input_status, &status)) {
 		dev_err(s_data->dev, "power status query unsupported\n");
@@ -238,6 +247,7 @@ static int tegracam_set_ctrls(struct tegracam_ctrl_handler *handler,
 	if (!status)
 		return 0;
 
+	/* For controls that require sensor to be on */
 	switch (ctrl->id) {
 	case TEGRA_CAMERA_CID_GAIN:
 		err = ops->set_gain(tc_dev, *ctrl->p_new.p_s64);
@@ -253,11 +263,6 @@ static int tegracam_set_ctrls(struct tegracam_ctrl_handler *handler,
 		break;
 	case TEGRA_CAMERA_CID_GROUP_HOLD:
 		err = ops->set_group_hold(tc_dev, ctrl->val);
-		break;
-	case TEGRA_CAMERA_CID_SENSOR_MODE_ID:
-		s_data->sensor_mode_id = (int) (*ctrl->p_new.p_s64);
-		break;
-	case TEGRA_CAMERA_CID_HDR_EN:
 		break;
 	default:
 		pr_err("%s: unknown ctrl id.\n", __func__);
@@ -485,10 +490,54 @@ int tegracam_init_ctrl_ranges_by_mode(
 }
 EXPORT_SYMBOL_GPL(tegracam_init_ctrl_ranges_by_mode);
 
-int tegracam_ctrl_handler_init(struct tegracam_ctrl_handler *handler)
+int tegracam_init_ctrl_ranges(struct tegracam_ctrl_handler *handler)
 {
 	struct tegracam_device *tc_dev = handler->tc_dev;
 	struct camera_common_data *s_data = tc_dev->s_data;
+	struct device *dev = tc_dev->dev;
+	int i, err = 0;
+
+	/* Updating static control ranges */
+	for (i = 0; i < handler->numctrls; i++) {
+		struct v4l2_ctrl *ctrl = handler->ctrls[i];
+
+		switch (ctrl->id) {
+		case TEGRA_CAMERA_CID_SENSOR_MODE_ID:
+			err = v4l2_ctrl_modify_range(ctrl,
+				CTRL_U32_MIN,
+				(s64) s_data->sensor_props.num_modes,
+				1,
+				CTRL_U32_MIN);
+			break;
+		default:
+			/* Not required to modify these control ranges */
+			break;
+		}
+
+		if (err) {
+			dev_err(s_data->dev,
+				"ctrl %s range update failed\n", ctrl->name);
+			return err;
+		}
+	}
+
+	/* Use mode 0 control ranges as default */
+	if (s_data->sensor_props.num_modes > 0)
+	{
+		err = tegracam_init_ctrl_ranges_by_mode(handler, 0);
+		if (err) {
+			dev_err(dev, "Error %d updating mode specific control ranges \n", err);
+			return err;
+		}
+	}
+
+	return 0;
+}
+EXPORT_SYMBOL_GPL(tegracam_init_ctrl_ranges);
+
+int tegracam_ctrl_handler_init(struct tegracam_ctrl_handler *handler)
+{
+	struct tegracam_device *tc_dev = handler->tc_dev;
 	struct v4l2_ctrl *ctrl;
 	struct v4l2_ctrl_config *ctrl_cfg;
 	struct device *dev = tc_dev->dev;
@@ -553,8 +602,7 @@ int tegracam_ctrl_handler_init(struct tegracam_ctrl_handler *handler)
 		goto error;
 	}
 
-	err = tegracam_init_ctrl_ranges_by_mode(handler,
-				s_data->mode_prop_idx);
+	err = tegracam_init_ctrl_ranges(handler);
 	if (err) {
 		dev_err(dev, "Error %d updating control ranges\n", err);
 		goto error;

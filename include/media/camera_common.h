@@ -1,7 +1,7 @@
 /**
  * camera_common.h - utilities for tegra camera driver
  *
- * Copyright (c) 2015-2018, NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2015-2019, NVIDIA Corporation.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -358,6 +358,7 @@ const struct camera_common_colorfmt *camera_common_find_pixelfmt(
 /* common control layer init */
 int tegracam_ctrl_set_overrides(struct tegracam_ctrl_handler *handler);
 int tegracam_ctrl_handler_init(struct tegracam_ctrl_handler *handler);
+int tegracam_init_ctrl_ranges(struct tegracam_ctrl_handler *handler);
 int tegracam_init_ctrl_ranges_by_mode(
 		struct tegracam_ctrl_handler *handler,
 		u32 modeidx);
