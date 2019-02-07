@@ -595,3 +595,32 @@ size_t tu104_fb_get_vidmem_size(struct gk20a *g)
 
 	return bytes;
 }
+
+
+int tu104_fb_enable_nvlink(struct gk20a *g)
+{
+	int ret = 0;
+	u32 data;
+
+	nvgpu_log(g, gpu_dbg_nvlink|gpu_dbg_info, "enabling nvlink");
+
+	ret = gv100_fb_enable_nvlink(g);
+	if (ret != 0) {
+		return ret;
+	}
+
+	/* NV_PFB_PRI_MMU_CTRL_ATOMIC_CAPABILITY_SYS_NCOH_MODE to L2 */
+	data = nvgpu_readl(g, fb_mmu_ctrl_r());
+	data = set_field(data, fb_mmu_ctrl_atomic_capability_sys_ncoh_mode_m(),
+		fb_mmu_ctrl_atomic_capability_sys_ncoh_mode_l2_f());
+	nvgpu_writel(g, fb_mmu_ctrl_r(), data);
+
+	/* NV_PFB_FBHUB_NUM_ACTIVE_LTCS_HUB_SYS_NCOH_ATOMIC_MODE to USE_READ */
+	data = nvgpu_readl(g, fb_fbhub_num_active_ltcs_r());
+	data = set_field(data,
+		fb_fbhub_num_active_ltcs_hub_sys_ncoh_atomic_mode_m(),
+		fb_fbhub_num_active_ltcs_hub_sys_ncoh_atomic_mode_use_read_f());
+	nvgpu_writel(g, fb_fbhub_num_active_ltcs_r(), data);
+
+	return ret;
+}

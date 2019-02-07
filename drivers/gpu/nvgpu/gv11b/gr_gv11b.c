@@ -4262,7 +4262,9 @@ void gr_gv11b_init_gpc_mmu(struct gk20a *g)
 		gr_gpcs_pri_mmu_ctrl_cache_mode_m() |
 		gr_gpcs_pri_mmu_ctrl_mmu_aperture_m() |
 		gr_gpcs_pri_mmu_ctrl_mmu_vol_m() |
-		gr_gpcs_pri_mmu_ctrl_mmu_disable_m();
+		gr_gpcs_pri_mmu_ctrl_mmu_disable_m()|
+		gr_gpcs_pri_mmu_ctrl_atomic_capability_mode_m()|
+		gr_gpcs_pri_mmu_ctrl_atomic_capability_sys_ncoh_mode_m();
 	gk20a_writel(g, gr_gpcs_pri_mmu_ctrl_r(), temp);
 	gk20a_writel(g, gr_gpcs_pri_mmu_pm_unit_mask_r(), 0);
 	gk20a_writel(g, gr_gpcs_pri_mmu_pm_req_mask_r(), 0);

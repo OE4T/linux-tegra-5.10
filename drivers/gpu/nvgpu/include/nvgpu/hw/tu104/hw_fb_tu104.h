@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -138,6 +138,14 @@ static inline u32 fb_fbhub_num_active_ltcs_hub_sys_atomic_mode_use_rmw_f(void)
 {
 	return 0x2000000U;
 }
+static inline u32 fb_fbhub_num_active_ltcs_hub_sys_ncoh_atomic_mode_m(void)
+{
+	return U32(0x1U) << 26U;
+}
+static inline u32 fb_fbhub_num_active_ltcs_hub_sys_ncoh_atomic_mode_use_read_f(void)
+{
+	return 0x0U;
+}
 static inline u32 fb_mmu_ctrl_r(void)
 {
 	return 0x00100c80U;
@@ -197,6 +205,14 @@ static inline u32 fb_mmu_ctrl_atomic_capability_mode_power_v(void)
 static inline u32 fb_mmu_ctrl_atomic_capability_mode_power_f(void)
 {
 	return 0x3000000U;
+}
+static inline u32 fb_mmu_ctrl_atomic_capability_sys_ncoh_mode_m(void)
+{
+	return U32(0x1U) << 27U;
+}
+static inline u32 fb_mmu_ctrl_atomic_capability_sys_ncoh_mode_l2_f(void)
+{
+	return 0x0U;
 }
 static inline u32 fb_mmu_bind_imb_r(void)
 {

@@ -4006,6 +4006,14 @@ static inline u32 gr_gpcs_pri_mmu_ctrl_mmu_disable_m(void)
 {
 	return U32(0x1U) << 31U;
 }
+static inline u32 gr_gpcs_pri_mmu_ctrl_atomic_capability_mode_m(void)
+{
+	return U32(0x3U) << 24U;
+}
+static inline u32 gr_gpcs_pri_mmu_ctrl_atomic_capability_sys_ncoh_mode_m(void)
+{
+	return U32(0x1U) << 27U;
+}
 static inline u32 gr_gpcs_pri_mmu_pm_unit_mask_r(void)
 {
 	return 0x00418890U;

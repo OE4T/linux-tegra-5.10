@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -59,5 +59,6 @@ void fb_tu104_init_cbc(struct gk20a *g, struct gr_gk20a *gr);
 
 int tu104_fb_apply_pdb_cache_war(struct gk20a *g);
 size_t tu104_fb_get_vidmem_size(struct gk20a *g);
+int tu104_fb_enable_nvlink(struct gk20a *g);
 
 #endif /* NVGPU_FB_TU104_H */
