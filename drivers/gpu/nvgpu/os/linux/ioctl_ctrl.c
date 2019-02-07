@@ -284,18 +284,13 @@ gk20a_ctrl_ioctl_gpu_characteristics(
 
 	gpu.num_gpc = nvgpu_gr_config_get_gpc_count(g->gr.config);
 	gpu.max_gpc_count = nvgpu_gr_config_get_max_gpc_count(g->gr.config);
+	gpu.gpc_mask = nvgpu_gr_config_get_gpc_mask(g->gr.config);
 
 	gpu.num_tpc_per_gpc = nvgpu_gr_config_get_max_tpc_per_gpc_count(g->gr.config);
 
 	gpu.bus_type = NVGPU_GPU_BUS_TYPE_AXI; /* always AXI for now */
 
 	gpu.compression_page_size = g->ops.fb.compression_page_size(g);
-
-	if (g->ops.gr.get_gpc_mask) {
-		gpu.gpc_mask = g->ops.gr.get_gpc_mask(g);
-	} else {
-		gpu.gpc_mask = BIT32(gpu.num_gpc) - 1;
-	}
 
 	gpu.flags = nvgpu_ctrl_ioctl_gpu_characteristics_flags(g);
 

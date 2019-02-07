@@ -501,6 +501,7 @@ struct tegra_vgpu_constants_params {
 	u32 sm_arch_warp_count;
 	u32 max_gpc_count;
 	u32 gpc_count;
+	u32 gpc_mask;
 	u32 max_tpc_per_gpc_count;
 	u32 num_fbps;
 	u32 fbp_en_mask;

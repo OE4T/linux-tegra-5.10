@@ -51,6 +51,12 @@ struct nvgpu_gr_config *nvgpu_gr_config_init(struct gk20a *g)
 		goto clean_up;
 	}
 
+	if (g->ops.gr.config.get_gpc_mask != NULL) {
+		config->gpc_mask = g->ops.gr.config.get_gpc_mask(g, config);
+	} else {
+		config->gpc_mask = BIT32(config->gpc_count) - 1;
+	}
+
 	config->pe_count_per_gpc = nvgpu_get_litter_value(g,
 		GPU_LIT_NUM_PES_PER_GPC);
 	if (config->pe_count_per_gpc > GK20A_GR_MAX_PES_PER_GPC) {
@@ -530,4 +536,9 @@ u32 nvgpu_gr_config_get_pes_tpc_mask(struct nvgpu_gr_config *config,
 	u32 gpc_index, u32 pes_index)
 {
 	return config->pes_tpc_mask[pes_index][gpc_index];
+}
+
+u32 nvgpu_gr_config_get_gpc_mask(struct nvgpu_gr_config *config)
+{
+	return config->gpc_mask;
 }

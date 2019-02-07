@@ -47,6 +47,7 @@ struct nvgpu_gr_config {
 	u32 *gpc_zcb_count;
 	u32 *pes_tpc_count[GK20A_GR_MAX_PES_PER_GPC];
 
+	u32 gpc_mask;
 	u32 *gpc_tpc_mask;
 	u32 *pes_tpc_mask[GK20A_GR_MAX_PES_PER_GPC];
 	u32 *gpc_skip_mask;
@@ -92,5 +93,6 @@ u32 nvgpu_gr_config_get_gpc_skip_mask(struct nvgpu_gr_config *config,
 	u32 gpc_index);
 u32 nvgpu_gr_config_get_pes_tpc_mask(struct nvgpu_gr_config *config,
 	u32 gpc_index, u32 pes_index);
+u32 nvgpu_gr_config_get_gpc_mask(struct nvgpu_gr_config *config);
 
 #endif /* NVGPU_GR_CONFIG_H */

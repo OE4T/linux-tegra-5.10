@@ -367,7 +367,6 @@ static const struct gpu_ops gv100_ops = {
 		.falcon_load_ucode = gr_gm20b_load_ctxsw_ucode_segments,
 		.load_ctxsw_ucode = gr_gm20b_load_ctxsw_ucode,
 		.set_gpc_tpc_mask = gr_gv100_set_gpc_tpc_mask,
-		.get_gpc_mask = gr_gm20b_get_gpc_mask,
 		.alloc_obj_ctx = gk20a_alloc_obj_ctx,
 		.bind_ctxsw_zcull = gr_gk20a_bind_ctxsw_zcull,
 		.get_zcull_info = gr_gk20a_get_zcull_info,
@@ -585,6 +584,7 @@ static const struct gpu_ops gv100_ops = {
 			.dump_ctxsw_stats = gp10b_ctxsw_prog_dump_ctxsw_stats,
 		},
 		.config = {
+			.get_gpc_mask = gm20b_gr_config_get_gpc_mask,
 			.get_gpc_tpc_mask = gm20b_gr_config_get_gpc_tpc_mask,
 			.get_tpc_count_in_gpc =
 				gm20b_gr_config_get_tpc_count_in_gpc,

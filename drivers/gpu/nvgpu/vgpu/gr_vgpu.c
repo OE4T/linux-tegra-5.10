@@ -600,6 +600,7 @@ static int vgpu_gr_init_gr_config(struct gk20a *g, struct gr_gk20a *gr)
 
 	config->max_gpc_count = priv->constants.max_gpc_count;
 	config->gpc_count = priv->constants.gpc_count;
+	config->gpc_mask = priv->constants.gpc_mask;
 	config->max_tpc_per_gpc_count = priv->constants.max_tpc_per_gpc_count;
 
 	config->max_tpc_count = config->max_gpc_count * config->max_tpc_per_gpc_count;

@@ -37,5 +37,7 @@ u32 gm20b_gr_config_get_zcull_count_in_gpc(struct gk20a *g,
 u32 gm20b_gr_config_get_pes_tpc_mask(struct gk20a *g,
 	struct nvgpu_gr_config *config, u32 gpc_index, u32 pes_index);
 u32 gm20b_gr_config_get_pd_dist_skip_table_size(void);
+u32 gm20b_gr_config_get_gpc_mask(struct gk20a *g,
+	struct nvgpu_gr_config *config);
 
 #endif /* NVGPU_GR_CONFIG_GM20B_H */
