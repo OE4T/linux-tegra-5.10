@@ -35,6 +35,7 @@ static struct option core_opts[] = {
 	{ "quiet",		0, NULL, 'q' },
 	{ "no-color",		0, NULL, 'C' },
 	{ "nvtest",		0, NULL, 'n' },
+	{ "is-qnx",		0, NULL, 'Q' },
 
 	{ "unit-load-path",	1, NULL, 'L' },
 	{ "num-threads",	1, NULL, 'j' },
@@ -42,7 +43,7 @@ static struct option core_opts[] = {
 	{ NULL,			0, NULL,  0  }
 };
 
-static const char *core_opts_str = "hvqCnL:j:";
+static const char *core_opts_str = "hvqCnQL:j:";
 
 void core_print_help(struct unit_fw *fw)
 {
@@ -64,6 +65,7 @@ void core_print_help(struct unit_fw *fw)
 "                         output to a file the color escape sequences will\n",
 "                         corrupt that file.\n",
 "  -n, --nvtest           Enable nvtest-formatted output results\n",
+"  -Q, --is-qnx           QNX specific tests\n",
 "  -L, --unit-load-path <PATH>\n",
 "                         Path to where the unit test libraries reside.\n",
 "  -j, --num-threads <COUNT>\n",
@@ -145,6 +147,9 @@ int core_parse_args(struct unit_fw *fw, int argc, char **argv)
 				core_err(fw, "Invalid number of threads\n");
 				return -1;
 			}
+			break;
+		case 'Q':
+			args->is_qnx = true;
 			break;
 		case '?':
 			args->help = true;

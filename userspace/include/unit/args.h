@@ -44,6 +44,7 @@ struct unit_fw_args {
 	bool		 no_color;
 	int		 thread_count;
 	bool		 nvtest;
+	bool		 is_qnx;
 	const char	*binary_name;
 
 	const char	*unit_name;
