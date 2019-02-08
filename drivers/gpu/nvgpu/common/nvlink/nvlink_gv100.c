@@ -1397,7 +1397,8 @@ int gv100_nvlink_link_set_mode(struct gk20a *g, u32 link_id, u32 mode)
 		/* 1/8 th mode not supported */
 	case nvgpu_nvlink_link_enable_pm:
 	case nvgpu_nvlink_link_disable_pm:
-		return -EPERM;
+		err = -EPERM;
+		break;
 	case nvgpu_nvlink_link_disable_err_detect:
 		/* Disable Link interrupts */
 		g->ops.nvlink.intr.dlpl_intr_enable(g, link_id, false);
@@ -1603,6 +1604,8 @@ int gv100_nvlink_link_set_sublink_mode(struct gk20a *g, u32 link_id,
 			return -EINVAL;
 		}
 		nvgpu_err(g, "MODE %u", mode);
+		err = -EPERM;
+		break;
 	}
 
 	if (err != 0) {
