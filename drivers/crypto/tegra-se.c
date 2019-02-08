@@ -4,7 +4,7 @@
  *
  * Support for Tegra Security Engine hardware crypto algorithms.
  *
- * Copyright (c) 2011-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -3440,7 +3440,7 @@ static int tegra_se_probe(struct platform_device *pdev)
 		goto fail;
 	}
 
-	se_dev->dev->coherent_dma_mask = DMA_BIT_MASK(32);
+	dma_set_mask_and_coherent(se_dev->dev, DMA_BIT_MASK(32));
 
 	err = tegra_se_alloc_ll_buf(se_dev, SE_MAX_SRC_SG_COUNT,
 				    SE_MAX_DST_SG_COUNT);
