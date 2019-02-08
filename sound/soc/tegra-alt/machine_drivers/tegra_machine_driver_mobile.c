@@ -1,7 +1,7 @@
 /*
  * tegra_machine_driver_mobile.c - Tegra ASoC Machine driver for mobile
  *
- * Copyright (c) 2017-2018 NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2019 NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -79,7 +79,6 @@ struct tegra_machine_soc_data {
 
 	bool is_asrc_available,
 		is_clk_rate_via_dt,
-		write_cdev1_state,
 		write_idle_bias_off_state;
 
 	/* call back APIs */
@@ -144,7 +143,6 @@ static const struct tegra_machine_soc_data soc_data_tegra210 = {
 
 	.is_asrc_available		= false,
 	.is_clk_rate_via_dt		= false,
-	.write_cdev1_state		= false,
 	.write_idle_bias_off_state	= false,
 
 	.get_bclk_ratio			= &tegra_machine_get_bclk_ratio,
@@ -170,7 +168,6 @@ static const struct tegra_machine_soc_data soc_data_tegra186 = {
 
 	.is_asrc_available		= true,
 	.is_clk_rate_via_dt		= true,
-	.write_cdev1_state		= true,
 	.write_idle_bias_off_state	= true,
 
 	.get_bclk_ratio			= &tegra_machine_get_bclk_ratio_t18x,
@@ -1040,9 +1037,6 @@ static int tegra_machine_driver_probe(struct platform_device *pdev)
 	platform_set_drvdata(pdev, card);
 	snd_soc_card_set_drvdata(card, machine);
 	machine->is_hs_supported = false;
-
-	if (machine->soc_data->write_cdev1_state)
-		machine->audio_clock.clk_cdev1_state = 0;
 
 	if (machine->soc_data->write_idle_bias_off_state)
 		card->dapm.idle_bias_off = true;

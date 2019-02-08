@@ -1,7 +1,7 @@
 /*
  * tegra210_admaif_alt.h - Tegra ADMAIF registers
  *
- * Copyright (c) 2014-2017 NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2019 NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -170,7 +170,6 @@ struct tegra_admaif {
 	/* regmap for admaif */
 	struct regmap *regmap;
 	struct device *dev;
-	int refcnt;
 	struct tegra_alt_pcm_dma_params *capture_dma_data;
 	struct tegra_alt_pcm_dma_params *playback_dma_data;
 	const struct tegra_admaif_soc_data *soc_data;

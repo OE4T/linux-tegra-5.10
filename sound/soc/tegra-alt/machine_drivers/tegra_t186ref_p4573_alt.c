@@ -1,7 +1,7 @@
 /*
  * tegra_t186ref_p4573_alt.c - Tegra t186 Machine driver for P4573 board
  *
- * Copyright (c) 2016-2017 NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2016-2019 NVIDIA CORPORATION. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -401,7 +401,6 @@ static int tegra186_driver_probe(struct platform_device *pdev)
 	card->dev = dev;
 	platform_set_drvdata(pdev, card);
 	snd_soc_card_set_drvdata(card, machine);
-	machine->audio_clock.clk_cdev1_state = 0;
 	card->dapm.idle_bias_off = true;
 
 	ret = snd_soc_of_parse_card_name(card, "nvidia,model");
