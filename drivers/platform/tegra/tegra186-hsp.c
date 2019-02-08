@@ -28,6 +28,7 @@
 #include <linux/wait.h>
 
 #include <linux/tegra-hsp.h>
+#include <dt-bindings/soc/nvidia,tegra186-hsp.h>
 
 #define NV(p) "nvidia," #p
 
@@ -424,10 +425,19 @@ struct tegra_hsp_sm_rx *of_tegra_hsp_sm_rx_by_name(
 	struct of_phandle_args smspec;
 	struct tegra_hsp_sm_rx *sm_rx;
 
-	index = of_property_match_string(np,
-			"nvidia,hsp-mailbox-names", name);
-	err = of_parse_phandle_with_fixed_args(np,
-			"nvidia,hsp-mailboxes", 1, index, &smspec);
+	index = of_property_match_string(np, "mbox-names", name);
+	err = of_parse_phandle_with_args(np, "mboxes", "#mbox-cells",
+			index, &smspec);
+
+	if (index < 0) {
+		index = of_property_match_string(np,
+				"nvidia,hsp-mailbox-names", name);
+		err = of_parse_phandle_with_fixed_args(np,
+				"nvidia,hsp-mailboxes", 1, index, &smspec);
+		smspec.args[1] = TEGRA_HSP_SM_RX(smspec.args[0]);
+		smspec.args[0] = TEGRA_HSP_MBOX_TYPE_SM;
+		smspec.args_count = 2;
+	}
 
 	if (index < 0) {
 		index = of_property_match_string(np,
@@ -435,12 +445,23 @@ struct tegra_hsp_sm_rx *of_tegra_hsp_sm_rx_by_name(
 		err = of_parse_phandle_with_fixed_args(np,
 				"nvidia,hsp-shared-mailbox", 1,
 				index, &smspec);
+		smspec.args[1] = TEGRA_HSP_SM_RX(smspec.args[0]);
+		smspec.args[0] = TEGRA_HSP_MBOX_TYPE_SM;
+		smspec.args_count = 2;
 	}
+
 	if (err)
 		return ERR_PTR(err);
+	if (smspec.args_count < 2)
+		return ERR_PTR(-ENODEV);
+	if (smspec.args[0] != TEGRA_HSP_MBOX_TYPE_SM)
+		return ERR_PTR(-ENODEV);
+	if ((smspec.args[1] & ~TEGRA_HSP_SM_MASK) != TEGRA_HSP_SM_FLAG_RX)
+		return ERR_PTR(-ENODEV);
+
+	number = smspec.args[1] & TEGRA_HSP_SM_MASK;
 
 	pdev = of_find_device_by_node(smspec.np);
-	number = smspec.args[0];
 	of_node_put(smspec.np);
 
 	if (pdev == NULL)
@@ -533,11 +554,19 @@ struct tegra_hsp_sm_tx *of_tegra_hsp_sm_tx_by_name(
 	struct of_phandle_args smspec;
 	struct tegra_hsp_sm_tx *sm_tx;
 
-	index = of_property_match_string(np,
-			"nvidia,hsp-mailbox-names", name);
-	err = of_parse_phandle_with_fixed_args(np,
-			"nvidia,hsp-mailboxes", 1, index, &smspec);
-	number = smspec.args[0];
+	index = of_property_match_string(np, "mbox-names", name);
+	err = of_parse_phandle_with_args(np, "mboxes", "#mbox-cells",
+			index, &smspec);
+
+	if (index < 0) {
+		index = of_property_match_string(np,
+				"nvidia,hsp-mailbox-names", name);
+		err = of_parse_phandle_with_fixed_args(np,
+				"nvidia,hsp-mailboxes", 1, index, &smspec);
+		smspec.args[1] = TEGRA_HSP_SM_TX(smspec.args[0]);
+		smspec.args[0] = TEGRA_HSP_MBOX_TYPE_SM;
+		smspec.args_count = 2;
+	}
 
 	if (index < 0) {
 		index = of_property_match_string(np,
@@ -545,11 +574,22 @@ struct tegra_hsp_sm_tx *of_tegra_hsp_sm_tx_by_name(
 		err = of_parse_phandle_with_fixed_args(np,
 			"nvidia,hsp-shared-mailbox", 1, index, &smspec);
 		/* pair of the numbered shared-mailbox */
-		number = smspec.args[0] ^ 1;
+		smspec.args[1] = TEGRA_HSP_SM_TX(smspec.args[0] ^ 1);
+		smspec.args[0] = TEGRA_HSP_MBOX_TYPE_SM;
+		smspec.args_count = 2;
 	}
 
 	if (err)
 		return ERR_PTR(err);
+
+	if (smspec.args_count < 2)
+		return ERR_PTR(-ENODEV);
+	if (smspec.args[0] != TEGRA_HSP_MBOX_TYPE_SM)
+		return ERR_PTR(-ENODEV);
+	if ((smspec.args[1] & ~TEGRA_HSP_SM_MASK) != TEGRA_HSP_SM_FLAG_TX)
+		return ERR_PTR(-ENODEV);
+
+	number = smspec.args[1] & TEGRA_HSP_SM_MASK;
 
 	pdev = of_find_device_by_node(smspec.np);
 	of_node_put(smspec.np);
@@ -677,21 +717,36 @@ struct tegra_hsp_ss *of_tegra_hsp_ss_by_name(
 {
 	struct platform_device *pdev;
 	struct tegra_hsp_ss *ss;
-	int index = of_property_match_string(np,
-			NV(hsp-shared-semaphore-names), name);
 	struct of_phandle_args smspec;
 	int err;
+	int index;
 
-	if (index < 0)
-		return ERR_PTR(index);
+	index = of_property_match_string(np, "mbox-names", name);
 
-	err = of_parse_phandle_with_fixed_args(np,
-			"nvidia,hsp-shared-semaphores", 1, index, &smspec);
-	if (err)
-		return ERR_PTR(err);
+	if (index < 0) {
+		index = of_property_match_string(np,
+				"nvidia,hsp-shared-semaphore-names", name);
+		if (index < 0)
+			return ERR_PTR(index);
+		err = of_parse_phandle_with_fixed_args(np,
+				"nvidia,hsp-shared-semaphores", 1,
+				index, &smspec);
+		if (err)
+			return ERR_PTR(err);
+		index = smspec.args[0];
+	} else {
+		err = of_parse_phandle_with_args(np, "mboxes", "#mbox-cells",
+				index, &smspec);
+		if (err < 0)
+			return ERR_PTR(err);
+		if (smspec.args_count < 2)
+			return ERR_PTR(-ENODEV);
+		if (smspec.args[0] != TEGRA_HSP_MBOX_TYPE_SS)
+			return ERR_PTR(-ENODEV);
+		index = smspec.args[1];
+	}
 
 	pdev = of_find_device_by_node(smspec.np);
-	index = smspec.args[0];
 	of_node_put(smspec.np);
 
 	if (pdev == NULL)
@@ -709,7 +764,7 @@ EXPORT_SYMBOL(of_tegra_hsp_ss_by_name);
 void tegra_hsp_ss_free(struct tegra_hsp_ss *ss)
 {
 	if (!IS_ERR_OR_NULL(ss))
-		put_device(&ss->dev);
+		device_unregister(&ss->dev);
 }
 EXPORT_SYMBOL(tegra_hsp_ss_free);
 
