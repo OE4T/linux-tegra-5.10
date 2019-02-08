@@ -307,7 +307,7 @@ static void channel_sync_syncpt_set_safe_state(struct nvgpu_channel_sync *s)
 	nvgpu_nvhost_syncpt_set_safe_state(sp->nvhost_dev, sp->id);
 }
 
-static int channel_sync_syncpt_get_id(struct nvgpu_channel_sync_syncpt *sp)
+static u32 channel_sync_syncpt_get_id(struct nvgpu_channel_sync_syncpt *sp)
 {
 	return sp->id;
 }
@@ -330,7 +330,7 @@ static void channel_sync_syncpt_destroy(struct nvgpu_channel_sync *s)
 	nvgpu_kfree(sp->c->g, sp);
 }
 
-int nvgpu_channel_sync_get_syncpt_id(struct nvgpu_channel_sync_syncpt *s)
+u32 nvgpu_channel_sync_get_syncpt_id(struct nvgpu_channel_sync_syncpt *s)
 {
 	return channel_sync_syncpt_get_id(s);
 }

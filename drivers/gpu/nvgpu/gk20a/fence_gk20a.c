@@ -199,7 +199,7 @@ void gk20a_init_fence(struct gk20a_fence *f,
 		return;
 	}
 	f->ops = ops;
-	f->syncpt_id = -1;
+	f->syncpt_id = FIFO_INVAL_SYNCPT_ID;
 	f->semaphore = NULL;
 	f->os_fence = os_fence;
 }

@@ -157,9 +157,10 @@ int gp10b_fifo_resetup_ramfc(struct channel_gk20a *c)
 	if (c->sync != NULL) {
 		sync_syncpt = nvgpu_channel_sync_to_syncpt(c->sync);
 		if (sync_syncpt != NULL) {
-			new_syncpt = nvgpu_channel_sync_get_syncpt_id(sync_syncpt);
+			new_syncpt =
+			    nvgpu_channel_sync_get_syncpt_id(sync_syncpt);
 		} else {
-			new_syncpt = -EINVAL;
+			new_syncpt = FIFO_INVAL_SYNCPT_ID;
 		}
 	}
 	if ((new_syncpt != 0U) && (new_syncpt != old_syncpt)) {

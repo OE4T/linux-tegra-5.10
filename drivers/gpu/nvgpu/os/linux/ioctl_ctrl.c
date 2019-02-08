@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2018, NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2011-2019, NVIDIA Corporation.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -443,7 +443,7 @@ static int gk20a_ctrl_prepare_compressible_read(
 				args->fence.syncpt_value =
 						fence_out->syncpt_value;
 			} else {
-				args->fence.syncpt_id = -1;
+				args->fence.syncpt_id = FIFO_INVAL_SYNCPT_ID;
 				args->fence.syncpt_value = 0;
 			}
 		}

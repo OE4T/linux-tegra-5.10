@@ -44,6 +44,7 @@ struct tsg_gk20a;
 #define FIFO_INVAL_CHANNEL_ID		(~U32(0U))
 #define FIFO_INVAL_TSG_ID		(~U32(0U))
 #define FIFO_INVAL_RUNLIST_ID		(~U32(0U))
+#define FIFO_INVAL_SYNCPT_ID		(~U32(0U))
 
 #define ID_TYPE_CHANNEL			0U
 #define ID_TYPE_TSG			1U

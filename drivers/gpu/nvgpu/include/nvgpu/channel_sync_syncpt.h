@@ -2,7 +2,7 @@
  *
  * Nvgpu Channel Synchronization Abstraction (Syncpoints)
  *
- * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -38,7 +38,7 @@ struct nvgpu_channel_sync_syncpt;
 /*
  * Returns the sync point id or negative number if no syncpt
  */
-int nvgpu_channel_sync_get_syncpt_id(struct nvgpu_channel_sync_syncpt *s);
+u32 nvgpu_channel_sync_get_syncpt_id(struct nvgpu_channel_sync_syncpt *s);
 
 /*
  * Returns the sync point address of sync point or 0 if not supported
@@ -69,10 +69,10 @@ nvgpu_channel_sync_syncpt_create(struct channel_gk20a *c,
 
 #else
 
-static inline int nvgpu_channel_sync_get_syncpt_id(
+static inline u32 nvgpu_channel_sync_get_syncpt_id(
 	struct nvgpu_channel_sync_syncpt *s)
 {
-	return -EINVAL;
+	return FIFO_INVAL_SYNCPT_ID;
 }
 static inline u64 nvgpu_channel_sync_get_syncpt_address(
 	struct nvgpu_channel_sync_syncpt *s)
