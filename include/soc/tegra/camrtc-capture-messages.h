@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2018, NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2016-2019, NVIDIA Corporation.  All rights reserved.
  *
  * NVIDIA Corporation and its licensors retain all intellectual property
  * and proprietary rights in and to this software, related documentation
@@ -430,6 +430,15 @@ struct CAPTURE_CHANNEL_EI_RESP_MSG {
 	uint32_t __pad;
 } __CAPTURE_IVC_ALIGN;
 
+struct CAPTURE_CHANNEL_EI_RESET_REQ_MSG {
+	uint8_t __pad[8];
+} __CAPTURE_IVC_ALIGN;
+
+struct CAPTURE_CHANNEL_EI_RESET_RESP_MSG {
+	capture_result result;
+	uint32_t __pad;
+} __CAPTURE_IVC_ALIGN;
+
 /**
  * Capture ISP channel messages
  */
@@ -496,6 +505,8 @@ struct CAPTURE_CHANNEL_EI_RESP_MSG {
 
 #define CAPTURE_CHANNEL_EI_REQ		U32_C(0x50)
 #define CAPTURE_CHANNEL_EI_RESP		U32_C(0x51)
+#define CAPTURE_CHANNEL_EI_RESET_REQ	U32_C(0x52)
+#define CAPTURE_CHANNEL_EI_RESET_RESP	U32_C(0x53)
 
 /** Set up RTCPU side resources for ISP capture pipe-line.
  *
@@ -603,6 +614,8 @@ struct CAPTURE_CONTROL_MSG {
 
 		struct CAPTURE_CHANNEL_EI_REQ_MSG ei_req;
 		struct CAPTURE_CHANNEL_EI_RESP_MSG ei_resp;
+		struct CAPTURE_CHANNEL_EI_RESET_REQ_MSG ei_reset_req;
+		struct CAPTURE_CHANNEL_EI_RESET_RESP_MSG ei_reset_resp;
 
 		struct CAPTURE_CHANNEL_ISP_SETUP_REQ_MSG channel_isp_setup_req;
 		struct CAPTURE_CHANNEL_ISP_SETUP_RESP_MSG channel_isp_setup_resp;
