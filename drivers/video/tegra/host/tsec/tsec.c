@@ -78,6 +78,8 @@
 
 #define FW_NAME_SIZE 32
 
+static DEFINE_MUTEX(tegra_tsec_lock);
+
 static int nvhost_tsec_init_sw(struct platform_device *dev);
 
 /* The key value in ascii hex */
@@ -372,9 +374,11 @@ void tsec_send_method(struct hdcp_context_t *hdcp_context,
 	struct nvhost_channel *channel = NULL;
 	int err;
 
+	mutex_lock(&tegra_tsec_lock);
 	err = nvhost_channel_map(pdata, &channel, pdata);
 	if (err) {
 		nvhost_err(&tsec->dev, "Channel map failed\n");
+		mutex_unlock(&tegra_tsec_lock);
 		return;
 	}
 
@@ -385,6 +389,7 @@ void tsec_send_method(struct hdcp_context_t *hdcp_context,
 		if (!id) {
 			nvhost_err(&tsec->dev, "failed to get sync point\n");
 			nvhost_putchannel(channel, 1);
+			mutex_unlock(&tegra_tsec_lock);
 			return;
 		}
 		channel->syncpts[0] = id;
@@ -399,6 +404,7 @@ void tsec_send_method(struct hdcp_context_t *hdcp_context,
 		nvhost_err(&tsec->dev, "Failed to allocate memory\n");
 		nvhost_syncpt_put_ref_ext(tsec, id);
 		nvhost_putchannel(channel, 1);
+		mutex_unlock(&tegra_tsec_lock);
 		return;
 	}
 	memset(cpuvaddr, 0x0, HDCP_MTHD_BUF_SIZE);
@@ -466,13 +472,14 @@ void tsec_send_method(struct hdcp_context_t *hdcp_context,
 
 	tsec_execute_method(dma_handle, channel, cpuvaddr, opcode_len, id, 1);
 
-	nvhost_putchannel(channel, 1);
-
 	nvhost_syncpt_put_ref_ext(tsec, id);
+
+	nvhost_putchannel(channel, 1);
 
 	dma_free_attrs(tsec->dev.parent,
 		HDCP_MTHD_BUF_SIZE, cpuvaddr,
 		dma_handle, 0);
+	mutex_unlock(&tegra_tsec_lock);
 }
 
 
