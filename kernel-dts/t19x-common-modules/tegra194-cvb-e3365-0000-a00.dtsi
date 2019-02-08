@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -79,7 +79,6 @@
 					interrupt-controller;
 				};
 			};
-#if TEGRA_XUSB_PADCONTROL_VERSION >= DT_VERSION_2
 			override@3 {
 				target = <&xusb_padctl>;
 				_overlay_ {
@@ -147,7 +146,6 @@
 						"usb3-2", "usb3-3", "usb3-0", "usb3-1";
 				};
 			};
-#endif
 		};
 
 	};
