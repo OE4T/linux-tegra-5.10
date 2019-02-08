@@ -1,7 +1,7 @@
 /*
  * Common include DTS file for CVM:P2888-0001 and CVB:P2822-0000 variants.
  *
- * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -120,8 +120,6 @@
 		};
 	};
 
-#if TEGRA_XUSB_PADCONTROL_VERSION >= DT_VERSION_2
-
 	xusb_padctl: xusb_padctl@3520000 {
 		status = "okay";
 
@@ -196,18 +194,15 @@
 			};
 		};
 	};
-#endif
 
 	tegra_xudc: xudc@3550000 {
 		extcon-cables = <&typec_port0 0>;
 		extcon-cable-names = "vbus";
 		#extcon-cells = <1>;
-#if TEGRA_XUSB_PADCONTROL_VERSION >= DT_VERSION_2
 		phys = <&{/xusb_padctl@3520000/pads/usb2/lanes/usb2-0}>,
 			<&{/xusb_padctl@3520000/pads/usb3/lanes/usb3-2}>;
 		phy-names = "usb2", "usb3";
 		nvidia,xusb-padctl = <&xusb_padctl>;
-#endif
 		nvidia,boost_cpu_freq = <1200>;
 		status = "okay";
 	};
@@ -216,7 +211,6 @@
 		extcon-cables = <&typec_port0 1>;
 		extcon-cable-names = "id";
 		#extcon-cells = <1>;
-#if TEGRA_XUSB_PADCONTROL_VERSION >= DT_VERSION_2
 		phys = <&{/xusb_padctl@3520000/pads/usb2/lanes/usb2-0}>,
 			<&{/xusb_padctl@3520000/pads/usb2/lanes/usb2-1}>,
 			<&{/xusb_padctl@3520000/pads/usb2/lanes/usb2-3}>,
@@ -227,7 +221,6 @@
 		phy-names = "usb2-0", "usb2-1", "usb2-3", "usb2-2",
 			"usb3-2", "usb3-0", "usb3-3";
 		nvidia,xusb-padctl = <&xusb_padctl>;
-#endif
 		status = "okay";
 	};
 

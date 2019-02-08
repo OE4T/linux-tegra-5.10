@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -41,7 +41,6 @@
 		phy_pllvdd-supply = <&battery_reg>;
 	};
 
-#if TEGRA_XUSB_PADCONTROL_VERSION >= DT_VERSION_2
 	xusb_padctl@3520000 {
 		pex_dvdd-supply = <&p2888_spmic_sd0>;
 		pex_hvdd-supply = <&p2888_spmic_sd1>;
@@ -64,7 +63,6 @@
 			};
 		};
 	};
-#endif
 
 	xudc@3550000 {
 		avdd-usb-supply = <&p2888_spmic_ldo5>;

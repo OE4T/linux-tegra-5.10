@@ -1,7 +1,7 @@
 /*
  * Top level DTS file for CVM:P2888-0001 and CVB:E3366-1199
  *
- * Copyright (c) 2017-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -127,12 +127,10 @@
 		extcon-cables = <&vbus_id_extcon 0>;
 		extcon-cable-names = "vbus";
 		#extcon-cells = <1>;
-#if TEGRA_XUSB_PADCONTROL_VERSION >= DT_VERSION_2
 		phys = <&{/xusb_padctl@3520000/pads/usb2/lanes/usb2-0}>,
 			<&{/xusb_padctl@3520000/pads/usb3/lanes/usb3-2}>;
 		phy-names = "usb2", "usb3";
 		nvidia,xusb-padctl = <&xusb_padctl>;
-#endif
 		nvidia,boost_cpu_freq = <1200>;
 		status = "okay";
 	};
@@ -141,7 +139,6 @@
 		extcon-cables = <&vbus_id_extcon 1>;
 		extcon-cable-names = "id";
 		#extcon-cells = <1>;
-#if TEGRA_XUSB_PADCONTROL_VERSION >= DT_VERSION_2
 		phys = <&{/xusb_padctl@3520000/pads/usb2/lanes/usb2-0}>,
 			<&{/xusb_padctl@3520000/pads/usb2/lanes/usb2-1}>,
 			<&{/xusb_padctl@3520000/pads/usb2/lanes/usb2-2}>,
@@ -153,7 +150,6 @@
 		phy-names = "usb2-0", "usb2-1", "usb2-2", "usb2-3",
 				"usb3-0", "usb3-1", "usb3-2", "usb-3";
 		nvidia,xusb-padctl = <&xusb_padctl>;
-#endif
 		status = "disabled";
 	};
 
