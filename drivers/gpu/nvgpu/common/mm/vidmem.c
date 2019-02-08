@@ -271,7 +271,7 @@ static int nvgpu_vidmem_clear_pending_allocs_thr(void *mm_ptr)
 				nvgpu_thread_should_stop(
 					&mm->vidmem.clearing_thread) ||
 				!nvgpu_list_empty(&mm->vidmem.clear_list_head),
-				0);
+				0U);
 		if (ret == -ERESTARTSYS) {
 			continue;
 		}

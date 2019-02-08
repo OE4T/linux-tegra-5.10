@@ -262,7 +262,7 @@ int gv100_init_clk_arbiter(struct gk20a *g)
 		/* Check that first run is completed */
 		nvgpu_smp_mb();
 		NVGPU_COND_WAIT_INTERRUPTIBLE(&arb->request_wq,
-			nvgpu_atomic_read(&arb->req_nr), 0);
+			nvgpu_atomic_read(&arb->req_nr), 0U);
 	} while (nvgpu_atomic_read(&arb->req_nr) == 0);
 	return arb->status;
 

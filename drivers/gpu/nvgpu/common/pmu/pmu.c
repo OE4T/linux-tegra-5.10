@@ -627,7 +627,7 @@ static int nvgpu_pg_init_task(void *arg)
 	while (true) {
 
 		NVGPU_COND_WAIT_INTERRUPTIBLE(&pg_init->wq,
-			(pg_init->state_change == true), 0);
+			(pg_init->state_change == true), 0U);
 
 		pmu->pg_init.state_change = false;
 		pmu_state = NV_ACCESS_ONCE(pmu->pmu_state);

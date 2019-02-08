@@ -39,7 +39,11 @@ struct nvgpu_cond {
  *
  * @c - The condition variable to sleep on
  * @condition - The condition that needs to be true
- * @timeout_ms - Timeout in milliseconds, or 0 for infinite wait
+ * @timeout_ms - Timeout in milliseconds, or 0 for infinite wait.
+ *               This parameter must be a u32. Since this is a macro, this is
+ *               enforced by assigning a typecast NULL pointer to a u32 tmp
+ *               variable which will generate a compiler warning (or error if
+ *               the warning is configured as an error).
  *
  * Wait for a condition to become true. Returns -ETIMEOUT if
  * the wait timed out with condition false.
@@ -48,14 +52,24 @@ struct nvgpu_cond {
 ({									\
 	int ret = 0;							\
 	struct timespec ts;						\
+	long tmp_timeout_ms;						\
+	/* This is the assignment to enforce a u32 for timeout_ms */    \
+	u32 *tmp = (typeof(timeout_ms) *)NULL;				\
+	(void)tmp;							\
+	if ((sizeof(long) <= sizeof(u32)) &&				\
+	    ((timeout_ms) >= (u32)LONG_MAX)) { 				\
+		tmp_timeout_ms = LONG_MAX;				\
+	} else {							\
+		tmp_timeout_ms = (long)(timeout_ms);			\
+	}								\
 	nvgpu_mutex_acquire(&(c)->mutex);				\
-	if (timeout_ms == 0) {						\
+	if (tmp_timeout_ms == 0) {					\
 		ret = pthread_cond_wait(&(c)->cond,			\
 			&(c)->mutex.lock.mutex);			\
 	} else {							\
 		clock_gettime(CLOCK_REALTIME, &ts);			\
-		ts.tv_sec += timeout_ms / 1000;				\
-		ts.tv_nsec += (timeout_ms % 1000) * 1000000;		\
+		ts.tv_sec += tmp_timeout_ms / 1000;			\
+		ts.tv_nsec += (tmp_timeout_ms % 1000) * 1000000;	\
 		if (ts.tv_nsec >= 1000000000) {				\
 			ts.tv_sec += 1;					\
 			ts.tv_nsec %= 1000000000;			\

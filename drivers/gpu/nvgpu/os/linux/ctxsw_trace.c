@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -109,7 +109,7 @@ ssize_t gk20a_ctxsw_dev_read(struct file *filp, char __user *buf, size_t size,
 		if (filp->f_flags & O_NONBLOCK)
 			return -EAGAIN;
 		err = NVGPU_COND_WAIT_INTERRUPTIBLE(&dev->readout_wq,
-			!ring_is_empty(hdr), 0);
+			!ring_is_empty(hdr), 0U);
 		if (err)
 			return err;
 		nvgpu_mutex_acquire(&dev->write_lock);

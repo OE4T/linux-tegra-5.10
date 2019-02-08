@@ -55,7 +55,7 @@ ssize_t gk20a_sched_dev_read(struct file *filp, char __user *buf,
 		if (filp->f_flags & O_NONBLOCK)
 			return -EAGAIN;
 		err = NVGPU_COND_WAIT_INTERRUPTIBLE(&sched->readout_wq,
-			sched->status, 0);
+			sched->status, 0U);
 		if (err)
 			return err;
 		nvgpu_mutex_acquire(&sched->status_lock);

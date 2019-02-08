@@ -474,7 +474,8 @@ static int nvgpu_clk_arb_poll_worker(void *arg)
 		ret = NVGPU_COND_WAIT_INTERRUPTIBLE(
 				&worker->wq,
 				nvgpu_clk_arb_worker_pending(g, get) ||
-				nvgpu_thread_should_stop(&worker->poll_task), 0);
+				nvgpu_thread_should_stop(&worker->poll_task),
+				0U);
 
 		if (nvgpu_thread_should_stop(&worker->poll_task)) {
 			break;

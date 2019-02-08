@@ -215,7 +215,7 @@ static int nvgpu_semaphore_fence_wait(struct gk20a_fence *f, long timeout)
 	return NVGPU_COND_WAIT_INTERRUPTIBLE(
 		f->semaphore_wq,
 		!nvgpu_semaphore_is_acquired(f->semaphore),
-		timeout);
+		(u32)timeout);
 }
 
 static bool nvgpu_semaphore_fence_is_expired(struct gk20a_fence *f)

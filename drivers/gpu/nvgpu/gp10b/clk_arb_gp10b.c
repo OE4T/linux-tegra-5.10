@@ -215,7 +215,7 @@ int gp10b_init_clk_arbiter(struct gk20a *g)
 		/* Check that first run is completed */
 		nvgpu_smp_mb();
 		NVGPU_COND_WAIT_INTERRUPTIBLE(&arb->request_wq,
-			nvgpu_atomic_read(&arb->req_nr) != 0, 0);
+			nvgpu_atomic_read(&arb->req_nr) != 0, 0U);
 	} while (nvgpu_atomic_read(&arb->req_nr) == 0);
 
 	/* Once the default request is completed, reduce the usage count */

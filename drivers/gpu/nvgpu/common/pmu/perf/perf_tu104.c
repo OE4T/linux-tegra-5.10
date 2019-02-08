@@ -45,7 +45,7 @@ static int pmu_set_boot_clk_runcb_fn(void *arg)
 	while (true) {
 		NVGPU_COND_WAIT_INTERRUPTIBLE(&vfe_init->wq,
 			(vfe_init->state_change ||
-			nvgpu_thread_should_stop(&vfe_init->state_task)), 0);
+			nvgpu_thread_should_stop(&vfe_init->state_task)), 0U);
 		if (nvgpu_thread_should_stop(&vfe_init->state_task)) {
 			break;
 		}

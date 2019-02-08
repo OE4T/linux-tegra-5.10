@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -203,7 +203,7 @@ static ssize_t nvgpu_clk_arb_read_event_dev(struct file *filp, char __user *buf,
 		if (filp->f_flags & O_NONBLOCK)
 			return -EAGAIN;
 		err = NVGPU_COND_WAIT_INTERRUPTIBLE(&dev->readout_wq,
-				__pending_event(dev, &info), 0);
+				__pending_event(dev, &info), 0U);
 		if (err)
 			return err;
 		if (info.timestamp)
