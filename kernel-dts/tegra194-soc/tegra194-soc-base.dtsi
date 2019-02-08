@@ -2114,7 +2114,6 @@
 	};
 #endif
 
-#if TEGRA_XUSB_PADCONTROL_VERSION >= DT_VERSION_2
 
 	xusb_padctl: xusb_padctl@3520000 {
 		compatible = "nvidia,tegra19x-xusb-padctl";
@@ -2199,15 +2198,12 @@
 			};
 		};
 	};
-#endif
 
 	tegra_usb_cd: usb_cd {
 		compatible = "nvidia,tegra194-usb-cd";
-#if TEGRA_XUSB_PADCONTROL_VERSION >= DT_VERSION_2
 		nvidia,xusb-padctl = <&xusb_padctl>;
 		phys = <&{/xusb_padctl@3520000/pads/usb2/lanes/usb2-0}>;
 		phy-names = "otg-phy";
-#endif
 		status = "okay";
 	};
 
@@ -2221,9 +2217,7 @@
 			<&bpmp_clks TEGRA194_CLK_XUSB_SS>,
 			<&bpmp_clks TEGRA194_CLK_XUSB_FS>;
 
-#if TEGRA_XUSB_PADCONTROL_VERSION >= DT_VERSION_2
 		nvidia,xusb-padctl = <&xusb_padctl>;
-#endif
 
 		iommus = <&smmu TEGRA_SID_XUSB_DEV>;
 		dma-coherent;
@@ -2257,9 +2251,7 @@
 			"xusb_fs_src", "xusb_fs_host_clk", "xusb_ss_src",
 			"xusb_ss", "pll_u_480m", "clk_m", "pll_e";
 
-#if TEGRA_XUSB_PADCONTROL_VERSION >= DT_VERSION_2
 		nvidia,xusb-padctl = <&xusb_padctl>;
-#endif
 
 		iommus = <&smmu TEGRA_SID_XUSB_HOST>;
 		dma-coherent;
@@ -2272,9 +2264,7 @@
 		reg = <0x0 0x03660000 0x0 0x40000>;
 		interrupts = <0 21 0x4>;
 
-#if TEGRA_XUSB_PADCONTROL_VERSION >= DT_VERSION_2
 		nvidia,xusb-padctl = <&xusb_padctl>;
-#endif
 
 		iommus = <&smmu TEGRA_SID_XUSB_VF0>;
 		dma-coherent;
@@ -2287,9 +2277,7 @@
 		reg = <0x0 0x036b0000 0x0 0x40000>;
 		interrupts = <0 22 0x4>;
 
-#if TEGRA_XUSB_PADCONTROL_VERSION >= DT_VERSION_2
 		nvidia,xusb-padctl = <&xusb_padctl>;
-#endif
 
 		iommus = <&smmu TEGRA_SID_XUSB_VF1>;
 		dma-coherent;
@@ -2302,9 +2290,7 @@
 		reg = <0x0 0x03700000 0x0 0x40000>;
 		interrupts = <0 23 0x4>;
 
-#if TEGRA_XUSB_PADCONTROL_VERSION >= DT_VERSION_2
 		nvidia,xusb-padctl = <&xusb_padctl>;
-#endif
 
 		iommus = <&smmu TEGRA_SID_XUSB_VF2>;
 		dma-coherent;
@@ -2317,9 +2303,7 @@
 		reg = <0x0 0x03750000 0x0 0x40000>;
 		interrupts = <0 24 0x4>;
 
-#if TEGRA_XUSB_PADCONTROL_VERSION >= DT_VERSION_2
 		nvidia,xusb-padctl = <&xusb_padctl>;
-#endif
 
 		iommus = <&smmu TEGRA_SID_XUSB_VF3>;
 		dma-coherent;
