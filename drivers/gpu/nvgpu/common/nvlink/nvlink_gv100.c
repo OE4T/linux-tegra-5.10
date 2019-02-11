@@ -142,8 +142,12 @@ static int gv100_nvlink_minion_load(struct gk20a *g)
 		goto exit;
 	}
 
-	/* nvdec falcon reset */
-	nvgpu_falcon_reset(g->minion_flcn);
+	/* Minion reset */
+	err = nvgpu_falcon_reset(g->minion_flcn);
+	if (err != 0) {
+		nvgpu_err(g, "Minion reset failed");
+		goto exit;
+	}
 
 	/* Clear interrupts */
 	g->ops.nvlink.intr.minion_clear_interrupts(g);
@@ -156,11 +160,16 @@ static int gv100_nvlink_minion_load(struct gk20a *g)
 	/* set BOOTVEC to start of non-secure code */
 	err = nvgpu_falcon_bootstrap(g->minion_flcn, 0x0);
 	if (err != 0) {
+		nvgpu_err(g, "Minion bootstrap failed");
 		goto exit;
 	}
 
-	nvgpu_timeout_init(g, &timeout, gk20a_get_gr_idle_timeout(g),
+	err = nvgpu_timeout_init(g, &timeout, gk20a_get_gr_idle_timeout(g),
 		NVGPU_TIMER_CPU_TIMER);
+	if (err != 0) {
+		nvgpu_err(g, "Minion boot timeout init failed");
+		goto exit;
+	}
 
 	do {
 		reg = MINION_REG_RD32(g, minion_minion_status_r());
@@ -212,10 +221,14 @@ static int gv100_nvlink_minion_command_complete(struct gk20a *g, u32 link_id)
 	u32 reg;
 	struct nvgpu_timeout timeout;
 	u32 delay = GR_IDLE_CHECK_DEFAULT;
+	int err = 0;
 
-
-	nvgpu_timeout_init(g, &timeout, gk20a_get_gr_idle_timeout(g),
-		NVGPU_TIMER_CPU_TIMER);
+	err = nvgpu_timeout_init(g, &timeout, gk20a_get_gr_idle_timeout(g),
+				NVGPU_TIMER_CPU_TIMER);
+	if (err != 0) {
+		nvgpu_err(g, "Minion cmd complete timeout init failed");
+		return err;
+	}
 
 	do {
 		reg = MINION_REG_RD32(g, minion_nvlink_dl_cmd_r(link_id));
@@ -249,7 +262,7 @@ static int gv100_nvlink_minion_command_complete(struct gk20a *g, u32 link_id)
 	}
 
 	nvgpu_log(g, gpu_dbg_nvlink, "minion cmd Complete");
-	return 0;
+	return err;
 }
 
 /*
@@ -487,6 +500,7 @@ static int gv100_nvlink_state_load_hal(struct gk20a *g)
 
 int gv100_nvlink_setup_pll(struct gk20a *g, unsigned long link_mask)
 {
+	int err = 0;
 	u32 reg;
 	u32 link_id;
 	u32 links_off;
@@ -537,8 +551,12 @@ int gv100_nvlink_setup_pll(struct gk20a *g, unsigned long link_mask)
 	/* Poll for links to go up */
 	links_off = (u32) link_mask;
 
-	nvgpu_timeout_init(g, &timeout,
-		NVLINK_PLL_ON_TIMEOUT_MS, NVGPU_TIMER_CPU_TIMER);
+	err = nvgpu_timeout_init(g, &timeout,
+			NVLINK_PLL_ON_TIMEOUT_MS, NVGPU_TIMER_CPU_TIMER);
+	if (err != 0) {
+		nvgpu_err(g, "PLL ON timeout init failed");
+		return err;
+	}
 	do {
 		for_each_set_bit(bit, &link_mask, NVLINK_MAX_LINKS_SW) {
 			link_id = (u32)bit;
@@ -556,7 +574,7 @@ int gv100_nvlink_setup_pll(struct gk20a *g, unsigned long link_mask)
 		return -ETIMEDOUT;
 	}
 
-	return 0;
+	return err;
 }
 
 static void gv100_nvlink_prog_alt_clk(struct gk20a *g)
@@ -723,12 +741,18 @@ static int gv100_nvlink_rxcal_en(struct gk20a *g, unsigned long mask)
 	struct nvgpu_timeout timeout;
 	u32 reg;
 	unsigned long bit;
+	int ret = 0;
 
 	for_each_set_bit(bit, &mask, NVLINK_MAX_LINKS_SW) {
 		link_id = (u32)bit;
 		/* Timeout from HW specs */
-		nvgpu_timeout_init(g, &timeout,
-			8*NVLINK_SUBLINK_TIMEOUT_MS, NVGPU_TIMER_CPU_TIMER);
+		ret = nvgpu_timeout_init(g, &timeout,
+					8*NVLINK_SUBLINK_TIMEOUT_MS,
+					NVGPU_TIMER_CPU_TIMER);
+		if (ret != 0) {
+			nvgpu_err(g, "Timeout threshold init failed");
+			return ret;
+		}
 		reg = DLPL_REG_RD32(g, link_id, nvl_br0_cfg_cal_r());
 		reg = set_field(reg, nvl_br0_cfg_cal_rxcal_m(),
 			nvl_br0_cfg_cal_rxcal_on_f());
@@ -750,7 +774,7 @@ static int gv100_nvlink_rxcal_en(struct gk20a *g, unsigned long mask)
 		}
 	}
 
-	return 0;
+	return ret;
 }
 
 /*
@@ -1453,9 +1477,14 @@ static int gv100_nvlink_link_sublink_check_change(struct gk20a *g, u32 link_id)
 {
 	struct nvgpu_timeout timeout;
 	u32 reg;
+	int err = 0;
 
-	nvgpu_timeout_init(g, &timeout,
+	err = nvgpu_timeout_init(g, &timeout,
 			NVLINK_SUBLINK_TIMEOUT_MS, NVGPU_TIMER_CPU_TIMER);
+	if (err != 0) {
+		nvgpu_err(g, "Sublink mode change timeout init failed");
+		return err;
+	}
 	/* Poll for sublink status */
 	do {
 		reg = DLPL_REG_RD32(g, link_id, nvl_sublink_change_r());
@@ -1476,7 +1505,7 @@ static int gv100_nvlink_link_sublink_check_change(struct gk20a *g, u32 link_id)
 	if (nvgpu_timeout_peek_expired(&timeout) != 0) {
 		return -ETIMEDOUT;
 	}
-	return 0;
+	return err;
 }
 
 int gv100_nvlink_link_set_sublink_mode(struct gk20a *g, u32 link_id,

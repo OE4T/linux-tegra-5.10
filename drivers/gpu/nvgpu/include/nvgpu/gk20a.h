@@ -1527,7 +1527,7 @@ struct gpu_ops {
 		struct {
 			void (*minion_clear_interrupts)(struct gk20a *g);
 			void (*init_minion_intr)(struct gk20a *g);
-			bool (*minion_falcon_isr)(struct gk20a *g);
+			void (*minion_falcon_isr)(struct gk20a *g);
 			void (*common_intr_enable)(struct gk20a *g,
 							unsigned long mask);
 			void (*init_nvlipt_intr)(struct gk20a *g, u32 link_id);
@@ -1538,7 +1538,7 @@ struct gpu_ops {
 							bool enable);
 			void (*dlpl_intr_enable)(struct gk20a *g, u32 link_id,
 							bool enable);
-			int (*isr)(struct gk20a *g);
+			void (*isr)(struct gk20a *g);
 		} intr;
 	} nvlink;
 	struct {

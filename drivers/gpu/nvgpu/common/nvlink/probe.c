@@ -63,7 +63,7 @@ int nvgpu_nvlink_probe(struct gk20a *g)
 	return 0;
 
 unregister_ndev:
-	nvgpu_nvlink_unregister_device(g);
+	err = nvgpu_nvlink_unregister_device(g);
 
 free_ndev:
 	nvgpu_kfree(g, g->nvlink.priv);

@@ -156,7 +156,7 @@ void gv100_nvlink_init_minion_intr(struct gk20a *g)
 /*
  * Falcon specific ISR handling
  */
-bool gv100_nvlink_minion_falcon_isr(struct gk20a *g)
+void gv100_nvlink_minion_falcon_isr(struct gk20a *g)
 {
 	u32 intr;
 
@@ -164,7 +164,7 @@ bool gv100_nvlink_minion_falcon_isr(struct gk20a *g)
 		MINION_REG_RD32(g, minion_falcon_irqmask_r());
 
 	if (intr == 0U) {
-		return true;
+		return;
 	}
 
 	if (intr & minion_falcon_irqstat_exterr_true_f()) {
@@ -178,18 +178,14 @@ bool gv100_nvlink_minion_falcon_isr(struct gk20a *g)
 
 	nvgpu_err(g, "FATAL minion IRQ: 0x%08x", intr);
 
-
-	intr = MINION_REG_RD32(g, minion_falcon_irqstat_r()) &
-		MINION_REG_RD32(g, minion_falcon_irqmask_r());
-
-	return (intr == 0U);
+	return;
 }
 
 /*
  * Link Specific ISR
  */
 
-static bool gv100_nvlink_minion_link_isr(struct gk20a *g, u32 link_id)
+static void gv100_nvlink_minion_link_isr(struct gk20a *g, u32 link_id)
 {
 	u32 intr, code;
 	bool fatal = false;
@@ -226,13 +222,13 @@ static bool gv100_nvlink_minion_link_isr(struct gk20a *g, u32 link_id)
 		minion_nvlink_link_intr_state_f(1));
 	MINION_REG_WR32(g, minion_nvlink_link_intr_r(link_id), intr);
 
-	return true;
+	return;
 }
 
 /*
  * Global minion routine to service interrupts
  */
-static bool gv100_nvlink_minion_isr(struct gk20a *g) {
+static void gv100_nvlink_minion_isr(struct gk20a *g) {
 
 	u32 intr, link_id;
 	unsigned long links;
@@ -266,11 +262,7 @@ static bool gv100_nvlink_minion_isr(struct gk20a *g) {
 		}
 	}
 
-	/* Re-test interrupt status */
-	intr = MINION_REG_RD32(g, minion_minion_intr_r()) &
-		MINION_REG_RD32(g, minion_minion_intr_stall_en_r());
-
-	return (intr == 0U);
+	return;
 }
 
 /*
@@ -626,7 +618,7 @@ static void gv100_nvlink_nvlipt_intr_enable(struct gk20a *g, u32 link_id,
 /*
  * Per-link NVLIPT ISR handler
  */
-static bool gv100_nvlink_nvlipt_isr(struct gk20a *g, u32 link_id)
+static void gv100_nvlink_nvlipt_isr(struct gk20a *g, u32 link_id)
 {
 	/*
 	 * Interrupt handling happens in leaf handlers. Assume all interrupts
@@ -635,7 +627,7 @@ static bool gv100_nvlink_nvlipt_isr(struct gk20a *g, u32 link_id)
 	IPT_REG_WR32(g, IPT_ERR_UC_FIRST_LINK(link_id), IPT_ERR_UC_ACTIVE_BITS);
 	IPT_REG_WR32(g, IPT_ERR_UC_STATUS_LINK(link_id), IPT_ERR_UC_ACTIVE_BITS);
 
-	return true;
+	return;
 }
 
 /*
@@ -691,7 +683,7 @@ void gv100_nvlink_enable_link_intr(struct gk20a *g, u32 link_id, bool enable)
 /*
  * Top level interrupt handler
  */
-int gv100_nvlink_isr(struct gk20a *g)
+void gv100_nvlink_isr(struct gk20a *g)
 {
 	unsigned long links;
 	u32 link_id;
@@ -715,7 +707,7 @@ int gv100_nvlink_isr(struct gk20a *g)
 		/* NVLIPT is top-level. Do it last */
 		gv100_nvlink_nvlipt_isr(g, link_id);
 	}
-	return 0;
+	return;
 }
 
 #endif /* CONFIG_TEGRA_NVLINK */
