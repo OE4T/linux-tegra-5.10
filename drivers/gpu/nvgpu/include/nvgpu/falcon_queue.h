@@ -30,7 +30,6 @@
 #define QUEUE_TYPE_EMEM 0x1U
 #define QUEUE_TYPE_FB   0x2U
 
-struct gk20a;
 struct nvgpu_falcon;
 struct nvgpu_falcon_queue;
 
@@ -49,16 +48,6 @@ struct nvgpu_falcon_queue_params {
 	u32 size;
 	/* open-flag */
 	u32 oflag;
-
-	/* fb queue params*/
-	/* Holds the offset of queue data (0th element) */
-	u32 fbq_offset;
-
-	/* fb queue element size*/
-	u32 fbq_element_size;
-
-	/* Holds super surface base address */
-	struct nvgpu_mem *super_surface_mem;
 };
 
 /* queue public functions */
@@ -77,16 +66,7 @@ int nvgpu_falcon_queue_push(struct nvgpu_falcon *flcn,
 void nvgpu_falcon_queue_free(struct nvgpu_falcon *flcn,
 	struct nvgpu_falcon_queue **queue_p);
 u32 nvgpu_falcon_queue_get_id(struct nvgpu_falcon_queue *queue);
-u32 nvgpu_falcon_queue_get_position(struct nvgpu_falcon_queue *queue);
 u32 nvgpu_falcon_queue_get_index(struct nvgpu_falcon_queue *queue);
 u32 nvgpu_falcon_queue_get_size(struct nvgpu_falcon_queue *queue);
-u32 nvgpu_falcon_fbq_get_element_size(struct nvgpu_falcon_queue *queue);
-u32 nvgpu_falcon_queue_get_fbq_offset(struct nvgpu_falcon_queue *queue);
-u8 *nvgpu_falcon_queue_get_fbq_work_buffer(struct nvgpu_falcon_queue *queue);
-int nvgpu_falcon_queue_free_fbq_element(struct nvgpu_falcon *flcn,
-	struct nvgpu_falcon_queue *queue, u32 queue_pos);
-void nvgpu_falcon_queue_lock_fbq_work_buffer(struct nvgpu_falcon_queue *queue);
-void nvgpu_falcon_queue_unlock_fbq_work_buffer(
-	struct nvgpu_falcon_queue *queue);
 
 #endif /* NVGPU_FALCON_QUEUE_H */

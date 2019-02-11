@@ -267,12 +267,11 @@ static bool sec2_falcon_queue_read(struct nvgpu_sec2 *sec2,
 }
 
 static bool sec2_read_message(struct nvgpu_sec2 *sec2,
-	struct nvgpu_falcon_queue *queue,
-	struct nv_flcn_msg_sec2 *msg, int *status)
+	u32 queue_id, struct nv_flcn_msg_sec2 *msg, int *status)
 {
+	struct nvgpu_falcon_queue *queue = sec2->queue[queue_id];
 	struct gk20a *g = sec2->g;
 	u32 read_size;
-	u32 queue_id;
 	int err;
 
 	*status = 0U;
@@ -280,8 +279,6 @@ static bool sec2_read_message(struct nvgpu_sec2 *sec2,
 	if (nvgpu_falcon_queue_is_empty(sec2->flcn, queue)) {
 		return false;
 	}
-
-	queue_id = nvgpu_falcon_queue_get_id(queue);
 
 	if (!sec2_falcon_queue_read(sec2, queue, &msg->hdr, PMU_MSG_HDR_SIZE,
 			status)) {
@@ -411,7 +408,7 @@ int nvgpu_sec2_process_message(struct nvgpu_sec2 *sec2)
 	}
 
 	while (sec2_read_message(sec2,
-		sec2->queue[SEC2_NV_MSGQ_LOG_ID], &msg, &status)) {
+		SEC2_NV_MSGQ_LOG_ID, &msg, &status)) {
 
 		nvgpu_sec2_dbg(g, "read msg hdr: ");
 		nvgpu_sec2_dbg(g, "unit_id = 0x%08x, size = 0x%08x",

@@ -686,7 +686,6 @@ bool gk20a_pmu_is_interrupted(struct nvgpu_pmu *pmu)
 void gk20a_pmu_isr(struct gk20a *g)
 {
 	struct nvgpu_pmu *pmu = &g->pmu;
-	struct nvgpu_falcon_queue *queue;
 	u32 intr, mask;
 	bool recheck = false;
 
@@ -745,8 +744,7 @@ void gk20a_pmu_isr(struct gk20a *g)
 	gk20a_writel(g, pwr_falcon_irqsclr_r(), intr);
 
 	if (recheck) {
-		queue = pmu->queue[PMU_MESSAGE_QUEUE];
-		if (!nvgpu_falcon_queue_is_empty(pmu->flcn, queue)) {
+		if (!nvgpu_pmu_queue_is_empty(pmu, PMU_MESSAGE_QUEUE)) {
 			gk20a_writel(g, pwr_falcon_irqsset_r(),
 				pwr_falcon_irqsset_swgen0_set_f());
 		}

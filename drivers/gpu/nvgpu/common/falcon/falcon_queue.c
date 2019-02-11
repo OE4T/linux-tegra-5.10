@@ -27,7 +27,6 @@
 #include "falcon_priv.h"
 #include "falcon_dmem_queue.h"
 #include "falcon_emem_queue.h"
-#include "falcon_fb_queue.h"
 
 /* common falcon queue ops */
 static int falcon_queue_head(struct nvgpu_falcon *flcn,
@@ -336,11 +335,6 @@ void nvgpu_falcon_queue_free(struct nvgpu_falcon *flcn,
 	nvgpu_pmu_dbg(g, "flcn id-%d q-id %d: index %d ",
 		      flcn->flcn_id, queue->id, queue->index);
 
-	if (queue->queue_type == QUEUE_TYPE_FB) {
-		nvgpu_kfree(g, queue->fbq.work_buffer);
-		nvgpu_mutex_destroy(&queue->fbq.work_buffer_mutex);
-	}
-
 	/* destroy mutex */
 	nvgpu_mutex_destroy(&queue->mutex);
 
@@ -353,11 +347,6 @@ u32 nvgpu_falcon_queue_get_id(struct nvgpu_falcon_queue *queue)
 	return queue->id;
 }
 
-u32 nvgpu_falcon_queue_get_position(struct nvgpu_falcon_queue *queue)
-{
-	return queue->position;
-}
-
 u32 nvgpu_falcon_queue_get_index(struct nvgpu_falcon_queue *queue)
 {
 	return queue->index;
@@ -366,37 +355,6 @@ u32 nvgpu_falcon_queue_get_index(struct nvgpu_falcon_queue *queue)
 u32 nvgpu_falcon_queue_get_size(struct nvgpu_falcon_queue *queue)
 {
 	return queue->size;
-}
-
-u32 nvgpu_falcon_fbq_get_element_size(struct nvgpu_falcon_queue *queue)
-{
-	return falcon_queue_get_element_size_fb(queue);
-}
-
-u32 nvgpu_falcon_queue_get_fbq_offset(struct nvgpu_falcon_queue *queue)
-{
-	return falcon_queue_get_offset_fb(queue);
-}
-
-void nvgpu_falcon_queue_lock_fbq_work_buffer(struct nvgpu_falcon_queue *queue)
-{
-	falcon_queue_lock_work_buffer_fb(queue);
-}
-
-void nvgpu_falcon_queue_unlock_fbq_work_buffer(struct nvgpu_falcon_queue *queue)
-{
-	falcon_queue_unlock_work_buffer_fb(queue);
-}
-
-u8* nvgpu_falcon_queue_get_fbq_work_buffer(struct nvgpu_falcon_queue *queue)
-{
-	return falcon_queue_get_work_buffer_fb(queue);
-}
-
-int nvgpu_falcon_queue_free_fbq_element(struct nvgpu_falcon *flcn,
-	struct nvgpu_falcon_queue *queue, u32 queue_pos)
-{
-	return falcon_queue_free_element_fb(flcn, queue, queue_pos);
 }
 
 int nvgpu_falcon_queue_init(struct nvgpu_falcon *flcn,
@@ -443,16 +401,6 @@ int nvgpu_falcon_queue_init(struct nvgpu_falcon *flcn,
 		break;
 	case QUEUE_TYPE_EMEM:
 		falcon_emem_queue_init(flcn, queue);
-		break;
-	case QUEUE_TYPE_FB:
-		queue->fbq.super_surface_mem = params.super_surface_mem;
-		queue->fbq.element_size = params.fbq_element_size;
-		queue->fbq.fb_offset = params.fbq_offset;
-
-		err = falcon_fb_queue_init(flcn, queue);
-		if (err != 0x0) {
-			goto exit;
-		}
 		break;
 	default:
 		err = -EINVAL;

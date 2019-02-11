@@ -299,7 +299,7 @@ struct pmu_sequence {
 	void *cb_params;
 
 	/* fb queue that is associated with this seq */
-	struct nvgpu_falcon_queue *cmd_queue;
+	struct nvgpu_falcon_fb_queue *cmd_queue;
 	/* fbq element that is associated with this seq */
 	u8 *fbq_work_buffer;
 	u32 fbq_element_index;
@@ -354,6 +354,8 @@ struct nvgpu_pmu {
 
 	struct nvgpu_falcon_queue *queue[PMU_QUEUE_COUNT];
 	u32 queue_type;
+
+	struct nvgpu_falcon_fb_queue *fb_queue[PMU_QUEUE_COUNT];
 
 	struct pmu_sequence *seq;
 	unsigned long pmu_seq_tbl[PMU_SEQ_TBL_SIZE];
@@ -464,6 +466,7 @@ int nvgpu_pmu_cmd_post(struct gk20a *g, struct pmu_cmd *cmd,
 		u32 queue_id, pmu_callback callback, void *cb_param,
 		u32 *seq_desc);
 
+bool nvgpu_pmu_queue_is_empty(struct nvgpu_pmu *pmu, u32 queue_id);
 int nvgpu_pmu_process_message(struct nvgpu_pmu *pmu);
 
 /* perfmon */
