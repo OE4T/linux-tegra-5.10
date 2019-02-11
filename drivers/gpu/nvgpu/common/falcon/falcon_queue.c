@@ -33,8 +33,8 @@ static int falcon_queue_head(struct nvgpu_falcon *flcn,
 	int err = -ENOSYS;
 
 	if (flcn->flcn_engine_dep_ops.queue_head != NULL) {
-		err = flcn->flcn_engine_dep_ops.queue_head(flcn->g, queue,
-			head, set);
+		err = flcn->flcn_engine_dep_ops.queue_head(flcn->g, queue->id,
+			queue->index, head, set);
 	}
 
 	return err;
@@ -46,8 +46,8 @@ static int falcon_queue_tail(struct nvgpu_falcon *flcn,
 	int err = -ENOSYS;
 
 	if (flcn->flcn_engine_dep_ops.queue_tail != NULL) {
-		err = flcn->flcn_engine_dep_ops.queue_tail(flcn->g, queue,
-			tail, set);
+		err = flcn->flcn_engine_dep_ops.queue_tail(flcn->g, queue->id,
+			queue->index, tail, set);
 	}
 
 	return err;
@@ -149,7 +149,7 @@ static int falcon_queue_tail_fb(struct nvgpu_falcon *flcn,
 	} else {
 		if (flcn->flcn_engine_dep_ops.queue_tail != NULL) {
 			err = flcn->flcn_engine_dep_ops.queue_tail(g,
-				queue, tail, set);
+				queue->id, queue->index, tail, set);
 		}
 	}
 

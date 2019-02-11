@@ -393,12 +393,10 @@ int gk20a_pmu_mutex_release(struct nvgpu_pmu *pmu, u32 id, u32 *token)
 	return 0;
 }
 
-int gk20a_pmu_queue_head(struct gk20a *g, struct nvgpu_falcon_queue *queue,
+int gk20a_pmu_queue_head(struct gk20a *g, u32 queue_id, u32 queue_index,
 			u32 *head, bool set)
 {
 	u32 queue_head_size = 0;
-	u32 queue_id = nvgpu_falcon_queue_get_id(queue);
-	u32 queue_index = nvgpu_falcon_queue_get_index(queue);
 
 	if (g->ops.pmu.pmu_get_queue_head_size != NULL) {
 		queue_head_size = g->ops.pmu.pmu_get_queue_head_size();
@@ -435,12 +433,10 @@ int gk20a_pmu_queue_head(struct gk20a *g, struct nvgpu_falcon_queue *queue,
 	return 0;
 }
 
-int gk20a_pmu_queue_tail(struct gk20a *g, struct nvgpu_falcon_queue *queue,
+int gk20a_pmu_queue_tail(struct gk20a *g, u32 queue_id, u32 queue_index,
 			u32 *tail, bool set)
 {
 	u32 queue_tail_size = 0;
-	u32 queue_id = nvgpu_falcon_queue_get_id(queue);
-	u32 queue_index = nvgpu_falcon_queue_get_index(queue);
 
 	if (g->ops.pmu.pmu_get_queue_tail_size != NULL) {
 		queue_tail_size = g->ops.pmu.pmu_get_queue_tail_size();

@@ -236,14 +236,10 @@ int tu104_sec2_setup_hw_and_bl_bootstrap(struct gk20a *g,
 	return tu104_sec2_flcn_bl_bootstrap(g, bl_info);
 }
 
-int tu104_sec2_queue_head(struct gk20a *g, struct nvgpu_falcon_queue *queue,
+int tu104_sec2_queue_head(struct gk20a *g, u32 queue_id, u32 queue_index,
 	u32 *head, bool set)
 {
 	u32 queue_head_size = 8;
-	u32 queue_id, queue_index;
-
-	queue_id = nvgpu_falcon_queue_get_id(queue);
-	queue_index = nvgpu_falcon_queue_get_index(queue);
 
 	if (queue_id <= SEC2_NV_CMDQ_LOG_ID__LAST) {
 		if (queue_index >= queue_head_size) {
@@ -271,14 +267,10 @@ int tu104_sec2_queue_head(struct gk20a *g, struct nvgpu_falcon_queue *queue,
 	return 0;
 }
 
-int tu104_sec2_queue_tail(struct gk20a *g, struct nvgpu_falcon_queue *queue,
+int tu104_sec2_queue_tail(struct gk20a *g, u32 queue_id, u32 queue_index,
 	u32 *tail, bool set)
 {
 	u32 queue_tail_size = 8;
-	u32 queue_id, queue_index;
-
-	queue_id = nvgpu_falcon_queue_get_id(queue);
-	queue_index = nvgpu_falcon_queue_get_index(queue);
 
 	if (queue_id <= SEC2_NV_CMDQ_LOG_ID__LAST) {
 		if (queue_index >= queue_tail_size) {

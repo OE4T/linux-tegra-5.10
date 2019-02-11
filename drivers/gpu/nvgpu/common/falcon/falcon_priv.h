@@ -162,9 +162,9 @@ struct nvgpu_falcon_queue {
 /* ops which are falcon engine specific */
 struct nvgpu_falcon_engine_dependency_ops {
 	int (*reset_eng)(struct gk20a *g);
-	int (*queue_head)(struct gk20a *g, struct nvgpu_falcon_queue *queue,
+	int (*queue_head)(struct gk20a *g, u32 queue_id, u32 queue_index,
 		u32 *head, bool set);
-	int (*queue_tail)(struct gk20a *g, struct nvgpu_falcon_queue *queue,
+	int (*queue_tail)(struct gk20a *g, u32 queue_id, u32 queue_index,
 		u32 *tail, bool set);
 	int (*copy_from_emem)(struct nvgpu_falcon *flcn, u32 src, u8 *dst,
 		u32 size, u8 port);

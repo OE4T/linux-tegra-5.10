@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -34,9 +34,9 @@ int tu104_sec2_setup_hw_and_bl_bootstrap(struct gk20a *g,
 	struct hs_acr *acr_desc,
 	struct nvgpu_falcon_bl_info *bl_info);
 
-int tu104_sec2_queue_head(struct gk20a *g, struct nvgpu_falcon_queue *queue,
+int tu104_sec2_queue_head(struct gk20a *g, u32 queue_id, u32 queue_index,
 	u32 *head, bool set);
-int tu104_sec2_queue_tail(struct gk20a *g, struct nvgpu_falcon_queue *queue,
+int tu104_sec2_queue_tail(struct gk20a *g, u32 queue_id, u32 queue_index,
 	u32 *tail, bool set);
 void tu104_sec2_msgq_tail(struct gk20a *g, struct nvgpu_sec2 *sec2,
 	u32 *tail, bool set);

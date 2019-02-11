@@ -1189,10 +1189,10 @@ struct gpu_ops {
 		u32 (*pmu_get_queue_tail_size)(void);
 		u32 (*pmu_get_queue_tail)(u32 i);
 		int (*pmu_reset)(struct gk20a *g);
-		int (*pmu_queue_head)(struct gk20a *g,
-			struct nvgpu_falcon_queue *queue, u32 *head, bool set);
-		int (*pmu_queue_tail)(struct gk20a *g,
-			struct nvgpu_falcon_queue *queue, u32 *tail, bool set);
+		int (*pmu_queue_head)(struct gk20a *g, u32 queue_id,
+				      u32 queue_index, u32 *head, bool set);
+		int (*pmu_queue_tail)(struct gk20a *g, u32 queue_id,
+				      u32 queue_index, u32 *tail, bool set);
 		void (*pmu_msgq_tail)(struct nvgpu_pmu *pmu,
 			u32 *tail, bool set);
 		u32 (*pmu_mutex_size)(void);
@@ -1576,10 +1576,10 @@ struct gpu_ops {
 		int (*sec2_copy_from_emem)(struct nvgpu_falcon *flcn,
 					   u32 src, u8 *dst, u32 size, u8 port);
 		int (*sec2_queue_head)(struct gk20a *g,
-				       struct nvgpu_falcon_queue *queue,
+				       u32 queue_id, u32 queue_index,
 				       u32 *head, bool set);
 		int (*sec2_queue_tail)(struct gk20a *g,
-				       struct nvgpu_falcon_queue *queue,
+				       u32 queue_id, u32 queue_index,
 				       u32 *tail, bool set);
 	} sec2;
 	struct {
