@@ -25,6 +25,7 @@
 
 struct nvgpu_engine_fb_queue {
 	struct gk20a *g;
+	u32 flcn_id;
 
 	/* used by nvgpu, for command LPQ/HPQ */
 	struct nvgpu_mutex mutex;

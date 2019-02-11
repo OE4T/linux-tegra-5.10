@@ -36,7 +36,7 @@ static int engine_emem_queue_push(struct nvgpu_falcon *flcn,
 
 	err = nvgpu_falcon_copy_to_emem(flcn, dst, data, size, 0);
 	if (err != 0) {
-		nvgpu_err(g, "flcn-%d, queue-%d", flcn->flcn_id, queue->id);
+		nvgpu_err(g, "flcn-%d, queue-%d", queue->flcn_id, queue->id);
 		nvgpu_err(g, "emem queue write failed");
 		goto exit;
 	}
@@ -53,7 +53,7 @@ static int engine_emem_queue_pop(struct nvgpu_falcon *flcn,
 
 	err = nvgpu_falcon_copy_from_emem(flcn, src, data, size, 0);
 	if (err != 0) {
-		nvgpu_err(g, "flcn-%d, queue-%d", flcn->flcn_id, queue->id);
+		nvgpu_err(g, "flcn-%d, queue-%d", queue->flcn_id, queue->id);
 		nvgpu_err(g, "emem queue read failed");
 		goto exit;
 	}

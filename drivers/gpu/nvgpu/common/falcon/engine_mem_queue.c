@@ -68,13 +68,13 @@ static bool engine_mem_queue_has_room(struct nvgpu_falcon *flcn,
 
 	err = queue->head(flcn, queue, &q_head, QUEUE_GET);
 	if (err != 0) {
-		nvgpu_err(flcn->g, "queue head GET failed");
+		nvgpu_err(queue->g, "queue head GET failed");
 		goto exit;
 	}
 
 	err = queue->tail(flcn, queue, &q_tail, QUEUE_GET);
 	if (err != 0) {
-		nvgpu_err(flcn->g, "queue tail GET failed");
+		nvgpu_err(queue->g, "queue tail GET failed");
 		goto exit;
 	}
 
@@ -103,7 +103,7 @@ exit:
 static int engine_mem_queue_rewind(struct nvgpu_falcon *flcn,
 	struct nvgpu_engine_mem_queue *queue)
 {
-	struct gk20a *g = flcn->g;
+	struct gk20a *g = queue->g;
 	struct pmu_cmd cmd;
 	int err = 0;
 
@@ -114,12 +114,12 @@ static int engine_mem_queue_rewind(struct nvgpu_falcon *flcn,
 				  &cmd, cmd.hdr.size);
 		if (err != 0) {
 			nvgpu_err(g, "flcn-%d queue-%d, rewind request failed",
-				flcn->flcn_id, queue->id);
+				queue->flcn_id, queue->id);
 			goto exit;
 		} else {
 			queue->position += ALIGN(cmd.hdr.size, QUEUE_ALIGNMENT);
 			nvgpu_pmu_dbg(g, "flcn-%d queue-%d, rewinded",
-			flcn->flcn_id, queue->id);
+			queue->flcn_id, queue->id);
 		}
 	}
 
@@ -130,8 +130,8 @@ static int engine_mem_queue_rewind(struct nvgpu_falcon *flcn,
 		err = queue->tail(flcn, queue, &queue->position,
 			QUEUE_SET);
 		if (err != 0) {
-			nvgpu_err(flcn->g, "flcn-%d queue-%d, position SET failed",
-				flcn->flcn_id, queue->id);
+			nvgpu_err(g, "flcn-%d queue-%d, position SET failed",
+				queue->flcn_id, queue->id);
 			goto exit;
 		}
 	}
@@ -148,7 +148,7 @@ static int engine_mem_queue_prepare_write(struct nvgpu_falcon *flcn,
 
 	/* make sure there's enough free space for the write */
 	if (!engine_mem_queue_has_room(flcn, queue, size, &q_rewind)) {
-		nvgpu_pmu_dbg(flcn->g, "queue full: queue-id %d: index %d",
+		nvgpu_pmu_dbg(queue->g, "queue full: queue-id %d: index %d",
 			queue->id, queue->index);
 		err = -EAGAIN;
 		goto exit;
@@ -156,8 +156,8 @@ static int engine_mem_queue_prepare_write(struct nvgpu_falcon *flcn,
 
 	err = queue->head(flcn, queue, &queue->position, QUEUE_GET);
 	if (err != 0) {
-		nvgpu_err(flcn->g, "flcn-%d queue-%d, position GET failed",
-			flcn->flcn_id, queue->id);
+		nvgpu_err(queue->g, "flcn-%d queue-%d, position GET failed",
+			queue->flcn_id, queue->id);
 		goto exit;
 	}
 
@@ -175,15 +175,18 @@ exit:
 int nvgpu_engine_mem_queue_push(struct nvgpu_falcon *flcn,
 	struct nvgpu_engine_mem_queue *queue, void *data, u32 size)
 {
+	struct gk20a *g;
 	int err = 0;
 
 	if ((flcn == NULL) || (queue == NULL)) {
 		return -EINVAL;
 	}
 
+	g = queue->g;
+
 	if (queue->oflag != OFLAG_WRITE) {
-		nvgpu_err(flcn->g, "flcn-%d, queue-%d not opened for write",
-			flcn->flcn_id, queue->id);
+		nvgpu_err(g, "flcn-%d, queue-%d not opened for write",
+			queue->flcn_id, queue->id);
 		err = -EINVAL;
 		goto exit;
 	}
@@ -198,8 +201,8 @@ int nvgpu_engine_mem_queue_push(struct nvgpu_falcon *flcn,
 
 	err = queue->push(flcn, queue, queue->position, data, size);
 	if (err != 0) {
-		nvgpu_err(flcn->g, "flcn-%d queue-%d, fail to write",
-			flcn->flcn_id, queue->id);
+		nvgpu_err(g, "flcn-%d queue-%d, fail to write",
+			queue->flcn_id, queue->id);
 		goto unlock_mutex;
 	}
 
@@ -207,8 +210,8 @@ int nvgpu_engine_mem_queue_push(struct nvgpu_falcon *flcn,
 
 	err = queue->head(flcn, queue, &queue->position, QUEUE_SET);
 	if (err != 0) {
-		nvgpu_err(flcn->g, "flcn-%d queue-%d, position SET failed",
-			flcn->flcn_id, queue->id);
+		nvgpu_err(g, "flcn-%d queue-%d, position SET failed",
+			queue->flcn_id, queue->id);
 	}
 
 unlock_mutex:
@@ -223,7 +226,7 @@ int nvgpu_engine_mem_queue_pop(struct nvgpu_falcon *flcn,
 	struct nvgpu_engine_mem_queue *queue, void *data, u32 size,
 	u32 *bytes_read)
 {
-	struct gk20a *g = flcn->g;
+	struct gk20a *g;
 	u32 q_tail = 0;
 	u32 q_head = 0;
 	u32 used = 0;
@@ -235,9 +238,11 @@ int nvgpu_engine_mem_queue_pop(struct nvgpu_falcon *flcn,
 		return -EINVAL;
 	}
 
+	g = queue->g;
+
 	if (queue->oflag != OFLAG_READ) {
-		nvgpu_err(flcn->g, "flcn-%d, queue-%d, not opened for read",
-			flcn->flcn_id, queue->id);
+		nvgpu_err(g, "flcn-%d, queue-%d, not opened for read",
+			queue->flcn_id, queue->id);
 		err = -EINVAL;
 		goto exit;
 	}
@@ -247,15 +252,15 @@ int nvgpu_engine_mem_queue_pop(struct nvgpu_falcon *flcn,
 
 	err = queue->head(flcn, queue, &q_head, QUEUE_GET);
 	if (err != 0) {
-		nvgpu_err(flcn->g, "flcn-%d, queue-%d, head GET failed",
-			flcn->flcn_id, queue->id);
+		nvgpu_err(g, "flcn-%d, queue-%d, head GET failed",
+			queue->flcn_id, queue->id);
 		goto unlock_mutex;
 	}
 
 	err = queue->tail(flcn, queue, &queue->position, QUEUE_GET);
 	if (err != 0) {
-		nvgpu_err(flcn->g, "flcn-%d queue-%d, position GET failed",
-			flcn->flcn_id, queue->id);
+		nvgpu_err(g, "flcn-%d queue-%d, position GET failed",
+			queue->flcn_id, queue->id);
 		goto unlock_mutex;
 	}
 
@@ -276,8 +281,8 @@ int nvgpu_engine_mem_queue_pop(struct nvgpu_falcon *flcn,
 
 	err = queue->pop(flcn, queue, q_tail, data, size);
 	if (err != 0) {
-		nvgpu_err(flcn->g, "flcn-%d queue-%d, fail to read",
-			flcn->flcn_id, queue->id);
+		nvgpu_err(g, "flcn-%d queue-%d, fail to read",
+			queue->flcn_id, queue->id);
 		goto unlock_mutex;
 	}
 
@@ -285,8 +290,8 @@ int nvgpu_engine_mem_queue_pop(struct nvgpu_falcon *flcn,
 
 	err = queue->tail(flcn, queue, &queue->position, QUEUE_SET);
 	if (err != 0) {
-		nvgpu_err(flcn->g, "flcn-%d queue-%d, position SET failed",
-			flcn->flcn_id, queue->id);
+		nvgpu_err(g, "flcn-%d queue-%d, position SET failed",
+			queue->flcn_id, queue->id);
 		goto unlock_mutex;
 	}
 
@@ -323,6 +328,7 @@ int nvgpu_engine_mem_queue_rewind(struct nvgpu_falcon *flcn,
 bool nvgpu_engine_mem_queue_is_empty(struct nvgpu_falcon *flcn,
 	struct nvgpu_engine_mem_queue *queue)
 {
+	struct gk20a *g;
 	u32 q_head = 0;
 	u32 q_tail = 0;
 	int err = 0;
@@ -331,20 +337,22 @@ bool nvgpu_engine_mem_queue_is_empty(struct nvgpu_falcon *flcn,
 		return true;
 	}
 
+	g = queue->g;
+
 	/* acquire mutex */
 	nvgpu_mutex_acquire(&queue->mutex);
 
 	err = queue->head(flcn, queue, &q_head, QUEUE_GET);
 	if (err != 0) {
-		nvgpu_err(flcn->g, "flcn-%d queue-%d, head GET failed",
-			flcn->flcn_id, queue->id);
+		nvgpu_err(g, "flcn-%d queue-%d, head GET failed",
+			queue->flcn_id, queue->id);
 		goto exit;
 	}
 
 	err = queue->tail(flcn, queue, &q_tail, QUEUE_GET);
 	if (err != 0) {
-		nvgpu_err(flcn->g, "flcn-%d queue-%d, tail GET failed",
-			flcn->flcn_id, queue->id);
+		nvgpu_err(g, "flcn-%d queue-%d, tail GET failed",
+			queue->flcn_id, queue->id);
 		goto exit;
 	}
 
@@ -359,7 +367,7 @@ void nvgpu_engine_mem_queue_free(struct nvgpu_falcon *flcn,
 	struct nvgpu_engine_mem_queue **queue_p)
 {
 	struct nvgpu_engine_mem_queue *queue = NULL;
-	struct gk20a *g = flcn->g;
+	struct gk20a *g;
 
 	if ((queue_p == NULL) || (*queue_p == NULL)) {
 		return;
@@ -367,8 +375,10 @@ void nvgpu_engine_mem_queue_free(struct nvgpu_falcon *flcn,
 
 	queue = *queue_p;
 
+	g = queue->g;
+
 	nvgpu_pmu_dbg(g, "flcn id-%d q-id %d: index %d ",
-		      flcn->flcn_id, queue->id, queue->index);
+		      queue->flcn_id, queue->id, queue->index);
 
 	/* destroy mutex */
 	nvgpu_mutex_destroy(&queue->mutex);
@@ -387,7 +397,7 @@ int nvgpu_engine_mem_queue_init(struct nvgpu_falcon *flcn,
 	struct nvgpu_engine_mem_queue_params params)
 {
 	struct nvgpu_engine_mem_queue *queue = NULL;
-	struct gk20a *g = flcn->g;
+	struct gk20a *g = params.g;
 	int err = 0;
 
 	if (queue_p == NULL) {
@@ -401,7 +411,8 @@ int nvgpu_engine_mem_queue_init(struct nvgpu_falcon *flcn,
 		return -ENOMEM;
 	}
 
-	queue->g = g;
+	queue->g = params.g;
+	queue->flcn_id = params.flcn_id;
 	queue->id = params.id;
 	queue->index = params.index;
 	queue->offset = params.offset;
@@ -415,7 +426,7 @@ int nvgpu_engine_mem_queue_init(struct nvgpu_falcon *flcn,
 
 	nvgpu_log(g, gpu_dbg_pmu,
 		"flcn id-%d q-id %d: index %d, offset 0x%08x, size 0x%08x",
-		flcn->flcn_id, queue->id, queue->index,
+		queue->flcn_id, queue->id, queue->index,
 		queue->offset, queue->size);
 
 	switch (queue->queue_type) {
@@ -431,8 +442,8 @@ int nvgpu_engine_mem_queue_init(struct nvgpu_falcon *flcn,
 	}
 
 	if (err != 0) {
-		nvgpu_err(flcn->g, "flcn-%d queue-%d, init failed",
-			flcn->flcn_id, queue->id);
+		nvgpu_err(g, "flcn-%d queue-%d, init failed",
+			queue->flcn_id, queue->id);
 		nvgpu_kfree(g, queue);
 		goto exit;
 	}

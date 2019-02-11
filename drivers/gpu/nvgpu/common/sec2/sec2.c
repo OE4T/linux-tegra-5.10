@@ -60,6 +60,8 @@ int nvgpu_sec2_queue_init(struct nvgpu_sec2 *sec2, u32 id,
 	/* init queue parameters */
 	queue_log_id = init->q_info[id].queue_log_id;
 
+	params.g = g;
+	params.flcn_id = FALCON_ID_SEC2;
 	params.id = queue_log_id;
 	params.index = init->q_info[id].queue_phy_id;
 	params.offset = init->q_info[id].queue_offset;

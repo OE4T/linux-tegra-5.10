@@ -161,6 +161,8 @@ int nvgpu_pmu_queue_init_fb(struct nvgpu_pmu *pmu,
 		goto exit;
 	}
 
+	params.g = g;
+	params.flcn_id = FALCON_ID_PMU;
 	params.id = id;
 	params.oflag = oflag;
 
@@ -215,6 +217,8 @@ int nvgpu_pmu_queue_init(struct nvgpu_pmu *pmu,
 	}
 
 	/* init queue parameters */
+	params.g = g;
+	params.flcn_id = FALCON_ID_PMU;
 	params.id = id;
 	params.oflag = oflag;
 	params.queue_type = QUEUE_TYPE_DMEM;

@@ -34,6 +34,9 @@ struct nvgpu_falcon;
 struct nvgpu_engine_mem_queue;
 
 struct nvgpu_engine_mem_queue_params {
+	struct gk20a *g;
+	u32 flcn_id;
+
 	/* Queue Type (queue_type) */
 	u8 queue_type;
 	/* current write position */

@@ -30,6 +30,9 @@ struct nvgpu_falcon;
 struct nvgpu_engine_fb_queue;
 
 struct nvgpu_engine_fb_queue_params {
+	struct gk20a *g;
+	u32 flcn_id;
+
 	/* logical queue identifier */
 	u32 id;
 	/* physical queue index */
