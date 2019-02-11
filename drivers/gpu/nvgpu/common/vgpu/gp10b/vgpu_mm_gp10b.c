@@ -189,6 +189,10 @@ u64 vgpu_gp10b_locked_gmmu_map(struct vm_gk20a *vm,
 	if (flags & NVGPU_VM_MAP_L3_ALLOC) {
 		p->flags |= TEGRA_VGPU_MAP_L3_ALLOC;
 	}
+	if (flags & NVGPU_VM_MAP_PLATFORM_ATOMIC) {
+		p->flags |= TEGRA_VGPU_MAP_PLATFORM_ATOMIC;
+	}
+
 	p->prot = prot;
 	p->ctag_offset = ctag_offset;
 	p->clear_ctags = clear_ctags;
