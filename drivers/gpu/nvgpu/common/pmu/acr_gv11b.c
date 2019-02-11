@@ -21,72 +21,19 @@
  */
 
 #include <nvgpu/types.h>
-#include <nvgpu/dma.h>
-#include <nvgpu/gmmu.h>
-#include <nvgpu/timers.h>
 #include <nvgpu/nvgpu_common.h>
-#include <nvgpu/kmem.h>
-#include <nvgpu/nvgpu_mem.h>
 #include <nvgpu/firmware.h>
-#include <nvgpu/mm.h>
 #include <nvgpu/acr/nvgpu_acr.h>
-#include <nvgpu/enabled.h>
-#include <nvgpu/io.h>
-#include <nvgpu/utils.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/bug.h>
 
-#include "gm20b/mm_gm20b.h"
-
-#include "acr_gv11b.h"
-#include "pmu_gv11b.h"
 #include "pmu_gm20b.h"
 #include "acr_gm20b.h"
 #include "acr_gp106.h"
+#include "acr_gv11b.h"
 
-#include <nvgpu/hw/gv11b/hw_pwr_gv11b.h>
-
-/*Defines*/
-#define gv11b_dbg_pmu(g, fmt, arg...) \
-	nvgpu_log(g, gpu_dbg_pmu, fmt, ##arg)
-
-/*Externs*/
-
-/*Forwards*/
-
-void gv11b_setup_apertures(struct gk20a *g)
-{
-	struct mm_gk20a *mm = &g->mm;
-	struct nvgpu_mem *inst_block = &mm->pmu.inst_block;
-
-	nvgpu_log_fn(g, " ");
-
-	/* setup apertures - virtual */
-	gk20a_writel(g, pwr_fbif_transcfg_r(GK20A_PMU_DMAIDX_UCODE),
-			pwr_fbif_transcfg_mem_type_physical_f() |
-			nvgpu_aperture_mask(g, inst_block,
-			pwr_fbif_transcfg_target_noncoherent_sysmem_f(),
-			pwr_fbif_transcfg_target_coherent_sysmem_f(),
-			pwr_fbif_transcfg_target_local_fb_f()));
-	gk20a_writel(g, pwr_fbif_transcfg_r(GK20A_PMU_DMAIDX_VIRT),
-			pwr_fbif_transcfg_mem_type_virtual_f());
-	/* setup apertures - physical */
-	gk20a_writel(g, pwr_fbif_transcfg_r(GK20A_PMU_DMAIDX_PHYS_VID),
-			pwr_fbif_transcfg_mem_type_physical_f() |
-			nvgpu_aperture_mask(g, inst_block,
-			pwr_fbif_transcfg_target_noncoherent_sysmem_f(),
-			pwr_fbif_transcfg_target_coherent_sysmem_f(),
-			pwr_fbif_transcfg_target_local_fb_f()));
-	gk20a_writel(g, pwr_fbif_transcfg_r(GK20A_PMU_DMAIDX_PHYS_SYS_COH),
-			pwr_fbif_transcfg_mem_type_physical_f() |
-			pwr_fbif_transcfg_target_coherent_sysmem_f());
-	gk20a_writel(g, pwr_fbif_transcfg_r(GK20A_PMU_DMAIDX_PHYS_SYS_NCOH),
-			pwr_fbif_transcfg_mem_type_physical_f() |
-			pwr_fbif_transcfg_target_noncoherent_sysmem_f());
-}
-
-int gv11b_acr_patch_wpr_info_to_ucode(struct gk20a *g, struct nvgpu_acr *acr,
-	struct hs_acr *acr_desc, bool is_recovery)
+static int gv11b_acr_patch_wpr_info_to_ucode(struct gk20a *g,
+	struct nvgpu_acr *acr, struct hs_acr *acr_desc, bool is_recovery)
 {
 	struct nvgpu_firmware *acr_fw = acr_desc->acr_fw;
 	struct acr_fw_header *acr_fw_hdr = NULL;

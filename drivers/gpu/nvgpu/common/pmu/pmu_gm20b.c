@@ -411,3 +411,8 @@ void gm20b_secured_pmu_start(struct gk20a *g)
 	gk20a_writel(g, pwr_falcon_cpuctl_alias_r(),
 		pwr_falcon_cpuctl_startcpu_f(1));
 }
+
+bool gm20b_is_pmu_supported(struct gk20a *g)
+{
+	return true;
+}

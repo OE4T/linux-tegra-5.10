@@ -25,15 +25,9 @@
 #ifndef NVGPU_GM20B_ACR_GM20B_H
 #define NVGPU_GM20B_ACR_GM20B_H
 
-#define GM20B_PMU_UCODE_IMAGE "gpmu_ucode_image.bin"
-#define GM20B_PMU_UCODE_DESC "gpmu_ucode_desc.bin"
-#define GM20B_HSBIN_PMU_UCODE_IMAGE "acr_ucode.bin"
-#define GM20B_HSBIN_PMU_BL_UCODE_IMAGE "pmu_bl.bin"
-#define GM20B_PMU_UCODE_SIG "pmu_sig.bin"
 #define GM20B_FECS_UCODE_SIG "fecs_sig.bin"
 #define T18x_GPCCS_UCODE_SIG "gpccs_sig.bin"
 
-bool gm20b_is_pmu_supported(struct gk20a *g);
 int prepare_ucode_blob(struct gk20a *g);
 
 int acr_ucode_patch_sig(struct gk20a *g,

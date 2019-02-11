@@ -32,14 +32,9 @@
 #include <nvgpu/pmu.h>
 #include <nvgpu/falcon.h>
 #include <nvgpu/enabled.h>
-#include <nvgpu/mm.h>
-#include <nvgpu/io.h>
-#include <nvgpu/utils.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/string.h>
 #include <nvgpu/bug.h>
-
-#include "gm20b/mm_gm20b.h"
 
 #include "pmu_gm20b.h"
 #include "acr_gm20b.h"
@@ -76,11 +71,6 @@ static gm20b_get_ucode_details pmu_acr_supp_ucode_list[] = {
 void gm20b_wpr_info(struct gk20a *g, struct wpr_carveout_info *inf)
 {
 	g->ops.fb.read_wpr_info(g, inf);
-}
-
-bool gm20b_is_pmu_supported(struct gk20a *g)
-{
-	return true;
 }
 
 static int pmu_ucode_details(struct gk20a *g, struct flcn_ucode_img *p_img)
