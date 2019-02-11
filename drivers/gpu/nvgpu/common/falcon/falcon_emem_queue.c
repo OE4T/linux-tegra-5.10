@@ -20,86 +20,51 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#include <nvgpu/log.h>
-#include <nvgpu/types.h>
-#include <nvgpu/pmuif/gpmuif_cmn.h>
 #include <nvgpu/falcon.h>
+#include <nvgpu/log.h>
 
 #include "falcon_queue_priv.h"
-#include "falcon_priv.h"
 #include "falcon_emem_queue.h"
+#include "falcon_priv.h"
 
 /* EMEM-Q specific ops */
-static int falcon_queue_push_emem(struct nvgpu_falcon *flcn,
-	struct nvgpu_falcon_queue *queue, void *data, u32 size)
+static int falcon_emem_queue_push(struct nvgpu_falcon *flcn,
+	struct nvgpu_falcon_queue *queue, u32 dst, void *data, u32 size)
 {
+	struct gk20a *g = queue->g;
 	int err = 0;
 
-	err = nvgpu_falcon_copy_to_emem(flcn, queue->position, data, size, 0);
+	err = nvgpu_falcon_copy_to_emem(flcn, dst, data, size, 0);
 	if (err != 0) {
-		nvgpu_err(flcn->g, "flcn-%d, queue-%d", flcn->flcn_id,
-			queue->id);
-		nvgpu_err(flcn->g, "emem queue write failed");
+		nvgpu_err(g, "flcn-%d, queue-%d", flcn->flcn_id, queue->id);
+		nvgpu_err(g, "emem queue write failed");
 		goto exit;
 	}
-
-	queue->position += ALIGN(size, QUEUE_ALIGNMENT);
 
 exit:
 	return err;
 }
 
-static int falcon_queue_pop_emem(struct nvgpu_falcon *flcn,
-	struct nvgpu_falcon_queue *queue, void *data, u32 size,
-	u32 *bytes_read)
+static int falcon_emem_queue_pop(struct nvgpu_falcon *flcn,
+	struct nvgpu_falcon_queue *queue, u32 src, void *data, u32 size)
 {
-	struct gk20a *g = flcn->g;
-	u32 q_tail = queue->position;
-	u32 q_head = 0;
-	u32 used = 0;
+	struct gk20a *g = queue->g;
 	int err = 0;
 
-	*bytes_read = 0;
-
-	err = queue->head(flcn, queue, &q_head, QUEUE_GET);
+	err = nvgpu_falcon_copy_from_emem(flcn, src, data, size, 0);
 	if (err != 0) {
-		nvgpu_err(flcn->g, "flcn-%d, queue-%d, head GET failed",
-			flcn->flcn_id, queue->id);
+		nvgpu_err(g, "flcn-%d, queue-%d", flcn->flcn_id, queue->id);
+		nvgpu_err(g, "emem queue read failed");
 		goto exit;
 	}
-
-	if (q_head == q_tail) {
-		goto exit;
-	} else if (q_head > q_tail) {
-		used = q_head - q_tail;
-	} else {
-		used = queue->offset + queue->size - q_tail;
-	}
-
-	if (size > used) {
-		nvgpu_warn(g, "queue size smaller than request read");
-		size = used;
-	}
-
-	err = nvgpu_falcon_copy_from_emem(flcn, q_tail, data, size, 0);
-	if (err != 0) {
-		nvgpu_err(g, "flcn-%d, queue-%d", flcn->flcn_id,
-			queue->id);
-		nvgpu_err(flcn->g, "emem queue read failed");
-		goto exit;
-	}
-
-	queue->position += ALIGN(size, QUEUE_ALIGNMENT);
-	*bytes_read = size;
 
 exit:
 	return err;
 }
 
 /* assign EMEM queue type specific ops */
-void falcon_emem_queue_init(struct nvgpu_falcon *flcn,
-		struct nvgpu_falcon_queue *queue)
+void falcon_emem_queue_init(struct nvgpu_falcon_queue *queue)
 {
-	queue->push = falcon_queue_push_emem;
-	queue->pop = falcon_queue_pop_emem;
+	queue->push = falcon_emem_queue_push;
+	queue->pop = falcon_emem_queue_pop;
 }

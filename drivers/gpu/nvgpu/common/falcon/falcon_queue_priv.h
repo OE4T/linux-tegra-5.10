@@ -50,21 +50,19 @@ struct nvgpu_falcon_queue {
 	/* open-flag */
 	u32 oflag;
 
-	/* queue type(DMEM-Q/FB-Q) specific ops */
-	int (*rewind)(struct nvgpu_falcon *flcn,
-		struct nvgpu_falcon_queue *queue);
-	int (*pop)(struct nvgpu_falcon *flcn,
-		struct nvgpu_falcon_queue *queue, void *data, u32 size,
-		u32 *bytes_read);
+	/* queue type(DMEM-Q/EMEM-Q) specific ops */
 	int (*push)(struct nvgpu_falcon *flcn,
-		struct nvgpu_falcon_queue *queue, void *data, u32 size);
-	bool (*has_room)(struct nvgpu_falcon *flcn,
-		struct nvgpu_falcon_queue *queue, u32 size,
-		bool *need_rewind);
-	int (*tail)(struct nvgpu_falcon *flcn,
-		struct nvgpu_falcon_queue *queue, u32 *tail, bool set);
+		    struct nvgpu_falcon_queue *queue,
+		    u32 dst, void *data, u32 size);
+	int (*pop)(struct nvgpu_falcon *flcn,
+		   struct nvgpu_falcon_queue *queue,
+		   u32 src, void *data, u32 size);
+
+	/* engine specific ops */
 	int (*head)(struct nvgpu_falcon *flcn,
 		struct nvgpu_falcon_queue *queue, u32 *head, bool set);
+	int (*tail)(struct nvgpu_falcon *flcn,
+		struct nvgpu_falcon_queue *queue, u32 *tail, bool set);
 };
 
 #endif /* NVGPU_FALCON_QUEUE_PRIV_H */

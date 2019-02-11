@@ -23,7 +23,6 @@
 #ifndef NVGPU_FALCON_DMEM_QUEUE_H
 #define NVGPU_FALCON_DMEM_QUEUE_H
 
-void falcon_dmem_queue_init(struct nvgpu_falcon *flcn,
-		struct nvgpu_falcon_queue *queue);
+void falcon_dmem_queue_init(struct nvgpu_falcon_queue *queue);
 
 #endif /* NVGPU_FALCON_DMEM_QUEUE_H */
