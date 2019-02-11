@@ -20,9 +20,9 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NVGPU_FALCON_DMEM_QUEUE_H
-#define NVGPU_FALCON_DMEM_QUEUE_H
+#ifndef NVGPU_ENGINE_EMEM_QUEUE_H
+#define NVGPU_ENGINE_EMEM_QUEUE_H
 
-void falcon_dmem_queue_init(struct nvgpu_falcon_queue *queue);
+void engine_emem_queue_init(struct nvgpu_engine_mem_queue *queue);
 
-#endif /* NVGPU_FALCON_DMEM_QUEUE_H */
+#endif /* NVGPU_ENGINE_EMEM_QUEUE_H */

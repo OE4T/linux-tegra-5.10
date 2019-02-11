@@ -30,7 +30,7 @@
 #include <nvgpu/lock.h>
 #include <nvgpu/flcnif_cmn.h>
 #include <nvgpu/falcon.h>
-#include <nvgpu/falcon_queue.h>
+#include <nvgpu/engine_mem_queue.h>
 
 #include <nvgpu/sec2if/sec2_cmd_if.h>
 #include <nvgpu/sec2if/sec2_if_sec2.h>
@@ -72,7 +72,7 @@ struct nvgpu_sec2 {
 	struct nvgpu_falcon *flcn;
 	u32 falcon_id;
 
-	struct nvgpu_falcon_queue *queue[SEC2_QUEUE_NUM];
+	struct nvgpu_engine_mem_queue *queue[SEC2_QUEUE_NUM];
 
 	struct sec2_sequence *seq;
 	unsigned long sec2_seq_tbl[SEC2_SEQ_TBL_SIZE];

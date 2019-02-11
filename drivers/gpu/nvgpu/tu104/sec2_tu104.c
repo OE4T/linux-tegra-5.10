@@ -27,7 +27,7 @@
 #include <nvgpu/io.h>
 #include <nvgpu/timers.h>
 #include <nvgpu/falcon.h>
-#include <nvgpu/falcon_queue.h>
+#include <nvgpu/engine_mem_queue.h>
 #include <nvgpu/sec2.h>
 
 #include "sec2_tu104.h"
@@ -372,7 +372,7 @@ bool tu104_sec2_is_interrupted(struct nvgpu_sec2 *sec2)
 void tu104_sec2_isr(struct gk20a *g)
 {
 	struct nvgpu_sec2 *sec2 = &g->sec2;
-	struct nvgpu_falcon_queue *queue;
+	struct nvgpu_engine_mem_queue *queue;
 	u32 intr, mask;
 	bool recheck = false;
 
@@ -419,7 +419,7 @@ void tu104_sec2_isr(struct gk20a *g)
 
 	if (recheck) {
 		queue = sec2->queue[SEC2_NV_MSGQ_LOG_ID];
-		if (!nvgpu_falcon_queue_is_empty(sec2->flcn, queue)) {
+		if (!nvgpu_engine_mem_queue_is_empty(sec2->flcn, queue)) {
 			gk20a_writel(g, psec_falcon_irqsset_r(),
 				psec_falcon_irqsset_swgen0_set_f());
 		}

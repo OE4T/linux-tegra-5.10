@@ -34,7 +34,7 @@
 #include <nvgpu/pmuif/nvgpu_gpmu_cmdif.h>
 #include <nvgpu/pmuif/gpmu_super_surf_if.h>
 #include <nvgpu/falcon.h>
-#include <nvgpu/falcon_queue.h>
+#include <nvgpu/engine_mem_queue.h>
 
 #define nvgpu_pmu_dbg(g, fmt, args...) \
 	nvgpu_log(g, gpu_dbg_pmu, fmt, ##args)
@@ -299,7 +299,7 @@ struct pmu_sequence {
 	void *cb_params;
 
 	/* fb queue that is associated with this seq */
-	struct nvgpu_falcon_fb_queue *cmd_queue;
+	struct nvgpu_engine_fb_queue *cmd_queue;
 	/* fbq element that is associated with this seq */
 	u8 *fbq_work_buffer;
 	u32 fbq_element_index;
@@ -352,10 +352,10 @@ struct nvgpu_pmu {
 
 	struct pmu_sha1_gid gid_info;
 
-	struct nvgpu_falcon_queue *queue[PMU_QUEUE_COUNT];
+	struct nvgpu_engine_mem_queue *queue[PMU_QUEUE_COUNT];
 	u32 queue_type;
 
-	struct nvgpu_falcon_fb_queue *fb_queue[PMU_QUEUE_COUNT];
+	struct nvgpu_engine_fb_queue *fb_queue[PMU_QUEUE_COUNT];
 
 	struct pmu_sequence *seq;
 	unsigned long pmu_seq_tbl[PMU_SEQ_TBL_SIZE];

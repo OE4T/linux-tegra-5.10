@@ -20,9 +20,51 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NVGPU_FALCON_EMEM_QUEUE_H
-#define NVGPU_FALCON_EMEM_QUEUE_H
+#include <nvgpu/falcon.h>
+#include <nvgpu/log.h>
 
-void falcon_emem_queue_init(struct nvgpu_falcon_queue *queue);
+#include "engine_mem_queue_priv.h"
+#include "engine_emem_queue.h"
+#include "falcon_priv.h"
 
-#endif /* NVGPU_FALCON_EMEM_QUEUE_H */
+/* EMEM-Q specific ops */
+static int engine_emem_queue_push(struct nvgpu_falcon *flcn,
+	struct nvgpu_engine_mem_queue *queue, u32 dst, void *data, u32 size)
+{
+	struct gk20a *g = queue->g;
+	int err = 0;
+
+	err = nvgpu_falcon_copy_to_emem(flcn, dst, data, size, 0);
+	if (err != 0) {
+		nvgpu_err(g, "flcn-%d, queue-%d", flcn->flcn_id, queue->id);
+		nvgpu_err(g, "emem queue write failed");
+		goto exit;
+	}
+
+exit:
+	return err;
+}
+
+static int engine_emem_queue_pop(struct nvgpu_falcon *flcn,
+	struct nvgpu_engine_mem_queue *queue, u32 src, void *data, u32 size)
+{
+	struct gk20a *g = queue->g;
+	int err = 0;
+
+	err = nvgpu_falcon_copy_from_emem(flcn, src, data, size, 0);
+	if (err != 0) {
+		nvgpu_err(g, "flcn-%d, queue-%d", flcn->flcn_id, queue->id);
+		nvgpu_err(g, "emem queue read failed");
+		goto exit;
+	}
+
+exit:
+	return err;
+}
+
+/* assign EMEM queue type specific ops */
+void engine_emem_queue_init(struct nvgpu_engine_mem_queue *queue)
+{
+	queue->push = engine_emem_queue_push;
+	queue->pop = engine_emem_queue_pop;
+}

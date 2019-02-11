@@ -20,10 +20,10 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NVGPU_FALCON_FB_QUEUE_PRIV_H
-#define NVGPU_FALCON_FB_QUEUE_PRIV_H
+#ifndef NVGPU_ENGINE_FB_QUEUE_PRIV_H
+#define NVGPU_ENGINE_FB_QUEUE_PRIV_H
 
-struct nvgpu_falcon_fb_queue {
+struct nvgpu_engine_fb_queue {
 	struct gk20a *g;
 
 	/* used by nvgpu, for command LPQ/HPQ */
@@ -93,9 +93,9 @@ struct nvgpu_falcon_fb_queue {
 
 	/* queue ops */
 	int (*tail)(struct nvgpu_falcon *flcn,
-		struct nvgpu_falcon_fb_queue *queue, u32 *tail, bool set);
+		struct nvgpu_engine_fb_queue *queue, u32 *tail, bool set);
 	int (*head)(struct nvgpu_falcon *flcn,
-		struct nvgpu_falcon_fb_queue *queue, u32 *head, bool set);
+		struct nvgpu_engine_fb_queue *queue, u32 *head, bool set);
 };
 
-#endif /* NVGPU_FALCON_FB_QUEUE_PRIV_H */
+#endif /* NVGPU_ENGINE_FB_QUEUE_PRIV_H */

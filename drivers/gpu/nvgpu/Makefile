@@ -320,10 +320,10 @@ nvgpu-y += \
 	common/falcon/falcon_gp106.o \
 	common/falcon/falcon_gv100.o \
 	common/falcon/falcon_tu104.o \
-	common/falcon/falcon_queue.o \
-	common/falcon/falcon_dmem_queue.o \
-	common/falcon/falcon_emem_queue.o \
-	common/falcon/falcon_fb_queue.o \
+	common/falcon/engine_mem_queue.o \
+	common/falcon/engine_dmem_queue.o \
+	common/falcon/engine_emem_queue.o \
+	common/falcon/engine_fb_queue.o \
 	common/init/hal_init.o \
 	common/sec2/sec2.o \
 	common/sec2/sec2_ipc.o \

@@ -29,14 +29,14 @@
 #include <nvgpu/pmu.h>
 #include <nvgpu/string.h>
 #include <nvgpu/kmem.h>
-#include <nvgpu/falcon_fb_queue.h>
+#include <nvgpu/engine_fb_queue.h>
 
 #include "falcon_priv.h"
-#include "falcon_fb_queue_priv.h"
+#include "engine_fb_queue_priv.h"
 
 /* FB-Q ops */
-static int falcon_fb_queue_head(struct nvgpu_falcon *flcn,
-	struct nvgpu_falcon_fb_queue *queue, u32 *head, bool set)
+static int engine_fb_queue_head(struct nvgpu_falcon *flcn,
+	struct nvgpu_engine_fb_queue *queue, u32 *head, bool set)
 {
 	int err = -EINVAL;
 
@@ -48,8 +48,8 @@ static int falcon_fb_queue_head(struct nvgpu_falcon *flcn,
 	return err;
 }
 
-static int falcon_fb_queue_tail(struct nvgpu_falcon *flcn,
-	struct nvgpu_falcon_fb_queue *queue, u32 *tail, bool set)
+static int engine_fb_queue_tail(struct nvgpu_falcon *flcn,
+	struct nvgpu_engine_fb_queue *queue, u32 *tail, bool set)
 {
 	struct gk20a *g = flcn->g;
 	int err = -EINVAL;
@@ -67,14 +67,14 @@ static int falcon_fb_queue_tail(struct nvgpu_falcon *flcn,
 	return err;
 }
 
-static inline u32 falcon_fb_queue_get_next(struct nvgpu_falcon *flcn,
-	struct nvgpu_falcon_fb_queue *queue, u32 head)
+static inline u32 engine_fb_queue_get_next(struct nvgpu_falcon *flcn,
+	struct nvgpu_engine_fb_queue *queue, u32 head)
 {
 		return (head + 1U) % queue->size;
 }
 
-static bool falcon_fb_queue_has_room(struct nvgpu_falcon *flcn,
-	struct nvgpu_falcon_fb_queue *queue,
+static bool engine_fb_queue_has_room(struct nvgpu_falcon *flcn,
+	struct nvgpu_engine_fb_queue *queue,
 	u32 size)
 {
 	u32 head = 0;
@@ -94,14 +94,14 @@ static bool falcon_fb_queue_has_room(struct nvgpu_falcon *flcn,
 		goto exit;
 	}
 
-	next_head = falcon_fb_queue_get_next(flcn, queue, head);
+	next_head = engine_fb_queue_get_next(flcn, queue, head);
 
 exit:
 	return next_head != tail;
 }
 
-static int falcon_fb_queue_write(struct nvgpu_falcon *flcn,
-	struct nvgpu_falcon_fb_queue *queue, u32 offset,
+static int engine_fb_queue_write(struct nvgpu_falcon *flcn,
+	struct nvgpu_engine_fb_queue *queue, u32 offset,
 	u8 *src, u32 size)
 {
 	struct gk20a *g = flcn->g;
@@ -137,8 +137,8 @@ exit:
 	return err;
 }
 
-static int falcon_fb_queue_set_element_use_state(struct nvgpu_falcon *flcn,
-	struct nvgpu_falcon_fb_queue *queue, u32 queue_pos, bool set)
+static int engine_fb_queue_set_element_use_state(struct nvgpu_falcon *flcn,
+	struct nvgpu_engine_fb_queue *queue, u32 queue_pos, bool set)
 {
 	int err = 0;
 
@@ -166,8 +166,8 @@ exit:
 	return err;
 }
 
-static int falcon_fb_queue_is_element_in_use(struct nvgpu_falcon *flcn,
-		struct nvgpu_falcon_fb_queue *queue,
+static int engine_fb_queue_is_element_in_use(struct nvgpu_falcon *flcn,
+		struct nvgpu_engine_fb_queue *queue,
 		u32 queue_pos, bool *in_use)
 {
 	int err = 0;
@@ -183,8 +183,8 @@ exit:
 	return err;
 }
 
-static int falcon_fb_queue_sweep(struct nvgpu_falcon *flcn,
-		struct nvgpu_falcon_fb_queue *queue)
+static int engine_fb_queue_sweep(struct nvgpu_falcon *flcn,
+		struct nvgpu_engine_fb_queue *queue)
 {
 	u32 head;
 	u32 tail;
@@ -205,7 +205,7 @@ static int falcon_fb_queue_sweep(struct nvgpu_falcon *flcn,
 	 * can be made available.
 	 */
 	while (tail != head) {
-		if (falcon_fb_queue_is_element_in_use(flcn, queue,
+		if (engine_fb_queue_is_element_in_use(flcn, queue,
 			tail, &in_use) != 0) {
 			break;
 		}
@@ -214,7 +214,7 @@ static int falcon_fb_queue_sweep(struct nvgpu_falcon *flcn,
 			break;
 		}
 
-		tail = falcon_fb_queue_get_next(flcn, queue, tail);
+		tail = engine_fb_queue_get_next(flcn, queue, tail);
 	}
 
 	/* Update tail */
@@ -224,50 +224,50 @@ exit:
 	return err;
 }
 
-u32 nvgpu_falcon_fb_queue_get_position(struct nvgpu_falcon_fb_queue *queue)
+u32 nvgpu_engine_fb_queue_get_position(struct nvgpu_engine_fb_queue *queue)
 {
 	return queue->position;
 }
 
 /* return the queue element size */
-u32 nvgpu_falcon_fb_queue_get_element_size(struct nvgpu_falcon_fb_queue *queue)
+u32 nvgpu_engine_fb_queue_get_element_size(struct nvgpu_engine_fb_queue *queue)
 {
 	return queue->fbq.element_size;
 }
 
 /* return the queue offset from super surface FBQ's */
-u32 nvgpu_falcon_fb_queue_get_offset(struct nvgpu_falcon_fb_queue *queue)
+u32 nvgpu_engine_fb_queue_get_offset(struct nvgpu_engine_fb_queue *queue)
 {
 	return queue->fbq.fb_offset;
 }
 
 /* lock work buffer of queue */
-void nvgpu_falcon_fb_queue_lock_work_buffer(struct nvgpu_falcon_fb_queue *queue)
+void nvgpu_engine_fb_queue_lock_work_buffer(struct nvgpu_engine_fb_queue *queue)
 {
 	/* acquire work buffer mutex */
 	nvgpu_mutex_acquire(&queue->fbq.work_buffer_mutex);
 }
 
 /* unlock work buffer of queue */
-void nvgpu_falcon_fb_queue_unlock_work_buffer(
-					struct nvgpu_falcon_fb_queue *queue)
+void nvgpu_engine_fb_queue_unlock_work_buffer(
+					struct nvgpu_engine_fb_queue *queue)
 {
 	/* release work buffer mutex */
 	nvgpu_mutex_release(&queue->fbq.work_buffer_mutex);
 }
 
 /* return a pointer of queue work buffer */
-u8 *nvgpu_falcon_fb_queue_get_work_buffer(struct nvgpu_falcon_fb_queue *queue)
+u8 *nvgpu_engine_fb_queue_get_work_buffer(struct nvgpu_engine_fb_queue *queue)
 {
 	return queue->fbq.work_buffer;
 }
 
-int nvgpu_falcon_fb_queue_free_element(struct nvgpu_falcon *flcn,
-	struct nvgpu_falcon_fb_queue *queue, u32 queue_pos)
+int nvgpu_engine_fb_queue_free_element(struct nvgpu_falcon *flcn,
+	struct nvgpu_engine_fb_queue *queue, u32 queue_pos)
 {
 	int err = 0;
 
-	err = falcon_fb_queue_set_element_use_state(flcn, queue,
+	err = engine_fb_queue_set_element_use_state(flcn, queue,
 		queue_pos, false);
 	if (err != 0) {
 		nvgpu_err(flcn->g, "fb queue elelment %d free failed",
@@ -275,15 +275,15 @@ int nvgpu_falcon_fb_queue_free_element(struct nvgpu_falcon *flcn,
 		goto exit;
 	}
 
-	err = falcon_fb_queue_sweep(flcn, queue);
+	err = engine_fb_queue_sweep(flcn, queue);
 
 exit:
 	return err;
 }
 
 /* queue is_empty check with lock */
-bool nvgpu_falcon_fb_queue_is_empty(struct nvgpu_falcon *flcn,
-	struct nvgpu_falcon_fb_queue *queue)
+bool nvgpu_engine_fb_queue_is_empty(struct nvgpu_falcon *flcn,
+	struct nvgpu_engine_fb_queue *queue)
 {
 	u32 q_head = 0;
 	u32 q_tail = 0;
@@ -317,13 +317,13 @@ exit:
 	return q_head == q_tail;
 }
 
-static int falcon_fb_queue_prepare_write(struct nvgpu_falcon *flcn,
-	struct nvgpu_falcon_fb_queue *queue, u32 size)
+static int engine_fb_queue_prepare_write(struct nvgpu_falcon *flcn,
+	struct nvgpu_engine_fb_queue *queue, u32 size)
 {
 	int err = 0;
 
 	/* make sure there's enough free space for the write */
-	if (!falcon_fb_queue_has_room(flcn, queue, size)) {
+	if (!engine_fb_queue_has_room(flcn, queue, size)) {
 		nvgpu_pmu_dbg(flcn->g, "queue full: queue-id %d: index %d",
 			queue->id, queue->index);
 		err = -EAGAIN;
@@ -342,8 +342,8 @@ exit:
 }
 
 /* queue push operation with lock */
-int nvgpu_falcon_fb_queue_push(struct nvgpu_falcon *flcn,
-	struct nvgpu_falcon_fb_queue *queue, void *data, u32 size)
+int nvgpu_engine_fb_queue_push(struct nvgpu_falcon *flcn,
+	struct nvgpu_engine_fb_queue *queue, void *data, u32 size)
 {
 	struct gk20a *g;
 	int err = 0;
@@ -366,7 +366,7 @@ int nvgpu_falcon_fb_queue_push(struct nvgpu_falcon *flcn,
 	/* acquire mutex */
 	nvgpu_mutex_acquire(&queue->mutex);
 
-	err = falcon_fb_queue_prepare_write(flcn, queue, size);
+	err = engine_fb_queue_prepare_write(flcn, queue, size);
 	if (err != 0) {
 		goto unlock_mutex;
 	}
@@ -378,7 +378,7 @@ int nvgpu_falcon_fb_queue_push(struct nvgpu_falcon *flcn,
 	}
 
 	/* Set queue element in use */
-	if (falcon_fb_queue_set_element_use_state(flcn, queue,
+	if (engine_fb_queue_set_element_use_state(flcn, queue,
 		queue->position, true) != 0) {
 		nvgpu_err(g,
 			"fb-queue element in use map is in invalid state");
@@ -387,13 +387,13 @@ int nvgpu_falcon_fb_queue_push(struct nvgpu_falcon *flcn,
 	}
 
 	/* write data to FB */
-	err = falcon_fb_queue_write(flcn, queue, queue->position, data, size);
+	err = engine_fb_queue_write(flcn, queue, queue->position, data, size);
 	if (err != 0) {
 		nvgpu_err(g, "write to fb-queue failed");
 		goto unlock_mutex;
 	}
 
-	queue->position = falcon_fb_queue_get_next(flcn, queue,
+	queue->position = engine_fb_queue_get_next(flcn, queue,
 			queue->position);
 
 	err = queue->head(flcn, queue, &queue->position, QUEUE_SET);
@@ -416,8 +416,8 @@ exit:
 }
 
 /* queue pop operation with lock */
-int nvgpu_falcon_fb_queue_pop(struct nvgpu_falcon *flcn,
-	struct nvgpu_falcon_fb_queue *queue, void *data, u32 size,
+int nvgpu_engine_fb_queue_pop(struct nvgpu_falcon *flcn,
+	struct nvgpu_engine_fb_queue *queue, void *data, u32 size,
 	u32 *bytes_read)
 {
 	struct gk20a *g;
@@ -495,7 +495,7 @@ int nvgpu_falcon_fb_queue_pop(struct nvgpu_falcon *flcn,
 	if (queue->fbq.read_position >= hdr->size) {
 		queue->fbq.read_position = 0U;
 		/* Increment queue index. */
-		queue->position = falcon_fb_queue_get_next(flcn, queue,
+		queue->position = engine_fb_queue_get_next(flcn, queue,
 			queue->position);
 	}
 
@@ -520,10 +520,10 @@ exit:
 	return err;
 }
 
-void nvgpu_falcon_fb_queue_free(struct nvgpu_falcon *flcn,
-	struct nvgpu_falcon_fb_queue **queue_p)
+void nvgpu_engine_fb_queue_free(struct nvgpu_falcon *flcn,
+	struct nvgpu_engine_fb_queue **queue_p)
 {
-	struct nvgpu_falcon_fb_queue *queue = NULL;
+	struct nvgpu_engine_fb_queue *queue = NULL;
 	struct gk20a *g = flcn->g;
 
 	if ((queue_p == NULL) || (*queue_p == NULL)) {
@@ -545,11 +545,11 @@ void nvgpu_falcon_fb_queue_free(struct nvgpu_falcon *flcn,
 	*queue_p = NULL;
 }
 
-int nvgpu_falcon_fb_queue_init(struct nvgpu_falcon *flcn,
-	struct nvgpu_falcon_fb_queue **queue_p,
-	struct nvgpu_falcon_fb_queue_params params)
+int nvgpu_engine_fb_queue_init(struct nvgpu_falcon *flcn,
+	struct nvgpu_engine_fb_queue **queue_p,
+	struct nvgpu_engine_fb_queue_params params)
 {
-	struct nvgpu_falcon_fb_queue *queue = NULL;
+	struct nvgpu_engine_fb_queue *queue = NULL;
 	struct gk20a *g = flcn->g;
 	int err = 0;
 
@@ -557,8 +557,8 @@ int nvgpu_falcon_fb_queue_init(struct nvgpu_falcon *flcn,
 		return -EINVAL;
 	}
 
-	queue = (struct nvgpu_falcon_fb_queue *)
-		   nvgpu_kmalloc(g, sizeof(struct nvgpu_falcon_fb_queue));
+	queue = (struct nvgpu_engine_fb_queue *)
+		   nvgpu_kmalloc(g, sizeof(struct nvgpu_engine_fb_queue));
 
 	if (queue == NULL) {
 		return -ENOMEM;
@@ -579,8 +579,8 @@ int nvgpu_falcon_fb_queue_init(struct nvgpu_falcon *flcn,
 
 	queue->position = 0U;
 
-	queue->head = falcon_fb_queue_head;
-	queue->tail = falcon_fb_queue_tail;
+	queue->head = engine_fb_queue_head;
+	queue->tail = engine_fb_queue_tail;
 
 	/* init mutex */
 	err = nvgpu_mutex_init(&queue->mutex);

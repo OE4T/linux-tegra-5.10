@@ -20,16 +20,16 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NVGPU_FALCON_FB_QUEUE_H
-#define NVGPU_FALCON_FB_QUEUE_H
+#ifndef NVGPU_ENGINE_FB_QUEUE_H
+#define NVGPU_ENGINE_FB_QUEUE_H
 
 #include <nvgpu/types.h>
 
 struct gk20a;
 struct nvgpu_falcon;
-struct nvgpu_falcon_fb_queue;
+struct nvgpu_engine_fb_queue;
 
-struct nvgpu_falcon_fb_queue_params {
+struct nvgpu_engine_fb_queue_params {
 	/* logical queue identifier */
 	u32 id;
 	/* physical queue index */
@@ -51,27 +51,27 @@ struct nvgpu_falcon_fb_queue_params {
 };
 
 /* queue public functions */
-int nvgpu_falcon_fb_queue_init(struct nvgpu_falcon *flcn,
-	struct nvgpu_falcon_fb_queue **queue_p,
-	struct nvgpu_falcon_fb_queue_params params);
-bool nvgpu_falcon_fb_queue_is_empty(struct nvgpu_falcon *flcn,
-	struct nvgpu_falcon_fb_queue *queue);
-int nvgpu_falcon_fb_queue_pop(struct nvgpu_falcon *flcn,
-	struct nvgpu_falcon_fb_queue *queue, void *data, u32 size,
+int nvgpu_engine_fb_queue_init(struct nvgpu_falcon *flcn,
+	struct nvgpu_engine_fb_queue **queue_p,
+	struct nvgpu_engine_fb_queue_params params);
+bool nvgpu_engine_fb_queue_is_empty(struct nvgpu_falcon *flcn,
+	struct nvgpu_engine_fb_queue *queue);
+int nvgpu_engine_fb_queue_pop(struct nvgpu_falcon *flcn,
+	struct nvgpu_engine_fb_queue *queue, void *data, u32 size,
 	u32 *bytes_read);
-int nvgpu_falcon_fb_queue_push(struct nvgpu_falcon *flcn,
-	struct nvgpu_falcon_fb_queue *queue, void *data, u32 size);
-void nvgpu_falcon_fb_queue_free(struct nvgpu_falcon *flcn,
-	struct nvgpu_falcon_fb_queue **queue_p);
-u32 nvgpu_falcon_fb_queue_get_position(struct nvgpu_falcon_fb_queue *queue);
-u32 nvgpu_falcon_fb_queue_get_element_size(struct nvgpu_falcon_fb_queue *queue);
-u32 nvgpu_falcon_fb_queue_get_offset(struct nvgpu_falcon_fb_queue *queue);
-u8 *nvgpu_falcon_fb_queue_get_work_buffer(struct nvgpu_falcon_fb_queue *queue);
-int nvgpu_falcon_fb_queue_free_element(struct nvgpu_falcon *flcn,
-	struct nvgpu_falcon_fb_queue *queue, u32 queue_pos);
-void nvgpu_falcon_fb_queue_lock_work_buffer(
-	struct nvgpu_falcon_fb_queue *queue);
-void nvgpu_falcon_fb_queue_unlock_work_buffer(
-	struct nvgpu_falcon_fb_queue *queue);
+int nvgpu_engine_fb_queue_push(struct nvgpu_falcon *flcn,
+	struct nvgpu_engine_fb_queue *queue, void *data, u32 size);
+void nvgpu_engine_fb_queue_free(struct nvgpu_falcon *flcn,
+	struct nvgpu_engine_fb_queue **queue_p);
+u32 nvgpu_engine_fb_queue_get_position(struct nvgpu_engine_fb_queue *queue);
+u32 nvgpu_engine_fb_queue_get_element_size(struct nvgpu_engine_fb_queue *queue);
+u32 nvgpu_engine_fb_queue_get_offset(struct nvgpu_engine_fb_queue *queue);
+u8 *nvgpu_engine_fb_queue_get_work_buffer(struct nvgpu_engine_fb_queue *queue);
+int nvgpu_engine_fb_queue_free_element(struct nvgpu_falcon *flcn,
+	struct nvgpu_engine_fb_queue *queue, u32 queue_pos);
+void nvgpu_engine_fb_queue_lock_work_buffer(
+	struct nvgpu_engine_fb_queue *queue);
+void nvgpu_engine_fb_queue_unlock_work_buffer(
+	struct nvgpu_engine_fb_queue *queue);
 
-#endif /* NVGPU_FALCON_FB_QUEUE_H */
+#endif /* NVGPU_ENGINE_FB_QUEUE_H */

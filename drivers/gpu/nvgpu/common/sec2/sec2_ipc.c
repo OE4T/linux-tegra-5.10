@@ -81,7 +81,7 @@ static bool sec2_validate_cmd(struct nvgpu_sec2 *sec2,
 	struct nv_flcn_cmd_sec2 *cmd, u32 queue_id)
 {
 	struct gk20a *g = sec2->g;
-	struct nvgpu_falcon_queue *queue;
+	struct nvgpu_engine_mem_queue *queue;
 	u32 queue_size;
 
 	if (queue_id != SEC2_NV_CMDQ_LOG_ID) {
@@ -93,7 +93,7 @@ static bool sec2_validate_cmd(struct nvgpu_sec2 *sec2,
 		goto invalid_cmd;
 	}
 
-	queue_size = nvgpu_falcon_queue_get_size(queue);
+	queue_size = nvgpu_engine_mem_queue_get_size(queue);
 	if (cmd->hdr.size > (queue_size >> 1)) {
 		goto invalid_cmd;
 	}
@@ -117,7 +117,7 @@ static int sec2_write_cmd(struct nvgpu_sec2 *sec2,
 	unsigned long timeout_ms)
 {
 	struct gk20a *g = sec2->g;
-	struct nvgpu_falcon_queue *queue;
+	struct nvgpu_engine_mem_queue *queue;
 	struct nvgpu_timeout timeout;
 	int err;
 
@@ -127,7 +127,7 @@ static int sec2_write_cmd(struct nvgpu_sec2 *sec2,
 	nvgpu_timeout_init(g, &timeout, timeout_ms, NVGPU_TIMER_CPU_TIMER);
 
 	do {
-		err = nvgpu_falcon_queue_push(g->sec2.flcn, queue, cmd,
+		err = nvgpu_engine_mem_queue_push(g->sec2.flcn, queue, cmd,
 				cmd->hdr.size);
 		if ((err == -EAGAIN) && (nvgpu_timeout_expired(&timeout) == 0)) {
 			nvgpu_usleep_range(1000U, 2000U);
@@ -241,15 +241,15 @@ static int sec2_handle_event(struct nvgpu_sec2 *sec2,
 	return err;
 }
 
-static bool sec2_falcon_queue_read(struct nvgpu_sec2 *sec2,
-	struct nvgpu_falcon_queue *queue, void *data,
+static bool sec2_engine_mem_queue_read(struct nvgpu_sec2 *sec2,
+	struct nvgpu_engine_mem_queue *queue, void *data,
 	u32 bytes_to_read, int *status)
 {
 	struct gk20a *g = sec2->g;
 	u32 bytes_read;
 	int err;
 
-	err = nvgpu_falcon_queue_pop(sec2->flcn, queue, data,
+	err = nvgpu_engine_mem_queue_pop(sec2->flcn, queue, data,
 			bytes_to_read, &bytes_read);
 	if (err != 0) {
 		nvgpu_err(g, "fail to read msg: err %d", err);
@@ -269,25 +269,25 @@ static bool sec2_falcon_queue_read(struct nvgpu_sec2 *sec2,
 static bool sec2_read_message(struct nvgpu_sec2 *sec2,
 	u32 queue_id, struct nv_flcn_msg_sec2 *msg, int *status)
 {
-	struct nvgpu_falcon_queue *queue = sec2->queue[queue_id];
+	struct nvgpu_engine_mem_queue *queue = sec2->queue[queue_id];
 	struct gk20a *g = sec2->g;
 	u32 read_size;
 	int err;
 
 	*status = 0U;
 
-	if (nvgpu_falcon_queue_is_empty(sec2->flcn, queue)) {
+	if (nvgpu_engine_mem_queue_is_empty(sec2->flcn, queue)) {
 		return false;
 	}
 
-	if (!sec2_falcon_queue_read(sec2, queue, &msg->hdr, PMU_MSG_HDR_SIZE,
-			status)) {
+	if (!sec2_engine_mem_queue_read(sec2, queue, &msg->hdr,
+					PMU_MSG_HDR_SIZE, status)) {
 		nvgpu_err(g, "fail to read msg from queue %d", queue_id);
 		goto clean_up;
 	}
 
 	if (msg->hdr.unit_id == NV_SEC2_UNIT_REWIND) {
-		err = nvgpu_falcon_queue_rewind(sec2->flcn, queue);
+		err = nvgpu_engine_mem_queue_rewind(sec2->flcn, queue);
 		if (err != 0) {
 			nvgpu_err(g, "fail to rewind queue %d", queue_id);
 			*status = err;
@@ -295,7 +295,7 @@ static bool sec2_read_message(struct nvgpu_sec2 *sec2,
 		}
 
 		/* read again after rewind */
-		if (!sec2_falcon_queue_read(sec2, queue, &msg->hdr,
+		if (!sec2_engine_mem_queue_read(sec2, queue, &msg->hdr,
 			PMU_MSG_HDR_SIZE, status)) {
 			nvgpu_err(g, "fail to read msg from queue %d",
 				queue_id);
@@ -312,8 +312,8 @@ static bool sec2_read_message(struct nvgpu_sec2 *sec2,
 
 	if (msg->hdr.size > PMU_MSG_HDR_SIZE) {
 		read_size = msg->hdr.size - PMU_MSG_HDR_SIZE;
-		if (!sec2_falcon_queue_read(sec2, queue, &msg->msg, read_size,
-				status)) {
+		if (!sec2_engine_mem_queue_read(sec2, queue, &msg->msg,
+						read_size, status)) {
 			nvgpu_err(g, "fail to read msg from queue %d",
 				queue_id);
 			goto clean_up;

@@ -23,21 +23,21 @@
 #include <nvgpu/falcon.h>
 #include <nvgpu/log.h>
 
-#include "falcon_queue_priv.h"
-#include "falcon_emem_queue.h"
+#include "engine_mem_queue_priv.h"
+#include "engine_dmem_queue.h"
 #include "falcon_priv.h"
 
-/* EMEM-Q specific ops */
-static int falcon_emem_queue_push(struct nvgpu_falcon *flcn,
-	struct nvgpu_falcon_queue *queue, u32 dst, void *data, u32 size)
+/* DMEM-Q specific ops */
+static int engine_dmem_queue_push(struct nvgpu_falcon *flcn,
+	struct nvgpu_engine_mem_queue *queue, u32 dst, void *data, u32 size)
 {
 	struct gk20a *g = queue->g;
 	int err = 0;
 
-	err = nvgpu_falcon_copy_to_emem(flcn, dst, data, size, 0);
+	err = nvgpu_falcon_copy_to_dmem(flcn, dst, data, size, 0);
 	if (err != 0) {
 		nvgpu_err(g, "flcn-%d, queue-%d", flcn->flcn_id, queue->id);
-		nvgpu_err(g, "emem queue write failed");
+		nvgpu_err(g, "dmem queue write failed");
 		goto exit;
 	}
 
@@ -45,16 +45,16 @@ exit:
 	return err;
 }
 
-static int falcon_emem_queue_pop(struct nvgpu_falcon *flcn,
-	struct nvgpu_falcon_queue *queue, u32 src, void *data, u32 size)
+static int engine_dmem_queue_pop(struct nvgpu_falcon *flcn,
+	struct nvgpu_engine_mem_queue *queue, u32 src, void *data, u32 size)
 {
 	struct gk20a *g = queue->g;
 	int err = 0;
 
-	err = nvgpu_falcon_copy_from_emem(flcn, src, data, size, 0);
+	err = nvgpu_falcon_copy_from_dmem(flcn, src, data, size, 0);
 	if (err != 0) {
 		nvgpu_err(g, "flcn-%d, queue-%d", flcn->flcn_id, queue->id);
-		nvgpu_err(g, "emem queue read failed");
+		nvgpu_err(g, "dmem queue read failed");
 		goto exit;
 	}
 
@@ -62,9 +62,9 @@ exit:
 	return err;
 }
 
-/* assign EMEM queue type specific ops */
-void falcon_emem_queue_init(struct nvgpu_falcon_queue *queue)
+/* assign DMEM queue type specific ops */
+void engine_dmem_queue_init(struct nvgpu_engine_mem_queue *queue)
 {
-	queue->push = falcon_emem_queue_push;
-	queue->pop = falcon_emem_queue_pop;
+	queue->push = engine_dmem_queue_push;
+	queue->pop = engine_dmem_queue_pop;
 }

@@ -20,8 +20,8 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NVGPU_FALCON_QUEUE_H
-#define NVGPU_FALCON_QUEUE_H
+#ifndef NVGPU_ENGINE_MEM_QUEUE_H
+#define NVGPU_ENGINE_MEM_QUEUE_H
 
 #include <nvgpu/types.h>
 
@@ -31,9 +31,9 @@
 #define QUEUE_TYPE_FB   0x2U
 
 struct nvgpu_falcon;
-struct nvgpu_falcon_queue;
+struct nvgpu_engine_mem_queue;
 
-struct nvgpu_falcon_queue_params {
+struct nvgpu_engine_mem_queue_params {
 	/* Queue Type (queue_type) */
 	u8 queue_type;
 	/* current write position */
@@ -51,20 +51,20 @@ struct nvgpu_falcon_queue_params {
 };
 
 /* queue public functions */
-int nvgpu_falcon_queue_init(struct nvgpu_falcon *flcn,
-	struct nvgpu_falcon_queue **queue_p,
-	struct nvgpu_falcon_queue_params params);
-bool nvgpu_falcon_queue_is_empty(struct nvgpu_falcon *flcn,
-	struct nvgpu_falcon_queue *queue);
-int nvgpu_falcon_queue_rewind(struct nvgpu_falcon *flcn,
-	struct nvgpu_falcon_queue *queue);
-int nvgpu_falcon_queue_pop(struct nvgpu_falcon *flcn,
-	struct nvgpu_falcon_queue *queue, void *data, u32 size,
+int nvgpu_engine_mem_queue_init(struct nvgpu_falcon *flcn,
+	struct nvgpu_engine_mem_queue **queue_p,
+	struct nvgpu_engine_mem_queue_params params);
+bool nvgpu_engine_mem_queue_is_empty(struct nvgpu_falcon *flcn,
+	struct nvgpu_engine_mem_queue *queue);
+int nvgpu_engine_mem_queue_rewind(struct nvgpu_falcon *flcn,
+	struct nvgpu_engine_mem_queue *queue);
+int nvgpu_engine_mem_queue_pop(struct nvgpu_falcon *flcn,
+	struct nvgpu_engine_mem_queue *queue, void *data, u32 size,
 	u32 *bytes_read);
-int nvgpu_falcon_queue_push(struct nvgpu_falcon *flcn,
-	struct nvgpu_falcon_queue *queue, void *data, u32 size);
-void nvgpu_falcon_queue_free(struct nvgpu_falcon *flcn,
-	struct nvgpu_falcon_queue **queue_p);
-u32 nvgpu_falcon_queue_get_size(struct nvgpu_falcon_queue *queue);
+int nvgpu_engine_mem_queue_push(struct nvgpu_falcon *flcn,
+	struct nvgpu_engine_mem_queue *queue, void *data, u32 size);
+void nvgpu_engine_mem_queue_free(struct nvgpu_falcon *flcn,
+	struct nvgpu_engine_mem_queue **queue_p);
+u32 nvgpu_engine_mem_queue_get_size(struct nvgpu_engine_mem_queue *queue);
 
-#endif /* NVGPU_FALCON_QUEUE_H */
+#endif /* NVGPU_ENGINE_MEM_QUEUE_H */

@@ -28,8 +28,8 @@
 #include <nvgpu/pmuif/nvgpu_gpmu_cmdif.h>
 #include <nvgpu/pmuif/gpmu_super_surf_if.h>
 #include <nvgpu/falcon.h>
-#include <nvgpu/falcon_queue.h>
-#include <nvgpu/falcon_fb_queue.h>
+#include <nvgpu/engine_mem_queue.h>
+#include <nvgpu/engine_fb_queue.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/string.h>
 
@@ -111,7 +111,7 @@ int nvgpu_pmu_queue_init_fb(struct nvgpu_pmu *pmu,
 		u32 id, union pmu_init_msg_pmu *init)
 {
 	struct gk20a *g = gk20a_from_pmu(pmu);
-	struct nvgpu_falcon_fb_queue_params params = {0};
+	struct nvgpu_engine_fb_queue_params params = {0};
 	u32 oflag = 0;
 	int err = 0;
 	u32 tmp_id = id;
@@ -176,7 +176,7 @@ int nvgpu_pmu_queue_init_fb(struct nvgpu_pmu *pmu,
 	}
 	params.index = init->v5.queue_index[tmp_id];
 
-	err = nvgpu_falcon_fb_queue_init(pmu->flcn, &pmu->fb_queue[id], params);
+	err = nvgpu_engine_fb_queue_init(pmu->flcn, &pmu->fb_queue[id], params);
 	if (err != 0) {
 		nvgpu_err(g, "queue-%d init failed", id);
 	}
@@ -190,7 +190,7 @@ int nvgpu_pmu_queue_init(struct nvgpu_pmu *pmu,
 		u32 id, union pmu_init_msg_pmu *init)
 {
 	struct gk20a *g = gk20a_from_pmu(pmu);
-	struct nvgpu_falcon_queue_params params = {0};
+	struct nvgpu_engine_mem_queue_params params = {0};
 	u32 oflag = 0;
 	int err = 0;
 
@@ -222,7 +222,7 @@ int nvgpu_pmu_queue_init(struct nvgpu_pmu *pmu,
 							 &params.index,
 							 &params.offset,
 							 &params.size);
-	err = nvgpu_falcon_queue_init(pmu->flcn, &pmu->queue[id], params);
+	err = nvgpu_engine_mem_queue_init(pmu->flcn, &pmu->queue[id], params);
 	if (err != 0) {
 		nvgpu_err(g, "queue-%d init failed", id);
 	}
@@ -245,13 +245,13 @@ void nvgpu_pmu_queue_free(struct nvgpu_pmu *pmu, u32 id)
 			goto exit;
 		}
 
-		nvgpu_falcon_fb_queue_free(pmu->flcn, &pmu->fb_queue[id]);
+		nvgpu_engine_fb_queue_free(pmu->flcn, &pmu->fb_queue[id]);
 	} else {
 		if (pmu->queue[id] == NULL) {
 			goto exit;
 		}
 
-		nvgpu_falcon_queue_free(pmu->flcn, &pmu->queue[id]);
+		nvgpu_engine_mem_queue_free(pmu->flcn, &pmu->queue[id]);
 	}
 
 exit:
@@ -263,8 +263,8 @@ static bool pmu_validate_cmd(struct nvgpu_pmu *pmu, struct pmu_cmd *cmd,
 			u32 queue_id)
 {
 	struct gk20a *g = gk20a_from_pmu(pmu);
-	struct nvgpu_falcon_fb_queue *fb_queue = NULL;
-	struct nvgpu_falcon_queue *queue = NULL;
+	struct nvgpu_engine_fb_queue *fb_queue = NULL;
+	struct nvgpu_engine_mem_queue *queue = NULL;
 	u32 queue_size;
 	u32 in_size, out_size;
 
@@ -274,10 +274,10 @@ static bool pmu_validate_cmd(struct nvgpu_pmu *pmu, struct pmu_cmd *cmd,
 
 	if (pmu->queue_type == QUEUE_TYPE_FB) {
 		fb_queue = pmu->fb_queue[queue_id];
-		queue_size = nvgpu_falcon_fb_queue_get_element_size(fb_queue);
+		queue_size = nvgpu_engine_fb_queue_get_element_size(fb_queue);
 	} else {
 		queue = pmu->queue[queue_id];
-		queue_size = nvgpu_falcon_queue_get_size(queue);
+		queue_size = nvgpu_engine_mem_queue_get_size(queue);
 	}
 
 	if (cmd->hdr.size < PMU_CMD_HDR_SIZE) {
@@ -353,8 +353,8 @@ static int pmu_write_cmd(struct nvgpu_pmu *pmu, struct pmu_cmd *cmd,
 			u32 queue_id)
 {
 	struct gk20a *g = gk20a_from_pmu(pmu);
-	struct nvgpu_falcon_fb_queue *fb_queue = NULL;
-	struct nvgpu_falcon_queue *queue = NULL;
+	struct nvgpu_engine_fb_queue *fb_queue = NULL;
+	struct nvgpu_engine_mem_queue *queue = NULL;
 	struct nvgpu_timeout timeout;
 	int err;
 
@@ -365,12 +365,12 @@ static int pmu_write_cmd(struct nvgpu_pmu *pmu, struct pmu_cmd *cmd,
 	do {
 		if (pmu->queue_type == QUEUE_TYPE_FB) {
 			fb_queue = pmu->fb_queue[queue_id];
-			err = nvgpu_falcon_fb_queue_push(pmu->flcn, fb_queue,
+			err = nvgpu_engine_fb_queue_push(pmu->flcn, fb_queue,
 							 cmd, cmd->hdr.size);
 		} else {
 			queue = pmu->queue[queue_id];
-			err = nvgpu_falcon_queue_push(pmu->flcn, queue,
-						      cmd, cmd->hdr.size);
+			err = nvgpu_engine_mem_queue_push(pmu->flcn, queue,
+							  cmd, cmd->hdr.size);
 		}
 
 		if (err == -EAGAIN && nvgpu_timeout_expired(&timeout) == 0) {
@@ -431,7 +431,7 @@ static int pmu_cmd_payload_setup_rpc(struct gk20a *g, struct pmu_cmd *cmd,
 {
 	struct nvgpu_pmu *pmu = &g->pmu;
 	struct pmu_v *pv = &g->ops.pmu_ver;
-	struct nvgpu_falcon_fb_queue *queue = seq->cmd_queue;
+	struct nvgpu_engine_fb_queue *queue = seq->cmd_queue;
 	struct falcon_payload_alloc alloc;
 	int err = 0;
 
@@ -452,7 +452,7 @@ static int pmu_cmd_payload_setup_rpc(struct gk20a *g, struct pmu_cmd *cmd,
 	if (pmu->queue_type == QUEUE_TYPE_FB) {
 		/* copy payload to FBQ work buffer */
 		nvgpu_memcpy((u8 *)
-			nvgpu_falcon_fb_queue_get_work_buffer(queue) +
+			nvgpu_engine_fb_queue_get_work_buffer(queue) +
 			alloc.dmem_offset,
 			(u8 *)payload->rpc.prpc, payload->rpc.size_rpc);
 
@@ -547,7 +547,7 @@ static int pmu_cmd_payload_setup(struct gk20a *g, struct pmu_cmd *cmd,
 			if (pmu->queue_type == QUEUE_TYPE_FB) {
 				/* copy payload to FBQ work buffer */
 				nvgpu_memcpy((u8 *)
-					nvgpu_falcon_fb_queue_get_work_buffer(
+					nvgpu_engine_fb_queue_get_work_buffer(
 							seq->cmd_queue) +
 					alloc.dmem_offset,
 					(u8 *)payload->in.buf,
@@ -643,7 +643,7 @@ clean_up:
 }
 
 static int pmu_fbq_cmd_setup(struct gk20a *g, struct pmu_cmd *cmd,
-	struct nvgpu_falcon_fb_queue *queue, struct pmu_payload *payload,
+	struct nvgpu_engine_fb_queue *queue, struct pmu_payload *payload,
 	struct pmu_sequence *seq)
 {
 	struct nvgpu_pmu *pmu = &g->pmu;
@@ -655,10 +655,10 @@ static int pmu_fbq_cmd_setup(struct gk20a *g, struct pmu_cmd *cmd,
 	int err = 0;
 
 	fbq_hdr = (struct nv_falcon_fbq_hdr *)
-		nvgpu_falcon_fb_queue_get_work_buffer(queue);
+		nvgpu_engine_fb_queue_get_work_buffer(queue);
 
 	flcn_cmd = (struct pmu_cmd *)
-		(nvgpu_falcon_fb_queue_get_work_buffer(queue) +
+		(nvgpu_engine_fb_queue_get_work_buffer(queue) +
 		sizeof(struct nv_falcon_fbq_hdr));
 
 	if (cmd->cmd.rpc.cmd_type == NV_PMU_RPC_CMD_ID) {
@@ -703,8 +703,8 @@ static int pmu_fbq_cmd_setup(struct gk20a *g, struct pmu_cmd *cmd,
 	seq->out_payload_fb_queue = false;
 
 	/* clear work queue buffer */
-	memset(nvgpu_falcon_fb_queue_get_work_buffer(queue), 0,
-		nvgpu_falcon_fb_queue_get_element_size(queue));
+	memset(nvgpu_engine_fb_queue_get_work_buffer(queue), 0,
+		nvgpu_engine_fb_queue_get_element_size(queue));
 
 	/* Need to save room for both FBQ hdr, and the CMD */
 	seq->buffer_size_used = sizeof(struct nv_falcon_fbq_hdr) +
@@ -722,7 +722,7 @@ static int pmu_fbq_cmd_setup(struct gk20a *g, struct pmu_cmd *cmd,
 	 * save queue index in seq structure
 	 * so can free queue element when response is received
 	 */
-	seq->fbq_element_index = nvgpu_falcon_fb_queue_get_position(queue);
+	seq->fbq_element_index = nvgpu_engine_fb_queue_get_position(queue);
 
 exit:
 	return err;
@@ -735,7 +735,7 @@ int nvgpu_pmu_cmd_post(struct gk20a *g, struct pmu_cmd *cmd,
 {
 	struct nvgpu_pmu *pmu = &g->pmu;
 	struct pmu_sequence *seq = NULL;
-	struct nvgpu_falcon_fb_queue *fb_queue = NULL;
+	struct nvgpu_engine_fb_queue *fb_queue = NULL;
 	int err;
 
 	nvgpu_log_fn(g, " ");
@@ -782,7 +782,7 @@ int nvgpu_pmu_cmd_post(struct gk20a *g, struct pmu_cmd *cmd,
 		seq->cmd_queue = fb_queue;
 
 		/* Lock the FBQ work buffer */
-		nvgpu_falcon_fb_queue_lock_work_buffer(fb_queue);
+		nvgpu_engine_fb_queue_lock_work_buffer(fb_queue);
 
 		/* Create FBQ work buffer & copy cmd to FBQ work buffer */
 		err = pmu_fbq_cmd_setup(g, cmd, fb_queue, payload, seq);
@@ -798,7 +798,7 @@ int nvgpu_pmu_cmd_post(struct gk20a *g, struct pmu_cmd *cmd,
 		 * in call pmu_fgq_cmd_setup()
 		 */
 		cmd = (struct pmu_cmd *)
-			(nvgpu_falcon_fb_queue_get_work_buffer(fb_queue) +
+			(nvgpu_engine_fb_queue_get_work_buffer(fb_queue) +
 			sizeof(struct nv_falcon_fbq_hdr));
 	}
 
@@ -824,7 +824,7 @@ int nvgpu_pmu_cmd_post(struct gk20a *g, struct pmu_cmd *cmd,
 exit:
 	if (pmu->queue_type == QUEUE_TYPE_FB) {
 		/* Unlock the FBQ work buffer */
-		nvgpu_falcon_fb_queue_unlock_work_buffer(fb_queue);
+		nvgpu_engine_fb_queue_unlock_work_buffer(fb_queue);
 	}
 
 	nvgpu_log_fn(g, "Done, err %x", err);
@@ -843,10 +843,10 @@ static int pmu_payload_extract(struct nvgpu_pmu *pmu,
 
 	if (seq->out_payload_fb_queue) {
 		fbq_payload_offset =
-			nvgpu_falcon_fb_queue_get_offset(seq->cmd_queue) +
+			nvgpu_engine_fb_queue_get_offset(seq->cmd_queue) +
 			seq->fbq_out_offset_in_queue_element +
 			(seq->fbq_element_index *
-			nvgpu_falcon_fb_queue_get_element_size(seq->cmd_queue));
+			nvgpu_engine_fb_queue_get_element_size(seq->cmd_queue));
 
 		nvgpu_mem_rd_n(g, &pmu->super_surface_buf, fbq_payload_offset,
 			seq->out_payload,
@@ -888,7 +888,7 @@ static void pmu_payload_fbq_free(struct nvgpu_pmu *pmu,
 	 * set FBQ element work buffer to NULL
 	 * Clear the in use bit for the queue entry this CMD used.
 	 */
-	nvgpu_falcon_fb_queue_free_element(pmu->flcn, seq->cmd_queue,
+	nvgpu_engine_fb_queue_free_element(pmu->flcn, seq->cmd_queue,
 		seq->fbq_element_index);
 }
 
@@ -1044,23 +1044,23 @@ static int pmu_handle_event(struct nvgpu_pmu *pmu, struct pmu_msg *msg)
 	return err;
 }
 
-static bool pmu_falcon_queue_read(struct nvgpu_pmu *pmu,
+static bool pmu_engine_mem_queue_read(struct nvgpu_pmu *pmu,
 	u32 queue_id, void *data,
 	u32 bytes_to_read, int *status)
 {
 	struct gk20a *g = gk20a_from_pmu(pmu);
-	struct nvgpu_falcon_fb_queue *fb_queue = NULL;
-	struct nvgpu_falcon_queue *queue = NULL;
+	struct nvgpu_engine_fb_queue *fb_queue = NULL;
+	struct nvgpu_engine_mem_queue *queue = NULL;
 	u32 bytes_read;
 	int err;
 
 	if (pmu->queue_type == QUEUE_TYPE_FB) {
 		fb_queue = pmu->fb_queue[queue_id];
-		err = nvgpu_falcon_fb_queue_pop(pmu->flcn, fb_queue, data,
+		err = nvgpu_engine_fb_queue_pop(pmu->flcn, fb_queue, data,
 				bytes_to_read, &bytes_read);
 	} else {
 		queue = pmu->queue[queue_id];
-		err = nvgpu_falcon_queue_pop(pmu->flcn, queue, data,
+		err = nvgpu_engine_mem_queue_pop(pmu->flcn, queue, data,
 				bytes_to_read, &bytes_read);
 	}
 
@@ -1081,16 +1081,16 @@ static bool pmu_falcon_queue_read(struct nvgpu_pmu *pmu,
 
 bool nvgpu_pmu_queue_is_empty(struct nvgpu_pmu *pmu, u32 queue_id)
 {
-	struct nvgpu_falcon_queue *queue = NULL;
-	struct nvgpu_falcon_fb_queue *fb_queue = NULL;
+	struct nvgpu_engine_mem_queue *queue = NULL;
+	struct nvgpu_engine_fb_queue *fb_queue = NULL;
 	bool empty = true;
 
 	if (pmu->queue_type == QUEUE_TYPE_FB) {
 		fb_queue = pmu->fb_queue[queue_id];
-		empty = nvgpu_falcon_fb_queue_is_empty(pmu->flcn, fb_queue);
+		empty = nvgpu_engine_fb_queue_is_empty(pmu->flcn, fb_queue);
 	} else {
 		queue = pmu->queue[queue_id];
-		empty = nvgpu_falcon_queue_is_empty(pmu->flcn, queue);
+		empty = nvgpu_engine_mem_queue_is_empty(pmu->flcn, queue);
 	}
 
 	return empty;
@@ -1100,7 +1100,7 @@ static bool pmu_read_message(struct nvgpu_pmu *pmu, u32 queue_id,
 	struct pmu_msg *msg, int *status)
 {
 	struct gk20a *g = gk20a_from_pmu(pmu);
-	struct nvgpu_falcon_queue *queue = NULL;
+	struct nvgpu_engine_mem_queue *queue = NULL;
 	u32 read_size;
 	int err;
 
@@ -1110,8 +1110,8 @@ static bool pmu_read_message(struct nvgpu_pmu *pmu, u32 queue_id,
 		return false;
 	}
 
-	if (!pmu_falcon_queue_read(pmu, queue_id, &msg->hdr, PMU_MSG_HDR_SIZE,
-			status)) {
+	if (!pmu_engine_mem_queue_read(pmu, queue_id, &msg->hdr,
+				       PMU_MSG_HDR_SIZE, status)) {
 		nvgpu_err(g, "fail to read msg from queue %d", queue_id);
 		goto clean_up;
 	}
@@ -1119,7 +1119,7 @@ static bool pmu_read_message(struct nvgpu_pmu *pmu, u32 queue_id,
 	if (msg->hdr.unit_id == PMU_UNIT_REWIND) {
 		if (pmu->queue_type != QUEUE_TYPE_FB) {
 			queue = pmu->queue[queue_id];
-			err = nvgpu_falcon_queue_rewind(pmu->flcn, queue);
+			err = nvgpu_engine_mem_queue_rewind(pmu->flcn, queue);
 			if (err != 0) {
 				nvgpu_err(g, "fail to rewind queue %d",
 					  queue_id);
@@ -1129,7 +1129,7 @@ static bool pmu_read_message(struct nvgpu_pmu *pmu, u32 queue_id,
 		}
 
 		/* read again after rewind */
-		if (!pmu_falcon_queue_read(pmu, queue_id, &msg->hdr,
+		if (!pmu_engine_mem_queue_read(pmu, queue_id, &msg->hdr,
 				PMU_MSG_HDR_SIZE, status)) {
 			nvgpu_err(g, "fail to read msg from queue %d",
 				queue_id);
@@ -1146,8 +1146,8 @@ static bool pmu_read_message(struct nvgpu_pmu *pmu, u32 queue_id,
 
 	if (msg->hdr.size > PMU_MSG_HDR_SIZE) {
 		read_size = msg->hdr.size - PMU_MSG_HDR_SIZE;
-		if (!pmu_falcon_queue_read(pmu, queue_id, &msg->msg, read_size,
-				status)) {
+		if (!pmu_engine_mem_queue_read(pmu, queue_id, &msg->msg,
+					       read_size, status)) {
 			nvgpu_err(g, "fail to read msg from queue %d",
 				queue_id);
 			goto clean_up;

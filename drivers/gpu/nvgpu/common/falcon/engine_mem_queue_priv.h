@@ -20,8 +20,8 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NVGPU_FALCON_QUEUE_PRIV_H
-#define NVGPU_FALCON_QUEUE_PRIV_H
+#ifndef NVGPU_ENGINE_MEM_QUEUE_PRIV_H
+#define NVGPU_ENGINE_MEM_QUEUE_PRIV_H
 
 #include <nvgpu/lock.h>
 #include <nvgpu/types.h>
@@ -29,7 +29,7 @@
 struct gk20a;
 struct nvgpu_falcon;
 
-struct nvgpu_falcon_queue {
+struct nvgpu_engine_mem_queue {
 	struct gk20a *g;
 	/* Queue Type (queue_type) */
 	u8 queue_type;
@@ -52,17 +52,17 @@ struct nvgpu_falcon_queue {
 
 	/* queue type(DMEM-Q/EMEM-Q) specific ops */
 	int (*push)(struct nvgpu_falcon *flcn,
-		    struct nvgpu_falcon_queue *queue,
+		    struct nvgpu_engine_mem_queue *queue,
 		    u32 dst, void *data, u32 size);
 	int (*pop)(struct nvgpu_falcon *flcn,
-		   struct nvgpu_falcon_queue *queue,
+		   struct nvgpu_engine_mem_queue *queue,
 		   u32 src, void *data, u32 size);
 
 	/* engine specific ops */
 	int (*head)(struct nvgpu_falcon *flcn,
-		struct nvgpu_falcon_queue *queue, u32 *head, bool set);
+		struct nvgpu_engine_mem_queue *queue, u32 *head, bool set);
 	int (*tail)(struct nvgpu_falcon *flcn,
-		struct nvgpu_falcon_queue *queue, u32 *tail, bool set);
+		struct nvgpu_engine_mem_queue *queue, u32 *tail, bool set);
 };
 
-#endif /* NVGPU_FALCON_QUEUE_PRIV_H */
+#endif /* NVGPU_ENGINE_MEM_QUEUE_PRIV_H */
