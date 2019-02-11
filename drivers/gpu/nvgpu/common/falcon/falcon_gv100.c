@@ -25,16 +25,16 @@
 #include "falcon_gp106.h"
 #include "falcon_gv100.h"
 #include "falcon_priv.h"
-#include "gv100/gsp_gv100.h"
 
 static void gv100_falcon_engine_dependency_ops(struct nvgpu_falcon *flcn)
 {
 	struct nvgpu_falcon_engine_dependency_ops *flcn_eng_dep_ops =
 			&flcn->flcn_engine_dep_ops;
+	struct gk20a *g = flcn->g;
 
 	switch (flcn->flcn_id) {
 	case FALCON_ID_GSPLITE:
-		flcn_eng_dep_ops->reset_eng = gv100_gsp_reset;
+		flcn_eng_dep_ops->reset_eng = g->ops.gsp.gsp_reset;
 	break;
 	default:
 		flcn_eng_dep_ops->reset_eng = NULL;

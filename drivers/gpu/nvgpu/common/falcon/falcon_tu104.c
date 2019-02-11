@@ -25,21 +25,21 @@
 #include "falcon_gv100.h"
 #include "falcon_tu104.h"
 #include "falcon_priv.h"
-#include "tu104/sec2_tu104.h"
 
 static void tu104_falcon_engine_dependency_ops(struct nvgpu_falcon *flcn)
 {
 	struct nvgpu_falcon_engine_dependency_ops *flcn_eng_dep_ops =
 			&flcn->flcn_engine_dep_ops;
+	struct gk20a *g = flcn->g;
 
 	switch (flcn->flcn_id) {
 	case FALCON_ID_SEC2:
-		flcn_eng_dep_ops->reset_eng = tu104_sec2_reset;
-		flcn_eng_dep_ops->copy_to_emem = tu104_sec2_flcn_copy_to_emem;
+		flcn_eng_dep_ops->reset_eng = g->ops.sec2.sec2_reset;
+		flcn_eng_dep_ops->copy_to_emem = g->ops.sec2.sec2_copy_to_emem;
 		flcn_eng_dep_ops->copy_from_emem =
-						tu104_sec2_flcn_copy_from_emem;
-		flcn_eng_dep_ops->queue_head = tu104_sec2_queue_head;
-		flcn_eng_dep_ops->queue_tail = tu104_sec2_queue_tail;
+						g->ops.sec2.sec2_copy_from_emem;
+		flcn_eng_dep_ops->queue_head = g->ops.sec2.sec2_queue_head;
+		flcn_eng_dep_ops->queue_tail = g->ops.sec2.sec2_queue_tail;
 		break;
 	default:
 		flcn_eng_dep_ops->reset_eng = NULL;

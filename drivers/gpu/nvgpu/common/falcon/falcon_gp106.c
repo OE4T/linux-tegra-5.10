@@ -24,7 +24,6 @@
 #include "falcon_gk20a.h"
 #include "falcon_gp106.h"
 #include "falcon_priv.h"
-#include "gp106/sec2_gp106.h"
 
 static void gp106_falcon_engine_dependency_ops(struct nvgpu_falcon *flcn)
 {
@@ -34,12 +33,12 @@ static void gp106_falcon_engine_dependency_ops(struct nvgpu_falcon *flcn)
 
 	switch (flcn->flcn_id) {
 	case FALCON_ID_PMU:
-		flcn_eng_dep_ops->reset_eng = nvgpu_pmu_reset;
+		flcn_eng_dep_ops->reset_eng = g->ops.pmu.pmu_reset;
 		flcn_eng_dep_ops->queue_head = g->ops.pmu.pmu_queue_head;
 		flcn_eng_dep_ops->queue_tail = g->ops.pmu.pmu_queue_tail;
 		break;
 	case FALCON_ID_SEC2:
-		flcn_eng_dep_ops->reset_eng = gp106_sec2_reset;
+		flcn_eng_dep_ops->reset_eng = g->ops.sec2.sec2_reset;
 		break;
 	default:
 		flcn_eng_dep_ops->reset_eng = NULL;

@@ -832,6 +832,7 @@ static const struct gpu_ops gv11b_ops = {
 		.pmu_get_queue_head_size = pwr_pmu_queue_head__size_1_v,
 		.pmu_get_queue_tail = pwr_pmu_queue_tail_r,
 		.pmu_get_queue_tail_size = pwr_pmu_queue_tail__size_1_v,
+		.pmu_reset = nvgpu_pmu_reset,
 		.pmu_queue_head = gk20a_pmu_queue_head,
 		.pmu_queue_tail = gk20a_pmu_queue_tail,
 		.pmu_msgq_tail = gk20a_pmu_msgq_tail,

@@ -935,6 +935,7 @@ static const struct gpu_ops tu104_ops = {
 		.pmu_msgq_tail = gk20a_pmu_msgq_tail,
 		.pmu_pg_engines_feature_list = gp106_pmu_pg_feature_list,
 		.pmu_get_queue_head_size = pwr_pmu_queue_head__size_1_v,
+		.pmu_reset = nvgpu_pmu_reset,
 		.pmu_queue_head = gk20a_pmu_queue_head,
 		.pmu_pg_param_post_init = nvgpu_lpwr_post_init,
 		.pmu_get_queue_tail_size = pwr_pmu_queue_tail__size_1_v,
@@ -1163,9 +1164,15 @@ static const struct gpu_ops tu104_ops = {
 		.isr = tu104_sec2_isr,
 		.msgq_tail = tu104_sec2_msgq_tail,
 		.falcon_base_addr = tu104_sec2_falcon_base_addr,
+		.sec2_reset = tu104_sec2_reset,
+		.sec2_copy_to_emem = tu104_sec2_flcn_copy_to_emem,
+		.sec2_copy_from_emem = tu104_sec2_flcn_copy_from_emem,
+		.sec2_queue_head = tu104_sec2_queue_head,
+		.sec2_queue_tail = tu104_sec2_queue_tail,
 	},
 	.gsp = {
 		.falcon_base_addr = gv100_gsp_falcon_base_addr,
+		.gsp_reset = gv100_gsp_reset,
 	},
 	.top = {
 		.device_info_parse_enum = gm20b_device_info_parse_enum,

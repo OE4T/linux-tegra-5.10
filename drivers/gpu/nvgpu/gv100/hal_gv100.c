@@ -903,6 +903,7 @@ static const struct gpu_ops gv100_ops = {
 		.pmu_msgq_tail = gk20a_pmu_msgq_tail,
 		.pmu_pg_engines_feature_list = gp106_pmu_pg_feature_list,
 		.pmu_get_queue_head_size = pwr_pmu_queue_head__size_1_v,
+		.pmu_reset = nvgpu_pmu_reset,
 		.pmu_queue_head = gk20a_pmu_queue_head,
 		.pmu_pg_param_post_init = nvgpu_lpwr_post_init,
 		.pmu_get_queue_tail_size = pwr_pmu_queue_tail__size_1_v,
@@ -1141,9 +1142,11 @@ static const struct gpu_ops gv100_ops = {
 	},
 	.sec2 = {
 		.falcon_base_addr = gp106_sec2_falcon_base_addr,
+		.sec2_reset = gp106_sec2_reset,
 	},
 	.gsp = {
 		.falcon_base_addr = gv100_gsp_falcon_base_addr,
+		.gsp_reset = gv100_gsp_reset,
 	},
 	.chip_init_gpu_characteristics = gv100_init_gpu_characteristics,
 	.get_litter_value = gv100_get_litter_value,

@@ -582,6 +582,7 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 		.pmu_get_queue_head_size = NULL,
 		.pmu_get_queue_tail = NULL,
 		.pmu_get_queue_tail_size = NULL,
+		.pmu_reset = NULL,
 		.pmu_queue_head = NULL,
 		.pmu_queue_tail = NULL,
 		.pmu_msgq_tail = NULL,

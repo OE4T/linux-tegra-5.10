@@ -1188,6 +1188,7 @@ struct gpu_ops {
 		u32 (*pmu_get_queue_head_size)(void);
 		u32 (*pmu_get_queue_tail_size)(void);
 		u32 (*pmu_get_queue_tail)(u32 i);
+		int (*pmu_reset)(struct gk20a *g);
 		int (*pmu_queue_head)(struct gk20a *g,
 			struct nvgpu_falcon_queue *queue, u32 *head, bool set);
 		int (*pmu_queue_tail)(struct gk20a *g,
@@ -1569,9 +1570,21 @@ struct gpu_ops {
 		void (*msgq_tail)(struct gk20a *g, struct nvgpu_sec2 *sec2,
 			u32 *tail, bool set);
 		u32 (*falcon_base_addr)(void);
+		int (*sec2_reset)(struct gk20a *g);
+		int (*sec2_copy_to_emem)(struct nvgpu_falcon *flcn, u32 dst,
+					 u8 *src, u32 size, u8 port);
+		int (*sec2_copy_from_emem)(struct nvgpu_falcon *flcn,
+					   u32 src, u8 *dst, u32 size, u8 port);
+		int (*sec2_queue_head)(struct gk20a *g,
+				       struct nvgpu_falcon_queue *queue,
+				       u32 *head, bool set);
+		int (*sec2_queue_tail)(struct gk20a *g,
+				       struct nvgpu_falcon_queue *queue,
+				       u32 *tail, bool set);
 	} sec2;
 	struct {
 		u32 (*falcon_base_addr)(void);
+		int (*gsp_reset)(struct gk20a *g);
 	} gsp;
 	void (*semaphore_wakeup)(struct gk20a *g, bool post_events);
 };
