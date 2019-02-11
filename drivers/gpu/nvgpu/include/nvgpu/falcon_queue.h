@@ -65,8 +65,6 @@ int nvgpu_falcon_queue_push(struct nvgpu_falcon *flcn,
 	struct nvgpu_falcon_queue *queue, void *data, u32 size);
 void nvgpu_falcon_queue_free(struct nvgpu_falcon *flcn,
 	struct nvgpu_falcon_queue **queue_p);
-u32 nvgpu_falcon_queue_get_id(struct nvgpu_falcon_queue *queue);
-u32 nvgpu_falcon_queue_get_index(struct nvgpu_falcon_queue *queue);
 u32 nvgpu_falcon_queue_get_size(struct nvgpu_falcon_queue *queue);
 
 #endif /* NVGPU_FALCON_QUEUE_H */

@@ -377,16 +377,6 @@ void nvgpu_falcon_queue_free(struct nvgpu_falcon *flcn,
 	*queue_p = NULL;
 }
 
-u32 nvgpu_falcon_queue_get_id(struct nvgpu_falcon_queue *queue)
-{
-	return queue->id;
-}
-
-u32 nvgpu_falcon_queue_get_index(struct nvgpu_falcon_queue *queue)
-{
-	return queue->index;
-}
-
 u32 nvgpu_falcon_queue_get_size(struct nvgpu_falcon_queue *queue)
 {
 	return queue->size;

@@ -224,21 +224,6 @@ exit:
 	return err;
 }
 
-u32 nvgpu_falcon_fb_queue_get_id(struct nvgpu_falcon_fb_queue *queue)
-{
-	return queue->id;
-}
-
-u32 nvgpu_falcon_fb_queue_get_index(struct nvgpu_falcon_fb_queue *queue)
-{
-	return queue->index;
-}
-
-u32 nvgpu_falcon_fb_queue_get_size(struct nvgpu_falcon_fb_queue *queue)
-{
-	return queue->size;
-}
-
 u32 nvgpu_falcon_fb_queue_get_position(struct nvgpu_falcon_fb_queue *queue)
 {
 	return queue->position;
