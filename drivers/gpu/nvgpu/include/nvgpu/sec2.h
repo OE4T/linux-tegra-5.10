@@ -30,6 +30,7 @@
 #include <nvgpu/lock.h>
 #include <nvgpu/flcnif_cmn.h>
 #include <nvgpu/falcon.h>
+#include <nvgpu/falcon_queue.h>
 
 #include <nvgpu/sec2if/sec2_cmd_if.h>
 #include <nvgpu/sec2if/sec2_if_sec2.h>

@@ -27,6 +27,7 @@
 #include <nvgpu/io.h>
 #include <nvgpu/timers.h>
 #include <nvgpu/falcon.h>
+#include <nvgpu/falcon_queue.h>
 #include <nvgpu/sec2.h>
 
 #include "sec2_tu104.h"

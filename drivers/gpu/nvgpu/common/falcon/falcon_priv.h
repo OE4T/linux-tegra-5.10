@@ -63,100 +63,10 @@
 
 struct gk20a;
 struct nvgpu_falcon;
-struct nvgpu_falcon_queue;
 
 enum falcon_mem_type {
 	MEM_DMEM = 0,
 	MEM_IMEM
-};
-
-struct nvgpu_falcon_queue {
-	struct gk20a *g;
-	/* Queue Type (queue_type) */
-	u8 queue_type;
-
-	/* used by nvgpu, for command LPQ/HPQ */
-	struct nvgpu_mutex mutex;
-
-	/* current write position */
-	u32 position;
-	/* physical dmem offset where this queue begins */
-	u32 offset;
-	/* logical queue identifier */
-	u32 id;
-	/* physical queue index */
-	u32 index;
-	/* in bytes */
-	u32 size;
-	/* open-flag */
-	u32 oflag;
-
-	/* members unique to the FB version of the falcon queues */
-	struct {
-		/* Holds super surface base address */
-		struct nvgpu_mem *super_surface_mem;
-
-		/*
-		 * Holds the offset of queue data (0th element).
-		 * This is used for FB Queues to hold a offset of
-		 * Super Surface for this queue.
-		 */
-		 u32 fb_offset;
-
-		/*
-		 * Define the size of a single queue element.
-		 * queues_size above is used for the number of
-		 * queue elements.
-		 */
-		u32 element_size;
-
-		/* To keep track of elements in use */
-		u64 element_in_use;
-
-		/*
-		 * Define a pointer to a local (SYSMEM) allocated
-		 * buffer to hold a single queue element
-		 * it is being assembled.
-		 */
-		 u8 *work_buffer;
-		 struct nvgpu_mutex work_buffer_mutex;
-
-		/*
-		 * Tracks how much of the current FB Queue MSG queue
-		 * entry have been read. This is needed as functions read
-		 * the MSG queue as a byte stream, rather
-		 * than reading a whole MSG at a time.
-		 */
-		u32 read_position;
-
-		/*
-		 * Tail as tracked on the nvgpu "side".  Because the queue
-		 * elements and its associated payload (which is also moved
-		 * PMU->nvgpu through the FB CMD Queue) can't be free-ed until
-		 * the command is complete, response is received and any "out"
-		 * payload delivered to the client, it is necessary for the
-		 * nvgpu to track it's own version of "tail".  This one is
-		 * incremented as commands and completed entries are found
-		 * following tail.
-		 */
-		u32 tail;
-	} fbq;
-
-	/* queue type(DMEM-Q/FB-Q) specific ops */
-	int (*rewind)(struct nvgpu_falcon *flcn,
-		struct nvgpu_falcon_queue *queue);
-	int (*pop)(struct nvgpu_falcon *flcn,
-		struct nvgpu_falcon_queue *queue, void *data, u32 size,
-		u32 *bytes_read);
-	int (*push)(struct nvgpu_falcon *flcn,
-		struct nvgpu_falcon_queue *queue, void *data, u32 size);
-	bool (*has_room)(struct nvgpu_falcon *flcn,
-		struct nvgpu_falcon_queue *queue, u32 size,
-		bool *need_rewind);
-	int (*tail)(struct nvgpu_falcon *flcn,
-		struct nvgpu_falcon_queue *queue, u32 *tail, bool set);
-	int (*head)(struct nvgpu_falcon *flcn,
-		struct nvgpu_falcon_queue *queue, u32 *head, bool set);
 };
 
 /* ops which are falcon engine specific */

@@ -76,41 +76,8 @@
 #define APP_0_CODE_OFFSET 0x5U
 #define APP_0_CODE_SIZE   0x6U
 
-/* Queue Type */
-#define QUEUE_TYPE_DMEM 0x0U
-#define QUEUE_TYPE_EMEM 0x1U
-#define QUEUE_TYPE_FB   0x2U
-
 struct gk20a;
 struct nvgpu_falcon;
-struct nvgpu_falcon_queue;
-
-struct nvgpu_falcon_queue_params {
-	/* Queue Type (queue_type) */
-	u8 queue_type;
-	/* current write position */
-	u32 position;
-	/* physical dmem offset where this queue begins */
-	u32 offset;
-	/* logical queue identifier */
-	u32 id;
-	/* physical queue index */
-	u32 index;
-	/* in bytes */
-	u32 size;
-	/* open-flag */
-	u32 oflag;
-
-	/* fb queue params*/
-	/* Holds the offset of queue data (0th element) */
-	u32 fbq_offset;
-
-	/* fb queue element size*/
-	u32 fbq_element_size;
-
-	/* Holds super surface base address */
-	struct nvgpu_mem *super_surface_mem;
-};
 
 struct nvgpu_falcon_bl_info {
 	void *bl_src;
@@ -153,34 +120,6 @@ void nvgpu_falcon_get_ctls(struct nvgpu_falcon *flcn, u32 *sctl, u32 *cpuctl);
 int nvgpu_falcon_get_dmem_size(struct nvgpu_falcon *flcn, u32 *dmem_size);
 struct gk20a *nvgpu_falcon_to_gk20a(struct nvgpu_falcon *flcn);
 u32 nvgpu_falcon_get_id(struct nvgpu_falcon *flcn);
-
-/* queue public functions */
-int nvgpu_falcon_queue_init(struct nvgpu_falcon *flcn,
-	struct nvgpu_falcon_queue **queue_p,
-	struct nvgpu_falcon_queue_params params);
-bool nvgpu_falcon_queue_is_empty(struct nvgpu_falcon *flcn,
-	struct nvgpu_falcon_queue *queue);
-int nvgpu_falcon_queue_rewind(struct nvgpu_falcon *flcn,
-	struct nvgpu_falcon_queue *queue);
-int nvgpu_falcon_queue_pop(struct nvgpu_falcon *flcn,
-	struct nvgpu_falcon_queue *queue, void *data, u32 size,
-	u32 *bytes_read);
-int nvgpu_falcon_queue_push(struct nvgpu_falcon *flcn,
-	struct nvgpu_falcon_queue *queue, void *data, u32 size);
-void nvgpu_falcon_queue_free(struct nvgpu_falcon *flcn,
-	struct nvgpu_falcon_queue **queue_p);
-u32 nvgpu_falcon_queue_get_id(struct nvgpu_falcon_queue *queue);
-u32 nvgpu_falcon_queue_get_position(struct nvgpu_falcon_queue *queue);
-u32 nvgpu_falcon_queue_get_index(struct nvgpu_falcon_queue *queue);
-u32 nvgpu_falcon_queue_get_size(struct nvgpu_falcon_queue *queue);
-u32 nvgpu_falcon_fbq_get_element_size(struct nvgpu_falcon_queue *queue);
-u32 nvgpu_falcon_queue_get_fbq_offset(struct nvgpu_falcon_queue *queue);
-u8 *nvgpu_falcon_queue_get_fbq_work_buffer(struct nvgpu_falcon_queue *queue);
-int nvgpu_falcon_queue_free_fbq_element(struct nvgpu_falcon *flcn,
-	struct nvgpu_falcon_queue *queue, u32 queue_pos);
-void nvgpu_falcon_queue_lock_fbq_work_buffer(struct nvgpu_falcon_queue *queue);
-void nvgpu_falcon_queue_unlock_fbq_work_buffer(
-	struct nvgpu_falcon_queue *queue);
 
 int nvgpu_falcon_sw_init(struct gk20a *g, u32 flcn_id);
 void nvgpu_falcon_sw_free(struct gk20a *g, u32 flcn_id);

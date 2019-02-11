@@ -24,6 +24,7 @@
 #include <nvgpu/string.h>
 #include <nvgpu/pmu.h>
 
+#include "falcon_queue_priv.h"
 #include "falcon_priv.h"
 
 /* common falcon queue ops */

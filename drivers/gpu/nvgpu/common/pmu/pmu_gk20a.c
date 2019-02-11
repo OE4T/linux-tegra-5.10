@@ -30,6 +30,7 @@
 #include <nvgpu/bug.h>
 #include <nvgpu/firmware.h>
 #include <nvgpu/falcon.h>
+#include <nvgpu/falcon_queue.h>
 #include <nvgpu/mm.h>
 #include <nvgpu/io.h>
 #include <nvgpu/clk_arb.h>

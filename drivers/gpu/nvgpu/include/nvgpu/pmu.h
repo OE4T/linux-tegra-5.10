@@ -34,6 +34,7 @@
 #include <nvgpu/pmuif/nvgpu_gpmu_cmdif.h>
 #include <nvgpu/pmuif/gpmu_super_surf_if.h>
 #include <nvgpu/falcon.h>
+#include <nvgpu/falcon_queue.h>
 
 #define nvgpu_pmu_dbg(g, fmt, args...) \
 	nvgpu_log(g, gpu_dbg_pmu, fmt, ##args)
