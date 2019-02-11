@@ -165,6 +165,8 @@ int nvgpu_pmu_queue_init_fb(struct nvgpu_pmu *pmu,
 	params.flcn_id = FALCON_ID_PMU;
 	params.id = id;
 	params.oflag = oflag;
+	params.queue_head = g->ops.pmu.pmu_queue_head;
+	params.queue_tail = g->ops.pmu.pmu_queue_tail;
 
 	if (tmp_id == PMU_COMMAND_QUEUE_HPQ) {
 		tmp_id = PMU_QUEUE_HPQ_IDX_FOR_V3;
@@ -178,7 +180,7 @@ int nvgpu_pmu_queue_init_fb(struct nvgpu_pmu *pmu,
 	}
 	params.index = init->v5.queue_index[tmp_id];
 
-	err = nvgpu_engine_fb_queue_init(pmu->flcn, &pmu->fb_queue[id], params);
+	err = nvgpu_engine_fb_queue_init(&pmu->fb_queue[id], params);
 	if (err != 0) {
 		nvgpu_err(g, "queue-%d init failed", id);
 	}
@@ -221,12 +223,14 @@ int nvgpu_pmu_queue_init(struct nvgpu_pmu *pmu,
 	params.flcn_id = FALCON_ID_PMU;
 	params.id = id;
 	params.oflag = oflag;
+	params.queue_head = g->ops.pmu.pmu_queue_head;
+	params.queue_tail = g->ops.pmu.pmu_queue_tail;
 	params.queue_type = QUEUE_TYPE_DMEM;
 	g->ops.pmu_ver.get_pmu_init_msg_pmu_queue_params(id, init,
 							 &params.index,
 							 &params.offset,
 							 &params.size);
-	err = nvgpu_engine_mem_queue_init(pmu->flcn, &pmu->queue[id], params);
+	err = nvgpu_engine_mem_queue_init(&pmu->queue[id], params);
 	if (err != 0) {
 		nvgpu_err(g, "queue-%d init failed", id);
 	}
@@ -249,13 +253,13 @@ void nvgpu_pmu_queue_free(struct nvgpu_pmu *pmu, u32 id)
 			goto exit;
 		}
 
-		nvgpu_engine_fb_queue_free(pmu->flcn, &pmu->fb_queue[id]);
+		nvgpu_engine_fb_queue_free(&pmu->fb_queue[id]);
 	} else {
 		if (pmu->queue[id] == NULL) {
 			goto exit;
 		}
 
-		nvgpu_engine_mem_queue_free(pmu->flcn, &pmu->queue[id]);
+		nvgpu_engine_mem_queue_free(&pmu->queue[id]);
 	}
 
 exit:
@@ -369,7 +373,7 @@ static int pmu_write_cmd(struct nvgpu_pmu *pmu, struct pmu_cmd *cmd,
 	do {
 		if (pmu->queue_type == QUEUE_TYPE_FB) {
 			fb_queue = pmu->fb_queue[queue_id];
-			err = nvgpu_engine_fb_queue_push(pmu->flcn, fb_queue,
+			err = nvgpu_engine_fb_queue_push(fb_queue,
 							 cmd, cmd->hdr.size);
 		} else {
 			queue = pmu->queue[queue_id];
@@ -892,7 +896,7 @@ static void pmu_payload_fbq_free(struct nvgpu_pmu *pmu,
 	 * set FBQ element work buffer to NULL
 	 * Clear the in use bit for the queue entry this CMD used.
 	 */
-	nvgpu_engine_fb_queue_free_element(pmu->flcn, seq->cmd_queue,
+	nvgpu_engine_fb_queue_free_element(seq->cmd_queue,
 		seq->fbq_element_index);
 }
 
@@ -1060,7 +1064,7 @@ static bool pmu_engine_mem_queue_read(struct nvgpu_pmu *pmu,
 
 	if (pmu->queue_type == QUEUE_TYPE_FB) {
 		fb_queue = pmu->fb_queue[queue_id];
-		err = nvgpu_engine_fb_queue_pop(pmu->flcn, fb_queue, data,
+		err = nvgpu_engine_fb_queue_pop(fb_queue, data,
 				bytes_to_read, &bytes_read);
 	} else {
 		queue = pmu->queue[queue_id];
@@ -1091,10 +1095,10 @@ bool nvgpu_pmu_queue_is_empty(struct nvgpu_pmu *pmu, u32 queue_id)
 
 	if (pmu->queue_type == QUEUE_TYPE_FB) {
 		fb_queue = pmu->fb_queue[queue_id];
-		empty = nvgpu_engine_fb_queue_is_empty(pmu->flcn, fb_queue);
+		empty = nvgpu_engine_fb_queue_is_empty(fb_queue);
 	} else {
 		queue = pmu->queue[queue_id];
-		empty = nvgpu_engine_mem_queue_is_empty(pmu->flcn, queue);
+		empty = nvgpu_engine_mem_queue_is_empty(queue);
 	}
 
 	return empty;

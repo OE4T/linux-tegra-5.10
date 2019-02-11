@@ -92,11 +92,15 @@ struct nvgpu_engine_fb_queue {
 		u32 tail;
 	} fbq;
 
-	/* queue ops */
-	int (*tail)(struct nvgpu_falcon *flcn,
-		struct nvgpu_engine_fb_queue *queue, u32 *tail, bool set);
-	int (*head)(struct nvgpu_falcon *flcn,
-		struct nvgpu_engine_fb_queue *queue, u32 *head, bool set);
+	/* engine and queue specific ops */
+	int (*tail)(struct nvgpu_engine_fb_queue *queue, u32 *tail, bool set);
+	int (*head)(struct nvgpu_engine_fb_queue *queue, u32 *head, bool set);
+
+	/* engine specific ops */
+	int (*queue_head)(struct gk20a *g, u32 queue_id, u32 queue_index,
+		u32 *head, bool set);
+	int (*queue_tail)(struct gk20a *g, u32 queue_id, u32 queue_index,
+		u32 *tail, bool set);
 };
 
 #endif /* NVGPU_ENGINE_FB_QUEUE_PRIV_H */

@@ -276,7 +276,7 @@ static bool sec2_read_message(struct nvgpu_sec2 *sec2,
 
 	*status = 0U;
 
-	if (nvgpu_engine_mem_queue_is_empty(sec2->flcn, queue)) {
+	if (nvgpu_engine_mem_queue_is_empty(queue)) {
 		return false;
 	}
 

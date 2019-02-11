@@ -25,7 +25,6 @@
 
 #include "engine_mem_queue_priv.h"
 #include "engine_dmem_queue.h"
-#include "falcon_priv.h"
 
 /* DMEM-Q specific ops */
 static int engine_dmem_queue_push(struct nvgpu_falcon *flcn,

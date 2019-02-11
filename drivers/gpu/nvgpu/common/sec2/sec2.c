@@ -68,10 +68,11 @@ int nvgpu_sec2_queue_init(struct nvgpu_sec2 *sec2, u32 id,
 	params.position = init->q_info[id].queue_offset;
 	params.size = init->q_info[id].queue_size;
 	params.oflag = oflag;
+	params.queue_head = g->ops.sec2.sec2_queue_head;
+	params.queue_tail = g->ops.sec2.sec2_queue_tail;
 	params.queue_type = QUEUE_TYPE_EMEM;
 
-	err = nvgpu_engine_mem_queue_init(sec2->flcn,
-				      &sec2->queue[queue_log_id],
+	err = nvgpu_engine_mem_queue_init(&sec2->queue[queue_log_id],
 				      params);
 	if (err != 0) {
 		nvgpu_err(g, "queue-%d init failed", queue_log_id);
@@ -94,7 +95,7 @@ void nvgpu_sec2_queue_free(struct nvgpu_sec2 *sec2, u32 id)
 		goto exit;
 	}
 
-	nvgpu_engine_mem_queue_free(sec2->flcn, &sec2->queue[id]);
+	nvgpu_engine_mem_queue_free(&sec2->queue[id]);
 exit:
 	return;
 }

@@ -61,10 +61,10 @@ struct nvgpu_engine_mem_queue {
 		   u32 src, void *data, u32 size);
 
 	/* engine specific ops */
-	int (*head)(struct nvgpu_falcon *flcn,
-		struct nvgpu_engine_mem_queue *queue, u32 *head, bool set);
-	int (*tail)(struct nvgpu_falcon *flcn,
-		struct nvgpu_engine_mem_queue *queue, u32 *tail, bool set);
+	int (*head)(struct gk20a *g, u32 queue_id, u32 queue_index,
+		u32 *head, bool set);
+	int (*tail)(struct gk20a *g, u32 queue_id, u32 queue_index,
+		u32 *tail, bool set);
 };
 
 #endif /* NVGPU_ENGINE_MEM_QUEUE_PRIV_H */

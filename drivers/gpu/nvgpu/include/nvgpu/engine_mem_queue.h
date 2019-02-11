@@ -51,14 +51,18 @@ struct nvgpu_engine_mem_queue_params {
 	u32 size;
 	/* open-flag */
 	u32 oflag;
+
+	/* engine specific ops */
+	int (*queue_head)(struct gk20a *g, u32 queue_id, u32 queue_index,
+		u32 *head, bool set);
+	int (*queue_tail)(struct gk20a *g, u32 queue_id, u32 queue_index,
+		u32 *tail, bool set);
 };
 
 /* queue public functions */
-int nvgpu_engine_mem_queue_init(struct nvgpu_falcon *flcn,
-	struct nvgpu_engine_mem_queue **queue_p,
+int nvgpu_engine_mem_queue_init(struct nvgpu_engine_mem_queue **queue_p,
 	struct nvgpu_engine_mem_queue_params params);
-bool nvgpu_engine_mem_queue_is_empty(struct nvgpu_falcon *flcn,
-	struct nvgpu_engine_mem_queue *queue);
+bool nvgpu_engine_mem_queue_is_empty(struct nvgpu_engine_mem_queue *queue);
 int nvgpu_engine_mem_queue_rewind(struct nvgpu_falcon *flcn,
 	struct nvgpu_engine_mem_queue *queue);
 int nvgpu_engine_mem_queue_pop(struct nvgpu_falcon *flcn,
@@ -66,8 +70,7 @@ int nvgpu_engine_mem_queue_pop(struct nvgpu_falcon *flcn,
 	u32 *bytes_read);
 int nvgpu_engine_mem_queue_push(struct nvgpu_falcon *flcn,
 	struct nvgpu_engine_mem_queue *queue, void *data, u32 size);
-void nvgpu_engine_mem_queue_free(struct nvgpu_falcon *flcn,
-	struct nvgpu_engine_mem_queue **queue_p);
+void nvgpu_engine_mem_queue_free(struct nvgpu_engine_mem_queue **queue_p);
 u32 nvgpu_engine_mem_queue_get_size(struct nvgpu_engine_mem_queue *queue);
 
 #endif /* NVGPU_ENGINE_MEM_QUEUE_H */

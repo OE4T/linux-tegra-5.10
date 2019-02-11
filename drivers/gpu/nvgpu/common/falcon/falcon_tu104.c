@@ -38,8 +38,6 @@ static void tu104_falcon_engine_dependency_ops(struct nvgpu_falcon *flcn)
 		flcn_eng_dep_ops->copy_to_emem = g->ops.sec2.sec2_copy_to_emem;
 		flcn_eng_dep_ops->copy_from_emem =
 						g->ops.sec2.sec2_copy_from_emem;
-		flcn_eng_dep_ops->queue_head = g->ops.sec2.sec2_queue_head;
-		flcn_eng_dep_ops->queue_tail = g->ops.sec2.sec2_queue_tail;
 		break;
 	default:
 		flcn_eng_dep_ops->reset_eng = NULL;

@@ -25,7 +25,6 @@
 
 #include "engine_mem_queue_priv.h"
 #include "engine_emem_queue.h"
-#include "falcon_priv.h"
 
 /* EMEM-Q specific ops */
 static int engine_emem_queue_push(struct nvgpu_falcon *flcn,
