@@ -23,6 +23,8 @@
 #ifndef NVGPU_POSIX_LOG2_H
 #define NVGPU_POSIX_LOG2_H
 
+#include <nvgpu/bitops.h>
+
 #define ilog2(x)			(fls(x) - 1U)
 
 #define roundup_pow_of_two(x)		(1UL << fls((x) - 1UL))
