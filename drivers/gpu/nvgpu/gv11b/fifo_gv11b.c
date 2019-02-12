@@ -588,26 +588,14 @@ static int gv11b_fifo_poll_eng_ctx_status(struct gk20a *g, u32 id,
 	return ret;
 }
 
-static void gv11b_reset_eng_faulted_tsg(struct tsg_gk20a *tsg)
+static void gv11b_reset_faulted_tsg(struct tsg_gk20a *tsg, bool eng, bool pbdma)
 {
 	struct gk20a *g = tsg->g;
 	struct channel_gk20a *ch;
 
 	nvgpu_rwsem_down_read(&tsg->ch_list_lock);
 	nvgpu_list_for_each_entry(ch, &tsg->ch_list, channel_gk20a, ch_entry) {
-		g->ops.channel.reset_faulted(g, ch, true, false);
-	}
-	nvgpu_rwsem_up_read(&tsg->ch_list_lock);
-}
-
-static void gv11b_reset_pbdma_faulted_tsg(struct tsg_gk20a *tsg)
-{
-	struct gk20a *g = tsg->g;
-	struct channel_gk20a *ch;
-
-	nvgpu_rwsem_down_read(&tsg->ch_list_lock);
-	nvgpu_list_for_each_entry(ch, &tsg->ch_list, channel_gk20a, ch_entry) {
-		g->ops.channel.reset_faulted(g, ch, false, true);
+		g->ops.channel.reset_faulted(g, ch, eng, pbdma);
 	}
 	nvgpu_rwsem_up_read(&tsg->ch_list_lock);
 }
@@ -623,12 +611,9 @@ void gv11b_fifo_reset_pbdma_and_eng_faulted(struct gk20a *g,
 	nvgpu_log(g, gpu_dbg_intr, "reset faulted pbdma:0x%x eng:0x%x",
 				faulted_pbdma, faulted_engine);
 
-	if (faulted_pbdma != FIFO_INVAL_PBDMA_ID) {
-		gv11b_reset_pbdma_faulted_tsg(tsg);
-	}
-	if (faulted_engine != FIFO_INVAL_ENGINE_ID) {
-		gv11b_reset_eng_faulted_tsg(tsg);
-	}
+	gv11b_reset_faulted_tsg(tsg,
+			faulted_engine != FIFO_INVAL_ENGINE_ID,
+			faulted_pbdma != FIFO_INVAL_PBDMA_ID);
 }
 
 static u32 gv11b_fifo_get_runlists_mask(struct gk20a *g, u32 act_eng_bitmask,
@@ -910,8 +895,7 @@ static void gv11b_fifo_locked_abort_runlist_active_tsgs(struct gk20a *g,
 
 			/* assume all pbdma and eng faulted are set */
 			nvgpu_log(g, gpu_dbg_info, "reset pbdma and eng faulted");
-			gv11b_reset_pbdma_faulted_tsg(tsg);
-			gv11b_reset_eng_faulted_tsg(tsg);
+			gv11b_reset_faulted_tsg(tsg, true, true);
 
 #ifdef CONFIG_GK20A_CTXSW_TRACE
 			gk20a_ctxsw_trace_tsg_reset(g, tsg);
