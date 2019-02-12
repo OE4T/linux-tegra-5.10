@@ -65,3 +65,18 @@ void gv11b_channel_read_state(struct gk20a *g, struct channel_gk20a *ch,
 	state->eng_faulted = ccsr_channel_eng_faulted_v(reg) ==
 		ccsr_channel_eng_faulted_true_v();
 }
+
+void gv11b_channel_reset_faulted(struct gk20a *g, struct channel_gk20a *ch,
+		bool eng, bool pbdma)
+{
+	u32 reg = gk20a_readl(g, ccsr_channel_r(ch->chid));
+
+	if (eng) {
+		reg |= ccsr_channel_eng_faulted_reset_f();
+	}
+	if (pbdma) {
+		reg |= ccsr_channel_pbdma_faulted_reset_f();
+	}
+
+	gk20a_writel(g, ccsr_channel_r(ch->chid), reg);
+}

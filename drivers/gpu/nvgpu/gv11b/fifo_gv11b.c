@@ -54,7 +54,6 @@
 #include <nvgpu/hw/gv11b/hw_pbdma_gv11b.h>
 #include <nvgpu/hw/gv11b/hw_fifo_gv11b.h>
 #include <nvgpu/hw/gv11b/hw_ram_gv11b.h>
-#include <nvgpu/hw/gv11b/hw_ccsr_gv11b.h>
 #include <nvgpu/hw/gv11b/hw_usermode_gv11b.h>
 #include <nvgpu/hw/gv11b/hw_top_gv11b.h>
 #include <nvgpu/hw/gv11b/hw_gmmu_gv11b.h>
@@ -589,15 +588,6 @@ static int gv11b_fifo_poll_eng_ctx_status(struct gk20a *g, u32 id,
 	return ret;
 }
 
-static void gv11b_reset_eng_faulted_ch(struct gk20a *g, u32 chid)
-{
-	u32 reg_val;
-
-	reg_val = gk20a_readl(g, ccsr_channel_r(chid));
-	reg_val |= ccsr_channel_eng_faulted_reset_f();
-	gk20a_writel(g, ccsr_channel_r(chid), reg_val);
-}
-
 static void gv11b_reset_eng_faulted_tsg(struct tsg_gk20a *tsg)
 {
 	struct gk20a *g = tsg->g;
@@ -605,18 +595,9 @@ static void gv11b_reset_eng_faulted_tsg(struct tsg_gk20a *tsg)
 
 	nvgpu_rwsem_down_read(&tsg->ch_list_lock);
 	nvgpu_list_for_each_entry(ch, &tsg->ch_list, channel_gk20a, ch_entry) {
-		gv11b_reset_eng_faulted_ch(g, ch->chid);
+		g->ops.channel.reset_faulted(g, ch, true, false);
 	}
 	nvgpu_rwsem_up_read(&tsg->ch_list_lock);
-}
-
-static void gv11b_reset_pbdma_faulted_ch(struct gk20a *g, u32 chid)
-{
-	u32 reg_val;
-
-	reg_val = gk20a_readl(g, ccsr_channel_r(chid));
-	reg_val |= ccsr_channel_pbdma_faulted_reset_f();
-	gk20a_writel(g, ccsr_channel_r(chid), reg_val);
 }
 
 static void gv11b_reset_pbdma_faulted_tsg(struct tsg_gk20a *tsg)
@@ -626,7 +607,7 @@ static void gv11b_reset_pbdma_faulted_tsg(struct tsg_gk20a *tsg)
 
 	nvgpu_rwsem_down_read(&tsg->ch_list_lock);
 	nvgpu_list_for_each_entry(ch, &tsg->ch_list, channel_gk20a, ch_entry) {
-		gv11b_reset_pbdma_faulted_ch(g, ch->chid);
+		g->ops.channel.reset_faulted(g, ch, false, true);
 	}
 	nvgpu_rwsem_up_read(&tsg->ch_list_lock);
 }
