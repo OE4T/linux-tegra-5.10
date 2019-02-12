@@ -3821,6 +3821,10 @@ int gr_gv11b_handle_tpc_mpc_exception(struct gk20a *g,
 	esr = gk20a_readl(g, gr_gpc0_tpc0_mpc_hww_esr_r() + offset);
 	nvgpu_log(g, gpu_dbg_intr | gpu_dbg_gpu_dbg, "mpc hww esr 0x%08x", esr);
 
+	nvgpu_report_gr_exception(g, ((gpc << 8U) | tpc),
+			GPU_PGRAPH_MPC_EXCEPTION,
+			esr);
+
 	esr = gk20a_readl(g, gr_gpc0_tpc0_mpc_hww_esr_info_r() + offset);
 	nvgpu_log(g, gpu_dbg_intr | gpu_dbg_gpu_dbg,
 			"mpc hww esr info: veid 0x%08x",

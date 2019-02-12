@@ -643,6 +643,9 @@ struct gpu_ops {
 					u32 hw_id, u32 inst, u32 err_id,
 					u64 err_addr,
 					u64 err_count);
+			int (*report_gr_err)(struct gk20a *g,
+					u32 hw_id, u32 inst, u32 err_id,
+					u32 status);
 		} err_ops;
 	} gr;
 	struct {
@@ -2054,5 +2057,8 @@ bool nvgpu_has_syncpoints(struct gk20a *g);
 
 void nvgpu_report_host_error(struct gk20a *g,
 		u32 inst, u32 err_id, u32 intr_info);
+
+void nvgpu_report_gr_exception(struct gk20a *g, u32 inst,
+		u32 err_type, u32 status);
 
 #endif /* GK20A_H */
