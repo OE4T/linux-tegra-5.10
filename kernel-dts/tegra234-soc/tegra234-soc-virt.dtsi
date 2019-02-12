@@ -51,7 +51,7 @@
 	};
 
 	generic-system-config {
-		status = "dislabled";
+		status = "disabled";
 	};
 
 	mipical {
