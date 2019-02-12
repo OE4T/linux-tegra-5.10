@@ -357,8 +357,8 @@ void gk20a_dump_eng_status(struct gk20a *g,
 				 struct gk20a_debug_output *o);
 const char *gk20a_decode_ccsr_chan_status(u32 index);
 const char *gk20a_decode_pbdma_chan_eng_ctx_status(u32 index);
-void gk20a_fifo_enable_channel(struct channel_gk20a *ch);
-void gk20a_fifo_disable_channel(struct channel_gk20a *ch);
+void gk20a_fifo_channel_enable(struct channel_gk20a *ch);
+void gk20a_fifo_channel_disable(struct channel_gk20a *ch);
 
 bool gk20a_fifo_channel_status_is_next(struct gk20a *g, u32 chid);
 bool gk20a_fifo_channel_status_is_ctx_reload(struct gk20a *g, u32 chid);

@@ -461,7 +461,7 @@ static void gk20a_free_channel(struct channel_gk20a *ch, bool force)
 	nvgpu_wait_for_deferred_interrupts(g);
 
 unbind:
-	g->ops.fifo.unbind_channel(ch);
+	g->ops.channel.unbind(ch);
 	g->ops.fifo.free_inst(g, ch);
 
 	/* put back the channel-wide submit ref from init */
@@ -1291,7 +1291,7 @@ int nvgpu_channel_setup_bind(struct channel_gk20a *c,
 		goto clean_up_priv_cmd;
 	}
 
-	g->ops.fifo.bind_channel(c);
+	g->ops.channel.bind(c);
 
 	nvgpu_log_fn(g, "done");
 	return 0;
@@ -2445,7 +2445,7 @@ int gk20a_channel_suspend(struct gk20a *g)
 							"recovered channel %d",
 							chid);
 				} else {
-					g->ops.fifo.unbind_channel(ch);
+					g->ops.channel.unbind(ch);
 				}
 				gk20a_channel_put(ch);
 			}
@@ -2476,7 +2476,7 @@ int gk20a_channel_resume(struct gk20a *g)
 						"channel %d", chid);
 		} else {
 			nvgpu_log_info(g, "resume channel %d", chid);
-			g->ops.fifo.bind_channel(ch);
+			g->ops.channel.bind(ch);
 			channels_in_use = true;
 			active_runlist_ids |= (u32) BIT64(ch->runlist_id);
 		}

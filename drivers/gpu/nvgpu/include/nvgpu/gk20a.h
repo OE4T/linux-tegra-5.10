@@ -745,10 +745,6 @@ struct gpu_ops {
 	struct {
 		int (*setup_sw)(struct gk20a *g);
 		int (*init_fifo_setup_hw)(struct gk20a *g);
-		void (*bind_channel)(struct channel_gk20a *ch_gk20a);
-		void (*unbind_channel)(struct channel_gk20a *ch_gk20a);
-		void (*disable_channel)(struct channel_gk20a *ch);
-		void (*enable_channel)(struct channel_gk20a *ch);
 		int (*alloc_inst)(struct gk20a *g, struct channel_gk20a *ch);
 		void (*free_inst)(struct gk20a *g, struct channel_gk20a *ch);
 		int (*setup_ramfc)(struct channel_gk20a *c, u64 gpfifo_base,
@@ -774,7 +770,6 @@ struct gpu_ops {
 		void (*apply_pb_timeout)(struct gk20a *g);
 		void (*apply_ctxsw_timeout_intr)(struct gk20a *g);
 		int (*wait_engine_idle)(struct gk20a *g);
-		u32 (*get_num_fifos)(struct gk20a *g);
 		u32 (*get_pbdma_signature)(struct gk20a *g);
 		int (*tsg_set_timeslice)(struct tsg_gk20a *tsg, u32 timeslice);
 		u32 (*default_timeslice_us)(struct gk20a *g);
@@ -906,6 +901,13 @@ struct gpu_ops {
 			struct priv_cmd_entry *cmd,
 			u32 off, bool acquire, bool wfi);
 	} sync;
+	struct {
+		void (*bind)(struct channel_gk20a *ch);
+		void (*unbind)(struct channel_gk20a *ch);
+		void (*enable)(struct channel_gk20a *ch);
+		void (*disable)(struct channel_gk20a *ch);
+		u32 (*count)(struct gk20a *g);
+	} channel;
 	struct pmu_v {
 		u32 (*get_pmu_cmdline_args_size)(struct nvgpu_pmu *pmu);
 		void (*set_pmu_cmdline_args_cpu_freq)(struct nvgpu_pmu *pmu,

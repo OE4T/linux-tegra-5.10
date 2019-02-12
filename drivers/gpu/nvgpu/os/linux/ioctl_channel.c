@@ -1330,8 +1330,8 @@ long gk20a_channel_ioctl(struct file *filp,
 				__func__, cmd);
 			break;
 		}
-		if (ch->g->ops.fifo.enable_channel)
-			ch->g->ops.fifo.enable_channel(ch);
+		if (ch->g->ops.channel.enable)
+			ch->g->ops.channel.enable(ch);
 		else
 			err = -ENOSYS;
 		gk20a_idle(ch->g);
@@ -1344,8 +1344,8 @@ long gk20a_channel_ioctl(struct file *filp,
 				__func__, cmd);
 			break;
 		}
-		if (ch->g->ops.fifo.disable_channel)
-			ch->g->ops.fifo.disable_channel(ch);
+		if (ch->g->ops.channel.disable)
+			ch->g->ops.channel.disable(ch);
 		else
 			err = -ENOSYS;
 		gk20a_idle(ch->g);

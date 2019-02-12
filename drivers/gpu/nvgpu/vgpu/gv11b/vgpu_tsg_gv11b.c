@@ -69,7 +69,7 @@ int vgpu_gv11b_enable_tsg(struct tsg_gk20a *tsg)
 
 	nvgpu_rwsem_down_read(&tsg->ch_list_lock);
 	nvgpu_list_for_each_entry(ch, &tsg->ch_list, channel_gk20a, ch_entry) {
-		g->ops.fifo.enable_channel(ch);
+		g->ops.channel.enable(ch);
 		last_ch = ch;
 	}
 	nvgpu_rwsem_up_read(&tsg->ch_list_lock);

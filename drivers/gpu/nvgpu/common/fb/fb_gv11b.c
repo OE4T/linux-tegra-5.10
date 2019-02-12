@@ -380,7 +380,7 @@ void gv11b_fb_fault_buf_configure_hw(struct gk20a *g, u32 index)
 		fb_mmu_fault_buffer_hi_addr_f(addr_hi));
 
 	g->ops.fb.write_mmu_fault_buffer_size(g, index,
-		fb_mmu_fault_buffer_size_val_f(g->ops.fifo.get_num_fifos(g)) |
+		fb_mmu_fault_buffer_size_val_f(g->ops.channel.count(g)) |
 		fb_mmu_fault_buffer_size_overflow_intr_enable_f());
 
 	gv11b_fb_fault_buf_set_state_hw(g, index, NVGPU_FB_MMU_FAULT_BUF_ENABLED);

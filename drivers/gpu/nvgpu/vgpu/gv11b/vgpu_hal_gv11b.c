@@ -415,10 +415,6 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 	},
 	.fifo = {
 		.init_fifo_setup_hw = vgpu_gv11b_init_fifo_setup_hw,
-		.bind_channel = vgpu_channel_bind,
-		.unbind_channel = vgpu_channel_unbind,
-		.disable_channel = vgpu_channel_disable,
-		.enable_channel = vgpu_channel_enable,
 		.alloc_inst = vgpu_channel_alloc_inst,
 		.free_inst = vgpu_channel_free_inst,
 		.setup_ramfc = vgpu_channel_setup_ramfc,
@@ -442,7 +438,6 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 		.get_mmu_fault_client_desc = NULL,
 		.get_mmu_fault_gpc_desc = NULL,
 		.wait_engine_idle = vgpu_fifo_wait_engine_idle,
-		.get_num_fifos = gv11b_fifo_get_num_fifos,
 		.get_pbdma_signature = gp10b_fifo_get_pbdma_signature,
 		.tsg_set_timeslice = vgpu_tsg_set_timeslice,
 		.tsg_open = vgpu_tsg_open,
@@ -511,6 +506,13 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 		.get_ch_runlist_entry = gv11b_get_ch_runlist_entry,
 		.runlist_hw_submit = NULL,
 		.runlist_wait_pending = NULL,
+	},
+	.channel = {
+		.bind = vgpu_channel_bind,
+		.unbind = vgpu_channel_unbind,
+		.enable = vgpu_channel_enable,
+		.disable = vgpu_channel_disable,
+		.count = gv11b_fifo_get_num_fifos,
 	},
 	.netlist = {
 		.get_netlist_name = gv11b_netlist_get_name,
@@ -740,6 +742,7 @@ int vgpu_gv11b_init_hal(struct gk20a *g)
 	gops->clock_gating = vgpu_gv11b_ops.clock_gating;
 	gops->fifo = vgpu_gv11b_ops.fifo;
 	gops->runlist = vgpu_gv11b_ops.runlist;
+	gops->channel = vgpu_gv11b_ops.channel;
 	gops->sync = vgpu_gv11b_ops.sync;
 	gops->netlist = vgpu_gv11b_ops.netlist;
 	gops->mm = vgpu_gv11b_ops.mm;

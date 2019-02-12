@@ -485,10 +485,6 @@ static const struct gpu_ops gm20b_ops = {
 	},
 	.fifo = {
 		.init_fifo_setup_hw = gk20a_init_fifo_setup_hw,
-		.bind_channel = channel_gm20b_bind,
-		.unbind_channel = gk20a_fifo_channel_unbind,
-		.disable_channel = gk20a_fifo_disable_channel,
-		.enable_channel = gk20a_fifo_enable_channel,
 		.alloc_inst = gk20a_fifo_alloc_inst,
 		.free_inst = gk20a_fifo_free_inst,
 		.setup_ramfc = gk20a_fifo_setup_ramfc,
@@ -510,7 +506,6 @@ static const struct gpu_ops gm20b_ops = {
 		.get_mmu_fault_client_desc = gk20a_fifo_get_mmu_fault_client_desc,
 		.get_mmu_fault_gpc_desc = gm20b_fifo_get_mmu_fault_gpc_desc,
 		.wait_engine_idle = gk20a_fifo_wait_engine_idle,
-		.get_num_fifos = gm20b_fifo_get_num_fifos,
 		.get_pbdma_signature = gk20a_fifo_get_pbdma_signature,
 		.tsg_set_timeslice = gk20a_fifo_tsg_set_timeslice,
 		.force_reset_ch = gk20a_fifo_force_reset_ch,
@@ -573,6 +568,13 @@ static const struct gpu_ops gm20b_ops = {
 		.runlist_hw_submit = gk20a_fifo_runlist_hw_submit,
 		.runlist_wait_pending = gk20a_fifo_runlist_wait_pending,
 		.runlist_write_state = gk20a_fifo_runlist_write_state,
+	},
+	.channel = {
+		.bind = channel_gm20b_bind,
+		.unbind = gk20a_fifo_channel_unbind,
+		.enable = gk20a_fifo_channel_enable,
+		.disable = gk20a_fifo_channel_disable,
+		.count = gm20b_fifo_get_num_fifos,
 	},
 	.netlist = {
 		.get_netlist_name = gm20b_netlist_get_name,
@@ -801,6 +803,7 @@ int gm20b_init_hal(struct gk20a *g)
 	gops->clock_gating = gm20b_ops.clock_gating;
 	gops->fifo = gm20b_ops.fifo;
 	gops->runlist = gm20b_ops.runlist;
+	gops->channel = gm20b_ops.channel;
 	gops->sync = gm20b_ops.sync;
 	gops->netlist = gm20b_ops.netlist;
 	gops->mm = gm20b_ops.mm;

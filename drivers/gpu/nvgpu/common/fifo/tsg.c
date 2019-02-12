@@ -58,7 +58,7 @@ int gk20a_enable_tsg(struct tsg_gk20a *tsg)
 		is_ctx_reload = gk20a_fifo_channel_status_is_ctx_reload(g, ch->chid);
 
 		if (is_next || is_ctx_reload) {
-			g->ops.fifo.enable_channel(ch);
+			g->ops.channel.enable(ch);
 		}
 	}
 
@@ -70,7 +70,7 @@ int gk20a_enable_tsg(struct tsg_gk20a *tsg)
 			continue;
 		}
 
-		g->ops.fifo.enable_channel(ch);
+		g->ops.channel.enable(ch);
 	}
 	nvgpu_rwsem_up_read(&tsg->ch_list_lock);
 
@@ -86,7 +86,7 @@ void gk20a_disable_tsg(struct tsg_gk20a *tsg)
 
 	nvgpu_rwsem_down_read(&tsg->ch_list_lock);
 	nvgpu_list_for_each_entry(ch, &tsg->ch_list, channel_gk20a, ch_entry) {
-		g->ops.fifo.disable_channel(ch);
+		g->ops.channel.disable(ch);
 	}
 	nvgpu_rwsem_up_read(&tsg->ch_list_lock);
 }

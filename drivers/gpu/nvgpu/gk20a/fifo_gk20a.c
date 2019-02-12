@@ -641,7 +641,7 @@ int gk20a_init_fifo_setup_sw_common(struct gk20a *g)
 
 	g->ops.fifo.init_pbdma_intr_descs(f); /* just filling in data/tables */
 
-	f->num_channels = g->ops.fifo.get_num_fifos(g);
+	f->num_channels = g->ops.channel.count(g);
 	f->runlist_entry_size =  g->ops.runlist.runlist_entry_size();
 	f->num_runlist_entries = fifo_eng_runlist_length_max_v();
 	f->num_pbdma = nvgpu_get_litter_value(g, GPU_LIT_HOST_NUM_PBDMA);
@@ -3186,14 +3186,14 @@ void gk20a_dump_eng_status(struct gk20a *g,
 	gk20a_debug_output(o, "\n");
 }
 
-void gk20a_fifo_enable_channel(struct channel_gk20a *ch)
+void gk20a_fifo_channel_enable(struct channel_gk20a *ch)
 {
 	gk20a_writel(ch->g, ccsr_channel_r(ch->chid),
 		gk20a_readl(ch->g, ccsr_channel_r(ch->chid)) |
 		ccsr_channel_enable_set_true_f());
 }
 
-void gk20a_fifo_disable_channel(struct channel_gk20a *ch)
+void gk20a_fifo_channel_disable(struct channel_gk20a *ch)
 {
 	gk20a_writel(ch->g, ccsr_channel_r(ch->chid),
 		gk20a_readl(ch->g,
