@@ -759,6 +759,7 @@ static const struct gpu_ops gv11b_ops = {
 		.disable = gk20a_channel_disable,
 		.count = gv11b_channel_count,
 		.read_state = gv11b_channel_read_state,
+		.force_ctx_reload = gm20b_channel_force_ctx_reload,
 	},
 	.netlist = {
 		.get_netlist_name = gv11b_netlist_get_name,

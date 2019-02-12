@@ -63,3 +63,12 @@ u32 gm20b_channel_count(struct gk20a *g)
 {
 	return ccsr_channel__size_1_v();
 }
+
+void gm20b_channel_force_ctx_reload(struct channel_gk20a *ch)
+{
+	struct gk20a *g = ch->g;
+	u32 reg = gk20a_readl(g, ccsr_channel_r(ch->chid));
+
+	gk20a_writel(g, ccsr_channel_r(ch->chid),
+		reg | ccsr_channel_force_ctx_reload_true_f());
+}

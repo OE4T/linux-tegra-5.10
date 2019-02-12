@@ -37,7 +37,6 @@
 #include "gk20a/fifo_gk20a.h"
 #include "fifo_gm20b.h"
 
-#include <nvgpu/hw/gm20b/hw_ccsr_gm20b.h>
 #include <nvgpu/hw/gm20b/hw_ram_gm20b.h>
 #include <nvgpu/hw/gm20b/hw_fifo_gm20b.h>
 #include <nvgpu/hw/gm20b/hw_pbdma_gm20b.h>
@@ -152,15 +151,6 @@ void gm20b_fifo_init_pbdma_intr_descs(struct fifo_gk20a *f)
 		pbdma_intr_0_device_pending_f();
 }
 
-static void gm20b_fifo_set_ctx_reload(struct channel_gk20a *ch)
-{
-	struct gk20a *g = ch->g;
-	u32 channel = gk20a_readl(g, ccsr_channel_r(ch->chid));
-
-	gk20a_writel(g, ccsr_channel_r(ch->chid),
-		channel | ccsr_channel_force_ctx_reload_true_f());
-}
-
 void gm20b_fifo_tsg_verify_status_ctx_reload(struct channel_gk20a *ch)
 {
 	struct gk20a *g = ch->g;
@@ -174,7 +164,7 @@ void gm20b_fifo_tsg_verify_status_ctx_reload(struct channel_gk20a *ch)
 		nvgpu_rwsem_down_read(&tsg->ch_list_lock);
 		nvgpu_list_for_each_entry(temp_ch, &tsg->ch_list, channel_gk20a, ch_entry) {
 			if (temp_ch->chid != ch->chid) {
-				gm20b_fifo_set_ctx_reload(temp_ch);
+				g->ops.channel.force_ctx_reload(temp_ch);
 				break;
 			}
 		}

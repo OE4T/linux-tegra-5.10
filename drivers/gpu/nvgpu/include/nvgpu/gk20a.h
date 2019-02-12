@@ -910,6 +910,7 @@ struct gpu_ops {
 		u32 (*count)(struct gk20a *g);
 		void (*read_state)(struct gk20a *g, struct channel_gk20a *ch,
 				struct nvgpu_channel_hw_state *state);
+		void (*force_ctx_reload)(struct channel_gk20a *ch);
 	} channel;
 	struct pmu_v {
 		u32 (*get_pmu_cmdline_args_size)(struct nvgpu_pmu *pmu);
