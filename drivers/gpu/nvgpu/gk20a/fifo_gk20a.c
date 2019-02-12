@@ -3186,34 +3186,6 @@ void gk20a_dump_eng_status(struct gk20a *g,
 	gk20a_debug_output(o, "\n");
 }
 
-void gk20a_fifo_channel_enable(struct channel_gk20a *ch)
-{
-	gk20a_writel(ch->g, ccsr_channel_r(ch->chid),
-		gk20a_readl(ch->g, ccsr_channel_r(ch->chid)) |
-		ccsr_channel_enable_set_true_f());
-}
-
-void gk20a_fifo_channel_disable(struct channel_gk20a *ch)
-{
-	gk20a_writel(ch->g, ccsr_channel_r(ch->chid),
-		gk20a_readl(ch->g,
-			ccsr_channel_r(ch->chid)) |
-			ccsr_channel_enable_clr_true_f());
-}
-
-void gk20a_fifo_channel_unbind(struct channel_gk20a *ch_gk20a)
-{
-	struct gk20a *g = ch_gk20a->g;
-
-	nvgpu_log_fn(g, " ");
-
-	if (nvgpu_atomic_cmpxchg(&ch_gk20a->bound, (int)true, (int)false) != 0) {
-		gk20a_writel(g, ccsr_channel_inst_r(ch_gk20a->chid),
-			ccsr_channel_inst_ptr_f(0) |
-			ccsr_channel_inst_bind_false_f());
-	}
-}
-
 static int gk20a_fifo_commit_userd(struct channel_gk20a *c)
 {
 	u32 addr_lo;

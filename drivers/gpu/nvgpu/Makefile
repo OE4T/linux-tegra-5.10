@@ -338,6 +338,10 @@ nvgpu-y += \
 	common/fifo/runlist_gv11b.o \
 	common/fifo/runlist_gv100.o \
 	common/fifo/runlist_tu104.o \
+	common/fifo/channel_gk20a.o \
+	common/fifo/channel_gm20b.o \
+	common/fifo/channel_gv11b.o \
+	common/fifo/channel_gv100.o \
 	common/ecc.o \
 	common/ce2.o \
 	common/debugger.o \

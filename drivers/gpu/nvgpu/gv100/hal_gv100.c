@@ -80,6 +80,10 @@
 #include "common/fifo/runlist_gk20a.h"
 #include "common/fifo/runlist_gv11b.h"
 #include "common/fifo/runlist_gv100.h"
+#include "common/fifo/channel_gk20a.h"
+#include "common/fifo/channel_gm20b.h"
+#include "common/fifo/channel_gv11b.h"
+#include "common/fifo/channel_gv100.h"
 
 #include "gk20a/fifo_gk20a.h"
 #include "gk20a/fecs_trace_gk20a.h"
@@ -790,11 +794,11 @@ static const struct gpu_ops gv100_ops = {
 		.runlist_write_state = gk20a_fifo_runlist_write_state,
 	},
 	.channel = {
-		.bind = channel_gm20b_bind,
-		.unbind = channel_gv11b_unbind,
+		.bind = gm20b_fifo_channel_bind,
+		.unbind = gv11b_fifo_channel_unbind,
 		.enable = gk20a_fifo_channel_enable,
 		.disable = gk20a_fifo_channel_disable,
-		.count = gv100_fifo_get_num_fifos,
+		.count = gv100_fifo_channel_count,
 	},
 	.netlist = {
 		.get_netlist_name = gv100_netlist_get_name,

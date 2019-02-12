@@ -1,7 +1,5 @@
 /*
- * GV100 fifo
- *
- * Copyright (c) 2017-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -22,30 +20,11 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#include <nvgpu/timers.h>
-#include <nvgpu/ptimer.h>
-#include <nvgpu/io.h>
-#include <nvgpu/gk20a.h>
+#include "channel_gv100.h"
 
-#include "fifo_gv100.h"
+#include <nvgpu/hw/gv100/hw_ccsr_gv100.h>
 
-#include <nvgpu/hw/gk20a/hw_fifo_gk20a.h>
-
-#define DEFAULT_FIFO_PREEMPT_TIMEOUT 0x3FFFFFUL
-
-u32 gv100_fifo_get_preempt_timeout(struct gk20a *g)
+u32 gv100_fifo_channel_count(struct gk20a *g)
 {
-	return g->fifo_eng_timeout_us / 1000U;
+	return ccsr_channel__size_1_v();
 }
-
-void gv100_apply_ctxsw_timeout_intr(struct gk20a *g)
-{
-	u32 timeout;
-
-	timeout = g->ch_wdt_timeout_ms*1000U;
-	timeout = scale_ptimer(timeout,
-		ptimer_scalingfactor10x(g->ptimer_src_freq));
-	timeout |= fifo_eng_timeout_detection_enabled_f();
-	gk20a_writel(g, fifo_eng_timeout_r(), timeout);
-}
-

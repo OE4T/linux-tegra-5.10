@@ -66,8 +66,6 @@ int channel_gv11b_setup_ramfc(struct channel_gk20a *c,
 u32 gv11b_userd_gp_get(struct gk20a *g, struct channel_gk20a *c);
 u64 gv11b_userd_pb_get(struct gk20a *g, struct channel_gk20a *c);
 void gv11b_userd_gp_put(struct gk20a *g, struct channel_gk20a *c);
-void channel_gv11b_unbind(struct channel_gk20a *ch);
-u32 gv11b_fifo_get_num_fifos(struct gk20a *g);
 bool gv11b_is_fault_engine_subid_gpc(struct gk20a *g, u32 engine_subid);
 void gv11b_dump_channel_status_ramfc(struct gk20a *g,
 				     struct gk20a_debug_output *o,

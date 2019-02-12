@@ -1,7 +1,5 @@
 /*
- * GV100 fifo
- *
- * Copyright (c) 2017-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -22,30 +20,36 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#include <nvgpu/timers.h>
-#include <nvgpu/ptimer.h>
+
+#include <nvgpu/channel.h>
+#include <nvgpu/log.h>
+#include <nvgpu/atomic.h>
 #include <nvgpu/io.h>
 #include <nvgpu/gk20a.h>
 
-#include "fifo_gv100.h"
+#include "channel_gv11b.h"
 
-#include <nvgpu/hw/gk20a/hw_fifo_gk20a.h>
+#include <nvgpu/hw/gv11b/hw_ccsr_gv11b.h>
 
-#define DEFAULT_FIFO_PREEMPT_TIMEOUT 0x3FFFFFUL
-
-u32 gv100_fifo_get_preempt_timeout(struct gk20a *g)
+void gv11b_fifo_channel_unbind(struct channel_gk20a *ch)
 {
-	return g->fifo_eng_timeout_us / 1000U;
+	struct gk20a *g = ch->g;
+
+	nvgpu_log_fn(g, " ");
+
+	if (nvgpu_atomic_cmpxchg(&ch->bound, true, false) != 0) {
+		gk20a_writel(g, ccsr_channel_inst_r(ch->chid),
+			ccsr_channel_inst_ptr_f(0) |
+			ccsr_channel_inst_bind_false_f());
+
+		gk20a_writel(g, ccsr_channel_r(ch->chid),
+			ccsr_channel_enable_clr_true_f() |
+			ccsr_channel_pbdma_faulted_reset_f() |
+			ccsr_channel_eng_faulted_reset_f());
+	}
 }
 
-void gv100_apply_ctxsw_timeout_intr(struct gk20a *g)
+u32 gv11b_fifo_channel_count(struct gk20a *g)
 {
-	u32 timeout;
-
-	timeout = g->ch_wdt_timeout_ms*1000U;
-	timeout = scale_ptimer(timeout,
-		ptimer_scalingfactor10x(g->ptimer_src_freq));
-	timeout |= fifo_eng_timeout_detection_enabled_f();
-	gk20a_writel(g, fifo_eng_timeout_r(), timeout);
+	return ccsr_channel__size_1_v();
 }
-

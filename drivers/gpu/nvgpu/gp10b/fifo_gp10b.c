@@ -40,7 +40,6 @@
 #include "gm20b/fifo_gm20b.h"
 
 #include <nvgpu/hw/gp10b/hw_pbdma_gp10b.h>
-#include <nvgpu/hw/gp10b/hw_ccsr_gp10b.h>
 #include <nvgpu/hw/gp10b/hw_fifo_gp10b.h>
 #include <nvgpu/hw/gp10b/hw_ram_gp10b.h>
 

@@ -71,6 +71,8 @@
 #include "common/sync/sema_cmdbuf_gk20a.h"
 #include "common/regops/regops_gp10b.h"
 #include "common/fifo/runlist_gk20a.h"
+#include "common/fifo/channel_gk20a.h"
+#include "common/fifo/channel_gm20b.h"
 
 #include "gk20a/fifo_gk20a.h"
 #include "gk20a/fecs_trace_gk20a.h"
@@ -623,11 +625,11 @@ static const struct gpu_ops gp10b_ops = {
 		.runlist_write_state = gk20a_fifo_runlist_write_state,
 	},
 	.channel = {
-		.bind = channel_gm20b_bind,
+		.bind = gm20b_fifo_channel_bind,
 		.unbind = gk20a_fifo_channel_unbind,
 		.enable = gk20a_fifo_channel_enable,
 		.disable = gk20a_fifo_channel_disable,
-		.count = gm20b_fifo_get_num_fifos,
+		.count = gm20b_fifo_channel_count,
 	},
 	.netlist = {
 		.get_netlist_name = gp10b_netlist_get_name,

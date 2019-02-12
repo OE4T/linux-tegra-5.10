@@ -357,15 +357,12 @@ void gk20a_dump_eng_status(struct gk20a *g,
 				 struct gk20a_debug_output *o);
 const char *gk20a_decode_ccsr_chan_status(u32 index);
 const char *gk20a_decode_pbdma_chan_eng_ctx_status(u32 index);
-void gk20a_fifo_channel_enable(struct channel_gk20a *ch);
-void gk20a_fifo_channel_disable(struct channel_gk20a *ch);
 
 bool gk20a_fifo_channel_status_is_next(struct gk20a *g, u32 chid);
 bool gk20a_fifo_channel_status_is_ctx_reload(struct gk20a *g, u32 chid);
 int gk20a_fifo_tsg_unbind_channel_verify_status(struct channel_gk20a *ch);
 
 struct channel_gk20a *gk20a_refch_from_inst_ptr(struct gk20a *g, u64 inst_ptr);
-void gk20a_fifo_channel_unbind(struct channel_gk20a *ch_gk20a);
 
 u32 gk20a_fifo_intr_0_error_mask(struct gk20a *g);
 

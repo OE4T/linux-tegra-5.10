@@ -44,6 +44,7 @@
 #include "common/sync/sema_cmdbuf_gv11b.h"
 #include "common/regops/regops_gv11b.h"
 #include "common/fifo/runlist_gv11b.h"
+#include "common/fifo/channel_gv11b.h"
 
 #include <nvgpu/gk20a.h>
 #include <gv11b/hal_gv11b.h>
@@ -512,7 +513,7 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 		.unbind = vgpu_channel_unbind,
 		.enable = vgpu_channel_enable,
 		.disable = vgpu_channel_disable,
-		.count = gv11b_fifo_get_num_fifos,
+		.count = gv11b_fifo_channel_count,
 	},
 	.netlist = {
 		.get_netlist_name = gv11b_netlist_get_name,
