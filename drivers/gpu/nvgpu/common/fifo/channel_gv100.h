@@ -27,6 +27,6 @@
 
 struct gk20a;
 
-u32 gv100_fifo_channel_count(struct gk20a *g);
+u32 gv100_channel_count(struct gk20a *g);
 
 #endif /* FIFO_CHANNEL_GV100_H */

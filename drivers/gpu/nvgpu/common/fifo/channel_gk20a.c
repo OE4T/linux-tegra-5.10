@@ -31,14 +31,14 @@
 
 #include <nvgpu/hw/gk20a/hw_ccsr_gk20a.h>
 
-void gk20a_fifo_channel_enable(struct channel_gk20a *ch)
+void gk20a_channel_enable(struct channel_gk20a *ch)
 {
 	gk20a_writel(ch->g, ccsr_channel_r(ch->chid),
 		gk20a_readl(ch->g, ccsr_channel_r(ch->chid)) |
 		ccsr_channel_enable_set_true_f());
 }
 
-void gk20a_fifo_channel_disable(struct channel_gk20a *ch)
+void gk20a_channel_disable(struct channel_gk20a *ch)
 {
 	gk20a_writel(ch->g, ccsr_channel_r(ch->chid),
 		gk20a_readl(ch->g,
@@ -46,7 +46,7 @@ void gk20a_fifo_channel_disable(struct channel_gk20a *ch)
 			ccsr_channel_enable_clr_true_f());
 }
 
-void gk20a_fifo_channel_unbind(struct channel_gk20a *ch)
+void gk20a_channel_unbind(struct channel_gk20a *ch)
 {
 	struct gk20a *g = ch->g;
 

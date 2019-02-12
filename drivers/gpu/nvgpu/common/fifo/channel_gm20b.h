@@ -28,7 +28,7 @@
 struct channel_gk20a;
 struct gk20a;
 
-void gm20b_fifo_channel_bind(struct channel_gk20a *c);
-u32 gm20b_fifo_channel_count(struct gk20a *g);
+void gm20b_channel_bind(struct channel_gk20a *c);
+u32 gm20b_channel_count(struct gk20a *g);
 
 #endif /* FIFO_CHANNEL_GM20B_H */

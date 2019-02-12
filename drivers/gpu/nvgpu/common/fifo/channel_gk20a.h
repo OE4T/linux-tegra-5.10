@@ -26,8 +26,8 @@
 struct channel_gk20a;
 struct gk20a;
 
-void gk20a_fifo_channel_enable(struct channel_gk20a *ch);
-void gk20a_fifo_channel_disable(struct channel_gk20a *ch);
-void gk20a_fifo_channel_unbind(struct channel_gk20a *ch);
+void gk20a_channel_enable(struct channel_gk20a *ch);
+void gk20a_channel_disable(struct channel_gk20a *ch);
+void gk20a_channel_unbind(struct channel_gk20a *ch);
 
 #endif /* FIFO_CHANNEL_GK20A_H */

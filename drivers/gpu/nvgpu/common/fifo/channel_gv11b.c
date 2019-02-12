@@ -31,7 +31,7 @@
 
 #include <nvgpu/hw/gv11b/hw_ccsr_gv11b.h>
 
-void gv11b_fifo_channel_unbind(struct channel_gk20a *ch)
+void gv11b_channel_unbind(struct channel_gk20a *ch)
 {
 	struct gk20a *g = ch->g;
 
@@ -49,7 +49,7 @@ void gv11b_fifo_channel_unbind(struct channel_gk20a *ch)
 	}
 }
 
-u32 gv11b_fifo_channel_count(struct gk20a *g)
+u32 gv11b_channel_count(struct gk20a *g)
 {
 	return ccsr_channel__size_1_v();
 }

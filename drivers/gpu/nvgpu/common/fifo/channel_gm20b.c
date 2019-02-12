@@ -32,7 +32,7 @@
 #include <nvgpu/hw/gm20b/hw_ccsr_gm20b.h>
 #include <nvgpu/hw/gm20b/hw_ram_gm20b.h>
 
-void gm20b_fifo_channel_bind(struct channel_gk20a *c)
+void gm20b_channel_bind(struct channel_gk20a *c)
 {
 	struct gk20a *g = c->g;
 
@@ -59,7 +59,7 @@ void gm20b_fifo_channel_bind(struct channel_gk20a *c)
 	nvgpu_atomic_set(&c->bound, true);
 }
 
-u32 gm20b_fifo_channel_count(struct gk20a *g)
+u32 gm20b_channel_count(struct gk20a *g)
 {
 	return ccsr_channel__size_1_v();
 }

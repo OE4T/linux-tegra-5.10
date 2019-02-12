@@ -438,7 +438,7 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 		.unbind = vgpu_channel_unbind,
 		.enable = vgpu_channel_enable,
 		.disable = vgpu_channel_disable,
-		.count = gm20b_fifo_channel_count,
+		.count = gm20b_channel_count,
 	},
 	.netlist = {
 		.get_netlist_name = gp10b_netlist_get_name,

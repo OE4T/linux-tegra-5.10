@@ -825,11 +825,11 @@ static const struct gpu_ops tu104_ops = {
 		.runlist_write_state = gk20a_fifo_runlist_write_state,
 	},
 	.channel = {
-		.bind = gm20b_fifo_channel_bind,
-		.unbind = gv11b_fifo_channel_unbind,
-		.enable = gk20a_fifo_channel_enable,
-		.disable = gk20a_fifo_channel_disable,
-		.count = gv100_fifo_channel_count,
+		.bind = gm20b_channel_bind,
+		.unbind = gv11b_channel_unbind,
+		.enable = gk20a_channel_enable,
+		.disable = gk20a_channel_disable,
+		.count = gv100_channel_count,
 	},
 	.netlist = {
 		.get_netlist_name = tu104_netlist_get_name,
