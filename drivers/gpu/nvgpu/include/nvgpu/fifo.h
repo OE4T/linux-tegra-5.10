@@ -41,6 +41,7 @@ struct nvgpu_channel_hw_state {
 	bool ctx_reload;
 	bool busy;
 	bool pending_acquire;
+	bool eng_faulted;
 	const char *status_string;
 };
 

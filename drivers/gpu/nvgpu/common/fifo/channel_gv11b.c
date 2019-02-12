@@ -27,6 +27,7 @@
 #include <nvgpu/io.h>
 #include <nvgpu/gk20a.h>
 
+#include "channel_gk20a.h"
 #include "channel_gv11b.h"
 
 #include <nvgpu/hw/gv11b/hw_ccsr_gv11b.h>
@@ -52,4 +53,15 @@ void gv11b_channel_unbind(struct channel_gk20a *ch)
 u32 gv11b_channel_count(struct gk20a *g)
 {
 	return ccsr_channel__size_1_v();
+}
+
+void gv11b_channel_read_state(struct gk20a *g, struct channel_gk20a *ch,
+		struct nvgpu_channel_hw_state *state)
+{
+	u32 reg = gk20a_readl(g, ccsr_channel_r(ch->chid));
+
+	gk20a_channel_read_state(g, ch, state);
+
+	state->eng_faulted = ccsr_channel_eng_faulted_v(reg) ==
+		ccsr_channel_eng_faulted_true_v();
 }

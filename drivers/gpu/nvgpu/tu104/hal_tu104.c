@@ -830,7 +830,7 @@ static const struct gpu_ops tu104_ops = {
 		.enable = gk20a_channel_enable,
 		.disable = gk20a_channel_disable,
 		.count = gv100_channel_count,
-		.read_state = gk20a_channel_read_state,
+		.read_state = gv11b_channel_read_state,
 	},
 	.netlist = {
 		.get_netlist_name = tu104_netlist_get_name,

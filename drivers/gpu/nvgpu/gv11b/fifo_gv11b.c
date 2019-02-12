@@ -1947,24 +1947,18 @@ void gv11b_mmu_fault_id_to_eng_pbdma_id_and_veid(struct gk20a *g,
 	}
 }
 
-static bool gk20a_fifo_channel_status_is_eng_faulted(struct gk20a *g, u32 chid)
-{
-	u32 channel = gk20a_readl(g, ccsr_channel_r(chid));
-
-	return ccsr_channel_eng_faulted_v(channel) ==
-		ccsr_channel_eng_faulted_true_v();
-}
-
 void gv11b_fifo_tsg_verify_status_faulted(struct channel_gk20a *ch)
 {
 	struct gk20a *g = ch->g;
 	struct tsg_gk20a *tsg = &g->fifo.tsg[ch->tsgid];
+	struct nvgpu_channel_hw_state hw_state;
 
+	g->ops.channel.read_state(g, ch, &hw_state);
 	/*
 	 * If channel has FAULTED set, clear the CE method buffer
 	 * if saved out channel is same as faulted channel
 	 */
-	if (!gk20a_fifo_channel_status_is_eng_faulted(g, ch->chid)) {
+	if (!hw_state.eng_faulted) {
 		return;
 	}
 

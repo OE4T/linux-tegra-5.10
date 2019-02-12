@@ -27,8 +27,11 @@
 
 struct channel_gk20a;
 struct gk20a;
+struct nvgpu_channel_hw_state;
 
 void gv11b_channel_unbind(struct channel_gk20a *ch);
 u32 gv11b_channel_count(struct gk20a *g);
+void gv11b_channel_read_state(struct gk20a *g, struct channel_gk20a *ch,
+		struct nvgpu_channel_hw_state *state);
 
 #endif /* FIFO_CHANNEL_GV11B_H */
