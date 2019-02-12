@@ -577,6 +577,7 @@ static const struct gpu_ops gm20b_ops = {
 		.enable = gk20a_channel_enable,
 		.disable = gk20a_channel_disable,
 		.count = gm20b_channel_count,
+		.read_state = gk20a_channel_read_state,
 	},
 	.netlist = {
 		.get_netlist_name = gm20b_netlist_get_name,

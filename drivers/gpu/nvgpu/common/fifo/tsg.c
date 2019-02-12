@@ -43,7 +43,6 @@ int gk20a_enable_tsg(struct tsg_gk20a *tsg)
 {
 	struct gk20a *g = tsg->g;
 	struct channel_gk20a *ch;
-	bool is_next, is_ctx_reload;
 
 	gk20a_tsg_disable_sched(g, tsg);
 
@@ -54,19 +53,21 @@ int gk20a_enable_tsg(struct tsg_gk20a *tsg)
 	 */
 	nvgpu_rwsem_down_read(&tsg->ch_list_lock);
 	nvgpu_list_for_each_entry(ch, &tsg->ch_list, channel_gk20a, ch_entry) {
-		is_next = gk20a_fifo_channel_status_is_next(g, ch->chid);
-		is_ctx_reload = gk20a_fifo_channel_status_is_ctx_reload(g, ch->chid);
+		struct nvgpu_channel_hw_state hw_state;
 
-		if (is_next || is_ctx_reload) {
+		g->ops.channel.read_state(g, ch, &hw_state);
+
+		if (hw_state.next || hw_state.ctx_reload) {
 			g->ops.channel.enable(ch);
 		}
 	}
 
 	nvgpu_list_for_each_entry(ch, &tsg->ch_list, channel_gk20a, ch_entry) {
-		is_next = gk20a_fifo_channel_status_is_next(g, ch->chid);
-		is_ctx_reload = gk20a_fifo_channel_status_is_ctx_reload(g, ch->chid);
+		struct nvgpu_channel_hw_state hw_state;
 
-		if (is_next || is_ctx_reload) {
+		g->ops.channel.read_state(g, ch, &hw_state);
+
+		if (hw_state.next || hw_state.ctx_reload) {
 			continue;
 		}
 

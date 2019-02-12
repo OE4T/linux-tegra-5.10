@@ -35,4 +35,13 @@
 #define RC_TYPE_FORCE_RESET		7U
 #define RC_TYPE_SCHED_ERR		8U
 
+struct nvgpu_channel_hw_state {
+	bool enabled;
+	bool next;
+	bool ctx_reload;
+	bool busy;
+	bool pending_acquire;
+	const char *status_string;
+};
+
 #endif /* NVGPU_FIFO_COMMON_H */

@@ -223,7 +223,7 @@ void gv11b_capture_channel_ram_dump(struct gk20a *g,
 {
 	struct nvgpu_mem *mem = &ch->inst_block;
 
-	info->channel_reg = gk20a_readl(g, ccsr_channel_r(ch->chid));
+	g->ops.channel.read_state(g, ch, &info->hw_state);
 
 	info->inst.pb_top_level_get = nvgpu_mem_rd32_pair(g, mem,
 			ram_fc_pb_top_level_get_w(),
@@ -255,10 +255,6 @@ void gv11b_dump_channel_status_ramfc(struct gk20a *g,
 				     struct gk20a_debug_output *o,
 				     struct nvgpu_channel_dump_info *info)
 {
-	u32 status;
-
-	status = ccsr_channel_status_v(info->channel_reg);
-
 	gk20a_debug_output(o, "%d-%s, TSG: %u, pid %d, refs: %d%s: ",
 			info->chid,
 			g->name,
@@ -267,11 +263,9 @@ void gv11b_dump_channel_status_ramfc(struct gk20a *g,
 			info->refs,
 			info->deterministic ? ", deterministic" : "");
 	gk20a_debug_output(o, "channel status: %s in use %s %s\n",
-			(ccsr_channel_enable_v(info->channel_reg) ==
-			 ccsr_channel_enable_in_use_v()) ? "" : "not",
-			gk20a_decode_ccsr_chan_status(status),
-			(ccsr_channel_busy_v(info->channel_reg) ==
-			 ccsr_channel_busy_true_v()) ? "busy" : "not busy");
+			info->hw_state.enabled ? "" : "not",
+			info->hw_state.status_string,
+			info->hw_state.busy ? "busy" : "not busy");
 	gk20a_debug_output(o,
 			"RAMFC : TOP: %016llx PUT: %016llx GET: %016llx "
 			"FETCH: %016llx\n"

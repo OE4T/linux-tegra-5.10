@@ -166,9 +166,11 @@ void gm20b_fifo_tsg_verify_status_ctx_reload(struct channel_gk20a *ch)
 	struct gk20a *g = ch->g;
 	struct tsg_gk20a *tsg = &g->fifo.tsg[ch->tsgid];
 	struct channel_gk20a *temp_ch;
+	struct nvgpu_channel_hw_state hw_state;
 
 	/* If CTX_RELOAD is set on a channel, move it to some other channel */
-	if (gk20a_fifo_channel_status_is_ctx_reload(ch->g, ch->chid)) {
+	g->ops.channel.read_state(g, ch, &hw_state);
+	if (hw_state.ctx_reload) {
 		nvgpu_rwsem_down_read(&tsg->ch_list_lock);
 		nvgpu_list_for_each_entry(temp_ch, &tsg->ch_list, channel_gk20a, ch_entry) {
 			if (temp_ch->chid != ch->chid) {

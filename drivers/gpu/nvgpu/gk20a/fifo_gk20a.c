@@ -57,7 +57,6 @@
 
 #include <nvgpu/hw/gk20a/hw_fifo_gk20a.h>
 #include <nvgpu/hw/gk20a/hw_pbdma_gk20a.h>
-#include <nvgpu/hw/gk20a/hw_ccsr_gk20a.h>
 #include <nvgpu/hw/gk20a/hw_ram_gk20a.h>
 #include <nvgpu/hw/gk20a/hw_gr_gk20a.h>
 
@@ -1760,8 +1759,11 @@ int gk20a_fifo_force_reset_ch(struct channel_gk20a *ch,
 int gk20a_fifo_tsg_unbind_channel_verify_status(struct channel_gk20a *ch)
 {
 	struct gk20a *g = ch->g;
+	struct nvgpu_channel_hw_state hw_state;
 
-	if (gk20a_fifo_channel_status_is_next(g, ch->chid)) {
+	g->ops.channel.read_state(g, ch, &hw_state);
+
+	if (hw_state.next) {
 		nvgpu_err(g, "Channel %d to be removed from TSG %d has NEXT set!",
 			ch->chid, ch->tsgid);
 		return -EINVAL;
@@ -2845,24 +2847,6 @@ u32 gk20a_fifo_get_pbdma_signature(struct gk20a *g)
 	return pbdma_signature_hw_valid_f() | pbdma_signature_sw_zero_f();
 }
 
-static const char * const ccsr_chan_status_str[] = {
-	"idle",
-	"pending",
-	"pending_ctx_reload",
-	"pending_acquire",
-	"pending_acq_ctx_reload",
-	"on_pbdma",
-	"on_pbdma_and_eng",
-	"on_eng",
-	"on_eng_pending_acquire",
-	"on_eng_pending",
-	"on_pbdma_ctx_reload",
-	"on_pbdma_and_eng_ctx_reload",
-	"on_eng_ctx_reload",
-	"on_eng_pending_ctx_reload",
-	"on_eng_pending_acq_ctx_reload",
-};
-
 static const char * const pbdma_chan_eng_ctx_status_str[] = {
 	"invalid",
 	"valid",
@@ -2878,15 +2862,6 @@ static const char * const not_found_str[] = {
 	"NOT FOUND"
 };
 
-const char *gk20a_decode_ccsr_chan_status(u32 index)
-{
-	if (index >= ARRAY_SIZE(ccsr_chan_status_str)) {
-		return not_found_str[0];
-	} else {
-		return ccsr_chan_status_str[index];
-	}
-}
-
 const char *gk20a_decode_pbdma_chan_eng_ctx_status(u32 index)
 {
 	if (index >= ARRAY_SIZE(pbdma_chan_eng_ctx_status_str)) {
@@ -2896,34 +2871,13 @@ const char *gk20a_decode_pbdma_chan_eng_ctx_status(u32 index)
 	}
 }
 
-bool gk20a_fifo_channel_status_is_next(struct gk20a *g, u32 chid)
-{
-	u32 channel = gk20a_readl(g, ccsr_channel_r(chid));
-
-	return ccsr_channel_next_v(channel) == ccsr_channel_next_true_v();
-}
-
-bool gk20a_fifo_channel_status_is_ctx_reload(struct gk20a *g, u32 chid)
-{
-	u32 channel = gk20a_readl(g, ccsr_channel_r(chid));
-	u32 status = ccsr_channel_status_v(channel);
-
-	return (status == ccsr_channel_status_pending_ctx_reload_v() ||
-		status == ccsr_channel_status_pending_acq_ctx_reload_v() ||
-		status == ccsr_channel_status_on_pbdma_ctx_reload_v() ||
-		status == ccsr_channel_status_on_pbdma_and_eng_ctx_reload_v() ||
-		status == ccsr_channel_status_on_eng_ctx_reload_v() ||
-		status == ccsr_channel_status_on_eng_pending_ctx_reload_v() ||
-		status == ccsr_channel_status_on_eng_pending_acq_ctx_reload_v());
-}
-
 void gk20a_capture_channel_ram_dump(struct gk20a *g,
 		struct channel_gk20a *ch,
 		struct nvgpu_channel_dump_info *info)
 {
 	struct nvgpu_mem *mem = &ch->inst_block;
 
-	info->channel_reg = gk20a_readl(g, ccsr_channel_r(ch->chid));
+	g->ops.channel.read_state(g, ch, &info->hw_state);
 
 	info->inst.pb_top_level_get = nvgpu_mem_rd32_pair(g, mem,
 			ram_fc_pb_top_level_get_w(),
@@ -2959,10 +2913,7 @@ void gk20a_dump_channel_status_ramfc(struct gk20a *g,
 				     struct gk20a_debug_output *o,
 				     struct nvgpu_channel_dump_info *info)
 {
-	u32 status;
 	u32 syncpointa, syncpointb;
-
-	status = ccsr_channel_status_v(info->channel_reg);
 
 	syncpointa = info->inst.syncpointa;
 	syncpointb = info->inst.syncpointb;
@@ -2974,11 +2925,9 @@ void gk20a_dump_channel_status_ramfc(struct gk20a *g,
 			   info->refs,
 			   info->deterministic ? "yes" : "no");
 	gk20a_debug_output(o, "  In use: %-3s  busy: %-3s  status: %s",
-			   (ccsr_channel_enable_v(info->channel_reg) ==
-			    ccsr_channel_enable_in_use_v()) ? "yes" : "no",
-			   (ccsr_channel_busy_v(info->channel_reg) ==
-			    ccsr_channel_busy_true_v()) ? "yes" : "no",
-			   gk20a_decode_ccsr_chan_status(status));
+			   info->hw_state.enabled ? "yes" : "no",
+			   info->hw_state.busy ? "yes" : "no",
+			   info->hw_state.status_string);
 	gk20a_debug_output(o,
 			   "  TOP       %016llx"
 			   "  PUT       %016llx  GET %016llx",
@@ -3014,7 +2963,7 @@ void gk20a_dump_channel_status_ramfc(struct gk20a *g,
 		&& (pbdma_syncpointb_wait_switch_v(syncpointb) ==
 			pbdma_syncpointb_wait_switch_en_v())) {
 		gk20a_debug_output(o, "%s on syncpt %u (%s) val %u",
-			(status == 3 || status == 8) ? "Waiting" : "Waited",
+			info->hw_state.pending_acquire ? "Waiting" : "Waited",
 			pbdma_syncpointb_syncpt_index_v(syncpointb),
 			nvgpu_nvhost_syncpt_get_name(g->nvhost_dev,
 				pbdma_syncpointb_syncpt_index_v(syncpointb)),

@@ -25,6 +25,7 @@
 #define FIFO_GK20A_H
 
 #include <nvgpu/kref.h>
+#include <nvgpu/fifo.h>
 
 struct gk20a_debug_output;
 struct mmu_fault_info;
@@ -217,7 +218,7 @@ struct nvgpu_channel_dump_info {
 	int pid;
 	int refs;
 	bool deterministic;
-	u32 channel_reg;
+	struct nvgpu_channel_hw_state hw_state;
 	struct {
 		u64 pb_top_level_get;
 		u64 pb_put;
@@ -355,11 +356,8 @@ void gk20a_dump_pbdma_status(struct gk20a *g,
 				 struct gk20a_debug_output *o);
 void gk20a_dump_eng_status(struct gk20a *g,
 				 struct gk20a_debug_output *o);
-const char *gk20a_decode_ccsr_chan_status(u32 index);
 const char *gk20a_decode_pbdma_chan_eng_ctx_status(u32 index);
 
-bool gk20a_fifo_channel_status_is_next(struct gk20a *g, u32 chid);
-bool gk20a_fifo_channel_status_is_ctx_reload(struct gk20a *g, u32 chid);
 int gk20a_fifo_tsg_unbind_channel_verify_status(struct channel_gk20a *ch);
 
 struct channel_gk20a *gk20a_refch_from_inst_ptr(struct gk20a *g, u64 inst_ptr);

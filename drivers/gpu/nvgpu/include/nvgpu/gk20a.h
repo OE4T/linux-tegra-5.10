@@ -63,6 +63,7 @@ struct nvgpu_sgt;
 struct nvgpu_sgl;
 struct nvgpu_device_info;
 struct nvgpu_gr_subctx;
+struct nvgpu_channel_hw_state;
 
 #include <nvgpu/lock.h>
 #include <nvgpu/thread.h>
@@ -907,6 +908,8 @@ struct gpu_ops {
 		void (*enable)(struct channel_gk20a *ch);
 		void (*disable)(struct channel_gk20a *ch);
 		u32 (*count)(struct gk20a *g);
+		void (*read_state)(struct gk20a *g, struct channel_gk20a *ch,
+				struct nvgpu_channel_hw_state *state);
 	} channel;
 	struct pmu_v {
 		u32 (*get_pmu_cmdline_args_size)(struct nvgpu_pmu *pmu);
