@@ -50,7 +50,6 @@
 #include "cde_gm20b.h"
 #include "cde_gp10b.h"
 
-#include <nvgpu/hw/gk20a/hw_ccsr_gk20a.h>
 #include <nvgpu/hw/gk20a/hw_pbdma_gk20a.h>
 
 static int gk20a_cde_load(struct gk20a_cde_ctx *cde_ctx);
