@@ -26,7 +26,6 @@
 #include <nvgpu/enabled.h>
 #include <nvgpu/io.h>
 #include <nvgpu/utils.h>
-#include <nvgpu/gr/config.h>
 
 #include "priv_ring_gm20b.h"
 
@@ -81,7 +80,7 @@ void gm20b_priv_ring_isr(struct gk20a *g)
 			gk20a_readl(g, pri_ringstation_sys_priv_error_code_r()));
 	}
 
-	for (gpc = 0; gpc < nvgpu_gr_config_get_gpc_count(g->gr.config); gpc++) {
+	for (gpc = 0; gpc < g->ops.priv_ring.get_gpc_count(g); gpc++) {
 		if ((status1 & BIT32(gpc)) != 0U) {
 			nvgpu_log(g, gpu_dbg_intr, "GPC%u write error. ADR %08x WRDAT %08x INFO %08x, CODE %08x", gpc,
 				gk20a_readl(g, pri_ringstation_gpc_gpc0_priv_error_adr_r() + gpc * gpc_priv_stride),
