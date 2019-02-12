@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -122,13 +122,45 @@ static inline u32 ccsr_channel_status_v(u32 r)
 {
 	return (r >> 24U) & 0xfU;
 }
+static inline u32 ccsr_channel_status_idle_v(void)
+{
+	return 0x00000000U;
+}
+static inline u32 ccsr_channel_status_pending_v(void)
+{
+	return 0x00000001U;
+}
 static inline u32 ccsr_channel_status_pending_ctx_reload_v(void)
 {
 	return 0x00000002U;
 }
+static inline u32 ccsr_channel_status_pending_acquire_v(void)
+{
+	return 0x00000003U;
+}
 static inline u32 ccsr_channel_status_pending_acq_ctx_reload_v(void)
 {
 	return 0x00000004U;
+}
+static inline u32 ccsr_channel_status_on_pbdma_v(void)
+{
+	return 0x00000005U;
+}
+static inline u32 ccsr_channel_status_on_pbdma_and_eng_v(void)
+{
+	return 0x00000006U;
+}
+static inline u32 ccsr_channel_status_on_eng_v(void)
+{
+	return 0x00000007U;
+}
+static inline u32 ccsr_channel_status_on_eng_pending_acquire_v(void)
+{
+	return 0x00000008U;
+}
+static inline u32 ccsr_channel_status_on_eng_pending_v(void)
+{
+	return 0x00000009U;
 }
 static inline u32 ccsr_channel_status_on_pbdma_ctx_reload_v(void)
 {
