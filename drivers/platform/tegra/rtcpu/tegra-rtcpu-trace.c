@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2018, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2016-2019, NVIDIA CORPORATION. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -1280,8 +1280,12 @@ EXPORT_SYMBOL(tegra_rtcpu_trace_create);
 
 int tegra_rtcpu_trace_boot_sync(struct tegra_rtcpu_trace *tracer)
 {
-	int ret = tegra_camrtc_iovm_setup(tracer->dev, tracer->dma_handle);
+	int ret;
 
+	if (tracer == NULL)
+		return 0;
+
+	ret = tegra_camrtc_iovm_setup(tracer->dev, tracer->dma_handle);
 	if (ret == 0)
 		return 0;
 

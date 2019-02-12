@@ -80,7 +80,7 @@ struct tegra_cam_rtcpu_pdata {
 	const char *name;
 	void (*assert_resets)(struct device *);
 	int (*deassert_resets)(struct device *);
-	int (*suspend_core)(struct device *);
+	int (*wait_for_idle)(struct device *);
 	const char * const *reset_names;
 	const char * const *reg_names;
 	const char * const *irq_names;
@@ -102,11 +102,11 @@ struct tegra_cam_rtcpu_pdata {
 #define AMISC_ADSP_L2_IDLE			BIT(31)
 #define AMISC_ADSP_L2_CLKSTOPPED		BIT(30)
 
-static int tegra_sce_cam_suspend_core(struct device *dev);
+static int tegra_sce_cam_wait_for_idle(struct device *dev);
 static void tegra_sce_cam_assert_resets(struct device *dev);
 static int tegra_sce_cam_deassert_resets(struct device *dev);
 
-static int tegra_ape_cam_suspend_core(struct device *dev);
+static int tegra_ape_cam_wait_for_idle(struct device *dev);
 static irqreturn_t tegra_camrtc_adsp_wfi_handler(int irq, void *data);
 static void tegra_ape_cam_assert_resets(struct device *dev);
 static int tegra_ape_cam_deassert_resets(struct device *dev);
@@ -128,7 +128,7 @@ static const char * const sce_reg_names[] = {
 
 static const struct tegra_cam_rtcpu_pdata sce_pdata = {
 	.name = "sce",
-	.suspend_core = tegra_sce_cam_suspend_core,
+	.wait_for_idle = tegra_sce_cam_wait_for_idle,
 	.assert_resets = tegra_sce_cam_assert_resets,
 	.deassert_resets = tegra_sce_cam_deassert_resets,
 	.id = TEGRA_CAM_RTCPU_SCE,
@@ -155,7 +155,7 @@ static const struct tegra_cam_rtcpu_pdata ape_pdata = {
 	.name = "ape",
 	.assert_resets = tegra_ape_cam_assert_resets,
 	.deassert_resets = tegra_ape_cam_deassert_resets,
-	.suspend_core = tegra_ape_cam_suspend_core,
+	.wait_for_idle = tegra_ape_cam_wait_for_idle,
 	.id = TEGRA_CAM_RTCPU_APE,
 	.reset_names = ape_reset_names,
 	.reg_names = ape_reg_names,
@@ -175,7 +175,7 @@ static const char * const rce_reg_names[] = {
 
 static const struct tegra_cam_rtcpu_pdata rce_pdata = {
 	.name = "rce",
-	.suspend_core = tegra_sce_cam_suspend_core,
+	.wait_for_idle = tegra_sce_cam_wait_for_idle,
 	.assert_resets = tegra_rce_cam_assert_resets,
 	.deassert_resets = tegra_rce_cam_deassert_resets,
 	.id = TEGRA_CAM_RTCPU_RCE,
@@ -226,6 +226,7 @@ struct tegra_cam_rtcpu {
 	u32 max_reboot_retry;
 	bool powered;
 	bool boot_sync_done;
+	bool fw_active;
 	bool online;
 };
 
@@ -434,6 +435,22 @@ static void tegra_camrtc_slow_mem_bw(struct device *dev)
 				TEGRA_BWMGR_SET_EMC_FLOOR);
 }
 
+static void tegra_camrtc_set_fwloaddone(struct device *dev, bool fwloaddone)
+{
+	struct tegra_cam_rtcpu *rtcpu = dev_get_drvdata(dev);
+
+	if (rtcpu->pm_base != NULL) {
+		u32 val = readl(rtcpu->pm_base + TEGRA_PM_R5_CTRL_0);
+
+		if (fwloaddone)
+			val |= TEGRA_PM_FWLOADDONE;
+		else
+			val &= ~TEGRA_PM_FWLOADDONE;
+
+		writel(val, rtcpu->pm_base + TEGRA_PM_R5_CTRL_0);
+	}
+}
+
 static int tegra_sce_cam_deassert_resets(struct device *dev)
 {
 	struct tegra_cam_rtcpu *rtcpu = dev_get_drvdata(dev);
@@ -464,12 +481,7 @@ static int tegra_sce_cam_deassert_resets(struct device *dev)
 		return err;
 
 	/* Group 3: nCPUHALT controlled by PM, not by CAR. */
-	if (rtcpu->pm_base != NULL) {
-		u32 val = readl(rtcpu->pm_base + TEGRA_PM_R5_CTRL_0);
-
-		writel(val | TEGRA_PM_FWLOADDONE,
-			rtcpu->pm_base + TEGRA_PM_R5_CTRL_0);
-	}
+	tegra_camrtc_set_fwloaddone(dev, true);
 
 	return 0;
 }
@@ -477,6 +489,8 @@ static int tegra_sce_cam_deassert_resets(struct device *dev)
 static void tegra_sce_cam_assert_resets(struct device *dev)
 {
 	struct tegra_cam_rtcpu *rtcpu = dev_get_drvdata(dev);
+
+	tegra_camrtc_set_fwloaddone(dev, false);
 
 	camrtc_reset_group_assert(rtcpu->resets[0]);
 	camrtc_reset_group_assert(rtcpu->resets[1]);
@@ -486,6 +500,9 @@ static int tegra_sce_cam_wait_for_wfi(struct device *dev, long *timeout)
 {
 	struct tegra_cam_rtcpu *rtcpu = dev_get_drvdata(dev);
 	long delay_stride = HZ / 50;
+
+	if (rtcpu->pm_base == NULL)
+		return 0;
 
 	/* Poll for WFI assert.*/
 	for (;;) {
@@ -506,26 +523,12 @@ static int tegra_sce_cam_wait_for_wfi(struct device *dev, long *timeout)
 	return 0;
 }
 
-static int tegra_sce_cam_suspend_core(struct device *dev)
+static int tegra_sce_cam_wait_for_idle(struct device *dev)
 {
 	struct tegra_cam_rtcpu *rtcpu = dev_get_drvdata(dev);
 	long timeout = rtcpu->cmd_timeout;
-	u32 val;
-	int err;
 
-	err = camrtc_hsp_suspend(rtcpu->hsp);
-
-	if (rtcpu->pm_base != NULL) {
-		/* Don't bother to check for WFI if core is unresponsive */
-		if (err == 0)
-			err = tegra_sce_cam_wait_for_wfi(dev, &timeout);
-
-		val = readl(rtcpu->pm_base + TEGRA_PM_R5_CTRL_0);
-		writel(val & ~TEGRA_PM_FWLOADDONE,
-			rtcpu->pm_base + TEGRA_PM_R5_CTRL_0);
-	}
-
-	return err;
+	return tegra_sce_cam_wait_for_wfi(dev, &timeout);
 }
 
 static void tegra_ape_cam_assert_resets(struct device *dev)
@@ -617,15 +620,11 @@ static int tegra_ape_cam_wait_for_wfi(struct device *dev, long *timeout)
 	return 0;
 }
 
-static int tegra_ape_cam_suspend_core(struct device *dev)
+static int tegra_ape_cam_wait_for_idle(struct device *dev)
 {
 	struct tegra_cam_rtcpu *rtcpu = dev_get_drvdata(dev);
 	long timeout = rtcpu->cmd_timeout;
 	int err;
-
-	err = camrtc_hsp_suspend(rtcpu->hsp);
-	if (err)
-		return err;
 
 	err = tegra_ape_cam_wait_for_wfi(dev, &timeout);
 	if (err)
@@ -644,12 +643,7 @@ static int tegra_rce_cam_deassert_resets(struct device *dev)
 		return err;
 
 	/* nCPUHALT is a reset controlled by PM, not by CAR. */
-	if (rtcpu->pm_base != NULL) {
-		u32 val = readl(rtcpu->pm_base + TEGRA_PM_R5_CTRL_0);
-
-		writel(val | TEGRA_PM_FWLOADDONE,
-			rtcpu->pm_base + TEGRA_PM_R5_CTRL_0);
-	}
+	tegra_camrtc_set_fwloaddone(dev, true);
 
 	return 0;
 }
@@ -658,43 +652,82 @@ static void tegra_rce_cam_assert_resets(struct device *dev)
 {
 	struct tegra_cam_rtcpu *rtcpu = dev_get_drvdata(dev);
 
+	tegra_camrtc_set_fwloaddone(dev, false);
 	camrtc_reset_group_assert(rtcpu->resets[0]);
 }
 
-static int tegra_camrtc_suspend_core(struct device *dev)
+static int tegra_camrtc_wait_for_idle(struct device *dev)
 {
 	struct tegra_cam_rtcpu *rtcpu = dev_get_drvdata(dev);
 
-	if (!rtcpu->boot_sync_done || !rtcpu->hsp)
+	return rtcpu->pdata->wait_for_idle(dev);
+}
+
+static int tegra_camrtc_fw_suspend(struct device *dev)
+{
+	struct tegra_cam_rtcpu *rtcpu = dev_get_drvdata(dev);
+
+	if (!rtcpu->fw_active || !rtcpu->hsp)
 		return 0;
 
-	rtcpu->boot_sync_done = false;
+	rtcpu->fw_active = false;
 
-	return rtcpu->pdata->suspend_core(dev);
+	return camrtc_hsp_suspend(rtcpu->hsp);
+}
+
+static int tegra_camrtc_setup_shared_memory(struct device *dev)
+{
+	struct tegra_cam_rtcpu *rtcpu = dev_get_drvdata(dev);
+	int ret;
+
+	/*
+	 * Set-up trace
+	 */
+	ret = tegra_rtcpu_trace_boot_sync(rtcpu->tracer);
+	if (ret < 0)
+		dev_err(dev, "trace boot sync failed: %d\n", ret);
+
+	/*
+	 * Set-up coverage buffer
+	 */
+	ret = tegra_rtcpu_coverage_boot_sync(rtcpu->coverage);
+	if (ret < 0) {
+		/*
+		 * Not a fatal error, don't stop the sync.
+		 * But go ahead and remove the coverage debug FS
+		 * entries and release the memory.
+		 */
+		tegra_rtcpu_coverage_destroy(rtcpu->coverage);
+		rtcpu->coverage = NULL;
+	}
+
+	/*
+	 * Set-up and activate the IVC services in firmware
+	 */
+	ret = tegra_ivc_bus_boot_sync(rtcpu->ivc);
+	if (ret < 0)
+		dev_err(dev, "ivc-bus boot sync failed: %d\n", ret);
+
+	return ret;
 }
 
 static void tegra_camrtc_set_online(struct device *dev, bool online)
 {
 	struct tegra_cam_rtcpu *rtcpu = dev_get_drvdata(dev);
 
-	/* No need to report if there is no bus yet */
-	if (IS_ERR_OR_NULL(rtcpu->ivc))
-		return;
-
 	if (online == rtcpu->online)
 		return;
 
 	if (online) {
-		/* Activate the IVC services in firmware */
-		int ret = tegra_ivc_bus_boot_sync(rtcpu->ivc);
-		if (ret < 0) {
-			dev_err(dev, "ivc-bus boot sync failed: %d\n", ret);
+		if (tegra_camrtc_setup_shared_memory(dev) < 0)
 			return;
-		}
 	}
 
-	rtcpu->online = online;
-	tegra_ivc_bus_ready(rtcpu->ivc, online);
+	/* Postpone the online transition if still probing */
+	if (!IS_ERR_OR_NULL(rtcpu->ivc)) {
+		rtcpu->online = online;
+		tegra_ivc_bus_ready(rtcpu->ivc, online);
+	}
 }
 
 int tegra_camrtc_ping(struct device *dev, u32 data, long timeout)
@@ -777,39 +810,21 @@ static int tegra_camrtc_boot_sync(struct device *dev)
 	struct tegra_cam_rtcpu *rtcpu = dev_get_drvdata(dev);
 	int ret;
 
-	if (rtcpu->boot_sync_done)
-		return 0;
-
-	ret = camrtc_hsp_resume(rtcpu->hsp);
-	if (ret < 0)
-		return ret;
-
-	rtcpu->fw_version = ret;
-	rtcpu->boot_sync_done = true;
-
-	/*
-	 * Enable trace
-	 */
-	if (rtcpu->tracer) {
-		ret = tegra_rtcpu_trace_boot_sync(rtcpu->tracer);
-		if (ret < 0) {
-			dev_err(dev, "trace boot sync failed: %d\n", ret);
+	if (!rtcpu->boot_sync_done) {
+		ret = camrtc_hsp_sync(rtcpu->hsp);
+		if (ret < 0)
 			return ret;
-		}
+
+		rtcpu->fw_version = ret;
+		rtcpu->boot_sync_done = true;
 	}
 
-	if (rtcpu->coverage != NULL) {
-		ret = tegra_rtcpu_coverage_boot_sync(rtcpu->coverage);
-		if (ret < 0) {
-			dev_dbg(dev, "coverage boot sync status: %d\n", ret);
-			/*
-			 * Not a fatal error, don't stop the sync.
-			 * But go ahead and remove the coverage debug FS
-			 * entries and release the memory.
-			 */
-			tegra_rtcpu_coverage_destroy(rtcpu->coverage);
-			rtcpu->coverage = NULL;
-		}
+	if (!rtcpu->fw_active) {
+		ret = camrtc_hsp_resume(rtcpu->hsp);
+		if (ret < 0)
+			return ret;
+
+		rtcpu->fw_active = true;
 	}
 
 	return 0;
@@ -832,19 +847,21 @@ static int tegra_camrtc_boot(struct device *dev)
 
 	for (;;) {
 		ret = tegra_camrtc_boot_sync(dev);
+
+		tegra_camrtc_set_online(dev, ret == 0);
+
 		if (ret == 0)
 			break;
 		if (retry++ == max_retries)
 			break;
-		dev_warn(dev, "%s full reset, retry %u/%u\n",
-			rtcpu->name, retry, max_retries);
-		tegra_camrtc_assert_resets(dev);
-		usleep_range(10, 30);
-		tegra_camrtc_deassert_resets(dev);
+		if (retry > 1) {
+			dev_warn(dev, "%s full reset, retry %u/%u\n",
+				rtcpu->name, retry, max_retries);
+			tegra_camrtc_assert_resets(dev);
+			usleep_range(10, 30);
+			tegra_camrtc_deassert_resets(dev);
+		}
 	}
-
-	if (ret == 0)
-		tegra_camrtc_set_online(dev, true);
 
 	tegra_camrtc_slow_mem_bw(dev);
 
@@ -891,11 +908,13 @@ static int tegra_cam_rtcpu_runtime_suspend(struct device *dev)
 	struct tegra_cam_rtcpu *rtcpu = dev_get_drvdata(dev);
 	int err;
 
-	err = tegra_camrtc_suspend_core(dev);
+	err = tegra_camrtc_fw_suspend(dev);
 	/* Try full reset if an error occurred while suspending core. */
 	if (WARN(err < 0, "RTCPU suspend failed, resetting it")) {
 		/* runtime_resume() powers RTCPU back on */
 		tegra_camrtc_poweroff(dev);
+
+		/* We want to boot sync IVC and trace when resuming */
 		tegra_camrtc_set_online(dev, false);
 	}
 
@@ -988,6 +1007,7 @@ static int tegra_camrtc_hsp_init(struct device *dev)
 static int tegra_cam_rtcpu_remove(struct platform_device *pdev)
 {
 	struct tegra_cam_rtcpu *rtcpu = platform_get_drvdata(pdev);
+	bool online = rtcpu->online;
 	bool pm_is_active = pm_runtime_active(&pdev->dev);
 
 	pm_runtime_disable(&pdev->dev);
@@ -998,6 +1018,8 @@ static int tegra_cam_rtcpu_remove(struct platform_device *pdev)
 	if (rtcpu->hsp) {
 		if (pm_is_active)
 			tegra_cam_rtcpu_runtime_suspend(&pdev->dev);
+		if (online)
+			camrtc_hsp_bye(rtcpu->hsp);
 		camrtc_hsp_free(rtcpu->hsp);
 		rtcpu->hsp = NULL;
 	}
@@ -1062,7 +1084,7 @@ static int tegra_cam_rtcpu_probe(struct platform_device *pdev)
 	if (ret)
 		goto fail;
 
-	rtcpu->max_reboot_retry = 2;
+	rtcpu->max_reboot_retry = 3;
 	(void)of_property_read_u32(dev->of_node, NV(max-reboot),
 			&rtcpu->max_reboot_retry);
 
@@ -1105,6 +1127,7 @@ static int tegra_cam_rtcpu_probe(struct platform_device *pdev)
 	rtcpu->ivc = tegra_ivc_bus_create(dev);
 	if (IS_ERR(rtcpu->ivc)) {
 		ret = PTR_ERR(rtcpu->ivc);
+		rtcpu->ivc = NULL;
 		goto put_and_fail;
 	}
 
@@ -1162,6 +1185,7 @@ int tegra_camrtc_reboot(struct device *dev)
 		return -EIO;
 
 	rtcpu->boot_sync_done = false;
+	rtcpu->fw_active = false;
 
 	pm_runtime_mark_last_busy(dev);
 
@@ -1218,6 +1242,8 @@ EXPORT_SYMBOL(tegra_camrtc_flush_trace);
 static int tegra_camrtc_halt(struct device *dev)
 {
 	struct tegra_cam_rtcpu *rtcpu = dev_get_drvdata(dev);
+	bool online = rtcpu->online;
+	int err = 0;
 
 	tegra_camrtc_set_online(dev, false);
 
@@ -1225,7 +1251,16 @@ static int tegra_camrtc_halt(struct device *dev)
 		return 0;
 
 	if (!pm_runtime_suspended(dev))
-		tegra_camrtc_suspend_core(dev);
+		/* Tell CAMRTC that we power down camera devices */
+		err = tegra_camrtc_fw_suspend(dev);
+
+	if (online && rtcpu->hsp && err == 0)
+		/* Tell CAMRTC that shared memory is going away */
+		err = camrtc_hsp_bye(rtcpu->hsp);
+
+	if (err == 0)
+		/* Don't bother to check for WFI if core is unresponsive */
+		tegra_camrtc_wait_for_idle(dev);
 
 	tegra_camrtc_poweroff(dev);
 
