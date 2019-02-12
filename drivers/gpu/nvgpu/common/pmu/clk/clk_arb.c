@@ -584,10 +584,15 @@ int nvgpu_clk_arb_init_arbiter(struct gk20a *g)
 {
 	int err = 0;
 
-	if (!g->ops.clk.support_clk_freq_controller &&
-		!g->ops.clk_arb.get_arbiter_clk_domains) {
+	if (g->ops.clk_arb.check_clk_arb_support != NULL) {
+		if (!g->ops.clk_arb.check_clk_arb_support(g)) {
+			return 0;
+		}
+	}
+	else {
 		return 0;
 	}
+
 	nvgpu_mutex_acquire(&g->clk_arb_enable_lock);
 
 	err = g->ops.clk_arb.arbiter_clk_init(g);
@@ -645,8 +650,12 @@ int nvgpu_clk_arb_init_session(struct gk20a *g,
 
 	clk_arb_dbg(g, " ");
 
-	if (!g->ops.clk.support_clk_freq_controller &&
-		!g->ops.clk_arb.get_arbiter_clk_domains) {
+	if (g->ops.clk_arb.check_clk_arb_support != NULL) {
+		if (!g->ops.clk_arb.check_clk_arb_support(g)) {
+			return 0;
+		}
+	}
+	else {
 		return 0;
 	}
 

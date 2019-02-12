@@ -950,6 +950,7 @@ static const struct gpu_ops tu104_ops = {
 		.clk_domain_get_f_points = gv100_clk_domain_get_f_points,
 	},
 	.clk_arb = {
+		.check_clk_arb_support = gv100_check_clk_arb_support,
 		.get_arbiter_clk_domains = gv100_get_arbiter_clk_domains,
 		.get_arbiter_f_points = gv100_get_arbiter_f_points,
 		.get_arbiter_clk_range = gv100_get_arbiter_clk_range,

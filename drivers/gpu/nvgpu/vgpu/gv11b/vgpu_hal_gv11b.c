@@ -609,6 +609,7 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 		.is_pmu_supported = NULL,
 	},
 	.clk_arb = {
+		.check_clk_arb_support = gp10b_check_clk_arb_support,
 		.get_arbiter_clk_domains = gp10b_get_arbiter_clk_domains,
 		.get_arbiter_f_points = gp10b_get_arbiter_f_points,
 		.get_arbiter_clk_range = gp10b_get_arbiter_clk_range,

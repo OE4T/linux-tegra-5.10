@@ -1275,6 +1275,7 @@ struct gpu_ops {
 	} clk;
 	struct {
 		int (*arbiter_clk_init)(struct gk20a *g);
+		bool (*check_clk_arb_support)(struct gk20a *g);
 		u32 (*get_arbiter_clk_domains)(struct gk20a *g);
 		int (*get_arbiter_f_points)(struct gk20a *g,u32 api_domain,
 				u32 *num_points, u16 *freqs_in_mhz);

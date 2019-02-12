@@ -25,6 +25,17 @@
 
 #include "clk_arb_gp10b.h"
 
+bool gp10b_check_clk_arb_support(struct gk20a *g)
+{
+	if (g->ops.clk_arb.get_arbiter_clk_domains != NULL ||
+		g->ops.clk.support_clk_freq_controller){
+		return true;
+	}
+	else {
+		return false;
+	}
+}
+
 u32 gp10b_get_arbiter_clk_domains(struct gk20a *g)
 {
 	(void)g;

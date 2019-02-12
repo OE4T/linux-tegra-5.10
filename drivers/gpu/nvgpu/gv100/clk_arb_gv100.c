@@ -28,6 +28,17 @@
 #include "clk_arb_gv100.h"
 #include "common/pmu/clk/clk.h"
 
+bool gv100_check_clk_arb_support(struct gk20a *g)
+{
+	if ((g->ops.clk_arb.get_arbiter_clk_domains != NULL) &&
+			nvgpu_is_enabled(g, NVGPU_PMU_PSTATE)){
+		return true;
+	}
+	else {
+		return false;
+	}
+}
+
 u32 gv100_get_arbiter_clk_domains(struct gk20a *g)
 {
 	(void)g;

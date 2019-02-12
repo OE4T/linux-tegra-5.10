@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -25,7 +25,7 @@
 struct nvgpu_clk_session;
 struct nvgpu_clk_arb;
 
-
+bool gv100_check_clk_arb_support(struct gk20a *g);
 u32 gv100_get_arbiter_clk_domains(struct gk20a *g);
 int gv100_get_arbiter_f_points(struct gk20a *g,u32 api_domain,
 				u32 *num_points, u16 *freqs_in_mhz);

@@ -532,6 +532,7 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 		.is_engine_in_reset = NULL,
 	},
 	.clk_arb = {
+		.check_clk_arb_support = gp10b_check_clk_arb_support,
 		.get_arbiter_clk_domains = gp10b_get_arbiter_clk_domains,
 		.get_arbiter_f_points = gp10b_get_arbiter_f_points,
 		.get_arbiter_clk_range = gp10b_get_arbiter_clk_range,
