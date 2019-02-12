@@ -52,7 +52,7 @@
 #include "common/perf/perf_gm20b.h"
 #include "common/pmu/pmu_gk20a.h"
 #include "common/pmu/pmu_gm20b.h"
-#include "common/pmu/acr_gm20b.h"
+#include "common/acr/acr_gm20b.h"
 #include "common/falcon/falcon_gk20a.h"
 #include "common/top/top_gm20b.h"
 #include "common/sync/syncpt_cmdbuf_gk20a.h"

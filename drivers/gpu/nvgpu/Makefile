@@ -114,11 +114,14 @@ nvgpu-y += common/bus/bus_gk20a.o \
 	common/pmu/pmu_gv11b.o \
 	common/pmu/pmu_gv100.o \
 	common/pmu/pmu_tu104.o \
-	common/pmu/acr_gm20b.o \
-	common/pmu/acr_gp10b.o \
-	common/pmu/acr_gp106.o \
-	common/pmu/acr_gv11b.o \
-	common/pmu/acr_tu104.o \
+	common/acr/acr.o \
+	common/acr/acr_blob_construct_v0.o \
+	common/acr/acr_blob_construct_v1.o \
+	common/acr/acr_gm20b.o \
+	common/acr/acr_gp10b.o \
+	common/acr/acr_gv100.o \
+	common/acr/acr_gv11b.o \
+	common/acr/acr_tu104.o \
 	common/pmu/perf/vfe_var.o \
 	common/pmu/perf/vfe_equ.o \
 	common/pmu/perf/pmu_perf.o \

@@ -62,10 +62,9 @@
 #include "common/pmu/pmu_gm20b.h"
 #include "common/pmu/pmu_gp10b.h"
 #include "common/pmu/pmu_gp106.h"
-#include "common/pmu/acr_gm20b.h"
-#include "common/pmu/acr_gp106.h"
 #include "common/pmu/pmu_gv11b.h"
 #include "common/pmu/pmu_gv100.h"
+#include "common/acr/acr_gv100.h"
 #include "common/falcon/falcon_gk20a.h"
 #include "common/falcon/falcon_gv100.h"
 #include "common/nvdec/nvdec_gp106.h"
@@ -1140,7 +1139,7 @@ static const struct gpu_ops gv100_ops = {
 			gm20b_top_get_max_tpc_per_gpc_count,
 	},
 	.acr = {
-		.acr_sw_init = nvgpu_gp106_acr_sw_init,
+		.acr_sw_init = nvgpu_gv100_acr_sw_init,
 	},
 	.sec2 = {
 		.falcon_base_addr = gp106_sec2_falcon_base_addr,

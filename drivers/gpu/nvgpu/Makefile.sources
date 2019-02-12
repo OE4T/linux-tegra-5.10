@@ -153,11 +153,14 @@ srcs += common/sim.c \
 	common/pmu/pmu_gv11b.c \
 	common/pmu/pmu_gv100.c \
 	common/pmu/pmu_tu104.c \
-	common/pmu/acr_gm20b.c \
-	common/pmu/acr_gp10b.c \
-	common/pmu/acr_gp106.c \
-	common/pmu/acr_gv11b.c \
-	common/pmu/acr_tu104.c \
+	common/acr/acr.c \
+	common/acr/acr_blob_construct_v0.c \
+	common/acr/acr_blob_construct_v1.c \
+	common/acr/acr_gm20b.c \
+	common/acr/acr_gp10b.c \
+	common/acr/acr_gv100.c \
+	common/acr/acr_gv11b.c \
+	common/acr/acr_tu104.c \
 	common/sec2/sec2.c \
 	common/sec2/sec2_ipc.c \
 	common/ptimer/ptimer.c \

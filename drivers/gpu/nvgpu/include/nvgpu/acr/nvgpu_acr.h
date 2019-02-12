@@ -45,13 +45,17 @@ struct nvgpu_acr;
 #define HSBIN_ACR_AHESASC_DBG_UCODE "acr_ahesasc_dbg_ucode.bin"
 #define HSBIN_ACR_ASB_DBG_UCODE "acr_asb_dbg_ucode.bin"
 
+#define GM20B_FECS_UCODE_SIG "fecs_sig.bin"
+#define T18x_GPCCS_UCODE_SIG "gpccs_sig.bin"
+
 #define LSF_SEC2_UCODE_IMAGE_BIN "sec2_ucode_image.bin"
 #define LSF_SEC2_UCODE_DESC_BIN "sec2_ucode_desc.bin"
 #define LSF_SEC2_UCODE_SIG_BIN "sec2_sig.bin"
 
-#define MAX_SUPPORTED_LSFM 3U /*PMU, FECS, GPCCS*/
-
 #define ACR_COMPLETION_TIMEOUT_MS 10000U /*in msec */
+
+#define nvgpu_acr_dbg(g, fmt, args...) \
+	nvgpu_log(g, gpu_dbg_pmu, fmt, ##args)
 
 struct bin_hdr {
 	/* 0x10de */
@@ -99,8 +103,7 @@ struct acr_lsf_config {
 	bool is_lazy_bootstrap;
 	bool is_priv_load;
 
-	int (*get_lsf_ucode_details)(struct gk20a *g, struct nvgpu_acr *acr,
-		struct flcn_ucode_img_v1 *udata);
+	int (*get_lsf_ucode_details)(struct gk20a *g, void *lsf_ucode_img);
 	void (*get_cmd_line_args_offset)(struct gk20a *g, u32 *args_offset);
 };
 
@@ -152,7 +155,6 @@ struct nvgpu_acr {
 	struct gk20a *g;
 
 	u32 bootstrap_owner;
-	u32 max_supported_lsfm;
 
 	u32 lsf_enable_mask;
 	struct acr_lsf_config lsf[FALCON_ID_END];
@@ -190,5 +192,27 @@ struct nvgpu_acr {
 
 	void (*remove_support)(struct nvgpu_acr *acr);
 };
+
+int nvgpu_acr_bootstrap_hs_ucode(struct gk20a *g, struct nvgpu_acr *acr,
+	struct hs_acr *acr_desc);
+int nvgpu_acr_alloc_blob_space_sys(struct gk20a *g, size_t size,
+	struct nvgpu_mem *mem);
+int nvgpu_acr_alloc_blob_space_vid(struct gk20a *g, size_t size,
+	struct nvgpu_mem *mem);
+void nvgpu_acr_wpr_info_sys(struct gk20a *g, struct wpr_carveout_info *inf);
+void nvgpu_acr_wpr_info_vid(struct gk20a *g, struct wpr_carveout_info *inf);
+
+int nvgpu_acr_prepare_ucode_blob_v0(struct gk20a *g);
+int nvgpu_acr_prepare_ucode_blob_v1(struct gk20a *g);
+
+int nvgpu_acr_lsf_pmu_ucode_details_v0(struct gk20a *g, void *lsf_ucode_img);
+int nvgpu_acr_lsf_fecs_ucode_details_v0(struct gk20a *g, void *lsf_ucode_img);
+int nvgpu_acr_lsf_gpccs_ucode_details_v0(struct gk20a *g, void *lsf_ucode_img);
+
+int nvgpu_acr_lsf_pmu_ucode_details_v1(struct gk20a *g, void *lsf_ucode_img);
+int nvgpu_acr_lsf_fecs_ucode_details_v1(struct gk20a *g, void *lsf_ucode_img);
+int nvgpu_acr_lsf_gpccs_ucode_details_v1(struct gk20a *g, void *lsf_ucode_img);
+int nvgpu_acr_lsf_sec2_ucode_details_v1(struct gk20a *g, void *lsf_ucode_img);
+
 #endif /* NVGPU_ACR_H */
 

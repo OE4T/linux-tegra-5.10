@@ -30,7 +30,6 @@
 #include <nvgpu/gk20a.h>
 
 #include "pmu_gk20a.h"
-#include "acr_gm20b.h"
 #include "pmu_gm20b.h"
 
 #include <nvgpu/hw/gm20b/hw_gr_gm20b.h>

@@ -23,20 +23,18 @@
 #include <nvgpu/acr/nvgpu_acr.h>
 #include <nvgpu/firmware.h>
 #include <nvgpu/enabled.h>
-#include <nvgpu/utils.h>
 #include <nvgpu/debug.h>
-#include <nvgpu/kmem.h>
 #include <nvgpu/pmu.h>
-#include <nvgpu/dma.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/sec2if/sec2_if_cmn.h>
+
+#include "acr_gm20b.h"
+#include "acr_gv100.h"
+#include "acr_tu104.h"
 
 #include "gv100/gsp_gv100.h"
 #include "tu104/sec2_tu104.h"
 
-#include "acr_gm20b.h"
-#include "acr_gp106.h"
-#include "acr_tu104.h"
 
 static int tu104_bootstrap_hs_acr(struct gk20a *g, struct nvgpu_acr *acr,
 	struct hs_acr *acr_type)
@@ -45,12 +43,12 @@ static int tu104_bootstrap_hs_acr(struct gk20a *g, struct nvgpu_acr *acr,
 
 	nvgpu_log_fn(g, " ");
 
-	err = gm20b_bootstrap_hs_acr(g, &g->acr, &g->acr.acr_ahesasc);
+	err = nvgpu_acr_bootstrap_hs_ucode(g, &g->acr, &g->acr.acr_ahesasc);
 	if (err != 0) {
 		nvgpu_err(g, "ACR AHESASC bootstrap failed");
 		goto exit;
 	}
-	err = gm20b_bootstrap_hs_acr(g, &g->acr, &g->acr.acr_asb);
+	err = nvgpu_acr_bootstrap_hs_ucode(g, &g->acr, &g->acr.acr_asb);
 	if (err != 0) {
 		nvgpu_err(g, "ACR ASB bootstrap failed");
 		goto exit;
@@ -69,7 +67,7 @@ static u32 tu104_acr_lsf_sec2(struct gk20a *g,
 	lsf->falcon_dma_idx = NV_SEC2_DMAIDX_UCODE;
 	lsf->is_lazy_bootstrap = false;
 	lsf->is_priv_load = false;
-	lsf->get_lsf_ucode_details = NULL;
+	lsf->get_lsf_ucode_details = nvgpu_acr_lsf_sec2_ucode_details_v1;
 	lsf->get_cmd_line_args_offset = NULL;
 
 	return BIT32(lsf->falcon_id);
@@ -159,14 +157,13 @@ void nvgpu_tu104_acr_sw_init(struct gk20a *g, struct nvgpu_acr *acr)
 	nvgpu_log_fn(g, " ");
 
 	/* Inherit settings from older chip */
-	nvgpu_gp106_acr_sw_init(g, acr);
+	nvgpu_gv100_acr_sw_init(g, acr);
 
 	acr->lsf_enable_mask |= tu104_acr_lsf_sec2(g,
 		&acr->lsf[FALCON_ID_SEC2]);
 
-	acr->prepare_ucode_blob = gp106_prepare_ucode_blob;
+	acr->prepare_ucode_blob = nvgpu_acr_prepare_ucode_blob_v1;
 	acr->bootstrap_owner = FALCON_ID_GSPLITE;
-	acr->max_supported_lsfm = TU104_MAX_SUPPORTED_LSFM;
 	acr->bootstrap_hs_acr = tu104_bootstrap_hs_acr;
 	acr->remove_support = tu104_remove_acr_support;
 

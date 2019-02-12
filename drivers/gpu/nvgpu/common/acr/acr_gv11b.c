@@ -21,15 +21,15 @@
  */
 
 #include <nvgpu/types.h>
-#include <nvgpu/nvgpu_common.h>
 #include <nvgpu/firmware.h>
 #include <nvgpu/acr/nvgpu_acr.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/bug.h>
 
-#include "pmu_gm20b.h"
+#include "common/pmu/pmu_gm20b.h"
+
 #include "acr_gm20b.h"
-#include "acr_gp106.h"
+#include "acr_gv100.h"
 #include "acr_gv11b.h"
 
 static int gv11b_acr_patch_wpr_info_to_ucode(struct gk20a *g,
@@ -86,7 +86,7 @@ static u32 gv11b_acr_lsf_pmu(struct gk20a *g,
 	lsf->falcon_dma_idx = GK20A_PMU_DMAIDX_UCODE;
 	lsf->is_lazy_bootstrap = false;
 	lsf->is_priv_load = false;
-	lsf->get_lsf_ucode_details = NULL;
+	lsf->get_lsf_ucode_details = nvgpu_acr_lsf_pmu_ucode_details_v1;
 	lsf->get_cmd_line_args_offset = nvgpu_pmu_get_cmd_line_args_offset;
 
 	return BIT32(lsf->falcon_id);
@@ -101,7 +101,7 @@ static u32 gv11b_acr_lsf_fecs(struct gk20a *g,
 	lsf->falcon_dma_idx = GK20A_PMU_DMAIDX_UCODE;
 	lsf->is_lazy_bootstrap = true;
 	lsf->is_priv_load = false;
-	lsf->get_lsf_ucode_details = NULL;
+	lsf->get_lsf_ucode_details = nvgpu_acr_lsf_fecs_ucode_details_v1;
 	lsf->get_cmd_line_args_offset = NULL;
 
 	return BIT32(lsf->falcon_id);
@@ -115,7 +115,7 @@ static u32 gv11b_acr_lsf_gpccs(struct gk20a *g,
 	lsf->falcon_dma_idx = GK20A_PMU_DMAIDX_UCODE;
 	lsf->is_lazy_bootstrap = true;
 	lsf->is_priv_load = true;
-	lsf->get_lsf_ucode_details = NULL;
+	lsf->get_lsf_ucode_details = nvgpu_acr_lsf_gpccs_ucode_details_v1;
 	lsf->get_cmd_line_args_offset = NULL;
 
 	return BIT32(lsf->falcon_id);
@@ -159,19 +159,18 @@ void nvgpu_gv11b_acr_sw_init(struct gk20a *g, struct nvgpu_acr *acr)
 	acr->g = g;
 
 	acr->bootstrap_owner = FALCON_ID_PMU;
-	acr->max_supported_lsfm = MAX_SUPPORTED_LSFM;
 
 	acr->lsf_enable_mask = gv11b_acr_lsf_conifg(g, acr);
 
 	gv11b_acr_default_sw_init(g, &acr->acr);
 
-	acr->prepare_ucode_blob = gp106_prepare_ucode_blob;
-	acr->get_wpr_info = gm20b_wpr_info;
-	acr->alloc_blob_space = gm20b_alloc_blob_space;
-	acr->bootstrap_hs_acr = gm20b_bootstrap_hs_acr;
+	acr->prepare_ucode_blob = nvgpu_acr_prepare_ucode_blob_v1;
+	acr->get_wpr_info = nvgpu_acr_wpr_info_sys;
+	acr->alloc_blob_space = nvgpu_acr_alloc_blob_space_sys;
+	acr->bootstrap_hs_acr = nvgpu_acr_bootstrap_hs_ucode;
 	acr->patch_wpr_info_to_ucode = gv11b_acr_patch_wpr_info_to_ucode;
 	acr->acr_fill_bl_dmem_desc =
-		gp106_acr_fill_bl_dmem_desc;
+		gv100_acr_fill_bl_dmem_desc;
 
 	acr->remove_support = gm20b_remove_acr_support;
 }

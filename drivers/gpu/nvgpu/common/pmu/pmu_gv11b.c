@@ -35,8 +35,6 @@
 #include "pmu_gp10b.h"
 #include "pmu_gp106.h"
 #include "pmu_gv11b.h"
-#include "acr_gv11b.h"
-
 #include <nvgpu/hw/gv11b/hw_pwr_gv11b.h>
 
 #define gv11b_dbg_pmu(g, fmt, arg...) \

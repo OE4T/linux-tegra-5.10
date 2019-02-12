@@ -28,12 +28,9 @@
 #include <nvgpu/pmu/lpwr.h>
 
 #include "pmu_gk20a.h"
-#include "acr_gm20b.h"
 #include "pmu_gm20b.h"
 #include "pmu_gp10b.h"
 #include "pmu_gp106.h"
-#include "acr_gp106.h"
-
 #include <nvgpu/hw/gp106/hw_psec_gp106.h>
 #include <nvgpu/hw/gp106/hw_pwr_gp106.h>
 

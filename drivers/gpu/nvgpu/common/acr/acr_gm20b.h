@@ -25,27 +25,6 @@
 #ifndef NVGPU_GM20B_ACR_GM20B_H
 #define NVGPU_GM20B_ACR_GM20B_H
 
-#define GM20B_FECS_UCODE_SIG "fecs_sig.bin"
-#define T18x_GPCCS_UCODE_SIG "gpccs_sig.bin"
-
-int prepare_ucode_blob(struct gk20a *g);
-
-int acr_ucode_patch_sig(struct gk20a *g,
-		unsigned int *p_img,
-		unsigned int *p_prod_sig,
-		unsigned int *p_dbg_sig,
-		unsigned int *p_patch_loc,
-		unsigned int *p_patch_ind);
-int gm20b_alloc_blob_space(struct gk20a *g,
-	size_t size, struct nvgpu_mem *mem);
-void gm20b_wpr_info(struct gk20a *g, struct wpr_carveout_info *inf);
-int gm20b_acr_patch_wpr_info_to_ucode(struct gk20a *g,
-	struct nvgpu_acr *acr, struct hs_acr *acr_desc, bool is_recovery);
-int gm20b_acr_fill_bl_dmem_desc(struct gk20a *g,
-	struct nvgpu_acr *acr, struct hs_acr *acr_desc,
-	u32 *acr_ucode_header);
-int gm20b_bootstrap_hs_acr(struct gk20a *g, struct nvgpu_acr *acr,
-	struct hs_acr *acr_desc);
 void gm20b_remove_acr_support(struct nvgpu_acr *acr);
 void nvgpu_gm20b_acr_sw_init(struct gk20a *g, struct nvgpu_acr *acr);
 

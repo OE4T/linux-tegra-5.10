@@ -26,4 +26,9 @@
 #define GV100_FECS_UCODE_SIG "gv100/fecs_sig.bin"
 #define GV100_GPCCS_UCODE_SIG "gv100/gpccs_sig.bin"
 
+int gv100_acr_fill_bl_dmem_desc(struct gk20a *g, struct nvgpu_acr *acr,
+	struct hs_acr *acr_desc, u32 *acr_ucode_header);
+
+void nvgpu_gv100_acr_sw_init(struct gk20a *g, struct nvgpu_acr *acr);
+
 #endif /* NVGPU_ACR_GV100_H */
