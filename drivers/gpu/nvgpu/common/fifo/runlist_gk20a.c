@@ -37,7 +37,7 @@
 #define FECS_METHOD_WFI_RESTORE 0x80000U
 #define FECS_MAILBOX_0_ACK_RESTORE 0x4U
 
-int gk20a_fifo_reschedule_runlist(struct channel_gk20a *ch, bool preempt_next)
+int gk20a_runlist_reschedule(struct channel_gk20a *ch, bool preempt_next)
 {
 	return nvgpu_fifo_reschedule_runlist(ch, preempt_next, true);
 }
@@ -103,7 +103,7 @@ int gk20a_fifo_reschedule_preempt_next(struct channel_gk20a *ch,
 	return ret;
 }
 
-int gk20a_fifo_set_runlist_interleave(struct gk20a *g,
+int gk20a_runlist_set_interleave(struct gk20a *g,
 				u32 id,
 				u32 runlist_id,
 				u32 new_level)
@@ -115,17 +115,17 @@ int gk20a_fifo_set_runlist_interleave(struct gk20a *g,
 	return 0;
 }
 
-u32 gk20a_fifo_runlist_base_size(void)
+u32 gk20a_runlist_count_max(void)
 {
 	return fifo_eng_runlist_base__size_1_v();
 }
 
-u32 gk20a_fifo_runlist_entry_size(void)
+u32 gk20a_runlist_entry_size(void)
 {
 	return ram_rl_entry_size_v();
 }
 
-void gk20a_get_tsg_runlist_entry(struct tsg_gk20a *tsg, u32 *runlist)
+void gk20a_runlist_get_tsg_entry(struct tsg_gk20a *tsg, u32 *runlist)
 {
 
 	u32 runlist_entry_0 = ram_rl_entry_id_f(tsg->tsgid) |
@@ -156,13 +156,13 @@ void gk20a_get_tsg_runlist_entry(struct tsg_gk20a *tsg, u32 *runlist)
 
 }
 
-void gk20a_get_ch_runlist_entry(struct channel_gk20a *ch, u32 *runlist)
+void gk20a_runlist_get_ch_entry(struct channel_gk20a *ch, u32 *runlist)
 {
 	runlist[0] = ram_rl_entry_chid_f(ch->chid);
 	runlist[1] = 0;
 }
 
-void gk20a_fifo_runlist_hw_submit(struct gk20a *g, u32 runlist_id,
+void gk20a_runlist_hw_submit(struct gk20a *g, u32 runlist_id,
 	u32 count, u32 buffer_index)
 {
 	struct fifo_runlist_info_gk20a *runlist = NULL;
@@ -189,7 +189,7 @@ void gk20a_fifo_runlist_hw_submit(struct gk20a *g, u32 runlist_id,
 	nvgpu_spinlock_release(&g->fifo.runlist_submit_lock);
 }
 
-int gk20a_fifo_runlist_wait_pending(struct gk20a *g, u32 runlist_id)
+int gk20a_runlist_wait_pending(struct gk20a *g, u32 runlist_id)
 {
 	struct nvgpu_timeout timeout;
 	u32 delay = GR_IDLE_CHECK_DEFAULT;
@@ -217,7 +217,7 @@ int gk20a_fifo_runlist_wait_pending(struct gk20a *g, u32 runlist_id)
 	return ret;
 }
 
-void gk20a_fifo_runlist_write_state(struct gk20a *g, u32 runlists_mask,
+void gk20a_runlist_write_state(struct gk20a *g, u32 runlists_mask,
 					 u32 runlist_state)
 {
 	u32 reg_val;

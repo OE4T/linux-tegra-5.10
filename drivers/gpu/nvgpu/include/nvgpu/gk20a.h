@@ -854,8 +854,7 @@ struct gpu_ops {
 		} err_ops;
 	} fifo;
 	struct {
-		int (*reschedule_runlist)(struct channel_gk20a *ch,
-				bool preempt_next);
+		int (*reschedule)(struct channel_gk20a *ch, bool preempt_next);
 		int (*reschedule_preempt_next_locked)(struct channel_gk20a *ch,
 				bool wait_preempt);
 		int (*update_for_channel)(struct gk20a *g, u32 runlist_id,
@@ -863,19 +862,16 @@ struct gpu_ops {
 				bool wait_for_finish);
 		int (*reload)(struct gk20a *g, u32 runlist_id,
 				bool add, bool wait_for_finish);
-		int (*set_runlist_interleave)(struct gk20a *g, u32 id,
-					u32 runlist_id,
-					u32 new_level);
-		u32 (*eng_runlist_base_size)(void);
-		u32 (*runlist_entry_size)(void);
-		void (*get_tsg_runlist_entry)(struct tsg_gk20a *tsg,
-					u32 *runlist);
-		void (*get_ch_runlist_entry)(struct channel_gk20a *ch,
-					u32 *runlist);
-		void (*runlist_hw_submit)(struct gk20a *g, u32 runlist_id,
+		int (*set_interleave)(struct gk20a *g, u32 id,
+					u32 runlist_id, u32 new_level);
+		u32 (*count_max)(void);
+		u32 (*entry_size)(void);
+		void (*get_tsg_entry)(struct tsg_gk20a *tsg, u32 *runlist);
+		void (*get_ch_entry)(struct channel_gk20a *ch, u32 *runlist);
+		void (*hw_submit)(struct gk20a *g, u32 runlist_id,
 			u32 count, u32 buffer_index);
-		int (*runlist_wait_pending)(struct gk20a *g, u32 runlist_id);
-		void (*runlist_write_state)(struct gk20a *g, u32 runlists_mask,
+		int (*wait_pending)(struct gk20a *g, u32 runlist_id);
+		void (*write_state)(struct gk20a *g, u32 runlists_mask,
 				u32 runlist_state);
 	} runlist;
 

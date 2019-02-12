@@ -83,7 +83,7 @@ struct fifo_runlist_info_gk20a {
 	u32  pbdma_bitmask;      /* pbdmas supported for this runlist*/
 	u32  eng_bitmask;        /* engines using this runlist */
 	u32  reset_eng_bitmask;  /* engines to be reset during recovery */
-	u32  count;              /* cached runlist_hw_submit parameter */
+	u32  count;              /* cached hw_submit parameter */
 	bool stopped;
 	bool support_tsg;
 	/* protect ch/tsg/runlist preempt & runlist update */

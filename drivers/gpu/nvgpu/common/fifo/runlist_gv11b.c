@@ -31,24 +31,24 @@
 #include <nvgpu/hw/gv11b/hw_fifo_gv11b.h>
 #include <nvgpu/hw/gv11b/hw_ram_gv11b.h>
 
-int gv11b_fifo_reschedule_runlist(struct channel_gk20a *ch, bool preempt_next)
+int gv11b_runlist_reschedule(struct channel_gk20a *ch, bool preempt_next)
 {
 	/* gv11b allows multiple outstanding preempts,
 	   so always preempt next for best reschedule effect */
 	return nvgpu_fifo_reschedule_runlist(ch, true, false);
 }
 
-u32 gv11b_fifo_runlist_base_size(void)
+u32 gv11b_runlist_count_max(void)
 {
 	return fifo_eng_runlist_base__size_1_v();
 }
 
-u32 gv11b_fifo_runlist_entry_size(void)
+u32 gv11b_runlist_entry_size(void)
 {
 	return ram_rl_entry_size_v();
 }
 
-void gv11b_get_tsg_runlist_entry(struct tsg_gk20a *tsg, u32 *runlist)
+void gv11b_runlist_get_tsg_entry(struct tsg_gk20a *tsg, u32 *runlist)
 {
 	struct gk20a *g = tsg->g;
 	u32 runlist_entry_0 = ram_rl_entry_type_tsg_v();
@@ -75,7 +75,7 @@ void gv11b_get_tsg_runlist_entry(struct tsg_gk20a *tsg, u32 *runlist)
 
 }
 
-void gv11b_get_ch_runlist_entry(struct channel_gk20a *c, u32 *runlist)
+void gv11b_runlist_get_ch_entry(struct channel_gk20a *c, u32 *runlist)
 {
 	struct gk20a *g = c->g;
 	u32 addr_lo, addr_hi;

@@ -27,10 +27,10 @@
 struct channel_gk20a;
 struct tsg_gk20a;
 
-int gv11b_fifo_reschedule_runlist(struct channel_gk20a *ch, bool preempt_next);
-u32 gv11b_fifo_runlist_base_size(void);
-u32 gv11b_fifo_runlist_entry_size(void);
-void gv11b_get_tsg_runlist_entry(struct tsg_gk20a *tsg, u32 *runlist);
-void gv11b_get_ch_runlist_entry(struct channel_gk20a *c, u32 *runlist);
+int gv11b_runlist_reschedule(struct channel_gk20a *ch, bool preempt_next);
+u32 gv11b_runlist_count_max(void);
+u32 gv11b_runlist_entry_size(void);
+void gv11b_runlist_get_tsg_entry(struct tsg_gk20a *tsg, u32 *runlist);
+void gv11b_runlist_get_ch_entry(struct channel_gk20a *c, u32 *runlist);
 
 #endif /* NVGPU_RUNLIST_GV11B_H */

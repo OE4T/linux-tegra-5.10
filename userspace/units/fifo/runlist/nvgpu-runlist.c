@@ -60,8 +60,8 @@ static void setup_fifo(struct gk20a *g, unsigned long *tsg_map,
 	 * entries are enough. The logic is same across chips.
 	 */
 	f->runlist_entry_size = 2 * sizeof(u32);
-	g->ops.runlist.get_tsg_runlist_entry = gk20a_get_tsg_runlist_entry;
-	g->ops.runlist.get_ch_runlist_entry = gk20a_get_ch_runlist_entry;
+	g->ops.runlist.get_tsg_entry = gk20a_runlist_get_tsg_entry;
+	g->ops.runlist.get_ch_entry = gk20a_runlist_get_ch_entry;
 
 	g->runlist_interleave = interleave;
 

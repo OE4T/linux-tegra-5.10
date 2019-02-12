@@ -618,7 +618,7 @@ int vgpu_fifo_wait_engine_idle(struct gk20a *g)
 	return 0;
 }
 
-int vgpu_fifo_set_runlist_interleave(struct gk20a *g,
+int vgpu_runlist_set_interleave(struct gk20a *g,
 					u32 id,
 					u32 runlist_id,
 					u32 new_level)

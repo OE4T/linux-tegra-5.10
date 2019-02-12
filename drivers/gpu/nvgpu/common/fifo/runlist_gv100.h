@@ -24,6 +24,6 @@
 
 #include <nvgpu/types.h>
 
-u32 gv100_fifo_runlist_base_size(void);
+u32 gv100_runlist_count_max(void);
 
 #endif /* NVGPU_RUNLIST_GV100_H */

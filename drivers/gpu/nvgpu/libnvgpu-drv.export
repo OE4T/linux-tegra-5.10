@@ -26,8 +26,8 @@ find_first_zero_bit
 find_next_bit
 gk20a_alloc_inst_block
 gk20a_bus_set_bar0_window
-gk20a_get_ch_runlist_entry
-gk20a_get_tsg_runlist_entry
+gk20a_runlist_get_ch_entry
+gk20a_runlist_get_tsg_entry
 gk20a_locked_gmmu_map
 gk20a_locked_gmmu_unmap
 gm20b_fb_tlb_invalidate

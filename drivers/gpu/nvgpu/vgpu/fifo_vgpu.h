@@ -49,7 +49,7 @@ int vgpu_runlist_update_for_channel(struct gk20a *g, u32 runlist_id,
 int vgpu_runlist_reload(struct gk20a *g, u32 runlist_id,
 			      bool add, bool wait_for_finish);
 int vgpu_fifo_wait_engine_idle(struct gk20a *g);
-int vgpu_fifo_set_runlist_interleave(struct gk20a *g,
+int vgpu_runlist_set_interleave(struct gk20a *g,
 					u32 id,
 					u32 runlist_id,
 					u32 new_level);

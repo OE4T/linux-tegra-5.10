@@ -26,10 +26,10 @@
 
 struct gk20a;
 
-u32 tu104_fifo_runlist_base_size(void);
-u32 tu104_fifo_runlist_entry_size(void);
-void tu104_fifo_runlist_hw_submit(struct gk20a *g, u32 runlist_id,
+u32 tu104_runlist_count_max(void);
+u32 tu104_runlist_entry_size(void);
+void tu104_runlist_hw_submit(struct gk20a *g, u32 runlist_id,
 		u32 count, u32 buffer_index);
-int tu104_fifo_runlist_wait_pending(struct gk20a *g, u32 runlist_id);
+int tu104_runlist_wait_pending(struct gk20a *g, u32 runlist_id);
 
 #endif /* NVGPU_RUNLIST_TU104_H */

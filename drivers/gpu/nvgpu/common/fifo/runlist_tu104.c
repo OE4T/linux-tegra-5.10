@@ -32,17 +32,17 @@
 #include <nvgpu/hw/tu104/hw_fifo_tu104.h>
 #include <nvgpu/hw/tu104/hw_ram_tu104.h>
 
-u32 tu104_fifo_runlist_base_size(void)
+u32 tu104_runlist_count_max(void)
 {
 	return fifo_runlist_base_lo__size_1_v();
 }
 
-u32 tu104_fifo_runlist_entry_size(void)
+u32 tu104_runlist_entry_size(void)
 {
 	return ram_rl_entry_size_v();
 }
 
-void tu104_fifo_runlist_hw_submit(struct gk20a *g, u32 runlist_id,
+void tu104_runlist_hw_submit(struct gk20a *g, u32 runlist_id,
 	u32 count, u32 buffer_index)
 {
 	struct fifo_runlist_info_gk20a *runlist = NULL;
@@ -72,7 +72,7 @@ void tu104_fifo_runlist_hw_submit(struct gk20a *g, u32 runlist_id,
 		fifo_runlist_submit_length_f(count));
 }
 
-int tu104_fifo_runlist_wait_pending(struct gk20a *g, u32 runlist_id)
+int tu104_runlist_wait_pending(struct gk20a *g, u32 runlist_id)
 {
 	struct nvgpu_timeout timeout;
 	u32 delay = GR_IDLE_CHECK_DEFAULT;
