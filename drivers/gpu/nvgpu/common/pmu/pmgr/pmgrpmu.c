@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -27,6 +27,7 @@
 #include <nvgpu/boardobjgrp.h>
 #include <nvgpu/boardobjgrp_e32.h>
 #include <nvgpu/string.h>
+#include <nvgpu/bug.h>
 
 #include "gp106/bios_gp106.h"
 
@@ -155,15 +156,18 @@ static int pmgr_send_i2c_device_topology_to_pmu(struct gk20a *g)
 	int status = 0;
 
 	/* INA3221 I2C device info */
-	i2c_desc_table.dev_mask = (1UL << idx);
+	i2c_desc_table.dev_mask = BIT32(idx);
 
 	/* INA3221 */
 	i2c_desc_table.devices[idx].super.type = 0x4E;
 
-	i2c_desc_table.devices[idx].dcb_index = idx;
-	i2c_desc_table.devices[idx].i2c_address = g->ina3221_i2c_address;
+	nvgpu_assert(idx < NV_PMU_PMGR_I2C_DEVICE_DESC_TABLE_MAX_DEVICES);
+	i2c_desc_table.devices[idx].dcb_index = (u8)idx;
+	nvgpu_assert(g->ina3221_i2c_address < (u32)U16_MAX);
+	i2c_desc_table.devices[idx].i2c_address = (u16)g->ina3221_i2c_address;
 	i2c_desc_table.devices[idx].i2c_flags = 0xC2F;
-	i2c_desc_table.devices[idx].i2c_port = g->ina3221_i2c_port;
+	nvgpu_assert(g->ina3221_i2c_port <= (u32)U8_MAX);
+	i2c_desc_table.devices[idx].i2c_port = (u8)g->ina3221_i2c_port;
 
 	/* Pass the table down the PMU as an object */
 	status = pmgr_pmu_set_object(
@@ -281,7 +285,7 @@ static int pmgr_send_pwr_mointer_to_pmu(struct gk20a *g)
 	}
 
 	/* Calculate the max Dmem buffer size */
-	max_dmem_size = sizeof(union nv_pmu_pmgr_pwr_monitor_dmem_size);
+	max_dmem_size = (u32)sizeof(union nv_pmu_pmgr_pwr_monitor_dmem_size);
 
 	/* Pass the table down the PMU as an object */
 	status = pmgr_pmu_set_object(
@@ -366,7 +370,7 @@ static int pmgr_send_pwr_policy_to_pmu(struct gk20a *g)
 			&ppwrpack->violations.hdr.data.super,
 			g->pmgr_pmu->pmgr_policyobjs.pwr_violations.super.objmask);
 
-	max_dmem_size = sizeof(union nv_pmu_pmgr_pwr_policy_dmem_size);
+	max_dmem_size = (u32)sizeof(union nv_pmu_pmgr_pwr_policy_dmem_size);
 
 	/* Pass the table down the PMU as an object */
 	status = pmgr_pmu_set_object(
@@ -415,7 +419,7 @@ int pmgr_pmu_pwr_devices_query_blocking(
 	pcmd->dev_mask = pwr_dev_mask;
 
 	payload.out.buf = ppayload;
-	payload.out.size = sizeof(struct nv_pmu_pmgr_pwr_devices_query_payload);
+	payload.out.size = (u32)sizeof(struct nv_pmu_pmgr_pwr_devices_query_payload);
 	payload.out.fb_size = PMU_CMD_SUBMIT_PAYLOAD_PARAMS_FB_SIZE_UNUSED;
 	payload.out.offset = NV_PMU_PMGR_PWR_DEVICES_QUERY_ALLOC_OFFSET;
 

@@ -668,7 +668,7 @@ static int devinit_get_pwr_policy_table(struct gk20a *g,
 		pwr_policy_data.pwrpolicy.filter_param.iir.divisor = 0;
 
 		hw_threshold_policy_index |=
-			BIT(pwr_policy_data.hw_threshold.threshold_idx);
+			BIT32(pwr_policy_data.hw_threshold.threshold_idx);
 
 		boardobj = construct_pwr_policy(g, &pwr_policy_data,
 				pwr_policy_size, pwr_policy_data.boardobj.type);
@@ -751,7 +751,7 @@ int pmgr_policy_sw_setup(struct gk20a *g)
 	}
 
 	(void) memset(g->pmgr_pmu->pmgr_policyobjs.policy_idxs,
-		CTRL_PMGR_PWR_POLICY_INDEX_INVALID,
+		(int)CTRL_PMGR_PWR_POLICY_INDEX_INVALID,
 		sizeof(u8) * CTRL_PMGR_PWR_POLICY_IDX_NUM_INDEXES);
 
 	/* Initialize external power limit policy indexes to _INVALID/0xFF */
@@ -761,7 +761,7 @@ int pmgr_policy_sw_setup(struct gk20a *g)
 	}
 
 	/* Initialize external power state to _D1 */
-	g->pmgr_pmu->pmgr_policyobjs.ext_power_state = 0xFFFFFFFF;
+	g->pmgr_pmu->pmgr_policyobjs.ext_power_state = -1;
 
 	ppwrpolicyobjs = &(g->pmgr_pmu->pmgr_policyobjs);
 	pboardobjgrp = &(g->pmgr_pmu->pmgr_policyobjs.pwr_policies.super);

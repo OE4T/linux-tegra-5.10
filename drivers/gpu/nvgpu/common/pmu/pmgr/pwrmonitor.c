@@ -81,7 +81,7 @@ static int _pwr_channel_rels_pmudata_instget(struct gk20a *g,
 	return 0;
 }
 
-static u32 _pwr_channel_state_init(struct gk20a *g)
+static int _pwr_channel_state_init(struct gk20a *g)
 {
 	u8 indx = 0;
 	struct pwr_channel *pchannel;
@@ -369,7 +369,8 @@ int pmgr_monitor_sw_setup(struct gk20a *g)
 	BOARDOBJGRP_FOR_EACH(pboardobjgrp, struct pwr_channel *, pchannel, indx) {
 		if (_pwr_channel_implements(pchannel,
 				CTRL_PMGR_PWR_CHANNEL_TYPE_SENSOR)) {
-			g->pmgr_pmu->pmgr_monitorobjs.physical_channel_mask  |= BIT(indx);
+			g->pmgr_pmu->pmgr_monitorobjs.physical_channel_mask  |=
+								BIT32(indx);
 		}
 	}
 
