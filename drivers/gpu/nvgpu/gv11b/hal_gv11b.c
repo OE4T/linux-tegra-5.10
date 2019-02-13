@@ -455,6 +455,8 @@ static const struct gpu_ops gv11b_ops = {
 			gk20a_gr_get_global_ctx_cb_buffer_size,
 		.get_global_ctx_pagepool_buffer_size =
 			gk20a_gr_get_global_ctx_pagepool_buffer_size,
+		.get_ctxsw_checksum_mismatch_mailbox_val =
+				gr_gv11b_ctxsw_checksum_mismatch_mailbox_val,
 		.ctxsw_prog = {
 			.hw_get_fecs_header_size =
 				gm20b_ctxsw_prog_hw_get_fecs_header_size,

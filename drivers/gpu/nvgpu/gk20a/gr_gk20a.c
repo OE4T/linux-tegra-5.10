@@ -93,6 +93,29 @@ void nvgpu_report_gr_exception(struct gk20a *g, u32 inst,
 static int gk20a_init_gr_bind_fecs_elpg(struct gk20a *g);
 
 
+static void gr_report_ctxsw_error(struct gk20a *g, u32 err_type, u32 chid,
+		u32 mailbox_value)
+{
+	int ret = 0;
+	struct ctxsw_err_info err_info;
+
+	err_info.curr_ctx = gk20a_readl(g, gr_fecs_current_ctx_r());
+	err_info.ctxsw_status0 = gk20a_readl(g, gr_fecs_ctxsw_status_fe_0_r());
+	err_info.ctxsw_status1 = gk20a_readl(g, gr_fecs_ctxsw_status_1_r());
+	err_info.mailbox_value = mailbox_value;
+	err_info.chid = chid;
+
+	if (g->ops.gr.err_ops.report_ctxsw_err != NULL) {
+		ret = g->ops.gr.err_ops.report_ctxsw_err(g,
+				NVGPU_ERR_MODULE_FECS,
+				err_type, (void *)&err_info);
+		if (ret != 0) {
+			nvgpu_err(g, "Failed to report FECS CTXSW error: %d",
+					err_type);
+		}
+	}
+}
+
 void gk20a_fecs_dump_falcon_stats(struct gk20a *g)
 {
 	unsigned int i;
@@ -3206,6 +3229,8 @@ int gk20a_gr_handle_fecs_error(struct gk20a *g, struct channel_gk20a *ch,
 		ret = -1;
 	} else if ((gr_fecs_intr &
 			gr_fecs_host_int_status_watchdog_active_f()) != 0U) {
+		gr_report_ctxsw_error(g, GPU_FECS_CTXSW_WATCHDOG_TIMEOUT,
+				chid, 0);
 		/* currently, recovery is not initiated */
 		nvgpu_err(g, "fecs watchdog triggered for channel %u, "
 				"cannot ctxsw anymore !!", chid);
@@ -3220,18 +3245,40 @@ int gk20a_gr_handle_fecs_error(struct gk20a *g, struct channel_gk20a *ch,
 			nvgpu_info(g, "ctxsw intr0 set by ucode, "
 					"timestamp buffer full");
 			nvgpu_gr_fecs_trace_reset_buffer(g);
+		} else
+#endif
+		/*
+		 * The mailbox values may vary across chips hence keeping it
+		 * as a HAL.
+		 */
+		if (g->ops.gr.get_ctxsw_checksum_mismatch_mailbox_val
+				!= NULL && mailbox_value ==
+				g->ops.gr.get_ctxsw_checksum_mismatch_mailbox_val()) {
+
+			gr_report_ctxsw_error(g, GPU_FECS_CTXSW_CRC_MISMATCH,
+					chid, mailbox_value);
+			nvgpu_err(g, "ctxsw intr0 set by ucode, "
+					"ctxsw checksum mismatch");
+			ret = -1;
 		} else {
+			/*
+			 * Other errors are also treated as fatal and channel
+			 * recovery is initiated and error is reported to
+			 * 3LSS.
+			 */
+			gr_report_ctxsw_error(g, GPU_FECS_FAULT_DURING_CTXSW,
+					chid, mailbox_value);
 			nvgpu_err(g,
 				 "ctxsw intr0 set by ucode, error_code: 0x%08x",
 				 mailbox_value);
 			ret = -1;
 		}
-#else
-		nvgpu_err(g,
-			 "ctxsw intr0 set by ucode, error_code: 0x%08x",
-			 mailbox_value);
+	} else if ((gr_fecs_intr &
+			gr_fecs_host_int_status_fault_during_ctxsw_f(1)) != 0U) {
+		gr_report_ctxsw_error(g, GPU_FECS_FAULT_DURING_CTXSW,
+				chid, 0);
+		nvgpu_err(g, "fecs fault during ctxsw for channel %u", chid);
 		ret = -1;
-#endif
 	} else {
 		nvgpu_err(g,
 			"unhandled fecs error interrupt 0x%08x for channel %u",

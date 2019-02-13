@@ -688,6 +688,7 @@ struct gpu_ops {
 				bool enable);
 		} init;
 
+		u32 (*get_ctxsw_checksum_mismatch_mailbox_val)(void);
 		u32 (*fecs_falcon_base_addr)(void);
 		u32 (*gpccs_falcon_base_addr)(void);
 
@@ -699,6 +700,8 @@ struct gpu_ops {
 			int (*report_gr_err)(struct gk20a *g,
 					u32 hw_id, u32 inst, u32 err_id,
 					u32 status);
+			int (*report_ctxsw_err)(struct gk20a *g,
+					u32 hw_id, u32 err_id, void *data);
 		} err_ops;
 	} gr;
 	struct {

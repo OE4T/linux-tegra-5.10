@@ -78,6 +78,12 @@
  */
 #define GR_TPCS_INFO_FOR_MAPREGISTER 6U
 
+
+u32 gr_gv11b_ctxsw_checksum_mismatch_mailbox_val(void)
+{
+	return gr_fecs_ctxsw_mailbox_value_ctxsw_checksum_mismatch_v();
+}
+
 bool gr_gv11b_is_valid_class(struct gk20a *g, u32 class_num)
 {
 	bool valid = false;
@@ -424,6 +430,7 @@ void gr_gv11b_enable_hww_exceptions(struct gk20a *g)
 void gr_gv11b_fecs_host_int_enable(struct gk20a *g)
 {
 	gk20a_writel(g, gr_fecs_host_int_enable_r(),
+		     gr_fecs_host_int_enable_ctxsw_intr0_enable_f() |
 		     gr_fecs_host_int_enable_ctxsw_intr1_enable_f() |
 		     gr_fecs_host_int_enable_fault_during_ctxsw_enable_f() |
 		     gr_fecs_host_int_enable_umimp_firmware_method_enable_f() |

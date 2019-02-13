@@ -76,7 +76,7 @@ void gr_gv11b_program_zcull_mapping(struct gk20a *g, u32 zcull_num_entries,
 					u32 *zcull_map_tiles);
 void gr_gv11b_create_sysfs(struct gk20a *g);
 void gr_gv11b_remove_sysfs(struct gk20a *g);
-
+u32 gr_gv11b_ctxsw_checksum_mismatch_mailbox_val(void);
 bool gr_gv11b_is_valid_class(struct gk20a *g, u32 class_num);
 bool gr_gv11b_is_valid_gfx_class(struct gk20a *g, u32 class_num);
 bool gr_gv11b_is_valid_compute_class(struct gk20a *g, u32 class_num);

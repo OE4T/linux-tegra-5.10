@@ -2026,6 +2026,10 @@ static inline u32 gr_fecs_host_int_status_fault_during_ctxsw_f(u32 v)
 {
 	return (v & 0x1U) << 16U;
 }
+static inline u32 gr_fecs_host_int_status_fault_during_ctxsw_active_v(void)
+{
+	return 0x00000001U;
+}
 static inline u32 gr_fecs_host_int_status_umimp_firmware_method_f(u32 v)
 {
 	return (v & 0x1U) << 17U;
@@ -2062,6 +2066,10 @@ static inline u32 gr_fecs_host_int_clear_r(void)
 {
 	return 0x00409c20U;
 }
+static inline u32 gr_fecs_host_int_clear_ctxsw_intr0_clear_v(void)
+{
+	return 0x00000001U;
+}
 static inline u32 gr_fecs_host_int_clear_ctxsw_intr1_f(u32 v)
 {
 	return (v & 0x1U) << 1U;
@@ -2070,9 +2078,17 @@ static inline u32 gr_fecs_host_int_clear_ctxsw_intr1_clear_f(void)
 {
 	return 0x2U;
 }
+static inline u32 gr_fecs_host_int_clear_fault_during_ctxsw_clear_v(void)
+{
+	return 0x00000001U;
+}
 static inline u32 gr_fecs_host_int_enable_r(void)
 {
 	return 0x00409c24U;
+}
+static inline u32 gr_fecs_host_int_enable_ctxsw_intr0_enable_f(void)
+{
+	return 0x1U;
 }
 static inline u32 gr_fecs_host_int_enable_ctxsw_intr1_enable_f(void)
 {
@@ -2197,6 +2213,10 @@ static inline u32 gr_fecs_ctxsw_mailbox_value_pass_v(void)
 static inline u32 gr_fecs_ctxsw_mailbox_value_fail_v(void)
 {
 	return 0x00000002U;
+}
+static inline u32 gr_fecs_ctxsw_mailbox_value_ctxsw_checksum_mismatch_v(void)
+{
+	return 0x00000021U;
 }
 static inline u32 gr_fecs_ctxsw_mailbox_set_r(u32 i)
 {
