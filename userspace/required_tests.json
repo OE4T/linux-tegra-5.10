@@ -767,5 +767,19 @@
     {
         "test": "nvgpu_pramin_wr_n_3_sgl",
         "unit": "pramin"
+    },
+    {
+        "test": "map_buf",
+        "req": "NVGPU-RQCD-45.C1",
+        "vc": "V5",
+        "uid": "6434840",
+        "unit": "vm"
+    },
+    {
+        "test": "map_buf_gpu_va",
+        "req": "NVGPU-RQCD-45.C2",
+        "vc": "V5",
+        "uid": "6434840",
+        "unit": "vm"
     }
 ]

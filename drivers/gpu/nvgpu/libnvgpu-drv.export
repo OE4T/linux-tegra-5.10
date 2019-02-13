@@ -164,10 +164,13 @@ nvgpu_spinlock_acquire
 nvgpu_spinlock_init
 nvgpu_spinlock_release
 nvgpu_usermode_writel
+nvgpu_vm_area_alloc
+nvgpu_vm_area_free
 nvgpu_vm_find_mapped_buf
 nvgpu_vm_init
 nvgpu_vm_map
 nvgpu_vm_put
+nvgpu_vm_unmap
 nvgpu_writel
 nvgpu_writel_check
 set_bit

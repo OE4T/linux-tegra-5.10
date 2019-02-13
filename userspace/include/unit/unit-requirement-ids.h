@@ -37,4 +37,6 @@
 
 #define PAGE_TABLE_REQ1_UID		"6439094"
 
+#define VM_REQ1_UID			"6434840"
+
 #endif
