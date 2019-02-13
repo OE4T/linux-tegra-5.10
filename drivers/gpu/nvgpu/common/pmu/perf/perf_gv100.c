@@ -82,11 +82,11 @@ static int gv100_pmu_handle_perf_event(struct gk20a *g, void *pmumsg)
 	return 0;
 }
 
-static u32 perf_pmu_init_vfe_perf_event(struct gk20a *g)
+static int perf_pmu_init_vfe_perf_event(struct gk20a *g)
 {
 	struct perf_pmupstate *perf_pmu = g->perf_pmu;
 	char thread_name[64];
-	u32 err = 0;
+	int err = 0;
 
 	nvgpu_log_fn(g, " ");
 
@@ -97,7 +97,7 @@ static u32 perf_pmu_init_vfe_perf_event(struct gk20a *g)
 
 	err = nvgpu_thread_create(&perf_pmu->vfe_init.state_task, g,
 			pmu_set_boot_clk_runcb_fn, thread_name);
-	if (err != 0U) {
+	if (err != 0) {
 		nvgpu_err(g, "failed to start nvgpu_vfe_invalidate_init thread");
 	}
 

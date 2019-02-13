@@ -88,7 +88,7 @@ struct nv_pmu_perf_cmd_rpc {
 };
 
 #define NV_PMU_PERF_CMD_RPC_ALLOC_OFFSET       \
-	offsetof(struct nv_pmu_perf_cmd_rpc, request)
+	(u32)offsetof(struct nv_pmu_perf_cmd_rpc, request)
 
 /*!
 * Simply a union of all specific PERF commands. Forms the general packet
@@ -137,7 +137,7 @@ struct nv_pmu_perf_msg_rpc {
 };
 
 #define NV_PMU_PERF_MSG_RPC_ALLOC_OFFSET       \
-	(offsetof(struct nv_pmu_perf_msg_rpc, response))
+	((u32)offsetof(struct nv_pmu_perf_msg_rpc, response))
 
 /*!
 * Simply a union of all specific PERF messages. Forms the general packet

@@ -1188,9 +1188,9 @@ static int devinit_get_vfe_var_table(struct gk20a *g,
 				var.param1;
 			if (szfmt >= VBIOS_VFE_3X_VAR_ENTRY_SIZE_19) {
 				var_data.single_sensed_fuse.vfield_info.hw_correction_scale  =
-					(int)var.param2;
+					var.param2;
 				var_data.single_sensed_fuse.vfield_info.hw_correction_offset =
-					var.param3;
+					(int)var.param3;
 			} else {
 				var_data.single_sensed_fuse.vfield_info.hw_correction_scale =
 					BIT32(12);
