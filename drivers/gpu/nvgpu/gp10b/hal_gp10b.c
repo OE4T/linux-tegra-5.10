@@ -272,16 +272,6 @@ static const struct gpu_ops gp10b_ops = {
 		.is_tpc_addr = gr_gm20b_is_tpc_addr,
 		.get_tpc_num = gr_gm20b_get_tpc_num,
 		.detect_sm_arch = gr_gm20b_detect_sm_arch,
-		.add_zbc_color = gr_gp10b_add_zbc_color,
-		.add_zbc_depth = gr_gp10b_add_zbc_depth,
-		.get_gpcs_swdx_dss_zbc_c_format_reg =
-			gr_gp10b_get_gpcs_swdx_dss_zbc_c_format_reg,
-		.get_gpcs_swdx_dss_zbc_z_format_reg =
-			gr_gp10b_get_gpcs_swdx_dss_zbc_z_format_reg,
-		.zbc_set_table = gk20a_gr_zbc_set_table,
-		.zbc_query_table = gr_gk20a_query_zbc,
-		.pmu_save_zbc = gk20a_pmu_save_zbc,
-		.add_zbc = gr_gk20a_add_zbc,
 		.pagepool_default_size = gr_gp10b_pagepool_default_size,
 		.init_ctx_state = gr_gp10b_init_ctx_state,
 		.alloc_gr_ctx = gr_gk20a_alloc_gr_ctx,
@@ -462,6 +452,22 @@ static const struct gpu_ops gp10b_ops = {
 			.get_pes_tpc_mask = gm20b_gr_config_get_pes_tpc_mask,
 			.get_pd_dist_skip_table_size =
 				gm20b_gr_config_get_pd_dist_skip_table_size,
+		},
+		.zbc = {
+			.add_color = gr_gp10b_add_zbc_color,
+			.add_depth = gr_gp10b_add_zbc_depth,
+			.set_table = gk20a_gr_zbc_set_table,
+			.query_table = gr_gk20a_query_zbc,
+			.pmu_save = gk20a_pmu_save_zbc,
+			.stencil_query_table = NULL,
+			.load_stencil_default_tbl = NULL,
+			.add_type_stencil = NULL,
+			.load_stencil_tbl = NULL,
+			.add_stencil = NULL,
+			.get_gpcs_swdx_dss_zbc_c_format_reg =
+				gr_gp10b_get_gpcs_swdx_dss_zbc_c_format_reg,
+			.get_gpcs_swdx_dss_zbc_z_format_reg =
+				gr_gp10b_get_gpcs_swdx_dss_zbc_z_format_reg,
 		}
 	},
 	.fb = {

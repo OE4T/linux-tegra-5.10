@@ -1724,7 +1724,7 @@ long gk20a_ctrl_dev_ioctl(struct file *filp, unsigned int cmd, unsigned long arg
 		if (!err) {
 			err = gk20a_busy(g);
 			if (!err) {
-				err = g->ops.gr.zbc_set_table(g, &g->gr,
+				err = g->ops.gr.zbc.set_table(g, &g->gr,
 							     zbc_val);
 				gk20a_idle(g);
 			}
@@ -1743,7 +1743,7 @@ long gk20a_ctrl_dev_ioctl(struct file *filp, unsigned int cmd, unsigned long arg
 		zbc_tbl->type = query_table_args->type;
 		zbc_tbl->index_size = query_table_args->index_size;
 
-		err = g->ops.gr.zbc_query_table(g, &g->gr, zbc_tbl);
+		err = g->ops.gr.zbc.query_table(g, &g->gr, zbc_tbl);
 
 		if (!err) {
 			switch (zbc_tbl->type) {

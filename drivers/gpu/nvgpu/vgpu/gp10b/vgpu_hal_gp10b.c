@@ -136,12 +136,6 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 		.is_tpc_addr = gr_gm20b_is_tpc_addr,
 		.get_tpc_num = gr_gm20b_get_tpc_num,
 		.detect_sm_arch = vgpu_gr_detect_sm_arch,
-		.add_zbc_color = NULL,
-		.add_zbc_depth = NULL,
-		.zbc_set_table = vgpu_gr_add_zbc,
-		.zbc_query_table = vgpu_gr_query_zbc,
-		.pmu_save_zbc = NULL,
-		.add_zbc = NULL,
 		.pagepool_default_size = gr_gp10b_pagepool_default_size,
 		.init_ctx_state = vgpu_gr_gp10b_init_ctx_state,
 		.alloc_gr_ctx = vgpu_gr_alloc_gr_ctx,
@@ -305,6 +299,20 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 		},
 		.config = {
 			.get_gpc_tpc_mask = vgpu_gr_get_gpc_tpc_mask,
+		},
+		.zbc = {
+			.add_color = NULL,
+			.add_depth = NULL,
+			.set_table = vgpu_gr_add_zbc,
+			.query_table = vgpu_gr_query_zbc,
+			.pmu_save = NULL,
+			.stencil_query_table = NULL,
+			.load_stencil_default_tbl = NULL,
+			.add_type_stencil = NULL,
+			.load_stencil_tbl = NULL,
+			.add_stencil = NULL,
+			.get_gpcs_swdx_dss_zbc_c_format_reg = NULL,
+			.get_gpcs_swdx_dss_zbc_z_format_reg = NULL,
 		}
 	},
 	.fb = {

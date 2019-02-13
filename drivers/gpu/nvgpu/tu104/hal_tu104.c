@@ -390,16 +390,6 @@ static const struct gpu_ops tu104_ops = {
 		.is_tpc_addr = gr_gm20b_is_tpc_addr,
 		.get_tpc_num = gr_gm20b_get_tpc_num,
 		.detect_sm_arch = gr_gv11b_detect_sm_arch,
-		.add_zbc_color = gr_gp10b_add_zbc_color,
-		.add_zbc_depth = gr_gp10b_add_zbc_depth,
-		.get_gpcs_swdx_dss_zbc_c_format_reg =
-			gr_gv11b_get_gpcs_swdx_dss_zbc_c_format_reg,
-		.get_gpcs_swdx_dss_zbc_z_format_reg =
-			gr_gv11b_get_gpcs_swdx_dss_zbc_z_format_reg,
-		.zbc_set_table = gk20a_gr_zbc_set_table,
-		.zbc_query_table = gr_gk20a_query_zbc,
-		.pmu_save_zbc = gk20a_pmu_save_zbc,
-		.add_zbc = gr_gk20a_add_zbc,
 		.pagepool_default_size = gr_gv11b_pagepool_default_size,
 		.init_ctx_state = gr_gp10b_init_ctx_state,
 		.alloc_gr_ctx = gr_gk20a_alloc_gr_ctx,
@@ -481,19 +471,14 @@ static const struct gpu_ops tu104_ops = {
 		.is_etpc_addr = gv11b_gr_pri_is_etpc_addr,
 		.egpc_etpc_priv_addr_table = gv11b_gr_egpc_etpc_priv_addr_table,
 		.handle_tpc_mpc_exception = gr_gv11b_handle_tpc_mpc_exception,
-		.zbc_s_query_table = gr_gv11b_zbc_s_query_table,
-		.load_zbc_s_default_tbl = gr_gv11b_load_stencil_default_tbl,
 		.handle_gpc_gpcmmu_exception =
 			gr_gv11b_handle_gpc_gpcmmu_exception,
-		.add_zbc_type_s = gr_gv11b_add_zbc_type_s,
 		.get_egpc_base = gv11b_gr_get_egpc_base,
 		.get_egpc_etpc_num = gv11b_gr_get_egpc_etpc_num,
 		.handle_gpc_gpccs_exception =
 			gr_gv11b_handle_gpc_gpccs_exception,
-		.load_zbc_s_tbl = gr_gv11b_load_stencil_tbl,
 		.access_smpc_reg = gv11b_gr_access_smpc_reg,
 		.is_egpc_addr = gv11b_gr_pri_is_egpc_addr,
-		.add_zbc_s = gr_gv11b_add_zbc_stencil,
 		.handle_gcc_exception = gr_gv11b_handle_gcc_exception,
 		.init_sw_veid_bundle = gr_gv11b_init_sw_veid_bundle,
 		.handle_tpc_sm_ecc_exception =
@@ -618,6 +603,23 @@ static const struct gpu_ops tu104_ops = {
 			.get_pes_tpc_mask = gm20b_gr_config_get_pes_tpc_mask,
 			.get_pd_dist_skip_table_size =
 				gm20b_gr_config_get_pd_dist_skip_table_size,
+		},
+		.zbc = {
+			.add_color = gr_gp10b_add_zbc_color,
+			.add_depth = gr_gp10b_add_zbc_depth,
+			.set_table = gk20a_gr_zbc_set_table,
+			.query_table = gr_gk20a_query_zbc,
+			.pmu_save = gk20a_pmu_save_zbc,
+			.stencil_query_table = gr_gv11b_zbc_s_query_table,
+			.load_stencil_default_tbl =
+				gr_gv11b_load_stencil_default_tbl,
+			.add_type_stencil = gr_gv11b_add_zbc_type_s,
+			.load_stencil_tbl = gr_gv11b_load_stencil_tbl,
+			.add_stencil = gr_gv11b_add_zbc_stencil,
+			.get_gpcs_swdx_dss_zbc_c_format_reg =
+				gr_gv11b_get_gpcs_swdx_dss_zbc_c_format_reg,
+			.get_gpcs_swdx_dss_zbc_z_format_reg =
+				gr_gv11b_get_gpcs_swdx_dss_zbc_z_format_reg,
 		}
 	},
 	.fb = {

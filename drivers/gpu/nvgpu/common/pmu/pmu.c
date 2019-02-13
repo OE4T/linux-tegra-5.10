@@ -576,7 +576,7 @@ static void pmu_setup_hw_enable_elpg(struct gk20a *g)
 	if (nvgpu_is_enabled(g, NVGPU_PMU_ZBC_SAVE)) {
 		/* Save zbc table after PMU is initialized. */
 		pmu->zbc_ready = true;
-		g->ops.gr.pmu_save_zbc(g, 0xf);
+		g->ops.gr.zbc.pmu_save(g, 0xf);
 	}
 
 	if (g->elpg_enabled) {

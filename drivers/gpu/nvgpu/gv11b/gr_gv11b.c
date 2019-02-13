@@ -1188,7 +1188,7 @@ bool gr_gv11b_add_zbc_type_s(struct gk20a *g, struct gr_gk20a *gr,
 		s_tbl = &gr->zbc_s_tbl[gr->max_used_s_index];
 		WARN_ON(s_tbl->ref_cnt != 0U);
 
-		*ret_val = g->ops.gr.add_zbc_s(g, gr,
+		*ret_val = g->ops.gr.zbc.add_stencil(g, gr,
 				zbc_val, gr->max_used_s_index);
 
 		if ((*ret_val) == 0) {
@@ -1204,19 +1204,21 @@ int gr_gv11b_add_zbc_stencil(struct gk20a *g, struct gr_gk20a *gr,
 	u32 zbc_s;
 
 	/* update l2 table */
-	g->ops.ltc.set_zbc_s_entry(g, stencil_val, index);
+	if (g->ops.ltc.set_zbc_s_entry != NULL) {
+		g->ops.ltc.set_zbc_s_entry(g, stencil_val, index);
+	}
 
 	/* update local copy */
 	gr->zbc_s_tbl[index].stencil = stencil_val->depth;
 	gr->zbc_s_tbl[index].format = stencil_val->format;
 	gr->zbc_s_tbl[index].ref_cnt++;
 
-	gk20a_writel(g, gr_gpcs_swdx_dss_zbc_s_r(index), stencil_val->depth);
-	zbc_s = gk20a_readl(g, gr_gpcs_swdx_dss_zbc_s_01_to_04_format_r() +
+	nvgpu_writel(g, gr_gpcs_swdx_dss_zbc_s_r(index), stencil_val->depth);
+	zbc_s = nvgpu_readl(g, gr_gpcs_swdx_dss_zbc_s_01_to_04_format_r() +
 				 (index & ~3U));
 	zbc_s &= ~(U32(0x7f) << (index % 4U) * 7U);
 	zbc_s |= stencil_val->format << (index % 4U) * 7U;
-	gk20a_writel(g, gr_gpcs_swdx_dss_zbc_s_01_to_04_format_r() +
+	nvgpu_writel(g, gr_gpcs_swdx_dss_zbc_s_01_to_04_format_r() +
 				 (index & ~3U), zbc_s);
 
 	return 0;
@@ -1273,7 +1275,7 @@ int gr_gv11b_load_stencil_tbl(struct gk20a *g, struct gr_gk20a *gr)
 		zbc_val.depth = s_tbl->stencil;
 		zbc_val.format = s_tbl->format;
 
-		ret = g->ops.gr.add_zbc_s(g, gr, &zbc_val, i);
+		ret = g->ops.gr.zbc.add_stencil(g, gr, &zbc_val, i);
 		if (ret != 0) {
 			return ret;
 		}

@@ -315,27 +315,6 @@ struct gpu_ops {
 		u32 (*get_tpc_num)(struct gk20a *g, u32 addr);
 		u32 (*get_egpc_base)(struct gk20a *g);
 		void (*detect_sm_arch)(struct gk20a *g);
-		int (*add_zbc_color)(struct gk20a *g, struct gr_gk20a *gr,
-				  struct zbc_entry *color_val, u32 index);
-		int (*add_zbc_depth)(struct gk20a *g, struct gr_gk20a *gr,
-				  struct zbc_entry *depth_val, u32 index);
-		int (*add_zbc_s)(struct gk20a *g, struct gr_gk20a *gr,
-				  struct zbc_entry *s_val, u32 index);
-		int (*zbc_set_table)(struct gk20a *g, struct gr_gk20a *gr,
-				struct zbc_entry *zbc_val);
-		int (*zbc_query_table)(struct gk20a *g, struct gr_gk20a *gr,
-				struct zbc_query_params *query_params);
-		int (*zbc_s_query_table)(struct gk20a *g, struct gr_gk20a *gr,
-				struct zbc_query_params *query_params);
-		int (*load_zbc_s_default_tbl)(struct gk20a *g,
-					 struct gr_gk20a *gr);
-		int (*load_zbc_s_tbl)(struct gk20a *g,
-					 struct gr_gk20a *gr);
-		void (*pmu_save_zbc)(struct gk20a *g, u32 entries);
-		int (*add_zbc)(struct gk20a *g, struct gr_gk20a *gr,
-				struct zbc_entry *zbc_val);
-		bool (*add_zbc_type_s)(struct gk20a *g, struct gr_gk20a *gr,
-				struct zbc_entry *zbc_val, int *ret_val);
 		u32 (*pagepool_default_size)(struct gk20a *g);
 		int (*init_ctx_state)(struct gk20a *g);
 		int (*alloc_gr_ctx)(struct gk20a *g,
@@ -482,8 +461,6 @@ struct gpu_ops {
 		unsigned long (*get_max_gfxp_wfi_timeout_count)
 					(struct gk20a *g);
 		void (*ecc_init_scrub_reg)(struct gk20a *g);
-		u32 (*get_gpcs_swdx_dss_zbc_c_format_reg)(struct gk20a *g);
-		u32 (*get_gpcs_swdx_dss_zbc_z_format_reg)(struct gk20a *g);
 		void (*fecs_host_int_enable)(struct gk20a *g);
 		int (*handle_ssync_hww)(struct gk20a *g);
 		int (*handle_notify_pending)(struct gk20a *g,
@@ -631,6 +608,35 @@ struct gpu_ops {
 				u32 pes_index);
 			u32 (*get_pd_dist_skip_table_size)(void);
 		} config;
+
+		struct {
+			int (*add_color)(struct gk20a *g, struct gr_gk20a *gr,
+				struct zbc_entry *color_val, u32 index);
+			int (*add_depth)(struct gk20a *g, struct gr_gk20a *gr,
+				struct zbc_entry *depth_val, u32 index);
+			int (*set_table)(struct gk20a *g, struct gr_gk20a *gr,
+				struct zbc_entry *zbc_val);
+			int (*query_table)(struct gk20a *g,
+				struct gr_gk20a *gr,
+				struct zbc_query_params *query_params);
+			int (*stencil_query_table)(struct gk20a *g,
+				struct gr_gk20a *gr,
+				struct zbc_query_params *query_params);
+			int (*load_stencil_default_tbl)(struct gk20a *g,
+				struct gr_gk20a *gr);
+			int (*load_stencil_tbl)(struct gk20a *g,
+				struct gr_gk20a *gr);
+			int (*add_stencil)(struct gk20a *g, struct gr_gk20a *gr,
+				struct zbc_entry *s_val, u32 index);
+			void (*pmu_save)(struct gk20a *g, u32 entries);
+			bool (*add_type_stencil)(struct gk20a *g,
+				struct gr_gk20a *gr,
+				struct zbc_entry *zbc_val, int *ret_val);
+			u32 (*get_gpcs_swdx_dss_zbc_c_format_reg)(
+				struct gk20a *g);
+			u32 (*get_gpcs_swdx_dss_zbc_z_format_reg)(
+				struct gk20a *g);
+		} zbc;
 
 		u32 (*fecs_falcon_base_addr)(void);
 		u32 (*gpccs_falcon_base_addr)(void);

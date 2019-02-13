@@ -532,7 +532,7 @@ int gr_gp10b_add_zbc_color(struct gk20a *g, struct gr_gk20a *gr,
 	u32 i;
 	u32 zbc_c;
 	u32 zbc_c_format_reg =
-		g->ops.gr.get_gpcs_swdx_dss_zbc_c_format_reg(g);
+		g->ops.gr.zbc.get_gpcs_swdx_dss_zbc_c_format_reg(g);
 
 	/* update l2 table */
 	g->ops.ltc.set_zbc_color_entry(g, color_val, index);
@@ -571,7 +571,7 @@ int gr_gp10b_add_zbc_depth(struct gk20a *g, struct gr_gk20a *gr,
 {
 	u32 zbc_z;
 	u32 zbc_z_format_reg =
-		g->ops.gr.get_gpcs_swdx_dss_zbc_z_format_reg(g);
+		g->ops.gr.zbc.get_gpcs_swdx_dss_zbc_z_format_reg(g);
 
 	/* update l2 table */
 	g->ops.ltc.set_zbc_depth_entry(g, depth_val, index);

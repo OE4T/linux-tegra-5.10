@@ -2587,7 +2587,7 @@ void gr_gk20a_pmu_save_zbc(struct gk20a *g, u32 entries)
 	}
 
 	/* update zbc */
-	g->ops.gr.pmu_save_zbc(g, entries);
+	g->ops.gr.zbc.pmu_save(g, entries);
 
 clean_up:
 	ret = gk20a_fifo_enable_engine_activity(g, gr_info);
@@ -2641,7 +2641,7 @@ int gr_gk20a_add_zbc(struct gk20a *g, struct gr_gk20a *gr,
 			    &gr->zbc_col_tbl[gr->max_used_color_index];
 			WARN_ON(c_tbl->ref_cnt != 0U);
 
-			ret = g->ops.gr.add_zbc_color(g, gr,
+			ret = g->ops.gr.zbc.add_color(g, gr,
 				zbc_val, gr->max_used_color_index);
 
 			if (ret == 0) {
@@ -2672,7 +2672,7 @@ int gr_gk20a_add_zbc(struct gk20a *g, struct gr_gk20a *gr,
 			    &gr->zbc_dep_tbl[gr->max_used_depth_index];
 			WARN_ON(d_tbl->ref_cnt != 0U);
 
-			ret = g->ops.gr.add_zbc_depth(g, gr,
+			ret = g->ops.gr.zbc.add_depth(g, gr,
 				zbc_val, gr->max_used_depth_index);
 
 			if (ret == 0) {
@@ -2681,8 +2681,9 @@ int gr_gk20a_add_zbc(struct gk20a *g, struct gr_gk20a *gr,
 		}
 		break;
 	case T19X_ZBC:
-		if (g->ops.gr.add_zbc_type_s != NULL) {
-			added =  g->ops.gr.add_zbc_type_s(g, gr, zbc_val, &ret);
+		if (g->ops.gr.zbc.add_type_stencil != NULL) {
+			added =  g->ops.gr.zbc.add_type_stencil(g, gr,
+								zbc_val, &ret);
 		} else {
 			nvgpu_err(g,
 			"invalid zbc table type %d", zbc_val->type);
@@ -2701,7 +2702,7 @@ int gr_gk20a_add_zbc(struct gk20a *g, struct gr_gk20a *gr,
 		/* update zbc for elpg only when new entry is added */
 		entries = max(gr->max_used_color_index,
 					gr->max_used_depth_index);
-		g->ops.gr.pmu_save_zbc(g, entries);
+		g->ops.gr.zbc.pmu_save(g, entries);
 	}
 
 err_mutex:
@@ -2752,8 +2753,8 @@ int gr_gk20a_query_zbc(struct gk20a *g, struct gr_gk20a *gr,
 		query_params->ref_cnt = gr->zbc_dep_tbl[index].ref_cnt;
 		break;
 	case T19X_ZBC:
-		if (g->ops.gr.zbc_s_query_table != NULL) {
-			return g->ops.gr.zbc_s_query_table(g, gr,
+		if (g->ops.gr.zbc.stencil_query_table != NULL) {
+			return g->ops.gr.zbc.stencil_query_table(g, gr,
 					 query_params);
 		} else {
 			nvgpu_err(g,
@@ -2786,7 +2787,7 @@ static int gr_gk20a_load_zbc_table(struct gk20a *g, struct gr_gk20a *gr)
 			(u8 *)c_tbl->color_l2, sizeof(zbc_val.color_l2));
 		zbc_val.format = c_tbl->format;
 
-		ret = g->ops.gr.add_zbc_color(g, gr, &zbc_val, i);
+		ret = g->ops.gr.zbc.add_color(g, gr, &zbc_val, i);
 
 		if (ret != 0) {
 			return ret;
@@ -2800,14 +2801,14 @@ static int gr_gk20a_load_zbc_table(struct gk20a *g, struct gr_gk20a *gr)
 		zbc_val.depth = d_tbl->depth;
 		zbc_val.format = d_tbl->format;
 
-		ret = g->ops.gr.add_zbc_depth(g, gr, &zbc_val, i);
+		ret = g->ops.gr.zbc.add_depth(g, gr, &zbc_val, i);
 		if (ret != 0) {
 			return ret;
 		}
 	}
 
-	if (g->ops.gr.load_zbc_s_tbl != NULL) {
-		ret = g->ops.gr.load_zbc_s_tbl(g, gr);
+	if (g->ops.gr.zbc.load_stencil_tbl != NULL) {
+		ret = g->ops.gr.zbc.load_stencil_tbl(g, gr);
 		if (ret != 0) {
 			return ret;
 		}
@@ -2887,8 +2888,8 @@ int gr_gk20a_load_zbc_default_table(struct gk20a *g, struct gr_gk20a *gr)
 
 	gr->max_default_depth_index = 2;
 
-	if (g->ops.gr.load_zbc_s_default_tbl != NULL) {
-		err = g->ops.gr.load_zbc_s_default_tbl(g, gr);
+	if (g->ops.gr.zbc.load_stencil_default_tbl != NULL) {
+		err = g->ops.gr.zbc.load_stencil_default_tbl(g, gr);
 		if (err != 0) {
 			return err;
 		}
@@ -2902,42 +2903,6 @@ color_fail:
 depth_fail:
 	nvgpu_err(g, "fail to load default zbc depth table");
 	return err;
-}
-
-int _gk20a_gr_zbc_set_table(struct gk20a *g, struct gr_gk20a *gr,
-			struct zbc_entry *zbc_val)
-{
-	struct fifo_gk20a *f = &g->fifo;
-	struct fifo_engine_info_gk20a *gr_info = NULL;
-	int ret;
-	u32 engine_id;
-
-	engine_id = nvgpu_engine_get_gr_eng_id(g);
-	gr_info = (f->engine_info + engine_id);
-
-	ret = gk20a_fifo_disable_engine_activity(g, gr_info, true);
-	if (ret != 0) {
-		nvgpu_err(g,
-			"failed to disable gr engine activity");
-		return ret;
-	}
-
-	ret = g->ops.gr.wait_empty(g);
-	if (ret != 0) {
-		nvgpu_err(g,
-			"failed to idle graphics");
-		goto clean_up;
-	}
-
-	ret = gr_gk20a_add_zbc(g, gr, zbc_val);
-
-clean_up:
-	if (gk20a_fifo_enable_engine_activity(g, gr_info) != 0) {
-		nvgpu_err(g,
-			"failed to enable gr engine activity");
-	}
-
-	return ret;
 }
 
 int gk20a_gr_zbc_set_table(struct gk20a *g, struct gr_gk20a *gr,
