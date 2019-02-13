@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -63,7 +63,6 @@ enum gk20a_mem_rw_flag {
  *   rw_flag:     Flag from enum gk20a_mem_rw_flag
  *   sparse:      Set if the mapping should be sparse.
  *   priv:        Privilidged mapping.
- *   coherent:    Set if the mapping should be IO coherent.
  *   valid:       Set if the PTE should be marked valid.
  *   aperture:    VIDMEM or SYSMEM.
  *   debug:       When set print debugging info.
@@ -81,7 +80,6 @@ struct nvgpu_gmmu_attrs {
 	enum gk20a_mem_rw_flag	 rw_flag;
 	bool			 sparse;
 	bool			 priv;
-	bool			 coherent;
 	bool			 valid;
 	enum nvgpu_aperture	 aperture;
 	bool			 debug;

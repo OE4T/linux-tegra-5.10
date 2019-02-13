@@ -1954,6 +1954,8 @@ struct nvgpu_as_bind_channel_args {
  *
  *     Specify that a mapping shall be IO coherent.
  *
+ *     DEPRECATED: do not use! This will be removed in a future update.
+ *
  *   %NVGPU_AS_MAP_BUFFER_FLAGS_UNMAPPED_PTE
  *
  *     Specify that a mapping shall be marked as invalid but otherwise
