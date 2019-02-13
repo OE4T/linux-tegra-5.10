@@ -348,7 +348,6 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 			.add_depth = NULL,
 			.set_table = vgpu_gr_add_zbc,
 			.query_table = vgpu_gr_query_zbc,
-			.pmu_save = NULL,
 			.stencil_query_table = gr_gv11b_zbc_s_query_table,
 			.load_stencil_default_tbl =
 					gr_gv11b_load_stencil_default_tbl,
@@ -625,6 +624,7 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 		.pmu_nsbootstrap = NULL,
 		.pmu_pg_set_sub_feature_mask = NULL,
 		.is_pmu_supported = NULL,
+		.save_zbc = NULL,
 	},
 	.clk_arb = {
 		.check_clk_arb_support = gp10b_check_clk_arb_support,

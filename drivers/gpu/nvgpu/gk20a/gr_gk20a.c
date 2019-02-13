@@ -2562,41 +2562,6 @@ int gr_gk20a_add_zbc_depth(struct gk20a *g, struct gr_gk20a *gr,
 	return 0;
 }
 
-void gr_gk20a_pmu_save_zbc(struct gk20a *g, u32 entries)
-{
-	struct fifo_gk20a *f = &g->fifo;
-	struct fifo_engine_info_gk20a *gr_info = NULL;
-	int ret;
-	u32 engine_id;
-
-	engine_id = nvgpu_engine_get_gr_eng_id(g);
-	gr_info = (f->engine_info + engine_id);
-
-	ret = gk20a_fifo_disable_engine_activity(g, gr_info, true);
-	if (ret != 0) {
-		nvgpu_err(g,
-			"failed to disable gr engine activity");
-		return;
-	}
-
-	ret = g->ops.gr.wait_empty(g);
-	if (ret != 0) {
-		nvgpu_err(g,
-			"failed to idle graphics");
-		goto clean_up;
-	}
-
-	/* update zbc */
-	g->ops.gr.zbc.pmu_save(g, entries);
-
-clean_up:
-	ret = gk20a_fifo_enable_engine_activity(g, gr_info);
-	if (ret != 0) {
-		nvgpu_err(g,
-			"failed to enable gr engine activity");
-	}
-}
-
 int gr_gk20a_add_zbc(struct gk20a *g, struct gr_gk20a *gr,
 		     struct zbc_entry *zbc_val)
 {
@@ -2702,7 +2667,7 @@ int gr_gk20a_add_zbc(struct gk20a *g, struct gr_gk20a *gr,
 		/* update zbc for elpg only when new entry is added */
 		entries = max(gr->max_used_color_index,
 					gr->max_used_depth_index);
-		g->ops.gr.zbc.pmu_save(g, entries);
+		g->ops.pmu.save_zbc(g, entries);
 	}
 
 err_mutex:

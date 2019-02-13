@@ -415,7 +415,6 @@ static const struct gpu_ops gm20b_ops = {
 			.add_depth = gr_gk20a_add_zbc_depth,
 			.set_table = gk20a_gr_zbc_set_table,
 			.query_table = gr_gk20a_query_zbc,
-			.pmu_save = gk20a_pmu_save_zbc,
 			.stencil_query_table = NULL,
 			.load_stencil_default_tbl = NULL,
 			.add_type_stencil = NULL,
@@ -674,6 +673,7 @@ static const struct gpu_ops gm20b_ops = {
 		.is_engine_in_reset = gk20a_pmu_is_engine_in_reset,
 		.get_irqdest = gk20a_pmu_get_irqdest,
 		.is_debug_mode_enabled = gm20b_pmu_is_debug_mode_en,
+		.save_zbc = gk20a_pmu_save_zbc,
 	},
 	.clk = {
 		.init_clk_support = gm20b_init_clk_support,

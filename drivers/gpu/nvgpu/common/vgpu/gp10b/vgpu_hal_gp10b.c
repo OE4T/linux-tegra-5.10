@@ -308,7 +308,6 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 			.add_depth = NULL,
 			.set_table = vgpu_gr_add_zbc,
 			.query_table = vgpu_gr_query_zbc,
-			.pmu_save = NULL,
 			.stencil_query_table = NULL,
 			.load_stencil_default_tbl = NULL,
 			.add_type_stencil = NULL,
@@ -551,6 +550,7 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 		.dump_secure_fuses = NULL,
 		.reset_engine = NULL,
 		.is_engine_in_reset = NULL,
+		.save_zbc = NULL,
 	},
 	.clk_arb = {
 		.check_clk_arb_support = gp10b_check_clk_arb_support,

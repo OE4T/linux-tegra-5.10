@@ -543,7 +543,6 @@ static const struct gpu_ops gv11b_ops = {
 			.add_depth = gr_gp10b_add_zbc_depth,
 			.set_table = gk20a_gr_zbc_set_table,
 			.query_table = gr_gk20a_query_zbc,
-			.pmu_save = gk20a_pmu_save_zbc,
 			.stencil_query_table = gr_gv11b_zbc_s_query_table,
 			.load_stencil_default_tbl =
 				gr_gv11b_load_stencil_default_tbl,
@@ -873,6 +872,7 @@ static const struct gpu_ops gv11b_ops = {
 		.get_irqdest = gv11b_pmu_get_irqdest,
 		.handle_ext_irq = gv11b_pmu_handle_ext_irq,
 		.is_debug_mode_enabled = gm20b_pmu_is_debug_mode_en,
+		.save_zbc = gk20a_pmu_save_zbc,
 	},
 	.clk_arb = {
 		.check_clk_arb_support = gp10b_check_clk_arb_support,

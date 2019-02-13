@@ -629,7 +629,6 @@ struct gpu_ops {
 				struct gr_gk20a *gr);
 			int (*add_stencil)(struct gk20a *g, struct gr_gk20a *gr,
 				struct zbc_entry *s_val, u32 index);
-			void (*pmu_save)(struct gk20a *g, u32 entries);
 			bool (*add_type_stencil)(struct gk20a *g,
 				struct gr_gk20a *gr,
 				struct zbc_entry *zbc_val, int *ret_val);
@@ -1253,6 +1252,7 @@ struct gpu_ops {
 					u64 err_cnt);
 		} err_ops;
 		void (*create_ssmd_lookup_table)(struct nvgpu_pmu *pmu);
+		void (*save_zbc)(struct gk20a *g, u32 entries);
 	} pmu;
 	struct {
 		int (*init_debugfs)(struct gk20a *g);
