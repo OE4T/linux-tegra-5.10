@@ -693,6 +693,7 @@ int nvgpu_clk_get_fll_clks(struct gk20a *g, struct nvgpu_set_fll_clk *setfllclk)
 	struct nvgpu_clk_domain *pdomain;
 	u8 i;
 	struct nvgpu_clk_pmupstate *pclk = g->clk_pmu;
+	unsigned long bit;
 	u16 clkmhz = 0;
 	struct clk_domain_35_master *p35master;
 	struct clk_domain_35_slave *p35slave;
@@ -713,7 +714,8 @@ int nvgpu_clk_get_fll_clks(struct gk20a *g, struct nvgpu_set_fll_clk *setfllclk)
 			}
 			p35master = (struct clk_domain_35_master *)pdomain;
 			slaveidxmask = p35master->master.slave_idxs_mask;
-			for_each_set_bit(i, &slaveidxmask, 32U) {
+			for_each_set_bit(bit, &slaveidxmask, 32U) {
+				i = (u8)bit;
 				p35slave = (struct clk_domain_35_slave *)
 						CLK_CLK_DOMAIN_GET(pclk, i);
 
@@ -777,6 +779,7 @@ static int clk_program_fllclks(struct gk20a *g, struct change_fll_clk *fllclk)
 	struct nvgpu_clk_domain *pdomain;
 	u8 i;
 	struct nvgpu_clk_pmupstate *pclk = g->clk_pmu;
+	unsigned long bit;
 	u16 clkmhz = 0;
 	struct clk_domain_3x_master *p3xmaster;
 	struct clk_domain_3x_slave *p3xslave;
@@ -808,7 +811,8 @@ static int clk_program_fllclks(struct gk20a *g, struct change_fll_clk *fllclk)
 			}
 			p3xmaster = (struct clk_domain_3x_master *)pdomain;
 			slaveidxmask = p3xmaster->slave_idxs_mask;
-			for_each_set_bit(i, &slaveidxmask, 32U) {
+			for_each_set_bit(bit, &slaveidxmask, 32U) {
+				i = (u8)bit;
 				p3xslave = (struct clk_domain_3x_slave *)
 						CLK_CLK_DOMAIN_GET(pclk, i);
 				if ((p3xslave->super.super.super.api_domain !=
