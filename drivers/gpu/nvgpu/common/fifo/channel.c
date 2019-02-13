@@ -1947,8 +1947,8 @@ static void gk20a_channel_worker_enqueue(struct channel_gk20a *ch)
 	/*
 	 * Warn if worker thread cannot run
 	 */
-	if (WARN_ON(__nvgpu_channel_worker_start(g) != 0)) {
-		nvgpu_warn(g, "channel worker cannot run!");
+	if (__nvgpu_channel_worker_start(g) != 0) {
+		nvgpu_do_assert_print(g, "channel worker cannot run!");
 		return;
 	}
 

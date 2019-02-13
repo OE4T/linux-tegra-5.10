@@ -342,7 +342,8 @@ nvgpu_channel_sync_semaphore_create(
 	int asid = -1;
 	int err;
 
-	if (WARN_ON(c->vm == NULL)) {
+	if (c->vm == NULL) {
+		nvgpu_do_assert();
 		return NULL;
 	}
 

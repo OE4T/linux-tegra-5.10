@@ -367,8 +367,9 @@ static int vgpu_gr_init_gr_config(struct gk20a *g, struct gr_gk20a *gr)
 
 	config->pe_count_per_gpc =
 		nvgpu_get_litter_value(g, GPU_LIT_NUM_PES_PER_GPC);
-	if (WARN(config->pe_count_per_gpc > GK20A_GR_MAX_PES_PER_GPC,
-		 "too many pes per gpc %u\n", config->pe_count_per_gpc)) {
+	if (config->pe_count_per_gpc > GK20A_GR_MAX_PES_PER_GPC) {
+		nvgpu_do_assert_print(g, "too many pes per gpc %u\n",
+			config->pe_count_per_gpc);
 		goto cleanup;
 	}
 	if (config->pe_count_per_gpc > TEGRA_VGPU_MAX_PES_COUNT_PER_GPC) {

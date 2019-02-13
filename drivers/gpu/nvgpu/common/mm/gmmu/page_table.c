@@ -198,7 +198,8 @@ int nvgpu_gmmu_init_page_table(struct vm_gk20a *vm)
 	pdb_size = ALIGN(pd_size(&vm->mmu_levels[0], &attrs), PAGE_SIZE);
 
 	err = nvgpu_pd_alloc(vm, &vm->pdb, pdb_size);
-	if (WARN_ON(err != 0)) {
+	if (err != 0) {
+		nvgpu_do_assert();
 		return err;
 	}
 

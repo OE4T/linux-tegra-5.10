@@ -1,7 +1,7 @@
 /*
  * Semaphore Sync Framework Integration
  *
- * Copyright (c) 2017-2018, NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2017-2019, NVIDIA Corporation.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -119,8 +119,10 @@ static struct gk20a_sync_pt *to_gk20a_sync_pt(struct sync_pt *pt)
 }
 static struct gk20a_sync_timeline *to_gk20a_timeline(struct sync_timeline *obj)
 {
-	if (WARN_ON(obj->ops != &gk20a_sync_timeline_ops))
+	if (obj->ops != &gk20a_sync_timeline_ops) {
+		nvgpu_do_assert();
 		return NULL;
+	}
 	return (struct gk20a_sync_timeline *)obj;
 }
 
@@ -241,12 +243,15 @@ static int gk20a_sync_pt_compare(struct sync_pt *a, struct sync_pt *b)
 	struct gk20a_sync_pt *pt_a = to_gk20a_sync_pt(a);
 	struct gk20a_sync_pt *pt_b = to_gk20a_sync_pt(b);
 
-	if (WARN_ON(pt_a->obj != pt_b->obj))
+	if (pt_a->obj != pt_b->obj) {
+		nvgpu_do_assert();
 		return 0;
+	}
 
 	/* Early out */
-	if (a == b)
+	if (a == b) {
 		return 0;
+	}
 
 	a_expired = gk20a_sync_pt_has_signaled(a);
 	b_expired = gk20a_sync_pt_has_signaled(b);

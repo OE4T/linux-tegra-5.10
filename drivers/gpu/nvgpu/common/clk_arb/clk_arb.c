@@ -534,8 +534,8 @@ void nvgpu_clk_arb_worker_enqueue(struct gk20a *g,
 	/*
 	 * Warn if worker thread cannot run
 	 */
-	if (WARN_ON(__nvgpu_clk_arb_worker_start(g) != 0)) {
-		nvgpu_warn(g, "clk arb worker cannot run!");
+	if (__nvgpu_clk_arb_worker_start(g) != 0) {
+		nvgpu_do_assert_print(g, "clk arb worker cannot run!");
 		return;
 	}
 

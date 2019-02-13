@@ -166,7 +166,9 @@ int vgpu_intr_thread(void *dev_id)
 		if (err == -ETIME) {
 			continue;
 		}
-		if (WARN_ON(err)) {
+		if (err != 0) {
+			nvgpu_do_assert_print(g,
+				"Unexpected vgpu_ivc_recv err=%d", err);
 			continue;
 		}
 

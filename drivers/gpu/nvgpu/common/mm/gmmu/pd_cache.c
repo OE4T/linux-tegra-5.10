@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -240,8 +240,8 @@ void nvgpu_pd_cache_fini(struct gk20a *g)
 	}
 
 	for (i = 0U; i < NVGPU_PD_CACHE_COUNT; i++) {
-		(void) WARN_ON(!nvgpu_list_empty(&cache->full[i]));
-		(void) WARN_ON(!nvgpu_list_empty(&cache->partial[i]));
+		nvgpu_assert(nvgpu_list_empty(&cache->full[i]));
+		nvgpu_assert(nvgpu_list_empty(&cache->partial[i]));
 	}
 
 	nvgpu_kfree(g, g->mm.pd_cache);
@@ -465,7 +465,8 @@ int nvgpu_pd_alloc(struct vm_gk20a *vm, struct nvgpu_gmmu_pd *pd, u32 bytes)
 		return 0;
 	}
 
-	if (WARN_ON(g->mm.pd_cache == NULL)) {
+	if (g->mm.pd_cache == NULL) {
+		nvgpu_do_assert();
 		return -ENOMEM;
 	}
 
@@ -553,7 +554,7 @@ static void nvgpu_pd_cache_free(struct gk20a *g, struct nvgpu_pd_cache *cache,
 
 	pentry = nvgpu_pd_cache_look_up(g, cache, pd);
 	if (pentry == NULL) {
-		(void) WARN(true, "Attempting to free non-existent pd");
+		nvgpu_do_assert_print(g, "Attempting to free non-existent pd");
 		return;
 	}
 

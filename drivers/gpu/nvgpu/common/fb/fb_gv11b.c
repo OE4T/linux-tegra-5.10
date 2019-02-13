@@ -709,16 +709,16 @@ void gv11b_handle_fillunit_ecc_isr(struct gk20a *g, u32 ecc_status)
 
 static void gv11b_fb_parse_mmfault(struct mmu_fault_info *mmfault)
 {
-	if (WARN_ON(mmfault->fault_type >=
-				ARRAY_SIZE(fault_type_descs_gv11b))) {
+	if (mmfault->fault_type >= ARRAY_SIZE(fault_type_descs_gv11b)) {
+		nvgpu_do_assert();
 		mmfault->fault_type_desc =  invalid_str;
 	} else {
 		mmfault->fault_type_desc =
 			 fault_type_descs_gv11b[mmfault->fault_type];
 	}
 
-	if (WARN_ON(mmfault->client_type >=
-			ARRAY_SIZE(fault_client_type_descs_gv11b))) {
+	if (mmfault->client_type >= ARRAY_SIZE(fault_client_type_descs_gv11b)) {
+		nvgpu_do_assert();
 		mmfault->client_type_desc = invalid_str;
 	} else {
 		mmfault->client_type_desc =
@@ -726,20 +726,22 @@ static void gv11b_fb_parse_mmfault(struct mmu_fault_info *mmfault)
 	}
 
 	mmfault->client_id_desc = invalid_str;
-	if (mmfault->client_type ==
-			gmmu_fault_client_type_hub_v()) {
-
-		if (!(WARN_ON(mmfault->client_id >=
-				 ARRAY_SIZE(hub_client_descs_gv11b)))) {
+	if (mmfault->client_type == gmmu_fault_client_type_hub_v()) {
+		if (!(mmfault->client_id >=
+				 ARRAY_SIZE(hub_client_descs_gv11b))) {
 			mmfault->client_id_desc =
 				 hub_client_descs_gv11b[mmfault->client_id];
+		} else {
+			nvgpu_do_assert();
 		}
 	} else if (mmfault->client_type ==
 			gmmu_fault_client_type_gpc_v()) {
-		if (!(WARN_ON(mmfault->client_id >=
-				 ARRAY_SIZE(gpc_client_descs_gv11b)))) {
+		if (!(mmfault->client_id >=
+				 ARRAY_SIZE(gpc_client_descs_gv11b))) {
 			mmfault->client_id_desc =
 				 gpc_client_descs_gv11b[mmfault->client_id];
+		} else {
+			nvgpu_do_assert();
 		}
 	}
 

@@ -285,19 +285,23 @@ int nvgpu_vm_do_init(struct mm_gk20a *mm,
 		     bool unified_va,
 		     const char *name)
 {
-	int err = 0;
 	char alloc_name[32];
 	u64 kernel_vma_flags;
 	u64 user_vma_start, user_vma_limit;
 	u64 user_lp_vma_start, user_lp_vma_limit;
 	u64 kernel_vma_start, kernel_vma_limit;
 	struct gk20a *g = gk20a_from_mm(mm);
+	int err = 0;
 
-	if (WARN_ON(kernel_reserved + low_hole > aperture_size)) {
+	if (kernel_reserved + low_hole > aperture_size) {
+		nvgpu_do_assert_print(g,
+			"Overlap between user and kernel spaces");
 		return -ENOMEM;
 	}
 
-	if (WARN_ON(vm->guest_managed && kernel_reserved != 0U)) {
+	if (vm->guest_managed && kernel_reserved != 0U) {
+		nvgpu_do_assert_print(g,
+			"Cannot use guest managed VM with kernel space");
 		return -EINVAL;
 	}
 
@@ -382,9 +386,11 @@ int nvgpu_vm_do_init(struct mm_gk20a *mm,
 	nvgpu_log_info(g, "kernel_vma   [0x%llx,0x%llx)",
 		       kernel_vma_start, kernel_vma_limit);
 
-	if (WARN_ON(user_vma_start > user_vma_limit) ||
-	    WARN_ON(user_lp_vma_start > user_lp_vma_limit) ||
-		WARN_ON(!vm->guest_managed && kernel_vma_start >= kernel_vma_limit)) {
+	if ((user_vma_start > user_vma_limit) ||
+		(user_lp_vma_start > user_lp_vma_limit) ||
+		(!vm->guest_managed && kernel_vma_start >= kernel_vma_limit)) {
+		nvgpu_err(g, "Invalid vm configuration");
+		nvgpu_do_assert();
 		err = -EINVAL;
 		goto clean_up_page_tables;
 	}

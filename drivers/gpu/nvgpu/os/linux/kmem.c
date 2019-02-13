@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -295,8 +295,10 @@ static int __nvgpu_free_kmem_alloc(struct nvgpu_mem_alloc_tracker *tracker,
 
 	nvgpu_lock_tracker(tracker);
 	alloc = nvgpu_rem_alloc(tracker, addr);
-	if (WARN(!alloc, "Possible double-free detected: 0x%llx!", addr)) {
+	if (!alloc) {
 		nvgpu_unlock_tracker(tracker);
+		nvgpu_do_assert_print(g,
+			"Possible double-free detected: 0x%llx!", addr);
 		return -EINVAL;
 	}
 

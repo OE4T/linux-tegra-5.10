@@ -34,8 +34,8 @@
 		}				\
 	} while (false)
 
-#define WARN(cond, msg, arg...)			__warn(cond, msg, ##arg)
-#define WARN_ON(cond)				__warn(cond, "")
+#define WARN(cond, msg, arg...)		((void) __warn(cond, msg, ##arg))
+#define WARN_ON(cond)			((void) __warn(cond, ""))
 
 #define WARN_ONCE(cond, msg, arg...)		\
 	({static bool warn_once_warned = false;	\

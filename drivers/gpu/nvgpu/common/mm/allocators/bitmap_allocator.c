@@ -121,7 +121,8 @@ static void nvgpu_bitmap_free_fixed(struct nvgpu_allocator *na,
 	u64 blks, offs;
 
 	offs = base >> a->blk_shift;
-	if (WARN_ON(offs * a->blk_size != base)) {
+	if (offs * a->blk_size != base) {
+		nvgpu_do_assert();
 		return;
 	}
 
@@ -396,15 +397,12 @@ int nvgpu_bitmap_allocator_init(struct gk20a *g, struct nvgpu_allocator *na,
 	bool is_base_aligned =  (base & (blk_size - 1ULL)) == 0ULL;
 	bool is_length_aligned = (length & (blk_size - 1ULL)) == 0ULL;
 
-	if (WARN_ON(!is_blk_size_pwr_2)) {
+	if (!is_blk_size_pwr_2) {
+		nvgpu_do_assert();
 		return -EINVAL;
 	}
 
-	/*
-	 * blk_size must be a power-of-2; base and length also need to be
-	 * aligned to blk_size.
-	 */
-	if (!is_blk_size_pwr_2 || !is_base_aligned || !is_length_aligned) {
+	if (!is_base_aligned || !is_length_aligned) {
 		return -EINVAL;
 	}
 

@@ -28,6 +28,8 @@
 #include <nvgpu/posix/bug.h>
 #endif
 
+#include <nvgpu/log.h>
+
 /*
  * Define an assert macro that code within nvgpu can use.
  *
@@ -42,7 +44,7 @@
  * As a result this macro varies depending on platform.
  */
 #if defined(__KERNEL__)
-#define nvgpu_assert(cond)	WARN_ON(!(cond))
+#define nvgpu_assert(cond)	((void) WARN_ON(!(cond)))
 #else
 /*
  * A static inline for POSIX/QNX/etc so that we can hide the branch in BUG_ON()
@@ -59,5 +61,18 @@ static inline void nvgpu_assert(bool cond)
 	BUG_ON(!cond);
 }
 #endif
+
+/*
+ * Define simple macros to force the consequences of a failed assert
+ * (presumably done in a previous if statement).
+ * The exact behavior will be OS dependent. See above.
+ */
+#define nvgpu_do_assert()	nvgpu_assert(false)
+
+#define nvgpu_do_assert_print(g, fmt, ...)		\
+	do {						\
+		nvgpu_err(g, fmt, ##__VA_ARGS__);	\
+		nvgpu_do_assert();			\
+	} while (false)
 
 #endif /* NVGPU_BUG_H */

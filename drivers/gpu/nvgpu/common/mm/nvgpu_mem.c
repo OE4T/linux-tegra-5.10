@@ -54,7 +54,7 @@ u32 nvgpu_aperture_mask_raw(struct gk20a *g, enum nvgpu_aperture aperture,
 	case APERTURE_VIDMEM:
 		return vidmem_mask;
 	case APERTURE_INVALID:
-		(void)WARN(true, "Bad aperture");
+		nvgpu_do_assert_print(g, "Bad aperture");
 	}
 	return 0;
 }
@@ -105,7 +105,7 @@ u32 nvgpu_mem_rd32(struct gk20a *g, struct nvgpu_mem *mem, u32 w)
 		nvgpu_pramin_rd_n(g, mem, w * (u32)sizeof(u32),
 				(u32)sizeof(u32), &data);
 	} else {
-		(void)WARN(true, "Accessing unallocated nvgpu_mem");
+		nvgpu_do_assert_print(g, "Accessing unallocated nvgpu_mem");
 	}
 
 	return data;
@@ -139,7 +139,7 @@ void nvgpu_mem_rd_n(struct gk20a *g, struct nvgpu_mem *mem,
 	} else if (mem->aperture == APERTURE_VIDMEM) {
 		nvgpu_pramin_rd_n(g, mem, offset, size, dest);
 	} else {
-		(void)WARN(true, "Accessing unallocated nvgpu_mem");
+		nvgpu_do_assert_print(g, "Accessing unallocated nvgpu_mem");
 	}
 }
 
@@ -157,7 +157,7 @@ void nvgpu_mem_wr32(struct gk20a *g, struct nvgpu_mem *mem, u32 w, u32 data)
 			nvgpu_wmb();
 		}
 	} else {
-		(void)WARN(true, "Accessing unallocated nvgpu_mem");
+		nvgpu_do_assert_print(g, "Accessing unallocated nvgpu_mem");
 	}
 }
 
@@ -184,7 +184,7 @@ void nvgpu_mem_wr_n(struct gk20a *g, struct nvgpu_mem *mem, u32 offset,
 			nvgpu_wmb();
 		}
 	} else {
-		(void)WARN(true, "Accessing unallocated nvgpu_mem");
+		nvgpu_do_assert_print(g, "Accessing unallocated nvgpu_mem");
 	}
 }
 
@@ -210,7 +210,7 @@ void nvgpu_memset(struct gk20a *g, struct nvgpu_mem *mem, u32 offset,
 			nvgpu_wmb();
 		}
 	} else {
-		(void)WARN(true, "Accessing unallocated nvgpu_mem");
+		nvgpu_do_assert_print(g, "Accessing unallocated nvgpu_mem");
 	}
 }
 

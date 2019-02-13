@@ -85,7 +85,13 @@ u64 vgpu_gp10b_locked_gmmu_map(struct vm_gk20a *vm,
 
 	/* FIXME: add support for sparse mappings */
 
-	if (WARN_ON(!sgt) || WARN_ON(nvgpu_iommuable(g))) {
+	if (!sgt) {
+		nvgpu_do_assert_print(g, "NULL SGT");
+		return 0;
+	}
+
+	if (nvgpu_iommuable(g)) {
+		nvgpu_do_assert_print(g, "MM should not be IOMMU-able");
 		return 0;
 	}
 

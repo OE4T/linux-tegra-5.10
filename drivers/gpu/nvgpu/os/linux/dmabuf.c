@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2018, NVIDIA CORPORATION.  All rights reserved.
+* Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -23,6 +23,7 @@
 #include <nvgpu/gk20a.h>
 
 #include <nvgpu/linux/vm.h>
+#include <nvgpu/bug.h>
 
 #include "gk20a/fence_gk20a.h"
 
@@ -69,10 +70,10 @@ enum nvgpu_aperture gk20a_dmabuf_aperture(struct gk20a *g,
 	if (buf_owner == NULL) {
 		/* Not nvgpu-allocated, assume system memory */
 		return APERTURE_SYSMEM;
-	} else if (WARN_ON(buf_owner == g && unified_memory)) {
+	} else if ((buf_owner == g) && unified_memory) {
 		/* Looks like our video memory, but this gpu doesn't support
 		 * it. Warn about a bug and bail out */
-		nvgpu_warn(g,
+		nvgpu_do_assert_print(g,
 			"dmabuf is our vidmem but we don't have local vidmem");
 		return APERTURE_INVALID;
 	} else if (buf_owner != g) {
@@ -90,7 +91,8 @@ struct sg_table *gk20a_mm_pin(struct device *dev, struct dma_buf *dmabuf,
 	struct gk20a_dmabuf_priv *priv;
 
 	priv = dma_buf_get_drvdata(dmabuf, dev);
-	if (WARN_ON(!priv)) {
+	if (!priv) {
+		nvgpu_do_assert();
 		return ERR_PTR(-EINVAL);
 	}
 
@@ -129,10 +131,10 @@ void gk20a_mm_unpin(struct device *dev, struct dma_buf *dmabuf,
 		return;
 
 	nvgpu_mutex_acquire(&priv->lock);
-	WARN_ON(priv->sgt != sgt);
-	WARN_ON(priv->attach != attachment);
+	nvgpu_assert(priv->sgt == sgt);
+	nvgpu_assert(priv->attach == attachment);
 	priv->pin_count--;
-	WARN_ON(priv->pin_count < 0);
+	nvgpu_assert(priv->pin_count >= 0);
 	dma_addr = sg_dma_address(priv->sgt->sgl);
 	if (priv->pin_count == 0) {
 		dma_buf_unmap_attachment(priv->attach, priv->sgt,
@@ -183,7 +185,8 @@ int gk20a_dmabuf_get_state(struct dma_buf *dmabuf, struct gk20a *g,
 	struct gk20a_buffer_state *s;
 	struct device *dev = dev_from_gk20a(g);
 
-	if (WARN_ON(offset >= (u64)dmabuf->size)) {
+	if (offset >= (u64)dmabuf->size) {
+		nvgpu_do_assert();
 		return -EINVAL;
 	}
 
@@ -192,7 +195,8 @@ int gk20a_dmabuf_get_state(struct dma_buf *dmabuf, struct gk20a *g,
 		return err;
 
 	priv = dma_buf_get_drvdata(dmabuf, dev);
-	if (WARN_ON(!priv)) {
+	if (!priv) {
+		nvgpu_do_assert();
 		return -ENOSYS;
 	}
 
