@@ -221,6 +221,7 @@
 		phy-names = "usb2-0", "usb2-1", "usb2-3", "usb2-2",
 			"usb3-2", "usb3-0", "usb3-3";
 		nvidia,xusb-padctl = <&xusb_padctl>;
+		nvidia,boost_emc_freq = <500>;
 		status = "okay";
 	};
 
