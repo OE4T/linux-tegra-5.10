@@ -367,6 +367,8 @@ void gk20a_fifo_teardown_ch_tsg(struct gk20a *g, u32 __engine_ids,
 			u32 hw_id, unsigned int id_type, unsigned int rc_type,
 			 struct mmu_fault_info *mmfault);
 
+void gk20a_fifo_teardown_mask_intr(struct gk20a *g);
+void gk20a_fifo_teardown_unmask_intr(struct gk20a *g);
 bool gk20a_fifo_handle_sched_error(struct gk20a *g);
 
 void gk20a_fifo_reset_pbdma_method(struct gk20a *g, u32 pbdma_id,
