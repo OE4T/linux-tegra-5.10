@@ -291,6 +291,7 @@ srcs += common/sim.c \
 	tu104/fbpa_tu104.c	\
 	tu104/fifo_tu104.c	\
 	tu104/gr_tu104.c	\
+	tu104/mm_tu104.c	\
 	tu104/hal_tu104.c	\
 	tu104/sec2_tu104.c	\
 	tu104/func_tu104.c	\

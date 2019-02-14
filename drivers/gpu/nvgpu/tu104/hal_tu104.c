@@ -137,8 +137,8 @@
 #include "gv100/bios_gv100.h"
 #include "gv100/fifo_gv100.h"
 #include "gv100/gr_gv100.h"
-#include "gv100/mm_gv100.h"
 
+#include "tu104/mm_tu104.h"
 #include "tu104/fifo_tu104.h"
 #include "tu104/gr_tu104.h"
 #include "tu104/bios_tu104.h"
@@ -929,7 +929,7 @@ static const struct gpu_ops tu104_ops = {
 		.remove_bar2_vm = gp10b_remove_bar2_vm,
 		.fault_info_mem_destroy = gv11b_mm_fault_info_mem_destroy,
 		.mmu_fault_disable_hw = gv11b_mm_mmu_fault_disable_hw,
-		.get_flush_retries = gv100_mm_get_flush_retries,
+		.get_flush_retries = tu104_mm_get_flush_retries,
 		.bar1_map_userd = NULL,
 	},
 	.pramin = {

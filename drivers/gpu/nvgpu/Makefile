@@ -478,6 +478,7 @@ nvgpu-y += \
 	gv100/hal_gv100.o \
 	gv100/gsp_gv100.o \
 	gv100/clk_gv100.o \
+	tu104/mm_tu104.o \
 	tu104/hal_tu104.o \
 	tu104/fifo_tu104.o \
 	tu104/gr_tu104.o \
