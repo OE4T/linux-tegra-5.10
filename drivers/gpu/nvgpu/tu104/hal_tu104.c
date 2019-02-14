@@ -604,10 +604,10 @@ static const struct gpu_ops tu104_ops = {
 				gm20b_gr_config_get_pd_dist_skip_table_size,
 		},
 		.zbc = {
-			.add_color = gr_gp10b_add_zbc_color,
-			.add_depth = gr_gp10b_add_zbc_depth,
-			.set_table = gk20a_gr_zbc_set_table,
-			.query_table = gr_gk20a_query_zbc,
+			.add_color = gp10b_gr_zbc_add_color,
+			.add_depth = gp10b_gr_zbc_add_depth,
+			.set_table = nvgpu_gr_zbc_set_table,
+			.query_table = nvgpu_gr_zbc_query_table,
 			.stencil_query_table = gr_gv11b_zbc_s_query_table,
 			.load_stencil_default_tbl =
 				gr_gv11b_load_stencil_default_tbl,

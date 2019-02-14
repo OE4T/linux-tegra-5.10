@@ -454,19 +454,19 @@ static const struct gpu_ops gp10b_ops = {
 				gm20b_gr_config_get_pd_dist_skip_table_size,
 		},
 		.zbc = {
-			.add_color = gr_gp10b_add_zbc_color,
-			.add_depth = gr_gp10b_add_zbc_depth,
-			.set_table = gk20a_gr_zbc_set_table,
-			.query_table = gr_gk20a_query_zbc,
+			.add_color = gp10b_gr_zbc_add_color,
+			.add_depth = gp10b_gr_zbc_add_depth,
+			.set_table = nvgpu_gr_zbc_set_table,
+			.query_table = nvgpu_gr_zbc_query_table,
 			.stencil_query_table = NULL,
 			.load_stencil_default_tbl = NULL,
 			.add_type_stencil = NULL,
 			.load_stencil_tbl = NULL,
 			.add_stencil = NULL,
 			.get_gpcs_swdx_dss_zbc_c_format_reg =
-				gr_gp10b_get_gpcs_swdx_dss_zbc_c_format_reg,
+				gp10b_gr_zbc_get_gpcs_swdx_dss_zbc_c_format_reg,
 			.get_gpcs_swdx_dss_zbc_z_format_reg =
-				gr_gp10b_get_gpcs_swdx_dss_zbc_z_format_reg,
+				gp10b_gr_zbc_get_gpcs_swdx_dss_zbc_z_format_reg,
 		}
 	},
 	.fb = {

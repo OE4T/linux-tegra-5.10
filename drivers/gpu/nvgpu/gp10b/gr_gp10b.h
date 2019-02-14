@@ -77,11 +77,11 @@ int gr_gp10b_commit_global_cb_manager(struct gk20a *g,
 void gr_gp10b_commit_global_pagepool(struct gk20a *g,
 					    struct nvgpu_gr_ctx *gr_ctx,
 					    u64 addr, u32 size, bool patch);
-u32 gr_gp10b_get_gpcs_swdx_dss_zbc_c_format_reg(struct gk20a *g);
-u32 gr_gp10b_get_gpcs_swdx_dss_zbc_z_format_reg(struct gk20a *g);
-int gr_gp10b_add_zbc_color(struct gk20a *g, struct gr_gk20a *gr,
+u32 gp10b_gr_zbc_get_gpcs_swdx_dss_zbc_c_format_reg(struct gk20a *g);
+u32 gp10b_gr_zbc_get_gpcs_swdx_dss_zbc_z_format_reg(struct gk20a *g);
+int gp10b_gr_zbc_add_color(struct gk20a *g, struct gr_gk20a *gr,
 				  struct zbc_entry *color_val, u32 index);
-int gr_gp10b_add_zbc_depth(struct gk20a *g, struct gr_gk20a *gr,
+int gp10b_gr_zbc_add_depth(struct gk20a *g, struct gr_gk20a *gr,
 				struct zbc_entry *depth_val, u32 index);
 u32 gr_gp10b_pagepool_default_size(struct gk20a *g);
 u32 gr_gp10b_calc_global_ctx_buffer_size(struct gk20a *g);

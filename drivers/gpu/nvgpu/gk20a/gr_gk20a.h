@@ -448,12 +448,15 @@ void gr_gk20a_program_zcull_mapping(struct gk20a *g, u32 zcull_num_entries,
 /* zbc */
 int gr_gk20a_add_zbc(struct gk20a *g, struct gr_gk20a *gr,
 			struct zbc_entry *zbc_val);
-int gr_gk20a_query_zbc(struct gk20a *g, struct gr_gk20a *gr,
+int nvgpu_gr_zbc_query_table(struct gk20a *g, struct gr_gk20a *gr,
 			struct zbc_query_params *query_params);
-int gk20a_gr_zbc_set_table(struct gk20a *g, struct gr_gk20a *gr,
+int nvgpu_gr_zbc_set_table(struct gk20a *g, struct gr_gk20a *gr,
 			struct zbc_entry *zbc_val);
 int gr_gk20a_load_zbc_default_table(struct gk20a *g, struct gr_gk20a *gr);
-
+int nvgpu_gr_zbc_add_depth(struct gk20a *g, struct gr_gk20a *gr,
+			   struct zbc_entry *depth_val, u32 index);
+int nvgpu_gr_zbc_add_color(struct gk20a *g, struct gr_gk20a *gr,
+			   struct zbc_entry *color_val, u32 index);
 /* pmu */
 int gr_gk20a_fecs_get_reglist_img_size(struct gk20a *g, u32 *size);
 int gr_gk20a_fecs_set_reglist_bind_inst(struct gk20a *g,
@@ -544,9 +547,9 @@ void gk20a_gr_suspend_all_sms(struct gk20a *g,
 int gr_gk20a_set_sm_debug_mode(struct gk20a *g,
 	struct channel_gk20a *ch, u64 sms, bool enable);
 bool gk20a_is_channel_ctx_resident(struct channel_gk20a *ch);
-int gr_gk20a_add_zbc_color(struct gk20a *g, struct gr_gk20a *gr,
+int gk20a_gr_zbc_add_color(struct gk20a *g, struct gr_gk20a *gr,
 			   struct zbc_entry *color_val, u32 index);
-int gr_gk20a_add_zbc_depth(struct gk20a *g, struct gr_gk20a *gr,
+int gk20a_gr_zbc_add_depth(struct gk20a *g, struct gr_gk20a *gr,
 			   struct zbc_entry *depth_val, u32 index);
 int gr_gk20a_wait_idle(struct gk20a *g);
 int gr_gk20a_handle_sm_exception(struct gk20a *g, u32 gpc, u32 tpc, u32 sm,

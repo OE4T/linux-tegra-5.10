@@ -521,29 +521,17 @@ void gr_gp10b_commit_global_pagepool(struct gk20a *g,
 		gr_gpcs_gcc_pagepool_total_pages_f(size), patch);
 }
 
-u32 gr_gp10b_get_gpcs_swdx_dss_zbc_c_format_reg(struct gk20a *g)
+u32 gp10b_gr_zbc_get_gpcs_swdx_dss_zbc_c_format_reg(struct gk20a *g)
 {
 	return gr_gpcs_swdx_dss_zbc_c_01_to_04_format_r();
 }
 
-int gr_gp10b_add_zbc_color(struct gk20a *g, struct gr_gk20a *gr,
+int gp10b_gr_zbc_add_color(struct gk20a *g, struct gr_gk20a *gr,
 				  struct zbc_entry *color_val, u32 index)
 {
-	u32 i;
 	u32 zbc_c;
 	u32 zbc_c_format_reg =
 		g->ops.gr.zbc.get_gpcs_swdx_dss_zbc_c_format_reg(g);
-
-	/* update l2 table */
-	g->ops.ltc.set_zbc_color_entry(g, color_val, index);
-
-	/* update local copy */
-	for (i = 0; i < GK20A_ZBC_COLOR_VALUE_SIZE; i++) {
-		gr->zbc_col_tbl[index].color_l2[i] = color_val->color_l2[i];
-		gr->zbc_col_tbl[index].color_ds[i] = color_val->color_ds[i];
-	}
-	gr->zbc_col_tbl[index].format = color_val->format;
-	gr->zbc_col_tbl[index].ref_cnt++;
 
 	nvgpu_writel_loop(g, gr_gpcs_swdx_dss_zbc_color_r_r(index),
 			   color_val->color_ds[0]);
@@ -561,31 +549,23 @@ int gr_gp10b_add_zbc_color(struct gk20a *g, struct gr_gk20a *gr,
 	return 0;
 }
 
-u32 gr_gp10b_get_gpcs_swdx_dss_zbc_z_format_reg(struct gk20a *g)
+u32 gp10b_gr_zbc_get_gpcs_swdx_dss_zbc_z_format_reg(struct gk20a *g)
 {
 	return gr_gpcs_swdx_dss_zbc_z_01_to_04_format_r();
 }
 
-int gr_gp10b_add_zbc_depth(struct gk20a *g, struct gr_gk20a *gr,
+int gp10b_gr_zbc_add_depth(struct gk20a *g, struct gr_gk20a *gr,
 				struct zbc_entry *depth_val, u32 index)
 {
 	u32 zbc_z;
 	u32 zbc_z_format_reg =
 		g->ops.gr.zbc.get_gpcs_swdx_dss_zbc_z_format_reg(g);
 
-	/* update l2 table */
-	g->ops.ltc.set_zbc_depth_entry(g, depth_val, index);
-
-	/* update local copy */
-	gr->zbc_dep_tbl[index].depth = depth_val->depth;
-	gr->zbc_dep_tbl[index].format = depth_val->format;
-	gr->zbc_dep_tbl[index].ref_cnt++;
-
-	gk20a_writel(g, gr_gpcs_swdx_dss_zbc_z_r(index), depth_val->depth);
-	zbc_z = gk20a_readl(g, zbc_z_format_reg + (index & ~3U));
+	nvgpu_writel(g, gr_gpcs_swdx_dss_zbc_z_r(index), depth_val->depth);
+	zbc_z = nvgpu_readl(g, zbc_z_format_reg + (index & ~3U));
 	zbc_z &= ~(U32(0x7f) << (index % 4U) * 7U);
 	zbc_z |= depth_val->format << (index % 4U) * 7U;
-	gk20a_writel(g, zbc_z_format_reg + (index & ~3U), zbc_z);
+	nvgpu_writel(g, zbc_z_format_reg + (index & ~3U), zbc_z);
 
 	return 0;
 }
