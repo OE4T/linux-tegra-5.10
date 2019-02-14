@@ -102,19 +102,19 @@ static inline int __nvgpu_atomic_xchg(nvgpu_atomic_t *v, int new)
 static inline bool __nvgpu_atomic_inc_and_test(nvgpu_atomic_t *v)
 {
 	v->v++;
-	return v->v ? true : false;
+	return (v->v == 0);
 }
 
 static inline bool __nvgpu_atomic_dec_and_test(nvgpu_atomic_t *v)
 {
 	v->v--;
-	return v->v ? true : false;
+	return (v->v == 0);
 }
 
 static inline bool __nvgpu_atomic_sub_and_test(int i, nvgpu_atomic_t *v)
 {
 	v->v -= i;
-	return v->v ? true : false;
+	return (v->v == 0);
 }
 
 static inline int __nvgpu_atomic_add_return(int i, nvgpu_atomic_t *v)
