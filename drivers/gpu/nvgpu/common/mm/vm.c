@@ -1237,11 +1237,9 @@ void nvgpu_vm_unmap(struct vm_gk20a *vm, u64 offset,
 
 	if ((mapped_buffer->flags & NVGPU_VM_MAP_FIXED_OFFSET) != 0U) {
 		if (nvgpu_vm_unmap_sync_buffer(vm, mapped_buffer) != 0) {
-			/*
-			 * Looks like we have failed... Better not continue in
-			 * case the buffer is in use.
-			 */
-			goto done;
+			nvgpu_warn(vm->mm->g, "%d references remaining on 0x%llx",
+				nvgpu_atomic_read(&mapped_buffer->ref.refcount),
+				mapped_buffer->addr);
 		}
 	}
 
