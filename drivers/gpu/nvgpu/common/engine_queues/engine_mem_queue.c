@@ -20,9 +20,14 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
+#include <nvgpu/errno.h>
+#include <nvgpu/kmem.h>
 #include <nvgpu/lock.h>
-#include <nvgpu/pmu.h>
+#include <nvgpu/log.h>
+#include <nvgpu/flcnif_cmn.h>
+#include <nvgpu/pmuif/nvgpu_gpmu_cmdif.h>
 #include <nvgpu/engine_queue.h>
+#include <nvgpu/engine_mem_queue.h>
 
 #include "engine_mem_queue_priv.h"
 #include "engine_dmem_queue.h"
@@ -94,7 +99,7 @@ static int engine_mem_queue_rewind(struct nvgpu_falcon *flcn,
 			goto exit;
 		} else {
 			queue->position += ALIGN(cmd.hdr.size, QUEUE_ALIGNMENT);
-			nvgpu_pmu_dbg(g, "flcn-%d queue-%d, rewinded",
+			nvgpu_log_info(g, "flcn-%d queue-%d, rewinded",
 			queue->flcn_id, queue->id);
 		}
 	}
@@ -124,7 +129,7 @@ static int engine_mem_queue_prepare_write(struct nvgpu_falcon *flcn,
 
 	/* make sure there's enough free space for the write */
 	if (!engine_mem_queue_has_room(queue, size, &q_rewind)) {
-		nvgpu_pmu_dbg(queue->g, "queue full: queue-id %d: index %d",
+		nvgpu_log_info(queue->g, "queue full: queue-id %d: index %d",
 			queue->id, queue->index);
 		err = -EAGAIN;
 		goto exit;
@@ -355,8 +360,8 @@ void nvgpu_engine_mem_queue_free(struct nvgpu_engine_mem_queue **queue_p)
 
 	g = queue->g;
 
-	nvgpu_pmu_dbg(g, "flcn id-%d q-id %d: index %d ",
-		      queue->flcn_id, queue->id, queue->index);
+	nvgpu_log_info(g, "flcn id-%d q-id %d: index %d ",
+		       queue->flcn_id, queue->id, queue->index);
 
 	/* destroy mutex */
 	nvgpu_mutex_destroy(&queue->mutex);
@@ -401,7 +406,7 @@ int nvgpu_engine_mem_queue_init(struct nvgpu_engine_mem_queue **queue_p,
 	queue->head = params.queue_head;
 	queue->tail = params.queue_tail;
 
-	nvgpu_log(g, gpu_dbg_pmu,
+	nvgpu_log_info(g,
 		"flcn id-%d q-id %d: index %d, offset 0x%08x, size 0x%08x",
 		queue->flcn_id, queue->id, queue->index,
 		queue->offset, queue->size);

@@ -23,6 +23,8 @@
 #ifndef NVGPU_ENGINE_FB_QUEUE_PRIV_H
 #define NVGPU_ENGINE_FB_QUEUE_PRIV_H
 
+#include <nvgpu/lock.h>
+
 struct nvgpu_engine_fb_queue {
 	struct gk20a *g;
 	u32 flcn_id;

@@ -25,11 +25,11 @@
 #include <nvgpu/types.h>
 #include <nvgpu/flcnif_cmn.h>
 #include <nvgpu/nvgpu_mem.h>
-#include <nvgpu/pmu.h>
 #include <nvgpu/string.h>
 #include <nvgpu/kmem.h>
 #include <nvgpu/engine_queue.h>
 #include <nvgpu/engine_fb_queue.h>
+#include <nvgpu/pmuif/gpmuif_cmn.h>
 
 #include "engine_fb_queue_priv.h"
 
@@ -309,8 +309,8 @@ static int engine_fb_queue_prepare_write(struct nvgpu_engine_fb_queue *queue,
 
 	/* make sure there's enough free space for the write */
 	if (!engine_fb_queue_has_room(queue, size)) {
-		nvgpu_pmu_dbg(queue->g, "queue full: queue-id %d: index %d",
-			queue->id, queue->index);
+		nvgpu_log_info(queue->g, "queue full: queue-id %d: index %d",
+			       queue->id, queue->index);
 		err = -EAGAIN;
 		goto exit;
 	}
@@ -517,7 +517,7 @@ void nvgpu_engine_fb_queue_free(struct nvgpu_engine_fb_queue **queue_p)
 
 	g = queue->g;
 
-	nvgpu_pmu_dbg(g, "flcn id-%d q-id %d: index %d ",
+	nvgpu_log_info(g, "flcn id-%d q-id %d: index %d ",
 		      queue->flcn_id, queue->id, queue->index);
 
 	nvgpu_kfree(g, queue->fbq.work_buffer);
@@ -588,7 +588,7 @@ int nvgpu_engine_fb_queue_init(struct nvgpu_engine_fb_queue **queue_p,
 		goto exit;
 	}
 
-	nvgpu_log(g, gpu_dbg_pmu,
+	nvgpu_log_info(g,
 		"flcn id-%d q-id %d: index %d, size 0x%08x",
 		queue->flcn_id, queue->id, queue->index,
 		queue->size);
