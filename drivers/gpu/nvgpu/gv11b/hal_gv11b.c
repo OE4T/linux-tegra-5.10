@@ -70,6 +70,7 @@
 #include "common/fifo/channel_gm20b.h"
 #include "common/fifo/channel_gv11b.h"
 #include "common/fifo/engine_status_gv100.h"
+#include "common/fifo/pbdma_status_gm20b.h"
 
 #include "gk20a/fifo_gk20a.h"
 #include "gk20a/fecs_trace_gk20a.h"
@@ -743,6 +744,10 @@ static const struct gpu_ops gv11b_ops = {
 		.read_engine_status_info =
 			read_engine_status_info_gv100,
 	},
+	.pbdma_status = {
+		.read_pbdma_status_info =
+			gm20b_read_pbdma_status_info,
+	},
 	.runlist = {
 		.reschedule = gv11b_runlist_reschedule,
 		.reschedule_preempt_next_locked = gk20a_fifo_reschedule_preempt_next,
@@ -1039,6 +1044,7 @@ int gv11b_init_hal(struct gk20a *g)
 	gops->channel = gv11b_ops.channel;
 	gops->sync = gv11b_ops.sync;
 	gops->engine_status = gv11b_ops.engine_status;
+	gops->pbdma_status = gv11b_ops.pbdma_status;
 	gops->netlist = gv11b_ops.netlist;
 	gops->mm = gv11b_ops.mm;
 #ifdef CONFIG_GK20A_CTXSW_TRACE

@@ -193,6 +193,8 @@ srcs += common/sim.c \
 	common/fifo/engines.c \
 	common/fifo/engine_status_gm20b.c \
 	common/fifo/engine_status_gv100.c \
+	common/fifo/pbdma_status.c \
+	common/fifo/pbdma_status_gm20b.c \
 	common/mc/mc.c \
 	common/mc/mc_gm20b.c \
 	common/mc/mc_gp10b.c  \

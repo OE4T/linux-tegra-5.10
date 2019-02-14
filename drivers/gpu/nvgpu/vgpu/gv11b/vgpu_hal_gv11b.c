@@ -504,6 +504,9 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 	.engine_status = {
 		.read_engine_status_info = NULL,
 	},
+	.pbdma_status = {
+		.read_pbdma_status_info = NULL,
+	},
 	.runlist = {
 		.reschedule = NULL,
 		.update_for_channel = vgpu_runlist_update_for_channel,
@@ -755,6 +758,7 @@ int vgpu_gv11b_init_hal(struct gk20a *g)
 	gops->channel = vgpu_gv11b_ops.channel;
 	gops->sync = vgpu_gv11b_ops.sync;
 	gops->engine_status = vgpu_gv11b_ops.engine_status;
+	gops->pbdma_status = vgpu_gv11b_ops.pbdma_status;
 	gops->netlist = vgpu_gv11b_ops.netlist;
 	gops->mm = vgpu_gv11b_ops.mm;
 #ifdef CONFIG_GK20A_CTXSW_TRACE

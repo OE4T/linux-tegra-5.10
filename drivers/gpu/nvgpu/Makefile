@@ -349,6 +349,8 @@ nvgpu-y += \
 	common/fifo/engines.o \
 	common/fifo/engine_status_gm20b.o \
 	common/fifo/engine_status_gv100.o \
+	common/fifo/pbdma_status.o \
+	common/fifo/pbdma_status_gm20b.o \
 	common/ecc.o \
 	common/ce2.o \
 	common/debugger.o \

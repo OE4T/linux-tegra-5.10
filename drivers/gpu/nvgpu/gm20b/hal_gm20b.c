@@ -62,6 +62,7 @@
 #include "common/fifo/channel_gk20a.h"
 #include "common/fifo/channel_gm20b.h"
 #include "common/fifo/engine_status_gm20b.h"
+#include "common/fifo/pbdma_status_gm20b.h"
 
 #include "gk20a/ce2_gk20a.h"
 #include "gk20a/fifo_gk20a.h"
@@ -572,6 +573,10 @@ static const struct gpu_ops gm20b_ops = {
 		.read_engine_status_info =
 			gm20b_read_engine_status_info,
 	},
+	.pbdma_status = {
+		.read_pbdma_status_info =
+			gm20b_read_pbdma_status_info,
+	},
 	.runlist = {
 		.update_for_channel = gk20a_runlist_update_for_channel,
 		.reload = gk20a_runlist_reload,
@@ -828,6 +833,7 @@ int gm20b_init_hal(struct gk20a *g)
 	gops->channel = gm20b_ops.channel;
 	gops->sync = gm20b_ops.sync;
 	gops->engine_status = gm20b_ops.engine_status;
+	gops->pbdma_status = gm20b_ops.pbdma_status;
 	gops->netlist = gm20b_ops.netlist;
 	gops->mm = gm20b_ops.mm;
 	gops->therm = gm20b_ops.therm;
