@@ -28,6 +28,7 @@
 #include <nvgpu/sec2.h>
 #include <nvgpu/sec2if/sec2_if_sec2.h>
 #include <nvgpu/sec2if/sec2_if_cmn.h>
+#include <nvgpu/engine_queue.h>
 
 static int sec2_seq_acquire(struct nvgpu_sec2 *sec2,
 	struct sec2_sequence **pseq)

@@ -25,11 +25,6 @@
 
 #include <nvgpu/types.h>
 
-/* Queue Type */
-#define QUEUE_TYPE_DMEM 0x0U
-#define QUEUE_TYPE_EMEM 0x1U
-#define QUEUE_TYPE_FB   0x2U
-
 struct nvgpu_falcon;
 struct nvgpu_engine_mem_queue;
 

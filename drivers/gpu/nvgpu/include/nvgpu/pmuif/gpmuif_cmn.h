@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -43,14 +43,6 @@
 
 #define  PMU_IS_MESSAGE_QUEUE(id)	\
 		((id) == PMU_MESSAGE_QUEUE)
-
-#define OFLAG_READ 	0U
-#define OFLAG_WRITE	1U
-
-#define QUEUE_SET		(true)
-#define QUEUE_GET		(false)
-
-#define QUEUE_ALIGNMENT		(4U)
 
 /* An enumeration containing all valid logical mutex identifiers */
 enum {

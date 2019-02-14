@@ -26,6 +26,7 @@
 #include <nvgpu/sec2.h>
 #include <nvgpu/sec2if/sec2_if_sec2.h>
 #include <nvgpu/sec2if/sec2_if_cmn.h>
+#include <nvgpu/engine_queue.h>
 
 /* sec2 falcon queue init */
 int nvgpu_sec2_queue_init(struct nvgpu_sec2 *sec2, u32 id,

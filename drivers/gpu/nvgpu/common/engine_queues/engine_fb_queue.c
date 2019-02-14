@@ -23,12 +23,12 @@
 #include <nvgpu/log.h>
 #include <nvgpu/errno.h>
 #include <nvgpu/types.h>
-#include <nvgpu/pmuif/gpmuif_cmn.h>
 #include <nvgpu/flcnif_cmn.h>
 #include <nvgpu/nvgpu_mem.h>
 #include <nvgpu/pmu.h>
 #include <nvgpu/string.h>
 #include <nvgpu/kmem.h>
+#include <nvgpu/engine_queue.h>
 #include <nvgpu/engine_fb_queue.h>
 
 #include "engine_fb_queue_priv.h"

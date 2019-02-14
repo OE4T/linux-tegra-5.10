@@ -26,6 +26,7 @@
 #include <nvgpu/pmuif/nvgpu_gpmu_cmdif.h>
 #include <nvgpu/pmuif/gpmu_super_surf_if.h>
 #include <nvgpu/enabled.h>
+#include <nvgpu/engine_queue.h>
 #include <nvgpu/barrier.h>
 #include <nvgpu/timers.h>
 #include <nvgpu/bug.h>

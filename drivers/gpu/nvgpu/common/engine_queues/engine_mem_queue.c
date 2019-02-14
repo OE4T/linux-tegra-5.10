@@ -22,6 +22,7 @@
 
 #include <nvgpu/lock.h>
 #include <nvgpu/pmu.h>
+#include <nvgpu/engine_queue.h>
 
 #include "engine_mem_queue_priv.h"
 #include "engine_dmem_queue.h"
