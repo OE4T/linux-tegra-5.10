@@ -23,7 +23,6 @@
 #include <nvgpu/bios.h>
 #include <nvgpu/io.h>
 #include <nvgpu/gk20a.h>
-#include <nvgpu/hw/gp106/hw_gc6_gp106.h>
 #include <nvgpu/string.h>
 
 #define BIT_HEADER_ID 				0xb8ffU
@@ -919,102 +918,4 @@ u32 nvgpu_bios_read_u32(struct gk20a *g, u32 offset)
 		(__nvgpu_bios_readbyte(g, offset+3U) << 24U);
 
 	return val;
-}
-
-static void nvgpu_bios_init_xmemsel_zm_nv_reg_array(struct gk20a *g, bool *condition,
-	u32 reg, u32 stride, u32 count, u32 data_table_offset)
-{
-	u8 i;
-	u32 data, strap, index;
-
-	if (*condition) {
-
-		strap = gk20a_readl(g, gc6_sci_strap_r()) & 0xfU;
-
-		index = (g->bios.mem_strap_xlat_tbl_ptr != 0U) ?
-			nvgpu_bios_read_u8(g, g->bios.mem_strap_xlat_tbl_ptr +
-				strap) : strap;
-
-		for (i = 0; i < count; i++) {
-			data = nvgpu_bios_read_u32(g, data_table_offset +
-				((U32(i) * U32(g->bios.mem_strap_data_count) +
-				index) * U32(sizeof(u32))));
-			gk20a_writel(g, reg, data);
-			reg += stride;
-		}
-	}
-}
-
-static void gp106_init_condition(struct gk20a *g, bool *condition,
-	u32 condition_id)
-{
-	struct condition_entry entry;
-
-	entry.cond_addr = nvgpu_bios_read_u32(g, g->bios.condition_table_ptr +
-		sizeof(entry)*condition_id);
-	entry.cond_mask = nvgpu_bios_read_u32(g, g->bios.condition_table_ptr +
-		sizeof(entry)*condition_id + 4U);
-	entry.cond_compare = nvgpu_bios_read_u32(g, g->bios.condition_table_ptr +
-		sizeof(entry)*condition_id + 8U);
-
-	if ((gk20a_readl(g, entry.cond_addr) & entry.cond_mask)
-		!= entry.cond_compare) {
-		*condition = false;
-	}
-}
-
-int nvgpu_bios_execute_script(struct gk20a *g, u32 offset)
-{
-	u8 opcode;
-	u32 ip;
-	u32 operand[8];
-	bool condition, end;
-	int status = 0;
-
-	ip = offset;
-	condition = true;
-	end = false;
-
-	while (!end) {
-
-		opcode = nvgpu_bios_read_u8(g, ip++);
-
-		switch (opcode) {
-
-		case INIT_XMEMSEL_ZM_NV_REG_ARRAY:
-			operand[0] = nvgpu_bios_read_u32(g, ip);
-			operand[1] = nvgpu_bios_read_u8(g, ip+4U);
-			operand[2] = nvgpu_bios_read_u8(g, ip+5U);
-			ip += 6U;
-
-			nvgpu_bios_init_xmemsel_zm_nv_reg_array(g, &condition,
-				operand[0], operand[1], operand[2], ip);
-			ip += operand[2] * sizeof(u32) *
-				g->bios.mem_strap_data_count;
-			break;
-
-		case INIT_CONDITION:
-			operand[0] = nvgpu_bios_read_u8(g, ip);
-			ip++;
-
-			gp106_init_condition(g, &condition, operand[0]);
-			break;
-
-		case INIT_RESUME:
-			condition = true;
-			break;
-
-		case INIT_DONE:
-			end = true;
-			break;
-
-		default:
-			nvgpu_err(g, "opcode: 0x%02x", opcode);
-			end = true;
-			status = -EINVAL;
-			break;
-		}
-	}
-
-	return status;
 }
