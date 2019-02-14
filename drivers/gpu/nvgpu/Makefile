@@ -389,6 +389,7 @@ nvgpu-y += \
 	gm20b/mm_gm20b.o
 
 nvgpu-$(CONFIG_GK20A_CTXSW_TRACE) += \
+	gv11b/fecs_trace_gv11b.o \
 	tu104/fecs_trace_tu104.o \
 
 nvgpu-$(CONFIG_GK20A_VIDMEM) += \
