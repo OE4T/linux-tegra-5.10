@@ -584,16 +584,17 @@ static const struct gpu_ops gv100_ops = {
 			.add_depth = gp10b_gr_zbc_add_depth,
 			.set_table = nvgpu_gr_zbc_set_table,
 			.query_table = nvgpu_gr_zbc_query_table,
-			.stencil_query_table = gr_gv11b_zbc_s_query_table,
+			.stencil_query_table =
+				nvgpu_gr_zbc_stencil_query_table,
 			.load_stencil_default_tbl =
-				gr_gv11b_load_stencil_default_tbl,
-			.add_type_stencil = gr_gv11b_add_zbc_type_s,
-			.load_stencil_tbl = gr_gv11b_load_stencil_tbl,
-			.add_stencil = gr_gv11b_add_zbc_stencil,
+				nvgpu_gr_zbc_load_stencil_default_tbl,
+			.add_type_stencil = nvgpu_gr_zbc_add_type_stencil,
+			.load_stencil_tbl = nvgpu_gr_zbc_load_stencil_tbl,
+			.add_stencil = gv11b_gr_zbc_add_stencil,
 			.get_gpcs_swdx_dss_zbc_c_format_reg =
-				gr_gv11b_get_gpcs_swdx_dss_zbc_c_format_reg,
+				gv11b_gr_zbc_get_gpcs_swdx_dss_zbc_c_format_reg,
 			.get_gpcs_swdx_dss_zbc_z_format_reg =
-				gr_gv11b_get_gpcs_swdx_dss_zbc_z_format_reg,
+				gv11b_gr_zbc_get_gpcs_swdx_dss_zbc_z_format_reg,
 		}
 	},
 	.fb = {

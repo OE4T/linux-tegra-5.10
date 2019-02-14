@@ -103,19 +103,19 @@ int gr_gv11b_handle_gpc_gpcmmu_exception(struct gk20a *g, u32 gpc,
 int gr_gv11b_handle_gpc_gpccs_exception(struct gk20a *g, u32 gpc,
 							u32 gpc_exception);
 void gr_gv11b_enable_gpc_exceptions(struct gk20a *g);
-u32 gr_gv11b_get_gpcs_swdx_dss_zbc_c_format_reg(struct gk20a *g);
-u32 gr_gv11b_get_gpcs_swdx_dss_zbc_z_format_reg(struct gk20a *g);
+u32 gv11b_gr_zbc_get_gpcs_swdx_dss_zbc_c_format_reg(struct gk20a *g);
+u32 gv11b_gr_zbc_get_gpcs_swdx_dss_zbc_z_format_reg(struct gk20a *g);
 int gr_gv11b_handle_tex_exception(struct gk20a *g, u32 gpc, u32 tpc,
 		bool *post_event);
-int gr_gv11b_zbc_s_query_table(struct gk20a *g, struct gr_gk20a *gr,
+int nvgpu_gr_zbc_stencil_query_table(struct gk20a *g, struct gr_gk20a *gr,
 			struct zbc_query_params *query_params);
-bool gr_gv11b_add_zbc_type_s(struct gk20a *g, struct gr_gk20a *gr,
+bool nvgpu_gr_zbc_add_type_stencil(struct gk20a *g, struct gr_gk20a *gr,
 		     struct zbc_entry *zbc_val, int *ret_val);
-int gr_gv11b_add_zbc_stencil(struct gk20a *g, struct gr_gk20a *gr,
+int gv11b_gr_zbc_add_stencil(struct gk20a *g, struct gr_gk20a *gr,
 				struct zbc_entry *stencil_val, u32 index);
-int gr_gv11b_load_stencil_default_tbl(struct gk20a *g,
+int nvgpu_gr_zbc_load_stencil_default_tbl(struct gk20a *g,
 		 struct gr_gk20a *gr);
-int gr_gv11b_load_stencil_tbl(struct gk20a *g, struct gr_gk20a *gr);
+int nvgpu_gr_zbc_load_stencil_tbl(struct gk20a *g, struct gr_gk20a *gr);
 u32 gr_gv11b_pagepool_default_size(struct gk20a *g);
 u32 gr_gv11b_calc_global_ctx_buffer_size(struct gk20a *g);
 int gr_gv11b_handle_sw_method(struct gk20a *g, u32 addr,
