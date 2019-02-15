@@ -22,10 +22,10 @@
 #include <nvgpu/lock.h>
 
 #include <nvgpu/kmem.h>
-#include <nvgpu/semaphore.h>
 #include <nvgpu/bug.h>
 #include <nvgpu/kref.h>
 #include <nvgpu/channel.h>
+#include <nvgpu/semaphore.h>
 #include "../linux/channel.h"
 
 #include "../drivers/staging/android/sync.h"
@@ -285,7 +285,7 @@ static void gk20a_sync_pt_value_str_for_sema(struct gk20a_sync_pt *pt,
 	struct nvgpu_semaphore *s = pt->sema;
 
 	(void) snprintf(str, size, "S: pool=%llu [v=%u,r_v=%u]",
-		 s->location.pool->page_idx,
+		 nvgpu_semaphore_get_hw_pool_page_idx(s),
 		 nvgpu_semaphore_get_value(s),
 		 nvgpu_semaphore_read(s));
 }

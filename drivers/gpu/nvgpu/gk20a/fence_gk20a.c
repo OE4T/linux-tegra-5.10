@@ -22,7 +22,6 @@
 
 #include "fence_gk20a.h"
 
-#include <nvgpu/semaphore.h>
 #include <nvgpu/kmem.h>
 #include <nvgpu/soc.h>
 #include <nvgpu/nvhost.h>
@@ -30,6 +29,7 @@
 #include <nvgpu/os_fence.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/channel.h>
+#include <nvgpu/semaphore.h>
 
 struct gk20a_fence_ops {
 	int (*wait)(struct gk20a_fence *f, u32 timeout);

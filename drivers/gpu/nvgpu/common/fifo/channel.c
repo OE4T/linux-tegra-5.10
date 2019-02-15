@@ -453,7 +453,7 @@ static void gk20a_free_channel(struct channel_gk20a *ch, bool force)
 	 * as the semaphore pool might get freed after that point.
 	 */
 	if (ch->hw_sema != NULL) {
-		nvgpu_semaphore_free_hw_sema(ch);
+		nvgpu_hw_semaphore_free(ch);
 	}
 
 	/*

@@ -248,13 +248,14 @@ static int nvgpu_init_sema_pool(struct vm_gk20a *vm)
 	 *
 	 * !!! TODO: cleanup.
 	 */
-	sema_sea->gpu_va = nvgpu_alloc_fixed(&vm->kernel,
+	nvgpu_semaphore_sea_allocate_gpu_va(sema_sea, &vm->kernel,
 					     vm->va_limit -
 					     mm->channel.kernel_size,
 					     512U * PAGE_SIZE,
 					     (u32)SZ_4K);
-	if (sema_sea->gpu_va == 0ULL) {
-		nvgpu_free(&vm->kernel, sema_sea->gpu_va);
+	if (nvgpu_semaphore_sea_get_gpu_va(sema_sea) == 0ULL) {
+		nvgpu_free(&vm->kernel,
+			nvgpu_semaphore_sea_get_gpu_va(sema_sea));
 		nvgpu_vm_put(vm);
 		return -ENOMEM;
 	}
@@ -263,7 +264,7 @@ static int nvgpu_init_sema_pool(struct vm_gk20a *vm)
 	if (err != 0) {
 		nvgpu_semaphore_pool_unmap(vm->sema_pool, vm);
 		nvgpu_free(vm->vma[GMMU_PAGE_SIZE_SMALL],
-			   vm->sema_pool->gpu_va);
+			   nvgpu_semaphore_pool_gpu_va(vm->sema_pool, false));
 		return err;
 	}
 

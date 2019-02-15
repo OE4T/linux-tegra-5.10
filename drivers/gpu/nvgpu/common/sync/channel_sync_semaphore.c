@@ -22,7 +22,6 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#include <nvgpu/semaphore.h>
 #include <nvgpu/kmem.h>
 #include <nvgpu/log.h>
 #include <nvgpu/atomic.h>
@@ -30,6 +29,7 @@
 #include <nvgpu/list.h>
 #include <nvgpu/nvhost.h>
 #include <nvgpu/gk20a.h>
+#include <nvgpu/semaphore.h>
 #include <nvgpu/os_fence.h>
 #include <nvgpu/os_fence_semas.h>
 #include <nvgpu/channel.h>
@@ -87,14 +87,14 @@ static void add_sema_cmd(struct gk20a *g, struct channel_gk20a *c,
 		gpu_sema_verbose_dbg(g, "(A) c=%d ACQ_GE %-4u pool=%-3llu"
 				     "va=0x%llx cmd_mem=0x%llx b=0x%llx off=%u",
 				     ch, nvgpu_semaphore_get_value(s),
-				     s->location.pool->page_idx, va, cmd->gva,
-				     cmd->mem->gpu_va, ob);
+				     nvgpu_semaphore_get_hw_pool_page_idx(s),
+				     va, cmd->gva, cmd->mem->gpu_va, ob);
 	} else {
 		gpu_sema_verbose_dbg(g, "(R) c=%d INCR %u (%u) pool=%-3llu"
 				     "va=0x%llx cmd_mem=0x%llx b=0x%llx off=%u",
 				     ch, nvgpu_semaphore_get_value(s),
 				     nvgpu_semaphore_read(s),
-				     s->location.pool->page_idx,
+				     nvgpu_semaphore_get_hw_pool_page_idx(s),
 				     va, cmd->gva, cmd->mem->gpu_va, ob);
 	}
 }
@@ -103,13 +103,16 @@ static void channel_sync_semaphore_gen_wait_cmd(struct channel_gk20a *c,
 	struct nvgpu_semaphore *sema, struct priv_cmd_entry *wait_cmd,
 	u32 wait_cmd_size, u32 pos)
 {
+	bool has_incremented;
+
 	if (sema == NULL) {
 		/* expired */
 		nvgpu_memset(c->g, wait_cmd->mem,
 			(wait_cmd->off + pos * wait_cmd_size) * (u32)sizeof(u32),
 			0, wait_cmd_size * (u32)sizeof(u32));
 	} else {
-		WARN_ON(!sema->incremented);
+		has_incremented = nvgpu_semaphore_can_wait(sema);
+		nvgpu_assert(has_incremented);
 		add_sema_cmd(c->g, c, sema, wait_cmd,
 			pos * wait_cmd_size, true, false);
 		nvgpu_semaphore_put(sema);
@@ -284,7 +287,7 @@ static void channel_sync_semaphore_set_min_eq_max(struct nvgpu_channel_sync *s)
 		return;
 	}
 
-	updated = nvgpu_semaphore_reset(c->hw_sema);
+	updated = nvgpu_hw_semaphore_reset(c->hw_sema);
 
 	if (updated) {
 		nvgpu_cond_broadcast_interruptible(&c->semaphore_wq);

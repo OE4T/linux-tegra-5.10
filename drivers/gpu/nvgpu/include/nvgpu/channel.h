@@ -241,7 +241,7 @@ struct channel_gk20a {
 	struct nvgpu_spinlock ref_actions_lock;
 #endif
 
-	struct nvgpu_semaphore_int *hw_sema;
+	struct nvgpu_hw_semaphore *hw_sema;
 
 	nvgpu_atomic_t bound;
 

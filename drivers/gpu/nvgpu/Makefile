@@ -62,6 +62,10 @@ nvgpu-y += \
 	common/sync/channel_sync_semaphore.o \
 	common/sync/sema_cmdbuf_gk20a.o \
 	common/sync/sema_cmdbuf_gv11b.o \
+	common/semaphore/semaphore_sea.o \
+	common/semaphore/semaphore_pool.o \
+	common/semaphore/semaphore_hw.o \
+	common/semaphore/semaphore.o \
 	common/boardobj/boardobj.o \
 	common/boardobj/boardobjgrp.o \
 	common/boardobj/boardobjgrpmask.o \
@@ -319,7 +323,6 @@ nvgpu-y += \
 	common/enabled.o \
 	common/string.o \
 	common/pramin.o \
-	common/semaphore.o \
 	common/rbtree.o \
 	common/vbios/bios.o \
 	common/falcon/falcon.o \

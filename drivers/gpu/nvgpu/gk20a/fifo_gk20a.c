@@ -27,8 +27,8 @@
 #include <nvgpu/mm.h>
 #include <nvgpu/dma.h>
 #include <nvgpu/timers.h>
-#include <nvgpu/semaphore.h>
 #include <nvgpu/enabled.h>
+#include <nvgpu/semaphore.h>
 #include <nvgpu/kmem.h>
 #include <nvgpu/log.h>
 #include <nvgpu/soc.h>
@@ -2828,7 +2828,7 @@ void gk20a_debug_dump_all_channel_status_ramfc(struct gk20a *g,
 	for (chid = 0; chid < f->num_channels; chid++) {
 		struct channel_gk20a *ch = &f->channel[chid];
 		struct nvgpu_channel_dump_info *info = infos[chid];
-		struct nvgpu_semaphore_int *hw_sema = ch->hw_sema;
+		struct nvgpu_hw_semaphore *hw_sema = ch->hw_sema;
 
 		/* if this info exists, the above loop took a channel ref */
 		if (info == NULL) {
@@ -2842,10 +2842,10 @@ void gk20a_debug_dump_all_channel_status_ramfc(struct gk20a *g,
 		info->deterministic = ch->deterministic;
 
 		if (hw_sema != NULL) {
-			info->sema.value = __nvgpu_semaphore_read(hw_sema);
+			info->sema.value = nvgpu_hw_semaphore_read(hw_sema);
 			info->sema.next =
-				(u32)nvgpu_atomic_read(&hw_sema->next_value);
-			info->sema.addr = nvgpu_hw_sema_addr(hw_sema);
+				(u32)nvgpu_hw_semaphore_read_next(hw_sema);
+			info->sema.addr = nvgpu_hw_semaphore_addr(hw_sema);
 		}
 
 		g->ops.fifo.capture_channel_ram_dump(g, ch, info);
