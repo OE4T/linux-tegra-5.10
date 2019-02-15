@@ -81,7 +81,7 @@ struct fifo_engine_info_gk20a *nvgpu_engine_get_active_eng_info(
 }
 
 u32 nvgpu_engine_get_ids(struct gk20a *g,
-		u32 engine_id[], u32 engine_id_sz,
+		u32 *engine_ids, u32 engine_id_sz,
 		enum nvgpu_fifo_engine engine_enum)
 {
 	struct fifo_gk20a *f = NULL;
@@ -103,7 +103,7 @@ u32 nvgpu_engine_get_ids(struct gk20a *g,
 
 		if (info->engine_enum == engine_enum) {
 			if (instance_cnt < engine_id_sz) {
-				engine_id[instance_cnt] = active_engine_id;
+				engine_ids[instance_cnt] = active_engine_id;
 				++instance_cnt;
 			} else {
 				nvgpu_log_info(g, "warning engine_id table sz is small %d",
@@ -114,7 +114,7 @@ u32 nvgpu_engine_get_ids(struct gk20a *g,
 	return instance_cnt;
 }
 
-bool nvgpu_engine_check_valid_eng_id(struct gk20a *g, u32 engine_id)
+bool nvgpu_engine_check_valid_id(struct gk20a *g, u32 engine_id)
 {
 	struct fifo_gk20a *f = NULL;
 	u32 engine_id_idx;
@@ -144,7 +144,7 @@ bool nvgpu_engine_check_valid_eng_id(struct gk20a *g, u32 engine_id)
 	return valid;
 }
 
-u32 nvgpu_engine_get_gr_eng_id(struct gk20a *g)
+u32 nvgpu_engine_get_gr_id(struct gk20a *g)
 {
 	u32 gr_engine_cnt = 0;
 	u32 gr_engine_id = FIFO_INVAL_ENGINE_ID;
@@ -177,7 +177,7 @@ u32 nvgpu_engine_interrupt_mask(struct gk20a *g)
 	u32 eng_intr_mask = 0;
 	unsigned int i;
 	u32 active_engine_id = 0;
-	enum nvgpu_fifo_engine engine_enum = NVGPU_ENGINE_INVAL_GK20A;
+	enum nvgpu_fifo_engine engine_enum;
 
 	for (i = 0; i < g->fifo.num_engines; i++) {
 		u32 intr_mask;
@@ -197,10 +197,10 @@ u32 nvgpu_engine_interrupt_mask(struct gk20a *g)
 	return eng_intr_mask;
 }
 
-u32 nvgpu_engine_get_all_ce_eng_reset_mask(struct gk20a *g)
+u32 nvgpu_engine_get_all_ce_reset_mask(struct gk20a *g)
 {
 	u32 reset_mask = 0;
-	enum nvgpu_fifo_engine engine_enum = NVGPU_ENGINE_INVAL_GK20A;
+	enum nvgpu_fifo_engine engine_enum;
 	struct fifo_gk20a *f = NULL;
 	u32 engine_id_idx;
 	struct fifo_engine_info_gk20a *engine_info;

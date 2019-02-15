@@ -67,7 +67,7 @@ void gm20b_fifo_trigger_mmu_fault(struct gk20a *g,
 
 	/* trigger faults for all bad engines */
 	for_each_set_bit(engine_id, &engine_ids, 32UL) {
-		if (!nvgpu_engine_check_valid_eng_id(g, engine_id)) {
+		if (!nvgpu_engine_check_valid_id(g, (u32)engine_id)) {
 			nvgpu_err(g, "faulting unknown engine %ld", engine_id);
 		} else {
 			u32 mmu_id = gm20b_engine_id_to_mmu_id(g,

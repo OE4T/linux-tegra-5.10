@@ -350,7 +350,7 @@ int gk20a_init_ce_support(struct gk20a *g)
 		g->ce_app = ce_app;
 	}
 
-	ce_reset_mask = nvgpu_engine_get_all_ce_eng_reset_mask(g);
+	ce_reset_mask = nvgpu_engine_get_all_ce_reset_mask(g);
 
 	g->ops.mc.reset(g, ce_reset_mask);
 

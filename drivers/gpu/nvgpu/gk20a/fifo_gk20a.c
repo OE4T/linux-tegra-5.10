@@ -99,7 +99,7 @@ void nvgpu_report_host_error(struct gk20a *g, u32 inst,
 u32 gk20a_fifo_get_fast_ce_runlist_id(struct gk20a *g)
 {
 	u32 ce_runlist_id = gk20a_fifo_get_gr_runlist_id(g);
-	enum nvgpu_fifo_engine engine_enum = NVGPU_ENGINE_INVAL_GK20A;
+	enum nvgpu_fifo_engine engine_enum;
 	struct fifo_gk20a *f = NULL;
 	u32 engine_id_idx;
 	struct fifo_engine_info_gk20a *engine_info;
@@ -1738,7 +1738,7 @@ bool gk20a_fifo_handle_sched_error(struct gk20a *g)
 	engine_id = gk20a_fifo_get_failing_engine_data(g, &id, &is_tsg);
 
 	/* could not find the engine - should never happen */
-	if (!nvgpu_engine_check_valid_eng_id(g, engine_id)) {
+	if (!nvgpu_engine_check_valid_id(g, engine_id)) {
 		nvgpu_err(g, "fifo sched error : 0x%08x, failed to find engine",
 			sched_error);
 		ret = false;

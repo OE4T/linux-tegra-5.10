@@ -96,7 +96,7 @@ void mc_gp10b_isr_stall(struct gk20a *g)
 
 	u32 engine_id_idx;
 	u32 active_engine_id = 0;
-	u32 engine_enum = NVGPU_ENGINE_INVAL_GK20A;
+	enum nvgpu_fifo_engine engine_enum;
 
 	mc_intr_0 = gk20a_readl(g, mc_intr_r(0));
 

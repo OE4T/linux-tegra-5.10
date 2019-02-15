@@ -40,7 +40,7 @@ void gm20b_mc_isr_stall(struct gk20a *g)
 	u32 mc_intr_0;
 	u32 engine_id_idx;
 	u32 active_engine_id = 0;
-	u32 engine_enum = NVGPU_ENGINE_INVAL_GK20A;
+	enum nvgpu_fifo_engine engine_enum;
 
 	mc_intr_0 = g->ops.mc.intr_stall(g);
 
@@ -89,7 +89,7 @@ u32 gm20b_mc_isr_nonstall(struct gk20a *g)
 	u32 mc_intr_1;
 	u32 engine_id_idx;
 	u32 active_engine_id = 0;
-	u32 engine_enum = NVGPU_ENGINE_INVAL_GK20A;
+	enum nvgpu_fifo_engine engine_enum;
 
 	mc_intr_1 = g->ops.mc.intr_nonstall(g);
 
@@ -247,7 +247,7 @@ void gm20b_mc_enable(struct gk20a *g, u32 units)
 void gm20b_mc_reset(struct gk20a *g, u32 units)
 {
 	g->ops.mc.disable(g, units);
-	if ((units & nvgpu_engine_get_all_ce_eng_reset_mask(g)) != 0U) {
+	if ((units & nvgpu_engine_get_all_ce_reset_mask(g)) != 0U) {
 		nvgpu_udelay(500);
 	} else {
 		nvgpu_udelay(20);

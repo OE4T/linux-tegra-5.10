@@ -29,7 +29,7 @@ struct gk20a;
 struct fifo_engine_info_gk20a;
 
 enum nvgpu_fifo_engine {
-	NVGPU_ENGINE_GR_GK20A	       = 0U,
+	NVGPU_ENGINE_GR_GK20A	     = 0U,
 	NVGPU_ENGINE_GRCE_GK20A      = 1U,
 	NVGPU_ENGINE_ASYNC_CE_GK20A  = 2U,
 	NVGPU_ENGINE_INVAL_GK20A     = 3U,
@@ -42,13 +42,13 @@ struct fifo_engine_info_gk20a *nvgpu_engine_get_active_eng_info(
 		struct gk20a *g, u32 engine_id);
 
 u32 nvgpu_engine_get_ids(struct gk20a *g,
-		u32 engine_id[], u32 engine_id_sz,
+		u32 *engine_ids, u32 engine_id_sz,
 		enum nvgpu_fifo_engine engine_enum);
 
-bool nvgpu_engine_check_valid_eng_id(struct gk20a *g, u32 engine_id);
-u32 nvgpu_engine_get_gr_eng_id(struct gk20a *g);
+bool nvgpu_engine_check_valid_id(struct gk20a *g, u32 engine_id);
+u32 nvgpu_engine_get_gr_id(struct gk20a *g);
 u32 nvgpu_engine_interrupt_mask(struct gk20a *g);
 u32 nvgpu_engine_act_interrupt_mask(struct gk20a *g, u32 act_eng_id);
-u32 nvgpu_engine_get_all_ce_eng_reset_mask(struct gk20a *g);
+u32 nvgpu_engine_get_all_ce_reset_mask(struct gk20a *g);
 
 #endif /*NVGPU_ENGINE_H*/

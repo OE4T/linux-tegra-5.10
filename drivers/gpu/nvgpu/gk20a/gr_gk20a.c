@@ -246,7 +246,7 @@ int gr_gk20a_wait_idle(struct gk20a *g)
 
 	nvgpu_log_fn(g, " ");
 
-	gr_engine_id = nvgpu_engine_get_gr_eng_id(g);
+	gr_engine_id = nvgpu_engine_get_gr_id(g);
 
 	nvgpu_timeout_init(g, &timeout, gk20a_get_gr_idle_timeout(g),
 			   NVGPU_TIMER_CPU_TIMER);
@@ -4290,7 +4290,7 @@ int gk20a_gr_isr(struct gk20a *g)
 		return 0;
 	}
 
-	gr_engine_id = nvgpu_engine_get_gr_eng_id(g);
+	gr_engine_id = nvgpu_engine_get_gr_id(g);
 	if (gr_engine_id != FIFO_INVAL_ENGINE_ID) {
 		gr_engine_id = BIT32(gr_engine_id);
 	}
