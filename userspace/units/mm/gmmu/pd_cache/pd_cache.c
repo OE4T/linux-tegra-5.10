@@ -32,6 +32,8 @@
 #include <nvgpu/posix/kmem.h>
 #include <nvgpu/posix/posix-fault-injection.h>
 
+#include <common/mm/gmmu/pd_cache_priv.h>
+
 /*
  * Direct allocs are allocs large enough to just pass straight on to the
  * DMA allocator. Basically that means the size of the PD is larger than a page.
@@ -318,10 +320,17 @@ static int test_pd_free_empty_pd(struct unit_module *m,
 	 * So we will make sure we don't crash.
 	 */
 	nvgpu_pd_free(&vm, &pd);
-	nvgpu_pd_free(&vm, &pd);
+	if (!EXPECT_BUG(nvgpu_pd_free(&vm, &pd))) {
+		unit_return_fail(m, "nvgpu_pd_free did not BUG() as expected");
+	}
+	/* When BUG() occurs the pd_cache lock is not released, so do it here */
+	nvgpu_mutex_release(&g->mm.pd_cache->lock);
 
 	pd.mem = NULL;
-	nvgpu_pd_free(&vm, &pd);
+	if (!EXPECT_BUG(nvgpu_pd_free(&vm, &pd))) {
+		unit_return_fail(m, "nvgpu_pd_free did not BUG() as expected");
+	}
+	nvgpu_mutex_release(&g->mm.pd_cache->lock);
 
 	/* And now direct frees. */
 	memset(&pd, 0U, sizeof(pd));
@@ -331,6 +340,11 @@ static int test_pd_free_empty_pd(struct unit_module *m,
 	}
 
 	nvgpu_pd_free(&vm, &pd);
+
+	/*
+	 * nvgpu_pd_free calls below will not cause BUG() because pd->cached is
+	 * true.
+	 */
 	nvgpu_pd_free(&vm, &pd);
 
 	pd.mem = NULL;
@@ -357,8 +371,7 @@ static int test_pd_alloc_invalid_input(struct unit_module *m,
 	}
 
 	/* Obviously shouldn't work pd_cache is not init'ed. */
-	err = nvgpu_pd_alloc(&vm, &pd, 2048U);
-	if (err == 0) {
+	if (!EXPECT_BUG(nvgpu_pd_alloc(&vm, &pd, 2048U))) {
 		unit_return_fail(m, "pd_alloc worked on NULL pd_cache\n");
 	}
 
