@@ -829,6 +829,9 @@ static int clk_prog_construct_35_master(struct gk20a *g,
 	pclkprog->p_voltrail_sec_vf_entries =
 		(struct ctrl_clk_clk_prog_35_master_sec_vf_entry_voltrail *)
 				nvgpu_kzalloc(g, voltrail_sec_vfsize);
+	if (pclkprog->p_voltrail_sec_vf_entries == NULL) {
+		return -ENOMEM;
+	}
 
 	(void) memset(pclkprog->p_voltrail_sec_vf_entries,
 		CTRL_CLK_CLK_DOMAIN_INDEX_INVALID, voltrail_sec_vfsize);

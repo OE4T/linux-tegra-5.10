@@ -341,6 +341,8 @@ void gk20a_scale_init(struct device *dev)
 		return;
 
 	profile = nvgpu_kzalloc(g, sizeof(*profile));
+	if (!profile)
+		return;
 
 	profile->dev = dev;
 	profile->dev_stat.busy = false;
