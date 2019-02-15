@@ -32,7 +32,7 @@
 #include <nvgpu/channel.h>
 
 struct gk20a_fence_ops {
-	int (*wait)(struct gk20a_fence *f, long timeout);
+	int (*wait)(struct gk20a_fence *f, u32 timeout);
 	bool (*is_expired)(struct gk20a_fence *f);
 	void *(*free)(struct nvgpu_ref *ref);
 };
@@ -102,11 +102,11 @@ int gk20a_fence_install_fd(struct gk20a_fence *f, int fd)
 }
 
 int gk20a_fence_wait(struct gk20a *g, struct gk20a_fence *f,
-							unsigned long timeout)
+							u32 timeout)
 {
 	if ((f != NULL) && gk20a_fence_is_valid(f)) {
 		if (!nvgpu_platform_is_silicon(g)) {
-			timeout = MAX_SCHEDULE_TIMEOUT;
+			timeout = U32_MAX;
 		}
 		return f->ops->wait(f, timeout);
 	}
@@ -206,7 +206,7 @@ void gk20a_init_fence(struct gk20a_fence *f,
 
 /* Fences that are backed by GPU semaphores: */
 
-static int nvgpu_semaphore_fence_wait(struct gk20a_fence *f, long timeout)
+static int nvgpu_semaphore_fence_wait(struct gk20a_fence *f, u32 timeout)
 {
 	if (!nvgpu_semaphore_is_acquired(f->semaphore)) {
 		return 0;
@@ -215,7 +215,7 @@ static int nvgpu_semaphore_fence_wait(struct gk20a_fence *f, long timeout)
 	return NVGPU_COND_WAIT_INTERRUPTIBLE(
 		f->semaphore_wq,
 		!nvgpu_semaphore_is_acquired(f->semaphore),
-		(u32)timeout);
+		timeout);
 }
 
 static bool nvgpu_semaphore_fence_is_expired(struct gk20a_fence *f)
@@ -256,11 +256,11 @@ int gk20a_fence_from_semaphore(
 #ifdef CONFIG_TEGRA_GK20A_NVHOST
 /* Fences that are backed by host1x syncpoints: */
 
-static int gk20a_syncpt_fence_wait(struct gk20a_fence *f, long timeout)
+static int gk20a_syncpt_fence_wait(struct gk20a_fence *f, u32 timeout)
 {
 	return nvgpu_nvhost_syncpt_wait_timeout_ext(
 			f->nvhost_dev, f->syncpt_id, f->syncpt_value,
-			(u32)timeout, NULL, NULL);
+			timeout, NULL, NULL);
 }
 
 static bool gk20a_syncpt_fence_is_expired(struct gk20a_fence *f)
