@@ -1111,6 +1111,9 @@ void gv11b_fifo_teardown_ch_tsg(struct gk20a *g, u32 act_eng_bitmask,
 			 */
 			if (gv11b_fifo_poll_pbdma_chan_status(g, id,
 					pbdma_id) != 0) {
+				nvgpu_report_host_error(g, 0,
+						GPU_HOST_PBDMA_PREEMPT_ERROR,
+						pbdma_id);
 				nvgpu_err(g, "PBDMA preempt failed");
 			}
 		}
