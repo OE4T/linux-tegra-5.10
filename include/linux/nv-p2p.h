@@ -40,7 +40,6 @@
 #include <linux/highmem.h>
 #include <linux/mutex.h>
 #include <linux/spinlock.h>
-#include <nvgpu/linux/lock.h>
 
 #define	NVIDIA_P2P_UNINITIALIZED 0x0
 #define	NVIDIA_P2P_PINNED 0x1
