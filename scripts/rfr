@@ -59,7 +59,7 @@ user = os.environ['USER']
 
 # Gerrit query command to obtain the patch URL. The substitution will be the
 # gerrit Change-ID parsed from the git commit message.
-gr_query_cmd = 'ssh %s@git-master -p 29418 gerrit query --format json %s'
+gr_query_cmd = 'ssh %s@git-master -p 29418 gerrit query --format json --current-patch-set --files %s'
 
 def parse_args():
     """
@@ -283,7 +283,8 @@ Thanks!
 | {url}
 | Author: {author}
 
-{cmtmsg}"""
+{cmtmsg}
+{files}"""
 
     cmt_descriptions = ''
     for c in commits_info:
@@ -298,10 +299,26 @@ Thanks!
 
     cmt_verbose = ''
     for c in commits_info:
+        # note: x['deletions'] is negative (or zero)
+        files = c['currentPatchSet']['files']
+        width = max([
+            len(x['file']) for x in files if x['file'] != u'/COMMIT_MSG'])
+        file_template = "{name: <{width}} | {sum:<3} (+{adds: <3} -{dels: <3})"
+        files_changed_desc = [file_template.format(
+                name=x['file'],
+                width=width,
+                sum=x['insertions'] - x['deletions'],
+                adds=x['insertions'],
+                dels=-x['deletions'])
+            for x in files
+            if x['file'] != u'/COMMIT_MSG'
+        ]
         cmt_verbose += cmt_template.format(url=c['url'],
                                            author=c['owner']['name'],
                                            cmtmsg=indent_lines(
-                                               c['commitMessage'], '  '))
+                                               c['commitMessage'], '  '),
+                                           files='  ' + "\n  ".join(
+                                               files_changed_desc))
 
     return whole_template.format(cmt_descriptions=cmt_descriptions,
                                  extra_message=extra_message,
