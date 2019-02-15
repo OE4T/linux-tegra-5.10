@@ -167,3 +167,10 @@ config NVGPU_DEBUGGER
 	default y
 	help
 	  Support for debugger APIs
+
+config NVGPU_LS_PMU
+	bool "LS PMU support"
+	depends on GK20A
+	default y
+	help
+	  Support for iGPU LS PMU enable/disable

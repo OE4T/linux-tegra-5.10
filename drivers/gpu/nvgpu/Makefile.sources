@@ -342,3 +342,9 @@ srcs += common/sim.c \
 ifeq ($(NVGPU_DEBUGGER),1)
 srcs += common/debugger.c
 endif
+
+ifeq ($(NVGPU_LS_PMU),1)
+# Add LS PMU files which are required for normal build
+# TBD: currently LS PMU unit files are dependent on another unit, files can be
+# added once refactored & removed dependency
+endif

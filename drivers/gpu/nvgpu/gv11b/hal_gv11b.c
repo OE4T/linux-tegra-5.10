@@ -840,49 +840,68 @@ static const struct gpu_ops gv11b_ops = {
 		.elcg_init_idle_filters = gv11b_elcg_init_idle_filters,
 	},
 	.pmu = {
+		/*
+		 * Basic init ops are must, as PMU engine used by ACR to
+		 * load & bootstrap GR LS falcons without LS PMU, remaining
+		 * ops can be assigned/ignored as per build flag request
+		 */
+		/* Basic init ops */
+		.is_pmu_supported = gv11b_is_pmu_supported,
 		.falcon_base_addr = gk20a_pmu_falcon_base_addr,
-		.pmu_setup_elpg = gv11b_pmu_setup_elpg,
+		.pmu_reset = nvgpu_pmu_reset,
+		.reset_engine = gp106_pmu_engine_reset,
+		.is_engine_in_reset = gp106_pmu_is_engine_in_reset,
+		.is_debug_mode_enabled = gm20b_pmu_is_debug_mode_en,
+		.setup_apertures = gv11b_setup_apertures,
+		.secured_pmu_start = gm20b_secured_pmu_start,
+		.write_dmatrfbase = gp10b_write_dmatrfbase,
+		/* ISR */
+		.pmu_enable_irq = gk20a_pmu_enable_irq,
+#ifdef NVGPU_LS_PMU
+		.get_irqdest = gv11b_pmu_get_irqdest,
+		.handle_ext_irq = gv11b_pmu_handle_ext_irq,
+		.pmu_is_interrupted = gk20a_pmu_is_interrupted,
+		.pmu_isr = gk20a_pmu_isr,
+		/* queue */
 		.pmu_get_queue_head = pwr_pmu_queue_head_r,
 		.pmu_get_queue_head_size = pwr_pmu_queue_head__size_1_v,
 		.pmu_get_queue_tail = pwr_pmu_queue_tail_r,
 		.pmu_get_queue_tail_size = pwr_pmu_queue_tail__size_1_v,
-		.pmu_reset = nvgpu_pmu_reset,
 		.pmu_queue_head = gk20a_pmu_queue_head,
 		.pmu_queue_tail = gk20a_pmu_queue_tail,
 		.pmu_msgq_tail = gk20a_pmu_msgq_tail,
+		/* mutex */
 		.pmu_mutex_size = pwr_pmu_mutex__size_1_v,
 		.pmu_mutex_acquire = gk20a_pmu_mutex_acquire,
 		.pmu_mutex_release = gk20a_pmu_mutex_release,
-		.pmu_is_interrupted = gk20a_pmu_is_interrupted,
-		.pmu_isr = gk20a_pmu_isr,
-		.pmu_init_perfmon_counter = gk20a_pmu_init_perfmon_counter,
+		/* power-gating */
+		.pmu_pg_init_param = gv11b_pg_gr_init,
+		.pmu_setup_elpg = gv11b_pmu_setup_elpg,
 		.pmu_pg_idle_counter_config = gk20a_pmu_pg_idle_counter_config,
+		.pmu_pg_supported_engines_list = gk20a_pmu_pg_engines_list,
+		.pmu_pg_engines_feature_list = gk20a_pmu_pg_feature_list,
+		.pmu_pg_set_sub_feature_mask = gv11b_pg_set_subfeature_mask,
+		.pmu_elpg_statistics = gp106_pmu_elpg_statistics,
+		.pmu_dump_elpg_stats = gk20a_pmu_dump_elpg_stats,
+		/* perfmon */
+		.pmu_init_perfmon_counter = gk20a_pmu_init_perfmon_counter,
 		.pmu_read_idle_counter = gk20a_pmu_read_idle_counter,
 		.pmu_reset_idle_counter = gk20a_pmu_reset_idle_counter,
 		.pmu_read_idle_intr_status = gk20a_pmu_read_idle_intr_status,
 		.pmu_clear_idle_intr_status = gk20a_pmu_clear_idle_intr_status,
-		.pmu_dump_elpg_stats = gk20a_pmu_dump_elpg_stats,
-		.pmu_dump_falcon_stats = gk20a_pmu_dump_falcon_stats,
-		.pmu_enable_irq = gk20a_pmu_enable_irq,
-		.write_dmatrfbase = gp10b_write_dmatrfbase,
-		.pmu_elpg_statistics = gp106_pmu_elpg_statistics,
 		.pmu_init_perfmon = nvgpu_pmu_init_perfmon_rpc,
 		.pmu_perfmon_start_sampling = nvgpu_pmu_perfmon_start_sampling_rpc,
 		.pmu_perfmon_stop_sampling = nvgpu_pmu_perfmon_stop_sampling_rpc,
 		.pmu_perfmon_get_samples_rpc = nvgpu_pmu_perfmon_get_samples_rpc,
-		.pmu_pg_init_param = gv11b_pg_gr_init,
-		.pmu_pg_supported_engines_list = gk20a_pmu_pg_engines_list,
-		.pmu_pg_engines_feature_list = gk20a_pmu_pg_feature_list,
+		/* debug */
 		.dump_secure_fuses = pmu_dump_security_fuses_gm20b,
-		.reset_engine = gp106_pmu_engine_reset,
-		.is_engine_in_reset = gp106_pmu_is_engine_in_reset,
-		.pmu_nsbootstrap = gv11b_pmu_bootstrap,
-		.pmu_pg_set_sub_feature_mask = gv11b_pg_set_subfeature_mask,
-		.is_pmu_supported = gv11b_is_pmu_supported,
-		.get_irqdest = gv11b_pmu_get_irqdest,
-		.handle_ext_irq = gv11b_pmu_handle_ext_irq,
-		.is_debug_mode_enabled = gm20b_pmu_is_debug_mode_en,
+		.pmu_dump_falcon_stats = gk20a_pmu_dump_falcon_stats,
+		/* PMU uocde */
+		.update_lspmu_cmdline_args = gm20b_update_lspmu_cmdline_args,
+		.init_wpr_region = gm20b_pmu_init_acr,
+		.load_lsfalcon_ucode = gp10b_load_falcon_ucode,
 		.save_zbc = gk20a_pmu_save_zbc,
+#endif
 	},
 	.clk_arb = {
 		.check_clk_arb_support = gp10b_check_clk_arb_support,
@@ -1104,18 +1123,10 @@ int gv11b_init_hal(struct gk20a *g)
 
 	/* priv security dependent ops */
 	if (nvgpu_is_enabled(g, NVGPU_SEC_PRIVSECURITY)) {
-		/* Add in ops from gm20b acr */
-		gops->pmu.update_lspmu_cmdline_args =
-			gm20b_update_lspmu_cmdline_args;
-		gops->pmu.setup_apertures = gv11b_setup_apertures;
-		gops->pmu.secured_pmu_start = gm20b_secured_pmu_start;
-
-		gops->pmu.init_wpr_region = gm20b_pmu_init_acr;
-		gops->pmu.load_lsfalcon_ucode = gp10b_load_falcon_ucode;
-
 		gops->gr.load_ctxsw_ucode = gr_gm20b_load_ctxsw_ucode;
 	} else {
-		/* Inherit from gk20a */
+		/* non-secure boot */
+		gops->pmu.pmu_nsbootstrap = gv11b_pmu_bootstrap;
 		gops->pmu.pmu_setup_hw_and_bootstrap =
 			gm20b_ns_pmu_setup_hw_and_bootstrap;
 

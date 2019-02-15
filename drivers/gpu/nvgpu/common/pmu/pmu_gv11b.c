@@ -157,7 +157,12 @@ int gv11b_pmu_setup_elpg(struct gk20a *g)
 
 bool gv11b_is_pmu_supported(struct gk20a *g)
 {
+#ifdef NVGPU_LS_PMU
 	return true;
+#else
+	/* set to false to disable LS PMU ucode support */
+	return false;
+#endif
 }
 
 int gv11b_pmu_bootstrap(struct nvgpu_pmu *pmu)

@@ -63,7 +63,10 @@ NV_COMPONENT_CFLAGS            	+= \
 ifeq ($(NVGPU_REDUCED), 0)
 # Enable debugger APIs for normal builds
 NVGPU_DEBUGGER                  := 1
+# Enable iGPU LS PMU for normal builds
+NVGPU_LS_PMU                    := 1
 NV_COMPONENT_CFLAGS             += -DNVGPU_DEBUGGER
+NV_COMPONENT_CFLAGS             += -DNVGPU_LS_PMU
 endif
 
 _NV_TOOLCHAIN_CFLAGS            += -rdynamic -g

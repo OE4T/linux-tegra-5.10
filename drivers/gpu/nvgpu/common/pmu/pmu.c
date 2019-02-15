@@ -96,8 +96,6 @@ static int pmu_enable(struct nvgpu_pmu *pmu, bool enable)
 		if (err != 0) {
 			goto exit;
 		}
-
-		g->ops.pmu.pmu_enable_irq(pmu, true);
 	}
 
 exit:

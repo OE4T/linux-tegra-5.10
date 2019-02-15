@@ -381,24 +381,14 @@ int gm20b_pmu_setup_hw_and_bl_bootstrap(struct gk20a *g,
 	struct hs_acr *acr_desc,
 	struct nvgpu_falcon_bl_info *bl_info)
 {
-	struct nvgpu_pmu *pmu = &g->pmu;
 	int err;
 
 	nvgpu_log_fn(g, " ");
 
-	nvgpu_mutex_acquire(&pmu->isr_mutex);
-	/*
-	 * disable irqs for hs falcon booting
-	 * as we will poll for halt
-	 */
-	g->ops.pmu.pmu_enable_irq(pmu, false);
-	pmu->isr_enabled = false;
 	err = nvgpu_falcon_reset(acr_desc->acr_flcn);
 	if (err != 0) {
-		nvgpu_mutex_release(&pmu->isr_mutex);
 		goto exit;
 	}
-	nvgpu_mutex_release(&pmu->isr_mutex);
 
 	if (g->ops.pmu.setup_apertures != NULL) {
 		g->ops.pmu.setup_apertures(g);

@@ -132,7 +132,9 @@ static int nvgpu_gr_zbc_add(struct gk20a *g, struct nvgpu_gr_zbc *zbc,
 		/* update zbc for elpg only when new entry is added */
 		entries = max(zbc->max_used_color_index,
 					zbc->max_used_depth_index);
-		g->ops.pmu.save_zbc(g, entries);
+		if (g->elpg_enabled) {
+			g->ops.pmu.save_zbc(g, entries);
+		}
 	}
 
 err_mutex:

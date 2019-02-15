@@ -1761,6 +1761,12 @@ int nvgpu_early_init_pmu_sw(struct gk20a *g, struct nvgpu_pmu *pmu)
 
 	if (!g->ops.pmu.is_pmu_supported(g)) {
 		g->support_ls_pmu = false;
+
+		/* Disable LS PMU global checkers */
+		g->can_elpg = false;
+		g->elpg_enabled = false;
+		g->aelpg_enabled = false;
+		nvgpu_set_enabled(g, NVGPU_PMU_PERFMON, false);
 		goto exit;
 	}
 
@@ -1838,4 +1844,3 @@ int nvgpu_pmu_prepare_ns_ucode_blob(struct gk20a *g)
 exit:
 	return err;
 }
-

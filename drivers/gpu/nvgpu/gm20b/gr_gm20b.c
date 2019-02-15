@@ -770,7 +770,7 @@ static void gr_gm20b_load_gpccs_with_bootloader(struct gk20a *g)
 
 int gr_gm20b_load_ctxsw_ucode(struct gk20a *g)
 {
-	int err;
+	int err = 0;
 	u32 reg_offset = gr_gpcs_gpccs_falcon_hwcfg_r() -
 	  gr_fecs_falcon_hwcfg_r();
 	u8 falcon_id_mask = 0;
@@ -799,10 +799,15 @@ int gr_gm20b_load_ctxsw_ucode(struct gk20a *g)
 						FALCON_ID_FECS);
 				err = nvgpu_sec2_bootstrap_ls_falcons(g, &g->sec2,
 						FALCON_ID_GPCCS);
+			} else if (g->support_ls_pmu) {
+					err = g->ops.pmu.load_lsfalcon_ucode(g,
+						BIT32(FALCON_ID_FECS) |
+						BIT32(FALCON_ID_GPCCS));
 			} else {
-				err = g->ops.pmu.load_lsfalcon_ucode(g,
-					BIT32(FALCON_ID_FECS) |
-					BIT32(FALCON_ID_GPCCS));
+				err = g->acr.bootstrap_hs_acr(g, &g->acr, &g->acr.acr);
+				if (err != 0) {
+					nvgpu_err(g, "GR Recovery: ACR GR LSF bootstrap failed");
+				}
 			}
 		}
 		if (err != 0) {
@@ -830,8 +835,11 @@ int gr_gm20b_load_ctxsw_ucode(struct gk20a *g)
 						FALCON_ID_FECS);
 				err = nvgpu_sec2_bootstrap_ls_falcons(g, &g->sec2,
 						FALCON_ID_GPCCS);
-			} else {
+			} else if (g->support_ls_pmu) {
 				err = g->ops.pmu.load_lsfalcon_ucode(g, falcon_id_mask);
+			} else {
+				/* GR falcons bootstrapped by ACR */
+				err = 0;
 			}
 
 			if (err != 0) {

@@ -81,6 +81,11 @@ static int gv11b_acr_patch_wpr_info_to_ucode(struct gk20a *g,
 static u32 gv11b_acr_lsf_pmu(struct gk20a *g,
 		struct acr_lsf_config *lsf)
 {
+	if (!g->support_ls_pmu) {
+		/* skip adding LS PMU ucode to ACR blob */
+		return 0;
+	}
+
 	/* PMU LS falcon info */
 	lsf->falcon_id = FALCON_ID_PMU;
 	lsf->falcon_dma_idx = GK20A_PMU_DMAIDX_UCODE;
@@ -99,7 +104,11 @@ static u32 gv11b_acr_lsf_fecs(struct gk20a *g,
 	/* FECS LS falcon info */
 	lsf->falcon_id = FALCON_ID_FECS;
 	lsf->falcon_dma_idx = GK20A_PMU_DMAIDX_UCODE;
-	lsf->is_lazy_bootstrap = true;
+	/*
+	 * FECS LSF cold/recovery bootstrap is handled by ACR when LS PMU
+	 * not present
+	 */
+	lsf->is_lazy_bootstrap = g->support_ls_pmu ? true : false;
 	lsf->is_priv_load = false;
 	lsf->get_lsf_ucode_details = nvgpu_acr_lsf_fecs_ucode_details_v1;
 	lsf->get_cmd_line_args_offset = NULL;
@@ -110,10 +119,14 @@ static u32 gv11b_acr_lsf_fecs(struct gk20a *g,
 static u32 gv11b_acr_lsf_gpccs(struct gk20a *g,
 		struct acr_lsf_config *lsf)
 {
-	/* FECS LS falcon info */
+	/* GPCCS LS falcon info */
 	lsf->falcon_id = FALCON_ID_GPCCS;
 	lsf->falcon_dma_idx = GK20A_PMU_DMAIDX_UCODE;
-	lsf->is_lazy_bootstrap = true;
+	/*
+	 * GPCCS LSF cold/recovery bootstrap is handled by ACR when LS PMU
+	 * not present
+	 */
+	lsf->is_lazy_bootstrap = g->support_ls_pmu ? true : false;
 	lsf->is_priv_load = true;
 	lsf->get_lsf_ucode_details = nvgpu_acr_lsf_gpccs_ucode_details_v1;
 	lsf->get_cmd_line_args_offset = NULL;
