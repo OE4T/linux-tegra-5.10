@@ -596,17 +596,23 @@ static int test_nvgpu_gmmu_map_unmap_map_fail(struct unit_module *m,
 static int test_nvgpu_gmmu_init_page_table_fail(struct unit_module *m,
 					struct gk20a *g, void *args)
 {
-	int err;
+	bool success;
 	struct nvgpu_posix_fault_inj *kmem_fi =
 		nvgpu_kmem_get_fault_injection();
 
 	nvgpu_posix_enable_fault_injection(kmem_fi, true, 0);
 
-	err = nvgpu_gmmu_init_page_table(g->mm.pmu.vm);
+	if (!EXPECT_BUG((void) nvgpu_gmmu_init_page_table(g->mm.pmu.vm))) {
+		unit_err(m, "BUG() was not called as expected\n");
+		success = false;
+	} else {
+		unit_info(m, "Caught expected call to BUG()\n");
+		success = true;
+	}
 
 	nvgpu_posix_enable_fault_injection(kmem_fi, false, 0);
 
-	if (err == 0) {
+	if (!success) {
 		unit_return_fail(m, "init_pt did not fail as expected\n");
 	}
 	return UNIT_SUCCESS;
