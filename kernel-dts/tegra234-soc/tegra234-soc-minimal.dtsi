@@ -28,6 +28,7 @@
 	interrupt-parent = <&intc>;
 	#address-cells = <2>;
 	#size-cells = <2>;
+	dma-ranges = <0x0 0x0 0x0 0x0 0x7f 0xffff0000>;
 
 	intc: interrupt-controller@f400000 {
 		compatible = "arm,gic-v3";
