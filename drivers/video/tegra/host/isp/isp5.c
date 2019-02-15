@@ -174,7 +174,7 @@ int isp5_priv_late_probe(struct platform_device *pdev)
 {
 	struct tegra_camera_dev_info isp_info;
 	struct nvhost_device_data *info = platform_get_drvdata(pdev);
-	struct host_vi5 *isp5 = info->private_data;
+	struct host_isp5 *isp5 = info->private_data;
 	int err;
 
 	memset(&isp_info, 0, sizeof(isp_info));
