@@ -46,6 +46,7 @@
 #include "common/fifo/runlist_gv11b.h"
 #include "common/fifo/channel_gv11b.h"
 #include "common/fifo/engine_status_gv100.h"
+#include "common/gr/zbc/gr_zbc_gv11b.h"
 
 #include <nvgpu/gk20a.h>
 #include <gv11b/hal_gv11b.h>
@@ -92,6 +93,7 @@
 #include <nvgpu/channel.h>
 
 #include <nvgpu/vgpu/ce_vgpu.h>
+#include <nvgpu/gr/zbc.h>
 
 #include "vgpu_gv11b.h"
 #include "vgpu_gr_gv11b.h"

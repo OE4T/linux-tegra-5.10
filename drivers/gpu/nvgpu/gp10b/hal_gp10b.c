@@ -36,6 +36,7 @@
 #include <nvgpu/cyclestats_snapshot.h>
 #include <nvgpu/fuse.h>
 #include <nvgpu/regops.h>
+#include <nvgpu/gr/zbc.h>
 
 #include "common/bus/bus_gk20a.h"
 #include "common/clock_gating/gp10b_gating_reglist.h"
@@ -50,6 +51,7 @@
 #include "common/gr/ctxsw_prog/ctxsw_prog_gm20b.h"
 #include "common/gr/ctxsw_prog/ctxsw_prog_gp10b.h"
 #include "common/gr/config/gr_config_gm20b.h"
+#include "common/gr/zbc/gr_zbc_gp10b.h"
 #include "common/therm/therm_gm20b.h"
 #include "common/therm/therm_gp10b.h"
 #include "common/ltc/ltc_gm20b.h"

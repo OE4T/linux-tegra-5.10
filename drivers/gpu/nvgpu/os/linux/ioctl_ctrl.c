@@ -33,6 +33,7 @@
 #include <nvgpu/clk_arb.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/gr/config.h>
+#include <nvgpu/gr/zbc.h>
 #include <nvgpu/channel.h>
 #include <nvgpu/pmu/pmgr.h>
 
@@ -1631,8 +1632,8 @@ long gk20a_ctrl_dev_ioctl(struct file *filp, unsigned int cmd, unsigned long arg
 	struct nvgpu_gpu_zbc_query_table_args *query_table_args;
 	u8 buf[NVGPU_GPU_IOCTL_MAX_ARG_SIZE];
 	struct gr_zcull_info *zcull_info;
-	struct zbc_entry *zbc_val;
-	struct zbc_query_params *zbc_tbl;
+	struct nvgpu_gr_zbc_entry *zbc_val;
+	struct nvgpu_gr_zbc_query_params *zbc_tbl;
 	int err = 0;
 	u32 i;
 
@@ -1698,7 +1699,7 @@ long gk20a_ctrl_dev_ioctl(struct file *filp, unsigned int cmd, unsigned long arg
 	case NVGPU_GPU_IOCTL_ZBC_SET_TABLE:
 		set_table_args = (struct nvgpu_gpu_zbc_set_table_args *)buf;
 
-		zbc_val = nvgpu_kzalloc(g, sizeof(struct zbc_entry));
+		zbc_val = nvgpu_kzalloc(g, sizeof(struct nvgpu_gr_zbc_entry));
 		if (zbc_val == NULL)
 			return -ENOMEM;
 
@@ -1707,14 +1708,14 @@ long gk20a_ctrl_dev_ioctl(struct file *filp, unsigned int cmd, unsigned long arg
 
 		nvgpu_speculation_barrier();
 		switch (zbc_val->type) {
-		case GK20A_ZBC_TYPE_COLOR:
-			for (i = 0U; i < GK20A_ZBC_COLOR_VALUE_SIZE; i++) {
+		case NVGPU_GR_ZBC_TYPE_COLOR:
+			for (i = 0U; i < NVGPU_GR_ZBC_COLOR_VALUE_SIZE; i++) {
 				zbc_val->color_ds[i] = set_table_args->color_ds[i];
 				zbc_val->color_l2[i] = set_table_args->color_l2[i];
 			}
 			break;
-		case GK20A_ZBC_TYPE_DEPTH:
-		case T19X_ZBC:
+		case NVGPU_GR_ZBC_TYPE_DEPTH:
+		case NVGPU_GR_ZBC_TYPE_STENCIL:
 			zbc_val->depth = set_table_args->depth;
 			break;
 		default:
@@ -1724,7 +1725,7 @@ long gk20a_ctrl_dev_ioctl(struct file *filp, unsigned int cmd, unsigned long arg
 		if (!err) {
 			err = gk20a_busy(g);
 			if (!err) {
-				err = g->ops.gr.zbc.set_table(g, &g->gr,
+				err = g->ops.gr.zbc.set_table(g, g->gr.zbc,
 							     zbc_val);
 				gk20a_idle(g);
 			}
@@ -1736,28 +1737,28 @@ long gk20a_ctrl_dev_ioctl(struct file *filp, unsigned int cmd, unsigned long arg
 	case NVGPU_GPU_IOCTL_ZBC_QUERY_TABLE:
 		query_table_args = (struct nvgpu_gpu_zbc_query_table_args *)buf;
 
-		zbc_tbl = nvgpu_kzalloc(g, sizeof(struct zbc_query_params));
+		zbc_tbl = nvgpu_kzalloc(g, sizeof(struct nvgpu_gr_zbc_query_params));
 		if (zbc_tbl == NULL)
 			return -ENOMEM;
 
 		zbc_tbl->type = query_table_args->type;
 		zbc_tbl->index_size = query_table_args->index_size;
 
-		err = g->ops.gr.zbc.query_table(g, &g->gr, zbc_tbl);
+		err = g->ops.gr.zbc.query_table(g, g->gr.zbc, zbc_tbl);
 
 		if (!err) {
 			switch (zbc_tbl->type) {
-			case GK20A_ZBC_TYPE_COLOR:
-				for (i = 0U; i < GK20A_ZBC_COLOR_VALUE_SIZE; i++) {
+			case NVGPU_GR_ZBC_TYPE_COLOR:
+				for (i = 0U; i < NVGPU_GR_ZBC_COLOR_VALUE_SIZE; i++) {
 					query_table_args->color_ds[i] = zbc_tbl->color_ds[i];
 					query_table_args->color_l2[i] = zbc_tbl->color_l2[i];
 				}
 				break;
-			case GK20A_ZBC_TYPE_DEPTH:
-			case T19X_ZBC:
+			case NVGPU_GR_ZBC_TYPE_DEPTH:
+			case NVGPU_GR_ZBC_TYPE_STENCIL:
 				query_table_args->depth = zbc_tbl->depth;
 				break;
-			case GK20A_ZBC_TYPE_INVALID:
+			case NVGPU_GR_ZBC_TYPE_INVALID:
 				query_table_args->index_size = zbc_tbl->index_size;
 				break;
 			default:

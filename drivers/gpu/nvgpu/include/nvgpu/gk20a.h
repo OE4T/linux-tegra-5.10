@@ -63,6 +63,9 @@ struct nvgpu_sgt;
 struct nvgpu_sgl;
 struct nvgpu_device_info;
 struct nvgpu_gr_subctx;
+struct nvgpu_gr_zbc;
+struct nvgpu_gr_zbc_entry;
+struct nvgpu_gr_zbc_query_params;
 struct nvgpu_channel_hw_state;
 struct nvgpu_engine_status_info;
 struct nvgpu_pbdma_status_info;
@@ -611,17 +614,20 @@ struct gpu_ops {
 		} config;
 
 		struct {
-			int (*add_color)(struct gk20a *g, struct gr_gk20a *gr,
-				struct zbc_entry *color_val, u32 index);
-			int (*add_depth)(struct gk20a *g, struct gr_gk20a *gr,
-				struct zbc_entry *depth_val, u32 index);
-			int (*set_table)(struct gk20a *g, struct gr_gk20a *gr,
-				struct zbc_entry *zbc_val);
+			int (*add_color)(struct gk20a *g,
+				struct nvgpu_gr_zbc_entry *color_val,
+				u32 index);
+			int (*add_depth)(struct gk20a *g,
+				struct nvgpu_gr_zbc_entry *depth_val,
+				u32 index);
+			int (*set_table)(struct gk20a *g,
+				struct nvgpu_gr_zbc *zbc,
+				struct nvgpu_gr_zbc_entry *zbc_val);
 			int (*query_table)(struct gk20a *g,
-				struct gr_gk20a *gr,
-				struct zbc_query_params *query_params);
-			int (*add_stencil)(struct gk20a *g, struct gr_gk20a *gr,
-				struct zbc_entry *s_val, u32 index);
+				struct nvgpu_gr_zbc *zbc,
+				struct nvgpu_gr_zbc_query_params *query_params);
+			int (*add_stencil)(struct gk20a *g,
+				struct nvgpu_gr_zbc_entry *s_val, u32 index);
 			u32 (*get_gpcs_swdx_dss_zbc_c_format_reg)(
 				struct gk20a *g);
 			u32 (*get_gpcs_swdx_dss_zbc_z_format_reg)(

@@ -35,6 +35,7 @@
 #include <nvgpu/cyclestats_snapshot.h>
 #include <nvgpu/fuse.h>
 #include <nvgpu/regops.h>
+#include <nvgpu/gr/zbc.h>
 
 #include "common/clock_gating/gm20b_gating_reglist.h"
 #include "common/bus/bus_gm20b.h"
@@ -45,6 +46,7 @@
 #include "common/netlist/netlist_gm20b.h"
 #include "common/gr/ctxsw_prog/ctxsw_prog_gm20b.h"
 #include "common/gr/config/gr_config_gm20b.h"
+#include "common/gr/zbc/gr_zbc_gm20b.h"
 #include "common/therm/therm_gm20b.h"
 #include "common/ltc/ltc_gm20b.h"
 #include "common/fuse/fuse_gm20b.h"
@@ -411,8 +413,8 @@ static const struct gpu_ops gm20b_ops = {
 				gm20b_gr_config_get_pd_dist_skip_table_size,
 		},
 		.zbc = {
-			.add_color = gk20a_gr_zbc_add_color,
-			.add_depth = gk20a_gr_zbc_add_depth,
+			.add_color = gm20b_gr_zbc_add_color,
+			.add_depth = gm20b_gr_zbc_add_depth,
 			.set_table = nvgpu_gr_zbc_set_table,
 			.query_table = nvgpu_gr_zbc_query_table,
 			.add_stencil = NULL,

@@ -64,6 +64,7 @@ struct nvgpu_warpstate;
 struct nvgpu_gr_ctx_desc;
 struct nvgpu_gr_global_ctx_buffer_desc;
 struct nvgpu_gr_global_ctx_local_golden_image;
+struct nvgpu_gr_zbc;
 
 enum ctxsw_addr_type;
 
@@ -136,54 +137,6 @@ struct gr_zcull_info {
 	u32 subregion_width_align_pixels;
 	u32 subregion_height_align_pixels;
 	u32 subregion_count;
-};
-
-#define GK20A_ZBC_COLOR_VALUE_SIZE	4U  /* RGBA */
-
-#define GK20A_STARTOF_ZBC_TABLE		1U   /* index zero reserved to indicate "not ZBCd" */
-#define GK20A_SIZEOF_ZBC_TABLE		16U  /* match ltcs_ltss_dstg_zbc_index_address width (4) */
-#define GK20A_ZBC_TABLE_SIZE		(16U - 1U)
-
-#define GK20A_ZBC_TYPE_INVALID		0U
-#define GK20A_ZBC_TYPE_COLOR		1U
-#define GK20A_ZBC_TYPE_DEPTH		2U
-#define T19X_ZBC			3U
-
-struct zbc_color_table {
-	u32 color_ds[GK20A_ZBC_COLOR_VALUE_SIZE];
-	u32 color_l2[GK20A_ZBC_COLOR_VALUE_SIZE];
-	u32 format;
-	u32 ref_cnt;
-};
-
-struct zbc_depth_table {
-	u32 depth;
-	u32 format;
-	u32 ref_cnt;
-};
-
-struct zbc_s_table {
-	u32 stencil;
-	u32 format;
-	u32 ref_cnt;
-};
-
-struct zbc_entry {
-	u32 color_ds[GK20A_ZBC_COLOR_VALUE_SIZE];
-	u32 color_l2[GK20A_ZBC_COLOR_VALUE_SIZE];
-	u32 depth;
-	u32 type;	/* color or depth */
-	u32 format;
-};
-
-struct zbc_query_params {
-	u32 color_ds[GK20A_ZBC_COLOR_VALUE_SIZE];
-	u32 color_l2[GK20A_ZBC_COLOR_VALUE_SIZE];
-	u32 depth;
-	u32 ref_cnt;
-	u32 format;
-	u32 type;	/* color or depth */
-	u32 index_size;	/* [out] size, [in] index */
 };
 
 struct sm_info {
@@ -297,17 +250,7 @@ struct gr_gk20a {
 
 	struct gr_zcull_gk20a zcull;
 
-	struct nvgpu_mutex zbc_lock;
-	struct zbc_color_table zbc_col_tbl[GK20A_ZBC_TABLE_SIZE];
-	struct zbc_depth_table zbc_dep_tbl[GK20A_ZBC_TABLE_SIZE];
-	struct zbc_s_table zbc_s_tbl[GK20A_ZBC_TABLE_SIZE];
-	s32 max_default_color_index;
-	s32 max_default_depth_index;
-	s32 max_default_s_index;
-
-	u32 max_used_color_index;
-	u32 max_used_depth_index;
-	u32 max_used_s_index;
+	struct nvgpu_gr_zbc *zbc;
 
 #define GR_CHANNEL_MAP_TLB_SIZE		2U /* must of power of 2 */
 	struct gr_channel_map_tlb_entry chid_tlb[GR_CHANNEL_MAP_TLB_SIZE];
@@ -444,26 +387,6 @@ int gr_gk20a_get_zcull_info(struct gk20a *g, struct gr_gk20a *gr,
 			struct gr_zcull_info *zcull_params);
 void gr_gk20a_program_zcull_mapping(struct gk20a *g, u32 zcull_num_entries,
 					u32 *zcull_map_tiles);
-/* zbc */
-int gr_gk20a_add_zbc(struct gk20a *g, struct gr_gk20a *gr,
-			struct zbc_entry *zbc_val);
-int nvgpu_gr_zbc_query_table(struct gk20a *g, struct gr_gk20a *gr,
-			struct zbc_query_params *query_params);
-int nvgpu_gr_zbc_set_table(struct gk20a *g, struct gr_gk20a *gr,
-			struct zbc_entry *zbc_val);
-int gr_gk20a_load_zbc_default_table(struct gk20a *g, struct gr_gk20a *gr);
-int nvgpu_gr_zbc_add_depth(struct gk20a *g, struct gr_gk20a *gr,
-			   struct zbc_entry *depth_val, u32 index);
-int nvgpu_gr_zbc_add_color(struct gk20a *g, struct gr_gk20a *gr,
-			   struct zbc_entry *color_val, u32 index);
-int nvgpu_gr_zbc_stencil_query_table(struct gk20a *g, struct gr_gk20a *gr,
-			struct zbc_query_params *query_params);
-bool nvgpu_gr_zbc_add_type_stencil(struct gk20a *g, struct gr_gk20a *gr,
-		     struct zbc_entry *zbc_val, int *ret_val);
-int nvgpu_gr_zbc_load_stencil_default_tbl(struct gk20a *g,
-		 struct gr_gk20a *gr);
-int nvgpu_gr_zbc_load_stencil_tbl(struct gk20a *g, struct gr_gk20a *gr);
-
 /* pmu */
 int gr_gk20a_fecs_get_reglist_img_size(struct gk20a *g, u32 *size);
 int gr_gk20a_fecs_set_reglist_bind_inst(struct gk20a *g,
@@ -554,10 +477,6 @@ void gk20a_gr_suspend_all_sms(struct gk20a *g,
 int gr_gk20a_set_sm_debug_mode(struct gk20a *g,
 	struct channel_gk20a *ch, u64 sms, bool enable);
 bool gk20a_is_channel_ctx_resident(struct channel_gk20a *ch);
-int gk20a_gr_zbc_add_color(struct gk20a *g, struct gr_gk20a *gr,
-			   struct zbc_entry *color_val, u32 index);
-int gk20a_gr_zbc_add_depth(struct gk20a *g, struct gr_gk20a *gr,
-			   struct zbc_entry *depth_val, u32 index);
 int gr_gk20a_wait_idle(struct gk20a *g);
 int gr_gk20a_handle_sm_exception(struct gk20a *g, u32 gpc, u32 tpc, u32 sm,
 		bool *post_event, struct channel_gk20a *fault_ch,

@@ -29,8 +29,9 @@ struct gk20a;
 struct channel_gk20a;
 struct gr_gk20a;
 struct gr_zcull_info;
-struct zbc_entry;
-struct zbc_query_params;
+struct nvgpu_gr_zbc;
+struct nvgpu_gr_zbc_entry;
+struct nvgpu_gr_zbc_query_params;
 struct dbg_session_gk20a;
 struct tsg_gk20a;
 
@@ -50,10 +51,10 @@ u32 vgpu_gr_get_fbp_en_mask(struct gk20a *g);
 u32 vgpu_gr_get_max_ltc_per_fbp(struct gk20a *g);
 u32 vgpu_gr_get_max_lts_per_ltc(struct gk20a *g);
 u32 *vgpu_gr_rop_l2_en_mask(struct gk20a *g);
-int vgpu_gr_add_zbc(struct gk20a *g, struct gr_gk20a *gr,
-			   struct zbc_entry *zbc_val);
-int vgpu_gr_query_zbc(struct gk20a *g, struct gr_gk20a *gr,
-			struct zbc_query_params *query_params);
+int vgpu_gr_add_zbc(struct gk20a *g, struct nvgpu_gr_zbc *zbc,
+			   struct nvgpu_gr_zbc_entry *zbc_val);
+int vgpu_gr_query_zbc(struct gk20a *g, struct nvgpu_gr_zbc *zbc,
+			struct nvgpu_gr_zbc_query_params *query_params);
 int vgpu_gr_set_sm_debug_mode(struct gk20a *g,
 	struct channel_gk20a *ch, u64 sms, bool enable);
 int vgpu_gr_update_smpc_ctxsw_mode(struct gk20a *g,

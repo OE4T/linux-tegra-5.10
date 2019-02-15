@@ -30,17 +30,11 @@
 
 #define PRI_BROADCAST_FLAGS_SMPC  BIT32(17)
 
-#define GV11B_ZBC_TYPE_STENCIL            T19X_ZBC
-#define ZBC_STENCIL_CLEAR_FMT_INVAILD     0U
-#define ZBC_STENCIL_CLEAR_FMT_U8          1U
-
 #define GFXP_WFI_TIMEOUT_UNIT_SYSCLK      0U
 #define GFXP_WFI_TIMEOUT_UNIT_USEC        1U
 
 struct gk20a;
 struct gr_gk20a;
-struct zbc_entry;
-struct zbc_query_params;
 struct nvgpu_gr_ctx;
 struct nvgpu_warpstate;
 struct nvgpu_tsg_sm_error_state;
@@ -103,12 +97,8 @@ int gr_gv11b_handle_gpc_gpcmmu_exception(struct gk20a *g, u32 gpc,
 int gr_gv11b_handle_gpc_gpccs_exception(struct gk20a *g, u32 gpc,
 							u32 gpc_exception);
 void gr_gv11b_enable_gpc_exceptions(struct gk20a *g);
-u32 gv11b_gr_zbc_get_gpcs_swdx_dss_zbc_c_format_reg(struct gk20a *g);
-u32 gv11b_gr_zbc_get_gpcs_swdx_dss_zbc_z_format_reg(struct gk20a *g);
 int gr_gv11b_handle_tex_exception(struct gk20a *g, u32 gpc, u32 tpc,
 		bool *post_event);
-int gv11b_gr_zbc_add_stencil(struct gk20a *g, struct gr_gk20a *gr,
-				struct zbc_entry *stencil_val, u32 index);
 u32 gr_gv11b_pagepool_default_size(struct gk20a *g);
 u32 gr_gv11b_calc_global_ctx_buffer_size(struct gk20a *g);
 int gr_gv11b_handle_sw_method(struct gk20a *g, u32 addr,

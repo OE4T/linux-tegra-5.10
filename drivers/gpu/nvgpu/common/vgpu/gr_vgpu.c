@@ -37,6 +37,7 @@
 #include <nvgpu/gr/global_ctx.h>
 #include <nvgpu/gr/ctx.h>
 #include <nvgpu/gr/config.h>
+#include <nvgpu/gr/zbc.h>
 
 #include "gr_vgpu.h"
 #include "gk20a/fecs_trace_gk20a.h"
@@ -836,8 +837,8 @@ u32 *vgpu_gr_rop_l2_en_mask(struct gk20a *g)
 	return g->gr.fbp_rop_l2_en_mask;
 }
 
-int vgpu_gr_add_zbc(struct gk20a *g, struct gr_gk20a *gr,
-			   struct zbc_entry *zbc_val)
+int vgpu_gr_add_zbc(struct gk20a *g, struct nvgpu_gr_zbc *zbc,
+			   struct nvgpu_gr_zbc_entry *zbc_val)
 {
 	struct tegra_vgpu_cmd_msg msg = {0};
 	struct tegra_vgpu_zbc_set_table_params *p = &msg.params.zbc_set_table;
@@ -851,13 +852,13 @@ int vgpu_gr_add_zbc(struct gk20a *g, struct gr_gk20a *gr,
 	p->type = zbc_val->type;
 	p->format = zbc_val->format;
 	switch (p->type) {
-	case GK20A_ZBC_TYPE_COLOR:
+	case NVGPU_GR_ZBC_TYPE_COLOR:
 		nvgpu_memcpy((u8 *)p->color_ds, (u8 *)zbc_val->color_ds,
 			sizeof(p->color_ds));
 		nvgpu_memcpy((u8 *)p->color_l2, (u8 *)zbc_val->color_l2,
 			sizeof(p->color_l2));
 		break;
-	case GK20A_ZBC_TYPE_DEPTH:
+	case NVGPU_GR_ZBC_TYPE_DEPTH:
 		p->depth = zbc_val->depth;
 		break;
 	default:
@@ -869,8 +870,8 @@ int vgpu_gr_add_zbc(struct gk20a *g, struct gr_gk20a *gr,
 	return (err || msg.ret) ? -ENOMEM : 0;
 }
 
-int vgpu_gr_query_zbc(struct gk20a *g, struct gr_gk20a *gr,
-			struct zbc_query_params *query_params)
+int vgpu_gr_query_zbc(struct gk20a *g, struct nvgpu_gr_zbc *zbc,
+			struct nvgpu_gr_zbc_query_params *query_params)
 {
 	struct tegra_vgpu_cmd_msg msg = {0};
 	struct tegra_vgpu_zbc_query_table_params *p =
@@ -891,16 +892,16 @@ int vgpu_gr_query_zbc(struct gk20a *g, struct gr_gk20a *gr,
 	}
 
 	switch (query_params->type) {
-	case GK20A_ZBC_TYPE_COLOR:
+	case NVGPU_GR_ZBC_TYPE_COLOR:
 		nvgpu_memcpy((u8 *)query_params->color_ds, (u8 *)p->color_ds,
 				sizeof(query_params->color_ds));
 		nvgpu_memcpy((u8 *)query_params->color_l2, (u8 *)p->color_l2,
 				sizeof(query_params->color_l2));
 		break;
-	case GK20A_ZBC_TYPE_DEPTH:
+	case NVGPU_GR_ZBC_TYPE_DEPTH:
 		query_params->depth = p->depth;
 		break;
-	case GK20A_ZBC_TYPE_INVALID:
+	case NVGPU_GR_ZBC_TYPE_INVALID:
 		query_params->index_size = p->index_size;
 		break;
 	default:

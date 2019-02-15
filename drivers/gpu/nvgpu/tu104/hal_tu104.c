@@ -42,6 +42,8 @@
 #include "common/gr/ctxsw_prog/ctxsw_prog_gp10b.h"
 #include "common/gr/ctxsw_prog/ctxsw_prog_gv11b.h"
 #include "common/gr/config/gr_config_gm20b.h"
+#include "common/gr/zbc/gr_zbc_gp10b.h"
+#include "common/gr/zbc/gr_zbc_gv11b.h"
 #include "common/therm/therm_gm20b.h"
 #include "common/therm/therm_gp10b.h"
 #include "common/therm/therm_gp106.h"
@@ -149,6 +151,7 @@
 #include <nvgpu/perfbuf.h>
 #include <nvgpu/cyclestats_snapshot.h>
 #include <nvgpu/regops.h>
+#include <nvgpu/gr/zbc.h>
 
 #include <nvgpu/hw/tu104/hw_proj_tu104.h>
 #include <nvgpu/hw/tu104/hw_top_tu104.h>

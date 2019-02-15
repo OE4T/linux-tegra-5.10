@@ -521,55 +521,6 @@ void gr_gp10b_commit_global_pagepool(struct gk20a *g,
 		gr_gpcs_gcc_pagepool_total_pages_f(size), patch);
 }
 
-u32 gp10b_gr_zbc_get_gpcs_swdx_dss_zbc_c_format_reg(struct gk20a *g)
-{
-	return gr_gpcs_swdx_dss_zbc_c_01_to_04_format_r();
-}
-
-int gp10b_gr_zbc_add_color(struct gk20a *g, struct gr_gk20a *gr,
-				  struct zbc_entry *color_val, u32 index)
-{
-	u32 zbc_c;
-	u32 zbc_c_format_reg =
-		g->ops.gr.zbc.get_gpcs_swdx_dss_zbc_c_format_reg(g);
-
-	nvgpu_writel_loop(g, gr_gpcs_swdx_dss_zbc_color_r_r(index),
-			   color_val->color_ds[0]);
-	nvgpu_writel_loop(g, gr_gpcs_swdx_dss_zbc_color_g_r(index),
-			   color_val->color_ds[1]);
-	nvgpu_writel_loop(g, gr_gpcs_swdx_dss_zbc_color_b_r(index),
-			   color_val->color_ds[2]);
-	nvgpu_writel_loop(g, gr_gpcs_swdx_dss_zbc_color_a_r(index),
-			   color_val->color_ds[3]);
-	zbc_c = gk20a_readl(g, zbc_c_format_reg + (index & ~3U));
-	zbc_c &= ~(0x7fU << ((index % 4U) * 7U));
-	zbc_c |= color_val->format << ((index % 4U) * 7U);
-	nvgpu_writel_loop(g, zbc_c_format_reg + (index & ~3U), zbc_c);
-
-	return 0;
-}
-
-u32 gp10b_gr_zbc_get_gpcs_swdx_dss_zbc_z_format_reg(struct gk20a *g)
-{
-	return gr_gpcs_swdx_dss_zbc_z_01_to_04_format_r();
-}
-
-int gp10b_gr_zbc_add_depth(struct gk20a *g, struct gr_gk20a *gr,
-				struct zbc_entry *depth_val, u32 index)
-{
-	u32 zbc_z;
-	u32 zbc_z_format_reg =
-		g->ops.gr.zbc.get_gpcs_swdx_dss_zbc_z_format_reg(g);
-
-	nvgpu_writel(g, gr_gpcs_swdx_dss_zbc_z_r(index), depth_val->depth);
-	zbc_z = nvgpu_readl(g, zbc_z_format_reg + (index & ~3U));
-	zbc_z &= ~(U32(0x7f) << (index % 4U) * 7U);
-	zbc_z |= depth_val->format << (index % 4U) * 7U;
-	nvgpu_writel(g, zbc_z_format_reg + (index & ~3U), zbc_z);
-
-	return 0;
-}
-
 u32 gr_gp10b_pagepool_default_size(struct gk20a *g)
 {
 	return gr_scc_pagepool_total_pages_hwmax_value_v();
