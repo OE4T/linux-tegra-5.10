@@ -46,6 +46,7 @@
 #include <nvgpu/channel.h>
 #include <nvgpu/unit.h>
 #include <nvgpu/nvgpu_err.h>
+#include <nvgpu/pbdma_status.h>
 #include <nvgpu/engine_status.h>
 
 #include "gk20a/fifo_gk20a.h"
@@ -359,10 +360,9 @@ static int gv11b_fifo_poll_pbdma_chan_status(struct gk20a *g, u32 id,
 {
 	struct nvgpu_timeout timeout;
 	unsigned long delay = GR_IDLE_CHECK_DEFAULT; /* in micro seconds */
-	u32 pbdma_stat;
-	u32 chan_stat;
 	int ret;
 	unsigned int loop_count = 0;
+	struct nvgpu_pbdma_status_info pbdma_status;
 
 	/* timeout in milli seconds */
 	ret = nvgpu_timeout_init(g, &timeout,
@@ -403,32 +403,28 @@ static int gv11b_fifo_poll_pbdma_chan_status(struct gk20a *g, u32 id,
 		(void) gk20a_fifo_handle_pbdma_intr(g, &g->fifo, pbdma_id,
 				RC_NO);
 
-		pbdma_stat = gk20a_readl(g, fifo_pbdma_status_r(pbdma_id));
-		chan_stat  = fifo_pbdma_status_chan_status_v(pbdma_stat);
+		g->ops.pbdma_status.read_pbdma_status_info(g, pbdma_id,
+			&pbdma_status);
 
-		if (chan_stat ==
-			 fifo_pbdma_status_chan_status_valid_v() ||
-			chan_stat ==
-			 fifo_pbdma_status_chan_status_chsw_save_v()) {
+		if (nvgpu_pbdma_status_is_chsw_valid(&pbdma_status) ||
+			nvgpu_pbdma_status_is_chsw_save(&pbdma_status)) {
 
-			if (id != fifo_pbdma_status_id_v(pbdma_stat)) {
+			if (id != pbdma_status.id) {
 				ret = 0;
 				break;
 			}
 
-		} else if (chan_stat ==
-			fifo_pbdma_status_chan_status_chsw_load_v()) {
+		} else if (nvgpu_pbdma_status_is_chsw_load(&pbdma_status)) {
 
-			if (id != fifo_pbdma_status_next_id_v(pbdma_stat)) {
+			if (id != pbdma_status.next_id) {
 				ret = 0;
 				break;
 			}
 
-		} else if (chan_stat ==
-				fifo_pbdma_status_chan_status_chsw_switch_v()) {
+		} else if (nvgpu_pbdma_status_is_chsw_switch(&pbdma_status)) {
 
-			if ((id != fifo_pbdma_status_next_id_v(pbdma_stat)) &&
-				 (id != fifo_pbdma_status_id_v(pbdma_stat))) {
+			if ((id != pbdma_status.next_id) &&
+				 (id != pbdma_status.id)) {
 				ret = 0;
 				break;
 			}
@@ -445,7 +441,8 @@ static int gv11b_fifo_poll_pbdma_chan_status(struct gk20a *g, u32 id,
 
 	if (ret != 0) {
 		nvgpu_err(g, "preempt timeout pbdma: %u pbdma_stat: %u "
-				"tsgid: %u", pbdma_id, pbdma_stat, id);
+				"tsgid: %u", pbdma_id,
+				pbdma_status.pbdma_reg_status, id);
 	}
 	return ret;
 }
