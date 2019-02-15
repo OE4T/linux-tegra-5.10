@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -25,7 +25,7 @@
 struct gk20a;
 
 void gv11b_ltc_set_zbc_stencil_entry(struct gk20a *g,
-					  struct zbc_entry *stencil_val,
+					  u32 stencil_depth,
 					  u32 index);
 void gv11b_ltc_init_fs_state(struct gk20a *g);
 void gv11b_ltc_intr_en_illegal_compstat(struct gk20a *g, bool enable);

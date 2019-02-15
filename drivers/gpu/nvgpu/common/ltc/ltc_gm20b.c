@@ -401,20 +401,19 @@ int gm20b_determine_L2_size_bytes(struct gk20a *g)
  * Sets the ZBC color for the passed index.
  */
 void gm20b_ltc_set_zbc_color_entry(struct gk20a *g,
-					  struct zbc_entry *color_val,
+					  u32 *color_l2,
 					  u32 index)
 {
 	u32 i;
-	u32 real_index = index + GK20A_STARTOF_ZBC_TABLE;
 
 	nvgpu_writel_check(g, ltc_ltcs_ltss_dstg_zbc_index_r(),
-		     ltc_ltcs_ltss_dstg_zbc_index_address_f(real_index));
+		     ltc_ltcs_ltss_dstg_zbc_index_address_f(index));
 
 	for (i = 0;
 	     i < ltc_ltcs_ltss_dstg_zbc_color_clear_value__size_1_v(); i++) {
 		nvgpu_writel_check(g,
 			ltc_ltcs_ltss_dstg_zbc_color_clear_value_r(i),
-			color_val->color_l2[i]);
+			color_l2[i]);
 	}
 }
 
@@ -422,17 +421,15 @@ void gm20b_ltc_set_zbc_color_entry(struct gk20a *g,
  * Sets the ZBC depth for the passed index.
  */
 void gm20b_ltc_set_zbc_depth_entry(struct gk20a *g,
-					  struct zbc_entry *depth_val,
+					  u32 depth_val,
 					  u32 index)
 {
-	u32 real_index = index + GK20A_STARTOF_ZBC_TABLE;
-
 	nvgpu_writel_check(g, ltc_ltcs_ltss_dstg_zbc_index_r(),
-		     ltc_ltcs_ltss_dstg_zbc_index_address_f(real_index));
+		     ltc_ltcs_ltss_dstg_zbc_index_address_f(index));
 
 	nvgpu_writel_check(g,
 			ltc_ltcs_ltss_dstg_zbc_depth_clear_value_r(),
-			depth_val->depth);
+			depth_val);
 }
 
 void gm20b_ltc_init_cbc(struct gk20a *g, struct gr_gk20a *gr)

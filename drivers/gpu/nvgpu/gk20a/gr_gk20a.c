@@ -2497,7 +2497,8 @@ int nvgpu_gr_zbc_add_color(struct gk20a *g, struct gr_gk20a *gr,
 	u32 i;
 
 	/* update l2 table */
-	g->ops.ltc.set_zbc_color_entry(g, color_val, index);
+	g->ops.ltc.set_zbc_color_entry(g, color_val->color_l2,
+					index + GK20A_STARTOF_ZBC_TABLE);
 
 	/* update local copy */
 	for (i = 0; i < GK20A_ZBC_COLOR_VALUE_SIZE; i++) {
@@ -2546,7 +2547,8 @@ int nvgpu_gr_zbc_add_depth(struct gk20a *g, struct gr_gk20a *gr,
 			   struct zbc_entry *depth_val, u32 index)
 {
 	/* update l2 table */
-	g->ops.ltc.set_zbc_depth_entry(g, depth_val, index);
+	g->ops.ltc.set_zbc_depth_entry(g, depth_val->depth,
+					index + GK20A_STARTOF_ZBC_TABLE);
 
 	/* update local copy */
 	gr->zbc_dep_tbl[index].depth = depth_val->depth;

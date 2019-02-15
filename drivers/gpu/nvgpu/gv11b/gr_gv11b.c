@@ -1205,7 +1205,8 @@ int gv11b_gr_zbc_add_stencil(struct gk20a *g, struct gr_gk20a *gr,
 
 	/* update l2 table */
 	if (g->ops.ltc.set_zbc_s_entry != NULL) {
-		g->ops.ltc.set_zbc_s_entry(g, stencil_val, index);
+		g->ops.ltc.set_zbc_s_entry(g, stencil_val->depth,
+			index + GK20A_STARTOF_ZBC_TABLE);
 	}
 
 	/* update local copy */

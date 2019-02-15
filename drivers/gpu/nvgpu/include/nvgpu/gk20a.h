@@ -207,13 +207,13 @@ struct gpu_ops {
 		int (*cbc_ctrl)(struct gk20a *g, enum gk20a_cbc_op op,
 				u32 min, u32 max);
 		void (*set_zbc_color_entry)(struct gk20a *g,
-					    struct zbc_entry *color_val,
+					    u32 *color_val_l2,
 					    u32 index);
 		void (*set_zbc_depth_entry)(struct gk20a *g,
-					    struct zbc_entry *depth_val,
+					    u32 depth_val,
 					    u32 index);
 		void (*set_zbc_s_entry)(struct gk20a *g,
-					    struct zbc_entry *s_val,
+					    u32 s_val,
 					    u32 index);
 		void (*init_cbc)(struct gk20a *g, struct gr_gk20a *gr);
 		void (*set_enabled)(struct gk20a *g, bool enabled);

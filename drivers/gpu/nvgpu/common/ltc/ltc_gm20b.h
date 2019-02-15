@@ -1,7 +1,7 @@
 /*
  * GM20B L2
  *
- * Copyright (c) 2014-2017, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -30,16 +30,15 @@
 struct gk20a;
 struct gr_gk20a;
 struct gpu_ops;
-struct zbc_entry;
 enum gk20a_cbc_op;
 
 int gm20b_ltc_init_comptags(struct gk20a *g, struct gr_gk20a *gr);
 int gm20b_determine_L2_size_bytes(struct gk20a *g);
 void gm20b_ltc_set_zbc_color_entry(struct gk20a *g,
-					  struct zbc_entry *color_val,
+					  u32 *color_l2,
 					  u32 index);
 void gm20b_ltc_set_zbc_depth_entry(struct gk20a *g,
-					  struct zbc_entry *depth_val,
+					  u32 depth_val,
 					  u32 index);
 void gm20b_ltc_init_cbc(struct gk20a *g, struct gr_gk20a *gr);
 void gm20b_ltc_set_enabled(struct gk20a *g, bool enabled);
