@@ -231,6 +231,7 @@ static int process_crypt_req(struct file *filp, struct tegra_crypto_ctx *ctx,
 	struct tegra_crypto_completion tcrypt_complete;
 	char aes_algo[5][10] = {"ecb(aes)", "cbc(aes)", "ofb(aes)", "ctr(aes)",
 				"xts(aes)"};
+	const char *algo;
 
 	if (crypt_req->op != TEGRA_CRYPTO_CBC) {
 		if (crypt_req->op >= TEGRA_CRYPTO_MAX)
@@ -282,6 +283,19 @@ static int process_crypt_req(struct file *filp, struct tegra_crypto_ctx *ctx,
 		key = crypt_req->key;
 
 	if (!crypt_req->skip_key) {
+		algo = crypto_tfm_alg_driver_name(crypto_skcipher_tfm(tfm));
+		if (!algo) {
+			pr_err("Invalid algo driver name");
+			ret = -EINVAL;
+			goto process_req_out;
+		}
+
+		/* Null key is only allowed in SE driver */
+		if (!strstr(algo, "tegra")) {
+			ret = -EINVAL;
+			goto process_req_out;
+		}
+
 		ret = crypto_skcipher_setkey(tfm, key, crypt_req->keylen);
 		if (ret < 0) {
 			pr_err("setkey failed");
