@@ -95,8 +95,6 @@ struct nvgpu_falcon_ops {
 		u32 data);
 	int (*bootstrap)(struct nvgpu_falcon *flcn, u32 boot_vector);
 	void (*dump_falcon_stats)(struct nvgpu_falcon *flcn);
-	int (*bl_bootstrap)(struct nvgpu_falcon *flcn,
-		struct nvgpu_falcon_bl_info *bl_info);
 	void (*get_falcon_ctls)(struct nvgpu_falcon *flcn, u32 *sctl,
 		u32 *cpuctl);
 	u32 (*get_mem_size)(struct nvgpu_falcon *flcn,
