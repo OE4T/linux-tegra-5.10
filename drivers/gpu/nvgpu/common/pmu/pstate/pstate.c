@@ -25,7 +25,7 @@
 #include <nvgpu/bios.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/pmu.h>
-#include <nvgpu/pmu/clk.h>
+#include <nvgpu/pmu/clk/clk.h>
 #include <nvgpu/pmu/pmgr.h>
 #include <nvgpu/pmu/therm.h>
 #include <nvgpu/pmu/perf.h>
@@ -39,7 +39,7 @@ void gk20a_deinit_pstate_support(struct gk20a *g)
 	pmgr_pmu_free_pmupstate(g);
 	therm_pmu_free_pmupstate(g);
 	perf_pmu_free_pmupstate(g);
-	clk_free_pmupstate(g);
+	nvgpu_clk_free_pmupstate(g);
 
 	if (g->ops.clk.mclk_deinit != NULL) {
 		g->ops.clk.mclk_deinit(g);
@@ -59,7 +59,7 @@ int gk20a_init_pstate_support(struct gk20a *g)
 		return err;
 	}
 
-	err = clk_init_pmupstate(g);
+	err = nvgpu_clk_init_pmupstate(g);
 	if (err != 0) {
 		return err;
 	}
@@ -94,12 +94,12 @@ int gk20a_init_pstate_support(struct gk20a *g)
 		goto err_pmgr_pmu_init_pmupstate;
 	}
 
-	err = clk_vin_sw_setup(g);
+	err = nvgpu_clk_vin_sw_setup(g);
 	if (err != 0) {
 		goto err_pmgr_pmu_init_pmupstate;
 	}
 
-	err = clk_fll_sw_setup(g);
+	err = nvgpu_clk_fll_sw_setup(g);
 	if (err != 0) {
 		goto err_pmgr_pmu_init_pmupstate;
 	}
@@ -121,20 +121,20 @@ int gk20a_init_pstate_support(struct gk20a *g)
 		}
 	}
 
-	err = clk_domain_sw_setup(g);
+	err = nvgpu_clk_domain_sw_setup(g);
 	if (err != 0) {
 		goto err_pmgr_pmu_init_pmupstate;
 	}
 
 	if (g->ops.clk.support_vf_point &&
 		g->ops.pmu_perf.support_vfe) {
-		err = clk_vf_point_sw_setup(g);
+		err = nvgpu_clk_vf_point_sw_setup(g);
 		if (err != 0) {
 			goto err_pmgr_pmu_init_pmupstate;
 		}
 	}
 
-	err = clk_prog_sw_setup(g);
+	err = nvgpu_clk_prog_sw_setup(g);
 	if (err != 0) {
 		goto err_pmgr_pmu_init_pmupstate;
 	}
@@ -159,7 +159,7 @@ int gk20a_init_pstate_support(struct gk20a *g)
 	}
 
 	if (g->ops.clk.support_clk_freq_controller) {
-		err = clk_freq_controller_sw_setup(g);
+		err = nvgpu_clk_freq_controller_sw_setup(g);
 		if (err != 0) {
 			goto err_pmgr_pmu_init_pmupstate;
 		}
@@ -188,7 +188,7 @@ err_therm_pmu_init_pmupstate:
 err_perf_pmu_init_pmupstate:
 	perf_pmu_free_pmupstate(g);
 err_clk_init_pmupstate:
-	clk_free_pmupstate(g);
+	nvgpu_clk_free_pmupstate(g);
 
 	return err;
 }
@@ -248,17 +248,17 @@ int gk20a_init_pstate_pmu_support(struct gk20a *g)
 		}
 	}
 
-	err = clk_domain_pmu_setup(g);
+	err = nvgpu_clk_domain_pmu_setup(g);
 	if (err != 0) {
 		return err;
 	}
 
-	err = clk_prog_pmu_setup(g);
+	err = nvgpu_clk_prog_pmu_setup(g);
 	if (err != 0) {
 		return err;
 	}
 
-	err = clk_vin_pmu_setup(g);
+	err = nvgpu_clk_vin_pmu_setup(g);
 	if (err != 0) {
 		return err;
 	}
@@ -270,13 +270,13 @@ int gk20a_init_pstate_pmu_support(struct gk20a *g)
 		}
 	}
 
-	err = clk_fll_pmu_setup(g);
+	err = nvgpu_clk_fll_pmu_setup(g);
 	if (err != 0) {
 		return err;
 	}
 
 	if (g->ops.clk.support_clk_freq_controller) {
-		err = clk_freq_controller_pmu_setup(g);
+		err = nvgpu_clk_freq_controller_pmu_setup(g);
 		if (err != 0) {
 			return err;
 		}
@@ -284,19 +284,19 @@ int gk20a_init_pstate_pmu_support(struct gk20a *g)
 
 	if (g->ops.clk.support_vf_point &&
 		g->ops.pmu_perf.support_vfe) {
-		err = clk_vf_point_pmu_setup(g);
+		err = nvgpu_clk_vf_point_pmu_setup(g);
 		if (err != 0) {
 			return err;
 		}
 	}
 
-	err = clk_pmu_vin_load(g);
+	err = nvgpu_clk_pmu_vin_load(g);
 	if (err != 0) {
 		return err;
 	}
 
 	if (g->ops.clk.support_clk_freq_domain) {
-		err = clk_pmu_clk_domains_load(g);
+		err = nvgpu_clk_pmu_clk_domains_load(g);
 		if (err != 0) {
 			return err;
 		}
@@ -406,9 +406,9 @@ static int parse_pstate_entry_5x(struct gk20a *g,
 	for (clkidx = 0; clkidx < hdr->clock_entry_count; clkidx++) {
 		struct clk_set_info *pclksetinfo;
 		struct vbios_pstate_entry_clock_5x *clk_entry;
-		struct clk_domain *clk_domain;
+		struct nvgpu_clk_domain *clk_domain;
 
-		clk_domain = (struct clk_domain *)BOARDOBJGRP_OBJ_GET_BY_IDX(
+		clk_domain = (struct nvgpu_clk_domain *)BOARDOBJGRP_OBJ_GET_BY_IDX(
 			    &g->clk_pmu->clk_domainobjs.super.super, clkidx);
 
 		pclksetinfo = &pstate->clklist.clksetinfo[clkidx];

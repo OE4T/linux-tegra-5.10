@@ -33,7 +33,7 @@
 #include "clk_domain.h"
 
 static int devinit_get_fll_device_table(struct gk20a *g,
-				   struct avfsfllobjs *pfllobjs);
+				   struct nvgpu_avfsfllobjs *pfllobjs);
 static struct fll_device *construct_fll_device(struct gk20a *g,
 		void *pargs);
 static int fll_device_init_pmudata_super(struct gk20a *g,
@@ -47,7 +47,7 @@ static int _clk_fll_devgrp_pmudatainit_super(struct gk20a *g,
 	struct nv_pmu_clk_clk_fll_device_boardobjgrp_set_header *pset =
 		(struct nv_pmu_clk_clk_fll_device_boardobjgrp_set_header *)
 		pboardobjgrppmu;
-	struct avfsfllobjs *pfll_objs = (struct avfsfllobjs *)
+	struct nvgpu_avfsfllobjs *pfll_objs = (struct nvgpu_avfsfllobjs *)
 		pboardobjgrp;
 	int status = 0;
 
@@ -115,11 +115,11 @@ static int _clk_fll_devgrp_pmustatus_instget(struct gk20a *g,
 	return 0;
 }
 
-int clk_fll_sw_setup(struct gk20a *g)
+int nvgpu_clk_fll_sw_setup(struct gk20a *g)
 {
 	int status;
 	struct boardobjgrp *pboardobjgrp = NULL;
-	struct avfsfllobjs *pfllobjs;
+	struct nvgpu_avfsfllobjs *pfllobjs;
 	struct fll_device *pfll;
 	struct fll_device *pfll_master;
 	struct fll_device *pfll_local;
@@ -151,7 +151,7 @@ int clk_fll_sw_setup(struct gk20a *g)
 	pboardobjgrp->pmudatainit  = _clk_fll_devgrp_pmudatainit_super;
 	pboardobjgrp->pmudatainstget  = _clk_fll_devgrp_pmudata_instget;
 	pboardobjgrp->pmustatusinstget  = _clk_fll_devgrp_pmustatus_instget;
-	pfllobjs = (struct avfsfllobjs *)pboardobjgrp;
+	pfllobjs = (struct nvgpu_avfsfllobjs *)pboardobjgrp;
 	pfllobjs->lut_num_entries = g->ops.clk.lut_num_entries;
 	pfllobjs->lut_step_size_uv = CTRL_CLK_VIN_STEP_SIZE_UV;
 	pfllobjs->lut_min_voltage_uv = CTRL_CLK_LUT_MIN_VOLTAGE_UV;
@@ -210,7 +210,7 @@ done:
 	return status;
 }
 
-int clk_fll_pmu_setup(struct gk20a *g)
+int nvgpu_clk_fll_pmu_setup(struct gk20a *g)
 {
 	int status;
 	struct boardobjgrp *pboardobjgrp = NULL;
@@ -230,7 +230,7 @@ int clk_fll_pmu_setup(struct gk20a *g)
 }
 
 static int devinit_get_fll_device_table(struct gk20a *g,
-				   struct avfsfllobjs *pfllobjs)
+				   struct nvgpu_avfsfllobjs *pfllobjs)
 {
 	int status = 0;
 	u8 *fll_table_ptr = NULL;
@@ -244,7 +244,7 @@ static int devinit_get_fll_device_table(struct gk20a *g,
 	struct vin_device *pvin_dev;
 	u32 desctablesize;
 	u32 vbios_domain = NV_PERF_DOMAIN_4X_CLOCK_DOMAIN_SKIP;
-	struct avfsvinobjs *pvinobjs = &g->clk_pmu->avfs_vinobjs;
+	struct nvgpu_avfsvinobjs *pvinobjs = &g->clk_pmu->avfs_vinobjs;
 
 	nvgpu_log_info(g, " ");
 
@@ -407,7 +407,7 @@ u32 nvgpu_clk_get_vbios_clk_domain_gp10x( u32 vbios_domain)
 }
 
 static int lutbroadcastslaveregister(struct gk20a *g,
-				     struct avfsfllobjs *pfllobjs,
+				     struct nvgpu_avfsfllobjs *pfllobjs,
 				     struct fll_device *pfll,
 				     struct fll_device *pfll_slave)
 {

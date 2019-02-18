@@ -28,7 +28,8 @@
 #include <nvgpu/pmuif/nvgpu_gpmu_cmdif.h>
 #include <nvgpu/boardobjgrp_e32.h>
 #include <nvgpu/boardobjgrpmask.h>
-#include <nvgpu/pmu/clk.h>
+#include <nvgpu/pmu/clk/clk.h>
+#include <nvgpu/pmu/clk/clk_domain.h>
 
 #define CLK_DOMAIN_BOARDOBJGRP_VERSION 0x30
 #define CLK_DOMAIN_BOARDOBJGRP_VERSION_35 0x35
@@ -36,15 +37,15 @@
 #define CLK_TABLE_HAL_ENTRY_GP 0x02
 #define CLK_TABLE_HAL_ENTRY_GV 0x03
 
-struct clk_domains;
-struct clk_domain;
+struct nvgpu_clk_domains;
+struct nvgpu_clk_domain;
 
-typedef int clkgetslaveclk(struct gk20a *g, struct clk_pmupstate *pclk,
-			struct clk_domain *pdomain, u16 *clkmhz,
+typedef int clkgetslaveclk(struct gk20a *g, struct nvgpu_clk_pmupstate *pclk,
+			struct nvgpu_clk_domain *pdomain, u16 *clkmhz,
 			u16 masterclkmhz);
 
 struct clk_domain_3x {
-	struct clk_domain super;
+	struct nvgpu_clk_domain super;
 	bool b_noise_aware_capable;
 };
 
@@ -102,10 +103,10 @@ struct clk_domain_35_slave {
 	struct clk_domain_30_slave slave;
 };
 
-int clk_domain_clk_prog_link(struct gk20a *g, struct clk_pmupstate *pclk);
+int clk_domain_clk_prog_link(struct gk20a *g, struct nvgpu_clk_pmupstate *pclk);
 
 #define CLK_CLK_DOMAIN_GET(pclk, idx)                                   \
-	((struct clk_domain *)BOARDOBJGRP_OBJ_GET_BY_IDX(		\
+	((struct nvgpu_clk_domain *)BOARDOBJGRP_OBJ_GET_BY_IDX(		\
 		&pclk->clk_domainobjs.super.super, (u8)(idx)))
 
 #endif /* NVGPU_CLK_DOMAIN_H */

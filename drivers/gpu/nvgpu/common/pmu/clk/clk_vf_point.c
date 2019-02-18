@@ -95,7 +95,7 @@ static int _clk_vf_points_pmustatus_instget(struct gk20a *g,
 	return 0;
 }
 
-int clk_vf_point_sw_setup(struct gk20a *g)
+int nvgpu_clk_vf_point_sw_setup(struct gk20a *g)
 {
 	int status;
 	struct boardobjgrp *pboardobjgrp = NULL;
@@ -142,7 +142,7 @@ done:
 	return status;
 }
 
-int clk_vf_point_pmu_setup(struct gk20a *g)
+int nvgpu_clk_vf_point_pmu_setup(struct gk20a *g)
 {
 	int status;
 	struct boardobjgrp *pboardobjgrp = NULL;
@@ -468,7 +468,7 @@ int nvgpu_clk_set_req_fll_clk_ps35(struct gk20a *g, struct nvgpu_clk_slave_freq 
 	struct nvgpu_pmu *pmu = &g->pmu;
 	struct nv_pmu_rpc_perf_change_seq_queue_change rpc;
 	struct ctrl_perf_change_seq_change_input change_input;
-	struct clk_domain *pclk_domain;
+	struct nvgpu_clk_domain *pclk_domain;
 	int status = 0;
 	u8 i = 0, gpcclk_domain=0;
 	u32 gpcclk_voltuv=0,gpcclk_clkmhz=0;
@@ -480,7 +480,7 @@ int nvgpu_clk_set_req_fll_clk_ps35(struct gk20a *g, struct nvgpu_clk_slave_freq 
 	(void) memset(&change_input, 0,
 		sizeof(struct ctrl_perf_change_seq_change_input));
 	BOARDOBJGRP_FOR_EACH(&(g->clk_pmu->clk_domainobjs.super.super),
-		struct clk_domain *, pclk_domain, i) {
+		struct nvgpu_clk_domain *, pclk_domain, i) {
 
 		switch (pclk_domain->api_domain) {
 		case CTRL_CLK_DOMAIN_GPCCLK:
@@ -696,7 +696,7 @@ int nvgpu_clk_set_req_fll_clk_ps35(struct gk20a *g, struct nvgpu_clk_slave_freq 
 int clk_vf_point_cache(struct gk20a *g)
 {
 
-	struct clk_vf_points *pclk_vf_points;
+	struct nvgpu_clk_vf_points *pclk_vf_points;
 	struct boardobjgrp *pboardobjgrp;
 	struct boardobjgrpmask *pboardobjgrpmask;
 	struct nv_pmu_boardobjgrp_super *pboardobjgrppmu;

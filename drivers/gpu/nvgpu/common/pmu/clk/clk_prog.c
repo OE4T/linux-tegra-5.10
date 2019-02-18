@@ -36,26 +36,26 @@
 
 static struct clk_prog *construct_clk_prog(struct gk20a *g, void *pargs);
 static int devinit_get_clk_prog_table(struct gk20a *g,
-	struct clk_progs *pprogobjs);
+	struct nvgpu_clk_progs *pprogobjs);
 static int vfflatten_prog_1x_master(struct gk20a *g,
-				    struct clk_pmupstate *pclk,
+				    struct nvgpu_clk_pmupstate *pclk,
 				    struct clk_prog_1x_master *p1xmaster,
 				    u8 clk_domain_idx, u16 *pfreqmaxlastmhz);
 static int vflookup_prog_1x_master(struct gk20a *g,
-				   struct clk_pmupstate *pclk,
+				   struct nvgpu_clk_pmupstate *pclk,
 				   struct clk_prog_1x_master *p1xmaster,
 				   u8 *slave_clk_domain,
 				   u16 *pclkmhz,
 				   u32 *pvoltuv,
 				   u8 rail);
 static int getfpoints_prog_1x_master(struct gk20a *g,
-				     struct clk_pmupstate *pclk,
+				     struct nvgpu_clk_pmupstate *pclk,
 				     struct clk_prog_1x_master *p1xmaster,
 				     u32 *pfpointscount,
 				     u16 **ppfreqpointsinmhz,
 				     u8 rail);
 static int getslaveclk_prog_1x_master(struct gk20a *g,
-				      struct clk_pmupstate *pclk,
+				      struct nvgpu_clk_pmupstate *pclk,
 				      struct clk_prog_1x_master *p1xmaster,
 				      u8 slave_clk_domain,
 				      u16 *pclkmhz,
@@ -68,7 +68,7 @@ static int _clk_progs_pmudatainit(struct gk20a *g,
 	struct nv_pmu_clk_clk_prog_boardobjgrp_set_header *pset =
 		(struct nv_pmu_clk_clk_prog_boardobjgrp_set_header *)
 		pboardobjgrppmu;
-	struct clk_progs *pprogs = (struct clk_progs *)pboardobjgrp;
+	struct nvgpu_clk_progs *pprogs = (struct nvgpu_clk_progs *)pboardobjgrp;
 	int status = 0;
 
 	status = boardobjgrp_pmudatainit_e32(g, pboardobjgrp, pboardobjgrppmu);
@@ -107,11 +107,11 @@ static int _clk_progs_pmudata_instget(struct gk20a *g,
 	return 0;
 }
 
-int clk_prog_sw_setup(struct gk20a *g)
+int nvgpu_clk_prog_sw_setup(struct gk20a *g)
 {
 	int status;
 	struct boardobjgrp *pboardobjgrp = NULL;
-	struct clk_progs *pclkprogobjs;
+	struct nvgpu_clk_progs *pclkprogobjs;
 
 	nvgpu_log_info(g, " ");
 
@@ -157,7 +157,7 @@ done:
 	return status;
 }
 
-int clk_prog_pmu_setup(struct gk20a *g)
+int nvgpu_clk_prog_pmu_setup(struct gk20a *g)
 {
 	int status;
 	struct boardobjgrp *pboardobjgrp = NULL;
@@ -177,7 +177,7 @@ int clk_prog_pmu_setup(struct gk20a *g)
 }
 
 static int devinit_get_clk_prog_table_35(struct gk20a *g,
-					struct clk_progs *pclkprogobjs,
+					struct nvgpu_clk_progs *pclkprogobjs,
 					u8 *clkprogs_tbl_ptr)
 {
 	int status = 0;
@@ -444,7 +444,7 @@ done:
 }
 
 static int devinit_get_clk_prog_table_1x(struct gk20a *g,
-					struct clk_progs *pclkprogobjs,
+					struct nvgpu_clk_progs *pclkprogobjs,
 					u8 *clkprogs_tbl_ptr)
 {
 	int status = 0;
@@ -661,7 +661,7 @@ done:
 }
 
 static int devinit_get_clk_prog_table(struct gk20a *g,
-					struct clk_progs *pprogobjs)
+					struct nvgpu_clk_progs *pprogobjs)
 {
 	int status = 0;
 	u8 *clkprogs_tbl_ptr = NULL;
@@ -912,11 +912,11 @@ static int clk_prog_pmudatainit_35_master_table(struct gk20a *g,
 }
 
 static int _clk_prog_1x_master_rail_construct_vf_point(struct gk20a *g,
-						       struct clk_pmupstate *pclk,
-						       struct clk_prog_1x_master *p1xmaster,
-						       struct ctrl_clk_clk_prog_1x_master_vf_entry *p_vf_rail,
-						       struct clk_vf_point *p_vf_point_tmp,
-						       u8 *p_vf_point_idx)
+			struct nvgpu_clk_pmupstate *pclk,
+			struct clk_prog_1x_master *p1xmaster,
+			struct ctrl_clk_clk_prog_1x_master_vf_entry *p_vf_rail,
+			struct clk_vf_point *p_vf_point_tmp,
+			u8 *p_vf_point_idx)
 {
 	struct clk_vf_point *p_vf_point;
 	int status;
@@ -1362,7 +1362,7 @@ static struct clk_prog *construct_clk_prog(struct gk20a *g, void *pargs)
 }
 
 static int vfflatten_prog_1x_master(struct gk20a *g,
-				    struct clk_pmupstate *pclk,
+				    struct nvgpu_clk_pmupstate *pclk,
 				    struct clk_prog_1x_master *p1xmaster,
 				    u8 clk_domain_idx, u16 *pfreqmaxlastmhz)
 {
@@ -1478,7 +1478,7 @@ done:
 static int vflookup_prog_1x_master
 (
 	struct gk20a *g,
-	struct clk_pmupstate *pclk,
+	struct nvgpu_clk_pmupstate *pclk,
 	struct clk_prog_1x_master *p1xmaster,
 	u8 *slave_clk_domain,
 	u16 *pclkmhz,
@@ -1490,7 +1490,7 @@ static int vflookup_prog_1x_master
 	struct ctrl_clk_clk_prog_1x_master_vf_entry
 		*pvfentry;
 	struct clk_vf_point *pvfpoint;
-	struct clk_progs *pclkprogobjs;
+	struct nvgpu_clk_progs *pclkprogobjs;
 	struct clk_prog_1x_master_ratio *p1xmasterratio;
 	u16 clkmhz;
 	u32 voltuv;
@@ -1639,7 +1639,7 @@ static int vflookup_prog_1x_master
 static int getfpoints_prog_1x_master
 (
 	struct gk20a *g,
-	struct clk_pmupstate *pclk,
+	struct nvgpu_clk_pmupstate *pclk,
 	struct clk_prog_1x_master *p1xmaster,
 	u32 *pfpointscount,
 	u16 **ppfreqpointsinmhz,
@@ -1650,7 +1650,7 @@ static int getfpoints_prog_1x_master
 	struct ctrl_clk_clk_prog_1x_master_vf_entry
 		*pvfentry;
 	struct clk_vf_point *pvfpoint;
-	struct clk_progs *pclkprogobjs;
+	struct nvgpu_clk_progs *pclkprogobjs;
 	u8 j;
 	u32 fpointscount = 0;
 
@@ -1699,14 +1699,14 @@ done:
 }
 
 static int getslaveclk_prog_1x_master(struct gk20a *g,
-				struct clk_pmupstate *pclk,
+				struct nvgpu_clk_pmupstate *pclk,
 				struct clk_prog_1x_master *p1xmaster,
 				u8 slave_clk_domain,
 				u16 *pclkmhz,
 				u16 masterclkmhz
 )
 {
-	struct clk_progs *pclkprogobjs;
+	struct nvgpu_clk_progs *pclkprogobjs;
 	struct clk_prog_1x_master_ratio *p1xmasterratio;
 	struct clk_prog_35_master_ratio *p35masterratio;
 	u8 slaveentrycount;

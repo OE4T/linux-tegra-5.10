@@ -28,10 +28,10 @@
 #include <nvgpu/boardobjgrp_e32.h>
 
 struct vin_device;
-struct clk_pmupstate;
+struct nvgpu_clk_pmupstate;
 
 typedef u32 vin_device_state_load(struct gk20a *g,
-			struct clk_pmupstate *clk, struct vin_device *pdev);
+			struct nvgpu_clk_pmupstate *clk, struct vin_device *pdev);
 
 struct vin_device {
 	struct boardobj super;
@@ -62,7 +62,5 @@ int construct_vindevice(struct gk20a *g, struct boardobj **ppboardobj,
 				u16 size, void *args);
 int vindeviceinit_pmudata_super(struct gk20a *g, struct boardobj *pboardobj,
 			struct nv_pmu_boardobj *pmudata);
-
-struct avfsvinobjs;
 
 #endif /* NVGPU_CLK_VIN_H */

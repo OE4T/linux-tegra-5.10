@@ -96,7 +96,7 @@ struct vbios_clocks_table_1x_hal_clock_entry {
 #define PERF_CLK_PCIEGENCLK     12U
 #define PERF_CLK_NUM            13U
 
-struct set_fll_clk;
+struct nvgpu_set_fll_clk;
 
 int clk_domain_print_vf_table(struct gk20a *g, u32 clkapidomain);
 int clk_domain_get_f_or_v(struct gk20a *g, u32 clkapidomain,
@@ -105,8 +105,8 @@ int clk_domain_freq_to_volt(struct gk20a *g, u8 clkdomain_idx,
 	u32 *pclkmhz, u32 *pvoltuv, u8 railidx);
 int clk_domain_volt_to_freq( struct gk20a *g, u8 clkdomain_idx,
 	u32 *pclkmhz, u32 *pvoltuv, u8 railidx);
-int clk_get_fll_clks(struct gk20a *g, struct set_fll_clk *setfllclk);
-int clk_set_fll_clks(struct gk20a *g, struct set_fll_clk *setfllclk);
+int clk_get_fll_clks(struct gk20a *g, struct nvgpu_set_fll_clk *setfllclk);
+int clk_set_fll_clks(struct gk20a *g, struct nvgpu_set_fll_clk *setfllclk);
 int clk_pmu_freq_controller_load(struct gk20a *g, bool bload, u8 bit_idx);
 int clk_pmu_freq_effective_avg_load(struct gk20a *g, bool bload);
 int clk_freq_effective_avg(struct gk20a *g, u32 *freqkHz, u32  clkDomainMask);

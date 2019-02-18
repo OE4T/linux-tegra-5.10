@@ -1,6 +1,8 @@
 /*
-* Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
-*
+ * general clock structures & definitions
+ *
+ * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
  * to deal in the Software without restriction, including without limitation
@@ -18,49 +20,26 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
-*/
+ */
 
-#ifndef NVGPU_CLK_FLL_H
-#define NVGPU_CLK_FLL_H
+#ifndef NVGPU_PMU_CLK_FREQ_CONTROLLER_H
+#define NVGPU_PMU_CLK_FREQ_CONTROLLER_H
 
-#include <nvgpu/pmuif/nvgpu_gpmu_cmdif.h>
 #include <nvgpu/boardobjgrp_e32.h>
 #include <nvgpu/boardobjgrpmask.h>
+#include <nvgpu/types.h>
 
-struct fll_device;
-struct nvgpu_avfsfllobjs;
+struct gk20a;
 
-typedef int fll_lut_broadcast_slave_register(struct gk20a *g,
-	struct nvgpu_avfsfllobjs *pfllobjs,
-	struct fll_device *pfll,
-	struct fll_device *pfll_slave);
-
-struct fll_device {
-	struct boardobj super;
-	u8 id;
-	u8 mdiv;
-	u16 input_freq_mhz;
-	u32 clk_domain;
-	u8 vin_idx_logic;
-	u8 vin_idx_sram;
-	u8 rail_idx_for_lut;
-	struct nv_pmu_clk_lut_device_desc lut_device;
-	struct nv_pmu_clk_regime_desc regime_desc;
-	u8 min_freq_vfe_idx;
-	u8 freq_ctrl_idx;
-	u8 target_regime_id_override;
-	bool b_skip_pldiv_below_dvco_min;
-	bool b_dvco_1x;
-	struct boardobjgrpmask_e32 lut_prog_broadcast_slave_mask;
-	fll_lut_broadcast_slave_register *lut_broadcast_slave_register;
+struct nvgpu_clk_freq_controllers {
+	struct boardobjgrp_e32 super;
+	u32 sampling_period_ms;
+	struct boardobjgrpmask_e32 freq_ctrl_load_mask;
+	u8 volt_policy_idx;
+	void *pprereq_load;
 };
 
-#define CLK_FLL_LUT_VF_NUM_ENTRIES(pclk) \
-	((pclk)->avfs_fllobjs.lut_num_entries)
+int nvgpu_clk_freq_controller_sw_setup(struct gk20a *g);
+int nvgpu_clk_freq_controller_pmu_setup(struct gk20a *g);
 
-#define CLK_FLL_LUT_MIN_VOLTAGE_UV(pclk) \
-	((pclk)->avfs_fllobjs.lut_min_voltage_uv)
-#define CLK_FLL_LUT_STEP_SIZE_UV(pclk) \
-	((pclk)->avfs_fllobjs.lut_step_size_uv)
-
-#endif /* NVGPU_CLK_FLL_H */
+#endif /* NVGPU_PMU_CLK_FREQ_CONTROLLER_H */

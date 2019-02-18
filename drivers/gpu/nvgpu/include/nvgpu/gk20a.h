@@ -51,11 +51,11 @@ struct nvgpu_gpu_ctxsw_trace_filter;
 #endif
 struct priv_cmd_entry;
 struct nvgpu_setup_bind_args;
-struct clk_pmupstate;
+struct nvgpu_clk_pmupstate;
 struct perf_pmupstate;
 struct vin_device_v20;
-struct avfsvinobjs;
-struct set_fll_clk;
+struct nvgpu_avfsvinobjs;
+struct nvgpu_set_fll_clk;
 struct boardobjgrp;
 struct boardobjgrp_pmu_cmd;
 struct boardobjgrpmask;
@@ -1048,11 +1048,11 @@ struct gpu_ops {
 		struct {
 			u32 (*get_vbios_clk_domain)(u32 vbios_domain);
 			int (*clk_avfs_get_vin_cal_data)(struct gk20a *g,
-				struct avfsvinobjs *pvinobjs,
+				struct nvgpu_avfsvinobjs *pvinobjs,
 				struct vin_device_v20 *pvindev);
 			u32 (*clk_vf_change_inject_data_fill)(struct gk20a *g,
 				struct nv_pmu_clk_rpc *rpccall,
-				struct set_fll_clk *setfllclk);
+				struct nvgpu_set_fll_clk *setfllclk);
 			int (*clk_set_boot_clk)(struct gk20a *g);
 		}clk;
 	} pmu_ver;
@@ -1704,7 +1704,7 @@ struct gk20a {
 	struct nvgpu_pmu pmu;
 	struct nvgpu_acr acr;
 	struct nvgpu_ecc ecc;
-	struct clk_pmupstate *clk_pmu;
+	struct nvgpu_clk_pmupstate *clk_pmu;
 	struct perf_pmupstate *perf_pmu;
 	struct pmgr_pmupstate *pmgr_pmu;
 	struct therm_pmupstate *therm_pmu;

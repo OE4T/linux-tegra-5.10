@@ -27,7 +27,7 @@
 #include <nvgpu/timers.h>
 #include <nvgpu/pmuif/ctrlclk.h>
 #include <nvgpu/pmu/pstate.h>
-#include <nvgpu/pmu/clk.h>
+#include <nvgpu/pmu/clk/clk.h>
 #include <nvgpu/pmu/perf.h>
 
 #include "pmu_perf.h"
@@ -106,7 +106,7 @@ static void build_change_seq_boot (struct gk20a *g)
 	struct nvgpu_pmu *pmu = &g->pmu;
 	struct change_seq_pmu *perf_change_seq_pmu =
 		&(g->perf_pmu->changeseq_pmu);
-	struct clk_domain *pdomain;
+	struct nvgpu_clk_domain *pdomain;
 	struct clk_set_info *p0_info;
 	struct change_seq_pmu_script *script_last =
 		&perf_change_seq_pmu->script_last;
@@ -128,7 +128,7 @@ static void build_change_seq_boot (struct gk20a *g)
 	script_last->buf.change.data.flags = CTRL_PERF_CHANGE_SEQ_CHANGE_NONE;
 
 	BOARDOBJGRP_FOR_EACH(&(g->clk_pmu->clk_domainobjs.super.super),
-		struct clk_domain *, pdomain, i) {
+		struct nvgpu_clk_domain *, pdomain, i) {
 
 		p0_info = pstate_get_clk_set_info(g, CTRL_PERF_PSTATE_P0,
 			pdomain->domain);

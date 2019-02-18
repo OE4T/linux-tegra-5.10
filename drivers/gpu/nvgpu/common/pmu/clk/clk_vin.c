@@ -35,7 +35,7 @@
 #include "clk_vin.h"
 
 static int devinit_get_vin_device_table(struct gk20a *g,
-		struct avfsvinobjs *pvinobjs);
+		struct nvgpu_avfsvinobjs *pvinobjs);
 
 static int vin_device_construct_v10(struct gk20a *g,
 					struct boardobj **ppboardobj,
@@ -58,8 +58,8 @@ static int vin_device_init_pmudata_super(struct gk20a *g,
 				  struct boardobj *board_obj_ptr,
 				  struct nv_pmu_boardobj *ppmudata);
 
-int clk_avfs_get_vin_cal_fuse_v10(struct gk20a *g,
-					struct avfsvinobjs *pvinobjs,
+int nvgpu_clk_avfs_get_vin_cal_fuse_v10(struct gk20a *g,
+					struct nvgpu_avfsvinobjs *pvinobjs,
 					struct vin_device_v20 *pvindev)
 {
 	int status = 0;
@@ -87,8 +87,8 @@ int clk_avfs_get_vin_cal_fuse_v10(struct gk20a *g,
 
 }
 
-int clk_avfs_get_vin_cal_fuse_v20(struct gk20a *g,
-					struct avfsvinobjs *pvinobjs,
+int nvgpu_clk_avfs_get_vin_cal_fuse_v20(struct gk20a *g,
+					struct nvgpu_avfsvinobjs *pvinobjs,
 					struct vin_device_v20 *pvindev)
 {
 	int status = 0;
@@ -123,7 +123,7 @@ static int _clk_vin_devgrp_pmudatainit_super(struct gk20a *g,
 	struct nv_pmu_clk_clk_vin_device_boardobjgrp_set_header *pset =
 		(struct nv_pmu_clk_clk_vin_device_boardobjgrp_set_header *)
 		pboardobjgrppmu;
-	struct avfsvinobjs *pvin_obbj = (struct avfsvinobjs *)pboardobjgrp;
+	struct nvgpu_avfsvinobjs *pvin_obbj = (struct nvgpu_avfsvinobjs *)pboardobjgrp;
 	int status = 0;
 
 	nvgpu_log_info(g, " ");
@@ -179,12 +179,12 @@ static int _clk_vin_devgrp_pmustatus_instget(struct gk20a *g,
 	return 0;
 }
 
-int clk_vin_sw_setup(struct gk20a *g)
+int nvgpu_clk_vin_sw_setup(struct gk20a *g)
 {
 	int status;
 	struct boardobjgrp *pboardobjgrp = NULL;
 	struct vin_device_v20 *pvindev = NULL;
-	struct avfsvinobjs *pvinobjs;
+	struct nvgpu_avfsvinobjs *pvinobjs;
 
 	nvgpu_log_info(g, " ");
 
@@ -237,7 +237,7 @@ done:
 	return status;
 }
 
-int clk_vin_pmu_setup(struct gk20a *g)
+int nvgpu_clk_vin_pmu_setup(struct gk20a *g)
 {
 	int status;
 	struct boardobjgrp *pboardobjgrp = NULL;
@@ -257,7 +257,7 @@ int clk_vin_pmu_setup(struct gk20a *g)
 }
 
 static int devinit_get_vin_device_table(struct gk20a *g,
-		struct avfsvinobjs *pvinobjs)
+		struct nvgpu_avfsvinobjs *pvinobjs)
 {
 	int status = 0;
 	u8 *vin_table_ptr = NULL;

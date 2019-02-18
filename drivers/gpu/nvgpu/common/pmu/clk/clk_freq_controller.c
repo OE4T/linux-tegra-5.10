@@ -179,7 +179,7 @@ static struct clk_freq_controller *clk_clk_freq_controller_construct(
 
 
 static int clk_get_freq_controller_table(struct gk20a *g,
-		struct clk_freq_controllers *pclk_freq_controllers)
+		struct nvgpu_clk_freq_controllers *pclk_freq_controllers)
 {
 	int status = 0;
 	u8 *pfreq_controller_table_ptr = NULL;
@@ -190,7 +190,7 @@ static int clk_get_freq_controller_table(struct gk20a *g,
 	struct clk_freq_controller *pclk_freq_cntr = NULL;
 	struct clk_freq_controller *ptmp_freq_cntr = NULL;
 	struct clk_freq_controller_pi *ptmp_freq_cntr_pi = NULL;
-	struct clk_domain *pclk_domain;
+	struct nvgpu_clk_domain *pclk_domain;
 
 	struct freq_controller_data_type {
 		union {
@@ -325,7 +325,7 @@ done:
 	return status;
 }
 
-int clk_freq_controller_pmu_setup(struct gk20a *g)
+int nvgpu_clk_freq_controller_pmu_setup(struct gk20a *g)
 {
 	int status;
 	struct boardobjgrp *pboardobjgrp = NULL;
@@ -374,8 +374,8 @@ static int _clk_freq_controllers_pmudatainit(struct gk20a *g,
 	struct nv_pmu_clk_clk_freq_controller_boardobjgrp_set_header *pset =
 		(struct nv_pmu_clk_clk_freq_controller_boardobjgrp_set_header *)
 		pboardobjgrppmu;
-	struct clk_freq_controllers *pcntrs =
-		(struct clk_freq_controllers *)pboardobjgrp;
+	struct nvgpu_clk_freq_controllers *pcntrs =
+		(struct nvgpu_clk_freq_controllers *)pboardobjgrp;
 	int status = 0;
 
 	status = boardobjgrp_pmudatainit_e32(g, pboardobjgrp, pboardobjgrppmu);
@@ -392,12 +392,12 @@ done:
 	return status;
 }
 
-int clk_freq_controller_sw_setup(struct gk20a *g)
+int nvgpu_clk_freq_controller_sw_setup(struct gk20a *g)
 {
 	int status = 0;
 	struct boardobjgrp *pboardobjgrp = NULL;
-	struct clk_freq_controllers *pclk_freq_controllers;
-	struct avfsfllobjs *pfllobjs = &(g->clk_pmu->avfs_fllobjs);
+	struct nvgpu_clk_freq_controllers *pclk_freq_controllers;
+	struct nvgpu_avfsfllobjs *pfllobjs = &(g->clk_pmu->avfs_fllobjs);
 	struct fll_device *pfll;
 	struct clk_freq_controller *pclkfreqctrl;
 	u8 i;

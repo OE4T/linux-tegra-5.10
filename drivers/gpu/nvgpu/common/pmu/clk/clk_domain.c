@@ -32,10 +32,11 @@
 #include "clk_fll.h"
 #include "clk_domain.h"
 
-static struct clk_domain *construct_clk_domain(struct gk20a *g, void *pargs);
+static struct nvgpu_clk_domain *construct_clk_domain(struct gk20a *g,
+		void *pargs);
 
 static int devinit_get_clocks_table(struct gk20a *g,
-	struct clk_domains *pclkdomainobjs);
+	struct nvgpu_clk_domains *pclkdomainobjs);
 
 static int clk_domain_pmudatainit_super(struct gk20a *g, struct boardobj
 	*board_obj_ptr,	struct nv_pmu_boardobj *ppmudata);
@@ -128,7 +129,8 @@ static int _clk_domains_pmudatainit_3x(struct gk20a *g,
 	struct nv_pmu_clk_clk_domain_boardobjgrp_set_header *pset =
 		(struct nv_pmu_clk_clk_domain_boardobjgrp_set_header *)
 		pboardobjgrppmu;
-	struct clk_domains *pdomains = (struct clk_domains *)pboardobjgrp;
+	struct nvgpu_clk_domains *pdomains =
+		(struct nvgpu_clk_domains *)pboardobjgrp;
 	int status = 0;
 
 	status = boardobjgrp_pmudatainit_e32(g, pboardobjgrp, pboardobjgrppmu);
@@ -190,12 +192,12 @@ static int _clk_domains_pmudata_instget(struct gk20a *g,
 	return 0;
 }
 
-int clk_domain_sw_setup(struct gk20a *g)
+int nvgpu_clk_domain_sw_setup(struct gk20a *g)
 {
 	int status;
 	struct boardobjgrp *pboardobjgrp = NULL;
-	struct clk_domains *pclkdomainobjs;
-	struct clk_domain *pdomain;
+	struct nvgpu_clk_domains *pclkdomainobjs;
+	struct nvgpu_clk_domain *pdomain;
 	struct clk_domain_3x_master *pdomain_master;
 	struct clk_domain_3x_slave *pdomain_slave;
 	struct clk_domain_35_master *pdomain_master_35;
@@ -250,7 +252,7 @@ int clk_domain_sw_setup(struct gk20a *g)
 	}
 
 	BOARDOBJGRP_FOR_EACH(&(pclkdomainobjs->super.super),
-			     struct clk_domain *, pdomain, i) {
+			     struct nvgpu_clk_domain *, pdomain, i) {
 		pdomain_master = NULL;
 		pdomain_master_35 = NULL;
 		if (pdomain->super.implements(g, &pdomain->super,
@@ -332,7 +334,7 @@ done:
 	return status;
 }
 
-int clk_domain_pmu_setup(struct gk20a *g)
+int nvgpu_clk_domain_pmu_setup(struct gk20a *g)
 {
 	int status;
 	struct boardobjgrp *pboardobjgrp = NULL;
@@ -352,7 +354,7 @@ int clk_domain_pmu_setup(struct gk20a *g)
 }
 
 static int devinit_get_clocks_table_35(struct gk20a *g,
-				    struct clk_domains *pclkdomainobjs, u8 *clocks_table_ptr)
+			struct nvgpu_clk_domains *pclkdomainobjs, u8 *clocks_table_ptr)
 {
 	int status = 0;
 	struct vbios_clocks_table_35_header clocks_table_header = { 0 };
@@ -361,10 +363,10 @@ static int devinit_get_clocks_table_35(struct gk20a *g,
 	u8 *clocks_tbl_entry_ptr = NULL;
 	u32 index = 0;
 	bool done = false;
-	struct clk_domain *pclkdomain_dev;
+	struct nvgpu_clk_domain *pclkdomain_dev;
 	union {
 		struct boardobj boardobj;
-		struct clk_domain clk_domain;
+		struct nvgpu_clk_domain clk_domain;
 		struct clk_domain_3x v3x;
 		struct clk_domain_3x_fixed v3x_fixed;
 		struct clk_domain_35_prog v35_prog;
@@ -574,7 +576,7 @@ done:
 }
 
 static int devinit_get_clocks_table_1x(struct gk20a *g,
-				    struct clk_domains *pclkdomainobjs, u8 *clocks_table_ptr)
+			struct nvgpu_clk_domains *pclkdomainobjs, u8 *clocks_table_ptr)
 {
 	int status = 0;
 	struct vbios_clocks_table_1x_header clocks_table_header = { 0 };
@@ -582,11 +584,11 @@ static int devinit_get_clocks_table_1x(struct gk20a *g,
 	struct vbios_clocks_table_1x_hal_clock_entry *vbiosclktbl1xhalentry;
 	u8 *clocks_tbl_entry_ptr = NULL;
 	u32 index = 0;
-	struct clk_domain *pclkdomain_dev;
+	struct nvgpu_clk_domain *pclkdomain_dev;
 	bool done = false;
 	union {
 		struct boardobj boardobj;
-		struct clk_domain clk_domain;
+		struct nvgpu_clk_domain clk_domain;
 		struct clk_domain_3x v3x;
 		struct clk_domain_3x_fixed v3x_fixed;
 		struct clk_domain_3x_prog v3x_prog;
@@ -784,7 +786,7 @@ done:
 }
 
 static int devinit_get_clocks_table(struct gk20a *g,
-	    struct clk_domains *pclkdomainobjs)
+	    struct nvgpu_clk_domains *pclkdomainobjs)
 {
 	int status = 0;
 	u8 *clocks_table_ptr = NULL;
@@ -811,8 +813,8 @@ static int devinit_get_clocks_table(struct gk20a *g,
 }
 
 static int clkdomainclkproglink_not_supported(struct gk20a *g,
-					      struct clk_pmupstate *pclk,
-					      struct clk_domain *pdomain)
+					      struct nvgpu_clk_pmupstate *pclk,
+					      struct nvgpu_clk_domain *pdomain)
 {
 	nvgpu_log_info(g, " ");
 	return -EINVAL;
@@ -820,8 +822,8 @@ static int clkdomainclkproglink_not_supported(struct gk20a *g,
 
 static int clkdomainvfsearch_stub(
 	struct gk20a *g,
-	struct clk_pmupstate *pclk,
-	struct clk_domain *pdomain,
+	struct nvgpu_clk_pmupstate *pclk,
+	struct nvgpu_clk_domain *pdomain,
 	u16 *clkmhz,
 	u32 *voltuv,
 	u8 rail)
@@ -833,8 +835,8 @@ static int clkdomainvfsearch_stub(
 
 static int clkdomaingetfpoints_stub(
 	struct gk20a *g,
-	struct clk_pmupstate *pclk,
-	struct clk_domain *pdomain,
+	struct nvgpu_clk_pmupstate *pclk,
+	struct nvgpu_clk_domain *pdomain,
 	u32 *pfpointscount,
 	u16 *pfreqpointsinmhz,
 	u8 rail)
@@ -848,8 +850,8 @@ static int clk_domain_construct_super(struct gk20a *g,
 				      struct boardobj **ppboardobj,
 				      size_t size, void *pargs)
 {
-	struct clk_domain *pdomain;
-	struct clk_domain *ptmpdomain = (struct clk_domain *)pargs;
+	struct nvgpu_clk_domain *pdomain;
+	struct nvgpu_clk_domain *ptmpdomain = (struct nvgpu_clk_domain *)pargs;
 	int status = 0;
 
 	status = boardobj_construct_super(g, ppboardobj,
@@ -859,7 +861,7 @@ static int clk_domain_construct_super(struct gk20a *g,
 		return -EINVAL;
 	}
 
-	pdomain = (struct clk_domain *)*ppboardobj;
+	pdomain = (struct nvgpu_clk_domain *)*ppboardobj;
 
 	pdomain->super.pmudatainit =
 			clk_domain_pmudatainit_super;
@@ -933,8 +935,8 @@ static int clk_domain_construct_3x(struct gk20a *g,
 }
 
 static int clkdomainclkproglink_3x_prog(struct gk20a *g,
-					struct clk_pmupstate *pclk,
-					struct clk_domain *pdomain)
+					struct nvgpu_clk_pmupstate *pclk,
+					struct nvgpu_clk_domain *pdomain)
 {
 	int status = 0;
 	struct clk_domain_3x_prog *p3xprog =
@@ -956,8 +958,8 @@ static int clkdomainclkproglink_3x_prog(struct gk20a *g,
 }
 
 static int clkdomaingetslaveclk(struct gk20a *g,
-				struct clk_pmupstate *pclk,
-				struct clk_domain *pdomain,
+				struct nvgpu_clk_pmupstate *pclk,
+				struct nvgpu_clk_domain *pdomain,
 				u16 *pclkmhz,
 				u16 masterclkmhz)
 {
@@ -1006,8 +1008,8 @@ static int clkdomaingetslaveclk(struct gk20a *g,
 }
 
 static int clkdomainvfsearch(struct gk20a *g,
-				struct clk_pmupstate *pclk,
-				struct clk_domain *pdomain,
+				struct nvgpu_clk_pmupstate *pclk,
+				struct nvgpu_clk_domain *pdomain,
 				u16 *pclkmhz,
 				u32 *pvoltuv,
 				u8 rail)
@@ -1096,8 +1098,8 @@ done:
 static int clkdomaingetfpoints
 (
 	struct gk20a *g,
-	struct clk_pmupstate *pclk,
-	struct clk_domain *pdomain,
+	struct nvgpu_clk_pmupstate *pclk,
+	struct nvgpu_clk_domain *pdomain,
 	u32 *pfpointscount,
 	u16 *pfreqpointsinmhz,
 	u8 rail
@@ -1169,7 +1171,7 @@ static int clk_domain_pmudatainit_35_prog(struct gk20a *g,
 	struct clk_domain_35_prog *pclk_domain_35_prog;
 	struct clk_domain_3x_prog *pclk_domain_3x_prog;
 	struct nv_pmu_clk_clk_domain_35_prog_boardobj_set *pset;
-	struct clk_domains *pdomains = &(g->clk_pmu->clk_domainobjs);
+	struct nvgpu_clk_domains *pdomains = &(g->clk_pmu->clk_domainobjs);
 
 	nvgpu_log_info(g, " ");
 
@@ -1208,7 +1210,7 @@ static int _clk_domain_pmudatainit_3x_prog(struct gk20a *g,
 	int status = 0;
 	struct clk_domain_3x_prog *pclk_domain_3x_prog;
 	struct nv_pmu_clk_clk_domain_30_prog_boardobj_set *pset;
-	struct clk_domains *pdomains = &(g->clk_pmu->clk_domainobjs);
+	struct nvgpu_clk_domains *pdomains = &(g->clk_pmu->clk_domainobjs);
 
 	nvgpu_log_info(g, " ");
 
@@ -1454,8 +1456,8 @@ static int clk_domain_construct_3x_slave(struct gk20a *g,
 }
 
 static int clkdomainclkproglink_3x_master(struct gk20a *g,
-					  struct clk_pmupstate *pclk,
-					  struct clk_domain *pdomain)
+					  struct nvgpu_clk_pmupstate *pclk,
+					  struct nvgpu_clk_domain *pdomain)
 {
 	int status = 0;
 	struct clk_domain_3x_master *p3xmaster  =
@@ -1617,8 +1619,8 @@ static int clk_domain_construct_3x_master(struct gk20a *g,
 }
 
 static int clkdomainclkproglink_fixed(struct gk20a *g,
-				      struct clk_pmupstate *pclk,
-				      struct clk_domain *pdomain)
+				      struct nvgpu_clk_pmupstate *pclk,
+				      struct nvgpu_clk_domain *pdomain)
 {
 	nvgpu_log_info(g, " ");
 	return 0;
@@ -1682,7 +1684,7 @@ static int clk_domain_construct_3x_fixed(struct gk20a *g,
 	return status;
 }
 
-static struct clk_domain *construct_clk_domain(struct gk20a *g, void *pargs)
+static struct nvgpu_clk_domain *construct_clk_domain(struct gk20a *g, void *pargs)
 {
 	struct boardobj *board_obj_ptr = NULL;
 	int status;
@@ -1725,7 +1727,7 @@ static struct clk_domain *construct_clk_domain(struct gk20a *g, void *pargs)
 
 	nvgpu_log_info(g, " Done");
 
-	return (struct clk_domain *)board_obj_ptr;
+	return (struct nvgpu_clk_domain *)board_obj_ptr;
 }
 
 static int clk_domain_pmudatainit_super(struct gk20a *g,
@@ -1733,7 +1735,7 @@ static int clk_domain_pmudatainit_super(struct gk20a *g,
 					struct nv_pmu_boardobj *ppmudata)
 {
 	int status = 0;
-	struct clk_domain *pclk_domain;
+	struct nvgpu_clk_domain *pclk_domain;
 	struct nv_pmu_clk_clk_domain_boardobj_set *pset;
 
 	nvgpu_log_info(g, " ");
@@ -1743,7 +1745,7 @@ static int clk_domain_pmudatainit_super(struct gk20a *g,
 		return status;
 	}
 
-	pclk_domain = (struct clk_domain *)board_obj_ptr;
+	pclk_domain = (struct nvgpu_clk_domain *)board_obj_ptr;
 
 	pset = (struct nv_pmu_clk_clk_domain_boardobj_set *)ppmudata;
 
@@ -1754,15 +1756,15 @@ static int clk_domain_pmudatainit_super(struct gk20a *g,
 	return status;
 }
 
-int clk_domain_clk_prog_link(struct gk20a *g, struct clk_pmupstate *pclk)
+int clk_domain_clk_prog_link(struct gk20a *g, struct nvgpu_clk_pmupstate *pclk)
 {
 	int status = 0;
-	struct clk_domain *pdomain;
+	struct nvgpu_clk_domain *pdomain;
 	u8 i;
 
 	/* Iterate over all CLK_DOMAINs and flatten their VF curves.*/
 	BOARDOBJGRP_FOR_EACH(&(pclk->clk_domainobjs.super.super),
-			struct clk_domain *, pdomain, i) {
+			struct nvgpu_clk_domain *, pdomain, i) {
 		status = pdomain->clkdomainclkproglink(g, pclk, pdomain);
 		if (status != 0) {
 			nvgpu_err(g,

@@ -29,7 +29,7 @@
 #include <nvgpu/pmuif/ctrlperf.h>
 #include <nvgpu/pmu/pstate.h>
 #include <nvgpu/pmu/volt.h>
-#include <nvgpu/pmu/clk.h>
+#include <nvgpu/pmu/clk/clk.h>
 
 #include "clk.h"
 #include <nvgpu/timers.h>
@@ -200,7 +200,7 @@ int clk_pmu_freq_controller_load(struct gk20a *g, bool bload, u8 bit_idx)
 	struct nv_pmu_clk_rpc rpccall;
 	struct clkrpc_pmucmdhandler_params handler;
 	struct nv_pmu_clk_load *clkload;
-	struct clk_freq_controllers *pclk_freq_controllers;
+	struct nvgpu_clk_freq_controllers *pclk_freq_controllers;
 	struct ctrl_boardobjgrp_mask_e32 *load_mask;
 	struct boardobjgrpmask_e32 isolate_cfc_mask;
 
@@ -297,7 +297,7 @@ done:
 	return status;
 }
 
-int clk_pmu_vin_load(struct gk20a *g)
+int nvgpu_clk_pmu_vin_load(struct gk20a *g)
 {
 	struct pmu_cmd cmd;
 	struct pmu_payload payload;
@@ -361,7 +361,7 @@ done:
 	return status;
 }
 
-int clk_pmu_clk_domains_load(struct gk20a *g)
+int nvgpu_clk_pmu_clk_domains_load(struct gk20a *g)
 {
 	struct pmu_cmd cmd;
 	struct pmu_payload payload;
@@ -426,7 +426,7 @@ done:
 
 u32 nvgpu_clk_vf_change_inject_data_fill_gp10x(struct gk20a *g,
 	struct nv_pmu_clk_rpc *rpccall,
-	struct set_fll_clk *setfllclk)
+	struct nvgpu_set_fll_clk *setfllclk)
 {
 	struct nv_pmu_clk_vf_change_inject *vfchange;
 
@@ -468,7 +468,7 @@ u32 nvgpu_clk_vf_change_inject_data_fill_gp10x(struct gk20a *g,
 
 u32 nvgpu_clk_vf_change_inject_data_fill_gv10x(struct gk20a *g,
 	struct nv_pmu_clk_rpc *rpccall,
-	struct set_fll_clk *setfllclk)
+	struct nvgpu_set_fll_clk *setfllclk)
 {
 	struct nv_pmu_clk_vf_change_inject_v1 *vfchange;
 
@@ -499,7 +499,8 @@ u32 nvgpu_clk_vf_change_inject_data_fill_gv10x(struct gk20a *g,
 	return 0;
 }
 
-static int clk_pmu_vf_inject(struct gk20a *g, struct set_fll_clk *setfllclk)
+static int clk_pmu_vf_inject(struct gk20a *g,
+		struct nvgpu_set_fll_clk *setfllclk)
 {
 	struct pmu_cmd cmd;
 	struct pmu_payload payload;
@@ -577,7 +578,7 @@ static u8 find_regime_id(struct gk20a *g, u32 domain, u16 clkmhz)
 {
 	struct fll_device *pflldev;
 	u8 j;
-	struct clk_pmupstate *pclk = g->clk_pmu;
+	struct nvgpu_clk_pmupstate *pclk = g->clk_pmu;
 
 	BOARDOBJGRP_FOR_EACH(&(pclk->avfs_fllobjs.super.super),
 		struct fll_device *, pflldev, j) {
@@ -597,7 +598,7 @@ static int set_regime_id(struct gk20a *g, u32 domain, u8 regimeid)
 {
 	struct fll_device *pflldev;
 	u8 j;
-	struct clk_pmupstate *pclk = g->clk_pmu;
+	struct nvgpu_clk_pmupstate *pclk = g->clk_pmu;
 
 	BOARDOBJGRP_FOR_EACH(&(pclk->avfs_fllobjs.super.super),
 		struct fll_device *, pflldev, j) {
@@ -613,7 +614,7 @@ static int get_regime_id(struct gk20a *g, u32 domain, u8 *regimeid)
 {
 	struct fll_device *pflldev;
 	u8 j;
-	struct clk_pmupstate *pclk = g->clk_pmu;
+	struct nvgpu_clk_pmupstate *pclk = g->clk_pmu;
 
 	BOARDOBJGRP_FOR_EACH(&(pclk->avfs_fllobjs.super.super),
 		struct fll_device *, pflldev, j) {
@@ -625,7 +626,7 @@ static int get_regime_id(struct gk20a *g, u32 domain, u8 *regimeid)
 	return -EINVAL;
 }
 
-int clk_set_fll_clks(struct gk20a *g, struct set_fll_clk *setfllclk)
+int clk_set_fll_clks(struct gk20a *g, struct nvgpu_set_fll_clk *setfllclk)
 {
 	int status = -EINVAL;
 
@@ -685,12 +686,12 @@ done:
 	return status;
 }
 
-int clk_get_fll_clks(struct gk20a *g, struct set_fll_clk *setfllclk)
+int clk_get_fll_clks(struct gk20a *g, struct nvgpu_set_fll_clk *setfllclk)
 {
 	int status = -EINVAL;
-	struct clk_domain *pdomain;
+	struct nvgpu_clk_domain *pdomain;
 	u8 i;
-	struct clk_pmupstate *pclk = g->clk_pmu;
+	struct nvgpu_clk_pmupstate *pclk = g->clk_pmu;
 	u16 clkmhz = 0;
 	struct clk_domain_35_master *p35master;
 	struct clk_domain_35_slave *p35slave;
@@ -701,7 +702,7 @@ int clk_get_fll_clks(struct gk20a *g, struct set_fll_clk *setfllclk)
 	}
 
 	BOARDOBJGRP_FOR_EACH(&(pclk->clk_domainobjs.super.super),
-			struct clk_domain *, pdomain, i) {
+			struct nvgpu_clk_domain *, pdomain, i) {
 
 		if (pdomain->api_domain == CTRL_CLK_DOMAIN_GPCCLK) {
 			if (!pdomain->super.implements(g, &pdomain->super,
@@ -717,10 +718,8 @@ int clk_get_fll_clks(struct gk20a *g, struct set_fll_clk *setfllclk)
 
 				clkmhz = 0;
 				status = p35slave->slave.clkdomainclkgetslaveclk(g,
-						pclk,
-						(struct clk_domain *)(void *)p35slave,
-						&clkmhz,
-						setfllclk->gpc2clkmhz);
+					pclk, (struct nvgpu_clk_domain *)(void *)p35slave,
+					&clkmhz, setfllclk->gpc2clkmhz);
 				if (status != 0) {
 					status = -EINVAL;
 					goto done;
@@ -751,14 +750,14 @@ done:
 int clk_domain_print_vf_table(struct gk20a *g, u32 clkapidomain)
 {
 	int status = -EINVAL;
-	struct clk_domain *pdomain;
+	struct nvgpu_clk_domain *pdomain;
 	u8 i;
-	struct clk_pmupstate *pclk = g->clk_pmu;
+	struct nvgpu_clk_pmupstate *pclk = g->clk_pmu;
 	u16 clkmhz = 0;
 	u32 volt = 0;
 
 	BOARDOBJGRP_FOR_EACH(&(pclk->clk_domainobjs.super.super),
-			struct clk_domain *, pdomain, i) {
+			struct nvgpu_clk_domain *, pdomain, i) {
 		if (pdomain->api_domain == clkapidomain) {
 			status = pdomain->clkdomainclkvfsearch(g, pclk,
 				pdomain, &clkmhz, &volt,
@@ -774,14 +773,14 @@ int clk_domain_print_vf_table(struct gk20a *g, u32 clkapidomain)
 static int clk_program_fllclks(struct gk20a *g, struct change_fll_clk *fllclk)
 {
 	int status = -EINVAL;
-	struct clk_domain *pdomain;
+	struct nvgpu_clk_domain *pdomain;
 	u8 i;
-	struct clk_pmupstate *pclk = g->clk_pmu;
+	struct nvgpu_clk_pmupstate *pclk = g->clk_pmu;
 	u16 clkmhz = 0;
 	struct clk_domain_3x_master *p3xmaster;
 	struct clk_domain_3x_slave *p3xslave;
 	unsigned long slaveidxmask;
-	struct set_fll_clk setfllclk;
+	struct nvgpu_set_fll_clk setfllclk;
 
 	if (fllclk->api_clk_domain != CTRL_CLK_DOMAIN_GPCCLK) {
 		return -EINVAL;
@@ -797,7 +796,7 @@ static int clk_program_fllclks(struct gk20a *g, struct change_fll_clk *fllclk)
 	setfllclk.gpc2clkmhz = fllclk->clkmhz;
 
 	BOARDOBJGRP_FOR_EACH(&(pclk->clk_domainobjs.super.super),
-			struct clk_domain *, pdomain, i) {
+			struct nvgpu_clk_domain *, pdomain, i) {
 
 		if (pdomain->api_domain == fllclk->api_clk_domain) {
 
@@ -820,7 +819,7 @@ static int clk_program_fllclks(struct gk20a *g, struct change_fll_clk *fllclk)
 				clkmhz = 0;
 				status = p3xslave->clkdomainclkgetslaveclk(g,
 						pclk,
-						(struct clk_domain *)p3xslave,
+						(struct nvgpu_clk_domain *)p3xslave,
 						&clkmhz,
 						fllclk->clkmhz);
 				if (status != 0) {
@@ -986,7 +985,7 @@ int nvgpu_clk_set_boot_fll_clk_tu10x(struct gk20a *g)
 	struct nv_pmu_rpc_perf_change_seq_queue_change rpc;
 	struct ctrl_perf_change_seq_change_input change_input;
 	struct clk_set_info *p0_clk_set_info;
-	struct clk_domain *pclk_domain;
+	struct nvgpu_clk_domain *pclk_domain;
 	int status = 0;
 	u8 i = 0, gpcclk_domain=0;
 	u32 gpcclk_clkmhz=0, gpcclk_voltuv=0;
@@ -996,7 +995,7 @@ int nvgpu_clk_set_boot_fll_clk_tu10x(struct gk20a *g)
 		sizeof(struct ctrl_perf_change_seq_change_input));
 
 	BOARDOBJGRP_FOR_EACH(&(g->clk_pmu->clk_domainobjs.super.super),
-		struct clk_domain *, pclk_domain, i) {
+		struct nvgpu_clk_domain *, pclk_domain, i) {
 
 		p0_clk_set_info = pstate_get_clk_set_info(g, CTRL_PERF_PSTATE_P0,
 				pclk_domain->domain);
@@ -1109,9 +1108,9 @@ int clk_domain_get_f_or_v(struct gk20a *g, u32 clkapidomain,
 	u16 *pclkmhz, u32 *pvoltuv, u8 railidx)
 {
 	int status = -EINVAL;
-	struct clk_domain *pdomain;
+	struct nvgpu_clk_domain *pdomain;
 	u8 i;
-	struct clk_pmupstate *pclk = g->clk_pmu;
+	struct nvgpu_clk_pmupstate *pclk = g->clk_pmu;
 	u8 rail;
 
 	if ((pclkmhz == NULL) || (pvoltuv == NULL)) {
@@ -1127,7 +1126,7 @@ int clk_domain_get_f_or_v(struct gk20a *g, u32 clkapidomain,
 	}
 
 	BOARDOBJGRP_FOR_EACH(&(pclk->clk_domainobjs.super.super),
-			struct clk_domain *, pdomain, i) {
+			struct nvgpu_clk_domain *, pdomain, i) {
 		if (pdomain->api_domain == clkapidomain) {
 			status = pdomain->clkdomainclkvfsearch(g, pclk,
 				pdomain, pclkmhz, pvoltuv, rail);
@@ -1137,7 +1136,7 @@ int clk_domain_get_f_or_v(struct gk20a *g, u32 clkapidomain,
 	return status;
 }
 
-int clk_init_pmupstate(struct gk20a *g)
+int nvgpu_clk_init_pmupstate(struct gk20a *g)
 {
 	/* If already allocated, do not re-allocate */
 	if (g->clk_pmu != NULL) {
@@ -1152,7 +1151,7 @@ int clk_init_pmupstate(struct gk20a *g)
 	return 0;
 }
 
-void clk_free_pmupstate(struct gk20a *g)
+void nvgpu_clk_free_pmupstate(struct gk20a *g)
 {
 	nvgpu_kfree(g, g->clk_pmu);
 	g->clk_pmu = NULL;

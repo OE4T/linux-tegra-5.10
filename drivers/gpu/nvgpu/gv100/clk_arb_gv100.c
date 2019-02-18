@@ -22,7 +22,7 @@
 
 #include <nvgpu/gk20a.h>
 #include <nvgpu/clk_arb.h>
-#include <nvgpu/pmu/clk.h>
+#include <nvgpu/pmu/clk/clk.h>
 #include <nvgpu/timers.h>
 
 #include "clk_arb_gv100.h"
@@ -57,7 +57,7 @@ int gv100_get_arbiter_clk_range(struct gk20a *g, u32 api_domain,
 {
 	u32 clkwhich;
 	struct clk_set_info *p0_info;
-	struct avfsfllobjs *pfllobjs =  &(g->clk_pmu->avfs_fllobjs);
+	struct nvgpu_avfsfllobjs *pfllobjs =  &(g->clk_pmu->avfs_fllobjs);
 	u16 limit_min_mhz;
 	bool error_status = false;
 
@@ -412,7 +412,7 @@ static int nvgpu_clk_arb_change_vf_point(struct gk20a *g, u16 gpc2clk_target,
 	u16 sys2clk_target, u16 xbar2clk_target, u16 mclk_target, u32 voltuv,
 	u32 voltuv_sram)
 {
-	struct set_fll_clk fllclk;
+	struct nvgpu_set_fll_clk fllclk;
 	struct nvgpu_clk_arb *arb = g->clk_arb;
 	int status;
 

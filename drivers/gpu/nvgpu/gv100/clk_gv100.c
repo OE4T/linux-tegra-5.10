@@ -34,7 +34,7 @@
 #include <nvgpu/timers.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/clk.h>
-#include <nvgpu/pmu/clk.h>
+#include <nvgpu/pmu/clk/clk.h>
 
 #include "clk_gv100.h"
 
@@ -210,9 +210,9 @@ int gv100_clk_domain_get_f_points(
 	u16 *pfreqpointsinmhz)
 {
 	int status = -EINVAL;
-	struct clk_domain *pdomain;
+	struct nvgpu_clk_domain *pdomain;
 	u8 i;
-	struct clk_pmupstate *pclk = g->clk_pmu;
+	struct nvgpu_clk_pmupstate *pclk = g->clk_pmu;
 	if (pfpointscount == NULL) {
 		return -EINVAL;
 	}
@@ -221,7 +221,7 @@ int gv100_clk_domain_get_f_points(
 		return -EINVAL;
 	}
 	BOARDOBJGRP_FOR_EACH(&(pclk->clk_domainobjs.super.super),
-			struct clk_domain *, pdomain, i) {
+			struct nvgpu_clk_domain *, pdomain, i) {
 		if (pdomain->api_domain == clkapidomain) {
 			status = pdomain->clkdomainclkgetfpoints(g, pclk,
 				pdomain, pfpointscount,

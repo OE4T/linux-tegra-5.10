@@ -36,7 +36,7 @@
 #include <nvgpu/pmu/pstate.h>
 #include <nvgpu/pmu/volt.h>
 #include <nvgpu/pmu/lpwr.h>
-#include <nvgpu/pmu/clk.h>
+#include <nvgpu/pmu/clk/clk.h>
 
 #include "clk.h"
 #include "clk_vf_point.h"
@@ -172,7 +172,7 @@ int nvgpu_clk_arb_update_vf_table(struct nvgpu_clk_arb *arb)
 	 */
 	for (i = 0, j = 0, num_points = 0, clk_cur = 0;
 			i < table->gpc2clk_num_points; i++) {
-		struct set_fll_clk setfllclk;
+		struct nvgpu_set_fll_clk setfllclk;
 
 		if ((arb->gpc2clk_f_points[i] >= arb->gpc2clk_min) &&
 			(arb->gpc2clk_f_points[i] <= arb->gpc2clk_max) &&

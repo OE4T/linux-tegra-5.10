@@ -32,21 +32,21 @@
 
 struct clk_prog_1x_master;
 
-typedef int vf_flatten(struct gk20a *g, struct clk_pmupstate *pclk,
+typedef int vf_flatten(struct gk20a *g, struct nvgpu_clk_pmupstate *pclk,
 			struct clk_prog_1x_master *p1xmaster,
 			u8 clk_domain_idx, u16 *pfreqmaxlastmhz);
 
-typedef int vf_lookup(struct gk20a *g, struct clk_pmupstate *pclk,
+typedef int vf_lookup(struct gk20a *g, struct nvgpu_clk_pmupstate *pclk,
 			struct clk_prog_1x_master *p1xmaster,
 			u8 *slave_clk_domain_idx, u16 *pclkmhz,
 			u32 *pvoltuv, u8 rail);
 
-typedef int get_slaveclk(struct gk20a *g, struct clk_pmupstate *pclk,
+typedef int get_slaveclk(struct gk20a *g, struct nvgpu_clk_pmupstate *pclk,
 			struct clk_prog_1x_master *p1xmaster,
 			u8 slave_clk_domain_idx, u16 *pclkmhz,
 			u16 masterclkmhz);
 
-typedef int get_fpoints(struct gk20a *g, struct clk_pmupstate *pclk,
+typedef int get_fpoints(struct gk20a *g, struct nvgpu_clk_pmupstate *pclk,
 			struct clk_prog_1x_master *p1xmaster,
 			u32 *pfpointscount,
 			u16 **ppfreqpointsinmhz, u8 rail);
