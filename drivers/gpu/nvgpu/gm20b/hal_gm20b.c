@@ -415,10 +415,6 @@ static const struct gpu_ops gm20b_ops = {
 			.add_depth = gk20a_gr_zbc_add_depth,
 			.set_table = nvgpu_gr_zbc_set_table,
 			.query_table = nvgpu_gr_zbc_query_table,
-			.stencil_query_table = NULL,
-			.load_stencil_default_tbl = NULL,
-			.add_type_stencil = NULL,
-			.load_stencil_tbl = NULL,
 			.add_stencil = NULL,
 			.get_gpcs_swdx_dss_zbc_c_format_reg = NULL,
 			.get_gpcs_swdx_dss_zbc_z_format_reg = NULL,
@@ -913,6 +909,7 @@ int gm20b_init_hal(struct gk20a *g)
 		gops->gr.load_ctxsw_ucode = gr_gk20a_load_ctxsw_ucode;
 	}
 
+	nvgpu_set_enabled(g, NVGPU_SUPPORT_ZBC_STENCIL, false);
 	nvgpu_set_enabled(g, NVGPU_PMU_FECS_BOOTSTRAP_DONE, false);
 	g->pmu_lsf_pmu_wpr_init_done = 0;
 

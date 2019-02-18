@@ -457,6 +457,14 @@ int nvgpu_gr_zbc_add_depth(struct gk20a *g, struct gr_gk20a *gr,
 			   struct zbc_entry *depth_val, u32 index);
 int nvgpu_gr_zbc_add_color(struct gk20a *g, struct gr_gk20a *gr,
 			   struct zbc_entry *color_val, u32 index);
+int nvgpu_gr_zbc_stencil_query_table(struct gk20a *g, struct gr_gk20a *gr,
+			struct zbc_query_params *query_params);
+bool nvgpu_gr_zbc_add_type_stencil(struct gk20a *g, struct gr_gk20a *gr,
+		     struct zbc_entry *zbc_val, int *ret_val);
+int nvgpu_gr_zbc_load_stencil_default_tbl(struct gk20a *g,
+		 struct gr_gk20a *gr);
+int nvgpu_gr_zbc_load_stencil_tbl(struct gk20a *g, struct gr_gk20a *gr);
+
 /* pmu */
 int gr_gk20a_fecs_get_reglist_img_size(struct gk20a *g, u32 *size);
 int gr_gk20a_fecs_set_reglist_bind_inst(struct gk20a *g,

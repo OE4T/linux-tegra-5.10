@@ -2667,8 +2667,8 @@ int gr_gk20a_add_zbc(struct gk20a *g, struct gr_gk20a *gr,
 		}
 		break;
 	case T19X_ZBC:
-		if (g->ops.gr.zbc.add_type_stencil != NULL) {
-			added =  g->ops.gr.zbc.add_type_stencil(g, gr,
+		if (nvgpu_is_enabled(g, NVGPU_SUPPORT_ZBC_STENCIL)) {
+			added =  nvgpu_gr_zbc_add_type_stencil(g, gr,
 								zbc_val, &ret);
 		} else {
 			nvgpu_err(g,
@@ -2739,8 +2739,8 @@ int nvgpu_gr_zbc_query_table(struct gk20a *g, struct gr_gk20a *gr,
 		query_params->ref_cnt = gr->zbc_dep_tbl[index].ref_cnt;
 		break;
 	case T19X_ZBC:
-		if (g->ops.gr.zbc.stencil_query_table != NULL) {
-			return g->ops.gr.zbc.stencil_query_table(g, gr,
+		if (nvgpu_is_enabled(g, NVGPU_SUPPORT_ZBC_STENCIL)) {
+			return nvgpu_gr_zbc_stencil_query_table(g, gr,
 					 query_params);
 		} else {
 			nvgpu_err(g,
@@ -2792,8 +2792,8 @@ static int gr_gk20a_load_zbc_table(struct gk20a *g, struct gr_gk20a *gr)
 		}
 	}
 
-	if (g->ops.gr.zbc.load_stencil_tbl != NULL) {
-		ret = g->ops.gr.zbc.load_stencil_tbl(g, gr);
+	if (nvgpu_is_enabled(g, NVGPU_SUPPORT_ZBC_STENCIL)) {
+		ret = nvgpu_gr_zbc_load_stencil_tbl(g, gr);
 		if (ret != 0) {
 			return ret;
 		}
@@ -2873,8 +2873,8 @@ int gr_gk20a_load_zbc_default_table(struct gk20a *g, struct gr_gk20a *gr)
 
 	gr->max_default_depth_index = 2;
 
-	if (g->ops.gr.zbc.load_stencil_default_tbl != NULL) {
-		err = g->ops.gr.zbc.load_stencil_default_tbl(g, gr);
+	if (nvgpu_is_enabled(g, NVGPU_SUPPORT_ZBC_STENCIL)) {
+		err = nvgpu_gr_zbc_load_stencil_default_tbl(g, gr);
 		if (err != 0) {
 			return err;
 		}

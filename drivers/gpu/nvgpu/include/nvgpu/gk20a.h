@@ -620,18 +620,8 @@ struct gpu_ops {
 			int (*query_table)(struct gk20a *g,
 				struct gr_gk20a *gr,
 				struct zbc_query_params *query_params);
-			int (*stencil_query_table)(struct gk20a *g,
-				struct gr_gk20a *gr,
-				struct zbc_query_params *query_params);
-			int (*load_stencil_default_tbl)(struct gk20a *g,
-				struct gr_gk20a *gr);
-			int (*load_stencil_tbl)(struct gk20a *g,
-				struct gr_gk20a *gr);
 			int (*add_stencil)(struct gk20a *g, struct gr_gk20a *gr,
 				struct zbc_entry *s_val, u32 index);
-			bool (*add_type_stencil)(struct gk20a *g,
-				struct gr_gk20a *gr,
-				struct zbc_entry *zbc_val, int *ret_val);
 			u32 (*get_gpcs_swdx_dss_zbc_c_format_reg)(
 				struct gk20a *g);
 			u32 (*get_gpcs_swdx_dss_zbc_z_format_reg)(

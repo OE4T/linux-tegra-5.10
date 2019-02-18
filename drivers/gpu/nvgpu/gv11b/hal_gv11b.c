@@ -543,12 +543,6 @@ static const struct gpu_ops gv11b_ops = {
 			.add_depth = gp10b_gr_zbc_add_depth,
 			.set_table = nvgpu_gr_zbc_set_table,
 			.query_table = nvgpu_gr_zbc_query_table,
-			.stencil_query_table =
-				nvgpu_gr_zbc_stencil_query_table,
-			.load_stencil_default_tbl =
-				nvgpu_gr_zbc_load_stencil_default_tbl,
-			.add_type_stencil = nvgpu_gr_zbc_add_type_stencil,
-			.load_stencil_tbl = nvgpu_gr_zbc_load_stencil_tbl,
 			.add_stencil = gv11b_gr_zbc_add_stencil,
 			.get_gpcs_swdx_dss_zbc_c_format_reg =
 				gv11b_gr_zbc_get_gpcs_swdx_dss_zbc_c_format_reg,
@@ -1114,6 +1108,7 @@ int gv11b_init_hal(struct gk20a *g)
 	nvgpu_set_enabled(g, NVGPU_FECS_TRACE_VA, true);
 
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_MULTIPLE_WPR, false);
+	nvgpu_set_enabled(g, NVGPU_SUPPORT_ZBC_STENCIL, true);
 
 	g->name = "gv11b";
 

@@ -177,10 +177,13 @@ struct gk20a;
 /* PMU RTOS FBQ support*/
 #define NVGPU_SUPPORT_PMU_RTOS_FBQ		70
 
+/* ZBC STENCIL support*/
+#define NVGPU_SUPPORT_ZBC_STENCIL		71
+
 /*
  * Must be greater than the largest bit offset in the above list.
  */
-#define NVGPU_MAX_ENABLED_BITS			71U
+#define NVGPU_MAX_ENABLED_BITS			72U
 
 /**
  * nvgpu_is_enabled - Check if the passed flag is enabled.
