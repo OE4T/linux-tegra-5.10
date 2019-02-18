@@ -194,6 +194,16 @@ void nvgpu_tsg_recover(struct gk20a *g, struct tsg_gk20a *tsg,
 	g->ops.fifo.disable_tsg(tsg);
 
 	/*
+	 * On hitting engine reset, h/w drops the ctxsw_status to INVALID in
+	 * fifo_engine_status register. Also while the engine is held in reset
+	 * h/w passes busy/idle straight through. fifo_engine_status registers
+	 * are correct in that there is no context switch outstanding
+	 * as the CTXSW is aborted when reset is asserted.
+	*/
+	nvgpu_log_info(g, "acquire engines_reset_mutex");
+	nvgpu_mutex_acquire(&g->fifo.engines_reset_mutex);
+
+	/*
 	 * stop context switching to prevent engine assignments from
 	 * changing until engine status is checked to make sure tsg
 	 * being recovered is not loaded on the engines
@@ -220,6 +230,8 @@ void nvgpu_tsg_recover(struct gk20a *g, struct tsg_gk20a *tsg,
 			nvgpu_err(g, "failed to enable ctxsw");
 		}
 	}
+	nvgpu_log_info(g, "release engines_reset_mutex");
+	nvgpu_mutex_release(&g->fifo.engines_reset_mutex);
 
 	if (engines_mask != 0U) {
 		gk20a_fifo_recover(g, engines_mask, tsg->tsgid, true, true,

@@ -182,7 +182,7 @@ struct fifo_gk20a {
 	/* zero-kref'd channels here */
 	struct nvgpu_list_node free_chs;
 	struct nvgpu_mutex free_chs_mutex;
-	struct nvgpu_mutex gr_reset_mutex;
+	struct nvgpu_mutex engines_reset_mutex;
 	struct nvgpu_spinlock runlist_submit_lock;
 
 	struct tsg_gk20a *tsg;
