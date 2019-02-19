@@ -284,7 +284,6 @@ int nvgpu_falcon_copy_to_emem(struct nvgpu_falcon *flcn,
 static int falcon_memcpy_params_check(struct nvgpu_falcon *flcn,
 		u32 offset, u32 size, enum falcon_mem_type mem_type)
 {
-	struct nvgpu_falcon_ops *flcn_ops = &flcn->flcn_ops;
 	struct gk20a *g = flcn->g;
 	u32 mem_size = 0;
 	int ret = -EINVAL;
@@ -299,13 +298,11 @@ static int falcon_memcpy_params_check(struct nvgpu_falcon *flcn,
 		goto exit;
 	}
 
-	if (flcn_ops->get_mem_size == NULL) {
-		nvgpu_warn(flcn->g, "Invalid op on falcon 0x%x ",
-			flcn->flcn_id);
+	ret = nvgpu_falcon_get_mem_size(flcn, mem_type, &mem_size);
+	if (ret != 0) {
 		goto exit;
 	}
 
-	mem_size = flcn_ops->get_mem_size(flcn, mem_type);
 	if (!(offset <= mem_size && (offset + size) <= mem_size)) {
 		nvgpu_err(g, "flcn-id 0x%x, copy overflow ",
 			flcn->flcn_id);
@@ -628,7 +625,11 @@ int nvgpu_falcon_bl_bootstrap(struct nvgpu_falcon *flcn,
 		goto exit;
 	}
 
-	imem_size = flcn_ops->get_mem_size(flcn, MEM_IMEM);
+	status = nvgpu_falcon_get_mem_size(flcn, MEM_IMEM, &imem_size);
+	if (status != 0) {
+		goto exit;
+	}
+
 	if (bl_info->bl_size > imem_size) {
 		nvgpu_err(flcn->g, "bootloader size greater than IMEM size");
 		goto exit;
@@ -658,9 +659,11 @@ void nvgpu_falcon_get_ctls(struct nvgpu_falcon *flcn, u32 *sctl, u32 *cpuctl)
 	}
 }
 
-int nvgpu_falcon_get_dmem_size(struct nvgpu_falcon *flcn, u32 *dmem_size)
+int nvgpu_falcon_get_mem_size(struct nvgpu_falcon *flcn,
+			      enum falcon_mem_type type, u32 *size)
 {
 	struct nvgpu_falcon_ops *flcn_ops;
+	int err = -EINVAL;
 
 	if (flcn == NULL) {
 		return -EINVAL;
@@ -669,13 +672,14 @@ int nvgpu_falcon_get_dmem_size(struct nvgpu_falcon *flcn, u32 *dmem_size)
 	flcn_ops = &flcn->flcn_ops;
 
 	if (flcn_ops->get_mem_size != NULL) {
-		*dmem_size = flcn_ops->get_mem_size(flcn, MEM_DMEM);
+		*size = flcn_ops->get_mem_size(flcn, type);
+		err = 0;
 	} else {
 		nvgpu_warn(flcn->g, "Invalid op on falcon 0x%x ",
 			flcn->flcn_id);
 	}
 
-	return 0;
+	return err;
 }
 
 struct gk20a *nvgpu_falcon_to_gk20a(struct nvgpu_falcon *flcn)

@@ -79,6 +79,11 @@
 struct gk20a;
 struct nvgpu_falcon;
 
+enum falcon_mem_type {
+	MEM_DMEM = 0,
+	MEM_IMEM
+};
+
 struct nvgpu_falcon_bl_info {
 	void *bl_src;
 	u8 *bl_desc;
@@ -117,7 +122,8 @@ void nvgpu_falcon_dump_stats(struct nvgpu_falcon *flcn);
 int nvgpu_falcon_bl_bootstrap(struct nvgpu_falcon *flcn,
 	struct nvgpu_falcon_bl_info *bl_info);
 void nvgpu_falcon_get_ctls(struct nvgpu_falcon *flcn, u32 *sctl, u32 *cpuctl);
-int nvgpu_falcon_get_dmem_size(struct nvgpu_falcon *flcn, u32 *dmem_size);
+int nvgpu_falcon_get_mem_size(struct nvgpu_falcon *flcn,
+			      enum falcon_mem_type type, u32 *size);
 struct gk20a *nvgpu_falcon_to_gk20a(struct nvgpu_falcon *flcn);
 u32 nvgpu_falcon_get_id(struct nvgpu_falcon *flcn);
 

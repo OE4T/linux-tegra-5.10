@@ -65,11 +65,6 @@ struct gk20a;
 struct nvgpu_falcon;
 struct nvgpu_falcon_bl_info;
 
-enum falcon_mem_type {
-	MEM_DMEM = 0,
-	MEM_IMEM
-};
-
 /* ops which are falcon engine specific */
 struct nvgpu_falcon_engine_dependency_ops {
 	int (*reset_eng)(struct gk20a *g);
