@@ -253,7 +253,8 @@ static void gv100_nvlink_minion_isr(struct gk20a *g) {
 					minion_minion_intr_nonfatal_f(1));
 	}
 
-	links = minion_minion_intr_link_v(intr) & g->nvlink.enabled_links;
+	links = minion_minion_intr_link_v(intr) &
+					(unsigned long) g->nvlink.enabled_links;
 
 	if (links != 0UL) {
 		for_each_set_bit(bit, &links, NVLINK_MAX_LINKS_SW) {

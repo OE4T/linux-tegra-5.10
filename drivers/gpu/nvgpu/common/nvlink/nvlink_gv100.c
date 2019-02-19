@@ -507,7 +507,7 @@ int gv100_nvlink_setup_pll(struct gk20a *g, unsigned long link_mask)
 	struct nvgpu_timeout timeout;
 	u32 pad_ctrl = 0U;
 	u32 swap_ctrl = 0U;
-	u32 pll_id;
+	u8 pll_id;
 	unsigned long bit;
 
 	reg = gk20a_readl(g, trim_sys_nvlink_uphy_cfg_r());
