@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -20,38 +20,38 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NVGPU_FECS_TRACE_H
-#define NVGPU_FECS_TRACE_H
+#ifndef NVGPU_GR_FECS_TRACE_H
+#define NVGPU_GR_FECS_TRACE_H
+
+#include <nvgpu/types.h>
+#include <nvgpu/list.h>
 
 struct gk20a;
 
-/*
- * If HW circular buffer is getting too many "buffer full" conditions,
- * increasing this constant should help (it drives Linux' internal buffer size).
- */
-#define GK20A_FECS_TRACE_NUM_RECORDS		(1 << 10)
-#define GK20A_FECS_TRACE_FRAME_PERIOD_US	(1000000ULL/60ULL)
-#define GK20A_FECS_TRACE_PTIMER_SHIFT		5
-
-struct gk20a_fecs_trace_record {
-	u32 magic_lo;
-	u32 magic_hi;
-	u32 context_id;
+struct nvgpu_fecs_trace_context_entry {
 	u32 context_ptr;
-	u32 new_context_id;
-	u32 new_context_ptr;
-	u64 ts[];
+
+	pid_t pid;
+	u32 vmid;
+
+	struct nvgpu_list_node entry;
 };
 
-#ifdef CONFIG_GK20A_CTXSW_TRACE
-int gk20a_fecs_trace_num_ts(struct gk20a *g);
-struct gk20a_fecs_trace_record *gk20a_fecs_trace_get_record(struct gk20a *g,
-	int idx);
-bool gk20a_fecs_trace_is_valid_record(struct gk20a *g,
-	struct gk20a_fecs_trace_record *r);
-int gk20a_fecs_trace_get_read_index(struct gk20a *g);
-int gk20a_fecs_trace_get_write_index(struct gk20a *g);
+static inline struct nvgpu_fecs_trace_context_entry *
+nvgpu_fecs_trace_context_entry_from_entry(struct nvgpu_list_node *node)
+{
+	return (struct nvgpu_fecs_trace_context_entry *)
+		((uintptr_t)node -
+		offsetof(struct nvgpu_fecs_trace_context_entry, entry));
+};
 
-#endif /* CONFIG_GK20A_CTXSW_TRACE */
+int nvgpu_gr_fecs_trace_add_context(struct gk20a *g, u32 context_ptr,
+	pid_t pid, u32 vmid, struct nvgpu_list_node *list);
+void nvgpu_gr_fecs_trace_remove_context(struct gk20a *g, u32 context_ptr,
+	struct nvgpu_list_node *list);
+void nvgpu_gr_fecs_trace_remove_contexts(struct gk20a *g,
+	struct nvgpu_list_node *list);
+void nvgpu_gr_fecs_trace_find_pid(struct gk20a *g, u32 context_ptr,
+	struct nvgpu_list_node *list, pid_t *pid, u32 *vmid);
 
-#endif
+#endif /* NVGPU_GR_FECS_TRACE_H */

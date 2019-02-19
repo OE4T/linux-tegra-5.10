@@ -24,7 +24,6 @@
 #include <nvgpu/dma.h>
 #include <nvgpu/enabled.h>
 #include <nvgpu/bug.h>
-#include <nvgpu/hashtable.h>
 #include <nvgpu/circ_buf.h>
 #include <nvgpu/thread.h>
 #include <nvgpu/barrier.h>
@@ -39,6 +38,7 @@
 #include <nvgpu/gr/global_ctx.h>
 #include <nvgpu/gr/subctx.h>
 #include <nvgpu/gr/ctx.h>
+#include <nvgpu/gr/fecs_trace.h>
 
 #include "fecs_trace_gk20a.h"
 #include "gr_gk20a.h"
@@ -48,16 +48,9 @@
 
 #include <nvgpu/hw/gk20a/hw_gr_gk20a.h>
 
-struct gk20a_fecs_trace_hash_ent {
-	u32 context_ptr;
-	pid_t pid;
-	struct hlist_node node;
-};
-
 struct gk20a_fecs_trace {
-
-	DECLARE_HASHTABLE(pid_hash_table, GK20A_FECS_TRACE_HASH_BITS);
-	struct nvgpu_mutex hash_lock;
+	struct nvgpu_list_node context_list;
+	struct nvgpu_mutex list_lock;
 	struct nvgpu_mutex poll_lock;
 	struct nvgpu_thread poll_task;
 	bool init;
@@ -119,111 +112,6 @@ static int gk20a_fecs_trace_set_read_index(struct gk20a *g, int index)
 			(gk20a_writel(g, gr_fecs_mailbox1_r(), index), 0));
 }
 
-void gk20a_fecs_trace_hash_dump(struct gk20a *g)
-{
-	u32 bkt;
-	struct gk20a_fecs_trace_hash_ent *ent;
-	struct gk20a_fecs_trace *trace = g->fecs_trace;
-
-	nvgpu_log(g, gpu_dbg_ctxsw, "dumping hash table");
-
-	nvgpu_mutex_acquire(&trace->hash_lock);
-	hash_for_each(trace->pid_hash_table, bkt, ent, node)
-	{
-		nvgpu_log(g, gpu_dbg_ctxsw, " ent=%p bkt=%x context_ptr=%x pid=%d",
-			ent, bkt, ent->context_ptr, ent->pid);
-
-	}
-	nvgpu_mutex_release(&trace->hash_lock);
-}
-
-static int gk20a_fecs_trace_hash_add(struct gk20a *g, u32 context_ptr, pid_t pid)
-{
-	struct gk20a_fecs_trace_hash_ent *he;
-	struct gk20a_fecs_trace *trace = g->fecs_trace;
-
-	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_ctxsw,
-		"adding hash entry context_ptr=%x -> pid=%d", context_ptr, pid);
-
-	he = nvgpu_kzalloc(g, sizeof(*he));
-	if (unlikely(!he)) {
-		nvgpu_warn(g,
-			"can't alloc new hash entry for context_ptr=%x pid=%d",
-			context_ptr, pid);
-		return -ENOMEM;
-	}
-
-	he->context_ptr = context_ptr;
-	he->pid = pid;
-	nvgpu_mutex_acquire(&trace->hash_lock);
-	hash_add(trace->pid_hash_table, &he->node, context_ptr);
-	nvgpu_mutex_release(&trace->hash_lock);
-	return 0;
-}
-
-static void gk20a_fecs_trace_hash_del(struct gk20a *g, u32 context_ptr)
-{
-	struct hlist_node *tmp;
-	struct gk20a_fecs_trace_hash_ent *ent;
-	struct gk20a_fecs_trace *trace = g->fecs_trace;
-
-	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_ctxsw,
-		"freeing hash entry context_ptr=%x", context_ptr);
-
-	nvgpu_mutex_acquire(&trace->hash_lock);
-	hash_for_each_possible_safe(trace->pid_hash_table, ent, tmp, node,
-		context_ptr) {
-		if (ent->context_ptr == context_ptr) {
-			hash_del(&ent->node);
-			nvgpu_log(g, gpu_dbg_ctxsw,
-				"freed hash entry=%p context_ptr=%x", ent,
-				ent->context_ptr);
-			nvgpu_kfree(g, ent);
-			break;
-		}
-	}
-	nvgpu_mutex_release(&trace->hash_lock);
-}
-
-static void gk20a_fecs_trace_free_hash_table(struct gk20a *g)
-{
-	u32 bkt;
-	struct hlist_node *tmp;
-	struct gk20a_fecs_trace_hash_ent *ent;
-	struct gk20a_fecs_trace *trace = g->fecs_trace;
-
-	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_ctxsw, "trace=%p", trace);
-
-	nvgpu_mutex_acquire(&trace->hash_lock);
-	hash_for_each_safe(trace->pid_hash_table, bkt, tmp, ent, node) {
-		hash_del(&ent->node);
-		nvgpu_kfree(g, ent);
-	}
-	nvgpu_mutex_release(&trace->hash_lock);
-
-}
-
-static pid_t gk20a_fecs_trace_find_pid(struct gk20a *g, u32 context_ptr)
-{
-	struct gk20a_fecs_trace_hash_ent *ent;
-	struct gk20a_fecs_trace *trace = g->fecs_trace;
-	pid_t pid = 0;
-
-	nvgpu_mutex_acquire(&trace->hash_lock);
-	hash_for_each_possible(trace->pid_hash_table, ent, node, context_ptr) {
-		if (ent->context_ptr == context_ptr) {
-			nvgpu_log(g, gpu_dbg_ctxsw,
-				"found context_ptr=%x -> pid=%d",
-				ent->context_ptr, ent->pid);
-			pid = ent->pid;
-			break;
-		}
-	}
-	nvgpu_mutex_release(&trace->hash_lock);
-
-	return pid;
-}
-
 /*
  * Converts HW entry format to userspace-facing format and pushes it to the
  * queue.
@@ -235,6 +123,7 @@ static int gk20a_fecs_trace_ring_read(struct gk20a *g, int index)
 	struct gk20a_fecs_trace *trace = g->fecs_trace;
 	pid_t cur_pid;
 	pid_t new_pid;
+	u32 cur_vmid, new_vmid;
 	int count = 0;
 
 	/* for now, only one VM */
@@ -262,8 +151,12 @@ static int gk20a_fecs_trace_ring_read(struct gk20a *g, int index)
 	 */
 	r->magic_hi = 0;
 
-	cur_pid = gk20a_fecs_trace_find_pid(g, r->context_ptr);
-	new_pid = gk20a_fecs_trace_find_pid(g, r->new_context_ptr);
+	nvgpu_mutex_acquire(&trace->list_lock);
+	nvgpu_gr_fecs_trace_find_pid(g, r->context_ptr, &trace->context_list,
+		&cur_pid, &cur_vmid);
+	nvgpu_gr_fecs_trace_find_pid(g, r->new_context_ptr, &trace->context_list,
+		&new_pid, &new_vmid);
+	nvgpu_mutex_release(&trace->list_lock);
 
 	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_ctxsw,
 		"context_ptr=%x (pid=%d) new_context_ptr=%x (pid=%d)",
@@ -418,12 +311,12 @@ int gk20a_fecs_trace_init(struct gk20a *g)
 	err = nvgpu_mutex_init(&trace->poll_lock);
 	if (err != 0)
 		goto clean;
-	err = nvgpu_mutex_init(&trace->hash_lock);
+	err = nvgpu_mutex_init(&trace->list_lock);
 	if (err != 0)
 		goto clean_poll_lock;
 
 	BUG_ON(!is_power_of_2(GK20A_FECS_TRACE_NUM_RECORDS));
-	hash_init(trace->pid_hash_table);
+	nvgpu_init_list_node(&trace->context_list);
 
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_FECS_CTXSW_TRACE, true);
 
@@ -453,6 +346,7 @@ int gk20a_fecs_trace_bind_channel(struct gk20a *g,
 	u32 context_ptr = gk20a_fecs_trace_fecs_context_ptr(g, ch);
 	u32 aperture_mask;
 	struct tsg_gk20a *tsg;
+	int ret;
 
 	tsg = tsg_gk20a_from_ch(ch);
 	if (tsg == NULL) {
@@ -504,16 +398,20 @@ int gk20a_fecs_trace_bind_channel(struct gk20a *g,
 	/* pid (process identifier) in user space, corresponds to tgid (thread
 	 * group id) in kernel space.
 	 */
-	gk20a_fecs_trace_hash_add(g, context_ptr, tsg->tgid);
+	nvgpu_mutex_acquire(&trace->list_lock);
+	ret = nvgpu_gr_fecs_trace_add_context(g, context_ptr, tsg->tgid, 0,
+		&trace->context_list);
+	nvgpu_mutex_release(&trace->list_lock);
 
-	return 0;
+	return ret;
 }
 
 int gk20a_fecs_trace_unbind_channel(struct gk20a *g, struct channel_gk20a *ch)
 {
 	u32 context_ptr = gk20a_fecs_trace_fecs_context_ptr(g, ch);
+	struct gk20a_fecs_trace *trace = g->fecs_trace;
 
-	if (g->fecs_trace) {
+	if (trace) {
 		nvgpu_log(g, gpu_dbg_fn|gpu_dbg_ctxsw,
 			"ch=%p context_ptr=%x", ch, context_ptr);
 
@@ -522,7 +420,11 @@ int gk20a_fecs_trace_unbind_channel(struct gk20a *g, struct channel_gk20a *ch)
 				g->ops.fecs_trace.flush(g);
 			gk20a_fecs_trace_poll(g);
 		}
-		gk20a_fecs_trace_hash_del(g, context_ptr);
+
+		nvgpu_mutex_acquire(&trace->list_lock);
+		nvgpu_gr_fecs_trace_remove_context(g, context_ptr,
+			&trace->context_list);
+		nvgpu_mutex_release(&trace->list_lock);
 	}
 	return 0;
 }
@@ -546,9 +448,12 @@ int gk20a_fecs_trace_deinit(struct gk20a *g)
 		return 0;
 
 	nvgpu_thread_stop(&trace->poll_task);
-	gk20a_fecs_trace_free_hash_table(g);
 
-	nvgpu_mutex_destroy(&g->fecs_trace->hash_lock);
+	nvgpu_mutex_acquire(&trace->list_lock);
+	nvgpu_gr_fecs_trace_remove_contexts(g, &trace->context_list);
+	nvgpu_mutex_release(&trace->list_lock);
+
+	nvgpu_mutex_destroy(&g->fecs_trace->list_lock);
 	nvgpu_mutex_destroy(&g->fecs_trace->poll_lock);
 
 	nvgpu_kfree(g, g->fecs_trace);
