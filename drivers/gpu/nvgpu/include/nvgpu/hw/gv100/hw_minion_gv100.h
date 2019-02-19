@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -846,6 +846,10 @@ static inline u32 minion_nvlink_dl_cmd_fault_v(u32 r)
 {
 	return (r >> 30U) & 0x1U;
 }
+static inline u32 minion_nvlink_dl_cmd_fault_fault_clear_v(void)
+{
+	return 0x00000001U;
+}
 static inline u32 minion_nvlink_dl_cmd_ready_f(u32 v)
 {
 	return (v & 0x1U) << 31U;
@@ -941,5 +945,17 @@ static inline u32 minion_nvlink_link_intr_state_m(void)
 static inline u32 minion_nvlink_link_intr_state_v(u32 r)
 {
 	return (r >> 31U) & 0x1U;
+}
+static inline u32 minion_falcon_csberrstat_r(void)
+{
+	return 0x00000244U;
+}
+static inline u32 minion_falcon_csberr_info_r(void)
+{
+	return 0x00000248U;
+}
+static inline u32 minion_falcon_csberr_addr_r(void)
+{
+	return 0x0000024cU;
 }
 #endif

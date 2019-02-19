@@ -203,13 +203,13 @@ int nvgpu_nvlink_set_sublink_mode(struct gk20a *g,
 /* Extract a WORD from the MINION ucode */
 u32 nvgpu_nvlink_minion_extract_word(struct nvgpu_firmware *fw, u32 idx)
 {
-	u32 out_data = 0;
-	u8 byte = 0;
-	u32 i = 0;
+	u32 out_data = 0U;
+	u8 byte = 0U;
+	u32 i = 0U;
 
-	for (i = 0; i < 4; i++) {
+	for (i = 0U; i < 4U; i++) {
 		byte = fw->data[idx + i];
-		out_data |= ((u32)byte) << (8 * i);
+		out_data |= ((u32)byte) << (8U * i);
 	}
 
 	return out_data;

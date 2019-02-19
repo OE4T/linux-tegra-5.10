@@ -37,16 +37,16 @@
  * The manuals are missing some useful defines
  * we add them for now
  */
-#define IPT_INTR_CONTROL_LINK(i) (nvlipt_intr_control_link0_r() + (i)*4)
-#define IPT_ERR_UC_STATUS_LINK(i) (nvlipt_err_uc_status_link0_r() + (i)*36)
-#define IPT_ERR_UC_MASK_LINK(i) (nvlipt_err_uc_mask_link0_r() + (i)*36)
-#define IPT_ERR_UC_SEVERITY_LINK(i) (nvlipt_err_uc_severity_link0_r() + (i)*36)
-#define IPT_ERR_UC_FIRST_LINK(i) (nvlipt_err_uc_first_link0_r() + (i)*36)
-#define IPT_ERR_UC_ADVISORY_LINK(i) (nvlipt_err_uc_advisory_link0_r() + (i)*36)
-#define IPT_ERR_C_STATUS_LINK(i) (nvlipt_err_c_status_link0_r() + (i)*36)
-#define IPT_ERR_C_MASK_LINK(i) (nvlipt_err_c_mask_link0_r() + (i)*36)
-#define IPT_ERR_C_FIRST_LINK(i) (nvlipt_err_c_first_link0_r() + (i)*36)
-#define IPT_ERR_CONTROL_LINK(i) (nvlipt_err_control_link0_r() + (i)*4)
+#define IPT_INTR_CONTROL_LINK(i) (nvlipt_intr_control_link0_r() + (i)*4U)
+#define IPT_ERR_UC_STATUS_LINK(i) (nvlipt_err_uc_status_link0_r() + (i)*36U)
+#define IPT_ERR_UC_MASK_LINK(i) (nvlipt_err_uc_mask_link0_r() + (i)*36U)
+#define IPT_ERR_UC_SEVERITY_LINK(i) (nvlipt_err_uc_severity_link0_r() + (i)*36U)
+#define IPT_ERR_UC_FIRST_LINK(i) (nvlipt_err_uc_first_link0_r() + (i)*36U)
+#define IPT_ERR_UC_ADVISORY_LINK(i) (nvlipt_err_uc_advisory_link0_r() + (i)*36U)
+#define IPT_ERR_C_STATUS_LINK(i) (nvlipt_err_c_status_link0_r() + (i)*36U)
+#define IPT_ERR_C_MASK_LINK(i) (nvlipt_err_c_mask_link0_r() + (i)*36U)
+#define IPT_ERR_C_FIRST_LINK(i) (nvlipt_err_c_first_link0_r() + (i)*36U)
+#define IPT_ERR_CONTROL_LINK(i) (nvlipt_err_control_link0_r() + (i)*4U)
 
 #define IPT_ERR_UC_ACTIVE_BITS	(nvlipt_err_uc_status_link0_dlprotocol_f(1) | \
 				 nvlipt_err_uc_status_link0_datapoisoned_f(1) | \
@@ -169,9 +169,9 @@ bool gv100_nvlink_minion_falcon_isr(struct gk20a *g)
 
 	if (intr & minion_falcon_irqstat_exterr_true_f()) {
 		nvgpu_err(g, "FALCON EXT ADDR: 0x%x 0x%x 0x%x",
-			MINION_REG_RD32(g, 0x244),
-			MINION_REG_RD32(g, 0x248),
-			MINION_REG_RD32(g, 0x24c));
+			MINION_REG_RD32(g, minion_falcon_csberrstat_r()),
+			MINION_REG_RD32(g, minion_falcon_csberr_info_r()),
+			MINION_REG_RD32(g, minion_falcon_csberr_addr_r()));
 	}
 
 	MINION_REG_WR32(g, minion_falcon_irqsclr_r(), intr);
@@ -182,7 +182,7 @@ bool gv100_nvlink_minion_falcon_isr(struct gk20a *g)
 	intr = MINION_REG_RD32(g, minion_falcon_irqstat_r()) &
 		MINION_REG_RD32(g, minion_falcon_irqmask_r());
 
-	return (intr == 0);
+	return (intr == 0U);
 }
 
 /*
@@ -270,7 +270,7 @@ static bool gv100_nvlink_minion_isr(struct gk20a *g) {
 	intr = MINION_REG_RD32(g, minion_minion_intr_r()) &
 		MINION_REG_RD32(g, minion_minion_intr_stall_en_r());
 
-	return (intr == 0);
+	return (intr == 0U);
 }
 
 /*

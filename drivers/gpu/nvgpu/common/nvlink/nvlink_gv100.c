@@ -182,7 +182,7 @@ static int gv100_nvlink_minion_load(struct gk20a *g)
 			break;
 		}
 
-		nvgpu_usleep_range(delay, delay * 2);
+		nvgpu_usleep_range(delay, delay * 2U);
 		delay = min_t(unsigned int,
 				delay << 1, GR_IDLE_CHECK_MAX);
 	} while (nvgpu_timeout_expired_msg(&timeout,
@@ -220,9 +220,10 @@ static int gv100_nvlink_minion_command_complete(struct gk20a *g, u32 link_id)
 	do {
 		reg = MINION_REG_RD32(g, minion_nvlink_dl_cmd_r(link_id));
 
-		if (minion_nvlink_dl_cmd_ready_v(reg) == 1) {
+		if (minion_nvlink_dl_cmd_ready_v(reg) == 1U) {
 			/* Command completed, check sucess */
-			if (minion_nvlink_dl_cmd_fault_v(reg) == 1) {
+			if (minion_nvlink_dl_cmd_fault_v(reg) ==
+				minion_nvlink_dl_cmd_fault_fault_clear_v()) {
 				nvgpu_err(g, "minion cmd(%d) error: 0x%x",
 					link_id, reg);
 
@@ -236,7 +237,7 @@ static int gv100_nvlink_minion_command_complete(struct gk20a *g, u32 link_id)
 			/* Commnand success */
 			break;
 		}
-		nvgpu_usleep_range(delay, delay * 2);
+		nvgpu_usleep_range(delay, delay * 2U);
 		delay = min_t(unsigned int,
 				delay << 1, GR_IDLE_CHECK_MAX);
 
@@ -481,8 +482,8 @@ static int gv100_nvlink_state_load_hal(struct gk20a *g)
 	return gv100_nvlink_minion_load(g);
 }
 
-#define TRIM_SYS_NVLINK_CTRL(i) (trim_sys_nvlink0_ctrl_r() + 16*i)
-#define TRIM_SYS_NVLINK_STATUS(i) (trim_sys_nvlink0_status_r() + 16*i)
+#define TRIM_SYS_NVLINK_CTRL(i) (trim_sys_nvlink0_ctrl_r() + 16U*i)
+#define TRIM_SYS_NVLINK_STATUS(i) (trim_sys_nvlink0_status_r() + 16U*i)
 
 int gv100_nvlink_setup_pll(struct gk20a *g, unsigned long link_mask)
 {
@@ -490,8 +491,8 @@ int gv100_nvlink_setup_pll(struct gk20a *g, unsigned long link_mask)
 	u32 link_id;
 	u32 links_off;
 	struct nvgpu_timeout timeout;
-	u32 pad_ctrl = 0;
-	u32 swap_ctrl = 0;
+	u32 pad_ctrl = 0U;
+	u32 swap_ctrl = 0U;
 	u32 pll_id;
 	unsigned long bit;
 
@@ -542,7 +543,7 @@ int gv100_nvlink_setup_pll(struct gk20a *g, unsigned long link_mask)
 		for_each_set_bit(bit, &link_mask, NVLINK_MAX_LINKS_SW) {
 			link_id = (u32)bit;
 			reg = gk20a_readl(g, TRIM_SYS_NVLINK_STATUS(link_id));
-			if (trim_sys_nvlink0_status_pll_off_v(reg) == 0) {
+			if (trim_sys_nvlink0_status_pll_off_v(reg) == 0U) {
 				links_off &= ~BIT32(link_id);
 			}
 		}
@@ -737,7 +738,7 @@ static int gv100_nvlink_rxcal_en(struct gk20a *g, unsigned long mask)
 			reg = DLPL_REG_RD32(g, link_id,
 						nvl_br0_cfg_status_cal_r());
 
-			if (nvl_br0_cfg_status_cal_rxcal_done_v(reg) == 1) {
+			if (nvl_br0_cfg_status_cal_rxcal_done_v(reg) == 1U) {
 				break;
 			}
 			nvgpu_udelay(5);
@@ -807,8 +808,8 @@ int gv100_nvlink_discover_link(struct gk20a *g)
 	u32 ioctrl_info_entry_type;
 	u32 ioctrl_discovery_size;
 	bool is_chain = false;
-	u8 nvlink_num_devices = 0;
-	unsigned long available_links = 0;
+	u8 nvlink_num_devices = 0U;
+	unsigned long available_links = 0UL;
 	struct nvgpu_nvlink_device_list *device_table;
 	int err = 0;
 	unsigned long bit;
@@ -827,7 +828,7 @@ int gv100_nvlink_discover_link(struct gk20a *g)
 	}
 
 	if (ioctrl_info_entry_type == NVL_DEVICE(ioctrl)) {
-		ioctrl_entry_addr = g->nvlink.ioctrl_table[0].pri_base_addr + 4;
+		ioctrl_entry_addr = g->nvlink.ioctrl_table[0].pri_base_addr + 4U;
 		table_entry = gk20a_readl(g, ioctrl_entry_addr);
 		ioctrl_discovery_size = nvlinkip_discovery_common_ioctrl_length_v(table_entry);
 		nvgpu_log(g, gpu_dbg_nvlink, "IOCTRL size: %d", ioctrl_discovery_size);
@@ -843,9 +844,9 @@ int gv100_nvlink_discover_link(struct gk20a *g)
 		return -ENOMEM;
 	}
 
-	for (i = 0; i < ioctrl_discovery_size; i++) {
+	for (i = 0U; i < ioctrl_discovery_size; i++) {
 		ioctrl_entry_addr =
-			g->nvlink.ioctrl_table[0].pri_base_addr + 4*i;
+			g->nvlink.ioctrl_table[0].pri_base_addr + 4U*i;
 		table_entry = gk20a_readl(g, ioctrl_entry_addr);
 
 		nvgpu_log(g, gpu_dbg_nvlink, "parsing ioctrl %d: 0x%08x", i, table_entry);
@@ -1173,7 +1174,7 @@ int gv100_nvlink_discover_ioctrl(struct gk20a *g)
 	int ret = 0;
 	u32 i;
 	struct nvgpu_nvlink_ioctrl_list *ioctrl_table;
-	u32 ioctrl_num_entries = 0;
+	u32 ioctrl_num_entries = 0U;
 
 	if (g->ops.top.get_num_engine_type_entries) {
 		ioctrl_num_entries = g->ops.top.get_num_engine_type_entries(g,
@@ -1181,7 +1182,7 @@ int gv100_nvlink_discover_ioctrl(struct gk20a *g)
 		nvgpu_log_info(g, "ioctrl_num_entries: %d", ioctrl_num_entries);
 	}
 
-	if (ioctrl_num_entries == 0) {
+	if (ioctrl_num_entries == 0U) {
 		nvgpu_err(g, "No NVLINK IOCTRL entry found in dev_info table");
 		return -EINVAL;
 	}
@@ -1193,7 +1194,7 @@ int gv100_nvlink_discover_ioctrl(struct gk20a *g)
 		return -ENOMEM;
 	}
 
-	for (i = 0; i < ioctrl_num_entries; i++) {
+	for (i = 0U; i < ioctrl_num_entries; i++) {
 		struct nvgpu_device_info dev_info;
 
 		ret = g->ops.top.get_device_info(g, &dev_info,
@@ -1758,7 +1759,7 @@ int gv100_nvlink_early_init(struct gk20a *g)
 	g->ops.mc.reset(g, mc_reset_nvlink_mask);
 
 	err = g->ops.nvlink.discover_link(g);
-	if ((err != 0) || (g->nvlink.discovered_links == 0)) {
+	if ((err != 0) || (g->nvlink.discovered_links == 0U)) {
 		nvgpu_err(g, "No links available");
 		goto exit;
 	}
@@ -1795,7 +1796,7 @@ int gv100_nvlink_early_init(struct gk20a *g)
 	nvgpu_log(g, gpu_dbg_nvlink, "discovered_links = 0x%08x (combination)",
 		g->nvlink.discovered_links);
 
-	if (hweight32(g->nvlink.discovered_links) > 1) {
+	if (hweight32(g->nvlink.discovered_links) > 1U) {
 		nvgpu_err(g, "more than one link enabled");
 		err = -EINVAL;
 		goto nvlink_init_exit;
