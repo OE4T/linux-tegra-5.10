@@ -32,13 +32,11 @@
 #define SYNCPT_SIZE		0x1000
 #define SYNCPT_APERTURE_SIZE	0x400000
 
-#define MAX_CV_DEVS	6
-
 struct syncpt_unit_interface {
 	dma_addr_t start;
 
 	int cv_dev_count;
-	dma_addr_t cv_dev_address_table[MAX_CV_DEVS];
+	dma_addr_t cv_dev_address_table[NVMAP_MAX_GOS_PAGES];
 };
 
 struct syncpt_gos_backing {
@@ -46,10 +44,8 @@ struct syncpt_gos_backing {
 
 	u32 syncpt_id;	/* syncpoint id */
 
-	u32 gos_id;	/* GoS id corresponding to syncpt */
-	u32 gos_offset;	/* Byte-offset of syncpt within GoS */
-
-	struct device *offset_dev; /* Device pointer to allocate offset */
+	u32 gos_id;	/* GoS id corresponding to syncpt (0..11) */
+	u32 gos_offset;	/* Word-offset of syncpt within GoS (0..63) */
 };
 
 /**
@@ -214,7 +210,7 @@ dma_addr_t nvhost_syncpt_gos_address(struct platform_device *engine_pdev,
 		return 0;
 
 	sgt = cv_dev_info->sgt + gos_id;
-	return sg_dma_address(sgt->sgl) + gos_offset;
+	return sg_dma_address(sgt->sgl) + gos_offset * sizeof(u32);
 }
 
 /**
@@ -271,9 +267,8 @@ int nvhost_syncpt_alloc_gos_backing(struct platform_device *engine_pdev,
 	struct nvhost_master *host = nvhost_get_host(engine_pdev);
 	struct syncpt_gos_backing *syncpt_gos_backing;
 	struct cv_dev_info *cv_dev_info;
-	dma_addr_t offset;
+	u32 idx, offset;
 	u32 *semaphore;
-	int err;
 
 	/* check if engine supports GoS */
 	cv_dev_info = nvmap_fetch_cv_dev_info(&engine_pdev->dev);
@@ -299,22 +294,18 @@ int nvhost_syncpt_alloc_gos_backing(struct platform_device *engine_pdev,
 		return -ENOMEM;
 	}
 
-	dma_alloc_attrs(&cv_dev_info->offset_dev, sizeof(u32), &offset,
-			GFP_KERNEL, DMA_ATTR_NO_KERNEL_MAPPING);
-	err = dma_mapping_error(&cv_dev_info->offset_dev, offset);
-	if (err) {
-		nvhost_err(&engine_pdev->dev, "failed to alloc attributes");
+	if (nvmap_alloc_gos_slot(&engine_pdev->dev,
+				&idx, &offset, &semaphore) < 0) {
+		nvhost_err(&engine_pdev->dev, "all gos slots are busy");
 		kfree(syncpt_gos_backing);
 		return -ENOMEM;
 	}
 
 	syncpt_gos_backing->syncpt_id = syncpt_id;
-	syncpt_gos_backing->gos_id = cv_dev_info->idx;
-	syncpt_gos_backing->gos_offset = (u32)offset;
-	syncpt_gos_backing->offset_dev = &cv_dev_info->offset_dev;
+	syncpt_gos_backing->gos_id = idx;
+	syncpt_gos_backing->gos_offset = offset;
 
 	/* Initialize semaphore in Grid to syncpoint value */
-	semaphore = (u32 *)(cv_dev_info->cpu_addr + (u32)offset);
 	*semaphore = nvhost_syncpt_read_min(&host->syncpt, syncpt_id);
 
 	nvhost_syncpt_insert_syncpt_backing(&host->syncpt_backing_head,
@@ -339,16 +330,12 @@ int nvhost_syncpt_release_gos_backing(struct nvhost_syncpt *sp,
 {
 	struct nvhost_master *host = syncpt_to_dev(sp);
 	struct syncpt_gos_backing *syncpt_gos_backing;
-	dma_addr_t offset;
-
 	syncpt_gos_backing = nvhost_syncpt_find_gos_backing(host, syncpt_id);
 	if (!syncpt_gos_backing)
 		return -EINVAL;
 
-	offset = (dma_addr_t)syncpt_gos_backing->gos_offset;
-	dma_free_attrs(syncpt_gos_backing->offset_dev, sizeof(u32),
-			NULL, offset, DMA_ATTR_NO_KERNEL_MAPPING);
-
+	nvmap_free_gos_slot(syncpt_gos_backing->gos_id,
+			syncpt_gos_backing->gos_offset);
 	rb_erase(&syncpt_gos_backing->syncpt_gos_backing_entry,
 		 &host->syncpt_backing_head);
 	kfree(syncpt_gos_backing);
