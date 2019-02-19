@@ -19,13 +19,13 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
+#include <nvgpu/io.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/falcon.h>
 
-#include "falcon_gk20a.h"
-#include "falcon_gp106.h"
+#include "falcon_sw_gk20a.h"
 
-static void gp106_falcon_engine_dependency_ops(struct nvgpu_falcon *flcn)
+void gk20a_falcon_engine_dependency_ops(struct nvgpu_falcon *flcn)
 {
 	struct gk20a *g = flcn->g;
 	struct nvgpu_falcon_engine_dependency_ops *flcn_eng_dep_ops =
@@ -35,36 +35,25 @@ static void gp106_falcon_engine_dependency_ops(struct nvgpu_falcon *flcn)
 	case FALCON_ID_PMU:
 		flcn_eng_dep_ops->reset_eng = g->ops.pmu.pmu_reset;
 		break;
-	case FALCON_ID_SEC2:
-		flcn_eng_dep_ops->reset_eng = g->ops.sec2.sec2_reset;
-		break;
 	default:
+		/* NULL assignment make sure
+		 * CPU hard reset in gk20a_falcon_reset() gets execute
+		 * if falcon doesn't need specific reset implementation
+		 */
 		flcn_eng_dep_ops->reset_eng = NULL;
 		break;
 	}
 }
 
-static void gp106_falcon_ops(struct nvgpu_falcon *flcn)
-{
-	gk20a_falcon_ops(flcn);
-	gp106_falcon_engine_dependency_ops(flcn);
-}
-
-int gp106_falcon_hal_sw_init(struct nvgpu_falcon *flcn)
+void gk20a_falcon_sw_init(struct nvgpu_falcon *flcn)
 {
 	struct gk20a *g = flcn->g;
-	int err = 0;
 
 	switch (flcn->flcn_id) {
 	case FALCON_ID_PMU:
 		flcn->flcn_base = g->ops.pmu.falcon_base_addr();
 		flcn->is_falcon_supported = true;
 		flcn->is_interrupt_enabled = true;
-		break;
-	case FALCON_ID_SEC2:
-		flcn->flcn_base = g->ops.sec2.falcon_base_addr();
-		flcn->is_falcon_supported = true;
-		flcn->is_interrupt_enabled = false;
 		break;
 	case FALCON_ID_FECS:
 		flcn->flcn_base = g->ops.gr.fecs_falcon_base_addr();
@@ -76,22 +65,15 @@ int gp106_falcon_hal_sw_init(struct nvgpu_falcon *flcn)
 		flcn->is_falcon_supported = true;
 		flcn->is_interrupt_enabled = false;
 		break;
-	case FALCON_ID_NVDEC:
-		flcn->flcn_base = g->ops.nvdec.falcon_base_addr();
-		flcn->is_falcon_supported = true;
-		flcn->is_interrupt_enabled = true;
-		break;
 	default:
 		flcn->is_falcon_supported = false;
 		break;
 	}
 
 	if (flcn->is_falcon_supported) {
-		gp106_falcon_ops(flcn);
+		gk20a_falcon_engine_dependency_ops(flcn);
 	} else {
-		nvgpu_info(g, "falcon 0x%x not supported on %s",
+		nvgpu_log_info(g, "falcon 0x%x not supported on %s",
 			flcn->flcn_id, g->name);
 	}
-
-	return err;
 }

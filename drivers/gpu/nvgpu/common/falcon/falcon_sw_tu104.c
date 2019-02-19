@@ -22,15 +22,17 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/falcon.h>
 
-#include "falcon_gk20a.h"
-#include "falcon_gv100.h"
-#include "falcon_tu104.h"
+#include "falcon_sw_gk20a.h"
+#include "falcon_sw_gv100.h"
+#include "falcon_sw_tu104.h"
 
-static void tu104_falcon_engine_dependency_ops(struct nvgpu_falcon *flcn)
+void tu104_falcon_engine_dependency_ops(struct nvgpu_falcon *flcn)
 {
 	struct nvgpu_falcon_engine_dependency_ops *flcn_eng_dep_ops =
 			&flcn->flcn_engine_dep_ops;
 	struct gk20a *g = flcn->g;
+
+	gk20a_falcon_engine_dependency_ops(flcn);
 
 	switch (flcn->flcn_id) {
 	case FALCON_ID_SEC2:
@@ -45,16 +47,9 @@ static void tu104_falcon_engine_dependency_ops(struct nvgpu_falcon *flcn)
 	}
 }
 
-static void tu104_falcon_ops(struct nvgpu_falcon *flcn)
-{
-	gk20a_falcon_ops(flcn);
-	tu104_falcon_engine_dependency_ops(flcn);
-}
-
-int tu104_falcon_hal_sw_init(struct nvgpu_falcon *flcn)
+void tu104_falcon_sw_init(struct nvgpu_falcon *flcn)
 {
 	struct gk20a *g = flcn->g;
-	int err = 0;
 
 	switch (flcn->flcn_id) {
 	case FALCON_ID_SEC2:
@@ -77,16 +72,14 @@ int tu104_falcon_hal_sw_init(struct nvgpu_falcon *flcn)
 	}
 
 	if (flcn->is_falcon_supported) {
-		tu104_falcon_ops(flcn);
+		tu104_falcon_engine_dependency_ops(flcn);
 	} else {
 		/*
-		 * Forward call to previous chips HAL
+		 * Forward call to previous chip's SW init
 		 * to fetch info for requested
 		 * falcon as no changes between
 		 * current & previous chips.
 		 */
-		err = gv100_falcon_hal_sw_init(flcn);
+		gv100_falcon_sw_init(flcn);
 	}
-
-	return err;
 }

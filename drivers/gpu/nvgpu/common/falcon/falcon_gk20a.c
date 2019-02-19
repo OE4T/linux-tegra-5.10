@@ -27,7 +27,7 @@
 
 #include <nvgpu/hw/gm20b/hw_falcon_gm20b.h>
 
-static void gk20a_falcon_reset(struct nvgpu_falcon *flcn)
+void gk20a_falcon_reset(struct nvgpu_falcon *flcn)
 {
 	struct gk20a *g = flcn->g;
 	u32 base_addr = flcn->flcn_base;
@@ -40,7 +40,7 @@ static void gk20a_falcon_reset(struct nvgpu_falcon *flcn)
 		(unit_status | falcon_falcon_cpuctl_hreset_f(1)));
 }
 
-static bool gk20a_falcon_clear_halt_interrupt_status(struct nvgpu_falcon *flcn)
+bool gk20a_falcon_clear_halt_interrupt_status(struct nvgpu_falcon *flcn)
 {
 	struct gk20a *g = flcn->g;
 	u32 base_addr = flcn->flcn_base;
@@ -61,7 +61,7 @@ static bool gk20a_falcon_clear_halt_interrupt_status(struct nvgpu_falcon *flcn)
 	return status;
 }
 
-static void gk20a_falcon_set_irq(struct nvgpu_falcon *flcn, bool enable,
+void gk20a_falcon_set_irq(struct nvgpu_falcon *flcn, bool enable,
 	u32 intr_mask, u32 intr_dest)
 {
 	struct gk20a *g = flcn->g;
@@ -78,7 +78,7 @@ static void gk20a_falcon_set_irq(struct nvgpu_falcon *flcn, bool enable,
 	}
 }
 
-static bool gk20a_is_falcon_cpu_halted(struct nvgpu_falcon *flcn)
+bool gk20a_is_falcon_cpu_halted(struct nvgpu_falcon *flcn)
 {
 	struct gk20a *g = flcn->g;
 	u32 base_addr = flcn->flcn_base;
@@ -87,7 +87,7 @@ static bool gk20a_is_falcon_cpu_halted(struct nvgpu_falcon *flcn)
 			falcon_falcon_cpuctl_halt_intr_m()) != 0U);
 }
 
-static bool gk20a_is_falcon_idle(struct nvgpu_falcon *flcn)
+bool gk20a_is_falcon_idle(struct nvgpu_falcon *flcn)
 {
 	struct gk20a *g = flcn->g;
 	u32 base_addr = flcn->flcn_base;
@@ -107,7 +107,7 @@ static bool gk20a_is_falcon_idle(struct nvgpu_falcon *flcn)
 	return status;
 }
 
-static bool gk20a_is_falcon_scrubbing_done(struct nvgpu_falcon *flcn)
+bool gk20a_is_falcon_scrubbing_done(struct nvgpu_falcon *flcn)
 {
 	struct gk20a *g = flcn->g;
 	u32 base_addr = flcn->flcn_base;
@@ -128,7 +128,7 @@ static bool gk20a_is_falcon_scrubbing_done(struct nvgpu_falcon *flcn)
 	return status;
 }
 
-static u32 gk20a_falcon_get_mem_size(struct nvgpu_falcon *flcn,
+u32 gk20a_falcon_get_mem_size(struct nvgpu_falcon *flcn,
 		enum falcon_mem_type mem_type)
 {
 	struct gk20a *g = flcn->g;
@@ -147,7 +147,7 @@ static u32 gk20a_falcon_get_mem_size(struct nvgpu_falcon *flcn,
 	return mem_size;
 }
 
-static u8 gk20a_falcon_get_ports_count(struct nvgpu_falcon *flcn,
+u8 gk20a_falcon_get_ports_count(struct nvgpu_falcon *flcn,
 		enum falcon_mem_type mem_type)
 {
 	struct gk20a *g = flcn->g;
@@ -164,7 +164,7 @@ static u8 gk20a_falcon_get_ports_count(struct nvgpu_falcon *flcn,
 	return ports;
 }
 
-static int gk20a_falcon_copy_from_dmem(struct nvgpu_falcon *flcn,
+int gk20a_falcon_copy_from_dmem(struct nvgpu_falcon *flcn,
 		u32 src, u8 *dst, u32 size, u8 port)
 {
 	struct gk20a *g = flcn->g;
@@ -201,7 +201,7 @@ static int gk20a_falcon_copy_from_dmem(struct nvgpu_falcon *flcn,
 	return 0;
 }
 
-static int gk20a_falcon_copy_to_dmem(struct nvgpu_falcon *flcn,
+int gk20a_falcon_copy_to_dmem(struct nvgpu_falcon *flcn,
 		u32 dst, u8 *src, u32 size, u8 port)
 {
 	struct gk20a *g = flcn->g;
@@ -247,7 +247,7 @@ static int gk20a_falcon_copy_to_dmem(struct nvgpu_falcon *flcn,
 	return 0;
 }
 
-static int gk20a_falcon_copy_from_imem(struct nvgpu_falcon *flcn, u32 src,
+int gk20a_falcon_copy_from_imem(struct nvgpu_falcon *flcn, u32 src,
 	u8 *dst, u32 size, u8 port)
 {
 	struct gk20a *g = flcn->g;
@@ -288,7 +288,7 @@ static int gk20a_falcon_copy_from_imem(struct nvgpu_falcon *flcn, u32 src,
 	return 0;
 }
 
-static int gk20a_falcon_copy_to_imem(struct nvgpu_falcon *flcn, u32 dst,
+int gk20a_falcon_copy_to_imem(struct nvgpu_falcon *flcn, u32 dst,
 		u8 *src, u32 size, u8 port, bool sec, u32 tag)
 {
 	struct gk20a *g = flcn->g;
@@ -334,7 +334,7 @@ static int gk20a_falcon_copy_to_imem(struct nvgpu_falcon *flcn, u32 dst,
 	return 0;
 }
 
-static int gk20a_falcon_bootstrap(struct nvgpu_falcon *flcn,
+int gk20a_falcon_bootstrap(struct nvgpu_falcon *flcn,
 	u32 boot_vector)
 {
 	struct gk20a *g = flcn->g;
@@ -354,7 +354,7 @@ static int gk20a_falcon_bootstrap(struct nvgpu_falcon *flcn,
 	return 0;
 }
 
-static u32 gk20a_falcon_mailbox_read(struct nvgpu_falcon *flcn,
+u32 gk20a_falcon_mailbox_read(struct nvgpu_falcon *flcn,
 		u32 mailbox_index)
 {
 	struct gk20a *g = flcn->g;
@@ -367,7 +367,7 @@ static u32 gk20a_falcon_mailbox_read(struct nvgpu_falcon *flcn,
 	return data;
 }
 
-static void gk20a_falcon_mailbox_write(struct nvgpu_falcon *flcn,
+void gk20a_falcon_mailbox_write(struct nvgpu_falcon *flcn,
 		u32 mailbox_index, u32 data)
 {
 	struct gk20a *g = flcn->g;
@@ -442,7 +442,7 @@ static void gk20a_falcon_dump_pc_trace(struct nvgpu_falcon *flcn)
 	}
 }
 
-static void gk20a_falcon_dump_stats(struct nvgpu_falcon *flcn)
+void gk20a_falcon_dump_stats(struct nvgpu_falcon *flcn)
 {
 	struct gk20a *g = flcn->g;
 	u32 base_addr = flcn->flcn_base;
@@ -553,104 +553,10 @@ static void gk20a_falcon_dump_stats(struct nvgpu_falcon *flcn)
 		gk20a_readl(g, base_addr + falcon_falcon_exterraddr_r()));
 }
 
-static void gk20a_falcon_get_ctls(struct nvgpu_falcon *flcn, u32 *sctl,
+void gk20a_falcon_get_ctls(struct nvgpu_falcon *flcn, u32 *sctl,
 				  u32 *cpuctl)
 {
 	*sctl = gk20a_readl(flcn->g, flcn->flcn_base + falcon_falcon_sctl_r());
 	*cpuctl = gk20a_readl(flcn->g, flcn->flcn_base +
 					falcon_falcon_cpuctl_r());
-}
-
-static void gk20a_falcon_engine_dependency_ops(struct nvgpu_falcon *flcn)
-{
-	struct gk20a *g = flcn->g;
-	struct nvgpu_falcon_engine_dependency_ops *flcn_eng_dep_ops =
-			&flcn->flcn_engine_dep_ops;
-
-	switch (flcn->flcn_id) {
-	case FALCON_ID_PMU:
-		flcn_eng_dep_ops->reset_eng = g->ops.pmu.pmu_reset;
-		break;
-	default:
-		/* NULL assignment make sure
-		 * CPU hard reset in gk20a_falcon_reset() gets execute
-		 * if falcon doesn't need specific reset implementation
-		 */
-		flcn_eng_dep_ops->reset_eng = NULL;
-		break;
-	}
-}
-
-void gk20a_falcon_ops(struct nvgpu_falcon *flcn)
-{
-	struct nvgpu_falcon_ops *flcn_ops = &flcn->flcn_ops;
-
-	flcn_ops->reset = gk20a_falcon_reset;
-	flcn_ops->set_irq = gk20a_falcon_set_irq;
-	flcn_ops->clear_halt_interrupt_status =
-		gk20a_falcon_clear_halt_interrupt_status;
-	flcn_ops->is_falcon_cpu_halted =  gk20a_is_falcon_cpu_halted;
-	flcn_ops->is_falcon_idle =  gk20a_is_falcon_idle;
-	flcn_ops->is_falcon_scrubbing_done =  gk20a_is_falcon_scrubbing_done;
-	flcn_ops->copy_from_dmem = gk20a_falcon_copy_from_dmem;
-	flcn_ops->copy_to_dmem = gk20a_falcon_copy_to_dmem;
-	flcn_ops->copy_to_imem = gk20a_falcon_copy_to_imem;
-	flcn_ops->copy_from_imem = gk20a_falcon_copy_from_imem;
-	flcn_ops->bootstrap = gk20a_falcon_bootstrap;
-	flcn_ops->dump_falcon_stats = gk20a_falcon_dump_stats;
-	flcn_ops->mailbox_read = gk20a_falcon_mailbox_read;
-	flcn_ops->mailbox_write = gk20a_falcon_mailbox_write;
-	flcn_ops->get_falcon_ctls = gk20a_falcon_get_ctls;
-	flcn_ops->get_mem_size = gk20a_falcon_get_mem_size;
-	flcn_ops->get_ports_count = gk20a_falcon_get_ports_count;
-
-	gk20a_falcon_engine_dependency_ops(flcn);
-}
-
-int gk20a_falcon_hal_sw_init(struct nvgpu_falcon *flcn)
-{
-	struct gk20a *g = flcn->g;
-	int err = 0;
-
-	switch (flcn->flcn_id) {
-	case FALCON_ID_PMU:
-		flcn->flcn_base = g->ops.pmu.falcon_base_addr();
-		flcn->is_falcon_supported = true;
-		flcn->is_interrupt_enabled = true;
-		break;
-	case FALCON_ID_FECS:
-		flcn->flcn_base = g->ops.gr.fecs_falcon_base_addr();
-		flcn->is_falcon_supported = true;
-		flcn->is_interrupt_enabled = false;
-		break;
-	case FALCON_ID_GPCCS:
-		flcn->flcn_base = g->ops.gr.gpccs_falcon_base_addr();
-		flcn->is_falcon_supported = true;
-		flcn->is_interrupt_enabled = false;
-		break;
-	default:
-		flcn->is_falcon_supported = false;
-		break;
-	}
-
-	if (flcn->is_falcon_supported) {
-		gk20a_falcon_ops(flcn);
-	} else {
-		nvgpu_log_info(g, "falcon 0x%x not supported on %s",
-			flcn->flcn_id, g->name);
-	}
-
-	return err;
-}
-
-void gk20a_falcon_hal_sw_free(struct nvgpu_falcon *flcn)
-{
-	struct gk20a *g = flcn->g;
-
-	if (flcn->is_falcon_supported) {
-		flcn->is_falcon_supported = false;
-	} else {
-		nvgpu_log_info(g, "falcon 0x%x not supported on %s",
-			flcn->flcn_id, g->name);
-	}
 }

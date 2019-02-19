@@ -20,9 +20,10 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NVGPU_FALCON_TU104_H
-#define NVGPU_FALCON_TU104_H
+#ifndef NVGPU_FALCON_SW_TU104_H
+#define NVGPU_FALCON_SW_TU104_H
 
-int tu104_falcon_hal_sw_init(struct nvgpu_falcon *flcn);
+void tu104_falcon_engine_dependency_ops(struct nvgpu_falcon *flcn);
+void tu104_falcon_sw_init(struct nvgpu_falcon *flcn);
 
-#endif /* NVGPU_FALCON_TU104_H */
+#endif /* NVGPU_FALCON_SW_TU104_H */

@@ -55,7 +55,6 @@
 #include "gp10b/gp10b.h"
 #include "gp10b/hal_gp10b.h"
 
-#include "common/falcon/falcon_gk20a.h"
 #include "common/sync/syncpt_cmdbuf_gk20a.h"
 #include "common/sync/sema_cmdbuf_gk20a.h"
 
@@ -643,10 +642,6 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 		.release_perfmon_ids = NULL,
 	},
 #endif
-	.falcon = {
-		.falcon_hal_sw_init = NULL,
-		.falcon_hal_sw_free = NULL,
-	},
 	.priv_ring = {
 		.enable_priv_ring = NULL,
 		.isr = NULL,

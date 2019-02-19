@@ -78,7 +78,6 @@
 #include "common/pmu/pmu_gv11b.h"
 #include "common/pmu/pmu_tu104.h"
 #include "common/falcon/falcon_gk20a.h"
-#include "common/falcon/falcon_tu104.h"
 #include "common/nvdec/nvdec_tu104.h"
 #include "common/top/top_gm20b.h"
 #include "common/top/top_gp10b.h"
@@ -1129,8 +1128,24 @@ static const struct gpu_ops tu104_ops = {
 		.disable_shadow_rom = NULL,
 	},
 	.falcon = {
-		.falcon_hal_sw_init = tu104_falcon_hal_sw_init,
-		.falcon_hal_sw_free = gk20a_falcon_hal_sw_free,
+		.reset = gk20a_falcon_reset,
+		.set_irq = gk20a_falcon_set_irq,
+		.clear_halt_interrupt_status =
+			gk20a_falcon_clear_halt_interrupt_status,
+		.is_falcon_cpu_halted =  gk20a_is_falcon_cpu_halted,
+		.is_falcon_idle =  gk20a_is_falcon_idle,
+		.is_falcon_scrubbing_done =  gk20a_is_falcon_scrubbing_done,
+		.copy_from_dmem = gk20a_falcon_copy_from_dmem,
+		.copy_to_dmem = gk20a_falcon_copy_to_dmem,
+		.copy_to_imem = gk20a_falcon_copy_to_imem,
+		.copy_from_imem = gk20a_falcon_copy_from_imem,
+		.bootstrap = gk20a_falcon_bootstrap,
+		.dump_falcon_stats = gk20a_falcon_dump_stats,
+		.mailbox_read = gk20a_falcon_mailbox_read,
+		.mailbox_write = gk20a_falcon_mailbox_write,
+		.get_falcon_ctls = gk20a_falcon_get_ctls,
+		.get_mem_size = gk20a_falcon_get_mem_size,
+		.get_ports_count = gk20a_falcon_get_ports_count
 	},
 	.priv_ring = {
 		.enable_priv_ring = gm20b_priv_ring_enable,

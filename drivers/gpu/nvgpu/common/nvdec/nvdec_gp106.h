@@ -24,7 +24,6 @@
 #define NVGPU_NVDEC_GP106_H
 
 #include <nvgpu/types.h>
-
 u32 gp106_nvdec_falcon_base_addr(void);
 
 #endif /* NVGPU_NVDEC_GP106_H */

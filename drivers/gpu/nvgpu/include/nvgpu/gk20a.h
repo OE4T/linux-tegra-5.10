@@ -1519,8 +1519,35 @@ struct gpu_ops {
 		u32 (*get_link_control_status)(struct gk20a *g);
 	} xve;
 	struct {
-		int (*falcon_hal_sw_init)(struct nvgpu_falcon *flcn);
-		void (*falcon_hal_sw_free)(struct nvgpu_falcon *flcn);
+		void (*reset)(struct nvgpu_falcon *flcn);
+		void (*set_irq)(struct nvgpu_falcon *flcn, bool enable,
+				u32 intr_mask, u32 intr_dest);
+		bool (*clear_halt_interrupt_status)(struct nvgpu_falcon *flcn);
+		bool (*is_falcon_cpu_halted)(struct nvgpu_falcon *flcn);
+		bool (*is_falcon_idle)(struct nvgpu_falcon *flcn);
+		bool (*is_falcon_scrubbing_done)(struct nvgpu_falcon *flcn);
+		int (*copy_from_dmem)(struct nvgpu_falcon *flcn,
+				      u32 src, u8 *dst, u32 size, u8 port);
+		int (*copy_to_dmem)(struct nvgpu_falcon *flcn,
+				    u32 dst, u8 *src, u32 size, u8 port);
+		int (*copy_from_imem)(struct nvgpu_falcon *flcn,
+				      u32 src, u8 *dst, u32 size, u8 port);
+		int (*copy_to_imem)(struct nvgpu_falcon *flcn,
+				    u32 dst, u8 *src, u32 size, u8 port,
+				    bool sec, u32 tag);
+		u32 (*mailbox_read)(struct nvgpu_falcon *flcn,
+				    u32 mailbox_index);
+		void (*mailbox_write)(struct nvgpu_falcon *flcn,
+				      u32 mailbox_index, u32 data);
+		int (*bootstrap)(struct nvgpu_falcon *flcn,
+				 u32 boot_vector);
+		void (*dump_falcon_stats)(struct nvgpu_falcon *flcn);
+		void (*get_falcon_ctls)(struct nvgpu_falcon *flcn,
+					u32 *sctl, u32 *cpuctl);
+		u32 (*get_mem_size)(struct nvgpu_falcon *flcn,
+			enum falcon_mem_type mem_type);
+		u8 (*get_ports_count)(struct nvgpu_falcon *flcn,
+			enum falcon_mem_type mem_type);
 	} falcon;
 	struct {
 		void (*enable_priv_ring)(struct gk20a *g);

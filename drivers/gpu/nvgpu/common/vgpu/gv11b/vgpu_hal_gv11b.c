@@ -67,8 +67,6 @@
 #include "common/vgpu/perf/cyclestats_snapshot_vgpu.h"
 #include "common/vgpu/fifo/vgpu_fifo_gv11b.h"
 
-#include "common/falcon/falcon_gk20a.h"
-
 #include <gm20b/gr_gm20b.h>
 #include <gm20b/fifo_gm20b.h>
 #include <gm20b/mm_gm20b.h>
@@ -725,10 +723,6 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 		.release_perfmon_ids = NULL,
 	},
 #endif
-	.falcon = {
-		.falcon_hal_sw_init = NULL,
-		.falcon_hal_sw_free = NULL,
-	},
 	.priv_ring = {
 		.enable_priv_ring = NULL,
 		.isr = NULL,

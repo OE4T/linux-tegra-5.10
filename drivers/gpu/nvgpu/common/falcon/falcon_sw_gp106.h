@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2018, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -19,14 +19,10 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
+#ifndef NVGPU_FALCON_SW_GP106_H
+#define NVGPU_FALCON_SW_GP106_H
 
-#ifndef GSP_GV100_H
-#define GSP_GV100_H
+void gp106_falcon_engine_dependency_ops(struct nvgpu_falcon *flcn);
+void gp106_falcon_sw_init(struct nvgpu_falcon *flcn);
 
-int gv100_gsp_reset(struct gk20a *g);
-int gv100_gsp_setup_hw_and_bl_bootstrap(struct gk20a *g,
-	struct nvgpu_falcon_bl_info *bl_info);
-
-u32 gv100_gsp_falcon_base_addr(void);
-
-#endif /*GSP_GV100_H */
+#endif /* NVGPU_FALCON_SW_GP106_H */
