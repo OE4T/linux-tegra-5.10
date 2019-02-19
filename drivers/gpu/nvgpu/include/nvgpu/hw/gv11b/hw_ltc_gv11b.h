@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -597,6 +597,18 @@ static inline u32 ltc_ltc0_lts0_dstg_ecc_report_ded_count_m(void)
 static inline u32 ltc_ltc0_lts0_dstg_ecc_report_ded_count_v(u32 r)
 {
 	return (r >> 16U) & 0xffU;
+}
+static inline u32 ltc_ltc0_lts0_dstg_ecc_address_r(void)
+{
+	return 0x00140520U;
+}
+static inline u32 ltc_ltc0_lts0_dstg_ecc_address_info_ram_m(void)
+{
+	return U32(0x1U) << 22U;
+}
+static inline u32 ltc_ltc0_lts0_dstg_ecc_address_info_ram_v(u32 r)
+{
+	return (r >> 22U) & 0x1U;
 }
 static inline u32 ltc_ltcs_ltss_tstg_cmgmt0_r(void)
 {
