@@ -1,7 +1,7 @@
 /*
  * Pascal GPU series Copy Engine.
  *
- * Copyright (c) 2011-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -24,6 +24,7 @@
 
 #include <nvgpu/io.h>
 #include <nvgpu/gk20a.h>
+#include <nvgpu/nvgpu_err.h>
 
 #include "ce_gp10b.h"
 
@@ -52,10 +53,14 @@ void gp10b_ce_isr(struct gk20a *g, u32 inst_id, u32 pri_base)
 
 	/* clear blocking interrupts: they exibit broken behavior */
 	if ((ce_intr & ce_intr_status_blockpipe_pending_f()) != 0U) {
+		nvgpu_report_ce_error(g, inst_id,
+				GPU_CE_BLOCK_PIPE, ce_intr);
 		clear_intr |= ce_blockpipe_isr(g, ce_intr);
 	}
 
 	if ((ce_intr & ce_intr_status_launcherr_pending_f()) != 0U) {
+		nvgpu_report_ce_error(g, inst_id,
+				GPU_CE_LAUNCH_ERROR, ce_intr);
 		clear_intr |= ce_launcherr_isr(g, ce_intr);
 	}
 
@@ -71,6 +76,8 @@ u32 gp10b_ce_nonstall_isr(struct gk20a *g, u32 inst_id, u32 pri_base)
 	nvgpu_log(g, gpu_dbg_intr, "ce nonstall isr %08x %08x\n", ce_intr, inst_id);
 
 	if ((ce_intr & ce_intr_status_nonblockpipe_pending_f()) != 0U) {
+		nvgpu_report_ce_error(g, inst_id,
+				GPU_CE_NONBLOCK_PIPE, ce_intr);
 		gk20a_writel(g, ce_intr_status_r(inst_id),
 			ce_intr_status_nonblockpipe_pending_f());
 		ops |= (GK20A_NONSTALL_OPS_WAKEUP_SEMAPHORE |

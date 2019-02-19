@@ -33,7 +33,8 @@
 #define NVGPU_ERR_MODULE_PGRAPH		7U
 #define NVGPU_ERR_MODULE_LTC		8U
 #define NVGPU_ERR_MODULE_HUBMMU		9U
-#define NVGPU_ERR_MODULE_INVALID	10U
+#define NVGPU_ERR_MODULE_CE		11U
+#define NVGPU_ERR_MODULE_INVALID	12U
 
 #define GPU_HOST_PFIFO_BIND_ERROR		0U
 #define GPU_HOST_PFIFO_SCHED_ERROR		1U
@@ -136,4 +137,18 @@
 #define GPU_HUBMMU_PDE0_DATA_ECC_UNCORRECTED		7U
 #define GPU_HUBMMU_INVALID_ERROR			8U
 
+#define GPU_CE_LAUNCH_ERROR			0U
+#define GPU_CE_BLOCK_PIPE			1U
+#define GPU_CE_NONBLOCK_PIPE			2U
+#define GPU_CE_INVALID_CONFIG			3U
+#define GPU_CE_METHOD_BUFFER_FAULT		4U
+
+void nvgpu_report_host_error(struct gk20a *g,
+		u32 inst, u32 err_id, u32 intr_info);
+
+void nvgpu_report_gr_exception(struct gk20a *g, u32 inst,
+		u32 err_type, u32 status);
+
+void nvgpu_report_ce_error(struct gk20a *g, u32 inst,
+		u32 err_type, u32 status);
 #endif

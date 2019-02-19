@@ -1,7 +1,7 @@
 /*
  * Volta GPU series Copy Engine.
  *
- * Copyright (c) 2016-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -26,6 +26,7 @@
 #include "nvgpu/log.h"
 #include "nvgpu/bitops.h"
 #include <nvgpu/gk20a.h>
+#include <nvgpu/nvgpu_err.h>
 
 #include "gp10b/ce_gp10b.h"
 
@@ -33,6 +34,23 @@
 
 #include <nvgpu/hw/gv11b/hw_ce_gv11b.h>
 #include <nvgpu/hw/gv11b/hw_top_gv11b.h>
+
+void nvgpu_report_ce_error(struct gk20a *g, u32 inst,
+		u32 err_type, u32 status)
+{
+	int ret = 0;
+
+	if (g->ops.ce2.err_ops.report_ce_err == NULL) {
+		return;
+	}
+	ret = g->ops.ce2.err_ops.report_ce_err(g,
+			NVGPU_ERR_MODULE_CE, inst, err_type, status);
+	if (ret != 0) {
+		nvgpu_err(g, "Failed to report CE error: "
+				"inst=%u, err_type=%u, status=%u",
+				inst, err_type, status);
+	}
+}
 
 u32 gv11b_ce_get_num_pce(struct gk20a *g)
 {
@@ -60,6 +78,8 @@ void gv11b_ce_isr(struct gk20a *g, u32 inst_id, u32 pri_base)
 	 * reset to get back to a working state.
 	 */
 	if ((ce_intr & ce_intr_status_invalid_config_pending_f()) != 0U) {
+		nvgpu_report_ce_error(g, inst_id,
+				GPU_CE_INVALID_CONFIG, ce_intr);
 		nvgpu_log(g, gpu_dbg_intr,
 			"ce: inst %d: invalid config", inst_id);
 		clear_intr |= ce_intr_status_invalid_config_reset_f();
@@ -71,6 +91,8 @@ void gv11b_ce_isr(struct gk20a *g, u32 inst_id, u32 pri_base)
 	 * reset before operations can start again, if not the entire GPU.
 	 */
 	if ((ce_intr & ce_intr_status_mthd_buffer_fault_pending_f()) != 0U) {
+		nvgpu_report_ce_error(g, inst_id,
+				GPU_CE_METHOD_BUFFER_FAULT, ce_intr);
 		nvgpu_log(g, gpu_dbg_intr,
 			"ce: inst %d: mthd buffer fault", inst_id);
 		clear_intr |= ce_intr_status_mthd_buffer_fault_reset_f();

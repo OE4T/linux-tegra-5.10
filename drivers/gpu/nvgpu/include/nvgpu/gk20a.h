@@ -245,6 +245,11 @@ struct gpu_ops {
 		void (*isr_stall)(struct gk20a *g, u32 inst_id, u32 pri_base);
 		u32 (*isr_nonstall)(struct gk20a *g, u32 inst_id, u32 pri_base);
 		u32 (*get_num_pce)(struct gk20a *g);
+		struct {
+			int (*report_ce_err)(struct gk20a *g,
+					u32 hw_id, u32 inst, u32 err_id,
+					u32 status);
+		} err_ops;
 	} ce2;
 	struct {
 		u32 (*get_patch_slots)(struct gk20a *g);
@@ -2054,11 +2059,5 @@ struct gk20a * __must_check gk20a_get(struct gk20a *g);
 void gk20a_put(struct gk20a *g);
 
 bool nvgpu_has_syncpoints(struct gk20a *g);
-
-void nvgpu_report_host_error(struct gk20a *g,
-		u32 inst, u32 err_id, u32 intr_info);
-
-void nvgpu_report_gr_exception(struct gk20a *g, u32 inst,
-		u32 err_type, u32 status);
 
 #endif /* GK20A_H */
