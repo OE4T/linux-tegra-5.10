@@ -374,8 +374,10 @@ int nvgpu_vm_do_init(struct mm_gk20a *mm,
 
 	nvgpu_log_info(g, "user_vma     [0x%llx,0x%llx)",
 		       user_vma_start, user_vma_limit);
-	nvgpu_log_info(g, "user_lp_vma  [0x%llx,0x%llx)",
-		       user_lp_vma_start, user_lp_vma_limit);
+	if (!unified_va) {
+		nvgpu_log_info(g, "user_lp_vma  [0x%llx,0x%llx)",
+			       user_lp_vma_start, user_lp_vma_limit);
+	}
 	nvgpu_log_info(g, "kernel_vma   [0x%llx,0x%llx)",
 		       kernel_vma_start, kernel_vma_limit);
 
