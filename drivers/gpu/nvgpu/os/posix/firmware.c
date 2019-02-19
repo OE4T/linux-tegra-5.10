@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -24,7 +24,7 @@
 
 struct nvgpu_firmware *nvgpu_request_firmware(struct gk20a *g,
 					      const char *fw_name,
-					      int flags)
+					      u32 flags)
 {
 	return NULL;
 }

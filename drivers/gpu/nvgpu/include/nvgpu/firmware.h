@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -27,8 +27,8 @@
 
 struct gk20a;
 
-#define NVGPU_REQUEST_FIRMWARE_NO_WARN		(1UL << 0)
-#define NVGPU_REQUEST_FIRMWARE_NO_SOC		(1UL << 1)
+#define NVGPU_REQUEST_FIRMWARE_NO_WARN		BIT32(0)
+#define NVGPU_REQUEST_FIRMWARE_NO_SOC		BIT32(1)
 
 struct nvgpu_firmware {
 	u8 *data;
@@ -61,7 +61,7 @@ struct nvgpu_firmware {
  */
 struct nvgpu_firmware *nvgpu_request_firmware(struct gk20a *g,
 					      const char *fw_name,
-					      int flags);
+					      u32 flags);
 
 /**
  * nvgpu_release_firmware - free firmware and associated nvgpu_firmware blob
