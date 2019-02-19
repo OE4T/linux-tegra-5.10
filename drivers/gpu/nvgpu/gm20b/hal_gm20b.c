@@ -626,6 +626,10 @@ static const struct gpu_ops gm20b_ops = {
 		.init_elcg_mode = gm20b_therm_init_elcg_mode,
 		.init_blcg_mode = gm20b_therm_init_blcg_mode,
 		.elcg_init_idle_filters = gm20b_elcg_init_idle_filters,
+		.throttle_enable = gm20b_therm_throttle_enable,
+		.throttle_disable = gm20b_therm_throttle_disable,
+		.idle_slowdown_enable = gm20b_therm_idle_slowdown_enable,
+		.idle_slowdown_disable = gm20b_therm_idle_slowdown_disable,
 	},
 	.pmu = {
 		.falcon_base_addr = gk20a_pmu_falcon_base_addr,

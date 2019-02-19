@@ -1169,6 +1169,10 @@ struct gpu_ops {
 		void (*get_internal_sensor_limits)(s32 *max_24_8,
 							s32 *min_24_8);
 		int (*configure_therm_alert)(struct gk20a *g, s32 curr_warn_temp);
+		void (*throttle_enable)(struct gk20a *g, u32 val);
+		u32 (*throttle_disable)(struct gk20a *g);
+		void (*idle_slowdown_enable)(struct gk20a *g, u32 val);
+		u32 (*idle_slowdown_disable)(struct gk20a *g);
 	} therm;
 	struct {
 		bool (*is_pmu_supported)(struct gk20a *g);

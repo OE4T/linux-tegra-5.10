@@ -1,7 +1,7 @@
 /*
  * GM20B THERMAL
  *
- * Copyright (c) 2015-2017, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2015-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -29,5 +29,9 @@ int gm20b_init_therm_setup_hw(struct gk20a *g);
 int gm20b_elcg_init_idle_filters(struct gk20a *g);
 void gm20b_therm_init_elcg_mode(struct gk20a *g, u32 mode, u32 engine);
 void gm20b_therm_init_blcg_mode(struct gk20a *g, u32 mode, u32 engine);
+void gm20b_therm_throttle_enable(struct gk20a *g, u32 val);
+u32 gm20b_therm_throttle_disable(struct gk20a *g);
+void gm20b_therm_idle_slowdown_enable(struct gk20a *g, u32 val);
+u32 gm20b_therm_idle_slowdown_disable(struct gk20a *g);
 
 #endif /* THERM_GM20B_H */

@@ -1,7 +1,7 @@
 /*
  * GM20B THERMAL
  *
- * Copyright (c) 2015-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2015-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -193,4 +193,31 @@ void gm20b_therm_init_elcg_mode(struct gk20a *g, u32 mode, u32 engine)
 	}
 
 	gk20a_writel(g, therm_gate_ctrl_r(engine), gate_ctrl);
+}
+
+void gm20b_therm_throttle_enable(struct gk20a *g, u32 val)
+{
+	gk20a_writel(g, therm_use_a_r(), val);
+}
+
+u32 gm20b_therm_throttle_disable(struct gk20a *g)
+{
+	u32 val = gk20a_readl(g, therm_use_a_r());
+	gk20a_writel(g, therm_use_a_r(), 0);
+	return val;
+}
+
+void gm20b_therm_idle_slowdown_enable(struct gk20a *g, u32 val)
+{
+	gk20a_writel(g, therm_clk_slowdown_r(0), val);
+}
+
+u32 gm20b_therm_idle_slowdown_disable(struct gk20a *g)
+{
+	u32 saved_val = gk20a_readl(g, therm_clk_slowdown_r(0));
+	u32 val = set_field(saved_val, therm_clk_slowdown_idle_factor_m(),
+			therm_clk_slowdown_idle_factor_disabled_f());
+	nvgpu_writel_check(g, therm_clk_slowdown_r(0), val);
+
+	return saved_val;
 }
