@@ -680,6 +680,11 @@ static int __init tlk_driver_misc_init(void)
 {
 	int ret;
 
+	if (!te_is_secos_dev_enabled()) {
+		pr_info("%s: tlk not enabled on this device\n", __func__);
+		return -ENODEV;
+	}
+
 	ret = misc_register(&tlk_misc_device);
 	if (ret)
 		pr_err("%s: misc_register failed: %d\n", __func__, ret);
@@ -689,7 +694,8 @@ static int __init tlk_driver_misc_init(void)
 
 static void __exit tlk_driver_misc_exit(void)
 {
-	misc_deregister(&tlk_misc_device);
+	if (te_is_secos_dev_enabled())
+		misc_deregister(&tlk_misc_device);
 }
 
 module_init(tlk_driver_misc_init);
