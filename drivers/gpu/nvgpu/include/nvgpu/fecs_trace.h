@@ -25,11 +25,6 @@
 
 struct gk20a;
 
-/*
- * If HW circular buffer is getting too many "buffer full" conditions,
- * increasing this constant should help (it drives Linux' internal buffer size).
- */
-#define GK20A_FECS_TRACE_NUM_RECORDS		(1 << 10)
 #define GK20A_FECS_TRACE_FRAME_PERIOD_US	(1000000ULL/60ULL)
 #define GK20A_FECS_TRACE_PTIMER_SHIFT		5
 

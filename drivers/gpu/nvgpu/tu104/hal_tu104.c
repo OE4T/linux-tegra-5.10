@@ -152,6 +152,7 @@
 #include <nvgpu/cyclestats_snapshot.h>
 #include <nvgpu/regops.h>
 #include <nvgpu/gr/zbc.h>
+#include <nvgpu/gr/fecs_trace.h>
 
 #include <nvgpu/hw/tu104/hw_proj_tu104.h>
 #include <nvgpu/hw/tu104/hw_top_tu104.h>
@@ -850,8 +851,8 @@ static const struct gpu_ops tu104_ops = {
 		.alloc_user_buffer = gk20a_ctxsw_dev_ring_alloc,
 		.free_user_buffer = gk20a_ctxsw_dev_ring_free,
 		.mmap_user_buffer = gk20a_ctxsw_dev_mmap_buffer,
-		.init = gk20a_fecs_trace_init,
-		.deinit = gk20a_fecs_trace_deinit,
+		.init = nvgpu_gr_fecs_trace_init,
+		.deinit = nvgpu_gr_fecs_trace_deinit,
 		.enable = gk20a_fecs_trace_enable,
 		.disable = gk20a_fecs_trace_disable,
 		.is_enabled = gk20a_fecs_trace_is_enabled,

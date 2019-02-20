@@ -113,6 +113,7 @@
 #include <nvgpu/perfbuf.h>
 #include <nvgpu/cyclestats_snapshot.h>
 #include <nvgpu/gr/zbc.h>
+#include <nvgpu/gr/fecs_trace.h>
 
 #include <nvgpu/hw/gv11b/hw_proj_gv11b.h>
 #include <nvgpu/hw/gv11b/hw_top_gv11b.h>
@@ -778,8 +779,8 @@ static const struct gpu_ops gv11b_ops = {
 		.alloc_user_buffer = gk20a_ctxsw_dev_ring_alloc,
 		.free_user_buffer = gk20a_ctxsw_dev_ring_free,
 		.mmap_user_buffer = gk20a_ctxsw_dev_mmap_buffer,
-		.init = gk20a_fecs_trace_init,
-		.deinit = gk20a_fecs_trace_deinit,
+		.init = nvgpu_gr_fecs_trace_init,
+		.deinit = nvgpu_gr_fecs_trace_deinit,
 		.enable = gk20a_fecs_trace_enable,
 		.disable = gk20a_fecs_trace_disable,
 		.is_enabled = gk20a_fecs_trace_is_enabled,

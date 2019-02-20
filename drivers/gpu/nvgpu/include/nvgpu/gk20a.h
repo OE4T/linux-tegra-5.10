@@ -41,6 +41,7 @@ struct nvgpu_clk_pll_debug_data;
 struct nvgpu_nvhost_dev;
 struct nvgpu_netlist_vars;
 struct nvgpu_gr_global_ctx_buffer_desc;
+struct nvgpu_gr_fecs_trace;
 struct nvgpu_cpu_time_correlation_sample;
 struct nvgpu_mem_sgt;
 struct nvgpu_warpstate;
@@ -1865,7 +1866,7 @@ struct gk20a {
 	unsigned long last_freq;
 
 	struct gk20a_ctxsw_trace *ctxsw_trace;
-	struct gk20a_fecs_trace *fecs_trace;
+	struct nvgpu_gr_fecs_trace *fecs_trace;
 
 	bool mmu_debug_ctrl;
 

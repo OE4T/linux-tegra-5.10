@@ -48,14 +48,6 @@
 
 #include <nvgpu/hw/gk20a/hw_gr_gk20a.h>
 
-struct gk20a_fecs_trace {
-	struct nvgpu_list_node context_list;
-	struct nvgpu_mutex list_lock;
-	struct nvgpu_mutex poll_lock;
-	struct nvgpu_thread poll_task;
-	bool init;
-};
-
 #ifdef CONFIG_GK20A_CTXSW_TRACE
 static u32 gk20a_fecs_trace_fecs_context_ptr(struct gk20a *g, struct channel_gk20a *ch)
 {
@@ -120,7 +112,7 @@ static int gk20a_fecs_trace_ring_read(struct gk20a *g, int index)
 {
 	int i;
 	struct nvgpu_gpu_ctxsw_trace_entry entry = { };
-	struct gk20a_fecs_trace *trace = g->fecs_trace;
+	struct nvgpu_gr_fecs_trace *trace = g->fecs_trace;
 	pid_t cur_pid;
 	pid_t new_pid;
 	u32 cur_vmid, new_vmid;
@@ -151,12 +143,10 @@ static int gk20a_fecs_trace_ring_read(struct gk20a *g, int index)
 	 */
 	r->magic_hi = 0;
 
-	nvgpu_mutex_acquire(&trace->list_lock);
 	nvgpu_gr_fecs_trace_find_pid(g, r->context_ptr, &trace->context_list,
 		&cur_pid, &cur_vmid);
 	nvgpu_gr_fecs_trace_find_pid(g, r->new_context_ptr, &trace->context_list,
 		&new_pid, &new_vmid);
-	nvgpu_mutex_release(&trace->list_lock);
 
 	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_ctxsw,
 		"context_ptr=%x (pid=%d) new_context_ptr=%x (pid=%d)",
@@ -218,7 +208,7 @@ static int gk20a_fecs_trace_ring_read(struct gk20a *g, int index)
 
 int gk20a_fecs_trace_poll(struct gk20a *g)
 {
-	struct gk20a_fecs_trace *trace = g->fecs_trace;
+	struct nvgpu_gr_fecs_trace *trace = g->fecs_trace;
 
 	int read = 0;
 	int write = 0;
@@ -286,7 +276,7 @@ done:
 static int gk20a_fecs_trace_periodic_polling(void *arg)
 {
 	struct gk20a *g = (struct gk20a *)arg;
-	struct gk20a_fecs_trace *trace = g->fecs_trace;
+	struct nvgpu_gr_fecs_trace *trace = g->fecs_trace;
 
 	pr_info("%s: running\n", __func__);
 
@@ -307,42 +297,6 @@ size_t gk20a_fecs_trace_buffer_size(struct gk20a *g)
 			* g->ops.gr.ctxsw_prog.hw_get_ts_record_size_in_bytes();
 }
 
-int gk20a_fecs_trace_init(struct gk20a *g)
-{
-	struct gk20a_fecs_trace *trace;
-	int err;
-
-	trace = nvgpu_kzalloc(g, sizeof(struct gk20a_fecs_trace));
-	if (!trace) {
-		nvgpu_warn(g, "failed to allocate fecs_trace");
-		return -ENOMEM;
-	}
-	g->fecs_trace = trace;
-
-	err = nvgpu_mutex_init(&trace->poll_lock);
-	if (err != 0)
-		goto clean;
-	err = nvgpu_mutex_init(&trace->list_lock);
-	if (err != 0)
-		goto clean_poll_lock;
-
-	BUG_ON(!is_power_of_2(GK20A_FECS_TRACE_NUM_RECORDS));
-	nvgpu_init_list_node(&trace->context_list);
-
-	nvgpu_set_enabled(g, NVGPU_SUPPORT_FECS_CTXSW_TRACE, true);
-
-	trace->init = true;
-
-	return 0;
-
-clean_poll_lock:
-	nvgpu_mutex_destroy(&trace->poll_lock);
-clean:
-	nvgpu_kfree(g, trace);
-	g->fecs_trace = NULL;
-	return err;
-}
-
 int gk20a_fecs_trace_bind_channel(struct gk20a *g,
 		struct channel_gk20a *ch, u32 vmid, struct nvgpu_gr_ctx *gr_ctx)
 {
@@ -352,7 +306,7 @@ int gk20a_fecs_trace_bind_channel(struct gk20a *g,
 	 */
 
 	u64 addr;
-	struct gk20a_fecs_trace *trace = g->fecs_trace;
+	struct nvgpu_gr_fecs_trace *trace = g->fecs_trace;
 	struct nvgpu_mem *mem;
 	u32 context_ptr = gk20a_fecs_trace_fecs_context_ptr(g, ch);
 	u32 aperture_mask;
@@ -409,10 +363,8 @@ int gk20a_fecs_trace_bind_channel(struct gk20a *g,
 	/* pid (process identifier) in user space, corresponds to tgid (thread
 	 * group id) in kernel space.
 	 */
-	nvgpu_mutex_acquire(&trace->list_lock);
 	ret = nvgpu_gr_fecs_trace_add_context(g, context_ptr, tsg->tgid, 0,
 		&trace->context_list);
-	nvgpu_mutex_release(&trace->list_lock);
 
 	return ret;
 }
@@ -420,7 +372,7 @@ int gk20a_fecs_trace_bind_channel(struct gk20a *g,
 int gk20a_fecs_trace_unbind_channel(struct gk20a *g, struct channel_gk20a *ch)
 {
 	u32 context_ptr = gk20a_fecs_trace_fecs_context_ptr(g, ch);
-	struct gk20a_fecs_trace *trace = g->fecs_trace;
+	struct nvgpu_gr_fecs_trace *trace = g->fecs_trace;
 
 	if (trace) {
 		nvgpu_log(g, gpu_dbg_fn|gpu_dbg_ctxsw,
@@ -432,10 +384,8 @@ int gk20a_fecs_trace_unbind_channel(struct gk20a *g, struct channel_gk20a *ch)
 			gk20a_fecs_trace_poll(g);
 		}
 
-		nvgpu_mutex_acquire(&trace->list_lock);
 		nvgpu_gr_fecs_trace_remove_context(g, context_ptr,
 			&trace->context_list);
-		nvgpu_mutex_release(&trace->list_lock);
 	}
 	return 0;
 }
@@ -449,27 +399,6 @@ int gk20a_fecs_trace_reset(struct gk20a *g)
 
 	gk20a_fecs_trace_poll(g);
 	return gk20a_fecs_trace_set_read_index(g, 0);
-}
-
-int gk20a_fecs_trace_deinit(struct gk20a *g)
-{
-	struct gk20a_fecs_trace *trace = g->fecs_trace;
-
-	if (!trace->init)
-		return 0;
-
-	nvgpu_thread_stop(&trace->poll_task);
-
-	nvgpu_mutex_acquire(&trace->list_lock);
-	nvgpu_gr_fecs_trace_remove_contexts(g, &trace->context_list);
-	nvgpu_mutex_release(&trace->list_lock);
-
-	nvgpu_mutex_destroy(&g->fecs_trace->list_lock);
-	nvgpu_mutex_destroy(&g->fecs_trace->poll_lock);
-
-	nvgpu_kfree(g, g->fecs_trace);
-	g->fecs_trace = NULL;
-	return 0;
 }
 
 int gk20a_gr_max_entries(struct gk20a *g,
@@ -488,48 +417,53 @@ int gk20a_gr_max_entries(struct gk20a *g,
 
 int gk20a_fecs_trace_enable(struct gk20a *g)
 {
-	struct gk20a_fecs_trace *trace = g->fecs_trace;
+	struct nvgpu_gr_fecs_trace *trace = g->fecs_trace;
 	int write;
 	int err = 0;
 
-	if (!trace)
-		return -EINVAL;
+	nvgpu_mutex_acquire(&trace->enable_lock);
+	trace->enable_count++;
 
-	if (nvgpu_thread_is_running(&trace->poll_task))
-		return 0;
+	if (trace->enable_count == 1U) {
+		/* drop data in hw buffer */
+		if (g->ops.fecs_trace.flush)
+			g->ops.fecs_trace.flush(g);
 
-	/* drop data in hw buffer */
-	if (g->ops.fecs_trace.flush)
-		g->ops.fecs_trace.flush(g);
-	write = gk20a_fecs_trace_get_write_index(g);
-	gk20a_fecs_trace_set_read_index(g, write);
+		write = gk20a_fecs_trace_get_write_index(g);
+		gk20a_fecs_trace_set_read_index(g, write);
 
-	err = nvgpu_thread_create(&trace->poll_task, g,
-			gk20a_fecs_trace_periodic_polling, __func__);
-	if (err != 0) {
-		nvgpu_warn(g,
-				"failed to create FECS polling task");
-		return err;
+		err = nvgpu_thread_create(&trace->poll_task, g,
+				gk20a_fecs_trace_periodic_polling, __func__);
+		if (err != 0) {
+			nvgpu_warn(g, "failed to create FECS polling task");
+			goto done;
+		}
 	}
 
-	return 0;
+done:
+	nvgpu_mutex_release(&trace->enable_lock);
+	return err;
 }
 
 int gk20a_fecs_trace_disable(struct gk20a *g)
 {
-	struct gk20a_fecs_trace *trace = g->fecs_trace;
+	struct nvgpu_gr_fecs_trace *trace = g->fecs_trace;
 
-	if (nvgpu_thread_is_running(&trace->poll_task))
+	nvgpu_mutex_acquire(&trace->enable_lock);
+	trace->enable_count--;
+	if (trace->enable_count == 0U) {
 		nvgpu_thread_stop(&trace->poll_task);
+	}
+	nvgpu_mutex_release(&trace->enable_lock);
 
-	return -EPERM;
+	return 0;
 }
 
 bool gk20a_fecs_trace_is_enabled(struct gk20a *g)
 {
-	struct gk20a_fecs_trace *trace = g->fecs_trace;
+	struct nvgpu_gr_fecs_trace *trace = g->fecs_trace;
 
-	return (trace && nvgpu_thread_is_running(&trace->poll_task));
+	return (trace && (trace->enable_count > 0));
 }
 
 void gk20a_fecs_trace_reset_buffer(struct gk20a *g)

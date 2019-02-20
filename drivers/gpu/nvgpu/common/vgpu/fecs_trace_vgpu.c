@@ -25,6 +25,7 @@
 #include <nvgpu/enabled.h>
 #include <nvgpu/ctxsw_trace.h>
 #include <nvgpu/fecs_trace.h>
+#include <nvgpu/gr/fecs_trace.h>
 #include <nvgpu/dt.h>
 #include <nvgpu/vgpu/vgpu_ivm.h>
 #include <nvgpu/vgpu/tegra_vgpu.h>
@@ -82,7 +83,7 @@ int vgpu_fecs_trace_init(struct gk20a *g)
 	}
 	vcst->entries = (struct nvgpu_gpu_ctxsw_trace_entry *)(
 			(char *)vcst->buf + sizeof(*vcst->header));
-	g->fecs_trace = (struct gk20a_fecs_trace *)vcst;
+	g->fecs_trace = (struct nvgpu_gr_fecs_trace *)vcst;
 
 	return 0;
 fail:

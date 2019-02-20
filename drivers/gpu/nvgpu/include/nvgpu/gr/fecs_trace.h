@@ -25,8 +25,27 @@
 
 #include <nvgpu/types.h>
 #include <nvgpu/list.h>
+#include <nvgpu/lock.h>
+#include <nvgpu/thread.h>
+
+/*
+ * If HW circular buffer is getting too many "buffer full" conditions,
+ * increasing this constant should help (it drives Linux' internal buffer size).
+ */
+#define GK20A_FECS_TRACE_NUM_RECORDS		(1 << 10)
 
 struct gk20a;
+
+struct nvgpu_gr_fecs_trace {
+	struct nvgpu_list_node context_list;
+	struct nvgpu_mutex list_lock;
+
+	struct nvgpu_mutex poll_lock;
+	struct nvgpu_thread poll_task;
+
+	struct nvgpu_mutex enable_lock;
+	u32 enable_count;
+};
 
 struct nvgpu_fecs_trace_context_entry {
 	u32 context_ptr;
@@ -44,6 +63,9 @@ nvgpu_fecs_trace_context_entry_from_entry(struct nvgpu_list_node *node)
 		((uintptr_t)node -
 		offsetof(struct nvgpu_fecs_trace_context_entry, entry));
 };
+
+int nvgpu_gr_fecs_trace_init(struct gk20a *g);
+int nvgpu_gr_fecs_trace_deinit(struct gk20a *g);
 
 int nvgpu_gr_fecs_trace_add_context(struct gk20a *g, u32 context_ptr,
 	pid_t pid, u32 vmid, struct nvgpu_list_node *list);
