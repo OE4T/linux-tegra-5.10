@@ -266,6 +266,17 @@ int gk20a_fecs_trace_poll(struct gk20a *g)
 	nvgpu_wmb();
 	gk20a_fecs_trace_set_read_index(g, read);
 
+	/*
+	 * FECS ucode does a priv holdoff around the assertion of context
+	 * reset. So, pri transactions (e.g. mailbox1 register write) might
+	 * fail due to this. Hence, do write with ack i.e. write and read
+	 * it back to make sure write happened for mailbox1.
+	 */
+	while (gk20a_fecs_trace_get_read_index(g) != read) {
+		nvgpu_log(g, gpu_dbg_ctxsw, "mailbox1 update failed");
+		gk20a_fecs_trace_set_read_index(g, read);
+	}
+
 done:
 	nvgpu_mutex_release(&trace->poll_lock);
 	gk20a_idle(g);
