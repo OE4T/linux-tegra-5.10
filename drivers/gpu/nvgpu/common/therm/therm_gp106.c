@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -107,7 +107,7 @@ int gp106_configure_therm_alert(struct gk20a *g, s32 curr_warn_temp)
 
 	if (g->curr_warn_temp != curr_warn_temp) {
 		g->curr_warn_temp = curr_warn_temp;
-		err = therm_configure_therm_alert(g);
+		err = nvgpu_therm_configure_therm_alert(g);
 	}
 
 	return err;

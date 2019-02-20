@@ -26,7 +26,7 @@
 #include "thrm.h"
 #include "thrmpmu.h"
 
-int therm_domain_sw_setup(struct gk20a *g)
+int nvgpu_therm_domain_sw_setup(struct gk20a *g)
 {
 	int status;
 
@@ -50,12 +50,12 @@ exit:
 	return status;
 }
 
-int therm_domain_pmu_setup(struct gk20a *g)
+int nvgpu_therm_domain_pmu_setup(struct gk20a *g)
 {
 	return therm_send_pmgr_tables_to_pmu(g);
 }
 
-int therm_pmu_init_pmupstate(struct gk20a *g)
+int nvgpu_therm_pmu_init_pmupstate(struct gk20a *g)
 {
 	/* If already allocated, do not re-allocate */
 	if (g->therm_pmu != NULL) {
@@ -70,7 +70,7 @@ int therm_pmu_init_pmupstate(struct gk20a *g)
 	return 0;
 }
 
-void therm_pmu_free_pmupstate(struct gk20a *g)
+void nvgpu_therm_pmu_free_pmupstate(struct gk20a *g)
 {
 	nvgpu_kfree(g, g->therm_pmu);
 	g->therm_pmu = NULL;

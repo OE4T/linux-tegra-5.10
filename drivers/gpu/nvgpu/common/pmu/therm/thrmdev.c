@@ -30,7 +30,6 @@
 
 #include "thrmdev.h"
 #include "thrm.h"
-#include "gp106/bios_gp106.h"
 
 static int _therm_device_pmudata_instget(struct gk20a *g,
 			struct nv_pmu_boardobjgrp *pmuboardobjgrp,

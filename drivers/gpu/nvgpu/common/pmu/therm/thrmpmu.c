@@ -23,10 +23,10 @@
 #include <nvgpu/boardobjgrp.h>
 #include <nvgpu/boardobjgrp_e32.h>
 #include <nvgpu/pmu/therm.h>
+#include <nvgpu/pmuif/nvgpu_gpmu_cmdif.h>
 
 #include "thrmpmu.h"
 #include "thrm.h"
-#include <nvgpu/pmuif/nvgpu_gpmu_cmdif.h>
 
 struct therm_pmucmdhandler_params {
 	struct nv_pmu_therm_rpc *prpccall;
@@ -242,7 +242,7 @@ static int therm_send_slct_configuration_to_pmu(struct gk20a *g)
 				&seqdesc);
 }
 
-int therm_configure_therm_alert(struct gk20a *g)
+int nvgpu_therm_configure_therm_alert(struct gk20a *g)
 {
 	int status;
 

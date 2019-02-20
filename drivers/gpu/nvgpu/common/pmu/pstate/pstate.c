@@ -37,7 +37,7 @@ static int pstate_sw_setup(struct gk20a *g);
 void gk20a_deinit_pstate_support(struct gk20a *g)
 {
 	pmgr_pmu_free_pmupstate(g);
-	therm_pmu_free_pmupstate(g);
+	nvgpu_therm_pmu_free_pmupstate(g);
 	perf_pmu_free_pmupstate(g);
 	nvgpu_clk_free_pmupstate(g);
 
@@ -69,7 +69,7 @@ int gk20a_init_pstate_support(struct gk20a *g)
 		goto err_clk_init_pmupstate;
 	}
 
-	err = therm_pmu_init_pmupstate(g);
+	err = nvgpu_therm_pmu_init_pmupstate(g);
 	if (err != 0) {
 		goto err_perf_pmu_init_pmupstate;
 	}
@@ -104,7 +104,7 @@ int gk20a_init_pstate_support(struct gk20a *g)
 		goto err_pmgr_pmu_init_pmupstate;
 	}
 
-	err = therm_domain_sw_setup(g);
+	err = nvgpu_therm_domain_sw_setup(g);
 	if (err != 0) {
 		goto err_pmgr_pmu_init_pmupstate;
 	}
@@ -184,7 +184,7 @@ int gk20a_init_pstate_support(struct gk20a *g)
 err_pmgr_pmu_init_pmupstate:
 	pmgr_pmu_free_pmupstate(g);
 err_therm_pmu_init_pmupstate:
-	therm_pmu_free_pmupstate(g);
+	nvgpu_therm_pmu_free_pmupstate(g);
 err_perf_pmu_init_pmupstate:
 	perf_pmu_free_pmupstate(g);
 err_clk_init_pmupstate:
@@ -231,7 +231,7 @@ int gk20a_init_pstate_pmu_support(struct gk20a *g)
 		return err;
 	}
 
-	err = therm_domain_pmu_setup(g);
+	err = nvgpu_therm_domain_pmu_setup(g);
 	if (err != 0) {
 		return err;
 	}

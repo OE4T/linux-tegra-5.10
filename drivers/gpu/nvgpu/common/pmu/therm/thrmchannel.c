@@ -29,7 +29,6 @@
 
 #include "thrmchannel.h"
 #include "thrm.h"
-#include "gp106/bios_gp106.h"
 
 static int _therm_channel_pmudatainit_device(struct gk20a *g,
 			struct boardobj *board_obj_ptr,
