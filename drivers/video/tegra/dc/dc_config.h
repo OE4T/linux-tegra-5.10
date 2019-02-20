@@ -1,7 +1,7 @@
 /*
  * dc_config.h: Declarations for tegra dc config settings.
  *
- * Copyright (c) 2010-2018, NVIDIA CORPORATION, All rights reserved.
+ * Copyright (c) 2010-2019, NVIDIA CORPORATION, All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -80,7 +80,9 @@
 	HIGHBIT(TEGRA_DC_EXT_FMT_T_Y8___V8U8_N444_TRUE))
 
 #define TEGRA_WIN_FMT_T210_LOW TEGRA_WIN_FMT_BASE
-#define TEGRA_WIN_FMT_T210_HIGH TEGRA_WIN_FMT_T124_HIGH
+#define TEGRA_WIN_FMT_T210_HIGH (TEGRA_WIN_FMT_T124_HIGH | \
+				HIGHBIT(TEGRA_DC_EXT_FMT_T_Y8___U8V8_N444) | \
+				HIGHBIT(TEGRA_DC_EXT_FMT_T_Y8___V8U8_N444))
 
 /* for windows that support compression */
 #define TEGRA_WIN_FMT_COMPRESSION_T210_LOW \
