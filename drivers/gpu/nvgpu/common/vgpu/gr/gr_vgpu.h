@@ -36,6 +36,8 @@ struct dbg_session_gk20a;
 struct tsg_gk20a;
 
 void vgpu_gr_detect_sm_arch(struct gk20a *g);
+int vgpu_gr_init_ctx_state(struct gk20a *g);
+int vgpu_gr_alloc_global_ctx_buffers(struct gk20a *g);
 void vgpu_gr_free_channel_ctx(struct channel_gk20a *c, bool is_tsg);
 void vgpu_gr_free_tsg_ctx(struct tsg_gk20a *tsg);
 int vgpu_gr_alloc_obj_ctx(struct channel_gk20a  *c, u32 class_num, u32 flags);
@@ -55,10 +57,10 @@ int vgpu_gr_add_zbc(struct gk20a *g, struct nvgpu_gr_zbc *zbc,
 			   struct nvgpu_gr_zbc_entry *zbc_val);
 int vgpu_gr_query_zbc(struct gk20a *g, struct nvgpu_gr_zbc *zbc,
 			struct nvgpu_gr_zbc_query_params *query_params);
-int vgpu_gr_set_sm_debug_mode(struct gk20a *g,
-	struct channel_gk20a *ch, u64 sms, bool enable);
 int vgpu_gr_update_smpc_ctxsw_mode(struct gk20a *g,
 	struct channel_gk20a *ch, bool enable);
+int vgpu_gr_set_sm_debug_mode(struct gk20a *g,
+	struct channel_gk20a *ch, u64 sms, bool enable);
 int vgpu_gr_update_hwpm_ctxsw_mode(struct gk20a *g,
 	struct channel_gk20a *ch, u64 gpu_va, u32 mode);
 int vgpu_gr_clear_sm_error_state(struct gk20a *g,

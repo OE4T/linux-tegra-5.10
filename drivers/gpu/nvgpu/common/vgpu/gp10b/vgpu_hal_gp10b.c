@@ -43,7 +43,8 @@
 
 #include "common/vgpu/fifo/fifo_vgpu.h"
 #include "common/vgpu/fifo/runlist_vgpu.h"
-#include "common/vgpu/gr_vgpu.h"
+#include "common/vgpu/gr/gr_vgpu.h"
+#include "common/vgpu/gr/ctx_vgpu.h"
 #include "common/vgpu/ltc_vgpu.h"
 #include "common/vgpu/mm_vgpu.h"
 #include "common/vgpu/debugger_vgpu.h"
@@ -52,8 +53,8 @@
 #include "common/vgpu/perf/cyclestats_snapshot_vgpu.h"
 #include "gp10b/gp10b.h"
 #include "gp10b/hal_gp10b.h"
-#include "common/vgpu/gm20b/vgpu_gr_gm20b.h"
-#include "vgpu_gr_gp10b.h"
+#include "common/vgpu/gr/vgpu_gr_gm20b.h"
+#include "common/vgpu/gr/vgpu_gr_gp10b.h"
 #include "vgpu_mm_gp10b.h"
 #include "vgpu_fuse_gp10b.h"
 

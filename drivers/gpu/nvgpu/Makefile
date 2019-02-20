@@ -397,7 +397,11 @@ nvgpu-$(CONFIG_GK20A_VIDMEM) += \
 
 nvgpu-$(CONFIG_TEGRA_GR_VIRTUALIZATION) += \
 	common/vgpu/ltc_vgpu.o \
-	common/vgpu/gr_vgpu.o \
+	common/vgpu/gr/gr_vgpu.o \
+	common/vgpu/gr/ctx_vgpu.o \
+	common/vgpu/gr/vgpu_gr_gm20b.o \
+	common/vgpu/gr/vgpu_gr_gp10b.o  \
+	common/vgpu/gr/vgpu_gr_gv11b.o \
 	common/vgpu/fifo/fifo_vgpu.o \
 	common/vgpu/fifo/runlist_vgpu.o \
 	common/vgpu/fifo/vgpu_fifo_gv11b.o \
@@ -411,14 +415,11 @@ nvgpu-$(CONFIG_TEGRA_GR_VIRTUALIZATION) += \
 	common/vgpu/ecc_vgpu.o \
 	common/vgpu/clk_vgpu.o \
 	common/vgpu/fecs_trace_vgpu.o \
-	common/vgpu/gm20b/vgpu_gr_gm20b.o \
 	common/vgpu/gp10b/vgpu_hal_gp10b.o  \
-	common/vgpu/gp10b/vgpu_gr_gp10b.o  \
 	common/vgpu/gp10b/vgpu_fuse_gp10b.o  \
 	common/vgpu/gp10b/vgpu_mm_gp10b.o \
 	common/vgpu/gv11b/vgpu_gv11b.o \
 	common/vgpu/gv11b/vgpu_hal_gv11b.o \
-	common/vgpu/gv11b/vgpu_gr_gv11b.o \
 	common/vgpu/gv11b/vgpu_subctx_gv11b.o \
 	common/vgpu/gv11b/vgpu_tsg_gv11b.o \
 
