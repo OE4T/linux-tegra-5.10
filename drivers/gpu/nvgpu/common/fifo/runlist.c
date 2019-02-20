@@ -655,15 +655,19 @@ int nvgpu_init_runlist(struct gk20a *g, struct fifo_gk20a *f)
 				"runlist_entries %d runlist size %zu",
 				f->num_runlist_entries, runlist_size);
 
-		for (i = 0; i < MAX_RUNLIST_BUFFERS; i++) {
-			err = nvgpu_dma_alloc_flags_sys(g,
-					g->is_virtual ?
-					  0 : NVGPU_DMA_PHYSICALLY_ADDRESSED,
-					runlist_size,
-					&runlist->mem[i]);
-			if (err != 0) {
-				nvgpu_err(g, "memory allocation failed");
-				goto clean_up_runlist;
+		/* skip buffer allocation for unused runlists */
+		if (gk20a_fifo_is_valid_runlist_id(g, runlist_id)) {
+			unsigned long flags = g->is_virtual ? 0 :
+						NVGPU_DMA_PHYSICALLY_ADDRESSED;
+			for (i = 0; i < MAX_RUNLIST_BUFFERS; i++) {
+				err = nvgpu_dma_alloc_flags_sys(g,
+						flags,
+						runlist_size,
+						&runlist->mem[i]);
+				if (err != 0) {
+					nvgpu_err(g, "memory allocation failed");
+					goto clean_up_runlist;
+				}
 			}
 		}
 
