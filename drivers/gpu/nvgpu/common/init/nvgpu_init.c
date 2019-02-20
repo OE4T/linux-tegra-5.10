@@ -88,7 +88,7 @@ int gk20a_prepare_poweroff(struct gk20a *g)
 	}
 
 	/* disable elpg before gr or fifo suspend */
-	if (g->ops.pmu.is_pmu_supported(g)) {
+	if (g->support_ls_pmu) {
 		ret |= nvgpu_pmu_destroy(g);
 	}
 
@@ -179,12 +179,10 @@ int gk20a_finalize_poweron(struct gk20a *g)
 		goto done_gsp;
 	}
 
-	if (g->ops.pmu.is_pmu_supported(g)) {
-		err = nvgpu_early_init_pmu_sw(g, &g->pmu);
-		if (err != 0) {
-			nvgpu_err(g, "failed to early init pmu sw");
-			goto done;
-		}
+	err = nvgpu_early_init_pmu_sw(g, &g->pmu);
+	if (err != 0) {
+		nvgpu_err(g, "failed to early init pmu sw");
+		goto done;
 	}
 
 	if (nvgpu_is_enabled(g, NVGPU_SUPPORT_SEC2_RTOS)) {
@@ -336,13 +334,11 @@ int gk20a_finalize_poweron(struct gk20a *g)
 		}
 	}
 
-	if (g->ops.pmu.is_pmu_supported(g)) {
-		err = nvgpu_init_pmu_support(g);
-		if (err != 0) {
-			nvgpu_err(g, "failed to init gk20a pmu");
-			nvgpu_mutex_release(&g->tpc_pg_lock);
-			goto done;
-		}
+	err = nvgpu_init_pmu_support(g);
+	if (err != 0) {
+		nvgpu_err(g, "failed to init gk20a pmu");
+		nvgpu_mutex_release(&g->tpc_pg_lock);
+		goto done;
 	}
 
 	err = gk20a_init_gr_support(g);

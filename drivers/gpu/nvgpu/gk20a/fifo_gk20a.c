@@ -931,7 +931,7 @@ void gk20a_fifo_reset_engine(struct gk20a *g, u32 engine_id)
 	}
 
 	if (engine_enum == NVGPU_ENGINE_GR_GK20A) {
-		if (g->support_pmu && g->can_elpg) {
+		if (g->can_elpg) {
 			if (nvgpu_pmu_disable_elpg(g) != 0) {
 				nvgpu_err(g, "failed to set disable elpg");
 			}
@@ -961,7 +961,7 @@ void gk20a_fifo_reset_engine(struct gk20a *g, u32 engine_id)
 				"HALT gr pipe not supported and "
 				"gr cannot be reset without halting gr pipe");
 		}
-		if (g->support_pmu && g->can_elpg) {
+		if (g->can_elpg) {
 			nvgpu_pmu_enable_elpg(g);
 		}
 	}
@@ -1123,7 +1123,7 @@ static bool gk20a_fifo_handle_mmu_fault_locked(
 	g->fifo.deferred_reset_pending = false;
 
 	/* Disable power management */
-	if (g->support_pmu && g->can_elpg) {
+	if (g->can_elpg) {
 		if (nvgpu_pmu_disable_elpg(g) != 0) {
 			nvgpu_err(g, "failed to set disable elpg");
 		}
@@ -1327,7 +1327,7 @@ static bool gk20a_fifo_handle_mmu_fault_locked(
 		     gr_gpfifo_ctl_semaphore_access_enabled_f());
 
 	/* It is safe to enable ELPG again. */
-	if (g->support_pmu && g->can_elpg) {
+	if (g->can_elpg) {
 		nvgpu_pmu_enable_elpg(g);
 	}
 
@@ -2265,7 +2265,7 @@ int gk20a_fifo_preempt_channel(struct gk20a *g, struct channel_gk20a *ch)
 	struct fifo_gk20a *f = &g->fifo;
 	int ret = 0;
 	u32 token = PMU_INVALID_MUTEX_OWNER_ID;
-	int mutex_ret = -EINVAL;
+	int mutex_ret = 0;
 	u32 i;
 
 	nvgpu_log_fn(g, "chid: %d", ch->chid);
@@ -2275,10 +2275,8 @@ int gk20a_fifo_preempt_channel(struct gk20a *g, struct channel_gk20a *ch)
 		nvgpu_mutex_acquire(&f->runlist_info[i].runlist_lock);
 	}
 
-	if (g->ops.pmu.is_pmu_supported(g)) {
-		mutex_ret = nvgpu_pmu_mutex_acquire(&g->pmu,
-						PMU_MUTEX_ID_FIFO, &token);
-	}
+	mutex_ret = nvgpu_pmu_mutex_acquire(&g->pmu,
+		PMU_MUTEX_ID_FIFO, &token);
 
 	ret = __locked_fifo_preempt(g, ch->chid, false);
 
@@ -2310,7 +2308,7 @@ int gk20a_fifo_preempt_tsg(struct gk20a *g, struct tsg_gk20a *tsg)
 	struct fifo_gk20a *f = &g->fifo;
 	int ret = 0;
 	u32 token = PMU_INVALID_MUTEX_OWNER_ID;
-	int mutex_ret = -EINVAL;
+	int mutex_ret = 0;
 	u32 i;
 
 	nvgpu_log_fn(g, "tsgid: %d", tsg->tsgid);
@@ -2320,10 +2318,8 @@ int gk20a_fifo_preempt_tsg(struct gk20a *g, struct tsg_gk20a *tsg)
 		nvgpu_mutex_acquire(&f->runlist_info[i].runlist_lock);
 	}
 
-	if (g->ops.pmu.is_pmu_supported(g)) {
-		mutex_ret = nvgpu_pmu_mutex_acquire(&g->pmu,
-						PMU_MUTEX_ID_FIFO, &token);
-	}
+	mutex_ret = nvgpu_pmu_mutex_acquire(&g->pmu,
+			PMU_MUTEX_ID_FIFO, &token);
 
 	ret = __locked_fifo_preempt(g, tsg->tsgid, true);
 
@@ -2398,7 +2394,7 @@ int gk20a_fifo_disable_engine_activity(struct gk20a *g,
 	u32 pbdma_chid = FIFO_INVAL_CHANNEL_ID;
 	u32 engine_chid = FIFO_INVAL_CHANNEL_ID;
 	u32 token = PMU_INVALID_MUTEX_OWNER_ID;
-	int mutex_ret = -EINVAL;
+	int mutex_ret = 0;
 	struct channel_gk20a *ch = NULL;
 	int err = 0;
 	struct nvgpu_engine_status_info engine_status;
@@ -2412,10 +2408,8 @@ int gk20a_fifo_disable_engine_activity(struct gk20a *g,
 		return -EBUSY;
 	}
 
-	if (g->ops.pmu.is_pmu_supported(g)) {
-		mutex_ret = nvgpu_pmu_mutex_acquire(&g->pmu,
-						PMU_MUTEX_ID_FIFO, &token);
-	}
+	mutex_ret = nvgpu_pmu_mutex_acquire(&g->pmu,
+			PMU_MUTEX_ID_FIFO, &token);
 
 	gk20a_fifo_set_runlist_state(g, BIT32(eng_info->runlist_id),
 			RUNLIST_DISABLED);

@@ -761,7 +761,7 @@ int gv11b_fifo_preempt_tsg(struct gk20a *g, struct tsg_gk20a *tsg)
 	struct fifo_gk20a *f = &g->fifo;
 	int ret = 0;
 	u32 token = PMU_INVALID_MUTEX_OWNER_ID;
-	int mutex_ret = -EINVAL;
+	int mutex_ret = 0;
 	u32 runlist_id;
 
 	nvgpu_log_fn(g, "tsgid: %d", tsg->tsgid);
@@ -777,10 +777,8 @@ int gv11b_fifo_preempt_tsg(struct gk20a *g, struct tsg_gk20a *tsg)
 	/* WAR for Bug 2065990 */
 	gk20a_tsg_disable_sched(g, tsg);
 
-	if (g->ops.pmu.is_pmu_supported(g)) {
-		mutex_ret = nvgpu_pmu_mutex_acquire(&g->pmu,
+	mutex_ret = nvgpu_pmu_mutex_acquire(&g->pmu,
 						PMU_MUTEX_ID_FIFO, &token);
-	}
 
 	ret = __locked_fifo_preempt(g, tsg->tsgid, true);
 
@@ -814,16 +812,14 @@ static void gv11b_fifo_locked_preempt_runlists_rc(struct gk20a *g,
 						u32 runlists_mask)
 {
 	u32 token = PMU_INVALID_MUTEX_OWNER_ID;
-	int mutex_ret = -EINVAL;
+	int mutex_ret = 0;
 	u32 rlid;
 
 	/* runlist_lock are locked by teardown and sched are disabled too */
 	nvgpu_log_fn(g, "preempt runlists_mask:0x%08x", runlists_mask);
 
-	if (g->ops.pmu.is_pmu_supported(g)) {
-		mutex_ret = nvgpu_pmu_mutex_acquire(&g->pmu,
-						PMU_MUTEX_ID_FIFO, &token);
-	}
+	mutex_ret = nvgpu_pmu_mutex_acquire(&g->pmu,
+			PMU_MUTEX_ID_FIFO, &token);
 
 	/* issue runlist preempt */
 	gv11b_fifo_issue_runlist_preempt(g, runlists_mask);
@@ -860,16 +856,14 @@ static void gv11b_fifo_locked_abort_runlist_active_tsgs(struct gk20a *g,
 	u32 rlid;
 	struct fifo_runlist_info_gk20a *runlist = NULL;
 	u32 token = PMU_INVALID_MUTEX_OWNER_ID;
-	int mutex_ret = -EINVAL;
+	int mutex_ret = 0;
 	int err;
 
 	nvgpu_err(g, "runlist id unknown, abort active tsgs in runlists");
 
 	/* runlist_lock  are locked by teardown */
-	if (g->ops.pmu.is_pmu_supported(g)) {
-		mutex_ret = nvgpu_pmu_mutex_acquire(&g->pmu,
-						PMU_MUTEX_ID_FIFO, &token);
-	}
+	mutex_ret = nvgpu_pmu_mutex_acquire(&g->pmu,
+			PMU_MUTEX_ID_FIFO, &token);
 
 	for (rlid = 0; rlid < g->fifo.max_runlists;
 						 rlid++) {
@@ -1053,7 +1047,7 @@ void gv11b_fifo_teardown_ch_tsg(struct gk20a *g, u32 act_eng_bitmask,
 	g->fifo.deferred_reset_pending = false;
 
 	/* Disable power management */
-	if (g->support_pmu && g->elpg_enabled) {
+	if (g->elpg_enabled) {
 		if (nvgpu_pmu_disable_elpg(g) != 0) {
 			nvgpu_err(g, "failed to set disable elpg");
 		}
@@ -1184,7 +1178,7 @@ void gv11b_fifo_teardown_ch_tsg(struct gk20a *g, u32 act_eng_bitmask,
 	gk20a_fifo_set_runlist_state(g, runlists_mask, RUNLIST_ENABLED);
 
 	/* It is safe to enable ELPG again. */
-	if (g->support_pmu && g->elpg_enabled) {
+	if (g->elpg_enabled) {
 		if (nvgpu_pmu_enable_elpg(g) != 0) {
 			nvgpu_err(g, "ELPG enable failed");
 		}

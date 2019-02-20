@@ -402,7 +402,7 @@ u32 gk20a_gr_get_sm_no_lock_down_hww_global_esr_mask(struct gk20a *g);
 #define gr_gk20a_elpg_protected_call(g, func) \
 	({ \
 		int err = 0; \
-		if (((g)->support_pmu) && ((g)->elpg_enabled)) {\
+		if ((g)->elpg_enabled) {\
 			err = nvgpu_pmu_disable_elpg(g); \
 			if (err != 0) {\
 				nvgpu_pmu_enable_elpg(g); \
@@ -410,7 +410,7 @@ u32 gk20a_gr_get_sm_no_lock_down_hww_global_esr_mask(struct gk20a *g);
 		} \
 		if (err == 0) { \
 			err = (func); \
-			if (((g)->support_pmu) && ((g)->elpg_enabled)) {\
+			if ((g)->elpg_enabled) {\
 				nvgpu_pmu_enable_elpg(g); \
 			} \
 		} \

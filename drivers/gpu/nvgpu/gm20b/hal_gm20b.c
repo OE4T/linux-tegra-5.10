@@ -637,6 +637,7 @@ static const struct gpu_ops gm20b_ops = {
 		.idle_slowdown_disable = gm20b_therm_idle_slowdown_disable,
 	},
 	.pmu = {
+		.is_pmu_supported = gm20b_is_pmu_supported,
 		.falcon_base_addr = gk20a_pmu_falcon_base_addr,
 		.pmu_setup_elpg = gm20b_pmu_setup_elpg,
 		.pmu_get_queue_head = pwr_pmu_queue_head_r,
@@ -895,7 +896,6 @@ int gm20b_init_hal(struct gk20a *g)
 	/* priv security dependent ops */
 	if (nvgpu_is_enabled(g, NVGPU_SEC_PRIVSECURITY)) {
 		/* Add in ops from gm20b acr */
-		gops->pmu.is_pmu_supported = gm20b_is_pmu_supported;
 		gops->pmu.update_lspmu_cmdline_args =
 			gm20b_update_lspmu_cmdline_args;
 		gops->pmu.setup_apertures = gm20b_pmu_setup_apertures;
@@ -907,7 +907,6 @@ int gm20b_init_hal(struct gk20a *g)
 		gops->gr.load_ctxsw_ucode = gr_gm20b_load_ctxsw_ucode;
 	} else {
 		/* Inherit from gk20a */
-		gops->pmu.is_pmu_supported = gk20a_is_pmu_supported;
 		gops->pmu.pmu_setup_hw_and_bootstrap =
 			gm20b_ns_pmu_setup_hw_and_bootstrap;
 		gops->pmu.pmu_nsbootstrap = pmu_bootstrap;

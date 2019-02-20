@@ -1755,6 +1755,15 @@ int nvgpu_early_init_pmu_sw(struct gk20a *g, struct nvgpu_pmu *pmu)
 
 	pmu->g = g;
 
+	if (!g->support_ls_pmu) {
+		goto exit;
+	}
+
+	if (!g->ops.pmu.is_pmu_supported(g)) {
+		g->support_ls_pmu = false;
+		goto exit;
+	}
+
 	err = nvgpu_mutex_init(&pmu->elpg_mutex);
 	if (err != 0) {
 		return err;

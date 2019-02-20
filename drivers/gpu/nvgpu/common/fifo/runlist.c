@@ -409,7 +409,7 @@ int nvgpu_fifo_reschedule_runlist(struct channel_gk20a *ch, bool preempt_next,
 	struct gk20a *g = ch->g;
 	struct fifo_runlist_info_gk20a *runlist;
 	u32 token = PMU_INVALID_MUTEX_OWNER_ID;
-	int mutex_ret = -EINVAL;
+	int mutex_ret = 0;
 	int ret = 0;
 
 	runlist = &g->fifo.runlist_info[ch->runlist_id];
@@ -417,10 +417,9 @@ int nvgpu_fifo_reschedule_runlist(struct channel_gk20a *ch, bool preempt_next,
 		return -EBUSY;
 	}
 
-	if (g->ops.pmu.is_pmu_supported(g)) {
-		mutex_ret = nvgpu_pmu_mutex_acquire(
-			&g->pmu, PMU_MUTEX_ID_FIFO, &token);
-	}
+	mutex_ret = nvgpu_pmu_mutex_acquire(
+		&g->pmu, PMU_MUTEX_ID_FIFO, &token);
+
 
 	g->ops.runlist.hw_submit(
 		g, ch->runlist_id, runlist->count, runlist->cur_buffer);
@@ -461,7 +460,7 @@ static int gk20a_runlist_update(struct gk20a *g, u32 runlist_id,
 	struct fifo_runlist_info_gk20a *runlist = NULL;
 	struct fifo_gk20a *f = &g->fifo;
 	u32 token = PMU_INVALID_MUTEX_OWNER_ID;
-	int mutex_ret = -EINVAL;
+	int mutex_ret = 0;
 	int ret = 0;
 
 	nvgpu_log_fn(g, " ");
@@ -470,10 +469,8 @@ static int gk20a_runlist_update(struct gk20a *g, u32 runlist_id,
 
 	nvgpu_mutex_acquire(&runlist->runlist_lock);
 
-	if (g->ops.pmu.is_pmu_supported(g)) {
-		mutex_ret = nvgpu_pmu_mutex_acquire(&g->pmu,
-						PMU_MUTEX_ID_FIFO, &token);
-	}
+	mutex_ret = nvgpu_pmu_mutex_acquire(&g->pmu,
+		PMU_MUTEX_ID_FIFO, &token);
 
 	ret = gk20a_runlist_update_locked(g, runlist_id, ch, add,
 					       wait_for_finish);
@@ -561,15 +558,14 @@ void gk20a_fifo_set_runlist_state(struct gk20a *g, u32 runlists_mask,
 		u32 runlist_state)
 {
 	u32 token = PMU_INVALID_MUTEX_OWNER_ID;
-	int mutex_ret = -EINVAL;
+	int mutex_ret = 0;
 
 	nvgpu_log(g, gpu_dbg_info, "runlist mask = 0x%08x state = 0x%08x",
 			runlists_mask, runlist_state);
 
-	if (g->ops.pmu.is_pmu_supported(g)) {
-		mutex_ret = nvgpu_pmu_mutex_acquire(&g->pmu,
-						PMU_MUTEX_ID_FIFO, &token);
-	}
+
+	mutex_ret = nvgpu_pmu_mutex_acquire(&g->pmu,
+		PMU_MUTEX_ID_FIFO, &token);
 
 	g->ops.runlist.write_state(g, runlists_mask, runlist_state);
 

@@ -1779,7 +1779,7 @@ struct gk20a {
 	/* Debugfs knob for forcing syncpt support off in runtime. */
 	u32 disable_syncpoints;
 
-	bool support_pmu;
+	bool support_ls_pmu;
 
 	bool is_virtual;
 

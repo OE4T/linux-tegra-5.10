@@ -118,6 +118,10 @@ int nvgpu_pmu_pg_global_enable(struct gk20a *g, bool enable_pg)
 {
 	int status = 0;
 
+	if (!g->support_ls_pmu) {
+		return status;
+	}
+
 	if (enable_pg) {
 		if (g->ops.pmu.pmu_pg_engines_feature_list != NULL &&
 			g->ops.pmu.pmu_pg_engines_feature_list(g,
@@ -127,7 +131,7 @@ int nvgpu_pmu_pg_global_enable(struct gk20a *g, bool enable_pg)
 				status = g->ops.pmu.pmu_lpwr_enable_pg(g,
 						true);
 			}
-		} else if (g->support_pmu && g->can_elpg) {
+		} else if (g->can_elpg) {
 			status = nvgpu_pmu_enable_elpg(g);
 		}
 	} else {
@@ -139,7 +143,7 @@ int nvgpu_pmu_pg_global_enable(struct gk20a *g, bool enable_pg)
 				status = g->ops.pmu.pmu_lpwr_disable_pg(g,
 						true);
 			}
-		} else if (g->support_pmu && g->can_elpg) {
+		} else if (g->can_elpg) {
 			status = nvgpu_pmu_disable_elpg(g);
 		}
 	}
@@ -201,7 +205,7 @@ int nvgpu_pmu_enable_elpg(struct gk20a *g)
 
 	nvgpu_log_fn(g, " ");
 
-	if (!g->support_pmu) {
+	if (!g->support_ls_pmu) {
 		return ret;
 	}
 
@@ -269,12 +273,12 @@ int nvgpu_pmu_disable_elpg(struct gk20a *g)
 
 	nvgpu_log_fn(g, " ");
 
-	if (g->ops.pmu.pmu_pg_supported_engines_list != NULL) {
-		pg_engine_id_list = g->ops.pmu.pmu_pg_supported_engines_list(g);
+	if (!g->support_ls_pmu) {
+		return ret;
 	}
 
-	if (!g->support_pmu) {
-		return ret;
+	if (g->ops.pmu.pmu_pg_supported_engines_list != NULL) {
+		pg_engine_id_list = g->ops.pmu.pmu_pg_supported_engines_list(g);
 	}
 
 	nvgpu_mutex_acquire(&pmu->elpg_mutex);

@@ -152,14 +152,6 @@ static void nvgpu_init_pm_vars(struct gk20a *g)
 		nvgpu_platform_is_silicon(g) ? platform->enable_blcg : false;
 	g->elcg_enabled =
 		nvgpu_platform_is_silicon(g) ? platform->enable_elcg : false;
-	g->elpg_enabled =
-		nvgpu_platform_is_silicon(g) ? platform->enable_elpg : false;
-	g->aelpg_enabled =
-		nvgpu_platform_is_silicon(g) ? platform->enable_aelpg : false;
-	g->mscg_enabled =
-		nvgpu_platform_is_silicon(g) ? platform->enable_mscg : false;
-	g->can_elpg =
-		nvgpu_platform_is_silicon(g) ? platform->can_elpg_init : false;
 
 	nvgpu_set_enabled(g, NVGPU_GPU_CAN_ELCG,
 		nvgpu_platform_is_silicon(g) ? platform->can_elcg : false);
@@ -174,7 +166,7 @@ static void nvgpu_init_pm_vars(struct gk20a *g)
 	g->has_cde = platform->has_cde;
 #endif
 	g->ptimer_src_freq = platform->ptimer_src_freq;
-	g->support_pmu = support_gk20a_pmu(dev_from_gk20a(g));
+
 	nvgpu_set_enabled(g, NVGPU_CAN_RAILGATE, platform->can_railgate_init);
 	g->can_tpc_powergate = platform->can_tpc_powergate;
 
@@ -187,14 +179,28 @@ static void nvgpu_init_pm_vars(struct gk20a *g)
 		g->railgate_delay = platform->railgate_delay_init;
 	else
 		g->railgate_delay = NVGPU_DEFAULT_RAILGATE_IDLE_TIMEOUT;
-	nvgpu_set_enabled(g, NVGPU_PMU_PERFMON, platform->enable_perfmon);
 
-	/* set default values to aelpg parameters */
-	g->pmu.aelpg_param[0] = APCTRL_SAMPLING_PERIOD_PG_DEFAULT_US;
-	g->pmu.aelpg_param[1] = APCTRL_MINIMUM_IDLE_FILTER_DEFAULT_US;
-	g->pmu.aelpg_param[2] = APCTRL_MINIMUM_TARGET_SAVING_DEFAULT_US;
-	g->pmu.aelpg_param[3] = APCTRL_POWER_BREAKEVEN_DEFAULT_US;
-	g->pmu.aelpg_param[4] = APCTRL_CYCLES_PER_SAMPLE_MAX_DEFAULT;
+	g->support_ls_pmu = support_gk20a_pmu(dev_from_gk20a(g));
+
+	if (g->support_ls_pmu) {
+		g->elpg_enabled =
+			nvgpu_platform_is_silicon(g) ? platform->enable_elpg : false;
+		g->aelpg_enabled =
+			nvgpu_platform_is_silicon(g) ? platform->enable_aelpg : false;
+		g->mscg_enabled =
+			nvgpu_platform_is_silicon(g) ? platform->enable_mscg : false;
+		g->can_elpg =
+			nvgpu_platform_is_silicon(g) ? platform->can_elpg_init : false;
+
+		nvgpu_set_enabled(g, NVGPU_PMU_PERFMON, platform->enable_perfmon);
+
+		/* set default values to aelpg parameters */
+		g->pmu.aelpg_param[0] = APCTRL_SAMPLING_PERIOD_PG_DEFAULT_US;
+		g->pmu.aelpg_param[1] = APCTRL_MINIMUM_IDLE_FILTER_DEFAULT_US;
+		g->pmu.aelpg_param[2] = APCTRL_MINIMUM_TARGET_SAVING_DEFAULT_US;
+		g->pmu.aelpg_param[3] = APCTRL_POWER_BREAKEVEN_DEFAULT_US;
+		g->pmu.aelpg_param[4] = APCTRL_CYCLES_PER_SAMPLE_MAX_DEFAULT;
+	}
 
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_ASPM, !platform->disable_aspm);
 }

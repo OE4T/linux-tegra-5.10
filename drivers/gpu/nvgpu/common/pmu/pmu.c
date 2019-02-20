@@ -298,68 +298,70 @@ int nvgpu_init_pmu_support(struct gk20a *g)
 		return 0;
 	}
 
-	if (g->support_pmu) {
-		err = nvgpu_init_pmu_setup_sw(g);
+	if (!g->support_ls_pmu) {
+		goto exit;
+	}
+
+	err = nvgpu_init_pmu_setup_sw(g);
+	if (err != 0) {
+		goto exit;
+	}
+
+	if (nvgpu_is_enabled(g, NVGPU_SEC_PRIVSECURITY)) {
+
+		if (nvgpu_is_enabled(g, NVGPU_SUPPORT_SEC2_RTOS)) {
+			/* Reset PMU engine */
+			err = nvgpu_falcon_reset(g->pmu.flcn);
+
+			/* Bootstrap PMU from SEC2 RTOS*/
+			err = nvgpu_sec2_bootstrap_ls_falcons(g, &g->sec2,
+				FALCON_ID_PMU);
+			if (err != 0) {
+				goto exit;
+			}
+		}
+
+		/*
+		 * clear halt interrupt to avoid PMU-RTOS ucode
+		 * hitting breakpoint due to PMU halt
+		 */
+		err = nvgpu_falcon_clear_halt_intr_status(g->pmu.flcn,
+			gk20a_get_gr_idle_timeout(g));
 		if (err != 0) {
 			goto exit;
 		}
 
-		if (nvgpu_is_enabled(g, NVGPU_SEC_PRIVSECURITY)) {
-
-			if (nvgpu_is_enabled(g, NVGPU_SUPPORT_SEC2_RTOS)) {
-				/* Reset PMU engine */
-				err = nvgpu_falcon_reset(g->pmu.flcn);
-
-				/* Bootstrap PMU from SEC2 RTOS*/
-				err = nvgpu_sec2_bootstrap_ls_falcons(g, &g->sec2,
-					FALCON_ID_PMU);
-				if (err != 0) {
-					goto exit;
-				}
-			}
-
-			/*
-			 * clear halt interrupt to avoid PMU-RTOS ucode
-			 * hitting breakpoint due to PMU halt
-			 */
-			err = nvgpu_falcon_clear_halt_intr_status(g->pmu.flcn,
-				gk20a_get_gr_idle_timeout(g));
-			if (err != 0) {
-				goto exit;
-			}
-
-			if (g->ops.pmu.setup_apertures != NULL) {
-				g->ops.pmu.setup_apertures(g);
-			}
-
-			if (g->ops.pmu.update_lspmu_cmdline_args != NULL) {
-				g->ops.pmu.update_lspmu_cmdline_args(g);
-			}
-
-			if (g->ops.pmu.pmu_enable_irq != NULL) {
-				nvgpu_mutex_acquire(&g->pmu.isr_mutex);
-				g->ops.pmu.pmu_enable_irq(&g->pmu, true);
-				g->pmu.isr_enabled = true;
-				nvgpu_mutex_release(&g->pmu.isr_mutex);
-			}
-
-			/*Once in LS mode, cpuctl_alias is only accessible*/
-			if (g->ops.pmu.secured_pmu_start != NULL) {
-				g->ops.pmu.secured_pmu_start(g);
-			}
-		} else {
-			/* prepare blob for non-secure PMU boot */
-			err = nvgpu_pmu_prepare_ns_ucode_blob(g);
-
-			/* Do non-secure PMU boot */
-			err = g->ops.pmu.pmu_setup_hw_and_bootstrap(g);
-			if (err != 0) {
-				goto exit;
-			}
+		if (g->ops.pmu.setup_apertures != NULL) {
+			g->ops.pmu.setup_apertures(g);
 		}
 
-		nvgpu_pmu_state_change(g, PMU_STATE_STARTING, false);
+		if (g->ops.pmu.update_lspmu_cmdline_args != NULL) {
+			g->ops.pmu.update_lspmu_cmdline_args(g);
+		}
+
+		if (g->ops.pmu.pmu_enable_irq != NULL) {
+			nvgpu_mutex_acquire(&g->pmu.isr_mutex);
+			g->ops.pmu.pmu_enable_irq(&g->pmu, true);
+			g->pmu.isr_enabled = true;
+			nvgpu_mutex_release(&g->pmu.isr_mutex);
+		}
+
+		/*Once in LS mode, cpuctl_alias is only accessible*/
+		if (g->ops.pmu.secured_pmu_start != NULL) {
+			g->ops.pmu.secured_pmu_start(g);
+		}
+	} else {
+		/* prepare blob for non-secure PMU boot */
+		err = nvgpu_pmu_prepare_ns_ucode_blob(g);
+
+		/* Do non-secure PMU boot */
+		err = g->ops.pmu.pmu_setup_hw_and_bootstrap(g);
+		if (err != 0) {
+			goto exit;
+		}
 	}
+
+	nvgpu_pmu_state_change(g, PMU_STATE_STARTING, false);
 
 exit:
 	return err;
@@ -681,7 +683,7 @@ int nvgpu_pmu_destroy(struct gk20a *g)
 
 	nvgpu_log_fn(g, " ");
 
-	if (!g->support_pmu) {
+	if (!g->support_ls_pmu) {
 		return 0;
 	}
 
