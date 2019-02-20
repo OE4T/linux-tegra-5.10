@@ -33,6 +33,8 @@
  * increasing this constant should help (it drives Linux' internal buffer size).
  */
 #define GK20A_FECS_TRACE_NUM_RECORDS		(1 << 10)
+#define GK20A_FECS_TRACE_FRAME_PERIOD_US	(1000000ULL/60ULL)
+#define GK20A_FECS_TRACE_PTIMER_SHIFT		5
 
 struct gk20a;
 
@@ -45,6 +47,16 @@ struct nvgpu_gr_fecs_trace {
 
 	struct nvgpu_mutex enable_lock;
 	u32 enable_count;
+};
+
+struct nvgpu_fecs_trace_record {
+	u32 magic_lo;
+	u32 magic_hi;
+	u32 context_id;
+	u32 context_ptr;
+	u32 new_context_id;
+	u32 new_context_ptr;
+	u64 ts[];
 };
 
 struct nvgpu_fecs_trace_context_entry {
@@ -66,6 +78,12 @@ nvgpu_fecs_trace_context_entry_from_entry(struct nvgpu_list_node *node)
 
 int nvgpu_gr_fecs_trace_init(struct gk20a *g);
 int nvgpu_gr_fecs_trace_deinit(struct gk20a *g);
+
+int nvgpu_gr_fecs_trace_num_ts(struct gk20a *g);
+struct nvgpu_fecs_trace_record *nvgpu_gr_fecs_trace_get_record(struct gk20a *g,
+	int idx);
+bool nvgpu_gr_fecs_trace_is_valid_record(struct gk20a *g,
+	struct nvgpu_fecs_trace_record *r);
 
 int nvgpu_gr_fecs_trace_add_context(struct gk20a *g, u32 context_ptr,
 	pid_t pid, u32 vmid, struct nvgpu_list_node *list);

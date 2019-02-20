@@ -44,64 +44,11 @@
 #include "gr_gk20a.h"
 
 #include <nvgpu/log.h>
-#include <nvgpu/fecs_trace.h>
-
-#include <nvgpu/hw/gk20a/hw_gr_gk20a.h>
 
 #ifdef CONFIG_GK20A_CTXSW_TRACE
 static u32 gk20a_fecs_trace_fecs_context_ptr(struct gk20a *g, struct channel_gk20a *ch)
 {
 	return (u32) (nvgpu_inst_block_addr(g, &ch->inst_block) >> 12LL);
-}
-
-int gk20a_fecs_trace_num_ts(struct gk20a *g)
-{
-	return (g->ops.gr.ctxsw_prog.hw_get_ts_record_size_in_bytes()
-		- sizeof(struct gk20a_fecs_trace_record)) / sizeof(u64);
-}
-
-struct gk20a_fecs_trace_record *gk20a_fecs_trace_get_record(
-	struct gk20a *g, int idx)
-{
-	struct nvgpu_mem *mem = nvgpu_gr_global_ctx_buffer_get_mem(
-					g->gr.global_ctx_buffer,
-					NVGPU_GR_GLOBAL_CTX_FECS_TRACE_BUFFER);
-	if (mem == NULL) {
-		return NULL;
-	}
-
-	return (struct gk20a_fecs_trace_record *)
-		((u8 *) mem->cpu_va +
-		(idx * g->ops.gr.ctxsw_prog.hw_get_ts_record_size_in_bytes()));
-}
-
-bool gk20a_fecs_trace_is_valid_record(struct gk20a *g,
-	struct gk20a_fecs_trace_record *r)
-{
-	/*
-	 * testing magic_hi should suffice. magic_lo is sometimes used
-	 * as a sequence number in experimental ucode.
-	 */
-	return g->ops.gr.ctxsw_prog.is_ts_valid_record(r->magic_hi);
-}
-
-int gk20a_fecs_trace_get_read_index(struct gk20a *g)
-{
-	return gr_gk20a_elpg_protected_call(g,
-			gk20a_readl(g, gr_fecs_mailbox1_r()));
-}
-
-int gk20a_fecs_trace_get_write_index(struct gk20a *g)
-{
-	return gr_gk20a_elpg_protected_call(g,
-			gk20a_readl(g, gr_fecs_mailbox0_r()));
-}
-
-static int gk20a_fecs_trace_set_read_index(struct gk20a *g, int index)
-{
-	nvgpu_log(g, gpu_dbg_ctxsw, "set read=%d", index);
-	return gr_gk20a_elpg_protected_call(g,
-			(gk20a_writel(g, gr_fecs_mailbox1_r(), index), 0));
 }
 
 /*
@@ -121,8 +68,8 @@ static int gk20a_fecs_trace_ring_read(struct gk20a *g, int index)
 	/* for now, only one VM */
 	const int vmid = 0;
 
-	struct gk20a_fecs_trace_record *r =
-		gk20a_fecs_trace_get_record(g, index);
+	struct nvgpu_fecs_trace_record *r =
+		nvgpu_gr_fecs_trace_get_record(g, index);
 	if (r == NULL) {
 		return -EINVAL;
 	}
@@ -130,7 +77,7 @@ static int gk20a_fecs_trace_ring_read(struct gk20a *g, int index)
 	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_ctxsw,
 		"consuming record trace=%p read=%d record=%p", trace, index, r);
 
-	if (unlikely(!gk20a_fecs_trace_is_valid_record(g, r))) {
+	if (unlikely(!nvgpu_gr_fecs_trace_is_valid_record(g, r))) {
 		nvgpu_warn(g,
 			"trace=%p read=%d record=%p magic_lo=%08x magic_hi=%08x (invalid)",
 			trace, index, r, r->magic_lo, r->magic_hi);
@@ -156,7 +103,7 @@ static int gk20a_fecs_trace_ring_read(struct gk20a *g, int index)
 	entry.vmid = vmid;
 
 	/* break out FECS record into trace events */
-	for (i = 0; i < gk20a_fecs_trace_num_ts(g); i++) {
+	for (i = 0; i < nvgpu_gr_fecs_trace_num_ts(g); i++) {
 
 		entry.tag = g->ops.gr.ctxsw_prog.hw_get_ts_tag(r->ts[i]);
 		entry.timestamp =
@@ -220,7 +167,7 @@ int gk20a_fecs_trace_poll(struct gk20a *g)
 		return err;
 
 	nvgpu_mutex_acquire(&trace->poll_lock);
-	write = gk20a_fecs_trace_get_write_index(g);
+	write = g->ops.fecs_trace.get_write_index(g);
 	if (unlikely((write < 0) || (write >= GK20A_FECS_TRACE_NUM_RECORDS))) {
 		nvgpu_err(g,
 			"failed to acquire write index, write=%d", write);
@@ -228,7 +175,7 @@ int gk20a_fecs_trace_poll(struct gk20a *g)
 		goto done;
 	}
 
-	read = gk20a_fecs_trace_get_read_index(g);
+	read = g->ops.fecs_trace.get_read_index(g);
 
 	cnt = CIRC_CNT(write, read, GK20A_FECS_TRACE_NUM_RECORDS);
 	if (!cnt)
@@ -236,7 +183,7 @@ int gk20a_fecs_trace_poll(struct gk20a *g)
 
 	nvgpu_log(g, gpu_dbg_ctxsw,
 		"circular buffer: read=%d (mailbox=%d) write=%d cnt=%d",
-		read, gk20a_fecs_trace_get_read_index(g), write, cnt);
+		read, g->ops.fecs_trace.get_read_index(g), write, cnt);
 
 	/* Ensure all FECS writes have made it to SYSMEM */
 	g->ops.mm.fb_flush(g);
@@ -254,7 +201,7 @@ int gk20a_fecs_trace_poll(struct gk20a *g)
 
 	/* ensure FECS records has been updated before incrementing read index */
 	nvgpu_wmb();
-	gk20a_fecs_trace_set_read_index(g, read);
+	g->ops.fecs_trace.set_read_index(g, read);
 
 	/*
 	 * FECS ucode does a priv holdoff around the assertion of context
@@ -262,9 +209,9 @@ int gk20a_fecs_trace_poll(struct gk20a *g)
 	 * fail due to this. Hence, do write with ack i.e. write and read
 	 * it back to make sure write happened for mailbox1.
 	 */
-	while (gk20a_fecs_trace_get_read_index(g) != read) {
+	while (g->ops.fecs_trace.get_read_index(g) != read) {
 		nvgpu_log(g, gpu_dbg_ctxsw, "mailbox1 update failed");
-		gk20a_fecs_trace_set_read_index(g, read);
+		g->ops.fecs_trace.set_read_index(g, read);
 	}
 
 done:
@@ -398,7 +345,7 @@ int gk20a_fecs_trace_reset(struct gk20a *g)
 		return 0;
 
 	gk20a_fecs_trace_poll(g);
-	return gk20a_fecs_trace_set_read_index(g, 0);
+	return g->ops.fecs_trace.set_read_index(g, 0);
 }
 
 int gk20a_gr_max_entries(struct gk20a *g,
@@ -408,7 +355,7 @@ int gk20a_gr_max_entries(struct gk20a *g,
 	int tag;
 
 	/* Compute number of entries per record, with given filter */
-	for (n = 0, tag = 0; tag < gk20a_fecs_trace_num_ts(g); tag++)
+	for (n = 0, tag = 0; tag < nvgpu_gr_fecs_trace_num_ts(g); tag++)
 		n += (NVGPU_GPU_CTXSW_FILTER_ISSET(tag, filter) != 0);
 
 	/* Return max number of entries generated for the whole ring */
@@ -429,8 +376,8 @@ int gk20a_fecs_trace_enable(struct gk20a *g)
 		if (g->ops.fecs_trace.flush)
 			g->ops.fecs_trace.flush(g);
 
-		write = gk20a_fecs_trace_get_write_index(g);
-		gk20a_fecs_trace_set_read_index(g, write);
+		write = g->ops.fecs_trace.get_write_index(g);
+		g->ops.fecs_trace.set_read_index(g, write);
 
 		err = nvgpu_thread_create(&trace->poll_task, g,
 				gk20a_fecs_trace_periodic_polling, __func__);
@@ -470,8 +417,8 @@ void gk20a_fecs_trace_reset_buffer(struct gk20a *g)
 {
 	nvgpu_log(g, gpu_dbg_fn|gpu_dbg_ctxsw, " ");
 
-	gk20a_fecs_trace_set_read_index(g,
-		gk20a_fecs_trace_get_write_index(g));
+	g->ops.fecs_trace.set_read_index(g,
+		g->ops.fecs_trace.get_write_index(g));
 }
 
 u32 gk20a_fecs_trace_get_buffer_full_mailbox_val(void)

@@ -17,7 +17,6 @@
 #include <linux/debugfs.h>
 
 #include <nvgpu/gr/fecs_trace.h>
-#include <nvgpu/fecs_trace.h>
 
 #include "os_linux.h"
 
@@ -53,8 +52,8 @@ static int gk20a_fecs_trace_debugfs_ring_seq_show(
 {
 	loff_t *pos = (loff_t *) v;
 	struct gk20a *g = *(struct gk20a **)s->private;
-	struct gk20a_fecs_trace_record *r =
-		gk20a_fecs_trace_get_record(g, *pos);
+	struct nvgpu_fecs_trace_record *r =
+		nvgpu_gr_fecs_trace_get_record(g, *pos);
 	int i;
 	const u32 invalid_tag =
 		g->ops.gr.ctxsw_prog.hw_get_ts_tag_invalid_timestamp();
@@ -64,12 +63,12 @@ static int gk20a_fecs_trace_debugfs_ring_seq_show(
 	seq_printf(s, "record #%lld (%p)\n", *pos, r);
 	seq_printf(s, "\tmagic_lo=%08x\n", r->magic_lo);
 	seq_printf(s, "\tmagic_hi=%08x\n", r->magic_hi);
-	if (gk20a_fecs_trace_is_valid_record(g, r)) {
+	if (nvgpu_gr_fecs_trace_is_valid_record(g, r)) {
 		seq_printf(s, "\tcontext_ptr=%08x\n", r->context_ptr);
 		seq_printf(s, "\tcontext_id=%08x\n", r->context_id);
 		seq_printf(s, "\tnew_context_ptr=%08x\n", r->new_context_ptr);
 		seq_printf(s, "\tnew_context_id=%08x\n", r->new_context_id);
-		for (i = 0; i < gk20a_fecs_trace_num_ts(g); i++) {
+		for (i = 0; i < nvgpu_gr_fecs_trace_num_ts(g); i++) {
 			tag = g->ops.gr.ctxsw_prog.hw_get_ts_tag(r->ts[i]);
 			if (tag == invalid_tag)
 				continue;
@@ -133,7 +132,7 @@ static int gk20a_fecs_trace_debugfs_read(void *arg, u64 *val)
 		return err;
 	}
 
-	*val = gk20a_fecs_trace_get_read_index(g);
+	*val = g->ops.fecs_trace.get_read_index(g);
 
 	gk20a_idle(g);
 	return 0;
@@ -149,7 +148,7 @@ static int gk20a_fecs_trace_debugfs_write(void *arg, u64 *val)
 		return err;
 	}
 
-	*val = gk20a_fecs_trace_get_write_index(g);
+	*val = g->ops.fecs_trace.get_write_index(g);
 
 	gk20a_idle(g);
 	return 0;

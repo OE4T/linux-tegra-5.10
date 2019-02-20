@@ -24,7 +24,6 @@
 #include <nvgpu/bug.h>
 #include <nvgpu/enabled.h>
 #include <nvgpu/ctxsw_trace.h>
-#include <nvgpu/fecs_trace.h>
 #include <nvgpu/gr/fecs_trace.h>
 #include <nvgpu/dt.h>
 #include <nvgpu/vgpu/vgpu_ivm.h>

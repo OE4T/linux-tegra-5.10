@@ -1090,6 +1090,9 @@ struct gpu_ops {
 		int (*set_filter)(struct gk20a *g,
 			struct nvgpu_gpu_ctxsw_trace_filter *filter);
 		u32 (*get_buffer_full_mailbox_val)(void);
+		int (*get_read_index)(struct gk20a *g);
+		int (*get_write_index)(struct gk20a *g);
+		int (*set_read_index)(struct gk20a *g, int index);
 	} fecs_trace;
 #endif
 	struct {

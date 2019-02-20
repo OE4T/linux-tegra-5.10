@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -20,33 +20,35 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NVGPU_FECS_TRACE_H
-#define NVGPU_FECS_TRACE_H
+#include <nvgpu/gk20a.h>
+#include <nvgpu/log.h>
+#include <nvgpu/io.h>
+/*
+ * TODO:
+ * gr_gk20a.h is needed only for gr_gk20a_elpg_protected_call()
+ * remove this include when possible
+ */
+#include <gk20a/gr_gk20a.h>
 
-struct gk20a;
+#include "fecs_trace_gm20b.h"
 
-#define GK20A_FECS_TRACE_FRAME_PERIOD_US	(1000000ULL/60ULL)
-#define GK20A_FECS_TRACE_PTIMER_SHIFT		5
+#include <nvgpu/hw/gm20b/hw_gr_gm20b.h>
 
-struct gk20a_fecs_trace_record {
-	u32 magic_lo;
-	u32 magic_hi;
-	u32 context_id;
-	u32 context_ptr;
-	u32 new_context_id;
-	u32 new_context_ptr;
-	u64 ts[];
-};
+int gm20b_fecs_trace_get_read_index(struct gk20a *g)
+{
+	return gr_gk20a_elpg_protected_call(g,
+			nvgpu_readl(g, gr_fecs_mailbox1_r()));
+}
 
-#ifdef CONFIG_GK20A_CTXSW_TRACE
-int gk20a_fecs_trace_num_ts(struct gk20a *g);
-struct gk20a_fecs_trace_record *gk20a_fecs_trace_get_record(struct gk20a *g,
-	int idx);
-bool gk20a_fecs_trace_is_valid_record(struct gk20a *g,
-	struct gk20a_fecs_trace_record *r);
-int gk20a_fecs_trace_get_read_index(struct gk20a *g);
-int gk20a_fecs_trace_get_write_index(struct gk20a *g);
+int gm20b_fecs_trace_get_write_index(struct gk20a *g)
+{
+	return gr_gk20a_elpg_protected_call(g,
+			nvgpu_readl(g, gr_fecs_mailbox0_r()));
+}
 
-#endif /* CONFIG_GK20A_CTXSW_TRACE */
-
-#endif
+int gm20b_fecs_trace_set_read_index(struct gk20a *g, int index)
+{
+	nvgpu_log(g, gpu_dbg_ctxsw, "set read=%d", index);
+	return gr_gk20a_elpg_protected_call(g,
+			(nvgpu_writel(g, gr_fecs_mailbox1_r(), index), 0));
+}

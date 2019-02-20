@@ -53,6 +53,7 @@
 #include "common/gr/ctxsw_prog/ctxsw_prog_gp10b.h"
 #include "common/gr/config/gr_config_gm20b.h"
 #include "common/gr/zbc/gr_zbc_gp10b.h"
+#include "common/gr/fecs_trace/fecs_trace_gm20b.h"
 #include "common/therm/therm_gm20b.h"
 #include "common/therm/therm_gp10b.h"
 #include "common/ltc/ltc_gm20b.h"
@@ -668,6 +669,9 @@ static const struct gpu_ops gp10b_ops = {
 		.max_entries = gk20a_gr_max_entries,
 		.get_buffer_full_mailbox_val =
 			gk20a_fecs_trace_get_buffer_full_mailbox_val,
+		.get_read_index = gm20b_fecs_trace_get_read_index,
+		.get_write_index = gm20b_fecs_trace_get_write_index,
+		.set_read_index = gm20b_fecs_trace_set_read_index,
 	},
 #endif /* CONFIG_GK20A_CTXSW_TRACE */
 	.mm = {

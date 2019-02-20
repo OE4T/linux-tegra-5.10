@@ -25,6 +25,7 @@
 #include <nvgpu/log.h>
 #include <nvgpu/log2.h>
 #include <nvgpu/enabled.h>
+#include <nvgpu/gr/global_ctx.h>
 #include <nvgpu/gr/fecs_trace.h>
 
 int nvgpu_gr_fecs_trace_add_context(struct gk20a *g, u32 context_ptr,
@@ -186,4 +187,35 @@ int nvgpu_gr_fecs_trace_deinit(struct gk20a *g)
 	nvgpu_kfree(g, g->fecs_trace);
 	g->fecs_trace = NULL;
 	return 0;
+}
+
+int nvgpu_gr_fecs_trace_num_ts(struct gk20a *g)
+{
+	return (g->ops.gr.ctxsw_prog.hw_get_ts_record_size_in_bytes()
+		- sizeof(struct nvgpu_fecs_trace_record)) / sizeof(u64);
+}
+
+struct nvgpu_fecs_trace_record *nvgpu_gr_fecs_trace_get_record(
+	struct gk20a *g, int idx)
+{
+	struct nvgpu_mem *mem = nvgpu_gr_global_ctx_buffer_get_mem(
+					g->gr.global_ctx_buffer,
+					NVGPU_GR_GLOBAL_CTX_FECS_TRACE_BUFFER);
+	if (mem == NULL) {
+		return NULL;
+	}
+
+	return (struct nvgpu_fecs_trace_record *)
+		((u8 *) mem->cpu_va +
+		(idx * g->ops.gr.ctxsw_prog.hw_get_ts_record_size_in_bytes()));
+}
+
+bool nvgpu_gr_fecs_trace_is_valid_record(struct gk20a *g,
+	struct nvgpu_fecs_trace_record *r)
+{
+	/*
+	 * testing magic_hi should suffice. magic_lo is sometimes used
+	 * as a sequence number in experimental ucode.
+	 */
+	return g->ops.gr.ctxsw_prog.is_ts_valid_record(r->magic_hi);
 }
