@@ -26,7 +26,21 @@
 #include <pthread.h>
 
 #include <nvgpu/types.h>
+#include <nvgpu/atomic.h>
 
+/*
+ * For some reason POSIX only allows 16 bytes of name length.
+ */
+#define NVGPU_THREAD_POSIX_MAX_NAMELEN		16
+
+#define nvgpu_thread_cleanup_push(handler, data) \
+			pthread_cleanup_push(handler, data)
+
+#define nvgpu_thread_cleanup_pop() pthread_cleanup_pop(1)
+
+#define nvgpu_getpid getpid
+
+#define nvgpu_gettid pthread_self
 /*
  * Handles passing an nvgpu thread function into a posix thread.
  */
@@ -35,17 +49,16 @@ struct nvgpu_posix_thread_data {
 	void *data;
 };
 
-/*
- * For some reason POSIX only allows 16 bytes of name length.
- */
-#define NVGPU_THREAD_POSIX_MAX_NAMELEN		16
-
 struct nvgpu_thread {
-	bool running;
+	nvgpu_atomic_t running;
 	bool should_stop;
 	pthread_t thread;
 	struct nvgpu_posix_thread_data nvgpu;
-	char tname[16];
+	char tname[NVGPU_THREAD_POSIX_MAX_NAMELEN];
 };
+
+int nvgpu_thread_create_priority(struct nvgpu_thread *thread,
+			void *data, int (*threadfn)(void *data),
+			int priority, const char *name);
 
 #endif /* NVGPU_POSIX_THREAD_H */

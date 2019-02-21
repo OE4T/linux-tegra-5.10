@@ -23,8 +23,6 @@
 #include <nvgpu/bug.h>
 #include <nvgpu/thread.h>
 
-#include <nvgpu/posix/thread.h>
-
 /**
  * Use pthreads to mostly emulate the Linux kernel APIs. There are some things
  * that are quite different - especially the stop/should_stop notions. In user
@@ -41,18 +39,23 @@
  */
 static void *__nvgpu_posix_thread_wrapper(void *data)
 {
-	struct nvgpu_posix_thread_data *nvgpu = data;
+	struct nvgpu_posix_thread_data *nvgpu =
+				(struct nvgpu_posix_thread_data *)data;
 
 	return ERR_PTR(nvgpu->fn(nvgpu->data));
+}
+
+static void nvgpu_thread_cancel_sync(struct nvgpu_thread *thread)
+{
+	(void) pthread_cancel(thread->thread);
 }
 
 int nvgpu_thread_create(struct nvgpu_thread *thread,
 			void *data,
 			int (*threadfn)(void *data), const char *name)
 {
+	pthread_attr_t attr;
 	int ret;
-
-	BUG_ON(thread->running);
 
 	(void) memset(thread, 0, sizeof(*thread));
 
@@ -60,16 +63,25 @@ int nvgpu_thread_create(struct nvgpu_thread *thread,
 	 * By subtracting 1 the above memset ensures that we have a zero
 	 * terminated string.
 	 */
-	(void) strncpy(thread->tname, name,
-		NVGPU_THREAD_POSIX_MAX_NAMELEN - 1);
+	if (name != NULL) {
+		(void) strncpy(thread->tname, name,
+			NVGPU_THREAD_POSIX_MAX_NAMELEN - 1);
+	}
 
 	thread->nvgpu.data = data;
 	thread->nvgpu.fn = threadfn;
 
-	ret = pthread_create(&thread->thread, NULL,
+	nvgpu_atomic_set(&thread->running, 1);
+	ret = pthread_attr_init(&attr);
+	if (ret != 0) {
+		return ret;
+	}
+
+	ret = pthread_create(&thread->thread, &attr,
 			     __nvgpu_posix_thread_wrapper,
 			     &thread->nvgpu);
 	if (ret != 0) {
+		(void) pthread_attr_destroy(&attr);
 		return ret;
 	}
 
@@ -77,20 +89,95 @@ int nvgpu_thread_create(struct nvgpu_thread *thread,
 	pthread_setname_np(thread->thread, thread->tname);
 #endif
 
-	thread->running = true;
+	ret = pthread_attr_destroy(&attr);
+	if (ret != 0) {
+		(void) pthread_cancel(thread->thread);
+		return ret;
+	}
+
+	return 0;
+}
+
+int nvgpu_thread_create_priority(struct nvgpu_thread *thread,
+			void *data, int (*threadfn)(void *data),
+			int priority, const char *name)
+{
+	pthread_attr_t attr;
+	struct sched_param param;
+	int ret;
+
+	(void) memset(thread, 0, sizeof(*thread));
+	(void) memset(&param, 0, sizeof(struct sched_param));
+
+	/*
+	 * By subtracting 1 the above memset ensures that we have a zero
+	 * terminated string.
+	 */
+	if (name != NULL) {
+		(void) strncpy(thread->tname, name,
+			NVGPU_THREAD_POSIX_MAX_NAMELEN - 1);
+	}
+
+	thread->nvgpu.data = data;
+	thread->nvgpu.fn = threadfn;
+
+	nvgpu_atomic_set(&thread->running, 1);
+
+	ret = pthread_attr_init(&attr);
+	if (ret != 0) {
+		return ret;
+	}
+
+	ret = pthread_attr_setinheritsched(&attr, PTHREAD_EXPLICIT_SCHED);
+	if (ret != 0) {
+		(void) pthread_attr_destroy(&attr);
+		return ret;
+	}
+
+	ret = pthread_attr_setschedpolicy(&attr, SCHED_FIFO);
+	if (ret != 0) {
+		(void) pthread_attr_destroy(&attr);
+		return ret;
+	}
+
+	param.sched_priority = priority;
+	ret = pthread_attr_setschedparam(&attr, &param);
+	if (ret != 0) {
+		(void) pthread_attr_destroy(&attr);
+		return ret;
+	}
+
+	ret = pthread_create(&thread->thread, &attr,
+			__nvgpu_posix_thread_wrapper, &thread->nvgpu);
+	if (ret != 0) {
+		(void) pthread_attr_destroy(&attr);
+		return ret;
+	}
+
+#ifdef _GNU_SOURCE
+	pthread_setname_np(thread->thread, thread->tname);
+#endif
+
+	ret = pthread_attr_destroy(&attr);
+	if (ret != 0) {
+		(void) pthread_cancel(thread->thread);
+		return ret;
+	}
 
 	return 0;
 }
 
 void nvgpu_thread_stop(struct nvgpu_thread *thread)
 {
-	thread->should_stop = true;
+	nvgpu_atomic_set(&thread->running, 0);
+	nvgpu_thread_cancel_sync(thread);
+	nvgpu_thread_join(thread);
 }
 
 void nvgpu_thread_stop_graceful(struct nvgpu_thread *thread,
 		void (*thread_stop_fn)(void *data), void *data)
 {
-	thread->should_stop = true;
+	nvgpu_atomic_set(&thread->running, 0);
 	if (thread_stop_fn != NULL) {
 		thread_stop_fn(data);
 	}
@@ -99,12 +186,12 @@ void nvgpu_thread_stop_graceful(struct nvgpu_thread *thread,
 
 bool nvgpu_thread_should_stop(struct nvgpu_thread *thread)
 {
-	return thread->should_stop;
+	return (nvgpu_atomic_read(&thread->running) == 0);
 }
 
 bool nvgpu_thread_is_running(struct nvgpu_thread *thread)
 {
-	return thread->running;
+	return (nvgpu_atomic_read(&thread->running) == 1);
 }
 
 void nvgpu_thread_join(struct nvgpu_thread *thread)
