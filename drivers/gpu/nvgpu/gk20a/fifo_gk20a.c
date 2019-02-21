@@ -394,7 +394,7 @@ static int nvgpu_init_runlist_enginfo(struct gk20a *g, struct fifo_gk20a *f)
 	nvgpu_log_fn(g, " ");
 
 	for (runlist_id = 0; runlist_id < f->max_runlists; runlist_id++) {
-		runlist = &f->runlist_info[runlist_id];
+		runlist = f->runlist_info[runlist_id];
 
 		for (pbdma_id = 0; pbdma_id < f->num_pbdma; pbdma_id++) {
 			if ((f->pbdma_map[pbdma_id] & BIT32(runlist_id)) != 0U) {
@@ -1347,7 +1347,7 @@ static bool gk20a_fifo_handle_mmu_fault(
 
 	nvgpu_log_info(g, "acquire runlist_lock for all runlists");
 	for (rlid = 0; rlid < g->fifo.max_runlists; rlid++) {
-		nvgpu_mutex_acquire(&g->fifo.runlist_info[rlid].runlist_lock);
+		nvgpu_mutex_acquire(&g->fifo.runlist_info[rlid]->runlist_lock);
 	}
 
 	verbose = gk20a_fifo_handle_mmu_fault_locked(g, mmu_fault_engines,
@@ -1355,7 +1355,7 @@ static bool gk20a_fifo_handle_mmu_fault(
 
 	nvgpu_log_info(g, "release runlist_lock for all runlists");
 	for (rlid = 0; rlid < g->fifo.max_runlists; rlid++) {
-		nvgpu_mutex_release(&g->fifo.runlist_info[rlid].runlist_lock);
+		nvgpu_mutex_release(&g->fifo.runlist_info[rlid]->runlist_lock);
 	}
 	return verbose;
 }
@@ -1454,7 +1454,7 @@ void gk20a_fifo_teardown_ch_tsg(struct gk20a *g, u32 __engine_ids,
 
 	nvgpu_log_info(g, "acquire runlist_lock for all runlists");
 	for (rlid = 0; rlid < g->fifo.max_runlists; rlid++) {
-		nvgpu_mutex_acquire(&g->fifo.runlist_info[rlid].runlist_lock);
+		nvgpu_mutex_acquire(&g->fifo.runlist_info[rlid]->runlist_lock);
 	}
 
 	if (id_is_known) {
@@ -1516,7 +1516,7 @@ void gk20a_fifo_teardown_ch_tsg(struct gk20a *g, u32 __engine_ids,
 
 	nvgpu_log_info(g, "release runlist_lock for all runlists");
 	for (rlid = 0; rlid < g->fifo.max_runlists; rlid++) {
-		nvgpu_mutex_release(&g->fifo.runlist_info[rlid].runlist_lock);
+		nvgpu_mutex_release(&g->fifo.runlist_info[rlid]->runlist_lock);
 	}
 }
 
@@ -2272,7 +2272,7 @@ int gk20a_fifo_preempt_channel(struct gk20a *g, struct channel_gk20a *ch)
 
 	/* we have no idea which runlist we are using. lock all */
 	for (i = 0; i < g->fifo.max_runlists; i++) {
-		nvgpu_mutex_acquire(&f->runlist_info[i].runlist_lock);
+		nvgpu_mutex_acquire(&f->runlist_info[i]->runlist_lock);
 	}
 
 	if (g->ops.pmu.is_pmu_supported(g)) {
@@ -2287,7 +2287,7 @@ int gk20a_fifo_preempt_channel(struct gk20a *g, struct channel_gk20a *ch)
 	}
 
 	for (i = 0; i < g->fifo.max_runlists; i++) {
-		nvgpu_mutex_release(&f->runlist_info[i].runlist_lock);
+		nvgpu_mutex_release(&f->runlist_info[i]->runlist_lock);
 	}
 
 	if (ret != 0) {
@@ -2317,7 +2317,7 @@ int gk20a_fifo_preempt_tsg(struct gk20a *g, struct tsg_gk20a *tsg)
 
 	/* we have no idea which runlist we are using. lock all */
 	for (i = 0; i < g->fifo.max_runlists; i++) {
-		nvgpu_mutex_acquire(&f->runlist_info[i].runlist_lock);
+		nvgpu_mutex_acquire(&f->runlist_info[i]->runlist_lock);
 	}
 
 	if (g->ops.pmu.is_pmu_supported(g)) {
@@ -2332,7 +2332,7 @@ int gk20a_fifo_preempt_tsg(struct gk20a *g, struct tsg_gk20a *tsg)
 	}
 
 	for (i = 0; i < g->fifo.max_runlists; i++) {
-		nvgpu_mutex_release(&f->runlist_info[i].runlist_lock);
+		nvgpu_mutex_release(&f->runlist_info[i]->runlist_lock);
 	}
 
 	if (ret != 0) {

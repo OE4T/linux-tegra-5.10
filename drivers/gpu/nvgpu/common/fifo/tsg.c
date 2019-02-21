@@ -94,7 +94,7 @@ static bool gk20a_is_channel_active(struct gk20a *g, struct channel_gk20a *ch)
 	unsigned int i;
 
 	for (i = 0; i < f->max_runlists; ++i) {
-		runlist = &f->runlist_info[i];
+		runlist = f->runlist_info[i];
 		if (test_bit((int)ch->chid, runlist->active_channels)) {
 			return true;
 		}
