@@ -482,8 +482,8 @@ static int gv100_nvlink_state_load_hal(struct gk20a *g)
 	return gv100_nvlink_minion_load(g);
 }
 
-#define TRIM_SYS_NVLINK_CTRL(i) (trim_sys_nvlink0_ctrl_r() + 16U*i)
-#define TRIM_SYS_NVLINK_STATUS(i) (trim_sys_nvlink0_status_r() + 16U*i)
+#define TRIM_SYS_NVLINK_CTRL(i) (trim_sys_nvlink0_ctrl_r() + 16U*(i))
+#define TRIM_SYS_NVLINK_STATUS(i) (trim_sys_nvlink0_status_r() + 16U*(i))
 
 int gv100_nvlink_setup_pll(struct gk20a *g, unsigned long link_mask)
 {
