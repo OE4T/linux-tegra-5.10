@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -126,9 +126,9 @@ static inline void __nvgpu_atomic64_dec(nvgpu_atomic64_t *v)
 	atomic64_dec(&v->atomic_var);
 }
 
-static inline void __nvgpu_atomic64_dec_return(nvgpu_atomic64_t *v)
+static inline int __nvgpu_atomic64_dec_return(nvgpu_atomic64_t *v)
 {
-	atomic64_dec_return(&v->atomic_var);
+	return atomic64_dec_return(&v->atomic_var);
 }
 
 static inline long __nvgpu_atomic64_cmpxchg(nvgpu_atomic64_t *v,

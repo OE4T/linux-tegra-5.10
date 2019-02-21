@@ -109,9 +109,9 @@ static inline void nvgpu_atomic64_dec(nvgpu_atomic64_t *v)
 {
 	__nvgpu_atomic64_dec(v);
 }
-static inline void nvgpu_atomic64_dec_return(nvgpu_atomic64_t *v)
+static inline long nvgpu_atomic64_dec_return(nvgpu_atomic64_t *v)
 {
-	__nvgpu_atomic64_dec_return(v);
+	return __nvgpu_atomic64_dec_return(v);
 }
 static inline long nvgpu_atomic64_cmpxchg(nvgpu_atomic64_t *v, long old,
 					long new)
