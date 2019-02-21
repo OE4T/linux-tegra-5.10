@@ -120,18 +120,18 @@ static const struct nvlink_reginit nvlink_reginit_per_link_gpu[] = {
 };
 
 static int gv100_nvlink_get_tlc_reginit(enum nvgpu_nvlink_endp endp,
-		struct nvlink_reginit **reg, u32 *count)
+		const struct nvlink_reginit **reg, u32 *count)
 {
 	int ret = 0;
 
 	switch(endp) {
 	case nvgpu_nvlink_endp_tegra:
-		*reg = (struct nvlink_reginit *)
+		*reg = (const struct nvlink_reginit *)
 			nvlink_reginit_per_link_tegra;
 		*count = (u32)ARRAY_SIZE(nvlink_reginit_per_link_tegra);
 		break;
 	case nvgpu_nvlink_endp_gpu:
-		*reg = (struct nvlink_reginit *)
+		*reg = (const struct nvlink_reginit *)
 			nvlink_reginit_per_link_gpu;
 		*count = (u32)ARRAY_SIZE(nvlink_reginit_per_link_gpu);
 		break;
@@ -147,7 +147,7 @@ int gv100_nvlink_reg_init(struct gk20a *g)
 {
 	u32 i = 0;
 	u32 count = 0;
-	struct nvlink_reginit *reg;
+	const struct nvlink_reginit *reg;
 	enum nvgpu_nvlink_endp endp;
 	int err;
 	u32 link_id;
