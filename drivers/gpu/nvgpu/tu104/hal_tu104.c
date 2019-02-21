@@ -986,6 +986,8 @@ static const struct gpu_ops tu104_ops = {
 		.secured_pmu_start = gm20b_secured_pmu_start,
 		.create_ssmd_lookup_table = nvgpu_pmu_create_ssmd_lookup_table,
 		.save_zbc = gk20a_pmu_save_zbc,
+		.pmu_clear_bar0_host_err_status =
+			gm20b_clear_pmu_bar0_host_err_status,
 	},
 	.clk = {
 		.init_clk_support = gv100_init_clk_support,

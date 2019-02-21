@@ -35,6 +35,22 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/string.h>
 #include <nvgpu/power_features/cg.h>
+#include <nvgpu/nvgpu_err.h>
+
+static void pmu_report_error(struct gk20a *g, u32 err_type,
+		u32 status, u32 pmu_err_type)
+{
+	int ret = 0;
+
+	if (g->ops.pmu.err_ops.report_pmu_err != NULL) {
+		ret = g->ops.pmu.err_ops.report_pmu_err(g,
+			NVGPU_ERR_MODULE_PWR, err_type, status, pmu_err_type);
+		if (ret != 0) {
+			nvgpu_err(g, "Failed to report PMU error: %d",
+					err_type);
+		}
+	}
+}
 
 static int pmu_enable_hw(struct nvgpu_pmu *pmu, bool enable)
 {
@@ -649,4 +665,12 @@ void nvgpu_pmu_get_cmd_line_args_offset(struct gk20a *g,
 	}
 
 	*args_offset = dmem_size - g->ops.pmu_ver.get_pmu_cmdline_args_size(pmu);
+}
+
+void nvgpu_pmu_report_bar0_pri_err_status(struct gk20a *g, u32 bar0_status,
+	u32 error_type)
+{
+	pmu_report_error(g,
+		GPU_PMU_BAR0_ERROR_TIMEOUT, bar0_status, error_type);
+	return;
 }

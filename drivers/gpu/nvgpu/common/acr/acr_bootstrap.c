@@ -38,6 +38,8 @@ static int acr_wait_for_completion(struct gk20a *g,
 	u32 sctl, cpuctl;
 	int completion = 0;
 	u32 data = 0;
+	u32 bar0_status = 0;
+	u32 error_type;
 
 	nvgpu_log_fn(g, " ");
 
@@ -45,7 +47,17 @@ static int acr_wait_for_completion(struct gk20a *g,
 	if (completion != 0) {
 		nvgpu_err(g, "flcn-%d: HS ucode boot timed out", flcn_id);
 		nvgpu_falcon_dump_stats(flcn);
+		error_type = ACR_BOOT_TIMEDOUT;
 		goto exit;
+	}
+
+	if (g->acr.acr.acr_engine_bus_err_status != NULL) {
+		completion = g->acr.acr.acr_engine_bus_err_status(g,
+			&bar0_status, &error_type);
+		if (completion != 0) {
+			nvgpu_err(g, "flcn-%d: ACR engine bus error", flcn_id);
+			goto exit;
+		}
 	}
 
 	nvgpu_acr_dbg(g, "flcn-%d: HS ucode capabilities %x", flcn_id,
@@ -56,6 +68,7 @@ static int acr_wait_for_completion(struct gk20a *g,
 		nvgpu_err(g, "flcn-%d: HS ucode boot failed, err %x", flcn_id,
 			data);
 		completion = -EAGAIN;
+		error_type = ACR_BOOT_FAILED;
 		goto exit;
 	}
 
@@ -65,6 +78,12 @@ static int acr_wait_for_completion(struct gk20a *g,
 			flcn_id, sctl, cpuctl);
 
 exit:
+	if (completion != 0) {
+		if (g->acr.acr.report_acr_engine_bus_err_status != NULL) {
+			g->acr.acr.report_acr_engine_bus_err_status(g,
+				bar0_status, error_type);
+		}
+	}
 	return completion;
 }
 

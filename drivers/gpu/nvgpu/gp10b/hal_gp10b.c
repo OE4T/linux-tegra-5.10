@@ -762,6 +762,8 @@ static const struct gpu_ops gp10b_ops = {
 		.get_irqdest = gk20a_pmu_get_irqdest,
 		.is_debug_mode_enabled = gm20b_pmu_is_debug_mode_en,
 		.save_zbc = gk20a_pmu_save_zbc,
+		.pmu_clear_bar0_host_err_status =
+			gm20b_clear_pmu_bar0_host_err_status,
 	},
 	.clk_arb = {
 		.check_clk_arb_support = gp10b_check_clk_arb_support,

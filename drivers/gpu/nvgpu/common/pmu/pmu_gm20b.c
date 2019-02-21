@@ -414,3 +414,11 @@ bool gm20b_is_pmu_supported(struct gk20a *g)
 {
 	return true;
 }
+
+void gm20b_clear_pmu_bar0_host_err_status(struct gk20a *g)
+{
+	u32 status;
+
+	status = gk20a_readl(g, pwr_pmu_bar0_host_error_r());
+	gk20a_writel(g, pwr_pmu_bar0_host_error_r(), status);
+}

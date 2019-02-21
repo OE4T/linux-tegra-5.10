@@ -891,3 +891,58 @@ u32 gk20a_pmu_falcon_base_addr(void)
 {
 	return pwr_falcon_irqsset_r();
 }
+
+int gk20a_pmu_bar0_error_status(struct gk20a *g, u32 *bar0_status,
+	u32 *etype)
+{
+	u32 val = 0;
+	u32 err_status = 0;
+
+	val = gk20a_readl(g, pwr_pmu_bar0_error_status_r());
+	*bar0_status = val;
+	if (val == 0U) {
+		return 0;
+	}
+	if ((val & pwr_pmu_bar0_error_status_timeout_host_m()) != 0U) {
+		*etype = ((val & pwr_pmu_bar0_error_status_err_cmd_m()) != 0U)
+			? PMU_BAR0_HOST_WRITE_TOUT : PMU_BAR0_HOST_READ_TOUT;
+	} else if ((val & pwr_pmu_bar0_error_status_timeout_fecs_m()) != 0U) {
+		*etype = ((val & pwr_pmu_bar0_error_status_err_cmd_m()) != 0U)
+			? PMU_BAR0_FECS_WRITE_TOUT : PMU_BAR0_FECS_READ_TOUT;
+	} else if ((val & pwr_pmu_bar0_error_status_cmd_hwerr_m()) != 0U) {
+		*etype = ((val & pwr_pmu_bar0_error_status_err_cmd_m()) != 0U)
+			? PMU_BAR0_CMD_WRITE_HWERR : PMU_BAR0_CMD_READ_HWERR;
+	} else if ((val & pwr_pmu_bar0_error_status_fecserr_m()) != 0U) {
+		*etype = ((val & pwr_pmu_bar0_error_status_err_cmd_m()) != 0U)
+			? PMU_BAR0_WRITE_FECSERR : PMU_BAR0_READ_FECSERR;
+		err_status = gk20a_readl(g, pwr_pmu_bar0_fecs_error_r());
+		/*
+		 * BAR0_FECS_ERROR would only record the first error code if
+		 * multiple FECS error happen. Once BAR0_FECS_ERROR is cleared,
+		 * BAR0_FECS_ERROR can record the error code from FECS again.
+		 * Writing status regiter to clear the FECS Hardware state.
+		 */
+		gk20a_writel(g, pwr_pmu_bar0_fecs_error_r(), err_status);
+	} else if ((val & pwr_pmu_bar0_error_status_hosterr_m()) != 0U) {
+		*etype = ((val & pwr_pmu_bar0_error_status_err_cmd_m()) != 0U)
+			? PMU_BAR0_WRITE_HOSTERR : PMU_BAR0_READ_HOSTERR;
+		/*
+		 * BAR0_HOST_ERROR would only record the first error code if
+		 * multiple HOST error happen. Once BAR0_HOST_ERROR is cleared,
+		 * BAR0_HOST_ERROR can record the error code from HOST again.
+		 * Writing status regiter to clear the FECS Hardware state.
+		 *
+		 * Defining clear ops for host err as gk20a does not have
+		 * status register for this.
+		 */
+		if (g->ops.pmu.pmu_clear_bar0_host_err_status != NULL) {
+			g->ops.pmu.pmu_clear_bar0_host_err_status(g);
+		}
+	} else {
+		nvgpu_err(g, "PMU bar0 status type is not found");
+	}
+
+	/* Writing Bar0 status regiter to clear the Hardware state */
+	gk20a_writel(g, pwr_pmu_bar0_error_status_r(), val);
+	return (-EIO);
+}

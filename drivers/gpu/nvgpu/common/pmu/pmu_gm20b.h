@@ -1,7 +1,7 @@
 /*
  * GM20B PMU
  *
- * Copyright (c) 2014-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -41,4 +41,5 @@ int gm20b_pmu_setup_hw_and_bl_bootstrap(struct gk20a *g,
 	struct nvgpu_falcon_bl_info *bl_info);
 void gm20b_secured_pmu_start(struct gk20a *g);
 bool gm20b_is_pmu_supported(struct gk20a *g);
+void gm20b_clear_pmu_bar0_host_err_status(struct gk20a *g);
 #endif /*NVGPU_GM20B_PMU_GM20B_H*/

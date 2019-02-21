@@ -122,6 +122,20 @@ enum pmu_seq_state {
 	PMU_SEQ_STATE_CANCELLED
 };
 
+#define	PMU_BAR0_SUCCESS		0U
+#define	PMU_BAR0_HOST_READ_TOUT		1U
+#define	PMU_BAR0_HOST_WRITE_TOUT	2U
+#define	PMU_BAR0_FECS_READ_TOUT		3U
+#define	PMU_BAR0_FECS_WRITE_TOUT	4U
+#define	PMU_BAR0_CMD_READ_HWERR		5U
+#define	PMU_BAR0_CMD_WRITE_HWERR	6U
+#define	PMU_BAR0_READ_HOSTERR		7U
+#define	PMU_BAR0_WRITE_HOSTERR		8U
+#define	PMU_BAR0_READ_FECSERR		9U
+#define	PMU_BAR0_WRITE_FECSERR		10U
+#define	ACR_BOOT_TIMEDOUT		11U
+#define	ACR_BOOT_FAILED			12U
+
 /*PG defines used by nvpgu-pmu*/
 #define PMU_PG_IDLE_THRESHOLD_SIM		1000U
 #define PMU_PG_POST_POWERUP_IDLE_THRESHOLD_SIM	4000000U
@@ -533,5 +547,9 @@ u32 nvgpu_pmu_get_ss_member_set_size(struct nvgpu_pmu *pmu, u32 member_id);
 u32 nvgpu_pmu_get_ss_member_get_status_size(struct nvgpu_pmu *pmu,
 	u32 member_id);
 
+void nvgpu_pmu_report_bar0_pri_err_status(struct gk20a *g, u32 bar0_status,
+	u32 error_type);
+int gk20a_pmu_bar0_error_status(struct gk20a *g, u32 *bar0_status,
+	u32 *etype);
 #endif /* NVGPU_PMU_H */
 

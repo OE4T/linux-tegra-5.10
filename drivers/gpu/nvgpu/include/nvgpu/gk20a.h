@@ -1283,9 +1283,13 @@ struct gpu_ops {
 					u32 hw_id, u32 inst,
 					u32 err_id, u64 err_addr,
 					u64 err_cnt);
+			int (*report_pmu_err)(struct gk20a *g,
+				u32 hw_id, u32 err_id, u32 status,
+				u32 pmu_err_type);
 		} err_ops;
 		void (*create_ssmd_lookup_table)(struct nvgpu_pmu *pmu);
 		void (*save_zbc)(struct gk20a *g, u32 entries);
+		void (*pmu_clear_bar0_host_err_status)(struct gk20a *g);
 	} pmu;
 	struct {
 		int (*init_debugfs)(struct gk20a *g);

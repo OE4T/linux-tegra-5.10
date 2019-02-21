@@ -914,6 +914,8 @@ static const struct gpu_ops gv11b_ops = {
 		.init_wpr_region = gm20b_pmu_init_acr,
 		.load_lsfalcon_ucode = gp10b_load_falcon_ucode,
 		.save_zbc = gk20a_pmu_save_zbc,
+		.pmu_clear_bar0_host_err_status =
+			gm20b_clear_pmu_bar0_host_err_status,
 #endif
 	},
 	.clk_arb = {

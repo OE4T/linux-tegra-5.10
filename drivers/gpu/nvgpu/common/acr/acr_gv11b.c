@@ -163,6 +163,10 @@ static void gv11b_acr_default_sw_init(struct gk20a *g, struct hs_acr *hs_acr)
 	hs_acr->acr_flcn = g->pmu.flcn;
 	hs_acr->acr_flcn_setup_hw_and_bl_bootstrap =
 		gm20b_pmu_setup_hw_and_bl_bootstrap;
+	hs_acr->report_acr_engine_bus_err_status =
+		nvgpu_pmu_report_bar0_pri_err_status;
+	hs_acr->acr_engine_bus_err_status =
+		gk20a_pmu_bar0_error_status;
 }
 
 void nvgpu_gv11b_acr_sw_init(struct gk20a *g, struct nvgpu_acr *acr)
