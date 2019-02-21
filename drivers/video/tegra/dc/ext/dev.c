@@ -1645,7 +1645,7 @@ static int tegra_dc_ext_configure_nvdisp_cmu_user_data(
 	if (knvdisp_cmu->cmu_enable) {
 		if (flip_udata->flags &
 			TEGRA_DC_EXT_FLIP_FLAG_UPDATE_NVDISP_CMU) {
-			size = sizeof(knvdisp_cmu) - size;
+			size = sizeof(*knvdisp_cmu) - size;
 			if (copy_from_user(&knvdisp_cmu->lut_size,
 				(void __user *)
 				(uintptr_t)&unvdisp_cmu->lut_size,
