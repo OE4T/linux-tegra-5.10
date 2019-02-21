@@ -747,7 +747,6 @@ int gr_gk20a_commit_global_ctx_buffers(struct gk20a *g,
 
 int gr_gk20a_commit_global_timeslice(struct gk20a *g, struct channel_gk20a *c)
 {
-	struct gr_gk20a *gr = &g->gr;
 	struct nvgpu_gr_ctx *gr_ctx = NULL;
 	u32 gpm_pd_cfg;
 	u32 pd_ab_dist_cfg0;
@@ -763,34 +762,22 @@ int gr_gk20a_commit_global_timeslice(struct gk20a *g, struct channel_gk20a *c)
 	ds_debug = gk20a_readl(g, gr_ds_debug_r());
 	mpc_vtg_debug = gk20a_readl(g, gr_gpcs_tpcs_mpc_vtg_debug_r());
 
-	if (gr->timeslice_mode == gr_gpcs_ppcs_cbm_cfg_timeslice_mode_enable_v()) {
-		pe_vaf = gk20a_readl(g, gr_gpcs_tpcs_pe_vaf_r());
-		pe_vsc_vpc = gk20a_readl(g, gr_gpcs_tpcs_pes_vsc_vpc_r());
+	pe_vaf = gk20a_readl(g, gr_gpcs_tpcs_pe_vaf_r());
+	pe_vsc_vpc = gk20a_readl(g, gr_gpcs_tpcs_pes_vsc_vpc_r());
 
-		gpm_pd_cfg = gr_gpcs_gpm_pd_cfg_timeslice_mode_enable_f() | gpm_pd_cfg;
-		pe_vaf = gr_gpcs_tpcs_pe_vaf_fast_mode_switch_true_f() | pe_vaf;
-		pe_vsc_vpc = gr_gpcs_tpcs_pes_vsc_vpc_fast_mode_switch_true_f() | pe_vsc_vpc;
-		pd_ab_dist_cfg0 = gr_pd_ab_dist_cfg0_timeslice_enable_en_f() | pd_ab_dist_cfg0;
-		ds_debug = gr_ds_debug_timeslice_mode_enable_f() | ds_debug;
-		mpc_vtg_debug = gr_gpcs_tpcs_mpc_vtg_debug_timeslice_mode_enabled_f() | mpc_vtg_debug;
+	gpm_pd_cfg = gr_gpcs_gpm_pd_cfg_timeslice_mode_enable_f() | gpm_pd_cfg;
+	pe_vaf = gr_gpcs_tpcs_pe_vaf_fast_mode_switch_true_f() | pe_vaf;
+	pe_vsc_vpc = gr_gpcs_tpcs_pes_vsc_vpc_fast_mode_switch_true_f() | pe_vsc_vpc;
+	pd_ab_dist_cfg0 = gr_pd_ab_dist_cfg0_timeslice_enable_en_f() | pd_ab_dist_cfg0;
+	ds_debug = gr_ds_debug_timeslice_mode_enable_f() | ds_debug;
+	mpc_vtg_debug = gr_gpcs_tpcs_mpc_vtg_debug_timeslice_mode_enabled_f() | mpc_vtg_debug;
 
-		nvgpu_gr_ctx_patch_write(g, gr_ctx, gr_gpcs_gpm_pd_cfg_r(), gpm_pd_cfg, false);
-		nvgpu_gr_ctx_patch_write(g, gr_ctx, gr_gpcs_tpcs_pe_vaf_r(), pe_vaf, false);
-		nvgpu_gr_ctx_patch_write(g, gr_ctx, gr_gpcs_tpcs_pes_vsc_vpc_r(), pe_vsc_vpc, false);
-		nvgpu_gr_ctx_patch_write(g, gr_ctx, gr_pd_ab_dist_cfg0_r(), pd_ab_dist_cfg0, false);
-		nvgpu_gr_ctx_patch_write(g, gr_ctx, gr_ds_debug_r(), ds_debug, false);
-		nvgpu_gr_ctx_patch_write(g, gr_ctx, gr_gpcs_tpcs_mpc_vtg_debug_r(), mpc_vtg_debug, false);
-	} else {
-		gpm_pd_cfg = gr_gpcs_gpm_pd_cfg_timeslice_mode_disable_f() | gpm_pd_cfg;
-		pd_ab_dist_cfg0 = gr_pd_ab_dist_cfg0_timeslice_enable_dis_f() | pd_ab_dist_cfg0;
-		ds_debug = gr_ds_debug_timeslice_mode_disable_f() | ds_debug;
-		mpc_vtg_debug = gr_gpcs_tpcs_mpc_vtg_debug_timeslice_mode_disabled_f() | mpc_vtg_debug;
-
-		nvgpu_gr_ctx_patch_write(g, gr_ctx, gr_gpcs_gpm_pd_cfg_r(), gpm_pd_cfg, false);
-		nvgpu_gr_ctx_patch_write(g, gr_ctx, gr_pd_ab_dist_cfg0_r(), pd_ab_dist_cfg0, false);
-		nvgpu_gr_ctx_patch_write(g, gr_ctx, gr_ds_debug_r(), ds_debug, false);
-		nvgpu_gr_ctx_patch_write(g, gr_ctx, gr_gpcs_tpcs_mpc_vtg_debug_r(), mpc_vtg_debug, false);
-	}
+	nvgpu_gr_ctx_patch_write(g, gr_ctx, gr_gpcs_gpm_pd_cfg_r(), gpm_pd_cfg, false);
+	nvgpu_gr_ctx_patch_write(g, gr_ctx, gr_gpcs_tpcs_pe_vaf_r(), pe_vaf, false);
+	nvgpu_gr_ctx_patch_write(g, gr_ctx, gr_gpcs_tpcs_pes_vsc_vpc_r(), pe_vsc_vpc, false);
+	nvgpu_gr_ctx_patch_write(g, gr_ctx, gr_pd_ab_dist_cfg0_r(), pd_ab_dist_cfg0, false);
+	nvgpu_gr_ctx_patch_write(g, gr_ctx, gr_ds_debug_r(), ds_debug, false);
+	nvgpu_gr_ctx_patch_write(g, gr_ctx, gr_gpcs_tpcs_mpc_vtg_debug_r(), mpc_vtg_debug, false);
 
 	return 0;
 }
@@ -2389,7 +2376,6 @@ static int gr_gk20a_init_gr_config(struct gk20a *g, struct gr_gk20a *gr)
 	g->ops.gr.bundle_cb_defaults(g);
 	g->ops.gr.cb_size_default(g);
 	g->ops.gr.calc_global_ctx_buffer_size(g);
-	gr->timeslice_mode = gr_gpcs_ppcs_cbm_cfg_timeslice_mode_enable_v();
 
 	nvgpu_log_info(g, "bundle_cb_default_size: %d",
 		   gr->bundle_cb_default_size);
@@ -2400,7 +2386,6 @@ static int gr_gk20a_init_gr_config(struct gk20a *g, struct gr_gk20a *gr)
 	nvgpu_log_info(g, "attrib_cb_size: %d", gr->attrib_cb_size);
 	nvgpu_log_info(g, "alpha_cb_default_size: %d", gr->alpha_cb_default_size);
 	nvgpu_log_info(g, "alpha_cb_size: %d", gr->alpha_cb_size);
-	nvgpu_log_info(g, "timeslice_mode: %d", gr->timeslice_mode);
 
 	return 0;
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -3529,14 +3529,6 @@ static inline u32 gr_ppcs_wwdx_map_table_cfg2_coeff10_mod_value_f(u32 v)
 static inline u32 gr_ppcs_wwdx_map_table_cfg2_coeff11_mod_value_f(u32 v)
 {
 	return (v & 0x1fU) << 25U;
-}
-static inline u32 gr_gpcs_ppcs_cbm_cfg_r(void)
-{
-	return 0x0041bec0U;
-}
-static inline u32 gr_gpcs_ppcs_cbm_cfg_timeslice_mode_enable_v(void)
-{
-	return 0x00000001U;
 }
 static inline u32 gr_bes_zrop_settings_r(void)
 {
