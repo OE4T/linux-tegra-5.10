@@ -211,12 +211,12 @@ struct capture_channel_config {
 	struct syncpoint_info linetimer_sp;
 
 	/**
-	 * Errors defined in error_mask_uncorrectable are reported and stop channel.
+	 * Errors NOT defined in error_mask_uncorrectable are reported and stop channel.
 	 * User reset is required for channel recovery.
 	 */
 	uint32_t error_mask_uncorrectable;
 	/**
-	 * Errors defined in error_mask_correctable are reported, but
+	 * Errors NOT defined in error_mask_correctable are reported, but
 	 * don't stop the channel.
 	 */
 	uint32_t error_mask_correctable;
