@@ -75,6 +75,7 @@ struct tsg_gk20a;
 /* generally corresponds to the "pbdma" engine */
 
 struct fifo_runlist_info_gk20a {
+	u32 runlist_id;
 	unsigned long *active_channels;
 	unsigned long *active_tsgs;
 	/* Each engine has its own SW and HW runlist buffer.*/
@@ -149,8 +150,16 @@ struct fifo_gk20a {
 	u32 num_engines;
 	u32 *active_engines_list;
 
+	/* Pointers to runlists, indexed by real hw runlist_id.
+	 * If a runlist is active, then runlist_info[runlist_id] points
+	 * to one entry in active_runlist_info. Otherwise, it is NULL.
+	 */
 	struct fifo_runlist_info_gk20a **runlist_info;
 	u32 max_runlists;
+
+	/* Array of runlists that are actually in use */
+	struct fifo_runlist_info_gk20a *active_runlist_info;
+	u32 num_runlists; /* number of active runlists */
 #ifdef CONFIG_DEBUG_FS
 	struct {
 		struct fifo_profile_gk20a *data;
