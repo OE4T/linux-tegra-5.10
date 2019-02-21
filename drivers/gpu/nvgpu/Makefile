@@ -185,7 +185,7 @@ nvgpu-y += \
 	os/linux/vm.o \
 	os/linux/intr.o \
 	os/linux/sysfs.o \
-	os/linux/io.o \
+	os/linux/linux-io.o \
 	os/linux/io_usermode.o \
 	os/linux/rwsem.o \
 	os/linux/comptags.o \
@@ -332,7 +332,7 @@ nvgpu-y += \
 	common/init/hal_init.o \
 	common/sec2/sec2.o \
 	common/sec2/sec2_ipc.o \
-	common/io_common.o \
+	common/io/io.o \
 	common/clock_gating/gm20b_gating_reglist.o \
 	common/clock_gating/gp106_gating_reglist.o \
 	common/clock_gating/gp10b_gating_reglist.o \
