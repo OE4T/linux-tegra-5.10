@@ -1,5 +1,21 @@
 [
     {
+        "test": "enabled_flags_false_check",
+        "unit": "enabled"
+    },
+    {
+        "test": "free",
+        "unit": "enabled"
+    },
+    {
+        "test": "init",
+        "unit": "enabled"
+    },
+    {
+        "test": "set_enabled",
+        "unit": "enabled"
+    },
+    {
         "test": "cache_default",
         "unit": "fault_injection"
     },

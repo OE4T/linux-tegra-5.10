@@ -1,6 +1,6 @@
 ################################### tell Emacs this is a -*- makefile-gmake -*-
 #
-# Copyright (c) 2018 NVIDIA CORPORATION.  All rights reserved.
+# Copyright (c) 2018-2019 NVIDIA CORPORATION.  All rights reserved.
 #
 # NVIDIA CORPORATION and its licensors retain all intellectual property
 # and proprietary rights in and to this software, related documentation
@@ -35,6 +35,7 @@ NV_REPOSITORY_COMPONENTS += userspace/units/mm/page_table_faults
 NV_REPOSITORY_COMPONENTS += userspace/units/fifo/runlist
 NV_REPOSITORY_COMPONENTS += userspace/units/fuse
 NV_REPOSITORY_COMPONENTS += userspace/units/list
+NV_REPOSITORY_COMPONENTS += userspace/units/enabled
 endif
 
 # Local Variables:

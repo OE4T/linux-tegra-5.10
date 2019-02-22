@@ -1,6 +1,6 @@
 # -*- mode: makefile -*-
 #
-# Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+# Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -57,9 +57,10 @@ UNITS :=				\
 	$(UNIT_SRC)/mm/allocators/nvgpu_allocator	\
 	$(UNIT_SRC)/mm/gmmu/pd_cache	\
 	$(UNIT_SRC)/mm/gmmu/page_table	\
-        $(UNIT_SRC)/mm/page_table_faults \
+	$(UNIT_SRC)/mm/page_table_faults \
 	$(UNIT_SRC)/fifo/runlist	\
-	$(UNIT_SRC)/list
+	$(UNIT_SRC)/list		\
+	$(UNIT_SRC)/enabled
 
 # A test unit. Not really needed any more...
 #	$(UNIT_SRC)/test
