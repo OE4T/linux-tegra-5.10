@@ -407,7 +407,7 @@ static const struct gpu_ops gv11b_ops = {
 		.set_bes_crop_debug3 = gr_gp10b_set_bes_crop_debug3,
 		.set_bes_crop_debug4 = gr_gp10b_set_bes_crop_debug4,
 		.init_ecc = gv11b_ecc_init,
-		.set_ctxsw_preemption_mode = gr_gv11b_set_ctxsw_preemption_mode,
+		.set_ctxsw_preemption_mode = gr_gp10b_set_ctxsw_preemption_mode,
 		.is_etpc_addr = gv11b_gr_pri_is_etpc_addr,
 		.egpc_etpc_priv_addr_table = gv11b_gr_egpc_etpc_priv_addr_table,
 		.handle_tpc_mpc_exception = gr_gv11b_handle_tpc_mpc_exception,
@@ -453,6 +453,14 @@ static const struct gpu_ops gv11b_ops = {
 		.init_gfxp_rtv_cb = NULL,
 		.commit_gfxp_rtv_cb = NULL,
 		.log_mme_exception = NULL,
+		.get_ctx_spill_size = gv11b_gr_get_ctx_spill_size,
+		.get_ctx_pagepool_size = gv11b_gr_get_ctx_pagepool_size,
+		.get_ctx_betacb_size = gv11b_gr_get_ctx_betacb_size,
+		.get_ctx_attrib_cb_size = gv11b_gr_get_ctx_attrib_cb_size,
+		.get_global_ctx_cb_buffer_size =
+			gk20a_gr_get_global_ctx_cb_buffer_size,
+		.get_global_ctx_pagepool_buffer_size =
+			gk20a_gr_get_global_ctx_pagepool_buffer_size,
 		.ctxsw_prog = {
 			.hw_get_fecs_header_size =
 				gm20b_ctxsw_prog_hw_get_fecs_header_size,

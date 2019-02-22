@@ -321,9 +321,6 @@ srcs += common/sim.c \
 	common/vgpu/mm_vgpu.c \
 	common/vgpu/gr/gr_vgpu.c \
 	common/vgpu/gr/ctx_vgpu.c \
-	common/vgpu/gr/vgpu_gr_gv11b.c \
-	common/vgpu/gr/vgpu_gr_gp10b.c \
-	common/vgpu/gr/vgpu_gr_gm20b.c \
 	common/vgpu/clk_vgpu.c \
 	common/vgpu/debugger_vgpu.c \
 	common/vgpu/ltc_vgpu.c \

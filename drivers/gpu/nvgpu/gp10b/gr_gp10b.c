@@ -906,17 +906,11 @@ int gr_gp10b_set_ctxsw_preemption_mode(struct gk20a *g,
 	switch (graphics_preempt_mode) {
 	case NVGPU_PREEMPTION_MODE_GRAPHICS_GFXP:
 		{
-		u32 spill_size =
-			gr_gpc0_swdx_rm_spill_buffer_size_256b_default_v() *
-			gr_gpc0_swdx_rm_spill_buffer_size_256b_byte_granularity_v();
-		u32 pagepool_size = g->ops.gr.pagepool_default_size(g) *
-			gr_scc_pagepool_total_pages_byte_granularity_v();
-		u32 betacb_size = g->gr.attrib_cb_default_size +
-				  (gr_gpc0_ppc0_cbm_beta_cb_size_v_gfxp_v() -
-				   gr_gpc0_ppc0_cbm_beta_cb_size_v_default_v());
-		u32 attrib_cb_size = (betacb_size + g->gr.alpha_cb_size) *
-				  gr_gpc0_ppc0_cbm_beta_cb_size_v_granularity_v() *
-				  nvgpu_gr_config_get_max_tpc_count(g->gr.config);
+		u32 spill_size = g->ops.gr.get_ctx_spill_size(g);
+		u32 pagepool_size = g->ops.gr.get_ctx_pagepool_size(g);
+		u32 betacb_size = g->ops.gr.get_ctx_betacb_size(g);
+		u32 attrib_cb_size =
+			g->ops.gr.get_ctx_attrib_cb_size(g, betacb_size);
 		attrib_cb_size = ALIGN(attrib_cb_size, 128);
 
 		nvgpu_log_info(g, "gfxp context spill_size=%d", spill_size);
@@ -2222,4 +2216,26 @@ unsigned long gr_gp10b_get_max_gfxp_wfi_timeout_count(struct gk20a *g)
 {
 	/* 100msec @ 1GHZ */
 	return (100UL * 1000UL * 1000UL);
+}
+
+u32 gp10b_gr_get_ctx_spill_size(struct gk20a *g) {
+	return  gr_gpc0_swdx_rm_spill_buffer_size_256b_default_v() *
+		gr_gpc0_swdx_rm_spill_buffer_size_256b_byte_granularity_v();
+}
+
+u32 gp10b_gr_get_ctx_pagepool_size(struct gk20a *g) {
+	return g->ops.gr.pagepool_default_size(g) *
+		gr_scc_pagepool_total_pages_byte_granularity_v();
+}
+
+u32 gp10b_gr_get_ctx_betacb_size(struct gk20a *g) {
+	return g->gr.attrib_cb_default_size +
+		(gr_gpc0_ppc0_cbm_beta_cb_size_v_gfxp_v() -
+		 gr_gpc0_ppc0_cbm_beta_cb_size_v_default_v());
+}
+
+u32 gp10b_gr_get_ctx_attrib_cb_size(struct gk20a *g, u32 betacb_size) {
+	return (betacb_size + g->gr.alpha_cb_size) *
+		gr_gpc0_ppc0_cbm_beta_cb_size_v_granularity_v() *
+		nvgpu_gr_config_get_max_tpc_count(g->gr.config);
 }

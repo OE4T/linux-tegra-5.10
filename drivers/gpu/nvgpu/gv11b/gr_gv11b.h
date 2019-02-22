@@ -202,12 +202,6 @@ void gr_gv11b_init_gfxp_wfi_timeout_count(struct gk20a *g);
 unsigned long gr_gv11b_get_max_gfxp_wfi_timeout_count(struct gk20a *g);
 void gr_gv11b_ecc_init_scrub_reg(struct gk20a *g);
 
-int gr_gv11b_set_ctxsw_preemption_mode(struct gk20a *g,
-                                struct nvgpu_gr_ctx *gr_ctx,
-                                struct vm_gk20a *vm, u32 class,
-                                u32 graphics_preempt_mode,
-                                u32 compute_preempt_mode);
-
 void gr_gv11b_update_ctxsw_preemption_mode(struct gk20a *g,
 		struct nvgpu_gr_ctx *gr_ctx, struct nvgpu_gr_subctx *subctx);
 int gr_gv11b_handle_ssync_hww(struct gk20a *g);
@@ -231,4 +225,8 @@ void gr_gv11b_set_skedcheck(struct gk20a *g, u32 data);
 void gr_gv11b_set_go_idle_timeout(struct gk20a *g, u32 data);
 void gr_gv11b_set_coalesce_buffer_size(struct gk20a *g, u32 data);
 void gr_gv11b_set_tex_in_dbg(struct gk20a *g, u32 data);
+u32 gv11b_gr_get_ctx_spill_size(struct gk20a *g);
+u32 gv11b_gr_get_ctx_pagepool_size(struct gk20a *g);
+u32 gv11b_gr_get_ctx_betacb_size(struct gk20a *g);
+u32 gv11b_gr_get_ctx_attrib_cb_size(struct gk20a *g, u32 betacb_size);
 #endif /* NVGPU_GR_GV11B_H */

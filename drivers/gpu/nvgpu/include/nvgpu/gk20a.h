@@ -519,6 +519,12 @@ struct gpu_ops {
 		void (*commit_gfxp_rtv_cb)(struct gk20a *g,
 			  struct nvgpu_gr_ctx *gr_ctx, bool patch);
 		void (*log_mme_exception)(struct gk20a *g);
+		u32 (*get_ctx_spill_size)(struct gk20a *g);
+		u32 (*get_ctx_pagepool_size)(struct gk20a *g);
+		u32 (*get_ctx_betacb_size)(struct gk20a *g);
+		u32 (*get_ctx_attrib_cb_size)(struct gk20a *g, u32 betacb_size);
+		u32 (*get_global_ctx_cb_buffer_size)(struct gk20a *g);
+		u32 (*get_global_ctx_pagepool_buffer_size)(struct gk20a *g);
 		struct {
 			u32 (*hw_get_fecs_header_size)(void);
 			u32 (*hw_get_gpccs_header_size)(void);

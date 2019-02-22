@@ -340,6 +340,10 @@ static const struct gpu_ops gm20b_ops = {
 		.init_gfxp_rtv_cb = NULL,
 		.commit_gfxp_rtv_cb = NULL,
 		.log_mme_exception = NULL,
+		.get_global_ctx_cb_buffer_size =
+			gk20a_gr_get_global_ctx_cb_buffer_size,
+		.get_global_ctx_pagepool_buffer_size =
+			gk20a_gr_get_global_ctx_pagepool_buffer_size,
 		.ctxsw_prog = {
 			.hw_get_fecs_header_size =
 				gm20b_ctxsw_prog_hw_get_fecs_header_size,

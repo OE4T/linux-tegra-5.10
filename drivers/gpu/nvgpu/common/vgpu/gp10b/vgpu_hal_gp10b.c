@@ -53,8 +53,6 @@
 #include "common/vgpu/perf/cyclestats_snapshot_vgpu.h"
 #include "gp10b/gp10b.h"
 #include "gp10b/hal_gp10b.h"
-#include "common/vgpu/gr/vgpu_gr_gm20b.h"
-#include "common/vgpu/gr/vgpu_gr_gp10b.h"
 #include "vgpu_mm_gp10b.h"
 #include "vgpu_fuse_gp10b.h"
 
@@ -141,11 +139,11 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 		.get_tpc_num = gr_gm20b_get_tpc_num,
 		.detect_sm_arch = vgpu_gr_detect_sm_arch,
 		.pagepool_default_size = gr_gp10b_pagepool_default_size,
-		.init_ctx_state = vgpu_gr_gp10b_init_ctx_state,
+		.init_ctx_state = vgpu_gr_init_ctx_state,
 		.alloc_gr_ctx = vgpu_gr_alloc_gr_ctx,
 		.free_gr_ctx = vgpu_gr_free_gr_ctx,
 		.init_ctxsw_preemption_mode =
-			vgpu_gr_gp10b_init_ctxsw_preemption_mode,
+			vgpu_gr_init_ctxsw_preemption_mode,
 		.update_ctxsw_preemption_mode =
 			gr_gp10b_update_ctxsw_preemption_mode,
 		.dump_gr_regs = NULL,
@@ -157,7 +155,7 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 		.get_max_fbps_count = vgpu_gr_get_max_fbps_count,
 		.init_sm_dsm_reg_info = gr_gm20b_init_sm_dsm_reg_info,
 		.wait_empty = NULL,
-		.init_cyclestats = vgpu_gr_gm20b_init_cyclestats,
+		.init_cyclestats = vgpu_gr_init_cyclestats,
 		.set_sm_debug_mode = vgpu_gr_set_sm_debug_mode,
 		.bpt_reg_info = NULL,
 		.get_access_map = gr_gp10b_get_access_map,
@@ -204,7 +202,7 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 		.get_ovr_perf_regs = gk20a_gr_get_ovr_perf_regs,
 		.disable_rd_coalesce = NULL,
 		.set_boosted_ctx = NULL,
-		.set_preemption_mode = vgpu_gr_gp10b_set_preemption_mode,
+		.set_preemption_mode = vgpu_gr_set_preemption_mode,
 		.set_czf_bypass = NULL,
 		.init_czf_bypass = gr_gp10b_init_czf_bypass,
 		.pre_process_sm_exception = NULL,
@@ -213,7 +211,7 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 		.set_bes_crop_debug3 = NULL,
 		.set_bes_crop_debug4 = NULL,
 		.set_ctxsw_preemption_mode =
-					vgpu_gr_gp10b_set_ctxsw_preemption_mode,
+					vgpu_gr_set_ctxsw_preemption_mode,
 		.init_gfxp_wfi_timeout_count =
 			gr_gp10b_init_gfxp_wfi_timeout_count,
 		.get_max_gfxp_wfi_timeout_count =
@@ -230,6 +228,14 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 		.get_offset_in_gpccs_segment =
 			gr_gk20a_get_offset_in_gpccs_segment,
 		.set_debug_mode = gm20b_gr_set_debug_mode,
+		.get_ctx_spill_size = gp10b_gr_get_ctx_spill_size,
+		.get_ctx_pagepool_size = gp10b_gr_get_ctx_pagepool_size,
+		.get_ctx_betacb_size = gp10b_gr_get_ctx_betacb_size,
+		.get_ctx_attrib_cb_size = gp10b_gr_get_ctx_attrib_cb_size,
+		.get_global_ctx_cb_buffer_size =
+			gk20a_gr_get_global_ctx_cb_buffer_size,
+		.get_global_ctx_pagepool_buffer_size =
+			gk20a_gr_get_global_ctx_pagepool_buffer_size,
 		.ctxsw_prog = {
 			.hw_get_fecs_header_size =
 				gm20b_ctxsw_prog_hw_get_fecs_header_size,

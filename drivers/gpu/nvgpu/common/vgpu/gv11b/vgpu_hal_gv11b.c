@@ -64,10 +64,7 @@
 #include "common/vgpu/fecs_trace_vgpu.h"
 #include "common/vgpu/perf/cyclestats_snapshot_vgpu.h"
 #include "common/vgpu/fifo/vgpu_fifo_gv11b.h"
-#include "common/vgpu/gr/vgpu_gr_gm20b.h"
 #include "common/vgpu/gp10b/vgpu_mm_gp10b.h"
-#include "common/vgpu/gr/vgpu_gr_gp10b.h"
-#include "common/vgpu/gr/vgpu_gr_gv11b.h"
 
 #include "common/falcon/falcon_gk20a.h"
 
@@ -159,11 +156,11 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 		.get_tpc_num = gr_gm20b_get_tpc_num,
 		.detect_sm_arch = vgpu_gr_detect_sm_arch,
 		.pagepool_default_size = gr_gv11b_pagepool_default_size,
-		.init_ctx_state = vgpu_gr_gp10b_init_ctx_state,
+		.init_ctx_state = vgpu_gr_init_ctx_state,
 		.alloc_gr_ctx = vgpu_gr_alloc_gr_ctx,
 		.free_gr_ctx = vgpu_gr_free_gr_ctx,
 		.init_ctxsw_preemption_mode =
-			vgpu_gr_gp10b_init_ctxsw_preemption_mode,
+			vgpu_gr_init_ctxsw_preemption_mode,
 		.update_ctxsw_preemption_mode =
 			gr_gv11b_update_ctxsw_preemption_mode,
 		.dump_gr_regs = NULL,
@@ -175,7 +172,7 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 		.get_max_fbps_count = vgpu_gr_get_max_fbps_count,
 		.init_sm_dsm_reg_info = gv11b_gr_init_sm_dsm_reg_info,
 		.wait_empty = NULL,
-		.init_cyclestats = vgpu_gr_gm20b_init_cyclestats,
+		.init_cyclestats = vgpu_gr_init_cyclestats,
 		.set_sm_debug_mode = vgpu_gr_set_sm_debug_mode,
 		.bpt_reg_info = NULL,
 		.get_access_map = gr_gv11b_get_access_map,
@@ -198,7 +195,7 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 		.setup_rop_mapping = NULL,
 		.program_zcull_mapping = NULL,
 		.commit_global_timeslice = NULL,
-		.commit_inst = vgpu_gr_gv11b_commit_inst,
+		.commit_inst = vgpu_gr_commit_inst,
 		.load_tpc_mask = NULL,
 		.trigger_suspend = NULL,
 		.wait_for_pause = gr_gk20a_wait_for_pause,
@@ -222,14 +219,14 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 		.get_ovr_perf_regs = gv11b_gr_get_ovr_perf_regs,
 		.disable_rd_coalesce = NULL,
 		.set_boosted_ctx = NULL,
-		.set_preemption_mode = vgpu_gr_gp10b_set_preemption_mode,
+		.set_preemption_mode = vgpu_gr_set_preemption_mode,
 		.set_czf_bypass = NULL,
 		.pre_process_sm_exception = NULL,
 		.set_preemption_buffer_va = gr_gv11b_set_preemption_buffer_va,
 		.init_preemption_state = NULL,
 		.set_bes_crop_debug3 = NULL,
 		.set_bes_crop_debug4 = NULL,
-		.set_ctxsw_preemption_mode = vgpu_gr_gp10b_set_ctxsw_preemption_mode,
+		.set_ctxsw_preemption_mode = vgpu_gr_set_ctxsw_preemption_mode,
 		.is_etpc_addr = gv11b_gr_pri_is_etpc_addr,
 		.egpc_etpc_priv_addr_table = gv11b_gr_egpc_etpc_priv_addr_table,
 		.handle_tpc_mpc_exception = gr_gv11b_handle_tpc_mpc_exception,
@@ -263,6 +260,14 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 		.get_offset_in_gpccs_segment =
 			gr_gk20a_get_offset_in_gpccs_segment,
 		.set_debug_mode = gm20b_gr_set_debug_mode,
+		.get_ctx_spill_size = gv11b_gr_get_ctx_spill_size,
+		.get_ctx_pagepool_size = gv11b_gr_get_ctx_pagepool_size,
+		.get_ctx_betacb_size = gv11b_gr_get_ctx_betacb_size,
+		.get_ctx_attrib_cb_size = gv11b_gr_get_ctx_attrib_cb_size,
+		.get_global_ctx_cb_buffer_size =
+			gk20a_gr_get_global_ctx_cb_buffer_size,
+		.get_global_ctx_pagepool_buffer_size =
+			gk20a_gr_get_global_ctx_pagepool_buffer_size,
 		.ctxsw_prog = {
 			.hw_get_fecs_header_size =
 				gm20b_ctxsw_prog_hw_get_fecs_header_size,

@@ -2047,8 +2047,7 @@ int gr_gk20a_alloc_global_ctx_buffers(struct gk20a *g)
 
 	nvgpu_log_fn(g, " ");
 
-	size = gr->bundle_cb_default_size *
-		gr_scc_bundle_cb_size_div_256b_byte_granularity_v();
+	size = g->ops.gr.get_global_ctx_cb_buffer_size(g);
 	nvgpu_log_info(g, "cb_buffer_size : %d", size);
 
 	nvgpu_gr_global_ctx_set_size(gr->global_ctx_buffer,
@@ -2056,8 +2055,7 @@ int gr_gk20a_alloc_global_ctx_buffers(struct gk20a *g)
 	nvgpu_gr_global_ctx_set_size(gr->global_ctx_buffer,
 		NVGPU_GR_GLOBAL_CTX_CIRCULAR_VPR, size);
 
-	size = g->ops.gr.pagepool_default_size(g) *
-		gr_scc_pagepool_total_pages_byte_granularity_v();
+	size = g->ops.gr.get_global_ctx_pagepool_buffer_size(g);
 	nvgpu_log_info(g, "pagepool_buffer_size : %d", size);
 
 	nvgpu_gr_global_ctx_set_size(gr->global_ctx_buffer,
@@ -7304,4 +7302,18 @@ u32 gr_gk20a_fecs_falcon_base_addr(void)
 u32 gr_gk20a_gpccs_falcon_base_addr(void)
 {
 	return gr_gpcs_gpccs_irqsset_r();
+}
+
+u32 gk20a_gr_get_global_ctx_cb_buffer_size(struct gk20a *g)
+{
+	struct gr_gk20a *gr = &g->gr;
+
+	return gr->bundle_cb_default_size *
+		gr_scc_bundle_cb_size_div_256b_byte_granularity_v();
+}
+
+u32 gk20a_gr_get_global_ctx_pagepool_buffer_size(struct gk20a *g)
+{
+	return g->ops.gr.pagepool_default_size(g) *
+		gr_scc_pagepool_total_pages_byte_granularity_v();
 }

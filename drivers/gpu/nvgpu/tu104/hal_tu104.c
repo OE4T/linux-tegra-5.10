@@ -516,6 +516,14 @@ static const struct gpu_ops tu104_ops = {
 		.get_fecs_ctx_state_store_major_rev_id =
 			gk20a_gr_get_fecs_ctx_state_store_major_rev_id,
 		.log_mme_exception = gr_tu104_log_mme_exception,
+		.get_ctx_spill_size = gp10b_gr_get_ctx_spill_size,
+		.get_ctx_pagepool_size = gp10b_gr_get_ctx_pagepool_size,
+		.get_ctx_betacb_size = gp10b_gr_get_ctx_betacb_size,
+		.get_ctx_attrib_cb_size = gp10b_gr_get_ctx_attrib_cb_size,
+		.get_global_ctx_cb_buffer_size =
+			gk20a_gr_get_global_ctx_cb_buffer_size,
+		.get_global_ctx_pagepool_buffer_size =
+			gk20a_gr_get_global_ctx_pagepool_buffer_size,
 		.ctxsw_prog = {
 			.hw_get_fecs_header_size =
 				gm20b_ctxsw_prog_hw_get_fecs_header_size,

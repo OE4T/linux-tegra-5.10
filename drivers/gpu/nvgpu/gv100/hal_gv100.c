@@ -493,6 +493,14 @@ static const struct gpu_ops gv100_ops = {
 		.init_gfxp_rtv_cb = NULL,
 		.commit_gfxp_rtv_cb = NULL,
 		.log_mme_exception = NULL,
+		.get_ctx_spill_size = gp10b_gr_get_ctx_spill_size,
+		.get_ctx_pagepool_size = gp10b_gr_get_ctx_pagepool_size,
+		.get_ctx_betacb_size = gp10b_gr_get_ctx_betacb_size,
+		.get_ctx_attrib_cb_size = gp10b_gr_get_ctx_attrib_cb_size,
+		.get_global_ctx_cb_buffer_size =
+			gk20a_gr_get_global_ctx_cb_buffer_size,
+		.get_global_ctx_pagepool_buffer_size =
+			gk20a_gr_get_global_ctx_pagepool_buffer_size,
 		.ctxsw_prog = {
 			.hw_get_fecs_header_size =
 				gm20b_ctxsw_prog_hw_get_fecs_header_size,

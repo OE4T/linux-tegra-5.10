@@ -1522,123 +1522,6 @@ void gr_gv11b_set_circular_buffer_size(struct gk20a *g, u32 data)
 	}
 }
 
-int gr_gv11b_set_ctxsw_preemption_mode(struct gk20a *g,
-				struct nvgpu_gr_ctx *gr_ctx,
-				struct vm_gk20a *vm, u32 class,
-				u32 graphics_preempt_mode,
-				u32 compute_preempt_mode)
-{
-	int err = 0;
-
-	if (g->ops.gr.is_valid_gfx_class(g, class) &&
-				g->gr.ctx_vars.force_preemption_gfxp) {
-		graphics_preempt_mode = NVGPU_PREEMPTION_MODE_GRAPHICS_GFXP;
-	}
-
-	if (g->ops.gr.is_valid_compute_class(g, class) &&
-			g->gr.ctx_vars.force_preemption_cilp) {
-		compute_preempt_mode = NVGPU_PREEMPTION_MODE_COMPUTE_CILP;
-	}
-
-	/* check for invalid combinations */
-	if ((graphics_preempt_mode == 0U) && (compute_preempt_mode == 0U)) {
-		return -EINVAL;
-	}
-
-	if ((graphics_preempt_mode == NVGPU_PREEMPTION_MODE_GRAPHICS_GFXP) &&
-		   (compute_preempt_mode == NVGPU_PREEMPTION_MODE_COMPUTE_CILP)) {
-		return -EINVAL;
-	}
-
-	/* Do not allow lower preemption modes than current ones */
-	if ((graphics_preempt_mode != 0U) &&
-	    (graphics_preempt_mode < gr_ctx->graphics_preempt_mode)) {
-		return -EINVAL;
-	}
-
-	if ((compute_preempt_mode != 0U) &&
-	    (compute_preempt_mode < gr_ctx->compute_preempt_mode)) {
-		return -EINVAL;
-	}
-
-	/* set preemption modes */
-	switch (graphics_preempt_mode) {
-	case NVGPU_PREEMPTION_MODE_GRAPHICS_GFXP:
-		{
-		u32 spill_size =
-			gr_gpc0_swdx_rm_spill_buffer_size_256b_default_v() *
-			gr_gpc0_swdx_rm_spill_buffer_size_256b_byte_granularity_v();
-		u32 pagepool_size = g->ops.gr.pagepool_default_size(g) *
-			gr_scc_pagepool_total_pages_byte_granularity_v();
-		u32 betacb_size = g->gr.attrib_cb_default_size +
-				(gr_gpc0_ppc0_cbm_beta_cb_size_v_gfxp_v() -
-			  gr_gpc0_ppc0_cbm_beta_cb_size_v_default_v());
-		u32 attrib_cb_size = (betacb_size + g->gr.alpha_cb_size) *
-			  gr_gpc0_ppc0_cbm_beta_cb_size_v_granularity_v() *
-			  nvgpu_gr_config_get_max_tpc_count(g->gr.config);
-		attrib_cb_size = ALIGN(attrib_cb_size, 128);
-
-		nvgpu_log_info(g, "gfxp context spill_size=%d", spill_size);
-		nvgpu_log_info(g, "gfxp context pagepool_size=%d", pagepool_size);
-		nvgpu_log_info(g, "gfxp context attrib_cb_size=%d",
-				attrib_cb_size);
-
-		nvgpu_gr_ctx_set_size(g->gr.gr_ctx_desc,
-			NVGPU_GR_CTX_PREEMPT_CTXSW,
-			g->gr.ctx_vars.preempt_image_size);
-		nvgpu_gr_ctx_set_size(g->gr.gr_ctx_desc,
-			NVGPU_GR_CTX_SPILL_CTXSW, spill_size);
-		nvgpu_gr_ctx_set_size(g->gr.gr_ctx_desc,
-			NVGPU_GR_CTX_BETACB_CTXSW, attrib_cb_size);
-		nvgpu_gr_ctx_set_size(g->gr.gr_ctx_desc,
-			NVGPU_GR_CTX_PAGEPOOL_CTXSW, pagepool_size);
-
-		if (g->ops.gr.init_gfxp_rtv_cb != NULL) {
-			err = g->ops.gr.init_gfxp_rtv_cb(g, gr_ctx, vm);
-			if (err != 0) {
-				nvgpu_err(g, "cannot allocate gfxp rtv_cb");
-				goto fail;
-			}
-		}
-
-		err = nvgpu_gr_ctx_alloc_ctxsw_buffers(g, gr_ctx,
-			g->gr.gr_ctx_desc, vm);
-		if (err != 0) {
-			nvgpu_err(g, "cannot allocate ctxsw buffers");
-			goto fail;
-		}
-
-		gr_ctx->graphics_preempt_mode = graphics_preempt_mode;
-		break;
-		}
-
-	case NVGPU_PREEMPTION_MODE_GRAPHICS_WFI:
-		gr_ctx->graphics_preempt_mode = graphics_preempt_mode;
-		break;
-
-	default:
-		break;
-	}
-
-	if (g->ops.gr.is_valid_compute_class(g, class) ||
-			g->ops.gr.is_valid_gfx_class(g, class)) {
-		switch (compute_preempt_mode) {
-		case NVGPU_PREEMPTION_MODE_COMPUTE_WFI:
-		case NVGPU_PREEMPTION_MODE_COMPUTE_CTA:
-		case NVGPU_PREEMPTION_MODE_COMPUTE_CILP:
-			gr_ctx->compute_preempt_mode = compute_preempt_mode;
-			break;
-		default:
-			break;
-		}
-	}
-
-	return 0;
-
-fail:
-	return err;
-}
-
 void gr_gv11b_update_ctxsw_preemption_mode(struct gk20a *g,
 		struct nvgpu_gr_ctx *gr_ctx, struct nvgpu_gr_subctx *subctx)
 {
@@ -5075,4 +4958,26 @@ int gv11b_gr_clear_sm_error_state(struct gk20a *g,
 fail:
 	nvgpu_mutex_release(&g->dbg_sessions_lock);
 	return err;
+}
+
+u32 gv11b_gr_get_ctx_spill_size(struct gk20a *g) {
+	return  gr_gpc0_swdx_rm_spill_buffer_size_256b_default_v() *
+		gr_gpc0_swdx_rm_spill_buffer_size_256b_byte_granularity_v();
+}
+
+u32 gv11b_gr_get_ctx_pagepool_size(struct gk20a *g) {
+	return g->ops.gr.pagepool_default_size(g) *
+		gr_scc_pagepool_total_pages_byte_granularity_v();
+}
+
+u32 gv11b_gr_get_ctx_betacb_size(struct gk20a *g) {
+	return g->gr.attrib_cb_default_size +
+		(gr_gpc0_ppc0_cbm_beta_cb_size_v_gfxp_v() -
+		 gr_gpc0_ppc0_cbm_beta_cb_size_v_default_v());
+}
+
+u32 gv11b_gr_get_ctx_attrib_cb_size(struct gk20a *g, u32 betacb_size) {
+	return (betacb_size + g->gr.alpha_cb_size) *
+		gr_gpc0_ppc0_cbm_beta_cb_size_v_granularity_v() *
+		nvgpu_gr_config_get_max_tpc_count(g->gr.config);
 }
