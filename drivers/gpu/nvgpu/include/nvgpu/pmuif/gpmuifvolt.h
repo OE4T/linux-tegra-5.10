@@ -1,6 +1,6 @@
 /*
-* Copyright (c) 2016-2018, NVIDIA CORPORATION.  All rights reserved.
-*
+ * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
  * to deal in the Software without restriction, including without limitation
@@ -267,7 +267,7 @@ struct nv_pmu_volt_cmd_rpc {
 };
 
 #define NV_PMU_VOLT_CMD_RPC_ALLOC_OFFSET	\
-	offsetof(struct nv_pmu_volt_cmd_rpc, request)
+	(u32)offsetof(struct nv_pmu_volt_cmd_rpc, request)
 
 struct nv_pmu_volt_cmd {
 	union {
@@ -308,7 +308,7 @@ struct nv_pmu_volt_msg_rpc {
 };
 
 #define NV_PMU_VOLT_MSG_RPC_ALLOC_OFFSET	\
-		offsetof(struct nv_pmu_volt_msg_rpc, response)
+		(u32)offsetof(struct nv_pmu_volt_msg_rpc, response)
 
 struct nv_pmu_volt_msg {
 	union {

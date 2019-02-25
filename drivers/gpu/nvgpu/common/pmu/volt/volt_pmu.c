@@ -68,7 +68,6 @@ static int volt_pmu_rpc_execute(struct gk20a *g,
 	struct nv_pmu_volt_rpc *prpc_call)
 {
 	struct pmu_cmd cmd;
-	struct pmu_msg msg;
 	struct pmu_payload payload;
 	int status = 0;
 	u32 seqdesc;
@@ -76,7 +75,6 @@ static int volt_pmu_rpc_execute(struct gk20a *g,
 
 	(void) memset(&payload, 0, sizeof(struct pmu_payload));
 	(void) memset(&cmd, 0, sizeof(struct pmu_cmd));
-	(void) memset(&msg, 0, sizeof(struct pmu_msg));
 	(void) memset(&handler, 0,
 		sizeof(struct volt_rpc_pmucmdhandler_params));
 
@@ -84,7 +82,6 @@ static int volt_pmu_rpc_execute(struct gk20a *g,
 	cmd.hdr.size = (u32)sizeof(struct nv_pmu_volt_cmd) +
 					(u32)sizeof(struct pmu_hdr);
 	cmd.cmd.volt.cmd_type = NV_PMU_VOLT_CMD_ID_RPC;
-	msg.hdr.size = sizeof(struct pmu_msg);
 
 	payload.in.buf = (u8 *)prpc_call;
 	payload.in.size = (u32)sizeof(struct nv_pmu_volt_rpc);
