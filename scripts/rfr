@@ -284,7 +284,8 @@ Thanks!
 | Author: {author}
 
 {cmtmsg}
-{files}"""
+{files}
+"""
 
     cmt_descriptions = ''
     for c in commits_info:
