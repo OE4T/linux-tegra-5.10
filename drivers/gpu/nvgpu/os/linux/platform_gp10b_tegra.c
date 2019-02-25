@@ -19,6 +19,7 @@
 #include <linux/nvmap.h>
 #include <linux/reset.h>
 #include <linux/platform/tegra/emc_bwmgr.h>
+#include <linux/hashtable.h>
 
 #include <uapi/linux/nvgpu.h>
 
@@ -31,7 +32,6 @@
 #include <nvgpu/kmem.h>
 #include <nvgpu/bug.h>
 #include <nvgpu/enabled.h>
-#include <nvgpu/hashtable.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/nvhost.h>
 
