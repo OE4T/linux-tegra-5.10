@@ -220,7 +220,7 @@ done:
 	return err;
 }
 
-static int gk20a_fecs_trace_periodic_polling(void *arg)
+int gk20a_fecs_trace_periodic_polling(void *arg)
 {
 	struct gk20a *g = (struct gk20a *)arg;
 	struct nvgpu_gr_fecs_trace *trace = g->fecs_trace;
@@ -236,12 +236,6 @@ static int gk20a_fecs_trace_periodic_polling(void *arg)
 	}
 
 	return 0;
-}
-
-size_t gk20a_fecs_trace_buffer_size(struct gk20a *g)
-{
-	return GK20A_FECS_TRACE_NUM_RECORDS
-			* g->ops.gr.ctxsw_prog.hw_get_ts_record_size_in_bytes();
 }
 
 int gk20a_fecs_trace_bind_channel(struct gk20a *g,
@@ -346,79 +340,6 @@ int gk20a_fecs_trace_reset(struct gk20a *g)
 
 	gk20a_fecs_trace_poll(g);
 	return g->ops.fecs_trace.set_read_index(g, 0);
-}
-
-int gk20a_gr_max_entries(struct gk20a *g,
-		struct nvgpu_gpu_ctxsw_trace_filter *filter)
-{
-	int n;
-	int tag;
-
-	/* Compute number of entries per record, with given filter */
-	for (n = 0, tag = 0; tag < nvgpu_gr_fecs_trace_num_ts(g); tag++)
-		n += (NVGPU_GPU_CTXSW_FILTER_ISSET(tag, filter) != 0);
-
-	/* Return max number of entries generated for the whole ring */
-	return n * GK20A_FECS_TRACE_NUM_RECORDS;
-}
-
-int gk20a_fecs_trace_enable(struct gk20a *g)
-{
-	struct nvgpu_gr_fecs_trace *trace = g->fecs_trace;
-	int write;
-	int err = 0;
-
-	nvgpu_mutex_acquire(&trace->enable_lock);
-	trace->enable_count++;
-
-	if (trace->enable_count == 1U) {
-		/* drop data in hw buffer */
-		if (g->ops.fecs_trace.flush)
-			g->ops.fecs_trace.flush(g);
-
-		write = g->ops.fecs_trace.get_write_index(g);
-		g->ops.fecs_trace.set_read_index(g, write);
-
-		err = nvgpu_thread_create(&trace->poll_task, g,
-				gk20a_fecs_trace_periodic_polling, __func__);
-		if (err != 0) {
-			nvgpu_warn(g, "failed to create FECS polling task");
-			goto done;
-		}
-	}
-
-done:
-	nvgpu_mutex_release(&trace->enable_lock);
-	return err;
-}
-
-int gk20a_fecs_trace_disable(struct gk20a *g)
-{
-	struct nvgpu_gr_fecs_trace *trace = g->fecs_trace;
-
-	nvgpu_mutex_acquire(&trace->enable_lock);
-	trace->enable_count--;
-	if (trace->enable_count == 0U) {
-		nvgpu_thread_stop(&trace->poll_task);
-	}
-	nvgpu_mutex_release(&trace->enable_lock);
-
-	return 0;
-}
-
-bool gk20a_fecs_trace_is_enabled(struct gk20a *g)
-{
-	struct nvgpu_gr_fecs_trace *trace = g->fecs_trace;
-
-	return (trace && (trace->enable_count > 0));
-}
-
-void gk20a_fecs_trace_reset_buffer(struct gk20a *g)
-{
-	nvgpu_log(g, gpu_dbg_fn|gpu_dbg_ctxsw, " ");
-
-	g->ops.fecs_trace.set_read_index(g,
-		g->ops.fecs_trace.get_write_index(g));
 }
 
 u32 gk20a_fecs_trace_get_buffer_full_mailbox_val(void)

@@ -38,6 +38,7 @@
 #include <nvgpu/gr/ctx.h>
 #include <nvgpu/gr/config.h>
 #include <nvgpu/gr/zbc.h>
+#include <nvgpu/gr/fecs_trace.h>
 
 #include "gr_vgpu.h"
 #include "gk20a/fecs_trace_gk20a.h"
@@ -127,7 +128,7 @@ int vgpu_gr_init_ctx_state(struct gk20a *g)
 
 	g->gr.ctx_vars.priv_access_map_size = 512 * 1024;
 #ifdef CONFIG_GK20A_CTXSW_TRACE
-	g->gr.ctx_vars.fecs_trace_buffer_size = gk20a_fecs_trace_buffer_size(g);
+	g->gr.ctx_vars.fecs_trace_buffer_size = nvgpu_gr_fecs_trace_buffer_size(g);
 #endif
 	return 0;
 }

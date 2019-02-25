@@ -27,6 +27,7 @@
 #include <nvgpu/barrier.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/channel.h>
+#include <nvgpu/gr/fecs_trace.h>
 #include <nvgpu/string.h>
 
 #include "gk20a/gr_gk20a.h"

@@ -28,6 +28,14 @@
 #include <nvgpu/gr/global_ctx.h>
 #include <nvgpu/gr/fecs_trace.h>
 
+/*
+ * TODO: This include is only needed for transition phase to new unit
+ * Remove as soon as transition is complete
+ */
+#include "gk20a/fecs_trace_gk20a.h"
+
+#ifdef CONFIG_GK20A_CTXSW_TRACE
+
 int nvgpu_gr_fecs_trace_add_context(struct gk20a *g, u32 context_ptr,
 	pid_t pid, u32 vmid, struct nvgpu_list_node *list)
 {
@@ -219,3 +227,88 @@ bool nvgpu_gr_fecs_trace_is_valid_record(struct gk20a *g,
 	 */
 	return g->ops.gr.ctxsw_prog.is_ts_valid_record(r->magic_hi);
 }
+
+size_t nvgpu_gr_fecs_trace_buffer_size(struct gk20a *g)
+{
+	return GK20A_FECS_TRACE_NUM_RECORDS
+			* g->ops.gr.ctxsw_prog.hw_get_ts_record_size_in_bytes();
+}
+
+int nvgpu_gr_fecs_trace_max_entries(struct gk20a *g,
+		struct nvgpu_gpu_ctxsw_trace_filter *filter)
+{
+	int n;
+	int tag;
+
+	/* Compute number of entries per record, with given filter */
+	for (n = 0, tag = 0; tag < nvgpu_gr_fecs_trace_num_ts(g); tag++)
+		n += (NVGPU_GPU_CTXSW_FILTER_ISSET(tag, filter) != 0);
+
+	/* Return max number of entries generated for the whole ring */
+	return n * GK20A_FECS_TRACE_NUM_RECORDS;
+}
+
+int nvgpu_gr_fecs_trace_enable(struct gk20a *g)
+{
+	struct nvgpu_gr_fecs_trace *trace = g->fecs_trace;
+	int write;
+	int err = 0;
+
+	nvgpu_mutex_acquire(&trace->enable_lock);
+	trace->enable_count++;
+
+	if (trace->enable_count == 1U) {
+		/* drop data in hw buffer */
+		if (g->ops.fecs_trace.flush)
+			g->ops.fecs_trace.flush(g);
+
+		write = g->ops.fecs_trace.get_write_index(g);
+		g->ops.fecs_trace.set_read_index(g, write);
+
+		err = nvgpu_thread_create(&trace->poll_task, g,
+				gk20a_fecs_trace_periodic_polling, __func__);
+		if (err != 0) {
+			nvgpu_warn(g, "failed to create FECS polling task");
+			goto done;
+		}
+	}
+
+done:
+	nvgpu_mutex_release(&trace->enable_lock);
+	return err;
+}
+
+int nvgpu_gr_fecs_trace_disable(struct gk20a *g)
+{
+	struct nvgpu_gr_fecs_trace *trace = g->fecs_trace;
+
+	if (trace == NULL) {
+		return -EINVAL;
+	}
+
+	nvgpu_mutex_acquire(&trace->enable_lock);
+	trace->enable_count--;
+	if (trace->enable_count == 0U) {
+		nvgpu_thread_stop(&trace->poll_task);
+	}
+	nvgpu_mutex_release(&trace->enable_lock);
+
+	return 0;
+}
+
+bool nvgpu_gr_fecs_trace_is_enabled(struct gk20a *g)
+{
+	struct nvgpu_gr_fecs_trace *trace = g->fecs_trace;
+
+	return (trace && (trace->enable_count > 0));
+}
+
+void nvgpu_gr_fecs_trace_reset_buffer(struct gk20a *g)
+{
+	nvgpu_log(g, gpu_dbg_fn|gpu_dbg_ctxsw, " ");
+
+	g->ops.fecs_trace.set_read_index(g,
+		g->ops.fecs_trace.get_write_index(g));
+}
+
+#endif /* CONFIG_GK20A_CTXSW_TRACE */

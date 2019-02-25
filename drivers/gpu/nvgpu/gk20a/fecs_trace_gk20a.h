@@ -29,18 +29,12 @@ struct nvgpu_gpu_ctxsw_trace_filter;
 struct nvgpu_gr_ctx;
 
 int gk20a_fecs_trace_poll(struct gk20a *g);
+int gk20a_fecs_trace_periodic_polling(void *arg);
 int gk20a_fecs_trace_bind_channel(struct gk20a *g,
 		struct channel_gk20a *ch, u32 vmid,
 		struct nvgpu_gr_ctx *gr_ctx);
 int gk20a_fecs_trace_unbind_channel(struct gk20a *g, struct channel_gk20a *ch);
 int gk20a_fecs_trace_reset(struct gk20a *g);
-int gk20a_gr_max_entries(struct gk20a *g,
-		struct nvgpu_gpu_ctxsw_trace_filter *filter);
-int gk20a_fecs_trace_enable(struct gk20a *g);
-int gk20a_fecs_trace_disable(struct gk20a *g);
-bool gk20a_fecs_trace_is_enabled(struct gk20a *g);
-size_t gk20a_fecs_trace_buffer_size(struct gk20a *g);
-void gk20a_fecs_trace_reset_buffer(struct gk20a *g);
 u32 gk20a_fecs_trace_get_buffer_full_mailbox_val(void);
 
 #endif /* NVGPU_GK20A_FECS_TRACE_GK20A_H */

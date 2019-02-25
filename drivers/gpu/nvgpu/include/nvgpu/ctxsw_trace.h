@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -28,30 +28,6 @@
 struct gk20a;
 struct tsg_gk20a;
 struct channel_gk20a;
-
-#define NVGPU_GPU_CTXSW_TAG_SOF                     0x00
-#define NVGPU_GPU_CTXSW_TAG_CTXSW_REQ_BY_HOST       0x01
-#define NVGPU_GPU_CTXSW_TAG_FE_ACK                  0x02
-#define NVGPU_GPU_CTXSW_TAG_FE_ACK_WFI              0x0a
-#define NVGPU_GPU_CTXSW_TAG_FE_ACK_GFXP             0x0b
-#define NVGPU_GPU_CTXSW_TAG_FE_ACK_CTAP             0x0c
-#define NVGPU_GPU_CTXSW_TAG_FE_ACK_CILP             0x0d
-#define NVGPU_GPU_CTXSW_TAG_SAVE_END                0x03
-#define NVGPU_GPU_CTXSW_TAG_RESTORE_START           0x04
-#define NVGPU_GPU_CTXSW_TAG_CONTEXT_START           0x05
-#define NVGPU_GPU_CTXSW_TAG_ENGINE_RESET            0xfe
-#define NVGPU_GPU_CTXSW_TAG_INVALID_TIMESTAMP       0xff
-#define NVGPU_GPU_CTXSW_TAG_LAST                    \
-	NVGPU_GPU_CTXSW_TAG_INVALID_TIMESTAMP
-
-#define NVGPU_GPU_CTXSW_FILTER_ISSET(n, p) \
-	((p)->tag_bits[(n) / 64] &   (1 << ((n) & 63)))
-
-#define NVGPU_GPU_CTXSW_FILTER_SIZE (NVGPU_GPU_CTXSW_TAG_LAST + 1)
-
-struct nvgpu_gpu_ctxsw_trace_filter {
-	u64 tag_bits[(NVGPU_GPU_CTXSW_FILTER_SIZE + 63) / 64];
-};
 
 /* must be consistent with nvgpu_ctxsw_ring_header */
 struct nvgpu_ctxsw_ring_header_internal {

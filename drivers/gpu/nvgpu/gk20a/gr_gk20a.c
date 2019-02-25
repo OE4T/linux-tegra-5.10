@@ -54,6 +54,7 @@
 #include <nvgpu/gr/ctx.h>
 #include <nvgpu/gr/zbc.h>
 #include <nvgpu/gr/config.h>
+#include <nvgpu/gr/fecs_trace.h>
 #include <nvgpu/engines.h>
 #include <nvgpu/engine_status.h>
 
@@ -2012,7 +2013,7 @@ int gr_gk20a_init_ctx_state(struct gk20a *g)
 		g->gr.ctx_vars.priv_access_map_size = 512 * 1024;
 #ifdef CONFIG_GK20A_CTXSW_TRACE
 		g->gr.ctx_vars.fecs_trace_buffer_size =
-			gk20a_fecs_trace_buffer_size(g);
+			nvgpu_gr_fecs_trace_buffer_size(g);
 #endif
 	}
 
@@ -3591,7 +3592,7 @@ int gk20a_gr_handle_fecs_error(struct gk20a *g, struct channel_gk20a *ch,
 			      g->ops.fecs_trace.get_buffer_full_mailbox_val()) {
 			nvgpu_info(g, "ctxsw intr0 set by ucode, "
 					"timestamp buffer full");
-			gk20a_fecs_trace_reset_buffer(g);
+			nvgpu_gr_fecs_trace_reset_buffer(g);
 		} else {
 			nvgpu_err(g,
 				 "ctxsw intr0 set by ucode, error_code: 0x%08x",

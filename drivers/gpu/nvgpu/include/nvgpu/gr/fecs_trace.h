@@ -36,6 +36,26 @@
 #define GK20A_FECS_TRACE_FRAME_PERIOD_US	(1000000ULL/60ULL)
 #define GK20A_FECS_TRACE_PTIMER_SHIFT		5
 
+#define NVGPU_GPU_CTXSW_TAG_SOF                     0x00
+#define NVGPU_GPU_CTXSW_TAG_CTXSW_REQ_BY_HOST       0x01
+#define NVGPU_GPU_CTXSW_TAG_FE_ACK                  0x02
+#define NVGPU_GPU_CTXSW_TAG_FE_ACK_WFI              0x0a
+#define NVGPU_GPU_CTXSW_TAG_FE_ACK_GFXP             0x0b
+#define NVGPU_GPU_CTXSW_TAG_FE_ACK_CTAP             0x0c
+#define NVGPU_GPU_CTXSW_TAG_FE_ACK_CILP             0x0d
+#define NVGPU_GPU_CTXSW_TAG_SAVE_END                0x03
+#define NVGPU_GPU_CTXSW_TAG_RESTORE_START           0x04
+#define NVGPU_GPU_CTXSW_TAG_CONTEXT_START           0x05
+#define NVGPU_GPU_CTXSW_TAG_ENGINE_RESET            0xfe
+#define NVGPU_GPU_CTXSW_TAG_INVALID_TIMESTAMP       0xff
+#define NVGPU_GPU_CTXSW_TAG_LAST                    \
+	NVGPU_GPU_CTXSW_TAG_INVALID_TIMESTAMP
+
+#define NVGPU_GPU_CTXSW_FILTER_ISSET(n, p) \
+	((p)->tag_bits[(n) / 64] &   (1 << ((n) & 63)))
+
+#define NVGPU_GPU_CTXSW_FILTER_SIZE (NVGPU_GPU_CTXSW_TAG_LAST + 1)
+
 struct gk20a;
 
 struct nvgpu_gr_fecs_trace {
@@ -57,6 +77,10 @@ struct nvgpu_fecs_trace_record {
 	u32 new_context_id;
 	u32 new_context_ptr;
 	u64 ts[];
+};
+
+struct nvgpu_gpu_ctxsw_trace_filter {
+	u64 tag_bits[(NVGPU_GPU_CTXSW_FILTER_SIZE + 63) / 64];
 };
 
 struct nvgpu_fecs_trace_context_entry {
@@ -93,5 +117,14 @@ void nvgpu_gr_fecs_trace_remove_contexts(struct gk20a *g,
 	struct nvgpu_list_node *list);
 void nvgpu_gr_fecs_trace_find_pid(struct gk20a *g, u32 context_ptr,
 	struct nvgpu_list_node *list, pid_t *pid, u32 *vmid);
+
+size_t nvgpu_gr_fecs_trace_buffer_size(struct gk20a *g);
+int nvgpu_gr_fecs_trace_max_entries(struct gk20a *g,
+		struct nvgpu_gpu_ctxsw_trace_filter *filter);
+
+int nvgpu_gr_fecs_trace_enable(struct gk20a *g);
+int nvgpu_gr_fecs_trace_disable(struct gk20a *g);
+bool nvgpu_gr_fecs_trace_is_enabled(struct gk20a *g);
+void nvgpu_gr_fecs_trace_reset_buffer(struct gk20a *g);
 
 #endif /* NVGPU_GR_FECS_TRACE_H */
