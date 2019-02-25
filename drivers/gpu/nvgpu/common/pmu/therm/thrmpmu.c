@@ -127,14 +127,12 @@ static int therm_set_warn_temp_limit(struct gk20a *g)
 {
 	u32 seqdesc = 0;
 	struct pmu_cmd cmd;
-	struct pmu_msg msg;
 	struct pmu_payload payload;
 	struct nv_pmu_therm_rpc rpccall;
 	struct therm_pmucmdhandler_params handlerparams;
 
 	(void) memset(&payload, 0, sizeof(struct pmu_payload));
 	(void) memset(&cmd, 0, sizeof(struct pmu_cmd));
-	(void) memset(&msg, 0, sizeof(struct pmu_msg));
 	(void) memset(&rpccall, 0, sizeof(struct nv_pmu_therm_rpc));
 	(void) memset(&handlerparams, 0,
 		sizeof(struct therm_pmucmdhandler_params));
@@ -143,14 +141,12 @@ static int therm_set_warn_temp_limit(struct gk20a *g)
 	rpccall.params.slct_event_temp_th_set.event_id =
 		NV_PMU_THERM_EVENT_THERMAL_1;
 	rpccall.params.slct_event_temp_th_set.temp_threshold = g->curr_warn_temp;
-	rpccall.b_supported = 0;
+	rpccall.b_supported = false;
 
 	cmd.hdr.unit_id = PMU_UNIT_THERM;
 	cmd.hdr.size = ((u32)sizeof(struct nv_pmu_therm_cmd_rpc) +
 			(u32)sizeof(struct pmu_hdr));
 	cmd.cmd.therm.cmd_type = NV_PMU_THERM_CMD_ID_RPC;
-
-	msg.hdr.size = sizeof(struct pmu_msg);
 
 	payload.in.buf = (u8 *)&rpccall;
 	payload.in.size = (u32)sizeof(struct nv_pmu_therm_rpc);
@@ -197,14 +193,12 @@ static int therm_send_slct_configuration_to_pmu(struct gk20a *g)
 {
 	u32 seqdesc = 0;
 	struct pmu_cmd cmd;
-	struct pmu_msg msg;
 	struct pmu_payload payload;
 	struct nv_pmu_therm_rpc rpccall;
 	struct therm_pmucmdhandler_params handlerparams;
 
 	(void) memset(&payload, 0, sizeof(struct pmu_payload));
 	(void) memset(&cmd, 0, sizeof(struct pmu_cmd));
-	(void) memset(&msg, 0, sizeof(struct pmu_msg));
 	(void) memset(&rpccall, 0, sizeof(struct nv_pmu_therm_rpc));
 	(void) memset(&handlerparams, 0,
 		sizeof(struct therm_pmucmdhandler_params));
@@ -212,14 +206,12 @@ static int therm_send_slct_configuration_to_pmu(struct gk20a *g)
 	rpccall.function = NV_PMU_THERM_RPC_ID_SLCT;
 	rpccall.params.slct.mask_enabled =
 		BIT32(NV_PMU_THERM_EVENT_THERMAL_1);
-	rpccall.b_supported = 0;
+	rpccall.b_supported = false;
 
 	cmd.hdr.unit_id = PMU_UNIT_THERM;
 	cmd.hdr.size = ((u32)sizeof(struct nv_pmu_therm_cmd_rpc) +
 			(u32)sizeof(struct pmu_hdr));
 	cmd.cmd.therm.cmd_type = NV_PMU_THERM_CMD_ID_RPC;
-
-	msg.hdr.size = sizeof(struct pmu_msg);
 
 	payload.in.buf = (u8 *)&rpccall;
 	payload.in.size = (u32)sizeof(struct nv_pmu_therm_rpc);
