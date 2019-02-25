@@ -61,6 +61,7 @@ int nvgpu_pmu_init_perfmon(struct nvgpu_pmu *pmu)
 	struct pmu_payload payload;
 	u32 seq;
 	int status;
+	u64 tmp_addr, tmp_size;
 
 	if (!nvgpu_is_enabled(g, NVGPU_PMU_PERFMON)) {
 		return 0;
@@ -68,13 +69,14 @@ int nvgpu_pmu_init_perfmon(struct nvgpu_pmu *pmu)
 
 	nvgpu_log_fn(g, " ");
 
-	pmu->perfmon_ready = 0;
+	pmu->perfmon_ready = false;
 
 	g->ops.pmu.pmu_init_perfmon_counter(g);
 
 	if (pmu->sample_buffer == 0U) {
-		pmu->sample_buffer = nvgpu_alloc(&pmu->dmem,
-						  2U * sizeof(u16));
+		tmp_addr = nvgpu_alloc(&pmu->dmem, 2U * sizeof(u16));
+		nvgpu_assert(tmp_addr <= U32_MAX);
+		pmu->sample_buffer = (u32)tmp_addr;
 	}
 	if (pmu->sample_buffer == 0U) {
 		nvgpu_err(g, "failed to allocate perfmon sample buffer");
@@ -90,7 +92,9 @@ int nvgpu_pmu_init_perfmon(struct nvgpu_pmu *pmu)
 		return -EINVAL;
 	}
 
-	cmd.hdr.size = PMU_CMD_HDR_SIZE + pv->get_pmu_perfmon_cmd_init_size();
+	tmp_size = PMU_CMD_HDR_SIZE + (u64)pv->get_pmu_perfmon_cmd_init_size();
+	nvgpu_assert(tmp_size <= U8_MAX);
+	cmd.hdr.size = (u8)tmp_size;
 	cmd.cmd.perfmon.cmd_type = PMU_PERFMON_CMD_ID_INIT;
 	/* buffer to save counter values for pmu perfmon */
 	pv->perfmon_cmd_init_set_sample_buffer(&cmd.cmd.perfmon,
@@ -138,6 +142,7 @@ int nvgpu_pmu_perfmon_start_sampling(struct nvgpu_pmu *pmu)
 	struct pmu_payload payload;
 	u32 seq;
 	int status;
+	u64 tmp_size;
 
 	if (!nvgpu_is_enabled(g, NVGPU_PMU_PERFMON)) {
 		return 0;
@@ -150,7 +155,9 @@ int nvgpu_pmu_perfmon_start_sampling(struct nvgpu_pmu *pmu)
 		nvgpu_err(g, "failed to get perfmon UNIT ID, command skipped");
 		return -EINVAL;
 	}
-	cmd.hdr.size = PMU_CMD_HDR_SIZE + pv->get_pmu_perfmon_cmd_start_size();
+	tmp_size = PMU_CMD_HDR_SIZE + (u64)pv->get_pmu_perfmon_cmd_start_size();
+	nvgpu_assert(tmp_size <= U8_MAX);
+	cmd.hdr.size = (u8)tmp_size;
 	pv->perfmon_start_set_cmd_type(&cmd.cmd.perfmon,
 		PMU_PERFMON_CMD_ID_START);
 	pv->perfmon_start_set_group_id(&cmd.cmd.perfmon,
@@ -192,6 +199,7 @@ int nvgpu_pmu_perfmon_stop_sampling(struct nvgpu_pmu *pmu)
 	struct gk20a *g = gk20a_from_pmu(pmu);
 	struct pmu_cmd cmd;
 	u32 seq;
+	u64 tmp_size;
 
 	if (!nvgpu_is_enabled(g, NVGPU_PMU_PERFMON)) {
 		return 0;
@@ -204,7 +212,9 @@ int nvgpu_pmu_perfmon_stop_sampling(struct nvgpu_pmu *pmu)
 		nvgpu_err(g, "failed to get perfmon UNIT ID, command skipped");
 		return -EINVAL;
 	}
-	cmd.hdr.size = PMU_CMD_HDR_SIZE + sizeof(struct pmu_perfmon_cmd_stop);
+	tmp_size = PMU_CMD_HDR_SIZE + sizeof(struct pmu_perfmon_cmd_stop);
+	nvgpu_assert(tmp_size <= U8_MAX);
+	cmd.hdr.size = (u8)tmp_size;
 	cmd.cmd.perfmon.stop.cmd_type = PMU_PERFMON_CMD_ID_STOP;
 
 	nvgpu_pmu_dbg(g, "cmd post PMU_PERFMON_CMD_ID_STOP");
@@ -339,7 +349,7 @@ int nvgpu_pmu_handle_perfmon_event(struct nvgpu_pmu *pmu,
 		(pmu->perfmon_events_cnt)++;
 		break;
 	case PMU_PERFMON_MSG_ID_INIT_EVENT:
-		pmu->perfmon_ready = 1;
+		pmu->perfmon_ready = true;
 		nvgpu_pmu_dbg(g, "perfmon init event");
 		break;
 	default:
@@ -370,7 +380,7 @@ int nvgpu_pmu_init_perfmon_rpc(struct nvgpu_pmu *pmu)
 	nvgpu_log_fn(g, " ");
 
 	(void) memset(&rpc, 0, sizeof(struct nv_pmu_rpc_struct_perfmon_init));
-	pmu->perfmon_ready = 0;
+	pmu->perfmon_ready = false;
 
 	g->ops.pmu.pmu_init_perfmon_counter(g);
 

@@ -394,7 +394,7 @@ struct nvgpu_pmu {
 	union {
 		struct pmu_perfmon_counter_v2 perfmon_counter_v2;
 	};
-	u32 perfmon_state_id[PMU_DOMAIN_GROUP_NUM];
+	u8 perfmon_state_id[PMU_DOMAIN_GROUP_NUM];
 
 	bool initialized;
 
