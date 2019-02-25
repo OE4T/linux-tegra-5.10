@@ -54,7 +54,6 @@
 #include "common/vgpu/perf/cyclestats_snapshot_vgpu.h"
 #include "gp10b/gp10b.h"
 #include "gp10b/hal_gp10b.h"
-#include "common/vgpu/mm/vgpu_mm_gp10b.h"
 #include "vgpu_fuse_gp10b.h"
 
 #include "common/falcon/falcon_gk20a.h"
@@ -482,7 +481,7 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 	},
 #endif /* CONFIG_GK20A_CTXSW_TRACE */
 	.mm = {
-		.gmmu_map = vgpu_gp10b_locked_gmmu_map,
+		.gmmu_map = vgpu_locked_gmmu_map,
 		.gmmu_unmap = vgpu_locked_gmmu_unmap,
 		.vm_bind_channel = vgpu_vm_bind_channel,
 		.fb_flush = vgpu_mm_fb_flush,
@@ -496,7 +495,7 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 		.get_iommu_bit = gk20a_mm_get_iommu_bit,
 		.get_mmu_levels = gp10b_mm_get_mmu_levels,
 		.init_pdb = gp10b_mm_init_pdb,
-		.init_mm_setup_hw = vgpu_gp10b_init_mm_setup_hw,
+		.init_mm_setup_hw = NULL,
 		.is_bar1_supported = gm20b_mm_is_bar1_supported,
 		.init_inst_block = gk20a_init_inst_block,
 		.mmu_fault_pending = NULL,
