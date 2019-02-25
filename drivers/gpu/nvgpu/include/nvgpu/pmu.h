@@ -314,7 +314,7 @@ struct pmu_sequence {
 	 * has been used so far, as the outbound frame is assembled
 	 * (first FB Queue hdr, then CMD, then payloads).
 	 */
-	 u32 buffer_size_used;
+	u16 buffer_size_used;
 	/* offset to out data in the queue element */
 	u16 fbq_out_offset_in_queue_element;
 };

@@ -665,7 +665,7 @@ static int pmu_fbq_cmd_setup(struct gk20a *g, struct pmu_cmd *cmd,
 	struct nvgpu_pmu *pmu = &g->pmu;
 	struct nv_falcon_fbq_hdr *fbq_hdr = NULL;
 	struct pmu_cmd *flcn_cmd = NULL;
-	u16 fbq_size_needed = 0;
+	u32 fbq_size_needed = 0;
 	u16 heap_offset = 0;
 	u64 tmp;
 	int err = 0;
@@ -679,16 +679,16 @@ static int pmu_fbq_cmd_setup(struct gk20a *g, struct pmu_cmd *cmd,
 
 	if (cmd->cmd.rpc.cmd_type == NV_PMU_RPC_CMD_ID) {
 		if (payload != NULL) {
-			fbq_size_needed = payload->rpc.size_rpc +
-			payload->rpc.size_scratch;
+			fbq_size_needed = (u32)payload->rpc.size_rpc +
+					(u32)payload->rpc.size_scratch;
 		}
 	} else {
 		if (payload != NULL) {
 			if (payload->in.offset != 0U) {
 				if (payload->in.buf != payload->out.buf) {
-					fbq_size_needed = (u16)payload->in.size;
+					fbq_size_needed = payload->in.size;
 				} else {
-					fbq_size_needed = (u16)max(payload->in.size,
+					fbq_size_needed = max(payload->in.size,
 						payload->out.size);
 				}
 			}
@@ -701,9 +701,11 @@ static int pmu_fbq_cmd_setup(struct gk20a *g, struct pmu_cmd *cmd,
 		}
 	}
 
-	fbq_size_needed = fbq_size_needed +
+	tmp = fbq_size_needed +
 		sizeof(struct nv_falcon_fbq_hdr) +
 		cmd->hdr.size;
+	nvgpu_assert(tmp <= (size_t)U32_MAX);
+	fbq_size_needed = (u32)tmp;
 
 	fbq_size_needed = ALIGN_UP(fbq_size_needed, 4);
 
@@ -723,14 +725,17 @@ static int pmu_fbq_cmd_setup(struct gk20a *g, struct pmu_cmd *cmd,
 		nvgpu_engine_fb_queue_get_element_size(queue));
 
 	/* Need to save room for both FBQ hdr, and the CMD */
-	seq->buffer_size_used = sizeof(struct nv_falcon_fbq_hdr) +
-		cmd->hdr.size;
+	tmp = sizeof(struct nv_falcon_fbq_hdr) +
+		   cmd->hdr.size;
+	nvgpu_assert(tmp <= (size_t)U16_MAX);
+	seq->buffer_size_used = (u16)tmp;
 
 	/* copy cmd into the work buffer */
 	nvgpu_memcpy((u8 *)flcn_cmd, (u8 *)cmd, cmd->hdr.size);
 
 	/* Fill in FBQ hdr, and offset in seq structure */
-	fbq_hdr->heap_size = fbq_size_needed;
+	nvgpu_assert(fbq_size_needed < U16_MAX);
+	fbq_hdr->heap_size = (u16)fbq_size_needed;
 	fbq_hdr->heap_offset = heap_offset;
 	seq->fbq_heap_offset = heap_offset;
 
