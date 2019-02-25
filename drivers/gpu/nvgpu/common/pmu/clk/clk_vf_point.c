@@ -32,7 +32,6 @@
 #include <nvgpu/pmu/perf.h>
 
 #include "clk.h"
-#include "clk_vf_point.h"
 
 static int _clk_vf_point_pmudatainit_super(struct gk20a *g, struct boardobj
 	*board_obj_ptr,	struct nv_pmu_boardobj *ppmudata);
@@ -369,7 +368,7 @@ static int clk_vf_point_construct_freq_35(struct gk20a *g,
 	return status;
 }
 
-struct clk_vf_point *construct_clk_vf_point(struct gk20a *g, void *pargs)
+struct clk_vf_point *nvgpu_construct_clk_vf_point(struct gk20a *g, void *pargs)
 {
 	struct boardobj *board_obj_ptr = NULL;
 	int status;
@@ -397,7 +396,8 @@ struct clk_vf_point *construct_clk_vf_point(struct gk20a *g, void *pargs)
 		break;
 
 	default:
-		return NULL;
+		status = -EINVAL;
+		break;
 	}
 
 	if (status != 0) {
@@ -406,7 +406,7 @@ struct clk_vf_point *construct_clk_vf_point(struct gk20a *g, void *pargs)
 
 	nvgpu_log_info(g, " Done");
 
-	return (struct clk_vf_point *)board_obj_ptr;
+	return (struct clk_vf_point *)(void *)board_obj_ptr;
 }
 
 static int _clk_vf_point_pmudatainit_super(struct gk20a *g,
@@ -708,7 +708,7 @@ int nvgpu_clk_set_req_fll_clk_ps35(struct gk20a *g, struct nvgpu_clk_slave_freq 
 }
 
 /*get latest vf point data from PMU */
-int clk_vf_point_cache(struct gk20a *g)
+int nvgpu_clk_vf_point_cache(struct gk20a *g)
 {
 
 	struct nvgpu_clk_vf_points *pclk_vf_points;
@@ -739,14 +739,14 @@ int clk_vf_point_cache(struct gk20a *g)
 
 		BOARDOBJGRP_FOR_EACH(pboardobjgrp, struct boardobj*, pboardobj, index) {
 			status = pboardobjgrp->pmustatusinstget(g,
-					(struct nv_pmu_boardobjgrp *)pboardobjgrppmu,
+					(struct nv_pmu_boardobjgrp *)(void *)pboardobjgrppmu,
 					&pboardobjpmustatus, index);
 			if (status != 0) {
 				nvgpu_err(g, "could not get status object instance");
 				return status;
 			}
 			status = clk_vf_point_update(g, pboardobj,
-				(struct nv_pmu_boardobj *)pboardobjpmustatus);
+				(struct nv_pmu_boardobj *)(void *)pboardobjpmustatus);
 			if (status != 0) {
 				nvgpu_err(g, "invalid data from pmu at %d", index);
 				return status;

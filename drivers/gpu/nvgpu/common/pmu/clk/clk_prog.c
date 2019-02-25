@@ -31,8 +31,6 @@
 
 #include "clk.h"
 #include "clk_prog.h"
-#include "clk_vf_point.h"
-#include "gp106/bios_gp106.h"
 
 static struct clk_prog *construct_clk_prog(struct gk20a *g, void *pargs);
 static int devinit_get_clk_prog_table(struct gk20a *g,
@@ -923,7 +921,7 @@ static int _clk_prog_1x_master_rail_construct_vf_point(struct gk20a *g,
 
 	nvgpu_log_info(g, " ");
 
-	p_vf_point = construct_clk_vf_point(g, (void *)p_vf_point_tmp);
+	p_vf_point = nvgpu_construct_clk_vf_point(g, (void *)p_vf_point_tmp);
 	if (p_vf_point == NULL) {
 		status = -ENOMEM;
 		goto done;

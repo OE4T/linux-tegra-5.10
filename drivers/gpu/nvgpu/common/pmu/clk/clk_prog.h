@@ -31,6 +31,7 @@
 #include <nvgpu/boardobjgrpmask.h>
 
 struct clk_prog_1x_master;
+#define FREQ_STEP_SIZE_MHZ      15U
 
 typedef int vf_flatten(struct gk20a *g, struct nvgpu_clk_pmupstate *pclk,
 			struct clk_prog_1x_master *p1xmaster,

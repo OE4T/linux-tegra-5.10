@@ -24,6 +24,7 @@
 #include <nvgpu/clk_arb.h>
 #include <nvgpu/pmu/clk/clk.h>
 #include <nvgpu/timers.h>
+#include <nvgpu/pmu/clk/clk_vf_point.h>
 
 #include "clk_arb_gv100.h"
 #include "common/pmu/clk/clk.h"
@@ -248,7 +249,7 @@ int gv100_init_clk_arbiter(struct gk20a *g)
 			arb->debugfs_set = true;
 	}
 #endif
-	err = clk_vf_point_cache(g);
+	err = nvgpu_clk_vf_point_cache(g);
 	if (err < 0) {
 		goto init_fail;
 	}

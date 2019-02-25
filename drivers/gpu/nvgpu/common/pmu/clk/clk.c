@@ -30,6 +30,7 @@
 #include <nvgpu/pmu/pstate.h>
 #include <nvgpu/pmu/volt.h>
 #include <nvgpu/pmu/clk/clk.h>
+#include <nvgpu/pmu/clk/clk_vf_point.h>
 
 #include "clk.h"
 #include <nvgpu/timers.h>
@@ -902,7 +903,7 @@ int nvgpu_clk_set_boot_fll_clk_gv10x(struct gk20a *g)
 	u32 gpcclk_voltuv = 0;
 	u32 voltuv = 0;
 
-	status = clk_vf_point_cache(g);
+	status = nvgpu_clk_vf_point_cache(g);
 	if (status != 0) {
 		nvgpu_err(g,"caching failed");
 		return status;
@@ -950,7 +951,7 @@ int nvgpu_clk_set_fll_clk_gv10x(struct gk20a *g)
 	u32 gpcclk_voltuv = 0U;
 	u32 voltuv = 0U;
 
-	status = clk_vf_point_cache(g);
+	status = nvgpu_clk_vf_point_cache(g);
 	if (status != 0) {
 		nvgpu_err(g, "caching failed");
 		return status;

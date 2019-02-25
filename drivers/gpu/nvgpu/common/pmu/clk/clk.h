@@ -30,7 +30,6 @@
 #include "clk_fll.h"
 #include "clk_domain.h"
 #include "clk_prog.h"
-#include "clk_vf_point.h"
 #include "clk_mclk.h"
 #include "clk_freq_controller.h"
 #include "clk_freq_domain.h"

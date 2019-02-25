@@ -37,9 +37,9 @@
 #include <nvgpu/pmu/volt.h>
 #include <nvgpu/pmu/lpwr.h>
 #include <nvgpu/pmu/clk/clk.h>
+#include <nvgpu/pmu/clk/clk_vf_point.h>
 
 #include "clk.h"
-#include "clk_vf_point.h"
 
 int nvgpu_clk_notification_queue_alloc(struct gk20a *g,
 				struct nvgpu_clk_notification_queue *queue,
@@ -235,7 +235,7 @@ static void nvgpu_clk_arb_run_vf_table_cb(struct nvgpu_clk_arb *arb)
 	int err;
 
 	/* get latest vf curve from pmu */
-	err = clk_vf_point_cache(g);
+	err = nvgpu_clk_vf_point_cache(g);
 	if (err != 0) {
 		nvgpu_err(g, "failed to cache VF table");
 		nvgpu_clk_arb_set_global_alarm(g,
