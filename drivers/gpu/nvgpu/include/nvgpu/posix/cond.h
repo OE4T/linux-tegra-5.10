@@ -25,7 +25,6 @@
 
 #include <nvgpu/bug.h>
 #include <nvgpu/lock.h>
-#include <nvgpu/posix/thread.h>
 
 struct nvgpu_cond {
 	bool initialized;
@@ -34,59 +33,30 @@ struct nvgpu_cond {
 	pthread_condattr_t attr;
 };
 
+int nvgpu_cond_timedwait(struct nvgpu_cond *c, unsigned int *ms);
 /**
  * NVGPU_COND_WAIT - Wait for a condition to be true
  *
- * @c - The condition variable to sleep on
+ * @cond - The condition variable to sleep on
  * @condition - The condition that needs to be true
  * @timeout_ms - Timeout in milliseconds, or 0 for infinite wait.
- *               This parameter must be a u32. Since this is a macro, this is
- *               enforced by assigning a typecast NULL pointer to a u32 tmp
- *               variable which will generate a compiler warning (or error if
- *               the warning is configured as an error).
+ *               This parameter must be a u32.
  *
  * Wait for a condition to become true. Returns -ETIMEOUT if
  * the wait timed out with condition false.
  */
-#define NVGPU_COND_WAIT(c, condition, timeout_ms)			\
-({									\
-	int ret = 0;							\
-	struct timespec ts;						\
-	long tmp_timeout_ms;						\
-	/* This is the assignment to enforce a u32 for timeout_ms */    \
-	u32 *tmp = (typeof(timeout_ms) *)NULL;				\
-	(void)tmp;							\
-	if ((sizeof(long) <= sizeof(u32)) &&				\
-	    ((timeout_ms) >= (u32)LONG_MAX)) { 				\
-		tmp_timeout_ms = LONG_MAX;				\
-	} else {							\
-		tmp_timeout_ms = (long)(timeout_ms);			\
-	}								\
-	nvgpu_mutex_acquire(&(c)->mutex);				\
-	if (tmp_timeout_ms == 0) {					\
-		ret = pthread_cond_wait(&(c)->cond,			\
-			&(c)->mutex.lock.mutex);			\
-	} else {							\
-		clock_gettime(CLOCK_REALTIME, &ts);			\
-		ts.tv_sec += tmp_timeout_ms / 1000;			\
-		ts.tv_nsec += (tmp_timeout_ms % 1000) * 1000000;	\
-		if (ts.tv_nsec >= 1000000000) {				\
-			ts.tv_sec += 1;					\
-			ts.tv_nsec %= 1000000000;			\
-		}							\
-		while (!(condition) && ret == 0) {			\
-			ret = pthread_cond_timedwait(&(c)->cond,	\
-				&(c)->mutex.lock.mutex, &ts);		\
-		}							\
-	}								\
-	nvgpu_mutex_release(&(c)->mutex);				\
-	ret; 								\
+#define NVGPU_COND_WAIT(cond, condition, timeout_ms)		\
+({								\
+	int ret = 0;						\
+	NVGPU_COND_WAIT_TIMEOUT(cond, condition, ret,		\
+		timeout_ms ? timeout_ms : (unsigned int)-1);	\
+	ret;							\
 })
 
 /**
  * NVGPU_COND_WAIT_INTERRUPTIBLE - Wait for a condition to be true
  *
- * @c - The condition variable to sleep on
+ * @cond - The condition variable to sleep on
  * @condition - The condition that needs to be true
  * @timeout_ms - Timeout in milliseconds, or 0 for infinite wait
  *
@@ -94,7 +64,19 @@ struct nvgpu_cond {
  * the wait timed out with condition false or -ERESTARTSYS on
  * signal.
  */
-#define NVGPU_COND_WAIT_INTERRUPTIBLE(c, condition, timeout_ms) \
-				NVGPU_COND_WAIT(c, condition, timeout_ms)
+#define NVGPU_COND_WAIT_INTERRUPTIBLE(cond, condition, timeout_ms) \
+				NVGPU_COND_WAIT(cond, condition, timeout_ms)
+
+
+#define NVGPU_COND_WAIT_TIMEOUT(cond, condition, ret, timeout_ms)	\
+do {								\
+	unsigned int __timeout = timeout_ms;			\
+	ret = 0;						\
+	nvgpu_mutex_acquire(&(cond)->mutex);			\
+	while (!(condition) && ret == 0) {			\
+		ret = nvgpu_cond_timedwait(cond, &__timeout);	\
+	}							\
+	nvgpu_mutex_release(&(cond)->mutex);			\
+} while (0)
 
 #endif /* NVGPU_POSIX_COND_H */

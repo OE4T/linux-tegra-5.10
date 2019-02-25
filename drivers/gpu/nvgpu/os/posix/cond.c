@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -22,27 +22,40 @@
 
 #include <nvgpu/cond.h>
 
-#include <nvgpu/posix/cond.h>
-
 int nvgpu_cond_init(struct nvgpu_cond *cond)
 {
 	int ret;
+
+	ret = pthread_condattr_init(&cond->attr);
+	if (ret != 0) {
+		return ret;
+	}
+	ret = pthread_condattr_setclock(&cond->attr, CLOCK_MONOTONIC);
+	if (ret != 0) {
+		(void) pthread_condattr_destroy(&cond->attr);
+		return ret;
+	}
+
 	ret = nvgpu_mutex_init(&cond->mutex);
 	if (ret != 0) {
+		(void) pthread_condattr_destroy(&cond->attr);
 		return ret;
 	}
-	ret = pthread_cond_init(&cond->cond, NULL);
+
+	ret = pthread_cond_init(&cond->cond, &cond->attr);
 	if (ret != 0) {
-		nvgpu_mutex_destroy(&cond->mutex);
+		(void) pthread_condattr_destroy(&cond->attr);
+		(void) nvgpu_mutex_destroy(&cond->mutex);
 		return ret;
 	}
+
 	cond->initialized = true;
 	return ret;
 }
 
 void nvgpu_cond_signal(struct nvgpu_cond *cond)
 {
-	if (cond == NULL || !cond->initialized) {
+	if ((cond == NULL) || !(cond->initialized)) {
 		BUG();
 	}
 	nvgpu_mutex_acquire(&cond->mutex);
@@ -52,7 +65,7 @@ void nvgpu_cond_signal(struct nvgpu_cond *cond)
 
 void nvgpu_cond_signal_interruptible(struct nvgpu_cond *cond)
 {
-	if (cond == NULL || !cond->initialized) {
+	if ((cond == NULL) || !(cond->initialized)) {
 		BUG();
 	}
 	nvgpu_mutex_acquire(&cond->mutex);
@@ -63,8 +76,9 @@ void nvgpu_cond_signal_interruptible(struct nvgpu_cond *cond)
 int nvgpu_cond_broadcast(struct nvgpu_cond *cond)
 {
 	int ret;
-	if (cond == NULL || !cond->initialized) {
-		BUG();
+
+	if ((cond == NULL) || !(cond->initialized)) {
+		return -EINVAL;
 	}
 	nvgpu_mutex_acquire(&cond->mutex);
 	ret = pthread_cond_broadcast(&cond->cond);
@@ -75,8 +89,9 @@ int nvgpu_cond_broadcast(struct nvgpu_cond *cond)
 int nvgpu_cond_broadcast_interruptible(struct nvgpu_cond *cond)
 {
 	int ret;
-	if (cond == NULL || !cond->initialized) {
-		BUG();
+
+	if ((cond == NULL) || !(cond->initialized)) {
+		return -EINVAL;
 	}
 	nvgpu_mutex_acquire(&cond->mutex);
 	ret = pthread_cond_broadcast(&cond->cond);
@@ -86,11 +101,48 @@ int nvgpu_cond_broadcast_interruptible(struct nvgpu_cond *cond)
 
 void nvgpu_cond_destroy(struct nvgpu_cond *cond)
 {
-	if (cond == NULL || !cond->initialized) {
+	if (cond == NULL) {
 		BUG();
 	}
+	(void) pthread_cond_destroy(&cond->cond);
 	nvgpu_mutex_destroy(&cond->mutex);
-	pthread_cond_destroy(&cond->cond);
+	(void) pthread_condattr_destroy(&cond->attr);
 	cond->initialized = false;
-	return;
+}
+
+int nvgpu_cond_timedwait(struct nvgpu_cond *c, unsigned int *ms)
+{
+	int ret;
+	s64 t_start_ns, t_ns;
+	struct timespec ts;
+
+	if (*ms == (unsigned int)-1) {
+		return pthread_cond_wait(&c->cond, &c->mutex.lock.mutex);
+	}
+
+	if (clock_gettime(CLOCK_MONOTONIC, &ts) == -1) {
+		return -EFAULT;
+	}
+
+	t_start_ns = ts.tv_sec * 1000000000 + ts.tv_nsec;
+	t_ns = (s64)(*ms);
+	t_ns *= 1000000;
+	t_ns += t_start_ns;
+	ts.tv_sec = t_ns / 1000000000;
+	ts.tv_nsec = t_ns % 1000000000;
+
+	ret = pthread_cond_timedwait(&c->cond, &c->mutex.lock.mutex, &ts);
+	if (ret == 0) {
+		if (clock_gettime(CLOCK_MONOTONIC, &ts) != -1) {
+			t_ns = ((ts.tv_sec * 1000000000) +
+					ts.tv_nsec) - t_start_ns;
+			t_ns /= 1000000;
+			if (*ms <= (unsigned int)t_ns) {
+				*ms = 0;
+			} else {
+				*ms -= (unsigned int)t_ns;
+			}
+		}
+	}
+	return ret;
 }
