@@ -60,6 +60,7 @@ int nvgpu_pmu_init_perfmon(struct nvgpu_pmu *pmu)
 	struct pmu_cmd cmd;
 	struct pmu_payload payload;
 	u32 seq;
+	int status;
 
 	if (!nvgpu_is_enabled(g, NVGPU_PMU_PERFMON)) {
 		return 0;
@@ -115,7 +116,12 @@ int nvgpu_pmu_init_perfmon(struct nvgpu_pmu *pmu)
 	(void) memset(&payload, 0, sizeof(struct pmu_payload));
 	payload.in.buf = pv->get_perfmon_cntr_ptr(pmu);
 	payload.in.size = pv->get_perfmon_cntr_sz(pmu);
-	payload.in.offset = pv->get_perfmon_cmd_init_offsetofvar(COUNTER_ALLOC);
+	status = pv->get_perfmon_cmd_init_offsetofvar(COUNTER_ALLOC,
+							&payload.in.offset);
+	if (status != 0) {
+		nvgpu_err(g, "failed to get payload offset, command skipped");
+		return status;
+	}
 
 	nvgpu_pmu_dbg(g, "cmd post PMU_PERFMON_CMD_ID_INIT");
 	nvgpu_pmu_cmd_post(g, &cmd, NULL, &payload, PMU_COMMAND_QUEUE_LPQ,
@@ -131,6 +137,7 @@ int nvgpu_pmu_perfmon_start_sampling(struct nvgpu_pmu *pmu)
 	struct pmu_cmd cmd;
 	struct pmu_payload payload;
 	u32 seq;
+	int status;
 
 	if (!nvgpu_is_enabled(g, NVGPU_PMU_PERFMON)) {
 		return 0;
@@ -166,8 +173,12 @@ int nvgpu_pmu_perfmon_start_sampling(struct nvgpu_pmu *pmu)
 
 	payload.in.buf = pv->get_perfmon_cntr_ptr(pmu);
 	payload.in.size = pv->get_perfmon_cntr_sz(pmu);
-	payload.in.offset =
-		pv->get_perfmon_cmd_start_offsetofvar(COUNTER_ALLOC);
+	status = pv->get_perfmon_cmd_start_offsetofvar(COUNTER_ALLOC,
+							&payload.in.offset);
+	if (status != 0) {
+		nvgpu_err(g, "failed to get payload offset, command skipped");
+		return status;
+	}
 
 	nvgpu_pmu_dbg(g, "cmd post PMU_PERFMON_CMD_ID_START");
 	nvgpu_pmu_cmd_post(g, &cmd, NULL, &payload, PMU_COMMAND_QUEUE_LPQ,

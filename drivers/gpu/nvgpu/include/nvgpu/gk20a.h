@@ -984,7 +984,8 @@ struct gpu_ops {
 			union pmu_init_msg_pmu *init_msg);
 		u32 (*get_pmu_perfmon_cmd_start_size)(void);
 		int (*get_perfmon_cmd_start_offsetofvar)(
-				enum pmu_perfmon_cmd_start_fields field);
+				enum pmu_perfmon_cmd_start_fields field,
+				u32 *offset);
 		void (*perfmon_start_set_cmd_type)(struct pmu_perfmon_cmd *pc,
 				u8 value);
 		void (*perfmon_start_set_group_id)(struct pmu_perfmon_cmd *pc,
@@ -996,7 +997,8 @@ struct gpu_ops {
 		u8 (*perfmon_start_get_flags)(struct pmu_perfmon_cmd *pc);
 		u32 (*get_pmu_perfmon_cmd_init_size)(void);
 		int (*get_perfmon_cmd_init_offsetofvar)(
-				enum pmu_perfmon_cmd_start_fields field);
+				enum pmu_perfmon_cmd_start_fields field,
+				u32 *offset);
 		void (*perfmon_cmd_init_set_sample_buffer)(
 				struct pmu_perfmon_cmd *pc, u16 value);
 		void (*perfmon_cmd_init_set_dec_cnt)(
@@ -1014,7 +1016,7 @@ struct gpu_ops {
 		void *(*get_pmu_seq_out_a_ptr)(
 				struct pmu_sequence *seq);
 		void (*set_pmu_cmdline_args_secure_mode)(struct nvgpu_pmu *pmu,
-			u32 val);
+			u8 val);
 		u32 (*get_perfmon_cntr_sz)(struct nvgpu_pmu *pmu);
 		void * (*get_perfmon_cntr_ptr)(struct nvgpu_pmu *pmu);
 		void (*set_perfmon_cntr_ut)(struct nvgpu_pmu *pmu, u16 ut);

@@ -23,6 +23,7 @@
 #include <nvgpu/pmu.h>
 #include <nvgpu/dma.h>
 #include <nvgpu/log.h>
+#include <nvgpu/bug.h>
 #include <nvgpu/pmuif/nvgpu_gpmu_cmdif.h>
 #include <nvgpu/firmware.h>
 #include <nvgpu/enabled.h>
@@ -102,7 +103,7 @@ static void set_pmu_cmdline_args_cpufreq_v4(struct nvgpu_pmu *pmu, u32 freq)
 {
 	pmu->args_v4.cpu_freq_hz = freq;
 }
-static void set_pmu_cmdline_args_secure_mode_v4(struct nvgpu_pmu *pmu, u32 val)
+static void set_pmu_cmdline_args_secure_mode_v4(struct nvgpu_pmu *pmu, u8 val)
 {
 	pmu->args_v4.secure_mode = val;
 }
@@ -132,7 +133,7 @@ static void set_pmu_cmdline_args_cpufreq_v5(struct nvgpu_pmu *pmu, u32 freq)
 {
 	pmu->args_v5.cpu_freq_hz = 204000000;
 }
-static void set_pmu_cmdline_args_secure_mode_v5(struct nvgpu_pmu *pmu, u32 val)
+static void set_pmu_cmdline_args_secure_mode_v5(struct nvgpu_pmu *pmu, u8 val)
 {
 	pmu->args_v5.secure_mode = val;
 }
@@ -175,7 +176,7 @@ static void set_pmu_cmdline_args_cpufreq_v3(struct nvgpu_pmu *pmu, u32 freq)
 {
 	pmu->args_v3.cpu_freq_hz = freq;
 }
-static void set_pmu_cmdline_args_secure_mode_v3(struct nvgpu_pmu *pmu, u32 val)
+static void set_pmu_cmdline_args_secure_mode_v3(struct nvgpu_pmu *pmu, u8 val)
 {
 	pmu->args_v3.secure_mode = val;
 }
@@ -507,45 +508,57 @@ static u32 get_pmu_perfmon_cmd_start_size_v1(void)
 }
 
 static int get_perfmon_cmd_start_offsetofvar_v3(
-	enum pmu_perfmon_cmd_start_fields field)
+	enum pmu_perfmon_cmd_start_fields field, u32 *offset)
 {
+	int status = 0;
+
 	switch (field) {
 	case COUNTER_ALLOC:
-		return offsetof(struct pmu_perfmon_cmd_start_v3,
-		counter_alloc);
+		*offset = (u32)offsetof(struct pmu_perfmon_cmd_start_v3,
+				counter_alloc);
+		break;
+
 	default:
-		return -EINVAL;
+		status = -EINVAL;
 	}
 
-	return 0;
+	return status;
 }
 
 static int get_perfmon_cmd_start_offsetofvar_v2(
-	enum pmu_perfmon_cmd_start_fields field)
+	enum pmu_perfmon_cmd_start_fields field, u32 *offset)
 {
+	int status = 0;
+
 	switch (field) {
 	case COUNTER_ALLOC:
-		return offsetof(struct pmu_perfmon_cmd_start_v2,
-		counter_alloc);
+		*offset = (u32)offsetof(struct pmu_perfmon_cmd_start_v2,
+				counter_alloc);
+		break;
+
 	default:
-		return -EINVAL;
+		status = -EINVAL;
 	}
 
-	return 0;
+	return status;
 }
 
 static int get_perfmon_cmd_start_offsetofvar_v1(
-	enum pmu_perfmon_cmd_start_fields field)
+	enum pmu_perfmon_cmd_start_fields field, u32 *offset)
 {
+	int status = 0;
+
 	switch (field) {
 	case COUNTER_ALLOC:
-		return offsetof(struct pmu_perfmon_cmd_start_v1,
-		counter_alloc);
+		*offset = (u32)offsetof(struct pmu_perfmon_cmd_start_v1,
+				counter_alloc);
+		break;
+
 	default:
-		return -EINVAL;
+		status = -EINVAL;
 	}
 
-	return 0;
+	return status;
 }
 
 static u32 get_pmu_perfmon_cmd_init_size_v3(void)
@@ -564,45 +577,57 @@ static u32 get_pmu_perfmon_cmd_init_size_v1(void)
 }
 
 static int get_perfmon_cmd_init_offsetofvar_v3(
-	enum pmu_perfmon_cmd_start_fields field)
+	enum pmu_perfmon_cmd_start_fields field, u32 *offset)
 {
+	int status = 0;
+
 	switch (field) {
 	case COUNTER_ALLOC:
-		return offsetof(struct pmu_perfmon_cmd_init_v3,
-		counter_alloc);
+		*offset = (u32)offsetof(struct pmu_perfmon_cmd_init_v3,
+				counter_alloc);
+		break;
+
 	default:
-		return -EINVAL;
+		status = -EINVAL;
 	}
 
-	return 0;
+	return status;
 }
 
 static int get_perfmon_cmd_init_offsetofvar_v2(
-	enum pmu_perfmon_cmd_start_fields field)
+	enum pmu_perfmon_cmd_start_fields field, u32 *offset)
 {
+	int status = 0;
+
 	switch (field) {
 	case COUNTER_ALLOC:
-		return offsetof(struct pmu_perfmon_cmd_init_v2,
-		counter_alloc);
+		*offset = (u32)offsetof(struct pmu_perfmon_cmd_init_v2,
+				counter_alloc);
+		break;
+
 	default:
-		return -EINVAL;
+		status = -EINVAL;
 	}
 
-	return 0;
+	return status;
 }
 
 static int get_perfmon_cmd_init_offsetofvar_v1(
-	enum pmu_perfmon_cmd_start_fields field)
+	enum pmu_perfmon_cmd_start_fields field, u32 *offset)
 {
+	int status = 0;
+
 	switch (field) {
 	case COUNTER_ALLOC:
-		return offsetof(struct pmu_perfmon_cmd_init_v1,
-		counter_alloc);
+		*offset = (u32)offsetof(struct pmu_perfmon_cmd_init_v1,
+				counter_alloc);
+		break;
+
 	default:
-		return -EINVAL;
+		status = -EINVAL;
 	}
 
-	return 0;
+	return status;
 }
 
 static void perfmon_start_set_cmd_type_v3(struct pmu_perfmon_cmd *pc, u8 value)
@@ -871,23 +896,22 @@ static void get_pmu_init_msg_pmu_queue_params_v4(
 {
 	struct pmu_init_msg_pmu_v4 *init = pmu_init_msg;
 	u32 current_ptr = 0;
-	u8 i;
-	u8 tmp_id = id;
+	u32 i;
 
-	if (tmp_id == PMU_COMMAND_QUEUE_HPQ) {
-		tmp_id = PMU_QUEUE_HPQ_IDX_FOR_V3;
-	} else if (tmp_id == PMU_COMMAND_QUEUE_LPQ) {
-		tmp_id = PMU_QUEUE_LPQ_IDX_FOR_V3;
-	} else if (tmp_id == PMU_MESSAGE_QUEUE) {
-		tmp_id = PMU_QUEUE_MSG_IDX_FOR_V3;
+	if (id == PMU_COMMAND_QUEUE_HPQ) {
+		id = PMU_QUEUE_HPQ_IDX_FOR_V3;
+	} else if (id == PMU_COMMAND_QUEUE_LPQ) {
+		id = PMU_QUEUE_LPQ_IDX_FOR_V3;
+	} else if (id == PMU_MESSAGE_QUEUE) {
+		id = PMU_QUEUE_MSG_IDX_FOR_V3;
 	} else {
 		return;
 	}
 
-	*index = init->queue_index[tmp_id];
-	*size = init->queue_size[tmp_id];
-	if (tmp_id != 0U) {
-		for (i = 0 ; i < tmp_id; i++) {
+	*index = init->queue_index[id];
+	*size = init->queue_size[id];
+	if (id != 0U) {
+		for (i = 0 ; i < id; i++) {
 			current_ptr += init->queue_size[i];
 		}
 	}
@@ -899,23 +923,22 @@ static void get_pmu_init_msg_pmu_queue_params_v5(
 {
 	struct pmu_init_msg_pmu_v5 *init = pmu_init_msg;
 	u32 current_ptr = 0;
-	u8 i;
-	u8 tmp_id = id;
+	u32 i;
 
-	if (tmp_id == PMU_COMMAND_QUEUE_HPQ) {
-		tmp_id = PMU_QUEUE_HPQ_IDX_FOR_V3;
-	} else if (tmp_id == PMU_COMMAND_QUEUE_LPQ) {
-		tmp_id = PMU_QUEUE_LPQ_IDX_FOR_V3;
-	} else if (tmp_id == PMU_MESSAGE_QUEUE) {
-		tmp_id = PMU_QUEUE_MSG_IDX_FOR_V5;
+	if (id == PMU_COMMAND_QUEUE_HPQ) {
+		id = PMU_QUEUE_HPQ_IDX_FOR_V3;
+	} else if (id == PMU_COMMAND_QUEUE_LPQ) {
+		id = PMU_QUEUE_LPQ_IDX_FOR_V3;
+	} else if (id == PMU_MESSAGE_QUEUE) {
+		id = PMU_QUEUE_MSG_IDX_FOR_V5;
 	} else {
 		return;
 	}
 
-	*index = init->queue_index[tmp_id];
-	*size = init->queue_size[tmp_id];
-	if (tmp_id != 0U) {
-		for (i = 0 ; i < tmp_id; i++) {
+	*index = init->queue_index[id];
+	*size = init->queue_size[id];
+	if (id != 0U) {
+		for (i = 0 ; i < id; i++) {
 			current_ptr += init->queue_size[i];
 		}
 	}
@@ -928,22 +951,21 @@ static void get_pmu_init_msg_pmu_queue_params_v3(
 	struct pmu_init_msg_pmu_v3 *init =
 		(struct pmu_init_msg_pmu_v3 *)pmu_init_msg;
 	u32 current_ptr = 0;
-	u8 i;
-	u8 tmp_id = id;
+	u32 i;
 
-	if (tmp_id == PMU_COMMAND_QUEUE_HPQ) {
-		tmp_id = PMU_QUEUE_HPQ_IDX_FOR_V3;
-	} else if (tmp_id == PMU_COMMAND_QUEUE_LPQ) {
-		tmp_id = PMU_QUEUE_LPQ_IDX_FOR_V3;
-	} else if (tmp_id == PMU_MESSAGE_QUEUE) {
-		tmp_id = PMU_QUEUE_MSG_IDX_FOR_V3;
+	if (id == PMU_COMMAND_QUEUE_HPQ) {
+		id = PMU_QUEUE_HPQ_IDX_FOR_V3;
+	} else if (id == PMU_COMMAND_QUEUE_LPQ) {
+		id = PMU_QUEUE_LPQ_IDX_FOR_V3;
+	} else if (id == PMU_MESSAGE_QUEUE) {
+		id = PMU_QUEUE_MSG_IDX_FOR_V3;
 	} else {
 		return;
 	}
-	*index = init->queue_index[tmp_id];
-	*size = init->queue_size[tmp_id];
-	if (tmp_id != 0U) {
-		for (i = 0 ; i < tmp_id; i++) {
+	*index = init->queue_index[id];
+	*size = init->queue_size[id];
+	if (id != 0U) {
+		for (i = 0 ; i < id; i++) {
 			current_ptr += init->queue_size[i];
 		}
 	}
