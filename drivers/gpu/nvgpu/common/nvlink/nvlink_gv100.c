@@ -1387,13 +1387,10 @@ int gv100_nvlink_link_set_mode(struct gk20a *g, u32 link_id,
 		if (state == nvl_link_state_state_swcfg_v()) {
 			nvgpu_warn(g, "link is already in safe mode");
 			break;
-		}
-		if (state == nvl_link_state_state_hwcfg_v()) {
+		} else if (state == nvl_link_state_state_hwcfg_v()) {
 			nvgpu_warn(g, "link is transitioning to safe mode");
 			break;
-		}
-
-		if (state == nvl_link_state_state_init_v()) {
+		} else if (state == nvl_link_state_state_init_v()) {
 			/* Off to Safe transition */
 			reg = DLPL_REG_RD32(g, link_id, nvl_link_change_r());
 			reg = set_field(reg, nvl_link_change_newstate_m(),
@@ -1416,6 +1413,10 @@ int gv100_nvlink_link_set_mode(struct gk20a *g, u32 link_id,
 			reg = set_field(reg, nvl_link_change_action_m(),
 				nvl_link_change_action_ltssm_change_f());
 			DLPL_REG_WR32(g, link_id, nvl_link_change_r(), reg);
+		} else {
+			nvgpu_err(g,
+			"Link state transition to Safe mode not permitted");
+			return -EPERM;
 		}
 		break;
 
@@ -1544,21 +1545,21 @@ int gv100_nvlink_link_set_sublink_mode(struct gk20a *g, u32 link_id,
 				nvl_sl0_slsm_status_tx_primary_state_off_v()) {
 			nvgpu_err(g, "TX cannot be do from OFF to HS");
 			return -EPERM;
-		}
+		} else {
+			reg = DLPL_REG_RD32(g, link_id, nvl_sublink_change_r());
+			reg = set_field(reg, nvl_sublink_change_newstate_m(),
+				nvl_sublink_change_newstate_hs_f());
+			reg = set_field(reg, nvl_sublink_change_sublink_m(),
+					nvl_sublink_change_sublink_tx_f());
+			reg = set_field(reg, nvl_sublink_change_action_m(),
+				nvl_sublink_change_action_slsm_change_f());
+			DLPL_REG_WR32(g, link_id, nvl_sublink_change_r(), reg);
 
-		reg = DLPL_REG_RD32(g, link_id, nvl_sublink_change_r());
-		reg = set_field(reg, nvl_sublink_change_newstate_m(),
-			nvl_sublink_change_newstate_hs_f());
-		reg = set_field(reg, nvl_sublink_change_sublink_m(),
-				nvl_sublink_change_sublink_tx_f());
-		reg = set_field(reg, nvl_sublink_change_action_m(),
-			nvl_sublink_change_action_slsm_change_f());
-		DLPL_REG_WR32(g, link_id, nvl_sublink_change_r(), reg);
-
-		err = gv100_nvlink_link_sublink_check_change(g, link_id);
-		if (err != 0) {
-			nvgpu_err(g, "Error in TX to HS");
-			return err;
+			err = gv100_nvlink_link_sublink_check_change(g, link_id);
+			if (err != 0) {
+				nvgpu_err(g, "Error in TX to HS");
+				return err;
+			}
 		}
 		break;
 	case nvgpu_nvlink_sublink_tx_common:
@@ -1604,21 +1605,21 @@ int gv100_nvlink_link_set_sublink_mode(struct gk20a *g, u32 link_id,
 			nvl_sl0_slsm_status_tx_primary_state_hs_v()) {
 			nvgpu_err(g, " TX cannot go off from HS %d", link_id);
 			return -EPERM;
-		}
+		} else {
+			reg = DLPL_REG_RD32(g, link_id, nvl_sublink_change_r());
+			reg = set_field(reg, nvl_sublink_change_newstate_m(),
+				nvl_sublink_change_newstate_off_f());
+			reg = set_field(reg, nvl_sublink_change_sublink_m(),
+				nvl_sublink_change_sublink_tx_f());
+			reg = set_field(reg, nvl_sublink_change_action_m(),
+				nvl_sublink_change_action_slsm_change_f());
+			DLPL_REG_WR32(g, link_id, nvl_sublink_change_r(), reg);
 
-		reg = DLPL_REG_RD32(g, link_id, nvl_sublink_change_r());
-		reg = set_field(reg, nvl_sublink_change_newstate_m(),
-			nvl_sublink_change_newstate_off_f());
-		reg = set_field(reg, nvl_sublink_change_sublink_m(),
-			nvl_sublink_change_sublink_tx_f());
-		reg = set_field(reg, nvl_sublink_change_action_m(),
-			nvl_sublink_change_action_slsm_change_f());
-		DLPL_REG_WR32(g, link_id, nvl_sublink_change_r(), reg);
-
-		err = gv100_nvlink_link_sublink_check_change(g, link_id);
-		if (err != 0) {
-			nvgpu_err(g, "Error in TX to OFF");
-			return err;
+			err = gv100_nvlink_link_sublink_check_change(g, link_id);
+			if (err != 0) {
+				nvgpu_err(g, "Error in TX to OFF");
+				return err;
+			}
 		}
 		break;
 
@@ -1635,21 +1636,21 @@ int gv100_nvlink_link_set_sublink_mode(struct gk20a *g, u32 link_id,
 			nvl_sl1_slsm_status_rx_primary_state_hs_v()) {
 			nvgpu_err(g, " RX cannot go off from HS %d", link_id);
 			return -EPERM;
-		}
+		} else {
+			reg = DLPL_REG_RD32(g, link_id, nvl_sublink_change_r());
+			reg = set_field(reg, nvl_sublink_change_newstate_m(),
+				nvl_sublink_change_newstate_off_f());
+			reg = set_field(reg, nvl_sublink_change_sublink_m(),
+				nvl_sublink_change_sublink_rx_f());
+			reg = set_field(reg, nvl_sublink_change_action_m(),
+				nvl_sublink_change_action_slsm_change_f());
+			DLPL_REG_WR32(g, link_id, nvl_sublink_change_r(), reg);
 
-		reg = DLPL_REG_RD32(g, link_id, nvl_sublink_change_r());
-		reg = set_field(reg, nvl_sublink_change_newstate_m(),
-			nvl_sublink_change_newstate_off_f());
-		reg = set_field(reg, nvl_sublink_change_sublink_m(),
-			nvl_sublink_change_sublink_rx_f());
-		reg = set_field(reg, nvl_sublink_change_action_m(),
-			nvl_sublink_change_action_slsm_change_f());
-		DLPL_REG_WR32(g, link_id, nvl_sublink_change_r(), reg);
-
-		err = gv100_nvlink_link_sublink_check_change(g, link_id);
-		if (err != 0) {
-			nvgpu_err(g, "Error in RX to OFF");
-			return err;
+			err = gv100_nvlink_link_sublink_check_change(g, link_id);
+			if (err != 0) {
+				nvgpu_err(g, "Error in RX to OFF");
+				return err;
+			}
 		}
 		break;
 	case nvgpu_nvlink_sublink_rx_rxcal:
