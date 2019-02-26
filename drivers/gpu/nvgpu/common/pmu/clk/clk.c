@@ -99,8 +99,7 @@ int clk_pmu_freq_effective_avg_load(struct gk20a *g, bool bload)
 	payload.out.buf = (u8 *)&rpccall;
 	payload.out.size = (u32)sizeof(struct nv_pmu_clk_rpc);
 	payload.out.fb_size = PMU_CMD_SUBMIT_PAYLOAD_PARAMS_FB_SIZE_UNUSED;
-	nvgpu_assert(NV_PMU_CLK_MSG_RPC_ALLOC_OFFSET < U64(U32_MAX));
-	payload.out.offset = (u32)NV_PMU_CLK_MSG_RPC_ALLOC_OFFSET;
+	payload.out.offset = NV_PMU_CLK_MSG_RPC_ALLOC_OFFSET;
 
 	handler.prpccall = &rpccall;
 	handler.success = 0;
@@ -161,8 +160,7 @@ int clk_freq_effective_avg(struct gk20a *g, u32 *freqkHz, u32 clkDomainMask) {
 	payload.out.buf = (u8 *)&rpccall;
 	payload.out.size = (u32)sizeof(struct nv_pmu_clk_rpc);
 	payload.out.fb_size = PMU_CMD_SUBMIT_PAYLOAD_PARAMS_FB_SIZE_UNUSED;
-	nvgpu_assert(NV_PMU_CLK_MSG_RPC_ALLOC_OFFSET < U64(U32_MAX));
-	payload.out.offset = (u32)NV_PMU_CLK_MSG_RPC_ALLOC_OFFSET;
+	payload.out.offset = NV_PMU_CLK_MSG_RPC_ALLOC_OFFSET;
 
 	handler.prpccall = &rpccall;
 	handler.success = 0;
@@ -269,8 +267,7 @@ int clk_pmu_freq_controller_load(struct gk20a *g, bool bload, u8 bit_idx)
 	payload.out.buf = (u8 *)&rpccall;
 	payload.out.size = (u32)sizeof(struct nv_pmu_clk_rpc);
 	payload.out.fb_size = PMU_CMD_SUBMIT_PAYLOAD_PARAMS_FB_SIZE_UNUSED;
-	nvgpu_assert(NV_PMU_CLK_MSG_RPC_ALLOC_OFFSET < U64(U32_MAX));
-	payload.out.offset = (u32)NV_PMU_CLK_MSG_RPC_ALLOC_OFFSET;
+	payload.out.offset = NV_PMU_CLK_MSG_RPC_ALLOC_OFFSET;
 
 	handler.prpccall = &rpccall;
 	handler.success = 0;
@@ -333,8 +330,7 @@ int nvgpu_clk_pmu_vin_load(struct gk20a *g)
 	payload.out.buf = (u8 *)&rpccall;
 	payload.out.size = (u32)sizeof(struct nv_pmu_clk_rpc);
 	payload.out.fb_size = PMU_CMD_SUBMIT_PAYLOAD_PARAMS_FB_SIZE_UNUSED;
-	nvgpu_assert(NV_PMU_CLK_MSG_RPC_ALLOC_OFFSET < U64(U32_MAX));
-	payload.out.offset = (u32)NV_PMU_CLK_MSG_RPC_ALLOC_OFFSET;
+	payload.out.offset = NV_PMU_CLK_MSG_RPC_ALLOC_OFFSET;
 
 	handler.prpccall = &rpccall;
 	handler.success = 0;
@@ -396,8 +392,7 @@ int nvgpu_clk_pmu_clk_domains_load(struct gk20a *g)
 	payload.out.buf = (u8 *)&rpccall;
 	payload.out.size = (u32)sizeof(struct nv_pmu_clk_rpc);
 	payload.out.fb_size = PMU_CMD_SUBMIT_PAYLOAD_PARAMS_FB_SIZE_UNUSED;
-	nvgpu_assert(NV_PMU_CLK_MSG_RPC_ALLOC_OFFSET < U64(U32_MAX));
-	payload.out.offset = (u32)NV_PMU_CLK_MSG_RPC_ALLOC_OFFSET;
+	payload.out.offset = NV_PMU_CLK_MSG_RPC_ALLOC_OFFSET;
 
 	handler.prpccall = &rpccall;
 	handler.success = 0;
@@ -546,8 +541,7 @@ static int clk_pmu_vf_inject(struct gk20a *g,
 	payload.out.buf = (u8 *)&rpccall;
 	payload.out.size = (u32)sizeof(struct nv_pmu_clk_rpc);
 	payload.out.fb_size = PMU_CMD_SUBMIT_PAYLOAD_PARAMS_FB_SIZE_UNUSED;
-	nvgpu_assert(NV_PMU_CLK_MSG_RPC_ALLOC_OFFSET < U64(U32_MAX));
-	payload.out.offset = (u32)NV_PMU_CLK_MSG_RPC_ALLOC_OFFSET;
+	payload.out.offset = NV_PMU_CLK_MSG_RPC_ALLOC_OFFSET;
 
 	handler.prpccall = &rpccall;
 	handler.success = 0;
