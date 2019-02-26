@@ -2231,8 +2231,16 @@ static int tegra_pcie_parse_dt(struct tegra_pcie *pcie)
 	for_each_child_of_node(np, port) {
 		struct tegra_pcie_port *rp;
 		unsigned int index;
+		const char *type;
 		u32 value;
 		char *label;
+
+		if (!of_property_read_string(port, "device_type", &type)) {
+			if (strncmp(type, "pci", sizeof("pci")))
+				continue;
+		} else {
+			continue;
+		}
 
 		err = of_pci_get_devfn(port);
 		if (err < 0) {
