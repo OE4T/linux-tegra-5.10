@@ -42,6 +42,7 @@ struct nvgpu_nvhost_dev;
 struct nvgpu_netlist_vars;
 struct nvgpu_gr_global_ctx_buffer_desc;
 struct nvgpu_gr_fecs_trace;
+struct nvgpu_gpu_ctxsw_trace_entry;
 struct nvgpu_cpu_time_correlation_sample;
 struct nvgpu_mem_sgt;
 struct nvgpu_warpstate;
@@ -1116,6 +1117,10 @@ struct gpu_ops {
 		int (*get_read_index)(struct gk20a *g);
 		int (*get_write_index)(struct gk20a *g);
 		int (*set_read_index)(struct gk20a *g, int index);
+		void (*vm_dev_write)(struct gk20a *g, u8 vmid,
+			u32 *vm_update_mask,
+			struct nvgpu_gpu_ctxsw_trace_entry *entry);
+		void (*vm_dev_update)(struct gk20a *g, u32 vm_update_mask);
 	} fecs_trace;
 #endif
 	struct {

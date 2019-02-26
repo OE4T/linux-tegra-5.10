@@ -127,4 +127,9 @@ int nvgpu_gr_fecs_trace_disable(struct gk20a *g);
 bool nvgpu_gr_fecs_trace_is_enabled(struct gk20a *g);
 void nvgpu_gr_fecs_trace_reset_buffer(struct gk20a *g);
 
+int nvgpu_gr_fecs_trace_ring_read(struct gk20a *g, int index,
+	u32 *vm_update_mask);
+int nvgpu_gr_fecs_trace_poll(struct gk20a *g);
+int nvgpu_gr_fecs_trace_reset(struct gk20a *g);
+
 #endif /* NVGPU_GR_FECS_TRACE_H */

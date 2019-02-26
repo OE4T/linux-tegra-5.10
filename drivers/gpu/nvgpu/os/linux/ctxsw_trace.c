@@ -392,10 +392,11 @@ int gk20a_ctxsw_dev_release(struct inode *inode, struct file *filp)
 
 	nvgpu_log(g, gpu_dbg_fn|gpu_dbg_ctxsw, "dev: %p", dev);
 
-	g->ops.fecs_trace.disable(g);
-
 	nvgpu_mutex_acquire(&dev->write_lock);
-	dev->write_enabled = false;
+	if (dev->write_enabled) {
+		dev->write_enabled = false;
+		g->ops.fecs_trace.disable(g);
+	}
 	nvgpu_mutex_release(&dev->write_lock);
 
 	if (dev->hdr) {
