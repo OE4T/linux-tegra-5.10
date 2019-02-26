@@ -28,6 +28,7 @@
 #include <nvgpu/pmuif/ctrlclk.h>
 #include <nvgpu/pmuif/ctrlvolt.h>
 #include <nvgpu/pmu/perf.h>
+#include <nvgpu/pmu/clk/clk.h>
 
 #include "pmu_perf.h"
 #include "vfe_equ.h"
@@ -737,4 +738,61 @@ static struct vfe_equ *construct_vfe_equ(struct gk20a *g, void *pargs)
 	nvgpu_log_info(g, " Done");
 
 	return (struct vfe_equ *)board_obj_ptr;
+}
+
+int nvgpu_vfe_get_volt_margin_limit(struct gk20a *g, u32 *vmargin_uv)
+{
+	struct nvgpu_pmu *pmu = &g->pmu;
+	struct nv_pmu_rpc_struct_perf_vfe_eval rpc;
+	int status = 0;
+	u8 vmargin_idx;
+
+	vmargin_idx = g->ops.pmu_ver.volt.volt_get_vmargin(g);
+	if (vmargin_idx == 0U) {
+		nvgpu_info(g, "Skipping volt margin idx");
+		return 0;
+	}
+
+	(void) memset(&rpc, 0, sizeof(rpc));
+	rpc.data.equ_idx = vmargin_idx;
+	rpc.data.output_type = CTRL_PERF_VFE_EQU_OUTPUT_TYPE_VOLT_DELTA_UV;
+	rpc.data.var_count = 0U;
+	PMU_RPC_EXECUTE_CPB(status, pmu, PERF, VFE_EQU_EVAL, &rpc, 0);
+	if (status != 0) {
+		nvgpu_err(g, "Failed to execute RPC status=0x%x",
+			status);
+		return status;
+	}
+
+	*vmargin_uv = rpc.data.result.voltu_v;
+	return status;
+}
+
+int nvgpu_vfe_get_freq_margin_limit(struct gk20a *g, u32 *fmargin_mhz)
+{
+	struct nvgpu_pmu *pmu = &g->pmu;
+	struct nv_pmu_rpc_struct_perf_vfe_eval rpc;
+	int status = 0;
+	u8 fmargin_idx;
+	struct nvgpu_avfsfllobjs *pfllobjs =  &(g->clk_pmu->avfs_fllobjs);
+
+	fmargin_idx = pfllobjs->freq_margin_vfe_idx;
+	if (fmargin_idx == 255U) {
+		nvgpu_info(g, "Skipping freq margin idx");
+		return 0;
+	}
+
+	(void) memset(&rpc, 0, sizeof(rpc));
+	rpc.data.equ_idx = fmargin_idx;
+	rpc.data.output_type = CTRL_PERF_VFE_EQU_OUTPUT_TYPE_FREQ_MHZ;
+	rpc.data.var_count = 0U;
+	PMU_RPC_EXECUTE_CPB(status, pmu, PERF, VFE_EQU_EVAL, &rpc, 0);
+	if (status != 0) {
+		nvgpu_err(g, "Failed to execute RPC status=0x%x",
+			status);
+		return status;
+	}
+
+	*fmargin_mhz = rpc.data.result.voltu_v;
+	return status;
 }

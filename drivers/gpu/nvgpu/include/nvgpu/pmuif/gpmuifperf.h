@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -59,7 +59,7 @@
  * used to execute LOAD RPC.
  */
 struct nv_pmu_rpc_struct_perf_load {
-	/*[IN/OUT] Must be first field in RPC structure */
+	/* [IN/OUT] Must be first field in RPC structure */
     struct nv_pmu_rpc_header hdr;
     bool b_load;
 	u32  scratch[1];
@@ -213,6 +213,13 @@ struct perf_change_seq_pmu_script {
 	/* below should be an aligned structure */
 	union ctrl_perf_change_seq_pmu_script_step_data_aligned
 		steps[CTRL_PERF_CHANGE_SEQ_PMU_STEP_ID_MAX_STEPS];
+};
+
+struct nv_pmu_rpc_struct_perf_vfe_eval {
+	/*[IN/OUT] Must be first field in RPC structure */
+	struct nv_pmu_rpc_header hdr;
+	struct nv_pmu_perf_rpc_vfe_equ_eval data;
+	u32  scratch[1];
 };
 
 #endif  /* NVGPU_PMUIF_GPMUIFPERF_H*/

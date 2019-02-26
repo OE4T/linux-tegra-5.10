@@ -29,6 +29,7 @@
 #include <nvgpu/timers.h>
 #include <nvgpu/clk_arb.h>
 #include <nvgpu/pmu/volt.h>
+#include <nvgpu/pmu/perf.h>
 
 #include "clk.h"
 #include "clk_vf_point.h"
@@ -475,7 +476,7 @@ int nvgpu_clk_set_req_fll_clk_ps35(struct gk20a *g, struct nvgpu_clk_slave_freq 
 	u32 max_clkmhz;
 	u16 max_ratio;
 	struct clk_set_info *p0_info;
-	u32 vmin_uv = 0;
+	u32 vmin_uv = 0, vmargin_uv = 0U, fmargin_mhz = 0U;
 
 	(void) memset(&change_input, 0,
 		sizeof(struct ctrl_perf_change_seq_change_input));
@@ -604,9 +605,23 @@ int nvgpu_clk_set_req_fll_clk_ps35(struct gk20a *g, struct nvgpu_clk_slave_freq 
 	change_input.flags = (u32)CTRL_PERF_CHANGE_SEQ_CHANGE_FORCE;
 	change_input.vf_points_cache_counter = 0xFFFFFFFFU;
 
+	status = nvgpu_vfe_get_freq_margin_limit(g, &fmargin_mhz);
+	if (status != 0) {
+		nvgpu_err(g, "Failed to fetch Fmargin status=0x%x", status);
+		return status;
+	}
+
+	gpcclk_clkmhz += fmargin_mhz;
 	status = clk_domain_freq_to_volt(g, gpcclk_domain,
 	&gpcclk_clkmhz, &gpcclk_voltuv, CTRL_VOLT_DOMAIN_LOGIC);
 
+	status = nvgpu_vfe_get_volt_margin_limit(g, &vmargin_uv);
+	if (status != 0) {
+		nvgpu_err(g, "Failed to fetch Vmargin status=0x%x", status);
+		return status;
+	}
+
+	gpcclk_voltuv += vmargin_uv;
 	status = g->ops.pmu_ver.volt.volt_get_vmin(g, &vmin_uv);
 	if (status != 0) {
 		nvgpu_err(g, "Failed to execute Vmin get_status status=0x%x",

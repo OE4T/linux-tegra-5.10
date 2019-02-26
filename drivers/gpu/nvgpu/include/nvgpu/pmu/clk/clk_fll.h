@@ -38,6 +38,7 @@ struct nvgpu_avfsfllobjs {
 	u32 lut_min_voltage_uv;
 	u8 lut_num_entries;
 	u16 max_min_freq_mhz;
+	u8 freq_margin_vfe_idx;
 };
 
 struct nvgpu_set_fll_clk {

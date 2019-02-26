@@ -413,3 +413,21 @@ int nvgpu_volt_get_vmin_tu10x(struct gk20a *g, u32 *vmin_uv)
 	return status;
 }
 
+u8 nvgpu_volt_get_vmargin_tu10x(struct gk20a *g)
+{
+	struct boardobjgrp *pboardobjgrp;
+	struct boardobj *pboardobj = NULL;
+	struct voltage_rail *volt_rail = NULL;
+	u8 index, vmargin_uv;
+
+	pboardobjgrp = &g->perf_pmu->volt.volt_rail_metadata.volt_rails.super;
+
+	BOARDOBJGRP_FOR_EACH(pboardobjgrp, struct boardobj *, pboardobj, index) {
+		volt_rail = (struct voltage_rail *)(void *)pboardobj;
+		if (volt_rail->volt_margin_limit_vfe_equ_idx != 255U) {
+			vmargin_uv = volt_rail->volt_margin_limit_vfe_equ_idx;
+			return vmargin_uv;
+		}
+	}
+	return 0U;
+}

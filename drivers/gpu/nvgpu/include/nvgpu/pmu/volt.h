@@ -82,5 +82,6 @@ int volt_policy_sw_setup(struct gk20a *g);
 int volt_policy_pmu_setup(struct gk20a *g);
 int nvgpu_volt_rail_boardobj_grp_get_status(struct gk20a *g);
 int nvgpu_volt_get_vmin_tu10x(struct gk20a *g, u32 *vmin_uv);
+u8 nvgpu_volt_get_vmargin_tu10x(struct gk20a *g);
 
 #endif /* NVGPU_PMU_VOLT_H */

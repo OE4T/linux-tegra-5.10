@@ -273,6 +273,8 @@ static int devinit_get_fll_device_table(struct gk20a *g,
 	if (desctablesize >= FLL_DESCRIPTOR_HEADER_10_SIZE_6) {
 		pfllobjs->max_min_freq_mhz =
 			fll_desc_table_header.max_min_freq_mhz;
+		pfllobjs->freq_margin_vfe_idx =
+				fll_desc_table_header.freq_margin_vfe_idx;
 	} else {
 		pfllobjs->max_min_freq_mhz = 0;
 	}

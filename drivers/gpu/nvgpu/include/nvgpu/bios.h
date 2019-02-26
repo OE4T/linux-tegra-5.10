@@ -98,6 +98,7 @@ struct fll_descriptor_header_10 {
 	u8 entry_size;
 	u8 entry_count;
 	u16 max_min_freq_mhz;
+	u8 freq_margin_vfe_idx;
 } __packed;
 
 #define FLL_DESCRIPTOR_ENTRY_10_SIZE     15U

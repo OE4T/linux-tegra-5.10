@@ -99,6 +99,8 @@ int vfe_equ_pmu_setup(struct gk20a *g);
 
 int vfe_var_sw_setup(struct gk20a *g);
 int vfe_var_pmu_setup(struct gk20a *g);
+int nvgpu_vfe_get_volt_margin_limit(struct gk20a *g, u32 *vmargin_uv);
+int nvgpu_vfe_get_freq_margin_limit(struct gk20a *g, u32 *fmargin_mhz);
 
 int nvgpu_perf_change_seq_sw_setup(struct gk20a *g);
 int nvgpu_perf_change_seq_pmu_setup(struct gk20a *g);

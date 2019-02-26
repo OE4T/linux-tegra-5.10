@@ -1333,6 +1333,8 @@ static int init_pmu_fw_ver_ops(struct nvgpu_pmu *pmu, u32 app_version)
 				g->ops.pmu_ver.clk.clk_set_boot_clk = NULL;
 				g->ops.pmu_ver.volt.volt_get_vmin =
 					nvgpu_volt_get_vmin_tu10x;
+				g->ops.pmu_ver.volt.volt_get_vmargin =
+					nvgpu_volt_get_vmargin_tu10x;
 			}
 		} else {
 			g->ops.pmu_ver.get_pmu_init_msg_pmu_queue_params =
