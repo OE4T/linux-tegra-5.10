@@ -240,7 +240,7 @@ srcs += common/sim.c \
 	common/pmu/perf/vfe_equ.c \
 	common/pmu/perf/vfe_var.c \
 	common/pmu/perf/perf_gv100.c \
-	common/pmu/perf/perf_tu104.c \
+	common/pmu/perf/perf_ps35.c \
 	common/pmu/perf/change_seq.c \
 	common/pmu/pmgr/pmgr.c \
 	common/pmu/pmgr/pmgrpmu.c \

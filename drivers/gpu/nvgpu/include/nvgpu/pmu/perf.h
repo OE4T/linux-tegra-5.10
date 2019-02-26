@@ -90,15 +90,17 @@ struct perf_pmupstate {
 	struct change_seq_pmu changeseq_pmu;
 };
 
-int perf_pmu_vfe_load(struct gk20a *g);
-int perf_pmu_init_pmupstate(struct gk20a *g);
-void perf_pmu_free_pmupstate(struct gk20a *g);
+int nvgpu_perf_pmu_init_pmupstate(struct gk20a *g);
+void nvgpu_perf_pmu_free_pmupstate(struct gk20a *g);
+int nvgpu_perf_pmu_vfe_load_ps35(struct gk20a *g);
 
-int vfe_equ_sw_setup(struct gk20a *g);
-int vfe_equ_pmu_setup(struct gk20a *g);
+int nvgpu_vfe_equ_sw_setup(struct gk20a *g);
+int nvgpu_vfe_equ_pmu_setup(struct gk20a *g);
 
-int vfe_var_sw_setup(struct gk20a *g);
-int vfe_var_pmu_setup(struct gk20a *g);
+int nvgpu_vfe_var_sw_setup(struct gk20a *g);
+int nvgpu_vfe_var_pmu_setup(struct gk20a *g);
+int nvgpu_vfe_var_boardobj_grp_get_status(struct gk20a *g);
+
 int nvgpu_vfe_get_volt_margin_limit(struct gk20a *g, u32 *vmargin_uv);
 int nvgpu_vfe_get_freq_margin_limit(struct gk20a *g, u32 *fmargin_mhz);
 

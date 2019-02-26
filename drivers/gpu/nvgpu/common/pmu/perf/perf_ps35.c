@@ -28,7 +28,6 @@
 #include <nvgpu/clk_arb.h>
 #include <nvgpu/pmu/perf.h>
 
-#include "perf_tu104.h"
 #include "pmu_perf.h"
 
 static int pmu_set_boot_clk_runcb_fn(void *arg)
@@ -85,7 +84,7 @@ static int tu104_pmu_handle_perf_event(struct gk20a *g, void *pmumsg)
 	return 0;
 }
 
-int tu104_perf_pmu_init_vfe_perf_event(struct gk20a *g)
+static int perf_pmu_init_vfe_perf_event(struct gk20a *g)
 {
 	struct perf_pmupstate *perf_pmu = g->perf_pmu;
 	char thread_name[64];
@@ -100,7 +99,7 @@ int tu104_perf_pmu_init_vfe_perf_event(struct gk20a *g)
 
 	err = nvgpu_thread_create(&perf_pmu->vfe_init.state_task, g,
 			pmu_set_boot_clk_runcb_fn, thread_name);
-	if (err != 0U) {
+	if (err != 0) {
 		nvgpu_err(g, "failed to start nvgpu_vfe_invalidate_init thread");
 	}
 
@@ -108,7 +107,7 @@ int tu104_perf_pmu_init_vfe_perf_event(struct gk20a *g)
 
 }
 
-int tu104_perf_pmu_vfe_load(struct gk20a *g)
+int nvgpu_perf_pmu_vfe_load_ps35(struct gk20a *g)
 {
 	struct nvgpu_pmu *pmu = &g->pmu;
 	struct nv_pmu_rpc_struct_perf_load rpc;
@@ -122,7 +121,7 @@ int tu104_perf_pmu_vfe_load(struct gk20a *g)
 			status);
 	}
 
-	status = tu104_perf_pmu_init_vfe_perf_event(g);
+	status = perf_pmu_init_vfe_perf_event(g);
 
 	/*register call back for future VFE updates*/
 	g->ops.pmu_perf.handle_pmu_perf_event = tu104_pmu_handle_perf_event;

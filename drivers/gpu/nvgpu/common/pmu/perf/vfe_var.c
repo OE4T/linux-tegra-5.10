@@ -182,7 +182,7 @@ int nvgpu_vfe_var_boardobj_grp_get_status(struct gk20a *g) {
     return 0;
 }
 
-int vfe_var_sw_setup(struct gk20a *g)
+int nvgpu_vfe_var_sw_setup(struct gk20a *g)
 {
 	int status;
 	struct boardobjgrp *pboardobjgrp = NULL;
@@ -236,7 +236,7 @@ done:
 	return status;
 }
 
-int vfe_var_pmu_setup(struct gk20a *g)
+int nvgpu_vfe_var_pmu_setup(struct gk20a *g)
 {
 	int status;
 	struct boardobjgrp *pboardobjgrp = NULL;

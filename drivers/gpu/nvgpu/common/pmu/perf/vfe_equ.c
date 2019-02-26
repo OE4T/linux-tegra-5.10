@@ -75,7 +75,7 @@ static int vfe_equs_pmudata_instget(struct gk20a *g,
 	return 0;
 }
 
-int vfe_equ_sw_setup(struct gk20a *g)
+int nvgpu_vfe_equ_sw_setup(struct gk20a *g)
 {
 	int status;
 	struct boardobjgrp *pboardobjgrp = NULL;
@@ -118,7 +118,7 @@ done:
 	return status;
 }
 
-int vfe_equ_pmu_setup(struct gk20a *g)
+int nvgpu_vfe_equ_pmu_setup(struct gk20a *g)
 {
 	int status;
 	struct boardobjgrp *pboardobjgrp = NULL;

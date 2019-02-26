@@ -82,7 +82,7 @@ static int gv100_pmu_handle_perf_event(struct gk20a *g, void *pmumsg)
 	return 0;
 }
 
-u32 perf_pmu_init_vfe_perf_event(struct gk20a *g)
+static u32 perf_pmu_init_vfe_perf_event(struct gk20a *g)
 {
 	struct perf_pmupstate *perf_pmu = g->perf_pmu;
 	char thread_name[64];

@@ -70,7 +70,6 @@
 #include "common/pmu/pmu_gv100.h"
 #include "common/pmu/pmu_gv11b.h"
 #include "common/pmu/pmu_tu104.h"
-#include "common/pmu/perf/perf_tu104.h"
 #include "common/acr/acr_tu104.h"
 #include "common/falcon/falcon_gk20a.h"
 #include "common/falcon/falcon_tu104.h"
@@ -155,6 +154,7 @@
 #include <nvgpu/regops.h>
 #include <nvgpu/gr/zbc.h>
 #include <nvgpu/gr/fecs_trace.h>
+#include <nvgpu/pmu/perf.h>
 
 #include <nvgpu/hw/tu104/hw_proj_tu104.h>
 #include <nvgpu/hw/tu104/hw_top_tu104.h>
@@ -970,7 +970,7 @@ static const struct gpu_ops tu104_ops = {
 		.get_rate_cntr = gv100_get_rate_cntr,
 		.measure_freq = gv100_clk_measure_freq,
 		.suspend_clk_support = gv100_suspend_clk_support,
-		.perf_pmu_vfe_load = tu104_perf_pmu_vfe_load,
+		.perf_pmu_vfe_load = nvgpu_perf_pmu_vfe_load_ps35,
 		.clk_domain_get_f_points = gv100_clk_domain_get_f_points,
 	},
 	.clk_arb = {
@@ -1284,7 +1284,7 @@ int tu104_init_hal(struct gk20a *g)
 	gops->pmu_perf.support_vfe = true;
 	gops->clk.support_vf_point = true;
 	gops->clk.lut_num_entries = CTRL_CLK_LUT_NUM_ENTRIES_GV10x;
-	gops->clk.perf_pmu_vfe_load = tu104_perf_pmu_vfe_load;
+	gops->clk.perf_pmu_vfe_load = nvgpu_perf_pmu_vfe_load_ps35;
 
 	/* dGpu VDK support */
 	if (nvgpu_is_enabled(g, NVGPU_IS_FMODEL)){

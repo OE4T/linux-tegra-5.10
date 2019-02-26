@@ -128,7 +128,7 @@ nvgpu-y += \
 	common/pmu/perf/vfe_equ.o \
 	common/pmu/perf/pmu_perf.o \
 	common/pmu/perf/perf_gv100.o \
-	common/pmu/perf/perf_tu104.o \
+	common/pmu/perf/perf_ps35.o \
 	common/pmu/perf/change_seq.o \
 	common/pmu/pmgr/pwrdev.o \
 	common/pmu/pmgr/pmgr.o \
