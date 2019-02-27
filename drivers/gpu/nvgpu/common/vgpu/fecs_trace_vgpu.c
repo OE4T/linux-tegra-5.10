@@ -31,7 +31,6 @@
 #include <nvgpu/vgpu/vgpu.h>
 #include <nvgpu/gk20a.h>
 
-#include "gk20a/fecs_trace_gk20a.h"
 #include "common/vgpu/fecs_trace_vgpu.h"
 
 

@@ -57,6 +57,9 @@
 #define NVGPU_GPU_CTXSW_FILTER_SIZE (NVGPU_GPU_CTXSW_TAG_LAST + 1)
 
 struct gk20a;
+struct nvgpu_mem;
+struct nvgpu_gr_subctx;
+struct nvgpu_gr_ctx;
 
 struct nvgpu_gr_fecs_trace {
 	struct nvgpu_list_node context_list;
@@ -131,5 +134,11 @@ int nvgpu_gr_fecs_trace_ring_read(struct gk20a *g, int index,
 	u32 *vm_update_mask);
 int nvgpu_gr_fecs_trace_poll(struct gk20a *g);
 int nvgpu_gr_fecs_trace_reset(struct gk20a *g);
+
+int nvgpu_gr_fecs_trace_bind_channel(struct gk20a *g,
+	struct nvgpu_mem *inst_block, struct nvgpu_gr_subctx *subctx,
+	struct nvgpu_gr_ctx *gr_ctx, pid_t pid, u32 vmid);
+int nvgpu_gr_fecs_trace_unbind_channel(struct gk20a *g,
+	struct nvgpu_mem *inst_block);
 
 #endif /* NVGPU_GR_FECS_TRACE_H */

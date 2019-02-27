@@ -95,7 +95,6 @@
 #include "common/clk_arb/clk_arb_gv100.h"
 
 #include "gk20a/fifo_gk20a.h"
-#include "gk20a/fecs_trace_gk20a.h"
 #include "gk20a/mm_gk20a.h"
 #include "gk20a/gr_gk20a.h"
 
@@ -865,8 +864,8 @@ static const struct gpu_ops tu104_ops = {
 		.reset = nvgpu_gr_fecs_trace_reset,
 		.flush = NULL,
 		.poll = nvgpu_gr_fecs_trace_poll,
-		.bind_channel = gk20a_fecs_trace_bind_channel,
-		.unbind_channel = gk20a_fecs_trace_unbind_channel,
+		.bind_channel = nvgpu_gr_fecs_trace_bind_channel,
+		.unbind_channel = nvgpu_gr_fecs_trace_unbind_channel,
 		.max_entries = nvgpu_gr_fecs_trace_max_entries,
 		.get_buffer_full_mailbox_val =
 			gv11b_fecs_trace_get_buffer_full_mailbox_val,

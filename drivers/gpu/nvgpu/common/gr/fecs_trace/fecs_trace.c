@@ -28,6 +28,8 @@
 #include <nvgpu/timers.h>
 #include <nvgpu/enabled.h>
 #include <nvgpu/gr/global_ctx.h>
+#include <nvgpu/gr/ctx.h>
+#include <nvgpu/gr/subctx.h>
 #include <nvgpu/gr/fecs_trace.h>
 #include <nvgpu/ctxsw_trace.h>
 
@@ -543,6 +545,107 @@ int nvgpu_gr_fecs_trace_reset(struct gk20a *g)
 
 	nvgpu_gr_fecs_trace_poll(g);
 	return g->ops.fecs_trace.set_read_index(g, 0);
+}
+
+static u32 nvgpu_gr_fecs_trace_fecs_context_ptr(struct gk20a *g,
+	struct nvgpu_mem *inst_block)
+{
+	return (u32)(nvgpu_inst_block_addr(g, inst_block) >> 12LL);
+}
+
+/*
+ * map global circ_buf to the context space and store the GPU VA
+ * in the context header.
+ */
+int nvgpu_gr_fecs_trace_bind_channel(struct gk20a *g,
+	struct nvgpu_mem *inst_block, struct nvgpu_gr_subctx *subctx,
+	struct nvgpu_gr_ctx *gr_ctx, pid_t pid, u32 vmid)
+{
+	u64 addr = 0ULL;
+	struct nvgpu_gr_fecs_trace *trace = g->fecs_trace;
+	struct nvgpu_mem *mem;
+	u32 context_ptr;
+	u32 aperture_mask;
+	int ret;
+
+	if (trace == NULL) {
+		return -EINVAL;
+	}
+
+	context_ptr = nvgpu_gr_fecs_trace_fecs_context_ptr(g, inst_block);
+
+	nvgpu_log(g, gpu_dbg_fn|gpu_dbg_ctxsw,
+			"pid=%d context_ptr=%x inst_block=%llx",
+			pid, context_ptr,
+			nvgpu_inst_block_addr(g, inst_block));
+
+	mem = nvgpu_gr_global_ctx_buffer_get_mem(g->gr.global_ctx_buffer,
+					NVGPU_GR_GLOBAL_CTX_FECS_TRACE_BUFFER);
+	if (mem == NULL) {
+		return -EINVAL;
+	}
+
+	if (nvgpu_is_enabled(g, NVGPU_FECS_TRACE_VA)) {
+		addr = nvgpu_gr_ctx_get_global_ctx_va(gr_ctx,
+				NVGPU_GR_CTX_FECS_TRACE_BUFFER_VA);
+		nvgpu_log(g, gpu_dbg_ctxsw, "gpu_va=%llx", addr);
+		aperture_mask = 0;
+	} else {
+		addr = nvgpu_inst_block_addr(g, mem);
+		nvgpu_log(g, gpu_dbg_ctxsw, "pa=%llx", addr);
+		aperture_mask =
+		       g->ops.gr.ctxsw_prog.get_ts_buffer_aperture_mask(g, mem);
+	}
+	if (addr == 0ULL) {
+		return -ENOMEM;
+	}
+
+	mem = &gr_ctx->mem;
+
+	nvgpu_log(g, gpu_dbg_ctxsw, "addr=%llx count=%d", addr,
+		GK20A_FECS_TRACE_NUM_RECORDS);
+
+	g->ops.gr.ctxsw_prog.set_ts_num_records(g, mem,
+		GK20A_FECS_TRACE_NUM_RECORDS);
+
+	if (nvgpu_is_enabled(g, NVGPU_FECS_TRACE_VA) && subctx != NULL) {
+		mem = &subctx->ctx_header;
+	}
+
+	g->ops.gr.ctxsw_prog.set_ts_buffer_ptr(g, mem, addr, aperture_mask);
+
+	ret = nvgpu_gr_fecs_trace_add_context(g, context_ptr, pid, vmid,
+		&trace->context_list);
+
+	return ret;
+}
+
+int nvgpu_gr_fecs_trace_unbind_channel(struct gk20a *g,
+	struct nvgpu_mem *inst_block)
+{
+	struct nvgpu_gr_fecs_trace *trace = g->fecs_trace;
+	u32 context_ptr;
+
+	if (trace == NULL) {
+		return -EINVAL;
+	}
+
+	context_ptr = nvgpu_gr_fecs_trace_fecs_context_ptr(g, inst_block);
+
+	nvgpu_log(g, gpu_dbg_fn|gpu_dbg_ctxsw,
+		"context_ptr=%x", context_ptr);
+
+	if (g->ops.fecs_trace.is_enabled(g)) {
+		if (g->ops.fecs_trace.flush) {
+			g->ops.fecs_trace.flush(g);
+		}
+		nvgpu_gr_fecs_trace_poll(g);
+	}
+
+	nvgpu_gr_fecs_trace_remove_context(g, context_ptr,
+		&trace->context_list);
+
+	return 0;
 }
 
 #endif /* CONFIG_GK20A_CTXSW_TRACE */

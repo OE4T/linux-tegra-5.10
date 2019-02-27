@@ -24,7 +24,6 @@
 
 #include <nvgpu/gk20a.h>
 
-#include "gk20a/fecs_trace_gk20a.h"
 
 #include "fecs_trace_gp10b.h"
 

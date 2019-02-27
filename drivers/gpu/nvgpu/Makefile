@@ -387,7 +387,6 @@ nvgpu-y += \
 	gk20a/gr_gk20a.o \
 	gk20a/mm_gk20a.o \
 	gk20a/fence_gk20a.o \
-	gk20a/fecs_trace_gk20a.o \
 	gm20b/hal_gm20b.o \
 	gm20b/gr_gm20b.o \
 	gm20b/clk_gm20b.o \

@@ -1096,10 +1096,12 @@ struct gpu_ops {
 		int (*disable)(struct gk20a *g);
 		bool (*is_enabled)(struct gk20a *g);
 		int (*reset)(struct gk20a *g);
-		int (*bind_channel)(struct gk20a *g, struct channel_gk20a *ch,
-				    u32 vmid, struct nvgpu_gr_ctx *gr_ctx);
+		int (*bind_channel)(struct gk20a *g,
+			struct nvgpu_mem *inst_block,
+			struct nvgpu_gr_subctx *subctx,
+			struct nvgpu_gr_ctx *gr_ctx, pid_t pid, u32 vmid);
 		int (*unbind_channel)(struct gk20a *g,
-					struct channel_gk20a *ch);
+			struct nvgpu_mem *inst_block);
 		int (*deinit)(struct gk20a *g);
 		int (*alloc_user_buffer)(struct gk20a *g,
 					void **buf, size_t *size);
