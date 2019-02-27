@@ -154,9 +154,11 @@ nvgpu-y += \
 	common/pmu/clk/clk_freq_domain.o \
 	common/pmu/clk/clk_prog.o \
 	common/pmu/clk/clk_vf_point.o \
-	common/pmu/clk/clk_arb.o \
 	common/pmu/clk/clk_freq_controller.o \
 	common/pmu/clk/clk.o \
+	common/clk_arb/clk_arb.o \
+	common/clk_arb/clk_arb_gp10b.o \
+	common/clk_arb/clk_arb_gv100.o \
 	hal/bus/bus_gk20a.o \
 	hal/bus/bus_gm20b.o \
 	hal/bus/bus_gp10b.o \
@@ -424,7 +426,6 @@ nvgpu-$(CONFIG_GK20A_CYCLE_STATS) += \
 
 nvgpu-y += \
 	gp10b/gr_gp10b.o  \
-	gp10b/clk_arb_gp10b.o \
 	gp10b/ce_gp10b.o \
 	gp10b/fifo_gp10b.o  \
 	gp10b/mm_gp10b.o \
@@ -450,7 +451,6 @@ nvgpu-y += \
 	gv100/hal_gv100.o \
 	gv100/gsp_gv100.o \
 	gv100/clk_gv100.o \
-	gv100/clk_arb_gv100.o \
 	tu104/hal_tu104.o \
 	tu104/fifo_tu104.o \
 	tu104/gr_tu104.o \

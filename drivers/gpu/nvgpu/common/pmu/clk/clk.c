@@ -687,7 +687,7 @@ done:
 	return status;
 }
 
-int clk_get_fll_clks(struct gk20a *g, struct nvgpu_set_fll_clk *setfllclk)
+int nvgpu_clk_get_fll_clks(struct gk20a *g, struct nvgpu_set_fll_clk *setfllclk)
 {
 	int status = -EINVAL;
 	struct nvgpu_clk_domain *pdomain;

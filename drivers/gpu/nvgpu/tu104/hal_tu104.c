@@ -92,6 +92,7 @@
 #include "common/fifo/channel_gv100.h"
 #include "common/fifo/engine_status_gv100.h"
 #include "common/fifo/pbdma_status_gm20b.h"
+#include "common/clk_arb/clk_arb_gv100.h"
 
 #include "gk20a/fifo_gk20a.h"
 #include "gk20a/fecs_trace_gk20a.h"
@@ -128,7 +129,6 @@
 #include "gv100/fifo_gv100.h"
 #include "gv100/gr_gv100.h"
 #include "gv100/mm_gv100.h"
-#include "gv100/clk_arb_gv100.h"
 
 #include "tu104/fifo_tu104.h"
 #include "tu104/gr_tu104.h"

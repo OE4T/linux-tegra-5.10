@@ -39,6 +39,7 @@
 #include "common/regops/regops_gp10b.h"
 #include "common/fifo/runlist_gk20a.h"
 #include "common/fifo/channel_gm20b.h"
+#include "common/clk_arb/clk_arb_gp10b.h"
 
 #include "common/vgpu/fifo/fifo_vgpu.h"
 #include "common/vgpu/fifo/runlist_vgpu.h"
@@ -64,7 +65,6 @@
 #include "gp10b/ce_gp10b.h"
 #include "gp10b/gr_gp10b.h"
 #include "gp10b/fifo_gp10b.h"
-#include "gp10b/clk_arb_gp10b.h"
 
 #include "gm20b/gr_gm20b.h"
 #include "gm20b/fifo_gm20b.h"

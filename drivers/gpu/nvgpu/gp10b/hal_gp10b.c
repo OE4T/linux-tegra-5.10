@@ -79,6 +79,7 @@
 #include "common/fifo/channel_gm20b.h"
 #include "common/fifo/engine_status_gm20b.h"
 #include "common/fifo/pbdma_status_gm20b.h"
+#include "common/clk_arb/clk_arb_gp10b.h"
 
 #include "gk20a/fifo_gk20a.h"
 #include "gk20a/fecs_trace_gk20a.h"
@@ -91,7 +92,6 @@
 #include "gp10b/ce_gp10b.h"
 #include "gp10b/fifo_gp10b.h"
 #include "gp10b/ecc_gp10b.h"
-#include "gp10b/clk_arb_gp10b.h"
 
 #include "gm20b/gr_gm20b.h"
 #include "gm20b/fifo_gm20b.h"

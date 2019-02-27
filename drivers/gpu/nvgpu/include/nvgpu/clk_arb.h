@@ -346,8 +346,6 @@ void nvgpu_clk_arb_send_thermal_alarm(struct gk20a *g);
 
 void nvgpu_clk_arb_set_global_alarm(struct gk20a *g, u32 alarm);
 
-void nvgpu_clk_arb_schedule_alarm(struct gk20a *g, u32 alarm);
-
 void nvgpu_clk_arb_clear_global_alarm(struct gk20a *g, u32 alarm);
 
 void nvgpu_clk_arb_free_session(struct nvgpu_ref *refcount);

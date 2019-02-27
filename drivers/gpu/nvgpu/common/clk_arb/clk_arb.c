@@ -39,8 +39,6 @@
 #include <nvgpu/pmu/clk/clk.h>
 #include <nvgpu/pmu/clk/clk_vf_point.h>
 
-#include "clk.h"
-
 int nvgpu_clk_notification_queue_alloc(struct gk20a *g,
 				struct nvgpu_clk_notification_queue *queue,
 				u32 events_number) {
@@ -182,7 +180,7 @@ int nvgpu_clk_arb_update_vf_table(struct nvgpu_clk_arb *arb)
 				arb->gpc2clk_f_points[i];
 			setfllclk.gpc2clkmhz = arb->gpc2clk_f_points[i];
 
-			status = clk_get_fll_clks(g, &setfllclk);
+			status = nvgpu_clk_get_fll_clks(g, &setfllclk);
 			if (status < 0) {
 				nvgpu_err(g,
 					"failed to get GPC2CLK slave clocks");
@@ -608,18 +606,18 @@ bool nvgpu_clk_arb_has_active_req(struct gk20a *g)
 	return (nvgpu_atomic_read(&g->clk_arb_global_nr) > 0);
 }
 
-void nvgpu_clk_arb_send_thermal_alarm(struct gk20a *g)
-{
-	nvgpu_clk_arb_schedule_alarm(g,
-		BIT32(NVGPU_EVENT_ALARM_THERMAL_ABOVE_THRESHOLD));
-}
-
-void nvgpu_clk_arb_schedule_alarm(struct gk20a *g, u32 alarm)
+static void nvgpu_clk_arb_schedule_alarm(struct gk20a *g, u32 alarm)
 {
 	struct nvgpu_clk_arb *arb = g->clk_arb;
 
 	nvgpu_clk_arb_set_global_alarm(g, alarm);
 	nvgpu_clk_arb_worker_enqueue(g, &arb->update_arb_work_item);
+}
+
+void nvgpu_clk_arb_send_thermal_alarm(struct gk20a *g)
+{
+	nvgpu_clk_arb_schedule_alarm(g,
+		BIT32(NVGPU_EVENT_ALARM_THERMAL_ABOVE_THRESHOLD));
 }
 
 static void nvgpu_clk_arb_worker_deinit(struct gk20a *g)

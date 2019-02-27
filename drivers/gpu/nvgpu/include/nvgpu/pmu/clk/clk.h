@@ -52,5 +52,6 @@ void nvgpu_clk_free_pmupstate(struct gk20a *g);
 int nvgpu_clk_set_fll_clk_gv10x(struct gk20a *g);
 int nvgpu_clk_set_boot_fll_clk_gv10x(struct gk20a *g);
 int nvgpu_clk_set_boot_fll_clk_tu10x(struct gk20a *g);
+int nvgpu_clk_get_fll_clks(struct gk20a *g, struct nvgpu_set_fll_clk *setfllclk);
 
 #endif /* NVGPU_PMU_CLK_H */
