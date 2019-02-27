@@ -251,7 +251,9 @@ int nvgpu_falcon_copy_from_emem(struct nvgpu_falcon *flcn,
 	flcn_dops = &flcn->flcn_engine_dep_ops;
 
 	if (flcn_dops->copy_from_emem != NULL) {
+		nvgpu_mutex_acquire(&flcn->emem_lock);
 		status = flcn_dops->copy_from_emem(g, src, dst, size, port);
+		nvgpu_mutex_release(&flcn->emem_lock);
 	} else {
 		nvgpu_warn(g, "Invalid op on falcon 0x%x ",
 			flcn->flcn_id);
@@ -284,7 +286,9 @@ int nvgpu_falcon_copy_to_emem(struct nvgpu_falcon *flcn,
 	flcn_dops = &flcn->flcn_engine_dep_ops;
 
 	if (flcn_dops->copy_to_emem != NULL) {
+		nvgpu_mutex_acquire(&flcn->emem_lock);
 		status = flcn_dops->copy_to_emem(g, dst, src, size, port);
+		nvgpu_mutex_release(&flcn->emem_lock);
 	} else {
 		nvgpu_warn(g, "Invalid op on falcon 0x%x ",
 			flcn->flcn_id);
@@ -822,6 +826,17 @@ int nvgpu_falcon_sw_init(struct gk20a *g, u32 flcn_id)
 		return err;
 	}
 
+	if (flcn->emem_supported) {
+		err = nvgpu_mutex_init(&flcn->emem_lock);
+		if (err != 0) {
+			nvgpu_err(g, "Error in flcn.emem_lock "
+				     "mutex initialization");
+			nvgpu_mutex_destroy(&flcn->dmem_lock);
+			nvgpu_mutex_destroy(&flcn->imem_lock);
+			return err;
+		}
+	}
+
 	return 0;
 }
 
@@ -842,6 +857,9 @@ void nvgpu_falcon_sw_free(struct gk20a *g, u32 flcn_id)
 		return;
 	}
 
+	if (flcn->emem_supported) {
+		nvgpu_mutex_destroy(&flcn->emem_lock);
+	}
 	nvgpu_mutex_destroy(&flcn->dmem_lock);
 	nvgpu_mutex_destroy(&flcn->imem_lock);
 }
