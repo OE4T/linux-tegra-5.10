@@ -31,7 +31,6 @@ srcs +=	os/posix/nvgpu.c \
 	os/posix/posix-nvgpu_mem.c \
 	os/posix/posix-dma.c \
 	os/posix/posix-vm.c \
-	os/posix/timers.c \
 	os/posix/posix-comptags.c \
 	os/posix/firmware.c \
 	os/posix/soc.c \
@@ -53,6 +52,7 @@ endif
 # POSIX sources shared between the POSIX and QNX builds.
 srcs += os/posix/bug.c \
 	os/posix/rwsem.c \
+	os/posix/timers.c \
 	os/posix/cond.c \
 	os/posix/lock.c \
 	os/posix/thread.c \

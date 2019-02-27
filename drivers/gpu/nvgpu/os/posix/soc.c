@@ -51,3 +51,7 @@ bool nvgpu_is_soc_t194_a01(struct gk20a *g)
 {
 	return false;
 }
+
+void nvgpu_delay_usecs(unsigned int usecs)
+{
+}
