@@ -343,9 +343,9 @@ int nvgpu_falcon_copy_from_dmem(struct nvgpu_falcon *flcn,
 		goto exit;
 	}
 
-	nvgpu_mutex_acquire(&flcn->copy_lock);
+	nvgpu_mutex_acquire(&flcn->dmem_lock);
 	status = flcn_ops->copy_from_dmem(flcn, src, dst, size, port);
-	nvgpu_mutex_release(&flcn->copy_lock);
+	nvgpu_mutex_release(&flcn->dmem_lock);
 
 exit:
 	return status;
@@ -374,9 +374,9 @@ int nvgpu_falcon_copy_to_dmem(struct nvgpu_falcon *flcn,
 		goto exit;
 	}
 
-	nvgpu_mutex_acquire(&flcn->copy_lock);
+	nvgpu_mutex_acquire(&flcn->dmem_lock);
 	status = flcn_ops->copy_to_dmem(flcn, dst, src, size, port);
-	nvgpu_mutex_release(&flcn->copy_lock);
+	nvgpu_mutex_release(&flcn->dmem_lock);
 
 exit:
 	return status;
@@ -405,9 +405,9 @@ int nvgpu_falcon_copy_from_imem(struct nvgpu_falcon *flcn,
 		goto exit;
 	}
 
-	nvgpu_mutex_acquire(&flcn->copy_lock);
+	nvgpu_mutex_acquire(&flcn->imem_lock);
 	status = flcn_ops->copy_from_imem(flcn, src, dst, size, port);
-	nvgpu_mutex_release(&flcn->copy_lock);
+	nvgpu_mutex_release(&flcn->imem_lock);
 
 exit:
 	return status;
@@ -436,10 +436,10 @@ int nvgpu_falcon_copy_to_imem(struct nvgpu_falcon *flcn,
 		goto exit;
 	}
 
-	nvgpu_mutex_acquire(&flcn->copy_lock);
+	nvgpu_mutex_acquire(&flcn->imem_lock);
 	status = flcn_ops->copy_to_imem(flcn, dst, src, size, port,
 				sec, tag);
-	nvgpu_mutex_release(&flcn->copy_lock);
+	nvgpu_mutex_release(&flcn->imem_lock);
 
 exit:
 	return status;
@@ -735,9 +735,17 @@ int nvgpu_falcon_sw_init(struct gk20a *g, u32 flcn_id)
 		return -ENOMEM;
 	}
 
-	err = nvgpu_mutex_init(&flcn->copy_lock);
+	err = nvgpu_mutex_init(&flcn->imem_lock);
 	if (err != 0) {
-		nvgpu_err(g, "Error in flcn.copy_lock mutex initialization");
+		nvgpu_err(g, "Error in flcn.imem_lock mutex initialization");
+		nvgpu_kfree(g, flcn);
+		return err;
+	}
+
+	err = nvgpu_mutex_init(&flcn->dmem_lock);
+	if (err != 0) {
+		nvgpu_err(g, "Error in flcn.dmem_lock mutex initialization");
+		nvgpu_mutex_destroy(&flcn->imem_lock);
 		nvgpu_kfree(g, flcn);
 		return err;
 	}
@@ -763,7 +771,8 @@ void nvgpu_falcon_sw_free(struct gk20a *g, u32 flcn_id)
 
 	flcn = *flcn_p;
 	gops->falcon.falcon_hal_sw_free(flcn);
-	nvgpu_mutex_destroy(&flcn->copy_lock);
+	nvgpu_mutex_destroy(&flcn->dmem_lock);
+	nvgpu_mutex_destroy(&flcn->imem_lock);
 	nvgpu_kfree(g, flcn);
 	*flcn_p = NULL;
 }

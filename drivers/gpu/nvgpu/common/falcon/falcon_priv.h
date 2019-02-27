@@ -114,7 +114,8 @@ struct nvgpu_falcon {
 	u32 flcn_base;
 	bool is_falcon_supported;
 	bool is_interrupt_enabled;
-	struct nvgpu_mutex copy_lock;
+	struct nvgpu_mutex imem_lock;
+	struct nvgpu_mutex dmem_lock;
 	struct nvgpu_falcon_ops flcn_ops;
 	struct nvgpu_falcon_engine_dependency_ops flcn_engine_dep_ops;
 };
