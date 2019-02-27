@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * NVIDIA CORPORATION and its licensors retain all intellectual property
  * and proprietary rights in and to this software, related documentation
@@ -92,6 +92,7 @@ typedef struct syncpoint_info {
 #define VI_NUM_GOS_TABLES	12U
 #define VI_NUM_ATOMP_SURFACES	4
 #define VI_NUM_STATUS_SURFACES	1
+#define VI_NUM_VI_PFSD_SURFACES	2
 
 /* Generic */
 #define VI_ATOMP_SURFACE0	0
@@ -159,6 +160,7 @@ typedef struct syncpoint_info {
  * <dt>RESET_ON_ERROR:	<dd>Channel treats all errors as uncorrectable
  *	and requires reset for recovery. This flag is ignored if
  *	ENABLE_ERROR_ACTIONS_MASKS is set.
+ * <dt>ENABLE_VI_PFSD: <dd>Capture with VI PFSD enabled
  *
  * </dl>
  *
@@ -185,6 +187,7 @@ struct capture_channel_config {
 #define CAPTURE_CHANNEL_FLAG_LINETIMER		U32_C(0x1000)
 #define CAPTURE_CHANNEL_FLAG_SLVSEC		U32_C(0x2000)
 #define CAPTURE_CHANNEL_FLAG_ENABLE_ERROR_ACTIONS_MASKS	U32_C(0x4000)
+#define CAPTURE_CHANNEL_FLAG_ENABLE_VI_PFSD	U32_C(0x8000)
 
 	uint32_t channel_id;	/* rtcpu internal - set to zero */
 	uint64_t vi_channel_mask;
@@ -220,6 +223,7 @@ struct capture_channel_config {
 	 * don't stop the channel.
 	 */
 	uint32_t error_mask_correctable;
+#define CAPTURE_CHANNEL_ERROR_VI_PFSD_FAULT		(U32_C(1) << 22)
 #define CAPTURE_CHANNEL_ERROR_ERROR_EMBED_INCOMPLETE	(U32_C(1) << 21)
 #define CAPTURE_CHANNEL_ERROR_INCOMPLETE		(U32_C(1) << 20)
 #define CAPTURE_CHANNEL_ERROR_STALE_FRAME		(U32_C(1) << 19)
@@ -518,6 +522,57 @@ struct vi_syncgen_config {
 } __CAPTURE_IVC_ALIGN;
 
 
+/**
+ * VI PFSD Configuration.
+ *
+ * PDAF replacement function is used in PFSD mode. Pixels within ROI are replaced
+ * by test pattern, and output pixels from the ROI are compared against expected
+ * values.
+ */
+struct vi_pfsd_config {
+	/**
+	 * @brief Area in which the pixels are replaced with test pattern
+	 *
+	 * Note that all coordinates are inclusive.
+	 */
+	struct {
+		/** left pixel column of the replacement ROI */
+		uint16_t left;
+		/** right pixel column of the replacement ROI (inclusive) */
+		uint16_t right;
+		/** top pixel row of the replacement ROI */
+		uint16_t top;
+		/** bottom pixel row of the replacement ROI (inclusive) */
+		uint16_t bottom;
+	} replace_roi;
+
+	/** test pattern used to replace pixels within the ROI */
+	uint32_t replace_value;
+
+	/**
+	 * Count of items in the @see expected array.
+	 * If zero, PFSD will not be performed for this frame
+	 */
+	uint32_t expected_count;
+
+	/**
+	 * Array of area definitions in output surfaces that shall be verified.
+	 * For YUV422 semi-planar, [0] is Y surface and [1] is UV surface.
+	 */
+	struct {
+		/** Byte offset for the roi from beginning of the surface */
+		uint32_t offset;
+		/** Number of bytes that need to be read from the output surface */
+		uint32_t len;
+		/** Expected value. The 4 byte pattern is repeated until @see len
+		 * bytes have been compared
+		 */
+		uint8_t value[4];
+	} expected[VI_NUM_VI_PFSD_SURFACES];
+
+} __CAPTURE_IVC_ALIGN;
+
+
 struct capture_descriptor {
 	uint32_t sequence;
 	uint32_t capture_flags;
@@ -535,6 +590,7 @@ struct capture_descriptor {
 
 	struct vi_channel_config ch_cfg;
 	struct vi_fmlite_config fm_cfg;
+	struct vi_pfsd_config pfsd_cfg;
 
 	/* Result record – written by Falcon */
 	struct engine_status_surface engine_status;
@@ -545,7 +601,7 @@ struct capture_descriptor {
 	/* Result record – written by RTCPU */
 	struct capture_status status;
 
-	uint32_t __pad[12];
+	uint32_t __pad[2];
 } __CAPTURE_DESCRIPTOR_ALIGN;
 
 /* Event data used for event injection */
