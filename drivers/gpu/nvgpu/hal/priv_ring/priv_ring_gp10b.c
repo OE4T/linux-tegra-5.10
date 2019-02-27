@@ -1,7 +1,7 @@
 /*
  * GP10B priv ring
  *
- * Copyright (c) 2017-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -106,9 +106,9 @@ void gp10b_priv_ring_isr(struct gk20a *g)
 {
 	u32 status0, status1;
 	u32 cmd;
-	s32 retry = 100;
+	s32 retry;
 	u32 gpc;
-	u32 gpc_stride, offset;
+	u32 gpc_stride, gpc_offset;
 	u32 error_info;
 	u32 error_code;
 
@@ -117,11 +117,11 @@ void gp10b_priv_ring_isr(struct gk20a *g)
 		return;
 	}
 
-	status0 = gk20a_readl(g, pri_ringmaster_intr_status0_r());
-	status1 = gk20a_readl(g, pri_ringmaster_intr_status1_r());
+	status0 = nvgpu_readl(g, pri_ringmaster_intr_status0_r());
+	status1 = nvgpu_readl(g, pri_ringmaster_intr_status1_r());
 
-	nvgpu_err(g, "ringmaster intr status0: 0x%08x,"
-		"status1: 0x%08x", status0, status1);
+	nvgpu_err(g, "ringmaster intr status0: 0x%08x, status1: 0x%08x",
+			status0, status1);
 
 	if (pri_ringmaster_intr_status0_ring_start_conn_fault_v(status0) != 0U) {
 		nvgpu_err(g,
@@ -138,14 +138,14 @@ void gp10b_priv_ring_isr(struct gk20a *g)
 
 	if (pri_ringmaster_intr_status0_gbl_write_error_sys_v(status0) != 0U) {
 		error_info =
-			gk20a_readl(g, pri_ringstation_sys_priv_error_info_r());
+			nvgpu_readl(g, pri_ringstation_sys_priv_error_info_r());
 		error_code =
-			gk20a_readl(g, pri_ringstation_sys_priv_error_code_r());
+			nvgpu_readl(g, pri_ringstation_sys_priv_error_code_r());
 		nvgpu_err(g, "SYS write error. ADR 0x%08x WRDAT 0x%08x "
 				"INFO 0x%08x (subid 0x%08x priv level %d), "
 				"CODE 0x%08x",
-			gk20a_readl(g, pri_ringstation_sys_priv_error_adr_r()),
-			gk20a_readl(g, pri_ringstation_sys_priv_error_wrdat_r()),
+			nvgpu_readl(g, pri_ringstation_sys_priv_error_adr_r()),
+			nvgpu_readl(g, pri_ringstation_sys_priv_error_wrdat_r()),
 			error_info,
 			pri_ringstation_sys_priv_error_info_subid_v(error_info),
 			pri_ringstation_sys_priv_error_info_priv_level_v(error_info),
@@ -158,50 +158,52 @@ void gp10b_priv_ring_isr(struct gk20a *g)
 	if (status1 != 0U) {
 		gpc_stride = nvgpu_get_litter_value(g, GPU_LIT_GPC_PRIV_STRIDE);
 		for (gpc = 0; gpc < g->ops.priv_ring.get_gpc_count(g); gpc++) {
-			offset = gpc * gpc_stride;
-			if ((status1 & BIT32(gpc)) != 0U) {
-				error_info = gk20a_readl(g,
-					pri_ringstation_gpc_gpc0_priv_error_info_r() + offset);
-				error_code = gk20a_readl(g,
-					pri_ringstation_gpc_gpc0_priv_error_code_r() + offset);
-				nvgpu_err(g, "GPC%u write error. ADR 0x%08x "
-					"WRDAT 0x%08x "
-					"INFO 0x%08x (subid 0x%08x priv level %d), "
-					"CODE 0x%08x", gpc,
-					gk20a_readl(g,
-					pri_ringstation_gpc_gpc0_priv_error_adr_r() + offset),
-					gk20a_readl(g,
-					pri_ringstation_gpc_gpc0_priv_error_wrdat_r() + offset),
-					error_info,
-					pri_ringstation_gpc_gpc0_priv_error_info_subid_v(error_info),
-					pri_ringstation_gpc_gpc0_priv_error_info_priv_level_v(error_info),
-					error_code);
+			if ((status1 & BIT32(gpc)) == 0U) {
+				continue;
+			}
+			gpc_offset = gpc * gpc_stride;
+			error_info = nvgpu_readl(g,
+				pri_ringstation_gpc_gpc0_priv_error_info_r() + gpc_offset);
+			error_code = nvgpu_readl(g,
+				pri_ringstation_gpc_gpc0_priv_error_code_r() + gpc_offset);
+			nvgpu_err(g, "GPC%u write error. ADR 0x%08x "
+				"WRDAT 0x%08x "
+				"INFO 0x%08x (subid 0x%08x priv level %d), "
+				"CODE 0x%08x", gpc,
+				nvgpu_readl(g,
+				pri_ringstation_gpc_gpc0_priv_error_adr_r() + gpc_offset),
+				nvgpu_readl(g,
+				pri_ringstation_gpc_gpc0_priv_error_wrdat_r() + gpc_offset),
+				error_info,
+				pri_ringstation_gpc_gpc0_priv_error_info_subid_v(error_info),
+				pri_ringstation_gpc_gpc0_priv_error_info_priv_level_v(error_info),
+				error_code);
 
-				if (g->ops.priv_ring.decode_error_code != NULL) {
-					g->ops.priv_ring.decode_error_code(g,
-								error_code);
-				}
+			if (g->ops.priv_ring.decode_error_code != NULL) {
+				g->ops.priv_ring.decode_error_code(g, error_code);
+			}
 
-				status1 = status1 & (~(BIT(gpc)));
-				if (status1 == 0U) {
-					break;
-				}
+			status1 = status1 & (~(BIT(gpc)));
+			if (status1 == 0U) {
+				break;
 			}
 		}
 	}
 	/* clear interrupt */
-	cmd = gk20a_readl(g, pri_ringmaster_command_r());
+	cmd = nvgpu_readl(g, pri_ringmaster_command_r());
 	cmd = set_field(cmd, pri_ringmaster_command_cmd_m(),
 		pri_ringmaster_command_cmd_ack_interrupt_f());
-	gk20a_writel(g, pri_ringmaster_command_r(), cmd);
+	nvgpu_writel(g, pri_ringmaster_command_r(), cmd);
 
 	/* poll for clear interrupt done */
+	retry = GP10B_PRIV_RING_POLL_CLEAR_INTR_RETRIES;
+
 	cmd = pri_ringmaster_command_cmd_v(
-		gk20a_readl(g, pri_ringmaster_command_r()));
+		nvgpu_readl(g, pri_ringmaster_command_r()));
 	while ((cmd != pri_ringmaster_command_cmd_no_cmd_v()) && (retry != 0)) {
-		nvgpu_udelay(20);
+		nvgpu_udelay(GP10B_PRIV_RING_POLL_CLEAR_INTR_UDELAY);
 		cmd = pri_ringmaster_command_cmd_v(
-			gk20a_readl(g, pri_ringmaster_command_r()));
+			nvgpu_readl(g, pri_ringmaster_command_r()));
 		retry--;
 	}
 

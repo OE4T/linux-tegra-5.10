@@ -1,5 +1,7 @@
 /*
- * Copyright (c) 2011-2018, NVIDIA CORPORATION.  All rights reserved.
+ * GP10B PRIV ringmaster
+ *
+ * Copyright (c) 2011-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -19,16 +21,15 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef NVGPU_PRIV_RING_GM20B_H
-#define NVGPU_PRIV_RING_GM20B_H
+#ifndef NVGPU_PRIV_RING_GP10B_H
+#define NVGPU_PRIV_RING_GP10B_H
 
 struct gk20a;
 
-void gm20b_priv_ring_isr(struct gk20a *g);
-void gm20b_priv_ring_enable(struct gk20a *g);
-void gm20b_priv_set_timeout_settings(struct gk20a *g);
-u32 gm20b_priv_ring_enum_ltc(struct gk20a *g);
+#define GP10B_PRIV_RING_POLL_CLEAR_INTR_RETRIES	100
+#define GP10B_PRIV_RING_POLL_CLEAR_INTR_UDELAY	20
 
-u32 gm20b_priv_ring_get_gpc_count(struct gk20a *g);
+void gp10b_priv_ring_isr(struct gk20a *g);
+void gp10b_priv_ring_decode_error_code(struct gk20a *g, u32 error_code);
 
-#endif /* NVGPU_PRIV_RING_GM20B_H */
+#endif /* NVGPU_PRIV_RING_GP10B_H */

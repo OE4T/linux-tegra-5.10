@@ -25,9 +25,9 @@
 #include "hal/bus/bus_gk20a.h"
 #include "hal/bus/bus_gp10b.h"
 #include "hal/bus/bus_gv100.h"
+#include "hal/priv_ring/priv_ring_gm20b.h"
+#include "hal/priv_ring/priv_ring_gp10b.h"
 
-#include "common/priv_ring/priv_ring_gm20b.h"
-#include "common/priv_ring/priv_ring_gp10b.h"
 #include "common/clock_gating/gv100_gating_reglist.h"
 #include "common/ptimer/ptimer_gk20a.h"
 #include "common/fb/fb_gm20b.h"

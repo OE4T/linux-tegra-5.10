@@ -27,8 +27,6 @@ obj-$(CONFIG_GK20A) := nvgpu.o
 # is in progress.
 
 nvgpu-y += \
-	common/priv_ring/priv_ring_gm20b.o \
-	common/priv_ring/priv_ring_gp10b.o \
 	common/ptimer/ptimer.o \
 	common/ptimer/ptimer_gk20a.o \
 	common/fb/fb_gm20b.o \
@@ -163,7 +161,9 @@ nvgpu-y += \
 	hal/bus/bus_gm20b.o \
 	hal/bus/bus_gp10b.o \
 	hal/bus/bus_gv100.o \
-	hal/bus/bus_tu104.o
+	hal/bus/bus_tu104.o \
+	hal/priv_ring/priv_ring_gm20b.o \
+	hal/priv_ring/priv_ring_gp10b.o
 
 # Linux specific parts of nvgpu.
 nvgpu-y += \

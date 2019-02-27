@@ -77,8 +77,6 @@ srcs += common/sim.c \
 	common/mm/mm.c \
 	common/mm/dma.c \
 	common/mm/vidmem.c \
-	common/priv_ring/priv_ring_gm20b.c \
-	common/priv_ring/priv_ring_gp10b.c \
 	common/fb/fb_gm20b.c \
 	common/fb/fb_gp10b.c \
 	common/fb/fb_gp106.c \
@@ -339,7 +337,9 @@ srcs += common/sim.c \
 	hal/bus/bus_gm20b.c	\
 	hal/bus/bus_gp10b.c	\
 	hal/bus/bus_gv100.c	\
-	hal/bus/bus_tu104.c
+	hal/bus/bus_tu104.c	\
+	hal/priv_ring/priv_ring_gm20b.c \
+	hal/priv_ring/priv_ring_gp10b.c
 
 ifeq ($(NVGPU_DEBUGGER),1)
 srcs += common/debugger.c

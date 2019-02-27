@@ -39,9 +39,9 @@
 
 #include "hal/bus/bus_gm20b.h"
 #include "hal/bus/bus_gk20a.h"
+#include "hal/priv_ring/priv_ring_gm20b.h"
 
 #include "common/clock_gating/gm20b_gating_reglist.h"
-#include "common/priv_ring/priv_ring_gm20b.h"
 #include "common/ptimer/ptimer_gk20a.h"
 #include "common/fb/fb_gm20b.h"
 #include "common/netlist/netlist_gm20b.h"
