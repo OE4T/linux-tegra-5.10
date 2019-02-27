@@ -91,6 +91,7 @@ nvgpu-y += \
 	common/gr/config/gr_config_gm20b.o \
 	common/gr/fecs_trace/fecs_trace.o \
 	common/gr/fecs_trace/fecs_trace_gm20b.o \
+	common/gr/fecs_trace/fecs_trace_gp10b.o \
 	common/gr/fecs_trace/fecs_trace_gv11b.o \
 	common/gr/zbc/gr_zbc.o \
 	common/gr/zbc/gr_zbc_gm20b.o \
@@ -429,7 +430,6 @@ nvgpu-y += \
 	gp10b/fifo_gp10b.o  \
 	gp10b/mm_gp10b.o \
 	gp10b/hal_gp10b.o \
-	gp10b/fecs_trace_gp10b.o \
 	gp10b/gp10b.o \
 	gp10b/ecc_gp10b.o \
 	gp106/gr_gp106.o \

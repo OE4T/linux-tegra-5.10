@@ -1,7 +1,5 @@
 /*
- * GP10B GPU FECS traces
- *
- * Copyright (c) 2016-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -23,13 +21,15 @@
  */
 
 #include <nvgpu/gk20a.h>
+#include <nvgpu/log.h>
 
-
+#include "gk20a/gr_gk20a.h"
 #include "fecs_trace_gp10b.h"
 
 #include <nvgpu/hw/gp10b/hw_gr_gp10b.h>
 
 #ifdef CONFIG_GK20A_CTXSW_TRACE
+
 int gp10b_fecs_trace_flush(struct gk20a *g)
 {
 	struct fecs_method_op_gk20a op = {
@@ -51,4 +51,5 @@ int gp10b_fecs_trace_flush(struct gk20a *g)
 
 	return err;
 }
+
 #endif /* CONFIG_GK20A_CTXSW_TRACE */

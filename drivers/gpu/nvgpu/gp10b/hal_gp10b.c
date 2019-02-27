@@ -57,6 +57,7 @@
 #include "common/gr/config/gr_config_gm20b.h"
 #include "common/gr/zbc/gr_zbc_gp10b.h"
 #include "common/gr/fecs_trace/fecs_trace_gm20b.h"
+#include "common/gr/fecs_trace/fecs_trace_gp10b.h"
 #include "common/therm/therm_gm20b.h"
 #include "common/therm/therm_gp10b.h"
 #include "common/ltc/ltc_gm20b.h"
@@ -85,7 +86,6 @@
 #include "gk20a/gr_gk20a.h"
 
 #include "gp10b/gr_gp10b.h"
-#include "gp10b/fecs_trace_gp10b.h"
 #include "gp10b/mm_gp10b.h"
 #include "gp10b/ce_gp10b.h"
 #include "gp10b/fifo_gp10b.h"
