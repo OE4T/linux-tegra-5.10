@@ -174,7 +174,7 @@ static int gv100_nvlink_minion_load(struct gk20a *g)
 	do {
 		reg = MINION_REG_RD32(g, minion_minion_status_r());
 
-		if (minion_minion_status_status_v(reg)) {
+		if (minion_minion_status_status_v(reg) != 0U) {
 			/* Minion sequence completed, check status */
 			if (minion_minion_status_status_v(reg) !=
 					minion_minion_status_status_boot_v()) {
@@ -200,7 +200,7 @@ static int gv100_nvlink_minion_load(struct gk20a *g)
 	/* Service interrupts */
 	g->ops.nvlink.intr.minion_falcon_isr(g);
 
-	if (nvgpu_timeout_peek_expired(&timeout)) {
+	if (nvgpu_timeout_peek_expired(&timeout) != 0) {
 		err = -ETIMEDOUT;
 		goto exit;
 	}
@@ -322,12 +322,12 @@ static int gv100_nvlink_minion_init_uphy(struct gk20a *g, unsigned long mask,
 		master_state = nvl_link_state_state_init_v();
 		slave_state = nvl_link_state_state_init_v();
 
-		if (BIT32(master_pll) & link_enable) {
+		if ((BIT32(master_pll) & link_enable) != 0U) {
 			master_state = nvl_link_state_state_v(
 				g->ops.nvlink.link_get_state(g, master_pll));
 		}
 
-		if (BIT32(slave_pll) & link_enable) {
+		if ((BIT32(slave_pll) & link_enable) != 0U) {
 			slave_state = nvl_link_state_state_v(
 				g->ops.nvlink.link_get_state(g, slave_pll));
 		}
@@ -515,10 +515,10 @@ int gv100_nvlink_setup_pll(struct gk20a *g, unsigned long link_mask)
 			trim_sys_nvlink_uphy_cfg_phy2clks_use_lockdet_f(1));
 	gk20a_writel(g, trim_sys_nvlink_uphy_cfg_r(), reg);
 
-	if (g->ops.top.get_nvhsclk_ctrl_e_clk_nvl) {
+	if (g->ops.top.get_nvhsclk_ctrl_e_clk_nvl != NULL) {
 		pad_ctrl = g->ops.top.get_nvhsclk_ctrl_e_clk_nvl(g);
 	}
-	if (g->ops.top.get_nvhsclk_ctrl_swap_clk_nvl) {
+	if (g->ops.top.get_nvhsclk_ctrl_swap_clk_nvl != NULL) {
 		swap_ctrl = g->ops.top.get_nvhsclk_ctrl_swap_clk_nvl(g);
 	}
 
@@ -532,10 +532,10 @@ int gv100_nvlink_setup_pll(struct gk20a *g, unsigned long link_mask)
 		swap_ctrl |= BIT32(pll_id);
 	}
 
-	if (g->ops.top.set_nvhsclk_ctrl_e_clk_nvl) {
+	if (g->ops.top.set_nvhsclk_ctrl_e_clk_nvl != NULL) {
 		g->ops.top.set_nvhsclk_ctrl_e_clk_nvl(g, pad_ctrl);
 	}
-	if (g->ops.top.set_nvhsclk_ctrl_swap_clk_nvl) {
+	if (g->ops.top.set_nvhsclk_ctrl_swap_clk_nvl != NULL) {
 		g->ops.top.set_nvhsclk_ctrl_swap_clk_nvl(g, swap_ctrl);
 	}
 
@@ -627,7 +627,7 @@ static int gv100_nvlink_enable_links_pre_top(struct gk20a *g,
 		/* Before  doing any link initialization, run RXDET to check
 		 * if link is connected on  other end.
 		 */
-		if (g->ops.nvlink.rxdet) {
+		if (g->ops.nvlink.rxdet != NULL) {
 			err = g->ops.nvlink.rxdet(g, link_id);
 			if (err != 0) {
 				return err;
@@ -667,7 +667,7 @@ static int gv100_nvlink_enable_links_pre_top(struct gk20a *g,
 	nvgpu_log(g, gpu_dbg_nvlink, "enabled_links=0x%08x",
 		g->nvlink.enabled_links);
 
-	if (g->nvlink.enabled_links) {
+	if (g->nvlink.enabled_links != 0U) {
 		return 0;
 	}
 
@@ -698,7 +698,7 @@ static int gv100_nvlink_enable_links_post_top(struct gk20a *g,
 
 	for_each_set_bit(bit, &enabled_links, NVLINK_MAX_LINKS_SW) {
 		link_id = (u32)bit;
-		if (g->ops.nvlink.set_sw_war) {
+		if (g->ops.nvlink.set_sw_war != NULL) {
 			g->ops.nvlink.set_sw_war(g, link_id);
 		}
 		g->ops.nvlink.intr.init_nvlipt_intr(g, link_id);
@@ -964,7 +964,7 @@ int gv100_nvlink_discover_link(struct gk20a *g)
 			nvgpu_log(g, gpu_dbg_nvlink, "IOCTRL entry %d is DATA2", i);
 
 			if (is_chain) {
-				if (nvlinkip_discovery_common_dlpl_data2_type_v(table_entry)) {
+				if (nvlinkip_discovery_common_dlpl_data2_type_v(table_entry) != 0U) {
 					device_table[nvlink_num_devices].pll_master =
 						(u8)nvlinkip_discovery_common_dlpl_data2_master_v(table_entry);
 					device_table[nvlink_num_devices].pll_master_id =
@@ -1049,7 +1049,7 @@ int gv100_nvlink_discover_link(struct gk20a *g)
 					NVLINK_MAX_LINKS_SW;
 
 				/* Update Pll master */
-				if (device_table[i].pll_master) {
+				if (device_table[i].pll_master != 0U) {
 					g->nvlink.links[device_table[i].device_id].pll_master_link_id =
 						g->nvlink.links[device_table[i].device_id].link_id;
 				} else {
@@ -1200,7 +1200,7 @@ int gv100_nvlink_discover_ioctrl(struct gk20a *g)
 	struct nvgpu_nvlink_ioctrl_list *ioctrl_table;
 	u32 ioctrl_num_entries = 0U;
 
-	if (g->ops.top.get_num_engine_type_entries) {
+	if (g->ops.top.get_num_engine_type_entries != NULL) {
 		ioctrl_num_entries = g->ops.top.get_num_engine_type_entries(g,
 							NVGPU_ENGINE_IOCTRL);
 		nvgpu_log_info(g, "ioctrl_num_entries: %d", ioctrl_num_entries);

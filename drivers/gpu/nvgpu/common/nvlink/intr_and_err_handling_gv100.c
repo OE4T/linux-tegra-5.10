@@ -167,7 +167,7 @@ void gv100_nvlink_minion_falcon_isr(struct gk20a *g)
 		return;
 	}
 
-	if (intr & minion_falcon_irqstat_exterr_true_f()) {
+	if ((intr & minion_falcon_irqstat_exterr_true_f()) != 0U) {
 		nvgpu_err(g, "FALCON EXT ADDR: 0x%x 0x%x 0x%x",
 			MINION_REG_RD32(g, minion_falcon_csberrstat_r()),
 			MINION_REG_RD32(g, minion_falcon_csberr_info_r()),
@@ -413,14 +413,14 @@ static void gv100_nvlink_dlpl_isr(struct gk20a *g, u32 link_id)
 		link_id, fatal_mask, non_fatal_mask);
 
 	/* Check if we are not handling an interupt */
-	if ((fatal_mask | non_fatal_mask) & ~intr) {
+	if (((fatal_mask | non_fatal_mask) & ~intr) != 0U) {
 		nvgpu_err(g, "Unable to service DLPL intr on link %d", link_id);
 	}
 
-	if (non_fatal_mask & nvl_intr_tx_recovery_long_f(1)) {
+	if ((non_fatal_mask & nvl_intr_tx_recovery_long_f(1)) != 0U) {
 		retrain = true;
 	}
-	if (fatal_mask) {
+	if (fatal_mask != 0U) {
 		retrain = false;
 	}
 
@@ -524,19 +524,21 @@ static void gv100_nvlink_mif_isr(struct gk20a *g, u32 link_id)
 
 	/* RX Errors */
 	intr = MIF_REG_RD32(g, link_id, ioctrlmif_rx_err_status_0_r());
-	if (intr) {
-		if (intr & ioctrlmif_rx_err_status_0_rxramdataparityerr_m()) {
+	if (intr != 0U) {
+		if ((intr & ioctrlmif_rx_err_status_0_rxramdataparityerr_m()) !=
+									0U) {
 			nvgpu_err(g, "Fatal MIF RX interrupt hit on link %d: RAM_DATA_PARITY",
 				link_id);
 			fatal_mask |= ioctrlmif_rx_err_status_0_rxramdataparityerr_f(1);
 		}
-		if (intr & ioctrlmif_rx_err_status_0_rxramhdrparityerr_m()) {
+		if ((intr & ioctrlmif_rx_err_status_0_rxramhdrparityerr_m()) !=
+									0U) {
 			nvgpu_err(g, "Fatal MIF RX interrupt hit on link %d: RAM_HDR_PARITY",
 				link_id);
 			fatal_mask |= ioctrlmif_rx_err_status_0_rxramhdrparityerr_f(1);
 		}
 
-		if (fatal_mask) {
+		if (fatal_mask != 0U) {
 			MIF_REG_WR32(g, link_id, ioctrlmif_rx_err_first_0_r(),
 				fatal_mask);
 			MIF_REG_WR32(g, link_id, ioctrlmif_rx_err_status_0_r(),
@@ -547,19 +549,21 @@ static void gv100_nvlink_mif_isr(struct gk20a *g, u32 link_id)
 	/* TX Errors */
 	fatal_mask = 0;
 	intr = MIF_REG_RD32(g, link_id, ioctrlmif_tx_err_status_0_r());
-	if (intr) {
-		if (intr & ioctrlmif_tx_err_status_0_txramdataparityerr_m()) {
+	if (intr != 0U) {
+		if ((intr & ioctrlmif_tx_err_status_0_txramdataparityerr_m()) !=
+									0U) {
 			nvgpu_err(g, "Fatal MIF TX interrupt hit on link %d: RAM_DATA_PARITY",
 				link_id);
 			fatal_mask |= ioctrlmif_tx_err_status_0_txramdataparityerr_f(1);
 		}
-		if (intr & ioctrlmif_tx_err_status_0_txramhdrparityerr_m()) {
+		if ((intr & ioctrlmif_tx_err_status_0_txramhdrparityerr_m()) !=
+									0U) {
 			nvgpu_err(g, "Fatal MIF TX interrupt hit on link %d: RAM_HDR_PARITY",
 				link_id);
 			fatal_mask |= ioctrlmif_tx_err_status_0_txramhdrparityerr_f(1);
 		}
 
-		if (fatal_mask) {
+		if (fatal_mask != 0U) {
 			MIF_REG_WR32(g, link_id, ioctrlmif_tx_err_first_0_r(),
 				fatal_mask);
 			MIF_REG_WR32(g, link_id, ioctrlmif_tx_err_status_0_r(),
