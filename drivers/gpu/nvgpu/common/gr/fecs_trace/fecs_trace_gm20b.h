@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -30,5 +30,6 @@ struct gk20a;
 int gm20b_fecs_trace_get_read_index(struct gk20a *g);
 int gm20b_fecs_trace_get_write_index(struct gk20a *g);
 int gm20b_fecs_trace_set_read_index(struct gk20a *g, int index);
+u32 gm20b_fecs_trace_get_buffer_full_mailbox_val(void);
 
 #endif /* NVGPU_GR_FECS_TRACE_GM20B_H */

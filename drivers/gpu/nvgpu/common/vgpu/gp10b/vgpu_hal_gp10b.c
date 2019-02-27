@@ -30,6 +30,7 @@
 #include "common/gr/ctxsw_prog/ctxsw_prog_gm20b.h"
 #include "common/gr/ctxsw_prog/ctxsw_prog_gp10b.h"
 #include "common/gr/config/gr_config_gm20b.h"
+#include "common/gr/fecs_trace/fecs_trace_gm20b.h"
 #include "common/therm/therm_gm20b.h"
 #include "common/therm/therm_gp10b.h"
 #include "common/ltc/ltc_gm20b.h"
@@ -68,8 +69,6 @@
 #include "gm20b/gr_gm20b.h"
 #include "gm20b/fifo_gm20b.h"
 #include "gm20b/mm_gm20b.h"
-
-#include "gk20a/fecs_trace_gk20a.h"
 
 #include <nvgpu/debugger.h>
 #include <nvgpu/enabled.h>
@@ -481,7 +480,7 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 		.max_entries = vgpu_fecs_trace_max_entries,
 		.set_filter = vgpu_fecs_trace_set_filter,
 		.get_buffer_full_mailbox_val =
-			gk20a_fecs_trace_get_buffer_full_mailbox_val,
+			gm20b_fecs_trace_get_buffer_full_mailbox_val,
 	},
 #endif /* CONFIG_GK20A_CTXSW_TRACE */
 	.mm = {

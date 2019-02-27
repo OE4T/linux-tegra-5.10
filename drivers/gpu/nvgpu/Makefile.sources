@@ -130,6 +130,7 @@ srcs += common/sim.c \
 	common/gr/config/gr_config_gm20b.c \
 	common/gr/fecs_trace/fecs_trace.c \
 	common/gr/fecs_trace/fecs_trace_gm20b.c \
+	common/gr/fecs_trace/fecs_trace_gv11b.c \
 	common/gr/zbc/gr_zbc.c \
 	common/gr/zbc/gr_zbc_gm20b.c \
 	common/gr/zbc/gr_zbc_gp10b.c \
@@ -278,7 +279,6 @@ srcs += common/sim.c \
 	gv11b/mm_gv11b.c \
 	gv11b/ce_gv11b.c \
 	gv11b/subctx_gv11b.c \
-	gv11b/fecs_trace_gv11b.c \
 	gv11b/ecc_gv11b.c \
 	gp106/gr_gp106.c \
 	gp106/sec2_gp106.c \
@@ -309,7 +309,6 @@ srcs += common/sim.c \
 	tu104/hal_tu104.c	\
 	tu104/sec2_tu104.c	\
 	tu104/func_tu104.c	\
-	tu104/fecs_trace_tu104.c \
 	common/vgpu/vgpu.c \
 	common/vgpu/fifo/fifo_vgpu.c \
 	common/vgpu/fifo/runlist_vgpu.c \

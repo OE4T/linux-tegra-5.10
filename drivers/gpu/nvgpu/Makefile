@@ -90,6 +90,7 @@ nvgpu-y += \
 	common/gr/config/gr_config_gm20b.o \
 	common/gr/fecs_trace/fecs_trace.o \
 	common/gr/fecs_trace/fecs_trace_gm20b.o \
+	common/gr/fecs_trace/fecs_trace_gv11b.o \
 	common/gr/zbc/gr_zbc.o \
 	common/gr/zbc/gr_zbc_gm20b.o \
 	common/gr/zbc/gr_zbc_gp10b.o \
@@ -387,10 +388,6 @@ nvgpu-y += \
 	gm20b/clk_gm20b.o \
 	gm20b/fifo_gm20b.o \
 	gm20b/mm_gm20b.o
-
-nvgpu-$(CONFIG_GK20A_CTXSW_TRACE) += \
-	gv11b/fecs_trace_gv11b.o \
-	tu104/fecs_trace_tu104.o \
 
 nvgpu-$(CONFIG_GK20A_VIDMEM) += \
 	common/mm/vidmem.o

@@ -44,6 +44,7 @@
 #include "common/gr/zbc/gr_zbc_gp10b.h"
 #include "common/gr/zbc/gr_zbc_gv11b.h"
 #include "common/gr/fecs_trace/fecs_trace_gm20b.h"
+#include "common/gr/fecs_trace/fecs_trace_gv11b.h"
 #include "common/therm/therm_gm20b.h"
 #include "common/therm/therm_gp10b.h"
 #include "common/therm/therm_gv11b.h"
@@ -102,7 +103,6 @@
 #include "fifo_gv11b.h"
 #include "subctx_gv11b.h"
 #include "ecc_gv11b.h"
-#include "fecs_trace_gv11b.h"
 
 #include <nvgpu/ptimer.h>
 #include <nvgpu/debug.h>

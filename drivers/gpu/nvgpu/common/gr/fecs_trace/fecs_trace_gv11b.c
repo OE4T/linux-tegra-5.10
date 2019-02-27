@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -20,11 +20,13 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NVGPU_FECS_TRACE_TU104_H
-#define NVGPU_FECS_TRACE_TU104_H
+#include "fecs_trace_gv11b.h"
 
-#include <nvgpu/types.h>
+#ifdef CONFIG_GK20A_CTXSW_TRACE
 
-u32 tu104_fecs_trace_get_buffer_full_mailbox_val(void);
+u32 gv11b_fecs_trace_get_buffer_full_mailbox_val(void)
+{
+	return 0x32;
+}
 
-#endif /* NVGPU_FECS_TRACE_TU104_H */
+#endif /* CONFIG_GK20A_CTXSW_TRACE */

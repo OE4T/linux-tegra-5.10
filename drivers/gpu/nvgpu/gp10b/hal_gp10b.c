@@ -679,7 +679,7 @@ static const struct gpu_ops gp10b_ops = {
 		.unbind_channel = gk20a_fecs_trace_unbind_channel,
 		.max_entries = nvgpu_gr_fecs_trace_max_entries,
 		.get_buffer_full_mailbox_val =
-			gk20a_fecs_trace_get_buffer_full_mailbox_val,
+			gm20b_fecs_trace_get_buffer_full_mailbox_val,
 		.get_read_index = gm20b_fecs_trace_get_read_index,
 		.get_write_index = gm20b_fecs_trace_get_write_index,
 		.set_read_index = gm20b_fecs_trace_set_read_index,

@@ -32,6 +32,5 @@ int gk20a_fecs_trace_bind_channel(struct gk20a *g,
 		struct channel_gk20a *ch, u32 vmid,
 		struct nvgpu_gr_ctx *gr_ctx);
 int gk20a_fecs_trace_unbind_channel(struct gk20a *g, struct channel_gk20a *ch);
-u32 gk20a_fecs_trace_get_buffer_full_mailbox_val(void);
 
 #endif /* NVGPU_GK20A_FECS_TRACE_GK20A_H */

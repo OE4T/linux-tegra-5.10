@@ -34,6 +34,8 @@
 
 #include <nvgpu/hw/gm20b/hw_gr_gm20b.h>
 
+#ifdef CONFIG_GK20A_CTXSW_TRACE
+
 int gm20b_fecs_trace_get_read_index(struct gk20a *g)
 {
 	return gr_gk20a_elpg_protected_call(g,
@@ -52,3 +54,10 @@ int gm20b_fecs_trace_set_read_index(struct gk20a *g, int index)
 	return gr_gk20a_elpg_protected_call(g,
 			(nvgpu_writel(g, gr_fecs_mailbox1_r(), index), 0));
 }
+
+u32 gm20b_fecs_trace_get_buffer_full_mailbox_val(void)
+{
+	return 0x26;
+}
+
+#endif /* CONFIG_GK20A_CTXSW_TRACE */

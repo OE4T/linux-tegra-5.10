@@ -46,6 +46,7 @@
 #include "common/gr/zbc/gr_zbc_gp10b.h"
 #include "common/gr/zbc/gr_zbc_gv11b.h"
 #include "common/gr/fecs_trace/fecs_trace_gm20b.h"
+#include "common/gr/fecs_trace/fecs_trace_gv11b.h"
 #include "common/therm/therm_gm20b.h"
 #include "common/therm/therm_gp10b.h"
 #include "common/therm/therm_gp106.h"
@@ -137,7 +138,6 @@
 #include "tu104/sec2_tu104.h"
 #include "tu104/ecc_tu104.h"
 #include "tu104/hal_tu104.h"
-#include "tu104/fecs_trace_tu104.h"
 
 #include <nvgpu/ptimer.h>
 #include <nvgpu/debug.h>
@@ -875,7 +875,7 @@ static const struct gpu_ops tu104_ops = {
 		.unbind_channel = gk20a_fecs_trace_unbind_channel,
 		.max_entries = nvgpu_gr_fecs_trace_max_entries,
 		.get_buffer_full_mailbox_val =
-			tu104_fecs_trace_get_buffer_full_mailbox_val,
+			gv11b_fecs_trace_get_buffer_full_mailbox_val,
 		.get_read_index = gm20b_fecs_trace_get_read_index,
 		.get_write_index = gm20b_fecs_trace_get_write_index,
 		.set_read_index = gm20b_fecs_trace_set_read_index,

@@ -143,8 +143,4 @@ int gk20a_fecs_trace_unbind_channel(struct gk20a *g, struct channel_gk20a *ch)
 	return 0;
 }
 
-u32 gk20a_fecs_trace_get_buffer_full_mailbox_val(void)
-{
-	return 0x26;
-}
 #endif /* CONFIG_GK20A_CTXSW_TRACE */
