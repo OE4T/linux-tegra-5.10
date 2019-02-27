@@ -1706,23 +1706,22 @@ enum nvgpu_nvlink_sublink_mode gv100_nvlink_link_get_sublink_mode(
 			return nvgpu_nvlink_sublink_tx_off;
 		}
 		return nvgpu_nvlink_sublink_tx__last;
-	} else {
-		state = g->ops.nvlink.get_rx_sublink_state(g, link_id);
-		if (state == nvl_sl1_slsm_status_rx_primary_state_hs_v()) {
-			return nvgpu_nvlink_sublink_rx_hs;
-		}
-		if (state == nvl_sl1_slsm_status_rx_primary_state_eighth_v()) {
-			return nvgpu_nvlink_sublink_rx_single_lane;
-		}
-		if (state == nvl_sl1_slsm_status_rx_primary_state_safe_v()) {
-			return nvgpu_nvlink_sublink_rx_safe;
-		}
-		if (state == nvl_sl1_slsm_status_rx_primary_state_off_v()) {
-			return nvgpu_nvlink_sublink_rx_off;
-		}
-		return nvgpu_nvlink_sublink_rx__last;
 	}
-	return nvgpu_nvlink_sublink_tx__last;
+
+	state = g->ops.nvlink.get_rx_sublink_state(g, link_id);
+	if (state == nvl_sl1_slsm_status_rx_primary_state_hs_v()) {
+		return nvgpu_nvlink_sublink_rx_hs;
+	}
+	if (state == nvl_sl1_slsm_status_rx_primary_state_eighth_v()) {
+		return nvgpu_nvlink_sublink_rx_single_lane;
+	}
+	if (state == nvl_sl1_slsm_status_rx_primary_state_safe_v()) {
+		return nvgpu_nvlink_sublink_rx_safe;
+	}
+	if (state == nvl_sl1_slsm_status_rx_primary_state_off_v()) {
+		return nvgpu_nvlink_sublink_rx_off;
+	}
+	return nvgpu_nvlink_sublink_rx__last;
 }
 
 /*
