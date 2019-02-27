@@ -222,7 +222,7 @@ int vgpu_fifo_init_engine_info(struct fifo_gk20a *f)
 	return 0;
 }
 
-static int vgpu_init_fifo_setup_sw(struct gk20a *g)
+static int vgpu_fifo_setup_sw(struct gk20a *g)
 {
 	struct fifo_gk20a *f = &g->fifo;
 	struct vgpu_priv_data *priv = vgpu_get_priv_data(g);
@@ -237,18 +237,11 @@ static int vgpu_init_fifo_setup_sw(struct gk20a *g)
 	}
 
 	f->g = g;
-	f->num_channels = priv->constants.num_channels;
-
-	/*
-	 * This is not the HW format you're looking for (see
-	 * vgpu_fifo_update_runlist_locked(), vgpu_submit_runlist())
-	 */
-	f->runlist_entry_size = (u32)sizeof(u16);
-
-	f->num_runlist_entries = f->num_channels;
+	f->num_channels = g->ops.channel.count(g);
+	f->runlist_entry_size = g->ops.runlist.entry_size(g);
+	f->num_runlist_entries = g->ops.runlist.length_max(g);
 	f->max_engines = nvgpu_get_litter_value(g, GPU_LIT_HOST_NUM_ENGINES);
-
-	f->userd_entry_size = 1 << ram_userd_base_shift_v();
+	f->userd_entry_size = g->ops.fifo.userd_entry_size(g);
 
 	err = gk20a_fifo_init_userd_slabs(g);
 	if (err != 0) {
@@ -272,7 +265,7 @@ static int vgpu_init_fifo_setup_sw(struct gk20a *g)
 
 	g->ops.fifo.init_engine_info(f);
 
-	err = nvgpu_init_runlist(g, f);
+	err = nvgpu_runlist_setup_sw(g);
 	if (err != 0) {
 		nvgpu_err(g, "failed to init runlist");
 		goto clean_up;
@@ -385,7 +378,7 @@ int vgpu_init_fifo_support(struct gk20a *g)
 
 	nvgpu_log_fn(g, " ");
 
-	err = vgpu_init_fifo_setup_sw(g);
+	err = vgpu_fifo_setup_sw(g);
 	if (err) {
 		return err;
 	}
@@ -574,4 +567,11 @@ u32 vgpu_fifo_default_timeslice_us(struct gk20a *g)
 	struct vgpu_priv_data *priv = vgpu_get_priv_data(g);
 
 	return priv->constants.default_timeslice_us;
+}
+
+u32 vgpu_channel_count(struct gk20a *g)
+{
+	struct vgpu_priv_data *priv = vgpu_get_priv_data(g);
+
+	return priv->constants.num_channels;
 }

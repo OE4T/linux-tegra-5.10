@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2018, NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2017-2019, NVIDIA Corporation.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -526,7 +526,7 @@ free_gpfifo:
 	return err;
 }
 
-int nvgpu_init_channel_support_linux(struct nvgpu_os_linux *l)
+int nvgpu_channel_init_support_linux(struct nvgpu_os_linux *l)
 {
 	struct gk20a *g = &l->g;
 	struct fifo_gk20a *f = &g->fifo;
@@ -577,7 +577,7 @@ err_clean:
 	return err;
 }
 
-void nvgpu_remove_channel_support_linux(struct nvgpu_os_linux *l)
+void nvgpu_channel_remove_support_linux(struct nvgpu_os_linux *l)
 {
 	struct gk20a *g = &l->g;
 	struct fifo_gk20a *f = &g->fifo;

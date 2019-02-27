@@ -247,11 +247,30 @@ void nvgpu_tsg_recover(struct gk20a *g, struct tsg_gk20a *tsg,
 	nvgpu_mutex_release(&g->dbg_sessions_lock);
 }
 
+static void nvgpu_tsg_destroy(struct gk20a *g, struct tsg_gk20a *tsg)
+{
+	nvgpu_mutex_destroy(&tsg->event_id_list_lock);
+}
+
+void nvgpu_tsg_cleanup_sw(struct gk20a *g)
+{
+	struct fifo_gk20a *f = &g->fifo;
+	u32 tsgid;
+
+	for (tsgid = 0; tsgid < f->num_channels; tsgid++) {
+		struct tsg_gk20a *tsg = &f->tsg[tsgid];
+
+		nvgpu_tsg_destroy(g, tsg);
+	}
+
+	nvgpu_vfree(g, f->tsg);
+	f->tsg = NULL;
+	nvgpu_mutex_destroy(&f->tsg_inuse_mutex);
+}
 
 int gk20a_init_tsg_support(struct gk20a *g, u32 tsgid)
 {
 	struct tsg_gk20a *tsg = NULL;
-	int err;
 
 	if (tsgid >= g->fifo.num_channels) {
 		return -EINVAL;
@@ -267,13 +286,51 @@ int gk20a_init_tsg_support(struct gk20a *g, u32 tsgid)
 	nvgpu_rwsem_init(&tsg->ch_list_lock);
 
 	nvgpu_init_list_node(&tsg->event_id_list);
-	err = nvgpu_mutex_init(&tsg->event_id_list_lock);
+
+	return nvgpu_mutex_init(&tsg->event_id_list_lock);
+}
+
+int nvgpu_tsg_setup_sw(struct gk20a *g)
+{
+	struct fifo_gk20a *f = &g->fifo;
+	u32 tsgid, i;
+	int err;
+
+	err = nvgpu_mutex_init(&f->tsg_inuse_mutex);
 	if (err != 0) {
-		tsg->in_use = true; /* make this TSG unusable */
+		nvgpu_err(g, "mutex init failed");
 		return err;
 	}
 
+	f->tsg = nvgpu_vzalloc(g, f->num_channels * sizeof(*f->tsg));
+	if (f->tsg == NULL) {
+		nvgpu_err(g, "no mem for tsgs");
+		err = -ENOMEM;
+		goto clean_up_mutex;
+	}
+
+	for (tsgid = 0; tsgid < f->num_channels; tsgid++) {
+		err = gk20a_init_tsg_support(g, tsgid);
+		if (err != 0) {
+			nvgpu_err(g, "tsg init failed, tsgid=%u", tsgid);
+			goto clean_up;
+		}
+	}
+
 	return 0;
+
+clean_up:
+	for (i = 0; i < tsgid; i++) {
+		struct tsg_gk20a *tsg = &g->fifo.tsg[i];
+
+		nvgpu_tsg_destroy(g, tsg);
+	}
+	nvgpu_vfree(g, f->tsg);
+	f->tsg = NULL;
+
+clean_up_mutex:
+	nvgpu_mutex_destroy(&f->tsg_inuse_mutex);
+	return err;
 }
 
 bool nvgpu_tsg_mark_error(struct gk20a *g,

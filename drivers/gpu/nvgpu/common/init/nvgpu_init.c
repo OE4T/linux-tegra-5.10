@@ -269,7 +269,7 @@ int gk20a_finalize_poweron(struct gk20a *g)
 		goto done;
 	}
 
-	err = gk20a_init_fifo_support(g);
+	err = nvgpu_fifo_init_support(g);
 	if (err != 0) {
 		nvgpu_err(g, "failed to init gk20a fifo");
 		goto done;

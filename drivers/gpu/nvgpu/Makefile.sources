@@ -180,6 +180,7 @@ srcs += common/sim.c \
 	common/power_features/cg/cg.c \
 	common/power_features/pg/pg.c \
 	common/fifo/channel.c \
+	common/fifo/fifo.c \
 	common/fifo/submit.c \
 	common/fifo/tsg.c \
 	common/fifo/runlist.c \

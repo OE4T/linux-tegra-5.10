@@ -204,7 +204,7 @@ int nvgpu_finalize_poweron_linux(struct nvgpu_os_linux *l)
 	if (l->init_done)
 		return 0;
 
-	err = nvgpu_init_channel_support_linux(l);
+	err = nvgpu_channel_init_support_linux(l);
 	if (err) {
 		nvgpu_err(g, "failed to init linux channel support");
 		return err;
@@ -751,7 +751,7 @@ void gk20a_remove_support(struct gk20a *g)
 
 	nvgpu_kfree(g, g->dbg_regops_tmp_buf);
 
-	nvgpu_remove_channel_support_linux(l);
+	nvgpu_channel_remove_support_linux(l);
 
 	if (g->pmu.remove_support)
 		g->pmu.remove_support(&g->pmu);

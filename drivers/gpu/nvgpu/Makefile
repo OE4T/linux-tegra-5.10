@@ -371,6 +371,7 @@ nvgpu-y += \
 	common/power_features/pg/pg.o \
 	common/sim.o \
 	common/sim_pci.o \
+	common/fifo/fifo.o \
 	common/fifo/channel.o \
 	common/fifo/submit.o \
 	common/fifo/tsg.o \

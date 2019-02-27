@@ -806,12 +806,14 @@ struct gpu_ops {
 		int (*tsg_unbind_channel)(struct channel_gk20a *ch);
 		int (*tsg_open)(struct tsg_gk20a *tsg);
 		void (*tsg_release)(struct tsg_gk20a *tsg);
+		int (*init_pbdma_info)(struct fifo_gk20a *f);
 		int (*init_engine_info)(struct fifo_gk20a *f);
 		u32 (*get_engines_mask_on_id)(struct gk20a *g,
 			u32 id, bool is_tsg);
 		u32 (*userd_gp_get)(struct gk20a *g, struct channel_gk20a *ch);
 		void (*userd_gp_put)(struct gk20a *g, struct channel_gk20a *ch);
 		u64 (*userd_pb_get)(struct gk20a *g, struct channel_gk20a *ch);
+		u32 (*userd_entry_size)(struct gk20a  *g);
 		void (*free_channel_ctx_header)(struct channel_gk20a *ch);
 		void (*dump_pbdma_status)(struct gk20a *g,
 				struct gk20a_debug_output *o);
@@ -886,7 +888,8 @@ struct gpu_ops {
 		int (*set_interleave)(struct gk20a *g, u32 id,
 					u32 runlist_id, u32 new_level);
 		u32 (*count_max)(void);
-		u32 (*entry_size)(void);
+		u32 (*entry_size)(struct gk20a *g);
+		u32 (*length_max)(struct gk20a *g);
 		void (*get_tsg_entry)(struct tsg_gk20a *tsg, u32 *runlist);
 		void (*get_ch_entry)(struct channel_gk20a *ch, u32 *runlist);
 		void (*hw_submit)(struct gk20a *g, u32 runlist_id,

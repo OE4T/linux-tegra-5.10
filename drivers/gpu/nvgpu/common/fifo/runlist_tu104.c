@@ -37,7 +37,7 @@ u32 tu104_runlist_count_max(void)
 	return fifo_runlist_base_lo__size_1_v();
 }
 
-u32 tu104_runlist_entry_size(void)
+u32 tu104_runlist_entry_size(struct gk20a *g)
 {
 	return ram_rl_entry_size_v();
 }

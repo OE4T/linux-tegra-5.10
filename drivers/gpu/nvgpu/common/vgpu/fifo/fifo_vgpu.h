@@ -37,6 +37,7 @@ int vgpu_channel_alloc_inst(struct gk20a *g, struct channel_gk20a *ch);
 void vgpu_channel_free_inst(struct gk20a *g, struct channel_gk20a *ch);
 void vgpu_channel_enable(struct channel_gk20a *ch);
 void vgpu_channel_disable(struct channel_gk20a *ch);
+u32 vgpu_channel_count(struct gk20a *g);
 int vgpu_channel_setup_ramfc(struct channel_gk20a *ch, u64 gpfifo_base,
 				u32 gpfifo_entries,
 				unsigned long acquire_timeout, u32 flags);

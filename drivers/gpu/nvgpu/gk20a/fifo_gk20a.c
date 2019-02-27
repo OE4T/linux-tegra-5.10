@@ -221,59 +221,6 @@ static inline u32 gk20a_mmu_id_to_engine_id(struct gk20a *g, u32 fault_id)
 	return active_engine_id;
 }
 
-static void gk20a_remove_fifo_support(struct fifo_gk20a *f)
-{
-	struct gk20a *g = f->g;
-	unsigned int i = 0;
-
-	nvgpu_log_fn(g, " ");
-
-	nvgpu_channel_worker_deinit(g);
-	/*
-	 * Make sure all channels are closed before deleting them.
-	 */
-	for (; i < f->num_channels; i++) {
-		struct channel_gk20a *c = f->channel + i;
-		struct tsg_gk20a *tsg = f->tsg + i;
-
-		/*
-		 * Could race but worst that happens is we get an error message
-		 * from gk20a_free_channel() complaining about multiple closes.
-		 */
-		if (c->referenceable) {
-			__gk20a_channel_kill(c);
-		}
-
-		nvgpu_mutex_destroy(&tsg->event_id_list_lock);
-
-		nvgpu_mutex_destroy(&c->ioctl_lock);
-		nvgpu_mutex_destroy(&c->joblist.cleanup_lock);
-		nvgpu_mutex_destroy(&c->joblist.pre_alloc.read_lock);
-		nvgpu_mutex_destroy(&c->sync_lock);
-#if defined(CONFIG_GK20A_CYCLE_STATS)
-		nvgpu_mutex_destroy(&c->cyclestate.cyclestate_buffer_mutex);
-		nvgpu_mutex_destroy(&c->cs_client_mutex);
-#endif
-		nvgpu_mutex_destroy(&c->dbg_s_lock);
-
-	}
-
-	nvgpu_vfree(g, f->channel);
-	nvgpu_vfree(g, f->tsg);
-	gk20a_fifo_free_userd_slabs(g);
-	(void) nvgpu_vm_area_free(g->mm.bar1.vm, f->userd_gpu_va);
-	f->userd_gpu_va = 0ULL;
-
-	gk20a_fifo_delete_runlist(f);
-
-	nvgpu_kfree(g, f->pbdma_map);
-	f->pbdma_map = NULL;
-	nvgpu_kfree(g, f->engine_info);
-	f->engine_info = NULL;
-	nvgpu_kfree(g, f->active_engines_list);
-	f->active_engines_list = NULL;
-}
-
 u32 gk20a_fifo_intr_0_error_mask(struct gk20a *g)
 {
 	u32 intr_0_error_mask =
@@ -382,170 +329,6 @@ int gk20a_init_fifo_reset_enable_hw(struct gk20a *g)
 	return 0;
 }
 
-static int nvgpu_init_runlist_enginfo(struct gk20a *g, struct fifo_gk20a *f)
-{
-	struct fifo_runlist_info_gk20a *runlist;
-	struct fifo_engine_info_gk20a *engine_info;
-	u32 i, active_engine_id, pbdma_id, engine_id;
-
-	nvgpu_log_fn(g, " ");
-
-	for (i = 0; i < f->num_runlists; i++) {
-		runlist = &f->active_runlist_info[i];
-
-		for (pbdma_id = 0; pbdma_id < f->num_pbdma; pbdma_id++) {
-			if ((f->pbdma_map[pbdma_id] &
-					BIT32(runlist->runlist_id)) != 0U) {
-				runlist->pbdma_bitmask |= BIT32(pbdma_id);
-			}
-		}
-		nvgpu_log(g, gpu_dbg_info, "runlist %d : pbdma bitmask 0x%x",
-				 runlist->runlist_id, runlist->pbdma_bitmask);
-
-		for (engine_id = 0; engine_id < f->num_engines; ++engine_id) {
-			active_engine_id = f->active_engines_list[engine_id];
-			engine_info = &f->engine_info[active_engine_id];
-
-			if ((engine_info != NULL) &&
-			    (engine_info->runlist_id == runlist->runlist_id)) {
-				runlist->eng_bitmask |= BIT(active_engine_id);
-			}
-		}
-		nvgpu_log(g, gpu_dbg_info, "runlist %d : act eng bitmask 0x%x",
-				 runlist->runlist_id, runlist->eng_bitmask);
-	}
-
-	nvgpu_log_fn(g, "done");
-
-	return 0;
-}
-
-int gk20a_init_fifo_setup_sw_common(struct gk20a *g)
-{
-	struct fifo_gk20a *f = &g->fifo;
-	unsigned int chid, i;
-	int err = 0;
-
-	nvgpu_log_fn(g, " ");
-
-	f->g = g;
-
-	err = nvgpu_mutex_init(&f->intr.isr.mutex);
-	if (err != 0) {
-		nvgpu_err(g, "failed to init isr.mutex");
-		return err;
-	}
-
-	err = nvgpu_mutex_init(&f->engines_reset_mutex);
-	if (err != 0) {
-		nvgpu_err(g, "failed to init engines_reset_mutex");
-		return err;
-	}
-
-	nvgpu_spinlock_init(&f->runlist_submit_lock);
-
-	g->ops.fifo.init_pbdma_intr_descs(f); /* just filling in data/tables */
-
-	f->num_channels = g->ops.channel.count(g);
-	f->runlist_entry_size = g->ops.runlist.entry_size();
-	f->num_runlist_entries = fifo_eng_runlist_length_max_v();
-	f->num_pbdma = nvgpu_get_litter_value(g, GPU_LIT_HOST_NUM_PBDMA);
-	f->max_engines = nvgpu_get_litter_value(g, GPU_LIT_HOST_NUM_ENGINES);
-
-	f->userd_entry_size = BIT16(ram_userd_base_shift_v());
-
-	f->channel = nvgpu_vzalloc(g, f->num_channels * sizeof(*f->channel));
-	f->tsg = nvgpu_vzalloc(g, f->num_channels * sizeof(*f->tsg));
-	f->pbdma_map = nvgpu_kzalloc(g, f->num_pbdma * sizeof(*f->pbdma_map));
-	f->engine_info = nvgpu_kzalloc(g, f->max_engines *
-				sizeof(*f->engine_info));
-	f->active_engines_list = nvgpu_kzalloc(g, f->max_engines * sizeof(u32));
-
-	if (!((f->channel != NULL) &&
-	      (f->tsg != NULL) &&
-	      (f->pbdma_map != NULL) &&
-	      (f->engine_info != NULL) &&
-	      (f->active_engines_list != NULL))) {
-		err = -ENOMEM;
-		goto clean_up;
-	}
-	(void) memset(f->active_engines_list, 0xff,
-		(f->max_engines * sizeof(u32)));
-
-	/* pbdma map needs to be in place before calling engine info init */
-	for (i = 0; i < f->num_pbdma; ++i) {
-		f->pbdma_map[i] = gk20a_readl(g, fifo_pbdma_map_r(i));
-	}
-
-	g->ops.fifo.init_engine_info(f);
-
-	err = nvgpu_init_runlist(g, f);
-	if (err != 0) {
-		nvgpu_err(g, "failed to init runlist");
-		goto clean_up;
-	}
-
-	nvgpu_init_runlist_enginfo(g, f);
-	if (err != 0) {
-		nvgpu_err(g, "failed to init runlist engine info");
-		goto clean_up;
-	}
-
-	nvgpu_init_list_node(&f->free_chs);
-
-	err = nvgpu_mutex_init(&f->free_chs_mutex);
-	if (err != 0) {
-		nvgpu_err(g, "failed to init free_chs_mutex");
-		goto clean_up;
-	}
-
-	for (chid = 0; chid < f->num_channels; chid++) {
-		gk20a_init_channel_support(g, chid);
-		gk20a_init_tsg_support(g, chid);
-	}
-
-	err = nvgpu_mutex_init(&f->tsg_inuse_mutex);
-	if (err != 0) {
-		nvgpu_err(g, "failed to init tsg_inuse_mutex");
-		goto clean_up;
-	}
-
-	f->remove_support = gk20a_remove_fifo_support;
-
-	f->deferred_reset_pending = false;
-
-	err = nvgpu_mutex_init(&f->deferred_reset_mutex);
-	if (err != 0) {
-		nvgpu_err(g, "failed to init deferred_reset_mutex");
-		goto clean_up;
-	}
-
-	err = gk20a_fifo_init_userd_slabs(g);
-	if (err != 0) {
-		nvgpu_err(g, "userd slabs init fail, err=%d", err);
-		goto clean_up;
-	}
-
-	nvgpu_log_fn(g, "done");
-	return 0;
-
-clean_up:
-	nvgpu_err(g, "fail");
-
-	nvgpu_vfree(g, f->channel);
-	f->channel = NULL;
-	nvgpu_vfree(g, f->tsg);
-	f->tsg = NULL;
-	nvgpu_kfree(g, f->pbdma_map);
-	f->pbdma_map = NULL;
-	nvgpu_kfree(g, f->engine_info);
-	f->engine_info = NULL;
-	nvgpu_kfree(g, f->active_engines_list);
-	f->active_engines_list = NULL;
-
-	return err;
-}
-
 int gk20a_fifo_init_userd_slabs(struct gk20a *g)
 {
 	struct fifo_gk20a *f = &g->fifo;
@@ -627,55 +410,6 @@ void gk20a_fifo_free_userd_slabs(struct gk20a *g)
 	f->userd_slabs = NULL;
 }
 
-int gk20a_init_fifo_setup_sw(struct gk20a *g)
-{
-	struct fifo_gk20a *f = &g->fifo;
-	int err = 0;
-	u32 size;
-	u32 num_pages;
-
-	nvgpu_log_fn(g, " ");
-
-	if (f->sw_ready) {
-		nvgpu_log_fn(g, "skip init");
-		return 0;
-	}
-
-	err = gk20a_init_fifo_setup_sw_common(g);
-	if (err != 0) {
-		nvgpu_err(g, "fail: err: %d", err);
-		return err;
-	}
-
-	size = f->num_channels * f->userd_entry_size;
-	num_pages = DIV_ROUND_UP(size, PAGE_SIZE);
-	err = nvgpu_vm_area_alloc(g->mm.bar1.vm,
-			num_pages, PAGE_SIZE, &f->userd_gpu_va, 0);
-	if (err != 0) {
-		nvgpu_err(g, "userd gpu va allocation failed, err=%d", err);
-		goto clean_slabs;
-	}
-
-	err = nvgpu_channel_worker_init(g);
-	if (err != 0) {
-		nvgpu_err(g, "worker init fail, err=%d", err);
-		goto clean_vm_area;
-	}
-
-	f->sw_ready = true;
-
-	nvgpu_log_fn(g, "done");
-	return 0;
-
-clean_vm_area:
-	(void) nvgpu_vm_area_free(g->mm.bar1.vm, f->userd_gpu_va);
-	f->userd_gpu_va = 0ULL;
-
-clean_slabs:
-	gk20a_fifo_free_userd_slabs(g);
-	return err;
-}
-
 void gk20a_fifo_handle_runlist_event(struct gk20a *g)
 {
 	u32 runlist_event = gk20a_readl(g, fifo_intr_runlist_r());
@@ -706,25 +440,6 @@ int gk20a_init_fifo_setup_hw(struct gk20a *g)
 	nvgpu_log_fn(g, "done");
 
 	return 0;
-}
-
-int gk20a_init_fifo_support(struct gk20a *g)
-{
-	int err;
-
-	err = g->ops.fifo.setup_sw(g);
-	if (err != 0) {
-		return err;
-	}
-
-	if (g->ops.fifo.init_fifo_setup_hw != NULL) {
-		err = g->ops.fifo.init_fifo_setup_hw(g);
-	}
-	if (err != 0) {
-		return err;
-	}
-
-	return err;
 }
 
 /* return with a reference to the channel, caller must put it back */
@@ -2881,6 +2596,11 @@ void gk20a_fifo_userd_gp_put(struct gk20a *g, struct channel_gk20a *c)
 	gk20a_bar1_writel(g, (u32)addr, c->gpfifo.put);
 }
 
+u32 gk20a_fifo_userd_entry_size(struct gk20a *g)
+{
+	return BIT32(ram_userd_base_shift_v());
+}
+
 u32 gk20a_fifo_pbdma_acquire_val(u64 timeout)
 {
 	u32 val, exponent, mantissa;
@@ -2943,4 +2663,27 @@ bool gk20a_fifo_find_pbdma_for_runlist(struct fifo_gk20a *f, u32 runlist_id,
 	}
 	*pbdma_id = id;
 	return found_pbdma_for_runlist;
+}
+
+int gk20a_fifo_init_pbdma_info(struct fifo_gk20a *f)
+{
+	struct gk20a *g = f->g;
+	u32 id;
+
+	f->num_pbdma = nvgpu_get_litter_value(g, GPU_LIT_HOST_NUM_PBDMA);
+
+	f->pbdma_map = nvgpu_kzalloc(g, f->num_pbdma * sizeof(*f->pbdma_map));
+	if (f->pbdma_map == NULL) {
+		return -ENOMEM;
+	}
+
+	for (id = 0; id < f->num_pbdma; ++id) {
+		f->pbdma_map[id] = gk20a_readl(g, fifo_pbdma_map_r(id));
+	}
+
+	if (g->ops.fifo.init_pbdma_intr_descs != NULL) {
+		g->ops.fifo.init_pbdma_intr_descs(f);
+	}
+
+	return 0;
 }

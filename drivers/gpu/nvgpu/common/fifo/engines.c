@@ -446,4 +446,54 @@ int nvgpu_engine_wait_for_idle(struct gk20a *g)
 
 #endif /* NVGPU_ENGINE */
 
+int nvgpu_engine_setup_sw(struct gk20a *g)
+{
+	struct fifo_gk20a *f = &g->fifo;
+	int err = 0;
+	size_t size;
 
+	f->max_engines = nvgpu_get_litter_value(g, GPU_LIT_HOST_NUM_ENGINES);
+	size = f->max_engines * sizeof(*f->engine_info);
+	f->engine_info = nvgpu_kzalloc(g, size);
+	if (f->engine_info == NULL) {
+		nvgpu_err(g, "no mem for engine info");
+		return -ENOMEM;
+	}
+
+	size = f->max_engines * sizeof(u32);
+	f->active_engines_list = nvgpu_kzalloc(g, size);
+	if (f->active_engines_list == NULL) {
+		nvgpu_err(g, "no mem for active engine list");
+		err = -ENOMEM;
+		goto clean_up_engine_info;
+	}
+	(void) memset(f->active_engines_list, 0xff, size);
+
+	err = g->ops.fifo.init_engine_info(f);
+	if (err != 0) {
+		nvgpu_err(g, "init engine info failed");
+		goto clean_up;
+	}
+
+	return 0;
+
+clean_up:
+	nvgpu_kfree(g, f->active_engines_list);
+	f->active_engines_list = NULL;
+
+clean_up_engine_info:
+	nvgpu_kfree(g, f->engine_info);
+	f->engine_info = NULL;
+
+	return err;
+}
+
+void nvgpu_engine_cleanup_sw(struct gk20a *g)
+{
+	struct fifo_gk20a *f = &g->fifo;
+
+	nvgpu_kfree(g, f->engine_info);
+	f->engine_info = NULL;
+	nvgpu_kfree(g, f->active_engines_list);
+	f->active_engines_list = NULL;
+}

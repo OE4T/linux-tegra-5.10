@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -90,8 +90,8 @@ struct nvgpu_channel_linux {
 };
 
 u32 nvgpu_submit_gpfifo_user_flags_to_common_flags(u32 user_flags);
-int nvgpu_init_channel_support_linux(struct nvgpu_os_linux *l);
-void nvgpu_remove_channel_support_linux(struct nvgpu_os_linux *l);
+int nvgpu_channel_init_support_linux(struct nvgpu_os_linux *l);
+void nvgpu_channel_remove_support_linux(struct nvgpu_os_linux *l);
 
 struct channel_gk20a *gk20a_open_new_channel_with_cb(struct gk20a *g,
 		void (*update_fn)(struct channel_gk20a *, void *),

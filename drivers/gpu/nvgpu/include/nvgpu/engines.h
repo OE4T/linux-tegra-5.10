@@ -50,6 +50,8 @@ u32 nvgpu_engine_get_gr_id(struct gk20a *g);
 u32 nvgpu_engine_interrupt_mask(struct gk20a *g);
 u32 nvgpu_engine_act_interrupt_mask(struct gk20a *g, u32 act_eng_id);
 u32 nvgpu_engine_get_all_ce_reset_mask(struct gk20a *g);
+int nvgpu_engine_setup_sw(struct gk20a *g);
+void nvgpu_engine_cleanup_sw(struct gk20a *g);
 
 int nvgpu_engine_enable_activity(struct gk20a *g,
 			struct fifo_engine_info_gk20a *eng_info);

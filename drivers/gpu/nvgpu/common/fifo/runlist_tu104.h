@@ -27,7 +27,7 @@
 struct gk20a;
 
 u32 tu104_runlist_count_max(void);
-u32 tu104_runlist_entry_size(void);
+u32 tu104_runlist_entry_size(struct gk20a *g);
 void tu104_runlist_hw_submit(struct gk20a *g, u32 runlist_id,
 		u32 count, u32 buffer_index);
 int tu104_runlist_wait_pending(struct gk20a *g, u32 runlist_id);

@@ -34,3 +34,5 @@ int vgpu_runlist_set_interleave(struct gk20a *g,
 					u32 id,
 					u32 runlist_id,
 					u32 new_level);
+u32 vgpu_runlist_length_max(struct gk20a *g);
+u32 vgpu_runlist_entry_size(struct gk20a *g);

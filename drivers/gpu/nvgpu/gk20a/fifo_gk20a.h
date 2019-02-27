@@ -246,8 +246,6 @@ struct nvgpu_channel_dump_info {
 	} sema;
 };
 
-int gk20a_init_fifo_support(struct gk20a *g);
-
 int gk20a_init_fifo_setup_hw(struct gk20a *g);
 
 void gk20a_fifo_isr(struct gk20a *g);
@@ -352,8 +350,6 @@ u32 gk20a_fifo_pbdma_acquire_val(u64 timeout);
 
 
 u32 gk20a_fifo_runlist_busy_engines(struct gk20a *g, u32 runlist_id);
-int gk20a_init_fifo_setup_sw_common(struct gk20a *g);
-int gk20a_init_fifo_setup_sw(struct gk20a *g);
 void gk20a_fifo_handle_runlist_event(struct gk20a *g);
 bool gk20a_fifo_should_defer_engine_reset(struct gk20a *g, u32 engine_id,
 			u32 engine_subid, bool fake_fault);
@@ -385,9 +381,11 @@ void gk20a_fifo_get_mmu_fault_gpc_desc(struct mmu_fault_info *mmfault);
 int gk20a_fifo_init_userd_slabs(struct gk20a *g);
 void gk20a_fifo_free_userd_slabs(struct gk20a *g);
 int gk20a_fifo_init_userd(struct gk20a *g, struct channel_gk20a *c);
+u32 gk20a_fifo_userd_entry_size(struct gk20a *g);
 
 bool gk20a_fifo_find_pbdma_for_runlist(struct fifo_gk20a *f, u32 runlist_id,
 			u32 *pbdma_id);
 u32 gk20a_fifo_read_pbdma_data(struct gk20a *g, u32 pbdma_id);
 void gk20a_fifo_reset_pbdma_header(struct gk20a *g, u32 pbdma_id);
+int gk20a_fifo_init_pbdma_info(struct fifo_gk20a *f);
 #endif /* FIFO_GK20A_H */

@@ -1,7 +1,7 @@
 /*
  * fifo common definitions (gr host)
  *
- * Copyright (c) 2011-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -44,5 +44,9 @@ struct nvgpu_channel_hw_state {
 	bool eng_faulted;
 	const char *status_string;
 };
+
+int nvgpu_fifo_init_support(struct gk20a *g);
+int nvgpu_fifo_setup_sw(struct gk20a *g);
+int nvgpu_fifo_setup_sw_common(struct gk20a *g);
 
 #endif /* NVGPU_FIFO_COMMON_H */

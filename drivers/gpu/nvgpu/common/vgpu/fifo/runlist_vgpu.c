@@ -218,3 +218,19 @@ int vgpu_runlist_set_interleave(struct gk20a *g,
 	WARN_ON(err || msg.ret);
 	return err ? err : msg.ret;
 }
+
+u32 vgpu_runlist_length_max(struct gk20a *g)
+{
+	struct vgpu_priv_data *priv = vgpu_get_priv_data(g);
+
+	return priv->constants.num_channels;
+}
+
+u32 vgpu_runlist_entry_size(struct gk20a *g)
+{
+	/*
+	 * This is not the HW format you're looking for (see
+	 * vgpu_fifo_update_runlist_locked(), vgpu_submit_runlist())
+	 */
+	return (u32)sizeof(u16);
+}

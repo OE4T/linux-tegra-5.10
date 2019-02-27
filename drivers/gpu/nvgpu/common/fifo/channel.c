@@ -2321,6 +2321,46 @@ void gk20a_channel_deterministic_unidle(struct gk20a *g)
 	nvgpu_rwsem_up_write(&g->deterministic_busy);
 }
 
+static void nvgpu_channel_destroy(struct gk20a *g, struct channel_gk20a *c)
+{
+	nvgpu_mutex_destroy(&c->ioctl_lock);
+	nvgpu_mutex_destroy(&c->joblist.cleanup_lock);
+	nvgpu_mutex_destroy(&c->joblist.pre_alloc.read_lock);
+	nvgpu_mutex_destroy(&c->sync_lock);
+#if defined(CONFIG_GK20A_CYCLE_STATS)
+	nvgpu_mutex_destroy(&c->cyclestate.cyclestate_buffer_mutex);
+	nvgpu_mutex_destroy(&c->cs_client_mutex);
+#endif
+	nvgpu_mutex_destroy(&c->dbg_s_lock);
+}
+
+void nvgpu_channel_cleanup_sw(struct gk20a *g)
+{
+	struct fifo_gk20a *f = &g->fifo;
+	u32 chid;
+
+	/*
+	 * Make sure all channels are closed before deleting them.
+	 */
+	for (chid = 0; chid < f->num_channels; chid++) {
+		struct channel_gk20a *ch = &f->channel[chid];
+
+		/*
+		 * Could race but worst that happens is we get an error message
+		 * from gk20a_free_channel() complaining about multiple closes.
+		 */
+		if (ch->referenceable) {
+			__gk20a_channel_kill(ch);
+		}
+
+		nvgpu_channel_destroy(g, ch);
+	}
+
+	nvgpu_vfree(g, f->channel);
+	f->channel = NULL;
+	nvgpu_mutex_destroy(&f->free_chs_mutex);
+}
+
 int gk20a_init_channel_support(struct gk20a *g, u32 chid)
 {
 	struct channel_gk20a *c = g->fifo.channel+chid;
@@ -2395,6 +2435,54 @@ fail_2:
 	nvgpu_mutex_destroy(&c->joblist.cleanup_lock);
 fail_1:
 	nvgpu_mutex_destroy(&c->ioctl_lock);
+
+	return err;
+}
+
+int nvgpu_channel_setup_sw(struct gk20a *g)
+{
+	struct fifo_gk20a *f = &g->fifo;
+	u32 chid, i;
+	int err;
+
+	f->num_channels = g->ops.channel.count(g);
+
+	err = nvgpu_mutex_init(&f->free_chs_mutex);
+	if (err != 0) {
+		nvgpu_err(g, "mutex init failed");
+		return err;
+	}
+
+	f->channel = nvgpu_vzalloc(g, f->num_channels * sizeof(*f->channel));
+	if (f->channel == NULL) {
+		nvgpu_err(g, "no mem for channels");
+		err = -ENOMEM;
+		goto clean_up_mutex;
+	}
+
+	nvgpu_init_list_node(&f->free_chs);
+
+	for (chid = 0; chid < f->num_channels; chid++) {
+		err = gk20a_init_channel_support(g, chid);
+		if (err != 0) {
+			nvgpu_err(g, "channel init failed, chid=%u", chid);
+			goto clean_up;
+		}
+	}
+
+	return 0;
+
+clean_up:
+	for (i = 0; i < chid; i++) {
+		struct channel_gk20a *ch = &f->channel[i];
+
+		nvgpu_channel_destroy(g, ch);
+	}
+	nvgpu_vfree(g, f->channel);
+	f->channel = NULL;
+
+clean_up_mutex:
+	nvgpu_mutex_destroy(&f->free_chs_mutex);
 
 	return err;
 }

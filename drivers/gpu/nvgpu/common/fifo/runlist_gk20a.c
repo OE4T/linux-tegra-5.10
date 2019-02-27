@@ -121,9 +121,14 @@ u32 gk20a_runlist_count_max(void)
 	return fifo_eng_runlist_base__size_1_v();
 }
 
-u32 gk20a_runlist_entry_size(void)
+u32 gk20a_runlist_entry_size(struct gk20a *g)
 {
 	return ram_rl_entry_size_v();
+}
+
+u32 gk20a_runlist_length_max(struct gk20a *g)
+{
+	return fifo_eng_runlist_length_max_v();
 }
 
 void gk20a_runlist_get_tsg_entry(struct tsg_gk20a *tsg, u32 *runlist)

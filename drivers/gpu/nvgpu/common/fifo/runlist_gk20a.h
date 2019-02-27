@@ -36,7 +36,8 @@ int gk20a_runlist_set_interleave(struct gk20a *g,
 		u32 runlist_id,
 		u32 new_level);
 u32 gk20a_runlist_count_max(void);
-u32 gk20a_runlist_entry_size(void);
+u32 gk20a_runlist_entry_size(struct gk20a *g);
+u32 gk20a_runlist_length_max(struct gk20a *g);
 void gk20a_runlist_get_tsg_entry(struct tsg_gk20a *tsg, u32 *runlist);
 void gk20a_runlist_get_ch_entry(struct channel_gk20a *ch, u32 *runlist);
 void gk20a_runlist_hw_submit(struct gk20a *g, u32 runlist_id,

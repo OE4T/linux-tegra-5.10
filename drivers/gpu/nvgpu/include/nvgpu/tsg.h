@@ -87,6 +87,9 @@ void gk20a_tsg_release_common(struct gk20a *g, struct tsg_gk20a *tsg);
 void gk20a_tsg_release(struct nvgpu_ref *ref);
 
 int gk20a_init_tsg_support(struct gk20a *g, u32 tsgid);
+int nvgpu_tsg_setup_sw(struct gk20a *g);
+void nvgpu_tsg_cleanup_sw(struct gk20a *g);
+
 struct tsg_gk20a *tsg_gk20a_from_ch(struct channel_gk20a *ch);
 
 int gk20a_enable_tsg(struct tsg_gk20a *tsg);
