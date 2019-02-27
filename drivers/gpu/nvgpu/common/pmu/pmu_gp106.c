@@ -87,8 +87,8 @@ u32 gp106_pmu_pg_feature_list(struct gk20a *g, u32 pg_engine_id)
 
 u32 gp106_pmu_pg_engines_list(struct gk20a *g)
 {
-	return BIT(PMU_PG_ELPG_ENGINE_ID_GRAPHICS) |
-			BIT(PMU_PG_ELPG_ENGINE_ID_MS);
+	return BIT32(PMU_PG_ELPG_ENGINE_ID_GRAPHICS) |
+			BIT32(PMU_PG_ELPG_ENGINE_ID_MS);
 }
 
 static void pmu_handle_param_msg(struct gk20a *g, struct pmu_msg *msg,
@@ -110,20 +110,23 @@ int gp106_pg_param_init(struct gk20a *g, u32 pg_engine_id)
 	struct nvgpu_pmu *pmu = &g->pmu;
 	struct pmu_cmd cmd;
 	u32 seq;
-	u32 status;
+	int status;
+	u64 tmp_size;
 
 	(void) memset(&cmd, 0, sizeof(struct pmu_cmd));
 	if (pg_engine_id == PMU_PG_ELPG_ENGINE_ID_GRAPHICS) {
 
 		status = init_rppg(g);
-		if (status != 0U) {
+		if (status != 0) {
 			nvgpu_err(g, "RPPG init Failed");
 			return -1;
 		}
 
 		cmd.hdr.unit_id = PMU_UNIT_PG;
-		cmd.hdr.size = PMU_CMD_HDR_SIZE +
+		tmp_size = PMU_CMD_HDR_SIZE +
 				sizeof(struct pmu_pg_cmd_gr_init_param);
+		nvgpu_assert(tmp_size <= U64(U8_MAX));
+		cmd.hdr.size = U8(tmp_size);
 		cmd.cmd.pg.gr_init_param.cmd_type =
 				PMU_PG_CMD_ID_PG_PARAM;
 		cmd.cmd.pg.gr_init_param.sub_cmd_id =
@@ -136,8 +139,10 @@ int gp106_pg_param_init(struct gk20a *g, u32 pg_engine_id)
 				pmu_handle_param_msg, pmu, &seq);
 	} else if (pg_engine_id == PMU_PG_ELPG_ENGINE_ID_MS) {
 		cmd.hdr.unit_id = PMU_UNIT_PG;
-		cmd.hdr.size = PMU_CMD_HDR_SIZE +
+		tmp_size = PMU_CMD_HDR_SIZE +
 			sizeof(struct pmu_pg_cmd_ms_init_param);
+		nvgpu_assert(tmp_size <= U64(U8_MAX));
+		cmd.hdr.size = U8(tmp_size);
 		cmd.cmd.pg.ms_init_param.cmd_type =
 			PMU_PG_CMD_ID_PG_PARAM;
 		cmd.cmd.pg.ms_init_param.cmd_id =
@@ -206,6 +211,7 @@ static void gp106_pmu_load_multiple_falcons(struct gk20a *g, u32 falconidmask,
 	struct nvgpu_pmu *pmu = &g->pmu;
 	struct pmu_cmd cmd;
 	u32 seq;
+	u64 tmp_size;
 
 	nvgpu_log_fn(g, " ");
 
@@ -214,8 +220,10 @@ static void gp106_pmu_load_multiple_falcons(struct gk20a *g, u32 falconidmask,
 		/* send message to load FECS falcon */
 		(void) memset(&cmd, 0, sizeof(struct pmu_cmd));
 		cmd.hdr.unit_id = PMU_UNIT_ACR;
-		cmd.hdr.size = PMU_CMD_HDR_SIZE +
+		tmp_size = PMU_CMD_HDR_SIZE +
 		  sizeof(struct pmu_acr_cmd_bootstrap_multiple_falcons);
+		nvgpu_assert(tmp_size <= U64(U8_MAX));
+		cmd.hdr.size = U8(tmp_size);
 		cmd.cmd.acr.boot_falcons.cmd_type =
 		  PMU_ACR_CMD_ID_BOOTSTRAP_MULTIPLE_FALCONS;
 		cmd.cmd.acr.boot_falcons.flags = flags;
@@ -261,9 +269,10 @@ int gp106_load_falcon_ucode(struct gk20a *g, u32 falconidmask)
 	}
 	/* load falcon(s) */
 	gp106_pmu_load_multiple_falcons(g, falconidmask, flags);
+	nvgpu_assert(falconidmask < U32(U8_MAX));
 	pmu_wait_message_cond(&g->pmu,
 			gk20a_get_gr_idle_timeout(g),
-			&g->pmu_lsf_loaded_falcon_id, falconidmask);
+			&g->pmu_lsf_loaded_falcon_id, U8(falconidmask));
 	if (g->pmu_lsf_loaded_falcon_id != falconidmask) {
 		return -ETIMEDOUT;
 	}
@@ -298,6 +307,7 @@ void gp106_update_lspmu_cmdline_args(struct gk20a *g)
 void gp106_pmu_setup_apertures(struct gk20a *g)
 {
 	struct mm_gk20a *mm = &g->mm;
+	u64 tmp_addr;
 
 	/* PMU TRANSCFG */
 	/* setup apertures - virtual */
@@ -321,9 +331,10 @@ void gp106_pmu_setup_apertures(struct gk20a *g)
 	gk20a_writel(g, pwr_falcon_itfen_r(),
 				gk20a_readl(g, pwr_falcon_itfen_r()) |
 				pwr_falcon_itfen_ctxen_enable_f());
+	tmp_addr = nvgpu_inst_block_addr(g, &mm->pmu.inst_block) >> 12;
+	nvgpu_assert(u64_hi32(tmp_addr) == 0U);
 	gk20a_writel(g, pwr_pmu_new_instblk_r(),
-		pwr_pmu_new_instblk_ptr_f(
-			nvgpu_inst_block_addr(g, &mm->pmu.inst_block) >> 12) |
+		pwr_pmu_new_instblk_ptr_f(U32(tmp_addr)) |
 		pwr_pmu_new_instblk_valid_f(1) |
 		nvgpu_aperture_mask(g, &mm->pmu.inst_block,
 			pwr_pmu_new_instblk_target_sys_ncoh_f(),
