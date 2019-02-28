@@ -749,7 +749,6 @@ int nvgpu_vfe_get_volt_margin_limit(struct gk20a *g, u32 *vmargin_uv)
 
 	vmargin_idx = g->ops.pmu_ver.volt.volt_get_vmargin(g);
 	if (vmargin_idx == 0U) {
-		nvgpu_info(g, "Skipping volt margin idx");
 		return 0;
 	}
 
@@ -778,7 +777,6 @@ int nvgpu_vfe_get_freq_margin_limit(struct gk20a *g, u32 *fmargin_mhz)
 
 	fmargin_idx = pfllobjs->freq_margin_vfe_idx;
 	if (fmargin_idx == 255U) {
-		nvgpu_info(g, "Skipping freq margin idx");
 		return 0;
 	}
 
