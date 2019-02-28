@@ -30,6 +30,8 @@ struct channel_gk20a;
 struct fifo_gk20a;
 struct tsg_gk20a;
 
+int vgpu_fifo_setup_sw(struct gk20a *g);
+void vgpu_fifo_cleanup_sw(struct gk20a *g);
 int vgpu_init_fifo_setup_hw(struct gk20a *g);
 void vgpu_channel_bind(struct channel_gk20a *ch);
 void vgpu_channel_unbind(struct channel_gk20a *ch);

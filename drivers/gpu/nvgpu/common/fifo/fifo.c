@@ -86,13 +86,11 @@ static void nvgpu_userd_cleanup_sw(struct gk20a *g)
 	}
 }
 
-static void nvgpu_fifo_cleanup_sw_common(struct fifo_gk20a *f)
+void nvgpu_fifo_cleanup_sw_common(struct gk20a *g)
 {
-	struct gk20a *g = f->g;
+	struct fifo_gk20a *f = &g->fifo;
 
 	nvgpu_log_fn(g, " ");
-
-	nvgpu_channel_worker_deinit(g);
 
 	nvgpu_userd_cleanup_sw(g);
 	nvgpu_channel_cleanup_sw(g);
@@ -105,6 +103,19 @@ static void nvgpu_fifo_cleanup_sw_common(struct fifo_gk20a *f)
 	nvgpu_mutex_destroy(&f->deferred_reset_mutex);
 	nvgpu_mutex_destroy(&f->engines_reset_mutex);
 	nvgpu_mutex_destroy(&f->intr.isr.mutex);
+}
+
+void nvgpu_fifo_cleanup_sw(struct gk20a *g)
+{
+	nvgpu_channel_worker_deinit(g);
+	nvgpu_fifo_cleanup_sw_common(g);
+}
+
+static void nvgpu_fifo_remove_support(struct fifo_gk20a *f)
+{
+	struct gk20a *g = f->g;
+
+	g->ops.fifo.cleanup_sw(g);
 }
 
 static int nvgpu_fifo_init_locks(struct gk20a *g, struct fifo_gk20a *f)
@@ -191,7 +202,7 @@ int nvgpu_fifo_setup_sw_common(struct gk20a *g)
 		goto clean_up_runlist;
 	}
 
-	f->remove_support = nvgpu_fifo_cleanup_sw_common;
+	f->remove_support = nvgpu_fifo_remove_support;
 
 	nvgpu_log_fn(g, "done");
 	return 0;
@@ -242,13 +253,13 @@ int nvgpu_fifo_setup_sw(struct gk20a *g)
 			num_pages, PAGE_SIZE, &f->userd_gpu_va, 0);
 	if (err != 0) {
 		nvgpu_err(g, "userd gpu va allocation failed, err=%d", err);
-		goto clean_slabs;
+		goto clean_up_sw_common;
 	}
 
 	err = nvgpu_channel_worker_init(g);
 	if (err != 0) {
 		nvgpu_err(g, "worker init fail, err=%d", err);
-		goto clean_vm_area;
+		goto clean_up_vm_area;
 	}
 
 	f->sw_ready = true;
@@ -256,12 +267,12 @@ int nvgpu_fifo_setup_sw(struct gk20a *g)
 	nvgpu_log_fn(g, "done");
 	return 0;
 
-clean_vm_area:
+clean_up_vm_area:
 	(void) nvgpu_vm_area_free(g->mm.bar1.vm, f->userd_gpu_va);
 	f->userd_gpu_va = 0ULL;
 
-clean_slabs:
-	gk20a_fifo_free_userd_slabs(g);
+clean_up_sw_common:
+	nvgpu_fifo_cleanup_sw_common(g);
 	return err;
 }
 

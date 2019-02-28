@@ -811,6 +811,7 @@ struct gpu_ops {
 	} clock_gating;
 	struct {
 		int (*setup_sw)(struct gk20a *g);
+		void (*cleanup_sw)(struct gk20a *g);
 		int (*init_fifo_setup_hw)(struct gk20a *g);
 		int (*alloc_inst)(struct gk20a *g, struct channel_gk20a *ch);
 		void (*free_inst)(struct gk20a *g, struct channel_gk20a *ch);

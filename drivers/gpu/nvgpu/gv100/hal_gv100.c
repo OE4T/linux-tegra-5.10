@@ -801,6 +801,7 @@ static const struct gpu_ops gv100_ops = {
 		.channel_resume = gk20a_channel_resume,
 		.set_error_notifier = nvgpu_set_error_notifier_if_empty,
 		.setup_sw = nvgpu_fifo_setup_sw,
+		.cleanup_sw = nvgpu_fifo_cleanup_sw,
 		.resetup_ramfc = NULL,
 		.free_channel_ctx_header = gv11b_free_subctx_header,
 		.ring_channel_doorbell = gv11b_ring_channel_doorbell,

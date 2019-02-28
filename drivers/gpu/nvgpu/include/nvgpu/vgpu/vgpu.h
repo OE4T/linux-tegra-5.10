@@ -90,7 +90,6 @@ int vgpu_fifo_isr(struct gk20a *g, struct tegra_vgpu_fifo_intr_info *info);
 
 int vgpu_init_mm_support(struct gk20a *g);
 int vgpu_init_gr_support(struct gk20a *g);
-int vgpu_init_fifo_support(struct gk20a *g);
 
 int vgpu_gp10b_init_hal(struct gk20a *g);
 int vgpu_gv11b_init_hal(struct gk20a *g);

@@ -28,6 +28,7 @@
 #include <nvgpu/timers.h>
 #include <nvgpu/soc.h>
 #include <nvgpu/enabled.h>
+#include <nvgpu/fifo.h>
 #include <nvgpu/pmu.h>
 #include <nvgpu/gmmu.h>
 #include <nvgpu/ltc.h>

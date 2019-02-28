@@ -25,6 +25,7 @@
 #include <nvgpu/vgpu/vgpu_ivc.h>
 #include <nvgpu/vgpu/vgpu.h>
 #include <nvgpu/timers.h>
+#include <nvgpu/fifo.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/channel.h>
 #include <nvgpu/clk_arb.h>
@@ -436,7 +437,7 @@ int vgpu_finalize_poweron_common(struct gk20a *g)
 		return err;
 	}
 
-	err = vgpu_init_fifo_support(g);
+	err = nvgpu_fifo_init_support(g);
 	if (err != 0) {
 		nvgpu_err(g, "failed to init gk20a fifo");
 		return err;

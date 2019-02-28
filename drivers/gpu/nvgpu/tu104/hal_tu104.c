@@ -833,6 +833,7 @@ static const struct gpu_ops tu104_ops = {
 		.channel_resume = gk20a_channel_resume,
 		.set_error_notifier = nvgpu_set_error_notifier_if_empty,
 		.setup_sw = nvgpu_fifo_setup_sw,
+		.cleanup_sw = nvgpu_fifo_cleanup_sw,
 		.resetup_ramfc = NULL,
 		.free_channel_ctx_header = gv11b_free_subctx_header,
 		.handle_ctxsw_timeout = gv11b_fifo_handle_ctxsw_timeout,

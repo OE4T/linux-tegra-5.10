@@ -35,6 +35,7 @@
 #include <nvgpu/vgpu/vgpu.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/channel.h>
+#include <nvgpu/fifo.h>
 #include <nvgpu/runlist.h>
 #include <nvgpu/string.h>
 #include <nvgpu/vm_area.h>
@@ -222,11 +223,15 @@ int vgpu_fifo_init_engine_info(struct fifo_gk20a *f)
 	return 0;
 }
 
-static int vgpu_fifo_setup_sw(struct gk20a *g)
+void vgpu_fifo_cleanup_sw(struct gk20a *g)
+{
+	nvgpu_fifo_cleanup_sw_common(g);
+}
+
+int vgpu_fifo_setup_sw(struct gk20a *g)
 {
 	struct fifo_gk20a *f = &g->fifo;
 	struct vgpu_priv_data *priv = vgpu_get_priv_data(g);
-	unsigned int chid;
 	int err = 0;
 
 	nvgpu_log_fn(g, " ");
@@ -236,57 +241,16 @@ static int vgpu_fifo_setup_sw(struct gk20a *g)
 		return 0;
 	}
 
-	f->g = g;
-	f->num_channels = g->ops.channel.count(g);
-	f->runlist_entry_size = g->ops.runlist.entry_size(g);
-	f->num_runlist_entries = g->ops.runlist.length_max(g);
-	f->max_engines = nvgpu_get_litter_value(g, GPU_LIT_HOST_NUM_ENGINES);
-	f->userd_entry_size = g->ops.fifo.userd_entry_size(g);
-
-	err = gk20a_fifo_init_userd_slabs(g);
+	err = nvgpu_fifo_setup_sw_common(g);
 	if (err != 0) {
-		nvgpu_err(g, "userd slab init failed, err=%d", err);
+		nvgpu_err(g, "fifo sw setup failed, err=%d", err);
 		return err;
 	}
-
-	f->channel = nvgpu_vzalloc(g, f->num_channels * sizeof(*f->channel));
-	f->tsg = nvgpu_vzalloc(g, f->num_channels * sizeof(*f->tsg));
-	f->engine_info = nvgpu_kzalloc(g, f->max_engines *
-				       sizeof(*f->engine_info));
-	f->active_engines_list = nvgpu_kzalloc(g, f->max_engines * sizeof(u32));
-
-	if (!(f->channel && f->tsg && f->engine_info &&
-		f->active_engines_list)) {
-		err = -ENOMEM;
-		goto clean_up;
-	}
-	(void) memset(f->active_engines_list, 0xff, (f->max_engines *
-		sizeof(u32)));
-
-	g->ops.fifo.init_engine_info(f);
-
-	err = nvgpu_runlist_setup_sw(g);
-	if (err != 0) {
-		nvgpu_err(g, "failed to init runlist");
-		goto clean_up;
-	}
-
-	nvgpu_init_list_node(&f->free_chs);
-	nvgpu_mutex_init(&f->free_chs_mutex);
-
-	for (chid = 0; chid < f->num_channels; chid++) {
-		gk20a_init_channel_support(g, chid);
-		gk20a_init_tsg_support(g, chid);
-	}
-	nvgpu_mutex_init(&f->tsg_inuse_mutex);
 
 	err = nvgpu_channel_worker_init(g);
 	if (err) {
 		goto clean_up;
 	}
-
-	f->deferred_reset_pending = false;
-	nvgpu_mutex_init(&f->deferred_reset_mutex);
 
 	f->channel_base = priv->constants.channel_base;
 
@@ -296,18 +260,8 @@ static int vgpu_fifo_setup_sw(struct gk20a *g)
 	return 0;
 
 clean_up:
-	nvgpu_log_fn(g, "fail");
 	/* FIXME: unmap from bar1 */
-	gk20a_fifo_free_userd_slabs(g);
-
-	nvgpu_vfree(g, f->channel);
-	f->channel = NULL;
-	nvgpu_vfree(g, f->tsg);
-	f->tsg = NULL;
-	nvgpu_kfree(g, f->engine_info);
-	f->engine_info = NULL;
-	nvgpu_kfree(g, f->active_engines_list);
-	f->active_engines_list = NULL;
+	nvgpu_fifo_cleanup_sw_common(g);
 
 	return err;
 }
@@ -370,23 +324,6 @@ int vgpu_init_fifo_setup_hw(struct gk20a *g)
 	nvgpu_log_fn(g, "done");
 
 	return 0;
-}
-
-int vgpu_init_fifo_support(struct gk20a *g)
-{
-	u32 err;
-
-	nvgpu_log_fn(g, " ");
-
-	err = vgpu_fifo_setup_sw(g);
-	if (err) {
-		return err;
-	}
-
-	if (g->ops.fifo.init_fifo_setup_hw) {
-		err = g->ops.fifo.init_fifo_setup_hw(g);
-	}
-	return err;
 }
 
 int vgpu_fifo_preempt_channel(struct gk20a *g, struct channel_gk20a *ch)

@@ -35,6 +35,8 @@
 #define RC_TYPE_FORCE_RESET		7U
 #define RC_TYPE_SCHED_ERR		8U
 
+struct gk20a;
+
 struct nvgpu_channel_hw_state {
 	bool enabled;
 	bool next;
@@ -48,5 +50,7 @@ struct nvgpu_channel_hw_state {
 int nvgpu_fifo_init_support(struct gk20a *g);
 int nvgpu_fifo_setup_sw(struct gk20a *g);
 int nvgpu_fifo_setup_sw_common(struct gk20a *g);
+void nvgpu_fifo_cleanup_sw(struct gk20a *g);
+void nvgpu_fifo_cleanup_sw_common(struct gk20a *g);
 
 #endif /* NVGPU_FIFO_COMMON_H */

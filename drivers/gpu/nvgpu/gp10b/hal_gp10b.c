@@ -631,6 +631,7 @@ static const struct gpu_ops gp10b_ops = {
 		.channel_resume = gk20a_channel_resume,
 		.set_error_notifier = nvgpu_set_error_notifier,
 		.setup_sw = nvgpu_fifo_setup_sw,
+		.cleanup_sw = nvgpu_fifo_cleanup_sw,
 		.resetup_ramfc = gp10b_fifo_resetup_ramfc,
 		.set_sm_exception_type_mask = gk20a_tsg_set_sm_exception_type_mask,
 		.runlist_busy_engines = gk20a_fifo_runlist_busy_engines,

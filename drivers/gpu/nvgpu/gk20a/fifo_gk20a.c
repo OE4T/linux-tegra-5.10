@@ -403,11 +403,13 @@ void gk20a_fifo_free_userd_slabs(struct gk20a *g)
 	struct fifo_gk20a *f = &g->fifo;
 	u32 slab;
 
-	for (slab = 0; slab < f->num_userd_slabs; slab++) {
-		nvgpu_dma_free(g, &f->userd_slabs[slab]);
+	if (f->userd_slabs != NULL) {
+		for (slab = 0; slab < f->num_userd_slabs; slab++) {
+			nvgpu_dma_free(g, &f->userd_slabs[slab]);
+		}
+		nvgpu_big_free(g, f->userd_slabs);
+		f->userd_slabs = NULL;
 	}
-	nvgpu_big_free(g, f->userd_slabs);
-	f->userd_slabs = NULL;
 }
 
 void gk20a_fifo_handle_runlist_event(struct gk20a *g)
