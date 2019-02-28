@@ -183,7 +183,13 @@ int nvgpu_gr_fecs_trace_deinit(struct gk20a *g)
 {
 	struct nvgpu_gr_fecs_trace *trace = g->fecs_trace;
 
-	nvgpu_thread_stop(&trace->poll_task);
+	/*
+	 * Check if tracer was enabled before attempting to stop the
+	 * tracer thread.
+	 */
+	if (trace->enable_count > 0) {
+		nvgpu_thread_stop(&trace->poll_task);
+	}
 
 	nvgpu_gr_fecs_trace_remove_contexts(g, &trace->context_list);
 
