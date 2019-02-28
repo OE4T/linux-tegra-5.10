@@ -454,6 +454,11 @@ static void falcon_print_mem(struct nvgpu_falcon *flcn, u32 src,
 	u32 i = 0;
 	int status = 0;
 
+	if (falcon_memcpy_params_check(flcn, src, size, mem_type) != 0) {
+		nvgpu_err(flcn->g, "incorrect parameters");
+		return;
+	}
+
 	nvgpu_info(flcn->g, " offset 0x%x  size %d bytes", src, size);
 
 	total_block_read = size >> 8;
