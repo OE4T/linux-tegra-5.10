@@ -104,11 +104,11 @@ struct mrq_request {
 	/**
 	 * @brief Flags providing follow up directions to the receiver
 	 *
-	 * | Bit | Description                                |
-	 * |-----|--------------------------------------------|
-	 * | 1   | ring the sender's doorbell when responding |
-	 * | 0   | should be 1                                |
+	 * BPMP_MAIL_DO_ACK: Request an answer from the peer. Should be 1.
+	 * BPMP_MAIL_RING_DB: Ring the sender's doorbell when responding.
 	 */
+#define BPMP_MAIL_DO_ACK	(1U << 0U)
+#define BPMP_MAIL_RING_DB	(1U << 1U)
 	uint32_t flags;
 } BPMP_ABI_PACKED;
 
@@ -132,12 +132,12 @@ struct mrq_response {
  * @ingroup MRQ_Format
  * Minimum needed size for an IPC message buffer
  */
-#define MSG_MIN_SZ	128
+#define MSG_MIN_SZ	128U
 /**
  * @ingroup MRQ_Format
  *  Minimum size guaranteed for data in an IPC message buffer
  */
-#define MSG_DATA_MIN_SZ	120
+#define MSG_DATA_MIN_SZ	120U
 
 /**
  * @ingroup MRQ_Codes
@@ -146,36 +146,36 @@ struct mrq_response {
  * @{
  */
 
-#define MRQ_PING		0
-#define MRQ_QUERY_TAG		1
-#define MRQ_MODULE_LOAD		4
-#define MRQ_MODULE_UNLOAD	5
-#define MRQ_TRACE_MODIFY	7
-#define MRQ_WRITE_TRACE		8
-#define MRQ_THREADED_PING	9
-#define MRQ_MODULE_MAIL		11
-#define MRQ_DEBUGFS		19
-#define MRQ_RESET		20
-#define MRQ_I2C			21
-#define MRQ_CLK			22
-#define MRQ_QUERY_ABI		23
-#define MRQ_PG_READ_STATE	25
-#define MRQ_PG_UPDATE_STATE	26
-#define MRQ_THERMAL		27
-#define MRQ_CPU_VHINT		28
-#define MRQ_ABI_RATCHET		29
-#define MRQ_EMC_DVFS_LATENCY	31
-#define MRQ_TRACE_ITER		64
-#define MRQ_RINGBUF_CONSOLE	65
-#define MRQ_PG			66
-#define MRQ_CPU_NDIV_LIMITS	67
-#define MRQ_STRAP               68
-#define MRQ_UPHY		69
-#define MRQ_CPU_AUTO_CC3	70
-#define MRQ_QUERY_FW_TAG	71
-#define MRQ_FMON		72
-#define MRQ_EC			73
-#define MRQ_DEBUG		75
+#define MRQ_PING		0U
+#define MRQ_QUERY_TAG		1U
+#define MRQ_MODULE_LOAD		4U
+#define MRQ_MODULE_UNLOAD	5U
+#define MRQ_TRACE_MODIFY	7U
+#define MRQ_WRITE_TRACE		8U
+#define MRQ_THREADED_PING	9U
+#define MRQ_MODULE_MAIL		11U
+#define MRQ_DEBUGFS		19U
+#define MRQ_RESET		20U
+#define MRQ_I2C			21U
+#define MRQ_CLK			22U
+#define MRQ_QUERY_ABI		23U
+#define MRQ_PG_READ_STATE	25U
+#define MRQ_PG_UPDATE_STATE	26U
+#define MRQ_THERMAL		27U
+#define MRQ_CPU_VHINT		28U
+#define MRQ_ABI_RATCHET		29U
+#define MRQ_EMC_DVFS_LATENCY	31U
+#define MRQ_TRACE_ITER		64U
+#define MRQ_RINGBUF_CONSOLE	65U
+#define MRQ_PG			66U
+#define MRQ_CPU_NDIV_LIMITS	67U
+#define MRQ_STRAP               68U
+#define MRQ_UPHY		69U
+#define MRQ_CPU_AUTO_CC3	70U
+#define MRQ_QUERY_FW_TAG	71U
+#define MRQ_FMON		72U
+#define MRQ_EC			73U
+#define MRQ_DEBUG		75U
 
 /** @} */
 
@@ -184,7 +184,7 @@ struct mrq_response {
  * @brief Maximum MRQ code to be sent by CPU software to
  * BPMP. Subject to change in future
  */
-#define MAX_CPU_MRQ_ID		75
+#define MAX_CPU_MRQ_ID		75U
 
 /**
  * @addtogroup MRQ_Payloads
@@ -355,8 +355,8 @@ struct mrq_query_fw_tag_response {
  *
  */
 struct mrq_module_load_request {
-	/** @brief Base address of the code to load. Treated as (void *) */
-	uint32_t phys_addr; /* (void *) */
+	/** @brief Base address of the code to load */
+	uint32_t phys_addr;
 	/** @brief Size in bytes of code to load */
 	uint32_t size;
 } BPMP_ABI_PACKED;
@@ -2586,13 +2586,27 @@ struct mrq_fmon_response {
  */
 enum {
 	/**
+	 * @cond DEPRECATED
 	 * @brief Retrieve specified EC status.
 	 *
 	 * mrq_response::err is 0 if the operation was successful, or @n
 	 * -#BPMP_ENODEV if target EC is not owned by BPMP @n
-	 * -#BPMP_EACCES if target EC power domain is turned off
+	 * -#BPMP_EACCES if target EC power domain is turned off @n
+	 * -#BPMP_EBADCMD if subcommand is not supported
+	 * @endcond
 	 */
-	CMD_EC_STATUS_GET = 1,
+	CMD_EC_STATUS_GET = 1,	/* deprecated */
+
+	/**
+	 * @brief Retrieve specified EC extended status (includes error
+	 *        counter and user values).
+	 *
+	 * mrq_response::err is 0 if the operation was successful, or @n
+	 * -#BPMP_ENODEV if target EC is not owned by BPMP @n
+	 * -#BPMP_EACCES if target EC power domain is turned off @n
+	 * -#BPMP_EBADCMD if subcommand is not supported
+	 */
+	CMD_EC_STATUS_EX_GET = 2,
 	CMD_EC_NUM,
 };
 
@@ -2648,13 +2662,13 @@ enum bpmp_ec_err_type {
 
 	/** @brief SW Correctable error
 	 *
-	 *  Error descriptor @ref ec_err_simple_desc.
+	 *  Error descriptor @ref ec_err_sw_error_desc.
 	 */
 	EC_ERR_TYPE_SW_CORRECTABLE		= 16,
 
 	/** @brief SW Uncorrectable error
 	 *
-	 *  Error descriptor @ref ec_err_simple_desc.
+	 *  Error descriptor @ref ec_err_sw_error_desc.
 	 */
 	EC_ERR_TYPE_SW_UNCORRECTABLE		= 17,
 
@@ -2750,6 +2764,21 @@ struct ec_err_reg_parity_desc {
 } BPMP_ABI_PACKED;
 
 /**
+ * |error type                        | err_source_id values     |
+ * |--------------------------------- |--------------------------|
+ * |@ref EC_ERR_TYPE_SW_CORRECTABLE   | @ref bpmp_ec_misc_ids    |
+ * |@ref EC_ERR_TYPE_SW_UNCORRECTABLE | @ref bpmp_ec_misc_ids    |
+ */
+struct ec_err_sw_error_desc {
+	/** @brief Bitmask of @ref bpmp_ec_desc_flags  */
+	uint16_t desc_flags;
+	/** @brief Error source id */
+	uint16_t err_source_id;
+	/** @brief Sw error data */
+	uint32_t sw_error_data;
+} BPMP_ABI_PACKED;
+
+/**
  * |error type                              | err_source_id values      |
  * |----------------------------------------|---------------------------|
  * |@ref EC_ERR_TYPE_PARITY_INTERNAL        |@ref bpmp_ec_ipath_ids     |
@@ -2757,8 +2786,6 @@ struct ec_err_reg_parity_desc {
  * |@ref EC_ERR_TYPE_ECC_DED_INTERNAL       |@ref bpmp_ec_ipath_ids     |
  * |@ref EC_ERR_TYPE_COMPARATOR             |@ref bpmp_ec_comparator_ids|
  * |@ref EC_ERR_TYPE_PARITY_SRAM            |@ref bpmp_clock_ids        |
- * |@ref EC_ERR_TYPE_SW_CORRECTABLE         |@ref bpmp_ec_misc_ids      |
- * |@ref EC_ERR_TYPE_SW_UNCORRECTABLE       |@ref bpmp_ec_misc_ids      |
  * |@ref EC_ERR_TYPE_OTHER_HW_CORRECTABLE   |@ref bpmp_ec_misc_ids      |
  * |@ref EC_ERR_TYPE_OTHER_HW_UNCORRECTABLE |@ref bpmp_ec_misc_ids      |
  */
@@ -2774,6 +2801,7 @@ union ec_err_desc {
 	struct ec_err_fmon_desc fmon_desc;
 	struct ec_err_vmon_desc vmon_desc;
 	struct ec_err_reg_parity_desc reg_parity_desc;
+	struct ec_err_sw_error_desc sw_error_desc;
 	struct ec_err_simple_desc simple_desc;
 } BPMP_ABI_PACKED;
 
@@ -2785,6 +2813,9 @@ struct cmd_ec_status_get_request {
 /** EC status maximum number of descriptors */
 #define EC_ERR_STATUS_DESC_MAX_NUM	4
 
+/**
+ * @cond DEPRECATED
+ */
 struct cmd_ec_status_get_response {
 	/** @brief Target EC id (the same id received with request). */
 	uint32_t ec_hsm_id;
@@ -2803,6 +2834,32 @@ struct cmd_ec_status_get_response {
 	/** @brief  EC error descriptors */
 	union ec_err_desc error_descs[EC_ERR_STATUS_DESC_MAX_NUM];
 } BPMP_ABI_PACKED;
+/** @endcond */
+
+struct cmd_ec_status_ex_get_response {
+	/** @brief Target EC id (the same id received with request). */
+	uint32_t ec_hsm_id;
+	/**
+	 * @brief Bitmask of @ref bpmp_ec_status_flags
+	 *
+	 * If NO_ERROR flag is set, error_ fields should be ignored
+	 */
+	uint32_t ec_status_flags;
+	/** @brief Found EC error index. */
+	uint32_t error_idx;
+	/** @brief  Found EC error type @ref bpmp_ec_err_type. */
+	uint32_t error_type;
+	/** @brief  Found EC mission error counter value */
+	uint32_t error_counter;
+	/** @brief  Found EC mission error user value */
+	uint32_t error_uval;
+	/** @brief  Reserved entry    */
+	uint32_t reserved;
+	/** @brief  Number of returned EC error descriptors */
+	uint32_t error_desc_num;
+	/** @brief  EC error descriptors */
+	union ec_err_desc error_descs[EC_ERR_STATUS_DESC_MAX_NUM];
+} BPMP_ABI_PACKED;
 
 /**
  * @ingroup EC
@@ -2811,9 +2868,15 @@ struct cmd_ec_status_get_response {
  * Used by the sender of an #MRQ_EC message to access ECs owned
  * by BPMP.
  *
+ * @cond DEPRECATED
  * |sub-command                 |payload                |
  * |----------------------------|-----------------------|
  * |@ref CMD_EC_STATUS_GET      |ec_status_get          |
+ * @endcond
+ *
+ * |sub-command                 |payload                |
+ * |----------------------------|-----------------------|
+ * |@ref CMD_EC_STATUS_EX_GET   |ec_status_get          |
  *
  */
 
@@ -2833,15 +2896,26 @@ struct mrq_ec_request {
  * Each sub-command supported by @ref mrq_ec_request may return
  * sub-command-specific data as indicated below.
  *
+ * @cond DEPRECATED
  * |sub-command                 |payload                 |
  * |----------------------------|------------------------|
  * |@ref CMD_EC_STATUS_GET      |ec_status_get           |
+ * @endcond
+ *
+ * |sub-command                 |payload                 |
+ * |----------------------------|------------------------|
+ * |@ref CMD_EC_STATUS_EX_GET   |ec_status_ex_get        |
  *
  */
 
 struct mrq_ec_response {
 	union {
+		/**
+		 * @cond DEPRECATED
+		 */
 		struct cmd_ec_status_get_response ec_status_get;
+		/** @endcond */
+		struct cmd_ec_status_ex_get_response ec_status_ex_get;
 	} BPMP_UNION_ANON;
 } BPMP_ABI_PACKED;
 
