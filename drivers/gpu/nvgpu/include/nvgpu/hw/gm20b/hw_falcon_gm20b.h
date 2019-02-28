@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -413,6 +413,18 @@ static inline u32 falcon_falcon_hwcfg_imem_size_v(u32 r)
 static inline u32 falcon_falcon_hwcfg_dmem_size_v(u32 r)
 {
 	return (r >> 9U) & 0x1ffU;
+}
+static inline u32 falcon_falcon_hwcfg1_r(void)
+{
+	return 0x0000012cU;
+}
+static inline u32 falcon_falcon_hwcfg1_imem_ports_v(u32 r)
+{
+	return (r >> 8U) & 0xfU;
+}
+static inline u32 falcon_falcon_hwcfg1_dmem_ports_v(u32 r)
+{
+	return (r >> 12U) & 0xfU;
 }
 static inline u32 falcon_falcon_dmatrfbase_r(void)
 {
