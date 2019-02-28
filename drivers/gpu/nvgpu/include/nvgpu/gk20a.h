@@ -1448,6 +1448,11 @@ struct gpu_ops {
 		int (*get_timestamps_zipper)(struct gk20a *g,
 			u32 source_id, u32 count,
 			struct nvgpu_cpu_time_correlation_sample *samples);
+		struct {
+			int (*report_timeout_err)(struct gk20a *g,
+					u32 hw_id, u32 inst, u32 err_id,
+					u32 err_addr, u32 error_code);
+		} err_ops;
 	} ptimer;
 
 	struct {

@@ -23,6 +23,7 @@
 #include <nvgpu/log.h>
 #include <nvgpu/io.h>
 #include <nvgpu/gk20a.h>
+#include <nvgpu/nvgpu_err.h>
 
 #include "ptimer_gk20a.h"
 
@@ -31,6 +32,9 @@
 void gk20a_ptimer_isr(struct gk20a *g)
 {
 	u32 save0, save1, fecs_errcode = 0;
+	int ret = 0;
+	u32 inst = 0U;
+	u32 error_addr;
 
 	save0 = gk20a_readl(g, timer_pri_timeout_save_0_r());
 	if (timer_pri_timeout_save_0_fecs_tgt_v(save0) != 0U) {
@@ -43,9 +47,10 @@ void gk20a_ptimer_isr(struct gk20a *g)
 	}
 
 	save1 = gk20a_readl(g, timer_pri_timeout_save_1_r());
+	error_addr = timer_pri_timeout_save_0_addr_v(save0) << 2;
 	nvgpu_err(g, "PRI timeout: ADR 0x%08x "
 		"%s  DATA 0x%08x",
-		timer_pri_timeout_save_0_addr_v(save0) << 2,
+		error_addr,
 		(timer_pri_timeout_save_0_write_v(save0) != 0U) ?
 		"WRITE" : "READ", save1);
 
@@ -57,6 +62,24 @@ void gk20a_ptimer_isr(struct gk20a *g)
 		if (g->ops.priv_ring.decode_error_code != NULL) {
 			g->ops.priv_ring.decode_error_code(g,
 						fecs_errcode);
+		}
+		/* FECS was the target of PRI access */
+		inst = 1U;
+		/* SAVE_0_ADDR cannot be used in this case */
+		error_addr = 0U;
+	}
+
+	if (g->ops.ptimer.err_ops.report_timeout_err != NULL) {
+		ret = g->ops.ptimer.err_ops.report_timeout_err(g,
+				NVGPU_ERR_MODULE_PRI,
+				inst,
+				GPU_PRI_TIMEOUT_ERROR,
+				error_addr,
+				fecs_errcode);
+		if (ret != 0) {
+			nvgpu_err(g, "Failed to report PRI Timout error: "
+					"inst=%u, err_addr=%u, err_code=%u",
+					inst, error_addr, fecs_errcode);
 		}
 	}
 }
