@@ -166,7 +166,13 @@ nvgpu-y += \
 	hal/bus/bus_gv100.o \
 	hal/bus/bus_tu104.o \
 	hal/priv_ring/priv_ring_gm20b.o \
-	hal/priv_ring/priv_ring_gp10b.o
+	hal/priv_ring/priv_ring_gp10b.o \
+	hal/cg/gm20b_gating_reglist.o \
+	hal/cg/gp106_gating_reglist.o \
+	hal/cg/gp10b_gating_reglist.o \
+	hal/cg/gv100_gating_reglist.o \
+	hal/cg/gv11b_gating_reglist.o \
+	hal/cg/tu104_gating_reglist.o
 
 # Linux specific parts of nvgpu.
 nvgpu-y += \
@@ -341,12 +347,6 @@ nvgpu-y += \
 	common/sec2/sec2.o \
 	common/sec2/sec2_ipc.o \
 	common/io/io.o \
-	common/clock_gating/gm20b_gating_reglist.o \
-	common/clock_gating/gp106_gating_reglist.o \
-	common/clock_gating/gp10b_gating_reglist.o \
-	common/clock_gating/gv100_gating_reglist.o \
-	common/clock_gating/gv11b_gating_reglist.o \
-	common/clock_gating/tu104_gating_reglist.o \
 	common/sim.o \
 	common/sim_pci.o \
 	common/fifo/channel.o \

@@ -23,7 +23,6 @@
 #include "hal/bus/bus_gk20a.h"
 #include "hal/bus/bus_gm20b.h"
 
-#include "common/clock_gating/gp10b_gating_reglist.h"
 #include "common/fb/fb_gm20b.h"
 #include "common/fb/fb_gp10b.h"
 #include "common/netlist/netlist_gp10b.h"

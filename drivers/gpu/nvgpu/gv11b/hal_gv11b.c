@@ -30,8 +30,8 @@
 #include "hal/bus/bus_gm20b.h"
 #include "hal/priv_ring/priv_ring_gm20b.h"
 #include "hal/priv_ring/priv_ring_gp10b.h"
+#include "hal/cg/gv11b_gating_reglist.h"
 
-#include "common/clock_gating/gv11b_gating_reglist.h"
 #include "common/ptimer/ptimer_gk20a.h"
 #include "common/fb/fb_gm20b.h"
 #include "common/fb/fb_gp10b.h"
