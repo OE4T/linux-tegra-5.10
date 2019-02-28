@@ -58,7 +58,4 @@ void gk20a_fifo_set_runlist_state(struct gk20a *g, u32 runlists_mask,
 void gk20a_fifo_delete_runlist(struct fifo_gk20a *f);
 int nvgpu_init_runlist(struct gk20a *g, struct fifo_gk20a *f);
 
-void nvgpu_fifo_lock_active_runlists(struct gk20a *g);
-void nvgpu_fifo_unlock_active_runlists(struct gk20a *g);
-
 #endif /* NVGPU_RUNLIST_H */

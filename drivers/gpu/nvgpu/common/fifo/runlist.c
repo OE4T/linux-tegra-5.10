@@ -26,32 +26,6 @@
 #include <nvgpu/runlist.h>
 #include <nvgpu/bug.h>
 
-void nvgpu_fifo_lock_active_runlists(struct gk20a *g)
-{
-	struct fifo_gk20a *f = &g->fifo;
-	struct fifo_runlist_info_gk20a *runlist;
-	u32 i;
-
-	nvgpu_log_info(g, "acquire runlist_lock for active runlists");
-	for (i = 0; i < g->fifo.num_runlists; i++) {
-		runlist = &f->active_runlist_info[i];
-		nvgpu_mutex_acquire(&runlist->runlist_lock);
-	}
-}
-
-void nvgpu_fifo_unlock_active_runlists(struct gk20a *g)
-{
-	struct fifo_gk20a *f = &g->fifo;
-	struct fifo_runlist_info_gk20a *runlist;
-	u32 i;
-
-	nvgpu_log_info(g, "release runlist_lock for active runlists");
-	for (i = 0; i < g->fifo.num_runlists; i++) {
-		runlist = &f->active_runlist_info[i];
-		nvgpu_mutex_release(&runlist->runlist_lock);
-	}
-}
-
 static u32 nvgpu_runlist_append_tsg(struct gk20a *g,
 		struct fifo_runlist_info_gk20a *runlist,
 		u32 **runlist_entry,
@@ -606,7 +580,8 @@ void gk20a_fifo_set_runlist_state(struct gk20a *g, u32 runlists_mask,
 
 void gk20a_fifo_delete_runlist(struct fifo_gk20a *f)
 {
-	u32 i, j;
+	u32 i;
+	u32 runlist_id;
 	struct fifo_runlist_info_gk20a *runlist;
 	struct gk20a *g = NULL;
 
@@ -616,10 +591,10 @@ void gk20a_fifo_delete_runlist(struct fifo_gk20a *f)
 
 	g = f->g;
 
-	for (i = 0; i < f->num_runlists; i++) {
-		runlist = &f->active_runlist_info[i];
-		for (j = 0; j < MAX_RUNLIST_BUFFERS; j++) {
-			nvgpu_dma_free(g, &runlist->mem[j]);
+	for (runlist_id = 0; runlist_id < f->max_runlists; runlist_id++) {
+		runlist = f->runlist_info[runlist_id];
+		for (i = 0; i < MAX_RUNLIST_BUFFERS; i++) {
+			nvgpu_dma_free(g, &runlist->mem[i]);
 		}
 
 		nvgpu_kfree(g, runlist->active_channels);
@@ -629,11 +604,10 @@ void gk20a_fifo_delete_runlist(struct fifo_gk20a *f)
 		runlist->active_tsgs = NULL;
 
 		nvgpu_mutex_destroy(&runlist->runlist_lock);
-		f->runlist_info[runlist->runlist_id] = NULL;
 		nvgpu_kfree(g, runlist);
+		f->runlist_info[runlist_id] = NULL;
 	}
 
-	nvgpu_kfree(g, f->active_runlist_info);
 	nvgpu_kfree(g, f->runlist_info);
 	f->runlist_info = NULL;
 	f->max_runlists = 0;
@@ -643,8 +617,7 @@ int nvgpu_init_runlist(struct gk20a *g, struct fifo_gk20a *f)
 {
 	struct fifo_runlist_info_gk20a *runlist;
 	unsigned int runlist_id;
-	u32 i, j;
-	u32 num_runlists = 0U;
+	u32 i;
 	size_t runlist_size;
 	int err = 0;
 
@@ -652,39 +625,18 @@ int nvgpu_init_runlist(struct gk20a *g, struct fifo_gk20a *f)
 
 	f->max_runlists = g->ops.runlist.count_max();
 	f->runlist_info = nvgpu_kzalloc(g,
-			sizeof(*f->runlist_info) * f->max_runlists);
+					sizeof(struct fifo_runlist_info_gk20a *) *
+					f->max_runlists);
 	if (f->runlist_info == NULL) {
 		goto clean_up_runlist;
 	}
 
 	for (runlist_id = 0; runlist_id < f->max_runlists; runlist_id++) {
-		if (gk20a_fifo_is_valid_runlist_id(g, runlist_id)) {
-			num_runlists++;
+		runlist = nvgpu_kzalloc(g, sizeof(*runlist));
+		if (runlist == NULL) {
+			goto clean_up_runlist;
 		}
-	}
-	f->num_runlists = num_runlists;
-
-	f->active_runlist_info = nvgpu_kzalloc(g,
-			 sizeof(*f->active_runlist_info) * num_runlists);
-	if (f->active_runlist_info == NULL) {
-		goto clean_up_runlist;
-	}
-	nvgpu_log_info(g, "num_runlists=%u", num_runlists);
-
-	/* In most case we want to loop through active runlists only. Here
-	 * we need to loop through all possible runlists, to build the mapping
-	 * between runlist_info[runlist_id] and active_runlist_info[i].
-	 */
-	i = 0U;
-	for (runlist_id = 0; runlist_id < f->max_runlists; runlist_id++) {
-		if (!gk20a_fifo_is_valid_runlist_id(g, runlist_id)) {
-			/* skip inactive runlist */
-			continue;
-		}
-		runlist = &f->active_runlist_info[i];
-		runlist->runlist_id = runlist_id;
 		f->runlist_info[runlist_id] = runlist;
-		i++;
 
 		runlist->active_channels =
 			nvgpu_kzalloc(g, DIV_ROUND_UP(f->num_channels,
@@ -706,15 +658,19 @@ int nvgpu_init_runlist(struct gk20a *g, struct fifo_gk20a *f)
 				"runlist_entries %d runlist size %zu",
 				f->num_runlist_entries, runlist_size);
 
-		for (j = 0; j < MAX_RUNLIST_BUFFERS; j++) {
-			err = nvgpu_dma_alloc_flags_sys(g,
-					g->is_virtual ?
-					  0 : NVGPU_DMA_PHYSICALLY_ADDRESSED,
-					runlist_size,
-					&runlist->mem[j]);
-			if (err != 0) {
-				nvgpu_err(g, "memory allocation failed");
-				goto clean_up_runlist;
+		/* skip buffer allocation for unused runlists */
+		if (gk20a_fifo_is_valid_runlist_id(g, runlist_id)) {
+			unsigned long flags = g->is_virtual ? 0 :
+						NVGPU_DMA_PHYSICALLY_ADDRESSED;
+			for (i = 0; i < MAX_RUNLIST_BUFFERS; i++) {
+				err = nvgpu_dma_alloc_flags_sys(g,
+						flags,
+						runlist_size,
+						&runlist->mem[i]);
+				if (err != 0) {
+					nvgpu_err(g, "memory allocation failed");
+					goto clean_up_runlist;
+				}
 			}
 		}
 
