@@ -77,6 +77,12 @@ static int tu104_sec2_emem_transfer(struct gk20a *g, u32 dmem_addr, u8 *buf,
 		goto exit;
 	}
 
+	if ((dmem_addr & 0x3U) != 0U) {
+		nvgpu_err(g, "offset (0x%08x) not 4-byte aligned", dmem_addr);
+		status = -EINVAL;
+		goto exit;
+	}
+
 	/*
 	 * Get the EMEMC/D register addresses
 	 * for the specified port
