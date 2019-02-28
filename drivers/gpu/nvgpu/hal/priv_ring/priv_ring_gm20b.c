@@ -28,6 +28,7 @@
 #include <nvgpu/enabled.h>
 #include <nvgpu/io.h>
 #include <nvgpu/utils.h>
+#include <nvgpu/power_features/cg.h>
 
 #include "priv_ring_gm20b.h"
 
@@ -44,10 +45,7 @@ void gm20b_priv_ring_enable(struct gk20a *g)
 
 	nvgpu_log_info(g, "enabling priv ring");
 
-	if (g->ops.clock_gating.slcg_priring_load_gating_prod != NULL) {
-		g->ops.clock_gating.slcg_priring_load_gating_prod(g,
-				g->slcg_enabled);
-	}
+	nvgpu_cg_slcg_priring_load_enable(g);
 
 	nvgpu_writel(g,pri_ringmaster_command_r(), 0x4);
 

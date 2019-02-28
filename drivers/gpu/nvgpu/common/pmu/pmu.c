@@ -33,6 +33,7 @@
 #include <nvgpu/utils.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/string.h>
+#include <nvgpu/power_features/cg.h>
 
 static int nvgpu_pg_init_task(void *arg);
 
@@ -47,15 +48,9 @@ static int pmu_enable_hw(struct nvgpu_pmu *pmu, bool enable)
 		/* bring PMU falcon/engine out of reset */
 		g->ops.pmu.reset_engine(g, true);
 
-		if (g->ops.clock_gating.slcg_pmu_load_gating_prod != NULL) {
-			g->ops.clock_gating.slcg_pmu_load_gating_prod(g,
-				g->slcg_enabled);
-		}
+		nvgpu_cg_slcg_pmu_load_enable(g);
 
-		if (g->ops.clock_gating.blcg_pmu_load_gating_prod != NULL) {
-			g->ops.clock_gating.blcg_pmu_load_gating_prod(g,
-				g->blcg_enabled);
-		}
+		nvgpu_cg_blcg_pmu_load_enable(g);
 
 		if (nvgpu_falcon_mem_scrub_wait(pmu->flcn) != 0) {
 			/* keep PMU falcon/engine in reset
@@ -580,7 +575,7 @@ static void pmu_setup_hw_enable_elpg(struct gk20a *g)
 		g->ops.pmu.save_zbc(g, 0xf);
 	}
 
-	if (g->elpg_enabled) {
+	if (g->can_elpg && g->elpg_enabled) {
 		/* Init reg with prod values*/
 		if (g->ops.pmu.pmu_setup_elpg != NULL) {
 			g->ops.pmu.pmu_setup_elpg(g);

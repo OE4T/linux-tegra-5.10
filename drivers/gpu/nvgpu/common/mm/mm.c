@@ -30,6 +30,7 @@
 #include <nvgpu/pramin.h>
 #include <nvgpu/enabled.h>
 #include <nvgpu/gk20a.h>
+#include <nvgpu/power_features/cg.h>
 
 #include "gk20a/ce2_gk20a.h"
 
@@ -360,22 +361,9 @@ static int nvgpu_init_mm_reset_enable_hw(struct gk20a *g)
 		g->ops.mc.fb_reset(g);
 	}
 
-	if (g->ops.clock_gating.slcg_fb_load_gating_prod != NULL) {
-		g->ops.clock_gating.slcg_fb_load_gating_prod(g,
-				g->slcg_enabled);
-	}
-	if (g->ops.clock_gating.slcg_ltc_load_gating_prod != NULL) {
-		g->ops.clock_gating.slcg_ltc_load_gating_prod(g,
-				g->slcg_enabled);
-	}
-	if (g->ops.clock_gating.blcg_fb_load_gating_prod != NULL) {
-		g->ops.clock_gating.blcg_fb_load_gating_prod(g,
-				g->blcg_enabled);
-	}
-	if (g->ops.clock_gating.blcg_ltc_load_gating_prod != NULL) {
-		g->ops.clock_gating.blcg_ltc_load_gating_prod(g,
-				g->blcg_enabled);
-	}
+	nvgpu_cg_slcg_fb_ltc_load_enable(g);
+
+	nvgpu_cg_blcg_fb_ltc_load_enable(g);
 
 	if (g->ops.fb.init_fs_state != NULL) {
 		g->ops.fb.init_fs_state(g);

@@ -353,6 +353,9 @@ nvgpu-y += \
 	common/sec2/sec2.o \
 	common/sec2/sec2_ipc.o \
 	common/io/io.o \
+	common/power_features/power_features.o \
+	common/power_features/cg/cg.o \
+	common/power_features/pg/pg.o \
 	common/sim.o \
 	common/sim_pci.o \
 	common/fifo/channel.o \
