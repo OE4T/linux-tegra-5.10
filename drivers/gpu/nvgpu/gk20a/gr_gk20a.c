@@ -2811,8 +2811,8 @@ static int gk20a_init_gr_setup_hw(struct gk20a *g)
 		goto out;
 	}
 
-	if (g->ops.ltc.init_cbc != NULL) {
-		g->ops.ltc.init_cbc(g, gr);
+	if (g->ops.cbc.init != NULL) {
+		g->ops.cbc.init(g, gr);
 	}
 
 	if (g->ops.fb.init_cbc != NULL) {
@@ -3024,8 +3024,8 @@ static int gk20a_init_gr_setup_sw(struct gk20a *g)
 		goto clean_up;
 	}
 
-	if (g->ops.ltc.init_comptags != NULL) {
-		err = g->ops.ltc.init_comptags(g, gr);
+	if (g->ops.cbc.alloc_comptags != NULL) {
+		err = g->ops.cbc.alloc_comptags(g, gr);
 		if (err != 0) {
 			goto clean_up;
 		}

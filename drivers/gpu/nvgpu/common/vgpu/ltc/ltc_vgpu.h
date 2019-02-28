@@ -27,7 +27,6 @@ struct gk20a;
 struct gr_gk20a;
 
 int vgpu_determine_L2_size_bytes(struct gk20a *g);
-int vgpu_ltc_init_comptags(struct gk20a *g, struct gr_gk20a *gr);
 void vgpu_ltc_init_fs_state(struct gk20a *g);
 
 #endif /* NVGPU_LTC_VGPU_H */

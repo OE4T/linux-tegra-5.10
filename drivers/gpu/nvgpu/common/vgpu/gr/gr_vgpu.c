@@ -685,7 +685,7 @@ static int vgpu_gr_init_gr_setup_sw(struct gk20a *g)
 		goto clean_up;
 	}
 
-	err = g->ops.ltc.init_comptags(g, gr);
+	err = g->ops.cbc.alloc_comptags(g, gr);
 	if (err) {
 		goto clean_up;
 	}

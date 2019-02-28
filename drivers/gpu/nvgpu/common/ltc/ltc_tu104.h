@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -25,14 +25,8 @@
 
 #include <nvgpu/types.h>
 
-enum gk20a_cbc_op;
 struct gk20a;
-struct gr_gk20a;
 
-u64 ltc_tu104_get_cbc_base_divisor(struct gk20a *g);
 void ltc_tu104_init_fs_state(struct gk20a *g);
-int ltc_tu104_init_comptags(struct gk20a *g, struct gr_gk20a *gr);
-int ltc_tu104_cbc_ctrl(struct gk20a *g, enum gk20a_cbc_op op,
-		       u32 min, u32 max);
 
 #endif

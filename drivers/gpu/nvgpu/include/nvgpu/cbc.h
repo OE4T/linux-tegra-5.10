@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -20,31 +20,14 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-/**
- * Here lie OS stubs that do not have an implementation yet nor has any plans
- * for an implementation.
- */
+#ifndef NVGPU_CBC_H
+#define NVGPU_CBC_H
 
-#include <nvgpu/ecc.h>
-#include <nvgpu/cbc.h>
-#include <nvgpu/debugger.h>
+#include <nvgpu/types.h>
 
-
-void nvgpu_dbg_session_post_event(struct dbg_session_gk20a *dbg_s)
-{
-}
-
-int nvgpu_ecc_sysfs_init(struct gk20a *g)
-{
-	return 0;
-}
-
-void nvgpu_ecc_sysfs_remove(struct gk20a *g)
-{
-}
+struct gk20a;
 
 int nvgpu_cbc_alloc(struct gk20a *g, size_t compbit_backing_size,
-			bool vidmem_alloc)
-{
-	return 0;
-}
+			bool vidmem_alloc);
+
+#endif /* NVGPU_CBC_H */

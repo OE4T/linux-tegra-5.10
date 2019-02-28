@@ -29,10 +29,7 @@
 
 struct gk20a;
 struct gr_gk20a;
-struct gpu_ops;
-enum gk20a_cbc_op;
 
-int gm20b_ltc_init_comptags(struct gk20a *g, struct gr_gk20a *gr);
 int gm20b_determine_L2_size_bytes(struct gk20a *g);
 void gm20b_ltc_set_zbc_color_entry(struct gk20a *g,
 					  u32 *color_l2,
@@ -40,19 +37,11 @@ void gm20b_ltc_set_zbc_color_entry(struct gk20a *g,
 void gm20b_ltc_set_zbc_depth_entry(struct gk20a *g,
 					  u32 depth_val,
 					  u32 index);
-void gm20b_ltc_init_cbc(struct gk20a *g, struct gr_gk20a *gr);
 void gm20b_ltc_set_enabled(struct gk20a *g, bool enabled);
 void gm20b_ltc_init_fs_state(struct gk20a *g);
-int gm20b_ltc_cbc_ctrl(struct gk20a *g, enum gk20a_cbc_op op,
-		       u32 min, u32 max);
 void gm20b_ltc_isr(struct gk20a *g, unsigned int ltc);
 void gm20b_ltc_lts_isr(struct gk20a *g, unsigned int ltc, unsigned int slice);
-u32 gm20b_ltc_cbc_fix_config(struct gk20a *g, int base);
 void gm20b_flush_ltc(struct gk20a *g);
-int gm20b_ltc_alloc_phys_cbc(struct gk20a *g,
-			     size_t compbit_backing_size);
-int gm20b_ltc_alloc_virt_cbc(struct gk20a *g,
-			     size_t compbit_backing_size);
 bool gm20b_ltc_pri_is_ltc_addr(struct gk20a *g, u32 addr);
 bool gm20b_ltc_is_ltcs_ltss_addr(struct gk20a *g, u32 addr);
 bool gm20b_ltc_is_ltcn_ltss_addr(struct gk20a *g, u32 addr);

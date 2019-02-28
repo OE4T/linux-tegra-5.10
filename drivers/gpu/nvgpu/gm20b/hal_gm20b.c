@@ -41,6 +41,7 @@
 #include "hal/bus/bus_gk20a.h"
 #include "hal/priv_ring/priv_ring_gm20b.h"
 #include "hal/power_features/cg/gm20b_gating_reglist.h"
+#include "hal/cbc/cbc_gm20b.h"
 #include "hal/fuse/fuse_gm20b.h"
 
 #include "common/ptimer/ptimer_gk20a.h"
@@ -202,12 +203,8 @@ static const struct gpu_ops gm20b_ops = {
 		.determine_L2_size_bytes = gm20b_determine_L2_size_bytes,
 		.set_zbc_color_entry = gm20b_ltc_set_zbc_color_entry,
 		.set_zbc_depth_entry = gm20b_ltc_set_zbc_depth_entry,
-		.init_cbc = gm20b_ltc_init_cbc,
 		.init_fs_state = gm20b_ltc_init_fs_state,
-		.init_comptags = gm20b_ltc_init_comptags,
-		.cbc_ctrl = gm20b_ltc_cbc_ctrl,
 		.isr = gm20b_ltc_isr,
-		.cbc_fix_config = gm20b_ltc_cbc_fix_config,
 		.flush = gm20b_flush_ltc,
 		.set_enabled = gm20b_ltc_set_enabled,
 		.pri_is_ltc_addr = gm20b_ltc_pri_is_ltc_addr,
@@ -215,6 +212,12 @@ static const struct gpu_ops gm20b_ops = {
 		.is_ltcn_ltss_addr = gm20b_ltc_is_ltcn_ltss_addr,
 		.split_lts_broadcast_addr = gm20b_ltc_split_lts_broadcast_addr,
 		.split_ltc_broadcast_addr = gm20b_ltc_split_ltc_broadcast_addr,
+	},
+	.cbc = {
+		.init = gm20b_cbc_init,
+		.ctrl = gm20b_cbc_ctrl,
+		.alloc_comptags = gm20b_cbc_alloc_comptags,
+		.fix_config = gm20b_cbc_fix_config,
 	},
 	.ce2 = {
 		.isr_stall = gk20a_ce2_isr,
@@ -827,6 +830,7 @@ int gm20b_init_hal(struct gk20a *g)
 	struct gpu_ops *gops = &g->ops;
 
 	gops->ltc = gm20b_ops.ltc;
+	gops->cbc = gm20b_ops.cbc;
 	gops->ce2 = gm20b_ops.ce2;
 	gops->gr = gm20b_ops.gr;
 	gops->gr.ctxsw_prog = gm20b_ops.gr.ctxsw_prog;

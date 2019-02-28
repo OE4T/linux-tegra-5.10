@@ -46,6 +46,7 @@
 #include "common/vgpu/gr/ctx_vgpu.h"
 #include "common/vgpu/ltc/ltc_vgpu.h"
 #include "common/vgpu/mm/mm_vgpu.h"
+#include "common/vgpu/cbc/cbc_vgpu.h"
 #include "common/vgpu/debugger_vgpu.h"
 #include "common/vgpu/fecs_trace_vgpu.h"
 #include "common/vgpu/perf/perf_vgpu.h"
@@ -82,12 +83,8 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 		.determine_L2_size_bytes = vgpu_determine_L2_size_bytes,
 		.set_zbc_color_entry = NULL,
 		.set_zbc_depth_entry = NULL,
-		.init_cbc = NULL,
 		.init_fs_state = vgpu_ltc_init_fs_state,
-		.init_comptags = vgpu_ltc_init_comptags,
-		.cbc_ctrl = NULL,
 		.isr = NULL,
-		.cbc_fix_config = NULL,
 		.flush = NULL,
 		.set_enabled = NULL,
 		.pri_is_ltc_addr = gm20b_ltc_pri_is_ltc_addr,
@@ -95,6 +92,12 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 		.is_ltcn_ltss_addr = gm20b_ltc_is_ltcn_ltss_addr,
 		.split_lts_broadcast_addr = gm20b_ltc_split_lts_broadcast_addr,
 		.split_ltc_broadcast_addr = gm20b_ltc_split_ltc_broadcast_addr,
+	},
+	.cbc = {
+		.init = NULL,
+		.alloc_comptags = vgpu_cbc_alloc_comptags,
+		.ctrl = NULL,
+		.fix_config = NULL,
 	},
 	.ce2 = {
 		.isr_stall = NULL,
@@ -675,6 +678,7 @@ int vgpu_gp10b_init_hal(struct gk20a *g)
 	struct vgpu_priv_data *priv = vgpu_get_priv_data(g);
 
 	gops->ltc = vgpu_gp10b_ops.ltc;
+	gops->cbc = vgpu_gp10b_ops.cbc;
 	gops->ce2 = vgpu_gp10b_ops.ce2;
 	gops->gr = vgpu_gp10b_ops.gr;
 	gops->gr.ctxsw_prog = vgpu_gp10b_ops.gr.ctxsw_prog;

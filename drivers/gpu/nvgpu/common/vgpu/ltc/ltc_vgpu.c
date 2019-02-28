@@ -36,31 +36,6 @@ int vgpu_determine_L2_size_bytes(struct gk20a *g)
 	return priv->constants.l2_size;
 }
 
-int vgpu_ltc_init_comptags(struct gk20a *g, struct gr_gk20a *gr)
-{
-	struct vgpu_priv_data *priv = vgpu_get_priv_data(g);
-	u32 max_comptag_lines = 0;
-	int err;
-
-	nvgpu_log_fn(g, " ");
-
-	gr->comptags_per_cacheline = priv->constants.comptags_per_cacheline;
-	max_comptag_lines = priv->constants.comptag_lines;
-
-	if (max_comptag_lines < 2) {
-		return -ENXIO;
-	}
-
-	err = gk20a_comptag_allocator_init(g, &gr->comp_tags, max_comptag_lines);
-	if (err) {
-		return err;
-	}
-
-	gr->max_comptag_lines = max_comptag_lines;
-
-	return 0;
-}
-
 void vgpu_ltc_init_fs_state(struct gk20a *g)
 {
 	struct vgpu_priv_data *priv = vgpu_get_priv_data(g);

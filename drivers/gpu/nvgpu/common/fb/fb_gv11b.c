@@ -154,9 +154,9 @@ void gv11b_fb_init_cbc(struct gk20a *g, struct gr_gk20a *gr)
 		compbit_base_post_divide++;
 	}
 
-	if (g->ops.ltc.cbc_fix_config != NULL) {
+	if (g->ops.cbc.fix_config != NULL) {
 		compbit_base_post_divide =
-			g->ops.ltc.cbc_fix_config(g, compbit_base_post_divide);
+			g->ops.cbc.fix_config(g, compbit_base_post_divide);
 	}
 
 	gk20a_writel(g, fb_mmu_cbc_base_r(),
@@ -172,7 +172,7 @@ void gv11b_fb_init_cbc(struct gk20a *g, struct gr_gk20a *gr)
 
 	gr->compbit_store.base_hw = compbit_base_post_divide;
 
-	g->ops.ltc.cbc_ctrl(g, gk20a_cbc_op_invalidate,
+	g->ops.cbc.ctrl(g, gk20a_cbc_op_invalidate,
 			0, max_comptag_lines - 1U);
 
 }

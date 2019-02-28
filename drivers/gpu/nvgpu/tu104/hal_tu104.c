@@ -29,6 +29,9 @@
 #include "hal/priv_ring/priv_ring_gm20b.h"
 #include "hal/priv_ring/priv_ring_gp10b.h"
 #include "hal/power_features/cg/tu104_gating_reglist.h"
+#include "hal/cbc/cbc_gm20b.h"
+#include "hal/cbc/cbc_gp10b.h"
+#include "hal/cbc/cbc_tu104.h"
 #include "hal/fuse/fuse_gm20b.h"
 #include "hal/fuse/fuse_gp10b.h"
 #include "hal/fuse/fuse_gp106.h"
@@ -341,13 +344,8 @@ static const struct gpu_ops tu104_ops = {
 		.set_zbc_s_entry = gv11b_ltc_set_zbc_stencil_entry,
 		.set_zbc_color_entry = gm20b_ltc_set_zbc_color_entry,
 		.set_zbc_depth_entry = gm20b_ltc_set_zbc_depth_entry,
-		.init_cbc = NULL,
-		.get_cbc_base_divisor = ltc_tu104_get_cbc_base_divisor,
 		.init_fs_state = ltc_tu104_init_fs_state,
-		.init_comptags = ltc_tu104_init_comptags,
-		.cbc_ctrl = ltc_tu104_cbc_ctrl,
 		.isr = gv11b_ltc_isr,
-		.cbc_fix_config = NULL,
 		.flush = gm20b_flush_ltc,
 		.set_enabled = gp10b_ltc_set_enabled,
 		.intr_en_illegal_compstat = gv11b_ltc_intr_en_illegal_compstat,
@@ -356,6 +354,13 @@ static const struct gpu_ops tu104_ops = {
 		.is_ltcn_ltss_addr = gm20b_ltc_is_ltcn_ltss_addr,
 		.split_lts_broadcast_addr = gm20b_ltc_split_lts_broadcast_addr,
 		.split_ltc_broadcast_addr = gm20b_ltc_split_ltc_broadcast_addr,
+	},
+	.cbc = {
+		.init = NULL,
+		.get_base_divisor = tu104_cbc_get_base_divisor,
+		.alloc_comptags = tu104_cbc_alloc_comptags,
+		.ctrl = tu104_cbc_ctrl,
+		.fix_config = NULL,
 	},
 	.ce2 = {
 		.isr_stall = gv11b_ce_isr,
@@ -1229,6 +1234,7 @@ int tu104_init_hal(struct gk20a *g)
 
 	gops->bios = tu104_ops.bios;
 	gops->ltc = tu104_ops.ltc;
+	gops->cbc = tu104_ops.cbc;
 	gops->ce2 = tu104_ops.ce2;
 	gops->gr = tu104_ops.gr;
 	gops->gr.ctxsw_prog = tu104_ops.gr.ctxsw_prog;
@@ -1312,8 +1318,8 @@ int tu104_init_hal(struct gk20a *g)
 	/* dGpu VDK support */
 	if (nvgpu_is_enabled(g, NVGPU_IS_FMODEL)){
 		/* Disable compression */
-		gops->ltc.cbc_ctrl = NULL;
-		gops->ltc.init_comptags = NULL;
+		gops->cbc.ctrl = NULL;
+		gops->cbc.alloc_comptags = NULL;
 		gops->fb.init_cbc = NULL;
 
 		gops->gr.load_ctxsw_ucode = gr_gk20a_load_ctxsw_ucode;

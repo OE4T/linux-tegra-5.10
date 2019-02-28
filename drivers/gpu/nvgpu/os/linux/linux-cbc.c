@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -14,14 +14,14 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <nvgpu/ltc.h>
+#include <nvgpu/cbc.h>
 #include <nvgpu/dma.h>
 #include <nvgpu/nvgpu_mem.h>
 #include <nvgpu/gk20a.h>
 
 #include "gk20a/gr_gk20a.h"
 
-int nvgpu_ltc_alloc_cbc(struct gk20a *g, size_t compbit_backing_size,
+int nvgpu_cbc_alloc(struct gk20a *g, size_t compbit_backing_size,
 			bool vidmem_alloc)
 {
 	struct gr_gk20a *gr = &g->gr;

@@ -1000,9 +1000,9 @@ struct nvgpu_mapped_buf *nvgpu_vm_map(struct vm_gk20a *vm,
 		 * Newly allocated comptags needs to be cleared
 		 */
 		if (comptags.needs_clear) {
-			if (g->ops.ltc.cbc_ctrl != NULL) {
+			if (g->ops.cbc.ctrl != NULL) {
 				if (gk20a_comptags_start_clear(os_buf)) {
-					err = g->ops.ltc.cbc_ctrl(
+					err = g->ops.cbc.ctrl(
 						g, gk20a_cbc_op_clear,
 						comptags.offset,
 						(comptags.offset +

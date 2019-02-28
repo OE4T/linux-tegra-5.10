@@ -435,7 +435,7 @@ void fb_tu104_init_cbc(struct gk20a *g, struct gr_gk20a *gr)
 	u32 cbc_max;
 
 	compbit_store_pa = nvgpu_mem_get_addr(g, &gr->compbit_store.mem);
-	base_divisor = g->ops.ltc.get_cbc_base_divisor(g);
+	base_divisor = g->ops.cbc.get_base_divisor(g);
 	compbit_store_base = DIV_ROUND_UP(compbit_store_pa, base_divisor);
 
 	cbc_start_addr = (u64)g->ltc_count * (compbit_store_base <<
@@ -466,7 +466,7 @@ void fb_tu104_init_cbc(struct gk20a *g, struct gr_gk20a *gr)
 
 	gr->compbit_store.base_hw = compbit_store_base;
 
-	g->ops.ltc.cbc_ctrl(g, gk20a_cbc_op_invalidate,
+	g->ops.cbc.ctrl(g, gk20a_cbc_op_invalidate,
 			0, gr->max_comptag_lines - 1U);
 }
 

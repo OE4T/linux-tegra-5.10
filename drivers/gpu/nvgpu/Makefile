@@ -178,6 +178,9 @@ nvgpu-y += \
 	hal/power_features/cg/gv100_gating_reglist.o \
 	hal/power_features/cg/gv11b_gating_reglist.o \
 	hal/power_features/cg/tu104_gating_reglist.o \
+	hal/cbc/cbc_gm20b.o \
+	hal/cbc/cbc_gp10b.o \
+	hal/cbc/cbc_tu104.o \
 	hal/fuse/fuse_gm20b.o \
 	hal/fuse/fuse_gp10b.o \
 	hal/fuse/fuse_gp106.o
@@ -222,7 +225,7 @@ nvgpu-y += \
 	os/linux/nvlink.o \
 	os/linux/dt.o \
 	os/linux/ecc_sysfs.o \
-	os/linux/ltc.o \
+	os/linux/linux-cbc.o \
 	os/linux/os_ops_tu104.o \
 	os/linux/bsearch.o
 
@@ -407,6 +410,7 @@ nvgpu-$(CONFIG_GK20A_VIDMEM) += \
 
 nvgpu-$(CONFIG_TEGRA_GR_VIRTUALIZATION) += \
 	common/vgpu/ltc/ltc_vgpu.o \
+	common/vgpu/cbc/cbc_vgpu.o \
 	common/vgpu/gr/gr_vgpu.o \
 	common/vgpu/gr/ctx_vgpu.o \
 	common/vgpu/fifo/fifo_vgpu.o \

@@ -28,6 +28,8 @@
 #include "hal/priv_ring/priv_ring_gm20b.h"
 #include "hal/priv_ring/priv_ring_gp10b.h"
 #include "hal/power_features/cg/gv100_gating_reglist.h"
+#include "hal/cbc/cbc_gm20b.h"
+#include "hal/cbc/cbc_gp10b.h"
 #include "hal/fuse/fuse_gm20b.h"
 #include "hal/fuse/fuse_gp10b.h"
 #include "hal/fuse/fuse_gp106.h"
@@ -326,11 +328,8 @@ static const struct gpu_ops gv100_ops = {
 		.set_zbc_s_entry = gv11b_ltc_set_zbc_stencil_entry,
 		.set_zbc_color_entry = gm20b_ltc_set_zbc_color_entry,
 		.set_zbc_depth_entry = gm20b_ltc_set_zbc_depth_entry,
-		.init_cbc = NULL,
 		.init_fs_state = gv11b_ltc_init_fs_state,
-		.cbc_ctrl = gp10b_ltc_cbc_ctrl,
 		.isr = gv11b_ltc_isr,
-		.cbc_fix_config = NULL,
 		.flush = gm20b_flush_ltc,
 		.set_enabled = gp10b_ltc_set_enabled,
 		.intr_en_illegal_compstat = gv11b_ltc_intr_en_illegal_compstat,
@@ -339,6 +338,11 @@ static const struct gpu_ops gv100_ops = {
 		.is_ltcn_ltss_addr = gm20b_ltc_is_ltcn_ltss_addr,
 		.split_lts_broadcast_addr = gm20b_ltc_split_lts_broadcast_addr,
 		.split_ltc_broadcast_addr = gm20b_ltc_split_ltc_broadcast_addr,
+	},
+	.cbc = {
+		.init = NULL,
+		.ctrl = gp10b_cbc_ctrl,
+		.fix_config = NULL,
 	},
 	.ce2 = {
 		.isr_stall = gv11b_ce_isr,
@@ -1190,6 +1194,7 @@ int gv100_init_hal(struct gk20a *g)
 
 	gops->bios = gv100_ops.bios;
 	gops->ltc = gv100_ops.ltc;
+	gops->cbc = gv100_ops.cbc;
 	gops->ce2 = gv100_ops.ce2;
 	gops->gr = gv100_ops.gr;
 	gops->gr.ctxsw_prog = gv100_ops.gr.ctxsw_prog;

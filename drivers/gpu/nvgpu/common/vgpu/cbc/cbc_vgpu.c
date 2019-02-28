@@ -1,5 +1,7 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Virtualized GPU CBC
+ *
+ * Copyright (c) 2019 NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -20,31 +22,32 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-/**
- * Here lie OS stubs that do not have an implementation yet nor has any plans
- * for an implementation.
- */
+#include <nvgpu/gk20a.h>
+#include <nvgpu/vgpu/vgpu.h>
 
-#include <nvgpu/ecc.h>
-#include <nvgpu/cbc.h>
-#include <nvgpu/debugger.h>
+#include "cbc_vgpu.h"
 
-
-void nvgpu_dbg_session_post_event(struct dbg_session_gk20a *dbg_s)
+int vgpu_cbc_alloc_comptags(struct gk20a *g, struct gr_gk20a *gr)
 {
-}
+	struct vgpu_priv_data *priv = vgpu_get_priv_data(g);
+	u32 max_comptag_lines = 0;
+	int err;
 
-int nvgpu_ecc_sysfs_init(struct gk20a *g)
-{
-	return 0;
-}
+	nvgpu_log_fn(g, " ");
 
-void nvgpu_ecc_sysfs_remove(struct gk20a *g)
-{
-}
+	gr->comptags_per_cacheline = priv->constants.comptags_per_cacheline;
+	max_comptag_lines = priv->constants.comptag_lines;
 
-int nvgpu_cbc_alloc(struct gk20a *g, size_t compbit_backing_size,
-			bool vidmem_alloc)
-{
+	if (max_comptag_lines < 2) {
+		return -ENXIO;
+	}
+
+	err = gk20a_comptag_allocator_init(g, &gr->comp_tags, max_comptag_lines);
+	if (err) {
+		return err;
+	}
+
+	gr->max_comptag_lines = max_comptag_lines;
+
 	return 0;
 }

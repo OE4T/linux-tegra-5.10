@@ -207,10 +207,6 @@ enum {
 struct gpu_ops {
 	struct {
 		int (*determine_L2_size_bytes)(struct gk20a *gk20a);
-		u64 (*get_cbc_base_divisor)(struct gk20a *g);
-		int (*init_comptags)(struct gk20a *g, struct gr_gk20a *gr);
-		int (*cbc_ctrl)(struct gk20a *g, enum gk20a_cbc_op op,
-				u32 min, u32 max);
 		void (*set_zbc_color_entry)(struct gk20a *g,
 					    u32 *color_val_l2,
 					    u32 index);
@@ -220,11 +216,9 @@ struct gpu_ops {
 		void (*set_zbc_s_entry)(struct gk20a *g,
 					    u32 s_val,
 					    u32 index);
-		void (*init_cbc)(struct gk20a *g, struct gr_gk20a *gr);
 		void (*set_enabled)(struct gk20a *g, bool enabled);
 		void (*init_fs_state)(struct gk20a *g);
 		void (*isr)(struct gk20a *g, unsigned int ltc);
-		u32 (*cbc_fix_config)(struct gk20a *g, int base);
 		void (*flush)(struct gk20a *g);
 		void (*intr_en_illegal_compstat)(struct gk20a *g, bool enable);
 		bool (*pri_is_ltc_addr)(struct gk20a *g, u32 addr);
@@ -242,6 +236,14 @@ struct gpu_ops {
 					u64 err_addr, u64 count);
 		} err_ops;
 	} ltc;
+	struct {
+		void (*init)(struct gk20a *g, struct gr_gk20a *gr);
+		u64 (*get_base_divisor)(struct gk20a *g);
+		int (*alloc_comptags)(struct gk20a *g, struct gr_gk20a *gr);
+		int (*ctrl)(struct gk20a *g, enum gk20a_cbc_op op,
+				u32 min, u32 max);
+		u32 (*fix_config)(struct gk20a *g, int base);
+	} cbc;
 	struct {
 		void (*isr_stall)(struct gk20a *g, u32 inst_id, u32 pri_base);
 		u32 (*isr_nonstall)(struct gk20a *g, u32 inst_id, u32 pri_base);
