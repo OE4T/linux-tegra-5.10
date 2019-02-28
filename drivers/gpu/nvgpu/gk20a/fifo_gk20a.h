@@ -149,7 +149,7 @@ struct fifo_gk20a {
 	u32 num_engines;
 	u32 *active_engines_list;
 
-	struct fifo_runlist_info_gk20a **runlist_info;
+	struct fifo_runlist_info_gk20a *runlist_info;
 	u32 max_runlists;
 #ifdef CONFIG_DEBUG_FS
 	struct {

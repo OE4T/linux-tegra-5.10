@@ -78,7 +78,7 @@ static bool vgpu_runlist_modify_active_locked(struct gk20a *g, u32 runlist_id,
 	struct fifo_gk20a *f = &g->fifo;
 	struct fifo_runlist_info_gk20a *runlist;
 
-	runlist = f->runlist_info[runlist_id];
+	runlist = &f->runlist_info[runlist_id];
 
 	if (add) {
 		if (test_and_set_bit((int)ch->chid,
@@ -103,7 +103,7 @@ static void vgpu_runlist_reconstruct_locked(struct gk20a *g, u32 runlist_id,
 	struct fifo_gk20a *f = &g->fifo;
 	struct fifo_runlist_info_gk20a *runlist;
 
-	runlist = f->runlist_info[runlist_id];
+	runlist = &f->runlist_info[runlist_id];
 
 	if (add_entries) {
 		u16 *runlist_entry;
@@ -150,7 +150,7 @@ static int vgpu_runlist_update_locked(struct gk20a *g, u32 runlist_id,
 		add_entries = add;
 	}
 
-	runlist = f->runlist_info[runlist_id];
+	runlist = &f->runlist_info[runlist_id];
 
 	vgpu_runlist_reconstruct_locked(g, runlist_id, add_entries);
 
@@ -172,7 +172,7 @@ static int vgpu_runlist_update(struct gk20a *g, u32 runlist_id,
 
 	nvgpu_log_fn(g, " ");
 
-	runlist = f->runlist_info[runlist_id];
+	runlist = &f->runlist_info[runlist_id];
 
 	nvgpu_mutex_acquire(&runlist->runlist_lock);
 

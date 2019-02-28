@@ -49,7 +49,7 @@ void tu104_runlist_hw_submit(struct gk20a *g, u32 runlist_id,
 	u64 runlist_iova;
 	u32 runlist_iova_lo, runlist_iova_hi;
 
-	runlist = g->fifo.runlist_info[runlist_id];
+	runlist = &g->fifo.runlist_info[runlist_id];
 	runlist_iova = nvgpu_mem_get_addr(g, &runlist->mem[buffer_index]);
 
 	runlist_iova_lo = u64_lo32(runlist_iova) >>

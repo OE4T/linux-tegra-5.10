@@ -35,11 +35,10 @@ static void setup_fifo(struct gk20a *g, unsigned long *tsg_map,
 		unsigned long *ch_map, struct tsg_gk20a *tsgs,
 		struct channel_gk20a *chs, unsigned int num_tsgs,
 		unsigned int num_channels,
-		struct fifo_runlist_info_gk20a **runlists, u32 *rl_data,
+		struct fifo_runlist_info_gk20a *runlist, u32 *rl_data,
 		bool interleave)
 {
 	struct fifo_gk20a *f = &g->fifo;
-	struct fifo_runlist_info_gk20a *runlist = runlists[0];
 
 	/* we only use the runlist 0 here */
 	runlist->mem[0].cpu_va = rl_data;
@@ -54,7 +53,7 @@ static void setup_fifo(struct gk20a *g, unsigned long *tsg_map,
 	f->tsg = tsgs;
 	f->channel = chs;
 	f->num_channels = num_channels;
-	f->runlist_info = runlists;
+	f->runlist_info = runlist;
 
 	/*
 	 * For testing the runlist entry order format, these simpler dual-u32
@@ -118,7 +117,7 @@ static int run_format_test(struct unit_module *m, struct fifo_gk20a *f,
 	setup_tsg_multich(tsg, chs, 0, prio, 5, n_ch);
 
 	/* entry capacity: tsg header and some channels */
-	n = nvgpu_runlist_construct_locked(f, f->runlist_info[0], 0, 1 + n_ch);
+	n = nvgpu_runlist_construct_locked(f, f->runlist_info, 0, 1 + n_ch);
 	if (n != 1 + n_ch) {
 		unit_return_fail(m, "number of entries mismatch %d\n", n);
 	}
@@ -161,7 +160,6 @@ static int test_tsg_format_gen(struct unit_module *m, struct gk20a *g,
 {
 	struct fifo_gk20a *f = &g->fifo;
 	struct fifo_runlist_info_gk20a runlist;
-	struct fifo_runlist_info_gk20a *runlists = &runlist;
 	unsigned long active_tsgs_map = 0;
 	unsigned long active_chs_map = 0;
 	struct tsg_gk20a tsgs[1] = {{0}};
@@ -174,7 +172,7 @@ static int test_tsg_format_gen(struct unit_module *m, struct gk20a *g,
 	(void)test_args->timeslice;
 
 	setup_fifo(g, &active_tsgs_map, &active_chs_map, tsgs, chs, 1, 5,
-			&runlists, rl_data, false);
+			&runlist, rl_data, false);
 
 	active_chs_map = test_args->chs_bitmap;
 
@@ -222,7 +220,6 @@ static int test_common_gen(struct unit_module *m, struct gk20a *g,
 {
 	struct fifo_gk20a *f = &g->fifo;
 	struct fifo_runlist_info_gk20a runlist;
-	struct fifo_runlist_info_gk20a *runlists = &runlist;
 	unsigned long active_tsgs_map = 0;
 	unsigned long active_chs_map = 0;
 	struct tsg_gk20a tsgs[6] = {{0}};
@@ -236,7 +233,7 @@ static int test_common_gen(struct unit_module *m, struct gk20a *g,
 	u32 i = 0;
 
 	setup_fifo(g, &active_tsgs_map, &active_chs_map, tsgs, chs,
-			levels_count, 6, &runlists, rl_data, interleave);
+			levels_count, 6, &runlist, rl_data, interleave);
 
 	for (i = 0; i < levels_count; i++) {
 		setup_tsg(tsgs, chs, i, levels[i]);
