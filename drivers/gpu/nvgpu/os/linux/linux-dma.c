@@ -337,23 +337,16 @@ void nvgpu_dma_free_sys(struct gk20a *g, struct nvgpu_mem *mem)
 	if (!(mem->mem_flags & NVGPU_MEM_FLAG_SHADOW_COPY) &&
 	    !(mem->mem_flags & __NVGPU_MEM_FLAG_NO_DMA) &&
 	    (mem->cpu_va || mem->priv.pages)) {
-		if (mem->priv.flags) {
+		void *cpu_addr = mem->cpu_va;
 
-			nvgpu_dma_flags_to_attrs(&dma_attrs, mem->priv.flags);
+		/* NO_KERNEL_MAPPING uses pages pointer instead of cpu_va */
+		if (mem->priv.flags & NVGPU_DMA_NO_KERNEL_MAPPING)
+			cpu_addr = mem->priv.pages;
 
-			if (mem->priv.flags & NVGPU_DMA_NO_KERNEL_MAPPING) {
-				dma_free_attrs(d, mem->aligned_size, mem->priv.pages,
-					sg_dma_address(mem->priv.sgt->sgl),
-					dma_attrs);
-			} else {
-				dma_free_attrs(d, mem->aligned_size, mem->cpu_va,
-					sg_dma_address(mem->priv.sgt->sgl),
-					dma_attrs);
-			}
-		} else {
-			dma_free_coherent(d, mem->aligned_size, mem->cpu_va,
-					sg_dma_address(mem->priv.sgt->sgl));
-		}
+		nvgpu_dma_flags_to_attrs(&dma_attrs, mem->priv.flags);
+		dma_free_attrs(d, mem->aligned_size, cpu_addr,
+			       sg_dma_address(mem->priv.sgt->sgl), dma_attrs);
+
 		mem->cpu_va = NULL;
 		mem->priv.pages = NULL;
 	}
