@@ -24,7 +24,6 @@
 
 #include <nvgpu/nvgpu_common.h>
 #include <nvgpu/bios.h>
-#include <nvgpu/firmware.h>
 #include <nvgpu/bitops.h>
 #include <nvgpu/nvlink.h>
 #include <nvgpu/enabled.h>
@@ -33,11 +32,11 @@
 #include <nvgpu/timers.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/top.h>
+#include <nvgpu/nvlink_minion.h>
 #include "nvlink_gv100.h"
 
 #include <nvgpu/hw/gv100/hw_nvlinkip_discovery_gv100.h>
 #include <nvgpu/hw/gv100/hw_ioctrl_gv100.h>
-#include <nvgpu/hw/gv100/hw_minion_gv100.h>
 #include <nvgpu/hw/gv100/hw_nvl_gv100.h>
 #include <nvgpu/hw/gv100/hw_trim_gv100.h>
 
@@ -95,212 +94,6 @@ static int gv100_nvlink_rxcal_en(struct gk20a *g, unsigned long mask);
  */
 
 /*
- *-----------------------------------------------------------------------------*
- * MINION API
- *-----------------------------------------------------------------------------*
- */
-
-/*
- * Check if minion is up
- */
-static bool gv100_nvlink_minion_is_running(struct gk20a *g)
-{
-
-	/* if minion is booted and not halted, it is running */
-	if (((MINION_REG_RD32(g, minion_minion_status_r()) &
-				minion_minion_status_status_f(1)) != 0U) &&
-		((minion_falcon_irqstat_halt_v(
-		MINION_REG_RD32(g, minion_falcon_irqstat_r()))) == 0U)) {
-		return true;
-	}
-
-	return false;
-}
-
-/*
- * Load minion FW and set up bootstrap
- */
-static int gv100_nvlink_minion_load(struct gk20a *g)
-{
-	int err = 0;
-	struct nvgpu_firmware *nvgpu_minion_fw = NULL;
-	struct nvgpu_timeout timeout;
-	u32 delay = GR_IDLE_CHECK_DEFAULT;
-	u32 reg;
-
-	nvgpu_log_fn(g, " ");
-
-	if (gv100_nvlink_minion_is_running(g)) {
-		return 0;
-	}
-
-	/* get mem unlock ucode binary */
-	nvgpu_minion_fw = nvgpu_request_firmware(g, "minion.bin", 0);
-	if (nvgpu_minion_fw == NULL) {
-		nvgpu_err(g, "minion ucode get fail");
-		err = -ENOENT;
-		goto exit;
-	}
-
-	/* Minion reset */
-	err = nvgpu_falcon_reset(g->minion_flcn);
-	if (err != 0) {
-		nvgpu_err(g, "Minion reset failed");
-		goto exit;
-	}
-
-	/* Clear interrupts */
-	g->ops.nvlink.intr.minion_clear_interrupts(g);
-
-	err = nvgpu_nvlink_minion_load_ucode(g, nvgpu_minion_fw);
-	if (err != 0) {
-		goto exit;
-	}
-
-	/* set BOOTVEC to start of non-secure code */
-	err = nvgpu_falcon_bootstrap(g->minion_flcn, 0x0);
-	if (err != 0) {
-		nvgpu_err(g, "Minion bootstrap failed");
-		goto exit;
-	}
-
-	err = nvgpu_timeout_init(g, &timeout, gk20a_get_gr_idle_timeout(g),
-		NVGPU_TIMER_CPU_TIMER);
-	if (err != 0) {
-		nvgpu_err(g, "Minion boot timeout init failed");
-		goto exit;
-	}
-
-	do {
-		reg = MINION_REG_RD32(g, minion_minion_status_r());
-
-		if (minion_minion_status_status_v(reg) != 0U) {
-			/* Minion sequence completed, check status */
-			if (minion_minion_status_status_v(reg) !=
-					minion_minion_status_status_boot_v()) {
-				nvgpu_err(g, "MINION init sequence failed: 0x%x",
-					minion_minion_status_status_v(reg));
-				err = -EINVAL;
-
-				goto exit;
-			}
-
-			nvgpu_log(g, gpu_dbg_nvlink,
-				"MINION boot successful: 0x%x", reg);
-			err = 0;
-			break;
-		}
-
-		nvgpu_usleep_range(delay, delay * 2U);
-		delay = min_t(unsigned int,
-				delay << 1, GR_IDLE_CHECK_MAX);
-	} while (nvgpu_timeout_expired_msg(&timeout,
-						"minion boot timeout") == 0);
-
-	/* Service interrupts */
-	g->ops.nvlink.intr.minion_falcon_isr(g);
-
-	if (nvgpu_timeout_peek_expired(&timeout) != 0) {
-		err = -ETIMEDOUT;
-		goto exit;
-	}
-
-	g->ops.nvlink.intr.init_minion_intr(g);
-	return err;
-
-exit:
-	nvgpu_nvlink_free_minion_used_mem(g, nvgpu_minion_fw);
-	return err;
-}
-
-/*
- * Check if MINION command is complete
- */
-static int gv100_nvlink_minion_command_complete(struct gk20a *g, u32 link_id)
-{
-	u32 reg;
-	struct nvgpu_timeout timeout;
-	u32 delay = GR_IDLE_CHECK_DEFAULT;
-	int err = 0;
-
-	err = nvgpu_timeout_init(g, &timeout, gk20a_get_gr_idle_timeout(g),
-				NVGPU_TIMER_CPU_TIMER);
-	if (err != 0) {
-		nvgpu_err(g, "Minion cmd complete timeout init failed");
-		return err;
-	}
-
-	do {
-		reg = MINION_REG_RD32(g, minion_nvlink_dl_cmd_r(link_id));
-
-		if (minion_nvlink_dl_cmd_ready_v(reg) == 1U) {
-			/* Command completed, check sucess */
-			if (minion_nvlink_dl_cmd_fault_v(reg) ==
-				minion_nvlink_dl_cmd_fault_fault_clear_v()) {
-				nvgpu_err(g, "minion cmd(%d) error: 0x%x",
-					link_id, reg);
-
-				reg = minion_nvlink_dl_cmd_fault_f(1);
-				MINION_REG_WR32(g,
-					minion_nvlink_dl_cmd_r(link_id), reg);
-
-				return -EINVAL;
-			}
-
-			/* Commnand success */
-			break;
-		}
-		nvgpu_usleep_range(delay, delay * 2U);
-		delay = min_t(unsigned int,
-				delay << 1, GR_IDLE_CHECK_MAX);
-
-	} while (nvgpu_timeout_expired_msg(&timeout,
-					"minion cmd timeout") == 0);
-
-	if (nvgpu_timeout_peek_expired(&timeout) != 0) {
-		return -ETIMEDOUT;
-	}
-
-	nvgpu_log(g, gpu_dbg_nvlink, "minion cmd Complete");
-	return err;
-}
-
-/*
- * Send Minion command (can be async)
- */
-int gv100_nvlink_minion_send_command(struct gk20a *g, u32 link_id,
-				u32 command, u32 scratch_0, bool sync)
-{
-	int err = 0;
-
-	/* Check last command succeded */
-	err = gv100_nvlink_minion_command_complete(g, link_id);
-	if (err != 0) {
-		return -EINVAL;
-	}
-
-	nvgpu_log(g, gpu_dbg_nvlink,
-		"sending MINION command 0x%x to link %d", command, link_id);
-
-	if (command == minion_nvlink_dl_cmd_command_configeom_v()) {
-		MINION_REG_WR32(g, minion_misc_0_r(),
-				minion_misc_0_scratch_swrw_0_f(scratch_0));
-	}
-
-	MINION_REG_WR32(g, minion_nvlink_dl_cmd_r(link_id),
-		minion_nvlink_dl_cmd_command_f(command) |
-		minion_nvlink_dl_cmd_fault_f(1));
-
-	if (sync) {
-		err = gv100_nvlink_minion_command_complete(g, link_id);
-	}
-
-	return err;
-}
-
-/* MINION API COMMANDS */
-
-/*
  * Init UPHY
  */
 static int gv100_nvlink_minion_init_uphy(struct gk20a *g, unsigned long mask,
@@ -341,8 +134,8 @@ static int gv100_nvlink_minion_init_uphy(struct gk20a *g, unsigned long mask,
 
 		/* Check if INIT PLL is done on link */
 		if ((BIT(master_pll) & g->nvlink.init_pll_done) == 0U) {
-			err = gv100_nvlink_minion_send_command(g, master_pll,
-						g->nvlink.initpll_cmd, 0, sync);
+			err = g->ops.nvlink.minion.send_dlcmd(g, master_pll,
+						g->nvlink.initpll_cmd, sync);
 			if (err != 0) {
 				nvgpu_err(g, " Error sending INITPLL to minion");
 				return err;
@@ -361,8 +154,8 @@ static int gv100_nvlink_minion_init_uphy(struct gk20a *g, unsigned long mask,
 	/* INITPHY commands */
 	for_each_set_bit(bit, &mask, NVLINK_MAX_LINKS_SW) {
 		link_id = (u32)bit;
-		err = gv100_nvlink_minion_send_command(g, link_id,
-			minion_nvlink_dl_cmd_command_initphy_v(), 0, sync);
+		err = g->ops.nvlink.minion.send_dlcmd(g, link_id,
+				NVGPU_NVLINK_MINION_DLCMD_INITPHY, sync);
 		if (err != 0) {
 			nvgpu_err(g, "Error on INITPHY minion DL command %u",
 					link_id);
@@ -392,8 +185,8 @@ static int gv100_nvlink_minion_configure_ac_coupling(struct gk20a *g,
 
 		DLPL_REG_WR32(g, link_id, nvl_link_config_r(), temp);
 
-		err = gv100_nvlink_minion_send_command(g, link_id,
-			minion_nvlink_dl_cmd_command_setacmode_v(), 0, sync);
+		err = g->ops.nvlink.minion.send_dlcmd(g, link_id,
+				NVGPU_NVLINK_MINION_DLCMD_SETACMODE, sync);
 
 		if (err != 0) {
 			return err;
@@ -415,9 +208,8 @@ int gv100_nvlink_minion_data_ready_en(struct gk20a *g,
 
 	for_each_set_bit(bit, &link_mask, NVLINK_MAX_LINKS_SW) {
 		link_id = (u32)bit;
-		ret = gv100_nvlink_minion_send_command(g, link_id,
-			minion_nvlink_dl_cmd_command_initlaneenable_v(), 0,
-									sync);
+		ret = g->ops.nvlink.minion.send_dlcmd(g, link_id,
+				NVGPU_NVLINK_MINION_DLCMD_INITLANEENABLE, sync);
 		if (ret != 0) {
 			nvgpu_err(g, "Failed initlaneenable on link %u",
 								link_id);
@@ -427,8 +219,8 @@ int gv100_nvlink_minion_data_ready_en(struct gk20a *g,
 
 	for_each_set_bit(bit, &link_mask, NVLINK_MAX_LINKS_SW) {
 		link_id = (u32)bit;
-		ret = gv100_nvlink_minion_send_command(g, link_id,
-			minion_nvlink_dl_cmd_command_initdlpl_v(), 0, sync);
+		ret = g->ops.nvlink.minion.send_dlcmd(g, link_id,
+				NVGPU_NVLINK_MINION_DLCMD_INITDLPL, sync);
 		if (ret != 0) {
 			nvgpu_err(g, "Failed initdlpl on link %u", link_id);
 			return ret;
@@ -445,8 +237,8 @@ static int gv100_nvlink_minion_lane_disable(struct gk20a *g, u32 link_id,
 {
 	int err = 0;
 
-	err = gv100_nvlink_minion_send_command(g, link_id,
-			minion_nvlink_dl_cmd_command_lanedisable_v(), 0, sync);
+	err = g->ops.nvlink.minion.send_dlcmd(g, link_id,
+				NVGPU_NVLINK_MINION_DLCMD_LANEDISABLE, sync);
 
 	if (err != 0) {
 		nvgpu_err(g, " failed to disable lane on %d", link_id);
@@ -463,8 +255,8 @@ static int gv100_nvlink_minion_lane_shutdown(struct gk20a *g, u32 link_id,
 {
 	int err = 0;
 
-	err = gv100_nvlink_minion_send_command(g, link_id,
-			minion_nvlink_dl_cmd_command_laneshutdown_v(), 0, sync);
+	err = g->ops.nvlink.minion.send_dlcmd(g, link_id,
+			NVGPU_NVLINK_MINION_DLCMD_LANESHUTDOWN, sync);
 
 	if (err != 0) {
 		nvgpu_err(g, " failed to shutdown lane on %d", link_id);
@@ -492,7 +284,7 @@ static int gv100_nvlink_state_load_hal(struct gk20a *g)
 	unsigned long discovered = g->nvlink.discovered_links;
 
 	g->ops.nvlink.intr.common_intr_enable(g, discovered);
-	return gv100_nvlink_minion_load(g);
+	return nvgpu_nvlink_minion_load(g);
 }
 
 #define TRIM_SYS_NVLINK_CTRL(i) (trim_sys_nvlink0_ctrl_r() + 16U*(i))
@@ -1856,12 +1648,8 @@ int gv100_nvlink_speed_config(struct gk20a *g)
 {
 	g->nvlink.speed = nvgpu_nvlink_speed_20G;
 	g->nvlink.initpll_ordinal = INITPLL_1;
-	g->nvlink.initpll_cmd = minion_nvlink_dl_cmd_command_initpll_1_v();
+	g->nvlink.initpll_cmd = NVGPU_NVLINK_MINION_DLCMD_INITPLL_1;
 	return 0;
 }
 
-u32 gv100_nvlink_falcon_base_addr(struct gk20a *g)
-{
-	return g->nvlink.minion_base;
-}
 #endif /* CONFIG_TEGRA_NVLINK */

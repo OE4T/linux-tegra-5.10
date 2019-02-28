@@ -73,6 +73,7 @@
 #include "common/nvdec/nvdec_gp106.h"
 #include "common/nvlink/init/device_reginit_gv100.h"
 #include "common/nvlink/intr_and_err_handling_gv100.h"
+#include "hal/nvlink/minion_gv100.h"
 #include "common/nvlink/nvlink_gv100.h"
 #include "common/nvlink/nvlink_tu104.h"
 #include "common/pmu/perf/perf_gv100.h"
@@ -1093,7 +1094,6 @@ static const struct gpu_ops gv100_ops = {
 	},
 #if defined(CONFIG_TEGRA_NVLINK)
 	.nvlink = {
-		.falcon_base_addr = gv100_nvlink_falcon_base_addr,
 		.discover_ioctrl = gv100_nvlink_discover_ioctrl,
 		.discover_link = gv100_nvlink_discover_link,
 		.init = gv100_nvlink_init,
@@ -1117,11 +1117,21 @@ static const struct gpu_ops gv100_ops = {
 		.shutdown = gv100_nvlink_shutdown,
 		.early_init = gv100_nvlink_early_init,
 		.speed_config = gv100_nvlink_speed_config,
+		.minion = {
+			.base_addr = gv100_nvlink_minion_base_addr,
+			.is_running = gv100_nvlink_minion_is_running,
+			.is_boot_complete =
+				gv100_nvlink_minion_is_boot_complete,
+			.get_dlcmd_ordinal =
+				gv100_nvlink_minion_get_dlcmd_ordinal,
+			.send_dlcmd = gv100_nvlink_minion_send_dlcmd,
+			.clear_intr = gv100_nvlink_minion_clear_intr,
+			.init_intr = gv100_nvlink_minion_init_intr,
+			.enable_link_intr = gv100_nvlink_minion_enable_link_intr,
+			.falcon_isr = gv100_nvlink_minion_falcon_isr,
+			.isr = gv100_nvlink_minion_isr,
+		},
 		.intr = {
-			.minion_clear_interrupts =
-				gv100_nvlink_minion_clear_interrupts,
-			.init_minion_intr = gv100_nvlink_init_minion_intr,
-			.minion_falcon_isr = gv100_nvlink_minion_falcon_isr,
 			.common_intr_enable = gv100_nvlink_common_intr_enable,
 			.init_nvlipt_intr = gv100_nvlink_init_nvlipt_intr,
 			.enable_link_intr = gv100_nvlink_enable_link_intr,

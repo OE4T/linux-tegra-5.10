@@ -20,18 +20,25 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef INTR_AND_ERR_HANDLING_GV100_H
-#define INTR_AND_ERR_HANDLING_GV100_H
+#ifndef MINION_GV100_H
+#define MINION_GV100_H
 
 #include <nvgpu/types.h>
+enum nvgpu_nvlink_minion_dlcmd;
 struct gk20a;
 
-void gv100_nvlink_common_intr_enable(struct gk20a *g, unsigned long mask);
-void gv100_nvlink_init_nvlipt_intr(struct gk20a *g, u32 link_id);
-void gv100_nvlink_enable_link_intr(struct gk20a *g, u32 link_id, bool enable);
-void gv100_nvlink_init_mif_intr(struct gk20a *g, u32 link_id);
-void gv100_nvlink_mif_intr_enable(struct gk20a *g, u32 link_id, bool enable);
-void gv100_nvlink_dlpl_intr_enable(struct gk20a *g, u32 link_id, bool enable);
-void gv100_nvlink_isr(struct gk20a *g);
+u32 gv100_nvlink_minion_base_addr(struct gk20a *g);
+bool gv100_nvlink_minion_is_running(struct gk20a *g);
+int gv100_nvlink_minion_is_boot_complete(struct gk20a *g, bool *boot_cmplte);
+u32 gv100_nvlink_minion_get_dlcmd_ordinal(struct gk20a *g,
+			enum nvgpu_nvlink_minion_dlcmd dlcmd);
+int gv100_nvlink_minion_send_dlcmd(struct gk20a *g, u32 link_id,
+			enum nvgpu_nvlink_minion_dlcmd dlcmd, bool sync);
+void gv100_nvlink_minion_clear_intr(struct gk20a *g);
+void gv100_nvlink_minion_init_intr(struct gk20a *g);
+void gv100_nvlink_minion_enable_link_intr(struct gk20a *g, u32 link_id,
+								bool enable);
+void gv100_nvlink_minion_falcon_isr(struct gk20a *g);
+void gv100_nvlink_minion_isr(struct gk20a *g);
 
-#endif /* INTR_AND_ERR_HANDLING_GV100_H */
+#endif /* MINION_GV100_H */

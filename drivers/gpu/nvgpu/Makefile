@@ -384,6 +384,9 @@ nvgpu-y += \
 	common/nvlink/init/device_reginit_gv100.o \
 	common/nvlink/init/device_reginit.o \
 	common/nvlink/intr_and_err_handling_gv100.o \
+	common/nvlink/minion.o \
+	hal/nvlink/minion_gv100.o \
+	hal/nvlink/minion_tu104.o \
 	common/nvlink/nvlink.o \
 	common/nvlink/nvlink_gv100.o \
 	common/nvlink/nvlink_tu104.o \

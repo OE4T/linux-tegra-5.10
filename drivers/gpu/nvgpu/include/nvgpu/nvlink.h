@@ -24,6 +24,7 @@
 #define NVGPU_NVLINK_H
 
 #include <nvgpu/types.h>
+#include <nvgpu/nvlink_minion.h>
 
 #define NVLINK_MAX_LINKS_SW			6U
 
@@ -33,8 +34,6 @@
 #define INITPLL_1				U8(1)
 #define INITPLL_7				U8(7)
 
-#define MINION_REG_RD32(g, off) gk20a_readl(g, (g)->nvlink.minion_base + (off))
-#define MINION_REG_WR32(g, off, v) gk20a_writel(g, (g)->nvlink.minion_base + (off), (v))
 #define IOCTRL_REG_RD32(g, off) gk20a_readl(g, (g)->nvlink.ioctrl_base + (off))
 #define IOCTRL_REG_WR32(g, off, v) gk20a_writel(g, (g)->nvlink.ioctrl_base + (off), (v))
 #define MIF_REG_RD32(g, id, off) gk20a_readl(g, (g)->nvlink.links[(id)].mif_base + (off))
@@ -214,7 +213,7 @@ struct nvgpu_nvlink_dev {
 	u32 init_pll_done;
 
 	enum nvgpu_nvlink_speed speed;
-	u32 initpll_cmd;
+	enum nvgpu_nvlink_minion_dlcmd initpll_cmd;
 
 	/* tlc cached errors */
 	u32 tlc_rx_err_status_0[NVLINK_MAX_LINKS_SW];
@@ -225,9 +224,6 @@ struct nvgpu_nvlink_dev {
 	void *priv;
 };
 
-void nvgpu_nvlink_free_minion_used_mem(struct gk20a *g,
-					struct nvgpu_firmware *nvgpu_minion_fw);
-u32 nvgpu_nvlink_minion_extract_word(struct nvgpu_firmware *fw, u32 idx);
 int nvgpu_nvlink_speed_config(struct gk20a *g);
 int nvgpu_nvlink_early_init(struct gk20a *g);
 int nvgpu_nvlink_link_early_init(struct gk20a *g);
@@ -248,8 +244,6 @@ int nvgpu_nvlink_set_sublink_mode(struct gk20a *g,
 int nvgpu_nvlink_enumerate(struct gk20a *g);
 int nvgpu_nvlink_train(struct gk20a *g, u32 link_id, bool from_off);
 int nvgpu_nvlink_remove(struct gk20a *g);
-int nvgpu_nvlink_minion_load_ucode(struct gk20a *g,
-					struct nvgpu_firmware *nvgpu_minion_fw);
 void nvgpu_mss_nvlink_init_credits(struct gk20a *g);
 
 #endif /* NVGPU_NVLINK_H */

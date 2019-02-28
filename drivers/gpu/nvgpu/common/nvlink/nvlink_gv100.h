@@ -30,8 +30,6 @@ struct gk20a;
 int gv100_nvlink_discover_ioctrl(struct gk20a *g);
 int gv100_nvlink_discover_link(struct gk20a *g);
 int gv100_nvlink_init(struct gk20a *g);
-int gv100_nvlink_minion_send_command(struct gk20a *g, u32 link_id, u32 command,
-						u32 scratch_0, bool sync);
 int gv100_nvlink_setup_pll(struct gk20a *g, unsigned long link_mask);
 int gv100_nvlink_minion_data_ready_en(struct gk20a *g,
 					unsigned long link_mask, bool sync);
@@ -55,5 +53,4 @@ int gv100_nvlink_interface_disable(struct gk20a *g);
 int gv100_nvlink_shutdown(struct gk20a *g);
 int gv100_nvlink_early_init(struct gk20a *g);
 int gv100_nvlink_speed_config(struct gk20a *g);
-u32 gv100_nvlink_falcon_base_addr(struct gk20a *g);
 #endif

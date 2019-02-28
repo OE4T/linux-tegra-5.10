@@ -20,18 +20,14 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef INTR_AND_ERR_HANDLING_GV100_H
-#define INTR_AND_ERR_HANDLING_GV100_H
+#ifndef MINION_TU104_H
+#define MINION_TU104_H
 
 #include <nvgpu/types.h>
+
+enum nvgpu_nvlink_minion_dlcmd;
 struct gk20a;
 
-void gv100_nvlink_common_intr_enable(struct gk20a *g, unsigned long mask);
-void gv100_nvlink_init_nvlipt_intr(struct gk20a *g, u32 link_id);
-void gv100_nvlink_enable_link_intr(struct gk20a *g, u32 link_id, bool enable);
-void gv100_nvlink_init_mif_intr(struct gk20a *g, u32 link_id);
-void gv100_nvlink_mif_intr_enable(struct gk20a *g, u32 link_id, bool enable);
-void gv100_nvlink_dlpl_intr_enable(struct gk20a *g, u32 link_id, bool enable);
-void gv100_nvlink_isr(struct gk20a *g);
-
-#endif /* INTR_AND_ERR_HANDLING_GV100_H */
+u32 tu104_nvlink_minion_get_dlcmd_ordinal(struct gk20a *g,
+					enum nvgpu_nvlink_minion_dlcmd dlcmd);
+#endif /* MINION_TU104_H */

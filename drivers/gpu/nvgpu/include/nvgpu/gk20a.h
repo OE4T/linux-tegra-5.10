@@ -70,6 +70,7 @@ struct nvgpu_gr_zbc_query_params;
 struct nvgpu_channel_hw_state;
 struct nvgpu_engine_status_info;
 struct nvgpu_pbdma_status_info;
+enum nvgpu_nvlink_minion_dlcmd;
 
 #include <nvgpu/lock.h>
 #include <nvgpu/thread.h>
@@ -1534,7 +1535,6 @@ struct gpu_ops {
 		int (*read_gcplex_config_fuse)(struct gk20a *g, u32 *val);
 	} fuse;
 	struct {
-		u32 (*falcon_base_addr)(struct gk20a *g);
 		int (*init)(struct gk20a *g);
 		int (*discover_ioctrl)(struct gk20a *g);
 		int (*discover_link)(struct gk20a *g);
@@ -1566,9 +1566,23 @@ struct gpu_ops {
 		int (*early_init)(struct gk20a *g);
 		int (*speed_config)(struct gk20a *g);
 		struct {
-			void (*minion_clear_interrupts)(struct gk20a *g);
-			void (*init_minion_intr)(struct gk20a *g);
-			void (*minion_falcon_isr)(struct gk20a *g);
+			u32 (*base_addr)(struct gk20a *g);
+			bool (*is_running)(struct gk20a *g);
+			int (*is_boot_complete)(struct gk20a *g,
+						bool *boot_cmplte);
+			u32 (*get_dlcmd_ordinal)(struct gk20a *g,
+					enum nvgpu_nvlink_minion_dlcmd dlcmd);
+			int (*send_dlcmd)(struct gk20a *g, u32 link_id,
+					enum nvgpu_nvlink_minion_dlcmd dlcmd,
+					bool sync);
+			void (*clear_intr)(struct gk20a *g);
+			void (*init_intr)(struct gk20a *g);
+			void (*enable_link_intr)(struct gk20a *g, u32 link_id,
+								bool enable);
+			void (*falcon_isr)(struct gk20a *g);
+			void (*isr)(struct gk20a *g);
+		} minion;
+		struct {
 			void (*common_intr_enable)(struct gk20a *g,
 							unsigned long mask);
 			void (*init_nvlipt_intr)(struct gk20a *g, u32 link_id);

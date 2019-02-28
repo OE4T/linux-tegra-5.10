@@ -30,11 +30,11 @@
 #include <nvgpu/timers.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/bios.h>
+#include <nvgpu/nvlink_minion.h>
 
 #include "nvlink_gv100.h"
 #include "nvlink_tu104.h"
 
-#include <nvgpu/hw/tu104/hw_minion_tu104.h>
 #include <nvgpu/hw/tu104/hw_nvl_tu104.h>
 
 int tu104_nvlink_rxdet(struct gk20a *g, u32 link_id)
@@ -43,16 +43,16 @@ int tu104_nvlink_rxdet(struct gk20a *g, u32 link_id)
 	u32 reg;
 	struct nvgpu_timeout timeout;
 
-	ret = gv100_nvlink_minion_send_command(g, link_id,
-			0x00000005U, 0, true);
+	ret = g->ops.nvlink.minion.send_dlcmd(g, link_id,
+				NVGPU_NVLINK_MINION_DLCMD_INITRXTERM, true);
 	if (ret != 0) {
 		nvgpu_err(g, "Error during INITRXTERM minion DLCMD on link %u",
 				link_id);
 		return ret;
 	}
 
-	ret = gv100_nvlink_minion_send_command(g, link_id,
-			minion_nvlink_dl_cmd_command_turing_rxdet_v(), 0, true);
+	ret = g->ops.nvlink.minion.send_dlcmd(g, link_id,
+			NVGPU_NVLINK_MINION_DLCMD_TURING_RXDET, true);
 	if (ret != 0) {
 		nvgpu_err(g, "Error during RXDET minion DLCMD on link %u",
 				link_id);
@@ -98,9 +98,8 @@ int tu104_nvlink_setup_pll(struct gk20a *g, unsigned long link_mask)
 
 	for_each_set_bit(bit, &link_mask, NVLINK_MAX_LINKS_SW) {
 		link_id = (u32)bit;
-		ret = gv100_nvlink_minion_send_command(g, link_id,
-			minion_nvlink_dl_cmd_command_txclkswitch_pll_v(),
-			0, true);
+		ret = g->ops.nvlink.minion.send_dlcmd(g, link_id,
+			NVGPU_NVLINK_MINION_DLCMD_TXCLKSWITCH_PLL, true);
 		if (ret != 0) {
 			nvgpu_err(g, "Error: TXCLKSWITCH_PLL dlcmd on link %u",
 								link_id);
@@ -212,9 +211,8 @@ int tu104_nvlink_minion_data_ready_en(struct gk20a *g,
 	 */
 	for_each_set_bit(bit, &link_mask, NVLINK_MAX_LINKS_SW) {
 		link_id = (u32)bit;
-		ret = gv100_nvlink_minion_send_command(g, link_id,
-			minion_nvlink_dl_cmd_command_initdlpl_v(), 0,
-									sync);
+		ret = g->ops.nvlink.minion.send_dlcmd(g, link_id,
+			NVGPU_NVLINK_MINION_DLCMD_INITDLPL, sync);
 		if (ret != 0) {
 			nvgpu_err(g, "Minion initdlpl failed on link %u",
 								link_id);
@@ -223,9 +221,9 @@ int tu104_nvlink_minion_data_ready_en(struct gk20a *g,
 	}
 	for_each_set_bit(bit, &link_mask, NVLINK_MAX_LINKS_SW) {
 		link_id = (u32)bit;
-		ret = gv100_nvlink_minion_send_command(g, link_id,
-			minion_nvlink_dl_cmd_command_turing_initdlpl_to_chipa_v(),
-								0, sync);
+		ret = g->ops.nvlink.minion.send_dlcmd(g, link_id,
+			NVGPU_NVLINK_MINION_DLCMD_TURING_INITDLPL_TO_CHIPA,
+			sync);
 		if (ret != 0) {
 			nvgpu_err(g, "Minion initdlpl_to_chipA failed on link\
 								%u", link_id);
@@ -234,9 +232,8 @@ int tu104_nvlink_minion_data_ready_en(struct gk20a *g,
 	}
 	for_each_set_bit(bit, &link_mask, NVLINK_MAX_LINKS_SW) {
 		link_id = (u32)bit;
-		ret = gv100_nvlink_minion_send_command(g, link_id,
-			minion_nvlink_dl_cmd_command_inittl_v(), 0,
-									sync);
+		ret = g->ops.nvlink.minion.send_dlcmd(g, link_id,
+			NVGPU_NVLINK_MINION_DLCMD_INITTL, sync);
 		if (ret != 0) {
 			nvgpu_err(g, "Minion inittl failed on link %u",
 								link_id);
@@ -245,9 +242,8 @@ int tu104_nvlink_minion_data_ready_en(struct gk20a *g,
 	}
 	for_each_set_bit(bit, &link_mask, NVLINK_MAX_LINKS_SW) {
 		link_id = (u32)bit;
-		ret = gv100_nvlink_minion_send_command(g, link_id,
-			minion_nvlink_dl_cmd_command_initlaneenable_v(), 0,
-									sync);
+		ret = g->ops.nvlink.minion.send_dlcmd(g, link_id,
+			NVGPU_NVLINK_MINION_DLCMD_INITLANEENABLE, sync);
 		if (ret != 0) {
 			nvgpu_err(g, "Minion initlaneenable failed on link %u",
 								link_id);
@@ -275,13 +271,11 @@ int tu104_nvlink_speed_config(struct gk20a *g)
 	switch (g->nvlink.initpll_ordinal) {
 	case INITPLL_1:
 		g->nvlink.speed = nvgpu_nvlink_speed_20G;
-		g->nvlink.initpll_cmd =
-				minion_nvlink_dl_cmd_command_initpll_1_v();
+		g->nvlink.initpll_cmd = NVGPU_NVLINK_MINION_DLCMD_INITPLL_1;
 		break;
 	case INITPLL_7:
 		g->nvlink.speed = nvgpu_nvlink_speed_16G;
-		g->nvlink.initpll_cmd =
-				minion_nvlink_dl_cmd_command_initpll_7_v();
+		g->nvlink.initpll_cmd = NVGPU_NVLINK_MINION_DLCMD_INITPLL_7;
 		break;
 	default:
 		nvgpu_err(g, "Nvlink initpll %d from VBIOS not supported.",
@@ -292,4 +286,5 @@ int tu104_nvlink_speed_config(struct gk20a *g)
 
 	return ret;
 }
+
 #endif /* CONFIG_TEGRA_NVLINK */

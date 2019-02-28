@@ -28,7 +28,6 @@
 
 #include <nvgpu/hw/gv100/hw_nvlipt_gv100.h>
 #include <nvgpu/hw/gv100/hw_ioctrl_gv100.h>
-#include <nvgpu/hw/gv100/hw_minion_gv100.h>
 #include <nvgpu/hw/gv100/hw_nvl_gv100.h>
 #include <nvgpu/hw/gv100/hw_ioctrlmif_gv100.h>
 #include <nvgpu/hw/gv100/hw_nvtlc_gv100.h>
@@ -59,213 +58,6 @@
 				 nvlipt_err_uc_status_link0_stompedpacketreceived_f(1) | \
 				 nvlipt_err_uc_status_link0_unsupportedrequest_f(1) | \
 				 nvlipt_err_uc_status_link0_ucinternal_f(1))
-
-
-#define MINION_FALCON_INTR_MASK (minion_falcon_irqmset_wdtmr_set_f() | \
-				 minion_falcon_irqmset_halt_set_f()  | \
-				 minion_falcon_irqmset_exterr_set_f()| \
-				 minion_falcon_irqmset_swgen0_set_f()| \
-				 minion_falcon_irqmset_swgen1_set_f())
-
-#define MINION_FALCON_INTR_DEST ( \
-		minion_falcon_irqdest_host_wdtmr_host_f() | \
-		minion_falcon_irqdest_host_halt_host_f() | \
-		minion_falcon_irqdest_host_exterr_host_f() | \
-		minion_falcon_irqdest_host_swgen0_host_f() | \
-		minion_falcon_irqdest_host_swgen1_host_f() | \
-		minion_falcon_irqdest_target_wdtmr_host_normal_f() | \
-		minion_falcon_irqdest_target_halt_host_normal_f() | \
-		minion_falcon_irqdest_target_exterr_host_normal_f() | \
-		minion_falcon_irqdest_target_swgen0_host_normal_f() | \
-		minion_falcon_irqdest_target_swgen1_host_normal_f())
-
-/*
- * Clear minion Interrupts
- */
-void gv100_nvlink_minion_clear_interrupts(struct gk20a *g)
-{
-	nvgpu_falcon_set_irq(g->minion_flcn, true, MINION_FALCON_INTR_MASK,
-						MINION_FALCON_INTR_DEST);
-}
-
-/*
- * Initialization of link specific interrupts
- */
-static void gv100_nvlink_minion_link_intr_enable(struct gk20a *g, u32 link_id,
-								bool enable)
-{
-	u32 intr, links;
-
-	/* Only stall interrupts for now */
-	intr = MINION_REG_RD32(g, minion_minion_intr_stall_en_r());
-	links = minion_minion_intr_stall_en_link_v(intr);
-
-	if (enable) {
-		links |= BIT32(link_id);
-	} else {
-		links &= ~BIT32(link_id);
-	}
-
-	intr = set_field(intr, minion_minion_intr_stall_en_link_m(),
-		minion_minion_intr_stall_en_link_f(links));
-	MINION_REG_WR32(g, minion_minion_intr_stall_en_r(), intr);
-}
-
-/*
- * Initialization of falcon interrupts
- */
-static void gv100_nvlink_minion_falcon_intr_enable(struct gk20a *g, bool enable)
-{
-	u32 reg;
-
-	reg = MINION_REG_RD32(g, minion_minion_intr_stall_en_r());
-	if (enable) {
-		reg = set_field(reg, minion_minion_intr_stall_en_fatal_m(),
-			minion_minion_intr_stall_en_fatal_enable_f());
-		reg = set_field(reg, minion_minion_intr_stall_en_nonfatal_m(),
-			minion_minion_intr_stall_en_nonfatal_enable_f());
-		reg = set_field(reg, minion_minion_intr_stall_en_falcon_stall_m(),
-			minion_minion_intr_stall_en_falcon_stall_enable_f());
-		reg = set_field(reg, minion_minion_intr_stall_en_falcon_nostall_m(),
-			minion_minion_intr_stall_en_falcon_nostall_enable_f());
-	} else {
-		reg = set_field(reg, minion_minion_intr_stall_en_fatal_m(),
-			minion_minion_intr_stall_en_fatal_disable_f());
-		reg = set_field(reg, minion_minion_intr_stall_en_nonfatal_m(),
-			minion_minion_intr_stall_en_nonfatal_disable_f());
-		reg = set_field(reg, minion_minion_intr_stall_en_falcon_stall_m(),
-			minion_minion_intr_stall_en_falcon_stall_disable_f());
-		reg = set_field(reg, minion_minion_intr_stall_en_falcon_nostall_m(),
-			minion_minion_intr_stall_en_falcon_nostall_disable_f());
-	}
-
-	MINION_REG_WR32(g, minion_minion_intr_stall_en_r(), reg);
-}
-
-/*
- * Initialize minion IP interrupts
- */
-void gv100_nvlink_init_minion_intr(struct gk20a *g)
-{
-	/* Disable non-stall tree */
-	MINION_REG_WR32(g, minion_minion_intr_nonstall_en_r(), 0x0);
-
-	gv100_nvlink_minion_falcon_intr_enable(g, true);
-}
-
-/*
- * Falcon specific ISR handling
- */
-void gv100_nvlink_minion_falcon_isr(struct gk20a *g)
-{
-	u32 intr;
-
-	intr = MINION_REG_RD32(g, minion_falcon_irqstat_r()) &
-		MINION_REG_RD32(g, minion_falcon_irqmask_r());
-
-	if (intr == 0U) {
-		return;
-	}
-
-	if ((intr & minion_falcon_irqstat_exterr_true_f()) != 0U) {
-		nvgpu_err(g, "FALCON EXT ADDR: 0x%x 0x%x 0x%x",
-			MINION_REG_RD32(g, minion_falcon_csberrstat_r()),
-			MINION_REG_RD32(g, minion_falcon_csberr_info_r()),
-			MINION_REG_RD32(g, minion_falcon_csberr_addr_r()));
-	}
-
-	MINION_REG_WR32(g, minion_falcon_irqsclr_r(), intr);
-
-	nvgpu_err(g, "FATAL minion IRQ: 0x%08x", intr);
-
-	return;
-}
-
-/*
- * Link Specific ISR
- */
-
-static void gv100_nvlink_minion_link_isr(struct gk20a *g, u32 link_id)
-{
-	u32 intr, code;
-	bool fatal = false;
-
-	intr = MINION_REG_RD32(g, minion_nvlink_link_intr_r(link_id));
-	code = minion_nvlink_link_intr_code_v(intr);
-
-	if (code == minion_nvlink_link_intr_code_swreq_v()) {
-		nvgpu_err(g, " Intr SWREQ, link: %d subcode: %x",
-			link_id, minion_nvlink_link_intr_subcode_v(intr));
-	} else if (code == minion_nvlink_link_intr_code_pmdisabled_v()) {
-		nvgpu_err(g, " Fatal Intr PMDISABLED, link: %d subcode: %x",
-			link_id, minion_nvlink_link_intr_subcode_v(intr));
-		fatal = true;
-	} else if (code == minion_nvlink_link_intr_code_na_v()) {
-		nvgpu_err(g, " Fatal Intr NA, link: %d subcode: %x",
-			link_id, minion_nvlink_link_intr_subcode_v(intr));
-		fatal = true;
-	} else if (code == minion_nvlink_link_intr_code_dlreq_v()) {
-		nvgpu_err(g, " Fatal Intr DLREQ, link: %d subcode: %x",
-			link_id, minion_nvlink_link_intr_subcode_v(intr));
-		fatal = true;
-	} else {
-		nvgpu_err(g, " Fatal Intr UNKN:%x, link: %d subcode: %x", code,
-			link_id, minion_nvlink_link_intr_subcode_v(intr));
-		fatal = true;
-	}
-
-	if (fatal) {
-		gv100_nvlink_minion_link_intr_enable(g, link_id, false);
-	}
-
-	intr = set_field(intr, minion_nvlink_link_intr_state_m(),
-		minion_nvlink_link_intr_state_f(1));
-	MINION_REG_WR32(g, minion_nvlink_link_intr_r(link_id), intr);
-
-	return;
-}
-
-/*
- * Global minion routine to service interrupts
- */
-static void gv100_nvlink_minion_isr(struct gk20a *g) {
-
-	u32 intr, link_id;
-	unsigned long links;
-	unsigned long bit;
-
-	intr = MINION_REG_RD32(g, minion_minion_intr_r()) &
-		MINION_REG_RD32(g, minion_minion_intr_stall_en_r());
-
-	if ((minion_minion_intr_falcon_stall_v(intr) != 0U) ||
-			(minion_minion_intr_falcon_nostall_v(intr) != 0U)) {
-		gv100_nvlink_minion_falcon_isr(g);
-	}
-
-	if (minion_minion_intr_fatal_v(intr) != 0U) {
-		gv100_nvlink_minion_falcon_intr_enable(g, false);
-		MINION_REG_WR32(g, minion_minion_intr_r(),
-					minion_minion_intr_fatal_f(1));
-	}
-
-	if (minion_minion_intr_nonfatal_v(intr) != 0U) {
-		MINION_REG_WR32(g, minion_minion_intr_r(),
-					minion_minion_intr_nonfatal_f(1));
-	}
-
-	links = minion_minion_intr_link_v(intr) &
-					(unsigned long) g->nvlink.enabled_links;
-
-	if (links != 0UL) {
-		for_each_set_bit(bit, &links, NVLINK_MAX_LINKS_SW) {
-			link_id = (u32)bit;
-			gv100_nvlink_minion_link_isr(g, link_id);
-		}
-	}
-
-	return;
-}
-
 /*
  * Init TLC per link interrupts
  */
@@ -678,7 +470,7 @@ void gv100_nvlink_common_intr_enable(struct gk20a *g, unsigned long mask)
  */
 void gv100_nvlink_enable_link_intr(struct gk20a *g, u32 link_id, bool enable)
 {
-	gv100_nvlink_minion_link_intr_enable(g, link_id, enable);
+	g->ops.nvlink.minion.enable_link_intr(g, link_id, enable);
 	gv100_nvlink_dlpl_intr_enable(g, link_id, enable);
 	gv100_nvlink_tlc_intr_enable(g, link_id, enable);
 	gv100_nvlink_mif_intr_enable(g, link_id, enable);
@@ -699,7 +491,7 @@ void gv100_nvlink_isr(struct gk20a *g)
 
 	links &= g->nvlink.enabled_links;
 	/* As per ARCH minion must be serviced first */
-	gv100_nvlink_minion_isr(g);
+	g->ops.nvlink.minion.isr(g);
 
 	for_each_set_bit(bit, &links, NVLINK_MAX_LINKS_SW) {
 		link_id = (u32)bit;

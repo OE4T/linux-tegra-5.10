@@ -20,18 +20,44 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef INTR_AND_ERR_HANDLING_GV100_H
-#define INTR_AND_ERR_HANDLING_GV100_H
+#ifdef CONFIG_TEGRA_NVLINK
 
-#include <nvgpu/types.h>
+#include <nvgpu/nvlink_minion.h>
+
+#include "minion_gv100.h"
+#include "minion_tu104.h"
+
+#include <nvgpu/hw/tu104/hw_minion_tu104.h>
+
 struct gk20a;
 
-void gv100_nvlink_common_intr_enable(struct gk20a *g, unsigned long mask);
-void gv100_nvlink_init_nvlipt_intr(struct gk20a *g, u32 link_id);
-void gv100_nvlink_enable_link_intr(struct gk20a *g, u32 link_id, bool enable);
-void gv100_nvlink_init_mif_intr(struct gk20a *g, u32 link_id);
-void gv100_nvlink_mif_intr_enable(struct gk20a *g, u32 link_id, bool enable);
-void gv100_nvlink_dlpl_intr_enable(struct gk20a *g, u32 link_id, bool enable);
-void gv100_nvlink_isr(struct gk20a *g);
+u32 tu104_nvlink_minion_get_dlcmd_ordinal(struct gk20a *g,
+					enum nvgpu_nvlink_minion_dlcmd dlcmd)
+{
+	u32 dlcmd_ordinal;
 
-#endif /* INTR_AND_ERR_HANDLING_GV100_H */
+	switch (dlcmd) {
+	case NVGPU_NVLINK_MINION_DLCMD_INITRXTERM:
+		dlcmd_ordinal = 0x05U;
+		break;
+	case NVGPU_NVLINK_MINION_DLCMD_TURING_RXDET:
+		dlcmd_ordinal = minion_nvlink_dl_cmd_command_turing_rxdet_v();
+		break;
+	case NVGPU_NVLINK_MINION_DLCMD_TXCLKSWITCH_PLL:
+		dlcmd_ordinal = minion_nvlink_dl_cmd_command_txclkswitch_pll_v();
+		break;
+	case NVGPU_NVLINK_MINION_DLCMD_TURING_INITDLPL_TO_CHIPA:
+		dlcmd_ordinal = minion_nvlink_dl_cmd_command_turing_initdlpl_to_chipa_v();
+		break;
+	case NVGPU_NVLINK_MINION_DLCMD_INITTL:
+		dlcmd_ordinal = minion_nvlink_dl_cmd_command_inittl_v();
+		break;
+	default:
+		dlcmd_ordinal = gv100_nvlink_minion_get_dlcmd_ordinal(g, dlcmd);
+		break;
+	}
+
+	return dlcmd_ordinal;
+}
+
+#endif /* CONFIG_TEGRA_NVLINK */

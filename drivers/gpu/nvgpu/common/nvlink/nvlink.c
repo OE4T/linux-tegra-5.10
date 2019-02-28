@@ -24,7 +24,6 @@
 #include <nvgpu/nvlink.h>
 #include <nvgpu/nvlink_probe.h>
 #include <nvgpu/enabled.h>
-#include <nvgpu/firmware.h>
 
 #ifdef CONFIG_TEGRA_NVLINK
 /*
@@ -198,21 +197,6 @@ int nvgpu_nvlink_set_sublink_mode(struct gk20a *g,
 
 
 	return g->ops.nvlink.set_sublink_mode(g, link_id, is_rx_sublink, mode);
-}
-
-/* Extract a WORD from the MINION ucode */
-u32 nvgpu_nvlink_minion_extract_word(struct nvgpu_firmware *fw, u32 idx)
-{
-	u32 out_data = 0U;
-	u8 byte = 0U;
-	u32 i = 0U;
-
-	for (i = 0U; i < 4U; i++) {
-		byte = fw->data[idx + i];
-		out_data |= ((u32)byte) << (8U * i);
-	}
-
-	return out_data;
 }
 
 #endif

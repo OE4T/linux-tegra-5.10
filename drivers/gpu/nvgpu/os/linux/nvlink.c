@@ -21,6 +21,7 @@
 
 #include <nvgpu/gk20a.h>
 #include <nvgpu/nvlink.h>
+#include <nvgpu/nvlink_minion.h>
 #include <nvgpu/enabled.h>
 #include <nvgpu/firmware.h>
 
