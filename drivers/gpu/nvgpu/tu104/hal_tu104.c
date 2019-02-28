@@ -87,6 +87,8 @@
 #include "common/nvlink/intr_and_err_handling_gv100.h"
 #include "hal/nvlink/minion_gv100.h"
 #include "hal/nvlink/minion_tu104.h"
+#include "hal/nvlink/link_mode_transitions_gv100.h"
+#include "hal/nvlink/link_mode_transitions_tu104.h"
 #include "common/nvlink/nvlink_gv100.h"
 #include "common/nvlink/nvlink_tu104.h"
 #include "common/sync/syncpt_cmdbuf_gv11b.h"
@@ -1177,23 +1179,26 @@ static const struct gpu_ops tu104_ops = {
 	},
 #if defined(CONFIG_TEGRA_NVLINK)
 	.nvlink = {
+		.get_link_reset_mask = gv100_nvlink_get_link_reset_mask,
 		.discover_ioctrl = gv100_nvlink_discover_ioctrl,
 		.discover_link = gv100_nvlink_discover_link,
 		.init = gv100_nvlink_init,
 		.rxdet = tu104_nvlink_rxdet,
-		.setup_pll = tu104_nvlink_setup_pll,
-		.minion_data_ready_en = tu104_nvlink_minion_data_ready_en,
 		.get_connected_link_mask = tu104_nvlink_get_connected_link_mask,
 		.set_sw_war = NULL,
-		/* API */
 		.link_early_init = gv100_nvlink_link_early_init,
-		.link_get_state = gv100_nvlink_link_get_state,
-		.link_set_mode = gv100_nvlink_link_set_mode,
-		.link_get_mode = gv100_nvlink_link_get_mode,
-		.get_sublink_mode = gv100_nvlink_link_get_sublink_mode,
-		.get_tx_sublink_state = tu104_nvlink_link_get_tx_sublink_state,
-		.get_rx_sublink_state = tu104_nvlink_link_get_rx_sublink_state,
-		.set_sublink_mode = gv100_nvlink_link_set_sublink_mode,
+		/* API */
+		.link_mode_transitions = {
+			.setup_pll = tu104_nvlink_setup_pll,
+			.data_ready_en = tu104_nvlink_data_ready_en,
+			.get_link_state = gv100_nvlink_get_link_state,
+			.get_link_mode = gv100_nvlink_get_link_mode,
+			.set_link_mode = gv100_nvlink_set_link_mode,
+			.get_tx_sublink_state = tu104_nvlink_link_get_tx_sublink_state,
+			.get_rx_sublink_state = tu104_nvlink_link_get_rx_sublink_state,
+			.get_sublink_mode = gv100_nvlink_link_get_sublink_mode,
+			.set_sublink_mode = gv100_nvlink_link_set_sublink_mode,
+		},
 		.interface_init = gv100_nvlink_interface_init,
 		.reg_init = gv100_nvlink_reg_init,
 		.shutdown = gv100_nvlink_shutdown,

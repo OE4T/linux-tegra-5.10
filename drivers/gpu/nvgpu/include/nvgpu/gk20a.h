@@ -1582,30 +1582,37 @@ struct gpu_ops {
 		int (*read_gcplex_config_fuse)(struct gk20a *g, u32 *val);
 	} fuse;
 	struct {
+		u32 (*get_link_reset_mask)(struct gk20a *g);
 		int (*init)(struct gk20a *g);
 		int (*discover_ioctrl)(struct gk20a *g);
 		int (*discover_link)(struct gk20a *g);
 		int (*rxdet)(struct gk20a *g, u32 link_id);
-		int (*setup_pll)(struct gk20a *g, unsigned long link_mask);
-		int (*minion_data_ready_en)(struct gk20a *g,
-					unsigned long link_mask, bool sync);
 		void (*get_connected_link_mask)(u32 *link_mask);
 		void (*set_sw_war)(struct gk20a *g, u32 link_id);
 		/* API */
 		int (*link_early_init)(struct gk20a *g, unsigned long mask);
-		enum nvgpu_nvlink_link_mode (*link_get_mode)(struct gk20a *g,
-								u32 link_id);
-		u32 (*link_get_state)(struct gk20a *g, u32 link_id);
-		int (*link_set_mode)(struct gk20a *g, u32 link_id,
+		struct {
+			int (*setup_pll)(struct gk20a *g,
+					unsigned long link_mask);
+			int (*data_ready_en)(struct gk20a *g,
+					unsigned long link_mask, bool sync);
+			u32 (*get_link_state)(struct gk20a *g, u32 link_id);
+			enum nvgpu_nvlink_link_mode (*get_link_mode)(
+					struct gk20a *g,
+					u32 link_id);
+			int (*set_link_mode)(struct gk20a *g, u32 link_id,
 					enum nvgpu_nvlink_link_mode mode);
-		enum nvgpu_nvlink_sublink_mode (*get_sublink_mode)(
+			u32 (*get_rx_sublink_state)(struct gk20a *g,
+					u32 link_id);
+			u32 (*get_tx_sublink_state)(struct gk20a *g,
+					u32 link_id);
+			enum nvgpu_nvlink_sublink_mode (*get_sublink_mode)(
 					struct gk20a *g, u32 link_id,
 					bool is_rx_sublink);
-		u32 (*get_rx_sublink_state)(struct gk20a *g, u32 link_id);
-		u32 (*get_tx_sublink_state)(struct gk20a *g, u32 link_id);
-		int (*set_sublink_mode)(struct gk20a *g, u32 link_id,
+			int (*set_sublink_mode)(struct gk20a *g, u32 link_id,
 					bool is_rx_sublink,
 					enum nvgpu_nvlink_sublink_mode mode);
+		} link_mode_transitions;
 		int (*interface_init)(struct gk20a *g);
 		int (*interface_disable)(struct gk20a *g);
 		int (*reg_init)(struct gk20a *g);

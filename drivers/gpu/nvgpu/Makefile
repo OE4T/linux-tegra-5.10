@@ -152,6 +152,15 @@ nvgpu-y += \
 	common/clk_arb/clk_arb.o \
 	common/clk_arb/clk_arb_gp10b.o \
 	common/clk_arb/clk_arb_gv100.o \
+	common/nvlink/probe.o \
+	common/nvlink/init/device_reginit_gv100.o \
+	common/nvlink/init/device_reginit.o \
+	common/nvlink/intr_and_err_handling_gv100.o \
+	common/nvlink/minion.o \
+	common/nvlink/link_mode_transitions.o \
+	common/nvlink/nvlink.o \
+	common/nvlink/nvlink_gv100.o \
+	common/nvlink/nvlink_tu104.o \
 	hal/bus/bus_gk20a.o \
 	hal/bus/bus_gm20b.o \
 	hal/bus/bus_gp10b.o \
@@ -195,7 +204,11 @@ nvgpu-y += \
 	hal/fuse/fuse_gp106.o \
 	hal/fifo/engines_gm20b.o \
 	hal/fifo/engines_gv11b.o \
-	hal/falcon/falcon_gk20a.o
+	hal/falcon/falcon_gk20a.o \
+	hal/nvlink/minion_gv100.o \
+	hal/nvlink/minion_tu104.o \
+	hal/nvlink/link_mode_transitions_gv100.o \
+	hal/nvlink/link_mode_transitions_tu104.o
 
 # Linux specific parts of nvgpu.
 nvgpu-y += \
@@ -397,16 +410,6 @@ nvgpu-y += \
 	common/ecc.o \
 	common/ce2.o \
 	common/debugger.o \
-	common/nvlink/probe.o \
-	common/nvlink/init/device_reginit_gv100.o \
-	common/nvlink/init/device_reginit.o \
-	common/nvlink/intr_and_err_handling_gv100.o \
-	common/nvlink/minion.o \
-	hal/nvlink/minion_gv100.o \
-	hal/nvlink/minion_tu104.o \
-	common/nvlink/nvlink.o \
-	common/nvlink/nvlink_gv100.o \
-	common/nvlink/nvlink_tu104.o \
 	gk20a/ce2_gk20a.o \
 	gk20a/fifo_gk20a.o \
 	gk20a/gr_gk20a.o \

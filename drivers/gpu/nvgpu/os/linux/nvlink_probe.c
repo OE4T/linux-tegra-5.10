@@ -25,6 +25,7 @@
 #include "module.h"
 #include <nvgpu/nvlink_probe.h>
 #include <nvgpu/nvlink_device_reginit.h>
+#include <nvgpu/nvlink_link_mode_transitions.h>
 
 #ifdef CONFIG_TEGRA_NVLINK
 int nvgpu_nvlink_read_dt_props(struct gk20a *g)
