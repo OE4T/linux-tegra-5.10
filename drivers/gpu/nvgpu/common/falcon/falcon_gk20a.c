@@ -147,6 +147,23 @@ static u32 gk20a_falcon_get_mem_size(struct nvgpu_falcon *flcn,
 	return mem_size;
 }
 
+static u8 gk20a_falcon_get_ports_count(struct nvgpu_falcon *flcn,
+		enum falcon_mem_type mem_type)
+{
+	struct gk20a *g = flcn->g;
+	u8 ports = 0;
+	u32 hw_cfg_reg1 = gk20a_readl(g,
+		flcn->flcn_base + falcon_falcon_hwcfg1_r());
+
+	if (mem_type == MEM_DMEM) {
+		ports = (u8) falcon_falcon_hwcfg1_dmem_ports_v(hw_cfg_reg1);
+	} else {
+		ports = (u8) falcon_falcon_hwcfg1_imem_ports_v(hw_cfg_reg1);
+	}
+
+	return ports;
+}
+
 static int gk20a_falcon_copy_from_dmem(struct nvgpu_falcon *flcn,
 		u32 src, u8 *dst, u32 size, u8 port)
 {
@@ -585,6 +602,7 @@ void gk20a_falcon_ops(struct nvgpu_falcon *flcn)
 	flcn_ops->mailbox_write = gk20a_falcon_mailbox_write;
 	flcn_ops->get_falcon_ctls = gk20a_falcon_get_ctls;
 	flcn_ops->get_mem_size = gk20a_falcon_get_mem_size;
+	flcn_ops->get_ports_count = gk20a_falcon_get_ports_count;
 
 	gk20a_falcon_engine_dependency_ops(flcn);
 }

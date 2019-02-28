@@ -99,6 +99,8 @@ struct nvgpu_falcon_ops {
 		u32 *cpuctl);
 	u32 (*get_mem_size)(struct nvgpu_falcon *flcn,
 		enum falcon_mem_type mem_type);
+	u8 (*get_ports_count)(struct nvgpu_falcon *flcn,
+		enum falcon_mem_type mem_type);
 };
 
 struct nvgpu_falcon {

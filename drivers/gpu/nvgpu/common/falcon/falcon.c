@@ -282,7 +282,7 @@ int nvgpu_falcon_copy_to_emem(struct nvgpu_falcon *flcn,
 }
 
 static int falcon_memcpy_params_check(struct nvgpu_falcon *flcn,
-		u32 offset, u32 size, enum falcon_mem_type mem_type)
+		u32 offset, u32 size, enum falcon_mem_type mem_type, u8 port)
 {
 	struct gk20a *g = flcn->g;
 	u32 mem_size = 0;
@@ -295,6 +295,11 @@ static int falcon_memcpy_params_check(struct nvgpu_falcon *flcn,
 
 	if ((offset & 0x3U) != 0U) {
 		nvgpu_err(g, "offset (0x%08x) not 4-byte aligned", offset);
+		goto exit;
+	}
+
+	if (port >= flcn->flcn_ops.get_ports_count(flcn, mem_type)) {
+		nvgpu_err(g, "invalid port %u", (u32) port);
 		goto exit;
 	}
 
@@ -335,7 +340,7 @@ int nvgpu_falcon_copy_from_dmem(struct nvgpu_falcon *flcn,
 		goto exit;
 	}
 
-	if (falcon_memcpy_params_check(flcn, src, size, MEM_DMEM) != 0) {
+	if (falcon_memcpy_params_check(flcn, src, size, MEM_DMEM, port) != 0) {
 		nvgpu_err(flcn->g, "incorrect parameters");
 		goto exit;
 	}
@@ -366,7 +371,7 @@ int nvgpu_falcon_copy_to_dmem(struct nvgpu_falcon *flcn,
 		goto exit;
 	}
 
-	if (falcon_memcpy_params_check(flcn, dst, size, MEM_DMEM) != 0) {
+	if (falcon_memcpy_params_check(flcn, dst, size, MEM_DMEM, port) != 0) {
 		nvgpu_err(flcn->g, "incorrect parameters");
 		goto exit;
 	}
@@ -397,7 +402,7 @@ int nvgpu_falcon_copy_from_imem(struct nvgpu_falcon *flcn,
 		goto exit;
 	}
 
-	if (falcon_memcpy_params_check(flcn, src, size, MEM_IMEM) != 0) {
+	if (falcon_memcpy_params_check(flcn, src, size, MEM_IMEM, port) != 0) {
 		nvgpu_err(flcn->g, "incorrect parameters");
 		goto exit;
 	}
@@ -428,7 +433,7 @@ int nvgpu_falcon_copy_to_imem(struct nvgpu_falcon *flcn,
 		goto exit;
 	}
 
-	if (falcon_memcpy_params_check(flcn, dst, size, MEM_IMEM) != 0) {
+	if (falcon_memcpy_params_check(flcn, dst, size, MEM_IMEM, port) != 0) {
 		nvgpu_err(flcn->g, "incorrect parameters");
 		goto exit;
 	}
@@ -451,7 +456,7 @@ static void falcon_print_mem(struct nvgpu_falcon *flcn, u32 src,
 	u32 i = 0;
 	int status = 0;
 
-	if (falcon_memcpy_params_check(flcn, src, size, mem_type) != 0) {
+	if (falcon_memcpy_params_check(flcn, src, size, mem_type, 0) != 0) {
 		nvgpu_err(flcn->g, "incorrect parameters");
 		return;
 	}
