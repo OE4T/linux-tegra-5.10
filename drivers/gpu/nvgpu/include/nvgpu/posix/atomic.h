@@ -23,172 +23,200 @@
 #ifndef NVGPU_POSIX_ATOMIC_H
 #define NVGPU_POSIX_ATOMIC_H
 
+#include <stdatomic.h>
 #include <nvgpu/types.h>
 
 /*
  * Note: this code uses the GCC builtins to implement atomics.
  */
 
-#define __atomic_cmpxchg(p, v, c)	__sync_val_compare_and_swap(p, v, c)
-#define __atomic_and(p, v)		__sync_fetch_and_and(p, v)
-#define __atomic_or(p, v)		__sync_fetch_and_or(p, v)
-
-#define cmpxchg				__atomic_cmpxchg
-
-/*
- * Place holders until real atomics can be implemented... Yay for GCC builtins!
- * We can use those eventually to define all the Linux atomic ops.
- *
- * TODO: make these _actually_ atomic!
- */
 typedef struct __nvgpu_posix_atomic {
-	int v;
+	atomic_int v;
 } nvgpu_atomic_t;
 
 typedef struct __nvgpu_posix_atomic64 {
-	long v;
+	atomic_long v;
 } nvgpu_atomic64_t;
 
 #define __nvgpu_atomic_init(i)		{ i }
+
 #define __nvgpu_atomic64_init(i)	{ i }
+
+/*
+ * These macros define the common cases to maximize code reuse, especially
+ * between the 32bit and 64bit cases.
+ * The static inline functions are maintained to provide type checking.
+ */
+#define NVGPU_POSIX_ATOMIC_SET(v, i) atomic_store(&(v->v), i)
+
+#define NVGPU_POSIX_ATOMIC_READ(v) atomic_load(&(v->v))
+
+#define NVGPU_POSIX_ATOMIC_ADD_RETURN(v, i)				\
+	({								\
+		typeof(v->v) tmp;						\
+									\
+		tmp = atomic_fetch_add(&(v->v), i);			\
+		tmp += i;						\
+		tmp;							\
+	})
+
+#define NVGPU_POSIX_ATOMIC_SUB_RETURN(v, i)				\
+	({								\
+		typeof(v->v) tmp;					\
+									\
+		tmp = atomic_fetch_sub(&(v->v), i);			\
+		tmp -= i;						\
+		tmp;							\
+	})
+
+#define NVGPU_POSIX_ATOMIC_CMPXCHG(v, old, new)			\
+	({								\
+		typeof(v->v) tmp = old;					\
+									\
+		atomic_compare_exchange_strong(&(v->v), &tmp, new);	\
+		tmp;							\
+	})
+
+#define NVGPU_POSIX_ATOMIC_XCHG(v, new) atomic_exchange(&(v->v), new)
+
+#define NVGPU_POSIX_ATOMIC_ADD_UNLESS(v, a, u)			\
+	({								\
+		typeof(v->v) old;					\
+									\
+		do {							\
+			old = atomic_load(&(v->v));			\
+			if (old == u) {					\
+				break;					\
+			}						\
+		} while (!atomic_compare_exchange_strong(&(v->v), &old,	\
+				old + a));				\
+		old;							\
+	})
 
 static inline void __nvgpu_atomic_set(nvgpu_atomic_t *v, int i)
 {
-	v->v = i;
+	NVGPU_POSIX_ATOMIC_SET(v, i);
 }
 
 static inline int __nvgpu_atomic_read(nvgpu_atomic_t *v)
 {
-	return v->v;
+	return NVGPU_POSIX_ATOMIC_READ(v);
 }
 
 static inline void __nvgpu_atomic_inc(nvgpu_atomic_t *v)
 {
-	v->v++;
+	(void)NVGPU_POSIX_ATOMIC_ADD_RETURN(v, 1);
 }
 
 static inline int __nvgpu_atomic_inc_return(nvgpu_atomic_t *v)
 {
-	v->v++;
-	return v->v;
+	return NVGPU_POSIX_ATOMIC_ADD_RETURN(v, 1);
 }
 
 static inline void __nvgpu_atomic_dec(nvgpu_atomic_t *v)
 {
-	v->v--;
+	(void)NVGPU_POSIX_ATOMIC_SUB_RETURN(v, 1);
 }
 
 static inline int __nvgpu_atomic_dec_return(nvgpu_atomic_t *v)
 {
-	v->v--;
-	return v->v;
+	return NVGPU_POSIX_ATOMIC_SUB_RETURN(v, 1);
 }
 
 static inline int __nvgpu_atomic_cmpxchg(nvgpu_atomic_t *v, int old, int new)
 {
-	if (v->v == old) {
-		v->v = new;
-	}
-
-	return v->v;
+	return NVGPU_POSIX_ATOMIC_CMPXCHG(v, old, new);
 }
 
 static inline int __nvgpu_atomic_xchg(nvgpu_atomic_t *v, int new)
 {
-	v->v = new;
-	return new;
+	return NVGPU_POSIX_ATOMIC_XCHG(v, new);
 }
 
 static inline bool __nvgpu_atomic_inc_and_test(nvgpu_atomic_t *v)
 {
-	v->v++;
-	return (v->v == 0);
+	return NVGPU_POSIX_ATOMIC_ADD_RETURN(v, 1) == 0;
 }
 
 static inline bool __nvgpu_atomic_dec_and_test(nvgpu_atomic_t *v)
 {
-	v->v--;
-	return (v->v == 0);
+	return NVGPU_POSIX_ATOMIC_SUB_RETURN(v, 1) == 0;
 }
 
 static inline bool __nvgpu_atomic_sub_and_test(int i, nvgpu_atomic_t *v)
 {
-	v->v -= i;
-	return (v->v == 0);
+	return NVGPU_POSIX_ATOMIC_SUB_RETURN(v, i) == 0;
 }
 
 static inline int __nvgpu_atomic_add_return(int i, nvgpu_atomic_t *v)
 {
-	v->v += i;
-	return v->v;
+	return NVGPU_POSIX_ATOMIC_ADD_RETURN(v, i);
 }
 
 static inline int __nvgpu_atomic_add_unless(nvgpu_atomic_t *v, int a, int u)
 {
-	if (v->v != u) {
-		v->v += a;
-	}
-
-	return v->v;
+	return NVGPU_POSIX_ATOMIC_ADD_UNLESS(v, a, u);
 }
 
 static inline void __nvgpu_atomic64_set(nvgpu_atomic64_t *v, long i)
 {
-	v->v = i;
+	NVGPU_POSIX_ATOMIC_SET(v, i);
 }
 
 static inline long __nvgpu_atomic64_read(nvgpu_atomic64_t *v)
 {
-	return v->v;
+	return NVGPU_POSIX_ATOMIC_READ(v);
 }
 
 static inline void __nvgpu_atomic64_add(long x, nvgpu_atomic64_t *v)
 {
-	v->v += x;
+	(void)NVGPU_POSIX_ATOMIC_ADD_RETURN(v, x);
 }
 
 static inline void __nvgpu_atomic64_inc(nvgpu_atomic64_t *v)
 {
-	v->v++;
+	(void)NVGPU_POSIX_ATOMIC_ADD_RETURN(v, 1);
 }
 
 static inline long __nvgpu_atomic64_inc_return(nvgpu_atomic64_t *v)
 {
-	v->v++;
-	return v->v;
+	return NVGPU_POSIX_ATOMIC_ADD_RETURN(v, 1);
 }
 
 static inline void __nvgpu_atomic64_dec(nvgpu_atomic64_t *v)
 {
-	v->v--;
+	(void)NVGPU_POSIX_ATOMIC_SUB_RETURN(v, 1);
 }
 
 static inline long __nvgpu_atomic64_dec_return(nvgpu_atomic64_t *v)
 {
-	v->v--;
-	return v->v;
+	return NVGPU_POSIX_ATOMIC_SUB_RETURN(v, 1);
 }
 
 static inline long __nvgpu_atomic64_cmpxchg(nvgpu_atomic64_t *v,
 					long old, long new)
 {
-
-	if (v->v == old) {
-		v->v = new;
-	}
-
-	return v->v;
+	return NVGPU_POSIX_ATOMIC_CMPXCHG(v, old, new);
 }
 
 static inline void __nvgpu_atomic64_sub(long x, nvgpu_atomic64_t *v)
 {
-	v->v -= x;
+	(void)NVGPU_POSIX_ATOMIC_SUB_RETURN(v, x);
 }
 
 static inline long __nvgpu_atomic64_sub_return(long x, nvgpu_atomic64_t *v)
 {
-	v->v -= x;
-	return v->v;
+	return NVGPU_POSIX_ATOMIC_SUB_RETURN(v, x);
 }
+
+/*
+ * The following are defined for specific POSIX implementations (e.g. bitops.h)
+ * and not generally intended for nvgpu driver usage.
+ */
+#define __atomic_cmpxchg(p, v, c)       __sync_val_compare_and_swap(p, v, c)
+#define __atomic_and(p, v)              __sync_fetch_and_and(p, v)
+#define __atomic_or(p, v)               __sync_fetch_and_or(p, v)
+
+#define cmpxchg                         __atomic_cmpxchg
 
 #endif /* NVGPU_POSIX_ATOMIC_H */
