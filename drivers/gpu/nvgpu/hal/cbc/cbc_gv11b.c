@@ -1,4 +1,6 @@
 /*
+ * GP10B CBC
+ *
  * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
@@ -20,19 +22,24 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef CBC_TU104_H
-#define CBC_TU104_H
 
-#include <nvgpu/types.h>
+#include <nvgpu/cbc.h>
+#include <nvgpu/log.h>
+#include <nvgpu/gk20a.h>
 
-enum gk20a_cbc_op;
-struct gk20a;
-struct gr_gk20a;
+#include "cbc_gv11b.h"
 
-u64 tu104_cbc_get_base_divisor(struct gk20a *g);
-int tu104_cbc_alloc_comptags(struct gk20a *g, struct gr_gk20a *gr);
-int tu104_cbc_ctrl(struct gk20a *g, enum gk20a_cbc_op op,
-		       u32 min, u32 max);
-void tu104_cbc_init(struct gk20a *g, struct gr_gk20a *gr);
+void gv11b_cbc_init(struct gk20a *g, struct gr_gk20a *gr)
+{
+	u32 max_size = gr->max_comptag_mem;
+	/* one tag line covers 64KB */
+	u32 max_comptag_lines = max_size << 4;
 
-#endif
+	nvgpu_log_fn(g, " ");
+
+	g->ops.fb.cbc_configure(g, gr);
+
+	g->ops.cbc.ctrl(g, gk20a_cbc_op_invalidate,
+			0, max_comptag_lines - 1U);
+
+}

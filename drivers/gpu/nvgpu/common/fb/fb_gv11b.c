@@ -121,11 +121,8 @@ void gv11b_fb_init_fs_state(struct gk20a *g)
 	}
 }
 
-void gv11b_fb_init_cbc(struct gk20a *g, struct gr_gk20a *gr)
+void gv11b_fb_cbc_configure(struct gk20a *g, struct gr_gk20a *gr)
 {
-	u32 max_size = gr->max_comptag_mem;
-	/* one tag line covers 64KB */
-	u32 max_comptag_lines = max_size << 4;
 	u32 compbit_base_post_divide;
 	u64 compbit_base_post_multiply64;
 	u64 compbit_store_iova;
@@ -171,9 +168,6 @@ void gv11b_fb_init_cbc(struct gk20a *g, struct gr_gk20a *gr)
 		gk20a_readl(g, fb_mmu_cbc_base_r()));
 
 	gr->compbit_store.base_hw = compbit_base_post_divide;
-
-	g->ops.cbc.ctrl(g, gk20a_cbc_op_invalidate,
-			0, max_comptag_lines - 1U);
 
 }
 

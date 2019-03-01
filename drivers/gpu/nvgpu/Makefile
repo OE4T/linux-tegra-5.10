@@ -180,6 +180,7 @@ nvgpu-y += \
 	hal/power_features/cg/tu104_gating_reglist.o \
 	hal/cbc/cbc_gm20b.o \
 	hal/cbc/cbc_gp10b.o \
+	hal/cbc/cbc_gv11b.o \
 	hal/cbc/cbc_tu104.o \
 	hal/fuse/fuse_gm20b.o \
 	hal/fuse/fuse_gp10b.o \

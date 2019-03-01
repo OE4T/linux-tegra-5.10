@@ -33,6 +33,7 @@
 #include "hal/power_features/cg/gv11b_gating_reglist.h"
 #include "hal/cbc/cbc_gm20b.h"
 #include "hal/cbc/cbc_gp10b.h"
+#include "hal/cbc/cbc_gv11b.h"
 #include "hal/fuse/fuse_gm20b.h"
 #include "hal/fuse/fuse_gp10b.h"
 
@@ -290,7 +291,7 @@ static const struct gpu_ops gv11b_ops = {
 		.split_ltc_broadcast_addr = gm20b_ltc_split_ltc_broadcast_addr,
 	},
 	.cbc = {
-		.init = NULL,
+		.init = gv11b_cbc_init,
 		.alloc_comptags = gp10b_cbc_alloc_comptags,
 		.ctrl = gp10b_cbc_ctrl,
 	},
@@ -567,7 +568,7 @@ static const struct gpu_ops gv11b_ops = {
 	.fb = {
 		.init_hw = gv11b_fb_init_hw,
 		.init_fs_state = gv11b_fb_init_fs_state,
-		.init_cbc = gv11b_fb_init_cbc,
+		.cbc_configure = gv11b_fb_cbc_configure,
 		.set_mmu_page_size = NULL,
 		.set_use_full_comp_tag_line =
 			gm20b_fb_set_use_full_comp_tag_line,

@@ -2815,10 +2815,6 @@ static int gk20a_init_gr_setup_hw(struct gk20a *g)
 		g->ops.cbc.init(g, gr);
 	}
 
-	if (g->ops.fb.init_cbc != NULL) {
-		g->ops.fb.init_cbc(g, gr);
-	}
-
 	if (g->ops.gr.disable_rd_coalesce != NULL) {
 		g->ops.gr.disable_rd_coalesce(g);
 	}

@@ -346,6 +346,7 @@ srcs += common/sim.c \
 	hal/power_features/cg/tu104_gating_reglist.c \
 	hal/cbc/cbc_gm20b.c \
 	hal/cbc/cbc_gp10b.c \
+	hal/cbc/cbc_gv11b.c \
 	hal/cbc/cbc_tu104.c \
 	hal/fuse/fuse_gm20b.c \
 	hal/fuse/fuse_gp10b.c \

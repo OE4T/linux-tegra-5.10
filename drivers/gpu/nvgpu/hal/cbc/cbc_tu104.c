@@ -30,11 +30,12 @@
 
 #include <trace/events/gk20a.h>
 
+#include <nvgpu/hw/tu104/hw_ltc_tu104.h>
+
 #include "cbc_tu104.h"
 
 #include "common/ltc/ltc_gv11b.h"
 
-#include <nvgpu/hw/tu104/hw_ltc_tu104.h>
 
 u64 tu104_cbc_get_base_divisor(struct gk20a *g)
 {
@@ -215,4 +216,13 @@ out:
 	trace_gk20a_ltc_cbc_ctrl_done(g->name);
 	nvgpu_mutex_release(&g->mm.l2_op_lock);
 	return err;
+}
+
+void tu104_cbc_init(struct gk20a *g, struct gr_gk20a *gr)
+{
+
+	g->ops.fb.cbc_configure(g, gr);
+
+	g->ops.cbc.ctrl(g, gk20a_cbc_op_invalidate,
+			0, gr->max_comptag_lines - 1U);
 }

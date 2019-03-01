@@ -365,7 +365,6 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 	.fb = {
 		.init_hw = NULL,
 		.init_fs_state = NULL,
-		.init_cbc = NULL,
 		.set_mmu_page_size = NULL,
 		.set_use_full_comp_tag_line = NULL,
 		.compression_page_size = gp10b_fb_compression_page_size,

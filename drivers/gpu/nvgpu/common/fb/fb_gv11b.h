@@ -1,7 +1,7 @@
 /*
  * GV11B FB
  *
- * Copyright (c) 2016-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -34,7 +34,7 @@ struct gr_gk20a;
 void gv11b_fb_init_hw(struct gk20a *g);
 
 void gv11b_fb_init_fs_state(struct gk20a *g);
-void gv11b_fb_init_cbc(struct gk20a *g, struct gr_gk20a *gr);
+void gv11b_fb_cbc_configure(struct gk20a *g, struct gr_gk20a *gr);
 void gv11b_fb_reset(struct gk20a *g);
 void gv11b_fb_hub_isr(struct gk20a *g);
 

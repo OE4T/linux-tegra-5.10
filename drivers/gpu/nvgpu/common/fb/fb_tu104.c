@@ -424,7 +424,7 @@ int fb_tu104_mmu_invalidate_replay(struct gk20a *g,
 	return err;
 }
 
-void fb_tu104_init_cbc(struct gk20a *g, struct gr_gk20a *gr)
+void tu104_fb_cbc_configure(struct gk20a *g, struct gr_gk20a *gr)
 {
 	u64 base_divisor;
 	u64 compbit_store_base;
@@ -466,8 +466,6 @@ void fb_tu104_init_cbc(struct gk20a *g, struct gr_gk20a *gr)
 
 	gr->compbit_store.base_hw = compbit_store_base;
 
-	g->ops.cbc.ctrl(g, gk20a_cbc_op_invalidate,
-			0, gr->max_comptag_lines - 1U);
 }
 
 static int tu104_fb_wait_mmu_bind(struct gk20a *g)

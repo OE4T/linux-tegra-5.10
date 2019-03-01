@@ -356,7 +356,7 @@ static const struct gpu_ops tu104_ops = {
 		.split_ltc_broadcast_addr = gm20b_ltc_split_ltc_broadcast_addr,
 	},
 	.cbc = {
-		.init = NULL,
+		.init = tu104_cbc_init,
 		.get_base_divisor = tu104_cbc_get_base_divisor,
 		.alloc_comptags = tu104_cbc_alloc_comptags,
 		.ctrl = tu104_cbc_ctrl,
@@ -637,7 +637,7 @@ static const struct gpu_ops tu104_ops = {
 	.fb = {
 		.init_hw = gv11b_fb_init_hw,
 		.init_fs_state = gp106_fb_init_fs_state,
-		.init_cbc = fb_tu104_init_cbc,
+		.cbc_configure = tu104_fb_cbc_configure,
 		.set_mmu_page_size = NULL,
 		.set_use_full_comp_tag_line =
 			gm20b_fb_set_use_full_comp_tag_line,
@@ -1318,9 +1318,9 @@ int tu104_init_hal(struct gk20a *g)
 	/* dGpu VDK support */
 	if (nvgpu_is_enabled(g, NVGPU_IS_FMODEL)){
 		/* Disable compression */
+		gops->cbc.init = NULL;
 		gops->cbc.ctrl = NULL;
 		gops->cbc.alloc_comptags = NULL;
-		gops->fb.init_cbc = NULL;
 
 		gops->gr.load_ctxsw_ucode = gr_gk20a_load_ctxsw_ucode;
 
