@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -106,4 +106,9 @@ void gv11b_perf_disable_membuf(struct gk20a *g)
 			perf_pmasys_mem_block_base_f(0) |
 			perf_pmasys_mem_block_valid_false_f() |
 			perf_pmasys_mem_block_target_f(0));
+}
+
+u32 gv11b_perf_get_pmm_per_chiplet_offset(void)
+{
+	return (perf_pmmsys_extent_v() - perf_pmmsys_base_v() + 1U);
 }

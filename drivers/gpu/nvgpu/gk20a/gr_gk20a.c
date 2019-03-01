@@ -6064,7 +6064,7 @@ static int add_ctxsw_buffer_map_entries_gpcs(struct gk20a *g,
 			return -EINVAL;
 		}
 
-		base = (g->ops.gr.get_pmm_per_chiplet_offset() * gpc_num);
+		base = (g->ops.perf.get_pmm_per_chiplet_offset() * gpc_num);
 		if (add_ctxsw_buffer_map_entries(map,
 					&g->netlist_vars->ctxsw_regs.perf_gpc,
 					count, offset, max_cnt, base, ~U32(0U)) != 0) {
@@ -6231,7 +6231,7 @@ static int gr_gk20a_create_hwpm_ctxsw_buffer_offset_map(struct gk20a *g)
 					&count, &offset,
 					hwpm_ctxsw_reg_count_max, 0,
 					g->gr.num_fbps,
-					g->ops.gr.get_pmm_per_chiplet_offset(),
+					g->ops.perf.get_pmm_per_chiplet_offset(),
 					~U32(0U)) != 0) {
 		goto cleanup;
 	}

@@ -451,7 +451,7 @@ void gr_gv100_set_pmm_register(struct gk20a *g, u32 offset, u32 val,
 	u32 perfmon_index = 0;
 	u32 chiplet_index = 0;
 	u32 reg_offset = 0;
-	u32 chiplet_stride = g->ops.gr.get_pmm_per_chiplet_offset();
+	u32 chiplet_stride = g->ops.perf.get_pmm_per_chiplet_offset();
 
 	for (chiplet_index = 0; chiplet_index < num_chiplets; chiplet_index++) {
 		for (perfmon_index = 0; perfmon_index < num_perfmons;

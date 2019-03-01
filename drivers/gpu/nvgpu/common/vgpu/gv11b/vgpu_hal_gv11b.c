@@ -35,6 +35,7 @@
 #include "common/therm/therm_gm20b.h"
 #include "common/therm/therm_gp10b.h"
 #include "common/therm/therm_gv11b.h"
+#include "common/perf/perf_gv11b.h"
 #include "common/ltc/ltc_gm20b.h"
 #include "common/ltc/ltc_gp10b.h"
 #include "common/ltc/ltc_gv11b.h"
@@ -250,8 +251,6 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 		.add_ctxsw_reg_perf_pma = gr_gk20a_add_ctxsw_reg_perf_pma,
 		.decode_priv_addr = gr_gv11b_decode_priv_addr,
 		.create_priv_addr_table = gr_gv11b_create_priv_addr_table,
-		.get_pmm_per_chiplet_offset =
-			gr_gv11b_get_pmm_per_chiplet_offset,
 		.split_fbpa_broadcast_addr = gr_gk20a_split_fbpa_broadcast_addr,
 		.alloc_global_ctx_buffers = gr_gk20a_alloc_global_ctx_buffers,
 		.commit_global_ctx_buffers = gr_gk20a_commit_global_ctx_buffers,
@@ -360,6 +359,10 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 			.get_gpcs_swdx_dss_zbc_c_format_reg = NULL,
 			.get_gpcs_swdx_dss_zbc_z_format_reg = NULL,
 		}
+	},
+	.perf = {
+		.get_pmm_per_chiplet_offset =
+			gv11b_perf_get_pmm_per_chiplet_offset,
 	},
 	.fb = {
 		.init_hw = NULL,
@@ -758,6 +761,7 @@ int vgpu_gv11b_init_hal(struct gk20a *g)
 	gops->gr.ctxsw_prog = vgpu_gv11b_ops.gr.ctxsw_prog;
 	gops->gr.config = vgpu_gv11b_ops.gr.config;
 	gops->fb = vgpu_gv11b_ops.fb;
+	gops->perf = vgpu_gv11b_ops.perf;
 	gops->clock_gating = vgpu_gv11b_ops.clock_gating;
 	gops->fifo = vgpu_gv11b_ops.fifo;
 	gops->runlist = vgpu_gv11b_ops.runlist;

@@ -501,8 +501,6 @@ static const struct gpu_ops tu104_ops = {
 		.add_ctxsw_reg_perf_pma = gr_gv100_add_ctxsw_reg_perf_pma,
 		.decode_priv_addr = gr_gv11b_decode_priv_addr,
 		.create_priv_addr_table = gr_gv11b_create_priv_addr_table,
-		.get_pmm_per_chiplet_offset =
-			gr_gv11b_get_pmm_per_chiplet_offset,
 		.split_fbpa_broadcast_addr = gr_gv100_split_fbpa_broadcast_addr,
 		.init_sw_bundle64 = gr_tu104_init_sw_bundle64,
 		.fecs_ctxsw_mailbox_size = gr_fecs_ctxsw_mailbox__size_1_v,
@@ -1060,6 +1058,8 @@ static const struct gpu_ops tu104_ops = {
 		.set_membuf_handled_bytes = gv11b_perf_set_membuf_handled_bytes,
 		.get_membuf_overflow_status =
 			gv11b_perf_get_membuf_overflow_status,
+		.get_pmm_per_chiplet_offset =
+			gv11b_perf_get_pmm_per_chiplet_offset,
 	},
 	.perfbuf = {
 		.perfbuf_enable = nvgpu_perfbuf_enable_locked,

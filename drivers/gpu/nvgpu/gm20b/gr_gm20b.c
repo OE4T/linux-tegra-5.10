@@ -1423,11 +1423,6 @@ void gm20a_gr_disable_rd_coalesce(struct gk20a *g)
 	gk20a_writel(g, gr_gpcs_tpcs_tex_m_dbg2_r(), dbg2_reg);
 }
 
-u32 gr_gm20b_get_pmm_per_chiplet_offset(void)
-{
-	return (perf_pmmsys_extent_v() - perf_pmmsys_base_v() + 1U);
-}
-
 void gm20b_gr_set_debug_mode(struct gk20a *g, bool enable)
 {
 	u32 reg_val, gpc_debug_ctrl;

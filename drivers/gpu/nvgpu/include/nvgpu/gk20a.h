@@ -497,7 +497,6 @@ struct gpu_ops {
 					   u32 addr,
 					   u32 *priv_addr_table,
 					   u32 *num_registers);
-		u32 (*get_pmm_per_chiplet_offset)(void);
 		void (*split_fbpa_broadcast_addr)(struct gk20a *g, u32 addr,
 					u32 num_fbpas,
 					u32 *priv_addr_table,
@@ -1424,6 +1423,7 @@ struct gpu_ops {
 		void (*set_membuf_handled_bytes)(struct gk20a *g,
 			u32 entries, u32 entry_size);
 		bool (*get_membuf_overflow_status)(struct gk20a *g);
+		u32 (*get_pmm_per_chiplet_offset)(void);
 	} perf;
 	struct {
 		int (*perfbuf_enable)(struct gk20a *g, u64 offset, u32 size);
