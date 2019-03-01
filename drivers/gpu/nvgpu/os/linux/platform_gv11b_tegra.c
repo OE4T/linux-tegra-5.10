@@ -1,7 +1,7 @@
 /*
  * GV11B Tegra Platform Interface
  *
- * Copyright (c) 2016-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -84,7 +84,7 @@ static int gv11b_tegra_probe(struct device *dev)
 	if (err)
 		return err;
 
-	platform->disable_bigpage = !device_is_iommuable(dev);
+	platform->disable_bigpage = !dev->archdata.iommu;
 
 	platform->g->gr.ctx_vars.dump_ctxsw_stats_on_channel_close
 		= false;
