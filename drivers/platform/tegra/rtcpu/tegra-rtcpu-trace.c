@@ -760,6 +760,7 @@ static void rtcpu_trace_vi_event(struct tegra_rtcpu_trace *tracer,
 		task_begin.syncpt_id = event->data.data32[0];
 		task_begin.syncpt_thresh = event->data.data32[1];
 		task_begin.class_id = pdata->class;
+		task_begin.channel_id = event->data.data32[2];
 
 		ts = ((u64)event->data.data32[5] << 32) |
 			(u64)event->data.data32[4];
@@ -774,6 +775,7 @@ static void rtcpu_trace_vi_event(struct tegra_rtcpu_trace *tracer,
 		task_end.syncpt_id = event->data.data32[0];
 		task_end.syncpt_thresh = event->data.data32[1];
 		task_end.class_id = pdata->class;
+		task_end.channel_id = event->data.data32[2];
 
 		ts = ((u64)event->data.data32[5] << 32) |
 			(u64)event->data.data32[4];
@@ -821,6 +823,7 @@ static void rtcpu_trace_isp_event(struct tegra_rtcpu_trace *tracer,
 		task_begin.syncpt_id = event->data.data32[0];
 		task_begin.syncpt_thresh = event->data.data32[1];
 		task_begin.class_id = pdata->class;
+		task_begin.channel_id = event->data.data32[2];
 
 		keventlib_write(pdata->eventlib_id,
 			&task_begin,
@@ -833,6 +836,7 @@ static void rtcpu_trace_isp_event(struct tegra_rtcpu_trace *tracer,
 		task_end.syncpt_id = event->data.data32[0];
 		task_end.syncpt_thresh = event->data.data32[1];
 		task_end.class_id = pdata->class;
+		task_end.channel_id = event->data.data32[2];
 
 		keventlib_write(pdata->eventlib_id,
 			&task_end,

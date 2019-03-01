@@ -41,6 +41,9 @@ struct nvhost_task_submit {
 
 	/* TID */
 	u32 tid;
+
+	/* Channel ID */
+	u32 channel_id;
 } __packed;
 
 /* Marks that the task is moving to execution */
@@ -53,6 +56,9 @@ struct nvhost_task_begin {
 
 	/* Threshold for task completion */
 	u32 syncpt_thresh;
+
+	/* Channel ID */
+	u32 channel_id;
 } __packed;
 
 /* Marks that the task is completed */
@@ -65,6 +71,9 @@ struct nvhost_task_end {
 
 	/* Threshold for task completion */
 	u32 syncpt_thresh;
+
+	/* Channel ID */
+	u32 channel_id;
 } __packed;
 
 struct nvhost_vpu_perf_counter {

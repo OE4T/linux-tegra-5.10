@@ -1328,10 +1328,11 @@ int isp_capture_request(struct tegra_isp_channel *chan,
 		cap_common_req.unpins;
 	mutex_unlock(&capture->capture_desc_ctx.unpins_list_lock);
 
-	nvhost_eventlib_log_submit(
+	nv_camera_log_submit(
 			chan->ndev,
 			capture->progress_sp.id,
 			capture->progress_sp.threshold,
+			capture_msg.header.channel_id,
 			arch_counter_get_cntvct());
 
 	dev_dbg(chan->isp_dev, "%s: sending chan_id %u msg_id %u buf:%u\n",

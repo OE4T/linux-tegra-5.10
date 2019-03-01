@@ -1,7 +1,7 @@
 /*
  * nvcamera_log.h - general tracing function for vi and isp API calls
  *
- * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -19,10 +19,18 @@
 #ifndef __NVCAMERA_LOG_H
 #define __NVCAMERA_LOG_H
 
-#include <linux/platform_device.h>
+#include <linux/types.h>
+
+struct platform_device;
+
+void nv_camera_log_submit(struct platform_device *pdev,
+		u32 syncpt_id,
+		u32 syncpt_thresh,
+		u32 channel_id,
+		u64 timestamp);
 
 void nv_camera_log(struct platform_device *pdev,
-				u64 timestamp,
-				u32 type);
+		u64 timestamp,
+		u32 type);
 
 #endif

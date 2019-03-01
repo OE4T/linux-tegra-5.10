@@ -24,6 +24,8 @@
                 { "Name": "pid",             "Comment": "PID",
                   "Type": "uint32_t",        "Format": "%u" },
                 { "Name": "tid",             "Comment": "TID",
+                  "Type": "uint32_t",        "Format": "%u" },
+                { "Name": "channel_id",      "Comment": "Channel ID",
                   "Type": "uint32_t",        "Format": "%u" }
             ]
         },
@@ -37,6 +39,8 @@
                 { "Name": "syncpt_id",       "Comment": "Syncpoint ID",
                   "Type": "uint32_t",        "Format": "%u" },
                 { "Name": "syncpt_thresh",   "Comment": "Threshold for task completion",
+                  "Type": "uint32_t",        "Format": "%u" },
+                { "Name": "channel_id",      "Comment": "Channel ID",
                   "Type": "uint32_t",        "Format": "%u" }
             ]
         },
@@ -50,6 +54,8 @@
                 { "Name": "syncpt_id",       "Comment": "Syncpoint ID",
                   "Type": "uint32_t",        "Format": "%u" },
                 { "Name": "syncpt_thresh",   "Comment": "Threshold for task completion",
+                  "Type": "uint32_t",        "Format": "%u" },
+                { "Name": "channel_id",      "Comment": "Channel ID",
                   "Type": "uint32_t",        "Format": "%u" }
             ]
         },

@@ -1,7 +1,7 @@
 /*
  * nvcamera_log.c - general tracing function for vi and isp API calls
  *
- * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -18,14 +18,71 @@
 
 
 #include "nvcamera_log.h"
+#include <linux/nvhost.h>
+#include <linux/platform_device.h>
 #include <uapi/linux/nvhost_events.h>
 
-#if defined(CONFIG_EVENTLIB) && defined(KERNEL_EVENTLIB_TRACES)
+/*
+ * Set to 1 to enable additional kernel API traces
+ */
+#define NVCAM_ENABLE_EXTRA_TRACES	0
+
+#if defined(CONFIG_EVENTLIB)
 #include <linux/keventlib.h>
 
+/*
+ * Camera "task submission" event enabled by default
+ */
+void nv_camera_log_submit(struct platform_device *pdev,
+		u32 syncpt_id,
+		u32 syncpt_thresh,
+		u32 channel_id,
+		u64 timestamp)
+{
+	struct nvhost_device_data *pdata = platform_get_drvdata(pdev);
+	struct nvhost_task_submit task_submit;
+
+	if (!pdata->eventlib_id)
+		return;
+
+	/*
+	 * Write task submit event
+	 */
+	task_submit.syncpt_id = syncpt_id;
+	task_submit.syncpt_thresh = syncpt_thresh;
+	task_submit.channel_id = channel_id;
+	task_submit.class_id = pdata->class;
+	task_submit.pid = current->pid;
+	task_submit.tid = current->tgid;
+
+	keventlib_write(pdata->eventlib_id,
+			&task_submit,
+			sizeof(task_submit),
+			NVHOST_TASK_SUBMIT,
+			timestamp);
+}
+
+#else
+
+void nv_camera_log_submit(struct platform_device *pdev,
+		u32 syncpt_id,
+		u32 syncpt_thresh,
+		u32 channel_id,
+		u64 timestamp)
+{
+}
+
+#endif
+
+#if defined(CONFIG_EVENTLIB) && NVCAM_ENABLE_EXTRA_TRACES
+#include <linux/keventlib.h>
+
+/*
+ * Additional camera traces disabled by default
+ */
 void nv_camera_log(struct platform_device *pdev,
-				u64 timestamp,
-				u32 type)
+		u64 timestamp,
+		u32 type)
 {
 	struct nvhost_device_data *pdata = platform_get_drvdata(pdev);
 	struct nv_camera_task_log task_log;
@@ -34,11 +91,11 @@ void nv_camera_log(struct platform_device *pdev,
 		return;
 
 	/*
-	 * Write task start event
+	 * Write task log event
 	 */
 	task_log.class_id = pdata->class;
-	task_log.pid = current->tgid;
-	task_log.tid = current->pid;
+	task_log.pid = current->pid;
+	task_log.tid = current->tgid;
 
 	keventlib_write(pdata->eventlib_id,
 			&task_log,
@@ -46,12 +103,13 @@ void nv_camera_log(struct platform_device *pdev,
 			type,
 			timestamp);
 }
+
 #else
 
 void nv_camera_log(struct platform_device *pdev,
-				u64 timestamp,
-				u32 type)
+		u64 timestamp,
+		u32 type)
 {
 }
+
 #endif
-EXPORT_SYMBOL(nv_camera_log);
