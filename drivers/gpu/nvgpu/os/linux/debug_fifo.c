@@ -73,7 +73,7 @@ static int gk20a_fifo_sched_debugfs_seq_show(
 	engine_id = nvgpu_engine_get_gr_id(g);
 	engine_info = (f->engine_info + engine_id);
 	runlist_id = engine_info->runlist_id;
-	runlist = &f->runlist_info[runlist_id];
+	runlist = f->runlist_info[runlist_id];
 
 	if (ch == f->channel) {
 		seq_puts(s, "chid     tsgid    pid      timeslice  timeout  interleave graphics_preempt compute_preempt\n");

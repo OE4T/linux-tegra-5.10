@@ -49,7 +49,7 @@ int gk20a_fifo_reschedule_preempt_next(struct channel_gk20a *ch,
 {
 	struct gk20a *g = ch->g;
 	struct fifo_runlist_info_gk20a *runlist =
-		&g->fifo.runlist_info[ch->runlist_id];
+		g->fifo.runlist_info[ch->runlist_id];
 	int ret = 0;
 	u32 gr_eng_id = 0;
 	u32 fecsstat0 = 0, fecsstat1 = 0;
@@ -169,7 +169,7 @@ void gk20a_runlist_hw_submit(struct gk20a *g, u32 runlist_id,
 	struct fifo_runlist_info_gk20a *runlist = NULL;
 	u64 runlist_iova;
 
-	runlist = &g->fifo.runlist_info[runlist_id];
+	runlist = g->fifo.runlist_info[runlist_id];
 	runlist_iova = nvgpu_mem_get_addr(g, &runlist->mem[buffer_index]);
 
 	nvgpu_spinlock_acquire(&g->fifo.runlist_submit_lock);

@@ -281,7 +281,7 @@ static bool gk20a_runlist_modify_active_locked(struct gk20a *g, u32 runlist_id,
 	struct fifo_runlist_info_gk20a *runlist = NULL;
 	struct tsg_gk20a *tsg = NULL;
 
-	runlist = &f->runlist_info[runlist_id];
+	runlist = f->runlist_info[runlist_id];
 	tsg = tsg_gk20a_from_ch(ch);
 
 	if (tsg == NULL) {
@@ -326,7 +326,7 @@ static int gk20a_runlist_reconstruct_locked(struct gk20a *g, u32 runlist_id,
 	struct fifo_gk20a *f = &g->fifo;
 	struct fifo_runlist_info_gk20a *runlist = NULL;
 
-	runlist = &f->runlist_info[runlist_id];
+	runlist = f->runlist_info[runlist_id];
 
 	nvgpu_log_info(g, "runlist_id : %d, switch to new buffer 0x%16llx",
 		runlist_id, (u64)nvgpu_mem_get_addr(g, &runlist->mem[buf_id]));
@@ -372,7 +372,7 @@ int gk20a_runlist_update_locked(struct gk20a *g, u32 runlist_id,
 		add_entries = add;
 	}
 
-	runlist = &f->runlist_info[runlist_id];
+	runlist = f->runlist_info[runlist_id];
 	/* double buffering, swap to next */
 	buf_id = runlist->cur_buffer == 0U ? 1U : 0U;
 
@@ -412,7 +412,7 @@ int nvgpu_fifo_reschedule_runlist(struct channel_gk20a *ch, bool preempt_next,
 	int mutex_ret = 0;
 	int ret = 0;
 
-	runlist = &g->fifo.runlist_info[ch->runlist_id];
+	runlist = g->fifo.runlist_info[ch->runlist_id];
 	if (nvgpu_mutex_tryacquire(&runlist->runlist_lock) == 0) {
 		return -EBUSY;
 	}
@@ -465,7 +465,7 @@ static int gk20a_runlist_update(struct gk20a *g, u32 runlist_id,
 
 	nvgpu_log_fn(g, " ");
 
-	runlist = &f->runlist_info[runlist_id];
+	runlist = f->runlist_info[runlist_id];
 
 	nvgpu_mutex_acquire(&runlist->runlist_lock);
 
@@ -588,7 +588,7 @@ void gk20a_fifo_delete_runlist(struct fifo_gk20a *f)
 	g = f->g;
 
 	for (runlist_id = 0; runlist_id < f->max_runlists; runlist_id++) {
-		runlist = &f->runlist_info[runlist_id];
+		runlist = f->runlist_info[runlist_id];
 		for (i = 0; i < MAX_RUNLIST_BUFFERS; i++) {
 			nvgpu_dma_free(g, &runlist->mem[i]);
 		}
@@ -600,10 +600,9 @@ void gk20a_fifo_delete_runlist(struct fifo_gk20a *f)
 		runlist->active_tsgs = NULL;
 
 		nvgpu_mutex_destroy(&runlist->runlist_lock);
-
+		nvgpu_kfree(g, runlist);
+		f->runlist_info[runlist_id] = NULL;
 	}
-	(void) memset(f->runlist_info, 0,
-		(sizeof(struct fifo_runlist_info_gk20a) * f->max_runlists));
 
 	nvgpu_kfree(g, f->runlist_info);
 	f->runlist_info = NULL;
@@ -622,14 +621,18 @@ int nvgpu_init_runlist(struct gk20a *g, struct fifo_gk20a *f)
 
 	f->max_runlists = g->ops.runlist.count_max();
 	f->runlist_info = nvgpu_kzalloc(g,
-					sizeof(struct fifo_runlist_info_gk20a) *
+					sizeof(struct fifo_runlist_info_gk20a *) *
 					f->max_runlists);
 	if (f->runlist_info == NULL) {
 		goto clean_up_runlist;
 	}
 
 	for (runlist_id = 0; runlist_id < f->max_runlists; runlist_id++) {
-		runlist = &f->runlist_info[runlist_id];
+		runlist = nvgpu_kzalloc(g, sizeof(*runlist));
+		if (runlist == NULL) {
+			goto clean_up_runlist;
+		}
+		f->runlist_info[runlist_id] = runlist;
 
 		runlist->active_channels =
 			nvgpu_kzalloc(g, DIV_ROUND_UP(f->num_channels,
