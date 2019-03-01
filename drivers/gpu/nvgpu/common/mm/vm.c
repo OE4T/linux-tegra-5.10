@@ -37,6 +37,7 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/nvgpu_sgt.h>
 #include <nvgpu/vgpu/vm_vgpu.h>
+#include <nvgpu/cbc.h>
 
 #include "gk20a/mm_gk20a.h"
 
@@ -1003,7 +1004,7 @@ struct nvgpu_mapped_buf *nvgpu_vm_map(struct vm_gk20a *vm,
 			if (g->ops.cbc.ctrl != NULL) {
 				if (gk20a_comptags_start_clear(os_buf)) {
 					err = g->ops.cbc.ctrl(
-						g, gk20a_cbc_op_clear,
+						g, nvgpu_cbc_op_clear,
 						comptags.offset,
 						(comptags.offset +
 						 comptags.lines - 1U));

@@ -27,6 +27,12 @@
 
 struct gk20a;
 
+enum nvgpu_cbc_op {
+	nvgpu_cbc_op_clear,
+	nvgpu_cbc_op_clean,
+	nvgpu_cbc_op_invalidate,
+};
+
 int nvgpu_cbc_alloc(struct gk20a *g, size_t compbit_backing_size,
 			bool vidmem_alloc);
 

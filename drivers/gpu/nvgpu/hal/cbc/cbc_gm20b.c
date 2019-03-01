@@ -108,7 +108,7 @@ int gm20b_cbc_alloc_comptags(struct gk20a *g, struct gr_gk20a *gr)
 	return 0;
 }
 
-int gm20b_cbc_ctrl(struct gk20a *g, enum gk20a_cbc_op op,
+int gm20b_cbc_ctrl(struct gk20a *g, enum nvgpu_cbc_op op,
 		       u32 min, u32 max)
 {
 	struct gr_gk20a *gr = &g->gr;
@@ -137,7 +137,7 @@ int gm20b_cbc_ctrl(struct gk20a *g, enum gk20a_cbc_op op,
 
 		nvgpu_log_info(g, "clearing CBC lines %u..%u", min, iter_max);
 
-		if (op == gk20a_cbc_op_clear) {
+		if (op == nvgpu_cbc_op_clear) {
 			gk20a_writel(
 				g, ltc_ltcs_ltss_cbc_ctrl2_r(),
 				ltc_ltcs_ltss_cbc_ctrl2_clear_lower_bound_f(
@@ -148,10 +148,10 @@ int gm20b_cbc_ctrl(struct gk20a *g, enum gk20a_cbc_op op,
 					iter_max));
 			hw_op = ltc_ltcs_ltss_cbc_ctrl1_clear_active_f();
 			full_cache_op = false;
-		} else if (op == gk20a_cbc_op_clean) {
+		} else if (op == nvgpu_cbc_op_clean) {
 			/* this is full-cache op */
 			hw_op = ltc_ltcs_ltss_cbc_ctrl1_clean_active_f();
-		} else if (op == gk20a_cbc_op_invalidate) {
+		} else if (op == nvgpu_cbc_op_invalidate) {
 			/* this is full-cache op */
 			hw_op = ltc_ltcs_ltss_cbc_ctrl1_invalidate_active_f();
 		} else {
@@ -265,7 +265,7 @@ void gm20b_cbc_init(struct gk20a *g, struct gr_gk20a *gr)
 
 	gr->compbit_store.base_hw = compbit_base_post_divide;
 
-	g->ops.cbc.ctrl(g, gk20a_cbc_op_invalidate,
+	g->ops.cbc.ctrl(g, nvgpu_cbc_op_invalidate,
 			    0, max_comptag_lines - 1U);
 
 }

@@ -39,7 +39,7 @@ void gv11b_cbc_init(struct gk20a *g, struct gr_gk20a *gr)
 
 	g->ops.fb.cbc_configure(g, gr);
 
-	g->ops.cbc.ctrl(g, gk20a_cbc_op_invalidate,
+	g->ops.cbc.ctrl(g, nvgpu_cbc_op_invalidate,
 			0, max_comptag_lines - 1U);
 
 }

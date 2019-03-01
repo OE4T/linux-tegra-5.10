@@ -91,6 +91,7 @@ enum nvgpu_nvlink_minion_dlcmd;
 #include <nvgpu/ecc.h>
 #include <nvgpu/tsg.h>
 #include <nvgpu/sec2.h>
+#include <nvgpu/cbc.h>
 
 #include "gk20a/clk_gk20a.h"
 #include "gk20a/fifo_gk20a.h"
@@ -107,12 +108,6 @@ struct railgate_stats {
 	unsigned long railgating_cycle_count;
 };
 #endif
-
-enum gk20a_cbc_op {
-	gk20a_cbc_op_clear,
-	gk20a_cbc_op_clean,
-	gk20a_cbc_op_invalidate,
-};
 
 #define MC_INTR_UNIT_DISABLE	false
 #define MC_INTR_UNIT_ENABLE		true
@@ -240,7 +235,7 @@ struct gpu_ops {
 		void (*init)(struct gk20a *g, struct gr_gk20a *gr);
 		u64 (*get_base_divisor)(struct gk20a *g);
 		int (*alloc_comptags)(struct gk20a *g, struct gr_gk20a *gr);
-		int (*ctrl)(struct gk20a *g, enum gk20a_cbc_op op,
+		int (*ctrl)(struct gk20a *g, enum nvgpu_cbc_op op,
 				u32 min, u32 max);
 		u32 (*fix_config)(struct gk20a *g, int base);
 	} cbc;

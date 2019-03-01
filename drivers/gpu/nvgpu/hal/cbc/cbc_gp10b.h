@@ -28,6 +28,6 @@ struct gpu_ops;
 #include <nvgpu/types.h>
 
 int gp10b_cbc_alloc_comptags(struct gk20a *g, struct gr_gk20a *gr);
-int gp10b_cbc_ctrl(struct gk20a *g, enum gk20a_cbc_op op,
+int gp10b_cbc_ctrl(struct gk20a *g, enum nvgpu_cbc_op op,
 		       u32 min, u32 max);
 #endif

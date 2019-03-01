@@ -25,13 +25,13 @@
 
 #include <nvgpu/types.h>
 
-enum gk20a_cbc_op;
+enum nvgpu_cbc_op;
 struct gk20a;
 struct gr_gk20a;
 
 u64 tu104_cbc_get_base_divisor(struct gk20a *g);
 int tu104_cbc_alloc_comptags(struct gk20a *g, struct gr_gk20a *gr);
-int tu104_cbc_ctrl(struct gk20a *g, enum gk20a_cbc_op op,
+int tu104_cbc_ctrl(struct gk20a *g, enum nvgpu_cbc_op op,
 		       u32 min, u32 max);
 void tu104_cbc_init(struct gk20a *g, struct gr_gk20a *gr);
 
