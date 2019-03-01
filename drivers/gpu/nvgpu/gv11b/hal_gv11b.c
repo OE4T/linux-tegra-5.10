@@ -1001,6 +1001,7 @@ static const struct gpu_ops gv11b_ops = {
 			gm20b_priv_set_timeout_settings,
 		.enum_ltc = gm20b_priv_ring_enum_ltc,
 		.get_gpc_count = gm20b_priv_ring_get_gpc_count,
+		.get_fbp_count = gm20b_priv_ring_get_fbp_count,
 	},
 	.fuse = {
 		.check_priv_security = gp10b_fuse_check_priv_security,

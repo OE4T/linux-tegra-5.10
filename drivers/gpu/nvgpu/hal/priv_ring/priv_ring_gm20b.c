@@ -143,3 +143,11 @@ u32 gm20b_priv_ring_get_gpc_count(struct gk20a *g)
 	tmp = nvgpu_readl(g, pri_ringmaster_enum_gpc_r());
 	return pri_ringmaster_enum_gpc_count_v(tmp);
 }
+
+u32 gm20b_priv_ring_get_fbp_count(struct gk20a *g)
+{
+	u32 tmp;
+
+	tmp = nvgpu_readl(g, pri_ringmaster_enum_fbp_r());
+	return pri_ringmaster_enum_fbp_count_v(tmp);
+}

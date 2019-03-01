@@ -66,7 +66,6 @@
 #include <nvgpu/hw/gk20a/hw_fifo_gk20a.h>
 #include <nvgpu/hw/gk20a/hw_gr_gk20a.h>
 #include <nvgpu/hw/gk20a/hw_ram_gk20a.h>
-#include <nvgpu/hw/gk20a/hw_pri_ringmaster_gk20a.h>
 
 #define BLK_SIZE (256U)
 #define NV_PERF_PMM_FBP_ROUTER_STRIDE 0x0200U
@@ -2346,16 +2345,13 @@ static void gk20a_remove_gr_support(struct gr_gk20a *gr)
 static int gr_gk20a_init_gr_config(struct gk20a *g, struct gr_gk20a *gr)
 {
 	u32 sm_per_tpc = nvgpu_get_litter_value(g, GPU_LIT_NUM_SM_PER_TPC);
-	u32 tmp;
 
 	gr->config = nvgpu_gr_config_init(g);
 	if (gr->config == NULL) {
 		return -ENOMEM;
 	}
 
-	tmp = gk20a_readl(g, pri_ringmaster_enum_fbp_r());
-	gr->num_fbps = pri_ringmaster_enum_fbp_count_v(tmp);
-
+	gr->num_fbps = g->ops.priv_ring.get_fbp_count(g);
 	gr->max_fbps_count = g->ops.top.get_max_fbps_count(g);
 
 	gr->fbp_en_mask = g->ops.gr.get_fbp_en_mask(g);
@@ -6178,7 +6174,8 @@ static int gr_gk20a_create_hwpm_ctxsw_buffer_offset_map(struct gk20a *g)
 	u32 ltc_stride = nvgpu_get_litter_value(g, GPU_LIT_LTC_STRIDE);
 	u32 num_fbpas = nvgpu_get_litter_value(g, GPU_LIT_NUM_FBPAS);
 	u32 fbpa_stride = nvgpu_get_litter_value(g, GPU_LIT_FBPA_STRIDE);
-	u32 num_ltc = g->ops.top.get_max_ltc_per_fbp(g) * g->gr.num_fbps;
+	u32 num_ltc = g->ops.top.get_max_ltc_per_fbp(g) *
+		      g->ops.priv_ring.get_fbp_count(g);
 
 	if (hwpm_ctxsw_buffer_size == 0U) {
 		nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gpu_dbg,
