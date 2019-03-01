@@ -355,10 +355,7 @@ struct gpu_ops {
 				struct gk20a_debug_output *o);
 		int (*update_pc_sampling)(struct channel_gk20a *ch,
 					   bool enable);
-		u32 (*get_max_fbps_count)(struct gk20a *g);
 		u32 (*get_fbp_en_mask)(struct gk20a *g);
-		u32 (*get_max_ltc_per_fbp)(struct gk20a *g);
-		u32 (*get_max_lts_per_ltc)(struct gk20a *g);
 		u32* (*get_rop_l2_en_mask)(struct gk20a *g);
 		void (*init_sm_dsm_reg_info)(void);
 		void (*init_ovr_sm_dsm_perf)(void);
@@ -1601,6 +1598,9 @@ struct gpu_ops {
 		u32 (*get_ce_inst_id)(struct gk20a *g, u32 engine_type);
 		u32 (*get_max_gpc_count)(struct gk20a *g);
 		u32 (*get_max_tpc_per_gpc_count)(struct gk20a *g);
+		u32 (*get_max_fbps_count)(struct gk20a *g);
+		u32 (*get_max_ltc_per_fbp)(struct gk20a *g);
+		u32 (*get_max_lts_per_ltc)(struct gk20a *g);
 	} top;
 	struct {
 		void (*acr_sw_init)(struct gk20a *g, struct nvgpu_acr *acr);

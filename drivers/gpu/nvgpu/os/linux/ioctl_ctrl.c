@@ -335,10 +335,10 @@ gk20a_ctrl_ioctl_gpu_characteristics(
 	gpu.gpu_va_bit_count = 40;
 
 	strlcpy(gpu.chipname, g->name, sizeof(gpu.chipname));
-	gpu.max_fbps_count = g->ops.gr.get_max_fbps_count(g);
+	gpu.max_fbps_count = g->ops.top.get_max_fbps_count(g);
 	gpu.fbp_en_mask = g->ops.gr.get_fbp_en_mask(g);
-	gpu.max_ltc_per_fbp =  g->ops.gr.get_max_ltc_per_fbp(g);
-	gpu.max_lts_per_ltc = g->ops.gr.get_max_lts_per_ltc(g);
+	gpu.max_ltc_per_fbp =  g->ops.top.get_max_ltc_per_fbp(g);
+	gpu.max_lts_per_ltc = g->ops.top.get_max_lts_per_ltc(g);
 	gpu.gr_compbit_store_base_hw = g->gr.compbit_store.base_hw;
 	gpu.gr_gobs_per_comptagline_per_slice =
 		g->gr.gobs_per_comptagline_per_slice;

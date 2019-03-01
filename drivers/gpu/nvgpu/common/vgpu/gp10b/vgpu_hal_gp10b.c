@@ -78,7 +78,6 @@
 
 #include <nvgpu/vgpu/ce_vgpu.h>
 
-#include <nvgpu/hw/gp10b/hw_top_gp10b.h>
 #include <nvgpu/hw/gp10b/hw_pram_gp10b.h>
 #include <nvgpu/hw/gp10b/hw_pwr_gp10b.h>
 
@@ -148,10 +147,7 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 		.dump_gr_regs = NULL,
 		.update_pc_sampling = vgpu_gr_update_pc_sampling,
 		.get_fbp_en_mask = vgpu_gr_get_fbp_en_mask,
-		.get_max_ltc_per_fbp = vgpu_gr_get_max_ltc_per_fbp,
-		.get_max_lts_per_ltc = vgpu_gr_get_max_lts_per_ltc,
 		.get_rop_l2_en_mask = vgpu_gr_rop_l2_en_mask,
-		.get_max_fbps_count = vgpu_gr_get_max_fbps_count,
 		.init_sm_dsm_reg_info = gr_gm20b_init_sm_dsm_reg_info,
 		.wait_empty = NULL,
 		.init_cyclestats = vgpu_gr_init_cyclestats,
@@ -673,6 +669,11 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 	.acr = {
 		.acr_sw_init = NULL,
 	},
+	.top = {
+		.get_max_fbps_count = vgpu_gr_get_max_fbps_count,
+		.get_max_ltc_per_fbp = vgpu_gr_get_max_ltc_per_fbp,
+		.get_max_lts_per_ltc = vgpu_gr_get_max_lts_per_ltc,
+	},
 	.chip_init_gpu_characteristics = vgpu_init_gpu_characteristics,
 	.get_litter_value = gp10b_get_litter_value,
 };
@@ -723,6 +724,7 @@ int vgpu_gp10b_init_hal(struct gk20a *g)
 
 	gops->fuse = vgpu_gp10b_ops.fuse;
 	gops->acr = vgpu_gp10b_ops.acr;
+	gops->top = vgpu_gp10b_ops.top;
 
 	/* Lone Functions */
 	gops->chip_init_gpu_characteristics =

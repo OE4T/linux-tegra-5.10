@@ -535,7 +535,7 @@ static void gm20b_ltc_update_ltc_lts_addr(struct gk20a *g, u32 addr, u32 ltc_num
 					u32 *priv_addr_table,
 					u32 *priv_addr_table_index)
 {
-	u32 num_ltc_slices = g->ops.gr.get_max_lts_per_ltc(g);
+	u32 num_ltc_slices = g->ops.top.get_max_lts_per_ltc(g);
 	u32 index = *priv_addr_table_index;
 	u32 lts_num;
 	u32 ltc_stride = nvgpu_get_litter_value(g, GPU_LIT_LTC_STRIDE);

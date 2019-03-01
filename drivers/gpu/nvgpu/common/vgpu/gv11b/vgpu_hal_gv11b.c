@@ -97,7 +97,6 @@
 #include "vgpu_subctx_gv11b.h"
 #include "vgpu_tsg_gv11b.h"
 
-#include <nvgpu/hw/gv11b/hw_top_gv11b.h>
 #include <nvgpu/hw/gv11b/hw_pwr_gv11b.h>
 
 static const struct gpu_ops vgpu_gv11b_ops = {
@@ -165,10 +164,7 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 		.dump_gr_regs = NULL,
 		.update_pc_sampling = vgpu_gr_update_pc_sampling,
 		.get_fbp_en_mask = vgpu_gr_get_fbp_en_mask,
-		.get_max_ltc_per_fbp = vgpu_gr_get_max_ltc_per_fbp,
-		.get_max_lts_per_ltc = vgpu_gr_get_max_lts_per_ltc,
 		.get_rop_l2_en_mask = vgpu_gr_rop_l2_en_mask,
-		.get_max_fbps_count = vgpu_gr_get_max_fbps_count,
 		.init_sm_dsm_reg_info = gv11b_gr_init_sm_dsm_reg_info,
 		.wait_empty = NULL,
 		.init_cyclestats = vgpu_gr_init_cyclestats,
@@ -745,6 +741,11 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 		.read_vin_cal_slope_intercept_fuse = NULL,
 		.read_vin_cal_gain_offset_fuse = NULL,
 	},
+	.top = {
+		.get_max_fbps_count = vgpu_gr_get_max_fbps_count,
+		.get_max_ltc_per_fbp = vgpu_gr_get_max_ltc_per_fbp,
+		.get_max_lts_per_ltc = vgpu_gr_get_max_lts_per_ltc,
+	},
 	.chip_init_gpu_characteristics = vgpu_gv11b_init_gpu_characteristics,
 	.get_litter_value = gv11b_get_litter_value,
 };
@@ -791,6 +792,7 @@ int vgpu_gv11b_init_hal(struct gk20a *g)
 	gops->falcon = vgpu_gv11b_ops.falcon;
 	gops->priv_ring = vgpu_gv11b_ops.priv_ring;
 	gops->fuse = vgpu_gv11b_ops.fuse;
+	gops->top = vgpu_gv11b_ops.top;
 
 	/* Lone functions */
 	gops->chip_init_gpu_characteristics =

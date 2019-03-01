@@ -221,3 +221,27 @@ u32 gm20b_top_get_max_tpc_per_gpc_count(struct gk20a *g)
 	tmp = nvgpu_readl(g, top_tpc_per_gpc_r());
 	return top_tpc_per_gpc_value_v(tmp);
 }
+
+u32 gm20b_top_get_max_fbps_count(struct gk20a *g)
+{
+	u32 tmp;
+
+	tmp = nvgpu_readl(g, top_num_fbps_r());
+	return top_num_fbps_value_v(tmp);
+}
+
+u32 gm20b_top_get_max_ltc_per_fbp(struct gk20a *g)
+{
+	u32 tmp;
+
+	tmp = nvgpu_readl(g,  top_ltc_per_fbp_r());
+	return top_ltc_per_fbp_value_v(tmp);
+}
+
+u32 gm20b_top_get_max_lts_per_ltc(struct gk20a *g)
+{
+	u32 tmp;
+
+	tmp = nvgpu_readl(g,  top_slices_per_ltc_r());
+	return top_slices_per_ltc_value_v(tmp);
+}

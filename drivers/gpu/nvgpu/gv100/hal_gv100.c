@@ -391,10 +391,7 @@ static const struct gpu_ops gv100_ops = {
 		.dump_gr_regs = gr_gv11b_dump_gr_status_regs,
 		.update_pc_sampling = gr_gm20b_update_pc_sampling,
 		.get_fbp_en_mask = gr_gm20b_get_fbp_en_mask,
-		.get_max_ltc_per_fbp = gr_gm20b_get_max_ltc_per_fbp,
-		.get_max_lts_per_ltc = gr_gm20b_get_max_lts_per_ltc,
 		.get_rop_l2_en_mask = gr_gm20b_rop_l2_en_mask,
-		.get_max_fbps_count = gr_gm20b_get_max_fbps_count,
 		.init_sm_dsm_reg_info = gv11b_gr_init_sm_dsm_reg_info,
 		.wait_empty = gr_gv11b_wait_empty,
 		.init_cyclestats = gr_gm20b_init_cyclestats,
@@ -1157,6 +1154,9 @@ static const struct gpu_ops gv100_ops = {
 		.get_max_gpc_count = gm20b_top_get_max_gpc_count,
 		.get_max_tpc_per_gpc_count =
 			gm20b_top_get_max_tpc_per_gpc_count,
+		.get_max_fbps_count = gm20b_top_get_max_fbps_count,
+		.get_max_ltc_per_fbp = gm20b_top_get_max_ltc_per_fbp,
+		.get_max_lts_per_ltc = gm20b_top_get_max_lts_per_ltc,
 	},
 	.acr = {
 		.acr_sw_init = nvgpu_gv100_acr_sw_init,

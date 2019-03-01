@@ -101,10 +101,7 @@ int gr_gm20b_dump_gr_status_regs(struct gk20a *g,
 int gr_gm20b_update_pc_sampling(struct channel_gk20a *c,
 				       bool enable);
 u32 gr_gm20b_get_fbp_en_mask(struct gk20a *g);
-u32 gr_gm20b_get_max_ltc_per_fbp(struct gk20a *g);
-u32 gr_gm20b_get_max_lts_per_ltc(struct gk20a *g);
 u32 *gr_gm20b_rop_l2_en_mask(struct gk20a *g);
-u32 gr_gm20b_get_max_fbps_count(struct gk20a *g);
 void gr_gm20b_init_cyclestats(struct gk20a *g);
 void gr_gm20b_bpt_reg_info(struct gk20a *g, struct nvgpu_warpstate *w_state);
 void gr_gm20b_get_access_map(struct gk20a *g,
