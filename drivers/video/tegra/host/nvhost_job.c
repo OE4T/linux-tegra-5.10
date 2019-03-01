@@ -3,7 +3,7 @@
  *
  * Tegra Graphics Host Job
  *
- * Copyright (c) 2010-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2010-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -310,7 +310,7 @@ static int pin_array_ids(struct platform_device *dev,
 			goto clean_up_map;
 		}
 
-		if (!device_is_iommuable(&dev->dev) && sgt->nents > 1) {
+		if (dev->dev.archdata.iommu == NULL && sgt->nents > 1U) {
 			dev_err(&dev->dev, "Cannot use non-contiguous buffer w/ IOMMU disabled\n");
 			err = -EINVAL;
 			goto clean_up_iommu;

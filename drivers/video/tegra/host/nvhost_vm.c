@@ -190,11 +190,12 @@ static inline bool nvhost_vm_can_be_reused(
 	void *identifier)
 {
 	struct nvhost_device_data *pdata = platform_get_drvdata(pdev);
+	bool pdev_iommu = pdev->dev.archdata.iommu != NULL;
+	bool vm_iommu = vm->pdev->dev.archdata.iommu != NULL;
 
 	return vm->identifier == identifier &&
 		vm->enable_hw == pdata->isolate_contexts &&
-		device_is_iommuable(&pdev->dev) ==
-		    device_is_iommuable(&vm->pdev->dev);
+		pdev_iommu == vm_iommu;
 }
 
 struct nvhost_vm *nvhost_vm_allocate(struct platform_device *pdev,

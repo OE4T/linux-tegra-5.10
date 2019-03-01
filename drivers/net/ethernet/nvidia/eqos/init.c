@@ -949,7 +949,7 @@ int eqos_probe(struct platform_device *pdev)
 	pr_debug("============================================================\n");
 
 	/* Check if IOMMU is enabled for EQOS */
-	if (device_is_iommuable(&pdev->dev)) {
+	if (pdev->dev.archdata.iommu != NULL) {
 
 		/* Read and set dma-mask from DT only if IOMMU is enabled*/
 		ret = of_property_read_u64(node, "dma-mask", &dma_mask);

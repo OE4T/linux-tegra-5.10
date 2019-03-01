@@ -749,7 +749,7 @@ int nvhost_module_init(struct platform_device *dev)
 		pm_runtime_use_autosuspend(&dev->dev);
 	}
 
-	if (!device_is_iommuable(&dev->dev)) {
+	if (dev->dev.archdata.iommu == NULL) {
 		pdata->isolate_contexts = false;
 		dev_info(&dev->dev, "context isolation disabled due to no IOMMU");
 	}

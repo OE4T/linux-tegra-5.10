@@ -160,9 +160,8 @@ static void __nvmap_dmabuf_del_stash(struct nvmap_handle_sgt *nvmap_sgt)
 
 static inline bool access_vpr_phys(struct device *dev)
 {
-	if (!device_is_iommuable(dev)) {
+	if (dev->archdata.iommu == NULL)
 		return true;
-	}
 
 	/*
 	 * Assumes gpu nodes always have DT entry, this is valid as device

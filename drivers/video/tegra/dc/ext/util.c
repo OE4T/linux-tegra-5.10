@@ -1,7 +1,7 @@
 /*
  * util.c: Utility functions for tegradc ext interface.
  *
- * Copyright (c) 2011-2018, NVIDIA CORPORATION, All rights reserved.
+ * Copyright (c) 2011-2019, NVIDIA CORPORATION, All rights reserved.
  *
  * Author: Robert Morell <rmorell@nvidia.com>
  *
@@ -30,6 +30,7 @@ int tegra_dc_ext_pin_window(struct tegra_dc_ext_user *user, u32 fd,
 {
 	struct tegra_dc_ext *ext = user->ext;
 	struct tegra_dc_dmabuf *dc_dmabuf;
+	struct device *parent = ext->dev->parent;
 	dma_addr_t dma_addr;
 
 	*dc_buf = NULL;
@@ -45,7 +46,7 @@ int tegra_dc_ext_pin_window(struct tegra_dc_ext_user *user, u32 fd,
 	if (IS_ERR_OR_NULL(dc_dmabuf->buf))
 		goto buf_fail;
 
-	dc_dmabuf->attach = dma_buf_attach(dc_dmabuf->buf, ext->dev->parent);
+	dc_dmabuf->attach = dma_buf_attach(dc_dmabuf->buf, parent);
 	if (IS_ERR_OR_NULL(dc_dmabuf->attach))
 		goto attach_fail;
 
@@ -54,9 +55,9 @@ int tegra_dc_ext_pin_window(struct tegra_dc_ext_user *user, u32 fd,
 	if (IS_ERR_OR_NULL(dc_dmabuf->sgt))
 		goto sgt_fail;
 
-	if (!device_is_iommuable(ext->dev->parent) &&
-			sg_nents(dc_dmabuf->sgt->sgl) > 1) {
-		dev_err(ext->dev->parent,
+	if (parent->archdata.iommu == NULL &&
+	    sg_nents(dc_dmabuf->sgt->sgl) > 1) {
+		dev_err(parent,
 			"Cannot use non-contiguous buffer w/ IOMMU disabled\n");
 		goto iommu_fail;
 	}
