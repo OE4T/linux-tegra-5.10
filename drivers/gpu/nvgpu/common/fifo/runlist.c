@@ -626,10 +626,11 @@ void gk20a_fifo_delete_runlist(struct fifo_gk20a *f)
 
 		nvgpu_mutex_destroy(&runlist->runlist_lock);
 		f->runlist_info[runlist->runlist_id] = NULL;
-		nvgpu_kfree(g, runlist);
 	}
 
 	nvgpu_kfree(g, f->active_runlist_info);
+	f->active_runlist_info = NULL;
+	f->num_runlists = 0;
 	nvgpu_kfree(g, f->runlist_info);
 	f->runlist_info = NULL;
 	f->max_runlists = 0;
