@@ -183,8 +183,8 @@ static int add_ctxsw_buffer_map_entries_subunits(
 				struct ctxsw_buf_offset_map_entry *map,
 				struct netlist_aiv_list *regs,
 				u32 *count, u32 *offset,
-				u32 max_cnt, u32 base,
-				u32 num_units, u32 stride, u32 mask)
+				u32 max_cnt, u32 base, u32 num_units,
+				u32 active_unit_mask, u32 stride, u32 mask)
 {
 	u32 unit;
 	u32 idx;
@@ -198,26 +198,18 @@ static int add_ctxsw_buffer_map_entries_subunits(
 	/* Data is interleaved for units in ctxsw buffer */
 	for (idx = 0; idx < regs->count; idx++) {
 		for (unit = 0; unit < num_units; unit++) {
-			map[cnt].addr = base + (regs->l[idx].addr & mask) +
-					(unit * stride);
-			map[cnt++].offset = off;
-			off += 4U;
+			if ((active_unit_mask & BIT32(unit)) != 0U) {
+				map[cnt].addr = base +
+						(regs->l[idx].addr & mask) +
+						(unit * stride);
+				map[cnt++].offset = off;
+				off += 4U;
+			}
 		}
 	}
 	*count = cnt;
 	*offset = off;
 	return 0;
-}
-
-int gr_gk20a_add_ctxsw_reg_pm_fbpa(struct gk20a *g,
-				struct ctxsw_buf_offset_map_entry *map,
-				struct netlist_aiv_list *regs,
-				u32 *count, u32 *offset,
-				u32 max_cnt, u32 base,
-				u32 num_fbpas, u32 stride, u32 mask)
-{
-	return add_ctxsw_buffer_map_entries_subunits(map, regs, count, offset,
-			max_cnt, base, num_fbpas, stride, mask);
 }
 
 static int add_ctxsw_buffer_map_entries_gpcs(struct gk20a *g,
@@ -238,8 +230,8 @@ static int add_ctxsw_buffer_map_entries_gpcs(struct gk20a *g,
 		base = gpc_base + (gpc_stride * gpc_num) + tpc_in_gpc_base;
 		if (add_ctxsw_buffer_map_entries_subunits(map,
 					&g->netlist_vars->ctxsw_regs.pm_tpc,
-					count, offset, max_cnt, base, num_tpcs,
-					tpc_in_gpc_stride,
+					count, offset, max_cnt, base,
+					num_tpcs, ~U32(0U), tpc_in_gpc_stride,
 					(tpc_in_gpc_stride - 1U)) != 0) {
 			return -EINVAL;
 		}
@@ -249,7 +241,7 @@ static int add_ctxsw_buffer_map_entries_gpcs(struct gk20a *g,
 		if (add_ctxsw_buffer_map_entries_subunits(map,
 					&g->netlist_vars->ctxsw_regs.pm_ppc,
 					count, offset, max_cnt, base, num_ppcs,
-					ppc_in_gpc_stride,
+					~U32(0U), ppc_in_gpc_stride,
 					(ppc_in_gpc_stride - 1U)) != 0) {
 			return -EINVAL;
 		}
@@ -290,7 +282,7 @@ static int add_ctxsw_buffer_map_entries_gpcs(struct gk20a *g,
 			if (add_ctxsw_buffer_map_entries_subunits(map,
 					&g->netlist_vars->ctxsw_regs.pm_cau,
 					count, offset, max_cnt, base, num_tpcs,
-					tpc_in_gpc_stride,
+					~U32(0U), tpc_in_gpc_stride,
 					(tpc_in_gpc_stride - 1U)) != 0) {
 				return -EINVAL;
 			}
@@ -376,6 +368,7 @@ static int nvgpu_gr_hwpm_map_create(struct gk20a *g,
 	u32 i, count = 0;
 	u32 offset = 0;
 	int ret;
+	u32 active_fbpa_mask;
 	u32 ltc_stride = nvgpu_get_litter_value(g, GPU_LIT_LTC_STRIDE);
 	u32 num_fbpas = nvgpu_get_litter_value(g, GPU_LIT_NUM_FBPAS);
 	u32 fbpa_stride = nvgpu_get_litter_value(g, GPU_LIT_FBPA_STRIDE);
@@ -420,9 +413,8 @@ static int nvgpu_gr_hwpm_map_create(struct gk20a *g,
 
 	/* Add entries from _LIST_nv_perf_pma_ctx_reg*/
 	ret = add_ctxsw_buffer_map_entries(map,
-					&g->netlist_vars->ctxsw_regs.perf_pma,
-					&count, &offset,
-					hwpm_ctxsw_reg_count_max, 0, ~U32(0U));
+			&g->netlist_vars->ctxsw_regs.perf_pma, &count, &offset,
+			hwpm_ctxsw_reg_count_max, 0, ~U32(0U));
 	if (ret != 0) {
 		goto cleanup;
 	}
@@ -431,48 +423,49 @@ static int nvgpu_gr_hwpm_map_create(struct gk20a *g,
 
 	/* Add entries from _LIST_nv_perf_fbp_ctx_regs */
 	if (add_ctxsw_buffer_map_entries_subunits(map,
-					&g->netlist_vars->ctxsw_regs.fbp,
-					&count, &offset,
-					hwpm_ctxsw_reg_count_max, 0,
-					g->gr.num_fbps,
-					g->ops.perf.get_pmm_per_chiplet_offset(),
-					~U32(0U)) != 0) {
+			&g->netlist_vars->ctxsw_regs.fbp, &count, &offset,
+			hwpm_ctxsw_reg_count_max, 0, g->gr.num_fbps, ~U32(0U),
+			g->ops.perf.get_pmm_per_chiplet_offset(),
+			~U32(0U)) != 0) {
 		goto cleanup;
 	}
 
 	/* Add entries from _LIST_nv_perf_fbprouter_ctx_regs */
 	if (add_ctxsw_buffer_map_entries_subunits(map,
-					&g->netlist_vars->ctxsw_regs.fbp_router,
-					&count, &offset,
-					hwpm_ctxsw_reg_count_max, 0, g->gr.num_fbps,
-					NV_PERF_PMM_FBP_ROUTER_STRIDE, ~U32(0U)) != 0) {
+			&g->netlist_vars->ctxsw_regs.fbp_router,
+			&count, &offset, hwpm_ctxsw_reg_count_max, 0,
+			g->gr.num_fbps, ~U32(0U), NV_PERF_PMM_FBP_ROUTER_STRIDE,
+			~U32(0U)) != 0) {
 		goto cleanup;
 	}
 
+	if (g->ops.gr.hwpm_map.get_active_fbpa_mask) {
+		active_fbpa_mask = g->ops.gr.hwpm_map.get_active_fbpa_mask(g);
+	} else {
+		active_fbpa_mask = ~U32(0U);
+	}
+
 	/* Add entries from _LIST_nv_pm_fbpa_ctx_regs */
-	ret = g->ops.gr.add_ctxsw_reg_pm_fbpa(g, map,
-					&g->netlist_vars->ctxsw_regs.pm_fbpa,
-					&count, &offset,
-					hwpm_ctxsw_reg_count_max, 0,
-					num_fbpas, fbpa_stride, ~U32(0U));
-	if (ret != 0) {
+	if (add_ctxsw_buffer_map_entries_subunits(map,
+			&g->netlist_vars->ctxsw_regs.pm_fbpa,
+			&count, &offset, hwpm_ctxsw_reg_count_max, 0,
+			num_fbpas, active_fbpa_mask, fbpa_stride, ~U32(0U))
+				!= 0) {
 		goto cleanup;
 	}
 
 	/* Add entries from _LIST_nv_pm_rop_ctx_regs */
 	if (add_ctxsw_buffer_map_entries(map,
-					&g->netlist_vars->ctxsw_regs.pm_rop,
-					&count, &offset,
-					hwpm_ctxsw_reg_count_max, 0, ~U32(0U)) != 0) {
+			&g->netlist_vars->ctxsw_regs.pm_rop, &count, &offset,
+			hwpm_ctxsw_reg_count_max, 0, ~U32(0U)) != 0) {
 		goto cleanup;
 	}
 
 	/* Add entries from _LIST_compressed_nv_pm_ltc_ctx_regs */
 	if (add_ctxsw_buffer_map_entries_subunits(map,
-					&g->netlist_vars->ctxsw_regs.pm_ltc,
-					&count, &offset,
-					hwpm_ctxsw_reg_count_max, 0,
-					num_ltc, ltc_stride, ~U32(0U)) != 0) {
+			&g->netlist_vars->ctxsw_regs.pm_ltc, &count, &offset,
+			hwpm_ctxsw_reg_count_max, 0, num_ltc, ~U32(0U),
+			ltc_stride, ~U32(0U)) != 0) {
 		goto cleanup;
 	}
 
@@ -480,7 +473,7 @@ static int nvgpu_gr_hwpm_map_create(struct gk20a *g,
 
 	/* Add GPC entries */
 	if (add_ctxsw_buffer_map_entries_gpcs(g, map, &count, &offset,
-					hwpm_ctxsw_reg_count_max) != 0) {
+			hwpm_ctxsw_reg_count_max) != 0) {
 		goto cleanup;
 	}
 

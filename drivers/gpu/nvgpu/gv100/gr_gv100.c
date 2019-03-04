@@ -361,7 +361,7 @@ u32 gr_gv100_get_patch_slots(struct gk20a *g)
 	return size;
 }
 
-static u32 gr_gv100_get_active_fpba_mask(struct gk20a *g)
+static u32 gr_gv100_get_active_fbpa_mask(struct gk20a *g)
 {
 	u32 active_fbpa_mask;
 	u32 num_fbpas;
@@ -381,41 +381,6 @@ static u32 gr_gv100_get_active_fpba_mask(struct gk20a *g)
 	return active_fbpa_mask;
 }
 
-int gr_gv100_add_ctxsw_reg_pm_fbpa(struct gk20a *g,
-				struct ctxsw_buf_offset_map_entry *map,
-				struct netlist_aiv_list *regs,
-				u32 *count, u32 *offset,
-				u32 max_cnt, u32 base,
-				u32 num_fbpas, u32 stride, u32 mask)
-{
-	u32 fbpa_id;
-	u32 idx;
-	u32 cnt = *count;
-	u32 off = *offset;
-	u32 active_fbpa_mask;
-
-	if ((cnt + (regs->count * num_fbpas)) > max_cnt) {
-		return -EINVAL;
-	}
-
-	active_fbpa_mask = gr_gv100_get_active_fpba_mask(g);
-
-	for (idx = 0; idx < regs->count; idx++) {
-		for (fbpa_id = 0; fbpa_id < num_fbpas; fbpa_id++) {
-			if ((active_fbpa_mask & BIT32(fbpa_id)) != 0U) {
-				map[cnt].addr = base +
-						(regs->l[idx].addr & mask) +
-						(fbpa_id * stride);
-				map[cnt++].offset = off;
-				off += 4U;
-			}
-		}
-	}
-	*count = cnt;
-	*offset = off;
-	return 0;
-}
-
 void gr_gv100_split_fbpa_broadcast_addr(struct gk20a *g, u32 addr,
 				      u32 num_fbpas,
 				      u32 *priv_addr_table, u32 *t)
@@ -423,7 +388,7 @@ void gr_gv100_split_fbpa_broadcast_addr(struct gk20a *g, u32 addr,
 	u32 active_fbpa_mask;
 	u32 fbpa_id;
 
-	active_fbpa_mask = gr_gv100_get_active_fpba_mask(g);
+	active_fbpa_mask = gr_gv100_get_active_fbpa_mask(g);
 
 	for (fbpa_id = 0; fbpa_id < num_fbpas; fbpa_id++) {
 		if ((active_fbpa_mask & BIT32(fbpa_id)) != 0U) {

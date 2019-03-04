@@ -638,6 +638,7 @@ struct gpu_ops {
 
 		struct {
 			void (*align_regs_perf_pma)(u32 *offset);
+			u32 (*get_active_fbpa_mask)(struct gk20a *g);
 		} hwpm_map;
 
 		u32 (*fecs_falcon_base_addr)(void);

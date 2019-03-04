@@ -33,12 +33,6 @@ void gr_gv100_program_sm_id_numbering(struct gk20a *g,
 					u32 gpc, u32 tpc, u32 smid);
 int gr_gv100_load_smid_config(struct gk20a *g);
 u32 gr_gv100_get_patch_slots(struct gk20a *g);
-int gr_gv100_add_ctxsw_reg_pm_fbpa(struct gk20a *g,
-				struct ctxsw_buf_offset_map_entry *map,
-				struct netlist_aiv_list *regs,
-				u32 *count, u32 *offset,
-				u32 max_cnt, u32 base,
-				u32 num_fbpas, u32 stride, u32 mask);
 void gr_gv100_split_fbpa_broadcast_addr(struct gk20a *g, u32 addr,
 	u32 num_fbpas,
 	u32 *priv_addr_table, u32 *t);

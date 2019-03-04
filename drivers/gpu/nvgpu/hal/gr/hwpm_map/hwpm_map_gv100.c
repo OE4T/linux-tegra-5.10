@@ -20,6 +20,7 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
+#include <nvgpu/gk20a.h>
 #include <nvgpu/types.h>
 #include <nvgpu/bitops.h>
 
@@ -28,4 +29,24 @@
 void gv100_gr_hwpm_map_align_regs_perf_pma(u32 *offset)
 {
 	*offset = ALIGN(*offset, 256);
+}
+
+u32 gv100_gr_hwpm_map_get_active_fbpa_mask(struct gk20a *g)
+{
+	u32 active_fbpa_mask;
+	u32 num_fbpas;
+
+	num_fbpas = g->ops.top.get_max_fbpas_count(g);
+
+	/*
+	 * Read active fbpa mask from fuse
+	 * Note that 0:enable and 1:disable in value read from fuse so we've to
+	 * flip the bits.
+	 * Also set unused bits to zero
+	 */
+	active_fbpa_mask = g->ops.fuse.fuse_status_opt_fbio(g);
+	active_fbpa_mask = ~active_fbpa_mask;
+	active_fbpa_mask = active_fbpa_mask & (BIT32(num_fbpas) - 1U);
+
+	return active_fbpa_mask;
 }
