@@ -1247,7 +1247,7 @@ int gv100_init_hal(struct gk20a *g)
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_ZBC_STENCIL, true);
 
 	/* for now */
-	nvgpu_set_enabled(g, NVGPU_PMU_PSTATE, true);
+	nvgpu_set_enabled(g, NVGPU_PMU_PSTATE, false);
 
 	g->pmu_lsf_pmu_wpr_init_done = 0;
 	gops->clk.split_rail_support = false;
