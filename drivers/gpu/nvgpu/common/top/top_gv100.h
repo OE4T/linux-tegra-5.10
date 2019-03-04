@@ -34,4 +34,6 @@ void gv100_top_set_nvhsclk_ctrl_e_clk_nvl(struct gk20a *g, u32 val);
 u32 gv100_top_get_nvhsclk_ctrl_swap_clk_nvl(struct gk20a *g);
 void gv100_top_set_nvhsclk_ctrl_swap_clk_nvl(struct gk20a *g, u32 val);
 
+u32 gv100_top_get_max_fbpas_count(struct gk20a *g);
+
 #endif

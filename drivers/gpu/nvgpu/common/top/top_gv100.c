@@ -64,3 +64,11 @@ void gv100_top_set_nvhsclk_ctrl_swap_clk_nvl(struct gk20a *g, u32 val)
 				top_nvhsclk_ctrl_swap_clk_nvl_f(val));
 	nvgpu_writel(g, top_nvhsclk_ctrl_r(), reg);
 }
+
+u32 gv100_top_get_max_fbpas_count(struct gk20a *g)
+{
+	u32 tmp;
+
+	tmp = nvgpu_readl(g, top_num_fbpas_r());
+	return top_num_fbpas_value_v(tmp);
+}

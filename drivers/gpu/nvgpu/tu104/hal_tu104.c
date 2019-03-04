@@ -76,6 +76,7 @@
 #include "common/nvdec/nvdec_tu104.h"
 #include "common/top/top_gm20b.h"
 #include "common/top/top_gp10b.h"
+#include "common/top/top_gv100.h"
 #include "common/nvlink/init/device_reginit_gv100.h"
 #include "common/nvlink/intr_and_err_handling_gv100.h"
 #include "hal/nvlink/minion_gv100.h"
@@ -1209,6 +1210,7 @@ static const struct gpu_ops tu104_ops = {
 		.get_max_tpc_per_gpc_count =
 			gm20b_top_get_max_tpc_per_gpc_count,
 		.get_max_fbps_count = gm20b_top_get_max_fbps_count,
+		.get_max_fbpas_count = gv100_top_get_max_fbpas_count,
 		.get_max_ltc_per_fbp = gm20b_top_get_max_ltc_per_fbp,
 		.get_max_lts_per_ltc = gm20b_top_get_max_lts_per_ltc,
 	},

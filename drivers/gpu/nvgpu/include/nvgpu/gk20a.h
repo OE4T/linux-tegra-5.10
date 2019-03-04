@@ -1619,6 +1619,7 @@ struct gpu_ops {
 		u32 (*get_max_gpc_count)(struct gk20a *g);
 		u32 (*get_max_tpc_per_gpc_count)(struct gk20a *g);
 		u32 (*get_max_fbps_count)(struct gk20a *g);
+		u32 (*get_max_fbpas_count)(struct gk20a *g);
 		u32 (*get_max_ltc_per_fbp)(struct gk20a *g);
 		u32 (*get_max_lts_per_ltc)(struct gk20a *g);
 	} top;

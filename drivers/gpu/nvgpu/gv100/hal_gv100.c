@@ -1163,6 +1163,7 @@ static const struct gpu_ops gv100_ops = {
 		.get_max_tpc_per_gpc_count =
 			gm20b_top_get_max_tpc_per_gpc_count,
 		.get_max_fbps_count = gm20b_top_get_max_fbps_count,
+		.get_max_fbpas_count = gv100_top_get_max_fbpas_count,
 		.get_max_ltc_per_fbp = gm20b_top_get_max_ltc_per_fbp,
 		.get_max_lts_per_ltc = gm20b_top_get_max_lts_per_ltc,
 	},

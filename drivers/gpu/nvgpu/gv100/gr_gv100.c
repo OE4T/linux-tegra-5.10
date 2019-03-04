@@ -38,7 +38,6 @@
 
 #include <nvgpu/hw/gv100/hw_gr_gv100.h>
 #include <nvgpu/hw/gv100/hw_proj_gv100.h>
-#include <nvgpu/hw/gv100/hw_top_gv100.h>
 #include <nvgpu/hw/gv100/hw_perf_gv100.h>
 
 
@@ -365,10 +364,9 @@ u32 gr_gv100_get_patch_slots(struct gk20a *g)
 static u32 gr_gv100_get_active_fpba_mask(struct gk20a *g)
 {
 	u32 active_fbpa_mask;
-	u32 num_fbpas, val;
+	u32 num_fbpas;
 
-	val = nvgpu_readl(g, top_num_fbpas_r());
-	num_fbpas = top_num_fbpas_value_v(val);
+	num_fbpas = g->ops.top.get_max_fbpas_count(g);
 
 	/*
 	 * Read active fbpa mask from fuse
