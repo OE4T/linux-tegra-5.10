@@ -65,6 +65,7 @@ struct nvgpu_gr_ctx_desc;
 struct nvgpu_gr_global_ctx_buffer_desc;
 struct nvgpu_gr_global_ctx_local_golden_image;
 struct nvgpu_gr_zbc;
+struct nvgpu_gr_hwpm_map;
 
 enum ctxsw_addr_type;
 
@@ -182,9 +183,6 @@ struct gr_gk20a {
 		bool golden_image_initialized;
 		u32 golden_image_size;
 
-		u32 hwpm_ctxsw_buffer_offset_map_count;
-		struct ctxsw_buf_offset_map_entry *hwpm_ctxsw_buffer_offset_map;
-
 		u32 zcull_ctxsw_image_size;
 
 		u32 pm_ctxsw_image_size;
@@ -243,6 +241,8 @@ struct gr_gk20a {
 	struct nvgpu_gr_ctx_desc *gr_ctx_desc;
 
 	struct nvgpu_gr_config *config;
+
+	struct nvgpu_gr_hwpm_map *hwpm_map;
 
 	u32 max_comptag_mem; /* max memory size (MB) for comptag */
 	struct compbit_store_desc compbit_store;

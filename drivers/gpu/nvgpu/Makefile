@@ -96,6 +96,7 @@ nvgpu-y += \
 	common/gr/zbc/gr_zbc_gm20b.o \
 	common/gr/zbc/gr_zbc_gp10b.o \
 	common/gr/zbc/gr_zbc_gv11b.o \
+	common/gr/hwpm_map.o \
 	common/netlist/netlist.o \
 	common/netlist/netlist_sim.o \
 	common/netlist/netlist_gm20b.o \
