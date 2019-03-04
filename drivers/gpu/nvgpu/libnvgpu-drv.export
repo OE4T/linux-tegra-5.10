@@ -36,6 +36,7 @@ gm20b_mm_set_big_page_size
 gp10b_fb_compression_page_size
 gp10b_init_bar2_vm
 gp10b_mm_get_default_big_page_size
+gp10b_mm_get_iommu_bit
 gp10b_mm_get_mmu_levels
 gp10b_mm_init_pdb
 gp10b_remove_bar2_vm
@@ -67,10 +68,12 @@ nvgpu_alloc_pte
 nvgpu_alloc_release_carveout
 nvgpu_alloc_reserve_carveout
 nvgpu_alloc_space
+nvgpu_aperture_mask
 nvgpu_bar1_readl
 nvgpu_bar1_writel
 nvgpu_dma_alloc
 nvgpu_dma_alloc_get_fault_injection
+nvgpu_dma_alloc_vid_at
 nvgpu_dma_free
 nvgpu_free
 nvgpu_free_enabled_flags
@@ -89,9 +92,15 @@ nvgpu_kmem_cache_create
 nvgpu_kmem_cache_destroy
 nvgpu_kmem_cache_free
 nvgpu_kmem_get_fault_injection
+nvgpu_memset
+nvgpu_mem_create_from_phys
 nvgpu_mem_iommu_translate
+nvgpu_mem_is_sysmem
 nvgpu_mem_posix_create_from_list
+nvgpu_mem_rd
 nvgpu_mem_rd32
+nvgpu_mem_rd32_pair
+nvgpu_mem_rd_n
 nvgpu_mem_sgl_dma
 nvgpu_mem_sgl_gpu_addr
 nvgpu_mem_sgl_length
@@ -100,7 +109,9 @@ nvgpu_mem_sgl_phys
 nvgpu_mem_sgt_free
 nvgpu_mem_sgt_iommuable
 nvgpu_mem_sgt_posix_create_from_list
+nvgpu_mem_wr
 nvgpu_mem_wr32
+nvgpu_mem_wr_n
 nvgpu_mutex_acquire
 nvgpu_mutex_destroy
 nvgpu_mutex_init

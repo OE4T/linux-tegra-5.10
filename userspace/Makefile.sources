@@ -58,6 +58,7 @@ UNITS :=				\
 	$(UNIT_SRC)/mm/gmmu/pd_cache	\
 	$(UNIT_SRC)/mm/gmmu/page_table	\
 	$(UNIT_SRC)/mm/page_table_faults \
+	$(UNIT_SRC)/mm/nvgpu_mem	\
 	$(UNIT_SRC)/fifo/runlist	\
 	$(UNIT_SRC)/list		\
 	$(UNIT_SRC)/enabled		\

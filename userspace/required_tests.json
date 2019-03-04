@@ -204,6 +204,38 @@
         "unit": "nvgpu_allocator"
     },
     {
+        "test": "mem_create_from_phys",
+        "unit": "nvgpu_mem"
+    },
+    {
+        "test": "mem_iommu_translate",
+        "unit": "nvgpu_mem"
+    },
+    {
+        "test": "nvgpu_aperture_mask",
+        "unit": "nvgpu_mem"
+    },
+    {
+        "test": "nvgpu_mem_phys_ops",
+        "unit": "nvgpu_mem"
+    },
+    {
+        "test": "nvgpu_mem_vidmem",
+        "unit": "nvgpu_mem"
+    },
+    {
+        "test": "nvgpu_mem_wr_rd",
+        "unit": "nvgpu_mem"
+    },
+    {
+        "test": "nvgpu_memset_sysmem",
+        "unit": "nvgpu_mem"
+    },
+    {
+        "test": "test_free_nvgpu_mem",
+        "unit": "nvgpu_mem"
+    },
+    {
         "test": "flat",
         "unit": "nvgpu_runlist"
     },
