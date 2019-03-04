@@ -216,11 +216,6 @@ void gv11b_userd_gp_put(struct gk20a *g, struct channel_gk20a *c)
 	g->ops.fifo.ring_channel_doorbell(c);
 }
 
-bool gv11b_is_fault_engine_subid_gpc(struct gk20a *g, u32 engine_subid)
-{
-	return (engine_subid == gmmu_fault_client_type_gpc_v());
-}
-
 void gv11b_capture_channel_ram_dump(struct gk20a *g,
 		struct channel_gk20a *ch,
 		struct nvgpu_channel_dump_info *info)

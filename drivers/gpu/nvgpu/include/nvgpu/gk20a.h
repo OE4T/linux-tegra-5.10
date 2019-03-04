@@ -805,8 +805,6 @@ struct gpu_ops {
 		void (*userd_gp_put)(struct gk20a *g, struct channel_gk20a *ch);
 		u64 (*userd_pb_get)(struct gk20a *g, struct channel_gk20a *ch);
 		void (*free_channel_ctx_header)(struct channel_gk20a *ch);
-		bool (*is_fault_engine_subid_gpc)(struct gk20a *g,
-					 u32 engine_subid);
 		void (*dump_pbdma_status)(struct gk20a *g,
 				struct gk20a_debug_output *o);
 		void (*dump_eng_status)(struct gk20a *g,
@@ -891,6 +889,11 @@ struct gpu_ops {
 		void (*write_state)(struct gk20a *g, u32 runlists_mask,
 				u32 runlist_state);
 	} runlist;
+
+	struct {
+		bool (*is_fault_engine_subid_gpc)(struct gk20a *g,
+					 u32 engine_subid);
+	} engine;
 
 	struct {
 #ifdef CONFIG_TEGRA_GK20A_NVHOST

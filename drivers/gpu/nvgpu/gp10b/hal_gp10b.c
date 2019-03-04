@@ -49,6 +49,7 @@
 #include "hal/cbc/cbc_gp10b.h"
 #include "hal/fuse/fuse_gm20b.h"
 #include "hal/fuse/fuse_gp10b.h"
+#include "hal/fifo/engines_gm20b.h"
 
 #include "common/ptimer/ptimer_gk20a.h"
 #include "common/fb/fb_gm20b.h"
@@ -573,7 +574,6 @@ static const struct gpu_ops gp10b_ops = {
 		.force_reset_ch = gk20a_fifo_force_reset_ch,
 		.init_engine_info = gm20b_fifo_init_engine_info,
 		.get_engines_mask_on_id = gk20a_fifo_engines_on_id,
-		.is_fault_engine_subid_gpc = gk20a_is_fault_engine_subid_gpc,
 		.dump_pbdma_status = gk20a_dump_pbdma_status,
 		.dump_eng_status = gk20a_dump_eng_status,
 		.dump_channel_status_ramfc = gk20a_dump_channel_status_ramfc,
@@ -605,6 +605,9 @@ static const struct gpu_ops gp10b_ops = {
 		.init_ce_engine_info = gp10b_fifo_init_ce_engine_info,
 		.read_pbdma_data = gk20a_fifo_read_pbdma_data,
 		.reset_pbdma_header = gk20a_fifo_reset_pbdma_header,
+	},
+	.engine = {
+		.is_fault_engine_subid_gpc = gm20b_is_fault_engine_subid_gpc,
 	},
 	.sync = {
 #ifdef CONFIG_TEGRA_GK20A_NVHOST
@@ -923,6 +926,7 @@ int gp10b_init_hal(struct gk20a *g)
 	gops->fb = gp10b_ops.fb;
 	gops->clock_gating = gp10b_ops.clock_gating;
 	gops->fifo = gp10b_ops.fifo;
+	gops->engine = gp10b_ops.engine;
 	gops->runlist = gp10b_ops.runlist;
 	gops->channel = gp10b_ops.channel;
 	gops->sync = gp10b_ops.sync;

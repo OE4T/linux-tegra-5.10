@@ -985,11 +985,6 @@ static void gk20a_fifo_handle_dropped_mmu_fault(struct gk20a *g)
 	nvgpu_err(g, "dropped mmu fault (0x%08x)", fault_id);
 }
 
-bool gk20a_is_fault_engine_subid_gpc(struct gk20a *g, u32 engine_subid)
-{
-	return (engine_subid == fifo_intr_mmu_fault_info_engine_subid_gpc_v());
-}
-
 bool gk20a_fifo_should_defer_engine_reset(struct gk20a *g, u32 engine_id,
 		u32 engine_subid, bool fake_fault)
 {
@@ -1026,7 +1021,7 @@ bool gk20a_fifo_should_defer_engine_reset(struct gk20a *g, u32 engine_id,
 		return false;
 	}
 
-	return g->ops.fifo.is_fault_engine_subid_gpc(g, engine_subid);
+	return g->ops.engine.is_fault_engine_subid_gpc(g, engine_subid);
 }
 
 void gk20a_fifo_abort_tsg(struct gk20a *g, struct tsg_gk20a *tsg, bool preempt)

@@ -308,7 +308,6 @@ u32 gk20a_fifo_userd_gp_get(struct gk20a *g, struct channel_gk20a *c);
 void gk20a_fifo_userd_gp_put(struct gk20a *g, struct channel_gk20a *c);
 u64 gk20a_fifo_userd_pb_get(struct gk20a *g, struct channel_gk20a *c);
 
-bool gk20a_is_fault_engine_subid_gpc(struct gk20a *g, u32 engine_subid);
 #ifdef CONFIG_DEBUG_FS
 struct fifo_profile_gk20a *gk20a_fifo_profile_acquire(struct gk20a *g);
 void gk20a_fifo_profile_release(struct gk20a *g,

@@ -184,7 +184,9 @@ nvgpu-y += \
 	hal/cbc/cbc_tu104.o \
 	hal/fuse/fuse_gm20b.o \
 	hal/fuse/fuse_gp10b.o \
-	hal/fuse/fuse_gp106.o
+	hal/fuse/fuse_gp106.o \
+	hal/fifo/engines_gm20b.o \
+	hal/fifo/engines_gv11b.o
 
 # Linux specific parts of nvgpu.
 nvgpu-y += \
