@@ -51,6 +51,38 @@
 #define PMU_PGENG_GR_BUFFER_IDX_ZBC		(1)
 #define PMU_PGENG_GR_BUFFER_IDX_FECS	(2)
 
+static void pmu_setup_hw_enable_elpg(struct gk20a *g)
+{
+	struct nvgpu_pmu *pmu = &g->pmu;
+
+	nvgpu_log_fn(g, " ");
+
+	pmu->initialized = true;
+	nvgpu_pmu_state_change(g, PMU_STATE_STARTED, false);
+
+	if (nvgpu_is_enabled(g, NVGPU_PMU_ZBC_SAVE)) {
+		/* Save zbc table after PMU is initialized. */
+		pmu->zbc_ready = true;
+		g->ops.pmu.save_zbc(g, 0xf);
+	}
+
+	if (g->elpg_enabled) {
+		/* Init reg with prod values*/
+		if (g->ops.pmu.pmu_setup_elpg != NULL) {
+			g->ops.pmu.pmu_setup_elpg(g);
+		}
+		nvgpu_pmu_enable_elpg(g);
+	}
+
+	nvgpu_udelay(50);
+
+	/* Enable AELPG */
+	if (g->aelpg_enabled) {
+		nvgpu_aelpg_init(g);
+		nvgpu_aelpg_init_and_enable(g, PMU_AP_CTRL_ID_GRAPHICS);
+	}
+}
+
 static void pmu_handle_pg_elpg_msg(struct gk20a *g, struct pmu_msg *msg,
 			void *param, u32 handle, u32 status)
 {
@@ -61,7 +93,6 @@ static void pmu_handle_pg_elpg_msg(struct gk20a *g, struct pmu_msg *msg,
 
 	if (status != 0U) {
 		nvgpu_err(g, "ELPG cmd aborted");
-		/* TBD: disable ELPG */
 		return;
 	}
 
@@ -181,12 +212,12 @@ static int pmu_enable_elpg_locked(struct gk20a *g, u8 pg_engine_id)
 
 	nvgpu_pmu_dbg(g, "cmd post PMU_PG_ELPG_CMD_ALLOW");
 	status = nvgpu_pmu_cmd_post(g, &cmd, NULL, NULL,
-		PMU_COMMAND_QUEUE_HPQ, pmu_handle_pg_elpg_msg,
-		pmu, &seq);
+			PMU_COMMAND_QUEUE_HPQ, pmu_handle_pg_elpg_msg,
+			pmu, &seq);
 
 	if (status != 0) {
 		nvgpu_log_fn(g, "pmu_enable_elpg_locked FAILED err=%d",
-				status);
+			status);
 	} else {
 		nvgpu_log_fn(g, "done");
 	}
@@ -353,7 +384,7 @@ int nvgpu_pmu_disable_elpg(struct gk20a *g)
 			}
 
 			nvgpu_pmu_dbg(g, "cmd post PMU_PG_ELPG_CMD_DISALLOW");
-			nvgpu_pmu_cmd_post(g, &cmd, NULL, NULL,
+			ret = nvgpu_pmu_cmd_post(g, &cmd, NULL, NULL,
 				PMU_COMMAND_QUEUE_HPQ, pmu_handle_pg_elpg_msg,
 				pmu, &seq);
 
@@ -387,7 +418,6 @@ static void pmu_handle_pg_stat_msg(struct gk20a *g, struct pmu_msg *msg,
 
 	if (status != 0U) {
 		nvgpu_err(g, "ELPG cmd aborted");
-		/* TBD: disable ELPG */
 		return;
 	}
 
@@ -399,7 +429,7 @@ static void pmu_handle_pg_stat_msg(struct gk20a *g, struct pmu_msg *msg,
 		break;
 	default:
 		nvgpu_err(g, "Invalid msg id:%u",
-				msg->msg.pg.stat.sub_msg_id);
+			msg->msg.pg.stat.sub_msg_id);
 		break;
 	}
 }
@@ -536,7 +566,6 @@ static void pmu_handle_pg_buf_config_msg(struct gk20a *g, struct pmu_msg *msg,
 		"reply PMU_PG_CMD_ID_ENG_BUF_LOAD PMU_PGENG_GR_BUFFER_IDX_FECS");
 	if (status != 0U) {
 		nvgpu_err(g, "PGENG cmd aborted");
-		/* TBD: disable ELPG */
 		return;
 	}
 
@@ -658,159 +687,109 @@ int nvgpu_pmu_get_pg_stats(struct gk20a *g, u32 pg_engine_id,
 	return err;
 }
 
-/* AELPG */
-static void ap_callback_init_and_enable_ctrl(
-		struct gk20a *g, struct pmu_msg *msg,
-		void *param, u32 seq_desc, u32 status)
-{
-	/* Define p_ap (i.e pointer to pmu_ap structure) */
-	WARN_ON(msg == NULL);
-
-	if (status == 0U) {
-		switch (msg->msg.pg.ap_msg.cmn.msg_id) {
-		case PMU_AP_MSG_ID_INIT_ACK:
-			nvgpu_pmu_dbg(g, "reply PMU_AP_CMD_ID_INIT");
-			break;
-
-		default:
-			nvgpu_pmu_dbg(g,
-			"%s: Invalid Adaptive Power Message: %x\n",
-			__func__, msg->msg.pg.ap_msg.cmn.msg_id);
-			break;
-		}
-	}
-}
-
-/* Send an Adaptive Power (AP) related command to PMU */
-int nvgpu_pmu_ap_send_command(struct gk20a *g,
-			union pmu_ap_cmd *p_ap_cmd, bool b_block)
+int nvgpu_init_task_pg_init(struct gk20a *g)
 {
 	struct nvgpu_pmu *pmu = &g->pmu;
-	/* FIXME: where is the PG structure defined?? */
-	int status = 0;
-	struct pmu_cmd cmd;
-	u32 seq;
-	pmu_callback p_callback = NULL;
-	u64 tmp;
+	char thread_name[64];
+	int err = 0;
 
-	(void) memset(&cmd, 0, sizeof(struct pmu_cmd));
+	nvgpu_log_fn(g, " ");
 
-	/* Copy common members */
-	cmd.hdr.unit_id = PMU_UNIT_PG;
-	tmp = PMU_CMD_HDR_SIZE + sizeof(union pmu_ap_cmd);
-	nvgpu_assert(tmp <= U8_MAX);
-	cmd.hdr.size = (u8)tmp;
+	nvgpu_cond_init(&pmu->pg_init.wq);
 
-	cmd.cmd.pg.ap_cmd.cmn.cmd_type = PMU_PG_CMD_ID_AP;
-	cmd.cmd.pg.ap_cmd.cmn.cmd_id = p_ap_cmd->cmn.cmd_id;
+	(void) snprintf(thread_name, sizeof(thread_name),
+				"nvgpu_pg_init_%s", g->name);
 
-	/* Copy other members of command */
-	switch (p_ap_cmd->cmn.cmd_id) {
-	case PMU_AP_CMD_ID_INIT:
-		nvgpu_pmu_dbg(g, "cmd post PMU_AP_CMD_ID_INIT");
-		cmd.cmd.pg.ap_cmd.init.pg_sampling_period_us =
-			p_ap_cmd->init.pg_sampling_period_us;
-		break;
-
-	case PMU_AP_CMD_ID_INIT_AND_ENABLE_CTRL:
-		nvgpu_pmu_dbg(g, "cmd post PMU_AP_CMD_ID_INIT_AND_ENABLE_CTRL");
-		cmd.cmd.pg.ap_cmd.init_and_enable_ctrl.ctrl_id =
-		p_ap_cmd->init_and_enable_ctrl.ctrl_id;
-		nvgpu_memcpy(
-			(u8 *)&(cmd.cmd.pg.ap_cmd.init_and_enable_ctrl.params),
-			(u8 *)&(p_ap_cmd->init_and_enable_ctrl.params),
-			sizeof(struct pmu_ap_ctrl_init_params));
-
-		p_callback = ap_callback_init_and_enable_ctrl;
-		break;
-
-	case PMU_AP_CMD_ID_ENABLE_CTRL:
-		nvgpu_pmu_dbg(g, "cmd post PMU_AP_CMD_ID_ENABLE_CTRL");
-		cmd.cmd.pg.ap_cmd.enable_ctrl.ctrl_id =
-			p_ap_cmd->enable_ctrl.ctrl_id;
-		break;
-
-	case PMU_AP_CMD_ID_DISABLE_CTRL:
-		nvgpu_pmu_dbg(g, "cmd post PMU_AP_CMD_ID_DISABLE_CTRL");
-		cmd.cmd.pg.ap_cmd.disable_ctrl.ctrl_id =
-			p_ap_cmd->disable_ctrl.ctrl_id;
-		break;
-
-	case PMU_AP_CMD_ID_KICK_CTRL:
-		nvgpu_pmu_dbg(g, "cmd post PMU_AP_CMD_ID_KICK_CTRL");
-		cmd.cmd.pg.ap_cmd.kick_ctrl.ctrl_id =
-			p_ap_cmd->kick_ctrl.ctrl_id;
-		cmd.cmd.pg.ap_cmd.kick_ctrl.skip_count =
-			p_ap_cmd->kick_ctrl.skip_count;
-		break;
-
-	default:
-		nvgpu_pmu_dbg(g, "%s: Invalid Adaptive Power command %d\n",
-			__func__, p_ap_cmd->cmn.cmd_id);
-		status = 0x2f;
-		break;
+	err = nvgpu_thread_create(&pmu->pg_init.state_task, g,
+			nvgpu_pg_init_task, thread_name);
+	if (err != 0) {
+		nvgpu_err(g, "failed to start nvgpu_pg_init thread");
 	}
-
-	if (status != 0) {
-		goto err_return;
-	}
-
-	status = nvgpu_pmu_cmd_post(g, &cmd, NULL, NULL, PMU_COMMAND_QUEUE_HPQ,
-			p_callback, pmu, &seq);
-
-	if (status != 0) {
-		nvgpu_pmu_dbg(g,
-			"%s: Unable to submit Adaptive Power Command %d\n",
-			__func__, p_ap_cmd->cmn.cmd_id);
-		goto err_return;
-	}
-
-	/* TODO: Implement blocking calls (b_block) */
-
-err_return:
-	return status;
+	return err;
 }
 
-int nvgpu_aelpg_init(struct gk20a *g)
+void nvgpu_kill_task_pg_init(struct gk20a *g)
 {
-	int status = 0;
+	struct nvgpu_pmu *pmu = &g->pmu;
+	struct nvgpu_timeout timeout;
 
-	/* Remove reliance on app_ctrl field. */
-	union pmu_ap_cmd ap_cmd;
+	/* make sure the pending operations are finished before we continue */
+	if (nvgpu_thread_is_running(&pmu->pg_init.state_task)) {
 
-	/* TODO: Check for elpg being ready? */
-	ap_cmd.init.cmd_id = PMU_AP_CMD_ID_INIT;
-	ap_cmd.init.pg_sampling_period_us = g->pmu.aelpg_param[0];
+		/* post PMU_STATE_EXIT to exit PMU state machine loop */
+		nvgpu_pmu_state_change(g, PMU_STATE_EXIT, true);
 
-	status = nvgpu_pmu_ap_send_command(g, &ap_cmd, false);
-	return status;
+		/* Make thread stop*/
+		nvgpu_thread_stop(&pmu->pg_init.state_task);
+
+		/* wait to confirm thread stopped */
+		nvgpu_timeout_init(g, &timeout, 1000, NVGPU_TIMER_RETRY_TIMER);
+		do {
+			if (!nvgpu_thread_is_running(&pmu->pg_init.state_task)) {
+				break;
+			}
+			nvgpu_udelay(2);
+		} while (nvgpu_timeout_expired_msg(&timeout,
+			"timeout - waiting PMU state machine thread stop") == 0);
+	} else {
+		nvgpu_thread_join(&pmu->pg_init.state_task);
+	}
 }
 
-int nvgpu_aelpg_init_and_enable(struct gk20a *g, u8 ctrl_id)
+int nvgpu_pg_init_task(void *arg)
 {
-	int status = 0;
-	union pmu_ap_cmd ap_cmd;
+	struct gk20a *g = (struct gk20a *)arg;
+	struct nvgpu_pmu *pmu = &g->pmu;
+	struct nvgpu_pg_init *pg_init = &pmu->pg_init;
+	u32 pmu_state = 0;
 
-	/* TODO: Probably check if ELPG is ready? */
-	ap_cmd.init_and_enable_ctrl.cmd_id = PMU_AP_CMD_ID_INIT_AND_ENABLE_CTRL;
-	ap_cmd.init_and_enable_ctrl.ctrl_id = ctrl_id;
-	ap_cmd.init_and_enable_ctrl.params.min_idle_filter_us =
-			g->pmu.aelpg_param[1];
-	ap_cmd.init_and_enable_ctrl.params.min_target_saving_us =
-			g->pmu.aelpg_param[2];
-	ap_cmd.init_and_enable_ctrl.params.power_break_even_us =
-			g->pmu.aelpg_param[3];
-	ap_cmd.init_and_enable_ctrl.params.cycles_per_sample_max =
-			g->pmu.aelpg_param[4];
+	nvgpu_log_fn(g, "thread start");
 
-	switch (ctrl_id) {
-	case PMU_AP_CTRL_ID_GRAPHICS:
-		break;
-	default:
-		nvgpu_err(g, "Invalid ctrl_id:%u for %s", ctrl_id, __func__);
-		break;
+	while (true) {
+
+		NVGPU_COND_WAIT_INTERRUPTIBLE(&pg_init->wq,
+			(pg_init->state_change == true), 0U);
+
+		pmu->pg_init.state_change = false;
+		pmu_state = NV_ACCESS_ONCE(pmu->pmu_state);
+
+		if (pmu_state == PMU_STATE_EXIT) {
+			nvgpu_pmu_dbg(g, "pmu state exit");
+			break;
+		}
+
+		switch (pmu_state) {
+		case PMU_STATE_INIT_RECEIVED:
+			nvgpu_pmu_dbg(g, "pmu starting");
+			if (g->can_elpg) {
+				nvgpu_pmu_init_powergating(g);
+			}
+			break;
+		case PMU_STATE_ELPG_BOOTED:
+			nvgpu_pmu_dbg(g, "elpg booted");
+			nvgpu_pmu_init_bind_fecs(g);
+			break;
+		case PMU_STATE_LOADING_PG_BUF:
+			nvgpu_pmu_dbg(g, "loaded pg buf");
+			nvgpu_pmu_setup_hw_load_zbc(g);
+			break;
+		case PMU_STATE_LOADING_ZBC:
+			nvgpu_pmu_dbg(g, "loaded zbc");
+			pmu_setup_hw_enable_elpg(g);
+			nvgpu_pmu_dbg(g, "PMU booted, thread exiting");
+			return 0;
+		default:
+			nvgpu_pmu_dbg(g, "invalid state");
+			break;
+		}
+
 	}
 
-	status = nvgpu_pmu_ap_send_command(g, &ap_cmd, true);
-	return status;
+	while (!nvgpu_thread_should_stop(&pg_init->state_task)) {
+		nvgpu_usleep_range(5000, 5100);
+	}
+
+	nvgpu_log_fn(g, "thread exit");
+
+	return 0;
 }

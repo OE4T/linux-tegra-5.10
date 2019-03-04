@@ -21,6 +21,7 @@
  */
 
 #include <nvgpu/pmu.h>
+#include <nvgpu/pmu/pmu_pg.h>
 #include <nvgpu/dma.h>
 #include <nvgpu/log.h>
 #include <nvgpu/pmuif/nvgpu_gpmu_cmdif.h>
@@ -34,8 +35,6 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/string.h>
 #include <nvgpu/power_features/cg.h>
-
-static int nvgpu_pg_init_task(void *arg);
 
 static int pmu_enable_hw(struct nvgpu_pmu *pmu, bool enable)
 {
@@ -120,56 +119,6 @@ int nvgpu_pmu_reset(struct gk20a *g)
 exit:
 	nvgpu_log_fn(g, " %s Done, status - %d ", g->name, err);
 	return err;
-}
-
-static int nvgpu_init_task_pg_init(struct gk20a *g)
-{
-	struct nvgpu_pmu *pmu = &g->pmu;
-	char thread_name[64];
-	int err = 0;
-
-	nvgpu_log_fn(g, " ");
-
-	nvgpu_cond_init(&pmu->pg_init.wq);
-
-	(void) snprintf(thread_name, sizeof(thread_name),
-				"nvgpu_pg_init_%s", g->name);
-
-	err = nvgpu_thread_create(&pmu->pg_init.state_task, g,
-			nvgpu_pg_init_task, thread_name);
-	if (err != 0) {
-		nvgpu_err(g, "failed to start nvgpu_pg_init thread");
-	}
-
-	return err;
-}
-
-void nvgpu_kill_task_pg_init(struct gk20a *g)
-{
-	struct nvgpu_pmu *pmu = &g->pmu;
-	struct nvgpu_timeout timeout;
-
-	/* make sure the pending operations are finished before we continue */
-	if (nvgpu_thread_is_running(&pmu->pg_init.state_task)) {
-
-		/* post PMU_STATE_EXIT to exit PMU state machine loop */
-		nvgpu_pmu_state_change(g, PMU_STATE_EXIT, true);
-
-		/* Make thread stop*/
-		nvgpu_thread_stop(&pmu->pg_init.state_task);
-
-		/* wait to confirm thread stopped */
-		nvgpu_timeout_init(g, &timeout, 1000, NVGPU_TIMER_RETRY_TIMER);
-		do {
-			if (!nvgpu_thread_is_running(&pmu->pg_init.state_task)) {
-				break;
-			}
-			nvgpu_udelay(2);
-		} while (nvgpu_timeout_expired_msg(&timeout,
-			"timeout - waiting PMU state machine thread stop") == 0);
-	} else {
-		nvgpu_thread_join(&pmu->pg_init.state_task);
-	}
 }
 
 static int nvgpu_init_pmu_setup_sw(struct gk20a *g)
@@ -560,38 +509,6 @@ exit:
 	return err;
 }
 
-static void pmu_setup_hw_enable_elpg(struct gk20a *g)
-{
-	struct nvgpu_pmu *pmu = &g->pmu;
-
-	nvgpu_log_fn(g, " ");
-
-	pmu->initialized = true;
-	nvgpu_pmu_state_change(g, PMU_STATE_STARTED, false);
-
-	if (nvgpu_is_enabled(g, NVGPU_PMU_ZBC_SAVE)) {
-		/* Save zbc table after PMU is initialized. */
-		pmu->zbc_ready = true;
-		g->ops.pmu.save_zbc(g, 0xf);
-	}
-
-	if (g->can_elpg && g->elpg_enabled) {
-		/* Init reg with prod values*/
-		if (g->ops.pmu.pmu_setup_elpg != NULL) {
-			g->ops.pmu.pmu_setup_elpg(g);
-		}
-		nvgpu_pmu_enable_elpg(g);
-	}
-
-	nvgpu_udelay(50);
-
-	/* Enable AELPG */
-	if (g->aelpg_enabled) {
-		nvgpu_aelpg_init(g);
-		nvgpu_aelpg_init_and_enable(g, PMU_AP_CTRL_ID_GRAPHICS);
-	}
-}
-
 void nvgpu_pmu_state_change(struct gk20a *g, u32 pmu_state,
 		bool post_change_event)
 {
@@ -608,64 +525,6 @@ void nvgpu_pmu_state_change(struct gk20a *g, u32 pmu_state,
 
 	/* make status visible */
 	nvgpu_smp_mb();
-}
-
-static int nvgpu_pg_init_task(void *arg)
-{
-	struct gk20a *g = (struct gk20a *)arg;
-	struct nvgpu_pmu *pmu = &g->pmu;
-	struct nvgpu_pg_init *pg_init = &pmu->pg_init;
-	u32 pmu_state = 0;
-
-	nvgpu_log_fn(g, "thread start");
-
-	while (true) {
-
-		NVGPU_COND_WAIT_INTERRUPTIBLE(&pg_init->wq,
-			(pg_init->state_change == true), 0U);
-
-		pmu->pg_init.state_change = false;
-		pmu_state = NV_ACCESS_ONCE(pmu->pmu_state);
-
-		if (pmu_state == PMU_STATE_EXIT) {
-			nvgpu_pmu_dbg(g, "pmu state exit");
-			break;
-		}
-
-		switch (pmu_state) {
-		case PMU_STATE_INIT_RECEIVED:
-			nvgpu_pmu_dbg(g, "pmu starting");
-			if (g->can_elpg) {
-				nvgpu_pmu_init_powergating(g);
-			}
-			break;
-		case PMU_STATE_ELPG_BOOTED:
-			nvgpu_pmu_dbg(g, "elpg booted");
-			nvgpu_pmu_init_bind_fecs(g);
-			break;
-		case PMU_STATE_LOADING_PG_BUF:
-			nvgpu_pmu_dbg(g, "loaded pg buf");
-			nvgpu_pmu_setup_hw_load_zbc(g);
-			break;
-		case PMU_STATE_LOADING_ZBC:
-			nvgpu_pmu_dbg(g, "loaded zbc");
-			pmu_setup_hw_enable_elpg(g);
-			nvgpu_pmu_dbg(g, "PMU booted, thread exiting");
-			return 0;
-		default:
-			nvgpu_pmu_dbg(g, "invalid state");
-			break;
-		}
-
-	}
-
-	while (!nvgpu_thread_should_stop(&pg_init->state_task)) {
-		nvgpu_usleep_range(5000, 5100);
-	}
-
-	nvgpu_log_fn(g, "thread exit");
-
-	return 0;
 }
 
 int nvgpu_pmu_destroy(struct gk20a *g)

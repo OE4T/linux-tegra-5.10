@@ -113,7 +113,8 @@ nvgpu-y += \
 	common/pmu/pmu.o \
 	common/pmu/pmu_ipc.o \
 	common/pmu/pmu_fw.o \
-	common/pmu/pmu_pg.o \
+	common/pmu/pg/pmu_pg.o \
+	common/pmu/pg/pmu_aelpg.o \
 	common/pmu/pmu_perfmon.o \
 	common/pmu/pmu_super_surface.o \
 	common/pmu/pmu_debug.o \

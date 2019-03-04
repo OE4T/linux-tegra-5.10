@@ -27,14 +27,14 @@
 #include <nvgpu/nvgpu_mem.h>
 #include <nvgpu/allocator.h>
 #include <nvgpu/lock.h>
-#include <nvgpu/cond.h>
-#include <nvgpu/thread.h>
 #include <nvgpu/nvgpu_common.h>
 #include <nvgpu/flcnif_cmn.h>
 #include <nvgpu/pmuif/nvgpu_gpmu_cmdif.h>
 #include <nvgpu/pmuif/gpmu_super_surf_if.h>
 #include <nvgpu/falcon.h>
 #include <nvgpu/engine_mem_queue.h>
+#include <nvgpu/timers.h>
+#include <nvgpu/pmu/pmu_pg.h>
 
 #define nvgpu_pmu_dbg(g, fmt, args...) \
 	nvgpu_log(g, gpu_dbg_pmu, fmt, ##args)
@@ -319,12 +319,6 @@ struct pmu_sequence {
 	u16 fbq_out_offset_in_queue_element;
 };
 
-struct nvgpu_pg_init {
-	bool state_change;
-	struct nvgpu_cond wq;
-	struct nvgpu_thread state_task;
-};
-
 struct nvgpu_pmu {
 	struct gk20a *g;
 	struct nvgpu_falcon *flcn;
@@ -429,15 +423,6 @@ struct pmu_surface {
 	struct flcn_mem_desc_v0 params;
 };
 
-/*PG defines used by nvpgu-pmu*/
-struct pmu_pg_stats_data {
-	u32 gating_cnt;
-	u32 ingating_time;
-	u32 ungating_time;
-	u32 avg_entry_latency_us;
-	u32 avg_exit_latency_us;
-};
-
 /*!
  * Structure/object which single register write need to be done during PG init
  * sequence to set PROD values.
@@ -499,7 +484,6 @@ int nvgpu_pmu_super_surface_alloc(struct gk20a *g,
 
 void nvgpu_pmu_state_change(struct gk20a *g, u32 pmu_state,
 	bool post_change_event);
-void nvgpu_kill_task_pg_init(struct gk20a *g);
 
 /* NVGPU-PMU MEM alloc */
 void nvgpu_pmu_surface_free(struct gk20a *g, struct nvgpu_mem *mem);
@@ -514,27 +498,8 @@ int nvgpu_pmu_sysmem_surface_alloc(struct gk20a *g, struct nvgpu_mem *mem,
 int nvgpu_early_init_pmu_sw(struct gk20a *g, struct nvgpu_pmu *pmu);
 int nvgpu_pmu_prepare_ns_ucode_blob(struct gk20a *g);
 
-/* PG init*/
-int nvgpu_pmu_init_powergating(struct gk20a *g);
-int nvgpu_pmu_init_bind_fecs(struct gk20a *g);
-void nvgpu_pmu_setup_hw_load_zbc(struct gk20a *g);
-
 /* PMU reset */
 int nvgpu_pmu_reset(struct gk20a *g);
-
-/* PG enable/disable */
-int nvgpu_pmu_enable_elpg(struct gk20a *g);
-int nvgpu_pmu_disable_elpg(struct gk20a *g);
-int nvgpu_pmu_pg_global_enable(struct gk20a *g, bool enable_pg);
-
-int nvgpu_pmu_get_pg_stats(struct gk20a *g, u32 pg_engine_id,
-	struct pmu_pg_stats_data *pg_stat_data);
-
-/* AELPG */
-int nvgpu_aelpg_init(struct gk20a *g);
-int nvgpu_aelpg_init_and_enable(struct gk20a *g, u8 ctrl_id);
-int nvgpu_pmu_ap_send_command(struct gk20a *g,
-		union pmu_ap_cmd *p_ap_cmd, bool b_block);
 
 /* PMU debug */
 void nvgpu_pmu_dump_falcon_stats(struct nvgpu_pmu *pmu);
