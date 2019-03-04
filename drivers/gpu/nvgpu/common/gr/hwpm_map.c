@@ -301,15 +301,6 @@ static int add_ctxsw_buffer_map_entries_gpcs(struct gk20a *g,
 	return 0;
 }
 
-int gr_gk20a_add_ctxsw_reg_perf_pma(struct ctxsw_buf_offset_map_entry *map,
-	struct netlist_aiv_list *regs,
-	u32 *count, u32 *offset,
-	u32 max_cnt, u32 base, u32 mask)
-{
-	return add_ctxsw_buffer_map_entries(map, regs,
-			count, offset, max_cnt, base, mask);
-}
-
 /*
  *            PM CTXSW BUFFER LAYOUT :
  *|---------------------------------------------|0x00 <----PM CTXSW BUFFER BASE
@@ -322,6 +313,8 @@ int gr_gk20a_add_ctxsw_reg_perf_pma(struct ctxsw_buf_offset_map_entry *map,
  *|                                             |
  *|    LIST_compressed_nv_perf_ctx_reg_sysrouter|Space allocated: numRegs words
  *|---------------------------------------------|
+ *| PADDING for 256 byte alignment on Volta+    |
+ *|---------------------------------------------|<----256 byte aligned
  *|                                             |
  *|    LIST_compressed_nv_perf_ctx_reg_PMA      |Space allocated: numRegs words
  *|---------------------------------------------|
@@ -421,8 +414,12 @@ static int nvgpu_gr_hwpm_map_create(struct gk20a *g,
 		goto cleanup;
 	}
 
+	if (g->ops.gr.hwpm_map.align_regs_perf_pma) {
+		g->ops.gr.hwpm_map.align_regs_perf_pma(&offset);
+	}
+
 	/* Add entries from _LIST_nv_perf_pma_ctx_reg*/
-	ret = g->ops.gr.add_ctxsw_reg_perf_pma(map,
+	ret = add_ctxsw_buffer_map_entries(map,
 					&g->netlist_vars->ctxsw_regs.perf_pma,
 					&count, &offset,
 					hwpm_ctxsw_reg_count_max, 0, ~U32(0U));

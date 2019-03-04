@@ -568,10 +568,6 @@ int gr_gk20a_add_ctxsw_reg_pm_fbpa(struct gk20a *g,
 				u32 *count, u32 *offset,
 				u32 max_cnt, u32 base,
 				u32 num_fbpas, u32 stride, u32 mask);
-int gr_gk20a_add_ctxsw_reg_perf_pma(struct ctxsw_buf_offset_map_entry *map,
-	struct netlist_aiv_list *regs,
-	u32 *count, u32 *offset,
-	u32 max_cnt, u32 base, u32 mask);
 int gr_gk20a_decode_priv_addr(struct gk20a *g, u32 addr,
 	enum ctxsw_addr_type *addr_type,
 	u32 *gpc_num, u32 *tpc_num, u32 *ppc_num, u32 *be_num,

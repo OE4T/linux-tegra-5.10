@@ -47,6 +47,7 @@
 #include "common/gr/zbc/gr_zbc_gv11b.h"
 #include "common/gr/fecs_trace/fecs_trace_gm20b.h"
 #include "common/gr/fecs_trace/fecs_trace_gv11b.h"
+#include "hal/gr/hwpm_map/hwpm_map_gv100.h"
 #include "common/therm/therm_gm20b.h"
 #include "common/therm/therm_gp10b.h"
 #include "common/therm/therm_gv11b.h"
@@ -428,7 +429,6 @@ static const struct gpu_ops gv11b_ops = {
 		.handle_notify_pending = gk20a_gr_handle_notify_pending,
 		.handle_semaphore_pending = gk20a_gr_handle_semaphore_pending,
 		.add_ctxsw_reg_pm_fbpa = gr_gk20a_add_ctxsw_reg_pm_fbpa,
-		.add_ctxsw_reg_perf_pma = gr_gv100_add_ctxsw_reg_perf_pma,
 		.decode_priv_addr = gr_gv11b_decode_priv_addr,
 		.create_priv_addr_table = gr_gv11b_create_priv_addr_table,
 		.split_fbpa_broadcast_addr = gr_gk20a_split_fbpa_broadcast_addr,
@@ -555,6 +555,10 @@ static const struct gpu_ops gv11b_ops = {
 				gv11b_gr_zbc_get_gpcs_swdx_dss_zbc_c_format_reg,
 			.get_gpcs_swdx_dss_zbc_z_format_reg =
 				gv11b_gr_zbc_get_gpcs_swdx_dss_zbc_z_format_reg,
+		},
+		.hwpm_map = {
+			.align_regs_perf_pma =
+				gv100_gr_hwpm_map_align_regs_perf_pma,
 		}
 	},
 	.fb = {

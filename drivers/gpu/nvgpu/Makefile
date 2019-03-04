@@ -169,6 +169,7 @@ nvgpu-y += \
 	hal/bus/bus_gp10b.o \
 	hal/bus/bus_gv100.o \
 	hal/bus/bus_tu104.o \
+	hal/gr/hwpm_map/hwpm_map_gv100.o \
 	hal/priv_ring/priv_ring_gm20b.o \
 	hal/priv_ring/priv_ring_gp10b.o \
 	hal/power_features/cg/gm20b_gating_reglist.o \

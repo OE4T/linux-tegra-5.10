@@ -478,10 +478,6 @@ struct gpu_ops {
 				u32 *count, u32 *offset,
 				u32 max_cnt, u32 base,
 				u32 num_fbpas, u32 stride, u32 mask);
-		int (*add_ctxsw_reg_perf_pma)(struct ctxsw_buf_offset_map_entry *map,
-					struct netlist_aiv_list *regs,
-					u32 *count, u32 *offset,
-					u32 max_cnt, u32 base, u32 mask);
 		int (*decode_priv_addr)(struct gk20a *g, u32 addr,
 			      enum ctxsw_addr_type *addr_type,
 			      u32 *gpc_num, u32 *tpc_num,
@@ -639,6 +635,10 @@ struct gpu_ops {
 			u32 (*get_gpcs_swdx_dss_zbc_z_format_reg)(
 				struct gk20a *g);
 		} zbc;
+
+		struct {
+			void (*align_regs_perf_pma)(u32 *offset);
+		} hwpm_map;
 
 		u32 (*fecs_falcon_base_addr)(void);
 		u32 (*gpccs_falcon_base_addr)(void);
