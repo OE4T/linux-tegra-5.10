@@ -775,12 +775,22 @@ static int __nvadsp_os_secload(struct platform_device *pdev)
 	struct device *dev = &pdev->dev;
 	void *dram_va;
 
-	dram_va = nvadsp_dma_alloc_and_map_at(pdev, size, addr, GFP_KERNEL);
-	if (!dram_va) {
-		dev_err(dev, "unable to allocate shared region\n");
-		return -ENOMEM;
+	if (drv_data->chip_data->adsp_shared_mem_hwmbox != 0) {
+		dram_va = nvadsp_alloc_coherent(size, &addr, GFP_KERNEL);
+		if (dram_va == NULL) {
+			dev_err(dev, "unable to allocate shared region\n");
+			return -ENOMEM;
+		}
+	} else {
+		dram_va = nvadsp_dma_alloc_and_map_at(pdev, size, addr,
+								GFP_KERNEL);
+		if (dram_va == NULL) {
+			dev_err(dev, "unable to allocate shared region\n");
+			return -ENOMEM;
+		}
 	}
 
+	drv_data->shared_adsp_os_data_iova = addr;
 	nvadsp_set_shared_mem(pdev, dram_va, 0);
 
 	return 0;
@@ -1400,7 +1410,7 @@ static void get_adsp_state(void)
 	drv_data = platform_get_drvdata(priv.pdev);
 	dev = &priv.pdev->dev;
 
-	if (drv_data->chip_data->adsp_state_hwmbox == -1) {
+	if (drv_data->chip_data->adsp_state_hwmbox == 0) {
 		dev_info(dev, "%s: No state hwmbox available\n", __func__);
 		return;
 	}
@@ -1672,6 +1682,7 @@ int nvadsp_os_start(void)
 	struct nvadsp_drv_data *drv_data;
 	struct device *dev;
 	int ret = 0;
+	static int cold_start = 1;
 
 	if (!priv.pdev) {
 		pr_err("ADSP Driver is not initialized\n");
@@ -1702,6 +1713,13 @@ int nvadsp_os_start(void)
 	ret = setup_interrupts(&priv);
 	if (ret < 0)
 		goto unlock;
+
+	if (cold_start && drv_data->chip_data->adsp_shared_mem_hwmbox != 0) {
+		hwmbox_writel((uint32_t)drv_data->shared_adsp_os_data_iova,
+				drv_data->chip_data->adsp_shared_mem_hwmbox);
+		/* Write ACSR base address only once */
+		cold_start = 0;
+	}
 
 	ret = __nvadsp_os_start();
 	if (ret) {

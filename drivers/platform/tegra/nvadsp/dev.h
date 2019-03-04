@@ -132,6 +132,7 @@ struct nvadsp_chipdata {
 	u32			adsp_state_hwmbox;
 	u32			adsp_thread_hwmbox;
 	u32			adsp_irq_hwmbox;
+	u32			adsp_shared_mem_hwmbox;
 	reset_init		reset_init;
 	os_init			os_init;
 #ifdef CONFIG_PM
@@ -182,6 +183,7 @@ struct nvadsp_drv_data {
 	bool adsp_os_secload;
 
 	void *shared_adsp_os_data;
+	dma_addr_t shared_adsp_os_data_iova;
 
 #ifdef CONFIG_TEGRA_ADSP_DFS
 	bool dfs_initialized;

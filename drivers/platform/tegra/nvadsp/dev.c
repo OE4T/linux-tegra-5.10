@@ -3,7 +3,7 @@
  *
  * A device driver for ADSP and APE
  *
- * Copyright (C) 2014-2018, NVIDIA Corporation. All rights reserved.
+ * Copyright (C) 2014-2019, NVIDIA Corporation. All rights reserved.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -414,9 +414,10 @@ static struct nvadsp_chipdata tegra210_adsp_chipdata = {
 		.hwmbox2_reg = 0x60,
 		.hwmbox3_reg = 0x64,
 	},
-	.adsp_state_hwmbox = -1,
-	.adsp_thread_hwmbox = -1,
-	.adsp_irq_hwmbox = -1,
+	.adsp_state_hwmbox = 0,
+	.adsp_thread_hwmbox = 0,
+	.adsp_irq_hwmbox = 0,
+	.adsp_shared_mem_hwmbox = 0,
 	.reset_init = nvadsp_reset_t21x_init,
 	.os_init = nvadsp_os_t21x_init,
 #ifdef CONFIG_PM
@@ -439,9 +440,10 @@ static struct nvadsp_chipdata tegrat18x_adsp_chipdata = {
 		.hwmbox6_reg = 0X30000,
 		.hwmbox7_reg = 0X38000,
 	},
-	.adsp_state_hwmbox = 0x30000,
-	.adsp_thread_hwmbox = 0x20000,
-	.adsp_irq_hwmbox = 0x38000,
+	.adsp_shared_mem_hwmbox = 0x18000, /* HWMBOX3 */
+	.adsp_thread_hwmbox = 0x20000,	/* HWMBOX4 */
+	.adsp_state_hwmbox = 0x30000,	/* HWMBOX6 */
+	.adsp_irq_hwmbox = 0x38000,	/* HWMBOX7 */
 	.reset_init = nvadsp_reset_t18x_init,
 	.os_init = nvadsp_os_t18x_init,
 #ifdef CONFIG_PM
