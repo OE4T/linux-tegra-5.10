@@ -24,8 +24,8 @@
 #define NVGPU_VGPU_VM_H
 
 #ifdef CONFIG_TEGRA_GR_VIRTUALIZATION
-int  vgpu_vm_init(struct gk20a *g, struct vm_gk20a *vm);
-void vgpu_vm_remove(struct vm_gk20a *vm);
+int  vgpu_vm_as_alloc_share(struct gk20a *g, struct vm_gk20a *vm);
+void vgpu_vm_as_free_share(struct vm_gk20a *vm);
 #endif
 
 #endif /* NVGPU_VGPU_VM_H */

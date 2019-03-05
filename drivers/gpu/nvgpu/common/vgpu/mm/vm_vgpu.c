@@ -40,7 +40,7 @@
  * intializing a VM on a vGPU. This alone is not enough to init a VM. See
  * nvgpu_vm_init().
  */
-int vgpu_vm_init(struct gk20a *g, struct vm_gk20a *vm)
+int vgpu_vm_as_alloc_share(struct gk20a *g, struct vm_gk20a *vm)
 {
 	struct tegra_vgpu_cmd_msg msg;
 	struct tegra_vgpu_as_share_params *p = &msg.params.as_share;
@@ -62,10 +62,11 @@ int vgpu_vm_init(struct gk20a *g, struct vm_gk20a *vm)
 }
 
 /*
- * Similar to vgpu_vm_init() this is called as part of the cleanup path for
- * VMs. This alone is not enough to remove a VM - see nvgpu_vm_remove().
+ * Similar to vgpu_vm_as_alloc_share() this is called as part of the cleanup
+ * path for VMs. This alone is not enough to remove a VM -
+ * see nvgpu_vm_remove().
  */
-void vgpu_vm_remove(struct vm_gk20a *vm)
+void vgpu_vm_as_free_share(struct vm_gk20a *vm)
 {
 	struct gk20a *g = gk20a_from_vm(vm);
 	struct tegra_vgpu_cmd_msg msg;

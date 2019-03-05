@@ -338,17 +338,21 @@ int nvgpu_vm_do_init(struct mm_gk20a *mm,
 		nvgpu_err(g, "vGPU: no userspace managed addr space support");
 		return -ENOSYS;
 	}
-	if (g->is_virtual && vgpu_vm_init(g, vm)) {
-		nvgpu_err(g, "Failed to init vGPU VM!");
-		return -ENOMEM;
-	}
 #endif
+
+	if (g->ops.mm.vm_as_alloc_share != NULL) {
+		err = g->ops.mm.vm_as_alloc_share(g, vm);
+		if (err != 0) {
+			nvgpu_err(g, "Failed to init gpu vm!");
+			return err;
+		}
+	}
 
 	/* Initialize the page table data structures. */
 	(void) strncpy(vm->name, name, min(strlen(name), sizeof(vm->name)));
 	err = nvgpu_gmmu_init_page_table(vm);
 	if (err != 0) {
-		goto clean_up_vgpu_vm;
+		goto clean_up_gpu_vm;
 	}
 
 	/* Setup vma limits. */
@@ -535,12 +539,10 @@ clean_up_allocators:
 clean_up_page_tables:
 	/* Cleans up nvgpu_gmmu_init_page_table() */
 	nvgpu_pd_free(vm, &vm->pdb);
-clean_up_vgpu_vm:
-#ifdef CONFIG_TEGRA_GR_VIRTUALIZATION
-	if (g->is_virtual) {
-		vgpu_vm_remove(vm);
+clean_up_gpu_vm:
+	if (g->ops.mm.vm_as_free_share != NULL) {
+		g->ops.mm.vm_as_free_share(vm);
 	}
-#endif
 	return err;
 }
 
@@ -664,11 +666,9 @@ static void nvgpu_vm_remove(struct vm_gk20a *vm)
 
 	nvgpu_vm_free_entries(vm, &vm->pdb);
 
-#ifdef CONFIG_TEGRA_GR_VIRTUALIZATION
-	if (g->is_virtual) {
-		vgpu_vm_remove(vm);
+	if (g->ops.mm.vm_as_free_share != NULL) {
+		g->ops.mm.vm_as_free_share(vm);
 	}
-#endif
 
 	nvgpu_mutex_release(&vm->update_gmmu_lock);
 

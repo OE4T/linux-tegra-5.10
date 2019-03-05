@@ -90,6 +90,7 @@
 #include <nvgpu/channel.h>
 
 #include <nvgpu/vgpu/ce_vgpu.h>
+#include <nvgpu/vgpu/vm_vgpu.h>
 #include <nvgpu/gr/zbc.h>
 
 #include "vgpu_gv11b.h"
@@ -582,6 +583,8 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 		.remove_bar2_vm = gp10b_remove_bar2_vm,
 		.fault_info_mem_destroy = gv11b_mm_fault_info_mem_destroy,
 		.bar1_map_userd = vgpu_mm_bar1_map_userd,
+		.vm_as_alloc_share = vgpu_vm_as_alloc_share,
+		.vm_as_free_share = vgpu_vm_as_free_share,
 	},
 	.therm = {
 		.init_therm_setup_hw = NULL,
