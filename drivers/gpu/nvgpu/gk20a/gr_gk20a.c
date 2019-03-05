@@ -998,10 +998,6 @@ int gr_gk20a_init_fs_state(struct gk20a *g)
 		gpc_index = g->gr.sm_to_cluster[sm_id].gpc_index;
 
 		g->ops.gr.program_sm_id_numbering(g, gpc_index, tpc_index, sm_id);
-
-		if (g->ops.gr.program_active_tpc_counts != NULL) {
-			g->ops.gr.program_active_tpc_counts(g, gpc_index);
-		}
 	}
 
 	for (reg_index = 0U, gpc_id = 0U;
@@ -1032,9 +1028,6 @@ int gr_gk20a_init_fs_state(struct gk20a *g)
 
 	/* gr__setup_pd_mapping stubbed for gk20a */
 	g->ops.gr.setup_rop_mapping(g, gr);
-	if (g->ops.gr.setup_alpha_beta_tables != NULL) {
-		g->ops.gr.setup_alpha_beta_tables(g, gr);
-	}
 
 	for (gpc_index = 0;
 	     gpc_index < gr_pd_dist_skip_table__size_1_v() * 4U;

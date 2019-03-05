@@ -296,8 +296,6 @@ struct gpu_ops {
 						  u32 *num_ovr_perf_regs,
 						  u32 **ovr_perf_regsr);
 		void (*set_hww_esr_report_mask)(struct gk20a *g);
-		int (*setup_alpha_beta_tables)(struct gk20a *g,
-					      struct gr_gk20a *gr);
 		void (*falcon_load_ucode)(struct gk20a *g,
 				u64 addr_base,
 				struct gk20a_ctxsw_ucode_segments *segments,
@@ -436,7 +434,6 @@ struct gpu_ops {
 		int (*load_smid_config)(struct gk20a *g);
 		void (*program_sm_id_numbering)(struct gk20a *g,
 						u32 gpc, u32 tpc, u32 smid);
-		void (*program_active_tpc_counts)(struct gk20a *g, u32 gpc);
 		int  (*setup_rop_mapping)(struct gk20a *g, struct gr_gk20a *gr);
 		int (*init_sw_veid_bundle)(struct gk20a *g);
 		void (*program_zcull_mapping)(struct gk20a *g,
