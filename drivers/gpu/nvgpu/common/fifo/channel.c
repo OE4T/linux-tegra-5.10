@@ -1368,7 +1368,7 @@ u32 nvgpu_gp_free_count(struct channel_gk20a *c)
 static bool nvgpu_channel_timeout_debug_dump_state(struct gk20a *g,
 		struct channel_gk20a *ch)
 {
-	bool verbose = true;
+	bool verbose = false;
 	if (nvgpu_is_error_notifier_set(ch,
 			NVGPU_ERR_NOTIFIER_FIFO_ERROR_IDLE_TIMEOUT)) {
 		verbose = ch->timeout_debug_dump;
