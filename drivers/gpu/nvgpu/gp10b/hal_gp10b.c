@@ -45,6 +45,8 @@
 #include "hal/priv_ring/priv_ring_gm20b.h"
 #include "hal/priv_ring/priv_ring_gp10b.h"
 #include "hal/cg/gp10b_gating_reglist.h"
+#include "hal/fuse/fuse_gm20b.h"
+#include "hal/fuse/fuse_gp10b.h"
 
 #include "common/ptimer/ptimer_gk20a.h"
 #include "common/fb/fb_gm20b.h"
@@ -59,8 +61,6 @@
 #include "common/therm/therm_gp10b.h"
 #include "common/ltc/ltc_gm20b.h"
 #include "common/ltc/ltc_gp10b.h"
-#include "common/fuse/fuse_gm20b.h"
-#include "common/fuse/fuse_gp10b.h"
 #include "common/mc/mc_gm20b.h"
 #include "common/mc/mc_gp10b.h"
 #include "common/perf/perf_gm20b.h"

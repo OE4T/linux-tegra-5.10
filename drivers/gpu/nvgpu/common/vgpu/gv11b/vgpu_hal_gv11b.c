@@ -38,8 +38,6 @@
 #include "common/ltc/ltc_gm20b.h"
 #include "common/ltc/ltc_gp10b.h"
 #include "common/ltc/ltc_gv11b.h"
-#include "common/fuse/fuse_gm20b.h"
-#include "common/fuse/fuse_gp10b.h"
 #include "common/sync/syncpt_cmdbuf_gv11b.h"
 #include "common/sync/sema_cmdbuf_gv11b.h"
 #include "common/regops/regops_gv11b.h"

@@ -1,7 +1,7 @@
 /*
- * GP106 FUSE
+ * GM20B FUSE
  *
- * Copyright (c) 2017-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -22,17 +22,24 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NVGPU_FUSE_GP106_H
-#define NVGPU_FUSE_GP106_H
+#ifndef NVGPU_FUSE_GM20B_H
+#define NVGPU_FUSE_GM20B_H
+
+#define GCPLEX_CONFIG_VPR_AUTO_FETCH_DISABLE_MASK	BIT32(0)
+#define GCPLEX_CONFIG_VPR_ENABLED_MASK			BIT32(1)
+#define GCPLEX_CONFIG_WPR_ENABLED_MASK			BIT32(2)
+
 
 struct gk20a;
 
-u32 gp106_fuse_read_vin_cal_fuse_rev(struct gk20a *g);
-int gp106_fuse_read_vin_cal_slope_intercept_fuse(struct gk20a *g,
-					     u32 vin_id, u32 *slope,
-					     u32 *intercept);
-int gp106_fuse_read_vin_cal_gain_offset_fuse(struct gk20a *g,
-					     u32 vin_id, s8 *gain,
-					     s8 *offset);
+int gm20b_fuse_check_priv_security(struct gk20a *g);
+u32 gm20b_fuse_status_opt_fbio(struct gk20a *g);
+u32 gm20b_fuse_status_opt_fbp(struct gk20a *g);
+u32 gm20b_fuse_status_opt_rop_l2_fbp(struct gk20a *g, u32 fbp);
+u32 gm20b_fuse_status_opt_gpc(struct gk20a *g);
+u32 gm20b_fuse_status_opt_tpc_gpc(struct gk20a *g, u32 gpc);
+void gm20b_fuse_ctrl_opt_tpc_gpc(struct gk20a *g, u32 gpc, u32 val);
+u32 gm20b_fuse_opt_sec_debug_en(struct gk20a *g);
+u32 gm20b_fuse_opt_priv_sec_en(struct gk20a *g);
 
-#endif /* NVGPU_FUSE_GP106_H */
+#endif /* NVGPU_FUSE_GM20B_H */

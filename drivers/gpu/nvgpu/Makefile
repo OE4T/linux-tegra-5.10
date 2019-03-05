@@ -48,9 +48,6 @@ nvgpu-y += \
 	common/therm/therm_gp10b.o \
 	common/therm/therm_gp106.o \
 	common/therm/therm_gv11b.o \
-	common/fuse/fuse_gm20b.o \
-	common/fuse/fuse_gp10b.o \
-	common/fuse/fuse_gp106.o \
 	common/top/top_gm20b.o \
 	common/top/top_gp10b.o \
 	common/top/top_gv100.o \
@@ -176,7 +173,10 @@ nvgpu-y += \
 	hal/cg/gp10b_gating_reglist.o \
 	hal/cg/gv100_gating_reglist.o \
 	hal/cg/gv11b_gating_reglist.o \
-	hal/cg/tu104_gating_reglist.o
+	hal/cg/tu104_gating_reglist.o \
+	hal/fuse/fuse_gm20b.o \
+	hal/fuse/fuse_gp10b.o \
+	hal/fuse/fuse_gp106.o
 
 # Linux specific parts of nvgpu.
 nvgpu-y += \

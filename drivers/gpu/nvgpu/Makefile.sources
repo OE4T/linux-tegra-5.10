@@ -93,9 +93,6 @@ srcs += common/sim.c \
 	common/perf/perf_gv11b.c \
 	common/perf/perfbuf.c \
 	common/perf/cyclestats_snapshot.c \
-	common/fuse/fuse_gm20b.c \
-	common/fuse/fuse_gp10b.c \
-	common/fuse/fuse_gp106.c \
 	common/top/top_gm20b.c \
 	common/top/top_gp10b.c \
 	common/top/top_gv100.c \
@@ -336,7 +333,10 @@ srcs += common/sim.c \
 	hal/cg/gv11b_gating_reglist.c \
 	hal/cg/gp106_gating_reglist.c \
 	hal/cg/gv100_gating_reglist.c \
-	hal/cg/tu104_gating_reglist.c
+	hal/cg/tu104_gating_reglist.c \
+	hal/fuse/fuse_gm20b.c \
+	hal/fuse/fuse_gp10b.c \
+	hal/fuse/fuse_gp106.c
 
 ifeq ($(NVGPU_DEBUGGER),1)
 srcs += common/debugger.c

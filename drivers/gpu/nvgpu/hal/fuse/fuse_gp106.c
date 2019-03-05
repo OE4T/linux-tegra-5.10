@@ -33,7 +33,7 @@
 u32 gp106_fuse_read_vin_cal_fuse_rev(struct gk20a *g)
 {
 	return fuse_vin_cal_fuse_rev_data_v(
-		gk20a_readl(g, fuse_vin_cal_fuse_rev_r()));
+		nvgpu_readl(g, fuse_vin_cal_fuse_rev_r()));
 }
 
 static int gp106_compute_slope_intercept_data(struct gk20a *g,
@@ -47,8 +47,8 @@ static int gp106_compute_slope_intercept_data(struct gk20a *g,
 	bool error_status = false;
 
 	/* read gpc0 irrespective of vin id */
-	gpc0data = gk20a_readl(g, fuse_vin_cal_gpc0_r());
-	if (gpc0data == 0xFFFFFFFFU) {
+	gpc0data = nvgpu_readl(g, fuse_vin_cal_gpc0_r());
+	if (gpc0data == U32_MAX) {
 		return -EINVAL;
 	}
 
@@ -113,8 +113,8 @@ int gp106_fuse_read_vin_cal_slope_intercept_fuse(struct gk20a *g,
 	int status = 0;
 
 	/* read gpc0 irrespective of vin id */
-	gpc0data = gk20a_readl(g, fuse_vin_cal_gpc0_r());
-	if (gpc0data == 0xFFFFFFFFU) {
+	gpc0data = nvgpu_readl(g, fuse_vin_cal_gpc0_r());
+	if (gpc0data == U32_MAX) {
 		return -EINVAL;
 	}
 
@@ -123,29 +123,29 @@ int gp106_fuse_read_vin_cal_slope_intercept_fuse(struct gk20a *g,
 		break;
 
 	case CTRL_CLK_VIN_ID_GPC1:
-		data = gk20a_readl(g, fuse_vin_cal_gpc1_delta_r());
+		data = nvgpu_readl(g, fuse_vin_cal_gpc1_delta_r());
 		break;
 
 	case CTRL_CLK_VIN_ID_GPC2:
-		data = gk20a_readl(g, fuse_vin_cal_gpc2_delta_r());
+		data = nvgpu_readl(g, fuse_vin_cal_gpc2_delta_r());
 		break;
 
 	case CTRL_CLK_VIN_ID_GPC3:
-		data = gk20a_readl(g, fuse_vin_cal_gpc3_delta_r());
+		data = nvgpu_readl(g, fuse_vin_cal_gpc3_delta_r());
 		break;
 
 	case CTRL_CLK_VIN_ID_GPC4:
-		data = gk20a_readl(g, fuse_vin_cal_gpc4_delta_r());
+		data = nvgpu_readl(g, fuse_vin_cal_gpc4_delta_r());
 		break;
 
 	case CTRL_CLK_VIN_ID_GPC5:
-		data = gk20a_readl(g, fuse_vin_cal_gpc5_delta_r());
+		data = nvgpu_readl(g, fuse_vin_cal_gpc5_delta_r());
 		break;
 
 	case CTRL_CLK_VIN_ID_SYS:
 	case CTRL_CLK_VIN_ID_XBAR:
 	case CTRL_CLK_VIN_ID_LTC:
-		data = gk20a_readl(g, fuse_vin_cal_shared_delta_r());
+		data = nvgpu_readl(g, fuse_vin_cal_shared_delta_r());
 		break;
 
 	default:
@@ -156,7 +156,7 @@ int gp106_fuse_read_vin_cal_slope_intercept_fuse(struct gk20a *g,
 	if (error_status == true) {
 		return -EINVAL;
 	}
-	if (data == 0xFFFFFFFFU) {
+	if (data == U32_MAX) {
 		return -EINVAL;
 	}
 
@@ -185,33 +185,33 @@ int gp106_fuse_read_vin_cal_gain_offset_fuse(struct gk20a *g,
 
 	switch (vin_id) {
 	case CTRL_CLK_VIN_ID_GPC0:
-		reg_val = gk20a_readl(g, fuse_vin_cal_gpc0_r());
+		reg_val = nvgpu_readl(g, fuse_vin_cal_gpc0_r());
 		break;
 
 	case CTRL_CLK_VIN_ID_GPC1:
-		reg_val = gk20a_readl(g, fuse_vin_cal_gpc1_delta_r());
+		reg_val = nvgpu_readl(g, fuse_vin_cal_gpc1_delta_r());
 		break;
 
 	case CTRL_CLK_VIN_ID_GPC2:
-		reg_val = gk20a_readl(g, fuse_vin_cal_gpc2_delta_r());
+		reg_val = nvgpu_readl(g, fuse_vin_cal_gpc2_delta_r());
 		break;
 
 	case CTRL_CLK_VIN_ID_GPC3:
-		reg_val = gk20a_readl(g, fuse_vin_cal_gpc3_delta_r());
+		reg_val = nvgpu_readl(g, fuse_vin_cal_gpc3_delta_r());
 		break;
 
 	case CTRL_CLK_VIN_ID_GPC4:
-		reg_val = gk20a_readl(g, fuse_vin_cal_gpc4_delta_r());
+		reg_val = nvgpu_readl(g, fuse_vin_cal_gpc4_delta_r());
 		break;
 
 	case CTRL_CLK_VIN_ID_GPC5:
-		reg_val = gk20a_readl(g, fuse_vin_cal_gpc5_delta_r());
+		reg_val = nvgpu_readl(g, fuse_vin_cal_gpc5_delta_r());
 		break;
 
 	case CTRL_CLK_VIN_ID_SYS:
 	case CTRL_CLK_VIN_ID_XBAR:
 	case CTRL_CLK_VIN_ID_LTC:
-		reg_val = gk20a_readl(g, fuse_vin_cal_shared_delta_r());
+		reg_val = nvgpu_readl(g, fuse_vin_cal_shared_delta_r());
 		break;
 
 	default:
@@ -222,7 +222,7 @@ int gp106_fuse_read_vin_cal_gain_offset_fuse(struct gk20a *g,
 	if (error_status == true) {
 		return -EINVAL;
 	}
-	if (reg_val == 0xFFFFFFFFU) {
+	if (reg_val == U32_MAX) {
 		return -EINVAL;
 	}
 	data = (reg_val >> 16U) & 0x1fU;

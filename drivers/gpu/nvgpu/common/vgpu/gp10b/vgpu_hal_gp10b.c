@@ -35,8 +35,6 @@
 #include "common/perf/perf_gm20b.h"
 #include "common/ltc/ltc_gm20b.h"
 #include "common/ltc/ltc_gp10b.h"
-#include "common/fuse/fuse_gm20b.h"
-#include "common/fuse/fuse_gp10b.h"
 #include "common/regops/regops_gp10b.h"
 #include "common/fifo/runlist_gk20a.h"
 #include "common/fifo/channel_gm20b.h"
