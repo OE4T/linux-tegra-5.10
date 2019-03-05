@@ -25,6 +25,8 @@ ifeq ($(CONFIG_NVGPU_LS_PMU),y)
 ccflags-y += -DNVGPU_LS_PMU
 endif
 
+ccflags-y += -DNVGPU_ENGINE
+
 obj-$(CONFIG_GK20A) := nvgpu.o
 
 # OS independent parts of nvgpu. The work to collect files here
