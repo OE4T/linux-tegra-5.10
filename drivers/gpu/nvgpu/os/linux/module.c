@@ -47,6 +47,7 @@
 #include <nvgpu/sim.h>
 #include <nvgpu/clk_arb.h>
 #include <nvgpu/timers.h>
+#include <nvgpu/engines.h>
 #include <nvgpu/channel.h>
 
 #include "platform_gk20a.h"
@@ -960,7 +961,7 @@ int nvgpu_quiesce(struct gk20a *g)
 			return err;
 		}
 
-		err = gk20a_fifo_disable_all_engine_activity(g, true);
+		err = nvgpu_engine_disable_activity_all(g, true);
 		if (err) {
 			nvgpu_err(g,
 				"failed to disable engine activity, err=%d",

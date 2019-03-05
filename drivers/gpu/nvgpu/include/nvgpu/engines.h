@@ -51,4 +51,13 @@ u32 nvgpu_engine_interrupt_mask(struct gk20a *g);
 u32 nvgpu_engine_act_interrupt_mask(struct gk20a *g, u32 act_eng_id);
 u32 nvgpu_engine_get_all_ce_reset_mask(struct gk20a *g);
 
+int nvgpu_engine_enable_activity(struct gk20a *g,
+			struct fifo_engine_info_gk20a *eng_info);
+int nvgpu_engine_enable_activity_all(struct gk20a *g);
+int nvgpu_engine_disable_activity(struct gk20a *g,
+			struct fifo_engine_info_gk20a *eng_info,
+			bool wait_for_idle);
+int nvgpu_engine_disable_activity_all(struct gk20a *g,
+				bool wait_for_idle);
+
 #endif /*NVGPU_ENGINE_H*/
