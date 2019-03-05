@@ -1603,9 +1603,6 @@ struct gpu_ops {
 		u32 (*get_max_lts_per_ltc)(struct gk20a *g);
 	} top;
 	struct {
-		void (*acr_sw_init)(struct gk20a *g, struct nvgpu_acr *acr);
-	} acr;
-	struct {
 		void (*secured_sec2_start)(struct gk20a *g);
 		void (*enable_irq)(struct nvgpu_sec2 *sec2, bool enable);
 		bool (*is_interrupted)(struct nvgpu_sec2 *sec2);

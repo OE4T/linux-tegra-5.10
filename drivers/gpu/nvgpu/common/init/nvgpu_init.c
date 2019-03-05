@@ -193,9 +193,9 @@ int gk20a_finalize_poweron(struct gk20a *g)
 		}
 	}
 
-	if (g->ops.acr.acr_sw_init != NULL &&
-		nvgpu_is_enabled(g, NVGPU_SEC_PRIVSECURITY)) {
-		g->ops.acr.acr_sw_init(g, &g->acr);
+	if (nvgpu_is_enabled(g, NVGPU_SEC_PRIVSECURITY)) {
+		/* Init chip specific ACR properties */
+		nvgpu_acr_init(g);
 	}
 
 	if (g->ops.bios.init != NULL) {
@@ -308,18 +308,10 @@ int gk20a_finalize_poweron(struct gk20a *g)
 		goto done;
 	}
 
-	if (g->acr.bootstrap_hs_acr != NULL &&
-		nvgpu_is_enabled(g, NVGPU_SEC_PRIVSECURITY)) {
-		err = g->acr.prepare_ucode_blob(g);
+	if (nvgpu_is_enabled(g, NVGPU_SEC_PRIVSECURITY)) {
+		/* construct ucode blob, load & bootstrap LSF's using HS ACR */
+		err = nvgpu_acr_construct_execute(g);
 		if (err != 0) {
-			nvgpu_err(g, "ACR ucode blob prepare failed");
-			nvgpu_mutex_release(&g->tpc_pg_lock);
-			goto done;
-		}
-
-		err = g->acr.bootstrap_hs_acr(g, &g->acr, &g->acr.acr);
-		if (err != 0) {
-			nvgpu_err(g, "ACR bootstrap failed");
 			nvgpu_mutex_release(&g->tpc_pg_lock);
 			goto done;
 		}

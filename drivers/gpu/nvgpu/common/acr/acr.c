@@ -31,6 +31,12 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/bug.h>
 
+#include "acr_gm20b.h"
+#include "acr_gp10b.h"
+#include "acr_gv11b.h"
+#include "acr_gv100.h"
+#include "acr_tu104.h"
+
 /* Both size and address of WPR need to be 128K-aligned */
 #define DGPU_WPR_SIZE 0x200000U
 
@@ -332,6 +338,60 @@ void nvgpu_acr_wpr_info_vid(struct gk20a *g, struct wpr_carveout_info *inf)
 	inf->wpr_base = g->mm.vidmem.bootstrap_base;
 	inf->nonwpr_base = inf->wpr_base + DGPU_WPR_SIZE;
 	inf->size = DGPU_WPR_SIZE;
+}
+
+int nvgpu_acr_construct_execute(struct gk20a *g){
+	int err = 0;
+
+	if (nvgpu_is_enabled(g, NVGPU_IS_FMODEL)) {
+		goto done;
+	}
+
+	err = g->acr.prepare_ucode_blob(g);
+	if (err != 0) {
+		nvgpu_err(g, "ACR ucode blob prepare failed");
+		goto done;
+	}
+
+	err = g->acr.bootstrap_hs_acr(g, &g->acr, &g->acr.acr);
+	if (err != 0) {
+		nvgpu_err(g, "ACR bootstrap failed");
+		goto done;
+	}
+
+done:
+	return err;
+}
+
+void nvgpu_acr_init(struct gk20a *g)
+{
+	u32 ver = g->params.gpu_arch + g->params.gpu_impl;
+
+	if (nvgpu_is_enabled(g, NVGPU_IS_FMODEL)) {
+		return;
+	}
+
+	switch (ver) {
+		case GK20A_GPUID_GM20B:
+		case GK20A_GPUID_GM20B_B:
+			nvgpu_gm20b_acr_sw_init(g, &g->acr);
+			break;
+		case NVGPU_GPUID_GP10B:
+			nvgpu_gp10b_acr_sw_init(g, &g->acr);
+			break;
+		case NVGPU_GPUID_GV11B:
+			nvgpu_gv11b_acr_sw_init(g, &g->acr);
+			break;
+		case NVGPU_GPUID_GV100:
+			nvgpu_gv100_acr_sw_init(g, &g->acr);
+			break;
+		case NVGPU_GPUID_TU104:
+			nvgpu_tu104_acr_sw_init(g, &g->acr);
+			break;
+		default:
+			nvgpu_err(g, "no support for GPUID %x", ver);
+			break;
+	}
 }
 
 

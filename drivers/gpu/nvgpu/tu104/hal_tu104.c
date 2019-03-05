@@ -71,7 +71,6 @@
 #include "common/pmu/pmu_gv100.h"
 #include "common/pmu/pmu_gv11b.h"
 #include "common/pmu/pmu_tu104.h"
-#include "common/acr/acr_tu104.h"
 #include "common/falcon/falcon_gk20a.h"
 #include "common/falcon/falcon_tu104.h"
 #include "common/nvdec/nvdec_tu104.h"
@@ -1171,9 +1170,6 @@ static const struct gpu_ops tu104_ops = {
 		}
 	},
 #endif
-	.acr = {
-		.acr_sw_init = nvgpu_tu104_acr_sw_init,
-	},
 	.sec2 = {
 		.secured_sec2_start = tu104_start_sec2_secure,
 		.enable_irq = tu104_sec2_enable_irq,
@@ -1256,7 +1252,6 @@ int tu104_init_hal(struct gk20a *g)
 	gops->priv_ring = tu104_ops.priv_ring;
 	gops->fuse = tu104_ops.fuse;
 	gops->nvlink = tu104_ops.nvlink;
-	gops->acr = tu104_ops.acr;
 	gops->sec2 = tu104_ops.sec2;
 	gops->gsp = tu104_ops.gsp;
 	gops->top = tu104_ops.top;
@@ -1304,9 +1299,6 @@ int tu104_init_hal(struct gk20a *g)
 		gops->ltc.cbc_ctrl = NULL;
 		gops->ltc.init_comptags = NULL;
 		gops->fb.init_cbc = NULL;
-
-		/* Disable acr init */
-		gops->acr.acr_sw_init = NULL;
 
 		gops->gr.load_ctxsw_ucode = gr_gk20a_load_ctxsw_ucode;
 

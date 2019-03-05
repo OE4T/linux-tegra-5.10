@@ -55,7 +55,6 @@
 #include "common/perf/perf_gm20b.h"
 #include "common/pmu/pmu_gk20a.h"
 #include "common/pmu/pmu_gm20b.h"
-#include "common/acr/acr_gm20b.h"
 #include "common/falcon/falcon_gk20a.h"
 #include "common/top/top_gm20b.h"
 #include "common/sync/syncpt_cmdbuf_gk20a.h"
@@ -807,9 +806,6 @@ static const struct gpu_ops gm20b_ops = {
 		.read_gcplex_config_fuse =
 				nvgpu_tegra_fuse_read_gcplex_config_fuse,
 	},
-	.acr = {
-		.acr_sw_init = nvgpu_gm20b_acr_sw_init,
-	},
 	.top = {
 		.device_info_parse_enum = gm20b_device_info_parse_enum,
 		.device_info_parse_data = gm20b_device_info_parse_data,
@@ -881,7 +877,6 @@ int gm20b_init_hal(struct gk20a *g)
 
 	gops->fuse = gm20b_ops.fuse;
 
-	gops->acr = gm20b_ops.acr;
 	gops->top = gm20b_ops.top;
 
 	/* Lone functions */

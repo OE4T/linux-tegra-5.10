@@ -68,7 +68,6 @@
 #include "common/pmu/pmu_gp106.h"
 #include "common/pmu/pmu_gv11b.h"
 #include "common/pmu/pmu_gv100.h"
-#include "common/acr/acr_gv100.h"
 #include "common/falcon/falcon_gk20a.h"
 #include "common/falcon/falcon_gv100.h"
 #include "common/nvdec/nvdec_gp106.h"
@@ -1159,9 +1158,6 @@ static const struct gpu_ops gv100_ops = {
 		.get_max_ltc_per_fbp = gm20b_top_get_max_ltc_per_fbp,
 		.get_max_lts_per_ltc = gm20b_top_get_max_lts_per_ltc,
 	},
-	.acr = {
-		.acr_sw_init = nvgpu_gv100_acr_sw_init,
-	},
 	.sec2 = {
 		.falcon_base_addr = gp106_sec2_falcon_base_addr,
 		.sec2_reset = gp106_sec2_reset,
@@ -1220,7 +1216,6 @@ int gv100_init_hal(struct gk20a *g)
 	gops->fuse = gv100_ops.fuse;
 	gops->nvlink = gv100_ops.nvlink;
 	gops->top = gv100_ops.top;
-	gops->acr = gv100_ops.acr;
 	gops->sec2 = gv100_ops.sec2;
 	gops->gsp = gv100_ops.gsp;
 

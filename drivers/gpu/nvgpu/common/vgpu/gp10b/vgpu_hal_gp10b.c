@@ -666,9 +666,6 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 		.read_vin_cal_slope_intercept_fuse = NULL,
 		.read_vin_cal_gain_offset_fuse = NULL,
 	},
-	.acr = {
-		.acr_sw_init = NULL,
-	},
 	.top = {
 		.get_max_fbps_count = vgpu_gr_get_max_fbps_count,
 		.get_max_ltc_per_fbp = vgpu_gr_get_max_ltc_per_fbp,
@@ -723,7 +720,6 @@ int vgpu_gp10b_init_hal(struct gk20a *g)
 	gops->priv_ring = vgpu_gp10b_ops.priv_ring;
 
 	gops->fuse = vgpu_gp10b_ops.fuse;
-	gops->acr = vgpu_gp10b_ops.acr;
 	gops->top = vgpu_gp10b_ops.top;
 
 	/* Lone Functions */

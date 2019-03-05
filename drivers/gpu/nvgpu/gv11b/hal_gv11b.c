@@ -62,7 +62,6 @@
 #include "common/pmu/pmu_gp10b.h"
 #include "common/pmu/pmu_gp106.h"
 #include "common/pmu/pmu_gv11b.h"
-#include "common/acr/acr_gv11b.h"
 #include "common/falcon/falcon_gk20a.h"
 #include "common/top/top_gm20b.h"
 #include "common/top/top_gp10b.h"
@@ -1040,9 +1039,6 @@ static const struct gpu_ops gv11b_ops = {
 		.read_gcplex_config_fuse =
 				nvgpu_tegra_fuse_read_gcplex_config_fuse,
 	},
-	.acr = {
-		.acr_sw_init = nvgpu_gv11b_acr_sw_init,
-	},
 	.top = {
 		.device_info_parse_enum = gm20b_device_info_parse_enum,
 		.device_info_parse_data = gp10b_device_info_parse_data,
@@ -1104,7 +1100,6 @@ int gv11b_init_hal(struct gk20a *g)
 	gops->priv_ring = gv11b_ops.priv_ring;
 	gops->fuse = gv11b_ops.fuse;
 	gops->clk_arb = gv11b_ops.clk_arb;
-	gops->acr = gv11b_ops.acr;
 	gops->top = gv11b_ops.top;
 
 	/* Lone functions */

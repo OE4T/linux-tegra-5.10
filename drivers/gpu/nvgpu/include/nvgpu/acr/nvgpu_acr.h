@@ -214,5 +214,8 @@ int nvgpu_acr_lsf_fecs_ucode_details_v1(struct gk20a *g, void *lsf_ucode_img);
 int nvgpu_acr_lsf_gpccs_ucode_details_v1(struct gk20a *g, void *lsf_ucode_img);
 int nvgpu_acr_lsf_sec2_ucode_details_v1(struct gk20a *g, void *lsf_ucode_img);
 
+void nvgpu_acr_init(struct gk20a *g);
+int nvgpu_acr_construct_execute(struct gk20a *g);
+
 #endif /* NVGPU_ACR_H */
 
