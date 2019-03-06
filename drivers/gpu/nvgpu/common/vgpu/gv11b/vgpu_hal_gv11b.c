@@ -449,7 +449,6 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 		.get_mmu_fault_desc = NULL,
 		.get_mmu_fault_client_desc = NULL,
 		.get_mmu_fault_gpc_desc = NULL,
-		.wait_engine_idle = vgpu_fifo_wait_engine_idle,
 		.get_pbdma_signature = gp10b_fifo_get_pbdma_signature,
 		.tsg_set_timeslice = vgpu_tsg_set_timeslice,
 		.tsg_open = vgpu_tsg_open,

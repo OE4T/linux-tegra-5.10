@@ -969,7 +969,7 @@ int nvgpu_quiesce(struct gk20a *g)
 		return err;
 		}
 
-		err = gk20a_fifo_wait_engine_idle(g);
+		err = nvgpu_engine_wait_for_idle(g);
 		if (err) {
 			nvgpu_err(g, "failed to idle engines, err=%d",
 				err);

@@ -20,6 +20,10 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
+
+#include <nvgpu/log.h>
+#include <nvgpu/errno.h>
+#include <nvgpu/timers.h>
 #include <nvgpu/bitops.h>
 #include <nvgpu/pmu.h>
 #include <nvgpu/runlist.h>
@@ -392,4 +396,54 @@ int nvgpu_engine_disable_activity_all(struct gk20a *g,
 	return ret;
 }
 
+int nvgpu_engine_wait_for_idle(struct gk20a *g)
+{
+	struct nvgpu_timeout timeout;
+	u32 delay = GR_IDLE_CHECK_DEFAULT;
+	int ret = 0;
+	u32 i, host_num_engines;
+	struct nvgpu_engine_status_info engine_status;
+
+	nvgpu_log_fn(g, " ");
+
+	host_num_engines =
+		 nvgpu_get_litter_value(g, GPU_LIT_HOST_NUM_ENGINES);
+
+	nvgpu_timeout_init(g, &timeout, gk20a_get_gr_idle_timeout(g),
+			   NVGPU_TIMER_CPU_TIMER);
+
+	for (i = 0; i < host_num_engines; i++) {
+		ret = -ETIMEDOUT;
+		do {
+			g->ops.engine_status.read_engine_status_info(g, i,
+				&engine_status);
+			if (!engine_status.is_busy) {
+				ret = 0;
+				break;
+			}
+
+			nvgpu_usleep_range(delay, delay * 2U);
+			delay = min_t(u32,
+					delay << 1, GR_IDLE_CHECK_MAX);
+		} while (nvgpu_timeout_expired(&timeout) == 0);
+
+		if (ret != 0) {
+			/* possible causes:
+			 * check register settings programmed in hal set by
+			 * elcg_init_idle_filters and init_therm_setup_hw
+			 */
+			nvgpu_err(g, "cannot idle engine: %u "
+					"engine_status: 0x%08x", i,
+					engine_status.reg_data);
+			break;
+		}
+	}
+
+	nvgpu_log_fn(g, "done");
+
+	return ret;
+}
+
 #endif /* NVGPU_ENGINE */
+
+

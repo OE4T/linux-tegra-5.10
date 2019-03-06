@@ -60,4 +60,6 @@ int nvgpu_engine_disable_activity(struct gk20a *g,
 int nvgpu_engine_disable_activity_all(struct gk20a *g,
 				bool wait_for_idle);
 
+int nvgpu_engine_wait_for_idle(struct gk20a *g);
+
 #endif /*NVGPU_ENGINE_H*/

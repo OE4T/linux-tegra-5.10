@@ -787,7 +787,6 @@ struct gpu_ops {
 		void (*get_mmu_fault_gpc_desc)(struct mmu_fault_info *mmfault);
 		void (*apply_pb_timeout)(struct gk20a *g);
 		void (*apply_ctxsw_timeout_intr)(struct gk20a *g);
-		int (*wait_engine_idle)(struct gk20a *g);
 		u32 (*get_pbdma_signature)(struct gk20a *g);
 		int (*tsg_set_timeslice)(struct tsg_gk20a *tsg, u32 timeslice);
 		u32 (*default_timeslice_us)(struct gk20a *g);
