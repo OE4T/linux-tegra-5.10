@@ -58,7 +58,9 @@ enum nvgpu_aperture {
 	 /* Don't use directly. Use APERTURE_SYSMEM, this is used internally. */
 	APERTURE_SYSMEM_COH,
 
-	APERTURE_VIDMEM
+	APERTURE_VIDMEM,
+	/* This should always be last in the list */
+	APERTURE_MAX_ENUM
 };
 
 struct nvgpu_mem {
@@ -157,6 +159,8 @@ static inline const char *nvgpu_aperture_str(struct gk20a *g,
 		return "SYSCOH";
 	case APERTURE_VIDMEM:
 		return "VIDMEM";
+	case APERTURE_MAX_ENUM:
+		return "UNKNOWN";
 	};
 	return "UNKNOWN";
 }
