@@ -210,13 +210,16 @@ static inline long __nvgpu_atomic64_sub_return(long x, nvgpu_atomic64_t *v)
 }
 
 /*
- * The following are defined for specific POSIX implementations (e.g. bitops.h)
- * and not generally intended for nvgpu driver usage.
+ * The following are defined for the lockless allocator in the driver that
+ * uses the cmpxchg() operation directly instead of nvgpu_atomic_cmpxchg().
  */
-#define __atomic_cmpxchg(p, v, c)       __sync_val_compare_and_swap(p, v, c)
-#define __atomic_and(p, v)              __sync_fetch_and_and(p, v)
-#define __atomic_or(p, v)               __sync_fetch_and_or(p, v)
+#define cmpxchg(p, old, new) 						\
+	({								\
+		typeof(*p) tmp = old;					\
+									\
+		atomic_compare_exchange_strong(p, &tmp, new);		\
+		tmp;							\
+	})
 
-#define cmpxchg                         __atomic_cmpxchg
 
 #endif /* NVGPU_POSIX_ATOMIC_H */
