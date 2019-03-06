@@ -2385,23 +2385,6 @@ bool gk20a_fifo_mmu_fault_pending(struct gk20a *g)
 	}
 }
 
-bool gk20a_fifo_is_engine_busy(struct gk20a *g)
-{
-	u32 i, host_num_engines;
-	struct nvgpu_engine_status_info engine_status;
-
-	host_num_engines = nvgpu_get_litter_value(g, GPU_LIT_HOST_NUM_ENGINES);
-
-	for (i = 0; i < host_num_engines; i++) {
-		g->ops.engine_status.read_engine_status_info(g, i,
-			&engine_status);
-		if (engine_status.is_busy) {
-			return true;
-		}
-	}
-	return false;
-}
-
 u32 gk20a_fifo_get_pbdma_signature(struct gk20a *g)
 {
 	return pbdma_signature_hw_valid_f() | pbdma_signature_sw_zero_f();
