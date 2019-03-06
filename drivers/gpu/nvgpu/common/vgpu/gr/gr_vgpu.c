@@ -40,6 +40,7 @@
 #include <nvgpu/gr/zbc.h>
 #include <nvgpu/gr/fecs_trace.h>
 #include <nvgpu/cyclestats_snapshot.h>
+#include <nvgpu/power_features/pg.h>
 
 #include <nvgpu/hw/gk20a/hw_gr_gk20a.h>
 
@@ -269,7 +270,7 @@ int vgpu_gr_alloc_obj_ctx(struct channel_gk20a  *c, u32 class_num, u32 flags)
 		}
 
 		/* load golden image */
-		err = gr_gk20a_elpg_protected_call(g,
+		err = nvgpu_pg_elpg_protected_call(g,
 				vgpu_gr_load_golden_ctx_image(g, c->virt_ctx));
 		if (err) {
 			nvgpu_err(g, "fail to load golden ctx image");
@@ -284,7 +285,7 @@ int vgpu_gr_alloc_obj_ctx(struct channel_gk20a  *c, u32 class_num, u32 flags)
 		}
 #ifdef CONFIG_GK20A_CTXSW_TRACE
 		/* for fecs bind channel */
-		err = gr_gk20a_elpg_protected_call(g,
+		err = nvgpu_pg_elpg_protected_call(g,
 				vgpu_gr_load_golden_ctx_image(g, c->virt_ctx));
 		if (err) {
 			nvgpu_err(g, "fail to load golden ctx image");

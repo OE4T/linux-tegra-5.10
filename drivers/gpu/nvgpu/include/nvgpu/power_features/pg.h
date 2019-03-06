@@ -28,6 +28,20 @@
 
 struct gk20a;
 
+#define nvgpu_pg_elpg_protected_call(g, func) \
+	({ \
+		int err = 0; \
+		err = nvgpu_pg_elpg_disable(g);\
+		if (err != 0) {\
+			err = nvgpu_pg_elpg_enable(g);\
+		}\
+		if (err == 0) { \
+			err = (func); \
+			(void)nvgpu_pg_elpg_enable(g);\
+		} \
+		err; \
+	})
+
 int nvgpu_pg_elpg_disable(struct gk20a *g);
 int nvgpu_pg_elpg_enable(struct gk20a *g);
 bool nvgpu_pg_elpg_is_enabled(struct gk20a *g);

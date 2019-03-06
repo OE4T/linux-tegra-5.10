@@ -49,6 +49,7 @@
 #include <nvgpu/pbdma_status.h>
 #include <nvgpu/engine_status.h>
 #include <nvgpu/power_features/cg.h>
+#include <nvgpu/power_features/pg.h>
 #include <nvgpu/power_features/power_features.h>
 
 #include "gk20a/fifo_gk20a.h"

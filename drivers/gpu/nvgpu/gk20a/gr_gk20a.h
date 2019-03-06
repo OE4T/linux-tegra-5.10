@@ -26,7 +26,6 @@
 
 #include <nvgpu/types.h>
 #include <nvgpu/netlist.h>
-#include <nvgpu/power_features/pg.h>
 
 #include "mm_gk20a.h"
 
@@ -399,20 +398,6 @@ void gr_gk20a_init_cg_mode(struct gk20a *g, u32 cgmode, u32 mode_config);
 /* sm */
 bool gk20a_gr_sm_debugger_attached(struct gk20a *g);
 u32 gk20a_gr_get_sm_no_lock_down_hww_global_esr_mask(struct gk20a *g);
-
-#define gr_gk20a_elpg_protected_call(g, func) \
-	({ \
-		int err = 0; \
-		err = nvgpu_pg_elpg_disable(g);\
-		if (err != 0) {\
-			err = nvgpu_pg_elpg_enable(g);\
-		}\
-		if (err == 0) { \
-			err = (func); \
-			(void)nvgpu_pg_elpg_enable(g);\
-		} \
-		err; \
-	})
 
 int gk20a_gr_suspend(struct gk20a *g);
 

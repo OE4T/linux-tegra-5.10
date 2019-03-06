@@ -23,12 +23,7 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/log.h>
 #include <nvgpu/io.h>
-/*
- * TODO:
- * gr_gk20a.h is needed only for gr_gk20a_elpg_protected_call()
- * remove this include when possible
- */
-#include <gk20a/gr_gk20a.h>
+#include <nvgpu/power_features/pg.h>
 
 #include "fecs_trace_gm20b.h"
 
@@ -38,20 +33,20 @@
 
 int gm20b_fecs_trace_get_read_index(struct gk20a *g)
 {
-	return gr_gk20a_elpg_protected_call(g,
+	return nvgpu_pg_elpg_protected_call(g,
 			nvgpu_readl(g, gr_fecs_mailbox1_r()));
 }
 
 int gm20b_fecs_trace_get_write_index(struct gk20a *g)
 {
-	return gr_gk20a_elpg_protected_call(g,
+	return nvgpu_pg_elpg_protected_call(g,
 			nvgpu_readl(g, gr_fecs_mailbox0_r()));
 }
 
 int gm20b_fecs_trace_set_read_index(struct gk20a *g, int index)
 {
 	nvgpu_log(g, gpu_dbg_ctxsw, "set read=%d", index);
-	return gr_gk20a_elpg_protected_call(g,
+	return nvgpu_pg_elpg_protected_call(g,
 			(nvgpu_writel(g, gr_fecs_mailbox1_r(), index), 0));
 }
 

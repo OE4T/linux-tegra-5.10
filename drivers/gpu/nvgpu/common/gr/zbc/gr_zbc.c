@@ -24,6 +24,7 @@
 #include <nvgpu/io.h>
 #include <nvgpu/bug.h>
 #include <nvgpu/string.h>
+#include <nvgpu/power_features/pg.h>
 
 #include "gr_zbc.h"
 
@@ -460,7 +461,7 @@ int nvgpu_gr_zbc_set_table(struct gk20a *g, struct nvgpu_gr_zbc *zbc,
 {
 	nvgpu_log_fn(g, " ");
 
-	return gr_gk20a_elpg_protected_call(g,
+	return nvgpu_pg_elpg_protected_call(g,
 		nvgpu_gr_zbc_add(g, zbc, zbc_val));
 }
 

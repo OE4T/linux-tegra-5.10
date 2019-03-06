@@ -22,6 +22,7 @@
 
 #include <nvgpu/gk20a.h>
 #include <nvgpu/log.h>
+#include <nvgpu/power_features/pg.h>
 
 #include "gk20a/gr_gk20a.h"
 #include "fecs_trace_gp10b.h"
@@ -44,7 +45,7 @@ int gp10b_fecs_trace_flush(struct gk20a *g)
 
 	nvgpu_log(g, gpu_dbg_fn|gpu_dbg_ctxsw, " ");
 
-	err = gr_gk20a_elpg_protected_call(g,
+	err = nvgpu_pg_elpg_protected_call(g,
 			gr_gk20a_submit_fecs_method_op(g, op, false));
 	if (err != 0)
 		nvgpu_err(g, "write timestamp record failed");

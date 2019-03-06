@@ -36,6 +36,7 @@
 #include <nvgpu/gr/zbc.h>
 #include <nvgpu/channel.h>
 #include <nvgpu/pmu/pmgr.h>
+#include <nvgpu/power_features/pg.h>
 
 #include "ioctl_ctrl.h"
 #include "ioctl_dbg.h"
@@ -1819,7 +1820,7 @@ long gk20a_ctrl_dev_ioctl(struct file *filp, unsigned int cmd, unsigned long arg
 		break;
 
 	case NVGPU_GPU_IOCTL_SET_SM_DEBUG_MODE:
-		err = gr_gk20a_elpg_protected_call(g,
+		err = nvgpu_pg_elpg_protected_call(g,
 				nvgpu_gpu_ioctl_set_debug_mode(g, (struct nvgpu_gpu_sm_debug_mode_args *)buf));
 		break;
 

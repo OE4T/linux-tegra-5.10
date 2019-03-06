@@ -28,6 +28,7 @@
 #include "platform_gk20a.h"
 
 #include <nvgpu/gk20a.h>
+#include <nvgpu/power_features/pg.h>
 
 #include <linux/debugfs.h>
 #include <linux/seq_file.h>
@@ -73,7 +74,7 @@ static int gk20a_gr_dump_regs(struct gk20a *g,
 		struct gk20a_debug_output *o)
 {
 	if (g->ops.gr.dump_gr_regs)
-		gr_gk20a_elpg_protected_call(g, g->ops.gr.dump_gr_regs(g, o));
+		nvgpu_pg_elpg_protected_call(g, g->ops.gr.dump_gr_regs(g, o));
 
 	return 0;
 }

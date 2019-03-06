@@ -30,6 +30,7 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/bug.h>
 #include <nvgpu/engines.h>
+#include <nvgpu/power_features/pg.h>
 
 #include "mc_gm20b.h"
 
@@ -53,7 +54,7 @@ void gm20b_mc_isr_stall(struct gk20a *g)
 			engine_enum = g->fifo.engine_info[active_engine_id].engine_enum;
 			/* GR Engine */
 			if (engine_enum == NVGPU_ENGINE_GR_GK20A) {
-				gr_gk20a_elpg_protected_call(g, gk20a_gr_isr(g));
+				nvgpu_pg_elpg_protected_call(g, gk20a_gr_isr(g));
 			}
 
 			/* CE Engine */

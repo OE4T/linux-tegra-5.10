@@ -1061,7 +1061,7 @@ static ssize_t gfxp_wfi_timeout_count_store(struct device *dev,
 		if (err)
 			return err;
 
-		err = gr_gk20a_elpg_protected_call(g,
+		err = nvgpu_pg_elpg_protected_call(g,
 			g->ops.gr.init_preemption_state(g));
 
 		gk20a_idle(g);
@@ -1091,7 +1091,7 @@ static ssize_t gfxp_wfi_timeout_unit_store(struct device *dev,
 		if (err)
 			return err;
 
-		err = gr_gk20a_elpg_protected_call(g,
+		err = nvgpu_pg_elpg_protected_call(g,
 			g->ops.gr.init_preemption_state(g));
 
 		gk20a_idle(g);

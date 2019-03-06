@@ -56,6 +56,7 @@
 #include <nvgpu/engine_status.h>
 #include <nvgpu/engines.h>
 #include <nvgpu/power_features/cg.h>
+#include <nvgpu/power_features/pg.h>
 #include <nvgpu/power_features/power_features.h>
 
 #include "mm_gk20a.h"

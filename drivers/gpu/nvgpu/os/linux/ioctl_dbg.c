@@ -36,6 +36,7 @@
 #include <nvgpu/tsg.h>
 #include <nvgpu/regops.h>
 #include <nvgpu/gr/ctx.h>
+#include <nvgpu/power_features/pg.h>
 
 #include <nvgpu/linux/vm.h>
 
@@ -1469,7 +1470,7 @@ static int nvgpu_dbg_gpu_ioctl_clear_single_sm_error_state(
 		return err;
 	}
 
-	err = gr_gk20a_elpg_protected_call(g,
+	err = nvgpu_pg_elpg_protected_call(g,
 			g->ops.gr.clear_sm_error_state(g, ch, sm_id));
 
 	gk20a_idle(g);
