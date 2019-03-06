@@ -60,7 +60,8 @@ UNITS :=				\
 	$(UNIT_SRC)/mm/page_table_faults \
 	$(UNIT_SRC)/fifo/runlist	\
 	$(UNIT_SRC)/list		\
-	$(UNIT_SRC)/enabled
+	$(UNIT_SRC)/enabled		\
+	$(UNIT_SRC)/interface/lock
 
 # A test unit. Not really needed any more...
 #	$(UNIT_SRC)/test

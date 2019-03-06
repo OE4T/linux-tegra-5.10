@@ -36,6 +36,7 @@ NV_REPOSITORY_COMPONENTS += userspace/units/fifo/runlist
 NV_REPOSITORY_COMPONENTS += userspace/units/fuse
 NV_REPOSITORY_COMPONENTS += userspace/units/list
 NV_REPOSITORY_COMPONENTS += userspace/units/enabled
+NV_REPOSITORY_COMPONENTS += userspace/units/interface/lock
 endif
 
 # Local Variables:

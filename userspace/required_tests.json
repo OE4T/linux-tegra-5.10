@@ -156,6 +156,26 @@
         "unit": "fuse"
     },
     {
+        "test": "mutex_acquire_release",
+        "unit": "interface_lock"
+    },
+    {
+        "test": "mutex_init",
+        "unit": "interface_lock"
+    },
+    {
+        "test": "mutex_tryacquire",
+        "unit": "interface_lock"
+    },
+    {
+        "test": "raw_spinlock_acquire_release",
+        "unit": "interface_lock"
+    },
+    {
+        "test": "spinlock_acquire_release",
+        "unit": "interface_lock"
+    },
+    {
         "test": "list_all_head",
         "unit": "list"
     },
