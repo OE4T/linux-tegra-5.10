@@ -656,8 +656,6 @@ int nvgpu_falcon_bl_bootstrap(struct nvgpu_falcon *flcn,
 		goto exit;
 	}
 
-	nvgpu_falcon_mailbox_write(flcn, FALCON_MAILBOX_0, 0xDEADA5A5U);
-
 	virt_addr = bl_info->bl_start_tag << 8;
 
 	err = nvgpu_falcon_bootstrap(flcn, virt_addr);

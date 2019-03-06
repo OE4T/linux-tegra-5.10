@@ -77,6 +77,8 @@ static int sec2_flcn_bl_bootstrap(struct gk20a *g,
 	data |= BIT32(3);
 	gk20a_writel(g, psec_falcon_engctl_r(), data);
 
+	nvgpu_falcon_mailbox_write(g->sec2.flcn, FALCON_MAILBOX_0, 0xDEADA5A5U);
+
 	err = nvgpu_falcon_bl_bootstrap(g->sec2.flcn, bl_info);
 
 	return err;

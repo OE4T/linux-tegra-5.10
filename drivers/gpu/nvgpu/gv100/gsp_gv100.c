@@ -68,6 +68,8 @@ static int gsp_flcn_bl_bootstrap(struct gk20a *g,
 	data |= pgsp_falcon_engctl_switch_context_true_f();
 	gk20a_writel(g, pgsp_falcon_engctl_r(), data);
 
+	nvgpu_falcon_mailbox_write(g->gsp_flcn, FALCON_MAILBOX_0, 0xDEADA5A5U);
+
 	status = nvgpu_falcon_bl_bootstrap(g->gsp_flcn, bl_info);
 
 	return status;

@@ -374,6 +374,8 @@ static int gm20b_bl_bootstrap(struct gk20a *g,
 		  pwr_pmu_new_instblk_target_sys_coh_f() :
 		  pwr_pmu_new_instblk_target_sys_ncoh_f())) ;
 
+	nvgpu_falcon_mailbox_write(g->pmu.flcn, FALCON_MAILBOX_0, 0xDEADA5A5U);
+
 	return nvgpu_falcon_bl_bootstrap(g->pmu.flcn, bl_info);
 }
 
