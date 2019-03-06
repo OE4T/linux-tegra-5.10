@@ -125,6 +125,7 @@ nvgpu-y += \
 	common/acr/acr.o \
 	common/acr/acr_blob_construct_v0.o \
 	common/acr/acr_blob_construct_v1.o \
+	common/acr/acr_bootstrap.o \
 	common/acr/acr_gm20b.o \
 	common/acr/acr_gp10b.o \
 	common/acr/acr_gv100.o \

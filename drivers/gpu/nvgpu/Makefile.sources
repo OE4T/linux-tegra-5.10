@@ -158,6 +158,7 @@ srcs += common/sim.c \
 	common/acr/acr.c \
 	common/acr/acr_blob_construct_v0.c \
 	common/acr/acr_blob_construct_v1.c \
+	common/acr/acr_bootstrap.c \
 	common/acr/acr_gm20b.c \
 	common/acr/acr_gp10b.c \
 	common/acr/acr_gv100.c \

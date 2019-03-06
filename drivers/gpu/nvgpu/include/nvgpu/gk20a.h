@@ -33,7 +33,6 @@ struct gk20a_ce_app;
 struct gk20a_ctxsw_ucode_segments;
 struct gk20a_fecs_trace;
 struct gk20a_ctxsw_trace;
-struct acr_desc;
 struct nvgpu_mem_alloc_tracker;
 struct dbg_profiler_object_data;
 struct gk20a_debug_output;
