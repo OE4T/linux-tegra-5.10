@@ -29,9 +29,11 @@
 #include <nvgpu/runlist.h>
 #include <nvgpu/engines.h>
 #include <nvgpu/engine_status.h>
-#include <nvgpu/pbdma_status.h>
 #include <nvgpu/gk20a.h>
+#include <nvgpu/pbdma_status.h>
+#include <nvgpu/power_features/pg.h>
 #include <nvgpu/channel.h>
+#include <nvgpu/soc.h>
 
 #include "gk20a/fifo_gk20a.h"
 
@@ -496,4 +498,72 @@ void nvgpu_engine_cleanup_sw(struct gk20a *g)
 	f->engine_info = NULL;
 	nvgpu_kfree(g, f->active_engines_list);
 	f->active_engines_list = NULL;
+}
+
+void nvgpu_engine_reset(struct gk20a *g, u32 engine_id)
+{
+	enum nvgpu_fifo_engine engine_enum = NVGPU_ENGINE_INVAL_GK20A;
+	struct fifo_engine_info_gk20a *engine_info;
+
+	nvgpu_log_fn(g, " ");
+
+	if (g == NULL) {
+		return;
+	}
+
+	engine_info = nvgpu_engine_get_active_eng_info(g, engine_id);
+
+	if (engine_info != NULL) {
+		engine_enum = engine_info->engine_enum;
+	}
+
+	if (engine_enum == NVGPU_ENGINE_INVAL_GK20A) {
+		nvgpu_err(g, "unsupported engine_id %d", engine_id);
+	}
+
+	if (engine_enum == NVGPU_ENGINE_GR_GK20A) {
+		if (nvgpu_pg_elpg_disable(g) != 0 ) {
+			nvgpu_err(g, "failed to set disable elpg");
+		}
+
+#ifdef CONFIG_GK20A_CTXSW_TRACE
+		/*
+		 * Resetting engine will alter read/write index. Need to flush
+		 * circular buffer before re-enabling FECS.
+		 */
+		if (g->ops.gr.fecs_trace.reset != NULL) {
+			if (g->ops.gr.fecs_trace.reset(g) != 0) {
+				nvgpu_warn(g, "failed to reset fecs traces");
+			}
+		}
+#endif
+		if (!nvgpu_platform_is_simulation(g)) {
+			/*HALT_PIPELINE method, halt GR engine*/
+			if (g->ops.gr.halt_pipe(g) != 0) {
+				nvgpu_err(g, "failed to halt gr pipe");
+			}
+			/*
+			 * resetting engine using mc_enable_r() is not
+			 * enough, we do full init sequence
+			 */
+			nvgpu_log(g, gpu_dbg_info, "resetting gr engine");
+
+			if (g->ops.gr.reset(g) != 0) {
+				nvgpu_err(g, "failed to reset gr engine");
+			}
+		} else {
+			nvgpu_log(g, gpu_dbg_info,
+				"HALT gr pipe not supported and "
+				"gr cannot be reset without halting gr pipe");
+		}
+
+		if (nvgpu_pg_elpg_enable(g) != 0 ) {
+			nvgpu_err(g, "failed to set enable elpg");
+		}
+	}
+
+	if ((engine_enum == NVGPU_ENGINE_GRCE_GK20A) ||
+		(engine_enum == NVGPU_ENGINE_ASYNC_CE_GK20A)) {
+			g->ops.mc.reset(g, engine_info->reset_mask);
+	}
 }

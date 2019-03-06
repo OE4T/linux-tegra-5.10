@@ -63,5 +63,6 @@ int nvgpu_engine_disable_activity_all(struct gk20a *g,
 				bool wait_for_idle);
 
 int nvgpu_engine_wait_for_idle(struct gk20a *g);
+void nvgpu_engine_reset(struct gk20a *g, u32 engine_id);
 
 #endif /*NVGPU_ENGINE_H*/

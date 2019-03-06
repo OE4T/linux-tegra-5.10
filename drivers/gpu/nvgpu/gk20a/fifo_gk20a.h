@@ -270,7 +270,6 @@ void gk20a_fifo_recover(struct gk20a *g,
 			bool id_is_known, bool verbose, u32 rc_type);
 int gk20a_fifo_force_reset_ch(struct channel_gk20a *ch,
 				u32 err_code, bool verbose);
-void gk20a_fifo_reset_engine(struct gk20a *g, u32 engine_id);
 int gk20a_init_fifo_reset_enable_hw(struct gk20a *g);
 int gk20a_fifo_tsg_unbind_channel(struct channel_gk20a *ch);
 

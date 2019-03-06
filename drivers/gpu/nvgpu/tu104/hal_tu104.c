@@ -522,6 +522,8 @@ static const struct gpu_ops tu104_ops = {
 			gk20a_gr_get_global_ctx_cb_buffer_size,
 		.get_global_ctx_pagepool_buffer_size =
 			gk20a_gr_get_global_ctx_pagepool_buffer_size,
+		.halt_pipe = gr_gk20a_halt_pipe,
+		.reset = gk20a_gr_reset,
 		.ctxsw_prog = {
 			.hw_get_fecs_header_size =
 				gm20b_ctxsw_prog_hw_get_fecs_header_size,

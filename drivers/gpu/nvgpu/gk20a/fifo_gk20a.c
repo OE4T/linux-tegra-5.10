@@ -527,66 +527,6 @@ void gk20a_fifo_get_mmu_fault_info(struct gk20a *g, u32 mmu_fault_id,
 	mmfault->inst_ptr <<= fifo_intr_mmu_fault_inst_ptr_align_shift_v();
 }
 
-void gk20a_fifo_reset_engine(struct gk20a *g, u32 engine_id)
-{
-	enum nvgpu_fifo_engine engine_enum = NVGPU_ENGINE_INVAL_GK20A;
-	struct fifo_engine_info_gk20a *engine_info;
-
-	nvgpu_log_fn(g, " ");
-
-	if (g == NULL) {
-		return;
-	}
-
-	engine_info = nvgpu_engine_get_active_eng_info(g, engine_id);
-
-	if (engine_info != NULL) {
-		engine_enum = engine_info->engine_enum;
-	}
-
-	if (engine_enum == NVGPU_ENGINE_INVAL_GK20A) {
-		nvgpu_err(g, "unsupported engine_id %d", engine_id);
-	}
-
-	if (engine_enum == NVGPU_ENGINE_GR_GK20A) {
-		if (nvgpu_pg_elpg_disable(g) != 0 ) {
-			nvgpu_err(g, "failed to set disable elpg");
-		}
-
-#ifdef CONFIG_GK20A_CTXSW_TRACE
-		/*
-		 * Resetting engine will alter read/write index. Need to flush
-		 * circular buffer before re-enabling FECS.
-		 */
-		if (g->ops.gr.fecs_trace.reset)
-			g->ops.gr.fecs_trace.reset(g);
-#endif
-		if (!nvgpu_platform_is_simulation(g)) {
-			/*HALT_PIPELINE method, halt GR engine*/
-			if (gr_gk20a_halt_pipe(g) != 0) {
-				nvgpu_err(g, "failed to HALT gr pipe");
-			}
-			/*
-			 * resetting engine using mc_enable_r() is not
-			 * enough, we do full init sequence
-			 */
-			nvgpu_log(g, gpu_dbg_info, "resetting gr engine");
-			gk20a_gr_reset(g);
-		} else {
-			nvgpu_log(g, gpu_dbg_info,
-				"HALT gr pipe not supported and "
-				"gr cannot be reset without halting gr pipe");
-		}
-		if (nvgpu_pg_elpg_enable(g) != 0 ) {
-			nvgpu_err(g, "failed to set enable elpg");
-		}
-	}
-	if ((engine_enum == NVGPU_ENGINE_GRCE_GK20A) ||
-		(engine_enum == NVGPU_ENGINE_ASYNC_CE_GK20A)) {
-			g->ops.mc.reset(g, engine_info->reset_mask);
-	}
-}
-
 static void gk20a_fifo_handle_chsw_fault(struct gk20a *g)
 {
 	u32 intr;
@@ -710,7 +650,7 @@ int gk20a_fifo_deferred_reset(struct gk20a *g, struct channel_gk20a *ch)
 
 	for_each_set_bit(engine_id, &g->fifo.deferred_fault_engines, 32UL) {
 		if ((BIT64(engine_id) & engines) != 0ULL) {
-			gk20a_fifo_reset_engine(g, (u32)engine_id);
+			nvgpu_engine_reset(g, (u32)engine_id);
 		}
 	}
 
@@ -867,7 +807,7 @@ static bool gk20a_fifo_handle_mmu_fault_locked(
 					   "sm debugger attached,"
 					   " deferring channel recovery to channel free");
 			} else {
-				gk20a_fifo_reset_engine(g, engine_id);
+				nvgpu_engine_reset(g, engine_id);
 			}
 		}
 

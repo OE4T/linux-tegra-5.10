@@ -1047,7 +1047,7 @@ void gv11b_fifo_teardown_ch_tsg(struct gk20a *g, u32 act_eng_bitmask,
 					"sm debugger attached,"
 					" deferring channel recovery to channel free");
 				} else {
-					gk20a_fifo_reset_engine(g, engine_id);
+					nvgpu_engine_reset(g, engine_id);
 				}
 			}
 		}
