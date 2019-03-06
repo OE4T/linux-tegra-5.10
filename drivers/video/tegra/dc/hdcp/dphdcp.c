@@ -774,7 +774,7 @@ static int tsec_hdcp_dp_verify_vprime(struct tegra_dphdcp *dphdcp)
 {
 	int i;
 	u8 *p;
-	u8 buf[RCVR_ID_LIST_SIZE];
+	u8 buf[RCVR_ID_LIST_SIZE] = {0};
 	unsigned char nonce[HDCP_NONCE_SIZE];
 	struct hdcp_verify_vprime_param verify_vprime_param;
 	int e = 0;
