@@ -62,6 +62,8 @@ static int __nvgpu_do_dma_alloc(struct gk20a *g, unsigned long flags,
 		return -ENOMEM;
 	}
 
+	memset(memory, 0, PAGE_ALIGN(size));
+
 	mem->cpu_va       = memory;
 	mem->aperture     = ap;
 	mem->size         = size;

@@ -32,7 +32,9 @@
 #include <nvgpu/posix/kmem.h>
 #include <nvgpu/posix/posix-fault-injection.h>
 
-#include <common/mm/gmmu/pd_cache_priv.h>
+#include "common/mm/gmmu/pd_cache_priv.h"
+
+#include "gp10b/mm_gp10b.h"
 
 /*
  * Direct allocs are allocs large enough to just pass straight on to the
@@ -572,7 +574,7 @@ static int test_pd_cache_fini(struct unit_module *m,
 	return UNIT_SUCCESS;
 }
 
-/*
+/**
  * Requirement NVGPU-RQCD-68.C1
  *
  *   Valid/Invalid: The pd_cache does/does not allocate a suitable DMA'able
@@ -582,6 +584,11 @@ static int test_pd_cache_fini(struct unit_module *m,
  *
  *   Valid/Invalid: The allocated PD is/is not sufficiently aligned for use by
  *                  the GMMU.
+ *
+ * Requirement NVGPU-RQCD-124.C1
+ *
+ *   Valid/Invalid: After initialization of the pd_cache the pd_cache can/cannot
+ *                  allocate valid PDs.
  */
 static int test_pd_cache_valid_alloc(struct unit_module *m,
 				     struct gk20a *g, void *args)
@@ -643,7 +650,7 @@ fail:
 	return err;
 }
 
-/*
+/**
  * Requirement NVGPU-RQCD-68.C3
  *
  *   Valid/Invalid: 16 256B, 8 512B, etc, PDs can/cannot fit into a single
@@ -701,7 +708,7 @@ cleanup:
 	return err;
 }
 
-/*
+/**
  * Requirement NVGPU-RQCD-118.C1
  *
  *   Valid/Invalid: Previously allocated PD entries are/are not re-usable.
@@ -785,6 +792,233 @@ cleanup:
 }
 
 /*
+ * Read back and compare the pattern to the word in the page directory. Return
+ * true if they match, false otherwise.
+ */
+static bool readback_pd_write(struct gk20a *g, struct nvgpu_gmmu_pd *pd,
+			      u32 index, u32 pattern)
+{
+	u32 offset = index + (pd->mem_offs / sizeof(u32));
+
+	return nvgpu_mem_rd32(g, pd->mem, offset) == pattern;
+}
+
+/**
+ * Requirement NVGPU-RQCD-122.C1
+ *
+ *   Valid/Invalid: The pd_cache writes/does not write a word of memory in a
+ *                  passed PD.
+ *
+ * Requirement NVGPU-RQCD-126.C1,2
+ *
+ *   C1: Valid/Invalid: The pd_cache unit does/does not return a valid word
+ *                      offset for a 2 word PDE/PTE.
+ *   C2: Valid/Invalid: The pd_cache unit does/does not return a valid word
+ *                      offset for a 4 word PDE/PTE.
+ *
+ * This test hits both the pd_write() and the pd_nvgpu_pd_offset_from_index()
+ * functions since these are used to validate each other.
+ */
+static int test_pd_write(struct unit_module *m, struct gk20a *g, void *args)
+{
+	int err = UNIT_SUCCESS;
+	struct vm_gk20a vm;
+	struct nvgpu_gmmu_pd pd_2w, pd_4w;
+	const struct gk20a_mmu_level *mm_levels =
+		gp10b_mm_get_mmu_levels(g, SZ_64K);
+	u32 i, indexes[] = { 0U, 16U, 255U };
+
+	err = init_pd_cache(m, g, &vm);
+	if (err != UNIT_SUCCESS) {
+		return err;
+	}
+
+	/*
+	 * Typical size of the last level dual page PD is 4K bytes - 256 entries
+	 * at 16 bytes an entry.
+	 */
+	err = nvgpu_pd_alloc(&vm, &pd_4w, SZ_4K);
+	if (err != UNIT_SUCCESS) {
+		goto cleanup;
+	}
+
+	/*
+	 * Most upper level PDs are 512 entries with 8 bytes per entry: again 4K
+	 * bytes.
+	 */
+	err = nvgpu_pd_alloc(&vm, &pd_2w, SZ_4K);
+	if (err != UNIT_SUCCESS) {
+		goto cleanup;
+	}
+
+	/*
+	 * Write to PDs at the given index and read back the value from the
+	 * underlying nvgpu_mem.
+	 */
+	for (i = 0U; i < sizeof(indexes) / sizeof(*indexes); i++) {
+		u32 offs_2w = nvgpu_pd_offset_from_index(&mm_levels[2],
+							 indexes[i]);
+		u32 offs_4w = nvgpu_pd_offset_from_index(&mm_levels[3],
+							 indexes[i]);
+
+		nvgpu_pd_write(g, &pd_2w, offs_2w, 0xA5A5A5A5);
+		nvgpu_pd_write(g, &pd_4w, offs_4w, 0xA5A5A5A5);
+
+		/* Read back. */
+		if (!readback_pd_write(g, &pd_2w, offs_2w, 0xA5A5A5A5)) {
+			err = UNIT_FAIL;
+			goto cleanup;
+		}
+		if (!readback_pd_write(g, &pd_4w, offs_4w, 0xA5A5A5A5)) {
+			err = UNIT_FAIL;
+			goto cleanup;
+		}
+	}
+
+cleanup:
+	nvgpu_pd_free(&vm, &pd_2w);
+	nvgpu_pd_free(&vm, &pd_4w);
+	nvgpu_pd_cache_fini(g);
+
+	return err;
+}
+
+/**
+ * Requirement NVGPU-RQCD-123.C1
+ *
+ *   C1: Valid/Invalid: The pd_cache does/does not provide a valid GPU physical
+ *                      address for a given PD.
+ */
+static int test_gpu_address(struct unit_module *m, struct gk20a *g, void *args)
+{
+	int err;
+	struct vm_gk20a vm;
+	struct nvgpu_gmmu_pd pd;
+	u64 addr;
+
+	err = init_pd_cache(m, g, &vm);
+	if (err != UNIT_SUCCESS) {
+		return err;
+	}
+
+	err = nvgpu_pd_alloc(&vm, &pd, SZ_4K);
+	if (err != UNIT_SUCCESS) {
+		nvgpu_pd_cache_fini(g);
+		return UNIT_FAIL;
+	}
+
+	addr = nvgpu_pd_gpu_addr(g, &pd);
+	if (addr == 0ULL) {
+		unit_return_fail(m, "GPU address of PD is NULL\n");
+	}
+
+	nvgpu_pd_free(&vm, &pd);
+	nvgpu_pd_cache_fini(g);
+
+	return UNIT_SUCCESS;
+}
+
+/**
+ * Requirement NVGPU-RQCD-126.C1,2
+ *
+ *   C1: Valid/Invalid: The pd_cache unit does/does not return a valid word
+ *                      offset for a 2 word PDE/PTE.
+ *   C2: Valid/Invalid: The pd_cache unit does/does not return a valid word
+ *                      offset for a 4 word PDE/PTE.
+ */
+static int test_offset_computation(struct unit_module *m, struct gk20a *g,
+				   void *args)
+{
+	const struct gk20a_mmu_level *mm_levels =
+		gp10b_mm_get_mmu_levels(g, SZ_64K);
+	u32 indexes[]    = { 0U, 4U,  16U, 255U };
+	u32 offsets_2w[] = { 0U, 8U,  32U, 510U };
+	u32 offsets_4w[] = { 0U, 16U, 64U, 1020U };
+	bool fail = false;
+	u32 i;
+
+	for (i = 0U; i < sizeof(indexes) / sizeof(*indexes); i++) {
+		u32 offs_2w = nvgpu_pd_offset_from_index(&mm_levels[2],
+							 indexes[i]);
+		u32 offs_4w = nvgpu_pd_offset_from_index(&mm_levels[3],
+							 indexes[i]);
+
+		if (offs_2w != offsets_2w[i]) {
+			unit_err(m, "2w offset comp failed: [%u] %u -> %u\n",
+				 i, indexes[i], offs_2w);
+			fail = true;
+		}
+		if (offs_4w != offsets_4w[i]) {
+			unit_err(m, "4w offset comp failed: [%u] %u -> %u\n",
+				 i, indexes[i], offs_4w);
+			fail = true;
+		}
+	}
+
+	return fail ? UNIT_FAIL : UNIT_SUCCESS;
+}
+
+/**
+ * Call this to cover a range of requirement tests:
+ *
+ * NVGPU-RQCD-124.C1
+ *   C1: Valid/Invalid: After initialization of pd_cache pd_cache can/cannot
+ *                      allocate valid PDs
+ *
+ * NVGPU-RQCD-155.C1
+ *   C1: Valid/Invalid: Re-initialization does not/does cause subsequent kernel
+ *                      or DMA allocations.
+ *
+ * NVGPU-RQCD-125.C1
+ *   C1: Valid/Invalid: The pd_cache unit does/does not release all it's
+                        allocated memory (kerrnel and DMA).
+ *
+ * It's redundant, certainly, but that's fine as this test runs fast.
+ */
+static int test_init_deinit(struct unit_module *m, struct gk20a *g, void *args)
+{
+	int err, status = UNIT_SUCCESS;
+	struct vm_gk20a vm;
+	struct nvgpu_gmmu_pd pd;
+	struct nvgpu_posix_fault_inj *kmem_fi =
+		nvgpu_kmem_get_fault_injection();
+	struct nvgpu_posix_fault_inj *dma_fi =
+		nvgpu_dma_alloc_get_fault_injection();
+
+	err = init_pd_cache(m, g, &vm);
+	if (err != UNIT_SUCCESS) {
+		return err;
+	}
+
+	err = nvgpu_pd_alloc(&vm, &pd, SZ_4K);
+	if (err != UNIT_SUCCESS) {
+		nvgpu_pd_cache_fini(g);
+		return UNIT_FAIL;
+	}
+
+	nvgpu_posix_enable_fault_injection(kmem_fi, true, 0);
+	nvgpu_posix_enable_fault_injection(dma_fi, true, 0);
+
+	/*
+	 * Block all allocs and check that we don't hit a -ENOMEM. This proves
+	 * that we haven't done any extra allocations on subsequent init calls.
+	 */
+	err = nvgpu_pd_cache_init(g);
+	if (err == -ENOMEM) {
+		unit_err(m, "Attempted allocation during multi-init\n");
+		status = UNIT_FAIL;
+	}
+
+	nvgpu_posix_enable_fault_injection(kmem_fi, false, 0);
+	nvgpu_posix_enable_fault_injection(dma_fi, false, 0);
+
+	nvgpu_pd_free(&vm, &pd);
+	nvgpu_pd_cache_fini(g);
+
+	return status;
+}
+
+/*
  * Init the global env - just make sure we don't try and allocate from VIDMEM
  * when doing dma allocs.
  */
@@ -804,12 +1038,24 @@ struct unit_module_test pd_cache_tests[] = {
 	/*
 	 * Requirement verification tests.
 	 */
-	UNIT_TEST_REQ("NVGPU-RQCD-68.C1,2", PD_CACHE_REQ1_UID, "V4",
+	UNIT_TEST_REQ("NVGPU-RQCD-68.C1,2",  PD_CACHE_REQ1_UID, "V4",
 		      valid_alloc,			test_pd_cache_valid_alloc, NULL),
-	UNIT_TEST_REQ("NVGPU-RQCD-68.C3",   PD_CACHE_REQ1_UID, "V4",
+	UNIT_TEST_REQ("NVGPU-RQCD-68.C3",    PD_CACHE_REQ1_UID, "V4",
 		      pd_packing,			test_per_pd_size, do_test_pd_cache_packing_size),
-	UNIT_TEST_REQ("NVGPU-RQCD-118.C1",  PD_CACHE_REQ2_UID, "V3",
+	UNIT_TEST_REQ("NVGPU-RQCD-118.C1",   PD_CACHE_REQ2_UID, "V3",
 		      pd_reusability,			test_per_pd_size, do_test_pd_reusability),
+	UNIT_TEST_REQ("NVGPU-RQCD-122.C1",   PD_CACHE_REQ3_UID, "V3",
+		      write,				test_pd_write, NULL),
+	UNIT_TEST_REQ("NVGPU-RQCD-123.C1",   PD_CACHE_REQ4_UID, "V2",
+		      gpu_address,			test_gpu_address, NULL),
+	UNIT_TEST_REQ("NVGPU-RQCD-126.C1,2", PD_CACHE_REQ5_UID, "V1",
+		      offset_comp,			test_offset_computation, NULL),
+	UNIT_TEST_REQ("NVGPU-RQCD-124.C1",   PD_CACHE_REQ6_UID, "V3",
+		      init,				test_init_deinit, NULL),
+	UNIT_TEST_REQ("NVGPU-RQCD-155.C1",   PD_CACHE_REQ7_UID, "V2",
+		      multi_init,			test_init_deinit, NULL),
+	UNIT_TEST_REQ("NVGPU-RQCD-125.C1",   PD_CACHE_REQ8_UID, "V2",
+		      deinit,				test_init_deinit, NULL),
 
 	/*
 	 * Direct allocs.

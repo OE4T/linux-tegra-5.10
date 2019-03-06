@@ -23,6 +23,8 @@
 #ifndef NVGPU_POSIX_SIZES_H
 #define NVGPU_POSIX_SIZES_H
 
+#define SZ_256		256UL
+
 #define SZ_1K		(1UL << 10)
 #define SZ_4K		(SZ_1K << 2)
 #define SZ_64K		(SZ_1K << 6)

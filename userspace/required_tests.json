@@ -506,6 +506,13 @@
         "unit": "pd_cache"
     },
     {
+        "test": "deinit",
+        "req": "NVGPU-RQCD-125.C1",
+        "vc": "V2",
+        "uid": "6962610",
+        "unit": "pd_cache"
+    },
+    {
         "test": "env_init",
         "unit": "pd_cache"
     },
@@ -518,11 +525,35 @@
         "unit": "pd_cache"
     },
     {
+        "test": "gpu_address",
+        "req": "NVGPU-RQCD-123.C1",
+        "vc": "V2",
+        "uid": "6962424",
+        "unit": "pd_cache"
+    },
+    {
         "test": "init",
+        "req": "NVGPU-RQCD-124.C1",
+        "vc": "V3",
+        "uid": "6962548",
         "unit": "pd_cache"
     },
     {
         "test": "invalid_pd_alloc",
+        "unit": "pd_cache"
+    },
+    {
+        "test": "multi_init",
+        "req": "NVGPU-RQCD-155.C1",
+        "vc": "V2",
+        "uid": "7138651",
+        "unit": "pd_cache"
+    },
+    {
+        "test": "offset_comp",
+        "req": "NVGPU-RQCD-126.C1,2",
+        "vc": "V1",
+        "uid": "6963067",
         "unit": "pd_cache"
     },
     {
@@ -544,6 +575,13 @@
         "req": "NVGPU-RQCD-68.C1,2",
         "vc": "V4",
         "uid": "6439202",
+        "unit": "pd_cache"
+    },
+    {
+        "test": "write",
+        "req": "NVGPU-RQCD-122.C1",
+        "vc": "V3",
+        "uid": "6957786",
         "unit": "pd_cache"
     },
     {
