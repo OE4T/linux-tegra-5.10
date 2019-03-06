@@ -58,7 +58,6 @@ static int pmu_set_boot_clk_runcb_fn(void *arg)
 			nvgpu_err(g, "Failed to execute RPC status=0x%x",
 					status);
 		}
-		status = nvgpu_clk_set_fll_clk_gv10x(g);
 	}
 
 	return 0;

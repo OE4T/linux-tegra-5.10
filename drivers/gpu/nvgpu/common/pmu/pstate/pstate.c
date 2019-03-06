@@ -25,7 +25,18 @@
 #include <nvgpu/bios.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/pmu.h>
+#include <nvgpu/boardobj.h>
+#include <nvgpu/boardobjgrp.h>
+#include <nvgpu/boardobjgrp_e32.h>
+#include <nvgpu/boardobjgrp_e255.h>
 #include <nvgpu/pmu/clk/clk.h>
+#include <nvgpu/pmu/clk/clk_fll.h>
+#include <nvgpu/pmu/clk/clk_vin.h>
+#include <nvgpu/pmu/clk/clk_domain.h>
+#include <nvgpu/pmu/clk/clk_prog.h>
+#include <nvgpu/pmu/clk/clk_freq_controller.h>
+#include <nvgpu/pmu/clk/clk_freq_domain.h>
+#include <nvgpu/pmu/clk/clk_vf_point.h>
 #include <nvgpu/pmu/pmgr.h>
 #include <nvgpu/pmu/therm.h>
 #include <nvgpu/pmu/perf.h>
@@ -40,6 +51,13 @@ void gk20a_deinit_pstate_support(struct gk20a *g)
 	pmgr_pmu_free_pmupstate(g);
 	nvgpu_therm_pmu_free_pmupstate(g);
 	nvgpu_perf_pmu_free_pmupstate(g);
+	nvgpu_clk_domain_free_pmupstate(g);
+	nvgpu_clk_prog_free_pmupstate(g);
+	nvgpu_clk_vf_point_free_pmupstate(g);
+	nvgpu_clk_freq_domain_free_pmupstate(g);
+	nvgpu_clk_freq_controller_free_pmupstate(g);
+	nvgpu_clk_fll_free_pmupstate(g);
+	nvgpu_clk_vin_free_pmupstate(g);
 	nvgpu_clk_free_pmupstate(g);
 
 	if (g->ops.clk.mclk_deinit != NULL) {
@@ -61,6 +79,41 @@ int gk20a_init_pstate_support(struct gk20a *g)
 	}
 
 	err = nvgpu_clk_init_pmupstate(g);
+	if (err != 0) {
+		return err;
+	}
+
+	err = nvgpu_clk_domain_init_pmupstate(g);
+	if (err != 0) {
+		return err;
+	}
+
+	err = nvgpu_clk_prog_init_pmupstate(g);
+	if (err != 0) {
+		return err;
+	}
+
+	err = nvgpu_clk_vf_point_init_pmupstate(g);
+	if (err != 0) {
+		return err;
+	}
+
+	err = nvgpu_clk_freq_domain_init_pmupstate(g);
+	if (err != 0) {
+		return err;
+	}
+
+	err = nvgpu_clk_freq_controller_init_pmupstate(g);
+	if (err != 0) {
+		return err;
+	}
+
+	err = nvgpu_clk_vin_init_pmupstate(g);
+	if (err != 0) {
+		return err;
+	}
+
+	err = nvgpu_clk_fll_init_pmupstate(g);
 	if (err != 0) {
 		return err;
 	}
@@ -410,7 +463,7 @@ static int parse_pstate_entry_5x(struct gk20a *g,
 		struct nvgpu_clk_domain *clk_domain;
 
 		clk_domain = (struct nvgpu_clk_domain *)BOARDOBJGRP_OBJ_GET_BY_IDX(
-			    &g->clk_pmu->clk_domainobjs.super.super, clkidx);
+			    &g->clk_pmu->clk_domainobjs->super.super, clkidx);
 
 		pclksetinfo = &pstate->clklist.clksetinfo[clkidx];
 		clk_entry = (struct vbios_pstate_entry_clock_5x *)p;

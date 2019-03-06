@@ -37,6 +37,7 @@
 #include <nvgpu/pmu/volt.h>
 #include <nvgpu/pmu/lpwr.h>
 #include <nvgpu/pmu/clk/clk.h>
+#include <nvgpu/boardobjgrp_e255.h>
 #include <nvgpu/pmu/clk/clk_vf_point.h>
 
 int nvgpu_clk_notification_queue_alloc(struct gk20a *g,

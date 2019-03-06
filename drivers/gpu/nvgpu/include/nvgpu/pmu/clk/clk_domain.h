@@ -25,25 +25,24 @@
 #ifndef NVGPU_PMU_CLK_DOMAIN_H
 #define NVGPU_PMU_CLK_DOMAIN_H
 
-#include <nvgpu/boardobjgrp_e32.h>
-#include <nvgpu/boardobjgrpmask.h>
 #include <nvgpu/types.h>
-#include <nvgpu/pmuif/ctrlclk.h>
-#include <nvgpu/pmu/clk/clk.h>
 
 struct gk20a;
 struct nvgpu_clk_domain;
+struct nvgpu_clk_slave_freq;
+struct ctrl_perf_change_seq_change_input;
+struct nvgpu_clk_pmupstate;
 
 typedef int nvgpu_clkproglink(struct gk20a *g, struct nvgpu_clk_pmupstate *pclk,
-			struct nvgpu_clk_domain *pdomain);
+	struct nvgpu_clk_domain *pdomain);
 
 typedef int nvgpu_clkvfsearch(struct gk20a *g, struct nvgpu_clk_pmupstate *pclk,
-			struct nvgpu_clk_domain *pdomain, u16 *clkmhz,
-			u32 *voltuv, u8 rail);
+	struct nvgpu_clk_domain *pdomain, u16 *clkmhz,
+	u32 *voltuv, u8 rail);
 
-typedef int nvgpu_clkgetfpoints(struct gk20a *g, struct nvgpu_clk_pmupstate *pclk,
-			struct nvgpu_clk_domain *pdomain, u32 *pfpointscount,
-			  u16 *pfreqpointsinmhz, u8 rail);
+typedef int nvgpu_clkgetfpoints(struct gk20a *g,
+	struct nvgpu_clk_pmupstate *pclk, struct nvgpu_clk_domain *pdomain,
+	u32 *pfpointscount, u16 *pfreqpointsinmhz, u8 rail);
 
 struct nvgpu_clk_domain {
 	struct boardobj super;
@@ -73,14 +72,16 @@ struct nvgpu_clk_domains {
 	struct boardobjgrpmask_e32 master_domains_mask;
 	struct ctrl_clk_clk_delta  deltas;
 
-	struct nvgpu_clk_domain *ordered_noise_aware_list[CTRL_BOARDOBJ_MAX_BOARD_OBJECTS];
+	struct nvgpu_clk_domain
+		*ordered_noise_aware_list[CTRL_BOARDOBJ_MAX_BOARD_OBJECTS];
 
-	struct nvgpu_clk_domain *ordered_noise_unaware_list[CTRL_BOARDOBJ_MAX_BOARD_OBJECTS];
+	struct nvgpu_clk_domain
+		*ordered_noise_unaware_list[CTRL_BOARDOBJ_MAX_BOARD_OBJECTS];
 };
 
+int nvgpu_clk_domain_init_pmupstate(struct gk20a *g);
+void nvgpu_clk_domain_free_pmupstate(struct gk20a *g);
 int nvgpu_clk_pmu_clk_domains_load(struct gk20a *g);
-u32 nvgpu_clk_get_vbios_clk_domain_gv10x( u32 vbios_domain);
-u32 nvgpu_clk_get_vbios_clk_domain_gp10x( u32 vbios_domain);
 int nvgpu_clk_domain_sw_setup(struct gk20a *g);
 int nvgpu_clk_domain_pmu_setup(struct gk20a *g);
 

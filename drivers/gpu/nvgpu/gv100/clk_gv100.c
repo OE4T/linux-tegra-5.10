@@ -1,7 +1,7 @@
 /*
  * GV100 Clocks
  *
- * Copyright (c) 2016-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -35,10 +35,12 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/clk.h>
 #include <nvgpu/pmu/clk/clk.h>
+#include <nvgpu/pmu/clk/clk_domain.h>
+#include <nvgpu/hw/gv100/hw_trim_gv100.h>
 
 #include "clk_gv100.h"
 
-#include <nvgpu/hw/gv100/hw_trim_gv100.h>
+
 
 #define CLK_NAMEMAP_INDEX_GPCCLK	0x00
 #define CLK_NAMEMAP_INDEX_XBARCLK	0x02
@@ -220,7 +222,7 @@ int gv100_clk_domain_get_f_points(
 	if ((pfreqpointsinmhz == NULL) && (*pfpointscount != 0U)) {
 		return -EINVAL;
 	}
-	BOARDOBJGRP_FOR_EACH(&(pclk->clk_domainobjs.super.super),
+	BOARDOBJGRP_FOR_EACH(&(pclk->clk_domainobjs->super.super),
 			struct nvgpu_clk_domain *, pdomain, i) {
 		if (pdomain->api_domain == clkapidomain) {
 			status = pdomain->clkdomainclkgetfpoints(g, pclk,

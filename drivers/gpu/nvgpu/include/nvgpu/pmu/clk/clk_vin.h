@@ -25,11 +25,26 @@
 #ifndef NVGPU_PMU_CLK_VIN_H
 #define NVGPU_PMU_CLK_VIN_H
 
-#include <nvgpu/boardobjgrp_e32.h>
 #include <nvgpu/types.h>
 
 struct gk20a;
-struct vin_device_v20;
+struct nvgpu_vin_device;
+struct nvgpu_clk_pmupstate;
+struct boardobj;
+struct boardobjgrp_e32;
+
+typedef u32 vin_device_state_load(struct gk20a *g,
+		struct nvgpu_clk_pmupstate *clk, struct nvgpu_vin_device *pdev);
+
+struct nvgpu_vin_device {
+	struct boardobj super;
+	u8 id;
+	u8 volt_domain;
+	u8 volt_domain_vbios;
+	u32 flls_shared_mask;
+
+	vin_device_state_load  *state_load;
+};
 
 struct nvgpu_avfsvinobjs {
 	struct boardobjgrp_e32 super;
@@ -38,14 +53,10 @@ struct nvgpu_avfsvinobjs {
 	bool vin_is_disable_allowed;
 };
 
+int nvgpu_clk_vin_init_pmupstate(struct gk20a *g);
+void nvgpu_clk_vin_free_pmupstate(struct gk20a *g);
 int nvgpu_clk_pmu_vin_load(struct gk20a *g);
 int nvgpu_clk_vin_sw_setup(struct gk20a *g);
 int nvgpu_clk_vin_pmu_setup(struct gk20a *g);
-int nvgpu_clk_avfs_get_vin_cal_fuse_v10(struct gk20a *g,
-	struct nvgpu_avfsvinobjs *pvinobjs,
-	struct vin_device_v20 *pvindev);
-int nvgpu_clk_avfs_get_vin_cal_fuse_v20(struct gk20a *g,
-	struct nvgpu_avfsvinobjs *pvinobjs,
-	struct vin_device_v20 *pvindev);
 
 #endif /* NVGPU_PMU_CLK_VIN_H */

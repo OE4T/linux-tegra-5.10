@@ -34,7 +34,6 @@
 #include <nvgpu/pmu/pstate.h>
 #include <nvgpu/pmu/volt.h>
 #include <nvgpu/pmu/clk/clk.h>
-#include <nvgpu/pmu/clk/clk_vf_point.h>
 
 /* PMU NS UCODE IMG */
 #define NVGPU_PMU_NS_UCODE_IMAGE	"gpmu_ucode.bin"
@@ -1337,15 +1336,8 @@ static int init_pmu_fw_ver_ops(struct nvgpu_pmu *pmu, u32 app_version)
 				boardobjgrp_pmugetstatus_impl_v1;
 			g->ops.pmu_ver.boardobj.is_boardobjgrp_pmucmd_id_valid =
 				is_boardobjgrp_pmucmd_id_valid_v1;
-			g->ops.pmu_ver.clk.get_vbios_clk_domain =
-				nvgpu_clk_get_vbios_clk_domain_gv10x;
-			g->ops.pmu_ver.clk.clk_avfs_get_vin_cal_data =
-					nvgpu_clk_avfs_get_vin_cal_fuse_v20;
-			g->ops.pmu_ver.clk.clk_vf_change_inject_data_fill =
-					nvgpu_clk_vf_change_inject_data_fill_gv10x;
 			if (app_version == APP_VERSION_GV10X) {
-				g->ops.pmu_ver.clk.clk_set_boot_clk =
-					nvgpu_clk_set_boot_fll_clk_gv10x;
+				g->ops.pmu_ver.clk.clk_set_boot_clk = NULL;
 			} else {
 				g->ops.pmu_ver.clk.clk_set_boot_clk = NULL;
 			}
@@ -1508,12 +1500,6 @@ static int init_pmu_fw_ver_ops(struct nvgpu_pmu *pmu, u32 app_version)
 			boardobjgrp_pmugetstatus_impl;
 		g->ops.pmu_ver.boardobj.is_boardobjgrp_pmucmd_id_valid =
 			is_boardobjgrp_pmucmd_id_valid_v0;
-		g->ops.pmu_ver.clk.get_vbios_clk_domain =
-			nvgpu_clk_get_vbios_clk_domain_gp10x;
-		g->ops.pmu_ver.clk.clk_avfs_get_vin_cal_data =
-				nvgpu_clk_avfs_get_vin_cal_fuse_v10;
-		g->ops.pmu_ver.clk.clk_vf_change_inject_data_fill =
-				nvgpu_clk_vf_change_inject_data_fill_gp10x;
 		break;
 	case APP_VERSION_GM20B:
 		g->ops.pmu_ver.pg_cmd_eng_buf_load_size =

@@ -24,10 +24,11 @@
 #include <nvgpu/clk_arb.h>
 #include <nvgpu/pmu/clk/clk.h>
 #include <nvgpu/timers.h>
+#include <nvgpu/boardobjgrp_e255.h>
+#include <nvgpu/pmu/clk/clk_fll.h>
 #include <nvgpu/pmu/clk/clk_vf_point.h>
 
 #include "clk_arb_gv100.h"
-#include "common/pmu/clk/clk.h"
 
 bool gv100_check_clk_arb_support(struct gk20a *g)
 {
@@ -58,7 +59,7 @@ int gv100_get_arbiter_clk_range(struct gk20a *g, u32 api_domain,
 {
 	u32 clkwhich;
 	struct clk_set_info *p0_info;
-	struct nvgpu_avfsfllobjs *pfllobjs =  &(g->clk_pmu->avfs_fllobjs);
+	struct nvgpu_avfsfllobjs *pfllobjs =  g->clk_pmu->avfs_fllobjs;
 	u16 limit_min_mhz;
 	bool error_status = false;
 

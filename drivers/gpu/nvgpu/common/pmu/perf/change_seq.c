@@ -28,6 +28,7 @@
 #include <nvgpu/pmuif/ctrlclk.h>
 #include <nvgpu/pmu/pstate.h>
 #include <nvgpu/pmu/clk/clk.h>
+#include <nvgpu/pmu/clk/clk_domain.h>
 #include <nvgpu/pmu/perf.h>
 
 #include "pmu_perf.h"
@@ -127,7 +128,7 @@ static void build_change_seq_boot (struct gk20a *g)
 
 	script_last->buf.change.data.flags = CTRL_PERF_CHANGE_SEQ_CHANGE_NONE;
 
-	BOARDOBJGRP_FOR_EACH(&(g->clk_pmu->clk_domainobjs.super.super),
+	BOARDOBJGRP_FOR_EACH(&(g->clk_pmu->clk_domainobjs->super.super),
 		struct nvgpu_clk_domain *, pdomain, i) {
 
 		p0_info = pstate_get_clk_set_info(g, CTRL_PERF_PSTATE_P0,

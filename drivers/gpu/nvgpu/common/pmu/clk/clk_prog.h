@@ -29,6 +29,8 @@
 #include <nvgpu/boardobjgrp_e32.h>
 #include <nvgpu/boardobjgrp_e255.h>
 #include <nvgpu/boardobjgrpmask.h>
+#include <nvgpu/pmu/clk/clk.h>
+#include <nvgpu/pmu/clk/clk_prog.h>
 
 struct clk_prog_1x_master;
 #define FREQ_STEP_SIZE_MHZ      15U
@@ -124,6 +126,6 @@ struct clk_prog_35_master_table {
 
 #define CLK_CLK_PROG_GET(pclk, idx)                                            \
 	((struct clk_prog *)BOARDOBJGRP_OBJ_GET_BY_IDX(			\
-		&pclk->clk_progobjs.super.super, (u8)(idx)))
+		&pclk->clk_progobjs->super.super, (u8)(idx)))
 
 #endif /* NVGPU_CLK_PROG_H */

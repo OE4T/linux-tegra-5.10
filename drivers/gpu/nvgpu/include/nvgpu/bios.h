@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -615,7 +615,8 @@ struct vbios_pstate_entry_5x {
 	u8 pstate_level;
 	u8 flags0;
 	u8 lpwr_entry_idx;
-	struct vbios_pstate_entry_clock_5x clockEntry[PERF_CLK_DOMAINS_IDX_MAX];
+	struct vbios_pstate_entry_clock_5x
+		nvgpu_clockEntry[PERF_CLK_DOMAINS_IDX_MAX];
 } __packed;
 
 #define VBIOS_PSTATE_5X_CLOCK_PROG_PARAM0_NOM_FREQ_MHZ_SHIFT		      0U

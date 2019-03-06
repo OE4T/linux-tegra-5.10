@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, NVIDIA Corporation. All rights reserved.
+ * Copyright (c) 2018-2019, NVIDIA Corporation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -16,11 +16,16 @@
 
 #include <linux/debugfs.h>
 
-#include <nvgpu/clk.h>
-#include <nvgpu/boardobjgrpmask.h>
-
 #include "os_linux.h"
-#include "common/pmu/clk/clk.h"
+
+#include <nvgpu/clk.h>
+#include <nvgpu/boardobj.h>
+#include <nvgpu/boardobjgrp_e32.h>
+#include <nvgpu/boardobjgrpmask.h>
+#include <nvgpu/pmu/clk/clk.h>
+#include <nvgpu/pmu/clk/clk_freq_controller.h>
+
+#include "common/pmu/clk/clk_freq_controller.h"
 
 void nvgpu_clk_arb_pstate_change_lock(struct gk20a *g, bool lock);
 
@@ -43,7 +48,7 @@ static int sys_cfc_read(void *data , u64 *val)
 {
 	struct gk20a *g = (struct gk20a *)data;
 	bool bload = boardobjgrpmask_bitget(
-		&g->clk_pmu->clk_freq_controllers.freq_ctrl_load_mask.super,
+		&g->clk_pmu->clk_freq_controllers->freq_ctrl_load_mask.super,
 		CTRL_CLK_CLK_FREQ_CONTROLLER_ID_SYS);
 
 	/* val = 1 implies CLFC is loaded or enabled */
@@ -58,7 +63,7 @@ static int sys_cfc_write(void *data , u64 val)
 	bool bload = val ? true : false;
 
 	nvgpu_clk_arb_pstate_change_lock(g, true);
-	status = clk_pmu_freq_controller_load(g, bload,
+	status = nvgpu_clk_pmu_freq_controller_load(g, bload,
 					CTRL_CLK_CLK_FREQ_CONTROLLER_ID_SYS);
 	nvgpu_clk_arb_pstate_change_lock(g, false);
 
@@ -70,7 +75,7 @@ static int ltc_cfc_read(void *data , u64 *val)
 {
 	struct gk20a *g = (struct gk20a *)data;
 	bool bload = boardobjgrpmask_bitget(
-		&g->clk_pmu->clk_freq_controllers.freq_ctrl_load_mask.super,
+		&g->clk_pmu->clk_freq_controllers->freq_ctrl_load_mask.super,
 		CTRL_CLK_CLK_FREQ_CONTROLLER_ID_LTC);
 
 	/* val = 1 implies CLFC is loaded or enabled */
@@ -85,7 +90,7 @@ static int ltc_cfc_write(void *data , u64 val)
 	bool bload = val ? true : false;
 
 	nvgpu_clk_arb_pstate_change_lock(g, true);
-	status = clk_pmu_freq_controller_load(g, bload,
+	status = nvgpu_clk_pmu_freq_controller_load(g, bload,
 					CTRL_CLK_CLK_FREQ_CONTROLLER_ID_LTC);
 	nvgpu_clk_arb_pstate_change_lock(g, false);
 
@@ -97,7 +102,7 @@ static int xbar_cfc_read(void *data , u64 *val)
 {
 	struct gk20a *g = (struct gk20a *)data;
 	bool bload = boardobjgrpmask_bitget(
-		&g->clk_pmu->clk_freq_controllers.freq_ctrl_load_mask.super,
+		&g->clk_pmu->clk_freq_controllers->freq_ctrl_load_mask.super,
 		CTRL_CLK_CLK_FREQ_CONTROLLER_ID_XBAR);
 
 	/* val = 1 implies CLFC is loaded or enabled */
@@ -112,7 +117,7 @@ static int xbar_cfc_write(void *data , u64 val)
 	bool bload = val ? true : false;
 
 	nvgpu_clk_arb_pstate_change_lock(g, true);
-	status = clk_pmu_freq_controller_load(g, bload,
+	status = nvgpu_clk_pmu_freq_controller_load(g, bload,
 			CTRL_CLK_CLK_FREQ_CONTROLLER_ID_XBAR);
 	nvgpu_clk_arb_pstate_change_lock(g, false);
 
@@ -125,7 +130,7 @@ static int gpc_cfc_read(void *data , u64 *val)
 {
 	struct gk20a *g = (struct gk20a *)data;
 	bool bload = boardobjgrpmask_bitget(
-		&g->clk_pmu->clk_freq_controllers.freq_ctrl_load_mask.super,
+		&g->clk_pmu->clk_freq_controllers->freq_ctrl_load_mask.super,
 		CTRL_CLK_CLK_FREQ_CONTROLLER_ID_GPC0);
 
 	/* val = 1 implies CLFC is loaded or enabled */
@@ -140,7 +145,7 @@ static int gpc_cfc_write(void *data , u64 val)
 	bool bload = val ? true : false;
 
 	nvgpu_clk_arb_pstate_change_lock(g, true);
-	status = clk_pmu_freq_controller_load(g, bload,
+	status = nvgpu_clk_pmu_freq_controller_load(g, bload,
 			CTRL_CLK_CLK_FREQ_CONTROLLER_ID_GPC0);
 	nvgpu_clk_arb_pstate_change_lock(g, false);
 

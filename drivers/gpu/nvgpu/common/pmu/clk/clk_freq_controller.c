@@ -21,17 +21,45 @@
  */
 
 #include <nvgpu/bios.h>
+#include <nvgpu/bug.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/boardobjgrp.h>
 #include <nvgpu/boardobjgrp_e32.h>
+#include <nvgpu/boardobjgrpmask.h>
+#include <nvgpu/boardobj.h>
 #include <nvgpu/string.h>
 #include <nvgpu/pmuif/ctrlclk.h>
 #include <nvgpu/pmuif/ctrlvolt.h>
+#include <nvgpu/pmu/clk/clk.h>
+#include <nvgpu/pmu/clk/clk_fll.h>
+#include <nvgpu/pmu/clk/clk_domain.h>
+#include <nvgpu/pmu/clk/clk_freq_controller.h>
 
-#include "clk.h"
-#include "clk_fll.h"
-#include "clk_domain.h"
 #include "clk_freq_controller.h"
+
+struct nvgpu_clk_freq_ctlr_rpc_pmucmdhandler_params {
+	struct nv_pmu_clk_rpc *prpccall;
+	u32 success;
+};
+
+void nvgpu_clk_freq_ctlr_rpc_pmucmdhandler(struct gk20a *g, struct pmu_msg *msg,
+		void *param, u32 handle, u32 status)
+{
+	struct nvgpu_clk_freq_ctlr_rpc_pmucmdhandler_params *phandlerparams =
+		(struct nvgpu_clk_freq_ctlr_rpc_pmucmdhandler_params *)param;
+
+	nvgpu_log_info(g, " ");
+
+	if (msg->msg.clk.msg_type != NV_PMU_CLK_MSG_ID_RPC) {
+		nvgpu_err(g, "unsupported msg for CLK LOAD RPC %x",
+			  msg->msg.clk.msg_type);
+		return;
+	}
+
+	if (phandlerparams->prpccall->b_supported) {
+		phandlerparams->success = 1;
+	}
+}
 
 static int clk_freq_controller_pmudatainit_super(struct gk20a *g,
 	struct boardobj *board_obj_ptr,
@@ -240,7 +268,7 @@ static int clk_get_freq_controller_table(struct gk20a *g,
 			BIOS_GET_FIELD(u8, entry.param0,
 				NV_VBIOS_FCT_1X_ENTRY_PARAM0_ID);
 
-		pclk_domain = CLK_CLK_DOMAIN_GET((g->clk_pmu),
+		pclk_domain = g->clk_pmu->clk_get_clk_domain((g->clk_pmu),
 				(u32)entry.clk_domain_idx);
 		freq_controller_data.freq_controller.clk_domain =
 			pclk_domain->api_domain;
@@ -332,7 +360,7 @@ int nvgpu_clk_freq_controller_pmu_setup(struct gk20a *g)
 
 	nvgpu_log_info(g, " ");
 
-	pboardobjgrp = &g->clk_pmu->clk_freq_controllers.super.super;
+	pboardobjgrp = &g->clk_pmu->clk_freq_controllers->super.super;
 
 	if (!pboardobjgrp->bconstructed) {
 		return -EINVAL;
@@ -397,7 +425,7 @@ int nvgpu_clk_freq_controller_sw_setup(struct gk20a *g)
 	int status = 0;
 	struct boardobjgrp *pboardobjgrp = NULL;
 	struct nvgpu_clk_freq_controllers *pclk_freq_controllers;
-	struct nvgpu_avfsfllobjs *pfllobjs = &(g->clk_pmu->avfs_fllobjs);
+	struct nvgpu_avfsfllobjs *pfllobjs = g->clk_pmu->avfs_fllobjs;
 	struct fll_device *pfll;
 	struct clk_freq_controller *pclkfreqctrl;
 	u8 i;
@@ -405,7 +433,7 @@ int nvgpu_clk_freq_controller_sw_setup(struct gk20a *g)
 
 	nvgpu_log_info(g, " ");
 
-	pclk_freq_controllers = &g->clk_pmu->clk_freq_controllers;
+	pclk_freq_controllers = g->clk_pmu->clk_freq_controllers;
 	status = boardobjgrpconstruct_e32(g, &pclk_freq_controllers->super);
 	if (status != 0) {
 		nvgpu_err(g,
@@ -414,7 +442,7 @@ int nvgpu_clk_freq_controller_sw_setup(struct gk20a *g)
 		goto done;
 	}
 
-	pboardobjgrp = &g->clk_pmu->clk_freq_controllers.super.super;
+	pboardobjgrp = &g->clk_pmu->clk_freq_controllers->super.super;
 
 	pboardobjgrp->pmudatainit  = _clk_freq_controllers_pmudatainit;
 	pboardobjgrp->pmudatainstget  =
@@ -460,4 +488,132 @@ int nvgpu_clk_freq_controller_sw_setup(struct gk20a *g)
 done:
 		nvgpu_log_info(g, " done status %x", status);
 		return status;
+}
+
+int nvgpu_clk_pmu_freq_controller_load(struct gk20a *g, bool bload, u8 bit_idx)
+{
+	struct pmu_cmd cmd;
+	struct pmu_payload payload;
+	int status;
+	u32 seqdesc;
+	struct nv_pmu_clk_rpc rpccall;
+	struct nvgpu_clk_freq_ctlr_rpc_pmucmdhandler_params handler;
+	struct nv_pmu_clk_load *clkload;
+	struct nvgpu_clk_freq_controllers *pclk_freq_controllers;
+	struct ctrl_boardobjgrp_mask_e32 *load_mask;
+	struct boardobjgrpmask_e32 isolate_cfc_mask;
+
+	(void) memset(&payload, 0, sizeof(struct pmu_payload));
+	(void) memset(&rpccall, 0, sizeof(struct nv_pmu_clk_rpc));
+	(void) memset(&handler, 0, sizeof(
+			struct nvgpu_clk_freq_ctlr_rpc_pmucmdhandler_params));
+
+	pclk_freq_controllers = g->clk_pmu->clk_freq_controllers;
+	rpccall.function = NV_PMU_CLK_RPC_ID_LOAD;
+	clkload = &rpccall.params.clk_load;
+	clkload->feature = NV_NV_PMU_CLK_LOAD_FEATURE_FREQ_CONTROLLER;
+	clkload->action_mask = bload ?
+		NV_NV_PMU_CLK_LOAD_ACTION_MASK_FREQ_CONTROLLER_CALLBACK_YES :
+		NV_NV_PMU_CLK_LOAD_ACTION_MASK_FREQ_CONTROLLER_CALLBACK_NO;
+
+	load_mask = &rpccall.params.clk_load.payload.freq_controllers.load_mask;
+
+	status = boardobjgrpmask_e32_init(&isolate_cfc_mask, NULL);
+
+	if (bit_idx == CTRL_CLK_CLK_FREQ_CONTROLLER_ID_ALL) {
+		status = boardobjgrpmask_export(
+				&pclk_freq_controllers->
+					freq_ctrl_load_mask.super,
+				pclk_freq_controllers->
+					freq_ctrl_load_mask.super.bitcount,
+				&load_mask->super);
+
+
+	} else {
+		status = boardobjgrpmask_bitset(&isolate_cfc_mask.super,
+						bit_idx);
+		status = boardobjgrpmask_export(&isolate_cfc_mask.super,
+					isolate_cfc_mask.super.bitcount,
+					&load_mask->super);
+		if (bload) {
+			status = boardobjgrpmask_bitset(
+					&pclk_freq_controllers->
+						freq_ctrl_load_mask.super,
+					bit_idx);
+		} else {
+			status = boardobjgrpmask_bitclr(
+					&pclk_freq_controllers->
+						freq_ctrl_load_mask.super,
+					bit_idx);
+		}
+	}
+
+	if (status != 0) {
+		nvgpu_err(g, "Error in generating mask used to select CFC");
+		goto done;
+	}
+
+	cmd.hdr.unit_id = PMU_UNIT_CLK;
+	cmd.hdr.size =  (u32)sizeof(struct nv_pmu_clk_cmd) +
+			(u32)sizeof(struct pmu_hdr);
+
+	cmd.cmd.clk.cmd_type = NV_PMU_CLK_CMD_ID_RPC;
+
+	payload.in.buf = (u8 *)&rpccall;
+	payload.in.size = (u32)sizeof(struct nv_pmu_clk_rpc);
+	payload.in.fb_size = PMU_CMD_SUBMIT_PAYLOAD_PARAMS_FB_SIZE_UNUSED;
+	nvgpu_assert(NV_PMU_CLK_CMD_RPC_ALLOC_OFFSET < U64(U32_MAX));
+	payload.in.offset = (u32)NV_PMU_CLK_CMD_RPC_ALLOC_OFFSET;
+
+	payload.out.buf = (u8 *)&rpccall;
+	payload.out.size = (u32)sizeof(struct nv_pmu_clk_rpc);
+	payload.out.fb_size = PMU_CMD_SUBMIT_PAYLOAD_PARAMS_FB_SIZE_UNUSED;
+	nvgpu_assert(NV_PMU_CLK_MSG_RPC_ALLOC_OFFSET < U64(U32_MAX));
+	payload.out.offset = (u32)NV_PMU_CLK_MSG_RPC_ALLOC_OFFSET;
+
+	handler.prpccall = &rpccall;
+	handler.success = 0;
+	status = nvgpu_pmu_cmd_post(g, &cmd, NULL, &payload,
+			PMU_COMMAND_QUEUE_LPQ,
+			nvgpu_clk_freq_ctlr_rpc_pmucmdhandler, (void *)&handler,
+			&seqdesc);
+
+	if (status != 0) {
+		nvgpu_err(g, "unable to post clk RPC cmd %x",
+			cmd.cmd.clk.cmd_type);
+		goto done;
+	}
+
+	pmu_wait_message_cond(&g->pmu, nvgpu_get_poll_timeout(g),
+			&handler.success, 1);
+
+	if (handler.success == 0U) {
+		nvgpu_err(g, "rpc call to load freq cntlr cal failed");
+		status = -EINVAL;
+	}
+
+done:
+	return status;
+}
+
+int nvgpu_clk_freq_controller_init_pmupstate(struct gk20a *g)
+{
+	/* If already allocated, do not re-allocate */
+	if (g->clk_pmu->clk_freq_controllers != NULL) {
+		return 0;
+	}
+
+	g->clk_pmu->clk_freq_controllers = nvgpu_kzalloc(g,
+			sizeof(*g->clk_pmu->clk_freq_controllers));
+	if (g->clk_pmu->clk_freq_controllers == NULL) {
+		return -ENOMEM;
+	}
+
+	return 0;
+}
+
+void nvgpu_clk_freq_controller_free_pmupstate(struct gk20a *g)
+{
+	nvgpu_kfree(g, g->clk_pmu->clk_freq_controllers);
+	g->clk_pmu->clk_freq_controllers = NULL;
 }

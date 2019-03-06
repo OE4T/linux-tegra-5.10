@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2016-2018, NVIDIA CORPORATION.  All rights reserved.
+* Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
 *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -26,41 +26,19 @@
 #include <nvgpu/boardobj.h>
 #include <nvgpu/boardobjgrp.h>
 #include <nvgpu/boardobjgrp_e32.h>
-
-struct vin_device;
-struct nvgpu_clk_pmupstate;
-
-typedef u32 vin_device_state_load(struct gk20a *g,
-			struct nvgpu_clk_pmupstate *clk, struct vin_device *pdev);
-
-struct vin_device {
-	struct boardobj super;
-	u8 id;
-	u8 volt_domain;
-	u8 volt_domain_vbios;
-	u32 flls_shared_mask;
-
-	vin_device_state_load  *state_load;
-};
+#include <nvgpu/pmu/clk/clk_vin.h>
 
 struct vin_device_v10 {
-	struct vin_device super;
+	struct nvgpu_vin_device super;
 	struct ctrl_clk_vin_device_info_data_v10 data;
 };
 
 struct vin_device_v20 {
-	struct vin_device super;
+	struct nvgpu_vin_device super;
 	struct ctrl_clk_vin_device_info_data_v20 data;
 };
 
-/* get vin device object from descriptor table index*/
-#define CLK_GET_VIN_DEVICE(pvinobjs, dev_index)                               \
-	((struct vin_device *)BOARDOBJGRP_OBJ_GET_BY_IDX(                       \
-	((struct boardobjgrp *)&(pvinobjs->super.super)), (dev_index)))
-
-int construct_vindevice(struct gk20a *g, struct boardobj **ppboardobj,
-				u16 size, void *args);
-int vindeviceinit_pmudata_super(struct gk20a *g, struct boardobj *pboardobj,
-			struct nv_pmu_boardobj *pmudata);
+void nvgpu_clk_vin_rpc_pmucmdhandler(struct gk20a *g, struct pmu_msg *msg,
+		void *param, u32 handle, u32 status);
 
 #endif /* NVGPU_CLK_VIN_H */

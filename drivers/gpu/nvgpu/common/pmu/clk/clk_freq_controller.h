@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2016-2018, NVIDIA CORPORATION.  All rights reserved.
+* Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
 *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -22,6 +22,8 @@
 
 #ifndef NVGPU_CLK_FREQ_CONTROLLER_H
 #define NVGPU_CLK_FREQ_CONTROLLER_H
+
+struct boardobj;
 
 #define CTRL_CLK_CLK_FREQ_CONTROLLER_ID_ALL  0xFFU
 #define CTRL_CLK_CLK_FREQ_CONTROLLER_ID_SYS  0x00U
@@ -69,5 +71,9 @@ struct clk_freq_controller_pi {
 	u8  slowdown_pct_min;
 	bool bpoison;
 };
+
+int nvgpu_clk_freq_controller_load(struct gk20a *g, bool bload, u8 bit_idx);
+void nvgpu_clk_freq_ctlr_rpc_pmucmdhandler(struct gk20a *g,
+		struct pmu_msg *msg, void *param, u32 handle, u32 status);
 
 #endif /* NVGPU_CLK_FREQ_CONTROLLER_H */

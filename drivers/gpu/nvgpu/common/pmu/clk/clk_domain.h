@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2016-2018, NVIDIA CORPORATION.  All rights reserved.
+* Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
 *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -23,12 +23,8 @@
 #ifndef NVGPU_CLK_DOMAIN_H
 #define NVGPU_CLK_DOMAIN_H
 
-#include <nvgpu/pmuif/ctrlclk.h>
 #include <nvgpu/pmuif/ctrlboardobj.h>
 #include <nvgpu/pmuif/nvgpu_gpmu_cmdif.h>
-#include <nvgpu/boardobjgrp_e32.h>
-#include <nvgpu/boardobjgrpmask.h>
-#include <nvgpu/pmu/clk/clk.h>
 #include <nvgpu/pmu/clk/clk_domain.h>
 
 #define CLK_DOMAIN_BOARDOBJGRP_VERSION 0x30
@@ -102,11 +98,5 @@ struct clk_domain_35_slave {
 	struct clk_domain_35_prog super;
 	struct clk_domain_30_slave slave;
 };
-
-int clk_domain_clk_prog_link(struct gk20a *g, struct nvgpu_clk_pmupstate *pclk);
-
-#define CLK_CLK_DOMAIN_GET(pclk, idx)                                   \
-	((struct nvgpu_clk_domain *)BOARDOBJGRP_OBJ_GET_BY_IDX(		\
-		&pclk->clk_domainobjs.super.super, (u8)(idx)))
 
 #endif /* NVGPU_CLK_DOMAIN_H */

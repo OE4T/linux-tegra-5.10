@@ -29,6 +29,7 @@
 #include <nvgpu/pmuif/ctrlvolt.h>
 #include <nvgpu/pmu/perf.h>
 #include <nvgpu/pmu/clk/clk.h>
+#include <nvgpu/pmu/clk/clk_fll.h>
 
 #include "pmu_perf.h"
 #include "vfe_equ.h"
@@ -773,7 +774,7 @@ int nvgpu_vfe_get_freq_margin_limit(struct gk20a *g, u32 *fmargin_mhz)
 	struct nv_pmu_rpc_struct_perf_vfe_eval rpc;
 	int status = 0;
 	u8 fmargin_idx;
-	struct nvgpu_avfsfllobjs *pfllobjs =  &(g->clk_pmu->avfs_fllobjs);
+	struct nvgpu_avfsfllobjs *pfllobjs =  g->clk_pmu->avfs_fllobjs;
 
 	fmargin_idx = pfllobjs->freq_margin_vfe_idx;
 	if (fmargin_idx == 255U) {

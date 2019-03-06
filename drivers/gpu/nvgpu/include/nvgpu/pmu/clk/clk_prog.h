@@ -25,10 +25,10 @@
 #ifndef NVGPU_PMU_CLK_PROG_H
 #define NVGPU_PMU_CLK_PROG_H
 
-#include <nvgpu/boardobjgrp_e255.h>
 #include <nvgpu/types.h>
 
 struct gk20a;
+struct boardobjgrp_e255;
 
 struct nvgpu_clk_progs {
 	struct boardobjgrp_e255 super;
@@ -37,6 +37,8 @@ struct nvgpu_clk_progs {
 	u8 vf_sec_entry_count;
 };
 
+int nvgpu_clk_prog_init_pmupstate(struct gk20a *g);
+void nvgpu_clk_prog_free_pmupstate(struct gk20a *g);
 int nvgpu_clk_prog_sw_setup(struct gk20a *g);
 int nvgpu_clk_prog_pmu_setup(struct gk20a *g);
 

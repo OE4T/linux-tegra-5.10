@@ -25,14 +25,24 @@
 #ifndef NVGPU_PMU_CLK_FREQ_DOMAIN_H
 #define NVGPU_PMU_CLK_FREQ_DOMAIN_H
 
-#include <nvgpu/boardobjgrp_e32.h>
 #include <nvgpu/types.h>
+
+struct gk20a;
+struct boardobj;
+struct boardobjgrp_e32;
 
 struct nvgpu_clk_freq_domain_grp {
 	struct boardobjgrp_e32 super;
 	u32 init_flags;
 };
 
+struct nvgpu_clk_freq_domain {
+	struct boardobj super;
+	u32 clk_domain;
+};
+
+int nvgpu_clk_freq_domain_init_pmupstate(struct gk20a *g);
+void nvgpu_clk_freq_domain_free_pmupstate(struct gk20a *g);
 int nvgpu_clk_freq_domain_sw_setup(struct gk20a *g);
 int nvgpu_clk_freq_domain_pmu_setup(struct gk20a *g);
 

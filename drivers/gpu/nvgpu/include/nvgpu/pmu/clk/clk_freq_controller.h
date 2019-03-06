@@ -25,11 +25,11 @@
 #ifndef NVGPU_PMU_CLK_FREQ_CONTROLLER_H
 #define NVGPU_PMU_CLK_FREQ_CONTROLLER_H
 
-#include <nvgpu/boardobjgrp_e32.h>
-#include <nvgpu/boardobjgrpmask.h>
 #include <nvgpu/types.h>
 
 struct gk20a;
+struct boardobjgrp_e32;
+struct boardobjgrpmask_e32;
 
 struct nvgpu_clk_freq_controllers {
 	struct boardobjgrp_e32 super;
@@ -39,6 +39,9 @@ struct nvgpu_clk_freq_controllers {
 	void *pprereq_load;
 };
 
+int nvgpu_clk_freq_controller_init_pmupstate(struct gk20a *g);
+void nvgpu_clk_freq_controller_free_pmupstate(struct gk20a *g);
+int nvgpu_clk_pmu_freq_controller_load(struct gk20a *g, bool bload, u8 bit_idx);
 int nvgpu_clk_freq_controller_sw_setup(struct gk20a *g);
 int nvgpu_clk_freq_controller_pmu_setup(struct gk20a *g);
 

@@ -24,15 +24,39 @@
 #include <nvgpu/pmuif/nvgpu_gpmu_cmdif.h>
 #include <nvgpu/io.h>
 #include <nvgpu/gk20a.h>
+#include <nvgpu/bug.h>
 #include <nvgpu/boardobjgrp.h>
 #include <nvgpu/boardobjgrp_e32.h>
 #include <nvgpu/string.h>
 #include <nvgpu/pmuif/ctrlvolt.h>
+#include <nvgpu/pmu/clk/clk.h>
 
 #include "gp106/bios_gp106.h"
-
-#include "clk.h"
 #include "clk_vin.h"
+
+struct nvgpu_clk_vin_rpc_pmucmdhandler_params {
+	struct nv_pmu_clk_rpc *prpccall;
+	u32 success;
+};
+
+void nvgpu_clk_vin_rpc_pmucmdhandler(struct gk20a *g, struct pmu_msg *msg,
+		void *param, u32 handle, u32 status)
+{
+	struct nvgpu_clk_vin_rpc_pmucmdhandler_params *phandlerparams =
+		(struct nvgpu_clk_vin_rpc_pmucmdhandler_params *)param;
+
+	nvgpu_log_info(g, " ");
+
+	if (msg->msg.clk.msg_type != NV_PMU_CLK_MSG_ID_RPC) {
+		nvgpu_err(g, "unsupported msg for CLK LOAD RPC %x",
+			  msg->msg.clk.msg_type);
+		return;
+	}
+
+	if (phandlerparams->prpccall->b_supported) {
+		phandlerparams->success = 1;
+	}
+}
 
 static int devinit_get_vin_device_table(struct gk20a *g,
 		struct nvgpu_avfsvinobjs *pvinobjs);
@@ -46,7 +70,8 @@ static int vin_device_construct_v20(struct gk20a *g,
 static int vin_device_construct_super(struct gk20a *g,
 					struct boardobj **ppboardobj,
 					size_t size, void *pargs);
-static struct vin_device *construct_vin_device(struct gk20a *g, void *pargs);
+static struct nvgpu_vin_device *construct_vin_device(
+		struct gk20a *g, void *pargs);
 
 static int vin_device_init_pmudata_v10(struct gk20a *g,
 				  struct boardobj *board_obj_ptr,
@@ -58,36 +83,14 @@ static int vin_device_init_pmudata_super(struct gk20a *g,
 				  struct boardobj *board_obj_ptr,
 				  struct nv_pmu_boardobj *ppmudata);
 
-int nvgpu_clk_avfs_get_vin_cal_fuse_v10(struct gk20a *g,
-					struct nvgpu_avfsvinobjs *pvinobjs,
-					struct vin_device_v20 *pvindev)
+static struct nvgpu_vin_device *clk_get_vin_from_index(
+		struct nvgpu_avfsvinobjs *pvinobjs, u8 idx)
 {
-	int status = 0;
-	u32 slope, intercept;
-	u8 i;
-
-	if (pvinobjs->calibration_rev_vbios == g->ops.fuse.read_vin_cal_fuse_rev(g)) {
-		BOARDOBJGRP_FOR_EACH(&(pvinobjs->super.super),
-				     struct vin_device_v20 *, pvindev, i) {
-			slope = 0;
-			intercept = 0;
-			pvindev = (struct vin_device_v20 *)CLK_GET_VIN_DEVICE(pvinobjs, i);
-			status = g->ops.fuse.read_vin_cal_slope_intercept_fuse(g,
-					pvindev->super.id, &slope, &intercept);
-			if (status != 0) {
-				nvgpu_err(g,
-				"err reading vin cal for id %x", pvindev->super.id);
-				return status;
-			}
-			pvindev->data.vin_cal.cal_v10.slope = slope;
-			pvindev->data.vin_cal.cal_v10.intercept = intercept;
-		}
-	}
-	return status;
-
+	return ((struct nvgpu_vin_device *)BOARDOBJGRP_OBJ_GET_BY_IDX(
+		((struct boardobjgrp *)&(pvinobjs->super.super)), idx));
 }
 
-int nvgpu_clk_avfs_get_vin_cal_fuse_v20(struct gk20a *g,
+static int nvgpu_clk_avfs_get_vin_cal_fuse_v20(struct gk20a *g,
 					struct nvgpu_avfsvinobjs *pvinobjs,
 					struct vin_device_v20 *pvindev)
 {
@@ -95,12 +98,14 @@ int nvgpu_clk_avfs_get_vin_cal_fuse_v20(struct gk20a *g,
 	s8 gain, offset;
 	u8 i;
 
-	if (pvinobjs->calibration_rev_vbios == g->ops.fuse.read_vin_cal_fuse_rev(g)) {
+	if (pvinobjs->calibration_rev_vbios ==
+			g->ops.fuse.read_vin_cal_fuse_rev(g)) {
 		BOARDOBJGRP_FOR_EACH(&(pvinobjs->super.super),
-				     struct vin_device_v20 *, pvindev, i) {
+				struct vin_device_v20 *, pvindev, i) {
 			gain = 0;
 			offset = 0;
-			pvindev = (struct vin_device_v20 *)CLK_GET_VIN_DEVICE(pvinobjs, i);
+			pvindev = (struct vin_device_v20 *)(void *)
+				g->clk_pmu->clk_get_vin(pvinobjs, i);
 			status = g->ops.fuse.read_vin_cal_gain_offset_fuse(g,
 					pvindev->super.id, &gain, &offset);
 			if (status != 0) {
@@ -188,7 +193,7 @@ int nvgpu_clk_vin_sw_setup(struct gk20a *g)
 
 	nvgpu_log_info(g, " ");
 
-	status = boardobjgrpconstruct_e32(g, &g->clk_pmu->avfs_vinobjs.super);
+	status = boardobjgrpconstruct_e32(g, &g->clk_pmu->avfs_vinobjs->super);
 	if (status != 0) {
 		nvgpu_err(g,
 			"error creating boardobjgrp for clk vin, statu - 0x%x",
@@ -196,8 +201,8 @@ int nvgpu_clk_vin_sw_setup(struct gk20a *g)
 		goto done;
 	}
 
-	pboardobjgrp = &g->clk_pmu->avfs_vinobjs.super.super;
-	pvinobjs = &g->clk_pmu->avfs_vinobjs;
+	pboardobjgrp = &g->clk_pmu->avfs_vinobjs->super.super;
+	pvinobjs = g->clk_pmu->avfs_vinobjs;
 
 	BOARDOBJGRP_PMU_CONSTRUCT(pboardobjgrp, CLK, VIN_DEVICE);
 
@@ -214,16 +219,16 @@ int nvgpu_clk_vin_sw_setup(struct gk20a *g)
 	pboardobjgrp->pmudatainstget  = _clk_vin_devgrp_pmudata_instget;
 	pboardobjgrp->pmustatusinstget  = _clk_vin_devgrp_pmustatus_instget;
 
-	status = devinit_get_vin_device_table(g, &g->clk_pmu->avfs_vinobjs);
+	status = devinit_get_vin_device_table(g, g->clk_pmu->avfs_vinobjs);
 	if (status != 0) {
 		goto done;
 	}
 
 	/*update vin calibration to fuse */
-	g->ops.pmu_ver.clk.clk_avfs_get_vin_cal_data(g, pvinobjs, pvindev);
+	nvgpu_clk_avfs_get_vin_cal_fuse_v20(g, pvinobjs, pvindev);
 
 	status = BOARDOBJGRP_PMU_CMD_GRP_GET_STATUS_CONSTRUCT(g,
-				&g->clk_pmu->avfs_vinobjs.super.super,
+				&g->clk_pmu->avfs_vinobjs->super.super,
 				clk, CLK, clk_vin_device, CLK_VIN_DEVICE);
 	if (status != 0) {
 		nvgpu_err(g,
@@ -244,7 +249,7 @@ int nvgpu_clk_vin_pmu_setup(struct gk20a *g)
 
 	nvgpu_log_info(g, " ");
 
-	pboardobjgrp = &g->clk_pmu->avfs_vinobjs.super.super;
+	pboardobjgrp = &g->clk_pmu->avfs_vinobjs->super.super;
 
 	if (!pboardobjgrp->bconstructed) {
 		return -EINVAL;
@@ -267,12 +272,12 @@ static int devinit_get_vin_device_table(struct gk20a *g,
 	u32 index = 0;
 	u32 slope=0, intercept=0;
 	s8 offset = 0, gain = 0;
-	struct vin_device *pvin_dev;
+	struct nvgpu_vin_device *pvin_dev;
 	u32 cal_type;
 
 	union {
 		struct boardobj boardobj;
-		struct vin_device vin_device;
+		struct nvgpu_vin_device vin_device;
 		struct vin_device_v10 vin_device_v10;
 		struct vin_device_v20 vin_device_v20;
 	} vin_device_data;
@@ -332,7 +337,8 @@ static int devinit_get_vin_device_table(struct gk20a *g,
 		nvgpu_memcpy((u8 *)&vin_desc_table_entry, vin_tbl_entry_ptr,
 		       sizeof(struct vin_descriptor_entry_10));
 
-		if (vin_desc_table_entry.vin_device_type == CTRL_CLK_VIN_TYPE_DISABLED) {
+		if (vin_desc_table_entry.vin_device_type ==
+				CTRL_CLK_VIN_TYPE_DISABLED) {
 			continue;
 		}
 
@@ -438,8 +444,9 @@ static int vin_device_construct_super(struct gk20a *g,
 					struct boardobj **ppboardobj,
 					size_t size, void *pargs)
 {
-	struct vin_device *pvin_device;
-	struct vin_device *ptmpvin_device = (struct vin_device *)pargs;
+	struct nvgpu_vin_device *pvin_device;
+	struct nvgpu_vin_device *ptmpvin_device =
+		(struct nvgpu_vin_device *)pargs;
 	int status = 0;
 	status = boardobj_construct_super(g, ppboardobj, size, pargs);
 
@@ -447,7 +454,7 @@ static int vin_device_construct_super(struct gk20a *g,
 		return -EINVAL;
 	}
 
-	pvin_device = (struct vin_device *)*ppboardobj;
+	pvin_device = (struct nvgpu_vin_device *)*ppboardobj;
 
 	pvin_device->super.pmudatainit =
 			vin_device_init_pmudata_super;
@@ -459,7 +466,8 @@ static int vin_device_construct_super(struct gk20a *g,
 
 	return status;
 }
-static struct vin_device *construct_vin_device(struct gk20a *g, void *pargs)
+static struct nvgpu_vin_device *construct_vin_device(
+		struct gk20a *g, void *pargs)
 {
 	struct boardobj *board_obj_ptr = NULL;
 	int status;
@@ -486,7 +494,7 @@ static struct vin_device *construct_vin_device(struct gk20a *g, void *pargs)
 
 	nvgpu_log_info(g, " Done");
 
-	return (struct vin_device *)board_obj_ptr;
+	return (struct nvgpu_vin_device *)board_obj_ptr;
 }
 
 
@@ -553,7 +561,7 @@ static int vin_device_init_pmudata_super(struct gk20a *g,
 					 struct nv_pmu_boardobj *ppmudata)
 {
 	int status = 0;
-	struct vin_device *pvin_dev;
+	struct nvgpu_vin_device *pvin_dev;
 	struct nv_pmu_clk_clk_vin_device_boardobj_set *perf_pmu_data;
 
 	nvgpu_log_info(g, " ");
@@ -563,7 +571,7 @@ static int vin_device_init_pmudata_super(struct gk20a *g,
 		return status;
 	}
 
-	pvin_dev = (struct vin_device *)board_obj_ptr;
+	pvin_dev = (struct nvgpu_vin_device *)board_obj_ptr;
 	perf_pmu_data = (struct nv_pmu_clk_clk_vin_device_boardobj_set *)
 		ppmudata;
 
@@ -574,4 +582,93 @@ static int vin_device_init_pmudata_super(struct gk20a *g,
 	nvgpu_log_info(g, " Done");
 
 	return status;
+}
+
+int nvgpu_clk_pmu_vin_load(struct gk20a *g)
+{
+	struct pmu_cmd cmd;
+	struct pmu_payload payload;
+	int status;
+	u32 seqdesc;
+	struct nv_pmu_clk_rpc rpccall;
+	struct nvgpu_clk_vin_rpc_pmucmdhandler_params handler;
+	struct nv_pmu_clk_load *clkload;
+
+	(void) memset(&payload, 0, sizeof(struct pmu_payload));
+	(void) memset(&rpccall, 0, sizeof(struct nv_pmu_clk_rpc));
+	(void) memset(&handler, 0,
+			sizeof(struct nvgpu_clk_vin_rpc_pmucmdhandler_params));
+
+	rpccall.function = NV_PMU_CLK_RPC_ID_LOAD;
+	clkload = &rpccall.params.clk_load;
+	clkload->feature = NV_NV_PMU_CLK_LOAD_FEATURE_VIN;
+	clkload->action_mask =
+		NV_NV_PMU_CLK_LOAD_ACTION_MASK_VIN_HW_CAL_PROGRAM_YES << 4;
+
+	cmd.hdr.unit_id = PMU_UNIT_CLK;
+	cmd.hdr.size =  (u32)sizeof(struct nv_pmu_clk_cmd) +
+			(u32)sizeof(struct pmu_hdr);
+
+	cmd.cmd.clk.cmd_type = NV_PMU_CLK_CMD_ID_RPC;
+	cmd.cmd.clk.generic.b_perf_daemon_cmd = false;
+
+	payload.in.buf = (u8 *)&rpccall;
+	payload.in.size = (u32)sizeof(struct nv_pmu_clk_rpc);
+	payload.in.fb_size = PMU_CMD_SUBMIT_PAYLOAD_PARAMS_FB_SIZE_UNUSED;
+	nvgpu_assert(NV_PMU_CLK_CMD_RPC_ALLOC_OFFSET < U64(U32_MAX));
+	payload.in.offset = (u32)NV_PMU_CLK_CMD_RPC_ALLOC_OFFSET;
+
+	payload.out.buf = (u8 *)&rpccall;
+	payload.out.size = (u32)sizeof(struct nv_pmu_clk_rpc);
+	payload.out.fb_size = PMU_CMD_SUBMIT_PAYLOAD_PARAMS_FB_SIZE_UNUSED;
+	nvgpu_assert(NV_PMU_CLK_MSG_RPC_ALLOC_OFFSET < U64(U32_MAX));
+	payload.out.offset = (u32)NV_PMU_CLK_MSG_RPC_ALLOC_OFFSET;
+
+	handler.prpccall = &rpccall;
+	handler.success = 0;
+	status = nvgpu_pmu_cmd_post(g, &cmd, NULL, &payload,
+			PMU_COMMAND_QUEUE_LPQ,
+			nvgpu_clk_vin_rpc_pmucmdhandler, (void *)&handler,
+			&seqdesc);
+
+	if (status != 0) {
+		nvgpu_err(g, "unable to post clk RPC cmd %x",
+			cmd.cmd.clk.cmd_type);
+		goto done;
+	}
+
+	pmu_wait_message_cond(&g->pmu, nvgpu_get_poll_timeout(g),
+			&handler.success, 1);
+
+	if (handler.success == 0U) {
+		nvgpu_err(g, "rpc call to load vin cal failed");
+		status = -EINVAL;
+	}
+
+done:
+	return status;
+}
+
+int nvgpu_clk_vin_init_pmupstate(struct gk20a *g)
+{
+	/* If already allocated, do not re-allocate */
+	if (g->clk_pmu->avfs_vinobjs != NULL) {
+		return 0;
+	}
+
+	g->clk_pmu->avfs_vinobjs = nvgpu_kzalloc(g,
+			sizeof(*g->clk_pmu->avfs_vinobjs));
+	if (g->clk_pmu->avfs_vinobjs == NULL) {
+		return -ENOMEM;
+	}
+
+	g->clk_pmu->clk_get_vin = clk_get_vin_from_index;
+
+	return 0;
+}
+
+void nvgpu_clk_vin_free_pmupstate(struct gk20a *g)
+{
+	nvgpu_kfree(g, g->clk_pmu->avfs_vinobjs);
+	g->clk_pmu->avfs_vinobjs = NULL;
 }

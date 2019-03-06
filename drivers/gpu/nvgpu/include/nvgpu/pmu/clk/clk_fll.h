@@ -25,11 +25,14 @@
 #ifndef NVGPU_PMU_CLK_FLL_H
 #define NVGPU_PMU_CLK_FLL_H
 
-#include <nvgpu/boardobjgrp_e32.h>
-#include <nvgpu/boardobjgrpmask.h>
 #include <nvgpu/types.h>
 
 struct gk20a;
+struct fll_device;
+struct boardobjgrp_e32;
+struct boardobjgrpmask_e32;
+struct nv_pmu_clk_lut_device_desc;
+struct nv_pmu_clk_regime_desc;
 
 struct nvgpu_avfsfllobjs {
 	struct boardobjgrp_e32 super;
@@ -41,25 +44,35 @@ struct nvgpu_avfsfllobjs {
 	u8 freq_margin_vfe_idx;
 };
 
-struct nvgpu_set_fll_clk {
-	u32 voltuv;
-	u16 gpc2clkmhz;
-	u8 current_regime_id_gpc;
-	u8 target_regime_id_gpc;
-	u16 sys2clkmhz;
-	u8 current_regime_id_sys;
-	u8 target_regime_id_sys;
-	u16 xbar2clkmhz;
-	u8 current_regime_id_xbar;
-	u8 target_regime_id_xbar;
-	u16 nvdclkmhz;
-	u8 current_regime_id_nvd;
-	u8 target_regime_id_nvd;
-	u16 hostclkmhz;
-	u8 current_regime_id_host;
-	u8 target_regime_id_host;
+typedef int fll_lut_broadcast_slave_register(struct gk20a *g,
+	struct nvgpu_avfsfllobjs *pfllobjs,
+	struct fll_device *pfll,
+	struct fll_device *pfll_slave);
+
+struct fll_device {
+	struct boardobj super;
+	u8 id;
+	u8 mdiv;
+	u16 input_freq_mhz;
+	u32 clk_domain;
+	u8 vin_idx_logic;
+	u8 vin_idx_sram;
+	u8 rail_idx_for_lut;
+	struct nv_pmu_clk_lut_device_desc lut_device;
+	struct nv_pmu_clk_regime_desc regime_desc;
+	u8 min_freq_vfe_idx;
+	u8 freq_ctrl_idx;
+	u8 target_regime_id_override;
+	bool b_skip_pldiv_below_dvco_min;
+	bool b_dvco_1x;
+	struct boardobjgrpmask_e32 lut_prog_broadcast_slave_mask;
+	fll_lut_broadcast_slave_register *lut_broadcast_slave_register;
 };
 
+
+int nvgpu_clk_fll_init_pmupstate(struct gk20a *g);
+void nvgpu_clk_fll_free_pmupstate(struct gk20a *g);
+u32 nvgpu_clk_get_vbios_clk_domain(u32 vbios_domain);
 int nvgpu_clk_fll_sw_setup(struct gk20a *g);
 int nvgpu_clk_fll_pmu_setup(struct gk20a *g);
 

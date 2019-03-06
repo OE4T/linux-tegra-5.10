@@ -25,12 +25,12 @@
 #ifndef NVGPU_PMU_CLK_VF_POINT_H
 #define NVGPU_PMU_CLK_VF_POINT_H
 
-#include <nvgpu/boardobjgrp_e255.h>
-#include <nvgpu/pmuif/gpmuifclk.h>
 #include <nvgpu/types.h>
-#include <nvgpu/pmu/clk/clk_fll.h>
 
 struct gk20a;
+struct boardobjgrp_e255;
+struct ctrl_clk_vf_pair;
+struct ctrl_clk_freq_delta;
 
 struct nvgpu_clk_vf_points {
 	struct boardobjgrp_e255 super;
@@ -64,7 +64,7 @@ struct clk_vf_point_freq {
 
 #define CLK_CLK_VF_POINT_GET(pclk, idx)                                        \
 	((struct clk_vf_point *)BOARDOBJGRP_OBJ_GET_BY_IDX(                    \
-		&pclk->clk_vf_pointobjs.super.super, (u8)(idx)))
+		&pclk->clk_vf_pointobjs->super.super, (u8)(idx)))
 
 #define clkvfpointpairget(pvfpoint)                                            \
 	(&((pvfpoint)->pair))
@@ -86,20 +86,16 @@ struct clk_vf_point_freq {
 #define clkvfpointvoltageuvget(pgpu, pvfpoint)                          \
 	CTRL_CLK_VF_PAIR_VOLTAGE_UV_GET(clkvfpointpairget(pvfpoint))    \
 
-u32 nvgpu_clk_vf_change_inject_data_fill_gv10x(struct gk20a *g,
-	struct nv_pmu_clk_rpc *rpccall,
-	struct nvgpu_set_fll_clk *setfllclk);
-u32 nvgpu_clk_vf_change_inject_data_fill_gp10x(struct gk20a *g,
-	struct nv_pmu_clk_rpc *rpccall,
-	struct nvgpu_set_fll_clk *setfllclk);
+int nvgpu_clk_vf_point_init_pmupstate(struct gk20a *g);
+void nvgpu_clk_vf_point_free_pmupstate(struct gk20a *g);
 int nvgpu_clk_vf_point_sw_setup(struct gk20a *g);
 int nvgpu_clk_vf_point_pmu_setup(struct gk20a *g);
 struct clk_vf_point *nvgpu_construct_clk_vf_point(struct gk20a *g,
 	void *pargs);
-int nvgpu_clk_set_req_fll_clk_ps35(struct gk20a *g,
-	struct nvgpu_clk_slave_freq *vf_point);
 int nvgpu_clk_arb_find_slave_points(struct nvgpu_clk_arb *arb,
 	struct nvgpu_clk_slave_freq *vf_point);
 int nvgpu_clk_vf_point_cache(struct gk20a *g);
+int nvgpu_clk_domain_volt_to_freq(struct gk20a *g, u8 clkdomain_idx,
+	u32 *pclkmhz, u32 *pvoltuv, u8 railidx);
 
 #endif /* NVGPU_PMU_CLK_VF_POINT_H */

@@ -23,6 +23,7 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/boardobjgrp.h>
 #include <nvgpu/boardobjgrp_e32.h>
+#include <nvgpu/boardobjgrp_e255.h>
 #include <nvgpu/string.h>
 #include <nvgpu/pmuif/ctrlclk.h>
 #include <nvgpu/pmuif/ctrlvolt.h>
@@ -30,8 +31,34 @@
 #include <nvgpu/clk_arb.h>
 #include <nvgpu/pmu/volt.h>
 #include <nvgpu/pmu/perf.h>
+#include <nvgpu/pmuif/gpmuifclk.h>
+#include <nvgpu/pmu/clk/clk_fll.h>
+#include <nvgpu/pmu/clk/clk.h>
+#include <nvgpu/pmu/clk/clk_vf_point.h>
 
-#include "clk.h"
+int nvgpu_clk_domain_volt_to_freq(struct gk20a *g, u8 clkdomain_idx,
+	u32 *pclkmhz, u32 *pvoltuv, u8 railidx)
+{
+	struct nv_pmu_rpc_clk_domain_35_prog_freq_to_volt  rpc;
+	struct nvgpu_pmu *pmu = &g->pmu;
+	int status = -EINVAL;
+
+	(void)memset(&rpc, 0,
+		sizeof(struct nv_pmu_rpc_clk_domain_35_prog_freq_to_volt));
+	rpc.volt_rail_idx =
+		nvgpu_volt_rail_volt_domain_convert_to_idx(g, railidx);
+	rpc.clk_domain_idx = clkdomain_idx;
+	rpc.voltage_type = CTRL_VOLT_DOMAIN_LOGIC;
+	rpc.input.value = *pvoltuv;
+	PMU_RPC_EXECUTE_CPB(status, pmu, CLK,
+			CLK_DOMAIN_35_PROG_VOLT_TO_FREQ, &rpc, 0);
+	if (status != 0) {
+		nvgpu_err(g, "Failed to execute Freq to Volt RPC status=0x%x",
+			status);
+	}
+	*pclkmhz = rpc.output.value;
+	return status;
+}
 
 static int _clk_vf_point_pmudatainit_super(struct gk20a *g, struct boardobj
 	*board_obj_ptr,	struct nv_pmu_boardobj *ppmudata);
@@ -102,7 +129,8 @@ int nvgpu_clk_vf_point_sw_setup(struct gk20a *g)
 
 	nvgpu_log_info(g, " ");
 
-	status = boardobjgrpconstruct_e255(g, &g->clk_pmu->clk_vf_pointobjs.super);
+	status = boardobjgrpconstruct_e255(g,
+		&g->clk_pmu->clk_vf_pointobjs->super);
 	if (status != 0) {
 		nvgpu_err(g,
 		"error creating boardobjgrp for clk vfpoint, status - 0x%x",
@@ -110,7 +138,7 @@ int nvgpu_clk_vf_point_sw_setup(struct gk20a *g)
 		goto done;
 	}
 
-	pboardobjgrp = &g->clk_pmu->clk_vf_pointobjs.super.super;
+	pboardobjgrp = &g->clk_pmu->clk_vf_pointobjs->super.super;
 
 	BOARDOBJGRP_PMU_CONSTRUCT(pboardobjgrp, CLK, CLK_VF_POINT);
 
@@ -124,7 +152,7 @@ int nvgpu_clk_vf_point_sw_setup(struct gk20a *g)
 	}
 
 	status = BOARDOBJGRP_PMU_CMD_GRP_GET_STATUS_CONSTRUCT(g,
-			&g->clk_pmu->clk_vf_pointobjs.super.super,
+			&g->clk_pmu->clk_vf_pointobjs->super.super,
 			clk, CLK, clk_vf_point, CLK_VF_POINT);
 	if (status != 0) {
 		nvgpu_err(g,
@@ -149,7 +177,7 @@ int nvgpu_clk_vf_point_pmu_setup(struct gk20a *g)
 
 	nvgpu_log_info(g, " ");
 
-	pboardobjgrp = &g->clk_pmu->clk_vf_pointobjs.super.super;
+	pboardobjgrp = &g->clk_pmu->clk_vf_pointobjs->super.super;
 
 	if (!pboardobjgrp->bconstructed) {
 		return -EINVAL;
@@ -464,188 +492,6 @@ static int clk_vf_point_update(struct gk20a *g,
 	return 0;
 }
 
-int nvgpu_clk_set_req_fll_clk_ps35(struct gk20a *g, struct nvgpu_clk_slave_freq *vf_point)
-{
-	struct nvgpu_pmu *pmu = &g->pmu;
-	struct nv_pmu_rpc_perf_change_seq_queue_change rpc;
-	struct ctrl_perf_change_seq_change_input change_input;
-	struct nvgpu_clk_domain *pclk_domain;
-	int status = 0;
-	u8 i = 0, gpcclk_domain=0;
-	u32 gpcclk_voltuv=0,gpcclk_clkmhz=0;
-	u32 max_clkmhz;
-	u16 max_ratio;
-	struct clk_set_info *p0_info;
-	u32 vmin_uv = 0, vmargin_uv = 0U;
-
-	(void) memset(&change_input, 0,
-		sizeof(struct ctrl_perf_change_seq_change_input));
-	BOARDOBJGRP_FOR_EACH(&(g->clk_pmu->clk_domainobjs.super.super),
-		struct nvgpu_clk_domain *, pclk_domain, i) {
-
-		switch (pclk_domain->api_domain) {
-		case CTRL_CLK_DOMAIN_GPCCLK:
-			gpcclk_domain = i;
-			gpcclk_clkmhz = vf_point->gpc_mhz;
-
-			p0_info = pstate_get_clk_set_info(g,
-					CTRL_PERF_PSTATE_P0, CLKWHICH_GPCCLK);
-			if(p0_info == NULL){
-				nvgpu_err(g, "failed to get GPCCLK P0 info");
-				break;
-			}
-			if ( vf_point->gpc_mhz < p0_info->min_mhz ) {
-				vf_point->gpc_mhz = p0_info->min_mhz;
-			}
-			if (vf_point->gpc_mhz > p0_info->max_mhz) {
-				vf_point->gpc_mhz = p0_info->max_mhz;
-			}
-			change_input.clk[i].clk_freq_khz = (u32)vf_point->gpc_mhz * 1000U;
-			change_input.clk_domains_mask.super.data[0] |= (u32) BIT(i);
-			break;
-		case CTRL_CLK_DOMAIN_XBARCLK:
-			p0_info = pstate_get_clk_set_info(g,
-					CTRL_PERF_PSTATE_P0, CLKWHICH_XBARCLK);
-			if(p0_info == NULL){
-				nvgpu_err(g, "failed to get XBARCLK P0 info");
-				break;
-			}
-			max_ratio = (vf_point->xbar_mhz*100U)/vf_point->gpc_mhz;
-			if ( vf_point->xbar_mhz < p0_info->min_mhz ) {
-				vf_point->xbar_mhz = p0_info->min_mhz;
-			}
-			if (vf_point->xbar_mhz > p0_info->max_mhz) {
-				vf_point->xbar_mhz = p0_info->max_mhz;
-			}
-			change_input.clk[i].clk_freq_khz = (u32)vf_point->xbar_mhz * 1000U;
-			change_input.clk_domains_mask.super.data[0] |= (u32) BIT(i);
-			if (vf_point->gpc_mhz < vf_point->xbar_mhz) {
-				max_clkmhz = (((u32)vf_point->xbar_mhz * 100U) / (u32)max_ratio);
-				if (gpcclk_clkmhz < max_clkmhz) {
-					gpcclk_clkmhz = max_clkmhz;
-				}
-			}
-			break;
-		case CTRL_CLK_DOMAIN_SYSCLK:
-			p0_info = pstate_get_clk_set_info(g,
-					CTRL_PERF_PSTATE_P0, CLKWHICH_SYSCLK);
-			if(p0_info == NULL){
-				nvgpu_err(g, "failed to get SYSCLK P0 info");
-				break;
-			}
-			max_ratio = (vf_point->sys_mhz*100U)/vf_point->gpc_mhz;
-			if ( vf_point->sys_mhz < p0_info->min_mhz ) {
-				vf_point->sys_mhz = p0_info->min_mhz;
-			}
-			if (vf_point->sys_mhz > p0_info->max_mhz) {
-				vf_point->sys_mhz = p0_info->max_mhz;
-			}
-			change_input.clk[i].clk_freq_khz = (u32)vf_point->sys_mhz * 1000U;
-			change_input.clk_domains_mask.super.data[0] |= (u32) BIT(i);
-			if (vf_point->gpc_mhz < vf_point->sys_mhz) {
-				max_clkmhz = (((u32)vf_point->sys_mhz * 100U) / (u32)max_ratio);
-				if (gpcclk_clkmhz < max_clkmhz) {
-					gpcclk_clkmhz = max_clkmhz;
-				}
-			}
-			break;
-		case CTRL_CLK_DOMAIN_NVDCLK:
-			p0_info = pstate_get_clk_set_info(g,
-					CTRL_PERF_PSTATE_P0, CLKWHICH_NVDCLK);
-			if(p0_info == NULL){
-				nvgpu_err(g, "failed to get NVDCLK P0 info");
-				break;
-			}
-			max_ratio = (vf_point->nvd_mhz*100U)/vf_point->gpc_mhz;
-			if ( vf_point->nvd_mhz < p0_info->min_mhz ) {
-				vf_point->nvd_mhz = p0_info->min_mhz;
-			}
-			if (vf_point->nvd_mhz > p0_info->max_mhz) {
-				vf_point->nvd_mhz = p0_info->max_mhz;
-			}
-			change_input.clk[i].clk_freq_khz = (u32)vf_point->nvd_mhz * 1000U;
-			change_input.clk_domains_mask.super.data[0] |= (u32) BIT(i);
-			if (vf_point->gpc_mhz < vf_point->nvd_mhz) {
-				max_clkmhz = (((u32)vf_point->nvd_mhz * 100U) / (u32)max_ratio);
-				if (gpcclk_clkmhz < max_clkmhz) {
-					gpcclk_clkmhz = max_clkmhz;
-				}
-			}
-			break;
-		case CTRL_CLK_DOMAIN_HOSTCLK:
-			p0_info = pstate_get_clk_set_info(g,
-					CTRL_PERF_PSTATE_P0, CLKWHICH_HOSTCLK);
-			if(p0_info == NULL){
-				nvgpu_err(g, "failed to get HOSTCLK P0 info");
-				break;
-			}
-			max_ratio = (vf_point->host_mhz*100U)/vf_point->gpc_mhz;
-			if ( vf_point->host_mhz < p0_info->min_mhz ) {
-				vf_point->host_mhz = p0_info->min_mhz;
-			}
-			if (vf_point->host_mhz > p0_info->max_mhz) {
-				vf_point->host_mhz = p0_info->max_mhz;
-			}
-			change_input.clk[i].clk_freq_khz = (u32)vf_point->host_mhz * 1000U;
-			change_input.clk_domains_mask.super.data[0] |= (u32) BIT(i);
-			if (vf_point->gpc_mhz < vf_point->host_mhz) {
-				max_clkmhz = (((u32)vf_point->host_mhz * 100U) / (u32)max_ratio);
-				if (gpcclk_clkmhz < max_clkmhz) {
-					gpcclk_clkmhz = max_clkmhz;
-				}
-			}
-			break;
-		default:
-			nvgpu_pmu_dbg(g, "Fixed clock domain");
-			break;
-		}
-	}
-
-	change_input.pstate_index = 0U;
-	change_input.flags = (u32)CTRL_PERF_CHANGE_SEQ_CHANGE_FORCE;
-	change_input.vf_points_cache_counter = 0xFFFFFFFFU;
-
-	status = clk_domain_freq_to_volt(g, gpcclk_domain,
-	&gpcclk_clkmhz, &gpcclk_voltuv, CTRL_VOLT_DOMAIN_LOGIC);
-
-	status = nvgpu_vfe_get_volt_margin_limit(g, &vmargin_uv);
-	if (status != 0) {
-		nvgpu_err(g, "Failed to fetch Vmargin status=0x%x", status);
-		return status;
-	}
-
-	gpcclk_voltuv += vmargin_uv;
-	status = nvgpu_volt_get_vmin_ps35(g, &vmin_uv);
-	if (status != 0) {
-		nvgpu_err(g, "Failed to execute Vmin get_status status=0x%x",
-			status);
-	}
-	if ((status == 0) && (vmin_uv > gpcclk_voltuv)) {
-		gpcclk_voltuv = vmin_uv;
-		nvgpu_log_fn(g, "Vmin is higher than evaluated Volt");
-	}
-
-	change_input.volt[0].voltage_uv = gpcclk_voltuv;
-	change_input.volt[0].voltage_min_noise_unaware_uv = gpcclk_voltuv;
-	change_input.volt_rails_mask.super.data[0] = 1U;
-
-	/* RPC to PMU to queue to execute change sequence request*/
-	(void) memset(&rpc, 0, sizeof(struct nv_pmu_rpc_perf_change_seq_queue_change ));
-	rpc.change = change_input;
-	rpc.change.pstate_index =  0;
-	PMU_RPC_EXECUTE_CPB(status, pmu, PERF, CHANGE_SEQ_QUEUE_CHANGE, &rpc, 0);
-	if (status != 0) {
-		nvgpu_err(g, "Failed to execute Change Seq RPC status=0x%x",
-			status);
-	}
-
-	/* Wait for sync change to complete. */
-	if ((rpc.change.flags & CTRL_PERF_CHANGE_SEQ_CHANGE_ASYNC) == 0U) {
-		nvgpu_msleep(20);
-	}
-	return status;
-}
-
  int nvgpu_clk_arb_find_slave_points(struct nvgpu_clk_arb *arb,
 		struct nvgpu_clk_slave_freq *vf_point)
 {
@@ -718,7 +564,7 @@ int nvgpu_clk_vf_point_cache(struct gk20a *g)
 	u32 ver = g->params.gpu_arch + g->params.gpu_impl;
 
 	nvgpu_log_info(g, " ");
-	pclk_vf_points = &g->clk_pmu->clk_vf_pointobjs;
+	pclk_vf_points = g->clk_pmu->clk_vf_pointobjs;
 	pboardobjgrp = &pclk_vf_points->super.super;
 	pboardobjgrpmask = &pclk_vf_points->super.mask.super;
 
@@ -747,13 +593,14 @@ int nvgpu_clk_vf_point_cache(struct gk20a *g)
 
 		}
 	} else {
-		voltage_min_uv = g->clk_pmu->avfs_fllobjs.lut_min_voltage_uv;
-		voltage_step_size_uv = g->clk_pmu->avfs_fllobjs.lut_step_size_uv;
+		voltage_min_uv = g->clk_pmu->avfs_fllobjs->lut_min_voltage_uv;
+		voltage_step_size_uv =
+				g->clk_pmu->avfs_fllobjs->lut_step_size_uv;
 		BOARDOBJGRP_FOR_EACH(pboardobjgrp, struct boardobj*, pboardobj, index) {
 			pclk_vf_point = (struct clk_vf_point *)(void *)pboardobj;
 			gpcclk_voltuv =
 					voltage_min_uv + index * voltage_step_size_uv;
-			status = clk_domain_volt_to_freq(g, 0,
+			status = nvgpu_clk_domain_volt_to_freq(g, 0,
 					&gpcclk_clkmhz, &gpcclk_voltuv, CTRL_VOLT_DOMAIN_LOGIC);
 			if (status != 0) {
 				nvgpu_err(g, "Failed to get freq for requested voltage");
@@ -764,4 +611,26 @@ int nvgpu_clk_vf_point_cache(struct gk20a *g)
 		}
 	}
 	return status;
+}
+
+int nvgpu_clk_vf_point_init_pmupstate(struct gk20a *g)
+{
+	/* If already allocated, do not re-allocate */
+	if (g->clk_pmu->clk_vf_pointobjs != NULL) {
+		return 0;
+	}
+
+	g->clk_pmu->clk_vf_pointobjs = nvgpu_kzalloc(g,
+			sizeof(*g->clk_pmu->clk_vf_pointobjs));
+	if (g->clk_pmu->clk_vf_pointobjs == NULL) {
+		return -ENOMEM;
+	}
+
+	return 0;
+}
+
+void nvgpu_clk_vf_point_free_pmupstate(struct gk20a *g)
+{
+	nvgpu_kfree(g, g->clk_pmu->clk_vf_pointobjs);
+	g->clk_pmu->clk_vf_pointobjs = NULL;
 }

@@ -1217,13 +1217,6 @@ struct gpu_ops {
 				struct boardobjgrp_pmu_cmd *cmd);
 		} boardobj;
 		struct {
-			u32 (*get_vbios_clk_domain)(u32 vbios_domain);
-			int (*clk_avfs_get_vin_cal_data)(struct gk20a *g,
-				struct nvgpu_avfsvinobjs *pvinobjs,
-				struct vin_device_v20 *pvindev);
-			u32 (*clk_vf_change_inject_data_fill)(struct gk20a *g,
-				struct nv_pmu_clk_rpc *rpccall,
-				struct nvgpu_set_fll_clk *setfllclk);
 			int (*clk_set_boot_clk)(struct gk20a *g);
 		}clk;
 	} pmu_ver;

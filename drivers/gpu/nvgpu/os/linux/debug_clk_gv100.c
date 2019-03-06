@@ -20,8 +20,16 @@
 #include "os_linux.h"
 
 #include <nvgpu/clk.h>
-#include "common/pmu/clk/clk.h"
+#include <nvgpu/boardobj.h>
+#include <nvgpu/boardobjgrp_e32.h>
+#include <nvgpu/boardobjgrp_e255.h>
+#include <nvgpu/pmu/clk/clk_freq_controller.h>
+#include <nvgpu/pmu/clk/clk_vf_point.h>
+#include <nvgpu/pmu/clk/clk_fll.h>
+#include <nvgpu/pmu/clk/clk.h>
+
 #include "gv100/clk_gv100.h"
+#include "common/pmu/clk/clk_freq_controller.h"
 
 void nvgpu_clk_arb_pstate_change_lock(struct gk20a *g, bool lock);
 
@@ -44,7 +52,7 @@ static int sys_cfc_read(void *data , u64 *val)
 {
 	struct gk20a *g = (struct gk20a *)data;
 	bool bload = boardobjgrpmask_bitget(
-		&g->clk_pmu->clk_freq_controllers.freq_ctrl_load_mask.super,
+		&g->clk_pmu->clk_freq_controllers->freq_ctrl_load_mask.super,
 		CTRL_CLK_CLK_FREQ_CONTROLLER_ID_SYS);
 
 	/* val = 1 implies CLFC is loaded or enabled */
@@ -59,7 +67,7 @@ static int sys_cfc_write(void *data , u64 val)
 	bool bload = val ? true : false;
 
 	nvgpu_clk_arb_pstate_change_lock(g, true);
-	status = clk_pmu_freq_controller_load(g, bload,
+	status = nvgpu_clk_pmu_freq_controller_load(g, bload,
 					CTRL_CLK_CLK_FREQ_CONTROLLER_ID_SYS);
 	nvgpu_clk_arb_pstate_change_lock(g, false);
 
@@ -71,7 +79,7 @@ static int ltc_cfc_read(void *data , u64 *val)
 {
 	struct gk20a *g = (struct gk20a *)data;
 	bool bload = boardobjgrpmask_bitget(
-		&g->clk_pmu->clk_freq_controllers.freq_ctrl_load_mask.super,
+		&g->clk_pmu->clk_freq_controllers->freq_ctrl_load_mask.super,
 		CTRL_CLK_CLK_FREQ_CONTROLLER_ID_LTC);
 
 	/* val = 1 implies CLFC is loaded or enabled */
@@ -86,7 +94,7 @@ static int ltc_cfc_write(void *data , u64 val)
 	bool bload = val ? true : false;
 
 	nvgpu_clk_arb_pstate_change_lock(g, true);
-	status = clk_pmu_freq_controller_load(g, bload,
+	status = nvgpu_clk_pmu_freq_controller_load(g, bload,
 					CTRL_CLK_CLK_FREQ_CONTROLLER_ID_LTC);
 	nvgpu_clk_arb_pstate_change_lock(g, false);
 
@@ -98,7 +106,7 @@ static int xbar_cfc_read(void *data , u64 *val)
 {
 	struct gk20a *g = (struct gk20a *)data;
 	bool bload = boardobjgrpmask_bitget(
-		&g->clk_pmu->clk_freq_controllers.freq_ctrl_load_mask.super,
+		&g->clk_pmu->clk_freq_controllers->freq_ctrl_load_mask.super,
 		CTRL_CLK_CLK_FREQ_CONTROLLER_ID_XBAR);
 
 	/* val = 1 implies CLFC is loaded or enabled */
@@ -113,7 +121,7 @@ static int xbar_cfc_write(void *data , u64 val)
 	bool bload = val ? true : false;
 
 	nvgpu_clk_arb_pstate_change_lock(g, true);
-	status = clk_pmu_freq_controller_load(g, bload,
+	status = nvgpu_clk_pmu_freq_controller_load(g, bload,
 			CTRL_CLK_CLK_FREQ_CONTROLLER_ID_XBAR);
 	nvgpu_clk_arb_pstate_change_lock(g, false);
 
@@ -126,7 +134,7 @@ static int gpc_cfc_read(void *data , u64 *val)
 {
 	struct gk20a *g = (struct gk20a *)data;
 	bool bload = boardobjgrpmask_bitget(
-		&g->clk_pmu->clk_freq_controllers.freq_ctrl_load_mask.super,
+		&g->clk_pmu->clk_freq_controllers->freq_ctrl_load_mask.super,
 		CTRL_CLK_CLK_FREQ_CONTROLLER_ID_GPC0);
 
 	/* val = 1 implies CLFC is loaded or enabled */
@@ -141,7 +149,7 @@ static int gpc_cfc_write(void *data , u64 val)
 	bool bload = val ? true : false;
 
 	nvgpu_clk_arb_pstate_change_lock(g, true);
-	status = clk_pmu_freq_controller_load(g, bload,
+	status = nvgpu_clk_pmu_freq_controller_load(g, bload,
 			CTRL_CLK_CLK_FREQ_CONTROLLER_ID_GPC0);
 	nvgpu_clk_arb_pstate_change_lock(g, false);
 
@@ -157,12 +165,12 @@ static int vftable_show(struct seq_file *s, void *unused)
 	u32 voltage_min_uv, voltage_step_size_uv;
 	u32 gpcclk_clkmhz = 0, gpcclk_voltuv = 0;
 
-	voltage_min_uv = g->clk_pmu->avfs_fllobjs.lut_min_voltage_uv;
-	voltage_step_size_uv = g->clk_pmu->avfs_fllobjs.lut_step_size_uv;
+	voltage_min_uv = g->clk_pmu->avfs_fllobjs->lut_min_voltage_uv;
+	voltage_step_size_uv = g->clk_pmu->avfs_fllobjs->lut_step_size_uv;
 
 	for (index = 0; index < CTRL_CLK_LUT_NUM_ENTRIES_GV10x; index++) {
 		gpcclk_voltuv = voltage_min_uv + index * voltage_step_size_uv;
-		status = clk_domain_volt_to_freq(g, 0, &gpcclk_clkmhz,
+		status = nvgpu_clk_domain_volt_to_freq(g, 0, &gpcclk_clkmhz,
 				&gpcclk_voltuv, CTRL_VOLT_DOMAIN_LOGIC);
 
 		if (status != 0) {

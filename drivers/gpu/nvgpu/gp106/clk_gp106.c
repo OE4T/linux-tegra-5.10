@@ -1,7 +1,7 @@
 /*
  * GP106 Clocks
  *
- * Copyright (c) 2016-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -30,12 +30,11 @@
 #include <nvgpu/pmu.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/boardobjgrp.h>
-
-#include "common/pmu/clk/clk.h"
+#include <nvgpu/pmu/clk/clk.h>
+#include <nvgpu/pmu/clk/clk_domain.h>
+#include <nvgpu/hw/gp106/hw_trim_gp106.h>
 
 #include "clk_gp106.h"
-
-#include <nvgpu/hw/gp106/hw_trim_gp106.h>
 
 #define CLK_NAMEMAP_INDEX_GPC2CLK	0x00U
 #define CLK_NAMEMAP_INDEX_XBAR2CLK	0x02U
@@ -268,7 +267,7 @@ int gp106_clk_domain_get_f_points(
 		return -EINVAL;
 	}
 
-	BOARDOBJGRP_FOR_EACH(&(pclk->clk_domainobjs.super.super),
+	BOARDOBJGRP_FOR_EACH(&(pclk->clk_domainobjs->super.super),
 			struct nvgpu_clk_domain *, pdomain, i) {
 		if (pdomain->api_domain == clkapidomain) {
 			status = pdomain->clkdomainclkgetfpoints(g, pclk,
