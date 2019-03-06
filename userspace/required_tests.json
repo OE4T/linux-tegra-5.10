@@ -1,5 +1,157 @@
 [
     {
+        "test": "atomic_add_32",
+        "unit": "atomic"
+    },
+    {
+        "test": "atomic_add_32_threaded",
+        "unit": "atomic"
+    },
+    {
+        "test": "atomic_add_64",
+        "unit": "atomic"
+    },
+    {
+        "test": "atomic_add_64_threaded",
+        "unit": "atomic"
+    },
+    {
+        "test": "atomic_add_unless_32",
+        "unit": "atomic"
+    },
+    {
+        "test": "atomic_add_unless_32_threaded",
+        "unit": "atomic"
+    },
+    {
+        "test": "atomic_add_unless_64",
+        "unit": "atomic"
+    },
+    {
+        "test": "atomic_add_unless_64_threaded",
+        "unit": "atomic"
+    },
+    {
+        "test": "atomic_cmpxchg_32",
+        "unit": "atomic"
+    },
+    {
+        "test": "atomic_cmpxchg_64",
+        "unit": "atomic"
+    },
+    {
+        "test": "atomic_dec_32",
+        "unit": "atomic"
+    },
+    {
+        "test": "atomic_dec_32_threaded",
+        "unit": "atomic"
+    },
+    {
+        "test": "atomic_dec_64",
+        "unit": "atomic"
+    },
+    {
+        "test": "atomic_dec_64_threaded",
+        "unit": "atomic"
+    },
+    {
+        "test": "atomic_dec_and_test_32",
+        "unit": "atomic"
+    },
+    {
+        "test": "atomic_dec_and_test_32_threaded",
+        "unit": "atomic"
+    },
+    {
+        "test": "atomic_dec_and_test_64",
+        "unit": "atomic"
+    },
+    {
+        "test": "atomic_dec_and_test_64_threaded",
+        "unit": "atomic"
+    },
+    {
+        "test": "atomic_inc_32",
+        "unit": "atomic"
+    },
+    {
+        "test": "atomic_inc_32_threaded",
+        "unit": "atomic"
+    },
+    {
+        "test": "atomic_inc_64",
+        "unit": "atomic"
+    },
+    {
+        "test": "atomic_inc_64_threaded",
+        "unit": "atomic"
+    },
+    {
+        "test": "atomic_inc_and_test_32",
+        "unit": "atomic"
+    },
+    {
+        "test": "atomic_inc_and_test_32_threaded",
+        "unit": "atomic"
+    },
+    {
+        "test": "atomic_inc_and_test_64",
+        "unit": "atomic"
+    },
+    {
+        "test": "atomic_inc_and_test_64_threaded",
+        "unit": "atomic"
+    },
+    {
+        "test": "atomic_set_and_read_32",
+        "unit": "atomic"
+    },
+    {
+        "test": "atomic_set_and_read_64",
+        "unit": "atomic"
+    },
+    {
+        "test": "atomic_sub_32",
+        "unit": "atomic"
+    },
+    {
+        "test": "atomic_sub_32_threaded",
+        "unit": "atomic"
+    },
+    {
+        "test": "atomic_sub_64",
+        "unit": "atomic"
+    },
+    {
+        "test": "atomic_sub_64_threaded",
+        "unit": "atomic"
+    },
+    {
+        "test": "atomic_sub_and_test_32",
+        "unit": "atomic"
+    },
+    {
+        "test": "atomic_sub_and_test_32_threaded",
+        "unit": "atomic"
+    },
+    {
+        "test": "atomic_sub_and_test_64",
+        "unit": "atomic"
+    },
+    {
+        "test": "atomic_sub_and_test_64_threaded",
+        "unit": "atomic"
+    },
+    {
+        "test": "atomic_xchg_32",
+        "unit": "atomic"
+    },
+    {
+        "test": "atomic_xchg_64",
+        "unit": "atomic"
+    },
+    {
         "test": "enabled_flags_false_check",
         "unit": "enabled"
     },

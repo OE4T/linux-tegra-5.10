@@ -53,6 +53,7 @@ UNITS :=				\
 	$(UNIT_SRC)/posix/fault-injection \
 	$(UNIT_SRC)/pramin		\
 	$(UNIT_SRC)/fuse		\
+	$(UNIT_SRC)/interface/atomic	\
 	$(UNIT_SRC)/mm/nvgpu_sgt	\
 	$(UNIT_SRC)/mm/allocators/nvgpu_allocator	\
 	$(UNIT_SRC)/mm/gmmu/pd_cache	\
