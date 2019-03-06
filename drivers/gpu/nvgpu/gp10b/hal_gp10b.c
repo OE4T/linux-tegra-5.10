@@ -574,7 +574,6 @@ static const struct gpu_ops gp10b_ops = {
 		.init_engine_info = gm20b_fifo_init_engine_info,
 		.get_engines_mask_on_id = gk20a_fifo_engines_on_id,
 		.dump_pbdma_status = gk20a_dump_pbdma_status,
-		.dump_eng_status = gk20a_dump_eng_status,
 		.dump_channel_status_ramfc = gk20a_dump_channel_status_ramfc,
 		.capture_channel_ram_dump = gk20a_capture_channel_ram_dump,
 		.intr_0_error_mask = gk20a_fifo_intr_0_error_mask,
@@ -627,6 +626,7 @@ static const struct gpu_ops gp10b_ops = {
 	.engine_status = {
 		.read_engine_status_info =
 			gm20b_read_engine_status_info,
+		.dump_engine_status = gm20b_dump_engine_status,
 	},
 	.pbdma_status = {
 		.read_pbdma_status_info =

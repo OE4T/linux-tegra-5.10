@@ -20,15 +20,18 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NVGPU_ENGINE_STATUS_GM20B
-#define NVGPU_ENGINE_STATUS_GM20B
+#ifndef NVGPU_ENGINE_STATUS_GM20B_H
+#define NVGPU_ENGINE_STATUS_GM20B_H
 
 #include <nvgpu/types.h>
 
 struct gk20a;
 struct nvgpu_engine_status_info;
+struct gk20a_debug_output;
 
 void gm20b_read_engine_status_info(struct gk20a *g, u32 engine_id,
 		struct nvgpu_engine_status_info *status);
 
-#endif /* NVGPU_ENGINE_STATUS_GM20B */
+void gm20b_dump_engine_status(struct gk20a *g, struct gk20a_debug_output *o);
+
+#endif /* NVGPU_ENGINE_STATUS_GM20B_H */

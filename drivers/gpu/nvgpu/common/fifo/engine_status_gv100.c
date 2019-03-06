@@ -21,6 +21,7 @@
  */
 
 #include <nvgpu/io.h>
+#include <nvgpu/debug.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/engine_status.h>
 
@@ -28,8 +29,9 @@
 
 #include "engine_status_gm20b.h"
 #include "engine_status_gv100.h"
+#include "gk20a/fifo_gk20a.h"
 
-void read_engine_status_info_gv100(struct gk20a *g, u32 engine_id,
+void gv100_read_engine_status_info(struct gk20a *g, u32 engine_id,
 		struct nvgpu_engine_status_info *status)
 {
 	u32 engine_reg_data;
@@ -41,4 +43,42 @@ void read_engine_status_info_gv100(struct gk20a *g, u32 engine_id,
 		fifo_engine_status_eng_reload_v(engine_reg_data) != 0U;
 
 	return;
+}
+
+void gv100_dump_engine_status(struct gk20a *g, struct gk20a_debug_output *o)
+{
+	u32 i, host_num_engines;
+	struct nvgpu_engine_status_info engine_status;
+
+	host_num_engines = nvgpu_get_litter_value(g, GPU_LIT_HOST_NUM_ENGINES);
+
+	for (i = 0; i < host_num_engines; i++) {
+		g->ops.engine_status.read_engine_status_info(g, i, &engine_status);
+
+		gk20a_debug_output(o, "%s eng %d: ", g->name, i);
+		gk20a_debug_output(o,
+			"id: %d (%s), next_id: %d (%s), ctx status: %s ",
+			engine_status.ctx_id,
+			nvgpu_engine_status_is_ctx_type_tsg(
+				&engine_status) ?
+				"tsg" : "channel",
+			engine_status.ctx_next_id,
+			nvgpu_engine_status_is_next_ctx_type_tsg(
+				&engine_status) ?
+				"tsg" : "channel",
+			gk20a_decode_pbdma_chan_eng_ctx_status(
+				engine_status.ctxsw_state));
+
+		if (engine_status.in_reload_status) {
+			gk20a_debug_output(o, "ctx_reload ");
+		}
+		if (engine_status.is_faulted) {
+			gk20a_debug_output(o, "faulted ");
+		}
+		if (engine_status.is_busy) {
+			gk20a_debug_output(o, "busy ");
+		}
+		gk20a_debug_output(o, "\n");
+	}
+	gk20a_debug_output(o, "\n");
 }

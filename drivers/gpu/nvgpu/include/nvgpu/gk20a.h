@@ -806,8 +806,6 @@ struct gpu_ops {
 		void (*free_channel_ctx_header)(struct channel_gk20a *ch);
 		void (*dump_pbdma_status)(struct gk20a *g,
 				struct gk20a_debug_output *o);
-		void (*dump_eng_status)(struct gk20a *g,
-				struct gk20a_debug_output *o);
 		void (*dump_channel_status_ramfc)(struct gk20a *g,
 				struct gk20a_debug_output *o,
 				struct nvgpu_channel_dump_info *info);
@@ -934,6 +932,8 @@ struct gpu_ops {
 	struct {
 		void (*read_engine_status_info) (struct gk20a *g,
 			u32 engine_id, struct nvgpu_engine_status_info *status);
+		void (*dump_engine_status)(struct gk20a *g,
+				struct gk20a_debug_output *o);
 	} engine_status;
 	struct {
 		void (*read_pbdma_status_info) (struct gk20a *g,

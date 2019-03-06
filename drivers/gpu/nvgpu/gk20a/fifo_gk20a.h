@@ -329,8 +329,6 @@ void gk20a_debug_dump_all_channel_status_ramfc(struct gk20a *g,
 		 struct gk20a_debug_output *o);
 void gk20a_dump_pbdma_status(struct gk20a *g,
 				 struct gk20a_debug_output *o);
-void gk20a_dump_eng_status(struct gk20a *g,
-				 struct gk20a_debug_output *o);
 const char *gk20a_decode_pbdma_chan_eng_ctx_status(u32 index);
 
 int gk20a_fifo_tsg_unbind_channel_verify_status(struct channel_gk20a *ch);

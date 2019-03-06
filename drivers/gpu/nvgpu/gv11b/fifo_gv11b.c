@@ -292,45 +292,6 @@ void gv11b_dump_channel_status_ramfc(struct gk20a *g,
 	gk20a_debug_output(o, "\n");
 }
 
-void gv11b_dump_eng_status(struct gk20a *g,
-				 struct gk20a_debug_output *o)
-{
-	u32 i, host_num_engines;
-	struct nvgpu_engine_status_info engine_status;
-
-	host_num_engines = nvgpu_get_litter_value(g, GPU_LIT_HOST_NUM_ENGINES);
-
-	for (i = 0; i < host_num_engines; i++) {
-		g->ops.engine_status.read_engine_status_info(g, i, &engine_status);
-
-		gk20a_debug_output(o, "%s eng %d: ", g->name, i);
-		gk20a_debug_output(o,
-			"id: %d (%s), next_id: %d (%s), ctx status: %s ",
-			engine_status.ctx_id,
-			nvgpu_engine_status_is_ctx_type_tsg(
-				&engine_status) ?
-				"tsg" : "channel",
-			engine_status.ctx_next_id,
-			nvgpu_engine_status_is_next_ctx_type_tsg(
-				&engine_status) ?
-				"tsg" : "channel",
-			gk20a_decode_pbdma_chan_eng_ctx_status(
-				engine_status.ctxsw_state));
-
-		if (engine_status.in_reload_status) {
-			gk20a_debug_output(o, "ctx_reload ");
-		}
-		if (engine_status.is_faulted) {
-			gk20a_debug_output(o, "faulted ");
-		}
-		if (engine_status.is_busy) {
-			gk20a_debug_output(o, "busy ");
-		}
-		gk20a_debug_output(o, "\n");
-	}
-	gk20a_debug_output(o, "\n");
-}
-
 u32 gv11b_fifo_intr_0_error_mask(struct gk20a *g)
 {
 	u32 intr_0_error_mask =
