@@ -567,7 +567,7 @@ static int nvgpu_submit_channel_gpfifo(struct channel_gk20a *c,
 	}
 	gk20a_fifo_profile_snapshot(profile, PROFILE_APPEND);
 
-	g->ops.fifo.userd_gp_put(g, c);
+	g->ops.userd.gp_put(g, c);
 
 	/* No hw access beyond this point */
 	if (c->deterministic) {

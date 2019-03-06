@@ -864,10 +864,6 @@ struct gpu_ops {
 		int (*init_engine_info)(struct fifo_gk20a *f);
 		u32 (*get_engines_mask_on_id)(struct gk20a *g,
 			u32 id, bool is_tsg);
-		u32 (*userd_gp_get)(struct gk20a *g, struct channel_gk20a *ch);
-		void (*userd_gp_put)(struct gk20a *g, struct channel_gk20a *ch);
-		u64 (*userd_pb_get)(struct gk20a *g, struct channel_gk20a *ch);
-		u32 (*userd_entry_size)(struct gk20a  *g);
 		void (*free_channel_ctx_header)(struct channel_gk20a *ch);
 		void (*dump_channel_status_ramfc)(struct gk20a *g,
 				struct gk20a_debug_output *o,
@@ -879,7 +875,6 @@ struct gpu_ops {
 		int (*is_preempt_pending)(struct gk20a *g, u32 id,
 			unsigned int id_type);
 		int (*reset_enable_hw)(struct gk20a *g);
-		int (*setup_userd)(struct channel_gk20a *c);
 		void (*teardown_ch_tsg)(struct gk20a *g, u32 act_eng_bitmask,
 			u32 id, unsigned int id_type, unsigned int rc_type,
 			 struct mmu_fault_info *mmfault);
@@ -940,6 +935,15 @@ struct gpu_ops {
 		void (*write_state)(struct gk20a *g, u32 runlists_mask,
 				u32 runlist_state);
 	} runlist;
+	struct {
+		int (*setup_sw)(struct gk20a *g);
+		void (*cleanup_sw)(struct gk20a *g);
+		int (*init_mem)(struct gk20a *g, struct channel_gk20a *c);
+		u32 (*gp_get)(struct gk20a *g, struct channel_gk20a *c);
+		void (*gp_put)(struct gk20a *g, struct channel_gk20a *c);
+		u64 (*pb_get)(struct gk20a *g, struct channel_gk20a *c);
+		u32 (*entry_size)(struct gk20a *g);
+	} userd;
 
 	struct {
 		bool (*is_fault_engine_subid_gpc)(struct gk20a *g,

@@ -63,9 +63,6 @@ void gv11b_mmu_fault_id_to_eng_pbdma_id_and_veid(struct gk20a *g,
 int channel_gv11b_setup_ramfc(struct channel_gk20a *c,
 		u64 gpfifo_base, u32 gpfifo_entries,
 		unsigned long acquire_timeout, u32 flags);
-u32 gv11b_userd_gp_get(struct gk20a *g, struct channel_gk20a *c);
-u64 gv11b_userd_pb_get(struct gk20a *g, struct channel_gk20a *c);
-void gv11b_userd_gp_put(struct gk20a *g, struct channel_gk20a *c);
 void gv11b_dump_channel_status_ramfc(struct gk20a *g,
 				     struct gk20a_debug_output *o,
 				     struct nvgpu_channel_dump_info *info);
@@ -98,7 +95,6 @@ u32 gv11b_fifo_get_preempt_timeout(struct gk20a *g);
 
 void gv11b_fifo_init_ramfc_eng_method_buffer(struct gk20a *g,
 			struct channel_gk20a *ch, struct nvgpu_mem *mem);
-void gv11b_userd_writeback_config(struct gk20a *g);
 void gv11b_ring_channel_doorbell(struct channel_gk20a *c);
 u64 gv11b_fifo_usermode_base(struct gk20a *g);
 u32 gv11b_fifo_doorbell_token(struct channel_gk20a *c);

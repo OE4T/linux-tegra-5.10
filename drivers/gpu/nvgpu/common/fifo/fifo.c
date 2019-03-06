@@ -59,40 +59,13 @@ static void nvgpu_pbdma_cleanup_sw(struct gk20a *g)
 	f->pbdma_map = NULL;
 }
 
-static int nvgpu_userd_setup_sw(struct gk20a *g)
-{
-	struct fifo_gk20a *f = &g->fifo;
-	int err;
-
-	f->userd_entry_size = g->ops.fifo.userd_entry_size(g);
-
-	err = gk20a_fifo_init_userd_slabs(g);
-	if (err != 0) {
-		nvgpu_err(g, "failed to init userd support");
-		return err;
-	}
-
-	return 0;
-}
-
-static void nvgpu_userd_cleanup_sw(struct gk20a *g)
-{
-	struct fifo_gk20a *f = &g->fifo;
-
-	gk20a_fifo_free_userd_slabs(g);
-	if (f->userd_gpu_va != 0ULL) {
-		(void) nvgpu_vm_area_free(g->mm.bar1.vm, f->userd_gpu_va);
-		f->userd_gpu_va = 0ULL;
-	}
-}
-
 void nvgpu_fifo_cleanup_sw_common(struct gk20a *g)
 {
 	struct fifo_gk20a *f = &g->fifo;
 
 	nvgpu_log_fn(g, " ");
 
-	nvgpu_userd_cleanup_sw(g);
+	g->ops.userd.cleanup_sw(g);
 	nvgpu_channel_cleanup_sw(g);
 	nvgpu_tsg_cleanup_sw(g);
 	nvgpu_runlist_cleanup_sw(g);
@@ -194,7 +167,7 @@ int nvgpu_fifo_setup_sw_common(struct gk20a *g)
 		goto clean_up_engine;
 	}
 
-	err = nvgpu_userd_setup_sw(g);
+	err = g->ops.userd.setup_sw(g);
 	if (err != 0) {
 		nvgpu_err(g, "failed to init userd support");
 		goto clean_up_runlist;
@@ -229,8 +202,6 @@ int nvgpu_fifo_setup_sw(struct gk20a *g)
 {
 	struct fifo_gk20a *f = &g->fifo;
 	int err = 0;
-	u32 size;
-	u32 num_pages;
 
 	nvgpu_log_fn(g, " ");
 
@@ -241,23 +212,14 @@ int nvgpu_fifo_setup_sw(struct gk20a *g)
 
 	err = nvgpu_fifo_setup_sw_common(g);
 	if (err != 0) {
-		nvgpu_err(g, "fail: err: %d", err);
+		nvgpu_err(g, "fifo common sw setup failed, err=%d", err);
 		return err;
-	}
-
-	size = f->num_channels * f->userd_entry_size;
-	num_pages = DIV_ROUND_UP(size, PAGE_SIZE);
-	err = nvgpu_vm_area_alloc(g->mm.bar1.vm,
-			num_pages, PAGE_SIZE, &f->userd_gpu_va, 0);
-	if (err != 0) {
-		nvgpu_err(g, "userd gpu va allocation failed, err=%d", err);
-		goto clean_up_sw_common;
 	}
 
 	err = nvgpu_channel_worker_init(g);
 	if (err != 0) {
 		nvgpu_err(g, "worker init fail, err=%d", err);
-		goto clean_up_vm_area;
+		goto clean_up;
 	}
 
 	f->sw_ready = true;
@@ -265,12 +227,9 @@ int nvgpu_fifo_setup_sw(struct gk20a *g)
 	nvgpu_log_fn(g, "done");
 	return 0;
 
-clean_up_vm_area:
-	(void) nvgpu_vm_area_free(g->mm.bar1.vm, f->userd_gpu_va);
-	f->userd_gpu_va = 0ULL;
-
-clean_up_sw_common:
+clean_up:
 	nvgpu_fifo_cleanup_sw_common(g);
+
 	return err;
 }
 
@@ -288,9 +247,14 @@ int nvgpu_fifo_init_support(struct gk20a *g)
 		err = g->ops.fifo.init_fifo_setup_hw(g);
 		if (err != 0) {
 			nvgpu_err(g, "fifo hw setup failed, err=%d", err);
-			return err;
+			goto clean_up;
 		}
 	}
+
+	return 0;
+
+clean_up:
+	nvgpu_fifo_cleanup_sw_common(g);
 
 	return err;
 }

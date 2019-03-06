@@ -30,6 +30,7 @@
 #include <nvgpu/debugger.h>
 #include <nvgpu/channel.h>
 #include <nvgpu/runlist.h>
+#include <nvgpu/fifo/userd.h>
 #include <nvgpu/tsg.h>
 #include <nvgpu/perfbuf.h>
 #include <nvgpu/cyclestats_snapshot.h>
@@ -59,6 +60,7 @@
 #include "hal/fifo/engines_gm20b.h"
 #include "hal/fifo/engine_status_gm20b.h"
 #include "hal/fifo/pbdma_status_gm20b.h"
+#include "hal/fifo/userd_gk20a.h"
 #include "hal/gr/fecs_trace/fecs_trace_gm20b.h"
 #include "hal/gr/fecs_trace/fecs_trace_gp10b.h"
 #include "hal/gr/zbc/zbc_gp10b.h"
@@ -589,11 +591,6 @@ static const struct gpu_ops gp10b_ops = {
 		.free_inst = gk20a_fifo_free_inst,
 		.setup_ramfc = channel_gp10b_setup_ramfc,
 		.default_timeslice_us = gk20a_fifo_default_timeslice_us,
-		.setup_userd = gk20a_fifo_setup_userd,
-		.userd_gp_get = gk20a_fifo_userd_gp_get,
-		.userd_gp_put = gk20a_fifo_userd_gp_put,
-		.userd_pb_get = gk20a_fifo_userd_pb_get,
-		.userd_entry_size = gk20a_fifo_userd_entry_size,
 		.preempt_channel = gk20a_fifo_preempt_channel,
 		.preempt_tsg = gk20a_fifo_preempt_tsg,
 		.enable_tsg = gk20a_enable_tsg,
@@ -693,6 +690,15 @@ static const struct gpu_ops gp10b_ops = {
 		.hw_submit = gk20a_runlist_hw_submit,
 		.wait_pending = gk20a_runlist_wait_pending,
 		.write_state = gk20a_runlist_write_state,
+	},
+	.userd = {
+		.setup_sw = nvgpu_userd_setup_sw,
+		.cleanup_sw = nvgpu_userd_cleanup_sw,
+		.init_mem = gk20a_userd_init_mem,
+		.gp_get = gk20a_userd_gp_get,
+		.gp_put = gk20a_userd_gp_put,
+		.pb_get = gk20a_userd_pb_get,
+		.entry_size = gk20a_userd_entry_size,
 	},
 	.channel = {
 		.bind = gm20b_channel_bind,
@@ -971,6 +977,7 @@ int gp10b_init_hal(struct gk20a *g)
 	gops->engine = gp10b_ops.engine;
 	gops->pbdma = gp10b_ops.pbdma;
 	gops->runlist = gp10b_ops.runlist;
+	gops->userd = gp10b_ops.userd;
 	gops->channel = gp10b_ops.channel;
 	gops->sync = gp10b_ops.sync;
 	gops->engine_status = gp10b_ops.engine_status;

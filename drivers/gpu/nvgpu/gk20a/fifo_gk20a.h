@@ -290,10 +290,6 @@ u32 gk20a_fifo_get_gr_runlist_id(struct gk20a *g);
 
 bool gk20a_fifo_is_valid_runlist_id(struct gk20a *g, u32 runlist_id);
 
-u32 gk20a_fifo_userd_gp_get(struct gk20a *g, struct channel_gk20a *c);
-void gk20a_fifo_userd_gp_put(struct gk20a *g, struct channel_gk20a *c);
-u64 gk20a_fifo_userd_pb_get(struct gk20a *g, struct channel_gk20a *c);
-
 #ifdef CONFIG_DEBUG_FS
 struct fifo_profile_gk20a *gk20a_fifo_profile_acquire(struct gk20a *g);
 void gk20a_fifo_profile_release(struct gk20a *g,
@@ -342,8 +338,6 @@ int gk20a_fifo_setup_ramfc(struct channel_gk20a *c,
 void gk20a_fifo_setup_ramfc_for_privileged_channel(struct channel_gk20a *c);
 int gk20a_fifo_alloc_inst(struct gk20a *g, struct channel_gk20a *ch);
 void gk20a_fifo_free_inst(struct gk20a *g, struct channel_gk20a *ch);
-int gk20a_fifo_setup_userd(struct channel_gk20a *c);
-
 
 u32 gk20a_fifo_runlist_busy_engines(struct gk20a *g, u32 runlist_id);
 void gk20a_fifo_handle_runlist_event(struct gk20a *g);
@@ -368,10 +362,6 @@ void gk20a_fifo_get_mmu_fault_info(struct gk20a *g, u32 mmu_fault_id,
 void gk20a_fifo_get_mmu_fault_desc(struct mmu_fault_info *mmfault);
 void gk20a_fifo_get_mmu_fault_client_desc(struct mmu_fault_info *mmfault);
 void gk20a_fifo_get_mmu_fault_gpc_desc(struct mmu_fault_info *mmfault);
-int gk20a_fifo_init_userd_slabs(struct gk20a *g);
-void gk20a_fifo_free_userd_slabs(struct gk20a *g);
-int gk20a_fifo_init_userd(struct gk20a *g, struct channel_gk20a *c);
-u32 gk20a_fifo_userd_entry_size(struct gk20a *g);
 
 bool gk20a_fifo_find_pbdma_for_runlist(struct fifo_gk20a *f, u32 runlist_id,
 			u32 *pbdma_id);

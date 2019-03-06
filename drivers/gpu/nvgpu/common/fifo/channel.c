@@ -47,6 +47,7 @@
 #include <nvgpu/channel.h>
 #include <nvgpu/channel_sync.h>
 #include <nvgpu/runlist.h>
+#include <nvgpu/fifo/userd.h>
 
 #include "gk20a/fence_gk20a.h"
 #include "gk20a/gr_gk20a.h"
@@ -414,7 +415,7 @@ static void gk20a_free_channel(struct channel_gk20a *ch, bool force)
 
 	if (ch->usermode_submit_enabled) {
 		gk20a_channel_free_usermode_buffers(ch);
-		(void) gk20a_fifo_init_userd(g, ch);
+		(void) nvgpu_userd_init_channel(g, ch);
 		ch->usermode_submit_enabled = false;
 	}
 
@@ -701,7 +702,7 @@ struct channel_gk20a *gk20a_open_new_channel(struct gk20a *g,
 	ch->pid = tid;
 	ch->tgid = pid;  /* process granularity for FECS traces */
 
-	if (gk20a_fifo_init_userd(g, ch) != 0) {
+	if (nvgpu_userd_init_channel(g, ch) != 0) {
 		nvgpu_err(g, "userd init failed");
 		goto clean_up;
 	}
@@ -1241,7 +1242,7 @@ int nvgpu_channel_setup_bind(struct channel_gk20a *c,
 		c->chid, gpfifo_gpu_va, c->gpfifo.entry_num);
 
 	if (!c->usermode_submit_enabled) {
-		g->ops.fifo.setup_userd(c);
+		g->ops.userd.init_mem(g, c);
 
 		if (g->aggressive_sync_destroy_thresh == 0U) {
 			nvgpu_mutex_acquire(&c->sync_lock);
@@ -1316,7 +1317,7 @@ clean_up_unmap:
 	nvgpu_dma_unmap_free(ch_vm, &c->gpfifo.mem);
 	if (c->usermode_submit_enabled) {
 		gk20a_channel_free_usermode_buffers(c);
-		(void) gk20a_fifo_init_userd(g, c);
+		(void) nvgpu_userd_init_channel(g, c);
 		c->usermode_submit_enabled = false;
 	}
 clean_up:
@@ -1349,7 +1350,7 @@ void gk20a_channel_free_usermode_buffers(struct channel_gk20a *c)
 static inline u32 update_gp_get(struct gk20a *g,
 				struct channel_gk20a *c)
 {
-	u32 new_get = g->ops.fifo.userd_gp_get(g, c);
+	u32 new_get = g->ops.userd.gp_get(g, c);
 
 	if (new_get < c->gpfifo.get) {
 		c->gpfifo.wrap = !c->gpfifo.wrap;
@@ -1490,17 +1491,19 @@ u32 nvgpu_get_gp_free_count(struct channel_gk20a *c)
 
 static void __gk20a_channel_timeout_start(struct channel_gk20a *ch)
 {
+	struct gk20a *g = ch->g;
+
 	if (gk20a_channel_check_unserviceable(ch)) {
 		ch->timeout.running = false;
 		return;
 	}
 
-	ch->timeout.gp_get = ch->g->ops.fifo.userd_gp_get(ch->g, ch);
-	ch->timeout.pb_get = ch->g->ops.fifo.userd_pb_get(ch->g, ch);
+	ch->timeout.gp_get = g->ops.userd.gp_get(g, ch);
+	ch->timeout.pb_get = g->ops.userd.pb_get(g, ch);
 	ch->timeout.running = true;
-	nvgpu_timeout_init(ch->g, &ch->timeout.timer,
-			ch->timeout.limit_ms,
-			NVGPU_TIMER_CPU_TIMER);
+	nvgpu_timeout_init(g, &ch->timeout.timer,
+			   ch->timeout.limit_ms,
+			   NVGPU_TIMER_CPU_TIMER);
 }
 
 /**
@@ -1652,8 +1655,8 @@ static void gk20a_channel_timeout_handler(struct channel_gk20a *ch)
 	pb_get = ch->timeout.pb_get;
 	nvgpu_spinlock_release(&ch->timeout.lock);
 
-	new_gp_get = g->ops.fifo.userd_gp_get(ch->g, ch);
-	new_pb_get = g->ops.fifo.userd_pb_get(ch->g, ch);
+	new_gp_get = g->ops.userd.gp_get(g, ch);
+	new_pb_get = g->ops.userd.pb_get(g, ch);
 
 	if (new_gp_get != gp_get || new_pb_get != pb_get) {
 		/* Channel has advanced, timer keeps going but resets */

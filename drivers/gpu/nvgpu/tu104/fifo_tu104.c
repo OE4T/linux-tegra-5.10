@@ -108,8 +108,6 @@ int channel_tu104_setup_ramfc(struct channel_gk20a *c,
 	data = data | pbdma_config_userd_writeback_enable_f();
 	nvgpu_mem_wr32(g, mem, ram_fc_config_w(),data);
 
-	gv11b_userd_writeback_config(g);
-
 	return channel_gp10b_commit_userd(c);
 }
 

@@ -182,6 +182,7 @@ srcs += common/sim.c \
 	common/fifo/engine_status.c \
 	common/fifo/engines.c \
 	common/fifo/pbdma_status.c \
+	common/fifo/userd.c \
 	common/mc/mc.c \
 	common/mc/mc_gm20b.c \
 	common/mc/mc_gp10b.c  \
@@ -293,6 +294,7 @@ srcs += common/sim.c \
 	common/vgpu/fifo/fifo_vgpu.c \
 	common/vgpu/fifo/runlist_vgpu.c \
 	common/vgpu/fifo/vgpu_fifo_gv11b.c \
+	common/vgpu/fifo/userd_vgpu.c \
 	common/vgpu/tsg_vgpu.c \
 	common/vgpu/perf/cyclestats_snapshot_vgpu.c \
 	common/vgpu/perf/perf_vgpu.c \
@@ -365,6 +367,8 @@ srcs += common/sim.c \
 	hal/fifo/engine_status_gm20b.c \
 	hal/fifo/engine_status_gv100.c \
 	hal/fifo/pbdma_status_gm20b.c \
+	hal/fifo/userd_gk20a.c \
+	hal/fifo/userd_gv11b.c \
 	hal/falcon/falcon_gk20a.c \
 	hal/nvlink/minion_gv100.c \
 	hal/nvlink/minion_tu104.c \

@@ -26,6 +26,8 @@
 #include "hal/fifo/pbdma_gm20b.h"
 #include "hal/fifo/pbdma_gp10b.h"
 #include "hal/fifo/pbdma_gv11b.h"
+#include "hal/fifo/userd_gk20a.h"
+#include "hal/fifo/userd_gv11b.h"
 #include "hal/therm/therm_gm20b.h"
 #include "hal/therm/therm_gp10b.h"
 #include "hal/therm/therm_gv11b.h"
@@ -58,6 +60,7 @@
 
 #include "common/vgpu/fifo/fifo_vgpu.h"
 #include "common/vgpu/fifo/runlist_vgpu.h"
+#include "common/vgpu/fifo/userd_vgpu.h"
 #include "common/vgpu/gr/gr_vgpu.h"
 #include "common/vgpu/gr/ctx_vgpu.h"
 #include "common/vgpu/ltc/ltc_vgpu.h"
@@ -444,11 +447,6 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 		.free_inst = vgpu_channel_free_inst,
 		.setup_ramfc = vgpu_channel_setup_ramfc,
 		.default_timeslice_us = vgpu_fifo_default_timeslice_us,
-		.setup_userd = gk20a_fifo_setup_userd,
-		.userd_gp_get = gv11b_userd_gp_get,
-		.userd_gp_put = gv11b_userd_gp_put,
-		.userd_pb_get = gv11b_userd_pb_get,
-		.userd_entry_size = gk20a_fifo_userd_entry_size,
 		.preempt_channel = vgpu_fifo_preempt_channel,
 		.preempt_tsg = vgpu_fifo_preempt_tsg,
 		.enable_tsg = vgpu_gv11b_enable_tsg,
@@ -547,6 +545,15 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 		.get_ch_entry = gv11b_runlist_get_ch_entry,
 		.hw_submit = NULL,
 		.wait_pending = NULL,
+	},
+	.userd = {
+		.setup_sw = vgpu_userd_setup_sw,
+		.cleanup_sw = vgpu_userd_cleanup_sw,
+		.init_mem = gk20a_userd_init_mem,
+		.gp_get = gv11b_userd_gp_get,
+		.gp_put = gv11b_userd_gp_put,
+		.pb_get = gv11b_userd_pb_get,
+		.entry_size = gk20a_userd_entry_size,
 	},
 	.channel = {
 		.bind = vgpu_channel_bind,
@@ -771,6 +778,7 @@ int vgpu_gv11b_init_hal(struct gk20a *g)
 	gops->engine = vgpu_gv11b_ops.engine;
 	gops->pbdma = vgpu_gv11b_ops.pbdma;
 	gops->runlist = vgpu_gv11b_ops.runlist;
+	gops->userd = vgpu_gv11b_ops.userd;
 	gops->channel = vgpu_gv11b_ops.channel;
 	gops->sync = vgpu_gv11b_ops.sync;
 	gops->engine_status = vgpu_gv11b_ops.engine_status;

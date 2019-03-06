@@ -212,6 +212,8 @@ nvgpu-y += \
 	hal/fifo/engine_status_gm20b.o \
 	hal/fifo/engine_status_gv100.o \
 	hal/fifo/pbdma_status_gm20b.o \
+	hal/fifo/userd_gk20a.o \
+	hal/fifo/userd_gv11b.o \
 	hal/falcon/falcon_gk20a.o \
 	hal/nvlink/minion_gv100.o \
 	hal/nvlink/minion_tu104.o \
@@ -412,6 +414,7 @@ nvgpu-y += \
 	common/fifo/engine_status.o \
 	common/fifo/engines.o \
 	common/fifo/pbdma_status.o \
+	common/fifo/userd.o \
 	common/ecc.o \
 	common/ce2.o \
 	common/debugger.o \
@@ -437,6 +440,7 @@ nvgpu-$(CONFIG_TEGRA_GR_VIRTUALIZATION) += \
 	common/vgpu/fifo/fifo_vgpu.o \
 	common/vgpu/fifo/runlist_vgpu.o \
 	common/vgpu/fifo/vgpu_fifo_gv11b.o \
+	common/vgpu/fifo/userd_vgpu.o \
 	common/vgpu/ce_vgpu.o \
 	common/vgpu/mm/mm_vgpu.o \
 	common/vgpu/mm/vm_vgpu.o \

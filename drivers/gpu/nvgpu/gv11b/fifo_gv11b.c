@@ -68,14 +68,6 @@
 #include "subctx_gv11b.h"
 #include "gr_gv11b.h"
 
-void gv11b_userd_writeback_config(struct gk20a *g)
-{
-	gk20a_writel(g, fifo_userd_writeback_r(), fifo_userd_writeback_timer_f(
-				fifo_userd_writeback_timer_100us_v()));
-
-
-}
-
 int channel_gv11b_setup_ramfc(struct channel_gk20a *c,
 		u64 gpfifo_base, u32 gpfifo_entries,
 		unsigned long acquire_timeout, u32 flags)
@@ -94,7 +86,7 @@ int channel_gv11b_setup_ramfc(struct channel_gk20a *c,
 	}
 	gv11b_init_subcontext_pdb(c->vm, mem, replayable);
 
-        nvgpu_mem_wr32(g, mem, ram_fc_gp_base_w(),
+	nvgpu_mem_wr32(g, mem, ram_fc_gp_base_w(),
 		pbdma_gp_base_offset_f(
 		u64_lo32(gpfifo_base >> pbdma_gp_base_rsvd_s())));
 
@@ -154,8 +146,6 @@ int channel_gv11b_setup_ramfc(struct channel_gk20a *c,
 	data = data | pbdma_config_userd_writeback_enable_f();
 	nvgpu_mem_wr32(g, mem, ram_fc_config_w(),data);
 
-	gv11b_userd_writeback_config(g);
-
 	return channel_gp10b_commit_userd(c);
 }
 
@@ -182,38 +172,6 @@ void gv11b_ring_channel_doorbell(struct channel_gk20a *c)
 
 	nvgpu_usermode_writel(c->g, usermode_notify_channel_pending_r(),
 		usermode_notify_channel_pending_id_f(hw_chid));
-}
-
-u32 gv11b_userd_gp_get(struct gk20a *g, struct channel_gk20a *c)
-{
-	struct nvgpu_mem *mem = c->userd_mem;
-	u32 offset = c->userd_offset / U32(sizeof(u32));
-
-	return nvgpu_mem_rd32(g, mem, offset + ram_userd_gp_get_w());
-}
-
-u64 gv11b_userd_pb_get(struct gk20a *g, struct channel_gk20a *c)
-{
-	struct nvgpu_mem *mem = c->userd_mem;
-	u32 offset = c->userd_offset / U32(sizeof(u32));
-	u32 lo, hi;
-
-	lo = nvgpu_mem_rd32(g, mem, offset + ram_userd_get_w());
-	hi = nvgpu_mem_rd32(g, mem, offset + ram_userd_get_hi_w());
-
-	return ((u64)hi << 32) | lo;
-}
-
-void gv11b_userd_gp_put(struct gk20a *g, struct channel_gk20a *c)
-{
-	struct nvgpu_mem *mem = c->userd_mem;
-	u32 offset = c->userd_offset / U32(sizeof(u32));
-
-	nvgpu_mem_wr32(g, mem, offset + ram_userd_gp_put_w(), c->gpfifo.put);
-	/* Commit everything to GPU. */
-	nvgpu_mb();
-
-	g->ops.fifo.ring_channel_doorbell(c);
 }
 
 void gv11b_capture_channel_ram_dump(struct gk20a *g,
@@ -1598,6 +1556,12 @@ int gv11b_init_fifo_setup_hw(struct gk20a *g)
 	struct fifo_gk20a *f = &g->fifo;
 
 	f->max_subctx_count = gr_pri_fe_chip_def_info_max_veid_count_init_v();
+
+	/* configure userd writeback timer */
+	nvgpu_writel(g, fifo_userd_writeback_r(),
+		fifo_userd_writeback_timer_f(
+			fifo_userd_writeback_timer_100us_v()));
+
 	return 0;
 }
 

@@ -315,89 +315,6 @@ int gk20a_init_fifo_reset_enable_hw(struct gk20a *g)
 	return 0;
 }
 
-int gk20a_fifo_init_userd_slabs(struct gk20a *g)
-{
-	struct fifo_gk20a *f = &g->fifo;
-	int err;
-
-	err = nvgpu_mutex_init(&f->userd_mutex);
-	if (err != 0) {
-		nvgpu_err(g, "failed to init userd_mutex");
-		return err;
-	}
-
-	f->num_channels_per_slab = PAGE_SIZE /  f->userd_entry_size;
-	f->num_userd_slabs =
-		DIV_ROUND_UP(f->num_channels, f->num_channels_per_slab);
-
-	f->userd_slabs = nvgpu_big_zalloc(g, f->num_userd_slabs *
-				          sizeof(struct nvgpu_mem));
-	if (f->userd_slabs == NULL) {
-		nvgpu_err(g, "could not allocate userd slabs");
-		return -ENOMEM;
-	}
-
-	return 0;
-}
-
-int gk20a_fifo_init_userd(struct gk20a *g, struct channel_gk20a *c)
-{
-	struct fifo_gk20a *f = &g->fifo;
-	struct nvgpu_mem *mem;
-	u32 slab = c->chid / f->num_channels_per_slab;
-	int err = 0;
-
-	if (slab > f->num_userd_slabs) {
-		nvgpu_err(g, "chid %u, slab %u out of range (max=%u)",
-			c->chid, slab,  f->num_userd_slabs);
-		return -EINVAL;
-	}
-
-	mem = &g->fifo.userd_slabs[slab];
-
-	nvgpu_mutex_acquire(&f->userd_mutex);
-	if (!nvgpu_mem_is_valid(mem)) {
-		err = nvgpu_dma_alloc_sys(g, PAGE_SIZE, mem);
-		if (err != 0) {
-			nvgpu_err(g, "userd allocation failed, err=%d", err);
-			goto done;
-		}
-
-		if (g->ops.mm.is_bar1_supported(g)) {
-			mem->gpu_va = g->ops.mm.bar1_map_userd(g, mem,
-							 slab * PAGE_SIZE);
-		}
-	}
-	c->userd_mem = mem;
-	c->userd_offset = (c->chid % f->num_channels_per_slab) *
-				f->userd_entry_size;
-	c->userd_iova = gk20a_channel_userd_addr(c);
-
-	nvgpu_log(g, gpu_dbg_info,
-		"chid=%u slab=%u mem=%p offset=%u addr=%llx gpu_va=%llx",
-		c->chid, slab, mem, c->userd_offset,
-		gk20a_channel_userd_addr(c),
-		gk20a_channel_userd_gpu_va(c));
-
-done:
-	nvgpu_mutex_release(&f->userd_mutex);
-	return err;
-}
-
-void gk20a_fifo_free_userd_slabs(struct gk20a *g)
-{
-	struct fifo_gk20a *f = &g->fifo;
-	u32 slab;
-
-	if (f->userd_slabs != NULL) {
-		for (slab = 0; slab < f->num_userd_slabs; slab++) {
-			nvgpu_dma_free(g, &f->userd_slabs[slab]);
-		}
-		nvgpu_big_free(g, f->userd_slabs);
-		f->userd_slabs = NULL;
-	}
-}
-
 void gk20a_fifo_handle_runlist_event(struct gk20a *g)
 {
 	u32 runlist_event = gk20a_readl(g, fifo_intr_runlist_r());
@@ -2282,27 +2199,6 @@ void gk20a_fifo_setup_ramfc_for_privileged_channel(struct channel_gk20a *c)
 		pbdma_hce_ctrl_hce_priv_mode_yes_f());
 }
 
-int gk20a_fifo_setup_userd(struct channel_gk20a *c)
-{
-	struct gk20a *g = c->g;
-	struct nvgpu_mem *mem = c->userd_mem;
-	u32 offset = c->userd_offset / U32(sizeof(u32));
-
-	nvgpu_log_fn(g, " ");
-
-	nvgpu_mem_wr32(g, mem, offset + ram_userd_put_w(), 0);
-	nvgpu_mem_wr32(g, mem, offset + ram_userd_get_w(), 0);
-	nvgpu_mem_wr32(g, mem, offset + ram_userd_ref_w(), 0);
-	nvgpu_mem_wr32(g, mem, offset + ram_userd_put_hi_w(), 0);
-	nvgpu_mem_wr32(g, mem, offset + ram_userd_gp_top_level_get_w(), 0);
-	nvgpu_mem_wr32(g, mem, offset + ram_userd_gp_top_level_get_hi_w(), 0);
-	nvgpu_mem_wr32(g, mem, offset + ram_userd_get_hi_w(), 0);
-	nvgpu_mem_wr32(g, mem, offset + ram_userd_gp_get_w(), 0);
-	nvgpu_mem_wr32(g, mem, offset + ram_userd_gp_put_w(), 0);
-
-	return 0;
-}
-
 int gk20a_fifo_alloc_inst(struct gk20a *g, struct channel_gk20a *ch)
 {
 	int err;
@@ -2324,44 +2220,6 @@ int gk20a_fifo_alloc_inst(struct gk20a *g, struct channel_gk20a *ch)
 void gk20a_fifo_free_inst(struct gk20a *g, struct channel_gk20a *ch)
 {
 	nvgpu_free_inst_block(g, &ch->inst_block);
-}
-
-u32 gk20a_fifo_userd_gp_get(struct gk20a *g, struct channel_gk20a *c)
-{
-	u64 userd_gpu_va = gk20a_channel_userd_gpu_va(c);
-	u64 addr = userd_gpu_va + sizeof(u32) * ram_userd_gp_get_w();
-
-	BUG_ON(u64_hi32(addr) != 0U);
-
-	return gk20a_bar1_readl(g, (u32)addr);
-}
-
-u64 gk20a_fifo_userd_pb_get(struct gk20a *g, struct channel_gk20a *c)
-{
-	u64 userd_gpu_va = gk20a_channel_userd_gpu_va(c);
-	u64 lo_addr = userd_gpu_va + sizeof(u32) * ram_userd_get_w();
-	u64 hi_addr = userd_gpu_va + sizeof(u32) * ram_userd_get_hi_w();
-	u32 lo, hi;
-
-	BUG_ON((u64_hi32(lo_addr) != 0U) || (u64_hi32(hi_addr) != 0U));
-	lo = gk20a_bar1_readl(g, (u32)lo_addr);
-	hi = gk20a_bar1_readl(g, (u32)hi_addr);
-
-	return ((u64)hi << 32) | lo;
-}
-
-void gk20a_fifo_userd_gp_put(struct gk20a *g, struct channel_gk20a *c)
-{
-	u64 userd_gpu_va = gk20a_channel_userd_gpu_va(c);
-	u64 addr = userd_gpu_va + sizeof(u32) * ram_userd_gp_put_w();
-
-	BUG_ON(u64_hi32(addr) != 0U);
-	gk20a_bar1_writel(g, (u32)addr, c->gpfifo.put);
-}
-
-u32 gk20a_fifo_userd_entry_size(struct gk20a *g)
-{
-	return BIT32(ram_userd_base_shift_v());
 }
 
 static void nvgpu_fifo_pbdma_init_intr_descs(struct fifo_gk20a *f)
