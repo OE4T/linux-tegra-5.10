@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * NVIDIA CORPORATION and its licensors retain all intellectual property
  * and proprietary rights in and to this software, related documentation
@@ -31,88 +31,83 @@ struct isp5_slice_height {
 #define ISP5_MIN_SLICE_HEIGHT	U16_C(128)
 #define ISP5_MAX_SLICE_HEIGHT	U16_C(540)
 
-static inline uint16_t isp5_min_u16(uint16_t a, uint16_t b)
+static inline uint16_t isp5_min_u16(const uint16_t a, const uint16_t b)
 {
-	if (a < b)
-		return a;
-	else
-		return b;
+	return (a < b) ? a : b;
 }
 
-static inline uint16_t isp5_max_u16(uint16_t a, uint16_t b)
+static inline uint16_t isp5_max_u16(const uint16_t a, const uint16_t b)
 {
-	if (a > b)
-		return a;
-	else
-		return b;
+	return (a > b) ? a : b;
 }
 
-static inline uint16_t isp5_align_down(uint16_t val, uint16_t alignment)
+static inline uint16_t isp5_align_down(const uint16_t val, const uint16_t alignment)
 {
-	uint16_t rem = val % alignment;
-
+	const uint16_t rem = val % alignment;
 	return (rem > 0U) ? (val - rem) : val;
 }
 
-static inline uint16_t isp5_align_up(uint16_t val, uint16_t alignment)
+static inline uint16_t isp5_align_up(const uint16_t val, const uint16_t alignment)
 {
-	uint16_t rem = val % alignment;
-
+	const uint16_t rem = val % alignment;
 	return (rem > 0U) ? (isp5_align_down(val, alignment) + alignment) : val;
 }
 
-static inline uint16_t isp5_div_round_up(uint16_t x, uint16_t y)
+static inline uint16_t isp5_div_round_up(const uint16_t x, const uint16_t y)
 {
-	return (x + y - 1U) / y;
+	return (x + (y - 1U)) / y;
 }
 
 /**
  * Calculate suitable tile width for given capture descriptor and ISP program
  */
 __attribute__((unused))
-static bool isp5_find_tile_width(const struct isp5_program *prg,
-						const struct isp_capture_descriptor *cd,
-						struct isp5_tile_width *tiling)
+static bool isp5_find_tile_width(const struct isp5_program * const prg,
+				 const struct isp_capture_descriptor * const cd,
+				 struct isp5_tile_width * const tiling)
 {
 	const uint16_t img_width = cd->surface_configs.mr_width;
-	const uint16_t alignment = prg->overfetch.alignment;
 
 	if (img_width <= ISP5_MAX_TILE_WIDTH) {
 		tiling->tile_width_first = img_width;
 		tiling->tile_width_middle = 0U;
-		tiling->tiles_in_slice = 1;
+		tiling->tiles_in_slice = 1U;
 		return true;
 	}
 
-	if (alignment == 0) {
+	const uint16_t alignment = prg->overfetch.alignment;
+
+	if (alignment == 0U) {
 		return false;
 	}
 
-	const uint16_t max_width_first = isp5_align_down(ISP5_MAX_TILE_WIDTH -
-							prg->overfetch.right +
-							prg->overfetch.pru_ovf_h, alignment) -
-					prg->overfetch.right + prg->overfetch.pru_ovf_h;
+	const uint16_t max_width_first = (isp5_align_down((ISP5_MAX_TILE_WIDTH -
+					  prg->overfetch.right) +
+					  prg->overfetch.pru_ovf_h, alignment) -
+					  prg->overfetch.right) + prg->overfetch.pru_ovf_h;
 
-	const uint16_t max_width_middle = isp5_align_down(ISP5_MAX_TILE_WIDTH -
-							prg->overfetch.right -
+	const uint16_t max_width_middle = isp5_align_down((ISP5_MAX_TILE_WIDTH -
+							prg->overfetch.right) -
 							prg->overfetch.left,
 							alignment);
 
 	/* Last tile right edge does not need to be aligned */
 	const uint16_t max_width_last = ISP5_MAX_TILE_WIDTH - prg->overfetch.left;
-	const uint16_t min_width = isp5_max_u16(ISP5_MIN_TILE_WIDTH, prg->overfetch.right);
+	const uint16_t prg_right = prg->overfetch.right;
+	const uint16_t min_width = isp5_max_u16(ISP5_MIN_TILE_WIDTH, prg_right);
 
-	uint16_t tile_count = 2;
+	uint16_t tile_count = 2U;
 
-	if (img_width > max_width_first + max_width_last) {
+	if (img_width > (max_width_first + max_width_last)) {
 		const uint16_t pixels_left = img_width - max_width_first - max_width_last;
 		const uint16_t middle_tiles = isp5_div_round_up(pixels_left,
-							isp5_min_u16(max_width_middle, max_width_first));
+					      isp5_min_u16(max_width_middle, max_width_first));
 		tile_count += middle_tiles;
 	}
 
 	/* Divide image into roughly evenly spaced aligned tiles */
-	uint16_t tile_width = (isp5_div_round_up(img_width, alignment) / tile_count) * alignment;
+	const uint16_t tile_width = (isp5_div_round_up(img_width, alignment) / tile_count) *
+				     alignment;
 
 	/*
 	 * The right edge of a tile as seen by AP must be aligned
@@ -121,12 +116,12 @@ static bool isp5_find_tile_width(const struct isp5_program *prg,
 	 * just aligning their active width
 	 */
 	uint16_t first_width = isp5_min_u16(max_width_first,
-					isp5_align_down(
-					tile_width + prg->overfetch.right -
+					(isp5_align_down(
+					(tile_width + prg_right) -
 					prg->overfetch.pru_ovf_h, alignment) -
-					prg->overfetch.right + prg->overfetch.pru_ovf_h);
-	uint16_t middle_width = (tile_count > 2) ? isp5_min_u16(max_width_middle, tile_width) : 0U;
-	uint16_t last_width = img_width - first_width - (tile_count - 2) * middle_width;
+					prg_right) + prg->overfetch.pru_ovf_h);
+	uint16_t middle_width = (tile_count > 2U) ? isp5_min_u16(max_width_middle, tile_width) : 0U;
+	uint16_t last_width = img_width - first_width - ((tile_count - 2U) * middle_width);
 
 	/*
 	 * Ensure that last tile is wide enough. Width of the first
@@ -138,58 +133,42 @@ static bool isp5_find_tile_width(const struct isp5_program *prg,
 	 * be too narrow.
 	 */
 	if (last_width < min_width) {
-		uint16_t corr = isp5_align_up(min_width-last_width, alignment);
+		const uint16_t corr = isp5_align_up(min_width-last_width, alignment);
 
 		first_width -= corr;
 		last_width  += corr;
-
 	} else if (last_width > max_width_last) {
-		const uint16_t corr = last_width - max_width_last;
-
 		/* Try first increasing middle tile width */
-		if (tile_count > 2) {
+		if (tile_count > 2U) {
 			const uint16_t max_middle_corr = max_width_middle - middle_width;
-			const uint16_t middle_corr =
-					isp5_min_u16(max_middle_corr,
-						isp5_align_up(isp5_div_round_up(corr, tile_count-2),
-							alignment));
+			const uint16_t corr = last_width - max_width_last;
+			const uint16_t middle_corr = isp5_min_u16(max_middle_corr,
+					    isp5_align_up(isp5_div_round_up(corr, tile_count - 2U),
+					    alignment));
 			middle_width += middle_corr;
-			last_width -= middle_corr * (tile_count-2);
+			last_width -= middle_corr * (tile_count - 2U);
 		}
 
 		if (last_width > max_width_last) {
-			const uint16_t first_corr = isp5_align_up(last_width - max_width_last, alignment);
-
+			const uint16_t first_corr = isp5_align_up(last_width -
+								  max_width_last, alignment);
 			first_width += first_corr;
 			last_width -= first_corr;
 		}
+	} else {
+		// for MISRA C++ 2008 6-4-2 compliance
 	}
 
-	if (first_width < min_width) {
+	if ((first_width < min_width) ||
+		(first_width > max_width_first) ||
+		(last_width < min_width) ||
+		(last_width > max_width_last)) {
 		return false;
 	}
 
-	if (first_width > max_width_first) {
+	if ((tile_count > 2U) &&
+		((middle_width < min_width) || (middle_width > max_width_middle))) {
 		return false;
-	}
-
-	if (last_width < min_width) {
-		return false;
-	}
-
-	if (last_width > max_width_last) {
-		return false;
-	}
-
-	if (tile_count > 2U) {
-
-		if (middle_width < min_width) {
-			return false;
-		}
-
-		if (middle_width > max_width_middle) {
-			return false;
-		}
 	}
 
 	tiling->tile_width_first = first_width;
@@ -200,23 +179,21 @@ static bool isp5_find_tile_width(const struct isp5_program *prg,
 }
 
 __attribute__((unused))
-static bool isp5_find_tile_width_dpcm(const struct isp5_program *prg,
-					const struct isp_capture_descriptor *cd,
-					struct isp5_tile_width *tiling)
+static bool isp5_find_tile_width_dpcm(const struct isp5_program * const prg,
+					const struct isp_capture_descriptor * const cd,
+					struct isp5_tile_width * const tiling)
 {
-	const uint16_t alignment = isp5_max_u16(prg->overfetch.alignment, 8);
+	const uint16_t prg_alignment = prg->overfetch.alignment;
+	const uint16_t alignment = isp5_max_u16(prg_alignment, 8U);
 
-	if (alignment == 0) {
+	if (alignment == 0U) {
 		return false;
 	}
 
-	const uint16_t max_width_first = isp5_align_down(ISP5_MAX_TILE_WIDTH - prg->overfetch.right,
-						alignment);
-	const uint16_t max_width_middle = isp5_align_down(ISP5_MAX_TILE_WIDTH - prg->overfetch.right -
+	const uint16_t prg_right = prg->overfetch.right;
+	const uint16_t max_width_middle = isp5_align_down(ISP5_MAX_TILE_WIDTH - prg_right -
 						prg->overfetch.left,
 						alignment);
-	const uint16_t max_width_last = ISP5_MAX_TILE_WIDTH - prg->overfetch.left;
-	const uint16_t min_width = isp5_max_u16(ISP5_MIN_TILE_WIDTH, prg->overfetch.right);
 
 	if (cd->surface_configs.chunk_width_middle > max_width_middle) {
 		return false;
@@ -228,23 +205,22 @@ static bool isp5_find_tile_width_dpcm(const struct isp5_program *prg,
 	 * Width of first tile must set so that left overfetch area of
 	 * 2nd tile fits into 2nd chunk.
 	 */
-	tiling->tile_width_first = isp5_align_up(cd->surface_configs.chunk_width_first +
-						prg->overfetch.left +
-						prg->overfetch.right -
-						prg->overfetch.pru_ovf_h, alignment) -
-					prg->overfetch.right +
-					prg->overfetch.pru_ovf_h;
+	tiling->tile_width_first = (isp5_align_up((cd->surface_configs.chunk_width_first +
+						prg->overfetch.left + prg_right) -
+						prg->overfetch.pru_ovf_h, alignment) - prg_right) +
+						prg->overfetch.pru_ovf_h;
 
-	if (tiling->tile_width_first < min_width) {
+	const uint16_t min_width = isp5_max_u16(ISP5_MIN_TILE_WIDTH, prg_right);
+	const uint16_t max_width_first = isp5_align_down(ISP5_MAX_TILE_WIDTH - prg_right,
+							 alignment);
+	if ((tiling->tile_width_first < min_width) ||
+	    (tiling->tile_width_first > max_width_first)) {
 		return false;
 	}
 
-	if (tiling->tile_width_first > max_width_first) {
-		return false;
-	}
-
-	if (tiling->tile_width_first + prg->overfetch.right >
-		cd->surface_configs.chunk_width_first + cd->surface_configs.chunk_overfetch_width) {
+	if ((tiling->tile_width_first + prg_right) >
+		(cd->surface_configs.chunk_width_first +
+		 cd->surface_configs.chunk_overfetch_width)) {
 		return false;
 	}
 
@@ -253,13 +229,11 @@ static bool isp5_find_tile_width_dpcm(const struct isp5_program *prg,
 						cd->surface_configs.chunk_width_middle);
 	const uint16_t last_width = cd->surface_configs.mr_width -
 					tiling->tile_width_first -
-					(tiling->tiles_in_slice - 1) * tiling->tile_width_middle;
+					((tiling->tiles_in_slice - 1U) * tiling->tile_width_middle);
 
-	if (last_width < min_width) {
-		return false;
-	}
+	const uint16_t max_width_last = ISP5_MAX_TILE_WIDTH - prg->overfetch.left;
 
-	if (last_width > max_width_last) {
+	if ((last_width > max_width_last) || (last_width < min_width)) {
 		return false;
 	}
 
@@ -267,40 +241,40 @@ static bool isp5_find_tile_width_dpcm(const struct isp5_program *prg,
 }
 
 __attribute__((unused))
-static bool isp5_find_slice_height(uint16_t img_height,
-				struct isp5_slice_height *slicing)
+static bool isp5_find_slice_height(const uint16_t img_height,
+				   struct isp5_slice_height * const slicing)
 {
+	bool ret;
 	if (img_height < ISP5_MIN_SLICE_HEIGHT) {
-		return false;
-	}
-
-	if (img_height % 2 != 0U) {
-		return false;
-	}
-
-	if (img_height <= ISP5_MAX_SLICE_HEIGHT) {
+		ret = false;
+	} else if ((img_height % 2U) != 0U) {
+		ret = false;
+	} else if (img_height <= ISP5_MAX_SLICE_HEIGHT) {
 		slicing->slices_in_image = U16_C(1);
 		slicing->slice_height = img_height;
 		slicing->vi_first_slice_height = img_height;
-		return true;
+		ret = true;
+	} else {
+		uint16_t slice_height = ISP5_MAX_SLICE_HEIGHT;
+		const uint16_t slice_count = isp5_div_round_up(img_height, ISP5_MAX_SLICE_HEIGHT);
+		const uint16_t last_height = img_height -
+					(ISP5_MAX_SLICE_HEIGHT * (slice_count - 1U));
+
+		if (last_height < ISP5_MIN_SLICE_HEIGHT) {
+			const uint16_t corr = ISP5_MIN_SLICE_HEIGHT - last_height;
+			const uint16_t slice_corr =
+				       isp5_align_up(isp5_div_round_up(corr, slice_count - 1U), 2U);
+			slice_height -= slice_corr;
+		}
+
+		slicing->slice_height = slice_height;
+		slicing->slices_in_image = slice_count;
+		slicing->vi_first_slice_height = (slice_count == 1U) ?
+						 slice_height : (slice_height + 18U);
+		ret = true;
 	}
-
-	uint16_t slice_height = ISP5_MAX_SLICE_HEIGHT;
-	uint16_t slice_count = isp5_div_round_up(img_height, ISP5_MAX_SLICE_HEIGHT);
-	uint16_t last_height = img_height - ISP5_MAX_SLICE_HEIGHT * (slice_count - 1);
-
-	if (last_height < ISP5_MIN_SLICE_HEIGHT) {
-		const uint16_t corr = ISP5_MIN_SLICE_HEIGHT - last_height;
-		const uint16_t slice_corr = isp5_align_up(isp5_div_round_up(corr, slice_count - 1), 2U);
-
-		slice_height -= slice_corr;
-	}
-
-	slicing->slice_height = slice_height;
-	slicing->slices_in_image = slice_count;
-	slicing->vi_first_slice_height = (slice_count == 1U) ? slice_height : slice_height + 18U;
-
-	return true;
+	return ret;
 }
 
 #endif /* INCLUDE_CAMRTC_ISP5_TILING_H */
+
