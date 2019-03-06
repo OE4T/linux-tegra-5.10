@@ -2753,11 +2753,7 @@ void gr_gk20a_fecs_host_int_enable(struct gk20a *g)
 static int gk20a_init_gr_setup_hw(struct gk20a *g)
 {
 	struct gr_gk20a *gr = &g->gr;
-	struct netlist_aiv_list *sw_ctx_load = &g->netlist_vars->sw_ctx_load;
-	struct netlist_av_list *sw_method_init = &g->netlist_vars->sw_method_init;
 	u32 data;
-	u32 last_method_data = 0;
-	u32 i;
 	int err;
 
 	nvgpu_log_fn(g, " ");
@@ -2827,17 +2823,6 @@ static int gk20a_init_gr_setup_hw(struct gk20a *g)
 		g->ops.gr.disable_rd_coalesce(g);
 	}
 
-	/* load ctx init */
-	for (i = 0; i < sw_ctx_load->count; i++) {
-		gk20a_writel(g, sw_ctx_load->l[i].addr,
-			     sw_ctx_load->l[i].value);
-	}
-
-	err = gr_gk20a_wait_idle(g);
-	if (err != 0) {
-		goto out;
-	}
-
 	if (g->ops.gr.init_preemption_state != NULL) {
 		err = g->ops.gr.init_preemption_state(g);
 		if (err != 0) {
@@ -2845,51 +2830,10 @@ static int gk20a_init_gr_setup_hw(struct gk20a *g)
 		}
 	}
 
-	/* disable fe_go_idle */
-	gk20a_writel(g, gr_fe_go_idle_timeout_r(),
-		gr_fe_go_idle_timeout_count_disabled_f());
-
-	/* override a few ctx state registers */
-	g->ops.gr.commit_global_timeslice(g, NULL);
-
 	/* floorsweep anything left */
 	err = g->ops.gr.init_fs_state(g);
 	if (err != 0) {
 		goto out;
-	}
-
-	err = gr_gk20a_wait_idle(g);
-	if (err != 0) {
-		goto restore_fe_go_idle;
-	}
-
-restore_fe_go_idle:
-	/* restore fe_go_idle */
-	gk20a_writel(g, gr_fe_go_idle_timeout_r(),
-		     gr_fe_go_idle_timeout_count_prod_f());
-
-	if ((err != 0) || (gr_gk20a_wait_idle(g) != 0)) {
-		goto out;
-	}
-
-	/* load method init */
-	if (sw_method_init->count != 0U) {
-		gk20a_writel(g, gr_pri_mme_shadow_raw_data_r(),
-			     sw_method_init->l[0].value);
-		gk20a_writel(g, gr_pri_mme_shadow_raw_index_r(),
-			     gr_pri_mme_shadow_raw_index_write_trigger_f() |
-			     sw_method_init->l[0].addr);
-		last_method_data = sw_method_init->l[0].value;
-	}
-	for (i = 1; i < sw_method_init->count; i++) {
-		if (sw_method_init->l[i].value != last_method_data) {
-			gk20a_writel(g, gr_pri_mme_shadow_raw_data_r(),
-				sw_method_init->l[i].value);
-			last_method_data = sw_method_init->l[i].value;
-		}
-		gk20a_writel(g, gr_pri_mme_shadow_raw_index_r(),
-			gr_pri_mme_shadow_raw_index_write_trigger_f() |
-			sw_method_init->l[i].addr);
 	}
 
 	err = gr_gk20a_wait_idle(g);
