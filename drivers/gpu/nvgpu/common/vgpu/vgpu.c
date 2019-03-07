@@ -456,9 +456,6 @@ int vgpu_finalize_poweron_common(struct gk20a *g)
 
 	g->ops.chip_init_gpu_characteristics(g);
 
-#ifdef CONFIG_GK20A_CTXSW_TRACE
-	gk20a_ctxsw_trace_init(g);
-#endif
 	g->ops.fifo.channel_resume(g);
 
 	return 0;

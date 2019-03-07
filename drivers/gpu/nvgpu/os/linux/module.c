@@ -209,6 +209,12 @@ int nvgpu_finalize_poweron_linux(struct nvgpu_os_linux *l)
 		return err;
 	}
 
+#ifdef CONFIG_GK20A_CTXSW_TRACE
+	err = gk20a_ctxsw_trace_init(g);
+	if (err != 0)
+		nvgpu_warn(g, "could not initialize ctxsw tracing");
+#endif
+
 	if (l->ops.clk.init_debugfs) {
 		err = l->ops.clk.init_debugfs(g);
 		if (err) {

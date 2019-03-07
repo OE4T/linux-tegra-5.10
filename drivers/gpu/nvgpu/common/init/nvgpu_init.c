@@ -33,7 +33,6 @@
 #include <nvgpu/ltc.h>
 #include <nvgpu/vidmem.h>
 #include <nvgpu/mm.h>
-#include <nvgpu/ctxsw_trace.h>
 #include <nvgpu/soc.h>
 #include <nvgpu/clk_arb.h>
 #include <nvgpu/therm.h>
@@ -375,12 +374,6 @@ int gk20a_finalize_poweron(struct gk20a *g)
 	}
 
 	g->ops.chip_init_gpu_characteristics(g);
-
-#ifdef CONFIG_GK20A_CTXSW_TRACE
-	err = gk20a_ctxsw_trace_init(g);
-	if (err != 0)
-		nvgpu_warn(g, "could not initialize ctxsw tracing");
-#endif
 
 	/* Restore the debug setting */
 	g->ops.fb.set_debug_mode(g, g->mmu_debug_ctrl);
