@@ -116,24 +116,6 @@ static struct pg_init_sequence_list _pginitseq_gv11b[] = {
 	{0x00020004U, 0x00000000U} ,
 };
 
-static void gv11b_pmu_report_ecc_error(struct gk20a *g, u32 inst,
-		u32 err_type, u64 err_addr, u64 err_cnt)
-{
-	int ret = 0;
-
-	if (g->ops.pmu.err_ops.report_ecc_parity_err == NULL) {
-		return ;
-	}
-	ret = g->ops.pmu.err_ops.report_ecc_parity_err(g,
-			NVGPU_ERR_MODULE_PWR, inst, err_type, err_addr,
-			err_cnt);
-	if (ret != 0) {
-		nvgpu_err(g, "Failed to report PMU error: inst=%u, \
-				err_type=%u, err_addr=%llu, err_cnt=%llu",
-				inst, err_type, err_addr, err_cnt);
-	}
-}
-
 int gv11b_pmu_setup_elpg(struct gk20a *g)
 {
 	int ret = 0;
@@ -345,7 +327,7 @@ void gv11b_pmu_handle_ext_irq(struct gk20a *g, u32 intr0)
 				"pmu ecc interrupt intr1: 0x%x", intr1);
 
 			if ((ecc_status & pwr_pmu_falcon_ecc_status_corrected_err_imem_m()) != 0U) {
-				gv11b_pmu_report_ecc_error(g, 0,
+				nvgpu_pmu_report_ecc_error(g, 0,
 						GPU_PMU_FALCON_IMEM_ECC_CORRECTED,
 						ecc_addr,
 						g->ecc.pmu.pmu_ecc_corrected_err_count[0].counter);
@@ -353,7 +335,7 @@ void gv11b_pmu_handle_ext_irq(struct gk20a *g, u32 intr0)
 					"imem ecc error corrected");
 			}
 			if ((ecc_status & pwr_pmu_falcon_ecc_status_uncorrected_err_imem_m()) != 0U) {
-				gv11b_pmu_report_ecc_error(g, 0,
+				nvgpu_pmu_report_ecc_error(g, 0,
 						GPU_PMU_FALCON_IMEM_ECC_UNCORRECTED,
 						ecc_addr,
 						g->ecc.pmu.pmu_ecc_uncorrected_err_count[0].counter);
@@ -361,7 +343,7 @@ void gv11b_pmu_handle_ext_irq(struct gk20a *g, u32 intr0)
 					"imem ecc error uncorrected");
 			}
 			if ((ecc_status & pwr_pmu_falcon_ecc_status_corrected_err_dmem_m()) != 0U) {
-				gv11b_pmu_report_ecc_error(g, 0,
+				nvgpu_pmu_report_ecc_error(g, 0,
 						GPU_PMU_FALCON_DMEM_ECC_CORRECTED,
 						ecc_addr,
 						g->ecc.pmu.pmu_ecc_corrected_err_count[0].counter);
@@ -369,7 +351,7 @@ void gv11b_pmu_handle_ext_irq(struct gk20a *g, u32 intr0)
 					"dmem ecc error corrected");
 			}
 			if ((ecc_status & pwr_pmu_falcon_ecc_status_uncorrected_err_dmem_m()) != 0U) {
-				gv11b_pmu_report_ecc_error(g, 0,
+				nvgpu_pmu_report_ecc_error(g, 0,
 						GPU_PMU_FALCON_DMEM_ECC_UNCORRECTED,
 						ecc_addr,
 						g->ecc.pmu.pmu_ecc_uncorrected_err_count[0].counter);

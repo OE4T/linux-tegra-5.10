@@ -155,4 +155,17 @@ void nvgpu_report_gr_exception(struct gk20a *g, u32 inst,
 
 void nvgpu_report_ce_error(struct gk20a *g, u32 inst,
 		u32 err_type, u32 status);
+
+void nvgpu_hubmmu_report_ecc_error(struct gk20a *g, u32 inst,
+		u32 err_type, u64 err_addr, u64 err_cnt);
+
+void nvgpu_ltc_report_ecc_error(struct gk20a *g, u32 ltc, u32 slice,
+		u32 err_type, u64 err_addr, u64 err_cnt);
+
+void nvgpu_pmu_report_ecc_error(struct gk20a *g, u32 inst,
+		u32 err_type, u64 err_addr, u64 err_cnt);
+
+void nvgpu_gr_report_ecc_error(struct gk20a *g, u32 hw_module,
+		u32 gpc, u32 tpc, u32 err_type,
+		u64 err_addr, u64 err_cnt);
 #endif

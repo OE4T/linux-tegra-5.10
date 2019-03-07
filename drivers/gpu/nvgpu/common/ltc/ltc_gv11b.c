@@ -36,31 +36,6 @@
 
 #include <nvgpu/utils.h>
 
-static void gv11b_ltc_report_ecc_error(struct gk20a *g, u32 ltc, u32 slice,
-		u32 err_type, u64 err_addr, u64 err_cnt)
-{
-	int ret = 0;
-	u32 inst = 0U;
-
-	if (g->ops.ltc.err_ops.report_ecc_parity_err == NULL) {
-		return;
-	}
-	if (slice < 256U) {
-		inst = (ltc << 8U) | slice;
-	} else {
-		nvgpu_err(g, "Invalid slice id=%u", slice);
-		return ;
-	}
-	ret = g->ops.ltc.err_ops.report_ecc_parity_err(g,
-			NVGPU_ERR_MODULE_LTC, inst, err_type, err_addr,
-			err_cnt);
-	if (ret != 0) {
-		nvgpu_err(g, "Failed to report LTC error: inst=%u, \
-				err_type=%u, err_addr=%llu, err_cnt=%llu",
-				inst, err_type, err_addr, err_cnt);
-	}
-}
-
 /*
  * Sets the ZBC stencil for the passed index.
  */
@@ -201,36 +176,36 @@ void gv11b_ltc_lts_isr(struct gk20a *g, unsigned int ltc, unsigned int slice)
 			"ltc:%d lts: %d cache ecc interrupt intr: 0x%x", ltc, slice, ltc_intr3);
 
 		if ((ecc_status & ltc_ltc0_lts0_l2_cache_ecc_status_corrected_err_rstg_m()) != 0U) {
-			gv11b_ltc_report_ecc_error(g, ltc, slice,
+			nvgpu_ltc_report_ecc_error(g, ltc, slice,
 					GPU_LTC_CACHE_RSTG_ECC_CORRECTED, ecc_addr,
 					g->ecc.ltc.ecc_sec_count[ltc][slice].counter);
 			nvgpu_log(g, gpu_dbg_intr, "rstg ecc error corrected");
 		}
 		if ((ecc_status & ltc_ltc0_lts0_l2_cache_ecc_status_uncorrected_err_rstg_m()) != 0U) {
-			gv11b_ltc_report_ecc_error(g, ltc, slice,
+			nvgpu_ltc_report_ecc_error(g, ltc, slice,
 					GPU_LTC_CACHE_RSTG_ECC_UNCORRECTED, ecc_addr,
 					g->ecc.ltc.ecc_ded_count[ltc][slice].counter);
 			nvgpu_log(g, gpu_dbg_intr, "rstg ecc error uncorrected");
 		}
 		if ((ecc_status & ltc_ltc0_lts0_l2_cache_ecc_status_corrected_err_tstg_m()) != 0U) {
-			gv11b_ltc_report_ecc_error(g, ltc, slice,
+			nvgpu_ltc_report_ecc_error(g, ltc, slice,
 					GPU_LTC_CACHE_TSTG_ECC_CORRECTED, ecc_addr,
 					g->ecc.ltc.ecc_sec_count[ltc][slice].counter);
 			nvgpu_log(g, gpu_dbg_intr, "tstg ecc error corrected");
 		}
 		if ((ecc_status & ltc_ltc0_lts0_l2_cache_ecc_status_uncorrected_err_tstg_m()) != 0U) {
-			gv11b_ltc_report_ecc_error(g, ltc, slice,
+			nvgpu_ltc_report_ecc_error(g, ltc, slice,
 					GPU_LTC_CACHE_TSTG_ECC_UNCORRECTED, ecc_addr,
 					g->ecc.ltc.ecc_ded_count[ltc][slice].counter);
 			nvgpu_log(g, gpu_dbg_intr, "tstg ecc error uncorrected");
 		}
 		if ((ecc_status & ltc_ltc0_lts0_l2_cache_ecc_status_corrected_err_dstg_m()) != 0U) {
 			if ((dstg_ecc_addr & ltc_ltc0_lts0_dstg_ecc_address_info_ram_m()) == 0U) {
-				gv11b_ltc_report_ecc_error(g, ltc, slice,
+				nvgpu_ltc_report_ecc_error(g, ltc, slice,
 						GPU_LTC_CACHE_DSTG_ECC_CORRECTED, ecc_addr,
 						g->ecc.ltc.ecc_sec_count[ltc][slice].counter);
 			} else {
-				gv11b_ltc_report_ecc_error(g, ltc, slice,
+				nvgpu_ltc_report_ecc_error(g, ltc, slice,
 						GPU_LTC_CACHE_DSTG_BE_ECC_CORRECTED, ecc_addr,
 						g->ecc.ltc.ecc_sec_count[ltc][slice].counter);
 			}
@@ -238,11 +213,11 @@ void gv11b_ltc_lts_isr(struct gk20a *g, unsigned int ltc, unsigned int slice)
 		}
 		if ((ecc_status & ltc_ltc0_lts0_l2_cache_ecc_status_uncorrected_err_dstg_m()) != 0U) {
 			if ((dstg_ecc_addr & ltc_ltc0_lts0_dstg_ecc_address_info_ram_m()) == 0U) {
-				gv11b_ltc_report_ecc_error(g, ltc, slice,
+				nvgpu_ltc_report_ecc_error(g, ltc, slice,
 						GPU_LTC_CACHE_DSTG_ECC_UNCORRECTED, ecc_addr,
 						g->ecc.ltc.ecc_ded_count[ltc][slice].counter);
 			} else {
-				gv11b_ltc_report_ecc_error(g, ltc, slice,
+				nvgpu_ltc_report_ecc_error(g, ltc, slice,
 						GPU_LTC_CACHE_DSTG_BE_ECC_UNCORRECTED, ecc_addr,
 						g->ecc.ltc.ecc_ded_count[ltc][slice].counter);
 			}
