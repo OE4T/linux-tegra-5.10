@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2018-2019, NVIDIA CORPORATION. All rights reserved.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -12,11 +12,11 @@
  *
  */
 
-#ifndef __NVPPS_IOCTL_H__
-#define __NVPPS_IOCTL_H__
+#ifndef __UAPI_NVPPS_IOCTL_H__
+#define __UAPI_NVPPS_IOCTL_H__
 
-#include <linux/types.h>
-#include <linux/ioctl.h>
+#include <uapi/linux/types.h>
+#include <uapi/linux/ioctl.h>
 
 struct nvpps_version {
 	struct _version {
@@ -75,4 +75,4 @@ struct nvpps_timestamp_struct {
 #define NVPPS_GETEVENT		_IOR('p', 0x4, struct nvpps_timeevent *)
 #define NVPPS_GETTIMESTAMP	_IOWR('p', 0x5, struct nvpps_timestamp_struct *)
 
-#endif /* !__NVPPS_IOCTL_H__ */
+#endif /* __UAPI_NVPPS_IOCTL_H__ */

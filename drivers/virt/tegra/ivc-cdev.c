@@ -1,7 +1,7 @@
 /*
  * IVC character device driver
  *
- * Copyright (C) 2014-2018, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (C) 2014-2019, NVIDIA CORPORATION. All rights reserved.
  *
  * This file is licensed under the terms of the GNU General Public License
  * version 2.  This program is licensed "as is" without any warranty of any
@@ -21,7 +21,7 @@
 #include <linux/slab.h>
 #include <linux/sched.h>
 
-#include <linux/tegra-ivc-dev.h>
+#include <uapi/linux/tegra-ivc-dev.h>
 #include "tegra_hv.h"
 
 #define ERR(...) pr_err("ivc: " __VA_ARGS__)

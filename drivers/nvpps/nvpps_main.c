@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2018-2019, NVIDIA CORPORATION. All rights reserved.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -27,7 +27,7 @@
 #include <asm/arch_timer.h>
 #include <linux/platform/tegra/ptp-notifier.h>
 #include <linux/time.h>
-#include <linux/nvpps_ioctl.h>
+#include <uapi/linux/nvpps_ioctl.h>
 
 
 /* the following contrl flags are for

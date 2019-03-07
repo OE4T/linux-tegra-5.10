@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * This header is BSD licensed so anyone can use the definitions to implement
  * compatible drivers/servers.
@@ -29,10 +29,10 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef __TEGRA_IVC_DEV_H
-#define __TEGRA_IVC_DEV_H
+#ifndef __UAPI_TEGRA_IVC_DEV_H
+#define __UAPI_TEGRA_IVC_DEV_H
 
-#include <linux/ioctl.h>
+#include <uapi/linux/ioctl.h>
 
 struct nvipc_ivc_info {
 	uint32_t nframes;
