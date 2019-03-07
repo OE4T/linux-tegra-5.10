@@ -77,6 +77,18 @@ static inline bool nvgpu_atomic_sub_and_test(int i, nvgpu_atomic_t *v)
 {
 	return __nvgpu_atomic_sub_and_test(i, v);
 }
+static inline void nvgpu_atomic_add(int i, nvgpu_atomic_t *v)
+{
+	__nvgpu_atomic_add(i, v);
+}
+static inline int nvgpu_atomic_sub_return(int i, nvgpu_atomic_t *v)
+{
+	return __nvgpu_atomic_sub_return(i, v);
+}
+static inline void nvgpu_atomic_sub(int i, nvgpu_atomic_t *v)
+{
+	__nvgpu_atomic_sub(i, v);
+}
 static inline int nvgpu_atomic_add_return(int i, nvgpu_atomic_t *v)
 {
 	return __nvgpu_atomic_add_return(i, v);
@@ -85,9 +97,9 @@ static inline int nvgpu_atomic_add_unless(nvgpu_atomic_t *v, int a, int u)
 {
 	return __nvgpu_atomic_add_unless(v, a, u);
 }
-static inline void nvgpu_atomic64_set(nvgpu_atomic64_t *v, long i)
+static inline void nvgpu_atomic64_set(nvgpu_atomic64_t *v, long x)
 {
-	return  __nvgpu_atomic64_set(v, i);
+	return  __nvgpu_atomic64_set(v, x);
 }
 static inline long nvgpu_atomic64_read(nvgpu_atomic64_t *v)
 {
@@ -113,14 +125,39 @@ static inline long nvgpu_atomic64_dec_return(nvgpu_atomic64_t *v)
 {
 	return __nvgpu_atomic64_dec_return(v);
 }
+static inline long nvgpu_atomic64_xchg(nvgpu_atomic64_t *v, long new)
+{
+	return __nvgpu_atomic64_xchg(v, new);
+}
 static inline long nvgpu_atomic64_cmpxchg(nvgpu_atomic64_t *v, long old,
 					long new)
 {
 	return __nvgpu_atomic64_cmpxchg(v, old, new);
 }
+static inline long nvgpu_atomic64_add_return(long x, nvgpu_atomic64_t *v)
+{
+	return __nvgpu_atomic64_add_return(x, v);
+}
+static inline long nvgpu_atomic64_add_unless(nvgpu_atomic64_t *v, long a,
+						long u)
+{
+	return __nvgpu_atomic64_add_unless(v, a, u);
+}
 static inline void nvgpu_atomic64_sub(long x, nvgpu_atomic64_t *v)
 {
 	__nvgpu_atomic64_sub(x, v);
+}
+static inline bool nvgpu_atomic64_inc_and_test(nvgpu_atomic64_t *v)
+{
+	return __nvgpu_atomic64_inc_and_test(v);
+}
+static inline bool nvgpu_atomic64_dec_and_test(nvgpu_atomic64_t *v)
+{
+	return __nvgpu_atomic64_dec_and_test(v);
+}
+static inline bool nvgpu_atomic64_sub_and_test(long x, nvgpu_atomic64_t *v)
+{
+	return __nvgpu_atomic64_sub_and_test(x, v);
 }
 static inline long nvgpu_atomic64_sub_return(long x, nvgpu_atomic64_t *v)
 {
