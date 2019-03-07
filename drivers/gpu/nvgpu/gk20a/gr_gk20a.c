@@ -2099,8 +2099,8 @@ int gk20a_alloc_obj_ctx(struct channel_gk20a  *c, u32 class_num, u32 flags)
 		}
 
 #ifdef CONFIG_GK20A_CTXSW_TRACE
-		if (g->ops.fecs_trace.bind_channel && !c->vpr) {
-			err = g->ops.fecs_trace.bind_channel(g, &c->inst_block,
+		if (g->ops.gr.fecs_trace.bind_channel && !c->vpr) {
+			err = g->ops.gr.fecs_trace.bind_channel(g, &c->inst_block,
 				c->subctx, gr_ctx, tsg->tgid, 0);
 			if (err != 0) {
 				nvgpu_warn(g,
@@ -2121,8 +2121,8 @@ int gk20a_alloc_obj_ctx(struct channel_gk20a  *c, u32 class_num, u32 flags)
 			goto out;
 		}
 #ifdef CONFIG_GK20A_CTXSW_TRACE
-		if (g->ops.fecs_trace.bind_channel && !c->vpr) {
-			err = g->ops.fecs_trace.bind_channel(g, &c->inst_block,
+		if (g->ops.gr.fecs_trace.bind_channel && !c->vpr) {
+			err = g->ops.gr.fecs_trace.bind_channel(g, &c->inst_block,
 				c->subctx, gr_ctx, tsg->tgid, 0);
 			if (err != 0) {
 				nvgpu_warn(g,
@@ -3296,7 +3296,7 @@ int gk20a_gr_handle_fecs_error(struct gk20a *g, struct channel_gk20a *ch,
 
 #ifdef CONFIG_GK20A_CTXSW_TRACE
 		if (mailbox_value ==
-			      g->ops.fecs_trace.get_buffer_full_mailbox_val()) {
+			      g->ops.gr.fecs_trace.get_buffer_full_mailbox_val()) {
 			nvgpu_info(g, "ctxsw intr0 set by ucode, "
 					"timestamp buffer full");
 			nvgpu_gr_fecs_trace_reset_buffer(g);

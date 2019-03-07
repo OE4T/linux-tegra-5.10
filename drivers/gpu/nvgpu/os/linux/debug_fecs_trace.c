@@ -132,7 +132,7 @@ static int gk20a_fecs_trace_debugfs_read(void *arg, u64 *val)
 		return err;
 	}
 
-	*val = g->ops.fecs_trace.get_read_index(g);
+	*val = g->ops.gr.fecs_trace.get_read_index(g);
 
 	gk20a_idle(g);
 	return 0;
@@ -148,7 +148,7 @@ static int gk20a_fecs_trace_debugfs_write(void *arg, u64 *val)
 		return err;
 	}
 
-	*val = g->ops.fecs_trace.get_write_index(g);
+	*val = g->ops.gr.fecs_trace.get_write_index(g);
 
 	gk20a_idle(g);
 	return 0;

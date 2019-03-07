@@ -856,7 +856,7 @@ static void gv11b_fifo_locked_abort_runlist_active_tsgs(struct gk20a *g,
 			gv11b_reset_faulted_tsg(tsg, true, true);
 
 #ifdef CONFIG_GK20A_CTXSW_TRACE
-			gk20a_ctxsw_trace_tsg_reset(g, tsg);
+			nvgpu_gr_fecs_trace_add_tsg_reset(g, tsg);
 #endif
 			if (!g->fifo.deferred_reset_pending) {
 				if (rc_type == RC_TYPE_MMU_FAULT) {
@@ -1097,7 +1097,7 @@ void gv11b_fifo_teardown_ch_tsg(struct gk20a *g, u32 act_eng_bitmask,
 
 #ifdef CONFIG_GK20A_CTXSW_TRACE
 	if (tsg != NULL)
-		gk20a_ctxsw_trace_tsg_reset(g, tsg);
+		nvgpu_gr_fecs_trace_add_tsg_reset(g, tsg);
 #endif
 	if (tsg != NULL) {
 		if (deferred_reset_pending) {

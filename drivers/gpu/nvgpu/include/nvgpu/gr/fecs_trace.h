@@ -174,13 +174,13 @@ int nvgpu_gr_fecs_trace_unbind_channel(struct gk20a *g,
  * Below functions are defined in OS-specific code.
  * Declare them here in common header since they are called from common code
  */
-int gk20a_ctxsw_dev_ring_alloc(struct gk20a *g, void **buf, size_t *size);
-int gk20a_ctxsw_dev_ring_free(struct gk20a *g);
-int gk20a_ctxsw_dev_mmap_buffer(struct gk20a *g, struct vm_area_struct *vma);
-void gk20a_ctxsw_trace_tsg_reset(struct gk20a *g, struct tsg_gk20a *tsg);
+int nvgpu_gr_fecs_trace_ring_alloc(struct gk20a *g, void **buf, size_t *size);
+int nvgpu_gr_fecs_trace_ring_free(struct gk20a *g);
+int nvgpu_gr_fecs_trace_mmap_buffer(struct gk20a *g, struct vm_area_struct *vma);
+void nvgpu_gr_fecs_trace_add_tsg_reset(struct gk20a *g, struct tsg_gk20a *tsg);
 u8 nvgpu_gpu_ctxsw_tags_to_common_tags(u8 tags);
-int gk20a_ctxsw_trace_write(struct gk20a *g,
+int nvgpu_gr_fecs_trace_write_entry(struct gk20a *g,
 			    struct nvgpu_gpu_ctxsw_trace_entry *entry);
-void gk20a_ctxsw_trace_wake_up(struct gk20a *g, int vmid);
+void nvgpu_gr_fecs_trace_wake_up(struct gk20a *g, int vmid);
 
 #endif /* NVGPU_GR_FECS_TRACE_H */

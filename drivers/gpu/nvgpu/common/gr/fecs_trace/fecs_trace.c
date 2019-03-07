@@ -265,11 +265,11 @@ int nvgpu_gr_fecs_trace_enable(struct gk20a *g)
 
 	if (trace->enable_count == 1U) {
 		/* drop data in hw buffer */
-		if (g->ops.fecs_trace.flush)
-			g->ops.fecs_trace.flush(g);
+		if (g->ops.gr.fecs_trace.flush)
+			g->ops.gr.fecs_trace.flush(g);
 
-		write = g->ops.fecs_trace.get_write_index(g);
-		g->ops.fecs_trace.set_read_index(g, write);
+		write = g->ops.gr.fecs_trace.get_write_index(g);
+		g->ops.gr.fecs_trace.set_read_index(g, write);
 
 		err = nvgpu_thread_create(&trace->poll_task, g,
 				nvgpu_gr_fecs_trace_periodic_polling, __func__);
@@ -313,8 +313,8 @@ void nvgpu_gr_fecs_trace_reset_buffer(struct gk20a *g)
 {
 	nvgpu_log(g, gpu_dbg_fn|gpu_dbg_ctxsw, " ");
 
-	g->ops.fecs_trace.set_read_index(g,
-		g->ops.fecs_trace.get_write_index(g));
+	g->ops.gr.fecs_trace.set_read_index(g,
+		g->ops.gr.fecs_trace.get_write_index(g));
 }
 
 /*
@@ -427,16 +427,16 @@ int nvgpu_gr_fecs_trace_ring_read(struct gk20a *g, int index,
 		if (!entry.context_id)
 			continue;
 
-		if (g->ops.fecs_trace.vm_dev_write != NULL) {
-			g->ops.fecs_trace.vm_dev_write(g, entry.vmid,
+		if (g->ops.gr.fecs_trace.vm_dev_write != NULL) {
+			g->ops.gr.fecs_trace.vm_dev_write(g, entry.vmid,
 				vm_update_mask, &entry);
 		} else {
-			gk20a_ctxsw_trace_write(g, &entry);
+			nvgpu_gr_fecs_trace_write_entry(g, &entry);
 		}
 		count++;
 	}
 
-	gk20a_ctxsw_trace_wake_up(g, vmid);
+	nvgpu_gr_fecs_trace_wake_up(g, vmid);
 	return count;
 }
 
@@ -459,7 +459,7 @@ int nvgpu_gr_fecs_trace_poll(struct gk20a *g)
 		goto done_unlock;
 	}
 
-	write = g->ops.fecs_trace.get_write_index(g);
+	write = g->ops.gr.fecs_trace.get_write_index(g);
 	if ((write < 0) || (write >= GK20A_FECS_TRACE_NUM_RECORDS)) {
 		nvgpu_err(g,
 			"failed to acquire write index, write=%d", write);
@@ -467,7 +467,7 @@ int nvgpu_gr_fecs_trace_poll(struct gk20a *g)
 		goto done;
 	}
 
-	read = g->ops.fecs_trace.get_read_index(g);
+	read = g->ops.gr.fecs_trace.get_read_index(g);
 
 	cnt = CIRC_CNT(write, read, GK20A_FECS_TRACE_NUM_RECORDS);
 	if (!cnt)
@@ -475,7 +475,7 @@ int nvgpu_gr_fecs_trace_poll(struct gk20a *g)
 
 	nvgpu_log(g, gpu_dbg_ctxsw,
 		"circular buffer: read=%d (mailbox=%d) write=%d cnt=%d",
-		read, g->ops.fecs_trace.get_read_index(g), write, cnt);
+		read, g->ops.gr.fecs_trace.get_read_index(g), write, cnt);
 
 	/* Ensure all FECS writes have made it to SYSMEM */
 	g->ops.mm.fb_flush(g);
@@ -492,7 +492,7 @@ int nvgpu_gr_fecs_trace_poll(struct gk20a *g)
 
 	/* ensure FECS records has been updated before incrementing read index */
 	nvgpu_wmb();
-	g->ops.fecs_trace.set_read_index(g, read);
+	g->ops.gr.fecs_trace.set_read_index(g, read);
 
 	/*
 	 * FECS ucode does a priv holdoff around the assertion of context
@@ -500,13 +500,13 @@ int nvgpu_gr_fecs_trace_poll(struct gk20a *g)
 	 * fail due to this. Hence, do write with ack i.e. write and read
 	 * it back to make sure write happened for mailbox1.
 	 */
-	while (g->ops.fecs_trace.get_read_index(g) != read) {
+	while (g->ops.gr.fecs_trace.get_read_index(g) != read) {
 		nvgpu_log(g, gpu_dbg_ctxsw, "mailbox1 update failed");
-		g->ops.fecs_trace.set_read_index(g, read);
+		g->ops.gr.fecs_trace.set_read_index(g, read);
 	}
 
-	if (g->ops.fecs_trace.vm_dev_update) {
-		g->ops.fecs_trace.vm_dev_update(g, vm_update_mask);
+	if (g->ops.gr.fecs_trace.vm_dev_update) {
+		g->ops.gr.fecs_trace.vm_dev_update(g, vm_update_mask);
 	}
 
 done:
@@ -539,11 +539,11 @@ int nvgpu_gr_fecs_trace_reset(struct gk20a *g)
 {
 	nvgpu_log(g, gpu_dbg_fn|gpu_dbg_ctxsw, " ");
 
-	if (!g->ops.fecs_trace.is_enabled(g))
+	if (!g->ops.gr.fecs_trace.is_enabled(g))
 		return 0;
 
 	nvgpu_gr_fecs_trace_poll(g);
-	return g->ops.fecs_trace.set_read_index(g, 0);
+	return g->ops.gr.fecs_trace.set_read_index(g, 0);
 }
 
 static u32 nvgpu_gr_fecs_trace_fecs_context_ptr(struct gk20a *g,
@@ -634,9 +634,9 @@ int nvgpu_gr_fecs_trace_unbind_channel(struct gk20a *g,
 	nvgpu_log(g, gpu_dbg_fn|gpu_dbg_ctxsw,
 		"context_ptr=%x", context_ptr);
 
-	if (g->ops.fecs_trace.is_enabled(g)) {
-		if (g->ops.fecs_trace.flush) {
-			g->ops.fecs_trace.flush(g);
+	if (g->ops.gr.fecs_trace.is_enabled(g)) {
+		if (g->ops.gr.fecs_trace.flush) {
+			g->ops.gr.fecs_trace.flush(g);
 		}
 		nvgpu_gr_fecs_trace_poll(g);
 	}

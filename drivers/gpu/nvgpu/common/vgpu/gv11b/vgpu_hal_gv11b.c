@@ -355,7 +355,28 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 		.hwpm_map = {
 			.align_regs_perf_pma =
 				gv100_gr_hwpm_map_align_regs_perf_pma,
-		}
+		},
+#ifdef CONFIG_GK20A_CTXSW_TRACE
+		.fecs_trace = {
+			.alloc_user_buffer = vgpu_alloc_user_buffer,
+			.free_user_buffer = vgpu_free_user_buffer,
+			.mmap_user_buffer = vgpu_mmap_user_buffer,
+			.init = vgpu_fecs_trace_init,
+			.deinit = vgpu_fecs_trace_deinit,
+			.enable = vgpu_fecs_trace_enable,
+			.disable = vgpu_fecs_trace_disable,
+			.is_enabled = vgpu_fecs_trace_is_enabled,
+			.reset = NULL,
+			.flush = NULL,
+			.poll = vgpu_fecs_trace_poll,
+			.bind_channel = NULL,
+			.unbind_channel = NULL,
+			.max_entries = vgpu_fecs_trace_max_entries,
+			.set_filter = vgpu_fecs_trace_set_filter,
+			.get_buffer_full_mailbox_val =
+				gv11b_fecs_trace_get_buffer_full_mailbox_val,
+		},
+#endif /* CONFIG_GK20A_CTXSW_TRACE */
 	},
 	.perf = {
 		.get_pmm_per_chiplet_offset =
@@ -537,27 +558,6 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 		.get_netlist_name = gv11b_netlist_get_name,
 		.is_fw_defined = gv11b_netlist_is_firmware_defined,
 	},
-#ifdef CONFIG_GK20A_CTXSW_TRACE
-	.fecs_trace = {
-		.alloc_user_buffer = vgpu_alloc_user_buffer,
-		.free_user_buffer = vgpu_free_user_buffer,
-		.mmap_user_buffer = vgpu_mmap_user_buffer,
-		.init = vgpu_fecs_trace_init,
-		.deinit = vgpu_fecs_trace_deinit,
-		.enable = vgpu_fecs_trace_enable,
-		.disable = vgpu_fecs_trace_disable,
-		.is_enabled = vgpu_fecs_trace_is_enabled,
-		.reset = NULL,
-		.flush = NULL,
-		.poll = vgpu_fecs_trace_poll,
-		.bind_channel = NULL,
-		.unbind_channel = NULL,
-		.max_entries = vgpu_fecs_trace_max_entries,
-		.set_filter = vgpu_fecs_trace_set_filter,
-		.get_buffer_full_mailbox_val =
-			gv11b_fecs_trace_get_buffer_full_mailbox_val,
-	},
-#endif /* CONFIG_GK20A_CTXSW_TRACE */
 	.mm = {
 		.gmmu_map = vgpu_locked_gmmu_map,
 		.gmmu_unmap = vgpu_locked_gmmu_unmap,
@@ -775,9 +775,6 @@ int vgpu_gv11b_init_hal(struct gk20a *g)
 	gops->pbdma_status = vgpu_gv11b_ops.pbdma_status;
 	gops->netlist = vgpu_gv11b_ops.netlist;
 	gops->mm = vgpu_gv11b_ops.mm;
-#ifdef CONFIG_GK20A_CTXSW_TRACE
-	gops->fecs_trace = vgpu_gv11b_ops.fecs_trace;
-#endif
 	gops->therm = vgpu_gv11b_ops.therm;
 	gops->pmu = vgpu_gv11b_ops.pmu;
 	gops->clk_arb = vgpu_gv11b_ops.clk_arb;

@@ -153,7 +153,7 @@ static int gk20a_ctxsw_dev_ioctl_trace_enable(struct gk20a_ctxsw_dev *dev)
 	nvgpu_mutex_acquire(&dev->write_lock);
 	dev->write_enabled = true;
 	nvgpu_mutex_release(&dev->write_lock);
-	dev->g->ops.fecs_trace.enable(dev->g);
+	dev->g->ops.gr.fecs_trace.enable(dev->g);
 	return 0;
 }
 
@@ -162,7 +162,7 @@ static int gk20a_ctxsw_dev_ioctl_trace_disable(struct gk20a_ctxsw_dev *dev)
 	struct gk20a *g = dev->g;
 
 	nvgpu_log(g, gpu_dbg_fn|gpu_dbg_ctxsw, "trace disabled");
-	dev->g->ops.fecs_trace.disable(dev->g);
+	dev->g->ops.gr.fecs_trace.disable(dev->g);
 	nvgpu_mutex_acquire(&dev->write_lock);
 	dev->write_enabled = false;
 	nvgpu_mutex_release(&dev->write_lock);
@@ -180,11 +180,11 @@ static int gk20a_ctxsw_dev_alloc_buffer(struct gk20a_ctxsw_dev *dev,
 		return -EBUSY;
 
 	if (dev->hdr) {
-		g->ops.fecs_trace.free_user_buffer(g);
+		g->ops.gr.fecs_trace.free_user_buffer(g);
 		dev->hdr = NULL;
 	}
 
-	err = g->ops.fecs_trace.alloc_user_buffer(g, &buf, size);
+	err = g->ops.gr.fecs_trace.alloc_user_buffer(g, &buf, size);
 	if (err)
 		return err;
 
@@ -199,7 +199,7 @@ static int gk20a_ctxsw_dev_alloc_buffer(struct gk20a_ctxsw_dev *dev,
 	return 0;
 }
 
-int gk20a_ctxsw_dev_ring_alloc(struct gk20a *g,
+int nvgpu_gr_fecs_trace_ring_alloc(struct gk20a *g,
 		void **buf, size_t *size)
 {
 	struct nvgpu_ctxsw_ring_header *hdr;
@@ -223,7 +223,7 @@ int gk20a_ctxsw_dev_ring_alloc(struct gk20a *g,
 	return 0;
 }
 
-int gk20a_ctxsw_dev_ring_free(struct gk20a *g)
+int nvgpu_gr_fecs_trace_ring_free(struct gk20a *g)
 {
 	struct gk20a_ctxsw_dev *dev = &g->ctxsw_trace->devs[0];
 
@@ -276,8 +276,8 @@ static int gk20a_ctxsw_dev_ioctl_set_filter(struct gk20a_ctxsw_dev *dev,
 	nvgpu_set_ctxsw_trace_filter_args(&dev->filter, &args->filter);
 	nvgpu_mutex_release(&dev->write_lock);
 
-	if (g->ops.fecs_trace.set_filter)
-		g->ops.fecs_trace.set_filter(g, &dev->filter);
+	if (g->ops.gr.fecs_trace.set_filter)
+		g->ops.gr.fecs_trace.set_filter(g, &dev->filter);
 	return 0;
 }
 
@@ -302,11 +302,11 @@ static int gk20a_ctxsw_dev_ioctl_poll(struct gk20a_ctxsw_dev *dev)
 	if (err)
 		return err;
 
-	if (g->ops.fecs_trace.flush)
-		err = g->ops.fecs_trace.flush(g);
+	if (g->ops.gr.fecs_trace.flush)
+		err = g->ops.gr.fecs_trace.flush(g);
 
 	if (likely(!err))
-		err = g->ops.fecs_trace.poll(g);
+		err = g->ops.gr.fecs_trace.poll(g);
 
 	gk20a_idle(g);
 	return err;
@@ -362,7 +362,7 @@ int gk20a_ctxsw_dev_open(struct inode *inode, struct file *filp)
 	NVGPU_CTXSW_FILTER_SET_ALL(&dev->filter);
 
 	/* compute max number of entries generated with this filter */
-	n = g->ops.fecs_trace.max_entries(g, &dev->filter);
+	n = g->ops.gr.fecs_trace.max_entries(g, &dev->filter);
 
 	size = sizeof(struct nvgpu_ctxsw_ring_header) +
 			n * sizeof(struct nvgpu_gpu_ctxsw_trace_entry);
@@ -397,12 +397,12 @@ int gk20a_ctxsw_dev_release(struct inode *inode, struct file *filp)
 	nvgpu_mutex_acquire(&dev->write_lock);
 	if (dev->write_enabled) {
 		dev->write_enabled = false;
-		g->ops.fecs_trace.disable(g);
+		g->ops.gr.fecs_trace.disable(g);
 	}
 	nvgpu_mutex_release(&dev->write_lock);
 
 	if (dev->hdr) {
-		dev->g->ops.fecs_trace.free_user_buffer(dev->g);
+		dev->g->ops.gr.fecs_trace.free_user_buffer(dev->g);
 		dev->hdr = NULL;
 	}
 	gk20a_put(g);
@@ -508,7 +508,7 @@ static struct vm_operations_struct gk20a_ctxsw_dev_vma_ops = {
 	.close = gk20a_ctxsw_dev_vma_close,
 };
 
-int gk20a_ctxsw_dev_mmap_buffer(struct gk20a *g,
+int nvgpu_gr_fecs_trace_mmap_buffer(struct gk20a *g,
 				struct vm_area_struct *vma)
 {
 	return remap_vmalloc_range(vma, g->ctxsw_trace->devs[0].hdr, 0);
@@ -523,7 +523,7 @@ int gk20a_ctxsw_dev_mmap(struct file *filp, struct vm_area_struct *vma)
 	nvgpu_log(g, gpu_dbg_fn|gpu_dbg_ctxsw, "vm_start=%lx vm_end=%lx",
 		vma->vm_start, vma->vm_end);
 
-	ret = dev->g->ops.fecs_trace.mmap_user_buffer(dev->g, vma);
+	ret = dev->g->ops.gr.fecs_trace.mmap_user_buffer(dev->g, vma);
 	if (likely(!ret)) {
 		vma->vm_private_data = dev;
 		vma->vm_ops = &gk20a_ctxsw_dev_vma_ops;
@@ -565,7 +565,7 @@ int gk20a_ctxsw_trace_init(struct gk20a *g)
 	nvgpu_log(g, gpu_dbg_fn|gpu_dbg_ctxsw, "g=%p trace=%p", g, trace);
 
 	/* if tracing is not supported, skip this */
-	if (!g->ops.fecs_trace.init)
+	if (!g->ops.gr.fecs_trace.init)
 		return 0;
 
 	if (likely(trace))
@@ -580,7 +580,7 @@ int gk20a_ctxsw_trace_init(struct gk20a *g)
 	if (err)
 		goto fail;
 
-	err = g->ops.fecs_trace.init(g);
+	err = g->ops.gr.fecs_trace.init(g);
 	if (unlikely(err))
 		goto fail;
 
@@ -589,7 +589,7 @@ int gk20a_ctxsw_trace_init(struct gk20a *g)
 	return 0;
 
 fail:
-	(void) memset(&g->ops.fecs_trace, 0, sizeof(g->ops.fecs_trace));
+	(void) memset(&g->ops.gr.fecs_trace, 0, sizeof(g->ops.gr.fecs_trace));
 	nvgpu_kfree(g, trace);
 	g->ctxsw_trace = NULL;
 	return err;
@@ -619,11 +619,11 @@ void gk20a_ctxsw_trace_cleanup(struct gk20a *g)
 	nvgpu_kfree(g, g->ctxsw_trace);
 	g->ctxsw_trace = NULL;
 
-	g->ops.fecs_trace.deinit(g);
+	g->ops.gr.fecs_trace.deinit(g);
 #endif
 }
 
-int gk20a_ctxsw_trace_write(struct gk20a *g,
+int nvgpu_gr_fecs_trace_write_entry(struct gk20a *g,
 		struct nvgpu_gpu_ctxsw_trace_entry *entry)
 {
 	struct nvgpu_ctxsw_ring_header *hdr;
@@ -702,7 +702,7 @@ int gk20a_ctxsw_trace_write(struct gk20a *g,
 	return ret;
 
 disable:
-	g->ops.fecs_trace.disable(g);
+	g->ops.gr.fecs_trace.disable(g);
 
 drop:
 	hdr->drop_count++;
@@ -719,7 +719,7 @@ done:
 	return ret;
 }
 
-void gk20a_ctxsw_trace_wake_up(struct gk20a *g, int vmid)
+void nvgpu_gr_fecs_trace_wake_up(struct gk20a *g, int vmid)
 {
 	struct gk20a_ctxsw_dev *dev;
 
@@ -730,7 +730,7 @@ void gk20a_ctxsw_trace_wake_up(struct gk20a *g, int vmid)
 	nvgpu_cond_signal_interruptible(&dev->readout_wq);
 }
 
-void gk20a_ctxsw_trace_tsg_reset(struct gk20a *g, struct tsg_gk20a *tsg)
+void nvgpu_gr_fecs_trace_add_tsg_reset(struct gk20a *g, struct tsg_gk20a *tsg)
 {
 #ifdef CONFIG_GK20A_CTXSW_TRACE
 	struct nvgpu_gpu_ctxsw_trace_entry entry = {
@@ -744,8 +744,8 @@ void gk20a_ctxsw_trace_tsg_reset(struct gk20a *g, struct tsg_gk20a *tsg)
 		return;
 
 	g->ops.ptimer.read_ptimer(g, &entry.timestamp);
-	gk20a_ctxsw_trace_write(g, &entry);
-	gk20a_ctxsw_trace_wake_up(g, 0);
+	nvgpu_gr_fecs_trace_write_entry(g, &entry);
+	nvgpu_gr_fecs_trace_wake_up(g, 0);
 #endif
 	trace_gk20a_channel_reset(~0, tsg->tsgid);
 }

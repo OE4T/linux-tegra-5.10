@@ -403,8 +403,8 @@ static void gk20a_free_channel(struct channel_gk20a *ch, bool force)
 			timeout);
 
 #ifdef CONFIG_GK20A_CTXSW_TRACE
-	if (g->ops.fecs_trace.unbind_channel && !ch->vpr)
-		g->ops.fecs_trace.unbind_channel(g, &ch->inst_block);
+	if (g->ops.gr.fecs_trace.unbind_channel && !ch->vpr)
+		g->ops.gr.fecs_trace.unbind_channel(g, &ch->inst_block);
 #endif
 
 	if (g->ops.fifo.free_channel_ctx_header != NULL) {

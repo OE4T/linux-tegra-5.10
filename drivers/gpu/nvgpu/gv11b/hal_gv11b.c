@@ -549,6 +549,29 @@ static const struct gpu_ops gv11b_ops = {
 			.get_pd_dist_skip_table_size =
 				gm20b_gr_config_get_pd_dist_skip_table_size,
 		},
+#ifdef CONFIG_GK20A_CTXSW_TRACE
+		.fecs_trace = {
+			.alloc_user_buffer = nvgpu_gr_fecs_trace_ring_alloc,
+			.free_user_buffer = nvgpu_gr_fecs_trace_ring_free,
+			.mmap_user_buffer = nvgpu_gr_fecs_trace_mmap_buffer,
+			.init = nvgpu_gr_fecs_trace_init,
+			.deinit = nvgpu_gr_fecs_trace_deinit,
+			.enable = nvgpu_gr_fecs_trace_enable,
+			.disable = nvgpu_gr_fecs_trace_disable,
+			.is_enabled = nvgpu_gr_fecs_trace_is_enabled,
+			.reset = nvgpu_gr_fecs_trace_reset,
+			.flush = NULL,
+			.poll = nvgpu_gr_fecs_trace_poll,
+			.bind_channel = nvgpu_gr_fecs_trace_bind_channel,
+			.unbind_channel = nvgpu_gr_fecs_trace_unbind_channel,
+			.max_entries = nvgpu_gr_fecs_trace_max_entries,
+			.get_buffer_full_mailbox_val =
+				gv11b_fecs_trace_get_buffer_full_mailbox_val,
+			.get_read_index = gm20b_fecs_trace_get_read_index,
+			.get_write_index = gm20b_fecs_trace_get_write_index,
+			.set_read_index = gm20b_fecs_trace_set_read_index,
+		},
+#endif /* CONFIG_GK20A_CTXSW_TRACE */
 		.zbc = {
 			.add_color = gp10b_gr_zbc_add_color,
 			.add_depth = gp10b_gr_zbc_add_depth,
@@ -802,29 +825,6 @@ static const struct gpu_ops gv11b_ops = {
 		.get_netlist_name = gv11b_netlist_get_name,
 		.is_fw_defined = gv11b_netlist_is_firmware_defined,
 	},
-#ifdef CONFIG_GK20A_CTXSW_TRACE
-	.fecs_trace = {
-		.alloc_user_buffer = gk20a_ctxsw_dev_ring_alloc,
-		.free_user_buffer = gk20a_ctxsw_dev_ring_free,
-		.mmap_user_buffer = gk20a_ctxsw_dev_mmap_buffer,
-		.init = nvgpu_gr_fecs_trace_init,
-		.deinit = nvgpu_gr_fecs_trace_deinit,
-		.enable = nvgpu_gr_fecs_trace_enable,
-		.disable = nvgpu_gr_fecs_trace_disable,
-		.is_enabled = nvgpu_gr_fecs_trace_is_enabled,
-		.reset = nvgpu_gr_fecs_trace_reset,
-		.flush = NULL,
-		.poll = nvgpu_gr_fecs_trace_poll,
-		.bind_channel = nvgpu_gr_fecs_trace_bind_channel,
-		.unbind_channel = nvgpu_gr_fecs_trace_unbind_channel,
-		.max_entries = nvgpu_gr_fecs_trace_max_entries,
-		.get_buffer_full_mailbox_val =
-			gv11b_fecs_trace_get_buffer_full_mailbox_val,
-		.get_read_index = gm20b_fecs_trace_get_read_index,
-		.get_write_index = gm20b_fecs_trace_get_write_index,
-		.set_read_index = gm20b_fecs_trace_set_read_index,
-	},
-#endif /* CONFIG_GK20A_CTXSW_TRACE */
 	.mm = {
 		.gmmu_map = gk20a_locked_gmmu_map,
 		.gmmu_unmap = gk20a_locked_gmmu_unmap,
@@ -1119,9 +1119,6 @@ int gv11b_init_hal(struct gk20a *g)
 	gops->pbdma_status = gv11b_ops.pbdma_status;
 	gops->netlist = gv11b_ops.netlist;
 	gops->mm = gv11b_ops.mm;
-#ifdef CONFIG_GK20A_CTXSW_TRACE
-	gops->fecs_trace = gv11b_ops.fecs_trace;
-#endif
 	gops->therm = gv11b_ops.therm;
 	gops->pmu = gv11b_ops.pmu;
 	gops->regops = gv11b_ops.regops;

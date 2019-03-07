@@ -609,6 +609,42 @@ struct gpu_ops {
 			u32 (*get_pd_dist_skip_table_size)(void);
 		} config;
 
+#ifdef CONFIG_GK20A_CTXSW_TRACE
+		struct {
+			int (*init)(struct gk20a *g);
+			int (*max_entries)(struct gk20a *,
+				struct nvgpu_gpu_ctxsw_trace_filter *filter);
+			int (*flush)(struct gk20a *g);
+			int (*poll)(struct gk20a *g);
+			int (*enable)(struct gk20a *g);
+			int (*disable)(struct gk20a *g);
+			bool (*is_enabled)(struct gk20a *g);
+			int (*reset)(struct gk20a *g);
+			int (*bind_channel)(struct gk20a *g,
+				struct nvgpu_mem *inst_block,
+				struct nvgpu_gr_subctx *subctx,
+				struct nvgpu_gr_ctx *gr_ctx, pid_t pid, u32 vmid);
+			int (*unbind_channel)(struct gk20a *g,
+				struct nvgpu_mem *inst_block);
+			int (*deinit)(struct gk20a *g);
+			int (*alloc_user_buffer)(struct gk20a *g,
+						void **buf, size_t *size);
+			int (*free_user_buffer)(struct gk20a *g);
+			int (*mmap_user_buffer)(struct gk20a *g,
+						struct vm_area_struct *vma);
+			int (*set_filter)(struct gk20a *g,
+				struct nvgpu_gpu_ctxsw_trace_filter *filter);
+			u32 (*get_buffer_full_mailbox_val)(void);
+			int (*get_read_index)(struct gk20a *g);
+			int (*get_write_index)(struct gk20a *g);
+			int (*set_read_index)(struct gk20a *g, int index);
+			void (*vm_dev_write)(struct gk20a *g, u8 vmid,
+				u32 *vm_update_mask,
+				struct nvgpu_gpu_ctxsw_trace_entry *entry);
+			void (*vm_dev_update)(struct gk20a *g, u32 vm_update_mask);
+		} fecs_trace;
+#endif
+
 		struct {
 			int (*add_color)(struct gk20a *g,
 				struct nvgpu_gr_zbc_entry *color_val,
@@ -1092,46 +1128,6 @@ struct gpu_ops {
 		int (*get_netlist_name)(struct gk20a *g, int index, char *name);
 		bool (*is_fw_defined)(void);
 	} netlist;
-#ifdef CONFIG_GK20A_CTXSW_TRACE
-	/*
-	 * Currently only supported on Linux due to the extremely tight
-	 * integration with Linux device driver structure (in particular
-	 * mmap).
-	 */
-	struct {
-		int (*init)(struct gk20a *g);
-		int (*max_entries)(struct gk20a *,
-			struct nvgpu_gpu_ctxsw_trace_filter *filter);
-		int (*flush)(struct gk20a *g);
-		int (*poll)(struct gk20a *g);
-		int (*enable)(struct gk20a *g);
-		int (*disable)(struct gk20a *g);
-		bool (*is_enabled)(struct gk20a *g);
-		int (*reset)(struct gk20a *g);
-		int (*bind_channel)(struct gk20a *g,
-			struct nvgpu_mem *inst_block,
-			struct nvgpu_gr_subctx *subctx,
-			struct nvgpu_gr_ctx *gr_ctx, pid_t pid, u32 vmid);
-		int (*unbind_channel)(struct gk20a *g,
-			struct nvgpu_mem *inst_block);
-		int (*deinit)(struct gk20a *g);
-		int (*alloc_user_buffer)(struct gk20a *g,
-					void **buf, size_t *size);
-		int (*free_user_buffer)(struct gk20a *g);
-		int (*mmap_user_buffer)(struct gk20a *g,
-					struct vm_area_struct *vma);
-		int (*set_filter)(struct gk20a *g,
-			struct nvgpu_gpu_ctxsw_trace_filter *filter);
-		u32 (*get_buffer_full_mailbox_val)(void);
-		int (*get_read_index)(struct gk20a *g);
-		int (*get_write_index)(struct gk20a *g);
-		int (*set_read_index)(struct gk20a *g, int index);
-		void (*vm_dev_write)(struct gk20a *g, u8 vmid,
-			u32 *vm_update_mask,
-			struct nvgpu_gpu_ctxsw_trace_entry *entry);
-		void (*vm_dev_update)(struct gk20a *g, u32 vm_update_mask);
-	} fecs_trace;
-#endif
 	struct {
 		u64 (*gmmu_map)(struct vm_gk20a *vm,
 				u64 map_offset,

@@ -25,7 +25,7 @@
 
 void vgpu_fecs_trace_data_update(struct gk20a *g)
 {
-	gk20a_ctxsw_trace_wake_up(g, 0);
+	nvgpu_gr_fecs_trace_wake_up(g, 0);
 }
 
 int vgpu_alloc_user_buffer(struct gk20a *g, void **buf, size_t *size)

@@ -653,8 +653,8 @@ void gk20a_fifo_reset_engine(struct gk20a *g, u32 engine_id)
 		 * Resetting engine will alter read/write index. Need to flush
 		 * circular buffer before re-enabling FECS.
 		 */
-		if (g->ops.fecs_trace.reset)
-			g->ops.fecs_trace.reset(g);
+		if (g->ops.gr.fecs_trace.reset)
+			g->ops.gr.fecs_trace.reset(g);
 #endif
 		if (!nvgpu_platform_is_simulation(g)) {
 			/*HALT_PIPELINE method, halt GR engine*/
@@ -975,7 +975,7 @@ static bool gk20a_fifo_handle_mmu_fault_locked(
 
 #ifdef CONFIG_GK20A_CTXSW_TRACE
 		if (tsg != NULL) {
-			gk20a_ctxsw_trace_tsg_reset(g, tsg);
+			nvgpu_gr_fecs_trace_add_tsg_reset(g, tsg);
 		}
 #endif
 		/*
