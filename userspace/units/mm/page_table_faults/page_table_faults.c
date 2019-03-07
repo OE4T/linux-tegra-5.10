@@ -190,6 +190,11 @@ static int init_mm(struct unit_module *m, struct gk20a *g)
 		unit_return_fail(m, "'bar2' nvgpu_vm_init failed\n");
 	}
 
+	/*
+	 * This initialization will make sure that correct aperture mask
+	 * is returned */
+	g->mm.mmu_wr_mem.aperture = APERTURE_SYSMEM;
+	g->mm.mmu_rd_mem.aperture = APERTURE_SYSMEM;
 
 	/* Init MM H/W */
 	err = g->ops.mm.init_mm_setup_hw(g);
