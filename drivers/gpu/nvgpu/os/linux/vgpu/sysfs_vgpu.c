@@ -92,7 +92,7 @@ static int vgpu_create_ecc_sysfs(struct device *dev)
 	}
 
 	for (i = 0; i < count; i++) {
-		sysfs_attr_init(&attrs[i].attr);
+		sysfs_attr_init(&attrs[i].attr.attr);
 		attrs[i].attr.attr.name = stats[i].name;
 		attrs[i].attr.attr.mode = VERIFY_OCTAL_PERMISSIONS(S_IRUGO);
 		attrs[i].attr.show = vgpu_ecc_stat_show;
