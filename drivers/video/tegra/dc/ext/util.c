@@ -55,18 +55,21 @@ int tegra_dc_ext_pin_window(struct tegra_dc_ext_user *user, u32 fd,
 	if (IS_ERR_OR_NULL(dc_dmabuf->sgt))
 		goto sgt_fail;
 
-	if (parent->archdata.iommu == NULL &&
-	    sg_nents(dc_dmabuf->sgt->sgl) > 1) {
-		dev_err(parent,
-			"Cannot use non-contiguous buffer w/ IOMMU disabled\n");
-		goto iommu_fail;
+	if (parent->archdata.iommu == NULL) {
+		if(sg_nents(dc_dmabuf->sgt->sgl) > 1) {
+			dev_err(ext->dev->parent,
+				"Cannot use non-contiguous buffer w/ IOMMU disabled\n");
+			goto iommu_fail;
+		} else {
+			*phys_addr = sg_phys(dc_dmabuf->sgt->sgl);
+		}
+	} else {
+		dma_addr = sg_dma_address(dc_dmabuf->sgt->sgl);
+		if (dma_addr)
+			*phys_addr = dma_addr;
+		else
+			*phys_addr = sg_phys(dc_dmabuf->sgt->sgl);
 	}
-
-	dma_addr = sg_dma_address(dc_dmabuf->sgt->sgl);
-	if (dma_addr)
-		*phys_addr = dma_addr;
-	else
-		*phys_addr = sg_phys(dc_dmabuf->sgt->sgl);
 
 	*dc_buf = dc_dmabuf;
 
