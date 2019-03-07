@@ -47,76 +47,67 @@
 				i2c-mux,deselect-on-exit;
 				#address-cells = <1>;
 				#size-cells = <0>;
-				ina3221x@40 {
-					compatible = "ti,ina3221x";
+				ina3221@40 {
+					compatible = "ti,ina3221";
 					reg = <0x40>;
-					ti,trigger-config = <0x7003>;
-					ti,continuous-config = <0x7c07>;
-					ti,enable-forced-continuous;
 					#address-cells = <1>;
 					#size-cells = <0>;
 					channel@0 {
 						reg = <0x0>;
-						ti,rail-name = "VDD_5V";
-						ti,shunt-resistor-mohm = <10>;
+						label = "VDD_5V";
+						shunt-resistor-micro-ohms = <10000>;
 					};
 					channel@1 {
 						reg = <0x1>;
-						ti,rail-name = "VDD_3V3";
-						ti,shunt-resistor-mohm = <10>;
+						label = "VDD_3V3";
+						shunt-resistor-micro-ohms = <10000>;
 					};
 					channel@2 {
 						reg = <0x2>;
-						ti,rail-name = "VDD_1V8";
-						ti,shunt-resistor-mohm = <1>;
+						label = "VDD_1V8";
+						shunt-resistor-micro-ohms = <1000>;
 					};
 				};
-				ina3221x@41 {
-					compatible = "ti,ina3221x";
+				ina3221@41 {
+					compatible = "ti,ina3221";
 					reg = <0x41>;
-					ti,trigger-config = <0x7003>;
-					ti,continuous-config = <0x7c07>;
-					ti,enable-forced-continuous;
 					#address-cells = <1>;
 					#size-cells = <0>;
 					channel@0 {
 						reg = <0x0>;
-						ti,rail-name = "VDD_5V_AUD";
-						ti,shunt-resistor-mohm = <1>;
+						label = "VDD_5V_AUD";
+						shunt-resistor-micro-ohms = <1000>;
 					};
 					channel@1 {
 						reg = <0x1>;
-						ti,rail-name = "VDD_3V3_AUD";
-						ti,shunt-resistor-mohm = <10>;
+						label = "VDD_3V3_AUD";
+						shunt-resistor-micro-ohms = <10000>;
 					};
 					channel@2 {
 						reg = <0x2>;
-						ti,rail-name = "VDD_1V8_AUD";
-						ti,shunt-resistor-mohm = <10>;
+						label = "VDD_1V8_AUD";
+						shunt-resistor-micro-ohms = <10000>;
 					};
 				};
-				ina3221x@42 {
-					compatible = "ti,ina3221x";
+				ina3221@42 {
+					compatible = "ti,ina3221";
 					reg = <0x42>;
-					ti,trigger-config = <0x7003>;
-					ti,continuous-config = <0x7c07>;
-					ti,enable-forced-continuous;
 					#address-cells = <1>;
 					#size-cells = <0>;
 					channel@0 {
 						reg = <0x0>;
-						ti,rail-name = "VDD_3V3_GPS";
-						ti,shunt-resistor-mohm = <10>;
+						label = "VDD_3V3_GPS";
+						shunt-resistor-micro-ohms = <10000>;
 					};
 					channel@1 {
 						reg = <0x1>;
-						ti,rail-name = "VDD_3V3_NFC";
-						ti,shunt-resistor-mohm = <10>;
+						label = "VDD_3V3_NFC";
+						shunt-resistor-micro-ohms = <10000>;
 					};
 					channel@2 {
 						reg = <0x2>;
-						ti,rail-name = "VDD_3V3_GYRO";
-						ti,shunt-resistor-mohm = <10>;
+						label = "VDD_3V3_GYRO";
+						shunt-resistor-micro-ohms = <10000>;
 					};
 				};
 			};
