@@ -1277,8 +1277,9 @@ static void pmu_rpc_handler(struct gk20a *g, struct pmu_msg *msg,
 		sizeof(struct nv_pmu_rpc_header));
 
 	if (rpc.flcn_status != 0U) {
-		nvgpu_err(g, " failed RPC response, status=0x%x, func=0x%x",
-			rpc.flcn_status, rpc.function);
+		nvgpu_err(g,
+			"failed RPC response, unit-id=0x%x, func=0x%x, status=0x%x",
+			rpc.unit_id, rpc.function, rpc.flcn_status);
 		goto exit;
 	}
 
