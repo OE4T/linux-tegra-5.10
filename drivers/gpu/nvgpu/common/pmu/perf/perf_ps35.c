@@ -33,11 +33,8 @@
 static int pmu_set_boot_clk_runcb_fn(void *arg)
 {
 	struct gk20a *g = (struct gk20a *)arg;
-	struct nvgpu_pmu *pmu = &g->pmu;
-	struct nv_pmu_rpc_struct_perf_load rpc;
 	struct perf_pmupstate *perf_pmu = g->perf_pmu;
 	struct nvgpu_vfe_invalidate *vfe_init = &perf_pmu->vfe_init;
-	int status = 0;
 
 	nvgpu_log_fn(g, "thread start");
 
@@ -50,13 +47,6 @@ static int pmu_set_boot_clk_runcb_fn(void *arg)
 		}
 		vfe_init->state_change = false;
 
-		(void) memset(&rpc, 0,
-			sizeof(struct nv_pmu_rpc_struct_perf_load));
-		PMU_RPC_EXECUTE_CPB(status, pmu, PERF, VFE_INVALIDATE, &rpc, 0);
-		if (status != 0) {
-			nvgpu_err(g, "Failed to execute RPC status=0x%x",
-					status);
-		}
 		nvgpu_clk_arb_schedule_vf_table_update(g);
 	}
 
