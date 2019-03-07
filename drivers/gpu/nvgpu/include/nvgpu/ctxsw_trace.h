@@ -58,7 +58,6 @@ struct nvgpu_gpu_ctxsw_trace_entry {
 
 int gk20a_ctxsw_trace_init(struct gk20a *g);
 
-void gk20a_ctxsw_trace_channel_reset(struct gk20a *g, struct channel_gk20a *ch);
 void gk20a_ctxsw_trace_tsg_reset(struct gk20a *g, struct tsg_gk20a *tsg);
 
 void gk20a_ctxsw_trace_cleanup(struct gk20a *g);
