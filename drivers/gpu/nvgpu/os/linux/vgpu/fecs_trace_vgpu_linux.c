@@ -14,10 +14,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <nvgpu/ctxsw_trace.h>
 #include <nvgpu/vgpu/tegra_vgpu.h>
 #include <nvgpu/vgpu/vgpu_ivm.h>
 #include <nvgpu/gk20a.h>
+#include <nvgpu/gr/fecs_trace.h>
 
 #include <linux/mm.h>
 

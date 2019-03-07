@@ -30,7 +30,6 @@
 #include <nvgpu/clk_arb.h>
 #include <nvgpu/string.h>
 #include <nvgpu/ltc.h>
-#include <nvgpu/ctxsw_trace.h>
 
 #include "fecs_trace_vgpu.h"
 

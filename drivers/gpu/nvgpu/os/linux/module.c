@@ -42,7 +42,6 @@
 #include <nvgpu/soc.h>
 #include <nvgpu/enabled.h>
 #include <nvgpu/debug.h>
-#include <nvgpu/ctxsw_trace.h>
 #include <nvgpu/vidmem.h>
 #include <nvgpu/sim.h>
 #include <nvgpu/clk_arb.h>
@@ -63,7 +62,7 @@
 
 #include "os_linux.h"
 #include "os_ops.h"
-#include "ctxsw_trace.h"
+#include "fecs_trace_linux.h"
 #include "driver_common.h"
 #include "channel.h"
 #include "debug_pmgr.h"

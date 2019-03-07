@@ -267,7 +267,7 @@ nvgpu-$(CONFIG_DEBUG_FS) += \
 endif
 
 nvgpu-$(CONFIG_GK20A_CTXSW_TRACE) += \
-	os/linux/ctxsw_trace.o
+	os/linux/fecs_trace_linux.o
 
 ifeq ($(CONFIG_GK20A_CTXSW_TRACE),y)
 nvgpu-$(CONFIG_DEBUG_FS) += \

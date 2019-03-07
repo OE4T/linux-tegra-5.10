@@ -60,6 +60,8 @@ struct gk20a;
 struct nvgpu_mem;
 struct nvgpu_gr_subctx;
 struct nvgpu_gr_ctx;
+struct tsg_gk20a;
+struct vm_area_struct;
 
 struct nvgpu_gr_fecs_trace {
 	struct nvgpu_list_node context_list;
@@ -80,6 +82,33 @@ struct nvgpu_fecs_trace_record {
 	u32 new_context_id;
 	u32 new_context_ptr;
 	u64 ts[];
+};
+
+/* must be consistent with nvgpu_ctxsw_ring_header */
+struct nvgpu_ctxsw_ring_header_internal {
+	u32 magic;
+	u32 version;
+	u32 num_ents;
+	u32 ent_size;
+	u32 drop_count;	/* excluding filtered out events */
+	u32 write_seqno;
+	u32 write_idx;
+	u32 read_idx;
+};
+
+/*
+ * The binary format of 'struct nvgpu_gpu_ctxsw_trace_entry' introduced here
+ * should match that of 'struct nvgpu_ctxsw_trace_entry' defined in uapi
+ * header, since this struct is intended to be a mirror copy of the uapi
+ * struct.
+ */
+struct nvgpu_gpu_ctxsw_trace_entry {
+	u8 tag;
+	u8 vmid;
+	u16 seqno;            /* sequence number to detect drops */
+	u32 context_id;       /* context_id as allocated by FECS */
+	u64 pid;              /* 64-bit is max bits of different OS pid */
+	u64 timestamp;        /* 64-bit time */
 };
 
 struct nvgpu_gpu_ctxsw_trace_filter {
@@ -140,5 +169,18 @@ int nvgpu_gr_fecs_trace_bind_channel(struct gk20a *g,
 	struct nvgpu_gr_ctx *gr_ctx, pid_t pid, u32 vmid);
 int nvgpu_gr_fecs_trace_unbind_channel(struct gk20a *g,
 	struct nvgpu_mem *inst_block);
+
+/*
+ * Below functions are defined in OS-specific code.
+ * Declare them here in common header since they are called from common code
+ */
+int gk20a_ctxsw_dev_ring_alloc(struct gk20a *g, void **buf, size_t *size);
+int gk20a_ctxsw_dev_ring_free(struct gk20a *g);
+int gk20a_ctxsw_dev_mmap_buffer(struct gk20a *g, struct vm_area_struct *vma);
+void gk20a_ctxsw_trace_tsg_reset(struct gk20a *g, struct tsg_gk20a *tsg);
+u8 nvgpu_gpu_ctxsw_tags_to_common_tags(u8 tags);
+int gk20a_ctxsw_trace_write(struct gk20a *g,
+			    struct nvgpu_gpu_ctxsw_trace_entry *entry);
+void gk20a_ctxsw_trace_wake_up(struct gk20a *g, int vmid);
 
 #endif /* NVGPU_GR_FECS_TRACE_H */

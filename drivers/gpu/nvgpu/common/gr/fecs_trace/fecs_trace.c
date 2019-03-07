@@ -31,7 +31,6 @@
 #include <nvgpu/gr/ctx.h>
 #include <nvgpu/gr/subctx.h>
 #include <nvgpu/gr/fecs_trace.h>
-#include <nvgpu/ctxsw_trace.h>
 
 #ifdef CONFIG_GK20A_CTXSW_TRACE
 

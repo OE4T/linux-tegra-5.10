@@ -110,7 +110,6 @@
 #include <nvgpu/ptimer.h>
 #include <nvgpu/debug.h>
 #include <nvgpu/enabled.h>
-#include <nvgpu/ctxsw_trace.h>
 #include <nvgpu/error_notifier.h>
 #include <nvgpu/bug.h>
 #include <nvgpu/debugger.h>

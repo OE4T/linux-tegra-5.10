@@ -1,7 +1,7 @@
 /*
  * NVGPU IOCTLs
  *
- * Copyright (c) 2011-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -19,7 +19,6 @@
 #include <linux/file.h>
 
 #include <nvgpu/nvgpu_common.h>
-#include <nvgpu/ctxsw_trace.h>
 #include <nvgpu/gk20a.h>
 
 #include "ioctl_channel.h"
@@ -29,7 +28,7 @@
 #include "ioctl_dbg.h"
 #include "module.h"
 #include "os_linux.h"
-#include "ctxsw_trace.h"
+#include "fecs_trace_linux.h"
 #include "platform_gk20a.h"
 
 #define GK20A_NUM_CDEVS 7

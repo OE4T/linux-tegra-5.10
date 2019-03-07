@@ -39,7 +39,6 @@
 #include <nvgpu/debugger.h>
 #include <nvgpu/ltc.h>
 #include <nvgpu/barrier.h>
-#include <nvgpu/ctxsw_trace.h>
 #include <nvgpu/error_notifier.h>
 #include <nvgpu/os_sched.h>
 #include <nvgpu/log2.h>

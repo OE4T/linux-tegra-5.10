@@ -36,7 +36,6 @@
 #include <nvgpu/mm.h>
 #include <nvgpu/debugger.h>
 #include <nvgpu/netlist.h>
-#include <nvgpu/ctxsw_trace.h>
 #include <nvgpu/error_notifier.h>
 #include <nvgpu/ecc.h>
 #include <nvgpu/io.h>

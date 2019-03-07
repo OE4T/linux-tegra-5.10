@@ -38,7 +38,6 @@
 #include <nvgpu/debug.h>
 #include <nvgpu/nvhost.h>
 #include <nvgpu/barrier.h>
-#include <nvgpu/ctxsw_trace.h>
 #include <nvgpu/error_notifier.h>
 #include <nvgpu/ptimer.h>
 #include <nvgpu/io.h>
@@ -58,6 +57,7 @@
 #include <nvgpu/power_features/cg.h>
 #include <nvgpu/power_features/pg.h>
 #include <nvgpu/power_features/power_features.h>
+#include <nvgpu/gr/fecs_trace.h>
 
 #include "mm_gk20a.h"
 

@@ -20,7 +20,6 @@
 #include <linux/poll.h>
 #include <trace/events/gk20a.h>
 #include <uapi/linux/nvgpu.h>
-#include <nvgpu/ctxsw_trace.h>
 #include <nvgpu/kmem.h>
 #include <nvgpu/log.h>
 #include <nvgpu/atomic.h>
@@ -34,7 +33,7 @@
 
 #include "platform_gk20a.h"
 #include "os_linux.h"
-#include "ctxsw_trace.h"
+#include "fecs_trace_linux.h"
 
 #include <nvgpu/hw/gk20a/hw_gr_gk20a.h>
 
@@ -77,8 +76,9 @@ static inline int ring_len(struct nvgpu_ctxsw_ring_header *hdr)
 	return (hdr->write_idx - hdr->read_idx) % hdr->num_ents;
 }
 
-static void nvgpu_set_ctxsw_trace_entry(struct nvgpu_ctxsw_trace_entry *entry_dst,
-        struct nvgpu_gpu_ctxsw_trace_entry *entry_src)
+static void nvgpu_set_ctxsw_trace_entry(
+	struct nvgpu_ctxsw_trace_entry *entry_dst,
+	struct nvgpu_gpu_ctxsw_trace_entry *entry_src)
 {
 	entry_dst->tag = entry_src->tag;
 	entry_dst->vmid = entry_src->vmid;
@@ -119,7 +119,8 @@ ssize_t gk20a_ctxsw_dev_read(struct file *filp, char __user *buf, size_t size,
 		if (ring_is_empty(hdr))
 			break;
 
-		nvgpu_set_ctxsw_trace_entry(&user_entry, &dev->ents[hdr->read_idx]);
+		nvgpu_set_ctxsw_trace_entry(&user_entry,
+			&dev->ents[hdr->read_idx]);
 		if (copy_to_user(entry, &user_entry,
 			sizeof(*entry))) {
 			nvgpu_mutex_release(&dev->write_lock);
@@ -250,14 +251,16 @@ static int gk20a_ctxsw_dev_ioctl_ring_setup(struct gk20a_ctxsw_dev *dev,
 	return ret;
 }
 
-static void nvgpu_set_ctxsw_trace_filter_args(struct nvgpu_gpu_ctxsw_trace_filter *filter_dst,
-        struct nvgpu_ctxsw_trace_filter *filter_src)
+static void nvgpu_set_ctxsw_trace_filter_args(
+	struct nvgpu_gpu_ctxsw_trace_filter *filter_dst,
+	struct nvgpu_ctxsw_trace_filter *filter_src)
 {
 	nvgpu_memcpy((u8 *)filter_dst->tag_bits, (u8 *)filter_src->tag_bits,
 		(NVGPU_CTXSW_FILTER_SIZE + 63) / 64);
 }
 
-static void nvgpu_get_ctxsw_trace_filter_args(struct nvgpu_ctxsw_trace_filter *filter_dst,
+static void nvgpu_get_ctxsw_trace_filter_args(
+	struct nvgpu_ctxsw_trace_filter *filter_dst,
 	struct nvgpu_gpu_ctxsw_trace_filter *filter_src)
 {
 	nvgpu_memcpy((u8 *)filter_dst->tag_bits, (u8 *)filter_src->tag_bits,

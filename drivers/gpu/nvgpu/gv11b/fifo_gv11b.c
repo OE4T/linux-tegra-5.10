@@ -35,7 +35,6 @@
 #include <nvgpu/barrier.h>
 #include <nvgpu/mm.h>
 #include <nvgpu/log2.h>
-#include <nvgpu/ctxsw_trace.h>
 #include <nvgpu/io_usermode.h>
 #include <nvgpu/ptimer.h>
 #include <nvgpu/io.h>
@@ -51,6 +50,7 @@
 #include <nvgpu/power_features/cg.h>
 #include <nvgpu/power_features/pg.h>
 #include <nvgpu/power_features/power_features.h>
+#include <nvgpu/gr/fecs_trace.h>
 
 #include "gk20a/fifo_gk20a.h"
 

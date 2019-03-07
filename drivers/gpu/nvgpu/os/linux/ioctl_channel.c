@@ -47,7 +47,6 @@
 #include "ioctl_channel.h"
 #include "channel.h"
 #include "os_linux.h"
-#include "ctxsw_trace.h"
 
 /* the minimal size of client buffer */
 #define CSS_MIN_CLIENT_SNAPSHOT_SIZE				\

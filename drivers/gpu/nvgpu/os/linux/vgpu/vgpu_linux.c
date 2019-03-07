@@ -29,7 +29,6 @@
 #include <nvgpu/enabled.h>
 #include <nvgpu/debug.h>
 #include <nvgpu/soc.h>
-#include <nvgpu/ctxsw_trace.h>
 #include <nvgpu/defaults.h>
 #include <nvgpu/ltc.h>
 #include <nvgpu/channel.h>
