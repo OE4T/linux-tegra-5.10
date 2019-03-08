@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2015-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * NVIDIA CORPORATION and its licensors retain all intellectual property
  * and proprietary rights in and to this software, related documentation
@@ -47,8 +47,10 @@
 #define CAMRTC_REQ_GET_VI_STAT          0x0EU
 #define CAMRTC_REQ_GET_MEM_USAGE        0x0FU
 #define CAMRTC_REQ_RUN_MEM_TEST         0x10U
-#define CAMRTC_REQ_GET_IRQ_STAT		0x11U
-#define CAMRTC_REQUEST_TYPE_MAX		0x12U
+#define CAMRTC_REQ_GET_IRQ_STAT         0x11U
+#define CAMRTC_REQ_SET_FALCON_COVERAGE  0x12U
+#define CAMRTC_REQ_GET_COVERAGE_SUPPORT 0x13U
+#define CAMRTC_REQUEST_TYPE_MAX         0x14U
 
 enum camrtc_response {
 	CAMRTC_RESP_PONG = 1,
@@ -314,6 +316,43 @@ struct camrtc_dbg_mem_usage {
 	uint32_t free;
 } __packed;
 
+#define CAMRTC_DBG_FALCON_ID_VI       (0x0U)
+#define CAMRTC_DBG_FALCON_ID_ISP      (0x80U)
+
+/* This structure is used to set falcon code coverage configuration data.
+ * Fields:
+ *   falcon_id: Which falcon to set up the coverage for.
+ *   flush: Flush coverage data action bit.
+ *   reset: Reset coverage data action bit. If flush is also set, it runs first.
+ *   size: Size of the coverage data buffer.
+ *   iova: Address of the coverage data buffer in falcon IOVA space.
+ *
+ * NOTE: Setting iova and/or size to 0 will disable coverage.
+ */
+struct camrtc_dbg_coverage_data {
+	uint8_t falcon_id;
+	uint8_t flush;
+	uint8_t reset;
+	uint8_t _pad;
+	uint32_t size;
+	uint64_t iova;
+} __packed;
+
+/* This structure is used to reply code coverage status.
+ * Fields:
+ *   falcon_id: Which falcon the status is for
+ *   enabled: Coverage output is configured properly and enabled
+ *   full: Coverage output buffer is full
+ *   bytes_written: Bytes written to buffer so far.
+ */
+struct camrtc_dbg_coverage_stat {
+	uint8_t falcon_id;
+	uint8_t enabled;
+	uint8_t full;
+	uint8_t _pad;
+	uint32_t bytes_written;
+} __packed;
+
 /* This struct encapsulates the type of the request and the respective
  * data associated with that request.
  * Fields:
@@ -335,6 +374,7 @@ struct camrtc_dbg_request {
 		struct camrtc_dbg_run_test_data run_test_data;
 		struct camrtc_dbg_run_mem_test_data run_mem_test_data;
 		struct camrtc_dbg_enable_vi_stat enable_vi_stat;
+		struct camrtc_dbg_coverage_data coverage_data;
 	} data;
 } __packed;
 
@@ -364,6 +404,7 @@ struct camrtc_dbg_response {
 		struct camrtc_dbg_vi_stat vi_stat;
 		struct camrtc_dbg_mem_usage mem_usage;
 		struct camrtc_dbg_irq_stat irq_stat;
+		struct camrtc_dbg_coverage_stat coverage_stat;
 	} data;
 } __packed;
 
