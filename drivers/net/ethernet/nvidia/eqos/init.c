@@ -1273,10 +1273,6 @@ int eqos_probe(struct platform_device *pdev)
 
 	eqos_init_rx_coalesce(pdata);
 
-#ifdef EQOS_CONFIG_PTP
-	eqos_ptp_init(pdata);
-#endif	/* end of EQOS_CONFIG_PTP */
-
 	for (i = 0; i < ARRAY_SIZE(eqos_sysfs_attrs); i++) {
 		attr = eqos_sysfs_attrs[i];
 		ret = device_create_file(&pdata->pdev->dev, attr);
@@ -1360,11 +1356,6 @@ int eqos_probe(struct platform_device *pdev)
 	unregister_netdev(ndev);
 
  err_out_netdev_failed:
-
-#ifdef EQOS_CONFIG_PTP
-	eqos_ptp_remove(pdata);
-#endif	/* end of EQOS_CONFIG_PTP */
-
 	/* remove rx napi */
 	for (i = 0; i < EQOS_RX_QUEUE_CNT; i++) {
 		netif_napi_del(&pdata->rx_queue[i].napi);
