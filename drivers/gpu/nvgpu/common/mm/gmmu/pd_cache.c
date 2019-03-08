@@ -181,7 +181,7 @@ static int nvgpu_pd_cache_alloc_direct(struct gk20a *g,
 	 * underlying allocations to be physically contiguous as well.
 	 */
 	if (!nvgpu_iommuable(g) && bytes > PAGE_SIZE) {
-		flags = NVGPU_DMA_FORCE_CONTIGUOUS;
+		flags = NVGPU_DMA_PHYSICALLY_ADDRESSED;
 	}
 
 	err = nvgpu_dma_alloc_flags(g, flags, bytes, pd->mem);

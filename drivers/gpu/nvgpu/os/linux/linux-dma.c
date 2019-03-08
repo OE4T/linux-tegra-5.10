@@ -39,7 +39,7 @@
  * added it must be added here as well!!
  */
 #define NVGPU_DMA_STR_SIZE					\
-	sizeof("NO_KERNEL_MAPPING FORCE_CONTIGUOUS PHYSICALLY_ADDRESSED")
+	sizeof("NO_KERNEL_MAPPING PHYSICALLY_ADDRESSED")
 
 /*
  * This function can't fail. It will always at minimum memset() the buf which
@@ -60,7 +60,6 @@ void nvgpu_dma_flags_to_str(struct gk20a *g, unsigned long flags, char *buf)
 	} while (false)
 
 	APPEND_FLAG(NVGPU_DMA_NO_KERNEL_MAPPING,    "NO_KERNEL_MAPPING ");
-	APPEND_FLAG(NVGPU_DMA_FORCE_CONTIGUOUS,     "FORCE_CONTIGUOUS ");
 	APPEND_FLAG(NVGPU_DMA_PHYSICALLY_ADDRESSED, "PHYSICALLY_ADDRESSED");
 #undef APPEND_FLAG
 }
@@ -151,12 +150,16 @@ static u64 __nvgpu_dma_alloc(struct nvgpu_allocator *allocator, u64 at,
 }
 #endif
 
-static void nvgpu_dma_flags_to_attrs(unsigned long *attrs,
-		unsigned long flags)
+/* Check if IOMMU is available and if GPU uses it */
+#define nvgpu_uses_iommu(g) \
+	(nvgpu_iommuable(g) && !nvgpu_is_enabled(g, NVGPU_MM_USE_PHYSICAL_SG))
+
+static void nvgpu_dma_flags_to_attrs(struct gk20a *g, unsigned long *attrs,
+				     unsigned long flags)
 {
 	if (flags & NVGPU_DMA_NO_KERNEL_MAPPING)
 		*attrs |= DMA_ATTR_NO_KERNEL_MAPPING;
-	if (flags & NVGPU_DMA_FORCE_CONTIGUOUS)
+	if (flags & NVGPU_DMA_PHYSICALLY_ADDRESSED && !nvgpu_uses_iommu(g))
 		*attrs |= DMA_ATTR_FORCE_CONTIGUOUS;
 }
 
@@ -174,12 +177,6 @@ int nvgpu_dma_alloc_flags_sys(struct gk20a *g, unsigned long flags,
 		WARN_ON(1);
 	}
 
-	if ((flags & NVGPU_DMA_PHYSICALLY_ADDRESSED) &&
-	    (!nvgpu_iommuable(g) ||
-	     nvgpu_is_enabled(g, NVGPU_MM_USE_PHYSICAL_SG))) {
-		flags |= NVGPU_DMA_FORCE_CONTIGUOUS;
-	}
-
 	/*
 	 * Before the debug print so we see this in the total. But during
 	 * cleanup in the fail path this has to be subtracted.
@@ -195,7 +192,7 @@ int nvgpu_dma_alloc_flags_sys(struct gk20a *g, unsigned long flags,
 	mem->size = size;
 	size = PAGE_ALIGN(size);
 
-	nvgpu_dma_flags_to_attrs(&dma_attrs, flags);
+	nvgpu_dma_flags_to_attrs(g, &dma_attrs, flags);
 	alloc_ret = dma_alloc_attrs(d, size, &iova,
 				    GFP_KERNEL|__GFP_ZERO, dma_attrs);
 	if (!alloc_ret) {
@@ -343,7 +340,7 @@ void nvgpu_dma_free_sys(struct gk20a *g, struct nvgpu_mem *mem)
 		if (mem->priv.flags & NVGPU_DMA_NO_KERNEL_MAPPING)
 			cpu_addr = mem->priv.pages;
 
-		nvgpu_dma_flags_to_attrs(&dma_attrs, mem->priv.flags);
+		nvgpu_dma_flags_to_attrs(g, &dma_attrs, mem->priv.flags);
 		dma_free_attrs(d, mem->aligned_size, cpu_addr,
 			       sg_dma_address(mem->priv.sgt->sgl), dma_attrs);
 
@@ -424,7 +421,7 @@ int nvgpu_get_sgtable_attrs(struct gk20a *g, struct sg_table **sgt,
 		goto fail;
 	}
 
-	nvgpu_dma_flags_to_attrs(&dma_attrs, flags);
+	nvgpu_dma_flags_to_attrs(g, &dma_attrs, flags);
 	err = dma_get_sgtable_attrs(dev_from_gk20a(g), tbl, cpuva, iova,
 					size, dma_attrs);
 	if (err)

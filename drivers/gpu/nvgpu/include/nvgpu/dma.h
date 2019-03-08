@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -44,15 +44,9 @@ struct nvgpu_mem;
 #define NVGPU_DMA_NO_KERNEL_MAPPING	BIT64(0)
 
 /*
- * Don't allow building the buffer from individual pages but require a
- * physically contiguous block.
- */
-#define NVGPU_DMA_FORCE_CONTIGUOUS	BIT64(1)
-
-/*
  * Make the mapping read-only.
  */
-#define NVGPU_DMA_READ_ONLY		BIT64(2)
+#define NVGPU_DMA_READ_ONLY		BIT64(1)
 
 /*
  * Buffer is physically addressed from the GPU.
@@ -60,7 +54,7 @@ struct nvgpu_mem;
  * the buffer from individual pages, but require a physically contiguous
  * block.
  */
-#define NVGPU_DMA_PHYSICALLY_ADDRESSED	BIT64(3)
+#define NVGPU_DMA_PHYSICALLY_ADDRESSED	BIT64(2)
 
 
 /**
@@ -107,7 +101,6 @@ int nvgpu_dma_alloc(struct gk20a *g, size_t size, struct nvgpu_mem *mem);
  * The following flags are accepted:
  *
  *   %NVGPU_DMA_NO_KERNEL_MAPPING
- *   %NVGPU_DMA_FORCE_CONTIGUOUS
  *   %NVGPU_DMA_READ_ONLY
  */
 int nvgpu_dma_alloc_flags(struct gk20a *g, unsigned long flags, size_t size,
@@ -141,7 +134,6 @@ int nvgpu_dma_alloc_sys(struct gk20a *g, size_t size, struct nvgpu_mem *mem);
  * The following flags are accepted:
  *
  *   %NVGPU_DMA_NO_KERNEL_MAPPING
- *   %NVGPU_DMA_FORCE_CONTIGUOUS
  *   %NVGPU_DMA_READ_ONLY
  */
 int nvgpu_dma_alloc_flags_sys(struct gk20a *g, unsigned long flags,
@@ -274,7 +266,6 @@ int nvgpu_dma_alloc_map(struct vm_gk20a *vm, size_t size,
  * flags are:
  *
  *   %NVGPU_DMA_NO_KERNEL_MAPPING
- *   %NVGPU_DMA_FORCE_CONTIGUOUS
  *   %NVGPU_DMA_READ_ONLY
  */
 int nvgpu_dma_alloc_map_flags(struct vm_gk20a *vm, unsigned long flags,
@@ -308,7 +299,6 @@ int nvgpu_dma_alloc_map_sys(struct vm_gk20a *vm, size_t size,
  * flags are:
  *
  *   %NVGPU_DMA_NO_KERNEL_MAPPING
- *   %NVGPU_DMA_FORCE_CONTIGUOUS
  *   %NVGPU_DMA_READ_ONLY
  */
 int nvgpu_dma_alloc_map_flags_sys(struct vm_gk20a *vm, unsigned long flags,
@@ -342,7 +332,6 @@ int nvgpu_dma_alloc_map_vid(struct vm_gk20a *vm, size_t size,
  * flags are:
  *
  *   %NVGPU_DMA_NO_KERNEL_MAPPING
- *   %NVGPU_DMA_FORCE_CONTIGUOUS
  *   %NVGPU_DMA_READ_ONLY
  */
 int nvgpu_dma_alloc_map_flags_vid(struct vm_gk20a *vm, unsigned long flags,
