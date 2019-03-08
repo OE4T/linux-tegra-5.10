@@ -45,7 +45,7 @@
 /* return zcull ctx size */
 struct nvgpu_gpu_zcull_get_ctx_size_args {
 	__u32 size;
-} __packed;
+};
 
 /* return zcull info */
 struct nvgpu_gpu_zcull_get_info_args {
@@ -72,7 +72,7 @@ struct nvgpu_gpu_zbc_set_table_args {
 	__u32 depth;
 	__u32 format;
 	__u32 type;	/* color or depth */
-} __packed;
+};
 
 struct nvgpu_gpu_zbc_query_table_args {
 	__u32 color_ds[NVGPU_ZBC_COLOR_VALUE_SIZE];
@@ -82,7 +82,7 @@ struct nvgpu_gpu_zbc_query_table_args {
 	__u32 format;
 	__u32 type;		/* color or depth */
 	__u32 index_size;	/* [out] size, [in] index */
-} __packed;
+};
 
 
 /* This contains the minimal set by which the userspace can
@@ -416,13 +416,13 @@ struct nvgpu_gpu_l2_fb_args {
 struct nvgpu_gpu_mmu_debug_mode_args {
 	__u32 state;
 	__u32 reserved;
-} __packed;
+};
 
 struct nvgpu_gpu_sm_debug_mode_args {
 	int channel_fd;
 	__u32 enable;
 	__u64 sms;
-} __packed;
+};
 
 struct warpstate {
 	__u64 valid_warps[2];
@@ -1206,7 +1206,7 @@ struct nvgpu_dbg_gpu_events_ctrl_args {
 
 struct nvgpu_dbg_gpu_powergate_args {
 	__u32 mode;
-} __packed;
+};
 
 #define NVGPU_DBG_GPU_IOCTL_POWERGATE					\
 	_IOWR(NVGPU_DBG_GPU_IOCTL_MAGIC, 4, struct nvgpu_dbg_gpu_powergate_args)
@@ -1218,7 +1218,7 @@ struct nvgpu_dbg_gpu_powergate_args {
 
 struct nvgpu_dbg_gpu_smpc_ctxsw_mode_args {
 	__u32 mode;
-} __packed;
+};
 
 #define NVGPU_DBG_GPU_IOCTL_SMPC_CTXSW_MODE \
 	_IOWR(NVGPU_DBG_GPU_IOCTL_MAGIC, 5, struct nvgpu_dbg_gpu_smpc_ctxsw_mode_args)
@@ -1229,7 +1229,7 @@ struct nvgpu_dbg_gpu_smpc_ctxsw_mode_args {
 
 struct nvgpu_dbg_gpu_suspend_resume_all_sms_args {
 	__u32 mode;
-} __packed;
+};
 
 #define NVGPU_DBG_GPU_IOCTL_SUSPEND_RESUME_ALL_SMS			\
 	_IOWR(NVGPU_DBG_GPU_IOCTL_MAGIC, 6, struct nvgpu_dbg_gpu_suspend_resume_all_sms_args)
@@ -1468,7 +1468,7 @@ struct nvgpu_gpfifo {
 
 struct nvgpu_get_param_args {
 	__u32 value;
-} __packed;
+};
 
 struct nvgpu_channel_open_args {
 	union {
@@ -1489,7 +1489,7 @@ struct nvgpu_channel_open_args {
 
 struct nvgpu_set_nvmap_fd_args {
 	__u32 fd;
-} __packed;
+};
 
 #define NVGPU_ALLOC_OBJ_FLAGS_LOCKBOOST_ZERO	(1 << 0)
 /* Flags in nvgpu_alloc_obj_ctx_args.flags */
@@ -1620,7 +1620,7 @@ struct nvgpu_wait_args {
 
 struct nvgpu_set_timeout_args {
 	__u32 timeout;
-} __packed;
+};
 
 struct nvgpu_set_timeout_ex_args {
 	__u32 timeout;
@@ -1884,7 +1884,7 @@ struct nvgpu_as_free_space_args {
  */
 struct nvgpu_as_bind_channel_args {
 	__u32 channel_fd; /* in */
-} __packed;
+};
 
 /*
  * Mapping nvmap buffers into an address space:
