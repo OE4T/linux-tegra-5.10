@@ -24,6 +24,7 @@
 #include <nvgpu/allocator.h>
 #include <nvgpu/kmem.h>
 #include <nvgpu/barrier.h>
+#include <nvgpu/bug.h>
 
 #include "lockless_allocator_priv.h"
 
@@ -103,7 +104,8 @@ static void nvgpu_lockless_free(struct nvgpu_allocator *a, u64 addr)
 	while (true) {
 		head = NV_ACCESS_ONCE(pa->head);
 		NV_ACCESS_ONCE(pa->next[cur_idx]) = head;
-		ret = cmpxchg(&pa->head, head, cur_idx);
+		nvgpu_assert(cur_idx <= U64(INT_MAX));
+		ret = cmpxchg(&pa->head, head, (int)cur_idx);
 		if (ret == head) {
 			nvgpu_atomic_dec(&pa->nr_allocs);
 			alloc_dbg(a, "Free node # %llu", cur_idx);

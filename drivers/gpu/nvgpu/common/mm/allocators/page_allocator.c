@@ -382,7 +382,8 @@ static int do_slab_alloc(struct nvgpu_page_allocator *a,
 		return -ENOMEM;
 	}
 
-	bitmap_set(&slab_page->bitmap, offs, 1);
+	nvgpu_assert(offs <= U64(U32_MAX));
+	bitmap_set(&slab_page->bitmap, U32(offs), 1);
 	slab_page->nr_objects_alloced++;
 
 	if (slab_page->nr_objects_alloced < slab_page->nr_objects) {
@@ -471,7 +472,7 @@ static void nvgpu_free_slab(struct nvgpu_page_allocator *a,
 	struct page_alloc_slab_page *slab_page = alloc->slab_page;
 	struct page_alloc_slab *slab = slab_page->owner;
 	enum slab_page_state new_state;
-	int offs;
+	u32 offs;
 
 	offs = (u32)(alloc->base - slab_page->page_addr) / slab_page->slab_size;
 	bitmap_clear(&slab_page->bitmap, offs, 1);
@@ -898,7 +899,7 @@ static void nvgpu_page_print_stats(struct nvgpu_allocator *na,
 				   struct seq_file *s, int lock)
 {
 	struct nvgpu_page_allocator *a = page_allocator(na);
-	int i;
+	u32 i;
 
 	if (lock)
 		alloc_lock(na);
@@ -987,11 +988,13 @@ static const struct nvgpu_allocator_ops page_ops = {
  */
 static int nvgpu_page_alloc_init_slabs(struct nvgpu_page_allocator *a)
 {
-	size_t nr_slabs = ilog2(a->page_size >> 12);
-	unsigned int i;
+	/* Use temp var for MISRA 10.8 */
+	unsigned long tmp_nr_slabs = ilog2(a->page_size >> 12);
+	u32 nr_slabs = U32(tmp_nr_slabs);
+	u32 i;
 
 	a->slabs = nvgpu_kcalloc(nvgpu_alloc_to_gpu(a->owner),
-				 nr_slabs,
+				 (size_t)nr_slabs,
 				 sizeof(struct page_alloc_slab));
 	if (a->slabs == NULL) {
 		return -ENOMEM;
@@ -1047,7 +1050,7 @@ int nvgpu_page_allocator_init(struct gk20a *g, struct nvgpu_allocator *na,
 	a->base = base;
 	a->length = length;
 	a->page_size = blk_size;
-	a->page_shift = __ffs(blk_size);
+	a->page_shift = U32(__ffs(blk_size));
 	a->allocs = NULL;
 	a->owner = na;
 	a->flags = flags;

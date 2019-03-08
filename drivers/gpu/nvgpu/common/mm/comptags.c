@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -40,8 +40,9 @@ int gk20a_comptaglines_alloc(struct gk20a_comptag_allocator *allocator,
 			0, len, 0);
 	if (addr < allocator->size) {
 		/* number zero is reserved; bitmap base is 1 */
-		*offset = 1U + addr;
-		bitmap_set(allocator->bitmap, addr, len);
+		nvgpu_assert(addr < U64(U32_MAX));
+		*offset = 1U + U32(addr);
+		bitmap_set(allocator->bitmap, U32(addr), len);
 	} else {
 		err = -ENOMEM;
 	}

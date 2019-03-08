@@ -151,7 +151,7 @@ struct nvgpu_page_allocator {
 	struct nvgpu_rbtree_node *allocs;	/* Outstanding allocations. */
 
 	struct page_alloc_slab *slabs;
-	int nr_slabs;
+	u32 nr_slabs;
 
 	struct nvgpu_kmem_cache *alloc_cache;
 	struct nvgpu_kmem_cache *slab_page_cache;

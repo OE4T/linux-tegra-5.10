@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -50,7 +50,7 @@ struct nvgpu_gmmu_pd {
 	 * need to be populated when this PD is pointing to PTEs.
 	 */
 	struct nvgpu_gmmu_pd	*entries;
-	int			 num_entries;
+	u32			 num_entries;
 };
 
 int  nvgpu_pd_alloc(struct vm_gk20a *vm, struct nvgpu_gmmu_pd *pd, u32 bytes);

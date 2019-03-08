@@ -90,8 +90,8 @@ struct nvgpu_gmmu_attrs {
 };
 
 struct gk20a_mmu_level {
-	int hi_bit[2];
-	int lo_bit[2];
+	u32 hi_bit[2];
+	u32 lo_bit[2];
 
 	/*
 	 * Build map from virt_addr -> phys_addr.

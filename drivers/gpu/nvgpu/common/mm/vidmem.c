@@ -201,7 +201,7 @@ int nvgpu_vidmem_clear_list_enqueue(struct gk20a *g, struct nvgpu_mem *mem)
 	nvgpu_mutex_acquire(&mm->vidmem.clear_list_mutex);
 	nvgpu_list_add_tail(&mem->clear_list_entry,
 			    &mm->vidmem.clear_list_head);
-	nvgpu_atomic64_add(mem->aligned_size, &mm->vidmem.bytes_pending);
+	nvgpu_atomic64_add((long)mem->aligned_size, &mm->vidmem.bytes_pending);
 	nvgpu_mutex_release(&mm->vidmem.clear_list_mutex);
 
 	nvgpu_cond_signal_interruptible(&mm->vidmem.clearing_thread_cond);
@@ -234,7 +234,7 @@ static void nvgpu_vidmem_clear_pending_allocs(struct mm_gk20a *mm)
 	while ((mem = nvgpu_vidmem_clear_list_dequeue(mm)) != NULL) {
 		nvgpu_vidmem_clear(g, mem);
 
-		WARN_ON(nvgpu_atomic64_sub_return(mem->aligned_size,
+		WARN_ON(nvgpu_atomic64_sub_return((long)mem->aligned_size,
 					&g->mm.vidmem.bytes_pending) < 0);
 		mem->size = 0;
 		mem->aperture = APERTURE_INVALID;

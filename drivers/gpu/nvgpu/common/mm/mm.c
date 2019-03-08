@@ -226,7 +226,7 @@ static int nvgpu_init_system_vm(struct mm_gk20a *mm)
 	 * size. No reason AFAICT for this. Probably a bug somewhere.
 	 */
 	if (nvgpu_is_enabled(g, NVGPU_MM_FORCE_128K_PMU_VM)) {
-		big_page_size = SZ_128K;
+		big_page_size = U32(SZ_128K);
 	}
 
 	/*
@@ -343,7 +343,7 @@ void nvgpu_init_mm_ce_context(struct gk20a *g)
 	   (g->mm.vidmem.ce_ctx_id == NVGPU_CE_INVAL_CTX_ID)) {
 		g->mm.vidmem.ce_ctx_id =
 			gk20a_ce_create_context(g,
-				gk20a_fifo_get_fast_ce_runlist_id(g),
+				(int)gk20a_fifo_get_fast_ce_runlist_id(g),
 				-1,
 				-1);
 

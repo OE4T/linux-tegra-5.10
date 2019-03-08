@@ -166,7 +166,7 @@ struct tegra_vgpu_as_map_params {
 	u8 iova;
 	u8 kind;
 	u8 cacheable;
-	u8 clear_ctags;
+	bool clear_ctags;
 	u8 prot;
 	u32 offset;
 };
@@ -185,7 +185,7 @@ struct tegra_vgpu_as_map_ex_params {
 	u8 iova;
 	u8 kind;
 	u32 flags;
-	u8 clear_ctags;
+	bool clear_ctags;
 	u8 prot;
 	u32 ctag_offset;
 };

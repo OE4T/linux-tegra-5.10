@@ -231,7 +231,7 @@ static u32 pd_entries(const struct gk20a_mmu_level *l,
 	 * used to index the page directory. That is simply 2 raised to the
 	 * number of bits.
 	 */
-	return BIT32(l->hi_bit[attrs->pgsz] - l->lo_bit[attrs->pgsz] + 1);
+	return BIT32(l->hi_bit[attrs->pgsz] - l->lo_bit[attrs->pgsz] + 1U);
 }
 
 /*
@@ -292,13 +292,16 @@ static u32 pd_index(const struct gk20a_mmu_level *l, u64 virt,
 		    struct nvgpu_gmmu_attrs *attrs)
 {
 	u64 pd_mask = (1ULL << ((u64)l->hi_bit[attrs->pgsz] + 1U)) - 1ULL;
-	u32 pd_shift = (u64)l->lo_bit[attrs->pgsz];
+	u32 pd_shift = l->lo_bit[attrs->pgsz];
+	u64 tmp_index;
 
 	/*
 	 * For convenience we don't bother computing the lower bound of the
 	 * mask; it's easier to just shift it off.
 	 */
-	return (virt & pd_mask) >> pd_shift;
+	tmp_index = (virt & pd_mask) >> pd_shift;
+	nvgpu_assert(tmp_index <= U64(U32_MAX));
+	return U32(tmp_index);
 }
 
 static int pd_allocate_children(struct vm_gk20a *vm,
@@ -334,7 +337,7 @@ static int pd_allocate_children(struct vm_gk20a *vm,
 	 * there would be mixing (which, remember, is prevented by the buddy
 	 * allocator).
 	 */
-	if (pd->num_entries >= (int)pd_entries(l, attrs)) {
+	if (pd->num_entries >= pd_entries(l, attrs)) {
 		return 0;
 	}
 
@@ -777,12 +780,12 @@ u64 gk20a_locked_gmmu_map(struct vm_gk20a *vm,
 	struct gk20a *g = gk20a_from_vm(vm);
 	int err = 0;
 	bool allocated = false;
-	int ctag_granularity = g->ops.fb.compression_page_size(g);
+	u32 ctag_granularity = g->ops.fb.compression_page_size(g);
 	struct nvgpu_gmmu_attrs attrs = {
 		.pgsz      = pgsz_idx,
 		.kind_v    = kind_v,
 		.ctag      = (u64)ctag_offset * (u64)ctag_granularity,
-		.cacheable = flags & NVGPU_VM_MAP_CACHEABLE,
+		.cacheable = ((flags & NVGPU_VM_MAP_CACHEABLE) != 0U),
 		.rw_flag   = rw_flag,
 		.sparse    = sparse,
 		.priv      = priv,
@@ -855,11 +858,11 @@ void gk20a_locked_gmmu_unmap(struct vm_gk20a *vm,
 		.pgsz      = pgsz_idx,
 		.kind_v    = 0,
 		.ctag      = 0,
-		.cacheable = 0,
+		.cacheable = false,
 		.rw_flag   = rw_flag,
 		.sparse    = sparse,
-		.priv      = 0,
-		.valid     = 0,
+		.priv      = false,
+		.valid     = false,
 		.aperture  = APERTURE_INVALID,
 	};
 

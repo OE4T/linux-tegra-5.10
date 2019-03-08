@@ -397,7 +397,8 @@ u64 vgpu_locked_gmmu_map(struct vm_gk20a *vm,
 	p->gpu_va = map_offset;
 	p->size = buffer_size;
 	p->mem_desc_count = mem_desc_count;
-	p->pgsz_idx = pgsz_idx;
+	nvgpu_assert(pgsz_idx <= U32(U8_MAX));
+	p->pgsz_idx = U8(pgsz_idx);
 	p->iova = 0;
 	p->kind = kind_v;
 	if (flags & NVGPU_VM_MAP_CACHEABLE) {

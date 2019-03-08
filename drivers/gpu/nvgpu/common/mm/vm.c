@@ -67,7 +67,7 @@ int vm_aspace_id(struct vm_gk20a *vm)
  * example, for gp10b, with a last level address bit PDE range of 28 to 21 the
  * amount of memory each last level PDE addresses is 21 bits - i.e 2MB.
  */
-int nvgpu_vm_pde_coverage_bit_count(struct vm_gk20a *vm)
+u32 nvgpu_vm_pde_coverage_bit_count(struct vm_gk20a *vm)
 {
 	int final_pde_level = 0;
 
@@ -87,7 +87,7 @@ static void nvgpu_vm_do_free_entries(struct vm_gk20a *vm,
 				     struct nvgpu_gmmu_pd *pd,
 				     int level)
 {
-	int i;
+	u32 i;
 
 	if (pd->mem != NULL) {
 		nvgpu_pd_free(vm, pd);
@@ -108,7 +108,7 @@ static void nvgpu_vm_free_entries(struct vm_gk20a *vm,
 				  struct nvgpu_gmmu_pd *pdb)
 {
 	struct gk20a *g = vm->mm->g;
-	int i;
+	u32 i;
 
 	nvgpu_pd_free(vm, pdb);
 
