@@ -2704,8 +2704,8 @@ static int gk20a_init_gr_bind_fecs_elpg(struct gk20a *g)
 		return err;
 	}
 
-	if (pmu->pg_buf.cpu_va == NULL) {
-		err = nvgpu_dma_alloc_map_sys(vm, size, &pmu->pg_buf);
+	if (pmu->pmu_pg.pg_buf.cpu_va == NULL) {
+		err = nvgpu_dma_alloc_map_sys(vm, size, &pmu->pmu_pg.pg_buf);
 		if (err != 0) {
 			nvgpu_err(g, "failed to allocate memory");
 			return -ENOMEM;
@@ -2720,7 +2720,7 @@ static int gk20a_init_gr_bind_fecs_elpg(struct gk20a *g)
 		return err;
 	}
 
-	err = gr_gk20a_fecs_set_reglist_virtual_addr(g, pmu->pg_buf.gpu_va);
+	err = gr_gk20a_fecs_set_reglist_virtual_addr(g, pmu->pmu_pg.pg_buf.gpu_va);
 	if (err != 0) {
 		nvgpu_err(g,
 			"fail to set pg buffer pmu va");
@@ -2916,7 +2916,7 @@ int gk20a_gr_reset(struct gk20a *g)
 		return err;
 	}
 
-	err = gr_gk20a_fecs_set_reglist_virtual_addr(g, g->pmu.pg_buf.gpu_va);
+	err = gr_gk20a_fecs_set_reglist_virtual_addr(g, g->pmu.pmu_pg.pg_buf.gpu_va);
 	if (err != 0) {
 		nvgpu_err(g,
 			"fail to set pg buffer pmu va");

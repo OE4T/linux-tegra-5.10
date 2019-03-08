@@ -1677,8 +1677,8 @@ static void nvgpu_remove_pmu_support(struct nvgpu_pmu *pmu)
 		nvgpu_dma_unmap_free(vm, &pmu->super_surface_buf);
 	}
 
-	nvgpu_mutex_destroy(&pmu->elpg_mutex);
-	nvgpu_mutex_destroy(&pmu->pg_mutex);
+	nvgpu_mutex_destroy(&pmu->pmu_pg.elpg_mutex);
+	nvgpu_mutex_destroy(&pmu->pmu_pg.pg_mutex);
 	nvgpu_mutex_destroy(&pmu->isr_mutex);
 	nvgpu_mutex_destroy(&pmu->pmu_copy_lock);
 	nvgpu_mutex_destroy(&pmu->pmu_seq_lock);
@@ -1776,12 +1776,12 @@ int nvgpu_early_init_pmu_sw(struct gk20a *g, struct nvgpu_pmu *pmu)
 		goto exit;
 	}
 
-	err = nvgpu_mutex_init(&pmu->elpg_mutex);
+	err = nvgpu_mutex_init(&pmu->pmu_pg.elpg_mutex);
 	if (err != 0) {
 		return err;
 	}
 
-	err = nvgpu_mutex_init(&pmu->pg_mutex);
+	err = nvgpu_mutex_init(&pmu->pmu_pg.pg_mutex);
 	if (err != 0) {
 		goto fail_elpg;
 	}
@@ -1817,9 +1817,9 @@ fail_pmu_copy:
 fail_isr:
 	nvgpu_mutex_destroy(&pmu->isr_mutex);
 fail_pg:
-	nvgpu_mutex_destroy(&pmu->pg_mutex);
+	nvgpu_mutex_destroy(&pmu->pmu_pg.pg_mutex);
 fail_elpg:
-	nvgpu_mutex_destroy(&pmu->elpg_mutex);
+	nvgpu_mutex_destroy(&pmu->pmu_pg.elpg_mutex);
 exit:
 	return err;
 }

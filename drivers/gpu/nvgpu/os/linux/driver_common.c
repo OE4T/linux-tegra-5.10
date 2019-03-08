@@ -196,11 +196,11 @@ static void nvgpu_init_pm_vars(struct gk20a *g)
 		nvgpu_set_enabled(g, NVGPU_PMU_PERFMON, platform->enable_perfmon);
 
 		/* set default values to aelpg parameters */
-		g->pmu.aelpg_param[0] = APCTRL_SAMPLING_PERIOD_PG_DEFAULT_US;
-		g->pmu.aelpg_param[1] = APCTRL_MINIMUM_IDLE_FILTER_DEFAULT_US;
-		g->pmu.aelpg_param[2] = APCTRL_MINIMUM_TARGET_SAVING_DEFAULT_US;
-		g->pmu.aelpg_param[3] = APCTRL_POWER_BREAKEVEN_DEFAULT_US;
-		g->pmu.aelpg_param[4] = APCTRL_CYCLES_PER_SAMPLE_MAX_DEFAULT;
+		g->pmu.pmu_pg.aelpg_param[0] = APCTRL_SAMPLING_PERIOD_PG_DEFAULT_US;
+		g->pmu.pmu_pg.aelpg_param[1] = APCTRL_MINIMUM_IDLE_FILTER_DEFAULT_US;
+		g->pmu.pmu_pg.aelpg_param[2] = APCTRL_MINIMUM_TARGET_SAVING_DEFAULT_US;
+		g->pmu.pmu_pg.aelpg_param[3] = APCTRL_POWER_BREAKEVEN_DEFAULT_US;
+		g->pmu.pmu_pg.aelpg_param[4] = APCTRL_CYCLES_PER_SAMPLE_MAX_DEFAULT;
 	}
 
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_ASPM, !platform->disable_aspm);

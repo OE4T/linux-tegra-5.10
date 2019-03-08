@@ -31,11 +31,29 @@
 #include <nvgpu/pmuif/nvgpu_gpmu_cmdif.h>
 #include <nvgpu/pmuif/gpmu_super_surf_if.h>
 #include <nvgpu/timers.h>
+#include <nvgpu/nvgpu_mem.h>
 
 struct nvgpu_pg_init {
 	bool state_change;
 	struct nvgpu_cond wq;
 	struct nvgpu_thread state_task;
+};
+
+struct nvgpu_pmu_pg {
+	u32 elpg_stat;
+#define PMU_ELPG_ENABLE_ALLOW_DELAY_MSEC	1U /* msec */
+	struct nvgpu_pg_init pg_init;
+	struct nvgpu_mutex pg_mutex; /* protect pg-RPPG/MSCG enable/disable */
+	struct nvgpu_mutex elpg_mutex; /* protect elpg enable/disable */
+	/* disable -1, enable +1, <=0 elpg disabled, > 0 elpg enabled */
+	int elpg_refcnt;
+	u32 aelpg_param[5];
+	bool zbc_ready;
+	bool zbc_save_done;
+	bool buf_loaded;
+	struct nvgpu_mem pg_buf;
+	bool initialized;
+	u32 stat_dmem_offset[PMU_PG_ELPG_ENGINE_ID_INVALID_ENGINE];
 };
 
 /*PG defines used by nvpgu-pmu*/

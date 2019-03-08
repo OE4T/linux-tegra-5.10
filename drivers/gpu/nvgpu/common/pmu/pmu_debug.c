@@ -35,7 +35,7 @@ void nvgpu_pmu_dump_elpg_stats(struct nvgpu_pmu *pmu)
 	/* Print PG stats */
 	nvgpu_err(g, "Print PG stats");
 	nvgpu_falcon_print_dmem(&pmu->flcn,
-		pmu->stat_dmem_offset[PMU_PG_ELPG_ENGINE_ID_GRAPHICS],
+		pmu->pmu_pg.stat_dmem_offset[PMU_PG_ELPG_ENGINE_ID_GRAPHICS],
 		(u32)sizeof(struct pmu_pg_stats_v2));
 
 	g->ops.pmu.pmu_dump_elpg_stats(pmu);
@@ -49,7 +49,7 @@ void nvgpu_pmu_dump_falcon_stats(struct nvgpu_pmu *pmu)
 	g->ops.pmu.pmu_dump_falcon_stats(pmu);
 
 	nvgpu_err(g, "pmu state: %d", pmu->pmu_state);
-	nvgpu_err(g, "elpg state: %d", pmu->elpg_stat);
+	nvgpu_err(g, "elpg state: %d", pmu->pmu_pg.elpg_stat);
 
 	/* PMU may crash due to FECS crash. Dump FECS status */
 	g->ops.gr.dump_gr_falcon_stats(g);

@@ -579,7 +579,7 @@ static ssize_t aelpg_param_store(struct device *dev,
 	struct gk20a *g = get_gk20a(dev);
 	int status = 0;
 	union pmu_ap_cmd ap_cmd;
-	int *paramlist = (int *)g->pmu.aelpg_param;
+	int *paramlist = (int *)g->pmu.pmu_pg.aelpg_param;
 	u32 defaultparam[5] = {
 			APCTRL_SAMPLING_PERIOD_PG_DEFAULT_US,
 			APCTRL_MINIMUM_IDLE_FILTER_DEFAULT_US,
@@ -622,9 +622,9 @@ static ssize_t aelpg_param_read(struct device *dev,
 	struct gk20a *g = get_gk20a(dev);
 
 	return snprintf(buf, PAGE_SIZE,
-		"%d %d %d %d %d\n", g->pmu.aelpg_param[0],
-		g->pmu.aelpg_param[1], g->pmu.aelpg_param[2],
-		g->pmu.aelpg_param[3], g->pmu.aelpg_param[4]);
+		"%d %d %d %d %d\n", g->pmu.pmu_pg.aelpg_param[0],
+		g->pmu.pmu_pg.aelpg_param[1], g->pmu.pmu_pg.aelpg_param[2],
+		g->pmu.pmu_pg.aelpg_param[3], g->pmu.pmu_pg.aelpg_param[4]);
 }
 
 static DEVICE_ATTR(aelpg_param, ROOTRW,

@@ -24,7 +24,6 @@
 #define NVGPU_PMU_H
 
 #include <nvgpu/kmem.h>
-#include <nvgpu/nvgpu_mem.h>
 #include <nvgpu/allocator.h>
 #include <nvgpu/lock.h>
 #include <nvgpu/nvgpu_common.h>
@@ -318,8 +317,6 @@ struct nvgpu_pmu {
 
 	struct nvgpu_mem ucode;
 
-	struct nvgpu_mem pg_buf;
-
 	/* TBD: remove this if ZBC seq is fixed */
 	struct nvgpu_mem seq_buf;
 	struct nvgpu_mem trace_buf;
@@ -330,8 +327,6 @@ struct nvgpu_pmu {
 		ssmd_set[NV_PMU_SUPER_SURFACE_MEMBER_DESCRIPTOR_COUNT];
 	struct nv_pmu_super_surface_member_descriptor
 		ssmd_get_status[NV_PMU_SUPER_SURFACE_MEMBER_DESCRIPTOR_COUNT];
-
-	bool buf_loaded;
 
 	struct pmu_sha1_gid gid_info;
 
@@ -356,30 +351,16 @@ struct nvgpu_pmu {
 
 	u32 perfmon_query;
 
-	bool zbc_save_done;
-
-	u32 stat_dmem_offset[PMU_PG_ELPG_ENGINE_ID_INVALID_ENGINE];
-
-	u32 elpg_stat;
-
 	u32 mscg_stat;
 	u32 mscg_transition_state;
 
 	u32 pmu_state;
 
-#define PMU_ELPG_ENABLE_ALLOW_DELAY_MSEC	1U /* msec */
-	struct nvgpu_pg_init pg_init;
-	struct nvgpu_mutex pg_mutex; /* protect pg-RPPG/MSCG enable/disable */
-	struct nvgpu_mutex elpg_mutex; /* protect elpg enable/disable */
-	/* disable -1, enable +1, <=0 elpg disabled, > 0 elpg enabled */
-	int elpg_refcnt;
-
+	struct nvgpu_pmu_pg pmu_pg;
 	union {
 		struct pmu_perfmon_counter_v2 perfmon_counter_v2;
 	};
 	u8 perfmon_state_id[PMU_DOMAIN_GROUP_NUM];
-
-	bool initialized;
 
 	void (*remove_support)(struct nvgpu_pmu *pmu);
 	bool sw_ready;
@@ -393,7 +374,6 @@ struct nvgpu_pmu {
 	struct nvgpu_mutex isr_mutex;
 	bool isr_enabled;
 
-	bool zbc_ready;
 	union {
 		struct pmu_cmdline_args_v3 args_v3;
 		struct pmu_cmdline_args_v4 args_v4;
@@ -402,7 +382,6 @@ struct nvgpu_pmu {
 	};
 	unsigned long perfmon_events_cnt;
 	bool perfmon_sampling_enabled;
-	u32 aelpg_param[5];
 	u32 override_done;
 };
 

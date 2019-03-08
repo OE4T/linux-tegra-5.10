@@ -149,11 +149,10 @@ static int nvgpu_init_pmu_setup_sw(struct gk20a *g)
 	nvgpu_log_fn(g, " ");
 
 	/* start with elpg disabled until first enable call */
-	pmu->elpg_refcnt = 0;
+	pmu->pmu_pg.elpg_refcnt = 0;
 
 	/* Create thread to handle PMU state machine */
 	nvgpu_init_task_pg_init(g);
-
 	if (pmu->sw_ready) {
 		for (i = 0; i < pmu->mutex_cnt; i++) {
 			pmu->mutex[i].id    = i;
@@ -252,7 +251,7 @@ int nvgpu_init_pmu_support(struct gk20a *g)
 
 	nvgpu_log_fn(g, " ");
 
-	if (pmu->initialized) {
+	if (pmu->pmu_pg.initialized) {
 		return 0;
 	}
 
@@ -535,8 +534,8 @@ void nvgpu_pmu_state_change(struct gk20a *g, u32 pmu_state,
 	pmu->pmu_state = pmu_state;
 
 	if (post_change_event) {
-		pmu->pg_init.state_change = true;
-		nvgpu_cond_signal(&pmu->pg_init.wq);
+		pmu->pmu_pg.pg_init.state_change = true;
+		nvgpu_cond_signal(&pmu->pmu_pg.pg_init.wq);
 	}
 
 	/* make status visible */
@@ -554,7 +553,6 @@ int nvgpu_pmu_destroy(struct gk20a *g)
 	if (!g->support_ls_pmu) {
 		return 0;
 	}
-
 	nvgpu_kill_task_pg_init(g);
 
 	nvgpu_pmu_get_pg_stats(g,
@@ -563,7 +561,7 @@ int nvgpu_pmu_destroy(struct gk20a *g)
 	if (nvgpu_pmu_disable_elpg(g) != 0) {
 		nvgpu_err(g, "failed to set disable elpg");
 	}
-	pmu->initialized = false;
+	pmu->pmu_pg.initialized = false;
 
 	/* update the s/w ELPG residency counters */
 	g->pg_ingating_time_us += (u64)pg_stat_data.ingating_time;
@@ -582,7 +580,7 @@ int nvgpu_pmu_destroy(struct gk20a *g)
 	nvgpu_pmu_state_change(g, PMU_STATE_OFF, false);
 	pmu->pmu_ready = false;
 	pmu->perfmon_ready = false;
-	pmu->zbc_ready = false;
+	pmu->pmu_pg.zbc_ready = false;
 	g->pmu_lsf_pmu_wpr_init_done = false;
 	nvgpu_set_enabled(g, NVGPU_PMU_FECS_BOOTSTRAP_DONE, false);
 
