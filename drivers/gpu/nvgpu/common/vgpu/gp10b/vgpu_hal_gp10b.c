@@ -48,6 +48,7 @@
 
 #include "common/vgpu/fifo/fifo_vgpu.h"
 #include "common/vgpu/fifo/runlist_vgpu.h"
+#include "common/vgpu/fifo/ramfc_vgpu.h"
 #include "common/vgpu/fifo/userd_vgpu.h"
 #include "common/vgpu/gr/gr_vgpu.h"
 #include "common/vgpu/gr/ctx_vgpu.h"
@@ -404,7 +405,6 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 		.init_fifo_setup_hw = vgpu_init_fifo_setup_hw,
 		.alloc_inst = vgpu_channel_alloc_inst,
 		.free_inst = vgpu_channel_free_inst,
-		.setup_ramfc = vgpu_channel_setup_ramfc,
 		.default_timeslice_us = vgpu_fifo_default_timeslice_us,
 		.preempt_channel = vgpu_fifo_preempt_channel,
 		.preempt_tsg = vgpu_fifo_preempt_tsg,
@@ -484,6 +484,10 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 	},
 	.pbdma_status = {
 		.read_pbdma_status_info = NULL,
+	},
+	.ramfc = {
+		.setup = vgpu_ramfc_setup,
+		.commit_userd = NULL,
 	},
 	.runlist = {
 		.reschedule = NULL,
@@ -732,6 +736,7 @@ int vgpu_gp10b_init_hal(struct gk20a *g)
 	gops->fifo = vgpu_gp10b_ops.fifo;
 	gops->engine = vgpu_gp10b_ops.engine;
 	gops->pbdma = vgpu_gp10b_ops.pbdma;
+	gops->ramfc = vgpu_gp10b_ops.ramfc;
 	gops->runlist = vgpu_gp10b_ops.runlist;
 	gops->userd = vgpu_gp10b_ops.userd;
 	gops->channel = vgpu_gp10b_ops.channel;

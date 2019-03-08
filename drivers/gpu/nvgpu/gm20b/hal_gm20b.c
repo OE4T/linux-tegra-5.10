@@ -53,6 +53,7 @@
 #include "hal/fifo/engines_gm20b.h"
 #include "hal/fifo/engine_status_gm20b.h"
 #include "hal/fifo/pbdma_status_gm20b.h"
+#include "hal/fifo/ramfc_gk20a.h"
 #include "hal/fifo/userd_gk20a.h"
 #include "hal/fifo/fifo_intr_gk20a.h"
 #include "hal/fifo/ctxsw_timeout_gk20a.h"
@@ -558,7 +559,6 @@ static const struct gpu_ops gm20b_ops = {
 		.init_fifo_setup_hw = gk20a_init_fifo_setup_hw,
 		.alloc_inst = gk20a_fifo_alloc_inst,
 		.free_inst = gk20a_fifo_free_inst,
-		.setup_ramfc = gk20a_fifo_setup_ramfc,
 		.default_timeslice_us = gk20a_fifo_default_timeslice_us,
 		.preempt_channel = gk20a_fifo_preempt_channel,
 		.preempt_tsg = gk20a_fifo_preempt_tsg,
@@ -646,6 +646,10 @@ static const struct gpu_ops gm20b_ops = {
 	.pbdma_status = {
 		.read_pbdma_status_info =
 			gm20b_read_pbdma_status_info,
+	},
+	.ramfc = {
+		.setup = gk20a_ramfc_setup,
+		.commit_userd = gk20a_ramfc_commit_userd,
 	},
 	.runlist = {
 		.update_for_channel = gk20a_runlist_update_for_channel,
@@ -944,6 +948,7 @@ int gm20b_init_hal(struct gk20a *g)
 	gops->fifo = gm20b_ops.fifo;
 	gops->engine = gm20b_ops.engine;
 	gops->pbdma = gm20b_ops.pbdma;
+	gops->ramfc = gm20b_ops.ramfc;
 	gops->runlist = gm20b_ops.runlist;
 	gops->userd = gm20b_ops.userd;
 	gops->channel = gm20b_ops.channel;

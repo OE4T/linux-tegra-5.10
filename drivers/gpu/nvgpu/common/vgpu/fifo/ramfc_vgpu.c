@@ -1,5 +1,7 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Virtualized GPU Channel RAMFC
+ *
+ * Copyright (c) 2014-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -20,20 +22,31 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NVGPU_FIFO_TU104_H
-#define NVGPU_FIFO_TU104_H
+#include <nvgpu/vgpu/vgpu_ivc.h>
+#include <nvgpu/vgpu/vgpu.h>
+#include <nvgpu/gk20a.h>
+#include <nvgpu/channel.h>
 
-#include <nvgpu/types.h>
+#include "ramfc_vgpu.h"
 
-struct gk20a;
-struct channel_gk20a;
+int vgpu_ramfc_setup(struct channel_gk20a *ch, u64 gpfifo_base,
+		u32 gpfifo_entries, u64 pbdma_acquire_timeout, u32 flags)
+{
+	struct tegra_vgpu_cmd_msg msg;
+	struct tegra_vgpu_ramfc_params *p = &msg.params.ramfc;
+	int err;
+	struct gk20a *g = ch->g;
 
-int tu104_init_fifo_setup_hw(struct gk20a *g);
-void tu104_ring_channel_doorbell(struct channel_gk20a *c);
-u64 tu104_fifo_usermode_base(struct gk20a *g);
-u32 tu104_fifo_doorbell_token(struct channel_gk20a *c);
+	nvgpu_log_fn(g, " ");
 
-int tu104_init_pdb_cache_war(struct gk20a *g);
-void tu104_deinit_pdb_cache_war(struct gk20a *g);
+	msg.cmd = TEGRA_VGPU_CMD_CHANNEL_SETUP_RAMFC;
+	msg.handle = vgpu_get_handle(ch->g);
+	p->handle = ch->virt_ctx;
+	p->gpfifo_va = gpfifo_base;
+	p->num_entries = gpfifo_entries;
+	p->userd_addr = ch->userd_iova;
+	p->iova = 0;
+	err = vgpu_comm_sendrecv(&msg, sizeof(msg), sizeof(msg));
 
-#endif /* NVGPU_FIFO_TU104_H */
+	return (err || msg.ret) ? -ENOMEM : 0;
+}

@@ -47,9 +47,6 @@ void gv11b_fifo_reset_pbdma_and_eng_faulted(struct gk20a *g,
 void gv11b_mmu_fault_id_to_eng_pbdma_id_and_veid(struct gk20a *g,
 	u32 mmu_fault_id, u32 *active_engine_id, u32 *veid, u32 *pbdma_id);
 
-int channel_gv11b_setup_ramfc(struct channel_gk20a *c,
-		u64 gpfifo_base, u32 gpfifo_entries,
-		unsigned long acquire_timeout, u32 flags);
 void gv11b_dump_channel_status_ramfc(struct gk20a *g,
 				     struct gk20a_debug_output *o,
 				     struct nvgpu_channel_dump_info *info);

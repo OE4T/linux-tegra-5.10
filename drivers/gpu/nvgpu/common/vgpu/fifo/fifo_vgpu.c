@@ -158,29 +158,6 @@ void vgpu_channel_disable(struct channel_gk20a *ch)
 	WARN_ON(err || msg.ret);
 }
 
-int vgpu_channel_setup_ramfc(struct channel_gk20a *ch, u64 gpfifo_base,
-				u32 gpfifo_entries,
-				unsigned long acquire_timeout, u32 flags)
-{
-	struct tegra_vgpu_cmd_msg msg;
-	struct tegra_vgpu_ramfc_params *p = &msg.params.ramfc;
-	int err;
-	struct gk20a *g = ch->g;
-
-	nvgpu_log_fn(g, " ");
-
-	msg.cmd = TEGRA_VGPU_CMD_CHANNEL_SETUP_RAMFC;
-	msg.handle = vgpu_get_handle(ch->g);
-	p->handle = ch->virt_ctx;
-	p->gpfifo_va = gpfifo_base;
-	p->num_entries = gpfifo_entries;
-	p->userd_addr = ch->userd_iova;
-	p->iova = 0;
-	err = vgpu_comm_sendrecv(&msg, sizeof(msg), sizeof(msg));
-
-	return (err || msg.ret) ? -ENOMEM : 0;
-}
-
 int vgpu_fifo_init_engine_info(struct fifo_gk20a *f)
 {
 	struct vgpu_priv_data *priv = vgpu_get_priv_data(f->g);

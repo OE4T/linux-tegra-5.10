@@ -227,6 +227,10 @@ nvgpu-y += \
 	hal/fifo/engine_status_gm20b.o \
 	hal/fifo/engine_status_gv100.o \
 	hal/fifo/pbdma_status_gm20b.o \
+	hal/fifo/ramfc_gk20a.o \
+	hal/fifo/ramfc_gp10b.o \
+	hal/fifo/ramfc_gv11b.o \
+	hal/fifo/ramfc_tu104.o \
 	hal/fifo/userd_gk20a.o \
 	hal/fifo/userd_gv11b.o \
 	hal/fifo/fifo_intr_gk20a.o \
@@ -466,6 +470,7 @@ nvgpu-$(CONFIG_TEGRA_GR_VIRTUALIZATION) += \
 	common/vgpu/fifo/fifo_vgpu.o \
 	common/vgpu/fifo/runlist_vgpu.o \
 	common/vgpu/fifo/vgpu_fifo_gv11b.o \
+	common/vgpu/fifo/ramfc_vgpu.o \
 	common/vgpu/fifo/userd_vgpu.o \
 	common/vgpu/ce_vgpu.o \
 	common/vgpu/mm/mm_vgpu.o \

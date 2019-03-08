@@ -44,73 +44,6 @@
 #include <nvgpu/hw/tu104/hw_func_tu104.h>
 #include <nvgpu/hw/tu104/hw_ctrl_tu104.h>
 
-int channel_tu104_setup_ramfc(struct channel_gk20a *c,
-                u64 gpfifo_base, u32 gpfifo_entries,
-                unsigned long acquire_timeout, u32 flags)
-{
-	struct gk20a *g = c->g;
-	struct nvgpu_mem *mem = &c->inst_block;
-	u32 data;
-
-	nvgpu_log_fn(g, " ");
-
-	nvgpu_memset(g, mem, 0, 0, ram_fc_size_val_v());
-
-	nvgpu_mem_wr32(g, mem, ram_fc_gp_base_w(),
-		pbdma_gp_base_offset_f(
-		u64_lo32(gpfifo_base >> pbdma_gp_base_rsvd_s())));
-
-	nvgpu_mem_wr32(g, mem, ram_fc_gp_base_hi_w(),
-		pbdma_gp_base_hi_offset_f(u64_hi32(gpfifo_base)) |
-		pbdma_gp_base_hi_limit2_f(ilog2(gpfifo_entries)));
-
-	nvgpu_mem_wr32(g, mem, ram_fc_signature_w(),
-		c->g->ops.pbdma.get_pbdma_signature(c->g));
-
-	nvgpu_mem_wr32(g, mem, ram_fc_pb_header_w(),
-		pbdma_pb_header_method_zero_f() |
-		pbdma_pb_header_subchannel_zero_f() |
-		pbdma_pb_header_level_main_f() |
-		pbdma_pb_header_first_true_f() |
-		pbdma_pb_header_type_inc_f());
-
-	nvgpu_mem_wr32(g, mem, ram_fc_subdevice_w(),
-		pbdma_subdevice_id_f(PBDMA_SUBDEVICE_ID) |
-		pbdma_subdevice_status_active_f() |
-		pbdma_subdevice_channel_dma_enable_f());
-
-	nvgpu_mem_wr32(g, mem, ram_fc_target_w(),
-		pbdma_target_eng_ctx_valid_true_f() |
-		pbdma_target_ce_ctx_valid_true_f() |
-		pbdma_target_engine_sw_f());
-
-	nvgpu_mem_wr32(g, mem, ram_fc_acquire_w(),
-		g->ops.pbdma.pbdma_acquire_val(acquire_timeout));
-
-	nvgpu_mem_wr32(g, mem, ram_fc_set_channel_info_w(),
-		pbdma_set_channel_info_veid_f(c->subctx_id));
-
-	nvgpu_mem_wr32(g, mem, ram_in_engine_wfi_veid_w(),
-		ram_in_engine_wfi_veid_f(c->subctx_id));
-
-	gv11b_fifo_init_ramfc_eng_method_buffer(g, c, mem);
-
-	if (c->is_privileged_channel) {
-		/* Set privilege level for channel */
-		nvgpu_mem_wr32(g, mem, ram_fc_config_w(),
-		pbdma_config_auth_level_privileged_f());
-
-		gk20a_fifo_setup_ramfc_for_privileged_channel(c);
-	}
-
-	/* Enable userd writeback */
-	data = nvgpu_mem_rd32(g, mem, ram_fc_config_w());
-	data = data | pbdma_config_userd_writeback_enable_f();
-	nvgpu_mem_wr32(g, mem, ram_fc_config_w(),data);
-
-	return channel_gp10b_commit_userd(c);
-}
-
 int tu104_init_fifo_setup_hw(struct gk20a *g)
 {
 	u32 val;
@@ -237,3 +170,4 @@ void tu104_deinit_pdb_cache_war(struct gk20a *g)
 		nvgpu_dma_free(g, &g->pdb_cache_war_mem);
 	}
 }
+

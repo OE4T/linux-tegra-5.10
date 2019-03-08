@@ -873,10 +873,6 @@ struct gpu_ops {
 		int (*init_fifo_setup_hw)(struct gk20a *g);
 		int (*alloc_inst)(struct gk20a *g, struct channel_gk20a *ch);
 		void (*free_inst)(struct gk20a *g, struct channel_gk20a *ch);
-		int (*setup_ramfc)(struct channel_gk20a *c, u64 gpfifo_base,
-				u32 gpfifo_entries,
-				unsigned long acquire_timeout,
-				u32 flags);
 		int (*resetup_ramfc)(struct channel_gk20a *c);
 		int (*preempt_channel)(struct gk20a *g, struct channel_gk20a *ch);
 		int (*preempt_tsg)(struct gk20a *g, struct tsg_gk20a *tsg);
@@ -958,6 +954,12 @@ struct gpu_ops {
 		bool (*handle_ctxsw_timeout)(struct gk20a *g);
 
 	} fifo;
+	struct {
+		int (*setup)(struct channel_gk20a *ch, u64 gpfifo_base,
+				u32 gpfifo_entries, u64 pbdma_acquire_timeout,
+				u32 flags);
+		int (*commit_userd)(struct channel_gk20a *ch);
+	} ramfc;
 	struct {
 		int (*reschedule)(struct channel_gk20a *ch, bool preempt_next);
 		int (*reschedule_preempt_next_locked)(struct channel_gk20a *ch,

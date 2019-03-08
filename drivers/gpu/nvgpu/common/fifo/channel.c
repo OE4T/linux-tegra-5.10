@@ -1170,7 +1170,7 @@ int nvgpu_channel_setup_bind(struct channel_gk20a *c,
 	u32 gpfifo_size, gpfifo_entry_size;
 	u64 gpfifo_gpu_va;
 	int err = 0;
-	unsigned long acquire_timeout;
+	u64 pbdma_acquire_timeout;
 
 	gpfifo_size = args->num_gpfifo_entries;
 	gpfifo_entry_size = nvgpu_get_gpfifo_entry_size();
@@ -1283,14 +1283,14 @@ int nvgpu_channel_setup_bind(struct channel_gk20a *c,
 	}
 
 	if (!nvgpu_is_timeouts_enabled(c->g) || !c->wdt.enabled) {
-		acquire_timeout = 0;
+		pbdma_acquire_timeout = 0;
 	} else {
-		acquire_timeout = c->wdt.limit_ms;
+		pbdma_acquire_timeout = c->wdt.limit_ms;
 	}
 
-	err = g->ops.fifo.setup_ramfc(c, gpfifo_gpu_va,
-					c->gpfifo.entry_num,
-					acquire_timeout, args->flags);
+	err = g->ops.ramfc.setup(c, gpfifo_gpu_va,
+			c->gpfifo.entry_num, pbdma_acquire_timeout,
+			args->flags);
 	if (err != 0) {
 		goto clean_up_sync;
 	}

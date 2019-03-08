@@ -55,6 +55,8 @@
 #include "hal/fifo/pbdma_gv11b.h"
 #include "hal/fifo/pbdma_tu104.h"
 #include "hal/fifo/engines_gv11b.h"
+#include "hal/fifo/ramfc_gp10b.h"
+#include "hal/fifo/ramfc_tu104.h"
 #include "hal/fifo/userd_gk20a.h"
 #include "hal/fifo/userd_gv11b.h"
 #include "hal/fifo/fifo_intr_gk20a.h"
@@ -847,7 +849,6 @@ static const struct gpu_ops tu104_ops = {
 		.init_fifo_setup_hw = tu104_init_fifo_setup_hw,
 		.alloc_inst = gk20a_fifo_alloc_inst,
 		.free_inst = gk20a_fifo_free_inst,
-		.setup_ramfc = channel_tu104_setup_ramfc,
 		.default_timeslice_us = gk20a_fifo_default_timeslice_us,
 		.preempt_channel = gv11b_fifo_preempt_channel,
 		.preempt_tsg = gv11b_fifo_preempt_tsg,
@@ -946,6 +947,10 @@ static const struct gpu_ops tu104_ops = {
 	.pbdma_status = {
 		.read_pbdma_status_info =
 			gm20b_read_pbdma_status_info,
+	},
+	.ramfc = {
+		.setup = tu104_ramfc_setup,
+		.commit_userd = gp10b_ramfc_commit_userd,
 	},
 	.runlist = {
 		.update_for_channel = gk20a_runlist_update_for_channel,
@@ -1369,6 +1374,7 @@ int tu104_init_hal(struct gk20a *g)
 	gops->fifo = tu104_ops.fifo;
 	gops->engine = tu104_ops.engine;
 	gops->pbdma = tu104_ops.pbdma;
+	gops->ramfc = tu104_ops.ramfc;
 	gops->runlist = tu104_ops.runlist;
 	gops->userd = tu104_ops.userd;
 	gops->channel = tu104_ops.channel;

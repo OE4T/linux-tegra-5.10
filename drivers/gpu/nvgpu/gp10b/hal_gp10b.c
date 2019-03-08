@@ -62,6 +62,7 @@
 #include "hal/fifo/engines_gm20b.h"
 #include "hal/fifo/engine_status_gm20b.h"
 #include "hal/fifo/pbdma_status_gm20b.h"
+#include "hal/fifo/ramfc_gp10b.h"
 #include "hal/fifo/userd_gk20a.h"
 #include "hal/fifo/fifo_intr_gk20a.h"
 #include "hal/fifo/ctxsw_timeout_gk20a.h"
@@ -637,7 +638,6 @@ static const struct gpu_ops gp10b_ops = {
 		.init_fifo_setup_hw = gk20a_init_fifo_setup_hw,
 		.alloc_inst = gk20a_fifo_alloc_inst,
 		.free_inst = gk20a_fifo_free_inst,
-		.setup_ramfc = channel_gp10b_setup_ramfc,
 		.default_timeslice_us = gk20a_fifo_default_timeslice_us,
 		.preempt_channel = gk20a_fifo_preempt_channel,
 		.preempt_tsg = gk20a_fifo_preempt_tsg,
@@ -726,6 +726,10 @@ static const struct gpu_ops gp10b_ops = {
 	.pbdma_status = {
 		.read_pbdma_status_info =
 			gm20b_read_pbdma_status_info,
+	},
+	.ramfc = {
+		.setup = gp10b_ramfc_setup,
+		.commit_userd = gp10b_ramfc_commit_userd,
 	},
 	.runlist = {
 		.reschedule = gk20a_runlist_reschedule,
@@ -1032,6 +1036,7 @@ int gp10b_init_hal(struct gk20a *g)
 	gops->fifo = gp10b_ops.fifo;
 	gops->engine = gp10b_ops.engine;
 	gops->pbdma = gp10b_ops.pbdma;
+	gops->ramfc = gp10b_ops.ramfc;
 	gops->runlist = gp10b_ops.runlist;
 	gops->userd = gp10b_ops.userd;
 	gops->channel = gp10b_ops.channel;
