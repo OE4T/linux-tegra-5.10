@@ -22,6 +22,44 @@
 
 static void mttcan_start(struct net_device *dev);
 
+/* We are reading cntvct_el0 for TSC time. We are not issuing ISB
+ * before reading the counter as by the time CAN irq comes and
+ * CAN softirq is executed, we would have lot of instruction executed.
+ * And we only wants to ensure that counter is read after CAN HW
+ * captures the timestamp and not before.
+ */
+static inline u64 __arch_counter_get_cntvct(void)
+{
+	u64 cval;
+
+	asm volatile("mrs %0, cntvct_el0" : "=r" (cval));
+
+	return cval;
+}
+
+static u64 mttcan_extend_timestamp(u16 captured, u64 tsc, u32 shift)
+{
+	u64 aligned_capture;
+	u64 masked_tsc;
+	u64 top_tsc;
+
+	aligned_capture = ((u64)captured) << shift;
+	masked_tsc = tsc & (MTTCAN_TSC_MASK << shift);
+	top_tsc = (tsc >> (MTTCAN_TSC_SIZE + shift)) <<
+		  (MTTCAN_TSC_SIZE + shift);
+
+	/* Capture is assumed in the past. If there was no rollover on the
+	 * 16 bits, masked_tsc >= aligned_capture, top_tsc can be used as is.
+	 * If there was a rollover on the 16 bits, masked tsc <
+	 * masked tsc < aligned_capture and top_tsc must be decreased
+	 * (by one rollover of CAN timestamp)
+	 */
+	if (masked_tsc < aligned_capture)
+		top_tsc = top_tsc - (0x1ULL << (MTTCAN_TSC_SIZE + shift));
+
+	return (top_tsc | aligned_capture);
+}
+
 static int mttcan_hw_init(struct mttcan_priv *priv)
 {
 	int err = 0;
@@ -272,12 +310,24 @@ static void mttcan_rx_hwtstamp(struct mttcan_priv *priv,
 			       struct sk_buff *skb, struct ttcanfd_frame *msg)
 {
 	u64 ns;
+	u64 tsc, extended_tsc;
 	unsigned long flags;
 	struct skb_shared_hwtstamps *hwtstamps = skb_hwtstamps(skb);
 
-	raw_spin_lock_irqsave(&priv->tc_lock, flags);
-	ns = timecounter_cyc2time(&priv->tc, msg->tstamp);
-	raw_spin_unlock_irqrestore(&priv->tc_lock, flags);
+	if (priv->sinfo->use_external_timer) {
+		/* Read the current TSC and calculate the MSB of captured
+		 * CAN TSC timestamp. Finally convert it to nsec.
+		 */
+		tsc = __arch_counter_get_cntvct();
+		extended_tsc = mttcan_extend_timestamp(msg->tstamp, tsc,
+						       TSC_REF_CLK_SHIFT);
+		ns = extended_tsc << 5;
+	} else {
+		raw_spin_lock_irqsave(&priv->tc_lock, flags);
+		ns = timecounter_cyc2time(&priv->tc, msg->tstamp);
+		raw_spin_unlock_irqrestore(&priv->tc_lock, flags);
+	}
+
 	memset(hwtstamps, 0, sizeof(struct skb_shared_hwtstamps));
 	hwtstamps->hwtstamp = ns_to_ktime(ns);
 }
@@ -1413,10 +1463,15 @@ static int mttcan_handle_hwtstamp_set(struct mttcan_priv *priv,
 
 	priv->hwtstamp_config = config;
 	/* Setup hardware time stamping cyclecounter */
-	if (rx_config_chg) {
-		if (config.rx_filter == HWTSTAMP_FILTER_ALL) {
-			mttcan_init_cyclecounter(priv);
+	if (rx_config_chg && (config.rx_filter == HWTSTAMP_FILTER_ALL)) {
+		mttcan_init_cyclecounter(priv);
 
+		/* we use TSC as base time for T194 and PTP for T186. */
+		if (priv->sinfo->use_external_timer) {
+			raw_spin_lock_irqsave(&priv->tc_lock, flags);
+			priv->hwts_rx_en = true;
+			raw_spin_unlock_irqrestore(&priv->tc_lock, flags);
+		} else {
 			raw_spin_lock_irqsave(&priv->tc_lock, flags);
 			ret = get_ptp_hwtime(&tref);
 			if (ret != 0) {
