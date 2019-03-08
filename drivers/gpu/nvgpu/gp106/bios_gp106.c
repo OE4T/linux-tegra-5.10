@@ -45,7 +45,7 @@
 static void upload_code(struct gk20a *g, u32 dst,
 			u8 *src, u32 size, u8 port, bool sec)
 {
-	nvgpu_falcon_copy_to_imem(g->pmu.flcn, dst, src, size, port, sec,
+	nvgpu_falcon_copy_to_imem(&g->pmu.flcn, dst, src, size, port, sec,
 		dst >> 8);
 }
 
@@ -81,7 +81,7 @@ int gp106_bios_devinit(struct gk20a *g)
 
 	nvgpu_log_fn(g, " ");
 
-	if (nvgpu_falcon_reset(g->pmu.flcn) != 0) {
+	if (nvgpu_falcon_reset(&g->pmu.flcn) != 0) {
 		err = -ETIMEDOUT;
 		goto out;
 	}
@@ -107,7 +107,7 @@ int gp106_bios_devinit(struct gk20a *g)
 			g->bios.bootscripts_size,
 			0);
 
-	err = nvgpu_falcon_bootstrap(g->pmu.flcn,
+	err = nvgpu_falcon_bootstrap(&g->pmu.flcn,
 					g->bios.devinit.code_entry_point);
 	if (err != 0) {
 		nvgpu_err(g, "falcon bootstrap failed %d", err);
@@ -131,7 +131,7 @@ int gp106_bios_devinit(struct gk20a *g)
 		goto out;
 	}
 
-	err = nvgpu_falcon_clear_halt_intr_status(g->pmu.flcn,
+	err = nvgpu_falcon_clear_halt_intr_status(&g->pmu.flcn,
 		gk20a_get_gr_idle_timeout(g));
 	if (err != 0) {
 		nvgpu_err(g, "falcon_clear_halt_intr_status failed %d", err);
@@ -145,7 +145,7 @@ out:
 
 int gp106_bios_preos_wait_for_halt(struct gk20a *g)
 {
-	return nvgpu_falcon_wait_for_halt(g->pmu.flcn,
+	return nvgpu_falcon_wait_for_halt(&g->pmu.flcn,
 					PMU_BOOT_TIMEOUT_MAX / 1000);
 }
 
@@ -155,7 +155,7 @@ int gp106_bios_preos(struct gk20a *g)
 
 	nvgpu_log_fn(g, " ");
 
-	if (nvgpu_falcon_reset(g->pmu.flcn) != 0) {
+	if (nvgpu_falcon_reset(&g->pmu.flcn) != 0) {
 		err = -ETIMEDOUT;
 		goto out;
 	}
@@ -177,7 +177,7 @@ int gp106_bios_preos(struct gk20a *g)
 			g->bios.preos.dmem_size,
 			0);
 
-	err = nvgpu_falcon_bootstrap(g->pmu.flcn,
+	err = nvgpu_falcon_bootstrap(&g->pmu.flcn,
 					g->bios.preos.code_entry_point);
 	if (err != 0) {
 		nvgpu_err(g, "falcon bootstrap failed %d", err);
@@ -190,7 +190,7 @@ int gp106_bios_preos(struct gk20a *g)
 		goto out;
 	}
 
-	err = nvgpu_falcon_clear_halt_intr_status(g->pmu.flcn,
+	err = nvgpu_falcon_clear_halt_intr_status(&g->pmu.flcn,
 			gk20a_get_gr_idle_timeout(g));
 	if (err != 0) {
 		nvgpu_err(g, "falcon_clear_halt_intr_status failed %d", err);

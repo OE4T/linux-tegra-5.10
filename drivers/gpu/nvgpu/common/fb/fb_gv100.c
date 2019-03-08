@@ -128,7 +128,7 @@ int gv100_fb_memory_unlock(struct gk20a *g)
 	/* Enable nvdec */
 	g->ops.mc.enable(g, g->ops.mc.reset_mask(g, NVGPU_UNIT_NVDEC));
 
-	err = nvgpu_acr_self_hs_load_bootstrap(g, g->nvdec_flcn, mem_unlock_fw,
+	err = nvgpu_acr_self_hs_load_bootstrap(g, &g->nvdec_flcn, mem_unlock_fw,
 		MEM_UNLOCK_TIMEOUT );
 	if (err != 0) {
 		nvgpu_err(g, "mem unlock HS ucode failed, err-0x%x", err);

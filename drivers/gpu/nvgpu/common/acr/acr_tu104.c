@@ -92,7 +92,7 @@ static void nvgpu_tu104_acr_ahesasc_sw_init(struct gk20a *g,
 	acr_ahesasc->ptr_bl_dmem_desc = &acr_ahesasc->bl_dmem_desc_v1;
 	acr_ahesasc->bl_dmem_desc_size = (u32)sizeof(struct flcn_bl_dmem_desc_v1);
 
-	acr_ahesasc->acr_flcn = g->sec2.flcn;
+	acr_ahesasc->acr_flcn = &g->sec2.flcn;
 	acr_ahesasc->acr_flcn_setup_hw_and_bl_bootstrap =
 		tu104_sec2_setup_hw_and_bl_bootstrap;
 }
@@ -116,7 +116,7 @@ static void nvgpu_tu104_acr_asb_sw_init(struct gk20a *g,
 	acr_asb->ptr_bl_dmem_desc = &acr_asb->bl_dmem_desc_v1;
 	acr_asb->bl_dmem_desc_size = (u32)sizeof(struct flcn_bl_dmem_desc_v1);
 
-	acr_asb->acr_flcn = g->gsp_flcn;
+	acr_asb->acr_flcn = &g->gsp_flcn;
 	acr_asb->acr_flcn_setup_hw_and_bl_bootstrap =
 		gv100_gsp_setup_hw_and_bl_bootstrap;
 }

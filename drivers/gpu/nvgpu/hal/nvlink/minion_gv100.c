@@ -225,7 +225,7 @@ int gv100_nvlink_minion_send_dlcmd(struct gk20a *g, u32 link_id,
  */
 void gv100_nvlink_minion_clear_intr(struct gk20a *g)
 {
-	nvgpu_falcon_set_irq(g->minion_flcn, true, MINION_FALCON_INTR_MASK,
+	nvgpu_falcon_set_irq(&g->minion_flcn, true, MINION_FALCON_INTR_MASK,
 						MINION_FALCON_INTR_DEST);
 }
 

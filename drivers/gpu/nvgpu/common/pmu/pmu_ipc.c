@@ -385,7 +385,7 @@ static int pmu_write_cmd(struct nvgpu_pmu *pmu, struct pmu_cmd *cmd,
 							 cmd, cmd->hdr.size);
 		} else {
 			queue = pmu->queue[queue_id];
-			err = nvgpu_engine_mem_queue_push(pmu->flcn, queue,
+			err = nvgpu_engine_mem_queue_push(&pmu->flcn, queue,
 							  cmd, cmd->hdr.size);
 		}
 
@@ -477,7 +477,7 @@ static int pmu_cmd_payload_setup_rpc(struct gk20a *g, struct pmu_cmd *cmd,
 		seq->in_payload_fb_queue = true;
 		seq->out_payload_fb_queue = true;
 	} else {
-		nvgpu_falcon_copy_to_dmem(pmu->flcn, alloc.dmem_offset,
+		nvgpu_falcon_copy_to_dmem(&pmu->flcn, alloc.dmem_offset,
 			payload->rpc.prpc, payload->rpc.size_rpc, 0);
 	}
 
@@ -575,7 +575,7 @@ static int pmu_cmd_payload_setup(struct gk20a *g, struct pmu_cmd *cmd,
 
 				seq->in_payload_fb_queue = true;
 			} else {
-				nvgpu_falcon_copy_to_dmem(pmu->flcn,
+				nvgpu_falcon_copy_to_dmem(&pmu->flcn,
 						(pv->pmu_allocation_get_dmem_offset(pmu, in)),
 						payload->in.buf, payload->in.size, 0);
 			}
@@ -877,7 +877,7 @@ static int pmu_payload_extract(struct nvgpu_pmu *pmu,
 	} else {
 		if (pv->pmu_allocation_get_dmem_size(pmu,
 			pv->get_pmu_seq_out_a_ptr(seq)) != 0U) {
-			err = nvgpu_falcon_copy_from_dmem(pmu->flcn,
+			err = nvgpu_falcon_copy_from_dmem(&pmu->flcn,
 					pv->pmu_allocation_get_dmem_offset(pmu,
 					pv->get_pmu_seq_out_a_ptr(seq)),
 					seq->out_payload,
@@ -1081,7 +1081,7 @@ static bool pmu_engine_mem_queue_read(struct nvgpu_pmu *pmu,
 				bytes_to_read, &bytes_read);
 	} else {
 		queue = pmu->queue[queue_id];
-		err = nvgpu_engine_mem_queue_pop(pmu->flcn, queue, data,
+		err = nvgpu_engine_mem_queue_pop(&pmu->flcn, queue, data,
 				bytes_to_read, &bytes_read);
 	}
 
@@ -1140,7 +1140,7 @@ static bool pmu_read_message(struct nvgpu_pmu *pmu, u32 queue_id,
 	if (msg->hdr.unit_id == PMU_UNIT_REWIND) {
 		if (pmu->queue_type != QUEUE_TYPE_FB) {
 			queue = pmu->queue[queue_id];
-			err = nvgpu_engine_mem_queue_rewind(pmu->flcn, queue);
+			err = nvgpu_engine_mem_queue_rewind(&pmu->flcn, queue);
 			if (err != 0) {
 				nvgpu_err(g, "fail to rewind queue %d",
 					  queue_id);

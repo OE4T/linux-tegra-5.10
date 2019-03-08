@@ -67,7 +67,7 @@ static int pmu_enable_hw(struct nvgpu_pmu *pmu, bool enable)
 
 		nvgpu_cg_blcg_pmu_load_enable(g);
 
-		if (nvgpu_falcon_mem_scrub_wait(pmu->flcn) != 0) {
+		if (nvgpu_falcon_mem_scrub_wait(&pmu->flcn) != 0) {
 			/* keep PMU falcon/engine in reset
 			 * if IMEM/DMEM scrubbing fails
 			 */
@@ -102,7 +102,7 @@ static int pmu_enable(struct nvgpu_pmu *pmu, bool enable)
 			goto exit;
 		}
 
-		err = nvgpu_falcon_wait_idle(pmu->flcn);
+		err = nvgpu_falcon_wait_idle(&pmu->flcn);
 		if (err != 0) {
 			goto exit;
 		}
@@ -120,7 +120,7 @@ int nvgpu_pmu_reset(struct gk20a *g)
 
 	nvgpu_log_fn(g, " %s ", g->name);
 
-	err = nvgpu_falcon_wait_idle(pmu->flcn);
+	err = nvgpu_falcon_wait_idle(&pmu->flcn);
 	if (err != 0) {
 		goto exit;
 	}
@@ -269,7 +269,7 @@ int nvgpu_init_pmu_support(struct gk20a *g)
 
 		if (nvgpu_is_enabled(g, NVGPU_SUPPORT_SEC2_RTOS)) {
 			/* Reset PMU engine */
-			err = nvgpu_falcon_reset(g->pmu.flcn);
+			err = nvgpu_falcon_reset(&g->pmu.flcn);
 
 			/* Bootstrap PMU from SEC2 RTOS*/
 			err = nvgpu_sec2_bootstrap_ls_falcons(g, &g->sec2,
@@ -283,7 +283,7 @@ int nvgpu_init_pmu_support(struct gk20a *g)
 		 * clear halt interrupt to avoid PMU-RTOS ucode
 		 * hitting breakpoint due to PMU halt
 		 */
-		err = nvgpu_falcon_clear_halt_intr_status(g->pmu.flcn,
+		err = nvgpu_falcon_clear_halt_intr_status(&g->pmu.flcn,
 			gk20a_get_gr_idle_timeout(g));
 		if (err != 0) {
 			goto exit;
@@ -388,7 +388,7 @@ static int pmu_process_init_msg_dmem(struct gk20a *g, struct nvgpu_pmu *pmu,
 
 	g->ops.pmu.pmu_msgq_tail(pmu, &tail, QUEUE_GET);
 
-	err = nvgpu_falcon_copy_from_dmem(pmu->flcn, tail,
+	err = nvgpu_falcon_copy_from_dmem(&pmu->flcn, tail,
 		(u8 *)&msg->hdr, PMU_MSG_HDR_SIZE, 0);
 	if (err != 0) {
 		nvgpu_err(g, "PMU falcon DMEM copy failed");
@@ -400,7 +400,7 @@ static int pmu_process_init_msg_dmem(struct gk20a *g, struct nvgpu_pmu *pmu,
 		goto exit;
 	}
 
-	err = nvgpu_falcon_copy_from_dmem(pmu->flcn, tail + PMU_MSG_HDR_SIZE,
+	err = nvgpu_falcon_copy_from_dmem(&pmu->flcn, tail + PMU_MSG_HDR_SIZE,
 		(u8 *)&msg->msg, (u32)msg->hdr.size - PMU_MSG_HDR_SIZE, 0);
 	if (err != 0) {
 		nvgpu_err(g, "PMU falcon DMEM copy failed");
@@ -450,7 +450,7 @@ int nvgpu_pmu_process_init_msg(struct nvgpu_pmu *pmu,
 	if (!pmu->gid_info.valid) {
 		u32 *gid_hdr_data = (u32 *)(gid_data.signature);
 
-		err = nvgpu_falcon_copy_from_dmem(pmu->flcn,
+		err = nvgpu_falcon_copy_from_dmem(&pmu->flcn,
 			pv->get_pmu_init_msg_pmu_sw_mg_off(init),
 			(u8 *)&gid_data,
 			(u32)sizeof(struct pmu_sha1_gid_data), 0);
@@ -657,7 +657,7 @@ void nvgpu_pmu_get_cmd_line_args_offset(struct gk20a *g,
 	u32 dmem_size = 0;
 	int err = 0;
 
-	err = nvgpu_falcon_get_mem_size(pmu->flcn, MEM_DMEM, &dmem_size);
+	err = nvgpu_falcon_get_mem_size(&pmu->flcn, MEM_DMEM, &dmem_size);
 	if (err != 0) {
 		nvgpu_err(g, "dmem size request failed");
 		*args_offset = 0;

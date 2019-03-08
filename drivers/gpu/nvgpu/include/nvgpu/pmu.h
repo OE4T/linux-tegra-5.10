@@ -335,7 +335,7 @@ struct pmu_sequence {
 
 struct nvgpu_pmu {
 	struct gk20a *g;
-	struct nvgpu_falcon *flcn;
+	struct nvgpu_falcon flcn;
 
 	struct nvgpu_firmware *fw_desc;
 	struct nvgpu_firmware *fw_image;

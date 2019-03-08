@@ -21,8 +21,7 @@
  */
 #include <nvgpu/gk20a.h>
 #include <nvgpu/timers.h>
-
-#include "falcon_priv.h"
+#include <nvgpu/falcon.h>
 
 /* Delay depends on memory size and pwr_clk
  * delay = (MAX {IMEM_SIZE, DMEM_SIZE} * 64 + 1) / pwr_clk
@@ -714,62 +713,54 @@ u32 nvgpu_falcon_get_id(struct nvgpu_falcon *flcn)
 	return flcn->flcn_id;
 }
 
-static struct nvgpu_falcon **falcon_get_instance(struct gk20a *g, u32 flcn_id)
+static struct nvgpu_falcon *falcon_get_instance(struct gk20a *g, u32 flcn_id)
 {
-	struct nvgpu_falcon **flcn_p = NULL;
+	struct nvgpu_falcon *flcn = NULL;
 
 	switch (flcn_id) {
 	case FALCON_ID_PMU:
-		flcn_p = &g->pmu.flcn;
+		flcn = &g->pmu.flcn;
 		break;
 	case FALCON_ID_SEC2:
-		flcn_p = &g->sec2.flcn;
+		flcn = &g->sec2.flcn;
 		break;
 	case FALCON_ID_FECS:
-		flcn_p = &g->fecs_flcn;
+		flcn = &g->fecs_flcn;
 		break;
 	case FALCON_ID_GPCCS:
-		flcn_p = &g->gpccs_flcn;
+		flcn = &g->gpccs_flcn;
 		break;
 	case FALCON_ID_NVDEC:
-		flcn_p = &g->nvdec_flcn;
+		flcn = &g->nvdec_flcn;
 		break;
 	case FALCON_ID_MINION:
-		flcn_p = &g->minion_flcn;
+		flcn = &g->minion_flcn;
 		break;
 	case FALCON_ID_GSPLITE:
-		flcn_p = &g->gsp_flcn;
+		flcn = &g->gsp_flcn;
 		break;
 	default:
 		nvgpu_err(g, "Invalid/Unsupported falcon ID %x", flcn_id);
 		break;
 	};
 
-	return flcn_p;
+	return flcn;
 }
 
 int nvgpu_falcon_sw_init(struct gk20a *g, u32 flcn_id)
 {
-	struct nvgpu_falcon **flcn_p = NULL, *flcn = NULL;
+	struct nvgpu_falcon *flcn = NULL;
 	struct gpu_ops *gops = &g->ops;
 	int err;
 
-	flcn_p = falcon_get_instance(g, flcn_id);
-	if (flcn_p == NULL) {
-		return -ENODEV;
-	}
-
-	flcn = (struct nvgpu_falcon *)
-	       nvgpu_kmalloc(g, sizeof(struct nvgpu_falcon));
-
+	flcn = falcon_get_instance(g, flcn_id);
 	if (flcn == NULL) {
-		return -ENOMEM;
+		return -ENODEV;
 	}
 
 	err = nvgpu_mutex_init(&flcn->imem_lock);
 	if (err != 0) {
 		nvgpu_err(g, "Error in flcn.imem_lock mutex initialization");
-		nvgpu_kfree(g, flcn);
 		return err;
 	}
 
@@ -777,14 +768,11 @@ int nvgpu_falcon_sw_init(struct gk20a *g, u32 flcn_id)
 	if (err != 0) {
 		nvgpu_err(g, "Error in flcn.dmem_lock mutex initialization");
 		nvgpu_mutex_destroy(&flcn->imem_lock);
-		nvgpu_kfree(g, flcn);
 		return err;
 	}
 
 	flcn->flcn_id = flcn_id;
 	flcn->g = g;
-
-	*flcn_p = flcn;
 
 	/* call to HAL method to assign flcn base & ops to selected falcon */
 	return gops->falcon.falcon_hal_sw_init(flcn);
@@ -792,18 +780,15 @@ int nvgpu_falcon_sw_init(struct gk20a *g, u32 flcn_id)
 
 void nvgpu_falcon_sw_free(struct gk20a *g, u32 flcn_id)
 {
-	struct nvgpu_falcon **flcn_p = NULL, *flcn = NULL;
+	struct nvgpu_falcon *flcn = NULL;
 	struct gpu_ops *gops = &g->ops;
 
-	flcn_p = falcon_get_instance(g, flcn_id);
-	if ((flcn_p == NULL) || (*flcn_p == NULL)) {
+	flcn = falcon_get_instance(g, flcn_id);
+	if (flcn == NULL) {
 		return;
 	}
 
-	flcn = *flcn_p;
 	gops->falcon.falcon_hal_sw_free(flcn);
 	nvgpu_mutex_destroy(&flcn->dmem_lock);
 	nvgpu_mutex_destroy(&flcn->imem_lock);
-	nvgpu_kfree(g, flcn);
-	*flcn_p = NULL;
 }

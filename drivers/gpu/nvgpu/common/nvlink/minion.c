@@ -68,7 +68,7 @@ int nvgpu_nvlink_minion_load(struct gk20a *g)
 	}
 
 	/* Minion reset */
-	err = nvgpu_falcon_reset(g->minion_flcn);
+	err = nvgpu_falcon_reset(&g->minion_flcn);
 	if (err != 0) {
 		nvgpu_err(g, "Minion reset failed");
 		goto exit;
@@ -83,7 +83,7 @@ int nvgpu_nvlink_minion_load(struct gk20a *g)
 	}
 
 	/* set BOOTVEC to start of non-secure code */
-	err = nvgpu_falcon_bootstrap(g->minion_flcn, 0x0);
+	err = nvgpu_falcon_bootstrap(&g->minion_flcn, 0x0);
 	if (err != 0) {
 		nvgpu_err(g, "Minion bootstrap failed");
 		goto exit;

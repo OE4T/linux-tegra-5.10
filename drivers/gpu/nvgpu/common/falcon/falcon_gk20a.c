@@ -21,9 +21,9 @@
  */
 #include <nvgpu/io.h>
 #include <nvgpu/gk20a.h>
+#include <nvgpu/falcon.h>
 
 #include "falcon_gk20a.h"
-#include "falcon_priv.h"
 
 #include <nvgpu/hw/gm20b/hw_falcon_gm20b.h>
 

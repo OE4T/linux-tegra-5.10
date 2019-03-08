@@ -77,9 +77,10 @@ static int sec2_flcn_bl_bootstrap(struct gk20a *g,
 	data |= BIT32(3);
 	gk20a_writel(g, psec_falcon_engctl_r(), data);
 
-	nvgpu_falcon_mailbox_write(g->sec2.flcn, FALCON_MAILBOX_0, 0xDEADA5A5U);
+	nvgpu_falcon_mailbox_write(&g->sec2.flcn, FALCON_MAILBOX_0,
+				   0xDEADA5A5U);
 
-	err = nvgpu_falcon_bl_bootstrap(g->sec2.flcn, bl_info);
+	err = nvgpu_falcon_bl_bootstrap(&g->sec2.flcn, bl_info);
 
 	return err;
 }
@@ -91,7 +92,7 @@ int gp106_sec2_setup_hw_and_bl_bootstrap(struct gk20a *g,
 
 	nvgpu_log_fn(g, " ");
 
-	nvgpu_falcon_reset(g->sec2.flcn);
+	nvgpu_falcon_reset(&g->sec2.flcn);
 
 	data = gk20a_readl(g, psec_fbif_ctl_r());
 	data |= psec_fbif_ctl_allow_phys_no_ctx_allow_f();

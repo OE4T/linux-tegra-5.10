@@ -20,11 +20,11 @@
  * DEALINGS IN THE SOFTWARE.
  */
 #include <nvgpu/gk20a.h>
+#include <nvgpu/falcon.h>
 
 #include "falcon_gk20a.h"
 #include "falcon_gv100.h"
 #include "falcon_tu104.h"
-#include "falcon_priv.h"
 
 static void tu104_falcon_engine_dependency_ops(struct nvgpu_falcon *flcn)
 {

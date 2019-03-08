@@ -58,6 +58,7 @@
 				 nvlipt_err_uc_status_link0_stompedpacketreceived_f(1) | \
 				 nvlipt_err_uc_status_link0_unsupportedrequest_f(1) | \
 				 nvlipt_err_uc_status_link0_ucinternal_f(1))
+
 /*
  * Init TLC per link interrupts
  */

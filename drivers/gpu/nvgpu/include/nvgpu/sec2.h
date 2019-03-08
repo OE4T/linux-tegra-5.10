@@ -69,7 +69,7 @@ struct sec2_sequence {
 
 struct nvgpu_sec2 {
 	struct gk20a *g;
-	struct nvgpu_falcon *flcn;
+	struct nvgpu_falcon flcn;
 	u32 falcon_id;
 
 	struct nvgpu_engine_mem_queue *queue[SEC2_QUEUE_NUM];

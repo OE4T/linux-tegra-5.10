@@ -160,7 +160,7 @@ static void gv11b_acr_default_sw_init(struct gk20a *g, struct hs_acr *hs_acr)
 	hs_acr->ptr_bl_dmem_desc = &hs_acr->bl_dmem_desc_v1;
 	hs_acr->bl_dmem_desc_size = (u32)sizeof(struct flcn_bl_dmem_desc_v1);
 
-	hs_acr->acr_flcn = g->pmu.flcn;
+	hs_acr->acr_flcn = &g->pmu.flcn;
 	hs_acr->acr_flcn_setup_hw_and_bl_bootstrap =
 		gm20b_pmu_setup_hw_and_bl_bootstrap;
 	hs_acr->report_acr_engine_bus_err_status =

@@ -271,7 +271,7 @@ int gp10b_pmu_elpg_statistics(struct gk20a *g, u32 pg_engine_id,
 	struct pmu_pg_stats_v1 stats;
 	int err;
 
-	err = nvgpu_falcon_copy_from_dmem(pmu->flcn,
+	err = nvgpu_falcon_copy_from_dmem(&pmu->flcn,
 		pmu->stat_dmem_offset[pg_engine_id],
 		(u8 *)&stats, (u32)sizeof(struct pmu_pg_stats_v1), 0);
 	if (err != 0) {

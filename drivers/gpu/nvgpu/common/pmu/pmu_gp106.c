@@ -168,7 +168,7 @@ int gp106_pmu_elpg_statistics(struct gk20a *g, u32 pg_engine_id,
 	struct pmu_pg_stats_v2 stats;
 	int err;
 
-	err = nvgpu_falcon_copy_from_dmem(pmu->flcn,
+	err = nvgpu_falcon_copy_from_dmem(&pmu->flcn,
 		pmu->stat_dmem_offset[pg_engine_id],
 		(u8 *)&stats, (u32)sizeof(struct pmu_pg_stats_v2), 0);
 	if (err != 0) {
@@ -298,7 +298,7 @@ void gp106_update_lspmu_cmdline_args(struct gk20a *g)
 		g->ops.pmu_ver.config_pmu_cmdline_args_super_surface(pmu);
 	}
 
-	nvgpu_falcon_copy_to_dmem(pmu->flcn, cmd_line_args_offset,
+	nvgpu_falcon_copy_to_dmem(&pmu->flcn, cmd_line_args_offset,
 		(u8 *)(g->ops.pmu_ver.get_pmu_cmdline_args_ptr(pmu)),
 		g->ops.pmu_ver.get_pmu_cmdline_args_size(pmu), 0);
 

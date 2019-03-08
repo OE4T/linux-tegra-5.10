@@ -245,8 +245,9 @@ int nvgpu_pmu_load_update(struct gk20a *g)
 		nvgpu_pmu_perfmon_get_samples_rpc(pmu);
 		load = pmu->load;
 	} else {
-		err = nvgpu_falcon_copy_from_dmem(pmu->flcn, pmu->sample_buffer,
-			(u8 *)&load, 2 * 1, 0);
+		err = nvgpu_falcon_copy_from_dmem(&pmu->flcn,
+						  pmu->sample_buffer,
+						  (u8 *)&load, 2 * 1, 0);
 		if (err != 0) {
 			nvgpu_err(g, "PMU falcon DMEM copy failed");
 			return err;
