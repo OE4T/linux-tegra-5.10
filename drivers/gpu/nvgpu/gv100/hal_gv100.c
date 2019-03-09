@@ -27,7 +27,7 @@
 #include "hal/bus/bus_gv100.h"
 #include "hal/priv_ring/priv_ring_gm20b.h"
 #include "hal/priv_ring/priv_ring_gp10b.h"
-#include "hal/cg/gv100_gating_reglist.h"
+#include "hal/power_features/cg/gv100_gating_reglist.h"
 #include "hal/fuse/fuse_gm20b.h"
 #include "hal/fuse/fuse_gp10b.h"
 #include "hal/fuse/fuse_gp106.h"

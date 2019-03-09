@@ -171,12 +171,12 @@ nvgpu-y += \
 	hal/bus/bus_tu104.o \
 	hal/priv_ring/priv_ring_gm20b.o \
 	hal/priv_ring/priv_ring_gp10b.o \
-	hal/cg/gm20b_gating_reglist.o \
-	hal/cg/gp106_gating_reglist.o \
-	hal/cg/gp10b_gating_reglist.o \
-	hal/cg/gv100_gating_reglist.o \
-	hal/cg/gv11b_gating_reglist.o \
-	hal/cg/tu104_gating_reglist.o \
+	hal/power_features/cg/gm20b_gating_reglist.o \
+	hal/power_features/cg/gp106_gating_reglist.o \
+	hal/power_features/cg/gp10b_gating_reglist.o \
+	hal/power_features/cg/gv100_gating_reglist.o \
+	hal/power_features/cg/gv11b_gating_reglist.o \
+	hal/power_features/cg/tu104_gating_reglist.o \
 	hal/fuse/fuse_gm20b.o \
 	hal/fuse/fuse_gp10b.o \
 	hal/fuse/fuse_gp106.o

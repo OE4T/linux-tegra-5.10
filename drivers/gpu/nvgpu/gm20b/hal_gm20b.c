@@ -40,7 +40,7 @@
 #include "hal/bus/bus_gm20b.h"
 #include "hal/bus/bus_gk20a.h"
 #include "hal/priv_ring/priv_ring_gm20b.h"
-#include "hal/cg/gm20b_gating_reglist.h"
+#include "hal/power_features/cg/gm20b_gating_reglist.h"
 #include "hal/fuse/fuse_gm20b.h"
 
 #include "common/ptimer/ptimer_gk20a.h"

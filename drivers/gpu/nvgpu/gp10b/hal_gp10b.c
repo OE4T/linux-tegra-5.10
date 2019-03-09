@@ -44,7 +44,7 @@
 #include "hal/bus/bus_gp10b.h"
 #include "hal/priv_ring/priv_ring_gm20b.h"
 #include "hal/priv_ring/priv_ring_gp10b.h"
-#include "hal/cg/gp10b_gating_reglist.h"
+#include "hal/power_features/cg/gp10b_gating_reglist.h"
 #include "hal/fuse/fuse_gm20b.h"
 #include "hal/fuse/fuse_gp10b.h"
 

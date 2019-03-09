@@ -28,7 +28,7 @@
 #include "hal/bus/bus_tu104.h"
 #include "hal/priv_ring/priv_ring_gm20b.h"
 #include "hal/priv_ring/priv_ring_gp10b.h"
-#include "hal/cg/tu104_gating_reglist.h"
+#include "hal/power_features/cg/tu104_gating_reglist.h"
 #include "hal/fuse/fuse_gm20b.h"
 #include "hal/fuse/fuse_gp10b.h"
 #include "hal/fuse/fuse_gp106.h"
