@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -822,9 +822,37 @@ static inline u32 pwr_pmu_bar0_fecs_error_r(void)
 {
 	return 0x0010a988U;
 }
+static inline u32 pwr_pmu_bar0_host_error_r(void)
+{
+	return 0x0010a990U;
+}
 static inline u32 pwr_pmu_bar0_error_status_r(void)
 {
 	return 0x0010a7b0U;
+}
+static inline u32 pwr_pmu_bar0_error_status_timeout_host_m(void)
+{
+	return U32(0x1U) << 0U;
+}
+static inline u32 pwr_pmu_bar0_error_status_timeout_fecs_m(void)
+{
+	return U32(0x1U) << 1U;
+}
+static inline u32 pwr_pmu_bar0_error_status_cmd_hwerr_m(void)
+{
+	return U32(0x1U) << 2U;
+}
+static inline u32 pwr_pmu_bar0_error_status_err_cmd_m(void)
+{
+	return U32(0x1U) << 3U;
+}
+static inline u32 pwr_pmu_bar0_error_status_hosterr_m(void)
+{
+	return U32(0x1U) << 30U;
+}
+static inline u32 pwr_pmu_bar0_error_status_fecserr_m(void)
+{
+	return U32(0x1U) << 31U;
 }
 static inline u32 pwr_pmu_pg_idlefilth_r(u32 i)
 {
