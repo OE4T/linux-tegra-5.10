@@ -23,6 +23,18 @@
 #ifndef EQOS_CORE_H_
 #define EQOS_CORE_H_
 
+/**
+ *	MTL queue operation mode
+ *	EQOS_MTL_QUEUE_DISABLED - queue disabled
+ *	EQOS_MTL_QUEUE_QAVB - queue in AVB mode
+ *	EQOS_MTL_QUEUE_QDCB - queue in DCB mode
+ *	EQOS_MTL_QUEUE_QGENERIC - queue in gerneric mode
+ */
+#define EQOS_MTL_QUEUE_DISABLED	0x0U
+#define EQOS_MTL_QUEUE_AVB	0x1U
+#define EQOS_MTL_QUEUE_DCB	0x2U
+#define EQOS_MTL_QUEUE_GENERIC	0x3U
+
 /* MDC Clock Selection define*/
 #define EQOS_CSR_60_100M	0x0	/* MDC = clk_csr/42 */
 #define EQOS_CSR_100_150M	0x1	/* MDC = clk_csr/62 */
@@ -74,6 +86,10 @@
 #define EQOS_MTL_CHX_TX_OP_MODE(x)	((0x0040U * (x)) + 0x0D00U)
 #define EQOS_MTL_TXQ_QW(x)		((0x0040U * (x)) + 0x0D18U)
 #define EQOS_MTL_CHX_RX_OP_MODE(x)	((0x0040U * (x)) + 0x0D30U)
+#define EQOS_MTL_TXQ_ETS_CR(x)		((0x0040U * (x)) + 0x0D10U)
+#define EQOS_MTL_TXQ_ETS_SSCR(x)	((0x0040U * (x)) + 0x0D1CU)
+#define EQOS_MTL_TXQ_ETS_HCR(x)		((0x0040U * (x)) + 0x0D20U)
+#define EQOS_MTL_TXQ_ETS_LCR(x)		((0x0040U * (x)) + 0x0D24U)
 #define EQOS_MTL_RXQ_DMA_MAP0		0x0C30
 
 /* EQOS Wrapper registers*/
@@ -140,5 +156,17 @@
 #define EQOS_MTL_RXQ_SIZE_SHIFT			20U
 #define EQOS_MAC_ENABLE_LM			OSI_BIT(12)
 #define EQOS_RX_CLK_SEL				OSI_BIT(8)
-
+#define EQOS_MAX_TC				8U
+#define EQOS_MTL_TXQ_ETS_CR_SLC_MASK		(OSI_BIT(6) | OSI_BIT(5) | \
+						 OSI_BIT(4))
+#define EQOS_MTL_TXQ_ETS_CR_CC			OSI_BIT(3)
+#define EQOS_MTL_TXQ_ETS_CR_AVALG		OSI_BIT(2)
+#define EQOS_MTL_TXQ_ETS_CR_CC_SHIFT		3U
+#define EQOS_MTL_TXQ_ETS_CR_AVALG_SHIFT		2U
+#define EQOS_MTL_TXQ_ETS_QW_ISCQW_MASK		0x000FFFFFU
+#define EQOS_MTL_TXQ_ETS_SSCR_SSC_MASK		0x00003FFFU
+#define EQOS_MTL_TXQ_ETS_HCR_HC_MASK		0x1FFFFFFFU
+#define EQOS_MTL_TXQ_ETS_LCR_LC_MASK		0x1FFFFFFFU
+#define EQOS_MTL_TXQEN_MASK			(OSI_BIT(3) | OSI_BIT(2))
+#define EQOS_MTL_TXQEN_MASK_SHIFT		2U
 #endif
