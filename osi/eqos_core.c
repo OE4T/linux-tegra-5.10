@@ -874,6 +874,181 @@ static void eqos_stop_mac(void *addr)
 	osi_writel(value, (unsigned char *)addr + EQOS_MAC_MCR);
 }
 
+/**
+ *	eqos_set_avb_algorithm - Set TxQ/TC avb config
+ *	@osi_core: osi core priv data structure
+ *	@avb: structure having configuration for avb algorithm
+ *
+ *	Algorithm:
+ *	1) Check if queue index is valid
+ *	2) Update operation mode of TxQ/TC
+ *	 2a) Set TxQ operation mode
+ *	 2b) Set Algo and Credit contro
+ *	 2c) Set Send slope credit
+ *	 2d) Set Idle slope credit
+ *	 2e) Set Hi credit
+ *	 2f) Set low credit
+ *	3) Update register values
+ *
+ *	Dependencies: MAC has to be out of reset.
+ *
+ *	Protection: None.
+ *
+ *	Return: 0: success, -1: error.
+ */
+static int eqos_set_avb_algorithm(struct osi_core_priv_data *osi_core,
+				  struct osi_core_avb_algorithm *avb)
+{
+	unsigned int value;
+	int ret = -1;
+	unsigned int qinx;
+
+	if (avb == OSI_NULL) {
+		osd_err(osi_core->osd, "avb structure is NULL\n");
+		return ret;
+	}
+
+	/* queue index in range */
+	if (avb->qindex >= EQOS_MAX_TC) {
+		osd_err(osi_core->osd, "Invalid Queue index (%d)\n"
+			, avb->qindex);
+		return ret;
+	}
+
+	/* can't set AVB mode for queue 0 */
+	if ((avb->qindex == 0U) && (avb->oper_mode == EQOS_MTL_QUEUE_AVB)) {
+		osd_err(osi_core->osd,
+			"Not allowed to set CBS for Q0\n", avb->qindex);
+		return ret;
+	}
+
+	qinx = avb->qindex;
+	value = osi_readl((unsigned char *)osi_core->base +
+			  EQOS_MTL_CHX_TX_OP_MODE(qinx));
+	value &= ~EQOS_MTL_TXQEN_MASK;
+	/* Set TxQ/TC mode as per input struct after masking 3 bit */
+	value |= (avb->oper_mode << EQOS_MTL_TXQEN_MASK_SHIFT) &
+		  EQOS_MTL_TXQEN_MASK;
+	osi_writel(value, (unsigned char *)osi_core->base +
+		   EQOS_MTL_CHX_TX_OP_MODE(qinx));
+
+	/* Set Algo and Credit control */
+	value = (avb->credit_control << EQOS_MTL_TXQ_ETS_CR_CC_SHIFT) &
+		 EQOS_MTL_TXQ_ETS_CR_CC;
+	value |= (avb->algo << EQOS_MTL_TXQ_ETS_CR_AVALG_SHIFT) &
+		  EQOS_MTL_TXQ_ETS_CR_AVALG;
+	osi_writel(value, (unsigned char *)osi_core->base +
+		   EQOS_MTL_TXQ_ETS_CR(qinx));
+
+	/* Set Send slope credit */
+	value = avb->send_slope & EQOS_MTL_TXQ_ETS_SSCR_SSC_MASK;
+	osi_writel(value, (unsigned char *)osi_core->base +
+		   EQOS_MTL_TXQ_ETS_SSCR(qinx));
+
+	/* Set Idle slope credit*/
+	value = osi_readl((unsigned char *)osi_core->base +
+			  EQOS_MTL_TXQ_QW(qinx));
+	value &= ~EQOS_MTL_TXQ_ETS_QW_ISCQW_MASK;
+	value |= avb->idle_slope & EQOS_MTL_TXQ_ETS_QW_ISCQW_MASK;
+	osi_writel(value, (unsigned char *)osi_core->base +
+		   EQOS_MTL_TXQ_QW(qinx));
+
+	/* Set Hi credit */
+	value = avb->hi_credit & EQOS_MTL_TXQ_ETS_HCR_HC_MASK;
+	osi_writel(value, (unsigned char *)osi_core->base +
+		   EQOS_MTL_TXQ_ETS_HCR(qinx));
+
+	/* low credit  is -ve number, osi_write need a unsigned int
+	 * take only 28:0 bits from avb->low_credit
+	 */
+	value = avb->low_credit & EQOS_MTL_TXQ_ETS_LCR_LC_MASK;
+	osi_writel(value, (unsigned char *)osi_core->base +
+		   EQOS_MTL_TXQ_ETS_LCR(qinx));
+
+	return 0;
+}
+
+/**
+ *	eqos_get_avb_algorithm - Get TxQ/TC avb config
+ *	@osi_core: osi core priv data structure
+ *	@avb: structure pointer having configuration for avb algorithm
+ *
+ *	Algorithm:
+ *	1) Check if queue index is valid
+ *	2) read operation mode of TxQ/TC
+ *	 2a) read TxQ operation mode
+ *	 2b) read Algo and Credit contro
+ *	 2c) read Send slope credit
+ *	 2d) read Idle slope credit
+ *	 2e) read Hi credit
+ *	 2f) read low credit
+ *	3) updated pointer
+ *
+ *	Dependencies: MAC has to be out of reset.
+ *
+ *	Protection: None.
+ *
+ *	Return: 0: Success -1: Failure
+ */
+
+static int eqos_get_avb_algorithm(struct osi_core_priv_data *osi_core,
+				  struct osi_core_avb_algorithm *avb)
+{
+	unsigned int value;
+	int ret = -1;
+	unsigned int qinx = 0U;
+
+	if (avb == OSI_NULL) {
+		osd_err(osi_core->osd, "avb structure is NULL\n");
+		return ret;
+	}
+
+	if (avb->qindex >= EQOS_MAX_TC) {
+		osd_err(osi_core->osd, "Invalid Queue index (%d)\n"
+			, avb->qindex);
+		return ret;
+	}
+
+	qinx = avb->qindex;
+	value = osi_readl((unsigned char *)osi_core->base +
+			  EQOS_MTL_CHX_TX_OP_MODE(qinx));
+
+	/* Get TxQ/TC mode as per input struct after masking 3:2 bit */
+	value = (value & EQOS_MTL_TXQEN) >> EQOS_MTL_TXQEN_MASK_SHIFT;
+	avb->oper_mode = value;
+
+	/* Get Algo and Credit control */
+	value = osi_readl((unsigned char *)osi_core->base +
+			  EQOS_MTL_TXQ_ETS_CR(qinx));
+	avb->credit_control = (value & EQOS_MTL_TXQ_ETS_CR_CC) >>
+		   EQOS_MTL_TXQ_ETS_CR_CC_SHIFT;
+	avb->algo = (value & EQOS_MTL_TXQ_ETS_CR_AVALG) >>
+		     EQOS_MTL_TXQ_ETS_CR_AVALG_SHIFT;
+
+	/* Get Send slope credit */
+	value = osi_readl(osi_core->base + EQOS_MTL_TXQ_ETS_SSCR(qinx));
+	avb->send_slope = value & EQOS_MTL_TXQ_ETS_SSCR_SSC_MASK;
+
+	/* Get Idle slope credit*/
+	value = osi_readl((unsigned char *)osi_core->base +
+			  EQOS_MTL_TXQ_QW(qinx));
+	avb->idle_slope = value & EQOS_MTL_TXQ_ETS_QW_ISCQW_MASK;
+
+	/* Get Hi credit */
+	value = osi_readl((unsigned char *)osi_core->base +
+			  EQOS_MTL_TXQ_ETS_HCR(qinx));
+	avb->hi_credit = value & EQOS_MTL_TXQ_ETS_HCR_HC_MASK;
+
+	/* Get Low credit for which bit 31:29 are unknown
+	 * return 28:0 valid bits to application
+	 */
+	value = osi_readl((unsigned char *)osi_core->base +
+			  EQOS_MTL_TXQ_ETS_LCR(qinx));
+	avb->low_credit = value & EQOS_MTL_TXQ_ETS_LCR_LC_MASK;
+
+	return 0;
+}
+
 static struct osi_core_ops eqos_core_ops = {
 	.poll_for_swr = eqos_poll_for_swr,
 	.core_init = eqos_core_init,
@@ -886,6 +1061,8 @@ static struct osi_core_ops eqos_core_ops = {
 	.set_mdc_clk_rate = eqos_set_mdc_clk_rate,
 	.flush_mtl_tx_queue = eqos_flush_mtl_tx_queue,
 	.config_mac_loopback = eqos_config_mac_loopback,
+	.set_avb_algorithm = eqos_set_avb_algorithm,
+	.get_avb_algorithm = eqos_get_avb_algorithm,
 };
 
 struct osi_core_ops *eqos_get_hw_core_ops(void)

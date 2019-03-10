@@ -28,6 +28,32 @@
 struct osi_core_priv_data;
 
 /**
+ *	struct osi_core_avb_algorithm - The OSI Core avb data sctructure per
+ *	queue.
+ *	@qindex: TX Queue/TC index
+ *	@algo: AVB algorithm 1:CBS
+ *	@credit_control: credit control When this bit is set, the accumulated
+ *	credit. Parameter in the credit-based shaper algorithm logic is not
+ *	reset to zero when there is positive credit and no packet to transmit
+ *	in Channel
+ *	@idle_slope: idleSlopeCredit value required for CBS
+ *	@send_slope: sendSlopeCredit value required for CBS
+ *	@hi_credit: hiCredit value required for CBS
+ *	@low_credit: lowCredit value required for CBS
+ *	@oper_mode: Transmit queue enable 01: avb 10: enable 00: disable
+ */
+struct  osi_core_avb_algorithm {
+	unsigned int qindex;
+	unsigned int algo;
+	unsigned int credit_control;
+	unsigned int idle_slope;
+	unsigned int send_slope;
+	unsigned int hi_credit;
+	unsigned int low_credit;
+	unsigned int oper_mode;
+};
+
+/**
  *	struct osi_core_ops - Core (MAC & MTL) operations.
  *	@poll_for_swr: Called to poll for software reset bit.
  *	@core_init: Called to initialize MAC and MTL registers.
@@ -40,6 +66,8 @@ struct osi_core_priv_data;
  *	@set_mdc_clk_rate: Called to set MDC clock rate for MDIO operation.
  *	@flush_mtl_tx_queue: Called to flush MTL Tx queue.
  *	@config_mac_loopback: Called to configure MAC in loopback mode.
+ *	@set_avb_algorithm: Called to set av parameter.
+ *	@get_avb_algorithm: Called to get av parameter,
  */
 struct osi_core_ops {
 	/* initialize MAC/MTL/DMA Common registers */
@@ -57,6 +85,10 @@ struct osi_core_ops {
 				 unsigned long csr_clk_rate);
 	int (*flush_mtl_tx_queue)(void *ioaddr, unsigned int qinx);
 	int (*config_mac_loopback)(void *addr, unsigned int lb_mode);
+	int (*set_avb_algorithm)(struct osi_core_priv_data *osi_core,
+				 struct osi_core_avb_algorithm *avb);
+	int (*get_avb_algorithm)(struct osi_core_priv_data *osi_core,
+				 struct osi_core_avb_algorithm *avb);
 };
 
 /**
@@ -348,6 +380,57 @@ static inline int osi_config_mac_loopback(struct osi_core_priv_data *osi_core,
 	return ret;
 }
 
+/**
+ *	osi_set_avb - Set CBS algo and parameters
+ *	@osi: OSI core private data structure.
+ *	@avb: osi core avb data structure.
+ *
+ *	Algorithm: Set AVB algo and  populated parameter from osi_core_avb
+ *	structure for TC/TQ
+ *
+ *      Dependencies: MAC IP should be out of reset and need to be initialized
+ *	as the requirements
+ *
+ *	Return: Success = 0; failure = -1;
+ */
+static inline int osi_set_avb(struct osi_core_priv_data *osi_core,
+			      struct osi_core_avb_algorithm *avb)
+{
+	int ret = -1;
+
+	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
+	    (osi_core->ops->set_avb_algorithm != OSI_NULL)) {
+		ret = osi_core->ops->set_avb_algorithm(osi_core, avb);
+	}
+
+	return ret;
+}
+
+/**
+ *	osi_get_avb - Set CBS algo and parameters
+ *	@osi: OSI core private data structure.
+ *	@avb: osi core avb data structure.
+ *
+ *	Algorithm: get AVB algo and  populated parameter from osi_core_avb
+ *	structure for TC/TQ
+ *
+ *      Dependencies: MAC IP should be out of reset and need to be initialized
+ *	as the requirements
+ *
+ *	Return: Success = 0; failure = -1;
+ */
+static inline int osi_get_avb(struct osi_core_priv_data *osi_core,
+			      struct osi_core_avb_algorithm *avb)
+{
+	int ret = -1;
+
+	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
+	    (osi_core->ops->get_avb_algorithm != OSI_NULL)) {
+		ret = osi_core->ops->get_avb_algorithm(osi_core, avb);
+	}
+
+	return ret;
+}
 
 int osi_write_phy_reg(struct osi_core_priv_data *osi_core, unsigned int phyaddr,
 		      unsigned int phyreg, unsigned short phydata);
