@@ -103,41 +103,9 @@ void gv100_fb_disable_hub_intr(struct gk20a *g)
 			mask);
 }
 
-/*
- * @brief Patch signatures into ucode image
- */
-static int gv100_fb_acr_ucode_patch_sig(struct gk20a *g,
-		u32 *p_img,
-		u32 *p_prod_sig,
-		u32 *p_dbg_sig,
-		u32 *p_patch_loc,
-		u32 *p_patch_ind)
-{
-	u32 *p_sig;
-
-	if (!g->ops.pmu.is_debug_mode_enabled(g)) {
-		p_sig = p_prod_sig;
-	} else {
-		p_sig = p_dbg_sig;
-	}
-
-	/* Patching logic. We have just one location to patch. */
-	p_img[(*p_patch_loc>>2)] = p_sig[(*p_patch_ind<<2)];
-	p_img[(*p_patch_loc>>2)+1U] = p_sig[(*p_patch_ind<<2)+1U];
-	p_img[(*p_patch_loc>>2)+2U] = p_sig[(*p_patch_ind<<2)+2U];
-	p_img[(*p_patch_loc>>2)+3U] = p_sig[(*p_patch_ind<<2)+3U];
-	return 0;
-}
-
 int gv100_fb_memory_unlock(struct gk20a *g)
 {
 	struct nvgpu_firmware *mem_unlock_fw = NULL;
-	struct bin_hdr *hsbin_hdr = NULL;
-	struct acr_fw_header *fw_hdr = NULL;
-	u32 *mem_unlock_ucode = NULL;
-	u32 *mem_unlock_ucode_header = NULL;
-	u32 sec_imem_dest = 0;
-	u32 val = 0;
 	int err = 0;
 
 	nvgpu_log_fn(g, " ");
@@ -160,76 +128,10 @@ int gv100_fb_memory_unlock(struct gk20a *g)
 	/* Enable nvdec */
 	g->ops.mc.enable(g, g->ops.mc.reset_mask(g, NVGPU_UNIT_NVDEC));
 
-	/* nvdec falcon reset */
-	nvgpu_falcon_reset(g->nvdec_flcn);
-
-	hsbin_hdr = (struct bin_hdr *)mem_unlock_fw->data;
-	fw_hdr = (struct acr_fw_header *)(mem_unlock_fw->data +
-			hsbin_hdr->header_offset);
-
-	mem_unlock_ucode_header = (u32 *)(mem_unlock_fw->data +
-		fw_hdr->hdr_offset);
-	mem_unlock_ucode = (u32 *)(mem_unlock_fw->data +
-		hsbin_hdr->data_offset);
-
-	/* Patch Ucode signatures */
-	if (gv100_fb_acr_ucode_patch_sig(g, mem_unlock_ucode,
-		(u32 *)(mem_unlock_fw->data + fw_hdr->sig_prod_offset),
-		(u32 *)(mem_unlock_fw->data + fw_hdr->sig_dbg_offset),
-		(u32 *)(mem_unlock_fw->data + fw_hdr->patch_loc),
-		(u32 *)(mem_unlock_fw->data + fw_hdr->patch_sig)) < 0) {
-		nvgpu_err(g, "mem unlock patch signatures fail");
-		err = -EPERM;
-		goto exit;
-	}
-
-	/* Clear interrupts */
-	nvgpu_falcon_set_irq(g->nvdec_flcn, false, 0x0, 0x0);
-
-	/* Copy Non Secure IMEM code */
-	nvgpu_falcon_copy_to_imem(g->nvdec_flcn, 0,
-		(u8 *)&mem_unlock_ucode[
-			mem_unlock_ucode_header[OS_CODE_OFFSET] >> 2],
-		mem_unlock_ucode_header[OS_CODE_SIZE], 0, false,
-		GET_IMEM_TAG(mem_unlock_ucode_header[OS_CODE_OFFSET]));
-
-	/* Put secure code after non-secure block */
-	sec_imem_dest = GET_NEXT_BLOCK(mem_unlock_ucode_header[OS_CODE_SIZE]);
-
-	nvgpu_falcon_copy_to_imem(g->nvdec_flcn, sec_imem_dest,
-		(u8 *)&mem_unlock_ucode[
-			mem_unlock_ucode_header[APP_0_CODE_OFFSET] >> 2],
-		mem_unlock_ucode_header[APP_0_CODE_SIZE], 0, true,
-		GET_IMEM_TAG(mem_unlock_ucode_header[APP_0_CODE_OFFSET]));
-
-	/* load DMEM: ensure that signatures are patched */
-	nvgpu_falcon_copy_to_dmem(g->nvdec_flcn, 0, (u8 *)&mem_unlock_ucode[
-		mem_unlock_ucode_header[OS_DATA_OFFSET] >> 2],
-		mem_unlock_ucode_header[OS_DATA_SIZE], 0);
-
-	/* Write non-zero value to mailbox register which is updated by
-	 * mem_unlock bin to denote its return status.
-	 */
-	nvgpu_falcon_mailbox_write(g->nvdec_flcn,
-		FALCON_MAILBOX_0, 0xdeadbeefU);
-
-	/* set BOOTVEC to start of non-secure code */
-	err = nvgpu_falcon_bootstrap(g->nvdec_flcn, 0);
+	err = nvgpu_acr_self_hs_load_bootstrap(g, g->nvdec_flcn, mem_unlock_fw,
+		MEM_UNLOCK_TIMEOUT );
 	if (err != 0) {
-		nvgpu_err(g, "falcon bootstrap failed %d", err);
-		goto exit;
-	}
-
-	/* wait for complete & halt */
-	nvgpu_falcon_wait_for_halt(g->nvdec_flcn, MEM_UNLOCK_TIMEOUT);
-
-	/* check mem unlock status */
-	val = nvgpu_falcon_mailbox_read(g->nvdec_flcn, FALCON_MAILBOX_0);
-	if (val != 0U) {
-		nvgpu_err(g, "memory unlock failed, err %x", val);
-		nvgpu_falcon_dump_stats(g->nvdec_flcn);
-		err = -1;
-		goto exit;
+		nvgpu_err(g, "mem unlock HS ucode failed, err-0x%x", err);
 	}
 
 exit:

@@ -43,17 +43,17 @@ static int acr_wait_for_completion(struct gk20a *g,
 
 	completion = nvgpu_falcon_wait_for_halt(flcn, timeout);
 	if (completion != 0) {
-		nvgpu_err(g, "flcn-%d: ACR boot timed out", flcn_id);
+		nvgpu_err(g, "flcn-%d: HS ucode boot timed out", flcn_id);
 		nvgpu_falcon_dump_stats(flcn);
 		goto exit;
 	}
 
-	nvgpu_acr_dbg(g, "flcn-%d: ACR capabilities %x", flcn_id,
+	nvgpu_acr_dbg(g, "flcn-%d: HS ucode capabilities %x", flcn_id,
 		nvgpu_falcon_mailbox_read(flcn, FALCON_MAILBOX_1));
 
 	data = nvgpu_falcon_mailbox_read(flcn, FALCON_MAILBOX_0);
 	if (data != 0U) {
-		nvgpu_err(g, "flcn-%d: ACR boot failed, err %x", flcn_id,
+		nvgpu_err(g, "flcn-%d: HS ucode boot failed, err %x", flcn_id,
 			data);
 		completion = -EAGAIN;
 		goto exit;
@@ -285,6 +285,93 @@ err_release_acr_fw:
 	nvgpu_release_firmware(g, acr_fw);
 	acr_desc->acr_fw = NULL;
 	return status;
+}
+
+int nvgpu_acr_self_hs_load_bootstrap(struct gk20a *g, struct nvgpu_falcon *flcn,
+	struct nvgpu_firmware *hs_fw, u32 timeout)
+{
+	struct bin_hdr *bin_hdr = NULL;
+	struct acr_fw_header *fw_hdr = NULL;
+	u32 *ucode_header = NULL;
+	u32 *ucode = NULL;
+	u32 sec_imem_dest = 0U;
+	int err = 0;
+
+	/* falcon reset */
+	nvgpu_falcon_reset(flcn);
+
+	bin_hdr = (struct bin_hdr *)hs_fw->data;
+	fw_hdr = (struct acr_fw_header *)(hs_fw->data + bin_hdr->header_offset);
+	ucode_header = (u32 *)(hs_fw->data + fw_hdr->hdr_offset);
+	ucode = (u32 *)(hs_fw->data + bin_hdr->data_offset);
+
+	/* Patch Ucode signatures */
+	if (acr_ucode_patch_sig(g, ucode,
+		(u32 *)(hs_fw->data + fw_hdr->sig_prod_offset),
+		(u32 *)(hs_fw->data + fw_hdr->sig_dbg_offset),
+		(u32 *)(hs_fw->data + fw_hdr->patch_loc),
+		(u32 *)(hs_fw->data + fw_hdr->patch_sig)) < 0) {
+		nvgpu_err(g, "HS ucode patch signatures fail");
+		err = -EPERM;
+		goto exit;
+	}
+
+	/* Clear interrupts */
+	nvgpu_falcon_set_irq(flcn, false, 0x0U, 0x0U);
+
+	/* Copy Non Secure IMEM code */
+	err = nvgpu_falcon_copy_to_imem(flcn, 0U,
+		(u8 *)&ucode[ucode_header[OS_CODE_OFFSET] >> 2U],
+		ucode_header[OS_CODE_SIZE], 0U, false,
+		GET_IMEM_TAG(ucode_header[OS_CODE_OFFSET]));
+	if (err != 0) {
+		nvgpu_err(g, "HS ucode non-secure code to IMEM failed");
+		goto exit;
+	}
+
+	/* Put secure code after non-secure block */
+	sec_imem_dest = GET_NEXT_BLOCK(ucode_header[OS_CODE_SIZE]);
+
+	err = nvgpu_falcon_copy_to_imem(flcn, sec_imem_dest,
+		(u8 *)&ucode[ucode_header[APP_0_CODE_OFFSET] >> 2U],
+		ucode_header[APP_0_CODE_SIZE], 0U, true,
+		GET_IMEM_TAG(ucode_header[APP_0_CODE_OFFSET]));
+	if (err != 0) {
+		nvgpu_err(g, "HS ucode secure code to IMEM failed");
+		goto exit;
+	}
+
+	/* load DMEM: ensure that signatures are patched */
+	err = nvgpu_falcon_copy_to_dmem(flcn, 0U, (u8 *)&ucode[
+		ucode_header[OS_DATA_OFFSET] >> 2U],
+		ucode_header[OS_DATA_SIZE], 0U);
+	if (err != 0) {
+		nvgpu_err(g, "HS ucode data copy to DMEM failed");
+		goto exit;
+	}
+
+	/*
+	 * Write non-zero value to mailbox register which is updated by
+	 * HS bin to denote its return status.
+	 */
+	nvgpu_falcon_mailbox_write(flcn, FALCON_MAILBOX_0, 0xdeadbeefU);
+
+	/* set BOOTVEC to start of non-secure code */
+	err = nvgpu_falcon_bootstrap(flcn, 0U);
+	if (err != 0) {
+		nvgpu_err(g, "HS ucode bootstrap failed err-%d on falcon-%d", err,
+			nvgpu_falcon_get_id(flcn));
+		goto exit;
+	}
+
+	/* wait for complete & halt */
+	err = acr_wait_for_completion(g, flcn, timeout);
+	if (err != 0) {
+		nvgpu_err(g, "HS ucode completion err %d", err);
+	}
+
+exit:
+	return err;
 }
 
 

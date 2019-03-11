@@ -216,5 +216,8 @@ int nvgpu_acr_lsf_sec2_ucode_details_v1(struct gk20a *g, void *lsf_ucode_img);
 void nvgpu_acr_init(struct gk20a *g);
 int nvgpu_acr_construct_execute(struct gk20a *g);
 
+int nvgpu_acr_self_hs_load_bootstrap(struct gk20a *g, struct nvgpu_falcon *flcn,
+	struct nvgpu_firmware *hs_fw, u32 timeout);
+
 #endif /* NVGPU_ACR_H */
 
