@@ -685,8 +685,7 @@ struct gpu_ops {
 		void (*dump_vpr_info)(struct gk20a *g);
 		void (*dump_wpr_info)(struct gk20a *g);
 		int (*vpr_info_fetch)(struct gk20a *g);
-		void (*read_wpr_info)(struct gk20a *g,
-				struct wpr_carveout_info *inf);
+		void (*read_wpr_info)(struct gk20a *g, u64 *wpr_base, u64 *wpr_size);
 		bool (*is_debug_mode_enabled)(struct gk20a *g);
 		void (*set_debug_mode)(struct gk20a *g, bool enable);
 		int (*tlb_invalidate)(struct gk20a *g, struct nvgpu_mem *pdb);

@@ -273,7 +273,7 @@ int gm20b_fb_vpr_info_fetch(struct gk20a *g)
 	return gm20b_fb_vpr_info_fetch_wait(g, VPR_INFO_FETCH_WAIT);
 }
 
-void gm20b_fb_read_wpr_info(struct gk20a *g, struct wpr_carveout_info *inf)
+void gm20b_fb_read_wpr_info(struct gk20a *g, u64 *wpr_base, u64 *wpr_size)
 {
 	u32 val = 0;
 	u64 wpr_start = 0;
@@ -299,9 +299,8 @@ void gm20b_fb_read_wpr_info(struct gk20a *g, struct wpr_carveout_info *inf)
 			(val >> (32 - WPR_INFO_ADDR_ALIGNMENT)),
 			(val << WPR_INFO_ADDR_ALIGNMENT));
 
-	inf->wpr_base = wpr_start;
-	inf->nonwpr_base = 0;
-	inf->size = (wpr_end - wpr_start);
+	*wpr_base = wpr_start;
+	*wpr_size = (wpr_end - wpr_start);
 }
 
 bool gm20b_fb_debug_mode_enabled(struct gk20a *g)

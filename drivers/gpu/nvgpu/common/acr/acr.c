@@ -69,7 +69,7 @@ int nvgpu_acr_alloc_blob_space_vid(struct gk20a *g, size_t size,
 
 void nvgpu_acr_wpr_info_sys(struct gk20a *g, struct wpr_carveout_info *inf)
 {
-	g->ops.fb.read_wpr_info(g, inf);
+	g->ops.fb.read_wpr_info(g, &inf->wpr_base, &inf->size);
 }
 
 void nvgpu_acr_wpr_info_vid(struct gk20a *g, struct wpr_carveout_info *inf)

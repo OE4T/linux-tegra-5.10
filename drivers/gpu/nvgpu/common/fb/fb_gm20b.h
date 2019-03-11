@@ -28,7 +28,6 @@
 #include <nvgpu/types.h>
 
 struct gk20a;
-struct wpr_carveout_info;
 struct nvgpu_mem;
 
 void gm20b_fb_init_hw(struct gk20a *g);
@@ -45,7 +44,7 @@ unsigned int gm20b_fb_compressible_page_size(struct gk20a *g);
 u32 gm20b_fb_compression_align_mask(struct gk20a *g);
 void gm20b_fb_dump_vpr_info(struct gk20a *g);
 void gm20b_fb_dump_wpr_info(struct gk20a *g);
-void gm20b_fb_read_wpr_info(struct gk20a *g, struct wpr_carveout_info *inf);
+void gm20b_fb_read_wpr_info(struct gk20a *g, u64 *wpr_base, u64 *wpr_size);
 int gm20b_fb_vpr_info_fetch(struct gk20a *g);
 bool gm20b_fb_debug_mode_enabled(struct gk20a *g);
 void gm20b_fb_set_debug_mode(struct gk20a *g, bool enable);
