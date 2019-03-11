@@ -74,7 +74,6 @@ static int gsp_flcn_bl_bootstrap(struct gk20a *g,
 }
 
 int gv100_gsp_setup_hw_and_bl_bootstrap(struct gk20a *g,
-	struct hs_acr *acr_desc,
 	struct nvgpu_falcon_bl_info *bl_info)
 {
 	u32 data = 0;

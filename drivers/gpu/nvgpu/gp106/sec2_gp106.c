@@ -83,7 +83,6 @@ static int sec2_flcn_bl_bootstrap(struct gk20a *g,
 }
 
 int gp106_sec2_setup_hw_and_bl_bootstrap(struct gk20a *g,
-	struct hs_acr *acr_desc,
 	struct nvgpu_falcon_bl_info *bl_info)
 {
 	u32 data = 0U;

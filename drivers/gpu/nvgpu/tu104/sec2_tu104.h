@@ -31,7 +31,6 @@ int tu104_sec2_flcn_copy_to_emem(struct nvgpu_falcon *flcn,
 int tu104_sec2_flcn_copy_from_emem(struct nvgpu_falcon *flcn,
 	u32 src, u8 *dst, u32 size, u8 port);
 int tu104_sec2_setup_hw_and_bl_bootstrap(struct gk20a *g,
-	struct hs_acr *acr_desc,
 	struct nvgpu_falcon_bl_info *bl_info);
 
 int tu104_sec2_queue_head(struct gk20a *g, u32 queue_id, u32 queue_index,

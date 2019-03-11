@@ -141,7 +141,7 @@ static int acr_hs_bl_exec(struct gk20a *g, struct nvgpu_acr *acr,
 	 * 2. setup falcon apertures
 	 * 3. bootstrap falcon
 	 */
-	acr_desc->acr_flcn_setup_hw_and_bl_bootstrap(g, acr_desc, &bl_info);
+	acr_desc->acr_flcn_setup_hw_and_bl_bootstrap(g, &bl_info);
 
 	if (b_wait_for_halt) {
 		/* wait for ACR halt*/

@@ -378,14 +378,13 @@ static int gm20b_bl_bootstrap(struct gk20a *g,
 }
 
 int gm20b_pmu_setup_hw_and_bl_bootstrap(struct gk20a *g,
-	struct hs_acr *acr_desc,
 	struct nvgpu_falcon_bl_info *bl_info)
 {
 	int err;
 
 	nvgpu_log_fn(g, " ");
 
-	err = nvgpu_falcon_reset(acr_desc->acr_flcn);
+	err = nvgpu_falcon_reset(g->pmu.flcn);
 	if (err != 0) {
 		goto exit;
 	}

@@ -38,7 +38,6 @@ int gm20b_ns_pmu_setup_hw_and_bootstrap(struct gk20a *g);
 void gm20b_pmu_setup_apertures(struct gk20a *g);
 void gm20b_update_lspmu_cmdline_args(struct gk20a *g);
 int gm20b_pmu_setup_hw_and_bl_bootstrap(struct gk20a *g,
-	struct hs_acr *acr_desc,
 	struct nvgpu_falcon_bl_info *bl_info);
 void gm20b_secured_pmu_start(struct gk20a *g);
 bool gm20b_is_pmu_supported(struct gk20a *g);

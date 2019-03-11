@@ -143,7 +143,6 @@ struct hs_acr {
 	struct nvgpu_falcon *acr_flcn;
 
 	int (*acr_flcn_setup_hw_and_bl_bootstrap)(struct gk20a *g,
-		struct hs_acr *acr_desc,
 		struct nvgpu_falcon_bl_info *bl_info);
 };
 
