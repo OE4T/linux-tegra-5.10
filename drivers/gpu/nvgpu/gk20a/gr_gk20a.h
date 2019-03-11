@@ -224,7 +224,6 @@ struct gr_gk20a {
 	u32 attrib_cb_gfxp_size;
 	u32 alpha_cb_default_size;
 	u32 alpha_cb_size;
-	u32 pd_max_batches;
 	u32 gfxp_wfi_timeout_count;
 	u32 gfxp_wfi_timeout_unit;
 
