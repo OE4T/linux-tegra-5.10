@@ -261,7 +261,7 @@ static inline bool __nvgpu_atomic64_sub_and_test(long x, nvgpu_atomic64_t *v)
  */
 #define cmpxchg(p, old, new) 						\
 	({								\
-		typeof(*p) tmp = old;					\
+		typeof(*(p)) tmp = old;					\
 									\
 		atomic_compare_exchange_strong(p, &tmp, new);		\
 		tmp;							\
