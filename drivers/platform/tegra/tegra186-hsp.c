@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -319,13 +319,6 @@ static const struct device_type tegra_hsp_sm_dev_type = {
 	.pm	= &tegra_hsp_sm_pm_ops,
 };
 
-static void tegra_hsp_sm_dev_release(struct device *dev)
-{
-	struct tegra_hsp_sm *sm = container_of(dev, struct tegra_hsp_sm, dev);
-
-	kfree(sm);
-}
-
 static int tegra_hsp_sm_register(struct device *dev,
 		struct tegra_hsp_sm *sm,
 		u32 index, u8 ie_shift, u8 per_sm_ie,
@@ -380,6 +373,14 @@ static void tegra_hsp_sm_free(struct tegra_hsp_sm *sm)
 	device_unregister(&sm->dev);
 }
 
+static void tegra_hsp_sm_rx_dev_release(struct device *dev)
+{
+	struct tegra_hsp_sm_rx *sm_rx = container_of(dev,
+			struct tegra_hsp_sm_rx, sm.dev);
+
+	kfree(sm_rx);
+}
+
 static struct tegra_hsp_sm_rx *tegra_hsp_sm_rx_create(
 	struct device *dev, u32 index,
 	tegra_hsp_sm_notify full_notify, void *data)
@@ -406,7 +407,7 @@ static struct tegra_hsp_sm_rx *tegra_hsp_sm_rx_create(
 	err = tegra_hsp_sm_register(dev, &sm_rx->sm,
 			index, index + TEGRA_HSP_IE_SM_FULL_SHIFT,
 			hsp->mbox_ie ? TEGRA_HSP_SM_IE_FULL : 0,
-			handler, tegra_hsp_sm_dev_release, data);
+			handler, tegra_hsp_sm_rx_dev_release, data);
 	if (err)
 		return ERR_PTR(err);
 
@@ -480,6 +481,14 @@ bool tegra_hsp_sm_rx_is_empty(const struct tegra_hsp_sm_rx *rx)
 }
 EXPORT_SYMBOL(tegra_hsp_sm_rx_is_empty);
 
+static void tegra_hsp_sm_tx_dev_release(struct device *dev)
+{
+	struct tegra_hsp_sm_tx *sm_tx = container_of(dev,
+			struct tegra_hsp_sm_tx, sm.dev);
+
+	kfree(sm_tx);
+}
+
 static struct tegra_hsp_sm_tx *tegra_hsp_sm_tx_create(
 	struct device *dev, u32 index,
 	tegra_hsp_sm_notify empty_notify,
@@ -507,7 +516,7 @@ static struct tegra_hsp_sm_tx *tegra_hsp_sm_tx_create(
 	err = tegra_hsp_sm_register(dev, &sm_tx->sm,
 			index, index,
 			hsp->mbox_ie ? TEGRA_HSP_SM_IE_EMPTY : 0,
-			handler, tegra_hsp_sm_dev_release, data);
+			handler, tegra_hsp_sm_tx_dev_release, data);
 	if (err)
 		return ERR_PTR(err);
 
