@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2015-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -592,6 +592,92 @@ const struct block_device_operations vblk_ops = {
 	.ioctl           = vblk_ioctl
 };
 
+static ssize_t
+vblk_phys_dev_show(struct device *dev, struct device_attribute *attr,
+			 char *buf)
+{
+	struct gendisk *disk = dev_to_disk(dev);
+	struct vblk_dev *vblk = disk->private_data;
+
+	if (vblk->config.phys_dev == VSC_DEV_EMMC)
+		return snprintf(buf, 16, "EMMC\n");
+	else if (vblk->config.phys_dev == VSC_DEV_UFS)
+		return snprintf(buf, 16, "UFS\n");
+	else
+		return snprintf(buf, 16, "Unknown\n");
+}
+
+static ssize_t
+vblk_phys_base_show(struct device *dev, struct device_attribute *attr,
+			 char *buf)
+{
+	struct gendisk *disk = dev_to_disk(dev);
+	struct vblk_dev *vblk = disk->private_data;
+
+	return snprintf(buf, 16, "0x%x\n", vblk->config.phys_base);
+}
+
+static ssize_t
+vblk_storage_type_show(struct device *dev, struct device_attribute *attr,
+			 char *buf)
+{
+	struct gendisk *disk = dev_to_disk(dev);
+	struct vblk_dev *vblk = disk->private_data;
+
+	switch (vblk->config.storage_type) {
+	case VSC_STORAGE_RPMB:
+		return snprintf(buf, 16, "RPMB\n");
+	case VSC_STORAGE_BOOT:
+		return snprintf(buf, 16, "BOOT\n");
+	case VSC_STORAGE_LUN0:
+		return snprintf(buf, 16, "LUN0\n");
+	case VSC_STORAGE_LUN1:
+		return snprintf(buf, 16, "LUN1\n");
+	case VSC_STORAGE_LUN2:
+		return snprintf(buf, 16, "LUN2\n");
+	case VSC_STORAGE_LUN3:
+		return snprintf(buf, 16, "LUN3\n");
+	case VSC_STORAGE_LUN4:
+		return snprintf(buf, 16, "LUN4\n");
+	case VSC_STORAGE_LUN5:
+		return snprintf(buf, 16, "LUN5\n");
+	case VSC_STORAGE_LUN6:
+		return snprintf(buf, 16, "LUN6\n");
+	case VSC_STORAGE_LUN7:
+		return snprintf(buf, 16, "LUN7\n");
+	default:
+		break;
+	}
+
+	return snprintf(buf, 16, "Unknown\n");
+}
+
+static ssize_t
+vblk_speed_mode_show(struct device *dev, struct device_attribute *attr,
+			 char *buf)
+{
+	struct gendisk *disk = dev_to_disk(dev);
+	struct vblk_dev *vblk = disk->private_data;
+
+	return snprintf(buf, 32, "%s\n", vblk->config.speed_mode);
+}
+
+static const struct device_attribute dev_attr_phys_dev_ro =
+	__ATTR(phys_dev, 0444,
+	       vblk_phys_dev_show, NULL);
+
+static const struct device_attribute dev_attr_phys_base_ro =
+	__ATTR(phys_base, 0444,
+	       vblk_phys_base_show, NULL);
+
+static const struct device_attribute dev_attr_storage_type_ro =
+	__ATTR(storage_type, 0444,
+	       vblk_storage_type_show, NULL);
+
+static const struct device_attribute dev_attr_speed_mode_ro =
+	__ATTR(speed_mode, 0444,
+	       vblk_speed_mode_show, NULL);
+
 /* Set up virtual device. */
 static void setup_device(struct vblk_dev *vblkdev)
 {
@@ -715,9 +801,38 @@ static void setup_device(struct vblk_dev *vblkdev)
 		vblkdev->gd->flags |= GENHD_FL_NO_PART_SCAN;
 	}
 
-	snprintf(vblkdev->gd->disk_name, 32, "vblkdev%d", vblkdev->devnum);
+	if (vblkdev->config.storage_type == VSC_STORAGE_RPMB)
+		snprintf(vblkdev->gd->disk_name, 32, "vblkrpmb%d",
+				vblkdev->devnum);
+	else
+		snprintf(vblkdev->gd->disk_name, 32, "vblkdev%d",
+				vblkdev->devnum);
 	set_capacity(vblkdev->gd, (vblkdev->size / SECTOR_SIZE));
 	device_add_disk(vblkdev->device, vblkdev->gd);
+
+	if (device_create_file(disk_to_dev(vblkdev->gd),
+		&dev_attr_phys_dev_ro)) {
+		dev_warn(vblkdev->device, "Error adding phys dev file!\n");
+		return;
+	}
+
+	if (device_create_file(disk_to_dev(vblkdev->gd),
+		&dev_attr_phys_base_ro)) {
+		dev_warn(vblkdev->device, "Error adding phys base file!\n");
+		return;
+	}
+
+	if (device_create_file(disk_to_dev(vblkdev->gd),
+		&dev_attr_storage_type_ro)) {
+		dev_warn(vblkdev->device, "Error adding storage type file!\n");
+		return;
+	}
+
+	if (device_create_file(disk_to_dev(vblkdev->gd),
+		&dev_attr_speed_mode_ro)) {
+		dev_warn(vblkdev->device, "Error adding speed_mode file!\n");
+		return;
+	}
 }
 
 static void vblk_init_device(struct work_struct *ws)

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -419,6 +419,33 @@ static int vmtd_setup_device(struct vmtd_dev *vmtddev)
 			NULL, 0);
 }
 
+static ssize_t vmtd_phys_dev_show(struct device *dev,
+		struct device_attribute *attr, char *buf)
+{
+	struct vmtd_dev *vmtddev = dev_get_drvdata(dev);
+
+	if (vmtddev->config.phys_dev == VSC_DEV_QSPI)
+		return snprintf(buf, 16, "QSPI\n");
+
+	return snprintf(buf, 16, "unknown!\n");
+}
+static DEVICE_ATTR(phys_dev, 0444, vmtd_phys_dev_show, NULL);
+
+static ssize_t vmtd_phys_base_show(struct device *dev,
+		struct device_attribute *attr, char *buf)
+{
+	struct vmtd_dev *vmtddev = dev_get_drvdata(dev);
+
+	return snprintf(buf, 16, "0x%x\n", vmtddev->config.phys_base);
+}
+static DEVICE_ATTR(phys_base, 0444, vmtd_phys_base_show, NULL);
+
+static const struct attribute *vmtd_storage_attrs[] = {
+	&dev_attr_phys_dev.attr,
+	&dev_attr_phys_base.attr,
+	NULL
+};
+
 static int32_t vmtd_init_device(struct vmtd_dev *vmtddev)
 {
 	struct vs_request *vs_req = (struct vs_request *)vmtddev->cmd_frame;
@@ -469,6 +496,12 @@ static int32_t vmtd_init_device(struct vmtd_dev *vmtddev)
 		dev_err(vmtddev->device,
 			"Setting up vmtd devices failed!\n");
 		return ret;
+	}
+
+	if (sysfs_create_files(&vmtddev->device->kobj,
+			vmtd_storage_attrs) != 0) {
+		dev_warn(vmtddev->device,
+			"Error Setting up sysfs files!\n");
 	}
 
 	vmtddev->is_setup = true;

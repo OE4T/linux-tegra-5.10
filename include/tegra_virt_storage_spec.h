@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -155,6 +155,25 @@ struct vs_mtd_dev_config {
 	uint64_t size;			/* Total number of bytes */
 };
 
+/* Physical device types */
+#define VSC_DEV_EMMC	1U
+#define VSC_DEV_UFS	2U
+#define VSC_DEV_QSPI	3U
+
+/* Storage Types */
+#define VSC_STORAGE_RPMB	1U
+#define VSC_STORAGE_BOOT	2U
+#define VSC_STORAGE_LUN0	3U
+#define VSC_STORAGE_LUN1	4U
+#define VSC_STORAGE_LUN2	5U
+#define VSC_STORAGE_LUN3	6U
+#define VSC_STORAGE_LUN4	7U
+#define VSC_STORAGE_LUN5	8U
+#define VSC_STORAGE_LUN6	9U
+#define VSC_STORAGE_LUN7	10U
+
+#define SPEED_MODE_MAX_LEN	32
+
 struct vs_config_info {
 	uint32_t virtual_storage_ver;		/* Version of virtual storage */
 	enum vs_dev_type type;			/* Type of underlying device */
@@ -162,6 +181,10 @@ struct vs_config_info {
 		struct vs_blk_dev_config blk_config;
 		struct vs_mtd_dev_config mtd_config;
 	};
+	uint32_t phys_dev;
+	uint32_t phys_base;
+	uint32_t storage_type;
+	uint8_t speed_mode[SPEED_MODE_MAX_LEN];
 };
 
 struct vs_request {
