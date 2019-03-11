@@ -31,7 +31,7 @@
 
 #include "ltc_tu104.h"
 
-#include "common/ltc/ltc_gv11b.h"
+#include "ltc_gv11b.h"
 
 #include <nvgpu/hw/tu104/hw_ltc_tu104.h>
 

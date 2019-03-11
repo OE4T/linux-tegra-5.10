@@ -75,10 +75,6 @@ nvgpu-y += \
 	common/regops/regops_gv11b.o \
 	common/regops/regops_tu104.o \
 	common/ltc/ltc.o \
-	common/ltc/ltc_gm20b.o \
-	common/ltc/ltc_gp10b.o \
-	common/ltc/ltc_gv11b.o  \
-	common/ltc/ltc_tu104.o \
 	common/gr/gr.o \
 	common/cbc/cbc.o \
 	common/gr/ctxsw_prog/ctxsw_prog_gm20b.o \
@@ -190,6 +186,10 @@ nvgpu-y += \
 	hal/therm/therm_gp10b.o \
 	hal/therm/therm_gp106.o \
 	hal/therm/therm_gv11b.o \
+	hal/ltc/ltc_gm20b.o \
+	hal/ltc/ltc_gp10b.o \
+	hal/ltc/ltc_gv11b.o  \
+	hal/ltc/ltc_tu104.o \
 	hal/fuse/fuse_gm20b.o \
 	hal/fuse/fuse_gp10b.o \
 	hal/fuse/fuse_gp106.o \

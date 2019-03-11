@@ -98,9 +98,6 @@ srcs += common/sim.c \
 	common/rbtree.c \
 	common/ltc/ltc.c \
 	common/cbc/cbc.c \
-	common/ltc/ltc_gm20b.c \
-	common/ltc/ltc_gp10b.c \
-	common/ltc/ltc_gv11b.c  \
 	common/io/io.c \
 	common/ecc.c \
 	common/ce2.c \
@@ -295,7 +292,6 @@ srcs += common/sim.c \
 	gv100/gsp_gv100.c \
 	gv100/clk_gv100.c \
 	common/fb/fb_tu104.c	\
-	common/ltc/ltc_tu104.c	\
 	common/mc/mc_tu104.c	\
 	tu104/bios_tu104.c	\
 	tu104/ecc_tu104.c	\
@@ -355,6 +351,10 @@ srcs += common/sim.c \
 	hal/therm/therm_gp10b.c \
 	hal/therm/therm_gv11b.c \
 	hal/therm/therm_gp106.c \
+	hal/ltc/ltc_gm20b.c \
+	hal/ltc/ltc_gp10b.c \
+	hal/ltc/ltc_gv11b.c  \
+	hal/ltc/ltc_tu104.c	\
 	hal/fuse/fuse_gm20b.c \
 	hal/fuse/fuse_gp10b.c \
 	hal/fuse/fuse_gp106.c \
