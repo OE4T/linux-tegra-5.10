@@ -984,33 +984,6 @@ static ssize_t max_timeslice_us_store(struct device *dev,
 static DEVICE_ATTR(max_timeslice_us, ROOTRW, max_timeslice_us_read,
 		   max_timeslice_us_store);
 
-static ssize_t czf_bypass_store(struct device *dev,
-		struct device_attribute *attr, const char *buf, size_t count)
-{
-	struct gk20a *g = get_gk20a(dev);
-	unsigned long val;
-
-	if (kstrtoul(buf, 10, &val) < 0)
-		return -EINVAL;
-
-	if (val >= 4)
-		return -EINVAL;
-
-	g->gr.czf_bypass = val;
-
-	return count;
-}
-
-static ssize_t czf_bypass_read(struct device *dev,
-		struct device_attribute *attr, char *buf)
-{
-	struct gk20a *g = get_gk20a(dev);
-
-	return sprintf(buf, "%d\n", g->gr.czf_bypass);
-}
-
-static DEVICE_ATTR(czf_bypass, ROOTRW, czf_bypass_read, czf_bypass_store);
-
 static ssize_t pd_max_batches_store(struct device *dev,
 		struct device_attribute *attr, const char *buf, size_t count)
 {
@@ -1201,7 +1174,6 @@ void nvgpu_remove_sysfs(struct device *dev)
 	nvgpu_nvhost_remove_symlink(get_gk20a(dev));
 #endif
 
-	device_remove_file(dev, &dev_attr_czf_bypass);
 	device_remove_file(dev, &dev_attr_pd_max_batches);
 	device_remove_file(dev, &dev_attr_gfxp_wfi_timeout_count);
 	device_remove_file(dev, &dev_attr_gfxp_wfi_timeout_unit);
@@ -1256,7 +1228,6 @@ int nvgpu_create_sysfs(struct device *dev)
 	error |= nvgpu_nvhost_create_symlink(g);
 #endif
 
-	error |= device_create_file(dev, &dev_attr_czf_bypass);
 	error |= device_create_file(dev, &dev_attr_pd_max_batches);
 	error |= device_create_file(dev, &dev_attr_gfxp_wfi_timeout_count);
 	error |= device_create_file(dev, &dev_attr_gfxp_wfi_timeout_unit);

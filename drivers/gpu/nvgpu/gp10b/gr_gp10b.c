@@ -2183,28 +2183,6 @@ void gr_gp10b_set_preemption_buffer_va(struct gk20a *g,
 	g->ops.gr.ctxsw_prog.set_full_preemption_ptr(g, mem, gpu_va);
 }
 
-void gr_gp10b_init_czf_bypass(struct gk20a *g)
-{
-	g->gr.czf_bypass = gr_gpc0_prop_debug1_czf_bypass_init_v();
-}
-
-int gr_gp10b_set_czf_bypass(struct gk20a *g, struct channel_gk20a *ch)
-{
-	struct nvgpu_dbg_reg_op ops;
-
-	ops.op     = REGOP(WRITE_32);
-	ops.type   = REGOP(TYPE_GR_CTX);
-	ops.status = REGOP(STATUS_SUCCESS);
-	ops.value_hi      = 0;
-	ops.and_n_mask_lo = gr_gpc0_prop_debug1_czf_bypass_m();
-	ops.and_n_mask_hi = 0;
-	ops.offset   = gr_gpc0_prop_debug1_r();
-	ops.value_lo = gr_gpc0_prop_debug1_czf_bypass_f(
-		g->gr.czf_bypass);
-
-	return __gr_gk20a_exec_ctx_ops(ch, &ops, 1, 1, 0, false);
-}
-
 void gr_gp10b_init_gfxp_wfi_timeout_count(struct gk20a *g)
 {
 	struct gr_gk20a *gr = &g->gr;

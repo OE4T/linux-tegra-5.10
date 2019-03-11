@@ -2296,10 +2296,6 @@ int gk20a_alloc_obj_ctx(struct channel_gk20a  *c, u32 class_num, u32 flags)
 		}
 #endif
 
-		if (g->ops.gr.set_czf_bypass != NULL) {
-			g->ops.gr.set_czf_bypass(g, c);
-		}
-
 		/* PM ctxt switch is off by default */
 		gr_ctx->pm_ctx.pm_mode =
 			g->ops.gr.ctxsw_prog.hw_get_pm_mode_no_ctxsw();
@@ -3093,10 +3089,6 @@ static int gk20a_init_gr_setup_sw(struct gk20a *g)
 	err = nvgpu_gr_zbc_init(g, &gr->zbc);
 	if (err != 0) {
 		goto clean_up;
-	}
-
-	if (g->ops.gr.init_czf_bypass != NULL) {
-		g->ops.gr.init_czf_bypass(g);
 	}
 
 	if (g->ops.gr.init_gfxp_wfi_timeout_count != NULL) {

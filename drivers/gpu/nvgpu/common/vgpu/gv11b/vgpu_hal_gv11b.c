@@ -217,7 +217,6 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 		.disable_rd_coalesce = NULL,
 		.set_boosted_ctx = NULL,
 		.set_preemption_mode = vgpu_gr_set_preemption_mode,
-		.set_czf_bypass = NULL,
 		.pre_process_sm_exception = NULL,
 		.set_preemption_buffer_va = gr_gv11b_set_preemption_buffer_va,
 		.init_preemption_state = NULL,
