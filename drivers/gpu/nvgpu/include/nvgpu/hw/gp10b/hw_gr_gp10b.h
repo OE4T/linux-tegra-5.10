@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -1733,10 +1733,6 @@ static inline u32 gr_pd_ab_dist_cfg0_timeslice_enable_dis_f(void)
 static inline u32 gr_pd_ab_dist_cfg1_r(void)
 {
 	return 0x004064c4U;
-}
-static inline u32 gr_pd_ab_dist_cfg1_max_batches_f(u32 v)
-{
-	return (v & 0xffffU) << 0U;
 }
 static inline u32 gr_pd_ab_dist_cfg1_max_batches_init_f(void)
 {
@@ -4397,21 +4393,5 @@ static inline u32 gr_gpcs_tc_debug0_limit_coalesce_buffer_size_f(u32 v)
 static inline u32 gr_gpcs_tc_debug0_limit_coalesce_buffer_size_m(void)
 {
 	return U32(0xffU) << 0U;
-}
-static inline u32 gr_gpc0_prop_debug1_r(void)
-{
-	return 0x00500400U;
-}
-static inline u32 gr_gpc0_prop_debug1_czf_bypass_f(u32 v)
-{
-	return (v & 0x3U) << 14U;
-}
-static inline u32 gr_gpc0_prop_debug1_czf_bypass_m(void)
-{
-	return U32(0x3U) << 14U;
-}
-static inline u32 gr_gpc0_prop_debug1_czf_bypass_init_v(void)
-{
-	return 0x00000001U;
 }
 #endif
