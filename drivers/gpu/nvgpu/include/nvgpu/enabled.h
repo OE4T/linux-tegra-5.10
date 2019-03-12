@@ -84,6 +84,8 @@ struct gk20a;
 #define NVGPU_MM_USE_PHYSICAL_SG		27
 /* WAR for gm20b chips. */
 #define NVGPU_MM_FORCE_128K_PMU_VM		28
+/* Some chips (those that use nvlink) bypass the IOMMU on tegra. */
+#define NVGPU_MM_BYPASSES_IOMMU			29
 
 /*
  * Host flags

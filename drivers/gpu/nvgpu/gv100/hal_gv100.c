@@ -1270,6 +1270,11 @@ int gv100_init_hal(struct gk20a *g)
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_PMU_RTOS_FBQ, true);
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_ZBC_STENCIL, true);
 
+	/*
+	 * gv100 bypasses the IOMMU since it uses the nvlink path memory.
+	 */
+	nvgpu_set_enabled(g, NVGPU_MM_BYPASSES_IOMMU, true);
+
 	/* for now */
 	nvgpu_set_enabled(g, NVGPU_PMU_PSTATE, false);
 

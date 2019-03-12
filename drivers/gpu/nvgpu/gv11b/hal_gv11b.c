@@ -1154,6 +1154,12 @@ int gv11b_init_hal(struct gk20a *g)
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_ZBC_STENCIL, true);
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_PLATFORM_ATOMIC, true);
 
+	/*
+	 * gv11b bypasses the IOMMU since it uses a special nvlink path to
+	 * memory.
+	 */
+	nvgpu_set_enabled(g, NVGPU_MM_BYPASSES_IOMMU, true);
+
 	g->name = "gv11b";
 
 	return 0;
