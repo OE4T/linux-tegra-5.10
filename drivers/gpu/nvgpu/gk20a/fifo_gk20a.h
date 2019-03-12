@@ -324,8 +324,6 @@ int gk20a_fifo_tsg_unbind_channel_verify_status(struct channel_gk20a *ch);
 
 struct channel_gk20a *gk20a_refch_from_inst_ptr(struct gk20a *g, u64 inst_ptr);
 
-u32 gk20a_fifo_intr_0_error_mask(struct gk20a *g);
-
 int gk20a_fifo_is_preempt_pending(struct gk20a *g, u32 id,
 			unsigned int id_type);
 int __locked_fifo_preempt(struct gk20a *g, u32 id, bool is_tsg);
@@ -339,7 +337,6 @@ int gk20a_fifo_alloc_inst(struct gk20a *g, struct channel_gk20a *ch);
 void gk20a_fifo_free_inst(struct gk20a *g, struct channel_gk20a *ch);
 
 u32 gk20a_fifo_runlist_busy_engines(struct gk20a *g, u32 runlist_id);
-void gk20a_fifo_handle_runlist_event(struct gk20a *g);
 bool gk20a_fifo_should_defer_engine_reset(struct gk20a *g, u32 engine_id,
 			u32 engine_subid, bool fake_fault);
 
@@ -365,4 +362,9 @@ void gk20a_fifo_get_mmu_fault_gpc_desc(struct mmu_fault_info *mmfault);
 bool gk20a_fifo_find_pbdma_for_runlist(struct fifo_gk20a *f, u32 runlist_id,
 			u32 *pbdma_id);
 int gk20a_fifo_init_pbdma_info(struct fifo_gk20a *f);
+u32 fifo_pbdma_isr(struct gk20a *g, u32 fifo_intr);
+bool gk20a_fifo_handle_mmu_fault(struct gk20a *g,
+	u32 mmu_fault_engines, u32 hw_id, bool id_is_tsg);
+void gk20a_fifo_handle_dropped_mmu_fault(struct gk20a *g);
+
 #endif /* FIFO_GK20A_H */

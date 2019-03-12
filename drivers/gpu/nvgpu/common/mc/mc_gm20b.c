@@ -69,7 +69,7 @@ void gm20b_mc_isr_stall(struct gk20a *g)
 		}
 	}
 	if ((mc_intr_0 & mc_intr_pfifo_pending_f()) != 0U) {
-		gk20a_fifo_isr(g);
+		g->ops.fifo.intr_0_isr(g);
 	}
 	if ((mc_intr_0 & mc_intr_pmu_pending_f()) != 0U) {
 		g->ops.pmu.pmu_isr(g);
@@ -96,7 +96,7 @@ u32 gm20b_mc_isr_nonstall(struct gk20a *g)
 	mc_intr_1 = g->ops.mc.intr_nonstall(g);
 
 	if (g->ops.mc.is_intr1_pending(g, NVGPU_UNIT_FIFO, mc_intr_1)) {
-		ops |= gk20a_fifo_nonstall_isr(g);
+		ops |= g->ops.fifo.intr_1_isr(g);
 	}
 
 	for (engine_id_idx = 0; engine_id_idx < g->fifo.num_engines;

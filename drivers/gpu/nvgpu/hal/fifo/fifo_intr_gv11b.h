@@ -1,7 +1,5 @@
 /*
- * fifo common definitions (gr host)
- *
- * Copyright (c) 2011-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2015-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -22,37 +20,27 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NVGPU_FIFO_COMMON_H
-#define NVGPU_FIFO_COMMON_H
+#ifndef NVGPU_FIFO_INTR_GV11B_H
+#define NVGPU_FIFO_INTR_GV11B_H
 
-#define RC_TYPE_NO_RC			0U
-#define RC_TYPE_MMU_FAULT		1U
-#define RC_TYPE_PBDMA_FAULT		2U
-#define RC_TYPE_GR_FAULT		3U
-#define RC_TYPE_PREEMPT_TIMEOUT		4U
-#define RC_TYPE_CTXSW_TIMEOUT		5U
-#define RC_TYPE_RUNLIST_UPDATE_TIMEOUT	6U
-#define RC_TYPE_FORCE_RESET		7U
-#define RC_TYPE_SCHED_ERR		8U
+#include <nvgpu/types.h>
 
-#define INVAL_ID			(~U32(0U))
+/*
+* ERROR_CODE_BAD_TSG indicates that Host encountered a badly formed TSG header
+* or a badly formed channel type runlist entry in the runlist. This is typically
+* caused by encountering a new TSG entry in the middle of a TSG definition.
+* A channel type entry having wrong runqueue selector can also cause this.
+* Additionally this error code can indicate when a channel is encountered on
+* the runlist which is outside of a TSG.
+*/
+#define SCHED_ERROR_CODE_BAD_TSG           0x00000020U
 
 struct gk20a;
 
-struct nvgpu_channel_hw_state {
-	bool enabled;
-	bool next;
-	bool ctx_reload;
-	bool busy;
-	bool pending_acquire;
-	bool eng_faulted;
-	const char *status_string;
-};
+void gv11b_fifo_intr_0_enable(struct gk20a *g, bool enable);
+void gv11b_fifo_intr_0_isr(struct gk20a *g);
 
-int nvgpu_fifo_init_support(struct gk20a *g);
-int nvgpu_fifo_setup_sw(struct gk20a *g);
-int nvgpu_fifo_setup_sw_common(struct gk20a *g);
-void nvgpu_fifo_cleanup_sw(struct gk20a *g);
-void nvgpu_fifo_cleanup_sw_common(struct gk20a *g);
+bool gv11b_fifo_handle_sched_error(struct gk20a *g);
+bool gv11b_fifo_handle_ctxsw_timeout(struct gk20a *g, u32 fifo_intr);
 
-#endif /* NVGPU_FIFO_COMMON_H */
+#endif /* NVGPU_FIFO_INTR_GV11B_H */

@@ -30,19 +30,6 @@
 #define FIFO_INVAL_PBDMA_ID	(~U32(0U))
 #define FIFO_INVAL_VEID		(~U32(0U))
 
-/* engine context-switch request occurred while the engine was in reset */
-#define SCHED_ERROR_CODE_ENGINE_RESET      0x00000005U
-
-/*
-* ERROR_CODE_BAD_TSG indicates that Host encountered a badly formed TSG header
-* or a badly formed channel type runlist entry in the runlist. This is typically
-* caused by encountering a new TSG entry in the middle of a TSG definition.
-* A channel type entry having wrong runqueue selector can also cause this.
-* Additionally this error code can indicate when a channel is encountered on
-* the runlist which is outside of a TSG.
-*/
-#define SCHED_ERROR_CODE_BAD_TSG           0x00000020U
-
 /* can be removed after runque support is added */
 
 #define GR_RUNQUE			0U	/* pbdma 0 */
@@ -69,7 +56,6 @@ void gv11b_dump_channel_status_ramfc(struct gk20a *g,
 void gv11b_capture_channel_ram_dump(struct gk20a *g,
 		struct channel_gk20a *ch,
 		struct nvgpu_channel_dump_info *info);
-u32 gv11b_fifo_intr_0_error_mask(struct gk20a *g);
 int gv11b_fifo_is_preempt_pending(struct gk20a *g, u32 id,
 		 unsigned int id_type);
 int gv11b_fifo_preempt_channel(struct gk20a *g, struct channel_gk20a *ch);
@@ -82,8 +68,6 @@ void gv11b_fifo_teardown_mask_intr(struct gk20a *g);
 void gv11b_fifo_teardown_unmask_intr(struct gk20a *g);
 void gv11b_fifo_init_pbdma_intr_descs(struct fifo_gk20a *f);
 int gv11b_init_fifo_reset_enable_hw(struct gk20a *g);
-bool gv11b_fifo_handle_sched_error(struct gk20a *g);
-bool gv11b_fifo_handle_ctxsw_timeout(struct gk20a *g, u32 fifo_intr);
 void gv11b_fifo_init_eng_method_buffers(struct gk20a *g,
 					struct tsg_gk20a *tsg);
 void gv11b_fifo_deinit_eng_method_buffers(struct gk20a *g,

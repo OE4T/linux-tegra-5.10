@@ -62,6 +62,7 @@
 #include "hal/fifo/engine_status_gm20b.h"
 #include "hal/fifo/pbdma_status_gm20b.h"
 #include "hal/fifo/userd_gk20a.h"
+#include "hal/fifo/fifo_intr_gk20a.h"
 #include "hal/gr/fecs_trace/fecs_trace_gm20b.h"
 #include "hal/gr/fecs_trace/fecs_trace_gp10b.h"
 #include "hal/gr/zbc/zbc_gp10b.h"
@@ -639,7 +640,6 @@ static const struct gpu_ops gp10b_ops = {
 		.get_engines_mask_on_id = gk20a_fifo_engines_on_id,
 		.dump_channel_status_ramfc = gk20a_dump_channel_status_ramfc,
 		.capture_channel_ram_dump = gk20a_capture_channel_ram_dump,
-		.intr_0_error_mask = gk20a_fifo_intr_0_error_mask,
 		.is_preempt_pending = gk20a_fifo_is_preempt_pending,
 		.reset_enable_hw = gk20a_init_fifo_reset_enable_hw,
 		.teardown_ch_tsg = gk20a_fifo_teardown_ch_tsg,
@@ -662,6 +662,10 @@ static const struct gpu_ops gp10b_ops = {
 		.runlist_busy_engines = gk20a_fifo_runlist_busy_engines,
 		.find_pbdma_for_runlist = gk20a_fifo_find_pbdma_for_runlist,
 		.init_ce_engine_info = gp10b_fifo_init_ce_engine_info,
+		.intr_0_enable = gk20a_fifo_intr_0_enable,
+		.intr_1_enable = gk20a_fifo_intr_1_enable,
+		.intr_0_isr = gk20a_fifo_intr_0_isr,
+		.intr_1_isr = gk20a_fifo_intr_1_isr,
 	},
 	.engine = {
 		.is_fault_engine_subid_gpc = gm20b_is_fault_engine_subid_gpc,

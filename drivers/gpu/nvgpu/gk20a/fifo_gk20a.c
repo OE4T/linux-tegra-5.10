@@ -207,37 +207,8 @@ static inline u32 gk20a_mmu_id_to_engine_id(struct gk20a *g, u32 fault_id)
 	return active_engine_id;
 }
 
-u32 gk20a_fifo_intr_0_error_mask(struct gk20a *g)
-{
-	u32 intr_0_error_mask =
-		fifo_intr_0_bind_error_pending_f() |
-		fifo_intr_0_sched_error_pending_f() |
-		fifo_intr_0_chsw_error_pending_f() |
-		fifo_intr_0_fb_flush_timeout_pending_f() |
-		fifo_intr_0_dropped_mmu_fault_pending_f() |
-		fifo_intr_0_mmu_fault_pending_f() |
-		fifo_intr_0_lb_error_pending_f() |
-		fifo_intr_0_pio_error_pending_f();
-
-	return intr_0_error_mask;
-}
-
-static u32 gk20a_fifo_intr_0_en_mask(struct gk20a *g)
-{
-	u32 intr_0_en_mask;
-
-	intr_0_en_mask = g->ops.fifo.intr_0_error_mask(g);
-
-	intr_0_en_mask |= fifo_intr_0_runlist_event_pending_f() |
-				 fifo_intr_0_pbdma_intr_pending_f();
-
-	return intr_0_en_mask;
-}
-
 int gk20a_init_fifo_reset_enable_hw(struct gk20a *g)
 {
-	u32 intr_stall;
-	u32 mask;
 	u32 timeout;
 	unsigned int i;
 	u32 host_num_pbdma = nvgpu_get_litter_value(g, GPU_LIT_HOST_NUM_PBDMA);
@@ -269,60 +240,12 @@ int gk20a_init_fifo_reset_enable_hw(struct gk20a *g)
 		g->ops.fifo.apply_pb_timeout(g);
 	}
 
-	if (g->ops.fifo.apply_ctxsw_timeout_intr != NULL) {
-		g->ops.fifo.apply_ctxsw_timeout_intr(g);
-	} else {
-		timeout = g->fifo_eng_timeout_us;
-		timeout = scale_ptimer(timeout,
-			ptimer_scalingfactor10x(g->ptimer_src_freq));
-		timeout |= fifo_eng_timeout_detection_enabled_f();
-		gk20a_writel(g, fifo_eng_timeout_r(), timeout);
-	}
-
-	/* clear and enable pbdma interrupt */
-	for (i = 0; i < host_num_pbdma; i++) {
-		gk20a_writel(g, pbdma_intr_0_r(i), 0xFFFFFFFFU);
-		gk20a_writel(g, pbdma_intr_1_r(i), 0xFFFFFFFFU);
-
-		intr_stall = gk20a_readl(g, pbdma_intr_stall_r(i));
-		intr_stall &= ~pbdma_intr_stall_lbreq_enabled_f();
-		gk20a_writel(g, pbdma_intr_stall_r(i), intr_stall);
-		nvgpu_log_info(g, "pbdma id:%u, intr_en_0 0x%08x", i, intr_stall);
-		gk20a_writel(g, pbdma_intr_en_0_r(i), intr_stall);
-		intr_stall = gk20a_readl(g, pbdma_intr_stall_1_r(i));
-		/*
-		 * For bug 2082123
-		 * Mask the unused HCE_RE_ILLEGAL_OP bit from the interrupt.
-		 */
-		intr_stall &= ~pbdma_intr_stall_1_hce_illegal_op_enabled_f();
-		nvgpu_log_info(g, "pbdma id:%u, intr_en_1 0x%08x", i, intr_stall);
-		gk20a_writel(g, pbdma_intr_en_1_r(i), intr_stall);
-	}
-
-	/* reset runlist interrupts */
-	gk20a_writel(g, fifo_intr_runlist_r(), U32_MAX);
-
-	/* clear and enable pfifo interrupt */
-	gk20a_writel(g, fifo_intr_0_r(), 0xFFFFFFFFU);
-	mask = gk20a_fifo_intr_0_en_mask(g);
-	nvgpu_log_info(g, "fifo_intr_en_0 0x%08x", mask);
-	gk20a_writel(g, fifo_intr_en_0_r(), mask);
-	nvgpu_log_info(g, "fifo_intr_en_1 = 0x80000000");
-	gk20a_writel(g, fifo_intr_en_1_r(), 0x80000000U);
+	g->ops.fifo.intr_0_enable(g, true);
+	g->ops.fifo.intr_1_enable(g, true);
 
 	nvgpu_log_fn(g, "done");
 
 	return 0;
-}
-
-void gk20a_fifo_handle_runlist_event(struct gk20a *g)
-{
-	u32 runlist_event = gk20a_readl(g, fifo_intr_runlist_r());
-
-	nvgpu_log(g, gpu_dbg_intr, "runlist event %08x",
-		  runlist_event);
-
-	gk20a_writel(g, fifo_intr_runlist_r(), runlist_event);
 }
 
 int gk20a_init_fifo_setup_hw(struct gk20a *g)
@@ -527,19 +450,7 @@ void gk20a_fifo_get_mmu_fault_info(struct gk20a *g, u32 mmu_fault_id,
 	mmfault->inst_ptr <<= fifo_intr_mmu_fault_inst_ptr_align_shift_v();
 }
 
-static void gk20a_fifo_handle_chsw_fault(struct gk20a *g)
-{
-	u32 intr;
-
-	intr = gk20a_readl(g, fifo_intr_chsw_error_r());
-	nvgpu_report_host_error(g, 0,
-			GPU_HOST_PFIFO_CHSW_ERROR, intr);
-	nvgpu_err(g, "chsw: %08x", intr);
-	g->ops.gr.dump_gr_falcon_stats(g);
-	gk20a_writel(g, fifo_intr_chsw_error_r(), intr);
-}
-
-static void gk20a_fifo_handle_dropped_mmu_fault(struct gk20a *g)
+void gk20a_fifo_handle_dropped_mmu_fault(struct gk20a *g)
 {
 	u32 fault_id = gk20a_readl(g, fifo_intr_mmu_fault_id_r());
 	nvgpu_err(g, "dropped mmu fault (0x%08x)", fault_id);
@@ -869,7 +780,7 @@ static bool gk20a_fifo_handle_mmu_fault_locked(
 	return verbose;
 }
 
-static bool gk20a_fifo_handle_mmu_fault(
+bool gk20a_fifo_handle_mmu_fault(
 	struct gk20a *g,
 	u32 mmu_fault_engines, /* queried from HW if 0 */
 	u32 hw_id, /* queried from HW if ~(u32)0 OR mmu_fault_engines == 0*/
@@ -1363,50 +1274,6 @@ err:
 	return ret;
 }
 
-static u32 fifo_error_isr(struct gk20a *g, u32 fifo_intr)
-{
-	u32 handled = 0;
-
-	nvgpu_log_fn(g, "fifo_intr=0x%08x", fifo_intr);
-
-	if ((fifo_intr & fifo_intr_0_pio_error_pending_f()) != 0U) {
-		/* pio mode is unused.  this shouldn't happen, ever. */
-		/* should we clear it or just leave it pending? */
-		nvgpu_err(g, "fifo pio error!");
-		BUG();
-	}
-
-	if ((fifo_intr & fifo_intr_0_bind_error_pending_f()) != 0U) {
-		u32 bind_error = gk20a_readl(g, fifo_intr_bind_error_r());
-		nvgpu_report_host_error(g, 0,
-				GPU_HOST_PFIFO_BIND_ERROR, bind_error);
-		nvgpu_err(g, "fifo bind error: 0x%08x", bind_error);
-		handled |= fifo_intr_0_bind_error_pending_f();
-	}
-
-	if ((fifo_intr & fifo_intr_0_sched_error_pending_f()) != 0U) {
-		(void) g->ops.fifo.handle_sched_error(g);
-		handled |= fifo_intr_0_sched_error_pending_f();
-	}
-
-	if ((fifo_intr & fifo_intr_0_chsw_error_pending_f()) != 0U) {
-		gk20a_fifo_handle_chsw_fault(g);
-		handled |= fifo_intr_0_chsw_error_pending_f();
-	}
-
-	if ((fifo_intr & fifo_intr_0_mmu_fault_pending_f()) != 0U) {
-		(void) gk20a_fifo_handle_mmu_fault(g, 0, ~(u32)0, false);
-		handled |= fifo_intr_0_mmu_fault_pending_f();
-	}
-
-	if ((fifo_intr & fifo_intr_0_dropped_mmu_fault_pending_f()) != 0U) {
-		gk20a_fifo_handle_dropped_mmu_fault(g);
-		handled |= fifo_intr_0_dropped_mmu_fault_pending_f();
-	}
-
-	return handled;
-}
-
 static void gk20a_fifo_pbdma_fault_rc(struct gk20a *g,
 			struct fifo_gk20a *f, u32 pbdma_id,
 			u32 error_notifier)
@@ -1490,7 +1357,7 @@ u32 gk20a_fifo_handle_pbdma_intr(struct gk20a *g, struct fifo_gk20a *f,
 	return handled;
 }
 
-static u32 fifo_pbdma_isr(struct gk20a *g, u32 fifo_intr)
+u32 fifo_pbdma_isr(struct gk20a *g, u32 fifo_intr)
 {
 	struct fifo_gk20a *f = &g->fifo;
 	u32 clear_intr = 0, i;
@@ -1505,61 +1372,6 @@ static u32 fifo_pbdma_isr(struct gk20a *g, u32 fifo_intr)
 		}
 	}
 	return fifo_intr_0_pbdma_intr_pending_f();
-}
-
-void gk20a_fifo_isr(struct gk20a *g)
-{
-	u32 error_intr_mask;
-	u32 clear_intr = 0;
-	u32 fifo_intr = gk20a_readl(g, fifo_intr_0_r());
-
-	error_intr_mask = g->ops.fifo.intr_0_error_mask(g);
-
-	if (g->fifo.sw_ready) {
-		/* note we're not actually in an "isr", but rather
-		 * in a threaded interrupt context... */
-		nvgpu_mutex_acquire(&g->fifo.intr.isr.mutex);
-
-		nvgpu_log(g, gpu_dbg_intr, "fifo isr %08x\n", fifo_intr);
-
-		/* handle runlist update */
-		if ((fifo_intr & fifo_intr_0_runlist_event_pending_f()) != 0U) {
-			gk20a_fifo_handle_runlist_event(g);
-			clear_intr |= fifo_intr_0_runlist_event_pending_f();
-		}
-		if ((fifo_intr & fifo_intr_0_pbdma_intr_pending_f()) != 0U) {
-			clear_intr |= fifo_pbdma_isr(g, fifo_intr);
-		}
-
-		if (g->ops.fifo.handle_ctxsw_timeout != NULL) {
-			g->ops.fifo.handle_ctxsw_timeout(g, fifo_intr);
-		}
-
-		if (unlikely((fifo_intr & error_intr_mask) != 0U)) {
-			clear_intr |= fifo_error_isr(g, fifo_intr);
-		}
-
-		nvgpu_mutex_release(&g->fifo.intr.isr.mutex);
-	}
-	gk20a_writel(g, fifo_intr_0_r(), clear_intr);
-
-	return;
-}
-
-u32 gk20a_fifo_nonstall_isr(struct gk20a *g)
-{
-	u32 fifo_intr = gk20a_readl(g, fifo_intr_0_r());
-	u32 clear_intr = 0;
-
-	nvgpu_log(g, gpu_dbg_intr, "fifo nonstall isr %08x\n", fifo_intr);
-
-	if ((fifo_intr & fifo_intr_0_channel_intr_pending_f()) != 0U) {
-		clear_intr = fifo_intr_0_channel_intr_pending_f();
-	}
-
-	gk20a_writel(g, fifo_intr_0_r(), clear_intr);
-
-	return GK20A_NONSTALL_OPS_WAKEUP_SEMAPHORE;
 }
 
 void gk20a_fifo_issue_preempt(struct gk20a *g, u32 id, bool is_tsg)
@@ -1809,8 +1621,8 @@ int gk20a_fifo_suspend(struct gk20a *g)
 	}
 
 	/* disable fifo intr */
-	gk20a_writel(g, fifo_intr_en_0_r(), 0);
-	gk20a_writel(g, fifo_intr_en_1_r(), 0);
+	g->ops.fifo.intr_0_enable(g, false);
+	g->ops.fifo.intr_1_enable(g, false);
 
 	nvgpu_log_fn(g, "done");
 	return 0;

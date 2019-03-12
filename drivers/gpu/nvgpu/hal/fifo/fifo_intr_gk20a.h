@@ -1,6 +1,4 @@
 /*
- * fifo common definitions (gr host)
- *
  * Copyright (c) 2011-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
@@ -22,37 +20,19 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NVGPU_FIFO_COMMON_H
-#define NVGPU_FIFO_COMMON_H
+#ifndef NVGPU_FIFO_INTR_GK20A_H
+#define NVGPU_FIFO_INTR_GK20A_H
 
-#define RC_TYPE_NO_RC			0U
-#define RC_TYPE_MMU_FAULT		1U
-#define RC_TYPE_PBDMA_FAULT		2U
-#define RC_TYPE_GR_FAULT		3U
-#define RC_TYPE_PREEMPT_TIMEOUT		4U
-#define RC_TYPE_CTXSW_TIMEOUT		5U
-#define RC_TYPE_RUNLIST_UPDATE_TIMEOUT	6U
-#define RC_TYPE_FORCE_RESET		7U
-#define RC_TYPE_SCHED_ERR		8U
-
-#define INVAL_ID			(~U32(0U))
+#include <nvgpu/types.h>
 
 struct gk20a;
 
-struct nvgpu_channel_hw_state {
-	bool enabled;
-	bool next;
-	bool ctx_reload;
-	bool busy;
-	bool pending_acquire;
-	bool eng_faulted;
-	const char *status_string;
-};
+void gk20a_fifo_intr_0_enable(struct gk20a *g, bool enable);
+void gk20a_fifo_intr_1_enable(struct gk20a *g, bool enable);
+void gk20a_fifo_intr_0_isr(struct gk20a *g);
+u32  gk20a_fifo_intr_1_isr(struct gk20a *g);
 
-int nvgpu_fifo_init_support(struct gk20a *g);
-int nvgpu_fifo_setup_sw(struct gk20a *g);
-int nvgpu_fifo_setup_sw_common(struct gk20a *g);
-void nvgpu_fifo_cleanup_sw(struct gk20a *g);
-void nvgpu_fifo_cleanup_sw_common(struct gk20a *g);
+void gk20a_fifo_intr_handle_chsw_error(struct gk20a *g);
+void gk20a_fifo_intr_handle_runlist_event(struct gk20a *g);
 
-#endif /* NVGPU_FIFO_COMMON_H */
+#endif /* NVGPU_FIFO_INTR_GK20A_H */

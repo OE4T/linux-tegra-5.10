@@ -906,7 +906,6 @@ struct gpu_ops {
 		void (*capture_channel_ram_dump)(struct gk20a *g,
 				struct channel_gk20a *ch,
 				struct nvgpu_channel_dump_info *info);
-		u32 (*intr_0_error_mask)(struct gk20a *g);
 		int (*is_preempt_pending)(struct gk20a *g, u32 id,
 			unsigned int id_type);
 		int (*reset_enable_hw)(struct gk20a *g);
@@ -947,6 +946,12 @@ struct gpu_ops {
 					u32 hw_id, u32 inst, u32 err_id,
 					u32 intr_info);
 		} err_ops;
+
+		void (*intr_0_enable)(struct gk20a *g, bool enable);
+		void (*intr_0_isr)(struct gk20a *g);
+		void (*intr_1_enable)(struct gk20a *g, bool enable);
+		u32  (*intr_1_isr)(struct gk20a *g);
+
 	} fifo;
 	struct {
 		int (*reschedule)(struct channel_gk20a *ch, bool preempt_next);

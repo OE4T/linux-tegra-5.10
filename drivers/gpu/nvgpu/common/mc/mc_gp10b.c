@@ -129,7 +129,7 @@ void mc_gp10b_isr_stall(struct gk20a *g)
 		g->ops.fb.hub_isr(g);
 	}
 	if ((mc_intr_0 & mc_intr_pfifo_pending_f()) != 0U) {
-		gk20a_fifo_isr(g);
+		g->ops.fifo.intr_0_isr(g);
 	}
 	if ((mc_intr_0 & mc_intr_pmu_pending_f()) != 0U) {
 		g->ops.pmu.pmu_isr(g);

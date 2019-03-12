@@ -28,12 +28,14 @@
 #include "hal/fifo/pbdma_gv11b.h"
 #include "hal/fifo/userd_gk20a.h"
 #include "hal/fifo/userd_gv11b.h"
+#include "hal/fifo/fifo_intr_gv11b.h"
 #include "hal/therm/therm_gm20b.h"
 #include "hal/therm/therm_gp10b.h"
 #include "hal/therm/therm_gv11b.h"
 #include "hal/gr/fecs_trace/fecs_trace_gv11b.h"
 #include "hal/gr/zbc/zbc_gv11b.h"
 #include "hal/gr/hwpm_map/hwpm_map_gv100.h"
+#include "hal/gr/init/gr_init_gv11b.h"
 #include "hal/ltc/ltc_gm20b.h"
 #include "hal/ltc/ltc_gp10b.h"
 #include "hal/ltc/ltc_gv11b.h"
@@ -490,7 +492,6 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 		.get_engines_mask_on_id = NULL,
 		.dump_channel_status_ramfc = NULL,
 		.capture_channel_ram_dump = NULL,
-		.intr_0_error_mask = gv11b_fifo_intr_0_error_mask,
 		.is_preempt_pending = gv11b_fifo_is_preempt_pending,
 		.reset_enable_hw = NULL,
 		.teardown_ch_tsg = NULL,
@@ -516,6 +517,10 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 		.set_sm_exception_type_mask = vgpu_set_sm_exception_type_mask,
 		.usermode_base = gv11b_fifo_usermode_base,
 		.doorbell_token = gv11b_fifo_doorbell_token,
+		.intr_0_enable = NULL,
+		.intr_1_enable = NULL,
+		.intr_0_isr = NULL,
+		.intr_1_isr = NULL,
 	},
 	.engine = {
 		.is_fault_engine_subid_gpc = gv11b_is_fault_engine_subid_gpc,

@@ -221,6 +221,8 @@ nvgpu-y += \
 	hal/fifo/pbdma_status_gm20b.o \
 	hal/fifo/userd_gk20a.o \
 	hal/fifo/userd_gv11b.o \
+	hal/fifo/fifo_intr_gk20a.o \
+	hal/fifo/fifo_intr_gv11b.o \
 	hal/falcon/falcon_gk20a.o \
 	hal/nvlink/minion_gv100.o \
 	hal/nvlink/minion_tu104.o \
