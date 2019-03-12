@@ -638,6 +638,7 @@ struct gpu_ops {
 		struct {
 			int (*fe_pwr_mode_force_on)(struct gk20a *g,
 				bool force_on);
+			void (*override_context_reset)(struct gk20a *g);
 		} init;
 
 		u32 (*fecs_falcon_base_addr)(void);

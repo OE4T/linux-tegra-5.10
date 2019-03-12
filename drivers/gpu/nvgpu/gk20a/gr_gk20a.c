@@ -1232,31 +1232,7 @@ int gr_gk20a_init_golden_ctx_image(struct gk20a *g,
 		goto clean_up;
 	}
 
-	gk20a_writel(g, gr_fecs_ctxsw_reset_ctl_r(),
-			gr_fecs_ctxsw_reset_ctl_sys_halt_disabled_f() |
-			gr_fecs_ctxsw_reset_ctl_gpc_halt_disabled_f() |
-			gr_fecs_ctxsw_reset_ctl_be_halt_disabled_f() |
-			gr_fecs_ctxsw_reset_ctl_sys_engine_reset_disabled_f() |
-			gr_fecs_ctxsw_reset_ctl_gpc_engine_reset_disabled_f() |
-			gr_fecs_ctxsw_reset_ctl_be_engine_reset_disabled_f() |
-			gr_fecs_ctxsw_reset_ctl_sys_context_reset_enabled_f() |
-			gr_fecs_ctxsw_reset_ctl_gpc_context_reset_enabled_f() |
-			gr_fecs_ctxsw_reset_ctl_be_context_reset_enabled_f());
-	(void) gk20a_readl(g, gr_fecs_ctxsw_reset_ctl_r());
-	nvgpu_udelay(10);
-
-	gk20a_writel(g, gr_fecs_ctxsw_reset_ctl_r(),
-			gr_fecs_ctxsw_reset_ctl_sys_halt_disabled_f() |
-			gr_fecs_ctxsw_reset_ctl_gpc_halt_disabled_f() |
-			gr_fecs_ctxsw_reset_ctl_be_halt_disabled_f() |
-			gr_fecs_ctxsw_reset_ctl_sys_engine_reset_disabled_f() |
-			gr_fecs_ctxsw_reset_ctl_gpc_engine_reset_disabled_f() |
-			gr_fecs_ctxsw_reset_ctl_be_engine_reset_disabled_f() |
-			gr_fecs_ctxsw_reset_ctl_sys_context_reset_disabled_f() |
-			gr_fecs_ctxsw_reset_ctl_gpc_context_reset_disabled_f() |
-			gr_fecs_ctxsw_reset_ctl_be_context_reset_disabled_f());
-	(void) gk20a_readl(g, gr_fecs_ctxsw_reset_ctl_r());
-	nvgpu_udelay(10);
+	g->ops.gr.init.override_context_reset(g);
 
 	err = g->ops.gr.init.fe_pwr_mode_force_on(g, false);
 	if (err != 0) {

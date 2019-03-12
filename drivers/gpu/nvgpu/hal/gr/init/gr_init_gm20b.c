@@ -31,6 +31,7 @@
 
 #define FE_PWR_MODE_TIMEOUT_MAX_US 2000U
 #define FE_PWR_MODE_TIMEOUT_DEFAULT_US 10U
+#define FECS_CTXSW_RESET_DELAY_US 10U
 
 int gm20b_gr_init_fe_pwr_mode_force_on(struct gk20a *g, bool force_on)
 {
@@ -70,4 +71,36 @@ int gm20b_gr_init_fe_pwr_mode_force_on(struct gk20a *g, bool force_on)
 				"timeout setting FE mode %u", force_on) == 0);
 
 	return ret;
+}
+
+void gm20b_gr_init_override_context_reset(struct gk20a *g)
+{
+	nvgpu_writel(g, gr_fecs_ctxsw_reset_ctl_r(),
+			gr_fecs_ctxsw_reset_ctl_sys_halt_disabled_f() |
+			gr_fecs_ctxsw_reset_ctl_gpc_halt_disabled_f() |
+			gr_fecs_ctxsw_reset_ctl_be_halt_disabled_f() |
+			gr_fecs_ctxsw_reset_ctl_sys_engine_reset_disabled_f() |
+			gr_fecs_ctxsw_reset_ctl_gpc_engine_reset_disabled_f() |
+			gr_fecs_ctxsw_reset_ctl_be_engine_reset_disabled_f() |
+			gr_fecs_ctxsw_reset_ctl_sys_context_reset_enabled_f() |
+			gr_fecs_ctxsw_reset_ctl_gpc_context_reset_enabled_f() |
+			gr_fecs_ctxsw_reset_ctl_be_context_reset_enabled_f());
+
+	nvgpu_udelay(FECS_CTXSW_RESET_DELAY_US);
+	(void) nvgpu_readl(g, gr_fecs_ctxsw_reset_ctl_r());
+
+	/* Deassert reset */
+	nvgpu_writel(g, gr_fecs_ctxsw_reset_ctl_r(),
+			gr_fecs_ctxsw_reset_ctl_sys_halt_disabled_f() |
+			gr_fecs_ctxsw_reset_ctl_gpc_halt_disabled_f() |
+			gr_fecs_ctxsw_reset_ctl_be_halt_disabled_f() |
+			gr_fecs_ctxsw_reset_ctl_sys_engine_reset_disabled_f() |
+			gr_fecs_ctxsw_reset_ctl_gpc_engine_reset_disabled_f() |
+			gr_fecs_ctxsw_reset_ctl_be_engine_reset_disabled_f() |
+			gr_fecs_ctxsw_reset_ctl_sys_context_reset_disabled_f() |
+			gr_fecs_ctxsw_reset_ctl_gpc_context_reset_disabled_f() |
+			gr_fecs_ctxsw_reset_ctl_be_context_reset_disabled_f());
+
+	nvgpu_udelay(FECS_CTXSW_RESET_DELAY_US);
+	(void) nvgpu_readl(g, gr_fecs_ctxsw_reset_ctl_r());
 }

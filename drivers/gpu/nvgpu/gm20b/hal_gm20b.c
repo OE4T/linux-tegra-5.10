@@ -426,6 +426,8 @@ static const struct gpu_ops gm20b_ops = {
 		.init = {
 			.fe_pwr_mode_force_on =
 				gm20b_gr_init_fe_pwr_mode_force_on,
+			.override_context_reset =
+				gm20b_gr_init_override_context_reset,
 		},
 	},
 	.fb = {

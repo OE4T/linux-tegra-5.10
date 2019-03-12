@@ -28,5 +28,6 @@
 struct gk20a;
 
 int gm20b_gr_init_fe_pwr_mode_force_on(struct gk20a *g, bool force_on);
+void gm20b_gr_init_override_context_reset(struct gk20a *g);
 
 #endif /* NVGPU_GR_INIT_GM20B_H */
