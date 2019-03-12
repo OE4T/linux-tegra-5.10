@@ -635,6 +635,11 @@ struct gpu_ops {
 			u32 (*get_active_fbpa_mask)(struct gk20a *g);
 		} hwpm_map;
 
+		struct {
+			int (*fe_pwr_mode_force_on)(struct gk20a *g,
+				bool force_on);
+		} init;
+
 		u32 (*fecs_falcon_base_addr)(void);
 		u32 (*gpccs_falcon_base_addr)(void);
 

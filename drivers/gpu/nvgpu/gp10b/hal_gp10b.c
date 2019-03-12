@@ -50,6 +50,7 @@
 #include "hal/fuse/fuse_gm20b.h"
 #include "hal/fuse/fuse_gp10b.h"
 #include "hal/fifo/engines_gm20b.h"
+#include "hal/gr/init/gr_init_gm20b.h"
 
 #include "common/ptimer/ptimer_gk20a.h"
 #include "common/fb/fb_gm20b.h"
@@ -470,7 +471,11 @@ static const struct gpu_ops gp10b_ops = {
 				gp10b_gr_zbc_get_gpcs_swdx_dss_zbc_c_format_reg,
 			.get_gpcs_swdx_dss_zbc_z_format_reg =
 				gp10b_gr_zbc_get_gpcs_swdx_dss_zbc_z_format_reg,
-		}
+		},
+		.init = {
+			.fe_pwr_mode_force_on =
+				gm20b_gr_init_fe_pwr_mode_force_on,
+		},
 	},
 	.fb = {
 		.init_hw = gm20b_fb_init_hw,

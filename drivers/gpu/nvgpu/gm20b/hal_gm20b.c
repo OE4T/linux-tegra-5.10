@@ -44,6 +44,7 @@
 #include "hal/cbc/cbc_gm20b.h"
 #include "hal/fuse/fuse_gm20b.h"
 #include "hal/fifo/engines_gm20b.h"
+#include "hal/gr/init/gr_init_gm20b.h"
 
 #include "common/ptimer/ptimer_gk20a.h"
 #include "common/fb/fb_gm20b.h"
@@ -421,7 +422,11 @@ static const struct gpu_ops gm20b_ops = {
 			.add_stencil = NULL,
 			.get_gpcs_swdx_dss_zbc_c_format_reg = NULL,
 			.get_gpcs_swdx_dss_zbc_z_format_reg = NULL,
-		}
+		},
+		.init = {
+			.fe_pwr_mode_force_on =
+				gm20b_gr_init_fe_pwr_mode_force_on,
+		},
 	},
 	.fb = {
 		.init_hw = gm20b_fb_init_hw,

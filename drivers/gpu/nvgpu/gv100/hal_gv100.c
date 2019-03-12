@@ -34,6 +34,8 @@
 #include "hal/fuse/fuse_gp10b.h"
 #include "hal/fuse/fuse_gp106.h"
 #include "hal/fifo/engines_gv11b.h"
+#include "hal/gr/init/gr_init_gm20b.h"
+#include "hal/gr/hwpm_map/hwpm_map_gv100.h"
 
 #include "common/ptimer/ptimer_gk20a.h"
 #include "common/fb/fb_gm20b.h"
@@ -50,7 +52,6 @@
 #include "common/gr/zbc/gr_zbc_gp10b.h"
 #include "common/gr/zbc/gr_zbc_gv11b.h"
 #include "common/gr/fecs_trace/fecs_trace_gm20b.h"
-#include "hal/gr/hwpm_map/hwpm_map_gv100.h"
 #include "common/therm/therm_gm20b.h"
 #include "common/therm/therm_gp106.h"
 #include "common/therm/therm_gp10b.h"
@@ -606,7 +607,11 @@ static const struct gpu_ops gv100_ops = {
 				gv100_gr_hwpm_map_align_regs_perf_pma,
 			.get_active_fbpa_mask =
 				gv100_gr_hwpm_map_get_active_fbpa_mask,
-		}
+		},
+		.init = {
+			.fe_pwr_mode_force_on =
+				gm20b_gr_init_fe_pwr_mode_force_on,
+		},
 	},
 	.fb = {
 		.init_hw = gv11b_fb_init_hw,

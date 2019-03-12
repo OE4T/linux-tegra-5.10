@@ -68,8 +68,6 @@
 #include <nvgpu/hw/gk20a/hw_ram_gk20a.h>
 
 #define BLK_SIZE (256U)
-#define FE_PWR_MODE_TIMEOUT_MAX 2000U
-#define FE_PWR_MODE_TIMEOUT_DEFAULT 10U
 #define CTXSW_MEM_SCRUBBING_TIMEOUT_MAX 1000U
 #define CTXSW_MEM_SCRUBBING_TIMEOUT_DEFAULT 10U
 #define FECS_ARB_CMD_TIMEOUT_MAX 40
@@ -1228,25 +1226,11 @@ int gr_gk20a_init_golden_ctx_image(struct gk20a *g,
 	if (gr->ctx_vars.golden_image_initialized) {
 		goto clean_up;
 	}
-	if (!nvgpu_is_enabled(g, NVGPU_IS_FMODEL)) {
-		struct nvgpu_timeout timeout;
 
-		nvgpu_timeout_init(g, &timeout,
-				   FE_PWR_MODE_TIMEOUT_MAX /
-					FE_PWR_MODE_TIMEOUT_DEFAULT,
-				   NVGPU_TIMER_RETRY_TIMER);
-		gk20a_writel(g, gr_fe_pwr_mode_r(),
-			gr_fe_pwr_mode_req_send_f() | gr_fe_pwr_mode_mode_force_on_f());
-		do {
-			u32 req = gr_fe_pwr_mode_req_v(gk20a_readl(g, gr_fe_pwr_mode_r()));
-			if (req == gr_fe_pwr_mode_req_done_v()) {
-				break;
-			}
-			nvgpu_udelay(FE_PWR_MODE_TIMEOUT_DEFAULT);
-		} while (nvgpu_timeout_expired_msg(&timeout,
-					"timeout forcing FE on") == 0);
+	err = g->ops.gr.init.fe_pwr_mode_force_on(g, true);
+	if (err != 0) {
+		goto clean_up;
 	}
-
 
 	gk20a_writel(g, gr_fecs_ctxsw_reset_ctl_r(),
 			gr_fecs_ctxsw_reset_ctl_sys_halt_disabled_f() |
@@ -1274,24 +1258,9 @@ int gr_gk20a_init_golden_ctx_image(struct gk20a *g,
 	(void) gk20a_readl(g, gr_fecs_ctxsw_reset_ctl_r());
 	nvgpu_udelay(10);
 
-	if (!nvgpu_is_enabled(g, NVGPU_IS_FMODEL)) {
-		struct nvgpu_timeout timeout;
-
-		nvgpu_timeout_init(g, &timeout,
-				   FE_PWR_MODE_TIMEOUT_MAX /
-					FE_PWR_MODE_TIMEOUT_DEFAULT,
-				   NVGPU_TIMER_RETRY_TIMER);
-		gk20a_writel(g, gr_fe_pwr_mode_r(),
-			gr_fe_pwr_mode_req_send_f() | gr_fe_pwr_mode_mode_auto_f());
-
-		do {
-			u32 req = gr_fe_pwr_mode_req_v(gk20a_readl(g, gr_fe_pwr_mode_r()));
-			if (req == gr_fe_pwr_mode_req_done_v()) {
-				break;
-			}
-			nvgpu_udelay(FE_PWR_MODE_TIMEOUT_DEFAULT);
-		} while (nvgpu_timeout_expired_msg(&timeout,
-				"timeout setting FE power to auto") == 0);
+	err = g->ops.gr.init.fe_pwr_mode_force_on(g, false);
+	if (err != 0) {
+		goto clean_up;
 	}
 
 	/* clear scc ram */
