@@ -502,6 +502,14 @@ static inline u32 fb_mmu_vpr_info_fetch_true_v(void)
 {
 	return 0x00000001U;
 }
+static inline u32 fb_mmu_l2tlb_ecc_control_r(void)
+{
+	return 0x00100e6cU;
+}
+static inline u32 fb_mmu_l2tlb_ecc_control_inject_uncorrected_err_f(u32 v)
+{
+	return (v & 0x1U) << 5U;
+}
 static inline u32 fb_mmu_l2tlb_ecc_status_r(void)
 {
 	return 0x00100e70U;
@@ -590,6 +598,14 @@ static inline u32 fb_mmu_l2tlb_ecc_address_index_v(u32 r)
 {
 	return (r >> 0U) & 0xffffffffU;
 }
+static inline u32 fb_mmu_hubtlb_ecc_control_r(void)
+{
+	return 0x00100e80U;
+}
+static inline u32 fb_mmu_hubtlb_ecc_control_inject_uncorrected_err_f(u32 v)
+{
+	return (v & 0x1U) << 5U;
+}
 static inline u32 fb_mmu_hubtlb_ecc_status_r(void)
 {
 	return 0x00100e84U;
@@ -677,6 +693,14 @@ static inline u32 fb_mmu_hubtlb_ecc_address_index_m(void)
 static inline u32 fb_mmu_hubtlb_ecc_address_index_v(u32 r)
 {
 	return (r >> 0U) & 0xffffffffU;
+}
+static inline u32 fb_mmu_fillunit_ecc_control_r(void)
+{
+	return 0x00100e94U;
+}
+static inline u32 fb_mmu_fillunit_ecc_control_inject_uncorrected_err_f(u32 v)
+{
+	return (v & 0x1U) << 5U;
 }
 static inline u32 fb_mmu_fillunit_ecc_status_r(void)
 {

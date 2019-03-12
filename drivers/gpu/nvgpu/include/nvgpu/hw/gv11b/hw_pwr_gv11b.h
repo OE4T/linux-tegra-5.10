@@ -1026,6 +1026,18 @@ static inline u32 pwr_pmu_pg_intren_r(u32 i)
 {
 	return 0x0010a760U + i*4U;
 }
+static inline u32 pwr_pmu_falcon_ecc_control_r(void)
+{
+	return 0x0010a484U;
+}
+static inline u32 pwr_pmu_falcon_ecc_control_inject_corrected_err_f(u32 v)
+{
+	return (v & 0x1U) << 0U;
+}
+static inline u32 pwr_pmu_falcon_ecc_control_inject_uncorrected_err_f(u32 v)
+{
+	return (v & 0x1U) << 1U;
+}
 static inline u32 pwr_pmu_falcon_ecc_status_r(void)
 {
 	return 0x0010a6b0U;

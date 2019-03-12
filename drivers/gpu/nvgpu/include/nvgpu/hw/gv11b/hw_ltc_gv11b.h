@@ -410,6 +410,18 @@ static inline u32 ltc_ltc0_lts0_intr3_r(void)
 {
 	return 0x00140588U;
 }
+static inline u32 ltc_ltc0_lts0_l1_cache_ecc_control_r(void)
+{
+	return 0x001404ecU;
+}
+static inline u32 ltc_ltc0_lts0_l1_cache_ecc_control_inject_corrected_err_f(u32 v)
+{
+	return (v & 0x1U) << 4U;
+}
+static inline u32 ltc_ltc0_lts0_l1_cache_ecc_control_inject_uncorrected_err_f(u32 v)
+{
+	return (v & 0x1U) << 5U;
+}
 static inline u32 ltc_ltc0_lts0_l2_cache_ecc_status_r(void)
 {
 	return 0x001404f0U;
