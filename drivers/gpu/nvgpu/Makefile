@@ -92,10 +92,7 @@ nvgpu-y += \
 	common/gr/fecs_trace/fecs_trace_gm20b.o \
 	common/gr/fecs_trace/fecs_trace_gp10b.o \
 	common/gr/fecs_trace/fecs_trace_gv11b.o \
-	common/gr/zbc/gr_zbc.o \
-	common/gr/zbc/gr_zbc_gm20b.o \
-	common/gr/zbc/gr_zbc_gp10b.o \
-	common/gr/zbc/gr_zbc_gv11b.o \
+	common/gr/zbc.o \
 	common/gr/hwpm_map.o \
 	common/netlist/netlist.o \
 	common/netlist/netlist_sim.o \
@@ -171,6 +168,9 @@ nvgpu-y += \
 	hal/bus/bus_tu104.o \
 	hal/gr/init/gr_init_gm20b.o \
 	hal/gr/hwpm_map/hwpm_map_gv100.o \
+	hal/gr/zbc/zbc_gm20b.o \
+	hal/gr/zbc/zbc_gp10b.o \
+	hal/gr/zbc/zbc_gv11b.o \
 	hal/priv_ring/priv_ring_gm20b.o \
 	hal/priv_ring/priv_ring_gp10b.o \
 	hal/power_features/cg/gm20b_gating_reglist.o \

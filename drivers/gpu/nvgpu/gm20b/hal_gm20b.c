@@ -45,6 +45,7 @@
 #include "hal/therm/therm_gm20b.h"
 #include "hal/fuse/fuse_gm20b.h"
 #include "hal/fifo/engines_gm20b.h"
+#include "hal/gr/zbc/zbc_gm20b.h"
 #include "hal/gr/init/gr_init_gm20b.h"
 #include "hal/falcon/falcon_gk20a.h"
 
@@ -53,7 +54,6 @@
 #include "common/netlist/netlist_gm20b.h"
 #include "common/gr/ctxsw_prog/ctxsw_prog_gm20b.h"
 #include "common/gr/config/gr_config_gm20b.h"
-#include "common/gr/zbc/gr_zbc_gm20b.h"
 #include "common/ltc/ltc_gm20b.h"
 #include "common/mc/mc_gm20b.h"
 #include "common/perf/perf_gm20b.h"

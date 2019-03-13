@@ -24,7 +24,7 @@
 #include <nvgpu/io.h>
 #include <nvgpu/gr/zbc.h>
 
-#include "gr_zbc_gp10b.h"
+#include "zbc_gp10b.h"
 
 #include <nvgpu/hw/gp10b/hw_gr_gp10b.h>
 

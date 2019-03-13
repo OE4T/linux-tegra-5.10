@@ -24,7 +24,7 @@
 #include <nvgpu/io.h>
 #include <nvgpu/gr/zbc.h>
 
-#include "gr_zbc_gm20b.h"
+#include "zbc_gm20b.h"
 
 #include <nvgpu/hw/gm20b/hw_gr_gm20b.h>
 

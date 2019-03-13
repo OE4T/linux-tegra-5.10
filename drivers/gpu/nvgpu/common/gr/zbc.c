@@ -26,7 +26,7 @@
 #include <nvgpu/string.h>
 #include <nvgpu/power_features/pg.h>
 
-#include "gr_zbc.h"
+#include "zbc_priv.h"
 
 static int nvgpu_gr_zbc_add(struct gk20a *g, struct nvgpu_gr_zbc *zbc,
 			    struct nvgpu_gr_zbc_entry *zbc_val)

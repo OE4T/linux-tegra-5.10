@@ -52,6 +52,7 @@
 #include "hal/fuse/fuse_gm20b.h"
 #include "hal/fuse/fuse_gp10b.h"
 #include "hal/fifo/engines_gm20b.h"
+#include "hal/gr/zbc/zbc_gp10b.h"
 #include "hal/gr/init/gr_init_gm20b.h"
 #include "hal/falcon/falcon_gk20a.h"
 
@@ -62,7 +63,6 @@
 #include "common/gr/ctxsw_prog/ctxsw_prog_gm20b.h"
 #include "common/gr/ctxsw_prog/ctxsw_prog_gp10b.h"
 #include "common/gr/config/gr_config_gm20b.h"
-#include "common/gr/zbc/gr_zbc_gp10b.h"
 #include "common/gr/fecs_trace/fecs_trace_gm20b.h"
 #include "common/gr/fecs_trace/fecs_trace_gp10b.h"
 #include "common/ltc/ltc_gm20b.h"

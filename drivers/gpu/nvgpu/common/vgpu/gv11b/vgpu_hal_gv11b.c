@@ -26,6 +26,8 @@
 #include "hal/therm/therm_gm20b.h"
 #include "hal/therm/therm_gp10b.h"
 #include "hal/therm/therm_gv11b.h"
+#include "hal/gr/zbc/zbc_gv11b.h"
+#include "hal/gr/hwpm_map/hwpm_map_gv100.h"
 
 #include "common/fb/fb_gm20b.h"
 #include "common/fb/fb_gp10b.h"
@@ -35,7 +37,6 @@
 #include "common/gr/ctxsw_prog/ctxsw_prog_gp10b.h"
 #include "common/gr/ctxsw_prog/ctxsw_prog_gv11b.h"
 #include "common/gr/fecs_trace/fecs_trace_gv11b.h"
-#include "hal/gr/hwpm_map/hwpm_map_gv100.h"
 #include "common/perf/perf_gv11b.h"
 #include "common/ltc/ltc_gm20b.h"
 #include "common/ltc/ltc_gp10b.h"
@@ -46,7 +47,6 @@
 #include "common/fifo/runlist_gv11b.h"
 #include "common/fifo/channel_gv11b.h"
 #include "common/fifo/engine_status_gv100.h"
-#include "common/gr/zbc/gr_zbc_gv11b.h"
 #include "common/clk_arb/clk_arb_gp10b.h"
 
 #include <nvgpu/gk20a.h>
