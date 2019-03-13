@@ -74,8 +74,17 @@
 #define GPU_SM_L1_TAG_MISS_FIFO_ECC_UNCORRECTED		15U
 #define GPU_SM_L1_TAG_S2R_PIXPRF_ECC_CORRECTED		16U
 #define GPU_SM_L1_TAG_S2R_PIXPRF_ECC_UNCORRECTED	17U
-#define GPU_SM_ICACHE_L1_PREDECODE_ECC_CORRECTED	18U
-#define GPU_SM_ICACHE_L1_PREDECODE_ECC_UNCORRECTED	19U
+#define GPU_SM_MACHINE_CHECK_ERROR			18U
+struct gr_sm_mcerr_info {
+	u64 hww_warp_esr_pc;	/* PC which triggered the machine check error */
+	u32 hww_warp_esr_status;/* Error status register */
+	u32 curr_ctx;		/* Context which triggered error */
+	u32 chid;		/* Channel to which the context belongs */
+	u32 tsgid;		/* TSG to which the channel is bound */
+	u32 tpc, gpc, sm;
+};
+#define GPU_SM_ICACHE_L1_PREDECODE_ECC_CORRECTED	19U
+#define GPU_SM_ICACHE_L1_PREDECODE_ECC_UNCORRECTED	20U
 
 #define GPU_FECS_FALCON_IMEM_ECC_CORRECTED	0U
 #define GPU_FECS_FALCON_IMEM_ECC_UNCORRECTED	1U
@@ -115,7 +124,6 @@ struct ctxsw_err_info {
 #define GPU_PMU_FALCON_DMEM_ECC_CORRECTED	2U
 #define GPU_PMU_FALCON_DMEM_ECC_UNCORRECTED	3U
 #define GPU_PMU_BAR0_ERROR_TIMEOUT		4U
-#define GPU_PMU_INVALID_ERROR			5U
 
 #define GPU_PGRAPH_FE_EXCEPTION			0U
 #define GPU_PGRAPH_MEMFMT_EXCEPTION		1U
@@ -128,6 +136,12 @@ struct ctxsw_err_info {
 #define GPU_PGRAPH_GPC_EXCEPTION		8U
 #define GPU_PGRAPH_BE_EXCEPTION			9U
 #define GPU_PGRAPH_MPC_EXCEPTION		10U
+struct gr_exception_info {
+	u32 curr_ctx;	/* Context which triggered the exception */
+	u32 chid;	/* Channel bound to the context */
+	u32 tsgid;	/* TSG to which the channel is bound */
+	u32 status;	/* Exception status */
+};
 
 #define GPU_LTC_CACHE_DSTG_ECC_CORRECTED	0U
 #define GPU_LTC_CACHE_DSTG_ECC_UNCORRECTED	1U
@@ -154,6 +168,11 @@ struct ctxsw_err_info {
 #define GPU_CE_NONBLOCK_PIPE			2U
 #define GPU_CE_INVALID_CONFIG			3U
 #define GPU_CE_METHOD_BUFFER_FAULT		4U
+
+struct gr_err_info {
+	struct gr_sm_mcerr_info *sm_mcerr_info;
+	struct gr_exception_info *exception_info;
+};
 
 void nvgpu_report_host_error(struct gk20a *g,
 		u32 inst, u32 err_id, u32 intr_info);

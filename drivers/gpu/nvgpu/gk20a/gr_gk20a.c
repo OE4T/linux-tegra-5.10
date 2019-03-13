@@ -74,16 +74,43 @@
 #define FECS_ARB_CMD_TIMEOUT_MAX 40
 #define FECS_ARB_CMD_TIMEOUT_DEFAULT 2
 
+
+static struct channel_gk20a *gk20a_gr_get_channel_from_ctx(
+	struct gk20a *g, u32 curr_ctx, u32 *curr_tsgid);
+
+static int gk20a_init_gr_bind_fecs_elpg(struct gk20a *g);
+
 void nvgpu_report_gr_exception(struct gk20a *g, u32 inst,
 		u32 err_type, u32 status)
 {
 	int ret = 0;
+	struct channel_gk20a *ch;
+	struct gr_exception_info err_info;
+	struct gr_err_info info;
+	u32 tsgid, chid, curr_ctx;
 
 	if (g->ops.gr.err_ops.report_gr_err == NULL) {
 		return;
 	}
+
+	tsgid = NVGPU_INVALID_TSG_ID;
+	curr_ctx = gk20a_readl(g, gr_fecs_current_ctx_r());
+	ch = gk20a_gr_get_channel_from_ctx(g, curr_ctx, &tsgid);
+	chid = ch != NULL ? ch->chid : FIFO_INVAL_CHANNEL_ID;
+	if (ch != NULL) {
+		gk20a_channel_put(ch);
+	}
+
+	(void) memset(&err_info, 0, sizeof(err_info));
+	(void) memset(&info, 0, sizeof(info));
+	err_info.curr_ctx = curr_ctx;
+	err_info.chid = chid;
+	err_info.tsgid = tsgid;
+	err_info.status = status;
+	info.exception_info = &err_info;
 	ret = g->ops.gr.err_ops.report_gr_err(g,
-			NVGPU_ERR_MODULE_PGRAPH, inst, err_type, status);
+			NVGPU_ERR_MODULE_PGRAPH, inst, err_type,
+			&info);
 	if (ret != 0) {
 		nvgpu_err(g, "Failed to report PGRAPH exception: "
 				"inst=%u, err_type=%u, status=%u",
@@ -91,8 +118,47 @@ void nvgpu_report_gr_exception(struct gk20a *g, u32 inst,
 	}
 }
 
-static int gk20a_init_gr_bind_fecs_elpg(struct gk20a *g);
+static void nvgpu_report_gr_sm_exception(struct gk20a *g, u32 gpc, u32 tpc,
+		u32 sm, u32 hww_warp_esr_status, u64 hww_warp_esr_pc)
+{
+	int ret;
+	struct gr_sm_mcerr_info err_info;
+	struct channel_gk20a *ch;
+	struct gr_err_info info;
+	u32 tsgid, chid, curr_ctx, inst = 0;
 
+	if (g->ops.gr.err_ops.report_gr_err == NULL) {
+		return;
+	}
+
+	tsgid = NVGPU_INVALID_TSG_ID;
+	curr_ctx = gk20a_readl(g, gr_fecs_current_ctx_r());
+	ch = gk20a_gr_get_channel_from_ctx(g, curr_ctx, &tsgid);
+	chid = ch != NULL ? ch->chid : FIFO_INVAL_CHANNEL_ID;
+	if (ch != NULL) {
+		gk20a_channel_put(ch);
+	}
+
+	(void) memset(&err_info, 0, sizeof(err_info));
+	(void) memset(&info, 0, sizeof(info));
+	err_info.curr_ctx = curr_ctx;
+	err_info.chid = chid;
+	err_info.tsgid = tsgid;
+	err_info.hww_warp_esr_pc = hww_warp_esr_pc;
+	err_info.hww_warp_esr_status = hww_warp_esr_status;
+	err_info.gpc = gpc;
+	err_info.tpc = tpc;
+	err_info.sm = sm;
+	info.sm_mcerr_info = &err_info;
+	ret = g->ops.gr.err_ops.report_gr_err(g,
+			NVGPU_ERR_MODULE_SM, inst, GPU_SM_MACHINE_CHECK_ERROR,
+			&info);
+	if (ret != 0) {
+		nvgpu_err(g, "failed to report SM_EXCEPTION "
+				"gpc=%u, tpc=%u, sm=%u, esr_status=%x",
+				gpc, tpc, sm, hww_warp_esr_status);
+	}
+}
 
 static void gr_report_ctxsw_error(struct gk20a *g, u32 err_type, u32 chid,
 		u32 mailbox_value)
@@ -3087,6 +3153,7 @@ int gr_gk20a_handle_sm_exception(struct gk20a *g, u32 gpc, u32 tpc, u32 sm,
 	u32 offset = gk20a_gr_gpc_offset(g, gpc) + gk20a_gr_tpc_offset(g, tpc);
 	bool sm_debugger_attached;
 	u32 global_esr, warp_esr, global_mask;
+	u64 hww_warp_esr_pc = 0;
 
 	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gpu_dbg, " ");
 
@@ -3106,6 +3173,17 @@ int gr_gk20a_handle_sm_exception(struct gk20a *g, u32 gpc, u32 tpc, u32 sm,
 	nvgpu_log(g, gpu_dbg_intr | gpu_dbg_gpu_dbg,
 		  "sm hww global 0x%08x warp 0x%08x", global_esr, warp_esr);
 
+	/*
+	 * Check and report any fatal wrap errors.
+	 */
+	if ((global_esr & ~global_mask) != 0U) {
+		if (g->ops.gr.get_sm_hww_warp_esr_pc != NULL) {
+			hww_warp_esr_pc = g->ops.gr.get_sm_hww_warp_esr_pc(g,
+					offset);
+		}
+		nvgpu_report_gr_sm_exception(g, gpc, tpc, sm, warp_esr,
+				hww_warp_esr_pc);
+	}
 	nvgpu_pg_elpg_protected_call(g,
 		g->ops.gr.record_sm_error_state(g, gpc, tpc, sm, fault_ch));
 
@@ -3573,8 +3651,11 @@ int gk20a_gr_isr(struct gk20a *g)
 		}
 
 		if ((exception & gr_exception_ssync_m()) != 0U) {
+			u32 ssync_esr = 0;
+
 			if (g->ops.gr.handle_ssync_hww != NULL) {
-				if (g->ops.gr.handle_ssync_hww(g) != 0) {
+				if (g->ops.gr.handle_ssync_hww(g, &ssync_esr)
+						!= 0) {
 					need_reset = true;
 				}
 			} else {
@@ -3582,7 +3663,7 @@ int gk20a_gr_isr(struct gk20a *g)
 			}
 			nvgpu_report_gr_exception(g, 0,
 					GPU_PGRAPH_SSYNC_EXCEPTION,
-					0);
+					ssync_esr);
 		}
 
 		if ((exception & gr_exception_mme_m()) != 0U) {
@@ -3620,9 +3701,6 @@ int gk20a_gr_isr(struct gk20a *g)
 						!need_reset) {
 			bool post_event = false;
 
-			nvgpu_report_gr_exception(g, 0,
-					GPU_PGRAPH_GPC_EXCEPTION,
-					0);
 			nvgpu_log(g, gpu_dbg_intr | gpu_dbg_gpu_dbg,
 					 "GPC exception pending");
 

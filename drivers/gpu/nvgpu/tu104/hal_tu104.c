@@ -454,6 +454,7 @@ static const struct gpu_ops tu104_ops = {
 		.resume_all_sms = gv11b_gr_resume_all_sms,
 		.get_sm_hww_warp_esr = gv11b_gr_get_sm_hww_warp_esr,
 		.get_sm_hww_global_esr = gv11b_gr_get_sm_hww_global_esr,
+		.get_sm_hww_warp_esr_pc = gv11b_gr_get_sm_hww_warp_esr_pc,
 		.get_sm_no_lock_down_hww_global_esr_mask =
 			gv11b_gr_get_sm_no_lock_down_hww_global_esr_mask,
 		.lock_down_sm = gv11b_gr_lock_down_sm,

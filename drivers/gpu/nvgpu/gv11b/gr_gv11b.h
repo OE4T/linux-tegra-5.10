@@ -120,6 +120,7 @@ int gv11b_gr_sm_trigger_suspend(struct gk20a *g);
 void gv11b_gr_bpt_reg_info(struct gk20a *g, struct nvgpu_warpstate *w_state);
 int gv11b_gr_set_sm_debug_mode(struct gk20a *g,
 	struct channel_gk20a *ch, u64 sms, bool enable);
+u64 gv11b_gr_get_sm_hww_warp_esr_pc(struct gk20a *g, u32 offset);
 int gv11b_gr_record_sm_error_state(struct gk20a *g, u32 gpc, u32 tpc, u32 sm,
 		struct channel_gk20a *fault_ch);
 int gv11b_gr_clear_sm_error_state(struct gk20a *g,
@@ -182,7 +183,7 @@ void gr_gv11b_ecc_init_scrub_reg(struct gk20a *g);
 
 void gr_gv11b_update_ctxsw_preemption_mode(struct gk20a *g,
 		struct nvgpu_gr_ctx *gr_ctx, struct nvgpu_gr_subctx *subctx);
-int gr_gv11b_handle_ssync_hww(struct gk20a *g);
+int gr_gv11b_handle_ssync_hww(struct gk20a *g, u32 *ssync_esr);
 u32 gv11b_gr_sm_offset(struct gk20a *g, u32 sm);
 
 u32 gr_gv11b_get_pmm_per_chiplet_offset(void);

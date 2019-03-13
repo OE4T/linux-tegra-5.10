@@ -97,6 +97,7 @@ struct nvgpu_cbc;
 #include <nvgpu/sec2.h>
 #include <nvgpu/cbc.h>
 #include <nvgpu/ltc.h>
+#include <nvgpu/nvgpu_err.h>
 
 #include "gk20a/clk_gk20a.h"
 #include "gk20a/fifo_gk20a.h"
@@ -362,6 +363,7 @@ struct gpu_ops {
 						u32 gpc, u32 tpc, u32 sm);
 		u32 (*get_sm_hww_global_esr)(struct gk20a *g,
 						u32 gpc, u32 tpc, u32 sm);
+		u64 (*get_sm_hww_warp_esr_pc)(struct gk20a *g, u32 offset);
 		u32 (*get_sm_no_lock_down_hww_global_esr_mask)(struct gk20a *g);
 		int  (*lock_down_sm)(struct gk20a *g, u32 gpc, u32 tpc, u32 sm,
 				u32 global_esr_mask, bool check_errors);
@@ -436,7 +438,7 @@ struct gpu_ops {
 					(struct gk20a *g);
 		void (*ecc_init_scrub_reg)(struct gk20a *g);
 		void (*fecs_host_int_enable)(struct gk20a *g);
-		int (*handle_ssync_hww)(struct gk20a *g);
+		int (*handle_ssync_hww)(struct gk20a *g, u32 *ssync_esr);
 		int (*handle_notify_pending)(struct gk20a *g,
 					struct gr_gk20a_isr_data *isr_data);
 		int (*handle_semaphore_pending)(struct gk20a *g,
@@ -742,9 +744,10 @@ struct gpu_ops {
 					u64 err_count);
 			int (*report_gr_err)(struct gk20a *g,
 					u32 hw_id, u32 inst, u32 err_id,
-					u32 status);
+					struct gr_err_info *err_info);
 			int (*report_ctxsw_err)(struct gk20a *g,
-					u32 hw_id, u32 err_id, void *data);
+					u32 hw_id, u32 err_id,
+					void *data);
 		} err_ops;
 	} gr;
 	struct {

@@ -194,6 +194,7 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 		.resume_all_sms = NULL,
 		.get_sm_hww_warp_esr = NULL,
 		.get_sm_hww_global_esr = NULL,
+		.get_sm_hww_warp_esr_pc = NULL,
 		.get_sm_no_lock_down_hww_global_esr_mask =
 			gv11b_gr_get_sm_no_lock_down_hww_global_esr_mask,
 		.lock_down_sm = NULL,
