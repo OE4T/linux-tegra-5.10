@@ -113,6 +113,7 @@ srcs += common/sim.c \
 	common/engine_queues/engine_dmem_queue.c \
 	common/engine_queues/engine_emem_queue.c \
 	common/engine_queues/engine_fb_queue.c \
+	common/gr/gr.c \
 	common/gr/ctxsw_prog/ctxsw_prog_gm20b.c \
 	common/gr/ctxsw_prog/ctxsw_prog_gp10b.c \
 	common/gr/ctxsw_prog/ctxsw_prog_gv11b.c \
