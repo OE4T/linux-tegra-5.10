@@ -31,7 +31,6 @@
 #include <nvgpu/nvgpu_common.h>
 #include <nvgpu/kmem.h>
 #include <nvgpu/nvgpu_mem.h>
-#include <nvgpu/acr/nvgpu_acr.h>
 #include <nvgpu/firmware.h>
 #include <nvgpu/pmu.h>
 #include <nvgpu/falcon.h>
@@ -40,6 +39,7 @@
 #include <nvgpu/timers.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/unit.h>
+#include <nvgpu/acr.h>
 
 #include "fb_gv100.h"
 

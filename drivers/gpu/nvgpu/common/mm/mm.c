@@ -445,9 +445,8 @@ static int nvgpu_init_mm_setup_sw(struct gk20a *g)
 	 * allocated before all other buffers
 	 */
 
-	if (g->acr.alloc_blob_space != NULL &&
-			!nvgpu_is_enabled(g, NVGPU_MM_UNIFIED_MEMORY)) {
-		err = g->acr.alloc_blob_space(g, 0, &g->acr.ucode_blob);
+	if (!nvgpu_is_enabled(g, NVGPU_MM_UNIFIED_MEMORY)) {
+		err = nvgpu_acr_alloc_blob_prerequisite(g, g->acr, 0);
 		if (err != 0) {
 			return err;
 		}

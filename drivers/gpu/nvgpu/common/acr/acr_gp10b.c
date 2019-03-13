@@ -21,9 +21,11 @@
  */
 
 #include <nvgpu/types.h>
-#include <nvgpu/acr/nvgpu_acr.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/pmu.h>
+
+#include "acr_blob_construct_v0.h"
+#include "acr_priv.h"
 
 #include "acr_gm20b.h"
 #include "acr_gp10b.h"

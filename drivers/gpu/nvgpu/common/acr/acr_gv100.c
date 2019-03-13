@@ -20,14 +20,14 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#include <nvgpu/acr/nvgpu_acr.h>
 #include <nvgpu/firmware.h>
-#include <nvgpu/pmu.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/bug.h>
-#include "acr_gm20b.h"
 
+#include "acr_blob_construct_v1.h"
+#include "acr_priv.h"
 #include "acr_gv100.h"
+
 #include "gp106/sec2_gp106.h"
 
 
@@ -207,8 +207,5 @@ void nvgpu_gv100_acr_sw_init(struct gk20a *g, struct nvgpu_acr *acr)
 	acr->bootstrap_hs_acr = nvgpu_acr_bootstrap_hs_ucode;
 	acr->patch_wpr_info_to_ucode =
 		gv100_acr_patch_wpr_info_to_ucode;
-	acr->acr_fill_bl_dmem_desc =
-		gv100_acr_fill_bl_dmem_desc;
-
-	acr->remove_support = gm20b_remove_acr_support;
+	acr->acr_fill_bl_dmem_desc = gv100_acr_fill_bl_dmem_desc;
 }

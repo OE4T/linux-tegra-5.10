@@ -20,14 +20,15 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#include <nvgpu/acr/nvgpu_acr.h>
 #include <nvgpu/firmware.h>
 #include <nvgpu/pmu.h>
 #include <nvgpu/falcon.h>
-#include <nvgpu/enabled.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/string.h>
 #include <nvgpu/bug.h>
+
+#include "acr_blob_construct_v0.h"
+#include "acr_priv.h"
 
 int nvgpu_acr_lsf_pmu_ucode_details_v0(struct gk20a *g, void *lsf_ucode_img)
 {
@@ -310,7 +311,7 @@ static void lsfm_fill_static_lsb_hdr_info(struct gk20a *g,
 			pnode->lsb_header.flags = data;
 		}
 
-		if (g->acr.lsf[falcon_id].is_priv_load) {
+		if (g->acr->lsf[falcon_id].is_priv_load) {
 			pnode->lsb_header.flags |=
 				NV_FLCN_ACR_LSF_FLAG_FORCE_PRIV_LOAD_TRUE;
 		}
@@ -335,11 +336,11 @@ static int lsfm_add_ucode_img(struct gk20a *g, struct ls_flcn_mgr *plsfm,
 
 	/* Fill in static WPR header info*/
 	pnode->wpr_header.falcon_id = falcon_id;
-	pnode->wpr_header.bootstrap_owner = g->acr.bootstrap_owner;
+	pnode->wpr_header.bootstrap_owner = g->acr->bootstrap_owner;
 	pnode->wpr_header.status = LSF_IMAGE_STATUS_COPY;
 
 	pnode->wpr_header.lazy_bootstrap =
-		(u32)g->acr.lsf[falcon_id].is_lazy_bootstrap;
+		(u32)g->acr->lsf[falcon_id].is_lazy_bootstrap;
 
 	/* Fill in static LSB header info elsewhere */
 	lsfm_fill_static_lsb_hdr_info(g, falcon_id, pnode);
@@ -353,7 +354,7 @@ static int lsfm_discover_ucode_images(struct gk20a *g,
 	struct ls_flcn_mgr *plsfm)
 {
 	struct flcn_ucode_img ucode_img;
-	struct nvgpu_acr *acr = &g->acr;
+	struct nvgpu_acr *acr = g->acr;
 	u32 falcon_id;
 	u32 i;
 	int err = 0;
@@ -518,7 +519,7 @@ static int gm20b_pmu_populate_loader_cfg(struct gk20a *g,
 	 * physical addresses of each respective segment.
 	 */
 	addr_base = p_lsfm->lsb_header.ucode_off;
-	g->acr.get_wpr_info(g, &wpr_inf);
+	g->acr->get_wpr_info(g, &wpr_inf);
 	addr_base += wpr_inf.wpr_base;
 	nvgpu_acr_dbg(g, "pmu loader cfg u32 addrbase %x\n", (u32)addr_base);
 	/*From linux*/
@@ -539,7 +540,7 @@ static int gm20b_pmu_populate_loader_cfg(struct gk20a *g,
 	nvgpu_acr_dbg(g, "bl start off %d\n", desc->bootloader_start_offset);
 
 	/* Populate the loader_config state*/
-	ldr_cfg->dma_idx = g->acr.lsf[FALCON_ID_PMU].falcon_dma_idx;
+	ldr_cfg->dma_idx = g->acr->lsf[FALCON_ID_PMU].falcon_dma_idx;
 	ldr_cfg->code_dma_base = addr_code;
 	ldr_cfg->code_dma_base1 = 0x0;
 	ldr_cfg->code_size_total = desc->app_size;
@@ -591,7 +592,7 @@ static int gm20b_flcn_populate_bl_dmem_desc(struct gk20a *g,
 	 * physical addresses of each respective segment.
 	 */
 	addr_base = p_lsfm->lsb_header.ucode_off;
-	g->acr.get_wpr_info(g, &wpr_inf);
+	g->acr->get_wpr_info(g, &wpr_inf);
 	addr_base += wpr_inf.wpr_base;
 
 	nvgpu_acr_dbg(g, "gen loader cfg %x u32 addrbase %x ID\n", (u32)addr_base,
@@ -613,7 +614,7 @@ static int gm20b_flcn_populate_bl_dmem_desc(struct gk20a *g,
 
 	/* Populate the LOADER_CONFIG state */
 	(void) memset((void *) ldr_cfg, 0, sizeof(struct flcn_bl_dmem_desc));
-	ldr_cfg->ctx_dma = g->acr.lsf[falconid].falcon_dma_idx;
+	ldr_cfg->ctx_dma = g->acr->lsf[falconid].falcon_dma_idx;
 	ldr_cfg->code_dma_base = addr_code;
 	ldr_cfg->non_sec_code_size = desc->app_resident_code_size;
 	ldr_cfg->data_dma_base = addr_data;
@@ -787,7 +788,7 @@ int nvgpu_acr_prepare_ucode_blob_v0(struct gk20a *g)
 	struct ls_flcn_mgr lsfm_l, *plsfm;
 	struct wpr_carveout_info wpr_inf;
 
-	if (g->acr.ucode_blob.cpu_va != NULL) {
+	if (g->acr->ucode_blob.cpu_va != NULL) {
 		/* Recovery case, we do not need to form non WPR blob */
 		return err;
 	}
@@ -797,7 +798,7 @@ int nvgpu_acr_prepare_ucode_blob_v0(struct gk20a *g)
 	g->ops.fb.vpr_info_fetch(g);
 	gr_gk20a_init_ctxsw_ucode(g);
 
-	g->acr.get_wpr_info(g, &wpr_inf);
+	g->acr->get_wpr_info(g, &wpr_inf);
 	nvgpu_acr_dbg(g, "wpr carveout base:%llx\n", wpr_inf.wpr_base);
 	nvgpu_acr_dbg(g, "wpr carveout size :%llx\n", wpr_inf.size);
 
@@ -809,7 +810,7 @@ int nvgpu_acr_prepare_ucode_blob_v0(struct gk20a *g)
 	}
 
 	if ((plsfm->managed_flcn_cnt != 0U) &&
-		(g->acr.ucode_blob.cpu_va == NULL)) {
+		(g->acr->ucode_blob.cpu_va == NULL)) {
 		/* Generate WPR requirements */
 		err = lsf_gen_wpr_requirements(g, plsfm);
 		if (err != 0) {
@@ -817,15 +818,15 @@ int nvgpu_acr_prepare_ucode_blob_v0(struct gk20a *g)
 		}
 
 		/* Alloc memory to hold ucode blob contents */
-		err = g->acr.alloc_blob_space(g, plsfm->wpr_size
-				, &g->acr.ucode_blob);
+		err = g->acr->alloc_blob_space(g, plsfm->wpr_size
+				, &g->acr->ucode_blob);
 		if (err != 0) {
 			goto free_sgt;
 		}
 
 		nvgpu_acr_dbg(g, "managed LS falcon %d, WPR size %d bytes.\n",
 			plsfm->managed_flcn_cnt, plsfm->wpr_size);
-		lsfm_init_wpr_contents(g, plsfm, &g->acr.ucode_blob);
+		lsfm_init_wpr_contents(g, plsfm, &g->acr->ucode_blob);
 	} else {
 		nvgpu_acr_dbg(g, "LSFM is managing no falcons.\n");
 	}

@@ -81,7 +81,7 @@ struct nvgpu_cbc;
 #include <nvgpu/as.h>
 #include <nvgpu/log.h>
 #include <nvgpu/pramin.h>
-#include <nvgpu/acr/nvgpu_acr.h>
+#include <nvgpu/acr.h>
 #include <nvgpu/kref.h>
 #include <nvgpu/falcon.h>
 #include <nvgpu/pmu.h>
@@ -1820,7 +1820,7 @@ struct gk20a {
 	struct sim_nvgpu *sim;
 	struct mm_gk20a mm;
 	struct nvgpu_pmu pmu;
-	struct nvgpu_acr acr;
+	struct nvgpu_acr *acr;
 	struct nvgpu_ecc ecc;
 	struct nvgpu_clk_pmupstate *clk_pmu;
 	struct perf_pmupstate *perf_pmu;

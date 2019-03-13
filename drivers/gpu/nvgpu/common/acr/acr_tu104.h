@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -22,9 +22,6 @@
 
 #ifndef NVGPU_ACR_TU104_H
 #define NVGPU_ACR_TU104_H
-
-#define TU104_FECS_UCODE_SIG "tu104/fecs_sig.bin"
-#define TU104_GPCCS_UCODE_SIG "tu104/gpccs_sig.bin"
 
 void nvgpu_tu104_acr_sw_init(struct gk20a *g, struct nvgpu_acr *acr);
 

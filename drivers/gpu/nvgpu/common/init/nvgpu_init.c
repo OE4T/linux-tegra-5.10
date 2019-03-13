@@ -196,7 +196,11 @@ int gk20a_finalize_poweron(struct gk20a *g)
 
 	if (nvgpu_is_enabled(g, NVGPU_SEC_PRIVSECURITY)) {
 		/* Init chip specific ACR properties */
-		nvgpu_acr_init(g);
+		err = nvgpu_acr_init(g, &g->acr);
+		if (err != 0) {
+			nvgpu_err(g, "ACR init failed %d", err);
+			goto done;
+		}
 	}
 
 	if (g->ops.bios.init != NULL) {
@@ -311,7 +315,7 @@ int gk20a_finalize_poweron(struct gk20a *g)
 
 	if (nvgpu_is_enabled(g, NVGPU_SEC_PRIVSECURITY)) {
 		/* construct ucode blob, load & bootstrap LSF's using HS ACR */
-		err = nvgpu_acr_construct_execute(g);
+		err = nvgpu_acr_construct_execute(g, g->acr);
 		if (err != 0) {
 			nvgpu_mutex_release(&g->tpc_pg_lock);
 			goto done;

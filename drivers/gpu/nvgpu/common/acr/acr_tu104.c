@@ -20,15 +20,12 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#include <nvgpu/acr/nvgpu_acr.h>
-#include <nvgpu/firmware.h>
-#include <nvgpu/enabled.h>
-#include <nvgpu/debug.h>
-#include <nvgpu/pmu.h>
 #include <nvgpu/gk20a.h>
+#include <nvgpu/firmware.h>
 #include <nvgpu/sec2if/sec2_if_cmn.h>
 
-#include "acr_gm20b.h"
+#include "acr_blob_construct_v1.h"
+#include "acr_priv.h"
 #include "acr_gv100.h"
 #include "acr_tu104.h"
 
@@ -43,12 +40,12 @@ static int tu104_bootstrap_hs_acr(struct gk20a *g, struct nvgpu_acr *acr,
 
 	nvgpu_log_fn(g, " ");
 
-	err = nvgpu_acr_bootstrap_hs_ucode(g, &g->acr, &g->acr.acr_ahesasc);
+	err = nvgpu_acr_bootstrap_hs_ucode(g, g->acr, &g->acr->acr_ahesasc);
 	if (err != 0) {
 		nvgpu_err(g, "ACR AHESASC bootstrap failed");
 		goto exit;
 	}
-	err = nvgpu_acr_bootstrap_hs_ucode(g, &g->acr, &g->acr.acr_asb);
+	err = nvgpu_acr_bootstrap_hs_ucode(g, g->acr, &g->acr->acr_asb);
 	if (err != 0) {
 		nvgpu_err(g, "ACR ASB bootstrap failed");
 		goto exit;
@@ -121,37 +118,6 @@ static void nvgpu_tu104_acr_asb_sw_init(struct gk20a *g,
 		gv100_gsp_setup_hw_and_bl_bootstrap;
 }
 
-static void tu104_free_hs_acr(struct gk20a *g,
-	struct hs_acr *acr_type)
-{
-	struct mm_gk20a *mm = &g->mm;
-	struct vm_gk20a *vm = mm->pmu.vm;
-
-	if (acr_type->acr_fw != NULL) {
-		nvgpu_release_firmware(g, acr_type->acr_fw);
-	}
-
-	if (acr_type->acr_hs_bl.hs_bl_fw != NULL) {
-		nvgpu_release_firmware(g, acr_type->acr_hs_bl.hs_bl_fw);
-	}
-
-	if (nvgpu_mem_is_valid(&acr_type->acr_ucode)) {
-		nvgpu_dma_unmap_free(vm, &acr_type->acr_ucode);
-	}
-	if (nvgpu_mem_is_valid(&acr_type->acr_hs_bl.hs_bl_ucode)) {
-		nvgpu_dma_unmap_free(vm, &acr_type->acr_hs_bl.hs_bl_ucode);
-	}
-}
-
-static void tu104_remove_acr_support(struct nvgpu_acr *acr)
-{
-	struct gk20a *g = acr->g;
-
-	tu104_free_hs_acr(g, &acr->acr_ahesasc);
-
-	tu104_free_hs_acr(g, &acr->acr_asb);
-}
-
 void nvgpu_tu104_acr_sw_init(struct gk20a *g, struct nvgpu_acr *acr)
 {
 	nvgpu_log_fn(g, " ");
@@ -165,7 +131,6 @@ void nvgpu_tu104_acr_sw_init(struct gk20a *g, struct nvgpu_acr *acr)
 	acr->prepare_ucode_blob = nvgpu_acr_prepare_ucode_blob_v1;
 	acr->bootstrap_owner = FALCON_ID_GSPLITE;
 	acr->bootstrap_hs_acr = tu104_bootstrap_hs_acr;
-	acr->remove_support = tu104_remove_acr_support;
 
 	/* Init ACR-AHESASC */
 	nvgpu_tu104_acr_ahesasc_sw_init(g, &acr->acr_ahesasc);

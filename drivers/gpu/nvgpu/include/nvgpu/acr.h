@@ -1,7 +1,5 @@
 /*
- * GM20B ACR
- *
- * Copyright (c) 2015-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -22,9 +20,24 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NVGPU_GM20B_ACR_GM20B_H
-#define NVGPU_GM20B_ACR_GM20B_H
+#ifndef NVGPU_ACR_H
+#define NVGPU_ACR_H
 
-void nvgpu_gm20b_acr_sw_init(struct gk20a *g, struct nvgpu_acr *acr);
+struct gk20a;
+struct nvgpu_falcon;
+struct nvgpu_firmware;
+struct nvgpu_acr;
 
-#endif /*NVGPU_GM20B_ACR_GM20B_H*/
+int nvgpu_acr_init(struct gk20a *g, struct nvgpu_acr **acr);
+int nvgpu_acr_alloc_blob_prerequisite(struct gk20a *g, struct nvgpu_acr *acr,
+	size_t size);
+int nvgpu_acr_construct_execute(struct gk20a *g, struct nvgpu_acr *acr);
+int nvgpu_acr_bootstrap_hs_acr(struct gk20a *g, struct nvgpu_acr *acr);
+bool nvgpu_acr_is_lsf_lazy_bootstrap(struct gk20a *g, struct nvgpu_acr *acr,
+	u32 falcon_id);
+
+int nvgpu_acr_self_hs_load_bootstrap(struct gk20a *g, struct nvgpu_falcon *flcn,
+	struct nvgpu_firmware *hs_fw, u32 timeout);
+
+#endif /* NVGPU_ACR_H */
+

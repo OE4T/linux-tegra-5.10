@@ -22,11 +22,13 @@
 
 #include <nvgpu/types.h>
 #include <nvgpu/firmware.h>
-#include <nvgpu/acr/nvgpu_acr.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/bug.h>
 
 #include "common/pmu/pmu_gm20b.h"
+
+#include "acr_blob_construct_v1.h"
+#include "acr_priv.h"
 
 #include "acr_gm20b.h"
 #include "acr_gv100.h"
@@ -66,10 +68,10 @@ static int gv11b_acr_patch_wpr_info_to_ucode(struct gk20a *g,
 			&(((u8 *)acr_ucode_data)[acr_ucode_header[2U]]);
 
 		acr_dmem_desc->nonwpr_ucode_blob_start =
-			nvgpu_mem_get_addr(g, &g->acr.ucode_blob);
-		nvgpu_assert(g->acr.ucode_blob.size <= U32_MAX);
+			nvgpu_mem_get_addr(g, &g->acr->ucode_blob);
+		nvgpu_assert(g->acr->ucode_blob.size <= U32_MAX);
 		acr_dmem_desc->nonwpr_ucode_blob_size =
-			(u32)g->acr.ucode_blob.size;
+			(u32)g->acr->ucode_blob.size;
 		acr_dmem_desc->regions.no_regions = 1U;
 		acr_dmem_desc->wpr_offset = 0U;
 	}
@@ -186,8 +188,5 @@ void nvgpu_gv11b_acr_sw_init(struct gk20a *g, struct nvgpu_acr *acr)
 	acr->alloc_blob_space = nvgpu_acr_alloc_blob_space_sys;
 	acr->bootstrap_hs_acr = nvgpu_acr_bootstrap_hs_ucode;
 	acr->patch_wpr_info_to_ucode = gv11b_acr_patch_wpr_info_to_ucode;
-	acr->acr_fill_bl_dmem_desc =
-		gv100_acr_fill_bl_dmem_desc;
-
-	acr->remove_support = gm20b_remove_acr_support;
+	acr->acr_fill_bl_dmem_desc = gv100_acr_fill_bl_dmem_desc;
 }

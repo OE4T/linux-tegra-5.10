@@ -20,16 +20,16 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#include <nvgpu/types.h>
-#include <nvgpu/acr/nvgpu_acr.h>
-#include <nvgpu/firmware.h>
-#include <nvgpu/pmu.h>
-#include <nvgpu/falcon.h>
 #include <nvgpu/gk20a.h>
+#include <nvgpu/types.h>
+#include <nvgpu/firmware.h>
+#include <nvgpu/falcon.h>
 #include <nvgpu/bug.h>
 
 #include "common/pmu/pmu_gm20b.h"
 
+#include "acr_blob_construct_v0.h"
+#include "acr_priv.h"
 #include "acr_gm20b.h"
 
 static int gm20b_acr_patch_wpr_info_to_ucode(struct gk20a *g,
@@ -66,10 +66,10 @@ static int gm20b_acr_patch_wpr_info_to_ucode(struct gk20a *g,
 			&(((u8 *)acr_ucode_data)[acr_ucode_header[2U]]);
 
 		acr_dmem_desc->nonwpr_ucode_blob_start =
-			nvgpu_mem_get_addr(g, &g->acr.ucode_blob);
-		nvgpu_assert(g->acr.ucode_blob.size <= U32_MAX);
+			nvgpu_mem_get_addr(g, &g->acr->ucode_blob);
+		nvgpu_assert(g->acr->ucode_blob.size <= U32_MAX);
 		acr_dmem_desc->nonwpr_ucode_blob_size =
-			(u32)g->acr.ucode_blob.size;
+			(u32)g->acr->ucode_blob.size;
 		acr_dmem_desc->regions.no_regions = 1U;
 		acr_dmem_desc->wpr_offset = 0U;
 	}
@@ -174,28 +174,6 @@ static void gm20b_acr_default_sw_init(struct gk20a *g, struct hs_acr *hs_acr)
 		gk20a_pmu_bar0_error_status;
 }
 
-void gm20b_remove_acr_support(struct nvgpu_acr *acr)
-{
-	struct gk20a *g = acr->g;
-	struct mm_gk20a *mm = &g->mm;
-	struct vm_gk20a *vm = mm->pmu.vm;
-
-	if (acr->acr.acr_fw != NULL) {
-		nvgpu_release_firmware(g, acr->acr.acr_fw);
-	}
-
-	if (acr->acr.acr_hs_bl.hs_bl_fw != NULL) {
-		nvgpu_release_firmware(g, acr->acr.acr_hs_bl.hs_bl_fw);
-	}
-
-	if (nvgpu_mem_is_valid(&acr->acr.acr_ucode)) {
-		nvgpu_dma_unmap_free(vm, &acr->acr.acr_ucode);
-	}
-	if (nvgpu_mem_is_valid(&acr->acr.acr_hs_bl.hs_bl_ucode)) {
-		nvgpu_dma_unmap_free(vm, &acr->acr.acr_hs_bl.hs_bl_ucode);
-	}
-}
-
 void nvgpu_gm20b_acr_sw_init(struct gk20a *g, struct nvgpu_acr *acr)
 {
 	nvgpu_log_fn(g, " ");
@@ -216,6 +194,4 @@ void nvgpu_gm20b_acr_sw_init(struct gk20a *g, struct nvgpu_acr *acr)
 		gm20b_acr_patch_wpr_info_to_ucode;
 	acr->acr_fill_bl_dmem_desc =
 		gm20b_acr_fill_bl_dmem_desc;
-
-	acr->remove_support = gm20b_remove_acr_support;
 }

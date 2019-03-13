@@ -24,12 +24,14 @@
 #include <nvgpu/dma.h>
 #include <nvgpu/timers.h>
 #include <nvgpu/nvgpu_mem.h>
-#include <nvgpu/acr/nvgpu_acr.h>
 #include <nvgpu/firmware.h>
 #include <nvgpu/pmu.h>
 #include <nvgpu/falcon.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/bug.h>
+
+#include "acr_bootstrap.h"
+#include "acr_priv.h"
 
 static int acr_wait_for_completion(struct gk20a *g,
 	struct nvgpu_falcon *flcn, unsigned int timeout)
@@ -51,8 +53,8 @@ static int acr_wait_for_completion(struct gk20a *g,
 		goto exit;
 	}
 
-	if (g->acr.acr.acr_engine_bus_err_status != NULL) {
-		completion = g->acr.acr.acr_engine_bus_err_status(g,
+	if (g->acr->acr.acr_engine_bus_err_status != NULL) {
+		completion = g->acr->acr.acr_engine_bus_err_status(g,
 			&bar0_status, &error_type);
 		if (completion != 0) {
 			nvgpu_err(g, "flcn-%d: ACR engine bus error", flcn_id);
@@ -79,8 +81,8 @@ static int acr_wait_for_completion(struct gk20a *g,
 
 exit:
 	if (completion != 0) {
-		if (g->acr.acr.report_acr_engine_bus_err_status != NULL) {
-			g->acr.acr.report_acr_engine_bus_err_status(g,
+		if (g->acr->acr.report_acr_engine_bus_err_status != NULL) {
+			g->acr->acr.report_acr_engine_bus_err_status(g,
 				bar0_status, error_type);
 		}
 	}

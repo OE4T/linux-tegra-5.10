@@ -775,7 +775,7 @@ int gr_gm20b_load_ctxsw_ucode(struct gk20a *g)
 						BIT32(FALCON_ID_FECS) |
 						BIT32(FALCON_ID_GPCCS));
 			} else {
-				err = g->acr.bootstrap_hs_acr(g, &g->acr, &g->acr.acr);
+				err = nvgpu_acr_bootstrap_hs_acr(g, g->acr);
 				if (err != 0) {
 					nvgpu_err(g, "GR Recovery: ACR GR LSF bootstrap failed");
 				}
@@ -794,10 +794,10 @@ int gr_gm20b_load_ctxsw_ucode(struct gk20a *g)
 		} else {
 			/* bind WPR VA inst block */
 			gr_gk20a_load_falcon_bind_instblk(g);
-			if (g->acr.lsf[FALCON_ID_FECS].is_lazy_bootstrap) {
+			if (nvgpu_acr_is_lsf_lazy_bootstrap(g, g->acr, FALCON_ID_FECS)) {
 				falcon_id_mask |= BIT8(FALCON_ID_FECS);
 			}
-			if (g->acr.lsf[FALCON_ID_GPCCS].is_lazy_bootstrap) {
+			if (nvgpu_acr_is_lsf_lazy_bootstrap(g, g->acr, FALCON_ID_GPCCS)) {
 				falcon_id_mask |= BIT8(FALCON_ID_GPCCS);
 			}
 

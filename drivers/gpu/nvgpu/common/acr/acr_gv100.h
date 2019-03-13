@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -22,9 +22,6 @@
 
 #ifndef NVGPU_ACR_GV100_H
 #define NVGPU_ACR_GV100_H
-
-#define GV100_FECS_UCODE_SIG "gv100/fecs_sig.bin"
-#define GV100_GPCCS_UCODE_SIG "gv100/gpccs_sig.bin"
 
 int gv100_acr_fill_bl_dmem_desc(struct gk20a *g, struct nvgpu_acr *acr,
 	struct hs_acr *acr_desc, u32 *acr_ucode_header);
