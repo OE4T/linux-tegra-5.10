@@ -684,6 +684,8 @@ struct gpu_ops {
 			int (*preemption_state)(struct gk20a *g,
 				u32 gfxp_wfi_timeout_count,
 				bool gfxp_wfi_timeout_unit_usec);
+			void (*fe_go_idle_timeout)(struct gk20a *g,
+				bool enable);
 		} init;
 
 		u32 (*fecs_falcon_base_addr)(void);

@@ -998,9 +998,6 @@ int gk20a_init_sw_bundle(struct gk20a *g)
 	int err = 0;
 	unsigned int i;
 
-	/* disable fe_go_idle */
-	gk20a_writel(g, gr_fe_go_idle_timeout_r(),
-		gr_fe_go_idle_timeout_count_disabled_f());
 	/* enable pipe mode override */
 	gk20a_writel(g, gr_pipe_bundle_config_r(),
 		gr_pipe_bundle_config_override_pipe_mode_enabled_f());
@@ -1050,20 +1047,12 @@ int gk20a_init_sw_bundle(struct gk20a *g)
 
 	err = g->ops.gr.init.wait_idle(g);
 
-	/* restore fe_go_idle */
-	gk20a_writel(g, gr_fe_go_idle_timeout_r(),
-		     gr_fe_go_idle_timeout_count_prod_f());
-
 	return err;
 
 error:
 	/* in case of error skip waiting for GR idle - just restore state */
 	gk20a_writel(g, gr_pipe_bundle_config_r(),
 		     gr_pipe_bundle_config_override_pipe_mode_disabled_f());
-
-	/* restore fe_go_idle */
-	gk20a_writel(g, gr_fe_go_idle_timeout_r(),
-		     gr_fe_go_idle_timeout_count_prod_f());
 
 	return err;
 }
@@ -1137,8 +1126,7 @@ int gr_gk20a_init_golden_ctx_image(struct gk20a *g,
 	}
 
 	/* disable fe_go_idle */
-	gk20a_writel(g, gr_fe_go_idle_timeout_r(),
-		gr_fe_go_idle_timeout_count_disabled_f());
+	g->ops.gr.init.fe_go_idle_timeout(g, false);
 
 	err = g->ops.gr.commit_global_ctx_buffers(g, gr_ctx, false);
 	if (err != 0) {
@@ -1166,8 +1154,7 @@ int gr_gk20a_init_golden_ctx_image(struct gk20a *g,
 
 restore_fe_go_idle:
 	/* restore fe_go_idle */
-	gk20a_writel(g, gr_fe_go_idle_timeout_r(),
-		     gr_fe_go_idle_timeout_count_prod_f());
+	g->ops.gr.init.fe_go_idle_timeout(g, true);
 
 	if ((err != 0) || (g->ops.gr.init.wait_idle(g) != 0)) {
 		goto clean_up;

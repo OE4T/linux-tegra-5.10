@@ -269,3 +269,14 @@ void gm20b_gr_init_override_context_reset(struct gk20a *g)
 	nvgpu_udelay(FECS_CTXSW_RESET_DELAY_US);
 	(void) nvgpu_readl(g, gr_fecs_ctxsw_reset_ctl_r());
 }
+
+void gm20b_gr_init_fe_go_idle_timeout(struct gk20a *g, bool enable)
+{
+	if (enable) {
+		nvgpu_writel(g, gr_fe_go_idle_timeout_r(),
+			gr_fe_go_idle_timeout_count_prod_f());
+	} else {
+		nvgpu_writel(g, gr_fe_go_idle_timeout_r(),
+			gr_fe_go_idle_timeout_count_disabled_f());
+	}
+}

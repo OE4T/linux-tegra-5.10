@@ -505,6 +505,7 @@ static const struct gpu_ops gp10b_ops = {
 			.override_context_reset =
 				gm20b_gr_init_override_context_reset,
 			.preemption_state = gp10b_gr_init_preemption_state,
+			.fe_go_idle_timeout = gm20b_gr_init_fe_go_idle_timeout,
 		},
 	},
 	.fb = {
