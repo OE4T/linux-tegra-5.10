@@ -1107,10 +1107,6 @@ int gr_gk20a_init_golden_ctx_image(struct gk20a *g,
 		goto clean_up;
 	}
 
-	/* clear scc ram */
-	gk20a_writel(g, gr_scc_init_r(),
-		gr_scc_init_ram_trigger_f());
-
 	err = gr_gk20a_fecs_ctx_bind_channel(g, c);
 	if (err != 0) {
 		goto clean_up;

@@ -2222,14 +2222,6 @@ static inline u32 gr_scc_pagepool_valid_true_f(void)
 {
 	return 0x80000000U;
 }
-static inline u32 gr_scc_init_r(void)
-{
-	return 0x0040802cU;
-}
-static inline u32 gr_scc_init_ram_trigger_f(void)
-{
-	return 0x1U;
-}
 static inline u32 gr_scc_hww_esr_r(void)
 {
 	return 0x00408030U;

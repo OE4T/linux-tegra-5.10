@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -2005,14 +2005,6 @@ static inline u32 gr_scc_pagepool_max_valid_pages_v(u32 r)
 static inline u32 gr_scc_pagepool_valid_true_f(void)
 {
 	return 0x80000000U;
-}
-static inline u32 gr_scc_init_r(void)
-{
-	return 0x0040802cU;
-}
-static inline u32 gr_scc_init_ram_trigger_f(void)
-{
-	return 0x1U;
 }
 static inline u32 gr_scc_hww_esr_r(void)
 {

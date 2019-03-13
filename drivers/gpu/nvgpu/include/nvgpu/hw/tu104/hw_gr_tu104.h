@@ -2398,14 +2398,6 @@ static inline u32 gr_scc_rm_gfxp_reserve_rtv_cb_size_div_256b_f(u32 v)
 {
 	return (v & 0x1ffU) << 0U;
 }
-static inline u32 gr_scc_init_r(void)
-{
-	return 0x0040802cU;
-}
-static inline u32 gr_scc_init_ram_trigger_f(void)
-{
-	return 0x1U;
-}
 static inline u32 gr_scc_hww_esr_r(void)
 {
 	return 0x00408030U;
