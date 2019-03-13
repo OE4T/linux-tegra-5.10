@@ -41,6 +41,7 @@
 #include <nvgpu/gr/subctx.h>
 #include <nvgpu/gr/ctx.h>
 #include <nvgpu/gr/config.h>
+#include <nvgpu/gr/gr.h>
 #include <nvgpu/channel.h>
 #include <nvgpu/nvgpu_err.h>
 #include <nvgpu/engines.h>
@@ -2556,7 +2557,7 @@ static int gv11b_write_bundle_veid_state(struct gk20a *g, u32 index)
 			sw_veid_bundle_init->l[index].addr |
 			gr_pipe_bundle_address_veid_f(j));
 
-		err = gr_gk20a_wait_fe_idle(g);
+		err = g->ops.gr.init.wait_idle(g);
 	}
 	return err;
 }
@@ -2586,7 +2587,7 @@ int gr_gv11b_init_sw_veid_bundle(struct gk20a *g)
 			nvgpu_log_fn(g, "go idle bundle");
 				gk20a_writel(g, gr_pipe_bundle_address_r(),
 					sw_veid_bundle_init->l[i].addr);
-				err = gr_gk20a_wait_idle(g);
+				err = g->ops.gr.init.wait_idle(g);
 		} else {
 			err = gv11b_write_bundle_veid_state(g, i);
 		}

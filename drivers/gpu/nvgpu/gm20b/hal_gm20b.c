@@ -272,7 +272,7 @@ static const struct gpu_ops gm20b_ops = {
 		.get_fbp_en_mask = gr_gm20b_get_fbp_en_mask,
 		.get_rop_l2_en_mask = gr_gm20b_rop_l2_en_mask,
 		.init_sm_dsm_reg_info = gr_gm20b_init_sm_dsm_reg_info,
-		.wait_empty = gr_gk20a_wait_idle,
+		.wait_empty = gm20b_gr_init_wait_idle,
 		.init_cyclestats = gr_gm20b_init_cyclestats,
 		.set_sm_debug_mode = gr_gk20a_set_sm_debug_mode,
 		.bpt_reg_info = gr_gm20b_bpt_reg_info,
@@ -428,6 +428,8 @@ static const struct gpu_ops gm20b_ops = {
 				gm20b_gr_init_fe_pwr_mode_force_on,
 			.override_context_reset =
 				gm20b_gr_init_override_context_reset,
+			.wait_idle = gm20b_gr_init_wait_idle,
+			.wait_fe_idle = gm20b_gr_init_wait_fe_idle,
 		},
 	},
 	.fb = {

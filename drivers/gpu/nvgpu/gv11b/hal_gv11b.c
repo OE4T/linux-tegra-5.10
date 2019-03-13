@@ -570,6 +570,8 @@ static const struct gpu_ops gv11b_ops = {
 				gm20b_gr_init_fe_pwr_mode_force_on,
 			.override_context_reset =
 				gm20b_gr_init_override_context_reset,
+			.wait_idle = gm20b_gr_init_wait_idle,
+			.wait_fe_idle = gm20b_gr_init_wait_fe_idle,
 		},
 	},
 	.fb = {

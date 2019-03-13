@@ -24,6 +24,8 @@
 #include <nvgpu/io.h>
 #include <nvgpu/timers.h>
 #include <nvgpu/enabled.h>
+#include <nvgpu/engine_status.h>
+#include <nvgpu/gr/gr.h>
 
 #include "gr_init_gm20b.h"
 
@@ -32,6 +34,97 @@
 #define FE_PWR_MODE_TIMEOUT_MAX_US 2000U
 #define FE_PWR_MODE_TIMEOUT_DEFAULT_US 10U
 #define FECS_CTXSW_RESET_DELAY_US 10U
+
+int gm20b_gr_init_wait_idle(struct gk20a *g)
+{
+	u32 delay = NVGPU_GR_IDLE_CHECK_DEFAULT_US;
+	u32 gr_engine_id;
+	int err = -EAGAIN;
+	bool ctxsw_active;
+	bool gr_busy;
+	bool ctx_status_invalid;
+	struct nvgpu_engine_status_info engine_status;
+	struct nvgpu_timeout timeout;
+
+	nvgpu_log_fn(g, " ");
+
+	gr_engine_id = nvgpu_engine_get_gr_id(g);
+
+	err = nvgpu_timeout_init(g, &timeout, nvgpu_gr_get_idle_timeout(g),
+				 NVGPU_TIMER_CPU_TIMER);
+	if (err != 0) {
+		return err;
+	}
+
+	do {
+		/*
+		 * fmodel: host gets fifo_engine_status(gr) from gr
+		 * only when gr_status is read
+		 */
+		(void) nvgpu_readl(g, gr_status_r());
+
+		g->ops.engine_status.read_engine_status_info(g, gr_engine_id,
+							     &engine_status);
+
+		ctxsw_active = engine_status.ctxsw_in_progress;
+
+		ctx_status_invalid = nvgpu_engine_status_is_ctxsw_invalid(
+							&engine_status);
+
+		gr_busy = (nvgpu_readl(g, gr_engine_status_r()) &
+				gr_engine_status_value_busy_f()) != 0U;
+
+		if (ctx_status_invalid || (!gr_busy && !ctxsw_active)) {
+			nvgpu_log_fn(g, "done");
+			return 0;
+		}
+
+		nvgpu_usleep_range(delay, delay * 2U);
+		delay = min_t(u32, delay << 1, NVGPU_GR_IDLE_CHECK_MAX_US);
+
+	} while (nvgpu_timeout_expired(&timeout) == 0);
+
+	nvgpu_err(g, "timeout, ctxsw busy : %d, gr busy : %d",
+		  ctxsw_active, gr_busy);
+
+	return err;
+}
+
+int gm20b_gr_init_wait_fe_idle(struct gk20a *g)
+{
+	u32 val;
+	u32 delay = NVGPU_GR_IDLE_CHECK_DEFAULT_US;
+	struct nvgpu_timeout timeout;
+	int err = -EAGAIN;
+
+	if (nvgpu_is_enabled(g, NVGPU_IS_FMODEL)) {
+		return 0;
+	}
+
+	nvgpu_log_fn(g, " ");
+
+	err = nvgpu_timeout_init(g, &timeout, nvgpu_gr_get_idle_timeout(g),
+			         NVGPU_TIMER_CPU_TIMER);
+	if (err != 0) {
+		return err;
+	}
+
+	do {
+		val = nvgpu_readl(g, gr_status_r());
+
+		if (gr_status_fe_method_lower_v(val) == 0U) {
+			nvgpu_log_fn(g, "done");
+			return 0;
+		}
+
+		nvgpu_usleep_range(delay, delay * 2U);
+		delay = min_t(u32, delay << 1, NVGPU_GR_IDLE_CHECK_MAX_US);
+	} while (nvgpu_timeout_expired(&timeout) == 0);
+
+	nvgpu_err(g, "timeout, fe busy : %x", val);
+
+	return err;
+}
 
 int gm20b_gr_init_fe_pwr_mode_force_on(struct gk20a *g, bool force_on)
 {

@@ -636,6 +636,8 @@ struct gpu_ops {
 		} hwpm_map;
 
 		struct {
+			int (*wait_idle)(struct gk20a *g);
+			int (*wait_fe_idle)(struct gk20a *g);
 			int (*fe_pwr_mode_force_on)(struct gk20a *g,
 				bool force_on);
 			void (*override_context_reset)(struct gk20a *g);

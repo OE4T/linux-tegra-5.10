@@ -225,90 +225,6 @@ static void gr_gk20a_load_falcon_imem(struct gk20a *g)
 	}
 }
 
-int gr_gk20a_wait_idle(struct gk20a *g)
-{
-	u32 delay = GR_IDLE_CHECK_DEFAULT;
-	bool ctxsw_active;
-	bool gr_busy;
-	u32 gr_engine_id;
-
-	struct nvgpu_engine_status_info engine_status;
-	bool ctx_status_invalid;
-	struct nvgpu_timeout timeout;
-
-	nvgpu_log_fn(g, " ");
-
-	gr_engine_id = nvgpu_engine_get_gr_id(g);
-
-	nvgpu_timeout_init(g, &timeout, gk20a_get_gr_idle_timeout(g),
-			   NVGPU_TIMER_CPU_TIMER);
-
-	do {
-		/* fmodel: host gets fifo_engine_status(gr) from gr
-		   only when gr_status is read */
-		(void) gk20a_readl(g, gr_status_r());
-
-		g->ops.engine_status.read_engine_status_info(g, gr_engine_id,
-			&engine_status);
-
-		ctxsw_active = engine_status.ctxsw_in_progress;
-
-		ctx_status_invalid = nvgpu_engine_status_is_ctxsw_invalid(
-			&engine_status);
-
-		gr_busy = (gk20a_readl(g, gr_engine_status_r()) &
-			gr_engine_status_value_busy_f()) != 0U;
-
-		if (ctx_status_invalid || (!gr_busy && !ctxsw_active)) {
-			nvgpu_log_fn(g, "done");
-			return 0;
-		}
-
-		nvgpu_usleep_range(delay, delay * 2U);
-		delay = min_t(u32, delay << 1, GR_IDLE_CHECK_MAX);
-
-	} while (nvgpu_timeout_expired(&timeout) == 0);
-
-	nvgpu_err(g,
-		"timeout, ctxsw busy : %d, gr busy : %d",
-		ctxsw_active, gr_busy);
-
-	return -EAGAIN;
-}
-
-int gr_gk20a_wait_fe_idle(struct gk20a *g)
-{
-	u32 val;
-	u32 delay = GR_IDLE_CHECK_DEFAULT;
-	struct nvgpu_timeout timeout;
-
-	if (nvgpu_is_enabled(g, NVGPU_IS_FMODEL)) {
-		return 0;
-	}
-
-	nvgpu_log_fn(g, " ");
-
-	nvgpu_timeout_init(g, &timeout, gk20a_get_gr_idle_timeout(g),
-			   NVGPU_TIMER_CPU_TIMER);
-
-	do {
-		val = gk20a_readl(g, gr_status_r());
-
-		if (gr_status_fe_method_lower_v(val) == 0U) {
-			nvgpu_log_fn(g, "done");
-			return 0;
-		}
-
-		nvgpu_usleep_range(delay, delay * 2U);
-		delay = min_t(u32, delay << 1, GR_IDLE_CHECK_MAX);
-	} while (nvgpu_timeout_expired(&timeout) == 0);
-
-	nvgpu_err(g,
-		"timeout, fe busy : %x", val);
-
-	return -EAGAIN;
-}
-
 int gr_gk20a_ctx_wait_ucode(struct gk20a *g, u32 mailbox_id,
 			    u32 *mailbox_ret, u32 opc_success,
 			    u32 mailbox_ok, u32 opc_fail,
@@ -1150,13 +1066,13 @@ int gk20a_init_sw_bundle(struct gk20a *g)
 
 		if (gr_pipe_bundle_address_value_v(sw_bundle_init->l[i].addr) ==
 		    GR_GO_IDLE_BUNDLE) {
-			err = gr_gk20a_wait_idle(g);
+			err = g->ops.gr.init.wait_idle(g);
 			if (err != 0) {
 				goto error;
 			}
 		}
 
-		err = gr_gk20a_wait_fe_idle(g);
+		err = g->ops.gr.init.wait_fe_idle(g);
 		if (err != 0) {
 			goto error;
 		}
@@ -1180,7 +1096,7 @@ int gk20a_init_sw_bundle(struct gk20a *g)
 	gk20a_writel(g, gr_pipe_bundle_config_r(),
 		     gr_pipe_bundle_config_override_pipe_mode_disabled_f());
 
-	err = gr_gk20a_wait_idle(g);
+	err = g->ops.gr.init.wait_idle(g);
 
 	/* restore fe_go_idle */
 	gk20a_writel(g, gr_fe_go_idle_timeout_r(),
@@ -1248,7 +1164,7 @@ int gr_gk20a_init_golden_ctx_image(struct gk20a *g,
 		goto clean_up;
 	}
 
-	err = gr_gk20a_wait_idle(g);
+	err = g->ops.gr.init.wait_idle(g);
 
 	/* load ctx init */
 	for (i = 0; i < sw_ctx_load->count; i++) {
@@ -1262,7 +1178,7 @@ int gr_gk20a_init_golden_ctx_image(struct gk20a *g,
 
 	nvgpu_cg_blcg_gr_load_enable(g);
 
-	err = gr_gk20a_wait_idle(g);
+	err = g->ops.gr.init.wait_idle(g);
 	if (err != 0) {
 		goto clean_up;
 	}
@@ -1285,7 +1201,7 @@ int gr_gk20a_init_golden_ctx_image(struct gk20a *g,
 		goto clean_up;
 	}
 
-	err = gr_gk20a_wait_idle(g);
+	err = g->ops.gr.init.wait_idle(g);
 	if (err != 0) {
 		goto restore_fe_go_idle;
 	}
@@ -1300,7 +1216,7 @@ restore_fe_go_idle:
 	gk20a_writel(g, gr_fe_go_idle_timeout_r(),
 		     gr_fe_go_idle_timeout_count_prod_f());
 
-	if ((err != 0) || (gr_gk20a_wait_idle(g) != 0)) {
+	if ((err != 0) || (g->ops.gr.init.wait_idle(g) != 0)) {
 		goto clean_up;
 	}
 
@@ -1324,7 +1240,7 @@ restore_fe_go_idle:
 			sw_method_init->l[i].addr);
 	}
 
-	err = gr_gk20a_wait_idle(g);
+	err = g->ops.gr.init.wait_idle(g);
 	if (err != 0) {
 		goto clean_up;
 	}
@@ -2811,7 +2727,7 @@ static int gk20a_init_gr_setup_hw(struct gk20a *g)
 		goto out;
 	}
 
-	err = gr_gk20a_wait_idle(g);
+	err = g->ops.gr.init.wait_idle(g);
 out:
 	nvgpu_log_fn(g, "done");
 	return err;
@@ -2915,7 +2831,7 @@ static int gk20a_init_gr_reset_enable_hw(struct gk20a *g)
 		goto out;
 	}
 
-	err = gr_gk20a_wait_idle(g);
+	err = g->ops.gr.init.wait_idle(g);
 	if (err != 0) {
 		goto out;
 	}

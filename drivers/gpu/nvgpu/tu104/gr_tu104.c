@@ -30,6 +30,7 @@
 #include <nvgpu/gr/global_ctx.h>
 #include <nvgpu/gr/ctx.h>
 #include <nvgpu/gr/config.h>
+#include <nvgpu/gr/gr.h>
 
 #include "gk20a/gr_gk20a.h"
 #include "gk20a/gr_pri_gk20a.h"
@@ -111,9 +112,9 @@ int gr_tu104_init_sw_bundle64(struct gk20a *g)
 
 		if (gr_pipe_bundle_address_value_v(sw_bundle64_init->l[i].addr)
 				== GR_GO_IDLE_BUNDLE) {
-			err = gr_gk20a_wait_idle(g);
+			err = g->ops.gr.init.wait_idle(g);
 		} else if (nvgpu_platform_is_silicon(g)) {
-			err = gr_gk20a_wait_fe_idle(g);
+			err = g->ops.gr.init.wait_fe_idle(g);
 		}
 		if (err != 0) {
 			break;
