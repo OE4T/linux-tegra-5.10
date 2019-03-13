@@ -205,6 +205,9 @@ nvgpu-y += \
 	hal/fuse/fuse_gp106.o \
 	hal/fifo/engines_gm20b.o \
 	hal/fifo/engines_gv11b.o \
+	hal/fifo/engine_status_gm20b.o \
+	hal/fifo/engine_status_gv100.o \
+	hal/fifo/pbdma_status_gm20b.o \
 	hal/falcon/falcon_gk20a.o \
 	hal/nvlink/minion_gv100.o \
 	hal/nvlink/minion_tu104.o \
@@ -404,10 +407,7 @@ nvgpu-y += \
 	common/fifo/channel_gv100.o \
 	common/fifo/engine_status.o \
 	common/fifo/engines.o \
-	common/fifo/engine_status_gm20b.o \
-	common/fifo/engine_status_gv100.o \
 	common/fifo/pbdma_status.o \
-	common/fifo/pbdma_status_gm20b.o \
 	common/ecc.o \
 	common/ce2.o \
 	common/debugger.o \

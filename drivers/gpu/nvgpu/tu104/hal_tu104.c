@@ -103,8 +103,8 @@
 #include "common/fifo/channel_gm20b.h"
 #include "common/fifo/channel_gv11b.h"
 #include "common/fifo/channel_gv100.h"
-#include "common/fifo/engine_status_gv100.h"
-#include "common/fifo/pbdma_status_gm20b.h"
+#include "hal/fifo/engine_status_gv100.h"
+#include "hal/fifo/pbdma_status_gm20b.h"
 #include "common/clk_arb/clk_arb_gv100.h"
 
 #include "gk20a/fifo_gk20a.h"

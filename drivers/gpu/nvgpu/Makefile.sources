@@ -181,10 +181,7 @@ srcs += common/sim.c \
 	common/fifo/channel_gv100.c \
 	common/fifo/engine_status.c \
 	common/fifo/engines.c \
-	common/fifo/engine_status_gm20b.c \
-	common/fifo/engine_status_gv100.c \
 	common/fifo/pbdma_status.c \
-	common/fifo/pbdma_status_gm20b.c \
 	common/mc/mc.c \
 	common/mc/mc_gm20b.c \
 	common/mc/mc_gp10b.c  \
@@ -361,6 +358,9 @@ srcs += common/sim.c \
 	hal/fuse/fuse_gp106.c \
 	hal/fifo/engines_gm20b.c \
 	hal/fifo/engines_gv11b.c \
+	hal/fifo/engine_status_gm20b.c \
+	hal/fifo/engine_status_gv100.c \
+	hal/fifo/pbdma_status_gm20b.c \
 	hal/falcon/falcon_gk20a.c \
 	hal/nvlink/minion_gv100.c \
 	hal/nvlink/minion_tu104.c \

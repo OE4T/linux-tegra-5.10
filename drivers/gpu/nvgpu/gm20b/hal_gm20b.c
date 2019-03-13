@@ -47,6 +47,8 @@
 #include "hal/fb/fb_gm20b.h"
 #include "hal/fuse/fuse_gm20b.h"
 #include "hal/fifo/engines_gm20b.h"
+#include "hal/fifo/engine_status_gm20b.h"
+#include "hal/fifo/pbdma_status_gm20b.h"
 #include "hal/gr/zbc/zbc_gm20b.h"
 #include "hal/gr/init/gr_init_gm20b.h"
 #include "hal/falcon/falcon_gk20a.h"
@@ -66,8 +68,6 @@
 #include "common/fifo/runlist_gk20a.h"
 #include "common/fifo/channel_gk20a.h"
 #include "common/fifo/channel_gm20b.h"
-#include "common/fifo/engine_status_gm20b.h"
-#include "common/fifo/pbdma_status_gm20b.h"
 
 #include "gk20a/ce2_gk20a.h"
 #include "gk20a/fifo_gk20a.h"

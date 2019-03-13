@@ -55,6 +55,8 @@
 #include "hal/fuse/fuse_gm20b.h"
 #include "hal/fuse/fuse_gp10b.h"
 #include "hal/fifo/engines_gm20b.h"
+#include "hal/fifo/engine_status_gm20b.h"
+#include "hal/fifo/pbdma_status_gm20b.h"
 #include "hal/gr/fecs_trace/fecs_trace_gm20b.h"
 #include "hal/gr/fecs_trace/fecs_trace_gp10b.h"
 #include "hal/gr/zbc/zbc_gp10b.h"
@@ -81,8 +83,6 @@
 #include "common/fifo/runlist_gk20a.h"
 #include "common/fifo/channel_gk20a.h"
 #include "common/fifo/channel_gm20b.h"
-#include "common/fifo/engine_status_gm20b.h"
-#include "common/fifo/pbdma_status_gm20b.h"
 #include "common/clk_arb/clk_arb_gp10b.h"
 
 #include "gk20a/fifo_gk20a.h"

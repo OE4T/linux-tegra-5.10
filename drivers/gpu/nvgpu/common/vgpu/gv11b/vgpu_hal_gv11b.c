@@ -46,7 +46,6 @@
 #include "common/regops/regops_gv11b.h"
 #include "common/fifo/runlist_gv11b.h"
 #include "common/fifo/channel_gv11b.h"
-#include "common/fifo/engine_status_gv100.h"
 #include "common/clk_arb/clk_arb_gp10b.h"
 
 #include <nvgpu/gk20a.h>
