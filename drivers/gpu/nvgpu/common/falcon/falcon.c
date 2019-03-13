@@ -242,17 +242,19 @@ int nvgpu_falcon_copy_from_emem(struct nvgpu_falcon *flcn,
 {
 	struct nvgpu_falcon_engine_dependency_ops *flcn_dops;
 	int status = -EINVAL;
+	struct gk20a *g;
 
 	if (flcn == NULL) {
 		return -EINVAL;
 	}
 
+	g = flcn->g;
 	flcn_dops = &flcn->flcn_engine_dep_ops;
 
 	if (flcn_dops->copy_from_emem != NULL) {
-		status = flcn_dops->copy_from_emem(flcn, src, dst, size, port);
+		status = flcn_dops->copy_from_emem(g, src, dst, size, port);
 	} else {
-		nvgpu_warn(flcn->g, "Invalid op on falcon 0x%x ",
+		nvgpu_warn(g, "Invalid op on falcon 0x%x ",
 			flcn->flcn_id);
 	}
 
@@ -264,17 +266,19 @@ int nvgpu_falcon_copy_to_emem(struct nvgpu_falcon *flcn,
 {
 	struct nvgpu_falcon_engine_dependency_ops *flcn_dops;
 	int status = -EINVAL;
+	struct gk20a *g;
 
 	if (flcn == NULL) {
 		return -EINVAL;
 	}
 
+	g = flcn->g;
 	flcn_dops = &flcn->flcn_engine_dep_ops;
 
 	if (flcn_dops->copy_to_emem != NULL) {
-		status = flcn_dops->copy_to_emem(flcn, dst, src, size, port);
+		status = flcn_dops->copy_to_emem(g, dst, src, size, port);
 	} else {
-		nvgpu_warn(flcn->g, "Invalid op on falcon 0x%x ",
+		nvgpu_warn(g, "Invalid op on falcon 0x%x ",
 			flcn->flcn_id);
 	}
 
@@ -705,11 +709,6 @@ int nvgpu_falcon_get_mem_size(struct nvgpu_falcon *flcn,
 	}
 
 	return err;
-}
-
-struct gk20a *nvgpu_falcon_to_gk20a(struct nvgpu_falcon *flcn)
-{
-	return flcn->g;
 }
 
 u32 nvgpu_falcon_get_id(struct nvgpu_falcon *flcn)

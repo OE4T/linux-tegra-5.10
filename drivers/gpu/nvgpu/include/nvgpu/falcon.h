@@ -124,7 +124,6 @@ int nvgpu_falcon_bl_bootstrap(struct nvgpu_falcon *flcn,
 void nvgpu_falcon_get_ctls(struct nvgpu_falcon *flcn, u32 *sctl, u32 *cpuctl);
 int nvgpu_falcon_get_mem_size(struct nvgpu_falcon *flcn,
 			      enum falcon_mem_type type, u32 *size);
-struct gk20a *nvgpu_falcon_to_gk20a(struct nvgpu_falcon *flcn);
 u32 nvgpu_falcon_get_id(struct nvgpu_falcon *flcn);
 
 int nvgpu_falcon_sw_init(struct gk20a *g, u32 flcn_id);

@@ -68,9 +68,9 @@ struct nvgpu_falcon_bl_info;
 /* ops which are falcon engine specific */
 struct nvgpu_falcon_engine_dependency_ops {
 	int (*reset_eng)(struct gk20a *g);
-	int (*copy_from_emem)(struct nvgpu_falcon *flcn, u32 src, u8 *dst,
+	int (*copy_from_emem)(struct gk20a *g, u32 src, u8 *dst,
 		u32 size, u8 port);
-	int (*copy_to_emem)(struct nvgpu_falcon *flcn, u32 dst, u8 *src,
+	int (*copy_to_emem)(struct gk20a *g, u32 dst, u8 *src,
 		u32 size, u8 port);
 };
 

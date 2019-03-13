@@ -1628,9 +1628,9 @@ struct gpu_ops {
 			u32 *tail, bool set);
 		u32 (*falcon_base_addr)(void);
 		int (*sec2_reset)(struct gk20a *g);
-		int (*sec2_copy_to_emem)(struct nvgpu_falcon *flcn, u32 dst,
+		int (*sec2_copy_to_emem)(struct gk20a *g, u32 dst,
 					 u8 *src, u32 size, u8 port);
-		int (*sec2_copy_from_emem)(struct nvgpu_falcon *flcn,
+		int (*sec2_copy_from_emem)(struct gk20a *g,
 					   u32 src, u8 *dst, u32 size, u8 port);
 		int (*sec2_queue_head)(struct gk20a *g,
 				       u32 queue_id, u32 queue_index,
