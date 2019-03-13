@@ -2148,23 +2148,6 @@ int gr_gp10b_get_preemption_mode_flags(struct gk20a *g,
 	return 0;
 }
 
-int gr_gp10b_init_preemption_state(struct gk20a *g)
-{
-	u32 debug_2;
-	struct gr_gk20a *gr = &g->gr;
-	u32 sysclk_cycles = gr->gfxp_wfi_timeout_count;
-	gk20a_writel(g, gr_fe_gfxp_wfi_timeout_r(),
-			gr_fe_gfxp_wfi_timeout_count_f(sysclk_cycles));
-
-	debug_2 = gk20a_readl(g, gr_debug_2_r());
-	debug_2 = set_field(debug_2,
-			gr_debug_2_gfxp_wfi_always_injects_wfi_m(),
-			gr_debug_2_gfxp_wfi_always_injects_wfi_enabled_f());
-	gk20a_writel(g, gr_debug_2_r(), debug_2);
-
-	return 0;
-}
-
 void gr_gp10b_set_preemption_buffer_va(struct gk20a *g,
 			struct nvgpu_mem *mem, u64 gpu_va)
 {

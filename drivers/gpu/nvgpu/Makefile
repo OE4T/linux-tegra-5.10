@@ -167,6 +167,8 @@ nvgpu-y += \
 	hal/bus/bus_gv100.o \
 	hal/bus/bus_tu104.o \
 	hal/gr/init/gr_init_gm20b.o \
+	hal/gr/init/gr_init_gp10b.o \
+	hal/gr/init/gr_init_gv11b.o \
 	hal/gr/hwpm_map/hwpm_map_gv100.o \
 	hal/gr/zbc/zbc_gm20b.o \
 	hal/gr/zbc/zbc_gp10b.o \

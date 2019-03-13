@@ -1120,8 +1120,13 @@ int gr_gk20a_init_golden_ctx_image(struct gk20a *g,
 			     sw_ctx_load->l[i].value);
 	}
 
-	if (g->ops.gr.init_preemption_state != NULL) {
-		g->ops.gr.init_preemption_state(g);
+	if (g->ops.gr.init.preemption_state != NULL) {
+		err = g->ops.gr.init.preemption_state(g,
+			gr->gfxp_wfi_timeout_count,
+			gr->gfxp_wfi_timeout_unit_usec);
+		if (err != 0) {
+			goto clean_up;
+		}
 	}
 
 	nvgpu_cg_blcg_gr_load_enable(g);
@@ -2662,8 +2667,9 @@ static int gk20a_init_gr_setup_hw(struct gk20a *g)
 		g->ops.gr.disable_rd_coalesce(g);
 	}
 
-	if (g->ops.gr.init_preemption_state != NULL) {
-		err = g->ops.gr.init_preemption_state(g);
+	if (g->ops.gr.init.preemption_state != NULL) {
+		err = g->ops.gr.init.preemption_state(g, gr->gfxp_wfi_timeout_count,
+			gr->gfxp_wfi_timeout_unit_usec);
 		if (err != 0) {
 			goto out;
 		}

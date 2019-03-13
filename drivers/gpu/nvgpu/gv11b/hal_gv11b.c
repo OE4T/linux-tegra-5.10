@@ -43,6 +43,7 @@
 #include "hal/gr/zbc/zbc_gp10b.h"
 #include "hal/gr/zbc/zbc_gv11b.h"
 #include "hal/gr/init/gr_init_gm20b.h"
+#include "hal/gr/init/gr_init_gv11b.h"
 #include "hal/gr/hwpm_map/hwpm_map_gv100.h"
 #include "hal/falcon/falcon_gk20a.h"
 
@@ -403,7 +404,6 @@ static const struct gpu_ops gv11b_ops = {
 		.set_preemption_mode = gr_gp10b_set_preemption_mode,
 		.pre_process_sm_exception = gr_gv11b_pre_process_sm_exception,
 		.set_preemption_buffer_va = gr_gv11b_set_preemption_buffer_va,
-		.init_preemption_state = gr_gv11b_init_preemption_state,
 		.set_bes_crop_debug3 = gr_gp10b_set_bes_crop_debug3,
 		.set_bes_crop_debug4 = gr_gp10b_set_bes_crop_debug4,
 		.init_ecc = gv11b_ecc_init,
@@ -588,15 +588,16 @@ static const struct gpu_ops gv11b_ops = {
 				gv100_gr_hwpm_map_align_regs_perf_pma,
 		},
 		.init = {
+			.pd_tpc_per_gpc = gm20b_gr_init_pd_tpc_per_gpc,
+			.pd_skip_table_gpc = gm20b_gr_init_pd_skip_table_gpc,
+			.cwd_gpcs_tpcs_num = gm20b_gr_init_cwd_gpcs_tpcs_num,
+			.wait_idle = gm20b_gr_init_wait_idle,
+			.wait_fe_idle = gm20b_gr_init_wait_fe_idle,
 			.fe_pwr_mode_force_on =
 				gm20b_gr_init_fe_pwr_mode_force_on,
 			.override_context_reset =
 				gm20b_gr_init_override_context_reset,
-			.wait_idle = gm20b_gr_init_wait_idle,
-			.wait_fe_idle = gm20b_gr_init_wait_fe_idle,
-			.pd_tpc_per_gpc = gm20b_gr_init_pd_tpc_per_gpc,
-			.pd_skip_table_gpc = gm20b_gr_init_pd_skip_table_gpc,
-			.cwd_gpcs_tpcs_num = gm20b_gr_init_cwd_gpcs_tpcs_num,
+			.preemption_state = gv11b_gr_init_preemption_state,
 		},
 	},
 	.fb = {

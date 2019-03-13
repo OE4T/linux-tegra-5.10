@@ -224,8 +224,9 @@ struct gr_gk20a {
 	u32 attrib_cb_gfxp_size;
 	u32 alpha_cb_default_size;
 	u32 alpha_cb_size;
+
 	u32 gfxp_wfi_timeout_count;
-	u32 gfxp_wfi_timeout_unit;
+	bool gfxp_wfi_timeout_unit_usec;
 
 	/*
 	 * The deductible memory size for max_comptag_mem (in MBytes)

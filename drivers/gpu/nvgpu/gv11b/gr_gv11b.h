@@ -30,9 +30,6 @@
 
 #define PRI_BROADCAST_FLAGS_SMPC  BIT32(17)
 
-#define GFXP_WFI_TIMEOUT_UNIT_SYSCLK      0U
-#define GFXP_WFI_TIMEOUT_UNIT_USEC        1U
-
 struct gk20a;
 struct gr_gk20a;
 struct nvgpu_gr_ctx;

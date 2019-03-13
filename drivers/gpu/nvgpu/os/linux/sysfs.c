@@ -1002,13 +1002,15 @@ static ssize_t gfxp_wfi_timeout_count_store(struct device *dev,
 
 	gr->gfxp_wfi_timeout_count = val;
 
-	if (g->ops.gr.init_preemption_state && g->power_on) {
+	if (g->ops.gr.init.preemption_state && g->power_on) {
 		err = gk20a_busy(g);
 		if (err)
 			return err;
 
 		err = nvgpu_pg_elpg_protected_call(g,
-			g->ops.gr.init_preemption_state(g));
+			g->ops.gr.init.preemption_state(g,
+				gr->gfxp_wfi_timeout_count,
+				gr->gfxp_wfi_timeout_unit_usec));
 
 		gk20a_idle(g);
 
@@ -1027,18 +1029,20 @@ static ssize_t gfxp_wfi_timeout_unit_store(struct device *dev,
 
 	if (count > 0 && buf[0] == 's')
 		/* sysclk */
-		gr->gfxp_wfi_timeout_unit = GFXP_WFI_TIMEOUT_UNIT_SYSCLK;
+		gr->gfxp_wfi_timeout_unit_usec = false;
 	else
 		/* usec */
-		gr->gfxp_wfi_timeout_unit = GFXP_WFI_TIMEOUT_UNIT_USEC;
+		gr->gfxp_wfi_timeout_unit_usec = true;
 
-	if (g->ops.gr.init_preemption_state && g->power_on) {
+	if (g->ops.gr.init.preemption_state && g->power_on) {
 		err = gk20a_busy(g);
 		if (err)
 			return err;
 
 		err = nvgpu_pg_elpg_protected_call(g,
-			g->ops.gr.init_preemption_state(g));
+			g->ops.gr.init.preemption_state(g,
+				gr->gfxp_wfi_timeout_count,
+				gr->gfxp_wfi_timeout_unit_usec));
 
 		gk20a_idle(g);
 
@@ -1065,7 +1069,7 @@ static ssize_t gfxp_wfi_timeout_unit_read(struct device *dev,
 	struct gk20a *g = get_gk20a(dev);
 	struct gr_gk20a *gr = &g->gr;
 
-	if (gr->gfxp_wfi_timeout_unit == GFXP_WFI_TIMEOUT_UNIT_USEC)
+	if (gr->gfxp_wfi_timeout_unit_usec)
 		return snprintf(buf, PAGE_SIZE, "usec\n");
 	else
 		return snprintf(buf, PAGE_SIZE, "sysclk\n");

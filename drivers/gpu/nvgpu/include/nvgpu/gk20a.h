@@ -252,7 +252,6 @@ struct gpu_ops {
 	struct {
 		u32 (*get_patch_slots)(struct gk20a *g);
 		int (*init_fs_state)(struct gk20a *g);
-		int (*init_preemption_state)(struct gk20a *g);
 		void (*access_smpc_reg)(struct gk20a *g, u32 quad, u32 offset);
 		void (*bundle_cb_defaults)(struct gk20a *g);
 		void (*cb_size_default)(struct gk20a *g);
@@ -682,6 +681,9 @@ struct gpu_ops {
 			int (*fe_pwr_mode_force_on)(struct gk20a *g,
 				bool force_on);
 			void (*override_context_reset)(struct gk20a *g);
+			int (*preemption_state)(struct gk20a *g,
+				u32 gfxp_wfi_timeout_count,
+				bool gfxp_wfi_timeout_unit_usec);
 		} init;
 
 		u32 (*fecs_falcon_base_addr)(void);

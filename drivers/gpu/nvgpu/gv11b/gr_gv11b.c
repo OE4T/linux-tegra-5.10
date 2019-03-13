@@ -4170,38 +4170,16 @@ void gr_gv11b_init_gpc_mmu(struct gk20a *g)
 			g->ops.fb.mmu_debug_rd(g));
 }
 
-int gr_gv11b_init_preemption_state(struct gk20a *g)
-{
-	u32 debug_2;
-	struct gr_gk20a *gr = &g->gr;
-	u32 unit;
-
-	nvgpu_log_fn(g, " ");
-
-	if (gr->gfxp_wfi_timeout_unit == GFXP_WFI_TIMEOUT_UNIT_USEC) {
-		unit = gr_debug_2_gfxp_wfi_timeout_unit_usec_f();
-	} else {
-		unit = gr_debug_2_gfxp_wfi_timeout_unit_sysclk_f();
-	}
-
-	debug_2 = gk20a_readl(g, gr_debug_2_r());
-	debug_2 = set_field(debug_2,
-		gr_debug_2_gfxp_wfi_timeout_unit_m(),
-		unit);
-	gk20a_writel(g, gr_debug_2_r(), debug_2);
-
-	return 0;
-}
 void gr_gv11b_init_gfxp_wfi_timeout_count(struct gk20a *g)
 {
 	struct gr_gk20a *gr = &g->gr;
-	gr->gfxp_wfi_timeout_unit = GFXP_WFI_TIMEOUT_UNIT_USEC;
+	gr->gfxp_wfi_timeout_unit_usec = true;
 	gr->gfxp_wfi_timeout_count = GFXP_WFI_TIMEOUT_COUNT_IN_USEC_DEFAULT;
 }
 
 unsigned long gr_gv11b_get_max_gfxp_wfi_timeout_count(struct gk20a *g)
 {
-	if (g->gr.gfxp_wfi_timeout_unit == GFXP_WFI_TIMEOUT_UNIT_USEC) {
+	if (g->gr.gfxp_wfi_timeout_unit_usec) {
 		/* 100 msec in usec count */
 		return (100UL * 1000UL);
 	} else {
