@@ -49,6 +49,10 @@
 #include "hal/fuse/fuse_gm20b.h"
 #include "hal/fuse/fuse_gp10b.h"
 #include "hal/fuse/fuse_gp106.h"
+#include "hal/fifo/pbdma_gm20b.h"
+#include "hal/fifo/pbdma_gp10b.h"
+#include "hal/fifo/pbdma_gv11b.h"
+#include "hal/fifo/pbdma_tu104.h"
 #include "hal/fifo/engines_gv11b.h"
 #include "hal/gr/fecs_trace/fecs_trace_gm20b.h"
 #include "hal/gr/fecs_trace/fecs_trace_gv11b.h"
@@ -794,7 +798,6 @@ static const struct gpu_ops tu104_ops = {
 		.userd_gp_put = gv11b_userd_gp_put,
 		.userd_pb_get = gv11b_userd_pb_get,
 		.userd_entry_size = gk20a_fifo_userd_entry_size,
-		.pbdma_acquire_val = gk20a_fifo_pbdma_acquire_val,
 		.preempt_channel = gv11b_fifo_preempt_channel,
 		.preempt_tsg = gv11b_fifo_preempt_tsg,
 		.enable_tsg = gv11b_fifo_enable_tsg,
@@ -807,13 +810,11 @@ static const struct gpu_ops tu104_ops = {
 		.get_mmu_fault_desc = NULL,
 		.get_mmu_fault_client_desc = NULL,
 		.get_mmu_fault_gpc_desc = NULL,
-		.get_pbdma_signature = gp10b_fifo_get_pbdma_signature,
 		.tsg_set_timeslice = gk20a_fifo_tsg_set_timeslice,
 		.force_reset_ch = gk20a_fifo_force_reset_ch,
 		.init_engine_info = gm20b_fifo_init_engine_info,
 		.init_pbdma_info = gk20a_fifo_init_pbdma_info,
 		.get_engines_mask_on_id = gk20a_fifo_engines_on_id,
-		.dump_pbdma_status = gk20a_dump_pbdma_status,
 		.dump_channel_status_ramfc = gv11b_dump_channel_status_ramfc,
 		.capture_channel_ram_dump = gv11b_capture_channel_ram_dump,
 		.intr_0_error_mask = gv11b_fifo_intr_0_error_mask,
@@ -824,8 +825,6 @@ static const struct gpu_ops tu104_ops = {
 		.teardown_mask_intr = gv11b_fifo_teardown_mask_intr,
 		.teardown_unmask_intr = gv11b_fifo_teardown_unmask_intr,
 		.handle_sched_error = gv11b_fifo_handle_sched_error,
-		.handle_pbdma_intr_0 = gv11b_fifo_handle_pbdma_intr_0,
-		.handle_pbdma_intr_1 = gv11b_fifo_handle_pbdma_intr_1,
 		.init_eng_method_buffers = gv11b_fifo_init_eng_method_buffers,
 		.deinit_eng_method_buffers =
 			gv11b_fifo_deinit_eng_method_buffers,
@@ -852,11 +851,18 @@ static const struct gpu_ops tu104_ops = {
 		.runlist_busy_engines = gk20a_fifo_runlist_busy_engines,
 		.find_pbdma_for_runlist = gk20a_fifo_find_pbdma_for_runlist,
 		.init_ce_engine_info = gp10b_fifo_init_ce_engine_info,
-		.read_pbdma_data = tu104_fifo_read_pbdma_data,
-		.reset_pbdma_header = tu104_fifo_reset_pbdma_header,
 	},
 	.engine = {
 		.is_fault_engine_subid_gpc = gv11b_is_fault_engine_subid_gpc,
+	},
+	.pbdma = {
+		.pbdma_acquire_val = gm20b_pbdma_acquire_val,
+		.get_pbdma_signature = gp10b_pbdma_get_signature,
+		.dump_pbdma_status = gm20b_pbdma_dump_status,
+		.handle_pbdma_intr_0 = gv11b_pbdma_handle_intr_0,
+		.handle_pbdma_intr_1 = gv11b_pbdma_handle_intr_1,
+		.read_pbdma_data = tu104_pbdma_read_data,
+		.reset_pbdma_header = tu104_pbdma_reset_header,
 	},
 	.sync = {
 #ifdef CONFIG_TEGRA_GK20A_NVHOST
@@ -1289,6 +1295,7 @@ int tu104_init_hal(struct gk20a *g)
 	gops->clock_gating = tu104_ops.clock_gating;
 	gops->fifo = tu104_ops.fifo;
 	gops->engine = tu104_ops.engine;
+	gops->pbdma = tu104_ops.pbdma;
 	gops->runlist = tu104_ops.runlist;
 	gops->channel = tu104_ops.channel;
 	gops->sync = tu104_ops.sync;

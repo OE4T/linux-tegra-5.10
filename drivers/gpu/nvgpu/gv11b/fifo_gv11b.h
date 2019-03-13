@@ -87,12 +87,6 @@ void gv11b_fifo_init_pbdma_intr_descs(struct fifo_gk20a *f);
 int gv11b_init_fifo_reset_enable_hw(struct gk20a *g);
 bool gv11b_fifo_handle_sched_error(struct gk20a *g);
 bool gv11b_fifo_handle_ctxsw_timeout(struct gk20a *g, u32 fifo_intr);
-unsigned int gv11b_fifo_handle_pbdma_intr_0(struct gk20a *g,
-			u32 pbdma_id, u32 pbdma_intr_0,
-			u32 *handled, u32 *error_notifier);
-unsigned int gv11b_fifo_handle_pbdma_intr_1(struct gk20a *g,
-			u32 pbdma_id, u32 pbdma_intr_1,
-			u32 *handled, u32 *error_notifier);
 void gv11b_fifo_init_eng_method_buffers(struct gk20a *g,
 					struct tsg_gk20a *tsg);
 void gv11b_fifo_deinit_eng_method_buffers(struct gk20a *g,

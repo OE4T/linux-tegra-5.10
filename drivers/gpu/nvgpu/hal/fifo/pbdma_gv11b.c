@@ -1,0 +1,180 @@
+/*
+ * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
+ * THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+ * DEALINGS IN THE SOFTWARE.
+ */
+
+#include <nvgpu/log.h>
+#include <nvgpu/io.h>
+#include <nvgpu/nvgpu_err.h>
+#include <nvgpu/fifo.h>
+
+#include <nvgpu/hw/gv11b/hw_pbdma_gv11b.h>
+
+#include "pbdma_gm20b.h"
+#include "pbdma_gv11b.h"
+
+static void report_pbdma_error(struct gk20a *g, u32 pbdma_id,
+		u32 pbdma_intr_0)
+{
+	u32 err_type = GPU_HOST_INVALID_ERROR;
+
+	/*
+	 * Multiple errors have been grouped as part of a single
+	 * top-level error.
+	 */
+	if ((pbdma_intr_0 & (
+		pbdma_intr_0_memreq_pending_f() |
+		pbdma_intr_0_memack_timeout_pending_f() |
+		pbdma_intr_0_memdat_timeout_pending_f() |
+		pbdma_intr_0_memflush_pending_f() |
+		pbdma_intr_0_memop_pending_f() |
+		pbdma_intr_0_lbconnect_pending_f() |
+		pbdma_intr_0_lback_timeout_pending_f() |
+		pbdma_intr_0_lbdat_timeout_pending_f())) != 0U) {
+			err_type = GPU_HOST_PBDMA_TIMEOUT_ERROR;
+	}
+	if ((pbdma_intr_0 & (
+		pbdma_intr_0_memack_extra_pending_f() |
+		pbdma_intr_0_memdat_extra_pending_f() |
+		pbdma_intr_0_lback_extra_pending_f() |
+		pbdma_intr_0_lbdat_extra_pending_f())) != 0U) {
+			err_type = GPU_HOST_PBDMA_EXTRA_ERROR;
+	}
+	if ((pbdma_intr_0 & (
+		pbdma_intr_0_gpfifo_pending_f() |
+		pbdma_intr_0_gpptr_pending_f() |
+		pbdma_intr_0_gpentry_pending_f() |
+		pbdma_intr_0_gpcrc_pending_f() |
+		pbdma_intr_0_pbptr_pending_f() |
+		pbdma_intr_0_pbentry_pending_f() |
+		pbdma_intr_0_pbcrc_pending_f())) != 0U) {
+			err_type = GPU_HOST_PBDMA_GPFIFO_PB_ERROR;
+	}
+	if ((pbdma_intr_0 & (
+		pbdma_intr_0_clear_faulted_error_pending_f() |
+		pbdma_intr_0_method_pending_f() |
+		pbdma_intr_0_methodcrc_pending_f() |
+		pbdma_intr_0_device_pending_f() |
+		pbdma_intr_0_eng_reset_pending_f() |
+		pbdma_intr_0_semaphore_pending_f() |
+		pbdma_intr_0_acquire_pending_f() |
+		pbdma_intr_0_pri_pending_f() |
+		pbdma_intr_0_pbseg_pending_f())) != 0U) {
+			err_type = GPU_HOST_PBDMA_METHOD_ERROR;
+	}
+	if ((pbdma_intr_0 &
+		pbdma_intr_0_signature_pending_f()) != 0U) {
+			err_type = GPU_HOST_PBDMA_SIGNATURE_ERROR;
+	}
+	if (err_type != GPU_HOST_INVALID_ERROR) {
+		nvgpu_report_host_error(g, pbdma_id,
+				err_type, pbdma_intr_0);
+	}
+	return;
+}
+
+unsigned int gv11b_pbdma_handle_intr_0(struct gk20a *g,
+			u32 pbdma_id, u32 pbdma_intr_0,
+			u32 *handled, u32 *error_notifier)
+{
+	unsigned int rc_type = RC_TYPE_NO_RC;
+
+	rc_type = gm20b_pbdma_handle_intr_0(g, pbdma_id,
+			 pbdma_intr_0, handled, error_notifier);
+
+	if ((pbdma_intr_0 & pbdma_intr_0_clear_faulted_error_pending_f()) != 0U) {
+		nvgpu_log(g, gpu_dbg_intr, "clear faulted error on pbdma id %d",
+				 pbdma_id);
+		gm20b_pbdma_reset_method(g, pbdma_id, 0);
+		*handled |= pbdma_intr_0_clear_faulted_error_pending_f();
+		rc_type = RC_TYPE_PBDMA_FAULT;
+	}
+
+	if ((pbdma_intr_0 & pbdma_intr_0_eng_reset_pending_f()) != 0U) {
+		nvgpu_log(g, gpu_dbg_intr, "eng reset intr on pbdma id %d",
+				 pbdma_id);
+		*handled |= pbdma_intr_0_eng_reset_pending_f();
+		rc_type = RC_TYPE_PBDMA_FAULT;
+	}
+	report_pbdma_error(g, pbdma_id, pbdma_intr_0);
+	return rc_type;
+}
+
+/*
+ * Pbdma which encountered the ctxnotvalid interrupt will stall and
+ * prevent the channel which was loaded at the time the interrupt fired
+ * from being swapped out until the interrupt is cleared.
+ * CTXNOTVALID pbdma interrupt indicates error conditions related
+ * to the *_CTX_VALID fields for a channel.  The following
+ * conditions trigger the interrupt:
+ * * CTX_VALID bit for the targeted engine is FALSE
+ * * At channel start/resume, all preemptible eng have CTX_VALID FALSE but:
+ *       - CTX_RELOAD is set in CCSR_CHANNEL_STATUS,
+ *       - PBDMA_TARGET_SHOULD_SEND_HOST_TSG_EVENT is TRUE, or
+ *       - PBDMA_TARGET_NEEDS_HOST_TSG_EVENT is TRUE
+ * The field is left NOT_PENDING and the interrupt is not raised if the PBDMA is
+ * currently halted.  This allows SW to unblock the PBDMA and recover.
+ * SW may read METHOD0, CHANNEL_STATUS and TARGET to determine whether the
+ * interrupt was due to an engine method, CTX_RELOAD, SHOULD_SEND_HOST_TSG_EVENT
+ * or NEEDS_HOST_TSG_EVENT.  If METHOD0 VALID is TRUE, lazy context creation
+ * can be used or the TSG may be destroyed.
+ * If METHOD0 VALID is FALSE, the error is likely a bug in SW, and the TSG
+ * will have to be destroyed.
+ */
+
+unsigned int gv11b_pbdma_handle_intr_1(struct gk20a *g,
+			u32 pbdma_id, u32 pbdma_intr_1,
+			u32 *handled, u32 *error_notifier)
+{
+	unsigned int rc_type = RC_TYPE_PBDMA_FAULT;
+	u32 pbdma_intr_1_current = gk20a_readl(g, pbdma_intr_1_r(pbdma_id));
+
+	/* minimize race with the gpu clearing the pending interrupt */
+	if ((pbdma_intr_1_current &
+	     pbdma_intr_1_ctxnotvalid_pending_f()) == 0U) {
+		pbdma_intr_1 &= ~pbdma_intr_1_ctxnotvalid_pending_f();
+	}
+
+	if (pbdma_intr_1 == 0U) {
+		return RC_TYPE_NO_RC;
+	}
+
+	nvgpu_report_host_error(g, pbdma_id,
+			GPU_HOST_PBDMA_HCE_ERROR, pbdma_intr_1);
+
+	if ((pbdma_intr_1 & pbdma_intr_1_ctxnotvalid_pending_f()) != 0U) {
+		nvgpu_log(g, gpu_dbg_intr, "ctxnotvalid intr on pbdma id %d",
+				 pbdma_id);
+		nvgpu_err(g, "pbdma_intr_1(%d)= 0x%08x ",
+				pbdma_id, pbdma_intr_1);
+		*handled |= pbdma_intr_1_ctxnotvalid_pending_f();
+	} else{
+		/*
+		 * rest of the interrupts in _intr_1 are "host copy engine"
+		 * related, which is not supported. For now just make them
+		 * channel fatal.
+		 */
+		nvgpu_err(g, "hce err: pbdma_intr_1(%d):0x%08x",
+			pbdma_id, pbdma_intr_1);
+		*handled |= pbdma_intr_1;
+	}
+
+	return rc_type;
+}

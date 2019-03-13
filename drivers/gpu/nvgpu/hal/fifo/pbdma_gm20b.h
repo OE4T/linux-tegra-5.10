@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2018, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -20,23 +20,24 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NVGPU_FIFO_TU104_H
-#define NVGPU_FIFO_TU104_H
+#ifndef NVGPU_PBDMA_GM20B_H
+#define NVGPU_PBDMA_GM20B_H
 
 #include <nvgpu/types.h>
 
 struct gk20a;
-struct channel_gk20a;
+struct gk20a_debug_output;
 
-int channel_tu104_setup_ramfc(struct channel_gk20a *c,
-                u64 gpfifo_base, u32 gpfifo_entries,
-                unsigned long acquire_timeout, u32 flags);
-int tu104_init_fifo_setup_hw(struct gk20a *g);
-void tu104_ring_channel_doorbell(struct channel_gk20a *c);
-u64 tu104_fifo_usermode_base(struct gk20a *g);
-u32 tu104_fifo_doorbell_token(struct channel_gk20a *c);
+unsigned int gm20b_pbdma_handle_intr_0(struct gk20a *g, u32 pbdma_id,
+			u32 pbdma_intr_0, u32 *handled, u32 *error_notifier);
+unsigned int gm20b_pbdma_handle_intr_1(struct gk20a *g, u32 pbdma_id,
+			u32 pbdma_intr_1, u32 *handled, u32 *error_notifier);
+u32 gm20b_pbdma_get_signature(struct gk20a *g);
+u32 gm20b_pbdma_read_data(struct gk20a *g, u32 pbdma_id);
+void gm20b_pbdma_reset_header(struct gk20a *g, u32 pbdma_id);
+void gm20b_pbdma_reset_method(struct gk20a *g, u32 pbdma_id,
+			u32 pbdma_method_index);
+u32 gm20b_pbdma_acquire_val(u64 timeout);
+void gm20b_pbdma_dump_status(struct gk20a *g, struct gk20a_debug_output *o);
 
-int tu104_init_pdb_cache_war(struct gk20a *g);
-void tu104_deinit_pdb_cache_war(struct gk20a *g);
-
-#endif /* NVGPU_FIFO_TU104_H */
+#endif /* NVGPU_PBDMA_GM20B_H */

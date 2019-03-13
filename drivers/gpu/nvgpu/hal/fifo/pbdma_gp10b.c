@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -20,23 +20,15 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NVGPU_FIFO_TU104_H
-#define NVGPU_FIFO_TU104_H
-
 #include <nvgpu/types.h>
+#include <nvgpu/gk20a.h>
 
-struct gk20a;
-struct channel_gk20a;
+#include <nvgpu/hw/gp10b/hw_pbdma_gp10b.h>
 
-int channel_tu104_setup_ramfc(struct channel_gk20a *c,
-                u64 gpfifo_base, u32 gpfifo_entries,
-                unsigned long acquire_timeout, u32 flags);
-int tu104_init_fifo_setup_hw(struct gk20a *g);
-void tu104_ring_channel_doorbell(struct channel_gk20a *c);
-u64 tu104_fifo_usermode_base(struct gk20a *g);
-u32 tu104_fifo_doorbell_token(struct channel_gk20a *c);
+#include "pbdma_gp10b.h"
 
-int tu104_init_pdb_cache_war(struct gk20a *g);
-void tu104_deinit_pdb_cache_war(struct gk20a *g);
-
-#endif /* NVGPU_FIFO_TU104_H */
+u32 gp10b_pbdma_get_signature(struct gk20a *g)
+{
+	return g->ops.get_litter_value(g, GPU_LIT_GPFIFO_CLASS)
+		| pbdma_signature_sw_zero_f();
+}

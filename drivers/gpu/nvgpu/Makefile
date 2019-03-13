@@ -205,6 +205,10 @@ nvgpu-y += \
 	hal/fuse/fuse_gp106.o \
 	hal/fifo/engines_gm20b.o \
 	hal/fifo/engines_gv11b.o \
+	hal/fifo/pbdma_gm20b.o \
+	hal/fifo/pbdma_gp10b.o \
+	hal/fifo/pbdma_gv11b.o \
+	hal/fifo/pbdma_tu104.o \
 	hal/fifo/engine_status_gm20b.o \
 	hal/fifo/engine_status_gv100.o \
 	hal/fifo/pbdma_status_gm20b.o \

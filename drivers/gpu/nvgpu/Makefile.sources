@@ -358,6 +358,10 @@ srcs += common/sim.c \
 	hal/fuse/fuse_gp106.c \
 	hal/fifo/engines_gm20b.c \
 	hal/fifo/engines_gv11b.c \
+	hal/fifo/pbdma_gm20b.c \
+	hal/fifo/pbdma_gp10b.c \
+	hal/fifo/pbdma_gv11b.c \
+	hal/fifo/pbdma_tu104.c \
 	hal/fifo/engine_status_gm20b.c \
 	hal/fifo/engine_status_gv100.c \
 	hal/fifo/pbdma_status_gm20b.c \

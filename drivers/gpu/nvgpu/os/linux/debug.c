@@ -66,7 +66,7 @@ void gk20a_debug_output(struct gk20a_debug_output *o, const char *fmt, ...)
 void gk20a_debug_show_dump(struct gk20a *g, struct gk20a_debug_output *o)
 {
 	gk20a_debug_dump_all_channel_status_ramfc(g, o);
-	g->ops.fifo.dump_pbdma_status(g, o);
+	g->ops.pbdma.dump_pbdma_status(g, o);
 	g->ops.engine_status.dump_engine_status(g, o);
 }
 

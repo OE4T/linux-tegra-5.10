@@ -276,7 +276,6 @@ int gk20a_fifo_tsg_unbind_channel(struct channel_gk20a *ch);
 
 void fifo_gk20a_finish_mmu_fault_handling(struct gk20a *g,
 		unsigned long fault_id);
-u32 gk20a_fifo_get_pbdma_signature(struct gk20a *g);
 u32 gk20a_fifo_get_failing_engine_data(struct gk20a *g,
 		u32 *__id, bool *__is_tsg);
 void gk20a_fifo_abort_tsg(struct gk20a *g, struct tsg_gk20a *tsg, bool preempt);
@@ -324,8 +323,6 @@ void gk20a_capture_channel_ram_dump(struct gk20a *g,
 		struct nvgpu_channel_dump_info *info);
 void gk20a_debug_dump_all_channel_status_ramfc(struct gk20a *g,
 		 struct gk20a_debug_output *o);
-void gk20a_dump_pbdma_status(struct gk20a *g,
-				 struct gk20a_debug_output *o);
 const char *gk20a_decode_pbdma_chan_eng_ctx_status(u32 index);
 
 int gk20a_fifo_tsg_unbind_channel_verify_status(struct channel_gk20a *ch);
@@ -346,7 +343,6 @@ void gk20a_fifo_setup_ramfc_for_privileged_channel(struct channel_gk20a *c);
 int gk20a_fifo_alloc_inst(struct gk20a *g, struct channel_gk20a *ch);
 void gk20a_fifo_free_inst(struct gk20a *g, struct channel_gk20a *ch);
 int gk20a_fifo_setup_userd(struct channel_gk20a *c);
-u32 gk20a_fifo_pbdma_acquire_val(u64 timeout);
 
 
 u32 gk20a_fifo_runlist_busy_engines(struct gk20a *g, u32 runlist_id);
@@ -362,12 +358,6 @@ void gk20a_fifo_teardown_mask_intr(struct gk20a *g);
 void gk20a_fifo_teardown_unmask_intr(struct gk20a *g);
 bool gk20a_fifo_handle_sched_error(struct gk20a *g);
 
-void gk20a_fifo_reset_pbdma_method(struct gk20a *g, u32 pbdma_id,
-			 u32 pbdma_method_index);
-unsigned int gk20a_fifo_handle_pbdma_intr_0(struct gk20a *g, u32 pbdma_id,
-			u32 pbdma_intr_0, u32 *handled, u32 *error_notifier);
-unsigned int gk20a_fifo_handle_pbdma_intr_1(struct gk20a *g, u32 pbdma_id,
-			u32 pbdma_intr_1, u32 *handled, u32 *error_notifier);
 u32 gk20a_fifo_handle_pbdma_intr(struct gk20a *g, struct fifo_gk20a *f,
 			u32 pbdma_id, unsigned int rc);
 
@@ -385,7 +375,5 @@ u32 gk20a_fifo_userd_entry_size(struct gk20a *g);
 
 bool gk20a_fifo_find_pbdma_for_runlist(struct fifo_gk20a *f, u32 runlist_id,
 			u32 *pbdma_id);
-u32 gk20a_fifo_read_pbdma_data(struct gk20a *g, u32 pbdma_id);
-void gk20a_fifo_reset_pbdma_header(struct gk20a *g, u32 pbdma_id);
 int gk20a_fifo_init_pbdma_info(struct fifo_gk20a *f);
 #endif /* FIFO_GK20A_H */

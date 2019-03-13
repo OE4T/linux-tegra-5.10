@@ -23,6 +23,8 @@
 #include "hal/bus/bus_gk20a.h"
 #include "hal/bus/bus_gm20b.h"
 #include "hal/fifo/engines_gm20b.h"
+#include "hal/fifo/pbdma_gm20b.h"
+#include "hal/fifo/pbdma_gp10b.h"
 #include "hal/therm/therm_gm20b.h"
 #include "hal/therm/therm_gp10b.h"
 #include "hal/ltc/ltc_gm20b.h"
@@ -380,7 +382,6 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 		.userd_gp_put = gk20a_fifo_userd_gp_put,
 		.userd_pb_get = gk20a_fifo_userd_pb_get,
 		.userd_entry_size = gk20a_fifo_userd_entry_size,
-		.pbdma_acquire_val = gk20a_fifo_pbdma_acquire_val,
 		.preempt_channel = vgpu_fifo_preempt_channel,
 		.preempt_tsg = vgpu_fifo_preempt_tsg,
 		.enable_tsg = vgpu_enable_tsg,
@@ -392,14 +393,12 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 		.get_mmu_fault_desc = gp10b_fifo_get_mmu_fault_desc,
 		.get_mmu_fault_client_desc = gp10b_fifo_get_mmu_fault_client_desc,
 		.get_mmu_fault_gpc_desc = gm20b_fifo_get_mmu_fault_gpc_desc,
-		.get_pbdma_signature = gp10b_fifo_get_pbdma_signature,
 		.tsg_set_timeslice = vgpu_tsg_set_timeslice,
 		.tsg_open = vgpu_tsg_open,
 		.tsg_release = vgpu_tsg_release,
 		.force_reset_ch = vgpu_fifo_force_reset_ch,
 		.init_engine_info = vgpu_fifo_init_engine_info,
 		.get_engines_mask_on_id = NULL,
-		.dump_pbdma_status = NULL,
 		.dump_channel_status_ramfc = NULL,
 		.capture_channel_ram_dump = NULL,
 		.intr_0_error_mask = gk20a_fifo_intr_0_error_mask,
@@ -408,8 +407,6 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 		.reset_enable_hw = NULL,
 		.teardown_ch_tsg = NULL,
 		.handle_sched_error = NULL,
-		.handle_pbdma_intr_0 = NULL,
-		.handle_pbdma_intr_1 = gk20a_fifo_handle_pbdma_intr_1,
 		.tsg_bind_channel = vgpu_tsg_bind_channel,
 		.tsg_unbind_channel = vgpu_tsg_unbind_channel,
 		.post_event_id = gk20a_tsg_event_id_post_event,
@@ -426,6 +423,15 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 	},
 	.engine = {
 		.is_fault_engine_subid_gpc = gm20b_is_fault_engine_subid_gpc,
+	},
+	.pbdma = {
+		.pbdma_acquire_val = gm20b_pbdma_acquire_val,
+		.get_pbdma_signature = gp10b_pbdma_get_signature,
+		.dump_pbdma_status = NULL,
+		.handle_pbdma_intr_0 = NULL,
+		.handle_pbdma_intr_1 = gm20b_pbdma_handle_intr_1,
+		.read_pbdma_data = NULL,
+		.reset_pbdma_header = NULL,
 	},
 	.sync = {
 #ifdef CONFIG_TEGRA_GK20A_NVHOST
@@ -682,6 +688,7 @@ int vgpu_gp10b_init_hal(struct gk20a *g)
 	gops->clock_gating = vgpu_gp10b_ops.clock_gating;
 	gops->fifo = vgpu_gp10b_ops.fifo;
 	gops->engine = vgpu_gp10b_ops.engine;
+	gops->pbdma = vgpu_gp10b_ops.pbdma;
 	gops->runlist = vgpu_gp10b_ops.runlist;
 	gops->channel = vgpu_gp10b_ops.channel;
 	gops->sync = vgpu_gp10b_ops.sync;

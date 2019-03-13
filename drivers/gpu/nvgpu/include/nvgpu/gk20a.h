@@ -850,7 +850,6 @@ struct gpu_ops {
 		void (*get_mmu_fault_gpc_desc)(struct mmu_fault_info *mmfault);
 		void (*apply_pb_timeout)(struct gk20a *g);
 		void (*apply_ctxsw_timeout_intr)(struct gk20a *g);
-		u32 (*get_pbdma_signature)(struct gk20a *g);
 		int (*tsg_set_timeslice)(struct tsg_gk20a *tsg, u32 timeslice);
 		u32 (*default_timeslice_us)(struct gk20a *g);
 		int (*force_reset_ch)(struct channel_gk20a *ch,
@@ -869,8 +868,6 @@ struct gpu_ops {
 		u64 (*userd_pb_get)(struct gk20a *g, struct channel_gk20a *ch);
 		u32 (*userd_entry_size)(struct gk20a  *g);
 		void (*free_channel_ctx_header)(struct channel_gk20a *ch);
-		void (*dump_pbdma_status)(struct gk20a *g,
-				struct gk20a_debug_output *o);
 		void (*dump_channel_status_ramfc)(struct gk20a *g,
 				struct gk20a_debug_output *o,
 				struct nvgpu_channel_dump_info *info);
@@ -883,7 +880,6 @@ struct gpu_ops {
 		void (*init_pbdma_intr_descs)(struct fifo_gk20a *f);
 		int (*reset_enable_hw)(struct gk20a *g);
 		int (*setup_userd)(struct channel_gk20a *c);
-		u32 (*pbdma_acquire_val)(u64 timeout);
 		void (*teardown_ch_tsg)(struct gk20a *g, u32 act_eng_bitmask,
 			u32 id, unsigned int id_type, unsigned int rc_type,
 			 struct mmu_fault_info *mmfault);
@@ -891,12 +887,6 @@ struct gpu_ops {
 		void (*teardown_unmask_intr)(struct gk20a *g);
 		bool (*handle_sched_error)(struct gk20a *g);
 		bool (*handle_ctxsw_timeout)(struct gk20a *g, u32 fifo_intr);
-		unsigned int (*handle_pbdma_intr_0)(struct gk20a *g,
-					u32 pbdma_id, u32 pbdma_intr_0,
-					u32 *handled, u32 *error_notifier);
-		unsigned int (*handle_pbdma_intr_1)(struct gk20a *g,
-					u32 pbdma_id, u32 pbdma_intr_1,
-					u32 *handled, u32 *error_notifier);
 		void (*init_eng_method_buffers)(struct gk20a *g,
 						struct tsg_gk20a *tsg);
 		void (*deinit_eng_method_buffers)(struct gk20a *g,
@@ -922,8 +912,6 @@ struct gpu_ops {
 		bool (*find_pbdma_for_runlist)(struct fifo_gk20a *f,
 				u32 runlist_id, u32 *pbdma_id);
 		int (*init_ce_engine_info)(struct fifo_gk20a *f);
-		u32 (*read_pbdma_data)(struct gk20a *g, u32 pbdma_id);
-		void (*reset_pbdma_header)(struct gk20a *g, u32 pbdma_id);
 		struct {
 			int (*report_host_err)(struct gk20a *g,
 					u32 hw_id, u32 inst, u32 err_id,
@@ -957,6 +945,22 @@ struct gpu_ops {
 		bool (*is_fault_engine_subid_gpc)(struct gk20a *g,
 					 u32 engine_subid);
 	} engine;
+
+	struct {
+		unsigned int (*handle_pbdma_intr_0)(struct gk20a *g,
+					u32 pbdma_id, u32 pbdma_intr_0,
+					u32 *handled, u32 *error_notifier);
+		unsigned int (*handle_pbdma_intr_1)(struct gk20a *g,
+					u32 pbdma_id, u32 pbdma_intr_1,
+					u32 *handled, u32 *error_notifier);
+		u32 (*get_pbdma_signature)(struct gk20a *g);
+		void (*dump_pbdma_status)(struct gk20a *g,
+				struct gk20a_debug_output *o);
+		u32 (*pbdma_acquire_val)(u64 timeout);
+		u32 (*read_pbdma_data)(struct gk20a *g, u32 pbdma_id);
+		void (*reset_pbdma_header)(struct gk20a *g, u32 pbdma_id);
+
+	} pbdma;
 
 	struct {
 #ifdef CONFIG_TEGRA_GK20A_NVHOST

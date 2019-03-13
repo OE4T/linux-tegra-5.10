@@ -93,7 +93,7 @@ int channel_gp10b_setup_ramfc(struct channel_gk20a *c,
 		pbdma_gp_base_hi_limit2_f((u32)ilog2(gpfifo_entries)));
 
 	nvgpu_mem_wr32(g, mem, ram_fc_signature_w(),
-		 c->g->ops.fifo.get_pbdma_signature(c->g));
+		 c->g->ops.pbdma.get_pbdma_signature(c->g));
 
 	nvgpu_mem_wr32(g, mem, ram_fc_formats_w(),
 		pbdma_formats_gp_fermi0_f() |
@@ -116,7 +116,7 @@ int channel_gp10b_setup_ramfc(struct channel_gk20a *c,
 	nvgpu_mem_wr32(g, mem, ram_fc_target_w(), pbdma_target_engine_sw_f());
 
 	nvgpu_mem_wr32(g, mem, ram_fc_acquire_w(),
-		g->ops.fifo.pbdma_acquire_val(acquire_timeout));
+		g->ops.pbdma.pbdma_acquire_val(acquire_timeout));
 
 	nvgpu_mem_wr32(g, mem, ram_fc_runlist_timeslice_w(),
 		pbdma_runlist_timeslice_timeout_128_f() |
@@ -134,12 +134,6 @@ int channel_gp10b_setup_ramfc(struct channel_gk20a *c,
 	}
 
 	return channel_gp10b_commit_userd(c);
-}
-
-u32 gp10b_fifo_get_pbdma_signature(struct gk20a *g)
-{
-	return g->ops.get_litter_value(g, GPU_LIT_GPFIFO_CLASS)
-		| pbdma_signature_sw_zero_f();
 }
 
 int gp10b_fifo_resetup_ramfc(struct channel_gk20a *c)

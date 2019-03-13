@@ -23,6 +23,9 @@
 #include "hal/bus/bus_gk20a.h"
 #include "hal/bus/bus_gm20b.h"
 #include "hal/fifo/engines_gv11b.h"
+#include "hal/fifo/pbdma_gm20b.h"
+#include "hal/fifo/pbdma_gp10b.h"
+#include "hal/fifo/pbdma_gv11b.h"
 #include "hal/therm/therm_gm20b.h"
 #include "hal/therm/therm_gp10b.h"
 #include "hal/therm/therm_gv11b.h"
@@ -447,7 +450,6 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 		.userd_gp_put = gv11b_userd_gp_put,
 		.userd_pb_get = gv11b_userd_pb_get,
 		.userd_entry_size = gk20a_fifo_userd_entry_size,
-		.pbdma_acquire_val = gk20a_fifo_pbdma_acquire_val,
 		.preempt_channel = vgpu_fifo_preempt_channel,
 		.preempt_tsg = vgpu_fifo_preempt_tsg,
 		.enable_tsg = vgpu_gv11b_enable_tsg,
@@ -461,14 +463,12 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 		.get_mmu_fault_desc = NULL,
 		.get_mmu_fault_client_desc = NULL,
 		.get_mmu_fault_gpc_desc = NULL,
-		.get_pbdma_signature = gp10b_fifo_get_pbdma_signature,
 		.tsg_set_timeslice = vgpu_tsg_set_timeslice,
 		.tsg_open = vgpu_tsg_open,
 		.tsg_release = vgpu_tsg_release,
 		.force_reset_ch = vgpu_fifo_force_reset_ch,
 		.init_engine_info = vgpu_fifo_init_engine_info,
 		.get_engines_mask_on_id = NULL,
-		.dump_pbdma_status = NULL,
 		.dump_channel_status_ramfc = NULL,
 		.capture_channel_ram_dump = NULL,
 		.intr_0_error_mask = gv11b_fifo_intr_0_error_mask,
@@ -477,8 +477,6 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 		.reset_enable_hw = NULL,
 		.teardown_ch_tsg = NULL,
 		.handle_sched_error = NULL,
-		.handle_pbdma_intr_0 = NULL,
-		.handle_pbdma_intr_1 = gv11b_fifo_handle_pbdma_intr_1,
 		.init_eng_method_buffers = gv11b_fifo_init_eng_method_buffers,
 		.deinit_eng_method_buffers =
 			gv11b_fifo_deinit_eng_method_buffers,
@@ -503,6 +501,15 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 	},
 	.engine = {
 		.is_fault_engine_subid_gpc = gv11b_is_fault_engine_subid_gpc,
+	},
+	.pbdma = {
+		.pbdma_acquire_val = gm20b_pbdma_acquire_val,
+		.get_pbdma_signature = gp10b_pbdma_get_signature,
+		.dump_pbdma_status = NULL,
+		.handle_pbdma_intr_0 = NULL,
+		.handle_pbdma_intr_1 = gv11b_pbdma_handle_intr_1,
+		.read_pbdma_data = NULL,
+		.reset_pbdma_header = NULL,
 	},
 	.sync = {
 #ifdef CONFIG_TEGRA_GK20A_NVHOST
@@ -761,6 +768,7 @@ int vgpu_gv11b_init_hal(struct gk20a *g)
 	gops->clock_gating = vgpu_gv11b_ops.clock_gating;
 	gops->fifo = vgpu_gv11b_ops.fifo;
 	gops->engine = vgpu_gv11b_ops.engine;
+	gops->pbdma = vgpu_gv11b_ops.pbdma;
 	gops->runlist = vgpu_gv11b_ops.runlist;
 	gops->channel = vgpu_gv11b_ops.channel;
 	gops->sync = vgpu_gv11b_ops.sync;
