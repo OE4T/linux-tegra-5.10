@@ -60,6 +60,7 @@
 #include "nvhost_job.h"
 #include "nvhost_sync.h"
 #include "vhost/vhost.h"
+#include "syncpt_fd.h"
 
 static int validate_reg(struct platform_device *ndev, u32 offset, int count)
 {
@@ -1172,6 +1173,67 @@ static int nvhost_ioctl_channel_set_syncpoint_name(
 	return -EINVAL;
 }
 
+static int nvhost_ioctl_channel_attach_syncpt(
+	struct nvhost_channel_userctx *ctx,
+	struct nvhost_channel_attach_syncpt_args *args)
+{
+	struct nvhost_device_data *pdata = platform_get_drvdata(ctx->pdev);
+	struct nvhost_master *host = nvhost_get_host(pdata->pdev);
+	u32 *syncpt_list;
+	u32 syncpt_id;
+	size_t i;
+	int err;
+
+	if (args->flags & ~(1<<0))
+		return -EINVAL;
+
+	err = nvhost_syncpt_fd_get(args->syncpt_fd, &host->syncpt, &syncpt_id);
+	if (err) {
+		nvhost_err(&pdata->pdev->dev, "invalid syncpoint fd");
+		return err;
+	}
+
+	if (pdata->resource_policy == RESOURCE_PER_CHANNEL_INSTANCE) {
+		syncpt_list = ctx->syncpts;
+	} else {
+		syncpt_list = ctx->ch->syncpts;
+	}
+
+	if (args->flags == NVHOST_IOCTL_CHANNEL_ATTACH_SYNCPT_ATTACH) {
+		for (i = 0; i < NVHOST_MODULE_MAX_SYNCPTS; i++) {
+			if (!syncpt_list[i]) {
+				syncpt_list[i] = syncpt_id;
+				break;
+			}
+		}
+
+		if (i == NVHOST_MODULE_MAX_SYNCPTS) {
+			err = -EBUSY;
+			goto put_syncpt;
+		}
+	} else {
+		for (i = 0; i < NVHOST_MODULE_MAX_SYNCPTS; i++) {
+			if (syncpt_list[i] == syncpt_id) {
+				nvhost_syncpt_put_ref(&host->syncpt, syncpt_id);
+				syncpt_list[i] = 0;
+				break;
+			}
+		}
+
+		if (i == NVHOST_MODULE_MAX_SYNCPTS) {
+			err = -EINVAL;
+			goto put_syncpt;
+		}
+	}
+
+	return 0;
+
+put_syncpt:
+	nvhost_syncpt_put_ref(&host->syncpt, syncpt_id);
+
+	return err;
+}
+
 static long nvhost_channelctl(struct file *filp,
 	unsigned int cmd, unsigned long arg)
 {
@@ -1494,6 +1556,12 @@ static long nvhost_channelctl(struct file *filp,
 	{
 		err = nvhost_ioctl_channel_set_syncpoint_name(priv,
 			(struct nvhost_set_syncpt_name_args *)buf);
+		break;
+	}
+	case NVHOST_IOCTL_CHANNEL_ATTACH_SYNCPT:
+	{
+		err = nvhost_ioctl_channel_attach_syncpt(priv,
+			(struct nvhost_channel_attach_syncpt_args *)buf);
 		break;
 	}
 	default:

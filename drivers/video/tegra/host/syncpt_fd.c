@@ -21,6 +21,7 @@ static int nvhost_syncpt_fd_release(struct inode *inode, struct file *filp)
 	struct nvhost_syncpt_fd_data *data = filp->private_data;
 
 	nvhost_syncpt_put_ref(&data->master->syncpt, data->syncpt_id);
+	kfree(data);
 
 	return 0;
 }
@@ -88,3 +89,26 @@ free_data:
 
 	return err;
 }
+
+/* Caller must put reference on syncpt afterwards */
+int nvhost_syncpt_fd_get(int fd, struct nvhost_syncpt *syncpt, u32 *id)
+{
+	struct nvhost_syncpt_fd_data *data;
+	struct file *file = fget(fd);
+
+	if (!file)
+		return -EINVAL;
+
+	if (file->f_op != &nvhost_syncpt_fops) {
+		fput(file);
+		return -EINVAL;
+	}
+
+	data = file->private_data;
+	nvhost_syncpt_get_ref(syncpt, data->syncpt_id);
+	*id = data->syncpt_id;
+	fput(file);
+
+	return 0;
+}
+
