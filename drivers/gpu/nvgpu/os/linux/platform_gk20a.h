@@ -300,9 +300,6 @@ struct gk20a_platform {
 	/* stream id to use */
 	u32 ltc_streamid;
 
-	/* scaling rate */
-	unsigned long cached_rate;
-
 	/* synchronized access to platform->clk_get_freqs */
 	struct nvgpu_mutex clk_get_freq_lock;
 };

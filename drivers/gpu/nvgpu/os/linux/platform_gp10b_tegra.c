@@ -95,8 +95,6 @@ int gp10b_tegra_get_clocks(struct device *dev)
 		} else {
 			clk_set_rate(c, rate);
 			platform->clk[i] = c;
-			if (i == 0)
-				platform->cached_rate = rate;
 		}
 	}
 	platform->num_clks = i;

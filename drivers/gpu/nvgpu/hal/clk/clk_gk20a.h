@@ -96,9 +96,6 @@ struct clk_gk20a {
 #if defined(CONFIG_COMMON_CLK)
 	struct clk *tegra_clk;
 	struct clk_hw hw;
-
-	/* scaling rate */
-	unsigned long cached_rate;
 #endif
 	struct pll gpc_pll;
 	struct pll gpc_pll_last;

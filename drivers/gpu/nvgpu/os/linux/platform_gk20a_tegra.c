@@ -496,8 +496,6 @@ static int gk20a_tegra_get_clocks(struct device *dev)
 		rate = clk_round_rate(c, rate);
 		clk_set_rate(c, rate);
 		platform->clk[i] = c;
-		if (i == 0)
-			platform->cached_rate = rate;
 	}
 	platform->num_clks = i;
 
