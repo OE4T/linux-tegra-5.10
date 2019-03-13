@@ -646,8 +646,6 @@ static void vgpu_remove_gr_support(struct gr_gk20a *gr)
 {
 	nvgpu_log_fn(gr->g, " ");
 
-	gk20a_comptag_allocator_destroy(gr->g, &gr->comp_tags);
-
 	nvgpu_gr_config_deinit(gr->g, gr->config);
 
 	nvgpu_kfree(gr->g, gr->sm_to_cluster);
@@ -681,11 +679,6 @@ static int vgpu_gr_init_gr_setup_sw(struct gk20a *g)
 	}
 
 	err = g->ops.gr.init_ctx_state(g);
-	if (err) {
-		goto clean_up;
-	}
-
-	err = g->ops.cbc.alloc_comptags(g, gr);
 	if (err) {
 		goto clean_up;
 	}

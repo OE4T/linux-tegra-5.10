@@ -434,7 +434,7 @@ int vgpu_probe(struct platform_device *pdev)
 	gk20a_init_gr(gk20a);
 
 	nvgpu_log_info(gk20a, "total ram pages : %lu", totalram_pages);
-	gk20a->gr.max_comptag_mem = totalram_size_in_mb;
+	gk20a->max_comptag_mem = totalram_size_in_mb;
 
 	nvgpu_ref_init(&gk20a->refcount);
 

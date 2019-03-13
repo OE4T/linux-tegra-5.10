@@ -40,7 +40,6 @@
 
 void gm20b_ltc_init_fs_state(struct gk20a *g)
 {
-	struct gr_gk20a *gr = &g->gr;
 	u32 reg;
 
 	nvgpu_log_info(g, "initialize gm20b l2");
@@ -50,8 +49,8 @@ void gm20b_ltc_init_fs_state(struct gk20a *g)
 	nvgpu_log_info(g, "%d ltcs out of %d", g->ltc_count, g->max_ltc_count);
 
 	reg = gk20a_readl(g, ltc_ltcs_ltss_cbc_param_r());
-	gr->slices_per_ltc = ltc_ltcs_ltss_cbc_param_slices_per_ltc_v(reg);;
-	gr->cacheline_size =
+	g->slices_per_ltc = ltc_ltcs_ltss_cbc_param_slices_per_ltc_v(reg);;
+	g->cacheline_size =
 		U32(512) << ltc_ltcs_ltss_cbc_param_cache_line_size_v(reg);
 
 	gk20a_writel(g, ltc_ltcs_ltss_cbc_num_active_ltcs_r(),
@@ -92,7 +91,7 @@ void gm20b_ltc_isr(struct gk20a *g, unsigned int ltc)
 {
 	unsigned int slice;
 
-	for (slice = 0U; slice < g->gr.slices_per_ltc; slice++) {
+	for (slice = 0U; slice < g->slices_per_ltc; slice++) {
 		gm20b_ltc_lts_isr(g, ltc, slice);
 	}
 }

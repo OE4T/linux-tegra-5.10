@@ -36,10 +36,10 @@
 
 #include "cbc_gp10b.h"
 
-int gp10b_cbc_alloc_comptags(struct gk20a *g, struct gr_gk20a *gr)
+int gp10b_cbc_alloc_comptags(struct gk20a *g, struct nvgpu_cbc *cbc)
 {
 	/* max memory size (MB) to cover */
-	u32 max_size = gr->max_comptag_mem;
+	u32 max_size = g->max_comptag_mem;
 	/* one tag line covers 64KB */
 	u32 max_comptag_lines = max_size << 4U;
 
@@ -66,7 +66,7 @@ int gp10b_cbc_alloc_comptags(struct gk20a *g, struct gr_gk20a *gr)
 	}
 
 	/* Already initialized */
-	if (gr->max_comptag_lines != 0U) {
+	if (cbc->max_comptag_lines != 0U) {
 		return 0;
 	}
 
@@ -76,9 +76,9 @@ int gp10b_cbc_alloc_comptags(struct gk20a *g, struct gr_gk20a *gr)
 
 	compbit_backing_size =
 		roundup(max_comptag_lines * gobs_per_comptagline_per_slice,
-			gr->cacheline_size);
+			g->cacheline_size);
 	compbit_backing_size = roundup(
-		compbit_backing_size * gr->slices_per_ltc * g->ltc_count,
+		compbit_backing_size * g->slices_per_ltc * g->ltc_count,
 		g->ops.fb.compressible_page_size(g));
 
 	/* aligned to 2KB * ltc_count */
@@ -101,15 +101,16 @@ int gp10b_cbc_alloc_comptags(struct gk20a *g, struct gr_gk20a *gr)
 		return err;
 	}
 
-	err = gk20a_comptag_allocator_init(g, &gr->comp_tags, max_comptag_lines);
+	err = gk20a_comptag_allocator_init(g, &cbc->comp_tags,
+						max_comptag_lines);
 	if (err != 0) {
 		return err;
 	}
 
-	gr->max_comptag_lines = max_comptag_lines;
-	gr->comptags_per_cacheline = comptags_per_cacheline;
-	gr->gobs_per_comptagline_per_slice = gobs_per_comptagline_per_slice;
-	gr->compbit_backing_size = compbit_backing_size;
+	cbc->max_comptag_lines = max_comptag_lines;
+	cbc->comptags_per_cacheline = comptags_per_cacheline;
+	cbc->gobs_per_comptagline_per_slice = gobs_per_comptagline_per_slice;
+	cbc->compbit_backing_size = compbit_backing_size;
 
 	return 0;
 }
@@ -117,7 +118,6 @@ int gp10b_cbc_alloc_comptags(struct gk20a *g, struct gr_gk20a *gr)
 int gp10b_cbc_ctrl(struct gk20a *g, enum nvgpu_cbc_op op,
 		       u32 min, u32 max)
 {
-	struct gr_gk20a *gr = &g->gr;
 	struct nvgpu_timeout timeout;
 	int err = 0;
 	u32 ltc, slice, ctrl1, val, hw_op = 0U;
@@ -131,7 +131,7 @@ int gp10b_cbc_ctrl(struct gk20a *g, enum nvgpu_cbc_op op,
 
 	trace_gk20a_ltc_cbc_ctrl_start(g->name, op, min, max);
 
-	if (gr->compbit_store.mem.size == 0U) {
+	if (g->cbc->compbit_store.mem.size == 0U) {
 		return 0;
 	}
 

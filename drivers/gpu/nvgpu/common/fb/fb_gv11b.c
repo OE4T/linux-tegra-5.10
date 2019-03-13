@@ -121,7 +121,7 @@ void gv11b_fb_init_fs_state(struct gk20a *g)
 	}
 }
 
-void gv11b_fb_cbc_configure(struct gk20a *g, struct gr_gk20a *gr)
+void gv11b_fb_cbc_configure(struct gk20a *g, struct nvgpu_cbc *cbc)
 {
 	u32 compbit_base_post_divide;
 	u64 compbit_base_post_multiply64;
@@ -130,10 +130,10 @@ void gv11b_fb_cbc_configure(struct gk20a *g, struct gr_gk20a *gr)
 
 	if (nvgpu_is_enabled(g, NVGPU_IS_FMODEL)) {
 		compbit_store_iova = nvgpu_mem_get_phys_addr(g,
-							&gr->compbit_store.mem);
+						&cbc->compbit_store.mem);
 	} else {
 		compbit_store_iova = nvgpu_mem_get_addr(g,
-							&gr->compbit_store.mem);
+						&cbc->compbit_store.mem);
 	}
 	/* must be aligned to 64 KB */
 	compbit_store_iova = roundup(compbit_store_iova, (u64)SZ_64K);
@@ -167,7 +167,7 @@ void gv11b_fb_cbc_configure(struct gk20a *g, struct gr_gk20a *gr)
 	nvgpu_log(g, gpu_dbg_fn, "cbc base %x",
 		gk20a_readl(g, fb_mmu_cbc_base_r()));
 
-	gr->compbit_store.base_hw = compbit_base_post_divide;
+	cbc->compbit_store.base_hw = compbit_base_post_divide;
 
 }
 

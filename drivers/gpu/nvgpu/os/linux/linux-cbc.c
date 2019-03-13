@@ -19,14 +19,12 @@
 #include <nvgpu/nvgpu_mem.h>
 #include <nvgpu/gk20a.h>
 
-#include "gk20a/gr_gk20a.h"
-
 int nvgpu_cbc_alloc(struct gk20a *g, size_t compbit_backing_size,
 			bool vidmem_alloc)
 {
-	struct gr_gk20a *gr = &g->gr;
+	struct nvgpu_cbc *cbc = g->cbc;
 
-	if (nvgpu_mem_is_valid(&gr->compbit_store.mem))
+	if (nvgpu_mem_is_valid(&cbc->compbit_store.mem))
 		return 0;
 
 	if (vidmem_alloc) {
@@ -40,11 +38,11 @@ int nvgpu_cbc_alloc(struct gk20a *g, size_t compbit_backing_size,
 		 */
 		return nvgpu_dma_alloc_vid(g,
 					 compbit_backing_size,
-					 &gr->compbit_store.mem);
+					 &cbc->compbit_store.mem);
 	} else {
 		return nvgpu_dma_alloc_flags_sys(g,
 					 NVGPU_DMA_PHYSICALLY_ADDRESSED,
 					 compbit_backing_size,
-					 &gr->compbit_store.mem);
+					 &cbc->compbit_store.mem);
 	}
 }

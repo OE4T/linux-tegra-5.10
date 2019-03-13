@@ -24,8 +24,8 @@
 #define NVGPU_CBC_VGPU_H
 
 struct gk20a;
-struct gr_gk20a;
+struct nvgpu_cbc;
 
-int vgpu_cbc_alloc_comptags(struct gk20a *g, struct gr_gk20a *gr);
+int vgpu_cbc_alloc_comptags(struct gk20a *g, struct nvgpu_cbc *cbc);
 
 #endif /* NVGPU_CBC_VGPU_H */

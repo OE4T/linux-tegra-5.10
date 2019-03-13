@@ -28,6 +28,7 @@
 struct gk20a;
 struct gr_gk20a;
 struct nvgpu_mem;
+struct nvgpu_cbc;
 
 void tu104_fb_enable_hub_intr(struct gk20a *g);
 void tu104_fb_disable_hub_intr(struct gk20a *g);
@@ -55,7 +56,7 @@ int fb_tu104_tlb_invalidate(struct gk20a *g, struct nvgpu_mem *pdb);
 int fb_tu104_mmu_invalidate_replay(struct gk20a *g,
 	u32 invalidate_replay_val);
 
-void tu104_fb_cbc_configure(struct gk20a *g, struct gr_gk20a *gr);
+void tu104_fb_cbc_configure(struct gk20a *g, struct nvgpu_cbc *cbc);
 
 int tu104_fb_apply_pdb_cache_war(struct gk20a *g);
 size_t tu104_fb_get_vidmem_size(struct gk20a *g);

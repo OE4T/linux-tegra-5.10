@@ -28,12 +28,12 @@
 #include <nvgpu/types.h>
 
 struct gk20a;
-struct gr_gk20a;
 struct gpu_ops;
+struct nvgpu_cbc;
 enum nvgpu_cbc_op;
 
-int gm20b_cbc_alloc_comptags(struct gk20a *g, struct gr_gk20a *gr);
-void gm20b_cbc_init(struct gk20a *g, struct gr_gk20a *gr);
+int gm20b_cbc_alloc_comptags(struct gk20a *g, struct nvgpu_cbc *cbc);
+void gm20b_cbc_init(struct gk20a *g, struct nvgpu_cbc *cbc);
 int gm20b_cbc_ctrl(struct gk20a *g, enum nvgpu_cbc_op op,
 		       u32 min, u32 max);
 u32 gm20b_cbc_fix_config(struct gk20a *g, int base);

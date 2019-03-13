@@ -37,15 +37,14 @@
 
 void ltc_tu104_init_fs_state(struct gk20a *g)
 {
-	struct gr_gk20a *gr = &g->gr;
 	u32 reg;
 
 	gv11b_ltc_init_fs_state(g);
 
 	reg = nvgpu_readl(g, ltc_ltcs_ltss_cbc_param2_r());
-	gr->slices_per_ltc =
+	g->slices_per_ltc =
 		ltc_ltcs_ltss_cbc_param2_slices_per_ltc_v(reg);
-	gr->cacheline_size =
+	g->cacheline_size =
 		U32(512) << ltc_ltcs_ltss_cbc_param2_cache_line_size_v(reg);
 
 	/* disable PLC compression */

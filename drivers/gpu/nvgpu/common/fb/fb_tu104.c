@@ -424,7 +424,7 @@ int fb_tu104_mmu_invalidate_replay(struct gk20a *g,
 	return err;
 }
 
-void tu104_fb_cbc_configure(struct gk20a *g, struct gr_gk20a *gr)
+void tu104_fb_cbc_configure(struct gk20a *g, struct nvgpu_cbc *cbc)
 {
 	u64 base_divisor;
 	u64 compbit_store_base;
@@ -434,13 +434,13 @@ void tu104_fb_cbc_configure(struct gk20a *g, struct gr_gk20a *gr)
 	u32 cbc_top_size;
 	u32 cbc_max;
 
-	compbit_store_pa = nvgpu_mem_get_addr(g, &gr->compbit_store.mem);
+	compbit_store_pa = nvgpu_mem_get_addr(g, &cbc->compbit_store.mem);
 	base_divisor = g->ops.cbc.get_base_divisor(g);
 	compbit_store_base = DIV_ROUND_UP(compbit_store_pa, base_divisor);
 
 	cbc_start_addr = (u64)g->ltc_count * (compbit_store_base <<
 			 fb_mmu_cbc_base_address_alignment_shift_v());
-	cbc_end_addr = cbc_start_addr + gr->compbit_backing_size;
+	cbc_end_addr = cbc_start_addr + cbc->compbit_backing_size;
 
 	cbc_top = (cbc_end_addr / g->ltc_count) >>
 		  fb_mmu_cbc_base_address_alignment_shift_v();
@@ -452,7 +452,7 @@ void tu104_fb_cbc_configure(struct gk20a *g, struct gr_gk20a *gr)
 	cbc_max = nvgpu_readl(g, fb_mmu_cbc_max_r());
 	cbc_max = set_field(cbc_max,
 		  fb_mmu_cbc_max_comptagline_m(),
-		  fb_mmu_cbc_max_comptagline_f(gr->max_comptag_lines));
+		  fb_mmu_cbc_max_comptagline_f(cbc->max_comptag_lines));
 	nvgpu_writel(g, fb_mmu_cbc_max_r(), cbc_max);
 
 	nvgpu_writel(g, fb_mmu_cbc_base_r(),
@@ -464,7 +464,7 @@ void tu104_fb_cbc_configure(struct gk20a *g, struct gr_gk20a *gr)
 		(u32)(compbit_store_pa & 0xffffffffU),
 		compbit_store_base);
 
-	gr->compbit_store.base_hw = compbit_store_base;
+	cbc->compbit_store.base_hw = compbit_store_base;
 
 }
 

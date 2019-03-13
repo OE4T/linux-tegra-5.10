@@ -31,6 +31,7 @@
 #include <nvgpu/pmu.h>
 #include <nvgpu/gmmu.h>
 #include <nvgpu/ltc.h>
+#include <nvgpu/cbc.h>
 #include <nvgpu/vidmem.h>
 #include <nvgpu/mm.h>
 #include <nvgpu/soc.h>
@@ -370,6 +371,12 @@ int gk20a_finalize_poweron(struct gk20a *g)
 	err = nvgpu_init_therm_support(g);
 	if (err != 0) {
 		nvgpu_err(g, "failed to init gk20a therm");
+		goto done;
+	}
+
+	err = nvgpu_cbc_init_support(g);
+	if (err != 0) {
+		nvgpu_err(g, "failed to init cbc");
 		goto done;
 	}
 

@@ -24,6 +24,9 @@
 #define NVGPU_CBC_H
 
 #include <nvgpu/types.h>
+#include <nvgpu/comptags.h>
+
+#include "gk20a/mm_gk20a.h"
 
 struct gk20a;
 
@@ -33,6 +36,18 @@ enum nvgpu_cbc_op {
 	nvgpu_cbc_op_invalidate,
 };
 
+
+struct nvgpu_cbc {
+	u32 compbit_backing_size;
+	u32 comptags_per_cacheline;
+	u32 gobs_per_comptagline_per_slice;
+	u32 max_comptag_lines;
+	struct gk20a_comptag_allocator comp_tags;
+	struct compbit_store_desc compbit_store;
+};
+
+int nvgpu_cbc_init_support(struct gk20a *g);
+void nvgpu_cbc_remove_support(struct gk20a *g);
 int nvgpu_cbc_alloc(struct gk20a *g, size_t compbit_backing_size,
 			bool vidmem_alloc);
 

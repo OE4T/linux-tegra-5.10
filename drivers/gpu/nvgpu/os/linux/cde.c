@@ -29,6 +29,7 @@
 #include <nvgpu/nvgpu_common.h>
 #include <nvgpu/kmem.h>
 #include <nvgpu/log.h>
+#include <nvgpu/cbc.h>
 #include <nvgpu/bug.h>
 #include <nvgpu/firmware.h>
 #include <nvgpu/os_sched.h>
@@ -102,12 +103,13 @@ __must_hold(&cde_app->mutex)
 	struct gk20a *g = &l->g;
 	struct channel_gk20a *ch = cde_ctx->ch;
 	struct vm_gk20a *vm = ch->vm;
+	struct nvgpu_cbc *cbc = g->cbc;
 
 	trace_gk20a_cde_remove_ctx(cde_ctx);
 
 	/* release mapped memory */
 	gk20a_deinit_cde_img(cde_ctx);
-	nvgpu_gmmu_unmap(vm, &g->gr.compbit_store.mem,
+	nvgpu_gmmu_unmap(vm, &cbc->compbit_store.mem,
 			 cde_ctx->backing_store_vaddr);
 
 	/*
@@ -403,6 +405,7 @@ static int gk20a_cde_patch_params(struct gk20a_cde_ctx *cde_ctx)
 {
 	struct nvgpu_os_linux *l = cde_ctx->l;
 	struct gk20a *g = &l->g;
+	struct nvgpu_cbc *cbc = g->cbc;
 	struct nvgpu_mem *target_mem;
 	u32 *target_mem_ptr;
 	u64 new_data;
@@ -417,11 +420,11 @@ static int gk20a_cde_patch_params(struct gk20a_cde_ctx *cde_ctx)
 
 		switch (param->id) {
 		case TYPE_PARAM_COMPTAGS_PER_CACHELINE:
-			new_data = g->gr.comptags_per_cacheline;
+			new_data = cbc->comptags_per_cacheline;
 			break;
 		case TYPE_PARAM_GPU_CONFIGURATION:
-			new_data = (u64)g->ltc_count * g->gr.slices_per_ltc *
-				g->gr.cacheline_size;
+			new_data = (u64)g->ltc_count * g->slices_per_ltc *
+				g->cacheline_size;
 			break;
 		case TYPE_PARAM_FIRSTPAGEOFFSET:
 			new_data = cde_ctx->surf_param_offset;
@@ -439,7 +442,7 @@ static int gk20a_cde_patch_params(struct gk20a_cde_ctx *cde_ctx)
 			new_data = cde_ctx->compbit_size;
 			break;
 		case TYPE_PARAM_BACKINGSTORE_SIZE:
-			new_data = g->gr.compbit_store.mem.size;
+			new_data = cbc->compbit_store.mem.size;
 			break;
 		case TYPE_PARAM_SOURCE_SMMU_ADDR:
 			new_data = gpuva_to_iova_base(cde_ctx->vm,
@@ -451,10 +454,10 @@ static int gk20a_cde_patch_params(struct gk20a_cde_ctx *cde_ctx)
 			}
 			break;
 		case TYPE_PARAM_BACKINGSTORE_BASE_HW:
-			new_data = g->gr.compbit_store.base_hw;
+			new_data = cbc->compbit_store.base_hw;
 			break;
 		case TYPE_PARAM_GOBS_PER_COMPTAGLINE_PER_SLICE:
-			new_data = g->gr.gobs_per_comptagline_per_slice;
+			new_data = cbc->gobs_per_comptagline_per_slice;
 			break;
 		case TYPE_PARAM_SCATTERBUFFER:
 			new_data = cde_ctx->scatterbuffer_vaddr;
@@ -1014,6 +1017,7 @@ __releases(&l->cde_app->mutex)
 {
 	struct gk20a *g = &l->g;
 	struct gk20a_cde_ctx *cde_ctx = NULL;
+	struct nvgpu_cbc *cbc = g->cbc;
 	struct gk20a_comptags comptags;
 	struct nvgpu_os_buffer os_buf = {
 		compbits_scatter_buf,
@@ -1199,7 +1203,7 @@ __releases(&l->cde_app->mutex)
 	}
 
 	nvgpu_log(g, gpu_dbg_cde, "cde: buffer=cbc, size=%zu, gpuva=%llx\n",
-		 g->gr.compbit_store.mem.size, cde_ctx->backing_store_vaddr);
+		 cbc->compbit_store.mem.size, cde_ctx->backing_store_vaddr);
 	nvgpu_log(g, gpu_dbg_cde, "cde: buffer=compbits, size=%llu, gpuva=%llx\n",
 		 cde_ctx->compbit_size, cde_ctx->compbit_vaddr);
 	nvgpu_log(g, gpu_dbg_cde, "cde: buffer=scatterbuffer, size=%llu, gpuva=%llx\n",
@@ -1310,10 +1314,10 @@ static int gk20a_cde_load(struct gk20a_cde_ctx *cde_ctx)
 {
 	struct nvgpu_os_linux *l = cde_ctx->l;
 	struct gk20a *g = &l->g;
+	struct nvgpu_cbc *cbc = g->cbc;
 	struct nvgpu_firmware *img;
 	struct channel_gk20a *ch;
 	struct tsg_gk20a *tsg;
-	struct gr_gk20a *gr = &g->gr;
 	struct nvgpu_setup_bind_args setup_bind_args;
 	int err = 0;
 	u64 vaddr;
@@ -1366,12 +1370,12 @@ static int gk20a_cde_load(struct gk20a_cde_ctx *cde_ctx)
 	}
 
 	/* map backing store to gpu virtual space */
-	vaddr = nvgpu_gmmu_map(ch->vm, &gr->compbit_store.mem,
-			       g->gr.compbit_store.mem.size,
+	vaddr = nvgpu_gmmu_map(ch->vm, &cbc->compbit_store.mem,
+			       cbc->compbit_store.mem.size,
 			       NVGPU_VM_MAP_CACHEABLE,
 			       gk20a_mem_flag_read_only,
 			       false,
-			       gr->compbit_store.mem.aperture);
+			       cbc->compbit_store.mem.aperture);
 
 	if (!vaddr) {
 		nvgpu_warn(g, "cde: cannot map compression bit backing store");
@@ -1398,7 +1402,7 @@ static int gk20a_cde_load(struct gk20a_cde_ctx *cde_ctx)
 	return 0;
 
 err_init_cde_img:
-	nvgpu_gmmu_unmap(ch->vm, &g->gr.compbit_store.mem, vaddr);
+	nvgpu_gmmu_unmap(ch->vm, &cbc->compbit_store.mem, vaddr);
 err_map_backingstore:
 err_setup_bind:
 	nvgpu_vm_put(ch->vm);

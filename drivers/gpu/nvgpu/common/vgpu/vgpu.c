@@ -30,6 +30,7 @@
 #include <nvgpu/clk_arb.h>
 #include <nvgpu/string.h>
 #include <nvgpu/ltc.h>
+#include <nvgpu/cbc.h>
 
 #include "fecs_trace_vgpu.h"
 
@@ -450,6 +451,12 @@ int vgpu_finalize_poweron_common(struct gk20a *g)
 	err = nvgpu_clk_arb_init_arbiter(g);
 	if (err != 0) {
 		nvgpu_err(g, "failed to init clk arb");
+		return err;
+	}
+
+	err = nvgpu_cbc_init_support(g);
+	if (err != 0) {
+		nvgpu_err(g, "failed to init cbc");
 		return err;
 	}
 

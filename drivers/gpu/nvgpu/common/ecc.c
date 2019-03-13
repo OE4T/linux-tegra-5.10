@@ -128,7 +128,6 @@ int nvgpu_ecc_counter_init(struct gk20a *g,
 int nvgpu_ecc_counter_init_per_lts(struct gk20a *g,
 		struct nvgpu_ecc_stat ***stat, const char *name)
 {
-	struct gr_gk20a *gr = &g->gr;
 	struct nvgpu_ecc_stat **stats;
 	u32 ltc, lts;
 	int err = 0;
@@ -139,7 +138,7 @@ int nvgpu_ecc_counter_init_per_lts(struct gk20a *g,
 	}
 	for (ltc = 0; ltc < g->ltc_count; ltc++) {
 		stats[ltc] = nvgpu_kzalloc(g,
-				sizeof(*stats[ltc]) * gr->slices_per_ltc);
+				sizeof(*stats[ltc]) * g->slices_per_ltc);
 		if (stats[ltc] == NULL) {
 			err = -ENOMEM;
 			break;
@@ -156,7 +155,7 @@ int nvgpu_ecc_counter_init_per_lts(struct gk20a *g,
 	}
 
 	for (ltc = 0; ltc < g->ltc_count; ltc++) {
-		for (lts = 0; lts < gr->slices_per_ltc; lts++) {
+		for (lts = 0; lts < g->slices_per_ltc; lts++) {
 			(void) snprintf(stats[ltc][lts].name,
 					NVGPU_ECC_STAT_NAME_MAX_SIZE,
 					"ltc%d_lts%d_%s", ltc, lts, name);

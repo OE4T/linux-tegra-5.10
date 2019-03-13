@@ -105,7 +105,7 @@ static void nvgpu_init_gr_vars(struct gk20a *g)
 	gk20a_init_gr(g);
 
 	nvgpu_log_info(g, "total ram pages : %lu", totalram_pages);
-	g->gr.max_comptag_mem = totalram_size_in_mb;
+	g->max_comptag_mem = totalram_size_in_mb;
 }
 
 static void nvgpu_init_timeout(struct gk20a *g)

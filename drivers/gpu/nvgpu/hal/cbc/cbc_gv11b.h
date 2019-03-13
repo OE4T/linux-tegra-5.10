@@ -23,8 +23,8 @@
 #ifndef CBC_GV11B_H
 #define CBC_GV11B_H
 struct gk20a;
-struct gpu_ops;
+struct nvgpu_cbc;
 
-void gv11b_cbc_init(struct gk20a *g, struct gr_gk20a *gr);
+void gv11b_cbc_init(struct gk20a *g, struct nvgpu_cbc *cbc);
 
 #endif

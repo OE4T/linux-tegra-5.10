@@ -1097,9 +1097,9 @@ static ssize_t comptag_mem_deduct_store(struct device *dev,
 		return -EINVAL;
 	}
 
-	g->gr.comptag_mem_deduct = val;
+	g->comptag_mem_deduct = val;
 	/* Deduct the part taken by the running system */
-	g->gr.max_comptag_mem -= val;
+	g->max_comptag_mem -= val;
 
 	return count;
 }
@@ -1109,7 +1109,7 @@ static ssize_t comptag_mem_deduct_show(struct device *dev,
 {
 	struct gk20a *g = get_gk20a(dev);
 
-	return sprintf(buf, "%d\n", g->gr.comptag_mem_deduct);
+	return sprintf(buf, "%d\n", g->comptag_mem_deduct);
 }
 
 static DEVICE_ATTR(comptag_mem_deduct, ROOTRW,

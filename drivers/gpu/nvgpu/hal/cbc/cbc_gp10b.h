@@ -23,11 +23,11 @@
 #ifndef CBC_GP10B_H
 #define CBC_GP10B_H
 struct gk20a;
-struct gpu_ops;
+struct nvgpu_cbc;
 
 #include <nvgpu/types.h>
 
-int gp10b_cbc_alloc_comptags(struct gk20a *g, struct gr_gk20a *gr);
-int gp10b_cbc_ctrl(struct gk20a *g, enum nvgpu_cbc_op op,
-		       u32 min, u32 max);
+int gp10b_cbc_alloc_comptags(struct gk20a *g, struct nvgpu_cbc *cbc);
+int gp10b_cbc_ctrl(struct gk20a *g, enum nvgpu_cbc_op op, u32 min, u32 max);
+
 #endif

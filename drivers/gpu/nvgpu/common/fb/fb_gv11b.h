@@ -30,11 +30,12 @@
 
 struct gk20a;
 struct gr_gk20a;
+struct nvgpu_cbc;
 
 void gv11b_fb_init_hw(struct gk20a *g);
 
 void gv11b_fb_init_fs_state(struct gk20a *g);
-void gv11b_fb_cbc_configure(struct gk20a *g, struct gr_gk20a *gr);
+void gv11b_fb_cbc_configure(struct gk20a *g, struct nvgpu_cbc *cbc);
 void gv11b_fb_reset(struct gk20a *g);
 void gv11b_fb_hub_isr(struct gk20a *g);
 

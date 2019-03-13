@@ -27,7 +27,7 @@
 
 #include "cbc_vgpu.h"
 
-int vgpu_cbc_alloc_comptags(struct gk20a *g, struct gr_gk20a *gr)
+int vgpu_cbc_alloc_comptags(struct gk20a *g, struct nvgpu_cbc *cbc)
 {
 	struct vgpu_priv_data *priv = vgpu_get_priv_data(g);
 	u32 max_comptag_lines = 0;
@@ -35,19 +35,19 @@ int vgpu_cbc_alloc_comptags(struct gk20a *g, struct gr_gk20a *gr)
 
 	nvgpu_log_fn(g, " ");
 
-	gr->comptags_per_cacheline = priv->constants.comptags_per_cacheline;
+	cbc->comptags_per_cacheline = priv->constants.comptags_per_cacheline;
 	max_comptag_lines = priv->constants.comptag_lines;
 
 	if (max_comptag_lines < 2) {
 		return -ENXIO;
 	}
 
-	err = gk20a_comptag_allocator_init(g, &gr->comp_tags, max_comptag_lines);
+	err = gk20a_comptag_allocator_init(g, &cbc->comp_tags, max_comptag_lines);
 	if (err) {
 		return err;
 	}
 
-	gr->max_comptag_lines = max_comptag_lines;
+	cbc->max_comptag_lines = max_comptag_lines;
 
 	return 0;
 }

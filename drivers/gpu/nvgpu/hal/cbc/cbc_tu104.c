@@ -1,4 +1,6 @@
 /*
+ * TU104 CBC
+ *
  * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
@@ -43,10 +45,10 @@ u64 tu104_cbc_get_base_divisor(struct gk20a *g)
 		       ltc_ltcs_ltss_cbc_base_alignment_shift_v();
 }
 
-int tu104_cbc_alloc_comptags(struct gk20a *g, struct gr_gk20a *gr)
+int tu104_cbc_alloc_comptags(struct gk20a *g, struct nvgpu_cbc *cbc)
 {
 	/* max memory size (MB) to cover */
-	u32 max_size = gr->max_comptag_mem;
+	u32 max_size = g->max_comptag_mem;
 	/* one tag line covers 64KB */
 	u32 max_comptag_lines = max_size << 4U;
 	u32 compbit_backing_size;
@@ -64,7 +66,7 @@ int tu104_cbc_alloc_comptags(struct gk20a *g, struct gr_gk20a *gr)
 	}
 
 	/* Already initialized */
-	if (gr->max_comptag_lines != 0U) {
+	if (cbc->max_comptag_lines != 0U) {
 		return 0;
 	}
 
@@ -78,7 +80,7 @@ int tu104_cbc_alloc_comptags(struct gk20a *g, struct gr_gk20a *gr)
 
 	ctags_size =
 		ltc_ltcs_ltss_cbc_param_bytes_per_comptagline_per_slice_v(cbc_param);
-	ctags_per_cacheline = gr->cacheline_size / ctags_size;
+	ctags_per_cacheline = g->cacheline_size / ctags_size;
 
 	amap_divide_rounding = (U32(2U) * U32(1024U)) <<
 		ltc_ltcs_ltss_cbc_param_amap_divide_rounding_v(cbc_param);
@@ -86,9 +88,9 @@ int tu104_cbc_alloc_comptags(struct gk20a *g, struct gr_gk20a *gr)
 		ltc_ltcs_ltss_cbc_param_amap_swizzle_rounding_v(cbc_param);
 
 	compbit_backing_size =
-		roundup(max_comptag_lines * ctags_size, gr->cacheline_size);
+		roundup(max_comptag_lines * ctags_size, g->cacheline_size);
 	compbit_backing_size =
-		compbit_backing_size * gr->slices_per_ltc * g->ltc_count;
+		compbit_backing_size * g->slices_per_ltc * g->ltc_count;
 
 	compbit_backing_size += g->ltc_count * amap_divide_rounding;
 	compbit_backing_size += amap_swizzle_rounding;
@@ -102,22 +104,22 @@ int tu104_cbc_alloc_comptags(struct gk20a *g, struct gr_gk20a *gr)
 		return err;
 	}
 
-	err = gk20a_comptag_allocator_init(g, &gr->comp_tags, max_comptag_lines);
+	err = gk20a_comptag_allocator_init(g, &cbc->comp_tags, max_comptag_lines);
 	if (err != 0) {
 		return err;
 	}
 
-	gr->max_comptag_lines = max_comptag_lines;
-	gr->comptags_per_cacheline = ctags_per_cacheline;
-	gr->gobs_per_comptagline_per_slice = ctags_size;
-	gr->compbit_backing_size = compbit_backing_size;
+	cbc->max_comptag_lines = max_comptag_lines;
+	cbc->comptags_per_cacheline = ctags_per_cacheline;
+	cbc->gobs_per_comptagline_per_slice = ctags_size;
+	cbc->compbit_backing_size = compbit_backing_size;
 
 	nvgpu_log_info(g, "compbit backing store size : %d",
 		compbit_backing_size);
 	nvgpu_log_info(g, "max comptag lines : %d",
 		max_comptag_lines);
 	nvgpu_log_info(g, "gobs_per_comptagline_per_slice: %d",
-		gr->gobs_per_comptagline_per_slice);
+		cbc->gobs_per_comptagline_per_slice);
 
 	return 0;
 }
@@ -125,11 +127,10 @@ int tu104_cbc_alloc_comptags(struct gk20a *g, struct gr_gk20a *gr)
 int tu104_cbc_ctrl(struct gk20a *g, enum nvgpu_cbc_op op,
 		       u32 min, u32 max)
 {
-	struct gr_gk20a *gr = &g->gr;
 	struct nvgpu_timeout timeout;
 	int err = 0;
 	u32 ltc, slice, ctrl1, val, hw_op = 0U;
-	u32 slices_per_ltc = gr->slices_per_ltc;
+	u32 slices_per_ltc = g->slices_per_ltc;
 	u32 ltc_stride = nvgpu_get_litter_value(g, GPU_LIT_LTC_STRIDE);
 	u32 lts_stride = nvgpu_get_litter_value(g, GPU_LIT_LTS_STRIDE);
 	const u32 max_lines = 16384U;
@@ -138,7 +139,7 @@ int tu104_cbc_ctrl(struct gk20a *g, enum nvgpu_cbc_op op,
 
 	trace_gk20a_ltc_cbc_ctrl_start(g->name, op, min, max);
 
-	if (gr->compbit_store.mem.size == 0U) {
+	if (g->cbc->compbit_store.mem.size == 0U) {
 		return 0;
 	}
 
@@ -218,11 +219,9 @@ out:
 	return err;
 }
 
-void tu104_cbc_init(struct gk20a *g, struct gr_gk20a *gr)
+void tu104_cbc_init(struct gk20a *g, struct nvgpu_cbc *cbc)
 {
-
-	g->ops.fb.cbc_configure(g, gr);
-
+	g->ops.fb.cbc_configure(g, cbc);
 	g->ops.cbc.ctrl(g, nvgpu_cbc_op_invalidate,
-			0, gr->max_comptag_lines - 1U);
+			0, cbc->max_comptag_lines - 1U);
 }

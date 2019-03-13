@@ -37,10 +37,10 @@
 
 #include "cbc_gm20b.h"
 
-int gm20b_cbc_alloc_comptags(struct gk20a *g, struct gr_gk20a *gr)
+int gm20b_cbc_alloc_comptags(struct gk20a *g, struct nvgpu_cbc *cbc)
 {
 	/* max memory size (MB) to cover */
-	u32 max_size = gr->max_comptag_mem;
+	u32 max_size = g->max_comptag_mem;
 	/* one tag line covers 128KB */
 	u32 max_comptag_lines = max_size << 3U;
 
@@ -62,13 +62,18 @@ int gm20b_cbc_alloc_comptags(struct gk20a *g, struct gr_gk20a *gr)
 		return 0;
 	}
 
+	/* Already initialized */
+	if (cbc->max_comptag_lines != 0U) {
+		return 0;
+	}
+
 	if (max_comptag_lines > hw_max_comptag_lines) {
 		max_comptag_lines = hw_max_comptag_lines;
 	}
 
 	compbit_backing_size =
 		DIV_ROUND_UP(max_comptag_lines, comptags_per_cacheline) *
-		gr->cacheline_size * gr->slices_per_ltc * g->ltc_count;
+		g->cacheline_size * g->slices_per_ltc * g->ltc_count;
 
 	/* aligned to 2KB * ltc_count */
 	compbit_backing_size +=
@@ -80,7 +85,7 @@ int gm20b_cbc_alloc_comptags(struct gk20a *g, struct gr_gk20a *gr)
 
 	max_comptag_lines =
 		(compbit_backing_size * comptags_per_cacheline) /
-		(gr->cacheline_size * gr->slices_per_ltc * g->ltc_count);
+		(g->cacheline_size * g->slices_per_ltc * g->ltc_count);
 
 	if (max_comptag_lines > hw_max_comptag_lines) {
 		max_comptag_lines = hw_max_comptag_lines;
@@ -96,14 +101,14 @@ int gm20b_cbc_alloc_comptags(struct gk20a *g, struct gr_gk20a *gr)
 		return err;
 	}
 
-	err = gk20a_comptag_allocator_init(g, &gr->comp_tags, max_comptag_lines);
+	err = gk20a_comptag_allocator_init(g, &cbc->comp_tags, max_comptag_lines);
 	if (err != 0) {
 		return err;
 	}
 
-	gr->max_comptag_lines = max_comptag_lines;
-	gr->comptags_per_cacheline = comptags_per_cacheline;
-	gr->compbit_backing_size = compbit_backing_size;
+	cbc->max_comptag_lines = max_comptag_lines;
+	cbc->comptags_per_cacheline = comptags_per_cacheline;
+	cbc->compbit_backing_size = compbit_backing_size;
 
 	return 0;
 }
@@ -111,7 +116,6 @@ int gm20b_cbc_alloc_comptags(struct gk20a *g, struct gr_gk20a *gr)
 int gm20b_cbc_ctrl(struct gk20a *g, enum nvgpu_cbc_op op,
 		       u32 min, u32 max)
 {
-	struct gr_gk20a *gr = &g->gr;
 	struct nvgpu_timeout timeout;
 	int err = 0;
 	u32 ltc, slice, ctrl1, val, hw_op = 0U;
@@ -125,7 +129,7 @@ int gm20b_cbc_ctrl(struct gk20a *g, enum nvgpu_cbc_op op,
 
 	trace_gk20a_ltc_cbc_ctrl_start(g->name, op, min, max);
 
-	if (gr->compbit_store.mem.size == 0ULL) {
+	if (g->cbc->compbit_store.mem.size == 0ULL) {
 		return 0;
 	}
 
@@ -217,9 +221,9 @@ u32 gm20b_cbc_fix_config(struct gk20a *g, int base)
 }
 
 
-void gm20b_cbc_init(struct gk20a *g, struct gr_gk20a *gr)
+void gm20b_cbc_init(struct gk20a *g, struct nvgpu_cbc *cbc)
 {
-	u32 max_size = gr->max_comptag_mem;
+	u32 max_size = g->max_comptag_mem;
 	u32 max_comptag_lines = max_size << 3U;
 
 	u32 compbit_base_post_divide;
@@ -229,10 +233,10 @@ void gm20b_cbc_init(struct gk20a *g, struct gr_gk20a *gr)
 
 	if (nvgpu_is_enabled(g, NVGPU_IS_FMODEL)) {
 		compbit_store_iova = nvgpu_mem_get_phys_addr(g,
-							&gr->compbit_store.mem);
+							&cbc->compbit_store.mem);
 	} else {
 		compbit_store_iova = nvgpu_mem_get_addr(g,
-							&gr->compbit_store.mem);
+							&cbc->compbit_store.mem);
 	}
 
 	compbit_base_post_divide64 = compbit_store_iova >>
@@ -263,7 +267,7 @@ void gm20b_cbc_init(struct gk20a *g, struct gr_gk20a *gr)
 		   (u32)(compbit_store_iova & 0xffffffffU),
 		   compbit_base_post_divide);
 
-	gr->compbit_store.base_hw = compbit_base_post_divide;
+	cbc->compbit_store.base_hw = compbit_base_post_divide;
 
 	g->ops.cbc.ctrl(g, nvgpu_cbc_op_invalidate,
 			    0, max_comptag_lines - 1U);

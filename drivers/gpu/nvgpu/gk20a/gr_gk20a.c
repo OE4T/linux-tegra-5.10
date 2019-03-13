@@ -38,6 +38,7 @@
 #include <nvgpu/netlist.h>
 #include <nvgpu/error_notifier.h>
 #include <nvgpu/ecc.h>
+#include <nvgpu/cbc.h>
 #include <nvgpu/io.h>
 #include <nvgpu/utils.h>
 #include <nvgpu/fifo.h>
@@ -2092,11 +2093,6 @@ static void gk20a_remove_gr_support(struct gr_gk20a *gr)
 
 	nvgpu_gr_ctx_desc_free(g, gr->gr_ctx_desc);
 
-	nvgpu_dma_free(g, &gr->compbit_store.mem);
-
-	(void) memset(&gr->compbit_store, 0,
-		sizeof(struct compbit_store_desc));
-
 	nvgpu_gr_config_deinit(g, gr->config);
 
 	nvgpu_kfree(g, gr->sm_to_cluster);
@@ -2114,7 +2110,7 @@ static void gk20a_remove_gr_support(struct gr_gk20a *gr)
 
 	nvgpu_gr_hwpm_map_deinit(g, gr->hwpm_map);
 
-	gk20a_comptag_allocator_destroy(g, &gr->comp_tags);
+	nvgpu_cbc_remove_support(g);
 
 	nvgpu_ecc_remove_support(g);
 	nvgpu_gr_zbc_deinit(g, gr->zbc);
@@ -2594,10 +2590,6 @@ static int gk20a_init_gr_setup_hw(struct gk20a *g)
 		goto out;
 	}
 
-	if (g->ops.cbc.init != NULL) {
-		g->ops.cbc.init(g, gr);
-	}
-
 	if (g->ops.gr.disable_rd_coalesce != NULL) {
 		g->ops.gr.disable_rd_coalesce(g);
 	}
@@ -2802,13 +2794,6 @@ static int gk20a_init_gr_setup_sw(struct gk20a *g)
 	err = nvgpu_gr_config_init_map_tiles(g, gr->config);
 	if (err != 0) {
 		goto clean_up;
-	}
-
-	if (g->ops.cbc.alloc_comptags != NULL) {
-		err = g->ops.cbc.alloc_comptags(g, gr);
-		if (err != 0) {
-			goto clean_up;
-		}
 	}
 
 	err = gr_gk20a_init_zcull(g, gr);

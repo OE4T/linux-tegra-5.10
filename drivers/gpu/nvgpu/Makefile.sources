@@ -97,6 +97,7 @@ srcs += common/sim.c \
 	common/string.c \
 	common/rbtree.c \
 	common/ltc/ltc.c \
+	common/cbc/cbc.c \
 	common/ltc/ltc_gm20b.c \
 	common/ltc/ltc_gp10b.c \
 	common/ltc/ltc_gv11b.c  \

@@ -53,7 +53,6 @@ void gv11b_ltc_set_zbc_stencil_entry(struct gk20a *g,
 
 void gv11b_ltc_init_fs_state(struct gk20a *g)
 {
-	struct gr_gk20a *gr = &g->gr;
 	u32 ltc_intr;
 	u32 reg;
 
@@ -64,8 +63,8 @@ void gv11b_ltc_init_fs_state(struct gk20a *g)
 	nvgpu_log_info(g, "%u ltcs out of %u", g->ltc_count, g->max_ltc_count);
 
 	reg = gk20a_readl(g, ltc_ltcs_ltss_cbc_param_r());
-	gr->slices_per_ltc = ltc_ltcs_ltss_cbc_param_slices_per_ltc_v(reg);;
-	gr->cacheline_size =
+	g->slices_per_ltc = ltc_ltcs_ltss_cbc_param_slices_per_ltc_v(reg);;
+	g->cacheline_size =
 		U32(512) << ltc_ltcs_ltss_cbc_param_cache_line_size_v(reg);
 
 	/* Disable LTC interrupts */
@@ -239,7 +238,7 @@ void gv11b_ltc_isr(struct gk20a *g, unsigned int ltc)
 {
 	unsigned int slice;
 
-	for (slice = 0U; slice < g->gr.slices_per_ltc; slice++) {
+	for (slice = 0U; slice < g->slices_per_ltc; slice++) {
 		gv11b_ltc_lts_isr(g, ltc, slice);
 	}
 }

@@ -1,5 +1,5 @@
 /*
- * GV11B CBC
+ * CBC
  *
  * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
  *
@@ -23,23 +23,55 @@
  */
 
 
-#include <nvgpu/cbc.h>
-#include <nvgpu/log.h>
 #include <nvgpu/gk20a.h>
+#include <nvgpu/cbc.h>
+#include <nvgpu/dma.h>
+#include <nvgpu/log.h>
+#include <nvgpu/nvgpu_mem.h>
+#include <nvgpu/comptags.h>
 
-#include "cbc_gv11b.h"
-
-void gv11b_cbc_init(struct gk20a *g, struct nvgpu_cbc *cbc)
+void nvgpu_cbc_remove_support(struct gk20a *g)
 {
-	u32 max_size = g->max_comptag_mem;
-	/* one tag line covers 64KB */
-	u32 max_comptag_lines = max_size << 4;
+	struct nvgpu_cbc *cbc = g->cbc;
 
 	nvgpu_log_fn(g, " ");
 
-	g->ops.fb.cbc_configure(g, cbc);
+	if (cbc == NULL) {
+		return;
+	}
 
-	g->ops.cbc.ctrl(g, nvgpu_cbc_op_invalidate,
-			0, max_comptag_lines - 1U);
+	if (nvgpu_mem_is_valid(&cbc->compbit_store.mem)) {
+		nvgpu_dma_free(g, &cbc->compbit_store.mem);
+		(void) memset(&cbc->compbit_store, 0,
+			sizeof(struct compbit_store_desc));
+	}
+	gk20a_comptag_allocator_destroy(g, &cbc->comp_tags);
 
+	nvgpu_kfree(g, cbc);
+	g->cbc = NULL;
+}
+
+int nvgpu_cbc_init_support(struct gk20a *g)
+{
+	int err = 0;
+	struct nvgpu_cbc *cbc = g->cbc;
+
+	nvgpu_log_fn(g, " ");
+
+	if (cbc == NULL) {
+		cbc = nvgpu_kzalloc(g, sizeof(*cbc));
+		if (cbc == NULL) {
+			return -ENOMEM;
+		}
+		g->cbc = cbc;
+		if (g->ops.cbc.alloc_comptags != NULL) {
+			err = g->ops.cbc.alloc_comptags(g, g->cbc);
+		}
+	}
+
+	if (g->ops.cbc.init != NULL) {
+		g->ops.cbc.init(g, g->cbc);
+	}
+
+	return err;
 }

@@ -71,6 +71,7 @@ struct nvgpu_channel_hw_state;
 struct nvgpu_engine_status_info;
 struct nvgpu_pbdma_status_info;
 enum nvgpu_nvlink_minion_dlcmd;
+struct nvgpu_cbc;
 
 #include <nvgpu/lock.h>
 #include <nvgpu/thread.h>
@@ -232,9 +233,10 @@ struct gpu_ops {
 		} err_ops;
 	} ltc;
 	struct {
-		void (*init)(struct gk20a *g, struct gr_gk20a *gr);
+		void (*init)(struct gk20a *g, struct nvgpu_cbc *cbc);
 		u64 (*get_base_divisor)(struct gk20a *g);
-		int (*alloc_comptags)(struct gk20a *g, struct gr_gk20a *gr);
+		int (*alloc_comptags)(struct gk20a *g,
+					struct nvgpu_cbc *cbc);
 		int (*ctrl)(struct gk20a *g, enum nvgpu_cbc_op op,
 				u32 min, u32 max);
 		u32 (*fix_config)(struct gk20a *g, int base);
@@ -703,7 +705,7 @@ struct gpu_ops {
 	} gr;
 	struct {
 		void (*init_hw)(struct gk20a *g);
-		void (*cbc_configure)(struct gk20a *g, struct gr_gk20a *gr);
+		void (*cbc_configure)(struct gk20a *g, struct nvgpu_cbc *cbc);
 		void (*init_fs_state)(struct gk20a *g);
 		void (*init_uncompressed_kind_map)(struct gk20a *g);
 		void (*init_kind_attr)(struct gk20a *g);
@@ -1926,9 +1928,23 @@ struct gk20a {
 	int irqs_enabled;
 	int irq_stall; /* can be same as irq_nonstall in case of PCI */
 	int irq_nonstall;
+
+	/* This data will be moved to nvgpu_ltc_info */
 	u32 max_ltc_count;
 	u32 ltc_count;
+	u32 slices_per_ltc;
+	u32 cacheline_size;
 	u32 ltc_streamid;
+
+	/*
+	 * The deductible memory size for max_comptag_mem (in MBytes)
+	 * Usually close to memory size that running system is taking
+	*/
+	u32 comptag_mem_deduct;
+
+	u32 max_comptag_mem; /* max memory size (MB) for comptag */
+
+	struct nvgpu_cbc *cbc;
 
 	struct gk20a_worker {
 		struct nvgpu_thread poll_task;

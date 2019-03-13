@@ -208,13 +208,6 @@ struct gr_gk20a {
 	u32 num_fbps;
 	u32 max_fbps_count;
 
-	u32 max_comptag_lines;
-	u32 compbit_backing_size;
-	u32 comptags_per_cacheline;
-	u32 slices_per_ltc;
-	u32 cacheline_size;
-	u32 gobs_per_comptagline_per_slice;
-
 	u32 bundle_cb_default_size;
 	u32 min_gpm_fifo_depth;
 	u32 bundle_cb_token_limit;
@@ -228,12 +221,6 @@ struct gr_gk20a {
 	u32 gfxp_wfi_timeout_count;
 	bool gfxp_wfi_timeout_unit_usec;
 
-	/*
-	 * The deductible memory size for max_comptag_mem (in MBytes)
-	 * Usually close to memory size that running system is taking
-	 */
-	u32 comptag_mem_deduct;
-
 	struct nvgpu_gr_global_ctx_buffer_desc *global_ctx_buffer;
 	struct nvgpu_gr_global_ctx_local_golden_image *local_golden_image;
 
@@ -242,10 +229,6 @@ struct gr_gk20a {
 	struct nvgpu_gr_config *config;
 
 	struct nvgpu_gr_hwpm_map *hwpm_map;
-
-	u32 max_comptag_mem; /* max memory size (MB) for comptag */
-	struct compbit_store_desc compbit_store;
-	struct gk20a_comptag_allocator comp_tags;
 
 	struct gr_zcull_gk20a zcull;
 

@@ -983,7 +983,7 @@ struct nvgpu_mapped_buf *nvgpu_vm_map(struct vm_gk20a *vm,
 		 * Get the comptags state, alloc if necessary
 		 */
 		err = gk20a_alloc_or_get_comptags(g, os_buf,
-						  &g->gr.comp_tags,
+						  &g->cbc->comp_tags,
 						  &comptags);
 		if (err != 0) {
 			/*
