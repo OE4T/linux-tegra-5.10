@@ -85,10 +85,6 @@ srcs += common/sim.c \
 	common/init/hal_init.c \
 	common/xve/xve_gp106.c \
 	common/therm/therm.c \
-	common/therm/therm_gm20b.c \
-	common/therm/therm_gp10b.c \
-	common/therm/therm_gv11b.c \
-	common/therm/therm_gp106.c \
 	common/perf/perf_gm20b.c \
 	common/perf/perf_gv11b.c \
 	common/perf/perfbuf.c \
@@ -350,6 +346,10 @@ srcs += common/sim.c \
 	hal/cbc/cbc_gp10b.c \
 	hal/cbc/cbc_gv11b.c \
 	hal/cbc/cbc_tu104.c \
+	hal/therm/therm_gm20b.c \
+	hal/therm/therm_gp10b.c \
+	hal/therm/therm_gv11b.c \
+	hal/therm/therm_gp106.c \
 	hal/fuse/fuse_gm20b.c \
 	hal/fuse/fuse_gp10b.c \
 	hal/fuse/fuse_gp106.c \

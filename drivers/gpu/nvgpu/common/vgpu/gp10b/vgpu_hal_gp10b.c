@@ -23,6 +23,8 @@
 #include "hal/bus/bus_gk20a.h"
 #include "hal/bus/bus_gm20b.h"
 #include "hal/fifo/engines_gm20b.h"
+#include "hal/therm/therm_gm20b.h"
+#include "hal/therm/therm_gp10b.h"
 
 #include "common/fb/fb_gm20b.h"
 #include "common/fb/fb_gp10b.h"
@@ -31,8 +33,6 @@
 #include "common/gr/ctxsw_prog/ctxsw_prog_gp10b.h"
 #include "common/gr/config/gr_config_gm20b.h"
 #include "common/gr/fecs_trace/fecs_trace_gm20b.h"
-#include "common/therm/therm_gm20b.h"
-#include "common/therm/therm_gp10b.h"
 #include "common/perf/perf_gm20b.h"
 #include "common/ltc/ltc_gm20b.h"
 #include "common/ltc/ltc_gp10b.h"

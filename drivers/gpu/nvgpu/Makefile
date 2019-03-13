@@ -46,10 +46,6 @@ nvgpu-y += \
 	common/perf/perfbuf.o \
 	common/xve/xve_gp106.o \
 	common/therm/therm.o \
-	common/therm/therm_gm20b.o \
-	common/therm/therm_gp10b.o \
-	common/therm/therm_gp106.o \
-	common/therm/therm_gv11b.o \
 	common/top/top_gm20b.o \
 	common/top/top_gp10b.o \
 	common/top/top_gv100.o \
@@ -186,6 +182,10 @@ nvgpu-y += \
 	hal/cbc/cbc_gp10b.o \
 	hal/cbc/cbc_gv11b.o \
 	hal/cbc/cbc_tu104.o \
+	hal/therm/therm_gm20b.o \
+	hal/therm/therm_gp10b.o \
+	hal/therm/therm_gp106.o \
+	hal/therm/therm_gv11b.o \
 	hal/fuse/fuse_gm20b.o \
 	hal/fuse/fuse_gp10b.o \
 	hal/fuse/fuse_gp106.o \
