@@ -354,54 +354,39 @@ void gm20b_update_lspmu_cmdline_args(struct gk20a *g)
 		g->ops.pmu_ver.get_pmu_cmdline_args_size(pmu), 0);
 }
 
-static int gm20b_bl_bootstrap(struct gk20a *g,
-	struct nvgpu_falcon_bl_info *bl_info)
+void gm20b_pmu_flcn_setup_boot_config(struct gk20a *g)
 {
 	struct mm_gk20a *mm = &g->mm;
 	u64 tmp_addr;
 
 	nvgpu_log_fn(g, " ");
 
-	gk20a_writel(g, pwr_falcon_itfen_r(),
-			gk20a_readl(g, pwr_falcon_itfen_r()) |
-			pwr_falcon_itfen_ctxen_enable_f());
-	tmp_addr = nvgpu_inst_block_addr(g, &mm->pmu.inst_block) >> 12U;
-	nvgpu_assert(u64_hi32(tmp_addr) == 0U);
-	gk20a_writel(g, pwr_pmu_new_instblk_r(),
-		pwr_pmu_new_instblk_ptr_f((u32)tmp_addr) |
-		pwr_pmu_new_instblk_valid_f(1U) |
-		 (nvgpu_is_enabled(g, NVGPU_USE_COHERENT_SYSMEM) ?
-		  pwr_pmu_new_instblk_target_sys_coh_f() :
-		  pwr_pmu_new_instblk_target_sys_ncoh_f())) ;
-
-	nvgpu_falcon_mailbox_write(&g->pmu.flcn, FALCON_MAILBOX_0, 0xDEADA5A5U);
-
-	return nvgpu_falcon_bl_bootstrap(&g->pmu.flcn, bl_info);
-}
-
-int gm20b_pmu_setup_hw_and_bl_bootstrap(struct gk20a *g,
-	struct nvgpu_falcon_bl_info *bl_info)
-{
-	int err;
-
-	nvgpu_log_fn(g, " ");
-
-	err = nvgpu_falcon_reset(&g->pmu.flcn);
-	if (err != 0) {
-		goto exit;
-	}
-
+	/* setup apertures */
 	if (g->ops.pmu.setup_apertures != NULL) {
 		g->ops.pmu.setup_apertures(g);
 	}
 
-	/*Clearing mailbox register used to reflect capabilities*/
+	/* Clearing mailbox register used to reflect capabilities */
 	gk20a_writel(g, pwr_falcon_mailbox1_r(), 0);
 
-	err = gm20b_bl_bootstrap(g, bl_info);
+	/* enable the context interface */
+	gk20a_writel(g, pwr_falcon_itfen_r(),
+		gk20a_readl(g, pwr_falcon_itfen_r()) |
+		pwr_falcon_itfen_ctxen_enable_f());
 
-exit:
-	return err;
+	/*
+	 * The instance block address to write is the lower 32-bits of the 4K-
+	 * aligned physical instance block address.
+	 */
+	tmp_addr = nvgpu_inst_block_addr(g, &mm->pmu.inst_block) >> 12U;
+	nvgpu_assert(u64_hi32(tmp_addr) == 0U);
+
+	gk20a_writel(g, pwr_pmu_new_instblk_r(),
+		pwr_pmu_new_instblk_ptr_f((u32)tmp_addr) |
+		pwr_pmu_new_instblk_valid_f(1U) |
+		(nvgpu_is_enabled(g, NVGPU_USE_COHERENT_SYSMEM) ?
+		pwr_pmu_new_instblk_target_sys_coh_f() :
+		pwr_pmu_new_instblk_target_sys_ncoh_f())) ;
 }
 
 void gm20b_secured_pmu_start(struct gk20a *g)

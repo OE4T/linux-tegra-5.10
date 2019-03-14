@@ -131,8 +131,7 @@ struct hs_acr {
 	/* Falcon used to execute ACR ucode */
 	struct nvgpu_falcon *acr_flcn;
 
-	int (*acr_flcn_setup_hw_and_bl_bootstrap)(struct gk20a *g,
-		struct nvgpu_falcon_bl_info *bl_info);
+	void (*acr_flcn_setup_boot_config)(struct gk20a *g);
 	void (*report_acr_engine_bus_err_status)(struct gk20a *g,
 		u32 bar0_status, u32 error_type);
 	int (*acr_engine_bus_err_status)(struct gk20a *g, u32 *bar0_status,

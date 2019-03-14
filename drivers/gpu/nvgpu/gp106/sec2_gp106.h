@@ -25,8 +25,7 @@
 
 int gp106_sec2_reset(struct gk20a *g);
 
-int gp106_sec2_setup_hw_and_bl_bootstrap(struct gk20a *g,
-	struct nvgpu_falcon_bl_info *bl_info);
+void gp106_sec2_flcn_setup_boot_config(struct gk20a *g);
 
 u32 gp106_sec2_falcon_base_addr(void);
 

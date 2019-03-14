@@ -26,6 +26,7 @@
 #include <nvgpu/io.h>
 #include <nvgpu/timers.h>
 #include <nvgpu/gk20a.h>
+#include <nvgpu/bug.h>
 
 #include "sec2_gp106.h"
 
@@ -46,53 +47,13 @@ int gp106_sec2_reset(struct gk20a *g)
 	return 0;
 }
 
-static int sec2_flcn_bl_bootstrap(struct gk20a *g,
-	struct nvgpu_falcon_bl_info *bl_info)
+void gp106_sec2_flcn_setup_boot_config(struct gk20a *g)
 {
 	struct mm_gk20a *mm = &g->mm;
-	u32 data = 0U;
-	int err = 0U;
-
-	nvgpu_log_fn(g, " ");
-
-	/* SEC2 Config */
-	gk20a_writel(g, psec_falcon_itfen_r(),
-		gk20a_readl(g, psec_falcon_itfen_r()) |
-		psec_falcon_itfen_ctxen_enable_f());
-
-	gk20a_writel(g, psec_falcon_nxtctx_r(),
-		pwr_pmu_new_instblk_ptr_f(
-		nvgpu_inst_block_addr(g, &mm->pmu.inst_block) >> 12U) |
-		pwr_pmu_new_instblk_valid_f(1U) |
-		nvgpu_aperture_mask(g, &mm->pmu.inst_block,
-			pwr_pmu_new_instblk_target_sys_ncoh_f(),
-			pwr_pmu_new_instblk_target_sys_coh_f(),
-			pwr_pmu_new_instblk_target_fb_f()));
-
-	data = gk20a_readl(g, psec_falcon_debug1_r());
-	data |= psec_falcon_debug1_ctxsw_mode_m();
-	gk20a_writel(g, psec_falcon_debug1_r(), data);
-
-	data = gk20a_readl(g, psec_falcon_engctl_r());
-	data |= BIT32(3);
-	gk20a_writel(g, psec_falcon_engctl_r(), data);
-
-	nvgpu_falcon_mailbox_write(&g->sec2.flcn, FALCON_MAILBOX_0,
-				   0xDEADA5A5U);
-
-	err = nvgpu_falcon_bl_bootstrap(&g->sec2.flcn, bl_info);
-
-	return err;
-}
-
-int gp106_sec2_setup_hw_and_bl_bootstrap(struct gk20a *g,
-	struct nvgpu_falcon_bl_info *bl_info)
-{
+	u64 tmp_addr;
 	u32 data = 0U;
 
 	nvgpu_log_fn(g, " ");
-
-	nvgpu_falcon_reset(&g->sec2.flcn);
 
 	data = gk20a_readl(g, psec_fbif_ctl_r());
 	data |= psec_fbif_ctl_allow_phys_no_ctx_allow_f();
@@ -115,7 +76,34 @@ int gp106_sec2_setup_hw_and_bl_bootstrap(struct gk20a *g,
 			psec_fbif_transcfg_mem_type_physical_f() |
 			psec_fbif_transcfg_target_noncoherent_sysmem_f());
 
-	return sec2_flcn_bl_bootstrap(g, bl_info);
+	/* enable the context interface */
+	gk20a_writel(g, psec_falcon_itfen_r(),
+		gk20a_readl(g, psec_falcon_itfen_r()) |
+		psec_falcon_itfen_ctxen_enable_f());
+
+	/*
+	 * The instance block address to write is the lower 32-bits of the 4K-
+	 * aligned physical instance block address.
+	 */
+	tmp_addr = nvgpu_inst_block_addr(g, &mm->pmu.inst_block) >> 12U;
+		nvgpu_assert(u64_hi32(tmp_addr) == 0U);
+
+	gk20a_writel(g, psec_falcon_nxtctx_r(),
+		pwr_pmu_new_instblk_ptr_f((u32)tmp_addr) |
+		pwr_pmu_new_instblk_valid_f(1U) |
+		nvgpu_aperture_mask(g, &mm->pmu.inst_block,
+			pwr_pmu_new_instblk_target_sys_ncoh_f(),
+			pwr_pmu_new_instblk_target_sys_coh_f(),
+			pwr_pmu_new_instblk_target_fb_f()));
+
+	data = gk20a_readl(g, psec_falcon_debug1_r());
+	data |= psec_falcon_debug1_ctxsw_mode_m();
+	gk20a_writel(g, psec_falcon_debug1_r(), data);
+
+	/* Trigger context switch */
+	data = gk20a_readl(g, psec_falcon_engctl_r());
+	data |= BIT32(3);
+	gk20a_writel(g, psec_falcon_engctl_r(), data);
 }
 
 u32 gp106_sec2_falcon_base_addr(void)

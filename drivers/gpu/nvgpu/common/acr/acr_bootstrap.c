@@ -157,12 +157,23 @@ static int acr_hs_bl_exec(struct gk20a *g, struct nvgpu_acr *acr,
 	bl_info.bl_size = (u32)hs_bl->hs_bl_ucode.size;
 	bl_info.bl_start_tag = hs_bl->hs_bl_desc->bl_start_tag;
 
-	/*
-	 * 1. Does falcon reset
-	 * 2. setup falcon apertures
-	 * 3. bootstrap falcon
-	 */
-	acr_desc->acr_flcn_setup_hw_and_bl_bootstrap(g, &bl_info);
+	/* Engine falcon reset */
+	err = nvgpu_falcon_reset(acr_desc->acr_flcn);
+	if (err != 0) {
+		goto err_unmap_bl;
+	}
+
+	/* setup falcon apertures, boot-config */
+	acr_desc->acr_flcn_setup_boot_config(g);
+
+	nvgpu_falcon_mailbox_write(acr_desc->acr_flcn, FALCON_MAILBOX_0,
+		0xDEADA5A5U);
+
+	/* bootstrap falcon */
+	err = nvgpu_falcon_bl_bootstrap(acr_desc->acr_flcn, &bl_info);
+	if (err != 0) {
+		goto err_unmap_bl;
+	}
 
 	if (b_wait_for_halt) {
 		/* wait for ACR halt*/

@@ -185,8 +185,7 @@ static void nvgpu_gv100_acr_default_sw_init(struct gk20a *g, struct hs_acr *hs_a
 	hs_acr->bl_dmem_desc_size = (u32)sizeof(struct flcn_bl_dmem_desc_v1);
 
 	hs_acr->acr_flcn = &g->sec2.flcn;
-	hs_acr->acr_flcn_setup_hw_and_bl_bootstrap =
-		gp106_sec2_setup_hw_and_bl_bootstrap;
+	hs_acr->acr_flcn_setup_boot_config = gp106_sec2_flcn_setup_boot_config;
 }
 
 void nvgpu_gv100_acr_sw_init(struct gk20a *g, struct nvgpu_acr *acr)

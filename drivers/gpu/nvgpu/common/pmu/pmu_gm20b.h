@@ -37,8 +37,7 @@ bool gm20b_pmu_is_debug_mode_en(struct gk20a *g);
 int gm20b_ns_pmu_setup_hw_and_bootstrap(struct gk20a *g);
 void gm20b_pmu_setup_apertures(struct gk20a *g);
 void gm20b_update_lspmu_cmdline_args(struct gk20a *g);
-int gm20b_pmu_setup_hw_and_bl_bootstrap(struct gk20a *g,
-	struct nvgpu_falcon_bl_info *bl_info);
+void gm20b_pmu_flcn_setup_boot_config(struct gk20a *g);
 void gm20b_secured_pmu_start(struct gk20a *g);
 bool gm20b_is_pmu_supported(struct gk20a *g);
 void gm20b_clear_pmu_bar0_host_err_status(struct gk20a *g);
