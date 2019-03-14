@@ -439,6 +439,12 @@ struct CAPTURE_CHANNEL_EI_RESET_RESP_MSG {
 	uint32_t __pad;
 } __CAPTURE_IVC_ALIGN;
 
+struct CAPTURE_HSM_CHANSEL_ERROR_MASK_RESP_MSG {
+	capture_result result;
+	uint32_t __pad;
+} __CAPTURE_IVC_ALIGN;
+
+
 /**
  * Capture ISP channel messages
  */
@@ -507,6 +513,16 @@ struct CAPTURE_CHANNEL_EI_RESET_RESP_MSG {
 #define CAPTURE_CHANNEL_EI_RESP		U32_C(0x51)
 #define CAPTURE_CHANNEL_EI_RESET_REQ	U32_C(0x52)
 #define CAPTURE_CHANNEL_EI_RESET_RESP	U32_C(0x53)
+
+#define CAPTURE_HSM_CHANSEL_ERROR_MASK_REQ	U32_C(0x54)
+#define CAPTURE_HSM_CHANSEL_ERROR_MASK_RESP	U32_C(0x55)
+
+/**
+ * Mask CHANSEL errors from HSM reporting
+ */
+struct CAPTURE_HSM_CHANSEL_ERROR_MASK_REQ_MSG {
+	struct vi_hsm_chansel_error_mask_config hsm_chansel_error_config;
+} __CAPTURE_IVC_ALIGN;
 
 /** Set up RTCPU side resources for ISP capture pipe-line.
  *
@@ -623,6 +639,9 @@ struct CAPTURE_CONTROL_MSG {
 		CAPTURE_CHANNEL_ISP_RESET_RESP_MSG channel_isp_reset_resp;
 		CAPTURE_CHANNEL_ISP_RELEASE_REQ_MSG channel_isp_release_req;
 		CAPTURE_CHANNEL_ISP_RELEASE_RESP_MSG channel_isp_release_resp;
+
+		struct CAPTURE_HSM_CHANSEL_ERROR_MASK_REQ_MSG hsm_chansel_mask_req;
+		struct CAPTURE_HSM_CHANSEL_ERROR_MASK_RESP_MSG hsm_chansel_mask_resp;
 	};
 } __CAPTURE_IVC_ALIGN;
 

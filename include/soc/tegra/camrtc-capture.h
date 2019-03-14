@@ -613,6 +613,17 @@ struct event_inject_msg {
 };
 
 /**
+ * VI EC/HSM global CHANSEL error masking
+ */
+
+#define VI_HSM_CHANSEL_ERROR_MASK_BIT_NOMATCH U32_C(1)
+
+struct vi_hsm_chansel_error_mask_config {
+	uint32_t chansel_correctable_mask;
+	uint32_t chansel_uncorrectable_mask;
+} __CAPTURE_IVC_ALIGN;
+
+/**
  * NvPhy attributes
  */
 
@@ -764,6 +775,18 @@ struct nvcsi_cil_config {
 	uint32_t __pad32;
 } __CAPTURE_IVC_ALIGN;
 
+struct vi_hsm_csimux_error_mask_config {
+	/* Mask correctable CSIMUX */
+	uint32_t error_mask_correctable;
+	/* Mask uncorrectable CSIMUX */
+	uint32_t error_mask_uncorrectable;
+#define VI_HSM_CSIMUX_ERROR_MASK_BIT_SPURIOUS_EVENT (U32_C(1) << 0)
+#define VI_HSM_CSIMUX_ERROR_MASK_BIT_OVERFLOW (U32_C(1) << 1)
+#define VI_HSM_CSIMUX_ERROR_MASK_BIT_LOF (U32_C(1) << 2)
+#define VI_HSM_CSIMUX_ERROR_MASK_BIT_BADPKT (U32_C(1) << 3)
+} __CAPTURE_IVC_ALIGN;
+
+
 /* NVCSI stream novc+vc error flags */
 #define NVCSI_INTR_FLAG_STREAM_NOVC_ERR_PH_ECC_MULTI_BIT	(U32_C(1) << 0)
 #define NVCSI_INTR_FLAG_STREAM_NOVC_ERR_PH_BOTH_CRC		(U32_C(1) << 1)
@@ -858,6 +881,7 @@ struct nvcsi_error_config {
 	uint32_t cil_intr0_mask;
 	uint32_t cil_intr1_mask;
 	uint32_t __pad32;
+	struct vi_hsm_csimux_error_mask_config csimux_config;
 } __CAPTURE_IVC_ALIGN;
 
 /* NVCSI datatypes */
