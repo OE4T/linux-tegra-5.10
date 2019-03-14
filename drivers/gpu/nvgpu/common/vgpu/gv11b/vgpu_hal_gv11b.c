@@ -473,7 +473,6 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 		.capture_channel_ram_dump = NULL,
 		.intr_0_error_mask = gv11b_fifo_intr_0_error_mask,
 		.is_preempt_pending = gv11b_fifo_is_preempt_pending,
-		.init_pbdma_intr_descs = NULL,
 		.reset_enable_hw = NULL,
 		.teardown_ch_tsg = NULL,
 		.handle_sched_error = NULL,
@@ -510,6 +509,9 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 		.handle_pbdma_intr_1 = gv11b_pbdma_handle_intr_1,
 		.read_pbdma_data = NULL,
 		.reset_pbdma_header = NULL,
+		.device_fatal_0_intr_descs = NULL,
+		.channel_fatal_0_intr_descs = NULL,
+		.restartable_0_intr_descs = NULL,
 	},
 	.sync = {
 #ifdef CONFIG_TEGRA_GK20A_NVHOST

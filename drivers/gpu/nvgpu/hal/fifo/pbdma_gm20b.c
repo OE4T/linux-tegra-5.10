@@ -305,3 +305,59 @@ u32 gm20b_pbdma_read_data(struct gk20a *g, u32 pbdma_id)
 {
 	return nvgpu_readl(g, pbdma_hdr_shadow_r(pbdma_id));
 }
+
+u32 gm20b_pbdma_device_fatal_0_intr_descs(void)
+{
+	/*
+	 * These are all errors which indicate something really wrong
+	 * going on in the device.
+	 */
+	u32 fatal_device_0_intr_descs =
+		pbdma_intr_0_memreq_pending_f() |
+		pbdma_intr_0_memack_timeout_pending_f() |
+		pbdma_intr_0_memack_extra_pending_f() |
+		pbdma_intr_0_memdat_timeout_pending_f() |
+		pbdma_intr_0_memdat_extra_pending_f() |
+		pbdma_intr_0_memflush_pending_f() |
+		pbdma_intr_0_memop_pending_f() |
+		pbdma_intr_0_lbconnect_pending_f() |
+		pbdma_intr_0_lback_timeout_pending_f() |
+		pbdma_intr_0_lback_extra_pending_f() |
+		pbdma_intr_0_lbdat_timeout_pending_f() |
+		pbdma_intr_0_lbdat_extra_pending_f() |
+		pbdma_intr_0_pri_pending_f();
+
+	return fatal_device_0_intr_descs;
+}
+
+u32 gm20b_pbdma_channel_fatal_0_intr_descs(void)
+{
+	/*
+	 * These are data parsing, framing errors or others which can be
+	 * recovered from with intervention... or just resetting the
+	 * channel
+	 */
+	u32 channel_fatal_0_intr_descs =
+		pbdma_intr_0_gpfifo_pending_f() |
+		pbdma_intr_0_gpptr_pending_f() |
+		pbdma_intr_0_gpentry_pending_f() |
+		pbdma_intr_0_gpcrc_pending_f() |
+		pbdma_intr_0_pbptr_pending_f() |
+		pbdma_intr_0_pbentry_pending_f() |
+		pbdma_intr_0_pbcrc_pending_f() |
+		pbdma_intr_0_method_pending_f() |
+		pbdma_intr_0_methodcrc_pending_f() |
+		pbdma_intr_0_pbseg_pending_f() |
+		pbdma_intr_0_signature_pending_f();
+
+	return channel_fatal_0_intr_descs;
+}
+
+u32 gm20b_pbdma_restartable_0_intr_descs(void)
+{
+	/* Can be used for sw-methods, or represents a recoverable timeout. */
+	u32 restartable_0_intr_descs =
+		pbdma_intr_0_device_pending_f();
+
+	return restartable_0_intr_descs;
+}

@@ -40,4 +40,8 @@ void gm20b_pbdma_reset_method(struct gk20a *g, u32 pbdma_id,
 u32 gm20b_pbdma_acquire_val(u64 timeout);
 void gm20b_pbdma_dump_status(struct gk20a *g, struct gk20a_debug_output *o);
 
+u32 gm20b_pbdma_device_fatal_0_intr_descs(void);
+u32 gm20b_pbdma_channel_fatal_0_intr_descs(void);
+u32 gm20b_pbdma_restartable_0_intr_descs(void);
+
 #endif /* NVGPU_PBDMA_GM20B_H */

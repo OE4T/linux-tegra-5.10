@@ -877,7 +877,6 @@ struct gpu_ops {
 		u32 (*intr_0_error_mask)(struct gk20a *g);
 		int (*is_preempt_pending)(struct gk20a *g, u32 id,
 			unsigned int id_type);
-		void (*init_pbdma_intr_descs)(struct fifo_gk20a *f);
 		int (*reset_enable_hw)(struct gk20a *g);
 		int (*setup_userd)(struct channel_gk20a *c);
 		void (*teardown_ch_tsg)(struct gk20a *g, u32 act_eng_bitmask,
@@ -959,7 +958,9 @@ struct gpu_ops {
 		u32 (*pbdma_acquire_val)(u64 timeout);
 		u32 (*read_pbdma_data)(struct gk20a *g, u32 pbdma_id);
 		void (*reset_pbdma_header)(struct gk20a *g, u32 pbdma_id);
-
+		u32 (*device_fatal_0_intr_descs)(void);
+		u32 (*channel_fatal_0_intr_descs)(void);
+		u32 (*restartable_0_intr_descs)(void);
 	} pbdma;
 
 	struct {

@@ -613,7 +613,6 @@ static const struct gpu_ops gp10b_ops = {
 		.capture_channel_ram_dump = gk20a_capture_channel_ram_dump,
 		.intr_0_error_mask = gk20a_fifo_intr_0_error_mask,
 		.is_preempt_pending = gk20a_fifo_is_preempt_pending,
-		.init_pbdma_intr_descs = gp10b_fifo_init_pbdma_intr_descs,
 		.reset_enable_hw = gk20a_init_fifo_reset_enable_hw,
 		.teardown_ch_tsg = gk20a_fifo_teardown_ch_tsg,
 		.teardown_mask_intr = gk20a_fifo_teardown_mask_intr,
@@ -647,6 +646,12 @@ static const struct gpu_ops gp10b_ops = {
 		.handle_pbdma_intr_1 = gm20b_pbdma_handle_intr_1,
 		.read_pbdma_data = gm20b_pbdma_read_data,
 		.reset_pbdma_header = gm20b_pbdma_reset_header,
+		.device_fatal_0_intr_descs =
+			gm20b_pbdma_device_fatal_0_intr_descs,
+		.channel_fatal_0_intr_descs =
+			gp10b_pbdma_channel_fatal_0_intr_descs,
+		.restartable_0_intr_descs =
+			gm20b_pbdma_restartable_0_intr_descs,
 	},
 	.sync = {
 #ifdef CONFIG_TEGRA_GK20A_NVHOST

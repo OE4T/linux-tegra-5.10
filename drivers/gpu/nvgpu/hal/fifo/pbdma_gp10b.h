@@ -28,5 +28,6 @@
 struct gk20a;
 
 u32 gp10b_pbdma_get_signature(struct gk20a *g);
+u32 gp10b_pbdma_channel_fatal_0_intr_descs(void);
 
 #endif /* NVGPU_PBDMA_GP10B_H */

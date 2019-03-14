@@ -2373,6 +2373,25 @@ u32 gk20a_fifo_userd_entry_size(struct gk20a *g)
 	return BIT32(ram_userd_base_shift_v());
 }
 
+static void nvgpu_fifo_pbdma_init_intr_descs(struct fifo_gk20a *f)
+{
+	struct gk20a *g = f->g;
+
+	if (g->ops.pbdma.device_fatal_0_intr_descs != NULL) {
+		f->intr.pbdma.device_fatal_0 =
+			g->ops.pbdma.device_fatal_0_intr_descs();
+	}
+
+	if (g->ops.pbdma.device_fatal_0_intr_descs != NULL) {
+		f->intr.pbdma.channel_fatal_0 =
+			g->ops.pbdma.channel_fatal_0_intr_descs();
+	}
+	if (g->ops.pbdma.restartable_0_intr_descs != NULL) {
+		f->intr.pbdma.restartable_0 =
+			g->ops.pbdma.restartable_0_intr_descs();
+	}
+}
+
 bool gk20a_fifo_find_pbdma_for_runlist(struct fifo_gk20a *f, u32 runlist_id,
 								u32 *pbdma_id)
 {
@@ -2410,9 +2429,7 @@ int gk20a_fifo_init_pbdma_info(struct fifo_gk20a *f)
 		f->pbdma_map[id] = gk20a_readl(g, fifo_pbdma_map_r(id));
 	}
 
-	if (g->ops.fifo.init_pbdma_intr_descs != NULL) {
-		g->ops.fifo.init_pbdma_intr_descs(f);
-	}
+	nvgpu_fifo_pbdma_init_intr_descs(f);
 
 	return 0;
 }

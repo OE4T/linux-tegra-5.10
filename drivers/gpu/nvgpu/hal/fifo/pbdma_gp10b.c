@@ -32,3 +32,27 @@ u32 gp10b_pbdma_get_signature(struct gk20a *g)
 	return g->ops.get_litter_value(g, GPU_LIT_GPFIFO_CLASS)
 		| pbdma_signature_sw_zero_f();
 }
+
+u32 gp10b_pbdma_channel_fatal_0_intr_descs(void)
+{
+	/*
+	 * These are data parsing, framing errors or others which can be
+	 * recovered from with intervention... or just resetting the
+	 * channel
+	 */
+	u32 channel_fatal_0_intr_descs =
+		pbdma_intr_0_gpfifo_pending_f() |
+		pbdma_intr_0_gpptr_pending_f() |
+		pbdma_intr_0_gpentry_pending_f() |
+		pbdma_intr_0_gpcrc_pending_f() |
+		pbdma_intr_0_pbptr_pending_f() |
+		pbdma_intr_0_pbentry_pending_f() |
+		pbdma_intr_0_pbcrc_pending_f() |
+		pbdma_intr_0_method_pending_f() |
+		pbdma_intr_0_methodcrc_pending_f() |
+		pbdma_intr_0_pbseg_pending_f() |
+		pbdma_intr_0_syncpoint_illegal_pending_f() |
+		pbdma_intr_0_signature_pending_f();
+
+	return channel_fatal_0_intr_descs;
+}
