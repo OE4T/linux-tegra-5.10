@@ -26,6 +26,7 @@
 #include <nvgpu/types.h>
 
 struct gk20a;
+struct netlist_av_list;
 
 int gm20b_gr_init_fs_state(struct gk20a *g);
 void gm20b_gr_init_pd_tpc_per_gpc(struct gk20a *g);
@@ -37,5 +38,7 @@ int gm20b_gr_init_wait_fe_idle(struct gk20a *g);
 int gm20b_gr_init_fe_pwr_mode_force_on(struct gk20a *g, bool force_on);
 void gm20b_gr_init_override_context_reset(struct gk20a *g);
 void gm20b_gr_init_fe_go_idle_timeout(struct gk20a *g, bool enable);
+void gm20b_gr_init_load_method_init(struct gk20a *g,
+		struct netlist_av_list *sw_method_init);
 
 #endif /* NVGPU_GR_INIT_GM20B_H */

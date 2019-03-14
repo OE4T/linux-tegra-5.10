@@ -1041,7 +1041,6 @@ int gr_gk20a_init_golden_ctx_image(struct gk20a *g,
 	int err = 0;
 	struct netlist_aiv_list *sw_ctx_load = &g->netlist_vars->sw_ctx_load;
 	struct netlist_av_list *sw_method_init = &g->netlist_vars->sw_method_init;
-	u32 last_method_data = 0;
 
 	nvgpu_log_fn(g, " ");
 
@@ -1133,24 +1132,7 @@ restore_fe_go_idle:
 	}
 
 	/* load method init */
-	if (sw_method_init->count != 0U) {
-		gk20a_writel(g, gr_pri_mme_shadow_raw_data_r(),
-			     sw_method_init->l[0].value);
-		gk20a_writel(g, gr_pri_mme_shadow_raw_index_r(),
-			     gr_pri_mme_shadow_raw_index_write_trigger_f() |
-			     sw_method_init->l[0].addr);
-		last_method_data = sw_method_init->l[0].value;
-	}
-	for (i = 1; i < sw_method_init->count; i++) {
-		if (sw_method_init->l[i].value != last_method_data) {
-			gk20a_writel(g, gr_pri_mme_shadow_raw_data_r(),
-				sw_method_init->l[i].value);
-			last_method_data = sw_method_init->l[i].value;
-		}
-		gk20a_writel(g, gr_pri_mme_shadow_raw_index_r(),
-			gr_pri_mme_shadow_raw_index_write_trigger_f() |
-			sw_method_init->l[i].addr);
-	}
+	g->ops.gr.init.load_method_init(g, sw_method_init);
 
 	err = g->ops.gr.init.wait_idle(g);
 	if (err != 0) {

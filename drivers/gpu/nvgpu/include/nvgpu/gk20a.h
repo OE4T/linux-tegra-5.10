@@ -39,6 +39,7 @@ struct gk20a_debug_output;
 struct nvgpu_clk_pll_debug_data;
 struct nvgpu_nvhost_dev;
 struct nvgpu_netlist_vars;
+struct netlist_av_list;
 struct nvgpu_gr_global_ctx_buffer_desc;
 struct nvgpu_gr_fecs_trace;
 struct nvgpu_gpu_ctxsw_trace_entry;
@@ -686,6 +687,8 @@ struct gpu_ops {
 				bool gfxp_wfi_timeout_unit_usec);
 			void (*fe_go_idle_timeout)(struct gk20a *g,
 				bool enable);
+			void (*load_method_init)(struct gk20a *g,
+				struct netlist_av_list *sw_method_init);
 		} init;
 
 		u32 (*get_ctxsw_checksum_mismatch_mailbox_val)(void);

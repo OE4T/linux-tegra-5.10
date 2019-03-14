@@ -25,6 +25,7 @@
 #include <nvgpu/timers.h>
 #include <nvgpu/enabled.h>
 #include <nvgpu/engine_status.h>
+#include <nvgpu/netlist.h>
 
 #include <nvgpu/gr/gr.h>
 #include <nvgpu/gr/config.h>
@@ -301,5 +302,32 @@ void gm20b_gr_init_fe_go_idle_timeout(struct gk20a *g, bool enable)
 	} else {
 		nvgpu_writel(g, gr_fe_go_idle_timeout_r(),
 			gr_fe_go_idle_timeout_count_disabled_f());
+	}
+}
+
+void gm20b_gr_init_load_method_init(struct gk20a *g,
+		struct netlist_av_list *sw_method_init)
+{
+	u32 i;
+	u32 last_method_data = 0U;
+
+	if (sw_method_init->count != 0U) {
+		nvgpu_writel(g, gr_pri_mme_shadow_raw_data_r(),
+			     sw_method_init->l[0U].value);
+		nvgpu_writel(g, gr_pri_mme_shadow_raw_index_r(),
+			     gr_pri_mme_shadow_raw_index_write_trigger_f() |
+			     sw_method_init->l[0U].addr);
+		last_method_data = sw_method_init->l[0U].value;
+	}
+
+	for (i = 1U; i < sw_method_init->count; i++) {
+		if (sw_method_init->l[i].value != last_method_data) {
+			nvgpu_writel(g, gr_pri_mme_shadow_raw_data_r(),
+				sw_method_init->l[i].value);
+			last_method_data = sw_method_init->l[i].value;
+		}
+		nvgpu_writel(g, gr_pri_mme_shadow_raw_index_r(),
+			gr_pri_mme_shadow_raw_index_write_trigger_f() |
+			sw_method_init->l[i].addr);
 	}
 }

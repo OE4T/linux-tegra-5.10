@@ -668,6 +668,7 @@ static const struct gpu_ops tu104_ops = {
 				gm20b_gr_init_override_context_reset,
 			.preemption_state = gv11b_gr_init_preemption_state,
 			.fe_go_idle_timeout = gm20b_gr_init_fe_go_idle_timeout,
+			.load_method_init = gm20b_gr_init_load_method_init,
 		},
 	},
 	.fb = {
