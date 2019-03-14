@@ -137,8 +137,6 @@ static int nvgpu_fifo_init_locks(struct gk20a *g, struct fifo_gk20a *f)
 		goto destroy_2;
 	}
 
-	nvgpu_spinlock_init(&f->runlist_submit_lock);
-
 	return 0;
 
 destroy_2:

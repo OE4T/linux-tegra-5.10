@@ -688,6 +688,8 @@ int nvgpu_runlist_setup_sw(struct gk20a *g)
 
 	nvgpu_log_fn(g, " ");
 
+	nvgpu_spinlock_init(&f->runlist_submit_lock);
+
 	f->runlist_entry_size = g->ops.runlist.entry_size(g);
 	f->num_runlist_entries = g->ops.runlist.length_max(g);
 	f->max_runlists = g->ops.runlist.count_max();
