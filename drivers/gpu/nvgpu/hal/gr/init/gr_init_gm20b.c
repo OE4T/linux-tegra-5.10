@@ -25,7 +25,9 @@
 #include <nvgpu/timers.h>
 #include <nvgpu/enabled.h>
 #include <nvgpu/engine_status.h>
+
 #include <nvgpu/gr/gr.h>
+#include <nvgpu/gr/config.h>
 
 #include "gr_init_gm20b.h"
 
@@ -34,6 +36,76 @@
 #define FE_PWR_MODE_TIMEOUT_MAX_US 2000U
 #define FE_PWR_MODE_TIMEOUT_DEFAULT_US 10U
 #define FECS_CTXSW_RESET_DELAY_US 10U
+
+void gm20b_gr_init_pd_tpc_per_gpc(struct gk20a *g)
+{
+	u32 reg_index;
+	u32 tpc_per_gpc;
+	u32 gpc_id = 0;
+	struct nvgpu_gr_config *gr_config = g->gr.config;
+
+	for (reg_index = 0U, gpc_id = 0U;
+	     reg_index < gr_pd_num_tpc_per_gpc__size_1_v();
+	     reg_index++, gpc_id += 8U) {
+
+		tpc_per_gpc =
+		 gr_pd_num_tpc_per_gpc_count0_f(
+		  nvgpu_gr_config_get_gpc_tpc_count(gr_config, gpc_id + 0U)) |
+		 gr_pd_num_tpc_per_gpc_count1_f(
+		  nvgpu_gr_config_get_gpc_tpc_count(gr_config, gpc_id + 1U)) |
+		 gr_pd_num_tpc_per_gpc_count2_f(
+		  nvgpu_gr_config_get_gpc_tpc_count(gr_config, gpc_id + 2U)) |
+		 gr_pd_num_tpc_per_gpc_count3_f(
+		  nvgpu_gr_config_get_gpc_tpc_count(gr_config, gpc_id + 3U)) |
+		 gr_pd_num_tpc_per_gpc_count4_f(
+		  nvgpu_gr_config_get_gpc_tpc_count(gr_config, gpc_id + 4U)) |
+		 gr_pd_num_tpc_per_gpc_count5_f(
+		  nvgpu_gr_config_get_gpc_tpc_count(gr_config, gpc_id + 5U)) |
+		 gr_pd_num_tpc_per_gpc_count6_f(
+		  nvgpu_gr_config_get_gpc_tpc_count(gr_config, gpc_id + 6U)) |
+		 gr_pd_num_tpc_per_gpc_count7_f(
+		  nvgpu_gr_config_get_gpc_tpc_count(gr_config, gpc_id + 7U));
+
+		nvgpu_writel(g, gr_pd_num_tpc_per_gpc_r(reg_index), tpc_per_gpc);
+		nvgpu_writel(g, gr_ds_num_tpc_per_gpc_r(reg_index), tpc_per_gpc);
+	}
+}
+
+void gm20b_gr_init_pd_skip_table_gpc(struct gk20a *g)
+{
+	u32 gpc_index;
+	bool skip_mask;
+	struct nvgpu_gr_config *gr_config = g->gr.config;
+
+	for (gpc_index = 0;
+	     gpc_index < gr_pd_dist_skip_table__size_1_v() * 4U;
+	     gpc_index += 4U) {
+		skip_mask =
+		 (gr_pd_dist_skip_table_gpc_4n0_mask_f(
+		   nvgpu_gr_config_get_gpc_skip_mask(gr_config,
+						     gpc_index)) != 0U) ||
+		 (gr_pd_dist_skip_table_gpc_4n1_mask_f(
+		   nvgpu_gr_config_get_gpc_skip_mask(gr_config,
+						     gpc_index + 1U)) != 0U) ||
+		 (gr_pd_dist_skip_table_gpc_4n2_mask_f(
+		   nvgpu_gr_config_get_gpc_skip_mask(gr_config,
+						     gpc_index + 2U)) != 0U) ||
+		 (gr_pd_dist_skip_table_gpc_4n3_mask_f(
+		   nvgpu_gr_config_get_gpc_skip_mask(gr_config,
+						     gpc_index + 3U)) != 0U);
+
+		nvgpu_writel(g, gr_pd_dist_skip_table_r(gpc_index/4U),
+			     (u32)skip_mask);
+	}
+}
+
+void gm20b_gr_init_cwd_gpcs_tpcs_num(struct gk20a *g,
+				     u32 gpc_count, u32 tpc_count)
+{
+	nvgpu_writel(g, gr_cwd_fs_r(),
+		     gr_cwd_fs_num_gpcs_f(gpc_count) |
+		     gr_cwd_fs_num_tpcs_f(tpc_count));
+}
 
 int gm20b_gr_init_wait_idle(struct gk20a *g)
 {

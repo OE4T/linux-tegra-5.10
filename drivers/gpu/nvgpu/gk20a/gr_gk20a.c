@@ -919,11 +919,10 @@ int gr_gk20a_init_fs_state(struct gk20a *g)
 {
 	struct gr_gk20a *gr = &g->gr;
 	u32 tpc_index, gpc_index;
-	u32 sm_id = 0, gpc_id = 0;
-	u32 tpc_per_gpc;
+	u32 sm_id = 0;
 	u32 fuse_tpc_mask;
-	u32 reg_index;
-	int err;
+	u32 gpc_cnt, tpc_cnt;
+	int err = 0;
 
 	nvgpu_log_fn(g, " ");
 
@@ -946,72 +945,26 @@ int gr_gk20a_init_fs_state(struct gk20a *g)
 		g->ops.gr.program_sm_id_numbering(g, gpc_index, tpc_index, sm_id);
 	}
 
-	for (reg_index = 0U, gpc_id = 0U;
-	     reg_index < gr_pd_num_tpc_per_gpc__size_1_v();
-	     reg_index++, gpc_id += 8U) {
-
-		tpc_per_gpc =
-			gr_pd_num_tpc_per_gpc_count0_f(
-				nvgpu_gr_config_get_gpc_tpc_count(gr->config, gpc_id + 0U)) |
-			gr_pd_num_tpc_per_gpc_count1_f(
-				nvgpu_gr_config_get_gpc_tpc_count(gr->config, gpc_id + 1U)) |
-			gr_pd_num_tpc_per_gpc_count2_f(
-				nvgpu_gr_config_get_gpc_tpc_count(gr->config, gpc_id + 2U)) |
-			gr_pd_num_tpc_per_gpc_count3_f(
-				nvgpu_gr_config_get_gpc_tpc_count(gr->config, gpc_id + 3U)) |
-			gr_pd_num_tpc_per_gpc_count4_f(
-				nvgpu_gr_config_get_gpc_tpc_count(gr->config, gpc_id + 4U)) |
-			gr_pd_num_tpc_per_gpc_count5_f(
-				nvgpu_gr_config_get_gpc_tpc_count(gr->config, gpc_id + 5U)) |
-			gr_pd_num_tpc_per_gpc_count6_f(
-				nvgpu_gr_config_get_gpc_tpc_count(gr->config, gpc_id + 6U)) |
-			gr_pd_num_tpc_per_gpc_count7_f(
-				nvgpu_gr_config_get_gpc_tpc_count(gr->config, gpc_id + 7U));
-
-		gk20a_writel(g, gr_pd_num_tpc_per_gpc_r(reg_index), tpc_per_gpc);
-		gk20a_writel(g, gr_ds_num_tpc_per_gpc_r(reg_index), tpc_per_gpc);
-	}
+	g->ops.gr.init.pd_tpc_per_gpc(g);
 
 	/* gr__setup_pd_mapping stubbed for gk20a */
 	g->ops.gr.setup_rop_mapping(g, gr);
 
-	for (gpc_index = 0;
-	     gpc_index < gr_pd_dist_skip_table__size_1_v() * 4U;
-	     gpc_index += 4U) {
-		bool skip_mask =
-			(gr_pd_dist_skip_table_gpc_4n0_mask_f(
-				nvgpu_gr_config_get_gpc_skip_mask(gr->config, gpc_index)) != 0U) ||
-			(gr_pd_dist_skip_table_gpc_4n1_mask_f(
-				nvgpu_gr_config_get_gpc_skip_mask(gr->config, gpc_index + 1U)) != 0U) ||
-			(gr_pd_dist_skip_table_gpc_4n2_mask_f(
-				nvgpu_gr_config_get_gpc_skip_mask(gr->config, gpc_index + 2U)) != 0U) ||
-			(gr_pd_dist_skip_table_gpc_4n3_mask_f(
-				nvgpu_gr_config_get_gpc_skip_mask(gr->config, gpc_index + 3U)) != 0U);
-
-		gk20a_writel(g, gr_pd_dist_skip_table_r(gpc_index/4U),
-			     (u32)skip_mask);
-	}
+	g->ops.gr.init.pd_skip_table_gpc(g);
 
 	fuse_tpc_mask = g->ops.gr.config.get_gpc_tpc_mask(g, gr->config, 0);
+	gpc_cnt = nvgpu_gr_config_get_gpc_count(gr->config);
+	tpc_cnt = nvgpu_gr_config_get_tpc_count(gr->config);
+
 	if ((g->tpc_fs_mask_user != 0U) &&
 		(fuse_tpc_mask == BIT32(nvgpu_gr_config_get_max_tpc_count(gr->config)) - 1U)) {
 		u32 val = g->tpc_fs_mask_user;
 		val &= BIT32(nvgpu_gr_config_get_max_tpc_count(gr->config)) - U32(1);
-		gk20a_writel(g, gr_cwd_fs_r(),
-			gr_cwd_fs_num_gpcs_f(nvgpu_gr_config_get_gpc_count(gr->config)) |
-			gr_cwd_fs_num_tpcs_f((u32)hweight32(val)));
-	} else {
-		gk20a_writel(g, gr_cwd_fs_r(),
-			gr_cwd_fs_num_gpcs_f(nvgpu_gr_config_get_gpc_count(gr->config)) |
-			gr_cwd_fs_num_tpcs_f(nvgpu_gr_config_get_tpc_count(gr->config)));
+		tpc_cnt = (u32)hweight32(val);
 	}
+	g->ops.gr.init.cwd_gpcs_tpcs_num(g, gpc_cnt, tpc_cnt);
 
-	gk20a_writel(g, gr_bes_zrop_settings_r(),
-		     gr_bes_zrop_settings_num_active_fbps_f(gr->num_fbps));
-	gk20a_writel(g, gr_bes_crop_settings_r(),
-		     gr_bes_crop_settings_num_active_fbps_f(gr->num_fbps));
-
-	return 0;
+	return err;
 }
 
 int gr_gk20a_fecs_ctx_image_save(struct channel_gk20a *c, u32 save_type)

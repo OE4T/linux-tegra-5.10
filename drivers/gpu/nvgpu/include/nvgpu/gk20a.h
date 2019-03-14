@@ -636,6 +636,11 @@ struct gpu_ops {
 		} hwpm_map;
 
 		struct {
+			void (*pd_tpc_per_gpc)(struct gk20a *g);
+			void (*pd_skip_table_gpc)(struct gk20a *g);
+			void (*cwd_gpcs_tpcs_num)(struct gk20a *g,
+						  u32 gpc_count,
+						  u32 tpc_count);
 			int (*wait_idle)(struct gk20a *g);
 			int (*wait_fe_idle)(struct gk20a *g);
 			int (*fe_pwr_mode_force_on)(struct gk20a *g,
