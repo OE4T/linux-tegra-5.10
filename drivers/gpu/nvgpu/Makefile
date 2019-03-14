@@ -191,7 +191,8 @@ nvgpu-y += \
 	hal/fuse/fuse_gp10b.o \
 	hal/fuse/fuse_gp106.o \
 	hal/fifo/engines_gm20b.o \
-	hal/fifo/engines_gv11b.o
+	hal/fifo/engines_gv11b.o \
+	hal/falcon/falcon_gk20a.o
 
 # Linux specific parts of nvgpu.
 nvgpu-y += \
@@ -354,7 +355,6 @@ nvgpu-y += \
 	common/rbtree.o \
 	common/vbios/bios.o \
 	common/falcon/falcon.o \
-	common/falcon/falcon_gk20a.o \
 	common/falcon/falcon_sw_gk20a.o \
 	common/falcon/falcon_sw_gp106.o \
 	common/falcon/falcon_sw_gv100.o \

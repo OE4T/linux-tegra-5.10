@@ -46,6 +46,7 @@
 #include "hal/fuse/fuse_gm20b.h"
 #include "hal/fifo/engines_gm20b.h"
 #include "hal/gr/init/gr_init_gm20b.h"
+#include "hal/falcon/falcon_gk20a.h"
 
 #include "common/ptimer/ptimer_gk20a.h"
 #include "common/fb/fb_gm20b.h"
@@ -58,7 +59,6 @@
 #include "common/perf/perf_gm20b.h"
 #include "common/pmu/pmu_gk20a.h"
 #include "common/pmu/pmu_gm20b.h"
-#include "common/falcon/falcon_gk20a.h"
 #include "common/top/top_gm20b.h"
 #include "common/sync/syncpt_cmdbuf_gk20a.h"
 #include "common/sync/sema_cmdbuf_gk20a.h"

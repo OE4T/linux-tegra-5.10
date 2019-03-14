@@ -22,6 +22,8 @@
 #ifndef NVGPU_FALCON_GK20A_H
 #define NVGPU_FALCON_GK20A_H
 
+#include <nvgpu/falcon.h>
+
 /* Falcon Register index */
 #define FALCON_REG_R0		(0U)
 #define FALCON_REG_R1		(1U)

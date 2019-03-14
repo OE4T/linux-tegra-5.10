@@ -42,6 +42,7 @@
 #include "hal/fifo/engines_gv11b.h"
 #include "hal/gr/init/gr_init_gm20b.h"
 #include "hal/gr/hwpm_map/hwpm_map_gv100.h"
+#include "hal/falcon/falcon_gk20a.h"
 
 #include "common/ptimer/ptimer_gk20a.h"
 #include "common/fb/fb_gm20b.h"
@@ -77,7 +78,6 @@
 #include "common/pmu/pmu_gv100.h"
 #include "common/pmu/pmu_gv11b.h"
 #include "common/pmu/pmu_tu104.h"
-#include "common/falcon/falcon_gk20a.h"
 #include "common/nvdec/nvdec_tu104.h"
 #include "common/top/top_gm20b.h"
 #include "common/top/top_gp10b.h"
