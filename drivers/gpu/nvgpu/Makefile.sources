@@ -325,6 +325,7 @@ srcs += common/sim.c \
 	hal/gr/init/gr_init_gm20b.c \
 	hal/gr/init/gr_init_gp10b.c \
 	hal/gr/init/gr_init_gv11b.c \
+	hal/gr/init/gr_init_tu104.c \
 	hal/gr/hwpm_map/hwpm_map_gv100.c \
 	hal/gr/zbc/zbc_gm20b.c \
 	hal/gr/zbc/zbc_gp10b.c \

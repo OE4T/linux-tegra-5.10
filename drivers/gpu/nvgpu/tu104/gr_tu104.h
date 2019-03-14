@@ -63,7 +63,6 @@ int gr_tu104_init_sw_bundle64(struct gk20a *g);
 void gr_tu10x_create_sysfs(struct gk20a *g);
 void gr_tu10x_remove_sysfs(struct gk20a *g);
 
-int gr_tu104_alloc_global_ctx_buffers(struct gk20a *g);
 int gr_tu104_commit_global_ctx_buffers(struct gk20a *g,
 			struct nvgpu_gr_ctx *gr_ctx, bool patch);
 

@@ -124,33 +124,6 @@ int gr_tu104_init_sw_bundle64(struct gk20a *g)
 	return err;
 }
 
-int gr_tu104_alloc_global_ctx_buffers(struct gk20a *g)
-{
-	int err;
-	struct gr_gk20a *gr = &g->gr;
-	u32 rtv_circular_buffer_size;
-
-	nvgpu_log_fn(g, " ");
-
-	rtv_circular_buffer_size =
-		(gr_scc_rm_rtv_cb_size_div_256b_default_f() +
-			gr_scc_rm_rtv_cb_size_div_256b_db_adder_f()) *
-		gr_scc_bundle_cb_size_div_256b_byte_granularity_v();
-	nvgpu_log_info(g, "rtv_circular_buffer_size : %u",
-		rtv_circular_buffer_size);
-
-	nvgpu_gr_global_ctx_set_size(gr->global_ctx_buffer,
-		NVGPU_GR_GLOBAL_CTX_RTV_CIRCULAR_BUFFER,
-		rtv_circular_buffer_size);
-
-	err = gr_gk20a_alloc_global_ctx_buffers(g);
-	if (err != 0) {
-		return err;
-	}
-
-	return 0;
-}
-
 static void gr_tu104_commit_rtv_circular_buffer(struct gk20a *g,
 	struct nvgpu_gr_ctx *gr_ctx,
 	u64 addr, u32 size, u32 gfxpAddSize, bool patch)

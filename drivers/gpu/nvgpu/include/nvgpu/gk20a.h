@@ -688,6 +688,7 @@ struct gpu_ops {
 			void (*load_method_init)(struct gk20a *g,
 				struct netlist_av_list *sw_method_init);
 			void (*commit_global_timeslice)(struct gk20a *g);
+			u32 (*get_rtv_cb_size)(struct gk20a *g);
 		} init;
 
 		u32 (*get_ctxsw_checksum_mismatch_mailbox_val)(void);

@@ -54,6 +54,7 @@
 #include "hal/gr/zbc/zbc_gv11b.h"
 #include "hal/gr/init/gr_init_gm20b.h"
 #include "hal/gr/init/gr_init_gv11b.h"
+#include "hal/gr/init/gr_init_tu104.h"
 #include "hal/gr/hwpm_map/hwpm_map_gv100.h"
 #include "hal/falcon/falcon_gk20a.h"
 
@@ -503,7 +504,7 @@ static const struct gpu_ops tu104_ops = {
 		.split_fbpa_broadcast_addr = gr_gv100_split_fbpa_broadcast_addr,
 		.init_sw_bundle64 = gr_tu104_init_sw_bundle64,
 		.fecs_ctxsw_mailbox_size = gr_fecs_ctxsw_mailbox__size_1_v,
-		.alloc_global_ctx_buffers = gr_tu104_alloc_global_ctx_buffers,
+		.alloc_global_ctx_buffers = gr_gk20a_alloc_global_ctx_buffers,
 		.commit_global_ctx_buffers = gr_tu104_commit_global_ctx_buffers,
 		.get_nonpes_aware_tpc = gr_gv11b_get_nonpes_aware_tpc,
 		.get_offset_in_gpccs_segment =
@@ -670,6 +671,7 @@ static const struct gpu_ops tu104_ops = {
 			.load_method_init = gm20b_gr_init_load_method_init,
 			.commit_global_timeslice =
 				gv11b_gr_init_commit_global_timeslice,
+			.get_rtv_cb_size = tu104_gr_init_get_rtv_cb_size,
 		},
 	},
 	.fb = {

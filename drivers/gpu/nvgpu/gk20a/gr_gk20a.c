@@ -1837,6 +1837,14 @@ int gr_gk20a_alloc_global_ctx_buffers(struct gk20a *g)
 		gr->ctx_vars.fecs_trace_buffer_size);
 #endif
 
+	if (g->ops.gr.init.get_rtv_cb_size != NULL) {
+		size = g->ops.gr.init.get_rtv_cb_size(g);
+		nvgpu_log_info(g, "rtv_circular_buffer_size : %u", size);
+
+		nvgpu_gr_global_ctx_set_size(gr->global_ctx_buffer,
+			NVGPU_GR_GLOBAL_CTX_RTV_CIRCULAR_BUFFER, size);
+	}
+
 	err = nvgpu_gr_global_ctx_buffer_alloc(g, gr->global_ctx_buffer);
 	if (err != 0) {
 		return err;
