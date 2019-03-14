@@ -89,3 +89,39 @@ void tu104_gr_init_commit_gfxp_rtv_cb(struct gk20a *g,
 	tu104_gr_init_patch_rtv_cb(g, gr_ctx, addr,
 		rtv_cb_size, gfxp_addr_size, patch);
 }
+
+u32 tu104_gr_init_get_bundle_cb_default_size(struct gk20a *g)
+{
+	return gr_scc_bundle_cb_size_div_256b__prod_v();
+}
+
+u32 tu104_gr_init_get_min_gpm_fifo_depth(struct gk20a *g)
+{
+	return gr_pd_ab_dist_cfg2_state_limit_min_gpm_fifo_depths_v();
+}
+
+u32 tu104_gr_init_get_bundle_cb_token_limit(struct gk20a *g)
+{
+	return gr_pd_ab_dist_cfg2_token_limit_init_v();
+}
+
+u32 tu104_gr_init_get_attrib_cb_default_size(struct gk20a *g)
+{
+	return gr_gpc0_ppc0_cbm_beta_cb_size_v_default_v();
+}
+
+u32 tu104_gr_init_get_alpha_cb_default_size(struct gk20a *g)
+{
+	return gr_gpc0_ppc0_cbm_alpha_cb_size_v_default_v();
+}
+
+u32 tu104_gr_init_get_attrib_cb_gfxp_default_size(struct gk20a *g)
+{
+	return gr_gpc0_ppc0_cbm_beta_cb_size_v_gfxp_v();
+}
+
+u32 tu104_gr_init_get_attrib_cb_gfxp_size(struct gk20a *g)
+{
+	return gr_gpc0_ppc0_cbm_beta_cb_size_v_gfxp_v();
+}
+

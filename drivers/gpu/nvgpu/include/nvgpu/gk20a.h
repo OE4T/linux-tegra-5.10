@@ -256,9 +256,6 @@ struct gpu_ops {
 	struct {
 		u32 (*get_patch_slots)(struct gk20a *g);
 		void (*access_smpc_reg)(struct gk20a *g, u32 quad, u32 offset);
-		void (*bundle_cb_defaults)(struct gk20a *g);
-		void (*cb_size_default)(struct gk20a *g);
-		u32 (*calc_global_ctx_buffer_size)(struct gk20a *g);
 		void (*commit_global_attrib_cb)(struct gk20a *g,
 						struct nvgpu_gr_ctx *ch_ctx,
 						u64 addr, bool patch);
@@ -699,6 +696,19 @@ struct gpu_ops {
 				struct nvgpu_gr_ctx *gr_ctx, bool patch);
 			void (*commit_gfxp_rtv_cb)(struct gk20a *g,
 				struct nvgpu_gr_ctx *gr_ctx, bool patch);
+			u32 (*get_bundle_cb_default_size)(struct gk20a *g);
+			u32 (*get_min_gpm_fifo_depth)(struct gk20a *g);
+			u32 (*get_bundle_cb_token_limit)(struct gk20a *g);
+			u32 (*get_attrib_cb_default_size)(struct gk20a *g);
+			u32 (*get_alpha_cb_default_size)(struct gk20a *g);
+			u32 (*get_attrib_cb_gfxp_default_size)(struct gk20a *g);
+			u32 (*get_attrib_cb_gfxp_size)(struct gk20a *g);
+			u32 (*get_attrib_cb_size)(struct gk20a *g,
+				u32 tpc_count);
+			u32 (*get_alpha_cb_size)(struct gk20a *g,
+				u32 tpc_count);
+			u32 (*get_global_attr_cb_size)(struct gk20a *g,
+				u32 tpc_count, u32 max_tpc);
 		} init;
 
 		u32 (*get_ctxsw_checksum_mismatch_mailbox_val)(void);

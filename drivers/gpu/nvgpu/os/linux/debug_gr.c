@@ -17,14 +17,39 @@
 
 #include <linux/debugfs.h>
 
+static int gr_default_attrib_cb_size_show(struct seq_file *s, void *data)
+{
+	struct gk20a *g = s->private;
+
+	seq_printf(s, "%u\n", g->ops.gr.init.get_attrib_cb_default_size(g));
+
+	return 0;
+}
+
+static int gr_default_attrib_cb_size_open(struct inode *inode,
+	struct file *file)
+{
+	return single_open(file, gr_default_attrib_cb_size_show,
+		inode->i_private);
+}
+
+static const struct file_operations gr_default_attrib_cb_size_fops= {
+	.open		= gr_default_attrib_cb_size_open,
+	.read		= seq_read,
+	.llseek		= seq_lseek,
+	.release	= single_release,
+};
+
 int gr_gk20a_debugfs_init(struct gk20a *g)
 {
 	struct nvgpu_os_linux *l = nvgpu_os_linux_from_gk20a(g);
+	struct dentry *d;
 
-	l->debugfs_gr_default_attrib_cb_size =
-		debugfs_create_u32("gr_default_attrib_cb_size",
-				   S_IRUGO|S_IWUSR, l->debugfs,
-				   &g->gr.attrib_cb_default_size);
+	d = debugfs_create_file(
+		"gr_default_attrib_cb_size", S_IRUGO, l->debugfs, g,
+						&gr_default_attrib_cb_size_fops);
+	if (!d)
+		return -ENOMEM;
 
 	return 0;
 }

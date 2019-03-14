@@ -191,30 +191,6 @@ free_resources:
 	return err;
 }
 
-void gr_gv100_bundle_cb_defaults(struct gk20a *g)
-{
-	struct gr_gk20a *gr = &g->gr;
-
-	gr->bundle_cb_default_size =
-		gr_scc_bundle_cb_size_div_256b__prod_v();
-	gr->min_gpm_fifo_depth =
-		gr_pd_ab_dist_cfg2_state_limit_min_gpm_fifo_depths_v();
-	gr->bundle_cb_token_limit =
-		gr_pd_ab_dist_cfg2_token_limit_init_v();
-}
-
-void gr_gv100_cb_size_default(struct gk20a *g)
-{
-	struct gr_gk20a *gr = &g->gr;
-
-	if (gr->attrib_cb_default_size == 0U) {
-		gr->attrib_cb_default_size =
-			gr_gpc0_ppc0_cbm_beta_cb_size_v_default_v();
-	}
-	gr->alpha_cb_default_size =
-		gr_gpc0_ppc0_cbm_alpha_cb_size_v_default_v();
-}
-
 void gr_gv100_set_gpc_tpc_mask(struct gk20a *g, u32 gpc_index)
 {
 }

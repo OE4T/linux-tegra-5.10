@@ -201,16 +201,6 @@ struct gr_gk20a {
 	u32 num_fbps;
 	u32 max_fbps_count;
 
-	u32 bundle_cb_default_size;
-	u32 min_gpm_fifo_depth;
-	u32 bundle_cb_token_limit;
-	u32 attrib_cb_default_size;
-	u32 attrib_cb_size;
-	u32 attrib_cb_gfxp_default_size;
-	u32 attrib_cb_gfxp_size;
-	u32 alpha_cb_default_size;
-	u32 alpha_cb_size;
-
 	u32 gfxp_wfi_timeout_count;
 	bool gfxp_wfi_timeout_unit_usec;
 

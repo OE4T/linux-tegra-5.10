@@ -50,9 +50,6 @@ int gm20b_gr_tpc_disable_override(struct gk20a *g, u32 mask);
 void gr_gm20b_set_rd_coalesce(struct gk20a *g, u32 data);
 void gm20a_gr_disable_rd_coalesce(struct gk20a *g);
 void gr_gm20b_init_gpc_mmu(struct gk20a *g);
-void gr_gm20b_bundle_cb_defaults(struct gk20a *g);
-void gr_gm20b_cb_size_default(struct gk20a *g);
-u32 gr_gm20b_calc_global_ctx_buffer_size(struct gk20a *g);
 void gr_gm20b_commit_global_bundle_cb(struct gk20a *g,
 					    struct nvgpu_gr_ctx *ch_ctx,
 					    u64 addr, u64 size, bool patch);

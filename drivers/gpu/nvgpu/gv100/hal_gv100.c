@@ -58,6 +58,7 @@
 #include "hal/gr/zbc/zbc_gv11b.h"
 #include "hal/gr/init/gr_init_gm20b.h"
 #include "hal/gr/init/gr_init_gp10b.h"
+#include "hal/gr/init/gr_init_gv100.h"
 #include "hal/gr/init/gr_init_gv11b.h"
 #include "hal/gr/hwpm_map/hwpm_map_gv100.h"
 #include "hal/falcon/falcon_gk20a.h"
@@ -361,10 +362,6 @@ static const struct gpu_ops gv100_ops = {
 	.gr = {
 		.get_patch_slots = gr_gv100_get_patch_slots,
 		.init_gpc_mmu = gr_gv11b_init_gpc_mmu,
-		.bundle_cb_defaults = gr_gv100_bundle_cb_defaults,
-		.cb_size_default = gr_gv100_cb_size_default,
-		.calc_global_ctx_buffer_size =
-			gr_gv11b_calc_global_ctx_buffer_size,
 		.commit_global_attrib_cb = gr_gv11b_commit_global_attrib_cb,
 		.commit_global_bundle_cb = gr_gp10b_commit_global_bundle_cb,
 		.commit_global_cb_manager = gr_gp10b_commit_global_cb_manager,
@@ -651,6 +648,26 @@ static const struct gpu_ops gv100_ops = {
 			.load_method_init = gm20b_gr_init_load_method_init,
 			.commit_global_timeslice =
 				gv11b_gr_init_commit_global_timeslice,
+			.get_bundle_cb_default_size =
+				gv100_gr_init_get_bundle_cb_default_size,
+			.get_min_gpm_fifo_depth =
+				gv100_gr_init_get_min_gpm_fifo_depth,
+			.get_bundle_cb_token_limit =
+				gv100_gr_init_get_bundle_cb_token_limit,
+			.get_attrib_cb_default_size =
+				gv100_gr_init_get_attrib_cb_default_size,
+			.get_alpha_cb_default_size =
+				gv100_gr_init_get_alpha_cb_default_size,
+			.get_attrib_cb_gfxp_default_size =
+				gv100_gr_init_get_attrib_cb_gfxp_default_size,
+			.get_attrib_cb_gfxp_size =
+				gv100_gr_init_get_attrib_cb_gfxp_size,
+			.get_attrib_cb_size =
+				gv11b_gr_init_get_attrib_cb_size,
+			.get_alpha_cb_size =
+				gv11b_gr_init_get_alpha_cb_size,
+			.get_global_attr_cb_size =
+				gv11b_gr_init_get_global_attr_cb_size,
 		},
 	},
 	.fb = {

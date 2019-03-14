@@ -1,7 +1,5 @@
 /*
- * GV100 GPU GR
- *
- * Copyright (c) 2017-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -22,21 +20,19 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NVGPU_GR_GV100_H
-#define NVGPU_GR_GV100_H
+#ifndef NVGPU_GR_INIT_GV100_H
+#define NVGPU_GR_INIT_GV100_H
 
-void gr_gv100_set_gpc_tpc_mask(struct gk20a *g, u32 gpc_index);
-int gr_gv100_init_sm_id_table(struct gk20a *g);
-void gr_gv100_program_sm_id_numbering(struct gk20a *g,
-					u32 gpc, u32 tpc, u32 smid);
-int gr_gv100_load_smid_config(struct gk20a *g);
-u32 gr_gv100_get_patch_slots(struct gk20a *g);
-void gr_gv100_split_fbpa_broadcast_addr(struct gk20a *g, u32 addr,
-	u32 num_fbpas,
-	u32 *priv_addr_table, u32 *t);
-void gr_gv100_init_hwpm_pmm_register(struct gk20a *g);
-void gr_gv100_set_pmm_register(struct gk20a *g, u32 offset, u32 val,
-				u32 num_chiplets, u32 num_perfmons);
-void gr_gv100_get_num_hwpm_perfmon(struct gk20a *g, u32 *num_sys_perfmon,
-				u32 *num_fbp_perfmon, u32 *num_gpc_perfmon);
-#endif /* NVGPU_GR_GV100_H */
+#include <nvgpu/types.h>
+
+struct gk20a;
+
+u32 gv100_gr_init_get_bundle_cb_default_size(struct gk20a *g);
+u32 gv100_gr_init_get_min_gpm_fifo_depth(struct gk20a *g);
+u32 gv100_gr_init_get_bundle_cb_token_limit(struct gk20a *g);
+u32 gv100_gr_init_get_attrib_cb_default_size(struct gk20a *g);
+u32 gv100_gr_init_get_alpha_cb_default_size(struct gk20a *g);
+u32 gv100_gr_init_get_attrib_cb_gfxp_default_size(struct gk20a *g);
+u32 gv100_gr_init_get_attrib_cb_gfxp_size(struct gk20a *g);
+
+#endif /* NVGPU_GR_INIT_GV100_H */

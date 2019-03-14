@@ -56,4 +56,14 @@ void gm20b_gr_init_load_method_init(struct gk20a *g,
 		struct netlist_av_list *sw_method_init);
 void gm20b_gr_init_commit_global_timeslice(struct gk20a *g);
 
+u32 gm20b_gr_init_get_bundle_cb_default_size(struct gk20a *g);
+u32 gm20b_gr_init_get_min_gpm_fifo_depth(struct gk20a *g);
+u32 gm20b_gr_init_get_bundle_cb_token_limit(struct gk20a *g);
+u32 gm20b_gr_init_get_attrib_cb_default_size(struct gk20a *g);
+u32 gm20b_gr_init_get_alpha_cb_default_size(struct gk20a *g);
+u32 gm20b_gr_init_get_attrib_cb_size(struct gk20a *g, u32 tpc_count);
+u32 gm20b_gr_init_get_alpha_cb_size(struct gk20a *g, u32 tpc_count);
+u32 gm20b_gr_init_get_global_attr_cb_size(struct gk20a *g, u32 tpc_count,
+	u32 max_tpc);
+
 #endif /* NVGPU_GR_INIT_GM20B_H */

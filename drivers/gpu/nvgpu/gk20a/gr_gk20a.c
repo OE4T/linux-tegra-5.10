@@ -709,7 +709,7 @@ int gr_gk20a_commit_global_ctx_buffers(struct gk20a *g,
 			NVGPU_GR_CTX_CIRCULAR_VA) >>
 		U64(gr_scc_bundle_cb_base_addr_39_8_align_bits_v());
 
-	size = gr->bundle_cb_default_size;
+	size = g->ops.gr.init.get_bundle_cb_default_size(g);
 
 	nvgpu_log_info(g, "bundle cb addr : 0x%016llx, size : %d",
 		addr, size);
@@ -1676,7 +1676,9 @@ int gr_gk20a_alloc_global_ctx_buffers(struct gk20a *g)
 	nvgpu_gr_global_ctx_set_size(gr->global_ctx_buffer,
 		NVGPU_GR_GLOBAL_CTX_PAGEPOOL_VPR, size);
 
-	size = g->ops.gr.calc_global_ctx_buffer_size(g);
+	size = g->ops.gr.init.get_global_attr_cb_size(g,
+			nvgpu_gr_config_get_tpc_count(g->gr.config),
+			nvgpu_gr_config_get_max_tpc_count(g->gr.config));
 	nvgpu_log_info(g, "attr_buffer_size : %u", size);
 
 	nvgpu_gr_global_ctx_set_size(gr->global_ctx_buffer,
@@ -1993,19 +1995,22 @@ static int gr_gk20a_init_gr_config(struct gk20a *g, struct gr_gk20a *gr)
 	nvgpu_log_info(g, "fbps: %d", gr->num_fbps);
 	nvgpu_log_info(g, "max_fbps_count: %d", gr->max_fbps_count);
 
-	g->ops.gr.bundle_cb_defaults(g);
-	g->ops.gr.cb_size_default(g);
-	g->ops.gr.calc_global_ctx_buffer_size(g);
-
 	nvgpu_log_info(g, "bundle_cb_default_size: %d",
-		   gr->bundle_cb_default_size);
-	nvgpu_log_info(g, "min_gpm_fifo_depth: %d", gr->min_gpm_fifo_depth);
-	nvgpu_log_info(g, "bundle_cb_token_limit: %d", gr->bundle_cb_token_limit);
+		g->ops.gr.init.get_bundle_cb_default_size(g));
+	nvgpu_log_info(g, "min_gpm_fifo_depth: %d",
+		g->ops.gr.init.get_min_gpm_fifo_depth(g));
+	nvgpu_log_info(g, "bundle_cb_token_limit: %d",
+		g->ops.gr.init.get_bundle_cb_token_limit(g));
 	nvgpu_log_info(g, "attrib_cb_default_size: %d",
-		   gr->attrib_cb_default_size);
-	nvgpu_log_info(g, "attrib_cb_size: %d", gr->attrib_cb_size);
-	nvgpu_log_info(g, "alpha_cb_default_size: %d", gr->alpha_cb_default_size);
-	nvgpu_log_info(g, "alpha_cb_size: %d", gr->alpha_cb_size);
+		g->ops.gr.init.get_attrib_cb_default_size(g));
+	nvgpu_log_info(g, "attrib_cb_size: %d",
+		g->ops.gr.init.get_attrib_cb_size(g,
+			nvgpu_gr_config_get_tpc_count(gr->config)));
+	nvgpu_log_info(g, "alpha_cb_default_size: %d",
+		g->ops.gr.init.get_alpha_cb_default_size(g));
+	nvgpu_log_info(g, "alpha_cb_size: %d",
+		g->ops.gr.init.get_alpha_cb_size(g,
+			nvgpu_gr_config_get_tpc_count(gr->config)));
 
 	return 0;
 
@@ -6267,9 +6272,7 @@ u32 gr_gk20a_gpccs_falcon_base_addr(void)
 
 u32 gk20a_gr_get_global_ctx_cb_buffer_size(struct gk20a *g)
 {
-	struct gr_gk20a *gr = &g->gr;
-
-	return gr->bundle_cb_default_size *
+	return g->ops.gr.init.get_bundle_cb_default_size(g) *
 		gr_scc_bundle_cb_size_div_256b_byte_granularity_v();
 }
 

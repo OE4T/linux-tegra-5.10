@@ -42,4 +42,16 @@ int gv11b_gr_init_preemption_state(struct gk20a *g, u32 gfxp_wfi_timeout_count,
 	bool gfxp_wfi_timeout_unit_usec);
 void gv11b_gr_init_commit_global_timeslice(struct gk20a *g);
 
+u32 gv11b_gr_init_get_bundle_cb_default_size(struct gk20a *g);
+u32 gv11b_gr_init_get_min_gpm_fifo_depth(struct gk20a *g);
+u32 gv11b_gr_init_get_bundle_cb_token_limit(struct gk20a *g);
+u32 gv11b_gr_init_get_attrib_cb_default_size(struct gk20a *g);
+u32 gv11b_gr_init_get_alpha_cb_default_size(struct gk20a *g);
+u32 gv11b_gr_init_get_attrib_cb_gfxp_default_size(struct gk20a *g);
+u32 gv11b_gr_init_get_attrib_cb_gfxp_size(struct gk20a *g);
+u32 gv11b_gr_init_get_attrib_cb_size(struct gk20a *g, u32 tpc_count);
+u32 gv11b_gr_init_get_alpha_cb_size(struct gk20a *g, u32 tpc_count);
+u32 gv11b_gr_init_get_global_attr_cb_size(struct gk20a *g, u32 tpc_count,
+	u32 max_tpc);
+
 #endif /* NVGPU_GR_INIT_GV11B_H */

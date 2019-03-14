@@ -231,10 +231,6 @@ static const struct gpu_ops gm20b_ops = {
 	.gr = {
 		.get_patch_slots = gr_gk20a_get_patch_slots,
 		.init_gpc_mmu = gr_gm20b_init_gpc_mmu,
-		.bundle_cb_defaults = gr_gm20b_bundle_cb_defaults,
-		.cb_size_default = gr_gm20b_cb_size_default,
-		.calc_global_ctx_buffer_size =
-			gr_gm20b_calc_global_ctx_buffer_size,
 		.commit_global_attrib_cb = gr_gm20b_commit_global_attrib_cb,
 		.commit_global_bundle_cb = gr_gm20b_commit_global_bundle_cb,
 		.commit_global_cb_manager = gr_gm20b_commit_global_cb_manager,
@@ -441,6 +437,22 @@ static const struct gpu_ops gm20b_ops = {
 			.load_method_init = gm20b_gr_init_load_method_init,
 			.commit_global_timeslice =
 				gm20b_gr_init_commit_global_timeslice,
+			.get_bundle_cb_default_size =
+				gm20b_gr_init_get_bundle_cb_default_size,
+			.get_min_gpm_fifo_depth =
+				gm20b_gr_init_get_min_gpm_fifo_depth,
+			.get_bundle_cb_token_limit =
+				gm20b_gr_init_get_bundle_cb_token_limit,
+			.get_attrib_cb_default_size =
+				gm20b_gr_init_get_attrib_cb_default_size,
+			.get_alpha_cb_default_size =
+				gm20b_gr_init_get_alpha_cb_default_size,
+			.get_attrib_cb_size =
+				gm20b_gr_init_get_attrib_cb_size,
+			.get_alpha_cb_size =
+				gm20b_gr_init_get_alpha_cb_size,
+			.get_global_attr_cb_size =
+				gm20b_gr_init_get_global_attr_cb_size,
 		},
 	},
 	.fb = {

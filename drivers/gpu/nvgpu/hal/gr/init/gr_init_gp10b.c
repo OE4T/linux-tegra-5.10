@@ -235,3 +235,55 @@ int gp10b_gr_init_preemption_state(struct gk20a *g, u32 gfxp_wfi_timeout_count,
 	return 0;
 }
 
+u32 gp10b_gr_init_get_attrib_cb_default_size(struct gk20a *g)
+{
+	return 0x800;
+}
+
+u32 gp10b_gr_init_get_alpha_cb_default_size(struct gk20a *g)
+{
+	return gr_gpc0_ppc0_cbm_alpha_cb_size_v_default_v();
+}
+
+u32 gp10b_gr_init_get_attrib_cb_gfxp_default_size(struct gk20a *g)
+{
+	return g->ops.gr.init.get_attrib_cb_default_size(g) +
+			  (gr_gpc0_ppc0_cbm_beta_cb_size_v_gfxp_v() -
+			   gr_gpc0_ppc0_cbm_beta_cb_size_v_default_v());
+}
+
+u32 gp10b_gr_init_get_attrib_cb_gfxp_size(struct gk20a *g)
+{
+	return g->ops.gr.init.get_attrib_cb_default_size(g) +
+			  (gr_gpc0_ppc0_cbm_beta_cb_size_v_gfxp_v() -
+			   gr_gpc0_ppc0_cbm_beta_cb_size_v_default_v());
+}
+
+u32 gp10b_gr_init_get_attrib_cb_size(struct gk20a *g, u32 tpc_count)
+{
+	return min(g->ops.gr.init.get_attrib_cb_default_size(g),
+		 gr_gpc0_ppc0_cbm_beta_cb_size_v_f(~U32(0U)) / tpc_count);
+}
+
+u32 gp10b_gr_init_get_alpha_cb_size(struct gk20a *g, u32 tpc_count)
+{
+	return min(g->ops.gr.init.get_alpha_cb_default_size(g),
+		 gr_gpc0_ppc0_cbm_alpha_cb_size_v_f(~U32(0U)) / tpc_count);
+}
+
+u32 gp10b_gr_init_get_global_attr_cb_size(struct gk20a *g, u32 tpc_count,
+	u32 max_tpc)
+{
+	u32 size;
+
+	size = g->ops.gr.init.get_attrib_cb_size(g, tpc_count) *
+		gr_gpc0_ppc0_cbm_beta_cb_size_v_granularity_v() * max_tpc;
+
+	size += g->ops.gr.init.get_alpha_cb_size(g, tpc_count) *
+		gr_gpc0_ppc0_cbm_alpha_cb_size_v_granularity_v() * max_tpc;
+
+	size = ALIGN(size, 128);
+
+	return size;
+}
+

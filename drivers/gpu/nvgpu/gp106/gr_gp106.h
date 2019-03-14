@@ -34,7 +34,6 @@ bool gr_gp106_is_valid_class(struct gk20a *g, u32 class_num);
 u32 gr_gp106_pagepool_default_size(struct gk20a *g);
 int gr_gp106_handle_sw_method(struct gk20a *g, u32 addr,
 				     u32 class_num, u32 offset, u32 data);
-void gr_gp106_cb_size_default(struct gk20a *g);
 int gr_gp106_set_ctxsw_preemption_mode(struct gk20a *g,
 				struct nvgpu_gr_ctx *gr_ctx,
 				struct vm_gk20a *vm, u32 class,

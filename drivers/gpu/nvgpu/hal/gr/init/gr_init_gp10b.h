@@ -37,4 +37,13 @@ int gp10b_gr_init_fs_state(struct gk20a *g);
 int gp10b_gr_init_preemption_state(struct gk20a *g, u32 gfxp_wfi_timeout_count,
 	bool gfxp_wfi_timeout_unit_usec);
 
+u32 gp10b_gr_init_get_attrib_cb_default_size(struct gk20a *g);
+u32 gp10b_gr_init_get_alpha_cb_default_size(struct gk20a *g);
+u32 gp10b_gr_init_get_attrib_cb_gfxp_default_size(struct gk20a *g);
+u32 gp10b_gr_init_get_attrib_cb_gfxp_size(struct gk20a *g);
+u32 gp10b_gr_init_get_attrib_cb_size(struct gk20a *g, u32 tpc_count);
+u32 gp10b_gr_init_get_alpha_cb_size(struct gk20a *g, u32 tpc_count);
+u32 gp10b_gr_init_get_global_attr_cb_size(struct gk20a *g, u32 tpc_count,
+	u32 max_tpc);
+
 #endif /* NVGPU_GR_INIT_GP10B_H */

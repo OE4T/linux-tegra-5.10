@@ -40,6 +40,7 @@
 #include "hal/fb/fb_gm20b.h"
 #include "hal/fb/fb_gp10b.h"
 #include "hal/fb/fb_gv11b.h"
+#include "hal/gr/init/gr_init_gv11b.h"
 
 #include "common/netlist/netlist_gv11b.h"
 #include "common/gr/ctxsw_prog/ctxsw_prog_gm20b.h"
@@ -131,10 +132,6 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 	},
 	.gr = {
 		.init_gpc_mmu = NULL,
-		.bundle_cb_defaults = gr_gv11b_bundle_cb_defaults,
-		.cb_size_default = gr_gv11b_cb_size_default,
-		.calc_global_ctx_buffer_size =
-			gr_gv11b_calc_global_ctx_buffer_size,
 		.commit_global_attrib_cb = gr_gv11b_commit_global_attrib_cb,
 		.commit_global_bundle_cb = gr_gp10b_commit_global_bundle_cb,
 		.commit_global_cb_manager = gr_gp10b_commit_global_cb_manager,
@@ -375,7 +372,27 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 #endif /* CONFIG_GK20A_CTXSW_TRACE */
 		.init = {
 			.fs_state = vgpu_gr_init_fs_state,
-		}
+			.get_bundle_cb_default_size =
+				gv11b_gr_init_get_bundle_cb_default_size,
+			.get_min_gpm_fifo_depth =
+				gv11b_gr_init_get_min_gpm_fifo_depth,
+			.get_bundle_cb_token_limit =
+				gv11b_gr_init_get_bundle_cb_token_limit,
+			.get_attrib_cb_default_size =
+				gv11b_gr_init_get_attrib_cb_default_size,
+			.get_alpha_cb_default_size =
+				gv11b_gr_init_get_alpha_cb_default_size,
+			.get_attrib_cb_gfxp_default_size =
+				gv11b_gr_init_get_attrib_cb_gfxp_default_size,
+			.get_attrib_cb_gfxp_size =
+				gv11b_gr_init_get_attrib_cb_gfxp_size,
+			.get_attrib_cb_size =
+				gv11b_gr_init_get_attrib_cb_size,
+			.get_alpha_cb_size =
+				gv11b_gr_init_get_alpha_cb_size,
+			.get_global_attr_cb_size =
+				gv11b_gr_init_get_global_attr_cb_size,
+		},
 	},
 	.perf = {
 		.get_pmm_per_chiplet_offset =

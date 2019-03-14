@@ -165,7 +165,9 @@ int vgpu_gr_alloc_global_ctx_buffers(struct gk20a *g)
 	nvgpu_gr_global_ctx_set_size(gr->global_ctx_buffer,
 		NVGPU_GR_GLOBAL_CTX_PAGEPOOL, size);
 
-	size = g->ops.gr.calc_global_ctx_buffer_size(g);
+	size = g->ops.gr.init.get_global_attr_cb_size(g,
+			nvgpu_gr_config_get_tpc_count(g->gr.config),
+			nvgpu_gr_config_get_max_tpc_count(g->gr.config));
 	nvgpu_log_info(g, "attr_buffer_size : %u", size);
 
 	nvgpu_gr_global_ctx_set_size(gr->global_ctx_buffer,
@@ -416,9 +418,6 @@ static int vgpu_gr_init_gr_config(struct gk20a *g, struct gr_gk20a *gr)
 		}
 	}
 
-	g->ops.gr.bundle_cb_defaults(g);
-	g->ops.gr.cb_size_default(g);
-	g->ops.gr.calc_global_ctx_buffer_size(g);
 	err = g->ops.gr.init.fs_state(g);
 	if (err) {
 		goto cleanup;

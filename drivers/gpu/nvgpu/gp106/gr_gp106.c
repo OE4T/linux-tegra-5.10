@@ -127,21 +127,6 @@ fail:
 	return -EINVAL;
 }
 
-void gr_gp106_cb_size_default(struct gk20a *g)
-{
-	struct gr_gk20a *gr = &g->gr;
-
-	if (gr->attrib_cb_default_size == 0U) {
-		gr->attrib_cb_default_size = 0x800;
-	}
-	gr->alpha_cb_default_size =
-		gr_gpc0_ppc0_cbm_alpha_cb_size_v_default_v();
-	gr->attrib_cb_gfxp_default_size =
-			gr_gpc0_ppc0_cbm_beta_cb_size_v_gfxp_v();
-	gr->attrib_cb_gfxp_size =
-			gr_gpc0_ppc0_cbm_beta_cb_size_v_gfxp_v();
-}
-
 int gr_gp106_set_ctxsw_preemption_mode(struct gk20a *g,
 				struct nvgpu_gr_ctx *gr_ctx,
 				struct vm_gk20a *vm, u32 class,
@@ -178,10 +163,12 @@ int gr_gp106_set_ctxsw_preemption_mode(struct gk20a *g,
 			gr_gpc0_swdx_rm_spill_buffer_size_256b_byte_granularity_v();
 		u32 pagepool_size = g->ops.gr.pagepool_default_size(g) *
 			gr_scc_pagepool_total_pages_byte_granularity_v();
-		u32 betacb_size = g->gr.attrib_cb_default_size +
+		u32 betacb_size = g->ops.gr.init.get_attrib_cb_default_size(g) +
 				  (gr_gpc0_ppc0_cbm_beta_cb_size_v_gfxp_v() -
 				   gr_gpc0_ppc0_cbm_beta_cb_size_v_default_v());
-		u32 attrib_cb_size = (betacb_size + g->gr.alpha_cb_size) *
+		u32 alpha_cb_size = g->ops.gr.init.get_alpha_cb_size(g,
+			nvgpu_gr_config_get_tpc_count(g->gr.config));
+		u32 attrib_cb_size = (betacb_size + alpha_cb_size) *
 				  gr_gpc0_ppc0_cbm_beta_cb_size_v_granularity_v() *
 				  nvgpu_gr_config_get_max_tpc_count(g->gr.config);
 		attrib_cb_size = ALIGN(attrib_cb_size, 128);

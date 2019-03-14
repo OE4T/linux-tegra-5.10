@@ -168,6 +168,7 @@ nvgpu-y += \
 	hal/gr/fecs_trace/fecs_trace_gv11b.o \
 	hal/gr/init/gr_init_gm20b.o \
 	hal/gr/init/gr_init_gp10b.o \
+	hal/gr/init/gr_init_gv100.o \
 	hal/gr/init/gr_init_gv11b.o \
 	hal/gr/init/gr_init_tu104.o \
 	hal/gr/hwpm_map/hwpm_map_gv100.o \

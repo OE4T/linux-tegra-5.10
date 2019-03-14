@@ -97,11 +97,8 @@ void gr_gv11b_enable_gpc_exceptions(struct gk20a *g);
 int gr_gv11b_handle_tex_exception(struct gk20a *g, u32 gpc, u32 tpc,
 		bool *post_event);
 u32 gr_gv11b_pagepool_default_size(struct gk20a *g);
-u32 gr_gv11b_calc_global_ctx_buffer_size(struct gk20a *g);
 int gr_gv11b_handle_sw_method(struct gk20a *g, u32 addr,
 				     u32 class_num, u32 offset, u32 data);
-void gr_gv11b_bundle_cb_defaults(struct gk20a *g);
-void gr_gv11b_cb_size_default(struct gk20a *g);
 void gr_gv11b_set_alpha_circular_buffer_size(struct gk20a *g, u32 data);
 void gr_gv11b_set_circular_buffer_size(struct gk20a *g, u32 data);
 int gr_gv11b_dump_gr_status_regs(struct gk20a *g,

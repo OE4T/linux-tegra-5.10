@@ -403,6 +403,12 @@ int gr_gp10b_commit_global_cb_manager(struct gk20a *g,
 	u32 temp, temp2;
 	u32 cbm_cfg_size_beta, cbm_cfg_size_alpha, cbm_cfg_size_steadystate;
 	u32 attrib_size_in_chunk, cb_attrib_cache_size_init;
+	u32 attrib_cb_default_size = g->ops.gr.init.get_attrib_cb_default_size(g);
+	u32 alpha_cb_default_size = g->ops.gr.init.get_alpha_cb_default_size(g);
+	u32 attrib_cb_size = g->ops.gr.init.get_attrib_cb_size(g,
+		nvgpu_gr_config_get_tpc_count(gr->config));
+	u32 alpha_cb_size = g->ops.gr.init.get_alpha_cb_size(g,
+		nvgpu_gr_config_get_tpc_count(gr->config));
 	u32 gpc_stride = nvgpu_get_litter_value(g, GPU_LIT_GPC_STRIDE);
 	u32 ppc_in_gpc_stride = nvgpu_get_litter_value(g, GPU_LIT_PPC_IN_GPC_STRIDE);
 	u32 num_pes_per_gpc = nvgpu_get_litter_value(g, GPU_LIT_NUM_PES_PER_GPC);
@@ -410,19 +416,21 @@ int gr_gp10b_commit_global_cb_manager(struct gk20a *g,
 	nvgpu_log_fn(g, " ");
 
 	if (gr_ctx->graphics_preempt_mode == NVGPU_PREEMPTION_MODE_GRAPHICS_GFXP) {
-		attrib_size_in_chunk = gr->attrib_cb_gfxp_size;
-		cb_attrib_cache_size_init = gr->attrib_cb_gfxp_default_size;
+		attrib_size_in_chunk =
+			g->ops.gr.init.get_attrib_cb_gfxp_size(g);
+		cb_attrib_cache_size_init =
+			g->ops.gr.init.get_attrib_cb_gfxp_default_size(g);
 	} else {
-		attrib_size_in_chunk = gr->attrib_cb_size;
-		cb_attrib_cache_size_init = gr->attrib_cb_default_size;
+		attrib_size_in_chunk = attrib_cb_size;
+		cb_attrib_cache_size_init = attrib_cb_default_size;
 	}
 
 	nvgpu_gr_ctx_patch_write(g, gr_ctx, gr_ds_tga_constraintlogic_beta_r(),
-		gr->attrib_cb_default_size, patch);
+		attrib_cb_default_size, patch);
 	nvgpu_gr_ctx_patch_write(g, gr_ctx, gr_ds_tga_constraintlogic_alpha_r(),
-		gr->alpha_cb_default_size, patch);
+		alpha_cb_default_size, patch);
 
-	pd_ab_max_output = (gr->alpha_cb_default_size *
+	pd_ab_max_output = (alpha_cb_default_size *
 		gr_gpc0_ppc0_cbm_beta_cb_size_v_granularity_v()) /
 		gr_pd_ab_dist_cfg1_max_output_granularity_v();
 
@@ -431,7 +439,7 @@ int gr_gp10b_commit_global_cb_manager(struct gk20a *g,
 		gr_pd_ab_dist_cfg1_max_batches_init_f(), patch);
 
 	attrib_offset_in_chunk = alpha_offset_in_chunk +
-		nvgpu_gr_config_get_tpc_count(gr->config) * gr->alpha_cb_size;
+		nvgpu_gr_config_get_tpc_count(gr->config) * alpha_cb_size;
 
 	for (gpc_index = 0;
 	     gpc_index < nvgpu_gr_config_get_gpc_count(gr->config);
@@ -444,10 +452,10 @@ int gr_gp10b_commit_global_cb_manager(struct gk20a *g,
 			cbm_cfg_size_beta = cb_attrib_cache_size_init *
 				nvgpu_gr_config_get_pes_tpc_count(gr->config,
 					gpc_index, ppc_index);
-			cbm_cfg_size_alpha = gr->alpha_cb_default_size *
+			cbm_cfg_size_alpha = alpha_cb_default_size *
 				nvgpu_gr_config_get_pes_tpc_count(gr->config,
 					gpc_index, ppc_index);
-			cbm_cfg_size_steadystate = gr->attrib_cb_default_size *
+			cbm_cfg_size_steadystate = attrib_cb_default_size *
 				nvgpu_gr_config_get_pes_tpc_count(gr->config,
 					gpc_index, ppc_index);
 
@@ -481,7 +489,7 @@ int gr_gp10b_commit_global_cb_manager(struct gk20a *g,
 				ppc_in_gpc_stride * ppc_index,
 				alpha_offset_in_chunk, patch);
 
-			alpha_offset_in_chunk += gr->alpha_cb_size *
+			alpha_offset_in_chunk += alpha_cb_size *
 				nvgpu_gr_config_get_pes_tpc_count(gr->config,
 					gpc_index, ppc_index);
 
@@ -518,34 +526,6 @@ void gr_gp10b_commit_global_pagepool(struct gk20a *g,
 u32 gr_gp10b_pagepool_default_size(struct gk20a *g)
 {
 	return gr_scc_pagepool_total_pages_hwmax_value_v();
-}
-
-u32 gr_gp10b_calc_global_ctx_buffer_size(struct gk20a *g)
-{
-	struct gr_gk20a *gr = &g->gr;
-	u32 size;
-
-	gr->attrib_cb_size = gr->attrib_cb_default_size;
-	gr->alpha_cb_size = gr->alpha_cb_default_size;
-
-	gr->attrib_cb_size = min(gr->attrib_cb_size,
-		 gr_gpc0_ppc0_cbm_beta_cb_size_v_f(~U32(0U)) /
-			nvgpu_gr_config_get_tpc_count(gr->config));
-	gr->alpha_cb_size = min(gr->alpha_cb_size,
-		 gr_gpc0_ppc0_cbm_alpha_cb_size_v_f(~U32(0U)) /
-			nvgpu_gr_config_get_tpc_count(gr->config));
-
-	size = gr->attrib_cb_size *
-		gr_gpc0_ppc0_cbm_beta_cb_size_v_granularity_v() *
-		nvgpu_gr_config_get_max_tpc_count(gr->config);
-
-	size += gr->alpha_cb_size *
-		gr_gpc0_ppc0_cbm_alpha_cb_size_v_granularity_v() *
-		nvgpu_gr_config_get_max_tpc_count(gr->config);
-
-	size = ALIGN(size, 128);
-
-	return size;
 }
 
 static void gr_gp10b_set_go_idle_timeout(struct gk20a *g, u32 data)
@@ -670,38 +650,21 @@ fail:
 	return -EINVAL;
 }
 
-void gr_gp10b_cb_size_default(struct gk20a *g)
-{
-	struct gr_gk20a *gr = &g->gr;
-
-	if (gr->attrib_cb_default_size == 0U) {
-		gr->attrib_cb_default_size = 0x800;
-	}
-	gr->alpha_cb_default_size =
-		gr_gpc0_ppc0_cbm_alpha_cb_size_v_default_v();
-	gr->attrib_cb_gfxp_default_size =
-		gr->attrib_cb_default_size +
-			  (gr_gpc0_ppc0_cbm_beta_cb_size_v_gfxp_v() -
-			   gr_gpc0_ppc0_cbm_beta_cb_size_v_default_v());
-	gr->attrib_cb_gfxp_size =
-		gr->attrib_cb_default_size +
-			  (gr_gpc0_ppc0_cbm_beta_cb_size_v_gfxp_v() -
-			   gr_gpc0_ppc0_cbm_beta_cb_size_v_default_v());
-}
-
 void gr_gp10b_set_alpha_circular_buffer_size(struct gk20a *g, u32 data)
 {
 	struct gr_gk20a *gr = &g->gr;
 	u32 gpc_index, ppc_index, stride, val;
 	u32 pd_ab_max_output;
 	u32 alpha_cb_size = data * 4U;
+	u32 alpha_cb_size_max = g->ops.gr.init.get_alpha_cb_size(g,
+		nvgpu_gr_config_get_tpc_count(gr->config));
 	u32 gpc_stride = nvgpu_get_litter_value(g, GPU_LIT_GPC_STRIDE);
 	u32 ppc_in_gpc_stride = nvgpu_get_litter_value(g, GPU_LIT_PPC_IN_GPC_STRIDE);
 
 	nvgpu_log_fn(g, " ");
 
-	if (alpha_cb_size > gr->alpha_cb_size) {
-		alpha_cb_size = gr->alpha_cb_size;
+	if (alpha_cb_size > alpha_cb_size_max) {
+		alpha_cb_size = alpha_cb_size_max;
 	}
 
 	gk20a_writel(g, gr_ds_tga_constraintlogic_alpha_r(),
@@ -749,11 +712,13 @@ void gr_gp10b_set_circular_buffer_size(struct gk20a *g, u32 data)
 	u32 cb_size_steady = data * 4U, cb_size;
 	u32 gpc_stride = nvgpu_get_litter_value(g, GPU_LIT_GPC_STRIDE);
 	u32 ppc_in_gpc_stride = nvgpu_get_litter_value(g, GPU_LIT_PPC_IN_GPC_STRIDE);
+	u32 attrib_cb_size = g->ops.gr.init.get_attrib_cb_size(g,
+		nvgpu_gr_config_get_tpc_count(gr->config));
 
 	nvgpu_log_fn(g, " ");
 
-	if (cb_size_steady > gr->attrib_cb_size) {
-		cb_size_steady = gr->attrib_cb_size;
+	if (cb_size_steady > attrib_cb_size) {
+		cb_size_steady = attrib_cb_size;
 	}
 	if (gk20a_readl(g, gr_gpc0_ppc0_cbm_beta_cb_size_r()) !=
 		gk20a_readl(g,
@@ -1216,7 +1181,9 @@ void gr_gp10b_commit_global_attrib_cb(struct gk20a *g,
 	if (gr_ctx->preempt_ctxsw_buffer.gpu_va != 0ULL) {
 		attrBufferSize = U32(gr_ctx->betacb_ctxsw_buffer.size);
 	} else {
-		attrBufferSize = g->ops.gr.calc_global_ctx_buffer_size(g);
+		attrBufferSize = g->ops.gr.init.get_global_attr_cb_size(g,
+			nvgpu_gr_config_get_tpc_count(g->gr.config),
+			nvgpu_gr_config_get_max_tpc_count(g->gr.config));
 	}
 
 	attrBufferSize /= gr_gpcs_tpcs_tex_rm_cb_1_size_div_128b_granularity_f();
@@ -1241,6 +1208,7 @@ void gr_gp10b_commit_global_bundle_cb(struct gk20a *g,
 					    u64 addr, u64 size, bool patch)
 {
 	u32 data;
+	u32 bundle_cb_token_limit = g->ops.gr.init.get_bundle_cb_token_limit(g);
 
 	nvgpu_assert(u64_hi32(addr) == 0U);
 	nvgpu_gr_ctx_patch_write(g, gr_ctx, gr_scc_bundle_cb_base_r(),
@@ -1259,17 +1227,17 @@ void gr_gp10b_commit_global_bundle_cb(struct gk20a *g,
 		gr_gpcs_swdx_bundle_cb_size_valid_true_f(), patch);
 
 	/* data for state_limit */
-	data = (g->gr.bundle_cb_default_size *
+	data = (g->ops.gr.init.get_bundle_cb_default_size(g) *
 		gr_scc_bundle_cb_size_div_256b_byte_granularity_v()) /
 		gr_pd_ab_dist_cfg2_state_limit_scc_bundle_granularity_v();
 
-	data = min_t(u32, data, g->gr.min_gpm_fifo_depth);
+	data = min_t(u32, data, g->ops.gr.init.get_min_gpm_fifo_depth(g));
 
 	nvgpu_log_info(g, "bundle cb token limit : %d, state limit : %d",
-		   g->gr.bundle_cb_token_limit, data);
+		bundle_cb_token_limit, data);
 
 	nvgpu_gr_ctx_patch_write(g, gr_ctx, gr_pd_ab_dist_cfg2_r(),
-		gr_pd_ab_dist_cfg2_token_limit_f(g->gr.bundle_cb_token_limit) |
+		gr_pd_ab_dist_cfg2_token_limit_f(bundle_cb_token_limit) |
 		gr_pd_ab_dist_cfg2_state_limit_f(data), patch);
 }
 
@@ -1955,24 +1923,31 @@ unsigned long gr_gp10b_get_max_gfxp_wfi_timeout_count(struct gk20a *g)
 	return (100UL * 1000UL * 1000UL);
 }
 
-u32 gp10b_gr_get_ctx_spill_size(struct gk20a *g) {
+u32 gp10b_gr_get_ctx_spill_size(struct gk20a *g)
+{
 	return  gr_gpc0_swdx_rm_spill_buffer_size_256b_default_v() *
 		gr_gpc0_swdx_rm_spill_buffer_size_256b_byte_granularity_v();
 }
 
-u32 gp10b_gr_get_ctx_pagepool_size(struct gk20a *g) {
+u32 gp10b_gr_get_ctx_pagepool_size(struct gk20a *g)
+{
 	return g->ops.gr.pagepool_default_size(g) *
 		gr_scc_pagepool_total_pages_byte_granularity_v();
 }
 
-u32 gp10b_gr_get_ctx_betacb_size(struct gk20a *g) {
-	return g->gr.attrib_cb_default_size +
+u32 gp10b_gr_get_ctx_betacb_size(struct gk20a *g)
+{
+	return g->ops.gr.init.get_attrib_cb_default_size(g) +
 		(gr_gpc0_ppc0_cbm_beta_cb_size_v_gfxp_v() -
 		 gr_gpc0_ppc0_cbm_beta_cb_size_v_default_v());
 }
 
-u32 gp10b_gr_get_ctx_attrib_cb_size(struct gk20a *g, u32 betacb_size) {
-	return (betacb_size + g->gr.alpha_cb_size) *
+u32 gp10b_gr_get_ctx_attrib_cb_size(struct gk20a *g, u32 betacb_size)
+{
+	u32 alpha_cb_size = g->ops.gr.init.get_alpha_cb_size(g,
+		nvgpu_gr_config_get_tpc_count(g->gr.config));
+
+	return (betacb_size + alpha_cb_size) *
 		gr_gpc0_ppc0_cbm_beta_cb_size_v_granularity_v() *
 		nvgpu_gr_config_get_max_tpc_count(g->gr.config);
 }

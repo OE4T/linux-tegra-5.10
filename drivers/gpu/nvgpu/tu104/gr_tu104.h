@@ -63,9 +63,6 @@ int gr_tu104_init_sw_bundle64(struct gk20a *g);
 void gr_tu10x_create_sysfs(struct gk20a *g);
 void gr_tu10x_remove_sysfs(struct gk20a *g);
 
-void gr_tu104_bundle_cb_defaults(struct gk20a *g);
-void gr_tu104_cb_size_default(struct gk20a *g);
-
 void gr_tu104_enable_gpc_exceptions(struct gk20a *g);
 
 int gr_tu104_get_offset_in_gpccs_segment(struct gk20a *g,
