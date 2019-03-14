@@ -201,6 +201,7 @@ void vi_capture_shutdown(struct tegra_vi_channel *chan)
 			vi_capture_request_unpin(chan, i);
 
 		capture_common_unpin_memory(&capture->requests);
+		destroy_buffer_table(capture->buf_ctx);
 		kfree(capture->unpins_list);
 	}
 	kfree(capture);
