@@ -374,7 +374,6 @@ static const struct gpu_ops gv11b_ops = {
 		.program_sm_id_numbering = gr_gv11b_program_sm_id_numbering,
 		.setup_rop_mapping = gr_gv11b_setup_rop_mapping,
 		.program_zcull_mapping = gr_gv11b_program_zcull_mapping,
-		.commit_global_timeslice = gr_gv11b_commit_global_timeslice,
 		.commit_inst = gr_gv11b_commit_inst,
 		.load_tpc_mask = gr_gv11b_load_tpc_mask,
 		.trigger_suspend = gv11b_gr_sm_trigger_suspend,
@@ -601,6 +600,8 @@ static const struct gpu_ops gv11b_ops = {
 			.preemption_state = gv11b_gr_init_preemption_state,
 			.fe_go_idle_timeout = gm20b_gr_init_fe_go_idle_timeout,
 			.load_method_init = gm20b_gr_init_load_method_init,
+			.commit_global_timeslice =
+				gv11b_gr_init_commit_global_timeslice,
 		},
 	},
 	.fb = {

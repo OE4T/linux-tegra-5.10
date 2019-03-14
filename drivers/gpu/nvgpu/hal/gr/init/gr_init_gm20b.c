@@ -26,6 +26,7 @@
 #include <nvgpu/enabled.h>
 #include <nvgpu/engine_status.h>
 #include <nvgpu/netlist.h>
+#include <nvgpu/gr/ctx.h>
 
 #include <nvgpu/gr/gr.h>
 #include <nvgpu/gr/config.h>
@@ -330,4 +331,46 @@ void gm20b_gr_init_load_method_init(struct gk20a *g,
 			gr_pri_mme_shadow_raw_index_write_trigger_f() |
 			sw_method_init->l[i].addr);
 	}
+}
+
+void gm20b_gr_init_commit_global_timeslice(struct gk20a *g)
+{
+	u32 gpm_pd_cfg;
+	u32 pd_ab_dist_cfg0;
+	u32 ds_debug;
+	u32 mpc_vtg_debug;
+	u32 pe_vaf;
+	u32 pe_vsc_vpc;
+
+	nvgpu_log_fn(g, " ");
+
+	gpm_pd_cfg = nvgpu_readl(g, gr_gpcs_gpm_pd_cfg_r());
+	pd_ab_dist_cfg0 = nvgpu_readl(g, gr_pd_ab_dist_cfg0_r());
+	ds_debug = nvgpu_readl(g, gr_ds_debug_r());
+	mpc_vtg_debug = nvgpu_readl(g, gr_gpcs_tpcs_mpc_vtg_debug_r());
+
+	pe_vaf = nvgpu_readl(g, gr_gpcs_tpcs_pe_vaf_r());
+	pe_vsc_vpc = nvgpu_readl(g, gr_gpcs_tpcs_pes_vsc_vpc_r());
+
+	gpm_pd_cfg = gr_gpcs_gpm_pd_cfg_timeslice_mode_enable_f() | gpm_pd_cfg;
+	pe_vaf = gr_gpcs_tpcs_pe_vaf_fast_mode_switch_true_f() | pe_vaf;
+	pe_vsc_vpc = gr_gpcs_tpcs_pes_vsc_vpc_fast_mode_switch_true_f() |
+		     pe_vsc_vpc;
+	pd_ab_dist_cfg0 = gr_pd_ab_dist_cfg0_timeslice_enable_en_f() |
+			  pd_ab_dist_cfg0;
+	ds_debug = gr_ds_debug_timeslice_mode_enable_f() | ds_debug;
+	mpc_vtg_debug = gr_gpcs_tpcs_mpc_vtg_debug_timeslice_mode_enabled_f() |
+			mpc_vtg_debug;
+
+	nvgpu_gr_ctx_patch_write(g, NULL, gr_gpcs_gpm_pd_cfg_r(), gpm_pd_cfg,
+		false);
+	nvgpu_gr_ctx_patch_write(g, NULL, gr_gpcs_tpcs_pe_vaf_r(), pe_vaf,
+		false);
+	nvgpu_gr_ctx_patch_write(g, NULL, gr_gpcs_tpcs_pes_vsc_vpc_r(),
+		pe_vsc_vpc, false);
+	nvgpu_gr_ctx_patch_write(g, NULL, gr_pd_ab_dist_cfg0_r(),
+		pd_ab_dist_cfg0, false);
+	nvgpu_gr_ctx_patch_write(g, NULL, gr_gpcs_tpcs_mpc_vtg_debug_r(),
+		mpc_vtg_debug, false);
+	nvgpu_gr_ctx_patch_write(g, NULL, gr_ds_debug_r(), ds_debug, false);
 }

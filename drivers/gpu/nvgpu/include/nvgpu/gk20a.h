@@ -434,8 +434,6 @@ struct gpu_ops {
 		int (*init_sw_veid_bundle)(struct gk20a *g);
 		void (*program_zcull_mapping)(struct gk20a *g,
 				u32 zcull_alloc_num, u32 *zcull_map_tiles);
-		int (*commit_global_timeslice)(struct gk20a *g,
-					struct channel_gk20a *c);
 		int (*commit_inst)(struct channel_gk20a *c, u64 gpu_va);
 		void (*set_preemption_buffer_va)(struct gk20a *g,
 					struct nvgpu_mem *mem, u64 gpu_va);
@@ -689,6 +687,7 @@ struct gpu_ops {
 				bool enable);
 			void (*load_method_init)(struct gk20a *g,
 				struct netlist_av_list *sw_method_init);
+			void (*commit_global_timeslice)(struct gk20a *g);
 		} init;
 
 		u32 (*get_ctxsw_checksum_mismatch_mailbox_val)(void);

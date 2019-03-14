@@ -188,7 +188,6 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 		.program_sm_id_numbering = NULL,
 		.setup_rop_mapping = NULL,
 		.program_zcull_mapping = NULL,
-		.commit_global_timeslice = NULL,
 		.commit_inst = vgpu_gr_commit_inst,
 		.load_tpc_mask = NULL,
 		.trigger_suspend = NULL,

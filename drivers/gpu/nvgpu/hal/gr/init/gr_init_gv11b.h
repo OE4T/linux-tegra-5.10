@@ -30,5 +30,6 @@ struct gk20a;
 int gv11b_gr_init_fs_state(struct gk20a *g);
 int gv11b_gr_init_preemption_state(struct gk20a *g, u32 gfxp_wfi_timeout_count,
 	bool gfxp_wfi_timeout_unit_usec);
+void gv11b_gr_init_commit_global_timeslice(struct gk20a *g);
 
 #endif /* NVGPU_GR_INIT_GV11B_H */

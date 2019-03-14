@@ -40,5 +40,6 @@ void gm20b_gr_init_override_context_reset(struct gk20a *g);
 void gm20b_gr_init_fe_go_idle_timeout(struct gk20a *g, bool enable);
 void gm20b_gr_init_load_method_init(struct gk20a *g,
 		struct netlist_av_list *sw_method_init);
+void gm20b_gr_init_commit_global_timeslice(struct gk20a *g);
 
 #endif /* NVGPU_GR_INIT_GM20B_H */

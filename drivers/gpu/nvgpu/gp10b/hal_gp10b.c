@@ -315,7 +315,6 @@ static const struct gpu_ops gp10b_ops = {
 		.program_sm_id_numbering = gr_gm20b_program_sm_id_numbering,
 		.setup_rop_mapping = gr_gk20a_setup_rop_mapping,
 		.program_zcull_mapping = gr_gk20a_program_zcull_mapping,
-		.commit_global_timeslice = gr_gk20a_commit_global_timeslice,
 		.commit_inst = gr_gk20a_commit_inst,
 		.load_tpc_mask = gr_gm20b_load_tpc_mask,
 		.trigger_suspend = gr_gk20a_trigger_suspend,
@@ -506,6 +505,8 @@ static const struct gpu_ops gp10b_ops = {
 			.preemption_state = gp10b_gr_init_preemption_state,
 			.fe_go_idle_timeout = gm20b_gr_init_fe_go_idle_timeout,
 			.load_method_init = gm20b_gr_init_load_method_init,
+			.commit_global_timeslice =
+				gm20b_gr_init_commit_global_timeslice,
 		},
 	},
 	.fb = {
