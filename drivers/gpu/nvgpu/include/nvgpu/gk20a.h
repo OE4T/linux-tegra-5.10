@@ -497,8 +497,6 @@ struct gpu_ops {
 		u32 (*get_fecs_ctx_state_store_major_rev_id)(struct gk20a *g);
 		int (*init_gfxp_rtv_cb)(struct gk20a *g,
 			  struct nvgpu_gr_ctx *gr_ctx, struct vm_gk20a *vm);
-		void (*commit_gfxp_rtv_cb)(struct gk20a *g,
-			  struct nvgpu_gr_ctx *gr_ctx, bool patch);
 		void (*log_mme_exception)(struct gk20a *g);
 		u32 (*get_ctx_spill_size)(struct gk20a *g);
 		u32 (*get_ctx_pagepool_size)(struct gk20a *g);
@@ -689,6 +687,10 @@ struct gpu_ops {
 				struct netlist_av_list *sw_method_init);
 			void (*commit_global_timeslice)(struct gk20a *g);
 			u32 (*get_rtv_cb_size)(struct gk20a *g);
+			void (*commit_rtv_cb)(struct gk20a *g, u64 addr,
+				struct nvgpu_gr_ctx *gr_ctx, bool patch);
+			void (*commit_gfxp_rtv_cb)(struct gk20a *g,
+				struct nvgpu_gr_ctx *gr_ctx, bool patch);
 		} init;
 
 		u32 (*get_ctxsw_checksum_mismatch_mailbox_val)(void);

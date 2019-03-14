@@ -63,9 +63,6 @@ int gr_tu104_init_sw_bundle64(struct gk20a *g);
 void gr_tu10x_create_sysfs(struct gk20a *g);
 void gr_tu10x_remove_sysfs(struct gk20a *g);
 
-int gr_tu104_commit_global_ctx_buffers(struct gk20a *g,
-			struct nvgpu_gr_ctx *gr_ctx, bool patch);
-
 void gr_tu104_bundle_cb_defaults(struct gk20a *g);
 void gr_tu104_cb_size_default(struct gk20a *g);
 
@@ -80,8 +77,6 @@ int gr_tu104_handle_sw_method(struct gk20a *g, u32 addr,
 
 int gr_tu104_init_gfxp_rtv_cb(struct gk20a *g,
 		  struct nvgpu_gr_ctx *gr_ctx, struct vm_gk20a *vm);
-void gr_tu104_commit_gfxp_rtv_cb(struct gk20a *g,
-		  struct nvgpu_gr_ctx *gr_ctx, bool patch);
 
 void gr_tu104_init_sm_dsm_reg_info(void);
 void gr_tu104_get_sm_dsm_perf_ctrl_regs(struct gk20a *g,

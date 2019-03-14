@@ -332,7 +332,6 @@ static const struct gpu_ops gm20b_ops = {
 		.get_fecs_ctx_state_store_major_rev_id =
 			gk20a_gr_get_fecs_ctx_state_store_major_rev_id,
 		.init_gfxp_rtv_cb = NULL,
-		.commit_gfxp_rtv_cb = NULL,
 		.log_mme_exception = NULL,
 		.get_global_ctx_cb_buffer_size =
 			gk20a_gr_get_global_ctx_cb_buffer_size,

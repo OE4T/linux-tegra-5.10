@@ -26,7 +26,12 @@
 #include <nvgpu/types.h>
 
 struct gk20a;
+struct nvgpu_gr_ctx;
 
 u32 tu104_gr_init_get_rtv_cb_size(struct gk20a *g);
+void tu104_gr_init_commit_rtv_cb(struct gk20a *g, u64 addr,
+	struct nvgpu_gr_ctx *gr_ctx, bool patch);
+void tu104_gr_init_commit_gfxp_rtv_cb(struct gk20a *g,
+	struct nvgpu_gr_ctx *gr_ctx, bool patch);
 
 #endif /* NVGPU_GR_INIT_TU104_H */

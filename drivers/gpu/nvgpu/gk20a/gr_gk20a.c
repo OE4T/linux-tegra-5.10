@@ -725,6 +725,14 @@ int gr_gk20a_commit_global_ctx_buffers(struct gk20a *g,
 	g->ops.gr.commit_global_attrib_cb(g, gr_ctx, addr, patch);
 	g->ops.gr.commit_global_cb_manager(g, gr_ctx, patch);
 
+	if (g->ops.gr.init.commit_rtv_cb != NULL) {
+		/* RTV circular buffer */
+		addr = nvgpu_gr_ctx_get_global_ctx_va(gr_ctx,
+			NVGPU_GR_CTX_RTV_CIRCULAR_BUFFER_VA);
+
+		g->ops.gr.init.commit_rtv_cb(g, addr, gr_ctx, patch);
+	}
+
 	if (patch) {
 		nvgpu_gr_ctx_patch_write_end(g, gr_ctx, false);
 	}

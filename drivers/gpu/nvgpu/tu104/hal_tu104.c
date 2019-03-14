@@ -473,7 +473,6 @@ static const struct gpu_ops tu104_ops = {
 		.set_bes_crop_debug4 = gr_gp10b_set_bes_crop_debug4,
 		.init_ecc = tu104_ecc_init,
 		.init_gfxp_rtv_cb = gr_tu104_init_gfxp_rtv_cb,
-		.commit_gfxp_rtv_cb = gr_tu104_commit_gfxp_rtv_cb,
 		.set_ctxsw_preemption_mode = gr_gp10b_set_ctxsw_preemption_mode,
 		.is_etpc_addr = gv11b_gr_pri_is_etpc_addr,
 		.egpc_etpc_priv_addr_table = gv11b_gr_egpc_etpc_priv_addr_table,
@@ -505,7 +504,7 @@ static const struct gpu_ops tu104_ops = {
 		.init_sw_bundle64 = gr_tu104_init_sw_bundle64,
 		.fecs_ctxsw_mailbox_size = gr_fecs_ctxsw_mailbox__size_1_v,
 		.alloc_global_ctx_buffers = gr_gk20a_alloc_global_ctx_buffers,
-		.commit_global_ctx_buffers = gr_tu104_commit_global_ctx_buffers,
+		.commit_global_ctx_buffers = gr_gk20a_commit_global_ctx_buffers,
 		.get_nonpes_aware_tpc = gr_gv11b_get_nonpes_aware_tpc,
 		.get_offset_in_gpccs_segment =
 			gr_tu104_get_offset_in_gpccs_segment,
@@ -672,6 +671,8 @@ static const struct gpu_ops tu104_ops = {
 			.commit_global_timeslice =
 				gv11b_gr_init_commit_global_timeslice,
 			.get_rtv_cb_size = tu104_gr_init_get_rtv_cb_size,
+			.commit_rtv_cb = tu104_gr_init_commit_rtv_cb,
+			.commit_gfxp_rtv_cb = tu104_gr_init_commit_gfxp_rtv_cb,
 		},
 	},
 	.fb = {

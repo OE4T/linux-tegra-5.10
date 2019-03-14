@@ -21,6 +21,7 @@
  */
 
 #include <nvgpu/gk20a.h>
+#include <nvgpu/gr/ctx.h>
 
 #include "gr_init_tu104.h"
 
@@ -31,4 +32,60 @@ u32 tu104_gr_init_get_rtv_cb_size(struct gk20a *g)
 	return (gr_scc_rm_rtv_cb_size_div_256b_default_f() +
 			gr_scc_rm_rtv_cb_size_div_256b_db_adder_f()) *
 		gr_scc_bundle_cb_size_div_256b_byte_granularity_v();
+}
+
+static void tu104_gr_init_patch_rtv_cb(struct gk20a *g,
+	struct nvgpu_gr_ctx *gr_ctx,
+	u64 addr, u32 size, u32 gfxpAddSize, bool patch)
+{
+	nvgpu_gr_ctx_patch_write(g, gr_ctx, gr_scc_rm_rtv_cb_base_r(),
+		gr_scc_rm_rtv_cb_base_addr_39_8_f(addr), patch);
+	nvgpu_gr_ctx_patch_write(g, gr_ctx, gr_scc_rm_rtv_cb_size_r(),
+		gr_scc_rm_rtv_cb_size_div_256b_f(size), patch);
+	nvgpu_gr_ctx_patch_write(g, gr_ctx, gr_gpcs_gcc_rm_rtv_cb_base_r(),
+		gr_gpcs_gcc_rm_rtv_cb_base_addr_39_8_f(addr), patch);
+	nvgpu_gr_ctx_patch_write(g, gr_ctx, gr_scc_rm_gfxp_reserve_r(),
+		gr_scc_rm_gfxp_reserve_rtv_cb_size_div_256b_f(gfxpAddSize),
+		patch);
+}
+
+void tu104_gr_init_commit_rtv_cb(struct gk20a *g, u64 addr,
+	struct nvgpu_gr_ctx *gr_ctx, bool patch)
+{
+	u32 size;
+
+	addr = addr >> U64(gr_scc_rm_rtv_cb_base_addr_39_8_align_bits_f());
+	size = (gr_scc_rm_rtv_cb_size_div_256b_default_f() +
+			gr_scc_rm_rtv_cb_size_div_256b_db_adder_f());
+
+	tu104_gr_init_patch_rtv_cb(g, gr_ctx, addr, size, 0, patch);
+}
+
+void tu104_gr_init_commit_gfxp_rtv_cb(struct gk20a *g,
+	struct nvgpu_gr_ctx *gr_ctx, bool patch)
+{
+	u64 addr;
+	u64 addr_lo;
+	u64 addr_hi;
+	u32 rtv_cb_size;
+	u32 gfxp_addr_size;
+
+	nvgpu_log_fn(g, " ");
+
+	rtv_cb_size =
+		(gr_scc_rm_rtv_cb_size_div_256b_default_f() +
+		gr_scc_rm_rtv_cb_size_div_256b_db_adder_f() +
+		gr_scc_rm_rtv_cb_size_div_256b_gfxp_adder_f());
+	gfxp_addr_size = gr_scc_rm_rtv_cb_size_div_256b_gfxp_adder_f();
+
+	/* GFXP RTV circular buffer */
+	addr_lo = (u64)(u64_lo32(gr_ctx->gfxp_rtvcb_ctxsw_buffer.gpu_va) >>
+	       gr_scc_rm_rtv_cb_base_addr_39_8_align_bits_f());
+	addr_hi = (u64)(u64_hi32(gr_ctx->gfxp_rtvcb_ctxsw_buffer.gpu_va));
+	addr = addr_lo |
+	       (addr_hi <<
+	       (32U - gr_scc_rm_rtv_cb_base_addr_39_8_align_bits_f()));
+
+	tu104_gr_init_patch_rtv_cb(g, gr_ctx, addr,
+		rtv_cb_size, gfxp_addr_size, patch);
 }

@@ -1590,8 +1590,8 @@ void gr_gv11b_update_ctxsw_preemption_mode(struct gk20a *g,
 				g->gr.gfxp_wfi_timeout_count,
 				true);
 
-		if (g->ops.gr.commit_gfxp_rtv_cb != NULL) {
-			g->ops.gr.commit_gfxp_rtv_cb(g, gr_ctx, true);
+		if (g->ops.gr.init.commit_gfxp_rtv_cb != NULL) {
+			g->ops.gr.init.commit_gfxp_rtv_cb(g, gr_ctx, true);
 		}
 
 		nvgpu_gr_ctx_patch_write_end(g, gr_ctx, true);

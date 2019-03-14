@@ -365,7 +365,6 @@ static const struct gpu_ops gp10b_ops = {
 		.get_fecs_ctx_state_store_major_rev_id =
 			gk20a_gr_get_fecs_ctx_state_store_major_rev_id,
 		.init_gfxp_rtv_cb = NULL,
-		.commit_gfxp_rtv_cb = NULL,
 		.log_mme_exception = NULL,
 		.get_ctx_spill_size = gp10b_gr_get_ctx_spill_size,
 		.get_ctx_pagepool_size = gp10b_gr_get_ctx_pagepool_size,
