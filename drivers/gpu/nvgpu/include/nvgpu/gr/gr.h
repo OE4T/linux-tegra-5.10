@@ -29,5 +29,6 @@
 #define NVGPU_GR_IDLE_CHECK_MAX_US		200U
 
 u32 nvgpu_gr_get_idle_timeout(struct gk20a *g);
+int nvgpu_gr_init_fs_state(struct gk20a *g);
 
 #endif /* NVGPU_GR_H */

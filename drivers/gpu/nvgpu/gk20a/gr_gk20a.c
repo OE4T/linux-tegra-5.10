@@ -914,58 +914,6 @@ int gr_gk20a_init_sm_id_table(struct gk20a *g)
 	return 0;
 }
 
-int gr_gk20a_init_fs_state(struct gk20a *g)
-{
-	struct gr_gk20a *gr = &g->gr;
-	u32 tpc_index, gpc_index;
-	u32 sm_id = 0;
-	u32 fuse_tpc_mask;
-	u32 gpc_cnt, tpc_cnt;
-	int err = 0;
-
-	nvgpu_log_fn(g, " ");
-
-	if (g->ops.gr.init_sm_id_table != NULL) {
-		err = g->ops.gr.init_sm_id_table(g);
-		if (err != 0) {
-			return err;
-		}
-
-		/* Is table empty ? */
-		if (g->gr.no_of_sm == 0U) {
-			return -EINVAL;
-		}
-	}
-
-	for (sm_id = 0; sm_id < g->gr.no_of_sm; sm_id++) {
-		tpc_index = g->gr.sm_to_cluster[sm_id].tpc_index;
-		gpc_index = g->gr.sm_to_cluster[sm_id].gpc_index;
-
-		g->ops.gr.program_sm_id_numbering(g, gpc_index, tpc_index, sm_id);
-	}
-
-	g->ops.gr.init.pd_tpc_per_gpc(g);
-
-	/* gr__setup_pd_mapping stubbed for gk20a */
-	g->ops.gr.setup_rop_mapping(g, gr);
-
-	g->ops.gr.init.pd_skip_table_gpc(g);
-
-	fuse_tpc_mask = g->ops.gr.config.get_gpc_tpc_mask(g, gr->config, 0);
-	gpc_cnt = nvgpu_gr_config_get_gpc_count(gr->config);
-	tpc_cnt = nvgpu_gr_config_get_tpc_count(gr->config);
-
-	if ((g->tpc_fs_mask_user != 0U) &&
-		(fuse_tpc_mask == BIT32(nvgpu_gr_config_get_max_tpc_count(gr->config)) - 1U)) {
-		u32 val = g->tpc_fs_mask_user;
-		val &= BIT32(nvgpu_gr_config_get_max_tpc_count(gr->config)) - U32(1);
-		tpc_cnt = (u32)hweight32(val);
-	}
-	g->ops.gr.init.cwd_gpcs_tpcs_num(g, gpc_cnt, tpc_cnt);
-
-	return err;
-}
-
 int gr_gk20a_fecs_ctx_image_save(struct channel_gk20a *c, u32 save_type)
 {
 	struct gk20a *g = c->g;

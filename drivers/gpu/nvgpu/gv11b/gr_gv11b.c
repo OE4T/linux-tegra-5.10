@@ -2923,7 +2923,7 @@ int gr_gv11b_init_fs_state(struct gk20a *g)
 		gr_debug_0_scg_force_slow_drain_tpc_enabled_f());
 	gk20a_writel(g, gr_debug_0_r(), data);
 
-	err = gr_gk20a_init_fs_state(g);
+	err = nvgpu_gr_init_fs_state(g);
 	if (err != 0) {
 		return err;
 	}

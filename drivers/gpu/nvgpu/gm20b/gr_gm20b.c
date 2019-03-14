@@ -677,7 +677,7 @@ int gr_gm20b_init_fs_state(struct gk20a *g)
 
 	nvgpu_log_fn(g, " ");
 
-	err = gr_gk20a_init_fs_state(g);
+	err = nvgpu_gr_init_fs_state(g);
 	if (err != 0) {
 		return err;
 	}
