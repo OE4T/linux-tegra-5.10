@@ -33,6 +33,7 @@
 #include <nvgpu/channel.h>
 #include <nvgpu/gr/ctx.h>
 #include <nvgpu/gr/config.h>
+#include <nvgpu/gr/gr.h>
 #include <nvgpu/engines.h>
 #include <nvgpu/engine_status.h>
 
@@ -677,26 +678,16 @@ int gr_gm20b_init_fs_state(struct gk20a *g)
 
 	nvgpu_log_fn(g, " ");
 
-	err = nvgpu_gr_init_fs_state(g);
-	if (err != 0) {
-		return err;
-	}
-
-	g->ops.gr.load_tpc_mask(g);
-
-	gk20a_writel(g, gr_bes_zrop_settings_r(),
+	nvgpu_writel(g, gr_bes_zrop_settings_r(),
 		     gr_bes_zrop_settings_num_active_ltcs_f(g->ltc_count));
-	gk20a_writel(g, gr_bes_crop_settings_r(),
+	nvgpu_writel(g, gr_bes_crop_settings_r(),
 		     gr_bes_crop_settings_num_active_ltcs_f(g->ltc_count));
 
-	gk20a_writel(g, gr_bes_crop_debug3_r(),
+	nvgpu_writel(g, gr_bes_crop_debug3_r(),
 		     gk20a_readl(g, gr_be0_crop_debug3_r()) |
 		     gr_bes_crop_debug3_comp_vdc_4to2_disable_m());
 
-	err = g->ops.gr.load_smid_config(g);
-	if (err != 0) {
-		nvgpu_err(g, "load_smid_config failed err=%d", err);
-	}
+	err = nvgpu_gr_init_fs_state(g);
 
 	return err;
 }

@@ -23,6 +23,7 @@
 #include <nvgpu/gk20a.h>
 
 #include <nvgpu/gr/gr.h>
+#include <nvgpu/gr/config.h>
 
 u32 nvgpu_gr_get_idle_timeout(struct gk20a *g)
 {
@@ -79,6 +80,13 @@ int nvgpu_gr_init_fs_state(struct gk20a *g)
 		tpc_cnt = (u32)hweight32(val);
 	}
 	g->ops.gr.init.cwd_gpcs_tpcs_num(g, gpc_cnt, tpc_cnt);
+
+	g->ops.gr.load_tpc_mask(g);
+
+	err = g->ops.gr.load_smid_config(g);
+	if (err != 0) {
+		nvgpu_err(g, "load_smid_config failed err=%d", err);
+	}
 
 	return err;
 }

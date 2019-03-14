@@ -2874,72 +2874,61 @@ int gr_gv11b_init_fs_state(struct gk20a *g)
 
 	nvgpu_log_fn(g, " ");
 
-	data = gk20a_readl(g, gr_gpcs_tpcs_sm_texio_control_r());
+	data = nvgpu_readl(g, gr_gpcs_tpcs_sm_texio_control_r());
 	data = set_field(data, gr_gpcs_tpcs_sm_texio_control_oor_addr_check_mode_m(),
 			gr_gpcs_tpcs_sm_texio_control_oor_addr_check_mode_arm_63_48_match_f());
-	gk20a_writel(g, gr_gpcs_tpcs_sm_texio_control_r(), data);
+	nvgpu_writel(g, gr_gpcs_tpcs_sm_texio_control_r(), data);
 
 	if (ver == NVGPU_GPUID_GV11B && nvgpu_is_soc_t194_a01(g))
 	{
 		/* Disable CBM alpha and beta invalidations for l2 for t194 A01 */
-		data = gk20a_readl(g, gr_gpcs_ppcs_cbm_debug_r());
+		data = nvgpu_readl(g, gr_gpcs_ppcs_cbm_debug_r());
 		data = set_field(data,
 			gr_gpcs_ppcs_cbm_debug_invalidate_alpha_m(),
 			gr_gpcs_ppcs_cbm_debug_invalidate_alpha_disable_f());
 		data = set_field(data,
 			gr_gpcs_ppcs_cbm_debug_invalidate_beta_m(),
 			gr_gpcs_ppcs_cbm_debug_invalidate_beta_disable_f());
-		gk20a_writel(g, gr_gpcs_ppcs_cbm_debug_r(), data);
+		nvgpu_writel(g, gr_gpcs_ppcs_cbm_debug_r(), data);
 
 		/* Disable SCC pagepool invalidates  for t194 A01 */
-		data = gk20a_readl(g, gr_scc_debug_r());
+		data = nvgpu_readl(g, gr_scc_debug_r());
 		data = set_field(data,
 			gr_scc_debug_pagepool_invalidates_m(),
 			gr_scc_debug_pagepool_invalidates_disable_f());
-		gk20a_writel(g, gr_scc_debug_r(), data);
+		nvgpu_writel(g, gr_scc_debug_r(), data);
 
 		/* Disable SWDX spill buffer invalidates */
-		data = gk20a_readl(g, gr_gpcs_swdx_spill_unit_r());
+		data = nvgpu_readl(g, gr_gpcs_swdx_spill_unit_r());
 		data = set_field(data,
 			gr_gpcs_swdx_spill_unit_spill_buffer_cache_mgmt_mode_m(),
 			gr_gpcs_swdx_spill_unit_spill_buffer_cache_mgmt_mode_disabled_f());
-		gk20a_writel(g, gr_gpcs_swdx_spill_unit_r(), data);
+		nvgpu_writel(g, gr_gpcs_swdx_spill_unit_r(), data);
 	}
 
-	data = gk20a_readl(g, gr_gpcs_tpcs_sm_disp_ctrl_r());
+	data = nvgpu_readl(g, gr_gpcs_tpcs_sm_disp_ctrl_r());
 	data = set_field(data, gr_gpcs_tpcs_sm_disp_ctrl_re_suppress_m(),
 			 gr_gpcs_tpcs_sm_disp_ctrl_re_suppress_disable_f());
-	gk20a_writel(g, gr_gpcs_tpcs_sm_disp_ctrl_r(), data);
+	nvgpu_writel(g, gr_gpcs_tpcs_sm_disp_ctrl_r(), data);
 
 	if (g->gr.fecs_feature_override_ecc_val != 0U) {
-		gk20a_writel(g,
+		nvgpu_writel(g,
 			gr_fecs_feature_override_ecc_r(),
 			g->gr.fecs_feature_override_ecc_val);
 	}
 
-	data = gk20a_readl(g, gr_debug_0_r());
+	data = nvgpu_readl(g, gr_debug_0_r());
 	data = set_field(data,
 		gr_debug_0_scg_force_slow_drain_tpc_m(),
 		gr_debug_0_scg_force_slow_drain_tpc_enabled_f());
-	gk20a_writel(g, gr_debug_0_r(), data);
+	nvgpu_writel(g, gr_debug_0_r(), data);
 
-	err = nvgpu_gr_init_fs_state(g);
-	if (err != 0) {
-		return err;
-	}
-
-	g->ops.gr.load_tpc_mask(g);
-
-	gk20a_writel(g, gr_bes_zrop_settings_r(),
+	nvgpu_writel(g, gr_bes_zrop_settings_r(),
 		     gr_bes_zrop_settings_num_active_ltcs_f(g->ltc_count));
-	gk20a_writel(g, gr_bes_crop_settings_r(),
+	nvgpu_writel(g, gr_bes_crop_settings_r(),
 		     gr_bes_crop_settings_num_active_ltcs_f(g->ltc_count));
 
-	err = g->ops.gr.load_smid_config(g);
-	if (err != 0) {
-		nvgpu_err(g, "load_smid_config failed err=%d", err);
-		return err;
-	}
+	err = nvgpu_gr_init_fs_state(g);
 
 	return err;
 }
