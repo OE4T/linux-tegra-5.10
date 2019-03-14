@@ -545,6 +545,8 @@ static int tegra_machine_dai_init(struct snd_soc_pcm_runtime *runtime,
 
 	rtd = snd_soc_get_pcm_runtime(card, "rt565x-codec-sysclk-bclk1");
 	if (rtd) {
+		unsigned int bclk_rate;
+
 		dai_params =
 		(struct snd_soc_pcm_stream *)rtd->dai_link->params;
 
@@ -552,8 +554,35 @@ static int tegra_machine_dai_init(struct snd_soc_pcm_runtime *runtime,
 		dai_params->formats = (machine->fmt_via_kcontrol == 2) ?
 			(1ULL << SNDRV_PCM_FORMAT_S32_LE) : formats;
 
-		err = rt565x_manage_codec_sysclk(dai_params, rtd->codec_dai,
-						 RT5659_PLL1_S_BCLK1);
+		switch (dai_params->formats) {
+		case SNDRV_PCM_FMTBIT_S8:
+			bclk_rate = clk_rate * channels * 8;
+			break;
+		case SNDRV_PCM_FMTBIT_S16_LE:
+			bclk_rate = clk_rate * channels * 16;
+			break;
+		case SNDRV_PCM_FMTBIT_S24_LE:
+			bclk_rate = clk_rate * channels * 24;
+			break;
+		case SNDRV_PCM_FMTBIT_S32_LE:
+			bclk_rate = clk_rate * channels * 32;
+			break;
+		default:
+			dev_err(card->dev, "invalid format %llu\n",
+				dai_params->formats);
+			return -EINVAL;
+		}
+
+		err = snd_soc_dai_set_pll(rtd->codec_dai, 0,
+					  RT5659_PLL1_S_BCLK1,
+					  bclk_rate, clk_rate * 256);
+		if (err < 0) {
+			dev_err(card->dev, "failed to set codec pll\n");
+			return err;
+		}
+
+		err = snd_soc_dai_set_sysclk(rtd->codec_dai, RT5659_SCLK_S_PLL1,
+					     clk_rate * 256, SND_SOC_CLOCK_IN);
 		if (err < 0) {
 			dev_err(card->dev, "codec_dai clock not set\n");
 			return err;
