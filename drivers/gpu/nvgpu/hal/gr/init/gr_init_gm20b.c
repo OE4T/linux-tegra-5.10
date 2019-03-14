@@ -111,7 +111,7 @@ int gm20b_gr_init_wait_idle(struct gk20a *g)
 {
 	u32 delay = NVGPU_GR_IDLE_CHECK_DEFAULT_US;
 	u32 gr_engine_id;
-	int err = -EAGAIN;
+	int err = 0;
 	bool ctxsw_active;
 	bool gr_busy;
 	bool ctx_status_invalid;
@@ -159,7 +159,7 @@ int gm20b_gr_init_wait_idle(struct gk20a *g)
 	nvgpu_err(g, "timeout, ctxsw busy : %d, gr busy : %d",
 		  ctxsw_active, gr_busy);
 
-	return err;
+	return -EAGAIN;
 }
 
 int gm20b_gr_init_wait_fe_idle(struct gk20a *g)
@@ -167,7 +167,7 @@ int gm20b_gr_init_wait_fe_idle(struct gk20a *g)
 	u32 val;
 	u32 delay = NVGPU_GR_IDLE_CHECK_DEFAULT_US;
 	struct nvgpu_timeout timeout;
-	int err = -EAGAIN;
+	int err = 0;
 
 	if (nvgpu_is_enabled(g, NVGPU_IS_FMODEL)) {
 		return 0;
@@ -195,13 +195,13 @@ int gm20b_gr_init_wait_fe_idle(struct gk20a *g)
 
 	nvgpu_err(g, "timeout, fe busy : %x", val);
 
-	return err;
+	return -EAGAIN;
 }
 
 int gm20b_gr_init_fe_pwr_mode_force_on(struct gk20a *g, bool force_on)
 {
 	struct nvgpu_timeout timeout;
-	int ret = -ETIMEDOUT;
+	int ret = 0;
 	u32 reg_val;
 
 	if (nvgpu_is_enabled(g, NVGPU_IS_FMODEL)) {
@@ -216,12 +216,17 @@ int gm20b_gr_init_fe_pwr_mode_force_on(struct gk20a *g, bool force_on)
 			  gr_fe_pwr_mode_mode_auto_f();
 	}
 
-	nvgpu_timeout_init(g, &timeout,
+	ret = nvgpu_timeout_init(g, &timeout,
 			   FE_PWR_MODE_TIMEOUT_MAX_US /
 				FE_PWR_MODE_TIMEOUT_DEFAULT_US,
 			   NVGPU_TIMER_RETRY_TIMER);
+	if (ret != 0) {
+		return ret;
+	}
 
 	nvgpu_writel(g, gr_fe_pwr_mode_r(), reg_val);
+
+	ret = -ETIMEDOUT;
 
 	do {
 		u32 req = gr_fe_pwr_mode_req_v(
