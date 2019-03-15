@@ -339,10 +339,6 @@ static int host1x_channel_submit(struct nvhost_job *job)
 		/* create a valid max for client managed syncpoints */
 		if (nvhost_syncpt_client_managed(sp, job->sp[i].id)) {
 			u32 min = nvhost_syncpt_read(sp, job->sp[i].id);
-			if (min)
-				dev_warn(&job->ch->dev->dev,
-					"converting an active unmanaged syncpoint %d to managed\n",
-					job->sp[i].id);
 			nvhost_syncpt_set_max(sp, job->sp[i].id, min);
 			nvhost_syncpt_set_manager(sp, job->sp[i].id, false);
 		}
