@@ -40,6 +40,7 @@
 #include "hal/fb/fb_gm20b.h"
 #include "hal/fb/fb_gp10b.h"
 #include "hal/fb/fb_gv11b.h"
+#include "hal/gr/init/gr_init_gm20b.h"
 #include "hal/gr/init/gr_init_gv11b.h"
 
 #include "common/netlist/netlist_gv11b.h"
@@ -245,10 +246,6 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 		.get_ctx_pagepool_size = gv11b_gr_get_ctx_pagepool_size,
 		.get_ctx_betacb_size = gv11b_gr_get_ctx_betacb_size,
 		.get_ctx_attrib_cb_size = gv11b_gr_get_ctx_attrib_cb_size,
-		.get_global_ctx_cb_buffer_size =
-			gk20a_gr_get_global_ctx_cb_buffer_size,
-		.get_global_ctx_pagepool_buffer_size =
-			gk20a_gr_get_global_ctx_pagepool_buffer_size,
 		.halt_pipe = NULL,
 		.reset = NULL,
 		.ctxsw_prog = {
@@ -391,6 +388,10 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 				gv11b_gr_init_get_alpha_cb_size,
 			.get_global_attr_cb_size =
 				gv11b_gr_init_get_global_attr_cb_size,
+			.get_global_ctx_cb_buffer_size =
+				gm20b_gr_init_get_global_ctx_cb_buffer_size,
+			.get_global_ctx_pagepool_buffer_size =
+				gm20b_gr_init_get_global_ctx_pagepool_buffer_size,
 		},
 	},
 	.perf = {

@@ -491,8 +491,6 @@ struct gpu_ops {
 		u32 (*get_ctx_pagepool_size)(struct gk20a *g);
 		u32 (*get_ctx_betacb_size)(struct gk20a *g);
 		u32 (*get_ctx_attrib_cb_size)(struct gk20a *g, u32 betacb_size);
-		u32 (*get_global_ctx_cb_buffer_size)(struct gk20a *g);
-		u32 (*get_global_ctx_pagepool_buffer_size)(struct gk20a *g);
 		int (*halt_pipe)(struct gk20a *g);
 		int (*reset)(struct gk20a *g);
 		struct {
@@ -710,6 +708,9 @@ struct gpu_ops {
 				u32 tpc_count);
 			u32 (*get_global_attr_cb_size)(struct gk20a *g,
 				u32 tpc_count, u32 max_tpc);
+			u32 (*get_global_ctx_cb_buffer_size)(struct gk20a *g);
+			u32 (*get_global_ctx_pagepool_buffer_size)(
+				struct gk20a *g);
 		} init;
 
 		u32 (*get_ctxsw_checksum_mismatch_mailbox_val)(void);

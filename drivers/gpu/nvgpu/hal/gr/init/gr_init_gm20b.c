@@ -740,3 +740,15 @@ u32 gm20b_gr_init_get_global_attr_cb_size(struct gk20a *g, u32 tpc_count,
 	return size;
 }
 
+u32 gm20b_gr_init_get_global_ctx_cb_buffer_size(struct gk20a *g)
+{
+	return g->ops.gr.init.get_bundle_cb_default_size(g) *
+		gr_scc_bundle_cb_size_div_256b_byte_granularity_v();
+}
+
+u32 gm20b_gr_init_get_global_ctx_pagepool_buffer_size(struct gk20a *g)
+{
+	return g->ops.gr.pagepool_default_size(g) *
+		gr_scc_pagepool_total_pages_byte_granularity_v();
+}
+

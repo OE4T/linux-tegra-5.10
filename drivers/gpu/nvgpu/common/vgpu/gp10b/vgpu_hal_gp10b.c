@@ -212,10 +212,6 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 		.get_ctx_pagepool_size = gp10b_gr_get_ctx_pagepool_size,
 		.get_ctx_betacb_size = gp10b_gr_get_ctx_betacb_size,
 		.get_ctx_attrib_cb_size = gp10b_gr_get_ctx_attrib_cb_size,
-		.get_global_ctx_cb_buffer_size =
-			gk20a_gr_get_global_ctx_cb_buffer_size,
-		.get_global_ctx_pagepool_buffer_size =
-			gk20a_gr_get_global_ctx_pagepool_buffer_size,
 		.halt_pipe = NULL,
 		.reset = NULL,
 		.ctxsw_prog = {
@@ -344,6 +340,10 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 				gp10b_gr_init_get_alpha_cb_size,
 			.get_global_attr_cb_size =
 				gp10b_gr_init_get_global_attr_cb_size,
+			.get_global_ctx_cb_buffer_size =
+				gm20b_gr_init_get_global_ctx_cb_buffer_size,
+			.get_global_ctx_pagepool_buffer_size =
+				gm20b_gr_init_get_global_ctx_pagepool_buffer_size,
 		},
 	},
 	.perf = {

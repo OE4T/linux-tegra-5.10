@@ -545,6 +545,4 @@ void gk20a_gr_flush_channel_tlb(struct gr_gk20a *gr);
 u32 gk20a_gr_get_fecs_ctx_state_store_major_rev_id(struct gk20a *g);
 u32 gr_gk20a_fecs_falcon_base_addr(void);
 u32 gr_gk20a_gpccs_falcon_base_addr(void);
-u32 gk20a_gr_get_global_ctx_cb_buffer_size(struct gk20a *g);
-u32 gk20a_gr_get_global_ctx_pagepool_buffer_size(struct gk20a *g);
 #endif /*__GR_GK20A_H__*/

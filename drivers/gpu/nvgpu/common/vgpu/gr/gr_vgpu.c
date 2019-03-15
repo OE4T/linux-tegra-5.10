@@ -155,13 +155,13 @@ int vgpu_gr_alloc_global_ctx_buffers(struct gk20a *g)
 		return -ENOMEM;
 	}
 
-	size = g->ops.gr.get_global_ctx_cb_buffer_size(g);
+	size = g->ops.gr.init.get_global_ctx_cb_buffer_size(g);
 	nvgpu_log_info(g, "cb_buffer_size : %d", size);
 
 	nvgpu_gr_global_ctx_set_size(gr->global_ctx_buffer,
 		NVGPU_GR_GLOBAL_CTX_CIRCULAR, size);
 
-	size = g->ops.gr.get_global_ctx_pagepool_buffer_size(g);
+	size = g->ops.gr.init.get_global_ctx_pagepool_buffer_size(g);
 	nvgpu_log_info(g, "pagepool_buffer_size : %d", size);
 
 	nvgpu_gr_global_ctx_set_size(gr->global_ctx_buffer,

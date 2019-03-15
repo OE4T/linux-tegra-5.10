@@ -65,5 +65,7 @@ u32 gm20b_gr_init_get_attrib_cb_size(struct gk20a *g, u32 tpc_count);
 u32 gm20b_gr_init_get_alpha_cb_size(struct gk20a *g, u32 tpc_count);
 u32 gm20b_gr_init_get_global_attr_cb_size(struct gk20a *g, u32 tpc_count,
 	u32 max_tpc);
+u32 gm20b_gr_init_get_global_ctx_cb_buffer_size(struct gk20a *g);
+u32 gm20b_gr_init_get_global_ctx_pagepool_buffer_size(struct gk20a *g);
 
 #endif /* NVGPU_GR_INIT_GM20B_H */

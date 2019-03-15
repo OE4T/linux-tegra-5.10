@@ -326,10 +326,6 @@ static const struct gpu_ops gm20b_ops = {
 			gk20a_gr_get_fecs_ctx_state_store_major_rev_id,
 		.init_gfxp_rtv_cb = NULL,
 		.log_mme_exception = NULL,
-		.get_global_ctx_cb_buffer_size =
-			gk20a_gr_get_global_ctx_cb_buffer_size,
-		.get_global_ctx_pagepool_buffer_size =
-			gk20a_gr_get_global_ctx_pagepool_buffer_size,
 		.halt_pipe = gr_gk20a_halt_pipe,
 		.reset = gk20a_gr_reset,
 		.ctxsw_prog = {
@@ -453,6 +449,10 @@ static const struct gpu_ops gm20b_ops = {
 				gm20b_gr_init_get_alpha_cb_size,
 			.get_global_attr_cb_size =
 				gm20b_gr_init_get_global_attr_cb_size,
+			.get_global_ctx_cb_buffer_size =
+				gm20b_gr_init_get_global_ctx_cb_buffer_size,
+			.get_global_ctx_pagepool_buffer_size =
+				gm20b_gr_init_get_global_ctx_pagepool_buffer_size,
 		},
 	},
 	.fb = {
