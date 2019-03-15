@@ -50,7 +50,9 @@ enum blk_cmd_op {
 	VS_BLK_READ = 1,
 	VS_BLK_WRITE = 2,
 	VS_BLK_FLUSH = 3,
-	VS_BLK_IOCTL = 4,
+	VS_BLK_DISCARD = 4,
+	VS_BLK_SECURE_ERASE = 5,
+	VS_BLK_IOCTL = 6,
 	VS_BLK_INVAL_REQ = 32,
 	VS_UNKNOWN_BLK_CMD = 0xffffffff,
 };
@@ -59,6 +61,8 @@ enum blk_cmd_op {
 #define VS_BLK_READ_OP_F          (1 << VS_BLK_READ)
 #define VS_BLK_WRITE_OP_F         (1 << VS_BLK_WRITE)
 #define VS_BLK_FLUSH_OP_F         (1 << VS_BLK_FLUSH)
+#define VS_BLK_DISCARD_OP_F       (1 << VS_BLK_DISCARD)
+#define VS_BLK_SECURE_ERASE_OP_F  (1 << VS_BLK_SECURE_ERASE)
 #define VS_BLK_IOCTL_OP_F         (1 << VS_BLK_IOCTL)
 
 #pragma pack(push)
@@ -140,6 +144,7 @@ struct vs_blk_dev_config {
 						per I/O*/
 	uint32_t max_write_blks_per_io; /* Limit number of Blocks
 					   per I/O*/
+	uint32_t max_erase_blks_per_io; /* Limit number of Blocks per I/O */
 	uint32_t req_ops_supported;	/* Allowed operations by requests */
 	uint64_t num_blks;		/* Total number of blks */
 };

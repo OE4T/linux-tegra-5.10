@@ -441,6 +441,10 @@ static bool submit_bio_req(struct vblk_dev *vblkdev)
 			vs_req->blkdev_req.req_op = VS_BLK_WRITE;
 		} else if (req_op(bio_req) == REQ_OP_FLUSH) {
 			vs_req->blkdev_req.req_op = VS_BLK_FLUSH;
+		} else if (req_op(bio_req) == REQ_OP_DISCARD) {
+			vs_req->blkdev_req.req_op = VS_BLK_DISCARD;
+		} else if (req_op(bio_req) == REQ_OP_SECURE_ERASE) {
+			vs_req->blkdev_req.req_op = VS_BLK_SECURE_ERASE;
 		} else {
 			dev_err(vblkdev->device,
 				"Request direction is not read/write!\n");
@@ -780,6 +784,19 @@ static void setup_device(struct vblk_dev *vblkdev)
 	vblkdev->max_requests = max_requests;
 	blk_queue_max_hw_sectors(vblkdev->queue, max_io_bytes / SECTOR_SIZE);
 	queue_flag_set_unlocked(QUEUE_FLAG_NONROT, vblkdev->queue);
+
+	if (vblkdev->config.blk_config.req_ops_supported
+		& VS_BLK_DISCARD_OP_F) {
+		queue_flag_set_unlocked(QUEUE_FLAG_DISCARD, vblkdev->queue);
+		blk_queue_max_discard_sectors(vblkdev->queue,
+			vblkdev->config.blk_config.max_erase_blks_per_io);
+		vblkdev->queue->limits.discard_granularity =
+			vblkdev->config.blk_config.hardblk_size;
+		if (vblkdev->config.blk_config.req_ops_supported &
+			VS_BLK_SECURE_ERASE_OP_F)
+			queue_flag_set_unlocked(QUEUE_FLAG_SECERASE,
+					vblkdev->queue);
+	}
 
 	/* And the gendisk structure. */
 	vblkdev->gd = alloc_disk(VBLK_MINORS);
