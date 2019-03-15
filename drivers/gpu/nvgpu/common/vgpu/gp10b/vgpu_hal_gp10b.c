@@ -453,6 +453,7 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 		.dump_pbdma_status = NULL,
 		.handle_pbdma_intr_0 = NULL,
 		.handle_pbdma_intr_1 = gm20b_pbdma_handle_intr_1,
+		.handle_pbdma_intr = gm20b_pbdma_handle_intr,
 		.read_pbdma_data = NULL,
 		.reset_pbdma_header = NULL,
 		.device_fatal_0_intr_descs = NULL,

@@ -230,7 +230,7 @@ void gv11b_fifo_intr_0_isr(struct gk20a *g)
 	}
 
 	if ((fifo_intr & fifo_intr_0_pbdma_intr_pending_f()) != 0U) {
-		clear_intr |= fifo_pbdma_isr(g, fifo_intr);
+		clear_intr |= gk20a_fifo_pbdma_isr(g);
 	}
 
 	if ((fifo_intr & fifo_intr_0_sched_error_pending_f()) != 0U) {

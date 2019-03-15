@@ -361,3 +361,45 @@ u32 gm20b_pbdma_restartable_0_intr_descs(void)
 
 	return restartable_0_intr_descs;
 }
+
+unsigned int gm20b_pbdma_handle_intr(struct gk20a *g, u32 pbdma_id,
+			u32 *error_notifier)
+{
+	u32 intr_handled = 0U;
+	u32 intr_error_notifier = NVGPU_ERR_NOTIFIER_PBDMA_ERROR;
+
+	u32 pbdma_intr_0 = nvgpu_readl(g, pbdma_intr_0_r(pbdma_id));
+	u32 pbdma_intr_1 = nvgpu_readl(g, pbdma_intr_1_r(pbdma_id));
+
+	unsigned int rc_type = RC_TYPE_NO_RC;
+
+	if (pbdma_intr_0 != 0U) {
+		nvgpu_log(g, gpu_dbg_info | gpu_dbg_intr,
+			"pbdma id %d intr_0 0x%08x pending",
+			pbdma_id, pbdma_intr_0);
+
+		if (g->ops.pbdma.handle_pbdma_intr_0(g, pbdma_id, pbdma_intr_0,
+			&intr_handled, &intr_error_notifier) != RC_TYPE_NO_RC) {
+			rc_type = RC_TYPE_PBDMA_FAULT;
+		}
+		nvgpu_writel(g, pbdma_intr_0_r(pbdma_id), pbdma_intr_0);
+	}
+
+	if (pbdma_intr_1 != 0U) {
+		nvgpu_log(g, gpu_dbg_info | gpu_dbg_intr,
+			"pbdma id %d intr_1 0x%08x pending",
+			pbdma_id, pbdma_intr_1);
+
+		if (g->ops.pbdma.handle_pbdma_intr_1(g, pbdma_id, pbdma_intr_1,
+			&intr_handled, &intr_error_notifier) != RC_TYPE_NO_RC) {
+			rc_type = RC_TYPE_PBDMA_FAULT;
+		}
+		nvgpu_writel(g, pbdma_intr_1_r(pbdma_id), pbdma_intr_1);
+	}
+
+	if (error_notifier != NULL) {
+		*error_notifier = intr_error_notifier;
+	}
+
+	return rc_type;
+}

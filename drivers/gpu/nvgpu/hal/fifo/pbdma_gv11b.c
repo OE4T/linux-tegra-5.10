@@ -24,6 +24,7 @@
 #include <nvgpu/io.h>
 #include <nvgpu/nvgpu_err.h>
 #include <nvgpu/fifo.h>
+#include <nvgpu/gk20a.h>
 
 #include <nvgpu/hw/gv11b/hw_pbdma_gv11b.h>
 

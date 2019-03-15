@@ -1168,7 +1168,7 @@ u32 gk20a_fifo_get_failing_engine_data(struct gk20a *g,
 	return active_engine_id;
 }
 
-static void gk20a_fifo_pbdma_fault_rc(struct gk20a *g,
+void gk20a_fifo_pbdma_fault_rc(struct gk20a *g,
 			struct fifo_gk20a *f, u32 pbdma_id,
 			u32 error_notifier)
 {
@@ -1208,64 +1208,6 @@ static void gk20a_fifo_pbdma_fault_rc(struct gk20a *g,
 	} else {
 		nvgpu_err(g, "Invalid pbdma_id");
 	}
-}
-
-u32 gk20a_fifo_handle_pbdma_intr(struct gk20a *g, struct fifo_gk20a *f,
-			u32 pbdma_id, unsigned int rc)
-{
-	u32 pbdma_intr_0 = gk20a_readl(g, pbdma_intr_0_r(pbdma_id));
-	u32 pbdma_intr_1 = gk20a_readl(g, pbdma_intr_1_r(pbdma_id));
-
-	u32 handled = 0;
-	u32 error_notifier = NVGPU_ERR_NOTIFIER_PBDMA_ERROR;
-	unsigned int rc_type = RC_TYPE_NO_RC;
-
-	if (pbdma_intr_0 != 0U) {
-		nvgpu_log(g, gpu_dbg_info | gpu_dbg_intr,
-			"pbdma id %d intr_0 0x%08x pending",
-			pbdma_id, pbdma_intr_0);
-
-		if (g->ops.pbdma.handle_pbdma_intr_0(g, pbdma_id, pbdma_intr_0,
-			&handled, &error_notifier) != RC_TYPE_NO_RC) {
-			rc_type = RC_TYPE_PBDMA_FAULT;
-		}
-		gk20a_writel(g, pbdma_intr_0_r(pbdma_id), pbdma_intr_0);
-	}
-
-	if (pbdma_intr_1 != 0U) {
-		nvgpu_log(g, gpu_dbg_info | gpu_dbg_intr,
-			"pbdma id %d intr_1 0x%08x pending",
-			pbdma_id, pbdma_intr_1);
-
-		if (g->ops.pbdma.handle_pbdma_intr_1(g, pbdma_id, pbdma_intr_1,
-			&handled, &error_notifier) != RC_TYPE_NO_RC) {
-			rc_type = RC_TYPE_PBDMA_FAULT;
-		}
-		gk20a_writel(g, pbdma_intr_1_r(pbdma_id), pbdma_intr_1);
-	}
-
-	if (rc == RC_YES && rc_type == RC_TYPE_PBDMA_FAULT) {
-		gk20a_fifo_pbdma_fault_rc(g, f, pbdma_id, error_notifier);
-	}
-
-	return handled;
-}
-
-u32 fifo_pbdma_isr(struct gk20a *g, u32 fifo_intr)
-{
-	struct fifo_gk20a *f = &g->fifo;
-	u32 clear_intr = 0, i;
-	u32 host_num_pbdma = nvgpu_get_litter_value(g, GPU_LIT_HOST_NUM_PBDMA);
-	u32 pbdma_pending = gk20a_readl(g, fifo_intr_pbdma_id_r());
-
-	for (i = 0; i < host_num_pbdma; i++) {
-		if (fifo_intr_pbdma_id_status_v(pbdma_pending, i) != 0U) {
-			nvgpu_log(g, gpu_dbg_intr, "pbdma id %d intr pending", i);
-			clear_intr |=
-				gk20a_fifo_handle_pbdma_intr(g, f, i, RC_YES);
-		}
-	}
-	return fifo_intr_0_pbdma_intr_pending_f();
 }
 
 void gk20a_fifo_issue_preempt(struct gk20a *g, u32 id, bool is_tsg)

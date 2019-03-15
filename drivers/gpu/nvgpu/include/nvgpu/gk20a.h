@@ -1015,6 +1015,9 @@ struct gpu_ops {
 		u32 (*device_fatal_0_intr_descs)(void);
 		u32 (*channel_fatal_0_intr_descs)(void);
 		u32 (*restartable_0_intr_descs)(void);
+		/* error_notifier can be NULL */
+		unsigned int (*handle_pbdma_intr)(struct gk20a *g, u32 pbdma_id,
+				u32 *error_notifier);
 	} pbdma;
 
 	struct {

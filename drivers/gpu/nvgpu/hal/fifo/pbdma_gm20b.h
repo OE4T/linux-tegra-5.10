@@ -44,4 +44,7 @@ u32 gm20b_pbdma_device_fatal_0_intr_descs(void);
 u32 gm20b_pbdma_channel_fatal_0_intr_descs(void);
 u32 gm20b_pbdma_restartable_0_intr_descs(void);
 
+unsigned int gm20b_pbdma_handle_intr(struct gk20a *g, u32 pbdma_id,
+			u32 *error_notifier);
+
 #endif /* NVGPU_PBDMA_GM20B_H */

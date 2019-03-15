@@ -877,6 +877,7 @@ static const struct gpu_ops gv100_ops = {
 		.dump_pbdma_status = gm20b_pbdma_dump_status,
 		.handle_pbdma_intr_0 = gv11b_pbdma_handle_intr_0,
 		.handle_pbdma_intr_1 = gv11b_pbdma_handle_intr_1,
+		.handle_pbdma_intr = gm20b_pbdma_handle_intr,
 		.read_pbdma_data = gm20b_pbdma_read_data,
 		.reset_pbdma_header = gm20b_pbdma_reset_header,
 		.device_fatal_0_intr_descs =

@@ -226,6 +226,30 @@ void gk20a_fifo_intr_handle_runlist_event(struct gk20a *g)
 	nvgpu_writel(g, fifo_intr_runlist_r(), runlist_event);
 }
 
+u32 gk20a_fifo_pbdma_isr(struct gk20a *g)
+{
+	struct fifo_gk20a *f = &g->fifo;
+	u32 pbdma_id;
+	u32 num_pbdma = nvgpu_get_litter_value(g, GPU_LIT_HOST_NUM_PBDMA);
+	u32 pbdma_pending_bitmask = nvgpu_readl(g, fifo_intr_pbdma_id_r());
+	u32 error_notifier;
+	unsigned int rc_type;
+
+	for (pbdma_id = 0; pbdma_id < num_pbdma; pbdma_id++) {
+		if (fifo_intr_pbdma_id_status_v(pbdma_pending_bitmask, pbdma_id) != 0U) {
+			nvgpu_log(g, gpu_dbg_intr, "pbdma id %d intr pending",
+				pbdma_id);
+			rc_type = g->ops.pbdma.handle_pbdma_intr(g, pbdma_id,
+				&error_notifier);
+			if (rc_type == RC_TYPE_PBDMA_FAULT) {
+				gk20a_fifo_pbdma_fault_rc(g, f, pbdma_id,
+					error_notifier);
+			}
+		}
+	}
+	return fifo_intr_0_pbdma_intr_pending_f();
+}
+
 void gk20a_fifo_intr_0_isr(struct gk20a *g)
 {
 	u32 clear_intr = 0U;
@@ -255,7 +279,7 @@ void gk20a_fifo_intr_0_isr(struct gk20a *g)
 	}
 
 	if ((fifo_intr & fifo_intr_0_pbdma_intr_pending_f()) != 0U) {
-		clear_intr |= fifo_pbdma_isr(g, fifo_intr);
+		clear_intr |= gk20a_fifo_pbdma_isr(g);
 	}
 
 	if ((fifo_intr & fifo_intr_0_mmu_fault_pending_f()) != 0U) {

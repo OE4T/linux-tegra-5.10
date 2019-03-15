@@ -913,6 +913,7 @@ static const struct gpu_ops tu104_ops = {
 		.pbdma_acquire_val = gm20b_pbdma_acquire_val,
 		.get_pbdma_signature = gp10b_pbdma_get_signature,
 		.dump_pbdma_status = gm20b_pbdma_dump_status,
+		.handle_pbdma_intr = gm20b_pbdma_handle_intr,
 		.handle_pbdma_intr_0 = gv11b_pbdma_handle_intr_0,
 		.handle_pbdma_intr_1 = gv11b_pbdma_handle_intr_1,
 		.read_pbdma_data = tu104_pbdma_read_data,

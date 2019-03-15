@@ -190,8 +190,7 @@ static int gv11b_fifo_poll_pbdma_chan_status(struct gk20a *g, u32 id,
 		 */
 
 		/* Ignore un-needed return value "handled" */
-		(void) gk20a_fifo_handle_pbdma_intr(g, &g->fifo, pbdma_id,
-				RC_NO);
+		(void)g->ops.pbdma.handle_pbdma_intr(g, pbdma_id, NULL);
 
 		g->ops.pbdma_status.read_pbdma_status_info(g, pbdma_id,
 			&pbdma_status);
