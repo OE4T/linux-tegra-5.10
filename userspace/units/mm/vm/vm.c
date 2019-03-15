@@ -33,8 +33,8 @@
 #include <nvgpu/nvgpu_sgt.h>
 #include <nvgpu/vm_area.h>
 #include <gp10b/mm_gp10b.h>
-#include <common/fb/fb_gp10b.h>
-#include <common/fb/fb_gm20b.h>
+#include <hal/fb/fb_gp10b.h>
+#include <hal/fb/fb_gm20b.h>
 #include <gv11b/mm_gv11b.h>
 #include <nvgpu/hw/gv11b/hw_gmmu_gv11b.h>
 

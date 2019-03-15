@@ -30,8 +30,8 @@
 #include <nvgpu/utils.h>
 #include <nvgpu/gk20a.h>
 
-#include "common/fb/fb_gv11b.h"
-#include "common/fb/fb_gv100.h"
+#include "hal/fb/fb_gv11b.h"
+#include "hal/fb/fb_gv100.h"
 #include "common/mc/mc_tu104.h"
 
 #include "tu104/func_tu104.h"

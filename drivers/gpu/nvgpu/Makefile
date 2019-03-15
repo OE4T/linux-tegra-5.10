@@ -35,12 +35,6 @@ obj-$(CONFIG_GK20A) := nvgpu.o
 nvgpu-y += \
 	common/ptimer/ptimer.o \
 	common/ptimer/ptimer_gk20a.o \
-	common/fb/fb_gm20b.o \
-	common/fb/fb_gp10b.o \
-	common/fb/fb_gp106.o \
-	common/fb/fb_gv11b.o \
-	common/fb/fb_gv100.o \
-	common/fb/fb_tu104.o \
 	common/perf/perf_gm20b.o \
 	common/perf/perf_gv11b.o \
 	common/perf/perfbuf.o \
@@ -190,6 +184,12 @@ nvgpu-y += \
 	hal/ltc/ltc_gp10b.o \
 	hal/ltc/ltc_gv11b.o  \
 	hal/ltc/ltc_tu104.o \
+	hal/fb/fb_gm20b.o \
+	hal/fb/fb_gp10b.o \
+	hal/fb/fb_gp106.o \
+	hal/fb/fb_gv11b.o \
+	hal/fb/fb_gv100.o \
+	hal/fb/fb_tu104.o \
 	hal/fuse/fuse_gm20b.o \
 	hal/fuse/fuse_gp10b.o \
 	hal/fuse/fuse_gp106.o \

@@ -39,12 +39,13 @@
 #include "gp10b/mm_gp10b.h"
 #include "gv11b/mm_gv11b.h"
 #include "gv11b/fifo_gv11b.h"
-#include "common/fb/fb_gp10b.h"
-#include "common/fb/fb_gm20b.h"
-#include "common/fb/fb_gv11b.h"
 #include "common/fifo/channel_gv11b.h"
 #include "nvgpu/hw/gv11b/hw_gmmu_gv11b.h"
 #include "nvgpu/hw/gv11b/hw_fb_gv11b.h"
+
+#include "hal/fb/fb_gp10b.h"
+#include "hal/fb/fb_gm20b.h"
+#include "hal/fb/fb_gv11b.h"
 
 #define TEST_PA_ADDRESS 0xEFAD80000000
 #define TEST_COMP_TAG 0xEF

@@ -50,6 +50,8 @@
 #include "hal/therm/therm_gp10b.h"
 #include "hal/ltc/ltc_gm20b.h"
 #include "hal/ltc/ltc_gp10b.h"
+#include "hal/fb/fb_gm20b.h"
+#include "hal/fb/fb_gp10b.h"
 #include "hal/fuse/fuse_gm20b.h"
 #include "hal/fuse/fuse_gp10b.h"
 #include "hal/fifo/engines_gm20b.h"
@@ -59,8 +61,6 @@
 #include "hal/falcon/falcon_gk20a.h"
 
 #include "common/ptimer/ptimer_gk20a.h"
-#include "common/fb/fb_gm20b.h"
-#include "common/fb/fb_gp10b.h"
 #include "common/netlist/netlist_gp10b.h"
 #include "common/gr/ctxsw_prog/ctxsw_prog_gm20b.h"
 #include "common/gr/ctxsw_prog/ctxsw_prog_gp10b.h"

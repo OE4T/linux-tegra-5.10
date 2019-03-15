@@ -31,10 +31,10 @@
 #include "hal/ltc/ltc_gm20b.h"
 #include "hal/ltc/ltc_gp10b.h"
 #include "hal/ltc/ltc_gv11b.h"
+#include "hal/fb/fb_gm20b.h"
+#include "hal/fb/fb_gp10b.h"
+#include "hal/fb/fb_gv11b.h"
 
-#include "common/fb/fb_gm20b.h"
-#include "common/fb/fb_gp10b.h"
-#include "common/fb/fb_gv11b.h"
 #include "common/netlist/netlist_gv11b.h"
 #include "common/gr/ctxsw_prog/ctxsw_prog_gm20b.h"
 #include "common/gr/ctxsw_prog/ctxsw_prog_gp10b.h"

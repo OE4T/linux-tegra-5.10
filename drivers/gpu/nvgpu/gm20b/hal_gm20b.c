@@ -44,6 +44,7 @@
 #include "hal/cbc/cbc_gm20b.h"
 #include "hal/therm/therm_gm20b.h"
 #include "hal/ltc/ltc_gm20b.h"
+#include "hal/fb/fb_gm20b.h"
 #include "hal/fuse/fuse_gm20b.h"
 #include "hal/fifo/engines_gm20b.h"
 #include "hal/gr/zbc/zbc_gm20b.h"
@@ -51,7 +52,6 @@
 #include "hal/falcon/falcon_gk20a.h"
 
 #include "common/ptimer/ptimer_gk20a.h"
-#include "common/fb/fb_gm20b.h"
 #include "common/netlist/netlist_gm20b.h"
 #include "common/gr/ctxsw_prog/ctxsw_prog_gm20b.h"
 #include "common/gr/config/gr_config_gm20b.h"

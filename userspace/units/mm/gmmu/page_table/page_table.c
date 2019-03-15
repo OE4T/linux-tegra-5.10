@@ -38,9 +38,10 @@
 #include <gm20b/mm_gm20b.h>
 #include <gp10b/mm_gp10b.h>
 #include <gv11b/mm_gv11b.h>
-#include <common/fb/fb_gp10b.h>
-#include <common/fb/fb_gm20b.h>
 #include <nvgpu/hw/gv11b/hw_gmmu_gv11b.h>
+
+#include <hal/fb/fb_gp10b.h>
+#include <hal/fb/fb_gm20b.h>
 
 #define TEST_PA_ADDRESS     0xEFAD80000000
 #define TEST_GPU_VA         0x102040600000
