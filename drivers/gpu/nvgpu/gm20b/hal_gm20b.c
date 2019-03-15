@@ -284,7 +284,6 @@ static const struct gpu_ops gm20b_ops = {
 		.suspend_contexts = gr_gk20a_suspend_contexts,
 		.resume_contexts = gr_gk20a_resume_contexts,
 		.get_preemption_mode_flags = gr_gm20b_get_preemption_mode_flags,
-		.init_sm_id_table = gr_gk20a_init_sm_id_table,
 		.commit_inst = gr_gk20a_commit_inst,
 		.trigger_suspend = gr_gk20a_trigger_suspend,
 		.wait_for_pause = gr_gk20a_wait_for_pause,
@@ -399,6 +398,7 @@ static const struct gpu_ops gm20b_ops = {
 			.get_pes_tpc_mask = gm20b_gr_config_get_pes_tpc_mask,
 			.get_pd_dist_skip_table_size =
 				gm20b_gr_config_get_pd_dist_skip_table_size,
+			.init_sm_id_table = gm20b_gr_config_init_sm_id_table,
 		},
 		.zbc = {
 			.add_color = gm20b_gr_zbc_add_color,

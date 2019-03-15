@@ -1151,11 +1151,11 @@ int vgpu_gr_init_sm_id_table(struct gk20a *g)
 
 int vgpu_gr_init_fs_state(struct gk20a *g)
 {
-	if (!g->ops.gr.init_sm_id_table) {
+	if (!g->ops.gr.config.init_sm_id_table) {
 		return -EINVAL;
 	}
 
-	return g->ops.gr.init_sm_id_table(g);
+	return g->ops.gr.config.init_sm_id_table(g);
 }
 
 int vgpu_gr_update_pc_sampling(struct channel_gk20a *ch, bool enable)

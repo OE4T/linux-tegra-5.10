@@ -160,7 +160,6 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 		.suspend_contexts = vgpu_gr_suspend_contexts,
 		.resume_contexts = vgpu_gr_resume_contexts,
 		.get_preemption_mode_flags = gr_gp10b_get_preemption_mode_flags,
-		.init_sm_id_table = vgpu_gr_init_sm_id_table,
 		.commit_inst = vgpu_gr_commit_inst,
 		.trigger_suspend = NULL,
 		.wait_for_pause = gr_gk20a_wait_for_pause,
@@ -282,6 +281,7 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 		},
 		.config = {
 			.get_gpc_tpc_mask = vgpu_gr_get_gpc_tpc_mask,
+			.init_sm_id_table = vgpu_gr_init_sm_id_table,
 		},
 		.zbc = {
 			.add_color = NULL,

@@ -415,7 +415,6 @@ struct gpu_ops {
 				u32 graphics_preempt_mode,
 				u32 compute_preempt_mode);
 		int (*set_boosted_ctx)(struct channel_gk20a *ch, bool boost);
-		int (*init_sm_id_table)(struct gk20a *g);
 		int (*init_sw_veid_bundle)(struct gk20a *g);
 		int (*commit_inst)(struct channel_gk20a *c, u64 gpu_va);
 		int (*trigger_suspend)(struct gk20a *g);
@@ -582,6 +581,7 @@ struct gpu_ops {
 				struct nvgpu_gr_config *config, u32 gpc_index,
 				u32 pes_index);
 			u32 (*get_pd_dist_skip_table_size)(void);
+			int (*init_sm_id_table)(struct gk20a *g);
 		} config;
 
 #ifdef CONFIG_GK20A_CTXSW_TRACE

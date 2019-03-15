@@ -61,6 +61,7 @@
 #include "hal/gr/fecs_trace/fecs_trace_gm20b.h"
 #include "hal/gr/fecs_trace/fecs_trace_gv11b.h"
 #include "hal/gr/config/gr_config_gm20b.h"
+#include "hal/gr/config/gr_config_gv100.h"
 #include "hal/gr/zbc/zbc_gp10b.h"
 #include "hal/gr/zbc/zbc_gv11b.h"
 #include "hal/gr/zcull/zcull_gm20b.h"
@@ -441,7 +442,6 @@ static const struct gpu_ops tu104_ops = {
 		.suspend_contexts = gr_gp10b_suspend_contexts,
 		.resume_contexts = gr_gk20a_resume_contexts,
 		.get_preemption_mode_flags = gr_gp10b_get_preemption_mode_flags,
-		.init_sm_id_table = gr_gv100_init_sm_id_table,
 		.commit_inst = gr_gv11b_commit_inst,
 		.trigger_suspend = gv11b_gr_sm_trigger_suspend,
 		.wait_for_pause = gr_gk20a_wait_for_pause,
@@ -610,6 +610,7 @@ static const struct gpu_ops tu104_ops = {
 			.get_pes_tpc_mask = gm20b_gr_config_get_pes_tpc_mask,
 			.get_pd_dist_skip_table_size =
 				gm20b_gr_config_get_pd_dist_skip_table_size,
+			.init_sm_id_table = gv100_gr_config_init_sm_id_table,
 		},
 #ifdef CONFIG_GK20A_CTXSW_TRACE
 		.fecs_trace = {

@@ -442,7 +442,8 @@ nvgpu-$(CONFIG_GK20A_VIDMEM) += \
 	common/mm/vidmem.o
 
 nvgpu-y += \
-	hal/gr/config/gr_config_gm20b.o
+	hal/gr/config/gr_config_gm20b.o \
+	hal/gr/config/gr_config_gv100.o
 
 nvgpu-$(CONFIG_TEGRA_GR_VIRTUALIZATION) += \
 	common/vgpu/ltc/ltc_vgpu.o \

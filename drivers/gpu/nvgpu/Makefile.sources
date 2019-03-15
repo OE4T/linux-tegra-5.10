@@ -387,7 +387,8 @@ ifeq ($(NVGPU_DEBUGGER),1)
 srcs += common/debugger.c
 endif
 
-srcs += hal/gr/config/gr_config_gm20b.c
+srcs += hal/gr/config/gr_config_gm20b.c \
+	hal/gr/config/gr_config_gv100.c
 
 ifeq ($(NVGPU_LS_PMU),1)
 # Add LS PMU files which are required for normal build

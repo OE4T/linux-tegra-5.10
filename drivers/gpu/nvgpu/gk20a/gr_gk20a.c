@@ -768,30 +768,6 @@ int gr_gk20a_commit_global_ctx_buffers(struct gk20a *g,
 	return 0;
 }
 
-int gr_gk20a_init_sm_id_table(struct gk20a *g)
-{
-	u32 gpc, tpc;
-	u32 sm_id = 0;
-
-	for (tpc = 0;
-	     tpc < nvgpu_gr_config_get_max_tpc_per_gpc_count(g->gr.config);
-	     tpc++) {
-		for (gpc = 0; gpc < nvgpu_gr_config_get_gpc_count(g->gr.config); gpc++) {
-
-			if (tpc < nvgpu_gr_config_get_gpc_tpc_count(g->gr.config, gpc)) {
-				g->gr.sm_to_cluster[sm_id].tpc_index = tpc;
-				g->gr.sm_to_cluster[sm_id].gpc_index = gpc;
-				g->gr.sm_to_cluster[sm_id].sm_index = 0;
-				g->gr.sm_to_cluster[sm_id].global_tpc_index =
-									sm_id;
-				sm_id++;
-			}
-		}
-	}
-	g->gr.no_of_sm = sm_id;
-	return 0;
-}
-
 int gr_gk20a_fecs_ctx_image_save(struct channel_gk20a *c, u32 save_type)
 {
 	struct gk20a *g = c->g;
