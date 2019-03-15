@@ -216,5 +216,10 @@ enum nvc_params_isp {
 #define NVC_PWR_COMM                    5
 #define NVC_PWR_ON                      6
 
+struct nvc_fuseid {
+	__u32 size;
+	__u8 data[16];
+};
+
 #endif /* __UAPI_NVC_H__ */
 

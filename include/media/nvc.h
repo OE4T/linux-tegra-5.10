@@ -97,9 +97,4 @@ struct nvc_gpio {
 	bool flag; /* scratch flag for driver implementation */
 };
 
-struct nvc_fuseid {
-	__u32 size;
-	__u8 data[16];
-};
-
 #endif /* __NVC_H__ */
