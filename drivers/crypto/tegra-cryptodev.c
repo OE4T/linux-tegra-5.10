@@ -65,7 +65,7 @@ struct tegra_crypto_ctx {
 	/*ecb, cbc, ofb, ctr */
 	struct crypto_skcipher *aes_tfm[TEGRA_CRYPTO_MAX];
 	/* rsa512, rsa1024, rsa1536, rsa2048 */
-	struct crypto_akcipher *rsa_tfm[4];
+	struct crypto_akcipher *rsa_tfm[NUM_RSA_ALGO];
 	/* rsa512, rsa768, rsa1024, rsa1536, rsa2048, rsa3072, rsa4096 */
 	struct crypto_akcipher *pka1_rsa_tfm;
 	/* sha1, sha224, sha256, sha384, sha512, cmac */
@@ -200,6 +200,16 @@ static int tegra_crypto_dev_release(struct inode *inode, struct file *filp)
 			crypto_free_skcipher(store_tfm[i]);
 		tfm_index = 0;
 	}
+	/*
+	 * Free any allocated rsa tfm's. This might happen if RSA_EXIT
+	 * operation is not performed after RSA_INIT operation.
+	 */
+	for (i = 0; i < NUM_RSA_ALGO; i++)
+		if (ctx->rsa_tfm[i])
+			crypto_free_akcipher(ctx->rsa_tfm[i]);
+
+	if (ctx->pka1_rsa_tfm)
+		crypto_free_akcipher(ctx->pka1_rsa_tfm);
 out:
 	kfree(ctx);
 	filp->private_data = NULL;
@@ -217,8 +227,8 @@ static void tegra_crypt_complete(struct crypto_async_request *req, int err)
 	}
 }
 
-static int process_crypt_req(struct file *filp, struct tegra_crypto_ctx *ctx,
-				struct tegra_crypt_req *crypt_req)
+static int process_crypt_req(struct tegra_crypto_ctx *ctx,
+			     struct tegra_crypt_req *crypt_req)
 {
 	struct crypto_skcipher *tfm;
 	struct skcipher_request *req = NULL;
@@ -250,11 +260,9 @@ static int process_crypt_req(struct file *filp, struct tegra_crypto_ctx *ctx,
 		}
 
 		ctx->aes_tfm[crypt_req->op] = tfm;
-		filp->private_data = ctx;
 	} else {
 		tfm = ctx->aes_tfm[TEGRA_CRYPTO_CBC];
 		ctx->skip_exit = crypt_req->skip_exit;
-		filp->private_data = ctx;
 	}
 
 	req = skcipher_request_alloc(tfm, GFP_KERNEL);
@@ -451,8 +459,8 @@ static int tegra_cryptodev_rsa_set_key(struct crypto_akcipher *tfm,
 	return ret;
 }
 
-static int tegra_crypt_rsa(struct file *filp, struct tegra_crypto_ctx *ctx,
-				struct tegra_rsa_req *rsa_req)
+static int tegra_crypt_rsa(struct tegra_crypto_ctx *ctx,
+			   struct tegra_rsa_req *rsa_req)
 {
 	struct crypto_akcipher *tfm = NULL;
 	struct akcipher_request *req;
@@ -462,7 +470,16 @@ static int tegra_crypt_rsa(struct file *filp, struct tegra_crypto_ctx *ctx,
 	unsigned long *xbuf[XBUFSIZE];
 	struct tegra_crypto_completion rsa_complete;
 
+	if (rsa_req->algo >= NUM_RSA_ALGO) {
+		pr_err("alg: rsa: invalid algo\n");
+		return -EINVAL;
+	}
+
+	rsa_req->algo = array_index_nospec(rsa_req->algo, NUM_RSA_ALGO);
+
 	if (rsa_req->op_mode == RSA_INIT) {
+		if (ctx->rsa_tfm[rsa_req->algo])
+			return 0;
 		tfm = crypto_alloc_akcipher("rsa-pka0",
 					CRYPTO_ALG_TYPE_AKCIPHER, 0);
 		if (IS_ERR(tfm)) {
@@ -472,10 +489,9 @@ static int tegra_crypt_rsa(struct file *filp, struct tegra_crypto_ctx *ctx,
 		}
 
 		ctx->rsa_tfm[rsa_req->algo] = tfm;
-		filp->private_data = ctx;
 		return 0;
 	}
-	ctx = filp->private_data;
+
 	tfm =  ctx->rsa_tfm[rsa_req->algo];
 	if (tfm == NULL) {
 		pr_err("%s: uninitialized tfm\n", __func__);
@@ -573,6 +589,7 @@ buf_fail:
 		akcipher_request_free(req);
 	} else if (rsa_req->op_mode == RSA_EXIT) {
 		crypto_free_akcipher(tfm);
+		ctx->rsa_tfm[rsa_req->algo] = NULL;
 	} else {
 		pr_err("alg: rsa: invalid rsa operation\n");
 	}
@@ -580,9 +597,7 @@ buf_fail:
 	return ret;
 }
 
-static int tegra_crypt_rsa_ahash(struct file *filp,
-				struct tegra_crypto_ctx *ctx,
-				struct tegra_rsa_req_ahash *rsa_req_ah)
+static int tegra_crypt_rsa_ahash(struct tegra_rsa_req_ahash *rsa_req_ah)
 {
 	struct crypto_ahash *tfm = NULL;
 	struct ahash_request *req = NULL;
@@ -628,8 +643,6 @@ static int tegra_crypt_rsa_ahash(struct file *filp,
 		ret = PTR_ERR(tfm);
 		goto out;
 	}
-
-	filp->private_data = ctx;
 
 	req = ahash_request_alloc(tfm, GFP_KERNEL);
 	if (!req) {
@@ -1085,7 +1098,7 @@ mod_fail:
 	return ret;
 }
 
-static int tegra_crypt_pka1_rsa(struct file *filp, struct tegra_crypto_ctx *ctx,
+static int tegra_crypt_pka1_rsa(struct tegra_crypto_ctx *ctx,
 				struct tegra_pka1_rsa_request *rsa_req)
 {
 	struct crypto_akcipher *tfm = NULL;
@@ -1097,6 +1110,8 @@ static int tegra_crypt_pka1_rsa(struct file *filp, struct tegra_crypto_ctx *ctx,
 	struct tegra_crypto_completion rsa_complete;
 
 	if (rsa_req->op_mode == RSA_INIT) {
+		if (ctx->pka1_rsa_tfm)
+			return 0;
 		tfm = crypto_alloc_akcipher("rsa", CRYPTO_ALG_TYPE_AKCIPHER, 0);
 		if (IS_ERR(tfm)) {
 			pr_err("Failed to load transform for rsa: %ld\n",
@@ -1104,11 +1119,9 @@ static int tegra_crypt_pka1_rsa(struct file *filp, struct tegra_crypto_ctx *ctx,
 			return PTR_ERR(tfm);
 		}
 		ctx->pka1_rsa_tfm = tfm;
-		filp->private_data = ctx;
-
 		return 0;
 	}
-	ctx = filp->private_data;
+
 	tfm =  ctx->pka1_rsa_tfm;
 	if (tfm == NULL) {
 		pr_err("%s: uninitialized tfm\n", __func__);
@@ -1205,6 +1218,7 @@ buf_fail:
 		akcipher_request_free(req);
 	} else if (rsa_req->op_mode == RSA_EXIT) {
 		crypto_free_akcipher(tfm);
+		ctx->pka1_rsa_tfm = NULL;
 	} else {
 		pr_err("alg: pka1:rsa: invalid rsa operation\n");
 	}
@@ -1215,8 +1229,7 @@ out_tfm:
 	return ret;
 }
 
-static int tegra_crypto_sha(struct file *filp, struct tegra_crypto_ctx *ctx,
-				struct tegra_sha_req *sha_req)
+static int tegra_crypto_sha(struct tegra_sha_req *sha_req)
 {
 
 	struct crypto_ahash *tfm;
@@ -1336,8 +1349,7 @@ out_alloc:
 	return ret;
 }
 
-static int tegra_crypto_sha_shash(struct file *filp,
-				  struct tegra_crypto_ctx *ctx,
+static int tegra_crypto_sha_shash(struct tegra_crypto_ctx *ctx,
 				  struct tegra_sha_req_shash *sha_req_shash)
 {
 	struct crypto_shash *stfm;
@@ -1369,7 +1381,6 @@ static int tegra_crypto_sha_shash(struct file *filp,
 		}
 	}
 
-	filp->private_data = ctx;
 	desc = shash_request_alloc(stfm, GFP_KERNEL);
 	if (!desc) {
 		pr_err("alg:shash:Failed to allocate request for %s\n",
@@ -1463,6 +1474,15 @@ static long tegra_crypto_dev_ioctl(struct file *filp,
 	char *rng;
 	int ret = 0;
 
+	/*
+	 * Avoid processing ioctl if the file has been closed.
+	 * This will prevent crashes caused by NULL pointer dereference.
+	 */
+	if (!ctx) {
+		pr_err("%s: ctx not allocated\n", __func__);
+		return -EPERM;
+	}
+
 	switch (ioctl_num) {
 	case TEGRA_CRYPTO_IOCTL_NEED_SSK:
 		ctx->use_ssk = (int)arg;
@@ -1498,7 +1518,7 @@ static long tegra_crypto_dev_ioctl(struct file *filp,
 		crypt_req.result =
 			(u8 __user *)(void *)(__u64)(crypt_req_32.result);
 
-		ret = process_crypt_req(filp, ctx, &crypt_req);
+		ret = process_crypt_req(ctx, &crypt_req);
 		break;
 #endif
 	case TEGRA_CRYPTO_IOCTL_PROCESS_REQ:
@@ -1508,7 +1528,7 @@ static long tegra_crypto_dev_ioctl(struct file *filp,
 			pr_err("%s: copy_from_user fail(%d)\n", __func__, ret);
 			return -EFAULT;
 		}
-		ret = process_crypt_req(filp, ctx, &crypt_req);
+		ret = process_crypt_req(ctx, &crypt_req);
 		break;
 
 #ifdef CONFIG_COMPAT
@@ -1542,6 +1562,7 @@ static long tegra_crypto_dev_ioctl(struct file *filp,
 				tegra_get_chip_id() == TEGRA30) {
 				return -EINVAL;
 			}
+
 			ctx->rng_drbg = crypto_alloc_rng("rng_drbg-aes-tegra",
 				CRYPTO_ALG_TYPE_RNG, 0);
 			if (IS_ERR(ctx->rng_drbg)) {
@@ -1552,7 +1573,6 @@ static long tegra_crypto_dev_ioctl(struct file *filp,
 				goto out;
 			}
 			tfm = ctx->rng_drbg;
-			filp->private_data = ctx;
 			ret = crypto_rng_reset(ctx->rng_drbg, ctx->seed,
 				crypto_rng_seedsize(ctx->rng_drbg));
 		} else {
@@ -1565,7 +1585,6 @@ static long tegra_crypto_dev_ioctl(struct file *filp,
 				goto out;
 			}
 			tfm = ctx->rng;
-			filp->private_data = ctx;
 			ret = crypto_rng_reset(ctx->rng, ctx->seed,
 				crypto_rng_seedsize(ctx->rng));
 		}
@@ -1630,7 +1649,6 @@ static long tegra_crypto_dev_ioctl(struct file *filp,
 				goto rng_out;
 			}
 			tfm = ctx->rng_drbg;
-			filp->private_data = ctx;
 			ret = crypto_rng_get_bytes(ctx->rng_drbg, rng,
 				rng_req.nbytes);
 		} else {
@@ -1643,7 +1661,6 @@ static long tegra_crypto_dev_ioctl(struct file *filp,
 				goto rng_out;
 			}
 			tfm = ctx->rng;
-			filp->private_data = ctx;
 			ret = crypto_rng_get_bytes(ctx->rng, rng,
 				rng_req.nbytes);
 		}
@@ -1693,7 +1710,7 @@ rng_out:
 		sha_req.result =
 		(unsigned char __user *)(void *)(__u64)(sha_req_32.result);
 
-		ret = tegra_crypto_sha(filp, ctx, &sha_req);
+		ret = tegra_crypto_sha(&sha_req);
 		break;
 #endif
 
@@ -1710,7 +1727,7 @@ rng_out:
 				sha_req.keylen, TEGRA_CRYPTO_MAX_KEY_SIZE);
 			return -EINVAL;
 		}
-		ret = tegra_crypto_sha(filp, ctx, &sha_req);
+		ret = tegra_crypto_sha(&sha_req);
 		break;
 
 	case TEGRA_CRYPTO_IOCTL_GET_SHA_SHASH:
@@ -1719,7 +1736,7 @@ rng_out:
 			pr_err("%s: copy_from_user fail(%d)\n", __func__, ret);
 			return -EFAULT;
 		}
-		ret = tegra_crypto_sha_shash(filp, ctx, &sha_req_shash);
+		ret = tegra_crypto_sha_shash(ctx, &sha_req_shash);
 		break;
 
 	case TEGRA_CRYPTO_IOCTL_RSA_REQ_AHASH:
@@ -1742,7 +1759,7 @@ rng_out:
 		}
 		rsa_req_ah.msg_len = array_index_nospec(rsa_req_ah.msg_len,
 							MAX_RSA_MSG_LEN + 1);
-		ret = tegra_crypt_rsa_ahash(filp, ctx, &rsa_req_ah);
+		ret = tegra_crypt_rsa_ahash(&rsa_req_ah);
 		break;
 
 	case TEGRA_CRYPTO_IOCTL_RSA_REQ:
@@ -1766,7 +1783,7 @@ rng_out:
 		rsa_req.algo = array_index_nospec(rsa_req.algo,
 							NUM_RSA_ALGO);
 
-		ret = tegra_crypt_rsa(filp, ctx, &rsa_req);
+		ret = tegra_crypt_rsa(ctx, &rsa_req);
 		break;
 
 	case TEGRA_CRYPTO_IOCTL_PKA1_RSA_REQ:
@@ -1777,7 +1794,7 @@ rng_out:
 			return -EFAULT;
 		}
 
-		ret = tegra_crypt_pka1_rsa(filp, ctx, &pka1_rsa_req);
+		ret = tegra_crypt_pka1_rsa(ctx, &pka1_rsa_req);
 		break;
 
 	case TEGRA_CRYPTO_IOCTL_PKA1_ECC_REQ:
