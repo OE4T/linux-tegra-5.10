@@ -245,7 +245,10 @@ static void ether_free_irqs(struct ether_priv_data *pdata)
 	unsigned int i;
 	unsigned int chan;
 
-	devm_free_irq(pdata->dev, pdata->common_irq, pdata);
+	if (pdata->common_irq_alloc_mask & 1U) {
+		devm_free_irq(pdata->dev, pdata->common_irq, pdata);
+		pdata->common_irq_alloc_mask = 0U;
+	}
 
 	for (i = 0; i < pdata->osi_dma->num_dma_chans; i++) {
 		chan = pdata->osi_dma->dma_chans[i];
@@ -253,10 +256,12 @@ static void ether_free_irqs(struct ether_priv_data *pdata)
 		if (pdata->rx_irq_alloc_mask & (1U << i)) {
 			devm_free_irq(pdata->dev, pdata->rx_irqs[i],
 				      pdata->rx_napi[chan]);
+			pdata->rx_irq_alloc_mask &= (~(1U << i));
 		}
 		if (pdata->tx_irq_alloc_mask & (1U << i)) {
 			devm_free_irq(pdata->dev, pdata->tx_irqs[i],
 				      pdata->tx_napi[chan]);
+			pdata->tx_irq_alloc_mask &= (~(1U << i));
 		}
 	}
 }
@@ -292,6 +297,7 @@ static int ether_request_irqs(struct ether_priv_data *pdata)
 			pdata->common_irq);
 		return ret;
 	}
+	pdata->common_irq_alloc_mask = 1;
 
 	for (i = 0; i < osi_dma->num_dma_chans; i++) {
 		chan = osi_dma->dma_chans[i];
