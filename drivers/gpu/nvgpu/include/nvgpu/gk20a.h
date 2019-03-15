@@ -1000,6 +1000,7 @@ struct gpu_ops {
 	} engine;
 
 	struct {
+		void (*intr_enable)(struct gk20a *g, bool enable);
 		unsigned int (*handle_pbdma_intr_0)(struct gk20a *g,
 					u32 pbdma_id, u32 pbdma_intr_0,
 					u32 *handled, u32 *error_notifier);

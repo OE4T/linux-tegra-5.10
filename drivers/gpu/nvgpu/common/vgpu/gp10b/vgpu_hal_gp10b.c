@@ -448,6 +448,7 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 		.is_fault_engine_subid_gpc = gm20b_is_fault_engine_subid_gpc,
 	},
 	.pbdma = {
+		.intr_enable = NULL,
 		.pbdma_acquire_val = gm20b_pbdma_acquire_val,
 		.get_pbdma_signature = gp10b_pbdma_get_signature,
 		.dump_pbdma_status = NULL,

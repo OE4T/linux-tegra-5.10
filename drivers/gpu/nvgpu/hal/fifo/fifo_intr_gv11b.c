@@ -98,40 +98,19 @@ static u32 gv11b_fifo_intr_0_en_mask(struct gk20a *g)
 
 void gv11b_fifo_intr_0_enable(struct gk20a *g, bool enable)
 {
-	unsigned int i;
-	u32 intr_stall, mask;
-	u32 host_num_pbdma = nvgpu_get_litter_value(g, GPU_LIT_HOST_NUM_PBDMA);
+	u32 mask;
 
 	if (!enable) {
-		g->ops.fifo.ctxsw_timeout_enable(g, false);
 		nvgpu_writel(g, fifo_intr_en_0_r(), 0);
+		g->ops.fifo.ctxsw_timeout_enable(g, false);
+		g->ops.pbdma.intr_enable(g, false);
 		return;
 	}
 
 	/* Enable interrupts */
 
 	g->ops.fifo.ctxsw_timeout_enable(g, true);
-
-	/* clear and enable pbdma interrupt */
-	for (i = 0; i < host_num_pbdma; i++) {
-		nvgpu_writel(g, pbdma_intr_0_r(i), U32_MAX);
-		nvgpu_writel(g, pbdma_intr_1_r(i), U32_MAX);
-
-		intr_stall = nvgpu_readl(g, pbdma_intr_stall_r(i));
-		nvgpu_log_info(g, "pbdma id:%u, intr_en_0 0x%08x", i,
-				intr_stall);
-		nvgpu_writel(g, pbdma_intr_en_0_r(i), intr_stall);
-
-		intr_stall = nvgpu_readl(g, pbdma_intr_stall_1_r(i));
-		/*
-		 * For bug 2082123
-		 * Mask the unused HCE_RE_ILLEGAL_OP bit from the interrupt.
-		 */
-		intr_stall &= ~pbdma_intr_stall_1_hce_illegal_op_enabled_f();
-		nvgpu_log_info(g, "pbdma id:%u, intr_en_1 0x%08x", i,
-				intr_stall);
-		nvgpu_writel(g, pbdma_intr_en_1_r(i), intr_stall);
-	}
+	g->ops.pbdma.intr_enable(g, true);
 
 	/* clear runlist interrupts */
 	nvgpu_writel(g, fifo_intr_runlist_r(), ~U32(0U));

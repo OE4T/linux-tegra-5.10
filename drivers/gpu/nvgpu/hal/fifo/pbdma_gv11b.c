@@ -91,6 +91,39 @@ static void report_pbdma_error(struct gk20a *g, u32 pbdma_id,
 	return;
 }
 
+void gv11b_pbdma_intr_enable(struct gk20a *g, bool enable)
+{
+	u32 pbdma_id = 0;
+	u32 intr_stall;
+	u32 num_pbdma = nvgpu_get_litter_value(g, GPU_LIT_HOST_NUM_PBDMA);
+
+	if (!enable) {
+		gm20b_pbdma_disable_and_clear_all_intr(g);
+		return;
+	}
+
+	/* clear and enable pbdma interrupt */
+	for (pbdma_id = 0; pbdma_id < num_pbdma; pbdma_id++) {
+
+		gm20b_pbdma_clear_all_intr(g, pbdma_id);
+
+		intr_stall = nvgpu_readl(g, pbdma_intr_stall_r(pbdma_id));
+		nvgpu_log_info(g, "pbdma id:%u, intr_en_0 0x%08x", pbdma_id,
+			intr_stall);
+		nvgpu_writel(g, pbdma_intr_en_0_r(pbdma_id), intr_stall);
+
+		intr_stall = nvgpu_readl(g, pbdma_intr_stall_1_r(pbdma_id));
+		/*
+		 * For bug 2082123
+		 * Mask the unused HCE_RE_ILLEGAL_OP bit from the interrupt.
+		 */
+		intr_stall &= ~pbdma_intr_stall_1_hce_illegal_op_enabled_f();
+		nvgpu_log_info(g, "pbdma id:%u, intr_en_1 0x%08x", pbdma_id,
+			intr_stall);
+		nvgpu_writel(g, pbdma_intr_en_1_r(pbdma_id), intr_stall);
+	}
+}
+
 unsigned int gv11b_pbdma_handle_intr_0(struct gk20a *g,
 			u32 pbdma_id, u32 pbdma_intr_0,
 			u32 *handled, u32 *error_notifier)
