@@ -35,6 +35,7 @@
 #include <nvgpu/channel.h>
 #include <nvgpu/tsg.h>
 #include <nvgpu/regops.h>
+#include <nvgpu/gr/config.h>
 #include <nvgpu/gr/ctx.h>
 #include <nvgpu/power_features/pg.h>
 
@@ -284,7 +285,7 @@ static int nvgpu_dbg_gpu_ioctl_read_single_sm_error_state(
 	}
 
 	sm_id = args->sm_id;
-	if (sm_id >= gr->no_of_sm) {
+	if (sm_id >= nvgpu_gr_config_get_no_of_sm(gr->config)) {
 		return -EINVAL;
 	}
 
@@ -1460,7 +1461,7 @@ static int nvgpu_dbg_gpu_ioctl_clear_single_sm_error_state(
 	}
 
 	sm_id = args->sm_id;
-	if (sm_id >= gr->no_of_sm)
+	if (sm_id >= nvgpu_gr_config_get_no_of_sm(gr->config))
 		return -EINVAL;
 
 	nvgpu_speculation_barrier();

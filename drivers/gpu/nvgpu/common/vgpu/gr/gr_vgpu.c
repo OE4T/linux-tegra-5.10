@@ -1061,10 +1061,10 @@ void vgpu_gr_handle_sm_esr_event(struct gk20a *g,
 {
 	struct nvgpu_tsg_sm_error_state *sm_error_states;
 	struct tsg_gk20a *tsg;
+	u32 no_of_sm = nvgpu_gr_config_get_no_of_sm(g->gr.config);
 
-	if (info->sm_id >= g->gr.no_of_sm) {
-		nvgpu_err(g, "invalid smd_id %d / %d",
-			info->sm_id, g->gr.no_of_sm);
+	if (info->sm_id >= no_of_sm) {
+		nvgpu_err(g, "invalid smd_id %d / %d", info->sm_id, no_of_sm);
 		return;
 	}
 
@@ -1136,7 +1136,7 @@ int vgpu_gr_init_sm_id_table(struct gk20a *g)
 		return -EINVAL;
 	}
 
-	gr->no_of_sm = p->num_sm;
+	gr->config->no_of_sm = p->num_sm;
 	for (sm_id = 0; sm_id < p->num_sm; sm_id++, entry++) {
 		sm_info = &gr->sm_to_cluster[sm_id];
 		sm_info->tpc_index = entry->tpc_index;

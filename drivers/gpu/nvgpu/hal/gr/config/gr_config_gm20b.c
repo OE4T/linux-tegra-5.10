@@ -48,7 +48,7 @@ int gm20b_gr_config_init_sm_id_table(struct gk20a *g)
 			}
 		}
 	}
-	g->gr.no_of_sm = sm_id;
+	g->gr.config->no_of_sm = sm_id;
 	return 0;
 }
 

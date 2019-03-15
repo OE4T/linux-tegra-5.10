@@ -954,12 +954,13 @@ void gr_gm20b_bpt_reg_info(struct gk20a *g, struct nvgpu_warpstate *w_state)
 	u64 warps_valid = 0, warps_paused = 0, warps_trapped = 0;
 	u32 gpc_stride = nvgpu_get_litter_value(g, GPU_LIT_GPC_STRIDE);
 	u32 tpc_in_gpc_stride = nvgpu_get_litter_value(g, GPU_LIT_TPC_IN_GPC_STRIDE);
+	u32 no_of_sm = nvgpu_gr_config_get_no_of_sm(gr->config);
 
 	/* for maxwell & kepler */
 	u32 numSmPerTpc = 1;
 	u32 numWarpPerTpc = g->params.sm_arch_warp_count * numSmPerTpc;
 
-	for (sm_id = 0; sm_id < gr->no_of_sm; sm_id++) {
+	for (sm_id = 0; sm_id < no_of_sm; sm_id++) {
 		gpc = g->gr.sm_to_cluster[sm_id].gpc_index;
 		tpc = g->gr.sm_to_cluster[sm_id].tpc_index;
 
@@ -1005,7 +1006,7 @@ void gr_gm20b_bpt_reg_info(struct gk20a *g, struct nvgpu_warpstate *w_state)
 
 
 	/* Only for debug purpose */
-	for (sm_id = 0; sm_id < gr->no_of_sm; sm_id++) {
+	for (sm_id = 0; sm_id < no_of_sm; sm_id++) {
 		nvgpu_log_fn(g, "w_state[%d].valid_warps[0]: %llx\n",
 						sm_id, w_state[sm_id].valid_warps[0]);
 		nvgpu_log_fn(g, "w_state[%d].valid_warps[1]: %llx\n",

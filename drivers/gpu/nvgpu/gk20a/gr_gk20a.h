@@ -208,7 +208,6 @@ struct gr_gk20a {
 
 	u32 fbp_en_mask;
 	u32 *fbp_rop_l2_en_mask;
-	u32 no_of_sm;
 	struct sm_info *sm_to_cluster;
 
 #if defined(CONFIG_GK20A_CYCLE_STATS)

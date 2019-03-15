@@ -29,6 +29,7 @@
 #include <nvgpu/tsg.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/error_notifier.h>
+#include <nvgpu/gr/config.h>
 #include <nvgpu/gr/ctx.h>
 #include <nvgpu/runlist.h>
 
@@ -562,18 +563,18 @@ static struct tsg_gk20a *gk20a_tsg_acquire_unused_tsg(struct fifo_gk20a *f)
 
 int gk20a_tsg_open_common(struct gk20a *g, struct tsg_gk20a *tsg)
 {
+	u32 no_of_sm = nvgpu_gr_config_get_no_of_sm(g->gr.config);
 	int err;
 
 	/* we need to allocate this after g->ops.gr.init_fs_state() since
-	 * we initialize gr->no_of_sm in this function
+	 * we initialize gr.config->no_of_sm in this function
 	 */
-	if (g->gr.no_of_sm == 0U) {
-		nvgpu_err(g, "no_of_sm %d not set, failed allocation",
-				  g->gr.no_of_sm);
+	if (no_of_sm == 0U) {
+		nvgpu_err(g, "no_of_sm %d not set, failed allocation", no_of_sm);
 		return -EINVAL;
 	}
 
-	err = gk20a_tsg_alloc_sm_error_states_mem(g, tsg, g->gr.no_of_sm);
+	err = gk20a_tsg_alloc_sm_error_states_mem(g, tsg, no_of_sm);
 	if (err != 0) {
 		return err;
 	}

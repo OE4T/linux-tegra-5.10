@@ -1987,7 +1987,7 @@ static int gr_gk20a_init_gr_config(struct gk20a *g, struct gr_gk20a *gr)
 			(size_t)sm_per_tpc *
 			sizeof(struct sm_info));
 	}
-	gr->no_of_sm = 0;
+	gr->config->no_of_sm = 0;
 
 	nvgpu_log_info(g, "fbps: %d", gr->num_fbps);
 	nvgpu_log_info(g, "max_fbps_count: %d", gr->max_fbps_count);
@@ -5581,12 +5581,14 @@ int gr_gk20a_set_sm_debug_mode(struct gk20a *g,
 	int err;
 	u32 gpc_stride = nvgpu_get_litter_value(g, GPU_LIT_GPC_STRIDE);
 	u32 tpc_in_gpc_stride = nvgpu_get_litter_value(g, GPU_LIT_TPC_IN_GPC_STRIDE);
+	u32 no_of_sm = nvgpu_gr_config_get_no_of_sm(g->gr.config);
 
-	ops = nvgpu_kcalloc(g, g->gr.no_of_sm, sizeof(*ops));
+	ops = nvgpu_kcalloc(g, no_of_sm, sizeof(*ops));
 	if (ops == NULL) {
 		return -ENOMEM;
 	}
-	for (sm_id = 0; sm_id < g->gr.no_of_sm; sm_id++) {
+
+	for (sm_id = 0; sm_id < no_of_sm; sm_id++) {
 		u32 gpc, tpc;
 		u32 tpc_offset, gpc_offset, reg_offset, reg_mask, reg_val;
 
@@ -5779,6 +5781,7 @@ int gr_gk20a_wait_for_pause(struct gk20a *g, struct nvgpu_warpstate *w_state)
 	struct gr_gk20a *gr = &g->gr;
 	u32 gpc, tpc, sm, sm_id;
 	u32 global_mask;
+	u32 no_of_sm = nvgpu_gr_config_get_no_of_sm(gr->config);
 
 	/* Wait for the SMs to reach full stop. This condition is:
 	 * 1) All SMs with valid warps must be in the trap handler (SM_IN_TRAP_MODE)
@@ -5788,7 +5791,7 @@ int gr_gk20a_wait_for_pause(struct gk20a *g, struct nvgpu_warpstate *w_state)
 	global_mask = g->ops.gr.get_sm_no_lock_down_hww_global_esr_mask(g);
 
 	/* Lock down all SMs */
-	for (sm_id = 0; sm_id < gr->no_of_sm; sm_id++) {
+	for (sm_id = 0; sm_id < no_of_sm; sm_id++) {
 
 		gpc = g->gr.sm_to_cluster[sm_id].gpc_index;
 		tpc = g->gr.sm_to_cluster[sm_id].tpc_index;
@@ -5867,8 +5870,9 @@ u32 gr_gk20a_tpc_enabled_exceptions(struct gk20a *g)
 	u32 offset, regval, tpc_offset, gpc_offset;
 	u32 gpc_stride = nvgpu_get_litter_value(g, GPU_LIT_GPC_STRIDE);
 	u32 tpc_in_gpc_stride = nvgpu_get_litter_value(g, GPU_LIT_TPC_IN_GPC_STRIDE);
+	u32 no_of_sm = nvgpu_gr_config_get_no_of_sm(gr->config);
 
-	for (sm_id = 0; sm_id < gr->no_of_sm; sm_id++) {
+	for (sm_id = 0; sm_id < no_of_sm; sm_id++) {
 
 		tpc_offset = tpc_in_gpc_stride * g->gr.sm_to_cluster[sm_id].tpc_index;
 		gpc_offset = gpc_stride * g->gr.sm_to_cluster[sm_id].gpc_index;

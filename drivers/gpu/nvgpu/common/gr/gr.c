@@ -108,12 +108,13 @@ int nvgpu_gr_init_fs_state(struct gk20a *g)
 		}
 
 		/* Is table empty ? */
-		if (g->gr.no_of_sm == 0U) {
+		if (nvgpu_gr_config_get_no_of_sm(gr_config) == 0U) {
 			return -EINVAL;
 		}
 	}
 
-	for (sm_id = 0; sm_id < g->gr.no_of_sm; sm_id++) {
+	for (sm_id = 0; sm_id < nvgpu_gr_config_get_no_of_sm(gr_config);
+	     sm_id++) {
 		tpc_index = g->gr.sm_to_cluster[sm_id].tpc_index;
 		gpc_index = g->gr.sm_to_cluster[sm_id].gpc_index;
 

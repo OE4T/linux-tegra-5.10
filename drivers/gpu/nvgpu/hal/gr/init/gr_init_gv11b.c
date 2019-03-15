@@ -109,6 +109,7 @@ int gv11b_gr_init_sm_id_config(struct gk20a *g, u32 *tpc_sm_id,
 	u32 tpc_index, gpc_index, tpc_id;
 	u32 sm_per_tpc = nvgpu_get_litter_value(g, GPU_LIT_NUM_SM_PER_TPC);
 	u32 num_gpcs = nvgpu_get_litter_value(g, GPU_LIT_NUM_GPCS);
+	u32 no_of_sm = nvgpu_gr_config_get_no_of_sm(g->gr.config);
 
 	/* Each NV_PGRAPH_PRI_CWD_GPC_TPC_ID can store 4 TPCs.*/
 	for (i = 0U;
@@ -125,7 +126,7 @@ int gv11b_gr_init_sm_id_config(struct gk20a *g, u32 *tpc_sm_id,
 			tpc_id = (i << 2) + j;
 			sm_id = tpc_id * sm_per_tpc;
 
-			if (sm_id >= g->gr.no_of_sm) {
+			if (sm_id >= no_of_sm) {
 				break;
 			}
 

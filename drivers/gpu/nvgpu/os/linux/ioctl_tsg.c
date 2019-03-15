@@ -564,7 +564,7 @@ static int gk20a_tsg_ioctl_read_single_sm_error_state(struct gk20a *g,
 	int err = 0;
 
 	sm_id = args->sm_id;
-	if (sm_id >= gr->no_of_sm)
+	if (sm_id >= nvgpu_gr_config_get_no_of_sm(gr->config))
 		return -EINVAL;
 
 	nvgpu_speculation_barrier();

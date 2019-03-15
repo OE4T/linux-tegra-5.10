@@ -55,6 +55,8 @@ struct nvgpu_gr_config {
 	u8 *map_tiles;
 	u32 map_tile_count;
 	u32 map_row_offset;
+
+	u32 no_of_sm;
 };
 
 struct nvgpu_gr_config *nvgpu_gr_config_init(struct gk20a *g);
@@ -94,5 +96,6 @@ u32 nvgpu_gr_config_get_gpc_skip_mask(struct nvgpu_gr_config *config,
 u32 nvgpu_gr_config_get_pes_tpc_mask(struct nvgpu_gr_config *config,
 	u32 gpc_index, u32 pes_index);
 u32 nvgpu_gr_config_get_gpc_mask(struct nvgpu_gr_config *config);
+u32 nvgpu_gr_config_get_no_of_sm(struct nvgpu_gr_config *config);
 
 #endif /* NVGPU_GR_CONFIG_H */

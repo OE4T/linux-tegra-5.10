@@ -542,3 +542,8 @@ u32 nvgpu_gr_config_get_gpc_mask(struct nvgpu_gr_config *config)
 {
 	return config->gpc_mask;
 }
+
+u32 nvgpu_gr_config_get_no_of_sm(struct nvgpu_gr_config *config)
+{
+	return config->no_of_sm;
+}

@@ -189,6 +189,10 @@ int gv100_gr_config_init_sm_id_table(struct gk20a *g)
 	unsigned long *gpc_tpc_mask;
 	u32 *tpc_table, *gpc_table;
 
+	if (g->gr.config == NULL) {
+		return -ENOMEM;
+	}
+
 	gpc_table = nvgpu_kzalloc(g, nvgpu_gr_config_get_tpc_count(gr->config) *
 					sizeof(u32));
 	tpc_table = nvgpu_kzalloc(g, nvgpu_gr_config_get_tpc_count(gr->config) *
@@ -256,8 +260,8 @@ int gv100_gr_config_init_sm_id_table(struct gk20a *g)
 		}
 	}
 
-	g->gr.no_of_sm = num_sm;
-	nvgpu_log_info(g, " total number of sm = %d", g->gr.no_of_sm);
+	g->gr.config->no_of_sm = num_sm;
+	nvgpu_log_info(g, " total number of sm = %d", g->gr.config->no_of_sm);
 exit_build_table:
 	nvgpu_kfree(g, gpc_table);
 	nvgpu_kfree(g, tpc_table);
