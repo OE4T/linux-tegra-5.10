@@ -28,6 +28,7 @@
 #include <nvgpu/utils.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/bug.h>
+#include <nvgpu/ltc.h>
 
 #include "fb_gm20b.h"
 
@@ -148,7 +149,7 @@ void fb_gm20b_init_fs_state(struct gk20a *g)
 	nvgpu_log_info(g, "initialize gm20b fb");
 
 	gk20a_writel(g, fb_fbhub_num_active_ltcs_r(),
-			g->ltc_count);
+			nvgpu_ltc_get_ltc_count(g));
 
 	if (!nvgpu_is_enabled(g, NVGPU_SEC_PRIVSECURITY)) {
 		/* Bypass MMU check for non-secure boot. For

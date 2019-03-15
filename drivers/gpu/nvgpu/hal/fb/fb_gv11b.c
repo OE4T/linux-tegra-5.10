@@ -37,6 +37,7 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/channel.h>
 #include <nvgpu/nvgpu_err.h>
+#include <nvgpu/ltc.h>
 
 #include "gk20a/mm_gk20a.h"
 
@@ -141,11 +142,12 @@ void gv11b_fb_cbc_configure(struct gk20a *g, struct nvgpu_cbc *cbc)
 	compbit_base_post_divide64 = compbit_store_iova >>
 		fb_mmu_cbc_base_address_alignment_shift_v();
 
-	do_div(compbit_base_post_divide64, g->ltc_count);
+	do_div(compbit_base_post_divide64, nvgpu_ltc_get_ltc_count(g));
 	compbit_base_post_divide = u64_lo32(compbit_base_post_divide64);
 
 	compbit_base_post_multiply64 = ((u64)compbit_base_post_divide *
-		g->ltc_count) << fb_mmu_cbc_base_address_alignment_shift_v();
+		nvgpu_ltc_get_ltc_count(g))
+			<< fb_mmu_cbc_base_address_alignment_shift_v();
 
 	if (compbit_base_post_multiply64 < compbit_store_iova) {
 		compbit_base_post_divide++;

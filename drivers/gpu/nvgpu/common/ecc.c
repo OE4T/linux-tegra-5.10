@@ -22,6 +22,7 @@
 
 #include <nvgpu/gk20a.h>
 #include <nvgpu/gr/config.h>
+#include <nvgpu/ltc.h>
 #include <nvgpu/nvgpu_err.h>
 
 static void nvgpu_ecc_stat_add(struct gk20a *g, struct nvgpu_ecc_stat *stat)
@@ -131,14 +132,16 @@ int nvgpu_ecc_counter_init_per_lts(struct gk20a *g,
 	struct nvgpu_ecc_stat **stats;
 	u32 ltc, lts;
 	int err = 0;
+	u32 ltc_count = nvgpu_ltc_get_ltc_count(g);
+	u32 slices_per_ltc = nvgpu_ltc_get_slices_per_ltc(g);
 
-	stats = nvgpu_kzalloc(g, sizeof(*stats) * g->ltc_count);
+	stats = nvgpu_kzalloc(g, sizeof(*stats) * ltc_count);
 	if (stats == NULL) {
 		return -ENOMEM;
 	}
-	for (ltc = 0; ltc < g->ltc_count; ltc++) {
+	for (ltc = 0; ltc < ltc_count; ltc++) {
 		stats[ltc] = nvgpu_kzalloc(g,
-				sizeof(*stats[ltc]) * g->slices_per_ltc);
+			sizeof(*stats[ltc]) * slices_per_ltc);
 		if (stats[ltc] == NULL) {
 			err = -ENOMEM;
 			break;
@@ -154,8 +157,8 @@ int nvgpu_ecc_counter_init_per_lts(struct gk20a *g,
 		return err;
 	}
 
-	for (ltc = 0; ltc < g->ltc_count; ltc++) {
-		for (lts = 0; lts < g->slices_per_ltc; lts++) {
+	for (ltc = 0; ltc < ltc_count; ltc++) {
+		for (lts = 0; lts < slices_per_ltc; lts++) {
 			(void) snprintf(stats[ltc][lts].name,
 					NVGPU_ECC_STAT_NAME_MAX_SIZE,
 					"ltc%d_lts%d_%s", ltc, lts, name);
@@ -313,7 +316,7 @@ void nvgpu_ecc_free(struct gk20a *g)
 	nvgpu_kfree(g, ecc->gr.fecs_ecc_corrected_err_count);
 	nvgpu_kfree(g, ecc->gr.fecs_ecc_uncorrected_err_count);
 
-	for (i = 0; i < g->ltc_count; i++) {
+	for (i = 0; i < nvgpu_ltc_get_ltc_count(g); i++) {
 		if (ecc->ltc.ecc_sec_count != NULL) {
 			nvgpu_kfree(g, ecc->ltc.ecc_sec_count[i]);
 		}

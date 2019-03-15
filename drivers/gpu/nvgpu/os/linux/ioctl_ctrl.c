@@ -343,9 +343,9 @@ gk20a_ctrl_ioctl_gpu_characteristics(
 	gpu.gr_compbit_store_base_hw = g->cbc->compbit_store.base_hw;
 	gpu.gr_gobs_per_comptagline_per_slice =
 		g->cbc->gobs_per_comptagline_per_slice;
-	gpu.num_ltc = g->ltc_count;
-	gpu.lts_per_ltc = g->slices_per_ltc;
-	gpu.cbc_cache_line_size = g->cacheline_size;
+	gpu.num_ltc = nvgpu_ltc_get_ltc_count(g);
+	gpu.lts_per_ltc = nvgpu_ltc_get_slices_per_ltc(g);
+	gpu.cbc_cache_line_size = nvgpu_ltc_get_cacheline_size(g);
 	gpu.cbc_comptags_per_line = g->cbc->comptags_per_cacheline;
 
 	if (g->ops.clk.get_maxrate)

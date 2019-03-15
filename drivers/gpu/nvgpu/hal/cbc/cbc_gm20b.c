@@ -73,11 +73,14 @@ int gm20b_cbc_alloc_comptags(struct gk20a *g, struct nvgpu_cbc *cbc)
 
 	compbit_backing_size =
 		DIV_ROUND_UP(max_comptag_lines, comptags_per_cacheline) *
-		g->cacheline_size * g->slices_per_ltc * g->ltc_count;
+			(nvgpu_ltc_get_ltc_count(g) *
+			nvgpu_ltc_get_slices_per_ltc(g) *
+			nvgpu_ltc_get_cacheline_size(g));
 
 	/* aligned to 2KB * ltc_count */
 	compbit_backing_size +=
-		g->ltc_count << ltc_ltcs_ltss_cbc_base_alignment_shift_v();
+		nvgpu_ltc_get_ltc_count(g) <<
+			ltc_ltcs_ltss_cbc_base_alignment_shift_v();
 
 	/* must be a multiple of 64KB */
 	compbit_backing_size = roundup(compbit_backing_size,
@@ -85,7 +88,9 @@ int gm20b_cbc_alloc_comptags(struct gk20a *g, struct nvgpu_cbc *cbc)
 
 	max_comptag_lines =
 		(compbit_backing_size * comptags_per_cacheline) /
-		(g->cacheline_size * g->slices_per_ltc * g->ltc_count);
+			(nvgpu_ltc_get_ltc_count(g) *
+			nvgpu_ltc_get_slices_per_ltc(g) *
+			nvgpu_ltc_get_cacheline_size(g));
 
 	if (max_comptag_lines > hw_max_comptag_lines) {
 		max_comptag_lines = hw_max_comptag_lines;
@@ -101,7 +106,8 @@ int gm20b_cbc_alloc_comptags(struct gk20a *g, struct nvgpu_cbc *cbc)
 		return err;
 	}
 
-	err = gk20a_comptag_allocator_init(g, &cbc->comp_tags, max_comptag_lines);
+	err = gk20a_comptag_allocator_init(g, &cbc->comp_tags,
+						max_comptag_lines);
 	if (err != 0) {
 		return err;
 	}
@@ -167,7 +173,7 @@ int gm20b_cbc_ctrl(struct gk20a *g, enum nvgpu_cbc_op op,
 			     gk20a_readl(g,
 					 ltc_ltcs_ltss_cbc_ctrl1_r()) | hw_op);
 
-		for (ltc = 0; ltc < g->ltc_count; ltc++) {
+		for (ltc = 0; ltc < nvgpu_ltc_get_ltc_count(g); ltc++) {
 			for (slice = 0; slice < slices_per_ltc; slice++) {
 
 				ctrl1 = ltc_ltc0_lts0_cbc_ctrl1_r() +
@@ -211,6 +217,7 @@ out:
 u32 gm20b_cbc_fix_config(struct gk20a *g, int base)
 {
 	u32 val = gk20a_readl(g, ltc_ltcs_ltss_cbc_num_active_ltcs_r());
+
 	if (val == 2U) {
 		return base * 2;
 	} else if (val != 1U) {
@@ -233,20 +240,21 @@ void gm20b_cbc_init(struct gk20a *g, struct nvgpu_cbc *cbc)
 
 	if (nvgpu_is_enabled(g, NVGPU_IS_FMODEL)) {
 		compbit_store_iova = nvgpu_mem_get_phys_addr(g,
-							&cbc->compbit_store.mem);
+						&cbc->compbit_store.mem);
 	} else {
 		compbit_store_iova = nvgpu_mem_get_addr(g,
-							&cbc->compbit_store.mem);
+						&cbc->compbit_store.mem);
 	}
 
 	compbit_base_post_divide64 = compbit_store_iova >>
 		ltc_ltcs_ltss_cbc_base_alignment_shift_v();
 
-	do_div(compbit_base_post_divide64, g->ltc_count);
+	do_div(compbit_base_post_divide64, nvgpu_ltc_get_ltc_count(g));
 	compbit_base_post_divide = u64_lo32(compbit_base_post_divide64);
 
 	compbit_base_post_multiply64 = ((u64)compbit_base_post_divide *
-		g->ltc_count) << ltc_ltcs_ltss_cbc_base_alignment_shift_v();
+		nvgpu_ltc_get_ltc_count(g)) <<
+			ltc_ltcs_ltss_cbc_base_alignment_shift_v();
 
 	if (compbit_base_post_multiply64 < compbit_store_iova) {
 		compbit_base_post_divide++;

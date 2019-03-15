@@ -44,19 +44,20 @@ void gm20b_ltc_init_fs_state(struct gk20a *g)
 
 	nvgpu_log_info(g, "initialize gm20b l2");
 
-	g->max_ltc_count = gk20a_readl(g, top_num_ltcs_r());
-	g->ltc_count = gk20a_readl(g, pri_ringmaster_enum_ltc_r());
-	nvgpu_log_info(g, "%d ltcs out of %d", g->ltc_count, g->max_ltc_count);
+	g->ltc->max_ltc_count = gk20a_readl(g, top_num_ltcs_r());
+	g->ltc->ltc_count = gk20a_readl(g, pri_ringmaster_enum_ltc_r());
+	nvgpu_log_info(g, "%d ltcs out of %d", g->ltc->ltc_count,
+					g->ltc->max_ltc_count);
 
 	reg = gk20a_readl(g, ltc_ltcs_ltss_cbc_param_r());
-	g->slices_per_ltc = ltc_ltcs_ltss_cbc_param_slices_per_ltc_v(reg);;
-	g->cacheline_size =
+	g->ltc->slices_per_ltc = ltc_ltcs_ltss_cbc_param_slices_per_ltc_v(reg);
+	g->ltc->cacheline_size =
 		U32(512) << ltc_ltcs_ltss_cbc_param_cache_line_size_v(reg);
 
 	gk20a_writel(g, ltc_ltcs_ltss_cbc_num_active_ltcs_r(),
-	g->ltc_count);
+	g->ltc->ltc_count);
 	gk20a_writel(g, ltc_ltcs_misc_ltc_num_active_ltcs_r(),
-	g->ltc_count);
+	g->ltc->ltc_count);
 
 	gk20a_writel(g, ltc_ltcs_ltss_dstg_cfg0_r(),
 		     gk20a_readl(g, ltc_ltc0_lts0_dstg_cfg0_r()) |
@@ -91,7 +92,7 @@ void gm20b_ltc_isr(struct gk20a *g, unsigned int ltc)
 {
 	unsigned int slice;
 
-	for (slice = 0U; slice < g->slices_per_ltc; slice++) {
+	for (slice = 0U; slice < g->ltc->slices_per_ltc; slice++) {
 		gm20b_ltc_lts_isr(g, ltc, slice);
 	}
 }
@@ -117,7 +118,7 @@ void gm20b_flush_ltc(struct gk20a *g)
 		ltc_ltcs_ltss_tstg_cmgmt1_clean_evict_first_class_true_f());
 
 	/* Wait on each LTC individually. */
-	for (ltc = 0; ltc < g->ltc_count; ltc++) {
+	for (ltc = 0; ltc < g->ltc->ltc_count; ltc++) {
 		u32 op_pending;
 
 		/*
@@ -159,7 +160,7 @@ void gm20b_flush_ltc(struct gk20a *g)
 	     ltc_ltcs_ltss_tstg_cmgmt0_invalidate_evict_first_class_true_f());
 
 	/* Wait on each LTC individually. */
-	for (ltc = 0; ltc < g->ltc_count; ltc++) {
+	for (ltc = 0; ltc < g->ltc->ltc_count; ltc++) {
 		u32 op_pending;
 
 		/* Again, 5ms. */
@@ -298,9 +299,8 @@ bool gm20b_ltc_is_ltcn_ltss_addr(struct gk20a *g, u32 addr)
 		((addr & addr_mask) < end_offset);
 }
 
-static void gm20b_ltc_update_ltc_lts_addr(struct gk20a *g, u32 addr, u32 ltc_num,
-					u32 *priv_addr_table,
-					u32 *priv_addr_table_index)
+static void gm20b_ltc_update_ltc_lts_addr(struct gk20a *g, u32 addr,
+		u32 ltc_num, u32 *priv_addr_table, u32 *priv_addr_table_index)
 {
 	u32 num_ltc_slices = g->ops.top.get_max_lts_per_ltc(g);
 	u32 index = *priv_addr_table_index;
@@ -322,7 +322,7 @@ void gm20b_ltc_split_lts_broadcast_addr(struct gk20a *g, u32 addr,
 					u32 *priv_addr_table,
 					u32 *priv_addr_table_index)
 {
-	u32 num_ltc = g->ltc_count;
+	u32 num_ltc = g->ltc->ltc_count;
 	u32 i, start, ltc_num = 0;
 	u32 pltcg_base = ltc_pltcg_base_v();
 	u32 ltc_stride = nvgpu_get_litter_value(g, GPU_LIT_LTC_STRIDE);
@@ -342,7 +342,7 @@ void gm20b_ltc_split_ltc_broadcast_addr(struct gk20a *g, u32 addr,
 					u32 *priv_addr_table,
 					u32 *priv_addr_table_index)
 {
-	u32 num_ltc = g->ltc_count;
+	u32 num_ltc = g->ltc->ltc_count;
 	u32 ltc_num;
 
 	for (ltc_num = 0; ltc_num < num_ltc; ltc_num++) {

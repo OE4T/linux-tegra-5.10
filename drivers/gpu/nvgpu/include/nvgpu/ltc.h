@@ -24,10 +24,23 @@
 #define NVGPU_LTC_H
 
 #include <nvgpu/types.h>
+#include <nvgpu/lock.h>
 
 struct gk20a;
 
+struct nvgpu_ltc {
+	struct nvgpu_spinlock ltc_enabled_lock;
+	u32 max_ltc_count;
+	u32 ltc_count;
+	u32 slices_per_ltc;
+	u32 cacheline_size;
+};
+
+void nvgpu_ltc_remove_support(struct gk20a *g);
 int nvgpu_init_ltc_support(struct gk20a *g);
 void nvgpu_ltc_sync_enabled(struct gk20a *g);
+u32 nvgpu_ltc_get_ltc_count(struct gk20a *g);
+u32 nvgpu_ltc_get_slices_per_ltc(struct gk20a *g);
+u32 nvgpu_ltc_get_cacheline_size(struct gk20a *g);
 
 #endif /* NVGPU_LTC_H */

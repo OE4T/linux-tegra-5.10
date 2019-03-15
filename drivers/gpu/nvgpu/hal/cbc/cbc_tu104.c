@@ -39,7 +39,7 @@
 
 u64 tu104_cbc_get_base_divisor(struct gk20a *g)
 {
-	return (u64)g->ltc_count <<
+	return (u64)nvgpu_ltc_get_ltc_count(g) <<
 		       ltc_ltcs_ltss_cbc_base_alignment_shift_v();
 }
 
@@ -76,21 +76,24 @@ int tu104_cbc_alloc_comptags(struct gk20a *g, struct nvgpu_cbc *cbc)
 
 	cbc_param = nvgpu_readl(g, ltc_ltcs_ltss_cbc_param_r());
 
-	ctags_size =
-		ltc_ltcs_ltss_cbc_param_bytes_per_comptagline_per_slice_v(cbc_param);
-	ctags_per_cacheline = g->cacheline_size / ctags_size;
+	ctags_size = ltc_ltcs_ltss_cbc_param_bytes_per_comptagline_per_slice_v(
+						cbc_param);
 
 	amap_divide_rounding = (U32(2U) * U32(1024U)) <<
 		ltc_ltcs_ltss_cbc_param_amap_divide_rounding_v(cbc_param);
 	amap_swizzle_rounding = (U32(64U) * U32(1024U)) <<
 		ltc_ltcs_ltss_cbc_param_amap_swizzle_rounding_v(cbc_param);
+	ctags_per_cacheline = nvgpu_ltc_get_cacheline_size(g) / ctags_size;
 
 	compbit_backing_size =
-		roundup(max_comptag_lines * ctags_size, g->cacheline_size);
+		roundup(max_comptag_lines * ctags_size,
+				nvgpu_ltc_get_cacheline_size(g));
 	compbit_backing_size =
-		compbit_backing_size * g->slices_per_ltc * g->ltc_count;
+		compbit_backing_size * nvgpu_ltc_get_slices_per_ltc(g) *
+					nvgpu_ltc_get_ltc_count(g);
 
-	compbit_backing_size += g->ltc_count * amap_divide_rounding;
+	compbit_backing_size += nvgpu_ltc_get_ltc_count(g) *
+					amap_divide_rounding;
 	compbit_backing_size += amap_swizzle_rounding;
 
 	/* must be a multiple of 64KB */
@@ -102,7 +105,8 @@ int tu104_cbc_alloc_comptags(struct gk20a *g, struct nvgpu_cbc *cbc)
 		return err;
 	}
 
-	err = gk20a_comptag_allocator_init(g, &cbc->comp_tags, max_comptag_lines);
+	err = gk20a_comptag_allocator_init(g, &cbc->comp_tags,
+						max_comptag_lines);
 	if (err != 0) {
 		return err;
 	}
@@ -128,7 +132,6 @@ int tu104_cbc_ctrl(struct gk20a *g, enum nvgpu_cbc_op op,
 	struct nvgpu_timeout timeout;
 	int err = 0;
 	u32 ltc, slice, ctrl1, val, hw_op = 0U;
-	u32 slices_per_ltc = g->slices_per_ltc;
 	u32 ltc_stride = nvgpu_get_litter_value(g, GPU_LIT_LTC_STRIDE);
 	u32 lts_stride = nvgpu_get_litter_value(g, GPU_LIT_LTS_STRIDE);
 	const u32 max_lines = 16384U;
@@ -176,8 +179,9 @@ int tu104_cbc_ctrl(struct gk20a *g, enum nvgpu_cbc_op op,
 			     nvgpu_readl(g,
 					 ltc_ltcs_ltss_cbc_ctrl1_r()) | hw_op);
 
-		for (ltc = 0; ltc < g->ltc_count; ltc++) {
-			for (slice = 0; slice < slices_per_ltc; slice++) {
+		for (ltc = 0; ltc < nvgpu_ltc_get_ltc_count(g); ltc++) {
+			for (slice = 0; slice <
+				nvgpu_ltc_get_slices_per_ltc(g); slice++) {
 
 				ctrl1 = ltc_ltc0_lts0_cbc_ctrl1_r() +
 					ltc * ltc_stride + slice * lts_stride;

@@ -439,11 +439,12 @@ void tu104_fb_cbc_configure(struct gk20a *g, struct nvgpu_cbc *cbc)
 	base_divisor = g->ops.cbc.get_base_divisor(g);
 	compbit_store_base = DIV_ROUND_UP(compbit_store_pa, base_divisor);
 
-	cbc_start_addr = (u64)g->ltc_count * (compbit_store_base <<
+	cbc_start_addr = (u64)nvgpu_ltc_get_ltc_count(g) *
+			(compbit_store_base <<
 			 fb_mmu_cbc_base_address_alignment_shift_v());
 	cbc_end_addr = cbc_start_addr + cbc->compbit_backing_size;
 
-	cbc_top = (cbc_end_addr / g->ltc_count) >>
+	cbc_top = (cbc_end_addr / nvgpu_ltc_get_ltc_count(g)) >>
 		  fb_mmu_cbc_base_address_alignment_shift_v();
 	cbc_top_size = u64_lo32(cbc_top) - compbit_store_base;
 

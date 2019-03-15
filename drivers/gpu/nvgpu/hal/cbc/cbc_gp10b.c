@@ -53,7 +53,8 @@ int gp10b_cbc_alloc_comptags(struct gk20a *g, struct nvgpu_cbc *cbc)
 	u32 cbc_param2 =
 		gk20a_readl(g, ltc_ltcs_ltss_cbc_param2_r());
 	u32 gobs_per_comptagline_per_slice =
-		ltc_ltcs_ltss_cbc_param2_gobs_per_comptagline_per_slice_v(cbc_param2);
+		ltc_ltcs_ltss_cbc_param2_gobs_per_comptagline_per_slice_v(
+								cbc_param2);
 
 	u32 compbit_backing_size;
 
@@ -76,14 +77,16 @@ int gp10b_cbc_alloc_comptags(struct gk20a *g, struct nvgpu_cbc *cbc)
 
 	compbit_backing_size =
 		roundup(max_comptag_lines * gobs_per_comptagline_per_slice,
-			g->cacheline_size);
+			nvgpu_ltc_get_cacheline_size(g));
 	compbit_backing_size = roundup(
-		compbit_backing_size * g->slices_per_ltc * g->ltc_count,
-		g->ops.fb.compressible_page_size(g));
+		compbit_backing_size * nvgpu_ltc_get_slices_per_ltc(g) *
+			nvgpu_ltc_get_ltc_count(g),
+			g->ops.fb.compressible_page_size(g));
 
 	/* aligned to 2KB * ltc_count */
 	compbit_backing_size +=
-		g->ltc_count << ltc_ltcs_ltss_cbc_base_alignment_shift_v();
+		nvgpu_ltc_get_ltc_count(g) <<
+			ltc_ltcs_ltss_cbc_base_alignment_shift_v();
 
 	/* must be a multiple of 64KB */
 	compbit_backing_size = roundup(compbit_backing_size,
@@ -121,8 +124,6 @@ int gp10b_cbc_ctrl(struct gk20a *g, enum nvgpu_cbc_op op,
 	struct nvgpu_timeout timeout;
 	int err = 0;
 	u32 ltc, slice, ctrl1, val, hw_op = 0U;
-	u32 slices_per_ltc = ltc_ltcs_ltss_cbc_param_slices_per_ltc_v(
-				gk20a_readl(g, ltc_ltcs_ltss_cbc_param_r()));
 	u32 ltc_stride = nvgpu_get_litter_value(g, GPU_LIT_LTC_STRIDE);
 	u32 lts_stride = nvgpu_get_litter_value(g, GPU_LIT_LTS_STRIDE);
 	const u32 max_lines = 16384U;
@@ -171,8 +172,9 @@ int gp10b_cbc_ctrl(struct gk20a *g, enum nvgpu_cbc_op op,
 			     gk20a_readl(g,
 					 ltc_ltcs_ltss_cbc_ctrl1_r()) | hw_op);
 
-		for (ltc = 0; ltc < g->ltc_count; ltc++) {
-			for (slice = 0; slice < slices_per_ltc; slice++) {
+		for (ltc = 0; ltc < nvgpu_ltc_get_ltc_count(g); ltc++) {
+			for (slice = 0; slice <
+				nvgpu_ltc_get_slices_per_ltc(g); slice++) {
 
 				ctrl1 = ltc_ltc0_lts0_cbc_ctrl1_r() +
 					ltc * ltc_stride + slice * lts_stride;

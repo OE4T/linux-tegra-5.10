@@ -417,10 +417,6 @@ int vgpu_finalize_poweron_common(struct gk20a *g)
 		return err;
 	}
 
-	if (g->ops.ltc.init_fs_state != NULL) {
-		g->ops.ltc.init_fs_state(g);
-	}
-
 	err = nvgpu_init_ltc_support(g);
 	if (err != 0) {
 		nvgpu_err(g, "failed to init ltc");

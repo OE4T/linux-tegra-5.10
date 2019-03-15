@@ -27,6 +27,7 @@
 #include <nvgpu/unit.h>
 #include <nvgpu/io.h>
 #include <nvgpu/mc.h>
+#include <nvgpu/ltc.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/bug.h>
 #include <nvgpu/engines.h>
@@ -359,7 +360,7 @@ void gm20b_mc_ltc_isr(struct gk20a *g)
 
 	mc_intr = gk20a_readl(g, mc_intr_ltc_r());
 	nvgpu_err(g, "mc_ltc_intr: %08x", mc_intr);
-	for (ltc = 0; ltc < g->ltc_count; ltc++) {
+	for (ltc = 0; ltc < nvgpu_ltc_get_ltc_count(g); ltc++) {
 		if ((mc_intr & BIT32(ltc)) == 0U) {
 			continue;
 		}

@@ -39,10 +39,11 @@ int vgpu_determine_L2_size_bytes(struct gk20a *g)
 void vgpu_ltc_init_fs_state(struct gk20a *g)
 {
 	struct vgpu_priv_data *priv = vgpu_get_priv_data(g);
+	struct nvgpu_ltc *ltc = g->ltc;
 
 	nvgpu_log_fn(g, " ");
 
-	g->ltc_count = priv->constants.ltc_count;
-	g->cacheline_size = priv->constants.cacheline_size;
-	g->slices_per_ltc = priv->constants.slices_per_ltc;
+	ltc->ltc_count = priv->constants.ltc_count;
+	ltc->cacheline_size = priv->constants.cacheline_size;
+	ltc->slices_per_ltc = priv->constants.slices_per_ltc;
 }

@@ -24,6 +24,7 @@
 #include <nvgpu/io.h>
 #include <nvgpu/utils.h>
 #include <nvgpu/mc.h>
+#include <nvgpu/ltc.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/engines.h>
 
@@ -418,7 +419,7 @@ void mc_tu104_ltc_isr(struct gk20a *g)
 	unsigned int ltc;
 
 	/* Go through all the LTCs explicitly */
-	for (ltc = 0; ltc < g->ltc_count; ltc++) {
+	for (ltc = 0; ltc < nvgpu_ltc_get_ltc_count(g); ltc++) {
 		g->ops.ltc.isr(g, ltc);
 	}
 }

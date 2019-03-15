@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -27,12 +27,39 @@
 
 #include "gk20a/gr_gk20a.h"
 
+void nvgpu_ltc_remove_support(struct gk20a *g)
+{
+	struct nvgpu_ltc *ltc = g->ltc;
+
+	nvgpu_log_fn(g, " ");
+
+	if (ltc == NULL) {
+		return;
+	}
+
+	nvgpu_kfree(g, ltc);
+	g->ltc = NULL;
+}
+
+
 int nvgpu_init_ltc_support(struct gk20a *g)
 {
-	nvgpu_spinlock_init(&g->ltc_enabled_lock);
+	struct nvgpu_ltc *ltc = g->ltc;
+
+	nvgpu_log_fn(g, " ");
+
 
 	g->mm.ltc_enabled_current = true;
 	g->mm.ltc_enabled_target = true;
+
+	if (ltc == NULL) {
+		ltc = nvgpu_kzalloc(g, sizeof(*ltc));
+		if (ltc == NULL) {
+			return -ENOMEM;
+		}
+		g->ltc = ltc;
+		nvgpu_spinlock_init(&g->ltc->ltc_enabled_lock);
+	}
 
 	if (g->ops.ltc.init_fs_state != NULL) {
 		g->ops.ltc.init_fs_state(g);
@@ -47,10 +74,25 @@ void nvgpu_ltc_sync_enabled(struct gk20a *g)
 		return;
 	}
 
-	nvgpu_spinlock_acquire(&g->ltc_enabled_lock);
+	nvgpu_spinlock_acquire(&g->ltc->ltc_enabled_lock);
 	if (g->mm.ltc_enabled_current != g->mm.ltc_enabled_target) {
 		g->ops.ltc.set_enabled(g, g->mm.ltc_enabled_target);
 		g->mm.ltc_enabled_current = g->mm.ltc_enabled_target;
 	}
-	nvgpu_spinlock_release(&g->ltc_enabled_lock);
+	nvgpu_spinlock_release(&g->ltc->ltc_enabled_lock);
+}
+
+u32 nvgpu_ltc_get_ltc_count(struct gk20a *g)
+{
+	return g->ltc->ltc_count;
+}
+
+u32 nvgpu_ltc_get_slices_per_ltc(struct gk20a *g)
+{
+	return g->ltc->slices_per_ltc;
+}
+
+u32 nvgpu_ltc_get_cacheline_size(struct gk20a *g)
+{
+	return g->ltc->cacheline_size;
 }

@@ -1,7 +1,7 @@
 /*
  * GK20A Graphics Context Pri Register Addressing
  *
- * Copyright (c) 2014-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -187,7 +187,7 @@ static inline bool pri_is_be_addr(struct gk20a *g, u32 addr)
 	u32 rop_base = nvgpu_get_litter_value(g, GPU_LIT_ROP_BASE);
 	u32 rop_stride = nvgpu_get_litter_value(g, GPU_LIT_ROP_STRIDE);
 	return	((addr >= rop_base) &&
-		 (addr < rop_base + g->ltc_count * rop_stride)) ||
+		 (addr < rop_base + nvgpu_ltc_get_ltc_count(g) * rop_stride)) ||
 		pri_is_be_addr_shared(g, addr);
 }
 

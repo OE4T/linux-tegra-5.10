@@ -58,13 +58,14 @@ void gv11b_ltc_init_fs_state(struct gk20a *g)
 
 	nvgpu_log_info(g, "initialize gv11b l2");
 
-	g->max_ltc_count = gk20a_readl(g, top_num_ltcs_r());
-	g->ltc_count = g->ops.priv_ring.enum_ltc(g);
-	nvgpu_log_info(g, "%u ltcs out of %u", g->ltc_count, g->max_ltc_count);
+	g->ltc->max_ltc_count = gk20a_readl(g, top_num_ltcs_r());
+	g->ltc->ltc_count = g->ops.priv_ring.enum_ltc(g);
+	nvgpu_log_info(g, "%u ltcs out of %u", g->ltc->ltc_count,
+					g->ltc->max_ltc_count);
 
 	reg = gk20a_readl(g, ltc_ltcs_ltss_cbc_param_r());
-	g->slices_per_ltc = ltc_ltcs_ltss_cbc_param_slices_per_ltc_v(reg);;
-	g->cacheline_size =
+	g->ltc->slices_per_ltc = ltc_ltcs_ltss_cbc_param_slices_per_ltc_v(reg);;
+	g->ltc->cacheline_size =
 		U32(512) << ltc_ltcs_ltss_cbc_param_cache_line_size_v(reg);
 
 	/* Disable LTC interrupts */
@@ -100,7 +101,7 @@ void gv11b_ltc_intr_en_illegal_compstat(struct gk20a *g, bool enable)
 		val = set_field(val,
 			ltc_ltcs_ltss_intr_en_illegal_compstat_m(),
 			ltc_ltcs_ltss_intr_en_illegal_compstat_disabled_f());
-        }
+	}
 	gk20a_writel(g, ltc_ltcs_ltss_intr_r(), val);
 }
 
@@ -152,7 +153,7 @@ void gv11b_ltc_lts_isr(struct gk20a *g, unsigned int ltc, unsigned int slice)
 			nvgpu_writel_check(g,
 				ltc_ltc0_lts0_l2_cache_ecc_corrected_err_count_r() + offset, 0);
 		}
-		if ((uncorrected_delta > 0U) || (uncorrected_overflow !=0U)) {
+		if ((uncorrected_delta > 0U) || (uncorrected_overflow != 0U)) {
 			nvgpu_writel_check(g,
 				ltc_ltc0_lts0_l2_cache_ecc_uncorrected_err_count_r() + offset, 0);
 		}
@@ -223,7 +224,8 @@ void gv11b_ltc_lts_isr(struct gk20a *g, unsigned int ltc, unsigned int slice)
 			nvgpu_log(g, gpu_dbg_intr, "dstg ecc error uncorrected");
 		}
 
-		if ((corrected_overflow != 0U) || (uncorrected_overflow != 0U)) {
+		if ((corrected_overflow != 0U) ||
+				(uncorrected_overflow != 0U)) {
 			nvgpu_info(g, "ecc counter overflow!");
 		}
 
@@ -238,7 +240,7 @@ void gv11b_ltc_isr(struct gk20a *g, unsigned int ltc)
 {
 	unsigned int slice;
 
-	for (slice = 0U; slice < g->slices_per_ltc; slice++) {
+	for (slice = 0U; slice < g->ltc->slices_per_ltc; slice++) {
 		gv11b_ltc_lts_isr(g, ltc, slice);
 	}
 }

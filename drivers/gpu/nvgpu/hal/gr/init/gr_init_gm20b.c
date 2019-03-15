@@ -27,6 +27,7 @@
 #include <nvgpu/engine_status.h>
 #include <nvgpu/netlist.h>
 #include <nvgpu/gr/ctx.h>
+#include <nvgpu/ltc.h>
 
 #include <nvgpu/gr/gr.h>
 #include <nvgpu/gr/config.h>
@@ -357,9 +358,11 @@ int gm20b_gr_init_fs_state(struct gk20a *g)
 	nvgpu_log_fn(g, " ");
 
 	nvgpu_writel(g, gr_bes_zrop_settings_r(),
-		     gr_bes_zrop_settings_num_active_ltcs_f(g->ltc_count));
+		     gr_bes_zrop_settings_num_active_ltcs_f(
+			nvgpu_ltc_get_ltc_count(g)));
 	nvgpu_writel(g, gr_bes_crop_settings_r(),
-		     gr_bes_crop_settings_num_active_ltcs_f(g->ltc_count));
+		     gr_bes_crop_settings_num_active_ltcs_f(
+			nvgpu_ltc_get_ltc_count(g)));
 
 	nvgpu_writel(g, gr_bes_crop_debug3_r(),
 		     gk20a_readl(g, gr_be0_crop_debug3_r()) |

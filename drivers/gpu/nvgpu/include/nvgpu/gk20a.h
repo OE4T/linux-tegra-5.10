@@ -95,6 +95,7 @@ struct nvgpu_cbc;
 #include <nvgpu/tsg.h>
 #include <nvgpu/sec2.h>
 #include <nvgpu/cbc.h>
+#include <nvgpu/ltc.h>
 
 #include "gk20a/clk_gk20a.h"
 #include "gk20a/fifo_gk20a.h"
@@ -1897,8 +1898,6 @@ struct gk20a {
 
 	u32 emc3d_ratio;
 
-	struct nvgpu_spinlock ltc_enabled_lock;
-
 	struct gk20a_ctxsw_ucode_info ctxsw_ucode_info;
 
 	/*
@@ -1962,13 +1961,6 @@ struct gk20a {
 	int irq_stall; /* can be same as irq_nonstall in case of PCI */
 	int irq_nonstall;
 
-	/* This data will be moved to nvgpu_ltc_info */
-	u32 max_ltc_count;
-	u32 ltc_count;
-	u32 slices_per_ltc;
-	u32 cacheline_size;
-	u32 ltc_streamid;
-
 	/*
 	 * The deductible memory size for max_comptag_mem (in MBytes)
 	 * Usually close to memory size that running system is taking
@@ -1977,7 +1969,10 @@ struct gk20a {
 
 	u32 max_comptag_mem; /* max memory size (MB) for comptag */
 
+	u32 ltc_streamid;
+
 	struct nvgpu_cbc *cbc;
+	struct nvgpu_ltc *ltc;
 
 	struct gk20a_worker {
 		struct nvgpu_thread poll_task;

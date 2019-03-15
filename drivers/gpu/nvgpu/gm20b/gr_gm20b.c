@@ -34,6 +34,7 @@
 #include <nvgpu/gr/ctx.h>
 #include <nvgpu/gr/config.h>
 #include <nvgpu/gr/gr.h>
+#include <nvgpu/ltc.h>
 #include <nvgpu/engines.h>
 #include <nvgpu/engine_status.h>
 
@@ -73,7 +74,8 @@ void gr_gm20b_init_gpc_mmu(struct gk20a *g)
 	gk20a_writel(g, gr_gpcs_pri_mmu_debug_rd_r(),
 			g->ops.fb.mmu_debug_rd(g));
 
-	gk20a_writel(g, gr_gpcs_mmu_num_active_ltcs_r(), g->ltc_count);
+	gk20a_writel(g, gr_gpcs_mmu_num_active_ltcs_r(),
+			nvgpu_ltc_get_ltc_count(g));
 }
 
 void gr_gm20b_commit_global_attrib_cb(struct gk20a *g,
