@@ -23,9 +23,38 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/io.h>
 
+#include "gr_init_gm20b.h"
 #include "gr_init_gp10b.h"
 
 #include <nvgpu/hw/gp10b/hw_gr_gp10b.h>
+
+int gp10b_gr_init_fs_state(struct gk20a *g)
+{
+	u32 data;
+
+	nvgpu_log_fn(g, " ");
+
+	data = nvgpu_readl(g, gr_gpcs_tpcs_sm_texio_control_r());
+	data = set_field(data,
+		gr_gpcs_tpcs_sm_texio_control_oor_addr_check_mode_m(),
+		gr_gpcs_tpcs_sm_texio_control_oor_addr_check_mode_arm_63_48_match_f());
+	nvgpu_writel(g, gr_gpcs_tpcs_sm_texio_control_r(), data);
+
+	data = nvgpu_readl(g, gr_gpcs_tpcs_sm_disp_ctrl_r());
+	data = set_field(data, gr_gpcs_tpcs_sm_disp_ctrl_re_suppress_m(),
+			 gr_gpcs_tpcs_sm_disp_ctrl_re_suppress_disable_f());
+	nvgpu_writel(g, gr_gpcs_tpcs_sm_disp_ctrl_r(), data);
+
+	if (g->gr.fecs_feature_override_ecc_val != 0U) {
+		nvgpu_writel(g,
+			gr_fecs_feature_override_ecc_r(),
+			g->gr.fecs_feature_override_ecc_val);
+	}
+
+	gm20b_gr_init_fs_state(g);
+
+	return 0;
+}
 
 int gp10b_gr_init_preemption_state(struct gk20a *g, u32 gfxp_wfi_timeout_count,
 	bool gfxp_wfi_timeout_unit_usec)

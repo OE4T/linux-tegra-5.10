@@ -253,7 +253,6 @@ struct gpu_ops {
 	} ce2;
 	struct {
 		u32 (*get_patch_slots)(struct gk20a *g);
-		int (*init_fs_state)(struct gk20a *g);
 		void (*access_smpc_reg)(struct gk20a *g, u32 quad, u32 offset);
 		void (*bundle_cb_defaults)(struct gk20a *g);
 		void (*cb_size_default)(struct gk20a *g);
@@ -671,6 +670,7 @@ struct gpu_ops {
 		} hwpm_map;
 
 		struct {
+			int (*fs_state)(struct gk20a *g);
 			void (*pd_tpc_per_gpc)(struct gk20a *g);
 			void (*pd_skip_table_gpc)(struct gk20a *g);
 			void (*cwd_gpcs_tpcs_num)(struct gk20a *g,

@@ -27,6 +27,7 @@
 
 struct gk20a;
 
+int gm20b_gr_init_fs_state(struct gk20a *g);
 void gm20b_gr_init_pd_tpc_per_gpc(struct gk20a *g);
 void gm20b_gr_init_pd_skip_table_gpc(struct gk20a *g);
 void gm20b_gr_init_cwd_gpcs_tpcs_num(struct gk20a *g,

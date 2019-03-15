@@ -391,7 +391,6 @@ static const struct gpu_ops tu104_ops = {
 		.is_valid_compute_class = gr_tu104_is_valid_compute_class,
 		.get_sm_dsm_perf_regs = gv11b_gr_get_sm_dsm_perf_regs,
 		.get_sm_dsm_perf_ctrl_regs = gr_tu104_get_sm_dsm_perf_ctrl_regs,
-		.init_fs_state = gr_gv11b_init_fs_state,
 		.set_hww_esr_report_mask = gv11b_gr_set_hww_esr_report_mask,
 		.fecs_falcon_base_addr = gr_gp106_fecs_falcon_base_addr,
 		.gpccs_falcon_base_addr = gr_gp106_gpccs_falcon_base_addr,
@@ -657,6 +656,7 @@ static const struct gpu_ops tu104_ops = {
 				gv100_gr_hwpm_map_get_active_fbpa_mask,
 		},
 		.init = {
+			.fs_state = gv11b_gr_init_fs_state,
 			.pd_tpc_per_gpc = gm20b_gr_init_pd_tpc_per_gpc,
 			.pd_skip_table_gpc = gm20b_gr_init_pd_skip_table_gpc,
 			.cwd_gpcs_tpcs_num = gm20b_gr_init_cwd_gpcs_tpcs_num,

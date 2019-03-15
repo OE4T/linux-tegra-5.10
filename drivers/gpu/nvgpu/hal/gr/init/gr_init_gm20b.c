@@ -37,6 +37,24 @@
 #define FE_PWR_MODE_TIMEOUT_DEFAULT_US 10U
 #define FECS_CTXSW_RESET_DELAY_US 10U
 
+int gm20b_gr_init_fs_state(struct gk20a *g)
+{
+	int err = 0;
+
+	nvgpu_log_fn(g, " ");
+
+	nvgpu_writel(g, gr_bes_zrop_settings_r(),
+		     gr_bes_zrop_settings_num_active_ltcs_f(g->ltc_count));
+	nvgpu_writel(g, gr_bes_crop_settings_r(),
+		     gr_bes_crop_settings_num_active_ltcs_f(g->ltc_count));
+
+	nvgpu_writel(g, gr_bes_crop_debug3_r(),
+		     gk20a_readl(g, gr_be0_crop_debug3_r()) |
+		     gr_bes_crop_debug3_comp_vdc_4to2_disable_m());
+
+	return err;
+}
+
 void gm20b_gr_init_pd_tpc_per_gpc(struct gk20a *g)
 {
 	u32 reg_index;

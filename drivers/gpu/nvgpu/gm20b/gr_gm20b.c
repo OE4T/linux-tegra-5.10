@@ -672,26 +672,6 @@ int gr_gm20b_load_smid_config(struct gk20a *g)
 	return 0;
 }
 
-int gr_gm20b_init_fs_state(struct gk20a *g)
-{
-	int err = 0;
-
-	nvgpu_log_fn(g, " ");
-
-	nvgpu_writel(g, gr_bes_zrop_settings_r(),
-		     gr_bes_zrop_settings_num_active_ltcs_f(g->ltc_count));
-	nvgpu_writel(g, gr_bes_crop_settings_r(),
-		     gr_bes_crop_settings_num_active_ltcs_f(g->ltc_count));
-
-	nvgpu_writel(g, gr_bes_crop_debug3_r(),
-		     gk20a_readl(g, gr_be0_crop_debug3_r()) |
-		     gr_bes_crop_debug3_comp_vdc_4to2_disable_m());
-
-	err = nvgpu_gr_init_fs_state(g);
-
-	return err;
-}
-
 void gr_gm20b_load_ctxsw_ucode_segments(struct gk20a *g, u64 addr_base,
 	struct gk20a_ctxsw_ucode_segments *segments, u32 reg_offset)
 {

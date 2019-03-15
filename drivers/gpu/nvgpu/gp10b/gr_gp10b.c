@@ -1389,31 +1389,6 @@ int gr_gp10b_load_smid_config(struct gk20a *g)
 	return 0;
 }
 
-int gr_gp10b_init_fs_state(struct gk20a *g)
-{
-	u32 data;
-
-	nvgpu_log_fn(g, " ");
-
-	data = gk20a_readl(g, gr_gpcs_tpcs_sm_texio_control_r());
-	data = set_field(data, gr_gpcs_tpcs_sm_texio_control_oor_addr_check_mode_m(),
-			gr_gpcs_tpcs_sm_texio_control_oor_addr_check_mode_arm_63_48_match_f());
-	gk20a_writel(g, gr_gpcs_tpcs_sm_texio_control_r(), data);
-
-	data = gk20a_readl(g, gr_gpcs_tpcs_sm_disp_ctrl_r());
-	data = set_field(data, gr_gpcs_tpcs_sm_disp_ctrl_re_suppress_m(),
-			 gr_gpcs_tpcs_sm_disp_ctrl_re_suppress_disable_f());
-	gk20a_writel(g, gr_gpcs_tpcs_sm_disp_ctrl_r(), data);
-
-	if (g->gr.fecs_feature_override_ecc_val != 0U) {
-		gk20a_writel(g,
-			gr_fecs_feature_override_ecc_r(),
-			g->gr.fecs_feature_override_ecc_val);
-	}
-
-	return gr_gm20b_init_fs_state(g);
-}
-
 void gr_gp10b_set_gpc_tpc_mask(struct gk20a *g, u32 gpc_index)
 {
 	nvgpu_tegra_fuse_write_bypass(g, 0x1);

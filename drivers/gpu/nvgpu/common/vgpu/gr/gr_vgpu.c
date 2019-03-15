@@ -419,7 +419,7 @@ static int vgpu_gr_init_gr_config(struct gk20a *g, struct gr_gk20a *gr)
 	g->ops.gr.bundle_cb_defaults(g);
 	g->ops.gr.cb_size_default(g);
 	g->ops.gr.calc_global_ctx_buffer_size(g);
-	err = g->ops.gr.init_fs_state(g);
+	err = g->ops.gr.init.fs_state(g);
 	if (err) {
 		goto cleanup;
 	}

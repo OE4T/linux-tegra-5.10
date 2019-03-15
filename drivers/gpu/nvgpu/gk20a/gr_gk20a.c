@@ -50,6 +50,7 @@
 #include <nvgpu/gr/subctx.h>
 #include <nvgpu/gr/ctx.h>
 #include <nvgpu/gr/zbc.h>
+#include <nvgpu/gr/gr.h>
 #include <nvgpu/gr/config.h>
 #include <nvgpu/gr/fecs_trace.h>
 #include <nvgpu/gr/hwpm_map.h>
@@ -1085,7 +1086,7 @@ int gr_gk20a_init_golden_ctx_image(struct gk20a *g,
 	g->ops.gr.commit_global_timeslice(g, c);
 
 	/* floorsweep anything left */
-	err = g->ops.gr.init_fs_state(g);
+	err = nvgpu_gr_init_fs_state(g);
 	if (err != 0) {
 		goto clean_up;
 	}
@@ -2600,7 +2601,7 @@ static int gk20a_init_gr_setup_hw(struct gk20a *g)
 	}
 
 	/* floorsweep anything left */
-	err = g->ops.gr.init_fs_state(g);
+	err = nvgpu_gr_init_fs_state(g);
 	if (err != 0) {
 		goto out;
 	}

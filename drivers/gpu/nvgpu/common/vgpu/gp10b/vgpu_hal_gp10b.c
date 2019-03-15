@@ -125,7 +125,6 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 		.is_valid_compute_class = gr_gp10b_is_valid_compute_class,
 		.get_sm_dsm_perf_regs = gr_gm20b_get_sm_dsm_perf_regs,
 		.get_sm_dsm_perf_ctrl_regs = gr_gm20b_get_sm_dsm_perf_ctrl_regs,
-		.init_fs_state = vgpu_gr_init_fs_state,
 		.set_hww_esr_report_mask = NULL,
 		.falcon_load_ucode = NULL,
 		.load_ctxsw_ucode = NULL,
@@ -327,6 +326,9 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 				gm20b_fecs_trace_get_buffer_full_mailbox_val,
 		},
 #endif /* CONFIG_GK20A_CTXSW_TRACE */
+		.init = {
+			.fs_state = vgpu_gr_init_fs_state,
+		}
 	},
 	.perf = {
 		.get_pmm_per_chiplet_offset =

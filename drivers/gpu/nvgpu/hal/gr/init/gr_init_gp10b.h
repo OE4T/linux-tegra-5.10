@@ -27,6 +27,7 @@
 
 struct gk20a;
 
+int gp10b_gr_init_fs_state(struct gk20a *g);
 int gp10b_gr_init_preemption_state(struct gk20a *g, u32 gfxp_wfi_timeout_count,
 	bool gfxp_wfi_timeout_unit_usec);
 

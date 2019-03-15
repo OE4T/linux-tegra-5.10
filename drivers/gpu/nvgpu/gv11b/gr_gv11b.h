@@ -132,7 +132,6 @@ int gr_gv11b_commit_global_timeslice(struct gk20a *g, struct channel_gk20a *c);
 void gr_gv11b_load_tpc_mask(struct gk20a *g);
 void gr_gv11b_set_preemption_buffer_va(struct gk20a *g,
 			struct nvgpu_mem *mem, u64 gpu_va);
-int gr_gv11b_init_fs_state(struct gk20a *g);
 void gv11b_gr_get_esr_sm_sel(struct gk20a *g, u32 gpc, u32 tpc,
 				u32 *esr_sm_sel);
 int gv11b_gr_sm_trigger_suspend(struct gk20a *g);

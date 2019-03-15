@@ -53,7 +53,6 @@ struct gk20a_debug_output;
 #define NVC097_BES_CROP_DEBUG4_CLAMP_FP_BLEND_TO_INF	0x0U
 #define NVC097_BES_CROP_DEBUG4_CLAMP_FP_BLEND_TO_MAXVAL 0x1U
 
-int gr_gp10b_init_fs_state(struct gk20a *g);
 void gr_gp10b_create_sysfs(struct gk20a *g);
 void gr_gp10b_remove_sysfs(struct gk20a *g);
 int gr_gp10b_handle_fecs_error(struct gk20a *g,

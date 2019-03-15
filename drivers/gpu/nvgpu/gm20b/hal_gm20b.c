@@ -246,7 +246,6 @@ static const struct gpu_ops gm20b_ops = {
 		.is_valid_compute_class = gr_gm20b_is_valid_compute_class,
 		.get_sm_dsm_perf_regs = gr_gm20b_get_sm_dsm_perf_regs,
 		.get_sm_dsm_perf_ctrl_regs = gr_gm20b_get_sm_dsm_perf_ctrl_regs,
-		.init_fs_state = gr_gm20b_init_fs_state,
 		.set_hww_esr_report_mask = gr_gm20b_set_hww_esr_report_mask,
 		.fecs_falcon_base_addr = gr_gk20a_fecs_falcon_base_addr,
 		.gpccs_falcon_base_addr = gr_gk20a_gpccs_falcon_base_addr,
@@ -423,6 +422,7 @@ static const struct gpu_ops gm20b_ops = {
 			.get_gpcs_swdx_dss_zbc_z_format_reg = NULL,
 		},
 		.init = {
+			.fs_state = gm20b_gr_init_fs_state,
 			.pd_tpc_per_gpc = gm20b_gr_init_pd_tpc_per_gpc,
 			.pd_skip_table_gpc = gm20b_gr_init_pd_skip_table_gpc,
 			.cwd_gpcs_tpcs_num = gm20b_gr_init_cwd_gpcs_tpcs_num,
