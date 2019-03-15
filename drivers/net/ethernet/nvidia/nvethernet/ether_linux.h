@@ -127,6 +127,7 @@ struct ether_priv_data {
 
 	unsigned int rx_irq_alloc_mask;
 	unsigned int tx_irq_alloc_mask;
+	unsigned int common_irq_alloc_mask;
 
 	int common_irq;
 	int tx_irqs[ETHER_MAX_IRQS];
