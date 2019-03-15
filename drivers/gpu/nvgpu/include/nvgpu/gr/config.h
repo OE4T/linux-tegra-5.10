@@ -29,6 +29,13 @@
 
 struct gk20a;
 
+struct sm_info {
+	u32 gpc_index;
+	u32 tpc_index;
+	u32 sm_index;
+	u32 global_tpc_index;
+};
+
 struct nvgpu_gr_config {
 	u32 max_gpc_count;
 	u32 max_tpc_per_gpc_count;
@@ -57,6 +64,7 @@ struct nvgpu_gr_config {
 	u32 map_row_offset;
 
 	u32 no_of_sm;
+	struct sm_info *sm_to_cluster;
 };
 
 struct nvgpu_gr_config *nvgpu_gr_config_init(struct gk20a *g);
@@ -97,5 +105,7 @@ u32 nvgpu_gr_config_get_pes_tpc_mask(struct nvgpu_gr_config *config,
 	u32 gpc_index, u32 pes_index);
 u32 nvgpu_gr_config_get_gpc_mask(struct nvgpu_gr_config *config);
 u32 nvgpu_gr_config_get_no_of_sm(struct nvgpu_gr_config *config);
+struct sm_info *
+nvgpu_gr_config_get_sm_info(struct nvgpu_gr_config *config, u32 sm_id);
 
 #endif /* NVGPU_GR_CONFIG_H */

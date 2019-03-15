@@ -88,8 +88,12 @@ void gv11b_gr_init_sm_id_numbering(struct gk20a *g,
 	u32 tpc_in_gpc_stride = nvgpu_get_litter_value(g,
 					GPU_LIT_TPC_IN_GPC_STRIDE);
 	u32 gpc_offset = gpc_stride * gpc;
-	u32 global_tpc_index = g->gr.sm_to_cluster[smid].global_tpc_index;
+	u32 global_tpc_index;
 	u32 tpc_offset;
+	struct sm_info *sm_info =
+		nvgpu_gr_config_get_sm_info(g->gr.config, smid);
+
+	global_tpc_index = sm_info->global_tpc_index;
 
 	tpc = g->ops.gr.get_nonpes_aware_tpc(g, gpc, tpc);
 	tpc_offset = tpc_in_gpc_stride * tpc;
@@ -122,6 +126,7 @@ int gv11b_gr_init_sm_id_config(struct gk20a *g, u32 *tpc_sm_id,
 		for (j = 0U; j < 4U; j++) {
 			u32 sm_id;
 			u32 bits;
+			struct sm_info *sm_info;
 
 			tpc_id = (i << 2) + j;
 			sm_id = tpc_id * sm_per_tpc;
@@ -129,9 +134,10 @@ int gv11b_gr_init_sm_id_config(struct gk20a *g, u32 *tpc_sm_id,
 			if (sm_id >= no_of_sm) {
 				break;
 			}
-
-			gpc_index = g->gr.sm_to_cluster[sm_id].gpc_index;
-			tpc_index = g->gr.sm_to_cluster[sm_id].tpc_index;
+			sm_info =
+				nvgpu_gr_config_get_sm_info(gr_config, sm_id);
+			gpc_index = sm_info->gpc_index;
+			tpc_index = sm_info->tpc_index;
 
 			bits = gr_cwd_gpc_tpc_id_gpc0_f(gpc_index) |
 				gr_cwd_gpc_tpc_id_tpc0_f(tpc_index);

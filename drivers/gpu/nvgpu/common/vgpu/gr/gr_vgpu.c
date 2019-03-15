@@ -351,11 +351,11 @@ static int vgpu_gr_init_gr_config(struct gk20a *g, struct gr_gk20a *gr)
 	}
 
 	sm_per_tpc = priv->constants.sm_per_tpc;
-	gr->sm_to_cluster = nvgpu_kzalloc(g, config->gpc_count *
+	gr->config->sm_to_cluster = nvgpu_kzalloc(g, config->gpc_count *
 					  config->max_tpc_per_gpc_count *
 					  sm_per_tpc *
 					  sizeof(struct sm_info));
-	if (!gr->sm_to_cluster) {
+	if (!gr->config->sm_to_cluster) {
 		goto cleanup;
 	}
 
@@ -662,12 +662,12 @@ static void vgpu_remove_gr_support(struct gr_gk20a *gr)
 {
 	nvgpu_log_fn(gr->g, " ");
 
+	nvgpu_kfree(gr->g, gr->config->sm_to_cluster);
+	gr->config->sm_to_cluster = NULL;
+
 	nvgpu_gr_config_deinit(gr->g, gr->config);
 
 	nvgpu_gr_zcull_deinit(gr->g, gr->zcull);
-
-	nvgpu_kfree(gr->g, gr->sm_to_cluster);
-	gr->sm_to_cluster = NULL;
 
 	nvgpu_kfree(gr->g, gr->fbp_rop_l2_en_mask);
 	gr->fbp_rop_l2_en_mask = NULL;
@@ -1138,7 +1138,7 @@ int vgpu_gr_init_sm_id_table(struct gk20a *g)
 
 	gr->config->no_of_sm = p->num_sm;
 	for (sm_id = 0; sm_id < p->num_sm; sm_id++, entry++) {
-		sm_info = &gr->sm_to_cluster[sm_id];
+		sm_info = nvgpu_gr_config_get_sm_info(gr->config, sm_id);
 		sm_info->tpc_index = entry->tpc_index;
 		sm_info->gpc_index = entry->gpc_index;
 		sm_info->sm_index = entry->sm_index;

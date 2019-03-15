@@ -109,13 +109,6 @@ struct gr_channel_map_tlb_entry {
 	u32 tsgid;
 };
 
-struct sm_info {
-	u32 gpc_index;
-	u32 tpc_index;
-	u32 sm_index;
-	u32 global_tpc_index;
-};
-
 #if defined(CONFIG_GK20A_CYCLE_STATS)
 struct gk20a_cs_snapshot_client;
 struct gk20a_cs_snapshot;
@@ -208,7 +201,6 @@ struct gr_gk20a {
 
 	u32 fbp_en_mask;
 	u32 *fbp_rop_l2_en_mask;
-	struct sm_info *sm_to_cluster;
 
 #if defined(CONFIG_GK20A_CYCLE_STATS)
 	struct nvgpu_mutex			cs_lock;

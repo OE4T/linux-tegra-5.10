@@ -32,6 +32,7 @@ struct nvgpu_gr_config *nvgpu_gr_config_init(struct gk20a *g)
 	u32 pes_tpc_count;
 	u32 pes_heavy_index;
 	u32 gpc_new_skip_mask;
+	size_t sm_info_size;
 
 	config = nvgpu_kzalloc(g, sizeof(*config));
 	if (config == NULL) {
@@ -63,6 +64,23 @@ struct nvgpu_gr_config *nvgpu_gr_config_init(struct gk20a *g)
 		nvgpu_err(g, "too many pes per gpc");
 		goto clean_up;
 	}
+
+	/* allocate for max tpc per gpc */
+	sm_info_size = (size_t)config->gpc_count *
+		(size_t)config->max_tpc_per_gpc_count *
+		(size_t)nvgpu_get_litter_value(g, GPU_LIT_NUM_SM_PER_TPC) *
+		sizeof(struct sm_info);
+
+	if (config->sm_to_cluster == NULL) {
+		config->sm_to_cluster = nvgpu_kzalloc(g, sm_info_size);
+		if (config->sm_to_cluster == NULL) {
+			nvgpu_err(g, "sm_to_cluster == NULL");
+			goto clean_up;
+		}
+	} else {
+		(void) memset(config->sm_to_cluster, 0, sm_info_size);
+	}
+	config->no_of_sm = 0;
 
 	config->max_zcull_per_gpc_count = nvgpu_get_litter_value(g,
 		GPU_LIT_NUM_ZCULL_BANKS);
@@ -445,7 +463,7 @@ void nvgpu_gr_config_deinit(struct gk20a *g, struct nvgpu_gr_config *config)
 		nvgpu_kfree(g, config->pes_tpc_count[index]);
 		nvgpu_kfree(g, config->pes_tpc_mask[index]);
 	}
-
+	nvgpu_kfree(g, config->sm_to_cluster);
 }
 
 u32 nvgpu_gr_config_get_max_gpc_count(struct nvgpu_gr_config *config)
@@ -546,4 +564,10 @@ u32 nvgpu_gr_config_get_gpc_mask(struct nvgpu_gr_config *config)
 u32 nvgpu_gr_config_get_no_of_sm(struct nvgpu_gr_config *config)
 {
 	return config->no_of_sm;
+}
+
+struct sm_info *
+nvgpu_gr_config_get_sm_info(struct nvgpu_gr_config *config, u32 sm_id)
+{
+	return &config->sm_to_cluster[sm_id];
 }

@@ -2401,9 +2401,11 @@ void gv11b_gr_bpt_reg_info(struct gk20a *g, struct nvgpu_warpstate *w_state)
 	u32 no_of_sm = nvgpu_gr_config_get_no_of_sm(gr->config);
 
 	for (sm_id = 0; sm_id < no_of_sm; sm_id++) {
-		gpc = g->gr.sm_to_cluster[sm_id].gpc_index;
-		tpc = g->gr.sm_to_cluster[sm_id].tpc_index;
-		sm = g->gr.sm_to_cluster[sm_id].sm_index;
+		struct sm_info *sm_info =
+			nvgpu_gr_config_get_sm_info(gr->config, sm_id);
+		gpc = sm_info->gpc_index;
+		tpc = sm_info->tpc_index;
+		sm = sm_info->sm_index;
 
 		offset = gk20a_gr_gpc_offset(g, gpc) +
 			 gk20a_gr_tpc_offset(g, tpc) +
@@ -2473,20 +2475,22 @@ int gv11b_gr_set_sm_debug_mode(struct gk20a *g,
 	for (sm_id = 0; sm_id < no_of_sm; sm_id++) {
 		u32 gpc, tpc, sm;
 		u32 reg_offset, reg_mask, reg_val;
+		struct sm_info *sm_info;
 
 		if ((sms & BIT64(sm_id)) == 0ULL) {
 			continue;
 		}
 
-		gpc = g->gr.sm_to_cluster[sm_id].gpc_index;
+		sm_info = nvgpu_gr_config_get_sm_info(g->gr.config, sm_id);
+		gpc = sm_info->gpc_index;
 		if (g->ops.gr.get_nonpes_aware_tpc != NULL) {
 			tpc = g->ops.gr.get_nonpes_aware_tpc(g,
-					g->gr.sm_to_cluster[sm_id].gpc_index,
-					g->gr.sm_to_cluster[sm_id].tpc_index);
+					sm_info->gpc_index,
+					sm_info->tpc_index);
 		} else {
-			tpc = g->gr.sm_to_cluster[sm_id].tpc_index;
+			tpc = sm_info->tpc_index;
 		}
-		sm = g->gr.sm_to_cluster[sm_id].sm_index;
+		sm = sm_info->sm_index;
 
 		reg_offset = gk20a_gr_gpc_offset(g, gpc) +
 				gk20a_gr_tpc_offset(g, tpc) +
@@ -4298,15 +4302,17 @@ int gv11b_gr_clear_sm_error_state(struct gk20a *g,
 	}
 
 	if (gk20a_is_channel_ctx_resident(ch)) {
-		gpc = g->gr.sm_to_cluster[sm_id].gpc_index;
+		struct sm_info *sm_info =
+			nvgpu_gr_config_get_sm_info(g->gr.config, sm_id);
+		gpc = sm_info->gpc_index;
 		if (g->ops.gr.get_nonpes_aware_tpc != NULL) {
 			tpc = g->ops.gr.get_nonpes_aware_tpc(g,
-					g->gr.sm_to_cluster[sm_id].gpc_index,
-					g->gr.sm_to_cluster[sm_id].tpc_index);
+					sm_info->gpc_index,
+					sm_info->tpc_index);
 		} else {
-			tpc = g->gr.sm_to_cluster[sm_id].tpc_index;
+			tpc = sm_info->tpc_index;
 		}
-		sm = g->gr.sm_to_cluster[sm_id].sm_index;
+		sm = sm_info->sm_index;
 
 		offset = gk20a_gr_gpc_offset(g, gpc) +
 				gk20a_gr_tpc_offset(g, tpc) +

@@ -142,14 +142,16 @@ int gm20b_gr_init_sm_id_config(struct gk20a *g, u32 *tpc_sm_id,
 		for (j = 0U; j < 4U; j++) {
 			u32 sm_id = (i * 4U) + j;
 			u32 bits;
+			struct sm_info *sm_info;
 
 			if (sm_id >=
 				nvgpu_gr_config_get_tpc_count(gr_config)) {
 				break;
 			}
-
-			gpc_index = g->gr.sm_to_cluster[sm_id].gpc_index;
-			tpc_index = g->gr.sm_to_cluster[sm_id].tpc_index;
+			sm_info =
+				nvgpu_gr_config_get_sm_info(gr_config, sm_id);
+			gpc_index = sm_info->gpc_index;
+			tpc_index = sm_info->tpc_index;
 
 			bits = gr_cwd_gpc_tpc_id_gpc0_f(gpc_index) |
 			       gr_cwd_gpc_tpc_id_tpc0_f(tpc_index);

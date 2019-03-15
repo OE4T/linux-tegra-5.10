@@ -39,11 +39,12 @@ int gm20b_gr_config_init_sm_id_table(struct gk20a *g)
 		for (gpc = 0; gpc < nvgpu_gr_config_get_gpc_count(g->gr.config); gpc++) {
 
 			if (tpc < nvgpu_gr_config_get_gpc_tpc_count(g->gr.config, gpc)) {
-				g->gr.sm_to_cluster[sm_id].tpc_index = tpc;
-				g->gr.sm_to_cluster[sm_id].gpc_index = gpc;
-				g->gr.sm_to_cluster[sm_id].sm_index = 0;
-				g->gr.sm_to_cluster[sm_id].global_tpc_index =
-									sm_id;
+				struct sm_info *sm_info =
+					nvgpu_gr_config_get_sm_info(g->gr.config, sm_id);
+				sm_info->tpc_index = tpc;
+				sm_info->gpc_index = gpc;
+				sm_info->sm_index = 0;
+				sm_info->global_tpc_index = sm_id;
 				sm_id++;
 			}
 		}

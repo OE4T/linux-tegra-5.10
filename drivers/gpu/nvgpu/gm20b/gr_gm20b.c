@@ -961,8 +961,10 @@ void gr_gm20b_bpt_reg_info(struct gk20a *g, struct nvgpu_warpstate *w_state)
 	u32 numWarpPerTpc = g->params.sm_arch_warp_count * numSmPerTpc;
 
 	for (sm_id = 0; sm_id < no_of_sm; sm_id++) {
-		gpc = g->gr.sm_to_cluster[sm_id].gpc_index;
-		tpc = g->gr.sm_to_cluster[sm_id].tpc_index;
+		struct sm_info *sm_info =
+			nvgpu_gr_config_get_sm_info(gr->config, sm_id);
+		gpc = sm_info->gpc_index;
+		tpc = sm_info->tpc_index;
 
 		tpc_offset = tpc_in_gpc_stride * tpc;
 		gpc_offset = gpc_stride * gpc;
@@ -1103,8 +1105,10 @@ int gm20b_gr_clear_sm_error_state(struct gk20a *g,
 	}
 
 	if (gk20a_is_channel_ctx_resident(ch)) {
-		gpc = g->gr.sm_to_cluster[sm_id].gpc_index;
-		tpc = g->gr.sm_to_cluster[sm_id].tpc_index;
+		struct sm_info *sm_info =
+			nvgpu_gr_config_get_sm_info(g->gr.config, sm_id);
+		gpc = sm_info->gpc_index;
+		tpc = sm_info->tpc_index;
 
 		offset = gpc_stride * gpc + tpc_in_gpc_stride * tpc;
 

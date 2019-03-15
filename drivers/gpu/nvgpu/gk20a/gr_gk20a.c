@@ -1928,7 +1928,6 @@ static void gk20a_remove_gr_support(struct gr_gk20a *gr)
 
 	nvgpu_gr_config_deinit(g, gr->config);
 
-	nvgpu_kfree(g, gr->sm_to_cluster);
 	nvgpu_kfree(g, gr->fbp_rop_l2_en_mask);
 	gr->fbp_rop_l2_en_mask = NULL;
 
@@ -1950,8 +1949,6 @@ static void gk20a_remove_gr_support(struct gr_gk20a *gr)
 
 static int gr_gk20a_init_gr_config(struct gk20a *g, struct gr_gk20a *gr)
 {
-	u32 sm_per_tpc = nvgpu_get_litter_value(g, GPU_LIT_NUM_SM_PER_TPC);
-
 	gr->config = nvgpu_gr_config_init(g);
 	if (gr->config == NULL) {
 		return -ENOMEM;
@@ -1972,22 +1969,6 @@ static int gr_gk20a_init_gr_config(struct gk20a *g, struct gr_gk20a *gr)
 		(void) memset(gr->fbp_rop_l2_en_mask, 0, gr->max_fbps_count *
 				sizeof(u32));
 	}
-
-	/* allocate for max tpc per gpc */
-	if (gr->sm_to_cluster == NULL) {
-		gr->sm_to_cluster = nvgpu_kzalloc(g,
-			(size_t)nvgpu_gr_config_get_gpc_count(gr->config) *
-			(size_t)nvgpu_gr_config_get_max_tpc_per_gpc_count(gr->config) *
-			(size_t)sm_per_tpc *
-			sizeof(struct sm_info));
-	} else {
-		(void) memset(gr->sm_to_cluster, 0,
-			(size_t)nvgpu_gr_config_get_gpc_count(gr->config) *
-			(size_t)nvgpu_gr_config_get_max_tpc_per_gpc_count(gr->config) *
-			(size_t)sm_per_tpc *
-			sizeof(struct sm_info));
-	}
-	gr->config->no_of_sm = 0;
 
 	nvgpu_log_info(g, "fbps: %d", gr->num_fbps);
 	nvgpu_log_info(g, "max_fbps_count: %d", gr->max_fbps_count);
@@ -5591,13 +5572,14 @@ int gr_gk20a_set_sm_debug_mode(struct gk20a *g,
 	for (sm_id = 0; sm_id < no_of_sm; sm_id++) {
 		u32 gpc, tpc;
 		u32 tpc_offset, gpc_offset, reg_offset, reg_mask, reg_val;
+		struct sm_info *sm_info;
 
 		if ((sms & BIT64(sm_id)) == 0ULL) {
 			continue;
 		}
-
-		gpc = g->gr.sm_to_cluster[sm_id].gpc_index;
-		tpc = g->gr.sm_to_cluster[sm_id].tpc_index;
+		sm_info = nvgpu_gr_config_get_sm_info(g->gr.config, sm_id);
+		gpc = sm_info->gpc_index;
+		tpc = sm_info->tpc_index;
 
 		tpc_offset = tpc_in_gpc_stride * tpc;
 		gpc_offset = gpc_stride * gpc;
@@ -5792,10 +5774,11 @@ int gr_gk20a_wait_for_pause(struct gk20a *g, struct nvgpu_warpstate *w_state)
 
 	/* Lock down all SMs */
 	for (sm_id = 0; sm_id < no_of_sm; sm_id++) {
-
-		gpc = g->gr.sm_to_cluster[sm_id].gpc_index;
-		tpc = g->gr.sm_to_cluster[sm_id].tpc_index;
-		sm = g->gr.sm_to_cluster[sm_id].sm_index;
+		struct sm_info *sm_info =
+			nvgpu_gr_config_get_sm_info(g->gr.config, sm_id);
+		gpc = sm_info->gpc_index;
+		tpc = sm_info->tpc_index;
+		sm = sm_info->sm_index;
 
 		err = g->ops.gr.lock_down_sm(g, gpc, tpc, sm,
 				global_mask, false);
@@ -5873,9 +5856,10 @@ u32 gr_gk20a_tpc_enabled_exceptions(struct gk20a *g)
 	u32 no_of_sm = nvgpu_gr_config_get_no_of_sm(gr->config);
 
 	for (sm_id = 0; sm_id < no_of_sm; sm_id++) {
-
-		tpc_offset = tpc_in_gpc_stride * g->gr.sm_to_cluster[sm_id].tpc_index;
-		gpc_offset = gpc_stride * g->gr.sm_to_cluster[sm_id].gpc_index;
+		struct sm_info *sm_info =
+			nvgpu_gr_config_get_sm_info(g->gr.config, sm_id);
+		tpc_offset = tpc_in_gpc_stride * sm_info->tpc_index;
+		gpc_offset = gpc_stride * sm_info->gpc_index;
 		offset = tpc_offset + gpc_offset;
 
 		regval = gk20a_readl(g,	gr_gpc0_tpc0_tpccs_tpc_exception_en_r() +
