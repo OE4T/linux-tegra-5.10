@@ -110,6 +110,33 @@ void nvgpu_cond_destroy(struct nvgpu_cond *cond)
 	cond->initialized = false;
 }
 
+void nvgpu_cond_signal_locked(struct nvgpu_cond *cond)
+{
+	if ((cond == NULL) || !(cond->initialized)) {
+		BUG();
+	}
+	(void) pthread_cond_signal(&cond->cond);
+}
+
+int nvgpu_cond_broadcast_locked(struct nvgpu_cond *cond)
+{
+	if (!cond->initialized) {
+		return -EINVAL;
+	}
+
+	return pthread_cond_broadcast(&cond->cond);
+}
+
+void nvgpu_cond_lock(struct nvgpu_cond *cond)
+{
+	nvgpu_mutex_acquire(&cond->mutex);
+}
+
+void nvgpu_cond_unlock(struct nvgpu_cond *cond)
+{
+	nvgpu_mutex_release(&cond->mutex);
+}
+
 int nvgpu_cond_timedwait(struct nvgpu_cond *c, unsigned int *ms)
 {
 	int ret;

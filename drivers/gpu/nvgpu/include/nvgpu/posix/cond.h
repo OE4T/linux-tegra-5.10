@@ -34,6 +34,30 @@ struct nvgpu_cond {
 };
 
 int nvgpu_cond_timedwait(struct nvgpu_cond *c, unsigned int *ms);
+void nvgpu_cond_signal_locked(struct nvgpu_cond *cond);
+int nvgpu_cond_broadcast_locked(struct nvgpu_cond *cond);
+void nvgpu_cond_lock(struct nvgpu_cond *cond);
+void nvgpu_cond_unlock(struct nvgpu_cond *cond);
+
+/**
+ * NVGPU_COND_WAIT_LOCKED - Wait for a condition to be true
+ *
+ * @cond - The condition variable to sleep on
+ * @condition - The condition that needs to be true
+ * @timeout_ms - Timeout in milliseconds, or 0 for infinite wait.
+ *               This parameter must be a u32.
+ *
+ * Wait for a condition to become true. Returns -ETIMEOUT if
+ * the wait timed out with condition false.
+ */
+#define NVGPU_COND_WAIT_LOCKED(cond, condition, timeout_ms)	\
+({								\
+	int ret = 0;						\
+	NVGPU_COND_WAIT_TIMEOUT_LOCKED(cond, condition, ret,	\
+		timeout_ms ? timeout_ms : (unsigned int)-1);	\
+	ret;							\
+})
+
 /**
  * NVGPU_COND_WAIT - Wait for a condition to be true
  *
@@ -48,8 +72,10 @@ int nvgpu_cond_timedwait(struct nvgpu_cond *c, unsigned int *ms);
 #define NVGPU_COND_WAIT(cond, condition, timeout_ms)		\
 ({								\
 	int ret = 0;						\
-	NVGPU_COND_WAIT_TIMEOUT(cond, condition, ret,		\
+	nvgpu_mutex_acquire(&(cond)->mutex);			\
+	NVGPU_COND_WAIT_TIMEOUT_LOCKED(cond, condition, ret,	\
 		timeout_ms ? timeout_ms : (unsigned int)-1);	\
+	nvgpu_mutex_release(&(cond)->mutex);			\
 	ret;							\
 })
 
@@ -68,15 +94,13 @@ int nvgpu_cond_timedwait(struct nvgpu_cond *c, unsigned int *ms);
 				NVGPU_COND_WAIT(cond, condition, timeout_ms)
 
 
-#define NVGPU_COND_WAIT_TIMEOUT(cond, condition, ret, timeout_ms)	\
-do {								\
-	unsigned int __timeout = timeout_ms;			\
-	ret = 0;						\
-	nvgpu_mutex_acquire(&(cond)->mutex);			\
-	while (!(condition) && ret == 0) {			\
-		ret = nvgpu_cond_timedwait(cond, &__timeout);	\
-	}							\
-	nvgpu_mutex_release(&(cond)->mutex);			\
+#define NVGPU_COND_WAIT_TIMEOUT_LOCKED(cond, condition, ret, timeout_ms)\
+do {									\
+	unsigned int __timeout = timeout_ms;				\
+	ret = 0;							\
+	while (!(condition) && ret == 0) {				\
+		ret = nvgpu_cond_timedwait(cond, &__timeout);		\
+	}								\
 } while (0)
 
 #endif /* NVGPU_POSIX_COND_H */
