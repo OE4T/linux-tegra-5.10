@@ -278,7 +278,6 @@ srcs += common/sim.c \
 	gv100/fifo_gv100.c \
 	gv100/gr_gv100.c \
 	gv100/hal_gv100.c \
-	gv100/gsp_gv100.c \
 	gv100/clk_gv100.c \
 	common/mc/mc_tu104.c	\
 	tu104/bios_tu104.c	\
@@ -373,7 +372,8 @@ srcs += common/sim.c \
 	hal/nvlink/minion_gv100.c \
 	hal/nvlink/minion_tu104.c \
 	hal/nvlink/link_mode_transitions_gv100.c \
-	hal/nvlink/link_mode_transitions_tu104.c
+	hal/nvlink/link_mode_transitions_tu104.c \
+	hal/gsp/gsp_gv100.c 
 
 ifeq ($(NVGPU_DEBUGGER),1)
 srcs += common/debugger.c

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -26,7 +26,7 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/bug.h>
 
-#include "gv100/gsp_gv100.h"
+#include "gsp_gv100.h"
 
 #include <nvgpu/hw/gv100/hw_pgsp_gv100.h>
 

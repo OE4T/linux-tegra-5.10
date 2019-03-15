@@ -29,7 +29,6 @@
 #include "acr_gv100.h"
 #include "acr_tu104.h"
 
-#include "gv100/gsp_gv100.h"
 #include "tu104/sec2_tu104.h"
 
 
@@ -114,7 +113,7 @@ static void nvgpu_tu104_acr_asb_sw_init(struct gk20a *g,
 	acr_asb->bl_dmem_desc_size = (u32)sizeof(struct flcn_bl_dmem_desc_v1);
 
 	acr_asb->acr_flcn = &g->gsp_flcn;
-	acr_asb->acr_flcn_setup_boot_config = gv100_gsp_flcn_setup_boot_config;
+	acr_asb->acr_flcn_setup_boot_config = g->ops.gsp.falcon_setup_boot_config;
 }
 
 void nvgpu_tu104_acr_sw_init(struct gk20a *g, struct nvgpu_acr *acr)

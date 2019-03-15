@@ -66,6 +66,7 @@
 #include "hal/gr/init/gr_init_tu104.h"
 #include "hal/gr/hwpm_map/hwpm_map_gv100.h"
 #include "hal/falcon/falcon_gk20a.h"
+#include "hal/gsp/gsp_gv100.h"
 
 #include "common/ptimer/ptimer_gk20a.h"
 #include "common/xve/xve_gp106.h"
@@ -122,7 +123,6 @@
 #include "gm20b/mm_gm20b.h"
 
 #include "gv100/clk_gv100.h"
-#include "gv100/gsp_gv100.h"
 
 #include "gp106/sec2_gp106.h"
 #include "gp106/bios_gp106.h"
@@ -1269,6 +1269,7 @@ static const struct gpu_ops tu104_ops = {
 	},
 	.gsp = {
 		.falcon_base_addr = gv100_gsp_falcon_base_addr,
+		.falcon_setup_boot_config = gv100_gsp_flcn_setup_boot_config,
 		.gsp_reset = gv100_gsp_reset,
 	},
 	.top = {

@@ -1712,6 +1712,7 @@ struct gpu_ops {
 	} sec2;
 	struct {
 		u32 (*falcon_base_addr)(void);
+		void (*falcon_setup_boot_config)(struct gk20a *g);
 		int (*gsp_reset)(struct gk20a *g);
 	} gsp;
 	void (*semaphore_wakeup)(struct gk20a *g, bool post_events);

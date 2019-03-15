@@ -61,6 +61,7 @@
 #include "hal/gr/init/gr_init_gv11b.h"
 #include "hal/gr/hwpm_map/hwpm_map_gv100.h"
 #include "hal/falcon/falcon_gk20a.h"
+#include "hal/gsp/gsp_gv100.h"
 
 #include "common/ptimer/ptimer_gk20a.h"
 #include "common/xve/xve_gp106.h"
@@ -130,7 +131,6 @@
 
 #include "gv100.h"
 #include "hal_gv100.h"
-#include "gsp_gv100.h"
 #include "gv100/bios_gv100.h"
 #include "gv100/fifo_gv100.h"
 #include "gv100/gr_gv100.h"
@@ -1241,6 +1241,7 @@ static const struct gpu_ops gv100_ops = {
 	},
 	.gsp = {
 		.falcon_base_addr = gv100_gsp_falcon_base_addr,
+		.falcon_setup_boot_config = gv100_gsp_flcn_setup_boot_config,
 		.gsp_reset = gv100_gsp_reset,
 	},
 	.chip_init_gpu_characteristics = gv100_init_gpu_characteristics,

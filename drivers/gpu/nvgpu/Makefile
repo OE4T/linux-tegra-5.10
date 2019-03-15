@@ -218,7 +218,8 @@ nvgpu-y += \
 	hal/nvlink/minion_gv100.o \
 	hal/nvlink/minion_tu104.o \
 	hal/nvlink/link_mode_transitions_gv100.o \
-	hal/nvlink/link_mode_transitions_tu104.o
+	hal/nvlink/link_mode_transitions_tu104.o \
+	hal/gsp/gsp_gv100.o
 
 # Linux specific parts of nvgpu.
 nvgpu-y += \
@@ -485,7 +486,6 @@ nvgpu-y += \
 	gv100/fifo_gv100.o \
 	gv100/gr_gv100.o \
 	gv100/hal_gv100.o \
-	gv100/gsp_gv100.o \
 	gv100/clk_gv100.o \
 	tu104/mm_tu104.o \
 	tu104/hal_tu104.o \
