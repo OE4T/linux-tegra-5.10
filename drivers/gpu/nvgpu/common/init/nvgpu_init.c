@@ -542,6 +542,8 @@ static void gk20a_free_cb(struct nvgpu_ref *refcount)
 
 	gk20a_ce_destroy(g);
 
+	nvgpu_cbc_remove_support(g);
+
 	if (g->remove_support != NULL) {
 		g->remove_support(g);
 	}

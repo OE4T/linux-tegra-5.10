@@ -38,7 +38,6 @@
 #include <nvgpu/netlist.h>
 #include <nvgpu/error_notifier.h>
 #include <nvgpu/ecc.h>
-#include <nvgpu/cbc.h>
 #include <nvgpu/io.h>
 #include <nvgpu/utils.h>
 #include <nvgpu/fifo.h>
@@ -2109,8 +2108,6 @@ static void gk20a_remove_gr_support(struct gr_gk20a *gr)
 	}
 
 	nvgpu_gr_hwpm_map_deinit(g, gr->hwpm_map);
-
-	nvgpu_cbc_remove_support(g);
 
 	nvgpu_ecc_remove_support(g);
 	nvgpu_gr_zbc_deinit(g, gr->zbc);
