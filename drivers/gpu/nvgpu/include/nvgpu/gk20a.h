@@ -259,9 +259,6 @@ struct gpu_ops {
 	struct {
 		u32 (*get_patch_slots)(struct gk20a *g);
 		void (*access_smpc_reg)(struct gk20a *g, u32 quad, u32 offset);
-		void (*commit_global_attrib_cb)(struct gk20a *g,
-						struct nvgpu_gr_ctx *ch_ctx,
-						u64 addr, bool patch);
 		int (*commit_global_cb_manager)(struct gk20a *g,
 						struct nvgpu_gr_ctx *gr_ctx,
 						bool patch);
@@ -724,6 +721,9 @@ struct gpu_ops {
 			void (*commit_global_pagepool)(struct gk20a *g,
 				struct nvgpu_gr_ctx *ch_ctx, u64 addr, u32 size,
 				bool patch, bool global_ctx);
+			void (*commit_global_attrib_cb)(struct gk20a *g,
+				struct nvgpu_gr_ctx *ch_ctx, u32 tpc_count,
+				u32 max_tpc, u64 addr, bool patch);
 		} init;
 
 		struct {

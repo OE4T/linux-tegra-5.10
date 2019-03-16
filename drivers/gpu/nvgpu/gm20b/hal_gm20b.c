@@ -235,7 +235,6 @@ static const struct gpu_ops gm20b_ops = {
 	},
 	.gr = {
 		.get_patch_slots = gr_gk20a_get_patch_slots,
-		.commit_global_attrib_cb = gr_gm20b_commit_global_attrib_cb,
 		.commit_global_cb_manager = gr_gm20b_commit_global_cb_manager,
 		.handle_sw_method = gr_gm20b_handle_sw_method,
 		.set_alpha_circular_buffer_size =
@@ -465,6 +464,8 @@ static const struct gpu_ops gm20b_ops = {
 				gm20b_gr_init_pagepool_default_size,
 			.commit_global_pagepool =
 				gm20b_gr_init_commit_global_pagepool,
+			.commit_global_attrib_cb =
+				gm20b_gr_init_commit_global_attrib_cb,
 		},
 		.intr = {
 			.enable_interrupts = gm20b_gr_intr_enable_interrupts,

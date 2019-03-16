@@ -736,11 +736,11 @@ int gr_gk20a_commit_global_ctx_buffers(struct gk20a *g,
 
 	/* global attrib cb */
 	addr = nvgpu_gr_ctx_get_global_ctx_va(gr_ctx,
-			NVGPU_GR_CTX_ATTRIBUTE_VA) >>
-		U64(gr_gpcs_setup_attrib_cb_base_addr_39_12_align_bits_v());
+			NVGPU_GR_CTX_ATTRIBUTE_VA);
 
-	nvgpu_log_info(g, "attrib cb addr : 0x%016llx", addr);
-	g->ops.gr.commit_global_attrib_cb(g, gr_ctx, addr, patch);
+	g->ops.gr.init.commit_global_attrib_cb(g, gr_ctx,
+		nvgpu_gr_config_get_tpc_count(g->gr.config),
+		nvgpu_gr_config_get_max_tpc_count(g->gr.config), addr, patch);
 	g->ops.gr.commit_global_cb_manager(g, gr_ctx, patch);
 
 	if (g->ops.gr.init.commit_rtv_cb != NULL) {

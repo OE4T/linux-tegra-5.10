@@ -134,7 +134,6 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 		.get_num_pce = vgpu_ce_get_num_pce,
 	},
 	.gr = {
-		.commit_global_attrib_cb = gr_gv11b_commit_global_attrib_cb,
 		.commit_global_cb_manager = gr_gp10b_commit_global_cb_manager,
 		.handle_sw_method = NULL,
 		.set_alpha_circular_buffer_size = NULL,
@@ -397,6 +396,8 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 				gp10b_gr_init_pagepool_default_size,
 			.commit_global_pagepool =
 				gp10b_gr_init_commit_global_pagepool,
+			.commit_global_attrib_cb =
+				gv11b_gr_init_commit_global_attrib_cb,
 		},
 	},
 	.perf = {

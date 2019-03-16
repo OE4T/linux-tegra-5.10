@@ -23,11 +23,14 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/io.h>
 #include <nvgpu/soc.h>
+#include <nvgpu/log.h>
+#include <nvgpu/bug.h>
 #include <nvgpu/gr/ctx.h>
 #include <nvgpu/ltc.h>
 
 #include <nvgpu/gr/config.h>
 
+#include "gr_init_gm20b.h"
 #include "gr_init_gv11b.h"
 
 #include <nvgpu/hw/gv11b/hw_gr_gv11b.h>
@@ -479,5 +482,41 @@ u32 gv11b_gr_init_get_global_attr_cb_size(struct gk20a *g, u32 tpc_count,
 	size = ALIGN(size, 128);
 
 	return size;
+}
+
+void gv11b_gr_init_commit_global_attrib_cb(struct gk20a *g,
+	struct nvgpu_gr_ctx *gr_ctx, u32 tpc_count, u32 max_tpc, u64 addr,
+	bool patch)
+{
+	u32 attrBufferSize;
+
+	gm20b_gr_init_commit_global_attrib_cb(g, gr_ctx, tpc_count, max_tpc,
+		addr, patch);
+
+	addr = (u64_lo32(addr) >>
+			gr_gpcs_setup_attrib_cb_base_addr_39_12_align_bits_v()) |
+		(u64_hi32(addr) <<
+			(32U - gr_gpcs_setup_attrib_cb_base_addr_39_12_align_bits_v()));
+
+	if (gr_ctx->preempt_ctxsw_buffer.gpu_va != 0ULL) {
+		attrBufferSize = U32(gr_ctx->betacb_ctxsw_buffer.size);
+	} else {
+		attrBufferSize = g->ops.gr.init.get_global_attr_cb_size(g,
+			tpc_count, max_tpc);
+	}
+
+	attrBufferSize /= gr_gpcs_tpcs_tex_rm_cb_1_size_div_128b_granularity_f();
+
+	nvgpu_assert(u64_hi32(addr) == 0U);
+	nvgpu_gr_ctx_patch_write(g, gr_ctx, gr_gpcs_tpcs_mpc_vtg_cb_global_base_addr_r(),
+		gr_gpcs_tpcs_mpc_vtg_cb_global_base_addr_v_f((u32)addr) |
+		gr_gpcs_tpcs_mpc_vtg_cb_global_base_addr_valid_true_f(), patch);
+
+	nvgpu_gr_ctx_patch_write(g, gr_ctx, gr_gpcs_tpcs_tex_rm_cb_0_r(),
+		gr_gpcs_tpcs_tex_rm_cb_0_base_addr_43_12_f((u32)addr), patch);
+
+	nvgpu_gr_ctx_patch_write(g, gr_ctx, gr_gpcs_tpcs_tex_rm_cb_1_r(),
+		gr_gpcs_tpcs_tex_rm_cb_1_size_div_128b_f(attrBufferSize) |
+		gr_gpcs_tpcs_tex_rm_cb_1_valid_true_f(), patch);
 }
 

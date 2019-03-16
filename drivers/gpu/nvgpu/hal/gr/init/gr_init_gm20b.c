@@ -909,3 +909,27 @@ void gm20b_gr_init_commit_global_pagepool(struct gk20a *g,
 		gr_gpcs_swdx_rm_pagepool_valid_true_f(), patch);
 }
 
+void gm20b_gr_init_commit_global_attrib_cb(struct gk20a *g,
+	struct nvgpu_gr_ctx *gr_ctx, u32 tpc_count, u32 max_tpc, u64 addr,
+	bool patch)
+{
+	addr = (u64_lo32(addr) >>
+			gr_gpcs_setup_attrib_cb_base_addr_39_12_align_bits_v()) |
+		(u64_hi32(addr) <<
+			(32U - gr_gpcs_setup_attrib_cb_base_addr_39_12_align_bits_v()));
+
+	nvgpu_log_info(g, "attrib cb addr : 0x%016llx", addr);
+
+	nvgpu_gr_ctx_patch_write(g, gr_ctx, gr_gpcs_setup_attrib_cb_base_r(),
+		gr_gpcs_setup_attrib_cb_base_addr_39_12_f(addr) |
+		gr_gpcs_setup_attrib_cb_base_valid_true_f(), patch);
+
+	nvgpu_gr_ctx_patch_write(g, gr_ctx, gr_gpcs_tpcs_pe_pin_cb_global_base_addr_r(),
+		gr_gpcs_tpcs_pe_pin_cb_global_base_addr_v_f(addr) |
+		gr_gpcs_tpcs_pe_pin_cb_global_base_addr_valid_true_f(), patch);
+
+	nvgpu_gr_ctx_patch_write(g, gr_ctx, gr_gpcs_tpcs_mpc_vtg_cb_global_base_addr_r(),
+		gr_gpcs_tpcs_mpc_vtg_cb_global_base_addr_v_f(addr) |
+		gr_gpcs_tpcs_mpc_vtg_cb_global_base_addr_valid_true_f(), patch);
+}
+

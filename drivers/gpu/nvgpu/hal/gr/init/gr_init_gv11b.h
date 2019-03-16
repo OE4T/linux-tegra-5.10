@@ -27,6 +27,7 @@
 
 struct gk20a;
 struct nvgpu_gr_config;
+struct nvgpu_gr_ctx;
 
 void gv11b_gr_init_gpc_mmu(struct gk20a *g);
 void gv11b_gr_init_get_access_map(struct gk20a *g,
@@ -54,5 +55,9 @@ u32 gv11b_gr_init_get_attrib_cb_size(struct gk20a *g, u32 tpc_count);
 u32 gv11b_gr_init_get_alpha_cb_size(struct gk20a *g, u32 tpc_count);
 u32 gv11b_gr_init_get_global_attr_cb_size(struct gk20a *g, u32 tpc_count,
 	u32 max_tpc);
+
+void gv11b_gr_init_commit_global_attrib_cb(struct gk20a *g,
+	struct nvgpu_gr_ctx *gr_ctx, u32 tpc_count, u32 max_tpc, u64 addr,
+	bool patch);
 
 #endif /* NVGPU_GR_INIT_GV11B_H */

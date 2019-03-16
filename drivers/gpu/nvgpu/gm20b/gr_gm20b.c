@@ -46,23 +46,6 @@
 #include <nvgpu/hw/gm20b/hw_fifo_gm20b.h>
 #include <nvgpu/hw/gm20b/hw_perf_gm20b.h>
 
-void gr_gm20b_commit_global_attrib_cb(struct gk20a *g,
-				      struct nvgpu_gr_ctx *ch_ctx,
-				      u64 addr, bool patch)
-{
-	nvgpu_gr_ctx_patch_write(g, ch_ctx, gr_gpcs_setup_attrib_cb_base_r(),
-		gr_gpcs_setup_attrib_cb_base_addr_39_12_f(addr) |
-		gr_gpcs_setup_attrib_cb_base_valid_true_f(), patch);
-
-	nvgpu_gr_ctx_patch_write(g, ch_ctx, gr_gpcs_tpcs_pe_pin_cb_global_base_addr_r(),
-		gr_gpcs_tpcs_pe_pin_cb_global_base_addr_v_f(addr) |
-		gr_gpcs_tpcs_pe_pin_cb_global_base_addr_valid_true_f(), patch);
-
-	nvgpu_gr_ctx_patch_write(g, ch_ctx, gr_gpcs_tpcs_mpc_vtg_cb_global_base_addr_r(),
-		gr_gpcs_tpcs_mpc_vtg_cb_global_base_addr_v_f(addr) |
-		gr_gpcs_tpcs_mpc_vtg_cb_global_base_addr_valid_true_f(), patch);
-}
-
 int gr_gm20b_commit_global_cb_manager(struct gk20a *g,
 			struct nvgpu_gr_ctx *gr_ctx, bool patch)
 {

@@ -43,9 +43,6 @@ struct nvgpu_warpstate;
 
 #define NVA297_SET_SHADER_EXCEPTIONS_ENABLE_FALSE	U32(0)
 
-void gr_gm20b_commit_global_attrib_cb(struct gk20a *g,
-				      struct nvgpu_gr_ctx *ch_ctx,
-				      u64 addr, bool patch);
 int gm20b_gr_tpc_disable_override(struct gk20a *g, u32 mask);
 int gr_gm20b_commit_global_cb_manager(struct gk20a *g,
 			struct nvgpu_gr_ctx *gr_ctx, bool patch);
