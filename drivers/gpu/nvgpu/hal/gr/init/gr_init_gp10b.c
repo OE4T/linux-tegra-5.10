@@ -22,6 +22,9 @@
 
 #include <nvgpu/gk20a.h>
 #include <nvgpu/io.h>
+#include <nvgpu/log.h>
+#include <nvgpu/bug.h>
+#include <nvgpu/gr/ctx.h>
 
 #include <nvgpu/gr/config.h>
 #include <nvgpu/gr/gr.h>
@@ -285,5 +288,47 @@ u32 gp10b_gr_init_get_global_attr_cb_size(struct gk20a *g, u32 tpc_count,
 	size = ALIGN(size, 128);
 
 	return size;
+}
+
+void gp10b_gr_init_commit_global_bundle_cb(struct gk20a *g,
+	struct nvgpu_gr_ctx *gr_ctx, u64 addr, u64 size, bool patch)
+{
+	u32 data;
+	u32 bundle_cb_token_limit = g->ops.gr.init.get_bundle_cb_token_limit(g);
+
+	addr = addr >> U64(gr_scc_bundle_cb_base_addr_39_8_align_bits_v());
+
+	nvgpu_log_info(g, "bundle cb addr : 0x%016llx, size : %llu",
+		addr, size);
+
+	nvgpu_assert(u64_hi32(addr) == 0U);
+	nvgpu_gr_ctx_patch_write(g, gr_ctx, gr_scc_bundle_cb_base_r(),
+		gr_scc_bundle_cb_base_addr_39_8_f((u32)addr), patch);
+
+	nvgpu_assert(size <= U32_MAX);
+	nvgpu_gr_ctx_patch_write(g, gr_ctx, gr_scc_bundle_cb_size_r(),
+		gr_scc_bundle_cb_size_div_256b_f((u32)size) |
+		gr_scc_bundle_cb_size_valid_true_f(), patch);
+
+	nvgpu_gr_ctx_patch_write(g, gr_ctx, gr_gpcs_swdx_bundle_cb_base_r(),
+		gr_gpcs_swdx_bundle_cb_base_addr_39_8_f((u32)addr), patch);
+
+	nvgpu_gr_ctx_patch_write(g, gr_ctx, gr_gpcs_swdx_bundle_cb_size_r(),
+		gr_gpcs_swdx_bundle_cb_size_div_256b_f((u32)size) |
+		gr_gpcs_swdx_bundle_cb_size_valid_true_f(), patch);
+
+	/* data for state_limit */
+	data = (g->ops.gr.init.get_bundle_cb_default_size(g) *
+		gr_scc_bundle_cb_size_div_256b_byte_granularity_v()) /
+		gr_pd_ab_dist_cfg2_state_limit_scc_bundle_granularity_v();
+
+	data = min_t(u32, data, g->ops.gr.init.get_min_gpm_fifo_depth(g));
+
+	nvgpu_log_info(g, "bundle cb token limit : %d, state limit : %d",
+		bundle_cb_token_limit, data);
+
+	nvgpu_gr_ctx_patch_write(g, gr_ctx, gr_pd_ab_dist_cfg2_r(),
+		gr_pd_ab_dist_cfg2_token_limit_f(bundle_cb_token_limit) |
+		gr_pd_ab_dist_cfg2_state_limit_f(data), patch);
 }
 

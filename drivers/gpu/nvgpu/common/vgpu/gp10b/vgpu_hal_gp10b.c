@@ -115,7 +115,6 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 		.get_patch_slots = gr_gk20a_get_patch_slots,
 		.init_gpc_mmu = NULL,
 		.commit_global_attrib_cb = gr_gp10b_commit_global_attrib_cb,
-		.commit_global_bundle_cb = gr_gp10b_commit_global_bundle_cb,
 		.commit_global_cb_manager = gr_gp10b_commit_global_cb_manager,
 		.commit_global_pagepool = gr_gp10b_commit_global_pagepool,
 		.handle_sw_method = NULL,
@@ -344,6 +343,8 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 				gm20b_gr_init_get_global_ctx_cb_buffer_size,
 			.get_global_ctx_pagepool_buffer_size =
 				gm20b_gr_init_get_global_ctx_pagepool_buffer_size,
+			.commit_global_bundle_cb =
+				gp10b_gr_init_commit_global_bundle_cb,
 		},
 	},
 	.perf = {

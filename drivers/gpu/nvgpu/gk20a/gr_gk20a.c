@@ -705,16 +705,10 @@ int gr_gk20a_commit_global_ctx_buffers(struct gk20a *g,
 	g->ops.gr.commit_global_pagepool(g, gr_ctx, addr, size, patch);
 
 	/* global bundle cb */
-	addr = nvgpu_gr_ctx_get_global_ctx_va(gr_ctx,
-			NVGPU_GR_CTX_CIRCULAR_VA) >>
-		U64(gr_scc_bundle_cb_base_addr_39_8_align_bits_v());
-
+	addr = nvgpu_gr_ctx_get_global_ctx_va(gr_ctx, NVGPU_GR_CTX_CIRCULAR_VA);
 	size = g->ops.gr.init.get_bundle_cb_default_size(g);
 
-	nvgpu_log_info(g, "bundle cb addr : 0x%016llx, size : %d",
-		addr, size);
-
-	g->ops.gr.commit_global_bundle_cb(g, gr_ctx, addr, size, patch);
+	g->ops.gr.init.commit_global_bundle_cb(g, gr_ctx, addr, size, patch);
 
 	/* global attrib cb */
 	addr = nvgpu_gr_ctx_get_global_ctx_va(gr_ctx,

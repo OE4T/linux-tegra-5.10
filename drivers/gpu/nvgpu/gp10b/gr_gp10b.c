@@ -1203,44 +1203,6 @@ void gr_gp10b_commit_global_attrib_cb(struct gk20a *g,
 		gr_gpcs_tpcs_tex_rm_cb_1_valid_true_f(), patch);
 }
 
-void gr_gp10b_commit_global_bundle_cb(struct gk20a *g,
-					    struct nvgpu_gr_ctx *gr_ctx,
-					    u64 addr, u64 size, bool patch)
-{
-	u32 data;
-	u32 bundle_cb_token_limit = g->ops.gr.init.get_bundle_cb_token_limit(g);
-
-	nvgpu_assert(u64_hi32(addr) == 0U);
-	nvgpu_gr_ctx_patch_write(g, gr_ctx, gr_scc_bundle_cb_base_r(),
-		gr_scc_bundle_cb_base_addr_39_8_f((u32)addr), patch);
-
-	nvgpu_assert(size <= U32_MAX);
-	nvgpu_gr_ctx_patch_write(g, gr_ctx, gr_scc_bundle_cb_size_r(),
-		gr_scc_bundle_cb_size_div_256b_f((u32)size) |
-		gr_scc_bundle_cb_size_valid_true_f(), patch);
-
-	nvgpu_gr_ctx_patch_write(g, gr_ctx, gr_gpcs_swdx_bundle_cb_base_r(),
-		gr_gpcs_swdx_bundle_cb_base_addr_39_8_f((u32)addr), patch);
-
-	nvgpu_gr_ctx_patch_write(g, gr_ctx, gr_gpcs_swdx_bundle_cb_size_r(),
-		gr_gpcs_swdx_bundle_cb_size_div_256b_f((u32)size) |
-		gr_gpcs_swdx_bundle_cb_size_valid_true_f(), patch);
-
-	/* data for state_limit */
-	data = (g->ops.gr.init.get_bundle_cb_default_size(g) *
-		gr_scc_bundle_cb_size_div_256b_byte_granularity_v()) /
-		gr_pd_ab_dist_cfg2_state_limit_scc_bundle_granularity_v();
-
-	data = min_t(u32, data, g->ops.gr.init.get_min_gpm_fifo_depth(g));
-
-	nvgpu_log_info(g, "bundle cb token limit : %d, state limit : %d",
-		bundle_cb_token_limit, data);
-
-	nvgpu_gr_ctx_patch_write(g, gr_ctx, gr_pd_ab_dist_cfg2_r(),
-		gr_pd_ab_dist_cfg2_token_limit_f(bundle_cb_token_limit) |
-		gr_pd_ab_dist_cfg2_state_limit_f(data), patch);
-}
-
 void gr_gp10b_set_gpc_tpc_mask(struct gk20a *g, u32 gpc_index)
 {
 	nvgpu_tegra_fuse_write_bypass(g, 0x1);

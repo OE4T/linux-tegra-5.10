@@ -26,6 +26,7 @@
 #include <nvgpu/types.h>
 
 struct gk20a;
+struct nvgpu_gr_ctx;
 struct netlist_av_list;
 struct nvgpu_gr_config;
 
@@ -67,5 +68,8 @@ u32 gm20b_gr_init_get_global_attr_cb_size(struct gk20a *g, u32 tpc_count,
 	u32 max_tpc);
 u32 gm20b_gr_init_get_global_ctx_cb_buffer_size(struct gk20a *g);
 u32 gm20b_gr_init_get_global_ctx_pagepool_buffer_size(struct gk20a *g);
+
+void gm20b_gr_init_commit_global_bundle_cb(struct gk20a *g,
+	struct nvgpu_gr_ctx *gr_ctx, u64 addr, u64 size, bool patch);
 
 #endif /* NVGPU_GR_INIT_GM20B_H */

@@ -260,9 +260,6 @@ struct gpu_ops {
 		void (*commit_global_attrib_cb)(struct gk20a *g,
 						struct nvgpu_gr_ctx *ch_ctx,
 						u64 addr, bool patch);
-		void (*commit_global_bundle_cb)(struct gk20a *g,
-						struct nvgpu_gr_ctx *ch_ctx,
-						u64 addr, u64 size, bool patch);
 		int (*commit_global_cb_manager)(struct gk20a *g,
 						struct nvgpu_gr_ctx *gr_ctx,
 						bool patch);
@@ -711,6 +708,9 @@ struct gpu_ops {
 			u32 (*get_global_ctx_cb_buffer_size)(struct gk20a *g);
 			u32 (*get_global_ctx_pagepool_buffer_size)(
 				struct gk20a *g);
+			void (*commit_global_bundle_cb)(struct gk20a *g,
+				struct nvgpu_gr_ctx *ch_ctx, u64 addr, u64 size,
+				bool patch);
 		} init;
 
 		u32 (*get_ctxsw_checksum_mismatch_mailbox_val)(void);
