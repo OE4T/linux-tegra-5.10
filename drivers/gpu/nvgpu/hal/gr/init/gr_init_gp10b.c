@@ -334,3 +334,42 @@ void gp10b_gr_init_commit_global_bundle_cb(struct gk20a *g,
 		gr_pd_ab_dist_cfg2_state_limit_f(data), patch);
 }
 
+u32 gp10b_gr_init_pagepool_default_size(struct gk20a *g)
+{
+	return gr_scc_pagepool_total_pages_hwmax_value_v();
+}
+
+void gp10b_gr_init_commit_global_pagepool(struct gk20a *g,
+	struct nvgpu_gr_ctx *gr_ctx, u64 addr, u32 size, bool patch,
+	bool global_ctx)
+{
+	addr = (u64_lo32(addr) >>
+			U64(gr_scc_pagepool_base_addr_39_8_align_bits_v()) |
+		(u64_hi32(addr) <<
+			 U64(32U - gr_scc_pagepool_base_addr_39_8_align_bits_v())));
+
+	if (global_ctx) {
+		size = size / gr_scc_pagepool_total_pages_byte_granularity_v();
+	}
+
+	if (size == g->ops.gr.init.pagepool_default_size(g)) {
+		size = gr_scc_pagepool_total_pages_hwmax_v();
+	}
+
+	nvgpu_assert(u64_hi32(addr) == 0U);
+	nvgpu_log_info(g, "pagepool buffer addr : 0x%016llx, size : %d",
+		addr, size);
+
+	nvgpu_gr_ctx_patch_write(g, gr_ctx, gr_scc_pagepool_base_r(),
+		gr_scc_pagepool_base_addr_39_8_f((u32)addr), patch);
+
+	nvgpu_gr_ctx_patch_write(g, gr_ctx, gr_scc_pagepool_r(),
+		gr_scc_pagepool_total_pages_f(size) |
+		gr_scc_pagepool_valid_true_f(), patch);
+
+	nvgpu_gr_ctx_patch_write(g, gr_ctx, gr_gpcs_gcc_pagepool_base_r(),
+		gr_gpcs_gcc_pagepool_base_addr_39_8_f((u32)addr), patch);
+
+	nvgpu_gr_ctx_patch_write(g, gr_ctx, gr_gpcs_gcc_pagepool_r(),
+		gr_gpcs_gcc_pagepool_total_pages_f(size), patch);
+}

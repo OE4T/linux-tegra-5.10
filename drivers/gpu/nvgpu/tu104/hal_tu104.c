@@ -393,7 +393,6 @@ static const struct gpu_ops tu104_ops = {
 		.get_patch_slots = gr_gv100_get_patch_slots,
 		.commit_global_attrib_cb = gr_gv11b_commit_global_attrib_cb,
 		.commit_global_cb_manager = gr_gp10b_commit_global_cb_manager,
-		.commit_global_pagepool = gr_gp10b_commit_global_pagepool,
 		.handle_sw_method = gr_tu104_handle_sw_method,
 		.set_alpha_circular_buffer_size =
 			gr_gv11b_set_alpha_circular_buffer_size,
@@ -414,7 +413,6 @@ static const struct gpu_ops tu104_ops = {
 		.is_tpc_addr = gr_gm20b_is_tpc_addr,
 		.get_tpc_num = gr_gm20b_get_tpc_num,
 		.detect_sm_arch = gr_gv11b_detect_sm_arch,
-		.pagepool_default_size = gr_gv11b_pagepool_default_size,
 		.init_ctx_state = gr_gp10b_init_ctx_state,
 		.free_gr_ctx = gr_gk20a_free_gr_ctx,
 		.init_ctxsw_preemption_mode =
@@ -715,6 +713,10 @@ static const struct gpu_ops tu104_ops = {
 				gm20b_gr_init_get_global_ctx_pagepool_buffer_size,
 			.commit_global_bundle_cb =
 				gp10b_gr_init_commit_global_bundle_cb,
+			.pagepool_default_size =
+				gp10b_gr_init_pagepool_default_size,
+			.commit_global_pagepool =
+				gp10b_gr_init_commit_global_pagepool,
 		},
 		.intr = {
 			.enable_interrupts = gm20b_gr_intr_enable_interrupts,

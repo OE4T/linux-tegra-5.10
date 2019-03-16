@@ -1102,11 +1102,6 @@ int gr_gv11b_handle_tex_exception(struct gk20a *g, u32 gpc, u32 tpc,
 	return 0;
 }
 
-u32 gr_gv11b_pagepool_default_size(struct gk20a *g)
-{
-	return gr_scc_pagepool_total_pages_hwmax_value_v();
-}
-
 void gr_gv11b_set_go_idle_timeout(struct gk20a *g, u32 data)
 {
 	gk20a_writel(g, gr_fe_go_idle_timeout_r(), data);
@@ -1435,18 +1430,12 @@ void gr_gv11b_update_ctxsw_preemption_mode(struct gk20a *g,
 		nvgpu_log_info(g, "attrib cb addr : 0x%016x", addr);
 		g->ops.gr.commit_global_attrib_cb(g, gr_ctx, addr, true);
 
-		addr = (u64_lo32(gr_ctx->pagepool_ctxsw_buffer.gpu_va) >>
-			gr_scc_pagepool_base_addr_39_8_align_bits_v()) |
-			(u64_hi32(gr_ctx->pagepool_ctxsw_buffer.gpu_va) <<
-			 (32U - gr_scc_pagepool_base_addr_39_8_align_bits_v()));
-
-		BUG_ON(gr_ctx->pagepool_ctxsw_buffer.size > U32_MAX);
+		addr = gr_ctx->pagepool_ctxsw_buffer.gpu_va;
+		nvgpu_assert(gr_ctx->pagepool_ctxsw_buffer.size <= U32_MAX);
 		size = (u32)gr_ctx->pagepool_ctxsw_buffer.size;
-		if (size == g->ops.gr.pagepool_default_size(g)) {
-			size = gr_scc_pagepool_total_pages_hwmax_v();
-		}
 
-		g->ops.gr.commit_global_pagepool(g, gr_ctx, addr, size, true);
+		g->ops.gr.init.commit_global_pagepool(g, gr_ctx, addr, size,
+			true, false);
 
 		addr = (u64_lo32(gr_ctx->spill_ctxsw_buffer.gpu_va) >>
 			gr_gpc0_swdx_rm_spill_buffer_addr_39_8_align_bits_v()) |
@@ -4310,7 +4299,7 @@ u32 gv11b_gr_get_ctx_spill_size(struct gk20a *g)
 
 u32 gv11b_gr_get_ctx_pagepool_size(struct gk20a *g)
 {
-	return g->ops.gr.pagepool_default_size(g) *
+	return g->ops.gr.init.pagepool_default_size(g) *
 		gr_scc_pagepool_total_pages_byte_granularity_v();
 }
 

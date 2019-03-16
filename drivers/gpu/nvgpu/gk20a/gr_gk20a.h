@@ -351,9 +351,6 @@ int gr_gk20a_update_hwpm_ctxsw_mode(struct gk20a *g,
 				  u64 gpu_va,
 				  u32 mode);
 
-void gr_gk20a_commit_global_pagepool(struct gk20a *g,
-				     struct nvgpu_gr_ctx *gr_ctx,
-				     u64 addr, u32 size, bool patch);
 void gk20a_gr_set_shader_exceptions(struct gk20a *g, u32 data);
 void gr_gk20a_enable_hww_exceptions(struct gk20a *g);
 int gr_gk20a_init_ctxsw_ucode(struct gk20a *g);

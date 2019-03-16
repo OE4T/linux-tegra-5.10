@@ -75,5 +75,9 @@ u32 gm20b_gr_init_get_global_ctx_pagepool_buffer_size(struct gk20a *g);
 
 void gm20b_gr_init_commit_global_bundle_cb(struct gk20a *g,
 	struct nvgpu_gr_ctx *gr_ctx, u64 addr, u64 size, bool patch);
+u32 gm20b_gr_init_pagepool_default_size(struct gk20a *g);
+void gm20b_gr_init_commit_global_pagepool(struct gk20a *g,
+	struct nvgpu_gr_ctx *ch_ctx, u64 addr, u32 size, bool patch,
+	bool global_ctx);
 
 #endif /* NVGPU_GR_INIT_GM20B_H */

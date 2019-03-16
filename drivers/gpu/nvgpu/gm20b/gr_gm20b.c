@@ -156,18 +156,6 @@ int gr_gm20b_commit_global_cb_manager(struct gk20a *g,
 	return 0;
 }
 
-void gr_gm20b_commit_global_pagepool(struct gk20a *g,
-					    struct nvgpu_gr_ctx *ch_ctx,
-					    u64 addr, u32 size, bool patch)
-{
-	gr_gk20a_commit_global_pagepool(g, ch_ctx, addr, size, patch);
-
-	nvgpu_gr_ctx_patch_write(g, ch_ctx, gr_gpcs_swdx_rm_pagepool_r(),
-		gr_gpcs_swdx_rm_pagepool_total_pages_f(size) |
-		gr_gpcs_swdx_rm_pagepool_valid_true_f(), patch);
-
-}
-
 int gr_gm20b_handle_sw_method(struct gk20a *g, u32 addr,
 					  u32 class_num, u32 offset, u32 data)
 {
@@ -642,11 +630,6 @@ void gr_gm20b_detect_sm_arch(struct gk20a *g)
 		gr_gpc0_tpc0_sm_arch_sm_version_v(v);
 	g->params.sm_arch_warp_count =
 		gr_gpc0_tpc0_sm_arch_warp_count_v(v);
-}
-
-u32 gr_gm20b_pagepool_default_size(struct gk20a *g)
-{
-	return gr_scc_pagepool_total_pages_hwmax_value_v();
 }
 
 int gr_gm20b_init_ctxsw_preemption_mode(struct gk20a *g,

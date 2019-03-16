@@ -161,7 +161,7 @@ int gr_gp106_set_ctxsw_preemption_mode(struct gk20a *g,
 		u32 spill_size =
 			gr_gpc0_swdx_rm_spill_buffer_size_256b_default_v() *
 			gr_gpc0_swdx_rm_spill_buffer_size_256b_byte_granularity_v();
-		u32 pagepool_size = g->ops.gr.pagepool_default_size(g) *
+		u32 pagepool_size = g->ops.gr.init.pagepool_default_size(g) *
 			gr_scc_pagepool_total_pages_byte_granularity_v();
 		u32 betacb_size = g->ops.gr.init.get_attrib_cb_default_size(g) +
 				  (gr_gpc0_ppc0_cbm_beta_cb_size_v_gfxp_v() -

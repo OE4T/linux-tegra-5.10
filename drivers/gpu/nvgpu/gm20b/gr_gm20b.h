@@ -49,9 +49,6 @@ void gr_gm20b_commit_global_attrib_cb(struct gk20a *g,
 int gm20b_gr_tpc_disable_override(struct gk20a *g, u32 mask);
 int gr_gm20b_commit_global_cb_manager(struct gk20a *g,
 			struct nvgpu_gr_ctx *gr_ctx, bool patch);
-void gr_gm20b_commit_global_pagepool(struct gk20a *g,
-					    struct nvgpu_gr_ctx *ch_ctx,
-					    u64 addr, u32 size, bool patch);
 int gr_gm20b_handle_sw_method(struct gk20a *g, u32 addr,
 					  u32 class_num, u32 offset, u32 data);
 void gr_gm20b_set_alpha_circular_buffer_size(struct gk20a *g, u32 data);
@@ -76,7 +73,6 @@ bool gr_gm20b_is_tpc_addr(struct gk20a *g, u32 addr);
 u32 gr_gm20b_get_tpc_num(struct gk20a *g, u32 addr);
 int gr_gm20b_load_ctxsw_ucode(struct gk20a *g);
 void gr_gm20b_detect_sm_arch(struct gk20a *g);
-u32 gr_gm20b_pagepool_default_size(struct gk20a *g);
 int gr_gm20b_init_ctxsw_preemption_mode(struct gk20a *g,
 	struct nvgpu_gr_ctx *gr_ctx, struct vm_gk20a *vm,
 	u32 class, u32 flags);

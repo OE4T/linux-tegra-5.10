@@ -72,10 +72,6 @@ int gr_gp10b_handle_tex_exception(struct gk20a *g, u32 gpc, u32 tpc,
 		bool *post_event);
 int gr_gp10b_commit_global_cb_manager(struct gk20a *g,
 			struct nvgpu_gr_ctx *gr_ctx, bool patch);
-void gr_gp10b_commit_global_pagepool(struct gk20a *g,
-					    struct nvgpu_gr_ctx *gr_ctx,
-					    u64 addr, u32 size, bool patch);
-u32 gr_gp10b_pagepool_default_size(struct gk20a *g);
 void gr_gp10b_set_bes_crop_debug3(struct gk20a *g, u32 data);
 void gr_gp10b_set_bes_crop_debug4(struct gk20a *g, u32 data);
 int gr_gp10b_handle_sw_method(struct gk20a *g, u32 addr,

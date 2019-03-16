@@ -265,9 +265,6 @@ struct gpu_ops {
 		int (*commit_global_cb_manager)(struct gk20a *g,
 						struct nvgpu_gr_ctx *gr_ctx,
 						bool patch);
-		void (*commit_global_pagepool)(struct gk20a *g,
-					       struct nvgpu_gr_ctx *ch_ctx,
-					       u64 addr, u32 size, bool patch);
 		int (*handle_sw_method)(struct gk20a *g, u32 addr,
 					 u32 class_num, u32 offset, u32 data);
 		void (*set_alpha_circular_buffer_size)(struct gk20a *g,
@@ -314,7 +311,6 @@ struct gpu_ops {
 		u32 (*get_tpc_num)(struct gk20a *g, u32 addr);
 		u32 (*get_egpc_base)(struct gk20a *g);
 		void (*detect_sm_arch)(struct gk20a *g);
-		u32 (*pagepool_default_size)(struct gk20a *g);
 		int (*init_ctx_state)(struct gk20a *g);
 		void (*free_gr_ctx)(struct gk20a *g,
 				    struct vm_gk20a *vm, struct nvgpu_gr_ctx *gr_ctx);
@@ -724,6 +720,10 @@ struct gpu_ops {
 			void (*commit_global_bundle_cb)(struct gk20a *g,
 				struct nvgpu_gr_ctx *ch_ctx, u64 addr, u64 size,
 				bool patch);
+			u32 (*pagepool_default_size)(struct gk20a *g);
+			void (*commit_global_pagepool)(struct gk20a *g,
+				struct nvgpu_gr_ctx *ch_ctx, u64 addr, u32 size,
+				bool patch, bool global_ctx);
 		} init;
 
 		struct {

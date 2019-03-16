@@ -23,6 +23,7 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/io.h>
 #include <nvgpu/log.h>
+#include <nvgpu/bug.h>
 #include <nvgpu/timers.h>
 #include <nvgpu/enabled.h>
 #include <nvgpu/engine_status.h>
@@ -816,7 +817,7 @@ u32 gm20b_gr_init_get_global_ctx_cb_buffer_size(struct gk20a *g)
 
 u32 gm20b_gr_init_get_global_ctx_pagepool_buffer_size(struct gk20a *g)
 {
-	return g->ops.gr.pagepool_default_size(g) *
+	return g->ops.gr.init.pagepool_default_size(g) *
 		gr_scc_pagepool_total_pages_byte_granularity_v();
 }
 
@@ -858,5 +859,53 @@ void gm20b_gr_init_commit_global_bundle_cb(struct gk20a *g,
 	nvgpu_gr_ctx_patch_write(g, gr_ctx, gr_pd_ab_dist_cfg2_r(),
 		gr_pd_ab_dist_cfg2_token_limit_f(bundle_cb_token_limit) |
 		gr_pd_ab_dist_cfg2_state_limit_f(data), patch);
+}
+
+u32 gm20b_gr_init_pagepool_default_size(struct gk20a *g)
+{
+	return gr_scc_pagepool_total_pages_hwmax_value_v();
+}
+
+void gm20b_gr_init_commit_global_pagepool(struct gk20a *g,
+	struct nvgpu_gr_ctx *gr_ctx, u64 addr, u32 size, bool patch,
+	bool global_ctx)
+{
+	addr = (u64_lo32(addr) >>
+			U64(gr_scc_pagepool_base_addr_39_8_align_bits_v()) |
+		(u64_hi32(addr) <<
+			 U64(32U - gr_scc_pagepool_base_addr_39_8_align_bits_v())));
+
+	if (global_ctx) {
+		size = size / gr_scc_pagepool_total_pages_byte_granularity_v();
+	}
+
+	if (size == g->ops.gr.init.pagepool_default_size(g)) {
+		size = gr_scc_pagepool_total_pages_hwmax_v();
+	}
+
+	nvgpu_assert(u64_hi32(addr) == 0U);
+	nvgpu_log_info(g, "pagepool buffer addr : 0x%016llx, size : %d",
+		addr, size);
+
+	nvgpu_gr_ctx_patch_write(g, gr_ctx, gr_scc_pagepool_base_r(),
+		gr_scc_pagepool_base_addr_39_8_f((u32)addr), patch);
+
+	nvgpu_gr_ctx_patch_write(g, gr_ctx, gr_scc_pagepool_r(),
+		gr_scc_pagepool_total_pages_f(size) |
+		gr_scc_pagepool_valid_true_f(), patch);
+
+	nvgpu_gr_ctx_patch_write(g, gr_ctx, gr_gpcs_gcc_pagepool_base_r(),
+		gr_gpcs_gcc_pagepool_base_addr_39_8_f((u32)addr), patch);
+
+	nvgpu_gr_ctx_patch_write(g, gr_ctx, gr_gpcs_gcc_pagepool_r(),
+		gr_gpcs_gcc_pagepool_total_pages_f(size), patch);
+
+	nvgpu_gr_ctx_patch_write(g, gr_ctx, gr_pd_pagepool_r(),
+		gr_pd_pagepool_total_pages_f(size) |
+		gr_pd_pagepool_valid_true_f(), patch);
+
+	nvgpu_gr_ctx_patch_write(g, gr_ctx, gr_gpcs_swdx_rm_pagepool_r(),
+		gr_gpcs_swdx_rm_pagepool_total_pages_f(size) |
+		gr_gpcs_swdx_rm_pagepool_valid_true_f(), patch);
 }
 
