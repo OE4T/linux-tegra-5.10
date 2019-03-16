@@ -27,6 +27,7 @@
 
 struct gk20a;
 struct nvgpu_gr_ctx;
+struct nvgpu_gr_config;
 struct netlist_av_list;
 struct nvgpu_gr_config;
 
@@ -81,6 +82,9 @@ void gm20b_gr_init_commit_global_pagepool(struct gk20a *g,
 	bool global_ctx);
 void gm20b_gr_init_commit_global_attrib_cb(struct gk20a *g,
 	struct nvgpu_gr_ctx *gr_ctx, u32 tpc_count, u32 max_tpc, u64 addr,
+	bool patch);
+void gm20b_gr_init_commit_global_cb_manager(struct gk20a *g,
+	struct nvgpu_gr_config *config, struct nvgpu_gr_ctx *gr_ctx,
 	bool patch);
 
 #endif /* NVGPU_GR_INIT_GM20B_H */

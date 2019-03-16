@@ -27,6 +27,7 @@
 
 struct gk20a;
 struct nvgpu_gr_ctx;
+struct nvgpu_gr_config;
 
 void gp10b_gr_init_get_access_map(struct gk20a *g,
 				   u32 **whitelist, int *num_entries);
@@ -55,6 +56,9 @@ void gp10b_gr_init_commit_global_pagepool(struct gk20a *g,
 	bool global_ctx);
 void gp10b_gr_init_commit_global_attrib_cb(struct gk20a *g,
 	struct nvgpu_gr_ctx *gr_ctx, u32 tpc_count, u32 max_tpc, u64 addr,
+	bool patch);
+void gp10b_gr_init_commit_global_cb_manager(struct gk20a *g,
+	struct nvgpu_gr_config *config, struct nvgpu_gr_ctx *gr_ctx,
 	bool patch);
 
 #endif /* NVGPU_GR_INIT_GP10B_H */

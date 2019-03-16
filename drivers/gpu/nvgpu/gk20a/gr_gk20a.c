@@ -741,7 +741,8 @@ int gr_gk20a_commit_global_ctx_buffers(struct gk20a *g,
 	g->ops.gr.init.commit_global_attrib_cb(g, gr_ctx,
 		nvgpu_gr_config_get_tpc_count(g->gr.config),
 		nvgpu_gr_config_get_max_tpc_count(g->gr.config), addr, patch);
-	g->ops.gr.commit_global_cb_manager(g, gr_ctx, patch);
+
+	g->ops.gr.init.commit_global_cb_manager(g, g->gr.config, gr_ctx, patch);
 
 	if (g->ops.gr.init.commit_rtv_cb != NULL) {
 		/* RTV circular buffer */

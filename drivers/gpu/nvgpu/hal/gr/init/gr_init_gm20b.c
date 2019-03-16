@@ -29,6 +29,7 @@
 #include <nvgpu/engine_status.h>
 #include <nvgpu/netlist.h>
 #include <nvgpu/gr/ctx.h>
+#include <nvgpu/gr/config.h>
 #include <nvgpu/ltc.h>
 
 #include <nvgpu/gr/gr.h>
@@ -931,5 +932,95 @@ void gm20b_gr_init_commit_global_attrib_cb(struct gk20a *g,
 	nvgpu_gr_ctx_patch_write(g, gr_ctx, gr_gpcs_tpcs_mpc_vtg_cb_global_base_addr_r(),
 		gr_gpcs_tpcs_mpc_vtg_cb_global_base_addr_v_f(addr) |
 		gr_gpcs_tpcs_mpc_vtg_cb_global_base_addr_valid_true_f(), patch);
+}
+
+void gm20b_gr_init_commit_global_cb_manager(struct gk20a *g,
+	struct nvgpu_gr_config *config, struct nvgpu_gr_ctx *gr_ctx, bool patch)
+{
+	u32 attrib_offset_in_chunk = 0;
+	u32 alpha_offset_in_chunk = 0;
+	u32 pd_ab_max_output;
+	u32 gpc_index, ppc_index;
+	u32 cbm_cfg_size1, cbm_cfg_size2;
+	u32 attrib_cb_default_size = g->ops.gr.init.get_attrib_cb_default_size(g);
+	u32 alpha_cb_default_size = g->ops.gr.init.get_alpha_cb_default_size(g);
+	u32 attrib_cb_size = g->ops.gr.init.get_attrib_cb_size(g,
+		nvgpu_gr_config_get_tpc_count(config));
+	u32 alpha_cb_size = g->ops.gr.init.get_alpha_cb_size(g,
+		nvgpu_gr_config_get_tpc_count(config));
+	u32 gpc_stride = nvgpu_get_litter_value(g, GPU_LIT_GPC_STRIDE);
+	u32 ppc_in_gpc_stride = nvgpu_get_litter_value(g, GPU_LIT_PPC_IN_GPC_STRIDE);
+	u32 num_pes_per_gpc = nvgpu_get_litter_value(g,
+			GPU_LIT_NUM_PES_PER_GPC);
+
+	nvgpu_log_fn(g, " ");
+
+	nvgpu_gr_ctx_patch_write(g, gr_ctx, gr_ds_tga_constraintlogic_r(),
+		gr_ds_tga_constraintlogic_beta_cbsize_f(attrib_cb_default_size) |
+		gr_ds_tga_constraintlogic_alpha_cbsize_f(alpha_cb_default_size),
+		patch);
+
+	pd_ab_max_output = (alpha_cb_default_size *
+		gr_gpc0_ppc0_cbm_beta_cb_size_v_granularity_v()) /
+		gr_pd_ab_dist_cfg1_max_output_granularity_v();
+
+	nvgpu_gr_ctx_patch_write(g, gr_ctx, gr_pd_ab_dist_cfg1_r(),
+		gr_pd_ab_dist_cfg1_max_output_f(pd_ab_max_output) |
+		gr_pd_ab_dist_cfg1_max_batches_init_f(), patch);
+
+	alpha_offset_in_chunk = attrib_offset_in_chunk +
+		nvgpu_gr_config_get_tpc_count(config) * attrib_cb_size;
+
+	for (gpc_index = 0;
+	     gpc_index < nvgpu_gr_config_get_gpc_count(config);
+	     gpc_index++) {
+		u32 temp = gpc_stride * gpc_index;
+		u32 temp2 = num_pes_per_gpc * gpc_index;
+		for (ppc_index = 0;
+		     ppc_index < nvgpu_gr_config_get_gpc_ppc_count(config,
+		     gpc_index);
+		     ppc_index++) {
+			cbm_cfg_size1 = attrib_cb_default_size *
+				nvgpu_gr_config_get_pes_tpc_count(config,
+					gpc_index, ppc_index);
+			cbm_cfg_size2 = alpha_cb_default_size *
+				nvgpu_gr_config_get_pes_tpc_count(config,
+					gpc_index, ppc_index);
+
+			nvgpu_gr_ctx_patch_write(g, gr_ctx,
+				gr_gpc0_ppc0_cbm_beta_cb_size_r() + temp +
+				ppc_in_gpc_stride * ppc_index,
+				cbm_cfg_size1, patch);
+
+			nvgpu_gr_ctx_patch_write(g, gr_ctx,
+				gr_gpc0_ppc0_cbm_beta_cb_offset_r() + temp +
+				ppc_in_gpc_stride * ppc_index,
+				attrib_offset_in_chunk, patch);
+
+			attrib_offset_in_chunk += attrib_cb_size *
+				nvgpu_gr_config_get_pes_tpc_count(config,
+					gpc_index, ppc_index);
+
+			nvgpu_gr_ctx_patch_write(g, gr_ctx,
+				gr_gpc0_ppc0_cbm_alpha_cb_size_r() + temp +
+				ppc_in_gpc_stride * ppc_index,
+				cbm_cfg_size2, patch);
+
+			nvgpu_gr_ctx_patch_write(g, gr_ctx,
+				gr_gpc0_ppc0_cbm_alpha_cb_offset_r() + temp +
+				ppc_in_gpc_stride * ppc_index,
+				alpha_offset_in_chunk, patch);
+
+			alpha_offset_in_chunk += alpha_cb_size *
+				nvgpu_gr_config_get_pes_tpc_count(config,
+					gpc_index, ppc_index);
+
+			nvgpu_gr_ctx_patch_write(g, gr_ctx,
+				gr_gpcs_swdx_tc_beta_cb_size_r(ppc_index + temp2),
+				gr_gpcs_swdx_tc_beta_cb_size_v_f(cbm_cfg_size1) |
+				gr_gpcs_swdx_tc_beta_cb_size_div3_f(cbm_cfg_size1/3U),
+				patch);
+		}
+	}
 }
 

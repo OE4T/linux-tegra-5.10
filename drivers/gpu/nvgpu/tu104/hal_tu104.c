@@ -391,7 +391,6 @@ static const struct gpu_ops tu104_ops = {
 	},
 	.gr = {
 		.get_patch_slots = gr_gv100_get_patch_slots,
-		.commit_global_cb_manager = gr_gp10b_commit_global_cb_manager,
 		.handle_sw_method = gr_tu104_handle_sw_method,
 		.set_alpha_circular_buffer_size =
 			gr_gv11b_set_alpha_circular_buffer_size,
@@ -718,6 +717,8 @@ static const struct gpu_ops tu104_ops = {
 				gp10b_gr_init_commit_global_pagepool,
 			.commit_global_attrib_cb =
 				gv11b_gr_init_commit_global_attrib_cb,
+			.commit_global_cb_manager =
+				gp10b_gr_init_commit_global_cb_manager,
 		},
 		.intr = {
 			.enable_interrupts = gm20b_gr_intr_enable_interrupts,
