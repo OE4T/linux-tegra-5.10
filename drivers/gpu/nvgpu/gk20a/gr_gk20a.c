@@ -780,8 +780,7 @@ int gk20a_init_sw_bundle(struct gk20a *g)
 	unsigned int i;
 
 	/* enable pipe mode override */
-	gk20a_writel(g, gr_pipe_bundle_config_r(),
-		gr_pipe_bundle_config_override_pipe_mode_enabled_f());
+	g->ops.gr.init.pipe_mode_override(g, true);
 
 	/* load bundle init */
 	for (i = 0U; i < sw_bundle_init->count; i++) {
@@ -823,8 +822,7 @@ int gk20a_init_sw_bundle(struct gk20a *g)
 	}
 
 	/* disable pipe mode override */
-	gk20a_writel(g, gr_pipe_bundle_config_r(),
-		     gr_pipe_bundle_config_override_pipe_mode_disabled_f());
+	g->ops.gr.init.pipe_mode_override(g, false);
 
 	err = g->ops.gr.init.wait_idle(g);
 
@@ -832,8 +830,7 @@ int gk20a_init_sw_bundle(struct gk20a *g)
 
 error:
 	/* in case of error skip waiting for GR idle - just restore state */
-	gk20a_writel(g, gr_pipe_bundle_config_r(),
-		     gr_pipe_bundle_config_override_pipe_mode_disabled_f());
+	g->ops.gr.init.pipe_mode_override(g, false);
 
 	return err;
 }

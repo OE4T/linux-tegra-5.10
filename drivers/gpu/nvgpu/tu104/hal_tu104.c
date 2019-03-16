@@ -722,6 +722,7 @@ static const struct gpu_ops tu104_ops = {
 				gv11b_gr_init_commit_global_attrib_cb,
 			.commit_global_cb_manager =
 				gp10b_gr_init_commit_global_cb_manager,
+			.pipe_mode_override = gm20b_gr_init_pipe_mode_override,
 		},
 		.intr = {
 			.enable_hww_exceptions =

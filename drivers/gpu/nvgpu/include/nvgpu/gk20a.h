@@ -733,6 +733,8 @@ struct gpu_ops {
 			void (*commit_global_cb_manager)(struct gk20a *g,
 				struct nvgpu_gr_config *config,
 				struct nvgpu_gr_ctx *gr_ctx, bool patch);
+			void (*pipe_mode_override)(struct gk20a *g,
+				bool enable);
 		} init;
 
 		struct {

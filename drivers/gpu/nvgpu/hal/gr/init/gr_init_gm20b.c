@@ -711,6 +711,17 @@ void gm20b_gr_init_fe_go_idle_timeout(struct gk20a *g, bool enable)
 	}
 }
 
+void gm20b_gr_init_pipe_mode_override(struct gk20a *g, bool enable)
+{
+	if (enable) {
+		nvgpu_writel(g, gr_pipe_bundle_config_r(),
+			gr_pipe_bundle_config_override_pipe_mode_enabled_f());
+	} else {
+		nvgpu_writel(g, gr_pipe_bundle_config_r(),
+			gr_pipe_bundle_config_override_pipe_mode_disabled_f());
+	}
+}
+
 void gm20b_gr_init_load_method_init(struct gk20a *g,
 		struct netlist_av_list *sw_method_init)
 {
