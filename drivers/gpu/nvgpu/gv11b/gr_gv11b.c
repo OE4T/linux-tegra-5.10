@@ -1504,20 +1504,7 @@ void gr_gv11b_update_ctxsw_preemption_mode(struct gk20a *g,
 
 	nvgpu_log_fn(g, " ");
 
-	if (gr_ctx->graphics_preempt_mode ==
-					NVGPU_PREEMPTION_MODE_GRAPHICS_GFXP) {
-		g->ops.gr.ctxsw_prog.set_graphics_preemption_mode_gfxp(g, mem);
-	}
-
-	if (gr_ctx->compute_preempt_mode ==
-					NVGPU_PREEMPTION_MODE_COMPUTE_CILP) {
-		g->ops.gr.ctxsw_prog.set_compute_preemption_mode_cilp(g, mem);
-	}
-
-	if (gr_ctx->compute_preempt_mode ==
-					NVGPU_PREEMPTION_MODE_COMPUTE_CTA) {
-		g->ops.gr.ctxsw_prog.set_compute_preemption_mode_cta(g, mem);
-	}
+	nvgpu_gr_ctx_set_preemption_modes(g, gr_ctx);
 
 	if (gr_ctx->preempt_ctxsw_buffer.gpu_va != 0ULL) {
 		u32 addr;

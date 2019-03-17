@@ -886,7 +886,8 @@ int gr_gm20b_init_ctxsw_preemption_mode(struct gk20a *g,
 	nvgpu_log_fn(g, " ");
 
 	if (class == MAXWELL_COMPUTE_B) {
-		gr_ctx->compute_preempt_mode = NVGPU_PREEMPTION_MODE_COMPUTE_CTA;
+		nvgpu_gr_ctx_init_compute_preemption_mode(gr_ctx,
+			NVGPU_PREEMPTION_MODE_COMPUTE_CTA);
 	}
 
 	nvgpu_log_fn(g, "done");
@@ -899,10 +900,7 @@ void gr_gm20b_update_ctxsw_preemption_mode(struct gk20a *g,
 {
 	nvgpu_log_fn(g, " ");
 
-	if (gr_ctx->compute_preempt_mode == NVGPU_PREEMPTION_MODE_COMPUTE_CTA) {
-		g->ops.gr.ctxsw_prog.set_compute_preemption_mode_cta(g,
-			&gr_ctx->mem);
-	}
+	nvgpu_gr_ctx_set_preemption_modes(g, gr_ctx);
 
 	nvgpu_log_fn(g, "done");
 }

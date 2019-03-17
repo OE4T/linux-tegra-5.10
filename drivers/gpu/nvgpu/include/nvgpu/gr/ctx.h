@@ -35,8 +35,17 @@
 	(PAGE_SIZE/(PATCH_CTX_SLOTS_REQUIRED_PER_ENTRY * (u32)sizeof(u32)))
 #define PATCH_CTX_ENTRIES_FROM_SIZE(size) ((size)/sizeof(u32))
 
+#define NVGPU_PREEMPTION_MODE_GRAPHICS_WFI	BIT32(0)
+#define NVGPU_PREEMPTION_MODE_GRAPHICS_GFXP	BIT32(1)
+
+#define NVGPU_PREEMPTION_MODE_COMPUTE_WFI	BIT32(0)
+#define NVGPU_PREEMPTION_MODE_COMPUTE_CTA	BIT32(1)
+#define NVGPU_PREEMPTION_MODE_COMPUTE_CILP	BIT32(2)
+
 struct gk20a;
 struct vm_gk20a;
+struct nvgpu_gr_global_ctx_buffer_desc;
+struct nvgpu_gr_global_ctx_local_golden_image;
 
 enum nvgpu_gr_ctx_index {
 	NVGPU_GR_CTX_CTX		= 0,
@@ -204,5 +213,14 @@ int nvgpu_gr_ctx_prepare_hwpm_mode(struct gk20a *g, struct nvgpu_gr_ctx *gr_ctx,
 	u32 mode, bool *skip_update);
 int nvgpu_gr_ctx_set_hwpm_mode(struct gk20a *g, struct nvgpu_gr_ctx *gr_ctx,
 	bool set_pm_ptr);
+
+void nvgpu_gr_ctx_init_compute_preemption_mode(struct nvgpu_gr_ctx *gr_ctx,
+	u32 compute_preempt_mode);
+void nvgpu_gr_ctx_init_graphics_preemption_mode(struct nvgpu_gr_ctx *gr_ctx,
+	u32 graphics_preempt_mode);
+bool nvgpu_gr_ctx_check_valid_preemption_mode(struct nvgpu_gr_ctx *gr_ctx,
+	u32 graphics_preempt_mode, u32 compute_preempt_mode);
+void nvgpu_gr_ctx_set_preemption_modes(struct gk20a *g,
+	struct nvgpu_gr_ctx *gr_ctx);
 
 #endif /* NVGPU_INCLUDE_GR_CTX_H */

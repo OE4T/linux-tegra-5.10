@@ -775,3 +775,61 @@ int nvgpu_gr_ctx_set_hwpm_mode(struct gk20a *g, struct nvgpu_gr_ctx *gr_ctx,
 
 	return err;
 }
+
+void nvgpu_gr_ctx_init_compute_preemption_mode(struct nvgpu_gr_ctx *gr_ctx,
+	u32 compute_preempt_mode)
+{
+	gr_ctx->compute_preempt_mode = compute_preempt_mode;
+}
+
+void nvgpu_gr_ctx_init_graphics_preemption_mode(struct nvgpu_gr_ctx *gr_ctx,
+	u32 graphics_preempt_mode)
+{
+	gr_ctx->graphics_preempt_mode = graphics_preempt_mode;
+}
+
+bool nvgpu_gr_ctx_check_valid_preemption_mode(struct nvgpu_gr_ctx *gr_ctx,
+	u32 graphics_preempt_mode, u32 compute_preempt_mode)
+{
+	if ((graphics_preempt_mode == 0U) && (compute_preempt_mode == 0U)) {
+		return false;
+	}
+
+	if ((graphics_preempt_mode == NVGPU_PREEMPTION_MODE_GRAPHICS_GFXP) &&
+		   (compute_preempt_mode == NVGPU_PREEMPTION_MODE_COMPUTE_CILP)) {
+		return false;
+	}
+
+	/* Do not allow lower preemption modes than current ones */
+	if ((graphics_preempt_mode != 0U) &&
+	    (graphics_preempt_mode < gr_ctx->graphics_preempt_mode)) {
+		return false;
+	}
+
+	if ((compute_preempt_mode != 0U) &&
+	    (compute_preempt_mode < gr_ctx->compute_preempt_mode)) {
+		return false;
+	}
+
+	return true;
+}
+
+void nvgpu_gr_ctx_set_preemption_modes(struct gk20a *g,
+	struct nvgpu_gr_ctx *gr_ctx)
+{
+	if (gr_ctx->graphics_preempt_mode == NVGPU_PREEMPTION_MODE_GRAPHICS_GFXP) {
+		g->ops.gr.ctxsw_prog.set_graphics_preemption_mode_gfxp(g,
+			&gr_ctx->mem);
+	}
+
+	if (gr_ctx->compute_preempt_mode == NVGPU_PREEMPTION_MODE_COMPUTE_CILP) {
+		g->ops.gr.ctxsw_prog.set_compute_preemption_mode_cilp(g,
+			&gr_ctx->mem);
+	}
+
+	if (gr_ctx->compute_preempt_mode == NVGPU_PREEMPTION_MODE_COMPUTE_CTA) {
+		g->ops.gr.ctxsw_prog.set_compute_preemption_mode_cta(g,
+			&gr_ctx->mem);
+	}
+
+}
