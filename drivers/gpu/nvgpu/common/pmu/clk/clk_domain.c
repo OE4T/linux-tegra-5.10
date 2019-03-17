@@ -391,15 +391,15 @@ static int devinit_get_clocks_table_35(struct gk20a *g,
 
 	switch (clocks_table_header.clocks_hal) {
 	case CLK_TABLE_HAL_ENTRY_GV:
-	{
 		vbiosclktbl1xhalentry = vbiosclktbl1xhalentry_gv;
 		break;
-	}
 	default:
-	{
 		status = -EINVAL;
-		goto done;
+		break;
 	}
+
+	if (status == -EINVAL) {
+		goto done;
 	}
 
 	pclkdomainobjs->cntr_sampling_periodms =

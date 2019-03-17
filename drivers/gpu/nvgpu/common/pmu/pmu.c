@@ -158,7 +158,8 @@ static int nvgpu_init_pmu_setup_sw(struct gk20a *g)
 			pmu->mutex[i].id    = i;
 			pmu->mutex[i].index = i;
 		}
-		nvgpu_pmu_seq_init(pmu);
+
+		nvgpu_pmu_sequences_init(&pmu->sequences);
 
 		nvgpu_log_fn(g, "skip init");
 		goto skip_init;
@@ -181,14 +182,12 @@ static int nvgpu_init_pmu_setup_sw(struct gk20a *g)
 		pmu->mutex[i].index = i;
 	}
 
-	pmu->seq = nvgpu_kzalloc(g, PMU_MAX_NUM_SEQUENCES *
-		sizeof(struct pmu_sequence));
-	if (pmu->seq == NULL) {
-		err = -ENOMEM;
+	err = nvgpu_pmu_sequences_alloc(g, &pmu->sequences);
+	if (err != 0) {
 		goto err_free_mutex;
 	}
 
-	nvgpu_pmu_seq_init(pmu);
+	nvgpu_pmu_sequences_init(&pmu->sequences);
 
 	err = nvgpu_dma_alloc_map_sys(vm, GK20A_PMU_SEQ_BUF_SIZE,
 			&pmu->seq_buf);
@@ -236,7 +235,7 @@ skip_init:
  err_free_seq_buf:
 	nvgpu_dma_unmap_free(vm, &pmu->seq_buf);
  err_free_seq:
-	nvgpu_kfree(g, pmu->seq);
+	nvgpu_pmu_sequences_free(g, &pmu->sequences);
  err_free_mutex:
 	nvgpu_kfree(g, pmu->mutex);
  err:

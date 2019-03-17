@@ -127,6 +127,7 @@ srcs += common/sim.c \
 	common/netlist/netlist_tu104.c \
 	common/pmu/pmu.c \
 	common/pmu/pmu_ipc.c \
+	common/pmu/pmu_seq.c \
 	common/pmu/pmu_fw.c \
 	common/pmu/pg/pmu_pg.c \
 	common/pmu/pg/pmu_aelpg.c \

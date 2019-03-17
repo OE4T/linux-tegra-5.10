@@ -34,6 +34,7 @@
 #include <nvgpu/engine_mem_queue.h>
 #include <nvgpu/timers.h>
 #include <nvgpu/pmu/pmu_pg.h>
+#include <nvgpu/pmu/seq.h>
 
 #define nvgpu_pmu_dbg(g, fmt, args...) \
 	nvgpu_log(g, gpu_dbg_pmu, fmt, ##args)
@@ -98,11 +99,6 @@
 #define GK20A_PMU_UCODE_NB_MAX_OVERLAY	    32U
 #define GK20A_PMU_UCODE_NB_MAX_DATE_LENGTH  64U
 
-#define PMU_MAX_NUM_SEQUENCES		(256U)
-#define PMU_SEQ_BIT_SHIFT		(5U)
-#define PMU_SEQ_TBL_SIZE	\
-		(PMU_MAX_NUM_SEQUENCES >> PMU_SEQ_BIT_SHIFT)
-
 #define	GK20A_PMU_DMAIDX_UCODE		U32(0)
 #define	GK20A_PMU_DMAIDX_VIRT		U32(1)
 #define	GK20A_PMU_DMAIDX_PHYS_VID	U32(2)
@@ -111,13 +107,6 @@
 #define	GK20A_PMU_DMAIDX_RSVD		U32(5)
 #define	GK20A_PMU_DMAIDX_PELPG		U32(6)
 #define	GK20A_PMU_DMAIDX_END		U32(7)
-
-enum pmu_seq_state {
-	PMU_SEQ_STATE_FREE = 0,
-	PMU_SEQ_STATE_PENDING,
-	PMU_SEQ_STATE_USED,
-	PMU_SEQ_STATE_CANCELLED
-};
 
 #define	PMU_BAR0_SUCCESS		0U
 #define	PMU_BAR0_HOST_READ_TOUT		1U
@@ -200,9 +189,6 @@ enum pmu_seq_state {
 			(_size), _cb, _cbp, false);	\
 	} while (false)
 
-typedef void (*pmu_callback)(struct gk20a *g, struct pmu_msg *msg, void *param,
-		u32 status);
-
 struct rpc_handler_payload {
 	void *rpc_buff;
 	bool is_mem_free_set;
@@ -263,47 +249,6 @@ struct pmu_mutex {
 	u32 ref_cnt;
 };
 
-struct pmu_sequence {
-	u8 id;
-	enum pmu_seq_state state;
-	u32 desc;
-	union {
-		struct pmu_allocation_v1 in_v1;
-		struct pmu_allocation_v2 in_v2;
-		struct pmu_allocation_v3 in_v3;
-	};
-	struct nvgpu_mem *in_mem;
-	union {
-		struct pmu_allocation_v1 out_v1;
-		struct pmu_allocation_v2 out_v2;
-		struct pmu_allocation_v3 out_v3;
-	};
-	struct nvgpu_mem *out_mem;
-	u8 *out_payload;
-	pmu_callback callback;
-	void *cb_params;
-
-	/* fb queue that is associated with this seq */
-	struct nvgpu_engine_fb_queue *cmd_queue;
-	/* fbq element that is associated with this seq */
-	u8 *fbq_work_buffer;
-	u32 fbq_element_index;
-	/* flags if queue element has an in payload */
-	bool in_payload_fb_queue;
-	/* flags if queue element has an out payload */
-	bool out_payload_fb_queue;
-	/* Heap location this cmd will use in the nvgpu managed heap */
-	u16 fbq_heap_offset;
-	/*
-	 * Track the amount of the "work buffer" (queue_buffer) that
-	 * has been used so far, as the outbound frame is assembled
-	 * (first FB Queue hdr, then CMD, then payloads).
-	 */
-	u16 buffer_size_used;
-	/* offset to out data in the queue element */
-	u16 fbq_out_offset_in_queue_element;
-};
-
 struct nvgpu_pmu {
 	struct gk20a *g;
 	struct nvgpu_falcon flcn;
@@ -332,14 +277,12 @@ struct nvgpu_pmu {
 
 	struct nvgpu_engine_fb_queue *fb_queue[PMU_QUEUE_COUNT];
 
-	struct pmu_sequence *seq;
-	unsigned long pmu_seq_tbl[PMU_SEQ_TBL_SIZE];
+	struct pmu_sequences sequences;
 
 	struct pmu_mutex *mutex;
 	u32 mutex_cnt;
 
 	struct nvgpu_mutex pmu_copy_lock;
-	struct nvgpu_mutex pmu_seq_lock;
 
 	struct nvgpu_allocator dmem;
 
@@ -397,8 +340,6 @@ struct pg_init_sequence_list {
 };
 
 /* PMU IPC Methods */
-void nvgpu_pmu_seq_init(struct nvgpu_pmu *pmu);
-
 int nvgpu_pmu_mutex_acquire(struct nvgpu_pmu *pmu, u32 id, u32 *token);
 int nvgpu_pmu_mutex_release(struct nvgpu_pmu *pmu, u32 id, u32 *token);
 

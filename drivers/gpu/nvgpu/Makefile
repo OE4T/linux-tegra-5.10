@@ -88,6 +88,7 @@ nvgpu-y += \
 	common/init/nvgpu_init.o \
 	common/pmu/pmu.o \
 	common/pmu/pmu_ipc.o \
+	common/pmu/pmu_seq.o \
 	common/pmu/pmu_fw.o \
 	common/pmu/pg/pmu_pg.o \
 	common/pmu/pg/pmu_aelpg.o \

@@ -23,6 +23,8 @@
 #ifndef NVGPU_FLCNIF_CMN_H
 #define NVGPU_FLCNIF_CMN_H
 
+#include <nvgpu/types.h>
+
 #define PMU_CMD_SUBMIT_PAYLOAD_PARAMS_FB_SIZE_UNUSED 0U
 
 struct falc_u64 {

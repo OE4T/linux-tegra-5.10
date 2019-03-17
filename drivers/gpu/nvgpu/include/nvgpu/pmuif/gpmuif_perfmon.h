@@ -22,6 +22,8 @@
 #ifndef NVGPU_PMUIF_GPMUIF_PERFMON_H
 #define NVGPU_PMUIF_GPMUIF_PERFMON_H
 
+#include <nvgpu/types.h>
+
 /*perfmon task defines*/
 
 #define PMU_DOMAIN_GROUP_PSTATE		0U

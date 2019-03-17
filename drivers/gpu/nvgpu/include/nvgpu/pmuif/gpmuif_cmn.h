@@ -22,6 +22,8 @@
 #ifndef NVGPU_PMUIF_GPMUIF_CMN_H
 #define NVGPU_PMUIF_GPMUIF_CMN_H
 
+#include <nvgpu/types.h>
+
 /*
  * Defines the logical queue IDs that must be used when submitting
  * commands to the PMU

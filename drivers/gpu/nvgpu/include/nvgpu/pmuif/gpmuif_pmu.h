@@ -23,6 +23,7 @@
 #define NVGPU_PMUIF_GPMUIF_PMU_H
 
 #include <nvgpu/flcnif_cmn.h>
+#include <nvgpu/types.h>
 #include "gpmuif_cmn.h"
 
 /* Make sure size of this structure is a multiple of 4 bytes */

@@ -971,26 +971,6 @@ static void get_pmu_init_msg_pmu_queue_params_v3(
 	*offset = init->queue_offset + current_ptr;
 }
 
-static void *get_pmu_sequence_in_alloc_ptr_v3(struct pmu_sequence *seq)
-{
-	return (void *)(&seq->in_v3);
-}
-
-static void *get_pmu_sequence_in_alloc_ptr_v1(struct pmu_sequence *seq)
-{
-	return (void *)(&seq->in_v1);
-}
-
-static void *get_pmu_sequence_out_alloc_ptr_v3(struct pmu_sequence *seq)
-{
-	return (void *)(&seq->out_v3);
-}
-
-static void *get_pmu_sequence_out_alloc_ptr_v1(struct pmu_sequence *seq)
-{
-	return (void *)(&seq->out_v1);
-}
-
 static u8 pg_cmd_eng_buf_load_size_v0(struct pmu_pg_cmd *pg)
 {
 	size_t tmp_size = sizeof(pg->eng_buf_load_v0);
@@ -1256,9 +1236,9 @@ static int init_pmu_fw_ver_ops(struct nvgpu_pmu *pmu, u32 app_version)
 		g->ops.pmu_ver.perfmon_cmd_init_set_mov_avg =
 			perfmon_cmd_init_set_mov_avg_v2;
 		g->ops.pmu_ver.get_pmu_seq_in_a_ptr =
-			get_pmu_sequence_in_alloc_ptr_v1;
+			nvgpu_get_pmu_sequence_in_alloc_ptr_v1;
 		g->ops.pmu_ver.get_pmu_seq_out_a_ptr =
-			get_pmu_sequence_out_alloc_ptr_v1;
+			nvgpu_get_pmu_sequence_out_alloc_ptr_v1;
 		break;
 	case APP_VERSION_GV11B:
 	case APP_VERSION_GV10X:
@@ -1392,9 +1372,9 @@ static int init_pmu_fw_ver_ops(struct nvgpu_pmu *pmu, u32 app_version)
 		g->ops.pmu_ver.perfmon_cmd_init_set_mov_avg =
 			perfmon_cmd_init_set_mov_avg_v3;
 		g->ops.pmu_ver.get_pmu_seq_in_a_ptr =
-			get_pmu_sequence_in_alloc_ptr_v3;
+			nvgpu_get_pmu_sequence_in_alloc_ptr_v3;
 		g->ops.pmu_ver.get_pmu_seq_out_a_ptr =
-			get_pmu_sequence_out_alloc_ptr_v3;
+			nvgpu_get_pmu_sequence_out_alloc_ptr_v3;
 		break;
 	case APP_VERSION_GP10X:
 		g->ops.pmu_ver.pg_cmd_eng_buf_load_size =
@@ -1498,9 +1478,9 @@ static int init_pmu_fw_ver_ops(struct nvgpu_pmu *pmu, u32 app_version)
 		g->ops.pmu_ver.perfmon_cmd_init_set_mov_avg =
 			perfmon_cmd_init_set_mov_avg_v3;
 		g->ops.pmu_ver.get_pmu_seq_in_a_ptr =
-			get_pmu_sequence_in_alloc_ptr_v3;
+			nvgpu_get_pmu_sequence_in_alloc_ptr_v3;
 		g->ops.pmu_ver.get_pmu_seq_out_a_ptr =
-			get_pmu_sequence_out_alloc_ptr_v3;
+			nvgpu_get_pmu_sequence_out_alloc_ptr_v3;
 		g->ops.pmu_ver.boardobj.boardobjgrp_pmucmd_construct_impl =
 			boardobjgrp_pmucmd_construct_impl;
 		g->ops.pmu_ver.boardobj.boardobjgrp_pmuset_impl =
@@ -1608,9 +1588,9 @@ static int init_pmu_fw_ver_ops(struct nvgpu_pmu *pmu, u32 app_version)
 		g->ops.pmu_ver.perfmon_cmd_init_set_mov_avg =
 			perfmon_cmd_init_set_mov_avg_v1;
 		g->ops.pmu_ver.get_pmu_seq_in_a_ptr =
-			get_pmu_sequence_in_alloc_ptr_v1;
+			nvgpu_get_pmu_sequence_in_alloc_ptr_v1;
 		g->ops.pmu_ver.get_pmu_seq_out_a_ptr =
-			get_pmu_sequence_out_alloc_ptr_v1;
+			nvgpu_get_pmu_sequence_out_alloc_ptr_v1;
 		break;
 	default:
 		nvgpu_err(g, "PMU code version not supported version: %d\n",
@@ -1676,7 +1656,7 @@ static void nvgpu_remove_pmu_support(struct nvgpu_pmu *pmu)
 	nvgpu_mutex_destroy(&pmu->pmu_pg.pg_mutex);
 	nvgpu_mutex_destroy(&pmu->isr_mutex);
 	nvgpu_mutex_destroy(&pmu->pmu_copy_lock);
-	nvgpu_mutex_destroy(&pmu->pmu_seq_lock);
+	nvgpu_pmu_sequences_free(g, &pmu->sequences);
 }
 
 static int init_pmu_ucode(struct nvgpu_pmu *pmu)
@@ -1791,22 +1771,15 @@ int nvgpu_early_init_pmu_sw(struct gk20a *g, struct nvgpu_pmu *pmu)
 		goto fail_isr;
 	}
 
-	err = nvgpu_mutex_init(&pmu->pmu_seq_lock);
-	if (err != 0) {
-		goto fail_pmu_copy;
-	}
-
 	err = init_pmu_ucode(pmu);
 	if (err != 0) {
-		goto fail_seq_lock;
+		goto fail_pmu_copy;
 	}
 
 	pmu->remove_support = nvgpu_remove_pmu_support;
 
 	goto exit;
 
-fail_seq_lock:
-nvgpu_mutex_destroy(&pmu->pmu_seq_lock);
 fail_pmu_copy:
 	nvgpu_mutex_destroy(&pmu->pmu_copy_lock);
 fail_isr:
