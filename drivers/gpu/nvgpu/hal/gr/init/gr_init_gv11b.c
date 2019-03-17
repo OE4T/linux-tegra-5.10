@@ -860,3 +860,64 @@ void gv11b_gr_init_commit_global_attrib_cb(struct gk20a *g,
 		gr_gpcs_tpcs_tex_rm_cb_1_valid_true_f(), patch);
 }
 
+static int gv11b_gr_init_write_bundle_veid_state(struct gk20a *g, u32 index,
+	struct netlist_av_list *sw_veid_bundle_init)
+{
+	u32 j;
+	u32  num_subctx;
+	int err = 0;
+
+	/* TODO: get this value through FIFO hal */
+	num_subctx = g->fifo.max_subctx_count;
+
+	for (j = 0U; j < num_subctx; j++) {
+		nvgpu_log_fn(g, "write bundle_address_r for subctx: %d", j);
+		nvgpu_writel(g, gr_pipe_bundle_address_r(),
+			sw_veid_bundle_init->l[index].addr |
+			gr_pipe_bundle_address_veid_f(j));
+
+		err = g->ops.gr.init.wait_idle(g);
+	}
+
+	return err;
+}
+
+int gv11b_gr_init_load_sw_veid_bundle(struct gk20a *g,
+	struct netlist_av_list *sw_veid_bundle_init)
+{
+	u32 i;
+	int err = 0;
+	u32 last_bundle_data = 0;
+
+	for (i = 0U; i < sw_veid_bundle_init->count; i++) {
+		nvgpu_log_fn(g, "veid bundle count: %d", i);
+
+		if (i == 0U || last_bundle_data !=
+				sw_veid_bundle_init->l[i].value) {
+			nvgpu_writel(g, gr_pipe_bundle_data_r(),
+				sw_veid_bundle_init->l[i].value);
+			last_bundle_data = sw_veid_bundle_init->l[i].value;
+			nvgpu_log_fn(g, "last_bundle_data : 0x%08x",
+						last_bundle_data);
+		}
+
+		if (gr_pipe_bundle_address_value_v(
+			sw_veid_bundle_init->l[i].addr) == GR_GO_IDLE_BUNDLE) {
+			nvgpu_log_fn(g, "go idle bundle");
+				nvgpu_writel(g, gr_pipe_bundle_address_r(),
+					sw_veid_bundle_init->l[i].addr);
+				err = g->ops.gr.init.wait_idle(g);
+		} else {
+			err = gv11b_gr_init_write_bundle_veid_state(g, i,
+					sw_veid_bundle_init);
+		}
+
+		if (err != 0) {
+			nvgpu_err(g, "failed to init sw veid bundle");
+			break;
+		}
+	}
+
+	return err;
+}
+

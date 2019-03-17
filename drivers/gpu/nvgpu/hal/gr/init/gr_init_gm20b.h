@@ -25,6 +25,10 @@
 
 #include <nvgpu/types.h>
 
+#ifndef GR_GO_IDLE_BUNDLE
+#define GR_GO_IDLE_BUNDLE	0x0000e100U /* --V-B */
+#endif
+
 struct gk20a;
 struct nvgpu_gr_ctx;
 struct nvgpu_gr_config;
@@ -62,6 +66,8 @@ void gm20b_gr_init_fe_go_idle_timeout(struct gk20a *g, bool enable);
 void gm20b_gr_init_pipe_mode_override(struct gk20a *g, bool enable);
 void gm20b_gr_init_load_method_init(struct gk20a *g,
 		struct netlist_av_list *sw_method_init);
+int gm20b_gr_init_load_sw_bundle_init(struct gk20a *g,
+		struct netlist_av_list *sw_bundle_init);
 void gm20b_gr_init_commit_global_timeslice(struct gk20a *g);
 
 u32 gm20b_gr_init_get_bundle_cb_default_size(struct gk20a *g);

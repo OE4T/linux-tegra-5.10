@@ -416,7 +416,6 @@ static const struct gpu_ops gv11b_ops = {
 		.access_smpc_reg = gv11b_gr_access_smpc_reg,
 		.is_egpc_addr = gv11b_gr_pri_is_egpc_addr,
 		.handle_gcc_exception = gr_gv11b_handle_gcc_exception,
-		.init_sw_veid_bundle = gr_gv11b_init_sw_veid_bundle,
 		.handle_tpc_sm_ecc_exception =
 			gr_gv11b_handle_tpc_sm_ecc_exception,
 		.decode_egpc_addr = gv11b_gr_decode_egpc_addr,
@@ -649,6 +648,10 @@ static const struct gpu_ops gv11b_ops = {
 			.commit_global_cb_manager =
 				gp10b_gr_init_commit_global_cb_manager,
 			.pipe_mode_override = gm20b_gr_init_pipe_mode_override,
+			.load_sw_bundle_init =
+				gm20b_gr_init_load_sw_bundle_init,
+			.load_sw_veid_bundle =
+				gv11b_gr_init_load_sw_veid_bundle,
 		},
 		.intr = {
 			.enable_hww_exceptions =

@@ -27,6 +27,7 @@
 
 struct gk20a;
 struct nvgpu_gr_ctx;
+struct netlist_av64_list;
 
 u32 tu104_gr_init_get_rtv_cb_size(struct gk20a *g);
 void tu104_gr_init_commit_rtv_cb(struct gk20a *g, u64 addr,
@@ -41,5 +42,8 @@ u32 tu104_gr_init_get_attrib_cb_default_size(struct gk20a *g);
 u32 tu104_gr_init_get_alpha_cb_default_size(struct gk20a *g);
 u32 tu104_gr_init_get_attrib_cb_gfxp_default_size(struct gk20a *g);
 u32 tu104_gr_init_get_attrib_cb_gfxp_size(struct gk20a *g);
+
+int tu104_gr_init_load_sw_bundle64(struct gk20a *g,
+		struct netlist_av64_list *sw_bundle64_init);
 
 #endif /* NVGPU_GR_INIT_TU104_H */

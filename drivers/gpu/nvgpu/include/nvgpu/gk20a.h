@@ -450,7 +450,6 @@ struct gpu_ops {
 					u32 num_fbpas,
 					u32 *priv_addr_table,
 					u32 *priv_addr_table_index);
-		int (*init_sw_bundle64)(struct gk20a *g);
 		int (*alloc_global_ctx_buffers)(struct gk20a *g);
 		int (*commit_global_ctx_buffers)(struct gk20a *g,
 			struct nvgpu_gr_ctx *gr_ctx, bool patch);
@@ -698,6 +697,12 @@ struct gpu_ops {
 				bool enable);
 			void (*load_method_init)(struct gk20a *g,
 				struct netlist_av_list *sw_method_init);
+			int (*load_sw_bundle_init)(struct gk20a *g,
+				struct netlist_av_list *sw_method_init);
+			int (*load_sw_veid_bundle)(struct gk20a *g,
+				struct netlist_av_list *sw_method_init);
+			int (*load_sw_bundle64)(struct gk20a *g,
+				struct netlist_av64_list *sw_bundle64_init);
 			void (*commit_global_timeslice)(struct gk20a *g);
 			u32 (*get_rtv_cb_size)(struct gk20a *g);
 			void (*commit_rtv_cb)(struct gk20a *g, u64 addr,

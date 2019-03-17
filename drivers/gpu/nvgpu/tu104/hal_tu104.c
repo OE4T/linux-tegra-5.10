@@ -486,7 +486,6 @@ static const struct gpu_ops tu104_ops = {
 		.access_smpc_reg = gv11b_gr_access_smpc_reg,
 		.is_egpc_addr = gv11b_gr_pri_is_egpc_addr,
 		.handle_gcc_exception = gr_gv11b_handle_gcc_exception,
-		.init_sw_veid_bundle = gr_gv11b_init_sw_veid_bundle,
 		.handle_tpc_sm_ecc_exception =
 			gr_gv11b_handle_tpc_sm_ecc_exception,
 		.decode_egpc_addr = gv11b_gr_decode_egpc_addr,
@@ -501,7 +500,6 @@ static const struct gpu_ops tu104_ops = {
 		.decode_priv_addr = gr_gv11b_decode_priv_addr,
 		.create_priv_addr_table = gr_gv11b_create_priv_addr_table,
 		.split_fbpa_broadcast_addr = gr_gv100_split_fbpa_broadcast_addr,
-		.init_sw_bundle64 = gr_tu104_init_sw_bundle64,
 		.alloc_global_ctx_buffers = gr_gk20a_alloc_global_ctx_buffers,
 		.commit_global_ctx_buffers = gr_gk20a_commit_global_ctx_buffers,
 		.get_nonpes_aware_tpc = gr_gv11b_get_nonpes_aware_tpc,
@@ -723,6 +721,11 @@ static const struct gpu_ops tu104_ops = {
 			.commit_global_cb_manager =
 				gp10b_gr_init_commit_global_cb_manager,
 			.pipe_mode_override = gm20b_gr_init_pipe_mode_override,
+			.load_sw_bundle_init =
+				gm20b_gr_init_load_sw_bundle_init,
+			.load_sw_veid_bundle =
+				gv11b_gr_init_load_sw_veid_bundle,
+			.load_sw_bundle64 = tu104_gr_init_load_sw_bundle64,
 		},
 		.intr = {
 			.enable_hww_exceptions =

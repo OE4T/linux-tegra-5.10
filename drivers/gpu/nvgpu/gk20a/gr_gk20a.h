@@ -99,10 +99,6 @@ enum {
 	NVGPU_EVENT_ID_MAX,
 };
 
-#ifndef GR_GO_IDLE_BUNDLE
-#define GR_GO_IDLE_BUNDLE	0x0000e100U /* --V-B */
-#endif
-
 struct gr_channel_map_tlb_entry {
 	u32 curr_ctx;
 	u32 chid;

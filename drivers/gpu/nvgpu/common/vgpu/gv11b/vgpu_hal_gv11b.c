@@ -219,7 +219,6 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 		.access_smpc_reg = gv11b_gr_access_smpc_reg,
 		.is_egpc_addr = gv11b_gr_pri_is_egpc_addr,
 		.handle_gcc_exception = gr_gv11b_handle_gcc_exception,
-		.init_sw_veid_bundle = gr_gv11b_init_sw_veid_bundle,
 		.handle_tpc_sm_ecc_exception =
 			gr_gv11b_handle_tpc_sm_ecc_exception,
 		.decode_egpc_addr = gv11b_gr_decode_egpc_addr,

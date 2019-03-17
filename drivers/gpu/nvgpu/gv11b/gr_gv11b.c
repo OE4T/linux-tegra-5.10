@@ -2124,65 +2124,6 @@ int gr_gv11b_handle_fecs_error(struct gk20a *g,
 	return ret;
 }
 
-static int gv11b_write_bundle_veid_state(struct gk20a *g, u32 index)
-{
-	struct netlist_av_list *sw_veid_bundle_init =
-			&g->netlist_vars->sw_veid_bundle_init;
-	u32 j;
-	u32  num_subctx;
-	int err = 0;
-
-	num_subctx = g->fifo.max_subctx_count;
-
-	for (j = 0U; j < num_subctx; j++) {
-		nvgpu_log_fn(g, "write bundle_address_r for subctx: %d", j);
-		gk20a_writel(g, gr_pipe_bundle_address_r(),
-			sw_veid_bundle_init->l[index].addr |
-			gr_pipe_bundle_address_veid_f(j));
-
-		err = g->ops.gr.init.wait_idle(g);
-	}
-	return err;
-}
-
-int gr_gv11b_init_sw_veid_bundle(struct gk20a *g)
-{
-	struct netlist_av_list *sw_veid_bundle_init =
-			&g->netlist_vars->sw_veid_bundle_init;
-	u32 i;
-	u32 last_bundle_data = 0;
-	int err = 0;
-
-	for (i = 0U; i < sw_veid_bundle_init->count; i++) {
-		nvgpu_log_fn(g, "veid bundle count: %d", i);
-
-		if (i == 0U || last_bundle_data !=
-				sw_veid_bundle_init->l[i].value) {
-			gk20a_writel(g, gr_pipe_bundle_data_r(),
-				sw_veid_bundle_init->l[i].value);
-			last_bundle_data = sw_veid_bundle_init->l[i].value;
-			nvgpu_log_fn(g, "last_bundle_data : 0x%08x",
-						last_bundle_data);
-		}
-
-		if (gr_pipe_bundle_address_value_v(
-			sw_veid_bundle_init->l[i].addr) == GR_GO_IDLE_BUNDLE) {
-			nvgpu_log_fn(g, "go idle bundle");
-				gk20a_writel(g, gr_pipe_bundle_address_r(),
-					sw_veid_bundle_init->l[i].addr);
-				err = g->ops.gr.init.wait_idle(g);
-		} else {
-			err = gv11b_write_bundle_veid_state(g, i);
-		}
-
-		if (err != 0) {
-			nvgpu_err(g, "failed to init sw veid bundle");
-			break;
-		}
-	}
-	return err;
-}
-
 void gr_gv11b_detect_sm_arch(struct gk20a *g)
 {
 	u32 v = gk20a_readl(g, gr_gpc0_tpc0_sm_arch_r());

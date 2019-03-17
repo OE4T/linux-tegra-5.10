@@ -774,48 +774,33 @@ int gr_gk20a_fecs_ctx_image_save(struct channel_gk20a *c, u32 save_type)
 
 int gk20a_init_sw_bundle(struct gk20a *g)
 {
-	struct netlist_av_list *sw_bundle_init = &g->netlist_vars->sw_bundle_init;
-	u32 last_bundle_data = 0;
+	struct netlist_av_list *sw_bundle_init =
+			&g->netlist_vars->sw_bundle_init;
+	struct netlist_av_list *sw_veid_bundle_init =
+			&g->netlist_vars->sw_veid_bundle_init;
+	struct netlist_av64_list *sw_bundle64_init =
+			&g->netlist_vars->sw_bundle64_init;
 	int err = 0;
-	unsigned int i;
 
 	/* enable pipe mode override */
 	g->ops.gr.init.pipe_mode_override(g, true);
 
 	/* load bundle init */
-	for (i = 0U; i < sw_bundle_init->count; i++) {
-		if (i == 0U || last_bundle_data != sw_bundle_init->l[i].value) {
-			gk20a_writel(g, gr_pipe_bundle_data_r(),
-				sw_bundle_init->l[i].value);
-			last_bundle_data = sw_bundle_init->l[i].value;
-		}
+	err = g->ops.gr.init.load_sw_bundle_init(g, sw_bundle_init);
+	if (err != 0) {
+		goto error;
+	}
 
-		gk20a_writel(g, gr_pipe_bundle_address_r(),
-			     sw_bundle_init->l[i].addr);
-
-		if (gr_pipe_bundle_address_value_v(sw_bundle_init->l[i].addr) ==
-		    GR_GO_IDLE_BUNDLE) {
-			err = g->ops.gr.init.wait_idle(g);
-			if (err != 0) {
-				goto error;
-			}
-		}
-
-		err = g->ops.gr.init.wait_fe_idle(g);
+	if (g->ops.gr.init.load_sw_veid_bundle != NULL) {
+		err = g->ops.gr.init.load_sw_veid_bundle(g,
+				sw_veid_bundle_init);
 		if (err != 0) {
 			goto error;
 		}
 	}
 
-	if ((err == 0) && (g->ops.gr.init_sw_veid_bundle != NULL)) {
-		err = g->ops.gr.init_sw_veid_bundle(g);
-		if (err != 0) {
-			goto error;
-		}
-	}
-
-	if (g->ops.gr.init_sw_bundle64 != NULL) {
-		err = g->ops.gr.init_sw_bundle64(g);
+	if (g->ops.gr.init.load_sw_bundle64 != NULL) {
+		err = g->ops.gr.init.load_sw_bundle64(g, sw_bundle64_init);
 		if (err != 0) {
 			goto error;
 		}

@@ -28,6 +28,7 @@
 struct gk20a;
 struct nvgpu_gr_config;
 struct nvgpu_gr_ctx;
+struct netlist_av_list;
 
 void gv11b_gr_init_ecc_scrub_reg(struct gk20a *g,
 				 struct nvgpu_gr_config *gr_config);
@@ -61,5 +62,8 @@ u32 gv11b_gr_init_get_global_attr_cb_size(struct gk20a *g, u32 tpc_count,
 void gv11b_gr_init_commit_global_attrib_cb(struct gk20a *g,
 	struct nvgpu_gr_ctx *gr_ctx, u32 tpc_count, u32 max_tpc, u64 addr,
 	bool patch);
+
+int gv11b_gr_init_load_sw_veid_bundle(struct gk20a *g,
+	struct netlist_av_list *sw_veid_bundle_init);
 
 #endif /* NVGPU_GR_INIT_GV11B_H */

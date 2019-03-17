@@ -85,45 +85,6 @@ bool gr_tu104_is_valid_compute_class(struct gk20a *g, u32 class_num)
 	return gr_gv11b_is_valid_compute_class(g, class_num);
 }
 
-int gr_tu104_init_sw_bundle64(struct gk20a *g)
-{
-	u32 i;
-	u32 last_bundle_data_lo = 0;
-	u32 last_bundle_data_hi = 0;
-	int err = 0;
-	struct netlist_av64_list *sw_bundle64_init =
-			&g->netlist_vars->sw_bundle64_init;
-
-	for (i = 0U; i < sw_bundle64_init->count; i++) {
-		if (i == 0U ||
-		   (last_bundle_data_lo != sw_bundle64_init->l[i].value_lo) ||
-		   (last_bundle_data_hi != sw_bundle64_init->l[i].value_hi)) {
-			nvgpu_writel(g, gr_pipe_bundle_data_r(),
-				sw_bundle64_init->l[i].value_lo);
-			nvgpu_writel(g, gr_pipe_bundle_data_hi_r(),
-				sw_bundle64_init->l[i].value_hi);
-
-			last_bundle_data_lo = sw_bundle64_init->l[i].value_lo;
-			last_bundle_data_hi = sw_bundle64_init->l[i].value_hi;
-		}
-
-		nvgpu_writel(g, gr_pipe_bundle_address_r(),
-			sw_bundle64_init->l[i].addr);
-
-		if (gr_pipe_bundle_address_value_v(sw_bundle64_init->l[i].addr)
-				== GR_GO_IDLE_BUNDLE) {
-			err = g->ops.gr.init.wait_idle(g);
-		} else if (nvgpu_platform_is_silicon(g)) {
-			err = g->ops.gr.init.wait_fe_idle(g);
-		}
-		if (err != 0) {
-			break;
-		}
-	}
-
-	return err;
-}
-
 int gr_tu104_init_gfxp_rtv_cb(struct gk20a *g,
 		  struct nvgpu_gr_ctx *gr_ctx, struct vm_gk20a *vm)
 {

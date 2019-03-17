@@ -21,8 +21,12 @@
  */
 
 #include <nvgpu/gk20a.h>
+#include <nvgpu/soc.h>
+#include <nvgpu/io.h>
+#include <nvgpu/netlist.h>
 #include <nvgpu/gr/ctx.h>
 
+#include "gr_init_gm20b.h"
 #include "gr_init_tu104.h"
 
 #include <nvgpu/hw/tu104/hw_gr_tu104.h>
@@ -123,5 +127,43 @@ u32 tu104_gr_init_get_attrib_cb_gfxp_default_size(struct gk20a *g)
 u32 tu104_gr_init_get_attrib_cb_gfxp_size(struct gk20a *g)
 {
 	return gr_gpc0_ppc0_cbm_beta_cb_size_v_gfxp_v();
+}
+
+int tu104_gr_init_load_sw_bundle64(struct gk20a *g,
+		struct netlist_av64_list *sw_bundle64_init)
+{
+	u32 i;
+	u32 last_bundle_data_lo = 0;
+	u32 last_bundle_data_hi = 0;
+	int err = 0;
+
+	for (i = 0U; i < sw_bundle64_init->count; i++) {
+		if (i == 0U ||
+		   (last_bundle_data_lo != sw_bundle64_init->l[i].value_lo) ||
+		   (last_bundle_data_hi != sw_bundle64_init->l[i].value_hi)) {
+			nvgpu_writel(g, gr_pipe_bundle_data_r(),
+				sw_bundle64_init->l[i].value_lo);
+			nvgpu_writel(g, gr_pipe_bundle_data_hi_r(),
+				sw_bundle64_init->l[i].value_hi);
+
+			last_bundle_data_lo = sw_bundle64_init->l[i].value_lo;
+			last_bundle_data_hi = sw_bundle64_init->l[i].value_hi;
+		}
+
+		nvgpu_writel(g, gr_pipe_bundle_address_r(),
+			sw_bundle64_init->l[i].addr);
+
+		if (gr_pipe_bundle_address_value_v(sw_bundle64_init->l[i].addr)
+				== GR_GO_IDLE_BUNDLE) {
+			err = g->ops.gr.init.wait_idle(g);
+		} else if (nvgpu_platform_is_silicon(g)) {
+			err = g->ops.gr.init.wait_fe_idle(g);
+		}
+		if (err != 0) {
+			break;
+		}
+	}
+
+	return err;
 }
 
