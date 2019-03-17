@@ -138,7 +138,6 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 		.detect_sm_arch = vgpu_gr_detect_sm_arch,
 		.pagepool_default_size = gr_gp10b_pagepool_default_size,
 		.init_ctx_state = vgpu_gr_init_ctx_state,
-		.alloc_gr_ctx = vgpu_gr_alloc_gr_ctx,
 		.free_gr_ctx = vgpu_gr_free_gr_ctx,
 		.init_ctxsw_preemption_mode =
 			vgpu_gr_init_ctxsw_preemption_mode,

@@ -406,7 +406,6 @@ static const struct gpu_ops tu104_ops = {
 		.detect_sm_arch = gr_gv11b_detect_sm_arch,
 		.pagepool_default_size = gr_gv11b_pagepool_default_size,
 		.init_ctx_state = gr_gp10b_init_ctx_state,
-		.alloc_gr_ctx = gr_gk20a_alloc_gr_ctx,
 		.free_gr_ctx = gr_tu104_free_gr_ctx,
 		.init_ctxsw_preemption_mode =
 			gr_gp10b_init_ctxsw_preemption_mode,

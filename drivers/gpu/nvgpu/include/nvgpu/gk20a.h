@@ -324,8 +324,6 @@ struct gpu_ops {
 		void (*detect_sm_arch)(struct gk20a *g);
 		u32 (*pagepool_default_size)(struct gk20a *g);
 		int (*init_ctx_state)(struct gk20a *g);
-		int (*alloc_gr_ctx)(struct gk20a *g,
-			  struct nvgpu_gr_ctx *gr_ctx, struct vm_gk20a *vm);
 		void (*free_gr_ctx)(struct gk20a *g,
 				    struct vm_gk20a *vm, struct nvgpu_gr_ctx *gr_ctx);
 		void (*powergate_tpc)(struct gk20a *g);

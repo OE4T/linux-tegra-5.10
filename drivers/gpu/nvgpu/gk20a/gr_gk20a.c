@@ -1877,7 +1877,7 @@ int gr_gk20a_alloc_global_ctx_buffers(struct gk20a *g)
 	return 0;
 }
 
-int gr_gk20a_alloc_gr_ctx(struct gk20a *g,
+static int gr_gk20a_alloc_gr_ctx(struct gk20a *g,
 	struct nvgpu_gr_ctx *gr_ctx, struct vm_gk20a *vm)
 {
 	struct gr_gk20a *gr = &g->gr;
@@ -1962,7 +1962,7 @@ int gk20a_alloc_obj_ctx(struct channel_gk20a  *c, u32 class_num, u32 flags)
 	if (!nvgpu_mem_is_valid(&gr_ctx->mem)) {
 		tsg->vm = c->vm;
 		nvgpu_vm_get(tsg->vm);
-		err = g->ops.gr.alloc_gr_ctx(g, gr_ctx, tsg->vm);
+		err = gr_gk20a_alloc_gr_ctx(g, gr_ctx, tsg->vm);
 		if (err != 0) {
 			nvgpu_err(g,
 				"fail to allocate TSG gr ctx buffer");

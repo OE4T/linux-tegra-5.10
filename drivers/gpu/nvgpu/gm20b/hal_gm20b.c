@@ -261,7 +261,6 @@ static const struct gpu_ops gm20b_ops = {
 		.detect_sm_arch = gr_gm20b_detect_sm_arch,
 		.pagepool_default_size = gr_gm20b_pagepool_default_size,
 		.init_ctx_state = gr_gk20a_init_ctx_state,
-		.alloc_gr_ctx = gr_gk20a_alloc_gr_ctx,
 		.free_gr_ctx = gr_gk20a_free_gr_ctx,
 		.init_ctxsw_preemption_mode =
 			gr_gm20b_init_ctxsw_preemption_mode,

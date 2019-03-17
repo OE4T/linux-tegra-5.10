@@ -224,8 +224,7 @@ int vgpu_gr_alloc_obj_ctx(struct channel_gk20a  *c, u32 class_num, u32 flags)
 		tsg->vm = c->vm;
 		nvgpu_vm_get(tsg->vm);
 		gr_ctx->tsgid = tsg->tsgid;
-		err = g->ops.gr.alloc_gr_ctx(g, gr_ctx,
-					c->vm);
+		err = vgpu_gr_alloc_gr_ctx(g, gr_ctx, c->vm);
 		if (err) {
 			nvgpu_err(g,
 				"fail to allocate TSG gr ctx buffer, err=%d",

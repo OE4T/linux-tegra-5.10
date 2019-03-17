@@ -444,8 +444,6 @@ int gr_gk20a_submit_fecs_method_op(struct gk20a *g,
 				   bool sleepduringwait);
 int gr_gk20a_submit_fecs_sideband_method_op(struct gk20a *g,
 		struct fecs_method_op_gk20a op);
-int gr_gk20a_alloc_gr_ctx(struct gk20a *g,
-			  struct nvgpu_gr_ctx *gr_ctx, struct vm_gk20a *vm);
 void gr_gk20a_free_gr_ctx(struct gk20a *g,
 		       struct vm_gk20a *vm, struct nvgpu_gr_ctx *gr_ctx);
 int gr_gk20a_halt_pipe(struct gk20a *g);
