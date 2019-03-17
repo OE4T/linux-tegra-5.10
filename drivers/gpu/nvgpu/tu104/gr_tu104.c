@@ -285,18 +285,6 @@ void gr_tu104_cb_size_default(struct gk20a *g)
 		gr_gpc0_ppc0_cbm_beta_cb_size_v_gfxp_v();
 }
 
-void gr_tu104_free_gr_ctx(struct gk20a *g,
-			  struct vm_gk20a *vm, struct nvgpu_gr_ctx *gr_ctx)
-{
-	nvgpu_log_fn(g, " ");
-
-	if (gr_ctx != NULL) {
-		nvgpu_dma_unmap_free(vm, &gr_ctx->gfxp_rtvcb_ctxsw_buffer);
-	}
-
-	gr_gk20a_free_gr_ctx(g, vm, gr_ctx);
-}
-
 void gr_tu104_enable_gpc_exceptions(struct gk20a *g)
 {
 	struct gr_gk20a *gr = &g->gr;

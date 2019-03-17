@@ -84,10 +84,6 @@ int gr_tu104_init_gfxp_rtv_cb(struct gk20a *g,
 void gr_tu104_commit_gfxp_rtv_cb(struct gk20a *g,
 		  struct nvgpu_gr_ctx *gr_ctx, bool patch);
 
-void gr_tu104_free_gr_ctx(struct gk20a *g,
-			struct vm_gk20a *vm,
-			struct nvgpu_gr_ctx *gr_ctx);
-
 void gr_tu104_init_sm_dsm_reg_info(void);
 void gr_tu104_get_sm_dsm_perf_ctrl_regs(struct gk20a *g,
 	u32 *num_sm_dsm_perf_ctrl_regs, u32 **sm_dsm_perf_ctrl_regs,
