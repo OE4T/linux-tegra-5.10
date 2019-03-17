@@ -71,6 +71,7 @@ struct nvgpu_gr_zbc_query_params;
 struct nvgpu_channel_hw_state;
 struct nvgpu_engine_status_info;
 struct nvgpu_pbdma_status_info;
+struct nvgpu_gr_config;
 enum nvgpu_nvlink_minion_dlcmd;
 struct nvgpu_cbc;
 
@@ -430,12 +431,10 @@ struct gpu_ops {
 		int (*load_smid_config)(struct gk20a *g);
 		void (*program_sm_id_numbering)(struct gk20a *g,
 						u32 gpc, u32 tpc, u32 smid);
-		int  (*setup_rop_mapping)(struct gk20a *g, struct gr_gk20a *gr);
 		int (*init_sw_veid_bundle)(struct gk20a *g);
 		void (*program_zcull_mapping)(struct gk20a *g,
 				u32 zcull_alloc_num, u32 *zcull_map_tiles);
 		int (*commit_inst)(struct channel_gk20a *c, u64 gpu_va);
-		void (*load_tpc_mask)(struct gk20a *g);
 		int (*trigger_suspend)(struct gk20a *g);
 		int (*wait_for_pause)(struct gk20a *g, struct nvgpu_warpstate *w_state);
 		int (*resume_from_pause)(struct gk20a *g);
@@ -665,9 +664,15 @@ struct gpu_ops {
 		} hwpm_map;
 
 		struct {
+			void (*tpc_mask)(struct gk20a *g,
+					 u32 gpc_index, u32 pes_tpc_mask);
+			int (*rop_mapping)(struct gk20a *g,
+				struct nvgpu_gr_config *gr_config);
 			int (*fs_state)(struct gk20a *g);
-			void (*pd_tpc_per_gpc)(struct gk20a *g);
-			void (*pd_skip_table_gpc)(struct gk20a *g);
+			void (*pd_tpc_per_gpc)(struct gk20a *g,
+				struct nvgpu_gr_config *gr_config);
+			void (*pd_skip_table_gpc)(struct gk20a *g,
+				struct nvgpu_gr_config *gr_config);
 			void (*cwd_gpcs_tpcs_num)(struct gk20a *g,
 						  u32 gpc_count,
 						  u32 tpc_count);

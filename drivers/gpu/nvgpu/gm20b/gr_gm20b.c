@@ -577,37 +577,6 @@ void gr_gm20b_set_gpc_tpc_mask(struct gk20a *g, u32 gpc_index)
 	}
 }
 
-void gr_gm20b_load_tpc_mask(struct gk20a *g)
-{
-	u32 pes_tpc_mask = 0, fuse_tpc_mask;
-	u32 gpc, pes;
-	u32 num_tpc_per_gpc = nvgpu_get_litter_value(g, GPU_LIT_NUM_TPC_PER_GPC);
-	u32 max_tpc_count = nvgpu_gr_config_get_max_tpc_count(g->gr.config);
-
-	for (gpc = 0; gpc < nvgpu_gr_config_get_gpc_count(g->gr.config); gpc++) {
-		for (pes = 0;
-		     pes < nvgpu_gr_config_get_pe_count_per_gpc(g->gr.config);
-		     pes++) {
-			pes_tpc_mask |= nvgpu_gr_config_get_pes_tpc_mask(
-						g->gr.config, gpc, pes) <<
-					num_tpc_per_gpc * gpc;
-		}
-	}
-
-	fuse_tpc_mask = g->ops.gr.config.get_gpc_tpc_mask(g, g->gr.config, 0);
-	if ((g->tpc_fs_mask_user != 0U) &&
-	    (g->tpc_fs_mask_user != fuse_tpc_mask) &&
-	    (fuse_tpc_mask == BIT32(max_tpc_count) - U32(1))) {
-		u32 val = g->tpc_fs_mask_user;
-		val &= BIT32(max_tpc_count) - U32(1);
-		/* skip tpc to disable the other tpc cause channel timeout */
-		val = BIT32(hweight32(val)) - U32(1);
-		gk20a_writel(g, gr_fe_tpc_fs_r(), val);
-	} else {
-		gk20a_writel(g, gr_fe_tpc_fs_r(), pes_tpc_mask);
-	}
-}
-
 void gr_gm20b_program_sm_id_numbering(struct gk20a *g,
 					     u32 gpc, u32 tpc, u32 smid)
 {

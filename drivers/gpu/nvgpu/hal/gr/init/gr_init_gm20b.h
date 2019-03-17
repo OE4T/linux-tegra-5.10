@@ -27,10 +27,16 @@
 
 struct gk20a;
 struct netlist_av_list;
+struct nvgpu_gr_config;
 
+void gm20b_gr_init_tpc_mask(struct gk20a *g, u32 gpc_index, u32 pes_tpc_mask);
+int gm20b_gr_init_rop_mapping(struct gk20a *g,
+			      struct nvgpu_gr_config *gr_config);
 int gm20b_gr_init_fs_state(struct gk20a *g);
-void gm20b_gr_init_pd_tpc_per_gpc(struct gk20a *g);
-void gm20b_gr_init_pd_skip_table_gpc(struct gk20a *g);
+void gm20b_gr_init_pd_tpc_per_gpc(struct gk20a *g,
+			      struct nvgpu_gr_config *gr_config);
+void gm20b_gr_init_pd_skip_table_gpc(struct gk20a *g,
+			      struct nvgpu_gr_config *gr_config);
 void gm20b_gr_init_cwd_gpcs_tpcs_num(struct gk20a *g,
 				     u32 gpc_count, u32 tpc_count);
 int gm20b_gr_init_wait_idle(struct gk20a *g);

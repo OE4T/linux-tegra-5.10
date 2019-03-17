@@ -26,7 +26,11 @@
 #include <nvgpu/types.h>
 
 struct gk20a;
+struct nvgpu_gr_config;
 
+void gv11b_gr_init_tpc_mask(struct gk20a *g, u32 gpc_index, u32 pes_tpc_mask);
+int gv11b_gr_init_rop_mapping(struct gk20a *g,
+			      struct nvgpu_gr_config *gr_config);
 int gv11b_gr_init_fs_state(struct gk20a *g);
 int gv11b_gr_init_preemption_state(struct gk20a *g, u32 gfxp_wfi_timeout_count,
 	bool gfxp_wfi_timeout_unit_usec);

@@ -39,6 +39,190 @@
 #define FE_PWR_MODE_TIMEOUT_DEFAULT_US 10U
 #define FECS_CTXSW_RESET_DELAY_US 10U
 
+void gm20b_gr_init_tpc_mask(struct gk20a *g, u32 gpc_index, u32 pes_tpc_mask)
+{
+	nvgpu_writel(g, gr_fe_tpc_fs_r(), pes_tpc_mask);
+}
+
+int gm20b_gr_init_rop_mapping(struct gk20a *g,
+			      struct nvgpu_gr_config *gr_config)
+{
+	u32 norm_entries, norm_shift;
+	u32 coeff5_mod, coeff6_mod, coeff7_mod, coeff8_mod;
+	u32 coeff9_mod, coeff10_mod, coeff11_mod;
+	u32 map0, map1, map2, map3, map4, map5;
+	u32 tpc_cnt;
+
+	if (gr_config->map_tiles == NULL) {
+		return -1;
+	}
+
+	nvgpu_log_fn(g, " ");
+
+	tpc_cnt = nvgpu_gr_config_get_tpc_count(gr_config);
+
+	nvgpu_writel(g, gr_crstr_map_table_cfg_r(),
+		     gr_crstr_map_table_cfg_row_offset_f(
+			nvgpu_gr_config_get_map_row_offset(gr_config)) |
+		     gr_crstr_map_table_cfg_num_entries_f(tpc_cnt));
+
+	map0 =  gr_crstr_gpc_map0_tile0_f(
+			nvgpu_gr_config_get_map_tile_count(gr_config, 0)) |
+		gr_crstr_gpc_map0_tile1_f(
+			nvgpu_gr_config_get_map_tile_count(gr_config, 1)) |
+		gr_crstr_gpc_map0_tile2_f(
+			nvgpu_gr_config_get_map_tile_count(gr_config, 2)) |
+		gr_crstr_gpc_map0_tile3_f(
+			nvgpu_gr_config_get_map_tile_count(gr_config, 3)) |
+		gr_crstr_gpc_map0_tile4_f(
+			nvgpu_gr_config_get_map_tile_count(gr_config, 4)) |
+		gr_crstr_gpc_map0_tile5_f(
+			nvgpu_gr_config_get_map_tile_count(gr_config, 5));
+
+	map1 =  gr_crstr_gpc_map1_tile6_f(
+			nvgpu_gr_config_get_map_tile_count(gr_config, 6)) |
+		gr_crstr_gpc_map1_tile7_f(
+			nvgpu_gr_config_get_map_tile_count(gr_config, 7)) |
+		gr_crstr_gpc_map1_tile8_f(
+			nvgpu_gr_config_get_map_tile_count(gr_config, 8)) |
+		gr_crstr_gpc_map1_tile9_f(
+			nvgpu_gr_config_get_map_tile_count(gr_config, 9)) |
+		gr_crstr_gpc_map1_tile10_f(
+			nvgpu_gr_config_get_map_tile_count(gr_config, 10)) |
+		gr_crstr_gpc_map1_tile11_f(
+			nvgpu_gr_config_get_map_tile_count(gr_config, 11));
+
+	map2 =  gr_crstr_gpc_map2_tile12_f(
+			nvgpu_gr_config_get_map_tile_count(gr_config, 12)) |
+		gr_crstr_gpc_map2_tile13_f(
+			nvgpu_gr_config_get_map_tile_count(gr_config, 13)) |
+		gr_crstr_gpc_map2_tile14_f(
+			nvgpu_gr_config_get_map_tile_count(gr_config, 14)) |
+		gr_crstr_gpc_map2_tile15_f(
+			nvgpu_gr_config_get_map_tile_count(gr_config, 15)) |
+		gr_crstr_gpc_map2_tile16_f(
+			nvgpu_gr_config_get_map_tile_count(gr_config, 16)) |
+		gr_crstr_gpc_map2_tile17_f(
+			nvgpu_gr_config_get_map_tile_count(gr_config, 17));
+
+	map3 =  gr_crstr_gpc_map3_tile18_f(
+			nvgpu_gr_config_get_map_tile_count(gr_config, 18)) |
+		gr_crstr_gpc_map3_tile19_f(
+			nvgpu_gr_config_get_map_tile_count(gr_config, 19)) |
+		gr_crstr_gpc_map3_tile20_f(
+			nvgpu_gr_config_get_map_tile_count(gr_config, 20)) |
+		gr_crstr_gpc_map3_tile21_f(
+			nvgpu_gr_config_get_map_tile_count(gr_config, 21)) |
+		gr_crstr_gpc_map3_tile22_f(
+			nvgpu_gr_config_get_map_tile_count(gr_config, 22)) |
+		gr_crstr_gpc_map3_tile23_f(
+			nvgpu_gr_config_get_map_tile_count(gr_config, 23));
+
+	map4 =  gr_crstr_gpc_map4_tile24_f(
+			nvgpu_gr_config_get_map_tile_count(gr_config, 24)) |
+		gr_crstr_gpc_map4_tile25_f(
+			nvgpu_gr_config_get_map_tile_count(gr_config, 25)) |
+		gr_crstr_gpc_map4_tile26_f(
+			nvgpu_gr_config_get_map_tile_count(gr_config, 26)) |
+		gr_crstr_gpc_map4_tile27_f(
+			nvgpu_gr_config_get_map_tile_count(gr_config, 27)) |
+		gr_crstr_gpc_map4_tile28_f(
+			nvgpu_gr_config_get_map_tile_count(gr_config, 28)) |
+		gr_crstr_gpc_map4_tile29_f(
+			nvgpu_gr_config_get_map_tile_count(gr_config, 29));
+
+	map5 =  gr_crstr_gpc_map5_tile30_f(
+			nvgpu_gr_config_get_map_tile_count(gr_config, 30)) |
+		gr_crstr_gpc_map5_tile31_f(
+			nvgpu_gr_config_get_map_tile_count(gr_config, 31)) |
+		gr_crstr_gpc_map5_tile32_f(0) |
+		gr_crstr_gpc_map5_tile33_f(0) |
+		gr_crstr_gpc_map5_tile34_f(0) |
+		gr_crstr_gpc_map5_tile35_f(0);
+
+	nvgpu_writel(g, gr_crstr_gpc_map0_r(), map0);
+	nvgpu_writel(g, gr_crstr_gpc_map1_r(), map1);
+	nvgpu_writel(g, gr_crstr_gpc_map2_r(), map2);
+	nvgpu_writel(g, gr_crstr_gpc_map3_r(), map3);
+	nvgpu_writel(g, gr_crstr_gpc_map4_r(), map4);
+	nvgpu_writel(g, gr_crstr_gpc_map5_r(), map5);
+
+	switch (tpc_cnt) {
+	case 1:
+		norm_shift = 4;
+		break;
+	case 2:
+	case 3:
+		norm_shift = 3;
+		break;
+	case 4:
+	case 5:
+	case 6:
+	case 7:
+		norm_shift = 2;
+		break;
+	case 8:
+	case 9:
+	case 10:
+	case 11:
+	case 12:
+	case 13:
+	case 14:
+	case 15:
+		norm_shift = 1;
+		break;
+	default:
+		norm_shift = 0;
+		break;
+	}
+
+	norm_entries = tpc_cnt << norm_shift;
+	coeff5_mod = BIT32(5) % norm_entries;
+	coeff6_mod = BIT32(6) % norm_entries;
+	coeff7_mod = BIT32(7) % norm_entries;
+	coeff8_mod = BIT32(8) % norm_entries;
+	coeff9_mod = BIT32(9) % norm_entries;
+	coeff10_mod = BIT32(10) % norm_entries;
+	coeff11_mod = BIT32(11) % norm_entries;
+
+	nvgpu_writel(g, gr_ppcs_wwdx_map_table_cfg_r(),
+	 gr_ppcs_wwdx_map_table_cfg_row_offset_f(
+	  nvgpu_gr_config_get_map_row_offset(gr_config)) |
+	 gr_ppcs_wwdx_map_table_cfg_normalized_num_entries_f(norm_entries) |
+	 gr_ppcs_wwdx_map_table_cfg_normalized_shift_value_f(norm_shift) |
+	 gr_ppcs_wwdx_map_table_cfg_coeff5_mod_value_f(coeff5_mod) |
+	 gr_ppcs_wwdx_map_table_cfg_num_entries_f(tpc_cnt));
+
+	nvgpu_writel(g, gr_ppcs_wwdx_map_table_cfg2_r(),
+	 gr_ppcs_wwdx_map_table_cfg2_coeff6_mod_value_f(coeff6_mod) |
+	 gr_ppcs_wwdx_map_table_cfg2_coeff7_mod_value_f(coeff7_mod) |
+	 gr_ppcs_wwdx_map_table_cfg2_coeff8_mod_value_f(coeff8_mod) |
+	 gr_ppcs_wwdx_map_table_cfg2_coeff9_mod_value_f(coeff9_mod) |
+	 gr_ppcs_wwdx_map_table_cfg2_coeff10_mod_value_f(coeff10_mod) |
+	 gr_ppcs_wwdx_map_table_cfg2_coeff11_mod_value_f(coeff11_mod));
+
+	nvgpu_writel(g, gr_ppcs_wwdx_map_gpc_map0_r(), map0);
+	nvgpu_writel(g, gr_ppcs_wwdx_map_gpc_map1_r(), map1);
+	nvgpu_writel(g, gr_ppcs_wwdx_map_gpc_map2_r(), map2);
+	nvgpu_writel(g, gr_ppcs_wwdx_map_gpc_map3_r(), map3);
+	nvgpu_writel(g, gr_ppcs_wwdx_map_gpc_map4_r(), map4);
+	nvgpu_writel(g, gr_ppcs_wwdx_map_gpc_map5_r(), map5);
+
+	nvgpu_writel(g, gr_rstr2d_map_table_cfg_r(),
+		gr_rstr2d_map_table_cfg_row_offset_f(
+		 nvgpu_gr_config_get_map_row_offset(gr_config)) |
+		 gr_rstr2d_map_table_cfg_num_entries_f(tpc_cnt));
+
+	nvgpu_writel(g, gr_rstr2d_gpc_map0_r(), map0);
+	nvgpu_writel(g, gr_rstr2d_gpc_map1_r(), map1);
+	nvgpu_writel(g, gr_rstr2d_gpc_map2_r(), map2);
+	nvgpu_writel(g, gr_rstr2d_gpc_map3_r(), map3);
+	nvgpu_writel(g, gr_rstr2d_gpc_map4_r(), map4);
+	nvgpu_writel(g, gr_rstr2d_gpc_map5_r(), map5);
+
+	return 0;
+}
+
 int gm20b_gr_init_fs_state(struct gk20a *g)
 {
 	int err = 0;
@@ -57,12 +241,12 @@ int gm20b_gr_init_fs_state(struct gk20a *g)
 	return err;
 }
 
-void gm20b_gr_init_pd_tpc_per_gpc(struct gk20a *g)
+void gm20b_gr_init_pd_tpc_per_gpc(struct gk20a *g,
+				  struct nvgpu_gr_config *gr_config)
 {
 	u32 reg_index;
 	u32 tpc_per_gpc;
 	u32 gpc_id = 0;
-	struct nvgpu_gr_config *gr_config = g->gr.config;
 
 	for (reg_index = 0U, gpc_id = 0U;
 	     reg_index < gr_pd_num_tpc_per_gpc__size_1_v();
@@ -91,11 +275,11 @@ void gm20b_gr_init_pd_tpc_per_gpc(struct gk20a *g)
 	}
 }
 
-void gm20b_gr_init_pd_skip_table_gpc(struct gk20a *g)
+void gm20b_gr_init_pd_skip_table_gpc(struct gk20a *g,
+				     struct nvgpu_gr_config *gr_config)
 {
 	u32 gpc_index;
 	bool skip_mask;
-	struct nvgpu_gr_config *gr_config = g->gr.config;
 
 	for (gpc_index = 0;
 	     gpc_index < gr_pd_dist_skip_table__size_1_v() * 4U;

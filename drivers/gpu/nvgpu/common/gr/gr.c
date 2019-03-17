@@ -25,6 +25,41 @@
 #include <nvgpu/gr/gr.h>
 #include <nvgpu/gr/config.h>
 
+static void gr_load_tpc_mask(struct gk20a *g)
+{
+	u32 pes_tpc_mask = 0, fuse_tpc_mask;
+	u32 gpc, pes, val;
+	u32 num_tpc_per_gpc = nvgpu_get_litter_value(g,
+						     GPU_LIT_NUM_TPC_PER_GPC);
+	u32 max_tpc_count = nvgpu_gr_config_get_max_tpc_count(g->gr.config);
+
+	/* gv11b has 1 GPC and 4 TPC/GPC, so mask will not overflow u32 */
+	for (gpc = 0; gpc < nvgpu_gr_config_get_gpc_count(g->gr.config);
+								gpc++) {
+		for (pes = 0;
+		     pes < nvgpu_gr_config_get_pe_count_per_gpc(g->gr.config);
+		     pes++) {
+			pes_tpc_mask |= nvgpu_gr_config_get_pes_tpc_mask(
+						g->gr.config, gpc, pes) <<
+					num_tpc_per_gpc * gpc;
+		}
+	}
+
+	nvgpu_log_info(g, "pes_tpc_mask %u\n", pes_tpc_mask);
+
+	fuse_tpc_mask = g->ops.gr.config.get_gpc_tpc_mask(g, g->gr.config, 0);
+	if ((g->tpc_fs_mask_user != 0U) &&
+	    (g->tpc_fs_mask_user != fuse_tpc_mask) &&
+	    (fuse_tpc_mask == BIT32(max_tpc_count) - U32(1))) {
+		val = g->tpc_fs_mask_user;
+		val &= BIT32(max_tpc_count) - U32(1);
+		/* skip tpc to disable the other tpc cause channel timeout */
+		val = BIT32(hweight32(val)) - U32(1);
+		pes_tpc_mask = val;
+	}
+	g->ops.gr.init.tpc_mask(g, 0, pes_tpc_mask);
+}
+
 u32 nvgpu_gr_get_idle_timeout(struct gk20a *g)
 {
 	return nvgpu_is_timeouts_enabled(g) ?
@@ -66,12 +101,12 @@ int nvgpu_gr_init_fs_state(struct gk20a *g)
 		g->ops.gr.program_sm_id_numbering(g, gpc_index, tpc_index, sm_id);
 	}
 
-	g->ops.gr.init.pd_tpc_per_gpc(g);
+	g->ops.gr.init.pd_tpc_per_gpc(g, gr_config);
 
 	/* gr__setup_pd_mapping */
-	g->ops.gr.setup_rop_mapping(g, &g->gr);
+	g->ops.gr.init.rop_mapping(g, gr_config);
 
-	g->ops.gr.init.pd_skip_table_gpc(g);
+	g->ops.gr.init.pd_skip_table_gpc(g, gr_config);
 
 	fuse_tpc_mask = g->ops.gr.config.get_gpc_tpc_mask(g, gr_config, 0);
 	gpc_cnt = nvgpu_gr_config_get_gpc_count(gr_config);
@@ -86,7 +121,7 @@ int nvgpu_gr_init_fs_state(struct gk20a *g)
 	}
 	g->ops.gr.init.cwd_gpcs_tpcs_num(g, gpc_cnt, tpc_cnt);
 
-	g->ops.gr.load_tpc_mask(g);
+	gr_load_tpc_mask(g);
 
 	err = g->ops.gr.load_smid_config(g);
 	if (err != 0) {
