@@ -70,9 +70,6 @@ int gr_tu104_get_offset_in_gpccs_segment(struct gk20a *g,
 int gr_tu104_handle_sw_method(struct gk20a *g, u32 addr,
 			      u32 class_num, u32 offset, u32 data);
 
-int gr_tu104_init_gfxp_rtv_cb(struct gk20a *g,
-		  struct nvgpu_gr_ctx *gr_ctx, struct vm_gk20a *vm);
-
 void gr_tu104_init_sm_dsm_reg_info(void);
 void gr_tu104_get_sm_dsm_perf_ctrl_regs(struct gk20a *g,
 	u32 *num_sm_dsm_perf_ctrl_regs, u32 **sm_dsm_perf_ctrl_regs,

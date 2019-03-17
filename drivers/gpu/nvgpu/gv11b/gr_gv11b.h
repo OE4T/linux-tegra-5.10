@@ -195,8 +195,4 @@ void gr_gv11b_set_skedcheck(struct gk20a *g, u32 data);
 void gr_gv11b_set_go_idle_timeout(struct gk20a *g, u32 data);
 void gr_gv11b_set_coalesce_buffer_size(struct gk20a *g, u32 data);
 void gr_gv11b_set_tex_in_dbg(struct gk20a *g, u32 data);
-u32 gv11b_gr_get_ctx_spill_size(struct gk20a *g);
-u32 gv11b_gr_get_ctx_pagepool_size(struct gk20a *g);
-u32 gv11b_gr_get_ctx_betacb_size(struct gk20a *g);
-u32 gv11b_gr_get_ctx_attrib_cb_size(struct gk20a *g, u32 betacb_size);
 #endif /* NVGPU_GR_GV11B_H */

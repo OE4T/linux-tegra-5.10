@@ -573,12 +573,14 @@ int gr_gp10b_set_ctxsw_preemption_mode(struct gk20a *g,
 	switch (graphics_preempt_mode) {
 	case NVGPU_PREEMPTION_MODE_GRAPHICS_GFXP:
 		{
-		u32 spill_size = g->ops.gr.get_ctx_spill_size(g);
-		u32 pagepool_size = g->ops.gr.get_ctx_pagepool_size(g);
-		u32 betacb_size = g->ops.gr.get_ctx_betacb_size(g);
+		u32 rtv_cb_size;
+		u32 spill_size = g->ops.gr.init.get_ctx_spill_size(g);
+		u32 pagepool_size = g->ops.gr.init.get_ctx_pagepool_size(g);
+		u32 betacb_size = g->ops.gr.init.get_ctx_betacb_size(g);
 		u32 attrib_cb_size =
-			g->ops.gr.get_ctx_attrib_cb_size(g, betacb_size);
-		attrib_cb_size = ALIGN(attrib_cb_size, 128);
+			g->ops.gr.init.get_ctx_attrib_cb_size(g, betacb_size,
+				nvgpu_gr_config_get_tpc_count(g->gr.config),
+				nvgpu_gr_config_get_max_tpc_count(g->gr.config));
 
 		nvgpu_log_info(g, "gfxp context spill_size=%d", spill_size);
 		nvgpu_log_info(g, "gfxp context pagepool_size=%d", pagepool_size);
@@ -595,12 +597,10 @@ int gr_gp10b_set_ctxsw_preemption_mode(struct gk20a *g,
 		nvgpu_gr_ctx_set_size(g->gr.gr_ctx_desc,
 			NVGPU_GR_CTX_PAGEPOOL_CTXSW, pagepool_size);
 
-		if (g->ops.gr.init_gfxp_rtv_cb != NULL) {
-			err = g->ops.gr.init_gfxp_rtv_cb(g, gr_ctx, vm);
-			if (err != 0) {
-				nvgpu_err(g, "cannot allocate gfxp rtv_cb");
-				goto fail;
-			}
+		if (g->ops.gr.init.get_gfxp_rtv_cb_size != NULL) {
+			rtv_cb_size = g->ops.gr.init.get_gfxp_rtv_cb_size(g);
+			nvgpu_gr_ctx_set_size(g->gr.gr_ctx_desc,
+				NVGPU_GR_CTX_GFXP_RTVCB_CTXSW, rtv_cb_size);
 		}
 
 		err = nvgpu_gr_ctx_alloc_ctxsw_buffers(g, gr_ctx,
@@ -1576,31 +1576,3 @@ unsigned long gr_gp10b_get_max_gfxp_wfi_timeout_count(struct gk20a *g)
 	return (100UL * 1000UL * 1000UL);
 }
 
-u32 gp10b_gr_get_ctx_spill_size(struct gk20a *g)
-{
-	return  gr_gpc0_swdx_rm_spill_buffer_size_256b_default_v() *
-		gr_gpc0_swdx_rm_spill_buffer_size_256b_byte_granularity_v();
-}
-
-u32 gp10b_gr_get_ctx_pagepool_size(struct gk20a *g)
-{
-	return g->ops.gr.init.pagepool_default_size(g) *
-		gr_scc_pagepool_total_pages_byte_granularity_v();
-}
-
-u32 gp10b_gr_get_ctx_betacb_size(struct gk20a *g)
-{
-	return g->ops.gr.init.get_attrib_cb_default_size(g) +
-		(gr_gpc0_ppc0_cbm_beta_cb_size_v_gfxp_v() -
-		 gr_gpc0_ppc0_cbm_beta_cb_size_v_default_v());
-}
-
-u32 gp10b_gr_get_ctx_attrib_cb_size(struct gk20a *g, u32 betacb_size)
-{
-	u32 alpha_cb_size = g->ops.gr.init.get_alpha_cb_size(g,
-		nvgpu_gr_config_get_tpc_count(g->gr.config));
-
-	return (betacb_size + alpha_cb_size) *
-		gr_gpc0_ppc0_cbm_beta_cb_size_v_granularity_v() *
-		nvgpu_gr_config_get_max_tpc_count(g->gr.config);
-}

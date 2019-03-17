@@ -62,3 +62,15 @@ u32 gv100_gr_init_get_attrib_cb_gfxp_size(struct gk20a *g)
 	return gr_gpc0_ppc0_cbm_beta_cb_size_v_gfxp_v();
 }
 
+u32 gv100_gr_init_get_ctx_spill_size(struct gk20a *g)
+{
+	return  gr_gpc0_swdx_rm_spill_buffer_size_256b_default_v() *
+		gr_gpc0_swdx_rm_spill_buffer_size_256b_byte_granularity_v();
+}
+
+u32 gv100_gr_init_get_ctx_betacb_size(struct gk20a *g)
+{
+	return g->ops.gr.init.get_attrib_cb_default_size(g) +
+		(gr_gpc0_ppc0_cbm_beta_cb_size_v_gfxp_v() -
+		 gr_gpc0_ppc0_cbm_beta_cb_size_v_default_v());
+}

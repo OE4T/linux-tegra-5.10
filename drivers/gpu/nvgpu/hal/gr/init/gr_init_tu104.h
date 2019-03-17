@@ -46,4 +46,9 @@ u32 tu104_gr_init_get_attrib_cb_gfxp_size(struct gk20a *g);
 int tu104_gr_init_load_sw_bundle64(struct gk20a *g,
 		struct netlist_av64_list *sw_bundle64_init);
 
+u32 tu104_gr_init_get_ctx_spill_size(struct gk20a *g);
+u32 tu104_gr_init_get_ctx_betacb_size(struct gk20a *g);
+
+u32 tu104_gr_init_get_gfxp_rtv_cb_size(struct gk20a *g);
+
 #endif /* NVGPU_GR_INIT_TU104_H */

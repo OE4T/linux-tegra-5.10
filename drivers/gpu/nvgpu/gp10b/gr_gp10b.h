@@ -113,8 +113,4 @@ void gr_gp10b_init_gfxp_wfi_timeout_count(struct gk20a *g);
 unsigned long gr_gp10b_get_max_gfxp_wfi_timeout_count(struct gk20a *g);
 bool gr_gp10b_suspend_context(struct channel_gk20a *ch,
 				bool *cilp_preempt_pending);
-u32 gp10b_gr_get_ctx_spill_size(struct gk20a *g);
-u32 gp10b_gr_get_ctx_pagepool_size(struct gk20a *g);
-u32 gp10b_gr_get_ctx_betacb_size(struct gk20a *g);
-u32 gp10b_gr_get_ctx_attrib_cb_size(struct gk20a *g, u32 betacb_size);
 #endif /* NVGPU_GR_GP10B_H */

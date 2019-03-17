@@ -315,7 +315,6 @@ static const struct gpu_ops gm20b_ops = {
 		.get_offset_in_gpccs_segment =
 			gr_gk20a_get_offset_in_gpccs_segment,
 		.set_debug_mode = gm20b_gr_set_debug_mode,
-		.init_gfxp_rtv_cb = NULL,
 		.log_mme_exception = NULL,
 		.halt_pipe = gr_gk20a_halt_pipe,
 		.reset = gk20a_gr_reset,
@@ -470,6 +469,7 @@ static const struct gpu_ops gm20b_ops = {
 			.pipe_mode_override = gm20b_gr_init_pipe_mode_override,
 			.load_sw_bundle_init =
 				gm20b_gr_init_load_sw_bundle_init,
+			.get_gfxp_rtv_cb_size = NULL,
 		},
 		.intr = {
 			.handle_tex_exception =

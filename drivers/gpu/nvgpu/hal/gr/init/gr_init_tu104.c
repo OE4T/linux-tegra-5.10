@@ -167,3 +167,24 @@ int tu104_gr_init_load_sw_bundle64(struct gk20a *g,
 	return err;
 }
 
+u32 tu104_gr_init_get_ctx_spill_size(struct gk20a *g)
+{
+	return  gr_gpc0_swdx_rm_spill_buffer_size_256b_default_v() *
+		gr_gpc0_swdx_rm_spill_buffer_size_256b_byte_granularity_v();
+}
+
+u32 tu104_gr_init_get_ctx_betacb_size(struct gk20a *g)
+{
+	return g->ops.gr.init.get_attrib_cb_default_size(g) +
+		(gr_gpc0_ppc0_cbm_beta_cb_size_v_gfxp_v() -
+		 gr_gpc0_ppc0_cbm_beta_cb_size_v_default_v());
+}
+
+u32 tu104_gr_init_get_gfxp_rtv_cb_size(struct gk20a *g)
+{
+	return (gr_scc_rm_rtv_cb_size_div_256b_default_f() +
+		gr_scc_rm_rtv_cb_size_div_256b_db_adder_f() +
+		gr_scc_rm_rtv_cb_size_div_256b_gfxp_adder_f()) *
+		gr_scc_rm_rtv_cb_size_div_256b_byte_granularity_v();
+}
+

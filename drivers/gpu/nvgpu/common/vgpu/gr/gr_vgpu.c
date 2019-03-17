@@ -1290,14 +1290,14 @@ int vgpu_gr_set_ctxsw_preemption_mode(struct gk20a *g,
 	switch (graphics_preempt_mode) {
 	case NVGPU_PREEMPTION_MODE_GRAPHICS_GFXP:
 	{
-		u32 spill_size = g->ops.gr.get_ctx_spill_size(g);
-		u32 pagepool_size = g->ops.gr.get_ctx_pagepool_size(g);
-		u32 betacb_size = g->ops.gr.get_ctx_betacb_size(g);
+		u32 spill_size = g->ops.gr.init.get_ctx_spill_size(g);
+		u32 pagepool_size = g->ops.gr.init.get_ctx_pagepool_size(g);
+		u32 betacb_size = g->ops.gr.init.get_ctx_betacb_size(g);
 		u32 attrib_cb_size =
-			g->ops.gr.get_ctx_attrib_cb_size(g, betacb_size);
+			g->ops.gr.init.get_ctx_attrib_cb_size(g, betacb_size,
+				nvgpu_gr_config_get_tpc_count(g->gr.config),
+				nvgpu_gr_config_get_max_tpc_count(g->gr.config));
 		struct nvgpu_mem *desc;
-
-		attrib_cb_size = ALIGN(attrib_cb_size, 128);
 
 		nvgpu_log_info(g, "gfxp context preempt size=%d",
 			g->gr.ctx_vars.preempt_image_size);

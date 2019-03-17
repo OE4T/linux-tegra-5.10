@@ -471,7 +471,6 @@ static const struct gpu_ops tu104_ops = {
 		.set_bes_crop_debug3 = gr_gp10b_set_bes_crop_debug3,
 		.set_bes_crop_debug4 = gr_gp10b_set_bes_crop_debug4,
 		.init_ecc = tu104_ecc_init,
-		.init_gfxp_rtv_cb = gr_tu104_init_gfxp_rtv_cb,
 		.set_ctxsw_preemption_mode = gr_gp10b_set_ctxsw_preemption_mode,
 		.is_etpc_addr = gv11b_gr_pri_is_etpc_addr,
 		.egpc_etpc_priv_addr_table = gv11b_gr_egpc_etpc_priv_addr_table,
@@ -506,10 +505,6 @@ static const struct gpu_ops tu104_ops = {
 			gr_tu104_get_offset_in_gpccs_segment,
 		.set_debug_mode = gm20b_gr_set_debug_mode,
 		.log_mme_exception = gr_tu104_log_mme_exception,
-		.get_ctx_spill_size = gp10b_gr_get_ctx_spill_size,
-		.get_ctx_pagepool_size = gp10b_gr_get_ctx_pagepool_size,
-		.get_ctx_betacb_size = gp10b_gr_get_ctx_betacb_size,
-		.get_ctx_attrib_cb_size = gp10b_gr_get_ctx_attrib_cb_size,
 		.halt_pipe = gr_gk20a_halt_pipe,
 		.reset = gk20a_gr_reset,
 		.ctxsw_prog = {
@@ -725,6 +720,14 @@ static const struct gpu_ops tu104_ops = {
 			.load_sw_veid_bundle =
 				gv11b_gr_init_load_sw_veid_bundle,
 			.load_sw_bundle64 = tu104_gr_init_load_sw_bundle64,
+			.get_ctx_spill_size = gv11b_gr_init_get_ctx_spill_size,
+			.get_ctx_pagepool_size =
+				gp10b_gr_init_get_ctx_pagepool_size,
+			.get_ctx_betacb_size =
+				gv11b_gr_init_get_ctx_betacb_size,
+			.get_ctx_attrib_cb_size =
+				gp10b_gr_init_get_ctx_attrib_cb_size,
+			.get_gfxp_rtv_cb_size = tu104_gr_init_get_gfxp_rtv_cb_size,
 		},
 		.intr = {
 			.handle_tex_exception = NULL,

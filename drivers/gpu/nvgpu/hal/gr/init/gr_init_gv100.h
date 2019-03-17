@@ -35,4 +35,7 @@ u32 gv100_gr_init_get_alpha_cb_default_size(struct gk20a *g);
 u32 gv100_gr_init_get_attrib_cb_gfxp_default_size(struct gk20a *g);
 u32 gv100_gr_init_get_attrib_cb_gfxp_size(struct gk20a *g);
 
+u32 gv100_gr_init_get_ctx_spill_size(struct gk20a *g);
+u32 gv100_gr_init_get_ctx_betacb_size(struct gk20a *g);
+
 #endif /* NVGPU_GR_INIT_GV100_H */

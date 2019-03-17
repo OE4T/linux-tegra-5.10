@@ -85,25 +85,6 @@ bool gr_tu104_is_valid_compute_class(struct gk20a *g, u32 class_num)
 	return gr_gv11b_is_valid_compute_class(g, class_num);
 }
 
-int gr_tu104_init_gfxp_rtv_cb(struct gk20a *g,
-		  struct nvgpu_gr_ctx *gr_ctx, struct vm_gk20a *vm)
-{
-	u32 rtv_cb_size;
-
-	nvgpu_log_fn(g, " ");
-
-	rtv_cb_size =
-		(gr_scc_rm_rtv_cb_size_div_256b_default_f() +
-		gr_scc_rm_rtv_cb_size_div_256b_db_adder_f() +
-		gr_scc_rm_rtv_cb_size_div_256b_gfxp_adder_f()) *
-		gr_scc_rm_rtv_cb_size_div_256b_byte_granularity_v();
-
-	nvgpu_gr_ctx_set_size(g->gr.gr_ctx_desc,
-		NVGPU_GR_CTX_GFXP_RTVCB_CTXSW, rtv_cb_size);
-
-	return 0;
-}
-
 int gr_tu104_get_offset_in_gpccs_segment(struct gk20a *g,
 					enum ctxsw_addr_type addr_type,
 					u32 num_tpcs,

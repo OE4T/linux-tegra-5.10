@@ -452,13 +452,7 @@ struct gpu_ops {
 			u32 num_ppcs, u32 reg_list_ppc_count,
 			u32 *__offset_in_segment);
 		void (*set_debug_mode)(struct gk20a *g, bool enable);
-		int (*init_gfxp_rtv_cb)(struct gk20a *g,
-			  struct nvgpu_gr_ctx *gr_ctx, struct vm_gk20a *vm);
 		void (*log_mme_exception)(struct gk20a *g);
-		u32 (*get_ctx_spill_size)(struct gk20a *g);
-		u32 (*get_ctx_pagepool_size)(struct gk20a *g);
-		u32 (*get_ctx_betacb_size)(struct gk20a *g);
-		u32 (*get_ctx_attrib_cb_size)(struct gk20a *g, u32 betacb_size);
 		int (*halt_pipe)(struct gk20a *g);
 		int (*reset)(struct gk20a *g);
 		struct {
@@ -757,6 +751,12 @@ struct gpu_ops {
 				struct nvgpu_gr_ctx *gr_ctx, bool patch);
 			void (*pipe_mode_override)(struct gk20a *g,
 				bool enable);
+			u32 (*get_ctx_spill_size)(struct gk20a *g);
+			u32 (*get_ctx_pagepool_size)(struct gk20a *g);
+			u32 (*get_ctx_betacb_size)(struct gk20a *g);
+			u32 (*get_ctx_attrib_cb_size)(struct gk20a *g,
+				u32 betacb_size, u32 tpc_count, u32 max_tpc);
+			u32 (*get_gfxp_rtv_cb_size)(struct gk20a *g);
 		} init;
 
 		struct {

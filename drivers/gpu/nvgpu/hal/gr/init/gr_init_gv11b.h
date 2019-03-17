@@ -66,4 +66,7 @@ void gv11b_gr_init_commit_global_attrib_cb(struct gk20a *g,
 int gv11b_gr_init_load_sw_veid_bundle(struct gk20a *g,
 	struct netlist_av_list *sw_veid_bundle_init);
 
+u32 gv11b_gr_init_get_ctx_spill_size(struct gk20a *g);
+u32 gv11b_gr_init_get_ctx_betacb_size(struct gk20a *g);
+
 #endif /* NVGPU_GR_INIT_GV11B_H */

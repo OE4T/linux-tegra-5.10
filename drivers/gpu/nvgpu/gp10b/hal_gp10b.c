@@ -351,12 +351,7 @@ static const struct gpu_ops gp10b_ops = {
 		.get_offset_in_gpccs_segment =
 			gr_gk20a_get_offset_in_gpccs_segment,
 		.set_debug_mode = gm20b_gr_set_debug_mode,
-		.init_gfxp_rtv_cb = NULL,
 		.log_mme_exception = NULL,
-		.get_ctx_spill_size = gp10b_gr_get_ctx_spill_size,
-		.get_ctx_pagepool_size = gp10b_gr_get_ctx_pagepool_size,
-		.get_ctx_betacb_size = gp10b_gr_get_ctx_betacb_size,
-		.get_ctx_attrib_cb_size = gp10b_gr_get_ctx_attrib_cb_size,
 		.halt_pipe = gr_gk20a_halt_pipe,
 		.reset = gk20a_gr_reset,
 		.ctxsw_prog = {
@@ -549,6 +544,14 @@ static const struct gpu_ops gp10b_ops = {
 			.pipe_mode_override = gm20b_gr_init_pipe_mode_override,
 			.load_sw_bundle_init =
 				gm20b_gr_init_load_sw_bundle_init,
+			.get_ctx_spill_size = gp10b_gr_init_get_ctx_spill_size,
+			.get_ctx_pagepool_size =
+				gp10b_gr_init_get_ctx_pagepool_size,
+			.get_ctx_betacb_size =
+				gp10b_gr_init_get_ctx_betacb_size,
+			.get_ctx_attrib_cb_size =
+				gp10b_gr_init_get_ctx_attrib_cb_size,
+			.get_gfxp_rtv_cb_size = NULL,
 		},
 		.intr = {
 			.handle_tex_exception =

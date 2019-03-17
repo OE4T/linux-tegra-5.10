@@ -519,3 +519,34 @@ void gp10b_gr_init_commit_global_cb_manager(struct gk20a *g,
 	}
 }
 
+u32 gp10b_gr_init_get_ctx_spill_size(struct gk20a *g)
+{
+	return  gr_gpc0_swdx_rm_spill_buffer_size_256b_default_v() *
+		gr_gpc0_swdx_rm_spill_buffer_size_256b_byte_granularity_v();
+}
+
+u32 gp10b_gr_init_get_ctx_pagepool_size(struct gk20a *g)
+{
+	return g->ops.gr.init.pagepool_default_size(g) *
+		gr_scc_pagepool_total_pages_byte_granularity_v();
+}
+
+u32 gp10b_gr_init_get_ctx_betacb_size(struct gk20a *g)
+{
+	return g->ops.gr.init.get_attrib_cb_default_size(g) +
+		(gr_gpc0_ppc0_cbm_beta_cb_size_v_gfxp_v() -
+		 gr_gpc0_ppc0_cbm_beta_cb_size_v_default_v());
+}
+
+u32 gp10b_gr_init_get_ctx_attrib_cb_size(struct gk20a *g, u32 betacb_size,
+	u32 tpc_count, u32 max_tpc)
+{
+	u32 alpha_cb_size = g->ops.gr.init.get_alpha_cb_size(g, tpc_count);
+	u32 size;
+
+	size = (betacb_size + alpha_cb_size) *
+		gr_gpc0_ppc0_cbm_beta_cb_size_v_granularity_v() * max_tpc;
+
+	return ALIGN(size, 128);
+}
+
