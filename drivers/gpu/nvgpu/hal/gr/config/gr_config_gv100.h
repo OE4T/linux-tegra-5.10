@@ -27,6 +27,6 @@
 
 struct gk20a;
 
-int gv100_gr_config_init_sm_id_table(struct gk20a *g);
+int gv100_gr_config_init_sm_id_table(struct nvgpu_gr_config *gr_config);
 
 #endif /* NVGPU_GR_CONFIG_GV100_H */

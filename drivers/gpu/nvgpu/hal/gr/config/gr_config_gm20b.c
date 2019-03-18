@@ -28,19 +28,19 @@
 
 #include <nvgpu/hw/gm20b/hw_gr_gm20b.h>
 
-int gm20b_gr_config_init_sm_id_table(struct gk20a *g)
+int gm20b_gr_config_init_sm_id_table(struct nvgpu_gr_config *gr_config)
 {
 	u32 gpc, tpc;
 	u32 sm_id = 0;
 
 	for (tpc = 0;
-	     tpc < nvgpu_gr_config_get_max_tpc_per_gpc_count(g->gr.config);
+	     tpc < nvgpu_gr_config_get_max_tpc_per_gpc_count(gr_config);
 	     tpc++) {
-		for (gpc = 0; gpc < nvgpu_gr_config_get_gpc_count(g->gr.config); gpc++) {
+		for (gpc = 0; gpc < nvgpu_gr_config_get_gpc_count(gr_config); gpc++) {
 
-			if (tpc < nvgpu_gr_config_get_gpc_tpc_count(g->gr.config, gpc)) {
+			if (tpc < nvgpu_gr_config_get_gpc_tpc_count(gr_config, gpc)) {
 				struct sm_info *sm_info =
-					nvgpu_gr_config_get_sm_info(g->gr.config, sm_id);
+					nvgpu_gr_config_get_sm_info(gr_config, sm_id);
 				sm_info->tpc_index = tpc;
 				sm_info->gpc_index = gpc;
 				sm_info->sm_index = 0;
@@ -49,7 +49,7 @@ int gm20b_gr_config_init_sm_id_table(struct gk20a *g)
 			}
 		}
 	}
-	g->gr.config->no_of_sm = sm_id;
+	gr_config->no_of_sm = sm_id;
 	return 0;
 }
 

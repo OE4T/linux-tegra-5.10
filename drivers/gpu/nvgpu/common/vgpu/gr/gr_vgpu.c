@@ -333,6 +333,8 @@ static int vgpu_gr_init_gr_config(struct gk20a *g, struct gr_gk20a *gr)
 
 	config = gr->config;
 
+	config->g = g;
+
 	config->max_gpc_count = priv->constants.max_gpc_count;
 	config->gpc_count = priv->constants.gpc_count;
 	config->gpc_mask = priv->constants.gpc_mask;
@@ -1094,27 +1096,26 @@ void vgpu_gr_handle_sm_esr_event(struct gk20a *g,
 	nvgpu_mutex_release(&g->dbg_sessions_lock);
 }
 
-int vgpu_gr_init_sm_id_table(struct gk20a *g)
+int vgpu_gr_init_sm_id_table(struct nvgpu_gr_config *gr_config)
 {
 	struct tegra_vgpu_cmd_msg msg = {};
 	struct tegra_vgpu_vsms_mapping_params *p = &msg.params.vsms_mapping;
 	struct tegra_vgpu_vsms_mapping_entry *entry;
-	struct vgpu_priv_data *priv = vgpu_get_priv_data(g);
+	struct vgpu_priv_data *priv = vgpu_get_priv_data(gr_config->g);
 	struct sm_info *sm_info;
 	int err;
-	struct gr_gk20a *gr = &g->gr;
-	struct nvgpu_gr_config *config = gr->config;
 	size_t oob_size;
 	void *handle = NULL;
 	u32 sm_id;
 	u32 max_sm;
 
 	msg.cmd = TEGRA_VGPU_CMD_GET_VSMS_MAPPING;
-	msg.handle = vgpu_get_handle(g);
+	msg.handle = vgpu_get_handle(gr_config->g);
 	err = vgpu_comm_sendrecv(&msg, sizeof(msg), sizeof(msg));
 	err = err ? err : msg.ret;
 	if (err) {
-		nvgpu_err(g, "get vsms mapping failed err %d", err);
+		nvgpu_err(gr_config->g,
+			"get vsms mapping failed err %d", err);
 		return err;
 	}
 
@@ -1125,8 +1126,8 @@ int vgpu_gr_init_sm_id_table(struct gk20a *g)
 		return -EINVAL;
 	}
 
-	max_sm = config->gpc_count *
-			config->max_tpc_per_gpc_count *
+	max_sm = gr_config->gpc_count *
+			gr_config->max_tpc_per_gpc_count *
 			priv->constants.sm_per_tpc;
 	if (p->num_sm > max_sm) {
 		return -EINVAL;
@@ -1136,9 +1137,9 @@ int vgpu_gr_init_sm_id_table(struct gk20a *g)
 		return -EINVAL;
 	}
 
-	gr->config->no_of_sm = p->num_sm;
+	gr_config->no_of_sm = p->num_sm;
 	for (sm_id = 0; sm_id < p->num_sm; sm_id++, entry++) {
-		sm_info = nvgpu_gr_config_get_sm_info(gr->config, sm_id);
+		sm_info = nvgpu_gr_config_get_sm_info(gr_config, sm_id);
 		sm_info->tpc_index = entry->tpc_index;
 		sm_info->gpc_index = entry->gpc_index;
 		sm_info->sm_index = entry->sm_index;
@@ -1155,7 +1156,7 @@ int vgpu_gr_init_fs_state(struct gk20a *g)
 		return -EINVAL;
 	}
 
-	return g->ops.gr.config.init_sm_id_table(g);
+	return g->ops.gr.config.init_sm_id_table(g->gr.config);
 }
 
 int vgpu_gr_update_pc_sampling(struct channel_gk20a *ch, bool enable)

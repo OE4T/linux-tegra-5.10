@@ -28,7 +28,7 @@
 struct gk20a;
 struct nvgpu_gr_config;
 
-int gm20b_gr_config_init_sm_id_table(struct gk20a *g);
+int gm20b_gr_config_init_sm_id_table(struct nvgpu_gr_config *gr_config);
 u32 gm20b_gr_config_get_gpc_tpc_mask(struct gk20a *g,
 	struct nvgpu_gr_config *config, u32 gpc_index);
 u32 gm20b_gr_config_get_tpc_count_in_gpc(struct gk20a *g,

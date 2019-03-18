@@ -37,6 +37,8 @@ struct sm_info {
 };
 
 struct nvgpu_gr_config {
+	struct gk20a *g;
+
 	u32 max_gpc_count;
 	u32 max_tpc_per_gpc_count;
 	u32 max_zcull_per_gpc_count;
@@ -48,6 +50,7 @@ struct nvgpu_gr_config {
 	u32 zcb_count;
 
 	u32 pe_count_per_gpc;
+	u32 sm_count_per_tpc;
 
 	u32 *gpc_ppc_count;
 	u32 *gpc_tpc_count;
@@ -87,6 +90,7 @@ u32 nvgpu_gr_config_get_ppc_count(struct nvgpu_gr_config *config);
 u32 nvgpu_gr_config_get_zcb_count(struct nvgpu_gr_config *config);
 
 u32 nvgpu_gr_config_get_pe_count_per_gpc(struct nvgpu_gr_config *config);
+u32 nvgpu_gr_config_get_sm_count_per_tpc(struct nvgpu_gr_config *config);
 
 u32 nvgpu_gr_config_get_gpc_ppc_count(struct nvgpu_gr_config *config,
 	u32 gpc_index);

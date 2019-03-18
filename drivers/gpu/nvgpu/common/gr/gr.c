@@ -102,7 +102,7 @@ int nvgpu_gr_init_fs_state(struct gk20a *g)
 	}
 
 	if (g->ops.gr.config.init_sm_id_table != NULL) {
-		err = g->ops.gr.config.init_sm_id_table(g);
+		err = g->ops.gr.config.init_sm_id_table(g->gr.config);
 		if (err != 0) {
 			return err;
 		}

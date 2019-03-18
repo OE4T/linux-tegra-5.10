@@ -76,7 +76,7 @@ int vgpu_gr_resume_contexts(struct gk20a *g,
 		struct dbg_session_gk20a *dbg_s,
 		int *ctx_resident_ch_fd);
 int vgpu_gr_commit_inst(struct channel_gk20a *c, u64 gpu_va);
-int vgpu_gr_init_sm_id_table(struct gk20a *g);
+int vgpu_gr_init_sm_id_table(struct nvgpu_gr_config *gr_config);
 int vgpu_gr_init_fs_state(struct gk20a *g);
 int vgpu_gr_update_pc_sampling(struct channel_gk20a *ch, bool enable);
 void vgpu_gr_init_cyclestats(struct gk20a *g);

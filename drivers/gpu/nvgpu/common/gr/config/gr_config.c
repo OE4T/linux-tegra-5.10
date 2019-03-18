@@ -39,6 +39,8 @@ struct nvgpu_gr_config *nvgpu_gr_config_init(struct gk20a *g)
 		return NULL;;
 	}
 
+	config->g = g;
+
 	config->max_gpc_count = g->ops.top.get_max_gpc_count(g);
 
 	config->max_tpc_per_gpc_count = g->ops.top.get_max_tpc_per_gpc_count(g);
@@ -65,10 +67,16 @@ struct nvgpu_gr_config *nvgpu_gr_config_init(struct gk20a *g)
 		goto clean_up;
 	}
 
+	config->sm_count_per_tpc = nvgpu_get_litter_value(g, GPU_LIT_NUM_SM_PER_TPC);
+	if (config->sm_count_per_tpc == 0U) {
+		nvgpu_err(g, "sm_count_per_tpc==0!");
+		goto clean_up;
+	}
+
 	/* allocate for max tpc per gpc */
 	sm_info_size = (size_t)config->gpc_count *
 		(size_t)config->max_tpc_per_gpc_count *
-		(size_t)nvgpu_get_litter_value(g, GPU_LIT_NUM_SM_PER_TPC) *
+		(size_t)config->sm_count_per_tpc *
 		sizeof(struct sm_info);
 
 	if (config->sm_to_cluster == NULL) {
@@ -509,6 +517,11 @@ u32 nvgpu_gr_config_get_zcb_count(struct nvgpu_gr_config *config)
 u32 nvgpu_gr_config_get_pe_count_per_gpc(struct nvgpu_gr_config *config)
 {
 	return config->pe_count_per_gpc;
+}
+
+u32 nvgpu_gr_config_get_sm_count_per_tpc(struct nvgpu_gr_config *config)
+{
+	return config->sm_count_per_tpc;
 }
 
 u32 nvgpu_gr_config_get_gpc_ppc_count(struct nvgpu_gr_config *config,
