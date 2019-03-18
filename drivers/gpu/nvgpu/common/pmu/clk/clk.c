@@ -115,7 +115,6 @@ static int clk_pmu_vf_inject(struct gk20a *g,
 	struct pmu_cmd cmd;
 	struct pmu_payload payload;
 	int status;
-	u32 seqdesc;
 	struct nv_pmu_clk_rpc rpccall;
 	struct nvgpu_clkrpc_pmucmdhandler_params handler;
 
@@ -160,9 +159,9 @@ static int clk_pmu_vf_inject(struct gk20a *g,
 	handler.prpccall = &rpccall;
 	handler.success = 0;
 
-	status = nvgpu_pmu_cmd_post(g, &cmd, NULL, &payload,
+	status = nvgpu_pmu_cmd_post(g, &cmd, &payload,
 		PMU_COMMAND_QUEUE_LPQ, nvgpu_clkrpc_pmucmdhandler,
-		(void *)&handler, &seqdesc);
+		(void *)&handler);
 
 	if (status != 0) {
 		nvgpu_err(g, "unable to post clk RPC cmd %x",

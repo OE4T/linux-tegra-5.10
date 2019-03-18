@@ -136,7 +136,6 @@ int gm20b_pmu_init_acr(struct gk20a *g)
 {
 	struct nvgpu_pmu *pmu = &g->pmu;
 	struct pmu_cmd cmd;
-	u32 seq;
 	size_t tmp_size;
 
 	nvgpu_log_fn(g, " ");
@@ -152,8 +151,8 @@ int gm20b_pmu_init_acr(struct gk20a *g)
 	cmd.cmd.acr.init_wpr.regionid = 0x01U;
 	cmd.cmd.acr.init_wpr.wproffset = 0x00U;
 	nvgpu_pmu_dbg(g, "cmd post PMU_ACR_CMD_ID_INIT_WPR_REGION");
-	nvgpu_pmu_cmd_post(g, &cmd, NULL, NULL, PMU_COMMAND_QUEUE_HPQ,
-			pmu_handle_acr_init_wpr_msg, pmu, &seq);
+	nvgpu_pmu_cmd_post(g, &cmd, NULL, PMU_COMMAND_QUEUE_HPQ,
+			pmu_handle_acr_init_wpr_msg, pmu);
 
 	nvgpu_log_fn(g, "done");
 	return 0;
@@ -200,7 +199,6 @@ void gm20b_pmu_load_lsf(struct gk20a *g, u32 falcon_id, u32 flags)
 {
 	struct nvgpu_pmu *pmu = &g->pmu;
 	struct pmu_cmd cmd;
-	u32 seq;
 	size_t tmp_size;
 
 	nvgpu_log_fn(g, " ");
@@ -220,8 +218,8 @@ void gm20b_pmu_load_lsf(struct gk20a *g, u32 falcon_id, u32 flags)
 		cmd.cmd.acr.bootstrap_falcon.falconid = falcon_id;
 		nvgpu_pmu_dbg(g, "cmd post PMU_ACR_CMD_ID_BOOTSTRAP_FALCON: %x\n",
 				falcon_id);
-		nvgpu_pmu_cmd_post(g, &cmd, NULL, NULL, PMU_COMMAND_QUEUE_HPQ,
-				pmu_handle_fecs_boot_acr_msg, pmu, &seq);
+		nvgpu_pmu_cmd_post(g, &cmd, NULL, PMU_COMMAND_QUEUE_HPQ,
+				pmu_handle_fecs_boot_acr_msg, pmu);
 	}
 
 	nvgpu_log_fn(g, "done");

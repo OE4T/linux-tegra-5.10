@@ -96,7 +96,6 @@ int nvgpu_pmu_ap_send_command(struct gk20a *g,
 	struct nvgpu_pmu *pmu = &g->pmu;
 	int status = 0;
 	struct pmu_cmd cmd;
-	u32 seq;
 	pmu_callback p_callback = NULL;
 	u64 tmp;
 
@@ -162,8 +161,8 @@ int nvgpu_pmu_ap_send_command(struct gk20a *g,
 		goto err_return;
 	}
 
-	status = nvgpu_pmu_cmd_post(g, &cmd, NULL, NULL, PMU_COMMAND_QUEUE_HPQ,
-			p_callback, pmu, &seq);
+	status = nvgpu_pmu_cmd_post(g, &cmd, NULL, PMU_COMMAND_QUEUE_HPQ,
+			p_callback, pmu);
 
 	if (status != 0) {
 		nvgpu_pmu_dbg(g,

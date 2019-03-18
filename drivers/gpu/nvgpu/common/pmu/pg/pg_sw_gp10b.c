@@ -47,7 +47,6 @@ int gp10b_pg_gr_init(struct gk20a *g, u32 pg_engine_id)
 {
 	struct nvgpu_pmu *pmu = &g->pmu;
 	struct pmu_cmd cmd;
-	u32 seq;
 	size_t tmp_size;
 
 	if (pg_engine_id == PMU_PG_ELPG_ENGINE_ID_GRAPHICS) {
@@ -67,8 +66,8 @@ int gp10b_pg_gr_init(struct gk20a *g, u32 pg_engine_id)
 			g->ldiv_slowdown_factor;
 
 		nvgpu_pmu_dbg(g, "cmd post PMU_PG_CMD_ID_PG_PARAM ");
-		nvgpu_pmu_cmd_post(g, &cmd, NULL, NULL, PMU_COMMAND_QUEUE_HPQ,
-			pmu_handle_gr_param_msg, pmu, &seq);
+		nvgpu_pmu_cmd_post(g, &cmd, NULL, PMU_COMMAND_QUEUE_HPQ,
+			pmu_handle_gr_param_msg, pmu);
 
 	} else {
 		return -EINVAL;

@@ -52,7 +52,6 @@ static void pmu_handle_rppg_init_msg(struct gk20a *g, struct pmu_msg *msg,
 static int rppg_send_cmd(struct gk20a *g, struct nv_pmu_rppg_cmd *prppg_cmd)
 {
 	struct pmu_cmd cmd;
-	u32 seq;
 	int status = 0;
 	u32 success = 0;
 	size_t tmp_size = PMU_CMD_HDR_SIZE + sizeof(struct nv_pmu_rppg_cmd);
@@ -89,8 +88,8 @@ static int rppg_send_cmd(struct gk20a *g, struct nv_pmu_rppg_cmd *prppg_cmd)
 		goto exit;
 	}
 
-	status = nvgpu_pmu_cmd_post(g, &cmd, NULL, NULL, PMU_COMMAND_QUEUE_HPQ,
-			pmu_handle_rppg_init_msg, &success, &seq);
+	status = nvgpu_pmu_cmd_post(g, &cmd, NULL, PMU_COMMAND_QUEUE_HPQ,
+			pmu_handle_rppg_init_msg, &success);
 	if (status != 0) {
 		nvgpu_err(g, "Unable to submit parameter command %d",
 			prppg_cmd->cmn.cmd_id);

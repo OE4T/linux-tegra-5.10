@@ -235,7 +235,6 @@ static void nvgpu_pmu_handle_param_lpwr_msg(struct gk20a *g,
 int nvgpu_lwpr_mclk_change(struct gk20a *g, u32 pstate)
 {
 	struct pmu_cmd cmd;
-	u32 seq;
 	int status = 0;
 	u32 payload = NV_PMU_PG_PARAM_MCLK_CHANGE_MS_SWASR_ENABLED;
 	struct clk_set_info *pstate_info;
@@ -270,9 +269,9 @@ int nvgpu_lwpr_mclk_change(struct gk20a *g, u32 pstate)
 		cmd.cmd.pg.mclk_change.data = payload;
 
 		nvgpu_pmu_dbg(g, "cmd post MS PMU_PG_PARAM_CMD_MCLK_CHANGE");
-		status = nvgpu_pmu_cmd_post(g, &cmd, NULL, NULL,
+		status = nvgpu_pmu_cmd_post(g, &cmd, NULL,
 			PMU_COMMAND_QUEUE_HPQ,
-			nvgpu_pmu_handle_param_lpwr_msg, &ack_status, &seq);
+			nvgpu_pmu_handle_param_lpwr_msg, &ack_status);
 
 		pmu_wait_message_cond(&g->pmu, nvgpu_get_poll_timeout(g),
 			&ack_status, 1);
@@ -288,7 +287,6 @@ int nvgpu_lwpr_mclk_change(struct gk20a *g, u32 pstate)
 int nvgpu_lpwr_post_init(struct gk20a *g)
 {
 	struct pmu_cmd cmd;
-	u32 seq;
 	int status = 0;
 	u32 ack_status = 0;
 	size_t tmp_size = PMU_CMD_HDR_SIZE +
@@ -306,9 +304,9 @@ int nvgpu_lpwr_post_init(struct gk20a *g)
 		PMU_PG_PARAM_CMD_POST_INIT;
 
 	nvgpu_pmu_dbg(g, "cmd post post-init PMU_PG_PARAM_CMD_POST_INIT");
-	status = nvgpu_pmu_cmd_post(g, &cmd, NULL, NULL,
+	status = nvgpu_pmu_cmd_post(g, &cmd, NULL,
 		PMU_COMMAND_QUEUE_LPQ,
-		nvgpu_pmu_handle_param_lpwr_msg, &ack_status, &seq);
+		nvgpu_pmu_handle_param_lpwr_msg, &ack_status);
 
 	pmu_wait_message_cond(&g->pmu, nvgpu_get_poll_timeout(g),
 		&ack_status, 1);

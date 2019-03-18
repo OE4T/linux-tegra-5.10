@@ -968,7 +968,6 @@ static int boardobjgrp_pmucmdsend(struct gk20a *g,
 	struct pmu_payload payload;
 	struct nv_pmu_boardobj_cmd_grp *pgrpcmd;
 	struct pmu_cmd cmd;
-	u32 seqdesc;
 	int status = 0;
 	size_t tmp_size;
 
@@ -1010,11 +1009,10 @@ static int boardobjgrp_pmucmdsend(struct gk20a *g,
 	handlerparams.pcmd = pcmd;
 	handlerparams.success = false;
 
-	status = nvgpu_pmu_cmd_post(g, &cmd, NULL, &payload,
+	status = nvgpu_pmu_cmd_post(g, &cmd, &payload,
 				PMU_COMMAND_QUEUE_LPQ,
 				boardobjgrp_pmucmdhandler,
-				(void *)&handlerparams,
-				&seqdesc);
+				(void *)&handlerparams);
 	if (status != 0) {
 		nvgpu_err(g,
 			"unable to post boardobj grp cmd for unit %x cmd id %x",

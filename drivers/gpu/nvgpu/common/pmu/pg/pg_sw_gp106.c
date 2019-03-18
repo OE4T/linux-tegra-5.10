@@ -45,7 +45,6 @@ int gp106_pg_param_init(struct gk20a *g, u32 pg_engine_id)
 {
 	struct nvgpu_pmu *pmu = &g->pmu;
 	struct pmu_cmd cmd;
-	u32 seq;
 	int status;
 	u64 tmp_size;
 
@@ -71,8 +70,8 @@ int gp106_pg_param_init(struct gk20a *g, u32 pg_engine_id)
 			NVGPU_PMU_GR_FEATURE_MASK_RPPG;
 
 		nvgpu_pmu_dbg(g, "cmd post GR PMU_PG_CMD_ID_PG_PARAM");
-		nvgpu_pmu_cmd_post(g, &cmd, NULL, NULL, PMU_COMMAND_QUEUE_HPQ,
-			pmu_handle_param_msg, pmu, &seq);
+		nvgpu_pmu_cmd_post(g, &cmd, NULL, PMU_COMMAND_QUEUE_HPQ,
+			pmu_handle_param_msg, pmu);
 	} else if (pg_engine_id == PMU_PG_ELPG_ENGINE_ID_MS) {
 		cmd.hdr.unit_id = PMU_UNIT_PG;
 		tmp_size = PMU_CMD_HDR_SIZE +
@@ -90,8 +89,8 @@ int gp106_pg_param_init(struct gk20a *g, u32 pg_engine_id)
 			NVGPU_PMU_MS_FEATURE_MASK_FB_TRAINING;
 
 		nvgpu_pmu_dbg(g, "cmd post MS PMU_PG_CMD_ID_PG_PARAM");
-		nvgpu_pmu_cmd_post(g, &cmd, NULL, NULL, PMU_COMMAND_QUEUE_HPQ,
-				pmu_handle_param_msg, pmu, &seq);
+		nvgpu_pmu_cmd_post(g, &cmd, NULL, PMU_COMMAND_QUEUE_HPQ,
+				pmu_handle_param_msg, pmu);
 	}
 
 	return 0;

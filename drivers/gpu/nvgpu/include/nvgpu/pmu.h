@@ -269,7 +269,6 @@ struct pmu_sequence {
 	u8 id;
 	enum pmu_seq_state state;
 	u32 desc;
-	struct pmu_msg *msg;
 	union {
 		struct pmu_allocation_v1 in_v1;
 		struct pmu_allocation_v2 in_v2;
@@ -415,9 +414,8 @@ int nvgpu_pmu_queue_init_fb(struct nvgpu_pmu *pmu,
 
 /* send a cmd to pmu */
 int nvgpu_pmu_cmd_post(struct gk20a *g, struct pmu_cmd *cmd,
-		struct pmu_msg *msg, struct pmu_payload *payload,
-		u32 queue_id, pmu_callback callback, void *cb_param,
-		u32 *seq_desc);
+		struct pmu_payload *payload,
+		u32 queue_id, pmu_callback callback, void *cb_param);
 
 bool nvgpu_pmu_queue_is_empty(struct nvgpu_pmu *pmu, u32 queue_id);
 int nvgpu_pmu_process_message(struct nvgpu_pmu *pmu);

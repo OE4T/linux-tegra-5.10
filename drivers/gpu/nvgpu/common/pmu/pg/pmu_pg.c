@@ -186,7 +186,6 @@ static int pmu_enable_elpg_locked(struct gk20a *g, u8 pg_engine_id)
 {
 	struct nvgpu_pmu *pmu = &g->pmu;
 	struct pmu_cmd cmd;
-	u32 seq;
 	int status;
 	u64 tmp;
 
@@ -211,9 +210,9 @@ static int pmu_enable_elpg_locked(struct gk20a *g, u8 pg_engine_id)
 	}
 
 	nvgpu_pmu_dbg(g, "cmd post PMU_PG_ELPG_CMD_ALLOW");
-	status = nvgpu_pmu_cmd_post(g, &cmd, NULL, NULL,
+	status = nvgpu_pmu_cmd_post(g, &cmd, NULL,
 			PMU_COMMAND_QUEUE_HPQ, pmu_handle_pg_elpg_msg,
-			pmu, &seq);
+			pmu);
 
 	if (status != 0) {
 		nvgpu_log_fn(g, "pmu_enable_elpg_locked FAILED err=%d",
@@ -295,7 +294,6 @@ int nvgpu_pmu_disable_elpg(struct gk20a *g)
 {
 	struct nvgpu_pmu *pmu = &g->pmu;
 	struct pmu_cmd cmd;
-	u32 seq;
 	int ret = 0;
 	u8 pg_engine_id;
 	u32 pg_engine_id_list = 0;
@@ -384,9 +382,9 @@ int nvgpu_pmu_disable_elpg(struct gk20a *g)
 			}
 
 			nvgpu_pmu_dbg(g, "cmd post PMU_PG_ELPG_CMD_DISALLOW");
-			ret = nvgpu_pmu_cmd_post(g, &cmd, NULL, NULL,
+			ret = nvgpu_pmu_cmd_post(g, &cmd, NULL,
 				PMU_COMMAND_QUEUE_HPQ, pmu_handle_pg_elpg_msg,
-				pmu, &seq);
+				pmu);
 			if (ret != 0) {
 				nvgpu_err(g, "PMU_PG_ELPG_CMD_DISALLOW \
 					cmd post failed");
@@ -443,7 +441,6 @@ static int pmu_pg_init_send(struct gk20a *g, u8 pg_engine_id)
 {
 	struct nvgpu_pmu *pmu = &g->pmu;
 	struct pmu_cmd cmd;
-	u32 seq;
 	int err = 0;
 	u64 tmp;
 
@@ -466,8 +463,8 @@ static int pmu_pg_init_send(struct gk20a *g, u8 pg_engine_id)
 	cmd.cmd.pg.elpg_cmd.cmd = PMU_PG_ELPG_CMD_INIT;
 
 	nvgpu_pmu_dbg(g, "cmd post PMU_PG_ELPG_CMD_INIT");
-	err = nvgpu_pmu_cmd_post(g, &cmd, NULL, NULL, PMU_COMMAND_QUEUE_HPQ,
-			pmu_handle_pg_elpg_msg, pmu, &seq);
+	err = nvgpu_pmu_cmd_post(g, &cmd, NULL, PMU_COMMAND_QUEUE_HPQ,
+			pmu_handle_pg_elpg_msg, pmu);
 	if (err != 0) {
 		nvgpu_err(g, "PMU_PG_ELPG_CMD_INIT cmd failed\n");
 	}
@@ -485,8 +482,8 @@ static int pmu_pg_init_send(struct gk20a *g, u8 pg_engine_id)
 	cmd.cmd.pg.stat.data = 0;
 
 	nvgpu_pmu_dbg(g, "cmd post PMU_PG_STAT_CMD_ALLOC_DMEM");
-	err = nvgpu_pmu_cmd_post(g, &cmd, NULL, NULL, PMU_COMMAND_QUEUE_LPQ,
-			pmu_handle_pg_stat_msg, pmu, &seq);
+	err = nvgpu_pmu_cmd_post(g, &cmd, NULL, PMU_COMMAND_QUEUE_LPQ,
+			pmu_handle_pg_stat_msg, pmu);
 	if (err != 0) {
 		nvgpu_err(g, "PMU_PG_STAT_CMD_ALLOC_DMEM cmd failed\n");
 	}
@@ -510,8 +507,8 @@ static int pmu_pg_init_send(struct gk20a *g, u8 pg_engine_id)
 	cmd.cmd.pg.elpg_cmd.cmd = PMU_PG_ELPG_CMD_DISALLOW;
 
 	nvgpu_pmu_dbg(g, "cmd post PMU_PG_ELPG_CMD_DISALLOW");
-	err = nvgpu_pmu_cmd_post(g, &cmd, NULL, NULL, PMU_COMMAND_QUEUE_HPQ,
-		pmu_handle_pg_elpg_msg, pmu, &seq);
+	err = nvgpu_pmu_cmd_post(g, &cmd, NULL, PMU_COMMAND_QUEUE_HPQ,
+		pmu_handle_pg_elpg_msg, pmu);
 	if (err != 0) {
 		nvgpu_err(g, "PMU_PG_ELPG_CMD_DISALLOW cmd failed\n");
 	}
@@ -587,7 +584,6 @@ int nvgpu_pmu_init_bind_fecs(struct gk20a *g)
 {
 	struct nvgpu_pmu *pmu = &g->pmu;
 	struct pmu_cmd cmd;
-	u32 desc;
 	int err = 0;
 	u32 gr_engine_id;
 
@@ -618,8 +614,8 @@ int nvgpu_pmu_init_bind_fecs(struct gk20a *g)
 	pmu->pmu_pg.buf_loaded = false;
 	nvgpu_pmu_dbg(g, "cmd post PMU_PG_CMD_ID_ENG_BUF_LOAD PMU_PGENG_GR_BUFFER_IDX_FECS");
 	nvgpu_pmu_state_change(g, PMU_STATE_LOADING_PG_BUF, false);
-	err = nvgpu_pmu_cmd_post(g, &cmd, NULL, NULL, PMU_COMMAND_QUEUE_LPQ,
-			pmu_handle_pg_buf_config_msg, pmu, &desc);
+	err = nvgpu_pmu_cmd_post(g, &cmd, NULL, PMU_COMMAND_QUEUE_LPQ,
+			pmu_handle_pg_buf_config_msg, pmu);
 	if (err != 0) {
 		nvgpu_err(g, "cmd LOAD PMU_PGENG_GR_BUFFER_IDX_FECS failed\n");
 	}
@@ -631,7 +627,6 @@ void nvgpu_pmu_setup_hw_load_zbc(struct gk20a *g)
 {
 	struct nvgpu_pmu *pmu = &g->pmu;
 	struct pmu_cmd cmd;
-	u32 desc;
 	u32 gr_engine_id;
 	int err = 0;
 
@@ -660,8 +655,8 @@ void nvgpu_pmu_setup_hw_load_zbc(struct gk20a *g)
 	pmu->pmu_pg.buf_loaded = false;
 	nvgpu_pmu_dbg(g, "cmd post PMU_PG_CMD_ID_ENG_BUF_LOAD PMU_PGENG_GR_BUFFER_IDX_ZBC");
 	nvgpu_pmu_state_change(g, PMU_STATE_LOADING_ZBC, false);
-	err = nvgpu_pmu_cmd_post(g, &cmd, NULL, NULL, PMU_COMMAND_QUEUE_LPQ,
-			pmu_handle_pg_buf_config_msg, pmu, &desc);
+	err = nvgpu_pmu_cmd_post(g, &cmd, NULL, PMU_COMMAND_QUEUE_LPQ,
+			pmu_handle_pg_buf_config_msg, pmu);
 	if (err != 0) {
 		nvgpu_err(g, "CMD LOAD PMU_PGENG_GR_BUFFER_IDX_ZBC failed\n");
 	}

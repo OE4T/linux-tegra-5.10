@@ -107,7 +107,6 @@ static void gp106_pmu_load_multiple_falcons(struct gk20a *g, u32 falconidmask,
 {
 	struct nvgpu_pmu *pmu = &g->pmu;
 	struct pmu_cmd cmd;
-	u32 seq;
 	u64 tmp_size;
 
 	nvgpu_log_fn(g, " ");
@@ -132,8 +131,8 @@ static void gp106_pmu_load_multiple_falcons(struct gk20a *g, u32 falconidmask,
 
 		nvgpu_pmu_dbg(g, "PMU_ACR_CMD_ID_BOOTSTRAP_MULTIPLE_FALCONS:%x",
 				falconidmask);
-		nvgpu_pmu_cmd_post(g, &cmd, NULL, NULL, PMU_COMMAND_QUEUE_HPQ,
-				pmu_handle_fecs_boot_acr_msg, pmu, &seq);
+		nvgpu_pmu_cmd_post(g, &cmd, NULL, PMU_COMMAND_QUEUE_HPQ,
+				pmu_handle_fecs_boot_acr_msg, pmu);
 	}
 
 	nvgpu_log_fn(g, "done");

@@ -1315,7 +1315,6 @@ int nvgpu_clk_pmu_clk_domains_load(struct gk20a *g)
 	struct nvgpu_clk_domain_rpc_pmucmdhandler_params handler;
 	struct nv_pmu_clk_load *clkload;
 	int status;
-	u32 seqdesc;
 
 	(void) memset(&payload, 0, sizeof(struct pmu_payload));
 	(void) memset(&rpccall, 0, sizeof(struct nv_pmu_clk_rpc));
@@ -1347,10 +1346,9 @@ int nvgpu_clk_pmu_clk_domains_load(struct gk20a *g)
 
 	handler.prpccall = &rpccall;
 	handler.success = 0;
-	status = nvgpu_pmu_cmd_post(g, &cmd, NULL, &payload,
+	status = nvgpu_pmu_cmd_post(g, &cmd, &payload,
 			PMU_COMMAND_QUEUE_LPQ,
-			nvgpu_clk_domain_rpc_pmucmdhandler, (void *)&handler,
-			&seqdesc);
+			nvgpu_clk_domain_rpc_pmucmdhandler, (void *)&handler);
 
 	if (status != 0) {
 		nvgpu_err(g, "unable to post clk RPC cmd %x",

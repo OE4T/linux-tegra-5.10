@@ -99,7 +99,6 @@ static int pmgr_pmu_set_object(struct gk20a *g,
 	struct pmu_payload payload;
 	struct nv_pmu_pmgr_cmd_set_object *pcmd;
 	int status;
-	u32 seqdesc;
 	struct pmgr_pmucmdhandler_params handlerparams;
 
 	(void) memset(&payload, 0, sizeof(struct pmu_payload));
@@ -123,11 +122,10 @@ static int pmgr_pmu_set_object(struct gk20a *g,
 	/* Setup the handler params to communicate back results.*/
 	handlerparams.success = 0;
 
-	status = nvgpu_pmu_cmd_post(g, &cmd, NULL, &payload,
+	status = nvgpu_pmu_cmd_post(g, &cmd, &payload,
 				PMU_COMMAND_QUEUE_LPQ,
 				pmgr_pmucmdhandler,
-				(void *)&handlerparams,
-				&seqdesc);
+				(void *)&handlerparams);
 	if (status != 0) {
 		nvgpu_err(g,
 			"unable to post pmgr cmd for unit %x cmd id %x obj type %x",
@@ -402,7 +400,6 @@ int pmgr_pmu_pwr_devices_query_blocking(
 	struct pmu_payload payload;
 	struct nv_pmu_pmgr_cmd_pwr_devices_query *pcmd;
 	int status;
-	u32 seqdesc;
 	struct pmgr_pmucmdhandler_params handlerparams;
 
 	(void) memset(&payload, 0, sizeof(struct pmu_payload));
@@ -426,11 +423,10 @@ int pmgr_pmu_pwr_devices_query_blocking(
 	/* Setup the handler params to communicate back results.*/
 	handlerparams.success = 0;
 
-	status = nvgpu_pmu_cmd_post(g, &cmd, NULL, &payload,
+	status = nvgpu_pmu_cmd_post(g, &cmd, &payload,
 				PMU_COMMAND_QUEUE_LPQ,
 				pmgr_pmucmdhandler,
-				(void *)&handlerparams,
-				&seqdesc);
+				(void *)&handlerparams);
 	if (status != 0) {
 		nvgpu_err(g,
 			"unable to post pmgr query cmd for unit %x cmd id %x dev mask %x",
@@ -457,7 +453,6 @@ static int pmgr_pmu_load_blocking(struct gk20a *g)
 	struct pmu_cmd cmd = { {0} };
 	struct nv_pmu_pmgr_cmd_load *pcmd;
 	int status;
-	u32 seqdesc;
 	struct pmgr_pmucmdhandler_params handlerparams = {0};
 
 	cmd.hdr.unit_id = PMU_UNIT_PMGR;
@@ -470,11 +465,10 @@ static int pmgr_pmu_load_blocking(struct gk20a *g)
 	/* Setup the handler params to communicate back results.*/
 	handlerparams.success = 0;
 
-	status = nvgpu_pmu_cmd_post(g, &cmd, NULL, NULL,
+	status = nvgpu_pmu_cmd_post(g, &cmd, NULL,
 				PMU_COMMAND_QUEUE_LPQ,
 				pmgr_pmucmdhandler,
-				(void *)&handlerparams,
-				&seqdesc);
+				(void *)&handlerparams);
 	if (status != 0) {
 		nvgpu_err(g,
 			"unable to post pmgr load cmd for unit %x cmd id %x",

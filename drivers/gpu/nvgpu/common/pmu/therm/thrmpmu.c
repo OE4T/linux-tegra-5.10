@@ -86,18 +86,16 @@ exit:
 }
 
 static int therm_pmu_cmd_post(struct gk20a *g, struct pmu_cmd *cmd,
-		struct pmu_msg *msg, struct pmu_payload *payload,
-		u32 queue_id, pmu_callback callback, void* cb_param,
-		u32 *seq_desc)
+		struct pmu_payload *payload,
+		u32 queue_id, pmu_callback callback, void *cb_param)
 {
 	int status;
 	struct therm_pmucmdhandler_params *handlerparams = NULL;
 
-	status = nvgpu_pmu_cmd_post(g, cmd, msg, payload,
+	status = nvgpu_pmu_cmd_post(g, cmd, payload,
 				queue_id,
 				callback,
-				cb_param,
-				seq_desc);
+				cb_param);
 	if (status != 0) {
 		nvgpu_err(g,
 			"unable to post therm cmd for unit %x cmd id %x size %x",
@@ -125,7 +123,6 @@ exit:
 
 static int therm_set_warn_temp_limit(struct gk20a *g)
 {
-	u32 seqdesc = 0;
 	struct pmu_cmd cmd;
 	struct pmu_payload payload;
 	struct nv_pmu_therm_rpc rpccall;
@@ -162,16 +159,14 @@ static int therm_set_warn_temp_limit(struct gk20a *g)
 	handlerparams.success = 0;
 	handlerparams.prpccall = &rpccall;
 
-	return therm_pmu_cmd_post(g, &cmd, NULL, &payload,
+	return therm_pmu_cmd_post(g, &cmd, &payload,
 				PMU_COMMAND_QUEUE_LPQ,
 				therm_pmucmdhandler,
-				(void *)&handlerparams,
-				&seqdesc);
+				(void *)&handlerparams);
 }
 
 static int therm_enable_slct_notification_request(struct gk20a *g)
 {
-	u32 seqdesc = 0;
 	struct pmu_cmd cmd = { {0} };
 
 	cmd.hdr.unit_id = PMU_UNIT_THERM;
@@ -182,16 +177,14 @@ static int therm_enable_slct_notification_request(struct gk20a *g)
 	cmd.cmd.therm.hw_slct_notification.request =
 		NV_RM_PMU_THERM_HW_SLOWDOWN_NOTIFICATION_REQUEST_ENABLE;
 
-	return therm_pmu_cmd_post(g, &cmd, NULL, NULL,
+	return therm_pmu_cmd_post(g, &cmd, NULL,
 				PMU_COMMAND_QUEUE_LPQ,
 				NULL,
-				NULL,
-				&seqdesc);
+				NULL);
 }
 
 static int therm_send_slct_configuration_to_pmu(struct gk20a *g)
 {
-	u32 seqdesc = 0;
 	struct pmu_cmd cmd;
 	struct pmu_payload payload;
 	struct nv_pmu_therm_rpc rpccall;
@@ -227,11 +220,10 @@ static int therm_send_slct_configuration_to_pmu(struct gk20a *g)
 	handlerparams.success = 0;
 	handlerparams.prpccall = &rpccall;
 
-	return therm_pmu_cmd_post(g, &cmd, NULL, &payload,
+	return therm_pmu_cmd_post(g, &cmd, &payload,
 				PMU_COMMAND_QUEUE_LPQ,
 				therm_pmucmdhandler,
-				(void *)&handlerparams,
-				&seqdesc);
+				(void *)&handlerparams);
 }
 
 int nvgpu_therm_configure_therm_alert(struct gk20a *g)
