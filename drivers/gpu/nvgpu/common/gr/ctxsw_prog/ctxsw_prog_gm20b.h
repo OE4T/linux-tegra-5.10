@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -80,7 +80,7 @@ u32 gm20b_ctxsw_prog_hw_get_ts_tag_invalid_timestamp(void);
 u32 gm20b_ctxsw_prog_hw_get_ts_tag(u64 ts);
 u64 gm20b_ctxsw_prog_hw_record_ts_timestamp(u64 ts);
 u32 gm20b_ctxsw_prog_hw_get_ts_record_size_in_bytes(void);
-u32 gm20b_ctxsw_prog_is_ts_valid_record(u32 magic_hi);
+bool gm20b_ctxsw_prog_is_ts_valid_record(u32 magic_hi);
 u32 gm20b_ctxsw_prog_get_ts_buffer_aperture_mask(struct gk20a *g,
 	struct nvgpu_mem *ctx_mem);
 void gm20b_ctxsw_prog_set_ts_num_records(struct gk20a *g,

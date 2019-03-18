@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -183,7 +183,7 @@ void gm20b_ctxsw_prog_set_pc_sampling(struct gk20a *g,
 	u32 data = nvgpu_mem_rd(g, ctx_mem, ctxsw_prog_main_image_pm_o());
 
 	data &= ~ctxsw_prog_main_image_pm_pc_sampling_m();
-	data |= ctxsw_prog_main_image_pm_pc_sampling_f(enable);
+	data |= ctxsw_prog_main_image_pm_pc_sampling_f(U32(enable));
 
 	nvgpu_mem_wr(g, ctx_mem, ctxsw_prog_main_image_pm_o(), data);
 }
@@ -292,7 +292,7 @@ u32 gm20b_ctxsw_prog_hw_get_ts_record_size_in_bytes(void)
 	return ctxsw_prog_record_timestamp_record_size_in_bytes_v();
 }
 
-u32 gm20b_ctxsw_prog_is_ts_valid_record(u32 magic_hi)
+bool gm20b_ctxsw_prog_is_ts_valid_record(u32 magic_hi)
 {
 	return magic_hi ==
 		ctxsw_prog_record_timestamp_magic_value_hi_v_value_v();

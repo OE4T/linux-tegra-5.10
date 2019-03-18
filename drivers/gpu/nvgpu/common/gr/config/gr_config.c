@@ -121,7 +121,7 @@ struct nvgpu_gr_config *nvgpu_gr_config_init(struct gk20a *g)
 				    pes_index++) {
 			pes_tpc_mask = g->ops.gr.config.get_pes_tpc_mask(g,
 						config, gpc_index, pes_index);
-			pes_tpc_count = hweight32(pes_tpc_mask);
+			pes_tpc_count = U32(hweight32(pes_tpc_mask));
 
 			/* detect PES presence by seeing if there are
 			 * TPCs connected to it.

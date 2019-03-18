@@ -557,7 +557,7 @@ struct gpu_ops {
 			u32 (*hw_get_ts_tag)(u64 ts);
 			u64 (*hw_record_ts_timestamp)(u64 ts);
 			u32 (*hw_get_ts_record_size_in_bytes)(void);
-			u32 (*is_ts_valid_record)(u32 magic_hi);
+			bool (*is_ts_valid_record)(u32 magic_hi);
 			u32 (*get_ts_buffer_aperture_mask)(struct gk20a *g,
 				struct nvgpu_mem *ctx_mem);
 			void (*set_ts_num_records)(struct gk20a *g,
