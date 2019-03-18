@@ -53,6 +53,7 @@
 #include "hal/gr/zbc/zbc_gp10b.h"
 #include "hal/gr/zbc/zbc_gv11b.h"
 #include "hal/gr/init/gr_init_gm20b.h"
+#include "hal/gr/init/gr_init_gp10b.h"
 #include "hal/gr/init/gr_init_gv11b.h"
 #include "hal/gr/init/gr_init_tu104.h"
 #include "hal/gr/hwpm_map/hwpm_map_gv100.h"
@@ -438,8 +439,6 @@ static const struct gpu_ops tu104_ops = {
 		.resume_contexts = gr_gk20a_resume_contexts,
 		.get_preemption_mode_flags = gr_gp10b_get_preemption_mode_flags,
 		.init_sm_id_table = gr_gv100_init_sm_id_table,
-		.load_smid_config = gr_gv11b_load_smid_config,
-		.program_sm_id_numbering = gr_gv11b_program_sm_id_numbering,
 		.program_zcull_mapping = gr_gv11b_program_zcull_mapping,
 		.commit_inst = gr_gv11b_commit_inst,
 		.trigger_suspend = gv11b_gr_sm_trigger_suspend,
@@ -652,6 +651,9 @@ static const struct gpu_ops tu104_ops = {
 				gv100_gr_hwpm_map_get_active_fbpa_mask,
 		},
 		.init = {
+			.get_sm_id_size = gp10b_gr_init_get_sm_id_size,
+			.sm_id_config = gv11b_gr_init_sm_id_config,
+			.sm_id_numbering = gv11b_gr_init_sm_id_numbering,
 			.tpc_mask = gv11b_gr_init_tpc_mask,
 			.rop_mapping = gv11b_gr_init_rop_mapping,
 			.fs_state = gv11b_gr_init_fs_state,

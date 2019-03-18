@@ -25,6 +25,25 @@
 #include <nvgpu/gr/gr.h>
 #include <nvgpu/gr/config.h>
 
+static int gr_load_sm_id_config(struct gk20a *g)
+{
+	int err;
+	u32 *tpc_sm_id;
+	u32 sm_id_size = g->ops.gr.init.get_sm_id_size();
+	struct nvgpu_gr_config *gr_config = g->gr.config;
+
+	tpc_sm_id = nvgpu_kcalloc(g, sm_id_size, sizeof(u32));
+	if (tpc_sm_id == NULL) {
+		return -ENOMEM;
+	}
+
+	err = g->ops.gr.init.sm_id_config(g, tpc_sm_id, gr_config);
+
+	nvgpu_kfree(g, tpc_sm_id);
+
+	return err;
+}
+
 static void gr_load_tpc_mask(struct gk20a *g)
 {
 	u32 pes_tpc_mask = 0, fuse_tpc_mask;
@@ -98,7 +117,7 @@ int nvgpu_gr_init_fs_state(struct gk20a *g)
 		tpc_index = g->gr.sm_to_cluster[sm_id].tpc_index;
 		gpc_index = g->gr.sm_to_cluster[sm_id].gpc_index;
 
-		g->ops.gr.program_sm_id_numbering(g, gpc_index, tpc_index, sm_id);
+		g->ops.gr.init.sm_id_numbering(g, gpc_index, tpc_index, sm_id);
 	}
 
 	g->ops.gr.init.pd_tpc_per_gpc(g, gr_config);
@@ -123,7 +142,7 @@ int nvgpu_gr_init_fs_state(struct gk20a *g)
 
 	gr_load_tpc_mask(g);
 
-	err = g->ops.gr.load_smid_config(g);
+	err = gr_load_sm_id_config(g);
 	if (err != 0) {
 		nvgpu_err(g, "load_smid_config failed err=%d", err);
 	}

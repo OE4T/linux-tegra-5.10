@@ -23,10 +23,61 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/io.h>
 
+#include <nvgpu/gr/config.h>
+
 #include "gr_init_gm20b.h"
 #include "gr_init_gp10b.h"
 
 #include <nvgpu/hw/gp10b/hw_gr_gp10b.h>
+
+u32 gp10b_gr_init_get_sm_id_size(void)
+{
+	return gr_cwd_sm_id__size_1_v();
+}
+
+int gp10b_gr_init_sm_id_config(struct gk20a *g, u32 *tpc_sm_id,
+			       struct nvgpu_gr_config *gr_config)
+{
+	u32 i, j;
+	u32 tpc_index, gpc_index;
+	u32 max_gpcs = nvgpu_get_litter_value(g, GPU_LIT_NUM_GPCS);
+
+	/* Each NV_PGRAPH_PRI_CWD_GPC_TPC_ID can store 4 TPCs.*/
+	for (i = 0U;
+	     i <= ((nvgpu_gr_config_get_tpc_count(gr_config) - 1U) / 4U);
+	     i++) {
+		u32 reg = 0;
+		u32 bit_stride = gr_cwd_gpc_tpc_id_gpc0_s() +
+				 gr_cwd_gpc_tpc_id_tpc0_s();
+
+		for (j = 0U; j < 4U; j++) {
+			u32 sm_id = (i * 4U) + j;
+			u32 bits;
+
+			if (sm_id >=
+				nvgpu_gr_config_get_tpc_count(gr_config)) {
+				break;
+			}
+
+			gpc_index = g->gr.sm_to_cluster[sm_id].gpc_index;
+			tpc_index = g->gr.sm_to_cluster[sm_id].tpc_index;
+
+			bits = gr_cwd_gpc_tpc_id_gpc0_f(gpc_index) |
+			       gr_cwd_gpc_tpc_id_tpc0_f(tpc_index);
+			reg |= bits << (j * bit_stride);
+
+			tpc_sm_id[gpc_index + max_gpcs * ((tpc_index & 4U) >> 2U)]
+				|= sm_id << (bit_stride * (tpc_index & 3U));
+		}
+		nvgpu_writel(g, gr_cwd_gpc_tpc_id_r(i), reg);
+	}
+
+	for (i = 0; i < gr_cwd_sm_id__size_1_v(); i++) {
+		nvgpu_writel(g, gr_cwd_sm_id_r(i), tpc_sm_id[i]);
+	}
+
+	return 0;
+}
 
 int gp10b_gr_init_fs_state(struct gk20a *g)
 {

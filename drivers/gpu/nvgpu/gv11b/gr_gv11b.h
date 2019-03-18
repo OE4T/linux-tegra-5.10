@@ -123,9 +123,6 @@ int gr_gv11b_handle_fecs_error(struct gk20a *g,
 				struct gr_gk20a_isr_data *isr_data);
 int gr_gv11b_init_sw_veid_bundle(struct gk20a *g);
 void gr_gv11b_detect_sm_arch(struct gk20a *g);
-void gr_gv11b_program_sm_id_numbering(struct gk20a *g,
-					u32 gpc, u32 tpc, u32 smid);
-int gr_gv11b_load_smid_config(struct gk20a *g);
 int gr_gv11b_commit_inst(struct channel_gk20a *c, u64 gpu_va);
 void gv11b_gr_get_esr_sm_sel(struct gk20a *g, u32 gpc, u32 tpc,
 				u32 *esr_sm_sel);

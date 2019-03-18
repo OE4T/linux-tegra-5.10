@@ -1334,56 +1334,6 @@ void gr_gp10b_commit_global_bundle_cb(struct gk20a *g,
 		gr_pd_ab_dist_cfg2_state_limit_f(data), patch);
 }
 
-int gr_gp10b_load_smid_config(struct gk20a *g)
-{
-	u32 *tpc_sm_id;
-	u32 i, j;
-	u32 tpc_index, gpc_index;
-	u32 max_gpcs = nvgpu_get_litter_value(g, GPU_LIT_NUM_GPCS);
-
-	tpc_sm_id = nvgpu_kcalloc(g, gr_cwd_sm_id__size_1_v(), sizeof(u32));
-	if (tpc_sm_id == NULL) {
-		return -ENOMEM;
-	}
-
-	/* Each NV_PGRAPH_PRI_CWD_GPC_TPC_ID can store 4 TPCs.*/
-	for (i = 0U;
-	     i <= ((nvgpu_gr_config_get_tpc_count(g->gr.config) - 1U) / 4U);
-	     i++) {
-		u32 reg = 0;
-		u32 bit_stride = gr_cwd_gpc_tpc_id_gpc0_s() +
-				 gr_cwd_gpc_tpc_id_tpc0_s();
-
-		for (j = 0U; j < 4U; j++) {
-			u32 sm_id = (i * 4U) + j;
-			u32 bits;
-
-			if (sm_id >= nvgpu_gr_config_get_tpc_count(g->gr.config)) {
-				break;
-			}
-
-			gpc_index = g->gr.sm_to_cluster[sm_id].gpc_index;
-			tpc_index = g->gr.sm_to_cluster[sm_id].tpc_index;
-
-			bits = gr_cwd_gpc_tpc_id_gpc0_f(gpc_index) |
-			       gr_cwd_gpc_tpc_id_tpc0_f(tpc_index);
-			reg |= bits << (j * bit_stride);
-
-			tpc_sm_id[gpc_index + max_gpcs * ((tpc_index & 4U) >> 2U)]
-				|= sm_id << (bit_stride * (tpc_index & 3U));
-		}
-		gk20a_writel(g, gr_cwd_gpc_tpc_id_r(i), reg);
-	}
-
-	for (i = 0; i < gr_cwd_sm_id__size_1_v(); i++) {
-		gk20a_writel(g, gr_cwd_sm_id_r(i), tpc_sm_id[i]);
-	}
-
-	nvgpu_kfree(g, tpc_sm_id);
-
-	return 0;
-}
-
 void gr_gp10b_set_gpc_tpc_mask(struct gk20a *g, u32 gpc_index)
 {
 	nvgpu_tegra_fuse_write_bypass(g, 0x1);

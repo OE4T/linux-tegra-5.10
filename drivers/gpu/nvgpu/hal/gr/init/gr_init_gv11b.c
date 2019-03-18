@@ -37,6 +37,74 @@
  */
 #define GR_TPCS_INFO_FOR_MAPREGISTER 6U
 
+void gv11b_gr_init_sm_id_numbering(struct gk20a *g,
+					u32 gpc, u32 tpc, u32 smid)
+{
+	u32 gpc_stride = nvgpu_get_litter_value(g, GPU_LIT_GPC_STRIDE);
+	u32 tpc_in_gpc_stride = nvgpu_get_litter_value(g,
+					GPU_LIT_TPC_IN_GPC_STRIDE);
+	u32 gpc_offset = gpc_stride * gpc;
+	u32 global_tpc_index = g->gr.sm_to_cluster[smid].global_tpc_index;
+	u32 tpc_offset;
+
+	tpc = g->ops.gr.get_nonpes_aware_tpc(g, gpc, tpc);
+	tpc_offset = tpc_in_gpc_stride * tpc;
+
+	nvgpu_writel(g, gr_gpc0_tpc0_sm_cfg_r() + gpc_offset + tpc_offset,
+			gr_gpc0_tpc0_sm_cfg_tpc_id_f(global_tpc_index));
+	nvgpu_writel(g, gr_gpc0_gpm_pd_sm_id_r(tpc) + gpc_offset,
+			gr_gpc0_gpm_pd_sm_id_id_f(global_tpc_index));
+	nvgpu_writel(g, gr_gpc0_tpc0_pe_cfg_smid_r() + gpc_offset + tpc_offset,
+			gr_gpc0_tpc0_pe_cfg_smid_value_f(global_tpc_index));
+}
+
+int gv11b_gr_init_sm_id_config(struct gk20a *g, u32 *tpc_sm_id,
+			       struct nvgpu_gr_config *gr_config)
+{
+	u32 i, j;
+	u32 tpc_index, gpc_index, tpc_id;
+	u32 sm_per_tpc = nvgpu_get_litter_value(g, GPU_LIT_NUM_SM_PER_TPC);
+	u32 num_gpcs = nvgpu_get_litter_value(g, GPU_LIT_NUM_GPCS);
+
+	/* Each NV_PGRAPH_PRI_CWD_GPC_TPC_ID can store 4 TPCs.*/
+	for (i = 0U;
+	     i <= ((nvgpu_gr_config_get_tpc_count(gr_config) - 1U) / 4U);
+	     i++) {
+		u32 reg = 0;
+		u32 bit_stride = gr_cwd_gpc_tpc_id_gpc0_s() +
+				 gr_cwd_gpc_tpc_id_tpc0_s();
+
+		for (j = 0U; j < 4U; j++) {
+			u32 sm_id;
+			u32 bits;
+
+			tpc_id = (i << 2) + j;
+			sm_id = tpc_id * sm_per_tpc;
+
+			if (sm_id >= g->gr.no_of_sm) {
+				break;
+			}
+
+			gpc_index = g->gr.sm_to_cluster[sm_id].gpc_index;
+			tpc_index = g->gr.sm_to_cluster[sm_id].tpc_index;
+
+			bits = gr_cwd_gpc_tpc_id_gpc0_f(gpc_index) |
+				gr_cwd_gpc_tpc_id_tpc0_f(tpc_index);
+			reg |= bits << (j * bit_stride);
+
+			tpc_sm_id[gpc_index + (num_gpcs * ((tpc_index & 4U)
+				 >> 2U))] |= tpc_id << tpc_index * bit_stride;
+		}
+		nvgpu_writel(g, gr_cwd_gpc_tpc_id_r(i), reg);
+	}
+
+	for (i = 0U; i < gr_cwd_sm_id__size_1_v(); i++) {
+		nvgpu_writel(g, gr_cwd_sm_id_r(i), tpc_sm_id[i]);
+	}
+
+	return 0;
+}
+
 void gv11b_gr_init_tpc_mask(struct gk20a *g, u32 gpc_index, u32 pes_tpc_mask)
 {
 	nvgpu_writel(g, gr_fe_tpc_fs_r(gpc_index), pes_tpc_mask);

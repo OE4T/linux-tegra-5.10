@@ -39,6 +39,71 @@
 #define FE_PWR_MODE_TIMEOUT_DEFAULT_US 10U
 #define FECS_CTXSW_RESET_DELAY_US 10U
 
+void gm20b_gr_init_sm_id_numbering(struct gk20a *g,
+					     u32 gpc, u32 tpc, u32 smid)
+{
+	u32 gpc_stride = nvgpu_get_litter_value(g, GPU_LIT_GPC_STRIDE);
+	u32 tpc_in_gpc_stride = nvgpu_get_litter_value(g,
+						GPU_LIT_TPC_IN_GPC_STRIDE);
+	u32 gpc_offset = gpc_stride * gpc;
+	u32 tpc_offset = tpc_in_gpc_stride * tpc;
+
+	nvgpu_writel(g, gr_gpc0_tpc0_sm_cfg_r() + gpc_offset + tpc_offset,
+			gr_gpc0_tpc0_sm_cfg_sm_id_f(smid));
+	nvgpu_writel(g, gr_gpc0_gpm_pd_sm_id_r(tpc) + gpc_offset,
+			gr_gpc0_gpm_pd_sm_id_id_f(smid));
+	nvgpu_writel(g, gr_gpc0_tpc0_pe_cfg_smid_r() + gpc_offset + tpc_offset,
+			gr_gpc0_tpc0_pe_cfg_smid_value_f(smid));
+}
+
+u32 gm20b_gr_init_get_sm_id_size(void)
+{
+	return gr_cwd_sm_id__size_1_v();
+}
+
+int gm20b_gr_init_sm_id_config(struct gk20a *g, u32 *tpc_sm_id,
+			       struct nvgpu_gr_config *gr_config)
+{
+	u32 i, j;
+	u32 tpc_index, gpc_index;
+
+	/* Each NV_PGRAPH_PRI_CWD_GPC_TPC_ID can store 4 TPCs.*/
+	for (i = 0U;
+	     i <= ((nvgpu_gr_config_get_tpc_count(gr_config) - 1U) / 4U);
+	     i++) {
+		u32 reg = 0;
+		u32 bit_stride = gr_cwd_gpc_tpc_id_gpc0_s() +
+				 gr_cwd_gpc_tpc_id_tpc0_s();
+
+		for (j = 0U; j < 4U; j++) {
+			u32 sm_id = (i * 4U) + j;
+			u32 bits;
+
+			if (sm_id >=
+				nvgpu_gr_config_get_tpc_count(gr_config)) {
+				break;
+			}
+
+			gpc_index = g->gr.sm_to_cluster[sm_id].gpc_index;
+			tpc_index = g->gr.sm_to_cluster[sm_id].tpc_index;
+
+			bits = gr_cwd_gpc_tpc_id_gpc0_f(gpc_index) |
+			       gr_cwd_gpc_tpc_id_tpc0_f(tpc_index);
+			reg |= bits << (j * bit_stride);
+
+			tpc_sm_id[gpc_index] |=
+					(sm_id << tpc_index * bit_stride);
+		}
+		nvgpu_writel(g, gr_cwd_gpc_tpc_id_r(i), reg);
+	}
+
+	for (i = 0; i < gr_cwd_sm_id__size_1_v(); i++) {
+		nvgpu_writel(g, gr_cwd_sm_id_r(i), tpc_sm_id[i]);
+	}
+
+	return 0;
+}
+
 void gm20b_gr_init_tpc_mask(struct gk20a *g, u32 gpc_index, u32 pes_tpc_mask)
 {
 	nvgpu_writel(g, gr_fe_tpc_fs_r(), pes_tpc_mask);

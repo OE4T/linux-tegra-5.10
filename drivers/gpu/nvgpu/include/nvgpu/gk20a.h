@@ -428,9 +428,6 @@ struct gpu_ops {
 				u32 compute_preempt_mode);
 		int (*set_boosted_ctx)(struct channel_gk20a *ch, bool boost);
 		int (*init_sm_id_table)(struct gk20a *g);
-		int (*load_smid_config)(struct gk20a *g);
-		void (*program_sm_id_numbering)(struct gk20a *g,
-						u32 gpc, u32 tpc, u32 smid);
 		int (*init_sw_veid_bundle)(struct gk20a *g);
 		void (*program_zcull_mapping)(struct gk20a *g,
 				u32 zcull_alloc_num, u32 *zcull_map_tiles);
@@ -664,6 +661,11 @@ struct gpu_ops {
 		} hwpm_map;
 
 		struct {
+			u32 (*get_sm_id_size)(void);
+			int (*sm_id_config)(struct gk20a *g, u32 *tpc_sm_id,
+					    struct nvgpu_gr_config *gr_config);
+			void (*sm_id_numbering)(struct gk20a *g,
+						u32 gpc, u32 tpc, u32 smid);
 			void (*tpc_mask)(struct gk20a *g,
 					 u32 gpc_index, u32 pes_tpc_mask);
 			int (*rop_mapping)(struct gk20a *g,

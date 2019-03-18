@@ -28,6 +28,10 @@
 struct gk20a;
 struct nvgpu_gr_config;
 
+void gv11b_gr_init_sm_id_numbering(struct gk20a *g,
+					u32 gpc, u32 tpc, u32 smid);
+int gv11b_gr_init_sm_id_config(struct gk20a *g, u32 *tpc_sm_id,
+			       struct nvgpu_gr_config *gr_config);
 void gv11b_gr_init_tpc_mask(struct gk20a *g, u32 gpc_index, u32 pes_tpc_mask);
 int gv11b_gr_init_rop_mapping(struct gk20a *g,
 			      struct nvgpu_gr_config *gr_config);

@@ -104,7 +104,6 @@ void gr_gp10b_commit_global_attrib_cb(struct gk20a *g,
 void gr_gp10b_commit_global_bundle_cb(struct gk20a *g,
 					    struct nvgpu_gr_ctx *gr_ctx,
 					    u64 addr, u64 size, bool patch);
-int gr_gp10b_load_smid_config(struct gk20a *g);
 void gr_gp10b_set_gpc_tpc_mask(struct gk20a *g, u32 gpc_index);
 void gr_gp10b_get_access_map(struct gk20a *g,
 				   u32 **whitelist, int *num_entries);
