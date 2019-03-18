@@ -869,11 +869,13 @@ static const struct gpu_ops gv11b_ops = {
 	.userd = {
 		.setup_sw = nvgpu_userd_setup_sw,
 		.cleanup_sw = nvgpu_userd_cleanup_sw,
+#ifdef NVGPU_USERD
 		.init_mem = gk20a_userd_init_mem,
 		.gp_get = gv11b_userd_gp_get,
 		.gp_put = gv11b_userd_gp_put,
 		.pb_get = gv11b_userd_pb_get,
 		.entry_size = gk20a_userd_entry_size,
+#endif
 	},
 	.channel = {
 		.bind = gm20b_channel_bind,

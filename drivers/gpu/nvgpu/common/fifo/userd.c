@@ -30,6 +30,7 @@
 #include <nvgpu/fifo/userd.h>
 #include <nvgpu/vm_area.h>
 
+#ifdef NVGPU_USERD
 int nvgpu_userd_init_slabs(struct gk20a *g)
 {
 	struct fifo_gk20a *f = &g->fifo;
@@ -46,7 +47,7 @@ int nvgpu_userd_init_slabs(struct gk20a *g)
 		DIV_ROUND_UP(f->num_channels, f->num_channels_per_slab);
 
 	f->userd_slabs = nvgpu_big_zalloc(g, f->num_userd_slabs *
-				          sizeof(struct nvgpu_mem));
+					sizeof(struct nvgpu_mem));
 	if (f->userd_slabs == NULL) {
 		nvgpu_err(g, "could not allocate userd slabs");
 		err = -ENOMEM;
@@ -74,9 +75,11 @@ void nvgpu_userd_free_slabs(struct gk20a *g)
 
 	nvgpu_mutex_destroy(&f->userd_mutex);
 }
+#endif
 
 int nvgpu_userd_init_channel(struct gk20a *g, struct channel_gk20a *c)
 {
+#ifdef NVGPU_USERD
 	struct fifo_gk20a *f = &g->fifo;
 	struct nvgpu_mem *mem;
 	u32 slab = c->chid / f->num_channels_per_slab;
@@ -117,10 +120,14 @@ int nvgpu_userd_init_channel(struct gk20a *g, struct channel_gk20a *c)
 done:
 	nvgpu_mutex_release(&f->userd_mutex);
 	return err;
+#else
+	return 0;
+#endif
 }
 
 int nvgpu_userd_setup_sw(struct gk20a *g)
 {
+#ifdef NVGPU_USERD
 	struct fifo_gk20a *f = &g->fifo;
 	int err;
 	u32 size, num_pages;
@@ -148,10 +155,14 @@ clean_up:
 	nvgpu_userd_free_slabs(g);
 
 	return err;
+#else
+	return 0;
+#endif
 }
 
 void nvgpu_userd_cleanup_sw(struct gk20a *g)
 {
+#ifdef NVGPU_USERD
 	struct fifo_gk20a *f = &g->fifo;
 
 	if (f->userd_gpu_va != 0ULL) {
@@ -160,5 +171,6 @@ void nvgpu_userd_cleanup_sw(struct gk20a *g)
 	}
 
 	nvgpu_userd_free_slabs(g);
+#endif
 }
 

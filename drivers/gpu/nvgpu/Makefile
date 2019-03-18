@@ -26,6 +26,7 @@ ccflags-y += -DNVGPU_LS_PMU
 endif
 
 ccflags-y += -DNVGPU_ENGINE
+ccflags-y += -DNVGPU_USERD
 
 obj-$(CONFIG_GK20A) := nvgpu.o
 

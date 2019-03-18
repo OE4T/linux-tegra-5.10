@@ -493,11 +493,13 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 	.userd = {
 		.setup_sw = vgpu_userd_setup_sw,
 		.cleanup_sw = vgpu_userd_cleanup_sw,
+#ifdef NVGPU_USERD
 		.init_mem = gk20a_userd_init_mem,
 		.gp_get = gk20a_userd_gp_get,
 		.gp_put = gk20a_userd_gp_put,
 		.pb_get = gk20a_userd_pb_get,
 		.entry_size = gk20a_userd_entry_size,
+#endif
 	},
 	.channel = {
 		.bind = vgpu_channel_bind,
