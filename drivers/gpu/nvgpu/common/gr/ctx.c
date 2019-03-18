@@ -317,7 +317,8 @@ static void nvgpu_gr_ctx_unmap_global_ctx_buffers(struct gk20a *g,
 	struct vm_gk20a *vm)
 {
 	u64 *g_bfr_va = gr_ctx->global_ctx_buffer_va;
-	int *g_bfr_index = gr_ctx->global_ctx_buffer_index;
+	enum nvgpu_gr_global_ctx_index *g_bfr_index =
+					gr_ctx->global_ctx_buffer_index;
 	u32 i;
 
 	nvgpu_log_fn(g, " ");
@@ -339,7 +340,7 @@ int nvgpu_gr_ctx_map_global_ctx_buffers(struct gk20a *g,
 	struct vm_gk20a *vm, bool vpr)
 {
 	u64 *g_bfr_va;
-	int *g_bfr_index;
+	enum nvgpu_gr_global_ctx_index *g_bfr_index;
 	u64 gpu_va = 0ULL;
 
 	nvgpu_log_fn(g, " ");

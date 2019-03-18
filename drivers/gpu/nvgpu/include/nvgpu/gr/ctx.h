@@ -25,6 +25,7 @@
 
 #include <nvgpu/types.h>
 #include <nvgpu/nvgpu_mem.h>
+#include <nvgpu/gr/global_ctx.h>
 
 /*
  * allocate a minimum of 1 page (4KB) worth of patch space, this is 512 entries
@@ -127,7 +128,7 @@ struct nvgpu_gr_ctx {
 #endif
 
 	u64	global_ctx_buffer_va[NVGPU_GR_CTX_VA_COUNT];
-	int	global_ctx_buffer_index[NVGPU_GR_CTX_VA_COUNT];
+	enum nvgpu_gr_global_ctx_index	global_ctx_buffer_index[NVGPU_GR_CTX_VA_COUNT];
 	bool	global_ctx_buffer_mapped;
 
 	u32 tsgid;
