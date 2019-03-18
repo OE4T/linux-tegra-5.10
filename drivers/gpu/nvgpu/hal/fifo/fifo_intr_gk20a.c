@@ -67,24 +67,18 @@ static u32 gk20a_fifo_intr_0_en_mask(struct gk20a *g)
 void gk20a_fifo_intr_0_enable(struct gk20a *g, bool enable)
 {
 	unsigned int i;
-	u32 intr_stall, timeout, mask;
+	u32 intr_stall, mask;
 	u32 host_num_pbdma = nvgpu_get_litter_value(g, GPU_LIT_HOST_NUM_PBDMA);
 
 	if (!enable) {
+		g->ops.fifo.ctxsw_timeout_enable(g, false);
 		nvgpu_writel(g, fifo_intr_en_0_r(), 0U);
 		return;
 	}
 
-	if (g->ops.fifo.apply_ctxsw_timeout_intr != NULL) {
-		g->ops.fifo.apply_ctxsw_timeout_intr(g);
-	} else {
-		/* timeout is in us. Enable ctxsw timeout */
-		timeout = g->ctxsw_timeout_period_ms * 1000U;
-		timeout = scale_ptimer(timeout,
-			ptimer_scalingfactor10x(g->ptimer_src_freq));
-		timeout |= fifo_eng_timeout_detection_enabled_f();
-		nvgpu_writel(g, fifo_eng_timeout_r(), timeout);
-	}
+	/* Enable interrupts */
+
+	g->ops.fifo.ctxsw_timeout_enable(g, true);
 
 	/* clear and enable pbdma interrupt */
 	for (i = 0; i < host_num_pbdma; i++) {
@@ -144,6 +138,30 @@ u32 gk20a_fifo_intr_1_isr(struct gk20a *g)
 	nvgpu_writel(g, fifo_intr_0_r(), clear_intr);
 
 	return GK20A_NONSTALL_OPS_WAKEUP_SEMAPHORE;
+}
+
+bool gk20a_fifo_handle_sched_error(struct gk20a *g)
+{
+	u32 sched_error;
+	u32 engine_id;
+	u32 id = U32_MAX;
+	bool is_tsg = false;
+	bool ret = false;
+
+	/* read the scheduler error register */
+	sched_error = nvgpu_readl(g, fifo_intr_sched_error_r());
+
+	engine_id = gk20a_fifo_get_failing_engine_data(g, &id, &is_tsg);
+
+	if (fifo_intr_sched_error_code_f(sched_error) !=
+			fifo_intr_sched_error_code_ctxsw_timeout_v()) {
+		nvgpu_err(g,
+			"fifo sched error : 0x%08x, engine=%u, %s=%d",
+			sched_error, engine_id, is_tsg ? "tsg" : "ch", id);
+	} else {
+		ret = g->ops.fifo.handle_ctxsw_timeout(g);
+	}
+	return ret;
 }
 
 void gk20a_fifo_intr_handle_chsw_error(struct gk20a *g)

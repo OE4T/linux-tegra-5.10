@@ -54,6 +54,7 @@
 #include "hal/fifo/pbdma_status_gm20b.h"
 #include "hal/fifo/userd_gk20a.h"
 #include "hal/fifo/fifo_intr_gk20a.h"
+#include "hal/fifo/ctxsw_timeout_gk20a.h"
 #include "hal/gr/zbc/zbc_gm20b.h"
 #include "hal/gr/zcull/zcull_gm20b.h"
 #include "hal/gr/init/gr_init_gm20b.h"
@@ -569,7 +570,6 @@ static const struct gpu_ops gm20b_ops = {
 		.teardown_ch_tsg = gk20a_fifo_teardown_ch_tsg,
 		.teardown_mask_intr = gk20a_fifo_teardown_mask_intr,
 		.teardown_unmask_intr = gk20a_fifo_teardown_unmask_intr,
-		.handle_sched_error = gk20a_fifo_handle_sched_error,
 		.tsg_bind_channel = gk20a_tsg_bind_channel,
 		.tsg_unbind_channel = gk20a_fifo_tsg_unbind_channel,
 		.post_event_id = gk20a_tsg_event_id_post_event,
@@ -587,6 +587,9 @@ static const struct gpu_ops gm20b_ops = {
 		.intr_1_enable = gk20a_fifo_intr_1_enable,
 		.intr_0_isr = gk20a_fifo_intr_0_isr,
 		.intr_1_isr = gk20a_fifo_intr_1_isr,
+		.handle_sched_error = gk20a_fifo_handle_sched_error,
+		.ctxsw_timeout_enable = gk20a_fifo_ctxsw_timeout_enable,
+		.handle_ctxsw_timeout = gk20a_fifo_handle_ctxsw_timeout,
 	},
 	.engine = {
 		.is_fault_engine_subid_gpc = gm20b_is_fault_engine_subid_gpc,

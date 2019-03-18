@@ -107,7 +107,7 @@ bool nvgpu_tsg_mark_error(struct gk20a *g, struct tsg_gk20a *tsg);
 void gk20a_tsg_event_id_post_event(struct tsg_gk20a *tsg,
 				       int event_id);
 bool nvgpu_tsg_check_ctxsw_timeout(struct tsg_gk20a *tsg,
-		bool *verbose, u32 *ms);
+		bool *debug_dump, u32 *ms);
 int gk20a_tsg_set_runlist_interleave(struct tsg_gk20a *tsg, u32 level);
 int gk20a_tsg_set_timeslice(struct tsg_gk20a *tsg, u32 timeslice);
 u32 gk20a_tsg_get_timeslice(struct tsg_gk20a *tsg);

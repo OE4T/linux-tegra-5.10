@@ -223,6 +223,8 @@ nvgpu-y += \
 	hal/fifo/userd_gv11b.o \
 	hal/fifo/fifo_intr_gk20a.o \
 	hal/fifo/fifo_intr_gv11b.o \
+	hal/fifo/ctxsw_timeout_gk20a.o \
+	hal/fifo/ctxsw_timeout_gv11b.o \
 	hal/falcon/falcon_gk20a.o \
 	hal/nvlink/minion_gv100.o \
 	hal/nvlink/minion_tu104.o \
@@ -408,6 +410,7 @@ nvgpu-y += \
 	common/power_features/pg/pg.o \
 	common/sim.o \
 	common/sim_pci.o \
+	common/rc/rc.o \
 	common/fifo/fifo.o \
 	common/fifo/channel.o \
 	common/fifo/submit.o \

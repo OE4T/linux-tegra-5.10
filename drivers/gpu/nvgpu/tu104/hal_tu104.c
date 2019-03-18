@@ -58,6 +58,7 @@
 #include "hal/fifo/userd_gv11b.h"
 #include "hal/fifo/fifo_intr_gk20a.h"
 #include "hal/fifo/fifo_intr_gv11b.h"
+#include "hal/fifo/ctxsw_timeout_gv11b.h"
 #include "hal/gr/fecs_trace/fecs_trace_gm20b.h"
 #include "hal/gr/fecs_trace/fecs_trace_gv11b.h"
 #include "hal/gr/config/gr_config_gm20b.h"
@@ -858,7 +859,6 @@ static const struct gpu_ops tu104_ops = {
 		.teardown_ch_tsg = gv11b_fifo_teardown_ch_tsg,
 		.teardown_mask_intr = gv11b_fifo_teardown_mask_intr,
 		.teardown_unmask_intr = gv11b_fifo_teardown_unmask_intr,
-		.handle_sched_error = gv11b_fifo_handle_sched_error,
 		.init_eng_method_buffers = gv11b_fifo_init_eng_method_buffers,
 		.deinit_eng_method_buffers =
 			gv11b_fifo_deinit_eng_method_buffers,
@@ -873,7 +873,6 @@ static const struct gpu_ops tu104_ops = {
 		.cleanup_sw = nvgpu_fifo_cleanup_sw,
 		.resetup_ramfc = NULL,
 		.free_channel_ctx_header = gv11b_free_subctx_header,
-		.handle_ctxsw_timeout = gv11b_fifo_handle_ctxsw_timeout,
 		.ring_channel_doorbell = tu104_ring_channel_doorbell,
 		.usermode_base = tu104_fifo_usermode_base,
 		.doorbell_token = tu104_fifo_doorbell_token,
@@ -887,6 +886,9 @@ static const struct gpu_ops tu104_ops = {
 		.intr_1_enable = gk20a_fifo_intr_1_enable,
 		.intr_0_isr = gv11b_fifo_intr_0_isr,
 		.intr_1_isr = gk20a_fifo_intr_1_isr,
+		.handle_sched_error = gv11b_fifo_handle_sched_error,
+		.ctxsw_timeout_enable = gv11b_fifo_ctxsw_timeout_enable,
+		.handle_ctxsw_timeout = gv11b_fifo_handle_ctxsw_timeout,
 	},
 	.engine = {
 		.is_fault_engine_subid_gpc = gv11b_is_fault_engine_subid_gpc,

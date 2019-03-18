@@ -38,17 +38,6 @@ u32 gv100_fifo_get_preempt_timeout(struct gk20a *g)
 	return g->ctxsw_timeout_period_ms;
 }
 
-void gv100_apply_ctxsw_timeout_intr(struct gk20a *g)
-{
-	u32 timeout;
-
-	timeout = g->ch_wdt_init_limit_ms*1000U;
-	timeout = scale_ptimer(timeout,
-		ptimer_scalingfactor10x(g->ptimer_src_freq));
-	timeout |= fifo_eng_timeout_detection_enabled_f();
-	gk20a_writel(g, fifo_eng_timeout_r(), timeout);
-}
-
 void gv100_fifo_teardown_mask_intr(struct gk20a *g)
 {
 	u32 val;

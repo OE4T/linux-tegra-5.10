@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -20,26 +20,14 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NVGPU_FIFO_INTR_GV11B_H
-#define NVGPU_FIFO_INTR_GV11B_H
+#ifndef NVGPU_FIFO_CTXSW_TIMEOUT_GK20A_H
+#define NVGPU_FIFO_CTXSW_TIMEOUT_GK20A_H
 
 #include <nvgpu/types.h>
 
-/*
-* ERROR_CODE_BAD_TSG indicates that Host encountered a badly formed TSG header
-* or a badly formed channel type runlist entry in the runlist. This is typically
-* caused by encountering a new TSG entry in the middle of a TSG definition.
-* A channel type entry having wrong runqueue selector can also cause this.
-* Additionally this error code can indicate when a channel is encountered on
-* the runlist which is outside of a TSG.
-*/
-#define SCHED_ERROR_CODE_BAD_TSG           0x00000020U
-
 struct gk20a;
 
-void gv11b_fifo_intr_0_enable(struct gk20a *g, bool enable);
-void gv11b_fifo_intr_0_isr(struct gk20a *g);
+void gk20a_fifo_ctxsw_timeout_enable(struct gk20a *g, bool enable);
+bool gk20a_fifo_handle_ctxsw_timeout(struct gk20a *g);
 
-bool gv11b_fifo_handle_sched_error(struct gk20a *g);
-
-#endif /* NVGPU_FIFO_INTR_GV11B_H */
+#endif /* NVGPU_FIFO_CTXSW_TIMEOUT_GK20A_H */

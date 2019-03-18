@@ -420,7 +420,6 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 		.is_preempt_pending = NULL,
 		.reset_enable_hw = NULL,
 		.teardown_ch_tsg = NULL,
-		.handle_sched_error = NULL,
 		.tsg_bind_channel = vgpu_tsg_bind_channel,
 		.tsg_unbind_channel = vgpu_tsg_unbind_channel,
 		.post_event_id = gk20a_tsg_event_id_post_event,
@@ -436,6 +435,9 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 		.intr_1_enable = NULL,
 		.intr_0_isr = NULL,
 		.intr_1_isr = NULL,
+		.handle_sched_error = NULL,
+		.handle_ctxsw_timeout = NULL,
+		.ctxsw_timeout_enable = NULL,
 	},
 	.engine = {
 		.is_fault_engine_subid_gpc = gm20b_is_fault_engine_subid_gpc,

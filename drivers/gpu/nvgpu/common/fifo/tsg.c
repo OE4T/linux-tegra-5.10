@@ -412,14 +412,14 @@ void nvgpu_tsg_set_ctx_mmu_error(struct gk20a *g, struct tsg_gk20a *tsg)
 }
 
 bool nvgpu_tsg_check_ctxsw_timeout(struct tsg_gk20a *tsg,
-		bool *verbose, u32 *ms)
+		bool *debug_dump, u32 *ms)
 {
 	struct channel_gk20a *ch;
 	bool recover = false;
 	bool progress = false;
 	struct gk20a *g = tsg->g;
 
-	*verbose = false;
+	*debug_dump = false;
 	*ms = g->ctxsw_timeout_period_ms;
 
 	nvgpu_rwsem_down_read(&tsg->ch_list_lock);
@@ -446,13 +446,10 @@ bool nvgpu_tsg_check_ctxsw_timeout(struct tsg_gk20a *tsg,
 		 * which channel caused the problem, so set ctxsw timeout error
 		 * notifier for all channels.
 		 */
-		nvgpu_log_info(g, "timeout on tsg=%d ch=%d",
-				tsg->tsgid, ch->chid);
 		*ms = ch->ctxsw_timeout_accumulated_ms;
 		gk20a_channel_put(ch);
-		nvgpu_tsg_set_error_notifier(g, tsg,
-			NVGPU_ERR_NOTIFIER_FIFO_ERROR_IDLE_TIMEOUT);
-		*verbose = nvgpu_tsg_ctxsw_timeout_debug_dump_state(tsg);
+		*debug_dump = nvgpu_tsg_ctxsw_timeout_debug_dump_state(tsg);
+
 	} else if (progress) {
 		/*
 		 * if at least one channel in the TSG made some progress, reset

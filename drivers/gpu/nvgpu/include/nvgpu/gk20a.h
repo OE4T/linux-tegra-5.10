@@ -887,7 +887,6 @@ struct gpu_ops {
 					struct mmu_fault_info *mmfault);
 		void (*get_mmu_fault_gpc_desc)(struct mmu_fault_info *mmfault);
 		void (*apply_pb_timeout)(struct gk20a *g);
-		void (*apply_ctxsw_timeout_intr)(struct gk20a *g);
 		int (*tsg_set_timeslice)(struct tsg_gk20a *tsg, u32 timeslice);
 		u32 (*default_timeslice_us)(struct gk20a *g);
 		int (*force_reset_ch)(struct channel_gk20a *ch,
@@ -916,8 +915,6 @@ struct gpu_ops {
 			 struct mmu_fault_info *mmfault);
 		void (*teardown_mask_intr)(struct gk20a *g);
 		void (*teardown_unmask_intr)(struct gk20a *g);
-		bool (*handle_sched_error)(struct gk20a *g);
-		bool (*handle_ctxsw_timeout)(struct gk20a *g, u32 fifo_intr);
 		void (*init_eng_method_buffers)(struct gk20a *g,
 						struct tsg_gk20a *tsg);
 		void (*deinit_eng_method_buffers)(struct gk20a *g,
@@ -949,6 +946,9 @@ struct gpu_ops {
 		void (*intr_0_isr)(struct gk20a *g);
 		void (*intr_1_enable)(struct gk20a *g, bool enable);
 		u32  (*intr_1_isr)(struct gk20a *g);
+		bool (*handle_sched_error)(struct gk20a *g);
+		void (*ctxsw_timeout_enable)(struct gk20a *g, bool enable);
+		bool (*handle_ctxsw_timeout)(struct gk20a *g);
 
 	} fifo;
 	struct {

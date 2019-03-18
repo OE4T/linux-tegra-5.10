@@ -493,7 +493,6 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 		.is_preempt_pending = gv11b_fifo_is_preempt_pending,
 		.reset_enable_hw = NULL,
 		.teardown_ch_tsg = NULL,
-		.handle_sched_error = NULL,
 		.init_eng_method_buffers = gv11b_fifo_init_eng_method_buffers,
 		.deinit_eng_method_buffers =
 			gv11b_fifo_deinit_eng_method_buffers,
@@ -508,7 +507,6 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 		.cleanup_sw = vgpu_fifo_cleanup_sw,
 		.resetup_ramfc = NULL,
 		.free_channel_ctx_header = vgpu_channel_free_ctx_header,
-		.handle_ctxsw_timeout = gv11b_fifo_handle_ctxsw_timeout,
 		.ring_channel_doorbell = gv11b_ring_channel_doorbell,
 		.set_sm_exception_type_mask = vgpu_set_sm_exception_type_mask,
 		.usermode_base = gv11b_fifo_usermode_base,
@@ -517,6 +515,9 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 		.intr_1_enable = NULL,
 		.intr_0_isr = NULL,
 		.intr_1_isr = NULL,
+		.handle_sched_error = NULL,
+		.handle_ctxsw_timeout = NULL,
+		.ctxsw_timeout_enable = NULL,
 	},
 	.engine = {
 		.is_fault_engine_subid_gpc = gv11b_is_fault_engine_subid_gpc,

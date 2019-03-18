@@ -55,6 +55,7 @@
 #include "hal/fifo/userd_gv11b.h"
 #include "hal/fifo/fifo_intr_gk20a.h"
 #include "hal/fifo/fifo_intr_gv11b.h"
+#include "hal/fifo/ctxsw_timeout_gk20a.h"
 #include "hal/gr/fecs_trace/fecs_trace_gm20b.h"
 #include "hal/gr/config/gr_config_gm20b.h"
 #include "hal/gr/config/gr_config_gv100.h"
@@ -823,7 +824,6 @@ static const struct gpu_ops gv100_ops = {
 		.teardown_ch_tsg = gv11b_fifo_teardown_ch_tsg,
 		.teardown_mask_intr = gv100_fifo_teardown_mask_intr,
 		.teardown_unmask_intr = gv100_fifo_teardown_unmask_intr,
-		.handle_sched_error = gk20a_fifo_handle_sched_error,
 		.init_eng_method_buffers = gv11b_fifo_init_eng_method_buffers,
 		.deinit_eng_method_buffers =
 			gv11b_fifo_deinit_eng_method_buffers,
@@ -849,6 +849,9 @@ static const struct gpu_ops gv100_ops = {
 		.intr_1_enable = gk20a_fifo_intr_1_enable,
 		.intr_0_isr = gv11b_fifo_intr_0_isr,
 		.intr_1_isr = gk20a_fifo_intr_1_isr,
+		.handle_sched_error = gk20a_fifo_handle_sched_error,
+		.ctxsw_timeout_enable = gk20a_fifo_ctxsw_timeout_enable,
+		.handle_ctxsw_timeout = gk20a_fifo_handle_ctxsw_timeout,
 	},
 	.engine = {
 		.is_fault_engine_subid_gpc = gv11b_is_fault_engine_subid_gpc,
