@@ -222,5 +222,7 @@ bool nvgpu_gr_ctx_check_valid_preemption_mode(struct nvgpu_gr_ctx *gr_ctx,
 	u32 graphics_preempt_mode, u32 compute_preempt_mode);
 void nvgpu_gr_ctx_set_preemption_modes(struct gk20a *g,
 	struct nvgpu_gr_ctx *gr_ctx);
+void nvgpu_gr_ctx_set_preemption_buffer_va(struct gk20a *g,
+	struct nvgpu_gr_ctx *gr_ctx);
 
 #endif /* NVGPU_INCLUDE_GR_CTX_H */

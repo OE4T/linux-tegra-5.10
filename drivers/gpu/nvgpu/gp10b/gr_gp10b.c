@@ -988,7 +988,6 @@ int gr_gp10b_init_ctxsw_preemption_mode(struct gk20a *g,
 void gr_gp10b_update_ctxsw_preemption_mode(struct gk20a *g,
 		struct nvgpu_gr_ctx *gr_ctx, struct nvgpu_gr_subctx *subctx)
 {
-	struct nvgpu_mem *mem = &gr_ctx->mem;
 	int err;
 
 	nvgpu_log_fn(g, " ");
@@ -1000,15 +999,11 @@ void gr_gp10b_update_ctxsw_preemption_mode(struct gk20a *g,
 		u32 size;
 		u32 cbes_reserve;
 
-		if (g->ops.gr.set_preemption_buffer_va != NULL) {
-			if (subctx != NULL) {
-				g->ops.gr.set_preemption_buffer_va(g,
-					&subctx->ctx_header,
-					gr_ctx->preempt_ctxsw_buffer.gpu_va);
-			} else {
-				g->ops.gr.set_preemption_buffer_va(g, mem,
-				gr_ctx->preempt_ctxsw_buffer.gpu_va);
-			}
+		if (subctx != NULL) {
+			nvgpu_gr_subctx_set_preemption_buffer_va(g, subctx,
+				gr_ctx);
+		} else {
+			nvgpu_gr_ctx_set_preemption_buffer_va(g, gr_ctx);
 		}
 
 		err = nvgpu_gr_ctx_patch_write_begin(g, gr_ctx, true);
@@ -2099,12 +2094,6 @@ int gr_gp10b_get_preemption_mode_flags(struct gk20a *g,
 			NVGPU_PREEMPTION_MODE_COMPUTE_WFI;
 
 	return 0;
-}
-
-void gr_gp10b_set_preemption_buffer_va(struct gk20a *g,
-			struct nvgpu_mem *mem, u64 gpu_va)
-{
-	g->ops.gr.ctxsw_prog.set_full_preemption_ptr(g, mem, gpu_va);
 }
 
 void gr_gp10b_init_gfxp_wfi_timeout_count(struct gk20a *g)

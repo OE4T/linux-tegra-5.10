@@ -127,8 +127,6 @@ int gr_gp10b_get_preemption_mode_flags(struct gk20a *g,
 	struct nvgpu_preemption_modes_rec *preemption_modes_rec);
 int gp10b_gr_fuse_override(struct gk20a *g);
 int gr_gp10b_init_preemption_state(struct gk20a *g);
-void gr_gp10b_set_preemption_buffer_va(struct gk20a *g,
-			struct nvgpu_mem *mem, u64 gpu_va);
 void gr_gp10b_init_gfxp_wfi_timeout_count(struct gk20a *g);
 unsigned long gr_gp10b_get_max_gfxp_wfi_timeout_count(struct gk20a *g);
 bool gr_gp10b_suspend_context(struct channel_gk20a *ch,

@@ -131,3 +131,17 @@ void nvgpu_gr_subctx_set_patch_ctx(struct gk20a *g,
 	g->ops.gr.ctxsw_prog.set_patch_addr(g, &subctx->ctx_header,
 		gr_ctx->patch_ctx.mem.gpu_va);
 }
+
+void nvgpu_gr_subctx_set_preemption_buffer_va(struct gk20a *g,
+	struct nvgpu_gr_subctx *subctx, struct nvgpu_gr_ctx *gr_ctx)
+{
+	g->ops.gr.ctxsw_prog.set_full_preemption_ptr(g, &subctx->ctx_header,
+		gr_ctx->preempt_ctxsw_buffer.gpu_va);
+
+	if (g->ops.gr.ctxsw_prog.set_full_preemption_ptr_veid0 != NULL) {
+		g->ops.gr.ctxsw_prog.set_full_preemption_ptr_veid0(g,
+			&subctx->ctx_header,
+			gr_ctx->preempt_ctxsw_buffer.gpu_va);
+	}
+}
+

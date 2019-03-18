@@ -833,3 +833,16 @@ void nvgpu_gr_ctx_set_preemption_modes(struct gk20a *g,
 	}
 
 }
+
+void nvgpu_gr_ctx_set_preemption_buffer_va(struct gk20a *g,
+	struct nvgpu_gr_ctx *gr_ctx)
+{
+	g->ops.gr.ctxsw_prog.set_full_preemption_ptr(g, &gr_ctx->mem,
+		gr_ctx->preempt_ctxsw_buffer.gpu_va);
+
+	if (g->ops.gr.ctxsw_prog.set_full_preemption_ptr_veid0 != NULL) {
+		g->ops.gr.ctxsw_prog.set_full_preemption_ptr_veid0(g,
+			&gr_ctx->mem, gr_ctx->preempt_ctxsw_buffer.gpu_va);
+	}
+}
+

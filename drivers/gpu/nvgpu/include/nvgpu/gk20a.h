@@ -435,8 +435,6 @@ struct gpu_ops {
 		void (*program_zcull_mapping)(struct gk20a *g,
 				u32 zcull_alloc_num, u32 *zcull_map_tiles);
 		int (*commit_inst)(struct channel_gk20a *c, u64 gpu_va);
-		void (*set_preemption_buffer_va)(struct gk20a *g,
-					struct nvgpu_mem *mem, u64 gpu_va);
 		void (*load_tpc_mask)(struct gk20a *g);
 		int (*trigger_suspend)(struct gk20a *g);
 		int (*wait_for_pause)(struct gk20a *g, struct nvgpu_warpstate *w_state);

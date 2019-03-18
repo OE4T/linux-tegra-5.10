@@ -468,7 +468,6 @@ static const struct gpu_ops tu104_ops = {
 		.set_boosted_ctx = gr_gp10b_set_boosted_ctx,
 		.set_preemption_mode = gr_gp10b_set_preemption_mode,
 		.pre_process_sm_exception = gr_gv11b_pre_process_sm_exception,
-		.set_preemption_buffer_va = gr_gv11b_set_preemption_buffer_va,
 		.set_bes_crop_debug3 = gr_gp10b_set_bes_crop_debug3,
 		.set_bes_crop_debug4 = gr_gp10b_set_bes_crop_debug4,
 		.init_ecc = tu104_ecc_init,
