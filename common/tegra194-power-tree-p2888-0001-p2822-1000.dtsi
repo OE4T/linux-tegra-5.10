@@ -179,4 +179,8 @@
 #else
 	};
 #endif
+
+	bcmdhd_pcie_wlan {
+		wlreg_on-supply = <&p2888_spmic_ldo2>;
+	};
 };
