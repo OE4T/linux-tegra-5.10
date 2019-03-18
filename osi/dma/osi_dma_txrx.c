@@ -24,6 +24,8 @@
 #include <osi_dma.h>
 #include <osi_dma_txrx.h>
 
+int dma_desc_init(struct osi_dma_priv_data *osi_dma);
+
 static inline void osi_memset(void *s, int c, unsigned long count)
 {
 	char *xs = s;

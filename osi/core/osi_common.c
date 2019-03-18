@@ -118,3 +118,18 @@ void osi_get_hw_features(void *base, struct osi_hw_features *hw_feat)
 	hw_feat->aux_snap_num =
 		((mac_hfr2 >> 28U) & EQOS_MAC_HFR2_AUXSNAPNUM_MASK);
 }
+
+int osi_get_mac_version(void *addr, unsigned int *mac_ver)
+{
+	unsigned int macver;
+	int ret = 0;
+
+	macver = osi_readl((unsigned char *)addr + MAC_VERSION) &
+		MAC_VERSION_SNVER_MASK;
+	if (is_valid_mac_version(macver) == 0) {
+		return -1;
+	}
+
+	*mac_ver = macver;
+	return ret;
+}

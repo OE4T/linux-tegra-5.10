@@ -259,14 +259,8 @@ struct osi_dma_priv_data {
  *
  *	Return: None.
  */
-static inline void osi_disable_chan_tx_intr(struct osi_dma_priv_data *osi_dma,
-					    unsigned int chan)
-{
-	if ((osi_dma != OSI_NULL) && (osi_dma->ops != OSI_NULL) &&
-	    (osi_dma->ops->disable_chan_tx_intr != OSI_NULL)) {
-		osi_dma->ops->disable_chan_tx_intr(osi_dma->base, chan);
-	}
-}
+void osi_disable_chan_tx_intr(struct osi_dma_priv_data *osi_dma,
+			      unsigned int chan);
 
 /**
  *	osi_enable_chan_tx_intr - Enable DMA Tx channel interrupts.
@@ -281,14 +275,8 @@ static inline void osi_disable_chan_tx_intr(struct osi_dma_priv_data *osi_dma,
  *
  *	Return: None.
  */
-static inline void osi_enable_chan_tx_intr(struct osi_dma_priv_data *osi_dma,
-					   unsigned int chan)
-{
-	if ((osi_dma != OSI_NULL) && (osi_dma->ops != OSI_NULL) &&
-	    (osi_dma->ops->enable_chan_tx_intr != OSI_NULL)) {
-		osi_dma->ops->enable_chan_tx_intr(osi_dma->base, chan);
-	}
-}
+void osi_enable_chan_tx_intr(struct osi_dma_priv_data *osi_dma,
+			     unsigned int chan);
 
 /**
  *	osi_disable_chan_rx_intr - Disable DMA Rx channel interrupts.
@@ -303,14 +291,8 @@ static inline void osi_enable_chan_tx_intr(struct osi_dma_priv_data *osi_dma,
  *
  *	Return: None.
  */
-static inline void osi_disable_chan_rx_intr(struct osi_dma_priv_data *osi_dma,
-					    unsigned int chan)
-{
-	if ((osi_dma != OSI_NULL) && (osi_dma->ops != OSI_NULL) &&
-	    (osi_dma->ops->disable_chan_rx_intr != OSI_NULL)) {
-		osi_dma->ops->disable_chan_rx_intr(osi_dma->base, chan);
-	}
-}
+void osi_disable_chan_rx_intr(struct osi_dma_priv_data *osi_dma,
+			      unsigned int chan);
 
 /**
  *	osi_enable_chan_rx_intr - Enable DMA Rx channel interrupts.
@@ -325,14 +307,8 @@ static inline void osi_disable_chan_rx_intr(struct osi_dma_priv_data *osi_dma,
  *
  *	Return: None.
  */
-static inline void osi_enable_chan_rx_intr(struct osi_dma_priv_data *osi_dma,
-					   unsigned int chan)
-{
-	if ((osi_dma != OSI_NULL) && (osi_dma->ops != OSI_NULL) &&
-	    (osi_dma->ops->enable_chan_rx_intr != OSI_NULL)) {
-		osi_dma->ops->enable_chan_rx_intr(osi_dma->base, chan);
-	}
-}
+void osi_enable_chan_rx_intr(struct osi_dma_priv_data *osi_dma,
+			     unsigned int chan);
 
 /**
  *	osi_clear_tx_intr - Handles Tx interrupt source.
@@ -347,14 +323,8 @@ static inline void osi_enable_chan_rx_intr(struct osi_dma_priv_data *osi_dma,
  *
  *	Return: None.
  */
-static inline void osi_clear_tx_intr(struct osi_dma_priv_data *osi_dma,
-				      unsigned int chan)
-{
-	if ((osi_dma != OSI_NULL) && (osi_dma->ops != OSI_NULL) &&
-	    (osi_dma->ops->clear_tx_intr != OSI_NULL)) {
-		osi_dma->ops->clear_tx_intr(osi_dma->base, chan);
-	}
-}
+void osi_clear_tx_intr(struct osi_dma_priv_data *osi_dma,
+		       unsigned int chan);
 
 /**
  *	osi_clear_rx_intr - Handles Rx interrupt source.
@@ -369,14 +339,8 @@ static inline void osi_clear_tx_intr(struct osi_dma_priv_data *osi_dma,
  *
  *	Return: None.
  */
-static inline void osi_clear_rx_intr(struct osi_dma_priv_data *osi_dma,
-				      unsigned int chan)
-{
-	if ((osi_dma != OSI_NULL) && (osi_dma->ops != OSI_NULL) &&
-	    (osi_dma->ops->clear_rx_intr != OSI_NULL)) {
-		osi_dma->ops->clear_rx_intr(osi_dma->base, chan);
-	}
-}
+void osi_clear_rx_intr(struct osi_dma_priv_data *osi_dma,
+		       unsigned int chan);
 
 /**
  *	osi_start_dma - Start DMA
@@ -388,14 +352,8 @@ static inline void osi_clear_rx_intr(struct osi_dma_priv_data *osi_dma,
  *	Protection: None
  *	Return: None
  */
-static inline void osi_start_dma(struct osi_dma_priv_data *osi_dma,
-				 unsigned int chan)
-{
-	if ((osi_dma != OSI_NULL) && (osi_dma->ops != OSI_NULL) &&
-	    (osi_dma->ops->start_dma != OSI_NULL)) {
-		osi_dma->ops->start_dma(osi_dma->base, chan);
-	}
-}
+void osi_start_dma(struct osi_dma_priv_data *osi_dma,
+		   unsigned int chan);
 
 /**
  *	osi_stop_dma - Stop DMA
@@ -407,14 +365,8 @@ static inline void osi_start_dma(struct osi_dma_priv_data *osi_dma,
  *	Protection: None
  *	Return: None
  */
-static inline void osi_stop_dma(struct osi_dma_priv_data *osi_dma,
-				unsigned int chan)
-{
-	if ((osi_dma != OSI_NULL) && (osi_dma->ops != OSI_NULL) &&
-	    (osi_dma->ops->stop_dma != OSI_NULL)) {
-		osi_dma->ops->stop_dma(osi_dma->base, chan);
-	}
-}
+void osi_stop_dma(struct osi_dma_priv_data *osi_dma,
+		  unsigned int chan);
 
 /**
  *      osi_get_refill_rx_desc_cnt - Rx descriptors count that needs to refill.
@@ -429,10 +381,7 @@ static inline void osi_stop_dma(struct osi_dma_priv_data *osi_dma,
  *
  *      Return: Number of available free descriptors.
  */
-static inline unsigned int osi_get_refill_rx_desc_cnt(struct osi_rx_ring *rx_ring)
-{
-	return (rx_ring->cur_rx_idx - rx_ring->refill_idx) & (RX_DESC_CNT - 1U);
-}
+unsigned int osi_get_refill_rx_desc_cnt(struct osi_rx_ring *rx_ring);
 
 /**
  *	osi_rx_dma_desc_init - DMA Rx descriptor init
@@ -447,14 +396,8 @@ static inline unsigned int osi_get_refill_rx_desc_cnt(struct osi_rx_ring *rx_rin
  *
  *	Return: None.
  */
-static inline void osi_rx_dma_desc_init(struct osi_rx_swcx *rx_swcx,
-					struct osi_rx_desc *rx_desc)
-{
-	rx_desc->rdes0 = (unsigned int)L32(rx_swcx->buf_phy_addr);
-	rx_desc->rdes1 = (unsigned int)H32(rx_swcx->buf_phy_addr);
-	rx_desc->rdes2 = 0;
-	rx_desc->rdes3 = (RDES3_OWN | RDES3_IOC | RDES3_B1V);
-}
+void osi_rx_dma_desc_init(struct osi_rx_swcx *rx_swcx,
+			  struct osi_rx_desc *rx_desc);
 
 /**
  *	osi_update_rx_tailptr - Updates DMA Rx ring tail pointer
@@ -470,22 +413,9 @@ static inline void osi_rx_dma_desc_init(struct osi_rx_swcx *rx_swcx,
  *
  *	Return: None.
  */
-static inline void osi_update_rx_tailptr(struct osi_dma_priv_data *osi_dma,
-					 struct osi_rx_ring *rx_ring,
-					 unsigned int chan)
-{
-	unsigned long tailptr = 0;
-	unsigned int refill_idx = rx_ring->refill_idx;
-
-	DECR_RX_DESC_INDEX(refill_idx, 1U);
-	tailptr = rx_ring->rx_desc_phy_addr +
-		  (refill_idx * sizeof(struct osi_rx_desc));
-
-	if (osi_dma != OSI_NULL && osi_dma->ops != OSI_NULL &&
-	    osi_dma->ops->update_rx_tailptr != OSI_NULL) {
-		osi_dma->ops->update_rx_tailptr(osi_dma->base, chan, tailptr);
-	}
-}
+void osi_update_rx_tailptr(struct osi_dma_priv_data *osi_dma,
+			   struct osi_rx_ring *rx_ring,
+			   unsigned int chan);
 
 /**
  *	osi_set_rx_buf_len - Updates rx buffer length.
@@ -499,14 +429,7 @@ static inline void osi_update_rx_tailptr(struct osi_dma_priv_data *osi_dma,
  *
  *	Return: None.
  */
-
-static inline void osi_set_rx_buf_len(struct osi_dma_priv_data *osi_dma)
-{
-	if (osi_dma != OSI_NULL && osi_dma->ops != OSI_NULL &&
-	    osi_dma->ops->set_rx_buf_len != OSI_NULL) {
-		osi_dma->ops->set_rx_buf_len(osi_dma);
-	}
-}
+void osi_set_rx_buf_len(struct osi_dma_priv_data *osi_dma);
 
 void osi_hw_transmit(struct osi_dma_priv_data *osi, unsigned int chan);
 int osi_process_tx_completions(struct osi_dma_priv_data *osi,

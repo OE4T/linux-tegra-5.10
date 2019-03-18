@@ -225,3 +225,175 @@ void osi_init_core_ops(struct osi_core_priv_data *osi_core)
 		osi_core->ops = eqos_get_hw_core_ops();
 	}
 }
+
+int osi_poll_for_swr(struct osi_core_priv_data *osi_core)
+{
+	int ret = 0;
+
+	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
+	    (osi_core->ops->poll_for_swr != OSI_NULL)) {
+		ret = osi_core->ops->poll_for_swr(osi_core->base);
+	}
+
+	return ret;
+}
+
+void osi_set_mdc_clk_rate(struct osi_core_priv_data *osi_core,
+			  unsigned long csr_clk_rate)
+{
+	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
+	    (osi_core->ops->set_mdc_clk_rate != OSI_NULL)) {
+		osi_core->ops->set_mdc_clk_rate(osi_core, csr_clk_rate);
+	}
+}
+
+int osi_hw_core_init(struct osi_core_priv_data *osi_core,
+		     unsigned int tx_fifo_size,
+		     unsigned int rx_fifo_size)
+{
+	int ret = 0;
+
+	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
+	    (osi_core->ops->core_init != OSI_NULL)) {
+		ret = osi_core->ops->core_init(osi_core, tx_fifo_size,
+					       rx_fifo_size);
+	}
+
+	return ret;
+}
+
+void osi_start_mac(struct osi_core_priv_data *osi_core)
+{
+	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
+	    (osi_core->ops->start_mac != OSI_NULL)) {
+		osi_core->ops->start_mac(osi_core->base);
+	}
+}
+
+void osi_stop_mac(struct osi_core_priv_data *osi_core)
+{
+	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
+	    (osi_core->ops->stop_mac != OSI_NULL)) {
+		osi_core->ops->stop_mac(osi_core->base);
+	}
+}
+
+void osi_common_isr(struct osi_core_priv_data *osi_core)
+{
+	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
+	    (osi_core->ops->handle_common_intr != OSI_NULL)) {
+		osi_core->ops->handle_common_intr(osi_core);
+	}
+}
+
+void osi_set_mode(struct osi_core_priv_data *osi_core, int mode)
+{
+	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
+	    (osi_core->ops->set_mode != OSI_NULL)) {
+		osi_core->ops->set_mode(osi_core->base, mode);
+	}
+}
+
+void osi_set_speed(struct osi_core_priv_data *osi_core, int speed)
+{
+	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
+	    (osi_core->ops->set_speed != OSI_NULL)) {
+		osi_core->ops->set_speed(osi_core->base, speed);
+	}
+}
+
+int osi_pad_calibrate(struct osi_core_priv_data *osi_core)
+{
+	int ret = 0;
+
+	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
+	    (osi_core->ops->pad_calibrate != OSI_NULL)) {
+		ret = osi_core->ops->pad_calibrate(osi_core);
+	}
+
+	return ret;
+}
+
+int osi_flush_mtl_tx_queue(struct osi_core_priv_data *osi_core,
+			   unsigned int qinx)
+{
+        int ret = 0;
+
+        if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
+            (osi_core->ops->flush_mtl_tx_queue != OSI_NULL)) {
+                ret = osi_core->ops->flush_mtl_tx_queue(osi_core->base, qinx);
+        }
+
+        return ret;
+}
+
+int osi_config_mac_loopback(struct osi_core_priv_data *osi_core,
+			    unsigned int lb_mode)
+{
+	int ret = -1;
+
+	/* Configure MAC LoopBack */
+	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
+	    (osi_core->ops->config_mac_loopback != OSI_NULL)) {
+		ret = osi_core->ops->config_mac_loopback(osi_core->base,
+							 lb_mode);
+	}
+
+	return ret;
+}
+
+int osi_set_avb(struct osi_core_priv_data *osi_core,
+		struct osi_core_avb_algorithm *avb)
+{
+	int ret = -1;
+
+	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
+	    (osi_core->ops->set_avb_algorithm != OSI_NULL)) {
+		ret = osi_core->ops->set_avb_algorithm(osi_core, avb);
+	}
+
+	return ret;
+}
+
+int osi_get_avb(struct osi_core_priv_data *osi_core,
+		struct osi_core_avb_algorithm *avb)
+{
+	int ret = -1;
+
+	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
+	    (osi_core->ops->get_avb_algorithm != OSI_NULL)) {
+		ret = osi_core->ops->get_avb_algorithm(osi_core, avb);
+	}
+
+	return ret;
+}
+
+int osi_configure_txstatus(struct osi_core_priv_data *osi_core,
+			   unsigned int tx_status)
+{
+	int ret = -1;
+
+	/* Configure Drop Transmit Status */
+	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
+	    (osi_core->ops->config_tx_status != OSI_NULL)) {
+		ret = osi_core->ops->config_tx_status(osi_core->base,
+						      tx_status);
+	}
+
+	return ret;
+}
+
+int osi_config_rx_crc_check(struct osi_core_priv_data *osi_core,
+			    unsigned int crc_chk)
+{
+	int ret = -1;
+
+	/* Configure CRC Checking for Received Packets */
+	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
+	    (osi_core->ops->config_rx_crc_check != OSI_NULL)) {
+		ret = osi_core->ops->config_rx_crc_check(osi_core->base,
+							 crc_chk);
+	}
+
+	return ret;
+}

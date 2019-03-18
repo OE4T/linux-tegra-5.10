@@ -1174,7 +1174,8 @@ static int eqos_get_avb_algorithm(struct osi_core_priv_data *osi_core,
 		     EQOS_MTL_TXQ_ETS_CR_AVALG_SHIFT;
 
 	/* Get Send slope credit */
-	value = osi_readl(osi_core->base + EQOS_MTL_TXQ_ETS_SSCR(qinx));
+	value = osi_readl((unsigned char *)osi_core->base +
+			  EQOS_MTL_TXQ_ETS_SSCR(qinx));
 	avb->send_slope = value & EQOS_MTL_TXQ_ETS_SSCR_SSC_MASK;
 
 	/* Get Idle slope credit*/

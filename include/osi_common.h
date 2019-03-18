@@ -346,7 +346,7 @@ static inline void osi_writel(unsigned int val, void *addr)
  *
  *      Return: 0 - for not Valid MAC, 1 - for Valid MAC
  */
-static int is_valid_mac_version(unsigned int mac_ver)
+static inline int is_valid_mac_version(unsigned int mac_ver)
 {
 	if ((mac_ver == OSI_EQOS_MAC_4_10) ||
 	    (mac_ver == OSI_EQOS_MAC_5_00) ||
@@ -370,19 +370,7 @@ static int is_valid_mac_version(unsigned int mac_ver)
  *
  *      Return: 0 - success, -1 - failure
  */
-static inline int osi_get_mac_version(void *addr, unsigned int *mac_ver)
-{
-	unsigned int macver;
-	int ret = 0;
-
-	macver = osi_readl((unsigned char *)addr + MAC_VERSION) & MAC_VERSION_SNVER_MASK;
-	if (is_valid_mac_version(macver) == 0) {
-		return -1;
-	}
-
-	*mac_ver = macver;
-	return ret;
-}
+int osi_get_mac_version(void *addr, unsigned int *mac_ver);
 
 void osi_get_hw_features(void *base, struct osi_hw_features *hw_feat);
 #endif /* OSI_COMMON_H */

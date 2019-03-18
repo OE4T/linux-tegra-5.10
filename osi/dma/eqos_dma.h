@@ -20,8 +20,8 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef EQOS_H_
-#define EQOS_H_
+#ifndef EQOS_DMA_H_
+#define EQOS_DMA_H_
 
 #define EQOS_AXI_BUS_WIDTH	0x10U
 
