@@ -760,6 +760,8 @@ struct gpu_ops {
 			void (*commit_ctxsw_spill)(struct gk20a *g,
 				struct nvgpu_gr_ctx *gr_ctx, u64 addr, u32 size,
 				bool patch);
+			void (*commit_cbes_reserve)(struct gk20a *g,
+				struct nvgpu_gr_ctx *gr_ctx, bool patch);
 		} init;
 
 		struct {

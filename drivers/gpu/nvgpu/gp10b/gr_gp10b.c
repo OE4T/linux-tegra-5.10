@@ -691,7 +691,6 @@ void gr_gp10b_update_ctxsw_preemption_mode(struct gk20a *g,
 	if (gr_ctx->preempt_ctxsw_buffer.gpu_va != 0ULL) {
 		u64 addr;
 		u32 size;
-		u32 cbes_reserve;
 
 		if (subctx != NULL) {
 			nvgpu_gr_subctx_set_preemption_buffer_va(g, subctx,
@@ -725,17 +724,7 @@ void gr_gp10b_update_ctxsw_preemption_mode(struct gk20a *g,
 
 		g->ops.gr.init.commit_ctxsw_spill(g, gr_ctx, addr, size, true);
 
-		cbes_reserve = gr_gpcs_swdx_beta_cb_ctrl_cbes_reserve_gfxp_v();
-		nvgpu_gr_ctx_patch_write(g, gr_ctx,
-				gr_gpcs_swdx_beta_cb_ctrl_r(),
-				gr_gpcs_swdx_beta_cb_ctrl_cbes_reserve_f(
-					cbes_reserve),
-				true);
-		nvgpu_gr_ctx_patch_write(g, gr_ctx,
-				gr_gpcs_ppcs_cbm_beta_cb_ctrl_r(),
-				gr_gpcs_ppcs_cbm_beta_cb_ctrl_cbes_reserve_f(
-					cbes_reserve),
-				true);
+		g->ops.gr.init.commit_cbes_reserve(g, gr_ctx, true);
 
 		nvgpu_gr_ctx_patch_write_end(g, gr_ctx, true);
 	}

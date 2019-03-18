@@ -570,3 +570,18 @@ void gp10b_gr_init_commit_ctxsw_spill(struct gk20a *g,
 			patch);
 }
 
+void gp10b_gr_init_commit_cbes_reserve(struct gk20a *g,
+	struct nvgpu_gr_ctx *gr_ctx, bool patch)
+{
+	u32 cbes_reserve = gr_gpcs_swdx_beta_cb_ctrl_cbes_reserve_gfxp_v();
+
+	nvgpu_gr_ctx_patch_write(g, gr_ctx,
+		gr_gpcs_swdx_beta_cb_ctrl_r(),
+		gr_gpcs_swdx_beta_cb_ctrl_cbes_reserve_f(cbes_reserve),
+		patch);
+	nvgpu_gr_ctx_patch_write(g, gr_ctx,
+		gr_gpcs_ppcs_cbm_beta_cb_ctrl_r(),
+		gr_gpcs_ppcs_cbm_beta_cb_ctrl_cbes_reserve_f(cbes_reserve),
+		patch);
+}
+

@@ -69,5 +69,7 @@ u32 gp10b_gr_init_get_ctx_attrib_cb_size(struct gk20a *g, u32 betacb_size,
 
 void gp10b_gr_init_commit_ctxsw_spill(struct gk20a *g,
 	struct nvgpu_gr_ctx *gr_ctx, u64 addr, u32 size, bool patch);
+void gp10b_gr_init_commit_cbes_reserve(struct gk20a *g,
+	struct nvgpu_gr_ctx *gr_ctx, bool patch);
 
 #endif /* NVGPU_GR_INIT_GP10B_H */

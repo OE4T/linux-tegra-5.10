@@ -696,6 +696,8 @@ static const struct gpu_ops gv100_ops = {
 				gp10b_gr_init_get_ctx_attrib_cb_size,
 			.get_gfxp_rtv_cb_size = NULL,
 			.commit_ctxsw_spill = gv11b_gr_init_commit_ctxsw_spill,
+			.commit_cbes_reserve =
+				gv11b_gr_init_commit_cbes_reserve,
 		},
 		.intr = {
 			.handle_tex_exception = NULL,
