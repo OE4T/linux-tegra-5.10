@@ -1347,65 +1347,6 @@ void gr_gv11b_set_circular_buffer_size(struct gk20a *g, u32 data)
 	}
 }
 
-void gr_gv11b_update_ctxsw_preemption_mode(struct gk20a *g,
-		struct nvgpu_gr_ctx *gr_ctx, struct nvgpu_gr_subctx *subctx)
-{
-	int err;
-
-	nvgpu_log_fn(g, " ");
-
-	nvgpu_gr_ctx_set_preemption_modes(g, gr_ctx);
-
-	if (gr_ctx->preempt_ctxsw_buffer.gpu_va != 0ULL) {
-		u64 addr;
-		u32 size;
-
-		if (subctx != NULL) {
-			nvgpu_gr_subctx_set_preemption_buffer_va(g, subctx,
-				gr_ctx);
-		} else {
-			nvgpu_gr_ctx_set_preemption_buffer_va(g, gr_ctx);
-		}
-
-		err = nvgpu_gr_ctx_patch_write_begin(g, gr_ctx, true);
-		if (err != 0) {
-			nvgpu_err(g, "can't map patch context");
-			goto out;
-		}
-
-		addr = gr_ctx->betacb_ctxsw_buffer.gpu_va;
-		g->ops.gr.init.commit_global_attrib_cb(g, gr_ctx,
-			nvgpu_gr_config_get_tpc_count(g->gr.config),
-			nvgpu_gr_config_get_max_tpc_count(g->gr.config), addr,
-			true);
-
-		addr = gr_ctx->pagepool_ctxsw_buffer.gpu_va;
-		nvgpu_assert(gr_ctx->pagepool_ctxsw_buffer.size <= U32_MAX);
-		size = (u32)gr_ctx->pagepool_ctxsw_buffer.size;
-
-		g->ops.gr.init.commit_global_pagepool(g, gr_ctx, addr, size,
-			true, false);
-
-		addr = gr_ctx->spill_ctxsw_buffer.gpu_va;
-		nvgpu_assert(gr_ctx->spill_ctxsw_buffer.size <= U32_MAX);
-		size = (u32)gr_ctx->spill_ctxsw_buffer.size;
-
-		g->ops.gr.init.commit_ctxsw_spill(g, gr_ctx, addr, size, true);
-
-		g->ops.gr.init.commit_cbes_reserve(g, gr_ctx, true);
-		g->ops.gr.init.gfxp_wfi_timeout(g, gr_ctx,
-			g->gr.gfxp_wfi_timeout_count, true);
-
-		if (g->ops.gr.init.commit_gfxp_rtv_cb != NULL) {
-			g->ops.gr.init.commit_gfxp_rtv_cb(g, gr_ctx, true);
-		}
-
-		nvgpu_gr_ctx_patch_write_end(g, gr_ctx, true);
-	}
-
-out:
-	nvgpu_log_fn(g, "done");
-}
 static void gr_gv11b_dump_gr_per_sm_regs(struct gk20a *g,
 			struct gk20a_debug_output *o,
 			u32 gpc, u32 tpc, u32 sm, u32 offset)

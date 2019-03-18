@@ -422,7 +422,7 @@ static const struct gpu_ops tu104_ops = {
 		.init_ctxsw_preemption_mode =
 			gr_gp10b_init_ctxsw_preemption_mode,
 		.update_ctxsw_preemption_mode =
-			gr_gv11b_update_ctxsw_preemption_mode,
+			gr_gp10b_update_ctxsw_preemption_mode,
 		.dump_gr_regs = gr_gv11b_dump_gr_status_regs,
 		.update_pc_sampling = gr_gm20b_update_pc_sampling,
 		.get_rop_l2_en_mask = gr_gm20b_rop_l2_en_mask,

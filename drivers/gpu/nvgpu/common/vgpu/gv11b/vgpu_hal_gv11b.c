@@ -159,7 +159,7 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 		.init_ctxsw_preemption_mode =
 			vgpu_gr_init_ctxsw_preemption_mode,
 		.update_ctxsw_preemption_mode =
-			gr_gv11b_update_ctxsw_preemption_mode,
+			gr_gp10b_update_ctxsw_preemption_mode,
 		.dump_gr_regs = NULL,
 		.update_pc_sampling = vgpu_gr_update_pc_sampling,
 		.get_rop_l2_en_mask = vgpu_gr_rop_l2_en_mask,

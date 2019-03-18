@@ -172,8 +172,6 @@ int gr_gv11b_init_preemption_state(struct gk20a *g);
 void gr_gv11b_init_gfxp_wfi_timeout_count(struct gk20a *g);
 unsigned long gr_gv11b_get_max_gfxp_wfi_timeout_count(struct gk20a *g);
 
-void gr_gv11b_update_ctxsw_preemption_mode(struct gk20a *g,
-		struct nvgpu_gr_ctx *gr_ctx, struct nvgpu_gr_subctx *subctx);
 int gr_gv11b_handle_ssync_hww(struct gk20a *g, u32 *ssync_esr);
 u32 gv11b_gr_sm_offset(struct gk20a *g, u32 sm);
 
