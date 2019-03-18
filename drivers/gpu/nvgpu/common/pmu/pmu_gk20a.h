@@ -46,9 +46,6 @@ void gk20a_pmu_init_perfmon_counter(struct gk20a *g);
 
 void gk20a_pmu_pg_idle_counter_config(struct gk20a *g, u32 pg_engine_id);
 
-int gk20a_pmu_mutex_acquire(struct nvgpu_pmu *pmu, u32 id, u32 *token);
-int gk20a_pmu_mutex_release(struct nvgpu_pmu *pmu, u32 id, u32 *token);
-
 int gk20a_pmu_queue_head(struct gk20a *g, u32 queue_id, u32 queue_index,
 			u32 *head, bool set);
 int gk20a_pmu_queue_tail(struct gk20a *g, u32 queue_id, u32 queue_index,

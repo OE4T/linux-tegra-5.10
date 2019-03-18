@@ -545,13 +545,13 @@ int gv11b_fifo_preempt_tsg(struct gk20a *g, struct tsg_gk20a *tsg)
 	/* WAR for Bug 2065990 */
 	gk20a_tsg_disable_sched(g, tsg);
 
-	mutex_ret = nvgpu_pmu_mutex_acquire(&g->pmu,
+	mutex_ret = nvgpu_pmu_lock_acquire(g, &g->pmu,
 						PMU_MUTEX_ID_FIFO, &token);
 
 	ret = __locked_fifo_preempt(g, tsg->tsgid, true);
 
 	if (mutex_ret == 0) {
-		int err = nvgpu_pmu_mutex_release(&g->pmu, PMU_MUTEX_ID_FIFO,
+		int err = nvgpu_pmu_lock_release(g, &g->pmu, PMU_MUTEX_ID_FIFO,
 				&token);
 		if (err != 0) {
 			nvgpu_err(g, "PMU_MUTEX_ID_FIFO not released err=%d",
@@ -588,7 +588,7 @@ static void gv11b_fifo_locked_preempt_runlists_rc(struct gk20a *g,
 	/* runlist_lock are locked by teardown and sched are disabled too */
 	nvgpu_log_fn(g, "preempt runlists_mask:0x%08x", runlists_mask);
 
-	mutex_ret = nvgpu_pmu_mutex_acquire(&g->pmu,
+	mutex_ret = nvgpu_pmu_lock_acquire(g, &g->pmu,
 			PMU_MUTEX_ID_FIFO, &token);
 
 	/* issue runlist preempt */
@@ -609,7 +609,7 @@ static void gv11b_fifo_locked_preempt_runlists_rc(struct gk20a *g,
 	}
 
 	if (mutex_ret == 0) {
-		int err = nvgpu_pmu_mutex_release(&g->pmu, PMU_MUTEX_ID_FIFO,
+		int err = nvgpu_pmu_lock_release(g, &g->pmu, PMU_MUTEX_ID_FIFO,
 				&token);
 		if (err != 0) {
 			nvgpu_err(g, "PMU_MUTEX_ID_FIFO not released err=%d",
@@ -634,7 +634,7 @@ static void gv11b_fifo_locked_abort_runlist_active_tsgs(struct gk20a *g,
 	nvgpu_err(g, "runlist id unknown, abort active tsgs in runlists");
 
 	/* runlist_lock  are locked by teardown */
-	mutex_ret = nvgpu_pmu_mutex_acquire(&g->pmu,
+	mutex_ret = nvgpu_pmu_lock_acquire(g, &g->pmu,
 			PMU_MUTEX_ID_FIFO, &token);
 
 	for (i = 0U; i < f->num_runlists; i++) {
@@ -695,7 +695,7 @@ static void gv11b_fifo_locked_abort_runlist_active_tsgs(struct gk20a *g,
 		}
 	}
 	if (mutex_ret == 0) {
-		err = nvgpu_pmu_mutex_release(&g->pmu, PMU_MUTEX_ID_FIFO,
+		err = nvgpu_pmu_lock_release(g, &g->pmu, PMU_MUTEX_ID_FIFO,
 				&token);
 		if (err != 0) {
 			nvgpu_err(g, "PMU_MUTEX_ID_FIFO not released err=%d",

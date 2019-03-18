@@ -89,6 +89,7 @@
 #include "hal/falcon/falcon_gk20a.h"
 #include "hal/nvdec/nvdec_gp106.h"
 #include "hal/gsp/gsp_gv100.h"
+#include "hal/pmu/pmu_hal_gk20a.h"
 
 #include "common/ptimer/ptimer_gk20a.h"
 #include "common/xve/xve_gp106.h"
@@ -1085,6 +1086,7 @@ static const struct gpu_ops gv100_ops = {
 		.pmu_init_perfmon = nvgpu_pmu_init_perfmon,
 		.pmu_perfmon_start_sampling = nvgpu_pmu_perfmon_start_sampling,
 		.pmu_perfmon_stop_sampling = nvgpu_pmu_perfmon_stop_sampling,
+		.pmu_mutex_owner = gk20a_pmu_mutex_owner,
 		.pmu_mutex_acquire = gk20a_pmu_mutex_acquire,
 		.pmu_is_lpwr_feature_supported =
 			gp106_pmu_is_lpwr_feature_supported,

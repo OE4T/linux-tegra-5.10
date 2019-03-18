@@ -92,6 +92,7 @@
 #include "hal/gr/ctxsw_prog/ctxsw_prog_gm20b.h"
 #include "hal/gr/ctxsw_prog/ctxsw_prog_gp10b.h"
 #include "hal/falcon/falcon_gk20a.h"
+#include "hal/pmu/pmu_hal_gk20a.h"
 
 #include "common/ptimer/ptimer_gk20a.h"
 #include "common/netlist/netlist_gp10b.h"
@@ -887,6 +888,7 @@ static const struct gpu_ops gp10b_ops = {
 		.pmu_queue_tail = gk20a_pmu_queue_tail,
 		.pmu_msgq_tail = gk20a_pmu_msgq_tail,
 		.pmu_mutex_size = pwr_pmu_mutex__size_1_v,
+		.pmu_mutex_owner = gk20a_pmu_mutex_owner,
 		.pmu_mutex_acquire = gk20a_pmu_mutex_acquire,
 		.pmu_mutex_release = gk20a_pmu_mutex_release,
 		.pmu_is_interrupted = gk20a_pmu_is_interrupted,

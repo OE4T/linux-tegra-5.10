@@ -46,32 +46,6 @@
 #define  PMU_IS_MESSAGE_QUEUE(id)	\
 		((id) == PMU_MESSAGE_QUEUE)
 
-/* An enumeration containing all valid logical mutex identifiers */
-enum {
-	PMU_MUTEX_ID_RSVD1 = 0,
-	PMU_MUTEX_ID_GPUSER,
-	PMU_MUTEX_ID_QUEUE_BIOS,
-	PMU_MUTEX_ID_QUEUE_SMI,
-	PMU_MUTEX_ID_GPMUTEX,
-	PMU_MUTEX_ID_I2C,
-	PMU_MUTEX_ID_RMLOCK,
-	PMU_MUTEX_ID_MSGBOX,
-	PMU_MUTEX_ID_FIFO,
-	PMU_MUTEX_ID_PG,
-	PMU_MUTEX_ID_GR,
-	PMU_MUTEX_ID_CLK,
-	PMU_MUTEX_ID_RSVD6,
-	PMU_MUTEX_ID_RSVD7,
-	PMU_MUTEX_ID_RSVD8,
-	PMU_MUTEX_ID_RSVD9,
-	PMU_MUTEX_ID_INVALID
-};
-
-#define PMU_MUTEX_ID_IS_VALID(id)	\
-		((id) < PMU_MUTEX_ID_INVALID)
-
-#define PMU_INVALID_MUTEX_OWNER_ID	0U
-
 /*
  * The PMU's frame-buffer interface block has several slots/indices
  * which can be bound to support DMA to various surfaces in memory

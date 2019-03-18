@@ -1383,10 +1383,15 @@ struct gpu_ops {
 		void (*pmu_msgq_tail)(struct nvgpu_pmu *pmu,
 			u32 *tail, bool set);
 		u32 (*pmu_mutex_size)(void);
-		int (*pmu_mutex_acquire)(struct nvgpu_pmu *pmu,
-			u32 id, u32 *token);
-		int (*pmu_mutex_release)(struct nvgpu_pmu *pmu,
-			u32 id, u32 *token);
+		u32 (*pmu_mutex_owner)(struct gk20a *g,
+				       struct pmu_mutexes *mutexes,
+				       u32 id);
+		int (*pmu_mutex_acquire)(struct gk20a *g,
+					 struct pmu_mutexes *mutexes,
+					 u32 id, u32 *token);
+		void (*pmu_mutex_release)(struct gk20a *g,
+					  struct pmu_mutexes *mutexes, u32 id,
+					  u32 *token);
 		bool (*pmu_is_interrupted)(struct nvgpu_pmu *pmu);
 		void (*pmu_isr)(struct gk20a *g);
 		void (*pmu_init_perfmon_counter)(struct gk20a *g);

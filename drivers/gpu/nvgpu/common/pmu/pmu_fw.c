@@ -1657,6 +1657,7 @@ static void nvgpu_remove_pmu_support(struct nvgpu_pmu *pmu)
 	nvgpu_mutex_destroy(&pmu->isr_mutex);
 	nvgpu_mutex_destroy(&pmu->pmu_copy_lock);
 	nvgpu_pmu_sequences_free(g, &pmu->sequences);
+	nvgpu_pmu_mutexes_free(g, &pmu->mutexes);
 }
 
 static int init_pmu_ucode(struct nvgpu_pmu *pmu)

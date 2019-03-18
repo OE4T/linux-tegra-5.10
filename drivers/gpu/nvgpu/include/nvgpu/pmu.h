@@ -35,6 +35,7 @@
 #include <nvgpu/timers.h>
 #include <nvgpu/pmu/pmu_pg.h>
 #include <nvgpu/pmu/seq.h>
+#include <nvgpu/pmu/mutex.h>
 
 #define nvgpu_pmu_dbg(g, fmt, args...) \
 	nvgpu_log(g, gpu_dbg_pmu, fmt, ##args)
@@ -243,12 +244,6 @@ struct pmu_ucode_desc {
 	u32 compressed;
 };
 
-struct pmu_mutex {
-	u32 id;
-	u32 index;
-	u32 ref_cnt;
-};
-
 struct nvgpu_pmu {
 	struct gk20a *g;
 	struct nvgpu_falcon flcn;
@@ -279,8 +274,7 @@ struct nvgpu_pmu {
 
 	struct pmu_sequences sequences;
 
-	struct pmu_mutex *mutex;
-	u32 mutex_cnt;
+	struct pmu_mutexes mutexes;
 
 	struct nvgpu_mutex pmu_copy_lock;
 
@@ -339,9 +333,10 @@ struct pg_init_sequence_list {
 	u32 writeval;
 };
 
-/* PMU IPC Methods */
-int nvgpu_pmu_mutex_acquire(struct nvgpu_pmu *pmu, u32 id, u32 *token);
-int nvgpu_pmu_mutex_release(struct nvgpu_pmu *pmu, u32 id, u32 *token);
+int nvgpu_pmu_lock_acquire(struct gk20a *g, struct nvgpu_pmu *pmu,
+			   u32 id, u32 *token);
+int nvgpu_pmu_lock_release(struct gk20a *g, struct nvgpu_pmu *pmu,
+			   u32 id, u32 *token);
 
 int nvgpu_pmu_queue_init(struct nvgpu_pmu *pmu, u32 id,
 	union pmu_init_msg_pmu *init);

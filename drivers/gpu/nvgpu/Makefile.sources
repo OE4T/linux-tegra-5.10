@@ -127,6 +127,7 @@ srcs += common/sim.c \
 	common/netlist/netlist_tu104.c \
 	common/pmu/pmu.c \
 	common/pmu/pmu_ipc.c \
+	common/pmu/pmu_mutex.c \
 	common/pmu/pmu_seq.c \
 	common/pmu/pmu_fw.c \
 	common/pmu/pg/pmu_pg.c \
@@ -388,7 +389,8 @@ srcs += common/sim.c \
 	hal/nvlink/minion_tu104.c \
 	hal/nvlink/link_mode_transitions_gv100.c \
 	hal/nvlink/link_mode_transitions_tu104.c \
-	hal/gsp/gsp_gv100.c
+	hal/gsp/gsp_gv100.c \
+	hal/pmu/pmu_hal_gk20a.c
 
 ifeq ($(NVGPU_DEBUGGER),1)
 srcs += common/debugger.c

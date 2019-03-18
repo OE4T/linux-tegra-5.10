@@ -34,29 +34,6 @@
 #include <nvgpu/string.h>
 #include <nvgpu/pmu/seq.h>
 
-/* mutex */
-int nvgpu_pmu_mutex_acquire(struct nvgpu_pmu *pmu, u32 id, u32 *token)
-{
-	struct gk20a *g = gk20a_from_pmu(pmu);
-
-	if (!g->support_ls_pmu) {
-		return 0;
-	}
-
-	return g->ops.pmu.pmu_mutex_acquire(pmu, id, token);
-}
-
-int nvgpu_pmu_mutex_release(struct nvgpu_pmu *pmu, u32 id, u32 *token)
-{
-	struct gk20a *g = gk20a_from_pmu(pmu);
-
-	if (!g->support_ls_pmu) {
-		return 0;
-	}
-
-	return g->ops.pmu.pmu_mutex_release(pmu, id, token);
-}
-
 /* FB queue init */
 int nvgpu_pmu_queue_init_fb(struct nvgpu_pmu *pmu,
 		u32 id, union pmu_init_msg_pmu *init)

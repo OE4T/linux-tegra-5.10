@@ -88,6 +88,7 @@ nvgpu-y += \
 	common/init/nvgpu_init.o \
 	common/pmu/pmu.o \
 	common/pmu/pmu_ipc.o \
+	common/pmu/pmu_mutex.o \
 	common/pmu/pmu_seq.o \
 	common/pmu/pmu_fw.o \
 	common/pmu/pg/pmu_pg.o \
@@ -258,7 +259,8 @@ nvgpu-y += \
 	hal/nvlink/minion_tu104.o \
 	hal/nvlink/link_mode_transitions_gv100.o \
 	hal/nvlink/link_mode_transitions_tu104.o \
-	hal/gsp/gsp_gv100.o
+	hal/gsp/gsp_gv100.o \
+	hal/pmu/pmu_hal_gk20a.o
 
 # Linux specific parts of nvgpu.
 nvgpu-y += \

@@ -295,7 +295,7 @@ int nvgpu_engine_disable_activity(struct gk20a *g,
 	}
 
 	if (g->ops.pmu.is_pmu_supported(g)) {
-		mutex_ret = nvgpu_pmu_mutex_acquire(&g->pmu,
+		mutex_ret = nvgpu_pmu_lock_acquire(g, &g->pmu,
 						PMU_MUTEX_ID_FIFO, &token);
 	}
 
@@ -348,7 +348,7 @@ int nvgpu_engine_disable_activity(struct gk20a *g,
 
 clean_up:
 	if (mutex_ret == 0) {
-		nvgpu_pmu_mutex_release(&g->pmu, PMU_MUTEX_ID_FIFO, &token);
+		nvgpu_pmu_lock_release(g, &g->pmu, PMU_MUTEX_ID_FIFO, &token);
 	}
 
 	if (err != 0) {
