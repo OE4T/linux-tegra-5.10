@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2016-2018, NVIDIA CORPORATION.  All rights reserved.
+* Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
 *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -970,6 +970,7 @@ static int boardobjgrp_pmucmdsend(struct gk20a *g,
 	struct pmu_cmd cmd;
 	u32 seqdesc;
 	int status = 0;
+	size_t tmp_size;
 
 	nvgpu_log_info(g, " ");
 
@@ -977,8 +978,10 @@ static int boardobjgrp_pmucmdsend(struct gk20a *g,
 	(void) memset(&handlerparams, 0, sizeof(handlerparams));
 	(void) memset(&cmd, 0, sizeof(struct pmu_cmd));
 	cmd.hdr.unit_id	= pboardobjgrp->pmu.unitid;
-	cmd.hdr.size = sizeof(struct nv_pmu_boardobj_cmd_grp) +
+	tmp_size = sizeof(struct nv_pmu_boardobj_cmd_grp) +
 					sizeof(struct pmu_hdr);
+	nvgpu_assert(tmp_size <= (size_t)U8_MAX);
+	cmd.hdr.size = U8(tmp_size);
 
 	pgrpcmd  = &cmd.cmd.boardobj.grp;
 	pgrpcmd->cmd_type = pcmd->id;
@@ -998,7 +1001,7 @@ static int boardobjgrp_pmucmdsend(struct gk20a *g,
 	 * but PMU access pmu boardobjgrp data from vidmem copied above
 	 */
 	payload.in.buf = pcmd->buf;
-	payload.in.size = max(pcmd->hdrsize, pcmd->entrysize);
+	payload.in.size = U32(max(pcmd->hdrsize, pcmd->entrysize));
 	payload.in.fb_size = PMU_CMD_SUBMIT_PAYLOAD_PARAMS_FB_SIZE_UNUSED;
 	payload.in.offset = offsetof(struct nv_pmu_boardobj_cmd_grp, grp);
 

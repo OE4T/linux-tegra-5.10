@@ -236,7 +236,7 @@ int boardobjgrpmask_bitclr(struct boardobjgrpmask *mask, u8 bitidx)
 	index = CTRL_BOARDOBJGRP_MASK_MASK_ELEMENT_INDEX(bitidx);
 	offset = CTRL_BOARDOBJGRP_MASK_MASK_ELEMENT_OFFSET(bitidx);
 
-	mask->data[index] &= ~BIT(offset);
+	mask->data[index] &= ~BIT32(offset);
 
 	return 0;
 }
@@ -256,7 +256,7 @@ int boardobjgrpmask_bitset(struct boardobjgrpmask *mask, u8 bitidx)
 	index = CTRL_BOARDOBJGRP_MASK_MASK_ELEMENT_INDEX(bitidx);
 	offset = CTRL_BOARDOBJGRP_MASK_MASK_ELEMENT_OFFSET(bitidx);
 
-	mask->data[index] |= BIT(offset);
+	mask->data[index] |= BIT32(offset);
 
 	return 0;
 }
@@ -276,7 +276,7 @@ int boardobjgrpmask_bitinv(struct boardobjgrpmask *mask, u8 bitidx)
 	index = CTRL_BOARDOBJGRP_MASK_MASK_ELEMENT_INDEX(bitidx);
 	offset = CTRL_BOARDOBJGRP_MASK_MASK_ELEMENT_OFFSET(bitidx);
 
-	mask->data[index] ^= ~BIT(offset);
+	mask->data[index] ^= ~BIT32(offset);
 
 	return 0;
 }

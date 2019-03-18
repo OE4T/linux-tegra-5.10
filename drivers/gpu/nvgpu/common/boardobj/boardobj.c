@@ -49,7 +49,7 @@ int boardobj_construct_super(struct gk20a *g, struct boardobj **ppboardobj,
 	pboardobj->g = g;
 	pboardobj->type = devtmp->type;
 	pboardobj->idx = CTRL_BOARDOBJ_IDX_INVALID;
-	pboardobj->type_mask   = BIT(pboardobj->type) | devtmp->type_mask;
+	pboardobj->type_mask   = BIT32(pboardobj->type) | devtmp->type_mask;
 
 	pboardobj->implements  = boardobj_implements_super;
 	pboardobj->destruct    = boardobj_destruct_super;
