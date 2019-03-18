@@ -2029,10 +2029,6 @@ int gk20a_alloc_obj_ctx(struct channel_gk20a  *c, u32 class_num, u32 flags)
 			}
 		}
 #endif
-
-		/* PM ctxt switch is off by default */
-		gr_ctx->pm_ctx.pm_mode =
-			g->ops.gr.ctxsw_prog.hw_get_pm_mode_no_ctxsw();
 	} else {
 		/* commit gr ctx buffer */
 		err = g->ops.gr.commit_inst(c, gr_ctx->mem.gpu_va);

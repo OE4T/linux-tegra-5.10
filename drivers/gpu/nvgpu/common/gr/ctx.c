@@ -509,22 +509,10 @@ int nvgpu_gr_ctx_load_golden_ctx_image(struct gk20a *g,
 	g->ops.gr.ctxsw_prog.set_patch_addr(g, mem,
 		gr_ctx->patch_ctx.mem.gpu_va);
 
-	/* Update main header region of the context buffer with the info needed
-	 * for PM context switching, including mode and possibly a pointer to
-	 * the PM backing store.
-	 */
-	if (gr_ctx->pm_ctx.pm_mode !=
-	    g->ops.gr.ctxsw_prog.hw_get_pm_mode_no_ctxsw()) {
-		if (gr_ctx->pm_ctx.mem.gpu_va == 0ULL) {
-			nvgpu_err(g,
-				"context switched pm with no pm buffer!");
-			return -EFAULT;
-		}
-
-		virt_addr = gr_ctx->pm_ctx.mem.gpu_va;
-	} else {
-		virt_addr = 0;
-	}
+	/* PM ctxt switch is off by default */
+	gr_ctx->pm_ctx.pm_mode =
+		g->ops.gr.ctxsw_prog.hw_get_pm_mode_no_ctxsw();
+	virt_addr = 0;
 
 	g->ops.gr.ctxsw_prog.set_pm_mode(g, mem, gr_ctx->pm_ctx.pm_mode);
 	g->ops.gr.ctxsw_prog.set_pm_ptr(g, mem, virt_addr);
