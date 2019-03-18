@@ -34,5 +34,5 @@ u64 gp10b_fb_compression_page_size(struct gk20a *g)
 
 unsigned int gp10b_fb_compressible_page_size(struct gk20a *g)
 {
-	return SZ_4K;
+	return (unsigned int)SZ_4K;
 }

@@ -476,10 +476,10 @@ void gv11b_handle_l2tlb_ecc_isr(struct gk20a *g, u32 ecc_status)
 
 	/* Handle overflow */
 	if (corrected_overflow != 0U) {
-		corrected_delta += (0x1UL << fb_mmu_l2tlb_ecc_corrected_err_count_total_s());
+		corrected_delta += BIT32(fb_mmu_l2tlb_ecc_corrected_err_count_total_s());
 	}
 	if (uncorrected_overflow != 0U) {
-		uncorrected_delta += (0x1UL << fb_mmu_l2tlb_ecc_uncorrected_err_count_total_s());
+		uncorrected_delta += BIT32(fb_mmu_l2tlb_ecc_uncorrected_err_count_total_s());
 	}
 
 
@@ -551,10 +551,10 @@ void gv11b_handle_hubtlb_ecc_isr(struct gk20a *g, u32 ecc_status)
 
 	/* Handle overflow */
 	if (corrected_overflow != 0U) {
-		corrected_delta += (0x1UL << fb_mmu_hubtlb_ecc_corrected_err_count_total_s());
+		corrected_delta += BIT32(fb_mmu_hubtlb_ecc_corrected_err_count_total_s());
 	}
 	if (uncorrected_overflow != 0U) {
-		uncorrected_delta += (0x1UL << fb_mmu_hubtlb_ecc_uncorrected_err_count_total_s());
+		uncorrected_delta += BIT32(fb_mmu_hubtlb_ecc_uncorrected_err_count_total_s());
 	}
 
 
@@ -626,10 +626,10 @@ void gv11b_handle_fillunit_ecc_isr(struct gk20a *g, u32 ecc_status)
 
 	/* Handle overflow */
 	if (corrected_overflow != 0U) {
-		corrected_delta += (0x1UL << fb_mmu_fillunit_ecc_corrected_err_count_total_s());
+		corrected_delta += BIT32(fb_mmu_fillunit_ecc_corrected_err_count_total_s());
 	}
 	if (uncorrected_overflow != 0U) {
-		uncorrected_delta += (0x1UL << fb_mmu_fillunit_ecc_uncorrected_err_count_total_s());
+		uncorrected_delta += BIT32(fb_mmu_fillunit_ecc_uncorrected_err_count_total_s());
 	}
 
 
@@ -993,7 +993,7 @@ static void gv11b_fb_handle_mmu_fault_common(struct gk20a *g,
 
 		/* engine is faulted */
 		if (mmfault->faulted_engine != FIFO_INVAL_ENGINE_ID) {
-			act_eng_bitmask = BIT(mmfault->faulted_engine);
+			act_eng_bitmask = BIT32(mmfault->faulted_engine);
 			rc_type = RC_TYPE_MMU_FAULT;
 		}
 
@@ -1147,7 +1147,7 @@ static void gv11b_mm_copy_from_fault_snap_reg(struct gk20a *g,
 	u32 reg_val;
 	u32 addr_lo, addr_hi;
 	u64 inst_ptr;
-	int chid = FIFO_INVAL_CHANNEL_ID;
+	u32 chid = FIFO_INVAL_CHANNEL_ID;
 	struct channel_gk20a *refch;
 
 	(void) memset(mmfault, 0, sizeof(*mmfault));

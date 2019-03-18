@@ -27,6 +27,7 @@
 #include <nvgpu/sizes.h>
 #include <nvgpu/utils.h>
 #include <nvgpu/gk20a.h>
+#include <nvgpu/bug.h>
 
 #include "fb_gm20b.h"
 
@@ -42,30 +43,33 @@ void gm20b_fb_init_hw(struct gk20a *g)
 {
 	u64 addr = nvgpu_mem_get_addr(g, &g->mm.sysmem_flush) >> 8;
 
-	gk20a_writel(g, fb_niso_flush_sysmem_addr_r(), addr);
+	nvgpu_assert(u64_hi32(addr) == 0U);
+	gk20a_writel(g, fb_niso_flush_sysmem_addr_r(), U32(addr));
 
 	/* init mmu debug buffer */
 	addr = nvgpu_mem_get_addr(g, &g->mm.mmu_wr_mem);
 	addr >>= fb_mmu_debug_wr_addr_alignment_v();
 
+	nvgpu_assert(u64_hi32(addr) == 0U);
 	gk20a_writel(g, fb_mmu_debug_wr_r(),
 		     nvgpu_aperture_mask(g, &g->mm.mmu_wr_mem,
 				fb_mmu_debug_wr_aperture_sys_mem_ncoh_f(),
 				fb_mmu_debug_wr_aperture_sys_mem_coh_f(),
 				fb_mmu_debug_wr_aperture_vid_mem_f()) |
 		     fb_mmu_debug_wr_vol_false_f() |
-		     fb_mmu_debug_wr_addr_f(addr));
+		     fb_mmu_debug_wr_addr_f(U32(addr)));
 
 	addr = nvgpu_mem_get_addr(g, &g->mm.mmu_rd_mem);
 	addr >>= fb_mmu_debug_rd_addr_alignment_v();
 
+	nvgpu_assert(u64_hi32(addr) == 0U);
 	gk20a_writel(g, fb_mmu_debug_rd_r(),
 		     nvgpu_aperture_mask(g, &g->mm.mmu_rd_mem,
 				fb_mmu_debug_wr_aperture_sys_mem_ncoh_f(),
 				fb_mmu_debug_wr_aperture_sys_mem_coh_f(),
 				fb_mmu_debug_rd_aperture_vid_mem_f()) |
 		     fb_mmu_debug_rd_vol_false_f() |
-		     fb_mmu_debug_rd_addr_f(addr));
+		     fb_mmu_debug_rd_addr_f(U32(addr)));
 }
 
 int gm20b_fb_tlb_invalidate(struct gk20a *g, struct nvgpu_mem *pdb)
@@ -198,7 +202,7 @@ u64 gm20b_fb_compression_page_size(struct gk20a *g)
 
 unsigned int gm20b_fb_compressible_page_size(struct gk20a *g)
 {
-	return SZ_64K;
+	return (unsigned int)SZ_64K;
 }
 
 u64 gm20b_fb_compression_align_mask(struct gk20a *g)

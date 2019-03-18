@@ -29,6 +29,7 @@
 #include <nvgpu/io.h>
 #include <nvgpu/utils.h>
 #include <nvgpu/gk20a.h>
+#include <nvgpu/bug.h>
 
 #include "hal/fb/fb_gv11b.h"
 #include "hal/fb/fb_gv100.h"
@@ -431,7 +432,7 @@ void tu104_fb_cbc_configure(struct gk20a *g, struct nvgpu_cbc *cbc)
 	u64 compbit_store_pa;
 	u64 cbc_start_addr, cbc_end_addr;
 	u64 cbc_top;
-	u32 cbc_top_size;
+	u64 cbc_top_size;
 	u32 cbc_max;
 
 	compbit_store_pa = nvgpu_mem_get_addr(g, &cbc->compbit_store.mem);
@@ -446,8 +447,9 @@ void tu104_fb_cbc_configure(struct gk20a *g, struct nvgpu_cbc *cbc)
 		  fb_mmu_cbc_base_address_alignment_shift_v();
 	cbc_top_size = u64_lo32(cbc_top) - compbit_store_base;
 
+	nvgpu_assert(cbc_top_size < U64(U32_MAX));
 	nvgpu_writel(g, fb_mmu_cbc_top_r(),
-			fb_mmu_cbc_top_size_f(cbc_top_size));
+			fb_mmu_cbc_top_size_f(U32(cbc_top_size)));
 
 	cbc_max = nvgpu_readl(g, fb_mmu_cbc_max_r());
 	cbc_max = set_field(cbc_max,
@@ -455,8 +457,9 @@ void tu104_fb_cbc_configure(struct gk20a *g, struct nvgpu_cbc *cbc)
 		  fb_mmu_cbc_max_comptagline_f(cbc->max_comptag_lines));
 	nvgpu_writel(g, fb_mmu_cbc_max_r(), cbc_max);
 
+	nvgpu_assert(compbit_store_base < U64(U32_MAX));
 	nvgpu_writel(g, fb_mmu_cbc_base_r(),
-		fb_mmu_cbc_base_address_f(compbit_store_base));
+		fb_mmu_cbc_base_address_f(U32(compbit_store_base)));
 
 	nvgpu_log(g, gpu_dbg_info | gpu_dbg_map_v | gpu_dbg_pte,
 		"compbit base.pa: 0x%x,%08x cbc_base:0x%llx\n",
