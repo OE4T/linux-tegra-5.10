@@ -762,6 +762,9 @@ struct gpu_ops {
 				bool patch);
 			void (*commit_cbes_reserve)(struct gk20a *g,
 				struct nvgpu_gr_ctx *gr_ctx, bool patch);
+			void (*gfxp_wfi_timeout)(struct gk20a *g,
+				struct nvgpu_gr_ctx *gr_ctx, u32 timeout,
+				bool patch);
 		} init;
 
 		struct {

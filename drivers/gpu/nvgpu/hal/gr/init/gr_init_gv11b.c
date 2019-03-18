@@ -969,3 +969,10 @@ void gv11b_gr_init_commit_cbes_reserve(struct gk20a *g,
 		patch);
 }
 
+void gv11b_gr_init_commit_gfxp_wfi_timeout(struct gk20a *g,
+	struct nvgpu_gr_ctx *gr_ctx, u32 timeout, bool patch)
+{
+	nvgpu_gr_ctx_patch_write(g, gr_ctx, gr_fe_gfxp_wfi_timeout_r(),
+		timeout, patch);
+}
+

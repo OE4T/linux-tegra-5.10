@@ -731,6 +731,8 @@ static const struct gpu_ops tu104_ops = {
 			.commit_ctxsw_spill = gv11b_gr_init_commit_ctxsw_spill,
 			.commit_cbes_reserve =
 				gv11b_gr_init_commit_cbes_reserve,
+			.gfxp_wfi_timeout =
+				gv11b_gr_init_commit_gfxp_wfi_timeout,
 		},
 		.intr = {
 			.handle_tex_exception = NULL,

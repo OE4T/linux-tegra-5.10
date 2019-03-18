@@ -73,5 +73,7 @@ void gv11b_gr_init_commit_ctxsw_spill(struct gk20a *g,
 	struct nvgpu_gr_ctx *gr_ctx, u64 addr, u32 size, bool patch);
 void gv11b_gr_init_commit_cbes_reserve(struct gk20a *g,
 	struct nvgpu_gr_ctx *gr_ctx, bool patch);
+void gv11b_gr_init_commit_gfxp_wfi_timeout(struct gk20a *g,
+	struct nvgpu_gr_ctx *gr_ctx, u32 timeout, bool patch);
 
 #endif /* NVGPU_GR_INIT_GV11B_H */
