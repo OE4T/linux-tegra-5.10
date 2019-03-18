@@ -46,9 +46,9 @@
 
 #include "gr_vgpu.h"
 #include "ctx_vgpu.h"
+#include "subctx_vgpu.h"
 
 #include "common/vgpu/perf/cyclestats_snapshot_vgpu.h"
-#include "common/vgpu/gv11b/vgpu_subctx_gv11b.h"
 
 void vgpu_gr_detect_sm_arch(struct gk20a *g)
 {
@@ -74,8 +74,9 @@ int vgpu_gr_commit_inst(struct channel_gk20a *c, u64 gpu_va)
 	nvgpu_log_fn(g, " ");
 
 	if (nvgpu_is_enabled(g, NVGPU_SUPPORT_TSG_SUBCONTEXTS)) {
-		err = vgpu_gv11b_alloc_subctx_header(c);
-		if (err) {
+		err = vgpu_alloc_subctx_header(g, &c->subctx, c->vm,
+					c->virt_ctx);
+		if (err != 0) {
 			return err;
 		}
 	}
@@ -87,7 +88,8 @@ int vgpu_gr_commit_inst(struct channel_gk20a *c, u64 gpu_va)
 
 	if (err || msg.ret) {
 		if (nvgpu_is_enabled(g, NVGPU_SUPPORT_TSG_SUBCONTEXTS)) {
-			vgpu_gv11b_free_subctx_header(c);
+			vgpu_free_subctx_header(g, c->subctx, c->vm,
+					c->virt_ctx);
 		}
 		return -1;
 	} else {

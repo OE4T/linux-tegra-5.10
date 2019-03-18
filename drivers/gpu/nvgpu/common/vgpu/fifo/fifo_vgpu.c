@@ -41,6 +41,7 @@
 #include <nvgpu/vm_area.h>
 
 #include "fifo_vgpu.h"
+#include "common/vgpu/gr/subctx_vgpu.h"
 
 #include <nvgpu/hw/gk20a/hw_ram_gk20a.h>
 
@@ -511,4 +512,9 @@ u32 vgpu_channel_count(struct gk20a *g)
 	struct vgpu_priv_data *priv = vgpu_get_priv_data(g);
 
 	return priv->constants.num_channels;
+}
+
+void vgpu_channel_free_ctx_header(struct channel_gk20a *c)
+{
+	vgpu_free_subctx_header(c->g, c->subctx, c->vm, c->virt_ctx);
 }

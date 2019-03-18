@@ -20,12 +20,17 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NVGPU_VGPU_SUBCTX_GV11B_H
-#define NVGPU_VGPU_SUBCTX_GV11B_H
+#ifndef NVGPU_SUBCTX_VGPU_H
+#define NVGPU_SUBCTX_VGPU_H
 
-struct channel_gk20a;
+struct gk20a;
+struct nvgpu_gr_subctx;
+struct vm_gk20a;
 
-int vgpu_gv11b_alloc_subctx_header(struct channel_gk20a *c);
-void vgpu_gv11b_free_subctx_header(struct channel_gk20a *c);
+int vgpu_alloc_subctx_header(struct gk20a *g,
+			struct nvgpu_gr_subctx **gr_subctx,
+			struct vm_gk20a *vm, u64 virt_ctx);
+void vgpu_free_subctx_header(struct gk20a *g, struct nvgpu_gr_subctx *subctx,
+			struct vm_gk20a *vm, u64 virt_ctx);
 
-#endif /* NVGPU_VGPU_SUBCTX_GV11B_H */
+#endif /* NVGPU_SUBCTX_VGPU_H */

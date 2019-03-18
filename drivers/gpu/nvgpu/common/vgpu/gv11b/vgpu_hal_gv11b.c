@@ -99,7 +99,6 @@
 
 #include "vgpu_gv11b.h"
 
-#include "vgpu_subctx_gv11b.h"
 #include "vgpu_tsg_gv11b.h"
 
 #include <nvgpu/hw/gv11b/hw_pwr_gv11b.h>
@@ -507,7 +506,7 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 		.setup_sw = vgpu_fifo_setup_sw,
 		.cleanup_sw = vgpu_fifo_cleanup_sw,
 		.resetup_ramfc = NULL,
-		.free_channel_ctx_header = vgpu_gv11b_free_subctx_header,
+		.free_channel_ctx_header = vgpu_channel_free_ctx_header,
 		.handle_ctxsw_timeout = gv11b_fifo_handle_ctxsw_timeout,
 		.ring_channel_doorbell = gv11b_ring_channel_doorbell,
 		.set_sm_exception_type_mask = vgpu_set_sm_exception_type_mask,

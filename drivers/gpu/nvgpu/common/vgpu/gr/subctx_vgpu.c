@@ -20,81 +20,81 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#include "vgpu_subctx_gv11b.h"
-
 #include <nvgpu/vgpu/vgpu.h>
 #include <nvgpu/vgpu/tegra_vgpu.h>
 #include <nvgpu/gk20a.h>
-#include <nvgpu/channel.h>
 #include <nvgpu/gr/subctx.h>
 
+#include "subctx_vgpu.h"
 
-int vgpu_gv11b_alloc_subctx_header(struct channel_gk20a *c)
+int vgpu_alloc_subctx_header(struct gk20a *g,
+			struct nvgpu_gr_subctx **gr_subctx,
+			struct vm_gk20a *vm, u64 virt_ctx)
 {
+	struct nvgpu_gr_subctx *subctx;
 	struct nvgpu_mem *ctxheader;
 	struct tegra_vgpu_cmd_msg msg = {};
 	struct tegra_vgpu_alloc_ctx_header_params *p =
 				&msg.params.alloc_ctx_header;
-	struct gk20a *g = c->g;
 	int err;
 
-	c->subctx = nvgpu_kzalloc(g, sizeof(*c->subctx));
-	if (c->subctx == NULL) {
+	subctx = nvgpu_kzalloc(g, sizeof(*subctx));
+	if (subctx == NULL) {
 		return -ENOMEM;
 	}
 
-	ctxheader = &c->subctx->ctx_header;
+	ctxheader = &subctx->ctx_header;
 
 	msg.cmd = TEGRA_VGPU_CMD_ALLOC_CTX_HEADER;
-	msg.handle = vgpu_get_handle(c->g);
-	p->ch_handle = c->virt_ctx;
-	p->ctx_header_va = nvgpu_vm_alloc_va(c->vm,
-			c->g->ops.gr.ctxsw_prog.hw_get_fecs_header_size(),
+	msg.handle = vgpu_get_handle(g);
+	p->ch_handle = virt_ctx;
+	p->ctx_header_va = nvgpu_vm_alloc_va(vm,
+			g->ops.gr.ctxsw_prog.hw_get_fecs_header_size(),
 			GMMU_PAGE_SIZE_KERNEL);
-	if (!p->ctx_header_va) {
-		nvgpu_err(c->g, "alloc va failed for ctx_header");
+	if (p->ctx_header_va == 0U) {
+		nvgpu_err(g, "alloc va failed for ctx_header");
 		err = -ENOMEM;
 		goto fail;
 	}
 	err = vgpu_comm_sendrecv(&msg, sizeof(msg), sizeof(msg));
 	err = err ? err : msg.ret;
-	if (unlikely(err)) {
-		nvgpu_err(c->g, "alloc ctx_header failed err %d", err);
-		nvgpu_vm_free_va(c->vm, p->ctx_header_va,
+	if (unlikely(err != 0)) {
+		nvgpu_err(g, "alloc ctx_header failed err %d", err);
+		nvgpu_vm_free_va(vm, p->ctx_header_va,
 			GMMU_PAGE_SIZE_KERNEL);
 		goto fail;
 	}
 	ctxheader->gpu_va = p->ctx_header_va;
 
-	return err;
+	*gr_subctx = subctx;
+	return 0;
 
 fail:
-	nvgpu_kfree(g, c->subctx);
+	nvgpu_kfree(g, subctx);
 	return err;
 }
 
-void vgpu_gv11b_free_subctx_header(struct channel_gk20a *c)
+void vgpu_free_subctx_header(struct gk20a *g, struct nvgpu_gr_subctx *subctx,
+			struct vm_gk20a *vm, u64 virt_ctx)
 {
-	struct nvgpu_gr_subctx *subctx = c->subctx;
 	struct nvgpu_mem *ctxheader;
 	struct tegra_vgpu_cmd_msg msg = {};
 	struct tegra_vgpu_free_ctx_header_params *p =
 				&msg.params.free_ctx_header;
-	struct gk20a *g = c->g;
 	int err;
 
 	if (subctx != NULL) {
 		ctxheader = &subctx->ctx_header;
 
 		msg.cmd = TEGRA_VGPU_CMD_FREE_CTX_HEADER;
-		msg.handle = vgpu_get_handle(c->g);
-		p->ch_handle = c->virt_ctx;
+		msg.handle = vgpu_get_handle(g);
+		p->ch_handle = virt_ctx;
 		err = vgpu_comm_sendrecv(&msg, sizeof(msg), sizeof(msg));
 		err = err ? err : msg.ret;
-		if (unlikely(err)) {
-			nvgpu_err(c->g, "free ctx_header failed err %d", err);
+		if (unlikely(err != 0)) {
+			nvgpu_err(g, "free ctx_header failed err %d", err);
 		}
-		nvgpu_vm_free_va(c->vm, ctxheader->gpu_va,
+		nvgpu_vm_free_va(vm, ctxheader->gpu_va,
 				 GMMU_PAGE_SIZE_KERNEL);
 		ctxheader->gpu_va = 0;
 		nvgpu_kfree(g, subctx);

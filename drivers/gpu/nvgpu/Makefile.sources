@@ -302,6 +302,7 @@ srcs += common/sim.c \
 	common/vgpu/mm/vm_vgpu.c \
 	common/vgpu/gr/gr_vgpu.c \
 	common/vgpu/gr/ctx_vgpu.c \
+	common/vgpu/gr/subctx_vgpu.c \
 	common/vgpu/clk_vgpu.c \
 	common/vgpu/debugger_vgpu.c \
 	common/vgpu/ltc/ltc_vgpu.c \
@@ -310,7 +311,6 @@ srcs += common/sim.c \
 	common/vgpu/gv11b/vgpu_gv11b.c \
 	common/vgpu/gv11b/vgpu_hal_gv11b.c \
 	common/vgpu/gv11b/vgpu_tsg_gv11b.c \
-	common/vgpu/gv11b/vgpu_subctx_gv11b.c \
 	common/vgpu/gp10b/vgpu_hal_gp10b.c \
 	hal/bus/bus_gk20a.c	\
 	hal/bus/bus_gm20b.c	\

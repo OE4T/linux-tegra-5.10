@@ -58,4 +58,5 @@ int vgpu_tsg_unbind_channel(struct channel_gk20a *ch);
 int vgpu_tsg_set_timeslice(struct tsg_gk20a *tsg, u32 timeslice);
 int vgpu_enable_tsg(struct tsg_gk20a *tsg);
 int vgpu_set_sm_exception_type_mask(struct channel_gk20a *ch, u32 mask);
+void vgpu_channel_free_ctx_header(struct channel_gk20a *c);
 #endif /* NVGPU_FIFO_VGPU_H */
