@@ -235,7 +235,7 @@ int nvgpu_lockless_allocator_init(struct gk20a *g, struct nvgpu_allocator *na,
 				  const char *name, u64 base, u64 length,
 				  u64 blk_size, u64 flags);
 
-#define GPU_BALLOC_MAX_ORDER		31U
+#define GPU_BALLOC_MAX_ORDER		63U
 
 /*
  * Allocator APIs.

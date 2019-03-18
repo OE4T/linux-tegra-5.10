@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -78,6 +78,9 @@ static u32 nvgpu_balloc_page_size_to_pte_size(struct nvgpu_buddy_allocator *a,
 		return BALLOC_PTE_SIZE_BIG;
 	} else if (page_size == SZ_4K) {
 		return BALLOC_PTE_SIZE_SMALL;
+	} else if (page_size == BALLOC_PTE_SIZE_ANY) {
+		/* With gva_space enabled, only 2 types of PTE sizes allowed */
+		return BALLOC_PTE_SIZE_SMALL;
 	} else {
 		return BALLOC_PTE_SIZE_INVALID;
 	}
@@ -93,16 +96,14 @@ static void balloc_compute_max_order(struct nvgpu_buddy_allocator *a)
 {
 	u64 true_max_order = ilog2(a->blks);
 
-	if (a->max_order == 0U) {
-		a->max_order = true_max_order;
-		return;
+	if (true_max_order > GPU_BALLOC_MAX_ORDER) {
+		alloc_dbg(balloc_owner(a),
+			  "Oops: Can't manage more than 1 Exabyte memory");
+		nvgpu_do_assert();
 	}
 
-	if (a->max_order > true_max_order) {
+	if ((a->max_order == 0ULL) || (a->max_order > true_max_order)) {
 		a->max_order = true_max_order;
-	}
-	if (a->max_order > GPU_BALLOC_MAX_ORDER) {
-		a->max_order = GPU_BALLOC_MAX_ORDER;
 	}
 }
 
@@ -152,7 +153,7 @@ static void balloc_buddy_list_do_add(struct nvgpu_buddy_allocator *a,
 		alloc_dbg(balloc_owner(a),
 			  "Oops: adding added buddy (%llu:0x%llx)",
 			  b->order, b->start);
-		BUG();
+		nvgpu_do_assert();
 	}
 
 	/*
@@ -177,7 +178,7 @@ static void balloc_buddy_list_do_rem(struct nvgpu_buddy_allocator *a,
 		alloc_dbg(balloc_owner(a),
 			  "Oops: removing removed buddy (%llu:0x%llx)",
 			  b->order, b->start);
-		BUG();
+		nvgpu_do_assert();
 	}
 
 	nvgpu_list_del(&b->buddy_entry);
@@ -333,19 +334,19 @@ static void nvgpu_buddy_allocator_destroy(struct nvgpu_allocator *na)
 			nvgpu_info(na->g,
 					"Excess buddies!!! (%d: %llu)",
 				i, a->buddy_list_len[i]);
-			BUG();
+			nvgpu_do_assert();
 		}
 		if (a->buddy_list_split[i] != 0U) {
 			nvgpu_info(na->g,
 					"Excess split nodes!!! (%d: %llu)",
 				i, a->buddy_list_split[i]);
-			BUG();
+			nvgpu_do_assert();
 		}
 		if (a->buddy_list_alloced[i] != 0U) {
 			nvgpu_info(na->g,
 					"Excess alloced nodes!!! (%d: %llu)",
 				i, a->buddy_list_alloced[i]);
-			BUG();
+			nvgpu_do_assert();
 		}
 	}
 
@@ -565,6 +566,7 @@ static u64 balloc_do_alloc(struct nvgpu_buddy_allocator *a,
 
 	while (bud->order != order) {
 		if (balloc_split_buddy(a, bud, pte_size) != 0) {
+			balloc_coalesce(a, bud);
 			return 0; /* No mem... */
 		}
 		bud = bud->left;
@@ -762,11 +764,11 @@ static u64 balloc_do_alloc_fixed(struct nvgpu_buddy_allocator *a,
 
 	shifted_base = balloc_base_shift(a, base);
 	if (shifted_base == 0U) {
-		align_order = __fls(len >> a->blk_shift);
+		align_order = __ffs(len >> a->blk_shift);
 	} else {
 		align_order = min_t(u64,
 				    __ffs(shifted_base >> a->blk_shift),
-				    __fls(len >> a->blk_shift));
+				    __ffs(len >> a->blk_shift));
 	}
 
 	if (align_order > a->max_order) {
@@ -822,7 +824,11 @@ err_and_cleanup:
 
 		balloc_buddy_list_do_rem(a, bud);
 		(void) balloc_free_buddy(a, bud->start);
-		nvgpu_kmem_cache_free(a->buddy_cache, bud);
+		balloc_blist_add(a, bud);
+		/*
+		 * Attemp to defrag the allocation.
+		 */
+		balloc_coalesce(a, bud);
 	}
 
 	return 0;
@@ -862,6 +868,11 @@ static u64 nvgpu_buddy_balloc_pte(struct nvgpu_allocator *na, u64 len,
 	u32 pte_size;
 	struct nvgpu_buddy_allocator *a = na->priv;
 
+	if (len == 0ULL) {
+		alloc_dbg(balloc_owner(a), "Alloc fail");
+		return 0;
+	}
+
 	alloc_lock(na);
 
 	order = balloc_get_order(a, len);
@@ -874,7 +885,8 @@ static u64 nvgpu_buddy_balloc_pte(struct nvgpu_allocator *na, u64 len,
 
 	pte_size = nvgpu_balloc_page_size_to_pte_size(a, page_size);
 	if (pte_size == BALLOC_PTE_SIZE_INVALID) {
-		return 0ULL;
+		alloc_unlock(na);
+		return 0;
 	}
 
 	addr = balloc_do_alloc(a, order, pte_size);
@@ -888,11 +900,10 @@ static u64 nvgpu_buddy_balloc_pte(struct nvgpu_allocator *na, u64 len,
 			  pte_size == BALLOC_PTE_SIZE_BIG   ? "big" :
 			  pte_size == BALLOC_PTE_SIZE_SMALL ? "small" :
 			  "NA/any");
+		a->alloc_made = true;
 	} else {
 		alloc_dbg(balloc_owner(a), "Alloc failed: no mem!");
 	}
-
-	a->alloc_made = true;
 
 	alloc_unlock(na);
 
@@ -989,26 +1000,24 @@ static u64 nvgpu_balloc_fixed_buddy(struct nvgpu_allocator *na,
 
 	alloc_lock(na);
 	alloc = nvgpu_balloc_fixed_buddy_locked(na, base, len, page_size);
-	a->alloc_made = true;
+
+	if (alloc != 0ULL) {
+		a->alloc_made = true;
+	}
+
 	alloc_unlock(na);
 
 	return alloc;
 }
 
 /*
- * Free the passed allocation.
+ * @a must be locked.
  */
-static void nvgpu_buddy_bfree(struct nvgpu_allocator *na, u64 addr)
+static void nvgpu_buddy_bfree_locked(struct nvgpu_allocator *na, u64 addr)
 {
 	struct nvgpu_buddy *bud;
 	struct nvgpu_fixed_alloc *falloc;
 	struct nvgpu_buddy_allocator *a = na->priv;
-
-	if (addr == 0ULL) {
-		return;
-	}
-
-	alloc_lock(na);
 
 	/*
 	 * First see if this is a fixed alloc. If not fall back to a regular
@@ -1034,9 +1043,21 @@ static void nvgpu_buddy_bfree(struct nvgpu_allocator *na, u64 addr)
 	balloc_coalesce(a, bud);
 
 done:
-	alloc_unlock(na);
 	alloc_dbg(balloc_owner(a), "Free 0x%llx", addr);
-	return;
+}
+
+/*
+ * Free the passed allocation.
+ */
+static void nvgpu_buddy_bfree(struct nvgpu_allocator *na, u64 addr)
+{
+	if (addr == 0ULL) {
+		return;
+	}
+
+	alloc_lock(na);
+	nvgpu_buddy_bfree_locked(na, addr);
+	alloc_unlock(na);
 }
 
 static bool nvgpu_buddy_reserve_is_possible(struct nvgpu_buddy_allocator *a,
@@ -1115,7 +1136,7 @@ static void nvgpu_buddy_release_co(struct nvgpu_allocator *na,
 	alloc_lock(na);
 
 	nvgpu_list_del(&co->co_entry);
-	nvgpu_free(na, co->base);
+	nvgpu_buddy_bfree_locked(na, co->base);
 
 	alloc_unlock(na);
 }
@@ -1309,6 +1330,12 @@ int nvgpu_buddy_allocator_init(struct gk20a *g, struct nvgpu_allocator *na,
 		return -EINVAL;
 	}
 
+	/* Needs to be fixed, return -EINVAL*/
+	if (size == 0U) {
+		/* Setting to fixed size 1G to avoid further issues */
+		size = 0x40000000;
+	}
+
 	/* If this is to manage a GVA space we need a VM. */
 	if (is_gva_space && vm == NULL) {
 		return -EINVAL;
@@ -1351,9 +1378,9 @@ int nvgpu_buddy_allocator_init(struct gk20a *g, struct nvgpu_allocator *na,
 	 * requirement is not necessary.
 	 */
 	if (is_gva_space) {
-		base_big_page = base &
+		base_big_page = a->base &
 				((U64(vm->big_page_size) << U64(10)) - U64(1));
-		size_big_page = size &
+		size_big_page = a->length &
 				((U64(vm->big_page_size) << U64(10)) - U64(1));
 		if (vm->big_pages &&
 			(base_big_page != 0ULL || size_big_page != 0ULL)) {
