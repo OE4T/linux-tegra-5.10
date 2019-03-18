@@ -50,9 +50,6 @@ void gv11b_mmu_fault_id_to_eng_pbdma_id_and_veid(struct gk20a *g,
 void gv11b_dump_channel_status_ramfc(struct gk20a *g,
 				     struct gk20a_debug_output *o,
 				     struct nvgpu_channel_dump_info *info);
-void gv11b_capture_channel_ram_dump(struct gk20a *g,
-		struct channel_gk20a *ch,
-		struct nvgpu_channel_dump_info *info);
 int gv11b_fifo_is_preempt_pending(struct gk20a *g, u32 id,
 		 unsigned int id_type);
 int gv11b_fifo_preempt_channel(struct gk20a *g, struct channel_gk20a *ch);

@@ -62,6 +62,7 @@
 #include "hal/fifo/engines_gm20b.h"
 #include "hal/fifo/engine_status_gm20b.h"
 #include "hal/fifo/pbdma_status_gm20b.h"
+#include "hal/fifo/ramfc_gk20a.h"
 #include "hal/fifo/ramfc_gp10b.h"
 #include "hal/fifo/userd_gk20a.h"
 #include "hal/fifo/fifo_intr_gk20a.h"
@@ -656,7 +657,6 @@ static const struct gpu_ops gp10b_ops = {
 		.init_engine_info = gm20b_fifo_init_engine_info,
 		.get_engines_mask_on_id = gk20a_fifo_engines_on_id,
 		.dump_channel_status_ramfc = gk20a_dump_channel_status_ramfc,
-		.capture_channel_ram_dump = gk20a_capture_channel_ram_dump,
 		.is_preempt_pending = gk20a_fifo_is_preempt_pending,
 		.reset_enable_hw = gk20a_init_fifo_reset_enable_hw,
 		.teardown_ch_tsg = gk20a_fifo_teardown_ch_tsg,
@@ -728,6 +728,7 @@ static const struct gpu_ops gp10b_ops = {
 	},
 	.ramfc = {
 		.setup = gp10b_ramfc_setup,
+		.capture_ram_dump = gk20a_ramfc_capture_ram_dump,
 		.commit_userd = gp10b_ramfc_commit_userd,
 		.get_syncpt = gp10b_ramfc_get_syncpt,
 		.set_syncpt = gp10b_ramfc_set_syncpt,

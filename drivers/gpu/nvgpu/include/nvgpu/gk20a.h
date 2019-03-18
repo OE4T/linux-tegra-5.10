@@ -906,9 +906,6 @@ struct gpu_ops {
 		void (*dump_channel_status_ramfc)(struct gk20a *g,
 				struct gk20a_debug_output *o,
 				struct nvgpu_channel_dump_info *info);
-		void (*capture_channel_ram_dump)(struct gk20a *g,
-				struct channel_gk20a *ch,
-				struct nvgpu_channel_dump_info *info);
 		int (*is_preempt_pending)(struct gk20a *g, u32 id,
 			unsigned int id_type);
 		int (*reset_enable_hw)(struct gk20a *g);
@@ -957,6 +954,9 @@ struct gpu_ops {
 		int (*setup)(struct channel_gk20a *ch, u64 gpfifo_base,
 				u32 gpfifo_entries, u64 pbdma_acquire_timeout,
 				u32 flags);
+		void (*capture_ram_dump)(struct gk20a *g,
+				struct channel_gk20a *ch,
+				struct nvgpu_channel_dump_info *info);
 		int (*commit_userd)(struct channel_gk20a *ch);
 		u32 (*get_syncpt)(struct channel_gk20a *ch);
 		void (*set_syncpt)(struct channel_gk20a *ch, u32 syncpt);

@@ -424,7 +424,6 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 		.init_engine_info = vgpu_fifo_init_engine_info,
 		.get_engines_mask_on_id = NULL,
 		.dump_channel_status_ramfc = NULL,
-		.capture_channel_ram_dump = NULL,
 		.is_preempt_pending = NULL,
 		.reset_enable_hw = NULL,
 		.teardown_ch_tsg = NULL,
@@ -486,6 +485,7 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 	},
 	.ramfc = {
 		.setup = vgpu_ramfc_setup,
+		.capture_ram_dump = NULL,
 		.commit_userd = NULL,
 		.get_syncpt = NULL,
 		.set_syncpt = NULL,

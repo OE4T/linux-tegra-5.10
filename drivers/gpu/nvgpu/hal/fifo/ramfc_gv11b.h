@@ -25,9 +25,13 @@
 
 #include <nvgpu/types.h>
 
+struct gk20a;
 struct channel_gk20a;
+struct nvgpu_channel_dump_info;
 
 int gv11b_ramfc_setup(struct channel_gk20a *ch, u64 gpfifo_base,
 		u32 gpfifo_entries, u64 pbdma_acquire_timeout, u32 flags);
+void gv11b_ramfc_capture_ram_dump(struct gk20a *g, struct channel_gk20a *ch,
+		struct nvgpu_channel_dump_info *info);
 
 #endif /* NVGPU_RAMFC_GV11B_H */

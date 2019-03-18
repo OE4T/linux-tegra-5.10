@@ -93,40 +93,6 @@ void gv11b_ring_channel_doorbell(struct channel_gk20a *c)
 		usermode_notify_channel_pending_id_f(hw_chid));
 }
 
-void gv11b_capture_channel_ram_dump(struct gk20a *g,
-		struct channel_gk20a *ch,
-		struct nvgpu_channel_dump_info *info)
-{
-	struct nvgpu_mem *mem = &ch->inst_block;
-
-	g->ops.channel.read_state(g, ch, &info->hw_state);
-
-	info->inst.pb_top_level_get = nvgpu_mem_rd32_pair(g, mem,
-			ram_fc_pb_top_level_get_w(),
-			ram_fc_pb_top_level_get_hi_w());
-	info->inst.pb_put = nvgpu_mem_rd32_pair(g, mem,
-			ram_fc_pb_put_w(),
-			ram_fc_pb_put_hi_w());
-	info->inst.pb_get = nvgpu_mem_rd32_pair(g, mem,
-			ram_fc_pb_get_w(),
-			ram_fc_pb_get_hi_w());
-	info->inst.pb_fetch = nvgpu_mem_rd32_pair(g, mem,
-			ram_fc_pb_fetch_w(),
-			ram_fc_pb_fetch_hi_w());
-	info->inst.pb_header = nvgpu_mem_rd32(g, mem,
-			ram_fc_pb_header_w());
-	info->inst.pb_count = nvgpu_mem_rd32(g, mem,
-			ram_fc_pb_count_w());
-	info->inst.sem_addr = nvgpu_mem_rd32_pair(g, mem,
-			ram_fc_sem_addr_lo_w(),
-			ram_fc_sem_addr_hi_w());
-	info->inst.sem_payload = nvgpu_mem_rd32_pair(g, mem,
-			ram_fc_sem_payload_lo_w(),
-			ram_fc_sem_payload_hi_w());
-	info->inst.sem_execute = nvgpu_mem_rd32(g, mem,
-			ram_fc_sem_execute_w());
-}
-
 void gv11b_dump_channel_status_ramfc(struct gk20a *g,
 				     struct gk20a_debug_output *o,
 				     struct nvgpu_channel_dump_info *info)

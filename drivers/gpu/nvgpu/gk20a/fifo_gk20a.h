@@ -311,9 +311,6 @@ static inline void gk20a_fifo_profile_snapshot(
 void gk20a_dump_channel_status_ramfc(struct gk20a *g,
 				     struct gk20a_debug_output *o,
 				     struct nvgpu_channel_dump_info *info);
-void gk20a_capture_channel_ram_dump(struct gk20a *g,
-		struct channel_gk20a *ch,
-		struct nvgpu_channel_dump_info *info);
 void gk20a_debug_dump_all_channel_status_ramfc(struct gk20a *g,
 		 struct gk20a_debug_output *o);
 const char *gk20a_decode_pbdma_chan_eng_ctx_status(u32 index);

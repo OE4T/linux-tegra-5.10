@@ -56,6 +56,7 @@
 #include "hal/fifo/pbdma_tu104.h"
 #include "hal/fifo/engines_gv11b.h"
 #include "hal/fifo/ramfc_gp10b.h"
+#include "hal/fifo/ramfc_gv11b.h"
 #include "hal/fifo/ramfc_tu104.h"
 #include "hal/fifo/userd_gk20a.h"
 #include "hal/fifo/userd_gv11b.h"
@@ -868,7 +869,6 @@ static const struct gpu_ops tu104_ops = {
 		.init_pbdma_info = gk20a_fifo_init_pbdma_info,
 		.get_engines_mask_on_id = gk20a_fifo_engines_on_id,
 		.dump_channel_status_ramfc = gv11b_dump_channel_status_ramfc,
-		.capture_channel_ram_dump = gv11b_capture_channel_ram_dump,
 		.is_preempt_pending = gv11b_fifo_is_preempt_pending,
 		.reset_enable_hw = gv11b_init_fifo_reset_enable_hw,
 		.teardown_ch_tsg = gv11b_fifo_teardown_ch_tsg,
@@ -949,6 +949,7 @@ static const struct gpu_ops tu104_ops = {
 	},
 	.ramfc = {
 		.setup = tu104_ramfc_setup,
+		.capture_ram_dump = gv11b_ramfc_capture_ram_dump,
 		.commit_userd = gp10b_ramfc_commit_userd,
 		.get_syncpt = NULL,
 		.set_syncpt = NULL,

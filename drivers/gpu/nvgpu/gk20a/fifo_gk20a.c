@@ -1556,44 +1556,6 @@ const char *gk20a_decode_pbdma_chan_eng_ctx_status(u32 index)
 	}
 }
 
-void gk20a_capture_channel_ram_dump(struct gk20a *g,
-		struct channel_gk20a *ch,
-		struct nvgpu_channel_dump_info *info)
-{
-	struct nvgpu_mem *mem = &ch->inst_block;
-
-	g->ops.channel.read_state(g, ch, &info->hw_state);
-
-	info->inst.pb_top_level_get = nvgpu_mem_rd32_pair(g, mem,
-			ram_fc_pb_top_level_get_w(),
-			ram_fc_pb_top_level_get_hi_w());
-	info->inst.pb_put = nvgpu_mem_rd32_pair(g, mem,
-			ram_fc_pb_put_w(),
-			ram_fc_pb_put_hi_w());
-	info->inst.pb_get = nvgpu_mem_rd32_pair(g, mem,
-			ram_fc_pb_get_w(),
-			ram_fc_pb_get_hi_w());
-	info->inst.pb_fetch = nvgpu_mem_rd32_pair(g, mem,
-			ram_fc_pb_fetch_w(),
-			ram_fc_pb_fetch_hi_w());
-	info->inst.pb_header = nvgpu_mem_rd32(g, mem,
-			ram_fc_pb_header_w());
-	info->inst.pb_count = nvgpu_mem_rd32(g, mem,
-			ram_fc_pb_count_w());
-	info->inst.syncpointa = nvgpu_mem_rd32(g, mem,
-			ram_fc_syncpointa_w());
-	info->inst.syncpointb = nvgpu_mem_rd32(g, mem,
-			ram_fc_syncpointb_w());
-	info->inst.semaphorea = nvgpu_mem_rd32(g, mem,
-			ram_fc_semaphorea_w());
-	info->inst.semaphoreb = nvgpu_mem_rd32(g, mem,
-			ram_fc_semaphoreb_w());
-	info->inst.semaphorec = nvgpu_mem_rd32(g, mem,
-			ram_fc_semaphorec_w());
-	info->inst.semaphored = nvgpu_mem_rd32(g, mem,
-			ram_fc_semaphored_w());
-}
-
 void gk20a_dump_channel_status_ramfc(struct gk20a *g,
 				     struct gk20a_debug_output *o,
 				     struct nvgpu_channel_dump_info *info)
@@ -1713,7 +1675,8 @@ void gk20a_debug_dump_all_channel_status_ramfc(struct gk20a *g,
 			info->sema.addr = nvgpu_hw_semaphore_addr(hw_sema);
 		}
 
-		g->ops.fifo.capture_channel_ram_dump(g, ch, info);
+		g->ops.channel.read_state(g, ch, &info->hw_state);
+		g->ops.ramfc.capture_ram_dump(g, ch, info);
 
 		gk20a_channel_put(ch);
 	}
