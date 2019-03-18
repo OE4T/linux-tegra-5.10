@@ -59,6 +59,7 @@
 #include "hal/fifo/engines_gv11b.h"
 #include "hal/fifo/ramfc_gp10b.h"
 #include "hal/fifo/ramfc_gv11b.h"
+#include "hal/fifo/ramin_gv11b.h"
 #include "hal/fifo/tsg_gv11b.h"
 #include "hal/fifo/userd_gk20a.h"
 #include "hal/fifo/userd_gv11b.h"
@@ -921,6 +922,9 @@ static const struct gpu_ops gv11b_ops = {
 		.get_syncpt = NULL,
 		.set_syncpt = NULL,
 	},
+	.ramin = {
+		.set_gr_ptr = gv11b_ramin_set_gr_ptr,
+	},
 	.runlist = {
 		.reschedule = gv11b_runlist_reschedule,
 		.reschedule_preempt_next_locked = gk20a_fifo_reschedule_preempt_next,
@@ -1255,6 +1259,7 @@ int gv11b_init_hal(struct gk20a *g)
 	gops->engine = gv11b_ops.engine;
 	gops->pbdma = gv11b_ops.pbdma;
 	gops->ramfc = gv11b_ops.ramfc;
+	gops->ramin = gv11b_ops.ramin;
 	gops->runlist = gv11b_ops.runlist;
 	gops->userd = gv11b_ops.userd;
 	gops->channel = gv11b_ops.channel;

@@ -589,6 +589,9 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 		.get_syncpt = NULL,
 		.set_syncpt = NULL,
 	},
+	.ramin = {
+		.set_gr_ptr = NULL,
+	},
 	.runlist = {
 		.reschedule = NULL,
 		.update_for_channel = vgpu_runlist_update_for_channel,
@@ -841,6 +844,7 @@ int vgpu_gv11b_init_hal(struct gk20a *g)
 	gops->engine = vgpu_gv11b_ops.engine;
 	gops->pbdma = vgpu_gv11b_ops.pbdma;
 	gops->ramfc = vgpu_gv11b_ops.ramfc;
+	gops->ramin = vgpu_gv11b_ops.ramin;
 	gops->runlist = vgpu_gv11b_ops.runlist;
 	gops->userd = vgpu_gv11b_ops.userd;
 	gops->channel = vgpu_gv11b_ops.channel;

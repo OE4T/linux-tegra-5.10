@@ -63,6 +63,7 @@
 #include "hal/fifo/ramfc_gp10b.h"
 #include "hal/fifo/ramfc_gv11b.h"
 #include "hal/fifo/ramfc_tu104.h"
+#include "hal/fifo/ramin_gv11b.h"
 #include "hal/fifo/tsg_gv11b.h"
 #include "hal/fifo/userd_gk20a.h"
 #include "hal/fifo/userd_gv11b.h"
@@ -1004,6 +1005,9 @@ static const struct gpu_ops tu104_ops = {
 		.get_syncpt = NULL,
 		.set_syncpt = NULL,
 	},
+	.ramin = {
+		.set_gr_ptr = gv11b_ramin_set_gr_ptr,
+	},
 	.runlist = {
 		.update_for_channel = gk20a_runlist_update_for_channel,
 		.reload = gk20a_runlist_reload,
@@ -1429,6 +1433,7 @@ int tu104_init_hal(struct gk20a *g)
 	gops->engine = tu104_ops.engine;
 	gops->pbdma = tu104_ops.pbdma;
 	gops->ramfc = tu104_ops.ramfc;
+	gops->ramin = tu104_ops.ramin;
 	gops->runlist = tu104_ops.runlist;
 	gops->userd = tu104_ops.userd;
 	gops->channel = tu104_ops.channel;

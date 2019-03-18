@@ -1018,6 +1018,10 @@ struct gpu_ops {
 		void (*set_syncpt)(struct channel_gk20a *ch, u32 syncpt);
 	} ramfc;
 	struct {
+		void (*set_gr_ptr)(struct gk20a *g,
+				struct nvgpu_mem *inst_block, u64 gpu_va);
+	} ramin;
+	struct {
 		int (*reschedule)(struct channel_gk20a *ch, bool preempt_next);
 		int (*reschedule_preempt_next_locked)(struct channel_gk20a *ch,
 				bool wait_preempt);

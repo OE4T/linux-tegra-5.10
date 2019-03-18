@@ -69,6 +69,7 @@
 #include "hal/fifo/pbdma_status_gm20b.h"
 #include "hal/fifo/ramfc_gk20a.h"
 #include "hal/fifo/ramfc_gp10b.h"
+#include "hal/fifo/ramin_gk20a.h"
 #include "hal/fifo/tsg_gk20a.h"
 #include "hal/fifo/userd_gk20a.h"
 #include "hal/fifo/fifo_intr_gk20a.h"
@@ -781,6 +782,9 @@ static const struct gpu_ops gp10b_ops = {
 		.get_syncpt = gp10b_ramfc_get_syncpt,
 		.set_syncpt = gp10b_ramfc_set_syncpt,
 	},
+	.ramin = {
+		.set_gr_ptr = gk20a_ramin_set_gr_ptr,
+	},
 	.runlist = {
 		.reschedule = gk20a_runlist_reschedule,
 		.reschedule_preempt_next_locked = gk20a_fifo_reschedule_preempt_next,
@@ -1090,6 +1094,7 @@ int gp10b_init_hal(struct gk20a *g)
 	gops->engine = gp10b_ops.engine;
 	gops->pbdma = gp10b_ops.pbdma;
 	gops->ramfc = gp10b_ops.ramfc;
+	gops->ramin = gp10b_ops.ramin;
 	gops->runlist = gp10b_ops.runlist;
 	gops->userd = gp10b_ops.userd;
 	gops->channel = gp10b_ops.channel;

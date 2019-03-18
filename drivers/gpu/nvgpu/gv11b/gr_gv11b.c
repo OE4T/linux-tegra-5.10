@@ -1962,8 +1962,6 @@ u32 gr_gv11b_get_nonpes_aware_tpc(struct gk20a *g, u32 gpc, u32 tpc)
 
 int gr_gv11b_commit_inst(struct channel_gk20a *c, u64 gpu_va)
 {
-	u32 addr_lo;
-	u32 addr_hi;
 	struct nvgpu_mem *ctxheader;
 	struct gk20a *g = c->g;
 	struct tsg_gk20a *tsg;
@@ -1985,18 +1983,8 @@ int gr_gv11b_commit_inst(struct channel_gk20a *c, u64 gpu_va)
 	nvgpu_gr_subctx_load_ctx_header(g, c->subctx, tsg->gr_ctx, gpu_va);
 
 	ctxheader = &c->subctx->ctx_header;
-	addr_lo = u64_lo32(ctxheader->gpu_va) >> ram_in_base_shift_v();
-	addr_hi = u64_hi32(ctxheader->gpu_va);
 
-	/* point this address to engine_wfi_ptr */
-	nvgpu_mem_wr32(c->g, &c->inst_block, ram_in_engine_wfi_target_w(),
-		ram_in_engine_cs_wfi_v() |
-		ram_in_engine_wfi_mode_f(ram_in_engine_wfi_mode_virtual_v()) |
-		ram_in_engine_wfi_ptr_lo_f(addr_lo));
-
-	nvgpu_mem_wr32(c->g, &c->inst_block, ram_in_engine_wfi_ptr_hi_w(),
-		ram_in_engine_wfi_ptr_hi_f(addr_hi));
-
+	g->ops.ramin.set_gr_ptr(g, &c->inst_block, ctxheader->gpu_va);
 	return 0;
 }
 

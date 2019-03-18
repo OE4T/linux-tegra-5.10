@@ -181,21 +181,9 @@ static void gr_report_ctxsw_error(struct gk20a *g, u32 err_type, u32 chid,
 
 int gr_gk20a_commit_inst(struct channel_gk20a *c, u64 gpu_va)
 {
-	u32 addr_lo;
-	u32 addr_hi;
+	struct gk20a *g = c->g;
 
-	nvgpu_log_fn(c->g, " ");
-
-	addr_lo = u64_lo32(gpu_va) >> 12;
-	addr_hi = u64_hi32(gpu_va);
-
-	nvgpu_mem_wr32(c->g, &c->inst_block, ram_in_gr_wfi_target_w(),
-		 ram_in_gr_cs_wfi_f() | ram_in_gr_wfi_mode_virtual_f() |
-		 ram_in_gr_wfi_ptr_lo_f(addr_lo));
-
-	nvgpu_mem_wr32(c->g, &c->inst_block, ram_in_gr_wfi_ptr_hi_w(),
-		 ram_in_gr_wfi_ptr_hi_f(addr_hi));
-
+	g->ops.ramin.set_gr_ptr(g, &c->inst_block, gpu_va);
 	return 0;
 }
 

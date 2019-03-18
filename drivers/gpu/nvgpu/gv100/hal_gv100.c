@@ -58,6 +58,7 @@
 #include "hal/fifo/pbdma_status_gm20b.h"
 #include "hal/fifo/ramfc_gp10b.h"
 #include "hal/fifo/ramfc_gv11b.h"
+#include "hal/fifo/ramin_gv11b.h"
 #include "hal/fifo/tsg_gv11b.h"
 #include "hal/fifo/userd_gk20a.h"
 #include "hal/fifo/userd_gv11b.h"
@@ -966,6 +967,9 @@ static const struct gpu_ops gv100_ops = {
 		.get_syncpt = NULL,
 		.set_syncpt = NULL,
 	},
+	.ramin = {
+		.set_gr_ptr = gv11b_ramin_set_gr_ptr,
+	},
 	.runlist = {
 		.update_for_channel = gk20a_runlist_update_for_channel,
 		.reload = gk20a_runlist_reload,
@@ -1385,6 +1389,7 @@ int gv100_init_hal(struct gk20a *g)
 	gops->engine = gv100_ops.engine;
 	gops->pbdma = gv100_ops.pbdma;
 	gops->ramfc = gv100_ops.ramfc;
+	gops->ramin = gv100_ops.ramin;
 	gops->runlist = gv100_ops.runlist;
 	gops->userd = gv100_ops.userd;
 	gops->channel = gv100_ops.channel;
