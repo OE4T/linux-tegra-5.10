@@ -406,6 +406,7 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 				gv11b_gr_init_get_ctx_betacb_size,
 			.get_ctx_attrib_cb_size =
 				gp10b_gr_init_get_ctx_attrib_cb_size,
+			.commit_ctxsw_spill = gv11b_gr_init_commit_ctxsw_spill,
 		},
 	},
 	.perf = {

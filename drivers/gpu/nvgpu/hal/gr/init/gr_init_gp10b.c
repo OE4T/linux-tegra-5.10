@@ -550,3 +550,23 @@ u32 gp10b_gr_init_get_ctx_attrib_cb_size(struct gk20a *g, u32 betacb_size,
 	return ALIGN(size, 128);
 }
 
+void gp10b_gr_init_commit_ctxsw_spill(struct gk20a *g,
+	struct nvgpu_gr_ctx *gr_ctx, u64 addr, u32 size, bool patch)
+{
+	addr = (u64_lo32(addr) >>
+			gr_gpc0_swdx_rm_spill_buffer_addr_39_8_align_bits_v()) |
+		(u64_hi32(addr) <<
+			(32U - gr_gpc0_swdx_rm_spill_buffer_addr_39_8_align_bits_v()));
+
+	size /=	gr_gpc0_swdx_rm_spill_buffer_size_256b_byte_granularity_v();
+
+	nvgpu_gr_ctx_patch_write(g, gr_ctx,
+			gr_gpc0_swdx_rm_spill_buffer_addr_r(),
+			gr_gpc0_swdx_rm_spill_buffer_addr_39_8_f(addr),
+			patch);
+	nvgpu_gr_ctx_patch_write(g, gr_ctx,
+			gr_gpc0_swdx_rm_spill_buffer_size_r(),
+			gr_gpc0_swdx_rm_spill_buffer_size_256b_f(size),
+			patch);
+}
+

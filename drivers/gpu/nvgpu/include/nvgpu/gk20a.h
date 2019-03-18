@@ -757,6 +757,9 @@ struct gpu_ops {
 			u32 (*get_ctx_attrib_cb_size)(struct gk20a *g,
 				u32 betacb_size, u32 tpc_count, u32 max_tpc);
 			u32 (*get_gfxp_rtv_cb_size)(struct gk20a *g);
+			void (*commit_ctxsw_spill)(struct gk20a *g,
+				struct nvgpu_gr_ctx *gr_ctx, u64 addr, u32 size,
+				bool patch);
 		} init;
 
 		struct {

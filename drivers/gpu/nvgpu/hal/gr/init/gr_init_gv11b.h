@@ -69,4 +69,7 @@ int gv11b_gr_init_load_sw_veid_bundle(struct gk20a *g,
 u32 gv11b_gr_init_get_ctx_spill_size(struct gk20a *g);
 u32 gv11b_gr_init_get_ctx_betacb_size(struct gk20a *g);
 
+void gv11b_gr_init_commit_ctxsw_spill(struct gk20a *g,
+	struct nvgpu_gr_ctx *gr_ctx, u64 addr, u32 size, bool patch);
+
 #endif /* NVGPU_GR_INIT_GV11B_H */

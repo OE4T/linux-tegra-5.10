@@ -1387,22 +1387,11 @@ void gr_gv11b_update_ctxsw_preemption_mode(struct gk20a *g,
 		g->ops.gr.init.commit_global_pagepool(g, gr_ctx, addr, size,
 			true, false);
 
-		addr = (u64_lo32(gr_ctx->spill_ctxsw_buffer.gpu_va) >>
-			gr_gpc0_swdx_rm_spill_buffer_addr_39_8_align_bits_v()) |
-			(u64_hi32(gr_ctx->spill_ctxsw_buffer.gpu_va) <<
-			 (32U - gr_gpc0_swdx_rm_spill_buffer_addr_39_8_align_bits_v()));
-		BUG_ON(gr_ctx->spill_ctxsw_buffer.size > U32_MAX);
-		size = (u32)gr_ctx->spill_ctxsw_buffer.size /
-			gr_gpc0_swdx_rm_spill_buffer_size_256b_byte_granularity_v();
+		addr = gr_ctx->spill_ctxsw_buffer.gpu_va;
+		nvgpu_assert(gr_ctx->spill_ctxsw_buffer.size <= U32_MAX);
+		size = (u32)gr_ctx->spill_ctxsw_buffer.size;
 
-		nvgpu_gr_ctx_patch_write(g, gr_ctx,
-				gr_gpc0_swdx_rm_spill_buffer_addr_r(),
-				gr_gpc0_swdx_rm_spill_buffer_addr_39_8_f(addr),
-				true);
-		nvgpu_gr_ctx_patch_write(g, gr_ctx,
-				gr_gpc0_swdx_rm_spill_buffer_size_r(),
-				gr_gpc0_swdx_rm_spill_buffer_size_256b_f(size),
-				true);
+		g->ops.gr.init.commit_ctxsw_spill(g, gr_ctx, addr, size, true);
 
 		cbes_reserve = gr_gpcs_swdx_beta_cb_ctrl_cbes_reserve_gfxp_v();
 		nvgpu_gr_ctx_patch_write(g, gr_ctx,
