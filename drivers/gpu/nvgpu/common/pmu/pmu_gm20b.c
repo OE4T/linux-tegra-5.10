@@ -119,7 +119,7 @@ int gm20b_pmu_setup_elpg(struct gk20a *g)
 }
 
 static void pmu_handle_acr_init_wpr_msg(struct gk20a *g, struct pmu_msg *msg,
-			void *param, u32 handle, u32 status)
+			void *param, u32 status)
 {
 	nvgpu_log_fn(g, " ");
 
@@ -159,7 +159,7 @@ int gm20b_pmu_init_acr(struct gk20a *g)
 }
 
 void pmu_handle_fecs_boot_acr_msg(struct gk20a *g, struct pmu_msg *msg,
-			void *param, u32 handle, u32 status)
+			void *param, u32 status)
 {
 
 	nvgpu_log_fn(g, " ");

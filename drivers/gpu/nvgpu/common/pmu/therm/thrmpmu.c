@@ -34,7 +34,7 @@ struct therm_pmucmdhandler_params {
 };
 
 static void therm_pmucmdhandler(struct gk20a *g, struct pmu_msg *msg,
-			void *param, u32 handle, u32 status)
+			void *param, u32 status)
 {
 	struct therm_pmucmdhandler_params *phandlerparams =
 		(struct therm_pmucmdhandler_params *)param;

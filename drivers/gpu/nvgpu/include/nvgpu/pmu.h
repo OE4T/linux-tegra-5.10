@@ -103,8 +103,6 @@
 #define PMU_SEQ_TBL_SIZE	\
 		(PMU_MAX_NUM_SEQUENCES >> PMU_SEQ_BIT_SHIFT)
 
-#define PMU_INVALID_SEQ_DESC		(~0U)
-
 #define	GK20A_PMU_DMAIDX_UCODE		U32(0)
 #define	GK20A_PMU_DMAIDX_VIRT		U32(1)
 #define	GK20A_PMU_DMAIDX_PHYS_VID	U32(2)
@@ -203,7 +201,7 @@ enum pmu_seq_state {
 	} while (false)
 
 typedef void (*pmu_callback)(struct gk20a *g, struct pmu_msg *msg, void *param,
-		u32 handle, u32 status);
+		u32 status);
 
 struct rpc_handler_payload {
 	void *rpc_buff;
@@ -336,7 +334,6 @@ struct nvgpu_pmu {
 
 	struct pmu_sequence *seq;
 	unsigned long pmu_seq_tbl[PMU_SEQ_TBL_SIZE];
-	u32 next_seq_desc;
 
 	struct pmu_mutex *mutex;
 	u32 mutex_cnt;

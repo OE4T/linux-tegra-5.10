@@ -912,7 +912,7 @@ void boardobjgrpe32hdrset(struct nv_pmu_boardobjgrp *hdr, u32 objmask)
 }
 
 static void boardobjgrp_pmucmdhandler(struct gk20a *g, struct pmu_msg *msg,
-			void *param, u32 handle, u32 status)
+			void *param, u32 status)
 {
 	struct nv_pmu_boardobj_msg_grp	*pgrpmsg;
 	struct boardobjgrp_pmucmdhandler_params *phandlerparams =

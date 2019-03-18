@@ -79,7 +79,6 @@ static void pmu_seq_release(struct nvgpu_pmu *pmu,
 	struct gk20a *g = gk20a_from_pmu(pmu);
 
 	seq->state	= PMU_SEQ_STATE_FREE;
-	seq->desc	= PMU_INVALID_SEQ_DESC;
 	seq->callback	= NULL;
 	seq->cb_params	= NULL;
 	seq->out_payload = NULL;
@@ -782,7 +781,6 @@ int nvgpu_pmu_cmd_post(struct gk20a *g, struct pmu_cmd *cmd,
 	seq->callback = callback;
 	seq->cb_params = cb_param;
 	seq->out_payload = NULL;
-	seq->desc = pmu->next_seq_desc++;
 
 	if (pmu->queue_type == QUEUE_TYPE_FB) {
 		fb_queue = pmu->fb_queue[queue_id];
@@ -991,7 +989,7 @@ exit:
 	pmu_payload_free(pmu, seq);
 
 	if (seq->callback != NULL) {
-		seq->callback(g, msg, seq->cb_params, seq->desc, err);
+		seq->callback(g, msg, seq->cb_params, err);
 	}
 
 	pmu_seq_release(pmu, seq);
@@ -1231,7 +1229,7 @@ void pmu_wait_message_cond(struct nvgpu_pmu *pmu, u32 timeout_ms,
 }
 
 static void pmu_rpc_handler(struct gk20a *g, struct pmu_msg *msg,
-		void *param, u32 handle, u32 status)
+		void *param, u32 status)
 {
 	struct nv_pmu_rpc_header rpc;
 	struct nvgpu_pmu *pmu = &g->pmu;

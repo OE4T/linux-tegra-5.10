@@ -84,7 +84,7 @@ static void pmu_setup_hw_enable_elpg(struct gk20a *g)
 }
 
 static void pmu_handle_pg_elpg_msg(struct gk20a *g, struct pmu_msg *msg,
-			void *param, u32 handle, u32 status)
+			void *param, u32 status)
 {
 	struct nvgpu_pmu *pmu = param;
 	struct pmu_pg_msg_elpg_msg *elpg_msg = &msg->msg.pg.elpg_msg;
@@ -413,7 +413,7 @@ exit_unlock:
 
 /* PG init */
 static void pmu_handle_pg_stat_msg(struct gk20a *g, struct pmu_msg *msg,
-			void *param, u32 handle, u32 status)
+			void *param, u32 status)
 {
 	struct nvgpu_pmu *pmu = param;
 
@@ -556,7 +556,7 @@ int nvgpu_pmu_init_powergating(struct gk20a *g)
 }
 
 static void pmu_handle_pg_buf_config_msg(struct gk20a *g, struct pmu_msg *msg,
-			void *param, u32 handle, u32 status)
+			void *param, u32 status)
 {
 	struct nvgpu_pmu *pmu = param;
 	struct pmu_pg_msg_eng_buf_stat *eng_buf_stat =

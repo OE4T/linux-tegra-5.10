@@ -544,7 +544,7 @@ u32 gk20a_pmu_pg_feature_list(struct gk20a *g, u32 pg_engine_id)
 }
 
 static void pmu_handle_zbc_msg(struct gk20a *g, struct pmu_msg *msg,
-			void *param, u32 handle, u32 status)
+			void *param, u32 status)
 {
 	struct nvgpu_pmu *pmu = param;
 	gk20a_dbg_pmu(g, "reply ZBC_TABLE_UPDATE");

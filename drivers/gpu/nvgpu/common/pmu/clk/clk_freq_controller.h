@@ -74,6 +74,6 @@ struct clk_freq_controller_pi {
 
 int nvgpu_clk_freq_controller_load(struct gk20a *g, bool bload, u8 bit_idx);
 void nvgpu_clk_freq_ctlr_rpc_pmucmdhandler(struct gk20a *g,
-		struct pmu_msg *msg, void *param, u32 handle, u32 status);
+		struct pmu_msg *msg, void *param, u32 status);
 
 #endif /* NVGPU_CLK_FREQ_CONTROLLER_H */

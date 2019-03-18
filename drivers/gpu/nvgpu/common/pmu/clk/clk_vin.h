@@ -39,6 +39,6 @@ struct vin_device_v20 {
 };
 
 void nvgpu_clk_vin_rpc_pmucmdhandler(struct gk20a *g, struct pmu_msg *msg,
-		void *param, u32 handle, u32 status);
+		void *param, u32 status);
 
 #endif /* NVGPU_CLK_VIN_H */

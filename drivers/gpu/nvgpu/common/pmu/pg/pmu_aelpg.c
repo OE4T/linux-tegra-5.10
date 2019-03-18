@@ -71,7 +71,7 @@ int nvgpu_aelpg_init_and_enable(struct gk20a *g, u8 ctrl_id)
 /* AELPG */
 static void ap_callback_init_and_enable_ctrl(
 		struct gk20a *g, struct pmu_msg *msg,
-		void *param, u32 seq_desc, u32 status)
+		void *param, u32 status)
 {
 	WARN_ON(msg == NULL);
 

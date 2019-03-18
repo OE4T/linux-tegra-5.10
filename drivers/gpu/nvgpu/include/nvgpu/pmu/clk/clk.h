@@ -103,7 +103,7 @@ struct nvgpu_clk_pmupstate {
 };
 
 void nvgpu_clkrpc_pmucmdhandler(struct gk20a *g, struct pmu_msg *msg,
-		void *param, u32 handle, u32 status);
+		void *param, u32 status);
 int nvgpu_clk_init_pmupstate(struct gk20a *g);
 void nvgpu_clk_free_pmupstate(struct gk20a *g);
 int nvgpu_clk_set_boot_fll_clk_tu10x(struct gk20a *g);

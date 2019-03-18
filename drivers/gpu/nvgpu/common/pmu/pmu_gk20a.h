@@ -71,7 +71,7 @@ void gk20a_pmu_dump_falcon_stats(struct nvgpu_pmu *pmu);
 
 void gk20a_pmu_enable_irq(struct nvgpu_pmu *pmu, bool enable);
 void pmu_handle_fecs_boot_acr_msg(struct gk20a *g, struct pmu_msg *msg,
-				void *param, u32 handle, u32 status);
+				void *param, u32 status);
 int gk20a_pmu_elpg_statistics(struct gk20a *g, u32 pg_engine_id,
 		struct pmu_pg_stats_data *pg_stat_data);
 u32 gk20a_pmu_falcon_base_addr(void);

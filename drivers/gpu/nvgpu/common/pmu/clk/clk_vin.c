@@ -40,7 +40,7 @@ struct nvgpu_clk_vin_rpc_pmucmdhandler_params {
 };
 
 void nvgpu_clk_vin_rpc_pmucmdhandler(struct gk20a *g, struct pmu_msg *msg,
-		void *param, u32 handle, u32 status)
+		void *param, u32 status)
 {
 	struct nvgpu_clk_vin_rpc_pmucmdhandler_params *phandlerparams =
 		(struct nvgpu_clk_vin_rpc_pmucmdhandler_params *)param;

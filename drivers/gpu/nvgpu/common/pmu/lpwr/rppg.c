@@ -29,7 +29,7 @@
 #include "gp106/bios_gp106.h"
 
 static void pmu_handle_rppg_init_msg(struct gk20a *g, struct pmu_msg *msg,
-	void *param, u32 handle, u32 status)
+	void *param, u32 status)
 {
 	u32 *success = param;
 

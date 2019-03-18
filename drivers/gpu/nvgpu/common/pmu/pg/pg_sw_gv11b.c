@@ -27,7 +27,7 @@
 #include "pg_sw_gv11b.h"
 
 static void pmu_handle_pg_sub_feature_msg(struct gk20a *g, struct pmu_msg *msg,
-			void *param, u32 handle, u32 status)
+			void *param, u32 status)
 {
 	nvgpu_log_fn(g, " ");
 
@@ -41,7 +41,7 @@ static void pmu_handle_pg_sub_feature_msg(struct gk20a *g, struct pmu_msg *msg,
 }
 
 static void pmu_handle_pg_param_msg(struct gk20a *g, struct pmu_msg *msg,
-			void *param, u32 handle, u32 status)
+			void *param, u32 status)
 {
 	nvgpu_log_fn(g, " ");
 

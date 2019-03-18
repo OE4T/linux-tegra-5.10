@@ -215,7 +215,7 @@ int nvgpu_lpwr_pg_setup(struct gk20a *g)
 
 static void nvgpu_pmu_handle_param_lpwr_msg(struct gk20a *g,
 		struct pmu_msg *msg, void *param,
-		u32 handle, u32 status)
+		u32 status)
 {
 	u32 *ack_status = param;
 
