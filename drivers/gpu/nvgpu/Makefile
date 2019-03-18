@@ -79,7 +79,6 @@ nvgpu-y += \
 	common/gr/subctx.o \
 	common/gr/zcull.o \
 	common/gr/config/gr_config.o \
-	common/gr/config/gr_config_gm20b.o \
 	common/gr/fecs_trace/fecs_trace.o \
 	common/gr/zbc.o \
 	common/gr/hwpm_map.o \
@@ -441,6 +440,9 @@ nvgpu-y += \
 
 nvgpu-$(CONFIG_GK20A_VIDMEM) += \
 	common/mm/vidmem.o
+
+nvgpu-y += \
+	hal/gr/config/gr_config_gm20b.o
 
 nvgpu-$(CONFIG_TEGRA_GR_VIRTUALIZATION) += \
 	common/vgpu/ltc/ltc_vgpu.o \
