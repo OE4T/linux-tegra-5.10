@@ -650,6 +650,8 @@ static const struct gpu_ops gm20b_ops = {
 	.ramfc = {
 		.setup = gk20a_ramfc_setup,
 		.commit_userd = gk20a_ramfc_commit_userd,
+		.get_syncpt = NULL,
+		.set_syncpt = NULL,
 	},
 	.runlist = {
 		.update_for_channel = gk20a_runlist_update_for_channel,

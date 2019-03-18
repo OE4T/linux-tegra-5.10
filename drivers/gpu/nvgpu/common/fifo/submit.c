@@ -74,8 +74,8 @@ static int nvgpu_submit_prepare_syncs(struct channel_gk20a *c,
 		nvgpu_mutex_release(&c->sync_lock);
 	}
 
-	if ((g->ops.fifo.resetup_ramfc != NULL) && new_sync_created) {
-		err = g->ops.fifo.resetup_ramfc(c);
+	if ((g->ops.channel.set_syncpt != NULL) && new_sync_created) {
+		err = g->ops.channel.set_syncpt(c);
 		if (err != 0) {
 			goto fail;
 		}

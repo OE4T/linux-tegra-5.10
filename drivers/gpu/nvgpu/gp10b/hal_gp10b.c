@@ -671,7 +671,6 @@ static const struct gpu_ops gp10b_ops = {
 		.set_error_notifier = nvgpu_set_error_notifier,
 		.setup_sw = nvgpu_fifo_setup_sw,
 		.cleanup_sw = nvgpu_fifo_cleanup_sw,
-		.resetup_ramfc = gp10b_fifo_resetup_ramfc,
 		.set_sm_exception_type_mask = gk20a_tsg_set_sm_exception_type_mask,
 		.runlist_busy_engines = gk20a_fifo_runlist_busy_engines,
 		.find_pbdma_for_runlist = gk20a_fifo_find_pbdma_for_runlist,
@@ -730,6 +729,8 @@ static const struct gpu_ops gp10b_ops = {
 	.ramfc = {
 		.setup = gp10b_ramfc_setup,
 		.commit_userd = gp10b_ramfc_commit_userd,
+		.get_syncpt = gp10b_ramfc_get_syncpt,
+		.set_syncpt = gp10b_ramfc_set_syncpt,
 	},
 	.runlist = {
 		.reschedule = gk20a_runlist_reschedule,
@@ -765,6 +766,7 @@ static const struct gpu_ops gp10b_ops = {
 		.count = gm20b_channel_count,
 		.read_state = gk20a_channel_read_state,
 		.force_ctx_reload = gm20b_channel_force_ctx_reload,
+		.set_syncpt = nvgpu_channel_set_syncpt,
 	},
 	.tsg = {
 		.check_ctxsw_timeout = nvgpu_tsg_check_ctxsw_timeout,

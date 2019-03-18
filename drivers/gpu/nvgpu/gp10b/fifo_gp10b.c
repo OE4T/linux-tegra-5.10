@@ -44,53 +44,6 @@
 #include <nvgpu/hw/gp10b/hw_fifo_gp10b.h>
 #include <nvgpu/hw/gp10b/hw_ram_gp10b.h>
 
-int gp10b_fifo_resetup_ramfc(struct channel_gk20a *c)
-{
-	u32 new_syncpt = 0, old_syncpt;
-	u32 v;
-	struct gk20a *g = c->g;
-	struct nvgpu_channel_sync_syncpt *sync_syncpt = NULL;
-
-	nvgpu_log_fn(g, " ");
-
-	v = nvgpu_mem_rd32(c->g, &c->inst_block,
-			ram_fc_allowed_syncpoints_w());
-	old_syncpt = pbdma_allowed_syncpoints_0_index_v(v);
-	if (c->sync != NULL) {
-		sync_syncpt = nvgpu_channel_sync_to_syncpt(c->sync);
-		if (sync_syncpt != NULL) {
-			new_syncpt =
-			    nvgpu_channel_sync_get_syncpt_id(sync_syncpt);
-		} else {
-			new_syncpt = FIFO_INVAL_SYNCPT_ID;
-		}
-	}
-	if ((new_syncpt != 0U) && (new_syncpt != old_syncpt)) {
-		/* disable channel */
-		gk20a_disable_channel_tsg(c->g, c);
-
-		/* preempt the channel */
-		WARN_ON(gk20a_fifo_preempt(c->g, c) != 0);
-
-		v = pbdma_allowed_syncpoints_0_valid_f(1);
-
-		nvgpu_log_info(g, "Channel %d, syncpt id %d\n",
-				c->chid, new_syncpt);
-
-		v |= pbdma_allowed_syncpoints_0_index_f(new_syncpt);
-
-		nvgpu_mem_wr32(c->g, &c->inst_block,
-				ram_fc_allowed_syncpoints_w(), v);
-	}
-
-	/* enable channel */
-	gk20a_enable_channel_tsg(c->g, c);
-
-	nvgpu_log_fn(g, "done");
-
-	return 0;
-}
-
 int gp10b_fifo_init_ce_engine_info(struct fifo_gk20a *f)
 {
 	struct gk20a *g = f->g;

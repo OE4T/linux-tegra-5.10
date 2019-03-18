@@ -886,7 +886,6 @@ static const struct gpu_ops tu104_ops = {
 		.set_error_notifier = nvgpu_set_error_notifier_if_empty,
 		.setup_sw = nvgpu_fifo_setup_sw,
 		.cleanup_sw = nvgpu_fifo_cleanup_sw,
-		.resetup_ramfc = NULL,
 		.free_channel_ctx_header = gv11b_free_subctx_header,
 		.ring_channel_doorbell = tu104_ring_channel_doorbell,
 		.usermode_base = tu104_fifo_usermode_base,
@@ -951,6 +950,8 @@ static const struct gpu_ops tu104_ops = {
 	.ramfc = {
 		.setup = tu104_ramfc_setup,
 		.commit_userd = gp10b_ramfc_commit_userd,
+		.get_syncpt = NULL,
+		.set_syncpt = NULL,
 	},
 	.runlist = {
 		.update_for_channel = gk20a_runlist_update_for_channel,

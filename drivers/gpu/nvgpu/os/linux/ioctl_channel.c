@@ -1029,8 +1029,8 @@ static int nvgpu_ioctl_channel_get_user_syncpoint(struct channel_gk20a *ch,
 		}
 		nvgpu_mutex_release(&ch->sync_lock);
 
-		if (g->ops.fifo.resetup_ramfc) {
-			err = g->ops.fifo.resetup_ramfc(ch);
+		if (g->ops.channel.set_syncpt) {
+			err = g->ops.channel.set_syncpt(ch);
 			if (err)
 				return err;
 		}

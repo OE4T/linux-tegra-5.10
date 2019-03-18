@@ -127,3 +127,26 @@ int gp10b_ramfc_setup(struct channel_gk20a *ch, u64 gpfifo_base,
 
 	return g->ops.ramfc.commit_userd(ch);
 }
+
+u32 gp10b_ramfc_get_syncpt(struct channel_gk20a *ch)
+{
+	struct gk20a *g = ch->g;
+	u32 v, syncpt;
+
+	v = nvgpu_mem_rd32(g, &ch->inst_block, ram_fc_allowed_syncpoints_w());
+	syncpt = pbdma_allowed_syncpoints_0_index_v(v);
+
+	return syncpt;
+}
+
+void gp10b_ramfc_set_syncpt(struct channel_gk20a *ch, u32 syncpt)
+{
+	struct gk20a *g = ch->g;
+	u32 v = pbdma_allowed_syncpoints_0_valid_f(1) |
+		pbdma_allowed_syncpoints_0_index_f(syncpt);
+
+	nvgpu_log_info(g, "Channel %d, syncpt id %d\n", ch->chid, syncpt);
+
+	nvgpu_mem_wr32(g, &ch->inst_block, ram_fc_allowed_syncpoints_w(), v);
+}
+

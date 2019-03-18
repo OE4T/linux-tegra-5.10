@@ -49,6 +49,7 @@
 #include <nvgpu/gr/gr.h>
 #include <nvgpu/channel.h>
 #include <nvgpu/channel_sync.h>
+#include <nvgpu/channel_sync_syncpt.h>
 #include <nvgpu/runlist.h>
 #include <nvgpu/fifo/userd.h>
 
@@ -1162,6 +1163,41 @@ static void channel_gk20a_free_prealloc_resources(struct channel_gk20a *c)
 	c->joblist.pre_alloc.enabled = false;
 }
 
+int nvgpu_channel_set_syncpt(struct channel_gk20a *ch)
+{
+	struct gk20a *g = ch->g;
+	struct nvgpu_channel_sync_syncpt *sync_syncpt;
+	u32 new_syncpt = 0U;
+	u32 old_syncpt = g->ops.ramfc.get_syncpt(ch);
+
+	if (ch->sync != NULL) {
+		sync_syncpt = nvgpu_channel_sync_to_syncpt(ch->sync);
+		if (sync_syncpt != NULL) {
+			new_syncpt =
+			    nvgpu_channel_sync_get_syncpt_id(sync_syncpt);
+		} else {
+			new_syncpt = FIFO_INVAL_SYNCPT_ID;
+		}
+	}
+
+	if ((new_syncpt != 0U) && (new_syncpt != old_syncpt)) {
+		/* disable channel */
+		gk20a_disable_channel_tsg(g, ch);
+
+		/* preempt the channel */
+		WARN_ON(gk20a_fifo_preempt(g, ch) != 0);
+
+		g->ops.ramfc.set_syncpt(ch, new_syncpt);
+	}
+
+	/* enable channel */
+	gk20a_enable_channel_tsg(g, ch);
+
+	nvgpu_log_fn(g, "done");
+
+	return 0;
+}
+
 int nvgpu_channel_setup_bind(struct channel_gk20a *c,
 		struct nvgpu_setup_bind_args *args)
 {
@@ -1273,8 +1309,8 @@ int nvgpu_channel_setup_bind(struct channel_gk20a *c,
 			}
 			nvgpu_mutex_release(&c->sync_lock);
 
-			if (g->ops.fifo.resetup_ramfc != NULL) {
-				err = g->ops.fifo.resetup_ramfc(c);
+			if (g->ops.channel.set_syncpt != NULL) {
+				err = g->ops.channel.set_syncpt(c);
 				if (err != 0) {
 					goto clean_up_sync;
 				}

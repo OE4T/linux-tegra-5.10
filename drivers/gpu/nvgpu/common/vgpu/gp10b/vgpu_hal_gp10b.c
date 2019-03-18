@@ -437,7 +437,6 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 		.set_error_notifier = nvgpu_set_error_notifier,
 		.setup_sw = vgpu_fifo_setup_sw,
 		.cleanup_sw = vgpu_fifo_cleanup_sw,
-		.resetup_ramfc = NULL,
 		.set_sm_exception_type_mask = vgpu_set_sm_exception_type_mask,
 		.intr_0_enable = NULL,
 		.intr_1_enable = NULL,
@@ -488,6 +487,8 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 	.ramfc = {
 		.setup = vgpu_ramfc_setup,
 		.commit_userd = NULL,
+		.get_syncpt = NULL,
+		.set_syncpt = NULL,
 	},
 	.runlist = {
 		.reschedule = NULL,

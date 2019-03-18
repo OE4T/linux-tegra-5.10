@@ -513,7 +513,6 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 		.set_error_notifier = nvgpu_set_error_notifier,
 		.setup_sw = vgpu_fifo_setup_sw,
 		.cleanup_sw = vgpu_fifo_cleanup_sw,
-		.resetup_ramfc = NULL,
 		.free_channel_ctx_header = vgpu_channel_free_ctx_header,
 		.ring_channel_doorbell = gv11b_ring_channel_doorbell,
 		.set_sm_exception_type_mask = vgpu_set_sm_exception_type_mask,
@@ -568,6 +567,8 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 	.ramfc = {
 		.setup = vgpu_ramfc_setup,
 		.commit_userd = NULL,
+		.get_syncpt = NULL,
+		.set_syncpt = NULL,
 	},
 	.runlist = {
 		.reschedule = NULL,
