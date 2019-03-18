@@ -292,7 +292,7 @@ static void update_gmmu_pte_locked(struct vm_gk20a *vm,
 		"PTE: i=%-4u size=%-2u | "
 		"GPU %#-12llx  phys %#-12llx "
 		"pgsz: %3dkb perm=%-2s kind=%#02x APT=%-6s %c%c%c%c%c "
-		"ctag=0x%08x "
+		"ctag=0x%08llx "
 		"[0x%08x, 0x%08x]",
 		vm->name,
 		pd_idx, l->entry_size,
@@ -306,7 +306,7 @@ static void update_gmmu_pte_locked(struct vm_gk20a *vm,
 		attrs->priv      ? 'P' : '-',
 		attrs->valid     ? 'V' : '-',
 		attrs->platform_atomic ? 'A' : '-',
-		(u32)attrs->ctag / g->ops.fb.compression_page_size(g),
+		attrs->ctag / g->ops.fb.compression_page_size(g),
 		pte_w[1], pte_w[0]);
 
 	nvgpu_pd_write(g, pd, (size_t)pd_offset + (size_t)0, pte_w[0]);

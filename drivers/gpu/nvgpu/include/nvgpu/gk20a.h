@@ -719,7 +719,7 @@ struct gpu_ops {
 		 * buffer, ctagline is increased when the virtual address
 		 * crosses over the compression page boundary.
 		 */
-		unsigned int (*compression_page_size)(struct gk20a *g);
+		u64 (*compression_page_size)(struct gk20a *g);
 
 		/*
 		 * Minimum page size that can be used for compressible kinds.
@@ -730,7 +730,7 @@ struct gpu_ops {
 		 * Compressible kind mappings: Mask for the virtual and physical
 		 * address bits that must match.
 		 */
-		u32 (*compression_align_mask)(struct gk20a *g);
+		u64 (*compression_align_mask)(struct gk20a *g);
 
 		void (*dump_vpr_info)(struct gk20a *g);
 		void (*dump_wpr_info)(struct gk20a *g);

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2018, NVIDIA CORPORATION.  All rights reserved.
+* Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -51,7 +51,7 @@ int gk20a_alloc_or_get_comptags(struct gk20a *g,
 							     buf->dev);
 	u32 offset;
 	int err;
-	unsigned int ctag_granularity;
+	u64 ctag_granularity;
 	u32 lines;
 
 	if (!priv)

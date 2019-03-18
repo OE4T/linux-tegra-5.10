@@ -1,7 +1,7 @@
 /*
  * GM20B FB
  *
- * Copyright (c) 2014-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -39,9 +39,9 @@ u32 gm20b_fb_mmu_ctrl(struct gk20a *g);
 u32 gm20b_fb_mmu_debug_ctrl(struct gk20a *g);
 u32 gm20b_fb_mmu_debug_wr(struct gk20a *g);
 u32 gm20b_fb_mmu_debug_rd(struct gk20a *g);
-unsigned int gm20b_fb_compression_page_size(struct gk20a *g);
+u64 gm20b_fb_compression_page_size(struct gk20a *g);
 unsigned int gm20b_fb_compressible_page_size(struct gk20a *g);
-u32 gm20b_fb_compression_align_mask(struct gk20a *g);
+u64 gm20b_fb_compression_align_mask(struct gk20a *g);
 void gm20b_fb_dump_vpr_info(struct gk20a *g);
 void gm20b_fb_dump_wpr_info(struct gk20a *g);
 void gm20b_fb_read_wpr_info(struct gk20a *g, u64 *wpr_base, u64 *wpr_size);

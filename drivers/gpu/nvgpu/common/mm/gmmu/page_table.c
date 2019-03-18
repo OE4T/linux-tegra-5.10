@@ -780,11 +780,11 @@ u64 gk20a_locked_gmmu_map(struct vm_gk20a *vm,
 	struct gk20a *g = gk20a_from_vm(vm);
 	int err = 0;
 	bool allocated = false;
-	u32 ctag_granularity = g->ops.fb.compression_page_size(g);
+	u64 ctag_granularity = g->ops.fb.compression_page_size(g);
 	struct nvgpu_gmmu_attrs attrs = {
 		.pgsz      = pgsz_idx,
 		.kind_v    = kind_v,
-		.ctag      = (u64)ctag_offset * (u64)ctag_granularity,
+		.ctag      = (u64)ctag_offset * ctag_granularity,
 		.cacheable = ((flags & NVGPU_VM_MAP_CACHEABLE) != 0U),
 		.rw_flag   = rw_flag,
 		.sparse    = sparse,
@@ -800,7 +800,7 @@ u64 gk20a_locked_gmmu_map(struct vm_gk20a *vm,
 	 * boundaries.
 	 */
 	if (attrs.ctag != 0ULL) {
-		attrs.ctag += buffer_offset & (U64(ctag_granularity) - U64(1));
+		attrs.ctag += buffer_offset & (ctag_granularity - U64(1));
 	}
 
 	attrs.l3_alloc = (bool)(flags & NVGPU_VM_MAP_L3_ALLOC);
