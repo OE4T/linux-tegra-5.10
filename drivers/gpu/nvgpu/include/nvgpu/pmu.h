@@ -31,11 +31,11 @@
 #include <nvgpu/pmuif/nvgpu_gpmu_cmdif.h>
 #include <nvgpu/pmuif/gpmu_super_surf_if.h>
 #include <nvgpu/falcon.h>
-#include <nvgpu/engine_mem_queue.h>
 #include <nvgpu/timers.h>
 #include <nvgpu/pmu/pmu_pg.h>
 #include <nvgpu/pmu/seq.h>
 #include <nvgpu/pmu/mutex.h>
+#include <nvgpu/pmu/queue.h>
 
 #define nvgpu_pmu_dbg(g, fmt, args...) \
 	nvgpu_log(g, gpu_dbg_pmu, fmt, ##args)
@@ -267,11 +267,7 @@ struct nvgpu_pmu {
 
 	struct pmu_sha1_gid gid_info;
 
-	struct nvgpu_engine_mem_queue *queue[PMU_QUEUE_COUNT];
-	u32 queue_type;
-
-	struct nvgpu_engine_fb_queue *fb_queue[PMU_QUEUE_COUNT];
-
+	struct pmu_queues queues;
 	struct pmu_sequences sequences;
 
 	struct pmu_mutexes mutexes;
@@ -338,19 +334,11 @@ int nvgpu_pmu_lock_acquire(struct gk20a *g, struct nvgpu_pmu *pmu,
 int nvgpu_pmu_lock_release(struct gk20a *g, struct nvgpu_pmu *pmu,
 			   u32 id, u32 *token);
 
-int nvgpu_pmu_queue_init(struct nvgpu_pmu *pmu, u32 id,
-	union pmu_init_msg_pmu *init);
-void nvgpu_pmu_queue_free(struct nvgpu_pmu *pmu, u32 id);
-
-int nvgpu_pmu_queue_init_fb(struct nvgpu_pmu *pmu,
-	u32 id, union pmu_init_msg_pmu *init);
-
 /* send a cmd to pmu */
 int nvgpu_pmu_cmd_post(struct gk20a *g, struct pmu_cmd *cmd,
 		struct pmu_payload *payload,
 		u32 queue_id, pmu_callback callback, void *cb_param);
 
-bool nvgpu_pmu_queue_is_empty(struct nvgpu_pmu *pmu, u32 queue_id);
 int nvgpu_pmu_process_message(struct nvgpu_pmu *pmu);
 
 /* perfmon */

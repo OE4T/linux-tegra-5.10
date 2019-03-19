@@ -23,6 +23,7 @@
  */
 
 #include <nvgpu/nvgpu_common.h>
+#include <nvgpu/pmu/queue.h>
 #include <nvgpu/timers.h>
 #include <nvgpu/kmem.h>
 #include <nvgpu/dma.h>
@@ -635,7 +636,8 @@ void gk20a_pmu_isr(struct gk20a *g)
 	gk20a_writel(g, pwr_falcon_irqsclr_r(), intr);
 
 	if (recheck) {
-		if (!nvgpu_pmu_queue_is_empty(pmu, PMU_MESSAGE_QUEUE)) {
+		if (!nvgpu_pmu_queue_is_empty(&pmu->queues,
+					      PMU_MESSAGE_QUEUE)) {
 			gk20a_writel(g, pwr_falcon_irqsset_r(),
 				pwr_falcon_irqsset_swgen0_set_f());
 		}

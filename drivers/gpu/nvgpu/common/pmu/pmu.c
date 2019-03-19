@@ -415,8 +415,6 @@ int nvgpu_pmu_process_init_msg(struct nvgpu_pmu *pmu,
 	union pmu_init_msg_pmu *init;
 	struct pmu_sha1_gid_data gid_data;
 	int err = 0;
-	u32 i = 0U;
-	u32 j = 0U;
 
 	nvgpu_log_fn(g, " ");
 
@@ -461,30 +459,10 @@ int nvgpu_pmu_process_init_msg(struct nvgpu_pmu *pmu,
 	}
 
 
-	if (nvgpu_is_enabled(g, NVGPU_SUPPORT_PMU_RTOS_FBQ)) {
-		pmu->queue_type = QUEUE_TYPE_FB;
-		for (i = 0; i < PMU_QUEUE_COUNT; i++) {
-			err = nvgpu_pmu_queue_init_fb(pmu, i, init);
-			if (err != 0) {
-				for (j = 0; j < i; j++) {
-					nvgpu_pmu_queue_free(pmu, j);
-				}
-				nvgpu_err(g, "PMU queue init failed");
-				return err;
-			}
-		}
-	} else {
-		pmu->queue_type = QUEUE_TYPE_DMEM;
-		for (i = 0; i < PMU_QUEUE_COUNT; i++) {
-			err = nvgpu_pmu_queue_init(pmu, i, init);
-			if (err != 0) {
-				for (j = 0; j < i; j++) {
-					nvgpu_pmu_queue_free(pmu, j);
-				}
-				nvgpu_err(g, "PMU queue init failed");
-				return err;
-			}
-		}
+	err = nvgpu_pmu_queues_init(g, init, &pmu->queues,
+				    &pmu->super_surface_buf);
+	if (err != 0) {
+		return err;
 	}
 
 	if (!nvgpu_alloc_initialized(&pmu->dmem)) {
@@ -534,7 +512,6 @@ int nvgpu_pmu_destroy(struct gk20a *g)
 {
 	struct nvgpu_pmu *pmu = &g->pmu;
 	struct pmu_pg_stats_data pg_stat_data = { 0 };
-	u32 i;
 
 	nvgpu_log_fn(g, " ");
 
@@ -561,9 +538,7 @@ int nvgpu_pmu_destroy(struct gk20a *g)
 	pmu->isr_enabled = false;
 	nvgpu_mutex_release(&pmu->isr_mutex);
 
-	for (i = 0U; i < PMU_QUEUE_COUNT; i++) {
-		nvgpu_pmu_queue_free(pmu, i);
-	}
+	nvgpu_pmu_queues_free(g, &pmu->queues);
 
 	nvgpu_pmu_state_change(g, PMU_STATE_OFF, false);
 	pmu->pmu_ready = false;
