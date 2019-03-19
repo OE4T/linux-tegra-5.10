@@ -29,6 +29,7 @@
 #include "gpmuif_pg.h"
 #include "gpmuif_perfmon.h"
 #include "gpmuif_acr.h"
+#include "gpmuif_rpc.h"
 #include "gpmuifboardobj.h"
 #include "gpmuifclk.h"
 #include "gpmuifperf.h"
@@ -38,47 +39,6 @@
 #include "gpmuiftherm.h"
 #include "gpmuifthermsensor.h"
 #include "gpmuifseq.h"
-
-/*
- * Command requesting execution of the RPC (Remote Procedure Call)
- */
-struct nv_pmu_rpc_cmd {
-	/* Must be set to @ref NV_PMU_RPC_CMD_ID */
-	u8 cmd_type;
-	/* RPC call flags (@see PMU_RPC_FLAGS) */
-	u8 flags;
-	/* Size of RPC structure allocated
-	 *  within NV managed DMEM heap
-	 */
-	u16 rpc_dmem_size;
-	/*
-	 * DMEM pointer of RPC structure allocated
-	 * within RM managed DMEM heap.
-	 */
-	u32 rpc_dmem_ptr;
-};
-
-#define NV_PMU_RPC_CMD_ID 0x80U
-
-/* Message carrying the result of the RPC execution */
-struct nv_pmu_rpc_msg {
-	/* Must be set to @ref NV_PMU_RPC_MSG_ID */
-	u8 msg_type;
-	/* RPC call flags (@see PMU_RPC_FLAGS)*/
-	u8 flags;
-	/*
-	 * Size of RPC structure allocated
-	 *  within NV managed DMEM heap.
-	 */
-	u16 rpc_dmem_size;
-	/*
-	 * DMEM pointer of RPC structure allocated
-	 * within NV managed DMEM heap.
-	 */
-	u32 rpc_dmem_ptr;
-};
-
-#define NV_PMU_RPC_MSG_ID 0x80U
 
 struct pmu_cmd {
 	struct pmu_hdr hdr;
@@ -95,24 +55,6 @@ struct pmu_cmd {
 		struct nv_pmu_therm_cmd therm;
 		struct nv_pmu_rpc_cmd rpc;
 	} cmd;
-};
-
-struct pmu_msg {
-	struct pmu_hdr hdr;
-	union {
-		struct pmu_init_msg init;
-		struct pmu_perfmon_msg perfmon;
-		struct pmu_pg_msg pg;
-		struct pmu_rc_msg rc;
-		struct pmu_acr_msg acr;
-		struct nv_pmu_boardobj_msg boardobj;
-		struct nv_pmu_perf_msg perf;
-		struct nv_pmu_volt_msg volt;
-		struct nv_pmu_clk_msg clk;
-		struct nv_pmu_pmgr_msg pmgr;
-		struct nv_pmu_therm_msg therm;
-		struct nv_pmu_rpc_msg rpc;
-	} msg;
 };
 
 #define PMU_UNIT_REWIND			U8(0x00)

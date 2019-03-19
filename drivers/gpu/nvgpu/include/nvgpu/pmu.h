@@ -36,6 +36,7 @@
 #include <nvgpu/pmu/seq.h>
 #include <nvgpu/pmu/mutex.h>
 #include <nvgpu/pmu/queue.h>
+#include <nvgpu/pmu/msg.h>
 
 #define nvgpu_pmu_dbg(g, fmt, args...) \
 	nvgpu_log(g, gpu_dbg_pmu, fmt, ##args)
@@ -339,8 +340,6 @@ int nvgpu_pmu_cmd_post(struct gk20a *g, struct pmu_cmd *cmd,
 		struct pmu_payload *payload,
 		u32 queue_id, pmu_callback callback, void *cb_param);
 
-int nvgpu_pmu_process_message(struct nvgpu_pmu *pmu);
-
 /* perfmon */
 int nvgpu_pmu_init_perfmon(struct nvgpu_pmu *pmu);
 int nvgpu_pmu_perfmon_start_sampling(struct nvgpu_pmu *pmu);
@@ -364,8 +363,6 @@ int nvgpu_pmu_handle_therm_event(struct nvgpu_pmu *pmu,
 /* PMU init */
 int nvgpu_init_pmu_support(struct gk20a *g);
 int nvgpu_pmu_destroy(struct gk20a *g);
-int nvgpu_pmu_process_init_msg(struct nvgpu_pmu *pmu,
-	struct pmu_msg *msg);
 int nvgpu_pmu_super_surface_alloc(struct gk20a *g,
 	struct nvgpu_mem *mem_surface, u32 size);
 

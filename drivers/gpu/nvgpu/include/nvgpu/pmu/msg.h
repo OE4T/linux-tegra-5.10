@@ -1,0 +1,85 @@
+/*
+ * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
+ * THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+ * DEALINGS IN THE SOFTWARE.
+ */
+
+#ifndef NVGPU_PMU_MSG_H
+#define NVGPU_PMU_MSG_H
+
+#include <nvgpu/pmuif/gpmuif_pmu.h>
+#include <nvgpu/pmuif/gpmuif_pg.h>
+#include <nvgpu/pmuif/gpmuif_perfmon.h>
+#include <nvgpu/pmuif/gpmuif_acr.h>
+#include <nvgpu/pmuif/gpmuif_rpc.h>
+#include <nvgpu/pmuif/gpmuifboardobj.h>
+#include <nvgpu/pmuif/gpmuifclk.h>
+#include <nvgpu/pmuif/gpmuifperf.h>
+#include <nvgpu/pmuif/gpmuifpmgr.h>
+#include <nvgpu/pmuif/gpmuifvolt.h>
+#include <nvgpu/pmuif/gpmuiftherm.h>
+
+/* GPU ID */
+#define PMU_SHA1_GID_SIGNATURE		0xA7C66AD2U
+#define PMU_SHA1_GID_SIGNATURE_SIZE	4U
+
+#define PMU_SHA1_GID_SIZE	16U
+
+struct gk20a;
+struct nvgpu_pmu;
+struct nvgpu_allocator;
+struct pmu_sequences;
+struct pmu_queues;
+struct nvgpu_mem;
+struct nvgpu_falcon;
+
+struct pmu_sha1_gid {
+	bool valid;
+	u8 gid[PMU_SHA1_GID_SIZE];
+};
+
+struct pmu_sha1_gid_data {
+	union {
+		u8 sign_bytes[PMU_SHA1_GID_SIGNATURE_SIZE];
+		u32 signature;
+	};
+	u8 gid[PMU_SHA1_GID_SIZE];
+};
+
+struct pmu_msg {
+	struct pmu_hdr hdr;
+	union {
+		struct pmu_init_msg init;
+		struct pmu_perfmon_msg perfmon;
+		struct pmu_pg_msg pg;
+		struct pmu_rc_msg rc;
+		struct pmu_acr_msg acr;
+		struct nv_pmu_boardobj_msg boardobj;
+		struct nv_pmu_perf_msg perf;
+		struct nv_pmu_volt_msg volt;
+		struct nv_pmu_clk_msg clk;
+		struct nv_pmu_pmgr_msg pmgr;
+		struct nv_pmu_therm_msg therm;
+		struct nv_pmu_rpc_msg rpc;
+	} msg;
+};
+
+int nvgpu_pmu_process_message(struct nvgpu_pmu *pmu);
+
+#endif /* NVGPU_PMU_MSG_H */

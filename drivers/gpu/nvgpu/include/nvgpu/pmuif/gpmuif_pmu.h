@@ -71,22 +71,6 @@ struct pmu_cmdline_args_v6 {
 	u32 flags;
 };
 
-/* GPU ID */
-#define PMU_SHA1_GID_SIGNATURE		0xA7C66AD2U
-#define PMU_SHA1_GID_SIGNATURE_SIZE	4U
-
-#define PMU_SHA1_GID_SIZE	16U
-
-struct pmu_sha1_gid {
-	bool valid;
-	u8 gid[PMU_SHA1_GID_SIZE];
-};
-
-struct pmu_sha1_gid_data {
-	u8 signature[PMU_SHA1_GID_SIGNATURE_SIZE];
-	u8 gid[PMU_SHA1_GID_SIZE];
-};
-
 /* PMU INIT MSG */
 enum {
 	PMU_INIT_MSG_TYPE_PMU_INIT = 0U,

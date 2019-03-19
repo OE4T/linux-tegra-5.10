@@ -34,6 +34,7 @@
 #include <nvgpu/pmu/pstate.h>
 #include <nvgpu/pmu/volt.h>
 #include <nvgpu/pmu/clk/clk.h>
+#include <nvgpu/pmu/allocator.h>
 
 /* PMU NS UCODE IMG */
 #define NVGPU_PMU_NS_UCODE_IMAGE	"gpmu_ucode.bin"
@@ -1614,9 +1615,7 @@ static void nvgpu_remove_pmu_support(struct nvgpu_pmu *pmu)
 
 	nvgpu_log_fn(g, " ");
 
-	if (nvgpu_alloc_initialized(&pmu->dmem)) {
-		nvgpu_alloc_destroy(&pmu->dmem);
-	}
+	nvgpu_pmu_dmem_allocator_destroy(&pmu->dmem);
 
 	nvgpu_list_for_each_entry_safe(pboardobjgrp, pboardobjgrp_tmp,
 		&g->boardobjgrp_head, boardobjgrp, node) {
