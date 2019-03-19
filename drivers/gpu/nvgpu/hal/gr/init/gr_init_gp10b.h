@@ -30,6 +30,7 @@ struct gk20a;
 u32 gp10b_gr_init_get_sm_id_size(void);
 int gp10b_gr_init_sm_id_config(struct gk20a *g, u32 *tpc_sm_id,
 			       struct nvgpu_gr_config *gr_config);
+int gp10b_gr_init_wait_empty(struct gk20a *g);
 int gp10b_gr_init_fs_state(struct gk20a *g);
 int gp10b_gr_init_preemption_state(struct gk20a *g, u32 gfxp_wfi_timeout_count,
 	bool gfxp_wfi_timeout_unit_usec);

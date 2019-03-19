@@ -106,7 +106,6 @@ void gr_gv11b_set_alpha_circular_buffer_size(struct gk20a *g, u32 data);
 void gr_gv11b_set_circular_buffer_size(struct gk20a *g, u32 data);
 int gr_gv11b_dump_gr_status_regs(struct gk20a *g,
 			   struct gk20a_debug_output *o);
-int gr_gv11b_wait_empty(struct gk20a *g);
 void gr_gv11b_commit_global_attrib_cb(struct gk20a *g,
 					     struct nvgpu_gr_ctx *gr_ctx,
 					     u64 addr, bool patch);

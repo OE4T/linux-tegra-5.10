@@ -24,6 +24,7 @@
 #include <nvgpu/io.h>
 
 #include <nvgpu/gr/config.h>
+#include <nvgpu/gr/gr.h>
 
 #include "gr_init_gm20b.h"
 #include "gr_init_gp10b.h"
@@ -77,6 +78,73 @@ int gp10b_gr_init_sm_id_config(struct gk20a *g, u32 *tpc_sm_id,
 	}
 
 	return 0;
+}
+
+static bool gr_activity_empty_or_preempted(u32 val)
+{
+	while (val != 0U) {
+		u32 v = val & 7U;
+
+		if (v != gr_activity_4_gpc0_empty_v() &&
+		    v != gr_activity_4_gpc0_preempted_v()) {
+			return false;
+		}
+		val >>= 3;
+	}
+
+	return true;
+}
+
+int gp10b_gr_init_wait_empty(struct gk20a *g)
+{
+	u32 delay = NVGPU_GR_IDLE_CHECK_DEFAULT_US;
+	bool ctxsw_active;
+	bool gr_busy;
+	u32 gr_status;
+	u32 activity0, activity1, activity2, activity4;
+	struct nvgpu_timeout timeout;
+	int err;
+
+	nvgpu_log_fn(g, " ");
+
+	err = nvgpu_timeout_init(g, &timeout, nvgpu_gr_get_idle_timeout(g),
+				 NVGPU_TIMER_CPU_TIMER);
+	if (err != 0) {
+		nvgpu_err(g, "timeout_init failed: %d", err);
+		return err;
+	}
+
+	do {
+		/* fmodel: host gets fifo_engine_status(gr) from gr
+		   only when gr_status is read */
+		gr_status = nvgpu_readl(g, gr_status_r());
+
+		ctxsw_active = (gr_status & BIT32(7)) != 0U;
+
+		activity0 = nvgpu_readl(g, gr_activity_0_r());
+		activity1 = nvgpu_readl(g, gr_activity_1_r());
+		activity2 = nvgpu_readl(g, gr_activity_2_r());
+		activity4 = nvgpu_readl(g, gr_activity_4_r());
+
+		gr_busy = !(gr_activity_empty_or_preempted(activity0) &&
+			    gr_activity_empty_or_preempted(activity1) &&
+			    activity2 == 0U &&
+			    gr_activity_empty_or_preempted(activity4));
+
+		if (!gr_busy && !ctxsw_active) {
+			nvgpu_log_fn(g, "done");
+			return 0;
+		}
+
+		nvgpu_usleep_range(delay, delay * 2U);
+		delay = min_t(u32, delay << 1, NVGPU_GR_IDLE_CHECK_MAX_US);
+	} while (nvgpu_timeout_expired(&timeout) == 0);
+
+	nvgpu_err(g,
+	    "timeout, ctxsw busy : %d, gr busy : %d, %08x, %08x, %08x, %08x",
+	    ctxsw_active, gr_busy, activity0, activity1, activity2, activity4);
+
+	return -EAGAIN;
 }
 
 int gp10b_gr_init_fs_state(struct gk20a *g)

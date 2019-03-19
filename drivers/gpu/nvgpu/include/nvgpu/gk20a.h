@@ -354,7 +354,6 @@ struct gpu_ops {
 		u32* (*get_rop_l2_en_mask)(struct gk20a *g);
 		void (*init_sm_dsm_reg_info)(void);
 		void (*init_ovr_sm_dsm_perf)(void);
-		int (*wait_empty)(struct gk20a *g);
 		void (*init_cyclestats)(struct gk20a *g);
 		int (*set_sm_debug_mode)(struct gk20a *g, struct channel_gk20a *ch,
 					u64 sms, bool enable);
@@ -678,6 +677,7 @@ struct gpu_ops {
 			void (*cwd_gpcs_tpcs_num)(struct gk20a *g,
 						  u32 gpc_count,
 						  u32 tpc_count);
+			int (*wait_empty)(struct gk20a *g);
 			int (*wait_idle)(struct gk20a *g);
 			int (*wait_fe_idle)(struct gk20a *g);
 			int (*fe_pwr_mode_force_on)(struct gk20a *g,

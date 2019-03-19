@@ -4171,7 +4171,7 @@ int gk20a_gr_suspend(struct gk20a *g)
 
 	nvgpu_log_fn(g, " ");
 
-	ret = g->ops.gr.wait_empty(g);
+	ret = g->ops.gr.init.wait_empty(g);
 	if (ret != 0) {
 		return ret;
 	}

@@ -1207,67 +1207,6 @@ int gr_gp10b_dump_gr_status_regs(struct gk20a *g,
 	return 0;
 }
 
-static bool gr_activity_empty_or_preempted(u32 val)
-{
-	while(val != 0U) {
-		u32 v = val & 7U;
-		if (v != gr_activity_4_gpc0_empty_v() &&
-		    v != gr_activity_4_gpc0_preempted_v()) {
-			return false;
-		}
-		val >>= 3;
-	}
-
-	return true;
-}
-
-int gr_gp10b_wait_empty(struct gk20a *g)
-{
-	u32 delay = GR_IDLE_CHECK_DEFAULT;
-	bool ctxsw_active;
-	bool gr_busy;
-	u32 gr_status;
-	u32 activity0, activity1, activity2, activity4;
-	struct nvgpu_timeout timeout;
-
-	nvgpu_log_fn(g, " ");
-
-	nvgpu_timeout_init(g, &timeout, gk20a_get_gr_idle_timeout(g),
-			   NVGPU_TIMER_CPU_TIMER);
-
-	do {
-		/* fmodel: host gets fifo_engine_status(gr) from gr
-		   only when gr_status is read */
-		gr_status = gk20a_readl(g, gr_status_r());
-
-		ctxsw_active = (gr_status & BIT32(7)) != 0U;
-
-		activity0 = gk20a_readl(g, gr_activity_0_r());
-		activity1 = gk20a_readl(g, gr_activity_1_r());
-		activity2 = gk20a_readl(g, gr_activity_2_r());
-		activity4 = gk20a_readl(g, gr_activity_4_r());
-
-		gr_busy = !(gr_activity_empty_or_preempted(activity0) &&
-			    gr_activity_empty_or_preempted(activity1) &&
-			    activity2 == 0U &&
-			    gr_activity_empty_or_preempted(activity4));
-
-		if (!gr_busy && !ctxsw_active) {
-			nvgpu_log_fn(g, "done");
-			return 0;
-		}
-
-		nvgpu_usleep_range(delay, delay * 2U);
-		delay = min_t(u32, delay << 1, GR_IDLE_CHECK_MAX);
-	} while (nvgpu_timeout_expired(&timeout) == 0);
-
-	nvgpu_err(g,
-		"timeout, ctxsw busy : %d, gr busy : %d, %08x, %08x, %08x, %08x",
-		ctxsw_active, gr_busy, activity0, activity1, activity2, activity4);
-
-	return -EAGAIN;
-}
-
 void gr_gp10b_commit_global_attrib_cb(struct gk20a *g,
 					     struct nvgpu_gr_ctx *gr_ctx,
 					     u64 addr, bool patch)

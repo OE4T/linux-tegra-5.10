@@ -445,7 +445,7 @@ int gm20b_gr_init_wait_fe_idle(struct gk20a *g)
 	nvgpu_log_fn(g, " ");
 
 	err = nvgpu_timeout_init(g, &timeout, nvgpu_gr_get_idle_timeout(g),
-			         NVGPU_TIMER_CPU_TIMER);
+				 NVGPU_TIMER_CPU_TIMER);
 	if (err != 0) {
 		return err;
 	}

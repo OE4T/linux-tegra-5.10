@@ -97,7 +97,6 @@ void gr_gp10b_update_ctxsw_preemption_mode(struct gk20a *g,
 		struct nvgpu_gr_ctx *gr_ctx, struct nvgpu_gr_subctx *subctx);
 int gr_gp10b_dump_gr_status_regs(struct gk20a *g,
 			   struct gk20a_debug_output *o);
-int gr_gp10b_wait_empty(struct gk20a *g);
 void gr_gp10b_commit_global_attrib_cb(struct gk20a *g,
 					     struct nvgpu_gr_ctx *gr_ctx,
 					     u64 addr, bool patch);

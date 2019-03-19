@@ -165,7 +165,6 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 		.get_fbp_en_mask = vgpu_gr_get_fbp_en_mask,
 		.get_rop_l2_en_mask = vgpu_gr_rop_l2_en_mask,
 		.init_sm_dsm_reg_info = gv11b_gr_init_sm_dsm_reg_info,
-		.wait_empty = NULL,
 		.init_cyclestats = vgpu_gr_init_cyclestats,
 		.set_sm_debug_mode = vgpu_gr_set_sm_debug_mode,
 		.bpt_reg_info = NULL,
