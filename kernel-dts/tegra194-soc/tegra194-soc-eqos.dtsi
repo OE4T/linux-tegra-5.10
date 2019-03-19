@@ -37,7 +37,7 @@
 
 
 / {
-	ether_qos@2490000 {
+	ethernet@2490000 {
 		compatible = "nvidia,eqos";
 		reg = <0x0 0x02490000 0x0 0x10000>;    /* EQOS Base Register */
 		reg-names = "eqos_base";

@@ -94,7 +94,7 @@
 		status = "okay";
 	};
 
-	ether_qos@2490000 {
+	ethernet@2490000 {
 		status = "okay";
 	};
 
