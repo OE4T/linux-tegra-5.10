@@ -116,9 +116,6 @@ srcs += common/sim.c \
 	common/gr/config/gr_config.c \
 	common/gr/config/gr_config_gm20b.c \
 	common/gr/fecs_trace/fecs_trace.c \
-	common/gr/fecs_trace/fecs_trace_gm20b.c \
-	common/gr/fecs_trace/fecs_trace_gp10b.c \
-	common/gr/fecs_trace/fecs_trace_gv11b.c \
 	common/gr/zbc.c \
 	common/gr/hwpm_map.c \
 	common/netlist/netlist.c \
@@ -322,6 +319,9 @@ srcs += common/sim.c \
 	hal/bus/bus_gp10b.c	\
 	hal/bus/bus_gv100.c	\
 	hal/bus/bus_tu104.c	\
+	hal/gr/fecs_trace/fecs_trace_gm20b.c \
+	hal/gr/fecs_trace/fecs_trace_gp10b.c \
+	hal/gr/fecs_trace/fecs_trace_gv11b.c \
 	hal/gr/init/gr_init_gm20b.c \
 	hal/gr/init/gr_init_gp10b.c \
 	hal/gr/init/gr_init_gv11b.c \

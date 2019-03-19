@@ -29,12 +29,12 @@
 #include "hal/ltc/ltc_gp10b.h"
 #include "hal/fb/fb_gm20b.h"
 #include "hal/fb/fb_gp10b.h"
+#include "hal/gr/fecs_trace/fecs_trace_gm20b.h"
 
 #include "common/netlist/netlist_gp10b.h"
 #include "common/gr/ctxsw_prog/ctxsw_prog_gm20b.h"
 #include "common/gr/ctxsw_prog/ctxsw_prog_gp10b.h"
 #include "common/gr/config/gr_config_gm20b.h"
-#include "common/gr/fecs_trace/fecs_trace_gm20b.h"
 #include "common/perf/perf_gm20b.h"
 #include "common/regops/regops_gp10b.h"
 #include "common/fifo/runlist_gk20a.h"

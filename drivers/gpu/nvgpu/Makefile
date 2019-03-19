@@ -80,9 +80,6 @@ nvgpu-y += \
 	common/gr/config/gr_config.o \
 	common/gr/config/gr_config_gm20b.o \
 	common/gr/fecs_trace/fecs_trace.o \
-	common/gr/fecs_trace/fecs_trace_gm20b.o \
-	common/gr/fecs_trace/fecs_trace_gp10b.o \
-	common/gr/fecs_trace/fecs_trace_gv11b.o \
 	common/gr/zbc.o \
 	common/gr/hwpm_map.o \
 	common/netlist/netlist.o \
@@ -166,6 +163,9 @@ nvgpu-y += \
 	hal/bus/bus_gp10b.o \
 	hal/bus/bus_gv100.o \
 	hal/bus/bus_tu104.o \
+	hal/gr/fecs_trace/fecs_trace_gm20b.o \
+	hal/gr/fecs_trace/fecs_trace_gp10b.o \
+	hal/gr/fecs_trace/fecs_trace_gv11b.o \
 	hal/gr/init/gr_init_gm20b.o \
 	hal/gr/init/gr_init_gp10b.o \
 	hal/gr/init/gr_init_gv11b.o \
