@@ -77,6 +77,7 @@ nvgpu-y += \
 	common/gr/global_ctx.o \
 	common/gr/ctx.o \
 	common/gr/subctx.o \
+	common/gr/zcull.o \
 	common/gr/config/gr_config.o \
 	common/gr/config/gr_config_gm20b.o \
 	common/gr/fecs_trace/fecs_trace.o \
@@ -166,6 +167,8 @@ nvgpu-y += \
 	hal/gr/fecs_trace/fecs_trace_gm20b.o \
 	hal/gr/fecs_trace/fecs_trace_gp10b.o \
 	hal/gr/fecs_trace/fecs_trace_gv11b.o \
+	hal/gr/zcull/zcull_gm20b.o \
+	hal/gr/zcull/zcull_gv11b.o \
 	hal/gr/init/gr_init_gm20b.o \
 	hal/gr/init/gr_init_gp10b.o \
 	hal/gr/init/gr_init_gv100.o \

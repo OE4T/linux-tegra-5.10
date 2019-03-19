@@ -109,30 +109,6 @@ struct gr_channel_map_tlb_entry {
 	u32 tsgid;
 };
 
-struct gr_zcull_gk20a {
-	u32 aliquot_width;
-	u32 aliquot_height;
-	u32 aliquot_size;
-	u32 total_aliquots;
-
-	u32 width_align_pixels;
-	u32 height_align_pixels;
-	u32 pixel_squares_by_aliquots;
-};
-
-struct gr_zcull_info {
-	u32 width_align_pixels;
-	u32 height_align_pixels;
-	u32 pixel_squares_by_aliquots;
-	u32 aliquot_total;
-	u32 region_byte_multiplier;
-	u32 region_header_size;
-	u32 subregion_header_size;
-	u32 subregion_width_align_pixels;
-	u32 subregion_height_align_pixels;
-	u32 subregion_count;
-};
-
 struct sm_info {
 	u32 gpc_index;
 	u32 tpc_index;
@@ -176,8 +152,6 @@ struct gr_gk20a {
 		bool golden_image_initialized;
 		u32 golden_image_size;
 
-		u32 zcull_ctxsw_image_size;
-
 		u32 pm_ctxsw_image_size;
 
 		u32 buffer_header_size;
@@ -213,7 +187,7 @@ struct gr_gk20a {
 
 	struct nvgpu_gr_hwpm_map *hwpm_map;
 
-	struct gr_zcull_gk20a zcull;
+	struct nvgpu_gr_zcull *zcull;
 
 	struct nvgpu_gr_zbc *zbc;
 
@@ -344,14 +318,6 @@ int gk20a_alloc_obj_ctx(struct channel_gk20a  *c, u32 class_num, u32 flags);
 int gk20a_gr_isr(struct gk20a *g);
 u32 gk20a_gr_nonstall_isr(struct gk20a *g);
 
-/* zcull */
-u32 gr_gk20a_get_ctxsw_zcull_size(struct gk20a *g, struct gr_gk20a *gr);
-int gr_gk20a_bind_ctxsw_zcull(struct gk20a *g, struct gr_gk20a *gr,
-			struct channel_gk20a *c, u64 zcull_va, u32 mode);
-int gr_gk20a_get_zcull_info(struct gk20a *g, struct gr_gk20a *gr,
-			struct gr_zcull_info *zcull_params);
-void gr_gk20a_program_zcull_mapping(struct gk20a *g, u32 zcull_num_entries,
-					u32 *zcull_map_tiles);
 /* pmu */
 int gr_gk20a_fecs_get_reglist_img_size(struct gk20a *g, u32 *size);
 int gr_gk20a_fecs_set_reglist_bind_inst(struct gk20a *g,

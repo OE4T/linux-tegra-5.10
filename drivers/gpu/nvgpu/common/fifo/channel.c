@@ -44,6 +44,8 @@
 #include <nvgpu/log2.h>
 #include <nvgpu/ptimer.h>
 #include <nvgpu/gk20a.h>
+#include <nvgpu/gr/ctx.h>
+#include <nvgpu/gr/subctx.h>
 #include <nvgpu/channel.h>
 #include <nvgpu/channel_sync.h>
 #include <nvgpu/runlist.h>
@@ -211,6 +213,23 @@ void gk20a_channel_abort_clean_up(struct channel_gk20a *ch)
 	 * is waited for before advancing with freeing.
 	 */
 	gk20a_channel_update(ch);
+}
+
+int nvgpu_channel_gr_zcull_setup(struct gk20a *g, struct channel_gk20a *c,
+			struct nvgpu_gr_ctx *gr_ctx)
+{
+	int ret = 0;
+
+	if (c->subctx != NULL) {
+		ret = nvgpu_gr_ctx_zcull_setup(g, gr_ctx, false);
+		if (ret == 0) {
+			nvgpu_gr_subctx_zcull_setup(g, c->subctx, gr_ctx);
+		}
+	} else {
+		ret = nvgpu_gr_ctx_zcull_setup(g, gr_ctx, true);
+	}
+
+	return ret;
 }
 
 void gk20a_channel_set_unserviceable(struct channel_gk20a *ch)

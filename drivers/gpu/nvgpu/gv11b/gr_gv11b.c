@@ -2269,36 +2269,6 @@ int gr_gv11b_init_sw_veid_bundle(struct gk20a *g)
 	return err;
 }
 
-void gr_gv11b_program_zcull_mapping(struct gk20a *g, u32 zcull_num_entries,
-					u32 *zcull_map_tiles)
-{
-	u32 val, i, j;
-
-	nvgpu_log_fn(g, " ");
-
-	for (i = 0U, j = 0U; i < (zcull_num_entries / 8U); i++, j += 8U) {
-		val =
-		gr_gpcs_zcull_sm_in_gpc_number_map_tile_0_f(
-						zcull_map_tiles[j+0U]) |
-		gr_gpcs_zcull_sm_in_gpc_number_map_tile_1_f(
-						zcull_map_tiles[j+1U]) |
-		gr_gpcs_zcull_sm_in_gpc_number_map_tile_2_f(
-						zcull_map_tiles[j+2U]) |
-		gr_gpcs_zcull_sm_in_gpc_number_map_tile_3_f(
-						zcull_map_tiles[j+3U]) |
-		gr_gpcs_zcull_sm_in_gpc_number_map_tile_4_f(
-						zcull_map_tiles[j+4U]) |
-		gr_gpcs_zcull_sm_in_gpc_number_map_tile_5_f(
-						zcull_map_tiles[j+5U]) |
-		gr_gpcs_zcull_sm_in_gpc_number_map_tile_6_f(
-						zcull_map_tiles[j+6U]) |
-		gr_gpcs_zcull_sm_in_gpc_number_map_tile_7_f(
-						zcull_map_tiles[j+7U]);
-
-		gk20a_writel(g, gr_gpcs_zcull_sm_in_gpc_number_map_r(i), val);
-	}
-}
-
 void gr_gv11b_detect_sm_arch(struct gk20a *g)
 {
 	u32 v = gk20a_readl(g, gr_gpc0_tpc0_sm_arch_r());

@@ -34,6 +34,7 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/gr/config.h>
 #include <nvgpu/gr/zbc.h>
+#include <nvgpu/gr/zcull.h>
 #include <nvgpu/channel.h>
 #include <nvgpu/pmu/pmgr.h>
 #include <nvgpu/power_features/pg.h>
@@ -1632,7 +1633,7 @@ long gk20a_ctrl_dev_ioctl(struct file *filp, unsigned int cmd, unsigned long arg
 	struct nvgpu_gpu_zbc_set_table_args *set_table_args;
 	struct nvgpu_gpu_zbc_query_table_args *query_table_args;
 	u8 buf[NVGPU_GPU_IOCTL_MAX_ARG_SIZE];
-	struct gr_zcull_info *zcull_info;
+	struct nvgpu_gr_zcull_info *zcull_info;
 	struct nvgpu_gr_zbc_entry *zbc_val;
 	struct nvgpu_gr_zbc_query_params *zbc_tbl;
 	int err = 0;
@@ -1665,7 +1666,7 @@ long gk20a_ctrl_dev_ioctl(struct file *filp, unsigned int cmd, unsigned long arg
 	case NVGPU_GPU_IOCTL_ZCULL_GET_CTX_SIZE:
 		get_ctx_size_args = (struct nvgpu_gpu_zcull_get_ctx_size_args *)buf;
 
-		get_ctx_size_args->size = gr_gk20a_get_ctxsw_zcull_size(g, &g->gr);
+		get_ctx_size_args->size = nvgpu_gr_get_ctxsw_zcull_size(g, g->gr.zcull);
 
 		break;
 	case NVGPU_GPU_IOCTL_ZCULL_GET_INFO:
@@ -1674,11 +1675,12 @@ long gk20a_ctrl_dev_ioctl(struct file *filp, unsigned int cmd, unsigned long arg
 		(void) memset(get_info_args, 0,
 			sizeof(struct nvgpu_gpu_zcull_get_info_args));
 
-		zcull_info = nvgpu_kzalloc(g, sizeof(struct gr_zcull_info));
+		zcull_info = nvgpu_kzalloc(g, sizeof(*zcull_info));
 		if (zcull_info == NULL)
 			return -ENOMEM;
 
-		err = g->ops.gr.get_zcull_info(g, &g->gr, zcull_info);
+		err = g->ops.gr.zcull.get_zcull_info(g, g->gr.config,
+					g->gr.zcull, zcull_info);
 		if (err) {
 			nvgpu_kfree(g, zcull_info);
 			break;

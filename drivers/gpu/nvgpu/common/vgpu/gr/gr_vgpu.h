@@ -28,7 +28,7 @@
 struct gk20a;
 struct channel_gk20a;
 struct gr_gk20a;
-struct gr_zcull_info;
+struct nvgpu_gr_zcull_info;
 struct nvgpu_gr_zbc;
 struct nvgpu_gr_zbc_entry;
 struct nvgpu_gr_zbc_query_params;
@@ -36,6 +36,7 @@ struct dbg_session_gk20a;
 struct tsg_gk20a;
 struct vm_gk20a;
 struct nvgpu_gr_ctx;
+struct nvgpu_gr_zcull;
 
 void vgpu_gr_detect_sm_arch(struct gk20a *g);
 int vgpu_gr_init_ctx_state(struct gk20a *g);
@@ -43,11 +44,12 @@ int vgpu_gr_alloc_global_ctx_buffers(struct gk20a *g);
 void vgpu_gr_free_channel_ctx(struct channel_gk20a *c, bool is_tsg);
 void vgpu_gr_free_tsg_ctx(struct tsg_gk20a *tsg);
 int vgpu_gr_alloc_obj_ctx(struct channel_gk20a  *c, u32 class_num, u32 flags);
-int vgpu_gr_bind_ctxsw_zcull(struct gk20a *g, struct gr_gk20a *gr,
-				struct channel_gk20a *c, u64 zcull_va,
-				u32 mode);
-int vgpu_gr_get_zcull_info(struct gk20a *g, struct gr_gk20a *gr,
-				struct gr_zcull_info *zcull_params);
+int vgpu_gr_bind_ctxsw_zcull(struct gk20a *g, struct channel_gk20a *c,
+			u64 zcull_va, u32 mode);
+int vgpu_gr_get_zcull_info(struct gk20a *g,
+			struct nvgpu_gr_config *gr_config,
+			struct nvgpu_gr_zcull *zcull,
+			struct nvgpu_gr_zcull_info *zcull_params);
 u32 vgpu_gr_get_gpc_tpc_mask(struct gk20a *g, struct nvgpu_gr_config *config,
 	u32 gpc_index);
 u32 vgpu_gr_get_max_fbps_count(struct gk20a *g);

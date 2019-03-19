@@ -51,6 +51,7 @@
 #include <nvgpu/gr/ctx.h>
 #include <nvgpu/gr/zbc.h>
 #include <nvgpu/gr/gr.h>
+#include <nvgpu/gr/zcull.h>
 #include <nvgpu/gr/config.h>
 #include <nvgpu/gr/fecs_trace.h>
 #include <nvgpu/gr/hwpm_map.h>
@@ -615,39 +616,6 @@ int gr_gk20a_fecs_ctx_bind_channel(struct gk20a *g,
 		nvgpu_err(g,
 			"bind channel instance failed");
 	}
-
-	return ret;
-}
-
-static int gr_gk20a_ctx_zcull_setup(struct gk20a *g, struct channel_gk20a *c,
-		struct nvgpu_gr_ctx *gr_ctx)
-{
-	int ret = 0;
-
-	nvgpu_log_fn(g, " ");
-
-	ret = gk20a_disable_channel_tsg(g, c);
-	if (ret != 0) {
-		nvgpu_err(g, "failed to disable channel/TSG");
-		return ret;
-	}
-	ret = gk20a_fifo_preempt(g, c);
-	if (ret != 0) {
-		gk20a_enable_channel_tsg(g, c);
-		nvgpu_err(g, "failed to preempt channel/TSG");
-		return ret;
-	}
-
-	if (c->subctx != NULL) {
-		ret = nvgpu_gr_ctx_zcull_setup(g, gr_ctx, false);
-		if (ret == 0) {
-			nvgpu_gr_subctx_zcull_setup(g, c->subctx, gr_ctx);
-		}
-	} else {
-		ret = nvgpu_gr_ctx_zcull_setup(g, gr_ctx, true);
-	}
-
-	gk20a_enable_channel_tsg(g, c);
 
 	return ret;
 }
@@ -1606,15 +1574,7 @@ int gr_gk20a_init_ctx_state(struct gk20a *g)
 				   "query golden image size failed");
 			return ret;
 		}
-		op.method.addr =
-			gr_fecs_method_push_adr_discover_zcull_image_size_v();
-		op.mailbox.ret = &g->gr.ctx_vars.zcull_ctxsw_image_size;
-		ret = gr_gk20a_submit_fecs_method_op(g, op, false);
-		if (ret != 0) {
-			nvgpu_err(g,
-				   "query zcull ctx image size failed");
-			return ret;
-		}
+
 		op.method.addr =
 			gr_fecs_method_push_adr_discover_pm_image_size_v();
 		op.mailbox.ret = &g->gr.ctx_vars.pm_ctxsw_image_size;
@@ -1943,6 +1903,7 @@ static void gk20a_remove_gr_support(struct gr_gk20a *gr)
 
 	nvgpu_ecc_remove_support(g);
 	nvgpu_gr_zbc_deinit(g, gr->zbc);
+	nvgpu_gr_zcull_deinit(g, gr->zcull);
 }
 
 static int gr_gk20a_init_gr_config(struct gk20a *g, struct gr_gk20a *gr)
@@ -2012,307 +1973,6 @@ clean_up:
 	return -ENOMEM;
 }
 
-static int gr_gk20a_init_zcull(struct gk20a *g, struct gr_gk20a *gr)
-{
-	struct gr_zcull_gk20a *zcull = &gr->zcull;
-
-	zcull->aliquot_width = nvgpu_gr_config_get_tpc_count(gr->config) * 16U;
-	zcull->aliquot_height = 16;
-
-	zcull->width_align_pixels = nvgpu_gr_config_get_tpc_count(gr->config) * 16U;
-	zcull->height_align_pixels = 32;
-
-	zcull->aliquot_size =
-		zcull->aliquot_width * zcull->aliquot_height;
-
-	/* assume no floor sweeping since we only have 1 tpc in 1 gpc */
-	zcull->pixel_squares_by_aliquots =
-		nvgpu_gr_config_get_zcb_count(gr->config) * 16U * 16U *
-		nvgpu_gr_config_get_tpc_count(gr->config) /
-		(nvgpu_gr_config_get_gpc_count(gr->config) *
-		 nvgpu_gr_config_get_gpc_tpc_count(gr->config, 0U));
-
-	zcull->total_aliquots =
-		gr_gpc0_zcull_total_ram_size_num_aliquots_f(
-			gk20a_readl(g, gr_gpc0_zcull_total_ram_size_r()));
-
-	return 0;
-}
-
-u32 gr_gk20a_get_ctxsw_zcull_size(struct gk20a *g, struct gr_gk20a *gr)
-{
-	/* assuming gr has already been initialized */
-	return gr->ctx_vars.zcull_ctxsw_image_size;
-}
-
-int gr_gk20a_bind_ctxsw_zcull(struct gk20a *g, struct gr_gk20a *gr,
-			struct channel_gk20a *c, u64 zcull_va, u32 mode)
-{
-	struct tsg_gk20a *tsg;
-	struct nvgpu_gr_ctx *gr_ctx;
-
-	tsg = tsg_gk20a_from_ch(c);
-	if (tsg == NULL) {
-		return -EINVAL;
-	}
-
-	gr_ctx = tsg->gr_ctx;
-	nvgpu_gr_ctx_set_zcull_ctx(g, gr_ctx, mode, zcull_va);
-
-	/* TBD: don't disable channel in sw method processing */
-	return gr_gk20a_ctx_zcull_setup(g, c, gr_ctx);
-}
-
-int gr_gk20a_get_zcull_info(struct gk20a *g, struct gr_gk20a *gr,
-			struct gr_zcull_info *zcull_params)
-{
-	struct gr_zcull_gk20a *zcull = &gr->zcull;
-
-	zcull_params->width_align_pixels = zcull->width_align_pixels;
-	zcull_params->height_align_pixels = zcull->height_align_pixels;
-	zcull_params->pixel_squares_by_aliquots =
-		zcull->pixel_squares_by_aliquots;
-	zcull_params->aliquot_total = zcull->total_aliquots;
-
-	zcull_params->region_byte_multiplier =
-		nvgpu_gr_config_get_gpc_count(gr->config) *
-		gr_zcull_bytes_per_aliquot_per_gpu_v();
-	zcull_params->region_header_size =
-		nvgpu_get_litter_value(g, GPU_LIT_NUM_GPCS) *
-		gr_zcull_save_restore_header_bytes_per_gpc_v();
-
-	zcull_params->subregion_header_size =
-		nvgpu_get_litter_value(g, GPU_LIT_NUM_GPCS) *
-		gr_zcull_save_restore_subregion_header_bytes_per_gpc_v();
-
-	zcull_params->subregion_width_align_pixels =
-		nvgpu_gr_config_get_tpc_count(gr->config) *
-		gr_gpc0_zcull_zcsize_width_subregion__multiple_v();
-	zcull_params->subregion_height_align_pixels =
-		gr_gpc0_zcull_zcsize_height_subregion__multiple_v();
-	zcull_params->subregion_count = gr_zcull_subregion_qty_v();
-
-	return 0;
-}
-
-void gr_gk20a_program_zcull_mapping(struct gk20a *g, u32 zcull_num_entries,
-						u32 *zcull_map_tiles)
-{
-	u32 val;
-
-	nvgpu_log_fn(g, " ");
-
-	if (zcull_num_entries >= 8U) {
-		nvgpu_log_fn(g, "map0");
-		val =
-		gr_gpcs_zcull_sm_in_gpc_number_map0_tile_0_f(
-						zcull_map_tiles[0]) |
-		gr_gpcs_zcull_sm_in_gpc_number_map0_tile_1_f(
-						zcull_map_tiles[1]) |
-		gr_gpcs_zcull_sm_in_gpc_number_map0_tile_2_f(
-						zcull_map_tiles[2]) |
-		gr_gpcs_zcull_sm_in_gpc_number_map0_tile_3_f(
-						zcull_map_tiles[3]) |
-		gr_gpcs_zcull_sm_in_gpc_number_map0_tile_4_f(
-						zcull_map_tiles[4]) |
-		gr_gpcs_zcull_sm_in_gpc_number_map0_tile_5_f(
-						zcull_map_tiles[5]) |
-		gr_gpcs_zcull_sm_in_gpc_number_map0_tile_6_f(
-						zcull_map_tiles[6]) |
-		gr_gpcs_zcull_sm_in_gpc_number_map0_tile_7_f(
-						zcull_map_tiles[7]);
-
-		gk20a_writel(g, gr_gpcs_zcull_sm_in_gpc_number_map0_r(), val);
-	}
-
-	if (zcull_num_entries >= 16U) {
-		nvgpu_log_fn(g, "map1");
-		val =
-		gr_gpcs_zcull_sm_in_gpc_number_map1_tile_8_f(
-						zcull_map_tiles[8]) |
-		gr_gpcs_zcull_sm_in_gpc_number_map1_tile_9_f(
-						zcull_map_tiles[9]) |
-		gr_gpcs_zcull_sm_in_gpc_number_map1_tile_10_f(
-						zcull_map_tiles[10]) |
-		gr_gpcs_zcull_sm_in_gpc_number_map1_tile_11_f(
-						zcull_map_tiles[11]) |
-		gr_gpcs_zcull_sm_in_gpc_number_map1_tile_12_f(
-						zcull_map_tiles[12]) |
-		gr_gpcs_zcull_sm_in_gpc_number_map1_tile_13_f(
-						zcull_map_tiles[13]) |
-		gr_gpcs_zcull_sm_in_gpc_number_map1_tile_14_f(
-						zcull_map_tiles[14]) |
-		gr_gpcs_zcull_sm_in_gpc_number_map1_tile_15_f(
-						zcull_map_tiles[15]);
-
-		gk20a_writel(g, gr_gpcs_zcull_sm_in_gpc_number_map1_r(), val);
-	}
-
-	if (zcull_num_entries >= 24U) {
-		nvgpu_log_fn(g, "map2");
-		val =
-		gr_gpcs_zcull_sm_in_gpc_number_map2_tile_16_f(
-						zcull_map_tiles[16]) |
-		gr_gpcs_zcull_sm_in_gpc_number_map2_tile_17_f(
-						zcull_map_tiles[17]) |
-		gr_gpcs_zcull_sm_in_gpc_number_map2_tile_18_f(
-						zcull_map_tiles[18]) |
-		gr_gpcs_zcull_sm_in_gpc_number_map2_tile_19_f(
-						zcull_map_tiles[19]) |
-		gr_gpcs_zcull_sm_in_gpc_number_map2_tile_20_f(
-						zcull_map_tiles[20]) |
-		gr_gpcs_zcull_sm_in_gpc_number_map2_tile_21_f(
-						zcull_map_tiles[21]) |
-		gr_gpcs_zcull_sm_in_gpc_number_map2_tile_22_f(
-						zcull_map_tiles[22]) |
-		gr_gpcs_zcull_sm_in_gpc_number_map2_tile_23_f(
-						zcull_map_tiles[23]);
-
-		gk20a_writel(g, gr_gpcs_zcull_sm_in_gpc_number_map2_r(), val);
-	}
-
-	if (zcull_num_entries >= 32U) {
-		nvgpu_log_fn(g, "map3");
-		val =
-		gr_gpcs_zcull_sm_in_gpc_number_map3_tile_24_f(
-						zcull_map_tiles[24]) |
-		gr_gpcs_zcull_sm_in_gpc_number_map3_tile_25_f(
-						zcull_map_tiles[25]) |
-		gr_gpcs_zcull_sm_in_gpc_number_map3_tile_26_f(
-						zcull_map_tiles[26]) |
-		gr_gpcs_zcull_sm_in_gpc_number_map3_tile_27_f(
-						zcull_map_tiles[27]) |
-		gr_gpcs_zcull_sm_in_gpc_number_map3_tile_28_f(
-						zcull_map_tiles[28]) |
-		gr_gpcs_zcull_sm_in_gpc_number_map3_tile_29_f(
-						zcull_map_tiles[29]) |
-		gr_gpcs_zcull_sm_in_gpc_number_map3_tile_30_f(
-						zcull_map_tiles[30]) |
-		gr_gpcs_zcull_sm_in_gpc_number_map3_tile_31_f(
-						zcull_map_tiles[31]);
-
-		gk20a_writel(g, gr_gpcs_zcull_sm_in_gpc_number_map3_r(), val);
-	}
-
-}
-
-static int gr_gk20a_zcull_init_hw(struct gk20a *g, struct gr_gk20a *gr)
-{
-	u32 gpc_index, gpc_tpc_count, gpc_zcull_count;
-	u32 *zcull_map_tiles, *zcull_bank_counters;
-	u32 map_counter;
-	u32 rcp_conserv;
-	u32 offset;
-	bool floorsweep = false;
-	u32 gpc_stride = nvgpu_get_litter_value(g, GPU_LIT_GPC_STRIDE);
-	u32 num_gpcs = nvgpu_get_litter_value(g, GPU_LIT_NUM_GPCS);
-	u32 num_tpc_per_gpc = nvgpu_get_litter_value(g,
-						GPU_LIT_NUM_TPC_PER_GPC);
-	u32 zcull_alloc_num = num_gpcs * num_tpc_per_gpc;
-	u32 map_tile_count;
-
-	if (gr->config->map_tiles == NULL) {
-		return -1;
-	}
-
-	if (zcull_alloc_num % 8U != 0U) {
-		/* Total 8 fields per map reg i.e. tile_0 to tile_7*/
-		zcull_alloc_num += (zcull_alloc_num % 8U);
-	}
-	zcull_map_tiles = nvgpu_kzalloc(g, zcull_alloc_num * sizeof(u32));
-
-	if (zcull_map_tiles == NULL) {
-		nvgpu_err(g,
-			"failed to allocate zcull map titles");
-		return -ENOMEM;
-	}
-
-	zcull_bank_counters = nvgpu_kzalloc(g, zcull_alloc_num * sizeof(u32));
-
-	if (zcull_bank_counters == NULL) {
-		nvgpu_err(g,
-			"failed to allocate zcull bank counters");
-		nvgpu_kfree(g, zcull_map_tiles);
-		return -ENOMEM;
-	}
-
-	for (map_counter = 0;
-	     map_counter < nvgpu_gr_config_get_tpc_count(gr->config);
-	     map_counter++) {
-		map_tile_count = nvgpu_gr_config_get_map_tile_count(gr->config, map_counter);
-		zcull_map_tiles[map_counter] =
-			zcull_bank_counters[map_tile_count];
-		zcull_bank_counters[map_tile_count]++;
-	}
-
-	if (g->ops.gr.program_zcull_mapping != NULL) {
-		g->ops.gr.program_zcull_mapping(g, zcull_alloc_num,
-					 zcull_map_tiles);
-	}
-
-	nvgpu_kfree(g, zcull_map_tiles);
-	nvgpu_kfree(g, zcull_bank_counters);
-
-	for (gpc_index = 0;
-	     gpc_index < nvgpu_gr_config_get_gpc_count(gr->config);
-	     gpc_index++) {
-		gpc_tpc_count = nvgpu_gr_config_get_gpc_tpc_count(gr->config, gpc_index);
-		gpc_zcull_count = nvgpu_gr_config_get_gpc_zcb_count(gr->config, gpc_index);
-
-		if (gpc_zcull_count !=
-			nvgpu_gr_config_get_max_zcull_per_gpc_count(gr->config) &&
-		    gpc_zcull_count < gpc_tpc_count) {
-			nvgpu_err(g,
-				"zcull_banks (%d) less than tpcs (%d) for gpc (%d)",
-				gpc_zcull_count, gpc_tpc_count, gpc_index);
-			return -EINVAL;
-		}
-		if (gpc_zcull_count !=
-			nvgpu_gr_config_get_max_zcull_per_gpc_count(gr->config) &&
-		    gpc_zcull_count != 0U) {
-			floorsweep = true;
-		}
-	}
-
-	/* ceil(1.0f / SM_NUM * gr_gpc0_zcull_sm_num_rcp_conservative__max_v()) */
-	rcp_conserv = DIV_ROUND_UP(gr_gpc0_zcull_sm_num_rcp_conservative__max_v(),
-		nvgpu_gr_config_get_gpc_tpc_count(gr->config, 0U));
-
-	for (gpc_index = 0;
-	     gpc_index < nvgpu_gr_config_get_gpc_count(gr->config);
-	     gpc_index++) {
-		offset = gpc_index * gpc_stride;
-
-		if (floorsweep) {
-			gk20a_writel(g, gr_gpc0_zcull_ram_addr_r() + offset,
-				gr_gpc0_zcull_ram_addr_row_offset_f(
-					nvgpu_gr_config_get_map_row_offset(gr->config)) |
-				gr_gpc0_zcull_ram_addr_tiles_per_hypertile_row_per_gpc_f(
-					nvgpu_gr_config_get_max_zcull_per_gpc_count(gr->config)));
-		} else {
-			gk20a_writel(g, gr_gpc0_zcull_ram_addr_r() + offset,
-				gr_gpc0_zcull_ram_addr_row_offset_f(
-					nvgpu_gr_config_get_map_row_offset(gr->config)) |
-				gr_gpc0_zcull_ram_addr_tiles_per_hypertile_row_per_gpc_f(
-					nvgpu_gr_config_get_gpc_tpc_count(gr->config, gpc_index)));
-		}
-
-		gk20a_writel(g, gr_gpc0_zcull_fs_r() + offset,
-			gr_gpc0_zcull_fs_num_active_banks_f(
-				nvgpu_gr_config_get_gpc_zcb_count(gr->config, gpc_index)) |
-			gr_gpc0_zcull_fs_num_sms_f(
-				nvgpu_gr_config_get_tpc_count(gr->config)));
-
-		gk20a_writel(g, gr_gpc0_zcull_sm_num_rcp_r() + offset,
-			gr_gpc0_zcull_sm_num_rcp_conservative_f(rcp_conserv));
-	}
-
-	gk20a_writel(g, gr_gpcs_ppcs_wwdx_sm_num_rcp_r(),
-		gr_gpcs_ppcs_wwdx_sm_num_rcp_conservative_f(rcp_conserv));
-
-	return 0;
-}
-
 void gr_gk20a_enable_hww_exceptions(struct gk20a *g)
 {
 	/* enable exceptions */
@@ -2352,7 +2012,7 @@ static int gk20a_init_gr_setup_hw(struct gk20a *g)
 			gr_gpc0_ppc0_pes_vsc_strem_master_pe_true_f());
 	gk20a_writel(g, gr_gpc0_ppc0_pes_vsc_strem_r(), data);
 
-	gr_gk20a_zcull_init_hw(g, gr);
+	nvgpu_gr_zcull_init_hw(g, gr->zcull, gr->config);
 
 	if (g->ops.priv_ring.set_ppriv_timeout_settings != NULL) {
 		g->ops.priv_ring.set_ppriv_timeout_settings(g);
@@ -2595,7 +2255,7 @@ static int gk20a_init_gr_setup_sw(struct gk20a *g)
 		goto clean_up;
 	}
 
-	err = gr_gk20a_init_zcull(g, gr);
+	err = nvgpu_gr_zcull_init(g, &gr->zcull);
 	if (err != 0) {
 		goto clean_up;
 	}

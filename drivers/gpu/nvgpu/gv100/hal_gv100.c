@@ -62,6 +62,8 @@
 #include "hal/gr/init/gr_init_gv11b.h"
 #include "hal/gr/intr/gr_intr_gm20b.h"
 #include "hal/gr/intr/gr_intr_gv11b.h"
+#include "hal/gr/zcull/zcull_gm20b.h"
+#include "hal/gr/zcull/zcull_gv11b.h"
 #include "hal/gr/hwpm_map/hwpm_map_gv100.h"
 #include "hal/falcon/falcon_gk20a.h"
 #include "hal/gsp/gsp_gv100.h"
@@ -154,6 +156,7 @@
 #include <nvgpu/cyclestats_snapshot.h>
 #include <nvgpu/regops.h>
 #include <nvgpu/gr/zbc.h>
+#include <nvgpu/gr/zcull.h>
 #include <nvgpu/gr/fecs_trace.h>
 
 #include <nvgpu/hw/gv100/hw_proj_gv100.h>
@@ -384,8 +387,6 @@ static const struct gpu_ops gv100_ops = {
 		.load_ctxsw_ucode = gr_gm20b_load_ctxsw_ucode,
 		.set_gpc_tpc_mask = gr_gv100_set_gpc_tpc_mask,
 		.alloc_obj_ctx = gk20a_alloc_obj_ctx,
-		.bind_ctxsw_zcull = gr_gk20a_bind_ctxsw_zcull,
-		.get_zcull_info = gr_gk20a_get_zcull_info,
 		.is_tpc_addr = gr_gm20b_is_tpc_addr,
 		.get_tpc_num = gr_gm20b_get_tpc_num,
 		.detect_sm_arch = gr_gv11b_detect_sm_arch,
@@ -419,7 +420,6 @@ static const struct gpu_ops gv100_ops = {
 		.resume_contexts = gr_gk20a_resume_contexts,
 		.get_preemption_mode_flags = gr_gp10b_get_preemption_mode_flags,
 		.init_sm_id_table = gr_gv100_init_sm_id_table,
-		.program_zcull_mapping = gr_gv11b_program_zcull_mapping,
 		.commit_inst = gr_gv11b_commit_inst,
 		.trigger_suspend = gv11b_gr_sm_trigger_suspend,
 		.wait_for_pause = gr_gk20a_wait_for_pause,
@@ -613,6 +613,12 @@ static const struct gpu_ops gv100_ops = {
 				gv11b_gr_zbc_get_gpcs_swdx_dss_zbc_c_format_reg,
 			.get_gpcs_swdx_dss_zbc_z_format_reg =
 				gv11b_gr_zbc_get_gpcs_swdx_dss_zbc_z_format_reg,
+		},
+		.zcull = {
+			.init_zcull_hw = gm20b_gr_init_zcull_hw,
+			.bind_ctxsw_zcull = gm20b_gr_bind_ctxsw_zcull,
+			.get_zcull_info = gm20b_gr_get_zcull_info,
+			.program_zcull_mapping = gv11b_gr_program_zcull_mapping,
 		},
 		.hwpm_map = {
 			.align_regs_perf_pma =

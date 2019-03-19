@@ -68,6 +68,7 @@ struct nvgpu_gr_subctx;
 struct nvgpu_gr_zbc;
 struct nvgpu_gr_zbc_entry;
 struct nvgpu_gr_zbc_query_params;
+struct nvgpu_gr_zcull_info;
 struct nvgpu_channel_hw_state;
 struct nvgpu_engine_status_info;
 struct nvgpu_pbdma_status_info;
@@ -298,11 +299,6 @@ struct gpu_ops {
 		void (*set_gpc_tpc_mask)(struct gk20a *g, u32 gpc_index);
 		int (*alloc_obj_ctx)(struct channel_gk20a  *c,
 				     u32 class_num, u32 flags);
-		int (*bind_ctxsw_zcull)(struct gk20a *g, struct gr_gk20a *gr,
-				struct channel_gk20a *c, u64 zcull_va,
-				u32 mode);
-		int (*get_zcull_info)(struct gk20a *g, struct gr_gk20a *gr,
-				struct gr_zcull_info *zcull_params);
 		int (*decode_egpc_addr)(struct gk20a *g,
 			u32 addr, enum ctxsw_addr_type *addr_type,
 			u32 *gpc_num, u32 *tpc_num, u32 *broadcast_flags);
@@ -419,8 +415,6 @@ struct gpu_ops {
 		int (*set_boosted_ctx)(struct channel_gk20a *ch, bool boost);
 		int (*init_sm_id_table)(struct gk20a *g);
 		int (*init_sw_veid_bundle)(struct gk20a *g);
-		void (*program_zcull_mapping)(struct gk20a *g,
-				u32 zcull_alloc_num, u32 *zcull_map_tiles);
 		int (*commit_inst)(struct channel_gk20a *c, u64 gpu_va);
 		int (*trigger_suspend)(struct gk20a *g);
 		int (*wait_for_pause)(struct gk20a *g, struct nvgpu_warpstate *w_state);
@@ -644,6 +638,23 @@ struct gpu_ops {
 			u32 (*get_gpcs_swdx_dss_zbc_z_format_reg)(
 				struct gk20a *g);
 		} zbc;
+
+		struct {
+			int (*init_zcull_hw)(struct gk20a *g,
+					struct nvgpu_gr_zcull *gr_zcull,
+					struct nvgpu_gr_config *gr_config);
+			int (*bind_ctxsw_zcull)(struct gk20a *g,
+						struct channel_gk20a *c,
+						u64 zcull_va,
+						u32 mode);
+			int (*get_zcull_info)(struct gk20a *g,
+				struct nvgpu_gr_config *gr_config,
+				struct nvgpu_gr_zcull *gr_zcull,
+				struct nvgpu_gr_zcull_info *zcull_params);
+			void (*program_zcull_mapping)(struct gk20a *g,
+						u32 zcull_alloc_num,
+						u32 *zcull_map_tiles);
+		} zcull;
 
 		struct {
 			void (*align_regs_perf_pma)(u32 *offset);

@@ -38,6 +38,7 @@
 #include <nvgpu/gr/ctx.h>
 #include <nvgpu/gr/config.h>
 #include <nvgpu/gr/zbc.h>
+#include <nvgpu/gr/zcull.h>
 #include <nvgpu/gr/fecs_trace.h>
 #include <nvgpu/cyclestats_snapshot.h>
 #include <nvgpu/power_features/pg.h>
@@ -121,11 +122,14 @@ int vgpu_gr_init_ctx_state(struct gk20a *g)
 	nvgpu_log_fn(g, " ");
 
 	g->gr.ctx_vars.golden_image_size = priv->constants.golden_ctx_size;
-	g->gr.ctx_vars.zcull_ctxsw_image_size = priv->constants.zcull_ctx_size;
 	g->gr.ctx_vars.pm_ctxsw_image_size = priv->constants.hwpm_ctx_size;
 	if (!g->gr.ctx_vars.golden_image_size ||
-		!g->gr.ctx_vars.zcull_ctxsw_image_size ||
 		!g->gr.ctx_vars.pm_ctxsw_image_size) {
+		return -ENXIO;
+	}
+
+	g->gr.zcull->zcull_ctxsw_image_size = priv->constants.zcull_ctx_size;
+	if (g->gr.zcull->zcull_ctxsw_image_size == 0U) {
 		return -ENXIO;
 	}
 
@@ -447,9 +451,19 @@ cleanup:
 	return err;
 }
 
-int vgpu_gr_bind_ctxsw_zcull(struct gk20a *g, struct gr_gk20a *gr,
-				struct channel_gk20a *c, u64 zcull_va,
-				u32 mode)
+static int vgpu_gr_init_gr_zcull(struct gk20a *g, struct gr_gk20a *gr)
+{
+	nvgpu_log_fn(g, " ");
+
+	gr->zcull = nvgpu_kzalloc(g, sizeof(*gr->zcull));
+	if (gr->zcull == NULL) {
+		return -ENOMEM;
+	}
+
+	return 0;
+}
+int vgpu_gr_bind_ctxsw_zcull(struct gk20a *g, struct channel_gk20a *c,
+			u64 zcull_va, u32 mode)
 {
 	struct tegra_vgpu_cmd_msg msg;
 	struct tegra_vgpu_zcull_bind_params *p = &msg.params.zcull_bind;
@@ -467,8 +481,10 @@ int vgpu_gr_bind_ctxsw_zcull(struct gk20a *g, struct gr_gk20a *gr,
 	return (err || msg.ret) ? -ENOMEM : 0;
 }
 
-int vgpu_gr_get_zcull_info(struct gk20a *g, struct gr_gk20a *gr,
-				struct gr_zcull_info *zcull_params)
+int vgpu_gr_get_zcull_info(struct gk20a *g,
+			struct nvgpu_gr_config *gr_config,
+			struct nvgpu_gr_zcull *zcull,
+			struct nvgpu_gr_zcull_info *zcull_params)
 {
 	struct tegra_vgpu_cmd_msg msg;
 	struct tegra_vgpu_zcull_info_params *p = &msg.params.zcull_info;
@@ -648,6 +664,8 @@ static void vgpu_remove_gr_support(struct gr_gk20a *gr)
 
 	nvgpu_gr_config_deinit(gr->g, gr->config);
 
+	nvgpu_gr_zcull_deinit(gr->g, gr->zcull);
+
 	nvgpu_kfree(gr->g, gr->sm_to_cluster);
 	gr->sm_to_cluster = NULL;
 
@@ -674,6 +692,11 @@ static int vgpu_gr_init_gr_setup_sw(struct gk20a *g)
 #endif
 
 	err = vgpu_gr_init_gr_config(g, gr);
+	if (err) {
+		goto clean_up;
+	}
+
+	err = vgpu_gr_init_gr_zcull(g, gr);
 	if (err) {
 		goto clean_up;
 	}

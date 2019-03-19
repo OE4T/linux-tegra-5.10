@@ -37,6 +37,7 @@
 #include <nvgpu/fuse.h>
 #include <nvgpu/regops.h>
 #include <nvgpu/gr/zbc.h>
+#include <nvgpu/gr/zcull.h>
 
 #include "hal/bus/bus_gm20b.h"
 #include "hal/bus/bus_gk20a.h"
@@ -53,6 +54,7 @@
 #include "hal/fifo/pbdma_status_gm20b.h"
 #include "hal/fifo/userd_gk20a.h"
 #include "hal/gr/zbc/zbc_gm20b.h"
+#include "hal/gr/zcull/zcull_gm20b.h"
 #include "hal/gr/init/gr_init_gm20b.h"
 #include "hal/gr/intr/gr_intr_gm20b.h"
 #include "hal/falcon/falcon_gk20a.h"
@@ -252,8 +254,6 @@ static const struct gpu_ops gm20b_ops = {
 		.load_ctxsw_ucode = gr_gk20a_load_ctxsw_ucode,
 		.set_gpc_tpc_mask = gr_gm20b_set_gpc_tpc_mask,
 		.alloc_obj_ctx = gk20a_alloc_obj_ctx,
-		.bind_ctxsw_zcull = gr_gk20a_bind_ctxsw_zcull,
-		.get_zcull_info = gr_gk20a_get_zcull_info,
 		.is_tpc_addr = gr_gm20b_is_tpc_addr,
 		.get_tpc_num = gr_gm20b_get_tpc_num,
 		.detect_sm_arch = gr_gm20b_detect_sm_arch,
@@ -284,7 +284,6 @@ static const struct gpu_ops gm20b_ops = {
 		.resume_contexts = gr_gk20a_resume_contexts,
 		.get_preemption_mode_flags = gr_gm20b_get_preemption_mode_flags,
 		.init_sm_id_table = gr_gk20a_init_sm_id_table,
-		.program_zcull_mapping = gr_gk20a_program_zcull_mapping,
 		.commit_inst = gr_gk20a_commit_inst,
 		.trigger_suspend = gr_gk20a_trigger_suspend,
 		.wait_for_pause = gr_gk20a_wait_for_pause,
@@ -407,6 +406,12 @@ static const struct gpu_ops gm20b_ops = {
 			.add_stencil = NULL,
 			.get_gpcs_swdx_dss_zbc_c_format_reg = NULL,
 			.get_gpcs_swdx_dss_zbc_z_format_reg = NULL,
+		},
+		.zcull = {
+			.init_zcull_hw = gm20b_gr_init_zcull_hw,
+			.bind_ctxsw_zcull = gm20b_gr_bind_ctxsw_zcull,
+			.get_zcull_info = gm20b_gr_get_zcull_info,
+			.program_zcull_mapping = gm20b_gr_program_zcull_mapping,
 		},
 		.init = {
 			.fifo_access = gm20b_gr_init_fifo_access,

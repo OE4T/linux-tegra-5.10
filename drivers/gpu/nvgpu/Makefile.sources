@@ -113,6 +113,7 @@ srcs += common/sim.c \
 	common/gr/global_ctx.c \
 	common/gr/subctx.c \
 	common/gr/ctx.c \
+	common/gr/zcull.c \
 	common/gr/config/gr_config.c \
 	common/gr/config/gr_config_gm20b.c \
 	common/gr/fecs_trace/fecs_trace.c \
@@ -320,6 +321,8 @@ srcs += common/sim.c \
 	hal/gr/fecs_trace/fecs_trace_gm20b.c \
 	hal/gr/fecs_trace/fecs_trace_gp10b.c \
 	hal/gr/fecs_trace/fecs_trace_gv11b.c \
+	hal/gr/zcull/zcull_gm20b.c \
+	hal/gr/zcull/zcull_gv11b.c \
 	hal/gr/init/gr_init_gm20b.c \
 	hal/gr/init/gr_init_gp10b.c \
 	hal/gr/init/gr_init_gv100.c \
