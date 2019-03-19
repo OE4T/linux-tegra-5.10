@@ -21,7 +21,7 @@
 #include <dt-bindings/gpio/tegra194-gpio.h>
 
 / {
-        ether_qos@2490000 {
+        ethernet@2490000 {
 		/* PTP_ref clock speed in MHz */
 		nvidia,ptp_ref_clock_speed = <312500000>;
 		/* rxq_enable_ctrl = <rx0 rx1 rx2 rx3>
