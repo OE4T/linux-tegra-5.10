@@ -55,7 +55,7 @@
 #include "common/vgpu/mm/mm_vgpu.h"
 #include "common/vgpu/cbc/cbc_vgpu.h"
 #include "common/vgpu/debugger_vgpu.h"
-#include "common/vgpu/fecs_trace_vgpu.h"
+#include "common/vgpu/gr/fecs_trace_vgpu.h"
 #include "common/vgpu/perf/perf_vgpu.h"
 #include "common/vgpu/perf/cyclestats_snapshot_vgpu.h"
 #include "gp10b/gp10b.h"

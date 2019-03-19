@@ -69,7 +69,7 @@
 #include "common/vgpu/cbc/cbc_vgpu.h"
 #include "common/vgpu/debugger_vgpu.h"
 #include "common/vgpu/perf/perf_vgpu.h"
-#include "common/vgpu/fecs_trace_vgpu.h"
+#include "common/vgpu/gr/fecs_trace_vgpu.h"
 #include "common/vgpu/perf/cyclestats_snapshot_vgpu.h"
 #include "common/vgpu/fifo/vgpu_fifo_gv11b.h"
 

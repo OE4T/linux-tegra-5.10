@@ -21,7 +21,7 @@
 
 #include <linux/mm.h>
 
-#include "common/vgpu/fecs_trace_vgpu.h"
+#include "common/vgpu/gr/fecs_trace_vgpu.h"
 
 void vgpu_fecs_trace_data_update(struct gk20a *g)
 {
