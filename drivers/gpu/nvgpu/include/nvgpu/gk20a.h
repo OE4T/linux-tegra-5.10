@@ -925,10 +925,6 @@ struct gpu_ops {
 		u32 (*get_preempt_timeout)(struct gk20a *g);
 		void (*post_event_id)(struct tsg_gk20a *tsg, int event_id);
 		void (*ch_abort_clean_up)(struct channel_gk20a *ch);
-		bool (*check_tsg_ctxsw_timeout)(struct tsg_gk20a *tsg,
-						bool *verbose, u32 *ms);
-		bool (*check_ch_ctxsw_timeout)(struct channel_gk20a *ch,
-						bool *verbose, u32 *ms);
 		int (*channel_suspend)(struct gk20a *g);
 		int (*channel_resume)(struct gk20a *g);
 		void (*set_error_notifier)(struct channel_gk20a *ch, u32 error);
@@ -1046,7 +1042,13 @@ struct gpu_ops {
 		void (*force_ctx_reload)(struct channel_gk20a *ch);
 		void (*reset_faulted)(struct gk20a *g, struct channel_gk20a *ch,
 				bool eng, bool pbdma);
+		bool (*check_ctxsw_timeout)(struct channel_gk20a *ch,
+					bool *verbose, u32 *ms);
 	} channel;
+	struct {
+		bool (*check_ctxsw_timeout)(struct tsg_gk20a *tsg,
+					bool *verbose, u32 *ms);
+	} tsg;
 	struct {
 		void (*read_engine_status_info) (struct gk20a *g,
 			u32 engine_id, struct nvgpu_engine_status_info *status);

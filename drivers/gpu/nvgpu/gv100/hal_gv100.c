@@ -831,8 +831,6 @@ static const struct gpu_ops gv100_ops = {
 		.tsg_unbind_channel = gk20a_fifo_tsg_unbind_channel,
 		.post_event_id = gk20a_tsg_event_id_post_event,
 		.ch_abort_clean_up = gk20a_channel_abort_clean_up,
-		.check_tsg_ctxsw_timeout = nvgpu_tsg_check_ctxsw_timeout,
-		.check_ch_ctxsw_timeout = nvgpu_channel_check_ctxsw_timeout,
 		.channel_suspend = gk20a_channel_suspend,
 		.channel_resume = gk20a_channel_resume,
 		.set_error_notifier = nvgpu_set_error_notifier_if_empty,
@@ -928,6 +926,10 @@ static const struct gpu_ops gv100_ops = {
 		.read_state = gv11b_channel_read_state,
 		.force_ctx_reload = gm20b_channel_force_ctx_reload,
 		.reset_faulted = gv11b_channel_reset_faulted,
+		.check_ctxsw_timeout = nvgpu_channel_check_ctxsw_timeout,
+	},
+	.tsg = {
+		.check_ctxsw_timeout = nvgpu_tsg_check_ctxsw_timeout,
 	},
 	.netlist = {
 		.get_netlist_name = gv100_netlist_get_name,
@@ -1311,6 +1313,7 @@ int gv100_init_hal(struct gk20a *g)
 	gops->runlist = gv100_ops.runlist;
 	gops->userd = gv100_ops.userd;
 	gops->channel = gv100_ops.channel;
+	gops->tsg = gv100_ops.tsg;
 	gops->sync = gv100_ops.sync;
 	gops->engine_status = gv100_ops.engine_status;
 	gops->pbdma_status = gv100_ops.pbdma_status;

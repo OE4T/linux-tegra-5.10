@@ -1231,12 +1231,12 @@ bool gk20a_fifo_handle_sched_error(struct gk20a *g)
 		}
 
 		if (is_tsg) {
-			ret = nvgpu_tsg_check_ctxsw_timeout(
+			ret = g->ops.tsg.check_ctxsw_timeout(
 					&f->tsg[id], &verbose, &ms);
 		} else {
 			ch = gk20a_channel_from_id(g, id);
 			if (ch != NULL) {
-				ret = g->ops.fifo.check_ch_ctxsw_timeout(
+				ret = g->ops.channel.check_ctxsw_timeout(
 					ch, &verbose, &ms);
 
 				gk20a_channel_put(ch);

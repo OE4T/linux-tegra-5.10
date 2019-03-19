@@ -326,7 +326,7 @@ bool gv11b_fifo_handle_ctxsw_timeout(struct gk20a *g, u32 fifo_intr)
 				continue;
 			}
 
-			if (nvgpu_tsg_check_ctxsw_timeout(
+			if (g->ops.tsg.check_ctxsw_timeout(
 				&f->tsg[tsgid], &verbose, &ms)) {
 				ret = true;
 

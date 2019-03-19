@@ -652,8 +652,6 @@ static const struct gpu_ops gp10b_ops = {
 		.tsg_unbind_channel = gk20a_fifo_tsg_unbind_channel,
 		.post_event_id = gk20a_tsg_event_id_post_event,
 		.ch_abort_clean_up = gk20a_channel_abort_clean_up,
-		.check_tsg_ctxsw_timeout = nvgpu_tsg_check_ctxsw_timeout,
-		.check_ch_ctxsw_timeout = nvgpu_channel_check_ctxsw_timeout,
 		.channel_suspend = gk20a_channel_suspend,
 		.channel_resume = gk20a_channel_resume,
 		.set_error_notifier = nvgpu_set_error_notifier,
@@ -746,6 +744,10 @@ static const struct gpu_ops gp10b_ops = {
 		.count = gm20b_channel_count,
 		.read_state = gk20a_channel_read_state,
 		.force_ctx_reload = gm20b_channel_force_ctx_reload,
+		.check_ctxsw_timeout = nvgpu_channel_check_ctxsw_timeout,
+	},
+	.tsg = {
+		.check_ctxsw_timeout = nvgpu_tsg_check_ctxsw_timeout,
 	},
 	.netlist = {
 		.get_netlist_name = gp10b_netlist_get_name,
@@ -1017,6 +1019,7 @@ int gp10b_init_hal(struct gk20a *g)
 	gops->runlist = gp10b_ops.runlist;
 	gops->userd = gp10b_ops.userd;
 	gops->channel = gp10b_ops.channel;
+	gops->tsg = gp10b_ops.tsg;
 	gops->sync = gp10b_ops.sync;
 	gops->engine_status = gp10b_ops.engine_status;
 	gops->pbdma_status = gp10b_ops.pbdma_status;
