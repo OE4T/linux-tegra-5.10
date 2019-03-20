@@ -24,6 +24,37 @@
 #include <osi_dma.h>
 #include <osi_dma_txrx.h>
 
+static inline void osi_memset(void *s, int c, unsigned long count)
+{
+	char *xs = s;
+	int brk = 1;
+
+	while (brk != 0) {
+		*xs++ = (char)c;
+		count--;
+
+		if (count == 0U) {
+			brk = 0;
+		}
+	}
+}
+
+static inline void get_rx_vlan_from_desc(struct osi_rx_desc *rx_desc,
+					 struct osi_rx_pkt_cx *rx_pkt_cx)
+{
+	unsigned int lt;
+
+	/* Check for Receive Status rdes0 */
+	if ((rx_desc->rdes3 & RDES3_RS0V) == RDES3_RS0V) {
+		/* get length or type */
+		lt = rx_desc->rdes3 & RDES3_LT;
+		if (lt == RDES3_LT_VT || lt == RDES3_LT_DVT) {
+			rx_pkt_cx->flags |= OSI_PKT_CX_VLAN;
+			rx_pkt_cx->vlan_tag = rx_desc->rdes0 & RDES0_OVT;
+		}
+	}
+}
+
 /**
  *	osi_process_rx_completions - Read data from receive channel descriptors
  *	@osi: OSI private data structure.
@@ -48,9 +79,11 @@ int osi_process_rx_completions(struct osi_dma_priv_data *osi,
 			       unsigned int chan, int budget)
 {
 	struct osi_rx_ring *rx_ring = osi->rx_ring[chan];
+	struct osi_rx_pkt_cx *rx_pkt_cx = &rx_ring->rx_pkt_cx;
 	struct osi_rx_desc *rx_desc = OSI_NULL;
-	unsigned int pkt_len = 0;
 	int received = 0;
+
+	osi_memset(rx_pkt_cx, 0, sizeof(*rx_pkt_cx));
 
 	while (received < budget) {
 		rx_desc = rx_ring->rx_desc + rx_ring->cur_rx_idx;
@@ -61,12 +94,13 @@ int osi_process_rx_completions(struct osi_dma_priv_data *osi,
 		}
 
 		/* get the length of the packet */
-		pkt_len = rx_desc->rdes3 & RDES3_PKT_LEN;
+		rx_pkt_cx->pkt_len = rx_desc->rdes3 & RDES3_PKT_LEN;
 
 		if (((rx_desc->rdes3 & RDES3_ES_BITS) == 0U) &&
 		    ((rx_desc->rdes3 & RDES3_LD) == RDES3_LD)) {
+			get_rx_vlan_from_desc(rx_desc, rx_pkt_cx);
 			osd_receive_packet(osi->osd, rx_ring, chan,
-					   osi->rx_buf_len, pkt_len);
+					   osi->rx_buf_len, rx_pkt_cx);
 		}
 
 		received++;
@@ -152,7 +186,31 @@ void osi_hw_transmit(struct osi_dma_priv_data *osi, unsigned int chan)
 	unsigned int entry = tx_ring->cur_tx_idx;
 	struct osi_tx_desc *tx_desc = tx_ring->tx_desc + entry;
 	struct osi_tx_swcx *tx_swcx = tx_ring->tx_swcx + entry;
+	struct osi_tx_pkt_cx *tx_pkt_cx = &tx_ring->tx_pkt_cx;
+	unsigned int desc_cnt = tx_pkt_cx->desc_cnt;
+	struct osi_tx_desc *last_desc = OSI_NULL;
+	struct osi_tx_desc *first_desc = OSI_NULL;
+	struct osi_tx_desc *cx_desc = OSI_NULL;
 	unsigned long tailptr;
+	unsigned int i;
+
+	/* Context decriptor for VLAN */
+	if ((tx_pkt_cx->flags & OSI_PKT_CX_VLAN) == OSI_PKT_CX_VLAN) {
+		/* Set context type */
+		tx_desc->tdes3 |= TDES3_CTXT;
+		/* Fill VLAN Tag ID */
+		tx_desc->tdes3 |= tx_pkt_cx->vtag_id;
+		/* Set VLAN TAG Valid */
+		tx_desc->tdes3 |= TDES3_VLTV;
+
+		INCR_TX_DESC_INDEX(entry, 1U);
+
+		/* Storing context descriptor to set DMA_OWN at last */
+		cx_desc = tx_desc;
+		tx_desc = tx_ring->tx_desc + entry;
+		tx_swcx = tx_ring->tx_swcx + entry;
+		desc_cnt--;
+	}
 
 	/* update the first buffer pointer and length */
 	tx_desc->tdes0 = (unsigned int)L32(tx_swcx->buf_phy_addr);
@@ -160,14 +218,45 @@ void osi_hw_transmit(struct osi_dma_priv_data *osi, unsigned int chan)
 	tx_desc->tdes2 = tx_swcx->len;
 	/* Mark it as First descriptor */
 	tx_desc->tdes3 |= TDES3_FD;
-	/* Mark it as LAST descriptor */
-	tx_desc->tdes3 |= TDES3_LD;
-	/* set Interrupt on Completion*/
-	tx_desc->tdes2 |= TDES2_IOC;
-	/* set HW OWN bit for descriptor*/
-	tx_desc->tdes3 |= TDES3_OWN;
+
+	/* Enable VTIR in normal descriptor for VLAN packet */
+	if ((tx_pkt_cx->flags & OSI_PKT_CX_VLAN) == OSI_PKT_CX_VLAN) {
+		tx_desc->tdes2 |= TDES2_VTIR;
+	}
 
 	INCR_TX_DESC_INDEX(entry, 1U);
+
+	first_desc = tx_desc;
+	last_desc = tx_desc;
+	tx_desc = tx_ring->tx_desc + entry;
+	tx_swcx = tx_ring->tx_swcx + entry;
+	desc_cnt--;
+
+	for (i = 0; i < desc_cnt; i++) {
+		tx_desc->tdes0 = (unsigned int)L32(tx_swcx->buf_phy_addr);
+		tx_desc->tdes1 = (unsigned int)H32(tx_swcx->buf_phy_addr);
+		tx_desc->tdes2 = tx_swcx->len;
+		/* set HW OWN bit for descriptor*/
+		tx_desc->tdes3 |= TDES3_OWN;
+
+		INCR_TX_DESC_INDEX(entry, 1U);
+		last_desc = tx_desc;
+		tx_desc = tx_ring->tx_desc + entry;
+		tx_swcx = tx_ring->tx_swcx + entry;
+	}
+
+	/* Mark it as LAST descriptor */
+	last_desc->tdes3 |= TDES3_LD;
+	/* set Interrupt on Completion*/
+	last_desc->tdes2 |= TDES2_IOC;
+
+	/* Set OWN bit for first and context descriptors
+	 * at the end to avoid race condition
+	 */
+	first_desc->tdes3 |= TDES3_OWN;
+	if ((tx_pkt_cx->flags & OSI_PKT_CX_VLAN) == OSI_PKT_CX_VLAN) {
+		cx_desc->tdes3 |= TDES3_OWN;
+	}
 
 	tailptr = tx_ring->tx_desc_phy_addr +
 		  (entry * sizeof(struct osi_tx_desc));

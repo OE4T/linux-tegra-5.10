@@ -26,6 +26,8 @@
 #include "osi_common.h"
 #include "osi_dma_txrx.h"
 
+#define OSI_PKT_CX_VLAN	OSI_BIT(0)
+
 /**
  *	struct osi_rx_desc - Receive Descriptor
  *	@rdes0: Receive Descriptor 0
@@ -53,12 +55,25 @@ struct osi_rx_swcx {
 };
 
 /**
+ *	struct osi_rx_pkt_cx - Received packet context.
+ *	@flags: Bit map which holds the features that rx packets supports.
+ *	@vlan_tag: Stores the VLAN tag ID in received packet.
+ *	@pkt_len: Length of received packet.
+ */
+struct osi_rx_pkt_cx {
+	unsigned int flags;
+	unsigned int vlan_tag;
+	unsigned int pkt_len;
+};
+
+/**
  *	struct osi_rx_ring - DMA Rx channel ring
  *	@rx_desc: Pointer to Rx DMA descriptor
  *	@rx_swcx: Pointer to Rx DMA descriptor software context information
  *	@dma_rx_desc: Physical address of Rx DMA descriptor
  *	@cur_rx_idx: Descriptor index current reception.
  *	@refill_idx: Descriptor index for descriptor re-allocation.
+ *	@rx_pkt_cx: Received packet context.
  */
 struct osi_rx_ring {
 	struct osi_rx_desc *rx_desc;
@@ -66,6 +81,7 @@ struct osi_rx_ring {
 	unsigned long rx_desc_phy_addr;
 	unsigned int cur_rx_idx;
 	unsigned int refill_idx;
+	struct osi_rx_pkt_cx rx_pkt_cx;
 };
 
 /**
@@ -95,12 +111,25 @@ struct osi_tx_desc {
 };
 
 /**
+ *	struct osi_tx_pkt_cx - Transmit packet context for a packet
+ *	@flags: Holds the features which a Tx packets supports.
+ *	@vtag_id: Stores the VLAN tag ID.
+ *	@desc_cnt: Descriptor count
+ */
+struct osi_tx_pkt_cx {
+	unsigned int flags;
+	unsigned int vtag_id;
+	unsigned int desc_cnt;
+};
+
+/**
  *      struct osi_tx_ring - DMA channel Tx ring
- *      @tx_desc: Pointer to tx dma descriptor
- *      @tx_swcx: Pointer to tx dma descriptor software context information
- *      @tx_desc_phy_addr: Physical address of Tx descriptor.
- *      @cur_tx_idx: Descriptor index current transmission.
- *      @clean_idx: Descriptor index for descriptor cleanup.
+ *	@tx_desc: Pointer to tx dma descriptor
+ *	@tx_swcx: Pointer to tx dma descriptor software context information
+ *	@tx_desc_phy_addr: Physical address of Tx descriptor.
+ *	@cur_tx_idx: Descriptor index current transmission.
+ *	@clean_idx: Descriptor index for descriptor cleanup.
+ *	@tx_pkt_cx: Transmit packet context.
  */
 struct osi_tx_ring {
 	struct osi_tx_desc *tx_desc;
@@ -108,6 +137,7 @@ struct osi_tx_ring {
 	unsigned long tx_desc_phy_addr;
 	unsigned int cur_tx_idx;
 	unsigned int clean_idx;
+	struct osi_tx_pkt_cx tx_pkt_cx;
 };
 
 struct osi_dma_priv_data;
