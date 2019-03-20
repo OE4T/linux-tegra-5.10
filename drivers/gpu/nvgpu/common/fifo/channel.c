@@ -340,7 +340,7 @@ static void gk20a_free_channel(struct channel_gk20a *ch, bool force)
 	trace_gk20a_free_channel(ch->chid);
 
 	if (g->os_channel.close != NULL) {
-		g->os_channel.close(ch);
+		g->os_channel.close(ch, force);
 	}
 
 	/*

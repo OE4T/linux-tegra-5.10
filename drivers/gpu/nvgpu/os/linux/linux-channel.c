@@ -270,7 +270,7 @@ static void nvgpu_channel_open_linux(struct channel_gk20a *ch)
 {
 }
 
-static void nvgpu_channel_close_linux(struct channel_gk20a *ch)
+static void nvgpu_channel_close_linux(struct channel_gk20a *ch, bool force)
 {
 	nvgpu_channel_work_completion_clear(ch);
 

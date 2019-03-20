@@ -2066,7 +2066,7 @@ struct gk20a {
 
 	struct {
 		void (*open)(struct channel_gk20a *ch);
-		void (*close)(struct channel_gk20a *ch);
+		void (*close)(struct channel_gk20a *ch, bool force);
 		void (*work_completion_signal)(struct channel_gk20a *ch);
 		void (*work_completion_cancel_sync)(struct channel_gk20a *ch);
 		bool (*os_fence_framework_inst_exists)(struct channel_gk20a *ch);
