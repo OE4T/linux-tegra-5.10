@@ -28,9 +28,8 @@ void osd_msleep(unsigned int msec);
 void osd_udelay(unsigned long usec);
 void osd_info(void *priv, const char *fmt, ...);
 void osd_err(void *priv, const char *fmt, ...);
-void osd_receive_packet(void *priv, void *rx_ring,
-			unsigned int chan, unsigned int dma_buf_len,
-			unsigned int rx_pkt_len);
+void osd_receive_packet(void *priv, void *rxring, unsigned int chan,
+			unsigned int dma_buf_len, void *rxpkt_cx);
 void osd_transmit_complete(void *priv, void *buffer, unsigned long dmaaddr,
 			   unsigned int len);
 #endif

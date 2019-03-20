@@ -516,6 +516,26 @@ static void eqos_configure_mac(struct osi_core_priv_data *osi_core)
 	value |= EQOS_IMR_RGSMIIIE;
 
 	osi_writel(value, (unsigned char *)osi_core->base + EQOS_MAC_IMR);
+
+	/* Enable VLAN configuration */
+	value = osi_readl((unsigned char *)osi_core->base + EQOS_MAC_VLAN_TAG);
+	/* Enable VLAN Tag stripping always
+	 * Enable operation on the outer VLAN Tag, if present
+	 * Disable double VLAN Tag processing on TX and RX
+	 * Enable VLAN Tag in RX Status
+	 * Disable VLAN Type Check
+	 */
+	value |= EQOS_MAC_VLANTR_EVLS_ALWAYS_STRIP | EQOS_MAC_VLANTR_EVLRXS |
+		 EQOS_MAC_VLANTR_DOVLTC;
+	value &= ~EQOS_MAC_VLANTR_ERIVLT;
+	osi_writel(value, (unsigned char *)osi_core->base + EQOS_MAC_VLAN_TAG);
+
+	value = osi_readl((unsigned char *)osi_core->base + EQOS_MAC_VLANTIR);
+	/* Enable VLAN tagging through context descriptor */
+	value |= EQOS_MAC_VLANTIR_VLTI;
+	/* insert/replace C_VLAN in 13th & 14th bytes of transmitted frames */
+	value &= ~EQOS_MAC_VLANTIRR_CSVL;
+	osi_writel(value, (unsigned char *)osi_core->base + EQOS_MAC_VLANTIR);
 }
 
 /**

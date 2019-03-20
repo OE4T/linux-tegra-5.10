@@ -41,6 +41,11 @@
 #define RDES3_ERR_RE		OSI_BIT(20)
 #define RDES3_ERR_DRIB		OSI_BIT(19)
 #define RDES3_PKT_LEN		0x00007fffU
+#define RDES3_LT		(OSI_BIT(16) | OSI_BIT(17) | OSI_BIT(18))
+#define RDES3_LT_VT		OSI_BIT(18)
+#define RDES3_LT_DVT		(OSI_BIT(16) | OSI_BIT(18))
+#define RDES3_RS0V		OSI_BIT(25)
+#define RDES0_OVT		0x0000FFFFU
 
 #define RDES3_ES_BITS \
 	(RDES3_ERR_CRC | RDES3_ERR_GP | RDES3_ERR_WD | \
@@ -48,8 +53,13 @@
 
 #define TDES2_IOC		OSI_BIT(31)
 #define TDES3_OWN		OSI_BIT(31)
-#define TDES3_CTX		OSI_BIT(30)
+#define TDES3_CTXT		OSI_BIT(30)
 #define TDES3_FD		OSI_BIT(29)
 #define TDES3_LD		OSI_BIT(28)
+#define TDES3_VLTV		OSI_BIT(16)
+/* VTIR = 0x2 (Insert a VLAN tag with the tag value programmed in the
+ * MAC_VLAN_Incl register or context descriptor.)
+*/
+#define TDES2_VTIR		((unsigned int)0x2 << 14U)
 
 #endif /* OSI_DMA_TXRX_H */
