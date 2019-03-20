@@ -1397,12 +1397,18 @@ bool nvgpu_channel_mark_error(struct gk20a *g, struct channel_gk20a *ch)
 	return verbose;
 }
 
+void nvgpu_channel_set_error_notifier(struct gk20a *g, struct channel_gk20a *ch,
+				u32 error_notifier)
+{
+	g->ops.fifo.set_error_notifier(ch, error_notifier);
+}
+
 void nvgpu_channel_set_ctx_mmu_error(struct gk20a *g,
 		struct channel_gk20a *ch)
 {
 	nvgpu_err(g,
 		"channel %d generated a mmu fault", ch->chid);
-	g->ops.fifo.set_error_notifier(ch,
+	nvgpu_channel_set_error_notifier(g, ch,
 				NVGPU_ERR_NOTIFIER_FIFO_ERROR_MMU_ERR_FLT);
 }
 
@@ -1441,7 +1447,7 @@ bool nvgpu_channel_check_ctxsw_timeout(struct channel_gk20a *ch,
 	*verbose = ch->timeout_debug_dump;
 	*ms = ch->timeout_accumulated_ms;
 	if (recover) {
-		g->ops.fifo.set_error_notifier(ch,
+		nvgpu_channel_set_error_notifier(g, ch,
 				NVGPU_ERR_NOTIFIER_FIFO_ERROR_IDLE_TIMEOUT);
 	}
 

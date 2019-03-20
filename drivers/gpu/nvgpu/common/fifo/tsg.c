@@ -354,22 +354,60 @@ bool nvgpu_tsg_mark_error(struct gk20a *g,
 
 }
 
-void nvgpu_tsg_set_ctx_mmu_error(struct gk20a *g,
-		struct tsg_gk20a *tsg)
+void nvgpu_tsg_set_timeout_accumulated_ms(struct tsg_gk20a *tsg, u32 ms)
 {
 	struct channel_gk20a *ch = NULL;
-
-	nvgpu_err(g, "TSG %d generated a mmu fault", tsg->tsgid);
 
 	nvgpu_rwsem_down_read(&tsg->ch_list_lock);
 	nvgpu_list_for_each_entry(ch, &tsg->ch_list, channel_gk20a, ch_entry) {
 		if (gk20a_channel_get(ch) != NULL) {
-			nvgpu_channel_set_ctx_mmu_error(g, ch);
+			ch->timeout_accumulated_ms = ms;
+			gk20a_channel_put(ch);
+		}
+	}
+	nvgpu_rwsem_up_read(&tsg->ch_list_lock);
+}
+
+bool nvgpu_tsg_timeout_debug_dump_state(struct tsg_gk20a *tsg)
+{
+	struct channel_gk20a *ch = NULL;
+	bool verbose = false;
+
+	nvgpu_rwsem_down_read(&tsg->ch_list_lock);
+	nvgpu_list_for_each_entry(ch, &tsg->ch_list, channel_gk20a, ch_entry) {
+		if (gk20a_channel_get(ch) != NULL) {
+			if (ch->timeout_debug_dump) {
+				verbose = true;
+			}
 			gk20a_channel_put(ch);
 		}
 	}
 	nvgpu_rwsem_up_read(&tsg->ch_list_lock);
 
+	return verbose;
+}
+
+void nvgpu_tsg_set_error_notifier(struct gk20a *g, struct tsg_gk20a *tsg,
+		u32 error_notifier)
+{
+	struct channel_gk20a *ch = NULL;
+
+	nvgpu_rwsem_down_read(&tsg->ch_list_lock);
+	nvgpu_list_for_each_entry(ch, &tsg->ch_list, channel_gk20a, ch_entry) {
+		if (gk20a_channel_get(ch) != NULL) {
+			nvgpu_channel_set_error_notifier(g, ch, error_notifier);
+			gk20a_channel_put(ch);
+		}
+	}
+	nvgpu_rwsem_up_read(&tsg->ch_list_lock);
+}
+
+void nvgpu_tsg_set_ctx_mmu_error(struct gk20a *g, struct tsg_gk20a *tsg)
+{
+	nvgpu_err(g, "TSG %d generated a mmu fault", tsg->tsgid);
+
+	nvgpu_tsg_set_error_notifier(g, tsg,
+		NVGPU_ERR_NOTIFIER_FIFO_ERROR_MMU_ERR_FLT);
 }
 
 bool nvgpu_tsg_check_ctxsw_timeout(struct tsg_gk20a *tsg,
@@ -411,17 +449,9 @@ bool nvgpu_tsg_check_ctxsw_timeout(struct tsg_gk20a *tsg,
 				tsg->tsgid, ch->chid);
 		*ms = ch->timeout_accumulated_ms;
 		gk20a_channel_put(ch);
-		nvgpu_list_for_each_entry(ch, &tsg->ch_list,
-				channel_gk20a, ch_entry) {
-			if (gk20a_channel_get(ch) != NULL) {
-				ch->g->ops.fifo.set_error_notifier(ch,
-					NVGPU_ERR_NOTIFIER_FIFO_ERROR_IDLE_TIMEOUT);
-				if (ch->timeout_debug_dump) {
-					*verbose = true;
-				}
-				gk20a_channel_put(ch);
-			}
-		}
+		nvgpu_tsg_set_error_notifier(g, tsg,
+			NVGPU_ERR_NOTIFIER_FIFO_ERROR_IDLE_TIMEOUT);
+		*verbose = nvgpu_tsg_timeout_debug_dump_state(tsg);
 	} else if (progress) {
 		/*
 		 * if at least one channel in the TSG made some progress, reset
@@ -433,13 +463,7 @@ bool nvgpu_tsg_check_ctxsw_timeout(struct tsg_gk20a *tsg,
 				tsg->tsgid, ch->chid);
 		gk20a_channel_put(ch);
 		*ms = g->fifo_eng_timeout_us / 1000U;
-		nvgpu_list_for_each_entry(ch, &tsg->ch_list,
-				channel_gk20a, ch_entry) {
-			if (gk20a_channel_get(ch) != NULL) {
-				ch->timeout_accumulated_ms = *ms;
-				gk20a_channel_put(ch);
-			}
-		}
+		nvgpu_tsg_set_timeout_accumulated_ms(tsg, *ms);
 	}
 
 	/* if we could not detect progress on any of the channel, but none

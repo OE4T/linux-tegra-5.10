@@ -2938,7 +2938,6 @@ static void gk20a_gr_set_error_notifier(struct gk20a *g,
 {
 	struct channel_gk20a *ch;
 	struct tsg_gk20a *tsg;
-	struct channel_gk20a *ch_tsg;
 
 	ch = isr_data->ch;
 
@@ -2948,16 +2947,7 @@ static void gk20a_gr_set_error_notifier(struct gk20a *g,
 
 	tsg = tsg_gk20a_from_ch(ch);
 	if (tsg != NULL) {
-		nvgpu_rwsem_down_read(&tsg->ch_list_lock);
-		nvgpu_list_for_each_entry(ch_tsg, &tsg->ch_list,
-				channel_gk20a, ch_entry) {
-			if (gk20a_channel_get(ch_tsg) != NULL) {
-				g->ops.fifo.set_error_notifier(ch_tsg,
-					 error_notifier);
-				gk20a_channel_put(ch_tsg);
-			}
-		}
-		nvgpu_rwsem_up_read(&tsg->ch_list_lock);
+		nvgpu_tsg_set_error_notifier(g, tsg, error_notifier);
 	} else {
 		nvgpu_err(g, "chid: %d is not bound to tsg", ch->chid);
 	}
