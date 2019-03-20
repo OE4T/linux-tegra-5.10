@@ -24,8 +24,6 @@
 
 #include <nvgpu/pmu.h>
 #include <nvgpu/falcon.h>
-#include <nvgpu/enabled.h>
-#include <nvgpu/mm.h>
 #include <nvgpu/io.h>
 #include <nvgpu/utils.h>
 #include <nvgpu/gk20a.h>
@@ -33,13 +31,9 @@
 #include <nvgpu/firmware.h>
 #include <nvgpu/bug.h>
 
-#include "pmu_gp10b.h"
-#include "pmu_gp106.h"
 #include "pmu_gv11b.h"
-#include <nvgpu/hw/gv11b/hw_pwr_gv11b.h>
 
-#define gv11b_dbg_pmu(g, fmt, arg...) \
-	nvgpu_log(g, gpu_dbg_pmu, fmt, ##arg)
+#include <nvgpu/hw/gv11b/hw_pwr_gv11b.h>
 
 #define ALIGN_4KB     12
 
@@ -174,7 +168,6 @@ int gv11b_pmu_bootstrap(struct nvgpu_pmu *pmu)
 		      pwr_pmu_new_instblk_target_sys_coh_f() :
 		      pwr_pmu_new_instblk_target_sys_ncoh_f()));
 
-	/* TBD: load all other surfaces */
 	g->ops.pmu_ver.set_pmu_cmdline_args_trace_size(
 		pmu, GK20A_PMU_TRACE_BUFSIZE);
 	g->ops.pmu_ver.set_pmu_cmdline_args_trace_dma_base(pmu);
@@ -402,107 +395,6 @@ u32 gv11b_pmu_get_irqdest(struct gk20a *g)
 	return intr_dest;
 }
 
-static void pmu_handle_pg_sub_feature_msg(struct gk20a *g, struct pmu_msg *msg,
-			void *param, u32 handle, u32 status)
-{
-	nvgpu_log_fn(g, " ");
-
-	if (status != 0U) {
-		nvgpu_err(g, "Sub-feature mask update cmd aborted\n");
-		return;
-	}
-
-	gv11b_dbg_pmu(g, "sub-feature mask update is acknowledged from PMU %x\n",
-							msg->msg.pg.msg_type);
-}
-
-static void pmu_handle_pg_param_msg(struct gk20a *g, struct pmu_msg *msg,
-			void *param, u32 handle, u32 status)
-{
-	nvgpu_log_fn(g, " ");
-
-	if (status != 0U) {
-		nvgpu_err(g, "GR PARAM cmd aborted\n");
-		return;
-	}
-
-	gv11b_dbg_pmu(g, "GR PARAM is acknowledged from PMU %x\n",
-							msg->msg.pg.msg_type);
-}
-
-int gv11b_pg_gr_init(struct gk20a *g, u32 pg_engine_id)
-{
-	struct nvgpu_pmu *pmu = &g->pmu;
-	struct pmu_cmd cmd;
-	u32 seq;
-	size_t tmp_size;
-
-	if (pg_engine_id == PMU_PG_ELPG_ENGINE_ID_GRAPHICS) {
-		(void) memset(&cmd, 0, sizeof(struct pmu_cmd));
-		cmd.hdr.unit_id = PMU_UNIT_PG;
-		tmp_size = PMU_CMD_HDR_SIZE +
-				sizeof(struct pmu_pg_cmd_gr_init_param_v1);
-		nvgpu_assert(tmp_size <= (size_t)U8_MAX);
-		cmd.hdr.size = (u8)tmp_size;
-		cmd.cmd.pg.gr_init_param_v1.cmd_type =
-				PMU_PG_CMD_ID_PG_PARAM;
-		cmd.cmd.pg.gr_init_param_v1.sub_cmd_id =
-				PMU_PG_PARAM_CMD_GR_INIT_PARAM;
-		cmd.cmd.pg.gr_init_param_v1.featuremask =
-				NVGPU_PMU_GR_FEATURE_MASK_ALL;
-
-		gv11b_dbg_pmu(g, "cmd post PMU_PG_CMD_ID_PG_PARAM_INIT\n");
-		nvgpu_pmu_cmd_post(g, &cmd, NULL, NULL, PMU_COMMAND_QUEUE_HPQ,
-					pmu_handle_pg_param_msg, pmu, &seq);
-
-	} else {
-		return -EINVAL;
-	}
-
-	return 0;
-}
-
-int gv11b_pg_set_subfeature_mask(struct gk20a *g, u32 pg_engine_id)
-{
-	struct nvgpu_pmu *pmu = &g->pmu;
-	struct pmu_cmd cmd;
-	u32 seq;
-	size_t tmp_size;
-
-	if (pg_engine_id == PMU_PG_ELPG_ENGINE_ID_GRAPHICS) {
-		(void) memset(&cmd, 0, sizeof(struct pmu_cmd));
-		cmd.hdr.unit_id = PMU_UNIT_PG;
-		tmp_size = PMU_CMD_HDR_SIZE +
-			sizeof(struct pmu_pg_cmd_sub_feature_mask_update);
-		nvgpu_assert(tmp_size <= (size_t)U8_MAX);
-		cmd.hdr.size = (u8)tmp_size;
-		cmd.cmd.pg.sf_mask_update.cmd_type =
-				PMU_PG_CMD_ID_PG_PARAM;
-		cmd.cmd.pg.sf_mask_update.sub_cmd_id =
-				PMU_PG_PARAM_CMD_SUB_FEATURE_MASK_UPDATE;
-		cmd.cmd.pg.sf_mask_update.ctrl_id =
-				PMU_PG_ELPG_ENGINE_ID_GRAPHICS;
-		cmd.cmd.pg.sf_mask_update.enabled_mask =
-				NVGPU_PMU_GR_FEATURE_MASK_POWER_GATING |
-				NVGPU_PMU_GR_FEATURE_MASK_PRIV_RING |
-				NVGPU_PMU_GR_FEATURE_MASK_UNBIND |
-				NVGPU_PMU_GR_FEATURE_MASK_SAVE_GLOBAL_STATE |
-				NVGPU_PMU_GR_FEATURE_MASK_RESET_ENTRY |
-				NVGPU_PMU_GR_FEATURE_MASK_HW_SEQUENCE |
-				NVGPU_PMU_GR_FEATURE_MASK_ELPG_SRAM |
-				NVGPU_PMU_GR_FEATURE_MASK_ELPG_LOGIC |
-				NVGPU_PMU_GR_FEATURE_MASK_ELPG_L2RPPG;
-
-		gv11b_dbg_pmu(g, "cmd post PMU_PG_CMD_SUB_FEATURE_MASK_UPDATE\n");
-		nvgpu_pmu_cmd_post(g, &cmd, NULL, NULL, PMU_COMMAND_QUEUE_HPQ,
-				pmu_handle_pg_sub_feature_msg, pmu, &seq);
-	} else {
-		return -EINVAL;
-	}
-
-	return 0;
-}
-
 void gv11b_setup_apertures(struct gk20a *g)
 {
 	struct mm_gk20a *mm = &g->mm;
@@ -512,24 +404,24 @@ void gv11b_setup_apertures(struct gk20a *g)
 
 	/* setup apertures - virtual */
 	gk20a_writel(g, pwr_fbif_transcfg_r(GK20A_PMU_DMAIDX_UCODE),
-			pwr_fbif_transcfg_mem_type_physical_f() |
-			nvgpu_aperture_mask(g, inst_block,
-			pwr_fbif_transcfg_target_noncoherent_sysmem_f(),
-			pwr_fbif_transcfg_target_coherent_sysmem_f(),
-			pwr_fbif_transcfg_target_local_fb_f()));
+		pwr_fbif_transcfg_mem_type_physical_f() |
+		nvgpu_aperture_mask(g, inst_block,
+		pwr_fbif_transcfg_target_noncoherent_sysmem_f(),
+		pwr_fbif_transcfg_target_coherent_sysmem_f(),
+		pwr_fbif_transcfg_target_local_fb_f()));
 	gk20a_writel(g, pwr_fbif_transcfg_r(GK20A_PMU_DMAIDX_VIRT),
-			pwr_fbif_transcfg_mem_type_virtual_f());
+		pwr_fbif_transcfg_mem_type_virtual_f());
 	/* setup apertures - physical */
 	gk20a_writel(g, pwr_fbif_transcfg_r(GK20A_PMU_DMAIDX_PHYS_VID),
-			pwr_fbif_transcfg_mem_type_physical_f() |
-			nvgpu_aperture_mask(g, inst_block,
-			pwr_fbif_transcfg_target_noncoherent_sysmem_f(),
-			pwr_fbif_transcfg_target_coherent_sysmem_f(),
-			pwr_fbif_transcfg_target_local_fb_f()));
+		pwr_fbif_transcfg_mem_type_physical_f() |
+		nvgpu_aperture_mask(g, inst_block,
+		pwr_fbif_transcfg_target_noncoherent_sysmem_f(),
+		pwr_fbif_transcfg_target_coherent_sysmem_f(),
+		pwr_fbif_transcfg_target_local_fb_f()));
 	gk20a_writel(g, pwr_fbif_transcfg_r(GK20A_PMU_DMAIDX_PHYS_SYS_COH),
-			pwr_fbif_transcfg_mem_type_physical_f() |
-			pwr_fbif_transcfg_target_coherent_sysmem_f());
+		pwr_fbif_transcfg_mem_type_physical_f() |
+		pwr_fbif_transcfg_target_coherent_sysmem_f());
 	gk20a_writel(g, pwr_fbif_transcfg_r(GK20A_PMU_DMAIDX_PHYS_SYS_NCOH),
-			pwr_fbif_transcfg_mem_type_physical_f() |
-			pwr_fbif_transcfg_target_noncoherent_sysmem_f());
+		pwr_fbif_transcfg_mem_type_physical_f() |
+		pwr_fbif_transcfg_target_noncoherent_sysmem_f());
 }

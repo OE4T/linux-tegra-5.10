@@ -93,6 +93,7 @@
 #include "common/pmu/pmu_gp106.h"
 #include "common/pmu/pmu_gv11b.h"
 #include "common/pmu/pmu_gv100.h"
+#include "common/pmu/pg/pg_sw_gp106.h"
 #include "common/nvdec/nvdec_gp106.h"
 #include "common/nvlink/init/device_reginit_gv100.h"
 #include "common/nvlink/intr_and_err_handling_gv100.h"

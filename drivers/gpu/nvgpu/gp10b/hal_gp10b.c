@@ -84,6 +84,7 @@
 #include "common/pmu/pmu_gk20a.h"
 #include "common/pmu/pmu_gm20b.h"
 #include "common/pmu/pmu_gp10b.h"
+#include "common/pmu/pg/pg_sw_gp10b.h"
 #include "common/top/top_gm20b.h"
 #include "common/top/top_gp10b.h"
 #include "common/sync/syncpt_cmdbuf_gk20a.h"

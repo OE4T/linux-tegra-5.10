@@ -97,6 +97,7 @@
 #include "common/pmu/pmu_gv100.h"
 #include "common/pmu/pmu_gv11b.h"
 #include "common/pmu/pmu_tu104.h"
+#include "common/pmu/pg/pg_sw_gp106.h"
 #include "common/nvdec/nvdec_tu104.h"
 #include "common/top/top_gm20b.h"
 #include "common/top/top_gp10b.h"

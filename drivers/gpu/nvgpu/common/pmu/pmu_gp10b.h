@@ -25,14 +25,13 @@
 #ifndef NVGPU_PMU_GP10B_H
 #define NVGPU_PMU_GP10B_H
 
+#include <nvgpu/types.h>
+
 struct gk20a;
 
 bool gp10b_is_pmu_supported(struct gk20a *g);
-int gp10b_pmu_elpg_statistics(struct gk20a *g, u32 pg_engine_id,
-		struct pmu_pg_stats_data *pg_stat_data);
 int gp10b_pmu_setup_elpg(struct gk20a *g);
 int gp10b_load_falcon_ucode(struct gk20a *g, u32 falconidmask);
-int gp10b_pg_gr_init(struct gk20a *g, u32 pg_engine_id);
 void gp10b_write_dmatrfbase(struct gk20a *g, u32 addr);
 
 #endif /* NVGPU_PMU_GP10B_H */

@@ -138,6 +138,9 @@ srcs += common/sim.c \
 	common/pmu/pmu_gp10b.c \
 	common/pmu/pmu_gp106.c \
 	common/pmu/pmu_gv11b.c \
+	common/pmu/pg/pg_sw_gp10b.c \
+	common/pmu/pg/pg_sw_gp106.c \
+	common/pmu/pg/pg_sw_gv11b.c \
 	common/pmu/pmu_gv100.c \
 	common/pmu/pmu_tu104.c \
 	common/acr/acr.c \

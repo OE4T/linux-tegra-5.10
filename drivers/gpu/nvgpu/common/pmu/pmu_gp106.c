@@ -21,17 +21,14 @@
  */
 
 #include <nvgpu/pmu.h>
-#include <nvgpu/enabled.h>
 #include <nvgpu/io.h>
 #include <nvgpu/clk_arb.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/pmu/lpwr.h>
 
 #include "pmu_gk20a.h"
-#include "pmu_gm20b.h"
-#include "pmu_gp10b.h"
 #include "pmu_gp106.h"
-#include <nvgpu/hw/gp106/hw_psec_gp106.h>
+
 #include <nvgpu/hw/gp106/hw_pwr_gp106.h>
 
 bool gp106_is_pmu_supported(struct gk20a *g)
@@ -85,106 +82,6 @@ u32 gp106_pmu_pg_feature_list(struct gk20a *g, u32 pg_engine_id)
 	return 0;
 }
 
-u32 gp106_pmu_pg_engines_list(struct gk20a *g)
-{
-	return BIT32(PMU_PG_ELPG_ENGINE_ID_GRAPHICS) |
-			BIT32(PMU_PG_ELPG_ENGINE_ID_MS);
-}
-
-static void pmu_handle_param_msg(struct gk20a *g, struct pmu_msg *msg,
-			void *param, u32 handle, u32 status)
-{
-	nvgpu_log_fn(g, " ");
-
-	if (status != 0U) {
-		nvgpu_err(g, "PG PARAM cmd aborted");
-		return;
-	}
-
-	gp106_dbg_pmu(g, "PG PARAM is acknowledged from PMU %x",
-			msg->msg.pg.msg_type);
-}
-
-int gp106_pg_param_init(struct gk20a *g, u32 pg_engine_id)
-{
-	struct nvgpu_pmu *pmu = &g->pmu;
-	struct pmu_cmd cmd;
-	u32 seq;
-	int status;
-	u64 tmp_size;
-
-	(void) memset(&cmd, 0, sizeof(struct pmu_cmd));
-	if (pg_engine_id == PMU_PG_ELPG_ENGINE_ID_GRAPHICS) {
-
-		status = init_rppg(g);
-		if (status != 0) {
-			nvgpu_err(g, "RPPG init Failed");
-			return -1;
-		}
-
-		cmd.hdr.unit_id = PMU_UNIT_PG;
-		tmp_size = PMU_CMD_HDR_SIZE +
-				sizeof(struct pmu_pg_cmd_gr_init_param);
-		nvgpu_assert(tmp_size <= U64(U8_MAX));
-		cmd.hdr.size = U8(tmp_size);
-		cmd.cmd.pg.gr_init_param.cmd_type =
-				PMU_PG_CMD_ID_PG_PARAM;
-		cmd.cmd.pg.gr_init_param.sub_cmd_id =
-				PMU_PG_PARAM_CMD_GR_INIT_PARAM;
-		cmd.cmd.pg.gr_init_param.featuremask =
-				NVGPU_PMU_GR_FEATURE_MASK_RPPG;
-
-		gp106_dbg_pmu(g, "cmd post GR PMU_PG_CMD_ID_PG_PARAM");
-		nvgpu_pmu_cmd_post(g, &cmd, NULL, NULL, PMU_COMMAND_QUEUE_HPQ,
-				pmu_handle_param_msg, pmu, &seq);
-	} else if (pg_engine_id == PMU_PG_ELPG_ENGINE_ID_MS) {
-		cmd.hdr.unit_id = PMU_UNIT_PG;
-		tmp_size = PMU_CMD_HDR_SIZE +
-			sizeof(struct pmu_pg_cmd_ms_init_param);
-		nvgpu_assert(tmp_size <= U64(U8_MAX));
-		cmd.hdr.size = U8(tmp_size);
-		cmd.cmd.pg.ms_init_param.cmd_type =
-			PMU_PG_CMD_ID_PG_PARAM;
-		cmd.cmd.pg.ms_init_param.cmd_id =
-			PMU_PG_PARAM_CMD_MS_INIT_PARAM;
-		cmd.cmd.pg.ms_init_param.support_mask =
-			NVGPU_PMU_MS_FEATURE_MASK_CLOCK_GATING |
-			NVGPU_PMU_MS_FEATURE_MASK_SW_ASR |
-			NVGPU_PMU_MS_FEATURE_MASK_RPPG |
-			NVGPU_PMU_MS_FEATURE_MASK_FB_TRAINING;
-
-		gp106_dbg_pmu(g, "cmd post MS PMU_PG_CMD_ID_PG_PARAM");
-		nvgpu_pmu_cmd_post(g, &cmd, NULL, NULL, PMU_COMMAND_QUEUE_HPQ,
-			pmu_handle_param_msg, pmu, &seq);
-	}
-
-	return 0;
-}
-
-int gp106_pmu_elpg_statistics(struct gk20a *g, u32 pg_engine_id,
-		struct pmu_pg_stats_data *pg_stat_data)
-{
-	struct nvgpu_pmu *pmu = &g->pmu;
-	struct pmu_pg_stats_v2 stats;
-	int err;
-
-	err = nvgpu_falcon_copy_from_dmem(&pmu->flcn,
-		pmu->pmu_pg.stat_dmem_offset[pg_engine_id],
-		(u8 *)&stats, (u32)sizeof(struct pmu_pg_stats_v2), 0);
-	if (err != 0) {
-		nvgpu_err(g, "PMU falcon DMEM copy failed");
-		return err;
-	}
-
-	pg_stat_data->ingating_time = stats.total_sleep_time_us;
-	pg_stat_data->ungating_time = stats.total_non_sleep_time_us;
-	pg_stat_data->gating_cnt = stats.entry_count;
-	pg_stat_data->avg_entry_latency_us = stats.entry_latency_avg_us;
-	pg_stat_data->avg_exit_latency_us = stats.exit_latency_avg_us;
-
-	return err;
-}
-
 bool gp106_pmu_is_lpwr_feature_supported(struct gk20a *g, u32 feature_id)
 {
 	bool is_feature_supported = false;
@@ -215,7 +112,7 @@ static void gp106_pmu_load_multiple_falcons(struct gk20a *g, u32 falconidmask,
 
 	nvgpu_log_fn(g, " ");
 
-	gp106_dbg_pmu(g, "wprinit status = %x\n", g->pmu_lsf_pmu_wpr_init_done);
+	nvgpu_pmu_dbg(g, "wprinit status = %x", g->pmu_lsf_pmu_wpr_init_done);
 	if (g->pmu_lsf_pmu_wpr_init_done) {
 		/* send message to load FECS falcon */
 		(void) memset(&cmd, 0, sizeof(struct pmu_cmd));
@@ -233,7 +130,7 @@ static void gp106_pmu_load_multiple_falcons(struct gk20a *g, u32 falconidmask,
 		cmd.cmd.acr.boot_falcons.wprvirtualbase.lo = 0;
 		cmd.cmd.acr.boot_falcons.wprvirtualbase.hi = 0;
 
-		gp106_dbg_pmu(g, "PMU_ACR_CMD_ID_BOOTSTRAP_MULTIPLE_FALCONS:%x\n",
+		nvgpu_pmu_dbg(g, "PMU_ACR_CMD_ID_BOOTSTRAP_MULTIPLE_FALCONS:%x",
 				falconidmask);
 		nvgpu_pmu_cmd_post(g, &cmd, NULL, NULL, PMU_COMMAND_QUEUE_HPQ,
 				pmu_handle_fecs_boot_acr_msg, pmu, &seq);

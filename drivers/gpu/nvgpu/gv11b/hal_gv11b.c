@@ -86,6 +86,8 @@
 #include "common/pmu/pmu_gp10b.h"
 #include "common/pmu/pmu_gp106.h"
 #include "common/pmu/pmu_gv11b.h"
+#include "common/pmu/pg/pg_sw_gp106.h"
+#include "common/pmu/pg/pg_sw_gv11b.h"
 #include "common/top/top_gm20b.h"
 #include "common/top/top_gp10b.h"
 #include "common/sync/syncpt_cmdbuf_gv11b.h"
