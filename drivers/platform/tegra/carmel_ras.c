@@ -464,7 +464,7 @@ static int ras_core_serr_callback(struct pt_regs *regs, int reason,
 			err_status = ras_read_error_status();
 			if ((err_status & ERRi_STATUS_UE) &&
 				(err_status & ERRi_STATUS_VALID)) {
-				print_error_record(record, err_status);
+				print_error_record(record, err_status, errx);
 				retval = 0;
 			}
 		}
@@ -529,7 +529,7 @@ static void handle_fhi_core(void)
 			err_status = ras_read_error_status();
 			if (get_error_status_ce(err_status) &&
 				(err_status & ERRi_STATUS_VALID))
-				print_error_record(record, err_status);
+				print_error_record(record, err_status, errx);
 		}
 	}
 }
@@ -565,7 +565,7 @@ static int ras_corecluster_serr_callback(struct pt_regs *regs, int reason,
 
 			if ((err_status & ERRi_STATUS_UE) &&
 				(err_status & ERRi_STATUS_VALID)) {
-				print_error_record(record, err_status);
+				print_error_record(record, err_status, errx);
 				retval = 0;
 			}
 		}
@@ -627,7 +627,7 @@ static void handle_fhi_corecluster(void)
 
 			if (get_error_status_ce(err_status) &&
 				(err_status & ERRi_STATUS_VALID))
-				print_error_record(record, err_status);
+				print_error_record(record, err_status, errx);
 		}
 	}
 }
@@ -656,7 +656,7 @@ static int ras_ccplex_serr_callback(struct pt_regs *regs, int reason,
 		err_status = ras_read_error_status();
 		if ((err_status & ERRi_STATUS_UE) &&
 			(err_status & ERRi_STATUS_VALID)) {
-			print_error_record(record, err_status);
+			print_error_record(record, err_status, record->errx);
 			retval = 0;
 		}
 	}
@@ -715,7 +715,7 @@ static void handle_fhi_ccplex(void)
 
 		if (get_error_status_ce(err_status) &&
 			(err_status & ERRi_STATUS_VALID))
-			print_error_record(record, err_status);
+			print_error_record(record, err_status, record->errx);
 	}
 }
 
