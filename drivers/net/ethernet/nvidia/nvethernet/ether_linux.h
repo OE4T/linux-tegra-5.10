@@ -22,6 +22,7 @@
 #include <linux/interrupt.h>
 #include <linux/of_gpio.h>
 #include <linux/of_mdio.h>
+#include <linux/if_vlan.h>
 #include <linux/of_net.h>
 #include <linux/module.h>
 #include <linux/reset.h>
