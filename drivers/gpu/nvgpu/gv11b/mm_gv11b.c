@@ -1,7 +1,7 @@
 /*
  * GV11B MMU
  *
- * Copyright (c) 2016-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -49,11 +49,12 @@ void gv11b_init_inst_block(struct nvgpu_mem *inst_block,
 		struct vm_gk20a *vm, u32 big_page_size)
 {
 	struct gk20a *g = gk20a_from_vm(vm);
+	u64 pdb_addr = nvgpu_pd_gpu_addr(g, &vm->pdb);
 
 	nvgpu_log_info(g, "inst block phys = 0x%llx, kv = 0x%p",
 		nvgpu_inst_block_addr(g, inst_block), inst_block->cpu_va);
 
-	g->ops.mm.init_pdb(g, inst_block, vm);
+	g->ops.ramin.init_pdb(g, inst_block, pdb_addr, vm->pdb.mem);
 
 	if ((big_page_size != 0U) && (g->ops.ramin.set_big_page_size != NULL)) {
 		g->ops.ramin.set_big_page_size(g, inst_block, big_page_size);

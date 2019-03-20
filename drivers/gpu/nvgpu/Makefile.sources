@@ -368,6 +368,7 @@ srcs += common/sim.c \
 	hal/fifo/ramfc_tu104.c  \
 	hal/fifo/ramin_gk20a.c \
 	hal/fifo/ramin_gm20b.c \
+	hal/fifo/ramin_gp10b.c \
 	hal/fifo/ramin_gv11b.c \
 	hal/fifo/tsg_gk20a.c \
 	hal/fifo/tsg_gv11b.c \

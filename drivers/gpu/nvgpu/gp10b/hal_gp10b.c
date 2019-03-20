@@ -71,6 +71,7 @@
 #include "hal/fifo/ramfc_gp10b.h"
 #include "hal/fifo/ramin_gk20a.h"
 #include "hal/fifo/ramin_gm20b.h"
+#include "hal/fifo/ramin_gp10b.h"
 #include "hal/fifo/tsg_gk20a.h"
 #include "hal/fifo/userd_gk20a.h"
 #include "hal/fifo/fifo_intr_gk20a.h"
@@ -786,6 +787,7 @@ static const struct gpu_ops gp10b_ops = {
 	.ramin = {
 		.set_gr_ptr = gk20a_ramin_set_gr_ptr,
 		.set_big_page_size = gm20b_ramin_set_big_page_size,
+		.init_pdb = gp10b_ramin_init_pdb,
 	},
 	.runlist = {
 		.reschedule = gk20a_runlist_reschedule,
@@ -845,7 +847,6 @@ static const struct gpu_ops gp10b_ops = {
 		.gpu_phys_addr = gm20b_gpu_phys_addr,
 		.get_iommu_bit = gp10b_mm_get_iommu_bit,
 		.get_mmu_levels = gp10b_mm_get_mmu_levels,
-		.init_pdb = gp10b_mm_init_pdb,
 		.init_mm_setup_hw = gk20a_init_mm_setup_hw,
 		.is_bar1_supported = gm20b_mm_is_bar1_supported,
 		.alloc_inst_block = gk20a_alloc_inst_block,

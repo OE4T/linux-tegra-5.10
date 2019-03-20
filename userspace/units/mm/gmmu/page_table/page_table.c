@@ -43,6 +43,7 @@
 
 #include <hal/fb/fb_gp10b.h>
 #include <hal/fb/fb_gm20b.h>
+#include <hal/fifo/ramin_gp10b.h>
 
 #define TEST_PA_ADDRESS     0xEFAD80000000
 #define TEST_GPU_VA         0x102040600000
@@ -297,13 +298,13 @@ static int init_mm(struct unit_module *m, struct gk20a *g)
 	g->ops.mm.get_mmu_levels = gp10b_mm_get_mmu_levels;
 	g->ops.mm.alloc_inst_block = gk20a_alloc_inst_block;
 	g->ops.mm.init_inst_block = gv11b_init_inst_block;
-	g->ops.mm.init_pdb = gp10b_mm_init_pdb;
 	g->ops.mm.gmmu_map = gk20a_locked_gmmu_map;
 	g->ops.mm.gmmu_unmap = gk20a_locked_gmmu_unmap;
 	g->ops.mm.gpu_phys_addr = gv11b_gpu_phys_addr;
 	g->ops.mm.is_bar1_supported = gv11b_mm_is_bar1_supported;
 	g->ops.fb.compression_page_size = gp10b_fb_compression_page_size;
 	g->ops.fb.tlb_invalidate = gm20b_fb_tlb_invalidate;
+	g->ops.ramin.init_pdb = gp10b_ramin_init_pdb;
 
 	if (g->ops.mm.is_bar1_supported(g)) {
 		unit_return_fail(m, "BAR1 is not supported on Volta+\n");

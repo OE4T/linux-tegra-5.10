@@ -236,6 +236,7 @@ nvgpu-y += \
 	hal/fifo/ramfc_tu104.o \
 	hal/fifo/ramin_gk20a.o \
 	hal/fifo/ramin_gm20b.o \
+	hal/fifo/ramin_gp10b.o \
 	hal/fifo/ramin_gv11b.o \
 	hal/fifo/tsg_gk20a.o \
 	hal/fifo/tsg_gv11b.o \

@@ -29,5 +29,7 @@ struct nvgpu_mem;
 
 void gk20a_ramin_set_gr_ptr(struct gk20a *g,
 		struct nvgpu_mem *inst_block, u64 gpu_va);
+void gk20a_ramin_init_pdb(struct gk20a *g, struct nvgpu_mem *inst_block,
+		u64 pdb_addr, struct nvgpu_mem *pdb_mem);
 
 #endif /* NVGPU_RAMIN_GK20A_H */

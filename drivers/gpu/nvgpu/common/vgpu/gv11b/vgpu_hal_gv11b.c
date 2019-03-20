@@ -27,6 +27,7 @@
 #include "hal/fifo/pbdma_gp10b.h"
 #include "hal/fifo/pbdma_gv11b.h"
 #include "hal/fifo/ramin_gm20b.h"
+#include "hal/fifo/ramin_gp10b.h"
 #include "hal/fifo/tsg_gv11b.h"
 #include "hal/fifo/userd_gk20a.h"
 #include "hal/fifo/userd_gv11b.h"
@@ -593,6 +594,7 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 	.ramin = {
 		.set_gr_ptr = NULL,
 		.set_big_page_size = gm20b_ramin_set_big_page_size,
+		.init_pdb = gp10b_ramin_init_pdb,
 	},
 	.runlist = {
 		.reschedule = NULL,
@@ -647,7 +649,6 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 		.gpu_phys_addr = gm20b_gpu_phys_addr,
 		.get_iommu_bit = gk20a_mm_get_iommu_bit,
 		.get_mmu_levels = gp10b_mm_get_mmu_levels,
-		.init_pdb = gp10b_mm_init_pdb,
 		.init_mm_setup_hw = NULL,
 		.is_bar1_supported = gv11b_mm_is_bar1_supported,
 		.init_inst_block = gv11b_init_inst_block,

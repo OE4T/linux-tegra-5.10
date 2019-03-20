@@ -699,6 +699,7 @@ static const struct gpu_ops gm20b_ops = {
 	.ramin = {
 		.set_gr_ptr = gk20a_ramin_set_gr_ptr,
 		.set_big_page_size = gm20b_ramin_set_big_page_size,
+		.init_pdb = gk20a_ramin_init_pdb,
 	},
 	.runlist = {
 		.update_for_channel = gk20a_runlist_update_for_channel,
@@ -755,7 +756,6 @@ static const struct gpu_ops gm20b_ops = {
 		.gpu_phys_addr = gm20b_gpu_phys_addr,
 		.get_iommu_bit = gk20a_mm_get_iommu_bit,
 		.get_mmu_levels = gk20a_mm_get_mmu_levels,
-		.init_pdb = gk20a_mm_init_pdb,
 		.init_mm_setup_hw = gk20a_init_mm_setup_hw,
 		.is_bar1_supported = gm20b_mm_is_bar1_supported,
 		.alloc_inst_block = gk20a_alloc_inst_block,

@@ -38,7 +38,7 @@ gp10b_init_bar2_vm
 gp10b_mm_get_default_big_page_size
 gp10b_mm_get_iommu_bit
 gp10b_mm_get_mmu_levels
-gp10b_mm_init_pdb
+gp10b_ramin_init_pdb
 gp10b_remove_bar2_vm
 gv11b_channel_count
 gv11b_fb_enable_hub_intr

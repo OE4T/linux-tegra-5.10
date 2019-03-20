@@ -373,36 +373,16 @@ int gk20a_vm_bind_channel(struct vm_gk20a *vm, struct channel_gk20a *ch)
 	return err;
 }
 
-void gk20a_mm_init_pdb(struct gk20a *g, struct nvgpu_mem *inst_block,
-		struct vm_gk20a *vm)
-{
-	u64 pdb_addr = nvgpu_pd_gpu_addr(g, &vm->pdb);
-	u32 pdb_addr_lo = u64_lo32(pdb_addr >> ram_in_base_shift_v());
-	u32 pdb_addr_hi = u64_hi32(pdb_addr);
-
-	nvgpu_log_info(g, "pde pa=0x%llx", pdb_addr);
-
-	nvgpu_mem_wr32(g, inst_block, ram_in_page_dir_base_lo_w(),
-		       nvgpu_aperture_mask(g, vm->pdb.mem,
-				ram_in_page_dir_base_target_sys_mem_ncoh_f(),
-				ram_in_page_dir_base_target_sys_mem_coh_f(),
-				ram_in_page_dir_base_target_vid_mem_f()) |
-		       ram_in_page_dir_base_vol_true_f() |
-		       ram_in_page_dir_base_lo_f(pdb_addr_lo));
-
-	nvgpu_mem_wr32(g, inst_block, ram_in_page_dir_base_hi_w(),
-		ram_in_page_dir_base_hi_f(pdb_addr_hi));
-}
-
 void gk20a_init_inst_block(struct nvgpu_mem *inst_block, struct vm_gk20a *vm,
 		u32 big_page_size)
 {
 	struct gk20a *g = gk20a_from_vm(vm);
+	u64 pdb_addr = nvgpu_pd_gpu_addr(g, &vm->pdb);
 
 	nvgpu_log_info(g, "inst block phys = 0x%llx, kv = 0x%p",
 		nvgpu_inst_block_addr(g, inst_block), inst_block->cpu_va);
 
-	g->ops.mm.init_pdb(g, inst_block, vm);
+	g->ops.ramin.init_pdb(g, inst_block, pdb_addr, vm->pdb.mem);
 
 	nvgpu_mem_wr32(g, inst_block, ram_in_adr_limit_lo_w(),
 		u64_lo32(vm->va_limit - 1U) & ~0xfffU);

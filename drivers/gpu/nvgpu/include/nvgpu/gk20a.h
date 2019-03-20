@@ -1022,6 +1022,8 @@ struct gpu_ops {
 				struct nvgpu_mem *inst_block, u64 gpu_va);
 		void (*set_big_page_size)(struct gk20a *g,
 				struct nvgpu_mem *mem, u32 size);
+		void (*init_pdb)(struct gk20a *g, struct nvgpu_mem *inst_block,
+				u64 pdb_addr, struct nvgpu_mem *pdb_mem);
 	} ramin;
 	struct {
 		int (*reschedule)(struct channel_gk20a *ch, bool preempt_next);
@@ -1300,8 +1302,6 @@ struct gpu_ops {
 		void (*remove_bar2_vm)(struct gk20a *g);
 		const struct gk20a_mmu_level *
 			(*get_mmu_levels)(struct gk20a *g, u32 big_page_size);
-		void (*init_pdb)(struct gk20a *g, struct nvgpu_mem *inst_block,
-				struct vm_gk20a *vm);
 		u64 (*gpu_phys_addr)(struct gk20a *g,
 				     struct nvgpu_gmmu_attrs *attrs, u64 phys);
 		int (*alloc_inst_block)(struct gk20a *g,
