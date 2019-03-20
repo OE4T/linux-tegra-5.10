@@ -42,7 +42,7 @@ void gv100_apply_ctxsw_timeout_intr(struct gk20a *g)
 {
 	u32 timeout;
 
-	timeout = g->ch_wdt_timeout_ms*1000U;
+	timeout = g->ch_wdt_init_limit_ms*1000U;
 	timeout = scale_ptimer(timeout,
 		ptimer_scalingfactor10x(g->ptimer_src_freq));
 	timeout |= fifo_eng_timeout_detection_enabled_f();

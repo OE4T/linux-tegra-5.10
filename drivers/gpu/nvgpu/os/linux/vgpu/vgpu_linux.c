@@ -360,7 +360,7 @@ int vgpu_probe(struct platform_device *pdev)
 
 	nvgpu_spinlock_init(&gk20a->mc_enable_lock);
 
-	gk20a->ch_wdt_timeout_ms = platform->ch_wdt_timeout_ms;
+	gk20a->ch_wdt_init_limit_ms = platform->ch_wdt_init_limit_ms;
 
 	/* Initialize the platform interface. */
 	err = platform->probe(dev);

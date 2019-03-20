@@ -355,8 +355,8 @@ void gk20a_debug_init(struct gk20a *g, const char *debugfs_symlink)
 	debugfs_create_u32("trace_cmdbuf", S_IRUGO|S_IWUSR,
 		l->debugfs, &gk20a_debug_trace_cmdbuf);
 
-	debugfs_create_u32("ch_wdt_timeout_ms", S_IRUGO|S_IWUSR,
-		l->debugfs, &g->ch_wdt_timeout_ms);
+	debugfs_create_u32("ch_wdt_init_limit_ms", S_IRUGO|S_IWUSR,
+		l->debugfs, &g->ch_wdt_init_limit_ms);
 
 	debugfs_create_u32("disable_syncpoints", S_IRUGO,
 		l->debugfs, &g->disable_syncpoints);

@@ -343,7 +343,7 @@ bool gv11b_fifo_handle_ctxsw_timeout(struct gk20a *g, u32 fifo_intr)
 				ms);
 
 				/* Cancel all channels' timeout */
-				gk20a_channel_timeout_restart_all_channels(g);
+				nvgpu_channel_wdt_restart_all_channels(g);
 				gk20a_fifo_recover(g, BIT32(active_eng_id),
 						tsgid, true, true, verbose,
 						RC_TYPE_CTXSW_TIMEOUT);

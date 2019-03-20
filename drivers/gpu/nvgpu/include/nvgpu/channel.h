@@ -168,7 +168,7 @@ struct channel_gk20a_joblist {
 	struct nvgpu_mutex cleanup_lock;
 };
 
-struct channel_gk20a_timeout {
+struct nvgpu_channel_wdt {
 	/* lock protects the running timer state */
 	struct nvgpu_spinlock lock;
 	struct nvgpu_timeout timer;
@@ -276,7 +276,7 @@ struct channel_gk20a {
 	struct nvgpu_cond semaphore_wq;
 
 	/* kernel watchdog to kill stuck jobs */
-	struct channel_gk20a_timeout timeout;
+	struct nvgpu_channel_wdt wdt;
 
 	/* for job cleanup handling in the background worker */
 	struct nvgpu_list_node worker_item;
@@ -429,7 +429,7 @@ struct channel_gk20a *gk20a_open_new_channel(struct gk20a *g,
 int nvgpu_channel_setup_bind(struct channel_gk20a *c,
 		struct nvgpu_setup_bind_args *args);
 
-void gk20a_channel_timeout_restart_all_channels(struct gk20a *g);
+void nvgpu_channel_wdt_restart_all_channels(struct gk20a *g);
 
 bool channel_gk20a_is_prealloc_enabled(struct channel_gk20a *c);
 void channel_gk20a_joblist_lock(struct channel_gk20a *c);

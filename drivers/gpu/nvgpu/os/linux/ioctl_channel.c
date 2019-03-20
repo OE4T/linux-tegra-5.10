@@ -286,16 +286,16 @@ static int gk20a_channel_set_wdt_status(struct channel_gk20a *ch,
 			NVGPU_IOCTL_CHANNEL_ENABLE_WDT);
 
 	if (status == NVGPU_IOCTL_CHANNEL_DISABLE_WDT)
-		ch->timeout.enabled = false;
+		ch->wdt.enabled = false;
 	else if (status == NVGPU_IOCTL_CHANNEL_ENABLE_WDT)
-		ch->timeout.enabled = true;
+		ch->wdt.enabled = true;
 	else
 		return -EINVAL;
 
 	if (args->wdt_status & NVGPU_IOCTL_CHANNEL_WDT_FLAG_SET_TIMEOUT)
-		ch->timeout.limit_ms = args->timeout_ms;
+		ch->wdt.limit_ms = args->timeout_ms;
 
-	ch->timeout.debug_dump = (args->wdt_status &
+	ch->wdt.debug_dump = (args->wdt_status &
 			NVGPU_IOCTL_CHANNEL_WDT_FLAG_DISABLE_DUMP) == 0;
 
 	return 0;

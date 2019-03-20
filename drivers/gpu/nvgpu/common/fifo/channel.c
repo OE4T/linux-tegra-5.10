@@ -746,9 +746,9 @@ struct channel_gk20a *gk20a_open_new_channel(struct gk20a *g,
 	ch->unserviceable = false;
 
 	/* init kernel watchdog timeout */
-	ch->timeout.enabled = true;
-	ch->timeout.limit_ms = g->ch_wdt_timeout_ms;
-	ch->timeout.debug_dump = true;
+	ch->wdt.enabled = true;
+	ch->wdt.limit_ms = g->ch_wdt_init_limit_ms;
+	ch->wdt.debug_dump = true;
 
 	ch->obj_class = 0;
 	ch->subctx_id = 0;
@@ -1282,10 +1282,10 @@ int nvgpu_channel_setup_bind(struct channel_gk20a *c,
 		}
 	}
 
-	if (!nvgpu_is_timeouts_enabled(c->g) || !c->timeout.enabled) {
+	if (!nvgpu_is_timeouts_enabled(c->g) || !c->wdt.enabled) {
 		acquire_timeout = 0;
 	} else {
-		acquire_timeout = c->timeout.limit_ms;
+		acquire_timeout = c->wdt.limit_ms;
 	}
 
 	err = g->ops.fifo.setup_ramfc(c, gpfifo_gpu_va,
@@ -1507,20 +1507,20 @@ u32 nvgpu_get_gp_free_count(struct channel_gk20a *c)
 	return nvgpu_gp_free_count(c);
 }
 
-static void __gk20a_channel_timeout_start(struct channel_gk20a *ch)
+static void nvgpu_channel_wdt_init(struct channel_gk20a *ch)
 {
 	struct gk20a *g = ch->g;
 
 	if (gk20a_channel_check_unserviceable(ch)) {
-		ch->timeout.running = false;
+		ch->wdt.running = false;
 		return;
 	}
 
-	ch->timeout.gp_get = g->ops.userd.gp_get(g, ch);
-	ch->timeout.pb_get = g->ops.userd.pb_get(g, ch);
-	ch->timeout.running = true;
-	nvgpu_timeout_init(g, &ch->timeout.timer,
-			   ch->timeout.limit_ms,
+	ch->wdt.gp_get = g->ops.userd.gp_get(g, ch);
+	ch->wdt.pb_get = g->ops.userd.pb_get(g, ch);
+	ch->wdt.running = true;
+	nvgpu_timeout_init(g, &ch->wdt.timer,
+			   ch->wdt.limit_ms,
 			   NVGPU_TIMER_CPU_TIMER);
 }
 
@@ -1539,24 +1539,24 @@ static void __gk20a_channel_timeout_start(struct channel_gk20a *ch)
  * actually stuck at that time. After the timeout duration has expired, a
  * worker thread will consider the channel stuck and recover it if stuck.
  */
-static void gk20a_channel_timeout_start(struct channel_gk20a *ch)
+static void nvgpu_channel_wdt_start(struct channel_gk20a *ch)
 {
 	if (!nvgpu_is_timeouts_enabled(ch->g)) {
 		return;
 	}
 
-	if (!ch->timeout.enabled) {
+	if (!ch->wdt.enabled) {
 		return;
 	}
 
-	nvgpu_spinlock_acquire(&ch->timeout.lock);
+	nvgpu_spinlock_acquire(&ch->wdt.lock);
 
-	if (ch->timeout.running) {
-		nvgpu_spinlock_release(&ch->timeout.lock);
+	if (ch->wdt.running) {
+		nvgpu_spinlock_release(&ch->wdt.lock);
 		return;
 	}
-	__gk20a_channel_timeout_start(ch);
-	nvgpu_spinlock_release(&ch->timeout.lock);
+	nvgpu_channel_wdt_init(ch);
+	nvgpu_spinlock_release(&ch->wdt.lock);
 }
 
 /**
@@ -1570,14 +1570,14 @@ static void gk20a_channel_timeout_start(struct channel_gk20a *ch)
  * (This should be called from an update handler running in the same thread
  * with the watchdog.)
  */
-static bool gk20a_channel_timeout_stop(struct channel_gk20a *ch)
+static bool nvgpu_channel_wdt_stop(struct channel_gk20a *ch)
 {
 	bool was_running;
 
-	nvgpu_spinlock_acquire(&ch->timeout.lock);
-	was_running = ch->timeout.running;
-	ch->timeout.running = false;
-	nvgpu_spinlock_release(&ch->timeout.lock);
+	nvgpu_spinlock_acquire(&ch->wdt.lock);
+	was_running = ch->wdt.running;
+	ch->wdt.running = false;
+	nvgpu_spinlock_release(&ch->wdt.lock);
 	return was_running;
 }
 
@@ -1590,11 +1590,11 @@ static bool gk20a_channel_timeout_stop(struct channel_gk20a *ch)
  * (This should be called from an update handler running in the same thread
  * with the watchdog.)
  */
-static void gk20a_channel_timeout_continue(struct channel_gk20a *ch)
+static void nvgpu_channel_wdt_continue(struct channel_gk20a *ch)
 {
-	nvgpu_spinlock_acquire(&ch->timeout.lock);
-	ch->timeout.running = true;
-	nvgpu_spinlock_release(&ch->timeout.lock);
+	nvgpu_spinlock_acquire(&ch->wdt.lock);
+	ch->wdt.running = true;
+	nvgpu_spinlock_release(&ch->wdt.lock);
 }
 
 /**
@@ -1607,13 +1607,13 @@ static void gk20a_channel_timeout_continue(struct channel_gk20a *ch)
  * timeouts. Stopped timeouts can only be started (which is technically a
  * rewind too) or continued (where the stop is actually pause).
  */
-static void gk20a_channel_timeout_rewind(struct channel_gk20a *ch)
+static void nvgpu_channel_wdt_rewind(struct channel_gk20a *ch)
 {
-	nvgpu_spinlock_acquire(&ch->timeout.lock);
-	if (ch->timeout.running) {
-		__gk20a_channel_timeout_start(ch);
+	nvgpu_spinlock_acquire(&ch->wdt.lock);
+	if (ch->wdt.running) {
+		nvgpu_channel_wdt_init(ch);
 	}
-	nvgpu_spinlock_release(&ch->timeout.lock);
+	nvgpu_spinlock_release(&ch->wdt.lock);
 }
 
 /**
@@ -1624,7 +1624,7 @@ static void gk20a_channel_timeout_rewind(struct channel_gk20a *ch)
  * called when a global hang is detected that could cause a false positive on
  * other innocent channels.
  */
-void gk20a_channel_timeout_restart_all_channels(struct gk20a *g)
+void nvgpu_channel_wdt_restart_all_channels(struct gk20a *g)
 {
 	struct fifo_gk20a *f = &g->fifo;
 	u32 chid;
@@ -1634,7 +1634,7 @@ void gk20a_channel_timeout_restart_all_channels(struct gk20a *g)
 
 		if (ch != NULL) {
 			if (!gk20a_channel_check_unserviceable(ch)) {
-				gk20a_channel_timeout_rewind(ch);
+				nvgpu_channel_wdt_rewind(ch);
 			}
 			gk20a_channel_put(ch);
 		}
@@ -1651,7 +1651,7 @@ void gk20a_channel_timeout_restart_all_channels(struct gk20a *g)
  * The gpu is implicitly on at this point, because the watchdog can only run on
  * channels that have submitted jobs pending for cleanup.
  */
-static void gk20a_channel_timeout_handler(struct channel_gk20a *ch)
+static void nvgpu_channel_wdt_handler(struct channel_gk20a *ch)
 {
 	struct gk20a *g = ch->g;
 	u32 gp_get;
@@ -1663,36 +1663,36 @@ static void gk20a_channel_timeout_handler(struct channel_gk20a *ch)
 
 	if (gk20a_channel_check_unserviceable(ch)) {
 		/* channel is already recovered */
-		gk20a_channel_timeout_stop(ch);
+		nvgpu_channel_wdt_stop(ch);
 		return;
 	}
 
 	/* Get status but keep timer running */
-	nvgpu_spinlock_acquire(&ch->timeout.lock);
-	gp_get = ch->timeout.gp_get;
-	pb_get = ch->timeout.pb_get;
-	nvgpu_spinlock_release(&ch->timeout.lock);
+	nvgpu_spinlock_acquire(&ch->wdt.lock);
+	gp_get = ch->wdt.gp_get;
+	pb_get = ch->wdt.pb_get;
+	nvgpu_spinlock_release(&ch->wdt.lock);
 
 	new_gp_get = g->ops.userd.gp_get(g, ch);
 	new_pb_get = g->ops.userd.pb_get(g, ch);
 
 	if (new_gp_get != gp_get || new_pb_get != pb_get) {
 		/* Channel has advanced, timer keeps going but resets */
-		gk20a_channel_timeout_rewind(ch);
-	} else if (nvgpu_timeout_peek_expired(&ch->timeout.timer) == 0) {
+		nvgpu_channel_wdt_rewind(ch);
+	} else if (nvgpu_timeout_peek_expired(&ch->wdt.timer) == 0) {
 		/* Seems stuck but waiting to time out */
 	} else {
 		nvgpu_err(g, "Job on channel %d timed out",
 			  ch->chid);
 
 		/* force reset calls gk20a_debug_dump but not this */
-		if (ch->timeout.debug_dump) {
+		if (ch->wdt.debug_dump) {
 			gk20a_gr_debug_dump(g);
 		}
 
 		g->ops.fifo.force_reset_ch(ch,
 			NVGPU_ERR_NOTIFIER_FIFO_ERROR_IDLE_TIMEOUT,
-			ch->timeout.debug_dump);
+			ch->wdt.debug_dump);
 	}
 }
 
@@ -1707,23 +1707,23 @@ static void gk20a_channel_timeout_handler(struct channel_gk20a *ch)
  * The timeout is stopped (disabled) after the last job in a row finishes
  * and marks the channel idle.
  */
-static void gk20a_channel_timeout_check(struct channel_gk20a *ch)
+static void nvgpu_channel_wdt_check(struct channel_gk20a *ch)
 {
 	bool running;
 
-	nvgpu_spinlock_acquire(&ch->timeout.lock);
-	running = ch->timeout.running;
-	nvgpu_spinlock_release(&ch->timeout.lock);
+	nvgpu_spinlock_acquire(&ch->wdt.lock);
+	running = ch->wdt.running;
+	nvgpu_spinlock_release(&ch->wdt.lock);
 
 	if (running) {
-		gk20a_channel_timeout_handler(ch);
+		nvgpu_channel_wdt_handler(ch);
 	}
 }
 
 /**
  * Loop every living channel, check timeouts and handle stuck channels.
  */
-static void gk20a_channel_poll_timeouts(struct gk20a *g)
+static void nvgpu_channel_poll_wdt(struct gk20a *g)
 {
 	unsigned int chid;
 
@@ -1733,7 +1733,7 @@ static void gk20a_channel_poll_timeouts(struct gk20a *g)
 
 		if (ch != NULL) {
 			if (!gk20a_channel_check_unserviceable(ch)) {
-				gk20a_channel_timeout_check(ch);
+				nvgpu_channel_wdt_check(ch);
 			}
 			gk20a_channel_put(ch);
 		}
@@ -1879,7 +1879,7 @@ static int gk20a_channel_poll_worker(void *arg)
 		}
 
 		if (nvgpu_timeout_peek_expired(&timeout) != 0) {
-			gk20a_channel_poll_timeouts(g);
+			nvgpu_channel_poll_wdt(g);
 			nvgpu_timeout_init(g, &timeout, watchdog_interval,
 					NVGPU_TIMER_CPU_TIMER);
 		}
@@ -2057,7 +2057,7 @@ int gk20a_channel_add_job(struct channel_gk20a *c,
 		job->num_mapped_buffers = num_mapped_buffers;
 		job->mapped_buffers = mapped_buffers;
 
-		gk20a_channel_timeout_start(c);
+		nvgpu_channel_wdt_start(c);
 
 		if (!pre_alloc_enabled) {
 			channel_gk20a_joblist_lock(c);
@@ -2124,7 +2124,7 @@ void gk20a_channel_clean_up_jobs(struct channel_gk20a *c,
 	 * anyway (this would be a no-op).
 	 */
 	if (clean_all) {
-		watchdog_on = gk20a_channel_timeout_stop(c);
+		watchdog_on = nvgpu_channel_wdt_stop(c);
 	}
 
 	/* Synchronize with abort cleanup that needs the jobs. */
@@ -2162,7 +2162,7 @@ void gk20a_channel_clean_up_jobs(struct channel_gk20a *c,
 			 * later timeout is still used.
 			 */
 			if (clean_all && watchdog_on) {
-				gk20a_channel_timeout_continue(c);
+				nvgpu_channel_wdt_continue(c);
 			}
 			break;
 		}
@@ -2406,7 +2406,7 @@ int gk20a_init_channel_support(struct gk20a *g, u32 chid)
 	nvgpu_spinlock_init(&c->ref_actions_lock);
 #endif
 	nvgpu_spinlock_init(&c->joblist.dynamic.lock);
-	nvgpu_spinlock_init(&c->timeout.lock);
+	nvgpu_spinlock_init(&c->wdt.lock);
 
 	nvgpu_init_list_node(&c->joblist.dynamic.jobs);
 	nvgpu_init_list_node(&c->dbg_s_list);

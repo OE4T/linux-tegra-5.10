@@ -98,7 +98,7 @@ static struct gk20a_platform nvgpu_pci_device[] = {
 	.is_railgated = nvgpu_pci_tegra_is_railgated,
 	.clk_round_rate = nvgpu_pci_clk_round_rate,
 
-	.ch_wdt_timeout_ms = 7000,
+	.ch_wdt_init_limit_ms = 7000,
 
 	.unify_address_spaces = true,
 	.honors_aperture = true,
@@ -133,7 +133,7 @@ static struct gk20a_platform nvgpu_pci_device[] = {
 	.is_railgated = nvgpu_pci_tegra_is_railgated,
 	.clk_round_rate = nvgpu_pci_clk_round_rate,
 
-	.ch_wdt_timeout_ms = 7000,
+	.ch_wdt_init_limit_ms = 7000,
 
 	.unify_address_spaces = true,
 	.honors_aperture = true,
@@ -168,7 +168,7 @@ static struct gk20a_platform nvgpu_pci_device[] = {
 	.is_railgated = nvgpu_pci_tegra_is_railgated,
 	.clk_round_rate = nvgpu_pci_clk_round_rate,
 
-	.ch_wdt_timeout_ms = 7000,
+	.ch_wdt_init_limit_ms = 7000,
 
 	.unify_address_spaces = true,
 	.honors_aperture = true,
@@ -205,7 +205,7 @@ static struct gk20a_platform nvgpu_pci_device[] = {
 	.is_railgated = nvgpu_pci_tegra_is_railgated,
 	.clk_round_rate = nvgpu_pci_clk_round_rate,
 
-	.ch_wdt_timeout_ms = 7000,
+	.ch_wdt_init_limit_ms = 7000,
 
 	.unify_address_spaces = true,
 	.honors_aperture = true,
@@ -244,7 +244,7 @@ static struct gk20a_platform nvgpu_pci_device[] = {
 	/*
 	 * WAR: PCIE X1 is very slow, set to very high value till nvlink is up
 	 */
-	.ch_wdt_timeout_ms = 30000,
+	.ch_wdt_init_limit_ms = 30000,
 
 	.unify_address_spaces = true,
 	.honors_aperture = true,
@@ -280,7 +280,7 @@ static struct gk20a_platform nvgpu_pci_device[] = {
 	.is_railgated = nvgpu_pci_tegra_is_railgated,
 	.clk_round_rate = nvgpu_pci_clk_round_rate,
 
-	.ch_wdt_timeout_ms = 7000,
+	.ch_wdt_init_limit_ms = 7000,
 
 	.unify_address_spaces = true,
 	.honors_aperture = true,

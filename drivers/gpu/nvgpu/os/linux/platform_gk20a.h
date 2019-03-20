@@ -135,7 +135,7 @@ struct gk20a_platform {
 	bool enable_mscg;
 
 	/* Timeout for per-channel watchdog (in mS) */
-	u32 ch_wdt_timeout_ms;
+	u32 ch_wdt_init_limit_ms;
 
 	/* Disable big page support */
 	bool disable_bigpage;

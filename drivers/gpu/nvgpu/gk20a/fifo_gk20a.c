@@ -1255,7 +1255,7 @@ bool gk20a_fifo_handle_sched_error(struct gk20a *g)
 			 * Cancel all channels' timeout since SCHED error might
 			 * trigger multiple watchdogs at a time
 			 */
-			gk20a_channel_timeout_restart_all_channels(g);
+			nvgpu_channel_wdt_restart_all_channels(g);
 			gk20a_fifo_recover(g, BIT(engine_id), id,
 					is_tsg, true, verbose,
 					RC_TYPE_CTXSW_TIMEOUT);

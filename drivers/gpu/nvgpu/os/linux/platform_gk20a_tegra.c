@@ -904,7 +904,7 @@ struct gk20a_platform gm20b_tegra_platform = {
 
 	.force_reset_in_do_idle = false,
 
-	.ch_wdt_timeout_ms = 5000,
+	.ch_wdt_init_limit_ms = 5000,
 
 	.probe = gk20a_tegra_probe,
 	.late_probe = gk20a_tegra_late_probe,

@@ -79,7 +79,7 @@ struct gk20a_platform vgpu_tegra_platform = {
 	.can_blcg               = false,
 	.can_elcg               = false,
 
-	.ch_wdt_timeout_ms = 5000,
+	.ch_wdt_init_limit_ms = 5000,
 
 	.probe = gk20a_tegra_probe,
 
