@@ -312,13 +312,14 @@ struct channel_gk20a {
 
 	u32 obj_class;	/* we support only one obj per channel */
 
-	u32 timeout_accumulated_ms;
-	u32 timeout_gpfifo_get;
+	u32 ctxsw_timeout_accumulated_ms;
+	u32 ctxsw_timeout_gpfifo_get;
+	u32 ctxsw_timeout_max_ms;
+	bool ctxsw_timeout_debug_dump;
 
 	u32 subctx_id;
 	u32 runqueue_sel;
 
-	u32 timeout_ms_max;
 	u32 runlist_id;
 
 	bool mmu_nack_handled;
@@ -329,7 +330,6 @@ struct channel_gk20a {
 	bool deterministic_railgate_allowed;
 	bool cde;
 	bool usermode_submit_enabled;
-	bool timeout_debug_dump;
 	bool has_os_fence_framework_support;
 
 	bool is_privileged_channel;
@@ -373,7 +373,7 @@ void nvgpu_channel_set_ctx_mmu_error(struct gk20a *g,
 		struct channel_gk20a *ch);
 bool nvgpu_channel_mark_error(struct gk20a *g, struct channel_gk20a *ch);
 
-bool gk20a_channel_update_and_check_timeout(struct channel_gk20a *ch,
+bool nvgpu_channel_update_and_check_ctxsw_timeout(struct channel_gk20a *ch,
 		u32 timeout_delta_ms, bool *progress);
 bool nvgpu_channel_check_ctxsw_timeout(struct channel_gk20a *ch,
 		bool *verbose, u32 *ms);

@@ -93,7 +93,7 @@ static int gk20a_fifo_sched_debugfs_seq_show(
 				ch->tsgid,
 				ch->tgid,
 				tsg->timeslice_us,
-				ch->timeout_ms_max,
+				ch->ctxsw_timeout_max_ms,
 				tsg->interleave_level,
 				tsg->gr_ctx->graphics_preempt_mode,
 				tsg->gr_ctx->compute_preempt_mode);

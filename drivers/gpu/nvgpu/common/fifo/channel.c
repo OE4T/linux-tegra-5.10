@@ -738,11 +738,11 @@ struct channel_gk20a *gk20a_open_new_channel(struct gk20a *g,
 	ch->tsgid = NVGPU_INVALID_TSG_ID;
 
 	/* clear ctxsw timeout counter and update timestamp */
-	ch->timeout_accumulated_ms = 0;
-	ch->timeout_gpfifo_get = 0;
+	ch->ctxsw_timeout_accumulated_ms = 0;
+	ch->ctxsw_timeout_gpfifo_get = 0;
 	/* set gr host default timeout */
-	ch->timeout_ms_max = gk20a_get_gr_idle_timeout(g);
-	ch->timeout_debug_dump = true;
+	ch->ctxsw_timeout_max_ms = gk20a_get_gr_idle_timeout(g);
+	ch->ctxsw_timeout_debug_dump = true;
 	ch->unserviceable = false;
 
 	/* init kernel watchdog timeout */
@@ -1384,13 +1384,13 @@ u32 nvgpu_gp_free_count(struct channel_gk20a *c)
 		c->gpfifo.entry_num;
 }
 
-static bool nvgpu_channel_timeout_debug_dump_state(struct gk20a *g,
+static bool nvgpu_channel_ctxsw_timeout_debug_dump_state(struct gk20a *g,
 		struct channel_gk20a *ch)
 {
 	bool verbose = false;
 	if (nvgpu_is_error_notifier_set(ch,
 			NVGPU_ERR_NOTIFIER_FIFO_ERROR_IDLE_TIMEOUT)) {
-		verbose = ch->timeout_debug_dump;
+		verbose = ch->ctxsw_timeout_debug_dump;
 	}
 
 	return verbose;
@@ -1411,7 +1411,7 @@ bool nvgpu_channel_mark_error(struct gk20a *g, struct channel_gk20a *ch)
 {
 	bool verbose;
 
-	verbose = nvgpu_channel_timeout_debug_dump_state(g, ch);
+	verbose = nvgpu_channel_ctxsw_timeout_debug_dump_state(g, ch);
 	nvgpu_channel_set_has_timedout_and_wakeup_wqs(g, ch);
 
 	return verbose;
@@ -1432,26 +1432,25 @@ void nvgpu_channel_set_ctx_mmu_error(struct gk20a *g,
 				NVGPU_ERR_NOTIFIER_FIFO_ERROR_MMU_ERR_FLT);
 }
 
-bool gk20a_channel_update_and_check_timeout(struct channel_gk20a *ch,
+bool nvgpu_channel_update_and_check_ctxsw_timeout(struct channel_gk20a *ch,
 		u32 timeout_delta_ms, bool *progress)
 {
 	u32 gpfifo_get = update_gp_get(ch->g, ch);
 
-	/* Count consequent timeout isr */
-	if (gpfifo_get == ch->timeout_gpfifo_get) {
-		/* we didn't advance since previous channel timeout check */
-		ch->timeout_accumulated_ms += timeout_delta_ms;
+	if (gpfifo_get == ch->ctxsw_timeout_gpfifo_get) {
+		/* didn't advance since previous ctxsw timeout check */
+		ch->ctxsw_timeout_accumulated_ms += timeout_delta_ms;
 		*progress = false;
 	} else {
-		/* first timeout isr encountered */
-		ch->timeout_accumulated_ms = timeout_delta_ms;
+		/* first ctxsw timeout isr encountered */
+		ch->ctxsw_timeout_accumulated_ms = timeout_delta_ms;
 		*progress = true;
 	}
 
-	ch->timeout_gpfifo_get = gpfifo_get;
+	ch->ctxsw_timeout_gpfifo_get = gpfifo_get;
 
 	return nvgpu_is_timeouts_enabled(ch->g) &&
-		ch->timeout_accumulated_ms > ch->timeout_ms_max;
+		ch->ctxsw_timeout_accumulated_ms > ch->ctxsw_timeout_max_ms;
 }
 
 bool nvgpu_channel_check_ctxsw_timeout(struct channel_gk20a *ch,
@@ -1461,11 +1460,11 @@ bool nvgpu_channel_check_ctxsw_timeout(struct channel_gk20a *ch,
 	bool progress = false;
 	struct gk20a *g = ch->g;
 
-	recover = gk20a_channel_update_and_check_timeout(ch,
+	recover = nvgpu_channel_update_and_check_ctxsw_timeout(ch,
 			g->fifo_eng_timeout_us / 1000U,
 			&progress);
-	*verbose = ch->timeout_debug_dump;
-	*ms = ch->timeout_accumulated_ms;
+	*verbose = ch->ctxsw_timeout_debug_dump;
+	*ms = ch->ctxsw_timeout_accumulated_ms;
 	if (recover) {
 		nvgpu_channel_set_error_notifier(g, ch,
 				NVGPU_ERR_NOTIFIER_FIFO_ERROR_IDLE_TIMEOUT);

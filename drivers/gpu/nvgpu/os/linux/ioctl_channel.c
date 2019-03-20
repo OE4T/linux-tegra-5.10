@@ -89,7 +89,7 @@ static void gk20a_channel_trace_sched_param(
 
 	(trace)(ch->chid, ch->tsgid, ch->pid,
 		tsg_gk20a_from_ch(ch)->timeslice_us,
-		ch->timeout_ms_max,
+		ch->ctxsw_timeout_max_ms,
 		gk20a_fifo_interleave_level_name(tsg->interleave_level),
 		gr_gk20a_graphics_preempt_mode_name(
 			tsg->gr_ctx->graphics_preempt_mode),
@@ -1242,7 +1242,7 @@ long gk20a_channel_ioctl(struct file *filp,
 			(u32)((struct nvgpu_set_timeout_args *)buf)->timeout;
 		nvgpu_log(g, gpu_dbg_gpu_dbg, "setting timeout (%d ms) for chid %d",
 			   timeout, ch->chid);
-		ch->timeout_ms_max = timeout;
+		ch->ctxsw_timeout_max_ms = timeout;
 		gk20a_channel_trace_sched_param(
 			trace_gk20a_channel_set_timeout, ch);
 		break;
@@ -1251,13 +1251,13 @@ long gk20a_channel_ioctl(struct file *filp,
 	{
 		u32 timeout =
 			(u32)((struct nvgpu_set_timeout_args *)buf)->timeout;
-		bool timeout_debug_dump = !((u32)
+		bool ctxsw_timeout_debug_dump = !((u32)
 			((struct nvgpu_set_timeout_ex_args *)buf)->flags &
 			(1 << NVGPU_TIMEOUT_FLAG_DISABLE_DUMP));
 		nvgpu_log(g, gpu_dbg_gpu_dbg, "setting timeout (%d ms) for chid %d",
 			   timeout, ch->chid);
-		ch->timeout_ms_max = timeout;
-		ch->timeout_debug_dump = timeout_debug_dump;
+		ch->ctxsw_timeout_max_ms = timeout;
+		ch->ctxsw_timeout_debug_dump = ctxsw_timeout_debug_dump;
 		gk20a_channel_trace_sched_param(
 			trace_gk20a_channel_set_timeout, ch);
 		break;

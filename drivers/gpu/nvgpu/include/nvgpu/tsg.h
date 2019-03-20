@@ -147,6 +147,7 @@ gk20a_event_id_data_from_event_id_node(struct nvgpu_list_node *node)
 
 void nvgpu_tsg_set_error_notifier(struct gk20a *g, struct tsg_gk20a *tsg,
 		u32 error_notifier);
-bool nvgpu_tsg_timeout_debug_dump_state(struct tsg_gk20a *tsg);
-void nvgpu_tsg_set_timeout_accumulated_ms(struct tsg_gk20a *tsg, u32 ms);
+bool nvgpu_tsg_ctxsw_timeout_debug_dump_state(struct tsg_gk20a *tsg);
+void nvgpu_tsg_set_ctxsw_timeout_accumulated_ms(struct tsg_gk20a *tsg, u32 ms);
+
 #endif /* TSG_GK20A_H */
