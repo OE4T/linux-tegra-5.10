@@ -63,3 +63,12 @@ void gk20a_ramin_init_pdb(struct gk20a *g, struct nvgpu_mem *inst_block,
 		ram_in_page_dir_base_hi_f(pdb_addr_hi));
 }
 
+void gk20a_ramin_set_adr_limit(struct gk20a *g,
+		struct nvgpu_mem *inst_block, u64 va_limit)
+{
+	nvgpu_mem_wr32(g, inst_block, ram_in_adr_limit_lo_w(),
+		u64_lo32(va_limit - 1U) & ~0xfffU);
+
+	nvgpu_mem_wr32(g, inst_block, ram_in_adr_limit_hi_w(),
+		ram_in_adr_limit_hi_f(u64_hi32(va_limit - 1U)));
+}

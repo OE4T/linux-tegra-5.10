@@ -700,6 +700,7 @@ static const struct gpu_ops gm20b_ops = {
 		.set_gr_ptr = gk20a_ramin_set_gr_ptr,
 		.set_big_page_size = gm20b_ramin_set_big_page_size,
 		.init_pdb = gk20a_ramin_init_pdb,
+		.set_adr_limit = gk20a_ramin_set_adr_limit,
 	},
 	.runlist = {
 		.update_for_channel = gk20a_runlist_update_for_channel,

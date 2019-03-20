@@ -788,6 +788,7 @@ static const struct gpu_ops gp10b_ops = {
 		.set_gr_ptr = gk20a_ramin_set_gr_ptr,
 		.set_big_page_size = gm20b_ramin_set_big_page_size,
 		.init_pdb = gp10b_ramin_init_pdb,
+		.set_adr_limit = gk20a_ramin_set_adr_limit,
 	},
 	.runlist = {
 		.reschedule = gk20a_runlist_reschedule,

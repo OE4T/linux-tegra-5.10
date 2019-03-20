@@ -1024,6 +1024,8 @@ struct gpu_ops {
 				struct nvgpu_mem *mem, u32 size);
 		void (*init_pdb)(struct gk20a *g, struct nvgpu_mem *inst_block,
 				u64 pdb_addr, struct nvgpu_mem *pdb_mem);
+		void (*set_adr_limit)(struct gk20a *g,
+				struct nvgpu_mem *inst_block, u64 va_limit);
 	} ramin;
 	struct {
 		int (*reschedule)(struct channel_gk20a *ch, bool preempt_next);
