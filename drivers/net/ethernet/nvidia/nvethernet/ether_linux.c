@@ -991,10 +991,28 @@ static int ether_tx_swcx_alloc(struct device *dev,
 			       struct osi_tx_ring *tx_ring,
 			       struct sk_buff *skb)
 {
+	struct osi_tx_pkt_cx *tx_pkt_cx = &tx_ring->tx_pkt_cx;
 	unsigned int cur_tx_idx = tx_ring->cur_tx_idx;
 	struct osi_tx_swcx *tx_swcx = NULL;
 	unsigned int len = 0;
 	int cnt = 0;
+
+	memset(tx_pkt_cx, 0, sizeof(*tx_pkt_cx));
+
+	if (unlikely(skb_vlan_tag_present(skb))) {
+		tx_pkt_cx->vtag_id = skb_vlan_tag_get(skb);
+		tx_pkt_cx->vtag_id |= (skb->priority << VLAN_PRIO_SHIFT);
+		tx_pkt_cx->flags = OSI_PKT_CX_VLAN;
+
+		tx_swcx = tx_ring->tx_swcx + cur_tx_idx;
+		if (tx_swcx->len) {
+			return 0;
+		}
+
+		tx_swcx->len = -1;
+		cnt++;
+		INCR_TX_DESC_INDEX(cur_tx_idx, 1U);
+	}
 
 	len = skb_headlen(skb);
 
@@ -1014,6 +1032,8 @@ static int ether_tx_swcx_alloc(struct device *dev,
 	tx_swcx->buf_virt_addr = skb;
 
 	cnt++;
+
+	tx_pkt_cx->desc_cnt = cnt;
 
 	return cnt;
 }
@@ -2016,6 +2036,12 @@ static int ether_probe(struct platform_device *pdev)
 	}
 
 	ndev->netdev_ops = &ether_netdev_ops;
+	ndev->hw_features |= NETIF_F_HW_VLAN_CTAG_RX;
+	if (pdata->hw_feat.sa_vlan_ins) {
+		ndev->hw_features |= NETIF_F_HW_VLAN_CTAG_TX;
+	}
+
+	ndev->features |= ndev->hw_features;
 
 	ret = ether_alloc_napi(pdata);
 	if (ret < 0) {

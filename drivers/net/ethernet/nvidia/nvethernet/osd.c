@@ -212,18 +212,25 @@ static void ether_realloc_rx_skb(struct ether_priv_data *pdata,
  *	Return: None.
  */
 void osd_receive_packet(void *priv, void *rxring, unsigned int chan,
-			unsigned int dma_buf_len, unsigned int rx_pkt_len)
+			unsigned int dma_buf_len, void *rxpkt_cx)
 {
 	struct ether_priv_data *pdata = (struct ether_priv_data *)priv;
 	struct osi_rx_ring *rx_ring = (struct osi_rx_ring *)rxring;
 	struct osi_rx_swcx *rx_swcx = rx_ring->rx_swcx + rx_ring->cur_rx_idx;
+	struct osi_rx_pkt_cx *rx_pkt_cx = (struct osi_rx_pkt_cx *)rxpkt_cx;
 	struct sk_buff *skb = (struct sk_buff *)rx_swcx->buf_virt_addr;
 	dma_addr_t dma_addr = (dma_addr_t)rx_swcx->buf_phy_addr;
 	struct net_device *ndev = pdata->ndev;
 
 	dma_unmap_single(pdata->dev, dma_addr, dma_buf_len, DMA_FROM_DEVICE);
 
-	skb_put(skb, rx_pkt_len);
+	skb_put(skb, rx_pkt_cx->pkt_len);
+
+	if ((rx_pkt_cx->flags & OSI_PKT_CX_VLAN) == OSI_PKT_CX_VLAN) {
+		__vlan_hwaccel_put_tag(skb, htons(ETH_P_8021Q),
+				       rx_pkt_cx->vlan_tag);
+	}
+
 	skb->dev = ndev;
 	skb->protocol = eth_type_trans(skb, ndev);
 	ndev->stats.rx_packets++;
