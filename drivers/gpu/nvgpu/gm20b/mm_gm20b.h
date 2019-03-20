@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -27,8 +27,6 @@ struct gk20a;
 #define PDE_ADDR_START(x, y)	((x) &  ~((0x1UL << (y)) - 1))
 #define PDE_ADDR_END(x, y)	((x) | ((0x1UL << (y)) - 1))
 
-void gm20b_mm_set_big_page_size(struct gk20a *g,
-				struct nvgpu_mem *mem, u32 size);
 u32 gm20b_mm_get_big_page_sizes(void);
 u32 gm20b_mm_get_default_big_page_size(void);
 bool gm20b_mm_support_sparse(struct gk20a *g);

@@ -46,6 +46,7 @@
 #include "hal/fb/fb_gp10b.h"
 #include "hal/fb/fb_gm20b.h"
 #include "hal/fb/fb_gv11b.h"
+#include "hal/fifo/ramin_gm20b.h"
 
 #define TEST_PA_ADDRESS 0xEFAD80000000
 #define TEST_COMP_TAG 0xEF
@@ -127,7 +128,6 @@ static int init_mm(struct unit_module *m, struct gk20a *g)
 	g->ops.mm.fault_info_mem_destroy = gv11b_mm_fault_info_mem_destroy;
 	g->ops.mm.mmu_fault_disable_hw = gv11b_mm_mmu_fault_disable_hw;
 	g->ops.mm.init_mm_setup_hw = gv11b_init_mm_setup_hw;
-	g->ops.mm.set_big_page_size = gm20b_mm_set_big_page_size;
 	g->ops.mm.l2_flush = gv11b_mm_l2_flush;
 	g->ops.fb.init_hw = gv11b_fb_init_hw;
 	g->ops.fb.enable_hub_intr = gv11b_fb_enable_hub_intr;
@@ -142,6 +142,7 @@ static int init_mm(struct unit_module *m, struct gk20a *g)
 	g->ops.fb.mmu_fault_pending = gv11b_fb_mmu_fault_pending;
 	g->ops.fb.is_fault_buf_enabled = gv11b_fb_is_fault_buf_enabled;
 	g->ops.fb.fault_buf_set_state_hw = gv11b_fb_fault_buf_set_state_hw;
+	g->ops.ramin.set_big_page_size = gm20b_ramin_set_big_page_size;
 	g->ops.channel.count = gv11b_channel_count;
 
 	/*
@@ -318,7 +319,7 @@ static int test_page_faults_inst_block(struct unit_module *m, struct gk20a *g,
 	} else if (scenario == 2) {
 		/* Handle branch case in gv11b_init_inst_block() */
 		big_page_size = g->ops.mm.get_default_big_page_size();
-		g->ops.mm.set_big_page_size = NULL;
+		g->ops.ramin.set_big_page_size = NULL;
 	}
 
 	if (g->ops.mm.alloc_inst_block(g, &inst_blk_desc) != 0) {

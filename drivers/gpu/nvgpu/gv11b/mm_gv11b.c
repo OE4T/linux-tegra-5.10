@@ -55,8 +55,8 @@ void gv11b_init_inst_block(struct nvgpu_mem *inst_block,
 
 	g->ops.mm.init_pdb(g, inst_block, vm);
 
-	if ((big_page_size != 0U) && (g->ops.mm.set_big_page_size != NULL)) {
-		g->ops.mm.set_big_page_size(g, inst_block, big_page_size);
+	if ((big_page_size != 0U) && (g->ops.ramin.set_big_page_size != NULL)) {
+		g->ops.ramin.set_big_page_size(g, inst_block, big_page_size);
 	}
 
 	gv11b_init_subcontext_pdb(vm, inst_block, false);

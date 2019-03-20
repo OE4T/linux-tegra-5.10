@@ -25,6 +25,7 @@
 #include "hal/fifo/engines_gm20b.h"
 #include "hal/fifo/pbdma_gm20b.h"
 #include "hal/fifo/pbdma_gp10b.h"
+#include "hal/fifo/ramin_gm20b.h"
 #include "hal/fifo/userd_gk20a.h"
 #include "hal/therm/therm_gm20b.h"
 #include "hal/therm/therm_gp10b.h"
@@ -502,6 +503,7 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 	},
 	.ramin = {
 		.set_gr_ptr = NULL,
+		.set_big_page_size = gm20b_ramin_set_big_page_size,
 	},
 	.runlist = {
 		.reschedule = NULL,
@@ -551,7 +553,6 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 		.l2_invalidate = vgpu_mm_l2_invalidate,
 		.l2_flush = vgpu_mm_l2_flush,
 		.cbc_clean = NULL,
-		.set_big_page_size = gm20b_mm_set_big_page_size,
 		.get_big_page_sizes = gm20b_mm_get_big_page_sizes,
 		.get_default_big_page_size = gp10b_mm_get_default_big_page_size,
 		.gpu_phys_addr = gm20b_gpu_phys_addr,

@@ -410,8 +410,8 @@ void gk20a_init_inst_block(struct nvgpu_mem *inst_block, struct vm_gk20a *vm,
 	nvgpu_mem_wr32(g, inst_block, ram_in_adr_limit_hi_w(),
 		ram_in_adr_limit_hi_f(u64_hi32(vm->va_limit - 1U)));
 
-	if ((big_page_size != 0U) && (g->ops.mm.set_big_page_size != NULL)) {
-		g->ops.mm.set_big_page_size(g, inst_block, big_page_size);
+	if ((big_page_size != 0U) && (g->ops.ramin.set_big_page_size != NULL)) {
+		g->ops.ramin.set_big_page_size(g, inst_block, big_page_size);
 	}
 }
 

@@ -32,7 +32,7 @@ gk20a_locked_gmmu_map
 gk20a_locked_gmmu_unmap
 gm20b_fb_tlb_invalidate
 gm20b_fuse_status_opt_gpc
-gm20b_mm_set_big_page_size
+gm20b_ramin_set_big_page_size
 gp10b_fb_compression_page_size
 gp10b_init_bar2_vm
 gp10b_mm_get_default_big_page_size

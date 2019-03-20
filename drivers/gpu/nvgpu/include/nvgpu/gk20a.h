@@ -1020,6 +1020,8 @@ struct gpu_ops {
 	struct {
 		void (*set_gr_ptr)(struct gk20a *g,
 				struct nvgpu_mem *inst_block, u64 gpu_va);
+		void (*set_big_page_size)(struct gk20a *g,
+				struct nvgpu_mem *mem, u32 size);
 	} ramin;
 	struct {
 		int (*reschedule)(struct channel_gk20a *ch, bool preempt_next);
@@ -1289,8 +1291,6 @@ struct gpu_ops {
 		void (*l2_invalidate)(struct gk20a *g);
 		int (*l2_flush)(struct gk20a *g, bool invalidate);
 		void (*cbc_clean)(struct gk20a *g);
-		void (*set_big_page_size)(struct gk20a *g,
-					  struct nvgpu_mem *mem, u32 size);
 		u32 (*get_big_page_sizes)(void);
 		u32 (*get_default_big_page_size)(void);
 		u32 (*get_iommu_bit)(struct gk20a *g);

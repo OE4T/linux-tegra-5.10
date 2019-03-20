@@ -58,6 +58,7 @@
 #include "hal/fifo/pbdma_status_gm20b.h"
 #include "hal/fifo/ramfc_gp10b.h"
 #include "hal/fifo/ramfc_gv11b.h"
+#include "hal/fifo/ramin_gm20b.h"
 #include "hal/fifo/ramin_gv11b.h"
 #include "hal/fifo/tsg_gv11b.h"
 #include "hal/fifo/userd_gk20a.h"
@@ -969,6 +970,7 @@ static const struct gpu_ops gv100_ops = {
 	},
 	.ramin = {
 		.set_gr_ptr = gv11b_ramin_set_gr_ptr,
+		.set_big_page_size = gm20b_ramin_set_big_page_size,
 	},
 	.runlist = {
 		.update_for_channel = gk20a_runlist_update_for_channel,
@@ -1021,7 +1023,6 @@ static const struct gpu_ops gv100_ops = {
 		.l2_invalidate = gk20a_mm_l2_invalidate,
 		.l2_flush = gv11b_mm_l2_flush,
 		.cbc_clean = gk20a_mm_cbc_clean,
-		.set_big_page_size = gm20b_mm_set_big_page_size,
 		.get_big_page_sizes = gm20b_mm_get_big_page_sizes,
 		.get_default_big_page_size = gp10b_mm_get_default_big_page_size,
 		.gpu_phys_addr = gv11b_gpu_phys_addr,
