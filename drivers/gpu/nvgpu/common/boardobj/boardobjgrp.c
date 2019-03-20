@@ -65,7 +65,7 @@ struct boardobjgrp_pmucmdhandler_params {
 	/* Pointer to structure representing this NV_PMU_BOARDOBJ_CMD_GRP */
 	struct boardobjgrp_pmu_cmd *pcmd;
 	/* Boolean indicating whether the PMU successfully handled the CMD */
-	u32 success;
+	bool success;
 };
 
 int boardobjgrp_construct_super(struct gk20a *g,
@@ -164,7 +164,7 @@ int boardobjgrp_destruct_super(struct boardobjgrp *pboardobjgrp)
 		}
 
 		pboardobjgrp->ppobjects[index] = NULL;
-		pboardobjgrp->objmask &= ~BIT(index);
+		pboardobjgrp->objmask &= ~BIT32(index);
 	}
 
 	pboardobjgrp->objmask = 0;
@@ -787,7 +787,7 @@ boardobjgrp_objinsert_final(struct boardobjgrp *pboardobjgrp,
 			index : max(pboardobjgrp->objmaxidx, index));
 	pboardobj->idx = index;
 
-	pboardobjgrp->objmask |= BIT(index);
+	pboardobjgrp->objmask |= BIT32(index);
 
 	nvgpu_log_info(g, " Done");
 
@@ -880,7 +880,7 @@ static int boardobjgrp_objremoveanddestroy_final(
 
 	pboardobjgrp->ppobjects[index] = NULL;
 
-	pboardobjgrp->objmask &= ~BIT(index);
+	pboardobjgrp->objmask &= ~BIT32(index);
 
 	stat = boardobjgrpmask_bitclr(pboardobjgrp->mask, index);
 	if (stat != 0) {
@@ -949,7 +949,7 @@ static void boardobjgrp_pmucmdhandler(struct gk20a *g, struct pmu_msg *msg,
 		return;
 	}
 
-	phandlerparams->success = pgrpmsg->b_success ? 1 : 0;
+	phandlerparams->success = pgrpmsg->b_success;
 
 	if (!pgrpmsg->b_success) {
 		nvgpu_err(g,
@@ -1003,12 +1003,12 @@ static int boardobjgrp_pmucmdsend(struct gk20a *g,
 	payload.in.buf = pcmd->buf;
 	payload.in.size = U32(max(pcmd->hdrsize, pcmd->entrysize));
 	payload.in.fb_size = PMU_CMD_SUBMIT_PAYLOAD_PARAMS_FB_SIZE_UNUSED;
-	payload.in.offset = offsetof(struct nv_pmu_boardobj_cmd_grp, grp);
+	payload.in.offset = U32(offsetof(struct nv_pmu_boardobj_cmd_grp, grp));
 
 	/* Setup the handler params to communicate back results.*/
 	handlerparams.pboardobjgrp = pboardobjgrp;
 	handlerparams.pcmd = pcmd;
-	handlerparams.success = 0;
+	handlerparams.success = false;
 
 	status = nvgpu_pmu_cmd_post(g, &cmd, NULL, &payload,
 				PMU_COMMAND_QUEUE_LPQ,
@@ -1024,7 +1024,7 @@ static int boardobjgrp_pmucmdsend(struct gk20a *g,
 	pmu_wait_message_cond(&g->pmu,
 			nvgpu_get_poll_timeout(g),
 			&handlerparams.success, 1);
-	if (handlerparams.success == 0U) {
+	if (!handlerparams.success) {
 		nvgpu_err(g, "could not process cmd");
 		status = -ETIMEDOUT;
 		goto boardobjgrp_pmucmdsend_exit;
@@ -1058,7 +1058,7 @@ static int boardobjgrp_pmucmdsend_rpc(struct gk20a *g,
 	rpc.hdr.flags    = 0x0;
 
 	status = nvgpu_pmu_rpc_execute(pmu, &(rpc.hdr),
-		(sizeof(rpc) - sizeof(rpc.scratch)),
+		U16(sizeof(rpc) - sizeof(rpc.scratch)),
 		pcmd->dmem_buffer_size,
 		NULL, NULL, copy_out);
 
