@@ -25,20 +25,30 @@
 #include <nvgpu/bug.h>
 #include <nvgpu/kmem.h>
 #include <nvgpu/types.h>
-
+#include <nvgpu/atomic.h>
 #include <nvgpu/posix/kmem.h>
+#include <nvgpu/posix/sizes.h>
+#include <nvgpu/posix/bug.h>
+#ifdef NVGPU_UNITTEST_FAULT_INJECTION_ENABLEMENT
 #include <nvgpu/posix/posix-fault-injection.h>
+#endif
 
 struct nvgpu_kmem_cache {
-	size_t alloc_size;
+	struct gk20a *g;
+	size_t size;
+	char name[128];
 };
 
+static nvgpu_atomic_t kmem_cache_id;
+
+#ifdef NVGPU_UNITTEST_FAULT_INJECTION_ENABLEMENT
 _Thread_local struct nvgpu_posix_fault_inj kmem_fi;
 
 struct nvgpu_posix_fault_inj *nvgpu_kmem_get_fault_injection(void)
 {
 	return &kmem_fi;
 }
+#endif
 
 /*
  * kmem cache emulation: basically just do a regular malloc(). This is slower
@@ -47,17 +57,23 @@ struct nvgpu_posix_fault_inj *nvgpu_kmem_get_fault_injection(void)
 struct nvgpu_kmem_cache *nvgpu_kmem_cache_create(struct gk20a *g, size_t size)
 {
 	struct nvgpu_kmem_cache *cache;
-
+#ifdef NVGPU_UNITTEST_FAULT_INJECTION_ENABLEMENT
 	if (nvgpu_posix_fault_injection_handle_call(&kmem_fi)) {
 		return NULL;
 	}
-
+#endif
 	cache = malloc(sizeof(struct nvgpu_kmem_cache));
+
 	if (cache == NULL) {
 		return NULL;
 	}
 
-	cache->alloc_size = size;
+	cache->g = g;
+	cache->size = size;
+
+	(void)snprintf(cache->name, sizeof(cache->name),
+			"nvgpu-cache-0x%p-%d-%d", g, (int)size,
+			nvgpu_atomic_inc_return(&kmem_cache_id));
 
 	return cache;
 }
@@ -69,11 +85,12 @@ void nvgpu_kmem_cache_destroy(struct nvgpu_kmem_cache *cache)
 
 void *nvgpu_kmem_cache_alloc(struct nvgpu_kmem_cache *cache)
 {
+#ifdef NVGPU_UNITTEST_FAULT_INJECTION_ENABLEMENT
 	if (nvgpu_posix_fault_injection_handle_call(&kmem_fi)) {
 		return NULL;
-	} else {
-		return malloc(cache->alloc_size);
 	}
+#endif
+	return malloc(cache->size);
 }
 
 void nvgpu_kmem_cache_free(struct nvgpu_kmem_cache *cache, void *ptr)
@@ -83,33 +100,49 @@ void nvgpu_kmem_cache_free(struct nvgpu_kmem_cache *cache, void *ptr)
 
 void *__nvgpu_kmalloc(struct gk20a *g, size_t size, void *ip)
 {
+#ifdef NVGPU_UNITTEST_FAULT_INJECTION_ENABLEMENT
 	if (nvgpu_posix_fault_injection_handle_call(&kmem_fi)) {
 		return NULL;
-	} else {
-		return malloc(size);
 	}
+#endif
+	/*
+	 * Since, the callers don't really need the memory region to be
+	 * contiguous, use malloc here. If the need arises for this
+	 * interface to return contiguous memory, we can explore using
+	 * nvmap_page_alloc in qnx (i.e. using shm_open/shm_ctl_special/mmap
+	 * calls).
+	 */
+	return malloc(size);
 }
 
 void *__nvgpu_kzalloc(struct gk20a *g, size_t size, void *ip)
 {
+#ifdef NVGPU_UNITTEST_FAULT_INJECTION_ENABLEMENT
 	if (nvgpu_posix_fault_injection_handle_call(&kmem_fi)) {
 		return NULL;
-	} else {
-		return calloc(1, size);
 	}
+#endif
+	return calloc(1, size);
 }
 
 void *__nvgpu_kcalloc(struct gk20a *g, size_t n, size_t size, void *ip)
 {
-	/*
-	 * calloc() implicitly zeros mem. So calloc a single member size bytes
-	 * long.
-	 */
+#ifdef NVGPU_UNITTEST_FAULT_INJECTION_ENABLEMENT
 	if (nvgpu_posix_fault_injection_handle_call(&kmem_fi)) {
 		return NULL;
-	} else {
-		return calloc(n, size);
 	}
+#endif
+	return calloc(1, n * size);
+}
+
+void *__nvgpu_vmalloc(struct gk20a *g, unsigned long size, void *ip)
+{
+	return __nvgpu_kmalloc(g, size, ip);
+}
+
+void *__nvgpu_vzalloc(struct gk20a *g, unsigned long size, void *ip)
+{
+	return __nvgpu_kzalloc(g, size, ip);
 }
 
 void __nvgpu_kfree(struct gk20a *g, void *addr)
@@ -117,38 +150,18 @@ void __nvgpu_kfree(struct gk20a *g, void *addr)
 	free(addr);
 }
 
-/*
- * The concept of vmalloc() does not exist in userspace.
- */
-void *__nvgpu_vmalloc(struct gk20a *g, unsigned long size, void *ip)
-{
-	/* note: fault injection handled in common function */
-	return __nvgpu_kmalloc(g, size, ip);
-}
-
-void *__nvgpu_vzalloc(struct gk20a *g, unsigned long size, void *ip)
-{
-	/* note: fault injection handled in common function */
-	return __nvgpu_kzalloc(g, size, ip);
-}
-
 void __nvgpu_vfree(struct gk20a *g, void *addr)
 {
-	/* note: fault injection handled in common function */
 	__nvgpu_kfree(g, addr);
 }
 
 void *__nvgpu_big_alloc(struct gk20a *g, size_t size, bool clear)
 {
-	/*
-	* Since in userspace vmalloc() == kmalloc() == malloc() we can just
-	* reuse k[zm]alloc() for this.
-	*
-	* note: fault injection handled in common function
-	*/
-	return clear ?
-		__nvgpu_kzalloc(g, size, _NVGPU_GET_IP_) :
-		__nvgpu_kmalloc(g, size, _NVGPU_GET_IP_);
+	if (clear) {
+		return nvgpu_kzalloc(g, size);
+	} else {
+		return nvgpu_kmalloc(g, size);
+	}
 }
 
 void nvgpu_big_free(struct gk20a *g, void *p)
@@ -158,15 +171,15 @@ void nvgpu_big_free(struct gk20a *g, void *p)
 
 int nvgpu_kmem_init(struct gk20a *g)
 {
+#ifdef NVGPU_UNITTEST_FAULT_INJECTION_ENABLEMENT
 	if (nvgpu_posix_fault_injection_handle_call(&kmem_fi)) {
 		return -ENOMEM;
 	}
-
+#endif
 	/* Nothing to init at the moment. */
 	return 0;
 }
 
 void nvgpu_kmem_fini(struct gk20a *g, int flags)
 {
-
 }

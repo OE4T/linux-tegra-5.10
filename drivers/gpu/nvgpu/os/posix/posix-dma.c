@@ -69,11 +69,11 @@ static int __nvgpu_do_dma_alloc(struct gk20a *g, unsigned long flags,
 				enum nvgpu_aperture ap)
 {
 	void *memory;
-
+#ifdef NVGPU_UNITTEST_FAULT_INJECTION_ENABLEMENT
 	if (nvgpu_posix_fault_injection_handle_call(&dma_fi)) {
 		return -ENOMEM;
 	}
-
+#endif
 	memory = malloc(PAGE_ALIGN(size));
 
 	if (memory == NULL) {
@@ -119,11 +119,11 @@ int nvgpu_dma_alloc_flags_vid_at(struct gk20a *g, unsigned long flags,
 {
 	u64 addr;
 	int err;
-
+#ifdef NVGPU_UNITTEST_FAULT_INJECTION_ENABLEMENT
 	if (nvgpu_posix_fault_injection_handle_call(&dma_fi)) {
 		return -ENOMEM;
 	}
-
+#endif
 	g->ops.fb.get_vidmem_size = mock_fb_get_vidmem_size;
 
 	nvgpu_set_enabled(g, NVGPU_MM_UNIFIED_MEMORY, false);

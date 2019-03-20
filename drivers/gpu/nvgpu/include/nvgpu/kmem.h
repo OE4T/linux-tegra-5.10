@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -34,10 +34,8 @@ struct gk20a;
  */
 #ifdef __KERNEL__
 #include <nvgpu/linux/kmem.h>
-#elif defined(__NVGPU_POSIX__)
-#include <nvgpu/posix/kmem.h>
 #else
-#include <nvgpu_rmos/include/kmem.h>
+#include <nvgpu/posix/kmem.h>
 #endif
 
 /**

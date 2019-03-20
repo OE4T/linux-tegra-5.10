@@ -77,6 +77,9 @@ else
 NV_COMPONENT_CFLAGS             += -DNVGPU_USERD
 endif
 
+NVGPU_FAULT_INJECTION_ENABLEMENT := 1
+NV_COMPONENT_CFLAGS              += -DNVGPU_UNITTEST_FAULT_INJECTION_ENABLEMENT
+
 _NV_TOOLCHAIN_CFLAGS            += -rdynamic -g
 
 -include $(NV_COMPONENT_DIR)/Makefile.sources

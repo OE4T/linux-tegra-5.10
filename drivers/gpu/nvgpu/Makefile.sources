@@ -26,7 +26,6 @@ ifdef NVGPU_POSIX
 srcs +=	os/posix/nvgpu.c \
 	os/posix/bitmap.c \
 	os/posix/log.c \
-	os/posix/kmem.c \
 	os/posix/posix-io.c \
 	os/posix/posix-nvgpu_mem.c \
 	os/posix/posix-dma.c \
@@ -41,7 +40,6 @@ srcs +=	os/posix/nvgpu.c \
 	os/posix/posix-tsg.c \
 	os/posix/posix-nvlink.c \
 	os/posix/stubs.c \
-	os/posix/posix-fault-injection.c \
 	os/posix/posix-sim.c \
 	os/posix/posix-nvhost.c \
 	os/posix/posix-vgpu.c \
@@ -57,7 +55,8 @@ srcs += os/posix/bug.c \
 	os/posix/lock.c \
 	os/posix/thread.c \
 	os/posix/bsearch.c \
-	os/posix/os_sched.c
+	os/posix/os_sched.c \
+	os/posix/kmem.c
 
 srcs += common/sim.c \
 	common/sim_pci.c \
@@ -392,6 +391,11 @@ srcs += common/sim.c \
 
 ifeq ($(NVGPU_DEBUGGER),1)
 srcs += common/debugger.c
+endif
+
+# POSIX file used for unit testing for both qnx and linux
+ifdef NVGPU_FAULT_INJECTION_ENABLEMENT
+srcs += os/posix/posix-fault-injection.c
 endif
 
 srcs += hal/gr/config/gr_config_gm20b.c \
