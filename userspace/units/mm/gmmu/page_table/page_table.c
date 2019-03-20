@@ -67,6 +67,9 @@
 #define REQ_C1_IDX_4K_ALIGN	1
 #define REQ_C1_IDX_MIXED	2
 
+/* Check if address is aligned at the requested boundary */
+#define IS_ALIGNED(addr, align)	((addr & (align - 1U)) == 0U)
+
 struct test_parameters {
 	enum nvgpu_aperture aperture;
 	bool is_iommuable;
@@ -452,7 +455,11 @@ static int test_nvgpu_gmmu_map_unmap(struct unit_module *m,
 	}
 
 	if (mem.gpu_va == 0) {
-		unit_return_fail(m, "Failed to map GMMU page");
+		unit_return_fail(m, "Failed to map GMMU page\n");
+	}
+
+	if (!IS_ALIGNED(mem.gpu_va, SZ_4K)) {
+		unit_return_fail(m, "Mapped VA is not 4KB-aligned\n");
 	}
 
 	nvgpu_log(g, gpu_dbg_map, "Mapped VA=%p", (void *) mem.gpu_va);
@@ -828,6 +835,10 @@ static int test_nvgpu_gmmu_map_unmap_adv(struct unit_module *m,
 		unit_return_fail(m, "Failed to map buffer\n");
 	}
 
+	if (!IS_ALIGNED(vaddr, SZ_4K)) {
+		unit_return_fail(m, "Mapped VA is not 4KB-aligned\n");
+	}
+
 	nvgpu_gmmu_unmap(g->mm.pmu.vm, &mem, vaddr);
 
 	return UNIT_SUCCESS;
@@ -1031,6 +1042,10 @@ static int test_nvgpu_page_table_c1_full(struct unit_module *m,
 			unit_return_fail(m, "Failed to map i=%d", mem_i);
 		}
 
+		if (!IS_ALIGNED(mem[mem_i].gpu_va, SZ_4K)) {
+			unit_return_fail(m, "Mapped VA is not 4KB-aligned\n");
+		}
+
 		/*
 		 * 3.2. Verify that the programmed page table attributes are
 		 * correct
@@ -1064,6 +1079,10 @@ static int c2_fixed_allocation(struct unit_module *m, struct gk20a *g,
 
 	if (mem_fixed->gpu_va == 0) {
 		unit_return_fail(m, "Failed to map mem_fixed");
+	}
+
+	if (!IS_ALIGNED(mem_fixed->gpu_va, SZ_4K)) {
+		unit_return_fail(m, "Mapped VA is not 4KB-aligned\n");
 	}
 
 	/* Verify that the programmed page table attributes are correct */
