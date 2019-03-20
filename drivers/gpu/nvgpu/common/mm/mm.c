@@ -152,6 +152,15 @@ u64 nvgpu_inst_block_addr(struct gk20a *g, struct nvgpu_mem *inst_block)
 	}
 }
 
+u32 nvgpu_inst_block_ptr(struct gk20a *g, struct nvgpu_mem *inst_block)
+{
+	u64 addr = nvgpu_inst_block_addr(g, inst_block) >>
+			g->ops.ramin.base_shift();
+
+	nvgpu_assert(u64_hi32(addr) == 0U);
+	return u64_lo32(addr);
+}
+
 void nvgpu_free_inst_block(struct gk20a *g, struct nvgpu_mem *inst_block)
 {
 	if (nvgpu_mem_is_valid(inst_block)) {

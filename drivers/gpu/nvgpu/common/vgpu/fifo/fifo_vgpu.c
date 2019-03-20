@@ -44,8 +44,6 @@
 #include "common/vgpu/gr/subctx_vgpu.h"
 #include "common/vgpu/ivc/comm_vgpu.h"
 
-#include <nvgpu/hw/gk20a/hw_ram_gk20a.h>
-
 void vgpu_channel_bind(struct channel_gk20a *ch)
 {
 	struct tegra_vgpu_cmd_msg msg;

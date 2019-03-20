@@ -50,7 +50,6 @@
 #include "fence_gk20a.h"
 
 #include <nvgpu/hw/gk20a/hw_gmmu_gk20a.h>
-#include <nvgpu/hw/gk20a/hw_ram_gk20a.h>
 #include <nvgpu/hw/gk20a/hw_pram_gk20a.h>
 #include <nvgpu/hw/gk20a/hw_flush_gk20a.h>
 
@@ -397,7 +396,7 @@ int gk20a_alloc_inst_block(struct gk20a *g, struct nvgpu_mem *inst_block)
 
 	nvgpu_log_fn(g, " ");
 
-	err = nvgpu_dma_alloc(g, ram_in_alloc_size_v(), inst_block);
+	err = nvgpu_dma_alloc(g, g->ops.ramin.alloc_size(), inst_block);
 	if (err != 0) {
 		nvgpu_err(g, "%s: memory allocation failed", __func__);
 		return err;

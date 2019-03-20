@@ -194,17 +194,16 @@ int pmu_bootstrap(struct nvgpu_pmu *pmu)
 	u32 addr_code, addr_data, addr_load;
 	u32 i, blocks, addr_args;
 	int err;
-	u64 tmp_addr;
+	u32 inst_block_ptr;
 
 	nvgpu_log_fn(g, " ");
 
 	gk20a_writel(g, pwr_falcon_itfen_r(),
 		gk20a_readl(g, pwr_falcon_itfen_r()) |
 		pwr_falcon_itfen_ctxen_enable_f());
-	tmp_addr = nvgpu_inst_block_addr(g, &mm->pmu.inst_block) >> 12;
-	nvgpu_assert(u64_hi32(tmp_addr) == 0U);
+	inst_block_ptr = nvgpu_inst_block_ptr(g, &mm->pmu.inst_block);
 	gk20a_writel(g, pwr_pmu_new_instblk_r(),
-		pwr_pmu_new_instblk_ptr_f((u32)tmp_addr) |
+		pwr_pmu_new_instblk_ptr_f(inst_block_ptr) |
 		pwr_pmu_new_instblk_valid_f(1) |
 		pwr_pmu_new_instblk_target_sys_coh_f());
 

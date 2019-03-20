@@ -21,6 +21,7 @@
  */
 
 #include <nvgpu/falcon.h>
+#include <nvgpu/mm.h>
 #include <nvgpu/io.h>
 #include <nvgpu/timers.h>
 #include <nvgpu/gk20a.h>
@@ -44,7 +45,7 @@ int gv100_gsp_reset(struct gk20a *g)
 void gv100_gsp_flcn_setup_boot_config(struct gk20a *g)
 {
 	struct mm_gk20a *mm = &g->mm;
-	u64 tmp_addr;
+	u32 inst_block_ptr;
 	u32 data = 0;
 
 	data = gk20a_readl(g, pgsp_fbif_ctl_r());
@@ -77,11 +78,10 @@ void gv100_gsp_flcn_setup_boot_config(struct gk20a *g)
 	 * The instance block address to write is the lower 32-bits of the 4K-
 	 * aligned physical instance block address.
 	 */
-	tmp_addr = nvgpu_inst_block_addr(g, &mm->gsp.inst_block) >> 12U;
-	nvgpu_assert(u64_hi32(tmp_addr) == 0U);
+	inst_block_ptr = nvgpu_inst_block_ptr(g, &mm->gsp.inst_block);
 
 	gk20a_writel(g, pgsp_falcon_nxtctx_r(),
-		pgsp_falcon_nxtctx_ctxptr_f((u32)tmp_addr) |
+		pgsp_falcon_nxtctx_ctxptr_f(inst_block_ptr) |
 		pgsp_falcon_nxtctx_ctxvalid_f(1) |
 		nvgpu_aperture_mask(g, &mm->gsp.inst_block,
 			pgsp_falcon_nxtctx_ctxtgt_sys_ncoh_f(),

@@ -34,7 +34,6 @@
 #include "gm20b/mm_gm20b.h"
 #include "mm_gp10b.h"
 
-#include <nvgpu/hw/gp10b/hw_ram_gp10b.h>
 #include <nvgpu/hw/gp10b/hw_gmmu_gp10b.h>
 
 u32 gp10b_mm_get_default_big_page_size(void)

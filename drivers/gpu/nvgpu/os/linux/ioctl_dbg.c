@@ -31,6 +31,7 @@
 #include <nvgpu/cond.h>
 #include <nvgpu/debugger.h>
 #include <nvgpu/utils.h>
+#include <nvgpu/mm.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/channel.h>
 #include <nvgpu/tsg.h>

@@ -24,6 +24,7 @@
 #include <nvgpu/list.h>
 #include <nvgpu/log.h>
 #include <nvgpu/log2.h>
+#include <nvgpu/mm.h>
 #include <nvgpu/circ_buf.h>
 #include <nvgpu/timers.h>
 #include <nvgpu/enabled.h>
@@ -546,12 +547,6 @@ int nvgpu_gr_fecs_trace_reset(struct gk20a *g)
 	return g->ops.gr.fecs_trace.set_read_index(g, 0);
 }
 
-static u32 nvgpu_gr_fecs_trace_fecs_context_ptr(struct gk20a *g,
-	struct nvgpu_mem *inst_block)
-{
-	return (u32)(nvgpu_inst_block_addr(g, inst_block) >> 12LL);
-}
-
 /*
  * map global circ_buf to the context space and store the GPU VA
  * in the context header.
@@ -571,7 +566,7 @@ int nvgpu_gr_fecs_trace_bind_channel(struct gk20a *g,
 		return -EINVAL;
 	}
 
-	context_ptr = nvgpu_gr_fecs_trace_fecs_context_ptr(g, inst_block);
+	context_ptr = nvgpu_inst_block_ptr(g, inst_block);
 
 	nvgpu_log(g, gpu_dbg_fn|gpu_dbg_ctxsw,
 			"pid=%d context_ptr=%x inst_block=%llx",
@@ -629,7 +624,7 @@ int nvgpu_gr_fecs_trace_unbind_channel(struct gk20a *g,
 		return -EINVAL;
 	}
 
-	context_ptr = nvgpu_gr_fecs_trace_fecs_context_ptr(g, inst_block);
+	context_ptr = nvgpu_inst_block_ptr(g, inst_block);
 
 	nvgpu_log(g, gpu_dbg_fn|gpu_dbg_ctxsw,
 		"context_ptr=%x", context_ptr);

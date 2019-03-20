@@ -63,7 +63,6 @@
 
 #include <nvgpu/hw/gk20a/hw_fifo_gk20a.h>
 #include <nvgpu/hw/gk20a/hw_pbdma_gk20a.h>
-#include <nvgpu/hw/gk20a/hw_ram_gk20a.h>
 #include <nvgpu/hw/gk20a/hw_gr_gk20a.h>
 
 #define FECS_METHOD_WFI_RESTORE 0x80000U
@@ -430,10 +429,12 @@ static bool gk20a_fifo_handle_mmu_fault_locked(
 					  ch->chid);
 			gk20a_channel_put(ch);
 		} else if (mmfault_info.inst_ptr ==
-				nvgpu_inst_block_addr(g, &g->mm.bar1.inst_block)) {
+				nvgpu_inst_block_addr(g,
+					&g->mm.bar1.inst_block)) {
 			nvgpu_err(g, "mmu fault from bar1");
 		} else if (mmfault_info.inst_ptr ==
-				nvgpu_inst_block_addr(g, &g->mm.pmu.inst_block)) {
+				nvgpu_inst_block_addr(g,
+					&g->mm.pmu.inst_block)) {
 			nvgpu_err(g, "mmu fault from pmu");
 		} else {
 			nvgpu_err(g, "couldn't locate channel for mmu fault");

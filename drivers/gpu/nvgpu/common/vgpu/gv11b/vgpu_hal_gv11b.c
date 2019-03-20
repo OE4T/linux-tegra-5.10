@@ -26,6 +26,7 @@
 #include "hal/fifo/pbdma_gm20b.h"
 #include "hal/fifo/pbdma_gp10b.h"
 #include "hal/fifo/pbdma_gv11b.h"
+#include "hal/fifo/ramin_gk20a.h"
 #include "hal/fifo/ramin_gm20b.h"
 #include "hal/fifo/ramin_gp10b.h"
 #include "hal/fifo/ramin_gv11b.h"
@@ -592,6 +593,8 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 		.init_pdb = gp10b_ramin_init_pdb,
 		.init_subctx_pdb = gv11b_ramin_init_subctx_pdb,
 		.set_adr_limit = NULL,
+		.base_shift = gk20a_ramin_base_shift,
+		.alloc_size = gk20a_ramin_alloc_size,
 	},
 	.runlist = {
 		.reschedule = NULL,

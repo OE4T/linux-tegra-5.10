@@ -506,6 +506,8 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 		.init_pdb = gp10b_ramin_init_pdb,
 		.init_subctx_pdb = NULL,
 		.set_adr_limit = gk20a_ramin_set_adr_limit,
+		.base_shift = gk20a_ramin_base_shift,
+		.alloc_size = gk20a_ramin_alloc_size,
 	},
 	.runlist = {
 		.reschedule = NULL,

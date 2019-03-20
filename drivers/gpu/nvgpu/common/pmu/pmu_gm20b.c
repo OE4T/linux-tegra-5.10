@@ -24,6 +24,7 @@
 
 #include <nvgpu/timers.h>
 #include <nvgpu/pmu.h>
+#include <nvgpu/mm.h>
 #include <nvgpu/fuse.h>
 #include <nvgpu/enabled.h>
 #include <nvgpu/io.h>
@@ -356,7 +357,7 @@ void gm20b_update_lspmu_cmdline_args(struct gk20a *g)
 void gm20b_pmu_flcn_setup_boot_config(struct gk20a *g)
 {
 	struct mm_gk20a *mm = &g->mm;
-	u64 tmp_addr;
+	u32 inst_block_ptr;
 
 	nvgpu_log_fn(g, " ");
 
@@ -377,11 +378,10 @@ void gm20b_pmu_flcn_setup_boot_config(struct gk20a *g)
 	 * The instance block address to write is the lower 32-bits of the 4K-
 	 * aligned physical instance block address.
 	 */
-	tmp_addr = nvgpu_inst_block_addr(g, &mm->pmu.inst_block) >> 12U;
-	nvgpu_assert(u64_hi32(tmp_addr) == 0U);
+	inst_block_ptr = nvgpu_inst_block_ptr(g, &mm->pmu.inst_block);
 
 	gk20a_writel(g, pwr_pmu_new_instblk_r(),
-		pwr_pmu_new_instblk_ptr_f((u32)tmp_addr) |
+		pwr_pmu_new_instblk_ptr_f(inst_block_ptr) |
 		pwr_pmu_new_instblk_valid_f(1U) |
 		(nvgpu_is_enabled(g, NVGPU_USE_COHERENT_SYSMEM) ?
 		pwr_pmu_new_instblk_target_sys_coh_f() :

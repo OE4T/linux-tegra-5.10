@@ -1033,6 +1033,8 @@ struct gpu_ops {
 				bool replayable);
 		void (*set_adr_limit)(struct gk20a *g,
 				struct nvgpu_mem *inst_block, u64 va_limit);
+		u32 (*base_shift)(void);
+		u32 (*alloc_size)(void);
 	} ramin;
 	struct {
 		int (*reschedule)(struct channel_gk20a *ch, bool preempt_next);

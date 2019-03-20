@@ -70,7 +70,6 @@
 
 #include <nvgpu/hw/gk20a/hw_fifo_gk20a.h>
 #include <nvgpu/hw/gk20a/hw_gr_gk20a.h>
-#include <nvgpu/hw/gk20a/hw_ram_gk20a.h>
 
 static struct channel_gk20a *gk20a_gr_get_channel_from_ctx(
 	struct gk20a *g, u32 curr_ctx, u32 *curr_tsgid);
@@ -1264,8 +1263,7 @@ static struct channel_gk20a *gk20a_gr_get_channel_from_ctx(
 			continue;
 		}
 
-		if ((u32)(nvgpu_inst_block_addr(g, &ch->inst_block) >>
-					ram_in_base_shift_v()) ==
+		if (nvgpu_inst_block_ptr(g, &ch->inst_block) ==
 				g->ops.gr.falcon.get_ctx_ptr(curr_ctx)) {
 			tsgid = ch->tsgid;
 			/* found it */

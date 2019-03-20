@@ -46,6 +46,7 @@
 #include "hal/fb/fb_gp10b.h"
 #include "hal/fb/fb_gm20b.h"
 #include "hal/fb/fb_gv11b.h"
+#include "hal/fifo/ramin_gk20a.h"
 #include "hal/fifo/ramin_gm20b.h"
 #include "hal/fifo/ramin_gp10b.h"
 
@@ -123,6 +124,7 @@ static int init_mm(struct unit_module *m, struct gk20a *g)
 	g->ops.fb.compression_page_size = gp10b_fb_compression_page_size;
 	g->ops.fb.tlb_invalidate = gm20b_fb_tlb_invalidate;
 	g->ops.ramin.init_pdb = gp10b_ramin_init_pdb;
+	g->ops.ramin.alloc_size = gk20a_ramin_alloc_size;
 
 	/* New HALs for fault testing */
 	g->ops.mm.mmu_fault_pending = gv11b_mm_mmu_fault_pending;

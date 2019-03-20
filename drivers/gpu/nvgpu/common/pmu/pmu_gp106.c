@@ -23,6 +23,7 @@
 #include <nvgpu/pmu.h>
 #include <nvgpu/io.h>
 #include <nvgpu/clk_arb.h>
+#include <nvgpu/mm.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/pmu/lpwr.h>
 #include <nvgpu/pmu/cmd.h>
@@ -204,7 +205,7 @@ void gp106_update_lspmu_cmdline_args(struct gk20a *g)
 void gp106_pmu_setup_apertures(struct gk20a *g)
 {
 	struct mm_gk20a *mm = &g->mm;
-	u64 tmp_addr;
+	u32 inst_block_ptr;
 
 	/* PMU TRANSCFG */
 	/* setup apertures - virtual */
@@ -228,10 +229,9 @@ void gp106_pmu_setup_apertures(struct gk20a *g)
 	gk20a_writel(g, pwr_falcon_itfen_r(),
 				gk20a_readl(g, pwr_falcon_itfen_r()) |
 				pwr_falcon_itfen_ctxen_enable_f());
-	tmp_addr = nvgpu_inst_block_addr(g, &mm->pmu.inst_block) >> 12;
-	nvgpu_assert(u64_hi32(tmp_addr) == 0U);
+	inst_block_ptr = nvgpu_inst_block_ptr(g, &mm->pmu.inst_block);
 	gk20a_writel(g, pwr_pmu_new_instblk_r(),
-		pwr_pmu_new_instblk_ptr_f(U32(tmp_addr)) |
+		pwr_pmu_new_instblk_ptr_f(inst_block_ptr) |
 		pwr_pmu_new_instblk_valid_f(1) |
 		nvgpu_aperture_mask(g, &mm->pmu.inst_block,
 			pwr_pmu_new_instblk_target_sys_ncoh_f(),

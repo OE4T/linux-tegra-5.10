@@ -25,6 +25,7 @@
 #include <nvgpu/atomic.h>
 #include <nvgpu/io.h>
 #include <nvgpu/barrier.h>
+#include <nvgpu/mm.h>
 #include <nvgpu/gk20a.h>
 
 #include "channel_gm20b.h"
@@ -36,12 +37,10 @@ void gm20b_channel_bind(struct channel_gk20a *c)
 {
 	struct gk20a *g = c->g;
 
-	u32 inst_ptr = nvgpu_inst_block_addr(g, &c->inst_block)
-		>> ram_in_base_shift_v();
+	u32 inst_ptr = nvgpu_inst_block_ptr(g, &c->inst_block);
 
 	nvgpu_log_info(g, "bind channel %d inst ptr 0x%08x",
 		c->chid, inst_ptr);
-
 
 	gk20a_writel(g, ccsr_channel_inst_r(c->chid),
 		     ccsr_channel_inst_ptr_f(inst_ptr) |

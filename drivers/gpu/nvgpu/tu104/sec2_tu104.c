@@ -176,7 +176,7 @@ int tu104_sec2_flcn_copy_from_emem(struct gk20a *g,
 void tu104_sec2_flcn_setup_boot_config(struct gk20a *g)
 {
 	struct mm_gk20a *mm = &g->mm;
-	u64 tmp_addr;
+	u32 inst_block_ptr;
 	u32 data = 0U;
 
 	nvgpu_log_fn(g, " ");
@@ -208,14 +208,13 @@ void tu104_sec2_flcn_setup_boot_config(struct gk20a *g)
 			psec_falcon_itfen_ctxen_enable_f());
 
 	/*
-		 * The instance block address to write is the lower 32-bits of the 4K-
-		 * aligned physical instance block address.
-		 */
-	tmp_addr = nvgpu_inst_block_addr(g, &mm->sec2.inst_block) >> 12U;
-	nvgpu_assert(u64_hi32(tmp_addr) == 0U);
+	 * The instance block address to write is the lower 32-bits of the 4K-
+	 * aligned physical instance block address.
+	 */
+	inst_block_ptr = nvgpu_inst_block_ptr(g, &mm->sec2.inst_block);
 
 	gk20a_writel(g, psec_falcon_nxtctx_r(),
-			pwr_pmu_new_instblk_ptr_f((u32)tmp_addr) |
+			pwr_pmu_new_instblk_ptr_f(inst_block_ptr) |
 			pwr_pmu_new_instblk_valid_f(1U) |
 			nvgpu_aperture_mask(g, &mm->sec2.inst_block,
 				pwr_pmu_new_instblk_target_sys_ncoh_f(),

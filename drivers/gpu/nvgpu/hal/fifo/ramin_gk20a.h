@@ -33,5 +33,7 @@ void gk20a_ramin_init_pdb(struct gk20a *g, struct nvgpu_mem *inst_block,
 		u64 pdb_addr, struct nvgpu_mem *pdb_mem);
 void gk20a_ramin_set_adr_limit(struct gk20a *g,
 		struct nvgpu_mem *inst_block, u64 va_limit);
+u32 gk20a_ramin_base_shift(void);
+u32 gk20a_ramin_alloc_size(void);
 
 #endif /* NVGPU_RAMIN_GK20A_H */
