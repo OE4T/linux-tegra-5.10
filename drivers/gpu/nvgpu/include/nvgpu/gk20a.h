@@ -658,6 +658,7 @@ struct gpu_ops {
 		} hwpm_map;
 
 		struct {
+			void (*fifo_access)(struct gk20a *g, bool enable);
 			void (*get_access_map)(struct gk20a *g,
 				      u32 **whitelist, int *num_entries);
 			u32 (*get_sm_id_size)(void);

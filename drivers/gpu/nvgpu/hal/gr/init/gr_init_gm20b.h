@@ -29,6 +29,7 @@ struct gk20a;
 struct netlist_av_list;
 struct nvgpu_gr_config;
 
+void gm20b_gr_init_fifo_access(struct gk20a *g, bool enable);
 void gm20b_gr_init_get_access_map(struct gk20a *g,
 				   u32 **whitelist, int *num_entries);
 void gm20b_gr_init_sm_id_numbering(struct gk20a *g,

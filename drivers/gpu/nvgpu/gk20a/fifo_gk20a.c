@@ -819,7 +819,6 @@ static bool gk20a_fifo_handle_mmu_fault_locked(
 	unsigned long fault_id;
 	unsigned long engine_mmu_fault_id;
 	bool verbose = true;
-	u32 grfifo_ctl;
 	struct nvgpu_engine_status_info engine_status;
 	bool deferred_reset_pending = false;
 	struct fifo_gk20a *f = &g->fifo;
@@ -831,13 +830,7 @@ static bool gk20a_fifo_handle_mmu_fault_locked(
 	}
 
 	/* Disable fifo access */
-	grfifo_ctl = gk20a_readl(g, gr_gpfifo_ctl_r());
-	grfifo_ctl &= ~gr_gpfifo_ctl_semaphore_access_f(1);
-	grfifo_ctl &= ~gr_gpfifo_ctl_access_f(1);
-
-	gk20a_writel(g, gr_gpfifo_ctl_r(),
-		grfifo_ctl | gr_gpfifo_ctl_access_f(0) |
-		gr_gpfifo_ctl_semaphore_access_f(0));
+	g->ops.gr.init.fifo_access(g, false);
 
 	if (mmu_fault_engines != 0U) {
 		fault_id = mmu_fault_engines;
@@ -1011,9 +1004,7 @@ static bool gk20a_fifo_handle_mmu_fault_locked(
 		     gk20a_readl(g, fifo_error_sched_disable_r()));
 
 	/* Re-enable fifo access */
-	gk20a_writel(g, gr_gpfifo_ctl_r(),
-		     gr_gpfifo_ctl_access_enabled_f() |
-		     gr_gpfifo_ctl_semaphore_access_enabled_f());
+	g->ops.gr.init.fifo_access(g, true);
 
 	if (nvgpu_cg_pg_enable(g) != 0) {
 		nvgpu_warn(g, "fail to enable power mgmt");

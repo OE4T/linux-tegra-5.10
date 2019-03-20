@@ -486,6 +486,7 @@ static const struct gpu_ops gp10b_ops = {
 				gp10b_gr_zbc_get_gpcs_swdx_dss_zbc_z_format_reg,
 		},
 		.init = {
+			.fifo_access = gm20b_gr_init_fifo_access,
 			.get_access_map = gp10b_gr_init_get_access_map,
 			.get_sm_id_size = gp10b_gr_init_get_sm_id_size,
 			.sm_id_config = gp10b_gr_init_sm_id_config,

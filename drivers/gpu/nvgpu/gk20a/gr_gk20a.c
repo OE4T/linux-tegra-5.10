@@ -2387,9 +2387,7 @@ static int gk20a_init_gr_setup_hw(struct gk20a *g)
 	}
 
 	/* enable fifo access */
-	gk20a_writel(g, gr_gpfifo_ctl_r(),
-		     gr_gpfifo_ctl_access_enabled_f() |
-		     gr_gpfifo_ctl_semaphore_access_enabled_f());
+	g->ops.gr.init.fifo_access(g, true);
 
 	/* TBD: reload gr ucode when needed */
 
@@ -2460,9 +2458,7 @@ static void gk20a_init_gr_prepare(struct gk20a *g)
 	nvgpu_cg_elcg_disable_no_wait(g);
 
 	/* enable fifo access */
-	gk20a_writel(g, gr_gpfifo_ctl_r(),
-		gr_gpfifo_ctl_access_enabled_f() |
-		gr_gpfifo_ctl_semaphore_access_enabled_f());
+	g->ops.gr.init.fifo_access(g, true);
 }
 
 static int gr_gk20a_wait_mem_scrubbing(struct gk20a *g)
@@ -3747,7 +3743,6 @@ static int gk20a_gr_post_bpt_events(struct gk20a *g, struct tsg_gk20a *tsg,
 int gk20a_gr_isr(struct gk20a *g)
 {
 	struct gr_gk20a_isr_data isr_data;
-	u32 grfifo_ctl;
 	u32 obj_table;
 	bool need_reset = false;
 	u32 gr_intr = gk20a_readl(g, gr_intr_r());
@@ -3771,13 +3766,8 @@ int gk20a_gr_isr(struct gk20a *g)
 		gr_engine_id = BIT32(gr_engine_id);
 	}
 
-	grfifo_ctl = gk20a_readl(g, gr_gpfifo_ctl_r());
-	grfifo_ctl &= ~gr_gpfifo_ctl_semaphore_access_f(1);
-	grfifo_ctl &= ~gr_gpfifo_ctl_access_f(1);
-
-	gk20a_writel(g, gr_gpfifo_ctl_r(),
-		grfifo_ctl | gr_gpfifo_ctl_access_f(0) |
-		gr_gpfifo_ctl_semaphore_access_f(0));
+	/* Disable fifo access */
+	g->ops.gr.init.fifo_access(g, false);
 
 	isr_data.addr = gk20a_readl(g, gr_trapped_addr_r());
 	isr_data.data_lo = gk20a_readl(g, gr_trapped_data_lo_r());
@@ -4079,10 +4069,8 @@ int gk20a_gr_isr(struct gk20a *g)
 		gk20a_writel(g, gr_intr_r(), gr_intr);
 	}
 
-	gk20a_writel(g, gr_gpfifo_ctl_r(),
-		grfifo_ctl | gr_gpfifo_ctl_access_f(1) |
-		gr_gpfifo_ctl_semaphore_access_f(1));
-
+	/* Enable fifo access */
+	g->ops.gr.init.fifo_access(g, true);
 
 	/* Posting of BPT events should be the last thing in this function */
 	if ((global_esr != 0U) && (tsg != NULL) && (need_reset == false)) {
@@ -4176,8 +4164,8 @@ int gk20a_gr_suspend(struct gk20a *g)
 		return ret;
 	}
 
-	gk20a_writel(g, gr_gpfifo_ctl_r(),
-		gr_gpfifo_ctl_access_disabled_f());
+	/* Disable fifo access */
+	g->ops.gr.init.fifo_access(g, false);
 
 	/* disable gr intr */
 	gk20a_writel(g, gr_intr_r(), 0);

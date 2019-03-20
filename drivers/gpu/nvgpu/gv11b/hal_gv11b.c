@@ -583,6 +583,7 @@ static const struct gpu_ops gv11b_ops = {
 				gv100_gr_hwpm_map_align_regs_perf_pma,
 		},
 		.init = {
+			.fifo_access = gm20b_gr_init_fifo_access,
 			.get_access_map = gv11b_gr_init_get_access_map,
 			.get_sm_id_size = gp10b_gr_init_get_sm_id_size,
 			.sm_id_config = gv11b_gr_init_sm_id_config,

@@ -415,6 +415,7 @@ static const struct gpu_ops gm20b_ops = {
 			.get_gpcs_swdx_dss_zbc_z_format_reg = NULL,
 		},
 		.init = {
+			.fifo_access = gm20b_gr_init_fifo_access,
 			.get_access_map = gm20b_gr_init_get_access_map,
 			.get_sm_id_size = gm20b_gr_init_get_sm_id_size,
 			.sm_id_config = gm20b_gr_init_sm_id_config,
