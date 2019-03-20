@@ -3,7 +3,7 @@
  *
  * Tegra Graphics Host Interrupt Management
  *
- * Copyright (c) 2010-2018, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2010-2019, NVIDIA CORPORATION. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -368,11 +368,7 @@ void nvhost_syncpt_thresh_fn(void *dev_id)
 		return;
 	}
 
-	if (nvhost_dev_is_virtual(dev->dev))
-		(void)process_wait_list(intr, syncpt,
-				nvhost_syncpt_read_min(&dev->syncpt, id));
-	else
-		(void)process_wait_list(intr, syncpt,
+	(void)process_wait_list(intr, syncpt,
 				nvhost_syncpt_update_min(&dev->syncpt, id));
 
 	nvhost_module_idle(dev->dev);
