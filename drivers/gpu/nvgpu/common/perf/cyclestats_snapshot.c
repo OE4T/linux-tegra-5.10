@@ -371,7 +371,7 @@ u32 nvgpu_css_allocate_perfmon_ids(struct gk20a_cs_snapshot *data,
 	if (f > CSS_MAX_PERFMON_IDS) {
 		f = 0;
 	} else {
-		bitmap_set(pids, f, count);
+		nvgpu_bitmap_set(pids, f, count);
 	}
 
 	return f;
@@ -386,7 +386,7 @@ u32 nvgpu_css_release_perfmon_ids(struct gk20a_cs_snapshot *data,
 	u32  cnt = 0;
 
 	if (start >= CSS_FIRST_PERFMON_ID && end <= CSS_MAX_PERFMON_IDS) {
-		bitmap_clear(pids, start, count);
+		nvgpu_bitmap_clear(pids, start, count);
 		cnt = count;
 	}
 

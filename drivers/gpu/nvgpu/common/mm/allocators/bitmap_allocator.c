@@ -90,8 +90,8 @@ static u64 nvgpu_bitmap_alloc_fixed(struct nvgpu_allocator *na,
 		goto fail;
 	}
 
-	nvgpu_assert(blks <= (u32)INT_MAX);
-	bitmap_set(a->bitmap, (u32)offs, (int)blks);
+	nvgpu_assert(blks <= U32_MAX);
+	nvgpu_bitmap_set(a->bitmap, (u32)offs, U32(blks));
 
 	a->bytes_alloced += blks * a->blk_size;
 	a->nr_fixed_allocs++;
@@ -238,9 +238,8 @@ static u64 nvgpu_bitmap_alloc(struct nvgpu_allocator *na, u64 len)
 		}
 	}
 
-	nvgpu_assert(blks <= (u64)INT_MAX);
 	nvgpu_assert(offs <= U32_MAX);
-	bitmap_set(a->bitmap, (u32)offs, (int)blks);
+	nvgpu_bitmap_set(a->bitmap, (u32)offs, blks);
 	a->next_blk = offs + blks;
 
 	adjusted_offs = offs + a->bit_offs;

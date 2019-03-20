@@ -42,7 +42,7 @@ int gk20a_comptaglines_alloc(struct gk20a_comptag_allocator *allocator,
 		/* number zero is reserved; bitmap base is 1 */
 		nvgpu_assert(addr < U64(U32_MAX));
 		*offset = 1U + U32(addr);
-		bitmap_set(allocator->bitmap, U32(addr), len);
+		nvgpu_bitmap_set(allocator->bitmap, U32(addr), len);
 	} else {
 		err = -ENOMEM;
 	}
@@ -66,7 +66,7 @@ void gk20a_comptaglines_free(struct gk20a_comptag_allocator *allocator,
 	WARN_ON((unsigned long)addr + (unsigned long)len > allocator->size);
 
 	nvgpu_mutex_acquire(&allocator->lock);
-	bitmap_clear(allocator->bitmap, addr, len);
+	nvgpu_bitmap_clear(allocator->bitmap, addr, len);
 	nvgpu_mutex_release(&allocator->lock);
 }
 

@@ -67,9 +67,9 @@ static void setup_fifo(struct gk20a *g, unsigned long *tsg_map,
 	g->runlist_interleave = interleave;
 
 	/* set bits in active_tsgs correspond to indices in f->tsg[...] */
-	bitmap_set(runlist->active_tsgs, 0, num_tsgs);
+	nvgpu_bitmap_set(runlist->active_tsgs, 0, num_tsgs);
 	/* same; these are only used if a high enough tsg appears */
-	bitmap_set(runlist->active_channels, 0, num_channels);
+	nvgpu_bitmap_set(runlist->active_channels, 0, num_channels);
 
 }
 

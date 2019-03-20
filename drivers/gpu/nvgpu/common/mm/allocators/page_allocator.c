@@ -383,7 +383,7 @@ static int do_slab_alloc(struct nvgpu_page_allocator *a,
 	}
 
 	nvgpu_assert(offs <= U64(U32_MAX));
-	bitmap_set(&slab_page->bitmap, U32(offs), 1);
+	nvgpu_bitmap_set(&slab_page->bitmap, U32(offs), 1U);
 	slab_page->nr_objects_alloced++;
 
 	if (slab_page->nr_objects_alloced < slab_page->nr_objects) {
@@ -475,7 +475,7 @@ static void nvgpu_free_slab(struct nvgpu_page_allocator *a,
 	u32 offs;
 
 	offs = (u32)(alloc->base - slab_page->page_addr) / slab_page->slab_size;
-	bitmap_clear(&slab_page->bitmap, offs, 1);
+	nvgpu_bitmap_clear(&slab_page->bitmap, offs, 1U);
 
 	slab_page->nr_objects_alloced--;
 

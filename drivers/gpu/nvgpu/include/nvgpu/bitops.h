@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -23,6 +23,7 @@
 #define NVGPU_BITOPS_H
 
 #include <nvgpu/types.h>
+#include <nvgpu/bug.h>
 
 /*
  * Explicit sizes for bit definitions. Please use these instead of BIT().
@@ -40,5 +41,19 @@
 #else
 #include <nvgpu_rmos/include/bitops.h>
 #endif
+
+static inline void nvgpu_bitmap_set(unsigned long *map, unsigned int start,
+				    unsigned int len)
+{
+	BUG_ON(len > U32(INT_MAX));
+	bitmap_set(map, start, (int)len);
+}
+
+static inline void nvgpu_bitmap_clear(unsigned long *map, unsigned int start,
+				      unsigned int len)
+{
+	BUG_ON(len > U32(INT_MAX));
+	bitmap_clear(map, start, (int)len);
+}
 
 #endif /* NVGPU_BITOPS_H */
