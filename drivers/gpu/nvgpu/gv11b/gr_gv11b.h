@@ -110,8 +110,6 @@ void gr_gv11b_commit_global_attrib_cb(struct gk20a *g,
 					     struct nvgpu_gr_ctx *gr_ctx,
 					     u64 addr, bool patch);
 void gr_gv11b_set_gpc_tpc_mask(struct gk20a *g, u32 gpc_index);
-void gr_gv11b_get_access_map(struct gk20a *g,
-				   u32 **whitelist, int *num_entries);
 int gr_gv11b_pre_process_sm_exception(struct gk20a *g,
 		u32 gpc, u32 tpc, u32 sm, u32 global_esr, u32 warp_esr,
 		bool sm_debugger_attached, struct channel_gk20a *fault_ch,

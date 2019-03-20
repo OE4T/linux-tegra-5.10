@@ -359,8 +359,6 @@ struct gpu_ops {
 					u64 sms, bool enable);
 		void (*bpt_reg_info)(struct gk20a *g,
 				struct nvgpu_warpstate *w_state);
-		void (*get_access_map)(struct gk20a *g,
-				      u32 **whitelist, int *num_entries);
 		int (*handle_fecs_error)(struct gk20a *g,
 				struct channel_gk20a *ch,
 				struct gr_gk20a_isr_data *isr_data);
@@ -660,6 +658,8 @@ struct gpu_ops {
 		} hwpm_map;
 
 		struct {
+			void (*get_access_map)(struct gk20a *g,
+				      u32 **whitelist, int *num_entries);
 			u32 (*get_sm_id_size)(void);
 			int (*sm_id_config)(struct gk20a *g, u32 *tpc_sm_id,
 					    struct nvgpu_gr_config *gr_config);

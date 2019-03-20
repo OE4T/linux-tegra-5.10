@@ -274,7 +274,6 @@ static const struct gpu_ops gm20b_ops = {
 		.init_cyclestats = gr_gm20b_init_cyclestats,
 		.set_sm_debug_mode = gr_gk20a_set_sm_debug_mode,
 		.bpt_reg_info = gr_gm20b_bpt_reg_info,
-		.get_access_map = gr_gm20b_get_access_map,
 		.handle_fecs_error = gk20a_gr_handle_fecs_error,
 		.handle_sm_exception = gr_gk20a_handle_sm_exception,
 		.handle_tex_exception = gr_gk20a_handle_tex_exception,
@@ -416,6 +415,7 @@ static const struct gpu_ops gm20b_ops = {
 			.get_gpcs_swdx_dss_zbc_z_format_reg = NULL,
 		},
 		.init = {
+			.get_access_map = gm20b_gr_init_get_access_map,
 			.get_sm_id_size = gm20b_gr_init_get_sm_id_size,
 			.sm_id_config = gm20b_gr_init_sm_id_config,
 			.sm_id_numbering = gm20b_gr_init_sm_id_numbering,

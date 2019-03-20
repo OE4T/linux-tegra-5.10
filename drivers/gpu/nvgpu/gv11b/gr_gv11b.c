@@ -1879,49 +1879,6 @@ void gr_gv11b_set_gpc_tpc_mask(struct gk20a *g, u32 gpc_index)
 	nvgpu_tegra_fuse_write_opt_gpu_tpc0_disable(g, fuse_val);
 }
 
-void gr_gv11b_get_access_map(struct gk20a *g,
-				   u32 **whitelist, int *num_entries)
-{
-	static u32 wl_addr_gv11b[] = {
-		/* this list must be sorted (low to high) */
-		0x404468, /* gr_pri_mme_max_instructions       */
-		0x418300, /* gr_pri_gpcs_rasterarb_line_class  */
-		0x418800, /* gr_pri_gpcs_setup_debug           */
-		0x418e00, /* gr_pri_gpcs_swdx_config           */
-		0x418e40, /* gr_pri_gpcs_swdx_tc_bundle_ctrl   */
-		0x418e44, /* gr_pri_gpcs_swdx_tc_bundle_ctrl   */
-		0x418e48, /* gr_pri_gpcs_swdx_tc_bundle_ctrl   */
-		0x418e4c, /* gr_pri_gpcs_swdx_tc_bundle_ctrl   */
-		0x418e50, /* gr_pri_gpcs_swdx_tc_bundle_ctrl   */
-		0x418e58, /* gr_pri_gpcs_swdx_tc_bundle_addr   */
-		0x418e5c, /* gr_pri_gpcs_swdx_tc_bundle_addr   */
-		0x418e60, /* gr_pri_gpcs_swdx_tc_bundle_addr   */
-		0x418e64, /* gr_pri_gpcs_swdx_tc_bundle_addr   */
-		0x418e68, /* gr_pri_gpcs_swdx_tc_bundle_addr   */
-		0x418e6c, /* gr_pri_gpcs_swdx_tc_bundle_addr   */
-		0x418e70, /* gr_pri_gpcs_swdx_tc_bundle_addr   */
-		0x418e74, /* gr_pri_gpcs_swdx_tc_bundle_addr   */
-		0x418e78, /* gr_pri_gpcs_swdx_tc_bundle_addr   */
-		0x418e7c, /* gr_pri_gpcs_swdx_tc_bundle_addr   */
-		0x418e80, /* gr_pri_gpcs_swdx_tc_bundle_addr   */
-		0x418e84, /* gr_pri_gpcs_swdx_tc_bundle_addr   */
-		0x418e88, /* gr_pri_gpcs_swdx_tc_bundle_addr   */
-		0x418e8c, /* gr_pri_gpcs_swdx_tc_bundle_addr   */
-		0x418e90, /* gr_pri_gpcs_swdx_tc_bundle_addr   */
-		0x418e94, /* gr_pri_gpcs_swdx_tc_bundle_addr   */
-		0x419864, /* gr_pri_gpcs_tpcs_pe_l2_evict_policy */
-		0x419a04, /* gr_pri_gpcs_tpcs_tex_lod_dbg      */
-		0x419a08, /* gr_pri_gpcs_tpcs_tex_samp_dbg     */
-		0x419e84, /* gr_pri_gpcs_tpcs_sms_dbgr_control0 */
-		0x419ba4, /* gr_pri_gpcs_tpcs_sm_disp_ctrl     */
-	};
-	size_t array_size;
-
-	*whitelist = wl_addr_gv11b;
-	array_size = ARRAY_SIZE(wl_addr_gv11b);
-	*num_entries = (int)array_size;
-}
-
 #ifdef NVGPU_DEBUGGER
 static int gr_gv11b_handle_warp_esr_error_mmu_nack(struct gk20a *g,
 	u32 gpc, u32 tpc, u32 sm,

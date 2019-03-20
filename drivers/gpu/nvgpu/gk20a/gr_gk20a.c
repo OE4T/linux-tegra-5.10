@@ -2578,7 +2578,7 @@ static int gr_gk20a_init_access_map(struct gk20a *g)
 
 	nvgpu_memset(g, mem, 0, 0, PAGE_SIZE * nr_pages);
 
-	g->ops.gr.get_access_map(g, &whitelist, &num_entries);
+	g->ops.gr.init.get_access_map(g, &whitelist, &num_entries);
 
 	for (w = 0; w < num_entries; w++) {
 		u32 map_bit, map_byte, map_shift, x;

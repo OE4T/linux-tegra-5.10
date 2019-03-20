@@ -152,7 +152,6 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 		.init_cyclestats = vgpu_gr_init_cyclestats,
 		.set_sm_debug_mode = vgpu_gr_set_sm_debug_mode,
 		.bpt_reg_info = NULL,
-		.get_access_map = gr_gp10b_get_access_map,
 		.handle_fecs_error = NULL,
 		.handle_sm_exception = NULL,
 		.handle_tex_exception = NULL,
