@@ -29,12 +29,14 @@
 #include <nvgpu/bug.h>
 
 struct atomic_struct {
+	long not_atomic;
 	nvgpu_atomic_t atomic;
 	nvgpu_atomic64_t atomic64;
 };
-enum atomic_width {
-	WIDTH_32,
-	WIDTH_64,
+enum atomic_type {
+	ATOMIC_32,
+	ATOMIC_64,
+	NOT_ATOMIC,
 };
 enum atomic_op {
 	op_inc,
@@ -48,7 +50,7 @@ enum atomic_op {
 };
 struct atomic_test_args {
 	enum atomic_op op;
-	enum atomic_width width;
+	enum atomic_type type;
 	long start_val;
 	long loop_count;
 	long value; /* for add/sub ops */
@@ -66,88 +68,313 @@ struct atomic_thread_info {
 static pthread_barrier_t thread_barrier;
 
 /*
- * Define macros for atomic ops that have 32b and 64b versions so we can
+ * Define functions for atomic ops that handle all types so we can
  * keep the code cleaner.
  */
-#define ATOMIC_SET(width, ref, i)					\
-	((width == WIDTH_32) ?						\
-		nvgpu_atomic_set(&((ref)->atomic), i) :			\
-		nvgpu_atomic64_set(&((ref)->atomic64), i))
+static inline void func_set(enum atomic_type type, struct atomic_struct *ref,
+			  long val)
+{
+	switch (type) {
+	case NOT_ATOMIC:
+		ref->not_atomic = val;
+		break;
+	case ATOMIC_32:
+		nvgpu_atomic_set(&(ref->atomic), val);
+		break;
+	case ATOMIC_64:
+		nvgpu_atomic64_set(&(ref->atomic64), val);
+		break;
+	}
+}
 
-#define ATOMIC_READ(width, ref)						\
-	((width == WIDTH_32) ?						\
-		nvgpu_atomic_read(&((ref)->atomic)) :			\
-		nvgpu_atomic64_read(&((ref)->atomic64)))
+static inline long func_read(enum atomic_type type, struct atomic_struct *ref)
+{
+	long ret = 0;
 
-#define ATOMIC_INC(width, ref)						\
-	((width == WIDTH_32) ?						\
-		nvgpu_atomic_inc(&((ref)->atomic)) :			\
-		nvgpu_atomic64_inc(&((ref)->atomic64)))
+	switch (type) {
+	case NOT_ATOMIC:
+		ret = ref->not_atomic;
+		break;
+	case ATOMIC_32:
+		ret = nvgpu_atomic_read(&(ref->atomic));
+		break;
+	case ATOMIC_64:
+		ret = nvgpu_atomic64_read(&(ref->atomic64));
+		break;
+	}
+	return ret;
+}
 
-#define ATOMIC_INC_RETURN(width, ref)					\
-	((width == WIDTH_32) ?						\
-		nvgpu_atomic_inc_return(&((ref)->atomic)) :		\
-		nvgpu_atomic64_inc_return(&((ref)->atomic64)))
+static inline void func_inc(enum atomic_type type, struct atomic_struct *ref)
+{
+	switch (type) {
+	case NOT_ATOMIC:
+		++ref->not_atomic;
+		break;
+	case ATOMIC_32:
+		nvgpu_atomic_inc(&(ref->atomic));
+		break;
+	case ATOMIC_64:
+		nvgpu_atomic64_inc(&(ref->atomic64));
+		break;
+	}
+}
 
-#define ATOMIC_INC_AND_TEST(width, ref)					\
-	((width == WIDTH_32) ?						\
-		nvgpu_atomic_inc_and_test(&((ref)->atomic)) :		\
-		nvgpu_atomic64_inc_and_test(&((ref)->atomic64)))
+static inline long func_inc_return(enum atomic_type type,
+				   struct atomic_struct *ref)
+{
+	long ret = 0;
 
-#define ATOMIC_DEC(width, ref)						\
-	((width == WIDTH_32) ?						\
-		nvgpu_atomic_dec(&((ref)->atomic)) :			\
-		nvgpu_atomic64_dec(&((ref)->atomic64)))
+	switch (type) {
+	case NOT_ATOMIC:
+		++ref->not_atomic;
+		ret = ref->not_atomic;
+		break;
+	case ATOMIC_32:
+		ret = nvgpu_atomic_inc_return(&(ref->atomic));
+		break;
+	case ATOMIC_64:
+		ret = nvgpu_atomic64_inc_return(&(ref->atomic64));
+		break;
+	}
+	return ret;
+}
 
-#define ATOMIC_DEC_RETURN(width, ref)					\
-	((width == WIDTH_32) ?						\
-		nvgpu_atomic_dec_return(&((ref)->atomic)) :		\
-		nvgpu_atomic64_dec_return(&((ref)->atomic64)))
+static inline bool func_inc_and_test(enum atomic_type type,
+				     struct atomic_struct *ref)
+{
+	bool ret = false;
 
-#define ATOMIC_DEC_AND_TEST(width, ref)					\
-	((width == WIDTH_32) ?						\
-		nvgpu_atomic_dec_and_test(&((ref)->atomic)) :		\
-		nvgpu_atomic64_dec_and_test(&((ref)->atomic64)))
+	switch (type) {
+	case NOT_ATOMIC:
+		++ref->not_atomic;
+		ret = (ref->not_atomic == 0);
+		break;
+	case ATOMIC_32:
+		ret = nvgpu_atomic_inc_and_test(&(ref->atomic));
+		break;
+	case ATOMIC_64:
+		ret = nvgpu_atomic64_inc_and_test(&(ref->atomic64));
+		break;
+	}
+	return ret;
+}
 
-#define ATOMIC_ADD(width, x, ref)					\
-	((width == WIDTH_32) ?						\
-		nvgpu_atomic_add(x, &((ref)->atomic)) :			\
-		nvgpu_atomic64_add(x, &((ref)->atomic64)))
+static inline void func_dec(enum atomic_type type, struct atomic_struct *ref)
+{
+	switch (type) {
+	case NOT_ATOMIC:
+		--ref->not_atomic;
+		break;
+	case ATOMIC_32:
+		nvgpu_atomic_dec(&(ref->atomic));
+		break;
+	case ATOMIC_64:
+		nvgpu_atomic64_dec(&(ref->atomic64));
+		break;
+	}
+}
 
-#define ATOMIC_ADD_RETURN(width, x, ref)				\
-	((width == WIDTH_32) ?						\
-		nvgpu_atomic_add_return(x, &((ref)->atomic)) :		\
-		nvgpu_atomic64_add_return(x, &((ref)->atomic64)))
+static inline long func_dec_return(enum atomic_type type,
+				   struct atomic_struct *ref)
+{
+	long ret = 0;
 
-#define ATOMIC_ADD_UNLESS(width, ref, a, u)				\
-	(((width == WIDTH_32) ?						\
-		nvgpu_atomic_add_unless(&((ref)->atomic), a, u) :	\
-		nvgpu_atomic64_add_unless(&((ref)->atomic64), a, u)))
+	switch (type) {
+	case NOT_ATOMIC:
+		--ref->not_atomic;
+		ret = ref->not_atomic;
+		break;
+	case ATOMIC_32:
+		ret = nvgpu_atomic_dec_return(&(ref->atomic));
+		break;
+	case ATOMIC_64:
+		ret = nvgpu_atomic64_dec_return(&(ref->atomic64));
+		break;
+	}
+	return ret;
+}
 
-#define ATOMIC_SUB(width, x, ref)					\
-	((width == WIDTH_32) ?						\
-		nvgpu_atomic_sub(x, &((ref)->atomic)) :			\
-		nvgpu_atomic64_sub(x, &((ref)->atomic64)))
+static inline bool func_dec_and_test(enum atomic_type type,
+				     struct atomic_struct *ref)
+{
+	bool ret = false;
 
-#define ATOMIC_SUB_RETURN(width, x, ref)				\
-	((width == WIDTH_32) ?						\
-		nvgpu_atomic_sub_return(x, &((ref)->atomic)) :		\
-		nvgpu_atomic64_sub_return(x, &((ref)->atomic64)))
+	switch (type) {
+	case NOT_ATOMIC:
+		--ref->not_atomic;
+		ret = (ref->not_atomic == 0);
+		break;
+	case ATOMIC_32:
+		ret = nvgpu_atomic_dec_and_test(&(ref->atomic));
+		break;
+	case ATOMIC_64:
+		ret = nvgpu_atomic64_dec_and_test(&(ref->atomic64));
+		break;
+	}
+	return ret;
+}
 
-#define ATOMIC_SUB_AND_TEST(width, x, ref)				\
-	((width == WIDTH_32) ?						\
-		nvgpu_atomic_sub_and_test(x, &((ref)->atomic)) :	\
-		nvgpu_atomic64_sub_and_test(x, &((ref)->atomic64)))
+static inline void func_add(enum atomic_type type, long val,
+			    struct atomic_struct *ref)
+{
+	switch (type) {
+	case NOT_ATOMIC:
+		ref->not_atomic += val;
+		break;
+	case ATOMIC_32:
+		nvgpu_atomic_add(val, &(ref->atomic));
+		break;
+	case ATOMIC_64:
+		nvgpu_atomic64_add(val, &(ref->atomic64));
+		break;
+	}
+}
 
-#define ATOMIC_XCHG(width, ref, new)				\
-	((width == WIDTH_32) ?						\
-		nvgpu_atomic_xchg(&((ref)->atomic), new) :	\
-		nvgpu_atomic64_xchg(&((ref)->atomic64), new))
+static inline long func_add_return(enum atomic_type type, long val,
+				   struct atomic_struct *ref)
+{
+	long ret = 0;
 
-#define ATOMIC_CMPXCHG(width, ref, old, new)				\
-	((width == WIDTH_32) ?						\
-		nvgpu_atomic_cmpxchg(&((ref)->atomic), old, new) :	\
-		nvgpu_atomic64_cmpxchg(&((ref)->atomic64), old, new))
+	switch (type) {
+	case NOT_ATOMIC:
+		ref->not_atomic += val;
+		ret = ref->not_atomic;
+		break;
+	case ATOMIC_32:
+		ret = nvgpu_atomic_add_return(val, &(ref->atomic));
+		break;
+	case ATOMIC_64:
+		ret = nvgpu_atomic64_add_return(val, &(ref->atomic64));
+		break;
+	}
+	return ret;
+}
+
+static inline long func_add_unless(enum atomic_type type,
+				   struct atomic_struct *ref, long val,
+				   long unless)
+{
+	long ret = 0;
+
+	switch (type) {
+	case NOT_ATOMIC:
+		ret = ref->not_atomic;
+		if (ret != unless) {
+			ref->not_atomic += val;
+		}
+		break;
+	case ATOMIC_32:
+		ret = nvgpu_atomic_add_unless(&(ref->atomic), val,
+						unless);
+		break;
+	case ATOMIC_64:
+		ret = nvgpu_atomic64_add_unless(&(ref->atomic64), val,
+						unless);
+		break;
+	}
+	return ret;
+}
+
+static inline void func_sub(enum atomic_type type, long val,
+			    struct atomic_struct *ref)
+{
+	switch (type) {
+	case NOT_ATOMIC:
+		ref->not_atomic -= val;
+		break;
+	case ATOMIC_32:
+		nvgpu_atomic_sub(val, &(ref->atomic));
+		break;
+	case ATOMIC_64:
+		nvgpu_atomic64_sub(val, &(ref->atomic64));
+		break;
+	}
+}
+
+static inline long func_sub_return(enum atomic_type type, long val,
+				   struct atomic_struct *ref)
+{
+	long ret = 0;
+
+	switch (type) {
+	case NOT_ATOMIC:
+		ref->not_atomic -= val;
+		ret = ref->not_atomic;
+		break;
+	case ATOMIC_32:
+		ret = nvgpu_atomic_sub_return(val, &(ref->atomic));
+		break;
+	case ATOMIC_64:
+		ret = nvgpu_atomic64_sub_return(val, &(ref->atomic64));
+		break;
+	}
+	return ret;
+}
+
+static inline bool func_sub_and_test(enum atomic_type type, long val,
+				     struct atomic_struct *ref)
+{
+	bool ret = 0;
+
+	switch (type) {
+	case NOT_ATOMIC:
+		ref->not_atomic -= val;
+		ret = (ref->not_atomic == 0);
+		break;
+	case ATOMIC_32:
+		ret = nvgpu_atomic_sub_and_test(val, &(ref->atomic));
+		break;
+	case ATOMIC_64:
+		ret = nvgpu_atomic64_sub_and_test(val,
+							&(ref->atomic64));
+		break;
+	}
+	return ret;
+}
+
+static inline long func_xchg(enum atomic_type type, struct atomic_struct *ref,
+			     long new)
+{
+	long ret = 0;
+
+	switch (type) {
+	case NOT_ATOMIC:
+		ret = ref->not_atomic;
+		ref->not_atomic = new;
+		break;
+	case ATOMIC_32:
+		ret = nvgpu_atomic_xchg(&(ref->atomic), new);
+		break;
+	case ATOMIC_64:
+		ret = nvgpu_atomic64_xchg(&(ref->atomic64), new);
+		break;
+	}
+	return ret;
+}
+
+static inline long func_cmpxchg(enum atomic_type type,
+				struct atomic_struct *ref, long old, long new)
+{
+	long ret = 0;
+
+	switch (type) {
+	case NOT_ATOMIC:
+		ret = ref->not_atomic;
+		if (ret == old) {
+			ref->not_atomic = new;
+		}
+		break;
+	case ATOMIC_32:
+		ret = nvgpu_atomic_cmpxchg(&(ref->atomic), old, new);
+		break;
+	case ATOMIC_64:
+		ret = nvgpu_atomic64_cmpxchg(&(ref->atomic64), old,
+						new);
+		break;
+	}
+	return ret;
+}
 
 /*
  * Helper macro that takes an atomic op from the enum and returns +1/-1
@@ -172,17 +399,17 @@ static pthread_barrier_t thread_barrier;
 /* Support function to do an atomic set and read verification */
 static int single_set_and_read(struct unit_module *m,
 			       struct atomic_struct *atomic,
-			       enum atomic_width width, const long set_val)
+			       enum atomic_type type, const long set_val)
 {
 	long read_val;
 
-	if ((width == WIDTH_32) &&
+	if ((type == ATOMIC_32) &&
 	    ((set_val < INT_MIN) || (set_val > INT_MAX))) {
 		unit_return_fail(m, "Invalid value for 32 op\n");
 	}
 
-	ATOMIC_SET(width, atomic, set_val);
-	read_val = ATOMIC_READ(width, atomic);
+	func_set(type, atomic, set_val);
+	read_val = func_read(type, atomic);
 	if (read_val != set_val) {
 		unit_err(m, "Atomic returned wrong value. Expected: %ld "
 			    "Received: %ld\n", (long)set_val, (long)read_val);
@@ -201,21 +428,21 @@ static int test_atomic_set_and_read(struct unit_module *m,
 				    struct gk20a *g, void *__args)
 {
 	struct atomic_test_args *args = (struct atomic_test_args *)__args;
-	const int loop_limit = args->width == WIDTH_32 ? (sizeof(int) * 8) :
+	const int loop_limit = args->type == ATOMIC_32 ? (sizeof(int) * 8) :
 							 (sizeof(long) * 8);
-	const long min_value = args->width == WIDTH_32 ? INT_MIN :
+	const long min_value = args->type == ATOMIC_32 ? INT_MIN :
 							 LONG_MIN;
-	const long max_value = args->width == WIDTH_32 ? INT_MAX :
+	const long max_value = args->type == ATOMIC_32 ? INT_MAX :
 							 LONG_MAX;
-	struct atomic_struct atomic;
+	struct atomic_struct atomic = {0};
 	int i;
 
-	single_set_and_read(m, &atomic, args->width, min_value);
-	single_set_and_read(m, &atomic, args->width, max_value);
-	single_set_and_read(m, &atomic, args->width, 0);
+	single_set_and_read(m, &atomic, args->type, min_value);
+	single_set_and_read(m, &atomic, args->type, max_value);
+	single_set_and_read(m, &atomic, args->type, 0);
 
 	for (i = 0; i < loop_limit; i++) {
-		if (single_set_and_read(m, &atomic, args->width, (1 << i))
+		if (single_set_and_read(m, &atomic, args->type, (1 << i))
 							!= UNIT_SUCCESS) {
 			return UNIT_FAIL;
 		}
@@ -238,7 +465,7 @@ static int test_atomic_arithmetic(struct unit_module *m,
 			       struct gk20a *g, void *__args)
 {
 	struct atomic_test_args *args = (struct atomic_test_args *)__args;
-	struct atomic_struct atomic;
+	struct atomic_struct atomic = {0};
 	int i;
 	long delta_magnitude;
 	long read_val;
@@ -246,7 +473,7 @@ static int test_atomic_arithmetic(struct unit_module *m,
 	bool result_bool;
 	bool check_result_bool = false;
 
-	if (single_set_and_read(m, &atomic, args->width, args->start_val)
+	if (single_set_and_read(m, &atomic, args->type, args->start_val)
 							!= UNIT_SUCCESS) {
 		return UNIT_FAIL;
 	}
@@ -255,39 +482,39 @@ static int test_atomic_arithmetic(struct unit_module *m,
 		if (args->op == op_inc) {
 			/* use 2 since we test both inc and inc_return */
 			delta_magnitude = 2;
-			ATOMIC_INC(args->width, &atomic);
-			read_val = ATOMIC_INC_RETURN(args->width, &atomic);
+			func_inc(args->type, &atomic);
+			read_val = func_inc_return(args->type, &atomic);
 		} else if (args->op == op_inc_and_test) {
 			delta_magnitude = 1;
 			check_result_bool = true;
-			result_bool = ATOMIC_INC_AND_TEST(args->width, &atomic);
-			read_val = ATOMIC_READ(args->width, &atomic);
+			result_bool = func_inc_and_test(args->type, &atomic);
+			read_val = func_read(args->type, &atomic);
 		} else if (args->op == op_dec) {
 			/* use 2 since we test both dec and dec_return */
 			delta_magnitude = 2;
-			ATOMIC_DEC(args->width, &atomic);
-			read_val = ATOMIC_DEC_RETURN(args->width, &atomic);
+			func_dec(args->type, &atomic);
+			read_val = func_dec_return(args->type, &atomic);
 		} else if (args->op == op_dec_and_test) {
 			delta_magnitude = 1;
 			check_result_bool = true;
-			result_bool = ATOMIC_DEC_AND_TEST(args->width, &atomic);
-			read_val = ATOMIC_READ(args->width, &atomic);
+			result_bool = func_dec_and_test(args->type, &atomic);
+			read_val = func_read(args->type, &atomic);
 		} else if (args->op == op_add) {
 			delta_magnitude = args->value * 2;
-			ATOMIC_ADD(args->width, args->value, &atomic);
-			read_val = ATOMIC_ADD_RETURN(args->width, args->value,
+			func_add(args->type, args->value, &atomic);
+			read_val = func_add_return(args->type, args->value,
 							&atomic);
 		} else if (args->op == op_sub) {
 			delta_magnitude = args->value * 2;
-			ATOMIC_SUB(args->width, args->value, &atomic);
-			read_val = ATOMIC_SUB_RETURN(args->width, args->value,
+			func_sub(args->type, args->value, &atomic);
+			read_val = func_sub_return(args->type, args->value,
 							&atomic);
 		} else if (args->op == op_sub_and_test) {
 			delta_magnitude = args->value;
 			check_result_bool = true;
-			result_bool = ATOMIC_SUB_AND_TEST(args->width,
+			result_bool = func_sub_and_test(args->type,
 						args->value, &atomic);
-			read_val = ATOMIC_READ(args->width, &atomic);
+			read_val = func_read(args->type, &atomic);
 		} else {
 			unit_return_fail(m, "Test error: invalid op in %s\n",
 					__func__);
@@ -297,7 +524,7 @@ static int test_atomic_arithmetic(struct unit_module *m,
 			(i * delta_magnitude * ATOMIC_OP_SIGN(args->op));
 
 		/* sanity check */
-		if ((args->width == WIDTH_32) &&
+		if ((args->type == ATOMIC_32) &&
 		    ((expected_val > INT_MAX) || (expected_val < INT_MIN))) {
 			unit_return_fail(m, "Test error: invalid value in %s\n",
 					__func__);
@@ -334,26 +561,26 @@ static void *arithmetic_thread(void *__args)
 
 	for (i = 0; i < targs->margs->loop_count; i++) {
 		if (targs->margs->op == op_inc) {
-			ATOMIC_INC(targs->margs->width, targs->atomic);
+			func_inc(targs->margs->type, targs->atomic);
 		} else if (targs->margs->op == op_dec) {
-			ATOMIC_DEC(targs->margs->width, targs->atomic);
+			func_dec(targs->margs->type, targs->atomic);
 		} else if (targs->margs->op == op_add) {
 			/*
 			 * Save the last value to sanity that threads aren't
 			 * running sequentially
 			 */
-			targs->final_val = ATOMIC_ADD_RETURN(
-						targs->margs->width,
+			targs->final_val = func_add_return(
+						targs->margs->type,
 						targs->margs->value,
 						targs->atomic);
 		} else if (targs->margs->op == op_add) {
-			ATOMIC_ADD(targs->margs->width, targs->margs->value,
+			func_add(targs->margs->type, targs->margs->value,
 					targs->atomic);
 		} else if (targs->margs->op == op_sub) {
-			ATOMIC_SUB(targs->margs->width, targs->margs->value,
+			func_sub(targs->margs->type, targs->margs->value,
 					targs->atomic);
 		} else if (targs->margs->op == op_inc_and_test) {
-			if (ATOMIC_INC_AND_TEST(targs->margs->width,
+			if (func_inc_and_test(targs->margs->type,
 							targs->atomic)) {
 				/*
 				 * Only increment if atomic op returns true
@@ -362,7 +589,7 @@ static void *arithmetic_thread(void *__args)
 				targs->iterations++;
 			}
 		} else if (targs->margs->op == op_dec_and_test) {
-			if (ATOMIC_DEC_AND_TEST(targs->margs->width,
+			if (func_dec_and_test(targs->margs->type,
 							targs->atomic)) {
 				/*
 				 * Only increment if atomic op returns true
@@ -371,7 +598,7 @@ static void *arithmetic_thread(void *__args)
 				targs->iterations++;
 			}
 		} else if (targs->margs->op == op_sub_and_test) {
-			if (ATOMIC_SUB_AND_TEST(targs->margs->width,
+			if (func_sub_and_test(targs->margs->type,
 						targs->margs->value,
 						targs->atomic)) {
 				/*
@@ -381,7 +608,7 @@ static void *arithmetic_thread(void *__args)
 				targs->iterations++;
 			}
 		} else if (targs->margs->op == op_add_unless) {
-			if (ATOMIC_ADD_UNLESS(targs->margs->width,
+			if (func_add_unless(targs->margs->type,
 					targs->atomic, targs->margs->value,
 					targs->unless) != targs->unless) {
 				/*
@@ -442,14 +669,14 @@ static int test_atomic_arithmetic_threaded(struct unit_module *m,
 					struct gk20a *g, void *__args)
 {
 	struct atomic_test_args *args = (struct atomic_test_args *)__args;
-	struct atomic_struct atomic;
+	struct atomic_struct atomic = {0};
 	const int num_threads = 100;
 	struct atomic_thread_info threads[num_threads];
 	int i;
 	long expected_val, val, expected_iterations;
 	int ret = UNIT_SUCCESS;
 
-	if (single_set_and_read(m, &atomic, args->width, args->start_val)
+	if (single_set_and_read(m, &atomic, args->type, args->start_val)
 							!= UNIT_SUCCESS) {
 		return UNIT_FAIL;
 	}
@@ -474,7 +701,7 @@ static int test_atomic_arithmetic_threaded(struct unit_module *m,
 		pthread_join(threads[i].thread, NULL);
 	}
 
-	val = ATOMIC_READ(args->width, &atomic);
+	val = func_read(args->type, &atomic);
 
 	switch (args->op) {
 		case op_add_unless:
@@ -525,7 +752,7 @@ static int test_atomic_arithmetic_threaded(struct unit_module *m,
 	}
 
 	/* sanity check */
-	if ((args->width == WIDTH_32) &&
+	if ((args->type == ATOMIC_32) &&
 	    ((expected_val > INT_MAX) || (expected_val < INT_MIN))) {
 		unit_err(m, "Test error: invalid value in %s\n", __func__);
 		ret = UNIT_FAIL;
@@ -573,11 +800,11 @@ static int test_atomic_xchg(struct unit_module *m,
 			    struct gk20a *g, void *__args)
 {
 	struct atomic_test_args *args = (struct atomic_test_args *)__args;
-	struct atomic_struct atomic;
+	struct atomic_struct atomic = {0};
 	int i;
 	long new_val, old_val, ret_val;
 
-	if (single_set_and_read(m, &atomic, args->width, args->start_val)
+	if (single_set_and_read(m, &atomic, args->type, args->start_val)
 							!= UNIT_SUCCESS) {
 		return UNIT_FAIL;
 	}
@@ -590,7 +817,7 @@ static int test_atomic_xchg(struct unit_module *m,
 		 */
 		new_val = (i % 2 ? 1 : -1) * (args->start_val + i);
 		/* only a 32bit xchg op */
-		ret_val = ATOMIC_XCHG(args->width, &atomic, new_val);
+		ret_val = func_xchg(args->type, &atomic, new_val);
 		if (ret_val != old_val) {
 			unit_return_fail(m, "xchg returned bad old val "
 					"Expected: %ld, Received: %ld\n",
@@ -612,13 +839,13 @@ static int test_atomic_cmpxchg(struct unit_module *m,
 			       struct gk20a *g, void *__args)
 {
 	struct atomic_test_args *args = (struct atomic_test_args *)__args;
-	struct atomic_struct atomic;
+	struct atomic_struct atomic = {0};
 	const int switch_interval = 5;
 	int i;
 	long new_val, old_val, ret_val;
 	bool should_match = true;
 
-	if (single_set_and_read(m, &atomic, args->width, args->start_val)
+	if (single_set_and_read(m, &atomic, args->type, args->start_val)
 							!= UNIT_SUCCESS) {
 		return UNIT_FAIL;
 	}
@@ -635,7 +862,7 @@ static int test_atomic_cmpxchg(struct unit_module *m,
 
 		new_val = args->start_val + i;
 		if (should_match) {
-			ret_val = ATOMIC_CMPXCHG(args->width, &atomic,
+			ret_val = func_cmpxchg(args->type, &atomic,
 						old_val, new_val);
 			if (ret_val != old_val) {
 				unit_return_fail(m,
@@ -643,7 +870,7 @@ static int test_atomic_cmpxchg(struct unit_module *m,
 					"Expected: %ld, Received: %ld\n",
 					old_val, ret_val);
 			}
-			ret_val = ATOMIC_READ(args->width, &atomic);
+			ret_val = func_read(args->type, &atomic);
 			if (ret_val != new_val) {
 				unit_return_fail(m,
 					"cmpxchg did not update "
@@ -652,7 +879,7 @@ static int test_atomic_cmpxchg(struct unit_module *m,
 			}
 			old_val = new_val;
 		} else {
-			ret_val = ATOMIC_CMPXCHG(args->width, &atomic,
+			ret_val = func_cmpxchg(args->type, &atomic,
 						-1 * old_val, new_val);
 			if (ret_val != old_val) {
 				unit_return_fail(m,
@@ -660,7 +887,7 @@ static int test_atomic_cmpxchg(struct unit_module *m,
 					"Expected: %ld, Received: %ld\n",
 					old_val, ret_val);
 			}
-			ret_val = ATOMIC_READ(args->width, &atomic);
+			ret_val = func_read(args->type, &atomic);
 			if (ret_val != old_val) {
 				unit_return_fail(m,
 					"cmpxchg should not have updated "
@@ -686,13 +913,13 @@ static int test_atomic_add_unless(struct unit_module *m,
 				  struct gk20a *g, void *__args)
 {
 	struct atomic_test_args *args = (struct atomic_test_args *)__args;
-	struct atomic_struct atomic;
+	struct atomic_struct atomic = {0};
 	const int switch_interval = 5;
 	int i;
 	int new_val, old_val, ret_val;
 	bool should_update = true;
 
-	if (single_set_and_read(m, &atomic, args->width, args->start_val)
+	if (single_set_and_read(m, &atomic, args->type, args->start_val)
 							!= UNIT_SUCCESS) {
 		return UNIT_FAIL;
 	}
@@ -705,7 +932,7 @@ static int test_atomic_add_unless(struct unit_module *m,
 
 		if (should_update) {
 			/* This will fail to match and do the add */
-			ret_val = ATOMIC_ADD_UNLESS(args->width, &atomic,
+			ret_val = func_add_unless(args->type, &atomic,
 						args->value, old_val - 1);
 			if (ret_val != old_val) {
 				unit_return_fail(m,
@@ -714,7 +941,7 @@ static int test_atomic_add_unless(struct unit_module *m,
 					old_val, ret_val);
 			}
 			new_val = old_val + args->value;
-			ret_val = ATOMIC_READ(args->width, &atomic);
+			ret_val = func_read(args->type, &atomic);
 			if (ret_val != new_val) {
 				unit_return_fail(m, "add_unless did not "
 						"update Expected: %d, "
@@ -724,7 +951,7 @@ static int test_atomic_add_unless(struct unit_module *m,
 			old_val = ret_val;
 		} else {
 			/* This will match the old value and won't add */
-			ret_val = ATOMIC_ADD_UNLESS(args->width, &atomic,
+			ret_val = func_add_unless(args->type, &atomic,
 						args->value, old_val);
 			if (ret_val != old_val) {
 				unit_return_fail(m,
@@ -732,7 +959,7 @@ static int test_atomic_add_unless(struct unit_module *m,
 					"Expected: %d, Received: %d\n",
 					old_val, ret_val);
 			}
-			ret_val = ATOMIC_READ(args->width, &atomic);
+			ret_val = func_read(args->type, &atomic);
 			if (ret_val != old_val) {
 				unit_return_fail(m, "add_unless should not "
 						"have updated Expected: %d, "
@@ -746,14 +973,14 @@ static int test_atomic_add_unless(struct unit_module *m,
 }
 
 static struct atomic_test_args set_and_read_32_arg = {
-	.width = WIDTH_32,
+	.type = ATOMIC_32,
 };
 static struct atomic_test_args set_and_read_64_arg = {
-	.width = WIDTH_64,
+	.type = ATOMIC_64,
 };
 static struct atomic_test_args inc_32_arg = {
 	.op = op_inc,
-	.width = WIDTH_32,
+	.type = ATOMIC_32,
 	.start_val = -500,
 	.loop_count = 10000,
 	.value = 1,
@@ -761,7 +988,7 @@ static struct atomic_test_args inc_32_arg = {
 static struct atomic_test_args inc_and_test_32_arg = {
 	/* must cross 0 */
 	.op = op_inc_and_test,
-	.width = WIDTH_32,
+	.type = ATOMIC_32,
 	.start_val = -500,
 	.loop_count = 10000,
 	.value = 1,
@@ -769,21 +996,21 @@ static struct atomic_test_args inc_and_test_32_arg = {
 static struct atomic_test_args inc_and_test_64_arg = {
 	/* must cross 0 */
 	.op = op_inc_and_test,
-	.width = WIDTH_64,
+	.type = ATOMIC_64,
 	.start_val = -500,
 	.loop_count = 10000,
 	.value = 1,
 };
 static struct atomic_test_args inc_64_arg = {
 	.op = op_inc,
-	.width = WIDTH_64,
+	.type = ATOMIC_64,
 	.start_val = INT_MAX - 500,
 	.loop_count = 10000,
 	.value = 1,
 };
 static struct atomic_test_args dec_32_arg = {
 	.op = op_dec,
-	.width = WIDTH_32,
+	.type = ATOMIC_32,
 	.start_val = 500,
 	.loop_count = 10000,
 	.value = 1,
@@ -791,7 +1018,7 @@ static struct atomic_test_args dec_32_arg = {
 static struct atomic_test_args dec_and_test_32_arg = {
 	/* must cross 0 */
 	.op = op_dec_and_test,
-	.width = WIDTH_32,
+	.type = ATOMIC_32,
 	.start_val = 500,
 	.loop_count = 10000,
 	.value = 1,
@@ -799,42 +1026,42 @@ static struct atomic_test_args dec_and_test_32_arg = {
 static struct atomic_test_args dec_and_test_64_arg = {
 	/* must cross 0 */
 	.op = op_dec_and_test,
-	.width = WIDTH_64,
+	.type = ATOMIC_64,
 	.start_val = 500,
 	.loop_count = 10000,
 	.value = 1,
 };
 static struct atomic_test_args dec_64_arg = {
 	.op = op_dec,
-	.width = WIDTH_64,
+	.type = ATOMIC_64,
 	.start_val = INT_MIN + 500,
 	.loop_count = 10000,
 	.value = 1,
 };
 static struct atomic_test_args add_32_arg = {
 	.op = op_add,
-	.width = WIDTH_32,
+	.type = ATOMIC_32,
 	.start_val = -500,
 	.loop_count = 10000,
 	.value = 7,
 };
 static struct atomic_test_args add_64_arg = {
 	.op = op_add,
-	.width = WIDTH_64,
+	.type = ATOMIC_64,
 	.start_val = INT_MAX - 500,
 	.loop_count = 10000,
 	.value = 7,
 };
 struct atomic_test_args sub_32_arg = {
 	.op = op_sub,
-	.width = WIDTH_32,
+	.type = ATOMIC_32,
 	.start_val = 500,
 	.loop_count = 10000,
 	.value = 7,
 };
 static struct atomic_test_args sub_64_arg = {
 	.op = op_sub,
-	.width = WIDTH_64,
+	.type = ATOMIC_64,
 	.start_val = INT_MIN + 500,
 	.loop_count = 10000,
 	.value = 7,
@@ -842,7 +1069,7 @@ static struct atomic_test_args sub_64_arg = {
 static struct atomic_test_args sub_and_test_32_arg = {
 	/* must cross 0 */
 	.op = op_sub_and_test,
-	.width = WIDTH_32,
+	.type = ATOMIC_32,
 	.start_val = 500,
 	.loop_count = 10000,
 	.value = 5,
@@ -850,25 +1077,25 @@ static struct atomic_test_args sub_and_test_32_arg = {
 static struct atomic_test_args sub_and_test_64_arg = {
 	/* must cross 0 */
 	.op = op_sub_and_test,
-	.width = WIDTH_64,
+	.type = ATOMIC_64,
 	.start_val = 500,
 	.loop_count = 10000,
 	.value = 5,
 };
 struct atomic_test_args xchg_32_arg = {
-	.width = WIDTH_32,
+	.type = ATOMIC_32,
 	.start_val = 1,
 	.loop_count = 10000,
 };
 struct atomic_test_args xchg_64_arg = {
-	.width = WIDTH_64,
+	.type = ATOMIC_64,
 	.start_val = INT_MAX,
 	.loop_count = 10000,
 };
 static struct atomic_test_args add_unless_32_arg = {
 	/* must loop at least 10 times */
 	.op = op_add_unless,
-	.width = WIDTH_32,
+	.type = ATOMIC_32,
 	.start_val = -500,
 	.loop_count = 10000,
 	.value = 5,
@@ -876,7 +1103,7 @@ static struct atomic_test_args add_unless_32_arg = {
 static struct atomic_test_args add_unless_64_arg = {
 	/* must loop at least 10 times */
 	.op = op_add_unless,
-	.width = WIDTH_64,
+	.type = ATOMIC_64,
 	.start_val = -500,
 	.loop_count = 10000,
 	.value = 5,
