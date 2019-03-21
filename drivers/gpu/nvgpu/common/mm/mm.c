@@ -199,6 +199,16 @@ static void nvgpu_remove_mm_support(struct mm_gk20a *mm)
 	nvgpu_free_inst_block(g, &mm->hwpm.inst_block);
 	nvgpu_vm_put(mm->pmu.vm);
 
+	if (nvgpu_is_enabled(g, NVGPU_SUPPORT_SEC2_VM)) {
+		nvgpu_free_inst_block(g, &mm->sec2.inst_block);
+		nvgpu_vm_put(mm->sec2.vm);
+	}
+
+	if (nvgpu_is_enabled(g, NVGPU_SUPPORT_GSP_VM)) {
+		nvgpu_free_inst_block(g, &mm->gsp.inst_block);
+		nvgpu_vm_put(mm->gsp.vm);
+	}
+
 	if (g->has_cde) {
 		nvgpu_vm_put(mm->cde.vm);
 	}
@@ -405,6 +415,40 @@ clean_up_vm:
 	return err;
 }
 
+static int nvgpu_init_engine_ucode_vm(struct gk20a *g,
+	struct engine_ucode *ucode, const char *address_space_name)
+{
+	int err;
+	struct nvgpu_mem *inst_block = &ucode->inst_block;
+	u32 big_page_size = g->ops.mm.get_default_big_page_size();
+
+	/* ucode aperture size is 32MB */
+	ucode->aperture_size = U32(32) << 20U;
+	nvgpu_log_info(g, "%s vm size = 0x%x", address_space_name,
+		ucode->aperture_size);
+
+	ucode->vm = nvgpu_vm_init(g, big_page_size, SZ_4K,
+		ucode->aperture_size - SZ_4K,
+		ucode->aperture_size, false, false, false, address_space_name);
+	if (ucode->vm == NULL) {
+		return -ENOMEM;
+	}
+
+	/* allocate instance mem for engine ucode */
+	err = g->ops.mm.alloc_inst_block(g, inst_block);
+	if (err != 0) {
+		goto clean_up_va;
+	}
+
+	g->ops.mm.init_inst_block(inst_block, ucode->vm, big_page_size);
+
+	return 0;
+
+clean_up_va:
+	nvgpu_vm_put(ucode->vm);
+	return err;
+}
+
 static int nvgpu_init_mm_setup_sw(struct gk20a *g)
 {
 	struct mm_gk20a *mm = &g->mm;
@@ -476,6 +520,20 @@ static int nvgpu_init_mm_setup_sw(struct gk20a *g)
 	err = nvgpu_init_hwpm(mm);
 	if (err != 0) {
 		return err;
+	}
+
+	if (nvgpu_is_enabled(g, NVGPU_SUPPORT_SEC2_VM)) {
+		err = nvgpu_init_engine_ucode_vm(g, &mm->sec2, "sec2");
+		if (err != 0) {
+			return err;
+		}
+	}
+
+	if (nvgpu_is_enabled(g, NVGPU_SUPPORT_GSP_VM)) {
+		err = nvgpu_init_engine_ucode_vm(g, &mm->gsp, "gsp");
+		if (err != 0) {
+			return err;
+		}
 	}
 
 	if (g->has_cde) {

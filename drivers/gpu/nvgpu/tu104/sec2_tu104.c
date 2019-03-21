@@ -211,13 +211,13 @@ void tu104_sec2_flcn_setup_boot_config(struct gk20a *g)
 		 * The instance block address to write is the lower 32-bits of the 4K-
 		 * aligned physical instance block address.
 		 */
-	tmp_addr = nvgpu_inst_block_addr(g, &mm->pmu.inst_block) >> 12U;
+	tmp_addr = nvgpu_inst_block_addr(g, &mm->sec2.inst_block) >> 12U;
 	nvgpu_assert(u64_hi32(tmp_addr) == 0U);
 
 	gk20a_writel(g, psec_falcon_nxtctx_r(),
 			pwr_pmu_new_instblk_ptr_f((u32)tmp_addr) |
 			pwr_pmu_new_instblk_valid_f(1U) |
-			nvgpu_aperture_mask(g, &mm->pmu.inst_block,
+			nvgpu_aperture_mask(g, &mm->sec2.inst_block,
 				pwr_pmu_new_instblk_target_sys_ncoh_f(),
 				pwr_pmu_new_instblk_target_sys_coh_f(),
 				pwr_pmu_new_instblk_target_fb_f()));

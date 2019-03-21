@@ -1406,6 +1406,8 @@ int tu104_init_hal(struct gk20a *g)
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_PMU_RTOS_FBQ, true);
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_ZBC_STENCIL, true);
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_PLATFORM_ATOMIC, true);
+	nvgpu_set_enabled(g, NVGPU_SUPPORT_SEC2_VM, true);
+	nvgpu_set_enabled(g, NVGPU_SUPPORT_GSP_VM, true);
 
 	/* for now */
 	gops->clk.support_clk_freq_controller = false;

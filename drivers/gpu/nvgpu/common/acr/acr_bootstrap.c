@@ -33,6 +33,8 @@
 #include "acr_bootstrap.h"
 #include "acr_priv.h"
 
+struct vm_gk20a* acr_get_engine_vm(struct gk20a *g, u32 falcon_id);
+
 static int acr_wait_for_completion(struct gk20a *g,
 	struct nvgpu_falcon *flcn, unsigned int timeout)
 {
@@ -89,6 +91,32 @@ exit:
 	return completion;
 }
 
+struct vm_gk20a* acr_get_engine_vm(struct gk20a *g, u32 falcon_id)
+{
+	struct vm_gk20a *vm = NULL;
+
+	switch (falcon_id) {
+	case FALCON_ID_PMU:
+		vm = g->mm.pmu.vm;
+		break;
+	case FALCON_ID_SEC2:
+		if (nvgpu_is_enabled(g, NVGPU_SUPPORT_SEC2_VM)) {
+			vm = g->mm.sec2.vm;
+		}
+		break;
+	case FALCON_ID_GSPLITE:
+		if (nvgpu_is_enabled(g, NVGPU_SUPPORT_GSP_VM)) {
+			vm = g->mm.gsp.vm;
+		}
+		break;
+	default:
+		vm = NULL;
+		break;
+	}
+
+	return vm;
+}
+
 static int acr_hs_bl_exec(struct gk20a *g, struct nvgpu_acr *acr,
 	struct hs_acr *acr_desc, bool b_wait_for_halt)
 {
@@ -96,8 +124,7 @@ static int acr_hs_bl_exec(struct gk20a *g, struct nvgpu_acr *acr,
 	struct hsflcn_bl_desc *hs_bl_desc;
 	struct nvgpu_falcon_bl_info bl_info;
 	struct hs_flcn_bl *hs_bl = &acr_desc->acr_hs_bl;
-	struct mm_gk20a *mm = &g->mm;
-	struct vm_gk20a *vm = mm->pmu.vm;
+	struct vm_gk20a *vm = NULL;
 	u32 flcn_id = nvgpu_falcon_get_id(acr_desc->acr_flcn);
 	u32 *hs_bl_code = NULL;
 	int err = 0;
@@ -105,6 +132,12 @@ static int acr_hs_bl_exec(struct gk20a *g, struct nvgpu_acr *acr,
 
 	nvgpu_acr_dbg(g, "Executing ACR HS Bootloader %s on Falcon-ID - %d",
 		hs_bl->bl_fw_name, flcn_id);
+
+	vm = acr_get_engine_vm(g, flcn_id);
+	if (vm == NULL) {
+		nvgpu_err(g, "vm space not allocated for engine falcon - %d", flcn_id);
+		return -ENOMEM;
+	}
 
 	if (hs_bl_fw == NULL) {
 		hs_bl_fw = nvgpu_request_firmware(g, hs_bl->bl_fw_name, 0);
@@ -232,18 +265,24 @@ static int acr_ucode_patch_sig(struct gk20a *g,
 int nvgpu_acr_bootstrap_hs_ucode(struct gk20a *g, struct nvgpu_acr *acr,
 	struct hs_acr *acr_desc)
 {
-	struct mm_gk20a *mm = &g->mm;
-	struct vm_gk20a *vm = mm->pmu.vm;
+	struct vm_gk20a *vm = NULL;
 	struct nvgpu_firmware *acr_fw = acr_desc->acr_fw;
 	struct bin_hdr *acr_fw_bin_hdr = NULL;
 	struct acr_fw_header *acr_fw_hdr = NULL;
 	struct nvgpu_mem *acr_ucode_mem = &acr_desc->acr_ucode;
+	u32 flcn_id = nvgpu_falcon_get_id(acr_desc->acr_flcn);
 	u32 img_size_in_bytes = 0;
 	u32 *acr_ucode_data;
 	u32 *acr_ucode_header;
 	int status = 0;
 
 	nvgpu_acr_dbg(g, "ACR TYPE %x ", acr_desc->acr_type);
+
+	vm = acr_get_engine_vm(g, flcn_id);
+	if (vm == NULL) {
+		nvgpu_err(g, "vm space not allocated for engine falcon - %d", flcn_id);
+		return -ENOMEM;
+	}
 
 	if (acr_fw != NULL) {
 		acr->patch_wpr_info_to_ucode(g, acr, acr_desc, true);

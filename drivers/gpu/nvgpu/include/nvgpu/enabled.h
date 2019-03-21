@@ -185,10 +185,16 @@ struct gk20a;
 /* PLATFORM_ATOMIC support */
 #define NVGPU_SUPPORT_PLATFORM_ATOMIC		72
 
+/* SEC2 VM support */
+#define NVGPU_SUPPORT_SEC2_VM			73
+
+/* GSP VM support */
+#define NVGPU_SUPPORT_GSP_VM			74
+
 /*
  * Must be greater than the largest bit offset in the above list.
  */
-#define NVGPU_MAX_ENABLED_BITS			73U
+#define NVGPU_MAX_ENABLED_BITS			75U
 
 /**
  * nvgpu_is_enabled - Check if the passed flag is enabled.

@@ -99,11 +99,11 @@ struct mm_gk20a {
 		struct nvgpu_mem inst_block;
 	} bar2;
 
-	struct {
+	struct engine_ucode {
 		u32 aperture_size;
 		struct vm_gk20a *vm;
 		struct nvgpu_mem inst_block;
-	} pmu;
+	} pmu, sec2, gsp;
 
 	struct {
 		/* using pmu vm currently */

@@ -77,13 +77,13 @@ void gv100_gsp_flcn_setup_boot_config(struct gk20a *g)
 	 * The instance block address to write is the lower 32-bits of the 4K-
 	 * aligned physical instance block address.
 	 */
-	tmp_addr = nvgpu_inst_block_addr(g, &mm->pmu.inst_block) >> 12U;
+	tmp_addr = nvgpu_inst_block_addr(g, &mm->gsp.inst_block) >> 12U;
 	nvgpu_assert(u64_hi32(tmp_addr) == 0U);
 
 	gk20a_writel(g, pgsp_falcon_nxtctx_r(),
 		pgsp_falcon_nxtctx_ctxptr_f((u32)tmp_addr) |
 		pgsp_falcon_nxtctx_ctxvalid_f(1) |
-		nvgpu_aperture_mask(g, &mm->pmu.inst_block,
+		nvgpu_aperture_mask(g, &mm->gsp.inst_block,
 			pgsp_falcon_nxtctx_ctxtgt_sys_ncoh_f(),
 			pgsp_falcon_nxtctx_ctxtgt_sys_coh_f(),
 			pgsp_falcon_nxtctx_ctxtgt_fb_f()));
