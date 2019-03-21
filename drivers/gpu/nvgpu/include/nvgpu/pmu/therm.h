@@ -31,5 +31,7 @@ int nvgpu_therm_domain_pmu_setup(struct gk20a *g);
 int nvgpu_therm_pmu_init_pmupstate(struct gk20a *g);
 void nvgpu_therm_pmu_free_pmupstate(struct gk20a *g);
 int nvgpu_therm_configure_therm_alert(struct gk20a *g);
+void nvgpu_pmu_therm_rpc_handler(struct gk20a *g,
+				 struct nv_pmu_rpc_header *rpc);
 
 #endif /* NVGPU_PMU_THREM_H */

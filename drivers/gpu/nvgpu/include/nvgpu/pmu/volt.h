@@ -108,5 +108,6 @@ int nvgpu_volt_rail_volt_dev_register(struct gk20a *g, struct voltage_rail
 	*pvolt_rail, u8 volt_dev_idx, u8 operation_type);
 u8 nvgpu_volt_rail_vbios_volt_domain_convert_to_internal
 	(struct gk20a *g, u8 vbios_volt_domain);
+void nvgpu_pmu_volt_rpc_handler(struct gk20a *g, struct nv_pmu_rpc_header *rpc);
 
 #endif /* NVGPU_PMU_VOLT_H */

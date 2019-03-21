@@ -256,3 +256,16 @@ int nvgpu_therm_configure_therm_alert(struct gk20a *g)
 exit:
 	return status;
 }
+
+void nvgpu_pmu_therm_rpc_handler(struct gk20a *g, struct nv_pmu_rpc_header *rpc)
+{
+	switch (rpc->function) {
+	case NV_PMU_RPC_ID_THERM_BOARD_OBJ_GRP_CMD:
+		nvgpu_pmu_dbg(g,
+			"reply NV_PMU_RPC_ID_THERM_BOARD_OBJ_GRP_CMD");
+		break;
+	default:
+		nvgpu_pmu_dbg(g, "reply PMU_UNIT_THERM");
+		break;
+	}
+}

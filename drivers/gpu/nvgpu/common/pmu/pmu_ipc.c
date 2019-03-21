@@ -33,6 +33,8 @@
 #include <nvgpu/string.h>
 #include <nvgpu/pmu/seq.h>
 #include <nvgpu/pmu/queue.h>
+#include <nvgpu/pmu/volt.h>
+#include <nvgpu/pmu/therm.h>
 
 static bool pmu_validate_cmd(struct nvgpu_pmu *pmu, struct pmu_cmd *cmd,
 			struct pmu_payload *payload, u32 queue_id)
@@ -643,7 +645,6 @@ static void pmu_rpc_handler(struct gk20a *g, struct pmu_msg *msg,
 	struct nvgpu_pmu *pmu = &g->pmu;
 	struct rpc_handler_payload *rpc_payload =
 		(struct rpc_handler_payload *)param;
-	struct nv_pmu_rpc_struct_perfmon_query *rpc_param;
 
 	(void) memset(&rpc, 0, sizeof(struct nv_pmu_rpc_header));
 	nvgpu_memcpy((u8 *)&rpc, (u8 *)rpc_payload->rpc_buff,
@@ -673,49 +674,10 @@ static void pmu_rpc_handler(struct gk20a *g, struct pmu_msg *msg,
 		break;
 	case PMU_UNIT_PERFMON_T18X:
 	case PMU_UNIT_PERFMON:
-		switch (rpc.function) {
-		case NV_PMU_RPC_ID_PERFMON_T18X_INIT:
-			nvgpu_pmu_dbg(g,
-				"reply NV_PMU_RPC_ID_PERFMON_INIT");
-			pmu->perfmon_ready = true;
-			break;
-		case NV_PMU_RPC_ID_PERFMON_T18X_START:
-			nvgpu_pmu_dbg(g,
-				"reply NV_PMU_RPC_ID_PERFMON_START");
-			break;
-		case NV_PMU_RPC_ID_PERFMON_T18X_STOP:
-			nvgpu_pmu_dbg(g,
-				"reply NV_PMU_RPC_ID_PERFMON_STOP");
-			break;
-		case NV_PMU_RPC_ID_PERFMON_T18X_QUERY:
-			nvgpu_pmu_dbg(g,
-				"reply NV_PMU_RPC_ID_PERFMON_QUERY");
-			rpc_param = (struct nv_pmu_rpc_struct_perfmon_query *)
-				rpc_payload->rpc_buff;
-			pmu->load = rpc_param->sample_buffer[0];
-			pmu->perfmon_query = 1;
-			/* set perfmon_query to 1 after load is copied */
-			break;
-		}
+		nvgpu_pmu_perfmon_rpc_handler(g, pmu, &rpc, rpc_payload);
 		break;
 	case PMU_UNIT_VOLT:
-		switch (rpc.function) {
-		case NV_PMU_RPC_ID_VOLT_BOARD_OBJ_GRP_CMD:
-			nvgpu_pmu_dbg(g,
-				"reply NV_PMU_RPC_ID_VOLT_BOARD_OBJ_GRP_CMD");
-			break;
-		case NV_PMU_RPC_ID_VOLT_VOLT_SET_VOLTAGE:
-			nvgpu_pmu_dbg(g,
-				"reply NV_PMU_RPC_ID_VOLT_VOLT_SET_VOLTAGE");
-			break;
-		case NV_PMU_RPC_ID_VOLT_VOLT_RAIL_GET_VOLTAGE:
-			nvgpu_pmu_dbg(g,
-				"reply NV_PMU_RPC_ID_VOLT_VOLT_RAIL_GET_VOLTAGE");
-			break;
-		case NV_PMU_RPC_ID_VOLT_LOAD:
-			nvgpu_pmu_dbg(g,
-				"reply NV_PMU_RPC_ID_VOLT_LOAD");
-		}
+		nvgpu_pmu_volt_rpc_handler(g, &rpc);
 		break;
 	case PMU_UNIT_CLK:
 		nvgpu_pmu_dbg(g, "reply PMU_UNIT_CLK");
@@ -724,17 +686,8 @@ static void pmu_rpc_handler(struct gk20a *g, struct pmu_msg *msg,
 		nvgpu_pmu_dbg(g, "reply PMU_UNIT_PERF");
 		break;
 	case PMU_UNIT_THERM:
-			switch (rpc.function) {
-			case NV_PMU_RPC_ID_THERM_BOARD_OBJ_GRP_CMD:
-				nvgpu_pmu_dbg(g,
-					"reply NV_PMU_RPC_ID_THERM_BOARD_OBJ_GRP_CMD");
-				break;
-			default:
-				nvgpu_pmu_dbg(g, "reply PMU_UNIT_THERM");
-				break;
-			}
-			break;
-		/* TBD case will be added */
+		nvgpu_pmu_therm_rpc_handler(g, &rpc);
+		break;
 	default:
 		nvgpu_err(g, " Invalid RPC response, stats 0x%x",
 			rpc.flcn_status);

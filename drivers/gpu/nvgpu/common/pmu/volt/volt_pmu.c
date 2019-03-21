@@ -137,3 +137,28 @@ int nvgpu_volt_get_voltage(struct gk20a *g, u32 volt_domain, u32 *voltage_uv)
 	return volt_rail_get_voltage(g,
 		(u8)volt_domain, voltage_uv);
 }
+
+void nvgpu_pmu_volt_rpc_handler(struct gk20a *g, struct nv_pmu_rpc_header *rpc)
+{
+	switch (rpc->function) {
+	case NV_PMU_RPC_ID_VOLT_BOARD_OBJ_GRP_CMD:
+		nvgpu_pmu_dbg(g,
+			"reply NV_PMU_RPC_ID_VOLT_BOARD_OBJ_GRP_CMD");
+		break;
+	case NV_PMU_RPC_ID_VOLT_VOLT_SET_VOLTAGE:
+		nvgpu_pmu_dbg(g,
+			"reply NV_PMU_RPC_ID_VOLT_VOLT_SET_VOLTAGE");
+		break;
+	case NV_PMU_RPC_ID_VOLT_VOLT_RAIL_GET_VOLTAGE:
+		nvgpu_pmu_dbg(g,
+			"reply NV_PMU_RPC_ID_VOLT_VOLT_RAIL_GET_VOLTAGE");
+		break;
+	case NV_PMU_RPC_ID_VOLT_LOAD:
+		nvgpu_pmu_dbg(g,
+			"reply NV_PMU_RPC_ID_VOLT_LOAD");
+		break;
+	default:
+		nvgpu_pmu_dbg(g, "invalid reply");
+		break;
+	}
+}

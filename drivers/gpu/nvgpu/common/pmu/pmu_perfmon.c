@@ -53,6 +53,41 @@ static u8 get_perfmon_id(struct nvgpu_pmu *pmu)
 	return unit_id;
 }
 
+void nvgpu_pmu_perfmon_rpc_handler(struct gk20a *g, struct nvgpu_pmu *pmu,
+				   struct nv_pmu_rpc_header *rpc,
+				   struct rpc_handler_payload *rpc_payload)
+{
+	struct nv_pmu_rpc_struct_perfmon_query *rpc_param;
+
+	switch (rpc->function) {
+	case NV_PMU_RPC_ID_PERFMON_T18X_INIT:
+		nvgpu_pmu_dbg(g,
+			"reply NV_PMU_RPC_ID_PERFMON_INIT");
+		pmu->perfmon_ready = true;
+		break;
+	case NV_PMU_RPC_ID_PERFMON_T18X_START:
+		nvgpu_pmu_dbg(g,
+			"reply NV_PMU_RPC_ID_PERFMON_START");
+		break;
+	case NV_PMU_RPC_ID_PERFMON_T18X_STOP:
+		nvgpu_pmu_dbg(g,
+			"reply NV_PMU_RPC_ID_PERFMON_STOP");
+		break;
+	case NV_PMU_RPC_ID_PERFMON_T18X_QUERY:
+		nvgpu_pmu_dbg(g,
+			"reply NV_PMU_RPC_ID_PERFMON_QUERY");
+		rpc_param = (struct nv_pmu_rpc_struct_perfmon_query *)
+			rpc_payload->rpc_buff;
+		pmu->load = rpc_param->sample_buffer[0];
+		pmu->perfmon_query = 1;
+		/* set perfmon_query to 1 after load is copied */
+		break;
+	default:
+		nvgpu_pmu_dbg(g, "invalid reply");
+		break;
+	}
+}
+
 int nvgpu_pmu_init_perfmon(struct nvgpu_pmu *pmu)
 {
 	struct gk20a *g = gk20a_from_pmu(pmu);

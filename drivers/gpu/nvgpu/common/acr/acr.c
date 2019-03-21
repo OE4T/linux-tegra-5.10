@@ -24,6 +24,7 @@
 #include <nvgpu/dma.h>
 #include <nvgpu/firmware.h>
 #include <nvgpu/gk20a.h>
+#include <nvgpu/pmuif/gpmuif_cmn.h>
 
 #include "acr_priv.h"
 #include "acr_sw_gm20b.h"
@@ -154,5 +155,3 @@ int nvgpu_acr_init(struct gk20a *g, struct nvgpu_acr **acr)
 done:
 	return err;
 }
-
-

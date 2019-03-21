@@ -341,6 +341,9 @@ int nvgpu_pmu_cmd_post(struct gk20a *g, struct pmu_cmd *cmd,
 		u32 queue_id, pmu_callback callback, void *cb_param);
 
 /* perfmon */
+void nvgpu_pmu_perfmon_rpc_handler(struct gk20a *g, struct nvgpu_pmu *pmu,
+				   struct nv_pmu_rpc_header *rpc,
+				   struct rpc_handler_payload *rpc_payload);
 int nvgpu_pmu_init_perfmon(struct nvgpu_pmu *pmu);
 int nvgpu_pmu_perfmon_start_sampling(struct nvgpu_pmu *pmu);
 int nvgpu_pmu_perfmon_stop_sampling(struct nvgpu_pmu *pmu);
