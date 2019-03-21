@@ -394,8 +394,6 @@ struct gpu_ops {
 						u32 gpc_exception);
 		int (*handle_gpc_gpcmmu_exception)(struct gk20a *g, u32 gpc,
 						u32 gpc_exception);
-		void (*enable_gpc_exceptions)(struct gk20a *g);
-		void (*enable_exceptions)(struct gk20a *g);
 		int (*init_ecc)(struct gk20a *g);
 		u32 (*get_lrf_tex_ltc_dram_override)(struct gk20a *g);
 		int (*record_sm_error_state)(struct gk20a *g, u32 gpc, u32 tpc,
@@ -712,6 +710,15 @@ struct gpu_ops {
 				struct nvgpu_gr_ctx *ch_ctx, u64 addr, u64 size,
 				bool patch);
 		} init;
+
+		struct {
+			void (*enable_interrupts)(struct gk20a *g, bool enable);
+			void (*enable_exceptions)(struct gk20a *g,
+					struct nvgpu_gr_config *gr_config,
+					bool enable);
+			void (*enable_gpc_exceptions)(struct gk20a *g,
+					struct nvgpu_gr_config *gr_config);
+		} intr;
 
 		u32 (*get_ctxsw_checksum_mismatch_mailbox_val)(void);
 		u32 (*fecs_falcon_base_addr)(void);

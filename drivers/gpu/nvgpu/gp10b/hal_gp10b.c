@@ -66,6 +66,7 @@
 #include "hal/gr/zbc/zbc_gp10b.h"
 #include "hal/gr/init/gr_init_gm20b.h"
 #include "hal/gr/init/gr_init_gp10b.h"
+#include "hal/gr/intr/gr_intr_gm20b.h"
 #include "hal/falcon/falcon_gk20a.h"
 
 #include "common/ptimer/ptimer_gk20a.h"
@@ -297,8 +298,6 @@ static const struct gpu_ops gp10b_ops = {
 		.handle_fecs_error = gr_gp10b_handle_fecs_error,
 		.handle_sm_exception = gr_gp10b_handle_sm_exception,
 		.handle_tex_exception = gr_gp10b_handle_tex_exception,
-		.enable_gpc_exceptions = gk20a_gr_enable_gpc_exceptions,
-		.enable_exceptions = gk20a_gr_enable_exceptions,
 		.get_lrf_tex_ltc_dram_override = get_ecc_override_val,
 		.update_smpc_ctxsw_mode = gr_gk20a_update_smpc_ctxsw_mode,
 		.update_hwpm_ctxsw_mode = gr_gk20a_update_hwpm_ctxsw_mode,
@@ -530,6 +529,12 @@ static const struct gpu_ops gp10b_ops = {
 				gm20b_gr_init_get_global_ctx_pagepool_buffer_size,
 			.commit_global_bundle_cb =
 				gp10b_gr_init_commit_global_bundle_cb,
+		},
+		.intr = {
+			.enable_interrupts = gm20b_gr_intr_enable_interrupts,
+			.enable_gpc_exceptions =
+					gm20b_gr_intr_enable_gpc_exceptions,
+			.enable_exceptions = gm20b_gr_intr_enable_exceptions,
 		},
 	},
 	.fb = {

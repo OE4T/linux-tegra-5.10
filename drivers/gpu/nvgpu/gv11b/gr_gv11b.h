@@ -81,7 +81,6 @@ bool gr_gv11b_is_valid_class(struct gk20a *g, u32 class_num);
 bool gr_gv11b_is_valid_gfx_class(struct gk20a *g, u32 class_num);
 bool gr_gv11b_is_valid_compute_class(struct gk20a *g, u32 class_num);
 void gr_gv11b_enable_hww_exceptions(struct gk20a *g);
-void gr_gv11b_enable_exceptions(struct gk20a *g);
 int gr_gv11b_handle_tpc_sm_ecc_exception(struct gk20a *g,
 		u32 gpc, u32 tpc,
 		bool *post_event, struct channel_gk20a *fault_ch,

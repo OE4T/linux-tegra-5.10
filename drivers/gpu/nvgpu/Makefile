@@ -171,6 +171,9 @@ nvgpu-y += \
 	hal/gr/init/gr_init_gv100.o \
 	hal/gr/init/gr_init_gv11b.o \
 	hal/gr/init/gr_init_tu104.o \
+	hal/gr/intr/gr_intr_gm20b.o \
+	hal/gr/intr/gr_intr_gv11b.o \
+	hal/gr/intr/gr_intr_tu104.o \
 	hal/gr/hwpm_map/hwpm_map_gv100.o \
 	hal/gr/zbc/zbc_gm20b.o \
 	hal/gr/zbc/zbc_gp10b.o \

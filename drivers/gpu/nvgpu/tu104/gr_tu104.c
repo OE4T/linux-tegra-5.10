@@ -143,24 +143,6 @@ int gr_tu104_init_gfxp_rtv_cb(struct gk20a *g,
 	return 0;
 }
 
-void gr_tu104_enable_gpc_exceptions(struct gk20a *g)
-{
-	struct gr_gk20a *gr = &g->gr;
-	u32 tpc_mask;
-
-	gk20a_writel(g, gr_gpcs_tpcs_tpccs_tpc_exception_en_r(),
-			gr_gpcs_tpcs_tpccs_tpc_exception_en_sm_enabled_f());
-
-	tpc_mask =
-		gr_gpcs_gpccs_gpc_exception_en_tpc_f(
-			BIT32(nvgpu_gr_config_get_max_tpc_per_gpc_count(gr->config)) - 1U);
-
-	gk20a_writel(g, gr_gpcs_gpccs_gpc_exception_en_r(),
-		(tpc_mask | gr_gpcs_gpccs_gpc_exception_en_gcc_f(1U) |
-			    gr_gpcs_gpccs_gpc_exception_en_gpccs_f(1U) |
-			    gr_gpcs_gpccs_gpc_exception_en_gpcmmu_f(1U)));
-}
-
 int gr_tu104_get_offset_in_gpccs_segment(struct gk20a *g,
 					enum ctxsw_addr_type addr_type,
 					u32 num_tpcs,

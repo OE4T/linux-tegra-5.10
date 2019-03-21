@@ -2313,33 +2313,6 @@ static int gr_gk20a_zcull_init_hw(struct gk20a *g, struct gr_gk20a *gr)
 	return 0;
 }
 
-void gk20a_gr_enable_exceptions(struct gk20a *g)
-{
-	gk20a_writel(g, gr_exception_r(), 0xFFFFFFFFU);
-	gk20a_writel(g, gr_exception_en_r(), 0xFFFFFFFFU);
-	gk20a_writel(g, gr_exception1_r(), 0xFFFFFFFFU);
-	gk20a_writel(g, gr_exception1_en_r(), 0xFFFFFFFFU);
-	gk20a_writel(g, gr_exception2_r(), 0xFFFFFFFFU);
-	gk20a_writel(g, gr_exception2_en_r(), 0xFFFFFFFFU);
-}
-
-void gk20a_gr_enable_gpc_exceptions(struct gk20a *g)
-{
-	struct gr_gk20a *gr = &g->gr;
-	u32 tpc_mask;
-
-	gk20a_writel(g, gr_gpcs_tpcs_tpccs_tpc_exception_en_r(),
-			gr_gpcs_tpcs_tpccs_tpc_exception_en_tex_enabled_f() |
-			gr_gpcs_tpcs_tpccs_tpc_exception_en_sm_enabled_f());
-
-	tpc_mask =
-		gr_gpcs_gpccs_gpc_exception_en_tpc_f(
-			BIT32(nvgpu_gr_config_get_max_tpc_per_gpc_count(gr->config)) - 1U);
-
-	gk20a_writel(g, gr_gpcs_gpccs_gpc_exception_en_r(), tpc_mask);
-}
-
-
 void gr_gk20a_enable_hww_exceptions(struct gk20a *g)
 {
 	/* enable exceptions */
@@ -2391,8 +2364,7 @@ static int gk20a_init_gr_setup_hw(struct gk20a *g)
 	/* TBD: reload gr ucode when needed */
 
 	/* enable interrupts */
-	gk20a_writel(g, gr_intr_r(), 0xFFFFFFFFU);
-	gk20a_writel(g, gr_intr_en_r(), 0xFFFFFFFFU);
+	g->ops.gr.intr.enable_interrupts(g, true);
 
 	/* enable fecs error interrupts */
 	g->ops.gr.fecs_host_int_enable(g);
@@ -2401,8 +2373,8 @@ static int gk20a_init_gr_setup_hw(struct gk20a *g)
 	g->ops.gr.set_hww_esr_report_mask(g);
 
 	/* enable TPC exceptions per GPC */
-	if (g->ops.gr.enable_gpc_exceptions != NULL) {
-		g->ops.gr.enable_gpc_exceptions(g);
+	if (g->ops.gr.intr.enable_gpc_exceptions != NULL) {
+		g->ops.gr.intr.enable_gpc_exceptions(g, gr->config);
 	}
 
 	/* enable ECC for L1/SM */
@@ -2413,7 +2385,7 @@ static int gk20a_init_gr_setup_hw(struct gk20a *g)
 	/* TBD: enable per BE exceptions */
 
 	/* reset and enable exceptions */
-	g->ops.gr.enable_exceptions(g);
+	g->ops.gr.intr.enable_exceptions(g, gr->config, true);
 
 	err = nvgpu_gr_zbc_load_table(g, gr->zbc);
 	if (err != 0) {
@@ -2526,8 +2498,7 @@ static int gk20a_init_gr_reset_enable_hw(struct gk20a *g)
 	nvgpu_log_fn(g, " ");
 
 	/* enable interrupts */
-	gk20a_writel(g, gr_intr_r(), ~U32(0U));
-	gk20a_writel(g, gr_intr_en_r(), ~U32(0U));
+	g->ops.gr.intr.enable_interrupts(g, true);
 
 	/* load non_ctx init */
 	for (i = 0; i < sw_non_ctx_load->count; i++) {
@@ -4157,16 +4128,10 @@ int gk20a_gr_suspend(struct gk20a *g)
 	g->ops.gr.init.fifo_access(g, false);
 
 	/* disable gr intr */
-	gk20a_writel(g, gr_intr_r(), 0);
-	gk20a_writel(g, gr_intr_en_r(), 0);
+	g->ops.gr.intr.enable_interrupts(g, false);
 
 	/* disable all exceptions */
-	gk20a_writel(g, gr_exception_r(), 0);
-	gk20a_writel(g, gr_exception_en_r(), 0);
-	gk20a_writel(g, gr_exception1_r(), 0);
-	gk20a_writel(g, gr_exception1_en_r(), 0);
-	gk20a_writel(g, gr_exception2_r(), 0);
-	gk20a_writel(g, gr_exception2_en_r(), 0);
+	g->ops.gr.intr.enable_exceptions(g, g->gr.config, false);
 
 	gk20a_gr_flush_channel_tlb(&g->gr);
 

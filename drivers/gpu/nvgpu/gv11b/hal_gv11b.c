@@ -60,6 +60,8 @@
 #include "hal/gr/init/gr_init_gm20b.h"
 #include "hal/gr/init/gr_init_gp10b.h"
 #include "hal/gr/init/gr_init_gv11b.h"
+#include "hal/gr/intr/gr_intr_gm20b.h"
+#include "hal/gr/intr/gr_intr_gv11b.h"
 #include "hal/gr/hwpm_map/hwpm_map_gv100.h"
 #include "hal/falcon/falcon_gk20a.h"
 
@@ -356,8 +358,6 @@ static const struct gpu_ops gv11b_ops = {
 		.handle_fecs_error = gr_gv11b_handle_fecs_error,
 		.handle_sm_exception = gr_gk20a_handle_sm_exception,
 		.handle_tex_exception = gr_gv11b_handle_tex_exception,
-		.enable_gpc_exceptions = gr_gv11b_enable_gpc_exceptions,
-		.enable_exceptions = gr_gv11b_enable_exceptions,
 		.get_lrf_tex_ltc_dram_override = get_ecc_override_val,
 		.update_smpc_ctxsw_mode = gr_gk20a_update_smpc_ctxsw_mode,
 		.get_num_hwpm_perfmon = gr_gv100_get_num_hwpm_perfmon,
@@ -628,6 +628,12 @@ static const struct gpu_ops gv11b_ops = {
 				gm20b_gr_init_get_global_ctx_pagepool_buffer_size,
 			.commit_global_bundle_cb =
 				gp10b_gr_init_commit_global_bundle_cb,
+		},
+		.intr = {
+			.enable_interrupts = gm20b_gr_intr_enable_interrupts,
+			.enable_gpc_exceptions =
+					gv11b_gr_intr_enable_gpc_exceptions,
+			.enable_exceptions = gv11b_gr_intr_enable_exceptions,
 		},
 	},
 	.fb = {

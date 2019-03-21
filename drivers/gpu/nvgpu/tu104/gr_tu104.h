@@ -63,8 +63,6 @@ int gr_tu104_init_sw_bundle64(struct gk20a *g);
 void gr_tu10x_create_sysfs(struct gk20a *g);
 void gr_tu10x_remove_sysfs(struct gk20a *g);
 
-void gr_tu104_enable_gpc_exceptions(struct gk20a *g);
-
 int gr_tu104_get_offset_in_gpccs_segment(struct gk20a *g,
 	enum ctxsw_addr_type addr_type, u32 num_tpcs, u32 num_ppcs,
 	u32 reg_list_ppc_count, u32 *__offset_in_segment);

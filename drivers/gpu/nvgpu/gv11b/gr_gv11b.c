@@ -441,38 +441,6 @@ void gr_gv11b_fecs_host_int_enable(struct gk20a *g)
 		     gr_fecs_host_int_enable_ecc_uncorrected_enable_f());
 }
 
-void gr_gv11b_enable_exceptions(struct gk20a *g)
-{
-	struct gr_gk20a *gr = &g->gr;
-	u32 reg_val;
-
-	/*
-	 * clear exceptions :
-	 * other than SM : hww_esr are reset in *enable_hww_excetpions*
-	 * SM            : cleared in *set_hww_esr_report_mask*
-	 */
-
-	/* enable exceptions */
-	gk20a_writel(g, gr_exception2_en_r(), 0x0U); /* BE not enabled */
-	gk20a_writel(g, gr_exception1_en_r(),
-		BIT32(nvgpu_gr_config_get_gpc_count(gr->config)) - 1U);
-
-	reg_val = gr_exception_en_fe_enabled_f() |
-			gr_exception_en_memfmt_enabled_f() |
-			gr_exception_en_pd_enabled_f() |
-			gr_exception_en_scc_enabled_f() |
-			gr_exception_en_ds_enabled_f() |
-			gr_exception_en_ssync_enabled_f() |
-			gr_exception_en_mme_enabled_f() |
-			gr_exception_en_sked_enabled_f() |
-			gr_exception_en_gpc_enabled_f();
-
-	nvgpu_log(g, gpu_dbg_info, "gr_exception_en 0x%08x", reg_val);
-
-	gk20a_writel(g, gr_exception_en_r(), reg_val);
-
-}
-
 static void gr_gv11b_handle_cbu_exception(struct gk20a *g, u32 gpc, u32 tpc,
 			bool *post_event, struct channel_gk20a *fault_ch,
 			u32 *hww_global_esr)
@@ -1126,25 +1094,6 @@ int gr_gv11b_handle_gpc_gpccs_exception(struct gk20a *g, u32 gpc,
 	}
 
 	return 0;
-}
-
-void gr_gv11b_enable_gpc_exceptions(struct gk20a *g)
-{
-	struct gr_gk20a *gr = &g->gr;
-	u32 tpc_mask;
-
-	gk20a_writel(g, gr_gpcs_tpcs_tpccs_tpc_exception_en_r(),
-			gr_gpcs_tpcs_tpccs_tpc_exception_en_sm_enabled_f() |
-			gr_gpcs_tpcs_tpccs_tpc_exception_en_mpc_enabled_f());
-
-	tpc_mask =
-		gr_gpcs_gpccs_gpc_exception_en_tpc_f(
-			BIT32(nvgpu_gr_config_get_max_tpc_per_gpc_count(gr->config)) - 1U);
-
-	gk20a_writel(g, gr_gpcs_gpccs_gpc_exception_en_r(),
-		(tpc_mask | gr_gpcs_gpccs_gpc_exception_en_gcc_f(1U) |
-			    gr_gpcs_gpccs_gpc_exception_en_gpccs_f(1U) |
-			    gr_gpcs_gpccs_gpc_exception_en_gpcmmu_f(1U)));
 }
 
 int gr_gv11b_handle_tex_exception(struct gk20a *g, u32 gpc, u32 tpc,

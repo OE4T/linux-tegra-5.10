@@ -485,8 +485,6 @@ int gr_gk20a_suspend_contexts(struct gk20a *g,
 int gr_gk20a_resume_contexts(struct gk20a *g,
 			      struct dbg_session_gk20a *dbg_s,
 			      int *ctx_resident_ch_fd);
-void gk20a_gr_enable_gpc_exceptions(struct gk20a *g);
-void gk20a_gr_enable_exceptions(struct gk20a *g);
 int gr_gk20a_trigger_suspend(struct gk20a *g);
 int gr_gk20a_wait_for_pause(struct gk20a *g, struct nvgpu_warpstate *w_state);
 int gr_gk20a_resume_from_pause(struct gk20a *g);
