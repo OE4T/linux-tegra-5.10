@@ -52,15 +52,15 @@ struct atomic_test_args {
 	enum atomic_op op;
 	enum atomic_type type;
 	long start_val;
-	long loop_count;
-	long value; /* for add/sub ops */
+	unsigned long loop_count;
+	unsigned long value; /* absolute value */
 };
 struct atomic_thread_info {
 	struct atomic_struct *atomic;
 	struct atomic_test_args *margs;
 	pthread_t thread;
-	int thread_num;
-	int iterations;
+	unsigned int thread_num;
+	unsigned int iterations;
 	long final_val;
 	long unless;
 };
@@ -428,14 +428,14 @@ static int test_atomic_set_and_read(struct unit_module *m,
 				    struct gk20a *g, void *__args)
 {
 	struct atomic_test_args *args = (struct atomic_test_args *)__args;
-	const int loop_limit = args->type == ATOMIC_32 ? (sizeof(int) * 8) :
-							 (sizeof(long) * 8);
+	const unsigned int loop_limit = args->type == ATOMIC_32 ?
+				(sizeof(int) * 8) : (sizeof(long) * 8);
 	const long min_value = args->type == ATOMIC_32 ? INT_MIN :
 							 LONG_MIN;
 	const long max_value = args->type == ATOMIC_32 ? INT_MAX :
 							 LONG_MAX;
 	struct atomic_struct atomic = {0};
-	int i;
+	unsigned int i;
 
 	single_set_and_read(m, &atomic, args->type, min_value);
 	single_set_and_read(m, &atomic, args->type, max_value);
@@ -466,7 +466,7 @@ static int test_atomic_arithmetic(struct unit_module *m,
 {
 	struct atomic_test_args *args = (struct atomic_test_args *)__args;
 	struct atomic_struct atomic = {0};
-	int i;
+	unsigned int i;
 	long delta_magnitude;
 	long read_val;
 	long expected_val;
@@ -555,7 +555,7 @@ static int test_atomic_arithmetic(struct unit_module *m,
 static void *arithmetic_thread(void *__args)
 {
 	struct atomic_thread_info *targs = (struct atomic_thread_info *)__args;
-	int i;
+	unsigned int i;
 
 	pthread_barrier_wait(&thread_barrier);
 
@@ -635,10 +635,10 @@ static void *arithmetic_thread(void *__args)
  */
 static bool correct_thread_iteration_count(struct unit_module *m,
 					   struct atomic_thread_info *threads,
-					   int num_threads,
+					   unsigned int num_threads,
 					   long expected_iterations)
 {
-	int i;
+	unsigned int i;
 	long total_iterations = 0;
 
 	for (i = 0; i < num_threads; i++) {
@@ -670,9 +670,9 @@ static int test_atomic_arithmetic_threaded(struct unit_module *m,
 {
 	struct atomic_test_args *args = (struct atomic_test_args *)__args;
 	struct atomic_struct atomic = {0};
-	const int num_threads = 100;
+	const unsigned int num_threads = 100;
 	struct atomic_thread_info threads[num_threads];
-	int i;
+	unsigned int i;
 	long expected_val, val, expected_iterations;
 	int ret = UNIT_SUCCESS;
 
@@ -772,7 +772,7 @@ static int test_atomic_arithmetic_threaded(struct unit_module *m,
 		bool sequential = true;
 		for (i = 0; i < (num_threads - 1); i++) {
 			if (abs(threads[i].final_val - threads[i+1].final_val)
-							!= args->loop_count) {
+						!= (long)args->loop_count) {
 				sequential = false;
 				break;
 			}
@@ -801,7 +801,7 @@ static int test_atomic_xchg(struct unit_module *m,
 {
 	struct atomic_test_args *args = (struct atomic_test_args *)__args;
 	struct atomic_struct atomic = {0};
-	int i;
+	unsigned int i;
 	long new_val, old_val, ret_val;
 
 	if (single_set_and_read(m, &atomic, args->type, args->start_val)
@@ -841,7 +841,7 @@ static int test_atomic_cmpxchg(struct unit_module *m,
 	struct atomic_test_args *args = (struct atomic_test_args *)__args;
 	struct atomic_struct atomic = {0};
 	const int switch_interval = 5;
-	int i;
+	unsigned int i;
 	long new_val, old_val, ret_val;
 	bool should_match = true;
 
@@ -915,7 +915,7 @@ static int test_atomic_add_unless(struct unit_module *m,
 	struct atomic_test_args *args = (struct atomic_test_args *)__args;
 	struct atomic_struct atomic = {0};
 	const int switch_interval = 5;
-	int i;
+	unsigned int i;
 	int new_val, old_val, ret_val;
 	bool should_update = true;
 
