@@ -1395,10 +1395,10 @@ static int nvgpu_gpu_get_voltage(struct gk20a *g,
 	nvgpu_speculation_barrier();
 	switch (args->which) {
 	case NVGPU_GPU_VOLTAGE_CORE:
-		err = volt_get_voltage(g, CTRL_VOLT_DOMAIN_LOGIC, &args->voltage);
+		err = nvgpu_volt_get_voltage(g, CTRL_VOLT_DOMAIN_LOGIC, &args->voltage);
 		break;
 	case NVGPU_GPU_VOLTAGE_SRAM:
-		err = volt_get_voltage(g, CTRL_VOLT_DOMAIN_SRAM, &args->voltage);
+		err = nvgpu_volt_get_voltage(g, CTRL_VOLT_DOMAIN_SRAM, &args->voltage);
 		break;
 	case NVGPU_GPU_VOLTAGE_BUS:
 		err = pmgr_pwr_devices_get_voltage(g, &args->voltage);

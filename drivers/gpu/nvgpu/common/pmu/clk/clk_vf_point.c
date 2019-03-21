@@ -615,7 +615,7 @@ int nvgpu_clk_set_req_fll_clk_ps35(struct gk20a *g, struct nvgpu_clk_slave_freq 
 	}
 
 	gpcclk_voltuv += vmargin_uv;
-	status = g->ops.pmu_ver.volt.volt_get_vmin(g, &vmin_uv);
+	status = nvgpu_volt_get_vmin_ps35(g, &vmin_uv);
 	if (status != 0) {
 		nvgpu_err(g, "Failed to execute Vmin get_status status=0x%x",
 			status);

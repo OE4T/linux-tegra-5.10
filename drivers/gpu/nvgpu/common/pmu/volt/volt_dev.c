@@ -31,15 +31,9 @@
 #include <nvgpu/string.h>
 #include <nvgpu/pmuif/ctrlvolt.h>
 #include <nvgpu/pmu/perf.h>
+#include <nvgpu/pmu/volt.h>
 
-#include "gp106/bios_gp106.h"
-
-#include "volt.h"
 #include "volt_dev.h"
-#include "volt_rail.h"
-
-#define VOLT_DEV_PWM_VOLTAGE_STEPS_INVALID	0U
-#define VOLT_DEV_PWM_VOLTAGE_STEPS_DEFAULT	1U
 
 static int volt_device_pmu_data_init_super(struct gk20a *g,
 	struct boardobj *pboard_obj, struct nv_pmu_boardobj *ppmudata)
@@ -266,7 +260,7 @@ static int volt_get_voltage_device_table_1x_psv(struct gk20a *g,
 			BIOS_GET_FIELD(s32, p_bios_entry->param4,
 				NV_VBIOS_VDT_1X_ENTRY_PARAM4_PSV_OFFSET_SCALE);
 
-	volt_domain = volt_rail_vbios_volt_domain_convert_to_internal(g,
+	volt_domain = nvgpu_volt_rail_vbios_volt_domain_convert_to_internal(g,
 		(u8)p_bios_entry->volt_domain);
 	if (volt_domain == CTRL_VOLT_DOMAIN_INVALID) {
 		nvgpu_err(g, "invalid voltage domain = %d",
@@ -490,7 +484,7 @@ static int volt_device_state_init(struct gk20a *g,
 	/* Build VOLT_RAIL SW state from VOLT_DEVICE SW state. */
 	/* If VOLT_RAIL isn't supported, exit. */
 	if (VOLT_RAIL_VOLT_3X_SUPPORTED(&g->perf_pmu->volt)) {
-		rail_idx = volt_rail_volt_domain_convert_to_idx(g,
+		rail_idx = nvgpu_volt_rail_volt_domain_convert_to_idx(g,
 				pvolt_dev->volt_domain);
 		if (rail_idx == CTRL_BOARDOBJ_IDX_INVALID) {
 			nvgpu_err(g,
@@ -507,7 +501,7 @@ static int volt_device_state_init(struct gk20a *g,
 			goto done;
 		}
 
-		status = volt_rail_volt_dev_register(g, pRail,
+		status = nvgpu_volt_rail_volt_dev_register(g, pRail,
 			BOARDOBJ_GET_IDX(pvolt_dev), pvolt_dev->operation_type);
 		if (status != 0) {
 			nvgpu_err(g,
@@ -524,7 +518,7 @@ done:
 	return status;
 }
 
-int volt_dev_pmu_setup(struct gk20a *g)
+int nvgpu_volt_dev_pmu_setup(struct gk20a *g)
 {
 	int status;
 	struct boardobjgrp *pboardobjgrp = NULL;
@@ -543,7 +537,7 @@ int volt_dev_pmu_setup(struct gk20a *g)
 	return status;
 }
 
-int volt_dev_sw_setup(struct gk20a *g)
+int nvgpu_volt_dev_sw_setup(struct gk20a *g)
 {
 	int status = 0;
 	struct boardobjgrp *pboardobjgrp = NULL;

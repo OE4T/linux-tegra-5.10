@@ -1337,12 +1337,6 @@ static int init_pmu_fw_ver_ops(struct nvgpu_pmu *pmu, u32 app_version)
 				boardobjgrp_pmugetstatus_impl_v1;
 			g->ops.pmu_ver.boardobj.is_boardobjgrp_pmucmd_id_valid =
 				is_boardobjgrp_pmucmd_id_valid_v1;
-			g->ops.pmu_ver.volt.volt_set_voltage =
-				nvgpu_volt_set_voltage_gv10x;
-			g->ops.pmu_ver.volt.volt_get_voltage =
-				nvgpu_volt_rail_get_voltage_gv10x;
-			g->ops.pmu_ver.volt.volt_send_load_cmd_to_pmu =
-				nvgpu_volt_send_load_cmd_to_pmu_gv10x;
 			g->ops.pmu_ver.clk.get_vbios_clk_domain =
 				nvgpu_clk_get_vbios_clk_domain_gv10x;
 			g->ops.pmu_ver.clk.clk_avfs_get_vin_cal_data =
@@ -1354,10 +1348,6 @@ static int init_pmu_fw_ver_ops(struct nvgpu_pmu *pmu, u32 app_version)
 					nvgpu_clk_set_boot_fll_clk_gv10x;
 			} else {
 				g->ops.pmu_ver.clk.clk_set_boot_clk = NULL;
-				g->ops.pmu_ver.volt.volt_get_vmin =
-					nvgpu_volt_get_vmin_tu10x;
-				g->ops.pmu_ver.volt.volt_get_vmargin =
-					nvgpu_volt_get_vmargin_tu10x;
 			}
 		} else {
 			g->ops.pmu_ver.get_pmu_init_msg_pmu_queue_params =
@@ -1518,12 +1508,6 @@ static int init_pmu_fw_ver_ops(struct nvgpu_pmu *pmu, u32 app_version)
 			boardobjgrp_pmugetstatus_impl;
 		g->ops.pmu_ver.boardobj.is_boardobjgrp_pmucmd_id_valid =
 			is_boardobjgrp_pmucmd_id_valid_v0;
-		g->ops.pmu_ver.volt.volt_set_voltage =
-			nvgpu_volt_set_voltage_gp10x;
-		g->ops.pmu_ver.volt.volt_get_voltage =
-			nvgpu_volt_rail_get_voltage_gp10x;
-		g->ops.pmu_ver.volt.volt_send_load_cmd_to_pmu =
-			nvgpu_volt_send_load_cmd_to_pmu_gp10x;
 		g->ops.pmu_ver.clk.get_vbios_clk_domain =
 			nvgpu_clk_get_vbios_clk_domain_gp10x;
 		g->ops.pmu_ver.clk.clk_avfs_get_vin_cal_data =

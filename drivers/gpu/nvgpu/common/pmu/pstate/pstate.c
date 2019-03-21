@@ -29,6 +29,7 @@
 #include <nvgpu/pmu/pmgr.h>
 #include <nvgpu/pmu/therm.h>
 #include <nvgpu/pmu/perf.h>
+#include <nvgpu/pmu/volt.h>
 
 #include "pstate.h"
 
@@ -79,17 +80,17 @@ int gk20a_init_pstate_support(struct gk20a *g)
 		goto err_therm_pmu_init_pmupstate;
 	}
 
-	err = volt_rail_sw_setup(g);
+	err = nvgpu_volt_rail_sw_setup(g);
 	if (err != 0) {
 		goto err_pmgr_pmu_init_pmupstate;
 	}
 
-	err = volt_dev_sw_setup(g);
+	err = nvgpu_volt_dev_sw_setup(g);
 	if (err != 0) {
 		goto err_pmgr_pmu_init_pmupstate;
 	}
 
-	err = volt_policy_sw_setup(g);
+	err = nvgpu_volt_policy_sw_setup(g);
 	if (err != 0) {
 		goto err_pmgr_pmu_init_pmupstate;
 	}
@@ -208,22 +209,22 @@ int gk20a_init_pstate_pmu_support(struct gk20a *g)
 		}
 	}
 
-	err = volt_rail_pmu_setup(g);
+	err = nvgpu_volt_rail_pmu_setup(g);
 	if (err != 0) {
 		return err;
 	}
 
-	err = volt_dev_pmu_setup(g);
+	err = nvgpu_volt_dev_pmu_setup(g);
 	if (err != 0) {
 		return err;
 	}
 
-	err = volt_policy_pmu_setup(g);
+	err = nvgpu_volt_policy_pmu_setup(g);
 	if (err != 0) {
 		return err;
 	}
 
-	err = g->ops.pmu_ver.volt.volt_send_load_cmd_to_pmu(g);
+	err = nvgpu_volt_send_load_cmd_to_pmu(g);
 	if (err != 0) {
 		nvgpu_err(g,
 			"Failed to send VOLT LOAD CMD to PMU: status = 0x%08x.",

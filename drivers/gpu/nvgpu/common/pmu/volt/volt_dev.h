@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2016-2018, NVIDIA CORPORATION.  All rights reserved.
+* Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
 *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -29,6 +29,9 @@
 
 #define VOLTAGE_TABLE_MAX_ENTRIES_ONE	1U
 #define VOLTAGE_TABLE_MAX_ENTRIES	256U
+#define VOLTAGE_DESCRIPTOR_TABLE_ENTRY_INVALID	0xFFU
+#define VOLT_DEV_PWM_VOLTAGE_STEPS_INVALID	0U
+#define VOLT_DEV_PWM_VOLTAGE_STEPS_DEFAULT	1U
 
 struct voltage_device {
 	struct boardobj super;

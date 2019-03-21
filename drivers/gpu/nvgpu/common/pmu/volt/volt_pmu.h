@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2016-2018, NVIDIA CORPORATION.  All rights reserved.
+* Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
 *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -23,8 +23,9 @@
 #ifndef NVGPU_VOLT_PMU_H
 #define NVGPU_VOLT_PMU_H
 
+#define RAIL_COUNT_GP 2
+#define RAIL_COUNT_GV 1
+
 u32 volt_pmu_send_load_cmd_to_pmu(struct gk20a *g);
-int volt_set_noiseaware_vmin(struct gk20a *g, u32 logic_voltage_uv,
-		u32 sram_voltage_uv);
 
 #endif /* NVGPU_VOLT_PMU_H */

@@ -914,7 +914,7 @@ int nvgpu_clk_set_boot_fll_clk_gv10x(struct gk20a *g)
 	}
 
 	voltuv = gpcclk_voltuv;
-	status = volt_set_voltage(g, voltuv, 0);
+	status = nvgpu_volt_set_voltage(g, voltuv, 0);
 	if (status != 0) {
 		nvgpu_err(g,
 			"attempt to set boot voltage failed %d",
@@ -963,7 +963,7 @@ int nvgpu_clk_set_fll_clk_gv10x(struct gk20a *g)
 
 	voltuv = gpcclk_voltuv;
 
-	status = volt_set_voltage(g, voltuv, 0U);
+	status = nvgpu_volt_set_voltage(g, voltuv, 0U);
 	if (status != 0) {
 		nvgpu_err(g, "attempt to set max voltage failed %d", voltuv);
 	}
@@ -1028,7 +1028,7 @@ int nvgpu_clk_set_boot_fll_clk_tu10x(struct gk20a *g)
 	status = clk_domain_freq_to_volt(g, gpcclk_domain,
 		&gpcclk_clkmhz, &gpcclk_voltuv, CTRL_VOLT_DOMAIN_LOGIC);
 
-	status = g->ops.pmu_ver.volt.volt_get_vmin(g, &vmin_uv);
+	status = nvgpu_volt_get_vmin_ps35(g, &vmin_uv);
 	if(status != 0)
 	{
 		nvgpu_pmu_dbg(g, "Get vmin failed, proceeding with freq_to_volt value");
@@ -1068,7 +1068,7 @@ int clk_domain_volt_to_freq(struct gk20a *g, u8 clkdomain_idx,
 	int status = -EINVAL;
 
 	(void)memset(&rpc, 0, sizeof(struct nv_pmu_rpc_clk_domain_35_prog_freq_to_volt ));
-	rpc.volt_rail_idx = volt_rail_volt_domain_convert_to_idx(g, railidx);
+	rpc.volt_rail_idx = nvgpu_volt_rail_volt_domain_convert_to_idx(g, railidx);
 	rpc.clk_domain_idx = clkdomain_idx;
 	rpc.voltage_type = CTRL_VOLT_DOMAIN_LOGIC;
 	rpc.input.value = *pvoltuv;
@@ -1089,7 +1089,7 @@ int clk_domain_freq_to_volt(struct gk20a *g, u8 clkdomain_idx,
 	int status = -EINVAL;
 
 	(void)memset(&rpc, 0, sizeof(struct nv_pmu_rpc_clk_domain_35_prog_freq_to_volt ));
-	rpc.volt_rail_idx = volt_rail_volt_domain_convert_to_idx(g, railidx);
+	rpc.volt_rail_idx = nvgpu_volt_rail_volt_domain_convert_to_idx(g, railidx);
 	rpc.clk_domain_idx = clkdomain_idx;
 	rpc.voltage_type = CTRL_VOLT_DOMAIN_LOGIC;
 	rpc.input.value = *pclkmhz;

@@ -18,7 +18,6 @@
 #include "os_linux.h"
 
 #include <nvgpu/pmu/volt.h>
-#include <common/pmu/volt/volt_rail.h>
 
 static int get_curr_voltage(void *data, u64 *val)
 {
@@ -26,11 +25,7 @@ static int get_curr_voltage(void *data, u64 *val)
 	u32 readval;
 	int err;
 
-	if (!g->ops.pmu_ver.volt.volt_get_voltage)
-		return -EINVAL;
-
-	err = g->ops.pmu_ver.volt.volt_get_voltage(g,
-			CTRL_VOLT_DOMAIN_LOGIC, &readval);
+	err = nvgpu_volt_get_voltage(g, CTRL_VOLT_DOMAIN_LOGIC, &readval);
 	if (!err)
 		*val = readval;
 
@@ -44,10 +39,7 @@ static int get_min_voltage(void *data, u64 *val)
 	u32 readval;
 	int err;
 
-	if (!g->ops.pmu_ver.volt.volt_get_vmin)
-		return -EINVAL;
-
-	err = g->ops.pmu_ver.volt.volt_get_vmin(g, &readval);
+	err = nvgpu_volt_get_vmin_ps35(g, &readval);
 	if (!err)
 		*val = readval;
 

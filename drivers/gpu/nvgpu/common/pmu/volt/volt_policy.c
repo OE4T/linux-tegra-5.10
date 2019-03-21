@@ -28,9 +28,6 @@
 #include <nvgpu/pmuif/ctrlvolt.h>
 #include <nvgpu/pmu/perf.h>
 
-#include "gp106/bios_gp106.h"
-
-#include "volt.h"
 #include "volt_policy.h"
 
 static int volt_policy_pmu_data_init_super(struct gk20a *g,
@@ -473,7 +470,7 @@ done:
 	return status;
 }
 
-int volt_policy_pmu_setup(struct gk20a *g)
+int nvgpu_volt_policy_pmu_setup(struct gk20a *g)
 {
 	int status;
 	struct boardobjgrp *pboardobjgrp = NULL;
@@ -493,7 +490,7 @@ int volt_policy_pmu_setup(struct gk20a *g)
 	return status;
 }
 
-int volt_policy_sw_setup(struct gk20a *g)
+int nvgpu_volt_policy_sw_setup(struct gk20a *g)
 {
 	int status = 0;
 	struct boardobjgrp *pboardobjgrp = NULL;

@@ -27,77 +27,10 @@
 #include <nvgpu/string.h>
 #include <nvgpu/pmuif/ctrlvolt.h>
 #include <nvgpu/pmu/perf.h>
+#include <nvgpu/pmu/volt.h>
 
-#include "gp106/bios_gp106.h"
-
-#include "volt.h"
 #include "volt_rail.h"
 
-u8 volt_rail_volt_domain_convert_to_idx(struct gk20a *g, u8 volt_domain)
-{
-	switch (g->perf_pmu->volt.volt_rail_metadata.volt_domain_hal) {
-	case CTRL_VOLT_DOMAIN_HAL_GP10X_SINGLE_RAIL:
-		switch (volt_domain) {
-		case CTRL_VOLT_DOMAIN_LOGIC:
-			return 0;
-		}
-		break;
-	case CTRL_VOLT_DOMAIN_HAL_GP10X_SPLIT_RAIL:
-		switch (volt_domain) {
-		case CTRL_VOLT_DOMAIN_LOGIC:
-			return 0;
-		case CTRL_VOLT_DOMAIN_SRAM:
-			return 1;
-		}
-		break;
-	}
-
-	return CTRL_BOARDOBJ_IDX_INVALID;
-}
-
-int volt_rail_volt_dev_register(struct gk20a *g, struct voltage_rail
-	*pvolt_rail, u8 volt_dev_idx, u8 operation_type)
-{
-	int status = 0;
-
-	if (operation_type == CTRL_VOLT_DEVICE_OPERATION_TYPE_DEFAULT) {
-		if (pvolt_rail->volt_dev_idx_default ==
-				CTRL_BOARDOBJ_IDX_INVALID) {
-			pvolt_rail->volt_dev_idx_default = volt_dev_idx;
-		} else {
-			status = -EINVAL;
-			goto exit;
-		}
-	} else if (operation_type ==
-		CTRL_VOLT_VOLT_DEVICE_OPERATION_TYPE_IPC_VMIN) {
-		if (pvolt_rail->volt_dev_idx_ipc_vmin ==
-			CTRL_BOARDOBJ_IDX_INVALID) {
-			pvolt_rail->volt_dev_idx_ipc_vmin = volt_dev_idx;
-			/*
-			* Exit on purpose as we do not want to register
-			* IPC_VMIN device against the rail to avoid
-			* setting current voltage instead of
-			* IPC Vmin voltage.
-			*/
-			goto exit;
-		} else {
-			status = -EINVAL;
-			goto exit;
-		}
-	} else {
-		goto exit;
-	}
-
-	status = boardobjgrpmask_bitset(&pvolt_rail->volt_dev_mask.super,
-			volt_dev_idx);
-
-exit:
-	if (status != 0) {
-		nvgpu_err(g, "Failed to register VOLTAGE_DEVICE");
-	}
-
-	return status;
-}
 
 static int volt_rail_state_init(struct gk20a *g,
 		struct voltage_rail *pvolt_rail)
@@ -224,47 +157,6 @@ static struct voltage_rail *construct_volt_rail(struct gk20a *g, void *pargs)
 	return (struct voltage_rail *)board_obj_ptr;
 }
 
-u8 volt_rail_vbios_volt_domain_convert_to_internal(struct gk20a *g,
-	u8 vbios_volt_domain)
-{
-	switch (g->perf_pmu->volt.volt_rail_metadata.volt_domain_hal) {
-	case CTRL_VOLT_DOMAIN_HAL_GP10X_SINGLE_RAIL:
-		if (vbios_volt_domain == 0U) {
-			return CTRL_VOLT_DOMAIN_LOGIC;
-		}
-		break;
-	case CTRL_VOLT_DOMAIN_HAL_GP10X_SPLIT_RAIL:
-		switch (vbios_volt_domain) {
-		case 0:
-			return CTRL_VOLT_DOMAIN_LOGIC;
-		case 1:
-			return CTRL_VOLT_DOMAIN_SRAM;
-		}
-		break;
-	}
-
-	return CTRL_VOLT_DOMAIN_INVALID;
-}
-
-int volt_rail_pmu_setup(struct gk20a *g)
-{
-	int status;
-	struct boardobjgrp *pboardobjgrp = NULL;
-
-	nvgpu_log_info(g, " ");
-
-	pboardobjgrp = &g->perf_pmu->volt.volt_rail_metadata.volt_rails.super;
-
-	if (!pboardobjgrp->bconstructed) {
-		return -EINVAL;
-	}
-
-	status = pboardobjgrp->pmuinithandle(g, pboardobjgrp);
-
-	nvgpu_log_info(g, "Done");
-	return status;
-}
-
 static int volt_get_volt_rail_table(struct gk20a *g,
 		struct voltage_rail_metadata *pvolt_rail_metadata)
 {
@@ -302,7 +194,7 @@ static int volt_get_volt_rail_table(struct gk20a *g,
 		nvgpu_memcpy((u8 *)&entry, entry_ptr,
 			sizeof(struct vbios_voltage_rail_table_1x_entry));
 
-		volt_domain = volt_rail_vbios_volt_domain_convert_to_internal(g,
+		volt_domain = nvgpu_volt_rail_vbios_volt_domain_convert_to_internal(g,
 			i);
 		if (volt_domain == CTRL_VOLT_DOMAIN_INVALID) {
 			continue;
@@ -367,7 +259,7 @@ static int volt_get_volt_rail_table(struct gk20a *g,
 
 		status = boardobjgrp_objinsert(
 				&pvolt_rail_metadata->volt_rails.super,
-				(struct boardobj *)prail, i);
+				(void *)(struct boardobj *)prail, i);
 	}
 
 done:
@@ -438,7 +330,7 @@ static int volt_rail_obj_update(struct gk20a *g,
 	return 0;
 }
 
-int nvgpu_volt_rail_boardobj_grp_get_status(struct gk20a *g)
+static int nvgpu_volt_rail_boardobj_grp_get_status(struct gk20a *g)
 {
 	struct boardobjgrp *pboardobjgrp;
 	struct boardobjgrpmask *pboardobjgrpmask;
@@ -477,7 +369,7 @@ int nvgpu_volt_rail_boardobj_grp_get_status(struct gk20a *g)
 	return 0;
 }
 
-int volt_rail_sw_setup(struct gk20a *g)
+int nvgpu_volt_rail_sw_setup(struct gk20a *g)
 {
 	int status = 0;
 	struct boardobjgrp *pboardobjgrp = NULL;
@@ -549,3 +441,161 @@ done:
 	nvgpu_log_info(g, " done status %x", status);
 	return status;
 }
+
+int nvgpu_volt_rail_pmu_setup(struct gk20a *g)
+{
+	int status;
+	struct boardobjgrp *pboardobjgrp = NULL;
+
+	nvgpu_log_info(g, " ");
+
+	pboardobjgrp = &g->perf_pmu->volt.volt_rail_metadata.volt_rails.super;
+
+	if (!pboardobjgrp->bconstructed) {
+		return -EINVAL;
+	}
+
+	status = pboardobjgrp->pmuinithandle(g, pboardobjgrp);
+
+	nvgpu_log_info(g, "Done");
+	return status;
+}
+
+u8 nvgpu_volt_rail_vbios_volt_domain_convert_to_internal(struct gk20a *g,
+	u8 vbios_volt_domain)
+{
+	switch (g->perf_pmu->volt.volt_rail_metadata.volt_domain_hal) {
+	case CTRL_VOLT_DOMAIN_HAL_GP10X_SINGLE_RAIL:
+		if (vbios_volt_domain == 0U) {
+			return CTRL_VOLT_DOMAIN_LOGIC;
+		}
+		break;
+	case CTRL_VOLT_DOMAIN_HAL_GP10X_SPLIT_RAIL:
+		if (vbios_volt_domain == 0U) {
+			return CTRL_VOLT_DOMAIN_LOGIC;
+		} else if (vbios_volt_domain == 1U) {
+			return CTRL_VOLT_DOMAIN_SRAM;
+		} else {
+			nvgpu_info(g, "Split Rail has invalid entry");
+		}
+		break;
+	default:
+		nvgpu_info(g, "Volt domain is invalid");
+		break;
+	}
+		return CTRL_VOLT_DOMAIN_INVALID;
+}
+
+u8 nvgpu_volt_rail_volt_domain_convert_to_idx(struct gk20a *g, u8 volt_domain)
+{
+	switch (g->perf_pmu->volt.volt_rail_metadata.volt_domain_hal) {
+	case CTRL_VOLT_DOMAIN_HAL_GP10X_SINGLE_RAIL:
+		if (volt_domain == CTRL_VOLT_DOMAIN_LOGIC) {
+			return 0U;
+		}
+		break;
+	case CTRL_VOLT_DOMAIN_HAL_GP10X_SPLIT_RAIL:
+		if (volt_domain == CTRL_VOLT_DOMAIN_LOGIC) {
+			return 0U;
+		} else if (volt_domain == CTRL_VOLT_DOMAIN_SRAM) {
+			return 1U;
+		} else {
+			nvgpu_info(g, "Split Rail has invalid entry");
+		}
+		break;
+	default:
+		nvgpu_info(g, "Boardobj IDX is invalid");
+		break;
+	}
+		return CTRL_BOARDOBJ_IDX_INVALID;
+}
+
+int nvgpu_volt_rail_volt_dev_register(struct gk20a *g, struct voltage_rail
+	*pvolt_rail, u8 volt_dev_idx, u8 operation_type)
+{
+	int status = 0;
+
+	if (operation_type == CTRL_VOLT_DEVICE_OPERATION_TYPE_DEFAULT) {
+		if (pvolt_rail->volt_dev_idx_default ==
+				CTRL_BOARDOBJ_IDX_INVALID) {
+			pvolt_rail->volt_dev_idx_default = volt_dev_idx;
+		} else {
+			status = -EINVAL;
+			goto exit;
+		}
+	} else if (operation_type ==
+		CTRL_VOLT_VOLT_DEVICE_OPERATION_TYPE_IPC_VMIN) {
+		if (pvolt_rail->volt_dev_idx_ipc_vmin ==
+			CTRL_BOARDOBJ_IDX_INVALID) {
+			pvolt_rail->volt_dev_idx_ipc_vmin = volt_dev_idx;
+			/*
+			* Exit on purpose as we do not want to register
+			* IPC_VMIN device against the rail to avoid
+			* setting current voltage instead of
+			* IPC Vmin voltage.
+			*/
+			goto exit;
+		} else {
+			status = -EINVAL;
+			goto exit;
+		}
+	} else {
+		goto exit;
+	}
+
+	status = boardobjgrpmask_bitset(&pvolt_rail->volt_dev_mask.super,
+			volt_dev_idx);
+
+exit:
+	if (status != 0) {
+		nvgpu_err(g, "Failed to register VOLTAGE_DEVICE");
+	}
+
+	return status;
+}
+
+int nvgpu_volt_get_vmin_ps35(struct gk20a *g, u32 *vmin_uv)
+{
+	struct boardobjgrp *pboardobjgrp;
+	struct boardobj *pboardobj = NULL;
+	struct voltage_rail *volt_rail = NULL;
+	int status;
+	u8 index;
+
+	status = nvgpu_volt_rail_boardobj_grp_get_status(g);
+	if (status != 0) {
+		nvgpu_err(g, "Vfe_var get status failed");
+		return status;
+	}
+
+	pboardobjgrp = &g->perf_pmu->volt.volt_rail_metadata.volt_rails.super;
+
+	BOARDOBJGRP_FOR_EACH(pboardobjgrp, struct boardobj*, pboardobj, index) {
+		volt_rail = (struct voltage_rail *)(void *)pboardobj;
+		if (volt_rail->vmin_limitu_v != 0U) {
+			*vmin_uv = volt_rail->vmin_limitu_v;
+			return status;
+		}
+	}
+	return status;
+}
+
+u8 nvgpu_volt_get_vmargin_ps35(struct gk20a *g)
+{
+	struct boardobjgrp *pboardobjgrp;
+	struct boardobj *pboardobj = NULL;
+	struct voltage_rail *volt_rail = NULL;
+	u8 index, vmargin_uv;
+
+	pboardobjgrp = &g->perf_pmu->volt.volt_rail_metadata.volt_rails.super;
+
+	BOARDOBJGRP_FOR_EACH(pboardobjgrp, struct boardobj *, pboardobj, index) {
+		volt_rail = (struct voltage_rail *)(void *)pboardobj;
+		if (volt_rail->volt_margin_limit_vfe_equ_idx != 255U) {
+			vmargin_uv = volt_rail->volt_margin_limit_vfe_equ_idx;
+			return vmargin_uv;
+		}
+	}
+	return 0U;
+}
+

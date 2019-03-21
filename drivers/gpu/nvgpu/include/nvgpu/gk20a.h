@@ -1128,15 +1128,6 @@ struct gpu_ops {
 				struct boardobjgrp_pmu_cmd *cmd);
 		} boardobj;
 		struct {
-			int (*volt_set_voltage)(struct gk20a *g,
-				u32 logic_voltage_uv, u32 sram_voltage_uv);
-			int (*volt_get_voltage)(struct gk20a *g,
-				u8 volt_domain, u32 *pvoltage_uv);
-			int (*volt_send_load_cmd_to_pmu)(struct gk20a *g);
-			int (*volt_get_vmin)(struct gk20a *g, u32 *vmin_uv);
-			u8 (*volt_get_vmargin)(struct gk20a *g);
-		} volt;
-		struct {
 			u32 (*get_vbios_clk_domain)(u32 vbios_domain);
 			int (*clk_avfs_get_vin_cal_data)(struct gk20a *g,
 				struct nvgpu_avfsvinobjs *pvinobjs,
