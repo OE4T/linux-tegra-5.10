@@ -37,6 +37,8 @@
 
 #define INVAL_ID			(~U32(0U))
 
+#define CTXSW_TIMEOUT_PERIOD_MS		100U
+
 struct gk20a;
 
 struct nvgpu_channel_hw_state {

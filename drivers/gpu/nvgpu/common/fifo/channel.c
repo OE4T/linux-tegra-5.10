@@ -1461,8 +1461,7 @@ bool nvgpu_channel_check_ctxsw_timeout(struct channel_gk20a *ch,
 	struct gk20a *g = ch->g;
 
 	recover = nvgpu_channel_update_and_check_ctxsw_timeout(ch,
-			g->fifo_eng_timeout_us / 1000U,
-			&progress);
+			g->ctxsw_timeout_period_ms, &progress);
 	*verbose = ch->ctxsw_timeout_debug_dump;
 	*ms = ch->ctxsw_timeout_accumulated_ms;
 	if (recover) {

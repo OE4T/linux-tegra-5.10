@@ -1884,8 +1884,9 @@ struct gk20a {
 #endif
 	u32 gr_idle_timeout_default;
 	bool timeouts_disabled_by_user;
+
 	unsigned int ch_wdt_init_limit_ms;
-	u32 fifo_eng_timeout_us;
+	u32 ctxsw_timeout_period_ms;
 
 	struct nvgpu_mutex power_lock;
 

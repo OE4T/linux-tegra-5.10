@@ -420,7 +420,7 @@ bool nvgpu_tsg_check_ctxsw_timeout(struct tsg_gk20a *tsg,
 	struct gk20a *g = tsg->g;
 
 	*verbose = false;
-	*ms = g->fifo_eng_timeout_us / 1000U;
+	*ms = g->ctxsw_timeout_period_ms;
 
 	nvgpu_rwsem_down_read(&tsg->ch_list_lock);
 
@@ -463,7 +463,7 @@ bool nvgpu_tsg_check_ctxsw_timeout(struct tsg_gk20a *tsg,
 		nvgpu_log_info(g, "progress on tsg=%d ch=%d",
 				tsg->tsgid, ch->chid);
 		gk20a_channel_put(ch);
-		*ms = g->fifo_eng_timeout_us / 1000U;
+		*ms = g->ctxsw_timeout_period_ms;
 		nvgpu_tsg_set_ctxsw_timeout_accumulated_ms(tsg, *ms);
 	}
 

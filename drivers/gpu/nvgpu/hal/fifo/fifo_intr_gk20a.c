@@ -78,7 +78,8 @@ void gk20a_fifo_intr_0_enable(struct gk20a *g, bool enable)
 	if (g->ops.fifo.apply_ctxsw_timeout_intr != NULL) {
 		g->ops.fifo.apply_ctxsw_timeout_intr(g);
 	} else {
-		timeout = g->fifo_eng_timeout_us;
+		/* timeout is in us. Enable ctxsw timeout */
+		timeout = g->ctxsw_timeout_period_ms * 1000U;
 		timeout = scale_ptimer(timeout,
 			ptimer_scalingfactor10x(g->ptimer_src_freq));
 		timeout |= fifo_eng_timeout_detection_enabled_f();

@@ -1392,10 +1392,10 @@ static u32 gk20a_fifo_get_preempt_timeout(struct gk20a *g)
 	/* Use fifo_eng_timeout converted to ms for preempt
 	 * polling. gr_idle_timeout i.e 3000 ms is and not appropriate
 	 * for polling preempt done as context switch timeout gets
-	 * triggered every 100 ms and context switch recovery
-	 * happens every 3000 ms */
+	 * triggered every ctxsw_timeout_period_ms.
+	 */
 
-	return g->fifo_eng_timeout_us / 1000U;
+	return g->ctxsw_timeout_period_ms;
 }
 
 int gk20a_fifo_is_preempt_pending(struct gk20a *g, u32 id,
