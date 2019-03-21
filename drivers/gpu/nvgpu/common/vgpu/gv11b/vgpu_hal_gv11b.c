@@ -84,6 +84,7 @@
 #include "common/vgpu/perf/cyclestats_snapshot_vgpu.h"
 #include "common/vgpu/fifo/vgpu_fifo_gv11b.h"
 #include "common/vgpu/ptimer/ptimer_vgpu.h"
+#include "vgpu_hal_gv11b.h"
 
 #include <gm20b/gr_gm20b.h>
 #include <gm20b/fifo_gm20b.h>

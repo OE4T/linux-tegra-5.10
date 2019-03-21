@@ -25,17 +25,12 @@
 #include <nvgpu/vgpu/vgpu.h>
 #include <nvgpu/vgpu/vgpu_ivc.h>
 #include <nvgpu/vgpu/vgpu_ivm.h>
+#include <nvgpu/vgpu/os_init_hal_vgpu.h>
 
 struct vgpu_priv_data *vgpu_get_priv_data(struct gk20a *g)
 {
 	BUG();
 	return NULL;
-}
-
-bool vgpu_is_reduced_bar1(struct gk20a *g)
-{
-	BUG();
-	return false;
 }
 
 int vgpu_ivc_init(struct gk20a *g, u32 elems,

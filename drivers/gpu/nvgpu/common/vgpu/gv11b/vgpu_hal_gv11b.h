@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -20,41 +20,11 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NVGPU_VGPU_H
-#define NVGPU_VGPU_H
-
-#include <nvgpu/types.h>
-#include <nvgpu/thread.h>
-#include <nvgpu/log.h>
-#include <nvgpu/lock.h>
-#include <nvgpu/vgpu/tegra_vgpu.h>
+#ifndef VGPU_HAL_GV11B_H
+#define VGPU_HAL_GV11B_H
 
 struct gk20a;
-struct vgpu_ecc_stat;
 
-struct vgpu_priv_data {
-	u64 virt_handle;
-	struct nvgpu_thread intr_handler;
-	struct tegra_vgpu_constants_params constants;
-	struct vgpu_ecc_stat *ecc_stats;
-	int ecc_stats_count;
-	u32 num_freqs;
-	unsigned long *freqs;
-	struct nvgpu_mutex vgpu_clk_get_freq_lock;
-};
+int vgpu_gv11b_init_hal(struct gk20a *g);
 
-struct vgpu_priv_data *vgpu_get_priv_data(struct gk20a *g);
-
-static inline u64 vgpu_get_handle(struct gk20a *g)
-{
-	struct vgpu_priv_data *priv = vgpu_get_priv_data(g);
-
-	if (unlikely(!priv)) {
-		nvgpu_err(g, "invalid vgpu_priv_data in %s", __func__);
-		return INT_MAX;
-	}
-
-	return priv->virt_handle;
-}
-
-#endif /* NVGPU_VGPU_H */
+#endif

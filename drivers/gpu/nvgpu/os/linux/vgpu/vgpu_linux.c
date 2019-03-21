@@ -35,6 +35,8 @@
 #include <nvgpu/regops.h>
 #include <nvgpu/clk_arb.h>
 
+#include <nvgpu/vgpu/os_init_hal_vgpu.h>
+
 #include "vgpu_linux.h"
 #include "common/vgpu/gr/fecs_trace_vgpu.h"
 #include "common/vgpu/clk_vgpu.h"
@@ -465,15 +467,6 @@ int vgpu_remove(struct platform_device *pdev)
 	gk20a_put(g);
 
 	return 0;
-}
-
-bool vgpu_is_reduced_bar1(struct gk20a *g)
-{
-	struct nvgpu_os_linux *l = nvgpu_os_linux_from_gk20a(g);
-	struct fifo_gk20a *f = &g->fifo;
-	u32 size = f->num_channels * f->userd_entry_size;
-
-	return resource_size(l->bar1_mem) == size;
 }
 
 int vgpu_tegra_suspend(struct device *dev)

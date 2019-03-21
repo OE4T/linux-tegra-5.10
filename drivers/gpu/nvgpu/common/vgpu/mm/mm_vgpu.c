@@ -133,24 +133,6 @@ u64 vgpu_mm_bar1_map_userd(struct gk20a *g, struct nvgpu_mem *mem, u32 offset)
 		addr = 0;
 	} else {
 		addr = p->gpu_va;
-
-		/* Server returns gpu_va assuming full BAR1 range.
-		 * In case of reduced BAR1 configuration, we only map
-		 * the portion of BAR1 reserved for this guest.
-		 * As a result, we need to use the offset from the start
-		 * of this range, instead of the gpu_va.
-		 *
-		 *                 offset
-		 *                 <---->
-		 *  Guest IPA      +========+
-		 *                 :    X   :
-		 *  BAR1 PA   +----+========+-----------+
-		 *            <--------->
-		 *               gpu_va
-		 */
-		if (vgpu_is_reduced_bar1(g)) {
-			addr = offset;
-		}
 	}
 
 	return addr;
