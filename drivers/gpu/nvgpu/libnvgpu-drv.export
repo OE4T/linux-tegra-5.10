@@ -71,6 +71,7 @@ nvgpu_alloc_space
 nvgpu_aperture_mask
 nvgpu_bar1_readl
 nvgpu_bar1_writel
+nvgpu_bsearch
 nvgpu_dma_alloc
 nvgpu_dma_alloc_get_fault_injection
 nvgpu_dma_alloc_vid_at

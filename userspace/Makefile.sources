@@ -54,6 +54,8 @@ UNITS :=				\
 	$(UNIT_SRC)/pramin		\
 	$(UNIT_SRC)/fuse		\
 	$(UNIT_SRC)/interface/atomic	\
+	$(UNIT_SRC)/interface/bsearch	\
+	$(UNIT_SRC)/interface/lock	\
 	$(UNIT_SRC)/mm/nvgpu_sgt	\
 	$(UNIT_SRC)/mm/allocators/nvgpu_allocator	\
 	$(UNIT_SRC)/mm/gmmu/pd_cache	\
@@ -63,8 +65,4 @@ UNITS :=				\
 	$(UNIT_SRC)/mm/vm		\
 	$(UNIT_SRC)/fifo/runlist	\
 	$(UNIT_SRC)/list		\
-	$(UNIT_SRC)/enabled		\
-	$(UNIT_SRC)/interface/lock
-
-# A test unit. Not really needed any more...
-#	$(UNIT_SRC)/test
+	$(UNIT_SRC)/enabled

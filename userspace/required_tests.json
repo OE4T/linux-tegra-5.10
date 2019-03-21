@@ -308,6 +308,10 @@
         "unit": "fuse"
     },
     {
+        "test": "test_bsearch",
+        "unit": "interface_bsearch"
+    },
+    {
         "test": "mutex_acquire_release",
         "unit": "interface_lock"
     },
