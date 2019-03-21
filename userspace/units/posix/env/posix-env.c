@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -188,11 +188,42 @@ static int sanity_test_endianness(struct unit_module *m,
 	return UNIT_SUCCESS;
 }
 
+static int sanity_test_type_max(struct unit_module *m,
+				struct gk20a *g, void *args)
+{
+	int ret = UNIT_SUCCESS;
+	u64 val;
+
+	val = (1ULL << 8) - 1;
+	if (val != U8_MAX) {
+		unit_err(m, "U8_MAX != %llu\n", val);
+		ret = UNIT_FAIL;
+	}
+	val = (1ULL << 16) - 1;
+	if (val != U16_MAX) {
+		unit_err(m, "U16_MAX != %llu\n", val);
+		ret = UNIT_FAIL;
+	}
+	val = (1ULL << 32) - 1;
+	if (val != U32_MAX) {
+		unit_err(m, "U32_MAX != %llu\n", val);
+		ret = UNIT_FAIL;
+	}
+	val = 0ULL - 1;
+	if (val != U64_MAX) {
+		unit_err(m, "U64_MAX != %llu\n", val);
+		ret = UNIT_FAIL;
+	}
+
+	return ret;
+}
+
 struct unit_module_test posix_env_tests[] = {
 	UNIT_TEST(sizes,      sanity_test_sizes,   NULL),
 	UNIT_TEST(signage,    sanity_test_signage, NULL),
 	UNIT_TEST(endianness, sanity_test_endianness, NULL),
 	UNIT_TEST(ptr_in_u64, sanity_test_ptr_in_u64, NULL),
+	UNIT_TEST(type_max,   sanity_test_type_max, NULL),
 };
 
 UNIT_MODULE(posix_env, posix_env_tests, UNIT_PRIO_POSIX_TEST);

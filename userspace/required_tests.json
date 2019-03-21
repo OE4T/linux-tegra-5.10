@@ -865,6 +865,10 @@
         "unit": "posix_env"
     },
     {
+        "test": "type_max",
+        "unit": "posix_env"
+    },
+    {
         "test": "__readl",
         "unit": "posix_mockio"
     },
