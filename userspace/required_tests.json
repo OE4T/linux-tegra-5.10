@@ -72,6 +72,10 @@
         "unit": "atomic"
     },
     {
+        "test": "atomic_dec_and_test_not_atomic_threaded",
+        "unit": "atomic"
+    },
+    {
         "test": "atomic_inc_32",
         "unit": "atomic"
     },
@@ -101,6 +105,10 @@
     },
     {
         "test": "atomic_inc_and_test_64_threaded",
+        "unit": "atomic"
+    },
+    {
+        "test": "atomic_inc_and_test_not_atomic_threaded",
         "unit": "atomic"
     },
     {
@@ -141,6 +149,10 @@
     },
     {
         "test": "atomic_sub_and_test_64_threaded",
+        "unit": "atomic"
+    },
+    {
+        "test": "atomic_sub_and_test_not_atomic_threaded",
         "unit": "atomic"
     },
     {

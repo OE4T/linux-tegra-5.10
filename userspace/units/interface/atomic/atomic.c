@@ -54,6 +54,9 @@ struct atomic_test_args {
 	long start_val;
 	unsigned long loop_count;
 	unsigned long value; /* absolute value */
+	unsigned int repeat_count; /* This sets how many times to repeat a test
+				    * Only applies to threaded tests
+				    */
 };
 struct atomic_thread_info {
 	struct atomic_struct *atomic;
@@ -66,6 +69,7 @@ struct atomic_thread_info {
 };
 
 static pthread_barrier_t thread_barrier;
+bool stop_threads;
 
 /*
  * Define functions for atomic ops that handle all types so we can
@@ -396,6 +400,10 @@ static inline long func_cmpxchg(enum atomic_type type,
 		sign;							\
 	})
 
+/* For the non-atomic case, we usually have to invert success/failure */
+#define INVERTED_RESULT(result) \
+	(((result) == UNIT_FAIL) ? UNIT_SUCCESS : UNIT_FAIL)
+
 /* Support function to do an atomic set and read verification */
 static int single_set_and_read(struct unit_module *m,
 			       struct atomic_struct *atomic,
@@ -646,8 +654,8 @@ static bool correct_thread_iteration_count(struct unit_module *m,
 	}
 
 	if (total_iterations != expected_iterations) {
-		unit_err(m, "threaded test op took wrong number of iterations "
-			 "expected %ld took: %ld\n",
+		unit_err(m, "threaded test op took unexpected number of "
+			 "iterations expected %ld took: %ld\n",
 			 expected_iterations, total_iterations);
 		return false;
 	}
@@ -788,6 +796,140 @@ static int test_atomic_arithmetic_threaded(struct unit_module *m,
 exit:
 	pthread_barrier_destroy(&thread_barrier);
 	return ret;
+}
+
+/*
+ * Thread function for the test_atomic_arithmetic_and_test_threaded() test.
+ * Calls the *_and_inc_test op once and saves whether the op returned true by
+ * incrementing in the iterations thread struct.
+ */
+static void *arithmetic_and_test_updater_thread(void *__args)
+{
+	struct atomic_thread_info *targs = (struct atomic_thread_info *)__args;
+	struct atomic_struct *atomic_p = targs->atomic;
+	bool is_zero;
+
+	while (true) {
+		/* wait here to start */
+		pthread_barrier_wait(&thread_barrier);
+		if (stop_threads) {
+			return NULL;
+		}
+
+		switch (targs->margs->op) {
+			case op_inc_and_test:
+				is_zero = func_inc_and_test(targs->margs->type,
+								atomic_p);
+				break;
+			case op_dec_and_test:
+				is_zero = func_dec_and_test(targs->margs->type,
+								atomic_p);
+				break;
+			case op_sub_and_test:
+				is_zero = func_sub_and_test(targs->margs->type,
+						targs->margs->value, atomic_p);
+				break;
+			default:
+				/* designate failure */
+				is_zero = false;
+				break;
+		}
+
+		if (is_zero) {
+			/*
+			 * Only count iterations where the op says the value
+			 * is 0
+			 */
+			targs->iterations++;
+		}
+
+		/* wait until everyone finishes this iteration */
+		pthread_barrier_wait(&thread_barrier);
+	}
+
+	return NULL;
+}
+
+/*
+ * Test arithmetic *_and_test functions in threads to verify atomicity
+ *
+ * Set the atomic to a value to allow the arithmetic op to pass 0.
+ * Start a lot of threads that will each execute the atomic op once.
+ * Check iteration count to make sure only one thread saw 0.
+ *   Note: The final value isn't verified because we are testing the atomicity
+ *         of the operation and the testing. And the non-atomic case may fail
+ *         the final value before failing the test being tested for.
+ * Repeat until reaching the input argument repeat_count or seeing a failure.
+ */
+static int test_atomic_arithmetic_and_test_threaded(struct unit_module *m,
+						struct gk20a *g, void *__args)
+{
+	struct atomic_test_args *args = (struct atomic_test_args *)__args;
+	struct atomic_struct atomic;
+	const int num_threads = 100;
+	/* Start the atomic such that half the threads will potentially see 0 */
+	const long start_val = 0 - (ATOMIC_OP_SIGN(args->op) * num_threads / 2);
+	struct atomic_thread_info threads[num_threads];
+	int i;
+	unsigned int repeat = args->repeat_count;
+	int result = UNIT_SUCCESS;
+
+	pthread_barrier_init(&thread_barrier, NULL, num_threads + 1);
+	stop_threads = false;
+
+	do {
+		if (single_set_and_read(m, &atomic, args->type, start_val) !=
+								UNIT_SUCCESS) {
+			return UNIT_FAIL;
+		}
+
+		/* setup threads */
+		for (i = 0; i < num_threads; i++) {
+			threads[i].iterations = 0;
+			if (repeat == args->repeat_count) {
+				threads[i].atomic = &atomic;
+				threads[i].margs = args;
+				threads[i].thread_num = i;
+				pthread_create(&threads[i].thread, NULL,
+					arithmetic_and_test_updater_thread,
+					&threads[i]);
+			}
+		}
+
+		/* start threads */
+		pthread_barrier_wait(&thread_barrier);
+
+		/* wait for all threads to complete */
+		pthread_barrier_wait(&thread_barrier);
+
+		/*
+		 * The threads only count iterations where the test func
+		 * returns true. So, this should only happen once.
+		 */
+		if (!correct_thread_iteration_count(m, threads,
+						num_threads, 1)) {
+			result = UNIT_FAIL;
+			break;
+		}
+	} while (repeat-- > 0);
+
+	/* signal the end to the threads, then wake them */
+	stop_threads = true;
+	pthread_barrier_wait(&thread_barrier);
+
+	/* wait for all threads to exit */
+	for (i = 0; i < num_threads; i++) {
+		pthread_join(threads[i].thread, NULL);
+	}
+
+	pthread_barrier_destroy(&thread_barrier);
+
+	if (args->type == NOT_ATOMIC) {
+		/* For the non-atomics, pass is fail and fail is pass */
+		return INVERTED_RESULT(result);
+	} else {
+		return result;
+	}
 }
 
 /*
@@ -985,6 +1127,15 @@ static struct atomic_test_args inc_32_arg = {
 	.loop_count = 10000,
 	.value = 1,
 };
+static struct atomic_test_args inc_and_test_not_atomic_arg = {
+	/* must cross 0 */
+	.op = op_inc_and_test,
+	.type = NOT_ATOMIC,
+	.start_val = -500,
+	.loop_count = 10000,
+	.value = 1,
+	.repeat_count = 5000, /* for threaded test */
+};
 static struct atomic_test_args inc_and_test_32_arg = {
 	/* must cross 0 */
 	.op = op_inc_and_test,
@@ -992,6 +1143,7 @@ static struct atomic_test_args inc_and_test_32_arg = {
 	.start_val = -500,
 	.loop_count = 10000,
 	.value = 1,
+	.repeat_count = 5000, /* for threaded test */
 };
 static struct atomic_test_args inc_and_test_64_arg = {
 	/* must cross 0 */
@@ -1000,6 +1152,7 @@ static struct atomic_test_args inc_and_test_64_arg = {
 	.start_val = -500,
 	.loop_count = 10000,
 	.value = 1,
+	.repeat_count = 5000, /* for threaded test */
 };
 static struct atomic_test_args inc_64_arg = {
 	.op = op_inc,
@@ -1015,6 +1168,15 @@ static struct atomic_test_args dec_32_arg = {
 	.loop_count = 10000,
 	.value = 1,
 };
+static struct atomic_test_args dec_and_test_not_atomic_arg = {
+	/* must cross 0 */
+	.op = op_dec_and_test,
+	.type = NOT_ATOMIC,
+	.start_val = 500,
+	.loop_count = 10000,
+	.value = 1,
+	.repeat_count = 5000, /* for threaded test */
+};
 static struct atomic_test_args dec_and_test_32_arg = {
 	/* must cross 0 */
 	.op = op_dec_and_test,
@@ -1022,6 +1184,7 @@ static struct atomic_test_args dec_and_test_32_arg = {
 	.start_val = 500,
 	.loop_count = 10000,
 	.value = 1,
+	.repeat_count = 5000, /* for threaded test */
 };
 static struct atomic_test_args dec_and_test_64_arg = {
 	/* must cross 0 */
@@ -1030,6 +1193,7 @@ static struct atomic_test_args dec_and_test_64_arg = {
 	.start_val = 500,
 	.loop_count = 10000,
 	.value = 1,
+	.repeat_count = 5000, /* for threaded test */
 };
 static struct atomic_test_args dec_64_arg = {
 	.op = op_dec,
@@ -1066,6 +1230,15 @@ static struct atomic_test_args sub_64_arg = {
 	.loop_count = 10000,
 	.value = 7,
 };
+static struct atomic_test_args sub_and_test_not_atomic_arg = {
+	/* must cross 0 */
+	.op = op_sub_and_test,
+	.type = NOT_ATOMIC,
+	.start_val = 500,
+	.loop_count = 10000,
+	.value = 5,
+	.repeat_count = 5000, /* for threaded test */
+};
 static struct atomic_test_args sub_and_test_32_arg = {
 	/* must cross 0 */
 	.op = op_sub_and_test,
@@ -1073,6 +1246,7 @@ static struct atomic_test_args sub_and_test_32_arg = {
 	.start_val = 500,
 	.loop_count = 10000,
 	.value = 5,
+	.repeat_count = 5000, /* for threaded test */
 };
 static struct atomic_test_args sub_and_test_64_arg = {
 	/* must cross 0 */
@@ -1081,11 +1255,13 @@ static struct atomic_test_args sub_and_test_64_arg = {
 	.start_val = 500,
 	.loop_count = 10000,
 	.value = 5,
+	.repeat_count = 5000, /* for threaded test */
 };
 struct atomic_test_args xchg_32_arg = {
 	.type = ATOMIC_32,
 	.start_val = 1,
 	.loop_count = 10000,
+	.repeat_count = 5000, /* for threaded test */
 };
 struct atomic_test_args xchg_64_arg = {
 	.type = ATOMIC_64,
@@ -1110,44 +1286,47 @@ static struct atomic_test_args add_unless_64_arg = {
 };
 
 struct unit_module_test atomic_tests[] = {
-	UNIT_TEST(atomic_set_and_read_32,		test_atomic_set_and_read,		&set_and_read_32_arg, 0),
-	UNIT_TEST(atomic_set_and_read_64,		test_atomic_set_and_read,		&set_and_read_64_arg, 0),
-	UNIT_TEST(atomic_inc_32,			test_atomic_arithmetic,			&inc_32_arg, 0),
-	UNIT_TEST(atomic_inc_and_test_32,		test_atomic_arithmetic,			&inc_and_test_32_arg, 0),
-	UNIT_TEST(atomic_inc_and_test_64,		test_atomic_arithmetic,			&inc_and_test_64_arg, 0),
-	UNIT_TEST(atomic_inc_64,			test_atomic_arithmetic,			&inc_64_arg, 0),
-	UNIT_TEST(atomic_dec_32,			test_atomic_arithmetic,			&dec_32_arg, 0),
-	UNIT_TEST(atomic_dec_64,			test_atomic_arithmetic,			&dec_64_arg, 0),
-	UNIT_TEST(atomic_dec_and_test_32,		test_atomic_arithmetic,			&dec_and_test_32_arg, 0),
-	UNIT_TEST(atomic_dec_and_test_64,		test_atomic_arithmetic,			&dec_and_test_64_arg, 0),
-	UNIT_TEST(atomic_add_32,			test_atomic_arithmetic,			&add_32_arg, 0),
-	UNIT_TEST(atomic_add_64,			test_atomic_arithmetic,			&add_64_arg, 0),
-	UNIT_TEST(atomic_sub_32,			test_atomic_arithmetic,			&sub_32_arg, 0),
-	UNIT_TEST(atomic_sub_64,			test_atomic_arithmetic,			&sub_64_arg, 0),
-	UNIT_TEST(atomic_sub_and_test_32,		test_atomic_arithmetic,			&sub_and_test_32_arg, 0),
-	UNIT_TEST(atomic_sub_and_test_64,		test_atomic_arithmetic,			&sub_and_test_64_arg, 0),
-	UNIT_TEST(atomic_xchg_32,			test_atomic_xchg,			&xchg_32_arg, 0),
-	UNIT_TEST(atomic_xchg_64,			test_atomic_xchg,			&xchg_64_arg, 0),
-	UNIT_TEST(atomic_cmpxchg_32,			test_atomic_cmpxchg,			&xchg_32_arg, 0),
-	UNIT_TEST(atomic_cmpxchg_64,			test_atomic_cmpxchg,			&xchg_64_arg, 0),
-	UNIT_TEST(atomic_add_unless_32,			test_atomic_add_unless,			&add_unless_32_arg, 0),
-	UNIT_TEST(atomic_add_unless_64,			test_atomic_add_unless,			&add_unless_64_arg, 0),
-	UNIT_TEST(atomic_inc_32_threaded,		test_atomic_arithmetic_threaded,	&inc_32_arg, 0),
-	UNIT_TEST(atomic_inc_64_threaded,		test_atomic_arithmetic_threaded,	&inc_64_arg, 0),
-	UNIT_TEST(atomic_dec_32_threaded,		test_atomic_arithmetic_threaded,	&dec_32_arg, 0),
-	UNIT_TEST(atomic_dec_64_threaded,		test_atomic_arithmetic_threaded,	&dec_64_arg, 0),
-	UNIT_TEST(atomic_add_32_threaded,		test_atomic_arithmetic_threaded,	&add_32_arg, 0),
-	UNIT_TEST(atomic_add_64_threaded,		test_atomic_arithmetic_threaded,	&add_64_arg, 0),
-	UNIT_TEST(atomic_sub_32_threaded,		test_atomic_arithmetic_threaded,	&sub_32_arg, 0),
-	UNIT_TEST(atomic_sub_64_threaded,		test_atomic_arithmetic_threaded,	&sub_64_arg, 0),
-	UNIT_TEST(atomic_inc_and_test_32_threaded,	test_atomic_arithmetic_threaded,	&inc_and_test_32_arg, 0),
-	UNIT_TEST(atomic_inc_and_test_64_threaded,	test_atomic_arithmetic_threaded,	&inc_and_test_64_arg, 0),
-	UNIT_TEST(atomic_dec_and_test_32_threaded,	test_atomic_arithmetic_threaded,	&dec_and_test_32_arg, 0),
-	UNIT_TEST(atomic_dec_and_test_64_threaded,	test_atomic_arithmetic_threaded,	&dec_and_test_64_arg, 0),
-	UNIT_TEST(atomic_sub_and_test_32_threaded,	test_atomic_arithmetic_threaded,	&sub_and_test_32_arg, 0),
-	UNIT_TEST(atomic_sub_and_test_64_threaded,	test_atomic_arithmetic_threaded,	&sub_and_test_64_arg, 0),
-	UNIT_TEST(atomic_add_unless_32_threaded,	test_atomic_arithmetic_threaded,	&add_unless_32_arg, 0),
-	UNIT_TEST(atomic_add_unless_64_threaded,	test_atomic_arithmetic_threaded,	&add_unless_64_arg, 0),
+	UNIT_TEST(atomic_set_and_read_32,			test_atomic_set_and_read,			&set_and_read_32_arg, 0),
+	UNIT_TEST(atomic_set_and_read_64,			test_atomic_set_and_read,			&set_and_read_64_arg, 0),
+	UNIT_TEST(atomic_inc_32,				test_atomic_arithmetic,				&inc_32_arg, 0),
+	UNIT_TEST(atomic_inc_and_test_32,			test_atomic_arithmetic,				&inc_and_test_32_arg, 0),
+	UNIT_TEST(atomic_inc_and_test_64,			test_atomic_arithmetic,				&inc_and_test_64_arg, 0),
+	UNIT_TEST(atomic_inc_64,				test_atomic_arithmetic,				&inc_64_arg, 0),
+	UNIT_TEST(atomic_dec_32,				test_atomic_arithmetic,				&dec_32_arg, 0),
+	UNIT_TEST(atomic_dec_64,				test_atomic_arithmetic,				&dec_64_arg, 0),
+	UNIT_TEST(atomic_dec_and_test_32,			test_atomic_arithmetic,				&dec_and_test_32_arg, 0),
+	UNIT_TEST(atomic_dec_and_test_64,			test_atomic_arithmetic,				&dec_and_test_64_arg, 0),
+	UNIT_TEST(atomic_add_32,				test_atomic_arithmetic,				&add_32_arg, 0),
+	UNIT_TEST(atomic_add_64,				test_atomic_arithmetic,				&add_64_arg, 0),
+	UNIT_TEST(atomic_sub_32,				test_atomic_arithmetic,				&sub_32_arg, 0),
+	UNIT_TEST(atomic_sub_64,				test_atomic_arithmetic,				&sub_64_arg, 0),
+	UNIT_TEST(atomic_sub_and_test_32,			test_atomic_arithmetic,				&sub_and_test_32_arg, 0),
+	UNIT_TEST(atomic_sub_and_test_64,			test_atomic_arithmetic,				&sub_and_test_64_arg, 0),
+	UNIT_TEST(atomic_xchg_32,				test_atomic_xchg,				&xchg_32_arg, 0),
+	UNIT_TEST(atomic_xchg_64,				test_atomic_xchg,				&xchg_64_arg, 0),
+	UNIT_TEST(atomic_cmpxchg_32,				test_atomic_cmpxchg,				&xchg_32_arg, 0),
+	UNIT_TEST(atomic_cmpxchg_64,				test_atomic_cmpxchg,				&xchg_64_arg, 0),
+	UNIT_TEST(atomic_add_unless_32,				test_atomic_add_unless,				&add_unless_32_arg, 0),
+	UNIT_TEST(atomic_add_unless_64,				test_atomic_add_unless,				&add_unless_64_arg, 0),
+	UNIT_TEST(atomic_inc_32_threaded,			test_atomic_arithmetic_threaded,		&inc_32_arg, 0),
+	UNIT_TEST(atomic_inc_64_threaded,			test_atomic_arithmetic_threaded,		&inc_64_arg, 0),
+	UNIT_TEST(atomic_dec_32_threaded,			test_atomic_arithmetic_threaded,		&dec_32_arg, 0),
+	UNIT_TEST(atomic_dec_64_threaded,			test_atomic_arithmetic_threaded,		&dec_64_arg, 0),
+	UNIT_TEST(atomic_add_32_threaded,			test_atomic_arithmetic_threaded,		&add_32_arg, 0),
+	UNIT_TEST(atomic_add_64_threaded,			test_atomic_arithmetic_threaded,		&add_64_arg, 0),
+	UNIT_TEST(atomic_sub_32_threaded,			test_atomic_arithmetic_threaded,		&sub_32_arg, 0),
+	UNIT_TEST(atomic_sub_64_threaded,			test_atomic_arithmetic_threaded,		&sub_64_arg, 0),
+	UNIT_TEST(atomic_inc_and_test_not_atomic_threaded,	test_atomic_arithmetic_and_test_threaded,	&inc_and_test_not_atomic_arg, 1),
+	UNIT_TEST(atomic_inc_and_test_32_threaded,		test_atomic_arithmetic_and_test_threaded,	&inc_and_test_32_arg, 1),
+	UNIT_TEST(atomic_inc_and_test_64_threaded,		test_atomic_arithmetic_and_test_threaded,	&inc_and_test_64_arg, 1),
+	UNIT_TEST(atomic_dec_and_test_not_atomic_threaded,	test_atomic_arithmetic_and_test_threaded,	&dec_and_test_not_atomic_arg, 1),
+	UNIT_TEST(atomic_dec_and_test_32_threaded,		test_atomic_arithmetic_and_test_threaded,	&dec_and_test_32_arg, 1),
+	UNIT_TEST(atomic_dec_and_test_64_threaded,		test_atomic_arithmetic_and_test_threaded,	&dec_and_test_64_arg, 1),
+	UNIT_TEST(atomic_sub_and_test_not_atomic_threaded,	test_atomic_arithmetic_and_test_threaded,	&sub_and_test_not_atomic_arg, 1),
+	UNIT_TEST(atomic_sub_and_test_32_threaded,		test_atomic_arithmetic_and_test_threaded,	&sub_and_test_32_arg, 1),
+	UNIT_TEST(atomic_sub_and_test_64_threaded,		test_atomic_arithmetic_and_test_threaded,	&sub_and_test_64_arg, 1),
+	UNIT_TEST(atomic_add_unless_32_threaded,		test_atomic_arithmetic_threaded,		&add_unless_32_arg, 1),
+	UNIT_TEST(atomic_add_unless_64_threaded,		test_atomic_arithmetic_threaded,		&add_unless_64_arg, 1),
 
 };
 
