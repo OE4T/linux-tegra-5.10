@@ -60,7 +60,9 @@ void gv11b_init_inst_block(struct nvgpu_mem *inst_block,
 		g->ops.ramin.set_big_page_size(g, inst_block, big_page_size);
 	}
 
-	gv11b_init_subcontext_pdb(vm, inst_block, false);
+	if (g->ops.ramin.init_subctx_pdb != NULL) {
+		g->ops.ramin.init_subctx_pdb(g, inst_block, vm->pdb.mem, false);
+	}
 }
 
 bool gv11b_mm_mmu_fault_pending(struct gk20a *g)

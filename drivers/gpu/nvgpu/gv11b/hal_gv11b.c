@@ -928,6 +928,7 @@ static const struct gpu_ops gv11b_ops = {
 		.set_gr_ptr = gv11b_ramin_set_gr_ptr,
 		.set_big_page_size = gm20b_ramin_set_big_page_size,
 		.init_pdb = gp10b_ramin_init_pdb,
+		.init_subctx_pdb = gv11b_ramin_init_subctx_pdb,
 		.set_adr_limit = NULL,
 	},
 	.runlist = {

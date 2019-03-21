@@ -2,7 +2,7 @@
  *
  * Volta GPU series Subcontext
  *
- * Copyright (c) 2016 - 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016 - 2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -26,9 +26,5 @@
 #define NVGPU_SUBCTX_GV11B_H
 
 void gv11b_free_subctx_header(struct channel_gk20a *c);
-
-void gv11b_init_subcontext_pdb(struct vm_gk20a *vm,
-				struct nvgpu_mem *inst_block,
-				bool replayable);
 
 #endif /* NVGPU_SUBCTX_GV11B_H */

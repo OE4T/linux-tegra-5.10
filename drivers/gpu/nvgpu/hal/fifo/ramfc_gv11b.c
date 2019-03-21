@@ -50,7 +50,8 @@ int gv11b_ramfc_setup(struct channel_gk20a *ch, u64 gpfifo_base,
 	if ((flags & NVGPU_SETUP_BIND_FLAGS_REPLAYABLE_FAULTS_ENABLE) != 0U) {
 		replayable = true;
 	}
-	gv11b_init_subcontext_pdb(ch->vm, mem, replayable);
+
+	g->ops.ramin.init_subctx_pdb(g, mem, ch->vm->pdb.mem, replayable);
 
 	nvgpu_mem_wr32(g, mem, ram_fc_gp_base_w(),
 		pbdma_gp_base_offset_f(

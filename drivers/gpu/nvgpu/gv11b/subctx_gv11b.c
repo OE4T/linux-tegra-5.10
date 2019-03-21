@@ -32,16 +32,9 @@
 #include <nvgpu/gr/subctx.h>
 #include <nvgpu/gr/ctx.h>
 
-#include <nvgpu/hw/gv11b/hw_ram_gv11b.h>
 #include <nvgpu/hw/gv11b/hw_gr_gv11b.h>
 
 #include "gv11b/subctx_gv11b.h"
-
-static void gv11b_subctx_commit_valid_mask(struct vm_gk20a *vm,
-				struct nvgpu_mem *inst_block);
-static void gv11b_subctx_commit_pdb(struct vm_gk20a *vm,
-				struct nvgpu_mem *inst_block,
-				bool replayable);
 
 void gv11b_free_subctx_header(struct channel_gk20a *c)
 {
@@ -50,64 +43,3 @@ void gv11b_free_subctx_header(struct channel_gk20a *c)
 	}
 }
 
-void gv11b_init_subcontext_pdb(struct vm_gk20a *vm,
-				struct nvgpu_mem *inst_block,
-				bool replayable)
-{
-	gv11b_subctx_commit_pdb(vm, inst_block, replayable);
-	gv11b_subctx_commit_valid_mask(vm, inst_block);
-
-}
-
-static void gv11b_subctx_commit_valid_mask(struct vm_gk20a *vm,
-				struct nvgpu_mem *inst_block)
-{
-	struct gk20a *g = gk20a_from_vm(vm);
-
-	/* Make all subctx pdbs valid */
-	nvgpu_mem_wr32(g, inst_block, 166, 0xffffffffU);
-	nvgpu_mem_wr32(g, inst_block, 167, 0xffffffffU);
-}
-
-static void gv11b_subctx_commit_pdb(struct vm_gk20a *vm,
-				struct nvgpu_mem *inst_block,
-				bool replayable)
-{
-	struct gk20a *g = gk20a_from_vm(vm);
-	u32 lo, hi;
-	u32 subctx_id = 0;
-	u32 format_word;
-	u32 pdb_addr_lo, pdb_addr_hi;
-	u64 pdb_addr;
-	u32 max_subctx_count = gr_pri_fe_chip_def_info_max_veid_count_init_v();
-	u32 aperture = nvgpu_aperture_mask(g, vm->pdb.mem,
-				ram_in_sc_page_dir_base_target_sys_mem_ncoh_v(),
-				ram_in_sc_page_dir_base_target_sys_mem_coh_v(),
-				ram_in_sc_page_dir_base_target_vid_mem_v());
-
-	pdb_addr = nvgpu_mem_get_addr(g, vm->pdb.mem);
-	pdb_addr_lo = u64_lo32(pdb_addr >> ram_in_base_shift_v());
-	pdb_addr_hi = u64_hi32(pdb_addr);
-	format_word = ram_in_sc_page_dir_base_target_f(
-		aperture, 0) |
-		ram_in_sc_page_dir_base_vol_f(
-		ram_in_sc_page_dir_base_vol_true_v(), 0) |
-		ram_in_sc_use_ver2_pt_format_f(1, 0) |
-		ram_in_sc_big_page_size_f(1, 0) |
-		ram_in_sc_page_dir_base_lo_0_f(pdb_addr_lo);
-
-	if (replayable) {
-		format_word |=
-			ram_in_sc_page_dir_base_fault_replay_tex_f(1, 0) |
-			ram_in_sc_page_dir_base_fault_replay_gcc_f(1, 0);
-	}
-
-	nvgpu_log(g, gpu_dbg_info, " pdb info lo %x hi %x",
-					format_word, pdb_addr_hi);
-	for (subctx_id = 0U; subctx_id < max_subctx_count; subctx_id++) {
-		lo = ram_in_sc_page_dir_base_vol_0_w() + (4U * subctx_id);
-		hi = ram_in_sc_page_dir_base_hi_0_w() + (4U * subctx_id);
-		nvgpu_mem_wr32(g, inst_block, lo, format_word);
-		nvgpu_mem_wr32(g, inst_block, hi, pdb_addr_hi);
-	}
-}
