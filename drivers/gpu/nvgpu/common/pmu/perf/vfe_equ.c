@@ -174,7 +174,7 @@ static int devinit_get_vfe_equ_table(struct gk20a *g,
 	}
 
 	nvgpu_memcpy((u8 *)&vfeequs_tbl_header, vfeequs_tbl_ptr,
-			VBIOS_CLOCKS_TABLE_1X_HEADER_SIZE_07);
+			VBIOS_VFE_3X_HEADER_SIZE_07);
 	if (vfeequs_tbl_header.header_size == VBIOS_VFE_3X_HEADER_SIZE_07) {
 		hdrszfmt = VBIOS_VFE_3X_HEADER_SIZE_07;
 	} else if (vfeequs_tbl_header.header_size ==

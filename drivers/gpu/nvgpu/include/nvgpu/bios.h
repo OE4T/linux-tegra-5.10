@@ -171,16 +171,6 @@ struct vin_descriptor_entry_10 {
 #define NV_VIN_DESC_VIN_CAL_GAIN_MASK 0xF80U
 #define NV_VIN_DESC_VIN_CAL_GAIN_SHIFT 7U
 
-#define VBIOS_CLOCKS_TABLE_1X_HEADER_SIZE_07 0x07U
-struct vbios_clocks_table_1x_header {
-	u8 version;
-	u8 header_size;
-	u8 entry_size;
-	u8 entry_count;
-	u8 clocks_hal;
-	u16 cntr_sampling_periodms;
-} __packed;
-
 #define VBIOS_CLOCKS_TABLE_35_HEADER_SIZE_09 0x09U
 struct vbios_clocks_table_35_header {
 	u8 version;
@@ -190,14 +180,6 @@ struct vbios_clocks_table_35_header {
 	u8 clocks_hal;
 	u16 cntr_sampling_periodms;
 	u16 reference_window;
-} __packed;
-
-#define VBIOS_CLOCKS_TABLE_1X_ENTRY_SIZE_09                                0x09U
-struct vbios_clocks_table_1x_entry {
-	u8 flags0;
-	u16 param0;
-	u32 param1;
-	u16 param2;
 } __packed;
 
 #define VBIOS_CLOCKS_TABLE_35_ENTRY_SIZE_11                                0x0BU
