@@ -1,4 +1,4 @@
-# Copyright (c) 2017-2018, NVIDIA CORPORATION.  All rights reserved.
+# Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
 #
 # This program is free software; you can redistribute it and/or modify it
 # under the terms and conditions of the GNU General Public License,
@@ -16,5 +16,6 @@ obj-$(CONFIG_NVPPS)		+= nvpps/
 obj-$(CONFIG_THERMAL)  += thermal/
 obj-$(CONFIG_TRUSTY)		+= trusty/
 obj-$(CONFIG_TEGRA_HV_MANAGER)	+= virt/tegra/
+obj-$(CONFIG_TEGRA_HV_PTP)	+= virt/ptp/
 obj-y	+= gpu/
 
