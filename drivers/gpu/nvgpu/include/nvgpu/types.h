@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -69,10 +69,10 @@
  * them here for non-Linux OSes
  */
 #if !defined(__KERNEL__) && !defined(U8_MAX)
-#define U8_MAX		((u8)~0U)
-#define U16_MAX		((u16)~0U)
-#define U32_MAX		((u32)~0U)
-#define U64_MAX		((u64)~0ULL)
+#define U8_MAX		U8(~U8(0))
+#define U16_MAX		U16(~U16(0))
+#define U32_MAX		U32(~U32(0))
+#define U64_MAX		U64(~U64(0))
 #endif
 
 #endif /* NVGPU_TYPES_H */
