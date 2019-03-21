@@ -284,191 +284,6 @@ mutex_fail:
 	return err;
 }
 
-static u8 nvgpu_clk_arb_find_vf_point(struct nvgpu_clk_arb *arb,
-		u16 *gpc2clk, u16 *sys2clk, u16 *xbar2clk, u16 *mclk,
-		u32 *voltuv, u32 *voltuv_sram, u32 *nuvmin, u32 *nuvmin_sram)
-{
-	u16 gpc2clk_target, mclk_target;
-	u32 gpc2clk_voltuv, gpc2clk_voltuv_sram;
-	u32 mclk_voltuv, mclk_voltuv_sram;
-	u32 current_pstate = VF_POINT_INVALID_PSTATE;
-	struct nvgpu_clk_vf_table *table;
-	u32 index, index_mclk;
-	struct nvgpu_clk_vf_point *mclk_vf = NULL;
-
-	do {
-		gpc2clk_target = *gpc2clk;
-		mclk_target = *mclk;
-		gpc2clk_voltuv = 0;
-		gpc2clk_voltuv_sram = 0;
-		mclk_voltuv = 0;
-		mclk_voltuv_sram = 0;
-
-		table = NV_ACCESS_ONCE(arb->current_vf_table);
-		/* pointer to table can be updated by callback */
-		nvgpu_smp_rmb();
-
-		if (table == NULL) {
-			continue;
-		}
-		if ((table->gpc2clk_num_points == 0U) || (table->mclk_num_points == 0U)) {
-			nvgpu_err(arb->g, "found empty table");
-			goto find_exit;
-		}
-		/* First we check MCLK to find out which PSTATE we are
-		 * are requesting, and from there try to find the minimum
-		 * GPC2CLK on the same PSTATE that satisfies the request.
-		 * If no GPC2CLK can be found, then we need to up the PSTATE
-		 */
-
-recalculate_vf_point:
-		for (index = 0; index < table->mclk_num_points; index++) {
-			if (table->mclk_points[index].mem_mhz >= mclk_target) {
-				mclk_vf = &table->mclk_points[index];
-				break;
-			}
-		}
-		if (index == table->mclk_num_points) {
-			mclk_vf = &table->mclk_points[index-1U];
-			index = table->mclk_num_points - 1U;
-		}
-		index_mclk = index;
-
-		/* round up the freq requests */
-		for (index = 0; index < table->gpc2clk_num_points; index++) {
-			current_pstate = VF_POINT_COMMON_PSTATE(
-					&table->gpc2clk_points[index], mclk_vf);
-
-			if ((table->gpc2clk_points[index].gpc_mhz >=
-							gpc2clk_target) &&
-					(current_pstate != VF_POINT_INVALID_PSTATE)) {
-				gpc2clk_target =
-					table->gpc2clk_points[index].gpc_mhz;
-				*sys2clk =
-					table->gpc2clk_points[index].sys_mhz;
-				*xbar2clk =
-					table->gpc2clk_points[index].xbar_mhz;
-
-				gpc2clk_voltuv =
-					table->gpc2clk_points[index].uvolt;
-				gpc2clk_voltuv_sram =
-					table->gpc2clk_points[index].uvolt_sram;
-				break;
-			}
-		}
-
-		if (index == table->gpc2clk_num_points) {
-			current_pstate = VF_POINT_COMMON_PSTATE(
-				&table->gpc2clk_points[index-1U], mclk_vf);
-			if (current_pstate != VF_POINT_INVALID_PSTATE) {
-				gpc2clk_target =
-					table->gpc2clk_points[index-1U].gpc_mhz;
-				*sys2clk =
-					table->gpc2clk_points[index-1U].sys_mhz;
-				*xbar2clk  =
-					table->gpc2clk_points[index-1U].xbar_mhz;
-
-				gpc2clk_voltuv =
-					table->gpc2clk_points[index-1U].uvolt;
-				gpc2clk_voltuv_sram =
-					table->gpc2clk_points[index-1U].
-						uvolt_sram;
-			} else if (index_mclk >= table->mclk_num_points - 1U) {
-				/* There is no available combination of MCLK
-				 * and GPC2CLK, we need to fail this
-				 */
-				gpc2clk_target = 0;
-				mclk_target = 0;
-				current_pstate = VF_POINT_INVALID_PSTATE;
-				goto find_exit;
-			} else {
-				/* recalculate with higher PSTATE */
-				gpc2clk_target = *gpc2clk;
-				mclk_target = table->mclk_points[index_mclk + 1U].
-									mem_mhz;
-				goto recalculate_vf_point;
-			}
-		}
-
-		mclk_target = mclk_vf->mem_mhz;
-		mclk_voltuv = mclk_vf->uvolt;
-		mclk_voltuv_sram = mclk_vf->uvolt_sram;
-
-	} while ((table == NULL) ||
-		(NV_ACCESS_ONCE(arb->current_vf_table) != table));
-
-find_exit:
-	*voltuv = gpc2clk_voltuv > mclk_voltuv ? gpc2clk_voltuv : mclk_voltuv;
-	*voltuv_sram = gpc2clk_voltuv_sram > mclk_voltuv_sram ?
-		gpc2clk_voltuv_sram : mclk_voltuv_sram;
-	/* noise unaware vmin */
-	*nuvmin = mclk_voltuv;
-	*nuvmin_sram = mclk_voltuv_sram;
-	*gpc2clk = gpc2clk_target < *gpc2clk ? gpc2clk_target : *gpc2clk;
-	*mclk = mclk_target;
-	return (u8)current_pstate;
-}
-
-static int nvgpu_clk_arb_change_vf_point(struct gk20a *g, u16 gpc2clk_target,
-	u16 sys2clk_target, u16 xbar2clk_target, u16 mclk_target, u32 voltuv,
-	u32 voltuv_sram)
-{
-	struct nvgpu_set_fll_clk fllclk;
-	struct nvgpu_clk_arb *arb = g->clk_arb;
-	int status;
-
-	fllclk.gpc2clkmhz = gpc2clk_target;
-	fllclk.sys2clkmhz = sys2clk_target;
-	fllclk.xbar2clkmhz = xbar2clk_target;
-
-	fllclk.voltuv = voltuv;
-
-	/* if voltage ascends we do:
-	 * (1) FLL change
-	 * (2) Voltage change
-	 * (3) MCLK change
-	 * If it goes down
-	 * (1) MCLK change
-	 * (2) Voltage change
-	 * (3) FLL change
-	 */
-
-	/* descending */
-	if (voltuv < arb->voltuv_actual) {
-		if (g->ops.clk.mclk_change != NULL) {
-			status = g->ops.clk.mclk_change(g, mclk_target);
-			if (status < 0) {
-				return status;
-			}
-		}
-		status = volt_set_voltage(g, voltuv, voltuv_sram);
-		if (status < 0) {
-			return status;
-		}
-
-		status = clk_set_fll_clks(g, &fllclk);
-		if (status < 0) {
-			return status;
-		}
-	} else {
-		status = clk_set_fll_clks(g, &fllclk);
-		if (status < 0) {
-			return status;
-		}
-		status = volt_set_voltage(g, voltuv, voltuv_sram);
-		if (status < 0) {
-			return status;
-		}
-		if (g->ops.clk.mclk_change != NULL) {
-			status = g->ops.clk.mclk_change(g, mclk_target);
-			if (status < 0) {
-				return status;
-			}
-		}
-	}
-	return 0;
-}
-
 void gv100_clk_arb_run_arbiter_cb(struct nvgpu_clk_arb *arb)
 {
 	struct nvgpu_clk_session *session;
@@ -478,16 +293,13 @@ void gv100_clk_arb_run_arbiter_cb(struct nvgpu_clk_arb *arb)
 	struct gk20a *g = arb->g;
 
 	u32 current_pstate = VF_POINT_INVALID_PSTATE;
-	u32 voltuv=0, voltuv_sram;
+	u32 voltuv = 0;
 	bool mclk_set, gpc2clk_set;
-	u32 nuvmin, nuvmin_sram;
 	u32 alarms_notified = 0;
 	u32 current_alarm;
 	int status = 0;
-	u32 ver = g->params.gpu_arch + g->params.gpu_impl;
 	/* Temporary variables for checking target frequency */
-	u16 gpc2clk_target, sys2clk_target, xbar2clk_target, mclk_target;
-	u16 gpc2clk_session_target, mclk_session_target;
+	u16 gpc2clk_target, mclk_target;
 	struct nvgpu_clk_slave_freq vf_point;
 
 #ifdef CONFIG_DEBUG_FS
@@ -583,60 +395,19 @@ void gv100_clk_arb_run_arbiter_cb(struct nvgpu_clk_arb *arb)
 		mclk_target = arb->mclk_max;
 	}
 
-	sys2clk_target = 0;
-	xbar2clk_target = 0;
-
-	gpc2clk_session_target = gpc2clk_target;
-	mclk_session_target = mclk_target;
-
-	if (ver == NVGPU_GPUID_GV100) {
-	/* Query the table for the closest vf point to program */
-		current_pstate = (u8)nvgpu_clk_arb_find_vf_point(arb, &gpc2clk_target,
-		&sys2clk_target, &xbar2clk_target, &mclk_target, &voltuv,
-		&voltuv_sram, &nuvmin, &nuvmin_sram);
-
-	if ((gpc2clk_target < gpc2clk_session_target) ||
-			(mclk_target < mclk_session_target)) {
-		nvgpu_clk_arb_set_global_alarm(g,
-			EVENT(ALARM_TARGET_VF_NOT_POSSIBLE));
-	}
-
-	if ((arb->actual->gpc2clk == gpc2clk_target) &&
-		(arb->actual->mclk == mclk_target) &&
-		(arb->voltuv_actual == voltuv)) {
+	vf_point.gpc_mhz = gpc2clk_target;
+	(void)nvgpu_clk_arb_find_slave_points(arb, &vf_point);
+	if (status != 0) {
+		nvgpu_err(g, "Unable to get slave frequency");
 		goto exit_arb;
 	}
 
-	/* Program clocks */
-	/* A change in both mclk of gpc2clk may require a change in voltage */
-
-	nvgpu_mutex_acquire(&arb->pstate_lock);
-
-	status = nvgpu_clk_arb_change_vf_point(g, gpc2clk_target,
-		sys2clk_target, xbar2clk_target, mclk_target, voltuv,
-		voltuv_sram);
-		if (status < 0) {
-			arb->status = status;
-			nvgpu_mutex_release(&arb->pstate_lock);
-			/* make status visible */
-			nvgpu_smp_mb();
-			goto exit_arb;
-		}
+	status = nvgpu_clk_set_req_fll_clk_ps35(g, &vf_point);
+	if (status != 0) {
+		nvgpu_err(g, "Unable to program frequency");
+		goto exit_arb;
 	}
-	else {
-		vf_point.gpc_mhz=gpc2clk_target;
-		(void)nvgpu_clk_arb_find_slave_points(arb, &vf_point);
-		if (status != 0) {
-			nvgpu_err(g, "Unable to get slave frequency");
-			goto exit_arb;
-		}
 
-		status = nvgpu_clk_set_req_fll_clk_ps35(g, &vf_point);
-		if (status != 0) {
-			nvgpu_err(g, "Unable to program frequency");
-			goto exit_arb;
-		}
-	}
 	actual = NV_ACCESS_ONCE(arb->actual) == &arb->actual_pool[0] ?
 			&arb->actual_pool[1] : &arb->actual_pool[0];
 
@@ -655,11 +426,6 @@ void gv100_clk_arb_run_arbiter_cb(struct nvgpu_clk_arb *arb)
 	/* status must be visible before atomic inc */
 	nvgpu_smp_wmb();
 	nvgpu_atomic_inc(&arb->req_nr);
-
-	if (ver == NVGPU_GPUID_GV100) {
-	/* Unlock pstate change for PG */
-	nvgpu_mutex_release(&arb->pstate_lock);
-	}
 
 	/* VF Update complete */
 	nvgpu_clk_arb_set_global_alarm(g, EVENT(VF_UPDATE));
