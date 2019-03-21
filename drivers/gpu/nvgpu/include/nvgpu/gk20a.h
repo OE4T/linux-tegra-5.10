@@ -937,8 +937,6 @@ struct gpu_ops {
 		int (*setup_sw)(struct gk20a *g);
 		void (*cleanup_sw)(struct gk20a *g);
 		int (*init_fifo_setup_hw)(struct gk20a *g);
-		int (*alloc_inst)(struct gk20a *g, struct channel_gk20a *ch);
-		void (*free_inst)(struct gk20a *g, struct channel_gk20a *ch);
 		int (*preempt_channel)(struct gk20a *g, struct channel_gk20a *ch);
 		int (*preempt_tsg)(struct gk20a *g, struct tsg_gk20a *tsg);
 		int (*tsg_verify_channel_status)(struct channel_gk20a *ch);
@@ -1125,6 +1123,8 @@ struct gpu_ops {
 			u32 off, bool acquire, bool wfi);
 	} sync;
 	struct {
+		int (*alloc_inst)(struct gk20a *g, struct channel_gk20a *ch);
+		void (*free_inst)(struct gk20a *g, struct channel_gk20a *ch);
 		void (*bind)(struct channel_gk20a *ch);
 		void (*unbind)(struct channel_gk20a *ch);
 		void (*enable)(struct channel_gk20a *ch);

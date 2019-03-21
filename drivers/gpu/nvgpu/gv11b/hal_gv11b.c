@@ -831,8 +831,6 @@ static const struct gpu_ops gv11b_ops = {
 	.fifo = {
 		.get_preempt_timeout = gv11b_fifo_get_preempt_timeout,
 		.init_fifo_setup_hw = gv11b_init_fifo_setup_hw,
-		.alloc_inst = gk20a_fifo_alloc_inst,
-		.free_inst = gk20a_fifo_free_inst,
 		.default_timeslice_us = gk20a_fifo_default_timeslice_us,
 		.preempt_channel = gv11b_fifo_preempt_channel,
 		.preempt_tsg = gv11b_fifo_preempt_tsg,
@@ -969,6 +967,8 @@ static const struct gpu_ops gv11b_ops = {
 #endif
 	},
 	.channel = {
+		.alloc_inst = nvgpu_channel_alloc_inst,
+		.free_inst = nvgpu_channel_free_inst,
 		.bind = gm20b_channel_bind,
 		.unbind = gv11b_channel_unbind,
 		.enable = gk20a_channel_enable,

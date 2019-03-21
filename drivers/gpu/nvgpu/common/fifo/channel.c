@@ -468,7 +468,7 @@ static void gk20a_free_channel(struct channel_gk20a *ch, bool force)
 
 unbind:
 	g->ops.channel.unbind(ch);
-	g->ops.fifo.free_inst(g, ch);
+	g->ops.channel.free_inst(g, ch);
 
 	/* put back the channel-wide submit ref from init */
 	if (ch->deterministic) {
@@ -708,7 +708,7 @@ struct channel_gk20a *gk20a_open_new_channel(struct gk20a *g,
 		goto clean_up;
 	}
 
-	if (g->ops.fifo.alloc_inst(g, ch) != 0) {
+	if (g->ops.channel.alloc_inst(g, ch) != 0) {
 		nvgpu_err(g, "inst allocation failed");
 		goto clean_up;
 	}
@@ -2690,4 +2690,27 @@ struct channel_gk20a *nvgpu_channel_refch_from_inst_ptr(struct gk20a *g,
 		gk20a_channel_put(ch);
 	}
 	return NULL;
+}
+
+int nvgpu_channel_alloc_inst(struct gk20a *g, struct channel_gk20a *ch)
+{
+	int err;
+
+	nvgpu_log_fn(g, " ");
+
+	err = g->ops.mm.alloc_inst_block(g, &ch->inst_block);
+	if (err != 0) {
+		return err;
+	}
+
+	nvgpu_log_info(g, "channel %d inst block physical addr: 0x%16llx",
+		ch->chid, nvgpu_inst_block_addr(g, &ch->inst_block));
+
+	nvgpu_log_fn(g, "done");
+	return 0;
+}
+
+void nvgpu_channel_free_inst(struct gk20a *g, struct channel_gk20a *ch)
+{
+	nvgpu_free_inst_block(g, &ch->inst_block);
 }

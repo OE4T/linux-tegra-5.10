@@ -1245,29 +1245,6 @@ void gk20a_debug_dump_all_channel_status_ramfc(struct gk20a *g,
 	nvgpu_kfree(g, infos);
 }
 
-int gk20a_fifo_alloc_inst(struct gk20a *g, struct channel_gk20a *ch)
-{
-	int err;
-
-	nvgpu_log_fn(g, " ");
-
-	err = g->ops.mm.alloc_inst_block(g, &ch->inst_block);
-	if (err != 0) {
-		return err;
-	}
-
-	nvgpu_log_info(g, "channel %d inst block physical addr: 0x%16llx",
-		ch->chid, nvgpu_inst_block_addr(g, &ch->inst_block));
-
-	nvgpu_log_fn(g, "done");
-	return 0;
-}
-
-void gk20a_fifo_free_inst(struct gk20a *g, struct channel_gk20a *ch)
-{
-	nvgpu_free_inst_block(g, &ch->inst_block);
-}
-
 static void nvgpu_fifo_pbdma_init_intr_descs(struct fifo_gk20a *f)
 {
 	struct gk20a *g = f->g;

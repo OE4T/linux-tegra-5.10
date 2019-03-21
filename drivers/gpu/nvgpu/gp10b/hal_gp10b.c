@@ -699,8 +699,6 @@ static const struct gpu_ops gp10b_ops = {
 	},
 	.fifo = {
 		.init_fifo_setup_hw = gk20a_init_fifo_setup_hw,
-		.alloc_inst = gk20a_fifo_alloc_inst,
-		.free_inst = gk20a_fifo_free_inst,
 		.default_timeslice_us = gk20a_fifo_default_timeslice_us,
 		.preempt_channel = gk20a_fifo_preempt_channel,
 		.preempt_tsg = gk20a_fifo_preempt_tsg,
@@ -830,6 +828,8 @@ static const struct gpu_ops gp10b_ops = {
 #endif
 	},
 	.channel = {
+		.alloc_inst = nvgpu_channel_alloc_inst,
+		.free_inst = nvgpu_channel_free_inst,
 		.bind = gm20b_channel_bind,
 		.unbind = gk20a_channel_unbind,
 		.enable = gk20a_channel_enable,

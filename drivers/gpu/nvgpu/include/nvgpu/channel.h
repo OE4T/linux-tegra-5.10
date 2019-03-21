@@ -496,6 +496,8 @@ static inline u64 gk20a_channel_userd_gpu_va(struct channel_gk20a *c)
 	return (mem->gpu_va != 0ULL) ? mem->gpu_va + c->userd_offset : 0ULL;
 }
 
+int nvgpu_channel_alloc_inst(struct gk20a *g, struct channel_gk20a *ch);
+void nvgpu_channel_free_inst(struct gk20a *g, struct channel_gk20a *ch);
 void nvgpu_channel_set_error_notifier(struct gk20a *g, struct channel_gk20a *ch,
 			u32 error_notifier);
 int nvgpu_channel_set_syncpt(struct channel_gk20a *ch);

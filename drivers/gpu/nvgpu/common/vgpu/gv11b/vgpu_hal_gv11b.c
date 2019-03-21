@@ -492,8 +492,6 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 	},
 	.fifo = {
 		.init_fifo_setup_hw = vgpu_gv11b_init_fifo_setup_hw,
-		.alloc_inst = vgpu_channel_alloc_inst,
-		.free_inst = vgpu_channel_free_inst,
 		.default_timeslice_us = vgpu_fifo_default_timeslice_us,
 		.preempt_channel = vgpu_fifo_preempt_channel,
 		.preempt_tsg = vgpu_fifo_preempt_tsg,
@@ -620,6 +618,8 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 #endif
 	},
 	.channel = {
+		.alloc_inst = vgpu_channel_alloc_inst,
+		.free_inst = vgpu_channel_free_inst,
 		.bind = vgpu_channel_bind,
 		.unbind = vgpu_channel_unbind,
 		.enable = vgpu_channel_enable,
