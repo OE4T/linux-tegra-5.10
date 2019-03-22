@@ -1051,7 +1051,7 @@ struct unit_module_test pd_cache_tests[] = {
 	UNIT_TEST_REQ("NVGPU-RQCD-126.C1,2", PD_CACHE_REQ5_UID, "V1",
 		      offset_comp,			test_offset_computation, NULL),
 	UNIT_TEST_REQ("NVGPU-RQCD-124.C1",   PD_CACHE_REQ6_UID, "V3",
-		      init,				test_init_deinit, NULL),
+		      init_deinit,			test_init_deinit, NULL),
 	UNIT_TEST_REQ("NVGPU-RQCD-155.C1",   PD_CACHE_REQ7_UID, "V2",
 		      multi_init,			test_init_deinit, NULL),
 	UNIT_TEST_REQ("NVGPU-RQCD-125.C1",   PD_CACHE_REQ8_UID, "V2",

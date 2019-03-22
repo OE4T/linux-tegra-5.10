@@ -741,6 +741,10 @@
     },
     {
         "test": "init",
+        "unit": "pd_cache"
+    },
+    {
+        "test": "init_deinit",
         "req": "NVGPU-RQCD-124.C1",
         "vc": "V3",
         "uid": "6962548",
