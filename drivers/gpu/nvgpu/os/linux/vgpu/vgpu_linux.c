@@ -97,6 +97,8 @@ static void vgpu_init_vars(struct gk20a *g, struct gk20a_platform *platform)
 	g->railgate_delay = platform->railgate_delay_init;
 
 	g->mm.disable_bigpage = true;
+	nvgpu_set_enabled(g, NVGPU_MM_UNIFIED_MEMORY,
+			    platform->unified_memory);
 	nvgpu_set_enabled(g, NVGPU_MM_UNIFY_ADDRESS_SPACES,
 			    platform->unify_address_spaces);
 }
