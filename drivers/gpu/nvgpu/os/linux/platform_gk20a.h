@@ -274,8 +274,15 @@ struct gk20a_platform {
 	 */
 	u64 dma_mask;
 
-	/* minimum supported VBIOS version */
+	/* minimum supported VBIOS version.
+	 * nvgpu driver is not loaded if VBIOS < min VBIOS version
+	 */
 	u32 vbios_min_version;
+
+	/* blessed VBIOS version
+	 * if defined, a warning is given if VBIOS differs.
+	 */
+	u32 vbios_compatible_version;
 
 	/* true if we run preos microcode on this board */
 	bool run_preos;

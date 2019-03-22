@@ -212,6 +212,7 @@ static void nvgpu_init_vbios_vars(struct gk20a *g)
 
 	nvgpu_set_enabled(g, NVGPU_PMU_RUN_PREOS, platform->run_preos);
 	g->vbios_min_version = platform->vbios_min_version;
+	g->vbios_compatible_version = platform->vbios_compatible_version;
 }
 
 static void  nvgpu_init_ltc_vars(struct gk20a *g)

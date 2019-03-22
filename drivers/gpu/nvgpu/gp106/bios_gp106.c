@@ -249,6 +249,14 @@ int gp106_bios_init(struct gk20a *g)
 		nvgpu_info(g, "VBIOS version %08x", g->bios.vbios_version);
 	}
 
+	if ((g->vbios_compatible_version != 0U) &&
+	    (g->bios.vbios_version != g->vbios_compatible_version)) {
+		nvgpu_err(g, "VBIOS version %08x is not officially supported.",
+			g->bios.vbios_version);
+		nvgpu_err(g, "Update to VBIOS %08x, or use at your own risks.",
+			g->vbios_compatible_version);
+	}
+
 	nvgpu_log_fn(g, "done");
 
 	if (g->ops.bios.devinit != NULL) {

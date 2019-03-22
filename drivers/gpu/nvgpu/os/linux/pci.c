@@ -286,6 +286,7 @@ static struct gk20a_platform nvgpu_pci_device[] = {
 	.honors_aperture = true,
 	.dma_mask = DMA_BIT_MASK(40),
 	.vbios_min_version = 0x90041800,
+	.vbios_compatible_version = 0x90045A00,
 	.hardcode_sw_threshold = false,
 	.has_syncpoints = true,
 	},
