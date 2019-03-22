@@ -102,7 +102,7 @@ def regen():
 	for unit, tests in sorted(test_dict.items(), key=lambda kv: kv[0], reverse=False):
 		for test in sorted(tests.items()):
 			entry = {"unit": unit, "test": test[0]}
-			if test[1]['uid'] != "(null)":
+			if test[1]['uid'] != "":
 				entry['uid'] = test[1]['uid']
 				entry['vc'] = test[1]['vc']
 				entry['req'] = test[1]['req']
@@ -110,7 +110,7 @@ def regen():
 			test_count += 1
 	with open(REQ_FILE, "w+") as outfile:
 		json_text = json.dumps(output_list, indent=4).replace(" \n", "\n")
-		outfile.write(json_text)
+		outfile.write(json_text+"\n")
 	print("Generated updated version of \"%s\" based on tests in \"%s\"." % (REQ_FILE, RESULTS_FILE))
 	print("Required tests: %d" % test_count)
 
