@@ -1,7 +1,7 @@
 /*
  * mipi_cal.c
  *
- * Copyright (c) 2016-2018, NVIDIA CORPORATION, All rights reserved.
+ * Copyright (c) 2016-2019, NVIDIA CORPORATION, All rights reserved.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -312,26 +312,28 @@ static int _t18x_tegra_mipi_bias_pad_disable(struct tegra_mipi *mipi)
 	return 0;
 }
 
-static int _t19x_tegra_mipi_bias_pad_enable(struct tegra_mipi *mipi)
-{
-	tegra_mipi_clk_enable(mipi);
-
-	return 0;
-}
-
-static int _t19x_tegra_mipi_bias_pad_disable(struct tegra_mipi *mipi)
-{
-	tegra_mipi_clk_disable(mipi);
-
-	return 0;
-}
-
 static int _t21x_tegra_mipi_bias_pad_enable(struct tegra_mipi *mipi)
 {
 	tegra_mipi_clk_enable(mipi);
 	return mipical_update_bits(mipi->regmap,
 			ADDR(MIPI_BIAS_PAD_CFG2), PDVREG, 0);
 	return 0;
+}
+
+/* only one client calls this function, no need for refcount (nvhost/nvcsi-t194) */
+int tegra_mipi_poweron(bool enable)
+{
+	int err = 0;
+
+	if (!mipi)
+		return -EPROBE_DEFER;
+
+	if (enable)
+		err = tegra_mipi_clk_enable(mipi);
+	else
+		tegra_mipi_clk_disable(mipi);
+
+	return err;
 }
 
 int tegra_mipi_bias_pad_enable(void)
@@ -707,6 +709,13 @@ prod_set_fail:
 
 static int tegra_mipical_no_op(struct tegra_mipi *mipi, int lanes_info)
 {
+	return -1;
+}
+
+
+static int tegra_mipi_bias_pad_no_op(struct tegra_mipi *mipi)
+{
+	/* TODO: return error after updating CS test. */
 	return 0;
 }
 
@@ -861,9 +870,9 @@ static const struct tegra_mipi_soc tegra19x_mipi_soc = {
 	.dsi_base = T186_DSI_BASE + 8,
 	.ppsb_war = 0,
 	.debug_table_id = DEBUGFS_TABLE_T19x,
-	.pad_enable = &_t19x_tegra_mipi_bias_pad_enable,
-	.pad_disable = &_t19x_tegra_mipi_bias_pad_disable,
-	.cil_sw_reset = &nvcsi_cil_sw_reset_no_op,
+	.pad_enable = &tegra_mipi_bias_pad_no_op,
+	.pad_disable = &tegra_mipi_bias_pad_no_op,
+	.cil_sw_reset = NULL,
 	.calibrate = &tegra_mipical_no_op,
 	.parse_cfg = &tegra_prod_get_config,
 	.powergate_id = TEGRA194_POWER_DOMAIN_DISP,

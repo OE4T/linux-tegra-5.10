@@ -46,6 +46,8 @@
 #include "t194/t194.h"
 #include "media/csi.h"
 
+#include "mipical/mipi_cal.h"
+
 #include "deskew.h"
 
 /* PG rate based on max ISP throughput */
@@ -160,16 +162,12 @@ const struct file_operations tegra194_nvcsi_ctrl_ops = {
 int tegra194_nvcsi_finalize_poweron(struct platform_device *pdev)
 {
 	struct t194_nvcsi *nvcsi = nvhost_get_private_data(pdev);
-	int err = 0;
 
 	if (atomic_read(&nvcsi->on) == 1)
 		return 0;
 
-	err = tegra_csi_mipi_calibrate(&nvcsi->csi, true);
-	if (err) {
-		dev_err(&pdev->dev, "mipical poweron failed\n");
-		return err;
-	}
+	// ignore error, since VDK/SLT boards will not have mipical probe
+	(void)tegra_mipi_poweron(true);
 	atomic_set(&nvcsi->on, 1);
 
 	return 0;
@@ -179,16 +177,11 @@ EXPORT_SYMBOL_GPL(tegra194_nvcsi_finalize_poweron);
 int tegra194_nvcsi_prepare_poweroff(struct platform_device *pdev)
 {
 	struct t194_nvcsi *nvcsi = nvhost_get_private_data(pdev);
-	int err = 0;
 
 	if (atomic_read(&nvcsi->on) == 0)
 		return 0;
 
-	err = tegra_csi_mipi_calibrate(&nvcsi->csi, false);
-	if (err) {
-		dev_err(&pdev->dev, "mipical poweroff failed\n");
-		return err;
-	}
+	(void)tegra_mipi_poweron(false);
 	atomic_set(&nvcsi->on, 0);
 
 	return 0;

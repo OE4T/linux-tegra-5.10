@@ -33,8 +33,6 @@
 
 #include "nvhost_acm.h"
 
-#include "mipical/mipi_cal.h"
-
 /** TODO: Get it from  DT */
 #define MAX_VI_CHANNELS 64
 
@@ -387,8 +385,6 @@ static int vi_channel_open(struct inode *inode, struct file *file)
 
 	file->private_data = chan;
 
-	(void)tegra_mipi_bias_pad_enable();
-
 	return nonseekable_open(inode, file);
 }
 
@@ -396,8 +392,6 @@ static int vi_channel_release(struct inode *inode, struct file *file)
 {
 	struct tegra_vi_channel *chan = file->private_data;
 	unsigned channel = iminor(inode);
-
-	(void)tegra_mipi_bias_pad_disable();
 
 	vi_channel_close_ex(channel, chan);
 
