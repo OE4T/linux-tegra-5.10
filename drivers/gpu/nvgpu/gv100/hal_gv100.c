@@ -929,7 +929,6 @@ static const struct gpu_ops gv100_ops = {
 		.read_state = gv11b_channel_read_state,
 		.force_ctx_reload = gm20b_channel_force_ctx_reload,
 		.reset_faulted = gv11b_channel_reset_faulted,
-		.check_ctxsw_timeout = nvgpu_channel_check_ctxsw_timeout,
 	},
 	.tsg = {
 		.check_ctxsw_timeout = nvgpu_tsg_check_ctxsw_timeout,

@@ -747,7 +747,6 @@ static const struct gpu_ops gp10b_ops = {
 		.count = gm20b_channel_count,
 		.read_state = gk20a_channel_read_state,
 		.force_ctx_reload = gm20b_channel_force_ctx_reload,
-		.check_ctxsw_timeout = nvgpu_channel_check_ctxsw_timeout,
 	},
 	.tsg = {
 		.check_ctxsw_timeout = nvgpu_tsg_check_ctxsw_timeout,

@@ -1453,26 +1453,6 @@ bool nvgpu_channel_update_and_check_ctxsw_timeout(struct channel_gk20a *ch,
 		ch->ctxsw_timeout_accumulated_ms > ch->ctxsw_timeout_max_ms;
 }
 
-bool nvgpu_channel_check_ctxsw_timeout(struct channel_gk20a *ch,
-		bool *verbose, u32 *ms)
-{
-	bool recover = false;
-	bool progress = false;
-	struct gk20a *g = ch->g;
-
-	recover = nvgpu_channel_update_and_check_ctxsw_timeout(ch,
-			g->ctxsw_timeout_period_ms, &progress);
-	*verbose = ch->ctxsw_timeout_debug_dump;
-	*ms = ch->ctxsw_timeout_accumulated_ms;
-	if (recover) {
-		nvgpu_channel_set_error_notifier(g, ch,
-				NVGPU_ERR_NOTIFIER_FIFO_ERROR_IDLE_TIMEOUT);
-	}
-
-	return recover;
-}
-
-
 void nvgpu_channel_recover(struct gk20a *g, struct channel_gk20a *ch,
 	bool verbose, u32 rc_type)
 {

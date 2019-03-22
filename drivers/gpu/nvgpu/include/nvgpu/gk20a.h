@@ -1042,8 +1042,6 @@ struct gpu_ops {
 		void (*force_ctx_reload)(struct channel_gk20a *ch);
 		void (*reset_faulted)(struct gk20a *g, struct channel_gk20a *ch,
 				bool eng, bool pbdma);
-		bool (*check_ctxsw_timeout)(struct channel_gk20a *ch,
-					bool *verbose, u32 *ms);
 	} channel;
 	struct {
 		bool (*check_ctxsw_timeout)(struct tsg_gk20a *tsg,

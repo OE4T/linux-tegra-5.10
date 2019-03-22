@@ -587,7 +587,6 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 		.enable = vgpu_channel_enable,
 		.disable = vgpu_channel_disable,
 		.count = vgpu_channel_count,
-		.check_ctxsw_timeout = nvgpu_channel_check_ctxsw_timeout,
 	},
 	.tsg = {
 		.check_ctxsw_timeout = nvgpu_tsg_check_ctxsw_timeout,

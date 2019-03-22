@@ -375,8 +375,6 @@ bool nvgpu_channel_mark_error(struct gk20a *g, struct channel_gk20a *ch);
 
 bool nvgpu_channel_update_and_check_ctxsw_timeout(struct channel_gk20a *ch,
 		u32 timeout_delta_ms, bool *progress);
-bool nvgpu_channel_check_ctxsw_timeout(struct channel_gk20a *ch,
-		bool *verbose, u32 *ms);
 
 void nvgpu_channel_recover(struct gk20a *g, struct channel_gk20a *ch,
 	bool verbose, u32 rc_type);
