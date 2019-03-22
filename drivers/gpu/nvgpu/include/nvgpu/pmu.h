@@ -214,7 +214,6 @@ struct nvgpu_pmu {
 
 	struct nvgpu_pmu_lsfm *lsfm;
 
-	/* TBD: remove this if ZBC seq is fixed */
 	struct nvgpu_mem seq_buf;
 	struct nvgpu_mem trace_buf;
 
@@ -233,27 +232,16 @@ struct nvgpu_pmu {
 
 	bool pmu_ready;
 
-	u32 perfmon_query;
-
 	u32 mscg_stat;
 	u32 mscg_transition_state;
 
 	u32 pmu_state;
 
 	struct nvgpu_pmu_pg pmu_pg;
-	union {
-		struct pmu_perfmon_counter_v2 perfmon_counter_v2;
-	};
-	u8 perfmon_state_id[PMU_DOMAIN_GROUP_NUM];
+	struct nvgpu_pmu_perfmon *pmu_perfmon;
 
 	void (*remove_support)(struct nvgpu_pmu *pmu);
 	bool sw_ready;
-	bool perfmon_ready;
-
-	u32 sample_buffer;
-	u32 load_shadow;
-	u32 load_avg;
-	u32 load;
 
 	struct nvgpu_mutex isr_mutex;
 	bool isr_enabled;
@@ -264,8 +252,7 @@ struct nvgpu_pmu {
 		struct pmu_cmdline_args_v5 args_v5;
 		struct pmu_cmdline_args_v6 args_v6;
 	};
-	unsigned long perfmon_events_cnt;
-	bool perfmon_sampling_enabled;
+
 	u32 override_done;
 };
 
@@ -288,26 +275,6 @@ int nvgpu_pmu_lock_acquire(struct gk20a *g, struct nvgpu_pmu *pmu,
 			   u32 id, u32 *token);
 int nvgpu_pmu_lock_release(struct gk20a *g, struct nvgpu_pmu *pmu,
 			   u32 id, u32 *token);
-
-/* perfmon */
-void nvgpu_pmu_perfmon_rpc_handler(struct gk20a *g, struct nvgpu_pmu *pmu,
-				   struct nv_pmu_rpc_header *rpc,
-				   struct rpc_handler_payload *rpc_payload);
-int nvgpu_pmu_init_perfmon(struct nvgpu_pmu *pmu);
-int nvgpu_pmu_perfmon_start_sampling(struct nvgpu_pmu *pmu);
-int nvgpu_pmu_perfmon_stop_sampling(struct nvgpu_pmu *pmu);
-int nvgpu_pmu_perfmon_start_sampling_rpc(struct nvgpu_pmu *pmu);
-int nvgpu_pmu_perfmon_stop_sampling_rpc(struct nvgpu_pmu *pmu);
-int nvgpu_pmu_perfmon_get_samples_rpc(struct nvgpu_pmu *pmu);
-int nvgpu_pmu_handle_perfmon_event(struct nvgpu_pmu *pmu,
-	struct pmu_perfmon_msg *msg);
-int nvgpu_pmu_init_perfmon_rpc(struct nvgpu_pmu *pmu);
-int nvgpu_pmu_load_norm(struct gk20a *g, u32 *load);
-int nvgpu_pmu_load_update(struct gk20a *g);
-int nvgpu_pmu_busy_cycles_norm(struct gk20a *g, u32 *norm);
-void nvgpu_pmu_reset_load_counters(struct gk20a *g);
-void nvgpu_pmu_get_load_counters(struct gk20a *g, u32 *busy_cycles,
-		u32 *total_cycles);
 
 int nvgpu_pmu_handle_therm_event(struct nvgpu_pmu *pmu,
 			struct nv_pmu_therm_msg *msg);

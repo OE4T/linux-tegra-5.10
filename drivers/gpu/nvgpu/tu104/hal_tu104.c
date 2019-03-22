@@ -199,6 +199,7 @@
 #include <nvgpu/gr/gr_falcon.h>
 #include <nvgpu/gr/gr.h>
 #include <nvgpu/gr/gr_intr.h>
+#include <nvgpu/pmu/pmu_perfmon.h>
 
 #include <nvgpu/hw/tu104/hw_proj_tu104.h>
 #include <nvgpu/hw/tu104/hw_top_tu104.h>

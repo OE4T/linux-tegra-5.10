@@ -43,6 +43,7 @@
 #include <nvgpu/gr/fecs_trace.h>
 #include <nvgpu/gr/gr.h>
 #include <nvgpu/gr/gr_intr.h>
+#include <nvgpu/pmu/pmu_perfmon.h>
 
 #include "hal/mc/mc_gm20b.h"
 #include "hal/mc/mc_gp10b.h"

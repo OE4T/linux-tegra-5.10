@@ -26,6 +26,7 @@
 #include <nvgpu/regops.h>
 #include <nvgpu/gr/gr_falcon.h>
 #include <nvgpu/gr/gr.h>
+#include <nvgpu/pmu/pmu_perfmon.h>
 
 #include "hal/mc/mc_gm20b.h"
 #include "hal/mc/mc_gp10b.h"

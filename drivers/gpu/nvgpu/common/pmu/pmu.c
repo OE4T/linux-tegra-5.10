@@ -37,6 +37,7 @@
 #include <nvgpu/nvgpu_err.h>
 #include <nvgpu/pmu/lsfm.h>
 #include <nvgpu/pmu/super_surface.h>
+#include <nvgpu/pmu/pmu_perfmon.h>
 
 static void pmu_report_error(struct gk20a *g, u32 err_type,
 		u32 status, u32 pmu_err_type)
@@ -160,10 +161,6 @@ static int nvgpu_init_pmu_setup_sw(struct gk20a *g)
 		nvgpu_log_fn(g, "skip init");
 		goto skip_init;
 	}
-
-	/* no infoRom script from vbios? */
-
-	/* TBD: sysmon subtask */
 
 	err = nvgpu_pmu_mutexes_alloc(g, &pmu->mutexes);
 	if (err != 0) {
@@ -367,7 +364,7 @@ int nvgpu_pmu_destroy(struct gk20a *g)
 
 	nvgpu_pmu_state_change(g, PMU_STATE_OFF, false);
 	pmu->pmu_ready = false;
-	pmu->perfmon_ready = false;
+	pmu->pmu_perfmon->perfmon_ready = false;
 	pmu->pmu_pg.zbc_ready = false;
 	nvgpu_set_enabled(g, NVGPU_PMU_FECS_BOOTSTRAP_DONE, false);
 
@@ -461,7 +458,7 @@ void nvgpu_pmu_report_bar0_pri_err_status(struct gk20a *g, u32 bar0_status,
 }
 
 int nvgpu_pmu_lock_acquire(struct gk20a *g, struct nvgpu_pmu *pmu,
-			   u32 id, u32 *token)
+			u32 id, u32 *token)
 {
 	if (!g->support_ls_pmu) {
 		return 0;
@@ -475,7 +472,7 @@ int nvgpu_pmu_lock_acquire(struct gk20a *g, struct nvgpu_pmu *pmu,
 }
 
 int nvgpu_pmu_lock_release(struct gk20a *g, struct nvgpu_pmu *pmu,
-			   u32 id, u32 *token)
+			u32 id, u32 *token)
 {
 	if (!g->support_ls_pmu) {
 		return 0;

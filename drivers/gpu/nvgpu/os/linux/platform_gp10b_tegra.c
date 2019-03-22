@@ -34,6 +34,7 @@
 #include <nvgpu/enabled.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/nvhost.h>
+#include <nvgpu/pmu/pmu_perfmon.h>
 
 #include "os_linux.h"
 

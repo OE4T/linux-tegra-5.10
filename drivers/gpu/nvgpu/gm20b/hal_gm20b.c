@@ -42,7 +42,7 @@
 #include <nvgpu/gr/gr_intr.h>
 #include <nvgpu/gr/gr_falcon.h>
 #include <nvgpu/gr/setup.h>
-#include <nvgpu/gr/gr.h>
+#include <nvgpu/pmu/pmu_perfmon.h>
 
 #include "hal/mc/mc_gm20b.h"
 #include "hal/bus/bus_gm20b.h"

@@ -44,7 +44,7 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/gr/global_ctx.h>
 #include <nvgpu/nvhost.h>
-
+#include <nvgpu/pmu/pmu_perfmon.h>
 #include <nvgpu/linux/dma.h>
 
 #include "gm20b/clk_gm20b.h"
@@ -172,7 +172,8 @@ static unsigned long gk20a_tegra_get_emc_rate(struct gk20a *g,
 	/* When scaling emc, account for the gpu load when the
 	 * gpu frequency is less than or equal to fmax@vmin. */
 	if (gpu_freq <= gpu_fmax_at_vmin)
-		emc_scale = min(g->pmu.load_avg, g->emc3d_ratio);
+		emc_scale = min(nvgpu_pmu_perfmon_get_load_avg(&(g->pmu)),
+					g->emc3d_ratio);
 	else
 		emc_scale = g->emc3d_ratio;
 

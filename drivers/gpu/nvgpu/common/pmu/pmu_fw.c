@@ -34,6 +34,7 @@
 #include <nvgpu/pmu/pstate.h>
 #include <nvgpu/pmu/volt.h>
 #include <nvgpu/pmu/clk/clk.h>
+#include <nvgpu/pmu/pmu_perfmon.h>
 #include <nvgpu/pmu/allocator.h>
 #include <nvgpu/pmu/lsfm.h>
 #include <nvgpu/pmu/super_surface.h>
@@ -61,32 +62,32 @@ static u32 pmu_perfmon_cntr_sz_v2(struct nvgpu_pmu *pmu)
 
 static void *get_perfmon_cntr_ptr_v2(struct nvgpu_pmu *pmu)
 {
-	return (void *)(&pmu->perfmon_counter_v2);
+	return (void *)(&pmu->pmu_perfmon->perfmon_counter_v2);
 }
 
 static void set_perfmon_cntr_ut_v2(struct nvgpu_pmu *pmu, u16 ut)
 {
-	pmu->perfmon_counter_v2.upper_threshold = ut;
+	pmu->pmu_perfmon->perfmon_counter_v2.upper_threshold = ut;
 }
 
 static void set_perfmon_cntr_lt_v2(struct nvgpu_pmu *pmu, u16 lt)
 {
-	pmu->perfmon_counter_v2.lower_threshold = lt;
+	pmu->pmu_perfmon->perfmon_counter_v2.lower_threshold = lt;
 }
 
 static void set_perfmon_cntr_valid_v2(struct nvgpu_pmu *pmu, u8 valid)
 {
-	pmu->perfmon_counter_v2.valid = valid;
+	pmu->pmu_perfmon->perfmon_counter_v2.valid = valid;
 }
 
 static void set_perfmon_cntr_index_v2(struct nvgpu_pmu *pmu, u8 index)
 {
-	pmu->perfmon_counter_v2.index = index;
+	pmu->pmu_perfmon->perfmon_counter_v2.index = index;
 }
 
 static void set_perfmon_cntr_group_id_v2(struct nvgpu_pmu *pmu, u8 gid)
 {
-	pmu->perfmon_counter_v2.group_id = gid;
+	pmu->pmu_perfmon->perfmon_counter_v2.group_id = gid;
 }
 
 static void set_pmu_cmdline_args_falctracedmabase_v4(struct nvgpu_pmu *pmu)
@@ -1659,6 +1660,8 @@ static void nvgpu_remove_pmu_support(struct nvgpu_pmu *pmu)
 
 	nvgpu_pmu_lsfm_deinit(g, pmu, pmu->lsfm);
 
+	/* de-allocate memory space of pmu_perfmon */
+	nvgpu_pmu_deinitialize_perfmon(g, pmu);
 	nvgpu_mutex_destroy(&pmu->pmu_pg.elpg_mutex);
 	nvgpu_mutex_destroy(&pmu->pmu_pg.pg_mutex);
 	nvgpu_mutex_destroy(&pmu->isr_mutex);
@@ -1692,7 +1695,8 @@ static int init_pmu_ucode(struct nvgpu_pmu *pmu)
 	} else {
 		/* secure boot ucodes's */
 		nvgpu_pmu_dbg(g, "requesting PMU ucode image");
-		pmu->fw_image = nvgpu_request_firmware(g, NVGPU_PMU_UCODE_IMAGE, 0);
+		pmu->fw_image = nvgpu_request_firmware(g, NVGPU_PMU_UCODE_IMAGE,
+							0);
 		if (pmu->fw_image == NULL) {
 			nvgpu_err(g, "failed to load pmu ucode!!");
 			err = -ENOENT;
@@ -1700,7 +1704,8 @@ static int init_pmu_ucode(struct nvgpu_pmu *pmu)
 		}
 
 		nvgpu_pmu_dbg(g, "requesting PMU ucode desc");
-		pmu->fw_desc = nvgpu_request_firmware(g, NVGPU_PMU_UCODE_DESC, 0);
+		pmu->fw_desc = nvgpu_request_firmware(g, NVGPU_PMU_UCODE_DESC,
+							0);
 		if (pmu->fw_desc == NULL) {
 			nvgpu_err(g, "failed to load pmu ucode desc!!");
 			err = -ENOENT;
@@ -1777,6 +1782,12 @@ int nvgpu_early_init_pmu_sw(struct gk20a *g, struct nvgpu_pmu *pmu)
 	err = nvgpu_mutex_init(&pmu->pmu_copy_lock);
 	if (err != 0) {
 		goto init_failed;
+	}
+
+	/* Allocate memory for pmu_perfmon */
+	err = nvgpu_pmu_initialize_perfmon(g, pmu);
+	if (err != 0) {
+		goto exit;
 	}
 
 	err = init_pmu_ucode(pmu);

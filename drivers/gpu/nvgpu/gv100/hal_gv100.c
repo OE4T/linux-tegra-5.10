@@ -180,6 +180,7 @@
 #include <nvgpu/gr/setup.h>
 #include <nvgpu/gr/fecs_trace.h>
 #include <nvgpu/gr/gr.h>
+#include <nvgpu/pmu/pmu_perfmon.h>
 #include <nvgpu/gr/gr_intr.h>
 
 #include <nvgpu/hw/gv100/hw_proj_gv100.h>

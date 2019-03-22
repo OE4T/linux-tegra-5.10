@@ -27,6 +27,7 @@
 #include <nvgpu/gr/obj_ctx.h>
 #include <nvgpu/power_features/cg.h>
 #include <nvgpu/power_features/pg.h>
+#include <nvgpu/pmu/pmu_perfmon.h>
 
 #include "os_linux.h"
 #include "sysfs.h"

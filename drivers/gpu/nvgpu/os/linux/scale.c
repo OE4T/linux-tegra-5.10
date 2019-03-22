@@ -1,7 +1,7 @@
 /*
  * gk20a clock scaling profile
  *
- * Copyright (c) 2013-2018, NVIDIA Corporation. All rights reserved.
+ * Copyright (c) 2013-2019, NVIDIA Corporation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -27,6 +27,7 @@
 #include <nvgpu/log.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/clk_arb.h>
+#include <nvgpu/pmu/pmu_perfmon.h>
 
 #include "platform_gk20a.h"
 #include "scale.h"

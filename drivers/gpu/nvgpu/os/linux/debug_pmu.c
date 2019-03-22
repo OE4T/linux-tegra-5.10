@@ -13,6 +13,8 @@
  */
 
 #include <nvgpu/enabled.h>
+#include <nvgpu/pmu/pmu_perfmon.h>
+
 #include "debug_pmu.h"
 #include "os_linux.h"
 
@@ -314,7 +316,8 @@ static int perfmon_events_enable_show(struct seq_file *s, void *data)
 {
 	struct gk20a *g = s->private;
 
-	seq_printf(s, "%u\n", g->pmu.perfmon_sampling_enabled ? 1 : 0);
+	seq_printf(s, "%u\n",
+		nvgpu_pmu_perfmon_get_sampling_enable_status(&(g->pmu)) ? 1 : 0);
 	return 0;
 
 }
@@ -333,6 +336,7 @@ static ssize_t perfmon_events_enable_write(struct file *file,
 	char buf[40];
 	int buf_size;
 	int err;
+	bool status;
 
 	(void) memset(buf, 0, sizeof(buf));
 	buf_size = min(count, (sizeof(buf)-1));
@@ -349,18 +353,22 @@ static ssize_t perfmon_events_enable_write(struct file *file,
 		if (err)
 			return err;
 
-		if (val && !g->pmu.perfmon_sampling_enabled &&
-				nvgpu_is_enabled(g, NVGPU_PMU_PERFMON)) {
-			g->pmu.perfmon_sampling_enabled = true;
+		if (val && !nvgpu_pmu_perfmon_get_sampling_enable_status(&(g->pmu))
+			&& nvgpu_is_enabled(g, NVGPU_PMU_PERFMON)) {
+			nvgpu_pmu_perfmon_set_sampling_enable_status(&(g->pmu),
+									true);
 			g->ops.pmu.pmu_perfmon_start_sampling(&(g->pmu));
-		} else if (!val && g->pmu.perfmon_sampling_enabled &&
-				nvgpu_is_enabled(g, NVGPU_PMU_PERFMON)) {
-			g->pmu.perfmon_sampling_enabled = false;
+		} else if (!val
+			&& nvgpu_pmu_perfmon_get_sampling_enable_status(&(g->pmu))
+			&& nvgpu_is_enabled(g, NVGPU_PMU_PERFMON)) {
+			nvgpu_pmu_perfmon_set_sampling_enable_status(&(g->pmu),
+									false);
 			g->ops.pmu.pmu_perfmon_stop_sampling(&(g->pmu));
 		}
 		gk20a_idle(g);
 	} else {
-		g->pmu.perfmon_sampling_enabled = val ? true : false;
+		status = val ? true : false;
+		nvgpu_pmu_perfmon_set_sampling_enable_status(&(g->pmu), status);
 	}
 
 	return count;
@@ -378,7 +386,7 @@ static int perfmon_events_count_show(struct seq_file *s, void *data)
 {
 	struct gk20a *g = s->private;
 
-	seq_printf(s, "%lu\n", g->pmu.perfmon_events_cnt);
+	seq_printf(s, "%llu\n", nvgpu_pmu_perfmon_get_events_count(&(g->pmu)));
 	return 0;
 
 }

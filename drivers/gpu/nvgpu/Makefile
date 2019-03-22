@@ -94,7 +94,7 @@ nvgpu-y += \
 	common/pmu/pmu_fw.o \
 	common/pmu/pg/pmu_pg.o \
 	common/pmu/pg/pmu_aelpg.o \
-	common/pmu/pmu_perfmon.o \
+	common/pmu/perfmon/pmu_perfmon.o \
 	common/pmu/pmu_debug.o \
 	common/pmu/pmu_gk20a.o \
 	common/pmu/pmu_gm20b.o \
