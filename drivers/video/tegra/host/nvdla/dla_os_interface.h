@@ -1,7 +1,7 @@
 /*
  * NVDLA OS Interface
  *
- * Copyright (c) 2016-2018, NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2016-2019, NVIDIA Corporation.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -124,6 +124,7 @@
 #define DLA_ERR_RETRY			13
 #define DLA_ERR_TASK_STATUS_MISMATCH	14
 #define DLA_ERR_ENGINE_TIMEOUT		15
+#define DLA_ERR_DATA_MISMATCH		16
 
 #define DLA_MSG_CMD_ERROR		1
 #define DLA_MSG_CMD_COMPLETE		2
