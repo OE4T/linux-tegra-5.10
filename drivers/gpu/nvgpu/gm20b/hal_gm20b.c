@@ -234,7 +234,6 @@ static const struct gpu_ops gm20b_ops = {
 	},
 	.gr = {
 		.get_patch_slots = gr_gk20a_get_patch_slots,
-		.init_gpc_mmu = gr_gm20b_init_gpc_mmu,
 		.commit_global_attrib_cb = gr_gm20b_commit_global_attrib_cb,
 		.commit_global_cb_manager = gr_gm20b_commit_global_cb_manager,
 		.commit_global_pagepool = gr_gm20b_commit_global_pagepool,
@@ -306,7 +305,6 @@ static const struct gpu_ops gm20b_ops = {
 		.clear_sm_hww = gm20b_gr_clear_sm_hww,
 		.init_ovr_sm_dsm_perf =  gk20a_gr_init_ovr_sm_dsm_perf,
 		.get_ovr_perf_regs = gk20a_gr_get_ovr_perf_regs,
-		.disable_rd_coalesce = gm20a_gr_disable_rd_coalesce,
 		.fecs_host_int_enable = gr_gk20a_fecs_host_int_enable,
 		.handle_notify_pending = gk20a_gr_handle_notify_pending,
 		.handle_semaphore_pending = gk20a_gr_handle_semaphore_pending,
@@ -416,6 +414,10 @@ static const struct gpu_ops gm20b_ops = {
 			.program_zcull_mapping = gm20b_gr_program_zcull_mapping,
 		},
 		.init = {
+			.lg_coalesce = gm20b_gr_init_lg_coalesce,
+			.su_coalesce = gm20b_gr_init_su_coalesce,
+			.pes_vsc_stream = gm20b_gr_init_pes_vsc_stream,
+			.gpc_mmu = gm20b_gr_init_gpc_mmu,
 			.fifo_access = gm20b_gr_init_fifo_access,
 			.get_access_map = gm20b_gr_init_get_access_map,
 			.get_sm_id_size = gm20b_gr_init_get_sm_id_size,

@@ -46,38 +46,6 @@
 #include <nvgpu/hw/gm20b/hw_fifo_gm20b.h>
 #include <nvgpu/hw/gm20b/hw_perf_gm20b.h>
 
-void gr_gm20b_init_gpc_mmu(struct gk20a *g)
-{
-	u32 temp;
-
-	nvgpu_log_info(g, "initialize gpc mmu");
-
-	temp = g->ops.fb.mmu_ctrl(g);
-	temp &= gr_gpcs_pri_mmu_ctrl_vm_pg_size_m() |
-		gr_gpcs_pri_mmu_ctrl_use_pdb_big_page_size_m() |
-		gr_gpcs_pri_mmu_ctrl_use_full_comp_tag_line_m() |
-		gr_gpcs_pri_mmu_ctrl_vol_fault_m() |
-		gr_gpcs_pri_mmu_ctrl_comp_fault_m() |
-		gr_gpcs_pri_mmu_ctrl_miss_gran_m() |
-		gr_gpcs_pri_mmu_ctrl_cache_mode_m() |
-		gr_gpcs_pri_mmu_ctrl_mmu_aperture_m() |
-		gr_gpcs_pri_mmu_ctrl_mmu_vol_m() |
-		gr_gpcs_pri_mmu_ctrl_mmu_disable_m();
-	gk20a_writel(g, gr_gpcs_pri_mmu_ctrl_r(), temp);
-	gk20a_writel(g, gr_gpcs_pri_mmu_pm_unit_mask_r(), 0);
-	gk20a_writel(g, gr_gpcs_pri_mmu_pm_req_mask_r(), 0);
-
-	gk20a_writel(g, gr_gpcs_pri_mmu_debug_ctrl_r(),
-			g->ops.fb.mmu_debug_ctrl(g));
-	gk20a_writel(g, gr_gpcs_pri_mmu_debug_wr_r(),
-			g->ops.fb.mmu_debug_wr(g));
-	gk20a_writel(g, gr_gpcs_pri_mmu_debug_rd_r(),
-			g->ops.fb.mmu_debug_rd(g));
-
-	gk20a_writel(g, gr_gpcs_mmu_num_active_ltcs_r(),
-			nvgpu_ltc_get_ltc_count(g));
-}
-
 void gr_gm20b_commit_global_attrib_cb(struct gk20a *g,
 				      struct nvgpu_gr_ctx *ch_ctx,
 				      u64 addr, bool patch)
@@ -200,20 +168,6 @@ void gr_gm20b_commit_global_pagepool(struct gk20a *g,
 
 }
 
-void gr_gm20b_set_rd_coalesce(struct gk20a *g, u32 data)
-{
-	u32 val;
-
-	nvgpu_log_fn(g, " ");
-
-	val = gk20a_readl(g, gr_gpcs_tpcs_tex_m_dbg2_r());
-	val = set_field(val, gr_gpcs_tpcs_tex_m_dbg2_lg_rd_coalesce_en_m(),
-			     gr_gpcs_tpcs_tex_m_dbg2_lg_rd_coalesce_en_f(data));
-	gk20a_writel(g, gr_gpcs_tpcs_tex_m_dbg2_r(), val);
-
-	nvgpu_log_fn(g, "done");
-}
-
 int gr_gm20b_handle_sw_method(struct gk20a *g, u32 addr,
 					  u32 class_num, u32 offset, u32 data)
 {
@@ -225,7 +179,7 @@ int gr_gm20b_handle_sw_method(struct gk20a *g, u32 addr,
 			gk20a_gr_set_shader_exceptions(g, data);
 			break;
 		case NVB1C0_SET_RD_COALESCE:
-			gr_gm20b_set_rd_coalesce(g, data);
+			g->ops.gr.init.lg_coalesce(g, data);
 			break;
 		default:
 			goto fail;
@@ -244,7 +198,7 @@ int gr_gm20b_handle_sw_method(struct gk20a *g, u32 addr,
 			g->ops.gr.set_alpha_circular_buffer_size(g, data);
 			break;
 		case NVB197_SET_RD_COALESCE:
-			gr_gm20b_set_rd_coalesce(g, data);
+			g->ops.gr.init.lg_coalesce(g, data);
 			break;
 		default:
 			goto fail;
@@ -1153,24 +1107,6 @@ void gm20b_gr_clear_sm_hww(struct gk20a *g, u32 gpc, u32 tpc, u32 sm,
 
 	/* clear the warp hww */
 	gk20a_writel(g, gr_gpc0_tpc0_sm_hww_warp_esr_r() + offset, 0);
-}
-
-/*
- * Disable both surface and LG coalesce.
- */
-void gm20a_gr_disable_rd_coalesce(struct gk20a *g)
-{
-	u32 dbg2_reg;
-
-	dbg2_reg = gk20a_readl(g, gr_gpcs_tpcs_tex_m_dbg2_r());
-	dbg2_reg = set_field(dbg2_reg,
-			     gr_gpcs_tpcs_tex_m_dbg2_lg_rd_coalesce_en_m(),
-			     gr_gpcs_tpcs_tex_m_dbg2_lg_rd_coalesce_en_f(0));
-	dbg2_reg = set_field(dbg2_reg,
-			     gr_gpcs_tpcs_tex_m_dbg2_su_rd_coalesce_en_m(),
-			     gr_gpcs_tpcs_tex_m_dbg2_su_rd_coalesce_en_f(0));
-
-	gk20a_writel(g, gr_gpcs_tpcs_tex_m_dbg2_r(), dbg2_reg);
 }
 
 void gm20b_gr_set_debug_mode(struct gk20a *g, bool enable)

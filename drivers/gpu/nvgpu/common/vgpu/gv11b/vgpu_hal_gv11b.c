@@ -134,7 +134,6 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 		.get_num_pce = vgpu_ce_get_num_pce,
 	},
 	.gr = {
-		.init_gpc_mmu = NULL,
 		.commit_global_attrib_cb = gr_gv11b_commit_global_attrib_cb,
 		.commit_global_cb_manager = gr_gp10b_commit_global_cb_manager,
 		.commit_global_pagepool = gr_gp10b_commit_global_pagepool,
@@ -203,7 +202,6 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 		.clear_sm_hww = NULL,
 		.init_ovr_sm_dsm_perf =  gv11b_gr_init_ovr_sm_dsm_perf,
 		.get_ovr_perf_regs = gv11b_gr_get_ovr_perf_regs,
-		.disable_rd_coalesce = NULL,
 		.set_boosted_ctx = NULL,
 		.set_preemption_mode = vgpu_gr_set_preemption_mode,
 		.pre_process_sm_exception = NULL,

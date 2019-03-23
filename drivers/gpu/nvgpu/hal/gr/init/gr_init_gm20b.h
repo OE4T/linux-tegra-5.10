@@ -30,6 +30,10 @@ struct nvgpu_gr_ctx;
 struct netlist_av_list;
 struct nvgpu_gr_config;
 
+void gm20b_gr_init_lg_coalesce(struct gk20a *g, u32 data);
+void gm20b_gr_init_su_coalesce(struct gk20a *g, u32 data);
+void gm20b_gr_init_pes_vsc_stream(struct gk20a *g);
+void gm20b_gr_init_gpc_mmu(struct gk20a *g);
 void gm20b_gr_init_fifo_access(struct gk20a *g, bool enable);
 void gm20b_gr_init_get_access_map(struct gk20a *g,
 				   u32 **whitelist, int *num_entries);

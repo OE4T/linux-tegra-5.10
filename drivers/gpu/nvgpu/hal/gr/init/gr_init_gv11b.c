@@ -38,6 +38,36 @@
  */
 #define GR_TPCS_INFO_FOR_MAPREGISTER 6U
 
+void gv11b_gr_init_gpc_mmu(struct gk20a *g)
+{
+	u32 temp;
+
+	nvgpu_log_info(g, "initialize gpc mmu");
+
+	temp = g->ops.fb.mmu_ctrl(g);
+	temp &= gr_gpcs_pri_mmu_ctrl_vm_pg_size_m() |
+		gr_gpcs_pri_mmu_ctrl_use_pdb_big_page_size_m() |
+		gr_gpcs_pri_mmu_ctrl_vol_fault_m() |
+		gr_gpcs_pri_mmu_ctrl_comp_fault_m() |
+		gr_gpcs_pri_mmu_ctrl_miss_gran_m() |
+		gr_gpcs_pri_mmu_ctrl_cache_mode_m() |
+		gr_gpcs_pri_mmu_ctrl_mmu_aperture_m() |
+		gr_gpcs_pri_mmu_ctrl_mmu_vol_m() |
+		gr_gpcs_pri_mmu_ctrl_mmu_disable_m()|
+		gr_gpcs_pri_mmu_ctrl_atomic_capability_mode_m()|
+		gr_gpcs_pri_mmu_ctrl_atomic_capability_sys_ncoh_mode_m();
+	nvgpu_writel(g, gr_gpcs_pri_mmu_ctrl_r(), temp);
+	nvgpu_writel(g, gr_gpcs_pri_mmu_pm_unit_mask_r(), 0);
+	nvgpu_writel(g, gr_gpcs_pri_mmu_pm_req_mask_r(), 0);
+
+	nvgpu_writel(g, gr_gpcs_pri_mmu_debug_ctrl_r(),
+			g->ops.fb.mmu_debug_ctrl(g));
+	nvgpu_writel(g, gr_gpcs_pri_mmu_debug_wr_r(),
+			g->ops.fb.mmu_debug_wr(g));
+	nvgpu_writel(g, gr_gpcs_pri_mmu_debug_rd_r(),
+			g->ops.fb.mmu_debug_rd(g));
+}
+
 void gv11b_gr_init_get_access_map(struct gk20a *g,
 				   u32 **whitelist, int *num_entries)
 {

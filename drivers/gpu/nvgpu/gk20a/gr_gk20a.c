@@ -2020,20 +2020,16 @@ void gr_gk20a_fecs_host_int_enable(struct gk20a *g)
 static int gk20a_init_gr_setup_hw(struct gk20a *g)
 {
 	struct gr_gk20a *gr = &g->gr;
-	u32 data;
 	int err;
 
 	nvgpu_log_fn(g, " ");
 
-	if (g->ops.gr.init_gpc_mmu != NULL) {
-		g->ops.gr.init_gpc_mmu(g);
+	if (g->ops.gr.init.gpc_mmu != NULL) {
+		g->ops.gr.init.gpc_mmu(g);
 	}
 
 	/* load gr floorsweeping registers */
-	data = gk20a_readl(g, gr_gpc0_ppc0_pes_vsc_strem_r());
-	data = set_field(data, gr_gpc0_ppc0_pes_vsc_strem_master_pe_m(),
-			gr_gpc0_ppc0_pes_vsc_strem_master_pe_true_f());
-	gk20a_writel(g, gr_gpc0_ppc0_pes_vsc_strem_r(), data);
+	g->ops.gr.init.pes_vsc_stream(g);
 
 	nvgpu_gr_zcull_init_hw(g, gr->zcull, gr->config);
 
@@ -2075,8 +2071,15 @@ static int gk20a_init_gr_setup_hw(struct gk20a *g)
 		goto out;
 	}
 
-	if (g->ops.gr.disable_rd_coalesce != NULL) {
-		g->ops.gr.disable_rd_coalesce(g);
+	/*
+	 * Disable both surface and LG coalesce.
+	 */
+	if (g->ops.gr.init.su_coalesce != NULL) {
+		g->ops.gr.init.su_coalesce(g, 0);
+	}
+
+	if (g->ops.gr.init.lg_coalesce != NULL) {
+		g->ops.gr.init.lg_coalesce(g, 0);
 	}
 
 	if (g->ops.gr.init.preemption_state != NULL) {

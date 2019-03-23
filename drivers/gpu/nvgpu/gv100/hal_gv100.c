@@ -369,7 +369,6 @@ static const struct gpu_ops gv100_ops = {
 	},
 	.gr = {
 		.get_patch_slots = gr_gv100_get_patch_slots,
-		.init_gpc_mmu = gr_gv11b_init_gpc_mmu,
 		.commit_global_attrib_cb = gr_gv11b_commit_global_attrib_cb,
 		.commit_global_cb_manager = gr_gp10b_commit_global_cb_manager,
 		.commit_global_pagepool = gr_gp10b_commit_global_pagepool,
@@ -444,7 +443,6 @@ static const struct gpu_ops gv100_ops = {
 		.clear_sm_hww = gv11b_gr_clear_sm_hww,
 		.init_ovr_sm_dsm_perf =  gv11b_gr_init_ovr_sm_dsm_perf,
 		.get_ovr_perf_regs = gv11b_gr_get_ovr_perf_regs,
-		.disable_rd_coalesce = gm20a_gr_disable_rd_coalesce,
 		.set_boosted_ctx = gr_gp10b_set_boosted_ctx,
 		.set_preemption_mode = gr_gp10b_set_preemption_mode,
 		.pre_process_sm_exception = gr_gv11b_pre_process_sm_exception,
@@ -631,6 +629,10 @@ static const struct gpu_ops gv100_ops = {
 				gv100_gr_hwpm_map_get_active_fbpa_mask,
 		},
 		.init = {
+			.lg_coalesce = gm20b_gr_init_lg_coalesce,
+			.su_coalesce = gm20b_gr_init_su_coalesce,
+			.pes_vsc_stream = gm20b_gr_init_pes_vsc_stream,
+			.gpc_mmu = gv11b_gr_init_gpc_mmu,
 			.fifo_access = gm20b_gr_init_fifo_access,
 			.get_access_map = gv11b_gr_init_get_access_map,
 			.get_sm_id_size = gp10b_gr_init_get_sm_id_size,

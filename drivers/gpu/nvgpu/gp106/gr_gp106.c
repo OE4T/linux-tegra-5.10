@@ -87,7 +87,7 @@ int gr_gp106_handle_sw_method(struct gk20a *g, u32 addr,
 			gk20a_gr_set_shader_exceptions(g, data);
 			break;
 		case NVC0C0_SET_RD_COALESCE:
-			gr_gm20b_set_rd_coalesce(g, data);
+			g->ops.gr.init.lg_coalesce(g, data);
 			break;
 		default:
 			goto fail;
@@ -109,7 +109,7 @@ int gr_gp106_handle_sw_method(struct gk20a *g, u32 addr,
 			gr_gp106_set_go_idle_timeout(g, data);
 			break;
 		case NVC097_SET_RD_COALESCE:
-			gr_gm20b_set_rd_coalesce(g, data);
+			g->ops.gr.init.lg_coalesce(g, data);
 			break;
 		case NVC097_SET_BES_CROP_DEBUG3:
 			g->ops.gr.set_bes_crop_debug3(g, data);

@@ -268,7 +268,6 @@ struct gpu_ops {
 		void (*commit_global_pagepool)(struct gk20a *g,
 					       struct nvgpu_gr_ctx *ch_ctx,
 					       u64 addr, u32 size, bool patch);
-		void (*init_gpc_mmu)(struct gk20a *g);
 		int (*handle_sw_method)(struct gk20a *g, u32 addr,
 					 u32 class_num, u32 offset, u32 data);
 		void (*set_alpha_circular_buffer_size)(struct gk20a *g,
@@ -431,7 +430,6 @@ struct gpu_ops {
 		void (*resume_single_sm)(struct gk20a *g,
 				u32 gpc, u32 tpc, u32 sm);
 		void (*resume_all_sms)(struct gk20a *g);
-		void (*disable_rd_coalesce)(struct gk20a *g);
 		void (*init_gfxp_wfi_timeout_count)(struct gk20a *g);
 		unsigned long (*get_max_gfxp_wfi_timeout_count)
 					(struct gk20a *g);
@@ -664,6 +662,10 @@ struct gpu_ops {
 		} hwpm_map;
 
 		struct {
+			void (*lg_coalesce)(struct gk20a *g, u32 data);
+			void (*su_coalesce)(struct gk20a *g, u32 data);
+			void (*pes_vsc_stream)(struct gk20a *g);
+			void (*gpc_mmu)(struct gk20a *g);
 			void (*fifo_access)(struct gk20a *g, bool enable);
 			void (*get_access_map)(struct gk20a *g,
 				      u32 **whitelist, int *num_entries);

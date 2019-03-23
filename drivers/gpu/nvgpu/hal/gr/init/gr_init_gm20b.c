@@ -41,6 +41,71 @@
 #define FE_PWR_MODE_TIMEOUT_DEFAULT_US 10U
 #define FECS_CTXSW_RESET_DELAY_US 10U
 
+void gm20b_gr_init_lg_coalesce(struct gk20a *g, u32 data)
+{
+	u32 val;
+
+	nvgpu_log_fn(g, " ");
+
+	val = nvgpu_readl(g, gr_gpcs_tpcs_tex_m_dbg2_r());
+	val = set_field(val,
+			gr_gpcs_tpcs_tex_m_dbg2_lg_rd_coalesce_en_m(),
+			gr_gpcs_tpcs_tex_m_dbg2_lg_rd_coalesce_en_f(data));
+	nvgpu_writel(g, gr_gpcs_tpcs_tex_m_dbg2_r(), val);
+}
+
+void gm20b_gr_init_su_coalesce(struct gk20a *g, u32 data)
+{
+	u32 reg;
+
+	reg = nvgpu_readl(g, gr_gpcs_tpcs_tex_m_dbg2_r());
+	reg = set_field(reg,
+			gr_gpcs_tpcs_tex_m_dbg2_su_rd_coalesce_en_m(),
+			gr_gpcs_tpcs_tex_m_dbg2_su_rd_coalesce_en_f(data));
+
+	nvgpu_writel(g, gr_gpcs_tpcs_tex_m_dbg2_r(), reg);
+}
+
+void gm20b_gr_init_pes_vsc_stream(struct gk20a *g)
+{
+	u32 data = nvgpu_readl(g, gr_gpc0_ppc0_pes_vsc_strem_r());
+	data = set_field(data, gr_gpc0_ppc0_pes_vsc_strem_master_pe_m(),
+			gr_gpc0_ppc0_pes_vsc_strem_master_pe_true_f());
+	nvgpu_writel(g, gr_gpc0_ppc0_pes_vsc_strem_r(), data);
+}
+
+void gm20b_gr_init_gpc_mmu(struct gk20a *g)
+{
+	u32 temp;
+
+	nvgpu_log_info(g, "initialize gpc mmu");
+
+	temp = g->ops.fb.mmu_ctrl(g);
+	temp &= gr_gpcs_pri_mmu_ctrl_vm_pg_size_m() |
+		gr_gpcs_pri_mmu_ctrl_use_pdb_big_page_size_m() |
+		gr_gpcs_pri_mmu_ctrl_use_full_comp_tag_line_m() |
+		gr_gpcs_pri_mmu_ctrl_vol_fault_m() |
+		gr_gpcs_pri_mmu_ctrl_comp_fault_m() |
+		gr_gpcs_pri_mmu_ctrl_miss_gran_m() |
+		gr_gpcs_pri_mmu_ctrl_cache_mode_m() |
+		gr_gpcs_pri_mmu_ctrl_mmu_aperture_m() |
+		gr_gpcs_pri_mmu_ctrl_mmu_vol_m() |
+		gr_gpcs_pri_mmu_ctrl_mmu_disable_m();
+	nvgpu_writel(g, gr_gpcs_pri_mmu_ctrl_r(), temp);
+	nvgpu_writel(g, gr_gpcs_pri_mmu_pm_unit_mask_r(), 0);
+	nvgpu_writel(g, gr_gpcs_pri_mmu_pm_req_mask_r(), 0);
+
+	nvgpu_writel(g, gr_gpcs_pri_mmu_debug_ctrl_r(),
+			g->ops.fb.mmu_debug_ctrl(g));
+	nvgpu_writel(g, gr_gpcs_pri_mmu_debug_wr_r(),
+			g->ops.fb.mmu_debug_wr(g));
+	nvgpu_writel(g, gr_gpcs_pri_mmu_debug_rd_r(),
+			g->ops.fb.mmu_debug_rd(g));
+
+	nvgpu_writel(g, gr_gpcs_mmu_num_active_ltcs_r(),
+			nvgpu_ltc_get_ltc_count(g));
+}
+
 void gm20b_gr_init_fifo_access(struct gk20a *g, bool enable)
 {
 	u32 fifo_val;
