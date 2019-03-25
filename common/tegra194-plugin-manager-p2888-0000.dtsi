@@ -47,13 +47,20 @@
 		};
 
 		fragment-tegra-ufs-lane10 {
-			enable-override-on-all-matches;
-			ids = ">=2822-0000-400";
 			odm-data = "enable-ufs-uphy-l10";
 			override@0 {
 				target = <&tegra_ufs>;
 				_overlay_ {
 					status = "okay";
+				};
+			};
+		};
+		fragment-ufs-lane10-older-than-p2888-B00 {
+			ids = "<2822-0000-400";
+			override@0 {
+				target = <&tegra_ufs>;
+				_overlay_ {
+					status = "disabled";
 				};
 			};
 		};
