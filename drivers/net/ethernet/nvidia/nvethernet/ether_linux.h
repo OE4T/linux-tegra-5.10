@@ -132,4 +132,5 @@ struct ether_priv_data {
 	int rx_irqs[ETHER_MAX_IRQS];
 };
 
+void ether_set_ethtool_ops(struct net_device *ndev);
 #endif /* ETHER_LINUX_H */
