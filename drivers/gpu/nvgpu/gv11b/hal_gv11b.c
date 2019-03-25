@@ -60,6 +60,7 @@
 #include "hal/fifo/ctxsw_timeout_gv11b.h"
 #include "hal/gr/fecs_trace/fecs_trace_gm20b.h"
 #include "hal/gr/fecs_trace/fecs_trace_gv11b.h"
+#include "hal/gr/falcon/gr_falcon_gm20b.h"
 #include "hal/gr/config/gr_config_gm20b.h"
 #include "hal/gr/zbc/zbc_gp10b.h"
 #include "hal/gr/zbc/zbc_gv11b.h"
@@ -338,8 +339,6 @@ static const struct gpu_ops gv11b_ops = {
 		.get_sm_dsm_perf_regs = gv11b_gr_get_sm_dsm_perf_regs,
 		.get_sm_dsm_perf_ctrl_regs = gv11b_gr_get_sm_dsm_perf_ctrl_regs,
 		.set_hww_esr_report_mask = gv11b_gr_set_hww_esr_report_mask,
-		.fecs_falcon_base_addr = gr_gk20a_fecs_falcon_base_addr,
-		.gpccs_falcon_base_addr = gr_gk20a_gpccs_falcon_base_addr,
 		.falcon_load_ucode = gr_gm20b_load_ctxsw_ucode_segments,
 		.load_ctxsw_ucode = gr_gk20a_load_ctxsw_ucode,
 		.set_gpc_tpc_mask = gr_gv11b_set_gpc_tpc_mask,
@@ -433,16 +432,12 @@ static const struct gpu_ops gv11b_ops = {
 		.decode_priv_addr = gr_gv11b_decode_priv_addr,
 		.create_priv_addr_table = gr_gv11b_create_priv_addr_table,
 		.split_fbpa_broadcast_addr = gr_gk20a_split_fbpa_broadcast_addr,
-		.fecs_ctxsw_mailbox_size = gr_fecs_ctxsw_mailbox__size_1_v,
 		.alloc_global_ctx_buffers = gr_gk20a_alloc_global_ctx_buffers,
 		.commit_global_ctx_buffers = gr_gk20a_commit_global_ctx_buffers,
 		.get_nonpes_aware_tpc = gr_gv11b_get_nonpes_aware_tpc,
 		.get_offset_in_gpccs_segment =
 			gr_gk20a_get_offset_in_gpccs_segment,
 		.set_debug_mode = gm20b_gr_set_debug_mode,
-		.dump_gr_falcon_stats = gk20a_fecs_dump_falcon_stats,
-		.get_fecs_ctx_state_store_major_rev_id =
-			gk20a_gr_get_fecs_ctx_state_store_major_rev_id,
 		.init_gfxp_rtv_cb = NULL,
 		.log_mme_exception = NULL,
 		.get_ctx_spill_size = gv11b_gr_get_ctx_spill_size,
@@ -658,6 +653,15 @@ static const struct gpu_ops gv11b_ops = {
 			.enable_gpc_exceptions =
 					gv11b_gr_intr_enable_gpc_exceptions,
 			.enable_exceptions = gv11b_gr_intr_enable_exceptions,
+		},
+		.falcon = {
+			.fecs_base_addr = gm20b_gr_falcon_fecs_base_addr,
+			.gpccs_base_addr = gm20b_gr_falcon_gpccs_base_addr,
+			.dump_stats = gm20b_gr_falcon_fecs_dump_stats,
+			.fecs_ctxsw_mailbox_size =
+				gm20b_gr_falcon_get_fecs_ctxsw_mailbox_size,
+			.get_fecs_ctx_state_store_major_rev_id =
+				gm20b_gr_falcon_get_fecs_ctx_state_store_major_rev_id,
 		},
 	},
 	.fb = {

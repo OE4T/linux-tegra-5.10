@@ -58,6 +58,7 @@
 #include "hal/fifo/ctxsw_timeout_gk20a.h"
 #include "hal/gr/zbc/zbc_gm20b.h"
 #include "hal/gr/zcull/zcull_gm20b.h"
+#include "hal/gr/falcon/gr_falcon_gm20b.h"
 #include "hal/gr/init/gr_init_gm20b.h"
 #include "hal/gr/intr/gr_intr_gm20b.h"
 #include "hal/gr/config/gr_config_gm20b.h"
@@ -251,8 +252,6 @@ static const struct gpu_ops gm20b_ops = {
 		.get_sm_dsm_perf_regs = gr_gm20b_get_sm_dsm_perf_regs,
 		.get_sm_dsm_perf_ctrl_regs = gr_gm20b_get_sm_dsm_perf_ctrl_regs,
 		.set_hww_esr_report_mask = gr_gm20b_set_hww_esr_report_mask,
-		.fecs_falcon_base_addr = gr_gk20a_fecs_falcon_base_addr,
-		.gpccs_falcon_base_addr = gr_gk20a_gpccs_falcon_base_addr,
 		.falcon_load_ucode = gr_gm20b_load_ctxsw_ucode_segments,
 		.load_ctxsw_ucode = gr_gk20a_load_ctxsw_ucode,
 		.set_gpc_tpc_mask = gr_gm20b_set_gpc_tpc_mask,
@@ -313,15 +312,11 @@ static const struct gpu_ops gm20b_ops = {
 		.decode_priv_addr = gr_gk20a_decode_priv_addr,
 		.create_priv_addr_table = gr_gk20a_create_priv_addr_table,
 		.split_fbpa_broadcast_addr = gr_gk20a_split_fbpa_broadcast_addr,
-		.fecs_ctxsw_mailbox_size = gr_fecs_ctxsw_mailbox__size_1_v,
 		.alloc_global_ctx_buffers = gr_gk20a_alloc_global_ctx_buffers,
 		.commit_global_ctx_buffers = gr_gk20a_commit_global_ctx_buffers,
 		.get_offset_in_gpccs_segment =
 			gr_gk20a_get_offset_in_gpccs_segment,
 		.set_debug_mode = gm20b_gr_set_debug_mode,
-		.dump_gr_falcon_stats = gk20a_fecs_dump_falcon_stats,
-		.get_fecs_ctx_state_store_major_rev_id =
-			gk20a_gr_get_fecs_ctx_state_store_major_rev_id,
 		.init_gfxp_rtv_cb = NULL,
 		.log_mme_exception = NULL,
 		.halt_pipe = gr_gk20a_halt_pipe,
@@ -478,6 +473,15 @@ static const struct gpu_ops gm20b_ops = {
 			.enable_gpc_exceptions =
 					gm20b_gr_intr_enable_gpc_exceptions,
 			.enable_exceptions = gm20b_gr_intr_enable_exceptions,
+		},
+		.falcon = {
+			.fecs_base_addr = gm20b_gr_falcon_fecs_base_addr,
+			.gpccs_base_addr = gm20b_gr_falcon_gpccs_base_addr,
+			.dump_stats = gm20b_gr_falcon_fecs_dump_stats,
+			.fecs_ctxsw_mailbox_size =
+				gm20b_gr_falcon_get_fecs_ctxsw_mailbox_size,
+			.get_fecs_ctx_state_store_major_rev_id =
+				gm20b_gr_falcon_get_fecs_ctx_state_store_major_rev_id,
 		},
 	},
 	.fb = {

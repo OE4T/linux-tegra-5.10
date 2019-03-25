@@ -200,6 +200,7 @@ nvgpu-y += \
 	hal/therm/therm_gp10b.o \
 	hal/therm/therm_gp106.o \
 	hal/therm/therm_gv11b.o \
+	hal/gr/falcon/gr_falcon_gm20b.o \
 	hal/ltc/ltc_gm20b.o \
 	hal/ltc/ltc_gp10b.o \
 	hal/ltc/ltc_gv11b.o  \

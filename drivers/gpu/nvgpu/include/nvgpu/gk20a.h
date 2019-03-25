@@ -453,7 +453,6 @@ struct gpu_ops {
 					u32 num_fbpas,
 					u32 *priv_addr_table,
 					u32 *priv_addr_table_index);
-		u32 (*fecs_ctxsw_mailbox_size)(void);
 		int (*init_sw_bundle64)(struct gk20a *g);
 		int (*alloc_global_ctx_buffers)(struct gk20a *g);
 		int (*commit_global_ctx_buffers)(struct gk20a *g,
@@ -464,8 +463,6 @@ struct gpu_ops {
 			u32 num_ppcs, u32 reg_list_ppc_count,
 			u32 *__offset_in_segment);
 		void (*set_debug_mode)(struct gk20a *g, bool enable);
-		void (*dump_gr_falcon_stats)(struct gk20a *g);
-		u32 (*get_fecs_ctx_state_store_major_rev_id)(struct gk20a *g);
 		int (*init_gfxp_rtv_cb)(struct gk20a *g,
 			  struct nvgpu_gr_ctx *gr_ctx, struct vm_gk20a *vm);
 		void (*log_mme_exception)(struct gk20a *g);
@@ -576,6 +573,14 @@ struct gpu_ops {
 			int (*init_sm_id_table)(struct nvgpu_gr_config *gr_config);
 		} config;
 
+		struct {
+			u32 (*fecs_base_addr)(void);
+			u32 (*gpccs_base_addr)(void);
+			void (*dump_stats)(struct gk20a *g);
+			u32 (*fecs_ctxsw_mailbox_size)(void);
+			u32 (*get_fecs_ctx_state_store_major_rev_id)
+							(struct gk20a *g);
+		} falcon;
 #ifdef CONFIG_GK20A_CTXSW_TRACE
 		struct {
 			int (*init)(struct gk20a *g);
@@ -740,8 +745,6 @@ struct gpu_ops {
 		} intr;
 
 		u32 (*get_ctxsw_checksum_mismatch_mailbox_val)(void);
-		u32 (*fecs_falcon_base_addr)(void);
-		u32 (*gpccs_falcon_base_addr)(void);
 
 		struct {
 			int (*report_ecc_parity_err)(struct gk20a *g,

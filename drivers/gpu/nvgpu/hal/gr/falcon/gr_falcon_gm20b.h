@@ -1,7 +1,5 @@
 /*
- * GP106 GPU GR
- *
- * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -22,22 +20,17 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NVGPU_GR_GP106_H
-#define NVGPU_GR_GP106_H
+#ifndef NVGPU_GR_FALCON_GM20B_H
+#define NVGPU_GR_FALCON_GM20B_H
+
+#include <nvgpu/types.h>
 
 struct gk20a;
 
-#define	PASCAL_B		0xC197U
-#define	PASCAL_COMPUTE_B	0xC1C0U
+u32 gm20b_gr_falcon_fecs_base_addr(void);
+u32 gm20b_gr_falcon_gpccs_base_addr(void);
+void gm20b_gr_falcon_fecs_dump_stats(struct gk20a *g);
+u32 gm20b_gr_falcon_get_fecs_ctx_state_store_major_rev_id(struct gk20a *g);
+u32 gm20b_gr_falcon_get_fecs_ctxsw_mailbox_size(void);
 
-bool gr_gp106_is_valid_class(struct gk20a *g, u32 class_num);
-u32 gr_gp106_pagepool_default_size(struct gk20a *g);
-int gr_gp106_handle_sw_method(struct gk20a *g, u32 addr,
-				     u32 class_num, u32 offset, u32 data);
-int gr_gp106_set_ctxsw_preemption_mode(struct gk20a *g,
-				struct nvgpu_gr_ctx *gr_ctx,
-				struct vm_gk20a *vm, u32 class,
-				u32 graphics_preempt_mode,
-				u32 compute_preempt_mode);
-
-#endif /* NVGPU_GR_GP106_H */
+#endif /* NVGPU_GR_FALCON_GM20B_H */

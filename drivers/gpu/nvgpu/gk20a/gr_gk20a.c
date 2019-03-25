@@ -183,19 +183,6 @@ static void gr_report_ctxsw_error(struct gk20a *g, u32 err_type, u32 chid,
 	}
 }
 
-void gk20a_fecs_dump_falcon_stats(struct gk20a *g)
-{
-	unsigned int i;
-
-	nvgpu_falcon_dump_stats(&g->fecs_flcn);
-
-	for (i = 0; i < g->ops.gr.fecs_ctxsw_mailbox_size(); i++) {
-		nvgpu_err(g, "gr_fecs_ctxsw_mailbox_r(%d) : 0x%x",
-			i, gk20a_readl(g, gr_fecs_ctxsw_mailbox_r(i)));
-	}
-
-}
-
 static void gr_gk20a_load_falcon_dmem(struct gk20a *g)
 {
 	u32 i, ucode_u32_size;
@@ -430,14 +417,14 @@ int gr_gk20a_ctx_wait_ucode(struct gk20a *g, u32 mailbox_id,
 		nvgpu_err(g,
 			   "timeout waiting on mailbox=%d value=0x%08x",
 			   mailbox_id, reg);
-		g->ops.gr.dump_gr_falcon_stats(g);
+		g->ops.gr.falcon.dump_stats(g);
 		gk20a_gr_debug_dump(g);
 		return -1;
 	} else if (check == WAIT_UCODE_ERROR) {
 		nvgpu_err(g,
 			   "ucode method failed on mailbox=%d value=0x%08x",
 			   mailbox_id, reg);
-		g->ops.gr.dump_gr_falcon_stats(g);
+		g->ops.gr.falcon.dump_stats(g);
 		return -1;
 	}
 
@@ -2663,7 +2650,7 @@ int gk20a_gr_handle_fecs_error(struct gk20a *g, struct channel_gk20a *ch,
 		/* currently, recovery is not initiated */
 		nvgpu_err(g, "fecs watchdog triggered for channel %u, "
 				"cannot ctxsw anymore !!", chid);
-		g->ops.gr.dump_gr_falcon_stats(g);
+		g->ops.gr.falcon.dump_stats(g);
 	} else if ((gr_fecs_intr &
 		    gr_fecs_host_int_status_ctxsw_intr_f(CTXSW_INTR0)) != 0U) {
 		u32 mailbox_value = gk20a_readl(g, gr_fecs_ctxsw_mailbox_r(6));
@@ -2712,7 +2699,7 @@ int gk20a_gr_handle_fecs_error(struct gk20a *g, struct channel_gk20a *ch,
 		nvgpu_err(g,
 			"unhandled fecs error interrupt 0x%08x for channel %u",
 			gr_fecs_intr, chid);
-		g->ops.gr.dump_gr_falcon_stats(g);
+		g->ops.gr.falcon.dump_stats(g);
 	}
 
 	gk20a_writel(g, gr_fecs_host_int_clear_r(), gr_fecs_intr);
@@ -5859,19 +5846,4 @@ u32 gk20a_gr_get_sm_no_lock_down_hww_global_esr_mask(struct gk20a *g)
 		gr_gpc0_tpc0_sm_hww_global_esr_single_step_complete_pending_f();
 
 	return global_esr_mask;
-}
-
-u32 gk20a_gr_get_fecs_ctx_state_store_major_rev_id(struct gk20a *g)
-{
-	return nvgpu_readl(g, gr_fecs_ctx_state_store_major_rev_id_r());
-}
-
-u32 gr_gk20a_fecs_falcon_base_addr(void)
-{
-	return gr_fecs_irqsset_r();
-}
-
-u32 gr_gk20a_gpccs_falcon_base_addr(void)
-{
-	return gr_gpcs_gpccs_irqsset_r();
 }

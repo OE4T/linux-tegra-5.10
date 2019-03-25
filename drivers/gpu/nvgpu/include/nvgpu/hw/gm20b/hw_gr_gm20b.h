@@ -854,9 +854,17 @@ static inline u32 gr_fecs_bootvec_vec_f(u32 v)
 {
 	return (v & 0xffffffffU) << 0U;
 }
+static inline u32 gr_fecs_irqsset_r(void)
+{
+	return 0x00409000U;
+}
 static inline u32 gr_fecs_falcon_hwcfg_r(void)
 {
 	return 0x00409108U;
+}
+static inline u32 gr_gpcs_gpccs_irqsset_r(void)
+{
+	return 0x0041a000U;
 }
 static inline u32 gr_gpcs_gpccs_falcon_hwcfg_r(void)
 {

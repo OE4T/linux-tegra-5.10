@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -52,5 +52,5 @@ void nvgpu_pmu_dump_falcon_stats(struct nvgpu_pmu *pmu)
 	nvgpu_err(g, "elpg state: %d", pmu->pmu_pg.elpg_stat);
 
 	/* PMU may crash due to FECS crash. Dump FECS status */
-	g->ops.gr.dump_gr_falcon_stats(g);
+	g->ops.gr.falcon.dump_stats(g);
 }

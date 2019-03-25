@@ -126,7 +126,8 @@ static int nvgpu_netlist_init_ctx_vars_fw(struct gk20a *g)
 	} else {
 		net = NETLIST_SLOT_A;
 		max = MAX_NETLIST;
-		major_v_hw = g->ops.gr.get_fecs_ctx_state_store_major_rev_id(g);
+		major_v_hw =
+		g->ops.gr.falcon.get_fecs_ctx_state_store_major_rev_id(g);
 		netlist_vars->dynamic = true;
 	}
 

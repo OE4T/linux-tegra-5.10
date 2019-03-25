@@ -654,7 +654,7 @@ static bool gk20a_fifo_handle_mmu_fault_locked(
 			  mmfault_info.access_type, mmfault_info.inst_ptr);
 
 		if (ctxsw) {
-			g->ops.gr.dump_gr_falcon_stats(g);
+			g->ops.gr.falcon.dump_stats(g);
 			nvgpu_err(g, "  gr_status_r: 0x%x",
 				  gk20a_readl(g, gr_status_r()));
 		}

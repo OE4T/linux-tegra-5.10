@@ -1,7 +1,5 @@
 /*
- * GP106 GPU GR
- *
- * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -22,22 +20,42 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NVGPU_GR_GP106_H
-#define NVGPU_GR_GP106_H
+#include <nvgpu/gk20a.h>
+#include <nvgpu/io.h>
+#include <nvgpu/debug.h>
 
-struct gk20a;
+#include "gr_falcon_gm20b.h"
 
-#define	PASCAL_B		0xC197U
-#define	PASCAL_COMPUTE_B	0xC1C0U
+#include <nvgpu/hw/gm20b/hw_gr_gm20b.h>
 
-bool gr_gp106_is_valid_class(struct gk20a *g, u32 class_num);
-u32 gr_gp106_pagepool_default_size(struct gk20a *g);
-int gr_gp106_handle_sw_method(struct gk20a *g, u32 addr,
-				     u32 class_num, u32 offset, u32 data);
-int gr_gp106_set_ctxsw_preemption_mode(struct gk20a *g,
-				struct nvgpu_gr_ctx *gr_ctx,
-				struct vm_gk20a *vm, u32 class,
-				u32 graphics_preempt_mode,
-				u32 compute_preempt_mode);
+u32 gm20b_gr_falcon_fecs_base_addr(void)
+{
+	return gr_fecs_irqsset_r();
+}
 
-#endif /* NVGPU_GR_GP106_H */
+u32 gm20b_gr_falcon_gpccs_base_addr(void)
+{
+	return gr_gpcs_gpccs_irqsset_r();
+}
+
+void gm20b_gr_falcon_fecs_dump_stats(struct gk20a *g)
+{
+	unsigned int i;
+
+	nvgpu_falcon_dump_stats(&g->fecs_flcn);
+
+	for (i = 0; i < g->ops.gr.falcon.fecs_ctxsw_mailbox_size(); i++) {
+		nvgpu_err(g, "gr_fecs_ctxsw_mailbox_r(%d) : 0x%x",
+			i, nvgpu_readl(g, gr_fecs_ctxsw_mailbox_r(i)));
+	}
+}
+
+u32 gm20b_gr_falcon_get_fecs_ctx_state_store_major_rev_id(struct gk20a *g)
+{
+	return nvgpu_readl(g, gr_fecs_ctx_state_store_major_rev_id_r());
+}
+
+u32 gm20b_gr_falcon_get_fecs_ctxsw_mailbox_size(void)
+{
+	return gr_fecs_ctxsw_mailbox__size_1_v();
+}
