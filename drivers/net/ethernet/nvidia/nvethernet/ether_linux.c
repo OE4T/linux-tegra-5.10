@@ -1117,11 +1117,45 @@ static int ether_ioctl(struct net_device *dev, struct ifreq *rq, int cmd)
 	return ret;
 }
 
+/**
+ *	ether_set_mac_addr - Set MAC address
+ *	@ndev: Network device structure
+ *	@addr: MAC address to be programmed.
+ *
+ *	Algorithm:
+ *	1) Checks whether given MAC address is valid or not
+ *	2) Stores the MAC address in OSI core structure
+ *
+ *	Dependencies: Ethernet interface need to be down to set MAC address
+ *
+ *	Protection: None.
+ *
+ *	Return: 0 - success, negative value - failure.
+ */
+static int ether_set_mac_addr(struct net_device *ndev, void *addr)
+{
+	struct ether_priv_data *pdata = netdev_priv(ndev);
+	struct osi_core_priv_data *osi_core = pdata->osi_core;
+	int ret = 0;
+
+	ret = eth_mac_addr(ndev, addr);
+	if (ret) {
+		dev_err(pdata->dev, "failed to set MAC address\n");
+		return ret;
+	}
+
+	/* MAC address programmed in HW registers during osi_hw_core_init() */
+	memcpy(osi_core->mac_addr, ndev->dev_addr, ETH_ALEN);
+
+	return ret;
+}
+
 static const struct net_device_ops ether_netdev_ops = {
 	.ndo_open = ether_open,
 	.ndo_stop = ether_close,
 	.ndo_start_xmit = ether_start_xmit,
 	.ndo_do_ioctl = ether_ioctl,
+	.ndo_set_mac_address = ether_set_mac_addr,
 };
 
 /**
