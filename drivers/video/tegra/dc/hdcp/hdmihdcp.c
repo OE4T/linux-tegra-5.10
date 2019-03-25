@@ -1,7 +1,7 @@
 /*
  * hdmihdcp.c: hdmi hdcp functions.
  *
- * Copyright (c) 2014-2018, NVIDIA CORPORATION, All rights reserved.
+ * Copyright (c) 2014-2019, NVIDIA CORPORATION, All rights reserved.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -943,6 +943,7 @@ static int verify_vprime(struct tegra_nvhdcp *nvhdcp, u8 repeater)
 			buf, nvhdcp->num_bksv_list, pkt);
 exit:
 	tsec_hdcp_free_context(hdcp_context);
+	kfree(hdcp_context);
 	kfree(pkt);
 	return e;
 }
