@@ -1446,6 +1446,7 @@ int tu104_init_hal(struct gk20a *g)
 	nvgpu_set_enabled(g, NVGPU_PMU_FECS_BOOTSTRAP_DONE, false);
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_MULTIPLE_WPR, true);
 	nvgpu_set_enabled(g, NVGPU_FECS_TRACE_VA, true);
+	nvgpu_set_enabled(g, NVGPU_FECS_TRACE_FEATURE_CONTROL, true);
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_SEC2_RTOS, true);
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_PMU_RTOS_FBQ, true);
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_ZBC_STENCIL, true);

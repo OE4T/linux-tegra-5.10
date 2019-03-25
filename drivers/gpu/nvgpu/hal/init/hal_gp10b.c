@@ -1122,6 +1122,7 @@ int gp10b_init_hal(struct gk20a *g)
 	nvgpu_set_enabled(g, NVGPU_GR_USE_DMA_FOR_FW_BOOTSTRAP, true);
 	nvgpu_set_enabled(g, NVGPU_PMU_PSTATE, false);
 	nvgpu_set_enabled(g, NVGPU_FECS_TRACE_VA, false);
+	nvgpu_set_enabled(g, NVGPU_FECS_TRACE_FEATURE_CONTROL, false);
 
 	nvgpu_pramin_ops_init(g);
 

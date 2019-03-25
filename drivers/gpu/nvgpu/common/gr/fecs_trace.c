@@ -272,7 +272,30 @@ int nvgpu_gr_fecs_trace_enable(struct gk20a *g)
 			g->ops.gr.fecs_trace.flush(g);
 
 		write = g->ops.gr.fecs_trace.get_write_index(g);
+
+		if (nvgpu_is_enabled(g, NVGPU_FECS_TRACE_FEATURE_CONTROL)) {
+			/*
+			 * For enabling FECS trace support, MAILBOX1's MSB
+			 * (Bit 31:31) should be set to 1. Bits 30:0 represents
+			 * actual pointer value.
+			 */
+			write = write |
+				(BIT32(NVGPU_FECS_TRACE_FEATURE_CONTROL_BIT));
+		}
+
 		g->ops.gr.fecs_trace.set_read_index(g, write);
+
+		/*
+		 * FECS ucode does a priv holdoff around the assertion of
+		 * context reset. So, pri transactions (e.g. mailbox1 register
+		 * write) might fail due to this. Hence, do write with ack
+		 * i.e. write and read it back to make sure write happened for
+		 * mailbox1.
+		 */
+		while (g->ops.gr.fecs_trace.get_read_index(g) != write) {
+			nvgpu_log(g, gpu_dbg_ctxsw, "mailbox1 update failed");
+			g->ops.gr.fecs_trace.set_read_index(g, write);
+		}
 
 		err = nvgpu_thread_create(&trace->poll_task, g,
 				nvgpu_gr_fecs_trace_periodic_polling, __func__);
@@ -290,6 +313,7 @@ done:
 int nvgpu_gr_fecs_trace_disable(struct gk20a *g)
 {
 	struct nvgpu_gr_fecs_trace *trace = g->fecs_trace;
+	int read = 0;
 
 	if (trace == NULL) {
 		return -EINVAL;
@@ -298,6 +322,29 @@ int nvgpu_gr_fecs_trace_disable(struct gk20a *g)
 	nvgpu_mutex_acquire(&trace->enable_lock);
 	trace->enable_count--;
 	if (trace->enable_count == 0U) {
+		if (nvgpu_is_enabled(g, NVGPU_FECS_TRACE_FEATURE_CONTROL)) {
+			/*
+			 * For disabling FECS trace support, MAILBOX1's MSB
+			 * (Bit 31:31) should be set to 0.
+			 */
+			read = g->ops.gr.fecs_trace.get_read_index(g) &
+				(~(BIT32(NVGPU_FECS_TRACE_FEATURE_CONTROL_BIT)));
+
+			g->ops.gr.fecs_trace.set_read_index(g, read);
+
+			/*
+			 * FECS ucode does a priv holdoff around the assertion
+			 * of context reset. So, pri transactions (e.g.
+			 * mailbox1 register write) might fail due to this.
+			 * Hence, do write with ack i.e. write and read it back
+			 * to make sure write happened for mailbox1.
+			 */
+			while (g->ops.gr.fecs_trace.get_read_index(g) != read) {
+				nvgpu_log(g, gpu_dbg_ctxsw,
+						"mailbox1 update failed");
+				g->ops.gr.fecs_trace.set_read_index(g, read);
+			}
+		}
 		nvgpu_thread_stop(&trace->poll_task);
 	}
 	nvgpu_mutex_release(&trace->enable_lock);
@@ -483,6 +530,11 @@ int nvgpu_gr_fecs_trace_poll(struct gk20a *g)
 	/* Ensure all FECS writes have made it to SYSMEM */
 	g->ops.mm.cache.fb_flush(g);
 
+	if (nvgpu_is_enabled(g, NVGPU_FECS_TRACE_FEATURE_CONTROL)) {
+		/* Bits 30:0 of MAILBOX1 represents actual read pointer value */
+		read = read & (~(BIT32(NVGPU_FECS_TRACE_FEATURE_CONTROL_BIT)));
+	}
+
 	while (read != write) {
 		cnt = nvgpu_gr_fecs_trace_ring_read(g, read, &vm_update_mask);
 		if (cnt <= 0) {
@@ -491,6 +543,15 @@ int nvgpu_gr_fecs_trace_poll(struct gk20a *g)
 
 		/* Get to next record. */
 		read = (read + 1) & (GK20A_FECS_TRACE_NUM_RECORDS - 1);
+	}
+
+	if (nvgpu_is_enabled(g, NVGPU_FECS_TRACE_FEATURE_CONTROL)) {
+		/*
+		 * In the next step, read pointer is going to be updated.
+		 * So, MSB of read pointer should be set back to 1. This will
+		 * keep FECS trace enabled.
+		 */
+		read = read | (BIT32(NVGPU_FECS_TRACE_FEATURE_CONTROL_BIT));
 	}
 
 	/* ensure FECS records has been updated before incrementing read index */
