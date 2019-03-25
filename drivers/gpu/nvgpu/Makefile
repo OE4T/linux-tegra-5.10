@@ -204,6 +204,9 @@ nvgpu-y += \
 	hal/ltc/ltc_gp10b.o \
 	hal/ltc/ltc_gv11b.o  \
 	hal/ltc/ltc_tu104.o \
+	hal/ltc/intr/ltc_intr_gm20b.o \
+	hal/ltc/intr/ltc_intr_gp10b.o \
+	hal/ltc/intr/ltc_intr_gv11b.o  \
 	hal/fb/fb_gm20b.o \
 	hal/fb/fb_gp10b.o \
 	hal/fb/fb_gp106.o \

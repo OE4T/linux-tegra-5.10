@@ -46,6 +46,7 @@
 #include "hal/cbc/cbc_gm20b.h"
 #include "hal/therm/therm_gm20b.h"
 #include "hal/ltc/ltc_gm20b.h"
+#include "hal/ltc/intr/ltc_intr_gm20b.h"
 #include "hal/fb/fb_gm20b.h"
 #include "hal/fuse/fuse_gm20b.h"
 #include "hal/fifo/pbdma_gm20b.h"
@@ -214,7 +215,6 @@ static const struct gpu_ops gm20b_ops = {
 		.set_zbc_color_entry = gm20b_ltc_set_zbc_color_entry,
 		.set_zbc_depth_entry = gm20b_ltc_set_zbc_depth_entry,
 		.init_fs_state = gm20b_ltc_init_fs_state,
-		.isr = gm20b_ltc_isr,
 		.flush = gm20b_flush_ltc,
 		.set_enabled = gm20b_ltc_set_enabled,
 		.pri_is_ltc_addr = gm20b_ltc_pri_is_ltc_addr,
@@ -222,6 +222,11 @@ static const struct gpu_ops gm20b_ops = {
 		.is_ltcn_ltss_addr = gm20b_ltc_is_ltcn_ltss_addr,
 		.split_lts_broadcast_addr = gm20b_ltc_split_lts_broadcast_addr,
 		.split_ltc_broadcast_addr = gm20b_ltc_split_ltc_broadcast_addr,
+		.intr = {
+			.configure = gm20b_ltc_intr_configure,
+			.isr = gm20b_ltc_intr_isr,
+			.en_illegal_compstat = NULL,
+		},
 	},
 	.cbc = {
 		.init = gm20b_cbc_init,

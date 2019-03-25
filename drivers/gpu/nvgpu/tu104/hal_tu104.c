@@ -40,6 +40,7 @@
 #include "hal/ltc/ltc_gp10b.h"
 #include "hal/ltc/ltc_gv11b.h"
 #include "hal/ltc/ltc_tu104.h"
+#include "hal/ltc/intr/ltc_intr_gv11b.h"
 #include "hal/fb/fb_gm20b.h"
 #include "hal/fb/fb_gp10b.h"
 #include "hal/fb/fb_gp106.h"
@@ -367,15 +368,19 @@ static const struct gpu_ops tu104_ops = {
 		.set_zbc_color_entry = gm20b_ltc_set_zbc_color_entry,
 		.set_zbc_depth_entry = gm20b_ltc_set_zbc_depth_entry,
 		.init_fs_state = ltc_tu104_init_fs_state,
-		.isr = gv11b_ltc_isr,
 		.flush = gm20b_flush_ltc,
 		.set_enabled = gp10b_ltc_set_enabled,
-		.intr_en_illegal_compstat = gv11b_ltc_intr_en_illegal_compstat,
 		.pri_is_ltc_addr = gm20b_ltc_pri_is_ltc_addr,
 		.is_ltcs_ltss_addr = gm20b_ltc_is_ltcs_ltss_addr,
 		.is_ltcn_ltss_addr = gm20b_ltc_is_ltcn_ltss_addr,
 		.split_lts_broadcast_addr = gm20b_ltc_split_lts_broadcast_addr,
 		.split_ltc_broadcast_addr = gm20b_ltc_split_ltc_broadcast_addr,
+		.intr = {
+			.configure = gv11b_ltc_intr_configure,
+			.isr = gv11b_ltc_intr_isr,
+			.en_illegal_compstat =
+				gv11b_ltc_intr_en_illegal_compstat,
+		}
 	},
 	.cbc = {
 		.init = tu104_cbc_init,

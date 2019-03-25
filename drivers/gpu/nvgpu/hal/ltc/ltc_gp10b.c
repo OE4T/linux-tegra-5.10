@@ -22,13 +22,9 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#include <trace/events/gk20a.h>
-
 #include <nvgpu/ltc.h>
 #include <nvgpu/log.h>
-#include <nvgpu/enabled.h>
 #include <nvgpu/io.h>
-#include <nvgpu/timers.h>
 #include <nvgpu/gk20a.h>
 
 #include <nvgpu/hw/gp10b/hw_ltc_gp10b.h>
@@ -56,88 +52,13 @@ int gp10b_determine_L2_size_bytes(struct gk20a *g)
 	return ret;
 }
 
-void gp10b_ltc_lts_isr(struct gk20a *g,	unsigned int ltc, unsigned int slice)
-{
-	u32 offset;
-	u32 ltc_intr;
-	u32 ltc_stride = nvgpu_get_litter_value(g, GPU_LIT_LTC_STRIDE);
-	u32 lts_stride = nvgpu_get_litter_value(g, GPU_LIT_LTS_STRIDE);
-
-	offset = ltc_stride * ltc + lts_stride * slice;
-	ltc_intr = gk20a_readl(g, ltc_ltc0_lts0_intr_r() + offset);
-
-	/* Detect and handle ECC errors */
-	if ((ltc_intr &
-	     ltc_ltcs_ltss_intr_ecc_sec_error_pending_f()) != 0U) {
-		u32 ecc_stats_reg_val;
-
-		nvgpu_err(g,
-			"Single bit error detected in GPU L2!");
-
-		ecc_stats_reg_val =
-			gk20a_readl(g,
-				ltc_ltc0_lts0_dstg_ecc_report_r() + offset);
-		g->ecc.ltc.ecc_sec_count[ltc][slice].counter +=
-			ltc_ltc0_lts0_dstg_ecc_report_sec_count_v(ecc_stats_reg_val);
-		ecc_stats_reg_val &=
-			~(ltc_ltc0_lts0_dstg_ecc_report_sec_count_m());
-		nvgpu_writel_check(g,
-			ltc_ltc0_lts0_dstg_ecc_report_r() + offset,
-			ecc_stats_reg_val);
-		if (g->ops.mm.l2_flush(g, true) != 0) {
-			nvgpu_err(g, "l2_flush failed");
-		}
-	}
-	if ((ltc_intr &
-	     ltc_ltcs_ltss_intr_ecc_ded_error_pending_f()) != 0U) {
-		u32 ecc_stats_reg_val;
-
-		nvgpu_err(g,
-			"Double bit error detected in GPU L2!");
-
-		ecc_stats_reg_val =
-			gk20a_readl(g,
-				ltc_ltc0_lts0_dstg_ecc_report_r() + offset);
-		g->ecc.ltc.ecc_ded_count[ltc][slice].counter +=
-			ltc_ltc0_lts0_dstg_ecc_report_ded_count_v(ecc_stats_reg_val);
-		ecc_stats_reg_val &=
-			~(ltc_ltc0_lts0_dstg_ecc_report_ded_count_m());
-		nvgpu_writel_check(g,
-			ltc_ltc0_lts0_dstg_ecc_report_r() + offset,
-			ecc_stats_reg_val);
-	}
-
-	nvgpu_err(g, "ltc%d, slice %d: %08x",
-		  ltc, slice, ltc_intr);
-	nvgpu_writel_check(g, ltc_ltc0_lts0_intr_r() +
-		ltc_stride * ltc + lts_stride * slice,
-		ltc_intr);
-}
-
-void gp10b_ltc_isr(struct gk20a *g, unsigned int ltc)
-{
-	unsigned int slice;
-
-	for (slice = 0U; slice < g->ltc->slices_per_ltc; slice++) {
-		gp10b_ltc_lts_isr(g, ltc, slice);
-	}
-}
-
 void gp10b_ltc_init_fs_state(struct gk20a *g)
 {
-	u32 ltc_intr;
-
 	gm20b_ltc_init_fs_state(g);
 
 	gk20a_writel(g, ltc_ltca_g_axi_pctrl_r(),
 			ltc_ltca_g_axi_pctrl_user_sid_f(g->ltc_streamid));
 
-	/* Enable ECC interrupts */
-	ltc_intr = gk20a_readl(g, ltc_ltcs_ltss_intr_r());
-	ltc_intr |= ltc_ltcs_ltss_intr_en_ecc_sec_error_enabled_f() |
-			ltc_ltcs_ltss_intr_en_ecc_ded_error_enabled_f();
-	gk20a_writel(g, ltc_ltcs_ltss_intr_r(),
-			ltc_intr);
 }
 
 void gp10b_ltc_set_enabled(struct gk20a *g, bool enabled)

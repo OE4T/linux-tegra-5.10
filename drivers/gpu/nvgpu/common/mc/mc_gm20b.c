@@ -356,7 +356,7 @@ void gm20b_mc_fb_reset(struct gk20a *g)
 void gm20b_mc_ltc_isr(struct gk20a *g)
 {
 	u32 mc_intr;
-	unsigned int ltc;
+	u32 ltc;
 
 	mc_intr = gk20a_readl(g, mc_intr_ltc_r());
 	nvgpu_err(g, "mc_ltc_intr: %08x", mc_intr);
@@ -364,6 +364,6 @@ void gm20b_mc_ltc_isr(struct gk20a *g)
 		if ((mc_intr & BIT32(ltc)) == 0U) {
 			continue;
 		}
-		g->ops.ltc.isr(g, ltc);
+		g->ops.ltc.intr.isr(g, ltc);
 	}
 }

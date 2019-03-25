@@ -39,8 +39,6 @@ void gm20b_ltc_set_zbc_depth_entry(struct gk20a *g,
 					  u32 index);
 void gm20b_ltc_set_enabled(struct gk20a *g, bool enabled);
 void gm20b_ltc_init_fs_state(struct gk20a *g);
-void gm20b_ltc_isr(struct gk20a *g, unsigned int ltc);
-void gm20b_ltc_lts_isr(struct gk20a *g, unsigned int ltc, unsigned int slice);
 void gm20b_flush_ltc(struct gk20a *g);
 bool gm20b_ltc_pri_is_ltc_addr(struct gk20a *g, u32 addr);
 bool gm20b_ltc_is_ltcs_ltss_addr(struct gk20a *g, u32 addr);

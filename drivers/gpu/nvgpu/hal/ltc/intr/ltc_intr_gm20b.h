@@ -1,5 +1,7 @@
 /*
- * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
+ * GM20B L2 INTR
+ *
+ * Copyright (c) 2014-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -20,13 +22,14 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef LTC_GV11B_H
-#define LTC_GV11B_H
+#ifndef NVGPU_LTC_INTR_GM20B
+#define NVGPU_LTC_INTR_GM20B
+
+#include <nvgpu/types.h>
+
 struct gk20a;
 
-void gv11b_ltc_set_zbc_stencil_entry(struct gk20a *g,
-					  u32 stencil_depth,
-					  u32 index);
-void gv11b_ltc_init_fs_state(struct gk20a *g);
+void gm20b_ltc_intr_configure(struct gk20a *g);
+void gm20b_ltc_intr_isr(struct gk20a *g, u32 ltc);
 
 #endif

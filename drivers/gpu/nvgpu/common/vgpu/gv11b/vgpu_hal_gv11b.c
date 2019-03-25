@@ -114,7 +114,6 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 		.set_zbc_color_entry = NULL,
 		.set_zbc_depth_entry = NULL,
 		.init_fs_state = vgpu_ltc_init_fs_state,
-		.isr = NULL,
 		.flush = NULL,
 		.set_enabled = NULL,
 		.pri_is_ltc_addr = gm20b_ltc_pri_is_ltc_addr,
@@ -122,6 +121,11 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 		.is_ltcn_ltss_addr = gm20b_ltc_is_ltcn_ltss_addr,
 		.split_lts_broadcast_addr = gm20b_ltc_split_lts_broadcast_addr,
 		.split_ltc_broadcast_addr = gm20b_ltc_split_ltc_broadcast_addr,
+		.intr = {
+			.configure = NULL,
+			.isr = NULL,
+			.en_illegal_compstat = NULL,
+		},
 	},
 	.cbc = {
 		.init = NULL,

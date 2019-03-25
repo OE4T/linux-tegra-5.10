@@ -23,11 +23,8 @@
 #ifndef LTC_GP10B_H
 #define LTC_GP10B_H
 struct gk20a;
-struct gpu_ops;
 
 int gp10b_determine_L2_size_bytes(struct gk20a *g);
 void gp10b_ltc_init_fs_state(struct gk20a *g);
 void gp10b_ltc_set_enabled(struct gk20a *g, bool enabled);
-void gp10b_ltc_isr(struct gk20a *g, unsigned int ltc);
-void gp10b_ltc_lts_isr(struct gk20a *g, unsigned int ltc, unsigned int slice);
 #endif

@@ -416,10 +416,10 @@ void mc_tu104_fbpa_isr(struct gk20a *g)
 
 void mc_tu104_ltc_isr(struct gk20a *g)
 {
-	unsigned int ltc;
+	u32 ltc;
 
 	/* Go through all the LTCs explicitly */
 	for (ltc = 0; ltc < nvgpu_ltc_get_ltc_count(g); ltc++) {
-		g->ops.ltc.isr(g, ltc);
+		g->ops.ltc.intr.isr(g, ltc);
 	}
 }

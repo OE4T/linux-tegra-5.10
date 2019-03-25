@@ -219,9 +219,7 @@ struct gpu_ops {
 					    u32 index);
 		void (*set_enabled)(struct gk20a *g, bool enabled);
 		void (*init_fs_state)(struct gk20a *g);
-		void (*isr)(struct gk20a *g, unsigned int ltc);
 		void (*flush)(struct gk20a *g);
-		void (*intr_en_illegal_compstat)(struct gk20a *g, bool enable);
 		bool (*pri_is_ltc_addr)(struct gk20a *g, u32 addr);
 		bool (*is_ltcs_ltss_addr)(struct gk20a *g, u32 addr);
 		bool (*is_ltcn_ltss_addr)(struct gk20a *g, u32 addr);
@@ -231,6 +229,12 @@ struct gpu_ops {
 		void (*split_ltc_broadcast_addr)(struct gk20a *g, u32 addr,
 							u32 *priv_addr_table,
 							u32 *priv_addr_table_index);
+		struct {
+			void (*configure)(struct gk20a *g);
+			void (*isr)(struct gk20a *g, u32 ltc);
+			void (*en_illegal_compstat)(struct gk20a *g,
+								bool enable);
+		} intr;
 		struct {
 			int (*report_ecc_parity_err)(struct gk20a *g,
 					u32 hw_id, u32 inst, u32 err_id,
