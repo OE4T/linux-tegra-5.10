@@ -20,6 +20,34 @@
         "unit": "bitmap_allocator"
     },
     {
+        "test": "alloc",
+        "unit": "buddy_allocator"
+    },
+    {
+        "test": "basic_ops",
+        "unit": "buddy_allocator"
+    },
+    {
+        "test": "carveout",
+        "unit": "buddy_allocator"
+    },
+    {
+        "test": "destroy",
+        "unit": "buddy_allocator"
+    },
+    {
+        "test": "init",
+        "unit": "buddy_allocator"
+    },
+    {
+        "test": "ops_big_pages",
+        "unit": "buddy_allocator"
+    },
+    {
+        "test": "ops_small_pages",
+        "unit": "buddy_allocator"
+    },
+    {
         "test": "enabled_flags_false_check",
         "unit": "enabled"
     },

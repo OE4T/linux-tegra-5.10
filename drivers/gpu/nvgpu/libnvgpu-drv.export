@@ -74,6 +74,7 @@ nvgpu_bar1_readl
 nvgpu_bar1_writel
 nvgpu_bitmap_allocator_init
 nvgpu_bsearch
+nvgpu_buddy_allocator_init
 nvgpu_dma_alloc
 nvgpu_dma_alloc_get_fault_injection
 nvgpu_dma_alloc_vid_at

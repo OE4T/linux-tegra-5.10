@@ -56,6 +56,7 @@ UNITS :=				\
 	$(UNIT_SRC)/interface/bsearch	\
 	$(UNIT_SRC)/interface/lock	\
 	$(UNIT_SRC)/mm/nvgpu_sgt	\
+	$(UNIT_SRC)/mm/allocators/buddy_allocator	\
 	$(UNIT_SRC)/mm/allocators/nvgpu_allocator	\
 	$(UNIT_SRC)/mm/allocators/bitmap_allocator	\
 	$(UNIT_SRC)/mm/gmmu/pd_cache	\
