@@ -2404,6 +2404,13 @@ int gk20a_init_gr_support(struct gk20a *g)
 		return err;
 	}
 
+	if (g->can_elpg) {
+		err = gk20a_init_gr_bind_fecs_elpg(g);
+		if (err != 0) {
+			return err;
+		}
+	}
+
 	err = gk20a_init_gr_setup_sw(g);
 	if (err != 0) {
 		return err;
@@ -2412,13 +2419,6 @@ int gk20a_init_gr_support(struct gk20a *g)
 	err = gk20a_init_gr_setup_hw(g);
 	if (err != 0) {
 		return err;
-	}
-
-	if (g->can_elpg) {
-		err = gk20a_init_gr_bind_fecs_elpg(g);
-		if (err != 0) {
-			return err;
-		}
 	}
 
 	nvgpu_cg_elcg_enable_no_wait(g);
@@ -2515,7 +2515,6 @@ int gk20a_enable_gr_hw(struct gk20a *g)
 int gk20a_gr_reset(struct gk20a *g)
 {
 	int err;
-	u32 size;
 
 	g->gr.initialized = false;
 
@@ -2548,26 +2547,11 @@ int gk20a_gr_reset(struct gk20a *g)
 		return err;
 	}
 
-	size = 0;
-	err = gr_gk20a_fecs_get_reglist_img_size(g, &size);
-	if (err != 0) {
-		nvgpu_err(g,
-			"fail to query fecs pg buffer size");
-		return err;
-	}
-
-	err = gr_gk20a_fecs_set_reglist_bind_inst(g, &g->mm.pmu.inst_block);
-	if (err != 0) {
-		nvgpu_err(g,
-			"fail to bind pmu inst to gr");
-		return err;
-	}
-
-	err = gr_gk20a_fecs_set_reglist_virtual_addr(g, g->pmu.pmu_pg.pg_buf.gpu_va);
-	if (err != 0) {
-		nvgpu_err(g,
-			"fail to set pg buffer pmu va");
-		return err;
+	if (g->can_elpg) {
+		err = gk20a_init_gr_bind_fecs_elpg(g);
+		if (err != 0) {
+			return err;
+		}
 	}
 
 	nvgpu_cg_init_gr_load_gating_prod(g);
