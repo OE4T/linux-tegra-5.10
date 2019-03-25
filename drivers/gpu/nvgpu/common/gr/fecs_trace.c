@@ -272,7 +272,14 @@ int nvgpu_gr_fecs_trace_enable(struct gk20a *g)
 			g->ops.gr.fecs_trace.flush(g);
 
 		write = g->ops.gr.fecs_trace.get_write_index(g);
-		g->ops.gr.fecs_trace.set_read_index(g, write);
+
+		/*
+		 * For enabling FECS trace support, MAILBOX1's MSB (Bit 31:31)
+		 * should be set to 1. Bits 30:0 represents actual pointer
+		 * value.
+		 */
+		g->ops.gr.fecs_trace.set_read_index(g, write |
+			(BIT32(NVGPU_FECS_TRACE_FEATURE_CONTROL_BIT)));
 
 		err = nvgpu_thread_create(&trace->poll_task, g,
 				nvgpu_gr_fecs_trace_periodic_polling, __func__);
@@ -298,6 +305,13 @@ int nvgpu_gr_fecs_trace_disable(struct gk20a *g)
 	nvgpu_mutex_acquire(&trace->enable_lock);
 	trace->enable_count--;
 	if (trace->enable_count == 0U) {
+		/*
+		 * For disabling FECS trace support, MAILBOX1's MSB (Bit 31:31)
+		 * should be set to 0.
+		 */
+		g->ops.gr.fecs_trace.set_read_index(g,
+			g->ops.gr.fecs_trace.get_read_index(g) &
+			(~(BIT32(NVGPU_FECS_TRACE_FEATURE_CONTROL_BIT))));
 		nvgpu_thread_stop(&trace->poll_task);
 	}
 	nvgpu_mutex_release(&trace->enable_lock);
@@ -483,6 +497,8 @@ int nvgpu_gr_fecs_trace_poll(struct gk20a *g)
 	/* Ensure all FECS writes have made it to SYSMEM */
 	g->ops.mm.cache.fb_flush(g);
 
+	/* Bits 30:0 of MAILBOX1 represents actual read pointer value */
+	read = read & (~(BIT32(NVGPU_FECS_TRACE_FEATURE_CONTROL_BIT)));
 	while (read != write) {
 		cnt = nvgpu_gr_fecs_trace_ring_read(g, read, &vm_update_mask);
 		if (cnt <= 0) {
@@ -492,6 +508,13 @@ int nvgpu_gr_fecs_trace_poll(struct gk20a *g)
 		/* Get to next record. */
 		read = (read + 1) & (GK20A_FECS_TRACE_NUM_RECORDS - 1);
 	}
+
+	/*
+	 * In the next step, read pointer is going to be updated.
+	 * So, MSB of read pointer should be set back to 1. This will
+	 * keep FECS trace enabled.
+	 */
+	read = read | (BIT32(NVGPU_FECS_TRACE_FEATURE_CONTROL_BIT));
 
 	/* ensure FECS records has been updated before incrementing read index */
 	nvgpu_wmb();

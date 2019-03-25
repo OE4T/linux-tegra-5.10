@@ -55,6 +55,7 @@
 	((p)->tag_bits[(n) / 64] &   (1 << ((n) & 63)))
 
 #define NVGPU_GPU_CTXSW_FILTER_SIZE (NVGPU_GPU_CTXSW_TAG_LAST + 1)
+#define NVGPU_FECS_TRACE_FEATURE_CONTROL_BIT 31
 
 struct gk20a;
 struct nvgpu_mem;
