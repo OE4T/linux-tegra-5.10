@@ -2036,6 +2036,8 @@ static int ether_probe(struct platform_device *pdev)
 	}
 
 	ndev->netdev_ops = &ether_netdev_ops;
+	ether_set_ethtool_ops(ndev);
+
 	ndev->hw_features |= NETIF_F_HW_VLAN_CTAG_RX;
 	if (pdata->hw_feat.sa_vlan_ins) {
 		ndev->hw_features |= NETIF_F_HW_VLAN_CTAG_TX;
