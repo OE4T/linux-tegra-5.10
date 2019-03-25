@@ -1077,10 +1077,51 @@ static int ether_start_xmit(struct sk_buff *skb, struct net_device *ndev)
 	return NETDEV_TX_OK;
 }
 
+/**
+ *	ether_ioctl - network stack IOCTL hook to driver
+ *	@ndev: network device structure
+ *	@rq: Interface request structure used for socket
+ *	@cmd: IOCTL command code
+ *
+ *	Algorithm:
+ *	1) Invokes MII API for phy read/write based on IOCTL command
+ *
+ *	Dependencies: Ethernet interface need to be up.
+ *
+ *	Protection: None.
+ *
+ *	Return: 0 - success, negative value - failure.
+ */
+static int ether_ioctl(struct net_device *dev, struct ifreq *rq, int cmd)
+{
+	int ret = -EOPNOTSUPP;
+
+	if (!netif_running(dev))
+		return -EINVAL;
+
+	switch (cmd) {
+	case SIOCGMIIPHY:
+	case SIOCGMIIREG:
+	case SIOCSMIIREG:
+		if (!dev->phydev)
+			return -EINVAL;
+
+		/* generic PHY MII ioctl interface */
+		ret = phy_mii_ioctl(dev->phydev, rq, cmd);
+		break;
+
+	default:
+		break;
+	}
+
+	return ret;
+}
+
 static const struct net_device_ops ether_netdev_ops = {
 	.ndo_open = ether_open,
 	.ndo_stop = ether_close,
 	.ndo_start_xmit = ether_start_xmit,
+	.ndo_do_ioctl = ether_ioctl,
 };
 
 /**
