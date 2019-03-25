@@ -65,6 +65,8 @@ struct atomic_thread_info {
 	unsigned int thread_num;
 	unsigned int iterations;
 	long final_val;
+	long final_expected_val;
+	long xchg_val;
 	long unless;
 };
 
@@ -972,6 +974,132 @@ static int test_atomic_xchg(struct unit_module *m,
 }
 
 /*
+ * Function to do xchg operation for the test_atomic_xchg_threaded() test
+ *
+ * Each thread will run a for loop which will xchg its value with the atomic
+ * See the main test for more details
+ */
+static void *xchg_thread(void *__args)
+{
+	struct atomic_thread_info *targs = (struct atomic_thread_info *)__args;
+	unsigned int i;
+
+	while (true) {
+		/* wait here to start iteration */
+		pthread_barrier_wait(&thread_barrier);
+		if (stop_threads) {
+			return NULL;
+		}
+
+		for (i = 0; i < 1000; i++) {
+			targs->xchg_val = func_xchg(targs->margs->type,
+						targs->atomic, targs->xchg_val);
+		}
+
+		/* wait until everyone finishes this iteration */
+		pthread_barrier_wait(&thread_barrier);
+	}
+
+	return NULL;
+}
+
+/*
+ * Test atomic exchange operation
+ *
+ * Set the atomic to a starting value.
+ * Setup and start the exchange threads.
+ *   Setup includes setting each thread's "xchg_val" to its thread number.
+ * When threads complete, loop through the thread's xchg_val and make sure
+ * each number is unique and someone still has the starting value.
+ */
+static int test_atomic_xchg_threaded(struct unit_module *m,
+				     struct gk20a *g, void *__args)
+{
+	struct atomic_test_args *args = (struct atomic_test_args *)__args;
+	struct atomic_struct atomic = {0};
+	const unsigned int num_threads = 100;
+	struct atomic_thread_info threads[num_threads];
+	unsigned int i;
+	unsigned int repeat = args->repeat_count;
+	int result = UNIT_SUCCESS;
+	const long start_val = -999;
+	bool start_val_present;
+
+	pthread_barrier_init(&thread_barrier, NULL, num_threads + 1);
+	stop_threads = false;
+
+	do {
+		/* start at -999 */
+		if (single_set_and_read(m, &atomic, args->type, start_val) !=
+								UNIT_SUCCESS) {
+			result = UNIT_FAIL;
+			goto exit;
+		}
+
+		/* setup threads */
+		for (i = 0; i < num_threads; i++) {
+			threads[i].iterations = 0;
+			threads[i].xchg_val = i;
+			if (repeat == args->repeat_count) {
+				threads[i].atomic = &atomic;
+				threads[i].margs = args;
+				threads[i].thread_num = i;
+				pthread_create(&threads[i].thread, NULL,
+						xchg_thread, &threads[i]);
+			}
+		}
+
+		/* start threads */
+		pthread_barrier_wait(&thread_barrier);
+
+		/* wait for all threads to complete */
+		pthread_barrier_wait(&thread_barrier);
+
+		start_val_present = false;
+		for (i = 0; i < num_threads; i++) {
+			unsigned int j;
+
+			if (threads[i].xchg_val == start_val) {
+				start_val_present = true;
+			}
+			for (j = (i + 1); j < num_threads; j++) {
+				if (threads[i].xchg_val ==
+						threads[j].xchg_val) {
+					unit_err(m, "duplicate value\n");
+					result = UNIT_FAIL;
+					goto exit;
+				}
+			}
+		}
+		if ((func_read(args->type, &atomic) != start_val) &&
+		    !start_val_present) {
+			unit_err(m, "start value no present\n");
+			result = UNIT_FAIL;
+			goto exit;
+		}
+	} while (repeat-- > 0);
+
+exit:
+	/* signal the end to the threads, then wake them */
+	stop_threads = true;
+	pthread_barrier_wait(&thread_barrier);
+
+	/* wait for all threads to exit */
+	for (i = 0; i < num_threads; i++) {
+		pthread_join(threads[i].thread, NULL);
+	}
+
+	pthread_barrier_destroy(&thread_barrier);
+
+	if (args->type == NOT_ATOMIC) {
+		/* For the non-atomics, pass is fail and fail is pass */
+		return INVERTED_RESULT(result);
+	} else {
+		return result;
+	}
+}
+
+/*
  * Test cmpxchg single threaded for proper functionality
  *
  * Loop calling cmpxchg. Alternating between matching and not matching.
@@ -1257,16 +1385,23 @@ static struct atomic_test_args sub_and_test_64_arg = {
 	.value = 5,
 	.repeat_count = 5000, /* for threaded test */
 };
+struct atomic_test_args xchg_not_atomic_arg = {
+	.type = NOT_ATOMIC,
+	.start_val = 1,
+	.loop_count = 10000,
+	.repeat_count = 2000, /* for threaded test */
+};
 struct atomic_test_args xchg_32_arg = {
 	.type = ATOMIC_32,
 	.start_val = 1,
 	.loop_count = 10000,
-	.repeat_count = 5000, /* for threaded test */
+	.repeat_count = 2000, /* for threaded test */
 };
 struct atomic_test_args xchg_64_arg = {
 	.type = ATOMIC_64,
 	.start_val = INT_MAX,
 	.loop_count = 10000,
+	.repeat_count = 2000, /* for threaded test */
 };
 static struct atomic_test_args add_unless_32_arg = {
 	/* must loop at least 10 times */
@@ -1286,6 +1421,7 @@ static struct atomic_test_args add_unless_64_arg = {
 };
 
 struct unit_module_test atomic_tests[] = {
+	/* Level 0 tests */
 	UNIT_TEST(atomic_set_and_read_32,			test_atomic_set_and_read,			&set_and_read_32_arg, 0),
 	UNIT_TEST(atomic_set_and_read_64,			test_atomic_set_and_read,			&set_and_read_64_arg, 0),
 	UNIT_TEST(atomic_inc_32,				test_atomic_arithmetic,				&inc_32_arg, 0),
@@ -1316,6 +1452,8 @@ struct unit_module_test atomic_tests[] = {
 	UNIT_TEST(atomic_add_64_threaded,			test_atomic_arithmetic_threaded,		&add_64_arg, 0),
 	UNIT_TEST(atomic_sub_32_threaded,			test_atomic_arithmetic_threaded,		&sub_32_arg, 0),
 	UNIT_TEST(atomic_sub_64_threaded,			test_atomic_arithmetic_threaded,		&sub_64_arg, 0),
+
+	/* Level 1 tests */
 	UNIT_TEST(atomic_inc_and_test_not_atomic_threaded,	test_atomic_arithmetic_and_test_threaded,	&inc_and_test_not_atomic_arg, 1),
 	UNIT_TEST(atomic_inc_and_test_32_threaded,		test_atomic_arithmetic_and_test_threaded,	&inc_and_test_32_arg, 1),
 	UNIT_TEST(atomic_inc_and_test_64_threaded,		test_atomic_arithmetic_and_test_threaded,	&inc_and_test_64_arg, 1),
@@ -1327,7 +1465,9 @@ struct unit_module_test atomic_tests[] = {
 	UNIT_TEST(atomic_sub_and_test_64_threaded,		test_atomic_arithmetic_and_test_threaded,	&sub_and_test_64_arg, 1),
 	UNIT_TEST(atomic_add_unless_32_threaded,		test_atomic_arithmetic_threaded,		&add_unless_32_arg, 1),
 	UNIT_TEST(atomic_add_unless_64_threaded,		test_atomic_arithmetic_threaded,		&add_unless_64_arg, 1),
-
+	UNIT_TEST(atomic_xchg_not_atomic_threaded,		test_atomic_xchg_threaded,			&xchg_not_atomic_arg, 1),
+	UNIT_TEST(atomic_xchg_32_threaded,			test_atomic_xchg_threaded,			&xchg_32_arg, 1),
+	UNIT_TEST(atomic_xchg_64_threaded,			test_atomic_xchg_threaded,			&xchg_64_arg, 1),
 };
 
 UNIT_MODULE(atomic, atomic_tests, UNIT_PRIO_POSIX_TEST);

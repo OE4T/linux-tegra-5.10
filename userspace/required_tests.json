@@ -200,8 +200,23 @@
         "unit": "atomic"
     },
     {
+        "test": "atomic_xchg_32_threaded",
+        "test_level": 1,
+        "unit": "atomic"
+    },
+    {
         "test": "atomic_xchg_64",
         "test_level": 0,
+        "unit": "atomic"
+    },
+    {
+        "test": "atomic_xchg_64_threaded",
+        "test_level": 1,
+        "unit": "atomic"
+    },
+    {
+        "test": "atomic_xchg_not_atomic_threaded",
+        "test_level": 1,
         "unit": "atomic"
     },
     {
