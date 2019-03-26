@@ -294,29 +294,6 @@ srcs += common/sim.c \
 	tu104/hal_tu104.c	\
 	tu104/sec2_tu104.c	\
 	tu104/func_tu104.c	\
-	common/vgpu/vgpu.c \
-	common/vgpu/fifo/fifo_vgpu.c \
-	common/vgpu/fifo/runlist_vgpu.c \
-	common/vgpu/fifo/vgpu_fifo_gv11b.c \
-	common/vgpu/fifo/userd_vgpu.c \
-	common/vgpu/tsg_vgpu.c \
-	common/vgpu/perf/cyclestats_snapshot_vgpu.c \
-	common/vgpu/perf/perf_vgpu.c \
-	common/vgpu/gr/fecs_trace_vgpu.c \
-	common/vgpu/mm/mm_vgpu.c \
-	common/vgpu/mm/vm_vgpu.c \
-	common/vgpu/gr/gr_vgpu.c \
-	common/vgpu/gr/ctx_vgpu.c \
-	common/vgpu/gr/subctx_vgpu.c \
-	common/vgpu/clk_vgpu.c \
-	common/vgpu/debugger_vgpu.c \
-	common/vgpu/ltc/ltc_vgpu.c \
-	common/vgpu/cbc/cbc_vgpu.c \
-	common/vgpu/ce_vgpu.c \
-	common/vgpu/gv11b/vgpu_gv11b.c \
-	common/vgpu/gv11b/vgpu_hal_gv11b.c \
-	common/vgpu/gv11b/vgpu_tsg_gv11b.c \
-	common/vgpu/gp10b/vgpu_hal_gp10b.c \
 	hal/bus/bus_gk20a.c	\
 	hal/bus/bus_gm20b.c	\
 	hal/bus/bus_gp10b.c	\
@@ -405,4 +382,30 @@ ifeq ($(NVGPU_LS_PMU),1)
 # Add LS PMU files which are required for normal build
 # TBD: currently LS PMU unit files are dependent on another unit, files can be
 # added once refactored & removed dependency
+endif
+
+ifeq ($(IGPU_VIRT_SUPPORT), 1)
+srcs += common/vgpu/vgpu.c \
+	common/vgpu/fifo/fifo_vgpu.c \
+	common/vgpu/fifo/runlist_vgpu.c \
+	common/vgpu/fifo/vgpu_fifo_gv11b.c \
+	common/vgpu/fifo/userd_vgpu.c \
+	common/vgpu/tsg_vgpu.c \
+	common/vgpu/perf/cyclestats_snapshot_vgpu.c \
+	common/vgpu/perf/perf_vgpu.c \
+	common/vgpu/gr/fecs_trace_vgpu.c \
+	common/vgpu/mm/mm_vgpu.c \
+	common/vgpu/mm/vm_vgpu.c \
+	common/vgpu/gr/gr_vgpu.c \
+	common/vgpu/gr/ctx_vgpu.c \
+	common/vgpu/gr/subctx_vgpu.c \
+	common/vgpu/clk_vgpu.c \
+	common/vgpu/debugger_vgpu.c \
+	common/vgpu/ltc/ltc_vgpu.c \
+	common/vgpu/cbc/cbc_vgpu.c \
+	common/vgpu/ce_vgpu.c \
+	common/vgpu/gv11b/vgpu_gv11b.c \
+	common/vgpu/gv11b/vgpu_hal_gv11b.c \
+	common/vgpu/gv11b/vgpu_tsg_gv11b.c \
+	common/vgpu/gp10b/vgpu_hal_gp10b.c
 endif
