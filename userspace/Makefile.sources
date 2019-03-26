@@ -53,7 +53,6 @@ UNITS :=				\
 	$(UNIT_SRC)/posix/fault-injection \
 	$(UNIT_SRC)/pramin		\
 	$(UNIT_SRC)/fuse		\
-	$(UNIT_SRC)/interface/atomic	\
 	$(UNIT_SRC)/interface/bsearch	\
 	$(UNIT_SRC)/interface/lock	\
 	$(UNIT_SRC)/mm/nvgpu_sgt	\
