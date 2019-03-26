@@ -29,6 +29,7 @@ struct gk20a;
 struct channel_gk20a;
 struct fifo_gk20a;
 struct tsg_gk20a;
+struct tegra_vgpu_fifo_intr_info;
 
 int vgpu_fifo_setup_sw(struct gk20a *g);
 void vgpu_fifo_cleanup_sw(struct gk20a *g);
@@ -56,4 +57,6 @@ int vgpu_tsg_set_timeslice(struct tsg_gk20a *tsg, u32 timeslice);
 void vgpu_tsg_enable(struct tsg_gk20a *tsg);
 int vgpu_set_sm_exception_type_mask(struct channel_gk20a *ch, u32 mask);
 void vgpu_channel_free_ctx_header(struct channel_gk20a *c);
+int vgpu_fifo_isr(struct gk20a *g, struct tegra_vgpu_fifo_intr_info *info);
+
 #endif /* NVGPU_FIFO_VGPU_H */

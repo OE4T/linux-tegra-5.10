@@ -30,8 +30,6 @@
 #include <nvgpu/vgpu/tegra_vgpu.h>
 
 struct device;
-struct tegra_vgpu_gr_intr_info;
-struct tegra_vgpu_fifo_intr_info;
 struct nvgpu_mem;
 struct gk20a;
 struct vm_gk20a;
@@ -64,7 +62,6 @@ static inline u64 vgpu_get_handle(struct gk20a *g)
 }
 
 int vgpu_get_attribute(u64 handle, u32 attrib, u32 *value);
-int vgpu_intr_thread(void *dev_id);
 void vgpu_remove_support_common(struct gk20a *g);
 void vgpu_detect_chip(struct gk20a *g);
 void vgpu_init_gpu_characteristics(struct gk20a *g);
@@ -72,10 +69,6 @@ int vgpu_init_hal(struct gk20a *g);
 int vgpu_init_hal_os(struct gk20a *g);
 int vgpu_get_constants(struct gk20a *g);
 u64 vgpu_mm_bar1_map_userd(struct gk20a *g, struct nvgpu_mem *mem, u32 offset);
-int vgpu_gr_isr(struct gk20a *g, struct tegra_vgpu_gr_intr_info *info);
-void vgpu_gr_handle_sm_esr_event(struct gk20a *g,
-			struct tegra_vgpu_sm_esr_info *info);
-int vgpu_fifo_isr(struct gk20a *g, struct tegra_vgpu_fifo_intr_info *info);
 
 int vgpu_init_mm_support(struct gk20a *g);
 int vgpu_init_gr_support(struct gk20a *g);

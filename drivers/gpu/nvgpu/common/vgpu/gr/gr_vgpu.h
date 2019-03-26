@@ -37,6 +37,8 @@ struct tsg_gk20a;
 struct vm_gk20a;
 struct nvgpu_gr_ctx;
 struct nvgpu_gr_zcull;
+struct tegra_vgpu_gr_intr_info;
+struct tegra_vgpu_sm_esr_info;
 
 void vgpu_gr_detect_sm_arch(struct gk20a *g);
 int vgpu_gr_init_ctx_state(struct gk20a *g);
@@ -83,5 +85,8 @@ void vgpu_gr_init_cyclestats(struct gk20a *g);
 int vgpu_gr_set_preemption_mode(struct channel_gk20a *ch,
 				u32 graphics_preempt_mode,
 				u32 compute_preempt_mode);
+int vgpu_gr_isr(struct gk20a *g, struct tegra_vgpu_gr_intr_info *info);
+void vgpu_gr_handle_sm_esr_event(struct gk20a *g,
+			struct tegra_vgpu_sm_esr_info *info);
 
 #endif /* NVGPU_GR_VGPU_H */

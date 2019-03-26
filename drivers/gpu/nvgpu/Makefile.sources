@@ -406,6 +406,7 @@ endif
 ifeq ($(IGPU_VIRT_SUPPORT), 1)
 srcs += common/vgpu/vgpu.c \
 	common/vgpu/ivc/comm_vgpu.c \
+	common/vgpu/intr/intr_vgpu.c \
 	common/vgpu/ptimer/ptimer_vgpu.c \
 	common/vgpu/fifo/fifo_vgpu.c \
 	common/vgpu/fifo/runlist_vgpu.c \
