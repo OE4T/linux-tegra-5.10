@@ -404,7 +404,8 @@ ifeq ($(NVGPU_LS_PMU),1)
 endif
 
 ifeq ($(IGPU_VIRT_SUPPORT), 1)
-srcs += common/vgpu/vgpu.c \
+srcs += common/vgpu/init/init_vgpu.c \
+	common/vgpu/init/init_hal_vgpu.c \
 	common/vgpu/ivc/comm_vgpu.c \
 	common/vgpu/intr/intr_vgpu.c \
 	common/vgpu/ptimer/ptimer_vgpu.c \

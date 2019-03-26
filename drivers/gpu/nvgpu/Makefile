@@ -490,7 +490,8 @@ nvgpu-$(CONFIG_TEGRA_GR_VIRTUALIZATION) += \
 	common/vgpu/ce_vgpu.o \
 	common/vgpu/mm/mm_vgpu.o \
 	common/vgpu/mm/vm_vgpu.o \
-	common/vgpu/vgpu.o \
+	common/vgpu/init/init_vgpu.o \
+	common/vgpu/init/init_hal_vgpu.o \
 	common/vgpu/ivc/comm_vgpu.o \
 	common/vgpu/intr/intr_vgpu.o \
 	common/vgpu/ptimer/ptimer_vgpu.o \

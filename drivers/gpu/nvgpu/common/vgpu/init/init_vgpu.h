@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -20,27 +20,15 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#include <nvgpu/enabled.h>
-#include <nvgpu/gk20a.h>
-#include <nvgpu/vgpu/vgpu.h>
+#ifndef INIT_VGPU_H
+#define INIT_VGPU_H
 
-#include "vgpu_gv11b.h"
-#include "common/vgpu/init/init_vgpu.h"
+struct gk20a;
 
-void vgpu_gv11b_init_gpu_characteristics(struct gk20a *g)
-{
-	nvgpu_log_fn(g, " ");
+u64 vgpu_connect(void);
+void vgpu_remove_support_common(struct gk20a *g);
+void vgpu_init_gpu_characteristics(struct gk20a *g);
+int vgpu_get_constants(struct gk20a *g);
+int vgpu_finalize_poweron_common(struct gk20a *g);
 
-	vgpu_init_gpu_characteristics(g);
-
-	nvgpu_set_enabled(g, NVGPU_SUPPORT_TSG_SUBCONTEXTS, true);
-	nvgpu_set_enabled(g, NVGPU_USE_COHERENT_SYSMEM, true);
-	nvgpu_set_enabled(g, NVGPU_SUPPORT_IO_COHERENCE, true);
-	nvgpu_set_enabled(g, NVGPU_SUPPORT_SCG, true);
-	nvgpu_set_enabled(g, NVGPU_SUPPORT_SYNCPOINT_ADDRESS, true);
-	nvgpu_set_enabled(g, NVGPU_SUPPORT_USER_SYNCPOINT, true);
-	nvgpu_set_enabled(g, NVGPU_SUPPORT_USERMODE_SUBMIT, true);
-	nvgpu_set_enabled(g, NVGPU_SUPPORT_ZBC_STENCIL, true);
-	nvgpu_set_enabled(g, NVGPU_SUPPORT_PREEMPTION_GFXP, true);
-	nvgpu_set_enabled(g, NVGPU_SUPPORT_PLATFORM_ATOMIC, true);
-}
+#endif

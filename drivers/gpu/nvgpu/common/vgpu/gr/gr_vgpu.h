@@ -88,5 +88,6 @@ int vgpu_gr_set_preemption_mode(struct channel_gk20a *ch,
 int vgpu_gr_isr(struct gk20a *g, struct tegra_vgpu_gr_intr_info *info);
 void vgpu_gr_handle_sm_esr_event(struct gk20a *g,
 			struct tegra_vgpu_sm_esr_info *info);
+int vgpu_init_gr_support(struct gk20a *g);
 
 #endif /* NVGPU_GR_VGPU_H */

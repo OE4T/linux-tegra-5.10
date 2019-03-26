@@ -33,7 +33,12 @@
 #include <nvgpu/ltc.h>
 #include <nvgpu/cbc.h>
 
+#include "init_vgpu.h"
+#include "init_hal_vgpu.h"
 #include "common/vgpu/gr/fecs_trace_vgpu.h"
+#include "common/vgpu/fifo/fifo_vgpu.h"
+#include "common/vgpu/mm/mm_vgpu.h"
+#include "common/vgpu/gr/gr_vgpu.h"
 #include "common/vgpu/ivc/comm_vgpu.h"
 
 u64 vgpu_connect(void)
@@ -47,25 +52,6 @@ u64 vgpu_connect(void)
 	err = vgpu_comm_sendrecv(&msg, sizeof(msg), sizeof(msg));
 
 	return (err || msg.ret) ? 0 : p->handle;
-}
-
-int vgpu_get_attribute(u64 handle, u32 attrib, u32 *value)
-{
-	struct tegra_vgpu_cmd_msg msg;
-	struct tegra_vgpu_attrib_params *p = &msg.params.attrib;
-	int err;
-
-	msg.cmd = TEGRA_VGPU_CMD_GET_ATTRIBUTE;
-	msg.handle = handle;
-	p->attrib = attrib;
-	err = vgpu_comm_sendrecv(&msg, sizeof(msg), sizeof(msg));
-
-	if (err || msg.ret) {
-		return -1;
-	}
-
-	*value = p->value;
-	return 0;
 }
 
 void vgpu_remove_support_common(struct gk20a *g)
@@ -108,21 +94,6 @@ void vgpu_remove_support_common(struct gk20a *g)
 	nvgpu_kfree(g, priv->freqs);
 }
 
-void vgpu_detect_chip(struct gk20a *g)
-{
-	struct nvgpu_gpu_params *p = &g->params;
-	struct vgpu_priv_data *priv = vgpu_get_priv_data(g);
-
-	p->gpu_arch = priv->constants.arch;
-	p->gpu_impl = priv->constants.impl;
-	p->gpu_rev = priv->constants.rev;
-
-	nvgpu_log_info(g, "arch: %x, impl: %x, rev: %x\n",
-			p->gpu_arch,
-			p->gpu_impl,
-			p->gpu_rev);
-}
-
 void vgpu_init_gpu_characteristics(struct gk20a *g)
 {
 	nvgpu_log_fn(g, " ");
@@ -135,32 +106,6 @@ void vgpu_init_gpu_characteristics(struct gk20a *g)
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_MAP_BUFFER_BATCH, false);
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_RESCHEDULE_RUNLIST, false);
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_SPARSE_ALLOCS, false);
-}
-
-int vgpu_init_hal(struct gk20a *g)
-{
-	u32 ver = g->params.gpu_arch + g->params.gpu_impl;
-	int err;
-
-	switch (ver) {
-	case NVGPU_GPUID_GP10B:
-		nvgpu_log_info(g, "gp10b detected");
-		err = vgpu_gp10b_init_hal(g);
-		break;
-	case NVGPU_GPUID_GV11B:
-		err = vgpu_gv11b_init_hal(g);
-		break;
-	default:
-		nvgpu_err(g, "no support for %x", ver);
-		err = -ENODEV;
-		break;
-	}
-
-	if (err == 0) {
-		err = vgpu_init_hal_os(g);
-	}
-
-	return err;
 }
 
 int vgpu_get_constants(struct gk20a *g)

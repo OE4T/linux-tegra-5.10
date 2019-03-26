@@ -61,22 +61,11 @@ static inline u64 vgpu_get_handle(struct gk20a *g)
 	return priv->virt_handle;
 }
 
-int vgpu_get_attribute(u64 handle, u32 attrib, u32 *value);
-void vgpu_remove_support_common(struct gk20a *g);
-void vgpu_detect_chip(struct gk20a *g);
-void vgpu_init_gpu_characteristics(struct gk20a *g);
-int vgpu_init_hal(struct gk20a *g);
-int vgpu_init_hal_os(struct gk20a *g);
-int vgpu_get_constants(struct gk20a *g);
 u64 vgpu_mm_bar1_map_userd(struct gk20a *g, struct nvgpu_mem *mem, u32 offset);
-
-int vgpu_init_mm_support(struct gk20a *g);
-int vgpu_init_gr_support(struct gk20a *g);
 
 int vgpu_gp10b_init_hal(struct gk20a *g);
 int vgpu_gv11b_init_hal(struct gk20a *g);
 
 bool vgpu_is_reduced_bar1(struct gk20a *g);
-int vgpu_finalize_poweron_common(struct gk20a *g);
 
 #endif /* NVGPU_VGPU_H */

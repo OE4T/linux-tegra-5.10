@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -20,27 +20,53 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#include <nvgpu/enabled.h>
+#include <nvgpu/log.h>
 #include <nvgpu/gk20a.h>
+
 #include <nvgpu/vgpu/vgpu.h>
+#include <nvgpu/vgpu/os_init_hal_vgpu.h>
 
-#include "vgpu_gv11b.h"
-#include "common/vgpu/init/init_vgpu.h"
+#include "init_hal_vgpu.h"
+#include "common/vgpu/gp10b/vgpu_hal_gp10b.h"
+#include "common/vgpu/gv11b/vgpu_hal_gv11b.h"
 
-void vgpu_gv11b_init_gpu_characteristics(struct gk20a *g)
+int vgpu_init_hal(struct gk20a *g)
 {
-	nvgpu_log_fn(g, " ");
+	u32 ver = g->params.gpu_arch + g->params.gpu_impl;
+	int err;
 
-	vgpu_init_gpu_characteristics(g);
+	switch (ver) {
+	case NVGPU_GPUID_GP10B:
+		nvgpu_log_info(g, "gp10b detected");
+		err = vgpu_gp10b_init_hal(g);
+		break;
+	case NVGPU_GPUID_GV11B:
+		err = vgpu_gv11b_init_hal(g);
+		break;
+	default:
+		nvgpu_err(g, "no support for %x", ver);
+		err = -ENODEV;
+		break;
+	}
 
-	nvgpu_set_enabled(g, NVGPU_SUPPORT_TSG_SUBCONTEXTS, true);
-	nvgpu_set_enabled(g, NVGPU_USE_COHERENT_SYSMEM, true);
-	nvgpu_set_enabled(g, NVGPU_SUPPORT_IO_COHERENCE, true);
-	nvgpu_set_enabled(g, NVGPU_SUPPORT_SCG, true);
-	nvgpu_set_enabled(g, NVGPU_SUPPORT_SYNCPOINT_ADDRESS, true);
-	nvgpu_set_enabled(g, NVGPU_SUPPORT_USER_SYNCPOINT, true);
-	nvgpu_set_enabled(g, NVGPU_SUPPORT_USERMODE_SUBMIT, true);
-	nvgpu_set_enabled(g, NVGPU_SUPPORT_ZBC_STENCIL, true);
-	nvgpu_set_enabled(g, NVGPU_SUPPORT_PREEMPTION_GFXP, true);
-	nvgpu_set_enabled(g, NVGPU_SUPPORT_PLATFORM_ATOMIC, true);
+	if (err == 0) {
+		err = vgpu_init_hal_os(g);
+	}
+
+	return err;
+}
+
+void vgpu_detect_chip(struct gk20a *g)
+{
+	struct nvgpu_gpu_params *p = &g->params;
+	struct vgpu_priv_data *priv = vgpu_get_priv_data(g);
+
+	p->gpu_arch = priv->constants.arch;
+	p->gpu_impl = priv->constants.impl;
+	p->gpu_rev = priv->constants.rev;
+
+	nvgpu_log_info(g, "arch: %x, impl: %x, rev: %x\n",
+			p->gpu_arch,
+			p->gpu_impl,
+			p->gpu_rev);
 }

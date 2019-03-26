@@ -62,4 +62,6 @@ u64 vgpu_locked_gmmu_map(struct vm_gk20a *vm,
 				bool priv,
 				struct vm_gk20a_mapping_batch *batch,
 				enum nvgpu_aperture aperture);
+int vgpu_init_mm_support(struct gk20a *g);
+
 #endif /* NVGPU_MM_VGPU_H */
