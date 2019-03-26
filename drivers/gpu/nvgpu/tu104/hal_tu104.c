@@ -794,7 +794,7 @@ static const struct gpu_ops tu104_ops = {
 	.nvdec = {
 		.falcon_base_addr = tu104_nvdec_falcon_base_addr,
 	},
-	.clock_gating = {
+	.cg = {
 		.slcg_bus_load_gating_prod =
 			tu104_slcg_bus_load_gating_prod,
 		.slcg_ce2_load_gating_prod =
@@ -1365,7 +1365,7 @@ int tu104_init_hal(struct gk20a *g)
 	gops->gr.config = tu104_ops.gr.config;
 	gops->fb = tu104_ops.fb;
 	gops->nvdec = tu104_ops.nvdec;
-	gops->clock_gating = tu104_ops.clock_gating;
+	gops->cg = tu104_ops.cg;
 	gops->fifo = tu104_ops.fifo;
 	gops->engine = tu104_ops.engine;
 	gops->pbdma = tu104_ops.pbdma;

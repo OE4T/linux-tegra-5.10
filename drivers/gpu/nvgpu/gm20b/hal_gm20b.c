@@ -506,7 +506,7 @@ static const struct gpu_ops gm20b_ops = {
 		.tlb_invalidate = gm20b_fb_tlb_invalidate,
 		.mem_unlock = NULL,
 	},
-	.clock_gating = {
+	.cg = {
 		.slcg_bus_load_gating_prod =
 			gm20b_slcg_bus_load_gating_prod,
 		.slcg_ce2_load_gating_prod =
@@ -940,7 +940,7 @@ int gm20b_init_hal(struct gk20a *g)
 	gops->gr.ctxsw_prog = gm20b_ops.gr.ctxsw_prog;
 	gops->gr.config = gm20b_ops.gr.config;
 	gops->fb = gm20b_ops.fb;
-	gops->clock_gating = gm20b_ops.clock_gating;
+	gops->cg = gm20b_ops.cg;
 	gops->fifo = gm20b_ops.fifo;
 	gops->engine = gm20b_ops.engine;
 	gops->pbdma = gm20b_ops.pbdma;

@@ -866,7 +866,7 @@ struct gpu_ops {
 		void (*blcg_pmu_load_gating_prod)(struct gk20a *g, bool prod);
 		void (*blcg_xbar_load_gating_prod)(struct gk20a *g, bool prod);
 		void (*pg_gr_load_gating_prod)(struct gk20a *g, bool prod);
-	} clock_gating;
+	} cg;
 	struct {
 		int (*setup_sw)(struct gk20a *g);
 		void (*cleanup_sw)(struct gk20a *g);

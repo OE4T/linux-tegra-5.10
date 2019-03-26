@@ -374,7 +374,7 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 		.set_debug_mode = vgpu_mm_mmu_set_debug_mode,
 		.tlb_invalidate = vgpu_mm_tlb_invalidate,
 	},
-	.clock_gating = {
+	.cg = {
 		.slcg_bus_load_gating_prod = NULL,
 		.slcg_ce2_load_gating_prod = NULL,
 		.slcg_chiplet_load_gating_prod = NULL,
@@ -728,7 +728,7 @@ int vgpu_gp10b_init_hal(struct gk20a *g)
 	gops->gr.config = vgpu_gp10b_ops.gr.config;
 	gops->fb = vgpu_gp10b_ops.fb;
 	gops->perf = vgpu_gp10b_ops.perf;
-	gops->clock_gating = vgpu_gp10b_ops.clock_gating;
+	gops->cg = vgpu_gp10b_ops.cg;
 	gops->fifo = vgpu_gp10b_ops.fifo;
 	gops->engine = vgpu_gp10b_ops.engine;
 	gops->pbdma = vgpu_gp10b_ops.pbdma;

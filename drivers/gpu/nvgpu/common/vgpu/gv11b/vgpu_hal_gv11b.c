@@ -445,7 +445,7 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 		.read_mmu_fault_info = fb_gv11b_read_mmu_fault_info,
 		.read_mmu_fault_status = fb_gv11b_read_mmu_fault_status,
 	},
-	.clock_gating = {
+	.cg = {
 		.slcg_bus_load_gating_prod = NULL,
 		.slcg_ce2_load_gating_prod = NULL,
 		.slcg_chiplet_load_gating_prod = NULL,
@@ -810,7 +810,7 @@ int vgpu_gv11b_init_hal(struct gk20a *g)
 	gops->gr.config = vgpu_gv11b_ops.gr.config;
 	gops->fb = vgpu_gv11b_ops.fb;
 	gops->perf = vgpu_gv11b_ops.perf;
-	gops->clock_gating = vgpu_gv11b_ops.clock_gating;
+	gops->cg = vgpu_gv11b_ops.cg;
 	gops->fifo = vgpu_gv11b_ops.fifo;
 	gops->engine = vgpu_gv11b_ops.engine;
 	gops->pbdma = vgpu_gv11b_ops.pbdma;

@@ -713,7 +713,7 @@ static const struct gpu_ops gv11b_ops = {
 		.fault_buf_set_state_hw = gv11b_fb_fault_buf_set_state_hw,
 		.fault_buf_configure_hw = gv11b_fb_fault_buf_configure_hw,
 	},
-	.clock_gating = {
+	.cg = {
 		.slcg_bus_load_gating_prod =
 			gv11b_slcg_bus_load_gating_prod,
 		.slcg_ce2_load_gating_prod =
@@ -1193,7 +1193,7 @@ int gv11b_init_hal(struct gk20a *g)
 	gops->gr.ctxsw_prog = gv11b_ops.gr.ctxsw_prog;
 	gops->gr.config = gv11b_ops.gr.config;
 	gops->fb = gv11b_ops.fb;
-	gops->clock_gating = gv11b_ops.clock_gating;
+	gops->cg = gv11b_ops.cg;
 	gops->fifo = gv11b_ops.fifo;
 	gops->engine = gv11b_ops.engine;
 	gops->pbdma = gv11b_ops.pbdma;

@@ -757,7 +757,7 @@ static const struct gpu_ops gv100_ops = {
 	.nvdec = {
 		.falcon_base_addr = gp106_nvdec_falcon_base_addr,
 	},
-	.clock_gating = {
+	.cg = {
 		.slcg_bus_load_gating_prod =
 			gv100_slcg_bus_load_gating_prod,
 		.slcg_ce2_load_gating_prod =
@@ -1322,7 +1322,7 @@ int gv100_init_hal(struct gk20a *g)
 	gops->gr.config = gv100_ops.gr.config;
 	gops->fb = gv100_ops.fb;
 	gops->nvdec = gv100_ops.nvdec;
-	gops->clock_gating = gv100_ops.clock_gating;
+	gops->cg = gv100_ops.cg;
 	gops->fifo = gv100_ops.fifo;
 	gops->engine = gv100_ops.engine;
 	gops->pbdma = gv100_ops.pbdma;
