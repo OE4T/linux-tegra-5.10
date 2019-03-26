@@ -77,6 +77,7 @@ nvgpu-y += \
 	common/gr/ctxsw_prog/ctxsw_prog_gv11b.o \
 	common/gr/global_ctx.o \
 	common/gr/ctx.o \
+	common/gr/gr_falcon.o \
 	common/gr/subctx.o \
 	common/gr/zcull.o \
 	common/gr/config/gr_config.o \

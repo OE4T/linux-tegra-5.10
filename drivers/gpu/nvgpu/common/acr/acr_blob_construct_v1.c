@@ -25,6 +25,7 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/string.h>
 #include <nvgpu/bug.h>
+#include <nvgpu/gr/gr_falcon.h>
 
 #include "acr_blob_construct_v1.h"
 #include "acr_priv.h"
@@ -935,7 +936,7 @@ int nvgpu_acr_prepare_ucode_blob_v1(struct gk20a *g)
 
 	plsfm = &lsfm_l;
 	(void) memset((void *)plsfm, 0, sizeof(struct ls_flcn_mgr_v1));
-	gr_gk20a_init_ctxsw_ucode(g);
+	nvgpu_gr_falcon_init_ctxsw_ucode(g);
 
 	g->acr->get_wpr_info(g, &wpr_inf);
 	nvgpu_acr_dbg(g, "wpr carveout base:%llx\n", (wpr_inf.wpr_base));

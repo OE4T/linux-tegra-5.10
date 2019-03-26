@@ -51,6 +51,7 @@
 #include <nvgpu/gr/ctx.h>
 #include <nvgpu/gr/zbc.h>
 #include <nvgpu/gr/gr.h>
+#include <nvgpu/gr/gr_falcon.h>
 #include <nvgpu/gr/zcull.h>
 #include <nvgpu/gr/config.h>
 #include <nvgpu/gr/fecs_trace.h>
@@ -1109,172 +1110,6 @@ static void gr_gk20a_start_falcon_ucode(struct gk20a *g)
 	nvgpu_log_fn(g, "done");
 }
 
-static int gr_gk20a_init_ctxsw_ucode_vaspace(struct gk20a *g)
-{
-	struct mm_gk20a *mm = &g->mm;
-	struct vm_gk20a *vm = mm->pmu.vm;
-	struct gk20a_ctxsw_ucode_info *ucode_info = &g->ctxsw_ucode_info;
-	int err;
-
-	err = g->ops.mm.alloc_inst_block(g, &ucode_info->inst_blk_desc);
-	if (err != 0) {
-		return err;
-	}
-
-	g->ops.mm.init_inst_block(&ucode_info->inst_blk_desc, vm, 0);
-
-	/* Map ucode surface to GMMU */
-	ucode_info->surface_desc.gpu_va = nvgpu_gmmu_map(vm,
-					&ucode_info->surface_desc,
-					ucode_info->surface_desc.size,
-					0, /* flags */
-					gk20a_mem_flag_read_only,
-					false,
-					ucode_info->surface_desc.aperture);
-	if (ucode_info->surface_desc.gpu_va == 0ULL) {
-		nvgpu_err(g, "failed to update gmmu ptes");
-		return -ENOMEM;
-	}
-
-	return 0;
-}
-
-static void gr_gk20a_init_ctxsw_ucode_segment(
-	struct gk20a_ctxsw_ucode_segment *p_seg, u32 *offset, u32 size)
-{
-	p_seg->offset = *offset;
-	p_seg->size = size;
-	*offset = ALIGN(*offset + size, BLK_SIZE);
-}
-
-static void gr_gk20a_init_ctxsw_ucode_segments(
-	struct gk20a_ctxsw_ucode_segments *segments, u32 *offset,
-	struct gk20a_ctxsw_bootloader_desc *bootdesc,
-	u32 code_size, u32 data_size)
-{
-	u32 boot_size = ALIGN(bootdesc->size, sizeof(u32));
-	segments->boot_entry = bootdesc->entry_point;
-	segments->boot_imem_offset = bootdesc->imem_offset;
-	gr_gk20a_init_ctxsw_ucode_segment(&segments->boot, offset, boot_size);
-	gr_gk20a_init_ctxsw_ucode_segment(&segments->code, offset, code_size);
-	gr_gk20a_init_ctxsw_ucode_segment(&segments->data, offset, data_size);
-}
-
-static int gr_gk20a_copy_ctxsw_ucode_segments(
-	struct gk20a *g,
-	struct nvgpu_mem *dst,
-	struct gk20a_ctxsw_ucode_segments *segments,
-	u32 *bootimage,
-	u32 *code, u32 *data)
-{
-	unsigned int i;
-
-	nvgpu_mem_wr_n(g, dst, segments->boot.offset, bootimage,
-			segments->boot.size);
-	nvgpu_mem_wr_n(g, dst, segments->code.offset, code,
-			segments->code.size);
-	nvgpu_mem_wr_n(g, dst, segments->data.offset, data,
-			segments->data.size);
-
-	/* compute a "checksum" for the boot binary to detect its version */
-	segments->boot_signature = 0;
-	for (i = 0; i < segments->boot.size / sizeof(u32); i++) {
-		segments->boot_signature += bootimage[i];
-	}
-
-	return 0;
-}
-
-int gr_gk20a_init_ctxsw_ucode(struct gk20a *g)
-{
-	struct mm_gk20a *mm = &g->mm;
-	struct vm_gk20a *vm = mm->pmu.vm;
-	struct gk20a_ctxsw_bootloader_desc *fecs_boot_desc;
-	struct gk20a_ctxsw_bootloader_desc *gpccs_boot_desc;
-	struct nvgpu_firmware *fecs_fw;
-	struct nvgpu_firmware *gpccs_fw;
-	u32 *fecs_boot_image;
-	u32 *gpccs_boot_image;
-	struct gk20a_ctxsw_ucode_info *ucode_info = &g->ctxsw_ucode_info;
-	u32 ucode_size;
-	int err = 0;
-
-	fecs_fw = nvgpu_request_firmware(g, GK20A_FECS_UCODE_IMAGE, 0);
-	if (fecs_fw == NULL) {
-		nvgpu_err(g, "failed to load fecs ucode!!");
-		return -ENOENT;
-	}
-
-	fecs_boot_desc = (void *)fecs_fw->data;
-	fecs_boot_image = (void *)(fecs_fw->data +
-				sizeof(struct gk20a_ctxsw_bootloader_desc));
-
-	gpccs_fw = nvgpu_request_firmware(g, GK20A_GPCCS_UCODE_IMAGE, 0);
-	if (gpccs_fw == NULL) {
-		nvgpu_release_firmware(g, fecs_fw);
-		nvgpu_err(g, "failed to load gpccs ucode!!");
-		return -ENOENT;
-	}
-
-	gpccs_boot_desc = (void *)gpccs_fw->data;
-	gpccs_boot_image = (void *)(gpccs_fw->data +
-				sizeof(struct gk20a_ctxsw_bootloader_desc));
-
-	ucode_size = 0;
-	gr_gk20a_init_ctxsw_ucode_segments(&ucode_info->fecs, &ucode_size,
-		fecs_boot_desc,
-		g->netlist_vars->ucode.fecs.inst.count * (u32)sizeof(u32),
-		g->netlist_vars->ucode.fecs.data.count * (u32)sizeof(u32));
-	gr_gk20a_init_ctxsw_ucode_segments(&ucode_info->gpccs, &ucode_size,
-		gpccs_boot_desc,
-		g->netlist_vars->ucode.gpccs.inst.count * (u32)sizeof(u32),
-		g->netlist_vars->ucode.gpccs.data.count * (u32)sizeof(u32));
-
-	err = nvgpu_dma_alloc_sys(g, ucode_size, &ucode_info->surface_desc);
-	if (err != 0) {
-		goto clean_up;
-	}
-
-	gr_gk20a_copy_ctxsw_ucode_segments(g, &ucode_info->surface_desc,
-		&ucode_info->fecs,
-		fecs_boot_image,
-		g->netlist_vars->ucode.fecs.inst.l,
-		g->netlist_vars->ucode.fecs.data.l);
-
-	nvgpu_release_firmware(g, fecs_fw);
-	fecs_fw = NULL;
-
-	gr_gk20a_copy_ctxsw_ucode_segments(g, &ucode_info->surface_desc,
-		&ucode_info->gpccs,
-		gpccs_boot_image,
-		g->netlist_vars->ucode.gpccs.inst.l,
-		g->netlist_vars->ucode.gpccs.data.l);
-
-	nvgpu_release_firmware(g, gpccs_fw);
-	gpccs_fw = NULL;
-
-	err = gr_gk20a_init_ctxsw_ucode_vaspace(g);
-	if (err != 0) {
-		goto clean_up;
-	}
-
-	return 0;
-
-clean_up:
-	if (ucode_info->surface_desc.gpu_va != 0ULL) {
-		nvgpu_gmmu_unmap(vm, &ucode_info->surface_desc,
-				 ucode_info->surface_desc.gpu_va);
-	}
-	nvgpu_dma_free(g, &ucode_info->surface_desc);
-
-	nvgpu_release_firmware(g, gpccs_fw);
-	gpccs_fw = NULL;
-	nvgpu_release_firmware(g, fecs_fw);
-	fecs_fw = NULL;
-
-	return err;
-}
-
 static void gr_gk20a_wait_for_fecs_arb_idle(struct gk20a *g)
 {
 	int retries = FECS_ARB_CMD_TIMEOUT_MAX / FECS_ARB_CMD_TIMEOUT_DEFAULT;
@@ -1528,7 +1363,7 @@ int gr_gk20a_load_ctxsw_ucode(struct gk20a *g)
 		gr_gk20a_start_falcon_ucode(g);
 	} else {
 		if (!g->gr.skip_ucode_init) {
-			err = gr_gk20a_init_ctxsw_ucode(g);
+			err = nvgpu_gr_falcon_init_ctxsw_ucode(g);
 
 			if (err != 0) {
 				return err;
