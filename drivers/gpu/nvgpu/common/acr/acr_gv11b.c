@@ -27,9 +27,11 @@
 
 #include "common/pmu/pmu_gm20b.h"
 
-#include "acr_blob_construct_v1.h"
+#include "acr_wpr.h"
 #include "acr_priv.h"
-
+#include "acr_blob_alloc.h"
+#include "acr_blob_construct_v1.h"
+#include "acr_bootstrap.h"
 #include "acr_gm20b.h"
 #include "acr_gv100.h"
 #include "acr_gv11b.h"

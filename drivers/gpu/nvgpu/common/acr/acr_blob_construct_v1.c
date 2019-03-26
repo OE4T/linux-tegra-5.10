@@ -28,6 +28,8 @@
 #include <nvgpu/gr/gr_falcon.h>
 
 #include "acr_blob_construct_v1.h"
+#include "acr_falcon_bl.h"
+#include "acr_wpr.h"
 #include "acr_priv.h"
 
 static void flcn64_set_dma(struct falc_u64 *dma_addr, u64 value)

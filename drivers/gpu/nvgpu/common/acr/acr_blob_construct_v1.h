@@ -26,6 +26,8 @@
 #include <nvgpu/falcon.h>
 #include <nvgpu/flcnif_cmn.h>
 
+#include "acr_falcon_bl.h"
+
 /*
  * Light Secure WPR Content Alignments
  */
@@ -147,22 +149,6 @@ struct lsf_lsb_header_v1 {
 	u32 app_data_off;
 	u32 app_data_size;
 	u32 flags;
-};
-
-struct flcn_bl_dmem_desc_v1 {
-	u32    reserved[4];        /*Should be the first element..*/
-	u32    signature[4];        /*Should be the first element..*/
-	u32    ctx_dma;
-	struct falc_u64 code_dma_base;
-	u32    non_sec_code_off;
-	u32    non_sec_code_size;
-	u32    sec_code_off;
-	u32    sec_code_size;
-	u32    code_entry_point;
-	struct falc_u64 data_dma_base;
-	u32    data_size;
-	u32 argc;
-	u32 argv;
 };
 
 #define UCODE_NB_MAX_DATE_LENGTH  64U

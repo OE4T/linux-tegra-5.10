@@ -32,55 +32,6 @@
 #include "acr_gv100.h"
 #include "acr_tu104.h"
 
-/* Both size and address of WPR need to be 128K-aligned */
-#define DGPU_WPR_SIZE 0x200000U
-
-/* ACR common API's used within ACR unit */
-int nvgpu_acr_alloc_blob_space_sys(struct gk20a *g, size_t size,
-	struct nvgpu_mem *mem)
-{
-	return nvgpu_dma_alloc_flags_sys(g, NVGPU_DMA_PHYSICALLY_ADDRESSED,
-		size, mem);
-}
-
-int nvgpu_acr_alloc_blob_space_vid(struct gk20a *g, size_t size,
-	struct nvgpu_mem *mem)
-{
-	struct wpr_carveout_info wpr_inf;
-	int err;
-
-	if (mem->size != 0ULL) {
-		return 0;
-	}
-
-	g->acr->get_wpr_info(g, &wpr_inf);
-
-	/*
-	 * Even though this mem_desc wouldn't be used, the wpr region needs to
-	 * be reserved in the allocator.
-	 */
-	err = nvgpu_dma_alloc_vid_at(g, wpr_inf.size,
-		&g->acr->wpr_dummy, wpr_inf.wpr_base);
-	if (err != 0) {
-		return err;
-	}
-
-	return nvgpu_dma_alloc_vid_at(g, wpr_inf.size, mem,
-		wpr_inf.nonwpr_base);
-}
-
-void nvgpu_acr_wpr_info_sys(struct gk20a *g, struct wpr_carveout_info *inf)
-{
-	g->ops.fb.read_wpr_info(g, &inf->wpr_base, &inf->size);
-}
-
-void nvgpu_acr_wpr_info_vid(struct gk20a *g, struct wpr_carveout_info *inf)
-{
-	inf->wpr_base = g->mm.vidmem.bootstrap_base;
-	inf->nonwpr_base = inf->wpr_base + DGPU_WPR_SIZE;
-	inf->size = DGPU_WPR_SIZE;
-}
-
 /* ACR public API's */
 bool nvgpu_acr_is_lsf_lazy_bootstrap(struct gk20a *g, struct nvgpu_acr *acr,
 	u32 falcon_id)

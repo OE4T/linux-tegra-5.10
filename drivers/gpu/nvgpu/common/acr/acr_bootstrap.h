@@ -23,6 +23,11 @@
 #ifndef ACR_BOOTSTRAP_H
 #define ACR_BOOTSTRAP_H
 
+#include "acr_falcon_bl.h"
+
+struct gk20a;
+struct nvgpu_acr;
+
 /*
  * Supporting maximum of 2 regions.
  * This is needed to pre-allocate space in DMEM
@@ -115,36 +120,6 @@ struct flcn_acr_desc_v1 {
 	u32 dummy[4];  /* ACR_BSI_VPR_DESC */
 };
 
-/* HS Falcon BL interfaces */
-/*
- * The header used by NVGPU to figure out code and data sections of bootloader
- *
- * bl_code_off  - Offset of code section in the image
- * bl_code_size - Size of code section in the image
- * bl_data_off  - Offset of data section in the image
- * bl_data_size - Size of data section in the image
- */
-struct flcn_bl_img_hdr {
-	u32 bl_code_off;
-	u32 bl_code_size;
-	u32 bl_data_off;
-	u32 bl_data_size;
-};
-
-/*
- * The descriptor used by NVGPU to figure out the requirements of bootloader
- *
- * bl_start_tag - Starting tag of bootloader
- * bl_desc_dmem_load_off - Dmem offset where _def_rm_flcn_bl_dmem_desc
- * to be loaded
- * bl_img_hdr - Description of the image
- */
-struct hsflcn_bl_desc {
-	u32 bl_start_tag;
-	u32 bl_desc_dmem_load_off;
-	struct flcn_bl_img_hdr bl_img_hdr;
-};
-
 struct bin_hdr {
 	/* 0x10de */
 	u32 bin_magic;
@@ -185,5 +160,45 @@ struct acr_fw_header {
 	u32 hdr_size; /* Size of above header */
 };
 
+/* ACR Falcon descriptor's */
+struct hs_acr {
+#define ACR_DEFAULT	0U
+#define ACR_AHESASC	1U
+#define ACR_ASB		2U
+	u32 acr_type;
+
+	/* HS bootloader to validate & load ACR ucode */
+	struct hs_flcn_bl acr_hs_bl;
+
+	/* ACR ucode */
+	const char *acr_fw_name;
+	struct nvgpu_firmware *acr_fw;
+	struct nvgpu_mem acr_ucode;
+
+	union {
+		struct flcn_bl_dmem_desc bl_dmem_desc;
+		struct flcn_bl_dmem_desc_v1 bl_dmem_desc_v1;
+	};
+
+	void *ptr_bl_dmem_desc;
+	u32 bl_dmem_desc_size;
+
+	union{
+		struct flcn_acr_desc *acr_dmem_desc;
+		struct flcn_acr_desc_v1 *acr_dmem_desc_v1;
+	};
+
+	/* Falcon used to execute ACR ucode */
+	struct nvgpu_falcon *acr_flcn;
+
+	void (*acr_flcn_setup_boot_config)(struct gk20a *g);
+	void (*report_acr_engine_bus_err_status)(struct gk20a *g,
+		u32 bar0_status, u32 error_type);
+	int (*acr_engine_bus_err_status)(struct gk20a *g, u32 *bar0_status,
+		u32 *error_type);
+};
+
+int nvgpu_acr_bootstrap_hs_ucode(struct gk20a *g, struct nvgpu_acr *acr,
+	struct hs_acr *acr_desc);
 
 #endif /* ACR_BOOTSTRAP_H */

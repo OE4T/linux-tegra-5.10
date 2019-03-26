@@ -110,6 +110,8 @@ nvgpu-y += \
 	common/pmu/pmu_gv100.o \
 	common/pmu/pmu_tu104.o \
 	common/acr/acr.o \
+	common/acr/acr_wpr.o \
+	common/acr/acr_blob_alloc.o \
 	common/acr/acr_blob_construct_v0.o \
 	common/acr/acr_blob_construct_v1.o \
 	common/acr/acr_bootstrap.o \

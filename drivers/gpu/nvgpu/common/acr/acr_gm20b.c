@@ -28,9 +28,12 @@
 
 #include "common/pmu/pmu_gm20b.h"
 
-#include "acr_blob_construct_v0.h"
+#include "acr_wpr.h"
 #include "acr_priv.h"
 #include "acr_gm20b.h"
+#include "acr_blob_alloc.h"
+#include "acr_bootstrap.h"
+#include "acr_blob_construct_v0.h"
 
 static int gm20b_acr_patch_wpr_info_to_ucode(struct gk20a *g,
 	struct nvgpu_acr *acr, struct hs_acr *acr_desc, bool is_recovery)

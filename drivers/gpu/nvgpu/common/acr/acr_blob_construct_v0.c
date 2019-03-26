@@ -29,6 +29,8 @@
 #include <nvgpu/gr/gr_falcon.h>
 
 #include "acr_blob_construct_v0.h"
+#include "acr_falcon_bl.h"
+#include "acr_wpr.h"
 #include "acr_priv.h"
 
 int nvgpu_acr_lsf_pmu_ucode_details_v0(struct gk20a *g, void *lsf_ucode_img)

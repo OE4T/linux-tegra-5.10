@@ -30,6 +30,7 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/bug.h>
 
+#include "acr_falcon_bl.h"
 #include "acr_bootstrap.h"
 #include "acr_priv.h"
 

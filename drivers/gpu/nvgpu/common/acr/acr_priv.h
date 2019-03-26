@@ -23,9 +23,6 @@
 #ifndef ACR_H
 #define ACR_H
 
-#include <nvgpu/falcon.h>
-#include <nvgpu/flcnif_cmn.h>
-
 #include "acr_bootstrap.h"
 #include "acr_blob_construct_v0.h"
 #include "acr_blob_construct_v1.h"
@@ -33,6 +30,7 @@
 struct nvgpu_firmware;
 struct gk20a;
 struct nvgpu_acr;
+struct wpr_carveout_info;
 
 #define nvgpu_acr_dbg(g, fmt, args...) \
 	nvgpu_log(g, gpu_dbg_pmu, fmt, ##args)
@@ -94,50 +92,6 @@ struct nvgpu_acr;
 
 #define ACR_COMPLETION_TIMEOUT_MS 10000U /*in msec */
 
-struct wpr_carveout_info {
-	u64 wpr_base;
-	u64 nonwpr_base;
-	u64 size;
-};
-
-/* ACR Falcon descriptor's */
-struct hs_acr {
-#define ACR_DEFAULT	0U
-#define ACR_AHESASC	1U
-#define ACR_ASB		2U
-	u32 acr_type;
-
-	/* HS bootloader to validate & load ACR ucode */
-	struct hs_flcn_bl acr_hs_bl;
-
-	/* ACR ucode */
-	const char *acr_fw_name;
-	struct nvgpu_firmware *acr_fw;
-	struct nvgpu_mem acr_ucode;
-
-	union {
-		struct flcn_bl_dmem_desc bl_dmem_desc;
-		struct flcn_bl_dmem_desc_v1 bl_dmem_desc_v1;
-	};
-
-	void *ptr_bl_dmem_desc;
-	u32 bl_dmem_desc_size;
-
-	union{
-		struct flcn_acr_desc *acr_dmem_desc;
-		struct flcn_acr_desc_v1 *acr_dmem_desc_v1;
-	};
-
-	/* Falcon used to execute ACR ucode */
-	struct nvgpu_falcon *acr_flcn;
-
-	void (*acr_flcn_setup_boot_config)(struct gk20a *g);
-	void (*report_acr_engine_bus_err_status)(struct gk20a *g,
-		u32 bar0_status, u32 error_type);
-	int (*acr_engine_bus_err_status)(struct gk20a *g, u32 *bar0_status,
-		u32 *error_type);
-};
-
 struct acr_lsf_config {
 	u32 falcon_id;
 	u32 falcon_dma_idx;
@@ -189,14 +143,5 @@ struct nvgpu_acr {
 
 	void (*get_wpr_info)(struct gk20a *g, struct wpr_carveout_info *inf);
 };
-
-int nvgpu_acr_bootstrap_hs_ucode(struct gk20a *g, struct nvgpu_acr *acr,
-	struct hs_acr *acr_desc);
-int nvgpu_acr_alloc_blob_space_sys(struct gk20a *g, size_t size,
-	struct nvgpu_mem *mem);
-int nvgpu_acr_alloc_blob_space_vid(struct gk20a *g, size_t size,
-	struct nvgpu_mem *mem);
-void nvgpu_acr_wpr_info_sys(struct gk20a *g, struct wpr_carveout_info *inf);
-void nvgpu_acr_wpr_info_vid(struct gk20a *g, struct wpr_carveout_info *inf);
 
 #endif /* ACR_H */

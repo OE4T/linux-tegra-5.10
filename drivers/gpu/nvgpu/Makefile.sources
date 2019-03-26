@@ -142,6 +142,8 @@ srcs += common/sim.c \
 	common/pmu/pmu_gv100.c \
 	common/pmu/pmu_tu104.c \
 	common/acr/acr.c \
+	common/acr/acr_wpr.c \
+	common/acr/acr_blob_alloc.c \
 	common/acr/acr_blob_construct_v0.c \
 	common/acr/acr_blob_construct_v1.c \
 	common/acr/acr_bootstrap.c \

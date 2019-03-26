@@ -24,12 +24,14 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/bug.h>
 
-#include "acr_blob_construct_v1.h"
+#include "acr_wpr.h"
 #include "acr_priv.h"
 #include "acr_gv100.h"
+#include "acr_blob_alloc.h"
+#include "acr_bootstrap.h"
+#include "acr_blob_construct_v1.h"
 
 #include "gp106/sec2_gp106.h"
-
 
 static void flcn64_set_dma(struct falc_u64 *dma_addr, u64 value)
 {
