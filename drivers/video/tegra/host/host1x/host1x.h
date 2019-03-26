@@ -88,6 +88,9 @@ struct host1x_device_info {
 
 	/* cmdfifo only accessible from hypervisor? */
 	bool		secure_cmdfifo;
+
+	/* ctrl device node name if not default */
+	const char	*ctrl_name;
 };
 
 struct nvhost_master {
