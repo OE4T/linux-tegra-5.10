@@ -748,7 +748,7 @@ int nvgpu_clk_vf_point_cache(struct gk20a *g)
 		}
 	} else {
 		voltage_min_uv = g->clk_pmu->avfs_fllobjs.lut_min_voltage_uv;
-		voltage_step_size_uv = g->clk_pmu->avfs_fllobjs.lut_step_size_uv * 2U;
+		voltage_step_size_uv = g->clk_pmu->avfs_fllobjs.lut_step_size_uv;
 		BOARDOBJGRP_FOR_EACH(pboardobjgrp, struct boardobj*, pboardobj, index) {
 			pclk_vf_point = (struct clk_vf_point *)(void *)pboardobj;
 			gpcclk_voltuv =
