@@ -896,20 +896,12 @@ static void nct1008_work_func(struct work_struct *work)
 	st = nct1008_read_reg(data, STATUS_RD);
 	dev_dbg(&client->dev, "%s: interrupt (0x%08x)\n", data->chip_name, st);
 	if ((st & (LOC_LO_BIT | LOC_HI_BIT)) && data->sensors[LOC].thz)
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 9, 0)
 		thermal_zone_device_update(data->sensors[LOC].thz,
 					   THERMAL_EVENT_UNSPECIFIED);
-#else
-		thermal_zone_device_update(data->sensors[LOC].thz);
-#endif
 
 	if ((st & (EXT_LO_BIT | EXT_HI_BIT)) && data->sensors[EXT].thz)
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 9, 0)
 		thermal_zone_device_update(data->sensors[EXT].thz,
 					   THERMAL_EVENT_UNSPECIFIED);
-#else
-		thermal_zone_device_update(data->sensors[EXT].thz);
-#endif
 
 	/* Initiate one-shot conversion */
 	err = nct1008_write_reg(data, ONE_SHOT, 0x1);
