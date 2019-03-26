@@ -68,55 +68,6 @@ int vgpu_get_attribute(u64 handle, u32 attrib, u32 *value)
 	return 0;
 }
 
-static void vgpu_handle_channel_event(struct gk20a *g,
-			struct tegra_vgpu_channel_event_info *info)
-{
-	struct tsg_gk20a *tsg;
-
-	if (!info->is_tsg) {
-		nvgpu_err(g, "channel event posted");
-		return;
-	}
-
-	if (info->id >= g->fifo.num_channels ||
-		info->event_id >= TEGRA_VGPU_CHANNEL_EVENT_ID_MAX) {
-		nvgpu_err(g, "invalid channel event");
-		return;
-	}
-
-	tsg = &g->fifo.tsg[info->id];
-
-	gk20a_tsg_event_id_post_event(tsg, info->event_id);
-}
-
-static void vgpu_channel_abort_cleanup(struct gk20a *g, u32 chid)
-{
-	struct channel_gk20a *ch = gk20a_channel_from_id(g, chid);
-
-	if (ch == NULL) {
-		nvgpu_err(g, "invalid channel id %d", chid);
-		return;
-	}
-
-	gk20a_channel_set_unserviceable(ch);
-	g->ops.fifo.ch_abort_clean_up(ch);
-	gk20a_channel_put(ch);
-}
-
-static void vgpu_set_error_notifier(struct gk20a *g,
-		struct tegra_vgpu_channel_set_error_notifier *p)
-{
-	struct channel_gk20a *ch;
-
-	if (p->chid >= g->fifo.num_channels) {
-		nvgpu_err(g, "invalid chid %d", p->chid);
-		return;
-	}
-
-	ch = &g->fifo.channel[p->chid];
-	g->ops.fifo.set_error_notifier(ch, p->error);
-}
-
 void vgpu_remove_support_common(struct gk20a *g)
 {
 	struct vgpu_priv_data *priv = vgpu_get_priv_data(g);
