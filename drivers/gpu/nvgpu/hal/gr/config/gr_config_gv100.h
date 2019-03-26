@@ -26,6 +26,7 @@
 #include <nvgpu/types.h>
 
 struct gk20a;
+struct nvgpu_gr_config;
 
 int gv100_gr_config_init_sm_id_table(struct nvgpu_gr_config *gr_config);
 

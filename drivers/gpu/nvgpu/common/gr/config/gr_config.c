@@ -67,7 +67,8 @@ struct nvgpu_gr_config *nvgpu_gr_config_init(struct gk20a *g)
 		goto clean_up;
 	}
 
-	config->sm_count_per_tpc = nvgpu_get_litter_value(g, GPU_LIT_NUM_SM_PER_TPC);
+	config->sm_count_per_tpc =
+		nvgpu_get_litter_value(g, GPU_LIT_NUM_SM_PER_TPC);
 	if (config->sm_count_per_tpc == 0U) {
 		nvgpu_err(g, "sm_count_per_tpc==0!");
 		goto clean_up;
