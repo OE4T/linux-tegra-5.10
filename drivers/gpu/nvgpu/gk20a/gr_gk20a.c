@@ -1809,17 +1809,6 @@ clean_up:
 	return -ENOMEM;
 }
 
-void gr_gk20a_enable_hww_exceptions(struct gk20a *g)
-{
-	/* enable exceptions */
-	gk20a_writel(g, gr_fe_hww_esr_r(),
-		     gr_fe_hww_esr_en_enable_f() |
-		     gr_fe_hww_esr_reset_active_f());
-	gk20a_writel(g, gr_memfmt_hww_esr_r(),
-		     gr_memfmt_hww_esr_en_enable_f() |
-		     gr_memfmt_hww_esr_reset_active_f());
-}
-
 void gr_gk20a_fecs_host_int_enable(struct gk20a *g)
 {
 	gk20a_writel(g, gr_fecs_host_int_enable_r(),
@@ -1861,7 +1850,7 @@ static int gk20a_init_gr_setup_hw(struct gk20a *g)
 	/* enable fecs error interrupts */
 	g->ops.gr.fecs_host_int_enable(g);
 
-	g->ops.gr.enable_hww_exceptions(g);
+	g->ops.gr.intr.enable_hww_exceptions(g);
 	g->ops.gr.set_hww_esr_report_mask(g);
 
 	/* enable TPC exceptions per GPC */

@@ -383,7 +383,6 @@ static const struct gpu_ops gv100_ops = {
 		.set_alpha_circular_buffer_size =
 			gr_gv11b_set_alpha_circular_buffer_size,
 		.set_circular_buffer_size = gr_gv11b_set_circular_buffer_size,
-		.enable_hww_exceptions = gr_gv11b_enable_hww_exceptions,
 		.is_valid_class = gr_gv11b_is_valid_class,
 		.is_valid_gfx_class = gr_gv11b_is_valid_gfx_class,
 		.is_valid_compute_class = gr_gv11b_is_valid_compute_class,
@@ -691,6 +690,8 @@ static const struct gpu_ops gv100_ops = {
 				gp10b_gr_init_commit_global_cb_manager,
 		},
 		.intr = {
+			.enable_hww_exceptions =
+					gv11b_gr_intr_enable_hww_exceptions,
 			.enable_interrupts = gm20b_gr_intr_enable_interrupts,
 			.enable_gpc_exceptions =
 					gv11b_gr_intr_enable_gpc_exceptions,

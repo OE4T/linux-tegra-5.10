@@ -29,6 +29,17 @@
 
 #include <nvgpu/hw/gm20b/hw_gr_gm20b.h>
 
+void gm20b_gr_init_enable_hww_exceptions(struct gk20a *g)
+{
+	/* enable exceptions */
+	nvgpu_writel(g, gr_fe_hww_esr_r(),
+		     gr_fe_hww_esr_en_enable_f() |
+		     gr_fe_hww_esr_reset_active_f());
+	nvgpu_writel(g, gr_memfmt_hww_esr_r(),
+		     gr_memfmt_hww_esr_en_enable_f() |
+		     gr_memfmt_hww_esr_reset_active_f());
+}
+
 void gm20b_gr_intr_enable_interrupts(struct gk20a *g, bool enable)
 {
 	if (enable) {

@@ -29,6 +29,37 @@
 
 #include <nvgpu/hw/gv11b/hw_gr_gv11b.h>
 
+void gv11b_gr_intr_enable_hww_exceptions(struct gk20a *g)
+{
+	/* enable exceptions */
+
+	nvgpu_writel(g, gr_fe_hww_esr_r(),
+		     gr_fe_hww_esr_en_enable_f() |
+		     gr_fe_hww_esr_reset_active_f());
+	nvgpu_writel(g, gr_memfmt_hww_esr_r(),
+		     gr_memfmt_hww_esr_en_enable_f() |
+		     gr_memfmt_hww_esr_reset_active_f());
+	nvgpu_writel(g, gr_pd_hww_esr_r(),
+		     gr_pd_hww_esr_en_enable_f() |
+		     gr_pd_hww_esr_reset_active_f());
+	nvgpu_writel(g, gr_scc_hww_esr_r(),
+		     gr_scc_hww_esr_en_enable_f() |
+		     gr_scc_hww_esr_reset_active_f());
+	nvgpu_writel(g, gr_ds_hww_esr_r(),
+		     gr_ds_hww_esr_en_enabled_f() |
+		     gr_ds_hww_esr_reset_task_f());
+	nvgpu_writel(g, gr_ssync_hww_esr_r(),
+		     gr_ssync_hww_esr_en_enable_f() |
+		     gr_ssync_hww_esr_reset_active_f());
+	nvgpu_writel(g, gr_mme_hww_esr_r(),
+		     gr_mme_hww_esr_en_enable_f() |
+		     gr_mme_hww_esr_reset_active_f());
+
+	/* For now leave POR values */
+	nvgpu_log(g, gpu_dbg_info, "gr_sked_hww_esr_en_r 0x%08x",
+			gk20a_readl(g, gr_sked_hww_esr_en_r()));
+}
+
 void gv11b_gr_intr_enable_exceptions(struct gk20a *g,
 				     struct nvgpu_gr_config *gr_config,
 				     bool enable)

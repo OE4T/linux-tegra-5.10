@@ -142,7 +142,6 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 		.handle_sw_method = NULL,
 		.set_alpha_circular_buffer_size = NULL,
 		.set_circular_buffer_size = NULL,
-		.enable_hww_exceptions = NULL,
 		.is_valid_class = gr_gv11b_is_valid_class,
 		.is_valid_gfx_class = gr_gv11b_is_valid_gfx_class,
 		.is_valid_compute_class = gr_gv11b_is_valid_compute_class,

@@ -396,37 +396,6 @@ static void gr_gv11b_handle_lrf_exception(struct gk20a *g, u32 gpc, u32 tpc,
 			gr_pri_gpc0_tpc0_sm_lrf_ecc_status_reset_task_f());
 }
 
-void gr_gv11b_enable_hww_exceptions(struct gk20a *g)
-{
-	/* enable exceptions */
-
-	gk20a_writel(g, gr_fe_hww_esr_r(),
-		     gr_fe_hww_esr_en_enable_f() |
-		     gr_fe_hww_esr_reset_active_f());
-	gk20a_writel(g, gr_memfmt_hww_esr_r(),
-		     gr_memfmt_hww_esr_en_enable_f() |
-		     gr_memfmt_hww_esr_reset_active_f());
-	gk20a_writel(g, gr_pd_hww_esr_r(),
-		     gr_pd_hww_esr_en_enable_f() |
-		     gr_pd_hww_esr_reset_active_f());
-	gk20a_writel(g, gr_scc_hww_esr_r(),
-		     gr_scc_hww_esr_en_enable_f() |
-		     gr_scc_hww_esr_reset_active_f());
-	gk20a_writel(g, gr_ds_hww_esr_r(),
-		     gr_ds_hww_esr_en_enabled_f() |
-		     gr_ds_hww_esr_reset_task_f());
-	gk20a_writel(g, gr_ssync_hww_esr_r(),
-		     gr_ssync_hww_esr_en_enable_f() |
-		     gr_ssync_hww_esr_reset_active_f());
-	gk20a_writel(g, gr_mme_hww_esr_r(),
-		     gr_mme_hww_esr_en_enable_f() |
-		     gr_mme_hww_esr_reset_active_f());
-
-	/* For now leave POR values */
-	nvgpu_log(g, gpu_dbg_info, "gr_sked_hww_esr_en_r 0x%08x",
-			gk20a_readl(g, gr_sked_hww_esr_en_r()));
-}
-
 void gr_gv11b_fecs_host_int_enable(struct gk20a *g)
 {
 	gk20a_writel(g, gr_fecs_host_int_enable_r(),

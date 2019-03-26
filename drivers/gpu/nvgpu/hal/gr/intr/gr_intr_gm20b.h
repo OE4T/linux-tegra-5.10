@@ -28,6 +28,7 @@
 struct gk20a;
 struct nvgpu_gr_config;
 
+void gm20b_gr_init_enable_hww_exceptions(struct gk20a *g);
 void gm20b_gr_intr_enable_interrupts(struct gk20a *g, bool enable);
 void gm20b_gr_intr_enable_exceptions(struct gk20a *g,
 				     struct nvgpu_gr_config *gr_config,
