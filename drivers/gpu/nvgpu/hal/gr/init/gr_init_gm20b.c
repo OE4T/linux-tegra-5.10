@@ -43,6 +43,26 @@
 #define FE_PWR_MODE_TIMEOUT_DEFAULT_US 10U
 #define FECS_CTXSW_RESET_DELAY_US 10U
 
+u32 gm20b_gr_init_get_fbp_en_mask(struct gk20a *g)
+{
+	u32 fbp_en_mask;
+	u32 max_fbps_count;
+
+	max_fbps_count = g->ops.top.get_max_fbps_count(g);
+
+	/*
+	 * Read active fbp mask from fuse
+	 * Note that 0:enable and 1:disable in value read from fuse so we've to
+	 * flip the bits.
+	 * Also set unused bits to zero
+	 */
+	fbp_en_mask = g->ops.fuse.fuse_status_opt_fbp(g);
+	fbp_en_mask = ~fbp_en_mask;
+	fbp_en_mask = fbp_en_mask & (BIT32(max_fbps_count) - 1U);
+
+	return fbp_en_mask;
+}
+
 void gm20b_gr_init_lg_coalesce(struct gk20a *g, u32 data)
 {
 	u32 val;
@@ -71,6 +91,7 @@ void gm20b_gr_init_su_coalesce(struct gk20a *g, u32 data)
 void gm20b_gr_init_pes_vsc_stream(struct gk20a *g)
 {
 	u32 data = nvgpu_readl(g, gr_gpc0_ppc0_pes_vsc_strem_r());
+
 	data = set_field(data, gr_gpc0_ppc0_pes_vsc_strem_master_pe_m(),
 			gr_gpc0_ppc0_pes_vsc_strem_master_pe_true_f());
 	nvgpu_writel(g, gr_gpc0_ppc0_pes_vsc_strem_r(), data);

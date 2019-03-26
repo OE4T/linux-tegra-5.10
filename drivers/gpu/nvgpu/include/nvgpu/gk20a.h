@@ -335,7 +335,6 @@ struct gpu_ops {
 				struct gk20a_debug_output *o);
 		int (*update_pc_sampling)(struct channel_gk20a *ch,
 					   bool enable);
-		u32 (*get_fbp_en_mask)(struct gk20a *g);
 		u32* (*get_rop_l2_en_mask)(struct gk20a *g);
 		void (*init_sm_dsm_reg_info)(void);
 		void (*init_ovr_sm_dsm_perf)(void);
@@ -661,6 +660,7 @@ struct gpu_ops {
 		} hwpm_map;
 
 		struct {
+			u32 (*get_fbp_en_mask)(struct gk20a *g);
 			void (*lg_coalesce)(struct gk20a *g, u32 data);
 			void (*su_coalesce)(struct gk20a *g, u32 data);
 			void (*pes_vsc_stream)(struct gk20a *g);

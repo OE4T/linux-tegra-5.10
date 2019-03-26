@@ -1770,7 +1770,7 @@ static int gr_gk20a_init_gr_config(struct gk20a *g, struct gr_gk20a *gr)
 	gr->num_fbps = g->ops.priv_ring.get_fbp_count(g);
 	gr->max_fbps_count = g->ops.top.get_max_fbps_count(g);
 
-	gr->fbp_en_mask = g->ops.gr.get_fbp_en_mask(g);
+	gr->fbp_en_mask = g->ops.gr.init.get_fbp_en_mask(g);
 
 	if (gr->fbp_rop_l2_en_mask == NULL) {
 		gr->fbp_rop_l2_en_mask =

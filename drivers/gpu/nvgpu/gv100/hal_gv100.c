@@ -405,7 +405,6 @@ static const struct gpu_ops gv100_ops = {
 			gr_gp10b_update_ctxsw_preemption_mode,
 		.dump_gr_regs = gr_gv11b_dump_gr_status_regs,
 		.update_pc_sampling = gr_gm20b_update_pc_sampling,
-		.get_fbp_en_mask = gr_gm20b_get_fbp_en_mask,
 		.get_rop_l2_en_mask = gr_gm20b_rop_l2_en_mask,
 		.init_sm_dsm_reg_info = gv11b_gr_init_sm_dsm_reg_info,
 		.init_cyclestats = gr_gm20b_init_cyclestats,
@@ -629,6 +628,7 @@ static const struct gpu_ops gv100_ops = {
 				gv100_gr_hwpm_map_get_active_fbpa_mask,
 		},
 		.init = {
+			.get_fbp_en_mask = gm20b_gr_init_get_fbp_en_mask,
 			.lg_coalesce = gm20b_gr_init_lg_coalesce,
 			.su_coalesce = gm20b_gr_init_su_coalesce,
 			.pes_vsc_stream = gm20b_gr_init_pes_vsc_stream,

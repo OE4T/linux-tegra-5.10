@@ -718,26 +718,6 @@ int gr_gm20b_update_pc_sampling(struct channel_gk20a *c,
 	return 0;
 }
 
-u32 gr_gm20b_get_fbp_en_mask(struct gk20a *g)
-{
-	u32 fbp_en_mask;
-	u32 max_fbps_count;
-
-	max_fbps_count = g->ops.top.get_max_fbps_count(g);
-
-	/*
-	 * Read active fbp mask from fuse
-	 * Note that 0:enable and 1:disable in value read from fuse so we've to
-	 * flip the bits.
-	 * Also set unused bits to zero
-	 */
-	fbp_en_mask = g->ops.fuse.fuse_status_opt_fbp(g);
-	fbp_en_mask = ~fbp_en_mask;
-	fbp_en_mask = fbp_en_mask & (BIT32(max_fbps_count) - 1U);
-
-	return fbp_en_mask;
-}
-
 u32 *gr_gm20b_rop_l2_en_mask(struct gk20a *g)
 {
 	struct gr_gk20a *gr = &g->gr;
@@ -749,7 +729,7 @@ u32 *gr_gm20b_rop_l2_en_mask(struct gk20a *g)
 	max_fbps_count = g->ops.top.get_max_fbps_count(g);
 	max_ltc_per_fbp = g->ops.top.get_max_ltc_per_fbp(g);
 	rop_l2_all_en = BIT32(max_ltc_per_fbp) - 1U;
-	fbp_en_mask = gr_gm20b_get_fbp_en_mask(g);
+	fbp_en_mask = g->ops.gr.init.get_fbp_en_mask(g);
 
 	/* mask of Rop_L2 for each FBP */
 	for_each_set_bit(i, &fbp_en_mask, max_fbps_count) {

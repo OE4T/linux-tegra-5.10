@@ -143,7 +143,6 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 			gr_gp10b_update_ctxsw_preemption_mode,
 		.dump_gr_regs = NULL,
 		.update_pc_sampling = vgpu_gr_update_pc_sampling,
-		.get_fbp_en_mask = vgpu_gr_get_fbp_en_mask,
 		.get_rop_l2_en_mask = vgpu_gr_rop_l2_en_mask,
 		.init_sm_dsm_reg_info = gr_gm20b_init_sm_dsm_reg_info,
 		.init_cyclestats = vgpu_gr_init_cyclestats,
@@ -318,6 +317,7 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 		},
 #endif /* CONFIG_GK20A_CTXSW_TRACE */
 		.init = {
+			.get_fbp_en_mask = vgpu_gr_get_fbp_en_mask,
 			.fs_state = vgpu_gr_init_fs_state,
 			.get_bundle_cb_default_size =
 				gm20b_gr_init_get_bundle_cb_default_size,
