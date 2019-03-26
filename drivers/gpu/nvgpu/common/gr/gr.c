@@ -79,6 +79,16 @@ static void gr_load_tpc_mask(struct gk20a *g)
 	g->ops.gr.init.tpc_mask(g, 0, pes_tpc_mask);
 }
 
+/* invalidate channel lookup tlb */
+void nvgpu_gr_flush_channel_tlb(struct gk20a *g)
+{
+	nvgpu_spinlock_acquire(&g->gr.ch_tlb_lock);
+	(void) memset(g->gr.chid_tlb, 0,
+		sizeof(struct gr_channel_map_tlb_entry) *
+		GR_CHANNEL_MAP_TLB_SIZE);
+	nvgpu_spinlock_release(&g->gr.ch_tlb_lock);
+}
+
 u32 nvgpu_gr_get_idle_timeout(struct gk20a *g)
 {
 	return nvgpu_is_timeouts_enabled(g) ?

@@ -46,6 +46,7 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/gr/ctx.h>
 #include <nvgpu/gr/subctx.h>
+#include <nvgpu/gr/gr.h>
 #include <nvgpu/channel.h>
 #include <nvgpu/channel_sync.h>
 #include <nvgpu/runlist.h>
@@ -323,7 +324,6 @@ static void gk20a_free_channel(struct channel_gk20a *ch, bool force)
 {
 	struct gk20a *g = ch->g;
 	struct fifo_gk20a *f = &g->fifo;
-	struct gr_gk20a *gr = &g->gr;
 	struct vm_gk20a *ch_vm = ch->vm;
 	unsigned long timeout = gk20a_get_gr_idle_timeout(g);
 	struct dbg_session_gk20a *dbg_s;
@@ -438,7 +438,7 @@ static void gk20a_free_channel(struct channel_gk20a *ch, bool force)
 		ch->usermode_submit_enabled = false;
 	}
 
-	gk20a_gr_flush_channel_tlb(gr);
+	nvgpu_gr_flush_channel_tlb(g);
 
 	nvgpu_dma_unmap_free(ch_vm, &ch->gpfifo.mem);
 	nvgpu_big_free(g, ch->gpfifo.pipe);
