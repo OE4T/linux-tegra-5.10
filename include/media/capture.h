@@ -81,6 +81,8 @@ struct vi_capture_setup {
 	uint8_t slvsec_stream_sub;
 	uint16_t __pad_slvsec1;
 	uint32_t error_mask_uncorrectable;
+	uint64_t stop_on_error_notify_bits;
+	uint64_t reserved[2];
 } __VI_CAPTURE_ALIGN;
 
 struct vi_capture_info {

@@ -432,6 +432,7 @@ int vi_capture_setup(struct tegra_vi_channel *chan,
 
 	config->error_mask_correctable = setup->error_mask_correctable;
 	config->error_mask_uncorrectable = setup->error_mask_uncorrectable;
+	config->stop_on_error_notify_bits = setup->stop_on_error_notify_bits;
 
 #ifdef HAVE_VI_GOS_TABLES
 	dev_dbg(chan->dev, "%u GoS tables configured.\n",
