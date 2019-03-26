@@ -33,6 +33,7 @@
 #include <nvgpu/gr/ctx.h>
 
 #include "ctx_vgpu.h"
+#include "common/vgpu/ivc/comm_vgpu.h"
 
 int vgpu_gr_alloc_gr_ctx(struct gk20a *g,
 			struct nvgpu_gr_ctx *gr_ctx,

@@ -26,6 +26,7 @@
 #include <nvgpu/gr/subctx.h>
 
 #include "subctx_vgpu.h"
+#include "common/vgpu/ivc/comm_vgpu.h"
 
 int vgpu_alloc_subctx_header(struct gk20a *g,
 			struct nvgpu_gr_subctx **gr_subctx,

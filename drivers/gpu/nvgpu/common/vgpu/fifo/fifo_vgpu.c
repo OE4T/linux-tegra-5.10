@@ -42,6 +42,7 @@
 
 #include "fifo_vgpu.h"
 #include "common/vgpu/gr/subctx_vgpu.h"
+#include "common/vgpu/ivc/comm_vgpu.h"
 
 #include <nvgpu/hw/gk20a/hw_ram_gk20a.h>
 

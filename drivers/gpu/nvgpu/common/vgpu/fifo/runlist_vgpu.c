@@ -32,6 +32,7 @@
 #include <nvgpu/runlist.h>
 
 #include "runlist_vgpu.h"
+#include "common/vgpu/ivc/comm_vgpu.h"
 
 static int vgpu_submit_runlist(struct gk20a *g, u64 handle, u8 runlist_id,
 			       u16 *runlist, u32 num_entries)

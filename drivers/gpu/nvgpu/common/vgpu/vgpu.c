@@ -34,40 +34,7 @@
 #include <nvgpu/cbc.h>
 
 #include "common/vgpu/gr/fecs_trace_vgpu.h"
-
-int vgpu_comm_init(struct gk20a *g)
-{
-	size_t queue_sizes[] = { TEGRA_VGPU_QUEUE_SIZES };
-
-	return vgpu_ivc_init(g, 3, queue_sizes, TEGRA_VGPU_QUEUE_CMD,
-				ARRAY_SIZE(queue_sizes));
-}
-
-void vgpu_comm_deinit(void)
-{
-	size_t queue_sizes[] = { TEGRA_VGPU_QUEUE_SIZES };
-
-	vgpu_ivc_deinit(TEGRA_VGPU_QUEUE_CMD, ARRAY_SIZE(queue_sizes));
-}
-
-int vgpu_comm_sendrecv(struct tegra_vgpu_cmd_msg *msg, size_t size_in,
-		size_t size_out)
-{
-	void *handle;
-	size_t size = size_in;
-	void *data = msg;
-	int err;
-
-	err = vgpu_ivc_sendrecv(vgpu_ivc_get_server_vmid(),
-				TEGRA_VGPU_QUEUE_CMD, &handle, &data, &size);
-	if (!err) {
-		WARN_ON(size < size_out);
-		nvgpu_memcpy((u8 *)msg, (u8 *)data, size_out);
-		vgpu_ivc_release(handle);
-	}
-
-	return err;
-}
+#include "common/vgpu/ivc/comm_vgpu.h"
 
 u64 vgpu_connect(void)
 {

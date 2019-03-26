@@ -50,6 +50,8 @@
 #include "subctx_vgpu.h"
 
 #include "common/vgpu/perf/cyclestats_snapshot_vgpu.h"
+#include "common/vgpu/ivc/comm_vgpu.h"
+
 #include "common/gr/zcull_priv.h"
 
 static int vgpu_gr_set_ctxsw_preemption_mode(struct gk20a *g,

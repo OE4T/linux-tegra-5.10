@@ -38,6 +38,7 @@
 #include "vgpu_linux.h"
 #include "common/vgpu/gr/fecs_trace_vgpu.h"
 #include "common/vgpu/clk_vgpu.h"
+#include "common/vgpu/ivc/comm_vgpu.h"
 #include "gm20b/hal_gm20b.h"
 
 #include "os/linux/module.h"

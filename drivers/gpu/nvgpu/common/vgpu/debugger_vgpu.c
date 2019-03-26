@@ -31,6 +31,7 @@
 #include <nvgpu/regops.h>
 
 #include "debugger_vgpu.h"
+#include "common/vgpu/ivc/comm_vgpu.h"
 
 int vgpu_exec_regops(struct gk20a *g,
 		     struct channel_gk20a *ch,

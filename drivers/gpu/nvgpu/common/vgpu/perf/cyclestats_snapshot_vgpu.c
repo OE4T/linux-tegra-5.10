@@ -31,6 +31,7 @@
 #include <nvgpu/cyclestats_snapshot.h>
 
 #include "cyclestats_snapshot_vgpu.h"
+#include "common/vgpu/ivc/comm_vgpu.h"
 
 static struct tegra_hv_ivm_cookie *css_cookie;
 

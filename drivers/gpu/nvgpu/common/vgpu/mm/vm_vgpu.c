@@ -27,13 +27,13 @@
 #include <nvgpu/bug.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/channel.h>
-
-#include <nvgpu/vgpu/vgpu.h>
-
 #include <nvgpu/vm.h>
 #include <nvgpu/vm_area.h>
 
+#include <nvgpu/vgpu/vgpu.h>
 #include <nvgpu/vgpu/vm_vgpu.h>
+
+#include "common/vgpu/ivc/comm_vgpu.h"
 
 /*
  * This is called by the common VM init routine to handle vGPU specifics of

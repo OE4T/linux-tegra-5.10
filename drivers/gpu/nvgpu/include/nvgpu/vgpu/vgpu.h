@@ -32,7 +32,6 @@
 struct device;
 struct tegra_vgpu_gr_intr_info;
 struct tegra_vgpu_fifo_intr_info;
-struct tegra_vgpu_cmd_msg;
 struct nvgpu_mem;
 struct gk20a;
 struct vm_gk20a;
@@ -64,11 +63,6 @@ static inline u64 vgpu_get_handle(struct gk20a *g)
 	return priv->virt_handle;
 }
 
-int vgpu_comm_init(struct gk20a *g);
-void vgpu_comm_deinit(void);
-int vgpu_comm_sendrecv(struct tegra_vgpu_cmd_msg *msg, size_t size_in,
-		size_t size_out);
-u64 vgpu_connect(void);
 int vgpu_get_attribute(u64 handle, u32 attrib, u32 *value);
 int vgpu_intr_thread(void *dev_id);
 void vgpu_remove_support_common(struct gk20a *g);

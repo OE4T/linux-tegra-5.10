@@ -35,6 +35,7 @@
 #include "mm_vgpu.h"
 #include "gk20a/mm_gk20a.h"
 #include "gm20b/mm_gm20b.h"
+#include "common/vgpu/ivc/comm_vgpu.h"
 
 static int vgpu_init_mm_setup_sw(struct gk20a *g)
 {

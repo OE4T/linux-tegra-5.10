@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -20,43 +20,43 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
+#include <nvgpu/types.h>
+#include <nvgpu/bug.h>
+#include <nvgpu/string.h>
+#include <nvgpu/vgpu/vgpu_ivc.h>
 #include <nvgpu/vgpu/tegra_vgpu.h>
-#include <nvgpu/vgpu/vgpu.h>
-#include <nvgpu/gk20a.h>
-#include <nvgpu/channel.h>
 
-#include "vgpu_tsg_gv11b.h"
-#include "common/vgpu/ivc/comm_vgpu.h"
+#include "comm_vgpu.h"
 
-int vgpu_gv11b_tsg_bind_channel(struct tsg_gk20a *tsg,
-				struct channel_gk20a *ch)
+int vgpu_comm_init(struct gk20a *g)
 {
-	struct tegra_vgpu_cmd_msg msg = {};
-	struct tegra_vgpu_tsg_bind_channel_ex_params *p =
-				&msg.params.tsg_bind_channel_ex;
+	size_t queue_sizes[] = { TEGRA_VGPU_QUEUE_SIZES };
+
+	return vgpu_ivc_init(g, 3, queue_sizes, TEGRA_VGPU_QUEUE_CMD,
+			ARRAY_SIZE(queue_sizes));
+}
+
+void vgpu_comm_deinit(void)
+{
+	size_t queue_sizes[] = { TEGRA_VGPU_QUEUE_SIZES };
+
+	vgpu_ivc_deinit(TEGRA_VGPU_QUEUE_CMD, ARRAY_SIZE(queue_sizes));
+}
+
+int vgpu_comm_sendrecv(struct tegra_vgpu_cmd_msg *msg, size_t size_in,
+		size_t size_out)
+{
+	void *handle;
+	size_t size = size_in;
+	void *data = msg;
 	int err;
-	struct gk20a *g = tsg->g;
 
-	nvgpu_log_fn(g, " ");
-
-	err = gk20a_tsg_bind_channel(tsg, ch);
-	if (err) {
-		return err;
-	}
-
-	msg.cmd = TEGRA_VGPU_CMD_TSG_BIND_CHANNEL_EX;
-	msg.handle = vgpu_get_handle(tsg->g);
-	p->tsg_id = tsg->tsgid;
-	p->ch_handle = ch->virt_ctx;
-	p->subctx_id = ch->subctx_id;
-	p->runqueue_sel = ch->runqueue_sel;
-	err = vgpu_comm_sendrecv(&msg, sizeof(msg), sizeof(msg));
-	err = err ? err : msg.ret;
-	if (err) {
-		nvgpu_err(tsg->g,
-			"vgpu_gv11b_tsg_bind_channel failed, ch %d tsgid %d",
-			ch->chid, tsg->tsgid);
-		gk20a_tsg_unbind_channel(ch);
+	err = vgpu_ivc_sendrecv(vgpu_ivc_get_server_vmid(),
+				TEGRA_VGPU_QUEUE_CMD, &handle, &data, &size);
+	if (err == 0) {
+		WARN_ON(size < size_out);
+		nvgpu_memcpy((u8 *)msg, (u8 *)data, size_out);
+		vgpu_ivc_release(handle);
 	}
 
 	return err;

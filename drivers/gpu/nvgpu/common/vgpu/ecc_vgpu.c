@@ -26,6 +26,7 @@
 #include <nvgpu/errno.h>
 
 #include "common/vgpu/ecc_vgpu.h"
+#include "common/vgpu/ivc/comm_vgpu.h"
 
 int vgpu_ecc_get_info(struct gk20a *g)
 {

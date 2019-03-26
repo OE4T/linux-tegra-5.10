@@ -26,6 +26,7 @@
 #include <nvgpu/gk20a.h>
 
 #include "perf_vgpu.h"
+#include "common/vgpu/ivc/comm_vgpu.h"
 
 static int vgpu_sendrecv_perfbuf_cmd(struct gk20a *g, u64 offset, u32 size)
 {

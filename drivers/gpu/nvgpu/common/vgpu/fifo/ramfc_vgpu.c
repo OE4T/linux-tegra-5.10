@@ -22,12 +22,12 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#include <nvgpu/vgpu/vgpu_ivc.h>
 #include <nvgpu/vgpu/vgpu.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/channel.h>
 
 #include "ramfc_vgpu.h"
+#include "common/vgpu/ivc/comm_vgpu.h"
 
 int vgpu_ramfc_setup(struct channel_gk20a *ch, u64 gpfifo_base,
 		u32 gpfifo_entries, u64 pbdma_acquire_timeout, u32 flags)

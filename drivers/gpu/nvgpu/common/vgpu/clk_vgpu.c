@@ -26,6 +26,7 @@
 #include <nvgpu/clk_arb.h>
 
 #include "clk_vgpu.h"
+#include "common/vgpu/ivc/comm_vgpu.h"
 
 static unsigned long vgpu_clk_get_rate(struct gk20a *g, u32 api_domain)
 {

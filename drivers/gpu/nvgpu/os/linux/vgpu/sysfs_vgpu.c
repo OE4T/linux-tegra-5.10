@@ -20,6 +20,7 @@
 #include "os/linux/platform_gk20a.h"
 #include "os/linux/os_linux.h"
 #include "common/vgpu/ecc_vgpu.h"
+#include "common/vgpu/ivc/comm_vgpu.h"
 
 static ssize_t vgpu_load_show(struct device *dev,
 			      struct device_attribute *attr,

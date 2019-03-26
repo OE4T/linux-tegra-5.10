@@ -31,7 +31,7 @@
 #include <nvgpu/gk20a.h>
 
 #include "fecs_trace_vgpu.h"
-
+#include "common/vgpu/ivc/comm_vgpu.h"
 
 int vgpu_fecs_trace_init(struct gk20a *g)
 {
