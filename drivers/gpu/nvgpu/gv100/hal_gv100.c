@@ -627,6 +627,7 @@ static const struct gpu_ops gv100_ops = {
 				gv100_gr_hwpm_map_get_active_fbpa_mask,
 		},
 		.init = {
+			.ecc_scrub_reg = NULL,
 			.get_fbp_en_mask = gm20b_gr_init_get_fbp_en_mask,
 			.lg_coalesce = gm20b_gr_init_lg_coalesce,
 			.su_coalesce = gm20b_gr_init_su_coalesce,

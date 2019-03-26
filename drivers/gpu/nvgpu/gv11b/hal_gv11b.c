@@ -424,7 +424,6 @@ static const struct gpu_ops gv11b_ops = {
 				gr_gv11b_init_gfxp_wfi_timeout_count,
 		.get_max_gfxp_wfi_timeout_count =
 			gr_gv11b_get_max_gfxp_wfi_timeout_count,
-		.ecc_init_scrub_reg = gr_gv11b_ecc_init_scrub_reg,
 		.fecs_host_int_enable = gr_gv11b_fecs_host_int_enable,
 		.handle_ssync_hww = gr_gv11b_handle_ssync_hww,
 		.handle_notify_pending = gk20a_gr_handle_notify_pending,
@@ -586,6 +585,7 @@ static const struct gpu_ops gv11b_ops = {
 				gv100_gr_hwpm_map_align_regs_perf_pma,
 		},
 		.init = {
+			.ecc_scrub_reg = gv11b_gr_init_ecc_scrub_reg,
 			.get_fbp_en_mask = gm20b_gr_init_get_fbp_en_mask,
 			.lg_coalesce = gm20b_gr_init_lg_coalesce,
 			.su_coalesce = gm20b_gr_init_su_coalesce,

@@ -483,6 +483,7 @@ static const struct gpu_ops gp10b_ops = {
 			.program_zcull_mapping = gm20b_gr_program_zcull_mapping,
 		},
 		.init = {
+			.ecc_scrub_reg = NULL,
 			.get_fbp_en_mask = gm20b_gr_init_get_fbp_en_mask,
 			.lg_coalesce = gm20b_gr_init_lg_coalesce,
 			.su_coalesce = gm20b_gr_init_su_coalesce,

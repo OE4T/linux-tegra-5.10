@@ -1859,8 +1859,8 @@ static int gk20a_init_gr_setup_hw(struct gk20a *g)
 	}
 
 	/* enable ECC for L1/SM */
-	if (g->ops.gr.ecc_init_scrub_reg != NULL) {
-		g->ops.gr.ecc_init_scrub_reg(g);
+	if (g->ops.gr.init.ecc_scrub_reg != NULL) {
+		g->ops.gr.init.ecc_scrub_reg(g, gr->config);
 	}
 
 	/* TBD: enable per BE exceptions */

@@ -173,7 +173,6 @@ u32 gv11b_gr_get_egpc_base(struct gk20a *g);
 int gr_gv11b_init_preemption_state(struct gk20a *g);
 void gr_gv11b_init_gfxp_wfi_timeout_count(struct gk20a *g);
 unsigned long gr_gv11b_get_max_gfxp_wfi_timeout_count(struct gk20a *g);
-void gr_gv11b_ecc_init_scrub_reg(struct gk20a *g);
 
 void gr_gv11b_update_ctxsw_preemption_mode(struct gk20a *g,
 		struct nvgpu_gr_ctx *gr_ctx, struct nvgpu_gr_subctx *subctx);

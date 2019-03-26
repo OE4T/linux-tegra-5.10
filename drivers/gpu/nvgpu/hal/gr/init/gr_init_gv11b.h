@@ -29,6 +29,8 @@ struct gk20a;
 struct nvgpu_gr_config;
 struct nvgpu_gr_ctx;
 
+void gv11b_gr_init_ecc_scrub_reg(struct gk20a *g,
+				 struct nvgpu_gr_config *gr_config);
 void gv11b_gr_init_gpc_mmu(struct gk20a *g);
 void gv11b_gr_init_get_access_map(struct gk20a *g,
 				   u32 **whitelist, int *num_entries);

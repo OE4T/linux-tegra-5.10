@@ -425,7 +425,6 @@ struct gpu_ops {
 		void (*init_gfxp_wfi_timeout_count)(struct gk20a *g);
 		unsigned long (*get_max_gfxp_wfi_timeout_count)
 					(struct gk20a *g);
-		void (*ecc_init_scrub_reg)(struct gk20a *g);
 		void (*fecs_host_int_enable)(struct gk20a *g);
 		int (*handle_ssync_hww)(struct gk20a *g, u32 *ssync_esr);
 		int (*handle_notify_pending)(struct gk20a *g,
@@ -659,6 +658,8 @@ struct gpu_ops {
 		} hwpm_map;
 
 		struct {
+			void (*ecc_scrub_reg)(struct gk20a *g,
+				struct nvgpu_gr_config *gr_config);
 			u32 (*get_fbp_en_mask)(struct gk20a *g);
 			void (*lg_coalesce)(struct gk20a *g, u32 data);
 			void (*su_coalesce)(struct gk20a *g, u32 data);
