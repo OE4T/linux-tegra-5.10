@@ -558,7 +558,7 @@ static struct tsg_gk20a *gk20a_tsg_acquire_unused_tsg(struct fifo_gk20a *f)
 	return tsg;
 }
 
-int gk20a_tsg_open_common(struct gk20a *g, struct tsg_gk20a *tsg)
+int gk20a_tsg_open_common(struct gk20a *g, struct tsg_gk20a *tsg, pid_t pid)
 {
 	u32 no_of_sm = nvgpu_gr_config_get_no_of_sm(g->gr.config);
 	int err;
@@ -576,6 +576,7 @@ int gk20a_tsg_open_common(struct gk20a *g, struct tsg_gk20a *tsg)
 		return err;
 	}
 
+	tsg->tgid = pid;
 	tsg->g = g;
 	tsg->num_active_channels = 0U;
 	nvgpu_ref_init(&tsg->refcount);
@@ -625,14 +626,12 @@ struct tsg_gk20a *gk20a_tsg_open(struct gk20a *g, pid_t pid)
 		return NULL;
 	}
 
-	err = gk20a_tsg_open_common(g, tsg);
+	err = gk20a_tsg_open_common(g, tsg, pid);
 	if (err != 0) {
 		release_used_tsg(&g->fifo, tsg);
 		nvgpu_err(g, "tsg %d open failed %d", tsg->tsgid, err);
 		return NULL;
 	}
-
-	tsg->tgid = pid;
 
 	nvgpu_log(g, gpu_dbg_fn, "tsg opened %d\n", tsg->tsgid);
 

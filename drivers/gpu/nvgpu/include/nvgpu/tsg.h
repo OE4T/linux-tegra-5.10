@@ -81,7 +81,7 @@ struct tsg_gk20a {
 	struct nvgpu_mutex sm_exception_mask_lock;
 };
 
-int gk20a_tsg_open_common(struct gk20a *g, struct tsg_gk20a *tsg);
+int gk20a_tsg_open_common(struct gk20a *g, struct tsg_gk20a *tsg, pid_t pid);
 struct tsg_gk20a *gk20a_tsg_open(struct gk20a *g, pid_t pid);
 void gk20a_tsg_release_common(struct gk20a *g, struct tsg_gk20a *tsg);
 void gk20a_tsg_release(struct nvgpu_ref *ref);

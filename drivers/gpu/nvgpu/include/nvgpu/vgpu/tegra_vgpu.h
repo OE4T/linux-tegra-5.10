@@ -418,6 +418,7 @@ struct tegra_vgpu_tsg_timeslice_params {
 
 struct tegra_vgpu_tsg_open_rel_params {
 	u32 tsg_id;
+	pid_t pid;
 };
 
 /* level follows nvgpu.h definitions */

@@ -43,6 +43,7 @@ int vgpu_tsg_open(struct tsg_gk20a *tsg)
 	msg.cmd = TEGRA_VGPU_CMD_TSG_OPEN;
 	msg.handle = vgpu_get_handle(tsg->g);
 	p->tsg_id = tsg->tsgid;
+	p->pid = tsg->tgid;
 	err = vgpu_comm_sendrecv(&msg, sizeof(msg), sizeof(msg));
 	err = err ? err : msg.ret;
 	if (err) {
