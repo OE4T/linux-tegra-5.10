@@ -26,6 +26,7 @@
 #include <pthread.h>
 #include <semaphore.h>
 #include <signal.h>
+#include <time.h>
 
 #include <unit/io.h>
 #include <unit/core.h>
@@ -57,6 +58,8 @@ static void *core_exec_module(void *module_param)
 	unsigned int i;
 	struct unit_module *module = (struct unit_module *) module_param;
 	struct gk20a *g;
+	clock_t begin;
+	double time_spent;
 
 	g = module->fw->nvgpu.nvgpu_posix_probe();
 
@@ -68,6 +71,7 @@ static void *core_exec_module(void *module_param)
 	}
 
 	core_vbs(module->fw, 1, "Execing module: %s\n", module->name);
+	begin = clock();
 
 	thread_local_module = module;
 
@@ -97,7 +101,9 @@ static void *core_exec_module(void *module_param)
 
 	module->fw->nvgpu.nvgpu_posix_cleanup(g);
 
-	core_vbs(module->fw, 1, "Module completed: %s\n", module->name);
+	time_spent = (double)(clock() - begin) / CLOCKS_PER_SEC;
+	core_vbs(module->fw, 1, "Module completed: %s (execution time: %f)\n",
+		 module->name, time_spent);
 thread_exit:
 	sem_post(&unit_thread_semaphore);
 	return NULL;
