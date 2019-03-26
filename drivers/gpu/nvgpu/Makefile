@@ -115,11 +115,11 @@ nvgpu-y += \
 	common/acr/acr_blob_construct_v0.o \
 	common/acr/acr_blob_construct_v1.o \
 	common/acr/acr_bootstrap.o \
-	common/acr/acr_gm20b.o \
-	common/acr/acr_gp10b.o \
-	common/acr/acr_gv100.o \
-	common/acr/acr_gv11b.o \
-	common/acr/acr_tu104.o \
+	common/acr/acr_sw_gm20b.o \
+	common/acr/acr_sw_gp10b.o \
+	common/acr/acr_sw_gv100.o \
+	common/acr/acr_sw_gv11b.o \
+	common/acr/acr_sw_tu104.o \
 	common/pmu/perf/vfe_var.o \
 	common/pmu/perf/vfe_equ.o \
 	common/pmu/perf/pmu_perf.o \

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -20,12 +20,12 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NVGPU_ACR_GV100_H
-#define NVGPU_ACR_GV100_H
+#ifndef ACR_SW_GP10B_H
+#define ACR_SW_GP10B_H
 
-int gv100_acr_fill_bl_dmem_desc(struct gk20a *g, struct nvgpu_acr *acr,
-	struct hs_acr *acr_desc, u32 *acr_ucode_header);
+struct gk20a;
+struct nvgpu_acr;
 
-void nvgpu_gv100_acr_sw_init(struct gk20a *g, struct nvgpu_acr *acr);
+void nvgpu_gp10b_acr_sw_init(struct gk20a *g, struct nvgpu_acr *acr);
 
-#endif /* NVGPU_ACR_GV100_H */
+#endif /* ACR_SW_GP10B_H */

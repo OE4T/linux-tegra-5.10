@@ -20,6 +20,8 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
+#include "acr_sw_tu104.h"
+
 #include <nvgpu/gk20a.h>
 #include <nvgpu/firmware.h>
 #include <nvgpu/sec2if/sec2_if_cmn.h>
@@ -29,8 +31,8 @@
 #include "acr_blob_alloc.h"
 #include "acr_bootstrap.h"
 #include "acr_blob_construct_v1.h"
-#include "acr_gv100.h"
-#include "acr_tu104.h"
+#include "acr_sw_gv100.h"
+#include "acr_sw_tu104.h"
 
 #include "tu104/sec2_tu104.h"
 
@@ -88,7 +90,8 @@ static void nvgpu_tu104_acr_ahesasc_sw_init(struct gk20a *g,
 	}
 
 	acr_ahesasc->ptr_bl_dmem_desc = &acr_ahesasc->bl_dmem_desc_v1;
-	acr_ahesasc->bl_dmem_desc_size = (u32)sizeof(struct flcn_bl_dmem_desc_v1);
+	acr_ahesasc->bl_dmem_desc_size =
+		(u32)sizeof(struct flcn_bl_dmem_desc_v1);
 
 	acr_ahesasc->acr_flcn = &g->sec2.flcn;
 	acr_ahesasc->acr_flcn_setup_boot_config =
@@ -115,7 +118,8 @@ static void nvgpu_tu104_acr_asb_sw_init(struct gk20a *g,
 	acr_asb->bl_dmem_desc_size = (u32)sizeof(struct flcn_bl_dmem_desc_v1);
 
 	acr_asb->acr_flcn = &g->gsp_flcn;
-	acr_asb->acr_flcn_setup_boot_config = g->ops.gsp.falcon_setup_boot_config;
+	acr_asb->acr_flcn_setup_boot_config =
+		g->ops.gsp.falcon_setup_boot_config;
 }
 
 void nvgpu_tu104_acr_sw_init(struct gk20a *g, struct nvgpu_acr *acr)

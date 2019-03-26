@@ -20,9 +20,12 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NVGPU_ACR_TU104_H
-#define NVGPU_ACR_TU104_H
+#ifndef ACR_SW_TU104_H
+#define ACR_SW_TU104_H
+
+struct gk20a;
+struct nvgpu_acr;
 
 void nvgpu_tu104_acr_sw_init(struct gk20a *g, struct nvgpu_acr *acr);
 
-#endif /*NVGPU_ACR_TU104_H*/
+#endif /*ACR_SW_TU104_H*/

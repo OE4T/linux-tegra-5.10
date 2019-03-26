@@ -26,11 +26,11 @@
 #include <nvgpu/gk20a.h>
 
 #include "acr_priv.h"
-#include "acr_gm20b.h"
-#include "acr_gp10b.h"
-#include "acr_gv11b.h"
-#include "acr_gv100.h"
-#include "acr_tu104.h"
+#include "acr_sw_gm20b.h"
+#include "acr_sw_gp10b.h"
+#include "acr_sw_gv100.h"
+#include "acr_sw_gv11b.h"
+#include "acr_sw_tu104.h"
 
 /* ACR public API's */
 bool nvgpu_acr_is_lsf_lazy_bootstrap(struct gk20a *g, struct nvgpu_acr *acr,

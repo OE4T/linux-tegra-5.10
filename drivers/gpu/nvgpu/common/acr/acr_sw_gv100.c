@@ -20,13 +20,15 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
+#include "acr_sw_gv100.h"
+
 #include <nvgpu/firmware.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/bug.h>
 
 #include "acr_wpr.h"
 #include "acr_priv.h"
-#include "acr_gv100.h"
+#include "acr_sw_gv100.h"
 #include "acr_blob_alloc.h"
 #include "acr_bootstrap.h"
 #include "acr_blob_construct_v1.h"
@@ -39,8 +41,9 @@ static void flcn64_set_dma(struct falc_u64 *dma_addr, u64 value)
 	dma_addr->hi |= u64_hi32(value);
 }
 
-static int gv100_acr_patch_wpr_info_to_ucode(struct gk20a *g, struct nvgpu_acr *acr,
-		struct hs_acr *acr_desc, bool is_recovery)
+static int gv100_acr_patch_wpr_info_to_ucode(struct gk20a *g,
+	struct nvgpu_acr *acr, struct hs_acr *acr_desc,
+	bool is_recovery)
 {
 	struct nvgpu_firmware *acr_fw = acr_desc->acr_fw;
 	struct acr_fw_header *acr_fw_hdr = NULL;
@@ -172,7 +175,8 @@ static u32 gv100_acr_lsf_conifg(struct gk20a *g,
 	return lsf_enable_mask;
 }
 
-static void nvgpu_gv100_acr_default_sw_init(struct gk20a *g, struct hs_acr *hs_acr)
+static void nvgpu_gv100_acr_default_sw_init(struct gk20a *g,
+	struct hs_acr *hs_acr)
 {
 	struct hs_flcn_bl *hs_bl = &hs_acr->acr_hs_bl;
 
