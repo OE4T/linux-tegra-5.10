@@ -293,6 +293,7 @@ srcs += common/sim.c \
 	hal/mc/mc_gv11b.c  \
 	hal/mc/mc_gv100.c  \
 	hal/mc/mc_tu104.c  \
+	common/vgpu/vgpu.c \
 	hal/bus/bus_gk20a.c	\
 	hal/bus/bus_gm20b.c	\
 	hal/bus/bus_gp10b.c	\
@@ -405,6 +406,7 @@ endif
 
 ifeq ($(IGPU_VIRT_SUPPORT), 1)
 srcs += common/vgpu/vgpu.c \
+	common/vgpu/ptimer/ptimer_vgpu.c \
 	common/vgpu/fifo/fifo_vgpu.c \
 	common/vgpu/fifo/runlist_vgpu.c \
 	common/vgpu/fifo/vgpu_fifo_gv11b.c \

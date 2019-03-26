@@ -64,6 +64,7 @@
 #include "common/vgpu/gr/fecs_trace_vgpu.h"
 #include "common/vgpu/perf/perf_vgpu.h"
 #include "common/vgpu/perf/cyclestats_snapshot_vgpu.h"
+#include "common/vgpu/ptimer/ptimer_vgpu.h"
 #include "gp10b/gp10b.h"
 #include "gp10b/hal_gp10b.h"
 

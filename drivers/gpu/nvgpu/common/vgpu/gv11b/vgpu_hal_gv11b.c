@@ -83,6 +83,7 @@
 #include "common/vgpu/gr/fecs_trace_vgpu.h"
 #include "common/vgpu/perf/cyclestats_snapshot_vgpu.h"
 #include "common/vgpu/fifo/vgpu_fifo_gv11b.h"
+#include "common/vgpu/ptimer/ptimer_vgpu.h"
 
 #include <gm20b/gr_gm20b.h>
 #include <gm20b/fifo_gm20b.h>
