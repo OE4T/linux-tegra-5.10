@@ -186,7 +186,7 @@ struct capture_channel_config {
 #define CAPTURE_CHANNEL_FLAG_RESET_ON_ERROR	U32_C(0x0800)
 #define CAPTURE_CHANNEL_FLAG_LINETIMER		U32_C(0x1000)
 #define CAPTURE_CHANNEL_FLAG_SLVSEC		U32_C(0x2000)
-#define CAPTURE_CHANNEL_FLAG_ENABLE_ERROR_ACTIONS_MASKS	U32_C(0x4000)
+#define CAPTURE_CHANNEL_FLAG_ENABLE_HSM_ERROR_MASKS	U32_C(0x4000)
 #define CAPTURE_CHANNEL_FLAG_ENABLE_VI_PFSD	U32_C(0x8000)
 
 	uint32_t channel_id;	/* rtcpu internal - set to zero */
@@ -241,6 +241,11 @@ struct capture_channel_config {
 #define CAPTURE_CHANNEL_ERROR_PIXEL_SPURIOUS		(U32_C(1) << 7)
 #define CAPTURE_CHANNEL_ERROR_PIXEL_RUNAWAY		(U32_C(1) << 6)
 #define CAPTURE_CHANNEL_ERROR_PIXEL_MISSING_LE		(U32_C(1) << 5)
+	/*
+	 * Capture will stop for errors selected in this bit masks.
+	 * Bit definitions are same as in CAPTURE_STATUS_NOTIFY_BIT_* macros.
+	 */
+	uint64_t stop_on_error_notify_bits;
 
 } __CAPTURE_IVC_ALIGN;
 
@@ -390,42 +395,130 @@ struct capture_status {
 	uint64_t eof_timestamp;
 	uint32_t err_data;
 
-/* Channel encountered uncorrectable error and must be reset */
-#define CAPTURE_STATUS_FLAG_CHANNEL_IN_ERROR			U32_C(1U << 0)
-
-/*
- * Spurious data was received before frame start.
- * Can be badly corrupted frame or some random bits.
- * This error doesn't have effect on captured frame
- */
-#define CAPTURE_STATUS_FLAG_ERROR_CSIMUX_STREAM_SPURIOUS	U32_C(1U << 1)
-
-/*
- * Illegal data packet was encountered and dropped by CSIMUX.
- * This error may have no effect on capture result or trigger other error if
- * frame got corrupted.
- */
-#define CAPTURE_STATUS_FLAG_ERROR_CSIMUX_FIFO_BADPKT		U32_C(1U << 2)
-
-#define CAPTURE_STATUS_FLAG_ERROR_CSIMUX_FRAME_FORCE_FE		U32_C(1U << 3)
-#define CAPTURE_STATUS_FLAG_ERROR_CSIMUX_FRAME_ECC_SINGLE_BIT_ERR	U32_C(1U << 4)
-#define CAPTURE_STATUS_FLAG_ERROR_CSIMUX_FRAME				U32_C(1U << 5)
-#define CAPTURE_STATUS_FLAG_ERROR_CSIMUX_FRAME_CSI_FAULT		U32_C(1U << 6)
-
-/*
- * One or more frames could not be matched and got lost before captured
- * frame.
- * This error doesn't have effect on captured frame
- */
-#define CAPTURE_STATUS_FLAG_ERROR_CHANSEL_NO_MATCH		U32_C(1U << 7)
-
-/* Frame not finished */
-#define CAPTURE_STATUS_FLAG_ERROR_ATOMP_FRAME_TRUNCATED		U32_C(1U << 8)
-
-/* Frame data not written */
-#define CAPTURE_STATUS_FLAG_ERROR_ATOMP_FRAME_TOSSED		U32_C(1U << 9)
-
+/* Channel encountered unrecoverable error and must be reset */
+#define CAPTURE_STATUS_FLAG_CHANNEL_IN_ERROR			(U32_C(1) << 1U)
 	uint32_t flags;
+
+	/*
+	 * VI error notifications logged in capture channel since previous capture
+	 * (for more information refer to T194_VI5_Notify define_change.xlsx)
+	 */
+	uint64_t notify_bits;
+
+	/*
+	 * CSIMUX Frame (tag 0x2) notifications
+	 */
+	#define CAPTURE_STATUS_NOTIFY_BIT_CSIMUX_FRAME_RESEVED_0			(U64_C(1) << 1U)
+	#define CAPTURE_STATUS_NOTIFY_BIT_CSIMUX_FRAME_FS_FAULT				(U64_C(1) << 2U)
+	#define CAPTURE_STATUS_NOTIFY_BIT_CSIMUX_FRAME_FORCE_FE_FAULT			(U64_C(1) << 3U)
+	#define CAPTURE_STATUS_NOTIFY_BIT_CSIMUX_FRAME_FE_FRAME_ID_FAULT		(U64_C(1) << 4U)
+	#define CAPTURE_STATUS_NOTIFY_BIT_CSIMUX_FRAME_PXL_ENABLE_FAULT			(U64_C(1) << 5U)
+
+	/* Reserved for deinterleaved CSI streams on request from nvmedia team */
+	#define CAPTURE_STATUS_NOTIFY_BIT_CSIMUX_FRAME_RESERVED_1			(U64_C(1) << 6U)
+	#define CAPTURE_STATUS_NOTIFY_BIT_CSIMUX_FRAME_RESERVED_2			(U64_C(1) << 7U)
+	#define CAPTURE_STATUS_NOTIFY_BIT_CSIMUX_FRAME_RESERVED_3			(U64_C(1) << 8U)
+	#define CAPTURE_STATUS_NOTIFY_BIT_CSIMUX_FRAME_RESERVED_4			(U64_C(1) << 9U)
+	#define CAPTURE_STATUS_NOTIFY_BIT_CSIMUX_FRAME_RESERVED_5			(U64_C(1) << 10U)
+	#define CAPTURE_STATUS_NOTIFY_BIT_CSIMUX_FRAME_RESERVED_6			(U64_C(1) << 11U)
+	#define CAPTURE_STATUS_NOTIFY_BIT_CSIMUX_FRAME_RESERVED_7			(U64_C(1) << 12U)
+	#define CAPTURE_STATUS_NOTIFY_BIT_CSIMUX_FRAME_RESERVED_8			(U64_C(1) << 13U)
+	#define CAPTURE_STATUS_NOTIFY_BIT_CSIMUX_FRAME_RESERVED_9			(U64_C(1) << 14U)
+
+	/* CSI Faults. These errors report corresponding NVCSI errors */
+	#define CAPTURE_STATUS_NOTIFY_BIT_CSIMUX_FRAME_CSI_FAULT_PPFSM_TIMEOUT		(U64_C(1) << 15U)
+	#define CAPTURE_STATUS_NOTIFY_BIT_CSIMUX_FRAME_CSI_FAULT_PH_ECC_SINGLE_BIT_ERR	(U64_C(1) << 16U)
+	#define CAPTURE_STATUS_NOTIFY_BIT_CSIMUX_FRAME_CSI_FAULT_PD_CRC_ERR		(U64_C(1) << 17U)
+	#define CAPTURE_STATUS_NOTIFY_BIT_CSIMUX_FRAME_CSI_FAULT_PD_WC_SHORT_ERR	(U64_C(1) << 18U)
+	#define CAPTURE_STATUS_NOTIFY_BIT_CSIMUX_FRAME_CSI_FAULT_PH_SINGLE_CRC_ERR	(U64_C(1) << 19U)
+	#define CAPTURE_STATUS_NOTIFY_BIT_CSIMUX_FRAME_CSI_FAULT_EMBEDDED_LINE_CRC_ERR	(U64_C(1) << 20U)
+
+
+	/*
+	 * CSIMUX Stream (tag 0x3) notifications
+	 */
+
+	/*
+	 * Spurious data was received before frame start.
+	 * Can be badly corrupted frame or some random bits.
+	 * This error doesn't have effect on captured frame
+	 */
+	#define CAPTURE_STATUS_NOTIFY_BIT_CSIMUX_STREAM_SPURIOUS_DATA			(U64_C(1) << 21U)
+
+	/* Uncorrectable FIFO errors */
+	#define CAPTURE_STATUS_NOTIFY_BIT_CSIMUX_STREAM_FIFO_OVERFLOW 			(U64_C(1) << 22U)
+	#define CAPTURE_STATUS_NOTIFY_BIT_CSIMUX_STREAM_FIFO_LOF			(U64_C(1) << 23U)
+
+	/*
+	 * Illegal data packet was encountered and dropped by CSIMUX.
+	 * This error may have no effect on capture result or trigger other error if
+	 * frame got corrupted.
+	 */
+	#define CAPTURE_STATUS_NOTIFY_BIT_CSIMUX_STREAM_FIFO_BADPKT			(U64_C(1) << 24U)
+
+
+	/*
+	 * CHANSEL FAULT (TAG 0x9) Notifications
+	 */
+	#define CAPTURE_STATUS_NOTIFY_BIT_CHANSEL_PIXEL_MISSING_LE			(U64_C(1) << 25U)
+	#define CAPTURE_STATUS_NOTIFY_BIT_CHANSEL_PIXEL_RUNAWAY				(U64_C(1) << 26U)
+	#define CAPTURE_STATUS_NOTIFY_BIT_CHANSEL_PIXEL_SPURIOUS			(U64_C(1) << 27U)
+	#define CAPTURE_STATUS_NOTIFY_BIT_CHANSEL_PIXEL_LONG_LINE			(U64_C(1) << 28U)
+	#define CAPTURE_STATUS_NOTIFY_BIT_CHANSEL_PIXEL_SHORT_LINE			(U64_C(1) << 29U)
+	#define CAPTURE_STATUS_NOTIFY_BIT_CHANSEL_EMBED_MISSING_LE			(U64_C(1) << 30U)
+	#define CAPTURE_STATUS_NOTIFY_BIT_CHANSEL_EMBED_RUNAWAY				(U64_C(1) << 31U)
+	#define CAPTURE_STATUS_NOTIFY_BIT_CHANSEL_EMBED_SPURIOUS			(U64_C(1) << 32U)
+	#define CAPTURE_STATUS_NOTIFY_BIT_CHANSEL_EMBED_LONG_LINE			(U64_C(1) << 33U)
+	#define CAPTURE_STATUS_NOTIFY_BIT_CHANSEL_EMBED_INFRINGE			(U64_C(1) << 34U)
+	#define CAPTURE_STATUS_NOTIFY_BIT_CHANSEL_DTYPE_MISMATCH			(U64_C(1) << 35U)
+	#define CAPTURE_STATUS_NOTIFY_BIT_CHANSEL_RESERVED_0				(U64_C(1) << 36U)
+
+	/*
+	 * CHANSEL PIX_SHORT (TAG 0xD)
+	 */
+	#define CAPTURE_STATUS_NOTIFY_BIT_CHANSEL_PIX_SHORT				(U64_C(1) << 37U)
+
+	/*
+	 * CHANSEL EMB_SHORT (TAG 0xD) Notification.
+	 */
+	#define CAPTURE_STATUS_NOTIFY_BIT_CHANSEL_EMB_SHORT				(U64_C(1) << 38U)
+
+	/* PFSD */
+	#define CAPTURE_STATUS_NOTIFY_BIT_PFSD_FAULT					(U64_C(1) << 39U)
+
+	/*
+	 * CHANSEL FAULT_FE (TAG 0xA) Notification
+	 */
+	#define CAPTURE_STATUS_NOTIFY_BIT_CHANSEL_FAULT_FE				(U64_C(1) << 40U)
+
+	/*
+	 * CHANSEL NOMATCH (TAG 0xB) Notification
+	 * One or more frames from CSI could not be matched with capture descriptors enqueued in VI.
+	 * This error is usually caused by missing capture descriptor.
+	 * This error doesn't have effect on next captured frame
+	 */
+	#define CAPTURE_STATUS_NOTIFY_BIT_CHANSEL_NO_MATCH				(U64_C(1) << 41U)
+
+	/*
+	 * CHANSEL COLLISION (TAG 0xC) Notification
+	 */
+	#define CAPTURE_STATUS_NOTIFY_BIT_CHANSEL_COLLISION				(U64_C(1) << 42U)
+
+	/*
+	 * CHANSEL LOAD_FRAMED (TAG 0xE) Notification
+	 */
+	#define CAPTURE_STATUS_NOTIFY_BIT_CHANSEL_LOAD_FRAMED				(U64_C(1) << 43U)
+
+	/* ATOMP_PACKER_OVERFLOW   (TAG 0xf) */
+	#define CAPTURE_STATUS_NOTIFY_BIT_ATOMP_PACKER_OVERFLOW				(U64_C(1) << 44U)
+
+	/* ATOMP_FRAME_TRUNCATED   (TAG 0x15) Frame not finished */
+	#define CAPTURE_STATUS_NOTIFY_BIT_ATOMP_FRAME_TRUNCATED				(U64_C(1) << 45U)
+
+	/* ATOMP_FRAME_TOSSED   (TAG 0x16) Frame data not written */
+	#define CAPTURE_STATUS_NOTIFY_BIT_ATOMP_FRAME_TOSSED				(U64_C(1) << 46U)
+
+
 } __CAPTURE_IVC_ALIGN;
 
 #define VI_AFM_NUM_ROI			8
@@ -601,7 +694,6 @@ struct capture_descriptor {
 	/* Result record – written by RTCPU */
 	struct capture_status status;
 
-	uint32_t __pad[2];
 } __CAPTURE_DESCRIPTOR_ALIGN;
 
 /* Event data used for event injection */
