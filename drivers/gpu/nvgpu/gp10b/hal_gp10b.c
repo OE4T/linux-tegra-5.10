@@ -75,6 +75,7 @@
 #include "hal/fifo/tsg_gk20a.h"
 #include "hal/fifo/userd_gk20a.h"
 #include "hal/fifo/fifo_intr_gk20a.h"
+#include "hal/fifo/mmu_fault_gm20b.h"
 #include "hal/fifo/ctxsw_timeout_gk20a.h"
 #include "hal/gr/fecs_trace/fecs_trace_gm20b.h"
 #include "hal/gr/fecs_trace/fecs_trace_gp10b.h"

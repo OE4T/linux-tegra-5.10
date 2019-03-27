@@ -934,8 +934,6 @@ struct gpu_ops {
 		int (*tsg_verify_channel_status)(struct channel_gk20a *ch);
 		void (*tsg_verify_status_ctx_reload)(struct channel_gk20a *ch);
 		void (*tsg_verify_status_faulted)(struct channel_gk20a *ch);
-		void (*trigger_mmu_fault)(struct gk20a *g,
-				unsigned long engine_ids);
 		void (*get_mmu_fault_info)(struct gk20a *g, u32 mmu_fault_id,
 			struct mmu_fault_info *mmfault);
 		void (*get_mmu_fault_desc)(struct mmu_fault_info *mmfault);
@@ -1002,6 +1000,9 @@ struct gpu_ops {
 		bool (*handle_sched_error)(struct gk20a *g);
 		void (*ctxsw_timeout_enable)(struct gk20a *g, bool enable);
 		bool (*handle_ctxsw_timeout)(struct gk20a *g);
+		/* mmu fault hals */
+		void (*trigger_mmu_fault)(struct gk20a *g,
+				unsigned long engine_ids_bitmask);
 
 	} fifo;
 	struct {

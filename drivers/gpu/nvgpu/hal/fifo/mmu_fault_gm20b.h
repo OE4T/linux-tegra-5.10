@@ -1,6 +1,4 @@
 /*
- * GM20B Fifo
- *
  * Copyright (c) 2014-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
@@ -22,17 +20,12 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NVGPU_GM20B_FIFO_GM20B_H
-#define NVGPU_GM20B_FIFO_GM20B_H
+#ifndef NVGPU_FIFO_MMU_FAULT_GM20B_H
+#define NVGPU_FIFO_MMU_FAULT_GM20B_H
 
 struct gk20a;
-struct fifo_gk20a;
-struct mmu_fault_info;
 
-void gm20b_fifo_init_pbdma_intr_descs(struct fifo_gk20a *f);
-void gm20b_fifo_tsg_verify_status_ctx_reload(struct channel_gk20a *ch);
-void gm20b_fifo_get_mmu_fault_gpc_desc(struct mmu_fault_info *mmfault);
-int gm20b_fifo_init_engine_info(struct fifo_gk20a *f);
-int gm20b_fifo_init_ce_engine_info(struct fifo_gk20a *f);
+void gm20b_fifo_trigger_mmu_fault(struct gk20a *g,
+		unsigned long engine_ids_bitmask);
 
-#endif /* NVGPU_GM20B_FIFO_GM20B_H */
+#endif /* NVGPU_FIFO_MMU_FAULT_GM20B_H */

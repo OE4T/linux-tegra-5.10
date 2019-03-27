@@ -244,6 +244,7 @@ nvgpu-y += \
 	hal/fifo/userd_gv11b.o \
 	hal/fifo/fifo_intr_gk20a.o \
 	hal/fifo/fifo_intr_gv11b.o \
+	hal/fifo/mmu_fault_gm20b.o \
 	hal/fifo/ctxsw_timeout_gk20a.o \
 	hal/fifo/ctxsw_timeout_gv11b.o \
 	hal/falcon/falcon_gk20a.o \
