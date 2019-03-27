@@ -2140,6 +2140,9 @@ static inline bool nvgpu_is_timeouts_enabled(struct gk20a *g)
 	return nvgpu_atomic_read(&g->timeouts_disabled_refcount) == 0;
 }
 
+#define POLL_DELAY_MIN_US	10U
+#define POLL_DELAY_MAX_US	200U
+
 static inline u32 nvgpu_get_poll_timeout(struct gk20a *g)
 {
 	return nvgpu_is_timeouts_enabled(g) ?

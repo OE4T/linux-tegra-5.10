@@ -1226,7 +1226,7 @@ int pmu_wait_message_cond_status(struct nvgpu_pmu *pmu, u32 timeout_ms,
 	struct gk20a *g = gk20a_from_pmu(pmu);
 	struct nvgpu_timeout timeout;
 	int err;
-	unsigned int delay = GR_IDLE_CHECK_DEFAULT;
+	unsigned int delay = POLL_DELAY_MIN_US;
 
 	err = nvgpu_timeout_init(g, &timeout, timeout_ms,
 		NVGPU_TIMER_CPU_TIMER);
@@ -1247,7 +1247,7 @@ int pmu_wait_message_cond_status(struct nvgpu_pmu *pmu, u32 timeout_ms,
 		}
 
 		nvgpu_usleep_range(delay, delay * 2U);
-		delay = min_t(u32, delay << 1, GR_IDLE_CHECK_MAX);
+		delay = min_t(u32, delay << 1, POLL_DELAY_MAX_US);
 	} while (nvgpu_timeout_expired(&timeout) == 0);
 
 	return -ETIMEDOUT;

@@ -401,7 +401,7 @@ int nvgpu_engine_disable_activity_all(struct gk20a *g,
 int nvgpu_engine_wait_for_idle(struct gk20a *g)
 {
 	struct nvgpu_timeout timeout;
-	u32 delay = GR_IDLE_CHECK_DEFAULT;
+	u32 delay = POLL_DELAY_MIN_US;
 	int ret = 0;
 	u32 i, host_num_engines;
 	struct nvgpu_engine_status_info engine_status;
@@ -426,7 +426,7 @@ int nvgpu_engine_wait_for_idle(struct gk20a *g)
 
 			nvgpu_usleep_range(delay, delay * 2U);
 			delay = min_t(u32,
-					delay << 1, GR_IDLE_CHECK_MAX);
+					delay << 1, POLL_DELAY_MAX_US);
 		} while (nvgpu_timeout_expired(&timeout) == 0);
 
 		if (ret != 0) {

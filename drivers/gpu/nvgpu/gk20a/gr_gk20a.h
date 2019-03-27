@@ -32,8 +32,6 @@
 #include <nvgpu/comptags.h>
 #include <nvgpu/cond.h>
 
-#define GR_IDLE_CHECK_DEFAULT		10U /* usec */
-#define GR_IDLE_CHECK_MAX		200U /* usec */
 #define GR_FECS_POLL_INTERVAL		5U /* usec */
 
 #define INVALID_MAX_WAYS		0xFFFFFFFFU

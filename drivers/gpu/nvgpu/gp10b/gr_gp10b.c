@@ -1468,7 +1468,7 @@ int gr_gp10b_suspend_contexts(struct gk20a *g,
 				struct dbg_session_gk20a *dbg_s,
 				int *ctx_resident_ch_fd)
 {
-	u32 delay = GR_IDLE_CHECK_DEFAULT;
+	u32 delay = POLL_DELAY_MIN_US;
 	bool cilp_preempt_pending = false;
 	struct channel_gk20a *cilp_preempt_pending_ch = NULL;
 	struct channel_gk20a *ch;
@@ -1537,7 +1537,7 @@ int gr_gp10b_suspend_contexts(struct gk20a *g,
 			}
 
 			nvgpu_usleep_range(delay, delay * 2U);
-			delay = min_t(u32, delay << 1, GR_IDLE_CHECK_MAX);
+			delay = min_t(u32, delay << 1, POLL_DELAY_MAX_US);
 		} while (nvgpu_timeout_expired(&timeout) == 0);
 
 		/* If cilp is still pending at this point, timeout */

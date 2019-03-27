@@ -359,7 +359,7 @@ void gv11b_fb_fault_buf_set_state_hw(struct gk20a *g,
 
 	} else {
 		struct nvgpu_timeout timeout;
-		u32 delay = GR_IDLE_CHECK_DEFAULT;
+		u32 delay = POLL_DELAY_MIN_US;
 
 		nvgpu_timeout_init(g, &timeout, nvgpu_get_poll_timeout(g),
 			   NVGPU_TIMER_CPU_TIMER);
@@ -383,7 +383,7 @@ void gv11b_fb_fault_buf_set_state_hw(struct gk20a *g,
 			fault_status = g->ops.fb.read_mmu_fault_status(g);
 
 			nvgpu_usleep_range(delay, delay * 2U);
-			delay = min_t(u32, delay << 1, GR_IDLE_CHECK_MAX);
+			delay = min_t(u32, delay << 1, POLL_DELAY_MAX_US);
 		} while (nvgpu_timeout_expired_msg(&timeout,
 				"fault status busy set") == 0);
 	}

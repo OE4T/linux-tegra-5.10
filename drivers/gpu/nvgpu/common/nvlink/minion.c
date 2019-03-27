@@ -50,7 +50,7 @@ int nvgpu_nvlink_minion_load(struct gk20a *g)
 	int err = 0;
 	struct nvgpu_firmware *nvgpu_minion_fw = NULL;
 	struct nvgpu_timeout timeout;
-	u32 delay = GR_IDLE_CHECK_DEFAULT;
+	u32 delay = POLL_DELAY_MIN_US;
 	bool boot_cmplte;
 
 	nvgpu_log_fn(g, " ");
@@ -107,7 +107,7 @@ int nvgpu_nvlink_minion_load(struct gk20a *g)
 		}
 		nvgpu_usleep_range(delay, delay * 2U);
 		delay = min_t(unsigned int,
-				delay << 1, GR_IDLE_CHECK_MAX);
+				delay << 1, POLL_DELAY_MAX_US);
 	} while (nvgpu_timeout_expired_msg(&timeout,
 						"minion boot timeout") == 0);
 

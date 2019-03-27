@@ -102,7 +102,7 @@ static int gv100_nvlink_minion_command_complete(struct gk20a *g, u32 link_id)
 {
 	u32 reg;
 	struct nvgpu_timeout timeout;
-	u32 delay = GR_IDLE_CHECK_DEFAULT;
+	u32 delay = POLL_DELAY_MIN_US;
 	int err = 0;
 
 	err = nvgpu_timeout_init(g, &timeout, nvgpu_get_poll_timeout(g),
@@ -134,7 +134,7 @@ static int gv100_nvlink_minion_command_complete(struct gk20a *g, u32 link_id)
 		}
 		nvgpu_usleep_range(delay, delay * 2U);
 		delay = min_t(unsigned int,
-				delay << 1, GR_IDLE_CHECK_MAX);
+				delay << 1, POLL_DELAY_MAX_US);
 
 	} while (nvgpu_timeout_expired_msg(&timeout,
 					"minion cmd timeout") == 0);

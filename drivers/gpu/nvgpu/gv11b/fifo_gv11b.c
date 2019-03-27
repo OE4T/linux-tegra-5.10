@@ -149,7 +149,7 @@ static int gv11b_fifo_poll_pbdma_chan_status(struct gk20a *g, u32 id,
 				 u32 pbdma_id)
 {
 	struct nvgpu_timeout timeout;
-	unsigned long delay = GR_IDLE_CHECK_DEFAULT; /* in micro seconds */
+	unsigned long delay = POLL_DELAY_MIN_US; /* in micro seconds */
 	int ret;
 	unsigned int loop_count = 0;
 	struct nvgpu_pbdma_status_info pbdma_status;
@@ -225,7 +225,7 @@ static int gv11b_fifo_poll_pbdma_chan_status(struct gk20a *g, u32 id,
 
 		nvgpu_usleep_range(delay, delay * 2UL);
 		delay = min_t(unsigned long,
-				delay << 1, GR_IDLE_CHECK_MAX);
+				delay << 1, POLL_DELAY_MAX_US);
 	} while (nvgpu_timeout_expired(&timeout) == 0);
 
 	if (ret != 0) {
@@ -240,7 +240,7 @@ static int gv11b_fifo_poll_eng_ctx_status(struct gk20a *g, u32 id,
 			 u32 act_eng_id, u32 *reset_eng_bitmask)
 {
 	struct nvgpu_timeout timeout;
-	unsigned long delay = GR_IDLE_CHECK_DEFAULT; /* in micro seconds */
+	unsigned long delay = POLL_DELAY_MIN_US; /* in micro seconds */
 	u32 eng_stat;
 	u32 ctx_stat;
 	int ret;
@@ -359,7 +359,7 @@ static int gv11b_fifo_poll_eng_ctx_status(struct gk20a *g, u32 id,
 		}
 		nvgpu_usleep_range(delay, delay * 2UL);
 		delay = min_t(unsigned long,
-				delay << 1, GR_IDLE_CHECK_MAX);
+				delay << 1, POLL_DELAY_MAX_US);
 	} while (nvgpu_timeout_expired(&timeout) == 0);
 
 	if (ret != 0) {

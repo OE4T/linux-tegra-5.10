@@ -75,7 +75,7 @@ void tu104_runlist_hw_submit(struct gk20a *g, u32 runlist_id,
 int tu104_runlist_wait_pending(struct gk20a *g, u32 runlist_id)
 {
 	struct nvgpu_timeout timeout;
-	u32 delay = GR_IDLE_CHECK_DEFAULT;
+	u32 delay = POLL_DELAY_MIN_US;
 	int ret = -ETIMEDOUT;
 
 	ret = nvgpu_timeout_init(g, &timeout, nvgpu_get_poll_timeout(g),
@@ -93,7 +93,7 @@ int tu104_runlist_wait_pending(struct gk20a *g, u32 runlist_id)
 		}
 
 		nvgpu_usleep_range(delay, delay * 2U);
-		delay = min_t(u32, delay << 1, GR_IDLE_CHECK_MAX);
+		delay = min_t(u32, delay << 1, POLL_DELAY_MAX_US);
 	} while (nvgpu_timeout_expired(&timeout) == 0);
 
 	return ret;
