@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -68,7 +68,7 @@ static inline u32 sec_lic_intr_enable_actmon_f(u32 v)
 }
 static inline u32 sec_lic_intr_enable_h1x_f(u32 v)
 {
-	return (v & 0x3) << 5;
+	return (v & 0x7) << 5;
 }
 static inline u32 sec_lic_intr_enable_hsp_f(u32 v)
 {

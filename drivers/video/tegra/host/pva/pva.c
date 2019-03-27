@@ -614,6 +614,7 @@ int pva_finalize_poweron(struct platform_device *pdev)
 	/* Enable LIC_INTERRUPT line for HSP1 and WDT */
 	host1x_writel(pva->pdev, sec_lic_intr_enable_r(),
 		sec_lic_intr_enable_hsp_f(SEC_LIC_INTR_HSP1) |
+		sec_lic_intr_enable_h1x_f(SEC_LIC_INTR_H1X_ALL) |
 		sec_lic_intr_enable_wdt_f(SEC_LIC_INTR_WDT));
 
 	err = pva_load_fw(pdev);

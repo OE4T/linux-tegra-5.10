@@ -1,7 +1,7 @@
 /*
  * PVA ISR code for T194
  *
- * Copyright (c) 2016-2018, NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2016-2019, NVIDIA Corporation.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -33,6 +33,7 @@ static irqreturn_t pva_isr(int irq, void *dev_id)
 	u32 status7 = pva_read_mailbox(pdev, PVA_MBOX_ISR);
 	u32 status5 = pva_read_mailbox(pdev, PVA_MBOX_AISR);
 	u32 lic_int_status = host1x_readl(pdev, sec_lic_intr_status_r());
+	u32 h1xflgs;
 	bool recover = false;
 
 	if (status5 & PVA_AISR_INT_PENDING) {
@@ -69,6 +70,18 @@ static irqreturn_t pva_isr(int irq, void *dev_id)
 	/* Check for watchdog timer interrupt */
 	if (lic_int_status & sec_lic_intr_enable_wdt_f(SEC_LIC_INTR_WDT)) {
 		nvhost_warn(&pdev->dev, "WatchDog Timer");
+		recover = true;
+	}
+
+	/* Check for host1x errors*/
+	h1xflgs = sec_lic_intr_enable_h1x_f(SEC_LIC_INTR_H1X_ALL);
+	if (lic_int_status & h1xflgs) {
+		nvhost_warn(&pdev->dev, "Pva Host1x errors (0x%x)",
+			     lic_int_status);
+
+		/* Clear the interrupt */
+		host1x_writel(pva->pdev, sec_lic_intr_status_r(),
+			      (lic_int_status & h1xflgs));
 		recover = true;
 	}
 
