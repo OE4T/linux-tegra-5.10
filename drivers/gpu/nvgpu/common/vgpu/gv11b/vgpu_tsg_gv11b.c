@@ -39,11 +39,6 @@ int vgpu_gv11b_tsg_bind_channel(struct tsg_gk20a *tsg,
 
 	nvgpu_log_fn(g, " ");
 
-	err = gk20a_tsg_bind_channel(tsg, ch);
-	if (err) {
-		return err;
-	}
-
 	msg.cmd = TEGRA_VGPU_CMD_TSG_BIND_CHANNEL_EX;
 	msg.handle = vgpu_get_handle(tsg->g);
 	p->tsg_id = tsg->tsgid;
@@ -53,10 +48,8 @@ int vgpu_gv11b_tsg_bind_channel(struct tsg_gk20a *tsg,
 	err = vgpu_comm_sendrecv(&msg, sizeof(msg), sizeof(msg));
 	err = err ? err : msg.ret;
 	if (err) {
-		nvgpu_err(tsg->g,
-			"vgpu_gv11b_tsg_bind_channel failed, ch %d tsgid %d",
+		nvgpu_err(g, "vgpu bind channel failed, ch %d tsgid %d",
 			ch->chid, tsg->tsgid);
-		gk20a_tsg_unbind_channel(ch);
 	}
 
 	return err;

@@ -88,8 +88,7 @@ void vgpu_tsg_enable(struct tsg_gk20a *tsg)
 	nvgpu_rwsem_up_read(&tsg->ch_list_lock);
 }
 
-int vgpu_tsg_bind_channel(struct tsg_gk20a *tsg,
-			struct channel_gk20a *ch)
+int vgpu_tsg_bind_channel(struct tsg_gk20a *tsg, struct channel_gk20a *ch)
 {
 	struct tegra_vgpu_cmd_msg msg = {};
 	struct tegra_vgpu_tsg_bind_unbind_channel_params *p =
@@ -99,28 +98,21 @@ int vgpu_tsg_bind_channel(struct tsg_gk20a *tsg,
 
 	nvgpu_log_fn(g, " ");
 
-	err = gk20a_tsg_bind_channel(tsg, ch);
-	if (err) {
-		return err;
-	}
-
 	msg.cmd = TEGRA_VGPU_CMD_TSG_BIND_CHANNEL;
-	msg.handle = vgpu_get_handle(tsg->g);
+	msg.handle = vgpu_get_handle(g);
 	p->tsg_id = tsg->tsgid;
 	p->ch_handle = ch->virt_ctx;
 	err = vgpu_comm_sendrecv(&msg, sizeof(msg), sizeof(msg));
 	err = err ? err : msg.ret;
 	if (err) {
-		nvgpu_err(tsg->g,
-			"vgpu_tsg_bind_channel failed, ch %d tsgid %d",
+		nvgpu_err(g, "vgpu_tsg_bind_channel failed, ch %d tsgid %d",
 			ch->chid, tsg->tsgid);
-		gk20a_tsg_unbind_channel(ch);
 	}
 
 	return err;
 }
 
-int vgpu_tsg_unbind_channel(struct channel_gk20a *ch)
+int vgpu_tsg_unbind_channel(struct tsg_gk20a *tsg, struct channel_gk20a *ch)
 {
 	struct tegra_vgpu_cmd_msg msg = {};
 	struct tegra_vgpu_tsg_bind_unbind_channel_params *p =
@@ -130,13 +122,8 @@ int vgpu_tsg_unbind_channel(struct channel_gk20a *ch)
 
 	nvgpu_log_fn(g, " ");
 
-	err = gk20a_fifo_tsg_unbind_channel(ch);
-	if (err) {
-		return err;
-	}
-
 	msg.cmd = TEGRA_VGPU_CMD_TSG_UNBIND_CHANNEL;
-	msg.handle = vgpu_get_handle(ch->g);
+	msg.handle = vgpu_get_handle(g);
 	p->ch_handle = ch->virt_ctx;
 	err = vgpu_comm_sendrecv(&msg, sizeof(msg), sizeof(msg));
 	err = err ? err : msg.ret;
@@ -156,7 +143,7 @@ int vgpu_tsg_set_timeslice(struct tsg_gk20a *tsg, u32 timeslice)
 	nvgpu_log_fn(g, " ");
 
 	msg.cmd = TEGRA_VGPU_CMD_TSG_SET_TIMESLICE;
-	msg.handle = vgpu_get_handle(tsg->g);
+	msg.handle = vgpu_get_handle(g);
 	p->tsg_id = tsg->tsgid;
 	p->timeslice_us = timeslice;
 	err = vgpu_comm_sendrecv(&msg, sizeof(msg), sizeof(msg));

@@ -68,12 +68,12 @@ static bool gk20a_is_channel_active(struct gk20a *g, struct channel_gk20a *ch)
  *
  * Note that channel is not runnable when we bind it to TSG
  */
-int gk20a_tsg_bind_channel(struct tsg_gk20a *tsg,
-			struct channel_gk20a *ch)
+int nvgpu_tsg_bind_channel(struct tsg_gk20a *tsg, struct channel_gk20a *ch)
 {
 	struct gk20a *g = ch->g;
+	int err = 0;
 
-	nvgpu_log_fn(g, " ");
+	nvgpu_log_fn(g, "bind tsg:%u ch:%u\n", tsg->tsgid, ch->chid);
 
 	/* check if channel is already bound to some TSG */
 	if (tsg_gk20a_from_ch(ch) != NULL) {
@@ -85,15 +85,18 @@ int gk20a_tsg_bind_channel(struct tsg_gk20a *tsg,
 		return -EINVAL;
 	}
 
-
 	/* all the channel part of TSG should need to be same runlist_id */
 	if (tsg->runlist_id == FIFO_INVAL_TSG_ID) {
 		tsg->runlist_id = ch->runlist_id;
 	} else if (tsg->runlist_id != ch->runlist_id) {
 		nvgpu_err(tsg->g,
-			"Error: TSG channel should be share same runlist ch[%d] tsg[%d]",
+			"runlist_id mismatch ch[%d] tsg[%d]",
 			ch->runlist_id, tsg->runlist_id);
 		return -EINVAL;
+	}
+
+	if (g->ops.tsg.bind_channel != NULL) {
+		err = g->ops.tsg.bind_channel(tsg, ch);
 	}
 
 	nvgpu_rwsem_down_write(&tsg->ch_list_lock);
@@ -103,28 +106,23 @@ int gk20a_tsg_bind_channel(struct tsg_gk20a *tsg,
 
 	nvgpu_ref_get(&tsg->refcount);
 
-	nvgpu_log(g, gpu_dbg_fn, "BIND tsg:%d channel:%d\n",
-					tsg->tsgid, ch->chid);
-
-	nvgpu_log_fn(g, "done");
-	return 0;
+	return err;
 }
 
 /* The caller must ensure that channel belongs to a tsg */
-int gk20a_tsg_unbind_channel(struct channel_gk20a *ch)
+int nvgpu_tsg_unbind_channel(struct tsg_gk20a *tsg, struct channel_gk20a *ch)
 {
 	struct gk20a *g = ch->g;
-	struct tsg_gk20a *tsg = tsg_gk20a_from_ch(ch);
 	int err;
 
-	nvgpu_assert(tsg != NULL);
+	nvgpu_log_fn(g, "unbind tsg:%u ch:%u\n", tsg->tsgid, ch->chid);
 
-	err = g->ops.fifo.tsg_unbind_channel(ch);
+	err = nvgpu_tsg_unbind_channel_common(tsg, ch);
 	if (err != 0) {
 		nvgpu_err(g, "Channel %d unbind failed, tearing down TSG %d",
 			ch->chid, tsg->tsgid);
 
-		gk20a_fifo_abort_tsg(ch->g, tsg, true);
+		gk20a_fifo_abort_tsg(g, tsg, true);
 		/* If channel unbind fails, channel is still part of runlist */
 		channel_gk20a_update_runlist(ch, false);
 
@@ -133,14 +131,133 @@ int gk20a_tsg_unbind_channel(struct channel_gk20a *ch)
 		ch->tsgid = NVGPU_INVALID_TSG_ID;
 		nvgpu_rwsem_up_write(&tsg->ch_list_lock);
 	}
-	nvgpu_log(g, gpu_dbg_fn, "UNBIND tsg:%d channel:%d",
-					tsg->tsgid, ch->chid);
+
+	if (g->ops.tsg.unbind_channel != NULL) {
+		err = g->ops.tsg.unbind_channel(tsg, ch);
+	}
 
 	nvgpu_ref_put(&tsg->refcount, gk20a_tsg_release);
 
 	return 0;
 }
 
+int nvgpu_tsg_unbind_channel_common(struct tsg_gk20a *tsg,
+		struct channel_gk20a *ch)
+{
+	struct gk20a *g = ch->g;
+	int err;
+	bool tsg_timedout;
+
+	/* If one channel in TSG times out, we disable all channels */
+	nvgpu_rwsem_down_write(&tsg->ch_list_lock);
+	tsg_timedout = gk20a_channel_check_unserviceable(ch);
+	nvgpu_rwsem_up_write(&tsg->ch_list_lock);
+
+	/* Disable TSG and examine status before unbinding channel */
+	g->ops.tsg.disable(tsg);
+
+	err = g->ops.fifo.preempt_tsg(g, tsg);
+	if (err != 0) {
+		goto fail_enable_tsg;
+	}
+
+	if (!tsg_timedout &&
+	    (g->ops.tsg.unbind_channel_check_hw_state != NULL)) {
+		err = g->ops.tsg.unbind_channel_check_hw_state(tsg, ch);
+		if (err != 0) {
+			nvgpu_err(g, "invalid hw_state for ch %u", ch->chid);
+			goto fail_enable_tsg;
+		}
+	}
+
+	/* Channel should be seen as TSG channel while updating runlist */
+	err = channel_gk20a_update_runlist(ch, false);
+	if (err != 0) {
+		nvgpu_err(g, "update runlist failed ch:%u tsg:%u",
+				ch->chid, tsg->tsgid);
+		goto fail_enable_tsg;
+	}
+
+	/* Remove channel from TSG and re-enable rest of the channels */
+	nvgpu_rwsem_down_write(&tsg->ch_list_lock);
+	nvgpu_list_del(&ch->ch_entry);
+	ch->tsgid = NVGPU_INVALID_TSG_ID;
+
+	/* another thread could have re-enabled the channel because it was
+	 * still on the list at that time, so make sure it's truly disabled
+	 */
+	g->ops.channel.disable(ch);
+	nvgpu_rwsem_up_write(&tsg->ch_list_lock);
+
+	/*
+	 * Don't re-enable all channels if TSG has timed out already
+	 *
+	 * Note that we can skip disabling and preempting TSG too in case of
+	 * time out, but we keep that to ensure TSG is kicked out
+	 */
+	if (!tsg_timedout) {
+		g->ops.tsg.enable(tsg);
+	}
+
+	if (g->ops.channel.abort_clean_up != NULL) {
+		g->ops.channel.abort_clean_up(ch);
+	}
+
+	return 0;
+
+fail_enable_tsg:
+	if (!tsg_timedout) {
+		g->ops.tsg.enable(tsg);
+	}
+	return err;
+}
+
+int nvgpu_tsg_unbind_channel_check_hw_state(struct tsg_gk20a *tsg,
+		struct channel_gk20a *ch)
+{
+	struct gk20a *g = ch->g;
+	struct nvgpu_channel_hw_state hw_state;
+
+	g->ops.channel.read_state(g, ch, &hw_state);
+
+	if (hw_state.next) {
+		nvgpu_err(g, "Channel %d to be removed from TSG %d has NEXT set!",
+				ch->chid, ch->tsgid);
+		return -EINVAL;
+	}
+
+	if (g->ops.tsg.unbind_channel_check_ctx_reload != NULL) {
+		g->ops.tsg.unbind_channel_check_ctx_reload(tsg, ch, &hw_state);
+	}
+
+	if (g->ops.tsg.unbind_channel_check_eng_faulted != NULL) {
+		g->ops.tsg.unbind_channel_check_eng_faulted(tsg, ch,
+				&hw_state);
+	}
+
+	return 0;
+}
+
+void nvgpu_tsg_unbind_channel_check_ctx_reload(struct tsg_gk20a *tsg,
+	struct channel_gk20a *ch,
+	struct nvgpu_channel_hw_state *hw_state)
+{
+	struct gk20a *g = ch->g;
+	struct channel_gk20a *temp_ch;
+
+	/* If CTX_RELOAD is set on a channel, move it to some other channel */
+	if (hw_state->ctx_reload) {
+		nvgpu_rwsem_down_read(&tsg->ch_list_lock);
+		nvgpu_list_for_each_entry(temp_ch, &tsg->ch_list,
+				channel_gk20a, ch_entry) {
+			if (temp_ch->chid != ch->chid) {
+				g->ops.channel.force_ctx_reload(temp_ch);
+				break;
+			}
+		}
+		nvgpu_rwsem_up_read(&tsg->ch_list_lock);
+	}
+}
 
 void nvgpu_tsg_recover(struct gk20a *g, struct tsg_gk20a *tsg,
 			 bool verbose, u32 rc_type)

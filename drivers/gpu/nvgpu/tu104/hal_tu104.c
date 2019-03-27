@@ -931,9 +931,6 @@ static const struct gpu_ops tu104_ops = {
 		.default_timeslice_us = gk20a_fifo_default_timeslice_us,
 		.preempt_channel = gv11b_fifo_preempt_channel,
 		.preempt_tsg = gv11b_fifo_preempt_tsg,
-		.tsg_verify_channel_status = gk20a_fifo_tsg_unbind_channel_verify_status,
-		.tsg_verify_status_ctx_reload = gm20b_fifo_tsg_verify_status_ctx_reload,
-		.tsg_verify_status_faulted = gv11b_fifo_tsg_verify_status_faulted,
 		.tsg_set_timeslice = gk20a_fifo_tsg_set_timeslice,
 		.init_pbdma_info = gk20a_fifo_init_pbdma_info,
 		.dump_channel_status_ramfc = gv11b_dump_channel_status_ramfc,
@@ -945,8 +942,6 @@ static const struct gpu_ops tu104_ops = {
 		.init_eng_method_buffers = gv11b_fifo_init_eng_method_buffers,
 		.deinit_eng_method_buffers =
 			gv11b_fifo_deinit_eng_method_buffers,
-		.tsg_bind_channel = gk20a_tsg_bind_channel,
-		.tsg_unbind_channel = gk20a_fifo_tsg_unbind_channel,
 		.post_event_id = gk20a_tsg_event_id_post_event,
 		.setup_sw = nvgpu_fifo_setup_sw,
 		.cleanup_sw = nvgpu_fifo_cleanup_sw,
@@ -1081,6 +1076,14 @@ static const struct gpu_ops tu104_ops = {
 	.tsg = {
 		.enable = gv11b_tsg_enable,
 		.disable = nvgpu_tsg_disable,
+		.bind_channel = NULL,
+		.unbind_channel = NULL,
+		.unbind_channel_check_hw_state =
+				nvgpu_tsg_unbind_channel_check_hw_state,
+		.unbind_channel_check_ctx_reload =
+				nvgpu_tsg_unbind_channel_check_ctx_reload,
+		.unbind_channel_check_eng_faulted =
+				gv11b_tsg_unbind_channel_check_eng_faulted,
 		.check_ctxsw_timeout = nvgpu_tsg_check_ctxsw_timeout,
 		.force_reset = nvgpu_tsg_force_reset_ch,
 	},

@@ -499,10 +499,6 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 		.default_timeslice_us = vgpu_fifo_default_timeslice_us,
 		.preempt_channel = vgpu_fifo_preempt_channel,
 		.preempt_tsg = vgpu_fifo_preempt_tsg,
-		.tsg_verify_channel_status = NULL,
-		.tsg_verify_status_ctx_reload = NULL,
-		/* TODO: implement it for CE fault */
-		.tsg_verify_status_faulted = NULL,
 		.tsg_set_timeslice = vgpu_tsg_set_timeslice,
 		.tsg_open = vgpu_tsg_open,
 		.tsg_release = vgpu_tsg_release,
@@ -513,8 +509,6 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 		.init_eng_method_buffers = gv11b_fifo_init_eng_method_buffers,
 		.deinit_eng_method_buffers =
 			gv11b_fifo_deinit_eng_method_buffers,
-		.tsg_bind_channel = vgpu_gv11b_tsg_bind_channel,
-		.tsg_unbind_channel = vgpu_tsg_unbind_channel,
 		.post_event_id = gk20a_tsg_event_id_post_event,
 		.setup_sw = vgpu_fifo_setup_sw,
 		.cleanup_sw = vgpu_fifo_cleanup_sw,
@@ -636,6 +630,11 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 	.tsg = {
 		.enable = gv11b_tsg_enable,
 		.disable = nvgpu_tsg_disable,
+		.bind_channel = vgpu_gv11b_tsg_bind_channel,
+		.unbind_channel = vgpu_tsg_unbind_channel,
+		.unbind_channel_check_hw_state = NULL,
+		.unbind_channel_check_ctx_reload = NULL,
+		.unbind_channel_check_eng_faulted = NULL,
 		.check_ctxsw_timeout = nvgpu_tsg_check_ctxsw_timeout,
 		.force_reset = vgpu_tsg_force_reset_ch,
 	},

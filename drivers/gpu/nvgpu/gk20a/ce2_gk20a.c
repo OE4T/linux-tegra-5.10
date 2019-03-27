@@ -494,7 +494,7 @@ u32 gk20a_ce_create_context(struct gk20a *g,
 		goto end;
 	}
 
-	err = gk20a_tsg_bind_channel(ce_ctx->tsg, ce_ctx->ch);
+	err = nvgpu_tsg_bind_channel(ce_ctx->tsg, ce_ctx->ch);
 	if (err != 0) {
 		nvgpu_err(g, "ce: unable to bind to tsg");
 		goto end;

@@ -1357,7 +1357,7 @@ static int gk20a_cde_load(struct gk20a_cde_ctx *cde_ctx)
 		goto err_commit_va;
 	}
 
-	err = gk20a_tsg_bind_channel(tsg, ch);
+	err = nvgpu_tsg_bind_channel(tsg, ch);
 	if (err) {
 		nvgpu_err(g, "cde: unable to bind to tsg");
 		goto err_setup_bind;

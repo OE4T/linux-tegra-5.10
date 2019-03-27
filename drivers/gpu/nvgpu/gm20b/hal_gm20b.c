@@ -628,8 +628,6 @@ static const struct gpu_ops gm20b_ops = {
 		.default_timeslice_us = gk20a_fifo_default_timeslice_us,
 		.preempt_channel = gk20a_fifo_preempt_channel,
 		.preempt_tsg = gk20a_fifo_preempt_tsg,
-		.tsg_verify_channel_status = gk20a_fifo_tsg_unbind_channel_verify_status,
-		.tsg_verify_status_ctx_reload = gm20b_fifo_tsg_verify_status_ctx_reload,
 		.tsg_set_timeslice = gk20a_fifo_tsg_set_timeslice,
 		.init_pbdma_info = gk20a_fifo_init_pbdma_info,
 		.dump_channel_status_ramfc = gk20a_dump_channel_status_ramfc,
@@ -638,8 +636,6 @@ static const struct gpu_ops gm20b_ops = {
 		.teardown_ch_tsg = gk20a_fifo_teardown_ch_tsg,
 		.teardown_mask_intr = gk20a_fifo_teardown_mask_intr,
 		.teardown_unmask_intr = gk20a_fifo_teardown_unmask_intr,
-		.tsg_bind_channel = gk20a_tsg_bind_channel,
-		.tsg_unbind_channel = gk20a_fifo_tsg_unbind_channel,
 		.post_event_id = gk20a_tsg_event_id_post_event,
 		.setup_sw = nvgpu_fifo_setup_sw,
 		.cleanup_sw = nvgpu_fifo_cleanup_sw,
@@ -768,6 +764,13 @@ static const struct gpu_ops gm20b_ops = {
 	.tsg = {
 		.enable = gk20a_tsg_enable,
 		.disable = nvgpu_tsg_disable,
+		.bind_channel = NULL,
+		.unbind_channel = NULL,
+		.unbind_channel_check_hw_state =
+				nvgpu_tsg_unbind_channel_check_hw_state,
+		.unbind_channel_check_ctx_reload =
+				nvgpu_tsg_unbind_channel_check_ctx_reload,
+		.unbind_channel_check_eng_faulted = NULL,
 		.check_ctxsw_timeout = nvgpu_tsg_check_ctxsw_timeout,
 		.force_reset = nvgpu_tsg_force_reset_ch,
 	},

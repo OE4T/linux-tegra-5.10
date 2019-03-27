@@ -24,7 +24,12 @@
 #define NVGPU_TSG_GV11B_H
 
 struct tsg_gk20a;
+struct channel_gk20a;
+struct nvgpu_channel_hw_state;
 
 void gv11b_tsg_enable(struct tsg_gk20a *tsg);
+void gv11b_tsg_unbind_channel_check_eng_faulted(struct tsg_gk20a *tsg,
+		struct channel_gk20a *ch,
+		struct nvgpu_channel_hw_state *hw_state);
 
 #endif /* NVGPU_TSG_GV11B_H */

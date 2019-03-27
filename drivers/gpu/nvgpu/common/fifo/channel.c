@@ -305,6 +305,7 @@ void gk20a_wait_until_counter_is_N(
 static void gk20a_free_channel(struct channel_gk20a *ch, bool force)
 {
 	struct gk20a *g = ch->g;
+	struct tsg_gk20a *tsg;
 	struct fifo_gk20a *f = &g->fifo;
 	struct vm_gk20a *ch_vm = ch->vm;
 	unsigned long timeout = nvgpu_get_poll_timeout(g);
@@ -331,13 +332,14 @@ static void gk20a_free_channel(struct channel_gk20a *ch, bool force)
 	 */
 	if (!nvgpu_is_enabled(g, NVGPU_DRIVER_IS_DYING)) {
 		/* abort channel and remove from runlist */
-		if (tsg_gk20a_from_ch(ch) != NULL) {
+		tsg = tsg_gk20a_from_ch(ch);
+		if (tsg != NULL) {
 			/* Between tsg is not null and unbind_channel call,
 			 * ioctl cannot be called anymore because user doesn't
 			 * have an open channel fd anymore to use for the unbind
 			 * ioctl.
 			 */
-			err = gk20a_tsg_unbind_channel(ch);
+			err = nvgpu_tsg_unbind_channel(tsg, ch);
 			if (err != 0) {
 				nvgpu_err(g,
 					"failed to unbind channel %d from TSG",

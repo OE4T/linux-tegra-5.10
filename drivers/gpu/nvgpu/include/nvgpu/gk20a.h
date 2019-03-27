@@ -952,15 +952,9 @@ struct gpu_ops {
 		int (*init_fifo_setup_hw)(struct gk20a *g);
 		int (*preempt_channel)(struct gk20a *g, struct channel_gk20a *ch);
 		int (*preempt_tsg)(struct gk20a *g, struct tsg_gk20a *tsg);
-		int (*tsg_verify_channel_status)(struct channel_gk20a *ch);
-		void (*tsg_verify_status_ctx_reload)(struct channel_gk20a *ch);
-		void (*tsg_verify_status_faulted)(struct channel_gk20a *ch);
 		void (*apply_pb_timeout)(struct gk20a *g);
 		int (*tsg_set_timeslice)(struct tsg_gk20a *tsg, u32 timeslice);
 		u32 (*default_timeslice_us)(struct gk20a *g);
-		int (*tsg_bind_channel)(struct tsg_gk20a *tsg,
-				struct channel_gk20a *ch);
-		int (*tsg_unbind_channel)(struct channel_gk20a *ch);
 		int (*tsg_open)(struct tsg_gk20a *tsg);
 		void (*tsg_release)(struct tsg_gk20a *tsg);
 		int (*init_pbdma_info)(struct fifo_gk20a *f);
@@ -1156,6 +1150,18 @@ struct gpu_ops {
 	struct {
 		void (*enable)(struct tsg_gk20a *tsg);
 		void (*disable)(struct tsg_gk20a *tsg);
+		int (*bind_channel)(struct tsg_gk20a *tsg,
+				struct channel_gk20a *ch);
+		int (*unbind_channel)(struct tsg_gk20a *tsg,
+				struct channel_gk20a *ch);
+		int (*unbind_channel_check_hw_state)(struct tsg_gk20a *tsg,
+				struct channel_gk20a *ch);
+		void (*unbind_channel_check_ctx_reload)(struct tsg_gk20a *tsg,
+				struct channel_gk20a *ch,
+				struct nvgpu_channel_hw_state *state);
+		void (*unbind_channel_check_eng_faulted)(struct tsg_gk20a *tsg,
+				struct channel_gk20a *ch,
+				struct nvgpu_channel_hw_state *state);
 		bool (*check_ctxsw_timeout)(struct tsg_gk20a *tsg,
 				bool *verbose, u32 *ms);
 		int (*force_reset)(struct channel_gk20a *ch,

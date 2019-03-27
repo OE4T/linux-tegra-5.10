@@ -67,7 +67,6 @@ void gv11b_fifo_deinit_eng_method_buffers(struct gk20a *g,
 					struct tsg_gk20a *tsg);
 int gv11b_init_fifo_setup_hw(struct gk20a *g);
 
-void gv11b_fifo_tsg_verify_status_faulted(struct channel_gk20a *ch);
 u32 gv11b_fifo_get_preempt_timeout(struct gk20a *g);
 
 void gv11b_fifo_init_ramfc_eng_method_buffer(struct gk20a *g,

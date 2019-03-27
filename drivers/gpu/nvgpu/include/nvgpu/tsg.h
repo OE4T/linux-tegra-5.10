@@ -33,6 +33,7 @@
 struct gk20a;
 struct channel_gk20a;
 struct nvgpu_gr_ctx;
+struct nvgpu_channel_hw_state;
 
 struct nvgpu_tsg_sm_error_state {
 	u32 hww_global_esr;
@@ -93,9 +94,16 @@ void nvgpu_tsg_cleanup_sw(struct gk20a *g);
 struct tsg_gk20a *tsg_gk20a_from_ch(struct channel_gk20a *ch);
 
 void nvgpu_tsg_disable(struct tsg_gk20a *tsg);
-int gk20a_tsg_bind_channel(struct tsg_gk20a *tsg,
+int nvgpu_tsg_bind_channel(struct tsg_gk20a *tsg,
 			struct channel_gk20a *ch);
-int gk20a_tsg_unbind_channel(struct channel_gk20a *ch);
+int nvgpu_tsg_unbind_channel(struct tsg_gk20a *tsg, struct channel_gk20a *ch);
+int nvgpu_tsg_unbind_channel_common(struct tsg_gk20a *tsg,
+		struct channel_gk20a *ch);
+int nvgpu_tsg_unbind_channel_check_hw_state(struct tsg_gk20a *tsg,
+		struct channel_gk20a *ch);
+void nvgpu_tsg_unbind_channel_check_ctx_reload(struct tsg_gk20a *tsg,
+		struct channel_gk20a *ch,
+		struct nvgpu_channel_hw_state *hw_state);
 int nvgpu_tsg_force_reset_ch(struct channel_gk20a *ch,
 				u32 err_code, bool verbose);
 void nvgpu_tsg_recover(struct gk20a *g, struct tsg_gk20a *tsg,

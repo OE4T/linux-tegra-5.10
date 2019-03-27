@@ -41,7 +41,7 @@ struct tsg_private {
 	struct tsg_gk20a *tsg;
 };
 
-static int gk20a_tsg_bind_channel_fd(struct tsg_gk20a *tsg, int ch_fd)
+static int nvgpu_tsg_bind_channel_fd(struct tsg_gk20a *tsg, int ch_fd)
 {
 	struct channel_gk20a *ch;
 	int err;
@@ -50,7 +50,7 @@ static int gk20a_tsg_bind_channel_fd(struct tsg_gk20a *tsg, int ch_fd)
 	if (!ch)
 		return -EINVAL;
 
-	err = ch->g->ops.fifo.tsg_bind_channel(tsg, ch);
+	err = nvgpu_tsg_bind_channel(tsg, ch);
 
 	gk20a_channel_put(ch);
 	return err;
@@ -113,7 +113,7 @@ static int gk20a_tsg_ioctl_bind_channel_ex(struct gk20a *g,
 	if (ch->subctx_id > CHANNEL_INFO_VEID0)
 		ch->runqueue_sel = 1;
 
-	err = ch->g->ops.fifo.tsg_bind_channel(tsg, ch);
+	err = nvgpu_tsg_bind_channel(tsg, ch);
 ch_put:
 	gk20a_channel_put(ch);
 idle:
@@ -123,21 +123,22 @@ mutex_release:
 	return err;
 }
 
-static int gk20a_tsg_unbind_channel_fd(struct tsg_gk20a *tsg, int ch_fd)
+static int nvgpu_tsg_unbind_channel_fd(struct tsg_gk20a *tsg, int ch_fd)
 {
 	struct channel_gk20a *ch;
 	int err = 0;
 
 	ch = gk20a_get_channel_from_file(ch_fd);
-	if (!ch)
+	if (!ch) {
 		return -EINVAL;
+	}
 
-	if (ch->tsgid != tsg->tsgid) {
+	if (tsg != tsg_gk20a_from_ch(ch)) {
 		err = -EINVAL;
 		goto out;
 	}
 
-	err = gk20a_tsg_unbind_channel(ch);
+	err = nvgpu_tsg_unbind_channel(tsg, ch);
 
 	/*
 	 * Mark the channel unserviceable since channel unbound from TSG
@@ -644,7 +645,7 @@ long nvgpu_ioctl_tsg_dev_ioctl(struct file *filp, unsigned int cmd,
 			err = -EINVAL;
 			break;
 		}
-		err = gk20a_tsg_bind_channel_fd(tsg, ch_fd);
+		err = nvgpu_tsg_bind_channel_fd(tsg, ch_fd);
 		break;
 		}
 
@@ -669,7 +670,7 @@ long nvgpu_ioctl_tsg_dev_ioctl(struct file *filp, unsigned int cmd,
 			   "failed to host gk20a for ioctl cmd: 0x%x", cmd);
 			break;
 		}
-		err = gk20a_tsg_unbind_channel_fd(tsg, ch_fd);
+		err = nvgpu_tsg_unbind_channel_fd(tsg, ch_fd);
 		gk20a_idle(g);
 		break;
 		}

@@ -265,7 +265,6 @@ void gk20a_fifo_recover(struct gk20a *g,
 			bool id_is_tsg, /* ignored if hw_id == ~0 */
 			bool id_is_known, bool verbose, u32 rc_type);
 int gk20a_init_fifo_reset_enable_hw(struct gk20a *g);
-int gk20a_fifo_tsg_unbind_channel(struct channel_gk20a *ch);
 
 void fifo_gk20a_finish_mmu_fault_handling(struct gk20a *g,
 		unsigned long fault_id);
@@ -304,8 +303,6 @@ void gk20a_dump_channel_status_ramfc(struct gk20a *g,
 void gk20a_debug_dump_all_channel_status_ramfc(struct gk20a *g,
 		 struct gk20a_debug_output *o);
 const char *gk20a_decode_pbdma_chan_eng_ctx_status(u32 index);
-
-int gk20a_fifo_tsg_unbind_channel_verify_status(struct channel_gk20a *ch);
 
 int gk20a_fifo_is_preempt_pending(struct gk20a *g, u32 id,
 			unsigned int id_type);

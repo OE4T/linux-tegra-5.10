@@ -21,10 +21,13 @@
  */
 
 #include <nvgpu/channel.h>
+#include <nvgpu/nvgpu_mem.h>
 #include <nvgpu/tsg.h>
 #include <nvgpu/gk20a.h>
 
 #include "hal/fifo/tsg_gv11b.h"
+
+#include "gv11b/fifo_gv11b.h"
 
 /* TSG enable sequence applicable for Volta and onwards */
 void gv11b_tsg_enable(struct tsg_gk20a *tsg)
@@ -42,5 +45,33 @@ void gv11b_tsg_enable(struct tsg_gk20a *tsg)
 
 	if (last_ch != NULL) {
 		g->ops.fifo.ring_channel_doorbell(last_ch);
+	}
+}
+
+void gv11b_tsg_unbind_channel_check_eng_faulted(struct tsg_gk20a *tsg,
+		struct channel_gk20a *ch,
+		struct nvgpu_channel_hw_state *hw_state)
+{
+	struct gk20a *g = tsg->g;
+	struct nvgpu_mem *mem;
+
+	/*
+	 * If channel has FAULTED set, clear the CE method buffer
+	 * if saved out channel is same as faulted channel
+	 */
+	if (!hw_state->eng_faulted || (tsg->eng_method_buffers == NULL)) {
+		return;
+	}
+
+	/*
+	 * CE method buffer format :
+	 * DWord0 = method count
+	 * DWord1 = channel id
+	 *
+	 * It is sufficient to write 0 to method count to invalidate
+	 */
+	mem = &tsg->eng_method_buffers[ASYNC_CE_RUNQUE];
+	if (ch->chid == nvgpu_mem_rd32(g, mem, 1)) {
+		nvgpu_mem_wr32(g, mem, 0, 0);
 	}
 }
