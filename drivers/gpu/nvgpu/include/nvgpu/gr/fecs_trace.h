@@ -176,7 +176,8 @@ int nvgpu_gr_fecs_trace_unbind_channel(struct gk20a *g,
  */
 int nvgpu_gr_fecs_trace_ring_alloc(struct gk20a *g, void **buf, size_t *size);
 int nvgpu_gr_fecs_trace_ring_free(struct gk20a *g);
-int nvgpu_gr_fecs_trace_mmap_buffer(struct gk20a *g, struct vm_area_struct *vma);
+void nvgpu_gr_fecs_trace_get_mmap_buffer_info(struct gk20a *g,
+				void **mmapaddr, size_t *mmapsize);
 void nvgpu_gr_fecs_trace_add_tsg_reset(struct gk20a *g, struct tsg_gk20a *tsg);
 u8 nvgpu_gpu_ctxsw_tags_to_common_tags(u8 tags);
 int nvgpu_gr_fecs_trace_write_entry(struct gk20a *g,

@@ -50,7 +50,8 @@ bool vgpu_fecs_trace_is_enabled(struct gk20a *g);
 int vgpu_fecs_trace_poll(struct gk20a *g);
 int vgpu_alloc_user_buffer(struct gk20a *g, void **buf, size_t *size);
 int vgpu_free_user_buffer(struct gk20a *g);
-int vgpu_mmap_user_buffer(struct gk20a *g, struct vm_area_struct *vma);
+void vgpu_get_mmap_user_buffer_info(struct gk20a *g,
+				void **mmapaddr, size_t *mmapsize);
 int vgpu_fecs_trace_max_entries(struct gk20a *g,
 			struct nvgpu_gpu_ctxsw_trace_filter *filter);
 int vgpu_fecs_trace_set_filter(struct gk20a *g,

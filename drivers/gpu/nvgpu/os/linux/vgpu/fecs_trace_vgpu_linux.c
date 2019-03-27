@@ -37,17 +37,11 @@ int vgpu_alloc_user_buffer(struct gk20a *g, void **buf, size_t *size)
 	return 0;
 }
 
-int vgpu_mmap_user_buffer(struct gk20a *g, struct vm_area_struct *vma)
+void vgpu_get_mmap_user_buffer_info(struct gk20a *g,
+				void **mmapaddr, size_t *mmapsize)
 {
 	struct vgpu_fecs_trace *vcst = (struct vgpu_fecs_trace *)g->fecs_trace;
-	unsigned long size = vgpu_ivm_get_size(vcst->cookie);
-	unsigned long vsize = vma->vm_end - vma->vm_start;
 
-	size = min(size, vsize);
-	size = round_up(size, PAGE_SIZE);
-
-	return remap_pfn_range(vma, vma->vm_start,
-			vgpu_ivm_get_ipa(vcst->cookie) >> PAGE_SHIFT,
-			size,
-			vma->vm_page_prot);
+	*mmapsize = vgpu_ivm_get_size(vcst->cookie);
+	*mmapaddr = (void *) (vgpu_ivm_get_ipa(vcst->cookie) >> PAGE_SHIFT);
 }

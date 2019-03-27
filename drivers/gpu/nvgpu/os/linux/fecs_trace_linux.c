@@ -508,22 +508,42 @@ static struct vm_operations_struct gk20a_ctxsw_dev_vma_ops = {
 	.close = gk20a_ctxsw_dev_vma_close,
 };
 
-int nvgpu_gr_fecs_trace_mmap_buffer(struct gk20a *g,
-				struct vm_area_struct *vma)
+void nvgpu_gr_fecs_trace_get_mmap_buffer_info(struct gk20a *g,
+				void **mmapaddr, size_t *mmapsize)
 {
-	return remap_vmalloc_range(vma, g->ctxsw_trace->devs[0].hdr, 0);
+	*mmapaddr = g->ctxsw_trace->devs[0].hdr;
+	*mmapsize = 0;
 }
 
 int gk20a_ctxsw_dev_mmap(struct file *filp, struct vm_area_struct *vma)
 {
 	struct gk20a_ctxsw_dev *dev = filp->private_data;
 	struct gk20a *g = dev->g;
+	size_t mmapsize = 0;
+	void *mmapaddr;
 	int ret;
 
 	nvgpu_log(g, gpu_dbg_fn|gpu_dbg_ctxsw, "vm_start=%lx vm_end=%lx",
 		vma->vm_start, vma->vm_end);
 
-	ret = dev->g->ops.gr.fecs_trace.mmap_user_buffer(dev->g, vma);
+	dev->g->ops.gr.fecs_trace.get_mmap_user_buffer_info(dev->g,
+					&mmapaddr, &mmapsize);
+	if (mmapsize) {
+		unsigned long size = 0;
+		unsigned long vsize = vma->vm_end - vma->vm_start;
+
+		size = min(mmapsize, vsize);
+		size = round_up(size, PAGE_SIZE);
+
+		ret = remap_pfn_range(vma, vma->vm_start,
+			(unsigned long) mmapaddr,
+			size,
+			vma->vm_page_prot);
+
+	} else {
+		ret = remap_vmalloc_range(vma, mmapaddr, 0);
+	}
+
 	if (likely(!ret)) {
 		vma->vm_private_data = dev;
 		vma->vm_ops = &gk20a_ctxsw_dev_vma_ops;
@@ -757,7 +777,7 @@ void nvgpu_gr_fecs_trace_add_tsg_reset(struct gk20a *g, struct tsg_gk20a *tsg)
 
 u8 nvgpu_gpu_ctxsw_tags_to_common_tags(u8 tags)
 {
-	switch (tags){
+	switch (tags) {
 	case NVGPU_CTXSW_TAG_SOF:
 		return NVGPU_GPU_CTXSW_TAG_SOF;
 	case NVGPU_CTXSW_TAG_CTXSW_REQ_BY_HOST:

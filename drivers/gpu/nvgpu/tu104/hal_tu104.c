@@ -590,7 +590,8 @@ static const struct gpu_ops tu104_ops = {
 		.fecs_trace = {
 			.alloc_user_buffer = nvgpu_gr_fecs_trace_ring_alloc,
 			.free_user_buffer = nvgpu_gr_fecs_trace_ring_free,
-			.mmap_user_buffer = nvgpu_gr_fecs_trace_mmap_buffer,
+			.get_mmap_user_buffer_info =
+				nvgpu_gr_fecs_trace_get_mmap_buffer_info,
 			.init = nvgpu_gr_fecs_trace_init,
 			.deinit = nvgpu_gr_fecs_trace_deinit,
 			.enable = nvgpu_gr_fecs_trace_enable,

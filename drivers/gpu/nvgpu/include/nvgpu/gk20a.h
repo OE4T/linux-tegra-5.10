@@ -173,7 +173,7 @@ struct railgate_stats {
 #define GPU_LIT_PERFMON_PMMFBP_ROP_DOMAIN_START 43
 #define GPU_LIT_PERFMON_PMMFBP_ROP_DOMAIN_COUNT 44
 
-#define nvgpu_get_litter_value(g, v) (g)->ops.get_litter_value((g), v)
+#define nvgpu_get_litter_value(g, v) ((g)->ops.get_litter_value((g), v))
 
 #define MAX_TPC_PG_CONFIGS      3
 
@@ -274,7 +274,7 @@ struct gpu_ops {
 		int (*handle_sw_method)(struct gk20a *g, u32 addr,
 					 u32 class_num, u32 offset, u32 data);
 		void (*set_alpha_circular_buffer_size)(struct gk20a *g,
-					               u32 data);
+							u32 data);
 		void (*set_circular_buffer_size)(struct gk20a *g, u32 data);
 		void (*set_bes_crop_debug3)(struct gk20a *g, u32 data);
 		void (*set_bes_crop_debug4)(struct gk20a *g, u32 data);
@@ -612,8 +612,8 @@ struct gpu_ops {
 			int (*alloc_user_buffer)(struct gk20a *g,
 						void **buf, size_t *size);
 			int (*free_user_buffer)(struct gk20a *g);
-			int (*mmap_user_buffer)(struct gk20a *g,
-						struct vm_area_struct *vma);
+			void (*get_mmap_user_buffer_info)(struct gk20a *g,
+						void **addr, size_t *size);
 			int (*set_filter)(struct gk20a *g,
 				struct nvgpu_gpu_ctxsw_trace_filter *filter);
 			u32 (*get_buffer_full_mailbox_val)(void);
@@ -1333,7 +1333,7 @@ struct gpu_ops {
 		} boardobj;
 		struct {
 			int (*clk_set_boot_clk)(struct gk20a *g);
-		}clk;
+		} clk;
 	} pmu_ver;
 	struct {
 		int (*get_netlist_name)(struct gk20a *g, int index, char *name);
@@ -1566,7 +1566,7 @@ struct gpu_ops {
 		int (*arbiter_clk_init)(struct gk20a *g);
 		bool (*check_clk_arb_support)(struct gk20a *g);
 		u32 (*get_arbiter_clk_domains)(struct gk20a *g);
-		int (*get_arbiter_f_points)(struct gk20a *g,u32 api_domain,
+		int (*get_arbiter_f_points)(struct gk20a *g, u32 api_domain,
 				u32 *num_points, u16 *freqs_in_mhz);
 		int (*get_arbiter_clk_range)(struct gk20a *g, u32 api_domain,
 				u16 *min_mhz, u16 *max_mhz);

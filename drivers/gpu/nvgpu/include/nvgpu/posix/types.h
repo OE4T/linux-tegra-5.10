@@ -91,16 +91,22 @@ typedef signed long long	s64;
 
 #define DIV_ROUND_UP(n, d)	(((n) + (d) - 1U) / (d))
 
-/*
- * Only used in clk_gm20b.c which we will never unit test. Don't use!
- */
-#define DIV_ROUND_CLOSEST(x, divisor)	({BUG(); 0; })
-
+#define DIV_ROUND_CLOSEST(a, divisor)(                  \
+{                                                       \
+	typeof(a) val = a;                              \
+	typeof(divisor) div = divisor;                  \
+	(((typeof(a))-1) > 0 ||                         \
+	((typeof(divisor))-1) > 0 || (val) > 0) ?       \
+		(((val) + ((div) / 2)) / (div)) :       \
+		(((val) - ((div) / 2)) / (div));        \
+}                                                       \
+)
 /*
  * Joys of userspace: usually division just works since the compiler can link
  * against external division functions implicitly.
  */
 #define do_div(a, b)		((a) /= (b))
+
 #define div64_u64(a, b)		((a) / (b))
 
 #define __round_mask(x, y)	((__typeof__(x))((y) - 1U))
@@ -177,12 +183,12 @@ static inline unsigned long __hweight64(uint64_t x)
  * Better suited under a compiler.h type header file, but for now these can live
  * here.
  */
-#define __must_check
+#define __must_check		__attribute__((warn_unused_result))
 #define __maybe_unused		__attribute__((unused))
 #define __iomem
 #define __user
-#define unlikely
-#define likely
+#define unlikely(x)	(x)
+#define likely(x)	(x)
 
 #define __stringify(x)		#x
 
@@ -196,9 +202,9 @@ static inline unsigned long __hweight64(uint64_t x)
 		*__p__ = (v);				\
 	})
 
-#define container_of(ptr, type, member) ({                      \
-        const typeof( ((type *)0)->member ) *__mptr = (ptr);    \
-        (type *)( (char *)__mptr - offsetof(type,member) );})
+#define container_of(ptr, type, member) ({                     \
+	const typeof( ((type *)0)->member ) *__mptr = (ptr);    \
+	(type *)( (char *)__mptr - offsetof(type,member) );})
 
 #define __packed __attribute__((packed))
 

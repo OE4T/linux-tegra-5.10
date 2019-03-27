@@ -33,7 +33,6 @@
 #define is_power_of_2(x)					\
 	({							\
 		typeof(x) __x__ = (x);				\
-		(__x__ != 0U && ((__x__ & (__x__ - 1U)) == 0U));	\
+		(__x__ != 0U && ((__x__ & (__x__ - 1U)) == 0U));\
 	})
-
 #endif /* NVGPU_POSIX_LOG2_H */

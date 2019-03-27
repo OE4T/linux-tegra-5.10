@@ -341,7 +341,8 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 		.fecs_trace = {
 			.alloc_user_buffer = vgpu_alloc_user_buffer,
 			.free_user_buffer = vgpu_free_user_buffer,
-			.mmap_user_buffer = vgpu_mmap_user_buffer,
+			.get_mmap_user_buffer_info =
+				vgpu_get_mmap_user_buffer_info,
 			.init = vgpu_fecs_trace_init,
 			.deinit = vgpu_fecs_trace_deinit,
 			.enable = vgpu_fecs_trace_enable,
