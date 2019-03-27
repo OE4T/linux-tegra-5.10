@@ -25,6 +25,9 @@
 
 #include <nvgpu/types.h>
 
+int nvgpu_gr_enable_hw(struct gk20a *g);
+int nvgpu_gr_reset(struct gk20a *g);
+int nvgpu_gr_init_support(struct gk20a *g);
 u32 nvgpu_gr_gpc_offset(struct gk20a *g, u32 gpc);
 u32 nvgpu_gr_tpc_offset(struct gk20a *g, u32 tpc);
 int nvgpu_gr_suspend(struct gk20a *g);

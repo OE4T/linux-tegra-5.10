@@ -42,6 +42,7 @@
 #include <nvgpu/gr/gr_intr.h>
 #include <nvgpu/gr/gr_falcon.h>
 #include <nvgpu/gr/setup.h>
+#include <nvgpu/gr/gr.h>
 
 #include "hal/mc/mc_gm20b.h"
 #include "hal/bus/bus_gm20b.h"
@@ -314,7 +315,7 @@ static const struct gpu_ops gm20b_ops = {
 			gr_gk20a_get_offset_in_gpccs_segment,
 		.set_debug_mode = gm20b_gr_set_debug_mode,
 		.log_mme_exception = NULL,
-		.reset = gk20a_gr_reset,
+		.reset = nvgpu_gr_reset,
 		.ctxsw_prog = {
 			.hw_get_fecs_header_size =
 				gm20b_ctxsw_prog_hw_get_fecs_header_size,

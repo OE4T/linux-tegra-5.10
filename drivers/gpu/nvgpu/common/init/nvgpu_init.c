@@ -322,7 +322,7 @@ int gk20a_finalize_poweron(struct gk20a *g)
 		}
 	}
 
-	err = gk20a_enable_gr_hw(g);
+	err = nvgpu_gr_enable_hw(g);
 	if (err != 0) {
 		nvgpu_err(g, "failed to enable gr");
 		nvgpu_mutex_release(&g->tpc_pg_lock);
@@ -354,7 +354,7 @@ int gk20a_finalize_poweron(struct gk20a *g)
 		goto done;
 	}
 
-	err = gk20a_init_gr_support(g);
+	err = nvgpu_gr_init_support(g);
 	if (err != 0) {
 		nvgpu_err(g, "failed to init gk20a gr");
 		nvgpu_mutex_release(&g->tpc_pg_lock);

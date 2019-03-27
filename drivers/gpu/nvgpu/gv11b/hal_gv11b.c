@@ -25,6 +25,7 @@
 #include <nvgpu/fuse.h>
 #include <nvgpu/regops.h>
 #include <nvgpu/gr/gr_falcon.h>
+#include <nvgpu/gr/gr.h>
 
 #include "hal/mc/mc_gm20b.h"
 #include "hal/mc/mc_gp10b.h"
@@ -432,7 +433,7 @@ static const struct gpu_ops gv11b_ops = {
 		.log_mme_exception = NULL,
 		.get_ctxsw_checksum_mismatch_mailbox_val =
 				gr_gv11b_ctxsw_checksum_mismatch_mailbox_val,
-		.reset = gk20a_gr_reset,
+		.reset = nvgpu_gr_reset,
 		.ctxsw_prog = {
 			.hw_get_fecs_header_size =
 				gm20b_ctxsw_prog_hw_get_fecs_header_size,

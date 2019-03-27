@@ -251,10 +251,6 @@ int gr_gk20a_init_golden_ctx_image(struct gk20a *g,
 					  struct channel_gk20a *c,
 					  struct nvgpu_gr_ctx *gr_ctx);
 void gk20a_init_gr(struct gk20a *g);
-int gk20a_init_gr_support(struct gk20a *g);
-int gk20a_enable_gr_hw(struct gk20a *g);
-int gk20a_gr_reset(struct gk20a *g);
-
 int gk20a_init_gr_channel(struct channel_gk20a *ch_gk20a);
 
 int gk20a_alloc_obj_ctx(struct channel_gk20a  *c, u32 class_num, u32 flags);

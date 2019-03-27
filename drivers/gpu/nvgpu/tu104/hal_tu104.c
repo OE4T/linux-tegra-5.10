@@ -499,7 +499,7 @@ static const struct gpu_ops tu104_ops = {
 			gr_tu104_get_offset_in_gpccs_segment,
 		.set_debug_mode = gm20b_gr_set_debug_mode,
 		.log_mme_exception = gr_tu104_log_mme_exception,
-		.reset = gk20a_gr_reset,
+		.reset = nvgpu_gr_reset,
 		.ctxsw_prog = {
 			.hw_get_fecs_header_size =
 				gm20b_ctxsw_prog_hw_get_fecs_header_size,
