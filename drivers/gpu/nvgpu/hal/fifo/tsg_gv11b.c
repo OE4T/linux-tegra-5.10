@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -20,10 +20,27 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NVGPU_VGPU_TSG_GV11B_H
-#define NVGPU_VGPU_TSG_GV11B_H
+#include <nvgpu/channel.h>
+#include <nvgpu/tsg.h>
+#include <nvgpu/gk20a.h>
 
-int vgpu_gv11b_tsg_bind_channel(struct tsg_gk20a *tsg,
-				struct channel_gk20a *ch);
+#include "hal/fifo/tsg_gv11b.h"
 
-#endif /* NVGPU_VGPU_TSG_GV11B_H */
+/* TSG enable sequence applicable for Volta and onwards */
+void gv11b_tsg_enable(struct tsg_gk20a *tsg)
+{
+	struct gk20a *g = tsg->g;
+	struct channel_gk20a *ch;
+	struct channel_gk20a *last_ch = NULL;
+
+	nvgpu_rwsem_down_read(&tsg->ch_list_lock);
+	nvgpu_list_for_each_entry(ch, &tsg->ch_list, channel_gk20a, ch_entry) {
+		g->ops.channel.enable(ch);
+		last_ch = ch;
+	}
+	nvgpu_rwsem_up_read(&tsg->ch_list_lock);
+
+	if (last_ch != NULL) {
+		g->ops.fifo.ring_channel_doorbell(last_ch);
+	}
+}

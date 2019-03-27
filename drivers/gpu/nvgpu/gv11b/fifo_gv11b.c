@@ -524,27 +524,6 @@ int gv11b_fifo_preempt_channel(struct gk20a *g, struct channel_gk20a *ch)
 	return g->ops.fifo.preempt_tsg(g, tsg);
 }
 
-/* TSG enable sequence applicable for Volta and onwards */
-int gv11b_fifo_enable_tsg(struct tsg_gk20a *tsg)
-{
-	struct gk20a *g = tsg->g;
-	struct channel_gk20a *ch;
-	struct channel_gk20a *last_ch = NULL;
-
-	nvgpu_rwsem_down_read(&tsg->ch_list_lock);
-	nvgpu_list_for_each_entry(ch, &tsg->ch_list, channel_gk20a, ch_entry) {
-		g->ops.channel.enable(ch);
-		last_ch = ch;
-	}
-	nvgpu_rwsem_up_read(&tsg->ch_list_lock);
-
-	if (last_ch != NULL) {
-		g->ops.fifo.ring_channel_doorbell(last_ch);
-	}
-
-	return 0;
-}
-
 int gv11b_fifo_preempt_tsg(struct gk20a *g, struct tsg_gk20a *tsg)
 {
 	struct fifo_gk20a *f = &g->fifo;
@@ -679,7 +658,7 @@ static void gv11b_fifo_locked_abort_runlist_active_tsgs(struct gk20a *g,
 			}
 			nvgpu_log(g, gpu_dbg_info, "abort tsg id %lu", tsgid);
 
-			gk20a_disable_tsg(tsg);
+			g->ops.tsg.disable(tsg);
 
 			/* assume all pbdma and eng faulted are set */
 			nvgpu_log(g, gpu_dbg_info, "reset pbdma and eng faulted");
@@ -848,7 +827,7 @@ void gv11b_fifo_teardown_ch_tsg(struct gk20a *g, u32 act_eng_bitmask,
 	}
 
 	if (tsg != NULL) {
-		gk20a_disable_tsg(tsg);
+		g->ops.tsg.disable(tsg);
 	}
 
 	/*
@@ -931,7 +910,7 @@ void gv11b_fifo_teardown_ch_tsg(struct gk20a *g, u32 act_eng_bitmask,
 #endif
 	if (tsg != NULL) {
 		if (deferred_reset_pending) {
-			gk20a_disable_tsg(tsg);
+			g->ops.tsg.disable(tsg);
 		} else {
 			if (rc_type == RC_TYPE_MMU_FAULT) {
 				nvgpu_tsg_set_ctx_mmu_error(g, tsg);

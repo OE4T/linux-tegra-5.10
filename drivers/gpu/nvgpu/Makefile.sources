@@ -365,6 +365,8 @@ srcs += common/sim.c \
 	hal/fifo/ramfc_gp10b.c  \
 	hal/fifo/ramfc_gv11b.c  \
 	hal/fifo/ramfc_tu104.c  \
+	hal/fifo/tsg_gk20a.c \
+	hal/fifo/tsg_gv11b.c \
 	hal/fifo/userd_gk20a.c \
 	hal/fifo/userd_gv11b.c \
 	hal/fifo/fifo_intr_gk20a.c \

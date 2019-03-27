@@ -26,6 +26,7 @@
 #include "hal/fifo/pbdma_gm20b.h"
 #include "hal/fifo/pbdma_gp10b.h"
 #include "hal/fifo/pbdma_gv11b.h"
+#include "hal/fifo/tsg_gv11b.h"
 #include "hal/fifo/userd_gk20a.h"
 #include "hal/fifo/userd_gv11b.h"
 #include "hal/fifo/fifo_intr_gv11b.h"
@@ -477,8 +478,6 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 		.default_timeslice_us = vgpu_fifo_default_timeslice_us,
 		.preempt_channel = vgpu_fifo_preempt_channel,
 		.preempt_tsg = vgpu_fifo_preempt_tsg,
-		.enable_tsg = vgpu_gv11b_enable_tsg,
-		.disable_tsg = gk20a_disable_tsg,
 		.tsg_verify_channel_status = NULL,
 		.tsg_verify_status_ctx_reload = NULL,
 		/* TODO: implement it for CE fault */
@@ -602,6 +601,8 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 		.count = vgpu_channel_count,
 	},
 	.tsg = {
+		.enable = gv11b_tsg_enable,
+		.disable = nvgpu_tsg_disable,
 		.check_ctxsw_timeout = nvgpu_tsg_check_ctxsw_timeout,
 	},
 	.netlist = {

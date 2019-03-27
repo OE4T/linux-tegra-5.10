@@ -56,6 +56,7 @@
 #include "hal/fifo/engines_gv11b.h"
 #include "hal/fifo/ramfc_gp10b.h"
 #include "hal/fifo/ramfc_gv11b.h"
+#include "hal/fifo/tsg_gv11b.h"
 #include "hal/fifo/userd_gk20a.h"
 #include "hal/fifo/userd_gv11b.h"
 #include "hal/fifo/fifo_intr_gk20a.h"
@@ -794,8 +795,6 @@ static const struct gpu_ops gv11b_ops = {
 		.default_timeslice_us = gk20a_fifo_default_timeslice_us,
 		.preempt_channel = gv11b_fifo_preempt_channel,
 		.preempt_tsg = gv11b_fifo_preempt_tsg,
-		.enable_tsg = gv11b_fifo_enable_tsg,
-		.disable_tsg = gk20a_disable_tsg,
 		.tsg_verify_channel_status = gk20a_fifo_tsg_unbind_channel_verify_status,
 		.tsg_verify_status_ctx_reload = gm20b_fifo_tsg_verify_status_ctx_reload,
 		.tsg_verify_status_faulted = gv11b_fifo_tsg_verify_status_faulted,
@@ -932,6 +931,8 @@ static const struct gpu_ops gv11b_ops = {
 		.reset_faulted = gv11b_channel_reset_faulted,
 	},
 	.tsg = {
+		.enable = gv11b_tsg_enable,
+		.disable = nvgpu_tsg_disable,
 		.check_ctxsw_timeout = nvgpu_tsg_check_ctxsw_timeout,
 	},
 	.netlist = {

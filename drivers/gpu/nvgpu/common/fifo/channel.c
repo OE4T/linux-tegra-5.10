@@ -173,7 +173,7 @@ int gk20a_enable_channel_tsg(struct gk20a *g, struct channel_gk20a *ch)
 
 	tsg = tsg_gk20a_from_ch(ch);
 	if (tsg != NULL) {
-		g->ops.fifo.enable_tsg(tsg);
+		g->ops.tsg.enable(tsg);
 		return 0;
 	} else {
 		return -EINVAL;
@@ -186,7 +186,7 @@ int gk20a_disable_channel_tsg(struct gk20a *g, struct channel_gk20a *ch)
 
 	tsg = tsg_gk20a_from_ch(ch);
 	if (tsg != NULL) {
-		g->ops.fifo.disable_tsg(tsg);
+		g->ops.tsg.disable(tsg);
 		return 0;
 	} else {
 		return -EINVAL;

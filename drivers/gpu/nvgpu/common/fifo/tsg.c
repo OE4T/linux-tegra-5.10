@@ -35,48 +35,7 @@
 
 #include "gk20a/gr_gk20a.h"
 
-int gk20a_enable_tsg(struct tsg_gk20a *tsg)
-{
-	struct gk20a *g = tsg->g;
-	struct channel_gk20a *ch;
-
-	gk20a_tsg_disable_sched(g, tsg);
-
-	/*
-	 * Due to h/w bug that exists in Maxwell and Pascal,
-	 * we first need to enable all channels with NEXT and CTX_RELOAD set,
-	 * and then rest of the channels should be enabled
-	 */
-	nvgpu_rwsem_down_read(&tsg->ch_list_lock);
-	nvgpu_list_for_each_entry(ch, &tsg->ch_list, channel_gk20a, ch_entry) {
-		struct nvgpu_channel_hw_state hw_state;
-
-		g->ops.channel.read_state(g, ch, &hw_state);
-
-		if (hw_state.next || hw_state.ctx_reload) {
-			g->ops.channel.enable(ch);
-		}
-	}
-
-	nvgpu_list_for_each_entry(ch, &tsg->ch_list, channel_gk20a, ch_entry) {
-		struct nvgpu_channel_hw_state hw_state;
-
-		g->ops.channel.read_state(g, ch, &hw_state);
-
-		if (hw_state.next || hw_state.ctx_reload) {
-			continue;
-		}
-
-		g->ops.channel.enable(ch);
-	}
-	nvgpu_rwsem_up_read(&tsg->ch_list_lock);
-
-	gk20a_tsg_enable_sched(g, tsg);
-
-	return 0;
-}
-
-void gk20a_disable_tsg(struct tsg_gk20a *tsg)
+void nvgpu_tsg_disable(struct tsg_gk20a *tsg)
 {
 	struct gk20a *g = tsg->g;
 	struct channel_gk20a *ch;
@@ -192,7 +151,7 @@ void nvgpu_tsg_recover(struct gk20a *g, struct tsg_gk20a *tsg,
 	nvgpu_mutex_acquire(&g->dbg_sessions_lock);
 
 	/* disable tsg so that it does not get scheduled again */
-	g->ops.fifo.disable_tsg(tsg);
+	g->ops.tsg.disable(tsg);
 
 	/*
 	 * On hitting engine reset, h/w drops the ctxsw_status to INVALID in

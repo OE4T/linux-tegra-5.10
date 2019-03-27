@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -20,10 +20,11 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NVGPU_VGPU_TSG_GV11B_H
-#define NVGPU_VGPU_TSG_GV11B_H
+#ifndef NVGPU_TSG_GV11B_H
+#define NVGPU_TSG_GV11B_H
 
-int vgpu_gv11b_tsg_bind_channel(struct tsg_gk20a *tsg,
-				struct channel_gk20a *ch);
+struct tsg_gk20a;
 
-#endif /* NVGPU_VGPU_TSG_GV11B_H */
+void gv11b_tsg_enable(struct tsg_gk20a *tsg);
+
+#endif /* NVGPU_TSG_GV11B_H */

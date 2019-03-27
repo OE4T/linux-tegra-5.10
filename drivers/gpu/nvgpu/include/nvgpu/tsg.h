@@ -19,8 +19,8 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef TSG_GK20A_H
-#define TSG_GK20A_H
+#ifndef NVGPU_TSG_H
+#define NVGPU_TSG_H
 
 #include <nvgpu/lock.h>
 #include <nvgpu/kref.h>
@@ -92,8 +92,7 @@ void nvgpu_tsg_cleanup_sw(struct gk20a *g);
 
 struct tsg_gk20a *tsg_gk20a_from_ch(struct channel_gk20a *ch);
 
-int gk20a_enable_tsg(struct tsg_gk20a *tsg);
-void gk20a_disable_tsg(struct tsg_gk20a *tsg);
+void nvgpu_tsg_disable(struct tsg_gk20a *tsg);
 int gk20a_tsg_bind_channel(struct tsg_gk20a *tsg,
 			struct channel_gk20a *ch);
 int gk20a_tsg_unbind_channel(struct channel_gk20a *ch);
@@ -150,4 +149,4 @@ void nvgpu_tsg_set_error_notifier(struct gk20a *g, struct tsg_gk20a *tsg,
 bool nvgpu_tsg_ctxsw_timeout_debug_dump_state(struct tsg_gk20a *tsg);
 void nvgpu_tsg_set_ctxsw_timeout_accumulated_ms(struct tsg_gk20a *tsg, u32 ms);
 
-#endif /* TSG_GK20A_H */
+#endif /* NVGPU_TSG_H */

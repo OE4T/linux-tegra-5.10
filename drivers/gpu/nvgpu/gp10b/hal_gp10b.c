@@ -65,6 +65,7 @@
 #include "hal/fifo/pbdma_status_gm20b.h"
 #include "hal/fifo/ramfc_gk20a.h"
 #include "hal/fifo/ramfc_gp10b.h"
+#include "hal/fifo/tsg_gk20a.h"
 #include "hal/fifo/userd_gk20a.h"
 #include "hal/fifo/fifo_intr_gk20a.h"
 #include "hal/fifo/ctxsw_timeout_gk20a.h"
@@ -665,8 +666,6 @@ static const struct gpu_ops gp10b_ops = {
 		.default_timeslice_us = gk20a_fifo_default_timeslice_us,
 		.preempt_channel = gk20a_fifo_preempt_channel,
 		.preempt_tsg = gk20a_fifo_preempt_tsg,
-		.enable_tsg = gk20a_enable_tsg,
-		.disable_tsg = gk20a_disable_tsg,
 		.tsg_verify_channel_status = gk20a_fifo_tsg_unbind_channel_verify_status,
 		.tsg_verify_status_ctx_reload = gm20b_fifo_tsg_verify_status_ctx_reload,
 		.trigger_mmu_fault = gm20b_fifo_trigger_mmu_fault,
@@ -795,6 +794,8 @@ static const struct gpu_ops gp10b_ops = {
 		.set_syncpt = nvgpu_channel_set_syncpt,
 	},
 	.tsg = {
+		.enable = gk20a_tsg_enable,
+		.disable = nvgpu_tsg_disable,
 		.check_ctxsw_timeout = nvgpu_tsg_check_ctxsw_timeout,
 	},
 	.netlist = {

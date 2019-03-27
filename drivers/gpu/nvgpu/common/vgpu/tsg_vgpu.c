@@ -75,7 +75,7 @@ void vgpu_tsg_release(struct tsg_gk20a *tsg)
 	}
 }
 
-int vgpu_enable_tsg(struct tsg_gk20a *tsg)
+void vgpu_tsg_enable(struct tsg_gk20a *tsg)
 {
 	struct gk20a *g = tsg->g;
 	struct channel_gk20a *ch;
@@ -85,8 +85,6 @@ int vgpu_enable_tsg(struct tsg_gk20a *tsg)
 		g->ops.channel.enable(ch);
 	}
 	nvgpu_rwsem_up_read(&tsg->ch_list_lock);
-
-	return 0;
 }
 
 int vgpu_tsg_bind_channel(struct tsg_gk20a *tsg,

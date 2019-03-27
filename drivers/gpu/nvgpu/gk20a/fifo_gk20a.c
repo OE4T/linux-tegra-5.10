@@ -503,7 +503,7 @@ void gk20a_fifo_abort_tsg(struct gk20a *g, struct tsg_gk20a *tsg, bool preempt)
 
 	WARN_ON(tsg->abortable == false);
 
-	g->ops.fifo.disable_tsg(tsg);
+	g->ops.tsg.disable(tsg);
 
 	if (preempt) {
 		g->ops.fifo.preempt_tsg(g, tsg);
@@ -732,7 +732,7 @@ static bool gk20a_fifo_handle_mmu_fault_locked(
 		 */
 		if (tsg != NULL) {
 			if (deferred_reset_pending) {
-				gk20a_disable_tsg(tsg);
+				g->ops.tsg.disable(tsg);
 			} else {
 				if (!fake_fault) {
 					nvgpu_tsg_set_ctx_mmu_error(g, tsg);
@@ -1061,7 +1061,7 @@ int gk20a_fifo_tsg_unbind_channel(struct channel_gk20a *ch)
 	nvgpu_rwsem_up_write(&tsg->ch_list_lock);
 
 	/* Disable TSG and examine status before unbinding channel */
-	g->ops.fifo.disable_tsg(tsg);
+	g->ops.tsg.disable(tsg);
 
 	err = g->ops.fifo.preempt_tsg(g, tsg);
 	if (err != 0) {
@@ -1094,7 +1094,7 @@ int gk20a_fifo_tsg_unbind_channel(struct channel_gk20a *ch)
 	 * time out, but we keep that to ensure TSG is kicked out
 	 */
 	if (!tsg_timedout) {
-		g->ops.fifo.enable_tsg(tsg);
+		g->ops.tsg.enable(tsg);
 	}
 
 	if (ch->g->ops.fifo.ch_abort_clean_up != NULL) {
@@ -1105,7 +1105,7 @@ int gk20a_fifo_tsg_unbind_channel(struct channel_gk20a *ch)
 
 fail_enable_tsg:
 	if (!tsg_timedout) {
-		g->ops.fifo.enable_tsg(tsg);
+		g->ops.tsg.enable(tsg);
 	}
 	return err;
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -20,43 +20,48 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#include <nvgpu/vgpu/tegra_vgpu.h>
-#include <nvgpu/vgpu/vgpu.h>
-#include <nvgpu/gk20a.h>
+#include <nvgpu/log.h>
 #include <nvgpu/channel.h>
+#include <nvgpu/tsg.h>
+#include <nvgpu/gk20a.h>
 
-#include "vgpu_tsg_gv11b.h"
+#include "hal/fifo/tsg_gk20a.h"
 
-int vgpu_gv11b_tsg_bind_channel(struct tsg_gk20a *tsg,
-				struct channel_gk20a *ch)
+void gk20a_tsg_enable(struct tsg_gk20a *tsg)
 {
-	struct tegra_vgpu_cmd_msg msg = {};
-	struct tegra_vgpu_tsg_bind_channel_ex_params *p =
-				&msg.params.tsg_bind_channel_ex;
-	int err;
 	struct gk20a *g = tsg->g;
+	struct channel_gk20a *ch;
 
-	nvgpu_log_fn(g, " ");
+	gk20a_tsg_disable_sched(g, tsg);
 
-	err = gk20a_tsg_bind_channel(tsg, ch);
-	if (err) {
-		return err;
+	/*
+	 * Due to h/w bug that exists in Maxwell and Pascal,
+	 * we first need to enable all channels with NEXT and CTX_RELOAD set,
+	 * and then rest of the channels should be enabled
+	 */
+	nvgpu_rwsem_down_read(&tsg->ch_list_lock);
+	nvgpu_list_for_each_entry(ch, &tsg->ch_list, channel_gk20a, ch_entry) {
+		struct nvgpu_channel_hw_state hw_state;
+
+		g->ops.channel.read_state(g, ch, &hw_state);
+
+		if (hw_state.next || hw_state.ctx_reload) {
+			g->ops.channel.enable(ch);
+		}
 	}
 
-	msg.cmd = TEGRA_VGPU_CMD_TSG_BIND_CHANNEL_EX;
-	msg.handle = vgpu_get_handle(tsg->g);
-	p->tsg_id = tsg->tsgid;
-	p->ch_handle = ch->virt_ctx;
-	p->subctx_id = ch->subctx_id;
-	p->runqueue_sel = ch->runqueue_sel;
-	err = vgpu_comm_sendrecv(&msg, sizeof(msg), sizeof(msg));
-	err = err ? err : msg.ret;
-	if (err) {
-		nvgpu_err(tsg->g,
-			"vgpu_gv11b_tsg_bind_channel failed, ch %d tsgid %d",
-			ch->chid, tsg->tsgid);
-		gk20a_tsg_unbind_channel(ch);
-	}
+	nvgpu_list_for_each_entry(ch, &tsg->ch_list, channel_gk20a, ch_entry) {
+		struct nvgpu_channel_hw_state hw_state;
 
-	return err;
+		g->ops.channel.read_state(g, ch, &hw_state);
+
+		if (hw_state.next || hw_state.ctx_reload) {
+			continue;
+		}
+
+		g->ops.channel.enable(ch);
+	}
+	nvgpu_rwsem_up_read(&tsg->ch_list_lock);
+
+	gk20a_tsg_enable_sched(g, tsg);
 }

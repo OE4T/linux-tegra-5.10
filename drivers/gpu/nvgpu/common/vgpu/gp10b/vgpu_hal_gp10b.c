@@ -407,8 +407,6 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 		.default_timeslice_us = vgpu_fifo_default_timeslice_us,
 		.preempt_channel = vgpu_fifo_preempt_channel,
 		.preempt_tsg = vgpu_fifo_preempt_tsg,
-		.enable_tsg = vgpu_enable_tsg,
-		.disable_tsg = gk20a_disable_tsg,
 		.tsg_verify_channel_status = NULL,
 		.tsg_verify_status_ctx_reload = NULL,
 		.trigger_mmu_fault = NULL,
@@ -523,6 +521,8 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 		.count = vgpu_channel_count,
 	},
 	.tsg = {
+		.enable = vgpu_tsg_enable,
+		.disable = nvgpu_tsg_disable,
 		.check_ctxsw_timeout = nvgpu_tsg_check_ctxsw_timeout,
 	},
 	.netlist = {
