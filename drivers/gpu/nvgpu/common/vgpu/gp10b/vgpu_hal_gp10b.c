@@ -29,6 +29,8 @@
 #include "hal/fifo/ramin_gm20b.h"
 #include "hal/fifo/ramin_gp10b.h"
 #include "hal/fifo/userd_gk20a.h"
+#include "hal/fifo/mmu_fault_gm20b.h"
+#include "hal/fifo/mmu_fault_gp10b.h"
 #include "hal/therm/therm_gm20b.h"
 #include "hal/therm/therm_gp10b.h"
 #include "hal/ltc/ltc_gm20b.h"
@@ -422,11 +424,6 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 		.preempt_tsg = vgpu_fifo_preempt_tsg,
 		.tsg_verify_channel_status = NULL,
 		.tsg_verify_status_ctx_reload = NULL,
-		.trigger_mmu_fault = NULL,
-		.get_mmu_fault_info = NULL,
-		.get_mmu_fault_desc = gp10b_fifo_get_mmu_fault_desc,
-		.get_mmu_fault_client_desc = gp10b_fifo_get_mmu_fault_client_desc,
-		.get_mmu_fault_gpc_desc = gm20b_fifo_get_mmu_fault_gpc_desc,
 		.tsg_set_timeslice = vgpu_tsg_set_timeslice,
 		.tsg_open = vgpu_tsg_open,
 		.tsg_release = vgpu_tsg_release,
@@ -454,6 +451,13 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 		.handle_sched_error = NULL,
 		.handle_ctxsw_timeout = NULL,
 		.ctxsw_timeout_enable = NULL,
+		.trigger_mmu_fault = NULL,
+		.get_mmu_fault_info = NULL,
+		/* TODO : set to NULL? */
+		.get_mmu_fault_desc = gp10b_fifo_get_mmu_fault_desc,
+		.get_mmu_fault_client_desc =
+			gp10b_fifo_get_mmu_fault_client_desc,
+		.get_mmu_fault_gpc_desc = gm20b_fifo_get_mmu_fault_gpc_desc,
 	},
 	.engine = {
 		.is_fault_engine_subid_gpc = gm20b_is_fault_engine_subid_gpc,

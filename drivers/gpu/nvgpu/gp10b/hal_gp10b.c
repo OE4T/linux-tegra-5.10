@@ -76,6 +76,7 @@
 #include "hal/fifo/userd_gk20a.h"
 #include "hal/fifo/fifo_intr_gk20a.h"
 #include "hal/fifo/mmu_fault_gm20b.h"
+#include "hal/fifo/mmu_fault_gp10b.h"
 #include "hal/fifo/ctxsw_timeout_gk20a.h"
 #include "hal/gr/fecs_trace/fecs_trace_gm20b.h"
 #include "hal/gr/fecs_trace/fecs_trace_gp10b.h"
@@ -695,11 +696,6 @@ static const struct gpu_ops gp10b_ops = {
 		.preempt_tsg = gk20a_fifo_preempt_tsg,
 		.tsg_verify_channel_status = gk20a_fifo_tsg_unbind_channel_verify_status,
 		.tsg_verify_status_ctx_reload = gm20b_fifo_tsg_verify_status_ctx_reload,
-		.trigger_mmu_fault = gm20b_fifo_trigger_mmu_fault,
-		.get_mmu_fault_info = gp10b_fifo_get_mmu_fault_info,
-		.get_mmu_fault_desc = gp10b_fifo_get_mmu_fault_desc,
-		.get_mmu_fault_client_desc = gp10b_fifo_get_mmu_fault_client_desc,
-		.get_mmu_fault_gpc_desc = gm20b_fifo_get_mmu_fault_gpc_desc,
 		.tsg_set_timeslice = gk20a_fifo_tsg_set_timeslice,
 		.force_reset_ch = gk20a_fifo_force_reset_ch,
 		.init_pbdma_info = gk20a_fifo_init_pbdma_info,
@@ -731,6 +727,12 @@ static const struct gpu_ops gp10b_ops = {
 		.handle_sched_error = gk20a_fifo_handle_sched_error,
 		.ctxsw_timeout_enable = gk20a_fifo_ctxsw_timeout_enable,
 		.handle_ctxsw_timeout = gk20a_fifo_handle_ctxsw_timeout,
+		.trigger_mmu_fault = gm20b_fifo_trigger_mmu_fault,
+		.get_mmu_fault_info = gp10b_fifo_get_mmu_fault_info,
+		.get_mmu_fault_desc = gp10b_fifo_get_mmu_fault_desc,
+		.get_mmu_fault_client_desc =
+			gp10b_fifo_get_mmu_fault_client_desc,
+		.get_mmu_fault_gpc_desc = gm20b_fifo_get_mmu_fault_gpc_desc,
 	},
 	.engine = {
 		.is_fault_engine_subid_gpc = gm20b_is_fault_engine_subid_gpc,

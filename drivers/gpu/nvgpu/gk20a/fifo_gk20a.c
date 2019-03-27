@@ -22,8 +22,6 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#include <trace/events/gk20a.h>
-
 #include <nvgpu/mm.h>
 #include <nvgpu/dma.h>
 #include <nvgpu/timers.h>
@@ -60,6 +58,8 @@
 #include <nvgpu/gr/fecs_trace.h>
 
 #include "mm_gk20a.h"
+
+#include <hal/fifo/mmu_fault_gk20a.h>
 
 #include <nvgpu/hw/gk20a/hw_fifo_gk20a.h>
 #include <nvgpu/hw/gk20a/hw_pbdma_gk20a.h>
@@ -299,163 +299,6 @@ gk20a_refch_from_inst_ptr(struct gk20a *g, u64 inst_ptr)
 	return NULL;
 }
 
-/* fault info/descriptions.
- * tbd: move to setup
- *  */
-static const char * const gk20a_fault_type_descs[] = {
-	 "pde", /*fifo_intr_mmu_fault_info_type_pde_v() == 0 */
-	 "pde size",
-	 "pte",
-	 "va limit viol",
-	 "unbound inst",
-	 "priv viol",
-	 "ro viol",
-	 "wo viol",
-	 "pitch mask",
-	 "work creation",
-	 "bad aperture",
-	 "compression failure",
-	 "bad kind",
-	 "region viol",
-	 "dual ptes",
-	 "poisoned",
-};
-/* engine descriptions */
-static const char * const engine_subid_descs[] = {
-	"gpc",
-	"hub",
-};
-
-static const char * const gk20a_hub_client_descs[] = {
-	"vip", "ce0", "ce1", "dniso", "fe", "fecs", "host", "host cpu",
-	"host cpu nb", "iso", "mmu", "mspdec", "msppp", "msvld",
-	"niso", "p2p", "pd", "perf", "pmu", "raster twod", "scc",
-	"scc nb", "sec", "ssync", "gr copy", "xv", "mmu nb",
-	"msenc", "d falcon", "sked", "a falcon", "n/a",
-};
-
-static const char * const gk20a_gpc_client_descs[] = {
-	"l1 0", "t1 0", "pe 0",
-	"l1 1", "t1 1", "pe 1",
-	"l1 2", "t1 2", "pe 2",
-	"l1 3", "t1 3", "pe 3",
-	"rast", "gcc", "gpccs",
-	"prop 0", "prop 1", "prop 2", "prop 3",
-	"l1 4", "t1 4", "pe 4",
-	"l1 5", "t1 5", "pe 5",
-	"l1 6", "t1 6", "pe 6",
-	"l1 7", "t1 7", "pe 7",
-};
-
-static const char * const does_not_exist[] = {
-	"does not exist"
-};
-
-/* fill in mmu fault desc */
-void gk20a_fifo_get_mmu_fault_desc(struct mmu_fault_info *mmfault)
-{
-	if (mmfault->fault_type >= ARRAY_SIZE(gk20a_fault_type_descs)) {
-		WARN_ON(mmfault->fault_type >=
-				ARRAY_SIZE(gk20a_fault_type_descs));
-	} else {
-		mmfault->fault_type_desc =
-			 gk20a_fault_type_descs[mmfault->fault_type];
-	}
-}
-
-/* fill in mmu fault client description */
-void gk20a_fifo_get_mmu_fault_client_desc(struct mmu_fault_info *mmfault)
-{
-	if (mmfault->client_id >= ARRAY_SIZE(gk20a_hub_client_descs)) {
-		WARN_ON(mmfault->client_id >=
-				ARRAY_SIZE(gk20a_hub_client_descs));
-	} else {
-		mmfault->client_id_desc =
-			 gk20a_hub_client_descs[mmfault->client_id];
-	}
-}
-
-/* fill in mmu fault gpc description */
-void gk20a_fifo_get_mmu_fault_gpc_desc(struct mmu_fault_info *mmfault)
-{
-	if (mmfault->client_id >= ARRAY_SIZE(gk20a_gpc_client_descs)) {
-		WARN_ON(mmfault->client_id >=
-				ARRAY_SIZE(gk20a_gpc_client_descs));
-	} else {
-		mmfault->client_id_desc =
-			 gk20a_gpc_client_descs[mmfault->client_id];
-	}
-}
-
-static void get_exception_mmu_fault_info(struct gk20a *g, u32 mmu_fault_id,
-	struct mmu_fault_info *mmfault)
-{
-	g->ops.fifo.get_mmu_fault_info(g, mmu_fault_id, mmfault);
-
-	/* parse info */
-	mmfault->fault_type_desc =  does_not_exist[0];
-	if (g->ops.fifo.get_mmu_fault_desc != NULL) {
-		g->ops.fifo.get_mmu_fault_desc(mmfault);
-	}
-
-	if (mmfault->client_type >= ARRAY_SIZE(engine_subid_descs)) {
-		WARN_ON(mmfault->client_type >= ARRAY_SIZE(engine_subid_descs));
-		mmfault->client_type_desc = does_not_exist[0];
-	} else {
-		mmfault->client_type_desc =
-				 engine_subid_descs[mmfault->client_type];
-	}
-
-	mmfault->client_id_desc = does_not_exist[0];
-	if ((mmfault->client_type ==
-		fifo_intr_mmu_fault_info_engine_subid_hub_v())
-		&& (g->ops.fifo.get_mmu_fault_client_desc != NULL)) {
-		g->ops.fifo.get_mmu_fault_client_desc(mmfault);
-	} else if ((mmfault->client_type ==
-			fifo_intr_mmu_fault_info_engine_subid_gpc_v())
-			&& (g->ops.fifo.get_mmu_fault_gpc_desc != NULL)) {
-		g->ops.fifo.get_mmu_fault_gpc_desc(mmfault);
-	}
-}
-
-/* reads info from hardware and fills in mmu fault info record */
-void gk20a_fifo_get_mmu_fault_info(struct gk20a *g, u32 mmu_fault_id,
-	struct mmu_fault_info *mmfault)
-{
-	u32 fault_info;
-	u32 addr_lo, addr_hi;
-
-	nvgpu_log_fn(g, "mmu_fault_id %d", mmu_fault_id);
-
-	(void) memset(mmfault, 0, sizeof(*mmfault));
-
-	fault_info = gk20a_readl(g,
-		fifo_intr_mmu_fault_info_r(mmu_fault_id));
-	mmfault->fault_type =
-		fifo_intr_mmu_fault_info_type_v(fault_info);
-	mmfault->access_type =
-		fifo_intr_mmu_fault_info_write_v(fault_info);
-	mmfault->client_type =
-		fifo_intr_mmu_fault_info_engine_subid_v(fault_info);
-	mmfault->client_id =
-		fifo_intr_mmu_fault_info_client_v(fault_info);
-
-	addr_lo = gk20a_readl(g, fifo_intr_mmu_fault_lo_r(mmu_fault_id));
-	addr_hi = gk20a_readl(g, fifo_intr_mmu_fault_hi_r(mmu_fault_id));
-	mmfault->fault_addr = hi32_lo32_to_u64(addr_hi, addr_lo);
-	/* note:ignoring aperture on gk20a... */
-	mmfault->inst_ptr = fifo_intr_mmu_fault_inst_ptr_v(
-		 gk20a_readl(g, fifo_intr_mmu_fault_inst_r(mmu_fault_id)));
-	/* note: inst_ptr is a 40b phys addr.  */
-	mmfault->inst_ptr <<= fifo_intr_mmu_fault_inst_ptr_align_shift_v();
-}
-
-void gk20a_fifo_handle_dropped_mmu_fault(struct gk20a *g)
-{
-	u32 fault_id = gk20a_readl(g, fifo_intr_mmu_fault_id_r());
-	nvgpu_err(g, "dropped mmu fault (0x%08x)", fault_id);
-}
-
 bool gk20a_fifo_should_defer_engine_reset(struct gk20a *g, u32 engine_id,
 		u32 engine_subid, bool fake_fault)
 {
@@ -637,30 +480,9 @@ static bool gk20a_fifo_handle_mmu_fault_locked(
 
 		ctxsw = nvgpu_engine_status_is_ctxsw(&engine_status);
 
-		get_exception_mmu_fault_info(g, (u32)engine_mmu_fault_id,
-						 &mmfault_info);
-		trace_gk20a_mmu_fault(mmfault_info.fault_addr,
-				      mmfault_info.fault_type,
-				      mmfault_info.access_type,
-				      mmfault_info.inst_ptr,
-				      engine_id,
-				      mmfault_info.client_type_desc,
-				      mmfault_info.client_id_desc,
-				      mmfault_info.fault_type_desc);
-		nvgpu_err(g, "MMU fault @ address: 0x%llx %s",
-			  mmfault_info.fault_addr,
-			  fake_fault ? "[FAKE]" : "");
-		nvgpu_err(g, "  Engine: %d  subid: %d (%s)",
-			  (int)engine_id,
-			  mmfault_info.client_type,
-			  mmfault_info.client_type_desc);
-		nvgpu_err(g, "  Client %d (%s), ",
-			  mmfault_info.client_id,
-			  mmfault_info.client_id_desc);
-		nvgpu_err(g, "  Type %d (%s); access_type 0x%08x; inst_ptr 0x%llx",
-			  mmfault_info.fault_type,
-			  mmfault_info.fault_type_desc,
-			  mmfault_info.access_type, mmfault_info.inst_ptr);
+		gk20a_fifo_mmu_fault_info_dump(g, engine_id,
+				(u32)engine_mmu_fault_id,
+				fake_fault, &mmfault_info);
 
 		if (ctxsw) {
 			g->ops.gr.falcon.dump_stats(g);

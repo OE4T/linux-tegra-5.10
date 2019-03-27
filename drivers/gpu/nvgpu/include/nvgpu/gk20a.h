@@ -934,12 +934,6 @@ struct gpu_ops {
 		int (*tsg_verify_channel_status)(struct channel_gk20a *ch);
 		void (*tsg_verify_status_ctx_reload)(struct channel_gk20a *ch);
 		void (*tsg_verify_status_faulted)(struct channel_gk20a *ch);
-		void (*get_mmu_fault_info)(struct gk20a *g, u32 mmu_fault_id,
-			struct mmu_fault_info *mmfault);
-		void (*get_mmu_fault_desc)(struct mmu_fault_info *mmfault);
-		void (*get_mmu_fault_client_desc)(
-					struct mmu_fault_info *mmfault);
-		void (*get_mmu_fault_gpc_desc)(struct mmu_fault_info *mmfault);
 		void (*apply_pb_timeout)(struct gk20a *g);
 		int (*tsg_set_timeslice)(struct tsg_gk20a *tsg, u32 timeslice);
 		u32 (*default_timeslice_us)(struct gk20a *g);
@@ -1003,6 +997,12 @@ struct gpu_ops {
 		/* mmu fault hals */
 		void (*trigger_mmu_fault)(struct gk20a *g,
 				unsigned long engine_ids_bitmask);
+		void (*get_mmu_fault_info)(struct gk20a *g, u32 mmu_fault_id,
+			struct mmu_fault_info *mmfault);
+		void (*get_mmu_fault_desc)(struct mmu_fault_info *mmfault);
+		void (*get_mmu_fault_client_desc)(
+					struct mmu_fault_info *mmfault);
+		void (*get_mmu_fault_gpc_desc)(struct mmu_fault_info *mmfault);
 
 	} fifo;
 	struct {

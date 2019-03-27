@@ -33,6 +33,7 @@
 #include <nvgpu/pbdma_status.h>
 
 #include <hal/fifo/fifo_intr_gk20a.h>
+#include <hal/fifo/mmu_fault_gk20a.h>
 
 #include <nvgpu/hw/gk20a/hw_fifo_gk20a.h>
 #include <nvgpu/hw/gk20a/hw_pbdma_gk20a.h> /* TODO: remove */

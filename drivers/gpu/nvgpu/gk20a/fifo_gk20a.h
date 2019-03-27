@@ -340,17 +340,10 @@ void gk20a_fifo_teardown_unmask_intr(struct gk20a *g);
 
 u32 gk20a_fifo_default_timeslice_us(struct gk20a *g);
 
-void gk20a_fifo_get_mmu_fault_info(struct gk20a *g, u32 mmu_fault_id,
-				struct mmu_fault_info *mmfault);
-void gk20a_fifo_get_mmu_fault_desc(struct mmu_fault_info *mmfault);
-void gk20a_fifo_get_mmu_fault_client_desc(struct mmu_fault_info *mmfault);
-void gk20a_fifo_get_mmu_fault_gpc_desc(struct mmu_fault_info *mmfault);
-
 bool gk20a_fifo_find_pbdma_for_runlist(struct fifo_gk20a *f, u32 runlist_id,
 			u32 *pbdma_id);
 int gk20a_fifo_init_pbdma_info(struct fifo_gk20a *f);
 bool gk20a_fifo_handle_mmu_fault(struct gk20a *g,
 	u32 mmu_fault_engines, u32 hw_id, bool id_is_tsg);
-void gk20a_fifo_handle_dropped_mmu_fault(struct gk20a *g);
 
 #endif /* FIFO_GK20A_H */

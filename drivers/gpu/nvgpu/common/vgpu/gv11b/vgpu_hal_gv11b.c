@@ -504,11 +504,6 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 		.tsg_verify_status_ctx_reload = NULL,
 		/* TODO: implement it for CE fault */
 		.tsg_verify_status_faulted = NULL,
-		.trigger_mmu_fault = NULL,
-		.get_mmu_fault_info = NULL,
-		.get_mmu_fault_desc = NULL,
-		.get_mmu_fault_client_desc = NULL,
-		.get_mmu_fault_gpc_desc = NULL,
 		.tsg_set_timeslice = vgpu_tsg_set_timeslice,
 		.tsg_open = vgpu_tsg_open,
 		.tsg_release = vgpu_tsg_release,
@@ -543,6 +538,11 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 		.handle_sched_error = NULL,
 		.handle_ctxsw_timeout = NULL,
 		.ctxsw_timeout_enable = NULL,
+		.trigger_mmu_fault = NULL,
+		.get_mmu_fault_info = NULL,
+		.get_mmu_fault_desc = NULL,
+		.get_mmu_fault_client_desc = NULL,
+		.get_mmu_fault_gpc_desc = NULL,
 	},
 	.engine = {
 		.is_fault_engine_subid_gpc = gv11b_is_fault_engine_subid_gpc,
