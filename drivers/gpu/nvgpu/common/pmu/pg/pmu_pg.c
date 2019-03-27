@@ -29,6 +29,7 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/string.h>
 #include <nvgpu/engines.h>
+#include <nvgpu/gr/gr.h>
 
 /* state transition :
  * OFF => [OFF_ON_PENDING optional] => ON_PENDING => ON => OFF
@@ -535,7 +536,7 @@ int nvgpu_pmu_init_powergating(struct gk20a *g)
 		pg_engine_id_list = g->ops.pmu.pmu_pg_supported_engines_list(g);
 	}
 
-	gk20a_gr_wait_initialized(g);
+	nvgpu_gr_wait_initialized(g);
 
 	for (pg_engine_id = PMU_PG_ELPG_ENGINE_ID_GRAPHICS;
 		pg_engine_id < PMU_PG_ELPG_ENGINE_ID_INVALID_ENGINE;

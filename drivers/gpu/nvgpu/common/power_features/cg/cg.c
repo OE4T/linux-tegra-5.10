@@ -21,6 +21,7 @@
  */
 
 #include <nvgpu/gk20a.h>
+#include <nvgpu/gr/gr.h>
 #include <nvgpu/enabled.h>
 #include <nvgpu/power_features/cg.h>
 
@@ -93,7 +94,7 @@ void nvgpu_cg_elcg_enable(struct gk20a *g)
 		return;
 	}
 
-	gk20a_gr_wait_initialized(g);
+	nvgpu_gr_wait_initialized(g);
 
 	nvgpu_mutex_acquire(&g->cg_pg_lock);
 	if (g->elcg_enabled) {
@@ -110,7 +111,7 @@ void nvgpu_cg_elcg_disable(struct gk20a *g)
 		return;
 	}
 
-	gk20a_gr_wait_initialized(g);
+	nvgpu_gr_wait_initialized(g);
 
 	nvgpu_mutex_acquire(&g->cg_pg_lock);
 	if (g->elcg_enabled) {
@@ -128,7 +129,7 @@ void nvgpu_cg_blcg_mode_enable(struct gk20a *g)
 		return;
 	}
 
-	gk20a_gr_wait_initialized(g);
+	nvgpu_gr_wait_initialized(g);
 
 	nvgpu_mutex_acquire(&g->cg_pg_lock);
 	if (g->blcg_enabled) {
@@ -146,7 +147,7 @@ void nvgpu_cg_blcg_mode_disable(struct gk20a *g)
 		return;
 	}
 
-	gk20a_gr_wait_initialized(g);
+	nvgpu_gr_wait_initialized(g);
 
 	nvgpu_mutex_acquire(&g->cg_pg_lock);
 	if (g->blcg_enabled) {
@@ -304,7 +305,7 @@ void nvgpu_cg_slcg_gr_perf_ltc_load_enable(struct gk20a *g)
 		return;
 	}
 
-	gk20a_gr_wait_initialized(g);
+	nvgpu_gr_wait_initialized(g);
 
 	nvgpu_mutex_acquire(&g->cg_pg_lock);
 	if (!g->slcg_enabled) {
@@ -331,7 +332,7 @@ void nvgpu_cg_slcg_gr_perf_ltc_load_disable(struct gk20a *g)
 		return;
 	}
 
-	gk20a_gr_wait_initialized(g);
+	nvgpu_gr_wait_initialized(g);
 
 	nvgpu_mutex_acquire(&g->cg_pg_lock);
 	if (!g->slcg_enabled) {
@@ -475,7 +476,7 @@ void nvgpu_cg_elcg_set_elcg_enabled(struct gk20a *g, bool enable)
 		return;
 	}
 
-	gk20a_gr_wait_initialized(g);
+	nvgpu_gr_wait_initialized(g);
 
 	nvgpu_mutex_release(&g->cg_pg_lock);
 	if (enable) {
@@ -502,7 +503,7 @@ void nvgpu_cg_blcg_set_blcg_enabled(struct gk20a *g, bool enable)
 		return;
 	}
 
-	gk20a_gr_wait_initialized(g);
+	nvgpu_gr_wait_initialized(g);
 
 	nvgpu_mutex_acquire(&g->cg_pg_lock);
 	if (enable) {
@@ -563,7 +564,7 @@ void nvgpu_cg_slcg_set_slcg_enabled(struct gk20a *g, bool enable)
 		return;
 	}
 
-	gk20a_gr_wait_initialized(g);
+	nvgpu_gr_wait_initialized(g);
 
 	nvgpu_mutex_acquire(&g->cg_pg_lock);
 	if (enable) {

@@ -140,7 +140,7 @@ int nvgpu_gr_init_fs_state(struct gk20a *g)
 	}
 
 	if (g->ops.gr.config.init_sm_id_table != NULL) {
-		err = g->ops.gr.config.init_sm_id_table(g->gr.config);
+		err = g->ops.gr.config.init_sm_id_table(gr_config);
 		if (err != 0) {
 			return err;
 		}
@@ -189,4 +189,10 @@ int nvgpu_gr_init_fs_state(struct gk20a *g)
 	}
 
 	return err;
+}
+
+/* Wait until GR is initialized */
+void nvgpu_gr_wait_initialized(struct gk20a *g)
+{
+	NVGPU_COND_WAIT(&g->gr.init_wq, g->gr.initialized, 0U);
 }

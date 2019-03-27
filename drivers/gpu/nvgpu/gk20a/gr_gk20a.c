@@ -2252,12 +2252,6 @@ int gk20a_init_gr_support(struct gk20a *g)
 	return 0;
 }
 
-/* Wait until GR is initialized */
-void gk20a_gr_wait_initialized(struct gk20a *g)
-{
-	NVGPU_COND_WAIT(&g->gr.init_wq, g->gr.initialized, 0U);
-}
-
 #define NVA297_SET_ALPHA_CIRCULAR_BUFFER_SIZE	0x02dcU
 #define NVA297_SET_CIRCULAR_BUFFER_SIZE		0x1280U
 #define NVA297_SET_SHADER_EXCEPTIONS		0x1528U

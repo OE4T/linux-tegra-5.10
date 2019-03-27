@@ -298,7 +298,6 @@ void gk20a_init_gr(struct gk20a *g);
 int gk20a_init_gr_support(struct gk20a *g);
 int gk20a_enable_gr_hw(struct gk20a *g);
 int gk20a_gr_reset(struct gk20a *g);
-void gk20a_gr_wait_initialized(struct gk20a *g);
 
 int gk20a_init_gr_channel(struct channel_gk20a *ch_gk20a);
 

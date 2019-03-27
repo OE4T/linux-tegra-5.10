@@ -32,5 +32,6 @@ int nvgpu_gr_suspend(struct gk20a *g);
 void nvgpu_gr_flush_channel_tlb(struct gk20a *g);
 u32 nvgpu_gr_get_idle_timeout(struct gk20a *g);
 int nvgpu_gr_init_fs_state(struct gk20a *g);
+void nvgpu_gr_wait_initialized(struct gk20a *g);
 
 #endif /* NVGPU_GR_H */
