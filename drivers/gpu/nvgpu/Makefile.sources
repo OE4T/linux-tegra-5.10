@@ -116,7 +116,7 @@ srcs += common/sim.c \
 	common/gr/gr_falcon.c \
 	common/gr/zcull.c \
 	common/gr/config/gr_config.c \
-	common/gr/fecs_trace/fecs_trace.c \
+	common/gr/fecs_trace.c \
 	common/gr/zbc.c \
 	common/gr/hwpm_map.c \
 	common/netlist/netlist.c \

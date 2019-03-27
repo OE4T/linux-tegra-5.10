@@ -81,7 +81,7 @@ nvgpu-y += \
 	common/gr/subctx.o \
 	common/gr/zcull.o \
 	common/gr/config/gr_config.o \
-	common/gr/fecs_trace/fecs_trace.o \
+	common/gr/fecs_trace.o \
 	common/gr/zbc.o \
 	common/gr/hwpm_map.o \
 	common/netlist/netlist.o \
