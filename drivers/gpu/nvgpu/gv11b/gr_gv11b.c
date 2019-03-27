@@ -1375,7 +1375,6 @@ static int gr_gv11b_handle_all_warp_esr_errors(struct gk20a *g,
 						struct channel_gk20a *fault_ch)
 {
 	struct tsg_gk20a *tsg;
-	struct channel_gk20a *ch_tsg;
 	u32 offset = 0U;
 	bool is_esr_error = false;
 
@@ -1407,16 +1406,8 @@ static int gr_gv11b_handle_all_warp_esr_errors(struct gk20a *g,
 			return 0;
 		}
 
-		nvgpu_rwsem_down_read(&tsg->ch_list_lock);
-		nvgpu_list_for_each_entry(ch_tsg, &tsg->ch_list,
-				channel_gk20a, ch_entry) {
-			if (gk20a_channel_get(ch_tsg) != NULL) {
-				g->ops.fifo.set_error_notifier(ch_tsg,
-						 NVGPU_ERR_NOTIFIER_GR_EXCEPTION);
-				gk20a_channel_put(ch_tsg);
-			}
-		}
-		nvgpu_rwsem_up_read(&tsg->ch_list_lock);
+		nvgpu_tsg_set_error_notifier(g, tsg,
+			NVGPU_ERR_NOTIFIER_GR_EXCEPTION);
 	}
 
 	/* clear interrupt */

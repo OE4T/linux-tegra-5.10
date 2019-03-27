@@ -373,7 +373,7 @@ int vgpu_fifo_force_reset_ch(struct channel_gk20a *ch,
 		nvgpu_list_for_each_entry(ch_tsg, &tsg->ch_list,
 				channel_gk20a, ch_entry) {
 			if (gk20a_channel_get(ch_tsg)) {
-				g->ops.fifo.set_error_notifier(ch_tsg,
+				g->ops.channel.set_error_notifier(ch_tsg,
 								err_code);
 				gk20a_channel_set_unserviceable(ch_tsg);
 				gk20a_channel_put(ch_tsg);
@@ -456,12 +456,12 @@ int vgpu_fifo_isr(struct gk20a *g, struct tegra_vgpu_fifo_intr_info *info)
 
 	switch (info->type) {
 	case TEGRA_VGPU_FIFO_INTR_PBDMA:
-		g->ops.fifo.set_error_notifier(ch,
-						NVGPU_ERR_NOTIFIER_PBDMA_ERROR);
+		g->ops.channel.set_error_notifier(ch,
+			NVGPU_ERR_NOTIFIER_PBDMA_ERROR);
 		break;
 	case TEGRA_VGPU_FIFO_INTR_CTXSW_TIMEOUT:
-		g->ops.fifo.set_error_notifier(ch,
-				NVGPU_ERR_NOTIFIER_FIFO_ERROR_IDLE_TIMEOUT);
+		g->ops.channel.set_error_notifier(ch,
+			NVGPU_ERR_NOTIFIER_FIFO_ERROR_IDLE_TIMEOUT);
 		break;
 	case TEGRA_VGPU_FIFO_INTR_MMU_FAULT:
 		vgpu_fifo_set_ctx_mmu_error_ch_tsg(g, ch);
@@ -526,7 +526,7 @@ void vgpu_channel_abort_cleanup(struct gk20a *g, u32 chid)
 	}
 
 	gk20a_channel_set_unserviceable(ch);
-	g->ops.fifo.ch_abort_clean_up(ch);
+	g->ops.channel.abort_clean_up(ch);
 	gk20a_channel_put(ch);
 }
 
@@ -541,5 +541,5 @@ void vgpu_set_error_notifier(struct gk20a *g,
 	}
 
 	ch = &g->fifo.channel[p->chid];
-	g->ops.fifo.set_error_notifier(ch, p->error);
+	g->ops.channel.set_error_notifier(ch, p->error);
 }

@@ -82,9 +82,9 @@ int gk20a_prepare_poweroff(struct gk20a *g)
 
 	nvgpu_log_fn(g, " ");
 
-	if (g->ops.fifo.channel_suspend != NULL) {
-		ret = g->ops.fifo.channel_suspend(g);
-		if (ret != 0) {
+	if (g->ops.channel.suspend_all_serviceable_ch != NULL) {
+		ret = g->ops.channel.suspend_all_serviceable_ch(g);
+		if (ret != 0U) {
 			return ret;
 		}
 	}
@@ -438,8 +438,8 @@ int gk20a_finalize_poweron(struct gk20a *g)
 	}
 #endif
 
-	if (g->ops.fifo.channel_resume != NULL) {
-		g->ops.fifo.channel_resume(g);
+	if (g->ops.channel.resume_all_serviceable_ch != NULL) {
+		g->ops.channel.resume_all_serviceable_ch(g);
 	}
 
 	goto exit;

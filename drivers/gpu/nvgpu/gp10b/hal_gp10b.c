@@ -726,10 +726,6 @@ static const struct gpu_ops gp10b_ops = {
 		.tsg_bind_channel = gk20a_tsg_bind_channel,
 		.tsg_unbind_channel = gk20a_fifo_tsg_unbind_channel,
 		.post_event_id = gk20a_tsg_event_id_post_event,
-		.ch_abort_clean_up = gk20a_channel_abort_clean_up,
-		.channel_suspend = gk20a_channel_suspend,
-		.channel_resume = gk20a_channel_resume,
-		.set_error_notifier = nvgpu_set_error_notifier,
 		.setup_sw = nvgpu_fifo_setup_sw,
 		.cleanup_sw = nvgpu_fifo_cleanup_sw,
 		.set_sm_exception_type_mask = gk20a_tsg_set_sm_exception_type_mask,
@@ -850,6 +846,12 @@ static const struct gpu_ops gp10b_ops = {
 		.read_state = gk20a_channel_read_state,
 		.force_ctx_reload = gm20b_channel_force_ctx_reload,
 		.set_syncpt = nvgpu_channel_set_syncpt,
+		.abort_clean_up = nvgpu_channel_abort_clean_up,
+		.suspend_all_serviceable_ch =
+                        nvgpu_channel_suspend_all_serviceable_ch,
+		.resume_all_serviceable_ch =
+                        nvgpu_channel_resume_all_serviceable_ch,
+		.set_error_notifier = nvgpu_set_error_notifier,
 	},
 	.tsg = {
 		.enable = gk20a_tsg_enable,

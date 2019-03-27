@@ -35,5 +35,6 @@ void gv11b_channel_read_state(struct gk20a *g, struct channel_gk20a *ch,
 		struct nvgpu_channel_hw_state *state);
 void gv11b_channel_reset_faulted(struct gk20a *g, struct channel_gk20a *ch,
 		bool eng, bool pbdma);
+void gv11b_channel_free_subctx_header(struct channel_gk20a *ch);
 
 #endif /* FIFO_CHANNEL_GV11B_H */

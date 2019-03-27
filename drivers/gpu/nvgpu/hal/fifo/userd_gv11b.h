@@ -26,8 +26,8 @@
 struct gk20a;
 struct channel_gk20a;
 
-u32 gv11b_userd_gp_get(struct gk20a *g, struct channel_gk20a *c);
-u64 gv11b_userd_pb_get(struct gk20a *g, struct channel_gk20a *c);
-void gv11b_userd_gp_put(struct gk20a *g, struct channel_gk20a *c);
+u32 gv11b_userd_gp_get(struct gk20a *g, struct channel_gk20a *ch);
+u64 gv11b_userd_pb_get(struct gk20a *g, struct channel_gk20a *ch);
+void gv11b_userd_gp_put(struct gk20a *g, struct channel_gk20a *ch);
 
 #endif /* USERD_GV11B_H */

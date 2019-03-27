@@ -778,31 +778,31 @@ int vgpu_gr_isr(struct gk20a *g, struct tegra_vgpu_gr_intr_info *info)
 		nvgpu_cond_broadcast_interruptible(&ch->semaphore_wq);
 		break;
 	case TEGRA_VGPU_GR_INTR_SEMAPHORE_TIMEOUT:
-		g->ops.fifo.set_error_notifier(ch,
-				NVGPU_ERR_NOTIFIER_GR_SEMAPHORE_TIMEOUT);
+		g->ops.channel.set_error_notifier(ch,
+			NVGPU_ERR_NOTIFIER_GR_SEMAPHORE_TIMEOUT);
 		break;
 	case TEGRA_VGPU_GR_INTR_ILLEGAL_NOTIFY:
-		g->ops.fifo.set_error_notifier(ch,
-					NVGPU_ERR_NOTIFIER_GR_ILLEGAL_NOTIFY);
+		g->ops.channel.set_error_notifier(ch,
+			NVGPU_ERR_NOTIFIER_GR_ILLEGAL_NOTIFY);
 	case TEGRA_VGPU_GR_INTR_ILLEGAL_METHOD:
 		break;
 	case TEGRA_VGPU_GR_INTR_ILLEGAL_CLASS:
-		g->ops.fifo.set_error_notifier(ch,
-					NVGPU_ERR_NOTIFIER_GR_ERROR_SW_NOTIFY);
+		g->ops.channel.set_error_notifier(ch,
+			NVGPU_ERR_NOTIFIER_GR_ERROR_SW_NOTIFY);
 		break;
 	case TEGRA_VGPU_GR_INTR_FECS_ERROR:
 		break;
 	case TEGRA_VGPU_GR_INTR_CLASS_ERROR:
-		g->ops.fifo.set_error_notifier(ch,
-					NVGPU_ERR_NOTIFIER_GR_ERROR_SW_NOTIFY);
+		g->ops.channel.set_error_notifier(ch,
+			NVGPU_ERR_NOTIFIER_GR_ERROR_SW_NOTIFY);
 		break;
 	case TEGRA_VGPU_GR_INTR_FIRMWARE_METHOD:
-		g->ops.fifo.set_error_notifier(ch,
-				NVGPU_ERR_NOTIFIER_GR_ERROR_SW_NOTIFY);
+		g->ops.channel.set_error_notifier(ch,
+			NVGPU_ERR_NOTIFIER_GR_ERROR_SW_NOTIFY);
 		break;
 	case TEGRA_VGPU_GR_INTR_EXCEPTION:
-		g->ops.fifo.set_error_notifier(ch,
-				NVGPU_ERR_NOTIFIER_GR_ERROR_SW_NOTIFY);
+		g->ops.channel.set_error_notifier(ch,
+			NVGPU_ERR_NOTIFIER_GR_ERROR_SW_NOTIFY);
 		break;
 #ifdef NVGPU_DEBUGGER
 	case TEGRA_VGPU_GR_INTR_SM_EXCEPTION:

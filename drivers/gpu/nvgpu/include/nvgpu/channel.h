@@ -381,7 +381,7 @@ void nvgpu_channel_recover(struct gk20a *g, struct channel_gk20a *ch,
 
 void gk20a_disable_channel(struct channel_gk20a *ch);
 void gk20a_channel_abort(struct channel_gk20a *ch, bool channel_preempt);
-void gk20a_channel_abort_clean_up(struct channel_gk20a *ch);
+void nvgpu_channel_abort_clean_up(struct channel_gk20a *ch);
 void gk20a_channel_semaphore_wakeup(struct gk20a *g, bool post_events);
 int gk20a_channel_alloc_priv_cmdbuf(struct channel_gk20a *c, u32 orig_size,
 			     struct priv_cmd_entry *e);
@@ -390,8 +390,8 @@ int gk20a_free_priv_cmdbuf(struct channel_gk20a *c, struct priv_cmd_entry *e);
 int gk20a_enable_channel_tsg(struct gk20a *g, struct channel_gk20a *ch);
 int gk20a_disable_channel_tsg(struct gk20a *g, struct channel_gk20a *ch);
 
-int gk20a_channel_suspend(struct gk20a *g);
-int gk20a_channel_resume(struct gk20a *g);
+int nvgpu_channel_suspend_all_serviceable_ch(struct gk20a *g);
+int nvgpu_channel_resume_all_serviceable_ch(struct gk20a *g);
 
 void gk20a_channel_deterministic_idle(struct gk20a *g);
 void gk20a_channel_deterministic_unidle(struct gk20a *g);

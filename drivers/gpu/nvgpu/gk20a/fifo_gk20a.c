@@ -204,8 +204,8 @@ void gk20a_fifo_abort_tsg(struct gk20a *g, struct tsg_gk20a *tsg, bool preempt)
 	nvgpu_list_for_each_entry(ch, &tsg->ch_list, channel_gk20a, ch_entry) {
 		if (gk20a_channel_get(ch) != NULL) {
 			gk20a_channel_set_unserviceable(ch);
-			if (ch->g->ops.fifo.ch_abort_clean_up != NULL) {
-				ch->g->ops.fifo.ch_abort_clean_up(ch);
+			if (ch->g->ops.channel.abort_clean_up != NULL) {
+				ch->g->ops.channel.abort_clean_up(ch);
 			}
 			gk20a_channel_put(ch);
 		}
@@ -649,7 +649,7 @@ int gk20a_fifo_force_reset_ch(struct channel_gk20a *ch,
 		nvgpu_list_for_each_entry(ch_tsg, &tsg->ch_list,
 				channel_gk20a, ch_entry) {
 			if (gk20a_channel_get(ch_tsg) != NULL) {
-				g->ops.fifo.set_error_notifier(ch_tsg,
+				g->ops.channel.set_error_notifier(ch_tsg,
 								err_code);
 				gk20a_channel_put(ch_tsg);
 			}
@@ -747,8 +747,8 @@ int gk20a_fifo_tsg_unbind_channel(struct channel_gk20a *ch)
 		g->ops.tsg.enable(tsg);
 	}
 
-	if (ch->g->ops.fifo.ch_abort_clean_up != NULL) {
-		ch->g->ops.fifo.ch_abort_clean_up(ch);
+	if (ch->g->ops.channel.abort_clean_up != NULL) {
+		ch->g->ops.channel.abort_clean_up(ch);
 	}
 
 	return 0;
@@ -881,7 +881,7 @@ void gk20a_fifo_preempt_timeout_rc_tsg(struct gk20a *g, struct tsg_gk20a *tsg)
 		if (gk20a_channel_get(ch) == NULL) {
 			continue;
 		}
-		g->ops.fifo.set_error_notifier(ch,
+		g->ops.channel.set_error_notifier(ch,
 			NVGPU_ERR_NOTIFIER_FIFO_ERROR_IDLE_TIMEOUT);
 		gk20a_channel_put(ch);
 	}
@@ -893,7 +893,7 @@ void gk20a_fifo_preempt_timeout_rc(struct gk20a *g, struct channel_gk20a *ch)
 {
 	nvgpu_err(g, "preempt channel %d timeout", ch->chid);
 
-	g->ops.fifo.set_error_notifier(ch,
+	g->ops.channel.set_error_notifier(ch,
 				NVGPU_ERR_NOTIFIER_FIFO_ERROR_IDLE_TIMEOUT);
 	nvgpu_channel_recover(g, ch, true, RC_TYPE_PREEMPT_TIMEOUT);
 }

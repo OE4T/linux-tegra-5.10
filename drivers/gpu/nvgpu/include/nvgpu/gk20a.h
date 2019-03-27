@@ -960,7 +960,9 @@ struct gpu_ops {
 		int (*tsg_open)(struct tsg_gk20a *tsg);
 		void (*tsg_release)(struct tsg_gk20a *tsg);
 		int (*init_pbdma_info)(struct fifo_gk20a *f);
-		void (*free_channel_ctx_header)(struct channel_gk20a *ch);
+		int (*init_engine_info)(struct fifo_gk20a *f);
+		u32 (*get_engines_mask_on_id)(struct gk20a *g,
+			u32 id, bool is_tsg);
 		void (*dump_channel_status_ramfc)(struct gk20a *g,
 				struct gk20a_debug_output *o,
 				struct nvgpu_channel_dump_info *info);
@@ -978,10 +980,6 @@ struct gpu_ops {
 						struct tsg_gk20a *tsg);
 		u32 (*get_preempt_timeout)(struct gk20a *g);
 		void (*post_event_id)(struct tsg_gk20a *tsg, int event_id);
-		void (*ch_abort_clean_up)(struct channel_gk20a *ch);
-		int (*channel_suspend)(struct gk20a *g);
-		int (*channel_resume)(struct gk20a *g);
-		void (*set_error_notifier)(struct channel_gk20a *ch, u32 error);
 		void (*ring_channel_doorbell)(struct channel_gk20a *c);
 		u64 (*usermode_base)(struct gk20a *g);
 		u32 (*doorbell_token)(struct channel_gk20a *c);
@@ -1142,6 +1140,11 @@ struct gpu_ops {
 		void (*read_state)(struct gk20a *g, struct channel_gk20a *ch,
 				struct nvgpu_channel_hw_state *state);
 		void (*force_ctx_reload)(struct channel_gk20a *ch);
+		void (*free_ctx_header)(struct channel_gk20a *ch);
+		void (*abort_clean_up)(struct channel_gk20a *ch);
+		int (*suspend_all_serviceable_ch)(struct gk20a *g);
+		int (*resume_all_serviceable_ch)(struct gk20a *g);
+		void (*set_error_notifier)(struct channel_gk20a *ch, u32 error);
 		void (*reset_faulted)(struct gk20a *g, struct channel_gk20a *ch,
 				bool eng, bool pbdma);
 		int (*set_syncpt)(struct channel_gk20a *ch);

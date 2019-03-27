@@ -942,13 +942,8 @@ static const struct gpu_ops tu104_ops = {
 		.tsg_bind_channel = gk20a_tsg_bind_channel,
 		.tsg_unbind_channel = gk20a_fifo_tsg_unbind_channel,
 		.post_event_id = gk20a_tsg_event_id_post_event,
-		.ch_abort_clean_up = gk20a_channel_abort_clean_up,
-		.channel_suspend = gk20a_channel_suspend,
-		.channel_resume = gk20a_channel_resume,
-		.set_error_notifier = nvgpu_set_error_notifier_if_empty,
 		.setup_sw = nvgpu_fifo_setup_sw,
 		.cleanup_sw = nvgpu_fifo_cleanup_sw,
-		.free_channel_ctx_header = gv11b_free_subctx_header,
 		.ring_channel_doorbell = tu104_ring_channel_doorbell,
 		.usermode_base = tu104_fifo_usermode_base,
 		.doorbell_token = tu104_fifo_doorbell_token,
@@ -1068,6 +1063,13 @@ static const struct gpu_ops tu104_ops = {
 		.count = gv100_channel_count,
 		.read_state = gv11b_channel_read_state,
 		.force_ctx_reload = gm20b_channel_force_ctx_reload,
+		.free_ctx_header = gv11b_channel_free_subctx_header,
+		.abort_clean_up = nvgpu_channel_abort_clean_up,
+		.suspend_all_serviceable_ch =
+                        nvgpu_channel_suspend_all_serviceable_ch,
+		.resume_all_serviceable_ch =
+                        nvgpu_channel_resume_all_serviceable_ch,
+		.set_error_notifier = nvgpu_set_error_notifier_if_empty,
 		.reset_faulted = gv11b_channel_reset_faulted,
 	},
 	.tsg = {

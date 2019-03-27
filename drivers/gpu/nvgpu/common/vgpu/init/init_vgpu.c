@@ -188,7 +188,7 @@ int vgpu_finalize_poweron_common(struct gk20a *g)
 
 	g->ops.chip_init_gpu_characteristics(g);
 
-	g->ops.fifo.channel_resume(g);
+	g->ops.channel.resume_all_serviceable_ch(g);
 
 	return 0;
 }

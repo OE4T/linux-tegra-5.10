@@ -191,7 +191,7 @@ int gk20a_disable_channel_tsg(struct gk20a *g, struct channel_gk20a *ch)
 	}
 }
 
-void gk20a_channel_abort_clean_up(struct channel_gk20a *ch)
+void nvgpu_channel_abort_clean_up(struct channel_gk20a *ch)
 {
 	/* synchronize with actual job cleanup */
 	nvgpu_mutex_acquire(&ch->joblist.cleanup_lock);
@@ -409,8 +409,8 @@ static void gk20a_free_channel(struct channel_gk20a *ch, bool force)
 		g->ops.gr.fecs_trace.unbind_channel(g, &ch->inst_block);
 #endif
 
-	if (g->ops.fifo.free_channel_ctx_header != NULL) {
-		g->ops.fifo.free_channel_ctx_header(ch);
+	if (g->ops.channel.free_ctx_header != NULL) {
+		g->ops.channel.free_ctx_header(ch);
 		ch->subctx = NULL;
 	}
 
@@ -1437,7 +1437,7 @@ bool nvgpu_channel_mark_error(struct gk20a *g, struct channel_gk20a *ch)
 void nvgpu_channel_set_error_notifier(struct gk20a *g, struct channel_gk20a *ch,
 				u32 error_notifier)
 {
-	g->ops.fifo.set_error_notifier(ch, error_notifier);
+	g->ops.channel.set_error_notifier(ch, error_notifier);
 }
 
 void nvgpu_channel_set_ctx_mmu_error(struct gk20a *g,
@@ -2520,7 +2520,7 @@ clean_up_mutex:
 
 /* in this context the "channel" is the host1x channel which
  * maps to *all* gk20a channels */
-int gk20a_channel_suspend(struct gk20a *g)
+int nvgpu_channel_suspend_all_serviceable_ch(struct gk20a *g)
 {
 	struct fifo_gk20a *f = &g->fifo;
 	u32 chid;
@@ -2580,7 +2580,7 @@ int gk20a_channel_suspend(struct gk20a *g)
 	return 0;
 }
 
-int gk20a_channel_resume(struct gk20a *g)
+int nvgpu_channel_resume_all_serviceable_ch(struct gk20a *g)
 {
 	struct fifo_gk20a *f = &g->fifo;
 	u32 chid;

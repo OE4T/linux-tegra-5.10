@@ -166,10 +166,13 @@ int vgpu_pm_prepare_poweroff(struct device *dev)
 	if (!g->power_on)
 		goto done;
 
-	if (g->ops.fifo.channel_suspend)
-		ret = g->ops.fifo.channel_suspend(g);
-	if (ret)
+	if (g->ops.channel.suspend_all_serviceable_ch != NULL) {
+		ret = g->ops.channel.suspend_all_serviceable_ch(g);
+	}
+
+	if (ret != 0) {
 		goto done;
+	}
 
 	g->power_on = false;
  done:

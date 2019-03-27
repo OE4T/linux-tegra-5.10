@@ -29,7 +29,7 @@ struct gk20a;
 struct channel_gk20a;
 
 int tu104_init_fifo_setup_hw(struct gk20a *g);
-void tu104_ring_channel_doorbell(struct channel_gk20a *c);
+void tu104_ring_channel_doorbell(struct channel_gk20a *ch);
 u64 tu104_fifo_usermode_base(struct gk20a *g);
 u32 tu104_fifo_doorbell_token(struct channel_gk20a *c);
 
