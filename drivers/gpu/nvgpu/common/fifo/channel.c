@@ -270,7 +270,7 @@ int gk20a_wait_channel_idle(struct channel_gk20a *ch)
 	bool channel_idle = false;
 	struct nvgpu_timeout timeout;
 
-	nvgpu_timeout_init(ch->g, &timeout, gk20a_get_gr_idle_timeout(ch->g),
+	nvgpu_timeout_init(ch->g, &timeout, nvgpu_get_poll_timeout(ch->g),
 			   NVGPU_TIMER_CPU_TIMER);
 
 	do {
@@ -326,7 +326,7 @@ static void gk20a_free_channel(struct channel_gk20a *ch, bool force)
 	struct gk20a *g = ch->g;
 	struct fifo_gk20a *f = &g->fifo;
 	struct vm_gk20a *ch_vm = ch->vm;
-	unsigned long timeout = gk20a_get_gr_idle_timeout(g);
+	unsigned long timeout = nvgpu_get_poll_timeout(g);
 	struct dbg_session_gk20a *dbg_s;
 	struct dbg_session_data *session_data, *tmp_s;
 	struct dbg_session_channel_data *ch_data, *tmp;
@@ -742,7 +742,7 @@ struct channel_gk20a *gk20a_open_new_channel(struct gk20a *g,
 	ch->ctxsw_timeout_accumulated_ms = 0;
 	ch->ctxsw_timeout_gpfifo_get = 0;
 	/* set gr host default timeout */
-	ch->ctxsw_timeout_max_ms = gk20a_get_gr_idle_timeout(g);
+	ch->ctxsw_timeout_max_ms = nvgpu_get_poll_timeout(g);
 	ch->ctxsw_timeout_debug_dump = true;
 	ch->unserviceable = false;
 

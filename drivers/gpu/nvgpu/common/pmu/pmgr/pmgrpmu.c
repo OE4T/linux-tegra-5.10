@@ -136,7 +136,7 @@ static int pmgr_pmu_set_object(struct gk20a *g,
 	}
 
 	pmu_wait_message_cond(&g->pmu,
-			gk20a_get_gr_idle_timeout(g),
+			nvgpu_get_poll_timeout(g),
 			&handlerparams.success, 1);
 
 	if (handlerparams.success == 0U) {
@@ -439,7 +439,7 @@ int pmgr_pmu_pwr_devices_query_blocking(
 	}
 
 	pmu_wait_message_cond(&g->pmu,
-			gk20a_get_gr_idle_timeout(g),
+			nvgpu_get_poll_timeout(g),
 			&handlerparams.success, 1);
 
 	if (handlerparams.success == 0U) {
@@ -483,7 +483,7 @@ static int pmgr_pmu_load_blocking(struct gk20a *g)
 	}
 
 	pmu_wait_message_cond(&g->pmu,
-			gk20a_get_gr_idle_timeout(g),
+			nvgpu_get_poll_timeout(g),
 			&handlerparams.success, 1);
 
 	if (handlerparams.success == 0U) {

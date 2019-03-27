@@ -411,7 +411,7 @@ int nvgpu_engine_wait_for_idle(struct gk20a *g)
 	host_num_engines =
 		 nvgpu_get_litter_value(g, GPU_LIT_HOST_NUM_ENGINES);
 
-	nvgpu_timeout_init(g, &timeout, gk20a_get_gr_idle_timeout(g),
+	nvgpu_timeout_init(g, &timeout, nvgpu_get_poll_timeout(g),
 			   NVGPU_TIMER_CPU_TIMER);
 
 	for (i = 0; i < host_num_engines; i++) {

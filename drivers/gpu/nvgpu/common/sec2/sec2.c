@@ -257,7 +257,7 @@ static void sec2_load_ls_falcons(struct gk20a *g, struct nvgpu_sec2 *sec2,
 		nvgpu_err(g, "command post failed");
 	}
 
-	err = nvgpu_sec2_wait_message_cond(sec2, gk20a_get_gr_idle_timeout(g),
+	err = nvgpu_sec2_wait_message_cond(sec2, nvgpu_get_poll_timeout(g),
 		&command_ack, true);
 	if (err != 0) {
 		nvgpu_err(g, "command ack receive failed");
@@ -274,7 +274,7 @@ int nvgpu_sec2_bootstrap_ls_falcons(struct gk20a *g, struct nvgpu_sec2 *sec2,
 	nvgpu_log_fn(g, " ");
 
 	nvgpu_sec2_dbg(g, "Check SEC2 RTOS is ready else wait");
-	err = nvgpu_sec2_wait_message_cond(&g->sec2, gk20a_get_gr_idle_timeout(g),
+	err = nvgpu_sec2_wait_message_cond(&g->sec2, nvgpu_get_poll_timeout(g),
 			&g->sec2.sec2_ready, true);
 	if (err != 0){
 		nvgpu_err(g, "SEC2 RTOS not ready yet, failed to bootstrap flcn %d",

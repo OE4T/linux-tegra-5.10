@@ -109,7 +109,7 @@ static int therm_pmu_cmd_post(struct gk20a *g, struct pmu_cmd *cmd,
 		handlerparams = (struct therm_pmucmdhandler_params*)cb_param;
 
 		pmu_wait_message_cond(&g->pmu,
-				gk20a_get_gr_idle_timeout(g),
+				nvgpu_get_poll_timeout(g),
 				&handlerparams->success, 1);
 
 		if (handlerparams->success == 0U) {

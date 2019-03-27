@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -105,7 +105,7 @@ int gk20a_ce_execute_ops(struct gk20a *g,
 			&ce_ctx->postfences[ce_ctx->cmd_buf_read_queue_offset];
 
 		ret = gk20a_fence_wait(g, *prev_post_fence,
-				       gk20a_get_gr_idle_timeout(g));
+				       nvgpu_get_poll_timeout(g));
 
 		gk20a_fence_put(*prev_post_fence);
 		*prev_post_fence = NULL;

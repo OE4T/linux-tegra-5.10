@@ -89,7 +89,7 @@ int nvgpu_nvlink_minion_load(struct gk20a *g)
 		goto exit;
 	}
 
-	err = nvgpu_timeout_init(g, &timeout, gk20a_get_gr_idle_timeout(g),
+	err = nvgpu_timeout_init(g, &timeout, nvgpu_get_poll_timeout(g),
 		NVGPU_TIMER_CPU_TIMER);
 	if (err != 0) {
 		nvgpu_err(g, "Minion boot timeout init failed");

@@ -1519,7 +1519,7 @@ int gr_gp10b_suspend_contexts(struct gk20a *g,
 
 		nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gpu_dbg | gpu_dbg_intr,
 			"CILP preempt pending, waiting %u msecs for preemption",
-			gk20a_get_gr_idle_timeout(g));
+			nvgpu_get_poll_timeout(g));
 
 		tsg = tsg_gk20a_from_ch(cilp_preempt_pending_ch);
 		if (tsg == NULL) {
@@ -1529,7 +1529,7 @@ int gr_gp10b_suspend_contexts(struct gk20a *g,
 
 		gr_ctx = tsg->gr_ctx;
 
-		nvgpu_timeout_init(g, &timeout, gk20a_get_gr_idle_timeout(g),
+		nvgpu_timeout_init(g, &timeout, nvgpu_get_poll_timeout(g),
 				   NVGPU_TIMER_CPU_TIMER);
 		do {
 			if (!gr_ctx->cilp_preempt_pending) {

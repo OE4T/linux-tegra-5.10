@@ -283,7 +283,7 @@ int nvgpu_init_pmu_support(struct gk20a *g)
 		 * hitting breakpoint due to PMU halt
 		 */
 		err = nvgpu_falcon_clear_halt_intr_status(&g->pmu.flcn,
-			gk20a_get_gr_idle_timeout(g));
+			nvgpu_get_poll_timeout(g));
 		if (err != 0) {
 			goto exit;
 		}
@@ -639,7 +639,7 @@ int nvgpu_pmu_wait_ready(struct gk20a *g)
 	int status = 0;
 
 	status = pmu_wait_message_cond_status(&g->pmu,
-		gk20a_get_gr_idle_timeout(g),
+		nvgpu_get_poll_timeout(g),
 		&g->pmu.pmu_ready, (u8)true);
 	if (status != 0) {
 		nvgpu_err(g, "PMU is not ready yet");

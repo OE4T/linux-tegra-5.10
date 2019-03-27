@@ -1905,7 +1905,7 @@ struct gk20a {
 #ifdef CONFIG_DEBUG_FS
 	struct railgate_stats pstats;
 #endif
-	u32 gr_idle_timeout_default;
+	u32 poll_timeout_default;
 	bool timeouts_disabled_by_user;
 
 	unsigned int ch_wdt_init_limit_ms;
@@ -2140,10 +2140,10 @@ static inline bool nvgpu_is_timeouts_enabled(struct gk20a *g)
 	return nvgpu_atomic_read(&g->timeouts_disabled_refcount) == 0;
 }
 
-static inline u32 gk20a_get_gr_idle_timeout(struct gk20a *g)
+static inline u32 nvgpu_get_poll_timeout(struct gk20a *g)
 {
 	return nvgpu_is_timeouts_enabled(g) ?
-		g->gr_idle_timeout_default : UINT_MAX;
+		g->poll_timeout_default : U32_MAX;
 }
 
 #define MULTICHAR_TAG(a, b, c, d) (((a) << 24) | ((b) << 16) | ((c) << 8) | (d))

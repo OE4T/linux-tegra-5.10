@@ -120,12 +120,12 @@ static int __nvgpu_vidmem_do_clear_all(struct gk20a *g)
 		struct nvgpu_timeout timeout;
 
 		nvgpu_timeout_init(g, &timeout,
-				   gk20a_get_gr_idle_timeout(g),
+				   nvgpu_get_poll_timeout(g),
 				   NVGPU_TIMER_CPU_TIMER);
 
 		do {
 			err = gk20a_fence_wait(g, gk20a_fence_out,
-					       gk20a_get_gr_idle_timeout(g));
+					       nvgpu_get_poll_timeout(g));
 		} while (err == -ERESTARTSYS &&
 			 !nvgpu_timeout_expired(&timeout));
 
@@ -463,12 +463,12 @@ int nvgpu_vidmem_clear(struct gk20a *g, struct nvgpu_mem *mem)
 		struct nvgpu_timeout timeout;
 
 		nvgpu_timeout_init(g, &timeout,
-				   gk20a_get_gr_idle_timeout(g),
+				   nvgpu_get_poll_timeout(g),
 				   NVGPU_TIMER_CPU_TIMER);
 
 		do {
 			err = gk20a_fence_wait(g, gk20a_last_fence,
-					       gk20a_get_gr_idle_timeout(g));
+					       nvgpu_get_poll_timeout(g));
 		} while (err == -ERESTARTSYS &&
 			 !nvgpu_timeout_expired(&timeout));
 

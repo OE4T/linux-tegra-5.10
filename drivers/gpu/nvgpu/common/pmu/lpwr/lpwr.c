@@ -274,7 +274,7 @@ int nvgpu_lwpr_mclk_change(struct gk20a *g, u32 pstate)
 			PMU_COMMAND_QUEUE_HPQ,
 			nvgpu_pmu_handle_param_lpwr_msg, &ack_status, &seq);
 
-		pmu_wait_message_cond(&g->pmu, gk20a_get_gr_idle_timeout(g),
+		pmu_wait_message_cond(&g->pmu, nvgpu_get_poll_timeout(g),
 			&ack_status, 1);
 		if (ack_status == 0U) {
 			status = -EINVAL;
@@ -310,7 +310,7 @@ int nvgpu_lpwr_post_init(struct gk20a *g)
 		PMU_COMMAND_QUEUE_LPQ,
 		nvgpu_pmu_handle_param_lpwr_msg, &ack_status, &seq);
 
-	pmu_wait_message_cond(&g->pmu, gk20a_get_gr_idle_timeout(g),
+	pmu_wait_message_cond(&g->pmu, nvgpu_get_poll_timeout(g),
 		&ack_status, 1);
 	if (ack_status == 0U) {
 		status = -EINVAL;

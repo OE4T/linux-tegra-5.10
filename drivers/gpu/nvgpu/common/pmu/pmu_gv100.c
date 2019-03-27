@@ -1,7 +1,7 @@
 /*
  * GV100 PMU
  *
- * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -67,7 +67,7 @@ int gv100_load_falcon_ucode(struct gk20a *g, u32 falconidmask)
 	/* check whether pmu is ready to bootstrap lsf if not wait for it */
 	if (!g->pmu_lsf_pmu_wpr_init_done) {
 		pmu_wait_message_cond(&g->pmu,
-				gk20a_get_gr_idle_timeout(g),
+				nvgpu_get_poll_timeout(g),
 				&g->pmu_lsf_pmu_wpr_init_done, 1);
 		/* check again if it still not ready indicate an error */
 		if (!g->pmu_lsf_pmu_wpr_init_done) {
@@ -90,7 +90,7 @@ int gv100_load_falcon_ucode(struct gk20a *g, u32 falconidmask)
 		goto exit;
 	}
 
-	pmu_wait_message_cond(&g->pmu, gk20a_get_gr_idle_timeout(g),
+	pmu_wait_message_cond(&g->pmu, nvgpu_get_poll_timeout(g),
 		&g->pmu_lsf_loaded_falcon_id, 1);
 
 	if (g->pmu_lsf_loaded_falcon_id != 1U) {

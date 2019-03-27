@@ -334,7 +334,7 @@ int nvgpu_pmu_disable_elpg(struct gk20a *g)
 	/* wait if on_pending */
 	else if (pmu->pmu_pg.elpg_stat == PMU_ELPG_STAT_ON_PENDING) {
 
-		pmu_wait_message_cond(pmu, gk20a_get_gr_idle_timeout(g),
+		pmu_wait_message_cond(pmu, nvgpu_get_poll_timeout(g),
 				      &pmu->pmu_pg.elpg_stat, PMU_ELPG_STAT_ON);
 
 		if (pmu->pmu_pg.elpg_stat != PMU_ELPG_STAT_ON) {
@@ -395,7 +395,7 @@ int nvgpu_pmu_disable_elpg(struct gk20a *g)
 			}
 
 			pmu_wait_message_cond(pmu,
-				gk20a_get_gr_idle_timeout(g),
+				nvgpu_get_poll_timeout(g),
 				ptr, PMU_ELPG_STAT_OFF);
 			if (*ptr != PMU_ELPG_STAT_OFF) {
 				nvgpu_err(g, "ELPG_DISALLOW_ACK failed");

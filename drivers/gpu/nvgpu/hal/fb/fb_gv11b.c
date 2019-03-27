@@ -361,7 +361,7 @@ void gv11b_fb_fault_buf_set_state_hw(struct gk20a *g,
 		struct nvgpu_timeout timeout;
 		u32 delay = GR_IDLE_CHECK_DEFAULT;
 
-		nvgpu_timeout_init(g, &timeout, gk20a_get_gr_idle_timeout(g),
+		nvgpu_timeout_init(g, &timeout, nvgpu_get_poll_timeout(g),
 			   NVGPU_TIMER_CPU_TIMER);
 
 		reg_val &= (~(fb_mmu_fault_buffer_size_enable_m()));

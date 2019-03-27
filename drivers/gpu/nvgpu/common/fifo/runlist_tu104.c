@@ -78,7 +78,7 @@ int tu104_runlist_wait_pending(struct gk20a *g, u32 runlist_id)
 	u32 delay = GR_IDLE_CHECK_DEFAULT;
 	int ret = -ETIMEDOUT;
 
-	ret = nvgpu_timeout_init(g, &timeout, gk20a_get_gr_idle_timeout(g),
+	ret = nvgpu_timeout_init(g, &timeout, nvgpu_get_poll_timeout(g),
 			   NVGPU_TIMER_CPU_TIMER);
 	if (ret != 0) {
 		return ret;

@@ -490,7 +490,7 @@ int nvgpu_pmu_perfmon_get_samples_rpc(struct nvgpu_pmu *pmu)
 		nvgpu_err(g, "Failed to execute RPC, status=0x%x", status);
 	}
 
-	pmu_wait_message_cond(pmu, gk20a_get_gr_idle_timeout(g),
+	pmu_wait_message_cond(pmu, nvgpu_get_poll_timeout(g),
 				      &pmu->perfmon_query, 1);
 
 	return status;

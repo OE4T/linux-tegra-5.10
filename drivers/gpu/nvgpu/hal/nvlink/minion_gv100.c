@@ -105,7 +105,7 @@ static int gv100_nvlink_minion_command_complete(struct gk20a *g, u32 link_id)
 	u32 delay = GR_IDLE_CHECK_DEFAULT;
 	int err = 0;
 
-	err = nvgpu_timeout_init(g, &timeout, gk20a_get_gr_idle_timeout(g),
+	err = nvgpu_timeout_init(g, &timeout, nvgpu_get_poll_timeout(g),
 				NVGPU_TIMER_CPU_TIMER);
 	if (err != 0) {
 		nvgpu_err(g, "Minion cmd complete timeout init failed");

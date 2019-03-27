@@ -115,7 +115,7 @@ int clk_pmu_freq_effective_avg_load(struct gk20a *g, bool bload)
 	}
 
 	pmu_wait_message_cond(&g->pmu,
-			gk20a_get_gr_idle_timeout(g),
+			nvgpu_get_poll_timeout(g),
 			&handler.success, 1);
 	if (handler.success == 0U) {
 		nvgpu_err(g, "rpc call to load Effective avg clk domain freq failed");
@@ -176,7 +176,7 @@ int clk_freq_effective_avg(struct gk20a *g, u32 *freqkHz, u32 clkDomainMask) {
 	}
 
 	pmu_wait_message_cond(&g->pmu,
-			gk20a_get_gr_idle_timeout(g),
+			nvgpu_get_poll_timeout(g),
 			&handler.success, 1);
 	if (handler.success == 0U) {
 		nvgpu_err(g, "rpc call to get clk frequency average failed");
@@ -283,7 +283,7 @@ int clk_pmu_freq_controller_load(struct gk20a *g, bool bload, u8 bit_idx)
 	}
 
 	pmu_wait_message_cond(&g->pmu,
-			gk20a_get_gr_idle_timeout(g),
+			nvgpu_get_poll_timeout(g),
 			&handler.success, 1);
 
 	if (handler.success == 0U) {
@@ -346,7 +346,7 @@ int nvgpu_clk_pmu_vin_load(struct gk20a *g)
 	}
 
 	pmu_wait_message_cond(&g->pmu,
-			gk20a_get_gr_idle_timeout(g),
+			nvgpu_get_poll_timeout(g),
 			&handler.success, 1);
 
 	if (handler.success == 0U) {
@@ -408,7 +408,7 @@ int nvgpu_clk_pmu_clk_domains_load(struct gk20a *g)
 	}
 
 	(void) pmu_wait_message_cond(&g->pmu,
-			gk20a_get_gr_idle_timeout(g),
+			nvgpu_get_poll_timeout(g),
 			&handler.success, 1);
 
 	if (handler.success == 0U) {
@@ -558,7 +558,7 @@ static int clk_pmu_vf_inject(struct gk20a *g,
 	}
 
 	pmu_wait_message_cond(&g->pmu,
-			gk20a_get_gr_idle_timeout(g),
+			nvgpu_get_poll_timeout(g),
 			&handler.success, 1);
 
 	if (handler.success == 0U) {

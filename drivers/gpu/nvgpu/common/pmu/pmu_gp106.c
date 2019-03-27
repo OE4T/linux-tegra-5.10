@@ -156,7 +156,7 @@ int gp106_load_falcon_ucode(struct gk20a *g, u32 falconidmask)
 	/* check whether pmu is ready to bootstrap lsf if not wait for it */
 	if (!g->pmu_lsf_pmu_wpr_init_done) {
 		pmu_wait_message_cond(&g->pmu,
-				gk20a_get_gr_idle_timeout(g),
+				nvgpu_get_poll_timeout(g),
 				&g->pmu_lsf_pmu_wpr_init_done, 1);
 		/* check again if it still not ready indicate an error */
 		if (!g->pmu_lsf_pmu_wpr_init_done) {
@@ -168,7 +168,7 @@ int gp106_load_falcon_ucode(struct gk20a *g, u32 falconidmask)
 	gp106_pmu_load_multiple_falcons(g, falconidmask, flags);
 	nvgpu_assert(falconidmask < U32(U8_MAX));
 	pmu_wait_message_cond(&g->pmu,
-			gk20a_get_gr_idle_timeout(g),
+			nvgpu_get_poll_timeout(g),
 			&g->pmu_lsf_loaded_falcon_id, U8(falconidmask));
 	if (g->pmu_lsf_loaded_falcon_id != falconidmask) {
 		return -ETIMEDOUT;

@@ -79,7 +79,7 @@ void gm20b_fifo_trigger_mmu_fault(struct gk20a *g,
 		}
 	}
 
-	ret = nvgpu_timeout_init(g, &timeout, gk20a_get_gr_idle_timeout(g),
+	ret = nvgpu_timeout_init(g, &timeout, nvgpu_get_poll_timeout(g),
 			   NVGPU_TIMER_CPU_TIMER);
 	if (ret != 0) {
 		nvgpu_err(g, "timeout init failed err=%d", ret);

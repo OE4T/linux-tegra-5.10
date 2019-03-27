@@ -1022,7 +1022,7 @@ static int boardobjgrp_pmucmdsend(struct gk20a *g,
 		goto boardobjgrp_pmucmdsend_exit;
 	}
 	pmu_wait_message_cond(&g->pmu,
-			gk20a_get_gr_idle_timeout(g),
+			nvgpu_get_poll_timeout(g),
 			&handlerparams.success, 1);
 	if (handlerparams.success == 0U) {
 		nvgpu_err(g, "could not process cmd");

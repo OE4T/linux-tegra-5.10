@@ -132,7 +132,7 @@ int gp106_bios_devinit(struct gk20a *g)
 	}
 
 	err = nvgpu_falcon_clear_halt_intr_status(&g->pmu.flcn,
-		gk20a_get_gr_idle_timeout(g));
+		nvgpu_get_poll_timeout(g));
 	if (err != 0) {
 		nvgpu_err(g, "falcon_clear_halt_intr_status failed %d", err);
 		goto out;
@@ -191,7 +191,7 @@ int gp106_bios_preos(struct gk20a *g)
 	}
 
 	err = nvgpu_falcon_clear_halt_intr_status(&g->pmu.flcn,
-			gk20a_get_gr_idle_timeout(g));
+			nvgpu_get_poll_timeout(g));
 	if (err != 0) {
 		nvgpu_err(g, "falcon_clear_halt_intr_status failed %d", err);
 		goto out;

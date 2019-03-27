@@ -2848,7 +2848,7 @@ int gv11b_gr_wait_for_sm_lock_down(struct gk20a *g,
 	nvgpu_log(g, gpu_dbg_intr | gpu_dbg_gpu_dbg,
 		"GPC%d TPC%d: locking down SM%d", gpc, tpc, sm);
 
-	err = nvgpu_timeout_init(g, &timeout, gk20a_get_gr_idle_timeout(g),
+	err = nvgpu_timeout_init(g, &timeout, nvgpu_get_poll_timeout(g),
 			   NVGPU_TIMER_CPU_TIMER);
 	if (err != 0) {
 		nvgpu_err(g, "timeout_init failed: %d", err);

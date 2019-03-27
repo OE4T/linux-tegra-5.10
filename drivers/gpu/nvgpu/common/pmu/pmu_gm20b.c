@@ -232,7 +232,7 @@ int gm20b_load_falcon_ucode(struct gk20a *g, u32 falconidmask)
 {
 	int  err = 0;
 	u32 flags = PMU_ACR_CMD_BOOTSTRAP_FALCON_FLAGS_RESET_YES;
-	u32 timeout = gk20a_get_gr_idle_timeout(g);
+	u32 timeout = nvgpu_get_poll_timeout(g);
 
 	/* GM20B PMU supports loading FECS only */
 	if (!(falconidmask == BIT32(FALCON_ID_FECS))) {
@@ -241,7 +241,7 @@ int gm20b_load_falcon_ucode(struct gk20a *g, u32 falconidmask)
 	/* check whether pmu is ready to bootstrap lsf if not wait for it */
 	if (!g->pmu_lsf_pmu_wpr_init_done) {
 		pmu_wait_message_cond(&g->pmu,
-				gk20a_get_gr_idle_timeout(g),
+				nvgpu_get_poll_timeout(g),
 				&g->pmu_lsf_pmu_wpr_init_done, 1);
 		/* check again if it still not ready indicate an error */
 		if (!g->pmu_lsf_pmu_wpr_init_done) {

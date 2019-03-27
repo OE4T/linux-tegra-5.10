@@ -120,7 +120,7 @@ void nvgpu_gr_flush_channel_tlb(struct gk20a *g)
 u32 nvgpu_gr_get_idle_timeout(struct gk20a *g)
 {
 	return nvgpu_is_timeouts_enabled(g) ?
-		g->gr_idle_timeout_default : UINT_MAX;
+		g->poll_timeout_default : UINT_MAX;
 }
 
 int nvgpu_gr_init_fs_state(struct gk20a *g)

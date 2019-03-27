@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017-2018 NVIDIA Corporation.  All rights reserved.
+ * Copyright (C) 2017-2019 NVIDIA Corporation.  All rights reserved.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -372,10 +372,10 @@ void gk20a_debug_init(struct gk20a *g, const char *debugfs_symlink)
 				 l->debugfs,
 				 &g->mm.ltc_enabled_target);
 
-	l->debugfs_gr_idle_timeout_default =
-			debugfs_create_u32("gr_idle_timeout_default_us",
+	l->debugfs_poll_timeout_default =
+			debugfs_create_u32("poll_timeout_default_ms",
 					S_IRUGO|S_IWUSR, l->debugfs,
-					 &g->gr_idle_timeout_default);
+					 &g->poll_timeout_default);
 	l->debugfs_timeouts_enabled =
 			debugfs_create_file("timeouts_enabled",
 					S_IRUGO|S_IWUSR,
