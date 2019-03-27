@@ -42,6 +42,7 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/channel_sync.h>
 #include <nvgpu/pmu/pstate.h>
+#include <nvgpu/gr/gr.h>
 
 #include <trace/events/gk20a.h>
 
@@ -97,7 +98,7 @@ int gk20a_prepare_poweroff(struct gk20a *g)
 		ret |= nvgpu_sec2_destroy(g);
 	}
 
-	ret |= gk20a_gr_suspend(g);
+	ret |= nvgpu_gr_suspend(g);
 	ret |= nvgpu_mm_suspend(g);
 	ret |= gk20a_fifo_suspend(g);
 

@@ -3608,34 +3608,6 @@ int gr_gk20a_fecs_set_reglist_virtual_addr(struct gk20a *g, u64 pmu_va)
 			   .mailbox.fail = 0U}, false);
 }
 
-int gk20a_gr_suspend(struct gk20a *g)
-{
-	int ret = 0;
-
-	nvgpu_log_fn(g, " ");
-
-	ret = g->ops.gr.init.wait_empty(g);
-	if (ret != 0) {
-		return ret;
-	}
-
-	/* Disable fifo access */
-	g->ops.gr.init.fifo_access(g, false);
-
-	/* disable gr intr */
-	g->ops.gr.intr.enable_interrupts(g, false);
-
-	/* disable all exceptions */
-	g->ops.gr.intr.enable_exceptions(g, g->gr.config, false);
-
-	nvgpu_gr_flush_channel_tlb(g);
-
-	g->gr.initialized = false;
-
-	nvgpu_log_fn(g, "done");
-	return ret;
-}
-
 static int gr_gk20a_find_priv_offset_in_buffer(struct gk20a *g,
 					       u32 addr,
 					       bool is_quad, u32 quad,

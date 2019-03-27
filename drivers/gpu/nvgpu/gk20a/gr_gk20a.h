@@ -319,8 +319,6 @@ void gr_gk20a_init_cg_mode(struct gk20a *g, u32 cgmode, u32 mode_config);
 bool gk20a_gr_sm_debugger_attached(struct gk20a *g);
 u32 gk20a_gr_get_sm_no_lock_down_hww_global_esr_mask(struct gk20a *g);
 
-int gk20a_gr_suspend(struct gk20a *g);
-
 struct nvgpu_dbg_reg_op;
 int gr_gk20a_exec_ctx_ops(struct channel_gk20a *ch,
 			  struct nvgpu_dbg_reg_op *ctx_ops, u32 num_ops,

@@ -79,6 +79,34 @@ static void gr_load_tpc_mask(struct gk20a *g)
 	g->ops.gr.init.tpc_mask(g, 0, pes_tpc_mask);
 }
 
+int nvgpu_gr_suspend(struct gk20a *g)
+{
+	int ret = 0;
+
+	nvgpu_log_fn(g, " ");
+
+	ret = g->ops.gr.init.wait_empty(g);
+	if (ret != 0) {
+		return ret;
+	}
+
+	/* Disable fifo access */
+	g->ops.gr.init.fifo_access(g, false);
+
+	/* disable gr intr */
+	g->ops.gr.intr.enable_interrupts(g, false);
+
+	/* disable all exceptions */
+	g->ops.gr.intr.enable_exceptions(g, g->gr.config, false);
+
+	nvgpu_gr_flush_channel_tlb(g);
+
+	g->gr.initialized = false;
+
+	nvgpu_log_fn(g, "done");
+	return ret;
+}
+
 /* invalidate channel lookup tlb */
 void nvgpu_gr_flush_channel_tlb(struct gk20a *g)
 {
