@@ -72,7 +72,7 @@ struct nvgpu_sec2 {
 	struct nvgpu_falcon flcn;
 	u32 falcon_id;
 
-	struct nvgpu_engine_mem_queue *queue[SEC2_QUEUE_NUM];
+	struct nvgpu_engine_mem_queue *queues[SEC2_QUEUE_NUM];
 
 	struct sec2_sequence *seq;
 	unsigned long sec2_seq_tbl[SEC2_SEQ_TBL_SIZE];
@@ -110,8 +110,5 @@ int nvgpu_sec2_bootstrap_ls_falcons(struct gk20a *g, struct nvgpu_sec2 *sec2,
 int nvgpu_init_sec2_setup_sw(struct gk20a *g, struct nvgpu_sec2 *sec2);
 int nvgpu_init_sec2_support(struct gk20a *g);
 int nvgpu_sec2_destroy(struct gk20a *g);
-int nvgpu_sec2_queue_init(struct nvgpu_sec2 *sec2, u32 id,
-	struct sec2_init_msg_sec2_init *init);
-void nvgpu_sec2_queue_free(struct nvgpu_sec2 *sec2, u32 id);
 
 #endif /* NVGPU_SEC2_H */

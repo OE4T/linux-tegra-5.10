@@ -25,82 +25,9 @@
 #include <nvgpu/bug.h>
 #include <nvgpu/timers.h>
 #include <nvgpu/sec2.h>
+#include <nvgpu/sec2/queue.h>
 #include <nvgpu/sec2if/sec2_if_sec2.h>
 #include <nvgpu/sec2if/sec2_if_cmn.h>
-#include <nvgpu/engine_queue.h>
-
-/* sec2 falcon queue init */
-int nvgpu_sec2_queue_init(struct nvgpu_sec2 *sec2, u32 id,
-	struct sec2_init_msg_sec2_init *init)
-{
-	struct gk20a *g = sec2->g;
-	struct nvgpu_engine_mem_queue_params params = {0};
-	u32 queue_log_id = 0;
-	u32 oflag = 0;
-	int err = 0;
-
-	if (id == SEC2_NV_CMDQ_LOG_ID) {
-		/*
-		 * set OFLAG_WRITE for command queue
-		 * i.e, push from nvgpu &
-		 * pop form falcon ucode
-		 */
-		oflag = OFLAG_WRITE;
-	} else if (id == SEC2_NV_MSGQ_LOG_ID) {
-		/*
-		 * set OFLAG_READ for message queue
-		 * i.e, push from falcon ucode &
-		 * pop form nvgpu
-		 */
-		oflag = OFLAG_READ;
-	} else {
-		nvgpu_err(g, "invalid queue-id %d", id);
-		err = -EINVAL;
-		goto exit;
-	}
-
-	/* init queue parameters */
-	queue_log_id = init->q_info[id].queue_log_id;
-
-	params.g = g;
-	params.flcn_id = FALCON_ID_SEC2;
-	params.id = queue_log_id;
-	params.index = init->q_info[id].queue_phy_id;
-	params.offset = init->q_info[id].queue_offset;
-	params.position = init->q_info[id].queue_offset;
-	params.size = init->q_info[id].queue_size;
-	params.oflag = oflag;
-	params.queue_head = g->ops.sec2.sec2_queue_head;
-	params.queue_tail = g->ops.sec2.sec2_queue_tail;
-	params.queue_type = QUEUE_TYPE_EMEM;
-
-	err = nvgpu_engine_mem_queue_init(&sec2->queue[queue_log_id],
-				      params);
-	if (err != 0) {
-		nvgpu_err(g, "queue-%d init failed", queue_log_id);
-	}
-
-exit:
-	return err;
-}
-
-void nvgpu_sec2_queue_free(struct nvgpu_sec2 *sec2, u32 id)
-{
-	struct gk20a *g = sec2->g;
-
-	if (!(id == SEC2_NV_CMDQ_LOG_ID) && !(id == SEC2_NV_MSGQ_LOG_ID)) {
-		nvgpu_err(g, "invalid queue-id %d", id);
-		goto exit;
-	}
-
-	if (sec2->queue[id] == NULL) {
-		goto exit;
-	}
-
-	nvgpu_engine_mem_queue_free(&sec2->queue[id]);
-exit:
-	return;
-}
 
 static void sec2_seq_init(struct nvgpu_sec2 *sec2)
 {
@@ -191,7 +118,6 @@ int nvgpu_init_sec2_support(struct gk20a *g)
 int nvgpu_sec2_destroy(struct gk20a *g)
 {
 	struct nvgpu_sec2 *sec2 = &g->sec2;
-	u32 i = 0;
 
 	nvgpu_log_fn(g, " ");
 
@@ -199,9 +125,7 @@ int nvgpu_sec2_destroy(struct gk20a *g)
 	sec2->isr_enabled = false;
 	nvgpu_mutex_release(&sec2->isr_mutex);
 
-	for (i = 0; i < SEC2_QUEUE_NUM; i++) {
-		nvgpu_sec2_queue_free(sec2, i);
-	}
+	nvgpu_sec2_queues_free(g, sec2->queues);
 
 	sec2->sec2_ready = false;
 

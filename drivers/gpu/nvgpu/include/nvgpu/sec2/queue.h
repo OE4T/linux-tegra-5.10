@@ -20,47 +20,35 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NVGPU_SEC2_IF_SEC2_H
-#define NVGPU_SEC2_IF_SEC2_H
+#ifndef NVGPU_SEC2_QUEUE_H
+#define NVGPU_SEC2_QUEUE_H
 
-#include <nvgpu/sec2/queue_cmn.h>
 #include <nvgpu/types.h>
 
-/*
- * SEC2 Command/Message Interfaces - SEC2 Management
- */
+struct gk20a;
+struct nvgpu_falcon;
+struct nv_flcn_cmd_sec2;
+struct nvgpu_engine_mem_queue;
+struct sec2_init_msg_sec2_init;
 
-/*
- * Defines the identifiers various high-level types of sequencer commands and
- * messages.
- * _SEC2_INIT - sec2_init_msg_sec2_init
- */
-enum
-{
-	NV_SEC2_INIT_MSG_ID_SEC2_INIT = 0U,
-};
+int nvgpu_sec2_queues_init(struct gk20a *g,
+			   struct nvgpu_engine_mem_queue **queues,
+			   struct sec2_init_msg_sec2_init *init);
+void nvgpu_sec2_queues_free(struct gk20a *g,
+			    struct nvgpu_engine_mem_queue **queues);
+u32 nvgpu_sec2_queue_get_size(struct nvgpu_engine_mem_queue **queues,
+			      u32 queue_id);
+int nvgpu_sec2_queue_push(struct nvgpu_engine_mem_queue **queues,
+			  u32 queue_id, struct nvgpu_falcon *flcn,
+			  struct nv_flcn_cmd_sec2 *cmd, u32 size);
+bool nvgpu_sec2_queue_is_empty(struct nvgpu_engine_mem_queue **queues,
+			       u32 queue_id);
+bool nvgpu_sec2_queue_read(struct gk20a *g,
+			   struct nvgpu_engine_mem_queue **queues,
+			   u32 queue_id, struct nvgpu_falcon *flcn, void *data,
+			   u32 bytes_to_read, int *status);
+int nvgpu_sec2_queue_rewind(struct nvgpu_falcon *flcn,
+			    struct nvgpu_engine_mem_queue **queues,
+			    u32 queue_id);
 
-struct sec2_init_msg_sec2_init {
-	u8  msg_type;
-	u8  num_queues;
-
-	u16 os_debug_entry_point;
-
-	struct
-	{
-		u32 queue_offset;
-		u16 queue_size;
-		u8  queue_phy_id;
-		u8  queue_log_id;
-	} q_info[SEC2_QUEUE_NUM];
-
-	u32 nv_managed_area_offset;
-	u16 nv_managed_area_size;
-};
-
-union nv_flcn_msg_sec2_init {
-	u8 msg_type;
-	struct sec2_init_msg_sec2_init sec2_init;
-};
-
-#endif  /* NVGPU_SEC2_IF_SEC2_H */
+#endif /* NVGPU_SEC2_QUEUE_H */

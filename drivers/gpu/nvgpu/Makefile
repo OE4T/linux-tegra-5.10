@@ -449,6 +449,7 @@ nvgpu-y += \
 	common/init/hal_init.o \
 	common/sec2/sec2.o \
 	common/sec2/sec2_ipc.o \
+	common/sec2/sec2_queue.o \
 	common/io/io.o \
 	common/power_features/power_features.o \
 	common/power_features/cg/cg.o \
