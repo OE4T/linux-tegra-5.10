@@ -79,8 +79,9 @@ void gv11b_fifo_ctxsw_timeout_enable(struct gk20a *g, bool enable)
 				fifo_eng_ctxsw_timeout_detection_disabled_f());
 		nvgpu_writel(g, fifo_eng_ctxsw_timeout_r(), timeout);
 		timeout = nvgpu_readl(g, fifo_eng_ctxsw_timeout_r());
-		nvgpu_info(g, "fifo_eng_ctxsw_timeout disabled val = 0x%08x",
-							 timeout);
+		nvgpu_log_info(g,
+			"fifo_eng_ctxsw_timeout disabled val = 0x%08x",
+			timeout);
 		/* clear ctxsw timeout interrupts */
 		nvgpu_writel(g, fifo_intr_ctxsw_timeout_r(), ~U32(0U));
 	}
