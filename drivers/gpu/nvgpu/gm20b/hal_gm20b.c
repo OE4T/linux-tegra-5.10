@@ -63,11 +63,11 @@
 #include "hal/gr/init/gr_init_gm20b.h"
 #include "hal/gr/intr/gr_intr_gm20b.h"
 #include "hal/gr/config/gr_config_gm20b.h"
+#include "hal/gr/ctxsw_prog/ctxsw_prog_gm20b.h"
 #include "hal/falcon/falcon_gk20a.h"
 
 #include "common/ptimer/ptimer_gk20a.h"
 #include "common/netlist/netlist_gm20b.h"
-#include "common/gr/ctxsw_prog/ctxsw_prog_gm20b.h"
 #include "common/mc/mc_gm20b.h"
 #include "common/perf/perf_gm20b.h"
 #include "common/pmu/pmu_gk20a.h"

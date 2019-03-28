@@ -72,9 +72,6 @@ nvgpu-y += \
 	common/ltc/ltc.o \
 	common/gr/gr.o \
 	common/cbc/cbc.o \
-	common/gr/ctxsw_prog/ctxsw_prog_gm20b.o \
-	common/gr/ctxsw_prog/ctxsw_prog_gp10b.o \
-	common/gr/ctxsw_prog/ctxsw_prog_gv11b.o \
 	common/gr/global_ctx.o \
 	common/gr/ctx.o \
 	common/gr/gr_falcon.o \
@@ -173,6 +170,9 @@ nvgpu-y += \
 	hal/gr/fecs_trace/fecs_trace_gv11b.o \
 	hal/gr/zcull/zcull_gm20b.o \
 	hal/gr/zcull/zcull_gv11b.o \
+	hal/gr/ctxsw_prog/ctxsw_prog_gm20b.o \
+	hal/gr/ctxsw_prog/ctxsw_prog_gp10b.o \
+	hal/gr/ctxsw_prog/ctxsw_prog_gv11b.o \
 	hal/gr/init/gr_init_gm20b.o \
 	hal/gr/init/gr_init_gp10b.o \
 	hal/gr/init/gr_init_gv100.o \
