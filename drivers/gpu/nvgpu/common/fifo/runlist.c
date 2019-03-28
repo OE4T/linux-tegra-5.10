@@ -700,7 +700,7 @@ int nvgpu_runlist_setup_sw(struct gk20a *g)
 	}
 
 	for (runlist_id = 0; runlist_id < f->max_runlists; runlist_id++) {
-		if (gk20a_fifo_is_valid_runlist_id(g, runlist_id)) {
+		if (nvgpu_engine_is_valid_runlist_id(g, runlist_id)) {
 			num_runlists++;
 		}
 	}
@@ -719,7 +719,7 @@ int nvgpu_runlist_setup_sw(struct gk20a *g)
 	 */
 	i = 0U;
 	for (runlist_id = 0; runlist_id < f->max_runlists; runlist_id++) {
-		if (!gk20a_fifo_is_valid_runlist_id(g, runlist_id)) {
+		if (!nvgpu_engine_is_valid_runlist_id(g, runlist_id)) {
 			/* skip inactive runlist */
 			continue;
 		}

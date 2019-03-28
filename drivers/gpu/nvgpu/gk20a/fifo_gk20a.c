@@ -85,128 +85,6 @@ void nvgpu_report_host_error(struct gk20a *g, u32 inst,
 	}
 }
 
-u32 gk20a_fifo_get_fast_ce_runlist_id(struct gk20a *g)
-{
-	u32 ce_runlist_id = gk20a_fifo_get_gr_runlist_id(g);
-	enum nvgpu_fifo_engine engine_enum;
-	struct fifo_gk20a *f = NULL;
-	u32 engine_id_idx;
-	struct fifo_engine_info_gk20a *engine_info;
-	u32 active_engine_id = 0;
-
-	if (g == NULL) {
-		return ce_runlist_id;
-	}
-
-	f = &g->fifo;
-
-	for (engine_id_idx = 0; engine_id_idx < f->num_engines; ++engine_id_idx) {
-		active_engine_id = f->active_engines_list[engine_id_idx];
-		engine_info = &f->engine_info[active_engine_id];
-		engine_enum = engine_info->engine_enum;
-
-		/* selecet last available ASYNC_CE if available */
-		if (engine_enum == NVGPU_ENGINE_ASYNC_CE_GK20A) {
-			ce_runlist_id = engine_info->runlist_id;
-		}
-	}
-
-	return ce_runlist_id;
-}
-
-u32 gk20a_fifo_get_gr_runlist_id(struct gk20a *g)
-{
-	u32 gr_engine_cnt = 0;
-	u32 gr_engine_id = FIFO_INVAL_ENGINE_ID;
-	struct fifo_engine_info_gk20a *engine_info;
-	u32 gr_runlist_id = U32_MAX;
-
-	/* Consider 1st available GR engine */
-	gr_engine_cnt = nvgpu_engine_get_ids(g, &gr_engine_id,
-			1, NVGPU_ENGINE_GR_GK20A);
-
-	if (gr_engine_cnt == 0U) {
-		nvgpu_err(g,
-			"No GR engine available on this device!");
-		goto end;
-	}
-
-	engine_info = nvgpu_engine_get_active_eng_info(g, gr_engine_id);
-
-	if (engine_info != NULL) {
-		gr_runlist_id = engine_info->runlist_id;
-	} else {
-		nvgpu_err(g,
-			"gr_engine_id is not in active list/invalid %d", gr_engine_id);
-	}
-
-end:
-	return gr_runlist_id;
-}
-
-bool gk20a_fifo_is_valid_runlist_id(struct gk20a *g, u32 runlist_id)
-{
-	struct fifo_gk20a *f = NULL;
-	u32 engine_id_idx;
-	u32 active_engine_id;
-	struct fifo_engine_info_gk20a *engine_info;
-
-	if (g == NULL) {
-		return false;
-	}
-
-	f = &g->fifo;
-
-	for (engine_id_idx = 0; engine_id_idx < f->num_engines; ++engine_id_idx) {
-		active_engine_id = f->active_engines_list[engine_id_idx];
-		engine_info = nvgpu_engine_get_active_eng_info(g, active_engine_id);
-		if ((engine_info != NULL) &&
-		    (engine_info->runlist_id == runlist_id)) {
-			return true;
-		}
-	}
-
-	return false;
-}
-
-/*
- * Link engine IDs to MMU IDs and vice versa.
- */
-
-static inline u32 gk20a_engine_id_to_mmu_id(struct gk20a *g, u32 engine_id)
-{
-	u32 fault_id = FIFO_INVAL_ENGINE_ID;
-	struct fifo_engine_info_gk20a *engine_info;
-
-	engine_info = nvgpu_engine_get_active_eng_info(g, engine_id);
-
-	if (engine_info != NULL) {
-		fault_id = engine_info->fault_id;
-	} else {
-		nvgpu_err(g, "engine_id is not in active list/invalid %d", engine_id);
-	}
-	return fault_id;
-}
-
-static inline u32 gk20a_mmu_id_to_engine_id(struct gk20a *g, u32 fault_id)
-{
-	u32 engine_id;
-	u32 active_engine_id;
-	struct fifo_engine_info_gk20a *engine_info;
-	struct fifo_gk20a *f = &g->fifo;
-
-	for (engine_id = 0; engine_id < f->num_engines; engine_id++) {
-		active_engine_id = f->active_engines_list[engine_id];
-		engine_info = &g->fifo.engine_info[active_engine_id];
-
-		if (engine_info->fault_id == fault_id) {
-			break;
-		}
-		active_engine_id = FIFO_INVAL_ENGINE_ID;
-	}
-	return active_engine_id;
-}
-
 int gk20a_init_fifo_reset_enable_hw(struct gk20a *g)
 {
 	u32 timeout;
@@ -438,7 +316,7 @@ static bool gk20a_fifo_handle_mmu_fault_locked(
 	for_each_set_bit(engine_mmu_fault_id, &fault_id, 32U) {
 		/* bits in fifo_intr_mmu_fault_id_r do not correspond 1:1 to
 		 * engines. Convert engine_mmu_id to engine_id */
-		u32 engine_id = gk20a_mmu_id_to_engine_id(g,
+		u32 engine_id = nvgpu_engine_mmu_fault_id_to_engine_id(g,
 					(u32)engine_mmu_fault_id);
 		struct mmu_fault_info mmfault_info;
 		struct channel_gk20a *ch = NULL;
@@ -715,7 +593,7 @@ void gk20a_fifo_teardown_ch_tsg(struct gk20a *g, u32 __engine_ids,
 		/* atleast one engine will get passed during sched err*/
 		engine_ids |= __engine_ids;
 		for_each_set_bit(engine_id, &engine_ids, 32U) {
-			u32 mmu_id = gk20a_engine_id_to_mmu_id(g,
+			u32 mmu_id = nvgpu_engine_id_to_mmu_fault_id(g,
 							(u32)engine_id);
 
 			if (mmu_id != FIFO_INVAL_ENGINE_ID) {
@@ -739,9 +617,11 @@ void gk20a_fifo_teardown_ch_tsg(struct gk20a *g, u32 __engine_ids,
 				u32 type;
 				u32 id;
 
-				gk20a_fifo_get_faulty_id_type(g, active_engine_id, &id, &type);
+				gk20a_fifo_get_faulty_id_type(g,
+					active_engine_id, &id, &type);
 				if (ref_type == type && ref_id == id) {
-					u32 mmu_id = gk20a_engine_id_to_mmu_id(g, active_engine_id);
+					u32 mmu_id = nvgpu_engine_id_to_mmu_fault_id(g,
+							active_engine_id);
 
 					engine_ids |= BIT(active_engine_id);
 					if (mmu_id != FIFO_INVAL_ENGINE_ID) {

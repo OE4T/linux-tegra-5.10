@@ -136,7 +136,7 @@ int gm20b_fifo_init_ce_engine_info(struct fifo_gk20a *f)
 	u32 gr_runlist_id;
 	bool found_pbdma_for_runlist = false;
 
-	gr_runlist_id = gk20a_fifo_get_gr_runlist_id(g);
+	gr_runlist_id = nvgpu_engine_get_gr_runlist_id(g);
 	nvgpu_log_info(g, "gr_runlist_id: %d", gr_runlist_id);
 
 	if (g->ops.top.get_device_info != NULL) {

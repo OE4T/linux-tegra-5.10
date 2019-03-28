@@ -676,8 +676,8 @@ struct channel_gk20a *gk20a_open_new_channel(struct gk20a *g,
 	struct channel_gk20a *ch;
 
 	/* compatibility with existing code */
-	if (!gk20a_fifo_is_valid_runlist_id(g, runlist_id)) {
-		runlist_id = gk20a_fifo_get_gr_runlist_id(g);
+	if (!nvgpu_engine_is_valid_runlist_id(g, runlist_id)) {
+		runlist_id = nvgpu_engine_get_gr_runlist_id(g);
 	}
 
 	nvgpu_log_fn(g, " ");

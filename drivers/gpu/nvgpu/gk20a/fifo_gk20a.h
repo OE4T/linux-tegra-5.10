@@ -281,12 +281,6 @@ int gk20a_fifo_tsg_set_timeslice(struct tsg_gk20a *tsg, u32 timeslice);
 
 int gk20a_fifo_deferred_reset(struct gk20a *g, struct channel_gk20a *ch);
 
-u32 gk20a_fifo_get_fast_ce_runlist_id(struct gk20a *g);
-
-u32 gk20a_fifo_get_gr_runlist_id(struct gk20a *g);
-
-bool gk20a_fifo_is_valid_runlist_id(struct gk20a *g, u32 runlist_id);
-
 #ifdef CONFIG_DEBUG_FS
 struct fifo_profile_gk20a *gk20a_fifo_profile_acquire(struct gk20a *g);
 void gk20a_fifo_profile_release(struct gk20a *g,

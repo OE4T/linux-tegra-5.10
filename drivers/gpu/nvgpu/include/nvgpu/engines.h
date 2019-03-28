@@ -65,4 +65,10 @@ int nvgpu_engine_disable_activity_all(struct gk20a *g,
 int nvgpu_engine_wait_for_idle(struct gk20a *g);
 void nvgpu_engine_reset(struct gk20a *g, u32 engine_id);
 
+u32 nvgpu_engine_get_fast_ce_runlist_id(struct gk20a *g);
+u32 nvgpu_engine_get_gr_runlist_id(struct gk20a *g);
+bool nvgpu_engine_is_valid_runlist_id(struct gk20a *g, u32 runlist_id);
+u32 nvgpu_engine_id_to_mmu_fault_id(struct gk20a *g, u32 engine_id);
+u32 nvgpu_engine_mmu_fault_id_to_engine_id(struct gk20a *g, u32 fault_id);
+
 #endif /*NVGPU_ENGINE_H*/

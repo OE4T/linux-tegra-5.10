@@ -353,7 +353,7 @@ void nvgpu_init_mm_ce_context(struct gk20a *g)
 	   (g->mm.vidmem.ce_ctx_id == NVGPU_CE_INVAL_CTX_ID)) {
 		g->mm.vidmem.ce_ctx_id =
 			gk20a_ce_create_context(g,
-				(int)gk20a_fifo_get_fast_ce_runlist_id(g),
+				(int)nvgpu_engine_get_fast_ce_runlist_id(g),
 				-1,
 				-1);
 

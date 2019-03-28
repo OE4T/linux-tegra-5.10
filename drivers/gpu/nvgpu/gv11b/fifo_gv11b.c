@@ -1010,7 +1010,7 @@ void gv11b_fifo_init_ramfc_eng_method_buffer(struct gk20a *g,
 		nvgpu_log_info(g, "eng method buffer NULL");
 		return;
 	}
-	if (tsg->runlist_id == gk20a_fifo_get_fast_ce_runlist_id(g)) {
+	if (tsg->runlist_id == nvgpu_engine_get_fast_ce_runlist_id(g)) {
 		method_buffer_per_runque =
 			&tsg->eng_method_buffers[ASYNC_CE_RUNQUE];
 	} else {
