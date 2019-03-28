@@ -62,7 +62,7 @@ void __nvgpu_check_gpu_state(struct gk20a *g)
 
 void __gk20a_warn_on_no_regs(void)
 {
-	WARN_ONCE(1, "Attempted access to GPU regs after unmapping!");
+	WARN_ONCE(true, "Attempted access to GPU regs after unmapping!");
 }
 
 static void gk20a_mask_interrupts(struct gk20a *g)
@@ -78,29 +78,41 @@ static void gk20a_mask_interrupts(struct gk20a *g)
 
 int gk20a_prepare_poweroff(struct gk20a *g)
 {
-	u32 ret = 0;
+	int tmp_ret, ret = 0;
 
 	nvgpu_log_fn(g, " ");
 
 	if (g->ops.fifo.channel_suspend != NULL) {
 		ret = g->ops.fifo.channel_suspend(g);
-		if (ret != 0U) {
+		if (ret != 0) {
 			return ret;
 		}
 	}
 
 	/* disable elpg before gr or fifo suspend */
 	if (g->support_ls_pmu) {
-		ret |= nvgpu_pmu_destroy(g);
+		ret = nvgpu_pmu_destroy(g);
 	}
 
 	if (nvgpu_is_enabled(g, NVGPU_SUPPORT_SEC2_RTOS)) {
-		ret |= nvgpu_sec2_destroy(g);
+		tmp_ret = nvgpu_sec2_destroy(g);
+		if ((tmp_ret != 0) && (ret == 0)) {
+			ret = tmp_ret;
+		}
 	}
 
-	ret |= nvgpu_gr_suspend(g);
-	ret |= nvgpu_mm_suspend(g);
-	ret |= gk20a_fifo_suspend(g);
+	tmp_ret = nvgpu_gr_suspend(g);
+	if ((tmp_ret != 0) && (ret == 0)) {
+		ret = tmp_ret;
+	}
+	tmp_ret = nvgpu_mm_suspend(g);
+	if ((tmp_ret != 0) && (ret == 0)) {
+		ret = tmp_ret;
+	}
+	tmp_ret = gk20a_fifo_suspend(g);
+	if ((tmp_ret != 0) && (ret == 0)) {
+		ret = tmp_ret;
+	}
 
 	nvgpu_falcon_sw_free(g, FALCON_ID_FECS);
 	nvgpu_falcon_sw_free(g, FALCON_ID_GSPLITE);
@@ -415,7 +427,8 @@ int gk20a_finalize_poweron(struct gk20a *g)
 #if defined(CONFIG_TEGRA_GK20A_NVHOST)
 	if (nvgpu_has_syncpoints(g) && g->syncpt_unit_size) {
 		if (!nvgpu_mem_is_valid(&g->syncpt_mem)) {
-			nr_pages = DIV_ROUND_UP(g->syncpt_unit_size, PAGE_SIZE);
+			nr_pages = U32(DIV_ROUND_UP(g->syncpt_unit_size,
+						    PAGE_SIZE));
 			nvgpu_mem_create_from_phys(g, &g->syncpt_mem,
 					g->syncpt_unit_base, nr_pages);
 		}
