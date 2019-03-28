@@ -818,7 +818,7 @@ static void gv11b_fb_copy_from_hw_fault_buf(struct gk20a *g,
 	inst_ptr = hi32_lo32_to_u64(addr_hi, addr_lo);
 
 	/* refch will be put back after fault is handled */
-	refch = gk20a_refch_from_inst_ptr(g, inst_ptr);
+	refch = nvgpu_channel_refch_from_inst_ptr(g, inst_ptr);
 	if (refch != NULL) {
 		chid = refch->chid;
 	}
@@ -1169,7 +1169,7 @@ static void gv11b_mm_copy_from_fault_snap_reg(struct gk20a *g,
 	inst_ptr = hi32_lo32_to_u64(addr_hi, addr_lo);
 
 	/* refch will be put back after fault is handled */
-	refch = gk20a_refch_from_inst_ptr(g, inst_ptr);
+	refch = nvgpu_channel_refch_from_inst_ptr(g, inst_ptr);
 	if (refch != NULL) {
 		chid = refch->chid;
 	}

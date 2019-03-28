@@ -317,8 +317,6 @@ const char *gk20a_decode_pbdma_chan_eng_ctx_status(u32 index);
 
 int gk20a_fifo_tsg_unbind_channel_verify_status(struct channel_gk20a *ch);
 
-struct channel_gk20a *gk20a_refch_from_inst_ptr(struct gk20a *g, u64 inst_ptr);
-
 int gk20a_fifo_is_preempt_pending(struct gk20a *g, u32 id,
 			unsigned int id_type);
 int __locked_fifo_preempt(struct gk20a *g, u32 id, bool is_tsg);

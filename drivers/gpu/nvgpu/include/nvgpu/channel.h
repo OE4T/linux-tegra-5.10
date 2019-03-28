@@ -499,4 +499,6 @@ static inline u64 gk20a_channel_userd_gpu_va(struct channel_gk20a *c)
 void nvgpu_channel_set_error_notifier(struct gk20a *g, struct channel_gk20a *ch,
 			u32 error_notifier);
 int nvgpu_channel_set_syncpt(struct channel_gk20a *ch);
+struct channel_gk20a *nvgpu_channel_refch_from_inst_ptr(struct gk20a *g,
+			u64 inst_ptr);
 #endif

@@ -2661,3 +2661,33 @@ void gk20a_channel_semaphore_wakeup(struct gk20a *g, bool post_events)
 		}
 	}
 }
+
+/* return with a reference to the channel, caller must put it back */
+struct channel_gk20a *nvgpu_channel_refch_from_inst_ptr(struct gk20a *g,
+			u64 inst_ptr)
+{
+	struct fifo_gk20a *f = &g->fifo;
+	unsigned int ci;
+
+	if (unlikely(f->channel == NULL)) {
+		return NULL;
+	}
+	for (ci = 0; ci < f->num_channels; ci++) {
+		struct channel_gk20a *ch;
+		u64 ch_inst_ptr;
+
+		ch = gk20a_channel_from_id(g, ci);
+		/* only alive channels are searched */
+		if (ch == NULL) {
+			continue;
+		}
+
+		ch_inst_ptr = nvgpu_inst_block_addr(g, &ch->inst_block);
+		if (inst_ptr == ch_inst_ptr) {
+			return ch;
+		}
+
+		gk20a_channel_put(ch);
+	}
+	return NULL;
+}
