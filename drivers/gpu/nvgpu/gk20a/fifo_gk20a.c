@@ -1168,48 +1168,6 @@ u32 gk20a_fifo_get_failing_engine_data(struct gk20a *g,
 	return active_engine_id;
 }
 
-void gk20a_fifo_pbdma_fault_rc(struct gk20a *g,
-			struct fifo_gk20a *f, u32 pbdma_id,
-			u32 error_notifier)
-{
-	u32 id;
-	struct nvgpu_pbdma_status_info pbdma_status;
-
-	nvgpu_log(g, gpu_dbg_info, "pbdma id %d error notifier %d",
-			pbdma_id, error_notifier);
-
-	g->ops.pbdma_status.read_pbdma_status_info(g, pbdma_id,
-		&pbdma_status);
-	/* Remove channel from runlist */
-	id = pbdma_status.id;
-	if (pbdma_status.id_type == PBDMA_STATUS_ID_TYPE_CHID) {
-		struct channel_gk20a *ch = gk20a_channel_from_id(g, id);
-
-		if (ch != NULL) {
-			g->ops.fifo.set_error_notifier(ch, error_notifier);
-			nvgpu_channel_recover(g, ch, true, RC_TYPE_PBDMA_FAULT);
-			gk20a_channel_put(ch);
-		}
-	} else if (pbdma_status.id_type == PBDMA_STATUS_ID_TYPE_TSGID) {
-		struct tsg_gk20a *tsg = &f->tsg[id];
-		struct channel_gk20a *ch = NULL;
-
-		nvgpu_rwsem_down_read(&tsg->ch_list_lock);
-		nvgpu_list_for_each_entry(ch, &tsg->ch_list,
-				channel_gk20a, ch_entry) {
-			if (gk20a_channel_get(ch) != NULL) {
-				g->ops.fifo.set_error_notifier(ch,
-					error_notifier);
-				gk20a_channel_put(ch);
-			}
-		}
-		nvgpu_rwsem_up_read(&tsg->ch_list_lock);
-		nvgpu_tsg_recover(g, tsg, true, RC_TYPE_PBDMA_FAULT);
-	} else {
-		nvgpu_err(g, "Invalid pbdma_id");
-	}
-}
-
 void gk20a_fifo_issue_preempt(struct gk20a *g, u32 id, bool is_tsg)
 {
 	if (is_tsg) {

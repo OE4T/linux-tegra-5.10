@@ -338,10 +338,6 @@ void gk20a_fifo_teardown_ch_tsg(struct gk20a *g, u32 __engine_ids,
 void gk20a_fifo_teardown_mask_intr(struct gk20a *g);
 void gk20a_fifo_teardown_unmask_intr(struct gk20a *g);
 
-void gk20a_fifo_pbdma_fault_rc(struct gk20a *g,
-			struct fifo_gk20a *f, u32 pbdma_id,
-			u32 error_notifier);
-
 u32 gk20a_fifo_default_timeslice_us(struct gk20a *g);
 
 void gk20a_fifo_get_mmu_fault_info(struct gk20a *g, u32 mmu_fault_id,

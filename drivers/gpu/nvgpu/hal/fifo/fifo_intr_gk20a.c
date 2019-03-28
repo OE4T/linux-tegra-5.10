@@ -27,6 +27,7 @@
 #include <nvgpu/ptimer.h>
 #include <nvgpu/channel.h>
 #include <nvgpu/tsg.h>
+#include <nvgpu/rc.h>
 #include <nvgpu/nvgpu_err.h>
 #include <nvgpu/error_notifier.h>
 #include <nvgpu/pbdma_status.h>
@@ -220,7 +221,7 @@ u32 gk20a_fifo_pbdma_isr(struct gk20a *g)
 			recover = g->ops.pbdma.handle_intr(g, pbdma_id,
 				&error_notifier);
 			if (recover) {
-				gk20a_fifo_pbdma_fault_rc(g, f, pbdma_id,
+				nvgpu_rc_pbdma_fault(g, f, pbdma_id,
 					error_notifier);
 			}
 		}

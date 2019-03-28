@@ -27,8 +27,12 @@
 
 struct gk20a;
 struct tsg_gk20a;
+struct fifo_gk20a;
 
 void nvgpu_rc_ctxsw_timeout(struct gk20a *g, u32 eng_bitmask,
 				struct tsg_gk20a *tsg, bool debug_dump);
+
+void nvgpu_rc_pbdma_fault(struct gk20a *g, struct fifo_gk20a *f,
+			u32 pbdma_id, u32 error_notifier);
 
 #endif /* NVGPU_RC_H */
