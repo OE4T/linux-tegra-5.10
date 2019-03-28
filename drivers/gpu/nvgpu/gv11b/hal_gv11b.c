@@ -24,6 +24,7 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/fuse.h>
 #include <nvgpu/regops.h>
+#include <nvgpu/gr/gr_falcon.h>
 
 #include "hal/bus/bus_gk20a.h"
 #include "hal/bus/bus_gp10b.h"
@@ -340,8 +341,6 @@ static const struct gpu_ops gv11b_ops = {
 		.get_sm_dsm_perf_regs = gv11b_gr_get_sm_dsm_perf_regs,
 		.get_sm_dsm_perf_ctrl_regs = gv11b_gr_get_sm_dsm_perf_ctrl_regs,
 		.set_hww_esr_report_mask = gv11b_gr_set_hww_esr_report_mask,
-		.falcon_load_ucode = gr_gm20b_load_ctxsw_ucode_segments,
-		.load_ctxsw_ucode = gr_gk20a_load_ctxsw_ucode,
 		.set_gpc_tpc_mask = gr_gv11b_set_gpc_tpc_mask,
 		.alloc_obj_ctx = gk20a_alloc_obj_ctx,
 		.is_tpc_addr = gr_gm20b_is_tpc_addr,
@@ -669,6 +668,23 @@ static const struct gpu_ops gv11b_ops = {
 				gm20b_gr_falcon_get_fecs_ctxsw_mailbox_size,
 			.get_fecs_ctx_state_store_major_rev_id =
 				gm20b_gr_falcon_get_fecs_ctx_state_store_major_rev_id,
+			.load_gpccs_dmem = gm20b_gr_falcon_load_gpccs_dmem,
+			.load_fecs_dmem = gm20b_gr_falcon_load_fecs_dmem,
+			.load_gpccs_imem = gm20b_gr_falcon_load_gpccs_imem,
+			.load_fecs_imem = gm20b_gr_falcon_load_fecs_imem,
+			.configure_fmodel = gm20b_gr_falcon_configure_fmodel,
+			.start_ucode = gm20b_gr_falcon_start_ucode,
+			.start_gpccs = gm20b_gr_falcon_start_gpccs,
+			.start_fecs = gm20b_gr_falcon_start_fecs,
+			.get_gpccs_start_reg_offset =
+				gm20b_gr_falcon_get_gpccs_start_reg_offset,
+			.bind_instblk = gm20b_gr_falcon_bind_instblk,
+			.load_ctxsw_ucode_header =
+				gm20b_gr_falcon_load_ctxsw_ucode_header,
+			.load_ctxsw_ucode_boot =
+				gm20b_gr_falcon_load_ctxsw_ucode_boot,
+			.load_ctxsw_ucode =
+					nvgpu_gr_falcon_load_ctxsw_ucode,
 		},
 	},
 	.fb = {
@@ -1257,7 +1273,8 @@ int gv11b_init_hal(struct gk20a *g)
 
 	/* priv security dependent ops */
 	if (nvgpu_is_enabled(g, NVGPU_SEC_PRIVSECURITY)) {
-		gops->gr.load_ctxsw_ucode = gr_gm20b_load_ctxsw_ucode;
+		gops->gr.falcon.load_ctxsw_ucode =
+			nvgpu_gr_falcon_load_secure_ctxsw_ucode;
 	} else {
 		/* non-secure boot */
 		gops->pmu.pmu_nsbootstrap = gv11b_pmu_bootstrap;
@@ -1267,7 +1284,6 @@ int gv11b_init_hal(struct gk20a *g)
 		gops->pmu.load_lsfalcon_ucode = NULL;
 		gops->pmu.init_wpr_region = NULL;
 
-		gops->gr.load_ctxsw_ucode = gr_gk20a_load_ctxsw_ucode;
 	}
 
 	nvgpu_set_enabled(g, NVGPU_PMU_FECS_BOOTSTRAP_DONE, false);

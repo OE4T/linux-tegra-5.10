@@ -27,6 +27,9 @@
 
 struct gk20a;
 
+int nvgpu_gr_falcon_init_ctxsw(struct gk20a *g);
 int nvgpu_gr_falcon_init_ctxsw_ucode(struct gk20a *g);
+int nvgpu_gr_falcon_load_ctxsw_ucode(struct gk20a *g);
+int nvgpu_gr_falcon_load_secure_ctxsw_ucode(struct gk20a *g);
 
-#endif /* NVGPU_GR_SUBCTX_H */
+#endif /* NVGPU_GR_FALCON_H */

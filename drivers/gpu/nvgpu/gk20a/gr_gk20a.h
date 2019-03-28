@@ -341,14 +341,6 @@ int gr_gk20a_update_hwpm_ctxsw_mode(struct gk20a *g,
 				  u32 mode);
 
 void gk20a_gr_set_shader_exceptions(struct gk20a *g, u32 data);
-int gr_gk20a_load_ctxsw_ucode(struct gk20a *g);
-void gr_gk20a_load_falcon_bind_instblk(struct gk20a *g);
-void gr_gk20a_load_ctxsw_ucode_header(struct gk20a *g, u64 addr_base,
-	struct gk20a_ctxsw_ucode_segments *segments, u32 reg_offset);
-void gr_gk20a_load_ctxsw_ucode_boot(struct gk20a *g, u64 addr_base,
-	struct gk20a_ctxsw_ucode_segments *segments, u32 reg_offset);
-
-
 void gr_gk20a_free_tsg_gr_ctx(struct tsg_gk20a *tsg);
 int gr_gk20a_disable_ctxsw(struct gk20a *g);
 int gr_gk20a_enable_ctxsw(struct gk20a *g);

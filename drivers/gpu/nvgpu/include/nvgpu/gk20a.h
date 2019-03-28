@@ -285,11 +285,6 @@ struct gpu_ops {
 						  u32 *num_ovr_perf_regs,
 						  u32 **ovr_perf_regsr);
 		void (*set_hww_esr_report_mask)(struct gk20a *g);
-		void (*falcon_load_ucode)(struct gk20a *g,
-				u64 addr_base,
-				struct gk20a_ctxsw_ucode_segments *segments,
-				u32 reg_offset);
-		int (*load_ctxsw_ucode)(struct gk20a *g);
 		void (*set_gpc_tpc_mask)(struct gk20a *g, u32 gpc_index);
 		int (*alloc_obj_ctx)(struct channel_gk20a  *c,
 				     u32 class_num, u32 flags);
@@ -574,9 +569,33 @@ struct gpu_ops {
 			u32 (*gpccs_base_addr)(void);
 			void (*dump_stats)(struct gk20a *g);
 			u32 (*fecs_ctxsw_mailbox_size)(void);
-			u32 (*get_fecs_ctx_state_store_major_rev_id)
-							(struct gk20a *g);
+			u32 (*get_fecs_ctx_state_store_major_rev_id)(
+							struct gk20a *g);
+			void (*load_gpccs_dmem)(struct gk20a *g,
+					const u32 *ucode_u32_data, u32 size);
+			void (*load_fecs_dmem)(struct gk20a *g,
+					const u32 *ucode_u32_data, u32 size);
+			void (*load_gpccs_imem)(struct gk20a *g,
+					const u32 *ucode_u32_data, u32 size);
+			void (*load_fecs_imem)(struct gk20a *g,
+					const u32 *ucode_u32_data, u32 size);
+			void (*configure_fmodel)(struct gk20a *g);
+			void (*start_ucode)(struct gk20a *g);
+			void (*start_gpccs)(struct gk20a *g);
+			void (*start_fecs)(struct gk20a *g);
+			u32 (*get_gpccs_start_reg_offset)(void);
+			void (*bind_instblk)(struct gk20a *g,
+					struct nvgpu_mem *mem, u64 inst_ptr);
+			void (*load_ctxsw_ucode_header)(struct gk20a *g,
+				u32 reg_offset, u32 boot_signature,
+				u32 addr_code32, u32 addr_data32,
+				u32 code_size, u32 data_size);
+			void (*load_ctxsw_ucode_boot)(struct gk20a *g,
+				u32 reg_offset, u32 boot_entry,
+				u32 addr_load32, u32 blocks, u32 dst);
+			int (*load_ctxsw_ucode)(struct gk20a *g);
 		} falcon;
+
 #ifdef CONFIG_GK20A_CTXSW_TRACE
 		struct {
 			int (*init)(struct gk20a *g);

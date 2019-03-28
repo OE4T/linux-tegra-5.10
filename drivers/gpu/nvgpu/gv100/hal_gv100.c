@@ -62,6 +62,7 @@
 #include "hal/gr/fecs_trace/fecs_trace_gm20b.h"
 #include "hal/gr/config/gr_config_gm20b.h"
 #include "hal/gr/config/gr_config_gv100.h"
+#include "hal/gr/falcon/gr_falcon_gm20b.h"
 #include "hal/gr/zbc/zbc_gp10b.h"
 #include "hal/gr/zbc/zbc_gv11b.h"
 #include "hal/gr/init/gr_init_gm20b.h"
@@ -72,7 +73,6 @@
 #include "hal/gr/intr/gr_intr_gv11b.h"
 #include "hal/gr/zcull/zcull_gm20b.h"
 #include "hal/gr/zcull/zcull_gv11b.h"
-#include "hal/gr/falcon/gr_falcon_gm20b.h"
 #include "hal/gr/hwpm_map/hwpm_map_gv100.h"
 #include "hal/gr/ctxsw_prog/ctxsw_prog_gm20b.h"
 #include "hal/gr/ctxsw_prog/ctxsw_prog_gp10b.h"
@@ -166,6 +166,7 @@
 #include <nvgpu/regops.h>
 #include <nvgpu/gr/zbc.h>
 #include <nvgpu/gr/zcull.h>
+#include <nvgpu/gr/gr_falcon.h>
 #include <nvgpu/gr/fecs_trace.h>
 
 #include <nvgpu/hw/gv100/hw_proj_gv100.h>
@@ -389,8 +390,6 @@ static const struct gpu_ops gv100_ops = {
 		.get_sm_dsm_perf_regs = gv11b_gr_get_sm_dsm_perf_regs,
 		.get_sm_dsm_perf_ctrl_regs = gv11b_gr_get_sm_dsm_perf_ctrl_regs,
 		.set_hww_esr_report_mask = gv11b_gr_set_hww_esr_report_mask,
-		.falcon_load_ucode = gr_gm20b_load_ctxsw_ucode_segments,
-		.load_ctxsw_ucode = gr_gm20b_load_ctxsw_ucode,
 		.set_gpc_tpc_mask = gr_gv100_set_gpc_tpc_mask,
 		.alloc_obj_ctx = gk20a_alloc_obj_ctx,
 		.is_tpc_addr = gr_gm20b_is_tpc_addr,
@@ -710,6 +709,23 @@ static const struct gpu_ops gv100_ops = {
 				gm20b_gr_falcon_get_fecs_ctxsw_mailbox_size,
 			.get_fecs_ctx_state_store_major_rev_id =
 				gm20b_gr_falcon_get_fecs_ctx_state_store_major_rev_id,
+			.load_gpccs_dmem = gm20b_gr_falcon_load_gpccs_dmem,
+			.load_fecs_dmem = gm20b_gr_falcon_load_fecs_dmem,
+			.load_gpccs_imem = gm20b_gr_falcon_load_gpccs_imem,
+			.load_fecs_imem = gm20b_gr_falcon_load_fecs_imem,
+			.configure_fmodel = gm20b_gr_falcon_configure_fmodel,
+			.start_ucode = gm20b_gr_falcon_start_ucode,
+			.start_gpccs = gm20b_gr_falcon_start_gpccs,
+			.start_fecs = gm20b_gr_falcon_start_fecs,
+			.get_gpccs_start_reg_offset =
+				gm20b_gr_falcon_get_gpccs_start_reg_offset,
+			.bind_instblk = gm20b_gr_falcon_bind_instblk,
+			.load_ctxsw_ucode_header =
+				gm20b_gr_falcon_load_ctxsw_ucode_header,
+			.load_ctxsw_ucode_boot =
+				gm20b_gr_falcon_load_ctxsw_ucode_boot,
+			.load_ctxsw_ucode =
+					nvgpu_gr_falcon_load_secure_ctxsw_ucode,
 		},
 	},
 	.fb = {

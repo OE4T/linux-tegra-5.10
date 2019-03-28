@@ -127,8 +127,6 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 		.get_sm_dsm_perf_regs = gr_gm20b_get_sm_dsm_perf_regs,
 		.get_sm_dsm_perf_ctrl_regs = gr_gm20b_get_sm_dsm_perf_ctrl_regs,
 		.set_hww_esr_report_mask = NULL,
-		.falcon_load_ucode = NULL,
-		.load_ctxsw_ucode = NULL,
 		.set_gpc_tpc_mask = NULL,
 		.alloc_obj_ctx = vgpu_gr_alloc_obj_ctx,
 		.is_tpc_addr = gr_gm20b_is_tpc_addr,
@@ -293,6 +291,9 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 			.bind_ctxsw_zcull = vgpu_gr_bind_ctxsw_zcull,
 			.get_zcull_info = vgpu_gr_get_zcull_info,
 			.program_zcull_mapping = NULL,
+		},
+		.falcon = {
+			.load_ctxsw_ucode = NULL,
 		},
 #ifdef CONFIG_GK20A_CTXSW_TRACE
 		.fecs_trace = {
