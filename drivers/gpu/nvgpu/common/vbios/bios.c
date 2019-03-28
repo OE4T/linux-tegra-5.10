@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2015-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -186,10 +186,10 @@ struct falcon_ucode_table_entry_v1 {
  */
 
 #define FALCON_UCODE_GET_VERSION(hdr) \
-	(((hdr).v2.v_desc >> 8) & 0xffU)
+	U8(((hdr).v2.v_desc >> 8) & 0xffU)
 
 #define FALCON_UCODE_GET_DESC_SIZE(hdr) \
-	(((hdr).v2.v_desc >> 16) & 0xffffU)
+	U16(((hdr).v2.v_desc >> 16) & 0xffffU)
 
 struct falcon_ucode_desc_v1 {
 	union {
@@ -303,11 +303,11 @@ static void nvgpu_bios_parse_bit(struct gk20a *g, u32 offset);
 int nvgpu_bios_parse_rom(struct gk20a *g)
 {
 	u32 offset = 0;
-	int last = 0;
+	u8 last = 0;
 	bool found = false;
 	unsigned int i;
 
-	while (last == 0) {
+	while (last == 0U) {
 		struct pci_exp_rom *pci_rom;
 		struct pci_data_struct *pci_data;
 		struct pci_ext_data_struct *pci_ext_data;
@@ -508,7 +508,7 @@ int nvgpu_bios_get_lpwr_nvlink_table_hdr(struct gk20a *g)
 	return 0;
 }
 
-static void nvgpu_bios_parse_memory_ptrs(struct gk20a *g, int offset, u8 version)
+static void nvgpu_bios_parse_memory_ptrs(struct gk20a *g, u16 offset, u8 version)
 {
 	struct memory_ptrs_v1 v1;
 	struct memory_ptrs_v2 v2;
@@ -601,8 +601,11 @@ static int nvgpu_bios_parse_falcon_ucode_desc(struct gk20a *g,
 		version = FALCON_UCODE_GET_VERSION(udesc);
 		desc_size = FALCON_UCODE_GET_DESC_SIZE(udesc);
 	} else {
+		size_t tmp_size = sizeof(udesc.v1);
+
 		version = 1;
-		desc_size = sizeof(udesc.v1);
+		nvgpu_assert(tmp_size <= (size_t)U16_MAX);
+		desc_size = U16(tmp_size);
 	}
 
 	switch (version) {
@@ -881,12 +884,12 @@ static void nvgpu_bios_parse_bit(struct gk20a *g, u32 offset)
 
 static u32 __nvgpu_bios_readbyte(struct gk20a *g, u32 offset)
 {
-	return (u32) g->bios.data[offset];
+	return g->bios.data[offset];
 }
 
 u8 nvgpu_bios_read_u8(struct gk20a *g, u32 offset)
 {
-	return (u8) __nvgpu_bios_readbyte(g, offset);
+	return (u8)__nvgpu_bios_readbyte(g, offset);
 }
 
 s8 nvgpu_bios_read_s8(struct gk20a *g, u32 offset)
@@ -902,8 +905,8 @@ u16 nvgpu_bios_read_u16(struct gk20a *g, u32 offset)
 {
 	u16 val;
 
-	val = __nvgpu_bios_readbyte(g, offset) |
-		(__nvgpu_bios_readbyte(g, offset+1U) << 8U);
+	val = U16(__nvgpu_bios_readbyte(g, offset) |
+		(__nvgpu_bios_readbyte(g, offset+1U) << 8U));
 
 	return val;
 }
@@ -912,10 +915,10 @@ u32 nvgpu_bios_read_u32(struct gk20a *g, u32 offset)
 {
 	u32 val;
 
-	val = __nvgpu_bios_readbyte(g, offset) |
+	val = U32(__nvgpu_bios_readbyte(g, offset) |
 		(__nvgpu_bios_readbyte(g, offset+1U) << 8U) |
 		(__nvgpu_bios_readbyte(g, offset+2U) << 16U) |
-		(__nvgpu_bios_readbyte(g, offset+3U) << 24U);
+		(__nvgpu_bios_readbyte(g, offset+3U) << 24U));
 
 	return val;
 }
