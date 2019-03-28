@@ -71,10 +71,8 @@ static void sec2_seq_release(struct nvgpu_sec2 *sec2,
 	struct sec2_sequence *seq)
 {
 	seq->state	= SEC2_SEQ_STATE_FREE;
-	seq->desc	= SEC2_INVALID_SEQ_DESC;
 	seq->callback	= NULL;
 	seq->cb_params	= NULL;
-	seq->msg	= NULL;
 	seq->out_payload = NULL;
 
 	clear_bit((int)seq->id, sec2->sec2_seq_tbl);
@@ -145,18 +143,16 @@ static int sec2_write_cmd(struct nvgpu_sec2 *sec2,
 }
 
 int nvgpu_sec2_cmd_post(struct gk20a *g, struct nv_flcn_cmd_sec2 *cmd,
-	struct nv_flcn_msg_sec2 *msg, u32 queue_id, sec2_callback callback,
-	void *cb_param, u32 *seq_desc, u32 timeout)
+	u32 queue_id, sec2_callback callback,
+	void *cb_param, u32 timeout)
 {
 	struct nvgpu_sec2 *sec2 = &g->sec2;
 	struct sec2_sequence *seq = NULL;
 	int err = 0;
 
-	if ((cmd == NULL) || (seq_desc == NULL) || (!sec2->sec2_ready)) {
+	if ((cmd == NULL) || (!sec2->sec2_ready)) {
 		if (cmd == NULL) {
 			nvgpu_warn(g, "%s(): SEC2 cmd buffer is NULL", __func__);
-		} else if (seq_desc == NULL) {
-			nvgpu_warn(g, "%s(): Seq descriptor is NULL", __func__);
 		} else {
 			nvgpu_warn(g, "%s(): SEC2 is not ready", __func__);
 		}
@@ -185,11 +181,7 @@ int nvgpu_sec2_cmd_post(struct gk20a *g, struct nv_flcn_cmd_sec2 *cmd,
 
 	seq->callback = callback;
 	seq->cb_params = cb_param;
-	seq->msg = msg;
 	seq->out_payload = NULL;
-	seq->desc = sec2->next_seq_desc++;
-
-	*seq_desc = seq->desc;
 
 	seq->state = SEC2_SEQ_STATE_USED;
 
@@ -220,7 +212,7 @@ static int sec2_response_handle(struct nvgpu_sec2 *sec2,
 	}
 
 	if (seq->callback != NULL) {
-		seq->callback(g, msg, seq->cb_params, seq->desc, ret);
+		seq->callback(g, msg, seq->cb_params, ret);
 	}
 
 	/* release the sequence so that it may be used for other commands */

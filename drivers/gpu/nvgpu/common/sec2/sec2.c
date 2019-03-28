@@ -136,7 +136,7 @@ int nvgpu_sec2_destroy(struct gk20a *g)
 /* LSF's bootstrap command */
 static void sec2_handle_lsfm_boot_acr_msg(struct gk20a *g,
 	struct nv_flcn_msg_sec2 *msg,
-	void *param, u32 handle, u32 status)
+	void *param, u32 status)
 {
 	bool *command_ack = param;
 
@@ -156,7 +156,6 @@ static void sec2_load_ls_falcons(struct gk20a *g, struct nvgpu_sec2 *sec2,
 {
 	struct nv_flcn_cmd_sec2 cmd;
 	bool command_ack;
-	u32 seq = 0;
 	int err = 0;
 	size_t tmp_size;
 
@@ -179,8 +178,8 @@ static void sec2_load_ls_falcons(struct gk20a *g, struct nvgpu_sec2 *sec2,
 		falcon_id);
 
 	command_ack = false;
-	err = nvgpu_sec2_cmd_post(g, &cmd, NULL, PMU_COMMAND_QUEUE_HPQ,
-		sec2_handle_lsfm_boot_acr_msg, &command_ack, &seq, U32_MAX);
+	err = nvgpu_sec2_cmd_post(g, &cmd, PMU_COMMAND_QUEUE_HPQ,
+		sec2_handle_lsfm_boot_acr_msg, &command_ack, U32_MAX);
 	if (err != 0) {
 		nvgpu_err(g, "command post failed");
 	}

@@ -45,8 +45,6 @@
 #define SEC2_SEQ_TBL_SIZE	\
 	(SEC2_MAX_NUM_SEQUENCES >> SEC2_SEQ_BIT_SHIFT)
 
-#define SEC2_INVALID_SEQ_DESC	(~0U)
-
 enum sec2_seq_state {
 	SEC2_SEQ_STATE_FREE = 0U,
 	SEC2_SEQ_STATE_PENDING,
@@ -55,13 +53,11 @@ enum sec2_seq_state {
 };
 
 typedef void (*sec2_callback)(struct gk20a *g, struct nv_flcn_msg_sec2 *msg,
-	void *param, u32 handle, u32 status);
+	void *param, u32 status);
 
 struct sec2_sequence {
 	u8 id;
 	enum sec2_seq_state state;
-	u32 desc;
-	struct nv_flcn_msg_sec2 *msg;
 	u8 *out_payload;
 	sec2_callback callback;
 	void *cb_params;
@@ -76,7 +72,6 @@ struct nvgpu_sec2 {
 
 	struct sec2_sequence *seq;
 	unsigned long sec2_seq_tbl[SEC2_SEQ_TBL_SIZE];
-	u32 next_seq_desc;
 	struct nvgpu_mutex sec2_seq_lock;
 
 	bool isr_enabled;
@@ -96,8 +91,8 @@ struct nvgpu_sec2 {
 
 /* command/message handling methods*/
 int nvgpu_sec2_cmd_post(struct gk20a *g, struct nv_flcn_cmd_sec2 *cmd,
-	struct nv_flcn_msg_sec2 *msg, u32 queue_id, sec2_callback callback,
-	void *cb_param, u32 *seq_desc, u32 timeout);
+	u32 queue_id, sec2_callback callback,
+	void *cb_param, u32 timeout);
 int nvgpu_sec2_process_message(struct nvgpu_sec2 *sec2);
 int nvgpu_sec2_wait_message_cond(struct nvgpu_sec2 *sec2, u32 timeout_ms,
 	void *var, u8 val);
