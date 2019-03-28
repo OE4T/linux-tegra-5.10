@@ -693,3 +693,42 @@ u32 nvgpu_engine_mmu_fault_id_to_engine_id(struct gk20a *g, u32 fault_id)
 	}
 	return active_engine_id;
 }
+
+u32 nvgpu_engine_get_mask_on_id(struct gk20a *g, u32 id, bool is_tsg)
+{
+	unsigned int i;
+	u32 engines = 0;
+	struct nvgpu_engine_status_info engine_status;
+	u32 ctx_id;
+	u32 type;
+	bool busy;
+
+	for (i = 0; i < g->fifo.num_engines; i++) {
+		u32 active_engine_id = g->fifo.active_engines_list[i];
+
+		g->ops.engine_status.read_engine_status_info(g,
+			active_engine_id, &engine_status);
+
+		if (nvgpu_engine_status_is_ctxsw_load(
+			&engine_status)) {
+			nvgpu_engine_status_get_next_ctx_id_type(
+				&engine_status, &ctx_id, &type);
+		} else {
+			nvgpu_engine_status_get_ctx_id_type(
+				&engine_status, &ctx_id, &type);
+		}
+
+		busy = engine_status.is_busy;
+
+		if (busy && ctx_id == id) {
+			if ((is_tsg && type ==
+					ENGINE_STATUS_CTX_ID_TYPE_TSGID) ||
+					(!is_tsg && type ==
+					ENGINE_STATUS_CTX_ID_TYPE_CHID)) {
+				engines |= BIT(active_engine_id);
+			}
+		}
+	}
+
+	return engines;
+}

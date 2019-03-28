@@ -175,13 +175,13 @@ void nvgpu_tsg_recover(struct gk20a *g, struct tsg_gk20a *tsg,
 		nvgpu_err(g, "failed to disable ctxsw");
 	} else {
 		/* recover engines if tsg is loaded on the engines */
-		engines_mask = g->ops.fifo.get_engines_mask_on_id(g,
+		engines_mask = g->ops.engine.get_mask_on_id(g,
 				tsg->tsgid, true);
 
 		/*
 		 * it is ok to enable ctxsw before tsg is recovered. If engines
 		 * is 0, no engine recovery is needed and if it is  non zero,
-		 * gk20a_fifo_recover will call get_engines_mask_on_id again.
+		 * gk20a_fifo_recover will call get_mask_on_id again.
 		 * By that time if tsg is not on the engine, engine need not
 		 * be reset.
 		 */

@@ -1485,7 +1485,7 @@ void nvgpu_channel_recover(struct gk20a *g, struct channel_gk20a *ch,
 		goto fail;
 	}
 
-	engines = g->ops.fifo.get_engines_mask_on_id(g, ch->chid, false);
+	engines = g->ops.engine.get_mask_on_id(g, ch->chid, false);
 
 	if (engines != 0U) {
 		gk20a_fifo_recover(g, engines, ch->chid, false, true, verbose,

@@ -703,7 +703,6 @@ static const struct gpu_ops gp10b_ops = {
 		.force_reset_ch = gk20a_fifo_force_reset_ch,
 		.init_pbdma_info = gk20a_fifo_init_pbdma_info,
 		.init_engine_info = gm20b_fifo_init_engine_info,
-		.get_engines_mask_on_id = gk20a_fifo_engines_on_id,
 		.dump_channel_status_ramfc = gk20a_dump_channel_status_ramfc,
 		.is_preempt_pending = gk20a_fifo_is_preempt_pending,
 		.reset_enable_hw = gk20a_init_fifo_reset_enable_hw,
@@ -739,6 +738,7 @@ static const struct gpu_ops gp10b_ops = {
 	},
 	.engine = {
 		.is_fault_engine_subid_gpc = gm20b_is_fault_engine_subid_gpc,
+		.get_mask_on_id = nvgpu_engine_get_mask_on_id,
 	},
 	.pbdma = {
 		.intr_enable = gm20b_pbdma_intr_enable,

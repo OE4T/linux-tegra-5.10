@@ -241,7 +241,7 @@ int gk20a_fifo_deferred_reset(struct gk20a *g, struct channel_gk20a *ch)
 
 	tsg = tsg_gk20a_from_ch(ch);
 	if (tsg != NULL) {
-		engines = g->ops.fifo.get_engines_mask_on_id(g,
+		engines = g->ops.engine.get_mask_on_id(g,
 				tsg->tsgid, true);
 	} else {
 		nvgpu_err(g, "chid: %d is not bound to tsg", ch->chid);
@@ -504,44 +504,6 @@ static void gk20a_fifo_get_faulty_id_type(struct gk20a *g, u32 engine_id,
 	}
 }
 
-u32 gk20a_fifo_engines_on_id(struct gk20a *g, u32 id, bool is_tsg)
-{
-	unsigned int i;
-	u32 engines = 0;
-	struct nvgpu_engine_status_info engine_status;
-	u32 ctx_id;
-	u32 type;
-	bool busy;
-
-	for (i = 0; i < g->fifo.num_engines; i++) {
-		u32 active_engine_id = g->fifo.active_engines_list[i];
-		g->ops.engine_status.read_engine_status_info(g,
-			active_engine_id, &engine_status);
-
-		if (nvgpu_engine_status_is_ctxsw_load(
-			&engine_status)) {
-			nvgpu_engine_status_get_next_ctx_id_type(
-				&engine_status, &ctx_id, &type);
-		} else {
-			nvgpu_engine_status_get_ctx_id_type(
-				&engine_status, &ctx_id, &type);
-		}
-
-		busy = engine_status.is_busy;
-
-		if (busy && ctx_id == id) {
-			if ((is_tsg && type ==
-					ENGINE_STATUS_CTX_ID_TYPE_TSGID) ||
-				    (!is_tsg && type ==
-					ENGINE_STATUS_CTX_ID_TYPE_CHID)) {
-				engines |= BIT(active_engine_id);
-			}
-		}
-	}
-
-	return engines;
-}
-
 void gk20a_fifo_teardown_mask_intr(struct gk20a *g)
 {
 	u32 val;
@@ -583,7 +545,7 @@ void gk20a_fifo_teardown_ch_tsg(struct gk20a *g, u32 __engine_ids,
 	nvgpu_fifo_lock_active_runlists(g);
 
 	if (id_is_known) {
-		engine_ids = g->ops.fifo.get_engines_mask_on_id(g,
+		engine_ids = g->ops.engine.get_mask_on_id(g,
 				hw_id, id_is_tsg);
 		ref_id = hw_id;
 		ref_type = id_is_tsg ?

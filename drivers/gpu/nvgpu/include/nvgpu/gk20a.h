@@ -950,8 +950,6 @@ struct gpu_ops {
 		void (*tsg_release)(struct tsg_gk20a *tsg);
 		int (*init_pbdma_info)(struct fifo_gk20a *f);
 		int (*init_engine_info)(struct fifo_gk20a *f);
-		u32 (*get_engines_mask_on_id)(struct gk20a *g,
-			u32 id, bool is_tsg);
 		void (*free_channel_ctx_header)(struct channel_gk20a *ch);
 		void (*dump_channel_status_ramfc)(struct gk20a *g,
 				struct gk20a_debug_output *o,
@@ -1069,6 +1067,8 @@ struct gpu_ops {
 	struct {
 		bool (*is_fault_engine_subid_gpc)(struct gk20a *g,
 					 u32 engine_subid);
+		u32 (*get_mask_on_id)(struct gk20a *g,
+			u32 id, bool is_tsg);
 	} engine;
 
 	struct {

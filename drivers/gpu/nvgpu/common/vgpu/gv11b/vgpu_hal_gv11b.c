@@ -510,7 +510,6 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 		.tsg_release = vgpu_tsg_release,
 		.force_reset_ch = vgpu_fifo_force_reset_ch,
 		.init_engine_info = vgpu_fifo_init_engine_info,
-		.get_engines_mask_on_id = NULL,
 		.dump_channel_status_ramfc = NULL,
 		.is_preempt_pending = gv11b_fifo_is_preempt_pending,
 		.reset_enable_hw = NULL,
@@ -547,6 +546,7 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 	},
 	.engine = {
 		.is_fault_engine_subid_gpc = gv11b_is_fault_engine_subid_gpc,
+		.get_mask_on_id = NULL,
 	},
 	.pbdma = {
 		.intr_enable = NULL,
