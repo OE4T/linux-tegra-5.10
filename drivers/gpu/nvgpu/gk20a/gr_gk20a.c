@@ -2570,28 +2570,6 @@ int gr_gk20a_handle_sm_exception(struct gk20a *g, u32 gpc, u32 tpc, u32 sm,
 	return ret;
 }
 
-int gr_gk20a_handle_tex_exception(struct gk20a *g, u32 gpc, u32 tpc,
-		bool *post_event)
-{
-	int ret = 0;
-	u32 gpc_stride = nvgpu_get_litter_value(g, GPU_LIT_GPC_STRIDE);
-	u32 tpc_in_gpc_stride = nvgpu_get_litter_value(g, GPU_LIT_TPC_IN_GPC_STRIDE);
-	u32 offset = gpc_stride * gpc + tpc_in_gpc_stride * tpc;
-	u32 esr;
-
-	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gpu_dbg, " ");
-
-	esr = gk20a_readl(g,
-			 gr_gpc0_tpc0_tex_m_hww_esr_r() + offset);
-	nvgpu_log(g, gpu_dbg_intr | gpu_dbg_gpu_dbg, "0x%08x", esr);
-
-	gk20a_writel(g,
-		     gr_gpc0_tpc0_tex_m_hww_esr_r() + offset,
-		     esr);
-
-	return ret;
-}
-
 void gk20a_gr_get_esr_sm_sel(struct gk20a *g, u32 gpc, u32 tpc,
 				u32 *esr_sm_sel)
 {
@@ -2653,14 +2631,14 @@ static int gk20a_gr_handle_tpc_exception(struct gk20a *g, u32 gpc, u32 tpc,
 
 	}
 
-	/* check if a tex exeption is pending */
+	/* check if a tex exception is pending */
 	if (gr_gpc0_tpc0_tpccs_tpc_exception_tex_v(tpc_exception) ==
 			gr_gpc0_tpc0_tpccs_tpc_exception_tex_pending_v()) {
 		nvgpu_log(g, gpu_dbg_intr | gpu_dbg_gpu_dbg,
 				"GPC%d TPC%d: TEX exception pending", gpc, tpc);
-		tmp_ret = g->ops.gr.handle_tex_exception(g, gpc,
-							tpc, post_event);
-		ret = (ret != 0) ? ret : tmp_ret;
+		if (g->ops.gr.intr.handle_tex_exception != NULL) {
+			g->ops.gr.intr.handle_tex_exception(g, gpc, tpc);
+		}
 	}
 
 	if (g->ops.gr.handle_tpc_mpc_exception != NULL) {

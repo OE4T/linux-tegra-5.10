@@ -273,7 +273,6 @@ static const struct gpu_ops gm20b_ops = {
 		.bpt_reg_info = gr_gm20b_bpt_reg_info,
 		.handle_fecs_error = gk20a_gr_handle_fecs_error,
 		.handle_sm_exception = gr_gk20a_handle_sm_exception,
-		.handle_tex_exception = gr_gk20a_handle_tex_exception,
 		.get_lrf_tex_ltc_dram_override = NULL,
 		.update_smpc_ctxsw_mode = gr_gk20a_update_smpc_ctxsw_mode,
 		.update_hwpm_ctxsw_mode = gr_gk20a_update_hwpm_ctxsw_mode,
@@ -472,6 +471,8 @@ static const struct gpu_ops gm20b_ops = {
 				gm20b_gr_init_load_sw_bundle_init,
 		},
 		.intr = {
+			.handle_tex_exception =
+					gm20b_gr_intr_handle_tex_exception,
 			.enable_hww_exceptions =
 					gm20b_gr_intr_enable_hww_exceptions,
 			.enable_interrupts = gm20b_gr_intr_enable_interrupts,

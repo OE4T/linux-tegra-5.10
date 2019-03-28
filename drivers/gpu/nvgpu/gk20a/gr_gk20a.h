@@ -358,8 +358,6 @@ bool gk20a_is_channel_ctx_resident(struct channel_gk20a *ch);
 int gr_gk20a_handle_sm_exception(struct gk20a *g, u32 gpc, u32 tpc, u32 sm,
 		bool *post_event, struct channel_gk20a *fault_ch,
 		u32 *hww_global_esr);
-int gr_gk20a_handle_tex_exception(struct gk20a *g, u32 gpc, u32 tpc,
-					bool *post_event);
 int gr_gk20a_init_ctx_state(struct gk20a *g);
 int gr_gk20a_submit_fecs_method_op(struct gk20a *g,
 				   struct fecs_method_op_gk20a op,

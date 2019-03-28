@@ -410,7 +410,6 @@ static const struct gpu_ops gv100_ops = {
 		.bpt_reg_info = gv11b_gr_bpt_reg_info,
 		.handle_fecs_error = gr_gv11b_handle_fecs_error,
 		.handle_sm_exception = gr_gk20a_handle_sm_exception,
-		.handle_tex_exception = gr_gv11b_handle_tex_exception,
 		.get_lrf_tex_ltc_dram_override = get_ecc_override_val,
 		.update_smpc_ctxsw_mode = gr_gk20a_update_smpc_ctxsw_mode,
 		.get_num_hwpm_perfmon = gr_gv100_get_num_hwpm_perfmon,
@@ -694,6 +693,7 @@ static const struct gpu_ops gv100_ops = {
 				gv11b_gr_init_load_sw_veid_bundle,
 		},
 		.intr = {
+			.handle_tex_exception = NULL,
 			.enable_hww_exceptions =
 					gv11b_gr_intr_enable_hww_exceptions,
 			.enable_interrupts = gm20b_gr_intr_enable_interrupts,

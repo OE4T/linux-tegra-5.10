@@ -1054,12 +1054,6 @@ int gr_gv11b_handle_gpc_gpccs_exception(struct gk20a *g, u32 gpc,
 	return 0;
 }
 
-int gr_gv11b_handle_tex_exception(struct gk20a *g, u32 gpc, u32 tpc,
-		bool *post_event)
-{
-	return 0;
-}
-
 void gr_gv11b_set_go_idle_timeout(struct gk20a *g, u32 data)
 {
 	gk20a_writel(g, gr_fe_go_idle_timeout_r(), data);

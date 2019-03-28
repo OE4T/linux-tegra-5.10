@@ -370,8 +370,6 @@ struct gpu_ops {
 		int (*handle_gcc_exception)(struct gk20a *g, u32 gpc, u32 tpc,
 				bool *post_event, struct channel_gk20a *fault_ch,
 				u32 *hww_global_esr);
-		int (*handle_tex_exception)(struct gk20a *g, u32 gpc, u32 tpc,
-						bool *post_event);
 		int (*handle_tpc_mpc_exception)(struct gk20a *g,
 					u32 gpc, u32 tpc, bool *post_event);
 		int (*handle_gpc_gpccs_exception)(struct gk20a *g, u32 gpc,
@@ -762,6 +760,8 @@ struct gpu_ops {
 		} init;
 
 		struct {
+			void (*handle_tex_exception)(struct gk20a *g,
+						     u32 gpc, u32 tpc);
 			void (*enable_hww_exceptions)(struct gk20a *g);
 			void (*enable_interrupts)(struct gk20a *g, bool enable);
 			void (*enable_exceptions)(struct gk20a *g,

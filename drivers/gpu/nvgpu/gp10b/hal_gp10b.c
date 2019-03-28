@@ -77,6 +77,7 @@
 #include "hal/gr/init/gr_init_gm20b.h"
 #include "hal/gr/init/gr_init_gp10b.h"
 #include "hal/gr/intr/gr_intr_gm20b.h"
+#include "hal/gr/intr/gr_intr_gp10b.h"
 #include "hal/gr/ctxsw_prog/ctxsw_prog_gm20b.h"
 #include "hal/gr/ctxsw_prog/ctxsw_prog_gp10b.h"
 #include "hal/falcon/falcon_gk20a.h"
@@ -298,7 +299,6 @@ static const struct gpu_ops gp10b_ops = {
 		.bpt_reg_info = gr_gm20b_bpt_reg_info,
 		.handle_fecs_error = gr_gp10b_handle_fecs_error,
 		.handle_sm_exception = gr_gp10b_handle_sm_exception,
-		.handle_tex_exception = gr_gp10b_handle_tex_exception,
 		.get_lrf_tex_ltc_dram_override = get_ecc_override_val,
 		.update_smpc_ctxsw_mode = gr_gk20a_update_smpc_ctxsw_mode,
 		.update_hwpm_ctxsw_mode = gr_gk20a_update_hwpm_ctxsw_mode,
@@ -550,6 +550,8 @@ static const struct gpu_ops gp10b_ops = {
 				gm20b_gr_init_load_sw_bundle_init,
 		},
 		.intr = {
+			.handle_tex_exception =
+					gp10b_gr_intr_handle_tex_exception,
 			.enable_hww_exceptions =
 					gm20b_gr_intr_enable_hww_exceptions,
 			.enable_interrupts = gm20b_gr_intr_enable_interrupts,

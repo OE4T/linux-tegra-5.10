@@ -68,8 +68,6 @@ int gr_gp10b_handle_sm_exception(struct gk20a *g,
 			u32 gpc, u32 tpc, u32 sm,
 			bool *post_event, struct channel_gk20a *fault_ch,
 			u32 *hww_global_esr);
-int gr_gp10b_handle_tex_exception(struct gk20a *g, u32 gpc, u32 tpc,
-		bool *post_event);
 int gr_gp10b_commit_global_cb_manager(struct gk20a *g,
 			struct nvgpu_gr_ctx *gr_ctx, bool patch);
 void gr_gp10b_set_bes_crop_debug3(struct gk20a *g, u32 data);

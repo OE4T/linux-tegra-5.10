@@ -29,6 +29,25 @@
 
 #include <nvgpu/hw/gm20b/hw_gr_gm20b.h>
 
+void gm20b_gr_intr_handle_tex_exception(struct gk20a *g, u32 gpc, u32 tpc)
+{
+	u32 gpc_stride = nvgpu_get_litter_value(g, GPU_LIT_GPC_STRIDE);
+	u32 tpc_in_gpc_stride = nvgpu_get_litter_value(g,
+						GPU_LIT_TPC_IN_GPC_STRIDE);
+	u32 offset = gpc_stride * gpc + tpc_in_gpc_stride * tpc;
+	u32 esr;
+
+	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gpu_dbg, " ");
+
+	esr = nvgpu_readl(g,
+			  gr_gpc0_tpc0_tex_m_hww_esr_r() + offset);
+	nvgpu_log(g, gpu_dbg_intr | gpu_dbg_gpu_dbg, "0x%08x", esr);
+
+	nvgpu_writel(g,
+		     gr_gpc0_tpc0_tex_m_hww_esr_r() + offset,
+		     esr);
+}
+
 void gm20b_gr_intr_enable_hww_exceptions(struct gk20a *g)
 {
 	/* enable exceptions */

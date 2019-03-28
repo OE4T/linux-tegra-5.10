@@ -20,21 +20,13 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NVGPU_GR_INTR_GM20B_H
-#define NVGPU_GR_INTR_GM20B_H
+#ifndef NVGPU_GR_INTR_GP10B_H
+#define NVGPU_GR_INTR_GP10B_H
 
 #include <nvgpu/types.h>
 
 struct gk20a;
-struct nvgpu_gr_config;
 
-void gm20b_gr_intr_handle_tex_exception(struct gk20a *g, u32 gpc, u32 tpc);
-void gm20b_gr_intr_enable_hww_exceptions(struct gk20a *g);
-void gm20b_gr_intr_enable_interrupts(struct gk20a *g, bool enable);
-void gm20b_gr_intr_enable_exceptions(struct gk20a *g,
-				     struct nvgpu_gr_config *gr_config,
-				     bool enable);
-void gm20b_gr_intr_enable_gpc_exceptions(struct gk20a *g,
-					 struct nvgpu_gr_config *gr_config);
+void gp10b_gr_intr_handle_tex_exception(struct gk20a *g, u32 gpc, u32 tpc);
 
-#endif /* NVGPU_GR_INTR_GM20B_H */
+#endif /* NVGPU_GR_INTR_GP10B_H */
