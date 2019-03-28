@@ -598,7 +598,8 @@ int nvgpu_pmu_init_bind_fecs(struct gk20a *g)
 
 	(void) memset(&cmd, 0, sizeof(struct pmu_cmd));
 	cmd.hdr.unit_id = PMU_UNIT_PG;
-	cmd.hdr.size = PMU_CMD_HDR_SIZE +
+	nvgpu_assert(PMU_CMD_HDR_SIZE < U32(U8_MAX));
+	cmd.hdr.size = U8(PMU_CMD_HDR_SIZE) +
 			g->ops.pmu_ver.pg_cmd_eng_buf_load_size(&cmd.cmd.pg);
 	g->ops.pmu_ver.pg_cmd_eng_buf_load_set_cmd_type(&cmd.cmd.pg,
 			PMU_PG_CMD_ID_ENG_BUF_LOAD);
@@ -639,7 +640,8 @@ void nvgpu_pmu_setup_hw_load_zbc(struct gk20a *g)
 
 	(void) memset(&cmd, 0, sizeof(struct pmu_cmd));
 	cmd.hdr.unit_id = PMU_UNIT_PG;
-	cmd.hdr.size = PMU_CMD_HDR_SIZE +
+	nvgpu_assert(PMU_CMD_HDR_SIZE < U32(U8_MAX));
+	cmd.hdr.size = U8(PMU_CMD_HDR_SIZE) +
 			g->ops.pmu_ver.pg_cmd_eng_buf_load_size(&cmd.cmd.pg);
 	g->ops.pmu_ver.pg_cmd_eng_buf_load_set_cmd_type(&cmd.cmd.pg,
 			PMU_PG_CMD_ID_ENG_BUF_LOAD);

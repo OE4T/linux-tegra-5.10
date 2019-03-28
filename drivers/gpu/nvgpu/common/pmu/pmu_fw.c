@@ -993,17 +993,26 @@ static void *get_pmu_sequence_out_alloc_ptr_v1(struct pmu_sequence *seq)
 
 static u8 pg_cmd_eng_buf_load_size_v0(struct pmu_pg_cmd *pg)
 {
-	return (u32)sizeof(pg->eng_buf_load_v0);
+	size_t tmp_size = sizeof(pg->eng_buf_load_v0);
+
+	nvgpu_assert(tmp_size <= (size_t)U8_MAX);
+	return U8(tmp_size);
 }
 
 static u8 pg_cmd_eng_buf_load_size_v1(struct pmu_pg_cmd *pg)
 {
-	return (u32)sizeof(pg->eng_buf_load_v1);
+	size_t tmp_size = sizeof(pg->eng_buf_load_v1);
+
+	nvgpu_assert(tmp_size <= (size_t)U8_MAX);
+	return U8(tmp_size);
 }
 
 static u8 pg_cmd_eng_buf_load_size_v2(struct pmu_pg_cmd *pg)
 {
-	return (u32)sizeof(pg->eng_buf_load_v2);
+	size_t tmp_size = sizeof(pg->eng_buf_load_v2);
+
+	nvgpu_assert(tmp_size <= (size_t)U8_MAX);
+	return U8(tmp_size);
 }
 
 static void pg_cmd_eng_buf_load_set_cmd_type_v0(struct pmu_pg_cmd *pg,
