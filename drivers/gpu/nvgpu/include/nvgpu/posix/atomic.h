@@ -256,14 +256,16 @@ static inline bool __nvgpu_atomic64_sub_and_test(long x, nvgpu_atomic64_t *v)
 }
 
 /*
- * The following are defined for the lockless allocator in the driver that
- * uses the cmpxchg() operation directly instead of nvgpu_atomic_cmpxchg().
+ * The following is only used by the lockless allocator and makes direct use
+ * of the cmpxchg function. For POSIX, this is translated to a call to
+ * nvgpu_atomic_cmpxchg.
  */
 #define cmpxchg(p, old, new) 						\
 	({								\
 		typeof(*(p)) tmp = old;					\
 									\
-		atomic_compare_exchange_strong(p, &tmp, new);		\
+		(void) nvgpu_atomic_cmpxchg((nvgpu_atomic_t *) p, tmp,	\
+			new);						\
 		tmp;							\
 	})
 

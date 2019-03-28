@@ -178,12 +178,17 @@ void nvgpu_vm_mapping_batch_start(struct vm_gk20a_mapping_batch *mapping_batch)
 void nvgpu_vm_mapping_batch_finish_locked(
 	struct vm_gk20a *vm, struct vm_gk20a_mapping_batch *mapping_batch)
 {
+	int err;
+
 	/* hanging kref_put batch pointer? */
 	WARN_ON(vm->kref_put_batch == mapping_batch);
 
 	if (mapping_batch->need_tlb_invalidate) {
 		struct gk20a *g = gk20a_from_vm(vm);
-		g->ops.fb.tlb_invalidate(g, vm->pdb.mem);
+		err = g->ops.fb.tlb_invalidate(g, vm->pdb.mem);
+		if (err != 0) {
+			nvgpu_err(g, "fb.tlb_invalidate() failed err=%d", err);
+		}
 	}
 }
 

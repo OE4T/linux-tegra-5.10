@@ -827,7 +827,11 @@ u64 gk20a_locked_gmmu_map(struct vm_gk20a *vm,
 	}
 
 	if (batch == NULL) {
-		g->ops.fb.tlb_invalidate(g, vm->pdb.mem);
+		err = g->ops.fb.tlb_invalidate(g, vm->pdb.mem);
+		if (err != 0) {
+			nvgpu_err(g, "fb.tlb_invalidate() failed err=%d", err);
+			goto fail_validate;
+		}
 	} else {
 		batch->need_tlb_invalidate = true;
 	}
@@ -881,7 +885,10 @@ void gk20a_locked_gmmu_unmap(struct vm_gk20a *vm,
 		if (gk20a_mm_l2_flush(g, true) != 0) {
 			nvgpu_err(g, "gk20a_mm_l2_flush[1] failed");
 		}
-		g->ops.fb.tlb_invalidate(g, vm->pdb.mem);
+		err = g->ops.fb.tlb_invalidate(g, vm->pdb.mem);
+		if (err != 0) {
+			nvgpu_err(g, "fb.tlb_invalidate() failed err=%d", err);
+		}
 	} else {
 		if (!batch->gpu_l2_flushed) {
 			if (gk20a_mm_l2_flush(g, true) != 0) {

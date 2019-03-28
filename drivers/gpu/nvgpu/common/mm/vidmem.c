@@ -42,12 +42,16 @@
 void nvgpu_vidmem_destroy(struct gk20a *g)
 {
 	struct nvgpu_timeout timeout;
+	int err;
 
 	if (!g->ops.fb.get_vidmem_size) {
 		return;
 	}
 
-	nvgpu_timeout_init(g, &timeout, 100, NVGPU_TIMER_RETRY_TIMER);
+	err = nvgpu_timeout_init(g, &timeout, 100, NVGPU_TIMER_RETRY_TIMER);
+	if (err != 0) {
+		nvgpu_err(g, "nvgpu_timeout_init() failed err=%d", err);
+	}
 
 	/*
 	 * Ensure that the thread runs one last time to flush anything in the
@@ -119,9 +123,13 @@ static int __nvgpu_vidmem_do_clear_all(struct gk20a *g)
 	if (gk20a_fence_out) {
 		struct nvgpu_timeout timeout;
 
-		nvgpu_timeout_init(g, &timeout,
+		err = nvgpu_timeout_init(g, &timeout,
 				   nvgpu_get_poll_timeout(g),
 				   NVGPU_TIMER_CPU_TIMER);
+		if (err != 0) {
+			nvgpu_err(g, "nvgpu_timeout_init() failed err=%d", err);
+			return err;
+		}
 
 		do {
 			err = gk20a_fence_wait(g, gk20a_fence_out,
@@ -228,11 +236,15 @@ static void nvgpu_vidmem_clear_pending_allocs(struct mm_gk20a *mm)
 {
 	struct gk20a *g = mm->g;
 	struct nvgpu_mem *mem;
+	int err;
 
 	vidmem_dbg(g, "Running VIDMEM clearing thread:");
 
 	while ((mem = nvgpu_vidmem_clear_list_dequeue(mm)) != NULL) {
-		nvgpu_vidmem_clear(g, mem);
+		err = nvgpu_vidmem_clear(g, mem);
+		if (err != 0) {
+			nvgpu_err(g, "nvgpu_vidmem_clear() failed err=%d", err);
+		}
 
 		WARN_ON(nvgpu_atomic64_sub_return((long)mem->aligned_size,
 					&g->mm.vidmem.bytes_pending) < 0);
@@ -344,7 +356,13 @@ int nvgpu_vidmem_init(struct mm_gk20a *mm)
 	}
 
 	/* Reserve bootstrap region in vidmem allocator */
-	nvgpu_alloc_reserve_carveout(&g->mm.vidmem.allocator, &bootstrap_co);
+	err = nvgpu_alloc_reserve_carveout(&g->mm.vidmem.allocator,
+		&bootstrap_co);
+	if (err != 0) {
+		nvgpu_err(g, "nvgpu_alloc_reserve_carveout() failed err=%d",
+			err);
+		goto fail;
+	}
 
 	mm->vidmem.base = base;
 	mm->vidmem.size = size - base;
@@ -358,9 +376,28 @@ int nvgpu_vidmem_init(struct mm_gk20a *mm)
 
 	nvgpu_atomic64_set(&mm->vidmem.bytes_pending, 0);
 	nvgpu_init_list_node(&mm->vidmem.clear_list_head);
-	nvgpu_mutex_init(&mm->vidmem.clear_list_mutex);
-	nvgpu_mutex_init(&mm->vidmem.clearing_thread_lock);
-	nvgpu_mutex_init(&mm->vidmem.first_clear_mutex);
+
+	err = nvgpu_mutex_init(&mm->vidmem.clear_list_mutex);
+	if (err != 0) {
+		nvgpu_err(g, "nvgpu_mutex_init(list_mutex) failed err=%d",
+			err);
+		goto fail;
+	}
+
+	err = nvgpu_mutex_init(&mm->vidmem.clearing_thread_lock);
+	if (err != 0) {
+		nvgpu_err(g, "nvgpu_mutex_init(thread_lock) failed err=%d",
+			err);
+		goto fail;
+	}
+
+	err = nvgpu_mutex_init(&mm->vidmem.first_clear_mutex);
+	if (err != 0) {
+		nvgpu_err(g, "nvgpu_mutex_init(first_clear) failed err=%d",
+			err);
+		goto fail;
+	}
+
 	nvgpu_atomic_set(&mm->vidmem.pause_count, 0);
 
 	/*
@@ -462,9 +499,13 @@ int nvgpu_vidmem_clear(struct gk20a *g, struct nvgpu_mem *mem)
 	if (gk20a_last_fence) {
 		struct nvgpu_timeout timeout;
 
-		nvgpu_timeout_init(g, &timeout,
+		err = nvgpu_timeout_init(g, &timeout,
 				   nvgpu_get_poll_timeout(g),
 				   NVGPU_TIMER_CPU_TIMER);
+		if (err != 0) {
+			nvgpu_err(g, "nvgpu_timeout_init() failed err=%d", err);
+			return err;
+		}
 
 		do {
 			err = gk20a_fence_wait(g, gk20a_last_fence,
