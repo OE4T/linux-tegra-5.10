@@ -45,9 +45,9 @@ static int regop_bsearch_range_cmp(const void *pkey, const void *pelem)
 	return 1;
 }
 
-static inline bool linear_search(u32 offset, const u32 *list, int size)
+static inline bool linear_search(u32 offset, const u32 *list, u64 size)
 {
-	int i;
+	u64 i;
 	for (i = 0; i < size; i++) {
 		if (list[i] == offset) {
 			return true;
@@ -68,17 +68,13 @@ static inline bool linear_search(u32 offset, const u32 *list, int size)
  */
 static bool gr_context_info_available(struct gr_gk20a *gr)
 {
-	int err;
+	bool initialized;
 
 	nvgpu_mutex_acquire(&gr->ctx_mutex);
-	err = !gr->ctx_vars.golden_image_initialized;
+	initialized = gr->ctx_vars.golden_image_initialized;
 	nvgpu_mutex_release(&gr->ctx_mutex);
-	if (err != 0) {
-		return false;
-	}
 
-	return true;
-
+	return initialized;
 }
 
 static bool validate_reg_ops(struct gk20a *g,
