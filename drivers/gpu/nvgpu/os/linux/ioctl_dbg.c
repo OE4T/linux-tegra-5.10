@@ -857,7 +857,7 @@ static int nvgpu_ioctl_channel_reg_ops(struct dbg_session_gk20a *dbg_s,
 			return -ENOMEM;
 
 		while (ops_offset < args->num_ops && !err) {
-			const u64 num_ops =
+			const u32 num_ops =
 				min(args->num_ops - ops_offset,
 				    (u64)(g->dbg_regops_tmp_buf_ops));
 			const u64 fragment_size =
@@ -868,7 +868,7 @@ static int nvgpu_ioctl_channel_reg_ops(struct dbg_session_gk20a *dbg_s,
 				(args->ops +
 				 ops_offset * sizeof(struct nvgpu_dbg_gpu_reg_op));
 
-			nvgpu_log_fn(g, "Regops fragment: start_op=%llu ops=%llu",
+			nvgpu_log_fn(g, "Regops fragment: start_op=%llu ops=%u",
 				     ops_offset, num_ops);
 
 			nvgpu_log_fn(g, "Copying regops from userspace");

@@ -35,7 +35,7 @@
 int vgpu_exec_regops(struct gk20a *g,
 		     struct channel_gk20a *ch,
 		     struct nvgpu_dbg_reg_op *ops,
-		     u64 num_ops,
+		     u32 num_ops,
 		     bool is_profiler,
 		     bool *is_current_ctx)
 {
