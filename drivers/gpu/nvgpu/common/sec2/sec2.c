@@ -22,6 +22,7 @@
 
 #include <nvgpu/gk20a.h>
 #include <nvgpu/log.h>
+#include <nvgpu/bug.h>
 #include <nvgpu/timers.h>
 #include <nvgpu/sec2.h>
 #include <nvgpu/sec2if/sec2_if_sec2.h>
@@ -233,14 +234,17 @@ static void sec2_load_ls_falcons(struct gk20a *g, struct nvgpu_sec2 *sec2,
 	bool command_ack;
 	u32 seq = 0;
 	int err = 0;
+	size_t tmp_size;
 
 	nvgpu_log_fn(g, " ");
 
 	/* send message to load falcon */
 	(void) memset(&cmd, 0, sizeof(struct nv_flcn_cmd_sec2));
 	cmd.hdr.unit_id = NV_SEC2_UNIT_ACR;
-	cmd.hdr.size = PMU_CMD_HDR_SIZE +
+	tmp_size = PMU_CMD_HDR_SIZE +
 		sizeof(struct nv_sec2_acr_cmd_bootstrap_falcon);
+	nvgpu_assert(tmp_size <= U64(U8_MAX));
+	cmd.hdr.size = U8(tmp_size);
 
 	cmd.cmd.acr.bootstrap_falcon.cmd_type =
 		NV_SEC2_ACR_CMD_ID_BOOTSTRAP_FALCON;
@@ -252,13 +256,13 @@ static void sec2_load_ls_falcons(struct gk20a *g, struct nvgpu_sec2 *sec2,
 
 	command_ack = false;
 	err = nvgpu_sec2_cmd_post(g, &cmd, NULL, PMU_COMMAND_QUEUE_HPQ,
-		sec2_handle_lsfm_boot_acr_msg, &command_ack, &seq, ~0UL);
+		sec2_handle_lsfm_boot_acr_msg, &command_ack, &seq, U32_MAX);
 	if (err != 0) {
 		nvgpu_err(g, "command post failed");
 	}
 
 	err = nvgpu_sec2_wait_message_cond(sec2, nvgpu_get_poll_timeout(g),
-		&command_ack, true);
+		&command_ack, U8(true));
 	if (err != 0) {
 		nvgpu_err(g, "command ack receive failed");
 	}
@@ -275,7 +279,7 @@ int nvgpu_sec2_bootstrap_ls_falcons(struct gk20a *g, struct nvgpu_sec2 *sec2,
 
 	nvgpu_sec2_dbg(g, "Check SEC2 RTOS is ready else wait");
 	err = nvgpu_sec2_wait_message_cond(&g->sec2, nvgpu_get_poll_timeout(g),
-			&g->sec2.sec2_ready, true);
+			&g->sec2.sec2_ready, U8(true));
 	if (err != 0){
 		nvgpu_err(g, "SEC2 RTOS not ready yet, failed to bootstrap flcn %d",
 			falcon_id);

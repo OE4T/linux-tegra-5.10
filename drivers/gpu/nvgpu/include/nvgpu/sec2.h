@@ -97,7 +97,7 @@ struct nvgpu_sec2 {
 /* command/message handling methods*/
 int nvgpu_sec2_cmd_post(struct gk20a *g, struct nv_flcn_cmd_sec2 *cmd,
 	struct nv_flcn_msg_sec2 *msg, u32 queue_id, sec2_callback callback,
-	void *cb_param, u32 *seq_desc, unsigned long timeout);
+	void *cb_param, u32 *seq_desc, u32 timeout);
 int nvgpu_sec2_process_message(struct nvgpu_sec2 *sec2);
 int nvgpu_sec2_wait_message_cond(struct nvgpu_sec2 *sec2, u32 timeout_ms,
 	void *var, u8 val);

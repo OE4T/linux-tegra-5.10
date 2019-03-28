@@ -23,6 +23,7 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/pmu.h>
 #include <nvgpu/log.h>
+#include <nvgpu/bug.h>
 #include <nvgpu/timers.h>
 #include <nvgpu/lock.h>
 #include <nvgpu/sec2.h>
@@ -35,7 +36,7 @@ static int sec2_seq_acquire(struct nvgpu_sec2 *sec2,
 {
 	struct gk20a *g = sec2->g;
 	struct sec2_sequence *seq;
-	u32 index = 0;
+	u64 index = 0;
 	int err = 0;
 
 	nvgpu_mutex_acquire(&sec2->sec2_seq_lock);
@@ -50,7 +51,8 @@ static int sec2_seq_acquire(struct nvgpu_sec2 *sec2,
 		goto exit;
 	}
 
-	set_bit(index, sec2->sec2_seq_tbl);
+	nvgpu_assert(index < U64(INT_MAX));
+	set_bit((int)index, sec2->sec2_seq_tbl);
 
 	nvgpu_mutex_release(&sec2->sec2_seq_lock);
 
@@ -74,7 +76,7 @@ static void sec2_seq_release(struct nvgpu_sec2 *sec2,
 	seq->msg	= NULL;
 	seq->out_payload = NULL;
 
-	clear_bit(seq->id, sec2->sec2_seq_tbl);
+	clear_bit((int)seq->id, sec2->sec2_seq_tbl);
 }
 
 /* command post operation functions */
@@ -115,7 +117,7 @@ invalid_cmd:
 
 static int sec2_write_cmd(struct nvgpu_sec2 *sec2,
 	struct nv_flcn_cmd_sec2 *cmd, u32 queue_id,
-	unsigned long timeout_ms)
+	u32 timeout_ms)
 {
 	struct gk20a *g = sec2->g;
 	struct nvgpu_engine_mem_queue *queue;
@@ -146,7 +148,7 @@ static int sec2_write_cmd(struct nvgpu_sec2 *sec2,
 
 int nvgpu_sec2_cmd_post(struct gk20a *g, struct nv_flcn_cmd_sec2 *cmd,
 	struct nv_flcn_msg_sec2 *msg, u32 queue_id, sec2_callback callback,
-	void *cb_param, u32 *seq_desc, unsigned long timeout)
+	void *cb_param, u32 *seq_desc, u32 timeout)
 {
 	struct nvgpu_sec2 *sec2 = &g->sec2;
 	struct sec2_sequence *seq = NULL;
@@ -275,7 +277,7 @@ static bool sec2_read_message(struct nvgpu_sec2 *sec2,
 	u32 read_size;
 	int err;
 
-	*status = 0U;
+	*status = 0;
 
 	if (nvgpu_engine_mem_queue_is_empty(queue)) {
 		return false;
@@ -435,7 +437,7 @@ int nvgpu_sec2_wait_message_cond(struct nvgpu_sec2 *sec2, u32 timeout_ms,
 {
 	struct gk20a *g = sec2->g;
 	struct nvgpu_timeout timeout;
-	unsigned long delay = POLL_DELAY_MIN_US;
+	u32 delay = POLL_DELAY_MIN_US;
 
 	nvgpu_timeout_init(g, &timeout, timeout_ms, NVGPU_TIMER_CPU_TIMER);
 
