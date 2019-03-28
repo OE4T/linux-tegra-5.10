@@ -29,7 +29,7 @@
 
 #include <nvgpu/hw/gm20b/hw_gr_gm20b.h>
 
-void gm20b_gr_init_enable_hww_exceptions(struct gk20a *g)
+void gm20b_gr_intr_enable_hww_exceptions(struct gk20a *g)
 {
 	/* enable exceptions */
 	nvgpu_writel(g, gr_fe_hww_esr_r(),

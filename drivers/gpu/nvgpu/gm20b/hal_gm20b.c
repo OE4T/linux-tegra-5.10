@@ -474,7 +474,7 @@ static const struct gpu_ops gm20b_ops = {
 		},
 		.intr = {
 			.enable_hww_exceptions =
-					gm20b_gr_init_enable_hww_exceptions,
+					gm20b_gr_intr_enable_hww_exceptions,
 			.enable_interrupts = gm20b_gr_intr_enable_interrupts,
 			.enable_gpc_exceptions =
 					gm20b_gr_intr_enable_gpc_exceptions,
