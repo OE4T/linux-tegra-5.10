@@ -68,7 +68,7 @@ bool nvgpu_css_get_overflow_status(struct gk20a *g)
 u32 nvgpu_css_get_pending_snapshots(struct gk20a *g)
 {
 	return g->ops.perf.get_membuf_pending_bytes(g) /
-			sizeof(struct gk20a_cs_snapshot_fifo_entry);
+			U32(sizeof(struct gk20a_cs_snapshot_fifo_entry));
 }
 
 /* informs hw how many snapshots have been processed (frees up fifo space) */
@@ -273,7 +273,10 @@ static int css_gr_flush_snapshots(struct channel_gk20a *ch)
 		/* we may have a new perfmon_id which required to */
 		/* switch to a new client -> let's forget current */
 		if (cur && !CONTAINS_PERFMON(cur, src->perfmon_id)) {
-			dst->put = (char *)dst_put - (char *)dst;
+			s64 tmp_ptr = (char *)dst_put - (char *)dst;
+
+			nvgpu_assert(tmp_ptr < (s64)U32_MAX);
+			dst->put = U32(tmp_ptr);
 			dst = NULL;
 			cur = NULL;
 		}
@@ -330,7 +333,10 @@ next_hw_fifo_entry:
 
 	/* update client put pointer if necessary */
 	if (cur && dst) {
-		dst->put = (char *)dst_put - (char *)dst;
+		s64 tmp_ptr = (char *)dst_put - (char *)dst;
+
+		nvgpu_assert(tmp_ptr < (s64)U32_MAX);
+		dst->put = U32(tmp_ptr);
 	}
 
 	/* re-set HW buffer after processing taking wrapping into account */
@@ -366,8 +372,8 @@ u32 nvgpu_css_allocate_perfmon_ids(struct gk20a_cs_snapshot *data,
 	unsigned long *pids = data->perfmon_ids;
 	unsigned int f;
 
-	f = bitmap_find_next_zero_area(pids, CSS_MAX_PERFMON_IDS,
-				       CSS_FIRST_PERFMON_ID, count, 0);
+	f = U32(bitmap_find_next_zero_area(pids, CSS_MAX_PERFMON_IDS,
+				       CSS_FIRST_PERFMON_ID, count, 0));
 	if (f > CSS_MAX_PERFMON_IDS) {
 		f = 0;
 	} else {
@@ -429,12 +435,12 @@ static int css_gr_create_client_data(struct gk20a *g,
 	 */
 	if (cur->snapshot) {
 		(void) memset(cur->snapshot, 0, sizeof(*cur->snapshot));
-		cur->snapshot->start = sizeof(*cur->snapshot);
+		cur->snapshot->start = U32(sizeof(*cur->snapshot));
 		/* we should be ensure that can fit all fifo entries here */
 		cur->snapshot->end =
-			CSS_FIFO_ENTRY_CAPACITY(cur->snapshot_size)
+			U32(CSS_FIFO_ENTRY_CAPACITY(cur->snapshot_size)
 				* sizeof(struct gk20a_cs_snapshot_fifo_entry)
-				+ sizeof(struct gk20a_cs_snapshot_fifo);
+				+ sizeof(struct gk20a_cs_snapshot_fifo));
 		cur->snapshot->get = cur->snapshot->start;
 		cur->snapshot->put = cur->snapshot->start;
 	}

@@ -74,7 +74,7 @@ void gm20b_perf_enable_membuf(struct gk20a *g, u32 size,
 {
 	u32 addr_lo;
 	u32 addr_hi;
-	u32 inst_block_addr;
+	u64 inst_block_addr;
 
 	addr_lo = u64_lo32(buf_addr);
 	addr_hi = u64_hi32(buf_addr);
@@ -86,8 +86,9 @@ void gm20b_perf_enable_membuf(struct gk20a *g, u32 size,
 
 	inst_block_addr = nvgpu_inst_block_addr(g, inst_block) >> 12;
 
+	nvgpu_assert(inst_block_addr <= U64(U32_MAX));
 	nvgpu_writel(g, perf_pmasys_mem_block_r(),
-		     perf_pmasys_mem_block_base_f(inst_block_addr) |
+		     perf_pmasys_mem_block_base_f(U32(inst_block_addr)) |
 		     perf_pmasys_mem_block_valid_true_f() |
 		     nvgpu_aperture_mask(g, inst_block,
 				perf_pmasys_mem_block_target_sys_ncoh_f(),
