@@ -1094,6 +1094,11 @@ int gk20a_fifo_tsg_unbind_channel(struct channel_gk20a *ch)
 	nvgpu_rwsem_down_write(&tsg->ch_list_lock);
 	nvgpu_list_del(&ch->ch_entry);
 	ch->tsgid = NVGPU_INVALID_TSG_ID;
+
+	/* another thread could have re-enabled the channel because it was
+	 * still on the list at that time, so make sure it's truly disabled
+	 */
+	g->ops.channel.disable(ch);
 	nvgpu_rwsem_up_write(&tsg->ch_list_lock);
 
 	/*
