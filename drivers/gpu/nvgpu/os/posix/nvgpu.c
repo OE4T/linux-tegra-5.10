@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -35,37 +35,6 @@
 #include <nvgpu/posix/probe.h>
 
 #include "os_posix.h"
-
-int nvgpu_current_pid(struct gk20a *g)
-{
-	/*
-	 * In the kernel this gets us the PID of the calling process for IOCTLs.
-	 * But since we are in userspace this doesn't quite mean the same thing.
-	 * This simply returns the PID of the currently running process.
-	 */
-	return (int)getpid();
-}
-
-int nvgpu_current_tid(struct gk20a *g)
-{
-	/*
-	 * In POSIX thread ID is not the same as a process ID. In Linux threads
-	 * and processes are represented by the same thing, but userspace can't
-	 * really rely on that.
-	 *
-	 * We can, however, get a pthread_t for a given thread. But this
-	 * pthread_t need not have any relation to the underlying system's
-	 * representation of "threads".
-	 */
-	return (int)pthread_self();
-}
-
-void __nvgpu_print_current(struct gk20a *g, const char *func_name, int line,
-		void *ctx, enum nvgpu_log_type type)
-{
-	__nvgpu_log_msg(g, func_name, line, type,
-			"Current process: (nvgpu userspace)");
-}
 
 /*
  * Somewhat meaningless in userspace...
