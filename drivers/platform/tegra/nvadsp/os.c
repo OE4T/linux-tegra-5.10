@@ -5,7 +5,7 @@
  * Copyright (C) 2011 Texas Instruments, Inc.
  * Copyright (C) 2011 Google, Inc.
  *
- * Copyright (C) 2014-2018, NVIDIA Corporation. All rights reserved.
+ * Copyright (C) 2014-2019, NVIDIA Corporation. All rights reserved.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -22,6 +22,7 @@
 #include <linux/module.h>
 #include <linux/platform_device.h>
 #include <linux/io.h>
+#include <linux/iommu.h>
 #include <linux/delay.h>
 #include <linux/dma-buf.h>
 #include <linux/dma-mapping.h>
@@ -610,6 +611,88 @@ static int nvadsp_os_elf_load(const struct firmware *fw)
 	return ret;
 }
 
+/**
+ * Allocate a dma buffer and map it to a specified iova
+ * Return valid cpu virtual address on success or NULL on failure
+ */
+static void *nvadsp_dma_alloc_and_map_at(struct platform_device *pdev,
+					 size_t size, dma_addr_t iova,
+					 gfp_t flags)
+{
+	struct iommu_domain *domain = iommu_get_domain_for_dev(&pdev->dev);
+	struct nvadsp_drv_data *drv_data = platform_get_drvdata(pdev);
+	unsigned long shift = __ffs(domain->pgsize_bitmap);
+	unsigned long pg_size = 1UL << shift;
+	unsigned long mp_size = pg_size;
+	struct device *dev = &pdev->dev;
+	dma_addr_t tmp_iova, offset;
+	phys_addr_t pa, pa_new;
+	struct iova *iova_pfn;
+	void *cpu_va;
+	int ret;
+
+	/* Reserve iova range */
+	iova_pfn = alloc_iova(&drv_data->iovad, size >> shift,
+			      (iova + size - pg_size) >> shift, false);
+	if (!iova_pfn || (iova_pfn->pfn_lo << shift) != iova) {
+		dev_err(dev, "failed to reserve iova at 0x%llx size 0x%lx\n",
+			iova, size);
+		return NULL;
+	}
+
+	/* Allocate a memory first and get a tmp_iova */
+	cpu_va = dma_alloc_coherent(dev, size, &tmp_iova, flags);
+	if (!cpu_va)
+		goto fail_dma_alloc;
+
+	/* Luckily hitting the target iova, no need to remap */
+	if (tmp_iova == iova)
+		return cpu_va;
+
+	/* Use tmp_iova to remap non-contiguous pages to the desired iova */
+	for (offset = 0; offset < size; offset += mp_size) {
+		dma_addr_t cur_iova = tmp_iova + offset;
+
+		mp_size = pg_size;
+		pa = iommu_iova_to_phys(domain, cur_iova);
+		/* Checking if next physical addresses are contiguous */
+		for ( ; offset + mp_size < size; mp_size += pg_size) {
+			pa_new = iommu_iova_to_phys(domain, cur_iova + mp_size);
+			if (pa + mp_size != pa_new)
+				break;
+		}
+
+		/* Remap the contiguous physical addresses together */
+		ret = iommu_map(domain, iova + offset, pa, mp_size,
+				IOMMU_READ | IOMMU_WRITE);
+		if (ret) {
+			dev_err(dev, "failed to map pa %llx va %llx size %lx\n",
+				pa, iova + offset, mp_size);
+			goto fail_map;
+		}
+
+		/* Verify if the new iova is correctly mapped */
+		if (pa != iommu_iova_to_phys(domain, iova + offset)) {
+			dev_err(dev, "mismatched pa 0x%llx <-> 0x%llx\n",
+				pa, iommu_iova_to_phys(domain, iova + offset));
+			goto fail_map;
+		}
+	}
+
+	/* Unmap the tmp_iova since target iova is linked */
+	iommu_unmap(domain, tmp_iova, size);
+
+	return cpu_va;
+
+fail_map:
+	iommu_unmap(domain, iova, offset);
+	dma_free_coherent(dev, size, cpu_va, tmp_iova);
+fail_dma_alloc:
+	__free_iova(&drv_data->iovad, iova_pfn);
+
+	return NULL;
+}
+
 static int allocate_memory_for_adsp_os(void)
 {
 	struct platform_device *pdev = priv.pdev;
@@ -626,7 +709,7 @@ static int allocate_memory_for_adsp_os(void)
 	addr = priv.adsp_os_addr;
 	size = priv.adsp_os_size;
 #if defined(CONFIG_TEGRA_NVADSP_ON_SMMU)
-	dram_va = dma_alloc_at_coherent(dev, size, &addr, GFP_KERNEL);
+	dram_va = nvadsp_dma_alloc_and_map_at(pdev, size, addr, GFP_KERNEL);
 	if (!dram_va) {
 		dev_err(dev, "unable to allocate SMMU pages\n");
 		ret = -ENOMEM;
@@ -648,9 +731,13 @@ end:
 static void deallocate_memory_for_adsp_os(struct device *dev)
 {
 #if defined(CONFIG_TEGRA_NVADSP_ON_SMMU)
+	struct nvadsp_drv_data *drv_data = platform_get_drvdata(priv.pdev);
+	struct iova_domain *iovad = &drv_data->iovad;
 	void *va = nvadsp_da_to_va_mappings(priv.adsp_os_addr,
 			priv.adsp_os_size);
 	dma_free_coherent(dev, priv.adsp_os_addr, va, priv.adsp_os_size);
+	free_iova(iovad, iova_pfn(iovad, priv.adsp_os_addr));
+	put_iova_domain(iovad);
 #endif
 }
 
@@ -685,7 +772,7 @@ static int __nvadsp_os_secload(struct platform_device *pdev)
 	struct device *dev = &pdev->dev;
 	void *dram_va;
 
-	dram_va = dma_alloc_at_coherent(dev, size, &addr, GFP_KERNEL);
+	dram_va = nvadsp_dma_alloc_and_map_at(pdev, size, addr, GFP_KERNEL);
 	if (!dram_va) {
 		dev_err(dev, "unable to allocate shared region\n");
 		return -ENOMEM;
@@ -756,6 +843,9 @@ int nvadsp_os_load(void)
 	struct nvadsp_drv_data *drv_data;
 	struct device *dev;
 	int ret = 0;
+#ifdef CONFIG_TEGRA_NVADSP_ON_SMMU
+	u32 addr, size;
+#endif
 
 	if (!priv.pdev) {
 		pr_err("ADSP Driver is not initialized\n");
@@ -769,6 +859,18 @@ int nvadsp_os_load(void)
 
 	drv_data = platform_get_drvdata(priv.pdev);
 	dev = &priv.pdev->dev;
+
+#ifdef CONFIG_TEGRA_NVADSP_ON_SMMU
+	if (drv_data->adsp_os_secload) {
+		addr = drv_data->adsp_mem[ACSR_ADDR];
+		size = drv_data->adsp_mem[ACSR_SIZE];
+	} else {
+		addr = drv_data->adsp_mem[ADSP_OS_ADDR];
+		size = drv_data->adsp_mem[ADSP_OS_SIZE];
+	}
+	init_iova_domain(&drv_data->iovad, PAGE_SIZE,
+			 addr >> PAGE_SHIFT, (addr + size) >> PAGE_SHIFT);
+#endif
 
 	if (drv_data->adsp_os_secload) {
 		dev_info(dev, "ADSP OS firmware already loaded\n");
