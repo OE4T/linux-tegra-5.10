@@ -585,6 +585,7 @@ struct gpu_ops {
 				u32 reg_offset, u32 boot_entry,
 				u32 addr_load32, u32 blocks, u32 dst);
 			int (*load_ctxsw_ucode)(struct gk20a *g);
+			int (*wait_mem_scrubbing)(struct gk20a *g);
 		} falcon;
 
 #ifdef CONFIG_GK20A_CTXSW_TRACE

@@ -738,6 +738,8 @@ static const struct gpu_ops gv100_ops = {
 				gm20b_gr_falcon_load_ctxsw_ucode_boot,
 			.load_ctxsw_ucode =
 					nvgpu_gr_falcon_load_secure_ctxsw_ucode,
+			.wait_mem_scrubbing =
+					gm20b_gr_falcon_wait_mem_scrubbing,
 		},
 	},
 	.fb = {

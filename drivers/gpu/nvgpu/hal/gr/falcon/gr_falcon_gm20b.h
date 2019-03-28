@@ -53,6 +53,7 @@ void gm20b_gr_falcon_load_ctxsw_ucode_header(struct gk20a *g,
 void gm20b_gr_falcon_load_ctxsw_ucode_boot(struct gk20a *g,
 	u32 reg_offset, u32 boot_entry, u32 addr_load32, u32 blocks,
 	u32 dst);
+int gm20b_gr_falcon_wait_mem_scrubbing(struct gk20a *g);
 
 void gm20b_gr_falcon_set_current_ctx_invalid(struct gk20a *g);
 

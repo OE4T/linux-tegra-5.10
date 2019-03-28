@@ -69,9 +69,6 @@
 #include <nvgpu/hw/gk20a/hw_gr_gk20a.h>
 #include <nvgpu/hw/gk20a/hw_ram_gk20a.h>
 
-#define CTXSW_MEM_SCRUBBING_TIMEOUT_MAX 1000U
-#define CTXSW_MEM_SCRUBBING_TIMEOUT_DEFAULT 10U
-
 static struct channel_gk20a *gk20a_gr_get_channel_from_ctx(
 	struct gk20a *g, u32 curr_ctx, u32 *curr_tsgid);
 
@@ -1478,39 +1475,6 @@ static void gk20a_init_gr_prepare(struct gk20a *g)
 	g->ops.gr.init.fifo_access(g, true);
 }
 
-static int gr_gk20a_wait_mem_scrubbing(struct gk20a *g)
-{
-	struct nvgpu_timeout timeout;
-	bool fecs_scrubbing;
-	bool gpccs_scrubbing;
-
-	nvgpu_log_fn(g, " ");
-
-	nvgpu_timeout_init(g, &timeout,
-			   CTXSW_MEM_SCRUBBING_TIMEOUT_MAX /
-				CTXSW_MEM_SCRUBBING_TIMEOUT_DEFAULT,
-			   NVGPU_TIMER_RETRY_TIMER);
-	do {
-		fecs_scrubbing = (gk20a_readl(g, gr_fecs_dmactl_r()) &
-			(gr_fecs_dmactl_imem_scrubbing_m() |
-			 gr_fecs_dmactl_dmem_scrubbing_m())) != 0U;
-
-		gpccs_scrubbing = (gk20a_readl(g, gr_gpccs_dmactl_r()) &
-			(gr_gpccs_dmactl_imem_scrubbing_m() |
-			 gr_gpccs_dmactl_imem_scrubbing_m())) != 0U;
-
-		if (!fecs_scrubbing && !gpccs_scrubbing) {
-			nvgpu_log_fn(g, "done");
-			return 0;
-		}
-
-		nvgpu_udelay(CTXSW_MEM_SCRUBBING_TIMEOUT_DEFAULT);
-	} while (nvgpu_timeout_expired(&timeout) == 0);
-
-	nvgpu_err(g, "Falcon mem scrubbing timeout");
-	return -ETIMEDOUT;
-}
-
 static int gr_gk20a_init_ctxsw(struct gk20a *g)
 {
 	int err = 0;
@@ -1552,7 +1516,7 @@ static int gk20a_init_gr_reset_enable_hw(struct gk20a *g)
 			sw_non_ctx_load->l[i].value);
 	}
 
-	err = gr_gk20a_wait_mem_scrubbing(g);
+	err = g->ops.gr.falcon.wait_mem_scrubbing(g);
 	if (err != 0) {
 		goto out;
 	}

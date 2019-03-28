@@ -31,6 +31,8 @@
 
 #define FECS_ARB_CMD_TIMEOUT_MAX_US 40U
 #define FECS_ARB_CMD_TIMEOUT_DEFAULT_US 2U
+#define CTXSW_MEM_SCRUBBING_TIMEOUT_MAX_US 1000U
+#define CTXSW_MEM_SCRUBBING_TIMEOUT_DEFAULT_US 10U
 
 void gm20b_gr_falcon_load_gpccs_dmem(struct gk20a *g,
 			const u32 *ucode_u32_data, u32 ucode_u32_size)
@@ -423,6 +425,45 @@ void gm20b_gr_falcon_load_ctxsw_ucode_boot(struct gk20a *g, u32 reg_offset,
 		nvgpu_writel(g, reg_offset + gr_fecs_cpuctl_r(),
 				gr_fecs_cpuctl_startcpu_f(0x01));
 	}
+}
+
+int gm20b_gr_falcon_wait_mem_scrubbing(struct gk20a *g)
+{
+	struct nvgpu_timeout timeout;
+	int err;
+	bool fecs_scrubbing;
+	bool gpccs_scrubbing;
+
+	nvgpu_log_fn(g, " ");
+
+	err = nvgpu_timeout_init(g, &timeout,
+			   CTXSW_MEM_SCRUBBING_TIMEOUT_MAX_US /
+				CTXSW_MEM_SCRUBBING_TIMEOUT_DEFAULT_US,
+			   NVGPU_TIMER_RETRY_TIMER);
+	if (err != 0) {
+		nvgpu_err(g, "ctxsw mem scrub timeout_init failed: %d", err);
+		return err;
+	}
+
+	do {
+		fecs_scrubbing = (nvgpu_readl(g, gr_fecs_dmactl_r()) &
+			(gr_fecs_dmactl_imem_scrubbing_m() |
+			 gr_fecs_dmactl_dmem_scrubbing_m())) != 0U;
+
+		gpccs_scrubbing = (nvgpu_readl(g, gr_gpccs_dmactl_r()) &
+			(gr_gpccs_dmactl_imem_scrubbing_m() |
+			 gr_gpccs_dmactl_imem_scrubbing_m())) != 0U;
+
+		if (!fecs_scrubbing && !gpccs_scrubbing) {
+			nvgpu_log_fn(g, "done");
+			return 0;
+		}
+
+		nvgpu_udelay(CTXSW_MEM_SCRUBBING_TIMEOUT_DEFAULT_US);
+	} while (nvgpu_timeout_expired(&timeout) == 0);
+
+	nvgpu_err(g, "Falcon mem scrubbing timeout");
+	return -ETIMEDOUT;
 }
 
 u32 gm20b_gr_falcon_fecs_base_addr(void)
