@@ -31,6 +31,7 @@
 #include <nvgpu/flcnif_cmn.h>
 #include <nvgpu/falcon.h>
 #include <nvgpu/engine_mem_queue.h>
+#include <nvgpu/sec2/seq.h>
 
 #include <nvgpu/sec2if/sec2_cmd_if.h>
 #include <nvgpu/sec2if/sec2_if_sec2.h>
@@ -40,28 +41,8 @@
 
 #define NVGPU_SEC2_TRACE_BUFSIZE	(32U*1024U)
 
-#define SEC2_MAX_NUM_SEQUENCES	(256U)
-#define SEC2_SEQ_BIT_SHIFT		(5U)
-#define SEC2_SEQ_TBL_SIZE	\
-	(SEC2_MAX_NUM_SEQUENCES >> SEC2_SEQ_BIT_SHIFT)
-
-enum sec2_seq_state {
-	SEC2_SEQ_STATE_FREE = 0U,
-	SEC2_SEQ_STATE_PENDING,
-	SEC2_SEQ_STATE_USED,
-	SEC2_SEQ_STATE_CANCELLED
-};
-
 typedef void (*sec2_callback)(struct gk20a *g, struct nv_flcn_msg_sec2 *msg,
 	void *param, u32 status);
-
-struct sec2_sequence {
-	u8 id;
-	enum sec2_seq_state state;
-	u8 *out_payload;
-	sec2_callback callback;
-	void *cb_params;
-};
 
 struct nvgpu_sec2 {
 	struct gk20a *g;
@@ -70,9 +51,7 @@ struct nvgpu_sec2 {
 
 	struct nvgpu_engine_mem_queue *queues[SEC2_QUEUE_NUM];
 
-	struct sec2_sequence *seq;
-	unsigned long sec2_seq_tbl[SEC2_SEQ_TBL_SIZE];
-	struct nvgpu_mutex sec2_seq_lock;
+	struct sec2_sequences sequences;
 
 	bool isr_enabled;
 	struct nvgpu_mutex isr_mutex;

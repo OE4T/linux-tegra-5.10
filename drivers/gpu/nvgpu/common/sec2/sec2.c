@@ -26,24 +26,9 @@
 #include <nvgpu/timers.h>
 #include <nvgpu/sec2.h>
 #include <nvgpu/sec2/queue.h>
+#include <nvgpu/sec2/seq.h>
 #include <nvgpu/sec2if/sec2_if_sec2.h>
 #include <nvgpu/sec2if/sec2_if_cmn.h>
-
-static void sec2_seq_init(struct nvgpu_sec2 *sec2)
-{
-	u32 i = 0;
-
-	nvgpu_log_fn(sec2->g, " ");
-
-	(void) memset(sec2->seq, 0,
-		sizeof(struct sec2_sequence) * SEC2_MAX_NUM_SEQUENCES);
-
-	(void) memset(sec2->sec2_seq_tbl, 0, sizeof(sec2->sec2_seq_tbl));
-
-	for (i = 0; i < SEC2_MAX_NUM_SEQUENCES; i++) {
-		sec2->seq[i].id = (u8)i;
-	}
-}
 
 static void nvgpu_remove_sec2_support(struct nvgpu_sec2 *sec2)
 {
@@ -51,8 +36,7 @@ static void nvgpu_remove_sec2_support(struct nvgpu_sec2 *sec2)
 
 	nvgpu_log_fn(g, " ");
 
-	nvgpu_kfree(g, sec2->seq);
-	nvgpu_mutex_destroy(&sec2->sec2_seq_lock);
+	nvgpu_sec2_sequences_free(g, &sec2->sequences);
 	nvgpu_mutex_destroy(&sec2->isr_mutex);
 }
 
@@ -64,33 +48,24 @@ int nvgpu_init_sec2_setup_sw(struct gk20a *g, struct nvgpu_sec2 *sec2)
 
 	sec2->g = g;
 
-	sec2->seq = nvgpu_kzalloc(g, SEC2_MAX_NUM_SEQUENCES *
-		sizeof(struct sec2_sequence));
-	if (sec2->seq == NULL) {
-		err = -ENOMEM;
+	err = nvgpu_sec2_sequences_alloc(g, &sec2->sequences);
+	if (err != 0) {
 		goto exit;
 	}
 
-	err = nvgpu_mutex_init(&sec2->sec2_seq_lock);
-	if (err != 0) {
-		goto free_seq_alloc;
-	}
-
-	sec2_seq_init(sec2);
+	nvgpu_sec2_sequences_init(g, &sec2->sequences);
 
 	err = nvgpu_mutex_init(&sec2->isr_mutex);
 	if (err != 0) {
-		goto free_seq_mutex;
+		goto free_sequences;
 	}
 
 	sec2->remove_support = nvgpu_remove_sec2_support;
 
 	goto exit;
 
-free_seq_mutex:
-	nvgpu_mutex_destroy(&sec2->sec2_seq_lock);
-free_seq_alloc:
-	nvgpu_kfree(g, sec2->seq);
+free_sequences:
+	nvgpu_sec2_sequences_free(g, &sec2->sequences);
 
 exit:
 	return err;

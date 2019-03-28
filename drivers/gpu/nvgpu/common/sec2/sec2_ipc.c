@@ -32,52 +32,6 @@
 #include <nvgpu/sec2if/sec2_if_sec2.h>
 #include <nvgpu/sec2if/sec2_if_cmn.h>
 
-static int sec2_seq_acquire(struct nvgpu_sec2 *sec2,
-	struct sec2_sequence **pseq)
-{
-	struct gk20a *g = sec2->g;
-	struct sec2_sequence *seq;
-	u64 index = 0;
-	int err = 0;
-
-	nvgpu_mutex_acquire(&sec2->sec2_seq_lock);
-
-	index = find_first_zero_bit(sec2->sec2_seq_tbl,
-		sizeof(sec2->sec2_seq_tbl));
-
-	if (index >= sizeof(sec2->sec2_seq_tbl)) {
-		nvgpu_err(g, "no free sequence available");
-		nvgpu_mutex_release(&sec2->sec2_seq_lock);
-		err = -EAGAIN;
-		goto exit;
-	}
-
-	nvgpu_assert(index < U64(INT_MAX));
-	set_bit((int)index, sec2->sec2_seq_tbl);
-
-	nvgpu_mutex_release(&sec2->sec2_seq_lock);
-
-	seq = &sec2->seq[index];
-
-	seq->state = SEC2_SEQ_STATE_PENDING;
-
-	*pseq = seq;
-
-exit:
-	return err;
-}
-
-static void sec2_seq_release(struct nvgpu_sec2 *sec2,
-	struct sec2_sequence *seq)
-{
-	seq->state	= SEC2_SEQ_STATE_FREE;
-	seq->callback	= NULL;
-	seq->cb_params	= NULL;
-	seq->out_payload = NULL;
-
-	clear_bit((int)seq->id, sec2->sec2_seq_tbl);
-}
-
 /* command post operation functions */
 static bool sec2_validate_cmd(struct nvgpu_sec2 *sec2,
 	struct nv_flcn_cmd_sec2 *cmd, u32 queue_id)
@@ -168,26 +122,23 @@ int nvgpu_sec2_cmd_post(struct gk20a *g, struct nv_flcn_cmd_sec2 *cmd,
 	}
 
 	/* Attempt to reserve a sequence for this command. */
-	err = sec2_seq_acquire(sec2, &seq);
+	err = nvgpu_sec2_seq_acquire(g, &sec2->sequences, &seq,
+				     callback, cb_param);
 	if (err != 0) {
 		goto exit;
 	}
 
 	/* Set the sequence number in the command header. */
-	cmd->hdr.seq_id = seq->id;
+	cmd->hdr.seq_id = nvgpu_sec2_seq_get_id(seq);
 
 	cmd->hdr.ctrl_flags = 0U;
 	cmd->hdr.ctrl_flags = PMU_CMD_FLAGS_STATUS;
 
-	seq->callback = callback;
-	seq->cb_params = cb_param;
-	seq->out_payload = NULL;
-
-	seq->state = SEC2_SEQ_STATE_USED;
+	nvgpu_sec2_seq_set_state(seq, SEC2_SEQ_STATE_USED);
 
 	err = sec2_write_cmd(sec2, cmd, queue_id, timeout);
 	if (err != 0) {
-		seq->state = SEC2_SEQ_STATE_PENDING;
+		nvgpu_sec2_seq_set_state(seq, SEC2_SEQ_STATE_PENDING);
 	}
 
 exit:
@@ -199,26 +150,9 @@ static int sec2_response_handle(struct nvgpu_sec2 *sec2,
 	struct nv_flcn_msg_sec2 *msg)
 {
 	struct gk20a *g = sec2->g;
-	struct sec2_sequence *seq;
-	int ret = 0;
 
-	/* get the sequence info data associated with this message */
-	seq = &sec2->seq[msg->hdr.seq_id];
-
-	if (seq->state != SEC2_SEQ_STATE_USED &&
-		seq->state != SEC2_SEQ_STATE_CANCELLED) {
-		nvgpu_err(g, "msg for an unknown sequence %d", seq->id);
-		return -EINVAL;
-	}
-
-	if (seq->callback != NULL) {
-		seq->callback(g, msg, seq->cb_params, ret);
-	}
-
-	/* release the sequence so that it may be used for other commands */
-	sec2_seq_release(sec2, seq);
-
-	return 0;
+	return nvgpu_sec2_seq_response_handle(g, &sec2->sequences,
+					      msg, msg->hdr.seq_id);
 }
 
 static int sec2_handle_event(struct nvgpu_sec2 *sec2,

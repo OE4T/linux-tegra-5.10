@@ -450,6 +450,7 @@ nvgpu-y += \
 	common/sec2/sec2.o \
 	common/sec2/sec2_ipc.o \
 	common/sec2/sec2_queue.o \
+	common/sec2/sec2_seq.o \
 	common/io/io.o \
 	common/power_features/power_features.o \
 	common/power_features/cg/cg.o \
