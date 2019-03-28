@@ -130,11 +130,11 @@ void gm20b_pbdma_intr_enable(struct gk20a *g, bool enable)
 	}
 }
 
-unsigned int gm20b_pbdma_handle_intr_0(struct gk20a *g, u32 pbdma_id,
-			u32 pbdma_intr_0, u32 *handled, u32 *error_notifier)
+bool gm20b_pbdma_handle_intr_0(struct gk20a *g, u32 pbdma_id,
+			u32 pbdma_intr_0, u32 *error_notifier)
 {
 	struct fifo_gk20a *f = &g->fifo;
-	unsigned int rc_type = RC_TYPE_NO_RC;
+	bool recover = false;
 	u32 i;
 	unsigned long pbdma_intr_err;
 	unsigned long bit;
@@ -164,11 +164,7 @@ unsigned int gm20b_pbdma_handle_intr_0(struct gk20a *g, u32 pbdma_id,
 			nvgpu_readl(g, pbdma_method3_r(pbdma_id))
 			);
 
-		rc_type = RC_TYPE_PBDMA_FAULT;
-		*handled |= ((f->intr.pbdma.device_fatal_0 |
-			     f->intr.pbdma.channel_fatal_0 |
-			     f->intr.pbdma.restartable_0) &
-			    pbdma_intr_0);
+		recover = true;
 	}
 
 	if ((pbdma_intr_0 & pbdma_intr_0_acquire_pending_f()) != 0U) {
@@ -177,29 +173,34 @@ unsigned int gm20b_pbdma_handle_intr_0(struct gk20a *g, u32 pbdma_id,
 		val &= ~pbdma_acquire_timeout_en_enable_f();
 		nvgpu_writel(g, pbdma_acquire_r(pbdma_id), val);
 		if (nvgpu_is_timeouts_enabled(g)) {
-			rc_type = RC_TYPE_PBDMA_FAULT;
-			nvgpu_err(g,
-				"semaphore acquire timeout!");
-			*error_notifier = NVGPU_ERR_NOTIFIER_GR_SEMAPHORE_TIMEOUT;
+			recover = true;
+			nvgpu_err(g, "semaphore acquire timeout!");
+
+			/*
+			 * Note: the error_notifier can be overwritten if
+			 * semaphore_timeout is triggered with pbcrc_pending
+			 * interrupt below
+			 */
+			*error_notifier =
+				NVGPU_ERR_NOTIFIER_GR_SEMAPHORE_TIMEOUT;
 		}
-		*handled |= pbdma_intr_0_acquire_pending_f();
 	}
 
 	if ((pbdma_intr_0 & pbdma_intr_0_pbentry_pending_f()) != 0U) {
 		g->ops.pbdma.reset_pbdma_header(g, pbdma_id);
 		gm20b_pbdma_reset_method(g, pbdma_id, 0);
-		rc_type = RC_TYPE_PBDMA_FAULT;
+		recover = true;
 	}
 
 	if ((pbdma_intr_0 & pbdma_intr_0_method_pending_f()) != 0U) {
 		gm20b_pbdma_reset_method(g, pbdma_id, 0);
-		rc_type = RC_TYPE_PBDMA_FAULT;
+		recover = true;
 	}
 
 	if ((pbdma_intr_0 & pbdma_intr_0_pbcrc_pending_f()) != 0U) {
 		*error_notifier =
 			NVGPU_ERR_NOTIFIER_PBDMA_PUSHBUFFER_CRC_MISMATCH;
-		rc_type = RC_TYPE_PBDMA_FAULT;
+		recover = true;
 	}
 
 	if ((pbdma_intr_0 & pbdma_intr_0_device_pending_f()) != 0U) {
@@ -212,18 +213,16 @@ unsigned int gm20b_pbdma_handle_intr_0(struct gk20a *g, u32 pbdma_id,
 						pbdma_id, i);
 			}
 		}
-		rc_type = RC_TYPE_PBDMA_FAULT;
+		recover = true;
 	}
 
-	return rc_type;
+	return recover;
 }
 
-unsigned int gm20b_pbdma_handle_intr_1(struct gk20a *g,
-			u32 pbdma_id, u32 pbdma_intr_1,
-			u32 *handled, u32 *error_notifier)
+bool gm20b_pbdma_handle_intr_1(struct gk20a *g, u32 pbdma_id, u32 pbdma_intr_1,
+			u32 *error_notifier)
 {
-	unsigned int rc_type = RC_TYPE_PBDMA_FAULT;
-
+	bool recover = true;
 	/*
 	 * all of the interrupts in _intr_1 are "host copy engine"
 	 * related, which is not supported. For now just make them
@@ -231,9 +230,8 @@ unsigned int gm20b_pbdma_handle_intr_1(struct gk20a *g,
 	 */
 	nvgpu_err(g, "hce err: pbdma_intr_1(%d):0x%08x",
 		pbdma_id, pbdma_intr_1);
-	*handled |= pbdma_intr_1;
 
-	return rc_type;
+	return recover;
 }
 
 void gm20b_pbdma_reset_header(struct gk20a *g, u32 pbdma_id)
@@ -420,25 +418,24 @@ u32 gm20b_pbdma_restartable_0_intr_descs(void)
 	return restartable_0_intr_descs;
 }
 
-unsigned int gm20b_pbdma_handle_intr(struct gk20a *g, u32 pbdma_id,
+bool gm20b_pbdma_handle_intr(struct gk20a *g, u32 pbdma_id,
 			u32 *error_notifier)
 {
-	u32 intr_handled = 0U;
 	u32 intr_error_notifier = NVGPU_ERR_NOTIFIER_PBDMA_ERROR;
 
 	u32 pbdma_intr_0 = nvgpu_readl(g, pbdma_intr_0_r(pbdma_id));
 	u32 pbdma_intr_1 = nvgpu_readl(g, pbdma_intr_1_r(pbdma_id));
 
-	unsigned int rc_type = RC_TYPE_NO_RC;
+	bool recover = false;
 
 	if (pbdma_intr_0 != 0U) {
 		nvgpu_log(g, gpu_dbg_info | gpu_dbg_intr,
 			"pbdma id %d intr_0 0x%08x pending",
 			pbdma_id, pbdma_intr_0);
 
-		if (g->ops.pbdma.handle_pbdma_intr_0(g, pbdma_id, pbdma_intr_0,
-			&intr_handled, &intr_error_notifier) != RC_TYPE_NO_RC) {
-			rc_type = RC_TYPE_PBDMA_FAULT;
+		if (g->ops.pbdma.handle_intr_0(g, pbdma_id, pbdma_intr_0,
+			&intr_error_notifier)) {
+			recover = true;
 		}
 		nvgpu_writel(g, pbdma_intr_0_r(pbdma_id), pbdma_intr_0);
 	}
@@ -448,9 +445,9 @@ unsigned int gm20b_pbdma_handle_intr(struct gk20a *g, u32 pbdma_id,
 			"pbdma id %d intr_1 0x%08x pending",
 			pbdma_id, pbdma_intr_1);
 
-		if (g->ops.pbdma.handle_pbdma_intr_1(g, pbdma_id, pbdma_intr_1,
-			&intr_handled, &intr_error_notifier) != RC_TYPE_NO_RC) {
-			rc_type = RC_TYPE_PBDMA_FAULT;
+		if (g->ops.pbdma.handle_intr_1(g, pbdma_id, pbdma_intr_1,
+			&intr_error_notifier)) {
+			recover = true;
 		}
 		nvgpu_writel(g, pbdma_intr_1_r(pbdma_id), pbdma_intr_1);
 	}
@@ -459,5 +456,5 @@ unsigned int gm20b_pbdma_handle_intr(struct gk20a *g, u32 pbdma_id,
 		*error_notifier = intr_error_notifier;
 	}
 
-	return rc_type;
+	return recover;
 }

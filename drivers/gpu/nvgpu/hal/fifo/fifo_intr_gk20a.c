@@ -211,15 +211,15 @@ u32 gk20a_fifo_pbdma_isr(struct gk20a *g)
 	u32 num_pbdma = nvgpu_get_litter_value(g, GPU_LIT_HOST_NUM_PBDMA);
 	u32 pbdma_pending_bitmask = nvgpu_readl(g, fifo_intr_pbdma_id_r());
 	u32 error_notifier;
-	unsigned int rc_type;
+	bool recover;
 
 	for (pbdma_id = 0; pbdma_id < num_pbdma; pbdma_id++) {
 		if (fifo_intr_pbdma_id_status_v(pbdma_pending_bitmask, pbdma_id) != 0U) {
 			nvgpu_log(g, gpu_dbg_intr, "pbdma id %d intr pending",
 				pbdma_id);
-			rc_type = g->ops.pbdma.handle_pbdma_intr(g, pbdma_id,
+			recover = g->ops.pbdma.handle_intr(g, pbdma_id,
 				&error_notifier);
-			if (rc_type == RC_TYPE_PBDMA_FAULT) {
+			if (recover) {
 				gk20a_fifo_pbdma_fault_rc(g, f, pbdma_id,
 					error_notifier);
 			}

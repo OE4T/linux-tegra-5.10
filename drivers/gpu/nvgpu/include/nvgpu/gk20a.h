@@ -1027,12 +1027,15 @@ struct gpu_ops {
 
 	struct {
 		void (*intr_enable)(struct gk20a *g, bool enable);
-		unsigned int (*handle_pbdma_intr_0)(struct gk20a *g,
-					u32 pbdma_id, u32 pbdma_intr_0,
-					u32 *handled, u32 *error_notifier);
-		unsigned int (*handle_pbdma_intr_1)(struct gk20a *g,
-					u32 pbdma_id, u32 pbdma_intr_1,
-					u32 *handled, u32 *error_notifier);
+		bool (*handle_intr_0)(struct gk20a *g,
+				u32 pbdma_id, u32 pbdma_intr_0,
+				u32 *error_notifier);
+		bool (*handle_intr_1)(struct gk20a *g,
+				u32 pbdma_id, u32 pbdma_intr_1,
+				u32 *error_notifier);
+		/* error_notifier can be NULL */
+		bool (*handle_intr)(struct gk20a *g, u32 pbdma_id,
+				u32 *error_notifier);
 		u32 (*get_pbdma_signature)(struct gk20a *g);
 		void (*dump_pbdma_status)(struct gk20a *g,
 				struct gk20a_debug_output *o);
@@ -1042,9 +1045,6 @@ struct gpu_ops {
 		u32 (*device_fatal_0_intr_descs)(void);
 		u32 (*channel_fatal_0_intr_descs)(void);
 		u32 (*restartable_0_intr_descs)(void);
-		/* error_notifier can be NULL */
-		unsigned int (*handle_pbdma_intr)(struct gk20a *g, u32 pbdma_id,
-				u32 *error_notifier);
 	} pbdma;
 
 	struct {

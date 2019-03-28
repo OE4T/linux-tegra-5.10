@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -30,10 +30,12 @@ struct gk20a_debug_output;
 
 void gm20b_pbdma_intr_enable(struct gk20a *g, bool enable);
 
-unsigned int gm20b_pbdma_handle_intr_0(struct gk20a *g, u32 pbdma_id,
-			u32 pbdma_intr_0, u32 *handled, u32 *error_notifier);
-unsigned int gm20b_pbdma_handle_intr_1(struct gk20a *g, u32 pbdma_id,
-			u32 pbdma_intr_1, u32 *handled, u32 *error_notifier);
+bool gm20b_pbdma_handle_intr_0(struct gk20a *g, u32 pbdma_id,
+			u32 pbdma_intr_0, u32 *error_notifier);
+bool gm20b_pbdma_handle_intr_1(struct gk20a *g, u32 pbdma_id,
+			u32 pbdma_intr_1, u32 *error_notifier);
+bool gm20b_pbdma_handle_intr(struct gk20a *g, u32 pbdma_id,
+			u32 *error_notifier);
 u32 gm20b_pbdma_get_signature(struct gk20a *g);
 u32 gm20b_pbdma_read_data(struct gk20a *g, u32 pbdma_id);
 void gm20b_pbdma_reset_header(struct gk20a *g, u32 pbdma_id);
@@ -48,7 +50,5 @@ u32 gm20b_pbdma_restartable_0_intr_descs(void);
 
 void gm20b_pbdma_clear_all_intr(struct gk20a *g, u32 pbdma_id);
 void gm20b_pbdma_disable_and_clear_all_intr(struct gk20a *g);
-unsigned int gm20b_pbdma_handle_intr(struct gk20a *g, u32 pbdma_id,
-			u32 *error_notifier);
 
 #endif /* NVGPU_PBDMA_GM20B_H */

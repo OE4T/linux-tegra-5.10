@@ -28,12 +28,10 @@
 struct gk20a;
 
 void gv11b_pbdma_intr_enable(struct gk20a *g, bool enable);
-unsigned int gv11b_pbdma_handle_intr_0(struct gk20a *g,
-			u32 pbdma_id, u32 pbdma_intr_0,
-			u32 *handled, u32 *error_notifier);
-unsigned int gv11b_pbdma_handle_intr_1(struct gk20a *g,
-			u32 pbdma_id, u32 pbdma_intr_1,
-			u32 *handled, u32 *error_notifier);
+bool gv11b_pbdma_handle_intr_0(struct gk20a *g, u32 pbdma_id, u32 pbdma_intr_0,
+			u32 *error_notifier);
+bool gv11b_pbdma_handle_intr_1(struct gk20a *g, u32 pbdma_id, u32 pbdma_intr_1,
+			u32 *error_notifier);
 u32 gv11b_pbdma_channel_fatal_0_intr_descs(void);
 
 #endif /* NVGPU_PBDMA_GV11B_H */

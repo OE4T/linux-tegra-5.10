@@ -124,31 +124,26 @@ void gv11b_pbdma_intr_enable(struct gk20a *g, bool enable)
 	}
 }
 
-unsigned int gv11b_pbdma_handle_intr_0(struct gk20a *g,
-			u32 pbdma_id, u32 pbdma_intr_0,
-			u32 *handled, u32 *error_notifier)
+bool gv11b_pbdma_handle_intr_0(struct gk20a *g, u32 pbdma_id, u32 pbdma_intr_0,
+			u32 *error_notifier)
 {
-	unsigned int rc_type = RC_TYPE_NO_RC;
-
-	rc_type = gm20b_pbdma_handle_intr_0(g, pbdma_id,
-			 pbdma_intr_0, handled, error_notifier);
+	bool recover = gm20b_pbdma_handle_intr_0(g, pbdma_id,
+			 pbdma_intr_0, error_notifier);
 
 	if ((pbdma_intr_0 & pbdma_intr_0_clear_faulted_error_pending_f()) != 0U) {
 		nvgpu_log(g, gpu_dbg_intr, "clear faulted error on pbdma id %d",
 				 pbdma_id);
 		gm20b_pbdma_reset_method(g, pbdma_id, 0);
-		*handled |= pbdma_intr_0_clear_faulted_error_pending_f();
-		rc_type = RC_TYPE_PBDMA_FAULT;
+		recover = true;
 	}
 
 	if ((pbdma_intr_0 & pbdma_intr_0_eng_reset_pending_f()) != 0U) {
 		nvgpu_log(g, gpu_dbg_intr, "eng reset intr on pbdma id %d",
 				 pbdma_id);
-		*handled |= pbdma_intr_0_eng_reset_pending_f();
-		rc_type = RC_TYPE_PBDMA_FAULT;
+		recover = true;
 	}
 	report_pbdma_error(g, pbdma_id, pbdma_intr_0);
-	return rc_type;
+	return recover;
 }
 
 /*
@@ -173,11 +168,11 @@ unsigned int gv11b_pbdma_handle_intr_0(struct gk20a *g,
  * will have to be destroyed.
  */
 
-unsigned int gv11b_pbdma_handle_intr_1(struct gk20a *g,
-			u32 pbdma_id, u32 pbdma_intr_1,
-			u32 *handled, u32 *error_notifier)
+bool gv11b_pbdma_handle_intr_1(struct gk20a *g, u32 pbdma_id, u32 pbdma_intr_1,
+			u32 *error_notifier)
 {
-	unsigned int rc_type = RC_TYPE_PBDMA_FAULT;
+	bool recover = false;
+
 	u32 pbdma_intr_1_current = gk20a_readl(g, pbdma_intr_1_r(pbdma_id));
 
 	/* minimize race with the gpu clearing the pending interrupt */
@@ -187,8 +182,10 @@ unsigned int gv11b_pbdma_handle_intr_1(struct gk20a *g,
 	}
 
 	if (pbdma_intr_1 == 0U) {
-		return RC_TYPE_NO_RC;
+		return recover;
 	}
+
+	recover = true;
 
 	nvgpu_report_host_error(g, pbdma_id,
 			GPU_HOST_PBDMA_HCE_ERROR, pbdma_intr_1);
@@ -198,7 +195,6 @@ unsigned int gv11b_pbdma_handle_intr_1(struct gk20a *g,
 				 pbdma_id);
 		nvgpu_err(g, "pbdma_intr_1(%d)= 0x%08x ",
 				pbdma_id, pbdma_intr_1);
-		*handled |= pbdma_intr_1_ctxnotvalid_pending_f();
 	} else{
 		/*
 		 * rest of the interrupts in _intr_1 are "host copy engine"
@@ -207,10 +203,9 @@ unsigned int gv11b_pbdma_handle_intr_1(struct gk20a *g,
 		 */
 		nvgpu_err(g, "hce err: pbdma_intr_1(%d):0x%08x",
 			pbdma_id, pbdma_intr_1);
-		*handled |= pbdma_intr_1;
 	}
 
-	return rc_type;
+	return recover;
 }
 
 u32 gv11b_pbdma_channel_fatal_0_intr_descs(void)
