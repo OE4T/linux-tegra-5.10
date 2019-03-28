@@ -99,8 +99,8 @@ static void gk20a_tegra_secure_page_destroy(struct gk20a *g,
 }
 
 static int gk20a_tegra_secure_alloc(struct gk20a *g,
-			     struct nvgpu_gr_global_ctx_buffer_desc *desc,
-			     size_t size)
+				struct nvgpu_mem *desc_mem, size_t size,
+				global_ctx_mem_destroy_fn *destroy)
 {
 	struct device *dev = dev_from_gk20a(g);
 	struct gk20a_platform *platform = dev_get_drvdata(dev);
@@ -111,7 +111,7 @@ static int gk20a_tegra_secure_alloc(struct gk20a *g,
 	int err = 0;
 	size_t aligned_size = PAGE_ALIGN(size);
 
-	if (nvgpu_mem_is_valid(&desc->mem))
+	if (nvgpu_mem_is_valid(desc_mem))
 		return 0;
 
 	/* We ran out of preallocated memory */
@@ -138,11 +138,11 @@ static int gk20a_tegra_secure_alloc(struct gk20a *g,
 	/* This bypasses SMMU for VPR during gmmu_map. */
 	sg_dma_address(sgt->sgl) = 0;
 
-	desc->destroy = NULL;
+	*destroy = NULL;
 
-	desc->mem.priv.sgt = sgt;
-	desc->mem.size = size;
-	desc->mem.aperture = APERTURE_SYSMEM;
+	desc_mem->priv.sgt = sgt;
+	desc_mem->size = size;
+	desc_mem->aperture = APERTURE_SYSMEM;
 
 	secure_buffer->used += aligned_size;
 

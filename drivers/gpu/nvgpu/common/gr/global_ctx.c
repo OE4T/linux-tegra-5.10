@@ -28,6 +28,8 @@
 
 #include <nvgpu/gr/global_ctx.h>
 
+#include "global_ctx_priv.h"
+
 struct nvgpu_gr_global_ctx_buffer_desc *
 nvgpu_gr_global_ctx_desc_alloc(struct gk20a *g)
 {
@@ -56,11 +58,9 @@ size_t nvgpu_gr_global_ctx_get_size(struct nvgpu_gr_global_ctx_buffer_desc *desc
 }
 
 static void nvgpu_gr_global_ctx_buffer_destroy(struct gk20a *g,
-	struct nvgpu_gr_global_ctx_buffer_desc *desc,
-	enum nvgpu_gr_global_ctx_index index)
+		struct nvgpu_mem *mem)
 {
-	nvgpu_dma_free(g, &desc[index].mem);
-	desc[index].destroy = NULL;
+	nvgpu_dma_free(g, mem);
 }
 
 void nvgpu_gr_global_ctx_buffer_free(struct gk20a *g,
@@ -70,7 +70,8 @@ void nvgpu_gr_global_ctx_buffer_free(struct gk20a *g,
 
 	for (i = 0U; i < NVGPU_GR_GLOBAL_CTX_COUNT; i++) {
 		if (desc[i].destroy != NULL) {
-			desc[i].destroy(g, desc, i);
+			desc[i].destroy(g, &desc[i].mem);
+			desc[i].destroy = NULL;
 		}
 	}
 
@@ -113,8 +114,9 @@ static int nvgpu_gr_global_ctx_buffer_alloc_vpr(struct gk20a *g,
 	}
 
 	if (g->ops.secure_alloc != NULL) {
-		err = g->ops.secure_alloc(g, &desc[index],
-				desc[index].size);
+		err = g->ops.secure_alloc(g,
+				&desc[index].mem, desc[index].size,
+				&desc[index].destroy);
 		if (err != 0) {
 			return err;
 		}

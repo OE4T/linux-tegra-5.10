@@ -75,6 +75,9 @@ struct nvgpu_pbdma_status_info;
 struct nvgpu_gr_config;
 enum nvgpu_nvlink_minion_dlcmd;
 struct nvgpu_cbc;
+struct nvgpu_mem;
+typedef void (*global_ctx_mem_destroy_fn)(struct gk20a *g,
+					struct nvgpu_mem *mem);
 
 #include <nvgpu/lock.h>
 #include <nvgpu/thread.h>
@@ -1309,9 +1312,8 @@ struct gpu_ops {
 	 * context buffer descriptor (especially fields destroy, sgt,
 	 * size).
 	 */
-	int (*secure_alloc)(struct gk20a *g,
-				struct nvgpu_gr_global_ctx_buffer_desc *desc,
-				size_t size);
+	int (*secure_alloc)(struct gk20a *g, struct nvgpu_mem *desc_mem,
+			size_t size, global_ctx_mem_destroy_fn *destroy);
 	struct {
 		void (*exit)(struct gk20a *g, struct nvgpu_mem *mem,
 			struct nvgpu_sgl *sgl);

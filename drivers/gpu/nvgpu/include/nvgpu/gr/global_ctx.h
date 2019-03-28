@@ -27,6 +27,11 @@
 struct gk20a;
 struct nvgpu_mem;
 struct vm_gk20a;
+struct nvgpu_gr_global_ctx_buffer_desc;
+struct nvgpu_gr_global_ctx_local_golden_image;
+
+typedef void (*global_ctx_mem_destroy_fn)(struct gk20a *g,
+				struct nvgpu_mem *mem);
 
 enum nvgpu_gr_global_ctx_index {
 	NVGPU_GR_GLOBAL_CTX_CIRCULAR			= 0,
@@ -39,20 +44,6 @@ enum nvgpu_gr_global_ctx_index {
 	NVGPU_GR_GLOBAL_CTX_RTV_CIRCULAR_BUFFER		= 7,
 	NVGPU_GR_GLOBAL_CTX_FECS_TRACE_BUFFER		= 8,
 	NVGPU_GR_GLOBAL_CTX_COUNT 			= 9
-};
-
-struct nvgpu_gr_global_ctx_buffer_desc {
-	struct nvgpu_mem mem;
-	size_t size;
-
-	void (*destroy)(struct gk20a *g,
-		struct nvgpu_gr_global_ctx_buffer_desc *desc,
-		enum nvgpu_gr_global_ctx_index index);
-};
-
-struct nvgpu_gr_global_ctx_local_golden_image {
-	u32 *context;
-	size_t size;
 };
 
 struct nvgpu_gr_global_ctx_buffer_desc *nvgpu_gr_global_ctx_desc_alloc(
