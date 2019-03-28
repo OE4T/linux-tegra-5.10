@@ -1,7 +1,7 @@
 /*
  * PVA uCode Self Test
  *
- * Copyright (c) 2017-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -21,6 +21,8 @@
 #include <linux/nvhost.h>
 #include <linux/delay.h>
 #include <linux/iommu.h>
+#include <linux/iova.h>
+#include <linux/slab.h>
 #include <linux/dma-mapping.h>
 
 #include "dev.h"
@@ -31,22 +33,110 @@
 #define PVA_SELF_TESTMODE_START_ADDR	0x90000000
 #define PVA_SELF_TESTMODE_ADDR_SIZE	0x00800000
 
+/**
+ * Allocate a dma buffer and map it to a specified iova
+ * Return valid cpu virtual address on success or NULL on failure
+ */
+static void *pva_dma_alloc_and_map_at(struct device *dev,
+				      struct iova_domain *iovad, size_t size,
+				      dma_addr_t iova, gfp_t flags,
+				      unsigned long attrs)
+{
+	struct iommu_domain *domain = iommu_get_domain_for_dev(dev);
+	unsigned long shift = __ffs(domain->pgsize_bitmap);
+	unsigned long pg_size = 1UL << shift;
+	unsigned long mp_size = pg_size;
+	dma_addr_t tmp_iova, offset;
+	phys_addr_t pa, pa_new;
+	struct iova *iova_pfn;
+	void *cpu_va;
+	int ret;
+
+	/* Reserve iova range */
+	iova_pfn = alloc_iova(iovad, size >> shift,
+			      (iova + size - pg_size) >> shift, false);
+	if (!iova_pfn || (iova_pfn->pfn_lo << shift) != iova) {
+		dev_err(dev, "failed to reserve iova at 0x%llx size 0x%lx\n",
+			iova, size);
+		return NULL;
+	}
+
+	/* Allocate a memory first and get a tmp_iova */
+	cpu_va = dma_alloc_attrs(dev, size, &tmp_iova, flags, attrs);
+	if (!cpu_va)
+		goto fail_dma_alloc;
+
+	/* Luckily hitting the target iova, no need to remap */
+	if (tmp_iova == iova)
+		return cpu_va;
+
+	/* Use tmp_iova to remap non-contiguous pages to the desired iova */
+	for (offset = 0; offset < size; offset += mp_size) {
+		dma_addr_t cur_iova = tmp_iova + offset;
+
+		mp_size = pg_size;
+		pa = iommu_iova_to_phys(domain, cur_iova);
+		/* Checking if next physical addresses are contiguous */
+		for ( ; offset + mp_size < size; mp_size += pg_size) {
+			pa_new = iommu_iova_to_phys(domain, cur_iova + mp_size);
+			if (pa + mp_size != pa_new)
+				break;
+		}
+
+		/* Remap the contiguous physical addresses together */
+		ret = iommu_map(domain, iova + offset, pa, mp_size,
+				IOMMU_READ | IOMMU_WRITE);
+		if (ret) {
+			dev_err(dev, "failed to map pa %llx va %llx size %lx\n",
+				pa, iova + offset, mp_size);
+			goto fail_map;
+		}
+
+		/* Verify if the new iova is correctly mapped */
+		if (pa != iommu_iova_to_phys(domain, iova + offset)) {
+			dev_err(dev, "mismatched pa 0x%llx <-> 0x%llx\n",
+				pa, iommu_iova_to_phys(domain, iova + offset));
+			goto fail_map;
+		}
+	}
+
+	/* Unmap the tmp_iova since target iova is linked */
+	iommu_unmap(domain, tmp_iova, size);
+
+	return cpu_va;
+
+fail_map:
+	iommu_unmap(domain, iova, offset);
+	dma_free_attrs(dev, size, cpu_va, tmp_iova, attrs);
+fail_dma_alloc:
+	__free_iova(iovad, iova_pfn);
+
+	return NULL;
+}
+
 int pva_run_ucode_selftest(struct platform_device *pdev)
 {
 	struct nvhost_device_data *pdata = platform_get_drvdata(pdev);
 	struct pva *pva = pdata->private_data;
+	struct iova_domain *iovad;
 	int err = 0;
 	u32 reg_status;
 	u32 ucode_mode;
 	void *selftest_cpuaddr;
 	dma_addr_t base_iova = PVA_SELF_TESTMODE_START_ADDR;
+	size_t base_size = PVA_SELF_TESTMODE_ADDR_SIZE;
 
 	/* Map static memory for self test mode */
 	nvhost_dbg_info("uCode TESTMODE Enabled");
 
-	selftest_cpuaddr = dma_alloc_at_attrs(&pdev->dev,
-			PVA_SELF_TESTMODE_ADDR_SIZE, &base_iova,
-			GFP_KERNEL|__GFP_ZERO,
+	iovad = kzalloc(sizeof(*iovad), GFP_KERNEL);
+	if (!iovad)
+		return -ENOMEM;
+
+	init_iova_domain(iovad, PAGE_SIZE, base_iova >> PAGE_SHIFT,
+			 (base_iova + base_size) >> PAGE_SHIFT);
+	selftest_cpuaddr = pva_dma_alloc_and_map_at(&pdev->dev, iovad,
+			base_size, base_iova, GFP_KERNEL | __GFP_ZERO,
 			DMA_ATTR_SKIP_CPU_SYNC | DMA_ATTR_SKIP_IOVA_GAP);
 
 	if (!selftest_cpuaddr) {
@@ -93,11 +183,16 @@ int pva_run_ucode_selftest(struct platform_device *pdev)
 
 wait_timeout:
 err_selftest:
-	if (selftest_cpuaddr)
+	if (selftest_cpuaddr) {
 		dma_free_attrs(&pdev->dev,
 			PVA_SELF_TESTMODE_ADDR_SIZE, selftest_cpuaddr,
 			PVA_SELF_TESTMODE_START_ADDR,
 			DMA_ATTR_SKIP_CPU_SYNC | DMA_ATTR_SKIP_IOVA_GAP);
+		free_iova(iovad, iova_pfn(iovad, base_iova));
+	}
+	put_iova_domain(iovad);
+	kfree(iovad);
+
 	return err;
 
 }
