@@ -3,7 +3,7 @@
  *
  * Very loosely based on virtio_net.c
  *
- * Copyright (C) 2014-2018, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (C) 2014-2019, NVIDIA CORPORATION. All rights reserved.
  *
  * This file is licensed under the terms of the GNU General Public License
  * version 2.  This program is licensed "as is" without any warranty of any
@@ -72,6 +72,7 @@
 
 /* jumbo frame limit */
 #define MAX_MTU 9000
+#define MIN_MTU 14
 
 #define DEFAULT_HIGH_WATERMARK_MULT	50
 #define DEFAULT_LOW_WATERMARK_MULT	25
@@ -340,7 +341,7 @@ tegra_hv_net_stop(struct net_device *ndev)
 
 static int tegra_hv_net_change_mtu(struct net_device *ndev, int new_mtu)
 {
-	if (new_mtu < 14 || new_mtu > MAX_MTU) {
+	if (new_mtu < MIN_MTU || new_mtu > MAX_MTU) {
 		netdev_err(ndev, "invalid MTU, max MTU is: %d\n", MAX_MTU);
 		return -EINVAL;
 	}
@@ -349,6 +350,7 @@ static int tegra_hv_net_change_mtu(struct net_device *ndev, int new_mtu)
 		return 0;
 
 	/* we can really handle any MTU size */
+	ndev->mtu = new_mtu;
 	return 0;
 }
 
@@ -492,7 +494,7 @@ static int tegra_hv_net_rx(struct tegra_hv_net *hvn, int limit)
 		}
 
 		/* verify that packet is sane */
-		if (count < 14 || count > MAX_MTU) {
+		if (count < MIN_MTU || count > MAX_MTU + MIN_MTU)  {
 			netdev_err(ndev, "Bad packet size %d\n", count);
 			dk = dk_packet;
 			goto drop;
@@ -696,6 +698,10 @@ static int tegra_hv_net_probe(struct platform_device *pdev)
 	SET_NETDEV_DEV(ndev, dev);
 	platform_set_drvdata(pdev, ndev);
 	ether_setup(ndev);
+#if KERNEL_VERSION(4, 14, 0) <= LINUX_VERSION_CODE
+/* not available in the earlier version so failing the GVS */
+	ndev->max_mtu = MAX_MTU;
+#endif
 	ndev->netdev_ops = &tegra_hv_netdev_ops;
 	ndev->ethtool_ops = &tegra_hv_ethtool_ops;
 	skb_queue_head_init(&hvn->tx_q);
