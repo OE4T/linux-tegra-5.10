@@ -45,11 +45,6 @@ nvgpu-y += \
 	common/top/top_gp10b.o \
 	common/top/top_gv100.o \
 	common/mc/mc.o \
-	common/mc/mc_gm20b.o \
-	common/mc/mc_gp10b.o  \
-	common/mc/mc_gv11b.o  \
-	common/mc/mc_gv100.o \
-	common/mc/mc_tu104.o \
 	common/sync/channel_sync.o \
 	common/sync/channel_sync_semaphore.o \
 	common/sync/sema_cmdbuf_gk20a.o \
@@ -163,6 +158,11 @@ nvgpu-y += \
 	common/nvlink/nvlink.o \
 	common/nvlink/nvlink_gv100.o \
 	common/nvlink/nvlink_tu104.o \
+	hal/mc/mc_gm20b.o \
+	hal/mc/mc_gp10b.o  \
+	hal/mc/mc_gv11b.o  \
+	hal/mc/mc_gv100.o \
+	hal/mc/mc_tu104.o \
 	hal/bus/bus_gk20a.o \
 	hal/bus/bus_gm20b.o \
 	hal/bus/bus_gp10b.o \

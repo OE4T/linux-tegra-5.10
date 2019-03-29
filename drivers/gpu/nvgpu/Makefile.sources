@@ -189,10 +189,6 @@ srcs += common/sim.c \
 	common/fifo/pbdma_status.c \
 	common/fifo/userd.c \
 	common/mc/mc.c \
-	common/mc/mc_gm20b.c \
-	common/mc/mc_gp10b.c  \
-	common/mc/mc_gv11b.c  \
-	common/mc/mc_gv100.c \
 	common/boardobj/boardobj.c \
 	common/boardobj/boardobjgrp.c \
 	common/boardobj/boardobjgrpmask.c \
@@ -284,7 +280,6 @@ srcs += common/sim.c \
 	gv100/gr_gv100.c \
 	gv100/hal_gv100.c \
 	gv100/clk_gv100.c \
-	common/mc/mc_tu104.c	\
 	tu104/bios_tu104.c	\
 	tu104/ecc_tu104.c	\
 	tu104/fbpa_tu104.c	\
@@ -294,6 +289,11 @@ srcs += common/sim.c \
 	tu104/hal_tu104.c	\
 	tu104/sec2_tu104.c	\
 	tu104/func_tu104.c	\
+	hal/mc/mc_gm20b.c  \
+	hal/mc/mc_gp10b.c  \
+	hal/mc/mc_gv11b.c  \
+	hal/mc/mc_gv100.c  \
+	hal/mc/mc_tu104.c  \
 	hal/bus/bus_gk20a.c	\
 	hal/bus/bus_gm20b.c	\
 	hal/bus/bus_gp10b.c	\

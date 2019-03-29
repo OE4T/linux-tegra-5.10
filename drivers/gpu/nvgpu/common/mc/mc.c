@@ -32,7 +32,7 @@ u32 nvgpu_mc_boot_0(struct gk20a *g, u32 *arch, u32 *impl, u32 *rev)
 {
 	u32 val = __nvgpu_readl(g, mc_boot_0_r());
 
-	if (val != 0xffffffffU) {
+	if (val != U32_MAX) {
 
 		if (arch != NULL) {
 			*arch = mc_boot_0_architecture_v(val) <<

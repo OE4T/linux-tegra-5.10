@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -25,6 +25,10 @@
 
 #include <nvgpu/types.h>
 
+#define MC_ENABLE_DELAY_US	20U
+#define MC_RESET_DELAY_US	20U
+#define MC_RESET_CE_DELAY_US	500U
+
 struct gk20a;
 enum nvgpu_unit;
 
@@ -33,11 +37,11 @@ void gm20b_mc_intr_enable(struct gk20a *g);
 void gm20b_mc_intr_unit_config(struct gk20a *g, bool enable,
 		bool is_stalling, u32 mask);
 void gm20b_mc_isr_stall(struct gk20a *g);
-u32 gm20b_mc_intr_stall(struct gk20a *g);
+u32  gm20b_mc_intr_stall(struct gk20a *g);
 void gm20b_mc_intr_stall_pause(struct gk20a *g);
 void gm20b_mc_intr_stall_resume(struct gk20a *g);
-u32 gm20b_mc_intr_nonstall(struct gk20a *g);
-u32 gm20b_mc_isr_nonstall(struct gk20a *g);
+u32  gm20b_mc_intr_nonstall(struct gk20a *g);
+u32  gm20b_mc_isr_nonstall(struct gk20a *g);
 void gm20b_mc_intr_nonstall_pause(struct gk20a *g);
 void gm20b_mc_intr_nonstall_resume(struct gk20a *g);
 void gm20b_mc_enable(struct gk20a *g, u32 units);
@@ -47,7 +51,7 @@ bool gm20b_mc_is_intr1_pending(struct gk20a *g,
 		enum nvgpu_unit unit, u32 mc_intr_1);
 void gm20b_mc_log_pending_intrs(struct gk20a *g);
 void gm20b_mc_handle_intr_nonstall(struct gk20a *g, u32 ops);
-u32 gm20b_mc_reset_mask(struct gk20a *g, enum nvgpu_unit unit);
+u32  gm20b_mc_reset_mask(struct gk20a *g, enum nvgpu_unit unit);
 bool gm20b_mc_is_enabled(struct gk20a *g, enum nvgpu_unit unit);
 void gm20b_mc_fb_reset(struct gk20a *g);
 void gm20b_mc_ltc_isr(struct gk20a *g);

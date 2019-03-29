@@ -22,6 +22,11 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
+#include "hal/mc/mc_gm20b.h"
+#include "hal/mc/mc_gp10b.h"
+#include "hal/mc/mc_gv11b.h"
+#include "hal/mc/mc_gv100.h"
+#include "hal/mc/mc_tu104.h"
 #include "hal/bus/bus_gk20a.h"
 #include "hal/bus/bus_gp10b.h"
 #include "hal/bus/bus_gv100.h"
@@ -90,11 +95,6 @@
 #include "common/ptimer/ptimer_gk20a.h"
 #include "common/xve/xve_gp106.h"
 #include "common/netlist/netlist_tu104.h"
-#include "common/mc/mc_gm20b.h"
-#include "common/mc/mc_gp10b.h"
-#include "common/mc/mc_gv11b.h"
-#include "common/mc/mc_gv100.h"
-#include "common/mc/mc_tu104.h"
 #include "common/perf/perf_gv11b.h"
 #include "common/pmu/pmu_gk20a.h"
 #include "common/pmu/pmu_gm20b.h"

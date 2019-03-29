@@ -41,6 +41,7 @@
 #include <nvgpu/gr/gr_falcon.h>
 #include <nvgpu/gr/setup.h>
 
+#include "hal/mc/mc_gm20b.h"
 #include "hal/bus/bus_gm20b.h"
 #include "hal/bus/bus_gk20a.h"
 #include "hal/priv_ring/priv_ring_gm20b.h"
@@ -71,7 +72,6 @@
 
 #include "common/ptimer/ptimer_gk20a.h"
 #include "common/netlist/netlist_gm20b.h"
-#include "common/mc/mc_gm20b.h"
 #include "common/perf/perf_gm20b.h"
 #include "common/pmu/pmu_gk20a.h"
 #include "common/pmu/pmu_gm20b.h"

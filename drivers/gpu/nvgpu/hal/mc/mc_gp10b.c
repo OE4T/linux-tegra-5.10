@@ -36,23 +36,21 @@
 
 #include <nvgpu/hw/gp10b/hw_mc_gp10b.h>
 
-#define MAX_MC_INTR_REGS	2U
-
 void mc_gp10b_intr_mask(struct gk20a *g)
 {
 	nvgpu_writel(g, mc_intr_en_clear_r(NVGPU_MC_INTR_STALLING),
-				0xffffffffU);
+				U32_MAX);
 
 	nvgpu_writel(g, mc_intr_en_clear_r(NVGPU_MC_INTR_NONSTALLING),
-				0xffffffffU);
+				U32_MAX);
 }
 
 void mc_gp10b_intr_enable(struct gk20a *g)
 {
 	u32 eng_intr_mask = nvgpu_engine_interrupt_mask(g);
 
-	gk20a_writel(g, mc_intr_en_clear_r(NVGPU_MC_INTR_STALLING),
-				0xffffffffU);
+	nvgpu_writel(g, mc_intr_en_clear_r(NVGPU_MC_INTR_STALLING),
+				U32_MAX);
 	g->mc_intr_mask_restore[NVGPU_MC_INTR_STALLING] =
 				mc_intr_pfifo_pending_f() |
 				 mc_intr_priv_ring_pending_f() |
@@ -60,23 +58,23 @@ void mc_gp10b_intr_enable(struct gk20a *g)
 				 mc_intr_ltc_pending_f() |
 				 mc_intr_replayable_fault_pending_f() |
 				 eng_intr_mask;
-	gk20a_writel(g, mc_intr_en_set_r(NVGPU_MC_INTR_STALLING),
+	nvgpu_writel(g, mc_intr_en_set_r(NVGPU_MC_INTR_STALLING),
 			g->mc_intr_mask_restore[NVGPU_MC_INTR_STALLING]);
 
-	gk20a_writel(g, mc_intr_en_clear_r(NVGPU_MC_INTR_NONSTALLING),
-				0xffffffffU);
+	nvgpu_writel(g, mc_intr_en_clear_r(NVGPU_MC_INTR_NONSTALLING),
+				U32_MAX);
 	g->mc_intr_mask_restore[NVGPU_MC_INTR_NONSTALLING] =
 				mc_intr_pfifo_pending_f() |
 				 eng_intr_mask;
-	gk20a_writel(g, mc_intr_en_set_r(NVGPU_MC_INTR_NONSTALLING),
+	nvgpu_writel(g, mc_intr_en_set_r(NVGPU_MC_INTR_NONSTALLING),
 			g->mc_intr_mask_restore[NVGPU_MC_INTR_NONSTALLING]);
 }
 
 void mc_gp10b_intr_unit_config(struct gk20a *g, bool enable,
 		bool is_stalling, u32 mask)
 {
-	u32 intr_index = 0;
-	u32 reg = 0;
+	u32 intr_index = 0U;
+	u32 reg = 0U;
 
 	intr_index = (is_stalling ? NVGPU_MC_INTR_STALLING :
 			NVGPU_MC_INTR_NONSTALLING);
@@ -89,39 +87,40 @@ void mc_gp10b_intr_unit_config(struct gk20a *g, bool enable,
 		g->mc_intr_mask_restore[intr_index] &= ~mask;
 	}
 
-	gk20a_writel(g, reg, mask);
+	nvgpu_writel(g, reg, mask);
 }
 
 void mc_gp10b_isr_stall(struct gk20a *g)
 {
 	u32 mc_intr_0;
-
-	u32 engine_id_idx;
-	u32 active_engine_id = 0;
+	u32 eng_id;
+	u32 act_eng_id = 0U;
 	enum nvgpu_fifo_engine engine_enum;
 
-	mc_intr_0 = gk20a_readl(g, mc_intr_r(0));
+	mc_intr_0 = nvgpu_readl(g, mc_intr_r(0));
 
-	nvgpu_log(g, gpu_dbg_intr, "stall intr 0x%08x\n", mc_intr_0);
+	nvgpu_log(g, gpu_dbg_intr, "stall intr 0x%08x", mc_intr_0);
 
-	for (engine_id_idx = 0; engine_id_idx < g->fifo.num_engines; engine_id_idx++) {
-		active_engine_id = g->fifo.active_engines_list[engine_id_idx];
+	for (eng_id = 0U; eng_id < g->fifo.num_engines; eng_id++) {
+		act_eng_id = g->fifo.active_engines_list[eng_id];
 
-		if ((mc_intr_0 & g->fifo.engine_info[active_engine_id].intr_mask) != 0U) {
-			engine_enum = g->fifo.engine_info[active_engine_id].engine_enum;
-			/* GR Engine */
-			if (engine_enum == NVGPU_ENGINE_GR_GK20A) {
-				nvgpu_pg_elpg_protected_call(g, gk20a_gr_isr(g));
-			}
+		if ((mc_intr_0 &
+			g->fifo.engine_info[act_eng_id].intr_mask) == 0U) {
+			continue;
+		}
+		engine_enum = g->fifo.engine_info[act_eng_id].engine_enum;
+		/* GR Engine */
+		if (engine_enum == NVGPU_ENGINE_GR_GK20A) {
+			nvgpu_pg_elpg_protected_call(g, gk20a_gr_isr(g));
+		}
 
-			/* CE Engine */
-			if (((engine_enum == NVGPU_ENGINE_GRCE_GK20A) ||
+		/* CE Engine */
+		if (((engine_enum == NVGPU_ENGINE_GRCE_GK20A) ||
 				(engine_enum == NVGPU_ENGINE_ASYNC_CE_GK20A)) &&
 				(g->ops.ce2.isr_stall != NULL)) {
-					g->ops.ce2.isr_stall(g,
-					g->fifo.engine_info[active_engine_id].inst_id,
-					g->fifo.engine_info[active_engine_id].pri_base);
-			}
+			g->ops.ce2.isr_stall(g,
+				g->fifo.engine_info[act_eng_id].inst_id,
+				g->fifo.engine_info[act_eng_id].pri_base);
 		}
 	}
 	if ((g->ops.mc.is_intr_hub_pending != NULL) &&
@@ -152,47 +151,47 @@ void mc_gp10b_isr_stall(struct gk20a *g)
 		g->ops.mc.fbpa_isr(g);
 	}
 
-	nvgpu_log(g, gpu_dbg_intr, "stall intr done 0x%08x\n", mc_intr_0);
+	nvgpu_log(g, gpu_dbg_intr, "stall intr done 0x%08x", mc_intr_0);
 
 }
 
 u32 mc_gp10b_intr_stall(struct gk20a *g)
 {
-	return gk20a_readl(g, mc_intr_r(NVGPU_MC_INTR_STALLING));
+	return nvgpu_readl(g, mc_intr_r(NVGPU_MC_INTR_STALLING));
 }
 
 void mc_gp10b_intr_stall_pause(struct gk20a *g)
 {
-	gk20a_writel(g, mc_intr_en_clear_r(NVGPU_MC_INTR_STALLING), 0xffffffffU);
+	nvgpu_writel(g, mc_intr_en_clear_r(NVGPU_MC_INTR_STALLING), U32_MAX);
 }
 
 void mc_gp10b_intr_stall_resume(struct gk20a *g)
 {
-	gk20a_writel(g, mc_intr_en_set_r(NVGPU_MC_INTR_STALLING),
+	nvgpu_writel(g, mc_intr_en_set_r(NVGPU_MC_INTR_STALLING),
 			g->mc_intr_mask_restore[NVGPU_MC_INTR_STALLING]);
 }
 
 u32 mc_gp10b_intr_nonstall(struct gk20a *g)
 {
-	return gk20a_readl(g, mc_intr_r(NVGPU_MC_INTR_NONSTALLING));
+	return nvgpu_readl(g, mc_intr_r(NVGPU_MC_INTR_NONSTALLING));
 }
 
 void mc_gp10b_intr_nonstall_pause(struct gk20a *g)
 {
-	gk20a_writel(g, mc_intr_en_clear_r(NVGPU_MC_INTR_NONSTALLING),
-		     0xffffffffU);
+	nvgpu_writel(g, mc_intr_en_clear_r(NVGPU_MC_INTR_NONSTALLING),
+		     U32_MAX);
 }
 
 void mc_gp10b_intr_nonstall_resume(struct gk20a *g)
 {
-	gk20a_writel(g, mc_intr_en_set_r(NVGPU_MC_INTR_NONSTALLING),
+	nvgpu_writel(g, mc_intr_en_set_r(NVGPU_MC_INTR_NONSTALLING),
 			g->mc_intr_mask_restore[NVGPU_MC_INTR_NONSTALLING]);
 }
 
 bool mc_gp10b_is_intr1_pending(struct gk20a *g,
 				      enum nvgpu_unit unit, u32 mc_intr_1)
 {
-	u32 mask = 0;
+	u32 mask = 0U;
 	bool is_pending;
 
 	switch (unit) {
@@ -207,7 +206,7 @@ bool mc_gp10b_is_intr1_pending(struct gk20a *g,
 		nvgpu_err(g, "unknown unit %d", unit);
 		is_pending = false;
 	} else {
-		is_pending = ((mc_intr_1 & mask) != 0U) ? true : false;
+		is_pending = ((mc_intr_1 & mask) != 0U);
 	}
 
 	return is_pending;
@@ -217,7 +216,7 @@ void mc_gp10b_log_pending_intrs(struct gk20a *g)
 {
 	u32 i, intr;
 
-	for (i = 0; i < MAX_MC_INTR_REGS; i++) {
+	for (i = 0U; i < MAX_MC_INTR_REGS; i++) {
 		intr = nvgpu_readl(g, mc_intr_r(i));
 		if (intr == 0U) {
 			continue;
@@ -232,9 +231,9 @@ void mc_gp10b_ltc_isr(struct gk20a *g)
 	u32 mc_intr;
 	u32 ltc;
 
-	mc_intr = gk20a_readl(g, mc_intr_ltc_r());
+	mc_intr = nvgpu_readl(g, mc_intr_ltc_r());
 	nvgpu_err(g, "mc_ltc_intr: %08x", mc_intr);
-	for (ltc = 0; ltc < nvgpu_ltc_get_ltc_count(g); ltc++) {
+	for (ltc = 0U; ltc < nvgpu_ltc_get_ltc_count(g); ltc++) {
 		if ((mc_intr & BIT32(ltc)) == 0U) {
 			continue;
 		}

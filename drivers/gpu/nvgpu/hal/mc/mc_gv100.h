@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -20,29 +20,17 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef MC_GP10B_H
-#define MC_GP10B_H
+#ifndef MC_GV100_H
+#define MC_GV100_H
 
 #include <nvgpu/types.h>
 
 struct gk20a;
-enum nvgpu_unit;
 
-void mc_gp10b_intr_mask(struct gk20a *g);
-void mc_gp10b_intr_enable(struct gk20a *g);
-void mc_gp10b_intr_unit_config(struct gk20a *g, bool enable,
-		bool is_stalling, u32 mask);
-void mc_gp10b_isr_stall(struct gk20a *g);
-bool mc_gp10b_is_intr1_pending(struct gk20a *g,
-				      enum nvgpu_unit unit, u32 mc_intr_1);
-
-void mc_gp10b_log_pending_intrs(struct gk20a *g);
-u32 mc_gp10b_intr_stall(struct gk20a *g);
-void mc_gp10b_intr_stall_pause(struct gk20a *g);
-void mc_gp10b_intr_stall_resume(struct gk20a *g);
-u32 mc_gp10b_intr_nonstall(struct gk20a *g);
-void mc_gp10b_intr_nonstall_pause(struct gk20a *g);
-void mc_gp10b_intr_nonstall_resume(struct gk20a *g);
-void mc_gp10b_ltc_isr(struct gk20a *g);
+void mc_gv100_intr_enable(struct gk20a *g);
+bool gv100_mc_is_intr_nvlink_pending(struct gk20a *g, u32 mc_intr_0);
+bool gv100_mc_is_stall_and_eng_intr_pending(struct gk20a *g, u32 act_eng_id,
+			u32 *eng_intr_pending);
+u32  gv100_mc_reset_mask(struct gk20a *g, enum nvgpu_unit unit);
 
 #endif

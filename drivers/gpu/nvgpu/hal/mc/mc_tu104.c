@@ -28,7 +28,8 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/engines.h>
 
-#include "common/mc/mc_gp10b.h"
+#include "hal/mc/mc_gp10b.h"
+
 #include "mc_tu104.h"
 
 #include "tu104/func_tu104.h"
@@ -138,8 +139,7 @@ static void intr_tu104_stall_enable(struct gk20a *g)
 {
 	u32 eng_intr_mask = nvgpu_engine_interrupt_mask(g);
 
-	nvgpu_writel(g, mc_intr_en_clear_r(NVGPU_MC_INTR_STALLING),
-				0xffffffffU);
+	nvgpu_writel(g, mc_intr_en_clear_r(NVGPU_MC_INTR_STALLING), U32_MAX);
 
 	g->mc_intr_mask_restore[NVGPU_MC_INTR_STALLING] =
 				mc_intr_pfifo_pending_f() |
@@ -162,8 +162,7 @@ static void intr_tu104_nonstall_enable(struct gk20a *g)
 	u32 active_engine_id, intr_mask;
 
 	/* Keep NV_PMC_INTR(1) disabled */
-	nvgpu_writel(g, mc_intr_en_clear_r(NVGPU_MC_INTR_NONSTALLING),
-				0xffffffffU);
+	nvgpu_writel(g, mc_intr_en_clear_r(NVGPU_MC_INTR_NONSTALLING), U32_MAX);
 
 	/*
 	 * Enable nonstall interrupts in TOP
@@ -206,16 +205,14 @@ void intr_tu104_mask(struct gk20a *g)
 {
 	u32 size, reg, i;
 
-	nvgpu_writel(g, mc_intr_en_clear_r(NVGPU_MC_INTR_STALLING),
-				0xffffffffU);
+	nvgpu_writel(g, mc_intr_en_clear_r(NVGPU_MC_INTR_STALLING), U32_MAX);
 
-	nvgpu_writel(g, mc_intr_en_clear_r(NVGPU_MC_INTR_NONSTALLING),
-				0xffffffffU);
+	nvgpu_writel(g, mc_intr_en_clear_r(NVGPU_MC_INTR_NONSTALLING), U32_MAX);
 
 	size = func_priv_cpu_intr_top_en_clear__size_1_v();
-	for (i = 0; i < size; i++) {
+	for (i = 0U; i < size; i++) {
 		reg = func_priv_cpu_intr_top_en_clear_r(i);
-		nvgpu_func_writel(g, reg, 0xffffffffU);
+		nvgpu_func_writel(g, reg, U32_MAX);
 	}
 }
 
@@ -270,12 +267,12 @@ void intr_tu104_nonstall_resume(struct gk20a *g)
 u32 intr_tu104_isr_nonstall(struct gk20a *g)
 {
 	u32 i;
-	u32 nonstall_intr_base = 0;
-	u64 nonstall_intr_mask = 0;
+	u32 nonstall_intr_base = 0U;
+	u64 nonstall_intr_mask = 0U;
 	u32 nonstall_intr_mask_lo, nonstall_intr_mask_hi;
 	u32 intr_leaf_reg0, intr_leaf_reg1;
 	u32 active_engine_id, intr_mask;
-	u32 ops = 0;
+	u32 ops = 0U;
 
 	intr_leaf_reg0 = nvgpu_func_readl(g,
 			func_priv_cpu_intr_leaf_r(
@@ -290,7 +287,7 @@ u32 intr_tu104_isr_nonstall(struct gk20a *g)
 	nonstall_intr_base = nvgpu_readl(g,
 		ctrl_legacy_engine_nonstall_intr_base_vectorid_r());
 
-	for (i = 0; i < g->fifo.num_engines; i++) {
+	for (i = 0U; i < g->fifo.num_engines; i++) {
 		active_engine_id = g->fifo.active_engines_list[i];
 		intr_mask = g->fifo.engine_info[active_engine_id].intr_mask;
 
@@ -300,7 +297,8 @@ u32 intr_tu104_isr_nonstall(struct gk20a *g)
 
 		if ((nonstall_intr_mask_lo & intr_leaf_reg0) != 0U ||
 		    (nonstall_intr_mask_hi & intr_leaf_reg1) != 0U) {
-			nvgpu_log(g, gpu_dbg_intr, "nonstall intr from engine %d",
+			nvgpu_log(g, gpu_dbg_intr,
+				"nonstall intr from engine %d",
 				active_engine_id);
 
 			nvgpu_func_writel(g,
@@ -337,7 +335,7 @@ u32 intr_tu104_stall(struct gk20a *g)
 		return g->ops.mc.is_intr_hub_pending(g, 0);
 	}
 
-	return 0;
+	return 0U;
 }
 
 /* Return true if HUB interrupt is pending */
@@ -362,8 +360,6 @@ void intr_tu104_stall_resume(struct gk20a *g)
 	g->ops.fb.enable_hub_intr(g);
 }
 
-#define MAX_INTR_TOP_REGS	(2U)
-
 void intr_tu104_log_pending_intrs(struct gk20a *g)
 {
 	bool pending;
@@ -386,7 +382,7 @@ void intr_tu104_log_pending_intrs(struct gk20a *g)
 		}
 	}
 
-	for (i = 0; i < MAX_INTR_TOP_REGS; i++) {
+	for (i = 0U; i < MAX_INTR_TOP_REGS; i++) {
 		intr = nvgpu_func_readl(g,
 			func_priv_cpu_intr_top_r(i));
 		if (intr == 0U) {
@@ -401,11 +397,11 @@ void mc_tu104_fbpa_isr(struct gk20a *g)
 	u32 intr_fbpa, fbpas;
 	u32 i, num_fbpas;
 
-	intr_fbpa = gk20a_readl(g, mc_intr_fbpa_r());
+	intr_fbpa = nvgpu_readl(g, mc_intr_fbpa_r());
 	fbpas = mc_intr_fbpa_part_mask_v(intr_fbpa);
 	num_fbpas = nvgpu_get_litter_value(g, GPU_LIT_NUM_FBPAS);
 
-	for (i = 0u; i < num_fbpas; i++) {
+	for (i = 0U; i < num_fbpas; i++) {
 		if ((fbpas & BIT32(i)) == 0U) {
 			continue;
 		}
