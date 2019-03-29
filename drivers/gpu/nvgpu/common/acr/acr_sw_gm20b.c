@@ -37,7 +37,7 @@
 #include "acr_bootstrap.h"
 #include "acr_blob_construct_v0.h"
 
-static int gm20b_acr_patch_wpr_info_to_ucode(struct gk20a *g,
+static void gm20b_acr_patch_wpr_info_to_ucode(struct gk20a *g,
 	struct nvgpu_acr *acr, struct hs_acr *acr_desc, bool is_recovery)
 {
 	struct nvgpu_firmware *acr_fw = acr_desc->acr_fw;
@@ -78,11 +78,9 @@ static int gm20b_acr_patch_wpr_info_to_ucode(struct gk20a *g,
 		acr_dmem_desc->regions.no_regions = 1U;
 		acr_dmem_desc->wpr_offset = 0U;
 	}
-
-	return 0;
 }
 
-static int gm20b_acr_fill_bl_dmem_desc(struct gk20a *g,
+static void gm20b_acr_fill_bl_dmem_desc(struct gk20a *g,
 	struct nvgpu_acr *acr, struct hs_acr *acr_desc,
 	u32 *acr_ucode_header)
 {
@@ -110,8 +108,6 @@ static int gm20b_acr_fill_bl_dmem_desc(struct gk20a *g,
 		((acr_ucode_header[2U]) >> 8U);
 	bl_dmem_desc->data_dma_base1 = 0x0U;
 	bl_dmem_desc->data_size = acr_ucode_header[3U];
-
-	return 0;
 }
 
 /* LSF static config functions */

@@ -41,7 +41,7 @@ static void flcn64_set_dma(struct falc_u64 *dma_addr, u64 value)
 	dma_addr->hi |= u64_hi32(value);
 }
 
-static int gv100_acr_patch_wpr_info_to_ucode(struct gk20a *g,
+static void gv100_acr_patch_wpr_info_to_ucode(struct gk20a *g,
 	struct nvgpu_acr *acr, struct hs_acr *acr_desc,
 	bool is_recovery)
 {
@@ -89,11 +89,9 @@ static int gv100_acr_patch_wpr_info_to_ucode(struct gk20a *g,
 	nvgpu_assert(u64_hi32(tmp_addr) == 0U);
 	acr_dmem_desc->regions.region_props[0U].shadowmMem_startaddress =
 		U32(tmp_addr);
-
-	return 0;
 }
 
-int gv100_acr_fill_bl_dmem_desc(struct gk20a *g,
+void gv100_acr_fill_bl_dmem_desc(struct gk20a *g,
 	struct nvgpu_acr *acr, struct hs_acr *acr_desc,
 	u32 *acr_ucode_header)
 {
@@ -124,8 +122,6 @@ int gv100_acr_fill_bl_dmem_desc(struct gk20a *g,
 		acr_ucode_mem->gpu_va + acr_ucode_header[2U]);
 
 	bl_dmem_desc->data_size = acr_ucode_header[3U];
-
-	return 0;
 }
 
 /* LSF init */
