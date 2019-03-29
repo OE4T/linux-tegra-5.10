@@ -53,6 +53,7 @@
 #include "hal/fifo/pbdma_gm20b.h"
 #include "hal/fifo/pbdma_gp10b.h"
 #include "hal/fifo/pbdma_gv11b.h"
+#include "hal/fifo/engines_gp10b.h"
 #include "hal/fifo/engines_gv11b.h"
 #include "hal/fifo/engine_status_gv100.h"
 #include "hal/fifo/pbdma_status_gm20b.h"
@@ -904,7 +905,6 @@ static const struct gpu_ops gv100_ops = {
 		.doorbell_token = gv11b_fifo_doorbell_token,
 		.runlist_busy_engines = gk20a_fifo_runlist_busy_engines,
 		.find_pbdma_for_runlist = gk20a_fifo_find_pbdma_for_runlist,
-		.init_ce_engine_info = gp10b_fifo_init_ce_engine_info,
 		.intr_0_enable = gk20a_fifo_intr_0_enable,
 		.intr_1_enable = gk20a_fifo_intr_1_enable,
 		.intr_0_isr = gv11b_fifo_intr_0_isr,
@@ -922,6 +922,7 @@ static const struct gpu_ops gv100_ops = {
 		.is_fault_engine_subid_gpc = gv11b_is_fault_engine_subid_gpc,
 		.get_mask_on_id = nvgpu_engine_get_mask_on_id,
 		.init_info = nvgpu_engine_init_info,
+		.init_ce_info = gp10b_engine_init_ce_info,
 	},
 	.pbdma = {
 		.intr_enable = gv11b_pbdma_intr_enable,

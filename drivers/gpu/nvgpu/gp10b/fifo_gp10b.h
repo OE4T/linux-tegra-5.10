@@ -31,6 +31,5 @@ struct fifo_gk20a;
 void gp10b_device_info_data_parse(struct gk20a *g, u32 table_entry,
 				u32 *inst_id, u32 *pri_base, u32 *fault_id);
 void gp10b_fifo_init_pbdma_intr_descs(struct fifo_gk20a *f);
-int  gp10b_fifo_init_ce_engine_info(struct fifo_gk20a *f);
 
 #endif

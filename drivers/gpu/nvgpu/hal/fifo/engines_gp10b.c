@@ -1,6 +1,4 @@
 /*
- * GP10B fifo
- *
  * Copyright (c) 2015-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
@@ -22,29 +20,17 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#include <nvgpu/dma.h>
-#include <nvgpu/bug.h>
-#include <nvgpu/log2.h>
-#include <nvgpu/enabled.h>
-#include <nvgpu/io.h>
-#include <nvgpu/utils.h>
-#include <nvgpu/gk20a.h>
-#include <nvgpu/channel.h>
-#include <nvgpu/channel_sync.h>
-#include <nvgpu/channel_sync_syncpt.h>
-#include <nvgpu/engines.h>
 #include <nvgpu/top.h>
+#include <nvgpu/engines.h>
+#include <nvgpu/log.h>
+#include <nvgpu/errno.h>
+#include <nvgpu/gk20a.h>
 
-#include "fifo_gp10b.h"
-
-#include "gk20a/fifo_gk20a.h"
-#include "gm20b/fifo_gm20b.h"
-
-#include <nvgpu/hw/gp10b/hw_pbdma_gp10b.h>
 #include <nvgpu/hw/gp10b/hw_fifo_gp10b.h>
-#include <nvgpu/hw/gp10b/hw_ram_gp10b.h>
 
-int gp10b_fifo_init_ce_engine_info(struct fifo_gk20a *f)
+#include "engines_gp10b.h"
+
+int gp10b_engine_init_ce_info(struct fifo_gk20a *f)
 {
 	struct gk20a *g = f->g;
 	int ret = 0;
@@ -93,8 +79,9 @@ int gp10b_fifo_init_ce_engine_info(struct fifo_gk20a *f)
 					dev_info.engine_type);
 		/* GR and GR_COPY shares same runlist_id */
 		if ((engine_enum == NVGPU_ENGINE_ASYNC_CE_GK20A) &&
-			(gr_runlist_id == dev_info.runlist_id)) {
-				engine_enum = NVGPU_ENGINE_GRCE_GK20A;
+				(gr_runlist_id ==
+					dev_info.runlist_id)) {
+			engine_enum = NVGPU_ENGINE_GRCE_GK20A;
 		}
 		info->engine_enum = engine_enum;
 

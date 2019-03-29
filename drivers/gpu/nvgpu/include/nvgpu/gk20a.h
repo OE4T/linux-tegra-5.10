@@ -981,7 +981,6 @@ struct gpu_ops {
 		u32 (*runlist_busy_engines)(struct gk20a *g, u32 runlist_id);
 		bool (*find_pbdma_for_runlist)(struct fifo_gk20a *f,
 				u32 runlist_id, u32 *pbdma_id);
-		int (*init_ce_engine_info)(struct fifo_gk20a *f);
 		struct {
 			int (*report_host_err)(struct gk20a *g,
 					u32 hw_id, u32 inst, u32 err_id,
@@ -1069,6 +1068,7 @@ struct gpu_ops {
 		u32 (*get_mask_on_id)(struct gk20a *g,
 			u32 id, bool is_tsg);
 		int (*init_info)(struct fifo_gk20a *f);
+		int (*init_ce_info)(struct fifo_gk20a *f);
 	} engine;
 
 	struct {

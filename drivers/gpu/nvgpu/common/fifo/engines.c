@@ -793,7 +793,7 @@ int nvgpu_engine_init_info(struct fifo_gk20a *f)
 			dev_info.inst_id);
 	}
 
-	ret = g->ops.fifo.init_ce_engine_info(f);
+	ret = g->ops.engine.init_ce_info(f);
 
 	return ret;
 }

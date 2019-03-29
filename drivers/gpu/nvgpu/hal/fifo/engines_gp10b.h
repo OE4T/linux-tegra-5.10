@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -20,15 +20,13 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NVGPU_ENGINE_GM20B_H
-#define NVGPU_ENGINE_GM20B_H
+#ifndef NVGPU_ENGINE_GP10B_H
+#define NVGPU_ENGINE_GP10B_H
 
 #include <nvgpu/types.h>
 
-struct gk20a;
 struct fifo_gk20a;
 
-bool gm20b_is_fault_engine_subid_gpc(struct gk20a *g, u32 engine_subid);
-int  gm20b_engine_init_ce_info(struct fifo_gk20a *f);
+int gp10b_engine_init_ce_info(struct fifo_gk20a *f);
 
-#endif /* NVGPU_ENGINE_GM20B_H */
+#endif /* NVGPU_ENGINE_GP10B_H */

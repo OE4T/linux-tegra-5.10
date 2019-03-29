@@ -222,6 +222,7 @@ nvgpu-y += \
 	hal/fuse/fuse_gp10b.o \
 	hal/fuse/fuse_gp106.o \
 	hal/fifo/engines_gm20b.o \
+	hal/fifo/engines_gp10b.o \
 	hal/fifo/engines_gv11b.o \
 	hal/fifo/pbdma_gm20b.o \
 	hal/fifo/pbdma_gp10b.o \
@@ -508,7 +509,6 @@ nvgpu-$(CONFIG_GK20A_CYCLE_STATS) += \
 nvgpu-y += \
 	gp10b/gr_gp10b.o  \
 	gp10b/ce_gp10b.o \
-	gp10b/fifo_gp10b.o  \
 	gp10b/mm_gp10b.o \
 	gp10b/hal_gp10b.o \
 	gp10b/gp10b.o \

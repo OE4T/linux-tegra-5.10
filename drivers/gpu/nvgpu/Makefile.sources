@@ -257,7 +257,6 @@ srcs += common/sim.c \
 	gm20b/mm_gm20b.c \
 	gp10b/gr_gp10b.c  \
 	gp10b/ce_gp10b.c \
-	gp10b/fifo_gp10b.c  \
 	gp10b/mm_gp10b.c \
 	gp10b/hal_gp10b.c \
 	gp10b/gp10b.c \
@@ -354,6 +353,7 @@ srcs += common/sim.c \
 	hal/fuse/fuse_gp10b.c \
 	hal/fuse/fuse_gp106.c \
 	hal/fifo/engines_gm20b.c \
+	hal/fifo/engines_gp10b.c \
 	hal/fifo/engines_gv11b.c \
 	hal/fifo/pbdma_gm20b.c \
 	hal/fifo/pbdma_gp10b.c \
