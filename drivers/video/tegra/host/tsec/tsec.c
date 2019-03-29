@@ -71,10 +71,10 @@
 #define TSEC_CARVEOUT_SIZE_OFFSET	8
 
 #define hdcp_align(var)	(((unsigned long)((u8 *)hdcp_context->var \
-			+ HDCP_ALIGNMENT_256 - 1)) & ~HDCP_ALIGNMENT_256);
+			+ HDCP_ALIGNMENT_256 - 1)) & ~(HDCP_ALIGNMENT_256 - 1));
 
 #define hdcp_align_dma(var) (((unsigned long)(hdcp_context->var \
-			+ HDCP_ALIGNMENT_256 - 1)) & ~HDCP_ALIGNMENT_256);
+			+ HDCP_ALIGNMENT_256 - 1)) & ~(HDCP_ALIGNMENT_256 - 1));
 
 #define FW_NAME_SIZE 32
 
