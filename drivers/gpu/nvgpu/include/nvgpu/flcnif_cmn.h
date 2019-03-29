@@ -24,6 +24,7 @@
 #define NVGPU_FLCNIF_CMN_H
 
 #include <nvgpu/types.h>
+#include <nvgpu/bitops.h>
 
 #define PMU_CMD_SUBMIT_PAYLOAD_PARAMS_FB_SIZE_UNUSED 0U
 

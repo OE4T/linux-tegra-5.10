@@ -20,47 +20,32 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NVGPU_SEC2_IF_SEC2_H
-#define NVGPU_SEC2_IF_SEC2_H
+#include <nvgpu/sec2/allocator.h>
+#include <nvgpu/allocator.h>
+#include <nvgpu/sec2/msg.h>
 
-#include <nvgpu/sec2/queue_cmn.h>
-#include <nvgpu/types.h>
-
-/*
- * SEC2 Command/Message Interfaces - SEC2 Management
- */
-
-/*
- * Defines the identifiers various high-level types of sequencer commands and
- * messages.
- * _SEC2_INIT - sec2_init_msg_sec2_init
- */
-enum
+void nvgpu_sec2_dmem_allocator_init(struct gk20a *g,
+				struct nvgpu_allocator *dmem,
+				struct sec2_init_msg_sec2_init *sec2_init)
 {
-	NV_SEC2_INIT_MSG_ID_SEC2_INIT = 0U,
-};
+	if (!nvgpu_alloc_initialized(dmem)) {
+		/* Align start and end addresses */
+		u32 start = ALIGN(sec2_init->nv_managed_area_offset,
+			PMU_DMEM_ALLOC_ALIGNMENT);
 
-struct sec2_init_msg_sec2_init {
-	u8  msg_type;
-	u8  num_queues;
+		u32 end = (sec2_init->nv_managed_area_offset +
+			sec2_init->nv_managed_area_size) &
+			~(PMU_DMEM_ALLOC_ALIGNMENT - 1U);
+		u32 size = end - start;
 
-	u16 os_debug_entry_point;
+		nvgpu_bitmap_allocator_init(g, dmem, "sec2_dmem",
+			start, size, PMU_DMEM_ALLOC_ALIGNMENT, 0U);
+	}
+}
 
-	struct
-	{
-		u32 queue_offset;
-		u16 queue_size;
-		u8  queue_phy_id;
-		u8  queue_log_id;
-	} q_info[SEC2_QUEUE_NUM];
-
-	u32 nv_managed_area_offset;
-	u16 nv_managed_area_size;
-};
-
-union nv_flcn_msg_sec2_init {
-	u8 msg_type;
-	struct sec2_init_msg_sec2_init sec2_init;
-};
-
-#endif  /* NVGPU_SEC2_IF_SEC2_H */
+void nvgpu_sec2_dmem_allocator_destroy(struct nvgpu_allocator *dmem)
+{
+	if (nvgpu_alloc_initialized(dmem)) {
+		nvgpu_alloc_destroy(dmem);
+	}
+}

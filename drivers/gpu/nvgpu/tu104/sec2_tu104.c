@@ -29,6 +29,7 @@
 #include <nvgpu/falcon.h>
 #include <nvgpu/engine_mem_queue.h>
 #include <nvgpu/sec2.h>
+#include <nvgpu/sec2/msg.h>
 #include <nvgpu/bug.h>
 
 #include "sec2_tu104.h"

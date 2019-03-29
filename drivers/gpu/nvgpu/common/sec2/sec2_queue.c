@@ -20,11 +20,10 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#include <nvgpu/sec2if/sec2_if_sec2.h>
 #include <nvgpu/engine_mem_queue.h>
-#include <nvgpu/sec2/queue_cmn.h>
 #include <nvgpu/engine_queue.h>
 #include <nvgpu/sec2/queue.h>
+#include <nvgpu/sec2/msg.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/log.h>
 

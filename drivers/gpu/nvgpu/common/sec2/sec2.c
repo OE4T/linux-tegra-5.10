@@ -27,8 +27,9 @@
 #include <nvgpu/sec2.h>
 #include <nvgpu/sec2/queue.h>
 #include <nvgpu/sec2/seq.h>
-#include <nvgpu/sec2if/sec2_if_sec2.h>
 #include <nvgpu/sec2if/sec2_if_cmn.h>
+#include <nvgpu/sec2/allocator.h>
+#include <nvgpu/sec2/msg.h>
 
 static void nvgpu_remove_sec2_support(struct nvgpu_sec2 *sec2)
 {
@@ -95,6 +96,8 @@ int nvgpu_sec2_destroy(struct gk20a *g)
 	struct nvgpu_sec2 *sec2 = &g->sec2;
 
 	nvgpu_log_fn(g, " ");
+
+	nvgpu_sec2_dmem_allocator_destroy(&sec2->dmem);
 
 	nvgpu_mutex_acquire(&sec2->isr_mutex);
 	sec2->isr_enabled = false;

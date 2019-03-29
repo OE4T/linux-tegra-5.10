@@ -20,21 +20,16 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NVGPU_SEC2_CMD_IF_H
-#define NVGPU_SEC2_CMD_IF_H
+#ifndef NVGPU_SEC2_ALLOCATOR_H
+#define NVGPU_SEC2_ALLOCATOR_H
 
-#include <nvgpu/sec2if/sec2_if_acr.h>
+struct gk20a;
+struct nvgpu_allocator;
+struct sec2_init_msg_sec2_init;
 
-struct nv_flcn_cmd_sec2 {
-	struct pmu_hdr hdr;
-	union {
-		union nv_sec2_acr_cmd acr;
-	} cmd;
-};
+void nvgpu_sec2_dmem_allocator_init(struct gk20a *g,
+				struct nvgpu_allocator *dmem,
+				struct sec2_init_msg_sec2_init *sec2_init);
+void nvgpu_sec2_dmem_allocator_destroy(struct nvgpu_allocator *dmem);
 
-#define  NV_SEC2_UNIT_REWIND          NV_FLCN_UNIT_ID_REWIND
-#define  NV_SEC2_UNIT_INIT            (0x01U)
-#define  NV_SEC2_UNIT_ACR             (0x07U)
-#define  NV_SEC2_UNIT_END             (0x0AU)
-
-#endif /* NVGPU_SEC2_CMD_IF_H */
+#endif /* NVGPU_SEC2_ALLOCATOR_H */

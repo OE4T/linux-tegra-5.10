@@ -20,21 +20,61 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NVGPU_SEC2_CMD_IF_H
-#define NVGPU_SEC2_CMD_IF_H
+#ifndef NVGPU_SEC2_MSG_H
+#define NVGPU_SEC2_MSG_H
 
 #include <nvgpu/sec2if/sec2_if_acr.h>
+#include <nvgpu/sec2/queue_cmn.h>
+#include <nvgpu/flcnif_cmn.h>
+#include <nvgpu/types.h>
 
-struct nv_flcn_cmd_sec2 {
-	struct pmu_hdr hdr;
-	union {
-		union nv_sec2_acr_cmd acr;
-	} cmd;
+struct nvgpu_sec2;
+
+/*
+ * SEC2 Message Interfaces - SEC2 Management
+ */
+
+/*
+ * Defines the identifiers various high-level types of sequencer commands and
+ * messages.
+ * _SEC2_INIT - sec2_init_msg_sec2_init
+ */
+enum {
+	NV_SEC2_INIT_MSG_ID_SEC2_INIT = 0U,
 };
 
-#define  NV_SEC2_UNIT_REWIND          NV_FLCN_UNIT_ID_REWIND
-#define  NV_SEC2_UNIT_INIT            (0x01U)
-#define  NV_SEC2_UNIT_ACR             (0x07U)
-#define  NV_SEC2_UNIT_END             (0x0AU)
+struct sec2_init_msg_sec2_init {
+	u8  msg_type;
+	u8  num_queues;
 
-#endif /* NVGPU_SEC2_CMD_IF_H */
+	u16 os_debug_entry_point;
+
+	struct {
+		u32 queue_offset;
+		u16 queue_size;
+		u8  queue_phy_id;
+		u8  queue_log_id;
+	} q_info[SEC2_QUEUE_NUM];
+
+	u32 nv_managed_area_offset;
+	u16 nv_managed_area_size;
+};
+
+union nv_flcn_msg_sec2_init {
+	u8 msg_type;
+	struct sec2_init_msg_sec2_init sec2_init;
+};
+
+
+struct nv_flcn_msg_sec2 {
+	struct pmu_hdr hdr;
+
+	union {
+		union nv_flcn_msg_sec2_init init;
+		union nv_sec2_acr_msg acr;
+	} msg;
+};
+
+int nvgpu_sec2_process_message(struct nvgpu_sec2 *sec2);
+
+#endif /* NVGPU_SEC2_MSG_H */
