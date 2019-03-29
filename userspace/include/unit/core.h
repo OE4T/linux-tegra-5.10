@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -59,5 +59,5 @@ struct unit_fw {
 
 int core_load_nvgpu(struct unit_fw *fw);
 int core_exec(struct unit_fw *fw);
-
+int verbose_lvl(struct unit_module *module);
 #endif

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -212,4 +212,10 @@ struct unit_module **core_load_modules(struct unit_fw *fw)
 err:
 	closedir(load_dir);
 	return NULL;
+}
+
+/* Return the current verbosity level */
+int verbose_lvl(struct unit_module *module)
+{
+	return module->fw->args->verbose_lvl;
 }
