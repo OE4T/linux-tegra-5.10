@@ -85,7 +85,7 @@ void nvgpu_rc_pbdma_fault(struct gk20a *g, struct fifo_gk20a *f,
 	/* Remove channel from runlist */
 	id = pbdma_status.id;
 	if (pbdma_status.id_type == PBDMA_STATUS_ID_TYPE_TSGID) {
-		struct tsg_gk20a *tsg = &f->tsg[id];
+		struct tsg_gk20a *tsg = nvgpu_tsg_get_from_id(g, id);
 
 		nvgpu_tsg_set_error_notifier(g, tsg, error_notifier);
 		nvgpu_rc_tsg_and_related_engines(g, tsg, true,

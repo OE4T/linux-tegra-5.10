@@ -167,9 +167,10 @@ static int gk20a_sched_dev_ioctl_get_tsgs_by_pid(struct gk20a_sched_ctrl *sched,
 	nvgpu_mutex_acquire(&sched->status_lock);
 	for (tsgid = 0; tsgid < f->num_channels; tsgid++) {
 		if (NVGPU_SCHED_ISSET(tsgid, sched->active_tsg_bitmap)) {
-			tsg = &f->tsg[tsgid];
-			if (tsg->tgid == tgid)
+			tsg = nvgpu_tsg_get_from_id(g, tsgid);
+			if (tsg->tgid == tgid) {
 				NVGPU_SCHED_SET(tsgid, bitmap);
+			}
 		}
 	}
 	nvgpu_mutex_release(&sched->status_lock);
@@ -198,7 +199,7 @@ static int gk20a_sched_dev_ioctl_get_params(struct gk20a_sched_ctrl *sched,
 
 	nvgpu_speculation_barrier();
 
-	tsg = &f->tsg[tsgid];
+	tsg = nvgpu_tsg_get_from_id(g, tsgid);
 	if (!nvgpu_ref_get_unless_zero(&tsg->refcount))
 		return -ENXIO;
 
@@ -233,7 +234,7 @@ static int gk20a_sched_dev_ioctl_tsg_set_timeslice(
 
 	nvgpu_speculation_barrier();
 
-	tsg = &f->tsg[tsgid];
+	tsg = nvgpu_tsg_get_from_id(g, tsgid);
 	if (!nvgpu_ref_get_unless_zero(&tsg->refcount))
 		return -ENXIO;
 
@@ -268,7 +269,7 @@ static int gk20a_sched_dev_ioctl_tsg_set_runlist_interleave(
 
 	nvgpu_speculation_barrier();
 
-	tsg = &f->tsg[tsgid];
+	tsg = nvgpu_tsg_get_from_id(g, tsgid);
 	if (!nvgpu_ref_get_unless_zero(&tsg->refcount))
 		return -ENXIO;
 
@@ -336,7 +337,7 @@ static int gk20a_sched_dev_ioctl_get_tsg(struct gk20a_sched_ctrl *sched,
 
 	nvgpu_speculation_barrier();
 
-	tsg = &f->tsg[tsgid];
+	tsg = nvgpu_tsg_get_from_id(g, tsgid);
 	if (!nvgpu_ref_get_unless_zero(&tsg->refcount))
 		return -ENXIO;
 
@@ -382,7 +383,7 @@ static int gk20a_sched_dev_ioctl_put_tsg(struct gk20a_sched_ctrl *sched,
 	NVGPU_SCHED_CLR(tsgid, sched->ref_tsg_bitmap);
 	nvgpu_mutex_release(&sched->status_lock);
 
-	tsg = &f->tsg[tsgid];
+	tsg = nvgpu_tsg_get_from_id(g, tsgid);
 	nvgpu_ref_put(&tsg->refcount, nvgpu_ioctl_tsg_release);
 
 	return 0;
@@ -527,7 +528,7 @@ int gk20a_sched_dev_release(struct inode *inode, struct file *filp)
 	/* release any reference to TSGs */
 	for (tsgid = 0; tsgid < f->num_channels; tsgid++) {
 		if (NVGPU_SCHED_ISSET(tsgid, sched->ref_tsg_bitmap)) {
-			tsg = &f->tsg[tsgid];
+			tsg = nvgpu_tsg_get_from_id(g, tsgid);
 			nvgpu_ref_put(&tsg->refcount, nvgpu_ioctl_tsg_release);
 		}
 	}

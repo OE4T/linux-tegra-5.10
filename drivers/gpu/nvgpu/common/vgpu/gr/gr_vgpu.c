@@ -1114,7 +1114,7 @@ void vgpu_gr_handle_sm_esr_event(struct gk20a *g,
 		return;
 	}
 
-	tsg = &g->fifo.tsg[info->tsg_id];
+	tsg = nvgpu_tsg_check_and_get_from_id(g, info->tsg_id);
 	if (tsg == NULL) {
 		nvgpu_err(g, "invalid tsg");
 		return;

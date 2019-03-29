@@ -1146,12 +1146,16 @@ static int gr_gv11b_handle_all_warp_esr_errors(struct gk20a *g,
 	is_esr_error = gr_gv11b_check_warp_esr_error(g, warp_esr_error);
 	if (!is_esr_error) {
 		nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gpu_dbg,
-			"No ESR error, Skip RC recovery and Trigeer CILP");
+			"No ESR error, Skip RC recovery and Trigger CILP");
 		return 0;
 	}
 
 	if (fault_ch != NULL) {
-		tsg = &g->fifo.tsg[fault_ch->tsgid];
+		tsg = nvgpu_tsg_check_and_get_from_id(g, fault_ch->tsgid);
+		if (tsg == NULL) {
+			nvgpu_err(g, "fault ch %u not found", fault_ch->chid);
+			goto clear_intr;
+		}
 
 		/*
 		 * Check SET_EXCEPTION_TYPE_MASK is being set.
@@ -1172,6 +1176,7 @@ static int gr_gv11b_handle_all_warp_esr_errors(struct gk20a *g,
 			NVGPU_ERR_NOTIFIER_GR_EXCEPTION);
 	}
 
+clear_intr:
 	/* clear interrupt */
 	offset = nvgpu_gr_gpc_offset(g, gpc) +
 			nvgpu_gr_tpc_offset(g, tpc) +

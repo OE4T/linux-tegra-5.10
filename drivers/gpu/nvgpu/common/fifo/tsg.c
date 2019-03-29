@@ -48,6 +48,24 @@ void nvgpu_tsg_disable(struct tsg_gk20a *tsg)
 	nvgpu_rwsem_up_read(&tsg->ch_list_lock);
 }
 
+struct tsg_gk20a *nvgpu_tsg_check_and_get_from_id(struct gk20a *g, u32 tsgid)
+{
+	if (tsgid == NVGPU_INVALID_TSG_ID) {
+		return NULL;
+	}
+
+	return nvgpu_tsg_get_from_id(g, tsgid);
+}
+
+
+struct tsg_gk20a *nvgpu_tsg_get_from_id(struct gk20a *g, u32 tsgid)
+{
+	struct fifo_gk20a *f = &g->fifo;
+
+	return &f->tsg[tsgid];
+}
+
+
 static bool gk20a_is_channel_active(struct gk20a *g, struct channel_gk20a *ch)
 {
 	struct fifo_gk20a *f = &g->fifo;

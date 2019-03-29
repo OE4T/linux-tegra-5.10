@@ -117,9 +117,10 @@ static void vgpu_handle_channel_event(struct gk20a *g,
 		return;
 	}
 
-	tsg = &g->fifo.tsg[info->id];
-
-	nvgpu_tsg_post_event_id(tsg, info->event_id);
+	tsg = nvgpu_tsg_check_and_get_from_id(g, info->id);
+	if (tsg != NULL) {
+		nvgpu_tsg_post_event_id(tsg, info->event_id);
+	}
 }
 
 static void vgpu_channel_abort_cleanup(struct gk20a *g, u32 chid)

@@ -315,7 +315,7 @@ bool gk20a_fifo_handle_mmu_fault_locked(
 			}
 
 			if (type == ENGINE_STATUS_CTX_ID_TYPE_TSGID) {
-				tsg = &g->fifo.tsg[id];
+				tsg = nvgpu_tsg_get_from_id(g, id);
 			} else if (type == ENGINE_STATUS_CTX_ID_TYPE_CHID) {
 				ch = &g->fifo.channel[id];
 				refch = gk20a_channel_get(ch);

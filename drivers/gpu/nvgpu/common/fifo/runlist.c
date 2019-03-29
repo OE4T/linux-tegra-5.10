@@ -134,7 +134,7 @@ static u32 nvgpu_runlist_append_prio(struct fifo_gk20a *f,
 	nvgpu_log_fn(f->g, " ");
 
 	for_each_set_bit(tsgid, runlist->active_tsgs, f->num_channels) {
-		struct tsg_gk20a *tsg = &f->tsg[tsgid];
+		struct tsg_gk20a *tsg = nvgpu_tsg_get_from_id(f->g, tsgid);
 		u32 entries;
 
 		if (tsg->interleave_level == interleave_level) {
@@ -177,7 +177,7 @@ static u32 nvgpu_runlist_append_med(struct fifo_gk20a *f,
 	nvgpu_log_fn(f->g, " ");
 
 	for_each_set_bit(tsgid, runlist->active_tsgs, f->num_channels) {
-		struct tsg_gk20a *tsg = &f->tsg[tsgid];
+		struct tsg_gk20a *tsg = nvgpu_tsg_get_from_id(f->g, tsgid);
 		u32 entries;
 
 		if (tsg->interleave_level !=
@@ -216,7 +216,7 @@ static u32 nvgpu_runlist_append_low(struct fifo_gk20a *f,
 	nvgpu_log_fn(f->g, " ");
 
 	for_each_set_bit(tsgid, runlist->active_tsgs, f->num_channels) {
-		struct tsg_gk20a *tsg = &f->tsg[tsgid];
+		struct tsg_gk20a *tsg = nvgpu_tsg_get_from_id(f->g, tsgid);
 		u32 entries;
 
 		if (tsg->interleave_level !=

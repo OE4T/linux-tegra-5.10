@@ -652,9 +652,9 @@ static void gv11b_fb_handle_mmu_fault_common(struct gk20a *g,
 		/* CE page faults are not reported as replayable */
 		nvgpu_log(g, gpu_dbg_intr, "CE Faulted");
 		err = gv11b_fb_fix_page_fault(g, mmfault);
-
-		if (mmfault->refch != NULL) {
-			tsg = tsg_gk20a_from_ch(mmfault->refch);
+		if ((mmfault->refch != NULL) &&
+		    ((u32)mmfault->refch->tsgid != FIFO_INVAL_TSG_ID)) {
+			tsg = nvgpu_tsg_get_from_id(g, mmfault->refch->tsgid);
 			nvgpu_tsg_reset_faulted_eng_pbdma(g, tsg, true, true);
 		}
 		if (err == 0) {

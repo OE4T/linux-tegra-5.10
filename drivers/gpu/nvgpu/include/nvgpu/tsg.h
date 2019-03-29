@@ -105,6 +105,8 @@ struct tsg_gk20a *tsg_gk20a_from_ch(struct channel_gk20a *ch);
 void nvgpu_tsg_disable(struct tsg_gk20a *tsg);
 int nvgpu_tsg_bind_channel(struct tsg_gk20a *tsg,
 			struct channel_gk20a *ch);
+struct tsg_gk20a *nvgpu_tsg_get_from_id(struct gk20a *g, u32 tsgid);
+struct tsg_gk20a *nvgpu_tsg_check_and_get_from_id(struct gk20a *g, u32 tsgid);
 int nvgpu_tsg_unbind_channel(struct tsg_gk20a *tsg, struct channel_gk20a *ch);
 int nvgpu_tsg_unbind_channel_common(struct tsg_gk20a *tsg,
 		struct channel_gk20a *ch);

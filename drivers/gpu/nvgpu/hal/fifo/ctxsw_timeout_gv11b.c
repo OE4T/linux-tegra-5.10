@@ -200,19 +200,16 @@ bool gv11b_fifo_handle_ctxsw_timeout(struct gk20a *g)
 		if ((ctxsw_timeout_engines &
 			fifo_intr_ctxsw_timeout_engine_pending_f(
 				active_eng_id)) != 0U) {
-
-			struct fifo_gk20a *f = &g->fifo;
 			u32 ms = 0;
 			bool debug_dump = false;
 
 			tsgid = gv11b_fifo_ctxsw_timeout_info(g, active_eng_id,
 						&info_status);
-
-			if (tsgid == FIFO_INVAL_TSG_ID) {
+			tsg = nvgpu_tsg_check_and_get_from_id(g, tsgid);
+			if (tsg == NULL) {
 				continue;
 			}
 
-			tsg = &f->tsg[tsgid];
 			recover = g->ops.tsg.check_ctxsw_timeout(tsg,
 					&debug_dump, &ms);
 			if (recover) {
