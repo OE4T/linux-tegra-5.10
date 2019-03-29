@@ -72,6 +72,9 @@ NV_COMPONENT_CFLAGS             += -DNVGPU_USERD
 # Support iGPU Virt for normal builds
 IGPU_VIRT_SUPPORT              := 1
 NV_COMPONENT_CFLAGS            += -DIGPU_VIRT_SUPPORT
+else
+# Enable USERD until we switch to user mode submit only
+NV_COMPONENT_CFLAGS             += -DNVGPU_USERD
 endif
 
 _NV_TOOLCHAIN_CFLAGS            += -rdynamic -g
