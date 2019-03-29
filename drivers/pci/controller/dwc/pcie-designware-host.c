@@ -510,6 +510,7 @@ int dw_pcie_host_init(struct pcie_port *pp)
 err_free_msi:
 	if (pci_msi_enabled() && !pp->ops->msi_host_init)
 		dw_pcie_free_msi(pp);
+	pci_free_host_bridge(bridge);
 	return ret;
 }
 EXPORT_SYMBOL_GPL(dw_pcie_host_init);
