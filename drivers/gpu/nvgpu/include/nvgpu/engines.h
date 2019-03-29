@@ -27,6 +27,7 @@
 
 struct gk20a;
 struct fifo_engine_info_gk20a;
+struct fifo_gk20a;
 
 enum nvgpu_fifo_engine {
 	NVGPU_ENGINE_GR_GK20A	     = 0U,
@@ -72,5 +73,6 @@ u32 nvgpu_engine_id_to_mmu_fault_id(struct gk20a *g, u32 engine_id);
 u32 nvgpu_engine_mmu_fault_id_to_engine_id(struct gk20a *g, u32 fault_id);
 
 u32 nvgpu_engine_get_mask_on_id(struct gk20a *g, u32 id, bool is_tsg);
+int nvgpu_engine_init_info(struct fifo_gk20a *f);
 
 #endif /*NVGPU_ENGINE_H*/

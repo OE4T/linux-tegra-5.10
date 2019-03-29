@@ -31,7 +31,6 @@ struct mmu_fault_info;
 
 void gm20b_fifo_init_pbdma_intr_descs(struct fifo_gk20a *f);
 void gm20b_fifo_tsg_verify_status_ctx_reload(struct channel_gk20a *ch);
-int gm20b_fifo_init_engine_info(struct fifo_gk20a *f);
 int gm20b_fifo_init_ce_engine_info(struct fifo_gk20a *f);
 
 #endif /* NVGPU_GM20B_FIFO_GM20B_H */

@@ -878,7 +878,6 @@ static const struct gpu_ops gv100_ops = {
 		.tsg_verify_status_faulted = gv11b_fifo_tsg_verify_status_faulted,
 		.tsg_set_timeslice = gk20a_fifo_tsg_set_timeslice,
 		.force_reset_ch = gk20a_fifo_force_reset_ch,
-		.init_engine_info = gm20b_fifo_init_engine_info,
 		.init_pbdma_info = gk20a_fifo_init_pbdma_info,
 		.dump_channel_status_ramfc = gv11b_dump_channel_status_ramfc,
 		.is_preempt_pending = gv11b_fifo_is_preempt_pending,
@@ -922,6 +921,7 @@ static const struct gpu_ops gv100_ops = {
 	.engine = {
 		.is_fault_engine_subid_gpc = gv11b_is_fault_engine_subid_gpc,
 		.get_mask_on_id = nvgpu_engine_get_mask_on_id,
+		.init_info = nvgpu_engine_init_info,
 	},
 	.pbdma = {
 		.intr_enable = gv11b_pbdma_intr_enable,
