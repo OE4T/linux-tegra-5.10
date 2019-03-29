@@ -2623,10 +2623,8 @@ static int gk20a_gr_handle_tpc_exception(struct gk20a *g, u32 gpc, u32 tpc,
 		}
 	}
 
-	if (g->ops.gr.handle_tpc_mpc_exception != NULL) {
-		tmp_ret = g->ops.gr.handle_tpc_mpc_exception(g,
-					gpc, tpc, post_event);
-		ret = (ret != 0) ? ret : tmp_ret;
+	if (g->ops.gr.intr.handle_tpc_mpc_exception != NULL) {
+		g->ops.gr.intr.handle_tpc_mpc_exception(g, gpc, tpc);
 	}
 
 	return ret;

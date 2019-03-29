@@ -452,7 +452,6 @@ static const struct gpu_ops gv100_ops = {
 		.set_ctxsw_preemption_mode = gr_gp10b_set_ctxsw_preemption_mode,
 		.is_etpc_addr = gv11b_gr_pri_is_etpc_addr,
 		.egpc_etpc_priv_addr_table = gv11b_gr_egpc_etpc_priv_addr_table,
-		.handle_tpc_mpc_exception = gr_gv11b_handle_tpc_mpc_exception,
 		.handle_gpc_gpcmmu_exception =
 			gr_gv11b_handle_gpc_gpcmmu_exception,
 		.get_egpc_base = gv11b_gr_get_egpc_base,
@@ -702,6 +701,8 @@ static const struct gpu_ops gv100_ops = {
 				gv11b_gr_init_commit_gfxp_wfi_timeout,
 		},
 		.intr = {
+			.handle_tpc_mpc_exception =
+					gv11b_gr_intr_handle_tpc_mpc_exception,
 			.handle_tex_exception = NULL,
 			.enable_hww_exceptions =
 					gv11b_gr_intr_enable_hww_exceptions,

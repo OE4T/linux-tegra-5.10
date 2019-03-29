@@ -22,12 +22,44 @@
 
 #include <nvgpu/gk20a.h>
 #include <nvgpu/io.h>
+#include <nvgpu/nvgpu_err.h>
 
 #include <nvgpu/gr/config.h>
+#include <nvgpu/gr/gr.h>
 
 #include "gr_intr_gv11b.h"
 
 #include <nvgpu/hw/gv11b/hw_gr_gv11b.h>
+
+void gv11b_gr_intr_handle_tpc_mpc_exception(struct gk20a *g, u32 gpc, u32 tpc)
+{
+	u32 esr;
+	u32 offset = nvgpu_gr_gpc_offset(g, gpc) + nvgpu_gr_tpc_offset(g, tpc);
+	u32 tpc_exception = gk20a_readl(g, gr_gpc0_tpc0_tpccs_tpc_exception_r()
+			+ offset);
+
+	if ((tpc_exception & gr_gpc0_tpc0_tpccs_tpc_exception_mpc_m()) == 0U) {
+		return;
+	}
+
+	nvgpu_log(g, gpu_dbg_intr | gpu_dbg_gpu_dbg,
+			"GPC%d TPC%d MPC exception", gpc, tpc);
+
+	esr = nvgpu_readl(g, gr_gpc0_tpc0_mpc_hww_esr_r() + offset);
+	nvgpu_log(g, gpu_dbg_intr | gpu_dbg_gpu_dbg, "mpc hww esr 0x%08x", esr);
+
+	nvgpu_report_gr_exception(g, ((gpc << 8U) | tpc),
+			GPU_PGRAPH_MPC_EXCEPTION,
+			esr);
+
+	esr = nvgpu_readl(g, gr_gpc0_tpc0_mpc_hww_esr_info_r() + offset);
+	nvgpu_log(g, gpu_dbg_intr | gpu_dbg_gpu_dbg,
+			"mpc hww esr info: veid 0x%08x",
+			gr_gpc0_tpc0_mpc_hww_esr_info_veid_v(esr));
+
+	nvgpu_writel(g, gr_gpc0_tpc0_mpc_hww_esr_r() + offset,
+		     gr_gpc0_tpc0_mpc_hww_esr_reset_trigger_f());
+}
 
 void gv11b_gr_intr_enable_hww_exceptions(struct gk20a *g)
 {
