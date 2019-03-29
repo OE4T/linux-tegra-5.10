@@ -25,6 +25,8 @@
 #include <nvgpu/debug.h>
 #include <nvgpu/firmware.h>
 #include <nvgpu/mm.h>
+#include <nvgpu/sec2.h>
+#include <nvgpu/acr.h>
 
 static int nvgpu_gr_falcon_init_ctxsw_ucode_vaspace(struct gk20a *g)
 {
