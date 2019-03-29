@@ -23,7 +23,7 @@
 #ifndef NVGPU_SEC2_MSG_H
 #define NVGPU_SEC2_MSG_H
 
-#include <nvgpu/sec2if/sec2_if_acr.h>
+#include <nvgpu/sec2/lsfm.h>
 #include <nvgpu/sec2/queue_cmn.h>
 #include <nvgpu/flcnif_cmn.h>
 #include <nvgpu/types.h>

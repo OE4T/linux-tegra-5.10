@@ -23,7 +23,7 @@
 #ifndef NVGPU_SEC2_CMD_IF_H
 #define NVGPU_SEC2_CMD_IF_H
 
-#include <nvgpu/sec2if/sec2_if_acr.h>
+#include <nvgpu/sec2/lsfm.h>
 
 struct nv_flcn_cmd_sec2 {
 	struct pmu_hdr hdr;

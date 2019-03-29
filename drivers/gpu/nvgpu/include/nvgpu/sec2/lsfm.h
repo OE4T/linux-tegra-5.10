@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -20,10 +20,13 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NVGPU_SEC2_IF_ACR_H
-#define NVGPU_SEC2_IF_ACR_H
+#ifndef NVGPU_SEC2_BOOTSTRAP_H
+#define NVGPU_SEC2_BOOTSTRAP_H
 
 #include <nvgpu/types.h>
+
+struct gk20a;
+struct nvgpu_sec2;
 
 /*
  * ACR Command Types
@@ -80,7 +83,7 @@ struct nv_sec2_acr_msg_bootstrap_falcon {
 
 	/* Bootstrapped falcon ID by ACR */
 	u32 falcon_id;
-} ;
+};
 
 /*
  * A union of all ACR Messages.
@@ -93,4 +96,7 @@ union nv_sec2_acr_msg {
 	struct nv_sec2_acr_msg_bootstrap_falcon msg_flcn;
 };
 
-#endif /* NVGPU_SEC2_IF_ACR_H */
+int nvgpu_sec2_bootstrap_ls_falcons(struct gk20a *g, struct nvgpu_sec2 *sec2,
+	u32 falcon_id);
+
+#endif /* NVGPU_SEC2_BOOTSTRAP_H */

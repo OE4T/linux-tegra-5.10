@@ -75,10 +75,6 @@ int nvgpu_sec2_cmd_post(struct gk20a *g, struct nv_flcn_cmd_sec2 *cmd,
 int nvgpu_sec2_wait_message_cond(struct nvgpu_sec2 *sec2, u32 timeout_ms,
 	void *var, u8 val);
 
-/* commands methods*/
-int nvgpu_sec2_bootstrap_ls_falcons(struct gk20a *g, struct nvgpu_sec2 *sec2,
-	u32 falcon_id);
-
 /* sec2 init */
 int nvgpu_init_sec2_setup_sw(struct gk20a *g, struct nvgpu_sec2 *sec2);
 int nvgpu_init_sec2_support(struct gk20a *g);

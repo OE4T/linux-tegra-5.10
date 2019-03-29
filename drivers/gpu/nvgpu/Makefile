@@ -450,6 +450,7 @@ nvgpu-y += \
 	common/sec2/sec2.o \
 	common/sec2/sec2_allocator.o \
 	common/sec2/sec2_ipc.o \
+	common/sec2/sec2_lsfm.o \
 	common/sec2/sec2_msg.o \
 	common/sec2/sec2_queue.o \
 	common/sec2/sec2_seq.o \
