@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -20,10 +20,11 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NVGPU_NVDEC_GP106_H
-#define NVGPU_NVDEC_GP106_H
+#include "nvdec_tu104.h"
 
-#include <nvgpu/types.h>
-u32 gp106_nvdec_falcon_base_addr(void);
+#include <nvgpu/hw/tu104/hw_pnvdec_tu104.h>
 
-#endif /* NVGPU_NVDEC_GP106_H */
+u32 tu104_nvdec_falcon_base_addr(void)
+{
+	return pnvdec_falcon_irqsset_r(0);
+}

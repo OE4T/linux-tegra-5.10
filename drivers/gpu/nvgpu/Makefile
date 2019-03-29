@@ -85,8 +85,6 @@ nvgpu-y += \
 	common/netlist/netlist_gv100.o \
 	common/netlist/netlist_gv11b.o \
 	common/netlist/netlist_tu104.o \
-	common/nvdec/nvdec_gp106.o \
-	common/nvdec/nvdec_tu104.o \
 	common/init/nvgpu_init.o \
 	common/pmu/pmu.o \
 	common/pmu/pmu_ipc.o \
@@ -245,6 +243,8 @@ nvgpu-y += \
 	hal/fifo/ctxsw_timeout_gk20a.o \
 	hal/fifo/ctxsw_timeout_gv11b.o \
 	hal/falcon/falcon_gk20a.o \
+	hal/nvdec/nvdec_gp106.o \
+	hal/nvdec/nvdec_tu104.o \
 	hal/nvlink/minion_gv100.o \
 	hal/nvlink/minion_tu104.o \
 	hal/nvlink/link_mode_transitions_gv100.o \

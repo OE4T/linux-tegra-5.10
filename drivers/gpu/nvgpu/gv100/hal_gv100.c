@@ -83,6 +83,7 @@
 #include "hal/gr/ctxsw_prog/ctxsw_prog_gp10b.h"
 #include "hal/gr/ctxsw_prog/ctxsw_prog_gv11b.h"
 #include "hal/falcon/falcon_gk20a.h"
+#include "hal/nvdec/nvdec_gp106.h"
 #include "hal/gsp/gsp_gv100.h"
 
 #include "common/ptimer/ptimer_gk20a.h"
@@ -99,7 +100,6 @@
 #include "common/pmu/pmu_gv11b.h"
 #include "common/pmu/pmu_gv100.h"
 #include "common/pmu/pg/pg_sw_gp106.h"
-#include "common/nvdec/nvdec_gp106.h"
 #include "common/nvlink/init/device_reginit_gv100.h"
 #include "common/nvlink/intr_and_err_handling_gv100.h"
 #include "hal/nvlink/minion_gv100.h"
