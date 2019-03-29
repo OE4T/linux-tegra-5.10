@@ -530,7 +530,7 @@ int gr_gp10b_init_ctx_state(struct gk20a *g)
 		op.method.addr =
 			gr_fecs_method_push_adr_discover_preemption_image_size_v();
 		op.mailbox.ret = &g->gr.ctx_vars.preempt_image_size;
-		err = gr_gk20a_submit_fecs_method_op(g, op, false);
+		err = g->ops.gr.falcon.submit_fecs_method_op(g, op, false);
 		if (err != 0) {
 			nvgpu_err(g, "query preempt image size failed");
 			return err;
@@ -961,7 +961,7 @@ int gr_gp10b_set_cilp_preempt_pending(struct gk20a *g,
 			"CILP: ctx id is 0x%x", gr_ctx->ctx_id);
 
 	/* send ucode method to set ctxsw interrupt */
-	ret = gr_gk20a_submit_fecs_sideband_method_op(g,
+	ret = g->ops.gr.falcon.submit_fecs_sideband_method_op(g,
 			(struct fecs_method_op_gk20a) {
 			.method.data = nvgpu_gr_ctx_get_ctx_id(g, gr_ctx),
 			.method.addr =

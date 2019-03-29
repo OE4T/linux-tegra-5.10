@@ -359,11 +359,6 @@ int gr_gk20a_handle_sm_exception(struct gk20a *g, u32 gpc, u32 tpc, u32 sm,
 		bool *post_event, struct channel_gk20a *fault_ch,
 		u32 *hww_global_esr);
 int gr_gk20a_init_ctx_state(struct gk20a *g);
-int gr_gk20a_submit_fecs_method_op(struct gk20a *g,
-				   struct fecs_method_op_gk20a op,
-				   bool sleepduringwait);
-int gr_gk20a_submit_fecs_sideband_method_op(struct gk20a *g,
-		struct fecs_method_op_gk20a op);
 void gr_gk20a_free_gr_ctx(struct gk20a *g,
 		       struct vm_gk20a *vm, struct nvgpu_gr_ctx *gr_ctx);
 int gr_gk20a_halt_pipe(struct gk20a *g);
@@ -398,10 +393,6 @@ int gk20a_gr_lock_down_sm(struct gk20a *g,
 			 bool check_errors);
 int gk20a_gr_wait_for_sm_lock_down(struct gk20a *g, u32 gpc, u32 tpc, u32 sm,
 		u32 global_esr_mask, bool check_errors);
-int gr_gk20a_ctx_wait_ucode(struct gk20a *g, u32 mailbox_id,
-			    u32 *mailbox_ret, u32 opc_success,
-			    u32 mailbox_ok, u32 opc_fail,
-			    u32 mailbox_fail, bool sleepduringwait);
 
 u32 gk20a_gr_get_sm_hww_warp_esr(struct gk20a *g, u32 gpc, u32 tpc, u32 sm);
 u32 gk20a_gr_get_sm_hww_global_esr(struct gk20a *g, u32 gpc, u32 tpc, u32 sm);

@@ -586,6 +586,12 @@ struct gpu_ops {
 				u32 addr_load32, u32 blocks, u32 dst);
 			int (*load_ctxsw_ucode)(struct gk20a *g);
 			int (*wait_mem_scrubbing)(struct gk20a *g);
+			int (*wait_ctxsw_ready)(struct gk20a *g);
+			int (*submit_fecs_method_op)(struct gk20a *g,
+				struct fecs_method_op_gk20a op,
+				bool sleepduringwait);
+			int (*submit_fecs_sideband_method_op)(struct gk20a *g,
+				struct fecs_method_op_gk20a op);
 		} falcon;
 
 #ifdef CONFIG_GK20A_CTXSW_TRACE

@@ -27,6 +27,8 @@
 
 struct gk20a;
 
+struct fecs_method_op_gk20a;
+
 u32 gm20b_gr_falcon_fecs_base_addr(void);
 u32 gm20b_gr_falcon_gpccs_base_addr(void);
 void gm20b_gr_falcon_fecs_dump_stats(struct gk20a *g);
@@ -54,6 +56,11 @@ void gm20b_gr_falcon_load_ctxsw_ucode_boot(struct gk20a *g,
 	u32 reg_offset, u32 boot_entry, u32 addr_load32, u32 blocks,
 	u32 dst);
 int gm20b_gr_falcon_wait_mem_scrubbing(struct gk20a *g);
+int gm20b_gr_falcon_wait_ctxsw_ready(struct gk20a *g);
+int gm20b_gr_falcon_submit_fecs_method_op(struct gk20a *g,
+	struct fecs_method_op_gk20a op, bool sleepduringwait);
+int gm20b_gr_falcon_submit_fecs_sideband_method_op(struct gk20a *g,
+				struct fecs_method_op_gk20a op);
 
 void gm20b_gr_falcon_set_current_ctx_invalid(struct gk20a *g);
 

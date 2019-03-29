@@ -466,6 +466,171 @@ int gm20b_gr_falcon_wait_mem_scrubbing(struct gk20a *g)
 	return -ETIMEDOUT;
 }
 
+static int gm20b_gr_falcon_ctx_wait_ucode(struct gk20a *g, u32 mailbox_id,
+			    u32 *mailbox_ret, u32 opc_success,
+			    u32 mailbox_ok, u32 opc_fail,
+			    u32 mailbox_fail, bool sleepduringwait)
+{
+	struct nvgpu_timeout timeout;
+	u32 delay = GR_FECS_POLL_INTERVAL;
+	enum wait_ucode_status check = WAIT_UCODE_LOOP;
+	u32 reg;
+	int err;
+
+	nvgpu_log_fn(g, " ");
+
+	if (sleepduringwait) {
+		delay = POLL_DELAY_MIN_US;
+	}
+
+	err = nvgpu_timeout_init(g, &timeout, nvgpu_get_poll_timeout(g),
+			   NVGPU_TIMER_CPU_TIMER);
+	if (err != 0) {
+		nvgpu_err(g, "ctxsw wait ucode timeout_init failed: %d", err);
+		return err;
+	}
+
+	while (check == WAIT_UCODE_LOOP) {
+		if (nvgpu_timeout_expired(&timeout) != 0) {
+			check = WAIT_UCODE_TIMEOUT;
+		}
+
+		reg = nvgpu_readl(g, gr_fecs_ctxsw_mailbox_r(mailbox_id));
+
+		if (mailbox_ret != NULL) {
+			*mailbox_ret = reg;
+		}
+
+		switch (opc_success) {
+		case GR_IS_UCODE_OP_EQUAL:
+			if (reg == mailbox_ok) {
+				check = WAIT_UCODE_OK;
+			}
+			break;
+		case GR_IS_UCODE_OP_NOT_EQUAL:
+			if (reg != mailbox_ok) {
+				check = WAIT_UCODE_OK;
+			}
+			break;
+		case GR_IS_UCODE_OP_AND:
+			if ((reg & mailbox_ok) != 0U) {
+				check = WAIT_UCODE_OK;
+			}
+			break;
+		case GR_IS_UCODE_OP_LESSER:
+			if (reg < mailbox_ok) {
+				check = WAIT_UCODE_OK;
+			}
+			break;
+		case GR_IS_UCODE_OP_LESSER_EQUAL:
+			if (reg <= mailbox_ok) {
+				check = WAIT_UCODE_OK;
+			}
+			break;
+		case GR_IS_UCODE_OP_SKIP:
+			/* do no success check */
+			break;
+		default:
+			nvgpu_err(g,
+				   "invalid success opcode 0x%x", opc_success);
+
+			check = WAIT_UCODE_ERROR;
+			break;
+		}
+
+		switch (opc_fail) {
+		case GR_IS_UCODE_OP_EQUAL:
+			if (reg == mailbox_fail) {
+				check = WAIT_UCODE_ERROR;
+			}
+			break;
+		case GR_IS_UCODE_OP_NOT_EQUAL:
+			if (reg != mailbox_fail) {
+				check = WAIT_UCODE_ERROR;
+			}
+			break;
+		case GR_IS_UCODE_OP_AND:
+			if ((reg & mailbox_fail) != 0U) {
+				check = WAIT_UCODE_ERROR;
+			}
+			break;
+		case GR_IS_UCODE_OP_LESSER:
+			if (reg < mailbox_fail) {
+				check = WAIT_UCODE_ERROR;
+			}
+			break;
+		case GR_IS_UCODE_OP_LESSER_EQUAL:
+			if (reg <= mailbox_fail) {
+				check = WAIT_UCODE_ERROR;
+			}
+			break;
+		case GR_IS_UCODE_OP_SKIP:
+			/* do no check on fail*/
+			break;
+		default:
+			nvgpu_err(g,
+				   "invalid fail opcode 0x%x", opc_fail);
+			check = WAIT_UCODE_ERROR;
+			break;
+		}
+
+		if (sleepduringwait) {
+			nvgpu_usleep_range(delay, delay * 2U);
+			delay = min_t(u32, delay << 1, POLL_DELAY_MAX_US);
+		} else {
+			nvgpu_udelay(delay);
+		}
+	}
+
+	if (check == WAIT_UCODE_TIMEOUT) {
+		nvgpu_err(g,
+			   "timeout waiting on mailbox=%d value=0x%08x",
+			   mailbox_id, reg);
+		g->ops.gr.falcon.dump_stats(g);
+		gk20a_gr_debug_dump(g);
+		return -1;
+	} else if (check == WAIT_UCODE_ERROR) {
+		nvgpu_err(g,
+			   "ucode method failed on mailbox=%d value=0x%08x",
+			   mailbox_id, reg);
+		g->ops.gr.falcon.dump_stats(g);
+		return -1;
+	}
+
+	nvgpu_log_fn(g, "done");
+	return 0;
+}
+
+int gm20b_gr_falcon_wait_ctxsw_ready(struct gk20a *g)
+{
+	int ret;
+
+	nvgpu_log_fn(g, " ");
+
+	ret = gm20b_gr_falcon_ctx_wait_ucode(g, 0, NULL,
+				      GR_IS_UCODE_OP_EQUAL,
+				      eUcodeHandshakeInitComplete,
+				      GR_IS_UCODE_OP_SKIP, 0, false);
+	if (ret != 0) {
+		nvgpu_err(g, "falcon ucode init timeout");
+		return ret;
+	}
+
+	if (nvgpu_is_enabled(g, NVGPU_GR_USE_DMA_FOR_FW_BOOTSTRAP) ||
+		nvgpu_is_enabled(g, NVGPU_SEC_SECUREGPCCS)) {
+		nvgpu_writel(g, gr_fecs_current_ctx_r(),
+			gr_fecs_current_ctx_valid_false_f());
+	}
+
+	nvgpu_writel(g, gr_fecs_ctxsw_mailbox_clear_r(0), 0xffffffffU);
+	nvgpu_writel(g, gr_fecs_method_data_r(), 0x7fffffff);
+	nvgpu_writel(g, gr_fecs_method_push_r(),
+		     gr_fecs_method_push_adr_set_watchdog_timeout_f());
+
+	nvgpu_log_fn(g, "done");
+	return 0;
+}
+
 u32 gm20b_gr_falcon_fecs_base_addr(void)
 {
 	return gr_fecs_irqsset_r();
@@ -504,3 +669,77 @@ void gm20b_gr_falcon_set_current_ctx_invalid(struct gk20a *g)
 		gr_fecs_current_ctx_valid_false_f());
 }
 
+/* The following is a less brittle way to call gr_gk20a_submit_fecs_method(...)
+ * We should replace most, if not all, fecs method calls to this instead.
+ */
+int gm20b_gr_falcon_submit_fecs_method_op(struct gk20a *g,
+				   struct fecs_method_op_gk20a op,
+				   bool sleepduringwait)
+{
+	struct gr_gk20a *gr = &g->gr;
+	int ret;
+
+	nvgpu_mutex_acquire(&gr->fecs_mutex);
+
+	if (op.mailbox.id != 0U) {
+		nvgpu_writel(g, gr_fecs_ctxsw_mailbox_r(op.mailbox.id),
+			     op.mailbox.data);
+	}
+
+	nvgpu_writel(g, gr_fecs_ctxsw_mailbox_clear_r(0),
+		gr_fecs_ctxsw_mailbox_clear_value_f(op.mailbox.clr));
+
+	nvgpu_writel(g, gr_fecs_method_data_r(), op.method.data);
+	nvgpu_writel(g, gr_fecs_method_push_r(),
+		gr_fecs_method_push_adr_f(op.method.addr));
+
+	/* op.mailbox.id == 4 cases require waiting for completion on
+	 * for op.mailbox.id == 0
+	 */
+	if (op.mailbox.id == 4U) {
+		op.mailbox.id = 0;
+	}
+
+	ret = gm20b_gr_falcon_ctx_wait_ucode(g, op.mailbox.id, op.mailbox.ret,
+				      op.cond.ok, op.mailbox.ok,
+				      op.cond.fail, op.mailbox.fail,
+				      sleepduringwait);
+	if (ret != 0) {
+		nvgpu_err(g, "fecs method: data=0x%08x push adr=0x%08x",
+			op.method.data, op.method.addr);
+	}
+
+	nvgpu_mutex_release(&gr->fecs_mutex);
+
+	return ret;
+}
+
+/* Sideband mailbox writes are done a bit differently */
+int gm20b_gr_falcon_submit_fecs_sideband_method_op(struct gk20a *g,
+		struct fecs_method_op_gk20a op)
+{
+	struct gr_gk20a *gr = &g->gr;
+	int ret;
+
+	nvgpu_mutex_acquire(&gr->fecs_mutex);
+
+	nvgpu_writel(g, gr_fecs_ctxsw_mailbox_clear_r(op.mailbox.id),
+		gr_fecs_ctxsw_mailbox_clear_value_f(op.mailbox.clr));
+
+	nvgpu_writel(g, gr_fecs_method_data_r(), op.method.data);
+	nvgpu_writel(g, gr_fecs_method_push_r(),
+		gr_fecs_method_push_adr_f(op.method.addr));
+
+	ret = gm20b_gr_falcon_ctx_wait_ucode(g, op.mailbox.id, op.mailbox.ret,
+				      op.cond.ok, op.mailbox.ok,
+				      op.cond.fail, op.mailbox.fail,
+				      false);
+	if (ret != 0) {
+		nvgpu_err(g, "fecs method: data=0x%08x push adr=0x%08x",
+			op.method.data, op.method.addr);
+	}
+
+	nvgpu_mutex_release(&gr->fecs_mutex);
+
+	return ret;
+}

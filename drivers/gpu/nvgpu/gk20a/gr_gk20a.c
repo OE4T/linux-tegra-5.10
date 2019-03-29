@@ -176,212 +176,10 @@ static void gr_report_ctxsw_error(struct gk20a *g, u32 err_type, u32 chid,
 		}
 	}
 }
-int gr_gk20a_ctx_wait_ucode(struct gk20a *g, u32 mailbox_id,
-			    u32 *mailbox_ret, u32 opc_success,
-			    u32 mailbox_ok, u32 opc_fail,
-			    u32 mailbox_fail, bool sleepduringwait)
-{
-	struct nvgpu_timeout timeout;
-	u32 delay = GR_FECS_POLL_INTERVAL;
-	enum wait_ucode_status check = WAIT_UCODE_LOOP;
-	u32 reg;
-
-	nvgpu_log_fn(g, " ");
-
-	if (sleepduringwait) {
-		delay = POLL_DELAY_MIN_US;
-	}
-
-	nvgpu_timeout_init(g, &timeout, nvgpu_get_poll_timeout(g),
-			   NVGPU_TIMER_CPU_TIMER);
-
-	while (check == WAIT_UCODE_LOOP) {
-		if (nvgpu_timeout_expired(&timeout) != 0) {
-			check = WAIT_UCODE_TIMEOUT;
-		}
-
-		reg = gk20a_readl(g, gr_fecs_ctxsw_mailbox_r(mailbox_id));
-
-		if (mailbox_ret != NULL) {
-			*mailbox_ret = reg;
-		}
-
-		switch (opc_success) {
-		case GR_IS_UCODE_OP_EQUAL:
-			if (reg == mailbox_ok) {
-				check = WAIT_UCODE_OK;
-			}
-			break;
-		case GR_IS_UCODE_OP_NOT_EQUAL:
-			if (reg != mailbox_ok) {
-				check = WAIT_UCODE_OK;
-			}
-			break;
-		case GR_IS_UCODE_OP_AND:
-			if ((reg & mailbox_ok) != 0U) {
-				check = WAIT_UCODE_OK;
-			}
-			break;
-		case GR_IS_UCODE_OP_LESSER:
-			if (reg < mailbox_ok) {
-				check = WAIT_UCODE_OK;
-			}
-			break;
-		case GR_IS_UCODE_OP_LESSER_EQUAL:
-			if (reg <= mailbox_ok) {
-				check = WAIT_UCODE_OK;
-			}
-			break;
-		case GR_IS_UCODE_OP_SKIP:
-			/* do no success check */
-			break;
-		default:
-			nvgpu_err(g,
-				   "invalid success opcode 0x%x", opc_success);
-
-			check = WAIT_UCODE_ERROR;
-			break;
-		}
-
-		switch (opc_fail) {
-		case GR_IS_UCODE_OP_EQUAL:
-			if (reg == mailbox_fail) {
-				check = WAIT_UCODE_ERROR;
-			}
-			break;
-		case GR_IS_UCODE_OP_NOT_EQUAL:
-			if (reg != mailbox_fail) {
-				check = WAIT_UCODE_ERROR;
-			}
-			break;
-		case GR_IS_UCODE_OP_AND:
-			if ((reg & mailbox_fail) != 0U) {
-				check = WAIT_UCODE_ERROR;
-			}
-			break;
-		case GR_IS_UCODE_OP_LESSER:
-			if (reg < mailbox_fail) {
-				check = WAIT_UCODE_ERROR;
-			}
-			break;
-		case GR_IS_UCODE_OP_LESSER_EQUAL:
-			if (reg <= mailbox_fail) {
-				check = WAIT_UCODE_ERROR;
-			}
-			break;
-		case GR_IS_UCODE_OP_SKIP:
-			/* do no check on fail*/
-			break;
-		default:
-			nvgpu_err(g,
-				   "invalid fail opcode 0x%x", opc_fail);
-			check = WAIT_UCODE_ERROR;
-			break;
-		}
-
-		if (sleepduringwait) {
-			nvgpu_usleep_range(delay, delay * 2U);
-			delay = min_t(u32, delay << 1, POLL_DELAY_MAX_US);
-		} else {
-			nvgpu_udelay(delay);
-		}
-	}
-
-	if (check == WAIT_UCODE_TIMEOUT) {
-		nvgpu_err(g,
-			   "timeout waiting on mailbox=%d value=0x%08x",
-			   mailbox_id, reg);
-		g->ops.gr.falcon.dump_stats(g);
-		gk20a_gr_debug_dump(g);
-		return -1;
-	} else if (check == WAIT_UCODE_ERROR) {
-		nvgpu_err(g,
-			   "ucode method failed on mailbox=%d value=0x%08x",
-			   mailbox_id, reg);
-		g->ops.gr.falcon.dump_stats(g);
-		return -1;
-	}
-
-	nvgpu_log_fn(g, "done");
-	return 0;
-}
-
-/* The following is a less brittle way to call gr_gk20a_submit_fecs_method(...)
- * We should replace most, if not all, fecs method calls to this instead. */
-int gr_gk20a_submit_fecs_method_op(struct gk20a *g,
-				   struct fecs_method_op_gk20a op,
-				   bool sleepduringwait)
-{
-	struct gr_gk20a *gr = &g->gr;
-	int ret;
-
-	nvgpu_mutex_acquire(&gr->fecs_mutex);
-
-	if (op.mailbox.id != 0U) {
-		gk20a_writel(g, gr_fecs_ctxsw_mailbox_r(op.mailbox.id),
-			     op.mailbox.data);
-	}
-
-	gk20a_writel(g, gr_fecs_ctxsw_mailbox_clear_r(0),
-		gr_fecs_ctxsw_mailbox_clear_value_f(op.mailbox.clr));
-
-	gk20a_writel(g, gr_fecs_method_data_r(), op.method.data);
-	gk20a_writel(g, gr_fecs_method_push_r(),
-		gr_fecs_method_push_adr_f(op.method.addr));
-
-	/* op.mailbox.id == 4 cases require waiting for completion on
-	 * for op.mailbox.id == 0 */
-	if (op.mailbox.id == 4U) {
-		op.mailbox.id = 0;
-	}
-
-	ret = gr_gk20a_ctx_wait_ucode(g, op.mailbox.id, op.mailbox.ret,
-				      op.cond.ok, op.mailbox.ok,
-				      op.cond.fail, op.mailbox.fail,
-				      sleepduringwait);
-	if (ret != 0) {
-		nvgpu_err(g,"fecs method: data=0x%08x push adr=0x%08x",
-			op.method.data, op.method.addr);
-	}
-
-	nvgpu_mutex_release(&gr->fecs_mutex);
-
-	return ret;
-}
-
-/* Sideband mailbox writes are done a bit differently */
-int gr_gk20a_submit_fecs_sideband_method_op(struct gk20a *g,
-		struct fecs_method_op_gk20a op)
-{
-	struct gr_gk20a *gr = &g->gr;
-	int ret;
-
-	nvgpu_mutex_acquire(&gr->fecs_mutex);
-
-	gk20a_writel(g, gr_fecs_ctxsw_mailbox_clear_r(op.mailbox.id),
-		gr_fecs_ctxsw_mailbox_clear_value_f(op.mailbox.clr));
-
-	gk20a_writel(g, gr_fecs_method_data_r(), op.method.data);
-	gk20a_writel(g, gr_fecs_method_push_r(),
-		gr_fecs_method_push_adr_f(op.method.addr));
-
-	ret = gr_gk20a_ctx_wait_ucode(g, op.mailbox.id, op.mailbox.ret,
-				      op.cond.ok, op.mailbox.ok,
-				      op.cond.fail, op.mailbox.fail,
-				      false);
-	if (ret != 0) {
-		nvgpu_err(g,"fecs method: data=0x%08x push adr=0x%08x",
-			op.method.data, op.method.addr);
-	}
-
-	nvgpu_mutex_release(&gr->fecs_mutex);
-
-	return ret;
-}
 
 static int gr_gk20a_ctrl_ctxsw(struct gk20a *g, u32 fecs_method, u32 *ret)
 {
-	return gr_gk20a_submit_fecs_method_op(g,
+	return g->ops.gr.falcon.submit_fecs_method_op(g,
 	      (struct fecs_method_op_gk20a) {
 		      .method.addr = fecs_method,
 		      .method.data = ~U32(0U),
@@ -470,7 +268,7 @@ ctxsw_already_enabled:
 
 int gr_gk20a_halt_pipe(struct gk20a *g)
 {
-	return gr_gk20a_submit_fecs_method_op(g,
+	return g->ops.gr.falcon.submit_fecs_method_op(g,
 	      (struct fecs_method_op_gk20a) {
 		      .method.addr =
 				gr_fecs_method_push_adr_halt_pipeline_v(),
@@ -528,7 +326,7 @@ int gr_gk20a_fecs_ctx_bind_channel(struct gk20a *g,
 	nvgpu_log_info(g, "bind channel %d inst ptr 0x%08x",
 		   c->chid, inst_base_ptr);
 
-	ret = gr_gk20a_submit_fecs_method_op(g,
+	ret = g->ops.gr.falcon.submit_fecs_method_op(g,
 		     (struct fecs_method_op_gk20a) {
 		     .method.addr = gr_fecs_method_push_adr_bind_pointer_v(),
 		     .method.data = data,
@@ -610,7 +408,7 @@ int gr_gk20a_fecs_ctx_image_save(struct channel_gk20a *c, u32 save_type)
 
 	nvgpu_log_fn(g, " ");
 
-	ret = gr_gk20a_submit_fecs_method_op(g,
+	ret = g->ops.gr.falcon.submit_fecs_method_op(g,
 		(struct fecs_method_op_gk20a) {
 		.method.addr = save_type,
 		.method.data = fecs_current_ctx_data(g, &c->inst_block),
@@ -931,36 +729,6 @@ int gr_gk20a_update_hwpm_ctxsw_mode(struct gk20a *g,
 	return ret;
 }
 
-static int gr_gk20a_wait_ctxsw_ready(struct gk20a *g)
-{
-	int ret;
-
-	nvgpu_log_fn(g, " ");
-
-	ret = gr_gk20a_ctx_wait_ucode(g, 0, NULL,
-				      GR_IS_UCODE_OP_EQUAL,
-				      eUcodeHandshakeInitComplete,
-				      GR_IS_UCODE_OP_SKIP, 0, false);
-	if (ret != 0) {
-		nvgpu_err(g, "falcon ucode init timeout");
-		return ret;
-	}
-
-	if (nvgpu_is_enabled(g, NVGPU_GR_USE_DMA_FOR_FW_BOOTSTRAP) ||
-		nvgpu_is_enabled(g, NVGPU_SEC_SECUREGPCCS)) {
-		gk20a_writel(g, gr_fecs_current_ctx_r(),
-			gr_fecs_current_ctx_valid_false_f());
-	}
-
-	gk20a_writel(g, gr_fecs_ctxsw_mailbox_clear_r(0), 0xffffffffU);
-	gk20a_writel(g, gr_fecs_method_data_r(), 0x7fffffff);
-	gk20a_writel(g, gr_fecs_method_push_r(),
-		     gr_fecs_method_push_adr_set_watchdog_timeout_f());
-
-	nvgpu_log_fn(g, "done");
-	return 0;
-}
-
 int gr_gk20a_init_ctx_state(struct gk20a *g)
 {
 	int ret;
@@ -978,7 +746,7 @@ int gr_gk20a_init_ctx_state(struct gk20a *g)
 		op.method.addr =
 			gr_fecs_method_push_adr_discover_image_size_v();
 		op.mailbox.ret = &g->gr.ctx_vars.golden_image_size;
-		ret = gr_gk20a_submit_fecs_method_op(g, op, false);
+		ret = g->ops.gr.falcon.submit_fecs_method_op(g, op, false);
 		if (ret != 0) {
 			nvgpu_err(g,
 				   "query golden image size failed");
@@ -988,7 +756,7 @@ int gr_gk20a_init_ctx_state(struct gk20a *g)
 		op.method.addr =
 			gr_fecs_method_push_adr_discover_pm_image_size_v();
 		op.mailbox.ret = &g->gr.ctx_vars.pm_ctxsw_image_size;
-		ret = gr_gk20a_submit_fecs_method_op(g, op, false);
+		ret = g->ops.gr.falcon.submit_fecs_method_op(g, op, false);
 		if (ret != 0) {
 			nvgpu_err(g,
 				   "query pm ctx image size failed");
@@ -1484,7 +1252,7 @@ static int gr_gk20a_init_ctxsw(struct gk20a *g)
 		goto out;
 	}
 
-	err = gr_gk20a_wait_ctxsw_ready(g);
+	err = g->ops.gr.falcon.wait_ctxsw_ready(g);
 	if (err != 0) {
 		goto out;
 	}
@@ -3040,7 +2808,7 @@ u32 gk20a_gr_nonstall_isr(struct gk20a *g)
 int gr_gk20a_fecs_get_reglist_img_size(struct gk20a *g, u32 *size)
 {
 	BUG_ON(size == NULL);
-	return gr_gk20a_submit_fecs_method_op(g,
+	return g->ops.gr.falcon.submit_fecs_method_op(g,
 		   (struct fecs_method_op_gk20a) {
 			   .mailbox.id = 0U,
 			   .mailbox.data = 0U,
@@ -3059,7 +2827,7 @@ int gr_gk20a_fecs_set_reglist_bind_inst(struct gk20a *g,
 {
 	u32 data = fecs_current_ctx_data(g, inst_block);
 
-	return gr_gk20a_submit_fecs_method_op(g,
+	return g->ops.gr.falcon.submit_fecs_method_op(g,
 		   (struct fecs_method_op_gk20a){
 			   .mailbox.id = 4U,
 			   .mailbox.data = data,
@@ -3075,7 +2843,7 @@ int gr_gk20a_fecs_set_reglist_bind_inst(struct gk20a *g,
 
 int gr_gk20a_fecs_set_reglist_virtual_addr(struct gk20a *g, u64 pmu_va)
 {
-	return gr_gk20a_submit_fecs_method_op(g,
+	return g->ops.gr.falcon.submit_fecs_method_op(g,
 		   (struct fecs_method_op_gk20a) {
 			   .mailbox.id = 4U,
 			   .mailbox.data = u64_lo32(pmu_va >> 8),

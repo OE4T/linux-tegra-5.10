@@ -510,6 +510,11 @@ static const struct gpu_ops gm20b_ops = {
 					nvgpu_gr_falcon_load_ctxsw_ucode,
 			.wait_mem_scrubbing =
 					gm20b_gr_falcon_wait_mem_scrubbing,
+			.wait_ctxsw_ready = gm20b_gr_falcon_wait_ctxsw_ready,
+			.submit_fecs_method_op =
+					gm20b_gr_falcon_submit_fecs_method_op,
+			.submit_fecs_sideband_method_op =
+				gm20b_gr_falcon_submit_fecs_sideband_method_op,
 		},
 	},
 	.fb = {

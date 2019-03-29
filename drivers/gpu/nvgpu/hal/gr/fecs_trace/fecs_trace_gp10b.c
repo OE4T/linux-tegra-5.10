@@ -46,7 +46,7 @@ int gp10b_fecs_trace_flush(struct gk20a *g)
 	nvgpu_log(g, gpu_dbg_fn|gpu_dbg_ctxsw, " ");
 
 	err = nvgpu_pg_elpg_protected_call(g,
-			gr_gk20a_submit_fecs_method_op(g, op, false));
+			g->ops.gr.falcon.submit_fecs_method_op(g, op, false));
 	if (err != 0)
 		nvgpu_err(g, "write timestamp record failed");
 

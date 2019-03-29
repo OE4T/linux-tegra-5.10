@@ -49,7 +49,7 @@ static int gm20b_gr_init_zcull_ctxsw_image_size(struct gk20a *g,
 			gr_fecs_method_push_adr_discover_zcull_image_size_v();
 
 		op.mailbox.ret = &gr_zcull->zcull_ctxsw_image_size;
-		ret = gr_gk20a_submit_fecs_method_op(g, op, false);
+		ret = g->ops.gr.falcon.submit_fecs_method_op(g, op, false);
 		if (ret != 0) {
 			nvgpu_err(g,
 				"query zcull ctx image size failed");
