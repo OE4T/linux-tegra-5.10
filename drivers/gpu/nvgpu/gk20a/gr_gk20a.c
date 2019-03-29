@@ -806,8 +806,7 @@ restore_fe_go_idle:
 
 	gr->ctx_vars.golden_image_initialized = true;
 
-	gk20a_writel(g, gr_fecs_current_ctx_r(),
-		gr_fecs_current_ctx_valid_false_f());
+	g->ops.gr.falcon.set_current_ctx_invalid(g);
 
 clean_up:
 	if (err != 0) {

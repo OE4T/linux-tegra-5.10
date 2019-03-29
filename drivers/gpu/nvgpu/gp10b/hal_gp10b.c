@@ -569,6 +569,8 @@ static const struct gpu_ops gp10b_ops = {
 		.falcon = {
 			.fecs_base_addr = gm20b_gr_falcon_fecs_base_addr,
 			.gpccs_base_addr = gm20b_gr_falcon_gpccs_base_addr,
+			.set_current_ctx_invalid =
+				gm20b_gr_falcon_set_current_ctx_invalid,
 			.dump_stats = gm20b_gr_falcon_fecs_dump_stats,
 			.fecs_ctxsw_mailbox_size =
 				gm20b_gr_falcon_get_fecs_ctxsw_mailbox_size,

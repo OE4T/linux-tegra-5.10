@@ -456,3 +456,10 @@ u32 gm20b_gr_falcon_get_fecs_ctxsw_mailbox_size(void)
 {
 	return gr_fecs_ctxsw_mailbox__size_1_v();
 }
+
+void gm20b_gr_falcon_set_current_ctx_invalid(struct gk20a *g)
+{
+	nvgpu_writel(g, gr_fecs_current_ctx_r(),
+		gr_fecs_current_ctx_valid_false_f());
+}
+

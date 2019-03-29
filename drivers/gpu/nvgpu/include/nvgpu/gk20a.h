@@ -559,6 +559,7 @@ struct gpu_ops {
 		struct {
 			u32 (*fecs_base_addr)(void);
 			u32 (*gpccs_base_addr)(void);
+			void (*set_current_ctx_invalid)(struct gk20a *g);
 			void (*dump_stats)(struct gk20a *g);
 			u32 (*fecs_ctxsw_mailbox_size)(void);
 			u32 (*get_fecs_ctx_state_store_major_rev_id)(
