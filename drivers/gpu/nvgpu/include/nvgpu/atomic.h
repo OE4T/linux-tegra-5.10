@@ -24,10 +24,8 @@
 
 #ifdef __KERNEL__
 #include <nvgpu/linux/atomic.h>
-#elif defined(__NVGPU_POSIX__)
-#include <nvgpu/posix/atomic.h>
 #else
-#include <nvgpu_rmos/include/rmos_atomic.h>
+#include <nvgpu/posix/atomic.h>
 #endif
 
 #define NVGPU_ATOMIC_INIT(i)	__nvgpu_atomic_init(i)
