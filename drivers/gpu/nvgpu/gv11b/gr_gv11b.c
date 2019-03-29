@@ -1498,12 +1498,12 @@ static void gr_gv11b_dump_gr_sm_regs(struct gk20a *g,
 
 	sm_per_tpc = nvgpu_get_litter_value(g, GPU_LIT_NUM_SM_PER_TPC);
 	for (gpc = 0; gpc < nvgpu_gr_config_get_gpc_count(g->gr.config); gpc++) {
-		gpc_offset = gk20a_gr_gpc_offset(g, gpc);
+		gpc_offset = nvgpu_gr_gpc_offset(g, gpc);
 
 		for (tpc = 0;
 		     tpc < nvgpu_gr_config_get_gpc_tpc_count(g->gr.config, gpc);
 		     tpc++) {
-			tpc_offset = gk20a_gr_tpc_offset(g, tpc);
+			tpc_offset = nvgpu_gr_tpc_offset(g, tpc);
 
 			for (sm = 0; sm < sm_per_tpc; sm++) {
 				offset = gpc_offset + tpc_offset +
@@ -1719,8 +1719,8 @@ static int gr_gv11b_handle_warp_esr_error_mmu_nack(struct gk20a *g,
 	}
 
 	/* clear interrupt */
-	offset = gk20a_gr_gpc_offset(g, gpc) +
-			gk20a_gr_tpc_offset(g, tpc) +
+	offset = nvgpu_gr_gpc_offset(g, gpc) +
+			nvgpu_gr_tpc_offset(g, tpc) +
 			gv11b_gr_sm_offset(g, sm);
 	nvgpu_writel(g,
 		gr_gpc0_tpc0_sm0_hww_warp_esr_r() + offset, 0);
@@ -1844,8 +1844,8 @@ static int gr_gv11b_handle_all_warp_esr_errors(struct gk20a *g,
 	}
 
 	/* clear interrupt */
-	offset = gk20a_gr_gpc_offset(g, gpc) +
-			gk20a_gr_tpc_offset(g, tpc) +
+	offset = nvgpu_gr_gpc_offset(g, gpc) +
+			nvgpu_gr_tpc_offset(g, tpc) +
 			gv11b_gr_sm_offset(g, sm);
 	nvgpu_writel(g,
 		gr_gpc0_tpc0_sm0_hww_warp_esr_r() + offset, 0);
@@ -1908,8 +1908,8 @@ int gr_gv11b_pre_process_sm_exception(struct gk20a *g,
 
 	if (cilp_enabled && sm_debugger_attached) {
 		u32 global_mask = 0, dbgr_control0, global_esr_copy;
-		u32 offset = gk20a_gr_gpc_offset(g, gpc) +
-				gk20a_gr_tpc_offset(g, tpc) +
+		u32 offset = nvgpu_gr_gpc_offset(g, gpc) +
+				nvgpu_gr_tpc_offset(g, tpc) +
 				gv11b_gr_sm_offset(g, sm);
 
 		if ((global_esr &
@@ -2200,7 +2200,7 @@ void gv11b_gr_get_esr_sm_sel(struct gk20a *g, u32 gpc, u32 tpc,
 				u32 *esr_sm_sel)
 {
 	u32 reg_val;
-	u32 offset = gk20a_gr_gpc_offset(g, gpc) + gk20a_gr_tpc_offset(g, tpc);
+	u32 offset = nvgpu_gr_gpc_offset(g, gpc) + nvgpu_gr_tpc_offset(g, tpc);
 
 	reg_val = gk20a_readl(g, gr_gpc0_tpc0_sm_tpc_esr_sm_sel_r() + offset);
 	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gpu_dbg,
@@ -2256,8 +2256,8 @@ void gv11b_gr_bpt_reg_info(struct gk20a *g, struct nvgpu_warpstate *w_state)
 		tpc = sm_info->tpc_index;
 		sm = sm_info->sm_index;
 
-		offset = gk20a_gr_gpc_offset(g, gpc) +
-			 gk20a_gr_tpc_offset(g, tpc) +
+		offset = nvgpu_gr_gpc_offset(g, gpc) +
+			 nvgpu_gr_tpc_offset(g, tpc) +
 			 gv11b_gr_sm_offset(g, sm);
 
 		/* 64 bit read */
@@ -2341,8 +2341,8 @@ int gv11b_gr_set_sm_debug_mode(struct gk20a *g,
 		}
 		sm = sm_info->sm_index;
 
-		reg_offset = gk20a_gr_gpc_offset(g, gpc) +
-				gk20a_gr_tpc_offset(g, tpc) +
+		reg_offset = nvgpu_gr_gpc_offset(g, gpc) +
+				nvgpu_gr_tpc_offset(g, tpc) +
 				gv11b_gr_sm_offset(g, sm);
 
 		ops[i].op = REGOP(WRITE_32);
@@ -2425,8 +2425,8 @@ int gv11b_gr_record_sm_error_state(struct gk20a *g, u32 gpc, u32 tpc, u32 sm,
 	nvgpu_mutex_acquire(&g->dbg_sessions_lock);
 
 	sm_per_tpc = nvgpu_get_litter_value(g, GPU_LIT_NUM_SM_PER_TPC);
-	gpc_offset = gk20a_gr_gpc_offset(g, gpc);
-	gpc_tpc_offset = gpc_offset + gk20a_gr_tpc_offset(g, tpc);
+	gpc_offset = nvgpu_gr_gpc_offset(g, gpc);
+	gpc_tpc_offset = gpc_offset + nvgpu_gr_tpc_offset(g, tpc);
 
 	tpc_id = gk20a_readl(g, gr_gpc0_gpm_pd_sm_id_r(tpc) + gpc_offset);
 	sm_id = tpc_id * sm_per_tpc + sm;
@@ -2509,8 +2509,8 @@ void gv11b_gr_suspend_single_sm(struct gk20a *g,
 {
 	int err;
 	u32 dbgr_control0;
-	u32 offset = gk20a_gr_gpc_offset(g, gpc) +
-			gk20a_gr_tpc_offset(g, tpc) +
+	u32 offset = nvgpu_gr_gpc_offset(g, gpc) +
+			nvgpu_gr_tpc_offset(g, tpc) +
 			gv11b_gr_sm_offset(g, sm);
 
 	/* if an SM debugger isn't attached, skip suspend */
@@ -2604,7 +2604,7 @@ void gv11b_gr_resume_single_sm(struct gk20a *g,
 	* effect, before enabling the run trigger.
 	*/
 
-	offset = gk20a_gr_gpc_offset(g, gpc) + gk20a_gr_tpc_offset(g, tpc) +
+	offset = nvgpu_gr_gpc_offset(g, gpc) + nvgpu_gr_tpc_offset(g, tpc) +
 			gv11b_gr_sm_offset(g, sm);
 
 	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gpu_dbg,
@@ -2741,8 +2741,8 @@ int gv11b_gr_resume_from_pause(struct gk20a *g)
 u32 gv11b_gr_get_sm_hww_warp_esr(struct gk20a *g,
 			u32 gpc, u32 tpc, u32 sm)
 {
-	u32 offset = gk20a_gr_gpc_offset(g, gpc) +
-			 gk20a_gr_tpc_offset(g, tpc) +
+	u32 offset = nvgpu_gr_gpc_offset(g, gpc) +
+			 nvgpu_gr_tpc_offset(g, tpc) +
 			 gv11b_gr_sm_offset(g, sm);
 
 	u32 hww_warp_esr = gk20a_readl(g,
@@ -2753,8 +2753,8 @@ u32 gv11b_gr_get_sm_hww_warp_esr(struct gk20a *g,
 u32 gv11b_gr_get_sm_hww_global_esr(struct gk20a *g,
 			u32 gpc, u32 tpc, u32 sm)
 {
-	u32 offset = gk20a_gr_gpc_offset(g, gpc) +
-			 gk20a_gr_tpc_offset(g, tpc) +
+	u32 offset = nvgpu_gr_gpc_offset(g, gpc) +
+			 nvgpu_gr_tpc_offset(g, tpc) +
 			 gv11b_gr_sm_offset(g, sm);
 
 	u32 hww_global_esr = gk20a_readl(g,
@@ -2835,8 +2835,8 @@ int gv11b_gr_wait_for_sm_lock_down(struct gk20a *g,
 	u32 warp_esr, global_esr;
 	struct nvgpu_timeout timeout;
 	int err;
-	u32 offset = gk20a_gr_gpc_offset(g, gpc) +
-			gk20a_gr_tpc_offset(g, tpc) +
+	u32 offset = nvgpu_gr_gpc_offset(g, gpc) +
+			nvgpu_gr_tpc_offset(g, tpc) +
 			gv11b_gr_sm_offset(g, sm);
 
 	nvgpu_log(g, gpu_dbg_intr | gpu_dbg_gpu_dbg,
@@ -2924,7 +2924,7 @@ int gv11b_gr_lock_down_sm(struct gk20a *g,
 			 bool check_errors)
 {
 	u32 dbgr_control0;
-	u32 offset = gk20a_gr_gpc_offset(g, gpc) + gk20a_gr_tpc_offset(g, tpc) +
+	u32 offset = nvgpu_gr_gpc_offset(g, gpc) + nvgpu_gr_tpc_offset(g, tpc) +
 			gv11b_gr_sm_offset(g, sm);
 
 	nvgpu_log(g, gpu_dbg_intr | gpu_dbg_gpu_dbg,
@@ -2944,7 +2944,7 @@ int gv11b_gr_lock_down_sm(struct gk20a *g,
 void gv11b_gr_clear_sm_hww(struct gk20a *g, u32 gpc, u32 tpc, u32 sm,
 				u32 global_esr)
 {
-	u32 offset = gk20a_gr_gpc_offset(g, gpc) + gk20a_gr_tpc_offset(g, tpc) +
+	u32 offset = nvgpu_gr_gpc_offset(g, gpc) + nvgpu_gr_tpc_offset(g, tpc) +
 			gv11b_gr_sm_offset(g, sm);
 
 	gk20a_writel(g, gr_gpc0_tpc0_sm0_hww_global_esr_r() + offset,
@@ -2965,7 +2965,7 @@ int gr_gv11b_handle_tpc_mpc_exception(struct gk20a *g,
 		u32 gpc, u32 tpc, bool *post_event)
 {
 	u32 esr;
-	u32 offset = gk20a_gr_gpc_offset(g, gpc) + gk20a_gr_tpc_offset(g, tpc);
+	u32 offset = nvgpu_gr_gpc_offset(g, gpc) + nvgpu_gr_tpc_offset(g, tpc);
 	u32 tpc_exception = gk20a_readl(g, gr_gpc0_tpc0_tpccs_tpc_exception_r()
 			+ offset);
 
@@ -3811,8 +3811,8 @@ int gv11b_gr_clear_sm_error_state(struct gk20a *g,
 		}
 		sm = sm_info->sm_index;
 
-		offset = gk20a_gr_gpc_offset(g, gpc) +
-				gk20a_gr_tpc_offset(g, tpc) +
+		offset = nvgpu_gr_gpc_offset(g, gpc) +
+				nvgpu_gr_tpc_offset(g, tpc) +
 				gv11b_gr_sm_offset(g, sm);
 
 		val = gk20a_readl(g, gr_gpc0_tpc0_sm0_hww_global_esr_r() + offset);

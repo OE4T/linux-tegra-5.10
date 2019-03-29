@@ -424,8 +424,6 @@ u32 gr_gk20a_tpc_enabled_exceptions(struct gk20a *g);
 
 int gr_gk20a_commit_inst(struct channel_gk20a *c, u64 gpu_va);
 
-u32 gk20a_gr_gpc_offset(struct gk20a *g, u32 gpc);
-u32 gk20a_gr_tpc_offset(struct gk20a *g, u32 tpc);
 void gk20a_gr_get_esr_sm_sel(struct gk20a *g, u32 gpc, u32 tpc,
 				u32 *esr_sm_sel);
 void gk20a_gr_init_ovr_sm_dsm_perf(void);

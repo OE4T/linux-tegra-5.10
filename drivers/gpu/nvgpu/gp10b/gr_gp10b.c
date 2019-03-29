@@ -38,6 +38,7 @@
 #include <nvgpu/regops.h>
 #include <nvgpu/gr/subctx.h>
 #include <nvgpu/gr/ctx.h>
+#include <nvgpu/gr/gr.h>
 #include <nvgpu/gr/config.h>
 #include <nvgpu/engines.h>
 #include <nvgpu/engine_status.h>
@@ -1261,7 +1262,7 @@ clean_up:
 u32 gp10b_gr_get_sm_hww_warp_esr(struct gk20a *g,
 			u32 gpc, u32 tpc, u32 sm)
 {
-	u32 offset = gk20a_gr_gpc_offset(g, gpc) + gk20a_gr_tpc_offset(g, tpc);
+	u32 offset = nvgpu_gr_gpc_offset(g, gpc) + nvgpu_gr_tpc_offset(g, tpc);
 	u32 hww_warp_esr = gk20a_readl(g,
 			 gr_gpc0_tpc0_sm_hww_warp_esr_r() + offset);
 

@@ -550,23 +550,6 @@ int gr_gk20a_fecs_ctx_bind_channel(struct gk20a *g,
 	return ret;
 }
 
-u32 gk20a_gr_gpc_offset(struct gk20a *g, u32 gpc)
-{
-	u32 gpc_stride = nvgpu_get_litter_value(g, GPU_LIT_GPC_STRIDE);
-	u32 gpc_offset = gpc_stride * gpc;
-
-	return gpc_offset;
-}
-
-u32 gk20a_gr_tpc_offset(struct gk20a *g, u32 tpc)
-{
-	u32 tpc_in_gpc_stride = nvgpu_get_litter_value(g,
-					GPU_LIT_TPC_IN_GPC_STRIDE);
-	u32 tpc_offset = tpc_in_gpc_stride * tpc;
-
-	return tpc_offset;
-}
-
 int gr_gk20a_commit_global_ctx_buffers(struct gk20a *g,
 			struct nvgpu_gr_ctx *gr_ctx, bool patch)
 {
@@ -2427,7 +2410,7 @@ int gk20a_gr_lock_down_sm(struct gk20a *g,
 			 u32 gpc, u32 tpc, u32 sm, u32 global_esr_mask,
 			 bool check_errors)
 {
-	u32 offset = gk20a_gr_gpc_offset(g, gpc) + gk20a_gr_tpc_offset(g, tpc);
+	u32 offset = nvgpu_gr_gpc_offset(g, gpc) + nvgpu_gr_tpc_offset(g, tpc);
 	u32 dbgr_control0;
 
 	nvgpu_log(g, gpu_dbg_intr | gpu_dbg_gpu_dbg,
@@ -2466,7 +2449,7 @@ int gr_gk20a_handle_sm_exception(struct gk20a *g, u32 gpc, u32 tpc, u32 sm,
 	int ret = 0;
 	bool do_warp_sync = false, early_exit = false, ignore_debugger = false;
 	bool disable_sm_exceptions = true;
-	u32 offset = gk20a_gr_gpc_offset(g, gpc) + gk20a_gr_tpc_offset(g, tpc);
+	u32 offset = nvgpu_gr_gpc_offset(g, gpc) + nvgpu_gr_tpc_offset(g, tpc);
 	bool sm_debugger_attached;
 	u32 global_esr, warp_esr, global_mask;
 	u64 hww_warp_esr_pc = 0;
@@ -2581,7 +2564,7 @@ static int gk20a_gr_handle_tpc_exception(struct gk20a *g, u32 gpc, u32 tpc,
 		u32 *hww_global_esr)
 {
 	int tmp_ret, ret = 0;
-	u32 offset = gk20a_gr_gpc_offset(g, gpc) + gk20a_gr_tpc_offset(g, tpc);
+	u32 offset = nvgpu_gr_gpc_offset(g, gpc) + nvgpu_gr_tpc_offset(g, tpc);
 	u32 tpc_exception = gk20a_readl(g, gr_gpc0_tpc0_tpccs_tpc_exception_r()
 			+ offset);
 	u32 sm_per_tpc = nvgpu_get_litter_value(g, GPU_LIT_NUM_SM_PER_TPC);
@@ -2669,7 +2652,7 @@ static int gk20a_gr_handle_gpc_exception(struct gk20a *g, bool *post_event,
 		nvgpu_log(g, gpu_dbg_intr | gpu_dbg_gpu_dbg,
 				"GPC%d exception pending", gpc);
 
-		gpc_offset = gk20a_gr_gpc_offset(g, gpc);
+		gpc_offset = nvgpu_gr_gpc_offset(g, gpc);
 
 		gpc_exception = gk20a_readl(g, gr_gpc0_gpccs_gpc_exception_r()
 				+ gpc_offset);
@@ -4621,7 +4604,7 @@ int gk20a_gr_wait_for_sm_lock_down(struct gk20a *g, u32 gpc, u32 tpc, u32 sm,
 	bool no_error_pending;
 	u32 delay = POLL_DELAY_MIN_US;
 	bool mmu_debug_mode_enabled = g->ops.fb.is_debug_mode_enabled(g);
-	u32 offset = gk20a_gr_gpc_offset(g, gpc) + gk20a_gr_tpc_offset(g, tpc);
+	u32 offset = nvgpu_gr_gpc_offset(g, gpc) + nvgpu_gr_tpc_offset(g, tpc);
 	u32 dbgr_status0 = 0, dbgr_control0 = 0;
 	u64 warps_valid = 0, warps_paused = 0, warps_trapped = 0;
 	struct nvgpu_timeout timeout;
@@ -4703,7 +4686,7 @@ void gk20a_gr_suspend_single_sm(struct gk20a *g,
 {
 	int err;
 	u32 dbgr_control0;
-	u32 offset = gk20a_gr_gpc_offset(g, gpc) + gk20a_gr_tpc_offset(g, tpc);
+	u32 offset = nvgpu_gr_gpc_offset(g, gpc) + nvgpu_gr_tpc_offset(g, tpc);
 
 	/* if an SM debugger isn't attached, skip suspend */
 	if (!g->ops.gr.sm_debugger_attached(g)) {
@@ -4794,7 +4777,7 @@ void gk20a_gr_resume_single_sm(struct gk20a *g,
 	* effect, before enabling the run trigger.
 	*/
 
-	offset = gk20a_gr_gpc_offset(g, gpc) + gk20a_gr_tpc_offset(g, tpc);
+	offset = nvgpu_gr_gpc_offset(g, gpc) + nvgpu_gr_tpc_offset(g, tpc);
 
 	/*De-assert stop trigger */
 	dbgr_control0 =
@@ -5159,7 +5142,7 @@ u32 gr_gk20a_tpc_enabled_exceptions(struct gk20a *g)
 
 u32 gk20a_gr_get_sm_hww_warp_esr(struct gk20a *g, u32 gpc, u32 tpc, u32 sm)
 {
-	u32 offset = gk20a_gr_gpc_offset(g, gpc) + gk20a_gr_tpc_offset(g, tpc);
+	u32 offset = nvgpu_gr_gpc_offset(g, gpc) + nvgpu_gr_tpc_offset(g, tpc);
 	u32 hww_warp_esr = gk20a_readl(g,
 			 gr_gpc0_tpc0_sm_hww_warp_esr_r() + offset);
 	return hww_warp_esr;
@@ -5167,7 +5150,7 @@ u32 gk20a_gr_get_sm_hww_warp_esr(struct gk20a *g, u32 gpc, u32 tpc, u32 sm)
 
 u32 gk20a_gr_get_sm_hww_global_esr(struct gk20a *g, u32 gpc, u32 tpc, u32 sm)
 {
-	u32 offset = gk20a_gr_gpc_offset(g, gpc) + gk20a_gr_tpc_offset(g, tpc);
+	u32 offset = nvgpu_gr_gpc_offset(g, gpc) + nvgpu_gr_tpc_offset(g, tpc);
 
 	u32 hww_global_esr = gk20a_readl(g,
 				 gr_gpc0_tpc0_sm_hww_global_esr_r() + offset);

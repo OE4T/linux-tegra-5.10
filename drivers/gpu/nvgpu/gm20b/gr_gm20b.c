@@ -820,7 +820,7 @@ int gr_gm20b_get_preemption_mode_flags(struct gk20a *g,
 void gm20b_gr_clear_sm_hww(struct gk20a *g, u32 gpc, u32 tpc, u32 sm,
 			u32 global_esr)
 {
-	u32 offset = gk20a_gr_gpc_offset(g, gpc) + gk20a_gr_tpc_offset(g, tpc);
+	u32 offset = nvgpu_gr_gpc_offset(g, gpc) + nvgpu_gr_tpc_offset(g, tpc);
 
 	gk20a_writel(g, gr_gpc0_tpc0_sm_hww_global_esr_r() + offset,
 			global_esr);

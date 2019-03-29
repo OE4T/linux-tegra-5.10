@@ -79,6 +79,23 @@ static void gr_load_tpc_mask(struct gk20a *g)
 	g->ops.gr.init.tpc_mask(g, 0, pes_tpc_mask);
 }
 
+u32 nvgpu_gr_gpc_offset(struct gk20a *g, u32 gpc)
+{
+	u32 gpc_stride = nvgpu_get_litter_value(g, GPU_LIT_GPC_STRIDE);
+	u32 gpc_offset = gpc_stride * gpc;
+
+	return gpc_offset;
+}
+
+u32 nvgpu_gr_tpc_offset(struct gk20a *g, u32 tpc)
+{
+	u32 tpc_in_gpc_stride = nvgpu_get_litter_value(g,
+					GPU_LIT_TPC_IN_GPC_STRIDE);
+	u32 tpc_offset = tpc_in_gpc_stride * tpc;
+
+	return tpc_offset;
+}
+
 int nvgpu_gr_suspend(struct gk20a *g)
 {
 	int ret = 0;
