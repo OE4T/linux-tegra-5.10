@@ -244,9 +244,8 @@ void cpufreq_hv_init(struct kobject *kobj)
 	uint8_t cpu_name[5] = {'c', 'p', 'u'};
 	uint8_t cpu_count = hyp_get_cpu_count();
 
-	/* Fail silently: Assuming this Guest VM doesn't have privilege */
 	if (cpu_count == 0)
-		return;
+		cpu_count = MAX_CLUSTERS * MAX_CPU_PER_CLUSTER;
 
 	if (cpu_count > (MAX_CLUSTERS * MAX_CPU_PER_CLUSTER))
 		pr_err("%s: Invalid cpu count:%d\n", __func__, cpu_count);
