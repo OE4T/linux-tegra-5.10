@@ -22,7 +22,6 @@
 
 #include <nvgpu/gk20a.h>
 #include <nvgpu/pmu.h>
-#include <nvgpu/falcon.h>
 #include <nvgpu/mm.h>
 #include <nvgpu/io.h>
 #include <nvgpu/timers.h>
@@ -310,7 +309,7 @@ void tu104_sec2_enable_irq(struct nvgpu_sec2 *sec2, bool enable)
 	u32 intr_mask;
 	u32 intr_dest;
 
-	nvgpu_falcon_set_irq(&g->sec2.flcn, false, 0x0, 0x0);
+	g->ops.falcon.set_irq(&sec2->flcn, false, 0x0, 0x0);
 
 	if (enable) {
 		/* dest 0=falcon, 1=host; level 0=irq0, 1=irq1 */
@@ -343,7 +342,7 @@ void tu104_sec2_enable_irq(struct nvgpu_sec2 *sec2, bool enable)
 			psec_falcon_irqmset_swgen0_f(1) |
 			psec_falcon_irqmset_swgen1_f(1);
 
-		nvgpu_falcon_set_irq(&g->sec2.flcn, true, intr_mask, intr_dest);
+		g->ops.falcon.set_irq(&sec2->flcn, true, intr_mask, intr_dest);
 	}
 }
 
@@ -364,34 +363,43 @@ bool tu104_sec2_is_interrupted(struct nvgpu_sec2 *sec2)
 	return false;
 }
 
-void tu104_sec2_isr(struct gk20a *g)
+u32 tu104_sec2_get_intr(struct gk20a *g)
 {
-	struct nvgpu_sec2 *sec2 = &g->sec2;
-	struct nvgpu_engine_mem_queue *queue;
-	u32 intr, mask;
-	bool recheck = false;
-
-	nvgpu_mutex_acquire(&sec2->isr_mutex);
-	if (!sec2->isr_enabled) {
-		nvgpu_mutex_release(&sec2->isr_mutex);
-		return;
-	}
+	u32 mask;
 
 	mask = gk20a_readl(g, psec_falcon_irqmask_r()) &
 		gk20a_readl(g, psec_falcon_irqdest_r());
 
-	intr = gk20a_readl(g, psec_falcon_irqstat_r());
+	return gk20a_readl(g, psec_falcon_irqstat_r()) & mask;
+}
 
-	intr = gk20a_readl(g, psec_falcon_irqstat_r()) & mask;
-	if (intr == 0U) {
-		gk20a_writel(g, psec_falcon_irqsclr_r(), intr);
-		nvgpu_mutex_release(&sec2->isr_mutex);
-		return;
-	}
+bool tu104_sec2_msg_intr_received(struct gk20a *g)
+{
+	u32 intr = tu104_sec2_get_intr(g);
+
+	return (intr & psec_falcon_irqstat_swgen0_true_f()) != 0U;
+}
+
+void tu104_sec2_set_msg_intr(struct gk20a *g)
+{
+	gk20a_writel(g, psec_falcon_irqsset_r(),
+		psec_falcon_irqsset_swgen0_set_f());
+}
+
+void tu104_sec2_clr_intr(struct gk20a *g, u32 intr)
+{
+	gk20a_writel(g, psec_falcon_irqsclr_r(), intr);
+}
+
+void tu104_sec2_process_intr(struct gk20a *g, struct nvgpu_sec2 *sec2)
+{
+	u32 intr;
+
+	intr = tu104_sec2_get_intr(g);
 
 	if ((intr & psec_falcon_irqstat_halt_true_f()) != 0U) {
 		nvgpu_err(g, "sec2 halt intr not implemented");
-		nvgpu_falcon_dump_stats(&g->sec2.flcn);
+		g->ops.falcon.dump_falcon_stats(&sec2->flcn);
 	}
 	if ((intr & psec_falcon_irqstat_exterr_true_f()) != 0U) {
 		nvgpu_err(g,
@@ -402,27 +410,7 @@ void tu104_sec2_isr(struct gk20a *g)
 				~psec_falcon_exterrstat_valid_m());
 	}
 
-	if ((intr & psec_falcon_irqstat_swgen0_true_f()) != 0U) {
-		if (nvgpu_sec2_process_message(sec2) != 0) {
-			gk20a_writel(g, psec_falcon_irqsclr_r(), intr);
-			goto exit;
-		}
-		recheck = true;
-	}
-
-	gk20a_writel(g, psec_falcon_irqsclr_r(), intr);
-
-	if (recheck) {
-		queue = sec2->queues[SEC2_NV_MSGQ_LOG_ID];
-		if (!nvgpu_engine_mem_queue_is_empty(queue)) {
-			gk20a_writel(g, psec_falcon_irqsset_r(),
-				psec_falcon_irqsset_swgen0_set_f());
-		}
-	}
-
-exit:
 	nvgpu_sec2_dbg(g, "Done");
-	nvgpu_mutex_release(&sec2->isr_mutex);
 }
 
 void tu104_start_sec2_secure(struct gk20a *g)

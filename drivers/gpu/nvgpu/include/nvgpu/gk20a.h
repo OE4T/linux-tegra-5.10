@@ -1840,7 +1840,11 @@ struct gpu_ops {
 		void (*secured_sec2_start)(struct gk20a *g);
 		void (*enable_irq)(struct nvgpu_sec2 *sec2, bool enable);
 		bool (*is_interrupted)(struct nvgpu_sec2 *sec2);
-		void (*isr)(struct gk20a *g);
+		u32 (*get_intr)(struct gk20a *g);
+		bool (*msg_intr_received)(struct gk20a *g);
+		void (*set_msg_intr)(struct gk20a *g);
+		void (*clr_intr)(struct gk20a *g, u32 intr);
+		void (*process_intr)(struct gk20a *g, struct nvgpu_sec2 *sec2);
 		void (*msgq_tail)(struct gk20a *g, struct nvgpu_sec2 *sec2,
 			u32 *tail, bool set);
 		u32 (*falcon_base_addr)(void);

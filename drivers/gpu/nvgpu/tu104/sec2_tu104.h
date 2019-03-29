@@ -23,6 +23,7 @@
 #ifndef NVGPU_SEC2_TU104_H
 #define NVGPU_SEC2_TU104_H
 
+struct gk20a;
 struct nvgpu_sec2;
 
 int tu104_sec2_reset(struct gk20a *g);
@@ -39,8 +40,12 @@ int tu104_sec2_queue_tail(struct gk20a *g, u32 queue_id, u32 queue_index,
 void tu104_sec2_msgq_tail(struct gk20a *g, struct nvgpu_sec2 *sec2,
 	u32 *tail, bool set);
 
-void tu104_sec2_isr(struct gk20a *g);
 bool tu104_sec2_is_interrupted(struct nvgpu_sec2 *sec2);
+u32 tu104_sec2_get_intr(struct gk20a *g);
+bool tu104_sec2_msg_intr_received(struct gk20a *g);
+void tu104_sec2_set_msg_intr(struct gk20a *g);
+void tu104_sec2_clr_intr(struct gk20a *g, u32 intr);
+void tu104_sec2_process_intr(struct gk20a *g, struct nvgpu_sec2 *sec2);
 void tu104_sec2_enable_irq(struct nvgpu_sec2 *sec2, bool enable);
 void tu104_start_sec2_secure(struct gk20a *g);
 u32 tu104_sec2_falcon_base_addr(void);

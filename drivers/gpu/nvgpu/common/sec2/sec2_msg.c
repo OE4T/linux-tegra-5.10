@@ -199,6 +199,54 @@ exit:
 	return status;
 }
 
+static void sec2_isr(struct gk20a *g, struct nvgpu_sec2 *sec2)
+{
+	bool recheck = false;
+	u32 intr;
+
+	if (!g->ops.sec2.is_interrupted(sec2)) {
+		return;
+	}
+
+	nvgpu_mutex_acquire(&sec2->isr_mutex);
+	if (!sec2->isr_enabled) {
+		goto exit;
+	}
+
+	intr = g->ops.sec2.get_intr(g);
+	if (intr == 0U) {
+		goto exit;
+	}
+
+	/*
+	 * Handle swgen0 interrupt to process received messages from SEC2.
+	 * If any other interrupt is to be handled with some software
+	 * action expected, then it should be handled here.
+	 * g->ops.sec2.isr call below will handle other hardware interrupts
+	 * that are not expected to be handled in software.
+	 */
+	if (g->ops.sec2.msg_intr_received(g)) {
+		if (nvgpu_sec2_process_message(sec2) != 0) {
+			g->ops.sec2.clr_intr(g, intr);
+			goto exit;
+		}
+		recheck = true;
+	}
+
+	g->ops.sec2.process_intr(g, sec2);
+	g->ops.sec2.clr_intr(g, intr);
+
+	if (recheck) {
+		if (!nvgpu_sec2_queue_is_empty(sec2->queues,
+					       SEC2_NV_MSGQ_LOG_ID)) {
+			g->ops.sec2.set_msg_intr(g);
+		}
+	}
+
+exit:
+	nvgpu_mutex_release(&sec2->isr_mutex);
+}
+
 int nvgpu_sec2_wait_message_cond(struct nvgpu_sec2 *sec2, u32 timeout_ms,
 	void *var, u8 val)
 {
@@ -213,9 +261,7 @@ int nvgpu_sec2_wait_message_cond(struct nvgpu_sec2 *sec2, u32 timeout_ms,
 			return 0;
 		}
 
-		if (g->ops.sec2.is_interrupted(sec2)) {
-			g->ops.sec2.isr(g);
-		}
+		sec2_isr(g, sec2);
 
 		nvgpu_usleep_range(delay, delay * 2U);
 		delay = min_t(u32, delay << 1U, POLL_DELAY_MAX_US);
