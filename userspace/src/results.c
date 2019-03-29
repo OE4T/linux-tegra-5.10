@@ -76,7 +76,7 @@ static void add_record(struct unit_test_list *list,
 int core_add_test_record(struct unit_fw *fw,
 			 struct unit_module *mod,
 			 struct unit_module_test *test,
-			 bool success)
+			 enum result_enum result)
 {
 	struct unit_test_record *tr;
 	int err = 0;
@@ -98,17 +98,23 @@ int core_add_test_record(struct unit_fw *fw,
 
 	tr->mod = mod;
 	tr->test = test;
-	tr->status = success;
+	tr->status = (result == PASSED);
 	tr->next = NULL;
 
-	if (success)
-		add_record(&fw->results->passing, tr);
-	else
-		add_record(&fw->results->failing, tr);
-
 	fw->results->nr_tests += 1;
-	if (success)
+	switch (result) {
+	case PASSED:
+		add_record(&fw->results->passing, tr);
 		fw->results->nr_passing += 1;
+		break;
+	case FAILED:
+		add_record(&fw->results->failing, tr);
+		break;
+	case SKIPPED:
+		add_record(&fw->results->skipped, tr);
+		fw->results->nr_skipped += 1;
+		break;
+	}
 
 done:
 	pthread_mutex_unlock(&mutex_results);
@@ -152,6 +158,7 @@ static void dump_test_log(struct unit_fw *fw, struct unit_test_list
 void core_print_test_status(struct unit_fw *fw)
 {
 	struct unit_test_list *failing_tests = &fw->results->failing;
+	struct unit_test_list *skipped_tests = &fw->results->skipped;
 	struct unit_test_record *rec;
 
 	/*
@@ -161,10 +168,21 @@ void core_print_test_status(struct unit_fw *fw)
 	core_msg(fw, "Test results:\n");
 	core_msg(fw, "-------------\n");
 	core_msg(fw, "\n");
+	core_msg(fw, "  Skipped: %d\n", fw->results->nr_skipped);
 	core_msg(fw, "  Passing: %d\n", fw->results->nr_passing);
 	core_msg(fw, "  Failing: %d\n",
-		 fw->results->nr_tests - fw->results->nr_passing);
+		 fw->results->nr_tests - fw->results->nr_passing -
+						fw->results->nr_skipped);
 	core_msg(fw, "  Total:   %d\n", fw->results->nr_tests);
+	core_msg(fw, "\n");
+	core_msg(fw, "Skipped tests:\n");
+	core_msg(fw, "\n");
+	for_record_in_test_list(skipped_tests, rec) {
+		core_msg(fw, "  %s.%s\n",
+			 rec->mod->name,
+			 rec->test->name);
+	}
+
 	core_msg(fw, "\n");
 	core_msg(fw, "Failing tests:\n");
 	core_msg(fw, "\n");

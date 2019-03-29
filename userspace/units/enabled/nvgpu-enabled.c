@@ -152,12 +152,12 @@ struct unit_module_test enabled_tests[] = {
 	/*
 	 * Init test should run first in order to use newly allocated memory.
 	 */
-	UNIT_TEST(init, test_nvgpu_init_enabled_flags, NULL),
+	UNIT_TEST(init, test_nvgpu_init_enabled_flags, NULL, 0),
 
-	UNIT_TEST(enabled_flags_false_check, test_nvgpu_enabled_flags_false_check, NULL),
-	UNIT_TEST(set_enabled, test_nvgpu_set_enabled, NULL),
+	UNIT_TEST(enabled_flags_false_check, test_nvgpu_enabled_flags_false_check, NULL, 0),
+	UNIT_TEST(set_enabled, test_nvgpu_set_enabled, NULL, 0),
 
-	UNIT_TEST(free, test_nvgpu_free_enabled_flags, NULL),
+	UNIT_TEST(free, test_nvgpu_free_enabled_flags, NULL, 0),
 };
 
 UNIT_MODULE(enabled, enabled_tests, UNIT_PRIO_NVGPU_TEST);

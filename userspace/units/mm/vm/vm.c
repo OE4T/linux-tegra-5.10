@@ -606,13 +606,13 @@ struct unit_module_test vm_tests[] = {
 		      "V5",
 		      map_buf,
 		      test_map_buf,
-		      NULL),
+		      NULL, 0),
 	UNIT_TEST_REQ("NVGPU-RQCD-45.C2",
 		      VM_REQ1_UID,
 		      "V5",
 		      map_buf_gpu_va,
 		      test_map_buf_gpu_va,
-		      NULL),
+		      NULL, 0),
 };
 
 UNIT_MODULE(vm, vm_tests, UNIT_PRIO_NVGPU_TEST);

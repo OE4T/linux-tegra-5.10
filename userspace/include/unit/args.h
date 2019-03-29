@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -35,6 +35,7 @@
 #define __DEFAULT_ARG_UNIT_LOAD_PATH	build/units
 #endif
 #define DEFAULT_ARG_UNIT_LOAD_PATH	stringify(__DEFAULT_ARG_UNIT_LOAD_PATH)
+#define TEST_PLAN_MAX 1
 
 struct unit_fw;
 
@@ -45,6 +46,7 @@ struct unit_fw_args {
 	int		 thread_count;
 	bool		 nvtest;
 	bool		 is_qnx;
+	unsigned int	 test_lvl;
 	const char	*binary_name;
 
 	const char	*unit_name;

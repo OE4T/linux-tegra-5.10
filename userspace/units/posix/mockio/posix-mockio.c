@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -326,16 +326,16 @@ static int test_register_space(struct unit_module *m, struct gk20a *g,
 
 
 struct unit_module_test posix_mockio_tests[] = {
-	UNIT_TEST(register_io_callbacks, test_register_io_callbacks, NULL),
-	UNIT_TEST(writel,		 test_writel, &nvgpu_writel_args),
-	UNIT_TEST(writel_check,		 test_writel, &nvgpu_writel_check_args),
-	UNIT_TEST(bar1_writel,		 test_writel, &nvgpu_bar1_writel_args),
+	UNIT_TEST(register_io_callbacks, test_register_io_callbacks, NULL, 0),
+	UNIT_TEST(writel,		 test_writel, &nvgpu_writel_args, 0),
+	UNIT_TEST(writel_check,		 test_writel, &nvgpu_writel_check_args, 0),
+	UNIT_TEST(bar1_writel,		 test_writel, &nvgpu_bar1_writel_args, 0),
 	UNIT_TEST(usermode_writel,	 test_writel,
-		  &nvgpu_usermode_writel_args),
-	UNIT_TEST(readl,		 test_readl, &nvgpu_readl_args),
-	UNIT_TEST(__readl,		 test_readl, &__nvgpu_readl_args),
-	UNIT_TEST(bar1_readl,		 test_readl, &nvgpu_bar1_readl_args),
-	UNIT_TEST(test_register_space,	 test_register_space, NULL),
+		  &nvgpu_usermode_writel_args, 0),
+	UNIT_TEST(readl,		 test_readl, &nvgpu_readl_args, 0),
+	UNIT_TEST(__readl,		 test_readl, &__nvgpu_readl_args, 0),
+	UNIT_TEST(bar1_readl,		 test_readl, &nvgpu_bar1_readl_args, 0),
+	UNIT_TEST(test_register_space,	 test_register_space, NULL, 0),
 };
 
 UNIT_MODULE(posix_mockio, posix_mockio_tests, UNIT_PRIO_POSIX_TEST);

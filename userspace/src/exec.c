@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -85,6 +85,12 @@ static void *core_exec_module(void *module_param)
 		int test_status;
 		thread_local_test = t;
 
+		if (t->test_lvl > module->fw->args->test_lvl) {
+			core_add_test_record(module->fw, module, t, SKIPPED);
+			core_vbs(module->fw, 1, "Skipping L%d test %s.%s\n",
+					t->test_lvl, module->name, t->name);
+			continue;
+		}
 		core_msg(module->fw, "Running %s.%s\n", module->name,
 			t->name);
 
@@ -92,11 +98,11 @@ static void *core_exec_module(void *module_param)
 
 		if (test_status != UNIT_SUCCESS)
 			core_msg_color(module->fw, C_RED,
-				       "  Unit error! Test %s.%s FAILED!\n",
-				       module->name, t->name);
+				"  Unit error! Test %s.%s FAILED!\n",
+				module->name, t->name);
 
 		core_add_test_record(module->fw, module, t,
-				     test_status == UNIT_SUCCESS);
+				test_status == UNIT_SUCCESS ? PASSED : FAILED);
 	}
 
 	module->fw->nvgpu.nvgpu_posix_cleanup(g);

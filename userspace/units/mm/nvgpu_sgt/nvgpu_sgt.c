@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -433,10 +433,10 @@ static int test_nvgpu_sgt_alignment_with_iommu(struct unit_module *m,
 }
 
 struct unit_module_test nvgpu_sgt_tests[] = {
-	UNIT_TEST(sgt_basic_apis,		test_nvgpu_sgt_basic_apis,		NULL),
-	UNIT_TEST(sgt_get_next,			test_nvgpu_sgt_get_next,		NULL),
-	UNIT_TEST(sgt_alignment_non_iommu,	test_nvgpu_sgt_alignment_non_iommu,	NULL),
-	UNIT_TEST(sgt_alignment_with_iommu,	test_nvgpu_sgt_alignment_with_iommu,	NULL),
+	UNIT_TEST(sgt_basic_apis,		test_nvgpu_sgt_basic_apis,		NULL, 0),
+	UNIT_TEST(sgt_get_next,			test_nvgpu_sgt_get_next,		NULL, 0),
+	UNIT_TEST(sgt_alignment_non_iommu,	test_nvgpu_sgt_alignment_non_iommu,	NULL, 0),
+	UNIT_TEST(sgt_alignment_with_iommu,	test_nvgpu_sgt_alignment_with_iommu,	NULL, 0),
 };
 
 UNIT_MODULE(nvgpu_sgt, nvgpu_sgt_tests, UNIT_PRIO_NVGPU_TEST);

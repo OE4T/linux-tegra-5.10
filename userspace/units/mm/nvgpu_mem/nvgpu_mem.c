@@ -758,27 +758,27 @@ struct unit_module_test nvgpu_mem_tests[] = {
 	/*
 	 * Init test should run first in order to use allocated memory.
 	 */
-	UNIT_TEST(mem_create_from_phys,	test_nvgpu_mem_create_from_phys, NULL),
+	UNIT_TEST(mem_create_from_phys,	test_nvgpu_mem_create_from_phys, NULL, 0),
 	/*
 	 * Tests for SYSMEM
 	 */
-	UNIT_TEST(nvgpu_mem_phys_ops,	test_nvgpu_mem_phys_ops,	NULL),
-	UNIT_TEST(nvgpu_memset_sysmem,	test_nvgpu_memset_sysmem,	NULL),
-	UNIT_TEST(nvgpu_mem_wr_rd,	test_nvgpu_mem_wr_rd,		NULL),
-	UNIT_TEST(mem_iommu_translate,	test_nvgpu_mem_iommu_translate,	NULL),
+	UNIT_TEST(nvgpu_mem_phys_ops,	test_nvgpu_mem_phys_ops,	NULL, 0),
+	UNIT_TEST(nvgpu_memset_sysmem,	test_nvgpu_memset_sysmem,	NULL, 0),
+	UNIT_TEST(nvgpu_mem_wr_rd,	test_nvgpu_mem_wr_rd,		NULL, 0),
+	UNIT_TEST(mem_iommu_translate,	test_nvgpu_mem_iommu_translate,	NULL, 0),
 
 	/*
 	 * Tests covering VIDMEM branches
 	 */
-	UNIT_TEST(nvgpu_aperture_mask,	test_nvgpu_aperture_mask,	NULL),
-	UNIT_TEST(nvgpu_mem_vidmem,	test_nvgpu_mem_vidmem,		NULL),
+	UNIT_TEST(nvgpu_aperture_mask,	test_nvgpu_aperture_mask,	NULL, 0),
+	UNIT_TEST(nvgpu_mem_vidmem,	test_nvgpu_mem_vidmem,		NULL, 0),
 
 	/*
 	 * Free test should be executed at the end to free allocated memory.
 	 * As nvgpu_mem doesn't not have an explicit free function for sysmem,
 	 * this test doesn't cover any nvgpu_mem code.
 	 */
-	UNIT_TEST(test_free_nvgpu_mem,	test_free_nvgpu_mem,		NULL),
+	UNIT_TEST(test_free_nvgpu_mem,	test_free_nvgpu_mem,		NULL, 0),
 };
 
 UNIT_MODULE(nvgpu_mem, nvgpu_mem_tests, UNIT_PRIO_NVGPU_TEST);

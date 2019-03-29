@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -39,11 +39,12 @@ static struct option core_opts[] = {
 
 	{ "unit-load-path",	1, NULL, 'L' },
 	{ "num-threads",	1, NULL, 'j' },
+	{ "test-level",		1, NULL, 't' },
 
 	{ NULL,			0, NULL,  0  }
 };
 
-static const char *core_opts_str = "hvqCnQL:j:";
+static const char *core_opts_str = "hvqCnQL:j:t:";
 
 void core_print_help(struct unit_fw *fw)
 {
@@ -70,6 +71,8 @@ void core_print_help(struct unit_fw *fw)
 "                         Path to where the unit test libraries reside.\n",
 "  -j, --num-threads <COUNT>\n",
 "                         Number of threads to use while running all tests.\n",
+"  -t, --test-level <LEVEL>\n",
+"                         Test plan level. 0=L0, 1=L1. default: 1\n",
 "\n",
 "Note: mandatory arguments to long arguments are mandatory for short\n",
 "arguments as well.\n",
@@ -87,6 +90,7 @@ static void set_arg_defaults(struct unit_fw_args *args)
 {
 	args->unit_load_path = DEFAULT_ARG_UNIT_LOAD_PATH;
 	args->thread_count = 1;
+	args->test_lvl = TEST_PLAN_MAX;
 }
 
 /*
@@ -150,6 +154,13 @@ int core_parse_args(struct unit_fw *fw, int argc, char **argv)
 			break;
 		case 'Q':
 			args->is_qnx = true;
+			break;
+		case 't':
+			args->test_lvl = strtol(optarg, NULL, 10);
+			if (args->test_lvl > TEST_PLAN_MAX) {
+				core_err(fw, "Invalid test plan level\n");
+				return -1;
+			}
 			break;
 		case '?':
 			args->help = true;

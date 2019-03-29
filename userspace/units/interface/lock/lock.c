@@ -271,14 +271,14 @@ cleanup:
 }
 
 struct unit_module_test interface_lock_tests[] = {
-	UNIT_TEST(mutex_init, test_mutex_init, NULL),
+	UNIT_TEST(mutex_init, test_mutex_init, NULL, 0),
 	UNIT_TEST(mutex_acquire_release, test_lock_acquire_release,
-		(u64 *) 0),
+		(u64 *) 0, 0),
 	UNIT_TEST(spinlock_acquire_release, test_lock_acquire_release,
-		(u64 *) 1),
+		(u64 *) 1, 0),
 	UNIT_TEST(raw_spinlock_acquire_release, test_lock_acquire_release,
-		(u64 *) 2),
-	UNIT_TEST(mutex_tryacquire, test_mutex_tryacquire, NULL),
+		(u64 *) 2, 0),
+	UNIT_TEST(mutex_tryacquire, test_mutex_tryacquire, NULL, 0),
 };
 
 UNIT_MODULE(interface_lock, interface_lock_tests, UNIT_PRIO_NVGPU_TEST);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -652,21 +652,21 @@ static int test_bitmap_setclear(struct unit_module *m,
 
 
 struct unit_module_test posix_bitops_tests[] = {
-	UNIT_TEST(info,                test_bitmap_info, NULL),
-	UNIT_TEST(ffs,                 test_ffs, NULL),
-	UNIT_TEST(fls,                 test_fls, NULL),
-	UNIT_TEST(ffz,                 test_ffz, NULL),
-	UNIT_TEST(find_first_bit,      test_find_first_bit, &first_bit_args),
-	UNIT_TEST(find_first_zero_bit, test_find_first_bit, &first_zero_args),
-	UNIT_TEST(find_next_bit,       test_find_next_bit, NULL),
-	UNIT_TEST(find_zero_area,      test_find_zero_area, NULL),
-	UNIT_TEST(single_bitops,       test_single_bitops, NULL),
-	UNIT_TEST(bit_set,             test_bit_setclear, &set_args),
-	UNIT_TEST(bit_clear,           test_bit_setclear, &clear_args),
-	UNIT_TEST(test_and_set_bit,    test_test_and_setclear_bit, &set_args),
-	UNIT_TEST(test_and_clear_bit,  test_test_and_setclear_bit, &clear_args),
-	UNIT_TEST(bitmap_set,          test_bitmap_setclear, &set_args),
-	UNIT_TEST(bitmap_clear,        test_bitmap_setclear, &clear_args),
+	UNIT_TEST(info,                test_bitmap_info, NULL, 0),
+	UNIT_TEST(ffs,                 test_ffs, NULL, 0),
+	UNIT_TEST(fls,                 test_fls, NULL, 0),
+	UNIT_TEST(ffz,                 test_ffz, NULL, 0),
+	UNIT_TEST(find_first_bit,      test_find_first_bit, &first_bit_args, 0),
+	UNIT_TEST(find_first_zero_bit, test_find_first_bit, &first_zero_args, 0),
+	UNIT_TEST(find_next_bit,       test_find_next_bit, NULL, 0),
+	UNIT_TEST(find_zero_area,      test_find_zero_area, NULL, 0),
+	UNIT_TEST(single_bitops,       test_single_bitops, NULL, 0),
+	UNIT_TEST(bit_set,             test_bit_setclear, &set_args, 0),
+	UNIT_TEST(bit_clear,           test_bit_setclear, &clear_args, 0),
+	UNIT_TEST(test_and_set_bit,    test_test_and_setclear_bit, &set_args, 0),
+	UNIT_TEST(test_and_clear_bit,  test_test_and_setclear_bit, &clear_args, 0),
+	UNIT_TEST(bitmap_set,          test_bitmap_setclear, &set_args, 0),
+	UNIT_TEST(bitmap_clear,        test_bitmap_setclear, &clear_args, 0),
 };
 
 UNIT_MODULE(posix_bitops, posix_bitops_tests, UNIT_PRIO_POSIX_TEST);

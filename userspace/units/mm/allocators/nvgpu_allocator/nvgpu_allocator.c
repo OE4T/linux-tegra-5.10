@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -323,9 +323,9 @@ static int test_nvgpu_alloc_destroy(struct unit_module *m,
 }
 
 struct unit_module_test nvgpu_allocator_tests[] = {
-	UNIT_TEST(common_init,      test_nvgpu_alloc_common_init,  NULL),
-	UNIT_TEST(alloc_destroy,    test_nvgpu_alloc_destroy,      NULL),
-	UNIT_TEST(alloc_ops,        test_nvgpu_alloc_ops_present,  NULL),
+	UNIT_TEST(common_init,      test_nvgpu_alloc_common_init,  NULL, 0),
+	UNIT_TEST(alloc_destroy,    test_nvgpu_alloc_destroy,      NULL, 0),
+	UNIT_TEST(alloc_ops,        test_nvgpu_alloc_ops_present,  NULL, 0),
 };
 
 UNIT_MODULE(nvgpu_allocator, nvgpu_allocator_tests, UNIT_PRIO_NVGPU_TEST);

@@ -219,11 +219,11 @@ static int sanity_test_type_max(struct unit_module *m,
 }
 
 struct unit_module_test posix_env_tests[] = {
-	UNIT_TEST(sizes,      sanity_test_sizes,   NULL),
-	UNIT_TEST(signage,    sanity_test_signage, NULL),
-	UNIT_TEST(endianness, sanity_test_endianness, NULL),
-	UNIT_TEST(ptr_in_u64, sanity_test_ptr_in_u64, NULL),
-	UNIT_TEST(type_max,   sanity_test_type_max, NULL),
+	UNIT_TEST(sizes,      sanity_test_sizes,   NULL, 0),
+	UNIT_TEST(signage,    sanity_test_signage, NULL, 0),
+	UNIT_TEST(endianness, sanity_test_endianness, NULL, 0),
+	UNIT_TEST(ptr_in_u64, sanity_test_ptr_in_u64, NULL, 0),
+	UNIT_TEST(type_max,   sanity_test_type_max, NULL, 0),
 };
 
 UNIT_MODULE(posix_env, posix_env_tests, UNIT_PRIO_POSIX_TEST);

@@ -46,6 +46,11 @@ struct unit_module_test {
 	module_test_fn fn;
 
 	/*
+	 * Minimum test plan level (L0, L1) to execute the test.
+	 */
+	unsigned int test_lvl;
+
+	/*
 	 * A void pointer to arbitrary arguments. Lets the same unit test
 	 * function perform multiple tests. This gets passed into the
 	 * module_test_fn as @args.
@@ -141,11 +146,12 @@ struct unit_module {
 		.fw = NULL,						\
 	}
 
-#define UNIT_TEST(__name, __fn, __args)					\
+#define UNIT_TEST(__name, __fn, __args, __test_lvl)			\
 	{								\
 		.name = #__name,					\
 		.fn = __fn,						\
 		.args = __args,						\
+		.test_lvl = __test_lvl,					\
 		.jama.requirement = "",					\
 		.jama.unique_id = "",					\
 		.jama.verification_criteria = "",			\
@@ -155,11 +161,12 @@ struct unit_module {
  * Use this for a unit test that satisfies or contributes to satisfying a
  * verification criteria for a given requirement.
  */
-#define UNIT_TEST_REQ(__req, __uid, __vc, __name, __fn, __args)		\
+#define UNIT_TEST_REQ(__req, __uid, __vc, __name, __fn, __args, __test_lvl) \
 	{								\
 		.name = #__name,					\
 		.fn = __fn,						\
 		.args = __args,						\
+		.test_lvl = __test_lvl,					\
 		.jama.requirement = __req,				\
 		.jama.unique_id = __uid,				\
 		.jama.verification_criteria = __vc,			\

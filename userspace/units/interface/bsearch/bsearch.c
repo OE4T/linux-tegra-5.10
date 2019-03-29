@@ -79,7 +79,7 @@ static int test_bsearch(struct unit_module *m, struct gk20a *g,
 }
 
 struct unit_module_test interface_bsearch_tests[] = {
-	UNIT_TEST(test_bsearch, test_bsearch, NULL),
+	UNIT_TEST(test_bsearch, test_bsearch, NULL, 0),
 };
 
 UNIT_MODULE(interface_bsearch, interface_bsearch_tests, UNIT_PRIO_NVGPU_TEST);

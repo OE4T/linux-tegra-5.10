@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -250,10 +250,10 @@ static int test_list_replace(struct unit_module *m, struct gk20a *g,
 }
 
 struct unit_module_test list_tests[] = {
-	UNIT_TEST(list_all_head, test_list_add, (void *) false),
-	UNIT_TEST(list_all_tail, test_list_add, (void *) true),
-	UNIT_TEST(list_move, test_list_move, NULL),
-	UNIT_TEST(list_replace, test_list_replace, NULL),
+	UNIT_TEST(list_all_head, test_list_add, (void *) false, 0),
+	UNIT_TEST(list_all_tail, test_list_add, (void *) true, 0),
+	UNIT_TEST(list_move, test_list_move, NULL, 0),
+	UNIT_TEST(list_replace, test_list_replace, NULL, 0),
 };
 
 UNIT_MODULE(list, list_tests, UNIT_PRIO_NVGPU_TEST);

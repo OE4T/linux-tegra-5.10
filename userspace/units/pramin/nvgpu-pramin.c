@@ -499,11 +499,11 @@ static int test_pramin_nvgpu_dying(struct unit_module *m, struct gk20a *g,
 }
 
 struct unit_module_test pramin_tests[] = {
-	UNIT_TEST(nvgpu_pramin_rd_n_1_sgl, test_pramin_rd_n_single, NULL),
-	UNIT_TEST(nvgpu_pramin_wr_n_3_sgl, test_pramin_wr_n_multi, NULL),
-	UNIT_TEST(nvgpu_pramin_memset, test_pramin_memset, NULL),
-	UNIT_TEST(nvgpu_pramin_dying, test_pramin_nvgpu_dying, NULL),
-	UNIT_TEST(nvgpu_pramin_free_test_env, free_test_env, NULL),
+	UNIT_TEST(nvgpu_pramin_rd_n_1_sgl, test_pramin_rd_n_single, NULL, 0),
+	UNIT_TEST(nvgpu_pramin_wr_n_3_sgl, test_pramin_wr_n_multi, NULL, 0),
+	UNIT_TEST(nvgpu_pramin_memset, test_pramin_memset, NULL, 0),
+	UNIT_TEST(nvgpu_pramin_dying, test_pramin_nvgpu_dying, NULL, 0),
+	UNIT_TEST(nvgpu_pramin_free_test_env, free_test_env, NULL, 0),
 };
 
 UNIT_MODULE(pramin, pramin_tests, UNIT_PRIO_NVGPU_TEST);

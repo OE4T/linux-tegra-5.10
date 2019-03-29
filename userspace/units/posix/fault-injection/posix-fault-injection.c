@@ -34,30 +34,30 @@ static int test_fault_injection_init(struct unit_module *m,
 }
 
 struct unit_module_test fault_injection_tests[] = {
-	UNIT_TEST(fault_injection_init, test_fault_injection_init, NULL),
+	UNIT_TEST(fault_injection_init, test_fault_injection_init, NULL, 0),
 
-	UNIT_TEST(init, test_kmem_init, NULL),
+	UNIT_TEST(init, test_kmem_init, NULL, 0),
 
-	UNIT_TEST(cache_default, test_kmem_cache_fi_default, NULL),
-	UNIT_TEST(cache_enabled, test_kmem_cache_fi_enabled, NULL),
+	UNIT_TEST(cache_default, test_kmem_cache_fi_default, NULL, 0),
+	UNIT_TEST(cache_enabled, test_kmem_cache_fi_enabled, NULL, 0),
 	UNIT_TEST(cache_delayed_enable, test_kmem_cache_fi_delayed_enable,
-		  NULL),
+		  NULL, 0),
 	UNIT_TEST(cache_delayed_disable, test_kmem_cache_fi_delayed_disable,
-		  NULL),
+		  NULL, 0),
 
-	UNIT_TEST(kmalloc_default, test_kmem_kmalloc_fi_default, NULL),
-	UNIT_TEST(kmalloc_enabled, test_kmem_kmalloc_fi_enabled, NULL),
+	UNIT_TEST(kmalloc_default, test_kmem_kmalloc_fi_default, NULL, 0),
+	UNIT_TEST(kmalloc_enabled, test_kmem_kmalloc_fi_enabled, NULL, 0),
 	UNIT_TEST(kmalloc_delayed_enable,
-		  test_kmem_kmalloc_fi_delayed_enable, NULL),
+		  test_kmem_kmalloc_fi_delayed_enable, NULL, 0),
 	UNIT_TEST(kmalloc_delayed_disable,
-		  test_kmem_kmalloc_fi_delayed_disable, NULL),
+		  test_kmem_kmalloc_fi_delayed_disable, NULL, 0),
 
-	UNIT_TEST(dma_alloc_init, test_dma_alloc_init, NULL),
+	UNIT_TEST(dma_alloc_init, test_dma_alloc_init, NULL, 0),
 
-	UNIT_TEST(dma_alloc_default, test_dma_alloc_fi_default, NULL),
-	UNIT_TEST(dma_alloc_enabled, test_dma_alloc_fi_enabled, NULL),
+	UNIT_TEST(dma_alloc_default, test_dma_alloc_fi_default, NULL, 0),
+	UNIT_TEST(dma_alloc_enabled, test_dma_alloc_fi_enabled, NULL, 0),
 	UNIT_TEST(dma_alloc_delayed_enable, test_dma_alloc_fi_delayed_enable,
-		  NULL),
+		  NULL, 0),
 };
 
 UNIT_MODULE(fault_injection, fault_injection_tests, UNIT_PRIO_POSIX_TEST);

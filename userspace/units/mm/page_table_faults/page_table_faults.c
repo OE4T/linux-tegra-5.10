@@ -351,13 +351,13 @@ static int test_page_faults_clean(struct unit_module *m, struct gk20a *g,
 }
 
 struct unit_module_test nvgpu_gmmu_faults_tests[] = {
-	UNIT_TEST(init, test_page_faults_init, (void *)0),
-	UNIT_TEST(pending, test_page_faults_pending, NULL),
-	UNIT_TEST(disable_hw, test_page_faults_disable_hw, NULL),
-	UNIT_TEST(inst_block_s0, test_page_faults_inst_block, (void *)0),
-	UNIT_TEST(inst_block_s1, test_page_faults_inst_block, (void *)1),
-	UNIT_TEST(inst_block_s2, test_page_faults_inst_block, (void *)2),
-	UNIT_TEST(clean, test_page_faults_clean, NULL),
+	UNIT_TEST(init, test_page_faults_init, (void *)0, 0),
+	UNIT_TEST(pending, test_page_faults_pending, NULL, 0),
+	UNIT_TEST(disable_hw, test_page_faults_disable_hw, NULL, 0),
+	UNIT_TEST(inst_block_s0, test_page_faults_inst_block, (void *)0, 0),
+	UNIT_TEST(inst_block_s1, test_page_faults_inst_block, (void *)1, 0),
+	UNIT_TEST(inst_block_s2, test_page_faults_inst_block, (void *)2, 0),
+	UNIT_TEST(clean, test_page_faults_clean, NULL, 0),
 };
 
 UNIT_MODULE(page_table_faults, nvgpu_gmmu_faults_tests, UNIT_PRIO_NVGPU_TEST);
