@@ -47,7 +47,7 @@ int vgpu_fifo_init_engine_info(struct fifo_gk20a *f);
 int vgpu_fifo_preempt_channel(struct gk20a *g, struct channel_gk20a *ch);
 int vgpu_fifo_preempt_tsg(struct gk20a *g, struct tsg_gk20a *tsg);
 int vgpu_channel_set_timeslice(struct channel_gk20a *ch, u32 timeslice);
-int vgpu_fifo_force_reset_ch(struct channel_gk20a *ch,
+int vgpu_tsg_force_reset_ch(struct channel_gk20a *ch,
 					u32 err_code, bool verbose);
 u32 vgpu_fifo_default_timeslice_us(struct gk20a *g);
 int vgpu_tsg_open(struct tsg_gk20a *tsg);

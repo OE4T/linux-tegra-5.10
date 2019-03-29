@@ -850,7 +850,6 @@ static const struct gpu_ops gv11b_ops = {
 		.tsg_verify_status_ctx_reload = gm20b_fifo_tsg_verify_status_ctx_reload,
 		.tsg_verify_status_faulted = gv11b_fifo_tsg_verify_status_faulted,
 		.tsg_set_timeslice = gk20a_fifo_tsg_set_timeslice,
-		.force_reset_ch = gk20a_fifo_force_reset_ch,
 		.init_pbdma_info = gk20a_fifo_init_pbdma_info,
 		.dump_channel_status_ramfc = gv11b_dump_channel_status_ramfc,
 		.is_preempt_pending = gv11b_fifo_is_preempt_pending,
@@ -998,6 +997,7 @@ static const struct gpu_ops gv11b_ops = {
 		.enable = gv11b_tsg_enable,
 		.disable = nvgpu_tsg_disable,
 		.check_ctxsw_timeout = nvgpu_tsg_check_ctxsw_timeout,
+		.force_reset = nvgpu_tsg_force_reset_ch,
 	},
 	.netlist = {
 		.get_netlist_name = gv11b_netlist_get_name,

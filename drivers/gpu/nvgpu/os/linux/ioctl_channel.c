@@ -1342,7 +1342,7 @@ long gk20a_channel_ioctl(struct file *filp,
 				__func__, cmd);
 			break;
 		}
-		err = ch->g->ops.fifo.force_reset_ch(ch,
+		err = ch->g->ops.tsg.force_reset(ch,
 				NVGPU_ERR_NOTIFIER_RESETCHANNEL_VERIF_ERROR, true);
 		gk20a_idle(ch->g);
 		break;

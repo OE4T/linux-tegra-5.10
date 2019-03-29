@@ -353,7 +353,7 @@ int vgpu_fifo_preempt_tsg(struct gk20a *g, struct tsg_gk20a *tsg)
 	return err;
 }
 
-int vgpu_fifo_force_reset_ch(struct channel_gk20a *ch,
+int vgpu_tsg_force_reset_ch(struct channel_gk20a *ch,
 					u32 err_code, bool verbose)
 {
 	struct tsg_gk20a *tsg = NULL;
@@ -373,7 +373,7 @@ int vgpu_fifo_force_reset_ch(struct channel_gk20a *ch,
 		nvgpu_list_for_each_entry(ch_tsg, &tsg->ch_list,
 				channel_gk20a, ch_entry) {
 			if (gk20a_channel_get(ch_tsg)) {
-				g->ops.channel.set_error_notifier(ch_tsg,
+				nvgpu_channel_set_error_notifier(g, ch_tsg,
 								err_code);
 				gk20a_channel_set_unserviceable(ch_tsg);
 				gk20a_channel_put(ch_tsg);

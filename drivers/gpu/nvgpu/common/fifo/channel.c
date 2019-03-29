@@ -1695,7 +1695,7 @@ static void nvgpu_channel_wdt_handler(struct channel_gk20a *ch)
 			gk20a_gr_debug_dump(g);
 		}
 
-		g->ops.fifo.force_reset_ch(ch,
+		g->ops.tsg.force_reset(ch,
 			NVGPU_ERR_NOTIFIER_FIFO_ERROR_IDLE_TIMEOUT,
 			ch->wdt.debug_dump);
 	}

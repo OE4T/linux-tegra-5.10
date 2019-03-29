@@ -715,7 +715,6 @@ static const struct gpu_ops gp10b_ops = {
 		.tsg_verify_channel_status = gk20a_fifo_tsg_unbind_channel_verify_status,
 		.tsg_verify_status_ctx_reload = gm20b_fifo_tsg_verify_status_ctx_reload,
 		.tsg_set_timeslice = gk20a_fifo_tsg_set_timeslice,
-		.force_reset_ch = gk20a_fifo_force_reset_ch,
 		.init_pbdma_info = gk20a_fifo_init_pbdma_info,
 		.dump_channel_status_ramfc = gk20a_dump_channel_status_ramfc,
 		.is_preempt_pending = gk20a_fifo_is_preempt_pending,
@@ -857,6 +856,7 @@ static const struct gpu_ops gp10b_ops = {
 		.enable = gk20a_tsg_enable,
 		.disable = nvgpu_tsg_disable,
 		.check_ctxsw_timeout = nvgpu_tsg_check_ctxsw_timeout,
+		.force_reset = nvgpu_tsg_force_reset_ch,
 	},
 	.netlist = {
 		.get_netlist_name = gp10b_netlist_get_name,

@@ -634,36 +634,6 @@ void gk20a_fifo_recover(struct gk20a *g, u32 engine_ids,
 					 rc_type, NULL);
 }
 
-/* force reset channel and tsg */
-int gk20a_fifo_force_reset_ch(struct channel_gk20a *ch,
-				u32 err_code, bool verbose)
-{
-	struct channel_gk20a *ch_tsg = NULL;
-	struct gk20a *g = ch->g;
-
-	struct tsg_gk20a *tsg = tsg_gk20a_from_ch(ch);
-
-	if (tsg != NULL) {
-		nvgpu_rwsem_down_read(&tsg->ch_list_lock);
-
-		nvgpu_list_for_each_entry(ch_tsg, &tsg->ch_list,
-				channel_gk20a, ch_entry) {
-			if (gk20a_channel_get(ch_tsg) != NULL) {
-				g->ops.channel.set_error_notifier(ch_tsg,
-								err_code);
-				gk20a_channel_put(ch_tsg);
-			}
-		}
-
-		nvgpu_rwsem_up_read(&tsg->ch_list_lock);
-		nvgpu_tsg_recover(g, tsg, verbose, RC_TYPE_FORCE_RESET);
-	} else {
-		nvgpu_err(g, "chid: %d is not bound to tsg", ch->chid);
-	}
-
-	return 0;
-}
-
 int gk20a_fifo_tsg_unbind_channel_verify_status(struct channel_gk20a *ch)
 {
 	struct gk20a *g = ch->g;

@@ -952,8 +952,6 @@ struct gpu_ops {
 		void (*apply_pb_timeout)(struct gk20a *g);
 		int (*tsg_set_timeslice)(struct tsg_gk20a *tsg, u32 timeslice);
 		u32 (*default_timeslice_us)(struct gk20a *g);
-		int (*force_reset_ch)(struct channel_gk20a *ch,
-					u32 err_code, bool verbose);
 		int (*tsg_bind_channel)(struct tsg_gk20a *tsg,
 				struct channel_gk20a *ch);
 		int (*tsg_unbind_channel)(struct channel_gk20a *ch);
@@ -1154,6 +1152,8 @@ struct gpu_ops {
 		void (*disable)(struct tsg_gk20a *tsg);
 		bool (*check_ctxsw_timeout)(struct tsg_gk20a *tsg,
 				bool *verbose, u32 *ms);
+		int (*force_reset)(struct channel_gk20a *ch,
+					u32 err_code, bool verbose);
 	} tsg;
 	struct {
 		void (*read_engine_status_info) (struct gk20a *g,

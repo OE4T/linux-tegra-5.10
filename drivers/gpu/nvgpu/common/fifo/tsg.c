@@ -212,6 +212,24 @@ static void nvgpu_tsg_destroy(struct gk20a *g, struct tsg_gk20a *tsg)
 	nvgpu_mutex_destroy(&tsg->event_id_list_lock);
 }
 
+/* force reset tsg that the channel is bound to */
+int nvgpu_tsg_force_reset_ch(struct channel_gk20a *ch,
+				u32 err_code, bool verbose)
+{
+	struct gk20a *g = ch->g;
+
+	struct tsg_gk20a *tsg = tsg_gk20a_from_ch(ch);
+
+	if (tsg != NULL) {
+		nvgpu_tsg_set_error_notifier(g, tsg, err_code);
+		nvgpu_tsg_recover(g, tsg, verbose, RC_TYPE_FORCE_RESET);
+	} else {
+		nvgpu_err(g, "chid: %d is not bound to tsg", ch->chid);
+	}
+
+	return 0;
+}
+
 void nvgpu_tsg_cleanup_sw(struct gk20a *g)
 {
 	struct fifo_gk20a *f = &g->fifo;

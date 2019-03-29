@@ -421,7 +421,6 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 		.tsg_set_timeslice = vgpu_tsg_set_timeslice,
 		.tsg_open = vgpu_tsg_open,
 		.tsg_release = vgpu_tsg_release,
-		.force_reset_ch = vgpu_fifo_force_reset_ch,
 		.dump_channel_status_ramfc = NULL,
 		.is_preempt_pending = NULL,
 		.reset_enable_hw = NULL,
@@ -548,6 +547,7 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 		.enable = vgpu_tsg_enable,
 		.disable = nvgpu_tsg_disable,
 		.check_ctxsw_timeout = nvgpu_tsg_check_ctxsw_timeout,
+		.force_reset = vgpu_tsg_force_reset_ch,
 	},
 	.netlist = {
 		.get_netlist_name = gp10b_netlist_get_name,
