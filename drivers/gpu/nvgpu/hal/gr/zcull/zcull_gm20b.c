@@ -27,6 +27,8 @@
 #include <nvgpu/gr/ctx.h>
 #include <nvgpu/gr/zcull.h>
 
+#include "common/gr/zcull_priv.h"
+
 #include "zcull_gm20b.h"
 
 #include <nvgpu/hw/gm20b/hw_gr_gm20b.h>

@@ -28,6 +28,8 @@
 #include <nvgpu/gr/zcull.h>
 #include <nvgpu/gr/config.h>
 
+#include "zcull_priv.h"
+
 int nvgpu_gr_zcull_init(struct gk20a *g, struct nvgpu_gr_zcull **gr_zcull)
 {
 	struct nvgpu_gr_config *gr_config = g->gr.config;

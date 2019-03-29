@@ -50,6 +50,7 @@
 #include "subctx_vgpu.h"
 
 #include "common/vgpu/perf/cyclestats_snapshot_vgpu.h"
+#include "common/gr/zcull_priv.h"
 
 void vgpu_gr_detect_sm_arch(struct gk20a *g)
 {
