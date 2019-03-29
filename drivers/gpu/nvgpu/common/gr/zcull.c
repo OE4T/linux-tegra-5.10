@@ -143,3 +143,21 @@ int nvgpu_gr_zcull_init_hw(struct gk20a *g,
 
 	return 0;
 }
+
+int nvgpu_gr_zcull_ctx_setup(struct gk20a *g, struct nvgpu_gr_subctx *subctx,
+		struct nvgpu_gr_ctx *gr_ctx)
+{
+	int ret = 0;
+
+	if (subctx != NULL) {
+		ret = nvgpu_gr_ctx_zcull_setup(g, gr_ctx, false);
+		if (ret == 0) {
+			nvgpu_gr_subctx_zcull_setup(g, subctx, gr_ctx);
+		}
+	} else {
+		ret = nvgpu_gr_ctx_zcull_setup(g, gr_ctx, true);
+	}
+
+	return ret;
+}
+

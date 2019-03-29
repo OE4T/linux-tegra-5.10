@@ -27,6 +27,8 @@
 
 struct gk20a;
 struct nvgpu_gr_config;
+struct nvgpu_gr_ctx;
+struct nvgpu_gr_subctx;
 
 struct nvgpu_gr_zcull {
 	struct gk20a *g;
@@ -64,5 +66,8 @@ u32 nvgpu_gr_get_ctxsw_zcull_size(struct gk20a *g,
 int nvgpu_gr_zcull_init_hw(struct gk20a *g,
 			struct nvgpu_gr_zcull *gr_zcull,
 			struct nvgpu_gr_config *gr_config);
+
+int nvgpu_gr_zcull_ctx_setup(struct gk20a *g, struct nvgpu_gr_subctx *subctx,
+		struct nvgpu_gr_ctx *gr_ctx);
 
 #endif /* NVGPU_GR_ZCULL_H */

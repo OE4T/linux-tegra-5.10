@@ -80,6 +80,7 @@ nvgpu-y += \
 	common/gr/gr_config.o \
 	common/gr/fecs_trace.o \
 	common/gr/zbc.o \
+	common/gr/gr_setup.o \
 	common/gr/hwpm_map.o \
 	common/netlist/netlist.o \
 	common/netlist/netlist_sim.o \

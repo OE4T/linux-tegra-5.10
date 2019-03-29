@@ -631,6 +631,13 @@ struct gpu_ops {
 #endif
 
 		struct {
+			int (*bind_ctxsw_zcull)(struct gk20a *g,
+						struct channel_gk20a *c,
+						u64 zcull_va,
+						u32 mode);
+		} setup;
+
+		struct {
 			int (*add_color)(struct gk20a *g,
 				struct nvgpu_gr_zbc_entry *color_val,
 				u32 index);
@@ -655,10 +662,6 @@ struct gpu_ops {
 			int (*init_zcull_hw)(struct gk20a *g,
 					struct nvgpu_gr_zcull *gr_zcull,
 					struct nvgpu_gr_config *gr_config);
-			int (*bind_ctxsw_zcull)(struct gk20a *g,
-						struct channel_gk20a *c,
-						u64 zcull_va,
-						u32 mode);
 			int (*get_zcull_info)(struct gk20a *g,
 				struct nvgpu_gr_config *gr_config,
 				struct nvgpu_gr_zcull *gr_zcull,

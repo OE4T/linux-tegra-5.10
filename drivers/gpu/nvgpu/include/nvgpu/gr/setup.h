@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -19,26 +19,15 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-
-#ifndef NVGPU_GR_ZCULL_GM20B_H
-#define NVGPU_GR_ZCULL_GM20B_H
+#ifndef NVGPU_GR_SETUP_H
+#define NVGPU_GR_SETUP_H
 
 #include <nvgpu/types.h>
 
 struct gk20a;
-struct nvgpu_gr_config;
-struct nvgpu_gr_zcull;
-struct nvgpu_gr_zcull_info;
 struct channel_gk20a;
 
-int gm20b_gr_init_zcull_hw(struct gk20a *g,
-			struct nvgpu_gr_zcull *gr_zcull,
-			struct nvgpu_gr_config *gr_config);
-int gm20b_gr_get_zcull_info(struct gk20a *g,
-			struct nvgpu_gr_config *gr_config,
-			struct nvgpu_gr_zcull *zcull,
-			struct nvgpu_gr_zcull_info *zcull_params);
-void gm20b_gr_program_zcull_mapping(struct gk20a *g, u32 zcull_num_entries,
-					u32 *zcull_map_tiles);
+int nvgpu_gr_setup_bind_ctxsw_zcull(struct gk20a *g, struct channel_gk20a *c,
+			u64 zcull_va, u32 mode);
 
-#endif /* NVGPU_GR_ZCULL_GM20B_H */
+#endif /* NVGPU_GR_SETUP_H */

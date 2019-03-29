@@ -320,6 +320,9 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 			.get_gpc_tpc_mask = vgpu_gr_get_gpc_tpc_mask,
 			.init_sm_id_table = vgpu_gr_init_sm_id_table,
 		},
+		.setup = {
+			.bind_ctxsw_zcull = vgpu_gr_bind_ctxsw_zcull,
+		},
 		.zbc = {
 			.add_color = NULL,
 			.add_depth = NULL,
@@ -330,7 +333,6 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 			.get_gpcs_swdx_dss_zbc_z_format_reg = NULL,
 		},
 		.zcull = {
-			.bind_ctxsw_zcull = vgpu_gr_bind_ctxsw_zcull,
 			.get_zcull_info = vgpu_gr_get_zcull_info,
 			.program_zcull_mapping = NULL,
 		},

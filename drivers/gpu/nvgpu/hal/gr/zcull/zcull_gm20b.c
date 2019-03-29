@@ -22,7 +22,6 @@
 
 #include <nvgpu/gk20a.h>
 #include <nvgpu/io.h>
-#include <nvgpu/channel.h>
 #include <nvgpu/gr/config.h>
 #include <nvgpu/gr/subctx.h>
 #include <nvgpu/gr/ctx.h>
@@ -275,54 +274,3 @@ void gm20b_gr_program_zcull_mapping(struct gk20a *g, u32 zcull_num_entries,
 
 }
 
-static int gm20b_gr_ctx_zcull_setup(struct gk20a *g, struct channel_gk20a *c,
-				struct nvgpu_gr_ctx *gr_ctx)
-{
-	int ret = 0;
-
-	nvgpu_log_fn(g, " ");
-
-	ret = gk20a_disable_channel_tsg(g, c);
-	if (ret != 0) {
-		nvgpu_err(g, "failed to disable channel/TSG");
-		return ret;
-	}
-	ret = gk20a_fifo_preempt(g, c);
-	if (ret != 0) {
-		if (gk20a_enable_channel_tsg(g, c) != 0) {
-			nvgpu_err(g, "failed to re-enable channel/TSG");
-		}
-		nvgpu_err(g, "failed to preempt channel/TSG");
-		return ret;
-	}
-
-	ret = nvgpu_channel_gr_zcull_setup(g, c, gr_ctx);
-	if (ret != 0) {
-		nvgpu_err(g, "failed to set up zcull");
-	}
-
-	ret = gk20a_enable_channel_tsg(g, c);
-	if (ret != 0) {
-		nvgpu_err(g, "failed to enable channel/TSG");
-	}
-
-	return ret;
-}
-
-int gm20b_gr_bind_ctxsw_zcull(struct gk20a *g, struct channel_gk20a *c,
-			u64 zcull_va, u32 mode)
-{
-	struct tsg_gk20a *tsg;
-	struct nvgpu_gr_ctx *gr_ctx;
-
-	tsg = tsg_gk20a_from_ch(c);
-	if (tsg == NULL) {
-		return -EINVAL;
-	}
-
-	gr_ctx = tsg->gr_ctx;
-	nvgpu_gr_ctx_set_zcull_ctx(g, gr_ctx, mode, zcull_va);
-
-	/* TBD: don't disable channel in sw method processing */
-	return gm20b_gr_ctx_zcull_setup(g, c, gr_ctx);
-}

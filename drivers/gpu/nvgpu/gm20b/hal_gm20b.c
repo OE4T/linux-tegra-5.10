@@ -39,6 +39,7 @@
 #include <nvgpu/gr/zbc.h>
 #include <nvgpu/gr/zcull.h>
 #include <nvgpu/gr/gr_falcon.h>
+#include <nvgpu/gr/setup.h>
 
 #include "hal/bus/bus_gm20b.h"
 #include "hal/bus/bus_gk20a.h"
@@ -392,6 +393,9 @@ static const struct gpu_ops gm20b_ops = {
 				gm20b_gr_config_get_pd_dist_skip_table_size,
 			.init_sm_id_table = gm20b_gr_config_init_sm_id_table,
 		},
+		.setup = {
+			.bind_ctxsw_zcull = nvgpu_gr_setup_bind_ctxsw_zcull,
+		},
 		.zbc = {
 			.add_color = gm20b_gr_zbc_add_color,
 			.add_depth = gm20b_gr_zbc_add_depth,
@@ -403,7 +407,6 @@ static const struct gpu_ops gm20b_ops = {
 		},
 		.zcull = {
 			.init_zcull_hw = gm20b_gr_init_zcull_hw,
-			.bind_ctxsw_zcull = gm20b_gr_bind_ctxsw_zcull,
 			.get_zcull_info = gm20b_gr_get_zcull_info,
 			.program_zcull_mapping = gm20b_gr_program_zcull_mapping,
 		},

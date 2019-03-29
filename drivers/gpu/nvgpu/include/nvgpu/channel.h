@@ -473,8 +473,6 @@ int nvgpu_submit_channel_gpfifo_kernel(struct channel_gk20a *c,
 				u32 flags,
 				struct nvgpu_channel_fence *fence,
 				struct gk20a_fence **fence_out);
-int nvgpu_channel_gr_zcull_setup(struct gk20a *g, struct channel_gk20a *c,
-			struct nvgpu_gr_ctx *gr_ctx);
 
 #ifdef CONFIG_DEBUG_FS
 void trace_write_pushbuffers(struct channel_gk20a *c, u32 count);

@@ -143,6 +143,7 @@
 #include <nvgpu/cyclestats_snapshot.h>
 #include <nvgpu/gr/zbc.h>
 #include <nvgpu/gr/zcull.h>
+#include <nvgpu/gr/setup.h>
 #include <nvgpu/gr/fecs_trace.h>
 
 #include <nvgpu/hw/gv11b/hw_proj_gv11b.h>
@@ -555,6 +556,9 @@ static const struct gpu_ops gv11b_ops = {
 			.set_read_index = gm20b_fecs_trace_set_read_index,
 		},
 #endif /* CONFIG_GK20A_CTXSW_TRACE */
+		.setup = {
+			.bind_ctxsw_zcull = nvgpu_gr_setup_bind_ctxsw_zcull,
+		},
 		.zbc = {
 			.add_color = gp10b_gr_zbc_add_color,
 			.add_depth = gp10b_gr_zbc_add_depth,
@@ -568,7 +572,6 @@ static const struct gpu_ops gv11b_ops = {
 		},
 		.zcull = {
 			.init_zcull_hw = gm20b_gr_init_zcull_hw,
-			.bind_ctxsw_zcull = gm20b_gr_bind_ctxsw_zcull,
 			.get_zcull_info = gm20b_gr_get_zcull_info,
 			.program_zcull_mapping = gv11b_gr_program_zcull_mapping,
 		},
