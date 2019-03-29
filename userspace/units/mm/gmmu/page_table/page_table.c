@@ -21,6 +21,7 @@
  */
 
 #include <unit/io.h>
+#include <unit/core.h>
 #include <unit/unit.h>
 #include <unit/unit-requirement-ids.h>
 
@@ -344,7 +345,7 @@ static int init_mm(struct unit_module *m, struct gk20a *g)
 static int test_nvgpu_gmmu_init(struct unit_module *m,
 					struct gk20a *g, void *args)
 {
-	u64 debug_level = (u64) args;
+	int debug_level = verbose_lvl(m);
 
 	g->log_mask = 0;
 	if (debug_level >= 1) {

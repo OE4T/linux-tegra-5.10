@@ -21,6 +21,7 @@
  */
 
 #include <unit/io.h>
+#include <unit/core.h>
 #include <unit/unit.h>
 #include <unit/unit-requirement-ids.h>
 
@@ -1026,6 +1027,11 @@ static int test_pd_cache_env_init(struct unit_module *m,
 				  struct gk20a *g, void *args)
 {
 	nvgpu_set_enabled(g, NVGPU_MM_UNIFIED_MEMORY, true);
+
+	g->log_mask = 0;
+	if (verbose_lvl(m) >= 1) {
+		g->log_mask = gpu_dbg_pd_cache;
+	}
 
 	return UNIT_SUCCESS;
 }
