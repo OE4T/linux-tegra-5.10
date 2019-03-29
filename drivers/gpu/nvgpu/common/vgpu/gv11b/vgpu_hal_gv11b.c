@@ -46,6 +46,7 @@
 #include "hal/gr/init/gr_init_gm20b.h"
 #include "hal/gr/init/gr_init_gp10b.h"
 #include "hal/gr/init/gr_init_gv11b.h"
+#include "hal/gr/intr/gr_intr_gm20b.h"
 #include "hal/gr/intr/gr_intr_gv11b.h"
 #include "hal/gr/ctxsw_prog/ctxsw_prog_gm20b.h"
 #include "hal/gr/ctxsw_prog/ctxsw_prog_gp10b.h"
@@ -415,6 +416,7 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 				gv11b_gr_init_commit_gfxp_wfi_timeout,
 		},
 		.intr = {
+			.get_tpc_exception = gm20b_gr_intr_get_tpc_exception,
 			.handle_tpc_mpc_exception =
 					gv11b_gr_intr_handle_tpc_mpc_exception,
 			.handle_tex_exception = NULL,

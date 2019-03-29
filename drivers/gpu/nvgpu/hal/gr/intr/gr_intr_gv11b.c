@@ -35,15 +35,6 @@ void gv11b_gr_intr_handle_tpc_mpc_exception(struct gk20a *g, u32 gpc, u32 tpc)
 {
 	u32 esr;
 	u32 offset = nvgpu_gr_gpc_offset(g, gpc) + nvgpu_gr_tpc_offset(g, tpc);
-	u32 tpc_exception = gk20a_readl(g, gr_gpc0_tpc0_tpccs_tpc_exception_r()
-			+ offset);
-
-	if ((tpc_exception & gr_gpc0_tpc0_tpccs_tpc_exception_mpc_m()) == 0U) {
-		return;
-	}
-
-	nvgpu_log(g, gpu_dbg_intr | gpu_dbg_gpu_dbg,
-			"GPC%d TPC%d MPC exception", gpc, tpc);
 
 	esr = nvgpu_readl(g, gr_gpc0_tpc0_mpc_hww_esr_r() + offset);
 	nvgpu_log(g, gpu_dbg_intr | gpu_dbg_gpu_dbg, "mpc hww esr 0x%08x", esr);

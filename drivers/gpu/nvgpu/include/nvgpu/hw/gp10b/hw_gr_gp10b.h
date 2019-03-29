@@ -3614,6 +3614,14 @@ static inline u32 gr_gpc0_tpc0_tpccs_tpc_exception_sm_pending_v(void)
 {
 	return 0x00000001U;
 }
+static inline u32 gr_gpc0_tpc0_tpccs_tpc_exception_mpc_m(void)
+{
+	return U32(0x1U) << 4U;
+}
+static inline u32 gr_gpc0_tpc0_tpccs_tpc_exception_mpc_pending_f(void)
+{
+	return 0x10U;
+}
 static inline u32 gr_gpc0_tpc0_sm_dbgr_control0_r(void)
 {
 	return 0x00504610U;

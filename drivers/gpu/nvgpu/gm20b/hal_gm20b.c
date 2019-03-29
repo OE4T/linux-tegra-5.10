@@ -477,6 +477,7 @@ static const struct gpu_ops gm20b_ops = {
 			.get_gfxp_rtv_cb_size = NULL,
 		},
 		.intr = {
+			.get_tpc_exception = gm20b_gr_intr_get_tpc_exception,
 			.handle_tex_exception =
 					gm20b_gr_intr_handle_tex_exception,
 			.enable_hww_exceptions =

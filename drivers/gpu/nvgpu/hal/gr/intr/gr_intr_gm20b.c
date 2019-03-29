@@ -24,10 +24,38 @@
 #include <nvgpu/io.h>
 
 #include <nvgpu/gr/config.h>
+#include <nvgpu/gr/gr.h>
+#include <nvgpu/gr/gr_intr.h>
 
 #include "gr_intr_gm20b.h"
 
 #include <nvgpu/hw/gm20b/hw_gr_gm20b.h>
+
+u32 gm20b_gr_intr_get_tpc_exception(struct gk20a *g, u32 offset,
+				    struct nvgpu_gr_tpc_exception *pending_tpc)
+{
+	u32 tpc_exception = nvgpu_readl(g,
+				gr_gpc0_tpc0_tpccs_tpc_exception_r()
+				+ offset);
+
+	(void) memset(pending_tpc, 0, sizeof(struct nvgpu_gr_tpc_exception));
+
+	if (gr_gpc0_tpc0_tpccs_tpc_exception_tex_v(tpc_exception) ==
+		gr_gpc0_tpc0_tpccs_tpc_exception_tex_pending_v()) {
+			pending_tpc->tex_exception = true;
+	}
+
+	if (gr_gpc0_tpc0_tpccs_tpc_exception_sm_v(tpc_exception) ==
+		gr_gpc0_tpc0_tpccs_tpc_exception_sm_pending_v()) {
+			pending_tpc->sm_exception = true;
+	}
+
+	if ((tpc_exception & gr_gpc0_tpc0_tpccs_tpc_exception_mpc_m()) != 0U) {
+		pending_tpc->mpc_exception = true;
+	}
+
+	return tpc_exception;
+}
 
 void gm20b_gr_intr_handle_tex_exception(struct gk20a *g, u32 gpc, u32 tpc)
 {

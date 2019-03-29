@@ -69,6 +69,7 @@ struct nvgpu_gr_zbc;
 struct nvgpu_gr_zbc_entry;
 struct nvgpu_gr_zbc_query_params;
 struct nvgpu_gr_zcull_info;
+struct nvgpu_gr_tpc_exception;
 struct nvgpu_channel_hw_state;
 struct nvgpu_engine_status_info;
 struct nvgpu_pbdma_status_info;
@@ -781,6 +782,8 @@ struct gpu_ops {
 		} init;
 
 		struct {
+			u32 (*get_tpc_exception)(struct gk20a *g, u32 offset,
+				struct nvgpu_gr_tpc_exception *pending_tpc);
 			void (*handle_tpc_mpc_exception)(struct gk20a *g,
 							u32 gpc, u32 tpc);
 			void (*handle_tex_exception)(struct gk20a *g,

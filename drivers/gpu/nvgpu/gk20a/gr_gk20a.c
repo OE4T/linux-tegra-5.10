@@ -51,6 +51,7 @@
 #include <nvgpu/gr/ctx.h>
 #include <nvgpu/gr/zbc.h>
 #include <nvgpu/gr/gr.h>
+#include <nvgpu/gr/gr_intr.h>
 #include <nvgpu/gr/gr_falcon.h>
 #include <nvgpu/gr/obj_ctx.h>
 #include <nvgpu/gr/zcull.h>
@@ -1968,9 +1969,9 @@ static int gk20a_gr_handle_tpc_exception(struct gk20a *g, u32 gpc, u32 tpc,
 		u32 *hww_global_esr)
 {
 	int tmp_ret, ret = 0;
+	struct nvgpu_gr_tpc_exception pending_tpc;
 	u32 offset = nvgpu_gr_gpc_offset(g, gpc) + nvgpu_gr_tpc_offset(g, tpc);
-	u32 tpc_exception = gk20a_readl(g, gr_gpc0_tpc0_tpccs_tpc_exception_r()
-			+ offset);
+	u32 tpc_exception = g->ops.gr.intr.get_tpc_exception(g, offset, &pending_tpc);
 	u32 sm_per_tpc = nvgpu_get_litter_value(g, GPU_LIT_NUM_SM_PER_TPC);
 
 	nvgpu_log(g, gpu_dbg_intr | gpu_dbg_gpu_dbg,
@@ -1978,8 +1979,7 @@ static int gk20a_gr_handle_tpc_exception(struct gk20a *g, u32 gpc, u32 tpc,
 			gpc, tpc, tpc_exception);
 
 	/* check if an sm exeption is pending */
-	if (gr_gpc0_tpc0_tpccs_tpc_exception_sm_v(tpc_exception) ==
-			gr_gpc0_tpc0_tpccs_tpc_exception_sm_pending_v()) {
+	if (pending_tpc.sm_exception) {
 		u32 esr_sm_sel, sm;
 
 		nvgpu_log(g, gpu_dbg_intr | gpu_dbg_gpu_dbg,
@@ -2015,12 +2015,10 @@ static int gk20a_gr_handle_tpc_exception(struct gk20a *g, u32 gpc, u32 tpc,
 				gpc, tpc, sm, *hww_global_esr);
 
 		}
-
 	}
 
 	/* check if a tex exception is pending */
-	if (gr_gpc0_tpc0_tpccs_tpc_exception_tex_v(tpc_exception) ==
-			gr_gpc0_tpc0_tpccs_tpc_exception_tex_pending_v()) {
+	if (pending_tpc.tex_exception) {
 		nvgpu_log(g, gpu_dbg_intr | gpu_dbg_gpu_dbg,
 				"GPC%d TPC%d: TEX exception pending", gpc, tpc);
 		if (g->ops.gr.intr.handle_tex_exception != NULL) {
@@ -2028,8 +2026,13 @@ static int gk20a_gr_handle_tpc_exception(struct gk20a *g, u32 gpc, u32 tpc,
 		}
 	}
 
-	if (g->ops.gr.intr.handle_tpc_mpc_exception != NULL) {
-		g->ops.gr.intr.handle_tpc_mpc_exception(g, gpc, tpc);
+	/* check if a mpc exception is pending */
+	if (pending_tpc.mpc_exception) {
+		nvgpu_log(g, gpu_dbg_intr | gpu_dbg_gpu_dbg,
+				"GPC%d TPC%d: MPC exception pending", gpc, tpc);
+		if (g->ops.gr.intr.handle_tpc_mpc_exception != NULL) {
+			g->ops.gr.intr.handle_tpc_mpc_exception(g, gpc, tpc);
+		}
 	}
 
 	return ret;

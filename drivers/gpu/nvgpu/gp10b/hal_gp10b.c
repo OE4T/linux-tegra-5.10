@@ -562,6 +562,7 @@ static const struct gpu_ops gp10b_ops = {
 				gp10b_gr_init_commit_cbes_reserve,
 		},
 		.intr = {
+			.get_tpc_exception = gm20b_gr_intr_get_tpc_exception,
 			.handle_tex_exception =
 					gp10b_gr_intr_handle_tex_exception,
 			.enable_hww_exceptions =
