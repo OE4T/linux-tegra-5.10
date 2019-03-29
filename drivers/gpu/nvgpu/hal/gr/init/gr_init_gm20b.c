@@ -534,7 +534,7 @@ void gm20b_gr_init_cwd_gpcs_tpcs_num(struct gk20a *g,
 
 int gm20b_gr_init_wait_idle(struct gk20a *g)
 {
-	u32 delay = NVGPU_GR_IDLE_CHECK_DEFAULT_US;
+	u32 delay = POLL_DELAY_MIN_US;
 	u32 gr_engine_id;
 	int err = 0;
 	bool ctxsw_active;
@@ -547,7 +547,7 @@ int gm20b_gr_init_wait_idle(struct gk20a *g)
 
 	gr_engine_id = nvgpu_engine_get_gr_id(g);
 
-	err = nvgpu_timeout_init(g, &timeout, nvgpu_gr_get_idle_timeout(g),
+	err = nvgpu_timeout_init(g, &timeout, nvgpu_get_poll_timeout(g),
 				 NVGPU_TIMER_CPU_TIMER);
 	if (err != 0) {
 		return err;
@@ -577,7 +577,7 @@ int gm20b_gr_init_wait_idle(struct gk20a *g)
 		}
 
 		nvgpu_usleep_range(delay, delay * 2U);
-		delay = min_t(u32, delay << 1, NVGPU_GR_IDLE_CHECK_MAX_US);
+		delay = min_t(u32, delay << 1, POLL_DELAY_MAX_US);
 
 	} while (nvgpu_timeout_expired(&timeout) == 0);
 
@@ -590,7 +590,7 @@ int gm20b_gr_init_wait_idle(struct gk20a *g)
 int gm20b_gr_init_wait_fe_idle(struct gk20a *g)
 {
 	u32 val;
-	u32 delay = NVGPU_GR_IDLE_CHECK_DEFAULT_US;
+	u32 delay = POLL_DELAY_MIN_US;
 	struct nvgpu_timeout timeout;
 	int err = 0;
 
@@ -600,7 +600,7 @@ int gm20b_gr_init_wait_fe_idle(struct gk20a *g)
 
 	nvgpu_log_fn(g, " ");
 
-	err = nvgpu_timeout_init(g, &timeout, nvgpu_gr_get_idle_timeout(g),
+	err = nvgpu_timeout_init(g, &timeout, nvgpu_get_poll_timeout(g),
 				 NVGPU_TIMER_CPU_TIMER);
 	if (err != 0) {
 		return err;
@@ -615,7 +615,7 @@ int gm20b_gr_init_wait_fe_idle(struct gk20a *g)
 		}
 
 		nvgpu_usleep_range(delay, delay * 2U);
-		delay = min_t(u32, delay << 1, NVGPU_GR_IDLE_CHECK_MAX_US);
+		delay = min_t(u32, delay << 1, POLL_DELAY_MAX_US);
 	} while (nvgpu_timeout_expired(&timeout) == 0);
 
 	nvgpu_err(g, "timeout, fe busy : %x", val);

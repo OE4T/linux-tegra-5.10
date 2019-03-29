@@ -146,7 +146,7 @@ static bool gr_activity_empty_or_preempted(u32 val)
 
 int gp10b_gr_init_wait_empty(struct gk20a *g)
 {
-	u32 delay = NVGPU_GR_IDLE_CHECK_DEFAULT_US;
+	u32 delay = POLL_DELAY_MIN_US;
 	bool ctxsw_active;
 	bool gr_busy;
 	u32 gr_status;
@@ -156,7 +156,7 @@ int gp10b_gr_init_wait_empty(struct gk20a *g)
 
 	nvgpu_log_fn(g, " ");
 
-	err = nvgpu_timeout_init(g, &timeout, nvgpu_gr_get_idle_timeout(g),
+	err = nvgpu_timeout_init(g, &timeout, nvgpu_get_poll_timeout(g),
 				 NVGPU_TIMER_CPU_TIMER);
 	if (err != 0) {
 		nvgpu_err(g, "timeout_init failed: %d", err);
@@ -186,7 +186,7 @@ int gp10b_gr_init_wait_empty(struct gk20a *g)
 		}
 
 		nvgpu_usleep_range(delay, delay * 2U);
-		delay = min_t(u32, delay << 1, NVGPU_GR_IDLE_CHECK_MAX_US);
+		delay = min_t(u32, delay << 1, POLL_DELAY_MAX_US);
 	} while (nvgpu_timeout_expired(&timeout) == 0);
 
 	nvgpu_err(g,

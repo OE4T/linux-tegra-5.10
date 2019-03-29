@@ -134,12 +134,6 @@ void nvgpu_gr_flush_channel_tlb(struct gk20a *g)
 	nvgpu_spinlock_release(&g->gr.ch_tlb_lock);
 }
 
-u32 nvgpu_gr_get_idle_timeout(struct gk20a *g)
-{
-	return nvgpu_is_timeouts_enabled(g) ?
-		g->poll_timeout_default : UINT_MAX;
-}
-
 int nvgpu_gr_init_fs_state(struct gk20a *g)
 {
 	u32 tpc_index, gpc_index;

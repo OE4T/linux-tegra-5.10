@@ -25,14 +25,10 @@
 
 #include <nvgpu/types.h>
 
-#define NVGPU_GR_IDLE_CHECK_DEFAULT_US		10U
-#define NVGPU_GR_IDLE_CHECK_MAX_US		200U
-
 u32 nvgpu_gr_gpc_offset(struct gk20a *g, u32 gpc);
 u32 nvgpu_gr_tpc_offset(struct gk20a *g, u32 tpc);
 int nvgpu_gr_suspend(struct gk20a *g);
 void nvgpu_gr_flush_channel_tlb(struct gk20a *g);
-u32 nvgpu_gr_get_idle_timeout(struct gk20a *g);
 int nvgpu_gr_init_fs_state(struct gk20a *g);
 void nvgpu_gr_wait_initialized(struct gk20a *g);
 
