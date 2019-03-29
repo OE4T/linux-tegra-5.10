@@ -199,3 +199,28 @@ int nvgpu_sec2_process_message(struct nvgpu_sec2 *sec2)
 exit:
 	return status;
 }
+
+int nvgpu_sec2_wait_message_cond(struct nvgpu_sec2 *sec2, u32 timeout_ms,
+	void *var, u8 val)
+{
+	struct gk20a *g = sec2->g;
+	struct nvgpu_timeout timeout;
+	u32 delay = POLL_DELAY_MIN_US;
+
+	nvgpu_timeout_init(g, &timeout, timeout_ms, NVGPU_TIMER_CPU_TIMER);
+
+	do {
+		if (*(u8 *)var == val) {
+			return 0;
+		}
+
+		if (g->ops.sec2.is_interrupted(sec2)) {
+			g->ops.sec2.isr(g);
+		}
+
+		nvgpu_usleep_range(delay, delay * 2U);
+		delay = min_t(u32, delay << 1U, POLL_DELAY_MAX_US);
+	} while (nvgpu_timeout_expired(&timeout) == 0);
+
+	return -ETIMEDOUT;
+}

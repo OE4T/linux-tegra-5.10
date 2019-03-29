@@ -76,5 +76,7 @@ struct nv_flcn_msg_sec2 {
 };
 
 int nvgpu_sec2_process_message(struct nvgpu_sec2 *sec2);
+int nvgpu_sec2_wait_message_cond(struct nvgpu_sec2 *sec2, u32 timeout_ms,
+	void *var, u8 val);
 
 #endif /* NVGPU_SEC2_MSG_H */

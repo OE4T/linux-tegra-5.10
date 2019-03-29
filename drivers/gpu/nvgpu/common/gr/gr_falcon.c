@@ -33,6 +33,7 @@
 #include <nvgpu/acr.h>
 #include <nvgpu/power_features/pg.h>
 #include <nvgpu/pmu/lsfm.h>
+#include <nvgpu/sec2/lsfm.h>
 
 #include "gr_falcon_priv.h"
 

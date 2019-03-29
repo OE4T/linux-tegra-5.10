@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -29,6 +29,11 @@
  * id ('seqNumId') stored in each sequence packet (currently 8-bits).
  */
 #define NV_SEC2_MAX_NUM_SEQUENCES	256U
+
+#define  NV_SEC2_UNIT_REWIND          NV_FLCN_UNIT_ID_REWIND
+#define  NV_SEC2_UNIT_INIT            (0x01U)
+#define  NV_SEC2_UNIT_ACR             (0x07U)
+#define  NV_SEC2_UNIT_END             (0x0AU)
 
 /*
  * Compares an unit id against the values in the unit_id enumeration and

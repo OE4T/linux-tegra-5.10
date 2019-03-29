@@ -23,13 +23,10 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/pmu.h>
 #include <nvgpu/log.h>
-#include <nvgpu/bug.h>
-#include <nvgpu/timers.h>
-#include <nvgpu/lock.h>
 #include <nvgpu/sec2.h>
-#include <nvgpu/engine_queue.h>
 #include <nvgpu/sec2/queue.h>
 #include <nvgpu/sec2if/sec2_if_cmn.h>
+#include <nvgpu/sec2/cmd.h>
 
 /* command post operation functions */
 static bool sec2_validate_cmd(struct nvgpu_sec2 *sec2,
@@ -60,7 +57,7 @@ static bool sec2_validate_cmd(struct nvgpu_sec2 *sec2,
 
 invalid_cmd:
 	nvgpu_err(g, "invalid sec2 cmd :");
-	nvgpu_err(g, "queue_id=%d, cmd_size=%d, cmd_unit_id=%d \n",
+	nvgpu_err(g, "queue_id=%d, cmd_size=%d, cmd_unit_id=%d\n",
 		queue_id, cmd->hdr.size, cmd->hdr.unit_id);
 
 	return false;
@@ -70,8 +67,8 @@ static int sec2_write_cmd(struct nvgpu_sec2 *sec2,
 	struct nv_flcn_cmd_sec2 *cmd, u32 queue_id,
 	u32 timeout_ms)
 {
-	struct gk20a *g = sec2->g;
 	struct nvgpu_timeout timeout;
+	struct gk20a *g = sec2->g;
 	int err;
 
 	nvgpu_log_fn(g, " ");
@@ -81,7 +78,8 @@ static int sec2_write_cmd(struct nvgpu_sec2 *sec2,
 	do {
 		err = nvgpu_sec2_queue_push(sec2->queues, queue_id, &sec2->flcn,
 					    cmd, cmd->hdr.size);
-		if ((err == -EAGAIN) && (nvgpu_timeout_expired(&timeout) == 0)) {
+		if ((err == -EAGAIN) &&
+		    (nvgpu_timeout_expired(&timeout) == 0)) {
 			nvgpu_usleep_range(1000U, 2000U);
 		} else {
 			break;
@@ -105,7 +103,8 @@ int nvgpu_sec2_cmd_post(struct gk20a *g, struct nv_flcn_cmd_sec2 *cmd,
 
 	if ((cmd == NULL) || (!sec2->sec2_ready)) {
 		if (cmd == NULL) {
-			nvgpu_warn(g, "%s(): SEC2 cmd buffer is NULL", __func__);
+			nvgpu_warn(g,
+				   "%s(): SEC2 cmd buffer is NULL", __func__);
 		} else {
 			nvgpu_warn(g, "%s(): SEC2 is not ready", __func__);
 		}
@@ -142,29 +141,4 @@ int nvgpu_sec2_cmd_post(struct gk20a *g, struct nv_flcn_cmd_sec2 *cmd,
 
 exit:
 	return err;
-}
-
-int nvgpu_sec2_wait_message_cond(struct nvgpu_sec2 *sec2, u32 timeout_ms,
-	void *var, u8 val)
-{
-	struct gk20a *g = sec2->g;
-	struct nvgpu_timeout timeout;
-	u32 delay = POLL_DELAY_MIN_US;
-
-	nvgpu_timeout_init(g, &timeout, timeout_ms, NVGPU_TIMER_CPU_TIMER);
-
-	do {
-		if (*(u8 *)var == val) {
-			return 0;
-		}
-
-		if (g->ops.sec2.is_interrupted(&g->sec2)) {
-			g->ops.sec2.isr(g);
-		}
-
-		nvgpu_usleep_range(delay, delay * 2U);
-		delay = min_t(u32, delay << 1U, POLL_DELAY_MAX_US);
-	} while (nvgpu_timeout_expired(&timeout) == 0);
-
-	return -ETIMEDOUT;
 }

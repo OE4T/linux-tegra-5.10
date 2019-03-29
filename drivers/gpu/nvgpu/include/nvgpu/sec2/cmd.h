@@ -24,6 +24,11 @@
 #define NVGPU_SEC2_CMD_IF_H
 
 #include <nvgpu/sec2/lsfm.h>
+#include <nvgpu/flcnif_cmn.h>
+#include <nvgpu/types.h>
+
+struct gk20a;
+struct nvgpu_sec2;
 
 struct nv_flcn_cmd_sec2 {
 	struct pmu_hdr hdr;
@@ -32,9 +37,9 @@ struct nv_flcn_cmd_sec2 {
 	} cmd;
 };
 
-#define  NV_SEC2_UNIT_REWIND          NV_FLCN_UNIT_ID_REWIND
-#define  NV_SEC2_UNIT_INIT            (0x01U)
-#define  NV_SEC2_UNIT_ACR             (0x07U)
-#define  NV_SEC2_UNIT_END             (0x0AU)
+/* command handling methods*/
+int nvgpu_sec2_cmd_post(struct gk20a *g, struct nv_flcn_cmd_sec2 *cmd,
+	u32 queue_id, sec2_callback callback,
+	void *cb_param, u32 timeout);
 
 #endif /* NVGPU_SEC2_CMD_IF_H */

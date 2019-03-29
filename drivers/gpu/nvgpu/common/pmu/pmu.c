@@ -36,6 +36,7 @@
 #include <nvgpu/power_features/cg.h>
 #include <nvgpu/nvgpu_err.h>
 #include <nvgpu/pmu/lsfm.h>
+#include <nvgpu/sec2/lsfm.h>
 #include <nvgpu/pmu/super_surface.h>
 #include <nvgpu/pmu/pmu_perfmon.h>
 

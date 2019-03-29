@@ -34,8 +34,6 @@
 #include <nvgpu/sec2/seq.h>
 #include <nvgpu/sec2/queue_cmn.h>
 
-#include <nvgpu/sec2if/sec2_cmd_if.h>
-
 #define nvgpu_sec2_dbg(g, fmt, args...) \
 	nvgpu_log(g, gpu_dbg_pmu, fmt, ##args)
 
@@ -67,13 +65,6 @@ struct nvgpu_sec2 {
 
 	u32 command_ack;
 };
-
-/* command/message handling methods*/
-int nvgpu_sec2_cmd_post(struct gk20a *g, struct nv_flcn_cmd_sec2 *cmd,
-	u32 queue_id, sec2_callback callback,
-	void *cb_param, u32 timeout);
-int nvgpu_sec2_wait_message_cond(struct nvgpu_sec2 *sec2, u32 timeout_ms,
-	void *var, u8 val);
 
 /* sec2 init */
 int nvgpu_init_sec2_setup_sw(struct gk20a *g, struct nvgpu_sec2 *sec2);
