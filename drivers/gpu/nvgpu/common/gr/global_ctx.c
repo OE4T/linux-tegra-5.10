@@ -25,6 +25,7 @@
 #include <nvgpu/nvgpu_mem.h>
 #include <nvgpu/kmem.h>
 #include <nvgpu/bug.h>
+#include <nvgpu/dma.h>
 
 #include <nvgpu/gr/global_ctx.h>
 

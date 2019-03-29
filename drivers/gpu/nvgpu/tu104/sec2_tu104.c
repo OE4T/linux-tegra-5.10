@@ -28,7 +28,7 @@
 #include <nvgpu/timers.h>
 #include <nvgpu/falcon.h>
 #include <nvgpu/engine_mem_queue.h>
-#include <nvgpu/sec2.h>
+#include <nvgpu/sec2/sec2.h>
 #include <nvgpu/sec2/msg.h>
 #include <nvgpu/bug.h>
 

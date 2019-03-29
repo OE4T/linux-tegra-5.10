@@ -24,6 +24,7 @@
 #include <nvgpu/gr/subctx.h>
 #include <nvgpu/gr/ctx.h>
 #include <nvgpu/gmmu.h>
+#include <nvgpu/dma.h>
 
 #include "common/gr/subctx_priv.h"
 

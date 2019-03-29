@@ -29,11 +29,11 @@
 #include <nvgpu/firmware.h>
 #include <nvgpu/sizes.h>
 #include <nvgpu/mm.h>
-#include <nvgpu/sec2.h>
 #include <nvgpu/acr.h>
 #include <nvgpu/power_features/pg.h>
 #include <nvgpu/pmu/lsfm.h>
 #include <nvgpu/sec2/lsfm.h>
+#include <nvgpu/dma.h>
 
 #include "gr_falcon_priv.h"
 

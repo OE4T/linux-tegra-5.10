@@ -30,6 +30,7 @@
 #include <nvgpu/pd_cache.h>
 #include <nvgpu/enabled.h>
 
+#include <nvgpu/posix/dma.h>
 #include <nvgpu/posix/kmem.h>
 #include <nvgpu/posix/posix-fault-injection.h>
 

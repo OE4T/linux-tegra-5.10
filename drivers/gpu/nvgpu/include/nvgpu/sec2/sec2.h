@@ -23,16 +23,16 @@
 #ifndef NVGPU_SEC2_H
 #define NVGPU_SEC2_H
 
-#include <nvgpu/kmem.h>
-#include <nvgpu/dma.h>
 #include <nvgpu/nvgpu_mem.h>
 #include <nvgpu/allocator.h>
 #include <nvgpu/lock.h>
-#include <nvgpu/flcnif_cmn.h>
 #include <nvgpu/falcon.h>
-#include <nvgpu/engine_mem_queue.h>
 #include <nvgpu/sec2/seq.h>
-#include <nvgpu/sec2/queue_cmn.h>
+#include <nvgpu/sec2/sec2_cmn.h>
+
+struct gk20a;
+struct nv_flcn_msg_sec2;
+struct nvgpu_engine_mem_queue;
 
 #define nvgpu_sec2_dbg(g, fmt, args...) \
 	nvgpu_log(g, gpu_dbg_pmu, fmt, ##args)

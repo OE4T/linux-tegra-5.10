@@ -100,7 +100,7 @@ typedef void (*global_ctx_mem_destroy_fn)(struct gk20a *g,
 #include <nvgpu/sim.h>
 #include <nvgpu/ecc.h>
 #include <nvgpu/tsg.h>
-#include <nvgpu/sec2.h>
+#include <nvgpu/sec2/sec2.h>
 #include <nvgpu/cbc.h>
 #include <nvgpu/ltc.h>
 #include <nvgpu/nvgpu_err.h>

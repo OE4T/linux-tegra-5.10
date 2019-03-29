@@ -20,14 +20,13 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#include <nvgpu/sec2if/sec2_if_cmn.h>
 #include <nvgpu/sec2/allocator.h>
 #include <nvgpu/engine_queue.h>
 #include <nvgpu/sec2/queue.h>
 #include <nvgpu/flcnif_cmn.h>
+#include <nvgpu/sec2/sec2.h>
 #include <nvgpu/sec2/msg.h>
 #include <nvgpu/gk20a.h>
-#include <nvgpu/sec2.h>
 
 /* Message/Event request handlers */
 static int sec2_response_handle(struct nvgpu_sec2 *sec2,

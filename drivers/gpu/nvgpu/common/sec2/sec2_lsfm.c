@@ -25,7 +25,6 @@
 #include <nvgpu/sec2/msg.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/sec2/cmd.h>
-#include <nvgpu/sec2if/sec2_if_cmn.h>
 
 /* Add code below to handle SEC2 RTOS commands */
 /* LSF's bootstrap command */

@@ -30,6 +30,7 @@
 #include <nvgpu/pramin.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/sizes.h>
+#include <nvgpu/dma.h>
 #include <nvgpu/posix/io.h>
 #include <nvgpu/posix/posix-fault-injection.h>
 #include <os/posix/os_posix.h>

@@ -24,7 +24,7 @@
 #define NVGPU_SEC2_MSG_H
 
 #include <nvgpu/sec2/lsfm.h>
-#include <nvgpu/sec2/queue_cmn.h>
+#include <nvgpu/sec2/sec2_cmn.h>
 #include <nvgpu/flcnif_cmn.h>
 #include <nvgpu/types.h>
 

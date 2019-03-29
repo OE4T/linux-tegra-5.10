@@ -26,6 +26,7 @@
 #include <nvgpu/vm.h>
 #include <nvgpu/io.h>
 #include <nvgpu/gmmu.h>
+#include <nvgpu/dma.h>
 
 static void nvgpu_gr_ctx_unmap_global_ctx_buffers(struct gk20a *g,
 	struct nvgpu_gr_ctx *gr_ctx,

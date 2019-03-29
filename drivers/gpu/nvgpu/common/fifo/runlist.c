@@ -25,6 +25,7 @@
 #include <nvgpu/fifo.h>
 #include <nvgpu/runlist.h>
 #include <nvgpu/bug.h>
+#include <nvgpu/dma.h>
 
 void nvgpu_fifo_lock_active_runlists(struct gk20a *g)
 {

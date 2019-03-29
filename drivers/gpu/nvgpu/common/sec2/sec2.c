@@ -22,12 +22,9 @@
 
 #include <nvgpu/gk20a.h>
 #include <nvgpu/log.h>
-#include <nvgpu/bug.h>
-#include <nvgpu/timers.h>
-#include <nvgpu/sec2.h>
+#include <nvgpu/sec2/sec2.h>
 #include <nvgpu/sec2/queue.h>
 #include <nvgpu/sec2/seq.h>
-#include <nvgpu/sec2if/sec2_if_cmn.h>
 #include <nvgpu/sec2/allocator.h>
 #include <nvgpu/sec2/msg.h>
 

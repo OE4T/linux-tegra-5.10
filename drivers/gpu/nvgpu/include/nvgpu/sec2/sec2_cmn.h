@@ -20,8 +20,20 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NVGPU_SEC2_IF_CMN_H
-#define NVGPU_SEC2_IF_CMN_H
+#ifndef NVGPU_SEC2_CMN_H
+#define NVGPU_SEC2_CMN_H
+
+/*
+ * Defines the logical queue IDs that must be used when submitting commands
+ * to or reading messages from SEC2. The identifiers must begin with zero and
+ * should increment sequentially. _CMDQ_LOG_ID__LAST must always be set to the
+ * last command queue identifier. _NUM must always be set to the last
+ * identifier plus one.
+ */
+#define SEC2_NV_CMDQ_LOG_ID			0U
+#define SEC2_NV_CMDQ_LOG_ID__LAST	0U
+#define SEC2_NV_MSGQ_LOG_ID			1U
+#define SEC2_QUEUE_NUM				2U
 
 /*
  * Define the maximum number of command sequences that can be in flight at
@@ -54,7 +66,8 @@
  * enumeration that gives name to each index based on type of memory-aperture
  * the index is used to access.
  *
- * Pre-Turing, NV_SEC2_DMAIDX_PHYS_VID_FN0 == NV_SEC2_DMAIDX_GUEST_PHYS_VID_BOUND.
+ * Pre-Turing,
+ * NV_SEC2_DMAIDX_PHYS_VID_FN0 == NV_SEC2_DMAIDX_GUEST_PHYS_VID_BOUND.
  * From Turing, engine context is stored in GPA, requiring a separate aperture.
  *
  * Traditionally, video falcons have used the 6th index for ucode, and we will
@@ -75,4 +88,4 @@
 #define NV_SEC2_DMAIDX_UCODE                     6U
 #define NV_SEC2_DMAIDX_GUEST_PHYS_SYS_NCOH_BOUND 7U
 
-#endif  /* NVGPU_SEC2_IF_CMN_H */
+#endif  /* NVGPU_SEC2_CMN_H */

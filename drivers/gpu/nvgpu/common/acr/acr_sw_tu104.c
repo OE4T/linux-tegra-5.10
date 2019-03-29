@@ -24,7 +24,6 @@
 
 #include <nvgpu/gk20a.h>
 #include <nvgpu/firmware.h>
-#include <nvgpu/sec2if/sec2_if_cmn.h>
 
 #include "acr_wpr.h"
 #include "acr_priv.h"

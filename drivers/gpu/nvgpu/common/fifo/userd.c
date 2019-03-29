@@ -29,6 +29,7 @@
 #include <nvgpu/fifo.h>
 #include <nvgpu/fifo/userd.h>
 #include <nvgpu/vm_area.h>
+#include <nvgpu/dma.h>
 
 #ifdef NVGPU_USERD
 int nvgpu_userd_init_slabs(struct gk20a *g)
