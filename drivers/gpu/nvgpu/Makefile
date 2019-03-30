@@ -451,11 +451,11 @@ nvgpu-y += \
 	common/init/hal_init.o \
 	common/sec2/sec2.o \
 	common/sec2/sec2_allocator.o \
-	common/sec2/sec2_cmd.o \
 	common/sec2/sec2_lsfm.o \
-	common/sec2/sec2_msg.o \
-	common/sec2/sec2_queue.o \
-	common/sec2/sec2_seq.o \
+	common/sec2/ipc/sec2_cmd.o \
+	common/sec2/ipc/sec2_msg.o \
+	common/sec2/ipc/sec2_queue.o \
+	common/sec2/ipc/sec2_seq.o \
 	common/io/io.o \
 	common/power_features/power_features.o \
 	common/power_features/cg/cg.o \
