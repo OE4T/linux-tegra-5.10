@@ -145,6 +145,7 @@
 #include <nvgpu/gr/zcull.h>
 #include <nvgpu/gr/setup.h>
 #include <nvgpu/gr/fecs_trace.h>
+#include <nvgpu/gr/gr.h>
 
 #include <nvgpu/hw/gv11b/hw_proj_gv11b.h>
 #include <nvgpu/hw/gv11b/hw_top_gv11b.h>
@@ -580,6 +581,7 @@ static const struct gpu_ops gv11b_ops = {
 				gv100_gr_hwpm_map_align_regs_perf_pma,
 		},
 		.init = {
+			.wait_initialized = nvgpu_gr_wait_initialized,
 			.ecc_scrub_reg = gv11b_gr_init_ecc_scrub_reg,
 			.get_fbp_en_mask = gm20b_gr_init_get_fbp_en_mask,
 			.lg_coalesce = gm20b_gr_init_lg_coalesce,

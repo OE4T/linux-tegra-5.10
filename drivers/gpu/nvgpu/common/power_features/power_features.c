@@ -21,7 +21,6 @@
  */
 
 #include <nvgpu/gk20a.h>
-#include <nvgpu/gr/gr.h>
 #include <nvgpu/power_features/cg.h>
 #include <nvgpu/power_features/pg.h>
 #include <nvgpu/power_features/power_features.h>
@@ -32,7 +31,7 @@ int nvgpu_cg_pg_disable(struct gk20a *g)
 
 	nvgpu_log_fn(g, " ");
 
-	nvgpu_gr_wait_initialized(g);
+	g->ops.gr.init.wait_initialized(g);
 
 	/* disable elpg before clock gating */
 	err = nvgpu_pg_elpg_disable(g);
@@ -54,7 +53,7 @@ int nvgpu_cg_pg_enable(struct gk20a *g)
 
 	nvgpu_log_fn(g, " ");
 
-	nvgpu_gr_wait_initialized(g);
+	g->ops.gr.init.wait_initialized(g);
 
 	nvgpu_cg_elcg_enable(g);
 

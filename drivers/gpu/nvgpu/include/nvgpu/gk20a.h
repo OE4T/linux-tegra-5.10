@@ -680,6 +680,7 @@ struct gpu_ops {
 		} hwpm_map;
 
 		struct {
+			void (*wait_initialized)(struct gk20a *g);
 			void (*ecc_scrub_reg)(struct gk20a *g,
 				struct nvgpu_gr_config *gr_config);
 			u32 (*get_fbp_en_mask)(struct gk20a *g);

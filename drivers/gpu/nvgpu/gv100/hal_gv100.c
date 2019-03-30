@@ -170,6 +170,7 @@
 #include <nvgpu/gr/gr_falcon.h>
 #include <nvgpu/gr/setup.h>
 #include <nvgpu/gr/fecs_trace.h>
+#include <nvgpu/gr/gr.h>
 
 #include <nvgpu/hw/gv100/hw_proj_gv100.h>
 #include <nvgpu/hw/gv100/hw_top_gv100.h>
@@ -622,6 +623,7 @@ static const struct gpu_ops gv100_ops = {
 				gv100_gr_hwpm_map_get_active_fbpa_mask,
 		},
 		.init = {
+			.wait_initialized = nvgpu_gr_wait_initialized,
 			.ecc_scrub_reg = NULL,
 			.get_fbp_en_mask = gm20b_gr_init_get_fbp_en_mask,
 			.lg_coalesce = gm20b_gr_init_lg_coalesce,

@@ -21,7 +21,6 @@
  */
 
 #include <nvgpu/gk20a.h>
-#include <nvgpu/gr/gr.h>
 #include <nvgpu/pmu.h>
 #include <nvgpu/power_features/pg.h>
 
@@ -47,7 +46,7 @@ int nvgpu_pg_elpg_enable(struct gk20a *g)
 		return 0;
 	}
 
-	nvgpu_gr_wait_initialized(g);
+	g->ops.gr.init.wait_initialized(g);
 
 	nvgpu_mutex_acquire(&g->cg_pg_lock);
 	if (g->elpg_enabled) {
@@ -67,7 +66,7 @@ int nvgpu_pg_elpg_disable(struct gk20a *g)
 		return 0;
 	}
 
-	nvgpu_gr_wait_initialized(g);
+	g->ops.gr.init.wait_initialized(g);
 
 	nvgpu_mutex_acquire(&g->cg_pg_lock);
 	if (g->elpg_enabled) {
@@ -88,7 +87,7 @@ int nvgpu_pg_elpg_set_elpg_enabled(struct gk20a *g, bool enable)
 		return 0;
 	}
 
-	nvgpu_gr_wait_initialized(g);
+	g->ops.gr.init.wait_initialized(g);
 
 	nvgpu_mutex_acquire(&g->cg_pg_lock);
 	if (enable) {

@@ -189,6 +189,7 @@
 #include <nvgpu/gr/fecs_trace.h>
 #include <nvgpu/pmu/perf.h>
 #include <nvgpu/gr/gr_falcon.h>
+#include <nvgpu/gr/gr.h>
 
 #include <nvgpu/hw/tu104/hw_proj_tu104.h>
 #include <nvgpu/hw/tu104/hw_top_tu104.h>
@@ -650,6 +651,7 @@ static const struct gpu_ops tu104_ops = {
 				gv100_gr_hwpm_map_get_active_fbpa_mask,
 		},
 		.init = {
+			.wait_initialized = nvgpu_gr_wait_initialized,
 			.ecc_scrub_reg = NULL,
 			.get_fbp_en_mask = gm20b_gr_init_get_fbp_en_mask,
 			.lg_coalesce = gm20b_gr_init_lg_coalesce,
