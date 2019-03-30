@@ -33,8 +33,6 @@
 #include "acr_bootstrap.h"
 #include "acr_blob_construct_v1.h"
 
-#include "gp106/sec2_gp106.h"
-
 static void flcn64_set_dma(struct falc_u64 *dma_addr, u64 value)
 {
 	dma_addr->lo |= u64_lo32(value);
@@ -195,7 +193,8 @@ static void nvgpu_gv100_acr_default_sw_init(struct gk20a *g,
 	hs_acr->bl_dmem_desc_size = (u32)sizeof(struct flcn_bl_dmem_desc_v1);
 
 	hs_acr->acr_flcn = &g->sec2.flcn;
-	hs_acr->acr_flcn_setup_boot_config = gp106_sec2_flcn_setup_boot_config;
+	hs_acr->acr_flcn_setup_boot_config =
+			g->ops.sec2.flcn_setup_boot_config;
 }
 
 void nvgpu_gv100_acr_sw_init(struct gk20a *g, struct nvgpu_acr *acr)

@@ -33,8 +33,6 @@
 #include "acr_sw_gv100.h"
 #include "acr_sw_tu104.h"
 
-#include "tu104/sec2_tu104.h"
-
 static int tu104_bootstrap_hs_acr(struct gk20a *g, struct nvgpu_acr *acr,
 	struct hs_acr *acr_type)
 {
@@ -94,7 +92,7 @@ static void nvgpu_tu104_acr_ahesasc_sw_init(struct gk20a *g,
 
 	acr_ahesasc->acr_flcn = &g->sec2.flcn;
 	acr_ahesasc->acr_flcn_setup_boot_config =
-		tu104_sec2_flcn_setup_boot_config;
+		g->ops.sec2.flcn_setup_boot_config;
 }
 
 /* ACR-ASB(ACR SEC2 booter) init*/

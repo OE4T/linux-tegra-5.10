@@ -275,7 +275,9 @@ nvgpu-y += \
 	hal/nvlink/link_mode_transitions_gv100.o \
 	hal/nvlink/link_mode_transitions_tu104.o \
 	hal/gsp/gsp_gv100.o \
-	hal/pmu/pmu_hal_gk20a.o
+	hal/pmu/pmu_hal_gk20a.o \
+	hal/sec2/sec2_gp106.o \
+	hal/sec2/sec2_tu104.o
 
 # Linux specific parts of nvgpu.
 nvgpu-y += \
@@ -541,7 +543,6 @@ nvgpu-y += \
 	gp10b/gp10b.o \
 	gp10b/ecc_gp10b.o \
 	gp106/gr_gp106.o \
-	gp106/sec2_gp106.o \
 	gp106/bios_gp106.o \
 	gv11b/gv11b.o  \
 	gv11b/hal_gv11b.o \
@@ -564,6 +565,5 @@ nvgpu-y += \
 	tu104/func_tu104.o \
 	tu104/bios_tu104.o \
 	tu104/fbpa_tu104.o \
-	tu104/sec2_tu104.o \
 	tu104/ecc_tu104.o \
 	gp106/clk_gp106.o

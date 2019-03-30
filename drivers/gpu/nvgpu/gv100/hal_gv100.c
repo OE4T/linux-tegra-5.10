@@ -95,6 +95,7 @@
 #include "hal/nvdec/nvdec_gp106.h"
 #include "hal/gsp/gsp_gv100.h"
 #include "hal/pmu/pmu_hal_gk20a.h"
+#include "hal/sec2/sec2_gp106.h"
 
 #include "common/ptimer/ptimer_gk20a.h"
 #include "common/xve/xve_gp106.h"
@@ -136,7 +137,6 @@
 #include "gm20b/fifo_gm20b.h"
 #include "gm20b/mm_gm20b.h"
 
-#include "gp106/sec2_gp106.h"
 #include "gp106/bios_gp106.h"
 #include "gp106/gr_gp106.h"
 
@@ -1394,6 +1394,7 @@ static const struct gpu_ops gv100_ops = {
 	.sec2 = {
 		.falcon_base_addr = gp106_sec2_falcon_base_addr,
 		.sec2_reset = gp106_sec2_reset,
+		.flcn_setup_boot_config = gp106_sec2_flcn_setup_boot_config,
 	},
 	.gsp = {
 		.falcon_base_addr = gv100_gsp_falcon_base_addr,

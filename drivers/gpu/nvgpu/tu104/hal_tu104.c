@@ -101,6 +101,7 @@
 #include "hal/nvdec/nvdec_tu104.h"
 #include "hal/gsp/gsp_gv100.h"
 #include "hal/pmu/pmu_hal_gk20a.h"
+#include "hal/sec2/sec2_tu104.h"
 
 #include "common/ptimer/ptimer_gk20a.h"
 #include "common/xve/xve_gp106.h"
@@ -148,7 +149,6 @@
 
 #include "gv100/clk_gv100.h"
 
-#include "gp106/sec2_gp106.h"
 #include "gp106/bios_gp106.h"
 
 #include "gp106/gr_gp106.h"
@@ -175,7 +175,6 @@
 #include "tu104/gr_tu104.h"
 #include "tu104/bios_tu104.h"
 #include "tu104/fbpa_tu104.h"
-#include "tu104/sec2_tu104.h"
 #include "tu104/ecc_tu104.h"
 #include "tu104/hal_tu104.h"
 
@@ -1424,6 +1423,7 @@ static const struct gpu_ops tu104_ops = {
 		.sec2_copy_from_emem = tu104_sec2_flcn_copy_from_emem,
 		.sec2_queue_head = tu104_sec2_queue_head,
 		.sec2_queue_tail = tu104_sec2_queue_tail,
+		.flcn_setup_boot_config = tu104_sec2_flcn_setup_boot_config,
 	},
 	.gsp = {
 		.falcon_base_addr = gv100_gsp_falcon_base_addr,

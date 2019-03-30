@@ -1859,6 +1859,7 @@ struct gpu_ops {
 		int (*sec2_queue_tail)(struct gk20a *g,
 				       u32 queue_id, u32 queue_index,
 				       u32 *tail, bool set);
+		void (*flcn_setup_boot_config)(struct gk20a *g);
 	} sec2;
 	struct {
 		u32 (*falcon_base_addr)(void);
