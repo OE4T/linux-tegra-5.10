@@ -865,14 +865,14 @@ static const struct gpu_ops gv11b_ops = {
 	},
 	.pbdma = {
 		.intr_enable = gv11b_pbdma_intr_enable,
-		.pbdma_acquire_val = gm20b_pbdma_acquire_val,
-		.get_pbdma_signature = gp10b_pbdma_get_signature,
-		.dump_pbdma_status = gm20b_pbdma_dump_status,
+		.acquire_val = gm20b_pbdma_acquire_val,
+		.get_signature = gp10b_pbdma_get_signature,
+		.dump_status = gm20b_pbdma_dump_status,
 		.handle_intr_0 = gv11b_pbdma_handle_intr_0,
 		.handle_intr_1 = gv11b_pbdma_handle_intr_1,
 		.handle_intr = gm20b_pbdma_handle_intr,
-		.read_pbdma_data = gm20b_pbdma_read_data,
-		.reset_pbdma_header = gm20b_pbdma_reset_header,
+		.read_data = gm20b_pbdma_read_data,
+		.reset_header = gm20b_pbdma_reset_header,
 		.device_fatal_0_intr_descs =
 			gm20b_pbdma_device_fatal_0_intr_descs,
 		.channel_fatal_0_intr_descs =

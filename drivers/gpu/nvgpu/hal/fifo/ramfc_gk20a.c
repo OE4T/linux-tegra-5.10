@@ -87,7 +87,7 @@ int gk20a_ramfc_setup(struct channel_gk20a *ch, u64 gpfifo_base,
 		pbdma_gp_base_hi_limit2_f((u32)limit2_val));
 
 	nvgpu_mem_wr32(g, mem, ram_fc_signature_w(),
-		 ch->g->ops.pbdma.get_pbdma_signature(ch->g));
+		 ch->g->ops.pbdma.get_signature(ch->g));
 
 	nvgpu_mem_wr32(g, mem, ram_fc_formats_w(),
 		pbdma_formats_gp_fermi0_f() |
@@ -110,7 +110,7 @@ int gk20a_ramfc_setup(struct channel_gk20a *ch, u64 gpfifo_base,
 	nvgpu_mem_wr32(g, mem, ram_fc_target_w(), pbdma_target_engine_sw_f());
 
 	nvgpu_mem_wr32(g, mem, ram_fc_acquire_w(),
-		g->ops.pbdma.pbdma_acquire_val(pbdma_acquire_timeout));
+		g->ops.pbdma.acquire_val(pbdma_acquire_timeout));
 
 	nvgpu_mem_wr32(g, mem, ram_fc_runlist_timeslice_w(),
 		fifo_runlist_timeslice_timeout_128_f() |

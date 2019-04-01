@@ -155,7 +155,7 @@ bool gm20b_pbdma_handle_intr_0(struct gk20a *g, u32 pbdma_id,
 			"M0: %08x %08x %08x %08x ",
 			pbdma_id, pbdma_intr_0,
 			nvgpu_readl(g, pbdma_pb_header_r(pbdma_id)),
-			g->ops.pbdma.read_pbdma_data(g, pbdma_id),
+			g->ops.pbdma.read_data(g, pbdma_id),
 			nvgpu_readl(g, pbdma_gp_shadow_0_r(pbdma_id)),
 			nvgpu_readl(g, pbdma_gp_shadow_1_r(pbdma_id)),
 			nvgpu_readl(g, pbdma_method0_r(pbdma_id)),
@@ -187,7 +187,7 @@ bool gm20b_pbdma_handle_intr_0(struct gk20a *g, u32 pbdma_id,
 	}
 
 	if ((pbdma_intr_0 & pbdma_intr_0_pbentry_pending_f()) != 0U) {
-		g->ops.pbdma.reset_pbdma_header(g, pbdma_id);
+		g->ops.pbdma.reset_header(g, pbdma_id);
 		gm20b_pbdma_reset_method(g, pbdma_id, 0);
 		recover = true;
 	}
@@ -204,7 +204,7 @@ bool gm20b_pbdma_handle_intr_0(struct gk20a *g, u32 pbdma_id,
 	}
 
 	if ((pbdma_intr_0 & pbdma_intr_0_device_pending_f()) != 0U) {
-		g->ops.pbdma.reset_pbdma_header(g, pbdma_id);
+		g->ops.pbdma.reset_header(g, pbdma_id);
 
 		for (i = 0U; i < 4U; i++) {
 			if (gm20b_pbdma_is_sw_method_subch(g,
