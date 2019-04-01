@@ -209,6 +209,11 @@ static u64 nvgpu_bitmap_alloc(struct nvgpu_allocator *na, u64 len)
 	unsigned long offs, adjusted_offs, limit;
 	struct nvgpu_bitmap_allocator *a = bitmap_allocator(na);
 
+	if (len == 0ULL) {
+		alloc_dbg(na, "len = 0, Alloc failed!");
+		return 0;
+	}
+
 	tmp_u64 = len >> a->blk_shift;
 	nvgpu_assert(tmp_u64 <= U32_MAX);
 	blks = (u32)tmp_u64;
@@ -402,6 +407,10 @@ int nvgpu_bitmap_allocator_init(struct gk20a *g, struct nvgpu_allocator *na,
 	}
 
 	if (!is_base_aligned || !is_length_aligned) {
+		return -EINVAL;
+	}
+
+	if (length == 0ULL) {
 		return -EINVAL;
 	}
 
