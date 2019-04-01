@@ -33,10 +33,13 @@
 
 #include <osi_core.h>
 #include <osi_dma.h>
+#include "ioctl.h"
 
-#define ETHER_MAX_IRQS		4
-#define ETHER_IRQ_MAX_IDX	8
-#define ETHER_IRQ_NAME_SZ	32
+#define ETHER_MAX_IRQS			4
+#define ETHER_IRQ_MAX_IDX		8
+#define ETHER_IRQ_NAME_SZ		32
+#define ETHER_QUEUE_PRIO_DEFAULT	0U
+#define ETHER_QUEUE_PRIO_MAX		7U
 
 /**
  *	struct ether_tx_napi - DMA Transmit Channel NAPI
@@ -94,7 +97,9 @@ struct ether_rx_napi {
  *	@common_irq:	Common IRQ number for MAC
  *	@tx_irqs:	Array of DMA Transmit channel IRQ numbers
  *	@rx_irqs:	Array of DMA Receive channel IRQ numbers
- *	dma_mask:	memory allocation mask
+ *	@dma_mask:	memory allocation mask
+ *	@mac_loopback_mode:	MAC loopback mode
+ *	@q_prio:	Array of MTL queue TX priority
  */
 struct ether_priv_data {
 	struct osi_core_priv_data *osi_core;
@@ -136,6 +141,7 @@ struct ether_priv_data {
 
 	/* for MAC loopback */
 	unsigned int mac_loopback_mode;
+	unsigned int q_prio[OSI_EQOS_MAX_NUM_CHANS];
 };
 
 void ether_set_ethtool_ops(struct net_device *ndev);
