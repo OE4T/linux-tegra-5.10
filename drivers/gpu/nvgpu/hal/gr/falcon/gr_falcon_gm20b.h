@@ -61,6 +61,8 @@ int gm20b_gr_falcon_submit_fecs_method_op(struct gk20a *g,
 	struct fecs_method_op_gk20a op, bool sleepduringwait);
 int gm20b_gr_falcon_submit_fecs_sideband_method_op(struct gk20a *g,
 				struct fecs_method_op_gk20a op);
+int gm20b_gr_falcon_ctrl_ctxsw(struct gk20a *g, u32 fecs_method,
+						u32 data, u32 *ret_val);
 
 void gm20b_gr_falcon_set_current_ctx_invalid(struct gk20a *g);
 

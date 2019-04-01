@@ -743,3 +743,58 @@ int gm20b_gr_falcon_submit_fecs_sideband_method_op(struct gk20a *g,
 
 	return ret;
 }
+
+int gm20b_gr_falcon_ctrl_ctxsw(struct gk20a *g, u32 fecs_method,
+			u32 data, u32 *ret_val)
+{
+	struct fecs_method_op_gk20a op = {
+		.mailbox = { .id = 0U, .data = 0U, .ret = NULL,
+			     .clr = ~U32(0U), .ok = 0U, .fail = 0U},
+		.method.data = 0U,
+		.cond.ok = GR_IS_UCODE_OP_NOT_EQUAL,
+		.cond.fail = GR_IS_UCODE_OP_SKIP,
+		};
+	bool sleepduringwait = false;
+
+	switch (fecs_method) {
+	case NVGPU_GR_FALCON_METHOD_CTXSW_STOP:
+		op.method.addr =
+				gr_fecs_method_push_adr_stop_ctxsw_v();
+		op.method.data = ~U32(0U);
+		op.mailbox.id = 1U, /* sideband mailbox */
+		op.mailbox.ok = gr_fecs_ctxsw_mailbox_value_pass_v();
+		op.mailbox.fail = gr_fecs_ctxsw_mailbox_value_fail_v();
+		op.cond.ok = GR_IS_UCODE_OP_EQUAL;
+		op.cond.fail = GR_IS_UCODE_OP_EQUAL;
+		sleepduringwait = true;
+	break;
+
+	case NVGPU_GR_FALCON_METHOD_CTXSW_START:
+		op.method.addr =
+				gr_fecs_method_push_adr_start_ctxsw_v();
+		op.method.data = ~U32(0U);
+		op.mailbox.id = 1U, /* sideband mailbox */
+		op.mailbox.ok = gr_fecs_ctxsw_mailbox_value_pass_v();
+		op.mailbox.fail = gr_fecs_ctxsw_mailbox_value_fail_v();
+		op.cond.ok = GR_IS_UCODE_OP_EQUAL;
+		op.cond.fail = GR_IS_UCODE_OP_EQUAL;
+		sleepduringwait = true;
+	break;
+
+	case NVGPU_GR_FALCON_METHOD_HALT_PIPELINE:
+		op.method.addr =
+				gr_fecs_method_push_adr_halt_pipeline_v();
+		op.method.data = ~U32(0U);
+		op.mailbox.id = 1U, /* sideband mailbox */
+		op.mailbox.ok = gr_fecs_ctxsw_mailbox_value_pass_v();
+		op.mailbox.fail = gr_fecs_ctxsw_mailbox_value_fail_v();
+		op.cond.ok = GR_IS_UCODE_OP_EQUAL;
+		op.cond.fail = GR_IS_UCODE_OP_EQUAL;
+		break;
+
+	default:
+		nvgpu_err(g, "unsupported fecs mode %d", fecs_method);
+		break;
+	}
+	return gm20b_gr_falcon_submit_fecs_method_op(g, op, sleepduringwait);
+}

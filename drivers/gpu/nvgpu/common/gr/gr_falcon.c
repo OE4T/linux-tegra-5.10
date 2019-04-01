@@ -27,6 +27,7 @@
 #include <nvgpu/mm.h>
 #include <nvgpu/sec2.h>
 #include <nvgpu/acr.h>
+#include <nvgpu/power_features/pg.h>
 
 static int nvgpu_gr_falcon_init_ctxsw_ucode_vaspace(struct gk20a *g)
 {
@@ -430,4 +431,85 @@ int nvgpu_gr_falcon_load_secure_ctxsw_ucode(struct gk20a *g)
 	nvgpu_log_fn(g, "done");
 
 	return 0;
+}
+
+/**
+ * Stop processing (stall) context switches at FECS:-
+ * If fecs is sent stop_ctxsw method, elpg entry/exit cannot happen
+ * and may timeout. It could manifest as different error signatures
+ * depending on when stop_ctxsw fecs method gets sent with respect
+ * to pmu elpg sequence. It could come as pmu halt or abort or
+ * maybe ext error too.
+*/
+int nvgpu_gr_falcon_disable_ctxsw(struct gk20a *g)
+{
+	int err = 0;
+
+	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gpu_dbg, " ");
+
+	nvgpu_mutex_acquire(&g->ctxsw_disable_lock);
+	g->ctxsw_disable_count++;
+	if (g->ctxsw_disable_count == 1) {
+		err = nvgpu_pg_elpg_disable(g);
+		if (err != 0) {
+			nvgpu_err(g,
+				"failed to disable elpg for stop_ctxsw");
+			/* stop ctxsw command is not sent */
+			g->ctxsw_disable_count--;
+		} else {
+			err = g->ops.gr.falcon.ctrl_ctxsw(g,
+				NVGPU_GR_FALCON_METHOD_CTXSW_STOP, 0U, NULL);
+			if (err != 0) {
+				nvgpu_err(g, "failed to stop fecs ctxsw");
+				/* stop ctxsw failed */
+				g->ctxsw_disable_count--;
+			}
+		}
+	} else {
+		nvgpu_log_info(g, "ctxsw disabled, ctxsw_disable_count: %d",
+			g->ctxsw_disable_count);
+	}
+	nvgpu_mutex_release(&g->ctxsw_disable_lock);
+
+	return err;
+}
+
+/* Start processing (continue) context switches at FECS */
+int nvgpu_gr_falcon_enable_ctxsw(struct gk20a *g)
+{
+	int err = 0;
+
+	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gpu_dbg, " ");
+
+	nvgpu_mutex_acquire(&g->ctxsw_disable_lock);
+	if (g->ctxsw_disable_count == 0) {
+		goto ctxsw_already_enabled;
+	}
+	g->ctxsw_disable_count--;
+	WARN_ON(g->ctxsw_disable_count < 0);
+	if (g->ctxsw_disable_count == 0) {
+		err = g->ops.gr.falcon.ctrl_ctxsw(g,
+				NVGPU_GR_FALCON_METHOD_CTXSW_START, 0U, NULL);
+		if (err != 0) {
+			nvgpu_err(g, "failed to start fecs ctxsw");
+		} else {
+			if (nvgpu_pg_elpg_enable(g) != 0) {
+				nvgpu_err(g,
+					"failed to enable elpg for start_ctxsw");
+			}
+		}
+	} else {
+		nvgpu_log_info(g, "ctxsw_disable_count: %d is not 0 yet",
+			g->ctxsw_disable_count);
+	}
+ctxsw_already_enabled:
+	nvgpu_mutex_release(&g->ctxsw_disable_lock);
+
+	return err;
+}
+
+int nvgpu_gr_falcon_halt_pipe(struct gk20a *g)
+{
+	return g->ops.gr.falcon.ctrl_ctxsw(g,
+				NVGPU_GR_FALCON_METHOD_HALT_PIPELINE, 0U, NULL);
 }

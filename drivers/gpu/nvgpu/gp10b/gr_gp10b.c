@@ -40,6 +40,7 @@
 #include <nvgpu/gr/ctx.h>
 #include <nvgpu/gr/gr.h>
 #include <nvgpu/gr/config.h>
+#include <nvgpu/gr/gr_falcon.h>
 #include <nvgpu/engines.h>
 #include <nvgpu/engine_status.h>
 
@@ -1331,7 +1332,7 @@ int gr_gp10b_suspend_contexts(struct gk20a *g,
 
 	nvgpu_mutex_acquire(&g->dbg_sessions_lock);
 
-	err = gr_gk20a_disable_ctxsw(g);
+	err = g->ops.gr.falcon.disable_ctxsw(g);
 	if (err != 0) {
 		nvgpu_err(g, "unable to stop gr ctxsw");
 		nvgpu_mutex_release(&g->dbg_sessions_lock);
@@ -1356,7 +1357,7 @@ int gr_gp10b_suspend_contexts(struct gk20a *g,
 
 	nvgpu_mutex_release(&dbg_s->ch_list_lock);
 
-	err = gr_gk20a_enable_ctxsw(g);
+	err = g->ops.gr.falcon.enable_ctxsw(g);
 	if (err != 0) {
 		nvgpu_mutex_release(&g->dbg_sessions_lock);
 		goto clean_up;

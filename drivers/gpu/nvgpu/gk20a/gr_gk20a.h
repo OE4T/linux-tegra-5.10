@@ -343,8 +343,6 @@ int gr_gk20a_update_hwpm_ctxsw_mode(struct gk20a *g,
 
 void gk20a_gr_set_shader_exceptions(struct gk20a *g, u32 data);
 void gr_gk20a_free_tsg_gr_ctx(struct tsg_gk20a *tsg);
-int gr_gk20a_disable_ctxsw(struct gk20a *g);
-int gr_gk20a_enable_ctxsw(struct gk20a *g);
 void gk20a_gr_resume_single_sm(struct gk20a *g,
 		u32 gpc, u32 tpc, u32 sm);
 void gk20a_gr_resume_all_sms(struct gk20a *g);
@@ -362,7 +360,6 @@ int gr_gk20a_handle_sm_exception(struct gk20a *g, u32 gpc, u32 tpc, u32 sm,
 int gr_gk20a_init_ctx_state(struct gk20a *g);
 void gr_gk20a_free_gr_ctx(struct gk20a *g,
 		       struct vm_gk20a *vm, struct nvgpu_gr_ctx *gr_ctx);
-int gr_gk20a_halt_pipe(struct gk20a *g);
 
 #if defined(CONFIG_GK20A_CYCLE_STATS)
 int gr_gk20a_css_attach(struct channel_gk20a *ch,   /* in - main hw structure */

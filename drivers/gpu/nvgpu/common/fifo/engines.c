@@ -539,7 +539,7 @@ void nvgpu_engine_reset(struct gk20a *g, u32 engine_id)
 #endif
 		if (!nvgpu_platform_is_simulation(g)) {
 			/*HALT_PIPELINE method, halt GR engine*/
-			if (g->ops.gr.halt_pipe(g) != 0) {
+			if (g->ops.gr.falcon.halt_pipe(g) != 0) {
 				nvgpu_err(g, "failed to halt gr pipe");
 			}
 			/*

@@ -27,9 +27,16 @@
 
 struct gk20a;
 
+#define NVGPU_GR_FALCON_METHOD_CTXSW_STOP 0
+#define NVGPU_GR_FALCON_METHOD_CTXSW_START 1
+#define NVGPU_GR_FALCON_METHOD_HALT_PIPELINE 2
+
 int nvgpu_gr_falcon_init_ctxsw(struct gk20a *g);
 int nvgpu_gr_falcon_init_ctxsw_ucode(struct gk20a *g);
 int nvgpu_gr_falcon_load_ctxsw_ucode(struct gk20a *g);
 int nvgpu_gr_falcon_load_secure_ctxsw_ucode(struct gk20a *g);
+int nvgpu_gr_falcon_disable_ctxsw(struct gk20a *g);
+int nvgpu_gr_falcon_enable_ctxsw(struct gk20a *g);
+int nvgpu_gr_falcon_halt_pipe(struct gk20a *g);
 
 #endif /* NVGPU_GR_FALCON_H */

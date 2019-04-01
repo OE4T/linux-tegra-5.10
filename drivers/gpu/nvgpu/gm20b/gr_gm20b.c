@@ -34,6 +34,7 @@
 #include <nvgpu/gr/ctx.h>
 #include <nvgpu/gr/config.h>
 #include <nvgpu/gr/gr.h>
+#include <nvgpu/gr/gr_falcon.h>
 #include <nvgpu/ltc.h>
 #include <nvgpu/engines.h>
 #include <nvgpu/engine_status.h>
@@ -772,7 +773,7 @@ int gm20b_gr_clear_sm_error_state(struct gk20a *g,
 	(void) memset(&tsg->sm_error_states[sm_id], 0,
 		sizeof(*tsg->sm_error_states));
 
-	err = gr_gk20a_disable_ctxsw(g);
+	err = g->ops.gr.falcon.disable_ctxsw(g);
 	if (err != 0) {
 		nvgpu_err(g, "unable to stop gr ctxsw");
 		goto fail;
@@ -793,7 +794,7 @@ int gm20b_gr_clear_sm_error_state(struct gk20a *g,
 				0);
 	}
 
-	err = gr_gk20a_enable_ctxsw(g);
+	err = g->ops.gr.falcon.enable_ctxsw(g);
 
 fail:
 	nvgpu_mutex_release(&g->dbg_sessions_lock);

@@ -179,111 +179,6 @@ static void gr_report_ctxsw_error(struct gk20a *g, u32 err_type, u32 chid,
 	}
 }
 
-static int gr_gk20a_ctrl_ctxsw(struct gk20a *g, u32 fecs_method, u32 *ret)
-{
-	return g->ops.gr.falcon.submit_fecs_method_op(g,
-	      (struct fecs_method_op_gk20a) {
-		      .method.addr = fecs_method,
-		      .method.data = ~U32(0U),
-		      .mailbox = { .id   = 1U, /*sideband?*/
-				   .data = ~U32(0U), .clr = ~U32(0U), .ret = ret,
-				   .ok   = gr_fecs_ctxsw_mailbox_value_pass_v(),
-				   .fail = gr_fecs_ctxsw_mailbox_value_fail_v(), },
-		      .cond.ok = GR_IS_UCODE_OP_EQUAL,
-		      .cond.fail = GR_IS_UCODE_OP_EQUAL }, true);
-}
-
-/**
- * Stop processing (stall) context switches at FECS:-
- * If fecs is sent stop_ctxsw method, elpg entry/exit cannot happen
- * and may timeout. It could manifest as different error signatures
- * depending on when stop_ctxsw fecs method gets sent with respect
- * to pmu elpg sequence. It could come as pmu halt or abort or
- * maybe ext error too.
-*/
-int gr_gk20a_disable_ctxsw(struct gk20a *g)
-{
-	int err = 0;
-
-	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gpu_dbg, " ");
-
-	nvgpu_mutex_acquire(&g->ctxsw_disable_lock);
-	g->ctxsw_disable_count++;
-	if (g->ctxsw_disable_count == 1) {
-		err = nvgpu_pg_elpg_disable(g);
-		if (err != 0) {
-			nvgpu_err(g, "failed to disable elpg. not safe to "
-					"stop_ctxsw");
-			/* stop ctxsw command is not sent */
-			g->ctxsw_disable_count--;
-		} else {
-			err = gr_gk20a_ctrl_ctxsw(g,
-				gr_fecs_method_push_adr_stop_ctxsw_v(), NULL);
-			if (err != 0) {
-				nvgpu_err(g, "failed to stop fecs ctxsw");
-				/* stop ctxsw failed */
-				g->ctxsw_disable_count--;
-			}
-		}
-	} else {
-		nvgpu_log_info(g, "ctxsw disabled, ctxsw_disable_count: %d",
-			g->ctxsw_disable_count);
-	}
-	nvgpu_mutex_release(&g->ctxsw_disable_lock);
-
-	return err;
-}
-
-/* Start processing (continue) context switches at FECS */
-int gr_gk20a_enable_ctxsw(struct gk20a *g)
-{
-	int err = 0;
-
-	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gpu_dbg, " ");
-
-	nvgpu_mutex_acquire(&g->ctxsw_disable_lock);
-	if (g->ctxsw_disable_count == 0) {
-		goto ctxsw_already_enabled;
-	}
-	g->ctxsw_disable_count--;
-	WARN_ON(g->ctxsw_disable_count < 0);
-	if (g->ctxsw_disable_count == 0) {
-		err = gr_gk20a_ctrl_ctxsw(g,
-				gr_fecs_method_push_adr_start_ctxsw_v(), NULL);
-		if (err != 0) {
-			nvgpu_err(g, "failed to start fecs ctxsw");
-		} else {
-			if (nvgpu_pg_elpg_enable(g) != 0) {
-				nvgpu_err(g, "failed to enable elpg "
-					"after start_ctxsw");
-			}
-		}
-	} else {
-		nvgpu_log_info(g, "ctxsw_disable_count: %d is not 0 yet",
-			g->ctxsw_disable_count);
-	}
-ctxsw_already_enabled:
-	nvgpu_mutex_release(&g->ctxsw_disable_lock);
-
-	return err;
-}
-
-int gr_gk20a_halt_pipe(struct gk20a *g)
-{
-	return g->ops.gr.falcon.submit_fecs_method_op(g,
-	      (struct fecs_method_op_gk20a) {
-		      .method.addr =
-				gr_fecs_method_push_adr_halt_pipeline_v(),
-		      .method.data = ~U32(0U),
-		      .mailbox = { .id   = 1U, /*sideband?*/
-				.data = ~U32(0U), .clr = ~U32(0U), .ret = NULL,
-				.ok   = gr_fecs_ctxsw_mailbox_value_pass_v(),
-				.fail = gr_fecs_ctxsw_mailbox_value_fail_v(), },
-		      .cond.ok = GR_IS_UCODE_OP_EQUAL,
-		      .cond.fail = GR_IS_UCODE_OP_EQUAL }, false);
-}
-
-
 int gr_gk20a_commit_inst(struct channel_gk20a *c, u64 gpu_va)
 {
 	u32 addr_lo;
@@ -3972,7 +3867,7 @@ int gr_gk20a_exec_ctx_ops(struct channel_gk20a *ch,
 	 * at that point the hardware state can be inspected to
 	 * determine if the context we're interested in is current.
 	 */
-	err = gr_gk20a_disable_ctxsw(g);
+	err = g->ops.gr.falcon.disable_ctxsw(g);
 	if (err != 0) {
 		nvgpu_err(g, "unable to stop gr ctxsw");
 		/* this should probably be ctx-fatal... */
@@ -3989,7 +3884,7 @@ int gr_gk20a_exec_ctx_ops(struct channel_gk20a *ch,
 	err = __gr_gk20a_exec_ctx_ops(ch, ctx_ops, num_ops, num_ctx_wr_ops,
 				      num_ctx_rd_ops, ch_is_curr_ctx);
 
-	tmp_err = gr_gk20a_enable_ctxsw(g);
+	tmp_err = g->ops.gr.falcon.enable_ctxsw(g);
 	if (tmp_err != 0) {
 		nvgpu_err(g, "unable to restart ctxsw!");
 		err = tmp_err;
@@ -4340,7 +4235,7 @@ int gr_gk20a_suspend_contexts(struct gk20a *g,
 
 	nvgpu_mutex_acquire(&g->dbg_sessions_lock);
 
-	err = gr_gk20a_disable_ctxsw(g);
+	err = g->ops.gr.falcon.disable_ctxsw(g);
 	if (err != 0) {
 		nvgpu_err(g, "unable to stop gr ctxsw");
 		goto clean_up;
@@ -4360,7 +4255,7 @@ int gr_gk20a_suspend_contexts(struct gk20a *g,
 
 	nvgpu_mutex_release(&dbg_s->ch_list_lock);
 
-	err = gr_gk20a_enable_ctxsw(g);
+	err = g->ops.gr.falcon.enable_ctxsw(g);
 	if (err != 0) {
 		nvgpu_err(g, "unable to restart ctxsw!");
 	}
@@ -4385,7 +4280,7 @@ int gr_gk20a_resume_contexts(struct gk20a *g,
 
 	nvgpu_mutex_acquire(&g->dbg_sessions_lock);
 
-	err = gr_gk20a_disable_ctxsw(g);
+	err = g->ops.gr.falcon.disable_ctxsw(g);
 	if (err != 0) {
 		nvgpu_err(g, "unable to stop gr ctxsw");
 		goto clean_up;
@@ -4401,7 +4296,7 @@ int gr_gk20a_resume_contexts(struct gk20a *g,
 		}
 	}
 
-	err = gr_gk20a_enable_ctxsw(g);
+	err = g->ops.gr.falcon.enable_ctxsw(g);
 	if (err != 0) {
 		nvgpu_err(g, "unable to restart ctxsw!");
 	}

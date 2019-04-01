@@ -453,7 +453,6 @@ struct gpu_ops {
 			u32 *__offset_in_segment);
 		void (*set_debug_mode)(struct gk20a *g, bool enable);
 		void (*log_mme_exception)(struct gk20a *g);
-		int (*halt_pipe)(struct gk20a *g);
 		int (*reset)(struct gk20a *g);
 		struct {
 			u32 (*hw_get_fecs_header_size)(void);
@@ -594,6 +593,11 @@ struct gpu_ops {
 				bool sleepduringwait);
 			int (*submit_fecs_sideband_method_op)(struct gk20a *g,
 				struct fecs_method_op_gk20a op);
+			int (*ctrl_ctxsw)(struct gk20a *g, u32 fecs_method,
+				u32 fecs_data, u32 *ret_val);
+			int (*halt_pipe)(struct gk20a *g);
+			int (*disable_ctxsw)(struct gk20a *g);
+			int (*enable_ctxsw)(struct gk20a *g);
 		} falcon;
 
 #ifdef CONFIG_GK20A_CTXSW_TRACE

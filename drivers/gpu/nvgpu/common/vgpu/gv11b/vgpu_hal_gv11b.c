@@ -100,6 +100,7 @@
 #include <nvgpu/debugger.h>
 #include <nvgpu/enabled.h>
 #include <nvgpu/channel.h>
+#include <nvgpu/gr/gr_falcon.h>
 
 #include <nvgpu/vgpu/ce_vgpu.h>
 #include <nvgpu/vgpu/vm_vgpu.h>
@@ -232,7 +233,6 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 		.get_offset_in_gpccs_segment =
 			gr_gk20a_get_offset_in_gpccs_segment,
 		.set_debug_mode = gm20b_gr_set_debug_mode,
-		.halt_pipe = NULL,
 		.reset = NULL,
 		.ctxsw_prog = {
 			.hw_get_fecs_header_size =
@@ -341,6 +341,9 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 		},
 		.falcon = {
 			.load_ctxsw_ucode = NULL,
+			.halt_pipe = NULL,
+			.disable_ctxsw = nvgpu_gr_falcon_disable_ctxsw,
+			.enable_ctxsw = nvgpu_gr_falcon_enable_ctxsw,
 		},
 #ifdef CONFIG_GK20A_CTXSW_TRACE
 		.fecs_trace = {

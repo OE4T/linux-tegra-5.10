@@ -528,6 +528,7 @@ int gk20a_fifo_deferred_reset(struct gk20a *g, struct channel_gk20a *ch)
 	struct tsg_gk20a *tsg;
 	bool deferred_reset_pending;
 	struct fifo_gk20a *f = &g->fifo;
+	int err = 0;
 
 	nvgpu_mutex_acquire(&g->dbg_sessions_lock);
 
@@ -540,7 +541,11 @@ int gk20a_fifo_deferred_reset(struct gk20a *g, struct channel_gk20a *ch)
 		return 0;
 	}
 
-	gr_gk20a_disable_ctxsw(g);
+	err = g->ops.gr.falcon.disable_ctxsw(g);
+	if (err != 0) {
+		nvgpu_err(g, "failed to disable ctxsw");
+		goto fail;
+	}
 
 	tsg = tsg_gk20a_from_ch(ch);
 	if (tsg != NULL) {
@@ -571,10 +576,14 @@ int gk20a_fifo_deferred_reset(struct gk20a *g, struct channel_gk20a *ch)
 	nvgpu_mutex_release(&f->deferred_reset_mutex);
 
 clean_up:
-	gr_gk20a_enable_ctxsw(g);
+	err = g->ops.gr.falcon.enable_ctxsw(g);
+	if (err != 0) {
+		nvgpu_err(g, "failed to enable ctxsw");
+	}
+fail:
 	nvgpu_mutex_release(&g->dbg_sessions_lock);
 
-	return 0;
+	return err;
 }
 
 static bool gk20a_fifo_handle_mmu_fault_locked(

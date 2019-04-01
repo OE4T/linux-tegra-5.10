@@ -354,7 +354,6 @@ static const struct gpu_ops gp10b_ops = {
 			gr_gk20a_get_offset_in_gpccs_segment,
 		.set_debug_mode = gm20b_gr_set_debug_mode,
 		.log_mme_exception = NULL,
-		.halt_pipe = gr_gk20a_halt_pipe,
 		.reset = gk20a_gr_reset,
 		.ctxsw_prog = {
 			.hw_get_fecs_header_size =
@@ -606,6 +605,10 @@ static const struct gpu_ops gp10b_ops = {
 					gm20b_gr_falcon_submit_fecs_method_op,
 			.submit_fecs_sideband_method_op =
 				gm20b_gr_falcon_submit_fecs_sideband_method_op,
+			.ctrl_ctxsw = gm20b_gr_falcon_ctrl_ctxsw,
+			.halt_pipe = nvgpu_gr_falcon_halt_pipe,
+			.disable_ctxsw = nvgpu_gr_falcon_disable_ctxsw,
+			.enable_ctxsw = nvgpu_gr_falcon_enable_ctxsw,
 		},
 	},
 	.fb = {
