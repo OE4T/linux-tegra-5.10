@@ -97,8 +97,6 @@ int gv11b_ramfc_setup(struct channel_gk20a *ch, u64 gpfifo_base,
 	nvgpu_mem_wr32(g, mem, ram_in_engine_wfi_veid_w(),
 		ram_in_engine_wfi_veid_f(ch->subctx_id));
 
-	gv11b_fifo_init_ramfc_eng_method_buffer(g, ch, mem);
-
 	if (ch->is_privileged_channel) {
 		/* Set privilege level for channel */
 		nvgpu_mem_wr32(g, mem, ram_fc_config_w(),

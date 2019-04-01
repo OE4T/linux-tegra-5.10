@@ -106,3 +106,16 @@ void gv11b_ramin_init_subctx_pdb(struct gk20a *g,
 	gv11b_subctx_commit_valid_mask(g, inst_block);
 
 }
+
+void gv11b_ramin_set_eng_method_buffer(struct gk20a *g,
+		struct nvgpu_mem *inst_block, u64 gpu_va)
+{
+	u32 addr_lo = u64_lo32(gpu_va);
+	u32 addr_hi = u64_hi32(gpu_va);
+
+	nvgpu_mem_wr32(g, inst_block, ram_in_eng_method_buffer_addr_lo_w(),
+			addr_lo);
+	nvgpu_mem_wr32(g, inst_block, ram_in_eng_method_buffer_addr_hi_w(),
+			addr_hi);
+}
+

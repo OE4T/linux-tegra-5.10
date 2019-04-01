@@ -31,5 +31,11 @@ void gv11b_tsg_enable(struct tsg_gk20a *tsg);
 void gv11b_tsg_unbind_channel_check_eng_faulted(struct tsg_gk20a *tsg,
 		struct channel_gk20a *ch,
 		struct nvgpu_channel_hw_state *hw_state);
+void gv11b_tsg_init_eng_method_buffers(struct gk20a *g,
+		struct tsg_gk20a *tsg);
+void gv11b_tsg_deinit_eng_method_buffers(struct gk20a *g,
+		struct tsg_gk20a *tsg);
+void gv11b_tsg_bind_channel_eng_method_buffers(struct tsg_gk20a *tsg,
+		struct channel_gk20a *ch);
 
 #endif /* NVGPU_TSG_GV11B_H */

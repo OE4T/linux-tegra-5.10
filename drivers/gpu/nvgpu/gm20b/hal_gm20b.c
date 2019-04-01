@@ -719,6 +719,7 @@ static const struct gpu_ops gm20b_ops = {
 		.set_adr_limit = gk20a_ramin_set_adr_limit,
 		.base_shift = gk20a_ramin_base_shift,
 		.alloc_size = gk20a_ramin_alloc_size,
+		.set_eng_method_buffer = NULL,
 	},
 	.runlist = {
 		.update_for_channel = gk20a_runlist_update_for_channel,

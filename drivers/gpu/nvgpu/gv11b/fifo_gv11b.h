@@ -30,11 +30,6 @@
 #define FIFO_INVAL_PBDMA_ID	(~U32(0U))
 #define FIFO_INVAL_VEID		(~U32(0U))
 
-/* can be removed after runque support is added */
-
-#define GR_RUNQUE			0U	/* pbdma 0 */
-#define ASYNC_CE_RUNQUE			2U	/* pbdma 2 */
-
 #define CHANNEL_INFO_VEID0		0U
 
 #define MAX_PRE_SI_RETRIES		200000U	/* 1G/500KHz * 100 */
@@ -61,16 +56,10 @@ void gv11b_fifo_teardown_mask_intr(struct gk20a *g);
 void gv11b_fifo_teardown_unmask_intr(struct gk20a *g);
 void gv11b_fifo_init_pbdma_intr_descs(struct fifo_gk20a *f);
 int gv11b_init_fifo_reset_enable_hw(struct gk20a *g);
-void gv11b_fifo_init_eng_method_buffers(struct gk20a *g,
-					struct tsg_gk20a *tsg);
-void gv11b_fifo_deinit_eng_method_buffers(struct gk20a *g,
-					struct tsg_gk20a *tsg);
 int gv11b_init_fifo_setup_hw(struct gk20a *g);
 
 u32 gv11b_fifo_get_preempt_timeout(struct gk20a *g);
 
-void gv11b_fifo_init_ramfc_eng_method_buffer(struct gk20a *g,
-			struct channel_gk20a *ch, struct nvgpu_mem *mem);
 void gv11b_ring_channel_doorbell(struct channel_gk20a *c);
 u64 gv11b_fifo_usermode_base(struct gk20a *g);
 u32 gv11b_fifo_doorbell_token(struct channel_gk20a *c);

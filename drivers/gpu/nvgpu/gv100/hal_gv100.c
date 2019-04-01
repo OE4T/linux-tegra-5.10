@@ -906,9 +906,6 @@ static const struct gpu_ops gv100_ops = {
 		.teardown_ch_tsg = gv11b_fifo_teardown_ch_tsg,
 		.teardown_mask_intr = gv100_fifo_teardown_mask_intr,
 		.teardown_unmask_intr = gv100_fifo_teardown_unmask_intr,
-		.init_eng_method_buffers = gv11b_fifo_init_eng_method_buffers,
-		.deinit_eng_method_buffers =
-			gv11b_fifo_deinit_eng_method_buffers,
 		.post_event_id = gk20a_tsg_event_id_post_event,
 		.setup_sw = nvgpu_fifo_setup_sw,
 		.cleanup_sw = nvgpu_fifo_cleanup_sw,
@@ -994,6 +991,7 @@ static const struct gpu_ops gv100_ops = {
 		.set_adr_limit = NULL,
 		.base_shift = gk20a_ramin_base_shift,
 		.alloc_size = gk20a_ramin_alloc_size,
+		.set_eng_method_buffer = gv11b_ramin_set_eng_method_buffer,
 	},
 	.runlist = {
 		.update_for_channel = gk20a_runlist_update_for_channel,
@@ -1041,7 +1039,12 @@ static const struct gpu_ops gv100_ops = {
 	.tsg = {
 		.enable = gv11b_tsg_enable,
 		.disable = nvgpu_tsg_disable,
+		.init_eng_method_buffers = gv11b_tsg_init_eng_method_buffers,
+		.deinit_eng_method_buffers =
+			gv11b_tsg_deinit_eng_method_buffers,
 		.bind_channel = NULL,
+		.bind_channel_eng_method_buffers =
+			gv11b_tsg_bind_channel_eng_method_buffers,
 		.unbind_channel = NULL,
 		.unbind_channel_check_hw_state =
 				nvgpu_tsg_unbind_channel_check_hw_state,

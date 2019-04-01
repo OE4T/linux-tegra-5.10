@@ -970,10 +970,6 @@ struct gpu_ops {
 			 struct mmu_fault_info *mmfault);
 		void (*teardown_mask_intr)(struct gk20a *g);
 		void (*teardown_unmask_intr)(struct gk20a *g);
-		void (*init_eng_method_buffers)(struct gk20a *g,
-						struct tsg_gk20a *tsg);
-		void (*deinit_eng_method_buffers)(struct gk20a *g,
-						struct tsg_gk20a *tsg);
 		u32 (*get_preempt_timeout)(struct gk20a *g);
 		void (*post_event_id)(struct tsg_gk20a *tsg, int event_id);
 		void (*ring_channel_doorbell)(struct channel_gk20a *c);
@@ -1036,6 +1032,8 @@ struct gpu_ops {
 				struct nvgpu_mem *inst_block, u64 va_limit);
 		u32 (*base_shift)(void);
 		u32 (*alloc_size)(void);
+		void (*set_eng_method_buffer)(struct gk20a *g,
+				struct nvgpu_mem *inst_block, u64 gpu_va);
 	} ramin;
 	struct {
 		int (*reschedule)(struct channel_gk20a *ch, bool preempt_next);
@@ -1148,9 +1146,15 @@ struct gpu_ops {
 	struct {
 		int (*open)(struct tsg_gk20a *tsg);
 		void (*release)(struct tsg_gk20a *tsg);
+		void (*init_eng_method_buffers)(struct gk20a *g,
+				struct tsg_gk20a *tsg);
+		void (*deinit_eng_method_buffers)(struct gk20a *g,
+				struct tsg_gk20a *tsg);
 		void (*enable)(struct tsg_gk20a *tsg);
 		void (*disable)(struct tsg_gk20a *tsg);
 		int (*bind_channel)(struct tsg_gk20a *tsg,
+				struct channel_gk20a *ch);
+		void (*bind_channel_eng_method_buffers)(struct tsg_gk20a *tsg,
 				struct channel_gk20a *ch);
 		int (*unbind_channel)(struct tsg_gk20a *tsg,
 				struct channel_gk20a *ch);

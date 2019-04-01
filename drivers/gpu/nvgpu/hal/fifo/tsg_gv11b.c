@@ -21,13 +21,17 @@
  */
 
 #include <nvgpu/channel.h>
+#include <nvgpu/engines.h>
 #include <nvgpu/nvgpu_mem.h>
 #include <nvgpu/tsg.h>
 #include <nvgpu/gk20a.h>
 
 #include "hal/fifo/tsg_gv11b.h"
 
-#include "gv11b/fifo_gv11b.h"
+
+/* can be removed after runque support is added */
+#define GR_RUNQUE			0U	/* pbdma 0 */
+#define ASYNC_CE_RUNQUE			2U	/* pbdma 2 */
 
 /* TSG enable sequence applicable for Volta and onwards */
 void gv11b_tsg_enable(struct tsg_gk20a *tsg)
@@ -74,4 +78,99 @@ void gv11b_tsg_unbind_channel_check_eng_faulted(struct tsg_gk20a *tsg,
 	if (ch->chid == nvgpu_mem_rd32(g, mem, 1)) {
 		nvgpu_mem_wr32(g, mem, 0, 0);
 	}
+}
+
+void gv11b_tsg_bind_channel_eng_method_buffers(struct tsg_gk20a *tsg,
+		struct channel_gk20a *ch)
+{
+	struct gk20a *g = tsg->g;
+	u64 gpu_va;
+
+	if (tsg->eng_method_buffers == NULL) {
+		nvgpu_log_info(g, "eng method buffer NULL");
+		return;
+	}
+
+	if (tsg->runlist_id == nvgpu_engine_get_fast_ce_runlist_id(g)) {
+		gpu_va = tsg->eng_method_buffers[ASYNC_CE_RUNQUE].gpu_va;
+	} else {
+		gpu_va = tsg->eng_method_buffers[GR_RUNQUE].gpu_va;
+	}
+
+	g->ops.ramin.set_eng_method_buffer(g, &ch->inst_block, gpu_va);
+}
+
+static unsigned int gv11b_tsg_get_eng_method_buffer_size(struct gk20a *g)
+{
+	unsigned int buffer_size;
+
+	buffer_size =  ((9U + 1U + 3U) * g->ops.ce2.get_num_pce(g)) + 2U;
+	buffer_size = (27U * 5U * buffer_size);
+	buffer_size = roundup(buffer_size, PAGE_SIZE);
+	nvgpu_log_info(g, "method buffer size in bytes %d", buffer_size);
+
+	return buffer_size;
+}
+
+void gv11b_tsg_init_eng_method_buffers(struct gk20a *g, struct tsg_gk20a *tsg)
+{
+	struct vm_gk20a *vm = g->mm.bar2.vm;
+	int err = 0;
+	int i;
+	unsigned int runque, method_buffer_size;
+	unsigned int num_pbdma = g->fifo.num_pbdma;
+
+	if (tsg->eng_method_buffers != NULL) {
+		return;
+	}
+
+	method_buffer_size = gv11b_tsg_get_eng_method_buffer_size(g);
+	if (method_buffer_size == 0U) {
+		nvgpu_info(g, "ce will hit MTHD_BUFFER_FAULT");
+		return;
+	}
+
+	tsg->eng_method_buffers = nvgpu_kzalloc(g,
+					num_pbdma * sizeof(struct nvgpu_mem));
+
+	for (runque = 0; runque < num_pbdma; runque++) {
+		err = nvgpu_dma_alloc_map_sys(vm, method_buffer_size,
+					&tsg->eng_method_buffers[runque]);
+		if (err != 0) {
+			break;
+		}
+	}
+	if (err != 0) {
+		for (i = ((int)runque - 1); i >= 0; i--) {
+			nvgpu_dma_unmap_free(vm,
+				 &tsg->eng_method_buffers[i]);
+		}
+
+		nvgpu_kfree(g, tsg->eng_method_buffers);
+		tsg->eng_method_buffers = NULL;
+		nvgpu_err(g, "could not alloc eng method buffers");
+		return;
+	}
+	nvgpu_log_info(g, "eng method buffers allocated");
+
+}
+
+void gv11b_tsg_deinit_eng_method_buffers(struct gk20a *g,
+		struct tsg_gk20a *tsg)
+{
+	struct vm_gk20a *vm = g->mm.bar2.vm;
+	unsigned int runque;
+
+	if (tsg->eng_method_buffers == NULL) {
+		return;
+	}
+
+	for (runque = 0; runque < g->fifo.num_pbdma; runque++) {
+		nvgpu_dma_unmap_free(vm, &tsg->eng_method_buffers[runque]);
+	}
+
+	nvgpu_kfree(g, tsg->eng_method_buffers);
+	tsg->eng_method_buffers = NULL;
+
+	nvgpu_log_info(g, "eng method buffers de-allocated");
 }

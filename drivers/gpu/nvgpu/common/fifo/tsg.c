@@ -104,6 +104,10 @@ int nvgpu_tsg_bind_channel(struct tsg_gk20a *tsg, struct channel_gk20a *ch)
 	ch->tsgid = tsg->tsgid;
 	nvgpu_rwsem_up_write(&tsg->ch_list_lock);
 
+	if (g->ops.tsg.bind_channel_eng_method_buffers != NULL) {
+		g->ops.tsg.bind_channel_eng_method_buffers(tsg, ch);
+	}
+
 	nvgpu_ref_get(&tsg->refcount);
 
 	return err;
@@ -688,8 +692,8 @@ int nvgpu_tsg_open_common(struct gk20a *g, struct tsg_gk20a *tsg, pid_t pid)
 		goto clean_up;
 	}
 
-	if (g->ops.fifo.init_eng_method_buffers != NULL) {
-		g->ops.fifo.init_eng_method_buffers(g, tsg);
+	if (g->ops.tsg.init_eng_method_buffers != NULL) {
+		g->ops.tsg.init_eng_method_buffers(g, tsg);
 	}
 
 	if (g->ops.tsg.open != NULL) {
@@ -741,8 +745,8 @@ void nvgpu_tsg_release_common(struct gk20a *g, struct tsg_gk20a *tsg)
 	nvgpu_kfree(g, tsg->gr_ctx);
 	tsg->gr_ctx = NULL;
 
-	if (g->ops.fifo.deinit_eng_method_buffers != NULL) {
-		g->ops.fifo.deinit_eng_method_buffers(g, tsg);
+	if (g->ops.tsg.deinit_eng_method_buffers != NULL) {
+		g->ops.tsg.deinit_eng_method_buffers(g, tsg);
 	}
 
 	if (tsg->vm != NULL) {
