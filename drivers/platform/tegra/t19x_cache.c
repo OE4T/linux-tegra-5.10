@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -279,6 +279,7 @@ static ssize_t gpu_only_ways_store(struct device *device,
 	struct cache_drv_data *pdata;
 	u32 new_gpu_only_ways;
 	u32 gpu_cpu_ways;
+	int ret;
 
 	if (is_tegra_hypervisor_mode())
 		return -EPERM;
@@ -289,7 +290,10 @@ static ssize_t gpu_only_ways_store(struct device *device,
 	t19x_extract_l3_cache_ways(device);
 	pdata = dev_get_drvdata(device);
 	gpu_cpu_ways = pdata->ioctl_data.igpu_cpu_ways;
-	t19x_set_l3_cache_ways(gpu_cpu_ways, new_gpu_only_ways);
+
+	ret = t19x_set_l3_cache_ways(gpu_cpu_ways, new_gpu_only_ways);
+	if (!ret)
+		pdata->ioctl_data.igpu_only_ways = new_gpu_only_ways;
 
 	return count;
 }
@@ -313,6 +317,7 @@ static ssize_t gpu_cpu_ways_store(struct device *device,
 	struct cache_drv_data *pdata;
 	u32 new_gpu_cpu_ways;
 	u32 gpu_only_ways;
+	int ret;
 
 	if (is_tegra_hypervisor_mode())
 		return -EPERM;
@@ -323,7 +328,10 @@ static ssize_t gpu_cpu_ways_store(struct device *device,
 	t19x_extract_l3_cache_ways(device);
 	pdata = dev_get_drvdata(device);
 	gpu_only_ways = pdata->ioctl_data.igpu_only_ways;
-	t19x_set_l3_cache_ways(new_gpu_cpu_ways, gpu_only_ways);
+
+	ret = t19x_set_l3_cache_ways(new_gpu_cpu_ways, gpu_only_ways);
+	if (!ret)
+		pdata->ioctl_data.igpu_cpu_ways = new_gpu_cpu_ways;
 
 	return count;
 }
