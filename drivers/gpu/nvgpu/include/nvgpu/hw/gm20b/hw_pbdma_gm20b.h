@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -113,6 +113,22 @@ static inline u32 pbdma_gp_get_r(u32 i)
 static inline u32 pbdma_gp_put_r(u32 i)
 {
 	return 0x00040000U + i*8192U;
+}
+static inline u32 pbdma_timeout_r(u32 i)
+{
+	return 0x0004012cU + i*8192U;
+}
+static inline u32 pbdma_timeout__size_1_v(void)
+{
+	return 0x00000001U;
+}
+static inline u32 pbdma_timeout_period_m(void)
+{
+	return U32(0xffffffffU) << 0U;
+}
+static inline u32 pbdma_timeout_period_max_f(void)
+{
+	return 0xffffffffU;
 }
 static inline u32 pbdma_pb_fetch_r(u32 i)
 {
