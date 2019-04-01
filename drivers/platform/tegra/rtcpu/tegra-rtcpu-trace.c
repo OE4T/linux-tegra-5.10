@@ -676,21 +676,13 @@ const char * const g_trace_vinotify_tag_strs[] = {
 	"ATOMP_FRAME_DONE", "ATOMP_EMB_DATA_DONE",
 	"ATOMP_FRAME_NLINES_DONE", "ATOMP_FRAME_TRUNCATED",
 	"ATOMP_FRAME_TOSSED", "ATOMP_PDAF_DATA_DONE",
-	"RESERVED_18", "RESERVED_19",
+	"VIFALC_TDSTATE", "VIFALC_ACTIONLST",
 	"ISPBUF_FIFO_OVERFLOW", "ISPBUF_FS",
 	"ISPBUF_FE", "VGP0_DONE",
 	"VGP1_DONE", "FMLITE_DONE",
 };
 const unsigned int g_trace_vinotify_tag_str_count =
 	ARRAY_SIZE(g_trace_vinotify_tag_strs);
-
-#ifndef camrtc_trace_vinotify_event_ts64
-#define camrtc_trace_vinotify_event_ts64 (camrtc_trace_vinotify_handle_msg + 1)
-#endif
-
-#ifndef camrtc_trace_vinotify_error_ts64
-#define camrtc_trace_vinotify_error_ts64 (camrtc_trace_vinotify_handle_msg + 2)
-#endif
 
 static void rtcpu_trace_vinotify_event(struct camrtc_event_struct *event)
 {
@@ -701,16 +693,28 @@ static void rtcpu_trace_vinotify_event(struct camrtc_event_struct *event)
 		event->data.data32[1], event->data.data32[2]);
 		break;
 	case camrtc_trace_vinotify_event_ts64:
-		trace_rtcpu_vinotify_event(event->header.tstamp,
+		trace_rtcpu_vinotify_event_ts64(event->header.tstamp,
 		(event->data.data32[0] >> 1) & 0x7f, event->data.data32[0],
 		((u64)event->data.data32[3] << 32) | event->data.data32[1],
 		event->data.data32[2]);
 		break;
 	case camrtc_trace_vinotify_error_ts64:
-		trace_rtcpu_vinotify_error(event->header.tstamp,
+		trace_rtcpu_vinotify_error_ts64(event->header.tstamp,
 		(event->data.data32[0] >> 1) & 0x7f, event->data.data32[0],
 		((u64)event->data.data32[3] << 32) | event->data.data32[1],
 		event->data.data32[2]);
+		break;
+	case camrtc_trace_vinotify_event:
+		trace_rtcpu_vinotify_event(event->header.tstamp,
+		event->data.data32[0], event->data.data32[1],
+		event->data.data32[2], event->data.data32[3],
+		event->data.data32[4]);
+		break;
+	case camrtc_trace_vinotify_error:
+		trace_rtcpu_vinotify_error(event->header.tstamp,
+		event->data.data32[0], event->data.data32[1],
+		event->data.data32[2], event->data.data32[3],
+		event->data.data32[4]);
 		break;
 	default:
 		trace_rtcpu_unknown(event->header.tstamp,
