@@ -96,7 +96,7 @@ void nvgpu_channel_remove_support_linux(struct nvgpu_os_linux *l);
 struct channel_gk20a *gk20a_open_new_channel_with_cb(struct gk20a *g,
 		void (*update_fn)(struct channel_gk20a *, void *),
 		void *update_fn_data,
-		int runlist_id,
+		u32 runlist_id,
 		bool is_privileged_channel);
 
 #endif

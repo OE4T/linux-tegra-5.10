@@ -437,8 +437,16 @@ static int __gk20a_channel_open(struct gk20a *g,
 	int err;
 	struct channel_gk20a *ch;
 	struct channel_priv *priv;
+	u32 tmp_runlist_id;
 
 	nvgpu_log_fn(g, " ");
+
+	nvgpu_assert(runlist_id >= -1);
+	if (runlist_id == -1) {
+		tmp_runlist_id = NVGPU_ENGINE_GR_GK20A;
+	} else {
+		tmp_runlist_id = runlist_id;
+	}
 
 	g = gk20a_get(g);
 	if (!g)
@@ -458,7 +466,7 @@ static int __gk20a_channel_open(struct gk20a *g,
 		goto fail_busy;
 	}
 	/* All the user space channel should be non privilege */
-	ch = gk20a_open_new_channel(g, runlist_id, false,
+	ch = gk20a_open_new_channel(g, tmp_runlist_id, false,
 				nvgpu_current_pid(g), nvgpu_current_tid(g));
 	gk20a_idle(g);
 	if (!ch) {

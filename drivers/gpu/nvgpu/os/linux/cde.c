@@ -35,6 +35,7 @@
 #include <nvgpu/firmware.h>
 #include <nvgpu/os_sched.h>
 #include <nvgpu/channel.h>
+#include <nvgpu/runlist.h>
 #include <nvgpu/utils.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/string.h>
@@ -1339,7 +1340,7 @@ static int gk20a_cde_load(struct gk20a_cde_ctx *cde_ctx)
 
 	ch = gk20a_open_new_channel_with_cb(g, gk20a_cde_finished_ctx_cb,
 			cde_ctx,
-			-1,
+			RUNLIST_INVALID_ID,
 			false);
 	if (!ch) {
 		nvgpu_warn(g, "cde: gk20a channel not available");

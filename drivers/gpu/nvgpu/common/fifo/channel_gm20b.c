@@ -55,7 +55,7 @@ void gm20b_channel_bind(struct channel_gk20a *c)
 		 ~ccsr_channel_enable_set_f(~U32(0U))) |
 		 ccsr_channel_enable_set_true_f());
 	nvgpu_smp_wmb();
-	nvgpu_atomic_set(&c->bound, true);
+	nvgpu_atomic_set(&c->bound, (int)true);
 }
 
 u32 gm20b_channel_count(struct gk20a *g)

@@ -123,7 +123,7 @@ void gk20a_ce_destroy(struct gk20a *g);
 
 /* CE app utility functions */
 u32 gk20a_ce_create_context(struct gk20a *g,
-		int runlist_id,
+		u32 runlist_id,
 		int timeslice,
 		int runlist_level);
 int gk20a_ce_execute_ops(struct gk20a *g,

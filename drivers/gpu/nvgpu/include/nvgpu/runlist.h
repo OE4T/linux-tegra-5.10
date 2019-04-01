@@ -32,6 +32,8 @@ struct fifo_gk20a;
 struct channel_gk20a;
 
 #define RUNLIST_APPEND_FAILURE 0xffffffffU
+#define RUNLIST_INVALID_ID U32_MAX
+
 u32 nvgpu_runlist_construct_locked(struct fifo_gk20a *f,
 				struct fifo_runlist_info_gk20a *runlist,
 				u32 buf_id,

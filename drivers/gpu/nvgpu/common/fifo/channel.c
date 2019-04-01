@@ -668,7 +668,7 @@ void __gk20a_channel_kill(struct channel_gk20a *ch)
 }
 
 struct channel_gk20a *gk20a_open_new_channel(struct gk20a *g,
-		s32 runlist_id,
+		u32 runlist_id,
 		bool is_privileged_channel,
 		pid_t pid, pid_t tid)
 {

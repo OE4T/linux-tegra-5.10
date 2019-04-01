@@ -246,7 +246,7 @@ static void nvgpu_channel_work_completion_cancel_sync(struct channel_gk20a *ch)
 struct channel_gk20a *gk20a_open_new_channel_with_cb(struct gk20a *g,
 		void (*update_fn)(struct channel_gk20a *, void *),
 		void *update_fn_data,
-		int runlist_id,
+		u32 runlist_id,
 		bool is_privileged_channel)
 {
 	struct channel_gk20a *ch;
