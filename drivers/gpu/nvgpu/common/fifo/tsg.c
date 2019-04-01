@@ -136,7 +136,7 @@ int nvgpu_tsg_unbind_channel(struct tsg_gk20a *tsg, struct channel_gk20a *ch)
 		err = g->ops.tsg.unbind_channel(tsg, ch);
 	}
 
-	nvgpu_ref_put(&tsg->refcount, gk20a_tsg_release);
+	nvgpu_ref_put(&tsg->refcount, nvgpu_tsg_release);
 
 	return 0;
 }
@@ -652,7 +652,7 @@ static struct tsg_gk20a *gk20a_tsg_acquire_unused_tsg(struct fifo_gk20a *f)
 	return tsg;
 }
 
-int gk20a_tsg_open_common(struct gk20a *g, struct tsg_gk20a *tsg, pid_t pid)
+int nvgpu_tsg_open_common(struct gk20a *g, struct tsg_gk20a *tsg, pid_t pid)
 {
 	u32 no_of_sm = nvgpu_gr_config_get_no_of_sm(g->gr.config);
 	int err;
@@ -692,8 +692,8 @@ int gk20a_tsg_open_common(struct gk20a *g, struct tsg_gk20a *tsg, pid_t pid)
 		g->ops.fifo.init_eng_method_buffers(g, tsg);
 	}
 
-	if (g->ops.fifo.tsg_open != NULL) {
-		err = g->ops.fifo.tsg_open(tsg);
+	if (g->ops.tsg.open != NULL) {
+		err = g->ops.tsg.open(tsg);
 		if (err != 0) {
 			nvgpu_err(g, "tsg %d fifo open failed %d",
 				  tsg->tsgid, err);
@@ -704,13 +704,13 @@ int gk20a_tsg_open_common(struct gk20a *g, struct tsg_gk20a *tsg, pid_t pid)
 	return 0;
 
 clean_up:
-	gk20a_tsg_release_common(g, tsg);
+	nvgpu_tsg_release_common(g, tsg);
 	nvgpu_ref_put(&tsg->refcount, NULL);
 
 	return err;
 }
 
-struct tsg_gk20a *gk20a_tsg_open(struct gk20a *g, pid_t pid)
+struct tsg_gk20a *nvgpu_tsg_open(struct gk20a *g, pid_t pid)
 {
 	struct tsg_gk20a *tsg;
 	int err;
@@ -720,7 +720,7 @@ struct tsg_gk20a *gk20a_tsg_open(struct gk20a *g, pid_t pid)
 		return NULL;
 	}
 
-	err = gk20a_tsg_open_common(g, tsg, pid);
+	err = nvgpu_tsg_open_common(g, tsg, pid);
 	if (err != 0) {
 		release_used_tsg(&g->fifo, tsg);
 		nvgpu_err(g, "tsg %d open failed %d", tsg->tsgid, err);
@@ -732,10 +732,10 @@ struct tsg_gk20a *gk20a_tsg_open(struct gk20a *g, pid_t pid)
 	return tsg;
 }
 
-void gk20a_tsg_release_common(struct gk20a *g, struct tsg_gk20a *tsg)
+void nvgpu_tsg_release_common(struct gk20a *g, struct tsg_gk20a *tsg)
 {
-	if (g->ops.fifo.tsg_release != NULL) {
-		g->ops.fifo.tsg_release(tsg);
+	if (g->ops.tsg.release != NULL) {
+		g->ops.tsg.release(tsg);
 	}
 
 	nvgpu_kfree(g, tsg->gr_ctx);
@@ -763,7 +763,7 @@ static struct tsg_gk20a *tsg_gk20a_from_ref(struct nvgpu_ref *ref)
 		((uintptr_t)ref - offsetof(struct tsg_gk20a, refcount));
 }
 
-void gk20a_tsg_release(struct nvgpu_ref *ref)
+void nvgpu_tsg_release(struct nvgpu_ref *ref)
 {
 	struct tsg_gk20a *tsg = tsg_gk20a_from_ref(ref);
 	struct gk20a *g = tsg->g;
@@ -784,7 +784,7 @@ void gk20a_tsg_release(struct nvgpu_ref *ref)
 	}
 	nvgpu_mutex_release(&tsg->event_id_list_lock);
 
-	gk20a_tsg_release_common(g, tsg);
+	nvgpu_tsg_release_common(g, tsg);
 	release_used_tsg(&g->fifo, tsg);
 
 	nvgpu_log(g, gpu_dbg_fn, "tsg released %d\n", tsg->tsgid);

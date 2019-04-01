@@ -955,8 +955,6 @@ struct gpu_ops {
 		void (*apply_pb_timeout)(struct gk20a *g);
 		int (*tsg_set_timeslice)(struct tsg_gk20a *tsg, u32 timeslice);
 		u32 (*default_timeslice_us)(struct gk20a *g);
-		int (*tsg_open)(struct tsg_gk20a *tsg);
-		void (*tsg_release)(struct tsg_gk20a *tsg);
 		int (*init_pbdma_info)(struct fifo_gk20a *f);
 		int (*init_engine_info)(struct fifo_gk20a *f);
 		u32 (*get_engines_mask_on_id)(struct gk20a *g,
@@ -1148,6 +1146,8 @@ struct gpu_ops {
 		int (*set_syncpt)(struct channel_gk20a *ch);
 	} channel;
 	struct {
+		int (*open)(struct tsg_gk20a *tsg);
+		void (*release)(struct tsg_gk20a *tsg);
 		void (*enable)(struct tsg_gk20a *tsg);
 		void (*disable)(struct tsg_gk20a *tsg);
 		int (*bind_channel)(struct tsg_gk20a *tsg,

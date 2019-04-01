@@ -82,10 +82,10 @@ struct tsg_gk20a {
 	struct nvgpu_mutex sm_exception_mask_lock;
 };
 
-int gk20a_tsg_open_common(struct gk20a *g, struct tsg_gk20a *tsg, pid_t pid);
-struct tsg_gk20a *gk20a_tsg_open(struct gk20a *g, pid_t pid);
-void gk20a_tsg_release_common(struct gk20a *g, struct tsg_gk20a *tsg);
-void gk20a_tsg_release(struct nvgpu_ref *ref);
+int nvgpu_tsg_open_common(struct gk20a *g, struct tsg_gk20a *tsg, pid_t pid);
+struct tsg_gk20a *nvgpu_tsg_open(struct gk20a *g, pid_t pid);
+void nvgpu_tsg_release_common(struct gk20a *g, struct tsg_gk20a *tsg);
+void nvgpu_tsg_release(struct nvgpu_ref *ref);
 
 int gk20a_init_tsg_support(struct gk20a *g, u32 tsgid);
 int nvgpu_tsg_setup_sw(struct gk20a *g);

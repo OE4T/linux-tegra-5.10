@@ -119,7 +119,7 @@ __must_hold(&cde_app->mutex)
 	 * gk20a_channel_close() will also unbind the channel from TSG
 	 */
 	gk20a_channel_close(ch);
-	nvgpu_ref_put(&cde_ctx->tsg->refcount, gk20a_tsg_release);
+	nvgpu_ref_put(&cde_ctx->tsg->refcount, nvgpu_tsg_release);
 
 	/* housekeeping on app */
 	nvgpu_list_del(&cde_ctx->list);
@@ -1331,7 +1331,7 @@ static int gk20a_cde_load(struct gk20a_cde_ctx *cde_ctx)
 		return -ENOSYS;
 	}
 
-	tsg = gk20a_tsg_open(g, nvgpu_current_pid(g));
+	tsg = nvgpu_tsg_open(g, nvgpu_current_pid(g));
 	if (!tsg) {
 		nvgpu_err(g, "cde: could not create TSG");
 		err = -ENOMEM;

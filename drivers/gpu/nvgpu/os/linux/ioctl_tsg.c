@@ -416,7 +416,7 @@ int nvgpu_ioctl_tsg_open(struct gk20a *g, struct file *filp)
 		goto free_mem;
 	}
 
-	tsg = gk20a_tsg_open(g, nvgpu_current_pid(g));
+	tsg = nvgpu_tsg_open(g, nvgpu_current_pid(g));
 	gk20a_idle(g);
 	if (!tsg) {
 		err = -ENOMEM;
@@ -470,7 +470,7 @@ void nvgpu_ioctl_tsg_release(struct nvgpu_ref *ref)
 
 	gk20a_sched_ctrl_tsg_removed(g, tsg);
 
-	gk20a_tsg_release(ref);
+	nvgpu_tsg_release(ref);
 	gk20a_put(g);
 }
 

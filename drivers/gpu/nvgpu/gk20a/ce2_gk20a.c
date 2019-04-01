@@ -142,7 +142,7 @@ static void gk20a_ce_delete_gpu_context(struct gk20a_gpu_ctx *ce_ctx)
 	 * gk20a_channel_close() will also unbind the channel from TSG
 	 */
 	gk20a_channel_close(ce_ctx->ch);
-	nvgpu_ref_put(&ce_ctx->tsg->refcount, gk20a_tsg_release);
+	nvgpu_ref_put(&ce_ctx->tsg->refcount, nvgpu_tsg_release);
 
 	/* housekeeping on app */
 	if ((list->prev != NULL) && (list->next != NULL)) {
@@ -467,7 +467,7 @@ u32 gk20a_ce_create_context(struct gk20a *g,
 	ce_ctx->vm = g->mm.ce.vm;
 
 	/* allocate a tsg if needed */
-	ce_ctx->tsg = gk20a_tsg_open(g, nvgpu_current_pid(g));
+	ce_ctx->tsg = nvgpu_tsg_open(g, nvgpu_current_pid(g));
 	if (ce_ctx->tsg == NULL) {
 		nvgpu_err(g, "ce: gk20a tsg not available");
 		err = -ENOMEM;
