@@ -117,6 +117,7 @@ srcs += common/sim.c \
 	common/gr/zbc.c \
 	common/gr/gr_setup.c \
 	common/gr/hwpm_map.c \
+	common/gr/obj_ctx.c \
 	common/netlist/netlist.c \
 	common/netlist/netlist_sim.c \
 	common/netlist/netlist_gm20b.c \

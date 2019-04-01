@@ -77,6 +77,7 @@ nvgpu-y += \
 	common/gr/zbc.o \
 	common/gr/gr_setup.o \
 	common/gr/hwpm_map.o \
+	common/gr/obj_ctx.o \
 	common/netlist/netlist.o \
 	common/netlist/netlist_sim.o \
 	common/netlist/netlist_gm20b.o \

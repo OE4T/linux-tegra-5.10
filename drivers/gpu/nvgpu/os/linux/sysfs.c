@@ -24,6 +24,7 @@
 #include <nvgpu/string.h>
 #include <nvgpu/gr/global_ctx.h>
 #include <nvgpu/gr/config.h>
+#include <nvgpu/gr/obj_ctx.h>
 #include <nvgpu/power_features/cg.h>
 #include <nvgpu/power_features/pg.h>
 
@@ -884,13 +885,11 @@ static ssize_t tpc_fs_mask_store(struct device *dev,
 
 		g->ops.gr.set_gpc_tpc_mask(g, 0);
 
-		if (g->gr.local_golden_image != NULL) {
-			nvgpu_gr_global_ctx_deinit_local_golden_image(g,
-				g->gr.local_golden_image);
-			g->gr.local_golden_image = NULL;
-			g->gr.ctx_vars.golden_image_initialized = false;
-		}
+		nvgpu_gr_obj_ctx_deinit(g, g->gr.golden_image);
+
+		g->gr.ctx_vars.golden_image_initialized = false;
 		g->gr.ctx_vars.golden_image_size = 0;
+
 		nvgpu_gr_config_deinit(g, g->gr.config);
 		/* Cause next poweron to reinit just gr */
 		g->gr.sw_ready = false;

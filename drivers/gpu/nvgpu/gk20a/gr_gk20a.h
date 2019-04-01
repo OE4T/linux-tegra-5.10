@@ -166,7 +166,8 @@ struct gr_gk20a {
 	bool gfxp_wfi_timeout_unit_usec;
 
 	struct nvgpu_gr_global_ctx_buffer_desc *global_ctx_buffer;
-	struct nvgpu_gr_global_ctx_local_golden_image *local_golden_image;
+
+	struct nvgpu_gr_obj_ctx_golden_image *golden_image;
 
 	struct nvgpu_gr_ctx_desc *gr_ctx_desc;
 
@@ -428,10 +429,9 @@ int gr_gk20a_alloc_global_ctx_buffers(struct gk20a *g);
 int gr_gk20a_commit_global_ctx_buffers(struct gk20a *g,
 			struct nvgpu_gr_ctx *gr_ctx, bool patch);
 
-int gr_gk20a_fecs_ctx_bind_channel(struct gk20a *g,
-					struct channel_gk20a *c);
+u32 fecs_current_ctx_data(struct gk20a *g, struct nvgpu_mem *inst_block);
+
 int gk20a_init_sw_bundle(struct gk20a *g);
-int gr_gk20a_fecs_ctx_image_save(struct channel_gk20a *c, u32 save_type);
 int gk20a_gr_handle_semaphore_pending(struct gk20a *g,
 				struct gr_gk20a_isr_data *isr_data);
 int gr_gk20a_decode_priv_addr(struct gk20a *g, u32 addr,

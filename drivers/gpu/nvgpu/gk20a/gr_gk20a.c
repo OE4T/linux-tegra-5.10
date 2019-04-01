@@ -52,6 +52,7 @@
 #include <nvgpu/gr/zbc.h>
 #include <nvgpu/gr/gr.h>
 #include <nvgpu/gr/gr_falcon.h>
+#include <nvgpu/gr/obj_ctx.h>
 #include <nvgpu/gr/zcull.h>
 #include <nvgpu/gr/config.h>
 #include <nvgpu/gr/fecs_trace.h>
@@ -302,7 +303,7 @@ int gr_gk20a_commit_inst(struct channel_gk20a *c, u64 gpu_va)
 	return 0;
 }
 
-static u32 fecs_current_ctx_data(struct gk20a *g, struct nvgpu_mem *inst_block)
+u32 fecs_current_ctx_data(struct gk20a *g, struct nvgpu_mem *inst_block)
 {
 	u64 ptr = nvgpu_inst_block_addr(g, inst_block) >>
 		ram_in_base_shift_v();
@@ -313,36 +314,6 @@ static u32 fecs_current_ctx_data(struct gk20a *g, struct nvgpu_mem *inst_block)
 
 	return gr_fecs_current_ctx_ptr_f(u64_lo32(ptr)) | aperture |
 		gr_fecs_current_ctx_valid_f(1);
-}
-
-int gr_gk20a_fecs_ctx_bind_channel(struct gk20a *g,
-					struct channel_gk20a *c)
-{
-	u32 inst_base_ptr = u64_lo32(nvgpu_inst_block_addr(g, &c->inst_block)
-				     >> ram_in_base_shift_v());
-	u32 data = fecs_current_ctx_data(g, &c->inst_block);
-	int ret;
-
-	nvgpu_log_info(g, "bind channel %d inst ptr 0x%08x",
-		   c->chid, inst_base_ptr);
-
-	ret = g->ops.gr.falcon.submit_fecs_method_op(g,
-		     (struct fecs_method_op_gk20a) {
-		     .method.addr = gr_fecs_method_push_adr_bind_pointer_v(),
-		     .method.data = data,
-		     .mailbox = { .id = 0, .data = 0,
-				  .clr = 0x30,
-				  .ret = NULL,
-				  .ok = 0x10,
-				  .fail = 0x20, },
-		     .cond.ok = GR_IS_UCODE_OP_AND,
-		     .cond.fail = GR_IS_UCODE_OP_AND}, true);
-	if (ret != 0) {
-		nvgpu_err(g,
-			"bind channel instance failed");
-	}
-
-	return ret;
 }
 
 int gr_gk20a_commit_global_ctx_buffers(struct gk20a *g,
@@ -399,219 +370,6 @@ int gr_gk20a_commit_global_ctx_buffers(struct gk20a *g,
 	}
 
 	return 0;
-}
-
-int gr_gk20a_fecs_ctx_image_save(struct channel_gk20a *c, u32 save_type)
-{
-	struct gk20a *g = c->g;
-	int ret;
-
-	nvgpu_log_fn(g, " ");
-
-	ret = g->ops.gr.falcon.submit_fecs_method_op(g,
-		(struct fecs_method_op_gk20a) {
-		.method.addr = save_type,
-		.method.data = fecs_current_ctx_data(g, &c->inst_block),
-		.mailbox = {.id = 0, .data = 0, .clr = 3, .ret = NULL,
-			.ok = 1, .fail = 2,
-		},
-		.cond.ok = GR_IS_UCODE_OP_AND,
-		.cond.fail = GR_IS_UCODE_OP_AND,
-		 }, true);
-
-	if (ret != 0) {
-		nvgpu_err(g, "save context image failed");
-	}
-
-	return ret;
-}
-
-int gk20a_init_sw_bundle(struct gk20a *g)
-{
-	struct netlist_av_list *sw_bundle_init =
-			&g->netlist_vars->sw_bundle_init;
-	struct netlist_av_list *sw_veid_bundle_init =
-			&g->netlist_vars->sw_veid_bundle_init;
-	struct netlist_av64_list *sw_bundle64_init =
-			&g->netlist_vars->sw_bundle64_init;
-	int err = 0;
-
-	/* enable pipe mode override */
-	g->ops.gr.init.pipe_mode_override(g, true);
-
-	/* load bundle init */
-	err = g->ops.gr.init.load_sw_bundle_init(g, sw_bundle_init);
-	if (err != 0) {
-		goto error;
-	}
-
-	if (g->ops.gr.init.load_sw_veid_bundle != NULL) {
-		err = g->ops.gr.init.load_sw_veid_bundle(g,
-				sw_veid_bundle_init);
-		if (err != 0) {
-			goto error;
-		}
-	}
-
-	if (g->ops.gr.init.load_sw_bundle64 != NULL) {
-		err = g->ops.gr.init.load_sw_bundle64(g, sw_bundle64_init);
-		if (err != 0) {
-			goto error;
-		}
-	}
-
-	/* disable pipe mode override */
-	g->ops.gr.init.pipe_mode_override(g, false);
-
-	err = g->ops.gr.init.wait_idle(g);
-
-	return err;
-
-error:
-	/* in case of error skip waiting for GR idle - just restore state */
-	g->ops.gr.init.pipe_mode_override(g, false);
-
-	return err;
-}
-
-/* init global golden image from a fresh gr_ctx in channel ctx.
-   save a copy in local_golden_image in ctx_vars */
-int gr_gk20a_init_golden_ctx_image(struct gk20a *g,
-					  struct channel_gk20a *c,
-					  struct nvgpu_gr_ctx *gr_ctx)
-{
-	struct gr_gk20a *gr = &g->gr;
-	u32 i;
-	struct nvgpu_mem *gr_mem;
-	int err = 0;
-	struct netlist_aiv_list *sw_ctx_load = &g->netlist_vars->sw_ctx_load;
-	struct netlist_av_list *sw_method_init = &g->netlist_vars->sw_method_init;
-
-	nvgpu_log_fn(g, " ");
-
-	gr_mem = &gr_ctx->mem;
-
-	/* golden ctx is global to all channels. Although only the first
-	   channel initializes golden image, driver needs to prevent multiple
-	   channels from initializing golden ctx at the same time */
-	nvgpu_mutex_acquire(&gr->ctx_mutex);
-
-	if (gr->ctx_vars.golden_image_initialized) {
-		goto clean_up;
-	}
-
-	err = g->ops.gr.init.fe_pwr_mode_force_on(g, true);
-	if (err != 0) {
-		goto clean_up;
-	}
-
-	g->ops.gr.init.override_context_reset(g);
-
-	err = g->ops.gr.init.fe_pwr_mode_force_on(g, false);
-	if (err != 0) {
-		goto clean_up;
-	}
-
-	err = gr_gk20a_fecs_ctx_bind_channel(g, c);
-	if (err != 0) {
-		goto clean_up;
-	}
-
-	err = g->ops.gr.init.wait_idle(g);
-
-	/* load ctx init */
-	for (i = 0; i < sw_ctx_load->count; i++) {
-		gk20a_writel(g, sw_ctx_load->l[i].addr,
-			     sw_ctx_load->l[i].value);
-	}
-
-	if (g->ops.gr.init.preemption_state != NULL) {
-		err = g->ops.gr.init.preemption_state(g,
-			gr->gfxp_wfi_timeout_count,
-			gr->gfxp_wfi_timeout_unit_usec);
-		if (err != 0) {
-			goto clean_up;
-		}
-	}
-
-	nvgpu_cg_blcg_gr_load_enable(g);
-
-	err = g->ops.gr.init.wait_idle(g);
-	if (err != 0) {
-		goto clean_up;
-	}
-
-	/* disable fe_go_idle */
-	g->ops.gr.init.fe_go_idle_timeout(g, false);
-
-	err = g->ops.gr.commit_global_ctx_buffers(g, gr_ctx, false);
-	if (err != 0) {
-		goto clean_up;
-	}
-
-	/* override a few ctx state registers */
-	g->ops.gr.init.commit_global_timeslice(g);
-
-	/* floorsweep anything left */
-	err = nvgpu_gr_init_fs_state(g);
-	if (err != 0) {
-		goto clean_up;
-	}
-
-	err = g->ops.gr.init.wait_idle(g);
-	if (err != 0) {
-		goto restore_fe_go_idle;
-	}
-
-	err = gk20a_init_sw_bundle(g);
-	if (err != 0) {
-		goto clean_up;
-	}
-
-restore_fe_go_idle:
-	/* restore fe_go_idle */
-	g->ops.gr.init.fe_go_idle_timeout(g, true);
-
-	if ((err != 0) || (g->ops.gr.init.wait_idle(g) != 0)) {
-		goto clean_up;
-	}
-
-	/* load method init */
-	g->ops.gr.init.load_method_init(g, sw_method_init);
-
-	err = g->ops.gr.init.wait_idle(g);
-	if (err != 0) {
-		goto clean_up;
-	}
-
-	err = nvgpu_gr_ctx_init_zcull(g, gr_ctx);
-	if (err != 0) {
-		goto clean_up;
-	}
-
-	gr_gk20a_fecs_ctx_image_save(c, gr_fecs_method_push_adr_wfi_golden_save_v());
-
-	gr->local_golden_image =
-		nvgpu_gr_global_ctx_init_local_golden_image(g, gr_mem,
-			gr->ctx_vars.golden_image_size);
-	if (gr->local_golden_image == NULL) {
-		err = -ENOMEM;
-		goto clean_up;
-	}
-
-	gr->ctx_vars.golden_image_initialized = true;
-
-	g->ops.gr.falcon.set_current_ctx_invalid(g);
-
-clean_up:
-	if (err != 0) {
-		nvgpu_err(g, "fail");
-	} else {
-		nvgpu_log_fn(g, "done");
-	}
-
-	nvgpu_mutex_release(&gr->ctx_mutex);
-	return err;
 }
 
 int gr_gk20a_update_smpc_ctxsw_mode(struct gk20a *g,
@@ -851,25 +609,6 @@ int gr_gk20a_alloc_global_ctx_buffers(struct gk20a *g)
 	return 0;
 }
 
-static int gr_gk20a_alloc_gr_ctx(struct gk20a *g,
-	struct nvgpu_gr_ctx *gr_ctx, struct vm_gk20a *vm)
-{
-	struct gr_gk20a *gr = &g->gr;
-	int err = 0;
-
-	nvgpu_log_fn(g, " ");
-
-	nvgpu_gr_ctx_set_size(gr->gr_ctx_desc, NVGPU_GR_CTX_CTX,
-		gr->ctx_vars.golden_image_size);
-
-	err = nvgpu_gr_ctx_alloc(g, gr_ctx, gr->gr_ctx_desc, vm);
-	if (err != 0) {
-		return err;
-	}
-
-	return 0;
-}
-
 void gr_gk20a_free_gr_ctx(struct gk20a *g,
 			  struct vm_gk20a *vm, struct nvgpu_gr_ctx *gr_ctx)
 {
@@ -936,88 +675,20 @@ int gk20a_alloc_obj_ctx(struct channel_gk20a  *c, u32 class_num, u32 flags)
 	if (!nvgpu_mem_is_valid(&gr_ctx->mem)) {
 		tsg->vm = c->vm;
 		nvgpu_vm_get(tsg->vm);
-		err = gr_gk20a_alloc_gr_ctx(g, gr_ctx, tsg->vm);
+
+		err = nvgpu_gr_obj_ctx_alloc(g, g->gr.golden_image,
+				g->gr.global_ctx_buffer, gr_ctx, c->subctx, c,
+				tsg->vm, &c->inst_block, class_num, flags,
+				c->cde, c->vpr);
 		if (err != 0) {
 			nvgpu_err(g,
-				"fail to allocate TSG gr ctx buffer");
+				"failed to allocate gr ctx buffer");
 			nvgpu_vm_put(tsg->vm);
 			tsg->vm = NULL;
 			goto out;
 		}
 
 		gr_ctx->tsgid = tsg->tsgid;
-
-		/* allocate patch buffer */
-		if (!nvgpu_mem_is_valid(&gr_ctx->patch_ctx.mem)) {
-			gr_ctx->patch_ctx.data_count = 0;
-
-			nvgpu_gr_ctx_set_size(g->gr.gr_ctx_desc,
-				NVGPU_GR_CTX_PATCH_CTX,
-				g->ops.gr.get_patch_slots(g) *
-					PATCH_CTX_SLOTS_REQUIRED_PER_ENTRY);
-
-			err = nvgpu_gr_ctx_alloc_patch_ctx(g, gr_ctx,
-				g->gr.gr_ctx_desc, c->vm);
-			if (err != 0) {
-				nvgpu_err(g,
-					"fail to allocate patch buffer");
-				goto out;
-			}
-		}
-
-		g->ops.gr.init_ctxsw_preemption_mode(g, gr_ctx, tsg->vm,
-			class_num, flags);
-
-		/* map global buffer to channel gpu_va and commit */
-		err = nvgpu_gr_ctx_map_global_ctx_buffers(g, gr_ctx,
-				g->gr.global_ctx_buffer, tsg->vm, c->vpr);
-		if (err != 0) {
-			nvgpu_err(g,
-				"fail to map global ctx buffer");
-			goto out;
-		}
-		g->ops.gr.commit_global_ctx_buffers(g, gr_ctx, true);
-
-		/* commit gr ctx buffer */
-		err = g->ops.gr.commit_inst(c, gr_ctx->mem.gpu_va);
-		if (err != 0) {
-			nvgpu_err(g,
-				"fail to commit gr ctx buffer");
-			goto out;
-		}
-
-		/* init golden image, ELPG enabled after this is done */
-		err = gr_gk20a_init_golden_ctx_image(g, c, gr_ctx);
-		if (err != 0) {
-			nvgpu_err(g,
-				"fail to init golden ctx image");
-			goto out;
-		}
-
-		/* load golden image */
-		nvgpu_gr_ctx_load_golden_ctx_image(g, gr_ctx,
-			g->gr.local_golden_image, c->cde);
-		if (err != 0) {
-			nvgpu_err(g,
-				"fail to load golden ctx image");
-			goto out;
-		}
-
-		if (g->ops.gr.update_ctxsw_preemption_mode != NULL) {
-			g->ops.gr.update_ctxsw_preemption_mode(g, gr_ctx,
-				c->subctx);
-		}
-
-#ifdef CONFIG_GK20A_CTXSW_TRACE
-		if (g->ops.gr.fecs_trace.bind_channel && !c->vpr) {
-			err = g->ops.gr.fecs_trace.bind_channel(g, &c->inst_block,
-				c->subctx, gr_ctx, tsg->tgid, 0);
-			if (err != 0) {
-				nvgpu_warn(g,
-					"fail to bind channel for ctxsw trace");
-			}
-		}
-#endif
 	} else {
 		/* commit gr ctx buffer */
 		err = g->ops.gr.commit_inst(c, gr_ctx->mem.gpu_va);
@@ -1026,17 +697,18 @@ int gk20a_alloc_obj_ctx(struct channel_gk20a  *c, u32 class_num, u32 flags)
 				"fail to commit gr ctx buffer");
 			goto out;
 		}
-#ifdef CONFIG_GK20A_CTXSW_TRACE
-		if (g->ops.gr.fecs_trace.bind_channel && !c->vpr) {
-			err = g->ops.gr.fecs_trace.bind_channel(g, &c->inst_block,
-				c->subctx, gr_ctx, tsg->tgid, 0);
-			if (err != 0) {
-				nvgpu_warn(g,
-					"fail to bind channel for ctxsw trace");
-			}
-		}
-#endif
 	}
+
+#ifdef CONFIG_GK20A_CTXSW_TRACE
+	if (g->ops.gr.fecs_trace.bind_channel && !c->vpr) {
+		err = g->ops.gr.fecs_trace.bind_channel(g, &c->inst_block,
+			c->subctx, gr_ctx, tsg->tgid, 0);
+		if (err != 0) {
+			nvgpu_warn(g,
+				"fail to bind channel for ctxsw trace");
+		}
+	}
+#endif
 
 	nvgpu_log_fn(g, "done");
 	return 0;
@@ -1069,18 +741,13 @@ static void gk20a_remove_gr_support(struct gr_gk20a *gr)
 
 	nvgpu_netlist_deinit_ctx_vars(g);
 
-	if (gr->local_golden_image != NULL) {
-		nvgpu_gr_global_ctx_deinit_local_golden_image(g,
-			gr->local_golden_image);
-		gr->local_golden_image = NULL;
-		gr->ctx_vars.golden_image_initialized = false;
-	}
-
 	nvgpu_gr_hwpm_map_deinit(g, gr->hwpm_map);
 
 	nvgpu_ecc_remove_support(g);
 	nvgpu_gr_zbc_deinit(g, gr->zbc);
 	nvgpu_gr_zcull_deinit(g, gr->zcull);
+	nvgpu_gr_obj_ctx_deinit(g, gr->golden_image);
+	gr->ctx_vars.golden_image_initialized = false;
 }
 
 static int gr_gk20a_init_gr_config(struct gk20a *g, struct gr_gk20a *gr)
@@ -1362,6 +1029,12 @@ static int gk20a_init_gr_setup_sw(struct gk20a *g)
 		return err;
 	}
 #endif
+
+	err = nvgpu_gr_obj_ctx_init(g, &gr->golden_image,
+			g->gr.ctx_vars.golden_image_size);
+	if (err != 0) {
+		goto clean_up;
+	}
 
 	err = gr_gk20a_init_gr_config(g, gr);
 	if (err != 0) {
@@ -3162,8 +2835,8 @@ int gr_gk20a_get_ctx_buffer_offsets(struct gk20a *g,
 		err = gr_gk20a_find_priv_offset_in_buffer(g,
 			  priv_registers[i],
 			  is_quad, quad,
-			  nvgpu_gr_global_ctx_get_local_golden_image_ptr(
-				g->gr.local_golden_image),
+			  nvgpu_gr_obj_ctx_get_local_golden_image_ptr(
+				g->gr.golden_image),
 			  g->gr.ctx_vars.golden_image_size,
 			  &priv_offset);
 		if (err != 0) {
