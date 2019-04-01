@@ -28,6 +28,8 @@
 struct gk20a;
 struct nvgpu_gr_config;
 
+void gv11b_gr_intr_handle_gpc_gpcmmu_exception(struct gk20a *g, u32 gpc,
+		u32 gpc_exception, u32 *corrected_err, u32 *uncorrected_err);
 void gv11b_gr_intr_handle_gpc_gpccs_exception(struct gk20a *g, u32 gpc,
 		u32 gpc_exception, u32 *corrected_err, u32 *uncorrected_err);
 void gv11b_gr_intr_handle_tpc_mpc_exception(struct gk20a *g, u32 gpc, u32 tpc);

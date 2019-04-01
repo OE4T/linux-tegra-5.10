@@ -1921,10 +1921,11 @@ static int gk20a_gr_handle_gpc_exception(struct gk20a *g, bool *post_event,
 		}
 
 		/* Handle GPCMMU exceptions */
-		if (g->ops.gr.handle_gpc_gpcmmu_exception != NULL) {
-			tmp_ret = g->ops.gr.handle_gpc_gpcmmu_exception(g, gpc,
-								gpc_exception);
-			ret = (ret != 0) ? ret : tmp_ret;
+		if (g->ops.gr.intr.handle_gpc_gpcmmu_exception != NULL) {
+			 g->ops.gr.intr.handle_gpc_gpcmmu_exception(g, gpc,
+			 	gpc_exception,
+				&g->ecc.gr.mmu_l1tlb_ecc_corrected_err_count[gpc].counter,
+				&g->ecc.gr.mmu_l1tlb_ecc_uncorrected_err_count[gpc].counter);
 		}
 
 	}
