@@ -1049,6 +1049,45 @@ static int ether_tx_swcx_alloc(struct device *dev,
 }
 
 /**
+ *	ether_select_queue - Select queue based on user priority
+ *	@dev: Network device pointer
+ *	@skb: sk_buff pointer, buffer data to send
+ *	@accel_priv: private data used for L2 forwarding offload
+ *	@fallback: fallback function pointer
+ *
+ *	Algorithm:
+ *	1) Select the correct queue index based which has priority of queue
+ *	same as skb-<priority
+ *	2) default select queue index 0
+ *
+ *	Dependencies: None.
+ *
+ *	Protection: None.
+ *
+ *	Return: tx queu index - success, -1 - failure.
+ */
+static unsigned short ether_select_queue(struct net_device *dev,
+					 struct sk_buff *skb,
+					 void *accel_priv,
+					 select_queue_fallback_t fallback)
+{
+	struct ether_priv_data *pdata = netdev_priv(dev);
+	struct osi_dma_priv_data *osi_dma = pdata->osi_dma;
+	unsigned short txqueue_select = 0;
+	unsigned int i, chan;
+
+	for (i = 0; i < OSI_EQOS_MAX_NUM_CHANS; i++) {
+		chan = osi_dma->dma_chans[i];
+		if (pdata->q_prio[chan] == skb->priority) {
+			txqueue_select = (unsigned short)chan;
+			break;
+		}
+	}
+
+	return txqueue_select;
+}
+
+/**
  *	ether_start_xmit - Network layer hook for data transmission.
  *	@skb: SKB data structure.
  *	@ndev: Net device structure.
@@ -1095,6 +1134,7 @@ static int ether_start_xmit(struct sk_buff *skb, struct net_device *ndev)
  *
  *	Algorithm:
  *	1) Invokes MII API for phy read/write based on IOCTL command
+ *	2) SIOCDEVPRIVATE for private ioctl
  *
  *	Dependencies: Ethernet interface need to be up.
  *
@@ -1118,6 +1158,10 @@ static int ether_ioctl(struct net_device *dev, struct ifreq *rq, int cmd)
 
 		/* generic PHY MII ioctl interface */
 		ret = phy_mii_ioctl(dev->phydev, rq, cmd);
+		break;
+
+	case SIOCDEVPRIVATE:
+		ret = ether_handle_priv_ioctl(dev, rq);
 		break;
 
 	default:
@@ -1202,6 +1246,7 @@ static const struct net_device_ops ether_netdev_ops = {
 	.ndo_do_ioctl = ether_ioctl,
 	.ndo_set_mac_address = ether_set_mac_addr,
 	.ndo_change_mtu = ether_change_mtu,
+	.ndo_select_queue = ether_select_queue,
 };
 
 /**
@@ -1922,6 +1967,56 @@ static int ether_parse_phy_dt(struct ether_priv_data *pdata,
 }
 
 /**
+ *	ether_parse_queue_prio - Parse queue priority DT.
+ *	@pdata: OS dependent private data structure.
+ *	@pdt_prop: name of property
+ *	@pval: structure pointer where value will be filed
+ *	@val_def: default value if DT entry not reset
+ *	@num_entries: number of entries to be read form DT
+ *
+ *	Algorithm: Reads queue priority form DT. Updates
+ *	data either by DT values or by default value.
+ *
+ *	Dependencies: None
+ *
+ *	Protection: None
+ *
+ *	Return: void
+ */
+static void ether_parse_queue_prio(struct ether_priv_data *pdata,
+				   const char *pdt_prop,
+				   unsigned int *pval, unsigned int val_def,
+				   unsigned int val_max,
+				   unsigned int num_entries)
+{
+	struct device_node *pnode = pdata->dev->of_node;
+	unsigned int i, pmask = 0x0U;
+	int ret = 0;
+
+	ret = of_property_read_u32_array(pnode, pdt_prop, pval, num_entries);
+	if (ret < 0) {
+		dev_err(pdata->dev, "%s(): \"%s\" read failed %d. Using default\n",
+			__func__, pdt_prop, ret);
+		for (i = 0; i < num_entries; i++) {
+			pval[i] = val_def;
+		}
+
+		return;
+	}
+	/* If Some priority is alreay give to queue or priority in DT more than
+	 * MAX priority, assig default priority to queue with error message
+	 */
+	for (i = 0; i < num_entries; i++) {
+		if ((pval[i] > val_max) || ((pmask & (1U << pval[i])) != 0U)) {
+			dev_err(pdata->dev, "%s():Wrong or duplicate priority in DT entry for Q(%d)\n",
+				__func__, i);
+			pval[i] = val_def;
+		}
+		pmask |= 1U << pval[i];
+	}
+}
+
+/**
  *	ether_parse_dt - Parse MAC and PHY DT.
  *	@pdata: OS dependent private data structure.
  *
@@ -1987,6 +2082,10 @@ static int ether_parse_dt(struct ether_priv_data *pdata)
 		return ret;
 	}
 
+	ether_parse_queue_prio(pdata, "nvidia,queue_prio", pdata->q_prio,
+			       ETHER_QUEUE_PRIO_DEFAULT, ETHER_QUEUE_PRIO_MAX,
+			       osi_core->num_mtl_queues);
+
 	ret = ether_parse_phy_dt(pdata, np);
 	if (ret < 0) {
 		dev_err(dev, "failed to parse PHY DT\n");
@@ -2021,7 +2120,8 @@ static void ether_get_num_dma_chan_mtl_q(struct platform_device *pdev,
 					 unsigned int *num_mtl_queues)
 {
 	struct device_node *np = pdev->dev.of_node;
-	unsigned int max_chans;
+	/* intializing with 1 channel */
+	unsigned int max_chans = 1;
 	int ret = 0;
 
 	ret = of_device_is_compatible(np, "nvidia,nveqos");
