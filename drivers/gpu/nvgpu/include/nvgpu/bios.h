@@ -88,7 +88,6 @@ struct fll_descriptor_header {
 	u8 size;
 } __packed;
 
-#define FLL_DESCRIPTOR_HEADER_10_SIZE_4     4U
 #define FLL_DESCRIPTOR_HEADER_10_SIZE_6     6U
 #define FLL_DESCRIPTOR_HEADER_10_SIZE_7     7U
 

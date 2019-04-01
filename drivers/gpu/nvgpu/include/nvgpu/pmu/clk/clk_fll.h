@@ -72,7 +72,6 @@ struct fll_device {
 
 int nvgpu_clk_fll_init_pmupstate(struct gk20a *g);
 void nvgpu_clk_fll_free_pmupstate(struct gk20a *g);
-u32 nvgpu_clk_get_vbios_clk_domain(u32 vbios_domain);
 int nvgpu_clk_fll_sw_setup(struct gk20a *g);
 int nvgpu_clk_fll_pmu_setup(struct gk20a *g);
 

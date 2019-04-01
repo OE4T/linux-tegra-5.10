@@ -30,19 +30,21 @@
 #include <nvgpu/pmuif/ctrlvolt.h>
 #include <nvgpu/pmu/clk/clk.h>
 #include <nvgpu/pmu/clk/clk_fll.h>
+#include <nvgpu/pmu/clk/clk_vin.h>
 
-#include "clk_vin.h"
 
 #define NV_PERF_DOMAIN_4X_CLOCK_DOMAIN_SKIP	0x10U
 #define NV_PERF_DOMAIN_4X_CLOCK_DOMAIN_MASK	0x1FU
 
 static int devinit_get_fll_device_table(struct gk20a *g,
-				   struct nvgpu_avfsfllobjs *pfllobjs);
+		struct nvgpu_avfsfllobjs *pfllobjs);
 static struct fll_device *construct_fll_device(struct gk20a *g,
 		void *pargs);
 static int fll_device_init_pmudata_super(struct gk20a *g,
-				    struct boardobj *board_obj_ptr,
-				    struct nv_pmu_boardobj *ppmudata);
+		struct boardobj *board_obj_ptr,
+		struct nv_pmu_boardobj *ppmudata);
+
+static u32 clk_get_vbios_clk_domain(u32 vbios_domain);
 
 static u8 clk_get_fll_lut_vf_num_entries(struct nvgpu_clk_pmupstate *pclk)
 {
@@ -60,8 +62,8 @@ static u32 clk_get_fll_lut_step_size(struct nvgpu_clk_pmupstate *pclk)
 }
 
 static int _clk_fll_devgrp_pmudatainit_super(struct gk20a *g,
-					       struct boardobjgrp *pboardobjgrp,
-					       struct nv_pmu_boardobjgrp_super *pboardobjgrppmu)
+		struct boardobjgrp *pboardobjgrp,
+		struct nv_pmu_boardobjgrp_super *pboardobjgrppmu)
 {
 	struct nv_pmu_clk_clk_fll_device_boardobjgrp_set_header *pset =
 		(struct nv_pmu_clk_clk_fll_device_boardobjgrp_set_header *)
@@ -92,9 +94,8 @@ static int _clk_fll_devgrp_pmudatainit_super(struct gk20a *g,
 }
 
 static int _clk_fll_devgrp_pmudata_instget(struct gk20a *g,
-					     struct nv_pmu_boardobjgrp *pmuboardobjgrp,
-					     struct nv_pmu_boardobj **ppboardobjpmudata,
-					     u8 idx)
+		struct nv_pmu_boardobjgrp *pmuboardobjgrp,
+		struct nv_pmu_boardobj **ppboardobjpmudata, u8 idx)
 {
 	struct nv_pmu_clk_clk_fll_device_boardobj_grp_set  *pgrp_set =
 		(struct nv_pmu_clk_clk_fll_device_boardobj_grp_set *)
@@ -115,11 +116,11 @@ static int _clk_fll_devgrp_pmudata_instget(struct gk20a *g,
 }
 
 static int _clk_fll_devgrp_pmustatus_instget(struct gk20a *g,
-					       void *pboardobjgrppmu,
-					       struct nv_pmu_boardobj_query **ppboardobjpmustatus,
-					       u8 idx)
+		void *pboardobjgrppmu,
+		struct nv_pmu_boardobj_query **ppboardobjpmustatus, u8 idx)
 {
-	struct nv_pmu_clk_clk_fll_device_boardobj_grp_get_status *pgrp_get_status =
+	struct nv_pmu_clk_clk_fll_device_boardobj_grp_get_status
+	*pgrp_get_status =
 		(struct nv_pmu_clk_clk_fll_device_boardobj_grp_get_status *)
 		pboardobjgrppmu;
 
@@ -198,8 +199,8 @@ int nvgpu_clk_fll_sw_setup(struct gk20a *g)
 		pfll_master = NULL;
 		j = 0;
 		BOARDOBJGRP_ITERATOR(&(pfllobjs->super.super),
-				     struct fll_device *, pfll_local, j,
-				     &pfllobjs->lut_prog_master_mask.super) {
+				struct fll_device *, pfll_local, j,
+				&pfllobjs->lut_prog_master_mask.super) {
 			if (pfll_local->clk_domain == pfll->clk_domain) {
 				pfll_master = pfll_local;
 				break;
@@ -249,7 +250,7 @@ int nvgpu_clk_fll_pmu_setup(struct gk20a *g)
 }
 
 static int devinit_get_fll_device_table(struct gk20a *g,
-				   struct nvgpu_avfsfllobjs *pfllobjs)
+		struct nvgpu_avfsfllobjs *pfllobjs)
 {
 	int status = 0;
 	u8 *fll_table_ptr = NULL;
@@ -279,24 +280,22 @@ static int devinit_get_fll_device_table(struct gk20a *g,
 	if (fll_desc_table_header_sz.size >= FLL_DESCRIPTOR_HEADER_10_SIZE_7) {
 		desctablesize = FLL_DESCRIPTOR_HEADER_10_SIZE_7;
 	} else {
-		if (fll_desc_table_header_sz.size == FLL_DESCRIPTOR_HEADER_10_SIZE_6) {
+		if (fll_desc_table_header_sz.size ==
+				FLL_DESCRIPTOR_HEADER_10_SIZE_6) {
 			desctablesize = FLL_DESCRIPTOR_HEADER_10_SIZE_6;
 		} else {
-			desctablesize = FLL_DESCRIPTOR_HEADER_10_SIZE_4;
+			nvgpu_err(g, "Invalid FLL_DESCRIPTOR_HEADER size");
+			return -EINVAL;
 		}
 	}
 
 	nvgpu_memcpy((u8 *)&fll_desc_table_header, fll_table_ptr,
 		desctablesize);
 
-	if (desctablesize >= FLL_DESCRIPTOR_HEADER_10_SIZE_6) {
-		pfllobjs->max_min_freq_mhz =
+	pfllobjs->max_min_freq_mhz =
 			fll_desc_table_header.max_min_freq_mhz;
-		pfllobjs->freq_margin_vfe_idx =
-				fll_desc_table_header.freq_margin_vfe_idx;
-	} else {
-		pfllobjs->max_min_freq_mhz = 0;
-	}
+	pfllobjs->freq_margin_vfe_idx =
+			fll_desc_table_header.freq_margin_vfe_idx;
 
 	/* Read table entries*/
 	fll_tbl_entry_ptr = fll_table_ptr + desctablesize;
@@ -306,13 +305,15 @@ static int devinit_get_fll_device_table(struct gk20a *g,
 		nvgpu_memcpy((u8 *)&fll_desc_table_entry, fll_tbl_entry_ptr,
 				sizeof(struct fll_descriptor_entry_10));
 
-		if (fll_desc_table_entry.fll_device_type == CTRL_CLK_FLL_TYPE_DISABLED) {
+		if (fll_desc_table_entry.fll_device_type ==
+				CTRL_CLK_FLL_TYPE_DISABLED) {
 			continue;
 		}
 
 		fll_id = fll_desc_table_entry.fll_device_id;
 
-		if ( (u8)fll_desc_table_entry.vin_idx_logic != CTRL_CLK_VIN_ID_UNDEFINED) {
+		if ((u8)fll_desc_table_entry.vin_idx_logic !=
+				CTRL_CLK_VIN_ID_UNDEFINED) {
 			pvin_dev = g->clk_pmu->clk_get_vin(pvinobjs,
 					(u8)fll_desc_table_entry.vin_idx_logic);
 			if (pvin_dev == NULL) {
@@ -330,7 +331,8 @@ static int devinit_get_fll_device_table(struct gk20a *g,
 			BIOS_GET_FIELD(u8, fll_desc_table_entry.lut_params,
 				NV_FLL_DESC_LUT_PARAMS_VSELECT);
 
-		if ( (u8)fll_desc_table_entry.vin_idx_sram != CTRL_CLK_VIN_ID_UNDEFINED) {
+		if ((u8)fll_desc_table_entry.vin_idx_sram !=
+				CTRL_CLK_VIN_ID_UNDEFINED) {
 			pvin_dev = g->clk_pmu->clk_get_vin(pvinobjs,
 					(u8)fll_desc_table_entry.vin_idx_sram);
 			if (pvin_dev == NULL) {
@@ -340,7 +342,8 @@ static int devinit_get_fll_device_table(struct gk20a *g,
 			}
 		} else {
 			/* Make sure VSELECT mode is set correctly to _LOGIC*/
-			if (fll_dev_data.lut_device.vselect_mode != CTRL_CLK_FLL_LUT_VSELECT_LOGIC) {
+			if (fll_dev_data.lut_device.vselect_mode !=
+					CTRL_CLK_FLL_LUT_VSELECT_LOGIC) {
 				return -EINVAL;
 			}
 		}
@@ -360,7 +363,7 @@ static int devinit_get_fll_device_table(struct gk20a *g,
 		vbios_domain = U32(fll_desc_table_entry.clk_domain) &
 				U32(NV_PERF_DOMAIN_4X_CLOCK_DOMAIN_MASK);
 		fll_dev_data.clk_domain =
-				nvgpu_clk_get_vbios_clk_domain(vbios_domain);
+				clk_get_vbios_clk_domain(vbios_domain);
 
 		fll_dev_data.rail_idx_for_lut = 0;
 		fll_dev_data.vin_idx_logic =
@@ -399,7 +402,7 @@ done:
 	return status;
 }
 
-u32 nvgpu_clk_get_vbios_clk_domain(u32 vbios_domain)
+static u32 clk_get_vbios_clk_domain(u32 vbios_domain)
 {
 	if (vbios_domain == 0U) {
 		return CTRL_CLK_DOMAIN_GPCCLK;
@@ -417,9 +420,8 @@ u32 nvgpu_clk_get_vbios_clk_domain(u32 vbios_domain)
 }
 
 static int lutbroadcastslaveregister(struct gk20a *g,
-				     struct nvgpu_avfsfllobjs *pfllobjs,
-				     struct fll_device *pfll,
-				     struct fll_device *pfll_slave)
+		struct nvgpu_avfsfllobjs *pfllobjs, struct fll_device *pfll,
+		struct fll_device *pfll_slave)
 {
 	if (pfll->clk_domain != pfll_slave->clk_domain) {
 		return -EINVAL;
@@ -478,8 +480,8 @@ static struct fll_device *construct_fll_device(struct gk20a *g,
 }
 
 static int fll_device_init_pmudata_super(struct gk20a *g,
-				    struct boardobj *board_obj_ptr,
-				    struct nv_pmu_boardobj *ppmudata)
+		struct boardobj *board_obj_ptr,
+		struct nv_pmu_boardobj *ppmudata)
 {
 	int status = 0;
 	struct fll_device *pfll_dev;
@@ -506,7 +508,8 @@ static int fll_device_init_pmudata_super(struct gk20a *g,
 	perf_pmu_data->min_freq_vfe_idx =
 		pfll_dev->min_freq_vfe_idx;
 	perf_pmu_data->freq_ctrl_idx = pfll_dev->freq_ctrl_idx;
-	perf_pmu_data->b_skip_pldiv_below_dvco_min = pfll_dev->b_skip_pldiv_below_dvco_min;
+	perf_pmu_data->b_skip_pldiv_below_dvco_min =
+			pfll_dev->b_skip_pldiv_below_dvco_min;
 	perf_pmu_data->b_dvco_1x = pfll_dev->b_dvco_1x;
 	nvgpu_memcpy((u8 *)&perf_pmu_data->lut_device,
 		(u8 *)&pfll_dev->lut_device,
