@@ -2086,10 +2086,11 @@ static int gk20a_gr_handle_gpc_exception(struct gk20a *g, bool *post_event,
 		}
 
 		/* Handle GPCCS exceptions */
-		if (g->ops.gr.handle_gpc_gpccs_exception != NULL) {
-			tmp_ret = g->ops.gr.handle_gpc_gpccs_exception(g, gpc,
-								gpc_exception);
-			ret = (ret != 0) ? ret : tmp_ret;
+		if (g->ops.gr.intr.handle_gpc_gpccs_exception != NULL) {
+			g->ops.gr.intr.handle_gpc_gpccs_exception(g, gpc,
+				gpc_exception,
+				&g->ecc.gr.gpccs_ecc_corrected_err_count[gpc].counter,
+				&g->ecc.gr.gpccs_ecc_uncorrected_err_count[gpc].counter);
 		}
 
 		/* Handle GPCMMU exceptions */

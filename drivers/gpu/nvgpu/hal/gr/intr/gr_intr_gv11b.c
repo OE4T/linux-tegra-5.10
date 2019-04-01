@@ -31,6 +31,110 @@
 
 #include <nvgpu/hw/gv11b/hw_gr_gv11b.h>
 
+void gv11b_gr_intr_handle_gpc_gpccs_exception(struct gk20a *g, u32 gpc,
+		u32 gpc_exception, u32 *corrected_err, u32 *uncorrected_err)
+{
+	u32 offset = nvgpu_gr_gpc_offset(g, gpc);
+	u32 ecc_status, ecc_addr, corrected_cnt, uncorrected_cnt;
+	u32 corrected_delta, uncorrected_delta;
+	u32 corrected_overflow, uncorrected_overflow;
+	u32 hww_esr;
+
+	if ((gpc_exception & gr_gpc0_gpccs_gpc_exception_gpccs_m()) == 0U) {
+		return;
+	}
+
+	hww_esr = nvgpu_readl(g, gr_gpc0_gpccs_hww_esr_r() + offset);
+
+	if ((hww_esr & (gr_gpc0_gpccs_hww_esr_ecc_uncorrected_m() |
+			gr_gpc0_gpccs_hww_esr_ecc_corrected_m())) == 0U) {
+		return;
+	}
+
+	ecc_status = nvgpu_readl(g,
+		gr_gpc0_gpccs_falcon_ecc_status_r() + offset);
+	ecc_addr = nvgpu_readl(g,
+		gr_gpc0_gpccs_falcon_ecc_address_r() + offset);
+	corrected_cnt = nvgpu_readl(g,
+		gr_gpc0_gpccs_falcon_ecc_corrected_err_count_r() + offset);
+	uncorrected_cnt = nvgpu_readl(g,
+		gr_gpc0_gpccs_falcon_ecc_uncorrected_err_count_r() + offset);
+
+	corrected_delta =
+		gr_gpc0_gpccs_falcon_ecc_corrected_err_count_total_v(
+							corrected_cnt);
+	uncorrected_delta =
+		gr_gpc0_gpccs_falcon_ecc_uncorrected_err_count_total_v(
+							uncorrected_cnt);
+	corrected_overflow = ecc_status &
+	 gr_gpc0_gpccs_falcon_ecc_status_corrected_err_total_counter_overflow_m();
+
+	uncorrected_overflow = ecc_status &
+	 gr_gpc0_gpccs_falcon_ecc_status_uncorrected_err_total_counter_overflow_m();
+
+
+	/* clear the interrupt */
+	if ((corrected_delta > 0U) || (corrected_overflow != 0U)) {
+		nvgpu_writel(g,
+			gr_gpc0_gpccs_falcon_ecc_corrected_err_count_r() +
+			offset, 0);
+	}
+	if ((uncorrected_delta > 0U) || (uncorrected_overflow != 0U)) {
+		nvgpu_writel(g,
+			gr_gpc0_gpccs_falcon_ecc_uncorrected_err_count_r() +
+			offset, 0);
+	}
+
+	nvgpu_writel(g, gr_gpc0_gpccs_falcon_ecc_status_r() + offset,
+			gr_gpc0_gpccs_falcon_ecc_status_reset_task_f());
+
+	*corrected_err += corrected_delta;
+	*corrected_err += uncorrected_delta;
+
+	nvgpu_log(g, gpu_dbg_intr,
+			"gppcs gpc:%d ecc interrupt intr: 0x%x", gpc, hww_esr);
+
+	if ((ecc_status &
+	     gr_gpc0_gpccs_falcon_ecc_status_corrected_err_imem_m()) != 0U) {
+		nvgpu_gr_report_ecc_error(g, NVGPU_ERR_MODULE_GPCCS, gpc, 0,
+				GPU_GPCCS_FALCON_IMEM_ECC_CORRECTED,
+				ecc_addr, (u32)*corrected_err);
+		nvgpu_log(g, gpu_dbg_intr, "imem ecc error corrected");
+	}
+	if ((ecc_status &
+	     gr_gpc0_gpccs_falcon_ecc_status_uncorrected_err_imem_m()) != 0U) {
+		nvgpu_gr_report_ecc_error(g, NVGPU_ERR_MODULE_GPCCS, gpc, 0,
+				GPU_GPCCS_FALCON_IMEM_ECC_UNCORRECTED,
+				ecc_addr, (u32)*uncorrected_err);
+		nvgpu_log(g, gpu_dbg_intr, "imem ecc error uncorrected");
+	}
+	if ((ecc_status &
+	     gr_gpc0_gpccs_falcon_ecc_status_corrected_err_dmem_m()) != 0U) {
+		nvgpu_gr_report_ecc_error(g, NVGPU_ERR_MODULE_GPCCS, gpc, 0,
+				GPU_GPCCS_FALCON_DMEM_ECC_CORRECTED,
+				ecc_addr, (u32)*corrected_err);
+		nvgpu_log(g, gpu_dbg_intr, "dmem ecc error corrected");
+	}
+	if ((ecc_status &
+	     gr_gpc0_gpccs_falcon_ecc_status_uncorrected_err_dmem_m()) != 0U) {
+		nvgpu_gr_report_ecc_error(g, NVGPU_ERR_MODULE_GPCCS, gpc, 0,
+				GPU_GPCCS_FALCON_DMEM_ECC_UNCORRECTED,
+				ecc_addr, (u32)*uncorrected_err);
+		nvgpu_log(g, gpu_dbg_intr, "dmem ecc error uncorrected");
+	}
+	if ((corrected_overflow != 0U) || (uncorrected_overflow != 0U)) {
+		nvgpu_info(g, "gpccs ecc counter overflow!");
+	}
+
+	nvgpu_log(g, gpu_dbg_intr,
+		"ecc error row address: 0x%x",
+		gr_gpc0_gpccs_falcon_ecc_address_row_address_v(ecc_addr));
+
+	nvgpu_log(g, gpu_dbg_intr,
+			"ecc error count corrected: %d, uncorrected %d",
+			(u32)*corrected_err, (u32)*uncorrected_err);
+}
+
 void gv11b_gr_intr_handle_tpc_mpc_exception(struct gk20a *g, u32 gpc, u32 tpc)
 {
 	u32 esr;
@@ -80,7 +184,7 @@ void gv11b_gr_intr_enable_hww_exceptions(struct gk20a *g)
 
 	/* For now leave POR values */
 	nvgpu_log(g, gpu_dbg_info, "gr_sked_hww_esr_en_r 0x%08x",
-			gk20a_readl(g, gr_sked_hww_esr_en_r()));
+			nvgpu_readl(g, gr_sked_hww_esr_en_r()));
 }
 
 void gv11b_gr_intr_enable_exceptions(struct gk20a *g,

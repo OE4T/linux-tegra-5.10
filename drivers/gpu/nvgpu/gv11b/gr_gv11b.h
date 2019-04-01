@@ -86,8 +86,6 @@ int gr_gv11b_handle_gcc_exception(struct gk20a *g, u32 gpc, u32 tpc,
 			u32 *hww_global_esr);
 int gr_gv11b_handle_gpc_gpcmmu_exception(struct gk20a *g, u32 gpc,
 							u32 gpc_exception);
-int gr_gv11b_handle_gpc_gpccs_exception(struct gk20a *g, u32 gpc,
-							u32 gpc_exception);
 void gr_gv11b_enable_gpc_exceptions(struct gk20a *g);
 int gr_gv11b_handle_sw_method(struct gk20a *g, u32 addr,
 				     u32 class_num, u32 offset, u32 data);
