@@ -57,6 +57,7 @@ UNITS :=				\
 	$(UNIT_SRC)/interface/lock	\
 	$(UNIT_SRC)/mm/nvgpu_sgt	\
 	$(UNIT_SRC)/mm/allocators/nvgpu_allocator	\
+	$(UNIT_SRC)/mm/allocators/bitmap_allocator	\
 	$(UNIT_SRC)/mm/gmmu/pd_cache	\
 	$(UNIT_SRC)/mm/gmmu/page_table	\
 	$(UNIT_SRC)/mm/page_table_faults \

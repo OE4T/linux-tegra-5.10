@@ -1,5 +1,25 @@
 [
     {
+        "test": "alloc",
+        "unit": "bitmap_allocator"
+    },
+    {
+        "test": "critical",
+        "unit": "bitmap_allocator"
+    },
+    {
+        "test": "free",
+        "unit": "bitmap_allocator"
+    },
+    {
+        "test": "init",
+        "unit": "bitmap_allocator"
+    },
+    {
+        "test": "ops",
+        "unit": "bitmap_allocator"
+    },
+    {
         "test": "enabled_flags_false_check",
         "unit": "enabled"
     },
