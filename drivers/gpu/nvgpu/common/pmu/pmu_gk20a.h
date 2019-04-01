@@ -63,9 +63,6 @@ bool gk20a_is_pmu_supported(struct gk20a *g);
 
 int pmu_bootstrap(struct nvgpu_pmu *pmu);
 
-void gk20a_pmu_dump_elpg_stats(struct nvgpu_pmu *pmu);
-void gk20a_pmu_dump_falcon_stats(struct nvgpu_pmu *pmu);
-
 void gk20a_pmu_enable_irq(struct nvgpu_pmu *pmu, bool enable);
 int gk20a_pmu_elpg_statistics(struct gk20a *g, u32 pg_engine_id,
 		struct pmu_pg_stats_data *pg_stat_data);

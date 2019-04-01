@@ -291,6 +291,20 @@ exit_unlock:
 	return ret;
 }
 
+static void pmu_dump_elpg_stats(struct nvgpu_pmu *pmu)
+{
+	struct gk20a *g = pmu->g;
+
+	/* Print PG stats */
+	nvgpu_err(g, "Print PG stats");
+	nvgpu_falcon_print_dmem(&pmu->flcn,
+		pmu->pmu_pg.stat_dmem_offset[PMU_PG_ELPG_ENGINE_ID_GRAPHICS],
+		(u32)sizeof(struct pmu_pg_stats_v2));
+
+	/* Print ELPG stats */
+	g->ops.pmu.pmu_dump_elpg_stats(pmu);
+}
+
 int nvgpu_pmu_disable_elpg(struct gk20a *g)
 {
 	struct nvgpu_pmu *pmu = &g->pmu;
@@ -338,7 +352,7 @@ int nvgpu_pmu_disable_elpg(struct gk20a *g)
 		if (pmu->pmu_pg.elpg_stat != PMU_ELPG_STAT_ON) {
 			nvgpu_err(g, "ELPG_ALLOW_ACK failed, elpg_stat=%d",
 				pmu->pmu_pg.elpg_stat);
-			nvgpu_pmu_dump_elpg_stats(pmu);
+			pmu_dump_elpg_stats(pmu);
 			nvgpu_pmu_dump_falcon_stats(pmu);
 			ret = -EBUSY;
 			goto exit_unlock;
@@ -397,8 +411,8 @@ int nvgpu_pmu_disable_elpg(struct gk20a *g)
 				ptr, PMU_ELPG_STAT_OFF);
 			if (*ptr != PMU_ELPG_STAT_OFF) {
 				nvgpu_err(g, "ELPG_DISALLOW_ACK failed");
-					nvgpu_pmu_dump_elpg_stats(pmu);
-					nvgpu_pmu_dump_falcon_stats(pmu);
+				pmu_dump_elpg_stats(pmu);
+				nvgpu_pmu_dump_falcon_stats(pmu);
 				ret = -EBUSY;
 				goto exit_unlock;
 			}

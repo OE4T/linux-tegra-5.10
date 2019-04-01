@@ -25,6 +25,7 @@
 #include <nvgpu/types.h>
 
 struct pmu_mutexes;
+struct nvgpu_pmu;
 struct gk20a;
 
 u32 gk20a_pmu_mutex_owner(struct gk20a *g, struct pmu_mutexes *mutexes,
@@ -33,5 +34,8 @@ int gk20a_pmu_mutex_acquire(struct gk20a *g, struct pmu_mutexes *mutexes,
 			    u32 id, u32 *token);
 void gk20a_pmu_mutex_release(struct gk20a *g, struct pmu_mutexes *mutexes,
 			     u32 id, u32 *token);
+
+void gk20a_pmu_dump_elpg_stats(struct nvgpu_pmu *pmu);
+void gk20a_pmu_dump_falcon_stats(struct nvgpu_pmu *pmu);
 
 #endif /* NVGPU_PMU_MUTEX_GK20A_H */

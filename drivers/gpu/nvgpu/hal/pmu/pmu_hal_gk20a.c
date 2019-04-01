@@ -114,3 +114,66 @@ void gk20a_pmu_mutex_release(struct gk20a *g, struct pmu_mutexes *mutexes,
 	nvgpu_log_info(g, "mutex released: id=%d, token=0x%x",
 		mutex->index, *token);
 }
+
+void gk20a_pmu_dump_elpg_stats(struct nvgpu_pmu *pmu)
+{
+	struct gk20a *g = gk20a_from_pmu(pmu);
+
+	nvgpu_pmu_dbg(g, "pwr_pmu_idle_mask_supp_r(3): 0x%08x",
+		gk20a_readl(g, pwr_pmu_idle_mask_supp_r(3)));
+	nvgpu_pmu_dbg(g, "pwr_pmu_idle_mask_1_supp_r(3): 0x%08x",
+		gk20a_readl(g, pwr_pmu_idle_mask_1_supp_r(3)));
+	nvgpu_pmu_dbg(g, "pwr_pmu_idle_ctrl_supp_r(3): 0x%08x",
+		gk20a_readl(g, pwr_pmu_idle_ctrl_supp_r(3)));
+	nvgpu_pmu_dbg(g, "pwr_pmu_pg_idle_cnt_r(0): 0x%08x",
+		gk20a_readl(g, pwr_pmu_pg_idle_cnt_r(0)));
+	nvgpu_pmu_dbg(g, "pwr_pmu_pg_intren_r(0): 0x%08x",
+		gk20a_readl(g, pwr_pmu_pg_intren_r(0)));
+
+	nvgpu_pmu_dbg(g, "pwr_pmu_idle_count_r(3): 0x%08x",
+		gk20a_readl(g, pwr_pmu_idle_count_r(3)));
+	nvgpu_pmu_dbg(g, "pwr_pmu_idle_count_r(4): 0x%08x",
+		gk20a_readl(g, pwr_pmu_idle_count_r(4)));
+	nvgpu_pmu_dbg(g, "pwr_pmu_idle_count_r(7): 0x%08x",
+		gk20a_readl(g, pwr_pmu_idle_count_r(7)));
+}
+
+void gk20a_pmu_dump_falcon_stats(struct nvgpu_pmu *pmu)
+{
+	struct gk20a *g = gk20a_from_pmu(pmu);
+	unsigned int i;
+
+	for (i = 0; i < pwr_pmu_mailbox__size_1_v(); i++) {
+		nvgpu_err(g, "pwr_pmu_mailbox_r(%d) : 0x%x",
+			i, gk20a_readl(g, pwr_pmu_mailbox_r(i)));
+	}
+
+	for (i = 0; i < pwr_pmu_debug__size_1_v(); i++) {
+		nvgpu_err(g, "pwr_pmu_debug_r(%d) : 0x%x",
+			i, gk20a_readl(g, pwr_pmu_debug_r(i)));
+	}
+
+	i = gk20a_readl(g, pwr_pmu_bar0_error_status_r());
+	nvgpu_err(g, "pwr_pmu_bar0_error_status_r : 0x%x", i);
+	if (i != 0U) {
+		nvgpu_err(g, "pwr_pmu_bar0_addr_r : 0x%x",
+			gk20a_readl(g, pwr_pmu_bar0_addr_r()));
+		nvgpu_err(g, "pwr_pmu_bar0_data_r : 0x%x",
+			gk20a_readl(g, pwr_pmu_bar0_data_r()));
+		nvgpu_err(g, "pwr_pmu_bar0_timeout_r : 0x%x",
+			gk20a_readl(g, pwr_pmu_bar0_timeout_r()));
+		nvgpu_err(g, "pwr_pmu_bar0_ctl_r : 0x%x",
+			gk20a_readl(g, pwr_pmu_bar0_ctl_r()));
+	}
+
+	i = gk20a_readl(g, pwr_pmu_bar0_fecs_error_r());
+	nvgpu_err(g, "pwr_pmu_bar0_fecs_error_r : 0x%x", i);
+
+	i = gk20a_readl(g, pwr_falcon_exterrstat_r());
+	nvgpu_err(g, "pwr_falcon_exterrstat_r : 0x%x", i);
+	if (pwr_falcon_exterrstat_valid_v(i) ==
+			pwr_falcon_exterrstat_valid_true_v()) {
+		nvgpu_err(g, "pwr_falcon_exterraddr_r : 0x%x",
+			gk20a_readl(g, pwr_falcon_exterraddr_r()));
+	}
+}
