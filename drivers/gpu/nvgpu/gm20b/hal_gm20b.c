@@ -534,6 +534,8 @@ static const struct gpu_ops gm20b_ops = {
 			.enable_ctxsw = nvgpu_gr_falcon_enable_ctxsw,
 			.get_current_ctx = gm20b_gr_falcon_get_current_ctx,
 			.get_ctx_ptr = gm20b_gr_falcon_get_ctx_ptr,
+			.get_fecs_current_ctx_data =
+				gm20b_gr_falcon_get_fecs_current_ctx_data,
 		},
 	},
 	.fb = {

@@ -26,6 +26,7 @@
 #include <nvgpu/gr/subctx.h>
 #include <nvgpu/gr/ctx.h>
 #include <nvgpu/gr/zcull.h>
+#include <nvgpu/gr/gr_falcon.h>
 
 #include "common/gr/zcull_priv.h"
 
@@ -37,27 +38,17 @@ static int gm20b_gr_init_zcull_ctxsw_image_size(struct gk20a *g,
 						struct nvgpu_gr_zcull *gr_zcull)
 {
 	int ret = 0;
-	struct fecs_method_op_gk20a op = {
-		.mailbox = { .id = 0U, .data = 0U,
-			     .clr = ~U32(0U), .ok = 0U, .fail = 0U},
-		.method.data = 0U,
-		.cond.ok = GR_IS_UCODE_OP_NOT_EQUAL,
-		.cond.fail = GR_IS_UCODE_OP_SKIP,
-	};
 
 	if (!g->gr.ctx_vars.golden_image_initialized) {
-		op.method.addr =
-			gr_fecs_method_push_adr_discover_zcull_image_size_v();
-
-		op.mailbox.ret = &gr_zcull->zcull_ctxsw_image_size;
-		ret = g->ops.gr.falcon.submit_fecs_method_op(g, op, false);
+		ret = g->ops.gr.falcon.ctrl_ctxsw(g,
+			NVGPU_GR_FALCON_METHOD_CTXSW_DISCOVER_ZCULL_IMAGE_SIZE,
+			0, &gr_zcull->zcull_ctxsw_image_size);
 		if (ret != 0) {
 			nvgpu_err(g,
 				"query zcull ctx image size failed");
 			return ret;
 		}
 	}
-
 	return ret;
 }
 

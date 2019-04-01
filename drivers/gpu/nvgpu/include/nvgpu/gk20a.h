@@ -590,6 +590,8 @@ struct gpu_ops {
 			int (*enable_ctxsw)(struct gk20a *g);
 			u32 (*get_current_ctx)(struct gk20a *g);
 			u32 (*get_ctx_ptr)(u32 ctx);
+			u32 (*get_fecs_current_ctx_data)(struct gk20a *g,
+					struct nvgpu_mem *inst_block);
 		} falcon;
 
 #ifdef CONFIG_GK20A_CTXSW_TRACE

@@ -290,12 +290,6 @@ int gk20a_alloc_obj_ctx(struct channel_gk20a  *c, u32 class_num, u32 flags);
 
 int gk20a_gr_isr(struct gk20a *g);
 
-/* pmu */
-int gr_gk20a_fecs_get_reglist_img_size(struct gk20a *g, u32 *size);
-int gr_gk20a_fecs_set_reglist_bind_inst(struct gk20a *g,
-		struct nvgpu_mem *inst_block);
-int gr_gk20a_fecs_set_reglist_virtual_addr(struct gk20a *g, u64 pmu_va);
-
 void gr_gk20a_init_cg_mode(struct gk20a *g, u32 cgmode, u32 mode_config);
 
 /* sm */
@@ -410,8 +404,6 @@ void gk20a_gr_get_ovr_perf_regs(struct gk20a *g, u32 *num_ovr_perf_regs,
 u32 gr_gk20a_get_patch_slots(struct gk20a *g);
 
 int gr_gk20a_alloc_global_ctx_buffers(struct gk20a *g);
-
-u32 fecs_current_ctx_data(struct gk20a *g, struct nvgpu_mem *inst_block);
 
 int gk20a_init_sw_bundle(struct gk20a *g);
 int gr_gk20a_decode_priv_addr(struct gk20a *g, u32 addr,

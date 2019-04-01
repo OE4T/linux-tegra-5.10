@@ -187,19 +187,6 @@ int gr_gk20a_commit_inst(struct channel_gk20a *c, u64 gpu_va)
 	return 0;
 }
 
-u32 fecs_current_ctx_data(struct gk20a *g, struct nvgpu_mem *inst_block)
-{
-	u64 ptr = nvgpu_inst_block_addr(g, inst_block) >>
-		ram_in_base_shift_v();
-	u32 aperture = nvgpu_aperture_mask(g, inst_block,
-				gr_fecs_current_ctx_target_sys_mem_ncoh_f(),
-				gr_fecs_current_ctx_target_sys_mem_coh_f(),
-				gr_fecs_current_ctx_target_vid_mem_f());
-
-	return gr_fecs_current_ctx_ptr_f(u64_lo32(ptr)) | aperture |
-		gr_fecs_current_ctx_valid_f(1);
-}
-
 int gr_gk20a_update_smpc_ctxsw_mode(struct gk20a *g,
 				    struct channel_gk20a *c,
 				    bool enable_smpc_ctxsw)
@@ -318,31 +305,22 @@ int gr_gk20a_update_hwpm_ctxsw_mode(struct gk20a *g,
 int gr_gk20a_init_ctx_state(struct gk20a *g)
 {
 	int ret;
-	struct fecs_method_op_gk20a op = {
-		.mailbox = { .id = 0U, .data = 0U,
-			     .clr = ~U32(0U), .ok = 0U, .fail = 0U},
-		.method.data = 0U,
-		.cond.ok = GR_IS_UCODE_OP_NOT_EQUAL,
-		.cond.fail = GR_IS_UCODE_OP_SKIP,
-		};
 
 	nvgpu_log_fn(g, " ");
 	/* query ctxsw image sizes, if golden context is not created */
 	if (!g->gr.ctx_vars.golden_image_initialized) {
-		op.method.addr =
-			gr_fecs_method_push_adr_discover_image_size_v();
-		op.mailbox.ret = &g->gr.ctx_vars.golden_image_size;
-		ret = g->ops.gr.falcon.submit_fecs_method_op(g, op, false);
+		ret = g->ops.gr.falcon.ctrl_ctxsw(g,
+			NVGPU_GR_FALCON_METHOD_CTXSW_DISCOVER_IMAGE_SIZE,
+			0, &g->gr.ctx_vars.golden_image_size);
 		if (ret != 0) {
 			nvgpu_err(g,
 				   "query golden image size failed");
 			return ret;
 		}
 
-		op.method.addr =
-			gr_fecs_method_push_adr_discover_pm_image_size_v();
-		op.mailbox.ret = &g->gr.ctx_vars.pm_ctxsw_image_size;
-		ret = g->ops.gr.falcon.submit_fecs_method_op(g, op, false);
+		ret = g->ops.gr.falcon.ctrl_ctxsw(g,
+			NVGPU_GR_FALCON_METHOD_CTXSW_DISCOVER_PM_IMAGE_SIZE,
+			0, &g->gr.ctx_vars.pm_ctxsw_image_size);
 		if (ret != 0) {
 			nvgpu_err(g,
 				   "query pm ctx image size failed");
@@ -939,6 +917,7 @@ static int gk20a_init_gr_bind_fecs_elpg(struct gk20a *g)
 	struct mm_gk20a *mm = &g->mm;
 	struct vm_gk20a *vm = mm->pmu.vm;
 	int err = 0;
+	u32 data;
 
 	u32 size;
 
@@ -946,7 +925,8 @@ static int gk20a_init_gr_bind_fecs_elpg(struct gk20a *g)
 
 	size = 0;
 
-	err = gr_gk20a_fecs_get_reglist_img_size(g, &size);
+	err = g->ops.gr.falcon.ctrl_ctxsw(g,
+		NVGPU_GR_FALCON_METHOD_REGLIST_DISCOVER_IMAGE_SIZE, 0U, &size);
 	if (err != 0) {
 		nvgpu_err(g,
 			"fail to query fecs pg buffer size");
@@ -961,15 +941,19 @@ static int gk20a_init_gr_bind_fecs_elpg(struct gk20a *g)
 		}
 	}
 
-
-	err = gr_gk20a_fecs_set_reglist_bind_inst(g, &mm->pmu.inst_block);
+	data = g->ops.gr.falcon.get_fecs_current_ctx_data(g,
+						&mm->pmu.inst_block);
+	err = g->ops.gr.falcon.ctrl_ctxsw(g,
+		NVGPU_GR_FALCON_METHOD_REGLIST_BIND_INSTANCE, data, NULL);
 	if (err != 0) {
 		nvgpu_err(g,
 			"fail to bind pmu inst to gr");
 		return err;
 	}
 
-	err = gr_gk20a_fecs_set_reglist_virtual_addr(g, pmu->pmu_pg.pg_buf.gpu_va);
+	data = u64_lo32(pmu->pmu_pg.pg_buf.gpu_va >> 8);
+	err = g->ops.gr.falcon.ctrl_ctxsw(g,
+		NVGPU_GR_FALCON_METHOD_REGLIST_SET_VIRTUAL_ADDRESS, data, NULL);
 	if (err != 0) {
 		nvgpu_err(g,
 			"fail to set pg buffer pmu va");
@@ -2103,58 +2087,6 @@ int gk20a_gr_isr(struct gk20a *g)
 	}
 
 	return 0;
-}
-
-int gr_gk20a_fecs_get_reglist_img_size(struct gk20a *g, u32 *size)
-{
-	BUG_ON(size == NULL);
-	return g->ops.gr.falcon.submit_fecs_method_op(g,
-		   (struct fecs_method_op_gk20a) {
-			   .mailbox.id = 0U,
-			   .mailbox.data = 0U,
-			   .mailbox.clr = ~U32(0U),
-			   .method.data = 1U,
-			   .method.addr = gr_fecs_method_push_adr_discover_reglist_image_size_v(),
-			   .mailbox.ret = size,
-			   .cond.ok = GR_IS_UCODE_OP_NOT_EQUAL,
-			   .mailbox.ok = 0U,
-			   .cond.fail = GR_IS_UCODE_OP_SKIP,
-			   .mailbox.fail = 0U}, false);
-}
-
-int gr_gk20a_fecs_set_reglist_bind_inst(struct gk20a *g,
-		struct nvgpu_mem *inst_block)
-{
-	u32 data = fecs_current_ctx_data(g, inst_block);
-
-	return g->ops.gr.falcon.submit_fecs_method_op(g,
-		   (struct fecs_method_op_gk20a){
-			   .mailbox.id = 4U,
-			   .mailbox.data = data,
-			   .mailbox.clr = ~U32(0U),
-			   .method.data = 1U,
-			   .method.addr = gr_fecs_method_push_adr_set_reglist_bind_instance_v(),
-			   .mailbox.ret = NULL,
-			   .cond.ok = GR_IS_UCODE_OP_EQUAL,
-			   .mailbox.ok = 1U,
-			   .cond.fail = GR_IS_UCODE_OP_SKIP,
-			   .mailbox.fail = 0U}, false);
-}
-
-int gr_gk20a_fecs_set_reglist_virtual_addr(struct gk20a *g, u64 pmu_va)
-{
-	return g->ops.gr.falcon.submit_fecs_method_op(g,
-		   (struct fecs_method_op_gk20a) {
-			   .mailbox.id = 4U,
-			   .mailbox.data = u64_lo32(pmu_va >> 8),
-			   .mailbox.clr = ~U32(0U),
-			   .method.data = 1U,
-			   .method.addr = gr_fecs_method_push_adr_set_reglist_virtual_address_v(),
-			   .mailbox.ret = NULL,
-			   .cond.ok = GR_IS_UCODE_OP_EQUAL,
-			   .mailbox.ok = 1U,
-			   .cond.fail = GR_IS_UCODE_OP_SKIP,
-			   .mailbox.fail = 0U}, false);
 }
 
 static int gr_gk20a_find_priv_offset_in_buffer(struct gk20a *g,

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -20,29 +20,14 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#include <nvgpu/gk20a.h>
-#include <nvgpu/log.h>
-#include <nvgpu/gr/gr_falcon.h>
-#include <nvgpu/power_features/pg.h>
+#ifndef NVGPU_GR_FALCON_GP10B_H
+#define NVGPU_GR_FALCON_GP10B_H
 
-#include "gk20a/gr_gk20a.h"
-#include "fecs_trace_gp10b.h"
+#include <nvgpu/types.h>
 
-#ifdef CONFIG_GK20A_CTXSW_TRACE
+struct gk20a;
 
-int gp10b_fecs_trace_flush(struct gk20a *g)
-{
-	int err;
+int gp10b_gr_falcon_ctrl_ctxsw(struct gk20a *g, u32 fecs_method,
+						u32 data, u32 *ret_val);
 
-	nvgpu_log(g, gpu_dbg_fn|gpu_dbg_ctxsw, " ");
-
-	err = nvgpu_pg_elpg_protected_call(g,
-		g->ops.gr.falcon.ctrl_ctxsw(g,
-			NVGPU_GR_FALCON_METHOD_FECS_TRACE_FLUSH, 0U, NULL));
-	if (err != 0)
-		nvgpu_err(g, "write timestamp record failed");
-
-	return err;
-}
-
-#endif /* CONFIG_GK20A_CTXSW_TRACE */
+#endif /* NVGPU_GR_FALCON_GP10B_H */

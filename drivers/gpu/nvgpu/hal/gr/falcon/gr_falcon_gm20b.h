@@ -26,7 +26,6 @@
 #include <nvgpu/types.h>
 
 struct gk20a;
-
 struct fecs_method_op_gk20a;
 
 u32 gm20b_gr_falcon_fecs_base_addr(void);
@@ -68,5 +67,7 @@ void gm20b_gr_falcon_set_current_ctx_invalid(struct gk20a *g);
 
 u32 gm20b_gr_falcon_get_current_ctx(struct gk20a *g);
 u32 gm20b_gr_falcon_get_ctx_ptr(u32 ctx);
+u32 gm20b_gr_falcon_get_fecs_current_ctx_data(struct gk20a *g,
+						struct nvgpu_mem *inst_block);
 
 #endif /* NVGPU_GR_FALCON_GM20B_H */

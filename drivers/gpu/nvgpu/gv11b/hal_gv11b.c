@@ -72,6 +72,7 @@
 #include "hal/gr/fecs_trace/fecs_trace_gm20b.h"
 #include "hal/gr/fecs_trace/fecs_trace_gv11b.h"
 #include "hal/gr/falcon/gr_falcon_gm20b.h"
+#include "hal/gr/falcon/gr_falcon_gp10b.h"
 #include "hal/gr/config/gr_config_gm20b.h"
 #include "hal/gr/zbc/zbc_gp10b.h"
 #include "hal/gr/zbc/zbc_gv11b.h"
@@ -717,12 +718,14 @@ static const struct gpu_ops gv11b_ops = {
 					gm20b_gr_falcon_submit_fecs_method_op,
 			.submit_fecs_sideband_method_op =
 				gm20b_gr_falcon_submit_fecs_sideband_method_op,
-			.ctrl_ctxsw = gm20b_gr_falcon_ctrl_ctxsw,
+			.ctrl_ctxsw = gp10b_gr_falcon_ctrl_ctxsw,
 			.halt_pipe = nvgpu_gr_falcon_halt_pipe,
 			.disable_ctxsw = nvgpu_gr_falcon_disable_ctxsw,
 			.enable_ctxsw = nvgpu_gr_falcon_enable_ctxsw,
 			.get_current_ctx = gm20b_gr_falcon_get_current_ctx,
 			.get_ctx_ptr = gm20b_gr_falcon_get_ctx_ptr,
+			.get_fecs_current_ctx_data =
+				gm20b_gr_falcon_get_fecs_current_ctx_data,
 		},
 	},
 	.fb = {

@@ -24,10 +24,12 @@
 #include <nvgpu/gr/gr_falcon.h>
 #include <nvgpu/io.h>
 #include <nvgpu/debug.h>
+#include <nvgpu/power_features/pg.h>
 
 #include "gr_falcon_gm20b.h"
 
 #include <nvgpu/hw/gm20b/hw_gr_gm20b.h>
+#include <nvgpu/hw/gm20b/hw_ram_gm20b.h>
 
 #define FECS_ARB_CMD_TIMEOUT_MAX_US 40U
 #define FECS_ARB_CMD_TIMEOUT_DEFAULT_US 2U
@@ -756,6 +758,9 @@ int gm20b_gr_falcon_ctrl_ctxsw(struct gk20a *g, u32 fecs_method,
 		};
 	bool sleepduringwait = false;
 
+	nvgpu_log_info(g, "fecs method %d data 0x%x ret_value %p",
+						fecs_method, data, ret_val);
+
 	switch (fecs_method) {
 	case NVGPU_GR_FALCON_METHOD_CTXSW_STOP:
 		op.method.addr =
@@ -790,6 +795,73 @@ int gm20b_gr_falcon_ctrl_ctxsw(struct gk20a *g, u32 fecs_method,
 		op.mailbox.fail = gr_fecs_ctxsw_mailbox_value_fail_v();
 		op.cond.ok = GR_IS_UCODE_OP_EQUAL;
 		op.cond.fail = GR_IS_UCODE_OP_EQUAL;
+	break;
+	case NVGPU_GR_FALCON_METHOD_CTXSW_DISCOVER_IMAGE_SIZE:
+		op.method.addr =
+			gr_fecs_method_push_adr_discover_image_size_v();
+		op.mailbox.ret = ret_val;
+		break;
+	case NVGPU_GR_FALCON_METHOD_CTXSW_DISCOVER_ZCULL_IMAGE_SIZE:
+		op.method.addr =
+			gr_fecs_method_push_adr_discover_zcull_image_size_v();
+		op.mailbox.ret = ret_val;
+		break;
+	case NVGPU_GR_FALCON_METHOD_CTXSW_DISCOVER_PM_IMAGE_SIZE:
+		op.method.addr =
+			gr_fecs_method_push_adr_discover_pm_image_size_v();
+		op.mailbox.ret = ret_val;
+		sleepduringwait = true;
+		break;
+	case NVGPU_GR_FALCON_METHOD_REGLIST_DISCOVER_IMAGE_SIZE:
+		op.method.addr =
+			gr_fecs_method_push_adr_discover_reglist_image_size_v();
+		op.method.data = 1U;
+		op.mailbox.ret = ret_val;
+		break;
+	case NVGPU_GR_FALCON_METHOD_REGLIST_BIND_INSTANCE:
+		op.method.addr =
+			gr_fecs_method_push_adr_set_reglist_bind_instance_v();
+		op.method.data = 1U;
+		op.mailbox.data = data;
+		op.mailbox.id = 4U;
+		op.mailbox.ok = 1U;
+		op.cond.ok = GR_IS_UCODE_OP_EQUAL;
+		break;
+	case NVGPU_GR_FALCON_METHOD_REGLIST_SET_VIRTUAL_ADDRESS:
+		op.method.addr =
+			gr_fecs_method_push_adr_set_reglist_virtual_address_v(),
+		op.method.data = 1U;
+		op.mailbox.data = data;
+		op.mailbox.id = 4U;
+		op.mailbox.ok = 1U;
+		op.cond.ok = GR_IS_UCODE_OP_EQUAL;
+		break;
+
+	case NVGPU_GR_FALCON_METHOD_ADDRESS_BIND_PTR:
+		op.method.addr = gr_fecs_method_push_adr_bind_pointer_v();
+		op.method.data = data;
+		op.mailbox.clr = 0x30U;
+		op.mailbox.ok = 0x10U;
+		op.mailbox.fail = 0x20U;
+		op.cond.ok = GR_IS_UCODE_OP_AND;
+		op.cond.fail = GR_IS_UCODE_OP_AND;
+		sleepduringwait = true;
+		break;
+
+	case NVGPU_GR_FALCON_METHOD_GOLDEN_IMAGE_SAVE:
+		op.method.addr = gr_fecs_method_push_adr_wfi_golden_save_v();
+		op.method.data = data;
+		op.mailbox.clr = 0x3U;
+		op.mailbox.ok = 0x1U;
+		op.mailbox.fail = 0x2U;
+		op.cond.ok = GR_IS_UCODE_OP_AND;
+		op.cond.fail = GR_IS_UCODE_OP_AND;
+		sleepduringwait = true;
+		break;
+
+	case NVGPU_GR_FALCON_METHOD_FECS_TRACE_FLUSH:
+		op.method.addr =
+			gr_fecs_method_push_adr_write_timestamp_record_v();
 		break;
 
 	default:
@@ -807,4 +879,18 @@ u32 gm20b_gr_falcon_get_current_ctx(struct gk20a *g)
 u32 gm20b_gr_falcon_get_ctx_ptr(u32 ctx)
 {
 	return gr_fecs_current_ctx_ptr_v(ctx);
+}
+
+u32 gm20b_gr_falcon_get_fecs_current_ctx_data(struct gk20a *g,
+					struct nvgpu_mem *inst_block)
+{
+	u64 ptr = nvgpu_inst_block_addr(g, inst_block) >>
+		ram_in_base_shift_v();
+	u32 aperture = nvgpu_aperture_mask(g, inst_block,
+				gr_fecs_current_ctx_target_sys_mem_ncoh_f(),
+				gr_fecs_current_ctx_target_sys_mem_coh_f(),
+				gr_fecs_current_ctx_target_vid_mem_f());
+
+	return gr_fecs_current_ctx_ptr_f(u64_lo32(ptr)) | aperture |
+		gr_fecs_current_ctx_valid_f(1);
 }

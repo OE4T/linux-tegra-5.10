@@ -513,13 +513,6 @@ void gr_gp10b_set_circular_buffer_size(struct gk20a *g, u32 data)
 
 int gr_gp10b_init_ctx_state(struct gk20a *g)
 {
-	struct fecs_method_op_gk20a op = {
-		.mailbox = { .id = 0U, .data = 0U,
-			     .clr = ~U32(0U), .ok = 0U, .fail = 0U},
-		.method.data = 0U,
-		.cond.ok = GR_IS_UCODE_OP_NOT_EQUAL,
-		.cond.fail = GR_IS_UCODE_OP_SKIP,
-		};
 	int err;
 
 	nvgpu_log_fn(g, " ");
@@ -530,10 +523,9 @@ int gr_gp10b_init_ctx_state(struct gk20a *g)
 	}
 
 	if (g->gr.ctx_vars.preempt_image_size == 0U) {
-		op.method.addr =
-			gr_fecs_method_push_adr_discover_preemption_image_size_v();
-		op.mailbox.ret = &g->gr.ctx_vars.preempt_image_size;
-		err = g->ops.gr.falcon.submit_fecs_method_op(g, op, false);
+		err = g->ops.gr.falcon.ctrl_ctxsw(g,
+			NVGPU_GR_FALCON_METHOD_PREEMPT_IMAGE_SIZE, 0U,
+			&g->gr.ctx_vars.preempt_image_size);
 		if (err != 0) {
 			nvgpu_err(g, "query preempt image size failed");
 			return err;
@@ -764,19 +756,9 @@ int gr_gp10b_set_cilp_preempt_pending(struct gk20a *g,
 			"CILP: ctx id is 0x%x", gr_ctx->ctx_id);
 
 	/* send ucode method to set ctxsw interrupt */
-	ret = g->ops.gr.falcon.submit_fecs_sideband_method_op(g,
-			(struct fecs_method_op_gk20a) {
-			.method.data = nvgpu_gr_ctx_get_ctx_id(g, gr_ctx),
-			.method.addr =
-			gr_fecs_method_push_adr_configure_interrupt_completion_option_v(),
-			.mailbox = {
-			.id = 1U /* sideband */, .data = 0U,
-			.clr = ~U32(0U), .ret = NULL,
-			.ok = gr_fecs_ctxsw_mailbox_value_pass_v(),
-			.fail = 0U},
-			.cond.ok = GR_IS_UCODE_OP_EQUAL,
-			.cond.fail = GR_IS_UCODE_OP_SKIP});
-
+	ret = g->ops.gr.falcon.ctrl_ctxsw(g,
+		NVGPU_GR_FALCON_METHOD_CONFIGURE_CTXSW_INTR,
+		nvgpu_gr_ctx_get_ctx_id(g, gr_ctx), NULL);
 	if (ret != 0) {
 		nvgpu_err(g, "CILP: failed to enable ctxsw interrupt!");
 		return ret;

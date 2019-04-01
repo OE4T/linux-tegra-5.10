@@ -28,6 +28,7 @@
 #include <nvgpu/gr/global_ctx.h>
 #include <nvgpu/gr/obj_ctx.h>
 #include <nvgpu/gr/config.h>
+#include <nvgpu/gr/gr_falcon.h>
 #include <nvgpu/power_features/cg.h>
 #include <nvgpu/channel.h>
 
@@ -38,13 +39,6 @@
  * with common.gr.gr unit. Remove this in follow up
  */
 #include <nvgpu/gr/gr.h>
-
-/*
- * TODO: remove these when nvgpu_gr_obj_ctx_bind_channel() and
- * nvgpu_gr_obj_ctx_image_save() are moved to appropriate units
- */
-#include <nvgpu/hw/gk20a/hw_gr_gk20a.h>
-#include <nvgpu/hw/gk20a/hw_ram_gk20a.h>
 
 static int nvgpu_gr_obj_ctx_init_ctxsw_preemption_mode(struct gk20a *g,
 	struct nvgpu_gr_ctx *gr_ctx, struct vm_gk20a *vm,
@@ -359,60 +353,6 @@ error:
 	return err;
 }
 
-static int nvgpu_gr_obj_ctx_bind_channel(struct gk20a *g,
-		struct nvgpu_mem *inst_block)
-{
-	u32 inst_base_ptr = u64_lo32(nvgpu_inst_block_addr(g, inst_block)
-				     >> ram_in_base_shift_v());
-	u32 data = fecs_current_ctx_data(g, inst_block);
-	int ret;
-
-	nvgpu_log_info(g, "bind inst ptr 0x%08x", inst_base_ptr);
-
-	ret = g->ops.gr.falcon.submit_fecs_method_op(g,
-		     (struct fecs_method_op_gk20a) {
-		     .method.addr = gr_fecs_method_push_adr_bind_pointer_v(),
-		     .method.data = data,
-		     .mailbox = { .id = 0, .data = 0,
-				  .clr = 0x30,
-				  .ret = NULL,
-				  .ok = 0x10,
-				  .fail = 0x20, },
-		     .cond.ok = GR_IS_UCODE_OP_AND,
-		     .cond.fail = GR_IS_UCODE_OP_AND}, true);
-	if (ret != 0) {
-		nvgpu_err(g,
-			"bind channel instance failed");
-	}
-
-	return ret;
-}
-
-static int nvgpu_gr_obj_ctx_image_save(struct gk20a *g,
-		struct nvgpu_mem *inst_block)
-{
-	int ret;
-
-	nvgpu_log_fn(g, " ");
-
-	ret = g->ops.gr.falcon.submit_fecs_method_op(g,
-		(struct fecs_method_op_gk20a) {
-		.method.addr = gr_fecs_method_push_adr_wfi_golden_save_v(),
-		.method.data = fecs_current_ctx_data(g, inst_block),
-		.mailbox = {.id = 0, .data = 0, .clr = 3, .ret = NULL,
-			.ok = 1, .fail = 2,
-		},
-		.cond.ok = GR_IS_UCODE_OP_AND,
-		.cond.fail = GR_IS_UCODE_OP_AND,
-		 }, true);
-
-	if (ret != 0) {
-		nvgpu_err(g, "save context image failed");
-	}
-
-	return ret;
-}
-
 /*
  * init global golden image from a fresh gr_ctx in channel ctx.
  * save a copy in local_golden_image in ctx_vars
@@ -428,6 +368,7 @@ int nvgpu_gr_obj_ctx_alloc_golden_ctx_image(struct gk20a *g,
 	int err = 0;
 	struct netlist_aiv_list *sw_ctx_load = &g->netlist_vars->sw_ctx_load;
 	struct netlist_av_list *sw_method_init = &g->netlist_vars->sw_method_init;
+	u32 data;
 
 	nvgpu_log_fn(g, " ");
 
@@ -456,7 +397,9 @@ int nvgpu_gr_obj_ctx_alloc_golden_ctx_image(struct gk20a *g,
 		goto clean_up;
 	}
 
-	err = nvgpu_gr_obj_ctx_bind_channel(g, inst_block);
+	data = g->ops.gr.falcon.get_fecs_current_ctx_data(g, inst_block);
+	err = g->ops.gr.falcon.ctrl_ctxsw(g,
+			NVGPU_GR_FALCON_METHOD_ADDRESS_BIND_PTR, data, NULL);
 	if (err != 0) {
 		goto clean_up;
 	}
@@ -533,7 +476,9 @@ restore_fe_go_idle:
 		goto clean_up;
 	}
 
-	err = nvgpu_gr_obj_ctx_image_save(g, inst_block);
+	data = g->ops.gr.falcon.get_fecs_current_ctx_data(g, inst_block);
+	err = g->ops.gr.falcon.ctrl_ctxsw(g,
+			NVGPU_GR_FALCON_METHOD_GOLDEN_IMAGE_SAVE, data, NULL);
 	if (err != 0) {
 		goto clean_up;
 	}
