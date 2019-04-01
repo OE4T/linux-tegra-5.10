@@ -90,7 +90,7 @@ void nvgpu_report_gr_exception(struct gk20a *g, u32 inst,
 	}
 
 	tsgid = NVGPU_INVALID_TSG_ID;
-	curr_ctx = gk20a_readl(g, gr_fecs_current_ctx_r());
+	curr_ctx = g->ops.gr.falcon.get_current_ctx(g);
 	ch = gk20a_gr_get_channel_from_ctx(g, curr_ctx, &tsgid);
 	chid = ch != NULL ? ch->chid : FIFO_INVAL_CHANNEL_ID;
 	if (ch != NULL) {
@@ -128,7 +128,7 @@ static void nvgpu_report_gr_sm_exception(struct gk20a *g, u32 gpc, u32 tpc,
 	}
 
 	tsgid = NVGPU_INVALID_TSG_ID;
-	curr_ctx = gk20a_readl(g, gr_fecs_current_ctx_r());
+	curr_ctx = g->ops.gr.falcon.get_current_ctx(g);
 	ch = gk20a_gr_get_channel_from_ctx(g, curr_ctx, &tsgid);
 	chid = ch != NULL ? ch->chid : FIFO_INVAL_CHANNEL_ID;
 	if (ch != NULL) {
@@ -162,7 +162,7 @@ static void gr_report_ctxsw_error(struct gk20a *g, u32 err_type, u32 chid,
 	int ret = 0;
 	struct ctxsw_err_info err_info;
 
-	err_info.curr_ctx = gk20a_readl(g, gr_fecs_current_ctx_r());
+	err_info.curr_ctx = g->ops.gr.falcon.get_current_ctx(g);
 	err_info.ctxsw_status0 = gk20a_readl(g, gr_fecs_ctxsw_status_fe_0_r());
 	err_info.ctxsw_status1 = gk20a_readl(g, gr_fecs_ctxsw_status_1_r());
 	err_info.mailbox_value = mailbox_value;
@@ -1556,7 +1556,7 @@ int gk20a_gr_handle_notify_pending(struct gk20a *g,
 /* Used by sw interrupt thread to translate current ctx to chid.
  * Also used by regops to translate current ctx to chid and tsgid.
  * For performance, we don't want to go through 128 channels every time.
- * curr_ctx should be the value read from gr_fecs_current_ctx_r().
+ * curr_ctx should be the value read from gr falcon get_current_ctx op
  * A small tlb is used here to cache translation.
  *
  * Returned channel must be freed with gk20a_channel_put() */
@@ -1598,7 +1598,7 @@ static struct channel_gk20a *gk20a_gr_get_channel_from_ctx(
 
 		if ((u32)(nvgpu_inst_block_addr(g, &ch->inst_block) >>
 					ram_in_base_shift_v()) ==
-				gr_fecs_current_ctx_ptr_v(curr_ctx)) {
+				g->ops.gr.falcon.get_ctx_ptr(curr_ctx)) {
 			tsgid = ch->tsgid;
 			/* found it */
 			ret = ch;
@@ -1981,7 +1981,7 @@ int gk20a_gr_isr(struct gk20a *g)
 	isr_data.addr = gk20a_readl(g, gr_trapped_addr_r());
 	isr_data.data_lo = gk20a_readl(g, gr_trapped_data_lo_r());
 	isr_data.data_hi = gk20a_readl(g, gr_trapped_data_hi_r());
-	isr_data.curr_ctx = gk20a_readl(g, gr_fecs_current_ctx_r());
+	isr_data.curr_ctx = g->ops.gr.falcon.get_current_ctx(g);
 	isr_data.offset = gr_trapped_addr_mthd_v(isr_data.addr);
 	isr_data.sub_chan = gr_trapped_addr_subch_v(isr_data.addr);
 	obj_table = (isr_data.sub_chan < 4U) ? gk20a_readl(g,
@@ -3481,7 +3481,7 @@ bool gk20a_is_channel_ctx_resident(struct channel_gk20a *ch)
 	bool ret = false;
 	struct tsg_gk20a *tsg;
 
-	curr_gr_ctx  = gk20a_readl(g, gr_fecs_current_ctx_r());
+	curr_gr_ctx = g->ops.gr.falcon.get_current_ctx(g);
 
 	/* when contexts are unloaded from GR, the valid bit is reset
 	 * but the instance pointer information remains intact. So the

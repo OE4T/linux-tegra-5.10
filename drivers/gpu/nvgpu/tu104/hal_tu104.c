@@ -790,6 +790,8 @@ static const struct gpu_ops tu104_ops = {
 			.halt_pipe = nvgpu_gr_falcon_halt_pipe,
 			.disable_ctxsw = nvgpu_gr_falcon_disable_ctxsw,
 			.enable_ctxsw = nvgpu_gr_falcon_enable_ctxsw,
+			.get_current_ctx = gm20b_gr_falcon_get_current_ctx,
+			.get_ctx_ptr = gm20b_gr_falcon_get_ctx_ptr,
 		},
 	},
 	.fb = {

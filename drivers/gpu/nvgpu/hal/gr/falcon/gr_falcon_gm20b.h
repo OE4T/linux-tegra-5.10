@@ -66,4 +66,7 @@ int gm20b_gr_falcon_ctrl_ctxsw(struct gk20a *g, u32 fecs_method,
 
 void gm20b_gr_falcon_set_current_ctx_invalid(struct gk20a *g);
 
+u32 gm20b_gr_falcon_get_current_ctx(struct gk20a *g);
+u32 gm20b_gr_falcon_get_ctx_ptr(u32 ctx);
+
 #endif /* NVGPU_GR_FALCON_GM20B_H */

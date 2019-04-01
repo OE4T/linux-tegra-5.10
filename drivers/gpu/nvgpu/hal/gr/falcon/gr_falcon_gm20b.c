@@ -798,3 +798,13 @@ int gm20b_gr_falcon_ctrl_ctxsw(struct gk20a *g, u32 fecs_method,
 	}
 	return gm20b_gr_falcon_submit_fecs_method_op(g, op, sleepduringwait);
 }
+
+u32 gm20b_gr_falcon_get_current_ctx(struct gk20a *g)
+{
+	return nvgpu_readl(g, gr_fecs_current_ctx_r());
+}
+
+u32 gm20b_gr_falcon_get_ctx_ptr(u32 ctx)
+{
+	return gr_fecs_current_ctx_ptr_v(ctx);
+}

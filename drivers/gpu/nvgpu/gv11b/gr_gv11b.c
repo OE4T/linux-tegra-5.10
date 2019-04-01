@@ -1218,7 +1218,7 @@ int gr_gv11b_dump_gr_status_regs(struct gk20a *g,
 	gk20a_debug_output(o, "NV_PGRAPH_PRI_GPC0_GPCCS_CTXSW_IDLESTATE : 0x%x\n",
 		gk20a_readl(g, gr_gpc0_gpccs_ctxsw_idlestate_r()));
 	gk20a_debug_output(o, "NV_PGRAPH_PRI_FECS_CURRENT_CTX : 0x%x\n",
-		gk20a_readl(g, gr_fecs_current_ctx_r()));
+		g->ops.gr.falcon.get_current_ctx(g));
 	gk20a_debug_output(o, "NV_PGRAPH_PRI_FECS_NEW_CTX : 0x%x\n",
 		gk20a_readl(g, gr_fecs_new_ctx_r()));
 	gk20a_debug_output(o, "NV_PGRAPH_PRI_FECS_HOST_INT_ENABLE : 0x%x\n",

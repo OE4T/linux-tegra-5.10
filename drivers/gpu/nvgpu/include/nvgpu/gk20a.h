@@ -591,6 +591,8 @@ struct gpu_ops {
 			int (*halt_pipe)(struct gk20a *g);
 			int (*disable_ctxsw)(struct gk20a *g);
 			int (*enable_ctxsw)(struct gk20a *g);
+			u32 (*get_current_ctx)(struct gk20a *g);
+			u32 (*get_ctx_ptr)(u32 ctx);
 		} falcon;
 
 #ifdef CONFIG_GK20A_CTXSW_TRACE
