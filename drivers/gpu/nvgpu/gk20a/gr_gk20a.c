@@ -1905,11 +1905,11 @@ static int gk20a_gr_handle_gpc_exception(struct gk20a *g, bool *post_event,
 		}
 
 		/* Handle GCC exception */
-		if ((gr_gpc0_gpccs_gpc_exception_gcc_v(gpc_exception) != 0U) &&
-				(g->ops.gr.handle_gcc_exception != NULL)) {
-			tmp_ret = g->ops.gr.handle_gcc_exception(g, gpc, tpc,
-				post_event, fault_ch, hww_global_esr);
-			ret = (ret != 0) ? ret : tmp_ret;
+		if (g->ops.gr.intr.handle_gcc_exception != NULL) {
+			g->ops.gr.intr.handle_gcc_exception(g, gpc,
+				tpc, gpc_exception,
+				&g->ecc.gr.gcc_l15_ecc_corrected_err_count[gpc].counter,
+				&g->ecc.gr.gcc_l15_ecc_uncorrected_err_count[gpc].counter);
 		}
 
 		/* Handle GPCCS exceptions */

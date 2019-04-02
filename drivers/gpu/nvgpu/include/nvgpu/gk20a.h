@@ -371,9 +371,6 @@ struct gpu_ops {
 			u32 gpc, u32 tpc, u32 sm,
 			bool *post_event, struct channel_gk20a *fault_ch,
 			u32 *hww_global_esr);
-		int (*handle_gcc_exception)(struct gk20a *g, u32 gpc, u32 tpc,
-				bool *post_event, struct channel_gk20a *fault_ch,
-				u32 *hww_global_esr);
 		int (*init_ecc)(struct gk20a *g);
 		u32 (*get_lrf_tex_ltc_dram_override)(struct gk20a *g);
 		int (*record_sm_error_state)(struct gk20a *g, u32 gpc, u32 tpc,
@@ -780,6 +777,9 @@ struct gpu_ops {
 		} init;
 
 		struct {
+			void (*handle_gcc_exception)(struct gk20a *g, u32 gpc,
+				u32 tpc, u32 gpc_exception,
+				u32 *corrected_err, u32 *uncorrected_err);
 			void (*handle_gpc_gpcmmu_exception)(struct gk20a *g,
 				u32 gpc, u32 gpc_exception,
 				u32 *corrected_err, u32 *uncorrected_err);

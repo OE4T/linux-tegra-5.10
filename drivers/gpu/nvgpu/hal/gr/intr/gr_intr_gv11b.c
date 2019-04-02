@@ -31,6 +31,104 @@
 
 #include <nvgpu/hw/gv11b/hw_gr_gv11b.h>
 
+void gv11b_gr_intr_handle_gcc_exception(struct gk20a *g, u32 gpc,
+				u32 tpc, u32 gpc_exception,
+				u32 *corrected_err, u32 *uncorrected_err)
+{
+	u32 offset = nvgpu_gr_gpc_offset(g, gpc);
+	u32 gcc_l15_ecc_status, gcc_l15_ecc_corrected_err_status = 0;
+	u32 gcc_l15_ecc_uncorrected_err_status = 0;
+	u32 gcc_l15_corrected_err_count_delta = 0;
+	u32 gcc_l15_uncorrected_err_count_delta = 0;
+	bool is_gcc_l15_ecc_corrected_total_err_overflow = false;
+	bool is_gcc_l15_ecc_uncorrected_total_err_overflow = false;
+
+	if (gr_gpc0_gpccs_gpc_exception_gcc_v(gpc_exception) == 0U) {
+		return;
+	}
+
+	/* Check for gcc l15 ECC errors. */
+	gcc_l15_ecc_status = nvgpu_readl(g,
+		gr_pri_gpc0_gcc_l15_ecc_status_r() + offset);
+	gcc_l15_ecc_corrected_err_status = gcc_l15_ecc_status &
+		(gr_pri_gpc0_gcc_l15_ecc_status_corrected_err_bank0_m() |
+		 gr_pri_gpc0_gcc_l15_ecc_status_corrected_err_bank1_m());
+	gcc_l15_ecc_uncorrected_err_status = gcc_l15_ecc_status &
+		(gr_pri_gpc0_gcc_l15_ecc_status_uncorrected_err_bank0_m() |
+		 gr_pri_gpc0_gcc_l15_ecc_status_uncorrected_err_bank1_m());
+
+	if ((gcc_l15_ecc_corrected_err_status == 0U) &&
+	    (gcc_l15_ecc_uncorrected_err_status == 0U)) {
+		return;
+	}
+
+	gcc_l15_corrected_err_count_delta =
+		gr_pri_gpc0_gcc_l15_ecc_corrected_err_count_total_v(
+		 nvgpu_readl(g,
+			     gr_pri_gpc0_gcc_l15_ecc_corrected_err_count_r() +
+			     offset));
+	gcc_l15_uncorrected_err_count_delta =
+		gr_pri_gpc0_gcc_l15_ecc_uncorrected_err_count_total_v(
+		 nvgpu_readl(g,
+			gr_pri_gpc0_gcc_l15_ecc_uncorrected_err_count_r() +
+			offset));
+	is_gcc_l15_ecc_corrected_total_err_overflow =
+	 gr_pri_gpc0_gcc_l15_ecc_status_corrected_err_total_counter_overflow_v(
+						gcc_l15_ecc_status) != 0U;
+	is_gcc_l15_ecc_uncorrected_total_err_overflow =
+	 gr_pri_gpc0_gcc_l15_ecc_status_uncorrected_err_total_counter_overflow_v(
+						gcc_l15_ecc_status) != 0U;
+
+	if ((gcc_l15_corrected_err_count_delta > 0U) ||
+	    is_gcc_l15_ecc_corrected_total_err_overflow) {
+		nvgpu_log(g, gpu_dbg_fn | gpu_dbg_intr,
+			"corrected error (SBE) detected in GCC L1.5!"
+			"err_mask [%08x] is_overf [%d]",
+			gcc_l15_ecc_corrected_err_status,
+			is_gcc_l15_ecc_corrected_total_err_overflow);
+
+		/* HW uses 16-bits counter */
+		if (is_gcc_l15_ecc_corrected_total_err_overflow) {
+			gcc_l15_corrected_err_count_delta +=
+			 BIT32(
+			  gr_pri_gpc0_gcc_l15_ecc_corrected_err_count_total_s()
+			 );
+		}
+		*corrected_err += gcc_l15_corrected_err_count_delta;
+		nvgpu_gr_report_ecc_error(g, NVGPU_ERR_MODULE_GCC, gpc, tpc,
+				GPU_GCC_L15_ECC_CORRECTED,
+				0, *corrected_err);
+		nvgpu_writel(g,
+		 gr_pri_gpc0_gcc_l15_ecc_corrected_err_count_r() + offset, 0);
+	}
+	if ((gcc_l15_uncorrected_err_count_delta > 0U) ||
+	    is_gcc_l15_ecc_uncorrected_total_err_overflow) {
+		nvgpu_log(g, gpu_dbg_fn | gpu_dbg_intr,
+			"Uncorrected error (DBE) detected in GCC L1.5!"
+			"err_mask [%08x] is_overf [%d]",
+			gcc_l15_ecc_uncorrected_err_status,
+			is_gcc_l15_ecc_uncorrected_total_err_overflow);
+
+		/* HW uses 16-bits counter */
+		if (is_gcc_l15_ecc_uncorrected_total_err_overflow) {
+			gcc_l15_uncorrected_err_count_delta +=
+			BIT32(
+			gr_pri_gpc0_gcc_l15_ecc_uncorrected_err_count_total_s()
+			);
+		}
+		*uncorrected_err += gcc_l15_uncorrected_err_count_delta;
+		nvgpu_gr_report_ecc_error(g, NVGPU_ERR_MODULE_GCC, gpc, tpc,
+				GPU_GCC_L15_ECC_UNCORRECTED,
+				0, *uncorrected_err);
+		nvgpu_writel(g,
+		 gr_pri_gpc0_gcc_l15_ecc_uncorrected_err_count_r() + offset,
+		 0);
+	}
+
+	nvgpu_writel(g, gr_pri_gpc0_gcc_l15_ecc_status_r() + offset,
+			gr_pri_gpc0_gcc_l15_ecc_status_reset_task_f());
+}
+
 void gv11b_gr_intr_handle_gpc_gpcmmu_exception(struct gk20a *g, u32 gpc,
 		u32 gpc_exception, u32 *corrected_err, u32 *uncorrected_err)
 {

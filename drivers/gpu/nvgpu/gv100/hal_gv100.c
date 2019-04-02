@@ -461,7 +461,6 @@ static const struct gpu_ops gv100_ops = {
 		.get_egpc_etpc_num = gv11b_gr_get_egpc_etpc_num,
 		.access_smpc_reg = gv11b_gr_access_smpc_reg,
 		.is_egpc_addr = gv11b_gr_pri_is_egpc_addr,
-		.handle_gcc_exception = gr_gv11b_handle_gcc_exception,
 		.decode_egpc_addr = gv11b_gr_decode_egpc_addr,
 		.fecs_host_int_enable = gr_gv11b_fecs_host_int_enable,
 		.handle_ssync_hww = gr_gv11b_handle_ssync_hww,
@@ -703,6 +702,8 @@ static const struct gpu_ops gv100_ops = {
 				gv11b_gr_init_commit_gfxp_wfi_timeout,
 		},
 		.intr = {
+			.handle_gcc_exception =
+				gv11b_gr_intr_handle_gcc_exception,
 			.handle_gpc_gpcmmu_exception =
 				gv11b_gr_intr_handle_gpc_gpcmmu_exception,
 			.handle_gpc_gpccs_exception =
