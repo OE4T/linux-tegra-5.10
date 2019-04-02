@@ -352,7 +352,6 @@ static const struct gpu_ops gp10b_ops = {
 		.create_priv_addr_table = gr_gk20a_create_priv_addr_table,
 		.split_fbpa_broadcast_addr = gr_gk20a_split_fbpa_broadcast_addr,
 		.alloc_global_ctx_buffers = gr_gk20a_alloc_global_ctx_buffers,
-		.commit_global_ctx_buffers = gr_gk20a_commit_global_ctx_buffers,
 		.get_offset_in_gpccs_segment =
 			gr_gk20a_get_offset_in_gpccs_segment,
 		.set_debug_mode = gm20b_gr_set_debug_mode,

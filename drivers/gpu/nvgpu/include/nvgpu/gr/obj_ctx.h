@@ -35,6 +35,9 @@ struct nvgpu_mem;
 struct channel_gk20a;
 struct nvgpu_gr_obj_ctx_golden_image;
 
+int nvgpu_gr_obj_ctx_commit_global_ctx_buffers(struct gk20a *g,
+			struct nvgpu_gr_ctx *gr_ctx, bool patch);
+
 int nvgpu_gr_obj_ctx_alloc_golden_ctx_image(struct gk20a *g,
 	struct nvgpu_gr_obj_ctx_golden_image *golden_image,
 	struct nvgpu_gr_ctx *gr_ctx,

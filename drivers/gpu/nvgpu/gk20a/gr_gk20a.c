@@ -200,62 +200,6 @@ u32 fecs_current_ctx_data(struct gk20a *g, struct nvgpu_mem *inst_block)
 		gr_fecs_current_ctx_valid_f(1);
 }
 
-int gr_gk20a_commit_global_ctx_buffers(struct gk20a *g,
-			struct nvgpu_gr_ctx *gr_ctx, bool patch)
-{
-	struct gr_gk20a *gr = &g->gr;
-	u64 addr;
-	u32 size;
-
-	nvgpu_log_fn(g, " ");
-
-	if (patch) {
-		int err;
-		err = nvgpu_gr_ctx_patch_write_begin(g, gr_ctx, false);
-		if (err != 0) {
-			return err;
-		}
-	}
-
-	/* global pagepool buffer */
-	addr = nvgpu_gr_ctx_get_global_ctx_va(gr_ctx, NVGPU_GR_CTX_PAGEPOOL_VA);
-	size = (u32)nvgpu_gr_global_ctx_get_size(gr->global_ctx_buffer,
-			NVGPU_GR_GLOBAL_CTX_PAGEPOOL);
-
-	g->ops.gr.init.commit_global_pagepool(g, gr_ctx, addr, size, patch,
-		true);
-
-	/* global bundle cb */
-	addr = nvgpu_gr_ctx_get_global_ctx_va(gr_ctx, NVGPU_GR_CTX_CIRCULAR_VA);
-	size = g->ops.gr.init.get_bundle_cb_default_size(g);
-
-	g->ops.gr.init.commit_global_bundle_cb(g, gr_ctx, addr, size, patch);
-
-	/* global attrib cb */
-	addr = nvgpu_gr_ctx_get_global_ctx_va(gr_ctx,
-			NVGPU_GR_CTX_ATTRIBUTE_VA);
-
-	g->ops.gr.init.commit_global_attrib_cb(g, gr_ctx,
-		nvgpu_gr_config_get_tpc_count(g->gr.config),
-		nvgpu_gr_config_get_max_tpc_count(g->gr.config), addr, patch);
-
-	g->ops.gr.init.commit_global_cb_manager(g, g->gr.config, gr_ctx, patch);
-
-	if (g->ops.gr.init.commit_rtv_cb != NULL) {
-		/* RTV circular buffer */
-		addr = nvgpu_gr_ctx_get_global_ctx_va(gr_ctx,
-			NVGPU_GR_CTX_RTV_CIRCULAR_BUFFER_VA);
-
-		g->ops.gr.init.commit_rtv_cb(g, addr, gr_ctx, patch);
-	}
-
-	if (patch) {
-		nvgpu_gr_ctx_patch_write_end(g, gr_ctx, false);
-	}
-
-	return 0;
-}
-
 int gr_gk20a_update_smpc_ctxsw_mode(struct gk20a *g,
 				    struct channel_gk20a *c,
 				    bool enable_smpc_ctxsw)

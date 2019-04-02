@@ -423,8 +423,6 @@ int gk20a_gr_handle_notify_pending(struct gk20a *g,
 				struct gr_gk20a_isr_data *isr_data);
 
 int gr_gk20a_alloc_global_ctx_buffers(struct gk20a *g);
-int gr_gk20a_commit_global_ctx_buffers(struct gk20a *g,
-			struct nvgpu_gr_ctx *gr_ctx, bool patch);
 
 u32 fecs_current_ctx_data(struct gk20a *g, struct nvgpu_mem *inst_block);
 

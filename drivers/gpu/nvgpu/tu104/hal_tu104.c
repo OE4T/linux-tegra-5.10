@@ -501,7 +501,6 @@ static const struct gpu_ops tu104_ops = {
 		.create_priv_addr_table = gr_gv11b_create_priv_addr_table,
 		.split_fbpa_broadcast_addr = gr_gv100_split_fbpa_broadcast_addr,
 		.alloc_global_ctx_buffers = gr_gk20a_alloc_global_ctx_buffers,
-		.commit_global_ctx_buffers = gr_gk20a_commit_global_ctx_buffers,
 		.get_nonpes_aware_tpc = gr_gv11b_get_nonpes_aware_tpc,
 		.get_offset_in_gpccs_segment =
 			gr_tu104_get_offset_in_gpccs_segment,
