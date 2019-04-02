@@ -23,6 +23,7 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/io.h>
 
+#include <nvgpu/gr/gr.h>
 #include <nvgpu/gr/config.h>
 #include <nvgpu/gr/gr.h>
 #include <nvgpu/gr/gr_intr.h>
@@ -59,10 +60,7 @@ u32 gm20b_gr_intr_get_tpc_exception(struct gk20a *g, u32 offset,
 
 void gm20b_gr_intr_handle_tex_exception(struct gk20a *g, u32 gpc, u32 tpc)
 {
-	u32 gpc_stride = nvgpu_get_litter_value(g, GPU_LIT_GPC_STRIDE);
-	u32 tpc_in_gpc_stride = nvgpu_get_litter_value(g,
-						GPU_LIT_TPC_IN_GPC_STRIDE);
-	u32 offset = gpc_stride * gpc + tpc_in_gpc_stride * tpc;
+	u32 offset = nvgpu_gr_gpc_offset(g, gpc) + nvgpu_gr_tpc_offset(g, tpc);
 	u32 esr;
 
 	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gpu_dbg, " ");
@@ -123,4 +121,21 @@ void gm20b_gr_intr_enable_gpc_exceptions(struct gk20a *g,
 	tpc_mask = gr_gpcs_gpccs_gpc_exception_en_tpc_f(tpc_mask_calc - 1U);
 
 	nvgpu_writel(g, gr_gpcs_gpccs_gpc_exception_en_r(), tpc_mask);
+}
+
+u32 gm20b_gr_intr_nonstall_isr(struct gk20a *g)
+{
+	u32 ops = 0;
+	u32 gr_intr = nvgpu_readl(g, gr_intr_nonstall_r());
+
+	nvgpu_log(g, gpu_dbg_intr, "pgraph nonstall intr %08x", gr_intr);
+
+	if ((gr_intr & gr_intr_nonstall_trap_pending_f()) != 0U) {
+		/* Clear the interrupt */
+		nvgpu_writel(g, gr_intr_nonstall_r(),
+			gr_intr_nonstall_trap_pending_f());
+		ops |= (GK20A_NONSTALL_OPS_WAKEUP_SEMAPHORE |
+			GK20A_NONSTALL_OPS_POST_EVENTS);
+	}
+	return ops;
 }

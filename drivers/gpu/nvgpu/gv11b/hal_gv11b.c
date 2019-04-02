@@ -677,6 +677,7 @@ static const struct gpu_ops gv11b_ops = {
 			.enable_gpc_exceptions =
 					gv11b_gr_intr_enable_gpc_exceptions,
 			.enable_exceptions = gv11b_gr_intr_enable_exceptions,
+			.nonstall_isr = gm20b_gr_intr_nonstall_isr,
 		},
 		.falcon = {
 			.fecs_base_addr = gm20b_gr_falcon_fecs_base_addr,

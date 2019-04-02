@@ -111,7 +111,7 @@ u32 gm20b_mc_isr_nonstall(struct gk20a *g)
 			engine_enum = engine_info->engine_enum;
 			/* GR Engine */
 			if (engine_enum == NVGPU_ENGINE_GR_GK20A) {
-				ops |= gk20a_gr_nonstall_isr(g);
+				ops |= g->ops.gr.intr.nonstall_isr(g);
 			}
 			/* CE Engine */
 			if (((engine_enum == NVGPU_ENGINE_GRCE_GK20A) ||

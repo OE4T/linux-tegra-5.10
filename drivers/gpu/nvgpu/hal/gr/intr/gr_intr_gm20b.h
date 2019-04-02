@@ -39,5 +39,6 @@ void gm20b_gr_intr_enable_exceptions(struct gk20a *g,
 				     bool enable);
 void gm20b_gr_intr_enable_gpc_exceptions(struct gk20a *g,
 					 struct nvgpu_gr_config *gr_config);
+u32 gm20b_gr_intr_nonstall_isr(struct gk20a *g);
 
 #endif /* NVGPU_GR_INTR_GM20B_H */

@@ -299,7 +299,6 @@ int gk20a_init_gr_channel(struct channel_gk20a *ch_gk20a);
 int gk20a_alloc_obj_ctx(struct channel_gk20a  *c, u32 class_num, u32 flags);
 
 int gk20a_gr_isr(struct gk20a *g);
-u32 gk20a_gr_nonstall_isr(struct gk20a *g);
 
 /* pmu */
 int gr_gk20a_fecs_get_reglist_img_size(struct gk20a *g, u32 *size);

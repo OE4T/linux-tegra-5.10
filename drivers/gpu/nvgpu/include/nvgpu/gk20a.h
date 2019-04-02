@@ -799,6 +799,7 @@ struct gpu_ops {
 					bool enable);
 			void (*enable_gpc_exceptions)(struct gk20a *g,
 					struct nvgpu_gr_config *gr_config);
+			u32 (*nonstall_isr)(struct gk20a *g);
 		} intr;
 
 		u32 (*get_ctxsw_checksum_mismatch_mailbox_val)(void);
