@@ -90,7 +90,7 @@ static int gm20b_acr_fill_bl_dmem_desc(struct gk20a *g,
 
 	nvgpu_log_fn(g, " ");
 
-	(void) memset(bl_dmem_desc, 0U, sizeof(struct flcn_bl_dmem_desc));
+	(void) memset(bl_dmem_desc, 0, sizeof(struct flcn_bl_dmem_desc));
 
 	bl_dmem_desc->signature[0] = 0U;
 	bl_dmem_desc->signature[1] = 0U;

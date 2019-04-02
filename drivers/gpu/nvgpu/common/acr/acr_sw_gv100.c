@@ -52,6 +52,7 @@ static int gv100_acr_patch_wpr_info_to_ucode(struct gk20a *g,
 	struct wpr_carveout_info wpr_inf;
 	u32 *acr_ucode_header = NULL;
 	u32 *acr_ucode_data = NULL;
+	u64 tmp_addr;
 
 	nvgpu_log_fn(g, " ");
 
@@ -75,12 +76,19 @@ static int gv100_acr_patch_wpr_info_to_ucode(struct gk20a *g,
 
 	acr_dmem_desc->wpr_region_id = 1U;
 	acr_dmem_desc->regions.region_props[0U].region_id = 1U;
-	acr_dmem_desc->regions.region_props[0U].start_addr =
-		(wpr_inf.wpr_base) >> 8U;
-	acr_dmem_desc->regions.region_props[0U].end_addr =
-		((wpr_inf.wpr_base) + wpr_inf.size) >> 8U;
+
+	tmp_addr = (wpr_inf.wpr_base) >> 8U;
+	nvgpu_assert(u64_hi32(tmp_addr) == 0U);
+	acr_dmem_desc->regions.region_props[0U].start_addr = U32(tmp_addr);
+
+	tmp_addr = ((wpr_inf.wpr_base) + wpr_inf.size) >> 8U;
+	nvgpu_assert(u64_hi32(tmp_addr) == 0U);
+	acr_dmem_desc->regions.region_props[0U].end_addr = U32(tmp_addr);
+
+	tmp_addr = wpr_inf.nonwpr_base >> 8U;
+	nvgpu_assert(u64_hi32(tmp_addr) == 0U);
 	acr_dmem_desc->regions.region_props[0U].shadowmMem_startaddress =
-		wpr_inf.nonwpr_base >> 8U;
+		U32(tmp_addr);
 
 	return 0;
 }
@@ -95,7 +103,7 @@ int gv100_acr_fill_bl_dmem_desc(struct gk20a *g,
 
 	nvgpu_log_fn(g, " ");
 
-	(void) memset(bl_dmem_desc, 0U, sizeof(struct flcn_bl_dmem_desc_v1));
+	(void) memset(bl_dmem_desc, 0, sizeof(struct flcn_bl_dmem_desc_v1));
 
 	bl_dmem_desc->signature[0] = 0U;
 	bl_dmem_desc->signature[1] = 0U;
