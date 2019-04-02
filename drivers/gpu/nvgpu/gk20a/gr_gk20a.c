@@ -857,12 +857,12 @@ static int gk20a_gr_post_bpt_events(struct gk20a *g, struct tsg_gk20a *tsg,
 {
 	if ((global_esr &
 	     gr_gpc0_tpc0_sm_hww_global_esr_bpt_int_pending_f()) != 0U) {
-		g->ops.fifo.post_event_id(tsg, NVGPU_EVENT_ID_BPT_INT);
+		g->ops.tsg.post_event_id(tsg, NVGPU_EVENT_ID_BPT_INT);
 	}
 
 	if ((global_esr &
 	     gr_gpc0_tpc0_sm_hww_global_esr_bpt_pause_pending_f()) != 0U) {
-		g->ops.fifo.post_event_id(tsg, NVGPU_EVENT_ID_BPT_PAUSE);
+		g->ops.tsg.post_event_id(tsg, NVGPU_EVENT_ID_BPT_PAUSE);
 	}
 
 	return 0;

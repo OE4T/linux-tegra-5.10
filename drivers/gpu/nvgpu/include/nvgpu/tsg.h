@@ -113,7 +113,7 @@ void nvgpu_tsg_set_ctx_mmu_error(struct gk20a *g,
 		struct tsg_gk20a *tsg);
 bool nvgpu_tsg_mark_error(struct gk20a *g, struct tsg_gk20a *tsg);
 
-void gk20a_tsg_event_id_post_event(struct tsg_gk20a *tsg,
+void nvgpu_tsg_post_event_id(struct tsg_gk20a *tsg,
 				       int event_id);
 bool nvgpu_tsg_check_ctxsw_timeout(struct tsg_gk20a *tsg,
 		bool *debug_dump, u32 *ms);

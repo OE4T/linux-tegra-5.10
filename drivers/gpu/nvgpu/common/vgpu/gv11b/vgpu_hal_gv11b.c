@@ -504,7 +504,6 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 		.is_preempt_pending = gv11b_fifo_is_preempt_pending,
 		.reset_enable_hw = NULL,
 		.teardown_ch_tsg = NULL,
-		.post_event_id = gk20a_tsg_event_id_post_event,
 		.setup_sw = vgpu_fifo_setup_sw,
 		.cleanup_sw = vgpu_fifo_cleanup_sw,
 		.ring_channel_doorbell = gv11b_ring_channel_doorbell,
@@ -638,6 +637,7 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 		.unbind_channel_check_eng_faulted = NULL,
 		.check_ctxsw_timeout = nvgpu_tsg_check_ctxsw_timeout,
 		.force_reset = vgpu_tsg_force_reset_ch,
+		.post_event_id = nvgpu_tsg_post_event_id,
 	},
 	.netlist = {
 		.get_netlist_name = gv11b_netlist_get_name,

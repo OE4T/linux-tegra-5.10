@@ -200,7 +200,7 @@ static u32 nvgpu_event_id_to_ioctl_channel_event_id(u32 event_id)
 	return NVGPU_IOCTL_CHANNEL_EVENT_ID_MAX;
 }
 
-void gk20a_tsg_event_id_post_event(struct tsg_gk20a *tsg,
+void nvgpu_tsg_post_event_id(struct tsg_gk20a *tsg,
 				       int event_id)
 {
 	struct gk20a_event_id_data *channel_event_id_data;

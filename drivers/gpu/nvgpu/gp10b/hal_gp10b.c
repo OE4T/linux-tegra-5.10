@@ -725,7 +725,6 @@ static const struct gpu_ops gp10b_ops = {
 		.teardown_ch_tsg = gk20a_fifo_teardown_ch_tsg,
 		.teardown_mask_intr = gk20a_fifo_teardown_mask_intr,
 		.teardown_unmask_intr = gk20a_fifo_teardown_unmask_intr,
-		.post_event_id = gk20a_tsg_event_id_post_event,
 		.setup_sw = nvgpu_fifo_setup_sw,
 		.cleanup_sw = nvgpu_fifo_cleanup_sw,
 		.set_sm_exception_type_mask = gk20a_tsg_set_sm_exception_type_mask,
@@ -866,6 +865,7 @@ static const struct gpu_ops gp10b_ops = {
 		.unbind_channel_check_eng_faulted = NULL,
 		.check_ctxsw_timeout = nvgpu_tsg_check_ctxsw_timeout,
 		.force_reset = nvgpu_tsg_force_reset_ch,
+		.post_event_id = nvgpu_tsg_post_event_id,
 	},
 	.netlist = {
 		.get_netlist_name = gp10b_netlist_get_name,

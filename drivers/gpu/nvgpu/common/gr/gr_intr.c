@@ -336,7 +336,7 @@ int nvgpu_gr_intr_handle_semaphore_pending(struct gk20a *g,
 
 	tsg = tsg_gk20a_from_ch(ch);
 	if (tsg != NULL) {
-		g->ops.fifo.post_event_id(tsg,
+		g->ops.tsg.post_event_id(tsg,
 			NVGPU_EVENT_ID_GR_SEMAPHORE_WRITE_AWAKEN);
 
 		nvgpu_cond_broadcast(&ch->semaphore_wq);

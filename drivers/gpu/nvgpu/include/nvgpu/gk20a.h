@@ -971,7 +971,6 @@ struct gpu_ops {
 		void (*teardown_mask_intr)(struct gk20a *g);
 		void (*teardown_unmask_intr)(struct gk20a *g);
 		u32 (*get_preempt_timeout)(struct gk20a *g);
-		void (*post_event_id)(struct tsg_gk20a *tsg, int event_id);
 		void (*ring_channel_doorbell)(struct channel_gk20a *c);
 		u64 (*usermode_base)(struct gk20a *g);
 		u32 (*doorbell_token)(struct channel_gk20a *c);
@@ -1170,6 +1169,7 @@ struct gpu_ops {
 				bool *verbose, u32 *ms);
 		int (*force_reset)(struct channel_gk20a *ch,
 					u32 err_code, bool verbose);
+		void (*post_event_id)(struct tsg_gk20a *tsg, int event_id);
 	} tsg;
 	struct {
 		void (*read_engine_status_info) (struct gk20a *g,

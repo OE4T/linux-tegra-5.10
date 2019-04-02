@@ -40,6 +40,8 @@
 #include <nvgpu/string.h>
 #include <nvgpu/vm_area.h>
 
+#include <hal/fifo/tsg_gk20a.h>
+
 #include "fifo_vgpu.h"
 #include "common/vgpu/gr/subctx_vgpu.h"
 #include "common/vgpu/ivc/comm_vgpu.h"
@@ -513,7 +515,7 @@ void vgpu_handle_channel_event(struct gk20a *g,
 
 	tsg = &g->fifo.tsg[info->id];
 
-	gk20a_tsg_event_id_post_event(tsg, info->event_id);
+	nvgpu_tsg_post_event_id(tsg, info->event_id);
 }
 
 void vgpu_channel_abort_cleanup(struct gk20a *g, u32 chid)

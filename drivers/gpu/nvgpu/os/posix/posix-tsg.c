@@ -22,7 +22,7 @@
 
 #include <nvgpu/tsg.h>
 
-void gk20a_tsg_event_id_post_event(struct tsg_gk20a *tsg,
+void nvgpu_tsg_post_event_id(struct tsg_gk20a *tsg,
 				       int event_id)
 {
 }
