@@ -32,8 +32,9 @@ struct gosmem_priv {
 	void *cpu_addr;
 	void *memremap_addr;
 	dma_addr_t dma_addr;
+	int cvdevs;
 };
-static struct gosmem_priv gos;
+static struct gosmem_priv *gos;
 
 const struct of_device_id nvmap_of_ids[] = {
 	{ .compatible = "nvidia,carveouts" },
@@ -68,11 +69,11 @@ int nvmap_register_cvsram_carveout(struct device *dma_dev,
 EXPORT_SYMBOL(nvmap_register_cvsram_carveout);
 
 static struct cv_dev_info *cvdev_info;
-static int cvdev_count = 0;
 
 static void nvmap_gosmem_device_release(struct reserved_mem *rmem,
 		struct device *dev)
 {
+	int cvdev_count = gos->cvdevs;
 	struct sg_table *sgt;
 	int i;
 
@@ -84,13 +85,13 @@ static void nvmap_gosmem_device_release(struct reserved_mem *rmem,
 	for (i = 0; i < cvdev_count; i++)
 		of_node_put(cvdev_info[i].np);
 
-	dma_free_coherent(gos.dev, cvdev_count * SZ_4K, gos.cpu_addr,
-			gos.dma_addr);
-	memunmap(gos.memremap_addr);
+	memunmap(gos->memremap_addr);
+	dma_free_coherent(gos->dev, cvdev_count * SZ_4K, gos->cpu_addr,
+			gos->dma_addr);
 
 	kfree(cvdev_info);
 	cvdev_info = NULL;
-	cvdev_count = 0;
+	kfree(gos);
 }
 
 static int __init nvmap_gosmem_device_init(struct reserved_mem *rmem,
@@ -101,6 +102,7 @@ static int __init nvmap_gosmem_device_init(struct reserved_mem *rmem,
 	DEFINE_DMA_ATTRS(attrs);
 	int ret = 0, i, idx, bytes;
 	struct sg_table *sgt;
+	int cvdev_count;
 
 	dma_set_attr(DMA_ATTR_ALLOC_EXACT_SIZE, __DMA_ATTR(attrs));
 
@@ -110,25 +112,32 @@ static int __init nvmap_gosmem_device_init(struct reserved_mem *rmem,
 		return -ENODEV;
 	}
 
-	if (cvdev_count) {
-		pr_err("Gosmem initialized already\n");
-		return -EBUSY;
+	if (!of_device_is_available(np)) {
+		dev_err(dev, "device is disabled\n");
+		return -ENODEV;
 	}
 
-	cvdev_count = of_count_phandle_with_args(np, "cvdevs", NULL);
-	if (!cvdev_count) {
-		pr_err("No cvdevs to use the gosmem!!\n");
-		return -EINVAL;
-	}
-
-	gos.cpu_addr = dma_alloc_coherent(dev, cvdev_count * SZ_4K,
-				&gos.dma_addr, GFP_KERNEL);
-	if (!gos.cpu_addr) {
-		pr_err("Failed to allocate from Gos mem carveout\n");
+	gos = kzalloc(sizeof(*gos), GFP_KERNEL);
+	if (!gos)
 		return -ENOMEM;
+
+	gos->cvdevs = of_count_phandle_with_args(np, "cvdevs", NULL);
+	if (!gos->cvdevs) {
+		pr_err("No cvdevs to use the gosmem!!\n");
+		ret = -EINVAL;
+		goto free_gos;
+	}
+	cvdev_count = gos->cvdevs;
+
+	gos->cpu_addr = dma_alloc_coherent(dev, cvdev_count * SZ_4K,
+				&gos->dma_addr, GFP_KERNEL);
+	if (!gos->cpu_addr) {
+		pr_err("Failed to allocate from Gos mem carveout\n");
+		ret = -ENOMEM;
+		goto free_gos;
 	}
 
-	gos.memremap_addr = memremap(virt_to_phys(gos.cpu_addr),
+	gos->memremap_addr = memremap(virt_to_phys(gos->cpu_addr),
 			cvdev_count * SZ_4K, MEMREMAP_WB);
 
 	bytes = sizeof(*cvdev_info) * cvdev_count;
@@ -163,7 +172,7 @@ static int __init nvmap_gosmem_device_init(struct reserved_mem *rmem,
 		cvdev_info[idx].sgt =
 			(struct sg_table *)(cvdev_info + cvdev_count);
 		cvdev_info[idx].sgt += idx * cvdev_count;
-		cvdev_info[idx].cpu_addr = gos.memremap_addr + idx * SZ_4K;
+		cvdev_info[idx].cpu_addr = gos->memremap_addr + idx * SZ_4K;
 
 		for (i = 0; i < cvdev_count; i++) {
 			sgt = cvdev_info[idx].sgt + i;
@@ -174,7 +183,7 @@ static int __init nvmap_gosmem_device_init(struct reserved_mem *rmem,
 				goto free;
 			}
 			sg_set_buf(sgt->sgl,
-				(gos.memremap_addr + i * SZ_4K), SZ_4K);
+				(gos->memremap_addr + i * SZ_4K), SZ_4K);
 		}
 	}
 
@@ -188,8 +197,12 @@ free_cvdev:
 	cvdev_info = NULL;
 	cvdev_count = 0;
 unmap_dma:
-	dma_free_coherent(dev, cvdev_count * SZ_4K, gos.cpu_addr, gos.dma_addr);
-	memunmap(gos.memremap_addr);
+	memunmap(gos->memremap_addr);
+	dma_free_coherent(dev, cvdev_count * SZ_4K, gos->cpu_addr,
+				gos->dma_addr);
+free_gos:
+	kfree(gos);
+	gos = NULL;
 	return ret;
 }
 
@@ -243,7 +256,7 @@ static int nvmap_gosmem_notifier(struct notifier_block *nb,
 	if (!gos_owner)
 		return NOTIFY_DONE;
 
-	for (i = 0; i < cvdev_count; i++) {
+	for (i = 0; i < gos->cvdevs; i++) {
 		DEFINE_DMA_ATTRS(attrs);
 		enum dma_data_direction dir;
 
@@ -293,7 +306,7 @@ struct cv_dev_info *nvmap_fetch_cv_dev_info(struct device *dev)
 	if (!dev || !cvdev_info || !dev->of_node)
 		return NULL;
 
-	for (i = 0; i < cvdev_count; i++)
+	for (i = 0; i < gos->cvdevs; i++)
 		if (cvdev_info[i].np == dev->of_node)
 			return &cvdev_info[i];
 	return NULL;
@@ -307,7 +320,7 @@ int nvmap_alloc_gos_slot(struct device *dev,
 	u32 offset;
 	int i;
 
-	for (i = 0; i < cvdev_count; i++) {
+	for (i = 0; i < gos->cvdevs; i++) {
 		if (cvdev_info[i].np != dev->of_node)
 			continue;
 
@@ -335,7 +348,7 @@ int nvmap_alloc_gos_slot(struct device *dev,
 
 void nvmap_free_gos_slot(u32 index, u32 offset)
 {
-	if (WARN_ON(index >= cvdev_count) ||
+	if (WARN_ON(index >= gos->cvdevs) ||
 		WARN_ON(offset >= NVMAP_MAX_GOS_COUNT))
 		return;
 
