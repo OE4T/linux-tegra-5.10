@@ -191,10 +191,13 @@ struct gk20a;
 /* GSP VM support */
 #define NVGPU_SUPPORT_GSP_VM			74
 
+/* GFXP preemption support */
+#define NVGPU_SUPPORT_PREEMPTION_GFXP		75
+
 /*
  * Must be greater than the largest bit offset in the above list.
  */
-#define NVGPU_MAX_ENABLED_BITS			75U
+#define NVGPU_MAX_ENABLED_BITS			76U
 
 /**
  * nvgpu_is_enabled - Check if the passed flag is enabled.

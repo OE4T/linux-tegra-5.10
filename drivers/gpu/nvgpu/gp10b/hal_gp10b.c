@@ -295,10 +295,6 @@ static const struct gpu_ops gp10b_ops = {
 		.detect_sm_arch = gr_gm20b_detect_sm_arch,
 		.init_ctx_state = gr_gp10b_init_ctx_state,
 		.free_gr_ctx = gr_gk20a_free_gr_ctx,
-		.init_ctxsw_preemption_mode =
-			gr_gp10b_init_ctxsw_preemption_mode,
-		.update_ctxsw_preemption_mode =
-			gr_gp10b_update_ctxsw_preemption_mode,
 		.dump_gr_regs = gr_gp10b_dump_gr_status_regs,
 		.update_pc_sampling = gr_gm20b_update_pc_sampling,
 		.get_rop_l2_en_mask = gr_gm20b_rop_l2_en_mask,
@@ -342,7 +338,6 @@ static const struct gpu_ops gp10b_ops = {
 		.set_preemption_mode = gr_gp10b_set_preemption_mode,
 		.pre_process_sm_exception = gr_gp10b_pre_process_sm_exception,
 		.set_bes_crop_debug3 = gr_gp10b_set_bes_crop_debug3,
-		.set_ctxsw_preemption_mode = gr_gp10b_set_ctxsw_preemption_mode,
 		.init_ecc = gp10b_ecc_init,
 		.init_gfxp_wfi_timeout_count =
 				gr_gp10b_init_gfxp_wfi_timeout_count,
@@ -1179,6 +1174,7 @@ int gp10b_init_hal(struct gk20a *g)
 	}
 
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_ZBC_STENCIL, false);
+	nvgpu_set_enabled(g, NVGPU_SUPPORT_PREEMPTION_GFXP, true);
 	nvgpu_set_enabled(g, NVGPU_PMU_FECS_BOOTSTRAP_DONE, false);
 	g->pmu_lsf_pmu_wpr_init_done = false;
 

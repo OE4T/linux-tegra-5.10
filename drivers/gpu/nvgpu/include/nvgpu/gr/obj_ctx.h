@@ -35,6 +35,12 @@ struct nvgpu_mem;
 struct channel_gk20a;
 struct nvgpu_gr_obj_ctx_golden_image;
 
+int nvgpu_gr_obj_ctx_set_ctxsw_preemption_mode(struct gk20a *g,
+	struct nvgpu_gr_ctx *gr_ctx, struct vm_gk20a *vm, u32 class,
+	u32 graphics_preempt_mode, u32 compute_preempt_mode);
+void nvgpu_gr_obj_ctx_update_ctxsw_preemption_mode(struct gk20a *g,
+		struct nvgpu_gr_ctx *gr_ctx, struct nvgpu_gr_subctx *subctx);
+
 int nvgpu_gr_obj_ctx_commit_global_ctx_buffers(struct gk20a *g,
 			struct nvgpu_gr_ctx *gr_ctx, bool patch);
 

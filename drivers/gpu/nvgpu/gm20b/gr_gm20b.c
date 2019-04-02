@@ -390,32 +390,6 @@ void gr_gm20b_detect_sm_arch(struct gk20a *g)
 		gr_gpc0_tpc0_sm_arch_warp_count_v(v);
 }
 
-int gr_gm20b_init_ctxsw_preemption_mode(struct gk20a *g,
-	struct nvgpu_gr_ctx *gr_ctx, struct vm_gk20a *vm,
-	u32 class, u32 flags)
-{
-	nvgpu_log_fn(g, " ");
-
-	if (class == MAXWELL_COMPUTE_B) {
-		nvgpu_gr_ctx_init_compute_preemption_mode(gr_ctx,
-			NVGPU_PREEMPTION_MODE_COMPUTE_CTA);
-	}
-
-	nvgpu_log_fn(g, "done");
-
-	return 0;
-}
-
-void gr_gm20b_update_ctxsw_preemption_mode(struct gk20a *g,
-		struct nvgpu_gr_ctx *gr_ctx, struct nvgpu_gr_subctx *subctx)
-{
-	nvgpu_log_fn(g, " ");
-
-	nvgpu_gr_ctx_set_preemption_modes(g, gr_ctx);
-
-	nvgpu_log_fn(g, "done");
-}
-
 int gr_gm20b_dump_gr_status_regs(struct gk20a *g,
 			   struct gk20a_debug_output *o)
 {

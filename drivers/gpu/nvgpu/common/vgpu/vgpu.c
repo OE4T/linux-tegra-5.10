@@ -284,6 +284,8 @@ void vgpu_init_gpu_characteristics(struct gk20a *g)
 
 	gk20a_init_gpu_characteristics(g);
 
+	nvgpu_set_enabled(g, NVGPU_SUPPORT_PREEMPTION_GFXP, true);
+
 	/* features vgpu does not support */
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_MAP_BUFFER_BATCH, false);
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_RESCHEDULE_RUNLIST, false);

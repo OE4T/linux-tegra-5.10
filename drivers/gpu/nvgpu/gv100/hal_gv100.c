@@ -404,10 +404,6 @@ static const struct gpu_ops gv100_ops = {
 		.detect_sm_arch = gr_gv11b_detect_sm_arch,
 		.init_ctx_state = gr_gp10b_init_ctx_state,
 		.free_gr_ctx = gr_gk20a_free_gr_ctx,
-		.init_ctxsw_preemption_mode =
-			gr_gp10b_init_ctxsw_preemption_mode,
-		.update_ctxsw_preemption_mode =
-			gr_gp10b_update_ctxsw_preemption_mode,
 		.dump_gr_regs = gr_gv11b_dump_gr_status_regs,
 		.update_pc_sampling = gr_gm20b_update_pc_sampling,
 		.get_rop_l2_en_mask = gr_gm20b_rop_l2_en_mask,
@@ -455,7 +451,6 @@ static const struct gpu_ops gv100_ops = {
 		.pre_process_sm_exception = gr_gv11b_pre_process_sm_exception,
 		.set_bes_crop_debug3 = gr_gp10b_set_bes_crop_debug3,
 		.set_bes_crop_debug4 = gr_gp10b_set_bes_crop_debug4,
-		.set_ctxsw_preemption_mode = gr_gp10b_set_ctxsw_preemption_mode,
 		.is_etpc_addr = gv11b_gr_pri_is_etpc_addr,
 		.egpc_etpc_priv_addr_table = gv11b_gr_egpc_etpc_priv_addr_table,
 		.get_egpc_base = gv11b_gr_get_egpc_base,
@@ -1454,6 +1449,7 @@ int gv100_init_hal(struct gk20a *g)
 	nvgpu_set_enabled(g, NVGPU_FECS_TRACE_VA, true);
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_PMU_RTOS_FBQ, true);
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_ZBC_STENCIL, true);
+	nvgpu_set_enabled(g, NVGPU_SUPPORT_PREEMPTION_GFXP, true);
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_SEC2_VM, true);
 
 	/*

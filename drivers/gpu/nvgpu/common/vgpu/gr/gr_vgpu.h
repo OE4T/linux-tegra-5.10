@@ -80,16 +80,6 @@ int vgpu_gr_init_sm_id_table(struct nvgpu_gr_config *gr_config);
 int vgpu_gr_init_fs_state(struct gk20a *g);
 int vgpu_gr_update_pc_sampling(struct channel_gk20a *ch, bool enable);
 void vgpu_gr_init_cyclestats(struct gk20a *g);
-int vgpu_gr_init_ctxsw_preemption_mode(struct gk20a *g,
-				struct nvgpu_gr_ctx *gr_ctx,
-				struct vm_gk20a *vm,
-				u32 class,
-				u32 flags);
-int vgpu_gr_set_ctxsw_preemption_mode(struct gk20a *g,
-				struct nvgpu_gr_ctx *gr_ctx,
-				struct vm_gk20a *vm, u32 class,
-				u32 graphics_preempt_mode,
-				u32 compute_preempt_mode);
 int vgpu_gr_set_preemption_mode(struct channel_gk20a *ch,
 				u32 graphics_preempt_mode,
 				u32 compute_preempt_mode);

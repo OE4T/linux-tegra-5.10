@@ -52,6 +52,17 @@
 #include "common/vgpu/perf/cyclestats_snapshot_vgpu.h"
 #include "common/gr/zcull_priv.h"
 
+static int vgpu_gr_set_ctxsw_preemption_mode(struct gk20a *g,
+				struct nvgpu_gr_ctx *gr_ctx,
+				struct vm_gk20a *vm, u32 class,
+				u32 graphics_preempt_mode,
+				u32 compute_preempt_mode);
+static int vgpu_gr_init_ctxsw_preemption_mode(struct gk20a *g,
+				struct nvgpu_gr_ctx *gr_ctx,
+				struct vm_gk20a *vm,
+				u32 class,
+				u32 flags);
+
 void vgpu_gr_detect_sm_arch(struct gk20a *g)
 {
 	struct vgpu_priv_data *priv = vgpu_get_priv_data(g);
@@ -250,7 +261,7 @@ int vgpu_gr_alloc_obj_ctx(struct channel_gk20a  *c, u32 class_num, u32 flags)
 			goto out;
 		}
 
-		g->ops.gr.init_ctxsw_preemption_mode(g, gr_ctx,
+		vgpu_gr_init_ctxsw_preemption_mode(g, gr_ctx,
 						c->vm,
 						class_num,
 						flags);
@@ -1209,7 +1220,7 @@ void vgpu_gr_init_cyclestats(struct gk20a *g)
 #endif
 }
 
-int vgpu_gr_init_ctxsw_preemption_mode(struct gk20a *g,
+static int vgpu_gr_init_ctxsw_preemption_mode(struct gk20a *g,
 				struct nvgpu_gr_ctx *gr_ctx,
 				struct vm_gk20a *vm,
 				u32 class,
@@ -1239,16 +1250,12 @@ int vgpu_gr_init_ctxsw_preemption_mode(struct gk20a *g,
 	}
 
 	if (graphics_preempt_mode || compute_preempt_mode) {
-		if (g->ops.gr.set_ctxsw_preemption_mode) {
-			err = g->ops.gr.set_ctxsw_preemption_mode(g, gr_ctx, vm,
-			    class, graphics_preempt_mode, compute_preempt_mode);
-			if (err) {
-				nvgpu_err(g,
-					"set_ctxsw_preemption_mode failed");
-				return err;
-			}
-		} else {
-			return -ENOSYS;
+		err = vgpu_gr_set_ctxsw_preemption_mode(g, gr_ctx, vm,
+		    class, graphics_preempt_mode, compute_preempt_mode);
+		if (err) {
+			nvgpu_err(g,
+				"set_ctxsw_preemption_mode failed");
+			return err;
 		}
 	}
 
@@ -1256,7 +1263,7 @@ int vgpu_gr_init_ctxsw_preemption_mode(struct gk20a *g,
 	return 0;
 }
 
-int vgpu_gr_set_ctxsw_preemption_mode(struct gk20a *g,
+static int vgpu_gr_set_ctxsw_preemption_mode(struct gk20a *g,
 				struct nvgpu_gr_ctx *gr_ctx,
 				struct vm_gk20a *vm, u32 class,
 				u32 graphics_preempt_mode,
@@ -1435,16 +1442,12 @@ int vgpu_gr_set_preemption_mode(struct channel_gk20a *ch,
 		return 0;
 	}
 
-	if (g->ops.gr.set_ctxsw_preemption_mode) {
-		err = g->ops.gr.set_ctxsw_preemption_mode(g, gr_ctx, vm, class,
-						graphics_preempt_mode,
-						compute_preempt_mode);
-		if (err) {
-			nvgpu_err(g, "set_ctxsw_preemption_mode failed");
-			return err;
-		}
-	} else {
-		err = -ENOSYS;
+	err = vgpu_gr_set_ctxsw_preemption_mode(g, gr_ctx, vm, class,
+					graphics_preempt_mode,
+					compute_preempt_mode);
+	if (err) {
+		nvgpu_err(g, "set_ctxsw_preemption_mode failed");
+		return err;
 	}
 
 	return err;

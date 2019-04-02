@@ -162,10 +162,6 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 		.detect_sm_arch = vgpu_gr_detect_sm_arch,
 		.init_ctx_state = vgpu_gr_init_ctx_state,
 		.free_gr_ctx = vgpu_gr_free_gr_ctx,
-		.init_ctxsw_preemption_mode =
-			vgpu_gr_init_ctxsw_preemption_mode,
-		.update_ctxsw_preemption_mode =
-			gr_gp10b_update_ctxsw_preemption_mode,
 		.dump_gr_regs = NULL,
 		.update_pc_sampling = vgpu_gr_update_pc_sampling,
 		.get_rop_l2_en_mask = vgpu_gr_rop_l2_en_mask,
@@ -210,7 +206,6 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 		.pre_process_sm_exception = NULL,
 		.set_bes_crop_debug3 = NULL,
 		.set_bes_crop_debug4 = NULL,
-		.set_ctxsw_preemption_mode = vgpu_gr_set_ctxsw_preemption_mode,
 		.is_etpc_addr = gv11b_gr_pri_is_etpc_addr,
 		.egpc_etpc_priv_addr_table = gv11b_gr_egpc_etpc_priv_addr_table,
 		.get_egpc_base = gv11b_gr_get_egpc_base,

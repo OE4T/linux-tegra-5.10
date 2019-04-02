@@ -77,16 +77,6 @@ int gr_gp10b_handle_sw_method(struct gk20a *g, u32 addr,
 void gr_gp10b_set_alpha_circular_buffer_size(struct gk20a *g, u32 data);
 void gr_gp10b_set_circular_buffer_size(struct gk20a *g, u32 data);
 int gr_gp10b_init_ctx_state(struct gk20a *g);
-int gr_gp10b_set_ctxsw_preemption_mode(struct gk20a *g,
-				struct nvgpu_gr_ctx *gr_ctx,
-				struct vm_gk20a *vm, u32 class,
-				u32 graphics_preempt_mode,
-				u32 compute_preempt_mode);
-int gr_gp10b_init_ctxsw_preemption_mode(struct gk20a *g,
-	struct nvgpu_gr_ctx *gr_ctx, struct vm_gk20a *vm,
-	u32 class, u32 flags);
-void gr_gp10b_update_ctxsw_preemption_mode(struct gk20a *g,
-		struct nvgpu_gr_ctx *gr_ctx, struct nvgpu_gr_subctx *subctx);
 int gr_gp10b_dump_gr_status_regs(struct gk20a *g,
 			   struct gk20a_debug_output *o);
 void gr_gp10b_set_gpc_tpc_mask(struct gk20a *g, u32 gpc_index);
