@@ -443,223 +443,6 @@ done:
 	return status;
 }
 
-static int devinit_get_clk_prog_table_1x(struct gk20a *g,
-					struct nvgpu_clk_progs *pclkprogobjs,
-					u8 *clkprogs_tbl_ptr)
-{
-	int status = 0;
-	struct vbios_clock_programming_table_1x_header header = { 0 };
-	struct vbios_clock_programming_table_1x_entry prog = { 0 };
-	struct vbios_clock_programming_table_1x_slave_entry slaveprog = { 0 };
-	struct vbios_clock_programming_table_1x_vf_entry vfprog = { 0 };
-	u8 *entry = NULL;
-	u8 *slaveentry = NULL;
-	u8 *vfentry = NULL;
-	u32 i, j = 0;
-	struct clk_prog *pprog;
-	u8 prog_type;
-	u8 src_type;
-	u32 szfmt;
-	u32 hszfmt = VBIOS_CLOCK_PROGRAMMING_TABLE_1X_HEADER_SIZE_08;
-	u32 slaveszfmt = VBIOS_CLOCK_PROGRAMMING_TABLE_1X_SLAVE_ENTRY_SIZE_03;
-	u32 vfszfmt = VBIOS_CLOCK_PROGRAMMING_TABLE_1X_VF_ENTRY_SIZE_02;
-	struct ctrl_clk_clk_prog_1x_master_vf_entry
-		vfentries[CTRL_CLK_CLK_PROG_1X_MASTER_VF_ENTRY_MAX_ENTRIES];
-	struct ctrl_clk_clk_prog_1x_master_ratio_slave_entry
-		ratioslaveentries[CTRL_CLK_PROG_1X_MASTER_MAX_SLAVE_ENTRIES];
-	struct ctrl_clk_clk_prog_1x_master_table_slave_entry
-		tableslaveentries[CTRL_CLK_PROG_1X_MASTER_MAX_SLAVE_ENTRIES];
-	union {
-		struct boardobj board_obj;
-		struct clk_prog clkprog;
-		struct clk_prog_1x v1x;
-		struct clk_prog_1x_master v1x_master;
-		struct clk_prog_1x_master_ratio v1x_master_ratio;
-		struct clk_prog_1x_master_table v1x_master_table;
-	} prog_data;
-
-	nvgpu_log_info(g, " ");
-
-	nvgpu_memcpy((u8 *)&header, clkprogs_tbl_ptr, hszfmt);
-	if (header.header_size < hszfmt) {
-		status = -EINVAL;
-		goto done;
-	}
-	hszfmt = header.header_size;
-
-	if (header.entry_size <= VBIOS_CLOCK_PROGRAMMING_TABLE_1X_ENTRY_SIZE_05) {
-		szfmt = header.entry_size;
-	} else if (header.entry_size <= VBIOS_CLOCK_PROGRAMMING_TABLE_1X_ENTRY_SIZE_0D) {
-		szfmt = header.entry_size;
-	} else {
-		status = -EINVAL;
-		goto done;
-	}
-
-	if (header.vf_entry_size < vfszfmt) {
-		status = -EINVAL;
-		goto done;
-	}
-	vfszfmt = header.vf_entry_size;
-	if (header.slave_entry_size < slaveszfmt) {
-		status = -EINVAL;
-		goto done;
-	}
-	slaveszfmt = header.slave_entry_size;
-	if (header.vf_entry_count > CTRL_CLK_CLK_DELTA_MAX_VOLT_RAILS) {
-		status = -EINVAL;
-		goto done;
-	}
-
-	pclkprogobjs->slave_entry_count = header.slave_entry_count;
-	pclkprogobjs->vf_entry_count = header.vf_entry_count;
-
-	for (i = 0; i < header.entry_count; i++) {
-		(void) memset(&prog_data, 0x0, (u32)sizeof(prog_data));
-
-		/* Read table entries*/
-		entry = clkprogs_tbl_ptr + hszfmt +
-			(i * (szfmt + (header.slave_entry_count * slaveszfmt) +
-			(header.vf_entry_count * vfszfmt)));
-
-		nvgpu_memcpy((u8 *)&prog, entry, szfmt);
-		(void) memset(vfentries, 0xFF,
-			sizeof(struct ctrl_clk_clk_prog_1x_master_vf_entry) *
-			CTRL_CLK_CLK_PROG_1X_MASTER_VF_ENTRY_MAX_ENTRIES);
-		(void) memset(ratioslaveentries, 0xFF,
-			sizeof(struct ctrl_clk_clk_prog_1x_master_ratio_slave_entry) *
-			CTRL_CLK_PROG_1X_MASTER_MAX_SLAVE_ENTRIES);
-		(void) memset(tableslaveentries, 0xFF,
-			sizeof(struct ctrl_clk_clk_prog_1x_master_table_slave_entry) *
-			CTRL_CLK_PROG_1X_MASTER_MAX_SLAVE_ENTRIES);
-		src_type = BIOS_GET_FIELD(u8, prog.flags0,
-			NV_VBIOS_CLOCK_PROGRAMMING_TABLE_1X_ENTRY_FLAGS0_SOURCE);
-		prog_type = BIOS_GET_FIELD(u8, prog.flags0,
-			NV_VBIOS_CLOCK_PROGRAMMING_TABLE_1X_ENTRY_FLAGS0_TYPE);
-
-		switch (src_type) {
-		case NV_VBIOS_CLOCK_PROGRAMMING_TABLE_1X_ENTRY_FLAGS0_SOURCE_PLL:
-			prog_data.v1x.source = CTRL_CLK_PROG_1X_SOURCE_PLL;
-			prog_data.v1x.source_data.pll.pll_idx =
-				BIOS_GET_FIELD(u8, prog.param0,
-					NV_VBIOS_CLOCK_PROGRAMMING_TABLE_1X_ENTRY_PARAM0_PLL_PLL_INDEX);
-			prog_data.v1x.source_data.pll.freq_step_size_mhz =
-				BIOS_GET_FIELD(u8, prog.param1,
-					NV_VBIOS_CLOCK_PROGRAMMING_TABLE_1X_ENTRY_PARAM1_PLL_FREQ_STEP_SIZE);
-			break;
-
-		case NV_VBIOS_CLOCK_PROGRAMMING_TABLE_1X_ENTRY_FLAGS0_SOURCE_ONE_SOURCE:
-			prog_data.v1x.source = CTRL_CLK_PROG_1X_SOURCE_ONE_SOURCE;
-			break;
-
-		case NV_VBIOS_CLOCK_PROGRAMMING_TABLE_1X_ENTRY_FLAGS0_SOURCE_FLL:
-			prog_data.v1x.source = CTRL_CLK_PROG_1X_SOURCE_FLL;
-			break;
-
-		default:
-			nvgpu_err(g, "invalid source %d", prog_type);
-			status = -EINVAL;
-			break;
-		}
-
-		if (status != 0) {
-			goto done;
-		}
-		prog_data.v1x.freq_max_mhz = (u16)prog.freq_max_mhz;
-
-		vfentry = entry + szfmt +
-			header.slave_entry_count * slaveszfmt;
-		slaveentry = entry + szfmt;
-		switch (prog_type) {
-		case NV_VBIOS_CLOCK_PROGRAMMING_TABLE_1X_ENTRY_FLAGS0_TYPE_MASTER_RATIO:
-		case NV_VBIOS_CLOCK_PROGRAMMING_TABLE_1X_ENTRY_FLAGS0_TYPE_MASTER_TABLE:
-			prog_data.v1x_master.b_o_c_o_v_enabled = false;
-			for (j = 0; j < header.vf_entry_count; j++) {
-				nvgpu_memcpy((u8 *)&vfprog, vfentry, vfszfmt);
-
-				vfentries[j].vfe_idx = (u8)vfprog.vfe_idx;
-				if (CTRL_CLK_PROG_1X_SOURCE_FLL ==
-					prog_data.v1x.source) {
-					vfentries[j].gain_vfe_idx =
-						BIOS_GET_FIELD(u8,
-						vfprog.param0,
-						NV_VBIOS_CLOCK_PROGRAMMING_TABLE_1X_VF_ENTRY_PARAM0_FLL_GAIN_VFE_IDX);
-				} else {
-					vfentries[j].gain_vfe_idx = CTRL_BOARDOBJ_IDX_INVALID;
-				}
-				vfentry += vfszfmt;
-			}
-
-			prog_data.v1x_master.p_vf_entries = vfentries;
-
-			for (j = 0; j < header.slave_entry_count; j++) {
-				nvgpu_memcpy((u8 *)&slaveprog, slaveentry,
-					slaveszfmt);
-
-				if (prog_type == NV_VBIOS_CLOCK_PROGRAMMING_TABLE_1X_ENTRY_FLAGS0_TYPE_MASTER_RATIO) {
-					ratioslaveentries[j].clk_dom_idx =
-						(u8)slaveprog.clk_dom_idx;
-					ratioslaveentries[j].ratio =
-					BIOS_GET_FIELD(u8, slaveprog.param0,
-					NV_VBIOS_CLOCK_PROGRAMMING_TABLE_1X_SLAVE_ENTRY_PARAM0_MASTER_RATIO_RATIO);
-				} else {
-					tableslaveentries[j].clk_dom_idx =
-						(u8)slaveprog.clk_dom_idx;
-					tableslaveentries[j].freq_mhz =
-						BIOS_GET_FIELD(u16,
-						slaveprog.param0,
-						NV_VBIOS_CLOCK_PROGRAMMING_TABLE_1X_SLAVE_ENTRY_PARAM0_MASTER_TABLE_FREQ);
-				}
-				slaveentry += slaveszfmt;
-			}
-
-			if (prog_type == NV_VBIOS_CLOCK_PROGRAMMING_TABLE_1X_ENTRY_FLAGS0_TYPE_MASTER_RATIO) {
-				prog_data.board_obj.type = CTRL_CLK_CLK_PROG_TYPE_1X_MASTER_RATIO;
-				prog_data.v1x_master_ratio.p_slave_entries =
-					ratioslaveentries;
-			} else {
-				prog_data.board_obj.type = CTRL_CLK_CLK_PROG_TYPE_1X_MASTER_TABLE;
-
-				prog_data.v1x_master_table.p_slave_entries =
-					tableslaveentries;
-			}
-			break;
-
-		case NV_VBIOS_CLOCK_PROGRAMMING_TABLE_1X_ENTRY_FLAGS0_TYPE_SLAVE:
-			prog_data.board_obj.type = CTRL_CLK_CLK_PROG_TYPE_1X;
-			break;
-
-
-		default:
-			nvgpu_err(g, "source issue %d", prog_type);
-			status = -EINVAL;
-			break;
-		}
-
-		if (status != 0) {
-			goto done;
-		}
-		pprog = construct_clk_prog(g, (void *)&prog_data);
-		if (pprog == NULL) {
-			nvgpu_err(g,
-				  "error constructing clk_prog boardobj %d", i);
-			status = -EINVAL;
-			goto done;
-		}
-
-		status = boardobjgrp_objinsert(&pclkprogobjs->super.super,
-			(struct boardobj *)(void *)pprog, i);
-		if (status != 0) {
-			nvgpu_err(g, "error adding clk_prog boardobj %d", i);
-			status = -EINVAL;
-			goto done;
-		}
-	}
-done:
-	nvgpu_log_info(g, " done status %x", status);
-	return status;
-}
-
 static int devinit_get_clk_prog_table(struct gk20a *g,
 					struct nvgpu_clk_progs *pprogobjs)
 {
@@ -676,26 +459,18 @@ static int devinit_get_clk_prog_table(struct gk20a *g,
 	nvgpu_memcpy((u8 *)&header, clkprogs_tbl_ptr,
 			VBIOS_CLOCK_PROGRAMMING_TABLE_1X_HEADER_SIZE_08);
 
-	switch (header.version) {
-	case VBIOS_CLOCK_PROGRAMMING_TABLE_1X_HEADER_VERSION:
-		status = devinit_get_clk_prog_table_1x(g, pprogobjs,
-							clkprogs_tbl_ptr);
-		break;
-
-	case VBIOS_CLOCK_PROGRAMMING_TABLE_35_HEADER_VERSION:
+	if (header.version ==
+			VBIOS_CLOCK_PROGRAMMING_TABLE_35_HEADER_VERSION) {
 		status = devinit_get_clk_prog_table_35(g, pprogobjs,
 							clkprogs_tbl_ptr);
-		break;
-
-	default:
+	} else {
 		nvgpu_err(g, "Invalid Clock Prog Table Header version\n");
 		status = -EINVAL;
-		break;
 	}
 
 	return status;
-
 }
+
 static int clk_prog_pmudatainit_super(struct gk20a *g,
 				       struct boardobj *board_obj_ptr,
 				       struct nv_pmu_boardobj *ppmudata)
@@ -795,35 +570,6 @@ static int clk_prog_pmudatainit_35_master(struct gk20a *g,
 	return status;
 }
 
-static int clk_prog_pmudatainit_1x_master_ratio(struct gk20a *g,
-						 struct boardobj *board_obj_ptr,
-						 struct nv_pmu_boardobj *ppmudata)
-{
-	int status = 0;
-	struct clk_prog_1x_master_ratio *pclk_prog_1x_master_ratio;
-	struct nv_pmu_clk_clk_prog_1x_master_ratio_boardobj_set *pset;
-	size_t slavesize = sizeof(struct ctrl_clk_clk_prog_1x_master_ratio_slave_entry) *
-		g->clk_pmu->clk_progobjs->slave_entry_count;
-
-	nvgpu_log_info(g, " ");
-
-	status = clk_prog_pmudatainit_1x_master(g, board_obj_ptr, ppmudata);
-	if (status != 0) {
-		return status;
-	}
-
-	pclk_prog_1x_master_ratio =
-		(struct clk_prog_1x_master_ratio *)(void *)board_obj_ptr;
-
-	pset = (struct nv_pmu_clk_clk_prog_1x_master_ratio_boardobj_set *)
-				(void *)ppmudata;
-
-	nvgpu_memcpy((u8 *)pset->slave_entries,
-		(u8 *)pclk_prog_1x_master_ratio->p_slave_entries, slavesize);
-
-	return status;
-}
-
 static int clk_prog_pmudatainit_35_master_ratio(struct gk20a *g,
 						 struct boardobj *board_obj_ptr,
 						 struct nv_pmu_boardobj *ppmudata)
@@ -850,34 +596,6 @@ static int clk_prog_pmudatainit_35_master_ratio(struct gk20a *g,
 	nvgpu_memcpy((u8 *)pset->ratio.slave_entries,
 		(u8 *)pclk_prog_35_master_ratio->ratio.p_slave_entries,
 		slavesize);
-
-	return status;
-}
-
-static int clk_prog_pmudatainit_1x_master_table(struct gk20a *g,
-						 struct boardobj *board_obj_ptr,
-						 struct nv_pmu_boardobj *ppmudata)
-{
-	int status = 0;
-	struct clk_prog_1x_master_table *pclk_prog_1x_master_table;
-	struct nv_pmu_clk_clk_prog_1x_master_table_boardobj_set *pset;
-	size_t slavesize = sizeof(struct ctrl_clk_clk_prog_1x_master_ratio_slave_entry) *
-		g->clk_pmu->clk_progobjs->slave_entry_count;
-
-	nvgpu_log_info(g, " ");
-
-	status = clk_prog_pmudatainit_1x_master(g, board_obj_ptr, ppmudata);
-	if (status != 0) {
-		return status;
-	}
-
-	pclk_prog_1x_master_table =
-		(struct clk_prog_1x_master_table *)(void *)board_obj_ptr;
-
-	pset = (struct nv_pmu_clk_clk_prog_1x_master_table_boardobj_set *)
-				(void *)ppmudata;
-	nvgpu_memcpy((u8 *)pset->slave_entries,
-		(u8 *)pclk_prog_1x_master_table->p_slave_entries, slavesize);
 
 	return status;
 }
@@ -1119,49 +837,6 @@ static int clk_prog_construct_35_master(struct gk20a *g,
 	return status;
 }
 
-static int clk_prog_construct_1x_master_ratio(struct gk20a *g,
-					      struct boardobj **ppboardobj,
-					      size_t size, void *pargs)
-{
-	struct boardobj *ptmpobj = (struct boardobj *)pargs;
-	struct clk_prog_1x_master_ratio *pclkprog;
-	struct clk_prog_1x_master_ratio *ptmpprog =
-			(struct clk_prog_1x_master_ratio *)pargs;
-	int status = 0;
-	size_t slavesize = sizeof(struct ctrl_clk_clk_prog_1x_master_ratio_slave_entry) *
-		g->clk_pmu->clk_progobjs->slave_entry_count;
-
-	if (BOARDOBJ_GET_TYPE(pargs) != CTRL_CLK_CLK_PROG_TYPE_1X_MASTER_RATIO) {
-		return -EINVAL;
-	}
-
-	ptmpobj->type_mask |= (u32)BIT(CTRL_CLK_CLK_PROG_TYPE_1X_MASTER_RATIO);
-	status = clk_prog_construct_1x_master(g, ppboardobj, size, pargs);
-	if (status != 0) {
-		return -EINVAL;
-	}
-
-	pclkprog = (struct clk_prog_1x_master_ratio *)(void *)*ppboardobj;
-
-	pclkprog->super.super.super.super.pmudatainit =
-			clk_prog_pmudatainit_1x_master_ratio;
-
-	pclkprog->p_slave_entries =
-		(struct ctrl_clk_clk_prog_1x_master_ratio_slave_entry *)
-		nvgpu_kzalloc(g, slavesize);
-	if (pclkprog->p_slave_entries == NULL) {
-		return -ENOMEM;
-	}
-
-	(void) memset(pclkprog->p_slave_entries,
-		CTRL_CLK_CLK_DOMAIN_INDEX_INVALID, slavesize);
-
-	nvgpu_memcpy((u8 *)pclkprog->p_slave_entries,
-		(u8 *)ptmpprog->p_slave_entries, slavesize);
-
-	return status;
-}
-
 static int clk_prog_construct_35_master_ratio(struct gk20a *g,
 					      struct boardobj **ppboardobj,
 					      size_t size, void *pargs)
@@ -1201,58 +876,6 @@ static int clk_prog_construct_35_master_ratio(struct gk20a *g,
 
 	nvgpu_memcpy((u8 *)pclkprog->ratio.p_slave_entries,
 		(u8 *)ptmpprog->ratio.p_slave_entries, slavesize);
-
-	return status;
-}
-
-static int clk_prog_construct_1x_master_table(struct gk20a *g,
-					      struct boardobj **ppboardobj,
-					      size_t size, void *pargs)
-{
-	struct boardobj *ptmpobj = (struct boardobj *)pargs;
-	struct clk_prog_1x_master_table *pclkprog;
-	struct clk_prog_1x_master_table *ptmpprog =
-			(struct clk_prog_1x_master_table *)pargs;
-	int status = 0;
-	size_t slavesize = sizeof(struct ctrl_clk_clk_prog_1x_master_ratio_slave_entry) *
-		g->clk_pmu->clk_progobjs->slave_entry_count;
-
-	nvgpu_log_info(g, "type - %x", BOARDOBJ_GET_TYPE(pargs));
-
-	if (BOARDOBJ_GET_TYPE(pargs) != CTRL_CLK_CLK_PROG_TYPE_1X_MASTER_TABLE) {
-		return -EINVAL;
-	}
-
-	ptmpobj->type_mask |= (u32)BIT(CTRL_CLK_CLK_PROG_TYPE_1X_MASTER_TABLE);
-	status = clk_prog_construct_1x_master(g, ppboardobj, size, pargs);
-	if (status != 0) {
-		return -EINVAL;
-	}
-
-	pclkprog = (struct clk_prog_1x_master_table *)(void *)*ppboardobj;
-
-	pclkprog->super.super.super.super.pmudatainit =
-			clk_prog_pmudatainit_1x_master_table;
-
-	pclkprog->p_slave_entries =
-		(struct ctrl_clk_clk_prog_1x_master_table_slave_entry *)
-		nvgpu_kzalloc(g, slavesize);
-
-	if (pclkprog->p_slave_entries == NULL) {
-		status = -ENOMEM;
-		goto exit;
-	}
-
-	(void) memset(pclkprog->p_slave_entries,
-		CTRL_CLK_CLK_DOMAIN_INDEX_INVALID, slavesize);
-
-	nvgpu_memcpy((u8 *)pclkprog->p_slave_entries,
-		(u8 *)ptmpprog->p_slave_entries, slavesize);
-
-exit:
-	if (status != 0) {
-		(*ppboardobj)->destruct(*ppboardobj);
-	}
 
 	return status;
 }
@@ -1316,21 +939,6 @@ static struct clk_prog *construct_clk_prog(struct gk20a *g, void *pargs)
 
 	nvgpu_log_info(g, " type - %x", BOARDOBJ_GET_TYPE(pargs));
 	switch (BOARDOBJ_GET_TYPE(pargs)) {
-	case CTRL_CLK_CLK_PROG_TYPE_1X:
-		status = clk_prog_construct_1x(g, &board_obj_ptr,
-			sizeof(struct clk_prog_1x), pargs);
-		break;
-
-	case CTRL_CLK_CLK_PROG_TYPE_1X_MASTER_TABLE:
-		status = clk_prog_construct_1x_master_table(g, &board_obj_ptr,
-			sizeof(struct clk_prog_1x_master_table), pargs);
-		break;
-
-	case CTRL_CLK_CLK_PROG_TYPE_1X_MASTER_RATIO:
-		status = clk_prog_construct_1x_master_ratio(g, &board_obj_ptr,
-			sizeof(struct clk_prog_1x_master_ratio), pargs);
-		break;
-
 	case CTRL_CLK_CLK_PROG_TYPE_35:
 		status = clk_prog_construct_35(g, &board_obj_ptr,
 			sizeof(struct clk_prog_1x), pargs);
@@ -1378,7 +986,6 @@ static int vfflatten_prog_1x_master(struct gk20a *g,
 	u8 freq_step_size_mhz = 0;
 	u8 vf_point_idx;
 	u8 vf_rail_idx;
-	u32 ver = g->params.gpu_arch + g->params.gpu_impl;
 
 	nvgpu_log_info(g, " ");
 	(void) memset(&vf_point_data, 0x0, sizeof(vf_point_data));
@@ -1416,14 +1023,8 @@ static int vfflatten_prog_1x_master(struct gk20a *g,
 			/* Intentional fall-through.*/
 
 		case CTRL_CLK_PROG_1X_SOURCE_ONE_SOURCE:
-			 if (ver == NVGPU_GPUID_TU104) {
-				 vf_point_data.board_obj.type =
-						 CTRL_CLK_CLK_VF_POINT_TYPE_35_FREQ;
-			 }
-			 else {
-				 vf_point_data.board_obj.type =
-						 CTRL_CLK_CLK_VF_POINT_TYPE_FREQ;
-			 }
+			vf_point_data.board_obj.type =
+					CTRL_CLK_CLK_VF_POINT_TYPE_35_FREQ;
 			 do {
 				 clkvfpointfreqmhzset(g, &vf_point_data.vf_point,
 					p1xmaster->super.freq_max_mhz -
@@ -1447,14 +1048,8 @@ static int vfflatten_prog_1x_master(struct gk20a *g,
 				get_fll_lut_vf_num_entries(pclk);
 
 			/* FLL sources use a voltage-based VF_POINT.*/
-			if (ver == NVGPU_GPUID_TU104) {
-				vf_point_data.board_obj.type =
+			vf_point_data.board_obj.type =
 					CTRL_CLK_CLK_VF_POINT_TYPE_35_VOLT;
-			}
-			else {
-				vf_point_data.board_obj.type =
-					CTRL_CLK_CLK_VF_POINT_TYPE_VOLT;
-			 }
 			for (i = 0; i < step_count; i++) {
 				vf_point_data.volt.source_voltage_uv =
 					voltage_min_uv + i * voltage_step_size_uv;
