@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -130,7 +130,7 @@ int xve_get_speed_gp106(struct gk20a *g, u32 *xve_link_speed)
 static void set_xve_l0s_mask(struct gk20a *g, bool status)
 {
 	u32 xve_priv;
-	u32 status_bit = status ? 1 : 0;
+	u32 status_bit = status ? 1U : 0U;
 
 	xve_priv = g->ops.xve.xve_readl(g, xve_priv_xv_r());
 
@@ -144,13 +144,13 @@ static void set_xve_l0s_mask(struct gk20a *g, bool status)
 /**
  * Set the mask for L1 in the XVE.
  *
- * When @status is non-zero the mask for L1 is set which _disables_ L0s. When
- * @status is zero L1 is no longer masked and may be enabled.
+ * When @status is true the mask for L1 is set which _disables_ L0s. When
+ * @status is false L1 is no longer masked and may be enabled.
  */
-static void set_xve_l1_mask(struct gk20a *g, int status)
+static void set_xve_l1_mask(struct gk20a *g, bool status)
 {
 	u32 xve_priv;
-	u32 status_bit = (status != 0) ? 1 : 0;
+	u32 status_bit = status ? 1U : 0U;
 
 	xve_priv = g->ops.xve.xve_readl(g, xve_priv_xv_r());
 
@@ -182,8 +182,8 @@ static void disable_aspm_gp106(struct gk20a *g)
 	/*
 	 * Store prior ASPM state so we can restore it later on.
 	 */
-	g->xve_l0s = xve_priv_xv_cya_l0s_enable_v(xve_priv);
-	g->xve_l1  = xve_priv_xv_cya_l1_enable_v(xve_priv);
+	g->xve_l0s = (xve_priv_xv_cya_l0s_enable_v(xve_priv) != 0U);
+	g->xve_l1  = (xve_priv_xv_cya_l1_enable_v(xve_priv) != 0U);
 
 	set_xve_l0s_mask(g, true);
 	set_xve_l1_mask(g, true);
@@ -368,7 +368,7 @@ static int __do_xve_set_speed_gp106(struct gk20a *g, u32 next_link_speed)
 		xv_sc_dbg(g, EXEC_CHANGE, "  Change done... Checking status");
 
 		if (pl_link_config == 0xffffffffU) {
-			WARN(1, "GPU fell of PCI bus!?");
+			WARN(true, "GPU fell of PCI bus!?");
 
 			/*
 			 * The rest of the driver is probably about to
