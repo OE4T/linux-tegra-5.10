@@ -189,7 +189,7 @@ static inline unsigned int gk20a_ce_get_method_size(u32 request_operation,
 	return methodsize;
 }
 
-int gk20a_ce_prepare_submit(u64 src_buf,
+u32 gk20a_ce_prepare_submit(u64 src_buf,
 		u64 dst_buf,
 		u64 size,
 		u32 *cmd_buf_cpu_va,

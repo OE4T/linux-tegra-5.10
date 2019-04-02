@@ -96,7 +96,8 @@ int gk20a_ce_execute_ops(struct gk20a *g,
 	ce_ctx->cmd_buf_read_queue_offset %= NVGPU_CE_MAX_INFLIGHT_JOBS;
 
 	cmd_buf_read_offset = (ce_ctx->cmd_buf_read_queue_offset *
-			(NVGPU_CE_MAX_COMMAND_BUFF_BYTES_PER_KICKOFF / sizeof(u32)));
+			(NVGPU_CE_MAX_COMMAND_BUFF_BYTES_PER_KICKOFF /
+			U32(sizeof(u32))));
 
 	cmd_buf_cpu_va = (u32 *)ce_ctx->cmd_buf_mem.cpu_va;
 

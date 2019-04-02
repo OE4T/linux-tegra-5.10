@@ -140,7 +140,7 @@ void gk20a_ce_delete_context_priv(struct gk20a *g,
 		u32 ce_ctx_id);
 void gk20a_ce_delete_context(struct gk20a *g,
 		u32 ce_ctx_id);
-int gk20a_ce_prepare_submit(u64 src_buf,
+u32 gk20a_ce_prepare_submit(u64 src_buf,
 		u64 dst_buf,
 		u64 size,
 		u32 *cmd_buf_cpu_va,

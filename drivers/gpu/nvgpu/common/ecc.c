@@ -173,8 +173,8 @@ int nvgpu_ecc_counter_init_per_lts(struct gk20a *g,
 int nvgpu_ecc_counter_init_per_fbpa(struct gk20a *g,
 		struct nvgpu_ecc_stat **stat, const char *name)
 {
-	int i;
-	int num_fbpa = nvgpu_get_litter_value(g, GPU_LIT_NUM_FBPAS);
+	u32 i;
+	u32 num_fbpa = nvgpu_get_litter_value(g, GPU_LIT_NUM_FBPAS);
 	struct nvgpu_ecc_stat *stats;
 
 	stats = nvgpu_kzalloc(g, sizeof(*stats) * (size_t)num_fbpa);
@@ -184,7 +184,7 @@ int nvgpu_ecc_counter_init_per_fbpa(struct gk20a *g,
 
 	for (i = 0; i < num_fbpa; i++) {
 		(void) snprintf(stats[i].name, NVGPU_ECC_STAT_NAME_MAX_SIZE,
-				"fbpa%d_%s", i, name);
+				"fbpa%u_%s", i, name);
 		nvgpu_ecc_stat_add(g, &stats[i]);
 	}
 

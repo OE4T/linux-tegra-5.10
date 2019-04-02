@@ -71,7 +71,7 @@ static int nvgpu_netlist_alloc_load_u32_list(struct gk20a *g, u8 *src, u32 len,
 static int nvgpu_netlist_alloc_load_av_list(struct gk20a *g, u8 *src, u32 len,
 			struct netlist_av_list *av_list)
 {
-	av_list->count = len / sizeof(struct netlist_av);
+	av_list->count = len / U32(sizeof(struct netlist_av));
 	if (nvgpu_netlist_alloc_av_list(g, av_list) == NULL) {
 		return -ENOMEM;
 	}
@@ -84,7 +84,7 @@ static int nvgpu_netlist_alloc_load_av_list(struct gk20a *g, u8 *src, u32 len,
 static int nvgpu_netlist_alloc_load_av_list64(struct gk20a *g, u8 *src, u32 len,
 			struct netlist_av64_list *av64_list)
 {
-	av64_list->count = len / sizeof(struct netlist_av64);
+	av64_list->count = len / U32(sizeof(struct netlist_av64));
 	if (nvgpu_netlist_alloc_av64_list(g, av64_list) == NULL) {
 		return -ENOMEM;
 	}
@@ -97,7 +97,7 @@ static int nvgpu_netlist_alloc_load_av_list64(struct gk20a *g, u8 *src, u32 len,
 static int nvgpu_netlist_alloc_load_aiv_list(struct gk20a *g, u8 *src, u32 len,
 			struct netlist_aiv_list *aiv_list)
 {
-	aiv_list->count = len / sizeof(struct netlist_aiv);
+	aiv_list->count = len / U32(sizeof(struct netlist_aiv));
 	if (nvgpu_netlist_alloc_aiv_list(g, aiv_list) == NULL) {
 		return -ENOMEM;
 	}
