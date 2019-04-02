@@ -68,6 +68,20 @@ void gp10b_priv_ring_decode_error_code(struct gk20a *g,
 			u32 error_code)
 {
 	u32 error_type_index;
+	int ret = 0;
+
+	if (g->ops.priv_ring.err_ops.report_access_violation != NULL) {
+		ret = g->ops.priv_ring.err_ops.report_access_violation (g,
+				NVGPU_ERR_MODULE_PRI,
+				0U,
+				GPU_PRI_ACCESS_VIOLATION,
+				0U,
+				error_code);
+		if (ret != 0) {
+			nvgpu_err(g, "Failed to report PRI access violation: "
+					"err_code=%u", error_code);
+		}
+	}
 
 	error_type_index = (error_code & 0x00000f00U) >> 8U;
 	error_code = error_code & 0xBADFf000U;

@@ -1602,11 +1602,6 @@ struct gpu_ops {
 		int (*get_timestamps_zipper)(struct gk20a *g,
 			u32 source_id, u32 count,
 			struct nvgpu_cpu_time_correlation_sample *samples);
-		struct {
-			int (*report_timeout_err)(struct gk20a *g,
-					u32 hw_id, u32 inst, u32 err_id,
-					u32 err_addr, u32 error_code);
-		} err_ops;
 	} ptimer;
 
 	struct {
@@ -1692,6 +1687,14 @@ struct gpu_ops {
 		u32 (*enum_ltc)(struct gk20a *g);
 		u32 (*get_gpc_count)(struct gk20a *g);
 		u32 (*get_fbp_count)(struct gk20a *g);
+		struct {
+			int (*report_access_violation)(struct gk20a *g,
+					u32 hw_id, u32 inst, u32 err_id,
+					u32 err_addr, u32 error_code);
+			int (*report_timeout_err)(struct gk20a *g,
+					u32 hw_id, u32 inst, u32 err_id,
+					u32 err_addr, u32 error_code);
+		} err_ops;
 	} priv_ring;
 	struct {
 		int (*check_priv_security)(struct gk20a *g);

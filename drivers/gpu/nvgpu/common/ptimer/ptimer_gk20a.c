@@ -69,8 +69,8 @@ void gk20a_ptimer_isr(struct gk20a *g)
 		error_addr = 0U;
 	}
 
-	if (g->ops.ptimer.err_ops.report_timeout_err != NULL) {
-		ret = g->ops.ptimer.err_ops.report_timeout_err(g,
+	if (g->ops.priv_ring.err_ops.report_timeout_err != NULL) {
+		ret = g->ops.priv_ring.err_ops.report_timeout_err(g,
 				NVGPU_ERR_MODULE_PRI,
 				inst,
 				GPU_PRI_TIMEOUT_ERROR,
