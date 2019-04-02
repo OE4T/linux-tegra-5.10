@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -62,7 +62,10 @@ static void nvgpu_pramin_access_batched(struct gk20a *g, struct nvgpu_mem *mem,
 
 	nvgpu_sgt_for_each_sgl(sgl, sgt) {
 		if (offset >= nvgpu_sgt_get_length(sgt, sgl)) {
-			offset -= nvgpu_sgt_get_length(sgt, sgl);
+			u64 tmp_offset = nvgpu_sgt_get_length(sgt, sgl);
+
+			nvgpu_assert(tmp_offset <= U64(offset));
+			offset -= U32(tmp_offset);
 		} else {
 			break;
 		}
@@ -108,7 +111,7 @@ static void nvgpu_pramin_access_batch_rd_n(struct gk20a *g,
 	while (words != 0U) {
 		words--;
 		*dest_u32++ = nvgpu_readl(g, r);
-		r += sizeof(u32);
+		r += U32(sizeof(u32));
 	}
 
 	*arg = dest_u32;
@@ -131,7 +134,7 @@ static void nvgpu_pramin_access_batch_wr_n(struct gk20a *g,
 	while (words != 0U) {
 		words--;
 		nvgpu_writel_relaxed(g, r, *src_u32++);
-		r += sizeof(u32);
+		r += U32(sizeof(u32));
 	}
 
 	*arg = src_u32;
@@ -154,7 +157,7 @@ static void nvgpu_pramin_access_batch_set(struct gk20a *g,
 	while (words != 0U) {
 		words--;
 		nvgpu_writel_relaxed(g, r, repeat);
-		r += sizeof(u32);
+		r += U32(sizeof(u32));
 	}
 }
 
