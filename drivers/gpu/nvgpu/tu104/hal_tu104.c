@@ -747,6 +747,10 @@ static const struct gpu_ops tu104_ops = {
 			.enable_gpc_exceptions =
 					tu104_gr_intr_enable_gpc_exceptions,
 			.enable_exceptions = gv11b_gr_intr_enable_exceptions,
+			.tpc_exception_sm_enable =
+				gm20ab_gr_intr_tpc_exception_sm_enable,
+			.tpc_exception_sm_disable =
+				gm20ab_gr_intr_tpc_exception_sm_disable,
 		},
 		.falcon = {
 			.fecs_base_addr = gm20b_gr_falcon_fecs_base_addr,

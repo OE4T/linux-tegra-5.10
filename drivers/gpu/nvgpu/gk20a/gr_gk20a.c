@@ -1749,14 +1749,9 @@ int gr_gk20a_handle_sm_exception(struct gk20a *g, u32 gpc, u32 tpc, u32 sm,
 	}
 
 	if (!ignore_debugger && disable_sm_exceptions) {
-		u32 tpc_exception_en = gk20a_readl(g,
-				gr_gpc0_tpc0_tpccs_tpc_exception_en_r() +
-				offset);
-		tpc_exception_en &= ~gr_gpc0_tpc0_tpccs_tpc_exception_en_sm_enabled_f();
-		gk20a_writel(g,
-			     gr_gpc0_tpc0_tpccs_tpc_exception_en_r() + offset,
-			     tpc_exception_en);
-		nvgpu_log(g, gpu_dbg_intr | gpu_dbg_gpu_dbg, "SM Exceptions disabled");
+		g->ops.gr.intr.tpc_exception_sm_disable(g, offset);
+		nvgpu_log(g, gpu_dbg_intr | gpu_dbg_gpu_dbg,
+			  "SM Exceptions disabled");
 	}
 
 	/* if a debugger is present and an error has occurred, do a warp sync */
@@ -1870,13 +1865,13 @@ static int gk20a_gr_handle_gpc_exception(struct gk20a *g, bool *post_event,
 {
 	int tmp_ret, ret = 0;
 	u32 gpc_offset, gpc, tpc;
-	struct gr_gk20a *gr = &g->gr;
+	struct nvgpu_gr_config *gr_config = g->gr.config;
 	u32 exception1 = gk20a_readl(g, gr_exception1_r());
 	u32 gpc_exception;
 
 	nvgpu_log(g, gpu_dbg_intr | gpu_dbg_gpu_dbg, " ");
 
-	for (gpc = 0; gpc < nvgpu_gr_config_get_gpc_count(gr->config); gpc++) {
+	for (gpc = 0; gpc < nvgpu_gr_config_get_gpc_count(gr_config); gpc++) {
 		if ((exception1 & BIT32(gpc)) == 0U) {
 			continue;
 		}
@@ -1890,7 +1885,9 @@ static int gk20a_gr_handle_gpc_exception(struct gk20a *g, bool *post_event,
 				+ gpc_offset);
 
 		/* check if any tpc has an exception */
-		for (tpc = 0; tpc < nvgpu_gr_config_get_gpc_tpc_count(gr->config, gpc); tpc++) {
+		for (tpc = 0;
+		     tpc < nvgpu_gr_config_get_gpc_tpc_count(gr_config, gpc);
+		     tpc++) {
 			if ((gr_gpc0_gpccs_gpc_exception_tpc_v(gpc_exception) &
 				BIT32(tpc)) == 0U) {
 				continue;
@@ -4283,16 +4280,13 @@ int gr_gk20a_wait_for_pause(struct gk20a *g, struct nvgpu_warpstate *w_state)
 int gr_gk20a_resume_from_pause(struct gk20a *g)
 {
 	int err = 0;
-	u32 reg_val;
 
 	/* Clear the pause mask to tell the GPU we want to resume everyone */
 	gk20a_writel(g,
 		gr_gpcs_tpcs_sm_dbgr_bpt_pause_mask_r(), 0);
 
 	/* explicitly re-enable forwarding of SM interrupts upon any resume */
-	reg_val = gk20a_readl(g, gr_gpc0_tpc0_tpccs_tpc_exception_en_r());
-	reg_val |= gr_gpc0_tpc0_tpccs_tpc_exception_en_sm_enabled_f();
-	gk20a_writel(g, gr_gpcs_tpcs_tpccs_tpc_exception_en_r(), reg_val);
+	g->ops.gr.intr.tpc_exception_sm_enable(g);
 
 	/* Now resume all sms, write a 0 to the stop trigger
 	 * then a 1 to the run trigger */

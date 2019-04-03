@@ -802,6 +802,9 @@ struct gpu_ops {
 			void (*enable_gpc_exceptions)(struct gk20a *g,
 					struct nvgpu_gr_config *gr_config);
 			u32 (*nonstall_isr)(struct gk20a *g);
+			void (*tpc_exception_sm_disable)(struct gk20a *g,
+							       u32 offset);
+			void (*tpc_exception_sm_enable)(struct gk20a *g);
 		} intr;
 
 		u32 (*get_ctxsw_checksum_mismatch_mailbox_val)(void);

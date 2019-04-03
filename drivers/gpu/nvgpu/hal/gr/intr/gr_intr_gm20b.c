@@ -123,6 +123,32 @@ void gm20b_gr_intr_enable_gpc_exceptions(struct gk20a *g,
 	nvgpu_writel(g, gr_gpcs_gpccs_gpc_exception_en_r(), tpc_mask);
 }
 
+void gm20ab_gr_intr_tpc_exception_sm_disable(struct gk20a *g, u32 offset)
+{
+	u32 tpc_exception_en = nvgpu_readl(g,
+				gr_gpc0_tpc0_tpccs_tpc_exception_en_r() +
+				offset);
+
+	tpc_exception_en &=
+			~gr_gpc0_tpc0_tpccs_tpc_exception_en_sm_enabled_f();
+	nvgpu_writel(g,
+		     gr_gpc0_tpc0_tpccs_tpc_exception_en_r() + offset,
+		     tpc_exception_en);
+}
+
+void gm20ab_gr_intr_tpc_exception_sm_enable(struct gk20a *g)
+{
+	u32 tpc_exception_en = nvgpu_readl(g,
+				gr_gpc0_tpc0_tpccs_tpc_exception_en_r());
+
+	tpc_exception_en &=
+			~gr_gpc0_tpc0_tpccs_tpc_exception_en_sm_enabled_f();
+	tpc_exception_en |= gr_gpc0_tpc0_tpccs_tpc_exception_en_sm_enabled_f();
+	nvgpu_writel(g,
+		     gr_gpcs_tpcs_tpccs_tpc_exception_en_r(),
+		     tpc_exception_en);
+}
+
 u32 gm20b_gr_intr_nonstall_isr(struct gk20a *g)
 {
 	u32 ops = 0;
