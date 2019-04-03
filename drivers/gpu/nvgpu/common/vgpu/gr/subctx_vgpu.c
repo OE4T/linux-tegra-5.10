@@ -25,6 +25,8 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/gr/subctx.h>
 
+#include "common/gr/subctx_priv.h"
+
 #include "subctx_vgpu.h"
 #include "common/vgpu/ivc/comm_vgpu.h"
 

@@ -20,39 +20,13 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NVGPU_GR_SUBCTX_H
-#define NVGPU_GR_SUBCTX_H
+#ifndef NVGPU_GR_SUBCTX_PRIV_H
+#define NVGPU_GR_SUBCTX_PRIV_H
 
-#include <nvgpu/types.h>
-
-struct gk20a;
-struct vm_gk20a;
-struct nvgpu_gr_subctx;
 struct nvgpu_mem;
 
-struct nvgpu_gr_subctx *nvgpu_gr_subctx_alloc(struct gk20a *g,
-	struct vm_gk20a *vm);
-void nvgpu_gr_subctx_free(struct gk20a *g,
-	struct nvgpu_gr_subctx *subctx,
-	struct vm_gk20a *vm);
+struct nvgpu_gr_subctx {
+	struct nvgpu_mem ctx_header;
+};
 
-void nvgpu_gr_subctx_load_ctx_header(struct gk20a *g,
-	struct nvgpu_gr_subctx *subctx,
-	struct nvgpu_gr_ctx *gr_ctx, u64 gpu_va);
-
-void nvgpu_gr_subctx_zcull_setup(struct gk20a *g, struct nvgpu_gr_subctx *subctx,
-		struct nvgpu_gr_ctx *gr_ctx);
-
-void nvgpu_gr_subctx_set_hwpm_mode(struct gk20a *g,
-	struct nvgpu_gr_subctx *subctx, struct nvgpu_gr_ctx *gr_ctx);
-
-void nvgpu_gr_subctx_set_patch_ctx(struct gk20a *g,
-	struct nvgpu_gr_subctx *subctx, struct nvgpu_gr_ctx *gr_ctx);
-
-void nvgpu_gr_subctx_set_preemption_buffer_va(struct gk20a *g,
-	struct nvgpu_gr_subctx *subctx, struct nvgpu_gr_ctx *gr_ctx);
-
-struct nvgpu_mem *nvgpu_gr_subctx_get_ctx_header(struct gk20a *g,
-	struct nvgpu_gr_subctx *subctx);
-
-#endif /* NVGPU_GR_SUBCTX_H */
+#endif /* NVGPU_GR_SUBCTX_PRIV_H */

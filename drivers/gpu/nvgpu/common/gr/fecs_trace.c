@@ -608,7 +608,7 @@ int nvgpu_gr_fecs_trace_bind_channel(struct gk20a *g,
 		GK20A_FECS_TRACE_NUM_RECORDS);
 
 	if (nvgpu_is_enabled(g, NVGPU_FECS_TRACE_VA) && subctx != NULL) {
-		mem = &subctx->ctx_header;
+		mem = nvgpu_gr_subctx_get_ctx_header(g, subctx);
 	}
 
 	g->ops.gr.ctxsw_prog.set_ts_buffer_ptr(g, mem, addr, aperture_mask);

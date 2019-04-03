@@ -25,6 +25,8 @@
 #include <nvgpu/gr/ctx.h>
 #include <nvgpu/gmmu.h>
 
+#include "common/gr/subctx_priv.h"
+
 struct nvgpu_gr_subctx *nvgpu_gr_subctx_alloc(struct gk20a *g,
 	struct vm_gk20a *vm)
 {
@@ -143,5 +145,11 @@ void nvgpu_gr_subctx_set_preemption_buffer_va(struct gk20a *g,
 			&subctx->ctx_header,
 			gr_ctx->preempt_ctxsw_buffer.gpu_va);
 	}
+}
+
+struct nvgpu_mem *nvgpu_gr_subctx_get_ctx_header(struct gk20a *g,
+		struct nvgpu_gr_subctx *subctx)
+{
+	return &subctx->ctx_header;
 }
 

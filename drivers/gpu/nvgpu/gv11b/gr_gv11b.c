@@ -1769,7 +1769,7 @@ int gr_gv11b_commit_inst(struct channel_gk20a *c, u64 gpu_va)
 
 	nvgpu_gr_subctx_load_ctx_header(g, c->subctx, tsg->gr_ctx, gpu_va);
 
-	ctxheader = &c->subctx->ctx_header;
+	ctxheader = nvgpu_gr_subctx_get_ctx_header(g, c->subctx);
 
 	g->ops.ramin.set_gr_ptr(g, &c->inst_block, ctxheader->gpu_va);
 	return 0;
