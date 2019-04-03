@@ -423,6 +423,7 @@ int nvgpu_gr_obj_ctx_alloc_golden_ctx_image(struct gk20a *g,
 	struct nvgpu_mem *inst_block)
 {
 	u32 i;
+	u32 size;
 	struct nvgpu_mem *gr_mem;
 	int err = 0;
 	struct netlist_aiv_list *sw_ctx_load = &g->netlist_vars->sw_ctx_load;
@@ -537,9 +538,10 @@ restore_fe_go_idle:
 		goto clean_up;
 	}
 
+	size = nvgpu_gr_obj_ctx_get_golden_image_size(golden_image);
+
 	golden_image->local_golden_image =
-		nvgpu_gr_global_ctx_init_local_golden_image(g, gr_mem,
-			g->gr.ctx_vars.golden_image_size);
+		nvgpu_gr_global_ctx_init_local_golden_image(g, gr_mem, size);
 	if (golden_image->local_golden_image == NULL) {
 		err = -ENOMEM;
 		goto clean_up;
