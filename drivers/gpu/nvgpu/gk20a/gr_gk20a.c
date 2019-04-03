@@ -54,6 +54,7 @@
 #include <nvgpu/gr/gr_intr.h>
 #include <nvgpu/gr/gr_falcon.h>
 #include <nvgpu/gr/obj_ctx.h>
+#include <nvgpu/gr/fs_state.h>
 #include <nvgpu/gr/zcull.h>
 #include <nvgpu/gr/config.h>
 #include <nvgpu/gr/fecs_trace.h>
@@ -631,7 +632,7 @@ static int gk20a_init_gr_setup_hw(struct gk20a *g)
 	}
 
 	/* floorsweep anything left */
-	err = nvgpu_gr_init_fs_state(g);
+	err = nvgpu_gr_fs_state_init(g);
 	if (err != 0) {
 		goto out;
 	}

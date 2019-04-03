@@ -29,16 +29,12 @@
 #include <nvgpu/gr/obj_ctx.h>
 #include <nvgpu/gr/config.h>
 #include <nvgpu/gr/gr_falcon.h>
+#include <nvgpu/gr/fs_state.h>
 #include <nvgpu/power_features/cg.h>
 #include <nvgpu/channel.h>
 
 #include "obj_ctx_priv.h"
 
-/*
- * TODO: needed for nvgpu_gr_init_fs_state() and introduces cyclic dependency
- * with common.gr.gr unit. Remove this in follow up
- */
-#include <nvgpu/gr/gr.h>
 
 static int nvgpu_gr_obj_ctx_init_ctxsw_preemption_mode(struct gk20a *g,
 	struct nvgpu_gr_ctx *gr_ctx, struct vm_gk20a *vm,
@@ -440,7 +436,7 @@ int nvgpu_gr_obj_ctx_alloc_golden_ctx_image(struct gk20a *g,
 	g->ops.gr.init.commit_global_timeslice(g);
 
 	/* floorsweep anything left */
-	err = nvgpu_gr_init_fs_state(g);
+	err = nvgpu_gr_fs_state_init(g);
 	if (err != 0) {
 		goto clean_up;
 	}
