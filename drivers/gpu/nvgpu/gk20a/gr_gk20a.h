@@ -418,8 +418,6 @@ void gk20a_gr_init_ovr_sm_dsm_perf(void);
 void gk20a_gr_get_ovr_perf_regs(struct gk20a *g, u32 *num_ovr_perf_regs,
 					       u32 **ovr_perf_regs);
 u32 gr_gk20a_get_patch_slots(struct gk20a *g);
-int gk20a_gr_handle_notify_pending(struct gk20a *g,
-				struct gr_gk20a_isr_data *isr_data);
 
 int gr_gk20a_alloc_global_ctx_buffers(struct gk20a *g);
 

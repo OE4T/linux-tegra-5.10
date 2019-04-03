@@ -195,6 +195,7 @@
 #include <nvgpu/pmu/perf.h>
 #include <nvgpu/gr/gr_falcon.h>
 #include <nvgpu/gr/gr.h>
+#include <nvgpu/gr/gr_intr.h>
 
 #include <nvgpu/hw/tu104/hw_proj_tu104.h>
 #include <nvgpu/hw/tu104/hw_top_tu104.h>
@@ -489,7 +490,6 @@ static const struct gpu_ops tu104_ops = {
 			gr_gv11b_get_max_gfxp_wfi_timeout_count,
 		.fecs_host_int_enable = gr_gv11b_fecs_host_int_enable,
 		.handle_ssync_hww = gr_gv11b_handle_ssync_hww,
-		.handle_notify_pending = gk20a_gr_handle_notify_pending,
 		.handle_semaphore_pending = gk20a_gr_handle_semaphore_pending,
 		.decode_priv_addr = gr_gv11b_decode_priv_addr,
 		.create_priv_addr_table = gr_gv11b_create_priv_addr_table,
@@ -732,6 +732,8 @@ static const struct gpu_ops tu104_ops = {
 				gv11b_gr_init_commit_gfxp_wfi_timeout,
 		},
 		.intr = {
+			.handle_notify_pending =
+					nvgpu_gr_intr_handle_notify_pending,
 			.handle_gcc_exception =
 				gv11b_gr_intr_handle_gcc_exception,
 			.handle_gpc_gpcmmu_exception =

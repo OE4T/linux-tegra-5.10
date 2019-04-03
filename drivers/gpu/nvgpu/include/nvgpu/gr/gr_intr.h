@@ -25,10 +25,14 @@
 
 #include <nvgpu/types.h>
 
+struct gr_gk20a_isr_data;
+
 struct nvgpu_gr_tpc_exception {
 	bool tex_exception;
 	bool sm_exception;
 	bool mpc_exception;
 };
 
+int nvgpu_gr_intr_handle_notify_pending(struct gk20a *g,
+					struct gr_gk20a_isr_data *isr_data);
 #endif /* NVGPU_GR_INTR_H */

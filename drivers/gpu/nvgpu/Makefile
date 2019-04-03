@@ -65,8 +65,9 @@ nvgpu-y += \
 	common/regops/regops_gv11b.o \
 	common/regops/regops_tu104.o \
 	common/ltc/ltc.o \
-	common/gr/gr.o \
 	common/cbc/cbc.o \
+	common/gr/gr.o \
+	common/gr/gr_intr.o \
 	common/gr/global_ctx.o \
 	common/gr/ctx.o \
 	common/gr/gr_falcon.o \

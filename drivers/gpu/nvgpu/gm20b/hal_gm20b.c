@@ -39,6 +39,7 @@
 #include <nvgpu/gr/zbc.h>
 #include <nvgpu/gr/zcull.h>
 #include <nvgpu/gr/gr.h>
+#include <nvgpu/gr/gr_intr.h>
 #include <nvgpu/gr/gr_falcon.h>
 #include <nvgpu/gr/setup.h>
 
@@ -308,7 +309,6 @@ static const struct gpu_ops gm20b_ops = {
 		.init_ovr_sm_dsm_perf =  gk20a_gr_init_ovr_sm_dsm_perf,
 		.get_ovr_perf_regs = gk20a_gr_get_ovr_perf_regs,
 		.fecs_host_int_enable = gr_gk20a_fecs_host_int_enable,
-		.handle_notify_pending = gk20a_gr_handle_notify_pending,
 		.handle_semaphore_pending = gk20a_gr_handle_semaphore_pending,
 		.decode_priv_addr = gr_gk20a_decode_priv_addr,
 		.create_priv_addr_table = gr_gk20a_create_priv_addr_table,
@@ -476,6 +476,8 @@ static const struct gpu_ops gm20b_ops = {
 			.get_gfxp_rtv_cb_size = NULL,
 		},
 		.intr = {
+			.handle_notify_pending =
+					nvgpu_gr_intr_handle_notify_pending,
 			.get_tpc_exception = gm20b_gr_intr_get_tpc_exception,
 			.handle_tex_exception =
 					gm20b_gr_intr_handle_tex_exception,
