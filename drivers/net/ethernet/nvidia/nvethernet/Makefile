@@ -19,6 +19,7 @@ obj-$(CONFIG_NVETHERNET) += nvethernet.o
 nvethernet-objs:= ether_linux.o \
 		  osd.o \
 		  ethtool.o \
+		  sysfs.o \
 		  $(OSI)/osi_core.o \
 		  $(OSI)/osi_common.o \
 		  $(OSI)/osi_dma.o \

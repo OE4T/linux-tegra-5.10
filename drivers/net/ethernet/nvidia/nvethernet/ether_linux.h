@@ -133,7 +133,12 @@ struct ether_priv_data {
 	int tx_irqs[ETHER_MAX_IRQS];
 	int rx_irqs[ETHER_MAX_IRQS];
 	unsigned long long dma_mask;
+
+	/* for MAC loopback */
+	unsigned int mac_loopback_mode;
 };
 
 void ether_set_ethtool_ops(struct net_device *ndev);
+int ether_sysfs_register(struct device *dev);
+void ether_sysfs_unregister(struct device *dev);
 #endif /* ETHER_LINUX_H */

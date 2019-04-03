@@ -77,7 +77,8 @@ static void ether_adjust_link(struct net_device *dev)
 			     SPEED_100) ? 25000 * 1000 : 125000 * 1000);
 		if (phydev->speed != SPEED_10) {
 			if (osi_pad_calibrate(pdata->osi_core) < 0)
-				dev_err(pdata->dev, "failed to do pad caliberation\n");
+				dev_err(pdata->dev,
+					"failed to do pad caliberation\n");
 		}
 	}
 }
@@ -2199,6 +2200,14 @@ static int ether_probe(struct platform_device *pdev)
 		goto err_napi;
 	}
 
+	/* Register sysfs entry */
+	ret = ether_sysfs_register(pdata->dev);
+	if (ret < 0) {
+		dev_err(&pdev->dev,
+			"failed to create nvethernet sysfs group\n");
+		goto err_sysfs;
+	}
+
 	ret = register_netdev(ndev);
 	if (ret < 0) {
 		dev_err(&pdev->dev, "failed to register netdev\n");
@@ -2212,6 +2221,8 @@ static int ether_probe(struct platform_device *pdev)
 	return 0;
 
 err_netdev:
+	ether_sysfs_unregister(pdata->dev);
+err_sysfs:
 err_napi:
 	mdiobus_unregister(pdata->mii);
 err_dma_mask:
@@ -2240,6 +2251,9 @@ static int ether_remove(struct platform_device *pdev)
 	struct ether_priv_data *pdata = netdev_priv(ndev);
 
 	unregister_netdev(ndev);
+
+	/* remove nvethernet sysfs group under /sys/devices/<ether_device>/ */
+	ether_sysfs_unregister(pdata->dev);
 
 	if (pdata->mii != NULL) {
 		mdiobus_unregister(pdata->mii);
