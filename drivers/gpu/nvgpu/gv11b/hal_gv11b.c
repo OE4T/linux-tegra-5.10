@@ -73,6 +73,7 @@
 #include "hal/gr/fecs_trace/fecs_trace_gv11b.h"
 #include "hal/gr/falcon/gr_falcon_gm20b.h"
 #include "hal/gr/falcon/gr_falcon_gp10b.h"
+#include "hal/gr/falcon/gr_falcon_gv11b.h"
 #include "hal/gr/config/gr_config_gm20b.h"
 #include "hal/gr/zbc/zbc_gp10b.h"
 #include "hal/gr/zbc/zbc_gv11b.h"
@@ -419,7 +420,6 @@ static const struct gpu_ops gv11b_ops = {
 				gr_gv11b_init_gfxp_wfi_timeout_count,
 		.get_max_gfxp_wfi_timeout_count =
 			gr_gv11b_get_max_gfxp_wfi_timeout_count,
-		.fecs_host_int_enable = gr_gv11b_fecs_host_int_enable,
 		.handle_ssync_hww = gr_gv11b_handle_ssync_hww,
 		.decode_priv_addr = gr_gv11b_decode_priv_addr,
 		.create_priv_addr_table = gr_gv11b_create_priv_addr_table,
@@ -726,6 +726,8 @@ static const struct gpu_ops gv11b_ops = {
 			.get_fecs_current_ctx_data =
 				gm20b_gr_falcon_get_fecs_current_ctx_data,
 			.init_ctx_state = gp10b_gr_falcon_init_ctx_state,
+			.fecs_host_int_enable =
+					gv11b_gr_falcon_fecs_host_int_enable,
 		},
 	},
 	.fb = {

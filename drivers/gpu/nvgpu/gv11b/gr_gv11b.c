@@ -386,20 +386,6 @@ static void gr_gv11b_handle_lrf_exception(struct gk20a *g, u32 gpc, u32 tpc,
 			gr_pri_gpc0_tpc0_sm_lrf_ecc_status_reset_task_f());
 }
 
-void gr_gv11b_fecs_host_int_enable(struct gk20a *g)
-{
-	gk20a_writel(g, gr_fecs_host_int_enable_r(),
-		     gr_fecs_host_int_enable_ctxsw_intr0_enable_f() |
-		     gr_fecs_host_int_enable_ctxsw_intr1_enable_f() |
-		     gr_fecs_host_int_enable_fault_during_ctxsw_enable_f() |
-		     gr_fecs_host_int_enable_umimp_firmware_method_enable_f() |
-		     gr_fecs_host_int_enable_umimp_illegal_method_enable_f() |
-		     gr_fecs_host_int_enable_watchdog_enable_f() |
-		     gr_fecs_host_int_enable_flush_when_busy_enable_f() |
-		     gr_fecs_host_int_enable_ecc_corrected_enable_f() |
-		     gr_fecs_host_int_enable_ecc_uncorrected_enable_f());
-}
-
 static void gr_gv11b_handle_cbu_exception(struct gk20a *g, u32 gpc, u32 tpc,
 			bool *post_event, struct channel_gk20a *fault_ch,
 			u32 *hww_global_esr)

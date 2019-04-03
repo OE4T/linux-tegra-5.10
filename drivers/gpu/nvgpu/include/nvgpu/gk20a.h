@@ -413,7 +413,6 @@ struct gpu_ops {
 		void (*init_gfxp_wfi_timeout_count)(struct gk20a *g);
 		unsigned long (*get_max_gfxp_wfi_timeout_count)
 					(struct gk20a *g);
-		void (*fecs_host_int_enable)(struct gk20a *g);
 		int (*handle_ssync_hww)(struct gk20a *g, u32 *ssync_esr);
 		int (*add_ctxsw_reg_pm_fbpa)(struct gk20a *g,
 				struct ctxsw_buf_offset_map_entry *map,
@@ -592,6 +591,7 @@ struct gpu_ops {
 			u32 (*get_fecs_current_ctx_data)(struct gk20a *g,
 					struct nvgpu_mem *inst_block);
 			int (*init_ctx_state)(struct gk20a *g);
+			void (*fecs_host_int_enable)(struct gk20a *g);
 		} falcon;
 
 #ifdef CONFIG_GK20A_CTXSW_TRACE

@@ -557,16 +557,6 @@ clean_up:
 	return -ENOMEM;
 }
 
-void gr_gk20a_fecs_host_int_enable(struct gk20a *g)
-{
-	gk20a_writel(g, gr_fecs_host_int_enable_r(),
-		     gr_fecs_host_int_enable_ctxsw_intr1_enable_f() |
-		     gr_fecs_host_int_enable_fault_during_ctxsw_enable_f() |
-		     gr_fecs_host_int_enable_umimp_firmware_method_enable_f() |
-		     gr_fecs_host_int_enable_umimp_illegal_method_enable_f() |
-		     gr_fecs_host_int_enable_watchdog_enable_f());
-}
-
 static int gk20a_init_gr_setup_hw(struct gk20a *g)
 {
 	struct gr_gk20a *gr = &g->gr;
@@ -596,7 +586,7 @@ static int gk20a_init_gr_setup_hw(struct gk20a *g)
 	g->ops.gr.intr.enable_interrupts(g, true);
 
 	/* enable fecs error interrupts */
-	g->ops.gr.fecs_host_int_enable(g);
+	g->ops.gr.falcon.fecs_host_int_enable(g);
 
 	g->ops.gr.intr.enable_hww_exceptions(g);
 	g->ops.gr.set_hww_esr_report_mask(g);

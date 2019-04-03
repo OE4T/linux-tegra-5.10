@@ -923,3 +923,13 @@ u32 gm20b_gr_falcon_get_fecs_current_ctx_data(struct gk20a *g,
 	return gr_fecs_current_ctx_ptr_f(u64_lo32(ptr)) | aperture |
 		gr_fecs_current_ctx_valid_f(1);
 }
+
+void gm20b_gr_falcon_fecs_host_int_enable(struct gk20a *g)
+{
+	nvgpu_writel(g, gr_fecs_host_int_enable_r(),
+		     gr_fecs_host_int_enable_ctxsw_intr1_enable_f() |
+		     gr_fecs_host_int_enable_fault_during_ctxsw_enable_f() |
+		     gr_fecs_host_int_enable_umimp_firmware_method_enable_f() |
+		     gr_fecs_host_int_enable_umimp_illegal_method_enable_f() |
+		     gr_fecs_host_int_enable_watchdog_enable_f());
+}

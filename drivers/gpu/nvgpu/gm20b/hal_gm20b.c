@@ -307,7 +307,6 @@ static const struct gpu_ops gm20b_ops = {
 		.clear_sm_hww = gm20b_gr_clear_sm_hww,
 		.init_ovr_sm_dsm_perf =  gk20a_gr_init_ovr_sm_dsm_perf,
 		.get_ovr_perf_regs = gk20a_gr_get_ovr_perf_regs,
-		.fecs_host_int_enable = gr_gk20a_fecs_host_int_enable,
 		.decode_priv_addr = gr_gk20a_decode_priv_addr,
 		.create_priv_addr_table = gr_gk20a_create_priv_addr_table,
 		.split_fbpa_broadcast_addr = gr_gk20a_split_fbpa_broadcast_addr,
@@ -536,6 +535,8 @@ static const struct gpu_ops gm20b_ops = {
 			.get_fecs_current_ctx_data =
 				gm20b_gr_falcon_get_fecs_current_ctx_data,
 			.init_ctx_state = gm20b_gr_falcon_init_ctx_state,
+			.fecs_host_int_enable =
+				gm20b_gr_falcon_fecs_host_int_enable,
 		},
 	},
 	.fb = {
