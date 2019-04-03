@@ -532,7 +532,10 @@ restore_fe_go_idle:
 		goto clean_up;
 	}
 
-	nvgpu_gr_obj_ctx_image_save(g, inst_block);
+	err = nvgpu_gr_obj_ctx_image_save(g, inst_block);
+	if (err != 0) {
+		goto clean_up;
+	}
 
 	golden_image->local_golden_image =
 		nvgpu_gr_global_ctx_init_local_golden_image(g, gr_mem,
@@ -653,7 +656,7 @@ int nvgpu_gr_obj_ctx_alloc(struct gk20a *g,
 	}
 
 	/* load golden image */
-	nvgpu_gr_ctx_load_golden_ctx_image(g, gr_ctx,
+	err = nvgpu_gr_ctx_load_golden_ctx_image(g, gr_ctx,
 		golden_image->local_golden_image, cde);
 	if (err != 0) {
 		nvgpu_err(g,
@@ -700,6 +703,7 @@ int nvgpu_gr_obj_ctx_init(struct gk20a *g,
 	struct nvgpu_gr_obj_ctx_golden_image **gr_golden_image, u32 size)
 {
 	struct nvgpu_gr_obj_ctx_golden_image *golden_image;
+	int err;
 
 	golden_image = nvgpu_kzalloc(g, sizeof(*golden_image));
 	if (golden_image == NULL) {
@@ -707,7 +711,12 @@ int nvgpu_gr_obj_ctx_init(struct gk20a *g,
 	}
 
 	nvgpu_gr_obj_ctx_set_golden_image_size(golden_image, size);
-	nvgpu_mutex_init(&golden_image->ctx_mutex);
+
+	err = nvgpu_mutex_init(&golden_image->ctx_mutex);
+	if (err != 0) {
+		nvgpu_kfree(g, golden_image);
+		return err;
+	}
 
 	*gr_golden_image = golden_image;
 
