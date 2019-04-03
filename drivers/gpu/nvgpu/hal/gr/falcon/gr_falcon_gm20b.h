@@ -70,4 +70,6 @@ u32 gm20b_gr_falcon_get_ctx_ptr(u32 ctx);
 u32 gm20b_gr_falcon_get_fecs_current_ctx_data(struct gk20a *g,
 						struct nvgpu_mem *inst_block);
 
+int gm20b_gr_falcon_init_ctx_state(struct gk20a *g);
+
 #endif /* NVGPU_GR_FALCON_GM20B_H */

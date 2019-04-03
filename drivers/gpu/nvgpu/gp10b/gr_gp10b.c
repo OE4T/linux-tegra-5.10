@@ -511,34 +511,6 @@ void gr_gp10b_set_circular_buffer_size(struct gk20a *g, u32 data)
 	}
 }
 
-int gr_gp10b_init_ctx_state(struct gk20a *g)
-{
-	int err;
-
-	nvgpu_log_fn(g, " ");
-
-	err = gr_gk20a_init_ctx_state(g);
-	if (err != 0) {
-		return err;
-	}
-
-	if (g->gr.ctx_vars.preempt_image_size == 0U) {
-		err = g->ops.gr.falcon.ctrl_ctxsw(g,
-			NVGPU_GR_FALCON_METHOD_PREEMPT_IMAGE_SIZE, 0U,
-			&g->gr.ctx_vars.preempt_image_size);
-		if (err != 0) {
-			nvgpu_err(g, "query preempt image size failed");
-			return err;
-		}
-	}
-
-	nvgpu_log_info(g, "preempt image size: %u",
-		g->gr.ctx_vars.preempt_image_size);
-
-	nvgpu_log_fn(g, "done");
-
-	return 0;
-}
 
 int gr_gp10b_dump_gr_status_regs(struct gk20a *g,
 			   struct gk20a_debug_output *o)

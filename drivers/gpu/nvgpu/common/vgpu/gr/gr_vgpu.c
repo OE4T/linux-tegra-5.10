@@ -717,7 +717,7 @@ static int vgpu_gr_init_gr_setup_sw(struct gk20a *g)
 		goto clean_up;
 	}
 
-	err = g->ops.gr.init_ctx_state(g);
+	err = g->ops.gr.falcon.init_ctx_state(g);
 	if (err) {
 		goto clean_up;
 	}

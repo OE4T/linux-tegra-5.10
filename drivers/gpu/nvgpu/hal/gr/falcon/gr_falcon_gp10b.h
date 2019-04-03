@@ -29,5 +29,5 @@ struct gk20a;
 
 int gp10b_gr_falcon_ctrl_ctxsw(struct gk20a *g, u32 fecs_method,
 						u32 data, u32 *ret_val);
-
+int gp10b_gr_falcon_init_ctx_state(struct gk20a *g);
 #endif /* NVGPU_GR_FALCON_GP10B_H */

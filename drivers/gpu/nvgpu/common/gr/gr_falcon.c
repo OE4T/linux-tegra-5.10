@@ -22,12 +22,130 @@
 
 #include <nvgpu/gk20a.h>
 #include <nvgpu/gr/gr_falcon.h>
+#include <nvgpu/enabled.h>
 #include <nvgpu/debug.h>
+#include <nvgpu/gr/hwpm_map.h>
+#include <nvgpu/gr/fecs_trace.h>
 #include <nvgpu/firmware.h>
+#include <nvgpu/sizes.h>
 #include <nvgpu/mm.h>
 #include <nvgpu/sec2.h>
 #include <nvgpu/acr.h>
 #include <nvgpu/power_features/pg.h>
+
+int nvgpu_gr_falcon_bind_fecs_elpg(struct gk20a *g)
+{
+	struct nvgpu_pmu *pmu = &g->pmu;
+	struct mm_gk20a *mm = &g->mm;
+	struct vm_gk20a *vm = mm->pmu.vm;
+	int err = 0;
+	u32 size;
+	u32 data;
+
+	nvgpu_log_fn(g, " ");
+
+	size = 0;
+
+	err = g->ops.gr.falcon.ctrl_ctxsw(g,
+		NVGPU_GR_FALCON_METHOD_REGLIST_DISCOVER_IMAGE_SIZE, 0U, &size);
+	if (err != 0) {
+		nvgpu_err(g,
+			"fail to query fecs pg buffer size");
+		return err;
+	}
+
+	if (pmu->pmu_pg.pg_buf.cpu_va == NULL) {
+		err = nvgpu_dma_alloc_map_sys(vm, size, &pmu->pmu_pg.pg_buf);
+		if (err != 0) {
+			nvgpu_err(g, "failed to allocate memory");
+			return -ENOMEM;
+		}
+	}
+
+	data = g->ops.gr.falcon.get_fecs_current_ctx_data(g,
+						&mm->pmu.inst_block);
+	err = g->ops.gr.falcon.ctrl_ctxsw(g,
+		NVGPU_GR_FALCON_METHOD_REGLIST_BIND_INSTANCE, data, NULL);
+	if (err != 0) {
+		nvgpu_err(g,
+			"fail to bind pmu inst to gr");
+		return err;
+	}
+
+	data = u64_lo32(pmu->pmu_pg.pg_buf.gpu_va >> 8);
+	err = g->ops.gr.falcon.ctrl_ctxsw(g,
+		NVGPU_GR_FALCON_METHOD_REGLIST_SET_VIRTUAL_ADDRESS, data, NULL);
+	if (err != 0) {
+		nvgpu_err(g,
+			"fail to set pg buffer pmu va");
+		return err;
+	}
+
+	return err;
+}
+
+int nvgpu_gr_falcon_init_ctxsw(struct gk20a *g)
+{
+	int err = 0;
+
+	nvgpu_log_fn(g, " ");
+
+	err = g->ops.gr.falcon.load_ctxsw_ucode(g);
+	if (err != 0) {
+		goto out;
+	}
+
+	err = g->ops.gr.falcon.wait_ctxsw_ready(g);
+
+out:
+	if (err != 0) {
+		nvgpu_err(g, "fail");
+	} else {
+		nvgpu_log_fn(g, "done");
+	}
+
+	return err;
+}
+
+int nvgpu_gr_falcon_init_ctx_state(struct gk20a *g)
+{
+
+	int err = 0;
+
+	nvgpu_log_fn(g, " ");
+
+	if (!g->gr.ctx_vars.golden_image_initialized) {
+		/* fecs init ramchain */
+		err = g->ops.gr.falcon.init_ctx_state(g);
+		if (err != 0) {
+			goto out;
+		}
+
+		if (g->gr.ctx_vars.pm_ctxsw_image_size != 0U) {
+			err = nvgpu_gr_hwpm_map_init(g, &g->gr.hwpm_map,
+				g->gr.ctx_vars.pm_ctxsw_image_size);
+			if (err != 0) {
+				nvgpu_err(g, "hwpm_map init failed");
+				goto out;
+			}
+		}
+
+		g->gr.ctx_vars.priv_access_map_size = 512 * 1024;
+#ifdef CONFIG_GK20A_CTXSW_TRACE
+		g->gr.ctx_vars.fecs_trace_buffer_size =
+			nvgpu_gr_fecs_trace_buffer_size(g);
+#endif
+	}
+
+out:
+	if (err != 0) {
+		nvgpu_err(g, "fail");
+	} else {
+		nvgpu_log_fn(g, "done");
+	}
+
+	return err;
+}
 
 static int nvgpu_gr_falcon_init_ctxsw_ucode_vaspace(struct gk20a *g)
 {
@@ -440,7 +558,7 @@ int nvgpu_gr_falcon_load_secure_ctxsw_ucode(struct gk20a *g)
  * depending on when stop_ctxsw fecs method gets sent with respect
  * to pmu elpg sequence. It could come as pmu halt or abort or
  * maybe ext error too.
-*/
+ */
 int nvgpu_gr_falcon_disable_ctxsw(struct gk20a *g)
 {
 	int err = 0;

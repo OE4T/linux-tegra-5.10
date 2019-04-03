@@ -76,7 +76,6 @@ int gr_gp10b_handle_sw_method(struct gk20a *g, u32 addr,
 				     u32 class_num, u32 offset, u32 data);
 void gr_gp10b_set_alpha_circular_buffer_size(struct gk20a *g, u32 data);
 void gr_gp10b_set_circular_buffer_size(struct gk20a *g, u32 data);
-int gr_gp10b_init_ctx_state(struct gk20a *g);
 int gr_gp10b_dump_gr_status_regs(struct gk20a *g,
 			   struct gk20a_debug_output *o);
 void gr_gp10b_set_gpc_tpc_mask(struct gk20a *g, u32 gpc_index);

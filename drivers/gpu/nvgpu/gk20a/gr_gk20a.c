@@ -74,8 +74,6 @@
 static struct channel_gk20a *gk20a_gr_get_channel_from_ctx(
 	struct gk20a *g, u32 curr_ctx, u32 *curr_tsgid);
 
-static int gk20a_init_gr_bind_fecs_elpg(struct gk20a *g);
-
 void nvgpu_report_gr_exception(struct gk20a *g, u32 inst,
 		u32 err_type, u32 status)
 {
@@ -300,52 +298,6 @@ int gr_gk20a_update_hwpm_ctxsw_mode(struct gk20a *g,
 	gk20a_enable_channel_tsg(g, c);
 
 	return ret;
-}
-
-int gr_gk20a_init_ctx_state(struct gk20a *g)
-{
-	int ret;
-
-	nvgpu_log_fn(g, " ");
-	/* query ctxsw image sizes, if golden context is not created */
-	if (!g->gr.ctx_vars.golden_image_initialized) {
-		ret = g->ops.gr.falcon.ctrl_ctxsw(g,
-			NVGPU_GR_FALCON_METHOD_CTXSW_DISCOVER_IMAGE_SIZE,
-			0, &g->gr.ctx_vars.golden_image_size);
-		if (ret != 0) {
-			nvgpu_err(g,
-				   "query golden image size failed");
-			return ret;
-		}
-
-		ret = g->ops.gr.falcon.ctrl_ctxsw(g,
-			NVGPU_GR_FALCON_METHOD_CTXSW_DISCOVER_PM_IMAGE_SIZE,
-			0, &g->gr.ctx_vars.pm_ctxsw_image_size);
-		if (ret != 0) {
-			nvgpu_err(g,
-				   "query pm ctx image size failed");
-			return ret;
-		}
-
-		if (g->gr.ctx_vars.pm_ctxsw_image_size != 0U) {
-			ret = nvgpu_gr_hwpm_map_init(g, &g->gr.hwpm_map,
-				g->gr.ctx_vars.pm_ctxsw_image_size);
-			if (ret != 0) {
-				nvgpu_err(g,
-				   "hwpm_map init failed");
-				return ret;
-			}
-		}
-
-		g->gr.ctx_vars.priv_access_map_size = 512 * 1024;
-#ifdef CONFIG_GK20A_CTXSW_TRACE
-		g->gr.ctx_vars.fecs_trace_buffer_size =
-			nvgpu_gr_fecs_trace_buffer_size(g);
-#endif
-	}
-
-	nvgpu_log_fn(g, "done");
-	return 0;
 }
 
 int gr_gk20a_alloc_global_ctx_buffers(struct gk20a *g)
@@ -716,30 +668,6 @@ static void gk20a_init_gr_prepare(struct gk20a *g)
 	g->ops.gr.init.fifo_access(g, true);
 }
 
-static int gr_gk20a_init_ctxsw(struct gk20a *g)
-{
-	int err = 0;
-
-	err = g->ops.gr.falcon.load_ctxsw_ucode(g);
-	if (err != 0) {
-		goto out;
-	}
-
-	err = g->ops.gr.falcon.wait_ctxsw_ready(g);
-	if (err != 0) {
-		goto out;
-	}
-
-out:
-	if (err != 0) {
-		nvgpu_err(g, "fail");
-	} else {
-		nvgpu_log_fn(g, "done");
-	}
-
-	return err;
-}
-
 static int gk20a_init_gr_reset_enable_hw(struct gk20a *g)
 {
 	struct netlist_av_list *sw_non_ctx_load = &g->netlist_vars->sw_non_ctx_load;
@@ -911,58 +839,6 @@ clean_up:
 	return err;
 }
 
-static int gk20a_init_gr_bind_fecs_elpg(struct gk20a *g)
-{
-	struct nvgpu_pmu *pmu = &g->pmu;
-	struct mm_gk20a *mm = &g->mm;
-	struct vm_gk20a *vm = mm->pmu.vm;
-	int err = 0;
-	u32 data;
-
-	u32 size;
-
-	nvgpu_log_fn(g, " ");
-
-	size = 0;
-
-	err = g->ops.gr.falcon.ctrl_ctxsw(g,
-		NVGPU_GR_FALCON_METHOD_REGLIST_DISCOVER_IMAGE_SIZE, 0U, &size);
-	if (err != 0) {
-		nvgpu_err(g,
-			"fail to query fecs pg buffer size");
-		return err;
-	}
-
-	if (pmu->pmu_pg.pg_buf.cpu_va == NULL) {
-		err = nvgpu_dma_alloc_map_sys(vm, size, &pmu->pmu_pg.pg_buf);
-		if (err != 0) {
-			nvgpu_err(g, "failed to allocate memory");
-			return -ENOMEM;
-		}
-	}
-
-	data = g->ops.gr.falcon.get_fecs_current_ctx_data(g,
-						&mm->pmu.inst_block);
-	err = g->ops.gr.falcon.ctrl_ctxsw(g,
-		NVGPU_GR_FALCON_METHOD_REGLIST_BIND_INSTANCE, data, NULL);
-	if (err != 0) {
-		nvgpu_err(g,
-			"fail to bind pmu inst to gr");
-		return err;
-	}
-
-	data = u64_lo32(pmu->pmu_pg.pg_buf.gpu_va >> 8);
-	err = g->ops.gr.falcon.ctrl_ctxsw(g,
-		NVGPU_GR_FALCON_METHOD_REGLIST_SET_VIRTUAL_ADDRESS, data, NULL);
-	if (err != 0) {
-		nvgpu_err(g,
-			"fail to set pg buffer pmu va");
-		return err;
-	}
-
-	return err;
-}
-
 int gk20a_init_gr_support(struct gk20a *g)
 {
 	int err = 0;
@@ -978,20 +854,20 @@ int gk20a_init_gr_support(struct gk20a *g)
 		return err;
 	}
 
-	err = gr_gk20a_init_ctxsw(g);
+	err = nvgpu_gr_falcon_init_ctxsw(g);
 	if (err != 0) {
 		return err;
 	}
 
 	/* this appears query for sw states but fecs actually init
 	   ramchain, etc so this is hw init */
-	err = g->ops.gr.init_ctx_state(g);
+	err = nvgpu_gr_falcon_init_ctx_state(g);
 	if (err != 0) {
 		return err;
 	}
 
 	if (g->can_elpg) {
-		err = gk20a_init_gr_bind_fecs_elpg(g);
+		err = nvgpu_gr_falcon_bind_fecs_elpg(g);
 		if (err != 0) {
 			return err;
 		}
@@ -1112,7 +988,7 @@ int gk20a_gr_reset(struct gk20a *g)
 		return err;
 	}
 
-	err = gr_gk20a_init_ctxsw(g);
+	err = nvgpu_gr_falcon_init_ctxsw(g);
 	if (err != 0) {
 		nvgpu_mutex_release(&g->gr.fecs_mutex);
 		return err;
@@ -1122,13 +998,13 @@ int gk20a_gr_reset(struct gk20a *g)
 
 	/* this appears query for sw states but fecs actually init
 	   ramchain, etc so this is hw init */
-	err = g->ops.gr.init_ctx_state(g);
+	err = nvgpu_gr_falcon_init_ctx_state(g);
 	if (err != 0) {
 		return err;
 	}
 
 	if (g->can_elpg) {
-		err = gk20a_init_gr_bind_fecs_elpg(g);
+		err = nvgpu_gr_falcon_bind_fecs_elpg(g);
 		if (err != 0) {
 			return err;
 		}

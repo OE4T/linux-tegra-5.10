@@ -405,7 +405,6 @@ static const struct gpu_ops gv100_ops = {
 		.is_tpc_addr = gr_gm20b_is_tpc_addr,
 		.get_tpc_num = gr_gm20b_get_tpc_num,
 		.detect_sm_arch = gr_gv11b_detect_sm_arch,
-		.init_ctx_state = gr_gp10b_init_ctx_state,
 		.free_gr_ctx = gr_gk20a_free_gr_ctx,
 		.dump_gr_regs = gr_gv11b_dump_gr_status_regs,
 		.update_pc_sampling = gr_gm20b_update_pc_sampling,
@@ -767,6 +766,7 @@ static const struct gpu_ops gv100_ops = {
 			.get_ctx_ptr = gm20b_gr_falcon_get_ctx_ptr,
 			.get_fecs_current_ctx_data =
 				gm20b_gr_falcon_get_fecs_current_ctx_data,
+			.init_ctx_state = gp10b_gr_falcon_init_ctx_state,
 		},
 	},
 	.fb = {

@@ -141,7 +141,6 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 		.is_tpc_addr = gr_gm20b_is_tpc_addr,
 		.get_tpc_num = gr_gm20b_get_tpc_num,
 		.detect_sm_arch = vgpu_gr_detect_sm_arch,
-		.init_ctx_state = vgpu_gr_init_ctx_state,
 		.free_gr_ctx = vgpu_gr_free_gr_ctx,
 		.dump_gr_regs = NULL,
 		.update_pc_sampling = vgpu_gr_update_pc_sampling,
@@ -291,6 +290,7 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 			.program_zcull_mapping = NULL,
 		},
 		.falcon = {
+			.init_ctx_state = vgpu_gr_init_ctx_state,
 			.load_ctxsw_ucode = NULL,
 			.halt_pipe = NULL,
 			.disable_ctxsw = nvgpu_gr_falcon_disable_ctxsw,

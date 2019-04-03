@@ -43,7 +43,9 @@ struct gk20a;
 #define NVGPU_GR_FALCON_METHOD_CONFIGURE_CTXSW_INTR 13
 
 
+int nvgpu_gr_falcon_bind_fecs_elpg(struct gk20a *g);
 int nvgpu_gr_falcon_init_ctxsw(struct gk20a *g);
+int nvgpu_gr_falcon_init_ctx_state(struct gk20a *g);
 int nvgpu_gr_falcon_init_ctxsw_ucode(struct gk20a *g);
 int nvgpu_gr_falcon_load_ctxsw_ucode(struct gk20a *g);
 int nvgpu_gr_falcon_load_secure_ctxsw_ucode(struct gk20a *g);

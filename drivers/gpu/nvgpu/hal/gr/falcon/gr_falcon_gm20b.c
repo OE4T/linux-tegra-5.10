@@ -633,6 +633,35 @@ int gm20b_gr_falcon_wait_ctxsw_ready(struct gk20a *g)
 	return 0;
 }
 
+int gm20b_gr_falcon_init_ctx_state(struct gk20a *g)
+{
+	int ret;
+
+	nvgpu_log_fn(g, " ");
+	/* query ctxsw image sizes, if golden context is not created */
+	if (!g->gr.ctx_vars.golden_image_initialized) {
+		ret = gm20b_gr_falcon_ctrl_ctxsw(g,
+			NVGPU_GR_FALCON_METHOD_CTXSW_DISCOVER_IMAGE_SIZE,
+			0, &g->gr.ctx_vars.golden_image_size);
+		if (ret != 0) {
+			nvgpu_err(g,
+				   "query golden image size failed");
+			return ret;
+		}
+		ret = gm20b_gr_falcon_ctrl_ctxsw(g,
+			NVGPU_GR_FALCON_METHOD_CTXSW_DISCOVER_PM_IMAGE_SIZE,
+			0, &g->gr.ctx_vars.pm_ctxsw_image_size);
+		if (ret != 0) {
+			nvgpu_err(g,
+				   "query pm ctx image size failed");
+			return ret;
+		}
+	}
+
+	nvgpu_log_fn(g, "done");
+	return 0;
+}
+
 u32 gm20b_gr_falcon_fecs_base_addr(void)
 {
 	return gr_fecs_irqsset_r();

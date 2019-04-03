@@ -308,7 +308,6 @@ struct gpu_ops {
 		u32 (*get_tpc_num)(struct gk20a *g, u32 addr);
 		u32 (*get_egpc_base)(struct gk20a *g);
 		void (*detect_sm_arch)(struct gk20a *g);
-		int (*init_ctx_state)(struct gk20a *g);
 		void (*free_gr_ctx)(struct gk20a *g,
 				    struct vm_gk20a *vm, struct nvgpu_gr_ctx *gr_ctx);
 		void (*powergate_tpc)(struct gk20a *g);
@@ -592,6 +591,7 @@ struct gpu_ops {
 			u32 (*get_ctx_ptr)(u32 ctx);
 			u32 (*get_fecs_current_ctx_data)(struct gk20a *g,
 					struct nvgpu_mem *inst_block);
+			int (*init_ctx_state)(struct gk20a *g);
 		} falcon;
 
 #ifdef CONFIG_GK20A_CTXSW_TRACE
