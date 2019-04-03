@@ -415,8 +415,6 @@ struct gpu_ops {
 					(struct gk20a *g);
 		void (*fecs_host_int_enable)(struct gk20a *g);
 		int (*handle_ssync_hww)(struct gk20a *g, u32 *ssync_esr);
-		int (*handle_semaphore_pending)(struct gk20a *g,
-					struct gr_gk20a_isr_data *isr_data);
 		int (*add_ctxsw_reg_pm_fbpa)(struct gk20a *g,
 				struct ctxsw_buf_offset_map_entry *map,
 				struct netlist_aiv_list *regs,
@@ -777,6 +775,8 @@ struct gpu_ops {
 		} init;
 
 		struct {
+			int (*handle_semaphore_pending)(struct gk20a *g,
+				struct gr_gk20a_isr_data *isr_data);
 			int (*handle_notify_pending)(struct gk20a *g,
 				struct gr_gk20a_isr_data *isr_data);
 			void (*handle_gcc_exception)(struct gk20a *g, u32 gpc,

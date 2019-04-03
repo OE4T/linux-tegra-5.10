@@ -180,3 +180,26 @@ int nvgpu_gr_intr_handle_notify_pending(struct gk20a *g,
 	nvgpu_cond_broadcast_interruptible(&ch->notifier_wq);
 	return 0;
 }
+
+int nvgpu_gr_intr_handle_semaphore_pending(struct gk20a *g,
+					   struct gr_gk20a_isr_data *isr_data)
+{
+	struct channel_gk20a *ch = isr_data->ch;
+	struct tsg_gk20a *tsg;
+
+	if (ch == NULL) {
+		return 0;
+	}
+
+	tsg = tsg_gk20a_from_ch(ch);
+	if (tsg != NULL) {
+		g->ops.fifo.post_event_id(tsg,
+			NVGPU_EVENT_ID_GR_SEMAPHORE_WRITE_AWAKEN);
+
+		nvgpu_cond_broadcast(&ch->semaphore_wq);
+	} else {
+		nvgpu_err(g, "chid: %d is not bound to tsg", ch->chid);
+	}
+
+	return 0;
+}

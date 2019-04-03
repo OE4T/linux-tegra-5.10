@@ -1368,29 +1368,6 @@ static int gk20a_gr_handle_firmware_method(struct gk20a *g,
 	return -EINVAL;
 }
 
-int gk20a_gr_handle_semaphore_pending(struct gk20a *g,
-				     struct gr_gk20a_isr_data *isr_data)
-{
-	struct channel_gk20a *ch = isr_data->ch;
-	struct tsg_gk20a *tsg;
-
-	if (ch == NULL) {
-		return 0;
-	}
-
-	tsg = tsg_gk20a_from_ch(ch);
-	if (tsg != NULL) {
-		g->ops.fifo.post_event_id(tsg,
-			NVGPU_EVENT_ID_GR_SEMAPHORE_WRITE_AWAKEN);
-
-		nvgpu_cond_broadcast(&ch->semaphore_wq);
-	} else {
-		nvgpu_err(g, "chid: %d is not bound to tsg", ch->chid);
-	}
-
-	return 0;
-}
-
 /* Used by sw interrupt thread to translate current ctx to chid.
  * Also used by regops to translate current ctx to chid and tsgid.
  * For performance, we don't want to go through 128 channels every time.
@@ -1855,7 +1832,7 @@ int gk20a_gr_isr(struct gk20a *g)
 	}
 
 	if ((gr_intr & gr_intr_semaphore_pending_f()) != 0U) {
-		g->ops.gr.handle_semaphore_pending(g, &isr_data);
+		g->ops.gr.intr.handle_semaphore_pending(g, &isr_data);
 		gk20a_writel(g, gr_intr_r(),
 			gr_intr_semaphore_reset_f());
 		gr_intr &= ~gr_intr_semaphore_pending_f();

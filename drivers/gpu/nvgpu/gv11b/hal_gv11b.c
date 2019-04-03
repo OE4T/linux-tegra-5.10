@@ -421,7 +421,6 @@ static const struct gpu_ops gv11b_ops = {
 			gr_gv11b_get_max_gfxp_wfi_timeout_count,
 		.fecs_host_int_enable = gr_gv11b_fecs_host_int_enable,
 		.handle_ssync_hww = gr_gv11b_handle_ssync_hww,
-		.handle_semaphore_pending = gk20a_gr_handle_semaphore_pending,
 		.decode_priv_addr = gr_gv11b_decode_priv_addr,
 		.create_priv_addr_table = gr_gv11b_create_priv_addr_table,
 		.split_fbpa_broadcast_addr = gr_gk20a_split_fbpa_broadcast_addr,
@@ -658,6 +657,8 @@ static const struct gpu_ops gv11b_ops = {
 				gv11b_gr_init_commit_gfxp_wfi_timeout,
 		},
 		.intr = {
+			.handle_semaphore_pending =
+					nvgpu_gr_intr_handle_semaphore_pending,
 			.handle_notify_pending =
 					nvgpu_gr_intr_handle_notify_pending,
 			.handle_gcc_exception =

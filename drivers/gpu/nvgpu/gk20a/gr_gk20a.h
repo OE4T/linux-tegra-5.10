@@ -424,8 +424,6 @@ int gr_gk20a_alloc_global_ctx_buffers(struct gk20a *g);
 u32 fecs_current_ctx_data(struct gk20a *g, struct nvgpu_mem *inst_block);
 
 int gk20a_init_sw_bundle(struct gk20a *g);
-int gk20a_gr_handle_semaphore_pending(struct gk20a *g,
-				struct gr_gk20a_isr_data *isr_data);
 int gr_gk20a_decode_priv_addr(struct gk20a *g, u32 addr,
 	enum ctxsw_addr_type *addr_type,
 	u32 *gpc_num, u32 *tpc_num, u32 *ppc_num, u32 *be_num,
