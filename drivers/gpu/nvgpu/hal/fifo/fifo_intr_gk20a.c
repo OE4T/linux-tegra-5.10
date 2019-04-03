@@ -172,8 +172,6 @@ static u32 gk20a_fifo_intr_handle_errors(struct gk20a *g, u32 fifo_intr)
 	if ((fifo_intr & fifo_intr_0_bind_error_pending_f()) != 0U) {
 		u32 bind_error = nvgpu_readl(g, fifo_intr_bind_error_r());
 
-		nvgpu_report_host_error(g, 0,
-				GPU_HOST_PFIFO_BIND_ERROR, bind_error);
 		nvgpu_err(g, "fifo bind error: 0x%08x", bind_error);
 		handled |= fifo_intr_0_bind_error_pending_f();
 	}

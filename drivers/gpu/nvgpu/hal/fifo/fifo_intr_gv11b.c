@@ -155,7 +155,6 @@ static u32 gv11b_fifo_intr_handle_errors(struct gk20a *g, u32 fifo_intr)
 
 	if ((fifo_intr & fifo_intr_0_bind_error_pending_f()) != 0U) {
 		u32 bind_error = nvgpu_readl(g, fifo_intr_bind_error_r());
-
 		nvgpu_report_host_error(g, 0,
 				GPU_HOST_PFIFO_BIND_ERROR, bind_error);
 		nvgpu_err(g, "fifo bind error: 0x%08x", bind_error);
@@ -168,11 +167,17 @@ static u32 gv11b_fifo_intr_handle_errors(struct gk20a *g, u32 fifo_intr)
 	}
 
 	if ((fifo_intr & fifo_intr_0_memop_timeout_pending_f()) != 0U) {
+		nvgpu_report_host_error(g, 0,
+				GPU_HOST_PFIFO_MEMOP_TIMEOUT_ERROR, 0);
 		nvgpu_err(g, "fifo memop timeout error");
 		handled |= fifo_intr_0_memop_timeout_pending_f();
 	}
 
 	if ((fifo_intr & fifo_intr_0_lb_error_pending_f()) != 0U) {
+		u32 lb_error = nvgpu_readl(g, fifo_intr_lb_error_r());
+
+		nvgpu_report_host_error(g, 0,
+				GPU_HOST_PFIFO_LB_ERROR, lb_error);
 		nvgpu_err(g, "fifo lb error");
 		handled |= fifo_intr_0_lb_error_pending_f();
 	}

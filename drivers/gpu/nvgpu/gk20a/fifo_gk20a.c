@@ -73,7 +73,7 @@ void nvgpu_report_host_error(struct gk20a *g, u32 inst,
 	int ret;
 
 	if (g->ops.fifo.err_ops.report_host_err == NULL) {
-		return ;
+		return;
 	}
 	ret = g->ops.fifo.err_ops.report_host_err(g,
 			NVGPU_ERR_MODULE_HOST, inst, err_id, intr_info);
