@@ -39,6 +39,7 @@ struct osi_core_priv_data;
  *	@pad_calibrate: Called to do pad caliberation.
  *	@set_mdc_clk_rate: Called to set MDC clock rate for MDIO operation.
  *	@flush_mtl_tx_queue: Called to flush MTL Tx queue.
+ *	@config_mac_loopback: Called to configure MAC in loopback mode.
  */
 struct osi_core_ops {
 	/* initialize MAC/MTL/DMA Common registers */
@@ -55,6 +56,7 @@ struct osi_core_ops {
 	void (*set_mdc_clk_rate)(struct osi_core_priv_data *osi_core,
 				 unsigned long csr_clk_rate);
 	int (*flush_mtl_tx_queue)(void *ioaddr, unsigned int qinx);
+	int (*config_mac_loopback)(void *addr, unsigned int lb_mode);
 };
 
 /**
@@ -314,6 +316,36 @@ static inline int osi_flush_mtl_tx_queue(struct osi_core_priv_data *osi_core,
 
 	return ret;
 }
+
+/**
+ *	osi_config_mac_loopback - Configure MAC loopback
+ *	@osi: OSI private data structure.
+ *	@lb_mode: Enable or disable MAC loopback
+ *
+ *	Algorithm: Configure the MAC to support the loopback.
+ *
+ *	Dependencies: MAC IP should be out of reset
+ *	and need to be initialized as the requirements
+ *
+ *	Protection: None
+ *
+ *      Return: 0 - success, -1 - failure.
+ */
+static inline int osi_config_mac_loopback(struct osi_core_priv_data *osi_core,
+					   unsigned int lb_mode)
+{
+	int ret = -1;
+
+	/* Configure MAC LoopBack */
+	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
+	    (osi_core->ops->config_mac_loopback != OSI_NULL)) {
+		ret = osi_core->ops->config_mac_loopback(osi_core->base,
+							 lb_mode);
+	}
+
+	return ret;
+}
+
 
 int osi_write_phy_reg(struct osi_core_priv_data *osi_core, unsigned int phyaddr,
 		      unsigned int phyreg, unsigned short phydata);

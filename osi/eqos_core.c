@@ -28,6 +28,58 @@
 struct osi_core_ops *eqos_get_hw_core_ops(void);
 
 /**
+ *	eqos_config_mac_loopback - Configure MAC to support loopback
+ *	@addr: MAC base address.
+ *	@lb_mode: Enable or Disable MAC loopback mode
+ *
+ *	Algorithm: Configure MAC to enable or disable loopback
+ *
+ *	Dependencies: MAC has to be out of reset.
+ *
+ *	Protection: None.
+ *
+ *	Return: 0 - success, -1 - failure
+ */
+static int eqos_config_mac_loopback(void *addr, unsigned int lb_mode)
+{
+	unsigned int clk_ctrl_val;
+	unsigned int mcr_val;
+
+	/* don't allow only if loopback mode is other than 0 or 1 */
+	if (lb_mode != OSI_ENABLE && lb_mode != OSI_DISABLE) {
+		return -1;
+	}
+
+	/* Read MAC Configuration Register */
+	mcr_val = osi_readl((unsigned char *)addr + EQOS_MAC_MCR);
+
+	/* Read EQOS wrapper clock control 0 register */
+	clk_ctrl_val = osi_readl((unsigned char *)addr + EQOS_CLOCK_CTRL_0);
+
+	if (lb_mode == OSI_ENABLE) {
+		/* Enable Loopback Mode */
+		mcr_val |= EQOS_MAC_ENABLE_LM;
+		/* Enable RX_CLK_SEL so that TX Clock is fed to RX domain */
+		clk_ctrl_val |= EQOS_RX_CLK_SEL;
+	} else if (lb_mode == OSI_DISABLE){
+		/* Disable Loopback Mode */
+		mcr_val &= ~EQOS_MAC_ENABLE_LM;
+		/* Disable RX_CLK_SEL so that TX Clock is fed to RX domain */
+		clk_ctrl_val &= ~EQOS_RX_CLK_SEL;
+	} else {
+		/* Nothing here */
+	}
+
+	/* Write to EQOS wrapper clock control 0 register */
+	osi_writel(clk_ctrl_val, (unsigned char *)addr + EQOS_CLOCK_CTRL_0);
+
+	/* Write to MAC Configuration Register */
+	osi_writel(mcr_val, (unsigned char *)addr + EQOS_MAC_MCR);
+
+	return 0;
+}
+
+/**
  *	eqos_poll_for_swr - Poll for software reset (SWR bit in DMA Mode)
  *	@addr: EQOS virtual base address.
  *
@@ -129,6 +181,9 @@ static void eqos_set_speed(void *base, int speed)
 	mcr_val = osi_readl((unsigned char *)base + EQOS_MAC_MCR);
 	switch (speed) {
 	default:
+		mcr_val &= ~EQOS_MCR_PS;
+		mcr_val &= ~EQOS_MCR_FES;
+		break;
 	case OSI_SPEED_1000:
 		mcr_val &= ~EQOS_MCR_PS;
 		mcr_val &= ~EQOS_MCR_FES;
@@ -820,6 +875,7 @@ static struct osi_core_ops eqos_core_ops = {
 	.pad_calibrate = eqos_pad_calibrate,
 	.set_mdc_clk_rate = eqos_set_mdc_clk_rate,
 	.flush_mtl_tx_queue = eqos_flush_mtl_tx_queue,
+	.config_mac_loopback = eqos_config_mac_loopback,
 };
 
 struct osi_core_ops *eqos_get_hw_core_ops(void)
