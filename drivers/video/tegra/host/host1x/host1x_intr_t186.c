@@ -259,9 +259,13 @@ static void intr_enable_host_irq(struct nvhost_intr *intr, int irq)
 	struct nvhost_master *dev = intr_to_dev(intr);
 	unsigned long val;
 
-	val = host1x_hypervisor_readl(dev->dev, host1x_sync_intmask_r());
-	val |= BIT(irq);
-	host1x_hypervisor_writel(dev->dev, host1x_sync_intmask_r(), val);
+	if (nvhost_dev_is_virtual(dev->dev) == false) {
+		val = host1x_hypervisor_readl(dev->dev,
+					      host1x_sync_intmask_r());
+		val |= BIT(irq);
+		host1x_hypervisor_writel(dev->dev, host1x_sync_intmask_r(),
+					 val);
+	}
 }
 
 static void intr_disable_host_irq(struct nvhost_intr *intr, int irq)
@@ -269,9 +273,13 @@ static void intr_disable_host_irq(struct nvhost_intr *intr, int irq)
 	struct nvhost_master *dev = intr_to_dev(intr);
 	unsigned long val;
 
-	val = host1x_hypervisor_readl(dev->dev, host1x_sync_intmask_r());
-	val &= ~BIT(irq);
-	host1x_hypervisor_writel(dev->dev, host1x_sync_intmask_r(), val);
+	if (nvhost_dev_is_virtual(dev->dev) == false) {
+		val = host1x_hypervisor_readl(dev->dev,
+					      host1x_sync_intmask_r());
+		val &= ~BIT(irq);
+		host1x_hypervisor_writel(dev->dev, host1x_sync_intmask_r(),
+					 val);
+	}
 }
 
 static void intr_enable_module_intr(struct nvhost_intr *intr, int irq)
@@ -279,9 +287,13 @@ static void intr_enable_module_intr(struct nvhost_intr *intr, int irq)
 	struct nvhost_master *dev = intr_to_dev(intr);
 	unsigned long val;
 
-	val = host1x_hypervisor_readl(dev->dev, host1x_sync_intc0mask_r());
-	val |= BIT(irq);
-	host1x_hypervisor_writel(dev->dev, host1x_sync_intc0mask_r(), val);
+	if (nvhost_dev_is_virtual(dev->dev) == false) {
+		val = host1x_hypervisor_readl(dev->dev,
+					      host1x_sync_intc0mask_r());
+		val |= BIT(irq);
+		host1x_hypervisor_writel(dev->dev, host1x_sync_intc0mask_r(),
+					 val);
+	}
 }
 
 static void intr_disable_module_intr(struct nvhost_intr *intr, int irq)
@@ -289,9 +301,13 @@ static void intr_disable_module_intr(struct nvhost_intr *intr, int irq)
 	struct nvhost_master *dev = intr_to_dev(intr);
 	unsigned long val;
 
-	val = host1x_hypervisor_readl(dev->dev, host1x_sync_intc0mask_r());
-	val &= ~BIT(irq);
-	host1x_hypervisor_writel(dev->dev, host1x_sync_intc0mask_r(), val);
+	if (nvhost_dev_is_virtual(dev->dev) == false) {
+		val = host1x_hypervisor_readl(dev->dev,
+					      host1x_sync_intc0mask_r());
+		val &= ~BIT(irq);
+		host1x_hypervisor_writel(dev->dev, host1x_sync_intc0mask_r(),
+					 val);
+	}
 }
 
 static int intr_debug_dump(struct nvhost_intr *intr, struct output *o)
@@ -322,12 +338,6 @@ static void intr_resume(struct nvhost_intr *intr)
 {
 	struct nvhost_master *dev = intr_to_dev(intr);
 
-	/* increase the auto-ack timout to the maximum value. 2d will hang
-	 * otherwise on ap20.
-	 */
-	host1x_common_writel(dev->dev,
-			host1x_sync_ctxsw_timeout_cfg_r(), 0xff);
-
 	/* enable graphics host syncpoint interrupt */
 	intr_set_syncpt_threshold(intr,
 			nvhost_syncpt_graphics_host_sp(&dev->syncpt),
@@ -335,29 +345,43 @@ static void intr_resume(struct nvhost_intr *intr)
 	intr_enable_syncpt_intr(intr,
 			nvhost_syncpt_graphics_host_sp(&dev->syncpt));
 
-	/* enable host module interrupt to CPU0 */
-	host1x_hypervisor_writel(dev->dev, host1x_sync_intc0mask_r(), BIT(0));
-	host1x_hypervisor_writel(dev->dev, host1x_sync_intgmask_r(), BIT(0));
-	/* enable syncpoint interrupts */
-	host1x_hypervisor_writel(dev->dev, host1x_sync_syncpt_intgmask_r(),
-				/* Camera CPUs 2 and 3 */
-				BIT(2) | BIT(3) |
-				/* VM1..VM8 */
-				(0xff << 8));
+	if (nvhost_dev_is_virtual(dev->dev) == false) {
+		/* increase the auto-ack timout to the maximum value. 2d will
+		 * hang otherwise on ap20.
+		 */
+		host1x_common_writel(dev->dev,
+				host1x_sync_ctxsw_timeout_cfg_r(), 0xff);
 
-	/* master enable for general (not syncpt) host interrupts
-	 * (AXIREAD, AXIWRITE, Syncpoint protection) */
-	host1x_hypervisor_writel(dev->dev, host1x_sync_intmask_r(),
-				 BIT(0) | BIT(1) | BIT(30) | BIT(28));
+		/* enable host module interrupt to CPU0 */
+		host1x_hypervisor_writel(dev->dev,
+					 host1x_sync_intc0mask_r(), BIT(0));
+		host1x_hypervisor_writel(dev->dev,
+					 host1x_sync_intgmask_r(), BIT(0));
+		/* enable syncpoint interrupts */
+		host1x_hypervisor_writel(dev->dev,
+					 host1x_sync_syncpt_intgmask_r(),
+					 /* Camera CPUs 2 and 3 */
+					 BIT(2) | BIT(3) |
+					 /* VM1..VM8 */
+					 (0xff << 8));
+
+		/* master enable for general (not syncpt) host interrupts
+		 * (AXIREAD, AXIWRITE, Syncpoint protection) */
+		host1x_hypervisor_writel(dev->dev, host1x_sync_intmask_r(),
+					 BIT(0) | BIT(1) | BIT(30) | BIT(28));
+	}
 }
 
 static void intr_suspend(struct nvhost_intr *intr)
 {
 	struct nvhost_master *dev = intr_to_dev(intr);
 
-	/* master disable for general (not syncpt) host interrupts */
-	host1x_hypervisor_writel(dev->dev, host1x_sync_intmask_r(), 0);
-	host1x_hypervisor_writel(dev->dev, host1x_sync_syncpt_intgmask_r(), 0);
+	if (nvhost_dev_is_virtual(dev->dev) == false) {
+		/* master disable for general (not syncpt) host interrupts */
+		host1x_hypervisor_writel(dev->dev, host1x_sync_intmask_r(), 0);
+		host1x_hypervisor_writel(dev->dev,
+					 host1x_sync_syncpt_intgmask_r(), 0);
+	}
 
 	/* disable graphics host syncpoint interrupt */
 	intr_disable_syncpt_intr(intr,
@@ -381,18 +405,26 @@ static int intr_init(struct nvhost_intr *intr)
 		return err;
 	}
 
-	/* master disable for general (not syncpt) host interrupts */
-	host1x_hypervisor_writel(dev->dev, host1x_sync_intc0mask_r(), 0);
-	host1x_hypervisor_writel(dev->dev, host1x_sync_intgmask_r(), 0);
-	host1x_hypervisor_writel(dev->dev, host1x_sync_intmask_r(), 0);
+	if (nvhost_dev_is_virtual(dev->dev) == false) {
+		/* master disable for general (not syncpt) host interrupts */
+		host1x_hypervisor_writel(dev->dev,
+					 host1x_sync_intc0mask_r(), 0);
+		host1x_hypervisor_writel(dev->dev, host1x_sync_intgmask_r(), 0);
+		host1x_hypervisor_writel(dev->dev, host1x_sync_intmask_r(), 0);
 
-	if (!dev->info.vmserver_owns_engines) {
-		err = request_threaded_irq(intr->general_irq, NULL,
-					intr_host1x_isr,
-					IRQF_ONESHOT, "host_status", intr);
-		if (err)
-			dev_warn(&dev->dev->dev,
-			         "general irq request failed, but continuing\n");
+		if (!dev->info.vmserver_owns_engines) {
+			err = request_threaded_irq(intr->general_irq,
+						   NULL,
+						   intr_host1x_isr,
+						   IRQF_ONESHOT,
+						   "host_status",
+						   intr);
+			if (err) {
+				dev_warn(&dev->dev->dev,
+					 "general irq request failed, "
+					 "but continuing\n");
+			}
+		}
 	}
 
 	return 0;

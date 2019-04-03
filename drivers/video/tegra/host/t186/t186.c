@@ -444,6 +444,10 @@ static void t186_init_regs(struct platform_device *pdev, bool prod)
 	struct nvhost_gating_register *regs = t18x_host1x_gating_registers;
 	struct nvhost_streamid_mapping *map_regs = t18x_host1x_streamid_mapping;
 
+	if (nvhost_dev_is_virtual(pdev) == true) {
+		return;
+	}
+
 	while (regs->addr) {
 		if (prod)
 			host1x_hypervisor_writel(pdev, regs->addr, regs->prod);

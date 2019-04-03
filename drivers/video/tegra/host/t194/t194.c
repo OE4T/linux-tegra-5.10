@@ -676,6 +676,10 @@ static void t194_init_regs(struct platform_device *pdev, bool prod)
 	int ret = 0;
 	u64 cl = 0;
 
+	if (nvhost_dev_is_virtual(pdev) == true) {
+		return;
+	}
+
 	/* Ensure that HW has finished initializing syncpt RAM prior to use */
 	for (;;) {
 		/* XXX: This retry loop takes too long to timeout on VDK */

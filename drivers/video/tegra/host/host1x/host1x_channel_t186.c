@@ -476,15 +476,17 @@ error:
 static int host1x_channel_init_security(struct platform_device *pdev,
 	struct nvhost_channel *ch)
 {
-	u32 val;
+	u32 val = 0U;
 
-	val = host1x_hypervisor_readl(pdev,
-				      host1x_channel_filter_gbuffer_r() +
-				      BIT_WORD(ch->chid) * sizeof(u32));
-	host1x_hypervisor_writel(pdev,
-				 host1x_channel_filter_gbuffer_r() +
-				 BIT_WORD(ch->chid) * sizeof(u32),
-				 val | BIT_MASK(ch->chid));
+	if (nvhost_dev_is_virtual(pdev) == false) {
+		val = host1x_hypervisor_readl(pdev,
+					host1x_channel_filter_gbuffer_r() +
+					BIT_WORD(ch->chid) * sizeof(u32));
+		host1x_hypervisor_writel(pdev,
+					 host1x_channel_filter_gbuffer_r() +
+					 BIT_WORD(ch->chid) * sizeof(u32),
+					 val | BIT_MASK(ch->chid));
+	}
 
 	return 0;
 }
@@ -494,10 +496,12 @@ static int host1x_channel_init(struct nvhost_channel *ch,
 {
 	ch->aperture = host1x_channel_aperture(dev->aperture, ch->chid);
 
-	/* move channel to VM */
-	host1x_hypervisor_writel(dev->dev,
-			(host1x_channel_ch_vm_0_r() + ch->chid * 4),
-			nvhost_host1x_get_vmid(dev->dev));
+	if (nvhost_dev_is_virtual(dev->dev) == false) {
+		/* move channel to VM */
+		host1x_hypervisor_writel(dev->dev,
+				(host1x_channel_ch_vm_0_r() + ch->chid * 4),
+				nvhost_host1x_get_vmid(dev->dev));
+	}
 
 	return 0;
 }

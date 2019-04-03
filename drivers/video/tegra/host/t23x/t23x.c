@@ -674,6 +674,10 @@ static void t23x_init_gating_regs(struct platform_device *pdev, bool prod)
 	ktime_t now, start = ktime_get();
 	u32 ram_init;
 
+	if (nvhost_dev_is_virtual(pdev) == true) {
+		return;
+	}
+
 	/* Ensure that HW has finished initializing syncpt RAM prior to use */
 	for (;;) {
 		/* XXX: This retry loop takes too long to timeout on VDK */
