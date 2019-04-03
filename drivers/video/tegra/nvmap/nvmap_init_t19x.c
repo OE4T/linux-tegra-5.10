@@ -20,6 +20,8 @@
 #include <linux/of_reserved_mem.h>
 #include <linux/platform_device.h>
 #include <linux/nvmap_t19x.h>
+#include <linux/kobject.h>
+#include <linux/sysfs.h>
 #include <linux/io.h>
 
 #include "nvmap_priv.h"
@@ -27,14 +29,24 @@
 bool nvmap_version_t19x;
 extern struct static_key nvmap_updated_cache_config;
 
+struct gos_sysfs {
+	struct kobj_attribute status_attr;
+	struct kobj_attribute cvdevs_attr;
+};
+
 struct gosmem_priv {
+	struct kobject *kobj;
+	struct gos_sysfs gsfs;
 	struct device *dev;
 	void *cpu_addr;
 	void *memremap_addr;
 	dma_addr_t dma_addr;
 	int cvdevs;
+	u8 **dev_names;
+	bool status;
 };
 static struct gosmem_priv *gos;
+static struct cv_dev_info *cvdev_info;
 
 const struct of_device_id nvmap_of_ids[] = {
 	{ .compatible = "nvidia,carveouts" },
@@ -68,47 +80,109 @@ int nvmap_register_cvsram_carveout(struct device *dma_dev,
 }
 EXPORT_SYMBOL(nvmap_register_cvsram_carveout);
 
-static struct cv_dev_info *cvdev_info;
-
-static void nvmap_gosmem_device_release(struct reserved_mem *rmem,
-		struct device *dev)
+static ssize_t gos_status_show(struct kobject *kobj,
+		struct kobj_attribute *attr, char *buf)
 {
-	int cvdev_count = gos->cvdevs;
-	struct sg_table *sgt;
-	int i;
+	bool val = gos->status;
 
-	sgt = (struct sg_table *)(cvdev_info + cvdev_count);
-
-	for (i = 0; i < (cvdev_count * cvdev_count); i++)
-		sg_free_table(sgt++);
-
-	for (i = 0; i < cvdev_count; i++)
-		of_node_put(cvdev_info[i].np);
-
-	memunmap(gos->memremap_addr);
-	dma_free_coherent(gos->dev, cvdev_count * SZ_4K, gos->cpu_addr,
-			gos->dma_addr);
-
-	kfree(cvdev_info);
-	cvdev_info = NULL;
-	kfree(gos);
+	return scnprintf(buf, PAGE_SIZE, "%s\n",
+		(val ? "Enabled" : "Disabled"));
 }
+
+static ssize_t gos_cvdevs_show(struct kobject *kobj,
+		struct kobj_attribute *attr, char *buf)
+{
+	char *str = buf;
+	u32 idx;
+
+	for (idx = 0; idx < gos->cvdevs; idx++)
+		str += sprintf(str, "%s\n", (gos->dev_names[idx]));
+
+	return(str - buf);
+}
+
+static int gos_sysfs_create(void)
+{
+	struct attribute *attr1;
+	struct attribute *attr2;
+	int ret;
+
+	gos->kobj = kobject_create_and_add("gos",
+					kernel_kobj);
+	if (!gos->kobj) {
+		dev_err(gos->dev, "Couldn't create gos kobj\n");
+		return -ENOMEM;
+	}
+
+	attr1 = &gos->gsfs.status_attr.attr;
+	sysfs_attr_init(attr1);
+	attr1->name = "status";
+	attr1->mode = 0440;
+	gos->gsfs.status_attr.show = gos_status_show;
+	ret = sysfs_create_file(gos->kobj, attr1);
+	if (ret) {
+		dev_err(gos->dev, "Couldn't create status node\n");
+		goto clean_gos_kobj;
+	}
+
+	attr2 = &gos->gsfs.cvdevs_attr.attr;
+	sysfs_attr_init(attr2);
+	attr2->name = "cvdevs";
+	attr2->mode = 0440;
+	gos->gsfs.cvdevs_attr.show = gos_cvdevs_show;
+	ret = sysfs_create_file(gos->kobj, attr2);
+	if (ret) {
+		dev_err(gos->dev, "Couldn't create cvdevs node\n");
+		sysfs_remove_file(gos->kobj, attr1);
+		goto clean_gos_kobj;
+	}
+
+	return 0;
+
+clean_gos_kobj:
+	kobject_put(gos->kobj);
+	gos->kobj = NULL;
+	return ret;
+}
+
+static void gos_sysfs_remove(void)
+{
+	sysfs_remove_file(gos->kobj, &gos->gsfs.cvdevs_attr.attr);
+	sysfs_remove_file(gos->kobj, &gos->gsfs.status_attr.attr);
+	kobject_put(gos->kobj);
+	gos->kobj = NULL;
+}
+
+static u8 *get_dev_name(const u8 *name)
+{
+	char *str = kstrdup(name, GFP_KERNEL);
+
+	strsep(&str, "/");
+	strsep(&str, "/");
+	strreplace(str, '@', '\0');
+	return str;
+}
+
 
 static int __init nvmap_gosmem_device_init(struct reserved_mem *rmem,
 		struct device *dev)
 {
 	struct of_phandle_args outargs;
-	struct device_node *np;
-	DEFINE_DMA_ATTRS(attrs);
 	int ret = 0, i, idx, bytes;
+	DEFINE_DMA_ATTRS(attrs);
+	struct device_node *np;
 	struct sg_table *sgt;
 	int cvdev_count;
+	u8 *dev_name;
+
+	if (!dev)
+		return -ENODEV;
 
 	dma_set_attr(DMA_ATTR_ALLOC_EXACT_SIZE, __DMA_ATTR(attrs));
 
 	np = of_find_node_by_phandle(rmem->phandle);
 	if (!np) {
-		pr_err("Can't find the node using compatible\n");
+		dev_err(dev, "Can't find the node using compatible\n");
 		return -ENODEV;
 	}
 
@@ -121,20 +195,30 @@ static int __init nvmap_gosmem_device_init(struct reserved_mem *rmem,
 	if (!gos)
 		return -ENOMEM;
 
+	gos->status = true;
+	gos->dev = dev;
+
 	gos->cvdevs = of_count_phandle_with_args(np, "cvdevs", NULL);
 	if (!gos->cvdevs) {
-		pr_err("No cvdevs to use the gosmem!!\n");
+		dev_err(gos->dev, "No cvdevs to use the gosmem!!\n");
 		ret = -EINVAL;
 		goto free_gos;
 	}
 	cvdev_count = gos->cvdevs;
 
+	gos->dev_names = kcalloc(cvdev_count, sizeof(u8 *),
+				 GFP_KERNEL);
+	if (gos->dev_names == NULL) {
+		ret = -ENOMEM;
+		goto free_gos;
+	}
+
 	gos->cpu_addr = dma_alloc_coherent(dev, cvdev_count * SZ_4K,
 				&gos->dma_addr, GFP_KERNEL);
 	if (!gos->cpu_addr) {
-		pr_err("Failed to allocate from Gos mem carveout\n");
+		dev_err(gos->dev, "Failed to allocate from Gos mem carveout\n");
 		ret = -ENOMEM;
-		goto free_gos;
+		goto free_cvdevs_names;
 	}
 
 	gos->memremap_addr = memremap(virt_to_phys(gos->cpu_addr),
@@ -144,7 +228,6 @@ static int __init nvmap_gosmem_device_init(struct reserved_mem *rmem,
 	bytes += sizeof(struct sg_table) * cvdev_count * cvdev_count;
 	cvdev_info = kzalloc(bytes, GFP_KERNEL);
 	if (!cvdev_info) {
-		pr_err("kzalloc failed. No memory!!!\n");
 		ret = -ENOMEM;
 		goto unmap_dma;
 	}
@@ -167,6 +250,10 @@ static int __init nvmap_gosmem_device_init(struct reserved_mem *rmem,
 		cvdev_info[idx].np = of_node_get(temp);
 		if (!cvdev_info[idx].np)
 			continue;
+
+		dev_name = get_dev_name(of_node_full_name(cvdev_info[idx].np));
+		gos->dev_names[idx] = dev_name;
+
 		cvdev_info[idx].count = cvdev_count;
 		cvdev_info[idx].idx = idx;
 		cvdev_info[idx].sgt =
@@ -179,31 +266,80 @@ static int __init nvmap_gosmem_device_init(struct reserved_mem *rmem,
 
 			ret = sg_alloc_table(sgt, 1, GFP_KERNEL);
 			if (ret) {
-				pr_err("sg_alloc_table failed:%d\n", ret);
-				goto free;
+				dev_err(gos->dev, "sg_alloc_table failed:%d\n",
+					ret);
+				goto free_sgs;
 			}
 			sg_set_buf(sgt->sgl,
 				(gos->memremap_addr + i * SZ_4K), SZ_4K);
 		}
 	}
 
+	if (gos_sysfs_create()) {
+		ret = -EINVAL;
+		goto free_sgs;
+	}
+
 	return 0;
-free:
+
+free_sgs:
 	sgt = (struct sg_table *)(cvdev_info + cvdev_count);
 	for (i = 0; i < cvdev_count * cvdev_count; i++)
 		sg_free_table(sgt++);
 free_cvdev:
+	for (i = 0; i < cvdev_count; i++)
+		of_node_put(cvdev_info[i].np);
 	kfree(cvdev_info);
 	cvdev_info = NULL;
-	cvdev_count = 0;
 unmap_dma:
 	memunmap(gos->memremap_addr);
 	dma_free_coherent(dev, cvdev_count * SZ_4K, gos->cpu_addr,
 				gos->dma_addr);
+free_cvdevs_names:
+	for (idx = 0; idx < cvdev_count; idx++) {
+		kfree(gos->dev_names[idx]);
+		gos->dev_names[idx] = NULL;
+	}
+	kfree(gos->dev_names);
+	gos->dev_names = NULL;
 free_gos:
 	kfree(gos);
 	gos = NULL;
 	return ret;
+}
+
+static void nvmap_gosmem_device_release(struct reserved_mem *rmem,
+		struct device *dev)
+{
+	int cvdev_count = gos->cvdevs;
+	struct sg_table *sgt;
+	int i;
+
+	gos_sysfs_remove();
+
+	sgt = (struct sg_table *)(cvdev_info + cvdev_count);
+	for (i = 0; i < (cvdev_count * cvdev_count); i++)
+		sg_free_table(sgt++);
+
+	for (i = 0; i < cvdev_count; i++)
+		of_node_put(cvdev_info[i].np);
+
+	kfree(cvdev_info);
+	cvdev_info = NULL;
+
+	memunmap(gos->memremap_addr);
+	dma_free_coherent(gos->dev, cvdev_count * SZ_4K, gos->cpu_addr,
+			gos->dma_addr);
+
+	for (i = 0; i < cvdev_count; i++) {
+		kfree(gos->dev_names[i]);
+		gos->dev_names[i] = NULL;
+	}
+	kfree(gos->dev_names);
+	gos->dev_names = NULL;
+
+	kfree(gos);
+	gos = NULL;
 }
 
 static struct reserved_mem_ops gosmem_rmem_ops = {
@@ -272,7 +408,7 @@ static int nvmap_gosmem_notifier(struct notifier_block *nb,
 			ents = dma_map_sg_attrs(dev, gos_owner->sgt[i].sgl,
 					gos_owner->sgt[i].nents, dir, __DMA_ATTR(attrs));
 			if (ents != 1) {
-				pr_err("mapping gosmem chunk %d for %s failed\n",
+				dev_err(gos->dev, "mapping gosmem chunk %d for %s failed\n",
 					i, dev_name(dev));
 				return NOTIFY_DONE;
 			}
