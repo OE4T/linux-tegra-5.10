@@ -51,8 +51,9 @@ void __nvgpu_print_current(struct gk20a *g, const char *func_name, int line,
 	char current_tname[CURRENT_NAME_LEN];
 
 	/* pthread_getname_np() will return null terminated string on success */
-	if (pthread_getname_np(0, current_tname, CURRENT_NAME_LEN) == 0)
-		__nvgpu_log_msg(g, func_name, line, type, current_tname);
-	else
+	if (pthread_getname_np(0, current_tname, CURRENT_NAME_LEN) == 0) {
+		__nvgpu_log_msg(g, func_name, line, type, "%s", current_tname);
+	} else {
 		__nvgpu_log_msg(g, func_name, line, type, "(unknown process)");
+	}
 }
