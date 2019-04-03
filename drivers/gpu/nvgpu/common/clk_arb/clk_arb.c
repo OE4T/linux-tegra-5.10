@@ -893,7 +893,13 @@ unsigned long nvgpu_clk_measure_freq(struct gk20a *g, u32 api_domain)
 	unsigned long freq = 0UL;
 
 	switch (api_domain) {
+	/*
+	 * Incase of iGPU clocks to each parition (GPC, SYS, LTC, XBAR) are
+	 * generated using 1X GPCCLK and hence should be the same.
+	 */
 	case CTRL_CLK_DOMAIN_GPCCLK:
+	case CTRL_CLK_DOMAIN_SYSCLK:
+	case CTRL_CLK_DOMAIN_XBARCLK:
 		freq = g->ops.clk.get_rate(g, CTRL_CLK_DOMAIN_GPCCLK);
 		break;
 	default:

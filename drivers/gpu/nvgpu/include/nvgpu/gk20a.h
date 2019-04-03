@@ -822,7 +822,6 @@ struct gpu_ops {
 		} intr;
 
 		u32 (*get_ctxsw_checksum_mismatch_mailbox_val)(void);
-
 		struct {
 			int (*report_ecc_parity_err)(struct gk20a *g,
 					u32 hw_id, u32 inst, u32 err_id,
@@ -2011,6 +2010,7 @@ struct gk20a {
 
 	unsigned int ch_wdt_init_limit_ms;
 	u32 ctxsw_timeout_period_ms;
+	u32 ctxsw_wdt_period_us;
 
 	struct nvgpu_mutex power_lock;
 

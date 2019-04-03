@@ -25,6 +25,7 @@
 #include <nvgpu/io.h>
 #include <nvgpu/debug.h>
 #include <nvgpu/power_features/pg.h>
+#include <nvgpu/soc.h>
 
 #include "gr_falcon_gm20b.h"
 #include "common/gr/gr_falcon_priv.h"
@@ -36,6 +37,8 @@
 #define FECS_ARB_CMD_TIMEOUT_DEFAULT_US 2U
 #define CTXSW_MEM_SCRUBBING_TIMEOUT_MAX_US 1000U
 #define CTXSW_MEM_SCRUBBING_TIMEOUT_DEFAULT_US 10U
+
+#define CTXSW_WDT_DEFAULT_VALUE 0x7FFFFFFFU
 
 void gm20b_gr_falcon_load_gpccs_dmem(struct gk20a *g,
 			const u32 *ucode_u32_data, u32 ucode_u32_size)
@@ -607,6 +610,8 @@ static int gm20b_gr_falcon_ctx_wait_ucode(struct gk20a *g, u32 mailbox_id,
 int gm20b_gr_falcon_wait_ctxsw_ready(struct gk20a *g)
 {
 	int ret;
+	uint32_t wdt_val = CTXSW_WDT_DEFAULT_VALUE;
+	unsigned long sysclk_freq_mhz = 0UL;
 
 	nvgpu_log_fn(g, " ");
 
@@ -625,8 +630,26 @@ int gm20b_gr_falcon_wait_ctxsw_ready(struct gk20a *g)
 			gr_fecs_current_ctx_valid_false_f());
 	}
 
-	nvgpu_writel(g, gr_fecs_ctxsw_mailbox_clear_r(0), 0xffffffffU);
-	nvgpu_writel(g, gr_fecs_method_data_r(), 0x7fffffff);
+	if (nvgpu_platform_is_silicon(g)) {
+		if (g->ops.clk.measure_freq != NULL) {
+			sysclk_freq_mhz = g->ops.clk.measure_freq(g,
+					CTRL_CLK_DOMAIN_SYSCLK) / MHZ;
+			if (sysclk_freq_mhz == 0UL) {
+				nvgpu_err(g, "failed to get SYSCLK freq");
+
+				return -1;
+			}
+			nvgpu_info(g, "SYSCLK = %lu MHz", sysclk_freq_mhz);
+			if (g->ctxsw_wdt_period_us != 0U) {
+				wdt_val = (unsigned int)(sysclk_freq_mhz *
+						g->ctxsw_wdt_period_us);
+			}
+		}
+	}
+
+	nvgpu_info(g, "configuring ctxsw_ucode wdt = 0x%x", wdt_val);
+	nvgpu_writel(g, gr_fecs_ctxsw_mailbox_clear_r(0), U32_MAX);
+	nvgpu_writel(g, gr_fecs_method_data_r(), wdt_val);
 	nvgpu_writel(g, gr_fecs_method_push_r(),
 		     gr_fecs_method_push_adr_set_watchdog_timeout_f());
 
