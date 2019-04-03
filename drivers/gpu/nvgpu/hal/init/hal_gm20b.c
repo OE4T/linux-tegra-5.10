@@ -39,6 +39,7 @@
 #include <nvgpu/gr/gr_falcon.h>
 #include <nvgpu/gr/setup.h>
 #include <nvgpu/pmu/pmu_perfmon.h>
+#include <nvgpu/gr/fecs_trace.h>
 
 #include "hal/mm/cache/flush_gk20a.h"
 #include "hal/mc/mc_gm20b.h"
@@ -78,6 +79,7 @@
 #include "hal/gr/intr/gr_intr_gm20b.h"
 #include "hal/gr/config/gr_config_gm20b.h"
 #include "hal/gr/ctxsw_prog/ctxsw_prog_gm20b.h"
+#include "hal/gr/fecs_trace/fecs_trace_gm20b.h"
 #include "hal/pmu/pmu_gk20a.h"
 #include "hal/pmu/pmu_gm20b.h"
 #include "hal/falcon/falcon_gk20a.h"
@@ -375,6 +377,30 @@ static const struct gpu_ops gm20b_ops = {
 				gm20b_gr_config_get_pd_dist_skip_table_size,
 			.init_sm_id_table = gm20b_gr_config_init_sm_id_table,
 		},
+#ifdef CONFIG_GK20A_CTXSW_TRACE
+		.fecs_trace = {
+			.alloc_user_buffer = nvgpu_gr_fecs_trace_ring_alloc,
+			.free_user_buffer = nvgpu_gr_fecs_trace_ring_free,
+			.get_mmap_user_buffer_info =
+				nvgpu_gr_fecs_trace_get_mmap_buffer_info,
+			.init = nvgpu_gr_fecs_trace_init,
+			.deinit = nvgpu_gr_fecs_trace_deinit,
+			.enable = nvgpu_gr_fecs_trace_enable,
+			.disable = nvgpu_gr_fecs_trace_disable,
+			.is_enabled = nvgpu_gr_fecs_trace_is_enabled,
+			.reset = nvgpu_gr_fecs_trace_reset,
+			.flush = gm20b_fecs_trace_flush,
+			.poll = nvgpu_gr_fecs_trace_poll,
+			.bind_channel = nvgpu_gr_fecs_trace_bind_channel,
+			.unbind_channel = nvgpu_gr_fecs_trace_unbind_channel,
+			.max_entries = nvgpu_gr_fecs_trace_max_entries,
+			.get_buffer_full_mailbox_val =
+				gm20b_fecs_trace_get_buffer_full_mailbox_val,
+			.get_read_index = gm20b_fecs_trace_get_read_index,
+			.get_write_index = gm20b_fecs_trace_get_write_index,
+			.set_read_index = gm20b_fecs_trace_set_read_index,
+		},
+#endif /* CONFIG_GK20A_CTXSW_TRACE */
 		.setup = {
 			.bind_ctxsw_zcull = nvgpu_gr_setup_bind_ctxsw_zcull,
 			.alloc_obj_ctx = nvgpu_gr_setup_alloc_obj_ctx,
@@ -1115,6 +1141,7 @@ int gm20b_init_hal(struct gk20a *g)
 
 	nvgpu_set_enabled(g, NVGPU_GR_USE_DMA_FOR_FW_BOOTSTRAP, true);
 	nvgpu_set_enabled(g, NVGPU_PMU_PSTATE, false);
+	nvgpu_set_enabled(g, NVGPU_FECS_TRACE_VA, false);
 
 	/* Read fuses to check if gpu needs to boot in secure/non-secure mode */
 	if (gops->fuse.check_priv_security(g) != 0) {

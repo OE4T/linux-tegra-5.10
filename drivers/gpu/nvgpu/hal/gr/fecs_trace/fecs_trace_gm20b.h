@@ -27,6 +27,7 @@
 
 struct gk20a;
 
+int gm20b_fecs_trace_flush(struct gk20a *g);
 int gm20b_fecs_trace_get_read_index(struct gk20a *g);
 int gm20b_fecs_trace_get_write_index(struct gk20a *g);
 int gm20b_fecs_trace_set_read_index(struct gk20a *g, int index);

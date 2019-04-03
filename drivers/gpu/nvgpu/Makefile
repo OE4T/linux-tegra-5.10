@@ -170,7 +170,6 @@ nvgpu-y += \
 	hal/gr/ecc/ecc_gv11b.o \
 	hal/gr/ecc/ecc_tu104.o \
 	hal/gr/fecs_trace/fecs_trace_gm20b.o \
-	hal/gr/fecs_trace/fecs_trace_gp10b.o \
 	hal/gr/fecs_trace/fecs_trace_gv11b.o \
 	hal/gr/zcull/zcull_gm20b.o \
 	hal/gr/zcull/zcull_gv11b.o \

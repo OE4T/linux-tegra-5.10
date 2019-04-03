@@ -283,7 +283,6 @@ srcs += common/sim/sim.c \
 	hal/gr/ecc/ecc_gv11b.c \
 	hal/gr/ecc/ecc_tu104.c \
 	hal/gr/fecs_trace/fecs_trace_gm20b.c \
-	hal/gr/fecs_trace/fecs_trace_gp10b.c \
 	hal/gr/fecs_trace/fecs_trace_gv11b.c \
 	hal/gr/zcull/zcull_gm20b.c \
 	hal/gr/zcull/zcull_gv11b.c \

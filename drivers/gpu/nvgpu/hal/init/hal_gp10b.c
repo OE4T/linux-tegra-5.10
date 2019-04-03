@@ -86,7 +86,6 @@
 #include "hal/rc/rc_gk20a.h"
 #include "hal/gr/ecc/ecc_gp10b.h"
 #include "hal/gr/fecs_trace/fecs_trace_gm20b.h"
-#include "hal/gr/fecs_trace/fecs_trace_gp10b.h"
 #include "hal/gr/config/gr_config_gm20b.h"
 #include "hal/gr/zbc/zbc_gp10b.h"
 #include "hal/gr/zcull/zcull_gm20b.h"
@@ -437,7 +436,7 @@ static const struct gpu_ops gp10b_ops = {
 			.disable = nvgpu_gr_fecs_trace_disable,
 			.is_enabled = nvgpu_gr_fecs_trace_is_enabled,
 			.reset = nvgpu_gr_fecs_trace_reset,
-			.flush = gp10b_fecs_trace_flush,
+			.flush = gm20b_fecs_trace_flush,
 			.poll = nvgpu_gr_fecs_trace_poll,
 			.bind_channel = nvgpu_gr_fecs_trace_bind_channel,
 			.unbind_channel = nvgpu_gr_fecs_trace_unbind_channel,
