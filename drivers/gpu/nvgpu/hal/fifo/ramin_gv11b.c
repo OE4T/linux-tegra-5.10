@@ -48,9 +48,12 @@ void gv11b_ramin_set_gr_ptr(struct gk20a *g,
 static void gv11b_subctx_commit_valid_mask(struct gk20a *g,
 		struct nvgpu_mem *inst_block)
 {
+	u32 id;
+
 	/* Make all subctx pdbs valid */
-	nvgpu_mem_wr32(g, inst_block, 166, U32_MAX);
-	nvgpu_mem_wr32(g, inst_block, 167, U32_MAX);
+	for (id = 0U; id < ram_in_sc_pdb_valid__size_1_v(); id += 32U) {
+		nvgpu_mem_wr32(g, inst_block, ram_in_sc_pdb_valid_w(id), U32_MAX);
+	}
 }
 
 static void gv11b_subctx_commit_pdb(struct gk20a *g,
@@ -88,8 +91,8 @@ static void gv11b_subctx_commit_pdb(struct gk20a *g,
 	nvgpu_log(g, gpu_dbg_info, " pdb info lo %x hi %x",
 					format_word, pdb_addr_hi);
 	for (subctx_id = 0U; subctx_id < max_subctx_count; subctx_id++) {
-		lo = ram_in_sc_page_dir_base_vol_0_w() + (4U * subctx_id);
-		hi = ram_in_sc_page_dir_base_hi_0_w() + (4U * subctx_id);
+		lo = ram_in_sc_page_dir_base_vol_w(subctx_id);
+		hi = ram_in_sc_page_dir_base_hi_w(subctx_id);
 		nvgpu_mem_wr32(g, inst_block, lo, format_word);
 		nvgpu_mem_wr32(g, inst_block, hi, pdb_addr_hi);
 	}
