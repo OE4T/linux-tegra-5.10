@@ -986,13 +986,13 @@ static int nvgpu_ioctl_channel_set_preemption_mode(struct channel_gk20a *ch,
 {
 	int err;
 
-	if (ch->g->ops.gr.set_preemption_mode) {
+	if (ch->g->ops.gr.setup.set_preemption_mode) {
 		err = gk20a_busy(ch->g);
 		if (err) {
 			nvgpu_err(ch->g, "failed to power on, %d", err);
 			return err;
 		}
-		err = ch->g->ops.gr.set_preemption_mode(ch,
+		err = ch->g->ops.gr.setup.set_preemption_mode(ch,
 			nvgpu_get_common_graphics_preempt_mode(graphics_preempt_mode),
 			nvgpu_get_common_compute_preempt_mode(compute_preempt_mode));
 		gk20a_idle(ch->g);

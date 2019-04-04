@@ -335,7 +335,6 @@ static const struct gpu_ops gp10b_ops = {
 		.init_ovr_sm_dsm_perf =  gk20a_gr_init_ovr_sm_dsm_perf,
 		.get_ovr_perf_regs = gk20a_gr_get_ovr_perf_regs,
 		.set_boosted_ctx = gr_gp10b_set_boosted_ctx,
-		.set_preemption_mode = gr_gp10b_set_preemption_mode,
 		.pre_process_sm_exception = gr_gp10b_pre_process_sm_exception,
 		.set_bes_crop_debug3 = gr_gp10b_set_bes_crop_debug3,
 		.init_ecc = gp10b_ecc_init,
@@ -462,6 +461,7 @@ static const struct gpu_ops gp10b_ops = {
 			.bind_ctxsw_zcull = nvgpu_gr_setup_bind_ctxsw_zcull,
 			.alloc_obj_ctx = nvgpu_gr_setup_alloc_obj_ctx,
 			.free_gr_ctx = nvgpu_gr_setup_free_gr_ctx,
+			.set_preemption_mode = nvgpu_gr_setup_set_preemption_mode,
 		},
 		.zbc = {
 			.add_color = gp10b_gr_zbc_add_color,

@@ -380,9 +380,6 @@ struct gpu_ops {
 		int (*resume_contexts)(struct gk20a *g,
 				struct dbg_session_gk20a *dbg_s,
 				int *ctx_resident_ch_fd);
-		int (*set_preemption_mode)(struct channel_gk20a *ch,
-				u32 graphics_preempt_mode,
-				u32 compute_preempt_mode);
 		int (*get_preemption_mode_flags)(struct gk20a *g,
 		       struct nvgpu_preemption_modes_rec *preemption_modes_rec);
 		int (*set_ctxsw_preemption_mode)(struct gk20a *g,
@@ -636,6 +633,9 @@ struct gpu_ops {
 			void (*free_gr_ctx)(struct gk20a *g,
 				struct vm_gk20a *vm,
 				struct nvgpu_gr_ctx *gr_ctx);
+			int (*set_preemption_mode)(struct channel_gk20a *ch,
+				u32 graphics_preempt_mode,
+				u32 compute_preempt_mode);
 		} setup;
 
 		struct {
