@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -282,6 +282,14 @@ static inline u32 ram_in_eng_method_buffer_addr_hi_w(void)
 {
 	return 137U;
 }
+static inline u32 ram_in_sc_pdb_valid_w(u32 i)
+{
+	return 166U + ((i*1U)/32U);
+}
+static inline u32 ram_in_sc_pdb_valid__size_1_v(void)
+{
+	return 0x00000040U;
+}
 static inline u32 ram_in_sc_page_dir_base_target_f(u32 v, u32 i)
 {
 	return (v & 0x3U) << (0U + i*0U);
@@ -309,6 +317,10 @@ static inline u32 ram_in_sc_page_dir_base_target_sys_mem_ncoh_v(void)
 static inline u32 ram_in_sc_page_dir_base_vol_f(u32 v, u32 i)
 {
 	return (v & 0x1U) << (2U + i*0U);
+}
+static inline u32 ram_in_sc_page_dir_base_vol_w(u32 i)
+{
+	return 168U + ((i*128U)/32U);
 }
 static inline u32 ram_in_sc_page_dir_base_vol__size_1_v(void)
 {
@@ -386,6 +398,10 @@ static inline u32 ram_in_sc_page_dir_base_lo_f(u32 v, u32 i)
 {
 	return (v & 0xfffffU) << (12U + i*0U);
 }
+static inline u32 ram_in_sc_page_dir_base_lo_w(u32 i)
+{
+	return 168U + ((i*128U)/32U);
+}
 static inline u32 ram_in_sc_page_dir_base_lo__size_1_v(void)
 {
 	return 0x00000040U;
@@ -393,6 +409,10 @@ static inline u32 ram_in_sc_page_dir_base_lo__size_1_v(void)
 static inline u32 ram_in_sc_page_dir_base_hi_f(u32 v, u32 i)
 {
 	return (v & 0xffffffffU) << (0U + i*0U);
+}
+static inline u32 ram_in_sc_page_dir_base_hi_w(u32 i)
+{
+	return 169U + ((i*128U)/32U);
 }
 static inline u32 ram_in_sc_page_dir_base_hi__size_1_v(void)
 {
