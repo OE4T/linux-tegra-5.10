@@ -27,6 +27,149 @@
 
 #include <nvgpu/gr/gr.h>
 #include <nvgpu/gr/gr_intr.h>
+#include <nvgpu/gr/config.h>
+
+static int gr_intr_handle_tpc_exception(struct gk20a *g, u32 gpc, u32 tpc,
+		bool *post_event, struct channel_gk20a *fault_ch,
+		u32 *hww_global_esr)
+{
+	int tmp_ret, ret = 0;
+	struct nvgpu_gr_tpc_exception pending_tpc;
+	u32 offset = nvgpu_gr_gpc_offset(g, gpc) + nvgpu_gr_tpc_offset(g, tpc);
+	u32 tpc_exception = g->ops.gr.intr.get_tpc_exception(g, offset,
+							&pending_tpc);
+	u32 sm_per_tpc = nvgpu_get_litter_value(g, GPU_LIT_NUM_SM_PER_TPC);
+
+	nvgpu_log(g, gpu_dbg_intr | gpu_dbg_gpu_dbg,
+			"GPC%d TPC%d: pending exception 0x%x",
+			gpc, tpc, tpc_exception);
+
+	/* check if an sm exeption is pending */
+	if (pending_tpc.sm_exception) {
+		u32 esr_sm_sel, sm;
+
+		nvgpu_log(g, gpu_dbg_intr | gpu_dbg_gpu_dbg,
+				"GPC%d TPC%d: SM exception pending", gpc, tpc);
+
+		if (g->ops.gr.handle_tpc_sm_ecc_exception != NULL) {
+			g->ops.gr.handle_tpc_sm_ecc_exception(g, gpc, tpc,
+				post_event, fault_ch, hww_global_esr);
+		}
+
+		g->ops.gr.get_esr_sm_sel(g, gpc, tpc, &esr_sm_sel);
+
+		for (sm = 0; sm < sm_per_tpc; sm++) {
+
+			if ((esr_sm_sel & BIT32(sm)) == 0U) {
+				continue;
+			}
+
+			nvgpu_log(g, gpu_dbg_intr | gpu_dbg_gpu_dbg,
+				"GPC%d TPC%d: SM%d exception pending",
+				 gpc, tpc, sm);
+
+			tmp_ret = g->ops.gr.handle_sm_exception(g,
+					gpc, tpc, sm, post_event, fault_ch,
+					hww_global_esr);
+			ret = (ret != 0) ? ret : tmp_ret;
+
+			/* clear the hwws, also causes tpc and gpc
+			 * exceptions to be cleared. Should be cleared
+			 * only if SM is locked down or empty.
+			 */
+			g->ops.gr.clear_sm_hww(g,
+				gpc, tpc, sm, *hww_global_esr);
+
+		}
+	}
+
+	/* check if a tex exception is pending */
+	if (pending_tpc.tex_exception) {
+		nvgpu_log(g, gpu_dbg_intr | gpu_dbg_gpu_dbg,
+			  "GPC%d TPC%d: TEX exception pending", gpc, tpc);
+		if (g->ops.gr.intr.handle_tex_exception != NULL) {
+			g->ops.gr.intr.handle_tex_exception(g, gpc, tpc);
+		}
+	}
+
+	/* check if a mpc exception is pending */
+	if (pending_tpc.mpc_exception) {
+		nvgpu_log(g, gpu_dbg_intr | gpu_dbg_gpu_dbg,
+			  "GPC%d TPC%d: MPC exception pending", gpc, tpc);
+		if (g->ops.gr.intr.handle_tpc_mpc_exception != NULL) {
+			g->ops.gr.intr.handle_tpc_mpc_exception(g, gpc, tpc);
+		}
+	}
+
+	return ret;
+}
+
+int nvgpu_gr_intr_handle_gpc_exception(struct gk20a *g, bool *post_event,
+	struct nvgpu_gr_config *gr_config, struct channel_gk20a *fault_ch,
+	u32 *hww_global_esr)
+{
+	int tmp_ret, ret = 0;
+	u32 gpc, tpc;
+	u32 exception1 = g->ops.gr.intr.read_exception1(g);
+	u32 gpc_exception, tpc_exception;
+
+	nvgpu_log(g, gpu_dbg_intr | gpu_dbg_gpu_dbg, " ");
+
+	for (gpc = 0; gpc < nvgpu_gr_config_get_gpc_count(gr_config); gpc++) {
+		if ((exception1 & BIT32(gpc)) == 0U) {
+			continue;
+		}
+
+		nvgpu_log(g, gpu_dbg_intr | gpu_dbg_gpu_dbg,
+				"GPC%d exception pending", gpc);
+		gpc_exception = g->ops.gr.intr.read_gpc_exception(g, gpc);
+		tpc_exception = g->ops.gr.intr.read_gpc_tpc_exception(
+							gpc_exception);
+
+		/* check if any tpc has an exception */
+		for (tpc = 0;
+		     tpc < nvgpu_gr_config_get_gpc_tpc_count(gr_config, gpc);
+		     tpc++) {
+			if ((tpc_exception & BIT32(tpc)) == 0U) {
+				continue;
+			}
+
+			nvgpu_log(g, gpu_dbg_intr | gpu_dbg_gpu_dbg,
+				  "GPC%d: TPC%d exception pending", gpc, tpc);
+
+			tmp_ret = gr_intr_handle_tpc_exception(g, gpc, tpc,
+					post_event, fault_ch, hww_global_esr);
+			ret = (ret != 0) ? ret : tmp_ret;
+		}
+
+		/* Handle GCC exception */
+		if (g->ops.gr.intr.handle_gcc_exception != NULL) {
+			g->ops.gr.intr.handle_gcc_exception(g, gpc,
+				tpc, gpc_exception,
+				&g->ecc.gr.gcc_l15_ecc_corrected_err_count[gpc].counter,
+				&g->ecc.gr.gcc_l15_ecc_uncorrected_err_count[gpc].counter);
+		}
+
+		/* Handle GPCCS exceptions */
+		if (g->ops.gr.intr.handle_gpc_gpccs_exception != NULL) {
+			g->ops.gr.intr.handle_gpc_gpccs_exception(g, gpc,
+				gpc_exception,
+				&g->ecc.gr.gpccs_ecc_corrected_err_count[gpc].counter,
+				&g->ecc.gr.gpccs_ecc_uncorrected_err_count[gpc].counter);
+		}
+
+		/* Handle GPCMMU exceptions */
+		if (g->ops.gr.intr.handle_gpc_gpcmmu_exception != NULL) {
+			 g->ops.gr.intr.handle_gpc_gpcmmu_exception(g, gpc,
+				gpc_exception,
+				&g->ecc.gr.mmu_l1tlb_ecc_corrected_err_count[gpc].counter,
+				&g->ecc.gr.mmu_l1tlb_ecc_uncorrected_err_count[gpc].counter);
+		}
+
+	}
+
+	return ret;
+}
 
 #if defined(CONFIG_GK20A_CYCLE_STATS)
 static inline bool is_valid_cyclestats_bar0_offset_gk20a(struct gk20a *g,
