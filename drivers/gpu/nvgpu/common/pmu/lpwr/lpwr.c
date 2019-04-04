@@ -27,6 +27,7 @@
 #include <nvgpu/string.h>
 #include <nvgpu/pmu/pstate.h>
 #include <nvgpu/pmu/perf.h>
+#include <nvgpu/pmu/cmd.h>
 
 #include "gp106/bios_gp106.h"
 #include "lpwr.h"

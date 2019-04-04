@@ -30,6 +30,7 @@
 #include <nvgpu/string.h>
 #include <nvgpu/pmuif/ctrlvolt.h>
 #include <nvgpu/pmu/clk/clk.h>
+#include <nvgpu/pmu/cmd.h>
 
 #include "gp106/bios_gp106.h"
 #include "clk_vin.h"

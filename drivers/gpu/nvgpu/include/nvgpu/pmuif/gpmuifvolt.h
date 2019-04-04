@@ -25,6 +25,7 @@
 #include <nvgpu/pmuif/gpmuifboardobj.h>
 #include <nvgpu/flcnif_cmn.h>
 #include <nvgpu/pmuif/ctrlvolt.h>
+#include <nvgpu/pmuif/ctrlperf.h>
 
 #define NV_PMU_VOLT_VALUE_0V_IN_UV	(0U)
 

@@ -24,6 +24,7 @@
 
 #include <nvgpu/nvgpu_common.h>
 #include <nvgpu/pmu/queue.h>
+#include <nvgpu/pmu/cmd.h>
 #include <nvgpu/timers.h>
 #include <nvgpu/kmem.h>
 #include <nvgpu/dma.h>

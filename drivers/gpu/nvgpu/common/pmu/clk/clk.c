@@ -31,6 +31,7 @@
 #include <nvgpu/pmu/volt.h>
 #include <nvgpu/pmu/perf.h>
 #include <nvgpu/pmu/clk/clk.h>
+#include <nvgpu/pmu/cmd.h>
 #include <nvgpu/timers.h>
 
 void nvgpu_clkrpc_pmucmdhandler(struct gk20a *g, struct pmu_msg *msg,

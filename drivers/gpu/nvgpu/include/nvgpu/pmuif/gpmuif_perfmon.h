@@ -23,6 +23,7 @@
 #define NVGPU_PMUIF_GPMUIF_PERFMON_H
 
 #include <nvgpu/types.h>
+#include <nvgpu/pmuif/gpmuif_cmn.h>
 
 /*perfmon task defines*/
 

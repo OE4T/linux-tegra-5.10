@@ -28,6 +28,7 @@
 #include <nvgpu/pmuif/nvgpu_gpmu_cmdif.h>
 #include <nvgpu/engine_queue.h>
 #include <nvgpu/engine_mem_queue.h>
+#include <nvgpu/pmu/cmd.h>
 
 #include "engine_mem_queue_priv.h"
 #include "engine_dmem_queue.h"

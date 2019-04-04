@@ -25,6 +25,7 @@
 #include <nvgpu/clk_arb.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/pmu/lpwr.h>
+#include <nvgpu/pmu/cmd.h>
 
 #include "pmu_gk20a.h"
 #include "pmu_gp106.h"

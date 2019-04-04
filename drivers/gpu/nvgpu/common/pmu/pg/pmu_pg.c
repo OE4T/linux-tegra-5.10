@@ -29,6 +29,7 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/string.h>
 #include <nvgpu/engines.h>
+#include <nvgpu/pmu/cmd.h>
 
 /* state transition :
  * OFF => [OFF_ON_PENDING optional] => ON_PENDING => ON => OFF

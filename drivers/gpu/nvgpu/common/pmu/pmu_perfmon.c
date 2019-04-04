@@ -22,6 +22,7 @@
 
 #include <nvgpu/enabled.h>
 #include <nvgpu/pmu.h>
+#include <nvgpu/pmu/cmd.h>
 #include <nvgpu/log.h>
 #include <nvgpu/bug.h>
 #include <nvgpu/pmuif/nvgpu_gpmu_cmdif.h>

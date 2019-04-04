@@ -30,6 +30,7 @@
 #include <nvgpu/nvgpu_err.h>
 #include <nvgpu/firmware.h>
 #include <nvgpu/bug.h>
+#include <nvgpu/pmu/cmd.h>
 
 #include "pmu_gv11b.h"
 

@@ -24,6 +24,10 @@
 #define NVGPU_PMUIF_GPMU_SUPER_SURF_IF_H
 
 #include <nvgpu/pmuif/nvgpu_gpmu_cmdif.h>
+#include <nvgpu/pmuif/gpmuifboardobj.h>
+#include <nvgpu/pmuif/gpmuifvolt.h>
+#include <nvgpu/pmuif/gpmuifclk.h>
+#include <nvgpu/pmuif/gpmuifperf.h>
 
 /* PMU super surface */
 /* 1MB Bytes for SUPER_SURFACE_SIZE */

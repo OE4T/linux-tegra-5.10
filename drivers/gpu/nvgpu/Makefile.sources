@@ -127,7 +127,7 @@ srcs += common/sim.c \
 	common/netlist/netlist_tu104.c \
 	common/pmu/pmu.c \
 	common/pmu/pmu_allocator.c \
-	common/pmu/pmu_ipc.c \
+	common/pmu/pmu_cmd.c \
 	common/pmu/pmu_msg.c \
 	common/pmu/pmu_mutex.c \
 	common/pmu/pmu_queue.c \

@@ -22,40 +22,12 @@
 #ifndef NVGPU_PMUIF_NVGPU_GPMU_CMDIF_H
 #define NVGPU_PMUIF_NVGPU_GPMU_CMDIF_H
 
-#include <nvgpu/flcnif_cmn.h>
 #include "gpmuif_cmn.h"
 #include "gpmuif_pmu.h"
 #include "gpmuif_ap.h"
-#include "gpmuif_pg.h"
-#include "gpmuif_perfmon.h"
-#include "gpmuif_acr.h"
-#include "gpmuif_rpc.h"
-#include "gpmuifboardobj.h"
-#include "gpmuifclk.h"
-#include "gpmuifperf.h"
 #include "gpmuifperfvfe.h"
-#include "gpmuifpmgr.h"
-#include "gpmuifvolt.h"
-#include "gpmuiftherm.h"
 #include "gpmuifthermsensor.h"
 #include "gpmuifseq.h"
-
-struct pmu_cmd {
-	struct pmu_hdr hdr;
-	union {
-		struct pmu_perfmon_cmd perfmon;
-		struct pmu_pg_cmd pg;
-		struct pmu_zbc_cmd zbc;
-		struct pmu_acr_cmd acr;
-		struct nv_pmu_boardobj_cmd boardobj;
-		struct nv_pmu_perf_cmd perf;
-		struct nv_pmu_volt_cmd volt;
-		struct nv_pmu_clk_cmd clk;
-		struct nv_pmu_pmgr_cmd pmgr;
-		struct nv_pmu_therm_cmd therm;
-		struct nv_pmu_rpc_cmd rpc;
-	} cmd;
-};
 
 #define PMU_UNIT_REWIND			U8(0x00)
 #define PMU_UNIT_PG			U8(0x03)

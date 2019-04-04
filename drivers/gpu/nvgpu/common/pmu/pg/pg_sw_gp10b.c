@@ -24,6 +24,7 @@
 #include <nvgpu/log.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/bug.h>
+#include <nvgpu/pmu/cmd.h>
 
 #include "pg_sw_gp10b.h"
 

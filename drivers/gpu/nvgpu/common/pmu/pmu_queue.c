@@ -23,6 +23,7 @@
 #include <nvgpu/engine_mem_queue.h>
 #include <nvgpu/engine_fb_queue.h>
 #include <nvgpu/engine_queue.h>
+#include <nvgpu/pmu/cmd.h>
 #include <nvgpu/pmu/queue.h>
 #include <nvgpu/gk20a.h>
 

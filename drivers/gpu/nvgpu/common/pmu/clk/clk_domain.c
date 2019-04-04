@@ -34,6 +34,7 @@
 #include <nvgpu/pmuif/ctrlvolt.h>
 #include <nvgpu/pmu/volt.h>
 #include <nvgpu/pmu/clk/clk.h>
+#include <nvgpu/pmu/cmd.h>
 
 #include "clk_domain.h"
 #include "clk_prog.h"

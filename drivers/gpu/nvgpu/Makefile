@@ -88,7 +88,7 @@ nvgpu-y += \
 	common/init/nvgpu_init.o \
 	common/pmu/pmu.o \
 	common/pmu/pmu_allocator.o \
-	common/pmu/pmu_ipc.o \
+	common/pmu/pmu_cmd.o \
 	common/pmu/pmu_msg.o \
 	common/pmu/pmu_mutex.o \
 	common/pmu/pmu_queue.o \

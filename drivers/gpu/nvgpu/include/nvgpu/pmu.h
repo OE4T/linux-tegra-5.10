@@ -149,48 +149,6 @@
 /* pmu load const defines */
 #define PMU_BUSY_CYCLES_NORM_MAX		(1000U)
 
-/* RPC */
-#define PMU_RPC_EXECUTE(_stat, _pmu, _unit, _func, _prpc, _size)\
-	do {                                                 \
-		(void) memset(&((_prpc)->hdr), 0, sizeof((_prpc)->hdr));\
-		\
-		(_prpc)->hdr.unit_id   = PMU_UNIT_##_unit;       \
-		(_prpc)->hdr.function = NV_PMU_RPC_ID_##_unit##_##_func;\
-		(_prpc)->hdr.flags    = 0x0;    \
-		\
-		_stat = nvgpu_pmu_rpc_execute(_pmu, &((_prpc)->hdr),    \
-			(u16)(sizeof(*(_prpc)) - sizeof((_prpc)->scratch)), \
-			(_size), NULL, NULL, false);	\
-	} while (false)
-
-/* RPC blocking call to copy back data from PMU to  _prpc */
-#define PMU_RPC_EXECUTE_CPB(_stat, _pmu, _unit, _func, _prpc, _size)\
-	do {                                                 \
-		(void) memset(&((_prpc)->hdr), 0, sizeof((_prpc)->hdr));\
-		\
-		(_prpc)->hdr.unit_id   = PMU_UNIT_##_unit;       \
-		(_prpc)->hdr.function = NV_PMU_RPC_ID_##_unit##_##_func;\
-		(_prpc)->hdr.flags    = 0x0;    \
-		\
-		_stat = nvgpu_pmu_rpc_execute(_pmu, &((_prpc)->hdr),    \
-			(u16)(sizeof(*(_prpc)) - sizeof((_prpc)->scratch)),\
-			(_size), NULL, NULL, true);	\
-	} while (false)
-
-/* RPC non-blocking with call_back handler option */
-#define PMU_RPC_EXECUTE_CB(_stat, _pmu, _unit, _func, _prpc, _size, _cb, _cbp)\
-	do {                                                 \
-		(void) memset(&((_prpc)->hdr), 0, sizeof((_prpc)->hdr));\
-		\
-		(_prpc)->hdr.unit_id   = PMU_UNIT_##_unit;       \
-		(_prpc)->hdr.function = NV_PMU_RPC_ID_##_unit##_##_func;\
-		(_prpc)->hdr.flags    = 0x0;    \
-		\
-		_stat = nvgpu_pmu_rpc_execute(_pmu, &((_prpc)->hdr),    \
-			(sizeof(*(_prpc)) - sizeof((_prpc)->scratch)),\
-			(_size), _cb, _cbp, false);	\
-	} while (false)
-
 struct rpc_handler_payload {
 	void *rpc_buff;
 	bool is_mem_free_set;
@@ -335,11 +293,6 @@ int nvgpu_pmu_lock_acquire(struct gk20a *g, struct nvgpu_pmu *pmu,
 int nvgpu_pmu_lock_release(struct gk20a *g, struct nvgpu_pmu *pmu,
 			   u32 id, u32 *token);
 
-/* send a cmd to pmu */
-int nvgpu_pmu_cmd_post(struct gk20a *g, struct pmu_cmd *cmd,
-		struct pmu_payload *payload,
-		u32 queue_id, pmu_callback callback, void *cb_param);
-
 /* perfmon */
 void nvgpu_pmu_perfmon_rpc_handler(struct gk20a *g, struct nvgpu_pmu *pmu,
 				   struct nv_pmu_rpc_header *rpc,
@@ -393,17 +346,6 @@ void nvgpu_pmu_dump_falcon_stats(struct nvgpu_pmu *pmu);
 void nvgpu_pmu_dump_elpg_stats(struct nvgpu_pmu *pmu);
 bool nvgpu_find_hex_in_string(char *strings, struct gk20a *g, u32 *hex_pos);
 
-/* PMU RPC */
-int nvgpu_pmu_rpc_execute(struct nvgpu_pmu *pmu, struct nv_pmu_rpc_header *rpc,
-	u16 size_rpc, u16 size_scratch, pmu_callback caller_cb,
-	void *caller_cb_param, bool is_copy_back);
-
-
-/* PMU wait*/
-int pmu_wait_message_cond_status(struct nvgpu_pmu *pmu, u32 timeout_ms,
-				void *var, u8 val);
-void pmu_wait_message_cond(struct nvgpu_pmu *pmu, u32 timeout_ms,
-				void *var, u8 val);
 int nvgpu_pmu_wait_ready(struct gk20a *g);
 
 void nvgpu_pmu_get_cmd_line_args_offset(struct gk20a *g,

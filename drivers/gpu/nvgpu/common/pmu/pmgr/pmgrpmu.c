@@ -28,6 +28,7 @@
 #include <nvgpu/boardobjgrp_e32.h>
 #include <nvgpu/string.h>
 #include <nvgpu/bug.h>
+#include <nvgpu/pmu/cmd.h>
 
 #include "gp106/bios_gp106.h"
 

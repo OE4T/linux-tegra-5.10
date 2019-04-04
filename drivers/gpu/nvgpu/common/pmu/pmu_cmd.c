@@ -33,8 +33,8 @@
 #include <nvgpu/string.h>
 #include <nvgpu/pmu/seq.h>
 #include <nvgpu/pmu/queue.h>
-#include <nvgpu/pmu/volt.h>
-#include <nvgpu/pmu/therm.h>
+#include <nvgpu/pmu/cmd.h>
+#include <nvgpu/pmu/msg.h>
 
 static bool pmu_validate_cmd(struct nvgpu_pmu *pmu, struct pmu_cmd *cmd,
 			struct pmu_payload *payload, u32 queue_id)
@@ -160,7 +160,8 @@ static int pmu_payload_allocate(struct gk20a *g, struct pmu_sequence *seq,
 			err = -ENOMEM;
 			goto clean_up;
 		}
-		nvgpu_pmu_vidmem_surface_alloc(g, alloc->fb_surface, alloc->fb_size);
+		nvgpu_pmu_vidmem_surface_alloc(g, alloc->fb_surface,
+					       alloc->fb_size);
 	}
 
 	if (nvgpu_pmu_fb_queue_enabled(&pmu->queues)) {
@@ -254,6 +255,7 @@ static int pmu_cmd_payload_setup(struct gk20a *g, struct pmu_cmd *cmd,
 	struct nvgpu_pmu *pmu = &g->pmu;
 	void *in = NULL, *out = NULL;
 	int err = 0;
+	u32 offset;
 
 	nvgpu_log_fn(g, " ");
 
@@ -301,7 +303,8 @@ static int pmu_cmd_payload_setup(struct gk20a *g, struct pmu_cmd *cmd,
 			if (nvgpu_pmu_fb_queue_enabled(&pmu->queues)) {
 				alloc.dmem_offset +=
 					nvgpu_pmu_seq_get_fbq_heap_offset(seq);
-				*(pv->pmu_allocation_get_dmem_offset_addr(pmu, in)) =
+				*(pv->pmu_allocation_get_dmem_offset_addr(pmu,
+									  in)) =
 					alloc.dmem_offset;
 			}
 		} else {
@@ -316,15 +319,18 @@ static int pmu_cmd_payload_setup(struct gk20a *g, struct pmu_cmd *cmd,
 
 				alloc.dmem_offset +=
 					nvgpu_pmu_seq_get_fbq_heap_offset(seq);
-				*(pv->pmu_allocation_get_dmem_offset_addr(pmu, in)) =
+				*(pv->pmu_allocation_get_dmem_offset_addr(pmu,
+									  in)) =
 					alloc.dmem_offset;
 
 				nvgpu_pmu_seq_set_in_payload_fb_queue(seq,
 								      true);
 			} else {
+				offset = pv->pmu_allocation_get_dmem_offset(pmu,
+						in);
 				nvgpu_falcon_copy_to_dmem(&pmu->flcn,
-						(pv->pmu_allocation_get_dmem_offset(pmu, in)),
-						payload->in.buf, payload->in.size, 0);
+						offset, payload->in.buf,
+						payload->in.size, 0);
 			}
 		}
 		pv->pmu_allocation_set_dmem_size(pmu,
@@ -342,7 +348,8 @@ static int pmu_cmd_payload_setup(struct gk20a *g, struct pmu_cmd *cmd,
 		(u16)payload->out.size);
 
 		if (payload->in.buf != payload->out.buf) {
-			alloc.dmem_size = pv->pmu_allocation_get_dmem_size(pmu, out);
+			alloc.dmem_size =
+				pv->pmu_allocation_get_dmem_size(pmu, out);
 
 			if (payload->out.fb_size != 0x0U) {
 				alloc.fb_size = payload->out.fb_size;
@@ -357,7 +364,7 @@ static int pmu_cmd_payload_setup(struct gk20a *g, struct pmu_cmd *cmd,
 				alloc.dmem_offset;
 			nvgpu_pmu_seq_set_out_mem(seq, alloc.fb_surface);
 		} else {
-			BUG_ON(in == NULL);
+			WARN_ON(in == NULL);
 			nvgpu_pmu_seq_set_out_mem(seq,
 						nvgpu_pmu_seq_get_in_mem(seq));
 			pv->pmu_allocation_set_dmem_offset(pmu, out,
@@ -445,7 +452,8 @@ static int pmu_fbq_cmd_setup(struct gk20a *g, struct pmu_cmd *cmd,
 
 			if (payload->out.offset != 0U) {
 				if (payload->out.buf != payload->in.buf) {
-					fbq_size_needed += (u16)payload->out.size;
+					fbq_size_needed +=
+						(u16)payload->out.size;
 				}
 			}
 		}
@@ -595,114 +603,6 @@ exit:
 	return err;
 }
 
-int pmu_wait_message_cond_status(struct nvgpu_pmu *pmu, u32 timeout_ms,
-				 void *var, u8 val)
-{
-	struct gk20a *g = gk20a_from_pmu(pmu);
-	struct nvgpu_timeout timeout;
-	int err;
-	unsigned int delay = POLL_DELAY_MIN_US;
-
-	err = nvgpu_timeout_init(g, &timeout, timeout_ms,
-		NVGPU_TIMER_CPU_TIMER);
-	if (err != 0) {
-		nvgpu_err(g, "PMU wait timeout init failed.");
-		return err;
-	}
-
-	do {
-		nvgpu_rmb();
-
-		if (*(volatile u8 *)var == val) {
-			return 0;
-		}
-
-		if (g->ops.pmu.pmu_is_interrupted(pmu)) {
-			g->ops.pmu.pmu_isr(g);
-		}
-
-		nvgpu_usleep_range(delay, delay * 2U);
-		delay = min_t(u32, delay << 1, POLL_DELAY_MAX_US);
-	} while (nvgpu_timeout_expired(&timeout) == 0);
-
-	return -ETIMEDOUT;
-}
-
-void pmu_wait_message_cond(struct nvgpu_pmu *pmu, u32 timeout_ms,
-			void *var, u8 val)
-{
-	struct gk20a *g = gk20a_from_pmu(pmu);
-
-	if (pmu_wait_message_cond_status(pmu, timeout_ms, var, val) != 0) {
-		nvgpu_err(g, "PMU wait timeout expired.");
-	}
-}
-
-static void pmu_rpc_handler(struct gk20a *g, struct pmu_msg *msg,
-		void *param, u32 status)
-{
-	struct nv_pmu_rpc_header rpc;
-	struct nvgpu_pmu *pmu = &g->pmu;
-	struct rpc_handler_payload *rpc_payload =
-		(struct rpc_handler_payload *)param;
-
-	(void) memset(&rpc, 0, sizeof(struct nv_pmu_rpc_header));
-	nvgpu_memcpy((u8 *)&rpc, (u8 *)rpc_payload->rpc_buff,
-		sizeof(struct nv_pmu_rpc_header));
-
-	if (rpc.flcn_status != 0U) {
-		nvgpu_err(g,
-			"failed RPC response, unit-id=0x%x, func=0x%x, status=0x%x",
-			rpc.unit_id, rpc.function, rpc.flcn_status);
-		goto exit;
-	}
-
-	switch (msg->hdr.unit_id) {
-	case PMU_UNIT_ACR:
-		switch (rpc.function) {
-		case NV_PMU_RPC_ID_ACR_INIT_WPR_REGION:
-			nvgpu_pmu_dbg(g,
-				"reply NV_PMU_RPC_ID_ACR_INIT_WPR_REGION");
-			g->pmu_lsf_pmu_wpr_init_done = true;
-			break;
-		case NV_PMU_RPC_ID_ACR_BOOTSTRAP_GR_FALCONS:
-			nvgpu_pmu_dbg(g,
-				"reply NV_PMU_RPC_ID_ACR_BOOTSTRAP_GR_FALCONS");
-			g->pmu_lsf_loaded_falcon_id = 1;
-			break;
-		}
-		break;
-	case PMU_UNIT_PERFMON_T18X:
-	case PMU_UNIT_PERFMON:
-		nvgpu_pmu_perfmon_rpc_handler(g, pmu, &rpc, rpc_payload);
-		break;
-	case PMU_UNIT_VOLT:
-		nvgpu_pmu_volt_rpc_handler(g, &rpc);
-		break;
-	case PMU_UNIT_CLK:
-		nvgpu_pmu_dbg(g, "reply PMU_UNIT_CLK");
-		break;
-	case PMU_UNIT_PERF:
-		nvgpu_pmu_dbg(g, "reply PMU_UNIT_PERF");
-		break;
-	case PMU_UNIT_THERM:
-		nvgpu_pmu_therm_rpc_handler(g, &rpc);
-		break;
-	default:
-		nvgpu_err(g, " Invalid RPC response, stats 0x%x",
-			rpc.flcn_status);
-		break;
-	}
-
-exit:
-	rpc_payload->complete = true;
-
-	/* free allocated memory */
-	if (rpc_payload->is_mem_free_set) {
-		nvgpu_kfree(g, rpc_payload);
-	}
-}
-
 int nvgpu_pmu_rpc_execute(struct nvgpu_pmu *pmu, struct nv_pmu_rpc_header *rpc,
 	u16 size_rpc, u16 size_scratch, pmu_callback caller_cb,
 	void *caller_cb_param, bool is_copy_back)
@@ -735,7 +635,7 @@ int nvgpu_pmu_rpc_execute(struct nvgpu_pmu *pmu, struct nv_pmu_rpc_header *rpc,
 			is_copy_back ? false : true;
 
 		/* assign default RPC handler*/
-		callback = pmu_rpc_handler;
+		callback = nvgpu_pmu_rpc_handler;
 	} else {
 		if (caller_cb_param == NULL) {
 			nvgpu_err(g, "Invalid cb param addr");

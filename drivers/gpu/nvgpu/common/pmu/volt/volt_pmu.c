@@ -30,6 +30,7 @@
 #include <nvgpu/string.h>
 #include <nvgpu/pmu/perf.h>
 #include <nvgpu/pmu/volt.h>
+#include <nvgpu/pmu/cmd.h>
 
 #include "volt_pmu.h"
 

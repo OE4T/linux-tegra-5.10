@@ -34,6 +34,7 @@
 #include <nvgpu/pmu/clk/clk_fll.h>
 #include <nvgpu/pmu/clk/clk_domain.h>
 #include <nvgpu/pmu/clk/clk_freq_controller.h>
+#include <nvgpu/pmu/cmd.h>
 
 #include "clk_freq_controller.h"
 

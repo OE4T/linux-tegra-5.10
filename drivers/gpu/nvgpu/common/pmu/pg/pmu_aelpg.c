@@ -25,6 +25,7 @@
 #include <nvgpu/bug.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/string.h>
+#include <nvgpu/pmu/cmd.h>
 
 int nvgpu_aelpg_init(struct gk20a *g)
 {

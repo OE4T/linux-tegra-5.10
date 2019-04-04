@@ -81,5 +81,12 @@ struct pmu_msg {
 };
 
 int nvgpu_pmu_process_message(struct nvgpu_pmu *pmu);
+void nvgpu_pmu_rpc_handler(struct gk20a *g, struct pmu_msg *msg,
+		void *param, u32 status);
+/* PMU wait*/
+int pmu_wait_message_cond_status(struct nvgpu_pmu *pmu, u32 timeout_ms,
+				void *var, u8 val);
+void pmu_wait_message_cond(struct nvgpu_pmu *pmu, u32 timeout_ms,
+				void *var, u8 val);
 
 #endif /* NVGPU_PMU_MSG_H */

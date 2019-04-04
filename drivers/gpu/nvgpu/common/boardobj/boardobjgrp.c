@@ -24,6 +24,7 @@
 #include <nvgpu/boardobjgrp.h>
 #include <nvgpu/boardobj.h>
 #include <nvgpu/pmuif/ctrlboardobj.h>
+#include <nvgpu/pmu/cmd.h>
 /*
  * Inserts a previously constructed Board Object into a Board Object Group for
  * tracking. Objects are inserted in the array based on the given index.
