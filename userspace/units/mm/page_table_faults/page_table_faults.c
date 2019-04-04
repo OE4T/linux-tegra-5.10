@@ -47,6 +47,7 @@
 #include "hal/fb/fb_gm20b.h"
 #include "hal/fb/fb_gv11b.h"
 #include "hal/fifo/ramin_gk20a.h"
+#include "hal/fb/intr/fb_intr_gv11b.h"
 #include "hal/fifo/ramin_gm20b.h"
 #include "hal/fifo/ramin_gp10b.h"
 
@@ -133,7 +134,7 @@ static int init_mm(struct unit_module *m, struct gk20a *g)
 	g->ops.mm.init_mm_setup_hw = gv11b_init_mm_setup_hw;
 	g->ops.mm.l2_flush = gv11b_mm_l2_flush;
 	g->ops.fb.init_hw = gv11b_fb_init_hw;
-	g->ops.fb.enable_hub_intr = gv11b_fb_enable_hub_intr;
+	g->ops.fb.intr.enable = gv11b_fb_intr_enable;
 	g->ops.fb.fault_buf_configure_hw = gv11b_fb_fault_buf_configure_hw;
 	g->ops.fb.read_mmu_fault_buffer_size =
 		fb_gv11b_read_mmu_fault_buffer_size;

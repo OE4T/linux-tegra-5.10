@@ -130,8 +130,8 @@ int nvgpu_mm_suspend(struct gk20a *g)
 		return err;
 	}
 
-	if (g->ops.fb.disable_hub_intr != NULL) {
-		g->ops.fb.disable_hub_intr(g);
+	if (g->ops.fb.intr.disable != NULL) {
+		g->ops.fb.intr.disable(g);
 	}
 
 	if (g->ops.mm.mmu_fault_disable_hw != NULL) {

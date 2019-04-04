@@ -50,6 +50,7 @@
 #include "hal/fb/fb_gm20b.h"
 #include "hal/fb/fb_gp10b.h"
 #include "hal/fb/fb_gv11b.h"
+#include "hal/fb/intr/fb_intr_gv11b.h"
 #include "hal/fuse/fuse_gm20b.h"
 #include "hal/fuse/fuse_gp10b.h"
 #include "hal/fifo/pbdma_gm20b.h"
@@ -762,11 +763,8 @@ static const struct gpu_ops gv11b_ops = {
 		.is_debug_mode_enabled = gm20b_fb_debug_mode_enabled,
 		.set_debug_mode = gm20b_fb_set_debug_mode,
 		.tlb_invalidate = gm20b_fb_tlb_invalidate,
-		.hub_isr = gv11b_fb_hub_isr,
 		.handle_replayable_fault = gv11b_fb_handle_replayable_mmu_fault,
 		.mem_unlock = NULL,
-		.enable_hub_intr = gv11b_fb_enable_hub_intr,
-		.disable_hub_intr = gv11b_fb_disable_hub_intr,
 		.write_mmu_fault_buffer_lo_hi =
 				fb_gv11b_write_mmu_fault_buffer_lo_hi,
 		.write_mmu_fault_buffer_get =
@@ -789,6 +787,11 @@ static const struct gpu_ops gv11b_ops = {
 		.is_fault_buf_enabled = gv11b_fb_is_fault_buf_enabled,
 		.fault_buf_set_state_hw = gv11b_fb_fault_buf_set_state_hw,
 		.fault_buf_configure_hw = gv11b_fb_fault_buf_configure_hw,
+		.intr = {
+			.enable = gv11b_fb_intr_enable,
+			.disable = gv11b_fb_intr_disable,
+			.isr = gv11b_fb_intr_isr,
+		},
 	},
 	.cg = {
 		.slcg_bus_load_gating_prod =

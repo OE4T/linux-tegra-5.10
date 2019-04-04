@@ -361,6 +361,10 @@ srcs += common/sim.c \
 	hal/fb/fb_gv100.c \
 	hal/fb/fb_gv11b.c \
 	hal/fb/fb_tu104.c	\
+	hal/fb/intr/fb_intr_gv100.c	\
+	hal/fb/intr/fb_intr_gv11b.c	\
+	hal/fb/intr/fb_intr_tu104.c	\
+	hal/fb/intr/fb_intr_ecc_gv11b.c	\
 	hal/fuse/fuse_gm20b.c \
 	hal/fuse/fuse_gp10b.c \
 	hal/fuse/fuse_gp106.c \

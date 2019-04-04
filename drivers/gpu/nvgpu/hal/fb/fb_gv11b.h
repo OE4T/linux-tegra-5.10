@@ -33,18 +33,15 @@ struct gr_gk20a;
 struct nvgpu_cbc;
 
 void gv11b_fb_init_hw(struct gk20a *g);
-
+void gv11b_fb_handle_mmu_fault(struct gk20a *g, u32 niso_intr);
 void gv11b_fb_init_fs_state(struct gk20a *g);
 void gv11b_fb_cbc_configure(struct gk20a *g, struct nvgpu_cbc *cbc);
 void gv11b_fb_reset(struct gk20a *g);
-void gv11b_fb_hub_isr(struct gk20a *g);
 
 bool gv11b_fb_is_fault_buf_enabled(struct gk20a *g, u32 index	);
 void gv11b_fb_fault_buf_set_state_hw(struct gk20a *g,
 		 u32 index, u32 state);
 void gv11b_fb_fault_buf_configure_hw(struct gk20a *g, u32 index);
-void gv11b_fb_enable_hub_intr(struct gk20a *g);
-void gv11b_fb_disable_hub_intr(struct gk20a *g);
 bool gv11b_fb_mmu_fault_pending(struct gk20a *g);
 void gv11b_fb_handle_dropped_mmu_fault(struct gk20a *g, u32 fault_status);
 void gv11b_fb_handle_other_fault_notify(struct gk20a *g,
@@ -56,9 +53,6 @@ void gv11b_fb_handle_nonreplay_fault_overflow(struct gk20a *g,
 void gv11b_fb_handle_replay_fault_overflow(struct gk20a *g,
 			 u32 fault_status);
 void gv11b_fb_handle_replayable_mmu_fault(struct gk20a *g);
-void gv11b_handle_l2tlb_ecc_isr(struct gk20a *g, u32 ecc_status);
-void gv11b_handle_hubtlb_ecc_isr(struct gk20a *g, u32 ecc_status);
-void gv11b_handle_fillunit_ecc_isr(struct gk20a *g, u32 ecc_status);
 
 void fb_gv11b_write_mmu_fault_buffer_lo_hi(struct gk20a *g, u32 index,
 	u32 addr_lo, u32 addr_hi);

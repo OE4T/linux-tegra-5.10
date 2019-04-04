@@ -870,13 +870,10 @@ struct gpu_ops {
 		bool (*is_debug_mode_enabled)(struct gk20a *g);
 		void (*set_debug_mode)(struct gk20a *g, bool enable);
 		int (*tlb_invalidate)(struct gk20a *g, struct nvgpu_mem *pdb);
-		void (*hub_isr)(struct gk20a *g);
 		void (*handle_replayable_fault)(struct gk20a *g);
 		int (*mem_unlock)(struct gk20a *g);
 		int (*init_nvlink)(struct gk20a *g);
 		int (*enable_nvlink)(struct gk20a *g);
-		void (*enable_hub_intr)(struct gk20a *g);
-		void (*disable_hub_intr)(struct gk20a *g);
 		int (*init_fbpa)(struct gk20a *g);
 		void (*handle_fbpa_intr)(struct gk20a *g, u32 fbpa_id);
 		void (*write_mmu_fault_buffer_lo_hi)(struct gk20a *g, u32 index,
@@ -910,6 +907,11 @@ struct gpu_ops {
 					u32 err_id, u64 err_addr,
 					u64 err_cnt);
 		} err_ops;
+		struct {
+			void (*enable)(struct gk20a *g);
+			void (*disable)(struct gk20a *g);
+			void (*isr)(struct gk20a *g);
+		} intr;
 	} fb;
 	struct {
 		u32 (*falcon_base_addr)(void);

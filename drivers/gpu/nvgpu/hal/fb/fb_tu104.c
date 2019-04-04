@@ -42,52 +42,6 @@
 #include "nvgpu/hw/tu104/hw_fb_tu104.h"
 #include "nvgpu/hw/tu104/hw_func_tu104.h"
 
-void tu104_fb_enable_hub_intr(struct gk20a *g)
-{
-	u32 info_fault = nvgpu_readl(g, fb_mmu_int_vector_info_fault_r());
-	u32 nonreplay_fault = nvgpu_readl(g,
-		fb_mmu_int_vector_fault_r(NVGPU_FB_MMU_FAULT_NONREPLAY_REG_INDEX));
-	u32 replay_fault = nvgpu_readl(g,
-		fb_mmu_int_vector_fault_r(NVGPU_FB_MMU_FAULT_REPLAY_REG_INDEX));
-	u32 ecc_error = nvgpu_readl(g, fb_mmu_int_vector_ecc_error_r());
-
-	intr_tu104_vector_en_set(g,
-		fb_mmu_int_vector_info_fault_vector_v(info_fault));
-	intr_tu104_vector_en_set(g,
-		fb_mmu_int_vector_fault_notify_v(nonreplay_fault));
-	intr_tu104_vector_en_set(g,
-		fb_mmu_int_vector_fault_error_v(nonreplay_fault));
-	intr_tu104_vector_en_set(g,
-		fb_mmu_int_vector_fault_notify_v(replay_fault));
-	intr_tu104_vector_en_set(g,
-		fb_mmu_int_vector_fault_error_v(replay_fault));
-	intr_tu104_vector_en_set(g,
-		fb_mmu_int_vector_ecc_error_vector_v(ecc_error));
-}
-
-void tu104_fb_disable_hub_intr(struct gk20a *g)
-{
-	u32 info_fault = nvgpu_readl(g, fb_mmu_int_vector_info_fault_r());
-	u32 nonreplay_fault = nvgpu_readl(g,
-		fb_mmu_int_vector_fault_r(NVGPU_FB_MMU_FAULT_NONREPLAY_REG_INDEX));
-	u32 replay_fault = nvgpu_readl(g,
-		fb_mmu_int_vector_fault_r(NVGPU_FB_MMU_FAULT_REPLAY_REG_INDEX));
-	u32 ecc_error = nvgpu_readl(g, fb_mmu_int_vector_ecc_error_r());
-
-	intr_tu104_vector_en_clear(g,
-		fb_mmu_int_vector_info_fault_vector_v(info_fault));
-	intr_tu104_vector_en_clear(g,
-		fb_mmu_int_vector_fault_notify_v(nonreplay_fault));
-	intr_tu104_vector_en_clear(g,
-		fb_mmu_int_vector_fault_error_v(nonreplay_fault));
-	intr_tu104_vector_en_clear(g,
-		fb_mmu_int_vector_fault_notify_v(replay_fault));
-	intr_tu104_vector_en_clear(g,
-		fb_mmu_int_vector_fault_error_v(replay_fault));
-	intr_tu104_vector_en_clear(g,
-		fb_mmu_int_vector_ecc_error_vector_v(ecc_error));
-}
-
 bool tu104_fb_mmu_fault_pending(struct gk20a *g)
 {
 	u32 info_fault = nvgpu_readl(g, fb_mmu_int_vector_info_fault_r());
@@ -115,7 +69,7 @@ bool tu104_fb_mmu_fault_pending(struct gk20a *g)
 	return false;
 }
 
-static void tu104_fb_handle_mmu_fault(struct gk20a *g)
+void tu104_fb_handle_mmu_fault(struct gk20a *g)
 {
 	u32 info_fault = nvgpu_readl(g, fb_mmu_int_vector_info_fault_r());
 	u32 nonreplay_fault = nvgpu_readl(g,
@@ -188,58 +142,6 @@ static void tu104_fb_handle_mmu_fault(struct gk20a *g)
 	nvgpu_log(g, gpu_dbg_intr, "clear mmu fault status");
 	g->ops.fb.write_mmu_fault_status(g,
 				fb_mmu_fault_status_valid_clear_f());
-}
-
-void tu104_fb_hub_isr(struct gk20a *g)
-{
-	u32 info_fault = nvgpu_readl(g, fb_mmu_int_vector_info_fault_r());
-	u32 nonreplay_fault = nvgpu_readl(g,
-		fb_mmu_int_vector_fault_r(NVGPU_FB_MMU_FAULT_NONREPLAY_REG_INDEX));
-	u32 replay_fault = nvgpu_readl(g,
-		fb_mmu_int_vector_fault_r(NVGPU_FB_MMU_FAULT_REPLAY_REG_INDEX));
-	u32 ecc_error = nvgpu_readl(g, fb_mmu_int_vector_ecc_error_r());
-	u32 status;
-
-	nvgpu_mutex_acquire(&g->mm.hub_isr_mutex);
-
-	if (intr_tu104_vector_intr_pending(g,
-			fb_mmu_int_vector_ecc_error_vector_v(ecc_error))) {
-		nvgpu_info(g, "ecc uncorrected error notify");
-
-		intr_tu104_intr_clear_leaf_vector(g,
-			fb_mmu_int_vector_ecc_error_vector_v(ecc_error));
-
-		status = nvgpu_readl(g, fb_mmu_l2tlb_ecc_status_r());
-		if (status != 0U) {
-			gv11b_handle_l2tlb_ecc_isr(g, status);
-		}
-
-		status = nvgpu_readl(g, fb_mmu_hubtlb_ecc_status_r());
-		if (status != 0U) {
-			gv11b_handle_hubtlb_ecc_isr(g, status);
-		}
-
-		status = nvgpu_readl(g, fb_mmu_fillunit_ecc_status_r());
-		if (status != 0U) {
-			gv11b_handle_fillunit_ecc_isr(g, status);
-		}
-	}
-
-	if (intr_tu104_vector_intr_pending(g,
-			fb_mmu_int_vector_fault_notify_v(replay_fault)) ||
-	    intr_tu104_vector_intr_pending(g,
-			fb_mmu_int_vector_fault_error_v(replay_fault)) ||
-	    intr_tu104_vector_intr_pending(g,
-			fb_mmu_int_vector_fault_notify_v(nonreplay_fault)) ||
-	    intr_tu104_vector_intr_pending(g,
-			fb_mmu_int_vector_fault_error_v(nonreplay_fault)) ||
-	    intr_tu104_vector_intr_pending(g,
-			fb_mmu_int_vector_info_fault_vector_v(info_fault))) {
-		nvgpu_log(g, gpu_dbg_intr, "MMU Fault");
-		tu104_fb_handle_mmu_fault(g);
-	}
-
-	nvgpu_mutex_release(&g->mm.hub_isr_mutex);
 }
 
 void fb_tu104_write_mmu_fault_buffer_lo_hi(struct gk20a *g, u32 index,

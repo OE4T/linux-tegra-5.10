@@ -125,7 +125,7 @@ void mc_gp10b_isr_stall(struct gk20a *g)
 	}
 	if ((g->ops.mc.is_intr_hub_pending != NULL) &&
 		 g->ops.mc.is_intr_hub_pending(g, mc_intr_0)) {
-		g->ops.fb.hub_isr(g);
+		g->ops.fb.intr.isr(g);
 	}
 	if ((mc_intr_0 & mc_intr_pfifo_pending_f()) != 0U) {
 		g->ops.fifo.intr_0_isr(g);

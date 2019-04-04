@@ -349,7 +349,7 @@ void intr_tu104_stall_pause(struct gk20a *g)
 {
 	mc_gp10b_intr_stall_pause(g);
 
-	g->ops.fb.disable_hub_intr(g);
+	g->ops.fb.intr.disable(g);
 }
 
 /* resume all stall interrupts */
@@ -357,7 +357,7 @@ void intr_tu104_stall_resume(struct gk20a *g)
 {
 	mc_gp10b_intr_stall_resume(g);
 
-	g->ops.fb.enable_hub_intr(g);
+	g->ops.fb.intr.enable(g);
 }
 
 void intr_tu104_log_pending_intrs(struct gk20a *g)

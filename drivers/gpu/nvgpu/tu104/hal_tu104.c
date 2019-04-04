@@ -52,6 +52,7 @@
 #include "hal/fb/fb_gv11b.h"
 #include "hal/fb/fb_gv100.h"
 #include "hal/fb/fb_tu104.h"
+#include "hal/fb/intr/fb_intr_tu104.h"
 #include "hal/fuse/fuse_gm20b.h"
 #include "hal/fuse/fuse_gp10b.h"
 #include "hal/fuse/fuse_gp106.h"
@@ -833,13 +834,10 @@ static const struct gpu_ops tu104_ops = {
 		.is_debug_mode_enabled = gm20b_fb_debug_mode_enabled,
 		.set_debug_mode = gm20b_fb_set_debug_mode,
 		.tlb_invalidate = fb_tu104_tlb_invalidate,
-		.hub_isr = tu104_fb_hub_isr,
 		.handle_replayable_fault = gv11b_fb_handle_replayable_mmu_fault,
 		.mem_unlock = gv100_fb_memory_unlock,
 		.init_nvlink = gv100_fb_init_nvlink,
 		.enable_nvlink = gv100_fb_enable_nvlink,
-		.enable_hub_intr = tu104_fb_enable_hub_intr,
-		.disable_hub_intr = tu104_fb_disable_hub_intr,
 		.init_fbpa = tu104_fbpa_init,
 		.handle_fbpa_intr = tu104_fbpa_handle_intr,
 		.write_mmu_fault_buffer_lo_hi =
@@ -866,6 +864,11 @@ static const struct gpu_ops tu104_ops = {
 		.fault_buf_configure_hw = gv11b_fb_fault_buf_configure_hw,
 		.get_vidmem_size = tu104_fb_get_vidmem_size,
 		.apply_pdb_cache_war = tu104_fb_apply_pdb_cache_war,
+		.intr = {
+			.enable = tu104_fb_intr_enable,
+			.disable = tu104_fb_intr_disable,
+			.isr = tu104_fb_intr_isr,
+		}
 	},
 	.nvdec = {
 		.falcon_base_addr = tu104_nvdec_falcon_base_addr,
