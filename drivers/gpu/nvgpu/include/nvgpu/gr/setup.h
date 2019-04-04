@@ -26,8 +26,15 @@
 
 struct gk20a;
 struct channel_gk20a;
+struct vm_gk20a;
+struct nvgpu_gr_ctx;
 
 int nvgpu_gr_setup_bind_ctxsw_zcull(struct gk20a *g, struct channel_gk20a *c,
 			u64 zcull_va, u32 mode);
+
+int nvgpu_gr_setup_alloc_obj_ctx(struct channel_gk20a *c, u32 class_num,
+		u32 flags);
+void nvgpu_gr_setup_free_gr_ctx(struct gk20a *g,
+		struct vm_gk20a *vm, struct nvgpu_gr_ctx *gr_ctx);
 
 #endif /* NVGPU_GR_SETUP_H */

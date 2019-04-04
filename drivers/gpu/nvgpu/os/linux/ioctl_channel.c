@@ -873,7 +873,7 @@ static u32 nvgpu_obj_ctx_user_flags_to_common_flags(u32 user_flags)
 static int nvgpu_ioctl_channel_alloc_obj_ctx(struct channel_gk20a *ch,
 	u32 class_num, u32 user_flags)
 {
-	return ch->g->ops.gr.alloc_obj_ctx(ch, class_num,
+	return ch->g->ops.gr.setup.alloc_obj_ctx(ch, class_num,
 			nvgpu_obj_ctx_user_flags_to_common_flags(user_flags));
 }
 

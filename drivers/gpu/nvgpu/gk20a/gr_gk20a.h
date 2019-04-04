@@ -253,8 +253,6 @@ int gr_gk20a_init_golden_ctx_image(struct gk20a *g,
 void gk20a_init_gr(struct gk20a *g);
 int gk20a_init_gr_channel(struct channel_gk20a *ch_gk20a);
 
-int gk20a_alloc_obj_ctx(struct channel_gk20a  *c, u32 class_num, u32 flags);
-
 int gk20a_gr_isr(struct gk20a *g);
 
 void gr_gk20a_init_cg_mode(struct gk20a *g, u32 cgmode, u32 mode_config);
@@ -292,7 +290,6 @@ int gr_gk20a_update_hwpm_ctxsw_mode(struct gk20a *g,
 				  u32 mode);
 
 void gk20a_gr_set_shader_exceptions(struct gk20a *g, u32 data);
-void gr_gk20a_free_tsg_gr_ctx(struct tsg_gk20a *tsg);
 void gk20a_gr_resume_single_sm(struct gk20a *g,
 		u32 gpc, u32 tpc, u32 sm);
 void gk20a_gr_resume_all_sms(struct gk20a *g);
@@ -308,8 +305,6 @@ int gr_gk20a_handle_sm_exception(struct gk20a *g, u32 gpc, u32 tpc, u32 sm,
 		bool *post_event, struct channel_gk20a *fault_ch,
 		u32 *hww_global_esr);
 int gr_gk20a_init_ctx_state(struct gk20a *g);
-void gr_gk20a_free_gr_ctx(struct gk20a *g,
-		       struct vm_gk20a *vm, struct nvgpu_gr_ctx *gr_ctx);
 
 #if defined(CONFIG_GK20A_CYCLE_STATS)
 int gr_gk20a_css_attach(struct channel_gk20a *ch,   /* in - main hw structure */

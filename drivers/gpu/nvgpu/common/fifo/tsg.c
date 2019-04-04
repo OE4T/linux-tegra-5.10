@@ -652,8 +652,9 @@ void gk20a_tsg_release(struct nvgpu_ref *ref)
 	struct gk20a *g = tsg->g;
 	struct gk20a_event_id_data *event_id_data, *event_id_data_temp;
 
-	if (tsg->gr_ctx != NULL && nvgpu_mem_is_valid(&tsg->gr_ctx->mem)) {
-		gr_gk20a_free_tsg_gr_ctx(tsg);
+	if (tsg->gr_ctx != NULL && nvgpu_mem_is_valid(&tsg->gr_ctx->mem) &&
+			tsg->vm != NULL) {
+		g->ops.gr.setup.free_gr_ctx(g, tsg->vm, tsg->gr_ctx);
 	}
 
 	/* unhook all events created on this TSG */

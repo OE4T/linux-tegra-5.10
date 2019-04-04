@@ -552,7 +552,7 @@ static int gk20a_init_cde_required_class(struct gk20a_cde_ctx *cde_ctx,
 	/* CDE enabled */
 	cde_ctx->ch->cde = true;
 
-	err = gk20a_alloc_obj_ctx(cde_ctx->ch, required_class, 0);
+	err = g->ops.gr.setup.alloc_obj_ctx(cde_ctx->ch, required_class, 0);
 	if (err) {
 		nvgpu_warn(g, "cde: failed to allocate ctx. err=%d",
 			   err);

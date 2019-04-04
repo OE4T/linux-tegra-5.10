@@ -160,11 +160,9 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 		.get_sm_dsm_perf_ctrl_regs = gv11b_gr_get_sm_dsm_perf_ctrl_regs,
 		.set_hww_esr_report_mask = NULL,
 		.set_gpc_tpc_mask = NULL,
-		.alloc_obj_ctx = vgpu_gr_alloc_obj_ctx,
 		.is_tpc_addr = gr_gm20b_is_tpc_addr,
 		.get_tpc_num = gr_gm20b_get_tpc_num,
 		.detect_sm_arch = vgpu_gr_detect_sm_arch,
-		.free_gr_ctx = vgpu_gr_free_gr_ctx,
 		.dump_gr_regs = NULL,
 		.update_pc_sampling = vgpu_gr_update_pc_sampling,
 		.get_rop_l2_en_mask = vgpu_gr_rop_l2_en_mask,
@@ -317,6 +315,8 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 		},
 		.setup = {
 			.bind_ctxsw_zcull = vgpu_gr_bind_ctxsw_zcull,
+			.alloc_obj_ctx = vgpu_gr_alloc_obj_ctx,
+			.free_gr_ctx = vgpu_gr_free_gr_ctx,
 		},
 		.zbc = {
 			.add_color = NULL,

@@ -292,8 +292,6 @@ struct gpu_ops {
 						  u32 **ovr_perf_regsr);
 		void (*set_hww_esr_report_mask)(struct gk20a *g);
 		void (*set_gpc_tpc_mask)(struct gk20a *g, u32 gpc_index);
-		int (*alloc_obj_ctx)(struct channel_gk20a  *c,
-				     u32 class_num, u32 flags);
 		int (*decode_egpc_addr)(struct gk20a *g,
 			u32 addr, enum ctxsw_addr_type *addr_type,
 			u32 *gpc_num, u32 *tpc_num, u32 *broadcast_flags);
@@ -309,8 +307,6 @@ struct gpu_ops {
 		u32 (*get_tpc_num)(struct gk20a *g, u32 addr);
 		u32 (*get_egpc_base)(struct gk20a *g);
 		void (*detect_sm_arch)(struct gk20a *g);
-		void (*free_gr_ctx)(struct gk20a *g,
-				    struct vm_gk20a *vm, struct nvgpu_gr_ctx *gr_ctx);
 		void (*powergate_tpc)(struct gk20a *g);
 		int (*init_ctxsw_preemption_mode)(struct gk20a *g,
 			  struct nvgpu_gr_ctx *gr_ctx, struct vm_gk20a *vm,
@@ -635,6 +631,11 @@ struct gpu_ops {
 						struct channel_gk20a *c,
 						u64 zcull_va,
 						u32 mode);
+			int (*alloc_obj_ctx)(struct channel_gk20a  *c,
+				     u32 class_num, u32 flags);
+			void (*free_gr_ctx)(struct gk20a *g,
+				struct vm_gk20a *vm,
+				struct nvgpu_gr_ctx *gr_ctx);
 		} setup;
 
 		struct {

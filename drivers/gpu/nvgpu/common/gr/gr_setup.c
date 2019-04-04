@@ -23,6 +23,8 @@
 #include <nvgpu/log.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/gr/ctx.h>
+#include <nvgpu/gr/subctx.h>
+#include <nvgpu/gr/obj_ctx.h>
 #include <nvgpu/gr/zcull.h>
 #include <nvgpu/gr/setup.h>
 #include <nvgpu/channel.h>
@@ -78,3 +80,111 @@ int nvgpu_gr_setup_bind_ctxsw_zcull(struct gk20a *g, struct channel_gk20a *c,
 
 	return nvgpu_gr_setup_zcull(g, c, gr_ctx);
 }
+
+int nvgpu_gr_setup_alloc_obj_ctx(struct channel_gk20a *c, u32 class_num,
+		u32 flags)
+{
+	struct gk20a *g = c->g;
+	struct nvgpu_gr_ctx *gr_ctx;
+	struct tsg_gk20a *tsg = NULL;
+	int err = 0;
+
+	nvgpu_log_fn(g, " ");
+
+	/* an address space needs to have been bound at this point.*/
+	if (!gk20a_channel_as_bound(c) && (c->vm == NULL)) {
+		nvgpu_err(g,
+			   "not bound to address space at time"
+			   " of grctx allocation");
+		return -EINVAL;
+	}
+
+	if (!g->ops.gr.is_valid_class(g, class_num)) {
+		nvgpu_err(g,
+			   "invalid obj class 0x%x", class_num);
+		err = -EINVAL;
+		goto out;
+	}
+	c->obj_class = class_num;
+
+	tsg = tsg_gk20a_from_ch(c);
+	if (tsg == NULL) {
+		return -EINVAL;
+	}
+
+	gr_ctx = tsg->gr_ctx;
+
+	if (nvgpu_is_enabled(g, NVGPU_SUPPORT_TSG_SUBCONTEXTS)) {
+		if (c->subctx == NULL) {
+			c->subctx = nvgpu_gr_subctx_alloc(g, c->vm);
+			if (c->subctx == NULL) {
+				err = -ENOMEM;
+				goto out;
+			}
+		}
+	}
+
+	if (!nvgpu_mem_is_valid(&gr_ctx->mem)) {
+		tsg->vm = c->vm;
+		nvgpu_vm_get(tsg->vm);
+
+		err = nvgpu_gr_obj_ctx_alloc(g, g->gr.golden_image,
+				g->gr.global_ctx_buffer, gr_ctx, c->subctx,
+				tsg->vm, &c->inst_block, class_num, flags,
+				c->cde, c->vpr);
+		if (err != 0) {
+			nvgpu_err(g,
+				"failed to allocate gr ctx buffer");
+			nvgpu_vm_put(tsg->vm);
+			tsg->vm = NULL;
+			goto out;
+		}
+
+		gr_ctx->tsgid = tsg->tsgid;
+	} else {
+		/* commit gr ctx buffer */
+		nvgpu_gr_obj_ctx_commit_inst(g, &c->inst_block, gr_ctx,
+			c->subctx, gr_ctx->mem.gpu_va);
+	}
+
+#ifdef CONFIG_GK20A_CTXSW_TRACE
+	if (g->ops.gr.fecs_trace.bind_channel && !c->vpr) {
+		err = g->ops.gr.fecs_trace.bind_channel(g, &c->inst_block,
+			c->subctx, gr_ctx, tsg->tgid, 0);
+		if (err != 0) {
+			nvgpu_warn(g,
+				"fail to bind channel for ctxsw trace");
+		}
+	}
+#endif
+
+	nvgpu_log_fn(g, "done");
+	return 0;
+out:
+	if (c->subctx != NULL) {
+		nvgpu_gr_subctx_free(g, c->subctx, c->vm);
+	}
+
+	/* 1. gr_ctx, patch_ctx and global ctx buffer mapping
+	   can be reused so no need to release them.
+	   2. golden image init and load is a one time thing so if
+	   they pass, no need to undo. */
+	nvgpu_err(g, "fail");
+	return err;
+}
+
+void nvgpu_gr_setup_free_gr_ctx(struct gk20a *g,
+		struct vm_gk20a *vm, struct nvgpu_gr_ctx *gr_ctx)
+{
+	nvgpu_log_fn(g, " ");
+
+	if (gr_ctx != NULL) {
+		if ((g->ops.gr.ctxsw_prog.dump_ctxsw_stats != NULL) &&
+		     g->gr.ctx_vars.dump_ctxsw_stats_on_channel_close) {
+			g->ops.gr.ctxsw_prog.dump_ctxsw_stats(g, &gr_ctx->mem);
+		}
+
+		nvgpu_gr_ctx_free(g, gr_ctx, g->gr.global_ctx_buffer, vm);
+	}
+}
+

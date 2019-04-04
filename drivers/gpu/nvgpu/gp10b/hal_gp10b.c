@@ -293,11 +293,9 @@ static const struct gpu_ops gp10b_ops = {
 		.get_sm_dsm_perf_ctrl_regs = gr_gm20b_get_sm_dsm_perf_ctrl_regs,
 		.set_hww_esr_report_mask = gr_gm20b_set_hww_esr_report_mask,
 		.set_gpc_tpc_mask = gr_gp10b_set_gpc_tpc_mask,
-		.alloc_obj_ctx = gk20a_alloc_obj_ctx,
 		.is_tpc_addr = gr_gm20b_is_tpc_addr,
 		.get_tpc_num = gr_gm20b_get_tpc_num,
 		.detect_sm_arch = gr_gm20b_detect_sm_arch,
-		.free_gr_ctx = gr_gk20a_free_gr_ctx,
 		.dump_gr_regs = gr_gp10b_dump_gr_status_regs,
 		.update_pc_sampling = gr_gm20b_update_pc_sampling,
 		.get_rop_l2_en_mask = gr_gm20b_rop_l2_en_mask,
@@ -462,6 +460,8 @@ static const struct gpu_ops gp10b_ops = {
 #endif /* CONFIG_GK20A_CTXSW_TRACE */
 		.setup = {
 			.bind_ctxsw_zcull = nvgpu_gr_setup_bind_ctxsw_zcull,
+			.alloc_obj_ctx = nvgpu_gr_setup_alloc_obj_ctx,
+			.free_gr_ctx = nvgpu_gr_setup_free_gr_ctx,
 		},
 		.zbc = {
 			.add_color = gp10b_gr_zbc_add_color,
