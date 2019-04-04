@@ -88,11 +88,7 @@ nvgpu-y += \
 	common/init/nvgpu_init.o \
 	common/pmu/pmu.o \
 	common/pmu/pmu_allocator.o \
-	common/pmu/pmu_cmd.o \
-	common/pmu/pmu_msg.o \
 	common/pmu/pmu_mutex.o \
-	common/pmu/pmu_queue.o \
-	common/pmu/pmu_seq.o \
 	common/pmu/pmu_fw.o \
 	common/pmu/pg/pmu_pg.o \
 	common/pmu/pg/pmu_aelpg.o \
@@ -109,6 +105,10 @@ nvgpu-y += \
 	common/pmu/pg/pg_sw_gv11b.o \
 	common/pmu/pmu_gv100.o \
 	common/pmu/pmu_tu104.o \
+	common/pmu/ipc/pmu_cmd.o \
+	common/pmu/ipc/pmu_msg.o \
+	common/pmu/ipc/pmu_queue.o \
+	common/pmu/ipc/pmu_seq.o \
 	common/acr/acr.o \
 	common/acr/acr_wpr.o \
 	common/acr/acr_blob_alloc.o \

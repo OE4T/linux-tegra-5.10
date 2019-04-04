@@ -127,11 +127,7 @@ srcs += common/sim.c \
 	common/netlist/netlist_tu104.c \
 	common/pmu/pmu.c \
 	common/pmu/pmu_allocator.c \
-	common/pmu/pmu_cmd.c \
-	common/pmu/pmu_msg.c \
 	common/pmu/pmu_mutex.c \
-	common/pmu/pmu_queue.c \
-	common/pmu/pmu_seq.c \
 	common/pmu/pmu_fw.c \
 	common/pmu/pg/pmu_pg.c \
 	common/pmu/pg/pmu_aelpg.c \
@@ -148,6 +144,10 @@ srcs += common/sim.c \
 	common/pmu/pg/pg_sw_gv11b.c \
 	common/pmu/pmu_gv100.c \
 	common/pmu/pmu_tu104.c \
+	common/pmu/ipc/pmu_cmd.c \
+	common/pmu/ipc/pmu_msg.c \
+	common/pmu/ipc/pmu_queue.c \
+	common/pmu/ipc/pmu_seq.c \
 	common/acr/acr.c \
 	common/acr/acr_wpr.c \
 	common/acr/acr_blob_alloc.c \
