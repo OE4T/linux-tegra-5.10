@@ -40,14 +40,14 @@
 		nvidia,phy-max-frame-size = <16>;	/* size in kbytes */
 		nvidia,eth_iso_enable = <1>; /*0=enable, 1=disable */
 		phy-mode = "rgmii-id";
-		phy-handle = <&phy0>;
+		phy-handle = <&phy>;
 
 		mdio {
 			compatible = "nvidia,eqos-mdio";
 			#address-cells = <1>;
 			#size-cells = <0>;
 
-			phy0: ethernet-phy@0 {
+			phy: phy@0 {
 				reg = <0>;
 				interrupt-parent = <&tegra_main_gpio>;
 				interrupts = <TEGRA194_MAIN_GPIO(G, 4) IRQ_TYPE_LEVEL_LOW>;
