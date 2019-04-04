@@ -27,8 +27,6 @@
 #include <nvgpu/pmu/cmd.h>
 #include <nvgpu/pmu/lsfm.h>
 
-#include "common/pmu/pmu_gm20b.h"
-
 #include "lsfm_sw_gm20b.h"
 
 static void lsfm_handle_acr_init_wpr_region_msg(struct gk20a *g,

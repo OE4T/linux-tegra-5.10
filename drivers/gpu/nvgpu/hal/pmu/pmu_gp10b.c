@@ -1,6 +1,4 @@
 /*
- * GP10B PMU
- *
  * Copyright (c) 2015-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
@@ -29,8 +27,8 @@
 #include <nvgpu/bug.h>
 #include <nvgpu/pmu/cmd.h>
 
-#include "common/pmu/pmu_gp10b.h"
 #include "pmu_gk20a.h"
+#include "pmu_gp10b.h"
 
 #include <nvgpu/hw/gp10b/hw_pwr_gp10b.h>
 

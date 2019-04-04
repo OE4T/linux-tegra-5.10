@@ -1,6 +1,4 @@
 /*
- * GV11B PMU
- *
  * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
@@ -141,9 +139,8 @@ bool gv11b_is_pmu_supported(struct gk20a *g)
 #endif
 }
 
-int gv11b_pmu_bootstrap(struct nvgpu_pmu *pmu)
+int gv11b_pmu_bootstrap(struct gk20a *g, struct nvgpu_pmu *pmu)
 {
-	struct gk20a *g = gk20a_from_pmu(pmu);
 	struct mm_gk20a *mm = &g->mm;
 	struct pmu_ucode_desc *desc =
 		(struct pmu_ucode_desc *)(void *)pmu->fw_image->data;

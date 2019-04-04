@@ -1414,46 +1414,83 @@ struct gpu_ops {
 	struct {
 		bool (*is_pmu_supported)(struct gk20a *g);
 		u32 (*falcon_base_addr)(void);
-		int (*pmu_setup_hw_and_bootstrap)(struct gk20a *g);
-		int (*pmu_nsbootstrap)(struct nvgpu_pmu *pmu);
-		int (*pmu_init_perfmon)(struct nvgpu_pmu *pmu);
-		int (*pmu_perfmon_start_sampling)(struct nvgpu_pmu *pmu);
-		int (*pmu_perfmon_stop_sampling)(struct nvgpu_pmu *pmu);
-		int (*pmu_perfmon_get_samples_rpc)(struct nvgpu_pmu *pmu);
-		void (*pmu_setup_elpg)(struct gk20a *g);
+		/* reset */
+		int (*pmu_reset)(struct gk20a *g);
+		int (*reset_engine)(struct gk20a *g, bool do_reset);
+		bool (*is_engine_in_reset)(struct gk20a *g);
+		/* secure boot */
+		void (*setup_apertures)(struct gk20a *g);
+		void (*write_dmatrfbase)(struct gk20a *g, u32 addr);
+		bool (*is_debug_mode_enabled)(struct gk20a *g);
+		void (*secured_pmu_start)(struct gk20a *g);
+		void (*flcn_setup_boot_config)(struct gk20a *g);
+		/* non-secure */
+		int (*pmu_setup_hw_and_bootstrap)(struct gk20a *g,
+			struct nvgpu_pmu *pmu);
+		int (*pmu_nsbootstrap)(struct gk20a *g, struct nvgpu_pmu *pmu);
+		/* queue */
 		u32 (*pmu_get_queue_head)(u32 i);
 		u32 (*pmu_get_queue_head_size)(void);
 		u32 (*pmu_get_queue_tail_size)(void);
 		u32 (*pmu_get_queue_tail)(u32 i);
-		int (*pmu_reset)(struct gk20a *g);
 		int (*pmu_queue_head)(struct gk20a *g, u32 queue_id,
-				      u32 queue_index, u32 *head, bool set);
+			u32 queue_index, u32 *head, bool set);
 		int (*pmu_queue_tail)(struct gk20a *g, u32 queue_id,
-				      u32 queue_index, u32 *tail, bool set);
+			u32 queue_index, u32 *tail, bool set);
 		void (*pmu_msgq_tail)(struct nvgpu_pmu *pmu,
 			u32 *tail, bool set);
+		/* mutex */
 		u32 (*pmu_mutex_size)(void);
 		u32 (*pmu_mutex_owner)(struct gk20a *g,
-				       struct pmu_mutexes *mutexes,
-				       u32 id);
+			struct pmu_mutexes *mutexes, u32 id);
 		int (*pmu_mutex_acquire)(struct gk20a *g,
-					 struct pmu_mutexes *mutexes,
-					 u32 id, u32 *token);
+			struct pmu_mutexes *mutexes, u32 id,
+			u32 *token);
 		void (*pmu_mutex_release)(struct gk20a *g,
-					  struct pmu_mutexes *mutexes, u32 id,
-					  u32 *token);
+			struct pmu_mutexes *mutexes, u32 id,
+			u32 *token);
+		/* ISR */
 		bool (*pmu_is_interrupted)(struct nvgpu_pmu *pmu);
 		void (*pmu_isr)(struct gk20a *g);
+		void (*set_irqmask)(struct gk20a *g);
+		u32 (*get_irqdest)(struct gk20a *g);
+		void (*pmu_enable_irq)(struct nvgpu_pmu *pmu, bool enable);
+		void (*handle_ext_irq)(struct gk20a *g, u32 intr);
+		/* perfmon */
 		void (*pmu_init_perfmon_counter)(struct gk20a *g);
 		void (*pmu_pg_idle_counter_config)(struct gk20a *g, u32 pg_engine_id);
 		u32  (*pmu_read_idle_counter)(struct gk20a *g, u32 counter_id);
 		u32  (*pmu_read_idle_intr_status)(struct gk20a *g);
 		void (*pmu_clear_idle_intr_status)(struct gk20a *g);
 		void (*pmu_reset_idle_counter)(struct gk20a *g, u32 counter_id);
+		/* PG */
+		void (*pmu_setup_elpg)(struct gk20a *g);
+		struct {
+			int (*report_ecc_parity_err)(struct gk20a *g,
+					u32 hw_id, u32 inst,
+					u32 err_id, u64 err_addr,
+					u64 err_cnt);
+			int (*report_pmu_err)(struct gk20a *g,
+					u32 hw_id, u32 err_id, u32 status,
+					u32 pmu_err_type);
+		} err_ops;
+		void (*pmu_clear_bar0_host_err_status)(struct gk20a *g);
+		int (*bar0_error_status)(struct gk20a *g, u32 *bar0_status,
+			u32 *etype);
+		/* debug */
 		void (*pmu_dump_elpg_stats)(struct nvgpu_pmu *pmu);
 		void (*pmu_dump_falcon_stats)(struct nvgpu_pmu *pmu);
-		void (*pmu_enable_irq)(struct nvgpu_pmu *pmu, bool enable);
-		void (*write_dmatrfbase)(struct gk20a *g, u32 addr);
+		void (*dump_secure_fuses)(struct gk20a *g);
+		/*
+		 * PMU RTOS FW version ops, should move under struct nvgpu_pmu's
+		 * pg/perfmon unit struct ops
+		 */
+		/* perfmon */
+		int (*pmu_init_perfmon)(struct nvgpu_pmu *pmu);
+		int (*pmu_perfmon_start_sampling)(struct nvgpu_pmu *pmu);
+		int (*pmu_perfmon_stop_sampling)(struct nvgpu_pmu *pmu);
+		int (*pmu_perfmon_get_samples_rpc)(struct nvgpu_pmu *pmu);
+		/* pg */
 		int (*pmu_elpg_statistics)(struct gk20a *g, u32 pg_engine_id,
 			struct pmu_pg_stats_data *pg_stat_data);
 		int (*pmu_pg_init_param)(struct gk20a *g, u32 pg_engine_id);
@@ -1467,26 +1504,7 @@ struct gpu_ops {
 		int (*pmu_lpwr_enable_pg)(struct gk20a *g, bool pstate_lock);
 		int (*pmu_lpwr_disable_pg)(struct gk20a *g, bool pstate_lock);
 		int (*pmu_pg_param_post_init)(struct gk20a *g);
-		void (*dump_secure_fuses)(struct gk20a *g);
-		int (*reset_engine)(struct gk20a *g, bool do_reset);
-		bool (*is_engine_in_reset)(struct gk20a *g);
-		void (*handle_ext_irq)(struct gk20a *g, u32 intr);
-		void (*set_irqmask)(struct gk20a *g);
-		void (*setup_apertures)(struct gk20a *g);
-		u32 (*get_irqdest)(struct gk20a *g);
-		bool (*is_debug_mode_enabled)(struct gk20a *g);
-		void (*secured_pmu_start)(struct gk20a *g);
-		struct {
-			int (*report_ecc_parity_err)(struct gk20a *g,
-					u32 hw_id, u32 inst,
-					u32 err_id, u64 err_addr,
-					u64 err_cnt);
-			int (*report_pmu_err)(struct gk20a *g,
-				u32 hw_id, u32 err_id, u32 status,
-				u32 pmu_err_type);
-		} err_ops;
 		void (*save_zbc)(struct gk20a *g, u32 entries);
-		void (*pmu_clear_bar0_host_err_status)(struct gk20a *g);
 	} pmu;
 	struct {
 		int (*init_debugfs)(struct gk20a *g);

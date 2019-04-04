@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -20,11 +20,18 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NVGPU_PMU_TU104_H
-#define NVGPU_PMU_TU104_H
+#ifndef PMU_GP106_H
+#define PMU_GP106_H
+
+#include <nvgpu/types.h>
 
 struct gk20a;
 
-bool tu104_is_pmu_supported(struct gk20a *g);
+bool gp106_is_pmu_supported(struct gk20a *g);
 
-#endif /* NVGPU_PMU_TU104_H */
+bool gp106_pmu_is_engine_in_reset(struct gk20a *g);
+int gp106_pmu_engine_reset(struct gk20a *g, bool do_reset);
+void gp106_pmu_setup_apertures(struct gk20a *g);
+u32 gp106_pmu_falcon_base_addr(void);
+
+#endif /* PMU_GP106_H */

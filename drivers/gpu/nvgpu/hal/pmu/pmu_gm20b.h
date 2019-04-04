@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -20,18 +20,23 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NVGPU_PMU_GP106_H
-#define NVGPU_PMU_GP106_H
+#ifndef PMU_GM20B_H
+#define PMU_GM20B_H
 
 #include <nvgpu/types.h>
 
 struct gk20a;
 
-bool gp106_is_pmu_supported(struct gk20a *g);
+void gm20b_pmu_setup_elpg(struct gk20a *g);
+void pmu_dump_security_fuses_gm20b(struct gk20a *g);
+void gm20b_write_dmatrfbase(struct gk20a *g, u32 addr);
+bool gm20b_pmu_is_debug_mode_en(struct gk20a *g);
+int gm20b_ns_pmu_setup_hw_and_bootstrap(struct gk20a *g,
+	struct nvgpu_pmu *pmu);
+void gm20b_pmu_setup_apertures(struct gk20a *g);
+void gm20b_pmu_flcn_setup_boot_config(struct gk20a *g);
+void gm20b_secured_pmu_start(struct gk20a *g);
+bool gm20b_is_pmu_supported(struct gk20a *g);
+void gm20b_clear_pmu_bar0_host_err_status(struct gk20a *g);
 
-bool gp106_pmu_is_engine_in_reset(struct gk20a *g);
-int gp106_pmu_engine_reset(struct gk20a *g, bool do_reset);
-void gp106_pmu_setup_apertures(struct gk20a *g);
-u32 gp106_pmu_falcon_base_addr(void);
-
-#endif /* NVGPU_PMU_GP106_H */
+#endif /* PMU_GM20B_H */

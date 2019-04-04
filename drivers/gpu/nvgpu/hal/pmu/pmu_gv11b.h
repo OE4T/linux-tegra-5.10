@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -19,23 +19,19 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef NVGPU_PMU_MUTEX_GK20A_H
-#define NVGPU_PMU_MUTEX_GK20A_H
+
+#ifndef PMU_GV11B_H
+#define PMU_GV11B_H
 
 #include <nvgpu/types.h>
 
-struct pmu_mutexes;
-struct nvgpu_pmu;
 struct gk20a;
 
-u32 gk20a_pmu_mutex_owner(struct gk20a *g, struct pmu_mutexes *mutexes,
-			  u32 id);
-int gk20a_pmu_mutex_acquire(struct gk20a *g, struct pmu_mutexes *mutexes,
-			    u32 id, u32 *token);
-void gk20a_pmu_mutex_release(struct gk20a *g, struct pmu_mutexes *mutexes,
-			     u32 id, u32 *token);
+bool gv11b_is_pmu_supported(struct gk20a *g);
+int gv11b_pmu_bootstrap(struct gk20a *g, struct nvgpu_pmu *pmu);
+void gv11b_pmu_setup_elpg(struct gk20a *g);
+u32 gv11b_pmu_get_irqdest(struct gk20a *g);
+void gv11b_pmu_handle_ext_irq(struct gk20a *g, u32 intr0);
+void gv11b_setup_apertures(struct gk20a *g);
 
-void gk20a_pmu_dump_elpg_stats(struct nvgpu_pmu *pmu);
-void gk20a_pmu_dump_falcon_stats(struct nvgpu_pmu *pmu);
-
-#endif /* NVGPU_PMU_MUTEX_GK20A_H */
+#endif /* PMU_GV11B_H */

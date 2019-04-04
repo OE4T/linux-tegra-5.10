@@ -1,6 +1,4 @@
 /*
- * GM20B PMU
- *
  * Copyright (c) 2015-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
@@ -142,10 +140,9 @@ bool gm20b_pmu_is_debug_mode_en(struct gk20a *g)
 	return pwr_pmu_scpctl_stat_debug_mode_v(ctl_stat) != 0U;
 }
 
-int gm20b_ns_pmu_setup_hw_and_bootstrap(struct gk20a *g)
+int gm20b_ns_pmu_setup_hw_and_bootstrap(struct gk20a *g,
+	struct nvgpu_pmu *pmu)
 {
-	struct nvgpu_pmu *pmu = &g->pmu;
-
 	nvgpu_log_fn(g, " ");
 
 	nvgpu_mutex_acquire(&pmu->isr_mutex);
@@ -169,7 +166,7 @@ int gm20b_ns_pmu_setup_hw_and_bootstrap(struct gk20a *g)
 		pwr_fbif_transcfg_mem_type_physical_f() |
 		pwr_fbif_transcfg_target_noncoherent_sysmem_f());
 
-	return g->ops.pmu.pmu_nsbootstrap(pmu);
+	return g->ops.pmu.pmu_nsbootstrap(g, pmu);
 }
 
 void gm20b_pmu_setup_apertures(struct gk20a *g)

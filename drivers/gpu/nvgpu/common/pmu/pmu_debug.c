@@ -23,6 +23,22 @@
 #include <nvgpu/pmu.h>
 #include <nvgpu/gk20a.h>
 
+bool nvgpu_find_hex_in_string(char *strings, struct gk20a *g, u32 *hex_pos)
+{
+	u32 i = 0, j = (u32)strlen(strings);
+
+	for (; i < j; i++) {
+		if (strings[i] == '%') {
+			if (strings[i + 1U] == 'x' || strings[i + 1U] == 'X') {
+				*hex_pos = i;
+				return true;
+			}
+		}
+	}
+	*hex_pos = U32_MAX;
+	return false;
+}
+
 static void print_pmu_trace(struct nvgpu_pmu *pmu)
 {
 	struct gk20a *g = pmu->g;

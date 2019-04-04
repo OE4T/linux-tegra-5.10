@@ -1,7 +1,5 @@
 /*
- * GP10B PMU
- *
- * Copyright (c) 2015-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -22,15 +20,11 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NVGPU_PMU_GP10B_H
-#define NVGPU_PMU_GP10B_H
-
-#include <nvgpu/types.h>
+#ifndef PMU_TU104_H
+#define PMU_TU104_H
 
 struct gk20a;
 
-bool gp10b_is_pmu_supported(struct gk20a *g);
-void gp10b_pmu_setup_elpg(struct gk20a *g);
-void gp10b_write_dmatrfbase(struct gk20a *g, u32 addr);
+bool tu104_is_pmu_supported(struct gk20a *g);
 
-#endif /* NVGPU_PMU_GP10B_H */
+#endif /* PMU_TU104_H */

@@ -317,7 +317,5 @@ struct gk20a *gk20a_from_pmu(struct nvgpu_pmu *pmu);
 
 void nvgpu_pmu_report_bar0_pri_err_status(struct gk20a *g, u32 bar0_status,
 	u32 error_type);
-int gk20a_pmu_bar0_error_status(struct gk20a *g, u32 *bar0_status,
-	u32 *etype);
 #endif /* NVGPU_PMU_H */
 

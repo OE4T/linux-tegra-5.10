@@ -100,16 +100,15 @@
 #include "hal/gr/ctxsw_prog/ctxsw_prog_gm20b.h"
 #include "hal/gr/ctxsw_prog/ctxsw_prog_gp10b.h"
 #include "hal/gr/ctxsw_prog/ctxsw_prog_gv11b.h"
+#include "hal/pmu/pmu_gk20a.h"
+#include "hal/pmu/pmu_gm20b.h"
+#include "hal/pmu/pmu_gp106.h"
+#include "hal/pmu/pmu_gp10b.h"
+#include "hal/pmu/pmu_gv11b.h"
 #include "hal/falcon/falcon_gk20a.h"
 #include "hal/perf/perf_gv11b.h"
-#include "hal/pmu/pmu_hal_gk20a.h"
 #include "hal/netlist/netlist_gv11b.h"
 
-#include "common/pmu/pmu_gk20a.h"
-#include "common/pmu/pmu_gm20b.h"
-#include "common/pmu/pmu_gp10b.h"
-#include "common/pmu/pmu_gp106.h"
-#include "common/pmu/pmu_gv11b.h"
 #include "common/pmu/pg/pg_sw_gm20b.h"
 #include "common/pmu/pg/pg_sw_gp106.h"
 #include "common/pmu/pg/pg_sw_gv11b.h"
@@ -1143,6 +1142,8 @@ static const struct gpu_ops gv11b_ops = {
 		.save_zbc = gm20b_pmu_save_zbc,
 		.pmu_clear_bar0_host_err_status =
 			gm20b_clear_pmu_bar0_host_err_status,
+		.bar0_error_status = gk20a_pmu_bar0_error_status,
+		.flcn_setup_boot_config = gm20b_pmu_flcn_setup_boot_config,
 #endif
 	},
 	.clk_arb = {

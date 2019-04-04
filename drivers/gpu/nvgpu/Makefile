@@ -83,16 +83,10 @@ nvgpu-y += \
 	common/pmu/pg/pmu_aelpg.o \
 	common/pmu/perfmon/pmu_perfmon.o \
 	common/pmu/pmu_debug.o \
-	common/pmu/pmu_gk20a.o \
-	common/pmu/pmu_gm20b.o \
-	common/pmu/pmu_gp10b.o \
-	common/pmu/pmu_gp106.o \
-	common/pmu/pmu_gv11b.o \
 	common/pmu/pg/pg_sw_gm20b.o \
 	common/pmu/pg/pg_sw_gp10b.o \
 	common/pmu/pg/pg_sw_gp106.o \
 	common/pmu/pg/pg_sw_gv11b.o \
-	common/pmu/pmu_tu104.o \
 	common/pmu/ipc/pmu_cmd.o \
 	common/pmu/ipc/pmu_msg.o \
 	common/pmu/ipc/pmu_queue.o \
@@ -287,9 +281,14 @@ nvgpu-y += \
 	hal/nvlink/link_mode_transitions_gv100.o \
 	hal/nvlink/link_mode_transitions_tu104.o \
 	hal/gsp/gsp_gv100.o \
-	hal/pmu/pmu_hal_gk20a.o \
 	hal/sec2/sec2_gp106.o \
-	hal/sec2/sec2_tu104.o
+	hal/sec2/sec2_tu104.o \
+	hal/pmu/pmu_gk20a.o \
+	hal/pmu/pmu_gm20b.o \
+	hal/pmu/pmu_gp10b.o \
+	hal/pmu/pmu_gp106.o \
+	hal/pmu/pmu_gv11b.o \
+	hal/pmu/pmu_tu104.o
 
 # Linux specific parts of nvgpu.
 nvgpu-y += \

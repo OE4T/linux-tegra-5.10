@@ -128,16 +128,10 @@ srcs += common/sim.c \
 	common/pmu/pg/pmu_aelpg.c \
 	common/pmu/perfmon/pmu_perfmon.c \
 	common/pmu/pmu_debug.c \
-	common/pmu/pmu_gk20a.c \
-	common/pmu/pmu_gm20b.c \
-	common/pmu/pmu_gp10b.c \
-	common/pmu/pmu_gp106.c \
-	common/pmu/pmu_gv11b.c \
 	common/pmu/pg/pg_sw_gm20b.c \
 	common/pmu/pg/pg_sw_gp10b.c \
 	common/pmu/pg/pg_sw_gp106.c \
 	common/pmu/pg/pg_sw_gv11b.c \
-	common/pmu/pmu_tu104.c \
 	common/pmu/ipc/pmu_cmd.c \
 	common/pmu/ipc/pmu_msg.c \
 	common/pmu/ipc/pmu_queue.c \
@@ -408,9 +402,14 @@ srcs += common/sim.c \
 	hal/nvlink/link_mode_transitions_gv100.c \
 	hal/nvlink/link_mode_transitions_tu104.c \
 	hal/gsp/gsp_gv100.c \
-	hal/pmu/pmu_hal_gk20a.c \
 	hal/sec2/sec2_gp106.c \
-	hal/sec2/sec2_tu104.c
+	hal/sec2/sec2_tu104.c \
+	hal/pmu/pmu_gk20a.c \
+	hal/pmu/pmu_gm20b.c \
+	hal/pmu/pmu_gp10b.c \
+	hal/pmu/pmu_gp106.c \
+	hal/pmu/pmu_gv11b.c \
+	hal/pmu/pmu_tu104.c
 
 ifeq ($(NVGPU_DEBUGGER),1)
 srcs += common/debugger.c

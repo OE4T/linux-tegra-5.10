@@ -1,7 +1,5 @@
 /*
- * GV11B PMU
- *
- * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -22,18 +20,19 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NVGPU_PMU_GV11B_H
-#define NVGPU_PMU_GV11B_H
+#include <nvgpu/enabled.h>
+#include <nvgpu/io.h>
+#include <nvgpu/gk20a.h>
 
-#include <nvgpu/types.h>
+#include "pmu_tu104.h"
 
-struct gk20a;
+bool tu104_is_pmu_supported(struct gk20a *g)
+{
+	/* PMU not supported in dGpu Simulation */
+	if (nvgpu_is_enabled(g, NVGPU_IS_FMODEL)) {
+		return false;
+	} else {
+		return true;
+	}
+}
 
-bool gv11b_is_pmu_supported(struct gk20a *g);
-int gv11b_pmu_bootstrap(struct nvgpu_pmu *pmu);
-void gv11b_pmu_setup_elpg(struct gk20a *g);
-u32 gv11b_pmu_get_irqdest(struct gk20a *g);
-void gv11b_pmu_handle_ext_irq(struct gk20a *g, u32 intr0);
-void gv11b_setup_apertures(struct gk20a *g);
-
-#endif /* NVGPU_PMU_GV11B_H */

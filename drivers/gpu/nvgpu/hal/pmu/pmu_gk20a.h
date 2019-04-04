@@ -1,9 +1,5 @@
 /*
- * drivers/video/tegra/host/gk20a/pmu_gk20a.h
- *
- * GK20A PMU (aka. gPMU outside gk20a context)
- *
- * Copyright (c) 2011-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2019, NVIDIA CORPORATION.  All rights reserved
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -23,42 +19,46 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef NVGPU_GK20A_PMU_GK20A_H
-#define NVGPU_GK20A_PMU_GK20A_H
 
-#include <nvgpu/flcnif_cmn.h>
-#include <nvgpu/pmu/pmuif/nvgpu_cmdif.h>
-#include <nvgpu/pmu.h>
+#ifndef PMU_GK20A_H
+#define PMU_GK20A_H
 
-#define ZBC_MASK(i)			U16(~(~(0U) << ((i)+1U)) & 0xfffeU)
+#include <nvgpu/types.h>
 
-bool gk20a_pmu_is_interrupted(struct nvgpu_pmu *pmu);
-void gk20a_pmu_isr(struct gk20a *g);
+struct gk20a;
+struct nvgpu_pmu;
+struct pmu_mutexes;
 
+void gk20a_pmu_dump_falcon_stats(struct nvgpu_pmu *pmu);
 void gk20a_pmu_init_perfmon_counter(struct gk20a *g);
-
 void gk20a_pmu_pg_idle_counter_config(struct gk20a *g, u32 pg_engine_id);
-
-int gk20a_pmu_queue_head(struct gk20a *g, u32 queue_id, u32 queue_index,
-			u32 *head, bool set);
-int gk20a_pmu_queue_tail(struct gk20a *g, u32 queue_id, u32 queue_index,
-			u32 *tail, bool set);
-void gk20a_pmu_msgq_tail(struct nvgpu_pmu *pmu, u32 *tail, bool set);
-
 u32 gk20a_pmu_read_idle_counter(struct gk20a *g, u32 counter_id);
 void gk20a_pmu_reset_idle_counter(struct gk20a *g, u32 counter_id);
-
 u32 gk20a_pmu_read_idle_intr_status(struct gk20a *g);
 void gk20a_pmu_clear_idle_intr_status(struct gk20a *g);
-
-void gk20a_write_dmatrfbase(struct gk20a *g, u32 addr);
-bool gk20a_is_pmu_supported(struct gk20a *g);
-
-int pmu_bootstrap(struct nvgpu_pmu *pmu);
-
+void gk20a_pmu_dump_elpg_stats(struct nvgpu_pmu *pmu);
+u32 gk20a_pmu_mutex_owner(struct gk20a *g, struct pmu_mutexes *mutexes,
+	u32 id);
+int gk20a_pmu_mutex_acquire(struct gk20a *g, struct pmu_mutexes *mutexes,
+	u32 id, u32 *token);
+void gk20a_pmu_mutex_release(struct gk20a *g, struct pmu_mutexes *mutexes,
+	u32 id, u32 *token);
+int gk20a_pmu_queue_head(struct gk20a *g, u32 queue_id, u32 queue_index,
+	u32 *head, bool set);
+int gk20a_pmu_queue_tail(struct gk20a *g, u32 queue_id, u32 queue_index,
+	u32 *tail, bool set);
+void gk20a_pmu_msgq_tail(struct nvgpu_pmu *pmu, u32 *tail, bool set);
+u32 gk20a_pmu_get_irqdest(struct gk20a *g);
 void gk20a_pmu_enable_irq(struct nvgpu_pmu *pmu, bool enable);
-u32 gk20a_pmu_falcon_base_addr(void);
+bool gk20a_pmu_is_interrupted(struct nvgpu_pmu *pmu);
+void gk20a_pmu_isr(struct gk20a *g);
+int gk20a_pmu_bar0_error_status(struct gk20a *g, u32 *bar0_status,
+	u32 *etype);
+int pmu_bootstrap(struct gk20a *g, struct nvgpu_pmu *pmu);
 bool gk20a_pmu_is_engine_in_reset(struct gk20a *g);
 int gk20a_pmu_engine_reset(struct gk20a *g, bool do_reset);
-u32 gk20a_pmu_get_irqdest(struct gk20a *g);
-#endif /*NVGPU_GK20A_PMU_GK20A_H*/
+void gk20a_write_dmatrfbase(struct gk20a *g, u32 addr);
+u32 gk20a_pmu_falcon_base_addr(void);
+bool gk20a_is_pmu_supported(struct gk20a *g);
+
+#endif /* PMU_GK20A_H */

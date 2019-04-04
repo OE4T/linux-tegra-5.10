@@ -20,15 +20,11 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#include "acr_sw_gm20b.h"
-
 #include <nvgpu/gk20a.h>
 #include <nvgpu/types.h>
 #include <nvgpu/firmware.h>
 #include <nvgpu/falcon.h>
 #include <nvgpu/bug.h>
-
-#include "common/pmu/pmu_gm20b.h"
 
 #include "acr_wpr.h"
 #include "acr_priv.h"
@@ -169,9 +165,10 @@ static void gm20b_acr_default_sw_init(struct gk20a *g, struct hs_acr *hs_acr)
 
 	/* set on which falcon ACR need to execute*/
 	hs_acr->acr_flcn = &g->pmu.flcn;
-	hs_acr->acr_flcn_setup_boot_config = gm20b_pmu_flcn_setup_boot_config;
+	hs_acr->acr_flcn_setup_boot_config =
+		g->ops.pmu.flcn_setup_boot_config;
 	hs_acr->acr_engine_bus_err_status =
-		gk20a_pmu_bar0_error_status;
+		g->ops.pmu.bar0_error_status;
 }
 
 void nvgpu_gm20b_acr_sw_init(struct gk20a *g, struct nvgpu_acr *acr)

@@ -81,13 +81,12 @@
 #include "hal/gr/intr/gr_intr_gm20b.h"
 #include "hal/gr/config/gr_config_gm20b.h"
 #include "hal/gr/ctxsw_prog/ctxsw_prog_gm20b.h"
+#include "hal/pmu/pmu_gk20a.h"
+#include "hal/pmu/pmu_gm20b.h"
 #include "hal/falcon/falcon_gk20a.h"
 #include "hal/perf/perf_gm20b.h"
-#include "hal/pmu/pmu_hal_gk20a.h"
 #include "hal/netlist/netlist_gm20b.h"
 
-#include "common/pmu/pmu_gk20a.h"
-#include "common/pmu/pmu_gm20b.h"
 #include "common/top/top_gm20b.h"
 #include "common/sync/syncpt_cmdbuf_gk20a.h"
 #include "common/sync/sema_cmdbuf_gk20a.h"
@@ -875,6 +874,8 @@ static const struct gpu_ops gm20b_ops = {
 		.save_zbc = gm20b_pmu_save_zbc,
 		.pmu_clear_bar0_host_err_status =
 			gm20b_clear_pmu_bar0_host_err_status,
+		.bar0_error_status = gk20a_pmu_bar0_error_status,
+		.flcn_setup_boot_config = gm20b_pmu_flcn_setup_boot_config,
 	},
 	.clk = {
 		.init_clk_support = gm20b_init_clk_support,
