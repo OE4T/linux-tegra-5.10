@@ -31,10 +31,32 @@
 #include <nvgpu/gr/gr_falcon.h>
 #include <nvgpu/gr/fs_state.h>
 #include <nvgpu/power_features/cg.h>
-#include <nvgpu/channel.h>
 
 #include "obj_ctx_priv.h"
 
+void nvgpu_gr_obj_ctx_commit_inst_gpu_va(struct gk20a *g,
+	struct nvgpu_mem *inst_block, u64 gpu_va)
+{
+	g->ops.ramin.set_gr_ptr(g, inst_block, gpu_va);
+}
+
+void nvgpu_gr_obj_ctx_commit_inst(struct gk20a *g, struct nvgpu_mem *inst_block,
+	struct nvgpu_gr_ctx *gr_ctx, struct nvgpu_gr_subctx *subctx, u64 gpu_va)
+{
+	struct nvgpu_mem *ctxheader;
+
+	nvgpu_log_fn(g, " ");
+
+	if (nvgpu_is_enabled(g, NVGPU_SUPPORT_TSG_SUBCONTEXTS)) {
+		nvgpu_gr_subctx_load_ctx_header(g, subctx, gr_ctx, gpu_va);
+
+		ctxheader = nvgpu_gr_subctx_get_ctx_header(g, subctx);
+		nvgpu_gr_obj_ctx_commit_inst_gpu_va(g, inst_block,
+			ctxheader->gpu_va);
+	} else {
+		nvgpu_gr_obj_ctx_commit_inst_gpu_va(g, inst_block, gpu_va);
+	}
+}
 
 static int nvgpu_gr_obj_ctx_init_ctxsw_preemption_mode(struct gk20a *g,
 	struct nvgpu_gr_ctx *gr_ctx, struct vm_gk20a *vm,
@@ -529,7 +551,6 @@ int nvgpu_gr_obj_ctx_alloc(struct gk20a *g,
 	struct nvgpu_gr_global_ctx_buffer_desc *global_ctx_buffer,
 	struct nvgpu_gr_ctx *gr_ctx,
 	struct nvgpu_gr_subctx *subctx,
-	struct channel_gk20a *c,
 	struct vm_gk20a *vm,
 	struct nvgpu_mem *inst_block,
 	u32 class_num, u32 flags,
@@ -582,12 +603,8 @@ int nvgpu_gr_obj_ctx_alloc(struct gk20a *g,
 	}
 
 	/* commit gr ctx buffer */
-	err = g->ops.gr.commit_inst(c, gr_ctx->mem.gpu_va);
-	if (err != 0) {
-		nvgpu_err(g,
-			"fail to commit gr ctx buffer");
-		goto out;
-	}
+	nvgpu_gr_obj_ctx_commit_inst(g, inst_block, gr_ctx, subctx,
+		gr_ctx->mem.gpu_va);
 
 	/* init golden image, ELPG enabled after this is done */
 	err = nvgpu_gr_obj_ctx_alloc_golden_ctx_image(g, golden_image, gr_ctx,
@@ -607,7 +624,7 @@ int nvgpu_gr_obj_ctx_alloc(struct gk20a *g,
 		goto out;
 	}
 
-	nvgpu_gr_obj_ctx_update_ctxsw_preemption_mode(g, gr_ctx, c->subctx);
+	nvgpu_gr_obj_ctx_update_ctxsw_preemption_mode(g, gr_ctx, subctx);
 
 	nvgpu_log_fn(g, "done");
 	return 0;

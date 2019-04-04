@@ -1733,34 +1733,6 @@ u32 gr_gv11b_get_nonpes_aware_tpc(struct gk20a *g, u32 gpc, u32 tpc)
 	return tpc_new;
 }
 
-int gr_gv11b_commit_inst(struct channel_gk20a *c, u64 gpu_va)
-{
-	struct nvgpu_mem *ctxheader;
-	struct gk20a *g = c->g;
-	struct tsg_gk20a *tsg;
-
-	nvgpu_log_fn(g, " ");
-
-	tsg = tsg_gk20a_from_ch(c);
-	if (tsg == NULL) {
-		return -EINVAL;
-	}
-
-	if (c->subctx == NULL) {
-		c->subctx = nvgpu_gr_subctx_alloc(g, c->vm);
-		if (c->subctx == NULL) {
-			return -ENOMEM;
-		}
-	}
-
-	nvgpu_gr_subctx_load_ctx_header(g, c->subctx, tsg->gr_ctx, gpu_va);
-
-	ctxheader = nvgpu_gr_subctx_get_ctx_header(g, c->subctx);
-
-	g->ops.ramin.set_gr_ptr(g, &c->inst_block, ctxheader->gpu_va);
-	return 0;
-}
-
 void gv11b_gr_get_esr_sm_sel(struct gk20a *g, u32 gpc, u32 tpc,
 				u32 *esr_sm_sel)
 {

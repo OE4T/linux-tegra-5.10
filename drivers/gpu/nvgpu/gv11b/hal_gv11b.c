@@ -379,7 +379,6 @@ static const struct gpu_ops gv11b_ops = {
 		.suspend_contexts = gr_gp10b_suspend_contexts,
 		.resume_contexts = gr_gk20a_resume_contexts,
 		.get_preemption_mode_flags = gr_gp10b_get_preemption_mode_flags,
-		.commit_inst = gr_gv11b_commit_inst,
 		.trigger_suspend = gv11b_gr_sm_trigger_suspend,
 		.wait_for_pause = gr_gk20a_wait_for_pause,
 		.resume_from_pause = gv11b_gr_resume_from_pause,

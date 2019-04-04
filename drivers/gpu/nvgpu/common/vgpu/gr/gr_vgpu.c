@@ -79,7 +79,7 @@ void vgpu_gr_detect_sm_arch(struct gk20a *g)
 			priv->constants.sm_arch_warp_count;
 }
 
-int vgpu_gr_commit_inst(struct channel_gk20a *c, u64 gpu_va)
+static int vgpu_gr_commit_inst(struct channel_gk20a *c, u64 gpu_va)
 {
 	struct tegra_vgpu_cmd_msg msg;
 	struct tegra_vgpu_ch_ctx_params *p = &msg.params.ch_ctx;
@@ -284,7 +284,7 @@ int vgpu_gr_alloc_obj_ctx(struct channel_gk20a  *c, u32 class_num, u32 flags)
 		}
 
 		/* commit gr ctx buffer */
-		err = g->ops.gr.commit_inst(c, gr_ctx->mem.gpu_va);
+		err = vgpu_gr_commit_inst(c, gr_ctx->mem.gpu_va);
 		if (err) {
 			nvgpu_err(g, "fail to commit gr ctx buffer");
 			goto out;
@@ -299,7 +299,7 @@ int vgpu_gr_alloc_obj_ctx(struct channel_gk20a  *c, u32 class_num, u32 flags)
 		}
 	} else {
 		/* commit gr ctx buffer */
-		err = g->ops.gr.commit_inst(c, gr_ctx->mem.gpu_va);
+		err = vgpu_gr_commit_inst(c, gr_ctx->mem.gpu_va);
 		if (err) {
 			nvgpu_err(g, "fail to commit gr ctx buffer");
 			goto out;

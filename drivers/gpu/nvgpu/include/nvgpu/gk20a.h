@@ -396,7 +396,6 @@ struct gpu_ops {
 				u32 compute_preempt_mode);
 		int (*set_boosted_ctx)(struct channel_gk20a *ch, bool boost);
 		int (*init_sw_veid_bundle)(struct gk20a *g);
-		int (*commit_inst)(struct channel_gk20a *c, u64 gpu_va);
 		int (*trigger_suspend)(struct gk20a *g);
 		int (*wait_for_pause)(struct gk20a *g, struct nvgpu_warpstate *w_state);
 		int (*resume_from_pause)(struct gk20a *g);

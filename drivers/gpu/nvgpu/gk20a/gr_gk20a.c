@@ -178,14 +178,6 @@ static void gr_report_ctxsw_error(struct gk20a *g, u32 err_type, u32 chid,
 	}
 }
 
-int gr_gk20a_commit_inst(struct channel_gk20a *c, u64 gpu_va)
-{
-	struct gk20a *g = c->g;
-
-	g->ops.ramin.set_gr_ptr(g, &c->inst_block, gpu_va);
-	return 0;
-}
-
 int gr_gk20a_update_smpc_ctxsw_mode(struct gk20a *g,
 				    struct channel_gk20a *c,
 				    bool enable_smpc_ctxsw)
@@ -431,12 +423,22 @@ int gk20a_alloc_obj_ctx(struct channel_gk20a  *c, u32 class_num, u32 flags)
 
 	gr_ctx = tsg->gr_ctx;
 
+	if (nvgpu_is_enabled(g, NVGPU_SUPPORT_TSG_SUBCONTEXTS)) {
+		if (c->subctx == NULL) {
+			c->subctx = nvgpu_gr_subctx_alloc(g, c->vm);
+			if (c->subctx == NULL) {
+				err = -ENOMEM;
+				goto out;
+			}
+		}
+	}
+
 	if (!nvgpu_mem_is_valid(&gr_ctx->mem)) {
 		tsg->vm = c->vm;
 		nvgpu_vm_get(tsg->vm);
 
 		err = nvgpu_gr_obj_ctx_alloc(g, g->gr.golden_image,
-				g->gr.global_ctx_buffer, gr_ctx, c->subctx, c,
+				g->gr.global_ctx_buffer, gr_ctx, c->subctx,
 				tsg->vm, &c->inst_block, class_num, flags,
 				c->cde, c->vpr);
 		if (err != 0) {
@@ -450,12 +452,8 @@ int gk20a_alloc_obj_ctx(struct channel_gk20a  *c, u32 class_num, u32 flags)
 		gr_ctx->tsgid = tsg->tsgid;
 	} else {
 		/* commit gr ctx buffer */
-		err = g->ops.gr.commit_inst(c, gr_ctx->mem.gpu_va);
-		if (err != 0) {
-			nvgpu_err(g,
-				"fail to commit gr ctx buffer");
-			goto out;
-		}
+		nvgpu_gr_obj_ctx_commit_inst(g, &c->inst_block, gr_ctx,
+			c->subctx, gr_ctx->mem.gpu_va);
 	}
 
 #ifdef CONFIG_GK20A_CTXSW_TRACE
@@ -472,6 +470,10 @@ int gk20a_alloc_obj_ctx(struct channel_gk20a  *c, u32 class_num, u32 flags)
 	nvgpu_log_fn(g, "done");
 	return 0;
 out:
+	if (c->subctx != NULL) {
+		nvgpu_gr_subctx_free(g, c->subctx, c->vm);
+	}
+
 	/* 1. gr_ctx, patch_ctx and global ctx buffer mapping
 	   can be reused so no need to release them.
 	   2. golden image init and load is a one time thing so if

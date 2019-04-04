@@ -285,7 +285,6 @@ static const struct gpu_ops gm20b_ops = {
 		.suspend_contexts = gr_gk20a_suspend_contexts,
 		.resume_contexts = gr_gk20a_resume_contexts,
 		.get_preemption_mode_flags = gr_gm20b_get_preemption_mode_flags,
-		.commit_inst = gr_gk20a_commit_inst,
 		.trigger_suspend = gr_gk20a_trigger_suspend,
 		.wait_for_pause = gr_gk20a_wait_for_pause,
 		.resume_from_pause = gr_gk20a_resume_from_pause,

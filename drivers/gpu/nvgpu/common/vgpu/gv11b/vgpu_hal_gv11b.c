@@ -180,7 +180,6 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 		.suspend_contexts = vgpu_gr_suspend_contexts,
 		.resume_contexts = vgpu_gr_resume_contexts,
 		.get_preemption_mode_flags = gr_gp10b_get_preemption_mode_flags,
-		.commit_inst = vgpu_gr_commit_inst,
 		.trigger_suspend = NULL,
 		.wait_for_pause = gr_gk20a_wait_for_pause,
 		.resume_from_pause = NULL,
