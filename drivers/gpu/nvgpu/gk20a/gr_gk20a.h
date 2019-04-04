@@ -57,6 +57,7 @@ struct nvgpu_gr_global_ctx_buffer_desc;
 struct nvgpu_gr_global_ctx_local_golden_image;
 struct nvgpu_gr_zbc;
 struct nvgpu_gr_hwpm_map;
+struct nvgpu_gr_isr_data;
 
 enum ctxsw_addr_type;
 
@@ -107,17 +108,6 @@ struct gr_channel_map_tlb_entry {
 struct gk20a_cs_snapshot_client;
 struct gk20a_cs_snapshot;
 #endif
-
-struct gr_gk20a_isr_data {
-	u32 addr;
-	u32 data_lo;
-	u32 data_hi;
-	u32 curr_ctx;
-	struct channel_gk20a *ch;
-	u32 offset;
-	u32 sub_chan;
-	u32 class_num;
-};
 
 struct gr_ctx_buffer_desc {
 	void (*destroy)(struct gk20a *g, struct gr_ctx_buffer_desc *desc);
@@ -384,7 +374,7 @@ static inline void gr_gk20a_free_cyclestats_snapshot_data(struct gk20a *g)
 
 void gr_gk20a_fecs_host_int_enable(struct gk20a *g);
 int gk20a_gr_handle_fecs_error(struct gk20a *g, struct channel_gk20a *ch,
-		struct gr_gk20a_isr_data *isr_data);
+		struct nvgpu_gr_isr_data *isr_data);
 int gk20a_gr_lock_down_sm(struct gk20a *g,
 			 u32 gpc, u32 tpc, u32 sm, u32 global_esr_mask,
 			 bool check_errors);

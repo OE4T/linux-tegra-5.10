@@ -39,6 +39,7 @@
 #include <nvgpu/gr/subctx.h>
 #include <nvgpu/gr/ctx.h>
 #include <nvgpu/gr/gr.h>
+#include <nvgpu/gr/gr_intr.h>
 #include <nvgpu/gr/config.h>
 #include <nvgpu/gr/gr_falcon.h>
 #include <nvgpu/gr/obj_ctx.h>
@@ -988,7 +989,7 @@ static int gr_gp10b_get_cilp_preempt_pending_chid(struct gk20a *g, u32 *__chid)
 
 int gr_gp10b_handle_fecs_error(struct gk20a *g,
 				struct channel_gk20a *__ch,
-				struct gr_gk20a_isr_data *isr_data)
+				struct nvgpu_gr_isr_data *isr_data)
 {
 	u32 gr_fecs_intr = gk20a_readl(g, gr_fecs_host_int_status_r());
 	struct channel_gk20a *ch;

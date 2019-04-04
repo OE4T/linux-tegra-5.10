@@ -25,7 +25,7 @@
 
 #include <nvgpu/types.h>
 
-struct gr_gk20a_isr_data;
+struct channel_gk20a;
 
 struct nvgpu_gr_tpc_exception {
 	bool tex_exception;
@@ -33,8 +33,19 @@ struct nvgpu_gr_tpc_exception {
 	bool mpc_exception;
 };
 
+struct nvgpu_gr_isr_data {
+	u32 addr;
+	u32 data_lo;
+	u32 data_hi;
+	u32 curr_ctx;
+	struct channel_gk20a *ch;
+	u32 offset;
+	u32 sub_chan;
+	u32 class_num;
+};
+
 int nvgpu_gr_intr_handle_notify_pending(struct gk20a *g,
-					struct gr_gk20a_isr_data *isr_data);
+					struct nvgpu_gr_isr_data *isr_data);
 int nvgpu_gr_intr_handle_semaphore_pending(struct gk20a *g,
-					   struct gr_gk20a_isr_data *isr_data);
+					   struct nvgpu_gr_isr_data *isr_data);
 #endif /* NVGPU_GR_INTR_H */

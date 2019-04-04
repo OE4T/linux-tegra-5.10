@@ -36,7 +36,7 @@ struct nvgpu_gr_ctx;
 struct nvgpu_warpstate;
 struct nvgpu_tsg_sm_error_state;
 struct gr_ctx_desc;
-struct gr_gk20a_isr_data;
+struct nvgpu_gr_isr_data;
 struct gk20a_debug_output;
 
 #define	VOLTA_CHANNEL_GPFIFO_A	0xC36FU
@@ -96,7 +96,7 @@ int gr_gv11b_pre_process_sm_exception(struct gk20a *g,
 void gr_gv11b_fecs_host_int_enable(struct gk20a *g);
 int gr_gv11b_handle_fecs_error(struct gk20a *g,
 				struct channel_gk20a *__ch,
-				struct gr_gk20a_isr_data *isr_data);
+				struct nvgpu_gr_isr_data *isr_data);
 int gr_gv11b_init_sw_veid_bundle(struct gk20a *g);
 void gr_gv11b_detect_sm_arch(struct gk20a *g);
 int gr_gv11b_commit_inst(struct channel_gk20a *c, u64 gpu_va);

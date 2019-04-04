@@ -1694,7 +1694,7 @@ static void gr_gv11b_handle_fecs_ecc_error(struct gk20a *g, u32 intr)
 
 int gr_gv11b_handle_fecs_error(struct gk20a *g,
 				struct channel_gk20a *__ch,
-				struct gr_gk20a_isr_data *isr_data)
+				struct nvgpu_gr_isr_data *isr_data)
 {
 	u32 gr_fecs_intr = gk20a_readl(g, gr_fecs_host_int_status_r());
 	int ret;

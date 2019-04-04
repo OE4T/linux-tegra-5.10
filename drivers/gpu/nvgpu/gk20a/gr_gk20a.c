@@ -1161,7 +1161,7 @@ int gk20a_gr_reset(struct gk20a *g)
 }
 
 static void gk20a_gr_set_error_notifier(struct gk20a *g,
-		  struct gr_gk20a_isr_data *isr_data, u32 error_notifier)
+		  struct nvgpu_gr_isr_data *isr_data, u32 error_notifier)
 {
 	struct channel_gk20a *ch;
 	struct tsg_gk20a *tsg;
@@ -1181,7 +1181,7 @@ static void gk20a_gr_set_error_notifier(struct gk20a *g,
 }
 
 static int gk20a_gr_handle_semaphore_timeout_pending(struct gk20a *g,
-		  struct gr_gk20a_isr_data *isr_data)
+		  struct nvgpu_gr_isr_data *isr_data)
 {
 	nvgpu_log_fn(g, " ");
 	gk20a_gr_set_error_notifier(g, isr_data,
@@ -1192,7 +1192,7 @@ static int gk20a_gr_handle_semaphore_timeout_pending(struct gk20a *g,
 }
 
 static int gk20a_gr_intr_illegal_notify_pending(struct gk20a *g,
-		  struct gr_gk20a_isr_data *isr_data)
+		  struct nvgpu_gr_isr_data *isr_data)
 {
 	nvgpu_log_fn(g, " ");
 	gk20a_gr_set_error_notifier(g, isr_data,
@@ -1204,7 +1204,7 @@ static int gk20a_gr_intr_illegal_notify_pending(struct gk20a *g,
 }
 
 static int gk20a_gr_handle_illegal_method(struct gk20a *g,
-					  struct gr_gk20a_isr_data *isr_data)
+					  struct nvgpu_gr_isr_data *isr_data)
 {
 	int ret = g->ops.gr.handle_sw_method(g, isr_data->addr,
 			isr_data->class_num, isr_data->offset,
@@ -1220,7 +1220,7 @@ static int gk20a_gr_handle_illegal_method(struct gk20a *g,
 }
 
 static int gk20a_gr_handle_illegal_class(struct gk20a *g,
-					  struct gr_gk20a_isr_data *isr_data)
+					  struct nvgpu_gr_isr_data *isr_data)
 {
 	nvgpu_log_fn(g, " ");
 	gk20a_gr_set_error_notifier(g, isr_data,
@@ -1232,7 +1232,7 @@ static int gk20a_gr_handle_illegal_class(struct gk20a *g,
 }
 
 int gk20a_gr_handle_fecs_error(struct gk20a *g, struct channel_gk20a *ch,
-					  struct gr_gk20a_isr_data *isr_data)
+					  struct nvgpu_gr_isr_data *isr_data)
 {
 	u32 gr_fecs_intr = gk20a_readl(g, gr_fecs_host_int_status_r());
 	int ret = 0;
@@ -1316,7 +1316,7 @@ int gk20a_gr_handle_fecs_error(struct gk20a *g, struct channel_gk20a *ch,
 }
 
 static int gk20a_gr_handle_class_error(struct gk20a *g,
-				       struct gr_gk20a_isr_data *isr_data)
+				       struct nvgpu_gr_isr_data *isr_data)
 {
 	u32 gr_class_error;
 	u32 chid = isr_data->ch != NULL ?
@@ -1352,7 +1352,7 @@ static int gk20a_gr_handle_class_error(struct gk20a *g,
 }
 
 static int gk20a_gr_handle_firmware_method(struct gk20a *g,
-					   struct gr_gk20a_isr_data *isr_data)
+					   struct nvgpu_gr_isr_data *isr_data)
 {
 	u32 chid = isr_data->ch != NULL ?
 		isr_data->ch->chid : FIFO_INVAL_CHANNEL_ID;
@@ -1763,7 +1763,7 @@ static int gk20a_gr_post_bpt_events(struct gk20a *g, struct tsg_gk20a *tsg,
 
 int gk20a_gr_isr(struct gk20a *g)
 {
-	struct gr_gk20a_isr_data isr_data;
+	struct nvgpu_gr_isr_data isr_data;
 	u32 obj_table;
 	bool need_reset = false;
 	u32 gr_intr = gk20a_readl(g, gr_intr_r());

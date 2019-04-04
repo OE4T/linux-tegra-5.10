@@ -50,7 +50,7 @@ static inline bool is_valid_cyclestats_bar0_offset_gk20a(struct gk20a *g,
 #endif
 
 int nvgpu_gr_intr_handle_notify_pending(struct gk20a *g,
-					struct gr_gk20a_isr_data *isr_data)
+					struct nvgpu_gr_isr_data *isr_data)
 {
 	struct channel_gk20a *ch = isr_data->ch;
 
@@ -182,7 +182,7 @@ int nvgpu_gr_intr_handle_notify_pending(struct gk20a *g,
 }
 
 int nvgpu_gr_intr_handle_semaphore_pending(struct gk20a *g,
-					   struct gr_gk20a_isr_data *isr_data)
+					   struct nvgpu_gr_isr_data *isr_data)
 {
 	struct channel_gk20a *ch = isr_data->ch;
 	struct tsg_gk20a *tsg;

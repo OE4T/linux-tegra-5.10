@@ -42,6 +42,7 @@ struct nvgpu_netlist_vars;
 struct netlist_av_list;
 struct nvgpu_gr_global_ctx_buffer_desc;
 struct nvgpu_gr_fecs_trace;
+struct nvgpu_gr_isr_data;
 struct nvgpu_gpu_ctxsw_trace_entry;
 struct nvgpu_cpu_time_correlation_sample;
 struct nvgpu_mem_sgt;
@@ -343,7 +344,7 @@ struct gpu_ops {
 				struct nvgpu_warpstate *w_state);
 		int (*handle_fecs_error)(struct gk20a *g,
 				struct channel_gk20a *ch,
-				struct gr_gk20a_isr_data *isr_data);
+				struct nvgpu_gr_isr_data *isr_data);
 		int (*pre_process_sm_exception)(struct gk20a *g,
 			u32 gpc, u32 tpc, u32 sm, u32 global_esr, u32 warp_esr,
 			bool sm_debugger_attached,
@@ -776,9 +777,9 @@ struct gpu_ops {
 
 		struct {
 			int (*handle_semaphore_pending)(struct gk20a *g,
-				struct gr_gk20a_isr_data *isr_data);
+				struct nvgpu_gr_isr_data *isr_data);
 			int (*handle_notify_pending)(struct gk20a *g,
-				struct gr_gk20a_isr_data *isr_data);
+				struct nvgpu_gr_isr_data *isr_data);
 			void (*handle_gcc_exception)(struct gk20a *g, u32 gpc,
 				u32 tpc, u32 gpc_exception,
 				u32 *corrected_err, u32 *uncorrected_err);
