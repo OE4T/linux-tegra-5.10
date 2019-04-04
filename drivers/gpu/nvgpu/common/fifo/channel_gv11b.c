@@ -26,7 +26,6 @@
 #include <nvgpu/atomic.h>
 #include <nvgpu/io.h>
 #include <nvgpu/gk20a.h>
-#include <nvgpu/gr/subctx.h>
 
 #include "channel_gk20a.h"
 #include "channel_gv11b.h"
@@ -80,13 +79,6 @@ void gv11b_channel_reset_faulted(struct gk20a *g, struct channel_gk20a *ch,
 	}
 
 	gk20a_writel(g, ccsr_channel_r(ch->chid), reg);
-}
-
-void gv11b_channel_free_subctx_header(struct channel_gk20a *ch)
-{
-	if (ch->subctx != NULL) {
-		nvgpu_gr_subctx_free(ch->g, ch->subctx, ch->vm);
-	}
 }
 
 void gv11b_channel_debug_dump(struct gk20a *g,

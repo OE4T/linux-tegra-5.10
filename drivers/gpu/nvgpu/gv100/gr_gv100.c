@@ -34,7 +34,6 @@
 #include "gk20a/gr_pri_gk20a.h"
 
 #include "gv100/gr_gv100.h"
-#include "gv11b/subctx_gv11b.h"
 
 #include <nvgpu/hw/gv100/hw_gr_gv100.h>
 #include <nvgpu/hw/gv100/hw_proj_gv100.h>

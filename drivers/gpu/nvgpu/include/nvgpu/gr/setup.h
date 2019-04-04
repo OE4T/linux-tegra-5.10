@@ -36,6 +36,7 @@ int nvgpu_gr_setup_alloc_obj_ctx(struct channel_gk20a *c, u32 class_num,
 		u32 flags);
 void nvgpu_gr_setup_free_gr_ctx(struct gk20a *g,
 		struct vm_gk20a *vm, struct nvgpu_gr_ctx *gr_ctx);
+void nvgpu_gr_setup_free_subctx(struct channel_gk20a *c);
 
 int nvgpu_gr_setup_set_preemption_mode(struct channel_gk20a *ch,
 					u32 graphics_preempt_mode,

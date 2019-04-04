@@ -58,7 +58,6 @@
 
 #include "gv11b/gr_gv11b.h"
 #include "gv11b/mm_gv11b.h"
-#include "gv11b/subctx_gv11b.h"
 #include "gv11b/gr_pri_gv11b.h"
 
 #include <nvgpu/hw/gv11b/hw_gr_gv11b.h>

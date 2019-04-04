@@ -554,7 +554,6 @@ nvgpu-y += \
 	gv11b/fifo_gv11b.o \
 	gv11b/mm_gv11b.o \
 	gv11b/ce_gv11b.o \
-	gv11b/subctx_gv11b.o \
 	gv100/mm_gv100.o \
 	gv100/bios_gv100.o \
 	gv100/fifo_gv100.o \

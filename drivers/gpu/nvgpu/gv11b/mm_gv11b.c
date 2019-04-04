@@ -34,7 +34,6 @@
 #include "gp10b/mm_gp10b.h"
 
 #include "mm_gv11b.h"
-#include "subctx_gv11b.h"
 
 #include <nvgpu/hw/gv11b/hw_gmmu_gv11b.h>
 

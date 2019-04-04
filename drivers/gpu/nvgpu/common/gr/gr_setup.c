@@ -189,6 +189,19 @@ void nvgpu_gr_setup_free_gr_ctx(struct gk20a *g,
 	}
 }
 
+void nvgpu_gr_setup_free_subctx(struct channel_gk20a *c)
+{
+	nvgpu_log_fn(c->g, " ");
+
+	if (!nvgpu_is_enabled(c->g, NVGPU_SUPPORT_TSG_SUBCONTEXTS)) {
+		return;
+	}
+
+	if (c->subctx != NULL) {
+		nvgpu_gr_subctx_free(c->g, c->subctx, c->vm);
+	}
+}
+
 int nvgpu_gr_setup_set_preemption_mode(struct channel_gk20a *ch,
 					u32 graphics_preempt_mode,
 					u32 compute_preempt_mode)

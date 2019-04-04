@@ -63,7 +63,6 @@
 #include <nvgpu/hw/gv11b/hw_gr_gv11b.h>
 
 #include "fifo_gv11b.h"
-#include "subctx_gv11b.h"
 #include "gr_gv11b.h"
 
 u64 gv11b_fifo_usermode_base(struct gk20a *g)

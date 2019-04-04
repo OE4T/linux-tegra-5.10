@@ -310,6 +310,7 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 			.bind_ctxsw_zcull = vgpu_gr_bind_ctxsw_zcull,
 			.alloc_obj_ctx = vgpu_gr_alloc_obj_ctx,
 			.free_gr_ctx = vgpu_gr_free_gr_ctx,
+			.free_subctx = vgpu_channel_free_ctx_header,
 			.set_preemption_mode = vgpu_gr_set_preemption_mode,
 		},
 		.zbc = {
@@ -618,7 +619,6 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 		.enable = vgpu_channel_enable,
 		.disable = vgpu_channel_disable,
 		.count = vgpu_channel_count,
-		.free_ctx_header = vgpu_channel_free_ctx_header,
 		.abort_clean_up = nvgpu_channel_abort_clean_up,
 		.suspend_all_serviceable_ch =
                         nvgpu_channel_suspend_all_serviceable_ch,

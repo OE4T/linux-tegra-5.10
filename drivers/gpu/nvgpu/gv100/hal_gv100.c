@@ -149,7 +149,6 @@
 #include "gv11b/ce_gv11b.h"
 #include "gv11b/mm_gv11b.h"
 #include "gv11b/fifo_gv11b.h"
-#include "gv11b/subctx_gv11b.h"
 
 #include "hal_gv100.h"
 #include "gv100/bios_gv100.h"
@@ -587,6 +586,7 @@ static const struct gpu_ops gv100_ops = {
 			.bind_ctxsw_zcull = nvgpu_gr_setup_bind_ctxsw_zcull,
 			.alloc_obj_ctx = nvgpu_gr_setup_alloc_obj_ctx,
 			.free_gr_ctx = nvgpu_gr_setup_free_gr_ctx,
+			.free_subctx = nvgpu_gr_setup_free_subctx,
 			.set_preemption_mode = nvgpu_gr_setup_set_preemption_mode,
 		},
 		.zbc = {
@@ -1041,7 +1041,6 @@ static const struct gpu_ops gv100_ops = {
 		.count = gv100_channel_count,
 		.read_state = gv11b_channel_read_state,
 		.force_ctx_reload = gm20b_channel_force_ctx_reload,
-		.free_ctx_header = gv11b_channel_free_subctx_header,
 		.abort_clean_up = nvgpu_channel_abort_clean_up,
 		.suspend_all_serviceable_ch =
                         nvgpu_channel_suspend_all_serviceable_ch,

@@ -411,8 +411,8 @@ static void gk20a_free_channel(struct channel_gk20a *ch, bool force)
 		g->ops.gr.fecs_trace.unbind_channel(g, &ch->inst_block);
 #endif
 
-	if (g->ops.channel.free_ctx_header != NULL) {
-		g->ops.channel.free_ctx_header(ch);
+	if (g->ops.gr.setup.free_subctx != NULL) {
+		g->ops.gr.setup.free_subctx(ch);
 		ch->subctx = NULL;
 	}
 

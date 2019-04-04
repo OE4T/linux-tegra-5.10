@@ -640,6 +640,7 @@ struct gpu_ops {
 			void (*free_gr_ctx)(struct gk20a *g,
 				struct vm_gk20a *vm,
 				struct nvgpu_gr_ctx *gr_ctx);
+			void (*free_subctx)(struct channel_gk20a *c);
 			int (*set_preemption_mode)(struct channel_gk20a *ch,
 				u32 graphics_preempt_mode,
 				u32 compute_preempt_mode);
@@ -1155,7 +1156,6 @@ struct gpu_ops {
 		void (*read_state)(struct gk20a *g, struct channel_gk20a *ch,
 				struct nvgpu_channel_hw_state *state);
 		void (*force_ctx_reload)(struct channel_gk20a *ch);
-		void (*free_ctx_header)(struct channel_gk20a *ch);
 		void (*abort_clean_up)(struct channel_gk20a *ch);
 		int (*suspend_all_serviceable_ch)(struct gk20a *g);
 		int (*resume_all_serviceable_ch)(struct gk20a *g);
