@@ -1107,6 +1107,9 @@ static int erase_sector(struct qspi *flash, u32 offset,
 	struct spi_transfer t[1];
 	struct spi_message m;
 	int err = 0;
+	struct spi_device *spi = flash->spi;
+	const struct spi_device_id *id = spi_get_device_id(spi);
+	struct flash_info *info =  (void *)id->driver_data;
 
 	dev_dbg(&flash->spi->dev, "%s %dKiB at 0x%08x\n", __func__,
 		size / 1024, offset);
@@ -1120,7 +1123,11 @@ static int erase_sector(struct qspi *flash, u32 offset,
 	}
 
 	/* Set up command buffer. */
-	cmd_addr_buf[0] = erase_opcode;
+	cmd_addr_buf[0] = flash->cmd_table.qcmd.op_code;
+
+	if (info->jedec_id == JEDEC_ID_S25FX512S)
+		cmd_addr_buf[0] = erase_opcode;
+
 	if (flash->cmd_table.qaddr.len == 3) {
 		cmd_addr_buf[1] = (offset >> 16) & 0xFF;
 		cmd_addr_buf[2] = (offset >> 8) & 0xFF;
