@@ -26,7 +26,7 @@
 #include <nvgpu/types.h>
 
 struct gk20a;
-struct fecs_method_op_gk20a;
+struct nvgpu_fecs_method_op;
 
 u32 gm20b_gr_falcon_fecs_base_addr(void);
 u32 gm20b_gr_falcon_gpccs_base_addr(void);
@@ -57,9 +57,9 @@ void gm20b_gr_falcon_load_ctxsw_ucode_boot(struct gk20a *g,
 int gm20b_gr_falcon_wait_mem_scrubbing(struct gk20a *g);
 int gm20b_gr_falcon_wait_ctxsw_ready(struct gk20a *g);
 int gm20b_gr_falcon_submit_fecs_method_op(struct gk20a *g,
-	struct fecs_method_op_gk20a op, bool sleepduringwait);
+	struct nvgpu_fecs_method_op op, bool sleepduringwait);
 int gm20b_gr_falcon_submit_fecs_sideband_method_op(struct gk20a *g,
-				struct fecs_method_op_gk20a op);
+				struct nvgpu_fecs_method_op op);
 int gm20b_gr_falcon_ctrl_ctxsw(struct gk20a *g, u32 fecs_method,
 						u32 data, u32 *ret_val);
 

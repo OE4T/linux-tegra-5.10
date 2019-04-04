@@ -27,6 +27,7 @@
 #include <nvgpu/power_features/pg.h>
 
 #include "gr_falcon_gm20b.h"
+#include "common/gr/gr_falcon_priv.h"
 
 #include <nvgpu/hw/gm20b/hw_gr_gm20b.h>
 #include <nvgpu/hw/gm20b/hw_ram_gm20b.h>
@@ -704,7 +705,7 @@ void gm20b_gr_falcon_set_current_ctx_invalid(struct gk20a *g)
  * We should replace most, if not all, fecs method calls to this instead.
  */
 int gm20b_gr_falcon_submit_fecs_method_op(struct gk20a *g,
-				   struct fecs_method_op_gk20a op,
+				   struct nvgpu_fecs_method_op op,
 				   bool sleepduringwait)
 {
 	struct gr_gk20a *gr = &g->gr;
@@ -747,7 +748,7 @@ int gm20b_gr_falcon_submit_fecs_method_op(struct gk20a *g,
 
 /* Sideband mailbox writes are done a bit differently */
 int gm20b_gr_falcon_submit_fecs_sideband_method_op(struct gk20a *g,
-		struct fecs_method_op_gk20a op)
+		struct nvgpu_fecs_method_op op)
 {
 	struct gr_gk20a *gr = &g->gr;
 	int ret;
@@ -778,7 +779,7 @@ int gm20b_gr_falcon_submit_fecs_sideband_method_op(struct gk20a *g,
 int gm20b_gr_falcon_ctrl_ctxsw(struct gk20a *g, u32 fecs_method,
 			u32 data, u32 *ret_val)
 {
-	struct fecs_method_op_gk20a op = {
+	struct nvgpu_fecs_method_op op = {
 		.mailbox = { .id = 0U, .data = 0U, .ret = NULL,
 			     .clr = ~U32(0U), .ok = 0U, .fail = 0U},
 		.method.data = 0U,

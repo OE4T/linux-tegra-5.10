@@ -240,35 +240,6 @@ struct gk20a_ctxsw_ucode_info {
 	struct gk20a_ctxsw_ucode_segments gpccs;
 };
 
-struct gk20a_ctxsw_bootloader_desc {
-	u32 start_offset;
-	u32 size;
-	u32 imem_offset;
-	u32 entry_point;
-};
-
-struct fecs_method_op_gk20a {
-	struct {
-		u32 addr;
-		u32 data;
-	} method;
-
-	struct {
-		u32 id;
-		u32 data;
-		u32 clr;
-		u32 *ret;
-		u32 ok;
-		u32 fail;
-	} mailbox;
-
-	struct {
-		u32 ok;
-		u32 fail;
-	} cond;
-
-};
-
 struct nvgpu_warpstate {
 	u64 valid_warps[2];
 	u64 trapped_warps[2];

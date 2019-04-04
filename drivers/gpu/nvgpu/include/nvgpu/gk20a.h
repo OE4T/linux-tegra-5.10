@@ -75,6 +75,7 @@ struct nvgpu_channel_hw_state;
 struct nvgpu_engine_status_info;
 struct nvgpu_pbdma_status_info;
 struct nvgpu_gr_config;
+struct nvgpu_fecs_method_op;
 enum nvgpu_nvlink_minion_dlcmd;
 struct nvgpu_cbc;
 struct nvgpu_mem;
@@ -577,10 +578,10 @@ struct gpu_ops {
 			int (*wait_mem_scrubbing)(struct gk20a *g);
 			int (*wait_ctxsw_ready)(struct gk20a *g);
 			int (*submit_fecs_method_op)(struct gk20a *g,
-				struct fecs_method_op_gk20a op,
+				struct nvgpu_fecs_method_op op,
 				bool sleepduringwait);
 			int (*submit_fecs_sideband_method_op)(struct gk20a *g,
-				struct fecs_method_op_gk20a op);
+				struct nvgpu_fecs_method_op op);
 			int (*ctrl_ctxsw)(struct gk20a *g, u32 fecs_method,
 				u32 fecs_data, u32 *ret_val);
 			int (*halt_pipe)(struct gk20a *g);

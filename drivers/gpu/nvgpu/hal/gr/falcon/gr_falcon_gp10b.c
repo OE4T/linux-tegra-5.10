@@ -25,6 +25,7 @@
 
 #include "gr_falcon_gp10b.h"
 #include "gr_falcon_gm20b.h"
+#include "common/gr/gr_falcon_priv.h"
 
 #include <nvgpu/hw/gp10b/hw_gr_gp10b.h>
 
@@ -60,7 +61,7 @@ int gp10b_gr_falcon_init_ctx_state(struct gk20a *g)
 int gp10b_gr_falcon_ctrl_ctxsw(struct gk20a *g, u32 fecs_method,
 						u32 data, u32 *ret_val)
 {
-	struct fecs_method_op_gk20a op = {
+	struct nvgpu_fecs_method_op op = {
 		.mailbox = { .id = 0U, .data = 0U, .ret = NULL,
 			     .clr = ~U32(0U), .ok = 0U, .fail = 0U},
 		.method.data = 0U,

@@ -33,6 +33,8 @@
 #include <nvgpu/acr.h>
 #include <nvgpu/power_features/pg.h>
 
+#include "gr_falcon_priv.h"
+
 int nvgpu_gr_falcon_bind_fecs_elpg(struct gk20a *g)
 {
 	struct nvgpu_pmu *pmu = &g->pmu;
@@ -187,7 +189,7 @@ static void nvgpu_gr_falcon_init_ctxsw_ucode_segment(
 
 static void nvgpu_gr_falcon_init_ctxsw_ucode_segments(
 	struct gk20a_ctxsw_ucode_segments *segments, u32 *offset,
-	struct gk20a_ctxsw_bootloader_desc *bootdesc,
+	struct nvgpu_ctxsw_bootloader_desc *bootdesc,
 	u32 code_size, u32 data_size)
 {
 	u32 boot_size = ALIGN(bootdesc->size, sizeof(u32));
@@ -231,8 +233,8 @@ int nvgpu_gr_falcon_init_ctxsw_ucode(struct gk20a *g)
 {
 	struct mm_gk20a *mm = &g->mm;
 	struct vm_gk20a *vm = mm->pmu.vm;
-	struct gk20a_ctxsw_bootloader_desc *fecs_boot_desc;
-	struct gk20a_ctxsw_bootloader_desc *gpccs_boot_desc;
+	struct nvgpu_ctxsw_bootloader_desc *fecs_boot_desc;
+	struct nvgpu_ctxsw_bootloader_desc *gpccs_boot_desc;
 	struct nvgpu_firmware *fecs_fw;
 	struct nvgpu_firmware *gpccs_fw;
 	u32 *fecs_boot_image;
@@ -249,7 +251,7 @@ int nvgpu_gr_falcon_init_ctxsw_ucode(struct gk20a *g)
 
 	fecs_boot_desc = (void *)fecs_fw->data;
 	fecs_boot_image = (void *)(fecs_fw->data +
-				sizeof(struct gk20a_ctxsw_bootloader_desc));
+				sizeof(struct nvgpu_ctxsw_bootloader_desc));
 
 	gpccs_fw = nvgpu_request_firmware(g, GK20A_GPCCS_UCODE_IMAGE, 0);
 	if (gpccs_fw == NULL) {
@@ -260,7 +262,7 @@ int nvgpu_gr_falcon_init_ctxsw_ucode(struct gk20a *g)
 
 	gpccs_boot_desc = (void *)gpccs_fw->data;
 	gpccs_boot_image = (void *)(gpccs_fw->data +
-				sizeof(struct gk20a_ctxsw_bootloader_desc));
+				sizeof(struct nvgpu_ctxsw_bootloader_desc));
 
 	ucode_size = 0;
 	nvgpu_gr_falcon_init_ctxsw_ucode_segments(&ucode_info->fecs,
