@@ -194,7 +194,7 @@ int tegra_cbb_axi2apb_bridge_data(struct platform_device *pdev,
 		void __iomem ***bases)
 {
 	struct device_node *np;
-	int ret = 0, i = 0, cnt = *apb_bridge_cnt;
+	int ret = 0, i = 0;
 
 	if (axi2apb_bases == NULL) {
 		np = of_find_matching_node(NULL, axi2apb_match);
@@ -202,11 +202,11 @@ int tegra_cbb_axi2apb_bridge_data(struct platform_device *pdev,
 			dev_info(&pdev->dev, "No match found for axi2apb\n");
 			return -ENOENT;
 		}
-		*apb_bridge_cnt =
-		    (of_property_count_elems_of_size(np, "reg", sizeof(u32)))/4;
+		*apb_bridge_cnt = (of_property_count_elems_of_size
+					(np, "reg", sizeof(u32)))/4;
 
-		axi2apb_bases =
-		    devm_kzalloc(&pdev->dev, sizeof(void *) * cnt, GFP_KERNEL);
+		axi2apb_bases = devm_kzalloc(&pdev->dev,
+				sizeof(void *) * (*apb_bridge_cnt), GFP_KERNEL);
 		if (axi2apb_bases == NULL)
 			return -ENOMEM;
 
@@ -316,7 +316,7 @@ static int __init tegra_cbb_init(void)
          */
         if (tegra_cpu_is_asim() &&
 		(tegra_get_chipid() != TEGRA_CHIPID_TEGRA19))
-                return 0;
+		return 0;
 
 	err = cbb_noc_dbgfs_init();
 	if (err)
