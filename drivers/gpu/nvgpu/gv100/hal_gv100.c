@@ -114,7 +114,6 @@
 #include "common/pmu/pmu_gp10b.h"
 #include "common/pmu/pmu_gp106.h"
 #include "common/pmu/pmu_gv11b.h"
-#include "common/pmu/pg/pg_sw_gp106.h"
 #include "common/nvlink/init/device_reginit_gv100.h"
 #include "common/nvlink/intr_and_err_handling_gv100.h"
 #include "hal/nvlink/minion_gv100.h"
@@ -1130,23 +1129,17 @@ static const struct gpu_ops gv100_ops = {
 		.pmu_dump_falcon_stats = gk20a_pmu_dump_falcon_stats,
 		.pmu_enable_irq = gk20a_pmu_enable_irq,
 		.is_pmu_supported = gp106_is_pmu_supported,
-		.pmu_pg_supported_engines_list = gp106_pmu_pg_engines_list,
-		.pmu_elpg_statistics = gp106_pmu_elpg_statistics,
 		.pmu_init_perfmon = nvgpu_pmu_init_perfmon,
 		.pmu_perfmon_start_sampling = nvgpu_pmu_perfmon_start_sampling,
 		.pmu_perfmon_stop_sampling = nvgpu_pmu_perfmon_stop_sampling,
 		.pmu_mutex_owner = gk20a_pmu_mutex_owner,
 		.pmu_mutex_acquire = gk20a_pmu_mutex_acquire,
-		.pmu_is_lpwr_feature_supported =
-			gp106_pmu_is_lpwr_feature_supported,
 		.pmu_msgq_tail = gk20a_pmu_msgq_tail,
-		.pmu_pg_engines_feature_list = gp106_pmu_pg_feature_list,
 		.pmu_get_queue_head_size = pwr_pmu_queue_head__size_1_v,
 		.pmu_reset = nvgpu_pmu_reset,
 		.pmu_queue_head = gk20a_pmu_queue_head,
 		.pmu_pg_param_post_init = nvgpu_lpwr_post_init,
 		.pmu_get_queue_tail_size = pwr_pmu_queue_tail__size_1_v,
-		.pmu_pg_init_param = gp106_pg_param_init,
 		.reset_engine = gp106_pmu_engine_reset,
 		.write_dmatrfbase = gp10b_write_dmatrfbase,
 		.pmu_mutex_size = pwr_pmu_mutex__size_1_v,
@@ -1156,7 +1149,6 @@ static const struct gpu_ops gv100_ops = {
 		.is_debug_mode_enabled = gm20b_pmu_is_debug_mode_en,
 		.setup_apertures = gp106_pmu_setup_apertures,
 		.secured_pmu_start = gm20b_secured_pmu_start,
-		.save_zbc = gk20a_pmu_save_zbc,
 		.pmu_clear_bar0_host_err_status =
 			gm20b_clear_pmu_bar0_host_err_status,
 	},

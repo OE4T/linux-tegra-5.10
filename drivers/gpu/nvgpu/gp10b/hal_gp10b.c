@@ -109,6 +109,7 @@
 #include "common/pmu/pmu_gk20a.h"
 #include "common/pmu/pmu_gm20b.h"
 #include "common/pmu/pmu_gp10b.h"
+#include "common/pmu/pg/pg_sw_gm20b.h"
 #include "common/pmu/pg/pg_sw_gp10b.h"
 #include "common/top/top_gm20b.h"
 #include "common/top/top_gp10b.h"
@@ -961,14 +962,14 @@ static const struct gpu_ops gp10b_ops = {
 		.pmu_perfmon_start_sampling = nvgpu_pmu_perfmon_start_sampling,
 		.pmu_perfmon_stop_sampling = nvgpu_pmu_perfmon_stop_sampling,
 		.pmu_pg_init_param = gp10b_pg_gr_init,
-		.pmu_pg_supported_engines_list = gk20a_pmu_pg_engines_list,
-		.pmu_pg_engines_feature_list = gk20a_pmu_pg_feature_list,
+		.pmu_pg_supported_engines_list = gm20b_pmu_pg_engines_list,
+		.pmu_pg_engines_feature_list = gm20b_pmu_pg_feature_list,
 		.dump_secure_fuses = pmu_dump_security_fuses_gm20b,
 		.reset_engine = gk20a_pmu_engine_reset,
 		.is_engine_in_reset = gk20a_pmu_is_engine_in_reset,
 		.get_irqdest = gk20a_pmu_get_irqdest,
 		.is_debug_mode_enabled = gm20b_pmu_is_debug_mode_en,
-		.save_zbc = gk20a_pmu_save_zbc,
+		.save_zbc = gm20b_pmu_save_zbc,
 		.pmu_clear_bar0_host_err_status =
 			gm20b_clear_pmu_bar0_host_err_status,
 	},

@@ -359,58 +359,6 @@ bool gk20a_is_pmu_supported(struct gk20a *g)
 	return true;
 }
 
-u32 gk20a_pmu_pg_engines_list(struct gk20a *g)
-{
-	return BIT32(PMU_PG_ELPG_ENGINE_ID_GRAPHICS);
-}
-
-u32 gk20a_pmu_pg_feature_list(struct gk20a *g, u32 pg_engine_id)
-{
-	if (pg_engine_id == PMU_PG_ELPG_ENGINE_ID_GRAPHICS) {
-		return NVGPU_PMU_GR_FEATURE_MASK_POWER_GATING;
-	}
-
-	return 0;
-}
-
-static void pmu_handle_zbc_msg(struct gk20a *g, struct pmu_msg *msg,
-			void *param, u32 status)
-{
-	struct nvgpu_pmu *pmu = param;
-	nvgpu_pmu_dbg(g, "reply ZBC_TABLE_UPDATE");
-	pmu->pmu_pg.zbc_save_done = true;
-}
-
-void gk20a_pmu_save_zbc(struct gk20a *g, u32 entries)
-{
-	struct nvgpu_pmu *pmu = &g->pmu;
-	struct pmu_cmd cmd;
-	size_t tmp_size;
-
-	if (!pmu->pmu_ready || (entries == 0U) || !pmu->pmu_pg.zbc_ready) {
-		return;
-	}
-
-	(void) memset(&cmd, 0, sizeof(struct pmu_cmd));
-	cmd.hdr.unit_id = PMU_UNIT_PG;
-	tmp_size = PMU_CMD_HDR_SIZE + sizeof(struct pmu_zbc_cmd);
-	nvgpu_assert(tmp_size <= (size_t)U8_MAX);
-	cmd.hdr.size = (u8)tmp_size;
-	cmd.cmd.zbc.cmd_type = g->pmu_ver_cmd_id_zbc_table_update;
-	cmd.cmd.zbc.entry_mask = ZBC_MASK(entries);
-
-	pmu->pmu_pg.zbc_save_done = false;
-
-	nvgpu_pmu_dbg(g, "cmd post ZBC_TABLE_UPDATE");
-	nvgpu_pmu_cmd_post(g, &cmd, NULL, PMU_COMMAND_QUEUE_HPQ,
-			   pmu_handle_zbc_msg, pmu);
-	pmu_wait_message_cond(pmu, nvgpu_get_poll_timeout(g),
-			      &pmu->pmu_pg.zbc_save_done, 1);
-	if (!pmu->pmu_pg.zbc_save_done) {
-		nvgpu_err(g, "ZBC save timeout");
-	}
-}
-
 int nvgpu_pmu_handle_therm_event(struct nvgpu_pmu *pmu,
 			struct nv_pmu_therm_msg *msg)
 {
@@ -627,30 +575,6 @@ void gk20a_pmu_clear_idle_intr_status(struct gk20a *g)
 {
 	gk20a_writel(g, pwr_pmu_idle_intr_status_r(),
 		     pwr_pmu_idle_intr_status_intr_f(1));
-}
-
-int gk20a_pmu_elpg_statistics(struct gk20a *g, u32 pg_engine_id,
-		struct pmu_pg_stats_data *pg_stat_data)
-{
-	struct nvgpu_pmu *pmu = &g->pmu;
-	struct pmu_pg_stats stats;
-	int err;
-
-	err = nvgpu_falcon_copy_from_dmem(&pmu->flcn,
-		pmu->pmu_pg.stat_dmem_offset[pg_engine_id],
-		(u8 *)&stats, (u32)sizeof(struct pmu_pg_stats), 0);
-	if (err != 0) {
-		nvgpu_err(g, "PMU falcon DMEM copy failed");
-		return err;
-	}
-
-	pg_stat_data->ingating_time = stats.pg_ingating_time_us;
-	pg_stat_data->ungating_time = stats.pg_ungating_time_us;
-	pg_stat_data->gating_cnt = stats.pg_gating_cnt;
-	pg_stat_data->avg_entry_latency_us = stats.pg_avg_entry_time_us;
-	pg_stat_data->avg_exit_latency_us = stats.pg_avg_exit_time_us;
-
-	return err;
 }
 
 u32 gk20a_pmu_falcon_base_addr(void)

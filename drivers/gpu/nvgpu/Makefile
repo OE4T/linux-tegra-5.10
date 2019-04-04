@@ -88,6 +88,7 @@ nvgpu-y += \
 	common/pmu/pmu_gp10b.o \
 	common/pmu/pmu_gp106.o \
 	common/pmu/pmu_gv11b.o \
+	common/pmu/pg/pg_sw_gm20b.o \
 	common/pmu/pg/pg_sw_gp10b.o \
 	common/pmu/pg/pg_sw_gp106.o \
 	common/pmu/pg/pg_sw_gv11b.o \

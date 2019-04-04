@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -20,18 +20,20 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NVGPU_PMU_GP106_H
-#define NVGPU_PMU_GP106_H
+#ifndef NVGPU_PG_SW_GM20B_H
+#define NVGPU_PG_SW_GM20B_H
 
 #include <nvgpu/types.h>
 
 struct gk20a;
+struct pmu_pg_stats_data;
 
-bool gp106_is_pmu_supported(struct gk20a *g);
+#define ZBC_MASK(i)			U16(~(~(0U) << ((i)+1U)) & 0xfffeU)
 
-bool gp106_pmu_is_engine_in_reset(struct gk20a *g);
-int gp106_pmu_engine_reset(struct gk20a *g, bool do_reset);
-void gp106_pmu_setup_apertures(struct gk20a *g);
-u32 gp106_pmu_falcon_base_addr(void);
+u32 gm20b_pmu_pg_engines_list(struct gk20a *g);
+u32 gm20b_pmu_pg_feature_list(struct gk20a *g, u32 pg_engine_id);
+void gm20b_pmu_save_zbc(struct gk20a *g, u32 entries);
+int gm20b_pmu_elpg_statistics(struct gk20a *g, u32 pg_engine_id,
+	struct pmu_pg_stats_data *pg_stat_data);
 
-#endif /* NVGPU_PMU_GP106_H */
+#endif /* NVGPU_PG_SW_GM20B_H */

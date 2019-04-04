@@ -22,11 +22,7 @@
 
 #include <nvgpu/pmu.h>
 #include <nvgpu/io.h>
-#include <nvgpu/clk_arb.h>
-#include <nvgpu/mm.h>
 #include <nvgpu/gk20a.h>
-#include <nvgpu/pmu/lpwr.h>
-#include <nvgpu/pmu/cmd.h>
 
 #include "pmu_gk20a.h"
 #include "pmu_gp106.h"
@@ -69,39 +65,6 @@ int gp106_pmu_engine_reset(struct gk20a *g, bool do_reset)
 	}
 
 	return 0;
-}
-
-u32 gp106_pmu_pg_feature_list(struct gk20a *g, u32 pg_engine_id)
-{
-	if (pg_engine_id == PMU_PG_ELPG_ENGINE_ID_GRAPHICS) {
-		return NVGPU_PMU_GR_FEATURE_MASK_RPPG;
-	}
-
-	if (pg_engine_id == PMU_PG_ELPG_ENGINE_ID_MS) {
-		return NVGPU_PMU_MS_FEATURE_MASK_ALL;
-	}
-
-	return 0;
-}
-
-bool gp106_pmu_is_lpwr_feature_supported(struct gk20a *g, u32 feature_id)
-{
-	bool is_feature_supported = false;
-
-	switch (feature_id) {
-	case PMU_PG_LPWR_FEATURE_RPPG:
-		is_feature_supported = nvgpu_lpwr_is_rppg_supported(g,
-			nvgpu_clk_arb_get_current_pstate(g));
-		break;
-	case PMU_PG_LPWR_FEATURE_MSCG:
-		is_feature_supported = nvgpu_lpwr_is_mscg_supported(g,
-			nvgpu_clk_arb_get_current_pstate(g));
-		break;
-	default:
-		is_feature_supported = false;
-	}
-
-	return is_feature_supported;
 }
 
 void gp106_pmu_setup_apertures(struct gk20a *g)

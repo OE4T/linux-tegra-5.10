@@ -35,11 +35,6 @@
 bool gk20a_pmu_is_interrupted(struct nvgpu_pmu *pmu);
 void gk20a_pmu_isr(struct gk20a *g);
 
-u32 gk20a_pmu_pg_engines_list(struct gk20a *g);
-u32 gk20a_pmu_pg_feature_list(struct gk20a *g, u32 pg_engine_id);
-
-void gk20a_pmu_save_zbc(struct gk20a *g, u32 entries);
-
 void gk20a_pmu_init_perfmon_counter(struct gk20a *g);
 
 void gk20a_pmu_pg_idle_counter_config(struct gk20a *g, u32 pg_engine_id);
@@ -62,8 +57,6 @@ bool gk20a_is_pmu_supported(struct gk20a *g);
 int pmu_bootstrap(struct nvgpu_pmu *pmu);
 
 void gk20a_pmu_enable_irq(struct nvgpu_pmu *pmu, bool enable);
-int gk20a_pmu_elpg_statistics(struct gk20a *g, u32 pg_engine_id,
-		struct pmu_pg_stats_data *pg_stat_data);
 u32 gk20a_pmu_falcon_base_addr(void);
 bool gk20a_pmu_is_engine_in_reset(struct gk20a *g);
 int gk20a_pmu_engine_reset(struct gk20a *g, bool do_reset);
