@@ -472,6 +472,8 @@ static const struct gpu_ops gm20b_ops = {
 			.get_gfxp_rtv_cb_size = NULL,
 		},
 		.intr = {
+			.trapped_method_info =
+					gm20b_gr_intr_get_trapped_method_info,
 			.handle_semaphore_pending =
 					nvgpu_gr_intr_handle_semaphore_pending,
 			.handle_notify_pending =

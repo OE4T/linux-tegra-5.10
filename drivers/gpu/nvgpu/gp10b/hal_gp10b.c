@@ -559,6 +559,8 @@ static const struct gpu_ops gp10b_ops = {
 				gp10b_gr_init_commit_cbes_reserve,
 		},
 		.intr = {
+			.trapped_method_info =
+					gm20b_gr_intr_get_trapped_method_info,
 			.handle_semaphore_pending =
 					nvgpu_gr_intr_handle_semaphore_pending,
 			.handle_notify_pending =

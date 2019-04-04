@@ -778,6 +778,8 @@ struct gpu_ops {
 		} init;
 
 		struct {
+			void (*trapped_method_info)(struct gk20a *g,
+				    struct nvgpu_gr_isr_data *isr_data);
 			int (*handle_semaphore_pending)(struct gk20a *g,
 				struct nvgpu_gr_isr_data *isr_data);
 			int (*handle_notify_pending)(struct gk20a *g,

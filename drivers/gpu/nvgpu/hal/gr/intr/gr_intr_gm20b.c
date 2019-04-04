@@ -32,6 +32,22 @@
 
 #include <nvgpu/hw/gm20b/hw_gr_gm20b.h>
 
+void gm20b_gr_intr_get_trapped_method_info(struct gk20a *g,
+				    struct nvgpu_gr_isr_data *isr_data)
+{
+	u32 obj_table;
+
+	isr_data->addr = nvgpu_readl(g, gr_trapped_addr_r());
+	isr_data->data_lo = nvgpu_readl(g, gr_trapped_data_lo_r());
+	isr_data->data_hi = nvgpu_readl(g, gr_trapped_data_hi_r());
+	isr_data->curr_ctx = nvgpu_readl(g, gr_fecs_current_ctx_r());
+	isr_data->offset = gr_trapped_addr_mthd_v(isr_data->addr);
+	isr_data->sub_chan = gr_trapped_addr_subch_v(isr_data->addr);
+	obj_table = (isr_data->sub_chan < 4U) ? nvgpu_readl(g,
+		gr_fe_object_table_r(isr_data->sub_chan)) : 0U;
+	isr_data->class_num = gr_fe_object_table_nvclass_v(obj_table);
+}
+
 u32 gm20b_gr_intr_get_tpc_exception(struct gk20a *g, u32 offset,
 				    struct nvgpu_gr_tpc_exception *pending_tpc)
 {

@@ -1615,7 +1615,6 @@ static int gk20a_gr_post_bpt_events(struct gk20a *g, struct tsg_gk20a *tsg,
 int gk20a_gr_isr(struct gk20a *g)
 {
 	struct nvgpu_gr_isr_data isr_data;
-	u32 obj_table;
 	bool need_reset = false;
 	u32 gr_intr = gk20a_readl(g, gr_intr_r());
 	struct channel_gk20a *ch = NULL;
@@ -1641,15 +1640,7 @@ int gk20a_gr_isr(struct gk20a *g)
 	/* Disable fifo access */
 	g->ops.gr.init.fifo_access(g, false);
 
-	isr_data.addr = gk20a_readl(g, gr_trapped_addr_r());
-	isr_data.data_lo = gk20a_readl(g, gr_trapped_data_lo_r());
-	isr_data.data_hi = gk20a_readl(g, gr_trapped_data_hi_r());
-	isr_data.curr_ctx = g->ops.gr.falcon.get_current_ctx(g);
-	isr_data.offset = gr_trapped_addr_mthd_v(isr_data.addr);
-	isr_data.sub_chan = gr_trapped_addr_subch_v(isr_data.addr);
-	obj_table = (isr_data.sub_chan < 4U) ? gk20a_readl(g,
-		gr_fe_object_table_r(isr_data.sub_chan)) : 0U;
-	isr_data.class_num = gr_fe_object_table_nvclass_v(obj_table);
+	g->ops.gr.intr.trapped_method_info(g, &isr_data);
 
 	ch = gk20a_gr_get_channel_from_ctx(g, isr_data.curr_ctx, &tsgid);
 	isr_data.ch = ch;

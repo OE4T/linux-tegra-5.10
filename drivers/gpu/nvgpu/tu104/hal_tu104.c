@@ -731,6 +731,8 @@ static const struct gpu_ops tu104_ops = {
 				gv11b_gr_init_commit_gfxp_wfi_timeout,
 		},
 		.intr = {
+			.trapped_method_info =
+					gm20b_gr_intr_get_trapped_method_info,
 			.handle_semaphore_pending =
 					nvgpu_gr_intr_handle_semaphore_pending,
 			.handle_notify_pending =

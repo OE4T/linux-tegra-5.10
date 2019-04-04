@@ -28,7 +28,10 @@
 struct gk20a;
 struct nvgpu_gr_config;
 struct nvgpu_gr_tpc_exception;
+struct nvgpu_gr_isr_data;
 
+void gm20b_gr_intr_get_trapped_method_info(struct gk20a *g,
+				    struct nvgpu_gr_isr_data *isr_data);
 u32 gm20b_gr_intr_get_tpc_exception(struct gk20a *g, u32 offset,
 			struct nvgpu_gr_tpc_exception *pending_tpc);
 void gm20b_gr_intr_handle_tex_exception(struct gk20a *g, u32 gpc, u32 tpc);
