@@ -472,6 +472,12 @@ static const struct gpu_ops gm20b_ops = {
 			.get_gfxp_rtv_cb_size = NULL,
 		},
 		.intr = {
+			.read_gpc_tpc_exception =
+					gm20b_gr_intr_read_gpc_tpc_exception,
+			.read_gpc_exception =
+					gm20b_gr_intr_read_gpc_exception,
+			.read_exception1 =
+					gm20b_gr_intr_read_exception1,
 			.trapped_method_info =
 					gm20b_gr_intr_get_trapped_method_info,
 			.handle_semaphore_pending =

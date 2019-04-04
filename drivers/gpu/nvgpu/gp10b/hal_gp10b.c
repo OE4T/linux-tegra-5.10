@@ -559,6 +559,12 @@ static const struct gpu_ops gp10b_ops = {
 				gp10b_gr_init_commit_cbes_reserve,
 		},
 		.intr = {
+			.read_gpc_tpc_exception =
+					gm20b_gr_intr_read_gpc_tpc_exception,
+			.read_gpc_exception =
+					gm20b_gr_intr_read_gpc_exception,
+			.read_exception1 =
+					gm20b_gr_intr_read_exception1,
 			.trapped_method_info =
 					gm20b_gr_intr_get_trapped_method_info,
 			.handle_semaphore_pending =

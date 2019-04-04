@@ -23,7 +23,6 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/io.h>
 
-#include <nvgpu/gr/gr.h>
 #include <nvgpu/gr/config.h>
 #include <nvgpu/gr/gr.h>
 #include <nvgpu/gr/gr_intr.h>
@@ -31,6 +30,23 @@
 #include "gr_intr_gm20b.h"
 
 #include <nvgpu/hw/gm20b/hw_gr_gm20b.h>
+
+u32 gm20b_gr_intr_read_gpc_tpc_exception(u32 gpc_exception)
+{
+	return gr_gpc0_gpccs_gpc_exception_tpc_v(gpc_exception);
+}
+
+u32 gm20b_gr_intr_read_gpc_exception(struct gk20a *g, u32 gpc)
+{
+	u32 gpc_offset = nvgpu_gr_gpc_offset(g, gpc);
+
+	return nvgpu_readl(g, gr_gpc0_gpccs_gpc_exception_r() + gpc_offset);
+}
+
+u32 gm20b_gr_intr_read_exception1(struct gk20a *g)
+{
+	return nvgpu_readl(g, gr_exception1_r());
+}
 
 void gm20b_gr_intr_get_trapped_method_info(struct gk20a *g,
 				    struct nvgpu_gr_isr_data *isr_data)

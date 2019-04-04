@@ -1530,10 +1530,10 @@ static int gk20a_gr_handle_gpc_exception(struct gk20a *g, bool *post_event,
 		struct channel_gk20a *fault_ch, u32 *hww_global_esr)
 {
 	int tmp_ret, ret = 0;
-	u32 gpc_offset, gpc, tpc;
+	u32 gpc, tpc;
 	struct nvgpu_gr_config *gr_config = g->gr.config;
-	u32 exception1 = gk20a_readl(g, gr_exception1_r());
-	u32 gpc_exception;
+	u32 exception1 = g->ops.gr.intr.read_exception1(g);
+	u32 gpc_exception, tpc_exception;
 
 	nvgpu_log(g, gpu_dbg_intr | gpu_dbg_gpu_dbg, " ");
 
@@ -1544,18 +1544,15 @@ static int gk20a_gr_handle_gpc_exception(struct gk20a *g, bool *post_event,
 
 		nvgpu_log(g, gpu_dbg_intr | gpu_dbg_gpu_dbg,
 				"GPC%d exception pending", gpc);
-
-		gpc_offset = nvgpu_gr_gpc_offset(g, gpc);
-
-		gpc_exception = gk20a_readl(g, gr_gpc0_gpccs_gpc_exception_r()
-				+ gpc_offset);
+		gpc_exception = g->ops.gr.intr.read_gpc_exception(g, gpc);
+		tpc_exception = g->ops.gr.intr.read_gpc_tpc_exception(
+							gpc_exception);
 
 		/* check if any tpc has an exception */
 		for (tpc = 0;
 		     tpc < nvgpu_gr_config_get_gpc_tpc_count(gr_config, gpc);
 		     tpc++) {
-			if ((gr_gpc0_gpccs_gpc_exception_tpc_v(gpc_exception) &
-				BIT32(tpc)) == 0U) {
+			if ((tpc_exception & BIT32(tpc)) == 0U) {
 				continue;
 			}
 
