@@ -370,7 +370,11 @@ int nvgpu_acr_self_hs_load_bootstrap(struct gk20a *g, struct nvgpu_falcon *flcn,
 	int err = 0;
 
 	/* falcon reset */
-	nvgpu_falcon_reset(flcn);
+	err = nvgpu_falcon_reset(flcn);
+	if (err != 0) {
+		nvgpu_err(g, "nvgpu_falcon_reset() failed err=%d", err);
+		return err;
+	}
 
 	bin_hdr = (struct bin_hdr *)hs_fw->data;
 	fw_hdr = (struct acr_fw_header *)(hs_fw->data + bin_hdr->header_offset);

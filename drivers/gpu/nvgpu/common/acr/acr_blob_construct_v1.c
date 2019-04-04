@@ -751,7 +751,7 @@ static int lsfm_fill_flcn_bl_gen_desc(struct gk20a *g,
 		pnode->wpr_header.falcon_id);
 }
 
-static u32 lsfm_init_sub_wpr_contents(struct gk20a *g,
+static void lsfm_init_sub_wpr_contents(struct gk20a *g,
 	struct ls_flcn_mgr_v1 *plsfm, struct nvgpu_mem *ucode)
 {
 	struct lsfm_sub_wpr *psub_wpr_node;
@@ -782,17 +782,16 @@ static u32 lsfm_init_sub_wpr_contents(struct gk20a *g,
 	nvgpu_mem_wr_n(g, ucode, sub_wpr_header_offset +
 		(plsfm->managed_sub_wpr_count * temp_size),
 		&last_sub_wpr_header, temp_size);
-
-	return 0;
 }
 
-static void lsfm_init_wpr_contents(struct gk20a *g,
+static int lsfm_init_wpr_contents(struct gk20a *g,
 		struct ls_flcn_mgr_v1 *plsfm, struct nvgpu_mem *ucode)
 {
 	struct lsfm_managed_ucode_img_v2 *pnode = plsfm->ucode_img_list;
 	struct lsf_wpr_header_v1 last_wpr_hdr;
 	u32 i;
 	u64 tmp;
+	int err = 0;
 
 	/* The WPR array is at the base of the WPR */
 	pnode = plsfm->ucode_img_list;
@@ -862,7 +861,11 @@ static void lsfm_init_wpr_contents(struct gk20a *g,
 		 */
 		if (pnode->ucode_img.header == NULL) {
 			/* Populate gen bl and flush to memory */
-			lsfm_fill_flcn_bl_gen_desc(g, pnode);
+			err = lsfm_fill_flcn_bl_gen_desc(g, pnode);
+			if (err != 0) {
+				nvgpu_err(g, "bl_gen_desc failed err=%d", err);
+				return err;
+			}
 			nvgpu_mem_wr_n(g, ucode, pnode->lsb_header.bl_data_off,
 				&pnode->bl_gen_desc, pnode->bl_gen_desc_size);
 		}
@@ -880,6 +883,8 @@ static void lsfm_init_wpr_contents(struct gk20a *g,
 	nvgpu_assert(tmp <= U32_MAX);
 	nvgpu_mem_wr_n(g, ucode, (u32)tmp, &last_wpr_hdr,
 		(u32)sizeof(struct lsf_wpr_header_v1));
+
+	return err;
 }
 
 /* Free any ucode image structure resources. */
@@ -938,7 +943,11 @@ int nvgpu_acr_prepare_ucode_blob_v1(struct gk20a *g)
 
 	plsfm = &lsfm_l;
 	(void) memset((void *)plsfm, 0, sizeof(struct ls_flcn_mgr_v1));
-	nvgpu_gr_falcon_init_ctxsw_ucode(g);
+	err = nvgpu_gr_falcon_init_ctxsw_ucode(g);
+	if (err != 0) {
+		nvgpu_err(g, "gr_falcon_init_ctxsw_ucode failed err=%d", err);
+		return err;
+	}
 
 	g->acr->get_wpr_info(g, &wpr_inf);
 	nvgpu_acr_dbg(g, "wpr carveout base:%llx\n", (wpr_inf.wpr_base));
@@ -967,8 +976,8 @@ int nvgpu_acr_prepare_ucode_blob_v1(struct gk20a *g)
 		}
 
 		/* Alloc memory to hold ucode blob contents */
-		err = g->acr->alloc_blob_space(g, plsfm->wpr_size
-							,&g->acr->ucode_blob);
+		err = g->acr->alloc_blob_space(g, plsfm->wpr_size,
+							&g->acr->ucode_blob);
 		if (err != 0) {
 			goto exit_err;
 		}
@@ -976,13 +985,18 @@ int nvgpu_acr_prepare_ucode_blob_v1(struct gk20a *g)
 		nvgpu_acr_dbg(g, "managed LS falcon %d, WPR size %d bytes.\n",
 			plsfm->managed_flcn_cnt, plsfm->wpr_size);
 
-		lsfm_init_wpr_contents(g, plsfm, &g->acr->ucode_blob);
+		err = lsfm_init_wpr_contents(g, plsfm, &g->acr->ucode_blob);
+		if (err != 0) {
+			nvgpu_kfree(g, &g->acr->ucode_blob);
+			goto free_acr;
+		}
 	} else {
 		nvgpu_acr_dbg(g, "LSFM is managing no falcons.\n");
 	}
 	nvgpu_acr_dbg(g, "prepare ucode blob return 0\n");
-	free_acr_resources(g, plsfm);
 
- exit_err:
+free_acr:
+	free_acr_resources(g, plsfm);
+exit_err:
 	return err;
 }
