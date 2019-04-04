@@ -28,11 +28,6 @@
 #include <nvgpu/boardobjgrp_e32.h>
 #include <nvgpu/pmu/clk/clk_vin.h>
 
-struct vin_device_v10 {
-	struct nvgpu_vin_device super;
-	struct ctrl_clk_vin_device_info_data_v10 data;
-};
-
 struct vin_device_v20 {
 	struct nvgpu_vin_device super;
 	struct ctrl_clk_vin_device_info_data_v20 data;

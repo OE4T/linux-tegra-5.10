@@ -333,11 +333,6 @@ struct nv_pmu_clk_clk_vin_device_boardobj_set {
 	u32 flls_shared_mask;
 };
 
-struct nv_pmu_clk_clk_vin_device_v10_boardobj_set {
-	struct nv_pmu_clk_clk_vin_device_boardobj_set super;
-	struct ctrl_clk_vin_device_info_data_v10 data;
-};
-
 struct nv_pmu_clk_clk_vin_device_v20_boardobj_set {
 	struct nv_pmu_clk_clk_vin_device_boardobj_set super;
 	struct ctrl_clk_vin_device_info_data_v20 data;
@@ -346,7 +341,6 @@ struct nv_pmu_clk_clk_vin_device_v20_boardobj_set {
 union nv_pmu_clk_clk_vin_device_boardobj_set_union {
 	struct nv_pmu_boardobj board_obj;
 	struct nv_pmu_clk_clk_vin_device_boardobj_set super;
-	struct nv_pmu_clk_clk_vin_device_v10_boardobj_set v10;
 	struct nv_pmu_clk_clk_vin_device_v20_boardobj_set v20;
 };
 

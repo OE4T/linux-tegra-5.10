@@ -32,7 +32,6 @@
 #include <nvgpu/pmu/clk/clk.h>
 #include <nvgpu/pmu/cmd.h>
 
-#include "gp106/bios_gp106.h"
 #include "clk_vin.h"
 
 struct nvgpu_clk_vin_rpc_pmucmdhandler_params {
@@ -62,9 +61,6 @@ void nvgpu_clk_vin_rpc_pmucmdhandler(struct gk20a *g, struct pmu_msg *msg,
 static int devinit_get_vin_device_table(struct gk20a *g,
 		struct nvgpu_avfsvinobjs *pvinobjs);
 
-static int vin_device_construct_v10(struct gk20a *g,
-					struct boardobj **ppboardobj,
-					size_t size, void *pargs);
 static int vin_device_construct_v20(struct gk20a *g,
 					struct boardobj **ppboardobj,
 					size_t size, void *pargs);
@@ -74,9 +70,6 @@ static int vin_device_construct_super(struct gk20a *g,
 static struct nvgpu_vin_device *construct_vin_device(
 		struct gk20a *g, void *pargs);
 
-static int vin_device_init_pmudata_v10(struct gk20a *g,
-				  struct boardobj *board_obj_ptr,
-				  struct nv_pmu_boardobj *ppmudata);
 static int vin_device_init_pmudata_v20(struct gk20a *g,
 				  struct boardobj *board_obj_ptr,
 				  struct nv_pmu_boardobj *ppmudata);
@@ -271,7 +264,6 @@ static int devinit_get_vin_device_table(struct gk20a *g,
 	struct vin_descriptor_entry_10 vin_desc_table_entry = { 0 };
 	u8 *vin_tbl_entry_ptr = NULL;
 	u32 index = 0;
-	u32 slope=0, intercept=0;
 	s8 offset = 0, gain = 0;
 	struct nvgpu_vin_device *pvin_dev;
 	u32 cal_type;
@@ -279,7 +271,6 @@ static int devinit_get_vin_device_table(struct gk20a *g,
 	union {
 		struct boardobj boardobj;
 		struct nvgpu_vin_device vin_device;
-		struct vin_device_v10 vin_device_v10;
 		struct vin_device_v20 vin_device_v20;
 	} vin_device_data;
 
@@ -303,35 +294,17 @@ static int devinit_get_vin_device_table(struct gk20a *g,
 				NV_VIN_DESC_FLAGS0_DISABLE_CONTROL);
 	cal_type = BIOS_GET_FIELD(u32, vin_desc_table_header.flags0,
 				NV_VIN_DESC_FLAGS0_VIN_CAL_TYPE);
-	if (cal_type == 0U) {
-		cal_type = CTRL_CLK_VIN_CAL_TYPE_V10;
-	}
-
-	switch (cal_type) {
-	case CTRL_CLK_VIN_CAL_TYPE_V10:
-		/* VIN calibration slope: XX.YYY mV/code => XXYYY uV/code*/
-		slope = ((BIOS_GET_FIELD(u32, vin_desc_table_header.vin_cal,
-				NV_VIN_DESC_VIN_CAL_SLOPE_INTEGER) * 1000U)) +
-			((BIOS_GET_FIELD(u32, vin_desc_table_header.vin_cal,
-				NV_VIN_DESC_VIN_CAL_SLOPE_FRACTION)));
-
-		/* VIN calibration intercept: ZZZ.W mV => ZZZW00 uV */
-		intercept = ((BIOS_GET_FIELD(u32, vin_desc_table_header.vin_cal,
-			NV_VIN_DESC_VIN_CAL_INTERCEPT_INTEGER) * 1000U)) +
-			    ((BIOS_GET_FIELD(u32, vin_desc_table_header.vin_cal,
-			NV_VIN_DESC_VIN_CAL_INTERCEPT_FRACTION) * 100U));
-
-		break;
-	case CTRL_CLK_VIN_CAL_TYPE_V20:
-		offset = BIOS_GET_FIELD(s8, vin_desc_table_header.vin_cal,
-                                NV_VIN_DESC_VIN_CAL_OFFSET);
-		gain = BIOS_GET_FIELD(s8, vin_desc_table_header.vin_cal,
-                                NV_VIN_DESC_VIN_CAL_GAIN);
-		break;
-	default:
+	if (cal_type != CTRL_CLK_VIN_CAL_TYPE_V20) {
+		nvgpu_err(g, "Unsupported Vin calibration type");
 		status = -1;
 		goto done;
 	}
+
+	offset = BIOS_GET_FIELD(s8, vin_desc_table_header.vin_cal,
+			NV_VIN_DESC_VIN_CAL_OFFSET);
+	gain = BIOS_GET_FIELD(s8, vin_desc_table_header.vin_cal,
+			NV_VIN_DESC_VIN_CAL_GAIN);
+
 	/* Read table entries*/
 	vin_tbl_entry_ptr = vin_table_ptr + vin_desc_table_header.header_sizee;
 	for (index = 0; index < vin_desc_table_header.entry_count; index++) {
@@ -349,23 +322,13 @@ static int devinit_get_vin_device_table(struct gk20a *g,
 		vin_device_data.vin_device.volt_domain_vbios =
 			(u8)vin_desc_table_entry.volt_domain_vbios;
 		vin_device_data.vin_device.flls_shared_mask = 0;
-
-		switch (vin_device_data.boardobj.type) {
-		case CTRL_CLK_VIN_TYPE_V10:
-			vin_device_data.vin_device_v10.data.vin_cal.slope = slope;
-			vin_device_data.vin_device_v10.data.vin_cal.intercept = intercept;
-			break;
-		case CTRL_CLK_VIN_TYPE_V20:
-			vin_device_data.vin_device_v20.data.cal_type = (u8) cal_type;
-			vin_device_data.vin_device_v20.data.vin_cal.cal_v20.offset = offset;
-			vin_device_data.vin_device_v20.data.vin_cal.cal_v20.gain = gain;
-			vin_device_data.vin_device_v20.data.vin_cal.cal_v20.offset_vfe_idx =
+		vin_device_data.vin_device_v20.data.cal_type = (u8) cal_type;
+		vin_device_data.vin_device_v20.data.vin_cal.cal_v20.offset =
+				offset;
+		vin_device_data.vin_device_v20.data.vin_cal.cal_v20.gain =
+				gain;
+		vin_device_data.vin_device_v20.data.vin_cal.cal_v20.offset_vfe_idx =
 					CTRL_CLK_VIN_VFE_IDX_INVALID;
-			break;
-		default:
-			status = -1;
-			goto done;
-		};
 
 		pvin_dev = construct_vin_device(g, (void *)&vin_device_data);
 
@@ -377,36 +340,6 @@ static int devinit_get_vin_device_table(struct gk20a *g,
 
 done:
 	nvgpu_log_info(g, " done status %x", status);
-	return status;
-}
-
-static int vin_device_construct_v10(struct gk20a *g,
-					struct boardobj **ppboardobj,
-					size_t size, void *pargs)
-{
-	struct boardobj *ptmpobj = (struct boardobj *)pargs;
-	struct vin_device_v10 *pvin_device_v10;
-	struct vin_device_v10 *ptmpvin_device_v10 = (struct vin_device_v10 *)pargs;
-	int status = 0;
-
-	if (BOARDOBJ_GET_TYPE(pargs) != CTRL_CLK_VIN_TYPE_V10) {
-		return -EINVAL;
-	}
-
-	ptmpobj->type_mask |= BIT32(CTRL_CLK_VIN_TYPE_V10);
-	status = vin_device_construct_super(g, ppboardobj, size, pargs);
-	if (status != 0) {
-		return -EINVAL;
-	}
-
-	pvin_device_v10 = (struct vin_device_v10 *)*ppboardobj;
-
-	pvin_device_v10->super.super.pmudatainit =
-			vin_device_init_pmudata_v10;
-
-	pvin_device_v10->data.vin_cal.slope = ptmpvin_device_v10->data.vin_cal.slope;
-	pvin_device_v10->data.vin_cal.intercept = ptmpvin_device_v10->data.vin_cal.intercept;
-
 	return status;
 }
 
@@ -474,20 +407,9 @@ static struct nvgpu_vin_device *construct_vin_device(
 	int status;
 
 	nvgpu_log_info(g, " %d", BOARDOBJ_GET_TYPE(pargs));
-	switch (BOARDOBJ_GET_TYPE(pargs)) {
-	case CTRL_CLK_VIN_TYPE_V10:
-		status = vin_device_construct_v10(g, &board_obj_ptr,
-			sizeof(struct vin_device_v10), pargs);
-		break;
 
-	case CTRL_CLK_VIN_TYPE_V20:
-		status = vin_device_construct_v20(g, &board_obj_ptr,
+	status = vin_device_construct_v20(g, &board_obj_ptr,
 			sizeof(struct vin_device_v20), pargs);
-		break;
-
-	default:
-		return NULL;
-	};
 
 	if (status != 0) {
 		return NULL;
@@ -496,35 +418,6 @@ static struct nvgpu_vin_device *construct_vin_device(
 	nvgpu_log_info(g, " Done");
 
 	return (struct nvgpu_vin_device *)board_obj_ptr;
-}
-
-
-
-static int vin_device_init_pmudata_v10(struct gk20a *g,
-					 struct boardobj *board_obj_ptr,
-					 struct nv_pmu_boardobj *ppmudata)
-{
-	int status = 0;
-	struct vin_device_v20 *pvin_dev_v20;
-	struct nv_pmu_clk_clk_vin_device_v10_boardobj_set *perf_pmu_data;
-
-	nvgpu_log_info(g, " ");
-
-	status = vin_device_init_pmudata_super(g, board_obj_ptr, ppmudata);
-	if (status != 0) {
-		return status;
-	}
-
-	pvin_dev_v20 = (struct vin_device_v20 *)board_obj_ptr;
-	perf_pmu_data = (struct nv_pmu_clk_clk_vin_device_v10_boardobj_set *)
-		ppmudata;
-
-	perf_pmu_data->data.vin_cal.intercept = pvin_dev_v20->data.vin_cal.cal_v10.intercept;
-	perf_pmu_data->data.vin_cal.slope = pvin_dev_v20->data.vin_cal.cal_v10.slope;
-
-	nvgpu_log_info(g, " Done");
-
-	return status;
 }
 
 static int vin_device_init_pmudata_v20(struct gk20a *g,
