@@ -53,6 +53,8 @@ INCLUDES= 				\
 
 # This Makefile is only for host POSIX builds
 NVGPU_POSIX=1
+# Enable fault injection for unit tests
+NVGPU_FAULT_INJECTION_ENABLEMENT=1
 
 # Linuxy configs. We want these so that we can mirror builds from the actual
 # Linux kernel.
