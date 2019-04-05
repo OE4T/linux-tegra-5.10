@@ -20,35 +20,12 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#include <nvgpu/ecc.h>
-#include <nvgpu/gk20a.h>
+#ifndef NVGPU_ECC_GP10B_H
+#define NVGPU_ECC_GP10B_H
 
-#include "gv11b/ecc_gv11b.h"
-#include "tu104/ecc_tu104.h"
+struct gk20a;
 
-int tu104_ecc_init(struct gk20a *g)
-{
-	int err;
+void gp10b_ecc_detect_enabled_units(struct gk20a *g);
+int gp10b_ecc_init(struct gk20a *g);
 
-	err = gv11b_ecc_init(g);
-	if (err != 0) {
-		return err;
-	}
-
-	err = NVGPU_ECC_COUNTER_INIT_PER_FBPA(fbpa_ecc_sec_err_count);
-	if (err != 0) {
-		goto done;
-	}
-	err = NVGPU_ECC_COUNTER_INIT_PER_FBPA(fbpa_ecc_ded_err_count);
-	if (err != 0) {
-		goto done;
-	}
-
-done:
-	if (err != 0) {
-		nvgpu_err(g, "ecc counter allocate failed, err=%d", err);
-		nvgpu_ecc_free(g);
-	}
-
-	return err;
-}
+#endif /* NVGPU_ECC_GP10B_H */

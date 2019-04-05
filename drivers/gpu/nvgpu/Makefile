@@ -165,6 +165,9 @@ nvgpu-y += \
 	hal/bus/bus_gp10b.o \
 	hal/bus/bus_gv100.o \
 	hal/bus/bus_tu104.o \
+	hal/gr/ecc/ecc_gp10b.o \
+	hal/gr/ecc/ecc_gv11b.o \
+	hal/gr/ecc/ecc_tu104.o \
 	hal/gr/fecs_trace/fecs_trace_gm20b.o \
 	hal/gr/fecs_trace/fecs_trace_gp10b.o \
 	hal/gr/fecs_trace/fecs_trace_gv11b.o \
@@ -541,7 +544,6 @@ nvgpu-y += \
 	gp10b/mm_gp10b.o \
 	gp10b/hal_gp10b.o \
 	gp10b/gp10b.o \
-	gp10b/ecc_gp10b.o \
 	gp106/gr_gp106.o \
 	gp106/bios_gp106.o \
 	gv11b/gv11b.o  \
@@ -551,7 +553,6 @@ nvgpu-y += \
 	gv11b/mm_gv11b.o \
 	gv11b/ce_gv11b.o \
 	gv11b/subctx_gv11b.o \
-	gv11b/ecc_gv11b.o \
 	gv100/mm_gv100.o \
 	gv100/bios_gv100.o \
 	gv100/fifo_gv100.o \
@@ -565,5 +566,4 @@ nvgpu-y += \
 	tu104/func_tu104.o \
 	tu104/bios_tu104.o \
 	tu104/fbpa_tu104.o \
-	tu104/ecc_tu104.o \
 	gp106/clk_gp106.o

@@ -258,7 +258,6 @@ srcs += common/sim.c \
 	gp10b/mm_gp10b.c \
 	gp10b/hal_gp10b.c \
 	gp10b/gp10b.c \
-	gp10b/ecc_gp10b.c \
 	gv11b/gv11b.c  \
 	gv11b/hal_gv11b.c \
 	gv11b/gr_gv11b.c \
@@ -266,7 +265,6 @@ srcs += common/sim.c \
 	gv11b/mm_gv11b.c \
 	gv11b/ce_gv11b.c \
 	gv11b/subctx_gv11b.c \
-	gv11b/ecc_gv11b.c \
 	gp106/gr_gp106.c \
 	gp106/bios_gp106.c \
 	gp106/clk_gp106.c \
@@ -277,7 +275,6 @@ srcs += common/sim.c \
 	gv100/hal_gv100.c \
 	gv100/clk_gv100.c \
 	tu104/bios_tu104.c \
-	tu104/ecc_tu104.c \
 	tu104/fbpa_tu104.c \
 	tu104/fifo_tu104.c \
 	tu104/gr_tu104.c \
@@ -294,6 +291,9 @@ srcs += common/sim.c \
 	hal/bus/bus_gp10b.c \
 	hal/bus/bus_gv100.c \
 	hal/bus/bus_tu104.c \
+	hal/gr/ecc/ecc_gp10b.c \
+	hal/gr/ecc/ecc_gv11b.c \
+	hal/gr/ecc/ecc_tu104.c \
 	hal/gr/fecs_trace/fecs_trace_gm20b.c \
 	hal/gr/fecs_trace/fecs_trace_gp10b.c \
 	hal/gr/fecs_trace/fecs_trace_gv11b.c \

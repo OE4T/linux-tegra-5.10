@@ -80,6 +80,7 @@
 #include "hal/fifo/fifo_intr_gk20a.h"
 #include "hal/fifo/fifo_intr_gv11b.h"
 #include "hal/fifo/ctxsw_timeout_gv11b.h"
+#include "hal/gr/ecc/ecc_tu104.h"
 #include "hal/gr/fecs_trace/fecs_trace_gm20b.h"
 #include "hal/gr/fecs_trace/fecs_trace_gv11b.h"
 #include "hal/gr/falcon/gr_falcon_gm20b.h"
@@ -173,7 +174,6 @@
 #include "tu104/gr_tu104.h"
 #include "tu104/bios_tu104.h"
 #include "tu104/fbpa_tu104.h"
-#include "tu104/ecc_tu104.h"
 #include "tu104/hal_tu104.h"
 
 #include <nvgpu/ptimer.h>
@@ -471,7 +471,6 @@ static const struct gpu_ops tu104_ops = {
 		.pre_process_sm_exception = gr_gv11b_pre_process_sm_exception,
 		.set_bes_crop_debug3 = gr_gp10b_set_bes_crop_debug3,
 		.set_bes_crop_debug4 = gr_gp10b_set_bes_crop_debug4,
-		.init_ecc = tu104_ecc_init,
 		.is_etpc_addr = gv11b_gr_pri_is_etpc_addr,
 		.egpc_etpc_priv_addr_table = gv11b_gr_egpc_etpc_priv_addr_table,
 		.get_egpc_base = gv11b_gr_get_egpc_base,
@@ -495,6 +494,10 @@ static const struct gpu_ops tu104_ops = {
 		.set_debug_mode = gm20b_gr_set_debug_mode,
 		.log_mme_exception = gr_tu104_log_mme_exception,
 		.reset = nvgpu_gr_reset,
+		.ecc = {
+			.detect = NULL,
+			.init = tu104_ecc_init,
+		},
 		.ctxsw_prog = {
 			.hw_get_fecs_header_size =
 				gm20b_ctxsw_prog_hw_get_fecs_header_size,

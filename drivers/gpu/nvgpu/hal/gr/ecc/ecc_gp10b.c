@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -20,10 +20,92 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
+#include <nvgpu/io.h>
 #include <nvgpu/ecc.h>
 #include <nvgpu/gk20a.h>
 
-#include "gp10b/ecc_gp10b.h"
+#include <nvgpu/hw/gp10b/hw_gr_gp10b.h>
+
+#include "ecc_gp10b.h"
+
+void gp10b_ecc_detect_enabled_units(struct gk20a *g)
+{
+	bool opt_ecc_en = g->ops.fuse.is_opt_ecc_enable(g);
+	bool opt_feature_fuses_override_disable =
+			g->ops.fuse.is_opt_feature_override_disable(g);
+	u32 fecs_feature_override_ecc =
+				nvgpu_readl(g,
+					gr_fecs_feature_override_ecc_r());
+
+	if (opt_feature_fuses_override_disable) {
+		if (opt_ecc_en) {
+			nvgpu_set_enabled(g, NVGPU_ECC_ENABLED_SM_LRF, true);
+			nvgpu_set_enabled(g, NVGPU_ECC_ENABLED_SM_SHM, true);
+			nvgpu_set_enabled(g, NVGPU_ECC_ENABLED_TEX, true);
+			nvgpu_set_enabled(g, NVGPU_ECC_ENABLED_LTC, true);
+		}
+	} else {
+		/* SM LRF */
+		if (gr_fecs_feature_override_ecc_sm_lrf_override_v(
+					fecs_feature_override_ecc) == 1U) {
+			if (gr_fecs_feature_override_ecc_sm_lrf_v(
+					fecs_feature_override_ecc) == 1U) {
+				nvgpu_set_enabled(g,
+						NVGPU_ECC_ENABLED_SM_LRF, true);
+			}
+		} else {
+			if (opt_ecc_en) {
+				nvgpu_set_enabled(g,
+						NVGPU_ECC_ENABLED_SM_LRF, true);
+			}
+		}
+
+		/* SM SHM */
+		if (gr_fecs_feature_override_ecc_sm_shm_override_v(
+					fecs_feature_override_ecc) == 1U) {
+			if (gr_fecs_feature_override_ecc_sm_shm_v(
+					fecs_feature_override_ecc) == 1U) {
+				nvgpu_set_enabled(g,
+						NVGPU_ECC_ENABLED_SM_SHM, true);
+			}
+		} else {
+			if (opt_ecc_en) {
+				nvgpu_set_enabled(g,
+						NVGPU_ECC_ENABLED_SM_SHM, true);
+			}
+		}
+
+		/* TEX */
+		if (gr_fecs_feature_override_ecc_tex_override_v(
+					fecs_feature_override_ecc) == 1U) {
+			if (gr_fecs_feature_override_ecc_tex_v(
+					fecs_feature_override_ecc) == 1U) {
+				nvgpu_set_enabled(g,
+						NVGPU_ECC_ENABLED_TEX, true);
+			}
+		} else {
+			if (opt_ecc_en) {
+				nvgpu_set_enabled(g,
+						NVGPU_ECC_ENABLED_TEX, true);
+			}
+		}
+
+		/* LTC */
+		if (gr_fecs_feature_override_ecc_ltc_override_v(
+					fecs_feature_override_ecc) == 1U) {
+			if (gr_fecs_feature_override_ecc_ltc_v(
+					fecs_feature_override_ecc) == 1U) {
+				nvgpu_set_enabled(g,
+						NVGPU_ECC_ENABLED_LTC, true);
+			}
+		} else {
+			if (opt_ecc_en) {
+				nvgpu_set_enabled(g,
+						NVGPU_ECC_ENABLED_LTC, true);
+			}
+		}
+	}
+}
 
 int gp10b_ecc_init(struct gk20a *g)
 {

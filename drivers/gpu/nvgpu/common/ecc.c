@@ -348,12 +348,12 @@ int nvgpu_ecc_init_support(struct gk20a *g)
 {
 	int err;
 
-	if (g->ops.gr.init_ecc == NULL) {
+	if (g->ops.gr.ecc.init == NULL) {
 		return 0;
 	}
 
 	nvgpu_ecc_init(g);
-	err = g->ops.gr.init_ecc(g);
+	err = g->ops.gr.ecc.init(g);
 	if (err != 0) {
 		return err;
 	}
@@ -369,7 +369,7 @@ int nvgpu_ecc_init_support(struct gk20a *g)
 
 void nvgpu_ecc_remove_support(struct gk20a *g)
 {
-	if (g->ops.gr.init_ecc == NULL) {
+	if (g->ops.gr.ecc.init == NULL) {
 		return;
 	}
 

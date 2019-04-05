@@ -28,90 +28,10 @@
 
 #include "gp10b.h"
 
-#include <nvgpu/hw/gp10b/hw_gr_gp10b.h>
-
-static void gp10b_detect_ecc_enabled_units(struct gk20a *g)
-{
-	bool opt_ecc_en = g->ops.fuse.is_opt_ecc_enable(g);
-	bool opt_feature_fuses_override_disable =
-			g->ops.fuse.is_opt_feature_override_disable(g);
-	u32 fecs_feature_override_ecc =
-				gk20a_readl(g,
-					gr_fecs_feature_override_ecc_r());
-
-	if (opt_feature_fuses_override_disable) {
-		if (opt_ecc_en) {
-			nvgpu_set_enabled(g, NVGPU_ECC_ENABLED_SM_LRF, true);
-			nvgpu_set_enabled(g, NVGPU_ECC_ENABLED_SM_SHM, true);
-			nvgpu_set_enabled(g, NVGPU_ECC_ENABLED_TEX, true);
-			nvgpu_set_enabled(g, NVGPU_ECC_ENABLED_LTC, true);
-		}
-	} else {
-		/* SM LRF */
-		if (gr_fecs_feature_override_ecc_sm_lrf_override_v(
-					fecs_feature_override_ecc) == 1U) {
-			if (gr_fecs_feature_override_ecc_sm_lrf_v(
-					fecs_feature_override_ecc) == 1U) {
-				nvgpu_set_enabled(g,
-						NVGPU_ECC_ENABLED_SM_LRF, true);
-			}
-		} else {
-			if (opt_ecc_en) {
-				nvgpu_set_enabled(g,
-						NVGPU_ECC_ENABLED_SM_LRF, true);
-			}
-		}
-
-		/* SM SHM */
-		if (gr_fecs_feature_override_ecc_sm_shm_override_v(
-					fecs_feature_override_ecc) == 1U) {
-			if (gr_fecs_feature_override_ecc_sm_shm_v(
-					fecs_feature_override_ecc) == 1U) {
-				nvgpu_set_enabled(g,
-						NVGPU_ECC_ENABLED_SM_SHM, true);
-			}
-		} else {
-			if (opt_ecc_en) {
-				nvgpu_set_enabled(g,
-						NVGPU_ECC_ENABLED_SM_SHM, true);
-			}
-		}
-
-		/* TEX */
-		if (gr_fecs_feature_override_ecc_tex_override_v(
-					fecs_feature_override_ecc) == 1U) {
-			if (gr_fecs_feature_override_ecc_tex_v(
-					fecs_feature_override_ecc) == 1U) {
-				nvgpu_set_enabled(g,
-						NVGPU_ECC_ENABLED_TEX, true);
-			}
-		} else {
-			if (opt_ecc_en) {
-				nvgpu_set_enabled(g,
-						NVGPU_ECC_ENABLED_TEX, true);
-			}
-		}
-
-		/* LTC */
-		if (gr_fecs_feature_override_ecc_ltc_override_v(
-					fecs_feature_override_ecc) == 1U) {
-			if (gr_fecs_feature_override_ecc_ltc_v(
-					fecs_feature_override_ecc) == 1U) {
-				nvgpu_set_enabled(g,
-						NVGPU_ECC_ENABLED_LTC, true);
-			}
-		} else {
-			if (opt_ecc_en) {
-				nvgpu_set_enabled(g,
-						NVGPU_ECC_ENABLED_LTC, true);
-			}
-		}
-	}
-}
 
 void gp10b_init_gpu_characteristics(struct gk20a *g)
 {
 	gk20a_init_gpu_characteristics(g);
-	gp10b_detect_ecc_enabled_units(g);
+	g->ops.gr.ecc.detect(g);
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_RESCHEDULE_RUNLIST, true);
 }

@@ -85,6 +85,7 @@
 #include "hal/fifo/mmu_fault_gm20b.h"
 #include "hal/fifo/mmu_fault_gp10b.h"
 #include "hal/fifo/ctxsw_timeout_gk20a.h"
+#include "hal/gr/ecc/ecc_gp10b.h"
 #include "hal/gr/fecs_trace/fecs_trace_gm20b.h"
 #include "hal/gr/fecs_trace/fecs_trace_gp10b.h"
 #include "hal/gr/config/gr_config_gm20b.h"
@@ -122,7 +123,6 @@
 #include "gp10b/gr_gp10b.h"
 #include "gp10b/mm_gp10b.h"
 #include "gp10b/ce_gp10b.h"
-#include "gp10b/ecc_gp10b.h"
 
 #include "gm20b/gr_gm20b.h"
 #include "gm20b/clk_gm20b.h"
@@ -336,7 +336,6 @@ static const struct gpu_ops gp10b_ops = {
 		.set_boosted_ctx = gr_gp10b_set_boosted_ctx,
 		.pre_process_sm_exception = gr_gp10b_pre_process_sm_exception,
 		.set_bes_crop_debug3 = gr_gp10b_set_bes_crop_debug3,
-		.init_ecc = gp10b_ecc_init,
 		.init_gfxp_wfi_timeout_count =
 				gr_gp10b_init_gfxp_wfi_timeout_count,
 		.get_max_gfxp_wfi_timeout_count =
@@ -349,6 +348,10 @@ static const struct gpu_ops gp10b_ops = {
 		.set_debug_mode = gm20b_gr_set_debug_mode,
 		.log_mme_exception = NULL,
 		.reset = nvgpu_gr_reset,
+		.ecc = {
+			.detect = gp10b_ecc_detect_enabled_units,
+			.init = gp10b_ecc_init,
+		},
 		.ctxsw_prog = {
 			.hw_get_fecs_header_size =
 				gm20b_ctxsw_prog_hw_get_fecs_header_size,

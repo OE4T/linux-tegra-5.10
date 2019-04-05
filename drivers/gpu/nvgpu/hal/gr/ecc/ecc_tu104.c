@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -20,9 +20,35 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NVGPU_ECC_GV11B_H
-#define NVGPU_ECC_GV11B_H
+#include <nvgpu/ecc.h>
+#include <nvgpu/gk20a.h>
 
-int gv11b_ecc_init(struct gk20a *g);
+#include "ecc_gv11b.h"
+#include "ecc_tu104.h"
 
-#endif /* NVGPU_ECC_GV11B_H */
+int tu104_ecc_init(struct gk20a *g)
+{
+	int err;
+
+	err = gv11b_ecc_init(g);
+	if (err != 0) {
+		return err;
+	}
+
+	err = NVGPU_ECC_COUNTER_INIT_PER_FBPA(fbpa_ecc_sec_err_count);
+	if (err != 0) {
+		goto done;
+	}
+	err = NVGPU_ECC_COUNTER_INIT_PER_FBPA(fbpa_ecc_ded_err_count);
+	if (err != 0) {
+		goto done;
+	}
+
+done:
+	if (err != 0) {
+		nvgpu_err(g, "ecc counter allocate failed, err=%d", err);
+		nvgpu_ecc_free(g);
+	}
+
+	return err;
+}

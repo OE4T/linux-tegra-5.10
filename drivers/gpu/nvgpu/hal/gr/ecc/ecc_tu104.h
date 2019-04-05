@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -22,6 +22,8 @@
 
 #ifndef NVGPU_ECC_TU104_H
 #define NVGPU_ECC_TU104_H
+
+struct gk20a;
 
 int tu104_ecc_init(struct gk20a *g);
 

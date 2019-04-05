@@ -78,6 +78,7 @@
 #include "hal/fifo/fifo_intr_gk20a.h"
 #include "hal/fifo/fifo_intr_gv11b.h"
 #include "hal/fifo/ctxsw_timeout_gv11b.h"
+#include "hal/gr/ecc/ecc_gv11b.h"
 #include "hal/gr/fecs_trace/fecs_trace_gm20b.h"
 #include "hal/gr/fecs_trace/fecs_trace_gv11b.h"
 #include "hal/gr/falcon/gr_falcon_gm20b.h"
@@ -138,7 +139,6 @@
 #include "gv11b/mm_gv11b.h"
 #include "gv11b/fifo_gv11b.h"
 #include "gv11b/subctx_gv11b.h"
-#include "gv11b/ecc_gv11b.h"
 
 #include <nvgpu/ptimer.h>
 #include <nvgpu/debug.h>
@@ -405,7 +405,6 @@ static const struct gpu_ops gv11b_ops = {
 		.pre_process_sm_exception = gr_gv11b_pre_process_sm_exception,
 		.set_bes_crop_debug3 = gr_gp10b_set_bes_crop_debug3,
 		.set_bes_crop_debug4 = gr_gp10b_set_bes_crop_debug4,
-		.init_ecc = gv11b_ecc_init,
 		.is_etpc_addr = gv11b_gr_pri_is_etpc_addr,
 		.egpc_etpc_priv_addr_table = gv11b_gr_egpc_etpc_priv_addr_table,
 		.get_egpc_base = gv11b_gr_get_egpc_base,
@@ -431,6 +430,10 @@ static const struct gpu_ops gv11b_ops = {
 		.get_ctxsw_checksum_mismatch_mailbox_val =
 				gr_gv11b_ctxsw_checksum_mismatch_mailbox_val,
 		.reset = nvgpu_gr_reset,
+		.ecc = {
+			.detect = gv11b_ecc_detect_enabled_units,
+			.init = gv11b_ecc_init,
+		},
 		.ctxsw_prog = {
 			.hw_get_fecs_header_size =
 				gm20b_ctxsw_prog_hw_get_fecs_header_size,

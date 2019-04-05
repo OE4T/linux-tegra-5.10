@@ -368,7 +368,6 @@ struct gpu_ops {
 			u32 gpc, u32 tpc, u32 sm,
 			bool *post_event, struct channel_gk20a *fault_ch,
 			u32 *hww_global_esr);
-		int (*init_ecc)(struct gk20a *g);
 		u32 (*get_lrf_tex_ltc_dram_override)(struct gk20a *g);
 		int (*record_sm_error_state)(struct gk20a *g, u32 gpc, u32 tpc,
 				u32 sm, struct channel_gk20a *fault_ch);
@@ -434,6 +433,10 @@ struct gpu_ops {
 		void (*set_debug_mode)(struct gk20a *g, bool enable);
 		void (*log_mme_exception)(struct gk20a *g);
 		int (*reset)(struct gk20a *g);
+		struct {
+			void (*detect)(struct gk20a *g);
+			int (*init)(struct gk20a *g);
+		} ecc;
 		struct {
 			u32 (*hw_get_fecs_header_size)(void);
 			u32 (*hw_get_gpccs_header_size)(void);
