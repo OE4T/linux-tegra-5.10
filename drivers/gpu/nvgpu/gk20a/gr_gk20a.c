@@ -989,7 +989,7 @@ int gk20a_gr_isr(struct gk20a *g)
 {
 	struct nvgpu_gr_isr_data isr_data;
 	bool need_reset = false;
-	u32 gr_intr = gk20a_readl(g, gr_intr_r());
+	u32 gr_intr = g->ops.gr.intr.read_pending_interrupts(g);
 	struct channel_gk20a *ch = NULL;
 	struct channel_gk20a *fault_ch = NULL;
 	u32 tsgid = NVGPU_INVALID_TSG_ID;
@@ -998,6 +998,7 @@ int gk20a_gr_isr(struct gk20a *g)
 	u32 global_esr = 0;
 	u32 chid;
 	struct nvgpu_gr_config *gr_config = g->gr.config;
+	u32 clear_intr = gr_intr;
 
 	nvgpu_log_fn(g, " ");
 	nvgpu_log(g, gpu_dbg_intr, "pgraph intr 0x%08x", gr_intr);
@@ -1042,16 +1043,12 @@ int gk20a_gr_isr(struct gk20a *g)
 
 	if ((gr_intr & gr_intr_notify_pending_f()) != 0U) {
 		g->ops.gr.intr.handle_notify_pending(g, &isr_data);
-		gk20a_writel(g, gr_intr_r(),
-			gr_intr_notify_reset_f());
-		gr_intr &= ~gr_intr_notify_pending_f();
+		clear_intr &= ~gr_intr_notify_pending_f();
 	}
 
 	if ((gr_intr & gr_intr_semaphore_pending_f()) != 0U) {
 		g->ops.gr.intr.handle_semaphore_pending(g, &isr_data);
-		gk20a_writel(g, gr_intr_r(),
-			gr_intr_semaphore_reset_f());
-		gr_intr &= ~gr_intr_semaphore_pending_f();
+		clear_intr &= ~gr_intr_semaphore_pending_f();
 	}
 
 	if ((gr_intr & gr_intr_semaphore_timeout_pending_f()) != 0U) {
@@ -1059,9 +1056,7 @@ int gk20a_gr_isr(struct gk20a *g)
 				&isr_data) != 0) {
 			need_reset = true;
 		}
-		gk20a_writel(g, gr_intr_r(),
-			gr_intr_semaphore_reset_f());
-		gr_intr &= ~gr_intr_semaphore_pending_f();
+		clear_intr &= ~gr_intr_semaphore_pending_f();
 	}
 
 	if ((gr_intr & gr_intr_illegal_notify_pending_f()) != 0U) {
@@ -1069,45 +1064,35 @@ int gk20a_gr_isr(struct gk20a *g)
 				&isr_data) != 0) {
 			need_reset = true;
 		}
-		gk20a_writel(g, gr_intr_r(),
-			gr_intr_illegal_notify_reset_f());
-		gr_intr &= ~gr_intr_illegal_notify_pending_f();
+		clear_intr &= ~gr_intr_illegal_notify_pending_f();
 	}
 
 	if ((gr_intr & gr_intr_illegal_method_pending_f()) != 0U) {
 		if (gk20a_gr_handle_illegal_method(g, &isr_data) != 0) {
 			need_reset = true;
 		}
-		gk20a_writel(g, gr_intr_r(),
-			gr_intr_illegal_method_reset_f());
-		gr_intr &= ~gr_intr_illegal_method_pending_f();
+		clear_intr &= ~gr_intr_illegal_method_pending_f();
 	}
 
 	if ((gr_intr & gr_intr_illegal_class_pending_f()) != 0U) {
 		if (gk20a_gr_handle_illegal_class(g, &isr_data) != 0) {
 			need_reset = true;
 		}
-		gk20a_writel(g, gr_intr_r(),
-			gr_intr_illegal_class_reset_f());
-		gr_intr &= ~gr_intr_illegal_class_pending_f();
+		clear_intr &= ~gr_intr_illegal_class_pending_f();
 	}
 
 	if ((gr_intr & gr_intr_fecs_error_pending_f()) != 0U) {
 		if (g->ops.gr.handle_fecs_error(g, ch, &isr_data) != 0) {
 			need_reset = true;
 		}
-		gk20a_writel(g, gr_intr_r(),
-			gr_intr_fecs_error_reset_f());
-		gr_intr &= ~gr_intr_fecs_error_pending_f();
+		clear_intr &= ~gr_intr_fecs_error_pending_f();
 	}
 
 	if ((gr_intr & gr_intr_class_error_pending_f()) != 0U) {
 		if (gk20a_gr_handle_class_error(g, &isr_data) != 0) {
 			need_reset = true;
 		}
-		gk20a_writel(g, gr_intr_r(),
-			gr_intr_class_error_reset_f());
-		gr_intr &= ~gr_intr_class_error_pending_f();
+		clear_intr &= ~gr_intr_class_error_pending_f();
 	}
 
 	/* this one happens if someone tries to hit a non-whitelisted
@@ -1118,9 +1103,7 @@ int gk20a_gr_isr(struct gk20a *g)
 		}
 		nvgpu_log(g, gpu_dbg_intr | gpu_dbg_gpu_dbg,
 				"firmware method intr pending\n");
-		gk20a_writel(g, gr_intr_r(),
-			gr_intr_firmware_method_reset_f());
-		gr_intr &= ~gr_intr_firmware_method_pending_f();
+		clear_intr &= ~gr_intr_firmware_method_pending_f();
 	}
 
 	if ((gr_intr & gr_intr_exception_pending_f()) != 0U) {
@@ -1155,9 +1138,7 @@ int gk20a_gr_isr(struct gk20a *g)
 			}
 #endif
 		}
-
-		gk20a_writel(g, gr_intr_r(), gr_intr_exception_reset_f());
-		gr_intr &= ~gr_intr_exception_pending_f();
+		clear_intr &= ~gr_intr_exception_pending_f();
 
 		if (need_reset) {
 			nvgpu_err(g, "set gr exception notifier");
@@ -1182,8 +1163,7 @@ int gk20a_gr_isr(struct gk20a *g)
 		}
 	}
 
-	if (gr_intr != 0U) {
-		/* clear unhandled interrupts */
+	if (clear_intr != 0U) {
 		if (ch == NULL) {
 			/*
 			 * This is probably an interrupt during
@@ -1196,8 +1176,10 @@ int gk20a_gr_isr(struct gk20a *g)
 			nvgpu_err(g, "unhandled gr intr 0x%08x for chid: %d",
 				gr_intr, chid);
 		}
-		gk20a_writel(g, gr_intr_r(), gr_intr);
 	}
+
+	/* clear handled and unhandled interrupts */
+	g->ops.gr.intr.clear_pending_interrupts(g, gr_intr);
 
 	/* Enable fifo access */
 	g->ops.gr.init.fifo_access(g, true);

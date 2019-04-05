@@ -30,6 +30,8 @@ struct nvgpu_gr_config;
 struct nvgpu_gr_tpc_exception;
 struct nvgpu_gr_isr_data;
 
+void gm20b_gr_intr_clear_pending_interrupts(struct gk20a *g, u32 gr_intr);
+u32 gm20b_gr_intr_read_pending_interrupts(struct gk20a *g);
 bool gm20b_gr_intr_handle_exceptions(struct gk20a *g, bool *is_gpc_exception);
 u32 gm20b_gr_intr_read_gpc_tpc_exception(u32 gpc_exception);
 u32 gm20b_gr_intr_read_gpc_exception(struct gk20a *g, u32 gpc);

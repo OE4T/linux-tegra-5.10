@@ -559,6 +559,10 @@ static const struct gpu_ops gp10b_ops = {
 				gp10b_gr_init_commit_cbes_reserve,
 		},
 		.intr = {
+			.clear_pending_interrupts =
+					gm20b_gr_intr_clear_pending_interrupts,
+			.read_pending_interrupts =
+					gm20b_gr_intr_read_pending_interrupts,
 			.handle_exceptions =
 					gm20b_gr_intr_handle_exceptions,
 			.read_gpc_tpc_exception =

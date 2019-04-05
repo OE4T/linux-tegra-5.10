@@ -31,6 +31,16 @@
 
 #include <nvgpu/hw/gm20b/hw_gr_gm20b.h>
 
+void gm20b_gr_intr_clear_pending_interrupts(struct gk20a *g, u32 gr_intr)
+{
+	nvgpu_writel(g, gr_intr_r(), gr_intr);
+}
+
+u32 gm20b_gr_intr_read_pending_interrupts(struct gk20a *g)
+{
+	return nvgpu_readl(g, gr_intr_r());
+}
+
 bool gm20b_gr_intr_handle_exceptions(struct gk20a *g, bool *is_gpc_exception)
 {
 	bool gpc_reset = false;

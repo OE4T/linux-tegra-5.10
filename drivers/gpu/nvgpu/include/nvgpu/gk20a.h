@@ -778,6 +778,9 @@ struct gpu_ops {
 		} init;
 
 		struct {
+			void (*clear_pending_interrupts)(struct gk20a *g,
+							 u32 gr_intr);
+			u32 (*read_pending_interrupts)(struct gk20a *g);
 			bool (*handle_exceptions)(struct gk20a *g,
 						  bool *is_gpc_exception);
 			u32 (*read_gpc_tpc_exception)(u32 gpc_exception);
