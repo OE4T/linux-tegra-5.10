@@ -400,15 +400,15 @@ static int test_nvgpu_bitmap_allocator_init(struct unit_module *m,
 struct unit_module_test bitmap_allocator_tests[] = {
 
 	/* BA initialized in this test is used by next tests */
-	UNIT_TEST(init, test_nvgpu_bitmap_allocator_init, NULL),
+	UNIT_TEST(init, test_nvgpu_bitmap_allocator_init, NULL, 0),
 
 	/* These tests use bitmap allocator created in the first test */
-	UNIT_TEST(ops, test_nvgpu_bitmap_allocator_ops, NULL),
-	UNIT_TEST(alloc, test_nvgpu_bitmap_allocator_alloc, NULL),
-	UNIT_TEST(free, test_nvgpu_bitmap_allocator_destroy, NULL),
+	UNIT_TEST(ops, test_nvgpu_bitmap_allocator_ops, NULL, 0),
+	UNIT_TEST(alloc, test_nvgpu_bitmap_allocator_alloc, NULL, 0),
+	UNIT_TEST(free, test_nvgpu_bitmap_allocator_destroy, NULL, 0),
 
 	/* Tests GPU_ALLOC_NO_ALLOC_PAGE operations by bitmap allocator */
-	UNIT_TEST(critical, test_nvgpu_bitmap_allocator_critical, NULL),
+	UNIT_TEST(critical, test_nvgpu_bitmap_allocator_critical, NULL, 0),
 };
 
 UNIT_MODULE(bitmap_allocator, bitmap_allocator_tests, UNIT_PRIO_NVGPU_TEST);
