@@ -239,7 +239,7 @@ static int gr_init_setup_hw(struct gk20a *g)
 	}
 
 	/* floorsweep anything left */
-	err = nvgpu_gr_fs_state_init(g);
+	err = nvgpu_gr_fs_state_init(g, gr->config);
 	if (err != 0) {
 		goto out;
 	}

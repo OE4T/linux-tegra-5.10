@@ -61,6 +61,7 @@ void nvgpu_gr_obj_ctx_commit_inst(struct gk20a *g, struct nvgpu_mem *inst_block,
 }
 
 static int nvgpu_gr_obj_ctx_init_ctxsw_preemption_mode(struct gk20a *g,
+	struct nvgpu_gr_config *config, struct nvgpu_gr_ctx_desc *gr_ctx_desc,
 	struct nvgpu_gr_ctx *gr_ctx, struct vm_gk20a *vm,
 	u32 class, u32 flags)
 {
@@ -87,8 +88,9 @@ static int nvgpu_gr_obj_ctx_init_ctxsw_preemption_mode(struct gk20a *g,
 	}
 
 	if ((graphics_preempt_mode != 0U) || (compute_preempt_mode != 0U)) {
-		err = nvgpu_gr_obj_ctx_set_ctxsw_preemption_mode(g, gr_ctx, vm,
-		    class, graphics_preempt_mode, compute_preempt_mode);
+		err = nvgpu_gr_obj_ctx_set_ctxsw_preemption_mode(g, config,
+			gr_ctx_desc, gr_ctx, vm, class, graphics_preempt_mode,
+			compute_preempt_mode);
 		if (err != 0) {
 			nvgpu_err(g, "set_ctxsw_preemption_mode failed");
 			return err;
@@ -101,6 +103,7 @@ static int nvgpu_gr_obj_ctx_init_ctxsw_preemption_mode(struct gk20a *g,
 }
 
 int nvgpu_gr_obj_ctx_set_ctxsw_preemption_mode(struct gk20a *g,
+	struct nvgpu_gr_config *config, struct nvgpu_gr_ctx_desc *gr_ctx_desc,
 	struct nvgpu_gr_ctx *gr_ctx, struct vm_gk20a *vm, u32 class,
 	u32 graphics_preempt_mode, u32 compute_preempt_mode)
 {
@@ -136,32 +139,32 @@ int nvgpu_gr_obj_ctx_set_ctxsw_preemption_mode(struct gk20a *g,
 		u32 betacb_size = g->ops.gr.init.get_ctx_betacb_size(g);
 		u32 attrib_cb_size =
 			g->ops.gr.init.get_ctx_attrib_cb_size(g, betacb_size,
-				nvgpu_gr_config_get_tpc_count(g->gr.config),
-				nvgpu_gr_config_get_max_tpc_count(g->gr.config));
+				nvgpu_gr_config_get_tpc_count(config),
+				nvgpu_gr_config_get_max_tpc_count(config));
 
 		nvgpu_log_info(g, "gfxp context spill_size=%d", spill_size);
 		nvgpu_log_info(g, "gfxp context pagepool_size=%d", pagepool_size);
 		nvgpu_log_info(g, "gfxp context attrib_cb_size=%d",
 				attrib_cb_size);
 
-		nvgpu_gr_ctx_set_size(g->gr.gr_ctx_desc,
+		nvgpu_gr_ctx_set_size(gr_ctx_desc,
 			NVGPU_GR_CTX_PREEMPT_CTXSW,
 			g->gr.ctx_vars.preempt_image_size);
-		nvgpu_gr_ctx_set_size(g->gr.gr_ctx_desc,
+		nvgpu_gr_ctx_set_size(gr_ctx_desc,
 			NVGPU_GR_CTX_SPILL_CTXSW, spill_size);
-		nvgpu_gr_ctx_set_size(g->gr.gr_ctx_desc,
+		nvgpu_gr_ctx_set_size(gr_ctx_desc,
 			NVGPU_GR_CTX_BETACB_CTXSW, attrib_cb_size);
-		nvgpu_gr_ctx_set_size(g->gr.gr_ctx_desc,
+		nvgpu_gr_ctx_set_size(gr_ctx_desc,
 			NVGPU_GR_CTX_PAGEPOOL_CTXSW, pagepool_size);
 
 		if (g->ops.gr.init.get_gfxp_rtv_cb_size != NULL) {
 			rtv_cb_size = g->ops.gr.init.get_gfxp_rtv_cb_size(g);
-			nvgpu_gr_ctx_set_size(g->gr.gr_ctx_desc,
+			nvgpu_gr_ctx_set_size(gr_ctx_desc,
 				NVGPU_GR_CTX_GFXP_RTVCB_CTXSW, rtv_cb_size);
 		}
 
 		err = nvgpu_gr_ctx_alloc_ctxsw_buffers(g, gr_ctx,
-			g->gr.gr_ctx_desc, vm);
+			gr_ctx_desc, vm);
 		if (err != 0) {
 			nvgpu_err(g, "cannot allocate ctxsw buffers");
 			goto fail;
@@ -202,7 +205,8 @@ fail:
 }
 
 void nvgpu_gr_obj_ctx_update_ctxsw_preemption_mode(struct gk20a *g,
-		struct nvgpu_gr_ctx *gr_ctx, struct nvgpu_gr_subctx *subctx)
+	struct nvgpu_gr_config *config,
+	struct nvgpu_gr_ctx *gr_ctx, struct nvgpu_gr_subctx *subctx)
 {
 	int err;
 	u64 addr;
@@ -237,8 +241,8 @@ void nvgpu_gr_obj_ctx_update_ctxsw_preemption_mode(struct gk20a *g,
 
 	addr = nvgpu_gr_ctx_get_betacb_ctxsw_buffer(gr_ctx)->gpu_va;
 	g->ops.gr.init.commit_global_attrib_cb(g, gr_ctx,
-		nvgpu_gr_config_get_tpc_count(g->gr.config),
-		nvgpu_gr_config_get_max_tpc_count(g->gr.config), addr,
+		nvgpu_gr_config_get_tpc_count(config),
+		nvgpu_gr_config_get_max_tpc_count(config), addr,
 		true);
 
 	mem = nvgpu_gr_ctx_get_pagepool_ctxsw_buffer(gr_ctx);
@@ -274,9 +278,9 @@ out:
 }
 
 int nvgpu_gr_obj_ctx_commit_global_ctx_buffers(struct gk20a *g,
-			struct nvgpu_gr_ctx *gr_ctx, bool patch)
+	struct nvgpu_gr_global_ctx_buffer_desc *global_ctx_buffer,
+	struct nvgpu_gr_config *config,	struct nvgpu_gr_ctx *gr_ctx, bool patch)
 {
-	struct gr_gk20a *gr = &g->gr;
 	u64 addr;
 	u32 size;
 
@@ -292,7 +296,7 @@ int nvgpu_gr_obj_ctx_commit_global_ctx_buffers(struct gk20a *g,
 
 	/* global pagepool buffer */
 	addr = nvgpu_gr_ctx_get_global_ctx_va(gr_ctx, NVGPU_GR_CTX_PAGEPOOL_VA);
-	size = (u32)nvgpu_gr_global_ctx_get_size(gr->global_ctx_buffer,
+	size = (u32)nvgpu_gr_global_ctx_get_size(global_ctx_buffer,
 			NVGPU_GR_GLOBAL_CTX_PAGEPOOL);
 
 	g->ops.gr.init.commit_global_pagepool(g, gr_ctx, addr, size, patch,
@@ -309,10 +313,10 @@ int nvgpu_gr_obj_ctx_commit_global_ctx_buffers(struct gk20a *g,
 			NVGPU_GR_CTX_ATTRIBUTE_VA);
 
 	g->ops.gr.init.commit_global_attrib_cb(g, gr_ctx,
-		nvgpu_gr_config_get_tpc_count(g->gr.config),
-		nvgpu_gr_config_get_max_tpc_count(g->gr.config), addr, patch);
+		nvgpu_gr_config_get_tpc_count(config),
+		nvgpu_gr_config_get_max_tpc_count(config), addr, patch);
 
-	g->ops.gr.init.commit_global_cb_manager(g, g->gr.config, gr_ctx, patch);
+	g->ops.gr.init.commit_global_cb_manager(g, config, gr_ctx, patch);
 
 	if (g->ops.gr.init.commit_rtv_cb != NULL) {
 		/* RTV circular buffer */
@@ -383,6 +387,8 @@ error:
  */
 int nvgpu_gr_obj_ctx_alloc_golden_ctx_image(struct gk20a *g,
 	struct nvgpu_gr_obj_ctx_golden_image *golden_image,
+	struct nvgpu_gr_global_ctx_buffer_desc *global_ctx_buffer,
+	struct nvgpu_gr_config *config,
 	struct nvgpu_gr_ctx *gr_ctx,
 	struct nvgpu_mem *inst_block)
 {
@@ -455,7 +461,8 @@ int nvgpu_gr_obj_ctx_alloc_golden_ctx_image(struct gk20a *g,
 	/* disable fe_go_idle */
 	g->ops.gr.init.fe_go_idle_timeout(g, false);
 
-	err = nvgpu_gr_obj_ctx_commit_global_ctx_buffers(g, gr_ctx, false);
+	err = nvgpu_gr_obj_ctx_commit_global_ctx_buffers(g, global_ctx_buffer,
+		config, gr_ctx, false);
 	if (err != 0) {
 		goto clean_up;
 	}
@@ -464,7 +471,7 @@ int nvgpu_gr_obj_ctx_alloc_golden_ctx_image(struct gk20a *g,
 	g->ops.gr.init.commit_global_timeslice(g);
 
 	/* floorsweep anything left */
-	err = nvgpu_gr_fs_state_init(g);
+	err = nvgpu_gr_fs_state_init(g, config);
 	if (err != 0) {
 		goto clean_up;
 	}
@@ -533,18 +540,19 @@ clean_up:
 }
 
 static int nvgpu_gr_obj_ctx_gr_ctx_alloc(struct gk20a *g,
-	struct nvgpu_gr_ctx *gr_ctx, struct vm_gk20a *vm)
+	struct nvgpu_gr_obj_ctx_golden_image *golden_image,
+	struct nvgpu_gr_ctx_desc *gr_ctx_desc, struct nvgpu_gr_ctx *gr_ctx,
+	struct vm_gk20a *vm)
 {
-	struct gr_gk20a *gr = &g->gr;
 	u32 size;
 	int err = 0;
 
 	nvgpu_log_fn(g, " ");
 
-	size = nvgpu_gr_obj_ctx_get_golden_image_size(g->gr.golden_image);
-	nvgpu_gr_ctx_set_size(gr->gr_ctx_desc, NVGPU_GR_CTX_CTX, size);
+	size = nvgpu_gr_obj_ctx_get_golden_image_size(golden_image);
+	nvgpu_gr_ctx_set_size(gr_ctx_desc, NVGPU_GR_CTX_CTX, size);
 
-	err = nvgpu_gr_ctx_alloc(g, gr_ctx, gr->gr_ctx_desc, vm);
+	err = nvgpu_gr_ctx_alloc(g, gr_ctx, gr_ctx_desc, vm);
 	if (err != 0) {
 		return err;
 	}
@@ -555,6 +563,8 @@ static int nvgpu_gr_obj_ctx_gr_ctx_alloc(struct gk20a *g,
 int nvgpu_gr_obj_ctx_alloc(struct gk20a *g,
 	struct nvgpu_gr_obj_ctx_golden_image *golden_image,
 	struct nvgpu_gr_global_ctx_buffer_desc *global_ctx_buffer,
+	struct nvgpu_gr_ctx_desc *gr_ctx_desc,
+	struct nvgpu_gr_config *config,
 	struct nvgpu_gr_ctx *gr_ctx,
 	struct nvgpu_gr_subctx *subctx,
 	struct vm_gk20a *vm,
@@ -566,7 +576,8 @@ int nvgpu_gr_obj_ctx_alloc(struct gk20a *g,
 
 	nvgpu_log_fn(g, " ");
 
-	err = nvgpu_gr_obj_ctx_gr_ctx_alloc(g, gr_ctx, vm);
+	err = nvgpu_gr_obj_ctx_gr_ctx_alloc(g, golden_image, gr_ctx_desc,
+		gr_ctx, vm);
 	if (err != 0) {
 		nvgpu_err(g,
 			"fail to allocate TSG gr ctx buffer");
@@ -577,13 +588,12 @@ int nvgpu_gr_obj_ctx_alloc(struct gk20a *g,
 	if (!nvgpu_mem_is_valid(nvgpu_gr_ctx_get_patch_ctx_mem(gr_ctx))) {
 		nvgpu_gr_ctx_set_patch_ctx_data_count(gr_ctx, 0);
 
-		nvgpu_gr_ctx_set_size(g->gr.gr_ctx_desc,
+		nvgpu_gr_ctx_set_size(gr_ctx_desc,
 			NVGPU_GR_CTX_PATCH_CTX,
 			g->ops.gr.get_patch_slots(g) *
 				PATCH_CTX_SLOTS_REQUIRED_PER_ENTRY);
 
-		err = nvgpu_gr_ctx_alloc_patch_ctx(g, gr_ctx,
-			g->gr.gr_ctx_desc, vm);
+		err = nvgpu_gr_ctx_alloc_patch_ctx(g, gr_ctx, gr_ctx_desc, vm);
 		if (err != 0) {
 			nvgpu_err(g,
 				"fail to allocate patch buffer");
@@ -591,8 +601,8 @@ int nvgpu_gr_obj_ctx_alloc(struct gk20a *g,
 		}
 	}
 
-	nvgpu_gr_obj_ctx_init_ctxsw_preemption_mode(g, gr_ctx, vm, class_num,
-		flags);
+	nvgpu_gr_obj_ctx_init_ctxsw_preemption_mode(g, config, gr_ctx_desc,
+		gr_ctx, vm, class_num, flags);
 
 	/* map global buffer to channel gpu_va and commit */
 	err = nvgpu_gr_ctx_map_global_ctx_buffers(g, gr_ctx,
@@ -603,7 +613,8 @@ int nvgpu_gr_obj_ctx_alloc(struct gk20a *g,
 		goto out;
 	}
 
-	err = nvgpu_gr_obj_ctx_commit_global_ctx_buffers(g, gr_ctx, true);
+	err = nvgpu_gr_obj_ctx_commit_global_ctx_buffers(g, global_ctx_buffer,
+			config, gr_ctx, true);
 	if (err != 0) {
 		goto out;
 	}
@@ -613,8 +624,8 @@ int nvgpu_gr_obj_ctx_alloc(struct gk20a *g,
 			nvgpu_gr_ctx_get_ctx_mem(gr_ctx)->gpu_va);
 
 	/* init golden image, ELPG enabled after this is done */
-	err = nvgpu_gr_obj_ctx_alloc_golden_ctx_image(g, golden_image, gr_ctx,
-		inst_block);
+	err = nvgpu_gr_obj_ctx_alloc_golden_ctx_image(g, golden_image,
+		global_ctx_buffer, config, gr_ctx, inst_block);
 	if (err != 0) {
 		nvgpu_err(g,
 			"fail to init golden ctx image");
@@ -630,7 +641,8 @@ int nvgpu_gr_obj_ctx_alloc(struct gk20a *g,
 		goto out;
 	}
 
-	nvgpu_gr_obj_ctx_update_ctxsw_preemption_mode(g, gr_ctx, subctx);
+	nvgpu_gr_obj_ctx_update_ctxsw_preemption_mode(g, config, gr_ctx,
+		subctx);
 
 	nvgpu_log_fn(g, "done");
 	return 0;

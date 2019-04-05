@@ -24,7 +24,8 @@
 #define NVGPU_GR_FS_STATE_H
 
 struct gk20a;
+struct nvgpu_gr_config;
 
-int nvgpu_gr_fs_state_init(struct gk20a *g);
+int nvgpu_gr_fs_state_init(struct gk20a *g, struct nvgpu_gr_config *config);
 
 #endif /* NVGPU_GR_FS_STATE_H */

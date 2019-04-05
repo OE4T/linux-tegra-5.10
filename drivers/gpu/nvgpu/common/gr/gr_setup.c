@@ -129,7 +129,8 @@ int nvgpu_gr_setup_alloc_obj_ctx(struct channel_gk20a *c, u32 class_num,
 		nvgpu_vm_get(tsg->vm);
 
 		err = nvgpu_gr_obj_ctx_alloc(g, g->gr.golden_image,
-				g->gr.global_ctx_buffer, gr_ctx, c->subctx,
+				g->gr.global_ctx_buffer, g->gr.gr_ctx_desc,
+				g->gr.config, gr_ctx, c->subctx,
 				tsg->vm, &c->inst_block, class_num, flags,
 				c->cde, c->vpr);
 		if (err != 0) {
@@ -250,8 +251,9 @@ int nvgpu_gr_setup_set_preemption_mode(struct channel_gk20a *ch,
 			ch->tgid,
 			graphics_preempt_mode,
 			compute_preempt_mode);
-	err = nvgpu_gr_obj_ctx_set_ctxsw_preemption_mode(g, gr_ctx, vm, class,
-					graphics_preempt_mode, compute_preempt_mode);
+	err = nvgpu_gr_obj_ctx_set_ctxsw_preemption_mode(g, g->gr.config,
+			g->gr.gr_ctx_desc, gr_ctx, vm, class,
+			graphics_preempt_mode, compute_preempt_mode);
 	if (err != 0) {
 		nvgpu_err(g, "set_ctxsw_preemption_mode failed");
 		return err;
@@ -267,7 +269,8 @@ int nvgpu_gr_setup_set_preemption_mode(struct channel_gk20a *ch,
 		goto enable_ch;
 	}
 
-	nvgpu_gr_obj_ctx_update_ctxsw_preemption_mode(ch->g, gr_ctx, ch->subctx);
+	nvgpu_gr_obj_ctx_update_ctxsw_preemption_mode(g, g->gr.config, gr_ctx,
+		ch->subctx);
 
 	err = nvgpu_gr_ctx_patch_write_begin(g, gr_ctx, true);
 	if (err != 0) {
