@@ -686,7 +686,7 @@ int nvgpu_tsg_open_common(struct gk20a *g, struct tsg_gk20a *tsg, pid_t pid)
 	tsg->timeslice_scale = 0U;
 	tsg->runlist_id = FIFO_INVAL_TSG_ID;
 	tsg->sm_exception_mask_type = NVGPU_SM_EXCEPTION_TYPE_MASK_NONE;
-	tsg->gr_ctx = nvgpu_kzalloc(g, sizeof(*tsg->gr_ctx));
+	tsg->gr_ctx = nvgpu_alloc_gr_ctx_struct(g);
 	if (tsg->gr_ctx == NULL) {
 		err = -ENOMEM;
 		goto clean_up;
@@ -742,7 +742,7 @@ void nvgpu_tsg_release_common(struct gk20a *g, struct tsg_gk20a *tsg)
 		g->ops.tsg.release(tsg);
 	}
 
-	nvgpu_kfree(g, tsg->gr_ctx);
+	nvgpu_free_gr_ctx_struct(g, tsg->gr_ctx);
 	tsg->gr_ctx = NULL;
 
 	if (g->ops.tsg.deinit_eng_method_buffers != NULL) {
@@ -773,7 +773,8 @@ void nvgpu_tsg_release(struct nvgpu_ref *ref)
 	struct gk20a *g = tsg->g;
 	struct gk20a_event_id_data *event_id_data, *event_id_data_temp;
 
-	if (tsg->gr_ctx != NULL && nvgpu_mem_is_valid(&tsg->gr_ctx->mem) &&
+	if (tsg->gr_ctx != NULL && nvgpu_mem_is_valid(
+			nvgpu_gr_ctx_get_ctx_mem(tsg->gr_ctx)) &&
 			tsg->vm != NULL) {
 		g->ops.gr.setup.free_gr_ctx(g, tsg->vm, tsg->gr_ctx);
 	}

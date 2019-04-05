@@ -2331,7 +2331,7 @@ int __gr_gk20a_exec_ctx_ops(struct channel_gk20a *ch,
 				if (!gr_ctx_ready) {
 					gr_ctx_ready = true;
 				}
-				current_mem = &gr_ctx->mem;
+				current_mem = nvgpu_gr_ctx_get_ctx_mem(gr_ctx);
 			} else {
 				err = gr_gk20a_get_pm_ctx_buffer_offsets(g,
 							ctx_ops[i].offset,
@@ -2348,7 +2348,7 @@ int __gr_gk20a_exec_ctx_ops(struct channel_gk20a *ch,
 				}
 				if (!pm_ctx_ready) {
 					/* Make sure ctx buffer was initialized */
-					if (!nvgpu_mem_is_valid(&gr_ctx->pm_ctx.mem)) {
+					if (!nvgpu_mem_is_valid(nvgpu_gr_ctx_get_pm_ctx_mem(gr_ctx))) {
 						nvgpu_err(g,
 							"Invalid ctx buffer");
 						err = -EINVAL;
@@ -2356,7 +2356,7 @@ int __gr_gk20a_exec_ctx_ops(struct channel_gk20a *ch,
 					}
 					pm_ctx_ready = true;
 				}
-				current_mem = &gr_ctx->pm_ctx.mem;
+				current_mem = nvgpu_gr_ctx_get_pm_ctx_mem(gr_ctx);
 			}
 
 			/* if this is a quad access, setup for special access*/
@@ -2370,7 +2370,7 @@ int __gr_gk20a_exec_ctx_ops(struct channel_gk20a *ch,
 				/* sanity check gr ctxt offsets,
 				 * don't write outside, worst case
 				 */
-				if ((current_mem == &gr_ctx->mem) &&
+				if ((current_mem == nvgpu_gr_ctx_get_ctx_mem(gr_ctx)) &&
 					(offsets[j] >= g->gr.ctx_vars.golden_image_size)) {
 					continue;
 				}
@@ -2395,7 +2395,7 @@ int __gr_gk20a_exec_ctx_ops(struct channel_gk20a *ch,
 							   offsets[j] + 4U, v);
 					}
 
-					if (current_mem == &gr_ctx->mem) {
+					if (current_mem == nvgpu_gr_ctx_get_ctx_mem(gr_ctx)) {
 						/* check to see if we need to add a special WAR
 						   for some of the SMPC perf regs */
 						gr_gk20a_ctx_patch_smpc(g, ch,
@@ -2430,7 +2430,7 @@ int __gr_gk20a_exec_ctx_ops(struct channel_gk20a *ch,
 		nvgpu_kfree(g, offsets);
 	}
 
-	if (gr_ctx->patch_ctx.mem.cpu_va != NULL) {
+	if (nvgpu_gr_ctx_get_patch_ctx_mem(gr_ctx)->cpu_va != NULL) {
 		nvgpu_gr_ctx_patch_write_end(g, gr_ctx, gr_ctx_ready);
 	}
 

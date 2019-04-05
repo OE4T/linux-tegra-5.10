@@ -244,10 +244,10 @@ int vgpu_gr_alloc_obj_ctx(struct channel_gk20a  *c, u32 class_num, u32 flags)
 
 	gr_ctx = tsg->gr_ctx;
 
-	if (!nvgpu_mem_is_valid(&gr_ctx->mem)) {
+	if (!nvgpu_mem_is_valid(nvgpu_gr_ctx_get_ctx_mem(gr_ctx))) {
 		tsg->vm = c->vm;
 		nvgpu_vm_get(tsg->vm);
-		gr_ctx->tsgid = tsg->tsgid;
+		nvgpu_gr_ctx_set_tsgid(gr_ctx, tsg->tsgid);
 		err = vgpu_gr_alloc_gr_ctx(g, gr_ctx, c->vm);
 		if (err) {
 			nvgpu_err(g,
@@ -286,7 +286,8 @@ int vgpu_gr_alloc_obj_ctx(struct channel_gk20a  *c, u32 class_num, u32 flags)
 		}
 
 		/* commit gr ctx buffer */
-		err = vgpu_gr_commit_inst(c, gr_ctx->mem.gpu_va);
+		err = vgpu_gr_commit_inst(c,
+				nvgpu_gr_ctx_get_ctx_mem(gr_ctx)->gpu_va);
 		if (err) {
 			nvgpu_err(g, "fail to commit gr ctx buffer");
 			goto out;
@@ -301,7 +302,8 @@ int vgpu_gr_alloc_obj_ctx(struct channel_gk20a  *c, u32 class_num, u32 flags)
 		}
 	} else {
 		/* commit gr ctx buffer */
-		err = vgpu_gr_commit_inst(c, gr_ctx->mem.gpu_va);
+		err = vgpu_gr_commit_inst(c,
+				nvgpu_gr_ctx_get_ctx_mem(gr_ctx)->gpu_va);
 		if (err) {
 			nvgpu_err(g, "fail to commit gr ctx buffer");
 			goto out;
@@ -318,7 +320,8 @@ int vgpu_gr_alloc_obj_ctx(struct channel_gk20a  *c, u32 class_num, u32 flags)
 	}
 
 	/* PM ctxt switch is off by default */
-	gr_ctx->pm_ctx.pm_mode = g->ops.gr.ctxsw_prog.hw_get_pm_mode_no_ctxsw();
+	nvgpu_gr_ctx_set_pm_ctx_pm_mode(gr_ctx,
+		g->ops.gr.ctxsw_prog.hw_get_pm_mode_no_ctxsw());
 
 	nvgpu_log_fn(g, "done");
 	return 0;
@@ -868,8 +871,7 @@ int vgpu_gr_update_hwpm_ctxsw_mode(struct gk20a *g,
 	struct channel_gk20a *ch, u64 gpu_va, u32 mode)
 {
 	struct tsg_gk20a *tsg;
-	struct nvgpu_gr_ctx *ch_ctx;
-	struct pm_ctx_desc *pm_ctx;
+	struct nvgpu_gr_ctx *gr_ctx;
 	struct tegra_vgpu_cmd_msg msg;
 	struct tegra_vgpu_channel_set_ctxsw_mode *p = &msg.params.set_ctxsw_mode;
 	int err;
@@ -886,8 +888,7 @@ int vgpu_gr_update_hwpm_ctxsw_mode(struct gk20a *g,
 		return -EINVAL;
 	}
 
-	ch_ctx = tsg->gr_ctx;
-	pm_ctx = &ch_ctx->pm_ctx;
+	gr_ctx = tsg->gr_ctx;
 
 	if (mode == NVGPU_GR_CTX_HWPM_CTXSW_MODE_CTXSW) {
 		/*
@@ -895,20 +896,20 @@ int vgpu_gr_update_hwpm_ctxsw_mode(struct gk20a *g,
 		 * will return an error due to using the same GPU VA twice.
 		 */
 
-		if (pm_ctx->pm_mode ==
+		if (nvgpu_gr_ctx_get_pm_ctx_pm_mode(gr_ctx) ==
 				g->ops.gr.ctxsw_prog.hw_get_pm_mode_ctxsw()) {
 			return 0;
 		}
 		p->mode = TEGRA_VGPU_CTXSW_MODE_CTXSW;
 	} else if (mode == NVGPU_GR_CTX_HWPM_CTXSW_MODE_NO_CTXSW) {
-		if (pm_ctx->pm_mode ==
+		if (nvgpu_gr_ctx_get_pm_ctx_pm_mode(gr_ctx) ==
 				g->ops.gr.ctxsw_prog.hw_get_pm_mode_no_ctxsw()) {
 			return 0;
 		}
 		p->mode = TEGRA_VGPU_CTXSW_MODE_NO_CTXSW;
 	} else if ((mode == NVGPU_GR_CTX_HWPM_CTXSW_MODE_STREAM_OUT_CTXSW) &&
 			g->ops.gr.ctxsw_prog.hw_get_pm_mode_stream_out_ctxsw()) {
-		if (pm_ctx->pm_mode ==
+		if (nvgpu_gr_ctx_get_pm_ctx_pm_mode(gr_ctx) ==
 				g->ops.gr.ctxsw_prog.hw_get_pm_mode_stream_out_ctxsw()) {
 			return 0;
 		}
@@ -926,27 +927,28 @@ int vgpu_gr_update_hwpm_ctxsw_mode(struct gk20a *g,
 				"failed to allocate pm ctxt buffer");
 			return err;
 		}
-		pm_ctx->mem.size = g->gr.ctx_vars.pm_ctxsw_image_size;
+		nvgpu_gr_ctx_get_pm_ctx_mem(gr_ctx)->size =
+			g->gr.ctx_vars.pm_ctxsw_image_size;
 	}
 
 	msg.cmd = TEGRA_VGPU_CMD_CHANNEL_SET_HWPM_CTXSW_MODE;
 	msg.handle = vgpu_get_handle(g);
 	p->handle = ch->virt_ctx;
-	p->gpu_va = pm_ctx->mem.gpu_va;
+	p->gpu_va = nvgpu_gr_ctx_get_pm_ctx_mem(gr_ctx)->gpu_va;
 
 	err = vgpu_comm_sendrecv(&msg, sizeof(msg), sizeof(msg));
 	WARN_ON(err || msg.ret);
 	err = err ? err : msg.ret;
 	if (!err) {
 		if (mode == NVGPU_GR_CTX_HWPM_CTXSW_MODE_CTXSW) {
-			pm_ctx->pm_mode =
-				g->ops.gr.ctxsw_prog.hw_get_pm_mode_ctxsw();
+			nvgpu_gr_ctx_set_pm_ctx_pm_mode(gr_ctx,
+				g->ops.gr.ctxsw_prog.hw_get_pm_mode_ctxsw());
 		} else if (mode == NVGPU_GR_CTX_HWPM_CTXSW_MODE_NO_CTXSW) {
-			pm_ctx->pm_mode =
-				g->ops.gr.ctxsw_prog.hw_get_pm_mode_no_ctxsw();
+			nvgpu_gr_ctx_set_pm_ctx_pm_mode(gr_ctx,
+				g->ops.gr.ctxsw_prog.hw_get_pm_mode_no_ctxsw());
 		} else {
-			pm_ctx->pm_mode =
-				g->ops.gr.ctxsw_prog.hw_get_pm_mode_stream_out_ctxsw();
+			nvgpu_gr_ctx_set_pm_ctx_pm_mode(gr_ctx,
+				g->ops.gr.ctxsw_prog.hw_get_pm_mode_stream_out_ctxsw());
 		}
 	}
 
@@ -1335,30 +1337,32 @@ static int vgpu_gr_set_ctxsw_preemption_mode(struct gk20a *g,
 			goto fail;
 		}
 
-		desc = &gr_ctx->preempt_ctxsw_buffer;
+		desc = nvgpu_gr_ctx_get_preempt_ctxsw_buffer(gr_ctx);
 		p->gpu_va[TEGRA_VGPU_GR_BIND_CTXSW_BUFFER_MAIN] = desc->gpu_va;
 		p->size[TEGRA_VGPU_GR_BIND_CTXSW_BUFFER_MAIN] = desc->size;
 
-		desc = &gr_ctx->spill_ctxsw_buffer;
+		desc = nvgpu_gr_ctx_get_spill_ctxsw_buffer(gr_ctx);
 		p->gpu_va[TEGRA_VGPU_GR_BIND_CTXSW_BUFFER_SPILL] = desc->gpu_va;
 		p->size[TEGRA_VGPU_GR_BIND_CTXSW_BUFFER_SPILL] = desc->size;
 
-		desc = &gr_ctx->pagepool_ctxsw_buffer;
+		desc = nvgpu_gr_ctx_get_pagepool_ctxsw_buffer(gr_ctx);
 		p->gpu_va[TEGRA_VGPU_GR_BIND_CTXSW_BUFFER_PAGEPOOL] =
 			desc->gpu_va;
 		p->size[TEGRA_VGPU_GR_BIND_CTXSW_BUFFER_PAGEPOOL] = desc->size;
 
-		desc = &gr_ctx->betacb_ctxsw_buffer;
+		desc = nvgpu_gr_ctx_get_betacb_ctxsw_buffer(gr_ctx);
 		p->gpu_va[TEGRA_VGPU_GR_BIND_CTXSW_BUFFER_BETACB] =
 			desc->gpu_va;
 		p->size[TEGRA_VGPU_GR_BIND_CTXSW_BUFFER_BETACB] = desc->size;
 
-		gr_ctx->graphics_preempt_mode = NVGPU_PREEMPTION_MODE_GRAPHICS_GFXP;
+		nvgpu_gr_ctx_init_graphics_preemption_mode(gr_ctx,
+			NVGPU_PREEMPTION_MODE_GRAPHICS_GFXP);
 		p->mode = TEGRA_VGPU_GR_CTXSW_PREEMPTION_MODE_GFX_GFXP;
 		break;
 	}
 	case NVGPU_PREEMPTION_MODE_GRAPHICS_WFI:
-		gr_ctx->graphics_preempt_mode = graphics_preempt_mode;
+		nvgpu_gr_ctx_init_graphics_preemption_mode(gr_ctx,
+			graphics_preempt_mode);
 		break;
 
 	default:
@@ -1368,19 +1372,19 @@ static int vgpu_gr_set_ctxsw_preemption_mode(struct gk20a *g,
 	if (g->ops.gr.is_valid_compute_class(g, class)) {
 		switch (compute_preempt_mode) {
 		case NVGPU_PREEMPTION_MODE_COMPUTE_WFI:
-			gr_ctx->compute_preempt_mode =
-				NVGPU_PREEMPTION_MODE_COMPUTE_WFI;
+			nvgpu_gr_ctx_init_compute_preemption_mode(gr_ctx,
+				NVGPU_PREEMPTION_MODE_COMPUTE_WFI);
 			p->mode = TEGRA_VGPU_GR_CTXSW_PREEMPTION_MODE_WFI;
 			break;
 		case NVGPU_PREEMPTION_MODE_COMPUTE_CTA:
-			gr_ctx->compute_preempt_mode =
-				NVGPU_PREEMPTION_MODE_COMPUTE_CTA;
+			nvgpu_gr_ctx_init_compute_preemption_mode(gr_ctx,
+				NVGPU_PREEMPTION_MODE_COMPUTE_CTA);
 			p->mode =
 				TEGRA_VGPU_GR_CTXSW_PREEMPTION_MODE_COMPUTE_CTA;
 			break;
 		case NVGPU_PREEMPTION_MODE_COMPUTE_CILP:
-			gr_ctx->compute_preempt_mode =
-				NVGPU_PREEMPTION_MODE_COMPUTE_CILP;
+			nvgpu_gr_ctx_init_compute_preemption_mode(gr_ctx,
+				NVGPU_PREEMPTION_MODE_COMPUTE_CILP);
 			p->mode =
 				TEGRA_VGPU_GR_CTXSW_PREEMPTION_MODE_COMPUTE_CILP;
 			break;
@@ -1389,10 +1393,11 @@ static int vgpu_gr_set_ctxsw_preemption_mode(struct gk20a *g,
 		}
 	}
 
-	if (gr_ctx->graphics_preempt_mode || gr_ctx->compute_preempt_mode) {
+	if ((nvgpu_gr_ctx_get_graphics_preemption_mode(gr_ctx) != 0U) ||
+		(nvgpu_gr_ctx_get_compute_preemption_mode(gr_ctx) != 0U)) {
 		msg.cmd = TEGRA_VGPU_CMD_BIND_GR_CTXSW_BUFFERS;
 		msg.handle = vgpu_get_handle(g);
-		p->tsg_id = gr_ctx->tsgid;
+		p->tsg_id = nvgpu_gr_ctx_get_tsgid(gr_ctx);
 		err = vgpu_comm_sendrecv(&msg, sizeof(msg), sizeof(msg));
 		if (err || msg.ret) {
 			err = -ENOMEM;
@@ -1433,12 +1438,14 @@ int vgpu_gr_set_preemption_mode(struct channel_gk20a *ch,
 
 	/* skip setting anything if both modes are already set */
 	if (graphics_preempt_mode &&
-	   (graphics_preempt_mode == gr_ctx->graphics_preempt_mode)) {
+		(graphics_preempt_mode ==
+			nvgpu_gr_ctx_get_graphics_preemption_mode(gr_ctx))) {
 		graphics_preempt_mode = 0;
 	}
 
 	if (compute_preempt_mode &&
-	   (compute_preempt_mode == gr_ctx->compute_preempt_mode)) {
+	   (compute_preempt_mode ==
+			nvgpu_gr_ctx_get_compute_preemption_mode(gr_ctx))) {
 		compute_preempt_mode = 0;
 	}
 

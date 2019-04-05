@@ -73,6 +73,7 @@ void tu104_gr_init_commit_gfxp_rtv_cb(struct gk20a *g,
 	u64 addr_hi;
 	u32 rtv_cb_size;
 	u32 gfxp_addr_size;
+	struct nvgpu_mem *buf_mem;
 
 	nvgpu_log_fn(g, " ");
 
@@ -83,9 +84,10 @@ void tu104_gr_init_commit_gfxp_rtv_cb(struct gk20a *g,
 	gfxp_addr_size = gr_scc_rm_rtv_cb_size_div_256b_gfxp_adder_f();
 
 	/* GFXP RTV circular buffer */
-	addr_lo = (u64)(u64_lo32(gr_ctx->gfxp_rtvcb_ctxsw_buffer.gpu_va) >>
-	       gr_scc_rm_rtv_cb_base_addr_39_8_align_bits_f());
-	addr_hi = (u64)(u64_hi32(gr_ctx->gfxp_rtvcb_ctxsw_buffer.gpu_va));
+	buf_mem = nvgpu_gr_ctx_get_gfxp_rtvcb_ctxsw_buffer(gr_ctx);
+	addr_lo = (u64)(u64_lo32(buf_mem->gpu_va) >>
+			gr_scc_rm_rtv_cb_base_addr_39_8_align_bits_f());
+	addr_hi = (u64)(buf_mem->gpu_va);
 	addr = addr_lo |
 	       (addr_hi <<
 	       (32U - gr_scc_rm_rtv_cb_base_addr_39_8_align_bits_f()));

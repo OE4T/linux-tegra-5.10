@@ -28,6 +28,8 @@
 #include <nvgpu/gmmu.h>
 #include <nvgpu/dma.h>
 
+#include "common/gr/ctx_priv.h"
+
 static void nvgpu_gr_ctx_unmap_global_ctx_buffers(struct gk20a *g,
 	struct nvgpu_gr_ctx *gr_ctx,
 	struct nvgpu_gr_global_ctx_buffer_desc *global_ctx_buffer,
@@ -50,6 +52,16 @@ void nvgpu_gr_ctx_set_size(struct nvgpu_gr_ctx_desc *gr_ctx_desc,
 	enum nvgpu_gr_ctx_index index, u32 size)
 {
 	gr_ctx_desc->size[index] = size;
+}
+
+struct nvgpu_gr_ctx *nvgpu_alloc_gr_ctx_struct(struct gk20a *g)
+{
+	return nvgpu_kzalloc(g, sizeof(struct nvgpu_gr_ctx));
+}
+
+void nvgpu_free_gr_ctx_struct(struct gk20a *g, struct nvgpu_gr_ctx *gr_ctx)
+{
+	nvgpu_kfree(g, gr_ctx);
 }
 
 int nvgpu_gr_ctx_alloc(struct gk20a *g,
@@ -464,6 +476,72 @@ u64 nvgpu_gr_ctx_get_global_ctx_va(struct nvgpu_gr_ctx *gr_ctx,
 	return gr_ctx->global_ctx_buffer_va[index];
 }
 
+struct nvgpu_mem *nvgpu_gr_ctx_get_patch_ctx_mem(struct nvgpu_gr_ctx *gr_ctx)
+{
+	return &gr_ctx->patch_ctx.mem;
+}
+
+void nvgpu_gr_ctx_set_patch_ctx_data_count(struct nvgpu_gr_ctx *gr_ctx,
+	u32 data_count)
+{
+	gr_ctx->patch_ctx.data_count = data_count;
+}
+
+struct nvgpu_mem *nvgpu_gr_ctx_get_pm_ctx_mem(struct nvgpu_gr_ctx *gr_ctx)
+{
+	return &gr_ctx->pm_ctx.mem;
+}
+
+void nvgpu_gr_ctx_set_pm_ctx_pm_mode(struct nvgpu_gr_ctx *gr_ctx, u32 pm_mode)
+{
+	gr_ctx->pm_ctx.pm_mode = pm_mode;
+}
+
+u32 nvgpu_gr_ctx_get_pm_ctx_pm_mode(struct nvgpu_gr_ctx *gr_ctx)
+{
+	return gr_ctx->pm_ctx.pm_mode;
+}
+
+u64 nvgpu_gr_ctx_get_zcull_ctx_va(struct nvgpu_gr_ctx *gr_ctx)
+{
+	return gr_ctx->zcull_ctx.gpu_va;
+}
+
+struct nvgpu_mem *nvgpu_gr_ctx_get_preempt_ctxsw_buffer(
+	struct nvgpu_gr_ctx *gr_ctx)
+{
+	return &gr_ctx->preempt_ctxsw_buffer;
+}
+
+struct nvgpu_mem *nvgpu_gr_ctx_get_spill_ctxsw_buffer(
+	struct nvgpu_gr_ctx *gr_ctx)
+{
+	return &gr_ctx->spill_ctxsw_buffer;
+}
+
+struct nvgpu_mem *nvgpu_gr_ctx_get_betacb_ctxsw_buffer(
+	struct nvgpu_gr_ctx *gr_ctx)
+{
+	return &gr_ctx->betacb_ctxsw_buffer;
+}
+
+struct nvgpu_mem *nvgpu_gr_ctx_get_pagepool_ctxsw_buffer(
+	struct nvgpu_gr_ctx *gr_ctx)
+{
+	return &gr_ctx->pagepool_ctxsw_buffer;
+}
+
+struct nvgpu_mem *nvgpu_gr_ctx_get_gfxp_rtvcb_ctxsw_buffer(
+	struct nvgpu_gr_ctx *gr_ctx)
+{
+	return &gr_ctx->gfxp_rtvcb_ctxsw_buffer;
+}
+
+struct nvgpu_mem *nvgpu_gr_ctx_get_ctx_mem(struct nvgpu_gr_ctx *gr_ctx)
+{
+	return &gr_ctx->mem;
+}
+
 /* load saved fresh copy of gloden image into channel gr_ctx */
 int nvgpu_gr_ctx_load_golden_ctx_image(struct gk20a *g,
 	struct nvgpu_gr_ctx *gr_ctx,
@@ -772,10 +850,20 @@ void nvgpu_gr_ctx_init_compute_preemption_mode(struct nvgpu_gr_ctx *gr_ctx,
 	gr_ctx->compute_preempt_mode = compute_preempt_mode;
 }
 
+u32 nvgpu_gr_ctx_get_compute_preemption_mode(struct nvgpu_gr_ctx *gr_ctx)
+{
+	return gr_ctx->compute_preempt_mode;
+}
+
 void nvgpu_gr_ctx_init_graphics_preemption_mode(struct nvgpu_gr_ctx *gr_ctx,
 	u32 graphics_preempt_mode)
 {
 	gr_ctx->graphics_preempt_mode = graphics_preempt_mode;
+}
+
+u32 nvgpu_gr_ctx_get_graphics_preemption_mode(struct nvgpu_gr_ctx *gr_ctx)
+{
+	return gr_ctx->graphics_preempt_mode;
 }
 
 bool nvgpu_gr_ctx_check_valid_preemption_mode(struct nvgpu_gr_ctx *gr_ctx,
@@ -836,3 +924,38 @@ void nvgpu_gr_ctx_set_preemption_buffer_va(struct gk20a *g,
 	}
 }
 
+void nvgpu_gr_ctx_set_tsgid(struct nvgpu_gr_ctx *gr_ctx, u32 tsgid)
+{
+	gr_ctx->tsgid = tsgid;
+}
+
+u32 nvgpu_gr_ctx_get_tsgid(struct nvgpu_gr_ctx *gr_ctx)
+{
+	return gr_ctx->tsgid;
+}
+
+bool nvgpu_gr_ctx_get_cilp_preempt_pending(struct nvgpu_gr_ctx *gr_ctx)
+{
+	return gr_ctx->cilp_preempt_pending;
+}
+
+void nvgpu_gr_ctx_set_cilp_preempt_pending(struct nvgpu_gr_ctx *gr_ctx,
+	bool cilp_preempt_pending)
+{
+	gr_ctx->cilp_preempt_pending = cilp_preempt_pending;
+}
+
+u32 nvgpu_gr_ctx_read_ctx_id(struct nvgpu_gr_ctx *gr_ctx)
+{
+	return gr_ctx->ctx_id;
+}
+
+void nvgpu_gr_ctx_set_boosted_ctx(struct nvgpu_gr_ctx *gr_ctx, bool boost)
+{
+	gr_ctx->boosted_ctx = boost;
+}
+
+bool nvgpu_gr_ctx_get_boosted_ctx(struct nvgpu_gr_ctx *gr_ctx)
+{
+	return gr_ctx->boosted_ctx;
+}

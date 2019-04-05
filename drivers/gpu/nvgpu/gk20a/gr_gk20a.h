@@ -57,6 +57,7 @@ struct nvgpu_gr_global_ctx_local_golden_image;
 struct nvgpu_gr_zbc;
 struct nvgpu_gr_hwpm_map;
 struct nvgpu_gr_isr_data;
+struct nvgpu_gr_ctx_desc;
 
 enum ctxsw_addr_type;
 

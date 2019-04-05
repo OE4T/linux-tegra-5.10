@@ -32,6 +32,8 @@
 #include <nvgpu/gr/global_ctx.h>
 #include <nvgpu/gr/ctx.h>
 
+#include "common/gr/ctx_priv.h"
+
 #include "ctx_vgpu.h"
 #include "common/vgpu/ivc/comm_vgpu.h"
 

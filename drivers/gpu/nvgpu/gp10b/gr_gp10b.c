@@ -717,7 +717,7 @@ int gr_gp10b_set_cilp_preempt_pending(struct gk20a *g,
 
 	gr_ctx = tsg->gr_ctx;
 
-	if (gr_ctx->cilp_preempt_pending) {
+	if (nvgpu_gr_ctx_get_cilp_preempt_pending(gr_ctx)) {
 		nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gpu_dbg | gpu_dbg_intr,
 				"CILP is already pending for chid %d",
 				fault_ch->chid);
@@ -725,7 +725,8 @@ int gr_gp10b_set_cilp_preempt_pending(struct gk20a *g,
 	}
 
 	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gpu_dbg | gpu_dbg_intr,
-			"CILP: ctx id is 0x%x", gr_ctx->ctx_id);
+		"CILP: ctx id is 0x%x",
+		nvgpu_gr_ctx_read_ctx_id(gr_ctx));
 
 	/* send ucode method to set ctxsw interrupt */
 	ret = g->ops.gr.falcon.ctrl_ctxsw(g,
@@ -750,7 +751,7 @@ int gr_gp10b_set_cilp_preempt_pending(struct gk20a *g,
 	}
 
 	/* set cilp_preempt_pending = true and record the channel */
-	gr_ctx->cilp_preempt_pending = true;
+	nvgpu_gr_ctx_set_cilp_preempt_pending(gr_ctx, true);
 	g->gr.cilp_preempt_pending_chid = fault_ch->chid;
 
 	g->ops.tsg.post_event_id(tsg, NVGPU_EVENT_ID_CILP_PREEMPTION_STARTED);
@@ -775,14 +776,14 @@ static int gr_gp10b_clear_cilp_preempt_pending(struct gk20a *g,
 
 	/* The ucode is self-clearing, so all we need to do here is
 	   to clear cilp_preempt_pending. */
-	if (!gr_ctx->cilp_preempt_pending) {
+	if (!nvgpu_gr_ctx_get_cilp_preempt_pending(gr_ctx)) {
 		nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gpu_dbg | gpu_dbg_intr,
 				"CILP is already cleared for chid %d\n",
 				fault_ch->chid);
 		return 0;
 	}
 
-	gr_ctx->cilp_preempt_pending = false;
+	nvgpu_gr_ctx_set_cilp_preempt_pending(gr_ctx, false);
 	g->gr.cilp_preempt_pending_chid = FIFO_INVAL_CHANNEL_ID;
 
 	return 0;
@@ -810,8 +811,9 @@ int gr_gp10b_pre_process_sm_exception(struct gk20a *g,
 			return -EINVAL;
 		}
 
-		cilp_enabled = (tsg->gr_ctx->compute_preempt_mode ==
-			NVGPU_PREEMPTION_MODE_COMPUTE_CILP);
+		cilp_enabled =
+			(nvgpu_gr_ctx_get_compute_preemption_mode(tsg->gr_ctx) ==
+				NVGPU_PREEMPTION_MODE_COMPUTE_CILP);
 	}
 
 	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gpu_dbg, "SM Exception received on gpc %d tpc %d = %u\n",
@@ -930,7 +932,7 @@ static int gr_gp10b_get_cilp_preempt_pending_chid(struct gk20a *g, u32 *__chid)
 
 	gr_ctx = tsg->gr_ctx;
 
-	if (gr_ctx->cilp_preempt_pending) {
+	if (nvgpu_gr_ctx_get_cilp_preempt_pending(gr_ctx)) {
 		*__chid = chid;
 		ret = 0;
 	}
@@ -1053,7 +1055,8 @@ bool gr_gp10b_suspend_context(struct channel_gk20a *ch,
 	if (gk20a_is_channel_ctx_resident(ch)) {
 		g->ops.gr.suspend_all_sms(g, 0, false);
 
-		if (gr_ctx->compute_preempt_mode == NVGPU_PREEMPTION_MODE_COMPUTE_CILP) {
+		if (nvgpu_gr_ctx_get_compute_preemption_mode(gr_ctx) ==
+			NVGPU_PREEMPTION_MODE_COMPUTE_CILP) {
 			err = gr_gp10b_set_cilp_preempt_pending(g, ch);
 			if (err != 0) {
 				nvgpu_err(g, "unable to set CILP preempt pending");
@@ -1140,7 +1143,7 @@ int gr_gp10b_suspend_contexts(struct gk20a *g,
 		nvgpu_timeout_init(g, &timeout, nvgpu_get_poll_timeout(g),
 				   NVGPU_TIMER_CPU_TIMER);
 		do {
-			if (!gr_ctx->cilp_preempt_pending) {
+			if (!nvgpu_gr_ctx_get_cilp_preempt_pending(gr_ctx)) {
 				break;
 			}
 
@@ -1149,7 +1152,7 @@ int gr_gp10b_suspend_contexts(struct gk20a *g,
 		} while (nvgpu_timeout_expired(&timeout) == 0);
 
 		/* If cilp is still pending at this point, timeout */
-		if (gr_ctx->cilp_preempt_pending) {
+		if (nvgpu_gr_ctx_get_cilp_preempt_pending(gr_ctx)) {
 			err = -ETIMEDOUT;
 		}
 	}
@@ -1175,8 +1178,8 @@ int gr_gp10b_set_boosted_ctx(struct channel_gk20a *ch,
 	}
 
 	gr_ctx = tsg->gr_ctx;
-	gr_ctx->boosted_ctx = boost;
-	mem = &gr_ctx->mem;
+	nvgpu_gr_ctx_set_boosted_ctx(gr_ctx, boost);
+	mem = nvgpu_gr_ctx_get_ctx_mem(gr_ctx);
 
 	err = gk20a_disable_channel_tsg(g, ch);
 	if (err != 0) {
@@ -1191,7 +1194,7 @@ int gr_gp10b_set_boosted_ctx(struct channel_gk20a *ch,
 	if (g->ops.gr.ctxsw_prog.set_pmu_options_boost_clock_frequencies !=
 			NULL) {
 		g->ops.gr.ctxsw_prog.set_pmu_options_boost_clock_frequencies(g,
-			mem, gr_ctx->boosted_ctx);
+			mem, nvgpu_gr_ctx_get_boosted_ctx(gr_ctx));
 	} else {
 		err = -ENOSYS;
 	}

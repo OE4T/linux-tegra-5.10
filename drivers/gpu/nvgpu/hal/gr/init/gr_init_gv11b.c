@@ -842,8 +842,9 @@ void gv11b_gr_init_commit_global_attrib_cb(struct gk20a *g,
 		(u64_hi32(addr) <<
 			(32U - gr_gpcs_setup_attrib_cb_base_addr_39_12_align_bits_v()));
 
-	if (gr_ctx->preempt_ctxsw_buffer.gpu_va != 0ULL) {
-		attrBufferSize = U32(gr_ctx->betacb_ctxsw_buffer.size);
+	if (nvgpu_gr_ctx_get_preempt_ctxsw_buffer(gr_ctx)->gpu_va != 0ULL) {
+		attrBufferSize =
+			U32(nvgpu_gr_ctx_get_betacb_ctxsw_buffer(gr_ctx)->size);
 	} else {
 		attrBufferSize = g->ops.gr.init.get_global_attr_cb_size(g,
 			tpc_count, max_tpc);

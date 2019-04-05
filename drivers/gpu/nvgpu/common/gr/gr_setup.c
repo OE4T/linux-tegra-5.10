@@ -124,7 +124,7 @@ int nvgpu_gr_setup_alloc_obj_ctx(struct channel_gk20a *c, u32 class_num,
 		}
 	}
 
-	if (!nvgpu_mem_is_valid(&gr_ctx->mem)) {
+	if (!nvgpu_mem_is_valid(nvgpu_gr_ctx_get_ctx_mem(gr_ctx))) {
 		tsg->vm = c->vm;
 		nvgpu_vm_get(tsg->vm);
 
@@ -140,11 +140,11 @@ int nvgpu_gr_setup_alloc_obj_ctx(struct channel_gk20a *c, u32 class_num,
 			goto out;
 		}
 
-		gr_ctx->tsgid = tsg->tsgid;
+		nvgpu_gr_ctx_set_tsgid(gr_ctx, tsg->tsgid);
 	} else {
 		/* commit gr ctx buffer */
 		nvgpu_gr_obj_ctx_commit_inst(g, &c->inst_block, gr_ctx,
-			c->subctx, gr_ctx->mem.gpu_va);
+			c->subctx, nvgpu_gr_ctx_get_ctx_mem(gr_ctx)->gpu_va);
 	}
 
 #ifdef CONFIG_GK20A_CTXSW_TRACE
@@ -181,7 +181,8 @@ void nvgpu_gr_setup_free_gr_ctx(struct gk20a *g,
 	if (gr_ctx != NULL) {
 		if ((g->ops.gr.ctxsw_prog.dump_ctxsw_stats != NULL) &&
 		     g->gr.ctx_vars.dump_ctxsw_stats_on_channel_close) {
-			g->ops.gr.ctxsw_prog.dump_ctxsw_stats(g, &gr_ctx->mem);
+			g->ops.gr.ctxsw_prog.dump_ctxsw_stats(g,
+				 nvgpu_gr_ctx_get_ctx_mem(gr_ctx));
 		}
 
 		nvgpu_gr_ctx_free(g, gr_ctx, g->gr.global_ctx_buffer, vm);
@@ -214,12 +215,14 @@ int nvgpu_gr_setup_set_preemption_mode(struct channel_gk20a *ch,
 
 	/* skip setting anything if both modes are already set */
 	if ((graphics_preempt_mode != 0U) &&
-	    (graphics_preempt_mode == gr_ctx->graphics_preempt_mode)) {
+		(graphics_preempt_mode ==
+			nvgpu_gr_ctx_get_graphics_preemption_mode(gr_ctx))) {
 		graphics_preempt_mode = 0;
 	}
 
 	if ((compute_preempt_mode != 0U) &&
-	    (compute_preempt_mode == gr_ctx->compute_preempt_mode)) {
+	    (compute_preempt_mode ==
+		    nvgpu_gr_ctx_get_compute_preemption_mode(gr_ctx))) {
 		compute_preempt_mode = 0;
 	}
 

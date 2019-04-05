@@ -195,12 +195,14 @@ int gr_gp106_set_ctxsw_preemption_mode(struct gk20a *g,
 			goto fail;
 		}
 
-		gr_ctx->graphics_preempt_mode = graphics_preempt_mode;
+		nvgpu_gr_ctx_init_graphics_preemption_mode(gr_ctx,
+			graphics_preempt_mode);
 		break;
 		}
 
 	case NVGPU_PREEMPTION_MODE_GRAPHICS_WFI:
-		gr_ctx->graphics_preempt_mode = graphics_preempt_mode;
+		nvgpu_gr_ctx_init_graphics_preemption_mode(gr_ctx,
+			graphics_preempt_mode);
 		break;
 
 	default:
@@ -212,7 +214,8 @@ int gr_gp106_set_ctxsw_preemption_mode(struct gk20a *g,
 		case NVGPU_PREEMPTION_MODE_COMPUTE_WFI:
 		case NVGPU_PREEMPTION_MODE_COMPUTE_CTA:
 		case NVGPU_PREEMPTION_MODE_COMPUTE_CILP:
-			gr_ctx->compute_preempt_mode = compute_preempt_mode;
+			nvgpu_gr_ctx_init_compute_preemption_mode(gr_ctx,
+				compute_preempt_mode);
 			break;
 		default:
 			break;

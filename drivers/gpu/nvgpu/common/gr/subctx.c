@@ -99,12 +99,13 @@ void nvgpu_gr_subctx_load_ctx_header(struct gk20a *g,
 			NVGPU_GR_CTX_PRIV_ACCESS_MAP_VA));
 
 	g->ops.gr.ctxsw_prog.set_patch_addr(g, ctxheader,
-		gr_ctx->patch_ctx.mem.gpu_va);
+		nvgpu_gr_ctx_get_patch_ctx_mem(gr_ctx)->gpu_va);
 
 	g->ops.gr.ctxsw_prog.set_pm_ptr(g, ctxheader,
-		gr_ctx->pm_ctx.mem.gpu_va);
+		nvgpu_gr_ctx_get_pm_ctx_mem(gr_ctx)->gpu_va);
+
 	g->ops.gr.ctxsw_prog.set_zcull_ptr(g, ctxheader,
-		gr_ctx->zcull_ctx.gpu_va);
+		nvgpu_gr_ctx_get_zcull_ctx_va(gr_ctx));
 
 	g->ops.gr.ctxsw_prog.set_context_buffer_ptr(g, ctxheader, gpu_va);
 
@@ -118,33 +119,33 @@ void nvgpu_gr_subctx_zcull_setup(struct gk20a *g, struct nvgpu_gr_subctx *subctx
 	nvgpu_log_fn(g, " ");
 
 	g->ops.gr.ctxsw_prog.set_zcull_ptr(g, &subctx->ctx_header,
-		gr_ctx->zcull_ctx.gpu_va);
+		nvgpu_gr_ctx_get_zcull_ctx_va(gr_ctx));
 }
 
 void nvgpu_gr_subctx_set_hwpm_mode(struct gk20a *g,
 	struct nvgpu_gr_subctx *subctx, struct nvgpu_gr_ctx *gr_ctx)
 {
 	g->ops.gr.ctxsw_prog.set_pm_ptr(g, &subctx->ctx_header,
-		gr_ctx->pm_ctx.gpu_va);
+		nvgpu_gr_ctx_get_pm_ctx_mem(gr_ctx)->gpu_va);
 }
 
 void nvgpu_gr_subctx_set_patch_ctx(struct gk20a *g,
 	struct nvgpu_gr_subctx *subctx, struct nvgpu_gr_ctx *gr_ctx)
 {
 	g->ops.gr.ctxsw_prog.set_patch_addr(g, &subctx->ctx_header,
-		gr_ctx->patch_ctx.mem.gpu_va);
+		 nvgpu_gr_ctx_get_patch_ctx_mem(gr_ctx)->gpu_va);
 }
 
 void nvgpu_gr_subctx_set_preemption_buffer_va(struct gk20a *g,
 	struct nvgpu_gr_subctx *subctx, struct nvgpu_gr_ctx *gr_ctx)
 {
 	g->ops.gr.ctxsw_prog.set_full_preemption_ptr(g, &subctx->ctx_header,
-		gr_ctx->preempt_ctxsw_buffer.gpu_va);
+		nvgpu_gr_ctx_get_preempt_ctxsw_buffer(gr_ctx)->gpu_va);
 
 	if (g->ops.gr.ctxsw_prog.set_full_preemption_ptr_veid0 != NULL) {
 		g->ops.gr.ctxsw_prog.set_full_preemption_ptr_veid0(g,
 			&subctx->ctx_header,
-			gr_ctx->preempt_ctxsw_buffer.gpu_va);
+			nvgpu_gr_ctx_get_preempt_ctxsw_buffer(gr_ctx)->gpu_va);
 	}
 }
 

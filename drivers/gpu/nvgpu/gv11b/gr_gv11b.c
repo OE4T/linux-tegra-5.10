@@ -1465,8 +1465,9 @@ int gr_gv11b_pre_process_sm_exception(struct gk20a *g,
 			return -EINVAL;
 		}
 
-		cilp_enabled = (tsg->gr_ctx->compute_preempt_mode ==
-			NVGPU_PREEMPTION_MODE_COMPUTE_CILP);
+		cilp_enabled =
+			(nvgpu_gr_ctx_get_compute_preemption_mode(tsg->gr_ctx) ==
+				NVGPU_PREEMPTION_MODE_COMPUTE_CILP);
 	}
 
 	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gpu_dbg,

@@ -95,8 +95,8 @@ static int gk20a_fifo_sched_debugfs_seq_show(
 				tsg->timeslice_us,
 				ch->ctxsw_timeout_max_ms,
 				tsg->interleave_level,
-				tsg->gr_ctx->graphics_preempt_mode,
-				tsg->gr_ctx->compute_preempt_mode);
+				nvgpu_gr_ctx_get_graphics_preemption_mode(tsg->gr_ctx),
+				nvgpu_gr_ctx_get_compute_preemption_mode(tsg->gr_ctx));
 		gk20a_channel_put(ch);
 	}
 	return 0;

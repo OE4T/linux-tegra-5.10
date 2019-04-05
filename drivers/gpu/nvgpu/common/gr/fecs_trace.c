@@ -594,7 +594,7 @@ int nvgpu_gr_fecs_trace_bind_channel(struct gk20a *g,
 		return -ENOMEM;
 	}
 
-	mem = &gr_ctx->mem;
+	mem = nvgpu_gr_ctx_get_ctx_mem(gr_ctx);
 
 	nvgpu_log(g, gpu_dbg_ctxsw, "addr=%llx count=%d", addr,
 		GK20A_FECS_TRACE_NUM_RECORDS);

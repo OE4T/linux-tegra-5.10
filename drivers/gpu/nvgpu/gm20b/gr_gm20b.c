@@ -545,7 +545,7 @@ int gr_gm20b_update_pc_sampling(struct channel_gk20a *c,
 	}
 
 	gr_ctx = tsg->gr_ctx;
-	mem = &gr_ctx->mem;
+	mem = nvgpu_gr_ctx_get_ctx_mem(gr_ctx);
 	if (!nvgpu_mem_is_valid(mem) || c->vpr) {
 		return -EINVAL;
 	}
