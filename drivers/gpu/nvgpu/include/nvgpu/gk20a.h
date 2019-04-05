@@ -108,6 +108,7 @@ typedef void (*global_ctx_mem_destroy_fn)(struct gk20a *g,
 #include <nvgpu/cbc.h>
 #include <nvgpu/ltc.h>
 #include <nvgpu/nvgpu_err.h>
+#include <nvgpu/worker.h>
 
 #include "hal/clk/clk_gk20a.h"
 #include "gk20a/fifo_gk20a.h"
@@ -2199,14 +2200,15 @@ struct gk20a {
 	struct nvgpu_cbc *cbc;
 	struct nvgpu_ltc *ltc;
 
-	struct gk20a_worker {
-		struct nvgpu_thread poll_task;
-		nvgpu_atomic_t put;
-		struct nvgpu_cond wq;
-		struct nvgpu_list_node items;
-		struct nvgpu_spinlock items_lock;
-		struct nvgpu_mutex start_lock;
-	} channel_worker, clk_arb_worker;
+	struct nvgpu_channel_worker {
+		u32 watchdog_interval;
+		struct nvgpu_worker worker;
+		struct nvgpu_timeout timeout;
+	} channel_worker;
+
+	struct nvgpu_clk_arb_worker {
+		struct nvgpu_worker worker;
+	} clk_arb_worker;
 
 	struct {
 		void (*open)(struct channel_gk20a *ch);

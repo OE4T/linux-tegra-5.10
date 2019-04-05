@@ -32,6 +32,7 @@
 #include <nvgpu/list.h>
 #include <nvgpu/clk_arb.h>
 #include <nvgpu/timers.h>
+#include <nvgpu/worker.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/pmu/perf_pstate.h>
 #include <nvgpu/pmu/volt.h>
@@ -367,155 +368,50 @@ void nvgpu_clk_arb_clear_global_alarm(struct gk20a *g, u32 alarm)
 				(long int)current_mask, (long int)new_mask)));
 }
 
+static inline struct nvgpu_clk_arb_worker *
+nvgpu_clk_arb_worker_from_worker(struct nvgpu_worker *worker)
+{
+	return (struct nvgpu_clk_arb_worker *)
+	   ((uintptr_t)worker - offsetof(struct nvgpu_clk_arb_worker, worker));
+};
+
 /*
  * Process one scheduled work item.
  */
-static void nvgpu_clk_arb_worker_process_item(
-		struct nvgpu_clk_arb_work_item *work_item)
+static void nvgpu_clk_arb_worker_poll_wakeup_process_item(
+		struct nvgpu_list_node *work_item)
 {
-	struct gk20a *g = work_item->arb->g;
+	struct nvgpu_clk_arb_work_item *clk_arb_work_item =
+		nvgpu_clk_arb_work_item_from_worker_item(work_item);
+
+	struct gk20a *g = clk_arb_work_item->arb->g;
 
 	clk_arb_dbg(g, " ");
 
-	if (work_item->item_type == CLK_ARB_WORK_UPDATE_VF_TABLE) {
-		nvgpu_clk_arb_run_vf_table_cb(work_item->arb);
-	} else if (work_item->item_type == CLK_ARB_WORK_UPDATE_ARB) {
-		g->ops.clk_arb.clk_arb_run_arbiter_cb(work_item->arb);
+	if (clk_arb_work_item->item_type == CLK_ARB_WORK_UPDATE_VF_TABLE) {
+		nvgpu_clk_arb_run_vf_table_cb(clk_arb_work_item->arb);
+	} else if (clk_arb_work_item->item_type == CLK_ARB_WORK_UPDATE_ARB) {
+		g->ops.clk_arb.clk_arb_run_arbiter_cb(clk_arb_work_item->arb);
 	}
 }
 
-/**
- * Tell the worker that one more work needs to be done.
- *
- * Increase the work counter to synchronize the worker with the new work. Wake
- * up the worker. If the worker was already running, it will handle this work
- * before going to sleep.
- */
-static int nvgpu_clk_arb_worker_wakeup(struct gk20a *g)
+static void nvgpu_clk_arb_worker_poll_init(struct nvgpu_worker *worker)
 {
-	int put;
+	struct gk20a *g = worker->g;
 
 	clk_arb_dbg(g, " ");
-
-	put = nvgpu_atomic_inc_return(&g->clk_arb_worker.put);
-	nvgpu_cond_signal_interruptible(&g->clk_arb_worker.wq);
-
-	return put;
 }
 
-/**
- * Test if there is some work pending.
- *
- * This is a pair for nvgpu_clk_arb_worker_wakeup to be called from the
- * worker. The worker has an internal work counter which is incremented once
- * per finished work item. This is compared with the number of queued jobs.
- */
-static bool nvgpu_clk_arb_worker_pending(struct gk20a *g, int get)
-{
-	bool pending = nvgpu_atomic_read(&g->clk_arb_worker.put) != get;
-
-	/* We don't need barriers because they are implicit in locking */
-	return pending;
-}
-
-/**
- * Process the queued works for the worker thread serially.
- *
- * Flush all the work items in the queue one by one. This may block timeout
- * handling for a short while, as these are serialized.
- */
-static void nvgpu_clk_arb_worker_process(struct gk20a *g, int *get)
-{
-
-	while (nvgpu_clk_arb_worker_pending(g, *get)) {
-		struct nvgpu_clk_arb_work_item *work_item = NULL;
-
-		nvgpu_spinlock_acquire(&g->clk_arb_worker.items_lock);
-		if (!nvgpu_list_empty(&g->clk_arb_worker.items)) {
-			work_item = nvgpu_list_first_entry(&g->clk_arb_worker.items,
-				nvgpu_clk_arb_work_item, worker_item);
-			nvgpu_list_del(&work_item->worker_item);
-		}
-		nvgpu_spinlock_release(&g->clk_arb_worker.items_lock);
-
-		if (!work_item) {
-			/*
-			 * Woke up but found work_item empty ?
-			 * This can happen when thread is stopped as driver is
-			 * dying, so inform and ack the message.
-			 */
-			nvgpu_info(g, "Spurious worker event!");
-			++*get;
-			break;
-		}
-
-		nvgpu_clk_arb_worker_process_item(work_item);
-		++*get;
-	}
-}
-
-/*
- * Process all work items found in the clk arbiter work queue.
- */
-static int nvgpu_clk_arb_poll_worker(void *arg)
-{
-	struct gk20a *g = (struct gk20a *)arg;
-	struct gk20a_worker *worker = &g->clk_arb_worker;
-	int get = 0;
-
-	clk_arb_dbg(g, " ");
-
-	while (!nvgpu_thread_should_stop(&worker->poll_task)) {
-		int ret;
-
-		ret = NVGPU_COND_WAIT_INTERRUPTIBLE(
-				&worker->wq,
-				nvgpu_clk_arb_worker_pending(g, get) ||
-				nvgpu_thread_should_stop(&worker->poll_task),
-				0U);
-
-		if (nvgpu_thread_should_stop(&worker->poll_task)) {
-			break;
-		}
-
-		if (ret == 0) {
-			nvgpu_clk_arb_worker_process(g, &get);
-		}
-	}
-	return 0;
-}
-
-static int __nvgpu_clk_arb_worker_start(struct gk20a *g)
-{
-	char thread_name[64];
-	int err = 0;
-
-	if (nvgpu_thread_is_running(&g->clk_arb_worker.poll_task)) {
-		return err;
-	}
-
-	nvgpu_mutex_acquire(&g->clk_arb_worker.start_lock);
-
-	/*
-	 * Mutexes have implicit barriers, so there is no risk of a thread
-	 * having a stale copy of the poll_task variable as the call to
-	 * thread_is_running is volatile
-	 */
-
-	if (nvgpu_thread_is_running(&g->clk_arb_worker.poll_task)) {
-		nvgpu_mutex_release(&g->clk_arb_worker.start_lock);
-		return err;
-	}
-
-	(void) snprintf(thread_name, sizeof(thread_name),
-			"nvgpu_clk_arb_poll_%s", g->name);
-
-	err = nvgpu_thread_create(&g->clk_arb_worker.poll_task, g,
-			nvgpu_clk_arb_poll_worker, thread_name);
-
-	nvgpu_mutex_release(&g->clk_arb_worker.start_lock);
-	return err;
-}
+const struct nvgpu_worker_ops clk_arb_worker_ops = {
+	.pre_process = nvgpu_clk_arb_worker_poll_init,
+	.wakeup_early_exit = nvgpu_worker_should_stop,
+	.wakeup_post_process = NULL,
+	.wakeup_process_item =
+		nvgpu_clk_arb_worker_poll_wakeup_process_item,
+	.wakeup_condition =
+		nvgpu_worker_should_stop,
+	.wakeup_timeout = NULL,
+};
 
 /**
  * Append a work item to the worker's list.
@@ -530,27 +426,8 @@ void nvgpu_clk_arb_worker_enqueue(struct gk20a *g,
 {
 	clk_arb_dbg(g, " ");
 
-	/*
-	 * Warn if worker thread cannot run
-	 */
-	if (__nvgpu_clk_arb_worker_start(g) != 0) {
-		nvgpu_do_assert_print(g, "clk arb worker cannot run!");
-		return;
-	}
-
-	nvgpu_spinlock_acquire(&g->clk_arb_worker.items_lock);
-	if (!nvgpu_list_empty(&work_item->worker_item)) {
-		/*
-		 * Already queued, so will get processed eventually.
-		 * The worker is probably awake already.
-		 */
-		nvgpu_spinlock_release(&g->clk_arb_worker.items_lock);
-		return;
-	}
-	nvgpu_list_add_tail(&work_item->worker_item, &g->clk_arb_worker.items);
-	nvgpu_spinlock_release(&g->clk_arb_worker.items_lock);
-
-	nvgpu_clk_arb_worker_wakeup(g);
+	(void)nvgpu_worker_enqueue(&g->clk_arb_worker.worker,
+			&work_item->worker_item);
 }
 
 /**
@@ -558,24 +435,11 @@ void nvgpu_clk_arb_worker_enqueue(struct gk20a *g,
  */
 int nvgpu_clk_arb_worker_init(struct gk20a *g)
 {
-	int err;
+	struct nvgpu_worker *worker = &g->clk_arb_worker.worker;
 
-	nvgpu_atomic_set(&g->clk_arb_worker.put, 0);
-	nvgpu_cond_init(&g->clk_arb_worker.wq);
-	nvgpu_init_list_node(&g->clk_arb_worker.items);
-	nvgpu_spinlock_init(&g->clk_arb_worker.items_lock);
-	err = nvgpu_mutex_init(&g->clk_arb_worker.start_lock);
-	if (err != 0) {
-		goto error_check;
-	}
+	nvgpu_worker_init_name(worker, "nvgpu_clk_arb_poll", g->name);
 
-	err = __nvgpu_clk_arb_worker_start(g);
-error_check:
-	if (err != 0) {
-		nvgpu_err(g, "failed to start clk arb poller thread");
-		return err;
-	}
-	return 0;
+	return nvgpu_worker_init(g, worker, &clk_arb_worker_ops);
 }
 
 int nvgpu_clk_arb_init_arbiter(struct gk20a *g)
@@ -621,9 +485,9 @@ void nvgpu_clk_arb_send_thermal_alarm(struct gk20a *g)
 
 void nvgpu_clk_arb_worker_deinit(struct gk20a *g)
 {
-	nvgpu_mutex_acquire(&g->clk_arb_worker.start_lock);
-	nvgpu_thread_stop(&g->clk_arb_worker.poll_task);
-	nvgpu_mutex_release(&g->clk_arb_worker.start_lock);
+	struct nvgpu_worker *worker = &g->clk_arb_worker.worker;
+
+	nvgpu_worker_deinit(worker);
 }
 
 void nvgpu_clk_arb_cleanup_arbiter(struct gk20a *g)

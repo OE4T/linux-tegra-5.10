@@ -43,6 +43,7 @@
 #include <nvgpu/os_sched.h>
 #include <nvgpu/log2.h>
 #include <nvgpu/ptimer.h>
+#include <nvgpu/worker.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/gr/gr.h>
 #include <nvgpu/channel.h>
@@ -1719,12 +1720,47 @@ static void nvgpu_channel_poll_wdt(struct gk20a *g)
 	}
 }
 
-/*
- * Process one scheduled work item for this channel. Currently, the only thing
- * the worker does is job cleanup handling.
- */
-static void gk20a_channel_worker_process_ch(struct channel_gk20a *ch)
+static inline struct nvgpu_channel_worker *
+nvgpu_channel_worker_from_worker(struct nvgpu_worker *worker)
 {
+	return (struct nvgpu_channel_worker *)
+	   ((uintptr_t)worker - offsetof(struct nvgpu_channel_worker, worker));
+};
+
+
+static void nvgpu_channel_worker_poll_init(struct nvgpu_worker *worker)
+{
+	struct nvgpu_channel_worker *ch_worker =
+		nvgpu_channel_worker_from_worker(worker);
+
+	ch_worker->watchdog_interval = 100U;
+
+	nvgpu_timeout_init(worker->g, &ch_worker->timeout,
+			ch_worker->watchdog_interval, NVGPU_TIMER_CPU_TIMER);
+}
+
+static void nvgpu_channel_worker_poll_wakeup_post_process_item(
+		struct nvgpu_worker *worker)
+{
+	struct gk20a *g = worker->g;
+
+	struct nvgpu_channel_worker *ch_worker =
+		nvgpu_channel_worker_from_worker(worker);
+
+	if (nvgpu_timeout_peek_expired(&ch_worker->timeout) != 0) {
+		nvgpu_channel_poll_wdt(g);
+		nvgpu_timeout_init(g, &ch_worker->timeout,
+				ch_worker->watchdog_interval,
+				NVGPU_TIMER_CPU_TIMER);
+	}
+}
+static void nvgpu_channel_worker_poll_wakeup_process_item(
+		struct nvgpu_list_node *work_item)
+{
+	struct channel_gk20a *ch = channel_gk20a_from_worker_item(work_item);
+
+	nvgpu_assert(ch != NULL);
+
 	nvgpu_log_fn(ch->g, " ");
 
 	gk20a_channel_clean_up_jobs(ch, true);
@@ -1733,205 +1769,44 @@ static void gk20a_channel_worker_process_ch(struct channel_gk20a *ch)
 	gk20a_channel_put(ch);
 }
 
-/**
- * Tell the worker that one more work needs to be done.
- *
- * Increase the work counter to synchronize the worker with the new work. Wake
- * up the worker. If the worker was already running, it will handle this work
- * before going to sleep.
- */
-static int __gk20a_channel_worker_wakeup(struct gk20a *g)
+static u32 nvgpu_channel_worker_poll_wakeup_condition_get_timeout(
+		struct nvgpu_worker *worker)
 {
-	int put;
+	struct nvgpu_channel_worker *ch_worker =
+		nvgpu_channel_worker_from_worker(worker);
 
-	nvgpu_log_fn(g, " ");
-
-	/*
-	 * Currently, the only work type is associated with a lock, which deals
-	 * with any necessary barriers. If a work type with no locking were
-	 * added, a nvgpu_smp_wmb() would be needed here. See
-	 * ..worker_pending() for a pair.
-	 */
-
-	put = nvgpu_atomic_inc_return(&g->channel_worker.put);
-	nvgpu_cond_signal_interruptible(&g->channel_worker.wq);
-
-	return put;
+	return ch_worker->watchdog_interval;
 }
 
-/**
- * Test if there is some work pending.
- *
- * This is a pair for __gk20a_channel_worker_wakeup to be called from the
- * worker. The worker has an internal work counter which is incremented once
- * per finished work item. This is compared with the number of queued jobs,
- * which may be channels on the items list or any other types of work.
- */
-static bool __gk20a_channel_worker_pending(struct gk20a *g, int get)
-{
-	bool pending = nvgpu_atomic_read(&g->channel_worker.put) != get;
+const struct nvgpu_worker_ops channel_worker_ops = {
+	.pre_process = nvgpu_channel_worker_poll_init,
+	.wakeup_early_exit = NULL,
+	.wakeup_post_process =
+		nvgpu_channel_worker_poll_wakeup_post_process_item,
+	.wakeup_process_item =
+		nvgpu_channel_worker_poll_wakeup_process_item,
+	.wakeup_condition = NULL,
+	.wakeup_timeout =
+		nvgpu_channel_worker_poll_wakeup_condition_get_timeout,
+};
 
-	/*
-	 * This would be the place for a nvgpu_smp_rmb() pairing
-	 * a nvgpu_smp_wmb() for a wakeup if we had any work with
-	 * no implicit barriers caused by locking.
-	 */
-
-	return pending;
-}
-
-/**
- * Process the queued works for the worker thread serially.
- *
- * Flush all the work items in the queue one by one. This may block timeout
- * handling for a short while, as these are serialized.
- */
-static void gk20a_channel_worker_process(struct gk20a *g, int *get)
-{
-
-	while (__gk20a_channel_worker_pending(g, *get)) {
-		struct channel_gk20a *ch = NULL;
-
-		/*
-		 * If a channel is on the list, it's guaranteed to be handled
-		 * eventually just once. However, the opposite is not true. A
-		 * channel may be being processed if it's on the list or not.
-		 *
-		 * With this, processing channel works should be conservative
-		 * as follows: it's always safe to look at a channel found in
-		 * the list, and if someone enqueues the channel, it will be
-		 * handled eventually, even if it's being handled at the same
-		 * time. A channel is on the list only once; multiple calls to
-		 * enqueue are harmless.
-		 */
-		nvgpu_spinlock_acquire(&g->channel_worker.items_lock);
-		if (!nvgpu_list_empty(&g->channel_worker.items)) {
-			ch = nvgpu_list_first_entry(&g->channel_worker.items,
-				channel_gk20a,
-				worker_item);
-			nvgpu_list_del(&ch->worker_item);
-		}
-		nvgpu_spinlock_release(&g->channel_worker.items_lock);
-
-		if (ch == NULL) {
-			/*
-			 * Woke up for some other reason, but there are no
-			 * other reasons than a channel added in the items list
-			 * currently, so warn and ack the message.
-			 */
-			nvgpu_warn(g, "Spurious worker event!");
-			++*get;
-			break;
-		}
-
-		gk20a_channel_worker_process_ch(ch);
-		++*get;
-	}
-}
-
-/*
- * Look at channel states periodically, until canceled. Abort timed out
- * channels serially. Process all work items found in the queue.
- */
-static int gk20a_channel_poll_worker(void *arg)
-{
-	struct gk20a *g = (struct gk20a *)arg;
-	struct gk20a_worker *worker = &g->channel_worker;
-	u32 watchdog_interval = 100; /* milliseconds */
-	struct nvgpu_timeout timeout;
-	int get = 0;
-
-	nvgpu_log_fn(g, " ");
-
-	nvgpu_timeout_init(g, &timeout, watchdog_interval,
-			NVGPU_TIMER_CPU_TIMER);
-	while (!nvgpu_thread_should_stop(&worker->poll_task)) {
-		int ret;
-
-		ret = NVGPU_COND_WAIT_INTERRUPTIBLE(
-				&worker->wq,
-				__gk20a_channel_worker_pending(g, get),
-				watchdog_interval);
-
-		if (ret == 0) {
-			gk20a_channel_worker_process(g, &get);
-		}
-
-		if (nvgpu_timeout_peek_expired(&timeout) != 0) {
-			nvgpu_channel_poll_wdt(g);
-			nvgpu_timeout_init(g, &timeout, watchdog_interval,
-					NVGPU_TIMER_CPU_TIMER);
-		}
-	}
-	return 0;
-}
-
-static int __nvgpu_channel_worker_start(struct gk20a *g)
-{
-	char thread_name[64];
-	int err = 0;
-
-	if (nvgpu_thread_is_running(&g->channel_worker.poll_task)) {
-		return err;
-	}
-
-	nvgpu_mutex_acquire(&g->channel_worker.start_lock);
-
-	/*
-	 * We don't want to grab a mutex on every channel update so we check
-	 * again if the worker has been initialized before creating a new thread
-	 */
-
-	/*
-	 * Mutexes have implicit barriers, so there is no risk of a thread
-	 * having a stale copy of the poll_task variable as the call to
-	 * thread_is_running is volatile
-	 */
-
-	if (nvgpu_thread_is_running(&g->channel_worker.poll_task)) {
-		nvgpu_mutex_release(&g->channel_worker.start_lock);
-		return err;
-	}
-
-	(void) snprintf(thread_name, sizeof(thread_name),
-			"nvgpu_channel_poll_%s", g->name);
-
-	err = nvgpu_thread_create(&g->channel_worker.poll_task, g,
-			gk20a_channel_poll_worker, thread_name);
-
-	nvgpu_mutex_release(&g->channel_worker.start_lock);
-	return err;
-}
 /**
  * Initialize the channel worker's metadata and start the background thread.
  */
 int nvgpu_channel_worker_init(struct gk20a *g)
 {
-	int err;
+	struct nvgpu_worker *worker = &g->channel_worker.worker;
 
-	nvgpu_atomic_set(&g->channel_worker.put, 0);
-	nvgpu_cond_init(&g->channel_worker.wq);
-	nvgpu_init_list_node(&g->channel_worker.items);
-	nvgpu_spinlock_init(&g->channel_worker.items_lock);
-	err = nvgpu_mutex_init(&g->channel_worker.start_lock);
-	if (err != 0) {
-		goto error_check;
-	}
+	nvgpu_worker_init_name(worker, "nvgpu_channel_poll", g->name);
 
-	err = __nvgpu_channel_worker_start(g);
-error_check:
-	if (err != 0) {
-		nvgpu_err(g, "failed to start channel poller thread");
-		return err;
-	}
-	return 0;
+	return nvgpu_worker_init(g, worker, &channel_worker_ops);
 }
 
 void nvgpu_channel_worker_deinit(struct gk20a *g)
 {
-	nvgpu_mutex_acquire(&g->channel_worker.start_lock);
-	nvgpu_thread_stop(&g->channel_worker.poll_task);
-	nvgpu_mutex_release(&g->channel_worker.start_lock);
+	struct nvgpu_worker *worker = &g->channel_worker.worker;
+
+	nvgpu_worker_deinit(worker);
 }
 
 /**
@@ -1946,16 +1821,9 @@ void nvgpu_channel_worker_deinit(struct gk20a *g)
 static void gk20a_channel_worker_enqueue(struct channel_gk20a *ch)
 {
 	struct gk20a *g = ch->g;
+	int ret;
 
 	nvgpu_log_fn(g, " ");
-
-	/*
-	 * Warn if worker thread cannot run
-	 */
-	if (__nvgpu_channel_worker_start(g) != 0) {
-		nvgpu_do_assert_print(g, "channel worker cannot run!");
-		return;
-	}
 
 	/*
 	 * Ref released when this item gets processed. The caller should hold
@@ -1969,20 +1837,12 @@ static void gk20a_channel_worker_enqueue(struct channel_gk20a *ch)
 		return;
 	}
 
-	nvgpu_spinlock_acquire(&g->channel_worker.items_lock);
-	if (!nvgpu_list_empty(&ch->worker_item)) {
-		/*
-		 * Already queued, so will get processed eventually.
-		 * The worker is probably awake already.
-		 */
-		nvgpu_spinlock_release(&g->channel_worker.items_lock);
+	ret = nvgpu_worker_enqueue(&g->channel_worker.worker,
+			&ch->worker_item);
+	if (ret != 0) {
 		gk20a_channel_put(ch);
 		return;
 	}
-	nvgpu_list_add_tail(&ch->worker_item, &g->channel_worker.items);
-	nvgpu_spinlock_release(&g->channel_worker.items_lock);
-
-	__gk20a_channel_worker_wakeup(g);
 }
 
 int gk20a_free_priv_cmdbuf(struct channel_gk20a *c, struct priv_cmd_entry *e)

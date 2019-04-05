@@ -155,6 +155,7 @@ srcs += common/sim/sim.c \
 	common/sec2/ipc/sec2_queue.c \
 	common/sec2/ipc/sec2_seq.c \
 	common/ptimer/ptimer.c \
+	common/worker.c \
 	common/sync/channel_sync.c \
 	common/sync/channel_sync_syncpt.c \
 	common/sync/channel_sync_semaphore.c \
