@@ -144,7 +144,6 @@
 #include "gk20a/gr_gk20a.h"
 
 #include "gm20b/gr_gm20b.h"
-#include "gm20b/fifo_gm20b.h"
 #include "gm20b/mm_gm20b.h"
 
 #include "gv100/clk_gv100.h"

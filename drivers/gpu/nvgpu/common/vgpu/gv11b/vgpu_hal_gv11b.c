@@ -89,7 +89,6 @@
 #include "vgpu_hal_gv11b.h"
 
 #include <gm20b/gr_gm20b.h>
-#include <gm20b/fifo_gm20b.h>
 #include <gm20b/mm_gm20b.h>
 
 #include <gp10b/mm_gp10b.h>

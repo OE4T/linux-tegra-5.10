@@ -79,7 +79,6 @@
 #include "gp10b/fifo_gp10b.h"
 
 #include "gm20b/gr_gm20b.h"
-#include "gm20b/fifo_gm20b.h"
 #include "gm20b/mm_gm20b.h"
 
 #include <nvgpu/debugger.h>

@@ -268,7 +268,6 @@ srcs += common/sim.c \
 	gm20b/hal_gm20b.c \
 	gm20b/gr_gm20b.c \
 	gm20b/clk_gm20b.c \
-	gm20b/fifo_gm20b.c \
 	gm20b/mm_gm20b.c \
 	gp10b/gr_gp10b.c  \
 	gp10b/ce_gp10b.c \

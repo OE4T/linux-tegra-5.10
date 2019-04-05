@@ -97,7 +97,6 @@
 #include "gk20a/gr_gk20a.h"
 
 #include "gr_gm20b.h"
-#include "fifo_gm20b.h"
 #include "mm_gm20b.h"
 #include "clk_gm20b.h"
 #include "hal_gm20b.h"

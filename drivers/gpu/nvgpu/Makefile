@@ -491,7 +491,6 @@ nvgpu-y += \
 	gm20b/hal_gm20b.o \
 	gm20b/gr_gm20b.o \
 	gm20b/clk_gm20b.o \
-	gm20b/fifo_gm20b.o \
 	gm20b/mm_gm20b.o
 
 nvgpu-$(CONFIG_GK20A_VIDMEM) += \
