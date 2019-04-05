@@ -21,6 +21,7 @@
 #include <linux/platform_device.h>
 #include <linux/nvmap_t19x.h>
 #include <linux/kobject.h>
+#include <linux/debugfs.h>
 #include <linux/sysfs.h>
 #include <linux/io.h>
 
@@ -29,6 +30,7 @@
 bool nvmap_version_t19x;
 extern struct static_key nvmap_updated_cache_config;
 
+#define GOS_STR			"tegra_gos"
 struct gos_sysfs {
 	struct kobj_attribute status_attr;
 	struct kobj_attribute cvdevs_attr;
@@ -41,7 +43,7 @@ struct gosmem_priv {
 	void *cpu_addr;
 	void *memremap_addr;
 	dma_addr_t dma_addr;
-	int cvdevs;
+	u32 cvdevs;
 	u8 **dev_names;
 	bool status;
 };
@@ -107,7 +109,7 @@ static int gos_sysfs_create(void)
 	struct attribute *attr2;
 	int ret;
 
-	gos->kobj = kobject_create_and_add("gos",
+	gos->kobj = kobject_create_and_add(GOS_STR,
 					kernel_kobj);
 	if (!gos->kobj) {
 		dev_err(gos->dev, "Couldn't create gos kobj\n");
@@ -153,6 +155,154 @@ static void gos_sysfs_remove(void)
 	gos->kobj = NULL;
 }
 
+#ifdef CONFIG_DEBUG_FS
+
+#define RW_MODE			(0644)
+#define RO_MODE			(0444)
+
+static struct dentry *gos_root;
+
+static int get_cpu_addr(struct seq_file *s, void *data)
+{
+	u64 idx;
+
+	idx = (u64)s->private;
+
+	if (idx > gos->cvdevs)
+		return -EINVAL;
+
+	seq_printf(s, "0x%p\n", cvdev_info[idx].cpu_addr);
+	return 0;
+}
+
+static int gos_cpu_addr_open(struct inode *inode, struct file *file)
+{
+	return single_open(file, get_cpu_addr, inode->i_private);
+}
+
+static const struct file_operations gos_cpu_addr_ops = {
+	.open = gos_cpu_addr_open,
+	.read = seq_read,
+	.llseek = seq_lseek,
+	.release = single_release,
+};
+
+static int show_gos_tbl(struct seq_file *s, void *data)
+{
+	struct sg_table *sgt;
+	dma_addr_t dma_addr;
+	u64 idx;
+	u32 i;
+
+	idx = (u64)s->private;
+
+	if (idx > gos->cvdevs)
+		return -EINVAL;
+
+	for (i = 0; i < gos->cvdevs; i++) {
+		sgt = cvdev_info[idx].sgt + i;
+		dma_addr = sg_dma_address(sgt->sgl);
+		seq_printf(s, "gos_table_addr[%s]:0x%llx\n",
+			 gos->dev_names[i], dma_addr);
+	}
+	return 0;
+}
+
+static int gos_tbl_info_open(struct inode *inode, struct file *file)
+{
+	return single_open(file, show_gos_tbl, inode->i_private);
+}
+
+static const struct file_operations gos_tbl_ops = {
+	.open = gos_tbl_info_open,
+	.read = seq_read,
+	.llseek = seq_lseek,
+	.release = single_release,
+};
+
+static int show_sem_values(struct seq_file *s, void *unused)
+{
+	struct cv_dev_info *dev_info;
+	u32 *sem;
+	u64 idx;
+	u32 i;
+
+	idx = (u64)s->private;
+
+	if (idx > gos->cvdevs)
+		return -EINVAL;
+
+	dev_info = &cvdev_info[idx];
+	if (!dev_info)
+		return -EINVAL;
+
+	for (i = 0; i < NVMAP_MAX_GOS_COUNT; i++) {
+		if (!(i % int_sqrt(NVMAP_MAX_GOS_COUNT)))
+			seq_puts(s, "\n");
+		sem = (u32 *)(dev_info->cpu_addr + i);
+		seq_printf(s, "sem[%u]: %-12u", i, *sem);
+	}
+
+	return 0;
+}
+
+static int sem_val_open(struct inode *inode, struct file *file)
+{
+	return single_open(file, show_sem_values, inode->i_private);
+}
+
+static const struct file_operations gos_sem_val_ops = {
+	.open = sem_val_open,
+	.read = seq_read,
+	.llseek = seq_lseek,
+	.release = single_release,
+};
+
+static int gos_debug_init(void)
+{
+	struct dentry *dir;
+	u64 cvdev_idx;
+	u8 buff[15];
+
+	snprintf(buff, sizeof(buff), GOS_STR);
+	gos_root = debugfs_create_dir(buff, NULL);
+	dir = gos_root;
+	if (!dir)
+		goto err_out;
+
+	for (cvdev_idx = 0; cvdev_idx < gos->cvdevs; cvdev_idx++) {
+		dir = debugfs_create_dir(gos->dev_names[cvdev_idx], gos_root);
+		if (!dir)
+			goto err_out;
+
+		if (!debugfs_create_file("cpu_addr", RO_MODE, dir,
+			(void *)cvdev_idx, &gos_cpu_addr_ops))
+			goto err_out;
+
+		if (!debugfs_create_file("dma_addrs", RO_MODE, dir,
+			(void *)cvdev_idx, &gos_tbl_ops))
+			goto err_out;
+
+		if (!debugfs_create_file("semaphore_values", RO_MODE, dir,
+			(void *)cvdev_idx, &gos_sem_val_ops))
+			goto err_out;
+	}
+
+	return 0;
+err_out:
+	debugfs_remove_recursive(gos_root);
+	return -EINVAL;
+}
+
+static void gos_debug_exit(void)
+{
+	debugfs_remove_recursive(gos_root);
+}
+#else
+static int gos_debug_init(void) {return 0; }
+static void gos_debug_exit(void) {}
+#endif /* End of debug fs */
+
 static u8 *get_dev_name(const u8 *name)
 {
 	char *str = kstrdup(name, GFP_KERNEL);
@@ -162,7 +312,6 @@ static u8 *get_dev_name(const u8 *name)
 	strreplace(str, '@', '\0');
 	return str;
 }
-
 
 static int __init nvmap_gosmem_device_init(struct reserved_mem *rmem,
 		struct device *dev)
@@ -280,6 +429,11 @@ static int __init nvmap_gosmem_device_init(struct reserved_mem *rmem,
 		goto free_sgs;
 	}
 
+	if (gos_debug_init()) {
+		ret = -EINVAL;
+		goto free_sgs;
+	}
+
 	return 0;
 
 free_sgs:
@@ -314,6 +468,8 @@ static void nvmap_gosmem_device_release(struct reserved_mem *rmem,
 	int cvdev_count = gos->cvdevs;
 	struct sg_table *sgt;
 	int i;
+
+	gos_debug_exit();
 
 	gos_sysfs_remove();
 
