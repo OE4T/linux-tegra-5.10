@@ -1085,6 +1085,9 @@ int nvgpu_page_allocator_init(struct gk20a *g, struct nvgpu_allocator *na,
 	return 0;
 
 fail:
+	if (a->slabs != NULL) {
+		nvgpu_kfree(g, a->slabs);
+	}
 	if (a->alloc_cache != NULL) {
 		nvgpu_kmem_cache_destroy(a->alloc_cache);
 	}
