@@ -4,7 +4,7 @@
 # r8168 is the Linux device driver released for Realtek Gigabit Ethernet
 # controllers with PCI-Express interface.
 #
-# Copyright(c) 2017-2018 Realtek Semiconductor Corp. All rights reserved.
+# Copyright(c) 2017-2019 Realtek Semiconductor Corp. All rights reserved.
 #
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the Free
@@ -24864,140 +24864,139 @@ err_out:
 static void
 rtl8168_esd_timer(unsigned long __opaque)
 {
-        struct net_device *dev = (struct net_device *)__opaque;
-        struct rtl8168_private *tp = netdev_priv(dev);
-        struct pci_dev *pdev = tp->pci_dev;
-        struct timer_list *timer = &tp->esd_timer;
-        unsigned long timeout = RTL8168_ESD_TIMEOUT;
-        unsigned long flags;
-        u8 cmd;
-        u16 io_base_l;
-        u16 mem_base_l;
-        u16 mem_base_h;
-        u8 ilr;
-        u16 resv_0x1c_h;
-        u16 resv_0x1c_l;
-        u16 resv_0x20_l;
-        u16 resv_0x20_h;
-        u16 resv_0x24_l;
-        u16 resv_0x24_h;
-        u16 resv_0x2c_h;
-        u16 resv_0x2c_l;
-        u32 pci_sn_l;
-        u32 pci_sn_h;
+	struct net_device *dev = (struct net_device *)__opaque;
+	struct rtl8168_private *tp = netdev_priv(dev);
+	struct pci_dev *pdev = tp->pci_dev;
+	struct timer_list *timer = &tp->esd_timer;
+	unsigned long timeout = RTL8168_ESD_TIMEOUT;
+	unsigned long flags;
+	u8 cmd;
+	u16 io_base_l;
+	u16 mem_base_l;
+	u16 mem_base_h;
+	u8 ilr;
+	u16 resv_0x1c_h;
+	u16 resv_0x1c_l;
+	u16 resv_0x20_l;
+	u16 resv_0x20_h;
+	u16 resv_0x24_l;
+	u16 resv_0x24_h;
+	u16 resv_0x2c_h;
+	u16 resv_0x2c_l;
+	u32 pci_sn_l;
+	u32 pci_sn_h;
+	unsigned int esd_flag = 0;
 
-        spin_lock_irqsave(&tp->lock, flags);
+	pci_read_config_byte(pdev, PCI_COMMAND, &cmd);
+	if (cmd != tp->pci_cfg_space.cmd) {
+		pci_write_config_byte(pdev, PCI_COMMAND, tp->pci_cfg_space.cmd);
+		esd_flag |= BIT_0;
+	}
 
-        tp->esd_flag = 0;
+	pci_read_config_word(pdev, PCI_BASE_ADDRESS_0, &io_base_l);
+	if (io_base_l != tp->pci_cfg_space.io_base_l) {
+		pci_write_config_word(pdev, PCI_BASE_ADDRESS_0, tp->pci_cfg_space.io_base_l);
+		esd_flag |= BIT_1;
+	}
 
-        pci_read_config_byte(pdev, PCI_COMMAND, &cmd);
-        if (cmd != tp->pci_cfg_space.cmd) {
-                pci_write_config_byte(pdev, PCI_COMMAND, tp->pci_cfg_space.cmd);
-                tp->esd_flag |= BIT_0;
-        }
+	pci_read_config_word(pdev, PCI_BASE_ADDRESS_2, &mem_base_l);
+	if (mem_base_l != tp->pci_cfg_space.mem_base_l) {
+		pci_write_config_word(pdev, PCI_BASE_ADDRESS_2, tp->pci_cfg_space.mem_base_l);
+		esd_flag |= BIT_2;
+	}
 
-        pci_read_config_word(pdev, PCI_BASE_ADDRESS_0, &io_base_l);
-        if (io_base_l != tp->pci_cfg_space.io_base_l) {
-                pci_write_config_word(pdev, PCI_BASE_ADDRESS_0, tp->pci_cfg_space.io_base_l);
-                tp->esd_flag |= BIT_1;
-        }
+	pci_read_config_word(pdev, PCI_BASE_ADDRESS_2 + 2, &mem_base_h);
+	if (mem_base_h!= tp->pci_cfg_space.mem_base_h) {
+		pci_write_config_word(pdev, PCI_BASE_ADDRESS_2 + 2, tp->pci_cfg_space.mem_base_h);
+		esd_flag |= BIT_3;
+	}
 
-        pci_read_config_word(pdev, PCI_BASE_ADDRESS_2, &mem_base_l);
-        if (mem_base_l != tp->pci_cfg_space.mem_base_l) {
-                pci_write_config_word(pdev, PCI_BASE_ADDRESS_2, tp->pci_cfg_space.mem_base_l);
-                tp->esd_flag |= BIT_2;
-        }
+	pci_read_config_word(pdev, PCI_BASE_ADDRESS_3, &resv_0x1c_l);
+	if (resv_0x1c_l != tp->pci_cfg_space.resv_0x1c_l) {
+		pci_write_config_word(pdev, PCI_BASE_ADDRESS_3, tp->pci_cfg_space.resv_0x1c_l);
+		esd_flag |= BIT_4;
+	}
 
-        pci_read_config_word(pdev, PCI_BASE_ADDRESS_2 + 2, &mem_base_h);
-        if (mem_base_h!= tp->pci_cfg_space.mem_base_h) {
-                pci_write_config_word(pdev, PCI_BASE_ADDRESS_2 + 2, tp->pci_cfg_space.mem_base_h);
-                tp->esd_flag |= BIT_3;
-        }
+	pci_read_config_word(pdev, PCI_BASE_ADDRESS_3 + 2, &resv_0x1c_h);
+	if (resv_0x1c_h != tp->pci_cfg_space.resv_0x1c_h) {
+		pci_write_config_word(pdev, PCI_BASE_ADDRESS_3 + 2, tp->pci_cfg_space.resv_0x1c_h);
+		esd_flag |= BIT_5;
+	}
 
-        pci_read_config_word(pdev, PCI_BASE_ADDRESS_3, &resv_0x1c_l);
-        if (resv_0x1c_l != tp->pci_cfg_space.resv_0x1c_l) {
-                pci_write_config_word(pdev, PCI_BASE_ADDRESS_3, tp->pci_cfg_space.resv_0x1c_l);
-                tp->esd_flag |= BIT_4;
-        }
+	pci_read_config_word(pdev, PCI_BASE_ADDRESS_4, &resv_0x20_l);
+	if (resv_0x20_l != tp->pci_cfg_space.resv_0x20_l) {
+		pci_write_config_word(pdev, PCI_BASE_ADDRESS_4, tp->pci_cfg_space.resv_0x20_l);
+		esd_flag |= BIT_6;
+	}
 
-        pci_read_config_word(pdev, PCI_BASE_ADDRESS_3 + 2, &resv_0x1c_h);
-        if (resv_0x1c_h != tp->pci_cfg_space.resv_0x1c_h) {
-                pci_write_config_word(pdev, PCI_BASE_ADDRESS_3 + 2, tp->pci_cfg_space.resv_0x1c_h);
-                tp->esd_flag |= BIT_5;
-        }
+	pci_read_config_word(pdev, PCI_BASE_ADDRESS_4 + 2, &resv_0x20_h);
+	if (resv_0x20_h != tp->pci_cfg_space.resv_0x20_h) {
+		pci_write_config_word(pdev, PCI_BASE_ADDRESS_4 + 2, tp->pci_cfg_space.resv_0x20_h);
+		esd_flag |= BIT_7;
+	}
 
-        pci_read_config_word(pdev, PCI_BASE_ADDRESS_4, &resv_0x20_l);
-        if (resv_0x20_l != tp->pci_cfg_space.resv_0x20_l) {
-                pci_write_config_word(pdev, PCI_BASE_ADDRESS_4, tp->pci_cfg_space.resv_0x20_l);
-                tp->esd_flag |= BIT_6;
-        }
+	pci_read_config_word(pdev, PCI_BASE_ADDRESS_5, &resv_0x24_l);
+	if (resv_0x24_l != tp->pci_cfg_space.resv_0x24_l) {
+		pci_write_config_word(pdev, PCI_BASE_ADDRESS_5, tp->pci_cfg_space.resv_0x24_l);
+		esd_flag |= BIT_8;
+	}
 
-        pci_read_config_word(pdev, PCI_BASE_ADDRESS_4 + 2, &resv_0x20_h);
-        if (resv_0x20_h != tp->pci_cfg_space.resv_0x20_h) {
-                pci_write_config_word(pdev, PCI_BASE_ADDRESS_4 + 2, tp->pci_cfg_space.resv_0x20_h);
-                tp->esd_flag |= BIT_7;
-        }
+	pci_read_config_word(pdev, PCI_BASE_ADDRESS_5 + 2, &resv_0x24_h);
+	if (resv_0x24_h != tp->pci_cfg_space.resv_0x24_h) {
+		pci_write_config_word(pdev, PCI_BASE_ADDRESS_5 + 2, tp->pci_cfg_space.resv_0x24_h);
+		esd_flag |= BIT_9;
+	}
 
-        pci_read_config_word(pdev, PCI_BASE_ADDRESS_5, &resv_0x24_l);
-        if (resv_0x24_l != tp->pci_cfg_space.resv_0x24_l) {
-                pci_write_config_word(pdev, PCI_BASE_ADDRESS_5, tp->pci_cfg_space.resv_0x24_l);
-                tp->esd_flag |= BIT_8;
-        }
+	pci_read_config_byte(pdev, PCI_INTERRUPT_LINE, &ilr);
+	if (ilr != tp->pci_cfg_space.ilr) {
+		pci_write_config_byte(pdev, PCI_INTERRUPT_LINE, tp->pci_cfg_space.ilr);
+		esd_flag |= BIT_10;
+	}
 
-        pci_read_config_word(pdev, PCI_BASE_ADDRESS_5 + 2, &resv_0x24_h);
-        if (resv_0x24_h != tp->pci_cfg_space.resv_0x24_h) {
-                pci_write_config_word(pdev, PCI_BASE_ADDRESS_5 + 2, tp->pci_cfg_space.resv_0x24_h);
-                tp->esd_flag |= BIT_9;
-        }
+	pci_read_config_word(pdev, PCI_SUBSYSTEM_VENDOR_ID, &resv_0x2c_l);
+	if (resv_0x2c_l != tp->pci_cfg_space.resv_0x2c_l) {
+		pci_write_config_word(pdev, PCI_SUBSYSTEM_VENDOR_ID, tp->pci_cfg_space.resv_0x2c_l);
+		esd_flag |= BIT_11;
+	}
 
-        pci_read_config_byte(pdev, PCI_INTERRUPT_LINE, &ilr);
-        if (ilr != tp->pci_cfg_space.ilr) {
-                pci_write_config_byte(pdev, PCI_INTERRUPT_LINE, tp->pci_cfg_space.ilr);
-                tp->esd_flag |= BIT_10;
-        }
+	pci_read_config_word(pdev, PCI_SUBSYSTEM_VENDOR_ID + 2, &resv_0x2c_h);
+	if (resv_0x2c_h != tp->pci_cfg_space.resv_0x2c_h) {
+		pci_write_config_word(pdev, PCI_SUBSYSTEM_VENDOR_ID + 2, tp->pci_cfg_space.resv_0x2c_h);
+		esd_flag |= BIT_12;
+	}
 
-        pci_read_config_word(pdev, PCI_SUBSYSTEM_VENDOR_ID, &resv_0x2c_l);
-        if (resv_0x2c_l != tp->pci_cfg_space.resv_0x2c_l) {
-                pci_write_config_word(pdev, PCI_SUBSYSTEM_VENDOR_ID, tp->pci_cfg_space.resv_0x2c_l);
-                tp->esd_flag |= BIT_11;
-        }
+	pci_sn_l = rtl8168_csi_read(tp, PCI_DEVICE_SERIAL_NUMBER);
+	if (pci_sn_l != tp->pci_cfg_space.pci_sn_l) {
+		rtl8168_csi_write(tp, PCI_DEVICE_SERIAL_NUMBER, tp->pci_cfg_space.pci_sn_l);
+		esd_flag |= BIT_13;
+	}
 
-        pci_read_config_word(pdev, PCI_SUBSYSTEM_VENDOR_ID + 2, &resv_0x2c_h);
-        if (resv_0x2c_h != tp->pci_cfg_space.resv_0x2c_h) {
-                pci_write_config_word(pdev, PCI_SUBSYSTEM_VENDOR_ID + 2, tp->pci_cfg_space.resv_0x2c_h);
-                tp->esd_flag |= BIT_12;
-        }
+	pci_sn_h = rtl8168_csi_read(tp, PCI_DEVICE_SERIAL_NUMBER + 4);
+	if (pci_sn_h != tp->pci_cfg_space.pci_sn_h) {
+		rtl8168_csi_write(tp, PCI_DEVICE_SERIAL_NUMBER + 4, tp->pci_cfg_space.pci_sn_h);
+		esd_flag |= BIT_14;
+	}
 
-        pci_sn_l = rtl8168_csi_read(tp, PCI_DEVICE_SERIAL_NUMBER);
-        if (pci_sn_l != tp->pci_cfg_space.pci_sn_l) {
-                rtl8168_csi_write(tp, PCI_DEVICE_SERIAL_NUMBER, tp->pci_cfg_space.pci_sn_l);
-                tp->esd_flag |= BIT_13;
-        }
+	if (esd_flag != 0) {
+		spin_lock_irqsave(&tp->lock, flags);
+		tp->esd_flag = esd_flag;
+		netif_stop_queue(dev);
+		netif_carrier_off(dev);
+		rtl8168_hw_reset(dev);
+		rtl8168_tx_clear(tp);
+		rtl8168_rx_clear(tp);
+		rtl8168_init_ring(dev);
+		rtl8168_hw_init(dev);
+		rtl8168_powerup_pll(dev);
+		rtl8168_hw_ephy_config(dev);
+		rtl8168_hw_phy_config(dev);
+		rtl8168_hw_config(dev);
+		rtl8168_set_speed(dev, tp->autoneg, tp->speed, tp->duplex);
+		tp->esd_flag = 0;
+		spin_unlock_irqrestore(&tp->lock, flags);
+	}
 
-        pci_sn_h = rtl8168_csi_read(tp, PCI_DEVICE_SERIAL_NUMBER + 4);
-        if (pci_sn_h != tp->pci_cfg_space.pci_sn_h) {
-                rtl8168_csi_write(tp, PCI_DEVICE_SERIAL_NUMBER + 4, tp->pci_cfg_space.pci_sn_h);
-                tp->esd_flag |= BIT_14;
-        }
-
-        if (tp->esd_flag != 0) {
-                netif_stop_queue(dev);
-                netif_carrier_off(dev);
-                rtl8168_hw_reset(dev);
-                rtl8168_tx_clear(tp);
-                rtl8168_rx_clear(tp);
-                rtl8168_init_ring(dev);
-                rtl8168_hw_init(dev);
-                rtl8168_powerup_pll(dev);
-                rtl8168_hw_ephy_config(dev);
-                rtl8168_hw_phy_config(dev);
-                rtl8168_hw_config(dev);
-                rtl8168_set_speed(dev, tp->autoneg, tp->speed, tp->duplex);
-                tp->esd_flag = 0;
-        }
-        spin_unlock_irqrestore(&tp->lock, flags);
-
-        mod_timer(timer, jiffies + timeout);
+	mod_timer(timer, jiffies + timeout);
 }
 
 static void
