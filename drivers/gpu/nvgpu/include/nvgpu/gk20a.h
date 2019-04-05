@@ -778,6 +778,8 @@ struct gpu_ops {
 		} init;
 
 		struct {
+			bool (*handle_exceptions)(struct gk20a *g,
+						  bool *is_gpc_exception);
 			u32 (*read_gpc_tpc_exception)(u32 gpc_exception);
 			u32 (*read_gpc_exception)(struct gk20a *g, u32 gpc);
 			u32 (*read_exception1)(struct gk20a *g);

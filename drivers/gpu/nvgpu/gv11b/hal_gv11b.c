@@ -657,6 +657,8 @@ static const struct gpu_ops gv11b_ops = {
 				gv11b_gr_init_commit_gfxp_wfi_timeout,
 		},
 		.intr = {
+			.handle_exceptions =
+					gm20b_gr_intr_handle_exceptions,
 			.read_gpc_tpc_exception =
 					gm20b_gr_intr_read_gpc_tpc_exception,
 			.read_gpc_exception =

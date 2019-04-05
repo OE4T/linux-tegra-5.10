@@ -1599,128 +1599,21 @@ int gk20a_gr_isr(struct gk20a *g)
 		if (gk20a_gr_handle_firmware_method(g, &isr_data) != 0) {
 			need_reset = true;
 		}
-		nvgpu_log(g, gpu_dbg_intr | gpu_dbg_gpu_dbg, "firmware method intr pending\n");
+		nvgpu_log(g, gpu_dbg_intr | gpu_dbg_gpu_dbg,
+				"firmware method intr pending\n");
 		gk20a_writel(g, gr_intr_r(),
 			gr_intr_firmware_method_reset_f());
 		gr_intr &= ~gr_intr_firmware_method_pending_f();
 	}
 
 	if ((gr_intr & gr_intr_exception_pending_f()) != 0U) {
-		u32 exception = gk20a_readl(g, gr_exception_r());
+		bool is_gpc_exception = false;
 
-		nvgpu_log(g, gpu_dbg_intr | gpu_dbg_gpu_dbg, "exception %08x\n", exception);
-
-		if ((exception & gr_exception_fe_m()) != 0U) {
-			u32 fe = gk20a_readl(g, gr_fe_hww_esr_r());
-			u32 info = gk20a_readl(g, gr_fe_hww_esr_info_r());
-
-			nvgpu_report_gr_exception(g, 0,
-					GPU_PGRAPH_FE_EXCEPTION,
-					fe);
-			nvgpu_err(g, "fe exception: esr 0x%08x, info 0x%08x",
-					fe, info);
-			gk20a_writel(g, gr_fe_hww_esr_r(),
-				gr_fe_hww_esr_reset_active_f());
-			need_reset = true;
-		}
-
-		if ((exception & gr_exception_memfmt_m()) != 0U) {
-			u32 memfmt = gk20a_readl(g, gr_memfmt_hww_esr_r());
-
-			nvgpu_report_gr_exception(g, 0,
-					GPU_PGRAPH_MEMFMT_EXCEPTION,
-					memfmt);
-			nvgpu_err(g, "memfmt exception: esr %08x", memfmt);
-			gk20a_writel(g, gr_memfmt_hww_esr_r(),
-					gr_memfmt_hww_esr_reset_active_f());
-			need_reset = true;
-		}
-
-		if ((exception & gr_exception_pd_m()) != 0U) {
-			u32 pd = gk20a_readl(g, gr_pd_hww_esr_r());
-
-			nvgpu_report_gr_exception(g, 0,
-					GPU_PGRAPH_PD_EXCEPTION,
-					pd);
-			nvgpu_err(g, "pd exception: esr 0x%08x", pd);
-			gk20a_writel(g, gr_pd_hww_esr_r(),
-					gr_pd_hww_esr_reset_active_f());
-			need_reset = true;
-		}
-
-		if ((exception & gr_exception_scc_m()) != 0U) {
-			u32 scc = gk20a_readl(g, gr_scc_hww_esr_r());
-
-			nvgpu_report_gr_exception(g, 0,
-					GPU_PGRAPH_SCC_EXCEPTION,
-					scc);
-			nvgpu_err(g, "scc exception: esr 0x%08x", scc);
-			gk20a_writel(g, gr_scc_hww_esr_r(),
-					gr_scc_hww_esr_reset_active_f());
-			need_reset = true;
-		}
-
-		if ((exception & gr_exception_ds_m()) != 0U) {
-			u32 ds = gk20a_readl(g, gr_ds_hww_esr_r());
-
-			nvgpu_report_gr_exception(g, 0,
-					GPU_PGRAPH_DS_EXCEPTION,
-					ds);
-			nvgpu_err(g, "ds exception: esr: 0x%08x", ds);
-			gk20a_writel(g, gr_ds_hww_esr_r(),
-					 gr_ds_hww_esr_reset_task_f());
-			need_reset = true;
-		}
-
-		if ((exception & gr_exception_ssync_m()) != 0U) {
-			u32 ssync_esr = 0;
-
-			if (g->ops.gr.handle_ssync_hww != NULL) {
-				if (g->ops.gr.handle_ssync_hww(g, &ssync_esr)
-						!= 0) {
-					need_reset = true;
-				}
-			} else {
-				nvgpu_err(g, "unhandled ssync exception");
-			}
-			nvgpu_report_gr_exception(g, 0,
-					GPU_PGRAPH_SSYNC_EXCEPTION,
-					ssync_esr);
-		}
-
-		if ((exception & gr_exception_mme_m()) != 0U) {
-			u32 mme = gk20a_readl(g, gr_mme_hww_esr_r());
-			u32 info = gk20a_readl(g, gr_mme_hww_esr_info_r());
-
-			nvgpu_report_gr_exception(g, 0,
-					GPU_PGRAPH_MME_EXCEPTION,
-					mme);
-			nvgpu_err(g, "mme exception: esr 0x%08x info:0x%08x",
-					mme, info);
-			if (g->ops.gr.log_mme_exception != NULL) {
-				g->ops.gr.log_mme_exception(g);
-			}
-
-			gk20a_writel(g, gr_mme_hww_esr_r(),
-				gr_mme_hww_esr_reset_active_f());
-			need_reset = true;
-		}
-
-		if ((exception & gr_exception_sked_m()) != 0U) {
-			u32 sked = gk20a_readl(g, gr_sked_hww_esr_r());
-
-			nvgpu_report_gr_exception(g, 0,
-					GPU_PGRAPH_SKED_EXCEPTION,
-					sked);
-			nvgpu_err(g, "sked exception: esr 0x%08x", sked);
-			gk20a_writel(g, gr_sked_hww_esr_r(),
-				gr_sked_hww_esr_reset_active_f());
-			need_reset = true;
-		}
+		need_reset = g->ops.gr.intr.handle_exceptions(g,
+							&is_gpc_exception);
 
 		/* check if a gpc exception has occurred */
-		if (((exception & gr_exception_gpc_m()) != 0U) &&
-						!need_reset) {
+		if (is_gpc_exception &&	!need_reset) {
 			bool post_event = false;
 
 			nvgpu_log(g, gpu_dbg_intr | gpu_dbg_gpu_dbg,
