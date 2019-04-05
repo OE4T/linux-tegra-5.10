@@ -122,6 +122,7 @@ nvgpu_mutex_destroy
 nvgpu_mutex_init
 nvgpu_mutex_release
 nvgpu_mutex_tryacquire
+nvgpu_page_allocator_init
 nvgpu_pd_alloc
 nvgpu_pd_cache_fini
 nvgpu_pd_cache_init

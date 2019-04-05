@@ -560,6 +560,166 @@
         "unit": "nvgpu_sgt"
     },
     {
+        "test": "add_empty_slab",
+        "unit": "page_allocator"
+    },
+    {
+        "test": "add_full_slab",
+        "unit": "page_allocator"
+    },
+    {
+        "test": "add_partial_slab",
+        "unit": "page_allocator"
+    },
+    {
+        "test": "add_second_full_slab",
+        "unit": "page_allocator"
+    },
+    {
+        "test": "add_second_partial_slab",
+        "unit": "page_allocator"
+    },
+    {
+        "test": "alloc_fault_at_alloc_cache",
+        "unit": "page_allocator"
+    },
+    {
+        "test": "alloc_fault_at_nvgpu_alloc",
+        "unit": "page_allocator"
+    },
+    {
+        "test": "alloc_fault_at_sgl_alloc",
+        "unit": "page_allocator"
+    },
+    {
+        "test": "alloc_fixed_no_scatter_gather",
+        "unit": "page_allocator"
+    },
+    {
+        "test": "alloc_more_than_available",
+        "unit": "page_allocator"
+    },
+    {
+        "test": "alloc_no_scatter_gather",
+        "unit": "page_allocator"
+    },
+    {
+        "test": "contiguous_alloc_512K",
+        "unit": "page_allocator"
+    },
+    {
+        "test": "destroy",
+        "unit": "page_allocator"
+    },
+    {
+        "test": "destroy_slabs",
+        "unit": "page_allocator"
+    },
+    {
+        "test": "fixed_alloc_128K",
+        "unit": "page_allocator"
+    },
+    {
+        "test": "fixed_alloc_8K",
+        "unit": "page_allocator"
+    },
+    {
+        "test": "fixed_alloc_fault_at_alloc_cache",
+        "unit": "page_allocator"
+    },
+    {
+        "test": "fixed_alloc_fault_at_sgl_alloc",
+        "unit": "page_allocator"
+    },
+    {
+        "test": "free_32K_alloc",
+        "unit": "page_allocator"
+    },
+    {
+        "test": "free_alloc_512K",
+        "unit": "page_allocator"
+    },
+    {
+        "test": "free_fixed_128K",
+        "unit": "page_allocator"
+    },
+    {
+        "test": "free_fixed_no_scatter_gather",
+        "unit": "page_allocator"
+    },
+    {
+        "test": "free_fixed_no_scatter_gather_again",
+        "unit": "page_allocator"
+    },
+    {
+        "test": "free_no_scatter_gather",
+        "unit": "page_allocator"
+    },
+    {
+        "test": "free_no_scatter_gather_again",
+        "unit": "page_allocator"
+    },
+    {
+        "test": "free_slab",
+        "unit": "page_allocator"
+    },
+    {
+        "test": "init",
+        "unit": "page_allocator"
+    },
+    {
+        "test": "init_slabs",
+        "unit": "page_allocator"
+    },
+    {
+        "test": "no_more_slabs",
+        "unit": "page_allocator"
+    },
+    {
+        "test": "ops",
+        "unit": "page_allocator"
+    },
+    {
+        "test": "revert_partial_slab",
+        "unit": "page_allocator"
+    },
+    {
+        "test": "revert_second_partial_slab",
+        "unit": "page_allocator"
+    },
+    {
+        "test": "sgt_ops",
+        "unit": "page_allocator"
+    },
+    {
+        "test": "simple_32K_alloc",
+        "unit": "page_allocator"
+    },
+    {
+        "test": "simple_alloc_512K",
+        "unit": "page_allocator"
+    },
+    {
+        "test": "slabs_alloc_32K",
+        "unit": "page_allocator"
+    },
+    {
+        "test": "slabs_alloc_8K",
+        "unit": "page_allocator"
+    },
+    {
+        "test": "slabs_fault_at_alloc_cache",
+        "unit": "page_allocator"
+    },
+    {
+        "test": "slabs_fault_at_page_cache",
+        "unit": "page_allocator"
+    },
+    {
+        "test": "slabs_fault_at_sgl_alloc",
+        "unit": "page_allocator"
+    },
+    {
         "test": "gmmu_clean",
         "unit": "page_table"
     },
