@@ -396,6 +396,7 @@ void gp10b_clk_arb_cleanup(struct nvgpu_clk_arb *arb)
 	struct gk20a *g = arb->g;
 	int index;
 
+	nvgpu_clk_arb_worker_deinit(g);
 	nvgpu_kfree(g, arb->gpc2clk_f_points);
 
 	for (index = 0; index < 2; index++) {

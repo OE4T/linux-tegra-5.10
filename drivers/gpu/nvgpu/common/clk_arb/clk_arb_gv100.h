@@ -36,5 +36,5 @@ int gv100_get_arbiter_clk_default(struct gk20a *g, u32 api_domain,
 int gv100_init_clk_arbiter(struct gk20a *g);
 void gv100_clk_arb_run_arbiter_cb(struct nvgpu_clk_arb *arb);
 void gv100_clk_arb_cleanup(struct nvgpu_clk_arb *arb);
-
+void gv100_stop_clk_arb_threads(struct gk20a *g);
 #endif /* CLK_ARB_GV100_H */

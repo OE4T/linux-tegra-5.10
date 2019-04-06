@@ -1193,6 +1193,7 @@ static const struct gpu_ops tu104_ops = {
 		.arbiter_clk_init = gv100_init_clk_arbiter,
 		.clk_arb_run_arbiter_cb = gv100_clk_arb_run_arbiter_cb,
 		.clk_arb_cleanup = gv100_clk_arb_cleanup,
+		.stop_clk_arb_threads = gv100_stop_clk_arb_threads,
 	},
 	.regops = {
 		.exec_regops = exec_regops_gk20a,

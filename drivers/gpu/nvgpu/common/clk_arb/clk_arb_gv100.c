@@ -522,3 +522,10 @@ void gv100_clk_arb_cleanup(struct nvgpu_clk_arb *arb)
 
 	g->clk_arb = NULL;
 }
+
+void gv100_stop_clk_arb_threads(struct gk20a *g)
+{
+	nvgpu_mutex_acquire(&g->clk_arb_worker.start_lock);
+	nvgpu_thread_stop(&g->clk_arb_worker.poll_task);
+	nvgpu_mutex_release(&g->clk_arb_worker.start_lock);
+}

@@ -615,6 +615,10 @@ int nvgpu_pmu_rpc_execute(struct nvgpu_pmu *pmu, struct nv_pmu_rpc_header *rpc,
 	void *rpc_buff = NULL;
 	int status = 0;
 
+	if (nvgpu_can_busy(g) == 0) {
+		return 0;
+	}
+
 	if (!pmu->pmu_ready) {
 		nvgpu_warn(g, "PMU is not ready to process RPC");
 		status = EINVAL;

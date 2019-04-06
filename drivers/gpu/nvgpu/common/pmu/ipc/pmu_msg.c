@@ -480,6 +480,10 @@ int nvgpu_pmu_process_message(struct nvgpu_pmu *pmu)
 	struct gk20a *g = gk20a_from_pmu(pmu);
 	int err;
 
+	if (nvgpu_can_busy(g) == 0) {
+		return 0;
+	}
+
 	if (unlikely(!pmu->pmu_ready)) {
 		err = pmu_process_init_msg(pmu, &msg);
 		if (err != 0) {
@@ -498,6 +502,10 @@ int nvgpu_pmu_process_message(struct nvgpu_pmu *pmu)
 	}
 
 	while (pmu_read_message(pmu, PMU_MESSAGE_QUEUE, &msg, &status)) {
+
+		if (nvgpu_can_busy(g) == 0) {
+			return 0;
+		}
 
 		nvgpu_pmu_dbg(g, "read msg hdr: ");
 		nvgpu_pmu_dbg(g, "unit_id = 0x%08x, size = 0x%08x",
@@ -524,6 +532,10 @@ void nvgpu_pmu_rpc_handler(struct gk20a *g, struct pmu_msg *msg,
 	struct nvgpu_pmu *pmu = &g->pmu;
 	struct rpc_handler_payload *rpc_payload =
 		(struct rpc_handler_payload *)param;
+
+	if (nvgpu_can_busy(g) == 0) {
+		return ;
+	}
 
 	(void) memset(&rpc, 0, sizeof(struct nv_pmu_rpc_header));
 	nvgpu_memcpy((u8 *)&rpc, (u8 *)rpc_payload->rpc_buff,
@@ -601,6 +613,10 @@ int pmu_wait_message_cond_status(struct nvgpu_pmu *pmu, u32 timeout_ms,
 		nvgpu_rmb();
 
 		if (*(volatile u8 *)var == val) {
+			return 0;
+		}
+
+		if (nvgpu_can_busy(g) == 0) {
 			return 0;
 		}
 

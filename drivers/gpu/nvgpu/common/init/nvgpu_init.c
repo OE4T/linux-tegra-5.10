@@ -126,6 +126,9 @@ int gk20a_prepare_poweroff(struct gk20a *g)
 	if (g->ops.clk.suspend_clk_support != NULL) {
 		g->ops.clk.suspend_clk_support(g);
 	}
+	if (g->ops.clk_arb.stop_clk_arb_threads != NULL) {
+		g->ops.clk_arb.stop_clk_arb_threads(g);
+	}
 	gk20a_mask_interrupts(g);
 
 	g->power_on = false;

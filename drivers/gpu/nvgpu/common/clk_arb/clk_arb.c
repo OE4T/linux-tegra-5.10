@@ -442,11 +442,11 @@ static void nvgpu_clk_arb_worker_process(struct gk20a *g, int *get)
 
 		if (!work_item) {
 			/*
-			 * Woke up for some other reason, but there are no
-			 * other reasons than a work item added in the items list
-			 * currently, so warn and ack the message.
+			 * Woke up but found work_item empty ?
+			 * This can happen when thread is stopped as driver is
+			 * dying, so inform and ack the message.
 			 */
-			nvgpu_warn(g, "Spurious worker event!");
+			nvgpu_info(g, "Spurious worker event!");
 			++*get;
 			break;
 		}
@@ -621,7 +621,7 @@ void nvgpu_clk_arb_send_thermal_alarm(struct gk20a *g)
 		BIT32(NVGPU_EVENT_ALARM_THERMAL_ABOVE_THRESHOLD));
 }
 
-static void nvgpu_clk_arb_worker_deinit(struct gk20a *g)
+void nvgpu_clk_arb_worker_deinit(struct gk20a *g)
 {
 	nvgpu_mutex_acquire(&g->clk_arb_worker.start_lock);
 	nvgpu_thread_stop(&g->clk_arb_worker.poll_task);
@@ -635,7 +635,6 @@ void nvgpu_clk_arb_cleanup_arbiter(struct gk20a *g)
 	nvgpu_mutex_acquire(&g->clk_arb_enable_lock);
 
 	if (arb) {
-		nvgpu_clk_arb_worker_deinit(g);
 		g->ops.clk_arb.clk_arb_cleanup(g->clk_arb);
 	}
 

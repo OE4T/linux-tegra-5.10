@@ -1513,6 +1513,7 @@ struct gpu_ops {
 		 *  before calling this function */
 		u32 (*get_current_pstate)(struct gk20a *g);
 		void (*clk_arb_cleanup)(struct nvgpu_clk_arb *arb);
+		void (*stop_clk_arb_threads)(struct gk20a *g);
 	} clk_arb;
 	struct {
 		int (*handle_pmu_perf_event)(struct gk20a *g, void *pmu_msg);
