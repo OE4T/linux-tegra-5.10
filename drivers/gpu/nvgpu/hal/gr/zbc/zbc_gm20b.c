@@ -33,16 +33,21 @@ int gm20b_gr_zbc_add_color(struct gk20a *g,
 {
 	/* update ds table */
 	nvgpu_writel(g, gr_ds_zbc_color_r_r(),
-		gr_ds_zbc_color_r_val_f(color_val->color_ds[0]));
+		gr_ds_zbc_color_r_val_f(
+			nvgpu_gr_zbc_get_entry_color_ds(color_val, 0)));
 	nvgpu_writel(g, gr_ds_zbc_color_g_r(),
-		gr_ds_zbc_color_g_val_f(color_val->color_ds[1]));
+		gr_ds_zbc_color_g_val_f(
+			nvgpu_gr_zbc_get_entry_color_ds(color_val, 1)));
 	nvgpu_writel(g, gr_ds_zbc_color_b_r(),
-		gr_ds_zbc_color_b_val_f(color_val->color_ds[2]));
+		gr_ds_zbc_color_b_val_f(
+			nvgpu_gr_zbc_get_entry_color_ds(color_val, 2)));
 	nvgpu_writel(g, gr_ds_zbc_color_a_r(),
-		gr_ds_zbc_color_a_val_f(color_val->color_ds[3]));
+		gr_ds_zbc_color_a_val_f(
+			nvgpu_gr_zbc_get_entry_color_ds(color_val, 3)));
 
 	nvgpu_writel(g, gr_ds_zbc_color_fmt_r(),
-		gr_ds_zbc_color_fmt_val_f(color_val->format));
+		gr_ds_zbc_color_fmt_val_f(
+			nvgpu_gr_zbc_get_entry_format(color_val)));
 
 	nvgpu_writel(g, gr_ds_zbc_tbl_index_r(),
 		gr_ds_zbc_tbl_index_val_f(index + NVGPU_GR_ZBC_STARTOF_TABLE));
@@ -61,10 +66,12 @@ int gm20b_gr_zbc_add_depth(struct gk20a *g,
 {
 	/* update ds table */
 	nvgpu_writel(g, gr_ds_zbc_z_r(),
-		gr_ds_zbc_z_val_f(depth_val->depth));
+		gr_ds_zbc_z_val_f(
+			nvgpu_gr_zbc_get_entry_depth(depth_val)));
 
 	nvgpu_writel(g, gr_ds_zbc_z_fmt_r(),
-		gr_ds_zbc_z_fmt_val_f(depth_val->format));
+		gr_ds_zbc_z_fmt_val_f(
+			nvgpu_gr_zbc_get_entry_format(depth_val)));
 
 	nvgpu_writel(g, gr_ds_zbc_tbl_index_r(),
 		gr_ds_zbc_tbl_index_val_f(index + NVGPU_GR_ZBC_STARTOF_TABLE));

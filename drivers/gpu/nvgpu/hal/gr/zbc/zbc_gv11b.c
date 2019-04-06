@@ -43,11 +43,13 @@ int gv11b_gr_zbc_add_stencil(struct gk20a *g,
 {
 	u32 zbc_s;
 
-	nvgpu_writel(g, gr_gpcs_swdx_dss_zbc_s_r(index), stencil_val->depth);
+	nvgpu_writel(g, gr_gpcs_swdx_dss_zbc_s_r(index),
+		nvgpu_gr_zbc_get_entry_depth(stencil_val));
 	zbc_s = nvgpu_readl(g, gr_gpcs_swdx_dss_zbc_s_01_to_04_format_r() +
 				 (index & ~3U));
 	zbc_s &= ~(U32(0x7f) << (index % 4U) * 7U);
-	zbc_s |= stencil_val->format << (index % 4U) * 7U;
+	zbc_s |= nvgpu_gr_zbc_get_entry_format(stencil_val) <<
+		(index % 4U) * 7U;
 	nvgpu_writel(g, gr_gpcs_swdx_dss_zbc_s_01_to_04_format_r() +
 				 (index & ~3U), zbc_s);
 

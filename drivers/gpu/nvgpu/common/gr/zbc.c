@@ -596,3 +596,69 @@ void nvgpu_gr_zbc_deinit(struct gk20a *g, struct nvgpu_gr_zbc *zbc)
 	nvgpu_kfree(g, zbc->zbc_s_tbl);
 	nvgpu_kfree(g, zbc);
 }
+
+struct nvgpu_gr_zbc_entry *nvgpu_gr_zbc_entry_alloc(struct gk20a *g)
+{
+	return nvgpu_kzalloc(g, sizeof(struct nvgpu_gr_zbc_entry));
+}
+void nvgpu_gr_zbc_entry_free(struct gk20a *g, struct nvgpu_gr_zbc_entry *entry)
+{
+	nvgpu_kfree(g, entry);
+}
+
+u32 nvgpu_gr_zbc_get_entry_color_ds(struct nvgpu_gr_zbc_entry *entry,
+		int idx)
+{
+	return entry->color_ds[idx];
+}
+
+void nvgpu_gr_zbc_set_entry_color_ds(struct nvgpu_gr_zbc_entry *entry,
+		int idx, u32 ds)
+{
+	entry->color_ds[idx] = ds;
+}
+
+u32 nvgpu_gr_zbc_get_entry_color_l2(struct nvgpu_gr_zbc_entry *entry,
+		int idx)
+{
+	return entry->color_l2[idx];
+}
+
+void nvgpu_gr_zbc_set_entry_color_l2(struct nvgpu_gr_zbc_entry *entry,
+		int idx, u32 l2)
+{
+	entry->color_l2[idx] = l2;
+}
+
+u32 nvgpu_gr_zbc_get_entry_depth(struct nvgpu_gr_zbc_entry *entry)
+{
+	return entry->depth;
+}
+
+void nvgpu_gr_zbc_set_entry_depth(struct nvgpu_gr_zbc_entry *entry,
+		u32 depth)
+{
+	entry->depth = depth;
+}
+
+u32 nvgpu_gr_zbc_get_entry_type(struct nvgpu_gr_zbc_entry *entry)
+{
+	return entry->type;
+}
+
+void nvgpu_gr_zbc_set_entry_type(struct nvgpu_gr_zbc_entry *entry,
+		u32 type)
+{
+	entry->type = type;
+}
+
+u32 nvgpu_gr_zbc_get_entry_format(struct nvgpu_gr_zbc_entry *entry)
+{
+	return entry->format;
+}
+
+void nvgpu_gr_zbc_set_entry_format(struct nvgpu_gr_zbc_entry *entry,
+		u32 format)
+{
+	entry->format = format;
+}

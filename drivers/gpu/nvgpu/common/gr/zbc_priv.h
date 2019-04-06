@@ -56,5 +56,26 @@ struct zbc_s_table {
 	u32 ref_cnt;
 };
 
+struct nvgpu_gr_zbc_entry {
+	u32 color_ds[NVGPU_GR_ZBC_COLOR_VALUE_SIZE];
+	u32 color_l2[NVGPU_GR_ZBC_COLOR_VALUE_SIZE];
+	u32 depth;
+	u32 type;	/* color or depth */
+	u32 format;
+};
+
+struct nvgpu_gr_zbc {
+	struct nvgpu_mutex zbc_lock;
+	struct zbc_color_table *zbc_col_tbl;
+	struct zbc_depth_table *zbc_dep_tbl;
+	struct zbc_s_table *zbc_s_tbl;
+	s32 max_default_color_index;
+	s32 max_default_depth_index;
+	s32 max_default_s_index;
+	u32 max_used_color_index;
+	u32 max_used_depth_index;
+	u32 max_used_s_index;
+};
+
 #endif /* GR_ZBC_H */
 

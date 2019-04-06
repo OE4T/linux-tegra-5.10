@@ -1706,24 +1706,27 @@ long gk20a_ctrl_dev_ioctl(struct file *filp, unsigned int cmd, unsigned long arg
 	case NVGPU_GPU_IOCTL_ZBC_SET_TABLE:
 		set_table_args = (struct nvgpu_gpu_zbc_set_table_args *)buf;
 
-		zbc_val = nvgpu_kzalloc(g, sizeof(struct nvgpu_gr_zbc_entry));
+		zbc_val = nvgpu_gr_zbc_entry_alloc(g);
 		if (zbc_val == NULL)
 			return -ENOMEM;
 
-		zbc_val->format = set_table_args->format;
-		zbc_val->type = set_table_args->type;
+		nvgpu_gr_zbc_set_entry_format(zbc_val, set_table_args->format);
+		nvgpu_gr_zbc_set_entry_type(zbc_val, set_table_args->type);
 
 		nvgpu_speculation_barrier();
-		switch (zbc_val->type) {
+		switch (nvgpu_gr_zbc_get_entry_type(zbc_val)) {
 		case NVGPU_GR_ZBC_TYPE_COLOR:
 			for (i = 0U; i < NVGPU_GR_ZBC_COLOR_VALUE_SIZE; i++) {
-				zbc_val->color_ds[i] = set_table_args->color_ds[i];
-				zbc_val->color_l2[i] = set_table_args->color_l2[i];
+				nvgpu_gr_zbc_set_entry_color_ds(zbc_val, i,
+						set_table_args->color_ds[i]);
+				nvgpu_gr_zbc_set_entry_color_l2(zbc_val, i,
+						set_table_args->color_l2[i]);
 			}
 			break;
 		case NVGPU_GR_ZBC_TYPE_DEPTH:
 		case NVGPU_GR_ZBC_TYPE_STENCIL:
-			zbc_val->depth = set_table_args->depth;
+			nvgpu_gr_zbc_set_entry_depth(zbc_val,
+					set_table_args->depth);
 			break;
 		default:
 			err = -EINVAL;
@@ -1739,7 +1742,7 @@ long gk20a_ctrl_dev_ioctl(struct file *filp, unsigned int cmd, unsigned long arg
 		}
 
 		if (zbc_val)
-			nvgpu_kfree(g, zbc_val);
+			nvgpu_gr_zbc_entry_free(g, zbc_val);
 		break;
 	case NVGPU_GPU_IOCTL_ZBC_QUERY_TABLE:
 		query_table_args = (struct nvgpu_gpu_zbc_query_table_args *)buf;
