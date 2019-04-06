@@ -331,6 +331,14 @@ int gk20a_finalize_poweron(struct gk20a *g)
 		}
 	}
 
+	/* prepare portion of sw required for enable hw */
+	err = nvgpu_gr_prepare_sw(g);
+	if (err != 0) {
+		nvgpu_err(g, "failed to prepare sw");
+		nvgpu_mutex_release(&g->tpc_pg_lock);
+		goto done;
+	}
+
 	err = nvgpu_gr_enable_hw(g);
 	if (err != 0) {
 		nvgpu_err(g, "failed to enable gr");

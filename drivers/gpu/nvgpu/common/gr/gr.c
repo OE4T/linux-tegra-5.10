@@ -271,6 +271,9 @@ static void gr_remove_support(struct gr_gk20a *gr)
 
 	nvgpu_gr_hwpm_map_deinit(g, gr->hwpm_map);
 
+	nvgpu_gr_falcon_remove_support(g, gr->falcon);
+	gr->falcon = NULL;
+
 	nvgpu_ecc_remove_support(g);
 	nvgpu_gr_zbc_deinit(g, gr->zbc);
 	nvgpu_gr_zcull_deinit(g, gr->zcull);
@@ -498,7 +501,31 @@ out:
 	return 0;
 }
 
-static void gr_init_prepare(struct gk20a *g)
+int nvgpu_gr_prepare_sw(struct gk20a *g)
+{
+	struct gr_gk20a *gr = &g->gr;
+	int err = 0;
+
+	nvgpu_log_fn(g, " ");
+
+	err = nvgpu_netlist_init_ctx_vars(g);
+	if (err != 0) {
+		nvgpu_err(g, "failed to parse netlist");
+		return err;
+	}
+
+	if (gr->falcon == NULL) {
+		gr->falcon = nvgpu_gr_falcon_init_support(g);
+		if (gr->falcon == NULL) {
+			nvgpu_err(g, "failed to init gr falcon");
+			err = -ENOMEM;
+			return err;
+		}
+	}
+	return err;
+}
+
+static void gr_init_prepare_hw(struct gk20a *g)
 {
 	/* reset gr engine */
 	g->ops.mc.reset(g, g->ops.mc.reset_mask(g, NVGPU_UNIT_GRAPH) |
@@ -520,13 +547,7 @@ int nvgpu_gr_enable_hw(struct gk20a *g)
 
 	nvgpu_log_fn(g, " ");
 
-	gr_init_prepare(g);
-
-	err = nvgpu_netlist_init_ctx_vars(g);
-	if (err != 0) {
-		nvgpu_err(g, "failed to parse netlist");
-		return err;
-	}
+	gr_init_prepare_hw(g);
 
 	err = gr_init_reset_enable_hw(g);
 	if (err != 0) {
@@ -541,30 +562,32 @@ int nvgpu_gr_enable_hw(struct gk20a *g)
 int nvgpu_gr_reset(struct gk20a *g)
 {
 	int err;
+	struct nvgpu_mutex *fecs_mutex =
+		nvgpu_gr_falcon_get_fecs_mutex(g->gr.falcon);
 
 	g->gr.initialized = false;
 
-	nvgpu_mutex_acquire(&g->gr.fecs_mutex);
+	nvgpu_mutex_acquire(fecs_mutex);
 
 	err = nvgpu_gr_enable_hw(g);
 	if (err != 0) {
-		nvgpu_mutex_release(&g->gr.fecs_mutex);
+		nvgpu_mutex_release(fecs_mutex);
 		return err;
 	}
 
 	err = gr_init_setup_hw(g);
 	if (err != 0) {
-		nvgpu_mutex_release(&g->gr.fecs_mutex);
+		nvgpu_mutex_release(fecs_mutex);
 		return err;
 	}
 
-	err = nvgpu_gr_falcon_init_ctxsw(g);
+	err = nvgpu_gr_falcon_init_ctxsw(g, g->gr.falcon);
 	if (err != 0) {
-		nvgpu_mutex_release(&g->gr.fecs_mutex);
+		nvgpu_mutex_release(fecs_mutex);
 		return err;
 	}
 
-	nvgpu_mutex_release(&g->gr.fecs_mutex);
+	nvgpu_mutex_release(fecs_mutex);
 
 	/* this appears query for sw states but fecs actually init
 	   ramchain, etc so this is hw init */
@@ -598,14 +621,7 @@ int nvgpu_gr_init_support(struct gk20a *g)
 
 	g->gr.initialized = false;
 
-	/* this is required before gr_gk20a_init_ctx_state */
-	err = nvgpu_mutex_init(&g->gr.fecs_mutex);
-	if (err != 0) {
-		nvgpu_err(g, "Error in gr.fecs_mutex initialization");
-		return err;
-	}
-
-	err = nvgpu_gr_falcon_init_ctxsw(g);
+	err = nvgpu_gr_falcon_init_ctxsw(g, g->gr.falcon);
 	if (err != 0) {
 		return err;
 	}

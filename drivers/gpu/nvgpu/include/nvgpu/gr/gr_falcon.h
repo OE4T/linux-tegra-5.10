@@ -26,6 +26,21 @@
 #include <nvgpu/types.h>
 
 struct gk20a;
+struct nvgpu_gr_falcon;
+
+struct nvgpu_ctxsw_ucode_segment {
+	u32 offset;
+	u32 size;
+};
+
+struct nvgpu_ctxsw_ucode_segments {
+	u32 boot_entry;
+	u32 boot_imem_offset;
+	u32 boot_signature;
+	struct nvgpu_ctxsw_ucode_segment boot;
+	struct nvgpu_ctxsw_ucode_segment code;
+	struct nvgpu_ctxsw_ucode_segment data;
+};
 
 #define NVGPU_GR_FALCON_METHOD_CTXSW_STOP 0
 #define NVGPU_GR_FALCON_METHOD_CTXSW_START 1
@@ -57,14 +72,31 @@ struct nvgpu_fecs_host_intr_status {
 	bool watchdog_active;
 };
 
+struct nvgpu_gr_falcon *nvgpu_gr_falcon_init_support(struct gk20a *g);
+void nvgpu_gr_falcon_remove_support(struct gk20a *g,
+				struct nvgpu_gr_falcon *falcon);
 int nvgpu_gr_falcon_bind_fecs_elpg(struct gk20a *g);
-int nvgpu_gr_falcon_init_ctxsw(struct gk20a *g);
+int nvgpu_gr_falcon_init_ctxsw(struct gk20a *g, struct nvgpu_gr_falcon *falcon);
 int nvgpu_gr_falcon_init_ctx_state(struct gk20a *g);
-int nvgpu_gr_falcon_init_ctxsw_ucode(struct gk20a *g);
-int nvgpu_gr_falcon_load_ctxsw_ucode(struct gk20a *g);
-int nvgpu_gr_falcon_load_secure_ctxsw_ucode(struct gk20a *g);
-int nvgpu_gr_falcon_disable_ctxsw(struct gk20a *g);
-int nvgpu_gr_falcon_enable_ctxsw(struct gk20a *g);
+int nvgpu_gr_falcon_init_ctxsw_ucode(struct gk20a *g,
+					struct nvgpu_gr_falcon *falcon);
+int nvgpu_gr_falcon_load_ctxsw_ucode(struct gk20a *g,
+					struct nvgpu_gr_falcon *falcon);
+int nvgpu_gr_falcon_load_secure_ctxsw_ucode(struct gk20a *g,
+					struct nvgpu_gr_falcon *falcon);
+int nvgpu_gr_falcon_disable_ctxsw(struct gk20a *g,
+					struct nvgpu_gr_falcon *falcon);
+int nvgpu_gr_falcon_enable_ctxsw(struct gk20a *g,
+					struct nvgpu_gr_falcon *falcon);
 int nvgpu_gr_falcon_halt_pipe(struct gk20a *g);
+
+struct nvgpu_mutex *nvgpu_gr_falcon_get_fecs_mutex(
+					struct nvgpu_gr_falcon *falcon);
+struct nvgpu_ctxsw_ucode_segments *nvgpu_gr_falcon_get_fecs_ucode_segments(
+					struct nvgpu_gr_falcon *falcon);
+struct nvgpu_ctxsw_ucode_segments *nvgpu_gr_falcon_get_gpccs_ucode_segments(
+					struct nvgpu_gr_falcon *falcon);
+void *nvgpu_gr_falcon_get_surface_desc_cpu_va(
+					struct nvgpu_gr_falcon *falcon);
 
 #endif /* NVGPU_GR_FALCON_H */

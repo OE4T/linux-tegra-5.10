@@ -695,7 +695,7 @@ int gm20b_gr_clear_sm_error_state(struct gk20a *g,
 	(void) memset(&tsg->sm_error_states[sm_id], 0,
 		sizeof(*tsg->sm_error_states));
 
-	err = g->ops.gr.falcon.disable_ctxsw(g);
+	err = g->ops.gr.falcon.disable_ctxsw(g, g->gr.falcon);
 	if (err != 0) {
 		nvgpu_err(g, "unable to stop gr ctxsw");
 		goto fail;
@@ -716,7 +716,7 @@ int gm20b_gr_clear_sm_error_state(struct gk20a *g,
 				0);
 	}
 
-	err = g->ops.gr.falcon.enable_ctxsw(g);
+	err = g->ops.gr.falcon.enable_ctxsw(g, g->gr.falcon);
 
 fail:
 	nvgpu_mutex_release(&g->dbg_sessions_lock);

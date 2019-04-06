@@ -25,6 +25,7 @@
 
 #include <nvgpu/types.h>
 
+int nvgpu_gr_prepare_sw(struct gk20a *g);
 int nvgpu_gr_enable_hw(struct gk20a *g);
 int nvgpu_gr_reset(struct gk20a *g);
 int nvgpu_gr_init_support(struct gk20a *g);

@@ -289,7 +289,7 @@ void nvgpu_tsg_recover(struct gk20a *g, struct tsg_gk20a *tsg,
 	 * changing until engine status is checked to make sure tsg
 	 * being recovered is not loaded on the engines
 	 */
-	err = g->ops.gr.falcon.disable_ctxsw(g);
+	err = g->ops.gr.falcon.disable_ctxsw(g, g->gr.falcon);
 
 	if (err != 0) {
 		/* if failed to disable ctxsw, just abort tsg */
@@ -306,7 +306,7 @@ void nvgpu_tsg_recover(struct gk20a *g, struct tsg_gk20a *tsg,
 		 * By that time if tsg is not on the engine, engine need not
 		 * be reset.
 		 */
-		err = g->ops.gr.falcon.enable_ctxsw(g);
+		err = g->ops.gr.falcon.enable_ctxsw(g, g->gr.falcon);
 		if (err != 0) {
 			nvgpu_err(g, "failed to enable ctxsw");
 		}

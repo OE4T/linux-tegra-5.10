@@ -1483,7 +1483,7 @@ void nvgpu_channel_recover(struct gk20a *g, struct channel_gk20a *ch,
 	/* stop context switching to prevent engine assignments from
 	   changing until channel is recovered */
 	nvgpu_mutex_acquire(&g->dbg_sessions_lock);
-	err = g->ops.gr.falcon.disable_ctxsw(g);
+	err = g->ops.gr.falcon.disable_ctxsw(g, g->gr.falcon);
 	if (err != 0) {
 		nvgpu_err(g, "failed to disable ctxsw");
 		goto fail;
@@ -1502,7 +1502,7 @@ void nvgpu_channel_recover(struct gk20a *g, struct channel_gk20a *ch,
 		}
 	}
 
-	err = g->ops.gr.falcon.enable_ctxsw(g);
+	err = g->ops.gr.falcon.enable_ctxsw(g, g->gr.falcon);
 	if (err != 0) {
 		nvgpu_err(g, "failed to enable ctxsw");
 	}

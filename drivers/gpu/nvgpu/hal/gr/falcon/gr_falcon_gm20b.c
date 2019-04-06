@@ -33,6 +33,8 @@
 #include <nvgpu/hw/gm20b/hw_gr_gm20b.h>
 #include <nvgpu/hw/gm20b/hw_ram_gm20b.h>
 
+#define GR_FECS_POLL_INTERVAL	5U /* usec */
+
 #define FECS_ARB_CMD_TIMEOUT_MAX_US 40U
 #define FECS_ARB_CMD_TIMEOUT_DEFAULT_US 2U
 #define CTXSW_MEM_SCRUBBING_TIMEOUT_MAX_US 1000U
@@ -733,10 +735,10 @@ int gm20b_gr_falcon_submit_fecs_method_op(struct gk20a *g,
 				   struct nvgpu_fecs_method_op op,
 				   bool sleepduringwait)
 {
-	struct gr_gk20a *gr = &g->gr;
 	int ret;
+	struct gr_gk20a *gr = &g->gr;
 
-	nvgpu_mutex_acquire(&gr->fecs_mutex);
+	nvgpu_mutex_acquire(&gr->falcon->fecs_mutex);
 
 	if (op.mailbox.id != 0U) {
 		nvgpu_writel(g, gr_fecs_ctxsw_mailbox_r(op.mailbox.id),
@@ -766,7 +768,7 @@ int gm20b_gr_falcon_submit_fecs_method_op(struct gk20a *g,
 			op.method.data, op.method.addr);
 	}
 
-	nvgpu_mutex_release(&gr->fecs_mutex);
+	nvgpu_mutex_release(&gr->falcon->fecs_mutex);
 
 	return ret;
 }
@@ -775,10 +777,10 @@ int gm20b_gr_falcon_submit_fecs_method_op(struct gk20a *g,
 int gm20b_gr_falcon_submit_fecs_sideband_method_op(struct gk20a *g,
 		struct nvgpu_fecs_method_op op)
 {
-	struct gr_gk20a *gr = &g->gr;
 	int ret;
+	struct gr_gk20a *gr = &g->gr;
 
-	nvgpu_mutex_acquire(&gr->fecs_mutex);
+	nvgpu_mutex_acquire(&gr->falcon->fecs_mutex);
 
 	nvgpu_writel(g, gr_fecs_ctxsw_mailbox_clear_r(op.mailbox.id),
 		gr_fecs_ctxsw_mailbox_clear_value_f(op.mailbox.clr));
@@ -796,7 +798,7 @@ int gm20b_gr_falcon_submit_fecs_sideband_method_op(struct gk20a *g,
 			op.method.data, op.method.addr);
 	}
 
-	nvgpu_mutex_release(&gr->fecs_mutex);
+	nvgpu_mutex_release(&gr->falcon->fecs_mutex);
 
 	return ret;
 }

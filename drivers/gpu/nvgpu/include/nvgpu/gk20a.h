@@ -56,6 +56,7 @@ struct perf_pmupstate;
 struct boardobjgrp;
 struct boardobjgrp_pmu_cmd;
 struct boardobjgrpmask;
+struct nvgpu_gr_falcon;
 struct nvgpu_sgt;
 struct nvgpu_sgl;
 struct nvgpu_device_info;
@@ -564,7 +565,8 @@ struct gpu_ops {
 			void (*load_ctxsw_ucode_boot)(struct gk20a *g,
 				u32 reg_offset, u32 boot_entry,
 				u32 addr_load32, u32 blocks, u32 dst);
-			int (*load_ctxsw_ucode)(struct gk20a *g);
+			int (*load_ctxsw_ucode)(struct gk20a *g,
+					struct nvgpu_gr_falcon *falcon);
 			int (*wait_mem_scrubbing)(struct gk20a *g);
 			int (*wait_ctxsw_ready)(struct gk20a *g);
 			int (*submit_fecs_method_op)(struct gk20a *g,
@@ -575,8 +577,10 @@ struct gpu_ops {
 			int (*ctrl_ctxsw)(struct gk20a *g, u32 fecs_method,
 				u32 fecs_data, u32 *ret_val);
 			int (*halt_pipe)(struct gk20a *g);
-			int (*disable_ctxsw)(struct gk20a *g);
-			int (*enable_ctxsw)(struct gk20a *g);
+			int (*disable_ctxsw)(struct gk20a *g,
+					struct nvgpu_gr_falcon *falcon);
+			int (*enable_ctxsw)(struct gk20a *g,
+					struct nvgpu_gr_falcon *falcon);
 			u32 (*get_current_ctx)(struct gk20a *g);
 			u32 (*get_ctx_ptr)(u32 ctx);
 			u32 (*get_fecs_current_ctx_data)(struct gk20a *g,
@@ -1988,9 +1992,6 @@ struct gk20a {
 
 	nvgpu_atomic_t usage_count;
 
-	struct nvgpu_mutex ctxsw_disable_lock;
-	int ctxsw_disable_count;
-
 	struct nvgpu_ref refcount;
 
 	const char *name;
@@ -2086,8 +2087,6 @@ struct gk20a {
 	bool has_cde;
 
 	u32 emc3d_ratio;
-
-	struct gk20a_ctxsw_ucode_info ctxsw_ucode_info;
 
 	/*
 	 * A group of semaphore pools. One for each channel.

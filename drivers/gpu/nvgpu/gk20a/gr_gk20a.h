@@ -31,12 +31,7 @@
 #include <nvgpu/comptags.h>
 #include <nvgpu/cond.h>
 
-#define GR_FECS_POLL_INTERVAL		5U /* usec */
-
 #define INVALID_MAX_WAYS		0xFFFFFFFFU
-
-#define GK20A_FECS_UCODE_IMAGE	"fecs.bin"
-#define GK20A_GPCCS_UCODE_IMAGE	"gpccs.bin"
 
 #define GK20A_TIMEOUT_FPGA		100000U /* 100 sec */
 
@@ -49,6 +44,7 @@ struct nvgpu_gr_ctx;
 struct channel_gk20a;
 struct nvgpu_warpstate;
 struct nvgpu_gr_ctx_desc;
+struct nvgpu_gr_falcon;
 struct nvgpu_gr_global_ctx_buffer_desc;
 struct nvgpu_gr_global_ctx_local_golden_image;
 struct nvgpu_gr_zbc;
@@ -57,27 +53,6 @@ struct nvgpu_gr_isr_data;
 struct nvgpu_gr_ctx_desc;
 
 enum ctxsw_addr_type;
-
-enum wait_ucode_status {
-	WAIT_UCODE_LOOP,
-	WAIT_UCODE_TIMEOUT,
-	WAIT_UCODE_ERROR,
-	WAIT_UCODE_OK
-};
-
-enum {
-	GR_IS_UCODE_OP_EQUAL,
-	GR_IS_UCODE_OP_NOT_EQUAL,
-	GR_IS_UCODE_OP_AND,
-	GR_IS_UCODE_OP_LESSER,
-	GR_IS_UCODE_OP_LESSER_EQUAL,
-	GR_IS_UCODE_OP_SKIP
-};
-
-enum {
-	eUcodeHandshakeInitComplete = 1,
-	eUcodeHandshakeMethodFinished
-};
 
 enum {
 	ELCG_MODE = (1 << 0),
@@ -135,7 +110,6 @@ struct gr_gk20a {
 	} ctx_vars;
 
 	struct nvgpu_mutex ctx_mutex; /* protect golden ctx init */
-	struct nvgpu_mutex fecs_mutex; /* protect fecs method */
 
 	struct nvgpu_cond init_wq;
 	bool initialized;
@@ -160,6 +134,8 @@ struct gr_gk20a {
 
 	struct nvgpu_gr_zbc *zbc;
 
+	struct nvgpu_gr_falcon *falcon;
+
 #define GR_CHANNEL_MAP_TLB_SIZE		2U /* must of power of 2 */
 	struct gr_channel_map_tlb_entry chid_tlb[GR_CHANNEL_MAP_TLB_SIZE];
 	u32 channel_tlb_flush_index;
@@ -167,7 +143,6 @@ struct gr_gk20a {
 
 	void (*remove_support)(struct gr_gk20a *gr);
 	bool sw_ready;
-	bool skip_ucode_init;
 
 	u32 fecs_feature_override_ecc_val;
 
@@ -184,50 +159,7 @@ struct gr_gk20a {
 	u32 max_ctxsw_ring_buffer_size;
 };
 
-struct gk20a_ctxsw_ucode_segment {
-	u32 offset;
-	u32 size;
-};
 
-struct gk20a_ctxsw_ucode_segments {
-	u32 boot_entry;
-	u32 boot_imem_offset;
-	u32 boot_signature;
-	struct gk20a_ctxsw_ucode_segment boot;
-	struct gk20a_ctxsw_ucode_segment code;
-	struct gk20a_ctxsw_ucode_segment data;
-};
-
-/* sums over the ucode files as sequences of u32, computed to the
- * boot_signature field in the structure above */
-
-/* T18X FECS remains same as T21X,
- * so FALCON_UCODE_SIG_T21X_FECS_WITH_RESERVED used
- * for T18X*/
-#define FALCON_UCODE_SIG_T18X_GPCCS_WITH_RESERVED	0x68edab34U
-#define FALCON_UCODE_SIG_T21X_FECS_WITH_DMEM_SIZE	0x9121ab5cU
-#define FALCON_UCODE_SIG_T21X_FECS_WITH_RESERVED	0x9125ab5cU
-#define FALCON_UCODE_SIG_T12X_FECS_WITH_RESERVED	0x8a621f78U
-#define FALCON_UCODE_SIG_T12X_FECS_WITHOUT_RESERVED	0x67e5344bU
-#define FALCON_UCODE_SIG_T12X_FECS_OLDER		0x56da09fU
-
-#define FALCON_UCODE_SIG_T21X_GPCCS_WITH_RESERVED	0x3d3d65e2U
-#define FALCON_UCODE_SIG_T12X_GPCCS_WITH_RESERVED	0x303465d5U
-#define FALCON_UCODE_SIG_T12X_GPCCS_WITHOUT_RESERVED	0x3fdd33d3U
-#define FALCON_UCODE_SIG_T12X_GPCCS_OLDER		0x53d7877U
-
-#define FALCON_UCODE_SIG_T21X_FECS_WITHOUT_RESERVED	0x93671b7dU
-#define FALCON_UCODE_SIG_T21X_FECS_WITHOUT_RESERVED2	0x4d6cbc10U
-
-#define FALCON_UCODE_SIG_T21X_GPCCS_WITHOUT_RESERVED	0x393161daU
-
-struct gk20a_ctxsw_ucode_info {
-	u64 *p_va;
-	struct nvgpu_mem inst_blk_desc;
-	struct nvgpu_mem surface_desc;
-	struct gk20a_ctxsw_ucode_segments fecs;
-	struct gk20a_ctxsw_ucode_segments gpccs;
-};
 
 struct nvgpu_warpstate {
 	u64 valid_warps[2];

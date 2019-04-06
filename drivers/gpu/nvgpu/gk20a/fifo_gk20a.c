@@ -176,7 +176,7 @@ int gk20a_fifo_deferred_reset(struct gk20a *g, struct channel_gk20a *ch)
 		return 0;
 	}
 
-	err = g->ops.gr.falcon.disable_ctxsw(g);
+	err = g->ops.gr.falcon.disable_ctxsw(g, g->gr.falcon);
 	if (err != 0) {
 		nvgpu_err(g, "failed to disable ctxsw");
 		goto fail;
@@ -211,7 +211,7 @@ int gk20a_fifo_deferred_reset(struct gk20a *g, struct channel_gk20a *ch)
 	nvgpu_mutex_release(&f->deferred_reset_mutex);
 
 clean_up:
-	err = g->ops.gr.falcon.enable_ctxsw(g);
+	err = g->ops.gr.falcon.enable_ctxsw(g, g->gr.falcon);
 	if (err != 0) {
 		nvgpu_err(g, "failed to enable ctxsw");
 	}

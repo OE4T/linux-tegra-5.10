@@ -81,7 +81,6 @@ static void vgpu_init_vars(struct gk20a *g, struct gk20a_platform *platform)
 	struct vgpu_priv_data *priv = vgpu_get_priv_data(g);
 
 	nvgpu_mutex_init(&g->power_lock);
-	nvgpu_mutex_init(&g->ctxsw_disable_lock);
 	nvgpu_mutex_init(&g->clk_arb_enable_lock);
 	nvgpu_mutex_init(&g->cg_pg_lock);
 
