@@ -28,7 +28,8 @@
 
 #include <nvgpu/hw/gm20b/hw_gr_gm20b.h>
 
-int gm20b_gr_config_init_sm_id_table(struct nvgpu_gr_config *gr_config)
+int gm20b_gr_config_init_sm_id_table(struct gk20a *g,
+		struct nvgpu_gr_config *gr_config)
 {
 	u32 gpc, tpc;
 	u32 sm_id = 0;
@@ -41,15 +42,15 @@ int gm20b_gr_config_init_sm_id_table(struct nvgpu_gr_config *gr_config)
 			if (tpc < nvgpu_gr_config_get_gpc_tpc_count(gr_config, gpc)) {
 				struct sm_info *sm_info =
 					nvgpu_gr_config_get_sm_info(gr_config, sm_id);
-				sm_info->tpc_index = tpc;
-				sm_info->gpc_index = gpc;
-				sm_info->sm_index = 0;
-				sm_info->global_tpc_index = sm_id;
+				nvgpu_gr_config_set_sm_info_tpc_index(sm_info, tpc);
+				nvgpu_gr_config_set_sm_info_gpc_index(sm_info, gpc);
+				nvgpu_gr_config_set_sm_info_sm_index(sm_info, 0);
+				nvgpu_gr_config_set_sm_info_global_tpc_index(sm_info, sm_id);
 				sm_id++;
 			}
 		}
 	}
-	gr_config->no_of_sm = sm_id;
+	nvgpu_gr_config_set_no_of_sm(gr_config, sm_id);
 	return 0;
 }
 
@@ -61,7 +62,8 @@ u32 gm20b_gr_config_get_gpc_tpc_mask(struct gk20a *g,
 	/* Toggle the bits of NV_FUSE_STATUS_OPT_TPC_GPC */
 	val = g->ops.fuse.fuse_status_opt_tpc_gpc(g, gpc_index);
 
-	return (~val) & (BIT32(config->max_tpc_per_gpc_count) - 1U);
+	return (~val) &
+		(BIT32(nvgpu_gr_config_get_max_tpc_per_gpc_count(config)) - 1U);
 }
 
 u32 gm20b_gr_config_get_tpc_count_in_gpc(struct gk20a *g,
@@ -117,5 +119,6 @@ u32 gm20b_gr_config_get_gpc_mask(struct gk20a *g,
 	 */
 	val = g->ops.fuse.fuse_status_opt_gpc(g);
 
-	return (~val) & (BIT32(config->max_gpc_count) - 1U);
+	return (~val) &
+		(BIT32(nvgpu_gr_config_get_max_gpc_count(config)) - 1U);
 }

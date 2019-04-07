@@ -52,6 +52,7 @@
 #include "common/vgpu/perf/cyclestats_snapshot_vgpu.h"
 #include "common/vgpu/ivc/comm_vgpu.h"
 
+#include "common/gr/gr_config_priv.h"
 #include "common/gr/zcull_priv.h"
 #include "common/gr/zbc_priv.h"
 
@@ -1111,12 +1112,12 @@ void vgpu_gr_handle_sm_esr_event(struct gk20a *g,
 	nvgpu_mutex_release(&g->dbg_sessions_lock);
 }
 
-int vgpu_gr_init_sm_id_table(struct nvgpu_gr_config *gr_config)
+int vgpu_gr_init_sm_id_table(struct gk20a *g, struct nvgpu_gr_config *gr_config)
 {
 	struct tegra_vgpu_cmd_msg msg = {};
 	struct tegra_vgpu_vsms_mapping_params *p = &msg.params.vsms_mapping;
 	struct tegra_vgpu_vsms_mapping_entry *entry;
-	struct vgpu_priv_data *priv = vgpu_get_priv_data(gr_config->g);
+	struct vgpu_priv_data *priv = vgpu_get_priv_data(g);
 	struct sm_info *sm_info;
 	int err;
 	size_t oob_size;
@@ -1125,11 +1126,11 @@ int vgpu_gr_init_sm_id_table(struct nvgpu_gr_config *gr_config)
 	u32 max_sm;
 
 	msg.cmd = TEGRA_VGPU_CMD_GET_VSMS_MAPPING;
-	msg.handle = vgpu_get_handle(gr_config->g);
+	msg.handle = vgpu_get_handle(g);
 	err = vgpu_comm_sendrecv(&msg, sizeof(msg), sizeof(msg));
 	err = err ? err : msg.ret;
 	if (err) {
-		nvgpu_err(gr_config->g,
+		nvgpu_err(g,
 			"get vsms mapping failed err %d", err);
 		return err;
 	}
@@ -1171,7 +1172,7 @@ int vgpu_gr_init_fs_state(struct gk20a *g)
 		return -EINVAL;
 	}
 
-	return g->ops.gr.config.init_sm_id_table(g->gr.config);
+	return g->ops.gr.config.init_sm_id_table(g, g->gr.config);
 }
 
 int vgpu_gr_update_pc_sampling(struct channel_gk20a *ch, bool enable)

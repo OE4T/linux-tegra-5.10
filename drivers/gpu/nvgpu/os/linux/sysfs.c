@@ -877,11 +877,12 @@ static ssize_t tpc_fs_mask_store(struct device *dev,
 	if (kstrtoul(buf, 10, &val) < 0)
 		return -EINVAL;
 
-	if (!config->gpc_tpc_mask)
+	if (nvgpu_gr_config_get_gpc_tpc_mask_base(config) != NULL)
 		return -ENODEV;
 
-	if (val && val != config->gpc_tpc_mask[0] && g->ops.gr.set_gpc_tpc_mask) {
-		config->gpc_tpc_mask[0] = val;
+	if (val && val != nvgpu_gr_config_get_gpc_tpc_mask(config, 0) &&
+		g->ops.gr.set_gpc_tpc_mask) {
+		nvgpu_gr_config_set_gpc_tpc_mask(config, 0, val);
 		g->tpc_fs_mask_user = val;
 
 		g->ops.gr.set_gpc_tpc_mask(g, 0);

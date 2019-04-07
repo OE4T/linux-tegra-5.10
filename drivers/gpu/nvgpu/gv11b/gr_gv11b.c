@@ -1146,8 +1146,8 @@ int gr_gv11b_dump_gr_status_regs(struct gk20a *g,
 		gk20a_readl(g, gr_pri_gpc0_gpccs_gpc_activity3_r()));
 	gk20a_debug_output(o, "NV_PGRAPH_PRI_GPC0_TPC0_TPCCS_TPC_ACTIVITY0: 0x%x\n",
 		gk20a_readl(g, gr_pri_gpc0_tpc0_tpccs_tpc_activity_0_r()));
-	if ((gr->config->gpc_tpc_count != NULL) &&
-					(gr->config->gpc_tpc_count[0] == 2U)) {
+	if ((nvgpu_gr_config_get_gpc_tpc_count_base(gr->config) != NULL) &&
+		(nvgpu_gr_config_get_gpc_tpc_count(gr->config, 0) == 2U)) {
 		gk20a_debug_output(o,
 			"NV_PGRAPH_PRI_GPC0_TPC1_TPCCS_TPC_ACTIVITY0: 0x%x\n",
 			gk20a_readl(g,
@@ -1779,9 +1779,9 @@ void gv11b_gr_bpt_reg_info(struct gk20a *g, struct nvgpu_warpstate *w_state)
 	for (sm_id = 0; sm_id < no_of_sm; sm_id++) {
 		struct sm_info *sm_info =
 			nvgpu_gr_config_get_sm_info(gr->config, sm_id);
-		gpc = sm_info->gpc_index;
-		tpc = sm_info->tpc_index;
-		sm = sm_info->sm_index;
+		gpc = nvgpu_gr_config_get_sm_info_gpc_index(sm_info);
+		tpc = nvgpu_gr_config_get_sm_info_tpc_index(sm_info);
+		sm = nvgpu_gr_config_get_sm_info_sm_index(sm_info);
 
 		offset = nvgpu_gr_gpc_offset(g, gpc) +
 			 nvgpu_gr_tpc_offset(g, tpc) +
@@ -1858,15 +1858,15 @@ int gv11b_gr_set_sm_debug_mode(struct gk20a *g,
 		}
 
 		sm_info = nvgpu_gr_config_get_sm_info(g->gr.config, sm_id);
-		gpc = sm_info->gpc_index;
+		gpc = nvgpu_gr_config_get_sm_info_gpc_index(sm_info);
 		if (g->ops.gr.get_nonpes_aware_tpc != NULL) {
 			tpc = g->ops.gr.get_nonpes_aware_tpc(g,
-					sm_info->gpc_index,
-					sm_info->tpc_index);
+				nvgpu_gr_config_get_sm_info_gpc_index(sm_info),
+				nvgpu_gr_config_get_sm_info_tpc_index(sm_info));
 		} else {
-			tpc = sm_info->tpc_index;
+			tpc = nvgpu_gr_config_get_sm_info_tpc_index(sm_info);
 		}
-		sm = sm_info->sm_index;
+		sm = nvgpu_gr_config_get_sm_info_sm_index(sm_info);
 
 		reg_offset = nvgpu_gr_gpc_offset(g, gpc) +
 				nvgpu_gr_tpc_offset(g, tpc) +
@@ -3295,15 +3295,15 @@ int gv11b_gr_clear_sm_error_state(struct gk20a *g,
 	if (gk20a_is_channel_ctx_resident(ch)) {
 		struct sm_info *sm_info =
 			nvgpu_gr_config_get_sm_info(g->gr.config, sm_id);
-		gpc = sm_info->gpc_index;
+		gpc = nvgpu_gr_config_get_sm_info_gpc_index(sm_info);
 		if (g->ops.gr.get_nonpes_aware_tpc != NULL) {
 			tpc = g->ops.gr.get_nonpes_aware_tpc(g,
-					sm_info->gpc_index,
-					sm_info->tpc_index);
+				nvgpu_gr_config_get_sm_info_gpc_index(sm_info),
+				nvgpu_gr_config_get_sm_info_tpc_index(sm_info));
 		} else {
-			tpc = sm_info->tpc_index;
+			tpc = nvgpu_gr_config_get_sm_info_tpc_index(sm_info);
 		}
-		sm = sm_info->sm_index;
+		sm = nvgpu_gr_config_get_sm_info_sm_index(sm_info);
 
 		offset = nvgpu_gr_gpc_offset(g, gpc) +
 				nvgpu_gr_tpc_offset(g, tpc) +

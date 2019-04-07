@@ -109,8 +109,10 @@ int gp10b_gr_init_sm_id_config(struct gk20a *g, u32 *tpc_sm_id,
 			}
 			sm_info =
 				nvgpu_gr_config_get_sm_info(gr_config, sm_id);
-			gpc_index = sm_info->gpc_index;
-			tpc_index = sm_info->tpc_index;
+			gpc_index =
+				nvgpu_gr_config_get_sm_info_gpc_index(sm_info);
+			tpc_index =
+				nvgpu_gr_config_get_sm_info_tpc_index(sm_info);
 
 			bits = gr_cwd_gpc_tpc_id_gpc0_f(gpc_index) |
 			       gr_cwd_gpc_tpc_id_tpc0_f(tpc_index);

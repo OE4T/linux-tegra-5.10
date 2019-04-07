@@ -96,7 +96,7 @@ int nvgpu_gr_fs_state_init(struct gk20a *g)
 	}
 
 	if (g->ops.gr.config.init_sm_id_table != NULL) {
-		err = g->ops.gr.config.init_sm_id_table(gr_config);
+		err = g->ops.gr.config.init_sm_id_table(g, gr_config);
 		if (err != 0) {
 			return err;
 		}
@@ -111,8 +111,8 @@ int nvgpu_gr_fs_state_init(struct gk20a *g)
 	     sm_id++) {
 		struct sm_info *sm_info =
 			nvgpu_gr_config_get_sm_info(gr_config, sm_id);
-		tpc_index = sm_info->tpc_index;
-		gpc_index = sm_info->gpc_index;
+		tpc_index = nvgpu_gr_config_get_sm_info_tpc_index(sm_info);
+		gpc_index = nvgpu_gr_config_get_sm_info_gpc_index(sm_info);
 
 		g->ops.gr.init.sm_id_numbering(g, gpc_index, tpc_index, sm_id);
 	}

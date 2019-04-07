@@ -441,8 +441,8 @@ int gr_gm20b_dump_gr_status_regs(struct gk20a *g,
 		gk20a_readl(g, gr_pri_gpc0_gpccs_gpc_activity3_r()));
 	gk20a_debug_output(o, "NV_PGRAPH_PRI_GPC0_TPC0_TPCCS_TPC_ACTIVITY0: 0x%x\n",
 		gk20a_readl(g, gr_pri_gpc0_tpc0_tpccs_tpc_activity_0_r()));
-	if ((gr->config->gpc_tpc_count != NULL) &&
-					(gr->config->gpc_tpc_count[0] == 2U)) {
+	if ((nvgpu_gr_config_get_gpc_tpc_count_base(gr->config) != NULL) &&
+		(nvgpu_gr_config_get_gpc_tpc_count(gr->config, 0) == 2U)) {
 		gk20a_debug_output(o,
 			"NV_PGRAPH_PRI_GPC0_TPC1_TPCCS_TPC_ACTIVITY0: 0x%x\n",
 			gk20a_readl(g,
@@ -609,8 +609,8 @@ void gr_gm20b_bpt_reg_info(struct gk20a *g, struct nvgpu_warpstate *w_state)
 	for (sm_id = 0; sm_id < no_of_sm; sm_id++) {
 		struct sm_info *sm_info =
 			nvgpu_gr_config_get_sm_info(gr->config, sm_id);
-		gpc = sm_info->gpc_index;
-		tpc = sm_info->tpc_index;
+		gpc = nvgpu_gr_config_get_sm_info_gpc_index(sm_info);
+		tpc = nvgpu_gr_config_get_sm_info_tpc_index(sm_info);
 
 		tpc_offset = tpc_in_gpc_stride * tpc;
 		gpc_offset = gpc_stride * gpc;
@@ -753,8 +753,8 @@ int gm20b_gr_clear_sm_error_state(struct gk20a *g,
 	if (gk20a_is_channel_ctx_resident(ch)) {
 		struct sm_info *sm_info =
 			nvgpu_gr_config_get_sm_info(g->gr.config, sm_id);
-		gpc = sm_info->gpc_index;
-		tpc = sm_info->tpc_index;
+		gpc = nvgpu_gr_config_get_sm_info_gpc_index(sm_info);
+		tpc = nvgpu_gr_config_get_sm_info_tpc_index(sm_info);
 
 		offset = gpc_stride * gpc + tpc_in_gpc_stride * tpc;
 

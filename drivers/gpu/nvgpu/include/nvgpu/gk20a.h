@@ -533,7 +533,8 @@ struct gpu_ops {
 				struct nvgpu_gr_config *config, u32 gpc_index,
 				u32 pes_index);
 			u32 (*get_pd_dist_skip_table_size)(void);
-			int (*init_sm_id_table)(struct nvgpu_gr_config *gr_config);
+			int (*init_sm_id_table)(struct gk20a *g,
+				struct nvgpu_gr_config *gr_config);
 		} config;
 
 		struct {

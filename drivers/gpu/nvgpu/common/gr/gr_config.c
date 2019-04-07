@@ -24,6 +24,8 @@
 #include <nvgpu/io.h>
 #include <nvgpu/gr/config.h>
 
+#include "common/gr/gr_config_priv.h"
+
 struct nvgpu_gr_config *nvgpu_gr_config_init(struct gk20a *g)
 {
 	struct nvgpu_gr_config *config;
@@ -259,6 +261,11 @@ u32 nvgpu_gr_config_get_map_tile_count(struct nvgpu_gr_config *config, u32 index
 	}
 
 	return config->map_tiles[index];
+}
+
+u8 *nvgpu_gr_config_get_map_tiles(struct nvgpu_gr_config *config)
+{
+	return config->map_tiles;
 }
 
 u32 nvgpu_gr_config_get_map_row_offset(struct nvgpu_gr_config *config)
@@ -531,6 +538,11 @@ u32 nvgpu_gr_config_get_gpc_ppc_count(struct nvgpu_gr_config *config,
 	return config->gpc_ppc_count[gpc_index];
 }
 
+u32 *nvgpu_gr_config_get_gpc_tpc_count_base(struct nvgpu_gr_config *config)
+{
+	return config->gpc_tpc_count;
+}
+
 u32 nvgpu_gr_config_get_gpc_tpc_count(struct nvgpu_gr_config *config,
 	u32 gpc_index)
 {
@@ -552,10 +564,21 @@ u32 nvgpu_gr_config_get_pes_tpc_count(struct nvgpu_gr_config *config,
 	return config->pes_tpc_count[pes_index][gpc_index];
 }
 
+u32 *nvgpu_gr_config_get_gpc_tpc_mask_base(struct nvgpu_gr_config *config)
+{
+	return config->gpc_tpc_mask;
+}
+
 u32 nvgpu_gr_config_get_gpc_tpc_mask(struct nvgpu_gr_config *config,
 	u32 gpc_index)
 {
 	return config->gpc_tpc_mask[gpc_index];
+}
+
+void nvgpu_gr_config_set_gpc_tpc_mask(struct nvgpu_gr_config *config,
+	u32 gpc_index, u32 val)
+{
+	config->gpc_tpc_mask[gpc_index] = val;
 }
 
 u32 nvgpu_gr_config_get_gpc_skip_mask(struct nvgpu_gr_config *config,
@@ -580,8 +603,57 @@ u32 nvgpu_gr_config_get_no_of_sm(struct nvgpu_gr_config *config)
 	return config->no_of_sm;
 }
 
-struct sm_info *
-nvgpu_gr_config_get_sm_info(struct nvgpu_gr_config *config, u32 sm_id)
+void nvgpu_gr_config_set_no_of_sm(struct nvgpu_gr_config *config, u32 no_of_sm)
+{
+	config->no_of_sm = no_of_sm;
+}
+
+struct sm_info *nvgpu_gr_config_get_sm_info(struct nvgpu_gr_config *config,
+	u32 sm_id)
 {
 	return &config->sm_to_cluster[sm_id];
+}
+
+u32 nvgpu_gr_config_get_sm_info_gpc_index(struct sm_info *sm_info)
+{
+	return sm_info->gpc_index;
+}
+
+void nvgpu_gr_config_set_sm_info_gpc_index(struct sm_info *sm_info,
+	u32 gpc_index)
+{
+	sm_info->gpc_index = gpc_index;
+}
+
+u32 nvgpu_gr_config_get_sm_info_tpc_index(struct sm_info *sm_info)
+{
+	return sm_info->tpc_index;
+}
+
+void nvgpu_gr_config_set_sm_info_tpc_index(struct sm_info *sm_info,
+	u32 tpc_index)
+{
+	sm_info->tpc_index = tpc_index;
+}
+
+u32 nvgpu_gr_config_get_sm_info_global_tpc_index(struct sm_info *sm_info)
+{
+	return sm_info->global_tpc_index;
+}
+
+void nvgpu_gr_config_set_sm_info_global_tpc_index(struct sm_info *sm_info,
+	u32 global_tpc_index)
+{
+	sm_info->global_tpc_index = global_tpc_index;
+}
+
+u32 nvgpu_gr_config_get_sm_info_sm_index(struct sm_info *sm_info)
+{
+	return sm_info->sm_index;
+}
+
+void nvgpu_gr_config_set_sm_info_sm_index(struct sm_info *sm_info,
+	u32 sm_index)
+{
+	sm_info->sm_index = sm_index;
 }

@@ -91,7 +91,7 @@ int nvgpu_gr_zcull_init_hw(struct gk20a *g,
 	u32 map_tile_count;
 	int ret = 0;
 
-	if (gr_config->map_tiles == NULL) {
+	if (nvgpu_gr_config_get_map_tiles(gr_config) == NULL) {
 		return -1;
 	}
 

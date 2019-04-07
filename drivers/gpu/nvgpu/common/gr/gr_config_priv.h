@@ -20,26 +20,54 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NVGPU_GR_CONFIG_GM20B_H
-#define NVGPU_GR_CONFIG_GM20B_H
+#ifndef NVGPU_GR_CONFIG_PRIV_H
+#define NVGPU_GR_CONFIG_PRIV_H
 
 #include <nvgpu/types.h>
 
+#define GK20A_GR_MAX_PES_PER_GPC 3U
+
 struct gk20a;
-struct nvgpu_gr_config;
 
-int gm20b_gr_config_init_sm_id_table(struct gk20a *g,
-	struct nvgpu_gr_config *gr_config);
-u32 gm20b_gr_config_get_gpc_tpc_mask(struct gk20a *g,
-	struct nvgpu_gr_config *config, u32 gpc_index);
-u32 gm20b_gr_config_get_tpc_count_in_gpc(struct gk20a *g,
-	struct nvgpu_gr_config *config, u32 gpc_index);
-u32 gm20b_gr_config_get_zcull_count_in_gpc(struct gk20a *g,
-	struct nvgpu_gr_config *config, u32 gpc_index);
-u32 gm20b_gr_config_get_pes_tpc_mask(struct gk20a *g,
-	struct nvgpu_gr_config *config, u32 gpc_index, u32 pes_index);
-u32 gm20b_gr_config_get_pd_dist_skip_table_size(void);
-u32 gm20b_gr_config_get_gpc_mask(struct gk20a *g,
-	struct nvgpu_gr_config *config);
+struct sm_info {
+	u32 gpc_index;
+	u32 tpc_index;
+	u32 sm_index;
+	u32 global_tpc_index;
+};
 
-#endif /* NVGPU_GR_CONFIG_GM20B_H */
+struct nvgpu_gr_config {
+	struct gk20a *g;
+
+	u32 max_gpc_count;
+	u32 max_tpc_per_gpc_count;
+	u32 max_zcull_per_gpc_count;
+	u32 max_tpc_count;
+
+	u32 gpc_count;
+	u32 tpc_count;
+	u32 ppc_count;
+	u32 zcb_count;
+
+	u32 pe_count_per_gpc;
+	u32 sm_count_per_tpc;
+
+	u32 *gpc_ppc_count;
+	u32 *gpc_tpc_count;
+	u32 *gpc_zcb_count;
+	u32 *pes_tpc_count[GK20A_GR_MAX_PES_PER_GPC];
+
+	u32 gpc_mask;
+	u32 *gpc_tpc_mask;
+	u32 *pes_tpc_mask[GK20A_GR_MAX_PES_PER_GPC];
+	u32 *gpc_skip_mask;
+
+	u8 *map_tiles;
+	u32 map_tile_count;
+	u32 map_row_offset;
+
+	u32 no_of_sm;
+	struct sm_info *sm_to_cluster;
+};
+
+#endif /* NVGPU_GR_CONFIG_PRIV_H */

@@ -552,7 +552,8 @@ static int gk20a_ctrl_get_tpc_masks(struct gk20a *g,
 {
 	struct gr_gk20a *gr = &g->gr;
 	int err = 0;
-	const u32 gpc_tpc_mask_size = sizeof(u32) * gr->config->max_gpc_count;
+	const u32 gpc_tpc_mask_size = sizeof(u32) *
+		nvgpu_gr_config_get_max_gpc_count(gr->config);
 
 	if (args->mask_buf_size > 0) {
 		size_t write_size = gpc_tpc_mask_size;
@@ -562,8 +563,9 @@ static int gk20a_ctrl_get_tpc_masks(struct gk20a *g,
 			write_size = args->mask_buf_size;
 
 		err = copy_to_user((void __user *)(uintptr_t)
-				   args->mask_buf_addr,
-				   gr->config->gpc_tpc_mask, write_size);
+			args->mask_buf_addr,
+			nvgpu_gr_config_get_gpc_tpc_mask_base(gr->config),
+			write_size);
 	}
 
 	if (err == 0)
@@ -815,14 +817,16 @@ static int gk20a_ctrl_vsm_mapping(struct gk20a *g,
 	for (i = 0; i < no_of_sm; i++) {
 		struct sm_info *sm_info =
 			nvgpu_gr_config_get_sm_info(gr->config, i);
-		vsms_buf[i].gpc_index = sm_info->gpc_index;
+		vsms_buf[i].gpc_index =
+			nvgpu_gr_config_get_sm_info_gpc_index(sm_info);
 		if (g->ops.gr.get_nonpes_aware_tpc)
 			vsms_buf[i].tpc_index =
 				g->ops.gr.get_nonpes_aware_tpc(g,
-					sm_info->gpc_index,
-					sm_info->tpc_index);
+				nvgpu_gr_config_get_sm_info_gpc_index(sm_info),
+				nvgpu_gr_config_get_sm_info_tpc_index(sm_info));
 		else
-			vsms_buf[i].tpc_index = sm_info->tpc_index;
+			vsms_buf[i].tpc_index =
+				nvgpu_gr_config_get_sm_info_tpc_index(sm_info);
 	}
 
 	err = copy_to_user((void __user *)(uintptr_t)

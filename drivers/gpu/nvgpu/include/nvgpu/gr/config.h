@@ -25,50 +25,9 @@
 
 #include <nvgpu/types.h>
 
-#define GK20A_GR_MAX_PES_PER_GPC 3U
-
 struct gk20a;
-
-struct sm_info {
-	u32 gpc_index;
-	u32 tpc_index;
-	u32 sm_index;
-	u32 global_tpc_index;
-};
-
-struct nvgpu_gr_config {
-	struct gk20a *g;
-
-	u32 max_gpc_count;
-	u32 max_tpc_per_gpc_count;
-	u32 max_zcull_per_gpc_count;
-	u32 max_tpc_count;
-
-	u32 gpc_count;
-	u32 tpc_count;
-	u32 ppc_count;
-	u32 zcb_count;
-
-	u32 pe_count_per_gpc;
-	u32 sm_count_per_tpc;
-
-	u32 *gpc_ppc_count;
-	u32 *gpc_tpc_count;
-	u32 *gpc_zcb_count;
-	u32 *pes_tpc_count[GK20A_GR_MAX_PES_PER_GPC];
-
-	u32 gpc_mask;
-	u32 *gpc_tpc_mask;
-	u32 *pes_tpc_mask[GK20A_GR_MAX_PES_PER_GPC];
-	u32 *gpc_skip_mask;
-
-	u8 *map_tiles;
-	u32 map_tile_count;
-	u32 map_row_offset;
-
-	u32 no_of_sm;
-	struct sm_info *sm_to_cluster;
-};
+struct sm_info;
+struct nvgpu_gr_config;
 
 struct nvgpu_gr_config *nvgpu_gr_config_init(struct gk20a *g);
 void nvgpu_gr_config_deinit(struct gk20a *g, struct nvgpu_gr_config *config);
@@ -77,6 +36,7 @@ int nvgpu_gr_config_init_map_tiles(struct gk20a *g,
 
 u32 nvgpu_gr_config_get_map_tile_count(struct nvgpu_gr_config *config,
 	u32 index);
+u8 *nvgpu_gr_config_get_map_tiles(struct nvgpu_gr_config *config);
 u32 nvgpu_gr_config_get_map_row_offset(struct nvgpu_gr_config *config);
 
 u32 nvgpu_gr_config_get_max_gpc_count(struct nvgpu_gr_config *config);
@@ -94,6 +54,7 @@ u32 nvgpu_gr_config_get_sm_count_per_tpc(struct nvgpu_gr_config *config);
 
 u32 nvgpu_gr_config_get_gpc_ppc_count(struct nvgpu_gr_config *config,
 	u32 gpc_index);
+u32 *nvgpu_gr_config_get_gpc_tpc_count_base(struct nvgpu_gr_config *config);
 u32 nvgpu_gr_config_get_gpc_tpc_count(struct nvgpu_gr_config *config,
 	u32 gpc_index);
 u32 nvgpu_gr_config_get_gpc_zcb_count(struct nvgpu_gr_config *config,
@@ -101,15 +62,31 @@ u32 nvgpu_gr_config_get_gpc_zcb_count(struct nvgpu_gr_config *config,
 u32 nvgpu_gr_config_get_pes_tpc_count(struct nvgpu_gr_config *config,
 	u32 gpc_index, u32 pes_index);
 
+u32 *nvgpu_gr_config_get_gpc_tpc_mask_base(struct nvgpu_gr_config *config);
 u32 nvgpu_gr_config_get_gpc_tpc_mask(struct nvgpu_gr_config *config,
 	u32 gpc_index);
+void nvgpu_gr_config_set_gpc_tpc_mask(struct nvgpu_gr_config *config,
+	u32 gpc_index, u32 val);
 u32 nvgpu_gr_config_get_gpc_skip_mask(struct nvgpu_gr_config *config,
 	u32 gpc_index);
 u32 nvgpu_gr_config_get_pes_tpc_mask(struct nvgpu_gr_config *config,
 	u32 gpc_index, u32 pes_index);
 u32 nvgpu_gr_config_get_gpc_mask(struct nvgpu_gr_config *config);
 u32 nvgpu_gr_config_get_no_of_sm(struct nvgpu_gr_config *config);
-struct sm_info *
-nvgpu_gr_config_get_sm_info(struct nvgpu_gr_config *config, u32 sm_id);
+void nvgpu_gr_config_set_no_of_sm(struct nvgpu_gr_config *config, u32 no_of_sm);
+struct sm_info *nvgpu_gr_config_get_sm_info(struct nvgpu_gr_config *config,
+	u32 sm_id);
+u32 nvgpu_gr_config_get_sm_info_gpc_index(struct sm_info *sm_info);
+void nvgpu_gr_config_set_sm_info_gpc_index(struct sm_info *sm_info,
+	u32 gpc_index);
+u32 nvgpu_gr_config_get_sm_info_tpc_index(struct sm_info *sm_info);
+void nvgpu_gr_config_set_sm_info_tpc_index(struct sm_info *sm_info,
+	u32 tpc_index);
+u32 nvgpu_gr_config_get_sm_info_global_tpc_index(struct sm_info *sm_info);
+void nvgpu_gr_config_set_sm_info_global_tpc_index(struct sm_info *sm_info,
+	u32 global_tpc_index);
+u32 nvgpu_gr_config_get_sm_info_sm_index(struct sm_info *sm_info);
+void nvgpu_gr_config_set_sm_info_sm_index(struct sm_info *sm_info,
+	u32 sm_index);
 
 #endif /* NVGPU_GR_CONFIG_H */
