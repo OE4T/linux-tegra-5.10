@@ -526,14 +526,6 @@ static inline u32 gr_pri_gpc0_tpc0_tpccs_tpc_activity_0_r(void)
 {
 	return 0x00504500U;
 }
-static inline u32 gr_pri_gpc0_tpc1_tpccs_tpc_activity_0_r(void)
-{
-	return 0x00504d00U;
-}
-static inline u32 gr_pri_gpc0_tpcs_tpccs_tpc_activity_0_r(void)
-{
-	return 0x00501d00U;
-}
 static inline u32 gr_pri_gpcs_gpccs_gpc_activity_0_r(void)
 {
 	return 0x0041ac80U;
@@ -550,14 +542,6 @@ static inline u32 gr_pri_gpcs_gpccs_gpc_activity_3_r(void)
 {
 	return 0x0041ac8cU;
 }
-static inline u32 gr_pri_gpcs_tpc0_tpccs_tpc_activity_0_r(void)
-{
-	return 0x0041c500U;
-}
-static inline u32 gr_pri_gpcs_tpc1_tpccs_tpc_activity_0_r(void)
-{
-	return 0x0041cd00U;
-}
 static inline u32 gr_pri_gpcs_tpcs_tpccs_tpc_activity_0_r(void)
 {
 	return 0x00419d00U;
@@ -565,10 +549,6 @@ static inline u32 gr_pri_gpcs_tpcs_tpccs_tpc_activity_0_r(void)
 static inline u32 gr_pri_be0_becs_be_activity0_r(void)
 {
 	return 0x00410200U;
-}
-static inline u32 gr_pri_be1_becs_be_activity0_r(void)
-{
-	return 0x00410600U;
 }
 static inline u32 gr_pri_bes_becs_be_activity0_r(void)
 {
