@@ -52,9 +52,10 @@
 #define PMU_PGENG_GR_BUFFER_IDX_ZBC		(1)
 #define PMU_PGENG_GR_BUFFER_IDX_FECS	(2)
 
-static void pmu_setup_hw_enable_elpg(struct gk20a *g)
+static int pmu_setup_hw_enable_elpg(struct gk20a *g)
 {
 	struct nvgpu_pmu *pmu = &g->pmu;
+	int err = 0;
 
 	nvgpu_log_fn(g, " ");
 
@@ -72,16 +73,33 @@ static void pmu_setup_hw_enable_elpg(struct gk20a *g)
 		if (g->ops.pmu.pmu_setup_elpg != NULL) {
 			g->ops.pmu.pmu_setup_elpg(g);
 		}
-		nvgpu_pmu_enable_elpg(g);
+		err = nvgpu_pmu_enable_elpg(g);
+		if (err != 0) {
+			nvgpu_err(g, "nvgpu_pmu_enable_elpg failed err=%d",
+				err);
+			return err;
+		}
 	}
 
 	nvgpu_udelay(50);
 
 	/* Enable AELPG */
 	if (g->aelpg_enabled) {
-		nvgpu_aelpg_init(g);
-		nvgpu_aelpg_init_and_enable(g, PMU_AP_CTRL_ID_GRAPHICS);
+		err = nvgpu_aelpg_init(g);
+		if (err != 0) {
+			nvgpu_err(g, "nvgpu_aelpg_init failed err=%d", err);
+			return err;
+		}
+
+		err = nvgpu_aelpg_init_and_enable(g, PMU_AP_CTRL_ID_GRAPHICS);
+		if (err != 0) {
+			nvgpu_err(g, "aelpg_init_and_enable failed err=%d",
+				err);
+			return err;
+		}
 	}
+
+	return err;
 }
 
 static void pmu_handle_pg_elpg_msg(struct gk20a *g, struct pmu_msg *msg,
@@ -464,7 +482,11 @@ static int pmu_pg_init_send(struct gk20a *g, u8 pg_engine_id)
 	g->ops.pmu.pmu_pg_idle_counter_config(g, pg_engine_id);
 
 	if (g->ops.pmu.pmu_pg_init_param != NULL) {
-		g->ops.pmu.pmu_pg_init_param(g, pg_engine_id);
+		err = g->ops.pmu.pmu_pg_init_param(g, pg_engine_id);
+		if (err != 0) {
+			nvgpu_err(g, "pmu_pg_init_param failed err=%d", err);
+			return err;
+		}
 	}
 
 	/* init ELPG */
@@ -482,6 +504,7 @@ static int pmu_pg_init_send(struct gk20a *g, u8 pg_engine_id)
 			pmu_handle_pg_elpg_msg, pmu);
 	if (err != 0) {
 		nvgpu_err(g, "PMU_PG_ELPG_CMD_INIT cmd failed\n");
+		return err;
 	}
 
 	/* alloc dmem for powergating state log */
@@ -501,6 +524,7 @@ static int pmu_pg_init_send(struct gk20a *g, u8 pg_engine_id)
 			pmu_handle_pg_stat_msg, pmu);
 	if (err != 0) {
 		nvgpu_err(g, "PMU_PG_STAT_CMD_ALLOC_DMEM cmd failed\n");
+		return err;
 	}
 
 	/* disallow ELPG initially
@@ -526,13 +550,19 @@ static int pmu_pg_init_send(struct gk20a *g, u8 pg_engine_id)
 		pmu_handle_pg_elpg_msg, pmu);
 	if (err != 0) {
 		nvgpu_err(g, "PMU_PG_ELPG_CMD_DISALLOW cmd failed\n");
+		return err;
 	}
 
 	if (g->ops.pmu.pmu_pg_set_sub_feature_mask != NULL) {
-		g->ops.pmu.pmu_pg_set_sub_feature_mask(g, pg_engine_id);
+		err = g->ops.pmu.pmu_pg_set_sub_feature_mask(g, pg_engine_id);
+		if (err != 0) {
+			nvgpu_err(g, "set_sub_feature_mask failed err=%d",
+				err);
+			return err;
+		}
 	}
 
-	return 0;
+	return err;
 }
 
 int nvgpu_pmu_init_powergating(struct gk20a *g)
@@ -540,6 +570,7 @@ int nvgpu_pmu_init_powergating(struct gk20a *g)
 	u8 pg_engine_id;
 	u32 pg_engine_id_list = 0;
 	struct nvgpu_pmu *pmu = &g->pmu;
+	int err = 0;
 
 	nvgpu_log_fn(g, " ");
 
@@ -559,15 +590,20 @@ int nvgpu_pmu_init_powergating(struct gk20a *g)
 				nvgpu_pmu_state_change(g,
 					PMU_STATE_ELPG_BOOTING, false);
 			}
-			pmu_pg_init_send(g, pg_engine_id);
+			/* Error print handled by pmu_pg_init_send */
+			err = pmu_pg_init_send(g, pg_engine_id);
+			if (err != 0) {
+				return err;
+			}
 		}
 	}
 
 	if (g->ops.pmu.pmu_pg_param_post_init != NULL) {
-		g->ops.pmu.pmu_pg_param_post_init(g);
+		/* Error print handled by pmu_pg_param_post_init */
+		err = g->ops.pmu.pmu_pg_param_post_init(g);
 	}
 
-	return 0;
+	return err;
 }
 
 static void pmu_handle_pg_buf_config_msg(struct gk20a *g, struct pmu_msg *msg,
@@ -712,7 +748,11 @@ int nvgpu_init_task_pg_init(struct gk20a *g)
 
 	nvgpu_log_fn(g, " ");
 
-	nvgpu_cond_init(&pmu->pmu_pg.pg_init.wq);
+	err = nvgpu_cond_init(&pmu->pmu_pg.pg_init.wq);
+	if (err != 0) {
+		nvgpu_err(g, "nvgpu_cond_init failed err=%d", err);
+		return err;
+	}
 
 	(void) snprintf(thread_name, sizeof(thread_name),
 				"nvgpu_pg_init_%s", g->name);
@@ -729,6 +769,7 @@ void nvgpu_kill_task_pg_init(struct gk20a *g)
 {
 	struct nvgpu_pmu *pmu = &g->pmu;
 	struct nvgpu_timeout timeout;
+	int err = 0;
 
 	/* make sure the pending operations are finished before we continue */
 	if (nvgpu_thread_is_running(&pmu->pmu_pg.pg_init.state_task)) {
@@ -740,7 +781,12 @@ void nvgpu_kill_task_pg_init(struct gk20a *g)
 		nvgpu_thread_stop(&pmu->pmu_pg.pg_init.state_task);
 
 		/* wait to confirm thread stopped */
-		nvgpu_timeout_init(g, &timeout, 1000, NVGPU_TIMER_RETRY_TIMER);
+		err = nvgpu_timeout_init(g, &timeout, 1000,
+			NVGPU_TIMER_RETRY_TIMER);
+		if (err != 0) {
+			nvgpu_err(g, "timeout_init failed err=%d", err);
+			return;
+		}
 		do {
 			if (!nvgpu_thread_is_running(&pmu->pmu_pg.pg_init.state_task)) {
 				break;
@@ -759,6 +805,7 @@ int nvgpu_pg_init_task(void *arg)
 	struct nvgpu_pmu *pmu = &g->pmu;
 	struct nvgpu_pg_init *pg_init = &pmu->pmu_pg.pg_init;
 	u32 pmu_state = 0;
+	int err = 0;
 
 	nvgpu_log_fn(g, "thread start");
 
@@ -779,12 +826,12 @@ int nvgpu_pg_init_task(void *arg)
 		case PMU_STATE_INIT_RECEIVED:
 			nvgpu_pmu_dbg(g, "pmu starting");
 			if (g->can_elpg) {
-				nvgpu_pmu_init_powergating(g);
+				err = nvgpu_pmu_init_powergating(g);
 			}
 			break;
 		case PMU_STATE_ELPG_BOOTED:
 			nvgpu_pmu_dbg(g, "elpg booted");
-			nvgpu_pmu_init_bind_fecs(g);
+			err = nvgpu_pmu_init_bind_fecs(g);
 			break;
 		case PMU_STATE_LOADING_PG_BUF:
 			nvgpu_pmu_dbg(g, "loaded pg buf");
@@ -792,14 +839,22 @@ int nvgpu_pg_init_task(void *arg)
 			break;
 		case PMU_STATE_LOADING_ZBC:
 			nvgpu_pmu_dbg(g, "loaded zbc");
-			pmu_setup_hw_enable_elpg(g);
+			err = pmu_setup_hw_enable_elpg(g);
 			nvgpu_pmu_dbg(g, "PMU booted, thread exiting");
 			return 0;
 		default:
 			nvgpu_pmu_dbg(g, "invalid state");
+			err = -EINVAL;
 			break;
 		}
 
+	}
+	/*
+	* If an operation above failed, the error was already logged by the
+	* operation itself and this thread will end just like in the normal case
+	*/
+	if (err != 0) {
+		nvgpu_err(g, "pg_init_task failed err=%d", err);
 	}
 
 	while (!nvgpu_thread_should_stop(&pg_init->state_task)) {
@@ -808,5 +863,5 @@ int nvgpu_pg_init_task(void *arg)
 
 	nvgpu_log_fn(g, "thread exit");
 
-	return 0;
+	return err;
 }
