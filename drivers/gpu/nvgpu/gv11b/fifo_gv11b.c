@@ -107,7 +107,7 @@ static int gv11b_fifo_poll_pbdma_chan_status(struct gk20a *g, u32 id,
 				 u32 pbdma_id)
 {
 	struct nvgpu_timeout timeout;
-	unsigned long delay = POLL_DELAY_MIN_US; /* in micro seconds */
+	u32 delay = POLL_DELAY_MIN_US; /* in micro seconds */
 	int ret;
 	unsigned int loop_count = 0;
 	struct nvgpu_pbdma_status_info pbdma_status;
@@ -181,9 +181,8 @@ static int gv11b_fifo_poll_pbdma_chan_status(struct gk20a *g, u32 id,
 			break;
 		}
 
-		nvgpu_usleep_range(delay, delay * 2UL);
-		delay = min_t(unsigned long,
-				delay << 1, POLL_DELAY_MAX_US);
+		nvgpu_usleep_range(delay, delay * 2U);
+		delay = min_t(u32, delay << 1, POLL_DELAY_MAX_US);
 	} while (nvgpu_timeout_expired(&timeout) == 0);
 
 	if (ret != 0) {
@@ -198,7 +197,7 @@ static int gv11b_fifo_poll_eng_ctx_status(struct gk20a *g, u32 id,
 			 u32 act_eng_id, u32 *reset_eng_bitmask)
 {
 	struct nvgpu_timeout timeout;
-	unsigned long delay = POLL_DELAY_MIN_US; /* in micro seconds */
+	u32 delay = POLL_DELAY_MIN_US; /* in micro seconds */
 	u32 eng_stat;
 	u32 ctx_stat;
 	int ret;
@@ -315,9 +314,8 @@ static int gv11b_fifo_poll_eng_ctx_status(struct gk20a *g, u32 id,
 			ret = 0;
 			break;
 		}
-		nvgpu_usleep_range(delay, delay * 2UL);
-		delay = min_t(unsigned long,
-				delay << 1, POLL_DELAY_MAX_US);
+		nvgpu_usleep_range(delay, delay * 2U);
+		delay = min_t(u32, delay << 1, POLL_DELAY_MAX_US);
 	} while (nvgpu_timeout_expired(&timeout) == 0);
 
 	if (ret != 0) {
@@ -434,8 +432,9 @@ int gv11b_fifo_is_preempt_pending(struct gk20a *g, u32 id,
 	struct fifo_gk20a *f = &g->fifo;
 	unsigned long runlist_served_pbdmas;
 	unsigned long runlist_served_engines;
-	unsigned long pbdma_id;
-	unsigned long act_eng_id;
+	unsigned long bit;
+	u32 pbdma_id;
+	u32 act_eng_id;
 	u32 runlist_id;
 	int ret = 0;
 	u32 tsgid;
@@ -453,13 +452,15 @@ int gv11b_fifo_is_preempt_pending(struct gk20a *g, u32 id,
 	runlist_served_pbdmas = f->runlist_info[runlist_id]->pbdma_bitmask;
 	runlist_served_engines = f->runlist_info[runlist_id]->eng_bitmask;
 
-	for_each_set_bit(pbdma_id, &runlist_served_pbdmas, f->num_pbdma) {
+	for_each_set_bit(bit, &runlist_served_pbdmas, f->num_pbdma) {
+		pbdma_id = U32(bit);
 		ret |= gv11b_fifo_poll_pbdma_chan_status(g, tsgid, pbdma_id);
 	}
 
 	f->runlist_info[runlist_id]->reset_eng_bitmask = 0;
 
-	for_each_set_bit(act_eng_id, &runlist_served_engines, f->max_engines) {
+	for_each_set_bit(bit, &runlist_served_engines, f->max_engines) {
+		act_eng_id = U32(bit);
 		ret |= gv11b_fifo_poll_eng_ctx_status(g, tsgid, act_eng_id,
 				&f->runlist_info[runlist_id]->reset_eng_bitmask);
 	}
@@ -695,9 +696,10 @@ void gv11b_fifo_teardown_ch_tsg(struct gk20a *g, u32 act_eng_bitmask,
 {
 	struct tsg_gk20a *tsg = NULL;
 	u32 runlists_mask, rlid, i;
-	unsigned long pbdma_id;
+	unsigned long bit;
+	u32 pbdma_id;
 	struct fifo_runlist_info_gk20a *runlist = NULL;
-	unsigned long engine_id;
+	u32 engine_id;
 	u32 client_type = ~U32(0U);
 	struct fifo_gk20a *f = &g->fifo;
 	u32 runlist_id = FIFO_INVAL_RUNLIST_ID;
@@ -805,8 +807,8 @@ void gv11b_fifo_teardown_ch_tsg(struct gk20a *g, u32 act_eng_bitmask,
 	if (tsg != NULL) {
 		rlid = f->tsg[id].runlist_id;
 		runlist_served_pbdmas = f->runlist_info[rlid]->pbdma_bitmask;
-		for_each_set_bit(pbdma_id, &runlist_served_pbdmas,
-			f->num_pbdma) {
+		for_each_set_bit(bit, &runlist_served_pbdmas, f->num_pbdma) {
+			pbdma_id = U32(bit);
 			/*
 			 * If pbdma preempt fails the only option is to reset
 			 * GPU. Any sort of hang indicates the entire GPU’s
@@ -836,8 +838,9 @@ void gv11b_fifo_teardown_ch_tsg(struct gk20a *g, u32 act_eng_bitmask,
 			unsigned long __reset_eng_bitmask =
 				 runlist->reset_eng_bitmask;
 
-			for_each_set_bit(engine_id, &__reset_eng_bitmask,
+			for_each_set_bit(bit, &__reset_eng_bitmask,
 							g->fifo.max_engines) {
+				engine_id = U32(bit);
 				if ((tsg != NULL) &&
 					 gk20a_fifo_should_defer_engine_reset(g,
 					engine_id, client_type, false)) {

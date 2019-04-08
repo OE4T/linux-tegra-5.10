@@ -1943,7 +1943,8 @@ u64 gv11b_gr_get_sm_hww_warp_esr_pc(struct gk20a *g, u32 offset)
 int gv11b_gr_record_sm_error_state(struct gk20a *g, u32 gpc, u32 tpc, u32 sm,
 				struct channel_gk20a *fault_ch)
 {
-	int sm_id;
+	int ret = 0;
+	u32 sm_id;
 	u32 offset, sm_per_tpc, tpc_id;
 	u32 gpc_offset, gpc_tpc_offset;
 	struct nvgpu_tsg_sm_error_state *sm_error_states = NULL;
@@ -1966,6 +1967,7 @@ int gv11b_gr_record_sm_error_state(struct gk20a *g, u32 gpc, u32 tpc, u32 sm,
 
 	if (tsg == NULL) {
 		nvgpu_err(g, "no valid tsg");
+		ret = -EINVAL;
 		goto record_fail;
 	}
 
@@ -1975,7 +1977,7 @@ int gv11b_gr_record_sm_error_state(struct gk20a *g, u32 gpc, u32 tpc, u32 sm,
 record_fail:
 	nvgpu_mutex_release(&g->dbg_sessions_lock);
 
-	return sm_id;
+	return ret;
 }
 
 void gv11b_gr_set_hww_esr_report_mask(struct gk20a *g)
