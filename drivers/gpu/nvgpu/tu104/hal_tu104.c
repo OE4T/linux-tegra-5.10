@@ -409,7 +409,6 @@ static const struct gpu_ops tu104_ops = {
 		.get_num_pce = gv11b_ce_get_num_pce,
 	},
 	.gr = {
-		.get_patch_slots = gr_gv100_get_patch_slots,
 		.handle_sw_method = gr_tu104_handle_sw_method,
 		.set_alpha_circular_buffer_size =
 			gr_gv11b_set_alpha_circular_buffer_size,
@@ -729,6 +728,7 @@ static const struct gpu_ops tu104_ops = {
 				gv11b_gr_init_commit_gfxp_wfi_timeout,
 			.get_max_subctx_count =
 				gv11b_gr_init_get_max_subctx_count,
+			.get_patch_slots = gv11b_gr_init_get_patch_slots,
 		},
 		.intr = {
 			.set_shader_exceptions =

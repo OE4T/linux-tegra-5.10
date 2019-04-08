@@ -345,7 +345,6 @@ void gk20a_gr_get_esr_sm_sel(struct gk20a *g, u32 gpc, u32 tpc,
 void gk20a_gr_init_ovr_sm_dsm_perf(void);
 void gk20a_gr_get_ovr_perf_regs(struct gk20a *g, u32 *num_ovr_perf_regs,
 					       u32 **ovr_perf_regs);
-u32 gr_gk20a_get_patch_slots(struct gk20a *g);
 
 int gk20a_init_sw_bundle(struct gk20a *g);
 int gr_gk20a_decode_priv_addr(struct gk20a *g, u32 addr,

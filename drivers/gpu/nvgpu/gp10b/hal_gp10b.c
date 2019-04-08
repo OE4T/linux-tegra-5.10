@@ -288,7 +288,6 @@ static const struct gpu_ops gp10b_ops = {
 		.isr_nonstall = gp10b_ce_nonstall_isr,
 	},
 	.gr = {
-		.get_patch_slots = gr_gk20a_get_patch_slots,
 		.handle_sw_method = gr_gp10b_handle_sw_method,
 		.set_alpha_circular_buffer_size =
 			gr_gp10b_set_alpha_circular_buffer_size,
@@ -564,6 +563,7 @@ static const struct gpu_ops gp10b_ops = {
 			.commit_ctxsw_spill = gp10b_gr_init_commit_ctxsw_spill,
 			.commit_cbes_reserve =
 				gp10b_gr_init_commit_cbes_reserve,
+			.get_patch_slots = gm20b_gr_init_get_patch_slots,
 		},
 		.intr = {
 			.set_shader_exceptions =

@@ -591,7 +591,7 @@ int nvgpu_gr_obj_ctx_alloc(struct gk20a *g,
 
 		nvgpu_gr_ctx_set_size(gr_ctx_desc,
 			NVGPU_GR_CTX_PATCH_CTX,
-			g->ops.gr.get_patch_slots(g) *
+			g->ops.gr.init.get_patch_slots(g, config) *
 				PATCH_CTX_SLOTS_REQUIRED_PER_ENTRY);
 
 		err = nvgpu_gr_ctx_alloc_patch_ctx(g, gr_ctx, gr_ctx_desc, vm);

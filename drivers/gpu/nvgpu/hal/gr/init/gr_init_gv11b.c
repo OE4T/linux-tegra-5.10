@@ -895,3 +895,56 @@ u32 gv11b_gr_init_get_max_subctx_count(void)
 {
 	return gr_pri_fe_chip_def_info_max_veid_count_init_v();
 }
+
+u32 gv11b_gr_init_get_patch_slots(struct gk20a *g,
+	struct nvgpu_gr_config *config)
+{
+	u32 size = 0;
+
+	/*
+	 * CMD to update PE table
+	 */
+	size++;
+
+	/*
+	 * Update PE table contents
+	 * for PE table, each patch buffer update writes 32 TPCs
+	 */
+	size += DIV_ROUND_UP(nvgpu_gr_config_get_tpc_count(config), 32U);
+
+	/*
+	 * Update the PL table contents
+	 * For PL table, each patch buffer update configures 4 TPCs
+	 */
+	size += DIV_ROUND_UP(nvgpu_gr_config_get_tpc_count(config), 4U);
+
+	/*
+	 * We need this for all subcontexts
+	 */
+	size *= g->ops.gr.init.get_max_subctx_count();
+
+	/*
+	 * Add space for a partition mode change as well
+	 * reserve two slots since DYNAMIC -> STATIC requires
+	 * DYNAMIC -> NONE -> STATIC
+	 */
+	size += 2U;
+
+	/*
+	 * Add current patch buffer size
+	 */
+	size += gm20b_gr_init_get_patch_slots(g, config);
+
+	/*
+	 * Align to 4K size
+	 */
+	size = ALIGN(size, PATCH_CTX_SLOTS_PER_PAGE);
+
+	/*
+	 * Increase the size to accommodate for additional TPC partition update
+	 */
+	size += 2U * PATCH_CTX_SLOTS_PER_PAGE;
+
+	return size;
+}
+

@@ -254,7 +254,6 @@ static const struct gpu_ops gm20b_ops = {
 		.isr_nonstall = gk20a_ce2_nonstall_isr,
 	},
 	.gr = {
-		.get_patch_slots = gr_gk20a_get_patch_slots,
 		.handle_sw_method = gr_gm20b_handle_sw_method,
 		.set_alpha_circular_buffer_size =
 			gr_gm20b_set_alpha_circular_buffer_size,
@@ -469,6 +468,7 @@ static const struct gpu_ops gm20b_ops = {
 			.load_sw_bundle_init =
 				gm20b_gr_init_load_sw_bundle_init,
 			.get_gfxp_rtv_cb_size = NULL,
+			.get_patch_slots = gm20b_gr_init_get_patch_slots,
 		},
 		.intr = {
 			.set_shader_exceptions =

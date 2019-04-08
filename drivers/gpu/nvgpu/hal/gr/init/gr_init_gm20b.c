@@ -1092,3 +1092,8 @@ void gm20b_gr_init_commit_global_cb_manager(struct gk20a *g,
 	}
 }
 
+u32 gm20b_gr_init_get_patch_slots(struct gk20a *g,
+	struct nvgpu_gr_config *config)
+{
+	return PATCH_CTX_SLOTS_PER_PAGE;
+}

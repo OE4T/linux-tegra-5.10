@@ -95,4 +95,7 @@ void gm20b_gr_init_commit_global_cb_manager(struct gk20a *g,
 	struct nvgpu_gr_config *config, struct nvgpu_gr_ctx *gr_ctx,
 	bool patch);
 
+u32 gm20b_gr_init_get_patch_slots(struct gk20a *g,
+	struct nvgpu_gr_config *config);
+
 #endif /* NVGPU_GR_INIT_GM20B_H */

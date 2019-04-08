@@ -269,7 +269,6 @@ struct gpu_ops {
 		} err_ops;
 	} ce2;
 	struct {
-		u32 (*get_patch_slots)(struct gk20a *g);
 		void (*access_smpc_reg)(struct gk20a *g, u32 quad, u32 offset);
 		int (*handle_sw_method)(struct gk20a *g, u32 addr,
 					 u32 class_num, u32 offset, u32 data);
@@ -788,6 +787,8 @@ struct gpu_ops {
 				struct nvgpu_gr_ctx *gr_ctx, u32 timeout,
 				bool patch);
 			u32 (*get_max_subctx_count)(void);
+			u32 (*get_patch_slots)(struct gk20a *g,
+				struct nvgpu_gr_config *config);
 		} init;
 
 		struct {

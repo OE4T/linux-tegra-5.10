@@ -288,11 +288,6 @@ int gr_gk20a_update_hwpm_ctxsw_mode(struct gk20a *g,
 	return ret;
 }
 
-u32 gr_gk20a_get_patch_slots(struct gk20a *g)
-{
-	return PATCH_CTX_SLOTS_PER_PAGE;
-}
-
 static void gk20a_gr_set_error_notifier(struct gk20a *g,
 		  struct nvgpu_gr_isr_data *isr_data, u32 error_notifier)
 {
