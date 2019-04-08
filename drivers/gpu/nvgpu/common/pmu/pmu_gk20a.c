@@ -359,31 +359,6 @@ bool gk20a_is_pmu_supported(struct gk20a *g)
 	return true;
 }
 
-int nvgpu_pmu_handle_therm_event(struct nvgpu_pmu *pmu,
-			struct nv_pmu_therm_msg *msg)
-{
-	struct gk20a *g = gk20a_from_pmu(pmu);
-
-	nvgpu_log_fn(g, " ");
-
-	switch (msg->msg_type) {
-	case NV_PMU_THERM_MSG_ID_EVENT_HW_SLOWDOWN_NOTIFICATION:
-		if (msg->hw_slct_msg.mask == BIT(NV_PMU_THERM_EVENT_THERMAL_1)) {
-			nvgpu_clk_arb_send_thermal_alarm(pmu->g);
-		} else {
-			nvgpu_pmu_dbg(g, "Unwanted/Unregistered thermal event received %d",
-				msg->hw_slct_msg.mask);
-		}
-		break;
-	default:
-		nvgpu_pmu_dbg(g, "unknown therm event received %d",
-			      msg->msg_type);
-		break;
-	}
-
-	return 0;
-}
-
 bool gk20a_pmu_is_interrupted(struct nvgpu_pmu *pmu)
 {
 	struct gk20a *g = gk20a_from_pmu(pmu);

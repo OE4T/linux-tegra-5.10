@@ -278,9 +278,6 @@ int nvgpu_pmu_lock_acquire(struct gk20a *g, struct nvgpu_pmu *pmu,
 int nvgpu_pmu_lock_release(struct gk20a *g, struct nvgpu_pmu *pmu,
 			   u32 id, u32 *token);
 
-int nvgpu_pmu_handle_therm_event(struct nvgpu_pmu *pmu,
-			struct nv_pmu_therm_msg *msg);
-
 /* PMU init */
 int nvgpu_init_pmu_support(struct gk20a *g);
 int nvgpu_pmu_destroy(struct gk20a *g);
