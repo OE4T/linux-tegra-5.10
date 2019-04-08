@@ -75,39 +75,39 @@ void gv11b_runlist_get_tsg_entry(struct tsg_gk20a *tsg, u32 *runlist)
 
 }
 
-void gv11b_runlist_get_ch_entry(struct channel_gk20a *c, u32 *runlist)
+void gv11b_runlist_get_ch_entry(struct channel_gk20a *ch, u32 *runlist)
 {
-	struct gk20a *g = c->g;
+	struct gk20a *g = ch->g;
 	u32 addr_lo, addr_hi;
 	u32 runlist_entry;
 
 	/* Time being use 0 pbdma sequencer */
 	runlist_entry = ram_rl_entry_type_channel_v() |
 			ram_rl_entry_chan_runqueue_selector_f(
-						c->runqueue_sel) |
+						ch->runqueue_sel) |
 			ram_rl_entry_chan_userd_target_f(
-				nvgpu_aperture_mask(g, c->userd_mem,
+				nvgpu_aperture_mask(g, ch->userd_mem,
 					ram_rl_entry_chan_userd_target_sys_mem_ncoh_v(),
 					ram_rl_entry_chan_userd_target_sys_mem_coh_v(),
 					ram_rl_entry_chan_userd_target_vid_mem_v())) |
 			ram_rl_entry_chan_inst_target_f(
-				nvgpu_aperture_mask(g, &c->inst_block,
+				nvgpu_aperture_mask(g, &ch->inst_block,
 					ram_rl_entry_chan_inst_target_sys_mem_ncoh_v(),
 					ram_rl_entry_chan_inst_target_sys_mem_coh_v(),
 					ram_rl_entry_chan_inst_target_vid_mem_v()));
 
-	addr_lo = u64_lo32(c->userd_iova) >>
+	addr_lo = u64_lo32(ch->userd_iova) >>
 			ram_rl_entry_chan_userd_ptr_align_shift_v();
-	addr_hi = u64_hi32(c->userd_iova);
+	addr_hi = u64_hi32(ch->userd_iova);
 	runlist[0] = runlist_entry | ram_rl_entry_chan_userd_ptr_lo_f(addr_lo);
 	runlist[1] = ram_rl_entry_chan_userd_ptr_hi_f(addr_hi);
 
-	addr_lo = u64_lo32(nvgpu_inst_block_addr(g, &c->inst_block)) >>
+	addr_lo = u64_lo32(nvgpu_inst_block_addr(g, &ch->inst_block)) >>
 			ram_rl_entry_chan_inst_ptr_align_shift_v();
-	addr_hi = u64_hi32(nvgpu_inst_block_addr(g, &c->inst_block));
+	addr_hi = u64_hi32(nvgpu_inst_block_addr(g, &ch->inst_block));
 
 	runlist[2] = ram_rl_entry_chan_inst_ptr_lo_f(addr_lo) |
-				ram_rl_entry_chid_f(c->chid);
+				ram_rl_entry_chid_f(ch->chid);
 	runlist[3] = ram_rl_entry_chan_inst_ptr_hi_f(addr_hi);
 
 	nvgpu_log_info(g, "gv11b channel runlist [0] %x [1]  %x [2] %x [3] %x\n",

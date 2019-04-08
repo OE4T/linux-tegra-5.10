@@ -62,6 +62,7 @@
 #include "hal/fifo/ramfc_gk20a.h"
 #include "hal/fifo/ramin_gk20a.h"
 #include "hal/fifo/ramin_gm20b.h"
+#include "hal/fifo/runlist_gk20a.h"
 #include "hal/fifo/tsg_gk20a.h"
 #include "hal/fifo/userd_gk20a.h"
 #include "hal/fifo/fifo_intr_gk20a.h"
@@ -87,7 +88,6 @@
 #include "common/sync/syncpt_cmdbuf_gk20a.h"
 #include "common/sync/sema_cmdbuf_gk20a.h"
 #include "common/regops/regops_gm20b.h"
-#include "common/fifo/runlist_gk20a.h"
 #include "common/fifo/channel_gk20a.h"
 #include "common/fifo/channel_gm20b.h"
 

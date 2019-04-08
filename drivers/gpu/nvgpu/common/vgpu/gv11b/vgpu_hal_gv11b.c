@@ -30,6 +30,7 @@
 #include "hal/fifo/ramin_gm20b.h"
 #include "hal/fifo/ramin_gp10b.h"
 #include "hal/fifo/ramin_gv11b.h"
+#include "hal/fifo/runlist_gv11b.h"
 #include "hal/fifo/tsg_gv11b.h"
 #include "hal/fifo/userd_gk20a.h"
 #include "hal/fifo/userd_gv11b.h"
@@ -62,7 +63,6 @@
 #include "common/sync/syncpt_cmdbuf_gv11b.h"
 #include "common/sync/sema_cmdbuf_gv11b.h"
 #include "common/regops/regops_gv11b.h"
-#include "common/fifo/runlist_gv11b.h"
 #include "common/fifo/channel_gv11b.h"
 #include "common/clk_arb/clk_arb_gp10b.h"
 

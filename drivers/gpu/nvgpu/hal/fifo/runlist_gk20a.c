@@ -35,7 +35,6 @@
 #include <nvgpu/hw/gk20a/hw_ram_gk20a.h>
 #include <nvgpu/hw/gk20a/hw_gr_gk20a.h>
 
-#define FECS_METHOD_WFI_RESTORE 0x80000U
 #define FECS_MAILBOX_0_ACK_RESTORE 0x4U
 
 int gk20a_runlist_reschedule(struct channel_gk20a *ch, bool preempt_next)
@@ -65,12 +64,12 @@ int gk20a_fifo_reschedule_preempt_next(struct channel_gk20a *ch,
 		return ret;
 	}
 
-	if (wait_preempt && ((gk20a_readl(g, fifo_preempt_r()) &
+	if (wait_preempt && ((nvgpu_readl(g, fifo_preempt_r()) &
 				fifo_preempt_pending_true_f()) != 0U)) {
 		return ret;
 	}
 
-	fecsstat0 = gk20a_readl(g, gr_fecs_ctxsw_mailbox_r(0));
+	fecsstat0 = nvgpu_readl(g, gr_fecs_ctxsw_mailbox_r(0));
 	g->ops.engine_status.read_engine_status_info(g, gr_eng_id, &engine_status);
 	if (nvgpu_engine_status_is_ctxsw_switch(&engine_status)) {
 		nvgpu_engine_status_get_next_ctx_id_type(&engine_status,
@@ -81,7 +80,7 @@ int gk20a_fifo_reschedule_preempt_next(struct channel_gk20a *ch,
 	if ((preempt_id == ch->tsgid) && (preempt_type != 0U)) {
 		return ret;
 	}
-	fecsstat1 = gk20a_readl(g, gr_fecs_ctxsw_mailbox_r(0));
+	fecsstat1 = nvgpu_readl(g, gr_fecs_ctxsw_mailbox_r(0));
 	if (fecsstat0 != FECS_MAILBOX_0_ACK_RESTORE ||
 		fecsstat1 != FECS_MAILBOX_0_ACK_RESTORE) {
 		/* preempt useless if FECS acked save and started restore */
@@ -92,8 +91,8 @@ int gk20a_fifo_reschedule_preempt_next(struct channel_gk20a *ch,
 #ifdef TRACEPOINTS_ENABLED
 	trace_gk20a_reschedule_preempt_next(ch->chid, fecsstat0,
 		engine_status.reg_data,
-		fecsstat1, gk20a_readl(g, gr_fecs_ctxsw_mailbox_r(0)),
-		gk20a_readl(g, fifo_preempt_r()));
+		fecsstat1, nvgpu_readl(g, gr_fecs_ctxsw_mailbox_r(0)),
+		nvgpu_readl(g, fifo_preempt_r()));
 #endif
 	if (wait_preempt) {
 		g->ops.fifo.is_preempt_pending(g, preempt_id, preempt_type);
@@ -180,7 +179,7 @@ void gk20a_runlist_hw_submit(struct gk20a *g, u32 runlist_id,
 	nvgpu_spinlock_acquire(&g->fifo.runlist_submit_lock);
 
 	if (count != 0U) {
-		gk20a_writel(g, fifo_runlist_base_r(),
+		nvgpu_writel(g, fifo_runlist_base_r(),
 			fifo_runlist_base_ptr_f(u64_lo32(runlist_iova >> 12)) |
 			nvgpu_aperture_mask(g, &runlist->mem[buffer_index],
 				fifo_runlist_base_target_sys_mem_ncoh_f(),
@@ -188,7 +187,7 @@ void gk20a_runlist_hw_submit(struct gk20a *g, u32 runlist_id,
 				fifo_runlist_base_target_vid_mem_f()));
 	}
 
-	gk20a_writel(g, fifo_runlist_r(),
+	nvgpu_writel(g, fifo_runlist_r(),
 		fifo_runlist_engine_f(runlist_id) |
 		fifo_eng_runlist_length_f(count));
 
@@ -205,7 +204,7 @@ int gk20a_runlist_wait_pending(struct gk20a *g, u32 runlist_id)
 			   NVGPU_TIMER_CPU_TIMER);
 
 	do {
-		if ((gk20a_readl(g, fifo_eng_runlist_r(runlist_id)) &
+		if ((nvgpu_readl(g, fifo_eng_runlist_r(runlist_id)) &
 				fifo_eng_runlist_pending_true_f()) == 0U) {
 			ret = 0;
 			break;
@@ -238,7 +237,7 @@ void gk20a_runlist_write_state(struct gk20a *g, u32 runlists_mask,
 		i++;
 	}
 
-	reg_val = gk20a_readl(g, fifo_sched_disable_r());
+	reg_val = nvgpu_readl(g, fifo_sched_disable_r());
 
 	if (runlist_state == RUNLIST_DISABLED) {
 		reg_val |= reg_mask;
@@ -246,7 +245,7 @@ void gk20a_runlist_write_state(struct gk20a *g, u32 runlists_mask,
 		reg_val &= ~reg_mask;
 	}
 
-	gk20a_writel(g, fifo_sched_disable_r(), reg_val);
+	nvgpu_writel(g, fifo_sched_disable_r(), reg_val);
 
 }
 

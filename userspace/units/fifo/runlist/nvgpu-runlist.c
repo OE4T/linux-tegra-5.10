@@ -29,7 +29,7 @@
 #include <nvgpu/runlist.h>
 #include <nvgpu/gk20a.h>
 
-#include "common/fifo/runlist_gk20a.h"
+#include "hal/fifo/runlist_gk20a.h"
 
 static void setup_fifo(struct gk20a *g, unsigned long *tsg_map,
 		unsigned long *ch_map, struct tsg_gk20a *tsgs,

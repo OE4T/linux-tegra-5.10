@@ -28,6 +28,7 @@
 #include "hal/fifo/ramin_gk20a.h"
 #include "hal/fifo/ramin_gm20b.h"
 #include "hal/fifo/ramin_gp10b.h"
+#include "hal/fifo/runlist_gk20a.h"
 #include "hal/fifo/userd_gk20a.h"
 #include "hal/fifo/mmu_fault_gm20b.h"
 #include "hal/fifo/mmu_fault_gp10b.h"
@@ -47,7 +48,6 @@
 
 #include "common/perf/perf_gm20b.h"
 #include "common/regops/regops_gp10b.h"
-#include "common/fifo/runlist_gk20a.h"
 #include "common/fifo/channel_gm20b.h"
 #include "common/clk_arb/clk_arb_gp10b.h"
 
