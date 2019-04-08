@@ -27,6 +27,18 @@
 
 struct channel_gk20a;
 
+struct nvgpu_gr_intr_info {
+	u32 notify;
+	u32 semaphore;
+	u32 illegal_notify;
+	u32 illegal_method;
+	u32 illegal_class;
+	u32 fecs_error;
+	u32 class_error;
+	u32 fw_method;
+	u32 exception;
+};
+
 struct nvgpu_gr_tpc_exception {
 	bool tex_exception;
 	bool sm_exception;

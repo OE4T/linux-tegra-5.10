@@ -36,9 +36,52 @@ void gm20b_gr_intr_clear_pending_interrupts(struct gk20a *g, u32 gr_intr)
 	nvgpu_writel(g, gr_intr_r(), gr_intr);
 }
 
-u32 gm20b_gr_intr_read_pending_interrupts(struct gk20a *g)
+u32 gm20b_gr_intr_read_pending_interrupts(struct gk20a *g,
+					struct nvgpu_gr_intr_info *intr_info)
 {
-	return nvgpu_readl(g, gr_intr_r());
+	u32 gr_intr = nvgpu_readl(g, gr_intr_r());
+
+	(void) memset(intr_info, 0, sizeof(struct nvgpu_gr_intr_info));
+
+	if ((gr_intr & gr_intr_notify_pending_f()) != 0U) {
+		intr_info->notify = gr_intr_notify_pending_f();
+	}
+
+	if ((gr_intr & gr_intr_semaphore_pending_f()) != 0U) {
+		intr_info->semaphore = gr_intr_semaphore_pending_f();
+	}
+
+	if ((gr_intr & gr_intr_illegal_notify_pending_f()) != 0U) {
+		intr_info->illegal_notify = gr_intr_illegal_notify_pending_f();
+	}
+
+	if ((gr_intr & gr_intr_illegal_method_pending_f()) != 0U) {
+		intr_info->illegal_method = gr_intr_illegal_method_pending_f();
+	}
+
+	if ((gr_intr & gr_intr_illegal_class_pending_f()) != 0U) {
+		intr_info->illegal_class = gr_intr_illegal_class_pending_f();
+	}
+
+	if ((gr_intr & gr_intr_fecs_error_pending_f()) != 0U) {
+		intr_info->fecs_error = gr_intr_fecs_error_pending_f();
+	}
+
+	if ((gr_intr & gr_intr_class_error_pending_f()) != 0U) {
+		intr_info->class_error = gr_intr_class_error_pending_f();
+	}
+
+	/* this one happens if someone tries to hit a non-whitelisted
+	 * register using set_falcon[4] */
+	if ((gr_intr & gr_intr_firmware_method_pending_f()) != 0U) {
+		intr_info->fw_method = gr_intr_firmware_method_pending_f();
+	}
+
+	if ((gr_intr & gr_intr_exception_pending_f()) != 0U) {
+		intr_info->exception = gr_intr_exception_pending_f();
+	}
+
+	return gr_intr;
 }
 
 bool gm20b_gr_intr_handle_exceptions(struct gk20a *g, bool *is_gpc_exception)

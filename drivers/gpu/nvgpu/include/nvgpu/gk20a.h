@@ -66,6 +66,7 @@ struct nvgpu_gr_zbc_query_params;
 struct nvgpu_gr_zcull;
 struct nvgpu_gr_zcull_info;
 struct nvgpu_gr_tpc_exception;
+struct nvgpu_gr_intr_info;
 struct nvgpu_channel_hw_state;
 struct nvgpu_engine_status_info;
 struct nvgpu_pbdma_status_info;
@@ -784,7 +785,8 @@ struct gpu_ops {
 		struct {
 			void (*clear_pending_interrupts)(struct gk20a *g,
 							 u32 gr_intr);
-			u32 (*read_pending_interrupts)(struct gk20a *g);
+			u32 (*read_pending_interrupts)(struct gk20a *g,
+					struct nvgpu_gr_intr_info *intr_info);
 			bool (*handle_exceptions)(struct gk20a *g,
 						  bool *is_gpc_exception);
 			u32 (*read_gpc_tpc_exception)(u32 gpc_exception);
