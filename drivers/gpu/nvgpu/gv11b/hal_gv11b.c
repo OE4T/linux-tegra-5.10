@@ -670,6 +670,8 @@ static const struct gpu_ops gv11b_ops = {
 				gv11b_gr_init_commit_cbes_reserve,
 			.gfxp_wfi_timeout =
 				gv11b_gr_init_commit_gfxp_wfi_timeout,
+			.get_max_subctx_count =
+				gv11b_gr_init_get_max_subctx_count,
 		},
 		.intr = {
 			.set_shader_exceptions =

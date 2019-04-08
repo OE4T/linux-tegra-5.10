@@ -78,4 +78,6 @@ void gv11b_gr_init_commit_cbes_reserve(struct gk20a *g,
 void gv11b_gr_init_commit_gfxp_wfi_timeout(struct gk20a *g,
 	struct nvgpu_gr_ctx *gr_ctx, u32 timeout, bool patch);
 
+u32 gv11b_gr_init_get_max_subctx_count(void);
+
 #endif /* NVGPU_GR_INIT_GV11B_H */

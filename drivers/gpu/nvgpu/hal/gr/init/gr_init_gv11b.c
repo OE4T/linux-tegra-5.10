@@ -782,8 +782,7 @@ static int gv11b_gr_init_write_bundle_veid_state(struct gk20a *g, u32 index,
 	u32  num_subctx;
 	int err = 0;
 
-	/* TODO: get this value through FIFO hal */
-	num_subctx = g->fifo.max_subctx_count;
+	num_subctx = g->ops.gr.init.get_max_subctx_count();
 
 	for (j = 0U; j < num_subctx; j++) {
 		nvgpu_log_fn(g, "write bundle_address_r for subctx: %d", j);
@@ -890,4 +889,9 @@ void gv11b_gr_init_commit_gfxp_wfi_timeout(struct gk20a *g,
 {
 	nvgpu_gr_ctx_patch_write(g, gr_ctx, gr_fe_gfxp_wfi_timeout_r(),
 		timeout, patch);
+}
+
+u32 gv11b_gr_init_get_max_subctx_count(void)
+{
+	return gr_pri_fe_chip_def_info_max_veid_count_init_v();
 }

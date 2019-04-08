@@ -60,7 +60,6 @@
 #include <nvgpu/hw/gv11b/hw_usermode_gv11b.h>
 #include <nvgpu/hw/gv11b/hw_top_gv11b.h>
 #include <nvgpu/hw/gv11b/hw_gmmu_gv11b.h>
-#include <nvgpu/hw/gv11b/hw_gr_gv11b.h>
 
 #include "fifo_gv11b.h"
 #include "gr_gv11b.h"
@@ -944,7 +943,7 @@ int gv11b_init_fifo_setup_hw(struct gk20a *g)
 {
 	struct fifo_gk20a *f = &g->fifo;
 
-	f->max_subctx_count = gr_pri_fe_chip_def_info_max_veid_count_init_v();
+	f->max_subctx_count = g->ops.gr.init.get_max_subctx_count();
 
 	/* configure userd writeback timer */
 	nvgpu_writel(g, fifo_userd_writeback_r(),

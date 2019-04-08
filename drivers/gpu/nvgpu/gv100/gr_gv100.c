@@ -46,7 +46,6 @@ void gr_gv100_set_gpc_tpc_mask(struct gk20a *g, u32 gpc_index)
 u32 gr_gv100_get_patch_slots(struct gk20a *g)
 {
 	struct gr_gk20a *gr = &g->gr;
-	struct fifo_gk20a *f = &g->fifo;
 	u32 size = 0;
 
 	/*
@@ -69,7 +68,7 @@ u32 gr_gv100_get_patch_slots(struct gk20a *g)
 	/*
 	 * We need this for all subcontexts
 	 */
-	size *= f->max_subctx_count;
+	size *= g->ops.gr.init.get_max_subctx_count();
 
 	/*
 	 * Add space for a partition mode change as well

@@ -787,6 +787,7 @@ struct gpu_ops {
 			void (*gfxp_wfi_timeout)(struct gk20a *g,
 				struct nvgpu_gr_ctx *gr_ctx, u32 timeout,
 				bool patch);
+			u32 (*get_max_subctx_count)(void);
 		} init;
 
 		struct {
