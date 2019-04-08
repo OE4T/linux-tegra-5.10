@@ -660,6 +660,7 @@ static const struct gpu_ops gm20b_ops = {
 		.init_ce_info = gm20b_engine_init_ce_info,
 	},
 	.pbdma = {
+		.setup_hw = gm20b_pbdma_setup_hw,
 		.intr_enable = gm20b_pbdma_intr_enable,
 		.acquire_val = gm20b_pbdma_acquire_val,
 		.get_signature = gm20b_pbdma_get_signature,

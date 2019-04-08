@@ -1073,6 +1073,7 @@ struct gpu_ops {
 	} engine;
 
 	struct {
+		void (*setup_hw)(struct gk20a *g);
 		void (*intr_enable)(struct gk20a *g, bool enable);
 		bool (*handle_intr_0)(struct gk20a *g,
 				u32 pbdma_id, u32 pbdma_intr_0,

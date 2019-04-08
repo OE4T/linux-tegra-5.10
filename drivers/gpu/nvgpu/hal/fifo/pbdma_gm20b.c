@@ -484,3 +484,17 @@ void gm20b_pbdma_syncpoint_debug_dump(struct gk20a *g,
 	}
 #endif
 }
+
+void gm20b_pbdma_setup_hw(struct gk20a *g)
+{
+	u32 host_num_pbdma = nvgpu_get_litter_value(g, GPU_LIT_HOST_NUM_PBDMA);
+	u32 i, timeout;
+
+	for (i = 0U; i < host_num_pbdma; i++) {
+		timeout = nvgpu_readl(g, pbdma_timeout_r(i));
+		timeout = set_field(timeout, pbdma_timeout_period_m(),
+				    pbdma_timeout_period_max_f());
+		nvgpu_log_info(g, "pbdma_timeout reg val = 0x%08x", timeout);
+		nvgpu_writel(g, pbdma_timeout_r(i), timeout);
+	}
+}

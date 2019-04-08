@@ -442,6 +442,7 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 		.init_info = vgpu_fifo_init_engine_info,
 	},
 	.pbdma = {
+		.setup_hw = NULL,
 		.intr_enable = NULL,
 		.acquire_val = gm20b_pbdma_acquire_val,
 		.get_signature = gp10b_pbdma_get_signature,

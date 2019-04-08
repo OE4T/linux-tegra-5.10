@@ -54,5 +54,6 @@ void gm20b_pbdma_disable_and_clear_all_intr(struct gk20a *g);
 void gm20b_pbdma_syncpoint_debug_dump(struct gk20a *g,
 		     struct gk20a_debug_output *o,
 		     struct nvgpu_channel_dump_info *info);
+void gm20b_pbdma_setup_hw(struct gk20a *g);
 
 #endif /* NVGPU_PBDMA_GM20B_H */

@@ -27,6 +27,7 @@
 
 struct gk20a;
 
+void gv11b_pbdma_setup_hw(struct gk20a *g);
 void gv11b_pbdma_intr_enable(struct gk20a *g, bool enable);
 bool gv11b_pbdma_handle_intr_0(struct gk20a *g, u32 pbdma_id, u32 pbdma_intr_0,
 			u32 *error_notifier);

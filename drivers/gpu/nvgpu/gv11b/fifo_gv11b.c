@@ -907,8 +907,6 @@ void gv11b_fifo_teardown_ch_tsg(struct gk20a *g, u32 act_eng_bitmask,
 int gv11b_init_fifo_reset_enable_hw(struct gk20a *g)
 {
 	u32 timeout;
-	unsigned int i;
-	u32 host_num_pbdma = nvgpu_get_litter_value(g, GPU_LIT_HOST_NUM_PBDMA);
 
 	nvgpu_log_fn(g, " ");
 
@@ -933,18 +931,7 @@ int gv11b_init_fifo_reset_enable_hw(struct gk20a *g)
 		gk20a_writel(g, fifo_fb_timeout_r(), timeout);
 	}
 
-	for (i = 0; i < host_num_pbdma; i++) {
-		timeout = gk20a_readl(g, pbdma_timeout_r(i));
-		nvgpu_log_info(g, "pbdma_timeout reg val = 0x%08x",
-						 timeout);
-		if (!nvgpu_platform_is_silicon(g)) {
-			timeout = set_field(timeout, pbdma_timeout_period_m(),
-					pbdma_timeout_period_max_f());
-			nvgpu_log_info(g, "new pbdma_timeout reg val = 0x%08x",
-						 timeout);
-			gk20a_writel(g, pbdma_timeout_r(i), timeout);
-		}
-	}
+	g->ops.pbdma.setup_hw(g);
 
 	g->ops.fifo.intr_0_enable(g, true);
 	g->ops.fifo.intr_1_enable(g, true);

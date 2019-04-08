@@ -887,6 +887,7 @@ static const struct gpu_ops gv11b_ops = {
 		.init_ce_info = gp10b_engine_init_ce_info,
 	},
 	.pbdma = {
+		.setup_hw = gv11b_pbdma_setup_hw,
 		.intr_enable = gv11b_pbdma_intr_enable,
 		.acquire_val = gm20b_pbdma_acquire_val,
 		.get_signature = gp10b_pbdma_get_signature,
