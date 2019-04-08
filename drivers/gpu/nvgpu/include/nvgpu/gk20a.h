@@ -305,12 +305,6 @@ struct gpu_ops {
 		u32 (*get_tpc_num)(struct gk20a *g, u32 addr);
 		u32 (*get_egpc_base)(struct gk20a *g);
 		void (*powergate_tpc)(struct gk20a *g);
-		int (*init_ctxsw_preemption_mode)(struct gk20a *g,
-			  struct nvgpu_gr_ctx *gr_ctx, struct vm_gk20a *vm,
-			  u32 class, u32 padding);
-		void (*update_ctxsw_preemption_mode)(struct gk20a *g,
-				struct nvgpu_gr_ctx *gr_ctx,
-				struct nvgpu_gr_subctx *subctx);
 		int (*update_smpc_ctxsw_mode)(struct gk20a *g,
 				struct channel_gk20a *c,
 				bool enable);
@@ -384,7 +378,6 @@ struct gpu_ops {
 				u32 graphics_preempt_mode,
 				u32 compute_preempt_mode);
 		int (*set_boosted_ctx)(struct channel_gk20a *ch, bool boost);
-		int (*init_sw_veid_bundle)(struct gk20a *g);
 		int (*trigger_suspend)(struct gk20a *g);
 		int (*wait_for_pause)(struct gk20a *g, struct nvgpu_warpstate *w_state);
 		int (*resume_from_pause)(struct gk20a *g);
