@@ -25,6 +25,7 @@
 #include <nvgpu/firmware.h>
 #include <nvgpu/falcon.h>
 #include <nvgpu/bug.h>
+#include <nvgpu/pmu/fw.h>
 
 #include "acr_wpr.h"
 #include "acr_priv.h"
@@ -116,7 +117,7 @@ static u32 gm20b_acr_lsf_pmu(struct gk20a *g,
 	lsf->is_lazy_bootstrap = false;
 	lsf->is_priv_load = false;
 	lsf->get_lsf_ucode_details = nvgpu_acr_lsf_pmu_ucode_details_v0;
-	lsf->get_cmd_line_args_offset = nvgpu_pmu_get_cmd_line_args_offset;
+	lsf->get_cmd_line_args_offset = nvgpu_pmu_fw_get_cmd_line_args_offset;
 
 	return BIT32(lsf->falcon_id);
 }

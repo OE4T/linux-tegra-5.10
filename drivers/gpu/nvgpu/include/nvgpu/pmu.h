@@ -36,6 +36,7 @@
 #include <nvgpu/pmu/mutex.h>
 #include <nvgpu/pmu/queue.h>
 #include <nvgpu/pmu/msg.h>
+#include <nvgpu/pmu/fw.h>
 
 #define nvgpu_pmu_dbg(g, fmt, args...) \
 	nvgpu_log(g, gpu_dbg_pmu, fmt, ##args)
@@ -85,17 +86,6 @@
 #define PMU_FALCON_REG_RSVD1		(30U)
 #define PMU_FALCON_REG_RSVD2		(31U)
 #define PMU_FALCON_REG_SIZE		(32U)
-
-/* Choices for pmu_state */
-#define PMU_STATE_OFF			0U /* PMU is off */
-#define PMU_STATE_STARTING		1U /* PMU is on, but not booted */
-#define PMU_STATE_INIT_RECEIVED		2U /* PMU init message received */
-#define PMU_STATE_ELPG_BOOTING		3U /* PMU is booting */
-#define PMU_STATE_ELPG_BOOTED		4U /* ELPG is initialized */
-#define PMU_STATE_LOADING_PG_BUF	5U /* Loading PG buf */
-#define PMU_STATE_LOADING_ZBC		6U /* Loading ZBC buf */
-#define PMU_STATE_STARTED		7U /* Fully unitialized */
-#define PMU_STATE_EXIT			8U /* Exit PMU state machine */
 
 #define GK20A_PMU_UCODE_NB_MAX_OVERLAY	    32U
 #define GK20A_PMU_UCODE_NB_MAX_DATE_LENGTH  64U
@@ -206,11 +196,7 @@ struct nvgpu_pmu {
 	struct gk20a *g;
 	struct nvgpu_falcon flcn;
 
-	struct nvgpu_firmware *fw_desc;
-	struct nvgpu_firmware *fw_image;
-	struct nvgpu_firmware *fw_sig;
-
-	struct nvgpu_mem ucode;
+	struct pmu_rtos_fw fw;
 
 	struct nvgpu_pmu_lsfm *lsfm;
 
@@ -229,12 +215,8 @@ struct nvgpu_pmu {
 
 	struct nvgpu_allocator dmem;
 
-	bool pmu_ready;
-
 	u32 mscg_stat;
 	u32 mscg_transition_state;
-
-	u32 pmu_state;
 
 	struct nvgpu_pmu_pg pmu_pg;
 	struct nvgpu_pmu_perfmon *pmu_perfmon;
@@ -248,13 +230,6 @@ struct nvgpu_pmu {
 
 	struct nvgpu_mutex isr_mutex;
 	bool isr_enabled;
-
-	union {
-		struct pmu_cmdline_args_v3 args_v3;
-		struct pmu_cmdline_args_v4 args_v4;
-		struct pmu_cmdline_args_v5 args_v5;
-		struct pmu_cmdline_args_v6 args_v6;
-	};
 
 	u32 override_done;
 };
@@ -285,9 +260,6 @@ int nvgpu_pmu_destroy(struct gk20a *g);
 int nvgpu_pmu_super_surface_alloc(struct gk20a *g,
 	struct nvgpu_mem *mem_surface, u32 size);
 
-void nvgpu_pmu_state_change(struct gk20a *g, u32 pmu_state,
-	bool post_change_event);
-
 /* NVGPU-PMU MEM alloc */
 void nvgpu_pmu_surface_free(struct gk20a *g, struct nvgpu_mem *mem);
 void nvgpu_pmu_surface_describe(struct gk20a *g, struct nvgpu_mem *mem,
@@ -297,9 +269,7 @@ int nvgpu_pmu_vidmem_surface_alloc(struct gk20a *g, struct nvgpu_mem *mem,
 int nvgpu_pmu_sysmem_surface_alloc(struct gk20a *g, struct nvgpu_mem *mem,
 		u32 size);
 
-/* PMU F/W support */
 int nvgpu_early_init_pmu_sw(struct gk20a *g, struct nvgpu_pmu *pmu);
-int nvgpu_pmu_ns_fw_bootstrap(struct gk20a *g, struct nvgpu_pmu *pmu);
 
 /* PMU reset */
 int nvgpu_pmu_reset(struct gk20a *g);
@@ -308,11 +278,6 @@ int nvgpu_pmu_reset(struct gk20a *g);
 void nvgpu_pmu_dump_falcon_stats(struct nvgpu_pmu *pmu);
 void nvgpu_pmu_dump_elpg_stats(struct nvgpu_pmu *pmu);
 bool nvgpu_find_hex_in_string(char *strings, struct gk20a *g, u32 *hex_pos);
-
-int nvgpu_pmu_wait_ready(struct gk20a *g);
-
-void nvgpu_pmu_get_cmd_line_args_offset(struct gk20a *g,
-	u32 *args_offset);
 
 struct gk20a *gk20a_from_pmu(struct nvgpu_pmu *pmu);
 

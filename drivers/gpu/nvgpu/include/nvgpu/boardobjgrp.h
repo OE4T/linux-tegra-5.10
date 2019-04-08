@@ -327,7 +327,7 @@ do {                                                                          \
 
 #define BOARDOBJGRP_PMU_CMD_GRP_SET_CONSTRUCT(g, pboardobjgrp, eng, ENG, \
 	class, CLASS)                                                 \
-	((g)->ops.pmu_ver.boardobj.boardobjgrp_pmucmd_construct_impl(    \
+	((g)->pmu.fw.ops.boardobj.boardobjgrp_pmucmd_construct_impl(    \
 	g,                                              /* pgpu */    \
 	pboardobjgrp,                                      /* pboardobjgrp */ \
 	&((pboardobjgrp)->pmu.set),                        /* pcmd */         \
@@ -343,7 +343,7 @@ do {                                                                          \
 
 #define BOARDOBJGRP_PMU_CMD_GRP_GET_STATUS_CONSTRUCT(g, pboardobjgrp, \
 	eng, ENG, class, CLASS)                                       \
-	((g)->ops.pmu_ver.boardobj.boardobjgrp_pmucmd_construct_impl(    \
+	((g)->pmu.fw.ops.boardobj.boardobjgrp_pmucmd_construct_impl(    \
 	g,                                              /* pGpu */    \
 	pboardobjgrp,                                      /* pBoardObjGrp */ \
 	&((pboardobjgrp)->pmu.getstatus),                  /* pCmd */         \

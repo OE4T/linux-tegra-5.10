@@ -123,7 +123,9 @@ srcs += common/sim/sim.c \
 	common/pmu/pmu.c \
 	common/pmu/pmu_allocator.c \
 	common/pmu/pmu_mutex.c \
-	common/pmu/pmu_fw.c \
+	common/pmu/fw/fw.c \
+	common/pmu/fw/fw_ver_ops.c \
+	common/pmu/fw/fw_ns_bootstrap.c \
 	common/pmu/pg/pmu_pg.c \
 	common/pmu/pg/pmu_aelpg.c \
 	common/pmu/perfmon/pmu_perfmon.c \

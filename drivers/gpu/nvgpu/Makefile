@@ -77,7 +77,9 @@ nvgpu-y += \
 	common/pmu/pmu.o \
 	common/pmu/pmu_allocator.o \
 	common/pmu/pmu_mutex.o \
-	common/pmu/pmu_fw.o \
+	common/pmu/fw/fw.o \
+	common/pmu/fw/fw_ver_ops.o \
+	common/pmu/fw/fw_ns_bootstrap.o \
 	common/pmu/pg/pmu_pg.o \
 	common/pmu/pg/pmu_aelpg.o \
 	common/pmu/perfmon/pmu_perfmon.o \

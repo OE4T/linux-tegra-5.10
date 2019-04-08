@@ -22,6 +22,7 @@
 
 #include <nvgpu/pmu.h>
 #include <nvgpu/gk20a.h>
+#include <nvgpu/pmu/fw.h>
 
 bool nvgpu_find_hex_in_string(char *strings, struct gk20a *g, u32 *hex_pos)
 {
@@ -104,7 +105,7 @@ void nvgpu_pmu_dump_falcon_stats(struct nvgpu_pmu *pmu)
 	/* Print PMU F/W debug prints */
 	print_pmu_trace(pmu);
 
-	nvgpu_err(g, "pmu state: %d", pmu->pmu_state);
+	nvgpu_err(g, "pmu state: %d", nvgpu_pmu_get_fw_state(g, pmu));
 	nvgpu_err(g, "elpg state: %d", pmu->pmu_pg.elpg_stat);
 
 	/* PMU may crash due to FECS crash. Dump FECS status */

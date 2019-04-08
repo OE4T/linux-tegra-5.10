@@ -40,6 +40,10 @@
 #include <nvgpu/pmu/super_surface.h>
 #include <nvgpu/pmu/pmu_perfmon.h>
 #include <nvgpu/pmu/pmu_pg.h>
+#include <nvgpu/pmu/fw.h>
+#include <nvgpu/firmware.h>
+#include <nvgpu/boardobj.h>
+#include <nvgpu/boardobjgrp.h>
 
 static void pmu_report_error(struct gk20a *g, u32 err_type,
 		u32 status, u32 pmu_err_type)
@@ -290,28 +294,10 @@ int nvgpu_init_pmu_support(struct gk20a *g)
 		nvgpu_pmu_ns_fw_bootstrap(g, pmu);
 	}
 
-	nvgpu_pmu_state_change(g, PMU_STATE_STARTING, false);
+	nvgpu_pmu_fw_state_change(g, pmu, PMU_FW_STATE_STARTING, false);
 
 exit:
 	return err;
-}
-
-void nvgpu_pmu_state_change(struct gk20a *g, u32 pmu_state,
-		bool post_change_event)
-{
-	struct nvgpu_pmu *pmu = &g->pmu;
-
-	nvgpu_pmu_dbg(g, "pmu_state - %d", pmu_state);
-
-	pmu->pmu_state = pmu_state;
-
-	if (post_change_event) {
-		pmu->pmu_pg.pg_init.state_change = true;
-		nvgpu_cond_signal(&pmu->pmu_pg.pg_init.wq);
-	}
-
-	/* make status visible */
-	nvgpu_smp_mb();
 }
 
 int nvgpu_pmu_destroy(struct gk20a *g)
@@ -346,14 +332,138 @@ int nvgpu_pmu_destroy(struct gk20a *g)
 
 	nvgpu_pmu_queues_free(g, &pmu->queues);
 
-	nvgpu_pmu_state_change(g, PMU_STATE_OFF, false);
-	pmu->pmu_ready = false;
+	nvgpu_pmu_fw_state_change(g, pmu, PMU_FW_STATE_OFF, false);
+	nvgpu_pmu_set_fw_ready(g, pmu, false);
 	pmu->pmu_perfmon->perfmon_ready = false;
 	pmu->pmu_pg.zbc_ready = false;
 	nvgpu_set_enabled(g, NVGPU_PMU_FECS_BOOTSTRAP_DONE, false);
 
 	nvgpu_log_fn(g, "done");
 	return 0;
+}
+
+static void nvgpu_remove_pmu_support(struct nvgpu_pmu *pmu)
+{
+	struct gk20a *g = gk20a_from_pmu(pmu);
+	struct mm_gk20a *mm = &g->mm;
+	struct vm_gk20a *vm = mm->pmu.vm;
+	struct boardobj *pboardobj, *pboardobj_tmp;
+	struct boardobjgrp *pboardobjgrp, *pboardobjgrp_tmp;
+
+	nvgpu_log_fn(g, " ");
+
+	if (nvgpu_alloc_initialized(&pmu->dmem)) {
+		nvgpu_alloc_destroy(&pmu->dmem);
+	}
+
+	if (nvgpu_is_enabled(g, NVGPU_PMU_PSTATE)) {
+		nvgpu_list_for_each_entry_safe(pboardobjgrp,
+			pboardobjgrp_tmp, &g->boardobjgrp_head,
+			boardobjgrp, node) {
+				pboardobjgrp->destruct(pboardobjgrp);
+		}
+
+		nvgpu_list_for_each_entry_safe(pboardobj, pboardobj_tmp,
+			&g->boardobj_head, boardobj, node) {
+				pboardobj->destruct(pboardobj);
+		}
+	}
+
+	nvgpu_pmu_fw_release(g, pmu);
+
+	if (nvgpu_mem_is_valid(&pmu->pmu_pg.seq_buf)) {
+		nvgpu_pmu_pg_free_seq_buf(pmu, vm);
+	}
+
+	if (nvgpu_is_enabled(g, NVGPU_SUPPORT_PMU_SUPER_SURFACE)) {
+		nvgpu_pmu_super_surface_deinit(g, pmu, pmu->super_surface);
+	}
+
+	nvgpu_pmu_lsfm_deinit(g, pmu, pmu->lsfm);
+
+	nvgpu_mutex_destroy(&pmu->pmu_pg.elpg_mutex);
+	nvgpu_mutex_destroy(&pmu->pmu_pg.pg_mutex);
+	nvgpu_mutex_destroy(&pmu->isr_mutex);
+	nvgpu_mutex_destroy(&pmu->pmu_copy_lock);
+	nvgpu_pmu_sequences_free(g, &pmu->sequences);
+	nvgpu_pmu_mutexes_free(g, &pmu->mutexes);
+}
+
+int nvgpu_early_init_pmu_sw(struct gk20a *g, struct nvgpu_pmu *pmu)
+{
+	int err = 0;
+
+	nvgpu_log_fn(g, " ");
+
+	pmu->g = g;
+
+	if (!g->support_ls_pmu) {
+		goto exit;
+	}
+
+	if (!g->ops.pmu.is_pmu_supported(g)) {
+		g->support_ls_pmu = false;
+
+		/* Disable LS PMU global checkers */
+		g->can_elpg = false;
+		g->elpg_enabled = false;
+		g->aelpg_enabled = false;
+		nvgpu_set_enabled(g, NVGPU_PMU_PERFMON, false);
+		goto exit;
+	}
+
+	err = nvgpu_mutex_init(&pmu->pmu_pg.elpg_mutex);
+	if (err != 0) {
+		return err;
+	}
+
+	err = nvgpu_mutex_init(&pmu->pmu_pg.pg_mutex);
+	if (err != 0) {
+		goto init_failed;
+	}
+
+	err = nvgpu_mutex_init(&pmu->isr_mutex);
+	if (err != 0) {
+		goto init_failed;
+	}
+
+	err = nvgpu_mutex_init(&pmu->pmu_copy_lock);
+	if (err != 0) {
+		goto init_failed;
+	}
+
+	/* Allocate memory for pmu_perfmon */
+	err = nvgpu_pmu_initialize_perfmon(g, pmu);
+	if (err != 0) {
+		goto exit;
+	}
+
+	err = nvgpu_pmu_init_pmu_fw(g, pmu);
+	if (err != 0) {
+		goto init_failed;
+	}
+
+	err = nvgpu_pmu_lsfm_init(g, &pmu->lsfm);
+	if (err != 0) {
+		goto init_failed;
+	}
+
+	if (nvgpu_is_enabled(g, NVGPU_SUPPORT_PMU_SUPER_SURFACE)) {
+		err = nvgpu_pmu_super_surface_init(g, pmu,
+				&pmu->super_surface);
+		if (err != 0) {
+			goto init_failed;
+		}
+	}
+
+	pmu->remove_support = nvgpu_remove_pmu_support;
+
+	goto exit;
+
+init_failed:
+	nvgpu_remove_pmu_support(pmu);
+exit:
+	return err;
 }
 
 void nvgpu_pmu_surface_describe(struct gk20a *g, struct nvgpu_mem *mem,
@@ -400,37 +510,6 @@ int nvgpu_pmu_sysmem_surface_alloc(struct gk20a *g, struct nvgpu_mem *mem,
 struct gk20a *gk20a_from_pmu(struct nvgpu_pmu *pmu)
 {
 	return pmu->g;
-}
-
-int nvgpu_pmu_wait_ready(struct gk20a *g)
-{
-	int status = 0;
-
-	status = pmu_wait_message_cond_status(&g->pmu,
-		nvgpu_get_poll_timeout(g),
-		&g->pmu.pmu_ready, (u8)true);
-	if (status != 0) {
-		nvgpu_err(g, "PMU is not ready yet");
-	}
-
-	return status;
-}
-
-void nvgpu_pmu_get_cmd_line_args_offset(struct gk20a *g,
-	u32 *args_offset)
-{
-	struct nvgpu_pmu *pmu = &g->pmu;
-	u32 dmem_size = 0;
-	int err = 0;
-
-	err = nvgpu_falcon_get_mem_size(&pmu->flcn, MEM_DMEM, &dmem_size);
-	if (err != 0) {
-		nvgpu_err(g, "dmem size request failed");
-		*args_offset = 0;
-		return;
-	}
-
-	*args_offset = dmem_size - g->ops.pmu_ver.get_pmu_cmdline_args_size(pmu);
 }
 
 void nvgpu_pmu_report_bar0_pri_err_status(struct gk20a *g, u32 bar0_status,

@@ -47,7 +47,9 @@ void nvgpu_pmu_mutexes_init(struct pmu_mutexes *mutexes)
 
 void nvgpu_pmu_mutexes_free(struct gk20a *g, struct pmu_mutexes *mutexes)
 {
-	nvgpu_kfree(g, mutexes->mutex);
+	if (mutexes->mutex) {
+		nvgpu_kfree(g, mutexes->mutex);
+	}
 }
 
 int nvgpu_pmu_mutex_acquire(struct gk20a *g, struct pmu_mutexes *mutexes,

@@ -268,7 +268,7 @@ int nvgpu_pmu_pstate_sw_setup(struct gk20a *g)
 	int err;
 	nvgpu_log_fn(g, " ");
 
-	err = nvgpu_pmu_wait_ready(g);
+	err = nvgpu_pmu_wait_fw_ready(g, &g->pmu);
 	if (err != 0) {
 		nvgpu_err(g, "PMU not ready to process pstate requests");
 		return err;

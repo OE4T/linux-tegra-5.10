@@ -41,8 +41,10 @@ static void flcn64_set_dma(struct falc_u64 *dma_addr, u64 value)
 
 int nvgpu_acr_lsf_pmu_ucode_details_v1(struct gk20a *g, void *lsf_ucode_img)
 {
-	struct nvgpu_pmu *pmu = &g->pmu;
 	struct lsf_ucode_desc_v1 *lsf_desc;
+	struct nvgpu_firmware *fw_sig;
+	struct nvgpu_firmware *fw_desc;
+	struct nvgpu_firmware *fw_image;
 	struct flcn_ucode_img_v1 *p_img =
 		(struct flcn_ucode_img_v1 *)lsf_ucode_img;
 	int err = 0;
@@ -53,13 +55,17 @@ int nvgpu_acr_lsf_pmu_ucode_details_v1(struct gk20a *g, void *lsf_ucode_img)
 		goto exit;
 	}
 
-	nvgpu_memcpy((u8 *)lsf_desc, (u8 *)pmu->fw_sig->data,
-		min_t(size_t, sizeof(*lsf_desc), pmu->fw_sig->size));
+	fw_sig = nvgpu_pmu_fw_sig_desc(g, &g->pmu);
+	fw_desc = nvgpu_pmu_fw_desc_desc(g, &g->pmu);
+	fw_image = nvgpu_pmu_fw_image_desc(g, &g->pmu);
+
+	nvgpu_memcpy((u8 *)lsf_desc, (u8 *)fw_sig->data,
+		min_t(size_t, sizeof(*lsf_desc), fw_sig->size));
 
 	lsf_desc->falcon_id = FALCON_ID_PMU;
 
-	p_img->desc = (struct ls_falcon_ucode_desc *)(void *)pmu->fw_desc->data;
-	p_img->data = (u32 *)(void *)pmu->fw_image->data;
+	p_img->desc = (struct ls_falcon_ucode_desc *)(void *)fw_desc->data;
+	p_img->data = (u32 *)(void *)fw_image->data;
 	p_img->data_size = p_img->desc->app_start_offset + p_img->desc->app_size;
 	p_img->fw_ver = NULL;
 	p_img->header = NULL;

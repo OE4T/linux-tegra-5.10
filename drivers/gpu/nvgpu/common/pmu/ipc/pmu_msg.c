@@ -29,13 +29,14 @@
 #include <nvgpu/pmu/lsfm.h>
 #include <nvgpu/pmu/super_surface.h>
 #include <nvgpu/pmu/pmu_perfmon.h>
+#include <nvgpu/pmu/fw.h>
 
 static int pmu_payload_extract(struct nvgpu_pmu *pmu, struct pmu_sequence *seq)
 {
 	struct nvgpu_engine_fb_queue *fb_queue =
 				nvgpu_pmu_seq_get_cmd_queue(seq);
 	struct gk20a *g = gk20a_from_pmu(pmu);
-	struct pmu_v *pv = &g->ops.pmu_ver;
+	struct pmu_fw_ver_ops *fw_ops = &g->pmu.fw.ops;
 	u32 fbq_payload_offset = 0U;
 	int err = 0;
 
@@ -51,18 +52,19 @@ static int pmu_payload_extract(struct nvgpu_pmu *pmu, struct pmu_sequence *seq)
 		nvgpu_mem_rd_n(g, nvgpu_pmu_super_surface_mem(g,
 			pmu, pmu->super_surface), fbq_payload_offset,
 			nvgpu_pmu_seq_get_out_payload(seq),
-			pv->pmu_allocation_get_dmem_size(pmu,
-			pv->get_pmu_seq_out_a_ptr(seq)));
+			fw_ops->allocation_get_dmem_size(pmu,
+				fw_ops->get_seq_out_alloc_ptr(seq)));
 
 	} else {
-		if (pv->pmu_allocation_get_dmem_size(pmu,
-			pv->get_pmu_seq_out_a_ptr(seq)) != 0U) {
+		if (fw_ops->allocation_get_dmem_size(pmu,
+				fw_ops->get_seq_out_alloc_ptr(seq)) != 0U) {
 			err = nvgpu_falcon_copy_from_dmem(&pmu->flcn,
-					pv->pmu_allocation_get_dmem_offset(pmu,
-					pv->get_pmu_seq_out_a_ptr(seq)),
+					fw_ops->allocation_get_dmem_offset(pmu,
+					  fw_ops->get_seq_out_alloc_ptr(seq)),
 					nvgpu_pmu_seq_get_out_payload(seq),
-					pv->pmu_allocation_get_dmem_size(pmu,
-					pv->get_pmu_seq_out_a_ptr(seq)), 0);
+					fw_ops->allocation_get_dmem_size(pmu,
+					  fw_ops->get_seq_out_alloc_ptr(seq)),
+					0);
 			if (err != 0) {
 				nvgpu_err(g, "PMU falcon DMEM copy failed");
 				return err;
@@ -78,11 +80,11 @@ static void pmu_payload_free(struct nvgpu_pmu *pmu, struct pmu_sequence *seq)
 	struct nvgpu_engine_fb_queue *fb_queue =
 				nvgpu_pmu_seq_get_cmd_queue(seq);
 	struct gk20a *g = gk20a_from_pmu(pmu);
-	struct pmu_v *pv = &g->ops.pmu_ver;
+	struct pmu_fw_ver_ops *fw_ops = &g->pmu.fw.ops;
 	struct nvgpu_mem *in_mem = nvgpu_pmu_seq_get_in_mem(seq);
 	struct nvgpu_mem *out_mem = nvgpu_pmu_seq_get_out_mem(seq);
-	void *seq_in_ptr = pv->get_pmu_seq_in_a_ptr(seq);
-	void *seq_out_ptr = pv->get_pmu_seq_out_a_ptr(seq);
+	void *seq_in_ptr = fw_ops->get_seq_in_alloc_ptr(seq);
+	void *seq_out_ptr = fw_ops->get_seq_out_alloc_ptr(seq);
 	int err;
 
 	nvgpu_log_fn(g, " ");
@@ -102,27 +104,32 @@ static void pmu_payload_free(struct nvgpu_pmu *pmu, struct pmu_sequence *seq)
 		}
 	} else {
 		/* free DMEM space payload*/
-		if (pv->pmu_allocation_get_dmem_size(pmu, seq_in_ptr) != 0U) {
+		if (fw_ops->allocation_get_dmem_size(pmu,
+			seq_in_ptr) != 0U) {
 			nvgpu_free(&pmu->dmem,
-				    pv->pmu_allocation_get_dmem_offset(pmu,
+				fw_ops->allocation_get_dmem_offset(pmu,
 					seq_in_ptr));
 
-			pv->pmu_allocation_set_dmem_size(pmu, seq_in_ptr, 0);
+			fw_ops->allocation_set_dmem_size(pmu,
+				seq_in_ptr, 0);
 		}
 
-		if (pv->pmu_allocation_get_dmem_size(pmu, seq_out_ptr) != 0U) {
+		if (fw_ops->allocation_get_dmem_size(pmu,
+			seq_out_ptr) != 0U) {
 			nvgpu_free(&pmu->dmem,
-				   pv->pmu_allocation_get_dmem_offset(pmu,
+				fw_ops->allocation_get_dmem_offset(pmu,
 					seq_out_ptr));
 
-			pv->pmu_allocation_set_dmem_size(pmu, seq_out_ptr, 0);
+			fw_ops->allocation_set_dmem_size(pmu,
+				seq_out_ptr, 0);
 		}
 	}
 
 	if (out_mem != NULL) {
-		(void) memset(pv->pmu_allocation_get_fb_addr(pmu, seq_out_ptr),
-			      0x0,
-			      pv->pmu_allocation_get_fb_size(pmu, seq_out_ptr));
+		(void) memset(fw_ops->allocation_get_fb_addr(pmu,
+				seq_out_ptr), 0x0,
+				fw_ops->allocation_get_fb_size(pmu,
+					seq_out_ptr));
 
 		nvgpu_pmu_surface_free(g, out_mem);
 		if (out_mem != in_mem) {
@@ -131,9 +138,10 @@ static void pmu_payload_free(struct nvgpu_pmu *pmu, struct pmu_sequence *seq)
 	}
 
 	if (in_mem != NULL) {
-		(void) memset(pv->pmu_allocation_get_fb_addr(pmu, seq_in_ptr),
-			      0x0,
-			      pv->pmu_allocation_get_fb_size(pmu, seq_in_ptr));
+		(void) memset(fw_ops->allocation_get_fb_addr(pmu,
+				seq_in_ptr), 0x0,
+				fw_ops->allocation_get_fb_size(pmu,
+					seq_in_ptr));
 
 		nvgpu_pmu_surface_free(g, in_mem);
 		nvgpu_kfree(g, in_mem);
@@ -410,7 +418,7 @@ static int pmu_process_init_msg(struct nvgpu_pmu *pmu,
 			struct pmu_msg *msg)
 {
 	struct gk20a *g = gk20a_from_pmu(pmu);
-	struct pmu_v *pv = &g->ops.pmu_ver;
+	struct pmu_fw_ver_ops *fw_ops = &g->pmu.fw.ops;
 	union pmu_init_msg_pmu *init;
 	struct pmu_sha1_gid_data gid_data;
 	int err = 0;
@@ -430,12 +438,12 @@ static int pmu_process_init_msg(struct nvgpu_pmu *pmu,
 		goto exit;
 	}
 
-	init = pv->get_pmu_msg_pmu_init_msg_ptr(&(msg->msg.init));
+	init = fw_ops->get_init_msg_ptr(&(msg->msg.init));
 	if (!pmu->gid_info.valid) {
 		u32 *gid_hdr_data = &gid_data.signature;
 
 		err = nvgpu_falcon_copy_from_dmem(&pmu->flcn,
-			pv->get_pmu_init_msg_pmu_sw_mg_off(init),
+			fw_ops->get_init_msg_sw_mngd_area_off(init),
 			gid_data.sign_bytes,
 			(u32)sizeof(struct pmu_sha1_gid_data), 0);
 		if (err != 0) {
@@ -457,7 +465,6 @@ static int pmu_process_init_msg(struct nvgpu_pmu *pmu,
 		}
 	}
 
-
 	err = nvgpu_pmu_queues_init(g, init, &pmu->queues,
 			nvgpu_pmu_super_surface_mem(g, pmu,
 			pmu->super_surface));
@@ -465,16 +472,16 @@ static int pmu_process_init_msg(struct nvgpu_pmu *pmu,
 		return err;
 	}
 
-	nvgpu_pmu_dmem_allocator_init(g, &pmu->dmem, init);
+	nvgpu_pmu_dmem_allocator_init(g, pmu, &pmu->dmem, init);
 
 	if (nvgpu_is_enabled(g, NVGPU_SUPPORT_PMU_SUPER_SURFACE)) {
 		nvgpu_pmu_ss_create_ssmd_lookup_table(g,
 			pmu, pmu->super_surface);
 	}
 
-	pmu->pmu_ready = true;
+	nvgpu_pmu_set_fw_ready(g, pmu, true);
 
-	nvgpu_pmu_state_change(g, PMU_STATE_INIT_RECEIVED, true);
+	nvgpu_pmu_fw_state_change(g, pmu, PMU_FW_STATE_INIT_RECEIVED, true);
 exit:
 	nvgpu_pmu_dbg(g, "init received end, err %x", err);
 	return err;
@@ -491,7 +498,7 @@ int nvgpu_pmu_process_message(struct nvgpu_pmu *pmu)
 		return 0;
 	}
 
-	if (unlikely(!pmu->pmu_ready)) {
+	if (unlikely(!nvgpu_pmu_get_fw_ready(g, pmu))) {
 		err = pmu_process_init_msg(pmu, &msg);
 		if (err != 0) {
 			return err;
@@ -592,49 +599,12 @@ exit:
 	}
 }
 
-int pmu_wait_message_cond_status(struct nvgpu_pmu *pmu, u32 timeout_ms,
-				 void *var, u8 val)
-{
-	struct gk20a *g = gk20a_from_pmu(pmu);
-	struct nvgpu_timeout timeout;
-	int err;
-	unsigned int delay = POLL_DELAY_MIN_US;
-
-	err = nvgpu_timeout_init(g, &timeout, timeout_ms,
-		NVGPU_TIMER_CPU_TIMER);
-	if (err != 0) {
-		nvgpu_err(g, "PMU wait timeout init failed.");
-		return err;
-	}
-
-	do {
-		nvgpu_rmb();
-
-		if (*(volatile u8 *)var == val) {
-			return 0;
-		}
-
-		if (nvgpu_can_busy(g) == 0) {
-			return 0;
-		}
-
-		if (g->ops.pmu.pmu_is_interrupted(pmu)) {
-			g->ops.pmu.pmu_isr(g);
-		}
-
-		nvgpu_usleep_range(delay, delay * 2U);
-		delay = min_t(u32, delay << 1, POLL_DELAY_MAX_US);
-	} while (nvgpu_timeout_expired(&timeout) == 0);
-
-	return -ETIMEDOUT;
-}
-
 void pmu_wait_message_cond(struct nvgpu_pmu *pmu, u32 timeout_ms,
 			void *var, u8 val)
 {
 	struct gk20a *g = gk20a_from_pmu(pmu);
 
-	if (pmu_wait_message_cond_status(pmu, timeout_ms, var, val) != 0) {
+	if (nvgpu_pmu_wait_fw_ack_status(g, pmu, timeout_ms, var, val) != 0) {
 		nvgpu_err(g, "PMU wait timeout expired.");
 	}
 }

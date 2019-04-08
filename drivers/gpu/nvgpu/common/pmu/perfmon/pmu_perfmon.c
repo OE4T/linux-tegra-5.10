@@ -127,7 +127,8 @@ void nvgpu_pmu_deinitialize_perfmon(struct gk20a *g, struct nvgpu_pmu *pmu)
 int nvgpu_pmu_init_perfmon(struct nvgpu_pmu *pmu)
 {
 	struct gk20a *g = pmu->g;
-	struct pmu_v *pv = &g->ops.pmu_ver;
+	struct pmu_fw_ver_ops *fw_ops = &pmu->fw.ops;
+
 	struct pmu_cmd cmd;
 	struct pmu_payload payload;
 	int status;
@@ -162,34 +163,35 @@ int nvgpu_pmu_init_perfmon(struct nvgpu_pmu *pmu)
 		return -EINVAL;
 	}
 
-	tmp_size = PMU_CMD_HDR_SIZE + (u64)pv->get_pmu_perfmon_cmd_init_size();
+	tmp_size = PMU_CMD_HDR_SIZE +
+		(u64)fw_ops->get_perfmon_cmd_init_size();
 	nvgpu_assert(tmp_size <= U8_MAX);
 	cmd.hdr.size = (u8)tmp_size;
 	cmd.cmd.perfmon.cmd_type = PMU_PERFMON_CMD_ID_INIT;
 	/* buffer to save counter values for pmu perfmon */
-	pv->perfmon_cmd_init_set_sample_buffer(&cmd.cmd.perfmon,
-	(u16)pmu->pmu_perfmon->sample_buffer);
+	fw_ops->perfmon_cmd_init_set_sample_buffer(&cmd.cmd.perfmon,
+			(u16)pmu->pmu_perfmon->sample_buffer);
 	/* number of sample periods below lower threshold
 	 * before pmu triggers perfmon decrease event
 	 */
-	pv->perfmon_cmd_init_set_dec_cnt(&cmd.cmd.perfmon, 15);
+	fw_ops->perfmon_cmd_init_set_dec_cnt(&cmd.cmd.perfmon, 15);
 	/* index of base counter, aka. always ticking counter */
-	pv->perfmon_cmd_init_set_base_cnt_id(&cmd.cmd.perfmon, 6);
+	fw_ops->perfmon_cmd_init_set_base_cnt_id(&cmd.cmd.perfmon, 6);
 	/* microseconds interval between pmu polls perf counters */
-	pv->perfmon_cmd_init_set_samp_period_us(&cmd.cmd.perfmon, 16700);
+	fw_ops->perfmon_cmd_init_set_samp_period_us(&cmd.cmd.perfmon, 16700);
 	/* number of perfmon counters
 	 * counter #3 (GR and CE2) for gk20a
 	 */
-	pv->perfmon_cmd_init_set_num_cnt(&cmd.cmd.perfmon, 1);
+	fw_ops->perfmon_cmd_init_set_num_cnt(&cmd.cmd.perfmon, 1);
 	/* moving average window for sample periods
 	 * TBD: = 3000000 / sample_period_us = 17
 	 */
-	pv->perfmon_cmd_init_set_mov_avg(&cmd.cmd.perfmon, 17);
+	fw_ops->perfmon_cmd_init_set_mov_avg(&cmd.cmd.perfmon, 17);
 
 	(void) memset(&payload, 0, sizeof(struct pmu_payload));
-	payload.in.buf = pv->get_perfmon_cntr_ptr(pmu);
-	payload.in.size = pv->get_perfmon_cntr_sz(pmu);
-	status = pv->get_perfmon_cmd_init_offsetofvar(COUNTER_ALLOC,
+	payload.in.buf = fw_ops->get_perfmon_cntr_ptr(pmu);
+	payload.in.size = fw_ops->get_perfmon_cntr_sz(pmu);
+	status = fw_ops->get_perfmon_cmd_init_offset_of_var(COUNTER_ALLOC,
 							&payload.in.offset);
 	if (status != 0) {
 		nvgpu_err(g, "failed to get payload offset, command skipped");
@@ -210,7 +212,7 @@ int nvgpu_pmu_init_perfmon(struct nvgpu_pmu *pmu)
 int nvgpu_pmu_perfmon_start_sampling(struct nvgpu_pmu *pmu)
 {
 	struct gk20a *g = pmu->g;
-	struct pmu_v *pv = &g->ops.pmu_ver;
+	struct pmu_fw_ver_ops *fw_ops = &pmu->fw.ops;
 	struct pmu_cmd cmd;
 	struct pmu_payload payload;
 	int status;
@@ -227,17 +229,19 @@ int nvgpu_pmu_perfmon_start_sampling(struct nvgpu_pmu *pmu)
 		nvgpu_err(g, "failed to get perfmon UNIT ID, command skipped");
 		return -EINVAL;
 	}
-	tmp_size = PMU_CMD_HDR_SIZE + (u64)pv->get_pmu_perfmon_cmd_start_size();
+	tmp_size = PMU_CMD_HDR_SIZE +
+		(u64)fw_ops->get_perfmon_cmd_start_size();
 	nvgpu_assert(tmp_size <= U8_MAX);
 	cmd.hdr.size = (u8)tmp_size;
-	pv->perfmon_start_set_cmd_type(&cmd.cmd.perfmon,
+	fw_ops->perfmon_start_set_cmd_type(&cmd.cmd.perfmon,
 		PMU_PERFMON_CMD_ID_START);
-	pv->perfmon_start_set_group_id(&cmd.cmd.perfmon,
+	fw_ops->perfmon_start_set_group_id(&cmd.cmd.perfmon,
 		PMU_DOMAIN_GROUP_PSTATE);
-	pv->perfmon_start_set_state_id(&cmd.cmd.perfmon,
+
+	fw_ops->perfmon_start_set_state_id(&cmd.cmd.perfmon,
 		pmu->pmu_perfmon->perfmon_state_id[PMU_DOMAIN_GROUP_PSTATE]);
 
-	pv->perfmon_start_set_flags(&cmd.cmd.perfmon,
+	fw_ops->perfmon_start_set_flags(&cmd.cmd.perfmon,
 		PMU_PERFMON_FLAG_ENABLE_INCREASE |
 		PMU_PERFMON_FLAG_ENABLE_DECREASE |
 		PMU_PERFMON_FLAG_CLEAR_PREV);
@@ -245,14 +249,14 @@ int nvgpu_pmu_perfmon_start_sampling(struct nvgpu_pmu *pmu)
 	(void) memset(&payload, 0, sizeof(struct pmu_payload));
 
 	/* TBD: PMU_PERFMON_PCT_TO_INC * 100 */
-	pv->set_perfmon_cntr_ut(pmu, 3000); /* 30% */
+	fw_ops->set_perfmon_cntr_ut(pmu, 3000); /* 30% */
 	/* TBD: PMU_PERFMON_PCT_TO_DEC * 100 */
-	pv->set_perfmon_cntr_lt(pmu, 1000); /* 10% */
-	pv->set_perfmon_cntr_valid(pmu, true);
+	fw_ops->set_perfmon_cntr_lt(pmu, 1000); /* 10% */
+	fw_ops->set_perfmon_cntr_valid(pmu, true);
 
-	payload.in.buf = pv->get_perfmon_cntr_ptr(pmu);
-	payload.in.size = pv->get_perfmon_cntr_sz(pmu);
-	status = pv->get_perfmon_cmd_start_offsetofvar(COUNTER_ALLOC,
+	payload.in.buf = fw_ops->get_perfmon_cntr_ptr(pmu);
+	payload.in.size = fw_ops->get_perfmon_cntr_sz(pmu);
+	status = fw_ops->get_perfmon_cmd_start_offset_of_var(COUNTER_ALLOC,
 							&payload.in.offset);
 	if (status != 0) {
 		nvgpu_err(g, "failed to get payload offset, command skipped");

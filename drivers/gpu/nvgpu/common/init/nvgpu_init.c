@@ -394,9 +394,9 @@ int gk20a_finalize_poweron(struct gk20a *g)
 		}
 	}
 
-	if ((g->ops.pmu_ver.clk.clk_set_boot_clk != NULL) &&
+	if ((g->pmu.fw.ops.clk.clk_set_boot_clk != NULL) &&
 			nvgpu_is_enabled(g, NVGPU_PMU_PSTATE)) {
-		g->ops.pmu_ver.clk.clk_set_boot_clk(g);
+		g->pmu.fw.ops.clk.clk_set_boot_clk(g);
 	} else {
 		err = nvgpu_clk_arb_init_arbiter(g);
 		if (err != 0) {

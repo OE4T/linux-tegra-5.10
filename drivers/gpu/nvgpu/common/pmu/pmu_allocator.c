@@ -23,19 +23,22 @@
 #include <nvgpu/pmu/allocator.h>
 #include <nvgpu/allocator.h>
 #include <nvgpu/gk20a.h>
+#include <nvgpu/pmu.h>
+#include <nvgpu/pmu/fw.h>
 
 void nvgpu_pmu_dmem_allocator_init(struct gk20a *g,
-				   struct nvgpu_allocator *dmem,
-				   union pmu_init_msg_pmu *init)
+	struct nvgpu_pmu *pmu, struct nvgpu_allocator *dmem,
+	union pmu_init_msg_pmu *init)
 {
-	struct pmu_v *pv = &g->ops.pmu_ver;
+	struct pmu_fw_ver_ops *fw_ops = &pmu->fw.ops;
 
 	if (!nvgpu_alloc_initialized(dmem)) {
 		/* Align start and end addresses */
-		u32 start = ALIGN(U32(pv->get_pmu_init_msg_pmu_sw_mg_off(init)),
+		u32 start =
+			ALIGN(U32(fw_ops->get_init_msg_sw_mngd_area_off(init)),
 			PMU_DMEM_ALLOC_ALIGNMENT);
-		u32 end = (U32(pv->get_pmu_init_msg_pmu_sw_mg_off(init)) +
-			U32(pv->get_pmu_init_msg_pmu_sw_mg_size(init))) &
+		u32 end = (U32(fw_ops->get_init_msg_sw_mngd_area_off(init)) +
+			U32(fw_ops->get_init_msg_sw_mngd_area_size(init))) &
 			~(PMU_DMEM_ALLOC_ALIGNMENT - 1U);
 		u32 size = end - start;
 

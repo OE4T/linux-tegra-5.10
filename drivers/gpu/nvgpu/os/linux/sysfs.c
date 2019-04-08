@@ -28,6 +28,7 @@
 #include <nvgpu/power_features/cg.h>
 #include <nvgpu/power_features/pg.h>
 #include <nvgpu/pmu/pmu_perfmon.h>
+#include <nvgpu/pmu/fw.h>
 
 #include "common/gr/gr_priv.h"
 
@@ -606,7 +607,7 @@ static ssize_t aelpg_param_store(struct device *dev,
 	/* If aelpg is enabled & pmu is ready then post values to
 	 * PMU else store then post later
 	 */
-	if (g->aelpg_enabled && g->pmu.pmu_ready) {
+	if (g->aelpg_enabled && nvgpu_pmu_get_fw_ready(g, &g->pmu)) {
 		/* Disable AELPG */
 		ap_cmd.disable_ctrl.cmd_id = PMU_AP_CMD_ID_DISABLE_CTRL;
 		ap_cmd.disable_ctrl.ctrl_id = PMU_AP_CTRL_ID_GRAPHICS;
@@ -651,7 +652,7 @@ static ssize_t aelpg_enable_store(struct device *dev,
 		return err;
 	}
 
-	if (g->pmu.pmu_ready) {
+	if (nvgpu_pmu_get_fw_ready(g, &g->pmu)) {
 		if (val && !g->aelpg_enabled) {
 			g->aelpg_enabled = true;
 			/* Enable AELPG */

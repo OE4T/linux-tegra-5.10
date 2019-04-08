@@ -31,6 +31,7 @@
 #include <nvgpu/engines.h>
 #include <nvgpu/pmu/cmd.h>
 #include <nvgpu/dma.h>
+#include <nvgpu/pmu/fw.h>
 
 #include "common/gr/gr_priv.h"
 
@@ -63,7 +64,7 @@ static int pmu_setup_hw_enable_elpg(struct gk20a *g)
 	nvgpu_log_fn(g, " ");
 
 	pmu->pmu_pg.initialized = true;
-	nvgpu_pmu_state_change(g, PMU_STATE_STARTED, false);
+	nvgpu_pmu_fw_state_change(g, pmu, PMU_FW_STATE_STARTED, false);
 
 	if (nvgpu_is_enabled(g, NVGPU_PMU_ZBC_SAVE)) {
 		/* Save zbc table after PMU is initialized. */
@@ -142,20 +143,21 @@ static void pmu_handle_pg_elpg_msg(struct gk20a *g, struct pmu_msg *msg,
 			pmu->pmu_pg.elpg_stat = PMU_ELPG_STAT_OFF;
 		}
 
-		if (pmu->pmu_state == PMU_STATE_ELPG_BOOTING) {
+		if (nvgpu_pmu_get_fw_state(g, pmu) ==
+			PMU_FW_STATE_ELPG_BOOTING) {
 			if (g->ops.pmu.pmu_pg_engines_feature_list != NULL &&
 				g->ops.pmu.pmu_pg_engines_feature_list(g,
 					PMU_PG_ELPG_ENGINE_ID_GRAPHICS) !=
 				NVGPU_PMU_GR_FEATURE_MASK_POWER_GATING) {
 				pmu->pmu_pg.initialized = true;
-				nvgpu_pmu_state_change(g, PMU_STATE_STARTED,
-					true);
+				nvgpu_pmu_fw_state_change(g, pmu,
+					PMU_FW_STATE_STARTED, true);
 				WRITE_ONCE(pmu->mscg_stat, PMU_MSCG_DISABLED);
 				/* make status visible */
 				nvgpu_smp_mb();
 			} else {
-				nvgpu_pmu_state_change(g, PMU_STATE_ELPG_BOOTED,
-					true);
+				nvgpu_pmu_fw_state_change(g, pmu,
+					PMU_FW_STATE_ELPG_BOOTED, true);
 			}
 		}
 		break;
@@ -589,9 +591,10 @@ int nvgpu_pmu_init_powergating(struct gk20a *g)
 
 		if ((BIT32(pg_engine_id) & pg_engine_id_list) != 0U) {
 			if (pmu != NULL &&
-			    pmu->pmu_state == PMU_STATE_INIT_RECEIVED) {
-				nvgpu_pmu_state_change(g,
-					PMU_STATE_ELPG_BOOTING, false);
+				nvgpu_pmu_get_fw_state(g, pmu) ==
+					PMU_FW_STATE_INIT_RECEIVED) {
+				nvgpu_pmu_fw_state_change(g, pmu,
+					PMU_FW_STATE_ELPG_BOOTING, false);
 			}
 			/* Error print handled by pmu_pg_init_send */
 			err = pmu_pg_init_send(g, pg_engine_id);
@@ -627,10 +630,12 @@ static void pmu_handle_pg_buf_config_msg(struct gk20a *g, struct pmu_msg *msg,
 
 	pmu->pmu_pg.buf_loaded = (eng_buf_stat->status == PMU_PG_MSG_ENG_BUF_LOADED);
 	if ((!pmu->pmu_pg.buf_loaded) &&
-		(pmu->pmu_state == PMU_STATE_LOADING_PG_BUF)) {
+		(nvgpu_pmu_get_fw_state(g, pmu) ==
+			PMU_FW_STATE_LOADING_PG_BUF)) {
 		nvgpu_err(g, "failed to load PGENG buffer");
 	} else {
-		nvgpu_pmu_state_change(g, pmu->pmu_state, true);
+		nvgpu_pmu_fw_state_change(g, pmu,
+			nvgpu_pmu_get_fw_state(g, pmu), true);
 	}
 }
 
@@ -649,25 +654,25 @@ int nvgpu_pmu_init_bind_fecs(struct gk20a *g)
 	cmd.hdr.unit_id = PMU_UNIT_PG;
 	nvgpu_assert(PMU_CMD_HDR_SIZE < U32(U8_MAX));
 	cmd.hdr.size = U8(PMU_CMD_HDR_SIZE) +
-			g->ops.pmu_ver.pg_cmd_eng_buf_load_size(&cmd.cmd.pg);
-	g->ops.pmu_ver.pg_cmd_eng_buf_load_set_cmd_type(&cmd.cmd.pg,
+			pmu->fw.ops.pg_cmd_eng_buf_load_size(&cmd.cmd.pg);
+	pmu->fw.ops.pg_cmd_eng_buf_load_set_cmd_type(&cmd.cmd.pg,
 			PMU_PG_CMD_ID_ENG_BUF_LOAD);
-	g->ops.pmu_ver.pg_cmd_eng_buf_load_set_engine_id(&cmd.cmd.pg,
+	pmu->fw.ops.pg_cmd_eng_buf_load_set_engine_id(&cmd.cmd.pg,
 			gr_engine_id);
-	g->ops.pmu_ver.pg_cmd_eng_buf_load_set_buf_idx(&cmd.cmd.pg,
+	pmu->fw.ops.pg_cmd_eng_buf_load_set_buf_idx(&cmd.cmd.pg,
 			PMU_PGENG_GR_BUFFER_IDX_FECS);
-	g->ops.pmu_ver.pg_cmd_eng_buf_load_set_buf_size(&cmd.cmd.pg,
+	pmu->fw.ops.pg_cmd_eng_buf_load_set_buf_size(&cmd.cmd.pg,
 			pmu->pmu_pg.pg_buf.size);
-	g->ops.pmu_ver.pg_cmd_eng_buf_load_set_dma_base(&cmd.cmd.pg,
+	pmu->fw.ops.pg_cmd_eng_buf_load_set_dma_base(&cmd.cmd.pg,
 			u64_lo32(pmu->pmu_pg.pg_buf.gpu_va));
-	g->ops.pmu_ver.pg_cmd_eng_buf_load_set_dma_offset(&cmd.cmd.pg,
+	pmu->fw.ops.pg_cmd_eng_buf_load_set_dma_offset(&cmd.cmd.pg,
 			(u8)(pmu->pmu_pg.pg_buf.gpu_va & 0xFFU));
-	g->ops.pmu_ver.pg_cmd_eng_buf_load_set_dma_idx(&cmd.cmd.pg,
+	pmu->fw.ops.pg_cmd_eng_buf_load_set_dma_idx(&cmd.cmd.pg,
 			PMU_DMAIDX_VIRT);
 
 	pmu->pmu_pg.buf_loaded = false;
 	nvgpu_pmu_dbg(g, "cmd post PMU_PG_CMD_ID_ENG_BUF_LOAD PMU_PGENG_GR_BUFFER_IDX_FECS");
-	nvgpu_pmu_state_change(g, PMU_STATE_LOADING_PG_BUF, false);
+	nvgpu_pmu_fw_state_change(g, pmu, PMU_FW_STATE_LOADING_PG_BUF, false);
 	err = nvgpu_pmu_cmd_post(g, &cmd, NULL, PMU_COMMAND_QUEUE_LPQ,
 			pmu_handle_pg_buf_config_msg, pmu);
 	if (err != 0) {
@@ -690,25 +695,25 @@ void nvgpu_pmu_setup_hw_load_zbc(struct gk20a *g)
 	cmd.hdr.unit_id = PMU_UNIT_PG;
 	nvgpu_assert(PMU_CMD_HDR_SIZE < U32(U8_MAX));
 	cmd.hdr.size = U8(PMU_CMD_HDR_SIZE) +
-			g->ops.pmu_ver.pg_cmd_eng_buf_load_size(&cmd.cmd.pg);
-	g->ops.pmu_ver.pg_cmd_eng_buf_load_set_cmd_type(&cmd.cmd.pg,
+			pmu->fw.ops.pg_cmd_eng_buf_load_size(&cmd.cmd.pg);
+	pmu->fw.ops.pg_cmd_eng_buf_load_set_cmd_type(&cmd.cmd.pg,
 			PMU_PG_CMD_ID_ENG_BUF_LOAD);
-	g->ops.pmu_ver.pg_cmd_eng_buf_load_set_engine_id(&cmd.cmd.pg,
+	pmu->fw.ops.pg_cmd_eng_buf_load_set_engine_id(&cmd.cmd.pg,
 			gr_engine_id);
-	g->ops.pmu_ver.pg_cmd_eng_buf_load_set_buf_idx(&cmd.cmd.pg,
+	pmu->fw.ops.pg_cmd_eng_buf_load_set_buf_idx(&cmd.cmd.pg,
 			PMU_PGENG_GR_BUFFER_IDX_ZBC);
-	g->ops.pmu_ver.pg_cmd_eng_buf_load_set_buf_size(&cmd.cmd.pg,
+	pmu->fw.ops.pg_cmd_eng_buf_load_set_buf_size(&cmd.cmd.pg,
 			pmu->pmu_pg.seq_buf.size);
-	g->ops.pmu_ver.pg_cmd_eng_buf_load_set_dma_base(&cmd.cmd.pg,
+	pmu->fw.ops.pg_cmd_eng_buf_load_set_dma_base(&cmd.cmd.pg,
 			u64_lo32(pmu->pmu_pg.seq_buf.gpu_va));
-	g->ops.pmu_ver.pg_cmd_eng_buf_load_set_dma_offset(&cmd.cmd.pg,
+	pmu->fw.ops.pg_cmd_eng_buf_load_set_dma_offset(&cmd.cmd.pg,
 			(u8)(pmu->pmu_pg.seq_buf.gpu_va & 0xFFU));
-	g->ops.pmu_ver.pg_cmd_eng_buf_load_set_dma_idx(&cmd.cmd.pg,
+	pmu->fw.ops.pg_cmd_eng_buf_load_set_dma_idx(&cmd.cmd.pg,
 			PMU_DMAIDX_VIRT);
 
 	pmu->pmu_pg.buf_loaded = false;
 	nvgpu_pmu_dbg(g, "cmd post PMU_PG_CMD_ID_ENG_BUF_LOAD PMU_PGENG_GR_BUFFER_IDX_ZBC");
-	nvgpu_pmu_state_change(g, PMU_STATE_LOADING_ZBC, false);
+	nvgpu_pmu_fw_state_change(g, pmu, PMU_FW_STATE_LOADING_ZBC, false);
 	err = nvgpu_pmu_cmd_post(g, &cmd, NULL, PMU_COMMAND_QUEUE_LPQ,
 			pmu_handle_pg_buf_config_msg, pmu);
 	if (err != 0) {
@@ -777,8 +782,8 @@ void nvgpu_kill_task_pg_init(struct gk20a *g)
 	/* make sure the pending operations are finished before we continue */
 	if (nvgpu_thread_is_running(&pmu->pmu_pg.pg_init.state_task)) {
 
-		/* post PMU_STATE_EXIT to exit PMU state machine loop */
-		nvgpu_pmu_state_change(g, PMU_STATE_EXIT, true);
+		/* post PMU_FW_STATE_EXIT to exit PMU state machine loop */
+		nvgpu_pmu_fw_state_change(g, pmu, PMU_FW_STATE_EXIT, true);
 
 		/* Make thread stop*/
 		nvgpu_thread_stop(&pmu->pmu_pg.pg_init.state_task);
@@ -818,29 +823,29 @@ int nvgpu_pg_init_task(void *arg)
 			(pg_init->state_change == true), 0U);
 
 		pmu->pmu_pg.pg_init.state_change = false;
-		pmu_state = NV_ACCESS_ONCE(pmu->pmu_state);
+		pmu_state = nvgpu_pmu_get_fw_state(g, pmu);
 
-		if (pmu_state == PMU_STATE_EXIT) {
+		if (pmu_state == PMU_FW_STATE_EXIT) {
 			nvgpu_pmu_dbg(g, "pmu state exit");
 			break;
 		}
 
 		switch (pmu_state) {
-		case PMU_STATE_INIT_RECEIVED:
+		case PMU_FW_STATE_INIT_RECEIVED:
 			nvgpu_pmu_dbg(g, "pmu starting");
 			if (g->can_elpg) {
 				err = nvgpu_pmu_init_powergating(g);
 			}
 			break;
-		case PMU_STATE_ELPG_BOOTED:
+		case PMU_FW_STATE_ELPG_BOOTED:
 			nvgpu_pmu_dbg(g, "elpg booted");
 			err = nvgpu_pmu_init_bind_fecs(g);
 			break;
-		case PMU_STATE_LOADING_PG_BUF:
+		case PMU_FW_STATE_LOADING_PG_BUF:
 			nvgpu_pmu_dbg(g, "loaded pg buf");
 			nvgpu_pmu_setup_hw_load_zbc(g);
 			break;
-		case PMU_STATE_LOADING_ZBC:
+		case PMU_FW_STATE_LOADING_ZBC:
 			nvgpu_pmu_dbg(g, "loaded zbc");
 			err = pmu_setup_hw_enable_elpg(g);
 			nvgpu_pmu_dbg(g, "PMU booted, thread exiting");

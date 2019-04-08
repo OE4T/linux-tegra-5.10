@@ -27,6 +27,7 @@
 #include <nvgpu/unit.h>
 #include <nvgpu/firmware.h>
 #include <nvgpu/pmu/mutex.h>
+#include <nvgpu/pmu/fw.h>
 
 #include <nvgpu/hw/gk20a/hw_pwr_gk20a.h>
 #include <nvgpu/hw/gk20a/hw_mc_gk20a.h>
@@ -508,7 +509,8 @@ void gk20a_pmu_isr(struct gk20a *g)
 	nvgpu_pmu_dbg(g, "received falcon interrupt: 0x%08x", intr);
 
 	intr = gk20a_readl(g, pwr_falcon_irqstat_r()) & mask;
-	if ((intr == 0U) || (pmu->pmu_state == PMU_STATE_OFF)) {
+	if ((intr == 0U) || (nvgpu_pmu_get_fw_state(g, pmu)
+		== PMU_FW_STATE_OFF)) {
 		gk20a_writel(g, pwr_falcon_irqsclr_r(), intr);
 		nvgpu_mutex_release(&pmu->isr_mutex);
 		return;
@@ -619,14 +621,17 @@ int gk20a_pmu_ns_bootstrap(struct gk20a *g, struct nvgpu_pmu *pmu,
 	u32 args_offset)
 {
 	struct mm_gk20a *mm = &g->mm;
-	struct pmu_ucode_desc *desc =
-		(struct pmu_ucode_desc *)(void *)pmu->fw_image->data;
+	struct nvgpu_firmware *fw = NULL;
+	struct pmu_ucode_desc *desc = NULL;
 	u32 addr_code, addr_data, addr_load;
 	u32 i, blocks;
 	int err;
 	u64 tmp_addr;
 
 	nvgpu_log_fn(g, " ");
+
+	fw = nvgpu_pmu_fw_image_desc(g, pmu);
+	desc = (struct pmu_ucode_desc *)(void *)fw->data;
 
 	gk20a_writel(g, pwr_falcon_itfen_r(),
 		gk20a_readl(g, pwr_falcon_itfen_r()) |
@@ -643,13 +648,13 @@ int gk20a_pmu_ns_bootstrap(struct gk20a *g, struct nvgpu_pmu *pmu,
 		pwr_falcon_dmemc_blk_f(0)  |
 		pwr_falcon_dmemc_aincw_f(1));
 
-	addr_code = u64_lo32((pmu->ucode.gpu_va +
+	addr_code = u64_lo32((pmu->fw.ucode.gpu_va +
 			desc->app_start_offset +
 			desc->app_resident_code_offset) >> 8) ;
-	addr_data = u64_lo32((pmu->ucode.gpu_va +
+	addr_data = u64_lo32((pmu->fw.ucode.gpu_va +
 			desc->app_start_offset +
 			desc->app_resident_data_offset) >> 8);
-	addr_load = u64_lo32((pmu->ucode.gpu_va +
+	addr_load = u64_lo32((pmu->fw.ucode.gpu_va +
 			desc->bootloader_start_offset) >> 8);
 
 	gk20a_writel(g, pwr_falcon_dmemd_r(0), GK20A_PMU_DMAIDX_UCODE);

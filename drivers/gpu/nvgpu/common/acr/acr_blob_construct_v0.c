@@ -28,7 +28,9 @@
 #include <nvgpu/bug.h>
 #include <nvgpu/gr/gr_falcon.h>
 #include "common/gr/gr_priv.h"
+#include <nvgpu/pmu/fw.h>
 
+#include "common/gr/gr_priv.h"
 #include "acr_blob_construct_v0.h"
 #include "acr_falcon_bl.h"
 #include "acr_wpr.h"
@@ -36,8 +38,10 @@
 
 int nvgpu_acr_lsf_pmu_ucode_details_v0(struct gk20a *g, void *lsf_ucode_img)
 {
-	struct nvgpu_pmu *pmu = &g->pmu;
 	struct lsf_ucode_desc *lsf_desc;
+	struct nvgpu_firmware *fw_sig;
+	struct nvgpu_firmware *fw_desc;
+	struct nvgpu_firmware *fw_image;
 	struct flcn_ucode_img *p_img = (struct flcn_ucode_img *)lsf_ucode_img;
 	int err = 0;
 
@@ -47,13 +51,17 @@ int nvgpu_acr_lsf_pmu_ucode_details_v0(struct gk20a *g, void *lsf_ucode_img)
 		goto exit;
 	}
 
-	nvgpu_memcpy((u8 *)lsf_desc, (u8 *)pmu->fw_sig->data,
-		min_t(size_t, sizeof(*lsf_desc), pmu->fw_sig->size));
+	fw_sig = nvgpu_pmu_fw_sig_desc(g, &g->pmu);
+	fw_desc = nvgpu_pmu_fw_desc_desc(g, &g->pmu);
+	fw_image = nvgpu_pmu_fw_image_desc(g, &g->pmu);
+
+	nvgpu_memcpy((u8 *)lsf_desc, (u8 *)fw_sig->data,
+		min_t(size_t, sizeof(*lsf_desc), fw_sig->size));
 
 	lsf_desc->falcon_id = FALCON_ID_PMU;
 
-	p_img->desc = (struct pmu_ucode_desc *)(void *)pmu->fw_desc->data;
-	p_img->data = (u32 *)(void *)pmu->fw_image->data;
+	p_img->desc = (struct pmu_ucode_desc *)(void *)fw_desc->data;
+	p_img->data = (u32 *)(void *)fw_image->data;
 	p_img->data_size = p_img->desc->image_size;
 	p_img->fw_ver = NULL;
 	p_img->header = NULL;
@@ -546,7 +554,7 @@ static int gm20b_pmu_populate_loader_cfg(struct gk20a *g,
 
 	/* Update the argc/argv members*/
 	ldr_cfg->argc = 1;
-	nvgpu_pmu_get_cmd_line_args_offset(g, &ldr_cfg->argv);
+	nvgpu_pmu_fw_get_cmd_line_args_offset(g, &ldr_cfg->argv);
 
 	*p_bl_gen_desc_size = (u32)sizeof(struct loader_config);
 	return 0;

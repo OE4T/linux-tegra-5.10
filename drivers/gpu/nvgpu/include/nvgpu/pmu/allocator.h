@@ -24,11 +24,12 @@
 #define NVGPU_PMU_ALLOCATOR_H
 
 struct gk20a;
+struct nvgpu_pmu;
 struct nvgpu_allocator;
 union pmu_init_msg_pmu;
 
 void nvgpu_pmu_dmem_allocator_init(struct gk20a *g,
-				   struct nvgpu_allocator *dmem,
-				   union pmu_init_msg_pmu *init);
+	struct nvgpu_pmu *pmu, struct nvgpu_allocator *dmem,
+	union pmu_init_msg_pmu *init);
 void nvgpu_pmu_dmem_allocator_destroy(struct nvgpu_allocator *dmem);
 #endif /* NVGPU_PMU_ALLOCATOR_H */

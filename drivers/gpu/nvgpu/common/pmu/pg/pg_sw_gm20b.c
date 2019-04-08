@@ -57,7 +57,8 @@ void gm20b_pmu_save_zbc(struct gk20a *g, u32 entries)
 	size_t tmp_size;
 	int err = 0;
 
-	if (!pmu->pmu_ready || (entries == 0U) || !pmu->pmu_pg.zbc_ready) {
+	if (!nvgpu_pmu_get_fw_ready(g, pmu) ||
+		(entries == 0U) || !pmu->pmu_pg.zbc_ready) {
 		return;
 	}
 
