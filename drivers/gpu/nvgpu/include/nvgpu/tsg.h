@@ -158,5 +158,6 @@ void nvgpu_tsg_set_error_notifier(struct gk20a *g, struct tsg_gk20a *tsg,
 		u32 error_notifier);
 bool nvgpu_tsg_ctxsw_timeout_debug_dump_state(struct tsg_gk20a *tsg);
 void nvgpu_tsg_set_ctxsw_timeout_accumulated_ms(struct tsg_gk20a *tsg, u32 ms);
+void nvgpu_tsg_abort(struct gk20a *g, struct tsg_gk20a *tsg, bool preempt);
 
 #endif /* NVGPU_TSG_H */

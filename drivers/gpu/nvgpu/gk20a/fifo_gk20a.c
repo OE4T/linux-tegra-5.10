@@ -157,33 +157,6 @@ bool gk20a_fifo_should_defer_engine_reset(struct gk20a *g, u32 engine_id,
 	return g->ops.engine.is_fault_engine_subid_gpc(g, engine_subid);
 }
 
-void gk20a_fifo_abort_tsg(struct gk20a *g, struct tsg_gk20a *tsg, bool preempt)
-{
-	struct channel_gk20a *ch = NULL;
-
-	nvgpu_log_fn(g, " ");
-
-	WARN_ON(tsg->abortable == false);
-
-	g->ops.tsg.disable(tsg);
-
-	if (preempt) {
-		g->ops.fifo.preempt_tsg(g, tsg);
-	}
-
-	nvgpu_rwsem_down_read(&tsg->ch_list_lock);
-	nvgpu_list_for_each_entry(ch, &tsg->ch_list, channel_gk20a, ch_entry) {
-		if (gk20a_channel_get(ch) != NULL) {
-			gk20a_channel_set_unserviceable(ch);
-			if (ch->g->ops.channel.abort_clean_up != NULL) {
-				ch->g->ops.channel.abort_clean_up(ch);
-			}
-			gk20a_channel_put(ch);
-		}
-	}
-	nvgpu_rwsem_up_read(&tsg->ch_list_lock);
-}
-
 int gk20a_fifo_deferred_reset(struct gk20a *g, struct channel_gk20a *ch)
 {
 	unsigned long engine_id, engines = 0U;
@@ -388,7 +361,7 @@ static bool gk20a_fifo_handle_mmu_fault_locked(
 					nvgpu_tsg_set_ctx_mmu_error(g, tsg);
 				}
 				verbose = nvgpu_tsg_mark_error(g, tsg);
-				gk20a_fifo_abort_tsg(g, tsg, false);
+				nvgpu_tsg_abort(g, tsg, false);
 			}
 
 			/* put back the ref taken early above */

@@ -126,7 +126,7 @@ int nvgpu_tsg_unbind_channel(struct tsg_gk20a *tsg, struct channel_gk20a *ch)
 		nvgpu_err(g, "Channel %d unbind failed, tearing down TSG %d",
 			ch->chid, tsg->tsgid);
 
-		gk20a_fifo_abort_tsg(g, tsg, true);
+		nvgpu_tsg_abort(g, tsg, true);
 		/* If channel unbind fails, channel is still part of runlist */
 		channel_gk20a_update_runlist(ch, false);
 
@@ -322,7 +322,7 @@ void nvgpu_tsg_recover(struct gk20a *g, struct tsg_gk20a *tsg,
 			gk20a_debug_dump(g);
 		}
 
-		gk20a_fifo_abort_tsg(g, tsg, false);
+		nvgpu_tsg_abort(g, tsg, false);
 	}
 
 	nvgpu_mutex_release(&g->dbg_sessions_lock);
@@ -875,3 +875,31 @@ int gk20a_tsg_set_sm_exception_type_mask(struct channel_gk20a *ch,
 
 	return 0;
 }
+
+void nvgpu_tsg_abort(struct gk20a *g, struct tsg_gk20a *tsg, bool preempt)
+{
+	struct channel_gk20a *ch = NULL;
+
+	nvgpu_log_fn(g, " ");
+
+	WARN_ON(tsg->abortable == false);
+
+	g->ops.tsg.disable(tsg);
+
+	if (preempt) {
+		(void)g->ops.fifo.preempt_tsg(g, tsg);
+	}
+
+	nvgpu_rwsem_down_read(&tsg->ch_list_lock);
+	nvgpu_list_for_each_entry(ch, &tsg->ch_list, channel_gk20a, ch_entry) {
+		if (gk20a_channel_get(ch) != NULL) {
+			gk20a_channel_set_unserviceable(ch);
+			if (g->ops.channel.abort_clean_up != NULL) {
+				g->ops.channel.abort_clean_up(ch);
+			}
+			gk20a_channel_put(ch);
+		}
+	}
+	nvgpu_rwsem_up_read(&tsg->ch_list_lock);
+}
+

@@ -240,7 +240,7 @@ void gk20a_channel_abort(struct channel_gk20a *ch, bool channel_preempt)
 	nvgpu_log_fn(ch->g, " ");
 
 	if (tsg != NULL) {
-		return gk20a_fifo_abort_tsg(ch->g, tsg, channel_preempt);
+		return nvgpu_tsg_abort(ch->g, tsg, channel_preempt);
 	} else {
 		nvgpu_err(ch->g, "chid: %d is not bound to tsg", ch->chid);
 	}
@@ -272,12 +272,6 @@ int gk20a_wait_channel_idle(struct channel_gk20a *ch)
 	}
 
 	return 0;
-}
-
-void gk20a_disable_channel(struct channel_gk20a *ch)
-{
-	gk20a_channel_abort(ch, true);
-	channel_gk20a_update_runlist(ch, false);
 }
 
 void gk20a_wait_until_counter_is_N(

@@ -422,7 +422,6 @@ bool nvgpu_channel_update_and_check_ctxsw_timeout(struct channel_gk20a *ch,
 void nvgpu_channel_recover(struct gk20a *g, struct channel_gk20a *ch,
 	bool verbose, u32 rc_type);
 
-void gk20a_disable_channel(struct channel_gk20a *ch);
 void gk20a_channel_abort(struct channel_gk20a *ch, bool channel_preempt);
 void nvgpu_channel_abort_clean_up(struct channel_gk20a *ch);
 void gk20a_channel_semaphore_wakeup(struct gk20a *g, bool post_events);

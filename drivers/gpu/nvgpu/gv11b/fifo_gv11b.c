@@ -645,7 +645,7 @@ static void gv11b_fifo_locked_abort_runlist_active_tsgs(struct gk20a *g,
 					runlist->runlist_id);
 			}
 
-			gk20a_fifo_abort_tsg(g, tsg, false);
+			nvgpu_tsg_abort(g, tsg, false);
 
 			nvgpu_log(g, gpu_dbg_info, "aborted tsg id %lu", tsgid);
 		}
@@ -874,7 +874,7 @@ void gv11b_fifo_teardown_ch_tsg(struct gk20a *g, u32 act_eng_bitmask,
 				nvgpu_tsg_set_ctx_mmu_error(g, tsg);
 			}
 			(void)nvgpu_tsg_mark_error(g, tsg);
-			gk20a_fifo_abort_tsg(g, tsg, false);
+			nvgpu_tsg_abort(g, tsg, false);
 		}
 	} else {
 		gv11b_fifo_locked_abort_runlist_active_tsgs(g, rc_type,
