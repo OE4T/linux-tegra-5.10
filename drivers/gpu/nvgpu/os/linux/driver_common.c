@@ -30,6 +30,7 @@
 #include <nvgpu/sizes.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/regops.h>
+#include <nvgpu/gr/gr.h>
 
 #include "platform_gk20a.h"
 #include "module.h"
@@ -102,7 +103,7 @@ static void nvgpu_init_vars(struct gk20a *g)
 
 static void nvgpu_init_gr_vars(struct gk20a *g)
 {
-	gk20a_init_gr(g);
+	nvgpu_gr_init(g);
 
 	nvgpu_log_info(g, "total ram pages : %lu", totalram_pages);
 	g->max_comptag_mem = totalram_size_in_mb;

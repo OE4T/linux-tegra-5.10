@@ -250,8 +250,6 @@ struct gpu_ops;
 int gr_gk20a_init_golden_ctx_image(struct gk20a *g,
 					  struct channel_gk20a *c,
 					  struct nvgpu_gr_ctx *gr_ctx);
-void gk20a_init_gr(struct gk20a *g);
-int gk20a_init_gr_channel(struct channel_gk20a *ch_gk20a);
 
 int gk20a_gr_isr(struct gk20a *g);
 
@@ -304,7 +302,6 @@ bool gk20a_is_channel_ctx_resident(struct channel_gk20a *ch);
 int gr_gk20a_handle_sm_exception(struct gk20a *g, u32 gpc, u32 tpc, u32 sm,
 		bool *post_event, struct channel_gk20a *fault_ch,
 		u32 *hww_global_esr);
-int gr_gk20a_init_ctx_state(struct gk20a *g);
 
 #if defined(CONFIG_GK20A_CYCLE_STATS)
 int gr_gk20a_css_attach(struct channel_gk20a *ch,   /* in - main hw structure */

@@ -2543,11 +2543,6 @@ int gr_gk20a_exec_ctx_ops(struct channel_gk20a *ch,
 	return err;
 }
 
-void gk20a_init_gr(struct gk20a *g)
-{
-	nvgpu_cond_init(&g->gr.init_wq);
-}
-
 int gk20a_gr_wait_for_sm_lock_down(struct gk20a *g, u32 gpc, u32 tpc, u32 sm,
 		u32 global_esr_mask, bool check_errors)
 {

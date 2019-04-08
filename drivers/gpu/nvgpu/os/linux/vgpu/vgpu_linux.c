@@ -34,6 +34,7 @@
 #include <nvgpu/channel.h>
 #include <nvgpu/regops.h>
 #include <nvgpu/clk_arb.h>
+#include <nvgpu/gr/gr.h>
 
 #include <nvgpu/vgpu/os_init_hal_vgpu.h>
 
@@ -441,7 +442,7 @@ int vgpu_probe(struct platform_device *pdev)
 	nvgpu_atomic_set(&gk20a->timeouts_disabled_refcount, 0);
 
 	vgpu_create_sysfs(dev);
-	gk20a_init_gr(gk20a);
+	nvgpu_gr_init(gk20a);
 
 	nvgpu_log_info(gk20a, "total ram pages : %lu", totalram_pages);
 	gk20a->max_comptag_mem = totalram_size_in_mb;
