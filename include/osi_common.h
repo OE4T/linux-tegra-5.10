@@ -27,6 +27,14 @@
 #define OSI_ADDRESS_40BIT 1
 #define OSI_ADDRESS_48BIT 2
 
+/* Default maximum Gaint Packet Size Limit */
+#define OSI_MAX_MTU_SIZE	9000U
+#define OSI_DFLT_MTU_SIZE	1500U
+#define OSI_MTU_SIZE_2K		2048U
+#define OSI_MTU_SIZE_4K		4096U
+#define OSI_MTU_SIZE_8K		8192U
+#define OSI_MTU_SIZE_16K	16384U
+
 #define EQOS_DMA_CHX_STATUS(x)		((0x0080U * (x)) + 0x1160U)
 #define EQOS_DMA_CHX_IER(x)		((0x0080U * (x)) + 0x1134U)
 

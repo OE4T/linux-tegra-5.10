@@ -380,9 +380,7 @@ static void eqos_configure_dma_channel(unsigned int chan,
 	 * bus width
 	 */
 	value = osi_readl((unsigned char *)osi_dma->base + EQOS_DMA_CHX_RX_CTRL(chan));
-	osi_dma->rx_buf_len = ((MAX_ETH_FRAME_LEN_DEFAULT +
-			   (EQOS_AXI_BUS_WIDTH - 1U)) &
-			   ~(EQOS_AXI_BUS_WIDTH - 1U));
+
 	value |= (osi_dma->rx_buf_len << EQOS_DMA_CHX_RBSZ_SHIFT);
 	/* RXPBL = 12 */
 	value |= EQOS_DMA_CHX_RX_CTRL_RXPBL_RECOMMENDED;
@@ -396,7 +394,9 @@ static void eqos_configure_dma_channel(unsigned int chan,
  *	Description: Initialise all DMA channels.
  *
  *	Dependencies: None.
+ *
  *	Protection: None.
+ *
  *	Return: None.
  */
 static void eqos_init_dma_channel(struct osi_dma_priv_data *osi_dma)
@@ -407,6 +407,39 @@ static void eqos_init_dma_channel(struct osi_dma_priv_data *osi_dma)
 	for (chinx = 0; chinx < osi_dma->num_dma_chans; chinx++) {
 		eqos_configure_dma_channel(osi_dma->dma_chans[chinx], osi_dma);
 	}
+}
+
+/**
+ *	eqos_set_rx_buf_len - Set Rx buffer length
+ *	@osi_dma: OSI DMA private data structure.
+ *
+ *	Description: Sets the Rx buffer lenght based on the new MTU size set.
+ *
+ *	Dependencies: None.
+ *
+ *	Protection: None.
+ *
+ *	Return: None.
+ */
+static void eqos_set_rx_buf_len(struct osi_dma_priv_data *osi_dma)
+{
+	unsigned int rx_buf_len;
+
+	if (osi_dma->mtu >= OSI_MTU_SIZE_8K) {
+		rx_buf_len = OSI_MTU_SIZE_16K;
+	} else if (osi_dma->mtu >= OSI_MTU_SIZE_4K) {
+		rx_buf_len = OSI_MTU_SIZE_8K;
+	} else if (osi_dma->mtu >= OSI_MTU_SIZE_2K) {
+		rx_buf_len = OSI_MTU_SIZE_4K;
+	} else if (osi_dma->mtu > MAX_ETH_FRAME_LEN_DEFAULT) {
+		rx_buf_len = OSI_MTU_SIZE_2K;
+	} else {
+		rx_buf_len = MAX_ETH_FRAME_LEN_DEFAULT;
+	}
+
+	/* Buffer alignment */
+	osi_dma->rx_buf_len = ((rx_buf_len + (EQOS_AXI_BUS_WIDTH - 1U)) &
+			       ~(EQOS_AXI_BUS_WIDTH - 1U));
 }
 
 static struct osi_dma_chan_ops eqos_dma_chan_ops = {
@@ -425,6 +458,7 @@ static struct osi_dma_chan_ops eqos_dma_chan_ops = {
 	.start_dma = eqos_start_dma,
 	.stop_dma = eqos_stop_dma,
 	.init_dma_channel = eqos_init_dma_channel,
+	.set_rx_buf_len = eqos_set_rx_buf_len,
 };
 
 struct osi_dma_chan_ops *eqos_get_dma_chan_ops(void)

@@ -542,6 +542,16 @@ static void eqos_configure_mac(struct osi_core_priv_data *osi_core)
 	/* Enable CRC stripping for Type packets */
 	/* Enable Full Duplex mode */
 	value |= EQOS_MCR_ACS | EQOS_MCR_CST | EQOS_MCR_DM;
+
+	if (osi_core->mtu > OSI_DFLT_MTU_SIZE) {
+		value |= EQOS_MCR_S2KP;
+	}
+
+	if (osi_core->mtu > OSI_MTU_SIZE_2K) {
+		value |= EQOS_MCR_JE;
+		value |= EQOS_MCR_JD;
+	}
+
 	osi_writel(value, (unsigned char *)osi_core->base + EQOS_MAC_MCR);
 
 	/* Enable Multicast and Broadcast Queue, default is Q0 */

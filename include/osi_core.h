@@ -71,6 +71,7 @@ struct osi_core_ops {
  *	@mac: MAC HW type EQOS based on DT compatible.
  *	@mac_ver: MAC version.
  *	@mdc_cr: MDC clock rate.
+ *	@mtu: MTU size
  *	@mac_addr: Ethernet MAC address.
  */
 struct osi_core_priv_data {
@@ -83,6 +84,7 @@ struct osi_core_priv_data {
 	unsigned int mac;
 	unsigned int mac_ver;
 	unsigned int mdc_cr;
+	unsigned int mtu;
 	unsigned char mac_addr[OSI_ETH_ALEN];
 };
 

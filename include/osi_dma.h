@@ -160,6 +160,7 @@ struct osi_dma_priv_data;
  *	@enable_chan_rx_intr: Called to enable DMA rx channel interrupts at
  *	wrapper level.
  *	@start_dma: Called to start the Tx/Rx DMA.
+ *	@set_rx_buf_len: Called to set Rx buffer length.
  */
 struct osi_dma_chan_ops {
 	void (*set_tx_ring_len)(void *addr, unsigned int chan,
@@ -183,6 +184,7 @@ struct osi_dma_chan_ops {
 	void (*start_dma)(void *addr, unsigned int chan);
 	void (*stop_dma)(void *addr, unsigned int chan);
 	void (*init_dma_channel) (struct osi_dma_priv_data *osi_dma);
+	void (*set_rx_buf_len)(struct osi_dma_priv_data *osi_dma);
 };
 
 /**
@@ -190,17 +192,13 @@ struct osi_dma_chan_ops {
  *	@tx_ring: Array of pointers to DMA Tx channel Ring.
  *	@rx_ring: Array of pointers to DMA Rx channel Ring.
  *	@base:	Memory mapped base address of MAC IP.
- *	@ops:	Address of HW operations structure.
- *	@num_chans:	Number of channels enabled in MAC.
- *	@mac:	MAC HW type (EQOS).
  *	@osd:	Pointer to OSD private data structure.
- *	@mdc_cr:	MDC clock rate.
- *	@mac_addr:	Ethernet MAC address.
- *	@phy_reset:	PHY reset GPIO pin number.
- *	@chans:	List of channels enabled in MAC.
- *	@rxq_ctrl:	List if RxQs that need to be enabled
+ *	@ops:	Address of HW operations structure.
+ *	@mac:	MAC HW type (EQOS).
+ *	@num_dma_chans:	Number of channels enabled in MAC.
+ *	@dma_chans[]:	Array of supported DMA channels
  *	@rx_buf_len:	DMA Rx channel buffer length at HW level.
- *	@hw_feat:	HW features associated with MAC.
+ *	@mtu:	MTU size
  */
 struct osi_dma_priv_data {
 	struct osi_tx_ring *tx_ring[OSI_EQOS_MAX_NUM_CHANS];
@@ -212,6 +210,7 @@ struct osi_dma_priv_data {
 	unsigned int num_dma_chans;
 	unsigned int dma_chans[OSI_EQOS_MAX_NUM_CHANS];
 	unsigned int rx_buf_len;
+	unsigned int mtu;
 };
 
 /**
@@ -449,9 +448,30 @@ static inline void osi_update_rx_tailptr(struct osi_dma_priv_data *osi_dma,
 	tailptr = rx_ring->rx_desc_phy_addr +
 		  (refill_idx * sizeof(struct osi_rx_desc));
 
-	if (osi_dma->ops != OSI_NULL &&
+	if (osi_dma != OSI_NULL && osi_dma->ops != OSI_NULL &&
 	    osi_dma->ops->update_rx_tailptr != OSI_NULL) {
 		osi_dma->ops->update_rx_tailptr(osi_dma->base, chan, tailptr);
+	}
+}
+
+/**
+ *	osi_set_rx_buf_len - Updates rx buffer length.
+ *	@osi_dma: OSI DMA private data struture.
+ *
+ *	Algorithm: Updates Rx buffer length.
+ *
+ *	Dependencies: None.
+ *
+ *	Protection: None.
+ *
+ *	Return: None.
+ */
+
+static inline void osi_set_rx_buf_len(struct osi_dma_priv_data *osi_dma)
+{
+	if (osi_dma != OSI_NULL && osi_dma->ops != OSI_NULL &&
+	    osi_dma->ops->set_rx_buf_len != OSI_NULL) {
+		osi_dma->ops->set_rx_buf_len(osi_dma);
 	}
 }
 
