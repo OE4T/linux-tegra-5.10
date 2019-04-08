@@ -158,7 +158,6 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 		.set_gpc_tpc_mask = NULL,
 		.is_tpc_addr = gr_gm20b_is_tpc_addr,
 		.get_tpc_num = gr_gm20b_get_tpc_num,
-		.detect_sm_arch = vgpu_gr_detect_sm_arch,
 		.dump_gr_regs = NULL,
 		.update_pc_sampling = vgpu_gr_update_pc_sampling,
 		.get_rop_l2_en_mask = vgpu_gr_rop_l2_en_mask,
@@ -409,6 +408,7 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 				gv11b_gr_init_commit_cbes_reserve,
 			.gfxp_wfi_timeout =
 				gv11b_gr_init_commit_gfxp_wfi_timeout,
+			.detect_sm_arch = vgpu_gr_detect_sm_arch,
 		},
 		.intr = {
 			.handle_gcc_exception =

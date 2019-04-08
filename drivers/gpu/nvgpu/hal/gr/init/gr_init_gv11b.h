@@ -81,5 +81,6 @@ void gv11b_gr_init_commit_gfxp_wfi_timeout(struct gk20a *g,
 u32 gv11b_gr_init_get_max_subctx_count(void);
 u32 gv11b_gr_init_get_patch_slots(struct gk20a *g,
 	struct nvgpu_gr_config *config);
+void gv11b_gr_init_detect_sm_arch(struct gk20a *g);
 
 #endif /* NVGPU_GR_INIT_GV11B_H */

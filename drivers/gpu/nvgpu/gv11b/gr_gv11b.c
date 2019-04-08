@@ -1619,18 +1619,6 @@ int gr_gv11b_handle_fecs_error(struct gk20a *g,
 	return ret;
 }
 
-void gr_gv11b_detect_sm_arch(struct gk20a *g)
-{
-	u32 v = gk20a_readl(g, gr_gpc0_tpc0_sm_arch_r());
-
-	g->params.sm_arch_spa_version =
-		gr_gpc0_tpc0_sm_arch_spa_version_v(v);
-	g->params.sm_arch_sm_version =
-		gr_gpc0_tpc0_sm_arch_sm_version_v(v);
-	g->params.sm_arch_warp_count =
-		gr_gpc0_tpc0_sm_arch_warp_count_v(v);
-}
-
 void gv11b_gr_get_esr_sm_sel(struct gk20a *g, u32 gpc, u32 tpc,
 				u32 *esr_sm_sel)
 {

@@ -97,5 +97,6 @@ void gm20b_gr_init_commit_global_cb_manager(struct gk20a *g,
 
 u32 gm20b_gr_init_get_patch_slots(struct gk20a *g,
 	struct nvgpu_gr_config *config);
+void gm20b_gr_init_detect_sm_arch(struct gk20a *g);
 
 #endif /* NVGPU_GR_INIT_GM20B_H */

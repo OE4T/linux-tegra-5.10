@@ -547,7 +547,7 @@ void gk20a_init_gpu_characteristics(struct gk20a *g)
 		}
 	}
 
-	g->ops.gr.detect_sm_arch(g);
+	g->ops.gr.init.detect_sm_arch(g);
 
 	if (g->ops.gr.init_cyclestats != NULL) {
 		g->ops.gr.init_cyclestats(g);

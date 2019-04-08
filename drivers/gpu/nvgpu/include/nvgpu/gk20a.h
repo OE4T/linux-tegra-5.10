@@ -304,7 +304,6 @@ struct gpu_ops {
 				u32 *gpc_num, u32 *tpc_num);
 		u32 (*get_tpc_num)(struct gk20a *g, u32 addr);
 		u32 (*get_egpc_base)(struct gk20a *g);
-		void (*detect_sm_arch)(struct gk20a *g);
 		void (*powergate_tpc)(struct gk20a *g);
 		int (*init_ctxsw_preemption_mode)(struct gk20a *g,
 			  struct nvgpu_gr_ctx *gr_ctx, struct vm_gk20a *vm,
@@ -789,6 +788,7 @@ struct gpu_ops {
 			u32 (*get_max_subctx_count)(void);
 			u32 (*get_patch_slots)(struct gk20a *g,
 				struct nvgpu_gr_config *config);
+			void (*detect_sm_arch)(struct gk20a *g);
 		} init;
 
 		struct {

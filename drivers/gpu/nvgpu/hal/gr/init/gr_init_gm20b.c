@@ -1097,3 +1097,16 @@ u32 gm20b_gr_init_get_patch_slots(struct gk20a *g,
 {
 	return PATCH_CTX_SLOTS_PER_PAGE;
 }
+
+void gm20b_gr_init_detect_sm_arch(struct gk20a *g)
+{
+	u32 v = gk20a_readl(g, gr_gpc0_tpc0_sm_arch_r());
+
+	g->params.sm_arch_spa_version =
+		gr_gpc0_tpc0_sm_arch_spa_version_v(v);
+	g->params.sm_arch_sm_version =
+		gr_gpc0_tpc0_sm_arch_sm_version_v(v);
+	g->params.sm_arch_warp_count =
+		gr_gpc0_tpc0_sm_arch_warp_count_v(v);
+}
+

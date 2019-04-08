@@ -264,7 +264,6 @@ static const struct gpu_ops gm20b_ops = {
 		.set_gpc_tpc_mask = gr_gm20b_set_gpc_tpc_mask,
 		.is_tpc_addr = gr_gm20b_is_tpc_addr,
 		.get_tpc_num = gr_gm20b_get_tpc_num,
-		.detect_sm_arch = gr_gm20b_detect_sm_arch,
 		.dump_gr_regs = gr_gm20b_dump_gr_status_regs,
 		.update_pc_sampling = gr_gm20b_update_pc_sampling,
 		.get_rop_l2_en_mask = gr_gm20b_rop_l2_en_mask,
@@ -469,6 +468,7 @@ static const struct gpu_ops gm20b_ops = {
 				gm20b_gr_init_load_sw_bundle_init,
 			.get_gfxp_rtv_cb_size = NULL,
 			.get_patch_slots = gm20b_gr_init_get_patch_slots,
+			.detect_sm_arch = gm20b_gr_init_detect_sm_arch,
 		},
 		.intr = {
 			.set_shader_exceptions =

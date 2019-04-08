@@ -134,7 +134,6 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 		.set_gpc_tpc_mask = NULL,
 		.is_tpc_addr = gr_gm20b_is_tpc_addr,
 		.get_tpc_num = gr_gm20b_get_tpc_num,
-		.detect_sm_arch = vgpu_gr_detect_sm_arch,
 		.dump_gr_regs = NULL,
 		.update_pc_sampling = vgpu_gr_update_pc_sampling,
 		.get_rop_l2_en_mask = vgpu_gr_rop_l2_en_mask,
@@ -357,6 +356,7 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 			.commit_ctxsw_spill = gp10b_gr_init_commit_ctxsw_spill,
 			.commit_cbes_reserve =
 				gp10b_gr_init_commit_cbes_reserve,
+			.detect_sm_arch = vgpu_gr_detect_sm_arch,
 		},
 	},
 	.class = {

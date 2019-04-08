@@ -401,7 +401,6 @@ static const struct gpu_ops gv100_ops = {
 		.set_gpc_tpc_mask = gr_gv100_set_gpc_tpc_mask,
 		.is_tpc_addr = gr_gm20b_is_tpc_addr,
 		.get_tpc_num = gr_gm20b_get_tpc_num,
-		.detect_sm_arch = gr_gv11b_detect_sm_arch,
 		.dump_gr_regs = gr_gv11b_dump_gr_status_regs,
 		.update_pc_sampling = gr_gm20b_update_pc_sampling,
 		.get_rop_l2_en_mask = gr_gm20b_rop_l2_en_mask,
@@ -696,6 +695,7 @@ static const struct gpu_ops gv100_ops = {
 			.get_max_subctx_count =
 				gv11b_gr_init_get_max_subctx_count,
 			.get_patch_slots = gv11b_gr_init_get_patch_slots,
+			.detect_sm_arch = gv11b_gr_init_detect_sm_arch,
 		},
 		.intr = {
 			.set_shader_exceptions =

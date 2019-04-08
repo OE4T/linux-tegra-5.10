@@ -61,7 +61,6 @@ void gr_gm20b_load_ctxsw_ucode_segments(struct gk20a *g, u64 addr_base,
 	struct gk20a_ctxsw_ucode_segments *segments, u32 reg_offset);
 bool gr_gm20b_is_tpc_addr(struct gk20a *g, u32 addr);
 u32 gr_gm20b_get_tpc_num(struct gk20a *g, u32 addr);
-void gr_gm20b_detect_sm_arch(struct gk20a *g);
 int gr_gm20b_dump_gr_status_regs(struct gk20a *g,
 			   struct gk20a_debug_output *o);
 int gr_gm20b_update_pc_sampling(struct channel_gk20a *c,

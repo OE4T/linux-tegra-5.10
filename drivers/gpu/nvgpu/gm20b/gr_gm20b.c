@@ -341,18 +341,6 @@ u32 gr_gm20b_get_tpc_num(struct gk20a *g, u32 addr)
 	return 0;
 }
 
-void gr_gm20b_detect_sm_arch(struct gk20a *g)
-{
-	u32 v = gk20a_readl(g, gr_gpc0_tpc0_sm_arch_r());
-
-	g->params.sm_arch_spa_version =
-		gr_gpc0_tpc0_sm_arch_spa_version_v(v);
-	g->params.sm_arch_sm_version =
-		gr_gpc0_tpc0_sm_arch_sm_version_v(v);
-	g->params.sm_arch_warp_count =
-		gr_gpc0_tpc0_sm_arch_warp_count_v(v);
-}
-
 int gr_gm20b_dump_gr_status_regs(struct gk20a *g,
 			   struct gk20a_debug_output *o)
 {
