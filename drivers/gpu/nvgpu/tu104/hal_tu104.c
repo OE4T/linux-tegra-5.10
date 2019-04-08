@@ -932,7 +932,6 @@ static const struct gpu_ops tu104_ops = {
 		.preempt_tsg = gv11b_fifo_preempt_tsg,
 		.tsg_set_timeslice = gk20a_fifo_tsg_set_timeslice,
 		.init_pbdma_info = gk20a_fifo_init_pbdma_info,
-		.dump_channel_status_ramfc = gv11b_dump_channel_status_ramfc,
 		.is_preempt_pending = gv11b_fifo_is_preempt_pending,
 		.reset_enable_hw = gv11b_init_fifo_reset_enable_hw,
 		.teardown_ch_tsg = gv11b_fifo_teardown_ch_tsg,
@@ -1068,6 +1067,7 @@ static const struct gpu_ops tu104_ops = {
                         nvgpu_channel_resume_all_serviceable_ch,
 		.set_error_notifier = nvgpu_set_error_notifier_if_empty,
 		.reset_faulted = gv11b_channel_reset_faulted,
+		.debug_dump = gv11b_channel_debug_dump,
 	},
 	.tsg = {
 		.enable = gv11b_tsg_enable,

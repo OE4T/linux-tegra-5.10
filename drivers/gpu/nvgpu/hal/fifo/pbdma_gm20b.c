@@ -26,6 +26,7 @@
 #include <nvgpu/bug.h>
 #include <nvgpu/debug.h>
 #include <nvgpu/error_notifier.h>
+#include <nvgpu/nvhost.h>
 #include <nvgpu/fifo.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/pbdma_status.h>
@@ -457,4 +458,29 @@ bool gm20b_pbdma_handle_intr(struct gk20a *g, u32 pbdma_id,
 	}
 
 	return recover;
+}
+
+void gm20b_pbdma_syncpoint_debug_dump(struct gk20a *g,
+			     struct gk20a_debug_output *o,
+			     struct nvgpu_channel_dump_info *info)
+{
+#ifdef CONFIG_TEGRA_GK20A_NVHOST
+
+	u32 syncpointa, syncpointb;
+
+	syncpointa = info->inst.syncpointa;
+	syncpointb = info->inst.syncpointb;
+
+
+	if ((pbdma_syncpointb_op_v(syncpointb) == pbdma_syncpointb_op_wait_v())
+		&& (pbdma_syncpointb_wait_switch_v(syncpointb) ==
+			pbdma_syncpointb_wait_switch_en_v())) {
+		gk20a_debug_output(o, "%s on syncpt %u (%s) val %u",
+			info->hw_state.pending_acquire ? "Waiting" : "Waited",
+			pbdma_syncpointb_syncpt_index_v(syncpointb),
+			nvgpu_nvhost_syncpt_get_name(g->nvhost_dev,
+				pbdma_syncpointb_syncpt_index_v(syncpointb)),
+			pbdma_syncpointa_payload_v(syncpointa));
+	}
+#endif
 }

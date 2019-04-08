@@ -25,9 +25,11 @@
 
 #include <nvgpu/types.h>
 
-struct channel_gk20a;
 struct gk20a;
+struct channel_gk20a;
 struct nvgpu_channel_hw_state;
+struct gk20a_debug_output;
+struct nvgpu_channel_dump_info;
 
 void gv11b_channel_unbind(struct channel_gk20a *ch);
 u32 gv11b_channel_count(struct gk20a *g);
@@ -37,4 +39,7 @@ void gv11b_channel_reset_faulted(struct gk20a *g, struct channel_gk20a *ch,
 		bool eng, bool pbdma);
 void gv11b_channel_free_subctx_header(struct channel_gk20a *ch);
 
+void gv11b_channel_debug_dump(struct gk20a *g,
+	     struct gk20a_debug_output *o,
+	     struct nvgpu_channel_dump_info *info);
 #endif /* FIFO_CHANNEL_GV11B_H */

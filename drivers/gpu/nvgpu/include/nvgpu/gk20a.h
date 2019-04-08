@@ -99,6 +99,7 @@ typedef void (*global_ctx_mem_destroy_fn)(struct gk20a *g,
 #include <nvgpu/nvlink.h>
 #include <nvgpu/sim.h>
 #include <nvgpu/ecc.h>
+#include <nvgpu/channel.h>
 #include <nvgpu/tsg.h>
 #include <nvgpu/sec2/sec2.h>
 #include <nvgpu/cbc.h>
@@ -960,9 +961,6 @@ struct gpu_ops {
 		int (*init_engine_info)(struct fifo_gk20a *f);
 		u32 (*get_engines_mask_on_id)(struct gk20a *g,
 			u32 id, bool is_tsg);
-		void (*dump_channel_status_ramfc)(struct gk20a *g,
-				struct gk20a_debug_output *o,
-				struct nvgpu_channel_dump_info *info);
 		int (*is_preempt_pending)(struct gk20a *g, u32 id,
 			unsigned int id_type);
 		int (*reset_enable_hw)(struct gk20a *g);
@@ -1142,6 +1140,9 @@ struct gpu_ops {
 		void (*reset_faulted)(struct gk20a *g, struct channel_gk20a *ch,
 				bool eng, bool pbdma);
 		int (*set_syncpt)(struct channel_gk20a *ch);
+		void (*debug_dump)(struct gk20a *g,
+				struct gk20a_debug_output *o,
+				struct nvgpu_channel_dump_info *info);
 	} channel;
 	struct {
 		int (*open)(struct tsg_gk20a *tsg);

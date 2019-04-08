@@ -718,7 +718,6 @@ static const struct gpu_ops gp10b_ops = {
 		.preempt_tsg = gk20a_fifo_preempt_tsg,
 		.tsg_set_timeslice = gk20a_fifo_tsg_set_timeslice,
 		.init_pbdma_info = gk20a_fifo_init_pbdma_info,
-		.dump_channel_status_ramfc = gk20a_dump_channel_status_ramfc,
 		.is_preempt_pending = gk20a_fifo_is_preempt_pending,
 		.reset_enable_hw = gk20a_init_fifo_reset_enable_hw,
 		.teardown_ch_tsg = gk20a_fifo_teardown_ch_tsg,
@@ -851,6 +850,7 @@ static const struct gpu_ops gp10b_ops = {
 		.resume_all_serviceable_ch =
                         nvgpu_channel_resume_all_serviceable_ch,
 		.set_error_notifier = nvgpu_set_error_notifier,
+		.debug_dump = gk20a_channel_debug_dump,
 	},
 	.tsg = {
 		.enable = gk20a_tsg_enable,

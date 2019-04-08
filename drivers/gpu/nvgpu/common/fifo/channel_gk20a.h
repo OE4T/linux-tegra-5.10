@@ -23,9 +23,11 @@
 #ifndef FIFO_CHANNEL_GK20A_H
 #define FIFO_CHANNEL_GK20A_H
 
-struct channel_gk20a;
 struct gk20a;
+struct channel_gk20a;
 struct nvgpu_channel_hw_state;
+struct gk20a_debug_output;
+struct nvgpu_channel_dump_info;
 
 void gk20a_channel_enable(struct channel_gk20a *ch);
 void gk20a_channel_disable(struct channel_gk20a *ch);
@@ -33,4 +35,7 @@ void gk20a_channel_unbind(struct channel_gk20a *ch);
 void gk20a_channel_read_state(struct gk20a *g, struct channel_gk20a *ch,
 		struct nvgpu_channel_hw_state *state);
 
+void gk20a_channel_debug_dump(struct gk20a *g,
+	     struct gk20a_debug_output *o,
+	     struct nvgpu_channel_dump_info *info);
 #endif /* FIFO_CHANNEL_GK20A_H */

@@ -93,48 +93,6 @@ void gv11b_ring_channel_doorbell(struct channel_gk20a *c)
 		usermode_notify_channel_pending_id_f(hw_chid));
 }
 
-void gv11b_dump_channel_status_ramfc(struct gk20a *g,
-				     struct gk20a_debug_output *o,
-				     struct nvgpu_channel_dump_info *info)
-{
-	gk20a_debug_output(o, "%d-%s, TSG: %u, pid %d, refs: %d%s: ",
-			info->chid,
-			g->name,
-			info->tsgid,
-			info->pid,
-			info->refs,
-			info->deterministic ? ", deterministic" : "");
-	gk20a_debug_output(o, "channel status: %s in use %s %s\n",
-			info->hw_state.enabled ? "" : "not",
-			info->hw_state.status_string,
-			info->hw_state.busy ? "busy" : "not busy");
-	gk20a_debug_output(o,
-			"RAMFC : TOP: %016llx PUT: %016llx GET: %016llx "
-			"FETCH: %016llx\n"
-			"HEADER: %08x COUNT: %08x\n"
-			"SEMAPHORE: addr %016llx\n"
-			"payload %016llx execute %08x\n",
-			info->inst.pb_top_level_get,
-			info->inst.pb_put,
-			info->inst.pb_get,
-			info->inst.pb_fetch,
-			info->inst.pb_header,
-			info->inst.pb_count,
-			info->inst.sem_addr,
-			info->inst.sem_payload,
-			info->inst.sem_execute);
-
-	if (info->sema.addr != 0ULL) {
-		gk20a_debug_output(o, "SEMA STATE: value: 0x%08x "
-				   "next_val: 0x%08x addr: 0x%010llx\n",
-				  info->sema.value,
-				  info->sema.next,
-				  info->sema.addr);
-	}
-
-	gk20a_debug_output(o, "\n");
-}
-
 u32 gv11b_fifo_get_preempt_timeout(struct gk20a *g)
 {
 	/* using gr_idle_timeout for polling pdma/eng/runlist

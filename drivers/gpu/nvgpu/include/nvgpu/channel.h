@@ -30,6 +30,7 @@
 #include <nvgpu/atomic.h>
 #include <nvgpu/nvgpu_mem.h>
 #include <nvgpu/allocator.h>
+#include <nvgpu/debug.h>
 
 struct gk20a;
 struct dbg_session_gk20a;
@@ -39,6 +40,7 @@ struct nvgpu_channel_sync;
 struct nvgpu_gpfifo_userdata;
 struct nvgpu_gr_subctx;
 struct nvgpu_gr_ctx;
+struct gk20a_debug_output;
 
 /* Flags to be passed to nvgpu_channel_setup_bind() */
 #define NVGPU_SETUP_BIND_FLAGS_SUPPORT_VPR		BIT32(0)
@@ -91,6 +93,47 @@ struct gpfifo_desc {
 	/* if gpfifo lives in vidmem or is forced to go via PRAMIN, first copy
 	 * from userspace to pipe and then from pipe to gpu buffer */
 	void *pipe;
+};
+
+struct nvgpu_channel_hw_state {
+	bool enabled;
+	bool next;
+	bool ctx_reload;
+	bool busy;
+	bool pending_acquire;
+	bool eng_faulted;
+	const char *status_string;
+};
+
+struct nvgpu_channel_dump_info {
+	u32 chid;
+	u32 tsgid;
+	int pid;
+	int refs;
+	bool deterministic;
+	struct nvgpu_channel_hw_state hw_state;
+	struct {
+		u64 pb_top_level_get;
+		u64 pb_put;
+		u64 pb_get;
+		u64 pb_fetch;
+		u32 pb_header;
+		u32 pb_count;
+		u64 sem_addr;
+		u64 sem_payload;
+		u32 sem_execute;
+		u32 syncpointa;
+		u32 syncpointb;
+		u32 semaphorea;
+		u32 semaphoreb;
+		u32 semaphorec;
+		u32 semaphored;
+	} inst;
+	struct {
+		u32 value;
+		u32 next;
+		u64 addr;
+	} sema;
 };
 
 struct nvgpu_setup_bind_args {
@@ -503,4 +546,6 @@ void nvgpu_channel_set_error_notifier(struct gk20a *g, struct channel_gk20a *ch,
 int nvgpu_channel_set_syncpt(struct channel_gk20a *ch);
 struct channel_gk20a *nvgpu_channel_refch_from_inst_ptr(struct gk20a *g,
 			u64 inst_ptr);
+void nvgpu_channel_debug_dump_all(struct gk20a *g,
+		 struct gk20a_debug_output *o);
 #endif

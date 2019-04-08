@@ -2716,3 +2716,80 @@ void nvgpu_channel_free_inst(struct gk20a *g, struct channel_gk20a *ch)
 {
 	nvgpu_free_inst_block(g, &ch->inst_block);
 }
+
+void nvgpu_channel_debug_dump_all(struct gk20a *g,
+		 struct gk20a_debug_output *o)
+{
+	struct fifo_gk20a *f = &g->fifo;
+	u32 chid;
+	struct nvgpu_channel_dump_info **infos;
+
+	infos = nvgpu_kzalloc(g, sizeof(*infos) * f->num_channels);
+	if (infos == NULL) {
+		gk20a_debug_output(o, "cannot alloc memory for channels");
+		return;
+	}
+
+	for (chid = 0U; chid < f->num_channels; chid++) {
+		struct channel_gk20a *ch = gk20a_channel_from_id(g, chid);
+
+		if (ch != NULL) {
+			struct nvgpu_channel_dump_info *info;
+
+			info = nvgpu_kzalloc(g, sizeof(*info));
+
+			/*
+			 * ref taken stays to below loop with
+			 * successful allocs
+			 */
+			if (info == NULL) {
+				gk20a_channel_put(ch);
+			} else {
+				infos[chid] = info;
+			}
+		}
+	}
+
+	for (chid = 0U; chid < f->num_channels; chid++) {
+		struct channel_gk20a *ch = &f->channel[chid];
+		struct nvgpu_channel_dump_info *info = infos[chid];
+		struct nvgpu_hw_semaphore *hw_sema = ch->hw_sema;
+
+		/* if this info exists, the above loop took a channel ref */
+		if (info == NULL) {
+			continue;
+		}
+
+		info->chid = ch->chid;
+		info->tsgid = ch->tsgid;
+		info->pid = ch->pid;
+		info->refs = nvgpu_atomic_read(&ch->ref_count);
+		info->deterministic = ch->deterministic;
+
+		if (hw_sema != NULL) {
+			info->sema.value = nvgpu_hw_semaphore_read(hw_sema);
+			info->sema.next =
+				(u32)nvgpu_hw_semaphore_read_next(hw_sema);
+			info->sema.addr = nvgpu_hw_semaphore_addr(hw_sema);
+		}
+
+		g->ops.channel.read_state(g, ch, &info->hw_state);
+		g->ops.ramfc.capture_ram_dump(g, ch, info);
+
+		gk20a_channel_put(ch);
+	}
+
+	gk20a_debug_output(o, "Channel Status - chip %-5s", g->name);
+	gk20a_debug_output(o, "---------------------------");
+	for (chid = 0U; chid < f->num_channels; chid++) {
+		struct nvgpu_channel_dump_info *info = infos[chid];
+
+		if (info != NULL) {
+			g->ops.channel.debug_dump(g, o, info);
+			nvgpu_kfree(g, info);
+		}
+	}
+	gk20a_debug_output(o, " ");
+
+	nvgpu_kfree(g, infos);
+}

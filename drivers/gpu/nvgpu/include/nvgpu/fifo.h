@@ -41,16 +41,6 @@
 
 struct gk20a;
 
-struct nvgpu_channel_hw_state {
-	bool enabled;
-	bool next;
-	bool ctx_reload;
-	bool busy;
-	bool pending_acquire;
-	bool eng_faulted;
-	const char *status_string;
-};
-
 int nvgpu_fifo_init_support(struct gk20a *g);
 int nvgpu_fifo_setup_sw(struct gk20a *g);
 int nvgpu_fifo_setup_sw_common(struct gk20a *g);

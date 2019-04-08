@@ -213,37 +213,6 @@ struct fifo_gk20a {
 	u32 channel_base;
 };
 
-struct nvgpu_channel_dump_info {
-	u32 chid;
-	u32 tsgid;
-	int pid;
-	int refs;
-	bool deterministic;
-	struct nvgpu_channel_hw_state hw_state;
-	struct {
-		u64 pb_top_level_get;
-		u64 pb_put;
-		u64 pb_get;
-		u64 pb_fetch;
-		u32 pb_header;
-		u32 pb_count;
-		u64 sem_addr;
-		u64 sem_payload;
-		u32 sem_execute;
-		u32 syncpointa;
-		u32 syncpointb;
-		u32 semaphorea;
-		u32 semaphoreb;
-		u32 semaphorec;
-		u32 semaphored;
-	} inst;
-	struct {
-		u32 value;
-		u32 next;
-		u64 addr;
-	} sema;
-};
-
 int gk20a_init_fifo_setup_hw(struct gk20a *g);
 
 void gk20a_fifo_isr(struct gk20a *g);
@@ -297,11 +266,6 @@ static inline void gk20a_fifo_profile_snapshot(
 }
 #endif
 
-void gk20a_dump_channel_status_ramfc(struct gk20a *g,
-				     struct gk20a_debug_output *o,
-				     struct nvgpu_channel_dump_info *info);
-void gk20a_debug_dump_all_channel_status_ramfc(struct gk20a *g,
-		 struct gk20a_debug_output *o);
 const char *gk20a_decode_pbdma_chan_eng_ctx_status(u32 index);
 
 int gk20a_fifo_is_preempt_pending(struct gk20a *g, u32 id,

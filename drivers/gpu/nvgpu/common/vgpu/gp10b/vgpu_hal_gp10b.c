@@ -416,7 +416,6 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 		.preempt_channel = vgpu_fifo_preempt_channel,
 		.preempt_tsg = vgpu_fifo_preempt_tsg,
 		.tsg_set_timeslice = vgpu_tsg_set_timeslice,
-		.dump_channel_status_ramfc = NULL,
 		.is_preempt_pending = NULL,
 		.reset_enable_hw = NULL,
 		.teardown_ch_tsg = NULL,
@@ -535,6 +534,7 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 		.resume_all_serviceable_ch =
                         nvgpu_channel_resume_all_serviceable_ch,
 		.set_error_notifier = nvgpu_set_error_notifier,
+		.debug_dump = NULL,
 	},
 	.tsg = {
 		.open = vgpu_tsg_open,
