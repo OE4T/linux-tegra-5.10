@@ -25,6 +25,8 @@
 #include <nvgpu/boardobj.h>
 #include <nvgpu/pmuif/ctrlboardobj.h>
 #include <nvgpu/pmu/cmd.h>
+#include <nvgpu/pmu/super_surface.h>
+
 /*
  * Inserts a previously constructed Board Object into a Board Object Group for
  * tracking. Objects are inserted in the array based on the given index.
@@ -598,7 +600,8 @@ int boardobjgrp_pmuset_impl_v1(struct gk20a *g,
 	 * copy constructed pmu boardobjgrp data from
 	 * sysmem to pmu super surface present in FB
 	 */
-	nvgpu_mem_wr_n(g, &pmu->super_surface_buf,
+	nvgpu_mem_wr_n(g, nvgpu_pmu_super_surface_mem(g,
+		pmu, pmu->super_surface),
 		pcmd->super_surface_offset, pcmd->buf,
 		pcmd->fbsize);
 
@@ -733,7 +736,9 @@ boardobjgrp_pmugetstatus_impl_v1(struct gk20a *g, struct boardobjgrp *pboardobjg
 	 * copy constructed pmu boardobjgrp data from
 	 * sysmem to pmu super surface present in FB
 	 */
-	nvgpu_mem_wr_n(g, &pmu->super_surface_buf, pcmd->super_surface_offset,
+	nvgpu_mem_wr_n(g, nvgpu_pmu_super_surface_mem(g,
+			pmu, pmu->super_surface),
+			pcmd->super_surface_offset,
 			pcmd->buf, pcmd->fbsize);
 	/* Send the GET_STATUS PMU CMD to the PMU */
 	status = boardobjgrp_pmucmdsend_rpc(g, pboardobjgrp,
@@ -744,7 +749,9 @@ boardobjgrp_pmugetstatus_impl_v1(struct gk20a *g, struct boardobjgrp *pboardobjg
 	}
 
 	/*copy the data back to sysmem buffer that belongs to command*/
-	nvgpu_mem_rd_n(g, &pmu->super_surface_buf,pcmd->super_surface_offset,
+	nvgpu_mem_rd_n(g, nvgpu_pmu_super_surface_mem(g,
+		pmu, pmu->super_surface),
+		pcmd->super_surface_offset,
 		pcmd->buf, pcmd->fbsize);
 
 boardobjgrp_pmugetstatus_exit:

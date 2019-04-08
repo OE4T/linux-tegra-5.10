@@ -1436,8 +1436,6 @@ struct gpu_ops {
 		void (*set_irqmask)(struct gk20a *g);
 		void (*setup_apertures)(struct gk20a *g);
 		u32 (*get_irqdest)(struct gk20a *g);
-		int (*alloc_super_surface)(struct gk20a *g,
-			struct nvgpu_mem *super_surface, u32 size);
 		bool (*is_debug_mode_enabled)(struct gk20a *g);
 		void (*secured_pmu_start)(struct gk20a *g);
 		struct {
@@ -1449,7 +1447,6 @@ struct gpu_ops {
 				u32 hw_id, u32 err_id, u32 status,
 				u32 pmu_err_type);
 		} err_ops;
-		void (*create_ssmd_lookup_table)(struct nvgpu_pmu *pmu);
 		void (*save_zbc)(struct gk20a *g, u32 entries);
 		void (*pmu_clear_bar0_host_err_status)(struct gk20a *g);
 	} pmu;

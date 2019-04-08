@@ -25,7 +25,6 @@
 #include <nvgpu/dma.h>
 #include <nvgpu/log.h>
 #include <nvgpu/pmuif/nvgpu_gpmu_cmdif.h>
-#include <nvgpu/pmuif/gpmu_super_surf_if.h>
 #include <nvgpu/enabled.h>
 #include <nvgpu/engine_queue.h>
 #include <nvgpu/barrier.h>
@@ -37,6 +36,7 @@
 #include <nvgpu/power_features/cg.h>
 #include <nvgpu/nvgpu_err.h>
 #include <nvgpu/pmu/lsfm.h>
+#include <nvgpu/pmu/super_surface.h>
 
 static void pmu_report_error(struct gk20a *g, u32 err_type,
 		u32 status, u32 pmu_err_type)
@@ -197,10 +197,9 @@ static int nvgpu_init_pmu_setup_sw(struct gk20a *g)
 
 	pmu->seq_buf.size = GK20A_PMU_SEQ_BUF_SIZE;
 
-	if (g->ops.pmu.alloc_super_surface != NULL) {
-		err = g->ops.pmu.alloc_super_surface(g,
-				&pmu->super_surface_buf,
-				sizeof(struct nv_pmu_super_surface));
+	if (nvgpu_is_enabled(g, NVGPU_SUPPORT_PMU_SUPER_SURFACE)) {
+		err = nvgpu_pmu_super_surface_buf_alloc(g,
+				pmu, pmu->super_surface);
 		if (err != 0) {
 			goto err_free_seq_buf;
 		}
@@ -219,8 +218,9 @@ skip_init:
 	nvgpu_log_fn(g, "done");
 	return 0;
  err_free_super_surface:
-	if (g->ops.pmu.alloc_super_surface != NULL) {
- 		 nvgpu_dma_unmap_free(vm, &pmu->super_surface_buf);
+	if (nvgpu_is_enabled(g, NVGPU_SUPPORT_PMU_SUPER_SURFACE)) {
+		nvgpu_dma_unmap_free(vm, nvgpu_pmu_super_surface_mem(g,
+			pmu, pmu->super_surface));
 	}
  err_free_seq_buf:
 	nvgpu_dma_unmap_free(vm, &pmu->seq_buf);
@@ -486,4 +486,11 @@ int nvgpu_pmu_lock_release(struct gk20a *g, struct nvgpu_pmu *pmu,
 	}
 
 	return nvgpu_pmu_mutex_release(g, &pmu->mutexes, id, token);
+}
+
+void nvgpu_pmu_surface_free(struct gk20a *g, struct nvgpu_mem *mem)
+{
+	nvgpu_log_fn(g, " ");
+
+	nvgpu_dma_free(g, mem);
 }

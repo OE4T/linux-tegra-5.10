@@ -134,7 +134,6 @@ srcs += common/sim.c \
 	common/pmu/pg/pmu_pg.c \
 	common/pmu/pg/pmu_aelpg.c \
 	common/pmu/pmu_perfmon.c \
-	common/pmu/pmu_super_surface.c \
 	common/pmu/pmu_debug.c \
 	common/pmu/pmu_gk20a.c \
 	common/pmu/pmu_gm20b.c \
@@ -207,6 +206,7 @@ srcs += common/sim.c \
 	common/regops/regops_gv100.c \
 	common/regops/regops_gv11b.c \
 	common/regops/regops_tu104.c \
+	common/pmu/super_surface/super_surface.c \
 	common/pmu/lsfm/lsfm.c \
 	common/pmu/lsfm/lsfm_sw_gm20b.c \
 	common/pmu/lsfm/lsfm_sw_gp10b.c \

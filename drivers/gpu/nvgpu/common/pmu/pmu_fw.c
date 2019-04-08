@@ -36,6 +36,7 @@
 #include <nvgpu/pmu/clk/clk.h>
 #include <nvgpu/pmu/allocator.h>
 #include <nvgpu/pmu/lsfm.h>
+#include <nvgpu/pmu/super_surface.h>
 
 /* PMU NS UCODE IMG */
 #define NVGPU_PMU_NS_UCODE_IMAGE	"gpmu_ucode.bin"
@@ -156,8 +157,9 @@ static void config_pmu_cmdline_args_super_surface_v6(struct nvgpu_pmu *pmu)
 {
 	struct gk20a *g = gk20a_from_pmu(pmu);
 
-	if (g->ops.pmu.alloc_super_surface != NULL) {
-		nvgpu_pmu_surface_describe(g, &pmu->super_surface_buf,
+	if (nvgpu_is_enabled(g, NVGPU_SUPPORT_PMU_SUPER_SURFACE)) {
+		nvgpu_pmu_surface_describe(g,
+			nvgpu_pmu_super_surface_mem(g, pmu, pmu->super_surface),
 			&pmu->args_v6.super_surface);
 	}
 }
@@ -1651,8 +1653,8 @@ static void nvgpu_remove_pmu_support(struct nvgpu_pmu *pmu)
 		nvgpu_dma_unmap_free(vm, &pmu->seq_buf);
 	}
 
-	if (nvgpu_mem_is_valid(&pmu->super_surface_buf)) {
-		nvgpu_dma_unmap_free(vm, &pmu->super_surface_buf);
+	if (nvgpu_is_enabled(g, NVGPU_SUPPORT_PMU_SUPER_SURFACE)) {
+		nvgpu_pmu_super_surface_deinit(g, pmu, pmu->super_surface);
 	}
 
 	nvgpu_pmu_lsfm_deinit(g, pmu, pmu->lsfm);
@@ -1785,6 +1787,14 @@ int nvgpu_early_init_pmu_sw(struct gk20a *g, struct nvgpu_pmu *pmu)
 	err = nvgpu_pmu_lsfm_init(g, &pmu->lsfm);
 	if (err != 0) {
 		goto init_failed;
+	}
+
+	if (nvgpu_is_enabled(g, NVGPU_SUPPORT_PMU_SUPER_SURFACE)) {
+		err = nvgpu_pmu_super_surface_init(g, pmu,
+				&pmu->super_surface);
+		if (err != 0) {
+			goto init_failed;
+		}
 	}
 
 	pmu->remove_support = nvgpu_remove_pmu_support;

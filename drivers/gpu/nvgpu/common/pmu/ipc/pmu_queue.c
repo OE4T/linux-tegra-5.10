@@ -26,12 +26,14 @@
 #include <nvgpu/pmu/cmd.h>
 #include <nvgpu/pmu/queue.h>
 #include <nvgpu/gk20a.h>
+#include <nvgpu/pmu/super_surface.h>
 
 /* FB queue init */
 static int pmu_fb_queue_init(struct gk20a *g, struct pmu_queues *queues,
 		u32 id, union pmu_init_msg_pmu *init,
 		struct nvgpu_mem *super_surface_buf)
 {
+	struct nvgpu_pmu *pmu = &g->pmu;
 	struct nvgpu_engine_fb_queue_params params = {0};
 	u32 oflag = 0;
 	int err = 0;
@@ -55,9 +57,9 @@ static int pmu_fb_queue_init(struct gk20a *g, struct pmu_queues *queues,
 		oflag = OFLAG_WRITE;
 
 		params.super_surface_mem = super_surface_buf;
-		params.fbq_offset = (u32)offsetof(
-			struct nv_pmu_super_surface,
-			fbq.cmd_queues.queue[id]);
+		params.fbq_offset =
+			nvgpu_pmu_get_ss_cmd_fbq_offset(g, pmu,
+				pmu->super_surface, id);
 		params.size = NV_PMU_FBQ_CMD_NUM_ELEMENTS;
 		params.fbq_element_size = NV_PMU_FBQ_CMD_ELEMENT_SIZE;
 	} else if (PMU_IS_MESSAGE_QUEUE(id)) {
@@ -69,9 +71,9 @@ static int pmu_fb_queue_init(struct gk20a *g, struct pmu_queues *queues,
 		oflag = OFLAG_READ;
 
 		params.super_surface_mem = super_surface_buf;
-		params.fbq_offset = (u32)offsetof(
-				struct nv_pmu_super_surface,
-				fbq.msg_queue);
+		params.fbq_offset =
+			nvgpu_pmu_get_ss_msg_fbq_offset(g, pmu,
+				pmu->super_surface);
 		params.size = NV_PMU_FBQ_MSG_NUM_ELEMENTS;
 		params.fbq_element_size = NV_PMU_FBQ_MSG_ELEMENT_SIZE;
 	} else {

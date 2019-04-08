@@ -26,7 +26,6 @@
 #include <nvgpu/timers.h>
 #include <nvgpu/bug.h>
 #include <nvgpu/pmuif/nvgpu_gpmu_cmdif.h>
-#include <nvgpu/pmuif/gpmu_super_surf_if.h>
 #include <nvgpu/falcon.h>
 #include <nvgpu/engine_fb_queue.h>
 #include <nvgpu/gk20a.h>

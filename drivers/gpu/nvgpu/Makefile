@@ -95,7 +95,6 @@ nvgpu-y += \
 	common/pmu/pg/pmu_pg.o \
 	common/pmu/pg/pmu_aelpg.o \
 	common/pmu/pmu_perfmon.o \
-	common/pmu/pmu_super_surface.o \
 	common/pmu/pmu_debug.o \
 	common/pmu/pmu_gk20a.o \
 	common/pmu/pmu_gm20b.o \
@@ -121,6 +120,7 @@ nvgpu-y += \
 	common/acr/acr_sw_gv100.o \
 	common/acr/acr_sw_gv11b.o \
 	common/acr/acr_sw_tu104.o \
+	common/pmu/super_surface/super_surface.o \
 	common/pmu/lsfm/lsfm.o \
 	common/pmu/lsfm/lsfm_sw_gm20b.o \
 	common/pmu/lsfm/lsfm_sw_gp10b.o \

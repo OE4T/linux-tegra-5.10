@@ -29,7 +29,6 @@
 #include <nvgpu/nvgpu_common.h>
 #include <nvgpu/flcnif_cmn.h>
 #include <nvgpu/pmuif/nvgpu_gpmu_cmdif.h>
-#include <nvgpu/pmuif/gpmu_super_surf_if.h>
 #include <nvgpu/pmuif/gpmuif_pg.h>
 #include <nvgpu/timers.h>
 #include <nvgpu/nvgpu_mem.h>

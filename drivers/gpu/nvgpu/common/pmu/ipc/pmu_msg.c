@@ -29,6 +29,7 @@
 #include <nvgpu/pmu/volt.h>
 #include <nvgpu/pmu/therm.h>
 #include <nvgpu/pmu/lsfm.h>
+#include <nvgpu/pmu/super_surface.h>
 
 static int pmu_payload_extract(struct nvgpu_pmu *pmu, struct pmu_sequence *seq)
 {
@@ -48,7 +49,8 @@ static int pmu_payload_extract(struct nvgpu_pmu *pmu, struct pmu_sequence *seq)
 			(nvgpu_pmu_seq_get_fbq_element_index(seq) *
 			 nvgpu_engine_fb_queue_get_element_size(fb_queue));
 
-		nvgpu_mem_rd_n(g, &pmu->super_surface_buf, fbq_payload_offset,
+		nvgpu_mem_rd_n(g, nvgpu_pmu_super_surface_mem(g,
+			pmu, pmu->super_surface), fbq_payload_offset,
 			nvgpu_pmu_seq_get_out_payload(seq),
 			pv->pmu_allocation_get_dmem_size(pmu,
 			pv->get_pmu_seq_out_a_ptr(seq)));
@@ -312,11 +314,12 @@ static void pmu_read_init_msg_fb(struct gk20a *g, struct nvgpu_pmu *pmu,
 {
 	u32 fbq_msg_queue_ss_offset = 0U;
 
-	fbq_msg_queue_ss_offset = (u32)offsetof(
-		struct nv_pmu_super_surface,
-		fbq.msg_queue.element[element_index]);
+	fbq_msg_queue_ss_offset =
+		nvgpu_pmu_get_ss_msg_fbq_element_offset(g, pmu,
+			pmu->super_surface, element_index);
 
-	nvgpu_mem_rd_n(g, &pmu->super_surface_buf, fbq_msg_queue_ss_offset,
+	nvgpu_mem_rd_n(g, nvgpu_pmu_super_surface_mem(g,
+		pmu, pmu->super_surface), fbq_msg_queue_ss_offset,
 		buffer, size);
 }
 
@@ -455,15 +458,17 @@ static int pmu_process_init_msg(struct nvgpu_pmu *pmu,
 
 
 	err = nvgpu_pmu_queues_init(g, init, &pmu->queues,
-				    &pmu->super_surface_buf);
+			nvgpu_pmu_super_surface_mem(g, pmu,
+			pmu->super_surface));
 	if (err != 0) {
 		return err;
 	}
 
 	nvgpu_pmu_dmem_allocator_init(g, &pmu->dmem, init);
 
-	if (g->ops.pmu.create_ssmd_lookup_table != NULL) {
-		g->ops.pmu.create_ssmd_lookup_table(pmu);
+	if (nvgpu_is_enabled(g, NVGPU_SUPPORT_PMU_SUPER_SURFACE)) {
+		nvgpu_pmu_ss_create_ssmd_lookup_table(g,
+			pmu, pmu->super_surface);
 	}
 
 	pmu->pmu_ready = true;

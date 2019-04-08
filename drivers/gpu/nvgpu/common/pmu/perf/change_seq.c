@@ -22,7 +22,6 @@
 
 #include <nvgpu/pmu.h>
 #include <nvgpu/pmuif/nvgpu_gpmu_cmdif.h>
-#include <nvgpu/pmuif/gpmu_super_surf_if.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/timers.h>
 #include <nvgpu/pmuif/ctrlclk.h>
@@ -31,6 +30,7 @@
 #include <nvgpu/pmu/clk/clk_domain.h>
 #include <nvgpu/pmu/perf.h>
 #include <nvgpu/pmu/cmd.h>
+#include <nvgpu/pmu/super_surface.h>
 
 #include "pmu_perf.h"
 
@@ -117,12 +117,13 @@ static void build_change_seq_boot (struct gk20a *g)
 	nvgpu_log_fn(g, " ");
 
 	script_last->super_surface_offset =
-		nvgpu_pmu_get_ss_member_set_offset(pmu,
+		nvgpu_pmu_get_ss_member_set_offset(g, pmu,
 		NV_PMU_SUPER_SURFACE_MEMBER_CHANGE_SEQ_GRP) +
 		(u32)(sizeof(struct perf_change_seq_pmu_script) *
 		SEQ_SCRIPT_LAST);
 
-	nvgpu_mem_rd_n(g, &pmu->super_surface_buf,
+	nvgpu_mem_rd_n(g, nvgpu_pmu_super_surface_mem(g,
+		pmu, pmu->super_surface),
 		script_last->super_surface_offset,
 		&script_last->buf,
 		(u32) sizeof(struct perf_change_seq_pmu_script));
@@ -158,7 +159,8 @@ static void build_change_seq_boot (struct gk20a *g)
 	/* Assume everything is P0 - Need to find the index for P0  */
 	script_last->buf.change.data.pstate_index = 0;
 
-	nvgpu_mem_wr_n(g, &pmu->super_surface_buf,
+	nvgpu_mem_wr_n(g, nvgpu_pmu_super_surface_mem(g,
+		pmu, pmu->super_surface),
 		script_last->super_surface_offset,
 		&script_last->buf,
 		(u32) sizeof(struct perf_change_seq_pmu_script));
@@ -219,12 +221,13 @@ int nvgpu_perf_change_seq_pmu_setup(struct gk20a *g)
 		perf_change_seq_pmu->b_lock;
 
 	perf_change_seq_pmu->script_last.super_surface_offset =
-		nvgpu_pmu_get_ss_member_set_offset(pmu,
+		nvgpu_pmu_get_ss_member_set_offset(g, pmu,
 		NV_PMU_SUPER_SURFACE_MEMBER_CHANGE_SEQ_GRP) +
 		(u32)(sizeof(struct perf_change_seq_pmu_script) *
 		SEQ_SCRIPT_LAST);
 
-	nvgpu_mem_rd_n(g, &pmu->super_surface_buf,
+	nvgpu_mem_rd_n(g, nvgpu_pmu_super_surface_mem(g,
+		pmu, pmu->super_surface),
 		perf_change_seq_pmu->script_last.super_surface_offset,
 		&perf_change_seq_pmu->script_last.buf,
 		(u32) sizeof(struct perf_change_seq_pmu_script));
@@ -232,7 +235,8 @@ int nvgpu_perf_change_seq_pmu_setup(struct gk20a *g)
 	/* Assume everything is P0 - Need to find the index for P0  */
 	perf_change_seq_pmu->script_last.buf.change.data.pstate_index = 0;
 
-	nvgpu_mem_wr_n(g, &pmu->super_surface_buf,
+	nvgpu_mem_wr_n(g, nvgpu_pmu_super_surface_mem(g,
+		pmu, pmu->super_surface),
 		perf_change_seq_pmu->script_last.super_surface_offset,
 		&perf_change_seq_pmu->script_last.buf,
 		(u32) sizeof(struct perf_change_seq_pmu_script));

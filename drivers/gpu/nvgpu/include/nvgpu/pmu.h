@@ -29,7 +29,6 @@
 #include <nvgpu/nvgpu_common.h>
 #include <nvgpu/flcnif_cmn.h>
 #include <nvgpu/pmuif/nvgpu_gpmu_cmdif.h>
-#include <nvgpu/pmuif/gpmu_super_surf_if.h>
 #include <nvgpu/falcon.h>
 #include <nvgpu/timers.h>
 #include <nvgpu/pmu/pmu_pg.h>
@@ -219,12 +218,7 @@ struct nvgpu_pmu {
 	struct nvgpu_mem seq_buf;
 	struct nvgpu_mem trace_buf;
 
-	/* super surface members */
-	struct nvgpu_mem super_surface_buf;
-	struct nv_pmu_super_surface_member_descriptor
-		ssmd_set[NV_PMU_SUPER_SURFACE_MEMBER_DESCRIPTOR_COUNT];
-	struct nv_pmu_super_surface_member_descriptor
-		ssmd_get_status[NV_PMU_SUPER_SURFACE_MEMBER_DESCRIPTOR_COUNT];
+	struct pmu_super_surface *super_surface;
 
 	struct pmu_sha1_gid gid_info;
 
@@ -354,15 +348,6 @@ void nvgpu_pmu_get_cmd_line_args_offset(struct gk20a *g,
 	u32 *args_offset);
 
 struct gk20a *gk20a_from_pmu(struct nvgpu_pmu *pmu);
-
-/* super surface */
-void nvgpu_pmu_create_ssmd_lookup_table(struct nvgpu_pmu *pmu);
-u32 nvgpu_pmu_get_ss_member_set_offset(struct nvgpu_pmu *pmu, u32 member_id);
-u32 nvgpu_pmu_get_ss_member_get_status_offset(struct nvgpu_pmu *pmu,
-	u32 member_id);
-u32 nvgpu_pmu_get_ss_member_set_size(struct nvgpu_pmu *pmu, u32 member_id);
-u32 nvgpu_pmu_get_ss_member_get_status_size(struct nvgpu_pmu *pmu,
-	u32 member_id);
 
 void nvgpu_pmu_report_bar0_pri_err_status(struct gk20a *g, u32 bar0_status,
 	u32 error_type);

@@ -34,7 +34,7 @@ struct pmu_surface;
 #include <nvgpu/boardobjgrpmask.h>
 #include <nvgpu/list.h>
 #include <nvgpu/pmu.h>
-#include <nvgpu/pmuif/gpmu_super_surf_if.h>
+#include <nvgpu/pmu/super_surface.h>
 
 /*
 * Board Object Group destructor.
@@ -336,9 +336,9 @@ do {                                                                          \
 	NV_PMU_##ENG##_MSG_ID_BOARDOBJ_GRP_SET,               /* msgid */     \
 	(u32)sizeof(union nv_pmu_##eng##_##class##_boardobjgrp_set_header_aligned), \
 	(u32)sizeof(union nv_pmu_##eng##_##class##_boardobj_set_union_aligned), \
-	(u32)nvgpu_pmu_get_ss_member_set_size(&g->pmu, \
+	(u32)nvgpu_pmu_get_ss_member_set_size(g, &g->pmu, \
 		NV_PMU_SUPER_SURFACE_MEMBER_##CLASS##_GRP), \
-	(u32)nvgpu_pmu_get_ss_member_set_offset(&g->pmu, \
+	(u32)nvgpu_pmu_get_ss_member_set_offset(g, &g->pmu, \
 	NV_PMU_SUPER_SURFACE_MEMBER_##CLASS##_GRP), \
 	NV_PMU_RPC_ID_##ENG##_BOARD_OBJ_GRP_CMD))
 
@@ -352,9 +352,9 @@ do {                                                                          \
 	NV_PMU_##ENG##_MSG_ID_BOARDOBJ_GRP_GET_STATUS,        /* msgid */     \
 	(u32)sizeof(union nv_pmu_##eng##_##class##_boardobjgrp_get_status_header_aligned), \
 	(u32)sizeof(union nv_pmu_##eng##_##class##_boardobj_get_status_union_aligned), \
-	(u32)nvgpu_pmu_get_ss_member_get_status_size(&g->pmu, \
+	(u32)nvgpu_pmu_get_ss_member_get_status_size(g, &g->pmu, \
 		NV_PMU_SUPER_SURFACE_MEMBER_##CLASS##_GRP), \
-	(u32)nvgpu_pmu_get_ss_member_get_status_offset(&g->pmu, \
+	(u32)nvgpu_pmu_get_ss_member_get_status_offset(g, &g->pmu, \
 	NV_PMU_SUPER_SURFACE_MEMBER_##CLASS##_GRP), \
 	NV_PMU_RPC_ID_##ENG##_BOARD_OBJ_GRP_CMD))
 
