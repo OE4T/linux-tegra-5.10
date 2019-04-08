@@ -112,9 +112,8 @@ static struct pg_init_sequence_list _pginitseq_gv11b[] = {
 	{0x00020004U, 0x00000000U} ,
 };
 
-int gv11b_pmu_setup_elpg(struct gk20a *g)
+void gv11b_pmu_setup_elpg(struct gk20a *g)
 {
-	int ret = 0;
 	size_t reg_writes;
 	size_t index;
 
@@ -130,7 +129,6 @@ int gv11b_pmu_setup_elpg(struct gk20a *g)
 	}
 
 	nvgpu_log_fn(g, "done");
-	return ret;
 }
 
 bool gv11b_is_pmu_supported(struct gk20a *g)

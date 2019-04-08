@@ -27,7 +27,7 @@
 
 struct gk20a;
 
-int gm20b_pmu_setup_elpg(struct gk20a *g);
+void gm20b_pmu_setup_elpg(struct gk20a *g);
 void pmu_dump_security_fuses_gm20b(struct gk20a *g);
 void gm20b_write_dmatrfbase(struct gk20a *g, u32 addr);
 bool gm20b_pmu_is_debug_mode_en(struct gk20a *g);

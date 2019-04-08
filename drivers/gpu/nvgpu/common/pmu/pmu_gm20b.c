@@ -98,9 +98,8 @@ static struct pg_init_sequence_list _pginitseq_gm20b[] = {
 		{ 0x0010e040U, 0x00000000U},
 };
 
-int gm20b_pmu_setup_elpg(struct gk20a *g)
+void gm20b_pmu_setup_elpg(struct gk20a *g)
 {
-	int ret = 0;
 	size_t reg_writes;
 	size_t index;
 
@@ -116,7 +115,6 @@ int gm20b_pmu_setup_elpg(struct gk20a *g)
 	}
 
 	nvgpu_log_fn(g, "done");
-	return ret;
 }
 
 void gm20b_write_dmatrfbase(struct gk20a *g, u32 addr)

@@ -30,7 +30,7 @@
 struct gk20a;
 
 bool gp10b_is_pmu_supported(struct gk20a *g);
-int gp10b_pmu_setup_elpg(struct gk20a *g);
+void gp10b_pmu_setup_elpg(struct gk20a *g);
 void gp10b_write_dmatrfbase(struct gk20a *g, u32 addr);
 
 #endif /* NVGPU_PMU_GP10B_H */
