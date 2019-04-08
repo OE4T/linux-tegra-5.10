@@ -985,6 +985,8 @@ static const struct gpu_ops tu104_ops = {
 		.restartable_0_intr_descs =
 			gm20b_pbdma_restartable_0_intr_descs,
 		.find_for_runlist = nvgpu_pbdma_find_for_runlist,
+		.format_gpfifo_entry =
+			gm20b_pbdma_format_gpfifo_entry,
 	},
 	.sync = {
 #ifdef CONFIG_TEGRA_GK20A_NVHOST

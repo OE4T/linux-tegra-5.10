@@ -26,8 +26,6 @@
 #include <nvgpu/utils.h>
 #include <nvgpu/fence.h>
 
-#include <nvgpu/hw/gk20a/hw_pbdma_gk20a.h>
-
 #include "gk20a/ce2_gk20a.h"
 
 static inline u32 gk20a_get_valid_launch_flags(struct gk20a *g, u32 launch_flags)
@@ -58,7 +56,7 @@ int gk20a_ce_execute_ops(struct gk20a *g,
 	bool found = false;
 	u32 *cmd_buf_cpu_va;
 	u64 cmd_buf_gpu_va = 0;
-	u32 methodSize;
+	u32 method_size;
 	u32 cmd_buf_read_offset;
 	u32 dma_copy_class;
 	struct nvgpu_gpfifo_entry gpfifo;
@@ -115,28 +113,29 @@ int gk20a_ce_execute_ops(struct gk20a *g,
 		}
 	}
 
-	cmd_buf_gpu_va = (ce_ctx->cmd_buf_mem.gpu_va + (u64)(cmd_buf_read_offset *sizeof(u32)));
+	cmd_buf_gpu_va = (ce_ctx->cmd_buf_mem.gpu_va +
+			(u64)(cmd_buf_read_offset *sizeof(u32)));
 
 	dma_copy_class = g->ops.get_litter_value(g, GPU_LIT_DMA_COPY_CLASS);
-	methodSize = gk20a_ce_prepare_submit(src_buf,
-					dst_buf,
-					size,
-					&cmd_buf_cpu_va[cmd_buf_read_offset],
-					NVGPU_CE_MAX_COMMAND_BUFF_BYTES_PER_KICKOFF,
-					payload,
-					gk20a_get_valid_launch_flags(g, launch_flags),
-					request_operation,
-					dma_copy_class);
+	method_size = gk20a_ce_prepare_submit(src_buf,
+			dst_buf,
+			size,
+			&cmd_buf_cpu_va[cmd_buf_read_offset],
+			NVGPU_CE_MAX_COMMAND_BUFF_BYTES_PER_KICKOFF,
+			payload,
+			gk20a_get_valid_launch_flags(g, launch_flags),
+			request_operation,
+			dma_copy_class);
 
-	if (methodSize != 0U) {
+	if (method_size != 0U) {
 		/* store the element into gpfifo */
-		gpfifo.entry0 =
-			u64_lo32(cmd_buf_gpu_va);
-		gpfifo.entry1 =
-			(u64_hi32(cmd_buf_gpu_va) |
-			pbdma_gp_entry1_length_f(methodSize));
+		g->ops.pbdma.format_gpfifo_entry(g, &gpfifo,
+				cmd_buf_gpu_va, method_size);
 
-		/* take always the postfence as it is needed for protecting the ce context */
+		/*
+		 * take always the postfence as it is needed for protecting the
+		 * ce context
+		 */
 		submit_flags |= NVGPU_SUBMIT_FLAGS_FENCE_GET;
 
 		nvgpu_smp_wmb();

@@ -456,6 +456,7 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 		.device_fatal_0_intr_descs = NULL,
 		.channel_fatal_0_intr_descs = NULL,
 		.restartable_0_intr_descs = NULL,
+		.format_gpfifo_entry = gm20b_pbdma_format_gpfifo_entry,
 	},
 	.sync = {
 #ifdef CONFIG_TEGRA_GK20A_NVHOST

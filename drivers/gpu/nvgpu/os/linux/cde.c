@@ -53,8 +53,6 @@
 #include "cde_gm20b.h"
 #include "cde_gp10b.h"
 
-#include <nvgpu/hw/gk20a/hw_pbdma_gk20a.h>
-
 static int gk20a_cde_load(struct gk20a_cde_ctx *cde_ctx);
 static struct gk20a_cde_ctx *gk20a_cde_allocate_context(struct nvgpu_os_linux *l);
 
@@ -617,14 +615,9 @@ static int gk20a_init_cde_command(struct gk20a_cde_ctx *cde_ctx,
 		}
 
 		/* store the element into gpfifo */
-		gpfifo_elem->entry0 =
-			u64_lo32(target_mem->gpu_va +
-			cmd_elem->target_byte_offset);
-		gpfifo_elem->entry1 =
-			u64_hi32(target_mem->gpu_va +
-			cmd_elem->target_byte_offset) |
-			pbdma_gp_entry1_length_f(cmd_elem->num_bytes /
-						 sizeof(u32));
+		g->ops.pbdma.format_gpfifo_entry(g, gpfifo_elem,
+			target_mem->gpu_va + cmd_elem->target_byte_offset,
+			cmd_elem->num_bytes / sizeof(u32));
 	}
 
 	*num_entries = num_elems;

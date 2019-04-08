@@ -363,6 +363,15 @@ u32 gm20b_pbdma_read_data(struct gk20a *g, u32 pbdma_id)
 	return nvgpu_readl(g, pbdma_hdr_shadow_r(pbdma_id));
 }
 
+void gm20b_pbdma_format_gpfifo_entry(struct gk20a *g,
+		struct nvgpu_gpfifo_entry *gpfifo_entry,
+		u64 pb_gpu_va, u32 method_size)
+{
+	gpfifo_entry->entry0 = u64_lo32(pb_gpu_va);
+	gpfifo_entry->entry1 = u64_hi32(pb_gpu_va) |
+					pbdma_gp_entry1_length_f(method_size);
+}
+
 u32 gm20b_pbdma_device_fatal_0_intr_descs(void)
 {
 	/*

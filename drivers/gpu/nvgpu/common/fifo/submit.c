@@ -32,8 +32,6 @@
 
 #include <trace/events/gk20a.h>
 
-#include <nvgpu/hw/gk20a/hw_pbdma_gk20a.h>
-
 /*
  * Handle the submit synchronization - pre-fences and post-fences.
  */
@@ -189,14 +187,14 @@ static void nvgpu_submit_append_priv_cmdbuf(struct channel_gk20a *c,
 {
 	struct gk20a *g = c->g;
 	struct nvgpu_mem *gpfifo_mem = &c->gpfifo.mem;
-	struct nvgpu_gpfifo_entry x = {
-		.entry0 = u64_lo32(cmd->gva),
-		.entry1 = u64_hi32(cmd->gva) |
-			pbdma_gp_entry1_length_f(cmd->size)
-	};
+	struct nvgpu_gpfifo_entry gpfifo_entry;
 
-	nvgpu_mem_wr_n(g, gpfifo_mem, c->gpfifo.put * (u32)sizeof(x),
-			&x, (u32)sizeof(x));
+	g->ops.pbdma.format_gpfifo_entry(g, &gpfifo_entry,
+			cmd->gva, cmd->size);
+
+	nvgpu_mem_wr_n(g, gpfifo_mem,
+			c->gpfifo.put * (u32)sizeof(gpfifo_entry),
+			&gpfifo_entry, (u32)sizeof(gpfifo_entry));
 
 	if (cmd->mem->aperture == APERTURE_SYSMEM) {
 		trace_gk20a_push_cmdbuf(g->name, 0, cmd->size, 0,
