@@ -1,7 +1,5 @@
 /*
- * GM20B PMU
- *
- * Copyright (c) 2014-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -22,20 +20,32 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NVGPU_GM20B_PMU_GM20B_H
-#define NVGPU_GM20B_PMU_GM20B_H
+#ifndef LSFM_H
+#define LSFM_H
 
 struct gk20a;
+struct nvgpu_pmu_lsfm;
 
-int gm20b_pmu_setup_elpg(struct gk20a *g);
-void pmu_dump_security_fuses_gm20b(struct gk20a *g);
-void gm20b_write_dmatrfbase(struct gk20a *g, u32 addr);
-bool gm20b_pmu_is_debug_mode_en(struct gk20a *g);
-int gm20b_ns_pmu_setup_hw_and_bootstrap(struct gk20a *g);
-void gm20b_pmu_setup_apertures(struct gk20a *g);
-void gm20b_pmu_flcn_setup_boot_config(struct gk20a *g);
-void gm20b_secured_pmu_start(struct gk20a *g);
-bool gm20b_is_pmu_supported(struct gk20a *g);
-void gm20b_clear_pmu_bar0_host_err_status(struct gk20a *g);
+struct nvgpu_pmu_lsfm {
+	bool is_wpr_init_done;
+	u32 loaded_falcon_id;
+	int (*init_wpr_region)(struct gk20a *g, struct nvgpu_pmu *pmu);
+	int (*bootstrap_ls_falcon)(struct gk20a *g,
+		struct nvgpu_pmu *pmu, struct nvgpu_pmu_lsfm *lsfm,
+		u32 falcon_id_mask);
+	int (*ls_pmu_cmdline_args_copy)(struct gk20a *g, struct nvgpu_pmu *pmu);
+};
 
-#endif /*NVGPU_GM20B_PMU_GM20B_H*/
+int nvgpu_pmu_lsfm_int_wpr_region(struct gk20a *g,
+	struct nvgpu_pmu *pmu, struct nvgpu_pmu_lsfm *lsfm);
+int nvgpu_pmu_lsfm_bootstrap_ls_falcon(struct gk20a *g,
+	struct nvgpu_pmu *pmu, struct nvgpu_pmu_lsfm *lsfm, u32 falcon_id_mask);
+int nvgpu_pmu_lsfm_ls_pmu_cmdline_args_copy(struct gk20a *g,
+	struct nvgpu_pmu *pmu, struct nvgpu_pmu_lsfm *lsfm);
+void nvgpu_pmu_lsfm_rpc_handler(struct gk20a *g,
+	struct rpc_handler_payload *rpc_payload);
+int nvgpu_pmu_lsfm_init(struct gk20a *g, struct nvgpu_pmu_lsfm **lsfm);
+void nvgpu_pmu_lsfm_deinit(struct gk20a *g, struct nvgpu_pmu *pmu,
+	struct nvgpu_pmu_lsfm *lsfm);
+
+#endif /*LSFM_H*/

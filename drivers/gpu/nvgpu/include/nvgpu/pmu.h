@@ -213,6 +213,8 @@ struct nvgpu_pmu {
 
 	struct nvgpu_mem ucode;
 
+	struct nvgpu_pmu_lsfm *lsfm;
+
 	/* TBD: remove this if ZBC seq is fixed */
 	struct nvgpu_mem seq_buf;
 	struct nvgpu_mem trace_buf;

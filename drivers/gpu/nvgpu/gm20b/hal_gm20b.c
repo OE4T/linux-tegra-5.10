@@ -1089,13 +1089,8 @@ int gm20b_init_hal(struct gk20a *g)
 	/* priv security dependent ops */
 	if (nvgpu_is_enabled(g, NVGPU_SEC_PRIVSECURITY)) {
 		/* Add in ops from gm20b acr */
-		gops->pmu.update_lspmu_cmdline_args =
-			gm20b_update_lspmu_cmdline_args;
 		gops->pmu.setup_apertures = gm20b_pmu_setup_apertures;
 		gops->pmu.secured_pmu_start = gm20b_secured_pmu_start;
-
-		gops->pmu.init_wpr_region = gm20b_pmu_init_acr;
-		gops->pmu.load_lsfalcon_ucode = gm20b_load_falcon_ucode;
 
 		gops->gr.falcon.load_ctxsw_ucode =
 			nvgpu_gr_falcon_load_secure_ctxsw_ucode;
@@ -1104,15 +1099,11 @@ int gm20b_init_hal(struct gk20a *g)
 		gops->pmu.pmu_setup_hw_and_bootstrap =
 			gm20b_ns_pmu_setup_hw_and_bootstrap;
 		gops->pmu.pmu_nsbootstrap = pmu_bootstrap;
-
-		gops->pmu.load_lsfalcon_ucode = NULL;
-		gops->pmu.init_wpr_region = NULL;
 	}
 
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_ZBC_STENCIL, false);
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_PREEMPTION_GFXP, false);
 	nvgpu_set_enabled(g, NVGPU_PMU_FECS_BOOTSTRAP_DONE, false);
-	g->pmu_lsf_pmu_wpr_init_done = 0;
 
 	g->name = "gm20b";
 

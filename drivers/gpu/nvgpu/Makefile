@@ -105,7 +105,6 @@ nvgpu-y += \
 	common/pmu/pg/pg_sw_gp10b.o \
 	common/pmu/pg/pg_sw_gp106.o \
 	common/pmu/pg/pg_sw_gv11b.o \
-	common/pmu/pmu_gv100.o \
 	common/pmu/pmu_tu104.o \
 	common/pmu/ipc/pmu_cmd.o \
 	common/pmu/ipc/pmu_msg.o \
@@ -122,6 +121,11 @@ nvgpu-y += \
 	common/acr/acr_sw_gv100.o \
 	common/acr/acr_sw_gv11b.o \
 	common/acr/acr_sw_tu104.o \
+	common/pmu/lsfm/lsfm.o \
+	common/pmu/lsfm/lsfm_sw_gm20b.o \
+	common/pmu/lsfm/lsfm_sw_gp10b.o \
+	common/pmu/lsfm/lsfm_sw_gv100.o \
+	common/pmu/lsfm/lsfm_sw_tu104.o \
 	common/pmu/perf/vfe_var.o \
 	common/pmu/perf/vfe_equ.o \
 	common/pmu/perf/pmu_perf.o \

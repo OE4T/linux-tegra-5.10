@@ -106,7 +106,6 @@
 #include "common/pmu/pmu_gp10b.h"
 #include "common/pmu/pmu_gp106.h"
 #include "common/pmu/pmu_gv11b.h"
-#include "common/pmu/pmu_gv100.h"
 #include "common/pmu/pg/pg_sw_gp106.h"
 #include "common/nvlink/init/device_reginit_gv100.h"
 #include "common/nvlink/intr_and_err_handling_gv100.h"
@@ -1084,8 +1083,6 @@ static const struct gpu_ops gv100_ops = {
 	},
 	.pmu = {
 		.falcon_base_addr = gp106_pmu_falcon_base_addr,
-		.init_wpr_region = gv100_pmu_init_acr,
-		.load_lsfalcon_ucode = gv100_load_falcon_ucode,
 		.pmu_queue_tail = gk20a_pmu_queue_tail,
 		.pmu_get_queue_head = pwr_pmu_queue_head_r,
 		.pmu_mutex_release = gk20a_pmu_mutex_release,
@@ -1126,8 +1123,6 @@ static const struct gpu_ops gv100_ops = {
 		.get_irqdest = gk20a_pmu_get_irqdest,
 		.alloc_super_surface = nvgpu_pmu_super_surface_alloc,
 		.is_debug_mode_enabled = gm20b_pmu_is_debug_mode_en,
-		.update_lspmu_cmdline_args =
-			gp106_update_lspmu_cmdline_args,
 		.setup_apertures = gp106_pmu_setup_apertures,
 		.secured_pmu_start = gm20b_secured_pmu_start,
 		.create_ssmd_lookup_table = nvgpu_pmu_create_ssmd_lookup_table,
@@ -1486,7 +1481,6 @@ int gv100_init_hal(struct gk20a *g)
 	/* for now */
 	nvgpu_set_enabled(g, NVGPU_PMU_PSTATE, false);
 
-	g->pmu_lsf_pmu_wpr_init_done = 0;
 	gops->clk.split_rail_support = false;
 	gops->clk.support_clk_freq_controller = false;
 	gops->clk.support_pmgr_domain = false;

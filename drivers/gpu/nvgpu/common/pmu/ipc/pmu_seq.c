@@ -67,10 +67,12 @@ int nvgpu_pmu_sequences_alloc(struct gk20a *g,
 }
 
 void nvgpu_pmu_sequences_free(struct gk20a *g,
-			      struct pmu_sequences *sequences)
+		struct pmu_sequences *sequences)
 {
 	nvgpu_mutex_destroy(&sequences->pmu_seq_lock);
-	nvgpu_kfree(g, sequences->seq);
+	if (sequences->seq != NULL) {
+		nvgpu_kfree(g, sequences->seq);
+	}
 }
 
 void nvgpu_pmu_sequences_init(struct pmu_sequences *sequences)

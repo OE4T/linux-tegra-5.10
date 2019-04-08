@@ -32,6 +32,7 @@
 #include <nvgpu/sec2.h>
 #include <nvgpu/acr.h>
 #include <nvgpu/power_features/pg.h>
+#include <nvgpu/pmu/lsfm.h>
 
 #include "gr_falcon_priv.h"
 
@@ -476,13 +477,12 @@ int nvgpu_gr_falcon_load_secure_ctxsw_ucode(struct gk20a *g)
 		g->ops.gr.falcon.configure_fmodel(g);
 	}
 
-	g->pmu_lsf_loaded_falcon_id = 0;
 	if (nvgpu_is_enabled(g, NVGPU_PMU_FECS_BOOTSTRAP_DONE)) {
 		/* this must be recovery so bootstrap fecs and gpccs */
 		if (!nvgpu_is_enabled(g, NVGPU_SEC_SECUREGPCCS)) {
 			nvgpu_gr_falcon_load_gpccs_with_bootloader(g);
-			err = g->ops.pmu.load_lsfalcon_ucode(g,
-					BIT32(FALCON_ID_FECS));
+			err = nvgpu_pmu_lsfm_bootstrap_ls_falcon(g, &g->pmu,
+					g->pmu.lsfm, BIT32(FALCON_ID_FECS));
 		} else {
 			/* bind WPR VA inst block */
 			nvgpu_gr_falcon_bind_instblk(g);
@@ -492,9 +492,10 @@ int nvgpu_gr_falcon_load_secure_ctxsw_ucode(struct gk20a *g)
 				err = nvgpu_sec2_bootstrap_ls_falcons(g,
 					&g->sec2, FALCON_ID_GPCCS);
 			} else if (g->support_ls_pmu) {
-				err = g->ops.pmu.load_lsfalcon_ucode(g,
-					BIT32(FALCON_ID_FECS) |
-					BIT32(FALCON_ID_GPCCS));
+				err = nvgpu_pmu_lsfm_bootstrap_ls_falcon(g,
+						&g->pmu, g->pmu.lsfm,
+						BIT32(FALCON_ID_FECS) |
+						BIT32(FALCON_ID_GPCCS));
 			} else {
 				err = nvgpu_acr_bootstrap_hs_acr(g, g->acr);
 				if (err != 0) {
@@ -531,8 +532,9 @@ int nvgpu_gr_falcon_load_secure_ctxsw_ucode(struct gk20a *g)
 				err = nvgpu_sec2_bootstrap_ls_falcons(g,
 					&g->sec2, FALCON_ID_GPCCS);
 			} else if (g->support_ls_pmu) {
-				err = g->ops.pmu.load_lsfalcon_ucode(g,
-							falcon_id_mask);
+				err = nvgpu_pmu_lsfm_bootstrap_ls_falcon(g,
+						&g->pmu, g->pmu.lsfm,
+						falcon_id_mask);
 			} else {
 				/* GR falcons bootstrapped by ACR */
 				err = 0;

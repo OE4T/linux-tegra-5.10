@@ -1092,9 +1092,6 @@ static const struct gpu_ops gv11b_ops = {
 		.dump_secure_fuses = pmu_dump_security_fuses_gm20b,
 		.pmu_dump_falcon_stats = gk20a_pmu_dump_falcon_stats,
 		/* PMU uocde */
-		.update_lspmu_cmdline_args = gm20b_update_lspmu_cmdline_args,
-		.init_wpr_region = gm20b_pmu_init_acr,
-		.load_lsfalcon_ucode = gp10b_load_falcon_ucode,
 		.save_zbc = gk20a_pmu_save_zbc,
 		.pmu_clear_bar0_host_err_status =
 			gm20b_clear_pmu_bar0_host_err_status,
@@ -1343,10 +1340,6 @@ int gv11b_init_hal(struct gk20a *g)
 		gops->pmu.pmu_nsbootstrap = gv11b_pmu_bootstrap;
 		gops->pmu.pmu_setup_hw_and_bootstrap =
 			gm20b_ns_pmu_setup_hw_and_bootstrap;
-
-		gops->pmu.load_lsfalcon_ucode = NULL;
-		gops->pmu.init_wpr_region = NULL;
-
 	}
 
 	nvgpu_set_enabled(g, NVGPU_PMU_FECS_BOOTSTRAP_DONE, false);

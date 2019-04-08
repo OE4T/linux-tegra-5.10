@@ -35,6 +35,7 @@
 #include <nvgpu/pmu/volt.h>
 #include <nvgpu/pmu/clk/clk.h>
 #include <nvgpu/pmu/allocator.h>
+#include <nvgpu/pmu/lsfm.h>
 
 /* PMU NS UCODE IMG */
 #define NVGPU_PMU_NS_UCODE_IMAGE	"gpmu_ucode.bin"
@@ -1617,14 +1618,17 @@ static void nvgpu_remove_pmu_support(struct nvgpu_pmu *pmu)
 
 	nvgpu_pmu_dmem_allocator_destroy(&pmu->dmem);
 
-	nvgpu_list_for_each_entry_safe(pboardobjgrp, pboardobjgrp_tmp,
-		&g->boardobjgrp_head, boardobjgrp, node) {
-		pboardobjgrp->destruct(pboardobjgrp);
-	}
+	if (nvgpu_is_enabled(g, NVGPU_PMU_PSTATE)) {
+		nvgpu_list_for_each_entry_safe(pboardobjgrp,
+			pboardobjgrp_tmp, &g->boardobjgrp_head,
+			boardobjgrp, node) {
+				pboardobjgrp->destruct(pboardobjgrp);
+		}
 
-	nvgpu_list_for_each_entry_safe(pboardobj, pboardobj_tmp,
+		nvgpu_list_for_each_entry_safe(pboardobj, pboardobj_tmp,
 			&g->boardobj_head, boardobj, node) {
-		pboardobj->destruct(pboardobj);
+				pboardobj->destruct(pboardobj);
+		}
 	}
 
 	if (pmu->fw_image != NULL) {
@@ -1650,6 +1654,8 @@ static void nvgpu_remove_pmu_support(struct nvgpu_pmu *pmu)
 	if (nvgpu_mem_is_valid(&pmu->super_surface_buf)) {
 		nvgpu_dma_unmap_free(vm, &pmu->super_surface_buf);
 	}
+
+	nvgpu_pmu_lsfm_deinit(g, pmu, pmu->lsfm);
 
 	nvgpu_mutex_destroy(&pmu->pmu_pg.elpg_mutex);
 	nvgpu_mutex_destroy(&pmu->pmu_pg.pg_mutex);
@@ -1758,36 +1764,35 @@ int nvgpu_early_init_pmu_sw(struct gk20a *g, struct nvgpu_pmu *pmu)
 
 	err = nvgpu_mutex_init(&pmu->pmu_pg.pg_mutex);
 	if (err != 0) {
-		goto fail_elpg;
+		goto init_failed;
 	}
 
 	err = nvgpu_mutex_init(&pmu->isr_mutex);
 	if (err != 0) {
-		goto fail_pg;
+		goto init_failed;
 	}
 
 	err = nvgpu_mutex_init(&pmu->pmu_copy_lock);
 	if (err != 0) {
-		goto fail_isr;
+		goto init_failed;
 	}
 
 	err = init_pmu_ucode(pmu);
 	if (err != 0) {
-		goto fail_pmu_copy;
+		goto init_failed;
+	}
+
+	err = nvgpu_pmu_lsfm_init(g, &pmu->lsfm);
+	if (err != 0) {
+		goto init_failed;
 	}
 
 	pmu->remove_support = nvgpu_remove_pmu_support;
 
 	goto exit;
 
-fail_pmu_copy:
-	nvgpu_mutex_destroy(&pmu->pmu_copy_lock);
-fail_isr:
-	nvgpu_mutex_destroy(&pmu->isr_mutex);
-fail_pg:
-	nvgpu_mutex_destroy(&pmu->pmu_pg.pg_mutex);
-fail_elpg:
-	nvgpu_mutex_destroy(&pmu->pmu_pg.elpg_mutex);
+init_failed:
+	nvgpu_remove_pmu_support(pmu);
 exit:
 	return err;
 }

@@ -30,11 +30,9 @@ struct gk20a;
 bool gp106_is_pmu_supported(struct gk20a *g);
 u32 gp106_pmu_pg_feature_list(struct gk20a *g, u32 pg_engine_id);
 bool gp106_pmu_is_lpwr_feature_supported(struct gk20a *g, u32 feature_id);
-int gp106_load_falcon_ucode(struct gk20a *g, u32 falconidmask);
 
 bool gp106_pmu_is_engine_in_reset(struct gk20a *g);
 int gp106_pmu_engine_reset(struct gk20a *g, bool do_reset);
-void gp106_update_lspmu_cmdline_args(struct gk20a *g);
 void gp106_pmu_setup_apertures(struct gk20a *g);
 u32 gp106_pmu_falcon_base_addr(void);
 

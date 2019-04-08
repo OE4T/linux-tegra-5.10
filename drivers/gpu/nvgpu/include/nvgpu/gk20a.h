@@ -1415,8 +1415,6 @@ struct gpu_ops {
 		void (*pmu_dump_elpg_stats)(struct nvgpu_pmu *pmu);
 		void (*pmu_dump_falcon_stats)(struct nvgpu_pmu *pmu);
 		void (*pmu_enable_irq)(struct nvgpu_pmu *pmu, bool enable);
-		int (*init_wpr_region)(struct gk20a *g);
-		int (*load_lsfalcon_ucode)(struct gk20a *g, u32 falconidmask);
 		void (*write_dmatrfbase)(struct gk20a *g, u32 addr);
 		int (*pmu_elpg_statistics)(struct gk20a *g, u32 pg_engine_id,
 			struct pmu_pg_stats_data *pg_stat_data);
@@ -1436,7 +1434,6 @@ struct gpu_ops {
 		bool (*is_engine_in_reset)(struct gk20a *g);
 		void (*handle_ext_irq)(struct gk20a *g, u32 intr);
 		void (*set_irqmask)(struct gk20a *g);
-		void (*update_lspmu_cmdline_args)(struct gk20a *g);
 		void (*setup_apertures)(struct gk20a *g);
 		u32 (*get_irqdest)(struct gk20a *g);
 		int (*alloc_super_surface)(struct gk20a *g,
@@ -2076,8 +2073,6 @@ struct gk20a {
 	u32 mc_intr_mask_restore[4];
 	/*used for change of enum zbc update cmd id from ver 0 to ver1*/
 	u8 pmu_ver_cmd_id_zbc_table_update;
-	bool pmu_lsf_pmu_wpr_init_done;
-	u32 pmu_lsf_loaded_falcon_id;
 
 	/* Needed to keep track of deferred interrupts */
 	nvgpu_atomic_t hw_irq_stall_count;

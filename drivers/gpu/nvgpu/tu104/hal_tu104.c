@@ -109,7 +109,6 @@
 #include "common/pmu/pmu_gm20b.h"
 #include "common/pmu/pmu_gp10b.h"
 #include "common/pmu/pmu_gp106.h"
-#include "common/pmu/pmu_gv100.h"
 #include "common/pmu/pmu_gv11b.h"
 #include "common/pmu/pmu_tu104.h"
 #include "common/pmu/pg/pg_sw_gp106.h"
@@ -1121,8 +1120,6 @@ static const struct gpu_ops tu104_ops = {
 	},
 	.pmu = {
 		.falcon_base_addr = gp106_pmu_falcon_base_addr,
-		.init_wpr_region = NULL,
-		.load_lsfalcon_ucode = gv100_load_falcon_ucode,
 		.pmu_queue_tail = gk20a_pmu_queue_tail,
 		.pmu_get_queue_head = pwr_pmu_queue_head_r,
 		.pmu_mutex_release = gk20a_pmu_mutex_release,
@@ -1165,8 +1162,6 @@ static const struct gpu_ops tu104_ops = {
 		.alloc_super_surface = nvgpu_pmu_super_surface_alloc,
 		.handle_ext_irq = gv11b_pmu_handle_ext_irq,
 		.is_debug_mode_enabled = gm20b_pmu_is_debug_mode_en,
-		.update_lspmu_cmdline_args =
-			gp106_update_lspmu_cmdline_args,
 		.setup_apertures = gp106_pmu_setup_apertures,
 		.secured_pmu_start = gm20b_secured_pmu_start,
 		.create_ssmd_lookup_table = nvgpu_pmu_create_ssmd_lookup_table,
@@ -1563,8 +1558,6 @@ int tu104_init_hal(struct gk20a *g)
 		nvgpu_set_enabled(g, NVGPU_PMU_PSTATE, true);
 		nvgpu_set_enabled(g, NVGPU_GR_USE_DMA_FOR_FW_BOOTSTRAP, true);
 	}
-
-	g->pmu_lsf_pmu_wpr_init_done = 0;
 
 	g->name = "tu10x";
 

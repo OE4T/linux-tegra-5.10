@@ -144,7 +144,6 @@ srcs += common/sim.c \
 	common/pmu/pg/pg_sw_gp10b.c \
 	common/pmu/pg/pg_sw_gp106.c \
 	common/pmu/pg/pg_sw_gv11b.c \
-	common/pmu/pmu_gv100.c \
 	common/pmu/pmu_tu104.c \
 	common/pmu/ipc/pmu_cmd.c \
 	common/pmu/ipc/pmu_msg.c \
@@ -208,6 +207,11 @@ srcs += common/sim.c \
 	common/regops/regops_gv100.c \
 	common/regops/regops_gv11b.c \
 	common/regops/regops_tu104.c \
+	common/pmu/lsfm/lsfm.c \
+	common/pmu/lsfm/lsfm_sw_gm20b.c \
+	common/pmu/lsfm/lsfm_sw_gp10b.c \
+	common/pmu/lsfm/lsfm_sw_gv100.c \
+	common/pmu/lsfm/lsfm_sw_tu104.c \
 	common/pmu/pstate/pstate.c \
 	common/pmu/volt/volt_dev.c \
 	common/pmu/volt/volt_pmu.c \

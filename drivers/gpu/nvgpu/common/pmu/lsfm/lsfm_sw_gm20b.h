@@ -1,7 +1,5 @@
 /*
- * GV100 PMU
- *
- * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -22,12 +20,15 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NVGPU_PMU_GV100_H
-#define NVGPU_PMU_GV100_H
+#ifndef NVGPU_LSFM_SW_GM20B_H
+#define NVGPU_LSFM_SW_GM20B_H
 
-struct gk20a;
+int gm20b_pmu_lsfm_init_acr_wpr_region(struct gk20a *g, struct nvgpu_pmu *pmu);
+void gm20b_pmu_lsfm_handle_bootstrap_falcon_msg(struct gk20a *g,
+	struct pmu_msg *msg, void *param, u32 status);
+int gm20b_pmu_lsfm_pmu_cmd_line_args_copy(struct gk20a *g,
+	struct nvgpu_pmu *pmu);
 
-int gv100_pmu_init_acr(struct gk20a *g);
-int gv100_load_falcon_ucode(struct gk20a *g, u32 falconidmask);
+void nvgpu_gm20b_lsfm_sw_init(struct gk20a *g, struct nvgpu_pmu_lsfm *lsfm);
 
-#endif /* NVGPU_PMU_GV100_H */
+#endif /*NVGPU_LSFM_SW_GM20B_H*/

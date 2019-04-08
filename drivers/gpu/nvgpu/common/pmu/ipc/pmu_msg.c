@@ -28,6 +28,7 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/pmu/volt.h>
 #include <nvgpu/pmu/therm.h>
+#include <nvgpu/pmu/lsfm.h>
 
 static int pmu_payload_extract(struct nvgpu_pmu *pmu, struct pmu_sequence *seq)
 {
@@ -490,9 +491,7 @@ int nvgpu_pmu_process_message(struct nvgpu_pmu *pmu)
 			return err;
 		}
 
-		if (g->ops.pmu.init_wpr_region != NULL) {
-			g->ops.pmu.init_wpr_region(g);
-		}
+		nvgpu_pmu_lsfm_int_wpr_region(g, pmu, pmu->lsfm);
 
 		if (nvgpu_is_enabled(g, NVGPU_PMU_PERFMON)) {
 			g->ops.pmu.pmu_init_perfmon(pmu);
@@ -550,18 +549,7 @@ void nvgpu_pmu_rpc_handler(struct gk20a *g, struct pmu_msg *msg,
 
 	switch (msg->hdr.unit_id) {
 	case PMU_UNIT_ACR:
-		switch (rpc.function) {
-		case NV_PMU_RPC_ID_ACR_INIT_WPR_REGION:
-			nvgpu_pmu_dbg(g,
-				"reply NV_PMU_RPC_ID_ACR_INIT_WPR_REGION");
-			g->pmu_lsf_pmu_wpr_init_done = true;
-			break;
-		case NV_PMU_RPC_ID_ACR_BOOTSTRAP_GR_FALCONS:
-			nvgpu_pmu_dbg(g,
-				"reply NV_PMU_RPC_ID_ACR_BOOTSTRAP_GR_FALCONS");
-			g->pmu_lsf_loaded_falcon_id = 1;
-			break;
-		}
+		nvgpu_pmu_lsfm_rpc_handler(g, rpc_payload);
 		break;
 	case PMU_UNIT_PERFMON_T18X:
 	case PMU_UNIT_PERFMON:

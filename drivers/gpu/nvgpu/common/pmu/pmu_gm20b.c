@@ -35,7 +35,6 @@
 #include "pmu_gk20a.h"
 #include "pmu_gm20b.h"
 
-#include <nvgpu/hw/gm20b/hw_gr_gm20b.h>
 #include <nvgpu/hw/gm20b/hw_pwr_gm20b.h>
 
 /* PROD settings for ELPG sequencing registers*/
@@ -120,144 +119,6 @@ int gm20b_pmu_setup_elpg(struct gk20a *g)
 	return ret;
 }
 
-static void pmu_handle_acr_init_wpr_msg(struct gk20a *g, struct pmu_msg *msg,
-			void *param, u32 status)
-{
-	nvgpu_log_fn(g, " ");
-
-	nvgpu_pmu_dbg(g, "reply PMU_ACR_CMD_ID_INIT_WPR_REGION");
-
-	if (msg->msg.acr.acrmsg.errorcode == PMU_ACR_SUCCESS) {
-		g->pmu_lsf_pmu_wpr_init_done = true;
-	}
-	nvgpu_log_fn(g, "done");
-}
-
-
-int gm20b_pmu_init_acr(struct gk20a *g)
-{
-	struct nvgpu_pmu *pmu = &g->pmu;
-	struct pmu_cmd cmd;
-	size_t tmp_size;
-
-	nvgpu_log_fn(g, " ");
-
-	/* init ACR */
-	(void) memset(&cmd, 0, sizeof(struct pmu_cmd));
-	cmd.hdr.unit_id = PMU_UNIT_ACR;
-	tmp_size = PMU_CMD_HDR_SIZE +
-		   sizeof(struct pmu_acr_cmd_init_wpr_details);
-	nvgpu_assert(tmp_size <= (size_t)U8_MAX);
-	cmd.hdr.size = (u8)tmp_size;
-	cmd.cmd.acr.init_wpr.cmd_type = PMU_ACR_CMD_ID_INIT_WPR_REGION;
-	cmd.cmd.acr.init_wpr.regionid = 0x01U;
-	cmd.cmd.acr.init_wpr.wproffset = 0x00U;
-	nvgpu_pmu_dbg(g, "cmd post PMU_ACR_CMD_ID_INIT_WPR_REGION");
-	nvgpu_pmu_cmd_post(g, &cmd, NULL, PMU_COMMAND_QUEUE_HPQ,
-			pmu_handle_acr_init_wpr_msg, pmu);
-
-	nvgpu_log_fn(g, "done");
-	return 0;
-}
-
-void pmu_handle_fecs_boot_acr_msg(struct gk20a *g, struct pmu_msg *msg,
-			void *param, u32 status)
-{
-
-	nvgpu_log_fn(g, " ");
-
-
-	nvgpu_pmu_dbg(g, "reply PMU_ACR_CMD_ID_BOOTSTRAP_FALCON");
-
-	nvgpu_pmu_dbg(g, "response code = %x\n", msg->msg.acr.acrmsg.falconid);
-	g->pmu_lsf_loaded_falcon_id = msg->msg.acr.acrmsg.falconid;
-	nvgpu_log_fn(g, "done");
-}
-
-static int pmu_gm20b_ctx_wait_lsf_ready(struct gk20a *g, u32 timeout_ms,
-					u32 val)
-{
-	u32 delay = GR_FECS_POLL_INTERVAL;
-	u32 reg;
-	struct nvgpu_timeout timeout;
-
-	nvgpu_log_fn(g, " ");
-	reg = gk20a_readl(g, gr_fecs_ctxsw_mailbox_r(0));
-
-	nvgpu_timeout_init(g, &timeout, timeout_ms, NVGPU_TIMER_CPU_TIMER);
-
-	do {
-		reg = gk20a_readl(g, gr_fecs_ctxsw_mailbox_r(0));
-		if (reg == val) {
-			return 0;
-		}
-		nvgpu_udelay(delay);
-	} while (nvgpu_timeout_expired(&timeout) == 0);
-
-	return -ETIMEDOUT;
-}
-
-void gm20b_pmu_load_lsf(struct gk20a *g, u32 falcon_id, u32 flags)
-{
-	struct nvgpu_pmu *pmu = &g->pmu;
-	struct pmu_cmd cmd;
-	size_t tmp_size;
-
-	nvgpu_log_fn(g, " ");
-
-	nvgpu_pmu_dbg(g, "wprinit status = %x\n", g->pmu_lsf_pmu_wpr_init_done);
-	if (g->pmu_lsf_pmu_wpr_init_done) {
-		/* send message to load FECS falcon */
-		(void) memset(&cmd, 0, sizeof(struct pmu_cmd));
-		cmd.hdr.unit_id = PMU_UNIT_ACR;
-		tmp_size = PMU_CMD_HDR_SIZE +
-				sizeof(struct pmu_acr_cmd_bootstrap_falcon);
-		nvgpu_assert(tmp_size <= (size_t)U8_MAX);
-		cmd.hdr.size = (u8)tmp_size;
-		cmd.cmd.acr.bootstrap_falcon.cmd_type =
-		  PMU_ACR_CMD_ID_BOOTSTRAP_FALCON;
-		cmd.cmd.acr.bootstrap_falcon.flags = flags;
-		cmd.cmd.acr.bootstrap_falcon.falconid = falcon_id;
-		nvgpu_pmu_dbg(g, "cmd post PMU_ACR_CMD_ID_BOOTSTRAP_FALCON: %x\n",
-				falcon_id);
-		nvgpu_pmu_cmd_post(g, &cmd, NULL, PMU_COMMAND_QUEUE_HPQ,
-				pmu_handle_fecs_boot_acr_msg, pmu);
-	}
-
-	nvgpu_log_fn(g, "done");
-	return;
-}
-
-int gm20b_load_falcon_ucode(struct gk20a *g, u32 falconidmask)
-{
-	int  err = 0;
-	u32 flags = PMU_ACR_CMD_BOOTSTRAP_FALCON_FLAGS_RESET_YES;
-	u32 timeout = nvgpu_get_poll_timeout(g);
-
-	/* GM20B PMU supports loading FECS only */
-	if (!(falconidmask == BIT32(FALCON_ID_FECS))) {
-		return -EINVAL;
-	}
-	/* check whether pmu is ready to bootstrap lsf if not wait for it */
-	if (!g->pmu_lsf_pmu_wpr_init_done) {
-		pmu_wait_message_cond(&g->pmu,
-				nvgpu_get_poll_timeout(g),
-				&g->pmu_lsf_pmu_wpr_init_done, 1);
-		/* check again if it still not ready indicate an error */
-		if (!g->pmu_lsf_pmu_wpr_init_done) {
-			nvgpu_err(g, "PMU not ready to load LSF");
-			return -ETIMEDOUT;
-		}
-	}
-	/* load FECS */
-	gk20a_writel(g,
-		gr_fecs_ctxsw_mailbox_clear_r(0), ~U32(0x0U));
-	gm20b_pmu_load_lsf(g, FALCON_ID_FECS, flags);
-	err = pmu_gm20b_ctx_wait_lsf_ready(g, timeout,
-			0x55AA55AAU);
-	return err;
-}
-
 void gm20b_write_dmatrfbase(struct gk20a *g, u32 addr)
 {
 	gk20a_writel(g, pwr_falcon_dmatrfbase_r(), addr);
@@ -331,27 +192,6 @@ void gm20b_pmu_setup_apertures(struct gk20a *g)
 	gk20a_writel(g, pwr_fbif_transcfg_r(GK20A_PMU_DMAIDX_PHYS_SYS_NCOH),
 			pwr_fbif_transcfg_mem_type_physical_f() |
 			pwr_fbif_transcfg_target_noncoherent_sysmem_f());
-}
-
-void gm20b_update_lspmu_cmdline_args(struct gk20a *g)
-{
-	struct nvgpu_pmu *pmu = &g->pmu;
-	u32 cmd_line_args_offset = 0;
-
-	nvgpu_pmu_get_cmd_line_args_offset(g, &cmd_line_args_offset);
-
-	/*Copying pmu cmdline args*/
-	g->ops.pmu_ver.set_pmu_cmdline_args_cpu_freq(pmu,
-		g->ops.clk.get_rate(g, CTRL_CLK_DOMAIN_PWRCLK));
-	g->ops.pmu_ver.set_pmu_cmdline_args_secure_mode(pmu, 1);
-	g->ops.pmu_ver.set_pmu_cmdline_args_trace_size(
-		pmu, GK20A_PMU_TRACE_BUFSIZE);
-	g->ops.pmu_ver.set_pmu_cmdline_args_trace_dma_base(pmu);
-	g->ops.pmu_ver.set_pmu_cmdline_args_trace_dma_idx(
-		pmu, GK20A_PMU_DMAIDX_VIRT);
-	nvgpu_falcon_copy_to_dmem(&pmu->flcn, cmd_line_args_offset,
-		(u8 *)(g->ops.pmu_ver.get_pmu_cmdline_args_ptr(pmu)),
-		g->ops.pmu_ver.get_pmu_cmdline_args_size(pmu), 0);
 }
 
 void gm20b_pmu_flcn_setup_boot_config(struct gk20a *g)

@@ -36,6 +36,7 @@
 #include <nvgpu/string.h>
 #include <nvgpu/power_features/cg.h>
 #include <nvgpu/nvgpu_err.h>
+#include <nvgpu/pmu/lsfm.h>
 
 static void pmu_report_error(struct gk20a *g, u32 err_type,
 		u32 status, u32 pmu_err_type)
@@ -280,8 +281,10 @@ int nvgpu_init_pmu_support(struct gk20a *g)
 			g->ops.pmu.setup_apertures(g);
 		}
 
-		if (g->ops.pmu.update_lspmu_cmdline_args != NULL) {
-			g->ops.pmu.update_lspmu_cmdline_args(g);
+		err = nvgpu_pmu_lsfm_ls_pmu_cmdline_args_copy(g, pmu,
+			pmu->lsfm);
+		if (err != 0) {
+			goto exit;
 		}
 
 		if (g->ops.pmu.pmu_enable_irq != NULL) {
@@ -366,7 +369,6 @@ int nvgpu_pmu_destroy(struct gk20a *g)
 	pmu->pmu_ready = false;
 	pmu->perfmon_ready = false;
 	pmu->pmu_pg.zbc_ready = false;
-	g->pmu_lsf_pmu_wpr_init_done = false;
 	nvgpu_set_enabled(g, NVGPU_PMU_FECS_BOOTSTRAP_DONE, false);
 
 	nvgpu_log_fn(g, "done");
