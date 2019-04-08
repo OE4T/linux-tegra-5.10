@@ -223,6 +223,7 @@ struct capture_channel_config {
 	 * don't stop the channel.
 	 */
 	uint32_t error_mask_correctable;
+#define CAPTURE_CHANNEL_ERROR_VI_FRAME_START_TIMEOUT	(U32_C(1) << 23)
 #define CAPTURE_CHANNEL_ERROR_VI_PFSD_FAULT		(U32_C(1) << 22)
 #define CAPTURE_CHANNEL_ERROR_ERROR_EMBED_INCOMPLETE	(U32_C(1) << 21)
 #define CAPTURE_CHANNEL_ERROR_INCOMPLETE		(U32_C(1) << 20)
