@@ -952,7 +952,6 @@ struct gpu_ops {
 		int (*init_fifo_setup_hw)(struct gk20a *g);
 		int (*preempt_channel)(struct gk20a *g, struct channel_gk20a *ch);
 		int (*preempt_tsg)(struct gk20a *g, struct tsg_gk20a *tsg);
-		void (*apply_pb_timeout)(struct gk20a *g);
 		int (*tsg_set_timeslice)(struct tsg_gk20a *tsg, u32 timeslice);
 		u32 (*default_timeslice_us)(struct gk20a *g);
 		int (*init_pbdma_info)(struct fifo_gk20a *f);

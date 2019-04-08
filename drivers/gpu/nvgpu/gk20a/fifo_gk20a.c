@@ -96,9 +96,6 @@ int gk20a_init_fifo_reset_enable_hw(struct gk20a *g)
 		nvgpu_log_info(g, "pbdma_timeout reg val = 0x%08x", timeout);
 		gk20a_writel(g, pbdma_timeout_r(i), timeout);
 	}
-	if (g->ops.fifo.apply_pb_timeout != NULL) {
-		g->ops.fifo.apply_pb_timeout(g);
-	}
 
 	g->ops.fifo.intr_0_enable(g, true);
 	g->ops.fifo.intr_1_enable(g, true);
