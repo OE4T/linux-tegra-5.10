@@ -1,8 +1,4 @@
 /*
- * drivers/video/tegra/host/gk20a/fifo_gk20a.h
- *
- * GK20A graphics copy engine (gr host)
- *
  * Copyright (c) 2011-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
@@ -23,20 +19,18 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef NVGPU_GK20A_CE2_GK20A_H
-#define NVGPU_GK20A_CE2_GK20A_H
+#ifndef NVGPU_CE_H
+#define NVGPU_CE_H
 
-struct channel_gk20a;
-struct tsg_gk20a;
+#include <nvgpu/types.h>
+
 struct gk20a;
-
-void gk20a_ce2_isr(struct gk20a *g, u32 inst_id, u32 pri_base);
-u32 gk20a_ce2_nonstall_isr(struct gk20a *g, u32 inst_id, u32 pri_base);
+struct nvgpu_fence_type;
 
 #define NVGPU_CE_INVAL_CTX_ID	~U32(0U)
 
 /* CE command utility macros */
-#define NVGPU_CE_LOWER_ADDRESS_OFFSET_MASK 0xffffffffU
+#define NVGPU_CE_LOWER_ADDRESS_OFFSET_MASK U32_MAX
 #define NVGPU_CE_UPPER_ADDRESS_OFFSET_MASK 0xffU
 
 #define NVGPU_CE_MAX_INFLIGHT_JOBS 32U
@@ -75,58 +69,19 @@ enum {
 	NVGPU_CE_GPU_CTX_DELETED           = (1 << 1),
 };
 
-/* global ce app db */
-struct gk20a_ce_app {
-	bool initialised;
-	struct nvgpu_mutex app_mutex;
-	int app_state;
-
-	struct nvgpu_list_node allocated_contexts;
-	u32 ctx_count;
-	u32 next_ctx_id;
-};
-
-/* ce context db */
-struct gk20a_gpu_ctx {
-	struct gk20a *g;
-	u32 ctx_id;
-	struct nvgpu_mutex gpu_ctx_mutex;
-	int gpu_ctx_state;
-
-	/* tsg related data */
-	struct tsg_gk20a *tsg;
-
-	/* channel related data */
-	struct channel_gk20a *ch;
-	struct vm_gk20a *vm;
-
-	/* cmd buf mem_desc */
-	struct nvgpu_mem cmd_buf_mem;
-	struct nvgpu_fence_type *postfences[NVGPU_CE_MAX_INFLIGHT_JOBS];
-
-	struct nvgpu_list_node list;
-
-	u32 cmd_buf_read_queue_offset;
-};
-
-static inline struct gk20a_gpu_ctx *
-gk20a_gpu_ctx_from_list(struct nvgpu_list_node *node)
-{
-	return (struct gk20a_gpu_ctx *)
-		((uintptr_t)node - offsetof(struct gk20a_gpu_ctx, list));
-};
-
 /* global CE app related apis */
-int gk20a_init_ce_support(struct gk20a *g);
-void gk20a_ce_suspend(struct gk20a *g);
-void gk20a_ce_destroy(struct gk20a *g);
+int nvgpu_ce_init_support(struct gk20a *g);
+void nvgpu_ce_suspend(struct gk20a *g);
+void nvgpu_ce_destroy(struct gk20a *g);
 
 /* CE app utility functions */
-u32 gk20a_ce_create_context(struct gk20a *g,
+u32 nvgpu_ce_create_context(struct gk20a *g,
 		u32 runlist_id,
 		int timeslice,
 		int runlist_level);
-int gk20a_ce_execute_ops(struct gk20a *g,
+void nvgpu_ce_delete_context(struct gk20a *g,
+		u32 ce_ctx_id);
+int nvgpu_ce_execute_ops(struct gk20a *g,
 		u32 ce_ctx_id,
 		u64 src_buf,
 		u64 dst_buf,
@@ -136,18 +91,5 @@ int gk20a_ce_execute_ops(struct gk20a *g,
 		u32 request_operation,
 		u32 submit_flags,
 		struct nvgpu_fence_type **fence_out);
-void gk20a_ce_delete_context_priv(struct gk20a *g,
-		u32 ce_ctx_id);
-void gk20a_ce_delete_context(struct gk20a *g,
-		u32 ce_ctx_id);
-u32 gk20a_ce_prepare_submit(u64 src_buf,
-		u64 dst_buf,
-		u64 size,
-		u32 *cmd_buf_cpu_va,
-		u32 max_cmd_buf_size,
-		unsigned int payload,
-		u32 launch_flags,
-		u32 request_operation,
-		u32 dma_copy_class);
 
-#endif /*NVGPU_GK20A_CE2_GK20A_H*/
+#endif /*NVGPU_CE_H*/

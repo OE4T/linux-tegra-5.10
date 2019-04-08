@@ -1,8 +1,7 @@
 /*
+ * Pascal GPU series Copy Engine.
  *
- * Volta GPU series copy engine
- *
- * Copyright (c) 2016-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -22,14 +21,14 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef NVGPU_CE_GV11B_H
-#define NVGPU_CE_GV11B_H
+#ifndef NVGPU_CE_GP10B_H
+#define NVGPU_CE_GP10B_H
+
+#include <nvgpu/types.h>
 
 struct gk20a;
 
-void gv11b_ce_mthd_buffer_fault_in_bar2_fault(struct gk20a *g);
-u32 gv11b_ce_get_num_lce(struct gk20a *g);
-u32 gv11b_ce_get_num_pce(struct gk20a *g);
-void gv11b_ce_isr(struct gk20a *g, u32 inst_id, u32 pri_base);
+void gp10b_ce_stall_isr(struct gk20a *g, u32 inst_id, u32 pri_base);
+u32 gp10b_ce_nonstall_isr(struct gk20a *g, u32 inst_id, u32 pri_base);
 
-#endif /* NVGPU_CE_GV11B_H */
+#endif /* NVGPU_CE_GP10B_H */

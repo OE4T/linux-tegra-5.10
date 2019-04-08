@@ -29,7 +29,7 @@ struct fifo_gk20a;
 struct channel_gk20a;
 struct nvgpu_gr;
 struct sim_nvgpu;
-struct gk20a_ce_app;
+struct nvgpu_ce_app;
 struct gk20a_ctxsw_trace;
 struct nvgpu_mem_alloc_tracker;
 struct dbg_profiler_object_data;
@@ -268,7 +268,7 @@ struct gpu_ops {
 					u32 hw_id, u32 inst, u32 err_id,
 					u32 status);
 		} err_ops;
-	} ce2;
+	} ce;
 	struct {
 		void (*access_smpc_reg)(struct gk20a *g, u32 quad, u32 offset);
 		int (*handle_sw_method)(struct gk20a *g, u32 addr,
@@ -2218,7 +2218,7 @@ struct gk20a {
 
 	nvgpu_atomic_t clk_arb_global_nr;
 
-	struct gk20a_ce_app *ce_app;
+	struct nvgpu_ce_app *ce_app;
 
 	bool ltc_intr_en_illegal_compstat;
 

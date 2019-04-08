@@ -105,7 +105,7 @@ static unsigned int gv11b_tsg_get_eng_method_buffer_size(struct gk20a *g)
 {
 	unsigned int buffer_size;
 
-	buffer_size =  ((9U + 1U + 3U) * g->ops.ce2.get_num_pce(g)) + 2U;
+	buffer_size =  ((9U + 1U + 3U) * g->ops.ce.get_num_pce(g)) + 2U;
 	buffer_size = (27U * 5U * buffer_size);
 	buffer_size = roundup(buffer_size, PAGE_SIZE);
 	nvgpu_log_info(g, "method buffer size in bytes %d", buffer_size);

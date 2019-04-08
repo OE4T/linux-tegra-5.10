@@ -204,8 +204,8 @@ u32 nvgpu_engine_interrupt_mask(struct gk20a *g)
 		engine_enum = g->fifo.engine_info[active_engine_id].engine_enum;
 		if (((engine_enum == NVGPU_ENGINE_GRCE_GK20A) ||
 		     (engine_enum == NVGPU_ENGINE_ASYNC_CE_GK20A)) &&
-		    ((g->ops.ce2.isr_stall == NULL) ||
-		     (g->ops.ce2.isr_nonstall == NULL))) {
+		    ((g->ops.ce.isr_stall == NULL) ||
+		     (g->ops.ce.isr_nonstall == NULL))) {
 				continue;
 		}
 

@@ -21,6 +21,7 @@
  */
 
 #include <nvgpu/bug.h>
+#include <nvgpu/ce.h>
 #include <nvgpu/timers.h>
 #include <nvgpu/dma.h>
 #include <nvgpu/vidmem.h>
@@ -32,7 +33,6 @@
 #include <nvgpu/fence.h>
 
 #include "gk20a/mm_gk20a.h"
-#include "gk20a/ce2_gk20a.h"
 
 /*
  * This is expected to be called from the shutdown path (or the error path in
@@ -104,7 +104,7 @@ static int __nvgpu_vidmem_do_clear_all(struct gk20a *g)
 
 	vidmem_dbg(g, "Clearing all VIDMEM:");
 
-	err = gk20a_ce_execute_ops(g,
+	err = nvgpu_ce_execute_ops(g,
 			mm->vidmem.ce_ctx_id,
 			0,
 			mm->vidmem.base,
@@ -472,7 +472,7 @@ int nvgpu_vidmem_clear(struct gk20a *g, struct nvgpu_mem *mem)
 			nvgpu_fence_put(last_fence);
 		}
 
-		err = gk20a_ce_execute_ops(g,
+		err = nvgpu_ce_execute_ops(g,
 			g->mm.vidmem.ce_ctx_id,
 			0,
 			nvgpu_sgt_get_phys(g, &alloc->sgt, sgl),
@@ -485,7 +485,7 @@ int nvgpu_vidmem_clear(struct gk20a *g, struct nvgpu_mem *mem)
 
 		if (err != 0) {
 			nvgpu_err(g,
-				"Failed gk20a_ce_execute_ops[%d]", err);
+				"Failed nvgpu_ce_execute_ops[%d]", err);
 			return err;
 		}
 

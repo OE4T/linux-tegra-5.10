@@ -47,6 +47,7 @@
 #include "hal/bus/bus_gk20a.h"
 #include "hal/bus/bus_gm20b.h"
 #include "hal/bus/bus_gp10b.h"
+#include "hal/ce/ce_gp10b.h"
 #include "hal/class/class_gp10b.h"
 #include "hal/priv_ring/priv_ring_gm20b.h"
 #include "hal/priv_ring/priv_ring_gp10b.h"
@@ -117,7 +118,6 @@
 
 #include "gp10b/gr_gp10b.h"
 #include "gp10b/mm_gp10b.h"
-#include "gp10b/ce_gp10b.h"
 
 #include "gm20b/gr_gm20b.h"
 #include "gm20b/mm_gm20b.h"
@@ -273,8 +273,8 @@ static const struct gpu_ops gp10b_ops = {
 		.ctrl = gp10b_cbc_ctrl,
 		.fix_config = gm20b_cbc_fix_config,
 	},
-	.ce2 = {
-		.isr_stall = gp10b_ce_isr,
+	.ce = {
+		.isr_stall = gp10b_ce_stall_isr,
 		.isr_nonstall = gp10b_ce_nonstall_isr,
 	},
 	.gr = {
@@ -1151,7 +1151,7 @@ int gp10b_init_hal(struct gk20a *g)
 
 	gops->ltc = gp10b_ops.ltc;
 	gops->cbc = gp10b_ops.cbc;
-	gops->ce2 = gp10b_ops.ce2;
+	gops->ce = gp10b_ops.ce;
 	gops->gr = gp10b_ops.gr;
 	gops->class = gp10b_ops.class;
 	gops->gr.ctxsw_prog = gp10b_ops.gr.ctxsw_prog;

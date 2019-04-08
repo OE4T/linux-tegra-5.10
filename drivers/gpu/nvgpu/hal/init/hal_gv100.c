@@ -31,6 +31,8 @@
 #include "hal/bus/bus_gk20a.h"
 #include "hal/bus/bus_gp10b.h"
 #include "hal/bus/bus_gv100.h"
+#include "hal/ce/ce_gp10b.h"
+#include "hal/ce/ce_gv11b.h"
 #include "hal/class/class_gv11b.h"
 #include "hal/priv_ring/priv_ring_gm20b.h"
 #include "hal/priv_ring/priv_ring_gp10b.h"
@@ -134,11 +136,9 @@
 #include "gp106/bios_gp106.h"
 
 #include "gp10b/gr_gp10b.h"
-#include "gp10b/ce_gp10b.h"
 #include "gp10b/mm_gp10b.h"
 
 #include "gv11b/gr_gv11b.h"
-#include "gv11b/ce_gv11b.h"
 #include "gv11b/mm_gv11b.h"
 #include "gv11b/fifo_gv11b.h"
 
@@ -370,8 +370,8 @@ static const struct gpu_ops gv100_ops = {
 		.ctrl = gp10b_cbc_ctrl,
 		.fix_config = NULL,
 	},
-	.ce2 = {
-		.isr_stall = gv11b_ce_isr,
+	.ce = {
+		.isr_stall = gv11b_ce_stall_isr,
 		.isr_nonstall = gp10b_ce_nonstall_isr,
 		.get_num_pce = gv11b_ce_get_num_pce,
 	},
@@ -1430,7 +1430,7 @@ int gv100_init_hal(struct gk20a *g)
 	gops->bios = gv100_ops.bios;
 	gops->ltc = gv100_ops.ltc;
 	gops->cbc = gv100_ops.cbc;
-	gops->ce2 = gv100_ops.ce2;
+	gops->ce = gv100_ops.ce;
 	gops->gr = gv100_ops.gr;
 	gops->class = gv100_ops.class;
 	gops->gr.ctxsw_prog = gv100_ops.gr.ctxsw_prog;

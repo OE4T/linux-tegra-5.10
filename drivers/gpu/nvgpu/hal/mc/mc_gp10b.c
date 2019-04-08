@@ -117,8 +117,8 @@ void mc_gp10b_isr_stall(struct gk20a *g)
 		/* CE Engine */
 		if (((engine_enum == NVGPU_ENGINE_GRCE_GK20A) ||
 				(engine_enum == NVGPU_ENGINE_ASYNC_CE_GK20A)) &&
-				(g->ops.ce2.isr_stall != NULL)) {
-			g->ops.ce2.isr_stall(g,
+				(g->ops.ce.isr_stall != NULL)) {
+			g->ops.ce.isr_stall(g,
 				g->fifo.engine_info[act_eng_id].inst_id,
 				g->fifo.engine_info[act_eng_id].pri_base);
 		}

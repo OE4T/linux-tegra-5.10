@@ -44,6 +44,7 @@
 #include "hal/mc/mc_gm20b.h"
 #include "hal/bus/bus_gm20b.h"
 #include "hal/bus/bus_gk20a.h"
+#include "hal/ce/ce2_gk20a.h"
 #include "hal/class/class_gm20b.h"
 #include "hal/priv_ring/priv_ring_gm20b.h"
 #include "hal/power_features/cg/gm20b_gating_reglist.h"
@@ -89,8 +90,6 @@
 #include "common/fifo/channel_gk20a.h"
 #include "common/fifo/channel_gm20b.h"
 #include "common/pmu/pg/pg_sw_gm20b.h"
-
-#include "gk20a/ce2_gk20a.h"
 
 #include "gm20b/gr_gm20b.h"
 #include "gm20b/mm_gm20b.h"
@@ -240,8 +239,8 @@ static const struct gpu_ops gm20b_ops = {
 		.alloc_comptags = gm20b_cbc_alloc_comptags,
 		.fix_config = gm20b_cbc_fix_config,
 	},
-	.ce2 = {
-		.isr_stall = gk20a_ce2_isr,
+	.ce = {
+		.isr_stall = gk20a_ce2_stall_isr,
 		.isr_nonstall = gk20a_ce2_nonstall_isr,
 	},
 	.gr = {
@@ -1049,7 +1048,7 @@ int gm20b_init_hal(struct gk20a *g)
 
 	gops->ltc = gm20b_ops.ltc;
 	gops->cbc = gm20b_ops.cbc;
-	gops->ce2 = gm20b_ops.ce2;
+	gops->ce = gm20b_ops.ce;
 	gops->gr = gm20b_ops.gr;
 	gops->class = gm20b_ops.class;
 	gops->gr.ctxsw_prog = gm20b_ops.gr.ctxsw_prog;

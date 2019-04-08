@@ -43,7 +43,9 @@
 #include "gk20a/mm_gk20a.h"
 
 #include "gv11b/fifo_gv11b.h"
-#include "gv11b/ce_gv11b.h"
+
+/* TODO: add hals for gv11b_ce_get_num_lce and gv11b_ce_mthd_buffer_fault_in_bar2_fault */
+#include "hal/ce/ce_gv11b.h"
 
 #include "fb_gm20b.h"
 #include "fb_gp10b.h"

@@ -1,7 +1,5 @@
 /*
- * GK20A Graphics Copy Engine  (gr host)
- *
- * Copyright (c) 2011-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -22,99 +20,164 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#include <nvgpu/kmem.h>
-#include <nvgpu/dma.h>
-#include <nvgpu/os_sched.h>
-#include <nvgpu/log.h>
-#include <nvgpu/enabled.h>
-#include <nvgpu/io.h>
-#include <nvgpu/utils.h>
+#include <nvgpu/types.h>
 #include <nvgpu/gk20a.h>
+#include <nvgpu/os_sched.h>
 #include <nvgpu/channel.h>
-#include <nvgpu/engines.h>
-#include <nvgpu/power_features/cg.h>
+#include <nvgpu/dma.h>
+#include <nvgpu/utils.h>
 #include <nvgpu/fence.h>
-#include <nvgpu/barrier.h>
+#include <nvgpu/ce.h>
+#include <nvgpu/power_features/cg.h>
 
-#include "gk20a/ce2_gk20a.h"
+#include "common/ce/ce_priv.h"
 
-#include <nvgpu/hw/gk20a/hw_ce2_gk20a.h>
-#include <nvgpu/hw/gk20a/hw_pbdma_gk20a.h>
-#include <nvgpu/hw/gk20a/hw_top_gk20a.h>
-#include <nvgpu/hw/gk20a/hw_gr_gk20a.h>
-
-/*
- * Copy engine defines line size in pixels
- */
-#define MAX_CE_SHIFT	31U	/* 4Gpixels -1 */
-#define MAX_CE_MASK	((u32) (~(~0U << MAX_CE_SHIFT)))
-#define MAX_CE_ALIGN(a)	((a) & MAX_CE_MASK)
-
-
-static u32 ce2_nonblockpipe_isr(struct gk20a *g, u32 fifo_intr)
+static inline u32 nvgpu_ce_get_valid_launch_flags(struct gk20a *g,
+		u32 launch_flags)
 {
-	nvgpu_log(g, gpu_dbg_intr, "ce2 non-blocking pipe interrupt\n");
-
-	return ce2_intr_status_nonblockpipe_pending_f();
+	/*
+	 * there is no local memory available,
+	 * don't allow local memory related CE flags
+	 */
+	if (g->mm.vidmem.size == 0ULL) {
+		launch_flags &= ~(NVGPU_CE_SRC_LOCATION_LOCAL_FB |
+			NVGPU_CE_DST_LOCATION_LOCAL_FB);
+	}
+	return launch_flags;
 }
 
-static u32 ce2_blockpipe_isr(struct gk20a *g, u32 fifo_intr)
+int nvgpu_ce_execute_ops(struct gk20a *g,
+		u32 ce_ctx_id,
+		u64 src_buf,
+		u64 dst_buf,
+		u64 size,
+		unsigned int payload,
+		u32 launch_flags,
+		u32 request_operation,
+		u32 submit_flags,
+		struct nvgpu_fence_type **fence_out)
 {
-	nvgpu_log(g, gpu_dbg_intr, "ce2 blocking pipe interrupt\n");
+	int ret = -EPERM;
+	struct nvgpu_ce_app *ce_app = g->ce_app;
+	struct nvgpu_ce_gpu_ctx *ce_ctx, *ce_ctx_save;
+	bool found = false;
+	u32 *cmd_buf_cpu_va;
+	u64 cmd_buf_gpu_va = 0UL;
+	u32 method_size;
+	u32 cmd_buf_read_offset;
+	u32 dma_copy_class;
+	struct nvgpu_gpfifo_entry gpfifo;
+	struct nvgpu_channel_fence fence = {0U, 0U};
+	struct nvgpu_fence_type *ce_cmd_buf_fence_out = NULL;
 
-	return ce2_intr_status_blockpipe_pending_f();
-}
-
-static u32 ce2_launcherr_isr(struct gk20a *g, u32 fifo_intr)
-{
-	nvgpu_log(g, gpu_dbg_intr, "ce2 launch error interrupt\n");
-
-	return ce2_intr_status_launcherr_pending_f();
-}
-
-void gk20a_ce2_isr(struct gk20a *g, u32 inst_id, u32 pri_base)
-{
-	u32 ce2_intr = gk20a_readl(g, ce2_intr_status_r());
-	u32 clear_intr = 0;
-
-	nvgpu_log(g, gpu_dbg_intr, "ce2 isr %08x\n", ce2_intr);
-
-	/* clear blocking interrupts: they exibit broken behavior */
-	if ((ce2_intr & ce2_intr_status_blockpipe_pending_f()) != 0U) {
-		clear_intr |= ce2_blockpipe_isr(g, ce2_intr);
+	if (!ce_app->initialised || ce_app->app_state != NVGPU_CE_ACTIVE) {
+		goto end;
 	}
 
-	if ((ce2_intr & ce2_intr_status_launcherr_pending_f()) != 0U) {
-		clear_intr |= ce2_launcherr_isr(g, ce2_intr);
+	nvgpu_mutex_acquire(&ce_app->app_mutex);
+
+	nvgpu_list_for_each_entry_safe(ce_ctx, ce_ctx_save,
+			&ce_app->allocated_contexts, nvgpu_ce_gpu_ctx, list) {
+		if (ce_ctx->ctx_id == ce_ctx_id) {
+			found = true;
+			break;
+		}
 	}
 
-	gk20a_writel(g, ce2_intr_status_r(), clear_intr);
-	return;
-}
+	nvgpu_mutex_release(&ce_app->app_mutex);
 
-u32 gk20a_ce2_nonstall_isr(struct gk20a *g, u32 inst_id, u32 pri_base)
-{
-	u32 ops = 0;
-	u32 ce2_intr = gk20a_readl(g, ce2_intr_status_r());
-
-	nvgpu_log(g, gpu_dbg_intr, "ce2 nonstall isr %08x\n", ce2_intr);
-
-	if ((ce2_intr & ce2_intr_status_nonblockpipe_pending_f()) != 0U) {
-		gk20a_writel(g, ce2_intr_status_r(),
-			ce2_nonblockpipe_isr(g, ce2_intr));
-		ops |= (GK20A_NONSTALL_OPS_WAKEUP_SEMAPHORE |
-			GK20A_NONSTALL_OPS_POST_EVENTS);
+	if (!found) {
+		ret = -EINVAL;
+		goto end;
 	}
-	return ops;
+
+	if (ce_ctx->gpu_ctx_state != NVGPU_CE_GPU_CTX_ALLOCATED) {
+		ret = -ENODEV;
+		goto end;
+	}
+
+	nvgpu_mutex_acquire(&ce_ctx->gpu_ctx_mutex);
+
+	ce_ctx->cmd_buf_read_queue_offset %= NVGPU_CE_MAX_INFLIGHT_JOBS;
+
+	cmd_buf_read_offset = (ce_ctx->cmd_buf_read_queue_offset *
+			(NVGPU_CE_MAX_COMMAND_BUFF_BYTES_PER_KICKOFF /
+			U32(sizeof(u32))));
+
+	cmd_buf_cpu_va = (u32 *)ce_ctx->cmd_buf_mem.cpu_va;
+
+	if (ce_ctx->postfences[ce_ctx->cmd_buf_read_queue_offset] != NULL) {
+		struct nvgpu_fence_type **prev_post_fence =
+			&ce_ctx->postfences[ce_ctx->cmd_buf_read_queue_offset];
+
+		ret = nvgpu_fence_wait(g, *prev_post_fence,
+				       nvgpu_get_poll_timeout(g));
+
+		nvgpu_fence_put(*prev_post_fence);
+		*prev_post_fence = NULL;
+		if (ret != 0) {
+			goto noop;
+		}
+	}
+
+	cmd_buf_gpu_va = (ce_ctx->cmd_buf_mem.gpu_va +
+			(u64)(cmd_buf_read_offset * sizeof(u32)));
+
+	dma_copy_class = g->ops.get_litter_value(g, GPU_LIT_DMA_COPY_CLASS);
+	method_size = nvgpu_ce_prepare_submit(src_buf,
+			dst_buf,
+			size,
+			&cmd_buf_cpu_va[cmd_buf_read_offset],
+			NVGPU_CE_MAX_COMMAND_BUFF_BYTES_PER_KICKOFF,
+			payload,
+			nvgpu_ce_get_valid_launch_flags(g, launch_flags),
+			request_operation,
+			dma_copy_class);
+
+	if (method_size != 0U) {
+		/* store the element into gpfifo */
+		g->ops.pbdma.format_gpfifo_entry(g, &gpfifo,
+				cmd_buf_gpu_va, method_size);
+
+		/*
+		 * take always the postfence as it is needed for protecting the
+		 * ce context
+		 */
+		submit_flags |= NVGPU_SUBMIT_FLAGS_FENCE_GET;
+
+		nvgpu_smp_wmb();
+
+		ret = nvgpu_submit_channel_gpfifo_kernel(ce_ctx->ch, &gpfifo,
+				1, submit_flags, &fence, &ce_cmd_buf_fence_out);
+
+		if (ret == 0) {
+			ce_ctx->postfences[ce_ctx->cmd_buf_read_queue_offset] =
+				ce_cmd_buf_fence_out;
+			if (fence_out != NULL) {
+				nvgpu_fence_get(ce_cmd_buf_fence_out);
+				*fence_out = ce_cmd_buf_fence_out;
+			}
+
+			/* Next available command buffer queue Index */
+			++ce_ctx->cmd_buf_read_queue_offset;
+		}
+	} else {
+		ret = -ENOMEM;
+	}
+noop:
+	nvgpu_mutex_release(&ce_ctx->gpu_ctx_mutex);
+end:
+	return ret;
 }
 
 /* static CE app api */
-static void gk20a_ce_put_fences(struct gk20a_gpu_ctx *ce_ctx)
+static void nvgpu_ce_put_fences(struct nvgpu_ce_gpu_ctx *ce_ctx)
 {
 	u32 i;
 
-	for (i = 0; i < NVGPU_CE_MAX_INFLIGHT_JOBS; i++) {
+	for (i = 0U; i < NVGPU_CE_MAX_INFLIGHT_JOBS; i++) {
 		struct nvgpu_fence_type **fence = &ce_ctx->postfences[i];
+
 		if (*fence != NULL) {
 			nvgpu_fence_put(*fence);
 		}
@@ -122,8 +185,8 @@ static void gk20a_ce_put_fences(struct gk20a_gpu_ctx *ce_ctx)
 	}
 }
 
-/* assume this api should need to call under nvgpu_mutex_acquire(&ce_app->app_mutex) */
-static void gk20a_ce_delete_gpu_context(struct gk20a_gpu_ctx *ce_ctx)
+/* caller must hold ce_app->app_mutex */
+static void nvgpu_ce_delete_gpu_context_locked(struct nvgpu_ce_gpu_ctx *ce_ctx)
 {
 	struct nvgpu_list_node *list = &ce_ctx->list;
 
@@ -133,7 +196,7 @@ static void gk20a_ce_delete_gpu_context(struct gk20a_gpu_ctx *ce_ctx)
 	nvgpu_mutex_acquire(&ce_ctx->gpu_ctx_mutex);
 
 	if (nvgpu_mem_is_valid(&ce_ctx->cmd_buf_mem)) {
-		gk20a_ce_put_fences(ce_ctx);
+		nvgpu_ce_put_fences(ce_ctx);
 		nvgpu_dma_unmap_free(ce_ctx->vm, &ce_ctx->cmd_buf_mem);
 	}
 
@@ -155,7 +218,7 @@ static void gk20a_ce_delete_gpu_context(struct gk20a_gpu_ctx *ce_ctx)
 	nvgpu_kfree(ce_ctx->g, ce_ctx);
 }
 
-static inline unsigned int gk20a_ce_get_method_size(u32 request_operation,
+static inline unsigned int nvgpu_ce_get_method_size(u32 request_operation,
 			u64 size)
 {
 	/* failure size */
@@ -188,7 +251,7 @@ static inline unsigned int gk20a_ce_get_method_size(u32 request_operation,
 	return methodsize;
 }
 
-u32 gk20a_ce_prepare_submit(u64 src_buf,
+u32 nvgpu_ce_prepare_submit(u64 src_buf,
 		u64 dst_buf,
 		u64 size,
 		u32 *cmd_buf_cpu_va,
@@ -205,7 +268,7 @@ u32 gk20a_ce_prepare_submit(u64 src_buf,
 	u64 chunk = size;
 
 	/* failure case handling */
-	if ((gk20a_ce_get_method_size(request_operation, size) >
+	if ((nvgpu_ce_get_method_size(request_operation, size) >
 		max_cmd_buf_size) || (size == 0ULL) ||
 		(request_operation > NVGPU_CE_MEMSET)) {
 		return 0;
@@ -266,7 +329,7 @@ u32 gk20a_ce_prepare_submit(u64 src_buf,
 			     NVGPU_CE_SRC_LOCATION_LOCAL_FB) != 0U) {
 				cmd_buf_cpu_va[methodSize++] = 0x00000000;
 			} else if ((launch_flags &
-				NVGPU_CE_SRC_LOCATION_NONCOHERENT_SYSMEM) != 0U) {
+			     NVGPU_CE_SRC_LOCATION_NONCOHERENT_SYSMEM) != 0U) {
 				cmd_buf_cpu_va[methodSize++] = 0x00000002;
 			} else {
 				cmd_buf_cpu_va[methodSize++] = 0x00000001;
@@ -336,9 +399,9 @@ u32 gk20a_ce_prepare_submit(u64 src_buf,
 }
 
 /* global CE app related apis */
-int gk20a_init_ce_support(struct gk20a *g)
+int nvgpu_ce_init_support(struct gk20a *g)
 {
-	struct gk20a_ce_app *ce_app = g->ce_app;
+	struct nvgpu_ce_app *ce_app = g->ce_app;
 	int err;
 	u32 ce_reset_mask;
 
@@ -385,10 +448,10 @@ int gk20a_init_ce_support(struct gk20a *g)
 	return 0;
 }
 
-void gk20a_ce_destroy(struct gk20a *g)
+void nvgpu_ce_destroy(struct gk20a *g)
 {
-	struct gk20a_ce_app *ce_app = g->ce_app;
-	struct gk20a_gpu_ctx *ce_ctx, *ce_ctx_save;
+	struct nvgpu_ce_app *ce_app = g->ce_app;
+	struct nvgpu_ce_gpu_ctx *ce_ctx, *ce_ctx_save;
 
 	if (ce_app == NULL) {
 		return;
@@ -404,8 +467,8 @@ void gk20a_ce_destroy(struct gk20a *g)
 	nvgpu_mutex_acquire(&ce_app->app_mutex);
 
 	nvgpu_list_for_each_entry_safe(ce_ctx, ce_ctx_save,
-			&ce_app->allocated_contexts, gk20a_gpu_ctx, list) {
-		gk20a_ce_delete_gpu_context(ce_ctx);
+			&ce_app->allocated_contexts, nvgpu_ce_gpu_ctx, list) {
+		nvgpu_ce_delete_gpu_context_locked(ce_ctx);
 	}
 
 	nvgpu_init_list_node(&ce_app->allocated_contexts);
@@ -420,27 +483,25 @@ free:
 	g->ce_app = NULL;
 }
 
-void gk20a_ce_suspend(struct gk20a *g)
+void nvgpu_ce_suspend(struct gk20a *g)
 {
-	struct gk20a_ce_app *ce_app = g->ce_app;
+	struct nvgpu_ce_app *ce_app = g->ce_app;
 
 	if (ce_app == NULL || !ce_app->initialised) {
 		return;
 	}
 
 	ce_app->app_state = NVGPU_CE_SUSPEND;
-
-	return;
 }
 
 /* CE app utility functions */
-u32 gk20a_ce_create_context(struct gk20a *g,
+u32 nvgpu_ce_create_context(struct gk20a *g,
 		u32 runlist_id,
 		int timeslice,
 		int runlist_level)
 {
-	struct gk20a_gpu_ctx *ce_ctx;
-	struct gk20a_ce_app *ce_app = g->ce_app;
+	struct nvgpu_ce_gpu_ctx *ce_ctx;
+	struct nvgpu_ce_app *ce_app = g->ce_app;
 	struct nvgpu_setup_bind_args setup_bind_args;
 	u32 ctx_id = NVGPU_CE_INVAL_CTX_ID;
 	int err = 0;
@@ -516,7 +577,7 @@ u32 gk20a_ce_create_context(struct gk20a *g,
 			&ce_ctx->cmd_buf_mem);
 	 if (err != 0) {
 		nvgpu_err(g,
-			"ce: could not allocate command buffer for CE context");
+			"ce: alloc command buffer failed");
 		goto end;
 	}
 
@@ -527,8 +588,7 @@ u32 gk20a_ce_create_context(struct gk20a *g,
 	if (timeslice != -1) {
 		err = gk20a_fifo_tsg_set_timeslice(ce_ctx->tsg, timeslice);
 		if (err != 0) {
-			nvgpu_err(g,
-				"ce: could not set the channel timeslice value for CE context");
+			nvgpu_err(g, "ce: set timesliced failed for CE context");
 			goto end;
 		}
 	}
@@ -538,8 +598,7 @@ u32 gk20a_ce_create_context(struct gk20a *g,
 		err = gk20a_tsg_set_runlist_interleave(ce_ctx->tsg,
 						       runlist_level);
 		if (err != 0) {
-			nvgpu_err(g,
-				"ce: could not set the runlist interleave for CE context");
+			nvgpu_err(g, "ce: set runlist interleave failed");
 			goto end;
 		}
 	}
@@ -556,24 +615,18 @@ u32 gk20a_ce_create_context(struct gk20a *g,
 end:
 	if (ctx_id == NVGPU_CE_INVAL_CTX_ID) {
 		nvgpu_mutex_acquire(&ce_app->app_mutex);
-		gk20a_ce_delete_gpu_context(ce_ctx);
+		nvgpu_ce_delete_gpu_context_locked(ce_ctx);
 		nvgpu_mutex_release(&ce_app->app_mutex);
 	}
 	return ctx_id;
 
 }
 
-void gk20a_ce_delete_context(struct gk20a *g,
+void nvgpu_ce_delete_context(struct gk20a *g,
 		u32 ce_ctx_id)
 {
-	gk20a_ce_delete_context_priv(g, ce_ctx_id);
-}
-
-void gk20a_ce_delete_context_priv(struct gk20a *g,
-		u32 ce_ctx_id)
-{
-	struct gk20a_ce_app *ce_app = g->ce_app;
-	struct gk20a_gpu_ctx *ce_ctx, *ce_ctx_save;
+	struct nvgpu_ce_app *ce_app = g->ce_app;
+	struct nvgpu_ce_gpu_ctx *ce_ctx, *ce_ctx_save;
 
 	if (ce_app == NULL || !ce_app->initialised ||
 		ce_app->app_state != NVGPU_CE_ACTIVE) {
@@ -583,14 +636,13 @@ void gk20a_ce_delete_context_priv(struct gk20a *g,
 	nvgpu_mutex_acquire(&ce_app->app_mutex);
 
 	nvgpu_list_for_each_entry_safe(ce_ctx, ce_ctx_save,
-			&ce_app->allocated_contexts, gk20a_gpu_ctx, list) {
+			&ce_app->allocated_contexts, nvgpu_ce_gpu_ctx, list) {
 		if (ce_ctx->ctx_id == ce_ctx_id) {
-			gk20a_ce_delete_gpu_context(ce_ctx);
+			nvgpu_ce_delete_gpu_context_locked(ce_ctx);
 			--ce_app->ctx_count;
 			break;
 		}
 	}
 
 	nvgpu_mutex_release(&ce_app->app_mutex);
-	return;
 }

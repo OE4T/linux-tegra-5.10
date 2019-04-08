@@ -94,11 +94,9 @@
 #include <gm20b/mm_gm20b.h>
 
 #include <gp10b/mm_gp10b.h>
-#include <gp10b/ce_gp10b.h>
 #include "gp10b/gr_gp10b.h"
 
 #include <gv11b/mm_gv11b.h>
-#include <gv11b/ce_gv11b.h>
 #include <gv11b/fifo_gv11b.h>
 #include <gv11b/gr_gv11b.h>
 
@@ -144,7 +142,7 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 		.ctrl = NULL,
 		.alloc_comptags = vgpu_cbc_alloc_comptags,
 	},
-	.ce2 = {
+	.ce = {
 		.isr_stall = NULL,
 		.isr_nonstall = NULL,
 		.get_num_pce = vgpu_ce_get_num_pce,
@@ -858,7 +856,7 @@ int vgpu_gv11b_init_hal(struct gk20a *g)
 
 	gops->ltc = vgpu_gv11b_ops.ltc;
 	gops->cbc = vgpu_gv11b_ops.cbc;
-	gops->ce2 = vgpu_gv11b_ops.ce2;
+	gops->ce = vgpu_gv11b_ops.ce;
 	gops->gr = vgpu_gv11b_ops.gr;
 	gops->class = vgpu_gv11b_ops.class;
 	gops->gr.ctxsw_prog = vgpu_gv11b_ops.gr.ctxsw_prog;

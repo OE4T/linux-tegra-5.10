@@ -32,6 +32,8 @@
 #include "hal/bus/bus_gk20a.h"
 #include "hal/bus/bus_gv100.h"
 #include "hal/bus/bus_tu104.h"
+#include "hal/ce/ce_gp10b.h"
+#include "hal/ce/ce_gv11b.h"
 #include "hal/class/class_tu104.h"
 #include "hal/priv_ring/priv_ring_gm20b.h"
 #include "hal/priv_ring/priv_ring_gp10b.h"
@@ -151,7 +153,6 @@
 #include "gp10b/mm_gp10b.h"
 
 #include "gv11b/gr_gv11b.h"
-#include "gv11b/ce_gv11b.h"
 #include "gv11b/mm_gv11b.h"
 #include "gv11b/fifo_gv11b.h"
 
@@ -389,8 +390,8 @@ static const struct gpu_ops tu104_ops = {
 		.ctrl = tu104_cbc_ctrl,
 		.fix_config = NULL,
 	},
-	.ce2 = {
-		.isr_stall = gv11b_ce_isr,
+	.ce = {
+		.isr_stall = gv11b_ce_stall_isr,
 		.isr_nonstall = NULL,
 		.get_num_pce = gv11b_ce_get_num_pce,
 	},
@@ -1475,7 +1476,7 @@ int tu104_init_hal(struct gk20a *g)
 	gops->bios = tu104_ops.bios;
 	gops->ltc = tu104_ops.ltc;
 	gops->cbc = tu104_ops.cbc;
-	gops->ce2 = tu104_ops.ce2;
+	gops->ce = tu104_ops.ce;
 	gops->gr = tu104_ops.gr;
 	gops->class = tu104_ops.class;
 	gops->gr.ctxsw_prog = tu104_ops.gr.ctxsw_prog;

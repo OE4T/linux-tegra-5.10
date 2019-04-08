@@ -216,6 +216,9 @@ nvgpu-y += \
 	hal/regops/regops_gv100.o \
 	hal/regops/regops_gv11b.o \
 	hal/regops/regops_tu104.o \
+	hal/ce/ce2_gk20a.o \
+	hal/ce/ce_gp10b.o \
+	hal/ce/ce_gv11b.o \
 	hal/therm/therm_gm20b.o \
 	hal/therm/therm_gp10b.o \
 	hal/therm/therm_gp106.o \
@@ -498,9 +501,8 @@ nvgpu-y += \
 	common/fifo/userd.o \
 	common/fence/fence.o \
 	common/ecc.o \
-	common/ce2.o \
+	common/ce/ce.o \
 	common/debugger.o \
-	gk20a/ce2_gk20a.o \
 	gk20a/fifo_gk20a.o \
 	gk20a/gr_gk20a.o \
 	gk20a/mm_gk20a.o \
@@ -551,13 +553,11 @@ nvgpu-$(CONFIG_GK20A_CYCLE_STATS) += \
 
 nvgpu-y += \
 	gp10b/gr_gp10b.o  \
-	gp10b/ce_gp10b.o \
 	gp10b/mm_gp10b.o \
 	gp106/bios_gp106.o \
 	gv11b/gr_gv11b.o \
 	gv11b/fifo_gv11b.o \
 	gv11b/mm_gv11b.o \
-	gv11b/ce_gv11b.o \
 	gv100/mm_gv100.o \
 	gv100/bios_gv100.o \
 	gv100/fifo_gv100.o \

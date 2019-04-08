@@ -31,6 +31,7 @@
 #include <nvgpu/fifo.h>
 #include <nvgpu/acr.h>
 #include <nvgpu/pmu.h>
+#include <nvgpu/ce.h>
 #include <nvgpu/gmmu.h>
 #include <nvgpu/ltc.h>
 #include <nvgpu/cbc.h>
@@ -46,8 +47,6 @@
 #include <nvgpu/gr/gr.h>
 
 #include <trace/events/gk20a.h>
-
-#include "gk20a/ce2_gk20a.h"
 
 bool is_nvgpu_gpu_state_valid(struct gk20a *g)
 {
@@ -129,7 +128,7 @@ int gk20a_prepare_poweroff(struct gk20a *g)
 	nvgpu_falcon_sw_free(g, FALCON_ID_SEC2);
 	nvgpu_falcon_sw_free(g, FALCON_ID_PMU);
 
-	gk20a_ce_suspend(g);
+	nvgpu_ce_suspend(g);
 
 	/* Disable GPCPLL */
 	if (g->ops.clk.suspend_clk_support != NULL) {
@@ -423,7 +422,7 @@ int gk20a_finalize_poweron(struct gk20a *g)
 	/* Restore the debug setting */
 	g->ops.fb.set_debug_mode(g, g->mmu_debug_ctrl);
 
-	gk20a_init_ce_support(g);
+	nvgpu_ce_init_support(g);
 
 	if (g->ops.xve.available_speeds != NULL) {
 		u32 speed;
@@ -579,7 +578,7 @@ static void gk20a_free_cb(struct nvgpu_ref *refcount)
 
 	nvgpu_log(g, gpu_dbg_shutdown, "Freeing GK20A struct!");
 
-	gk20a_ce_destroy(g);
+	nvgpu_ce_destroy(g);
 
 	nvgpu_cbc_remove_support(g);
 

@@ -30,10 +30,9 @@
 #include <nvgpu/semaphore.h>
 #include <nvgpu/pramin.h>
 #include <nvgpu/enabled.h>
+#include <nvgpu/ce.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/power_features/cg.h>
-
-#include "gk20a/ce2_gk20a.h"
 
 /*
  * Attempt to find a reserved memory area to determine PTE size for the passed
@@ -179,7 +178,7 @@ static void nvgpu_remove_mm_ce_support(struct mm_gk20a *mm)
 	struct gk20a *g = gk20a_from_mm(mm);
 
 	if (mm->vidmem.ce_ctx_id != NVGPU_CE_INVAL_CTX_ID) {
-		gk20a_ce_delete_context_priv(g, mm->vidmem.ce_ctx_id);
+		nvgpu_ce_delete_context(g, mm->vidmem.ce_ctx_id);
 	}
 
 	mm->vidmem.ce_ctx_id = NVGPU_CE_INVAL_CTX_ID;
@@ -362,7 +361,7 @@ void nvgpu_init_mm_ce_context(struct gk20a *g)
 	if (g->mm.vidmem.size &&
 	   (g->mm.vidmem.ce_ctx_id == NVGPU_CE_INVAL_CTX_ID)) {
 		g->mm.vidmem.ce_ctx_id =
-			gk20a_ce_create_context(g,
+			nvgpu_ce_create_context(g,
 				nvgpu_engine_get_fast_ce_runlist_id(g),
 				-1,
 				-1);

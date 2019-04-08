@@ -30,55 +30,44 @@
 
 #include <nvgpu/hw/gp10b/hw_ce_gp10b.h>
 
-static u32 ce_blockpipe_isr(struct gk20a *g, u32 fifo_intr)
+void gp10b_ce_stall_isr(struct gk20a *g, u32 inst_id, u32 pri_base)
 {
-	nvgpu_log(g, gpu_dbg_intr, "ce blocking pipe interrupt\n");
+	u32 ce_intr = nvgpu_readl(g, ce_intr_status_r(inst_id));
+	u32 clear_intr = 0U;
 
-	return ce_intr_status_blockpipe_pending_f();
-}
-
-static u32 ce_launcherr_isr(struct gk20a *g, u32 fifo_intr)
-{
-	nvgpu_log(g, gpu_dbg_intr, "ce launch error interrupt\n");
-
-	return ce_intr_status_launcherr_pending_f();
-}
-
-void gp10b_ce_isr(struct gk20a *g, u32 inst_id, u32 pri_base)
-{
-	u32 ce_intr = gk20a_readl(g, ce_intr_status_r(inst_id));
-	u32 clear_intr = 0;
-
-	nvgpu_log(g, gpu_dbg_intr, "ce isr %08x %08x\n", ce_intr, inst_id);
+	nvgpu_log(g, gpu_dbg_intr, "ce isr %08x %08x", ce_intr, inst_id);
 
 	/* clear blocking interrupts: they exibit broken behavior */
 	if ((ce_intr & ce_intr_status_blockpipe_pending_f()) != 0U) {
 		nvgpu_report_ce_error(g, inst_id,
 				GPU_CE_BLOCK_PIPE, ce_intr);
-		clear_intr |= ce_blockpipe_isr(g, ce_intr);
+		nvgpu_log(g, gpu_dbg_intr, "ce blocking pipe interrupt");
+		clear_intr |= ce_intr_status_blockpipe_pending_f();
 	}
 
 	if ((ce_intr & ce_intr_status_launcherr_pending_f()) != 0U) {
 		nvgpu_report_ce_error(g, inst_id,
 				GPU_CE_LAUNCH_ERROR, ce_intr);
-		clear_intr |= ce_launcherr_isr(g, ce_intr);
+		nvgpu_log(g, gpu_dbg_intr, "ce launch error interrupt");
+		clear_intr |= ce_intr_status_launcherr_pending_f();
 	}
 
-	gk20a_writel(g, ce_intr_status_r(inst_id), clear_intr);
+	nvgpu_writel(g, ce_intr_status_r(inst_id), clear_intr);
 	return;
 }
 
 u32 gp10b_ce_nonstall_isr(struct gk20a *g, u32 inst_id, u32 pri_base)
 {
-	u32 ops = 0;
-	u32 ce_intr = gk20a_readl(g, ce_intr_status_r(inst_id));
+	u32 ops = 0U;
+	u32 ce_intr = nvgpu_readl(g, ce_intr_status_r(inst_id));
 
-	nvgpu_log(g, gpu_dbg_intr, "ce nonstall isr %08x %08x\n", ce_intr, inst_id);
+	nvgpu_log(g, gpu_dbg_intr, "ce nonstall isr %08x %08x",
+			ce_intr, inst_id);
 
 	if ((ce_intr & ce_intr_status_nonblockpipe_pending_f()) != 0U) {
 		nvgpu_report_ce_error(g, inst_id,
 				GPU_CE_NONBLOCK_PIPE, ce_intr);
-		gk20a_writel(g, ce_intr_status_r(inst_id),
+		nvgpu_writel(g, ce_intr_status_r(inst_id),
 			ce_intr_status_nonblockpipe_pending_f());
 		ops |= (GK20A_NONSTALL_OPS_WAKEUP_SEMAPHORE |
 			GK20A_NONSTALL_OPS_POST_EVENTS);

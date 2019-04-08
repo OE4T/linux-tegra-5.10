@@ -85,7 +85,6 @@
 #include "common/sync/sema_cmdbuf_gk20a.h"
 
 #include "gp10b/mm_gp10b.h"
-#include "gp10b/ce_gp10b.h"
 #include "gp10b/gr_gp10b.h"
 
 #include "gm20b/gr_gm20b.h"
@@ -119,7 +118,7 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 		.ctrl = NULL,
 		.fix_config = NULL,
 	},
-	.ce2 = {
+	.ce = {
 		.isr_stall = NULL,
 		.isr_nonstall = NULL,
 		.get_num_pce = vgpu_ce_get_num_pce,
@@ -764,7 +763,7 @@ int vgpu_gp10b_init_hal(struct gk20a *g)
 
 	gops->ltc = vgpu_gp10b_ops.ltc;
 	gops->cbc = vgpu_gp10b_ops.cbc;
-	gops->ce2 = vgpu_gp10b_ops.ce2;
+	gops->ce = vgpu_gp10b_ops.ce;
 	gops->gr = vgpu_gp10b_ops.gr;
 	gops->class = vgpu_gp10b_ops.class;
 	gops->gr.ctxsw_prog = vgpu_gp10b_ops.gr.ctxsw_prog;

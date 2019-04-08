@@ -38,6 +38,7 @@
 #include "hal/bus/bus_gk20a.h"
 #include "hal/bus/bus_gp10b.h"
 #include "hal/bus/bus_gm20b.h"
+#include "hal/ce/ce_gv11b.h"
 #include "hal/class/class_gv11b.h"
 #include "hal/priv_ring/priv_ring_gm20b.h"
 #include "hal/priv_ring/priv_ring_gp10b.h"
@@ -45,6 +46,7 @@
 #include "hal/power_features/cg/gv11b_gating_reglist.h"
 #include "hal/cbc/cbc_gp10b.h"
 #include "hal/cbc/cbc_gv11b.h"
+#include "hal/ce/ce_gp10b.h"
 #include "hal/therm/therm_gm20b.h"
 #include "hal/therm/therm_gv11b.h"
 #include "hal/ltc/ltc_gm20b.h"
@@ -126,7 +128,6 @@
 #include "gm20b/gr_gm20b.h"
 #include "gm20b/mm_gm20b.h"
 
-#include "gp10b/ce_gp10b.h"
 #include "gp10b/mm_gp10b.h"
 #include "gp10b/gr_gp10b.h"
 
@@ -134,7 +135,6 @@
 
 #include "hal_gv11b.h"
 #include "gv11b/gr_gv11b.h"
-#include "gv11b/ce_gv11b.h"
 #include "gv11b/mm_gv11b.h"
 #include "gv11b/fifo_gv11b.h"
 
@@ -340,8 +340,8 @@ static const struct gpu_ops gv11b_ops = {
 		.alloc_comptags = gp10b_cbc_alloc_comptags,
 		.ctrl = gp10b_cbc_ctrl,
 	},
-	.ce2 = {
-		.isr_stall = gv11b_ce_isr,
+	.ce = {
+		.isr_stall = gv11b_ce_stall_isr,
 		.isr_nonstall = gp10b_ce_nonstall_isr,
 		.get_num_pce = gv11b_ce_get_num_pce,
 	},
@@ -1330,7 +1330,7 @@ int gv11b_init_hal(struct gk20a *g)
 
 	gops->ltc = gv11b_ops.ltc;
 	gops->cbc = gv11b_ops.cbc;
-	gops->ce2 = gv11b_ops.ce2;
+	gops->ce = gv11b_ops.ce;
 	gops->gr = gv11b_ops.gr;
 	gops->class = gv11b_ops.class;
 	gops->gr.ctxsw_prog = gv11b_ops.gr.ctxsw_prog;

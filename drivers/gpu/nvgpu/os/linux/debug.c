@@ -415,7 +415,7 @@ void gk20a_debug_init(struct gk20a *g, const char *debugfs_symlink)
 #ifdef CONFIG_NVGPU_SUPPORT_CDE
 	gk20a_cde_debugfs_init(g);
 #endif
-	gk20a_ce_debugfs_init(g);
+	nvgpu_ce_debugfs_init(g);
 	nvgpu_alloc_debugfs_init(g);
 	nvgpu_hal_debugfs_init(g);
 	gk20a_fifo_debugfs_init(g);
