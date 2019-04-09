@@ -24,11 +24,11 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/channel.h>
 #include <nvgpu/utils.h>
+#include <nvgpu/fence.h>
 
 #include <nvgpu/hw/gk20a/hw_pbdma_gk20a.h>
 
 #include "gk20a/ce2_gk20a.h"
-#include "gk20a/fence_gk20a.h"
 
 static inline u32 gk20a_get_valid_launch_flags(struct gk20a *g, u32 launch_flags)
 {
@@ -50,7 +50,7 @@ int gk20a_ce_execute_ops(struct gk20a *g,
 		u32 launch_flags,
 		u32 request_operation,
 		u32 submit_flags,
-		struct gk20a_fence **gk20a_fence_out)
+		struct nvgpu_fence_type **fence_out)
 {
 	int ret = -EPERM;
 	struct gk20a_ce_app *ce_app = g->ce_app;
@@ -63,7 +63,7 @@ int gk20a_ce_execute_ops(struct gk20a *g,
 	u32 dma_copy_class;
 	struct nvgpu_gpfifo_entry gpfifo;
 	struct nvgpu_channel_fence fence = {0, 0};
-	struct gk20a_fence *ce_cmd_buf_fence_out = NULL;
+	struct nvgpu_fence_type *ce_cmd_buf_fence_out = NULL;
 
 	if (!ce_app->initialised || ce_app->app_state != NVGPU_CE_ACTIVE) {
 		goto end;
@@ -102,13 +102,13 @@ int gk20a_ce_execute_ops(struct gk20a *g,
 	cmd_buf_cpu_va = (u32 *)ce_ctx->cmd_buf_mem.cpu_va;
 
 	if (ce_ctx->postfences[ce_ctx->cmd_buf_read_queue_offset] != NULL) {
-		struct gk20a_fence **prev_post_fence =
+		struct nvgpu_fence_type **prev_post_fence =
 			&ce_ctx->postfences[ce_ctx->cmd_buf_read_queue_offset];
 
-		ret = gk20a_fence_wait(g, *prev_post_fence,
+		ret = nvgpu_fence_wait(g, *prev_post_fence,
 				       nvgpu_get_poll_timeout(g));
 
-		gk20a_fence_put(*prev_post_fence);
+		nvgpu_fence_put(*prev_post_fence);
 		*prev_post_fence = NULL;
 		if (ret != 0) {
 			goto noop;
@@ -147,9 +147,9 @@ int gk20a_ce_execute_ops(struct gk20a *g,
 		if (ret == 0) {
 			ce_ctx->postfences[ce_ctx->cmd_buf_read_queue_offset] =
 				ce_cmd_buf_fence_out;
-			if (gk20a_fence_out != NULL) {
-				gk20a_fence_get(ce_cmd_buf_fence_out);
-				*gk20a_fence_out = ce_cmd_buf_fence_out;
+			if (fence_out != NULL) {
+				nvgpu_fence_get(ce_cmd_buf_fence_out);
+				*fence_out = ce_cmd_buf_fence_out;
 			}
 
 			/* Next available command buffer queue Index */

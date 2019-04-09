@@ -35,9 +35,9 @@
 #include <nvgpu/channel.h>
 #include <nvgpu/channel_sync.h>
 #include <nvgpu/channel_sync_semaphore.h>
+#include <nvgpu/fence.h>
 
 #include "channel_sync_priv.h"
-#include "gk20a/fence_gk20a.h"
 #include "gk20a/mm_gk20a.h"
 
 struct nvgpu_channel_sync_semaphore {
@@ -177,7 +177,7 @@ cleanup:
 static int channel_sync_semaphore_incr_common(
 		struct nvgpu_channel_sync *s, bool wfi_cmd,
 		struct priv_cmd_entry *incr_cmd,
-		struct gk20a_fence *fence,
+		struct nvgpu_fence_type *fence,
 		bool need_sync_fence)
 {
 	u32 incr_cmd_size;
@@ -215,7 +215,7 @@ static int channel_sync_semaphore_incr_common(
 		}
 	}
 
-	err = gk20a_fence_from_semaphore(fence,
+	err = nvgpu_fence_from_semaphore(fence,
 		semaphore,
 		&c->semaphore_wq,
 		os_fence);
@@ -237,7 +237,7 @@ clean_up_sema:
 static int channel_sync_semaphore_incr(
 		struct nvgpu_channel_sync *s,
 		struct priv_cmd_entry *entry,
-		struct gk20a_fence *fence,
+		struct nvgpu_fence_type *fence,
 		bool need_sync_fence,
 		bool register_irq)
 {
@@ -252,7 +252,7 @@ static int channel_sync_semaphore_incr_user(
 		struct nvgpu_channel_sync *s,
 		int wait_fence_fd,
 		struct priv_cmd_entry *entry,
-		struct gk20a_fence *fence,
+		struct nvgpu_fence_type *fence,
 		bool wfi,
 		bool need_sync_fence,
 		bool register_irq)

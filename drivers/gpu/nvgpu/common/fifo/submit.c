@@ -28,12 +28,11 @@
 #include <nvgpu/channel_sync.h>
 #include <nvgpu/channel_sync_syncpt.h>
 #include <nvgpu/bug.h>
-
-#include <nvgpu/hw/gk20a/hw_pbdma_gk20a.h>
-
-#include "gk20a/fence_gk20a.h"
+#include <nvgpu/fence.h>
 
 #include <trace/events/gk20a.h>
+
+#include <nvgpu/hw/gk20a/hw_pbdma_gk20a.h>
 
 /*
  * Handle the submit synchronization - pre-fences and post-fences.
@@ -43,7 +42,7 @@ static int nvgpu_submit_prepare_syncs(struct channel_gk20a *c,
 				      struct channel_gk20a_job *job,
 				      struct priv_cmd_entry **wait_cmd,
 				      struct priv_cmd_entry **incr_cmd,
-				      struct gk20a_fence **post_fence,
+				      struct nvgpu_fence_type **post_fence,
 				      bool register_irq,
 				      u32 flags)
 {
@@ -132,7 +131,7 @@ static int nvgpu_submit_prepare_syncs(struct channel_gk20a *c,
 	 * is used to keep track of method completion for idle railgating. The
 	 * sync_pt/semaphore PB is added to the GPFIFO later on in submit.
 	 */
-	job->post_fence = gk20a_alloc_fence(c);
+	job->post_fence = nvgpu_fence_alloc(c);
 	if (job->post_fence == NULL) {
 		err = -ENOMEM;
 		goto clean_up_wait_cmd;
@@ -171,7 +170,7 @@ clean_up_incr_cmd:
 		job->incr_cmd = NULL;
 	}
 clean_up_post_fence:
-	gk20a_fence_put(job->post_fence);
+	nvgpu_fence_put(job->post_fence);
 	job->post_fence = NULL;
 clean_up_wait_cmd:
 	if (job->wait_cmd != NULL) {
@@ -328,13 +327,13 @@ static int nvgpu_submit_channel_gpfifo(struct channel_gk20a *c,
 				u32 num_entries,
 				u32 flags,
 				struct nvgpu_channel_fence *fence,
-				struct gk20a_fence **fence_out,
+				struct nvgpu_fence_type **fence_out,
 				struct fifo_profile_gk20a *profile)
 {
 	struct gk20a *g = c->g;
 	struct priv_cmd_entry *wait_cmd = NULL;
 	struct priv_cmd_entry *incr_cmd = NULL;
-	struct gk20a_fence *post_fence = NULL;
+	struct nvgpu_fence_type *post_fence = NULL;
 	struct channel_gk20a_job *job = NULL;
 	/* we might need two extra gpfifo entries - one for pre fence
 	 * and one for post fence. */
@@ -558,7 +557,7 @@ static int nvgpu_submit_channel_gpfifo(struct channel_gk20a *c,
 	}
 
 	if (fence_out != NULL) {
-		*fence_out = gk20a_fence_get(post_fence);
+		*fence_out = nvgpu_fence_get(post_fence);
 	}
 
 	if (need_job_tracking) {
@@ -593,7 +592,7 @@ clean_up_job:
 	channel_gk20a_free_job(c, job);
 clean_up:
 	nvgpu_log_fn(g, "fail");
-	gk20a_fence_put(post_fence);
+	nvgpu_fence_put(post_fence);
 	if (c->deterministic) {
 		nvgpu_rwsem_up_read(&g->deterministic_busy);
 	} else if (need_deferred_cleanup) {
@@ -608,7 +607,7 @@ int nvgpu_submit_channel_gpfifo_user(struct channel_gk20a *c,
 				u32 num_entries,
 				u32 flags,
 				struct nvgpu_channel_fence *fence,
-				struct gk20a_fence **fence_out,
+				struct nvgpu_fence_type **fence_out,
 				struct fifo_profile_gk20a *profile)
 {
 	return nvgpu_submit_channel_gpfifo(c, NULL, userdata, num_entries,
@@ -620,7 +619,7 @@ int nvgpu_submit_channel_gpfifo_kernel(struct channel_gk20a *c,
 				u32 num_entries,
 				u32 flags,
 				struct nvgpu_channel_fence *fence,
-				struct gk20a_fence **fence_out)
+				struct nvgpu_fence_type **fence_out)
 {
 	struct nvgpu_gpfifo_userdata userdata = { NULL, NULL };
 

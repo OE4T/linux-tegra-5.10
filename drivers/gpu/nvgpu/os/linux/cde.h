@@ -1,7 +1,7 @@
 /*
  * GK20A color decompression engine support
  *
- * Copyright (c) 2014-2017, NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2014-2019, NVIDIA Corporation.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -43,7 +43,7 @@ struct dma_buf;
 struct device;
 struct nvgpu_os_linux;
 struct gk20a;
-struct gk20a_fence;
+struct nvgpu_fence_type;
 struct nvgpu_channel_fence;
 struct channel_gk20a;
 struct vm_gk20a;
@@ -308,7 +308,7 @@ int gk20a_cde_convert(struct nvgpu_os_linux *l,
 		u64 scatterbuffer_byte_offset,
 		struct nvgpu_channel_fence *fence,
 		u32 __flags, struct gk20a_cde_param *params,
-		int num_params, struct gk20a_fence **fence_out);
+		int num_params, struct nvgpu_fence_type **fence_out);
 
 int gk20a_prepare_compressible_read(
 		struct nvgpu_os_linux *l, u32 buffer_fd, u32 request, u64 offset,
@@ -317,7 +317,7 @@ int gk20a_prepare_compressible_read(
 		u32 width, u32 height, u32 block_height_log2,
 		u32 submit_flags, struct nvgpu_channel_fence *fence,
 		u32 *valid_compbits, u32 *zbc_color,
-		struct gk20a_fence **fence_out);
+		struct nvgpu_fence_type **fence_out);
 int gk20a_mark_compressible_write(
 		struct gk20a *g, u32 buffer_fd, u32 valid_compbits, u64 offset,
 		u32 zbc_color);

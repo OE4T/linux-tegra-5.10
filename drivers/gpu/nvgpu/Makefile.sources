@@ -260,11 +260,11 @@ srcs += common/sim.c \
 	common/nvlink/nvlink_gv100.c \
 	common/nvlink/nvlink_tu104.c	\
 	common/nvlink/nvlink.c \
+	common/fence/fence.c \
 	gk20a/ce2_gk20a.c \
 	gk20a/fifo_gk20a.c \
 	gk20a/gr_gk20a.c \
 	gk20a/mm_gk20a.c \
-	gk20a/fence_gk20a.c \
 	gm20b/hal_gm20b.c \
 	gm20b/gr_gm20b.c \
 	gm20b/clk_gm20b.c \

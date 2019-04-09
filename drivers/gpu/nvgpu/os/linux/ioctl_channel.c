@@ -40,8 +40,7 @@
 #include <nvgpu/channel_sync_syncpt.h>
 #include <nvgpu/runlist.h>
 #include <nvgpu/gr/ctx.h>
-
-#include "gk20a/fence_gk20a.h"
+#include <nvgpu/fence.h>
 
 #include "platform_gk20a.h"
 #include "ioctl_channel.h"
@@ -770,7 +769,7 @@ static int gk20a_ioctl_channel_submit_gpfifo(
 	struct nvgpu_submit_gpfifo_args *args)
 {
 	struct nvgpu_channel_fence fence;
-	struct gk20a_fence *fence_out;
+	struct nvgpu_fence_type *fence_out;
 	struct fifo_profile_gk20a *profile = NULL;
 	u32 submit_flags = 0;
 	int fd = -1;
@@ -816,7 +815,7 @@ static int gk20a_ioctl_channel_submit_gpfifo(
 	/* Convert fence_out to something we can pass back to user space. */
 	if (args->flags & NVGPU_SUBMIT_GPFIFO_FLAGS_FENCE_GET) {
 		if (args->flags & NVGPU_SUBMIT_GPFIFO_FLAGS_SYNC_FENCE) {
-			ret = gk20a_fence_install_fd(fence_out, fd);
+			ret = nvgpu_fence_install_fd(fence_out, fd);
 			if (ret)
 				put_unused_fd(fd);
 			else
@@ -826,7 +825,7 @@ static int gk20a_ioctl_channel_submit_gpfifo(
 			args->fence.value = fence_out->syncpt_value;
 		}
 	}
-	gk20a_fence_put(fence_out);
+	nvgpu_fence_put(fence_out);
 
 	gk20a_fifo_profile_snapshot(profile, PROFILE_IOCTL_EXIT);
 	if (profile)

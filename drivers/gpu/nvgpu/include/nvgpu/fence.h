@@ -1,9 +1,7 @@
 /*
- * drivers/video/tegra/host/gk20a/fence_gk20a.h
+ * Fences
  *
- * GK20A Fences
- *
- * Copyright (c) 2014-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -23,28 +21,26 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef NVGPU_GK20A_FENCE_GK20A_H
-#define NVGPU_GK20A_FENCE_GK20A_H
+#ifndef NVGPU_FENCE_H
+#define NVGPU_FENCE_H
 
 #include <nvgpu/types.h>
 #include <nvgpu/kref.h>
 #include <nvgpu/os_fence.h>
 
+struct gk20a;
+struct channel_gk20a;
 struct platform_device;
 struct nvgpu_semaphore;
-struct channel_gk20a;
-struct gk20a;
 struct nvgpu_os_fence;
 
-struct gk20a_fence_ops;
-
-struct gk20a_fence {
+struct nvgpu_fence_type {
 	struct gk20a *g;
 
 	/* Valid for all fence types: */
 	bool valid;
 	struct nvgpu_ref ref;
-	const struct gk20a_fence_ops *ops;
+	const struct nvgpu_fence_ops *ops;
 
 	struct nvgpu_os_fence os_fence;
 
@@ -61,39 +57,40 @@ struct gk20a_fence {
 	struct nvgpu_allocator *allocator;
 };
 
+struct nvgpu_fence_ops {
+	int (*wait)(struct nvgpu_fence_type *f, u32 timeout);
+	bool (*is_expired)(struct nvgpu_fence_type *f);
+	void *(*free)(struct nvgpu_ref *ref);
+};
+
 /* Fences can be created from semaphores or syncpoint (id, value) pairs */
-int gk20a_fence_from_semaphore(
-		struct gk20a_fence *fence_out,
+int nvgpu_fence_from_semaphore(
+		struct nvgpu_fence_type *fence_out,
 		struct nvgpu_semaphore *semaphore,
 		struct nvgpu_cond *semaphore_wq,
 		struct nvgpu_os_fence os_fence);
 
-int gk20a_fence_from_syncpt(
-		struct gk20a_fence *fence_out,
+int nvgpu_fence_from_syncpt(
+		struct nvgpu_fence_type *fence_out,
 		struct nvgpu_nvhost_dev *nvhost_dev,
 		u32 id, u32 value,
 		struct nvgpu_os_fence os_fence);
 
-int gk20a_alloc_fence_pool(
-		struct channel_gk20a *c,
-		unsigned int count);
+int nvgpu_fence_pool_alloc(struct channel_gk20a *ch, unsigned int count);
 
-void gk20a_free_fence_pool(
-		struct channel_gk20a *c);
+void nvgpu_fence_pool_free(struct channel_gk20a *ch);
 
-struct gk20a_fence *gk20a_alloc_fence(
-		struct channel_gk20a *c);
+struct nvgpu_fence_type *nvgpu_fence_alloc(struct channel_gk20a *ch);
 
-void gk20a_init_fence(struct gk20a_fence *f,
-		const struct gk20a_fence_ops *ops,
+void nvgpu_fence_init(struct nvgpu_fence_type *f,
+		const struct nvgpu_fence_ops *ops,
 		struct nvgpu_os_fence os_fence);
 
 /* Fence operations */
-void gk20a_fence_put(struct gk20a_fence *f);
-struct gk20a_fence *gk20a_fence_get(struct gk20a_fence *f);
-int gk20a_fence_wait(struct gk20a *g, struct gk20a_fence *f,
-							u32 timeout);
-bool gk20a_fence_is_expired(struct gk20a_fence *f);
-int gk20a_fence_install_fd(struct gk20a_fence *f, int fd);
+void nvgpu_fence_put(struct nvgpu_fence_type *f);
+struct nvgpu_fence_type *nvgpu_fence_get(struct nvgpu_fence_type *f);
+int  nvgpu_fence_wait(struct gk20a *g, struct nvgpu_fence_type *f, u32 timeout);
+bool nvgpu_fence_is_expired(struct nvgpu_fence_type *f);
+int  nvgpu_fence_install_fd(struct nvgpu_fence_type *f, int fd);
 
-#endif /* NVGPU_GK20A_FENCE_GK20A_H */
+#endif /* NVGPU_FENCE_H */

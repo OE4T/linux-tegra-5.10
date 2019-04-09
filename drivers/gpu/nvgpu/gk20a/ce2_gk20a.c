@@ -33,15 +33,15 @@
 #include <nvgpu/channel.h>
 #include <nvgpu/engines.h>
 #include <nvgpu/power_features/cg.h>
+#include <nvgpu/fence.h>
+#include <nvgpu/barrier.h>
 
-#include "gk20a/fence_gk20a.h"
 #include "gk20a/ce2_gk20a.h"
 
 #include <nvgpu/hw/gk20a/hw_ce2_gk20a.h>
 #include <nvgpu/hw/gk20a/hw_pbdma_gk20a.h>
 #include <nvgpu/hw/gk20a/hw_top_gk20a.h>
 #include <nvgpu/hw/gk20a/hw_gr_gk20a.h>
-#include <nvgpu/barrier.h>
 
 /*
  * Copy engine defines line size in pixels
@@ -114,9 +114,9 @@ static void gk20a_ce_put_fences(struct gk20a_gpu_ctx *ce_ctx)
 	u32 i;
 
 	for (i = 0; i < NVGPU_CE_MAX_INFLIGHT_JOBS; i++) {
-		struct gk20a_fence **fence = &ce_ctx->postfences[i];
+		struct nvgpu_fence_type **fence = &ce_ctx->postfences[i];
 		if (*fence != NULL) {
-			gk20a_fence_put(*fence);
+			nvgpu_fence_put(*fence);
 		}
 		*fence = NULL;
 	}

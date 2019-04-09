@@ -1,7 +1,7 @@
 /*
  * GK20A Channel Synchronization Abstraction
  *
- * Copyright (c) 2014-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -35,9 +35,9 @@
 #include <nvgpu/channel_sync.h>
 #include <nvgpu/channel_sync_syncpt.h>
 #include <nvgpu/channel_sync_semaphore.h>
+#include <nvgpu/fence.h>
 
 #include "channel_sync_priv.h"
-#include "gk20a/fence_gk20a.h"
 #include "gk20a/mm_gk20a.h"
 
 struct nvgpu_channel_sync *nvgpu_channel_sync_create(struct channel_gk20a *c,
@@ -72,7 +72,7 @@ int nvgpu_channel_sync_wait_fence_fd(struct nvgpu_channel_sync *s, int fd,
 }
 
 int nvgpu_channel_sync_incr(struct nvgpu_channel_sync *s,
-	struct priv_cmd_entry *entry, struct gk20a_fence *fence,
+	struct priv_cmd_entry *entry, struct nvgpu_fence_type *fence,
 	bool need_sync_fence, bool register_irq)
 {
 	return s->incr(s, entry, fence, need_sync_fence, register_irq);
@@ -80,7 +80,7 @@ int nvgpu_channel_sync_incr(struct nvgpu_channel_sync *s,
 
 int nvgpu_channel_sync_incr_user(struct nvgpu_channel_sync *s,
 	int wait_fence_fd, struct priv_cmd_entry *entry,
-	struct gk20a_fence *fence, bool wfi, bool need_sync_fence,
+	struct nvgpu_fence_type *fence, bool wfi, bool need_sync_fence,
 	bool register_irq)
 {
 	return s->incr_user(s, wait_fence_fd, entry, fence, wfi,

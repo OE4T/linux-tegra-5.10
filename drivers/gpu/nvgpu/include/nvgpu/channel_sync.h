@@ -2,7 +2,7 @@
  *
  * Nvgpu Channel Synchronization Abstraction
  *
- * Copyright (c) 2014-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -31,7 +31,7 @@
 struct nvgpu_channel_sync;
 struct priv_cmd_entry;
 struct channel_gk20a;
-struct gk20a_fence;
+struct nvgpu_fence_type;
 struct gk20a;
 
 /* Public APIS for channel_sync below */
@@ -50,7 +50,7 @@ int nvgpu_channel_sync_wait_fence_fd(struct nvgpu_channel_sync *s, int fd,
  *  - a fence that can be passed to wait_cpu() and is_expired().
  */
 int nvgpu_channel_sync_incr(struct nvgpu_channel_sync *s,
-	struct priv_cmd_entry *entry, struct gk20a_fence *fence,
+	struct priv_cmd_entry *entry, struct nvgpu_fence_type *fence,
 	bool need_sync_fence, bool register_irq);
 
 /*
@@ -59,11 +59,11 @@ int nvgpu_channel_sync_incr(struct nvgpu_channel_sync *s,
  * Returns
  *  - a gpu cmdbuf that performs the increment when executed,
  *  - a fence that can be passed to wait_cpu() and is_expired(),
- *  - a gk20a_fence that signals when the incr has happened.
+ *  - a nvgpu_fence_type that signals when the incr has happened.
  */
 int nvgpu_channel_sync_incr_user(struct nvgpu_channel_sync *s,
 	int wait_fence_fd, struct priv_cmd_entry *entry,
-	struct gk20a_fence *fence, bool wfi, bool need_sync_fence,
+	struct nvgpu_fence_type *fence, bool wfi, bool need_sync_fence,
 	bool register_irq);
 /*
  * Reset the channel syncpoint/semaphore. Syncpoint increments generally

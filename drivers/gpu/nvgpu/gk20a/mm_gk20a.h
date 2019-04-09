@@ -59,7 +59,7 @@ struct gk20a_buffer_state {
 
 	/* This struct reflects the state of the buffer when this
 	 * fence signals. */
-	struct gk20a_fence *fence;
+	struct nvgpu_fence_type *fence;
 };
 
 static inline struct gk20a_buffer_state *

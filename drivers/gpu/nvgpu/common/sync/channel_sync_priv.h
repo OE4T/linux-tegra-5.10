@@ -2,7 +2,7 @@
  *
  * Nvgpu Channel Synchronization Abstraction
  *
- * Copyright (c) 2014-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -30,7 +30,7 @@
 #include <nvgpu/types.h>
 
 struct priv_cmd_entry;
-struct gk20a_fence;
+struct nvgpu_fence_type;
 
 /*
  * This struct is private and should not be used directly. Users should
@@ -47,14 +47,14 @@ struct nvgpu_channel_sync {
 
 	int (*incr)(struct nvgpu_channel_sync *s,
 		    struct priv_cmd_entry *entry,
-		    struct gk20a_fence *fence,
+		    struct nvgpu_fence_type *fence,
 		    bool need_sync_fence,
 		    bool register_irq);
 
 	int (*incr_user)(struct nvgpu_channel_sync *s,
 			 int wait_fence_fd,
 			 struct priv_cmd_entry *entry,
-			 struct gk20a_fence *fence,
+			 struct nvgpu_fence_type *fence,
 			 bool wfi,
 			 bool need_sync_fence,
 			 bool register_irq);

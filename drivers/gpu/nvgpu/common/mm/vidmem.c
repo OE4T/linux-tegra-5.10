@@ -29,9 +29,9 @@
 #include <nvgpu/sizes.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/nvgpu_sgt.h>
+#include <nvgpu/fence.h>
 
 #include "gk20a/mm_gk20a.h"
-#include "gk20a/fence_gk20a.h"
 #include "gk20a/ce2_gk20a.h"
 
 /*
@@ -95,7 +95,7 @@ void nvgpu_vidmem_destroy(struct gk20a *g)
 static int __nvgpu_vidmem_do_clear_all(struct gk20a *g)
 {
 	struct mm_gk20a *mm = &g->mm;
-	struct gk20a_fence *gk20a_fence_out = NULL;
+	struct nvgpu_fence_type *fence_out = NULL;
 	int err = 0;
 
 	if (mm->vidmem.ce_ctx_id == NVGPU_CE_INVAL_CTX_ID) {
@@ -113,14 +113,14 @@ static int __nvgpu_vidmem_do_clear_all(struct gk20a *g)
 			NVGPU_CE_DST_LOCATION_LOCAL_FB,
 			NVGPU_CE_MEMSET,
 			0,
-			&gk20a_fence_out);
+			&fence_out);
 	if (err != 0) {
 		nvgpu_err(g,
 			"Failed to clear vidmem : %d", err);
 		return err;
 	}
 
-	if (gk20a_fence_out) {
+	if (fence_out) {
 		struct nvgpu_timeout timeout;
 
 		err = nvgpu_timeout_init(g, &timeout,
@@ -132,12 +132,12 @@ static int __nvgpu_vidmem_do_clear_all(struct gk20a *g)
 		}
 
 		do {
-			err = gk20a_fence_wait(g, gk20a_fence_out,
+			err = nvgpu_fence_wait(g, fence_out,
 					       nvgpu_get_poll_timeout(g));
 		} while (err == -ERESTARTSYS &&
 			 !nvgpu_timeout_expired(&timeout));
 
-		gk20a_fence_put(gk20a_fence_out);
+		nvgpu_fence_put(fence_out);
 		if (err != 0) {
 			nvgpu_err(g,
 				"fence wait failed for CE execute ops");
@@ -455,8 +455,8 @@ int nvgpu_vidmem_get_space(struct gk20a *g, u64 *space)
 
 int nvgpu_vidmem_clear(struct gk20a *g, struct nvgpu_mem *mem)
 {
-	struct gk20a_fence *gk20a_fence_out = NULL;
-	struct gk20a_fence *gk20a_last_fence = NULL;
+	struct nvgpu_fence_type *fence_out = NULL;
+	struct nvgpu_fence_type *last_fence = NULL;
 	struct nvgpu_page_alloc *alloc = NULL;
 	struct nvgpu_sgl *sgl = NULL;
 	int err = 0;
@@ -468,8 +468,8 @@ int nvgpu_vidmem_clear(struct gk20a *g, struct nvgpu_mem *mem)
 	alloc = mem->vidmem_alloc;
 
 	nvgpu_sgt_for_each_sgl(sgl, &alloc->sgt) {
-		if (gk20a_last_fence) {
-			gk20a_fence_put(gk20a_last_fence);
+		if (last_fence) {
+			nvgpu_fence_put(last_fence);
 		}
 
 		err = gk20a_ce_execute_ops(g,
@@ -481,7 +481,7 @@ int nvgpu_vidmem_clear(struct gk20a *g, struct nvgpu_mem *mem)
 			NVGPU_CE_DST_LOCATION_LOCAL_FB,
 			NVGPU_CE_MEMSET,
 			0,
-			&gk20a_fence_out);
+			&fence_out);
 
 		if (err != 0) {
 			nvgpu_err(g,
@@ -493,10 +493,10 @@ int nvgpu_vidmem_clear(struct gk20a *g, struct nvgpu_mem *mem)
 			   nvgpu_sgt_get_phys(g, &alloc->sgt, sgl),
 			   nvgpu_sgt_get_length(&alloc->sgt, sgl));
 
-		gk20a_last_fence = gk20a_fence_out;
+		last_fence = fence_out;
 	}
 
-	if (gk20a_last_fence) {
+	if (last_fence) {
 		struct nvgpu_timeout timeout;
 
 		err = nvgpu_timeout_init(g, &timeout,
@@ -508,12 +508,12 @@ int nvgpu_vidmem_clear(struct gk20a *g, struct nvgpu_mem *mem)
 		}
 
 		do {
-			err = gk20a_fence_wait(g, gk20a_last_fence,
+			err = nvgpu_fence_wait(g, last_fence,
 					       nvgpu_get_poll_timeout(g));
 		} while (err == -ERESTARTSYS &&
 			 !nvgpu_timeout_expired(&timeout));
 
-		gk20a_fence_put(gk20a_last_fence);
+		nvgpu_fence_put(last_fence);
 		if (err != 0) {
 			nvgpu_err(g,
 				"fence wait failed for CE execute ops");

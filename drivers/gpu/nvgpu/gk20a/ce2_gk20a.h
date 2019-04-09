@@ -102,7 +102,7 @@ struct gk20a_gpu_ctx {
 
 	/* cmd buf mem_desc */
 	struct nvgpu_mem cmd_buf_mem;
-	struct gk20a_fence *postfences[NVGPU_CE_MAX_INFLIGHT_JOBS];
+	struct nvgpu_fence_type *postfences[NVGPU_CE_MAX_INFLIGHT_JOBS];
 
 	struct nvgpu_list_node list;
 
@@ -135,7 +135,7 @@ int gk20a_ce_execute_ops(struct gk20a *g,
 		u32 launch_flags,
 		u32 request_operation,
 		u32 submit_flags,
-		struct gk20a_fence **gk20a_fence_out);
+		struct nvgpu_fence_type **fence_out);
 void gk20a_ce_delete_context_priv(struct gk20a *g,
 		u32 ce_ctx_id);
 void gk20a_ce_delete_context(struct gk20a *g,

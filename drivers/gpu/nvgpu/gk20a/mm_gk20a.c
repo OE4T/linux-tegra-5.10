@@ -45,9 +45,9 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/channel.h>
 #include <nvgpu/pd_cache.h>
+#include <nvgpu/fence.h>
 
 #include "mm_gk20a.h"
-#include "fence_gk20a.h"
 
 #include <nvgpu/hw/gk20a/hw_gmmu_gk20a.h>
 #include <nvgpu/hw/gk20a/hw_pram_gk20a.h>

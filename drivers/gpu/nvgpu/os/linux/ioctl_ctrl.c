@@ -38,13 +38,13 @@
 #include <nvgpu/channel.h>
 #include <nvgpu/pmu/pmgr.h>
 #include <nvgpu/power_features/pg.h>
+#include <nvgpu/fence.h>
 
 #include "ioctl_ctrl.h"
 #include "ioctl_dbg.h"
 #include "ioctl_as.h"
 #include "ioctl_tsg.h"
 #include "ioctl_channel.h"
-#include "gk20a/fence_gk20a.h"
 
 #include "platform_gk20a.h"
 #include "os_linux.h"
@@ -392,7 +392,7 @@ static int gk20a_ctrl_prepare_compressible_read(
 #ifdef CONFIG_NVGPU_SUPPORT_CDE
 	struct nvgpu_os_linux *l = nvgpu_os_linux_from_gk20a(g);
 	struct nvgpu_channel_fence fence;
-	struct gk20a_fence *fence_out = NULL;
+	struct nvgpu_fence_type *fence_out = NULL;
 	int submit_flags = nvgpu_submit_gpfifo_user_flags_to_common_flags(
 		args->submit_flags);
 	int fd = -1;
@@ -426,7 +426,7 @@ static int gk20a_ctrl_prepare_compressible_read(
 	if (submit_flags & NVGPU_SUBMIT_FLAGS_FENCE_GET) {
 		if (submit_flags & NVGPU_SUBMIT_FLAGS_SYNC_FENCE) {
 			if (fence_out) {
-				ret = gk20a_fence_install_fd(fence_out, fd);
+				ret = nvgpu_fence_install_fd(fence_out, fd);
 				if (ret)
 					put_unused_fd(fd);
 				else
@@ -446,7 +446,7 @@ static int gk20a_ctrl_prepare_compressible_read(
 			}
 		}
 	}
-	gk20a_fence_put(fence_out);
+	nvgpu_fence_put(fence_out);
 #endif
 
 	return ret;

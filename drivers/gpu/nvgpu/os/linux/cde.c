@@ -39,11 +39,11 @@
 #include <nvgpu/utils.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/string.h>
+#include <nvgpu/fence.h>
 
 #include <nvgpu/linux/vm.h>
 
 #include "gk20a/mm_gk20a.h"
-#include "gk20a/fence_gk20a.h"
 #include "gk20a/gr_gk20a.h"
 
 #include "cde.h"
@@ -761,8 +761,8 @@ deinit_image:
 }
 
 static int gk20a_cde_execute_buffer(struct gk20a_cde_ctx *cde_ctx,
-				    u32 op, struct nvgpu_channel_fence *fence,
-				    u32 flags, struct gk20a_fence **fence_out)
+				u32 op, struct nvgpu_channel_fence *fence,
+				u32 flags, struct nvgpu_fence_type **fence_out)
 {
 	struct nvgpu_os_linux *l = cde_ctx->l;
 	struct gk20a *g = &l->g;
@@ -1014,7 +1014,7 @@ int gk20a_cde_convert(struct nvgpu_os_linux *l,
 		      u64 scatterbuffer_byte_offset,
 		      struct nvgpu_channel_fence *fence,
 		      u32 __flags, struct gk20a_cde_param *params,
-		      int num_params, struct gk20a_fence **fence_out)
+		      int num_params, struct nvgpu_fence_type **fence_out)
 __acquires(&l->cde_app->mutex)
 __releases(&l->cde_app->mutex)
 {
@@ -1535,7 +1535,7 @@ static int gk20a_buffer_convert_gpu_to_cde_v1(
 	struct gk20a_cde_param params[MAX_CDE_LAUNCH_PATCHES];
 	int param = 0;
 	int err = 0;
-	struct gk20a_fence *new_fence = NULL;
+	struct nvgpu_fence_type *new_fence = NULL;
 	const int wgx = 8;
 	const int wgy = 8;
 	const int compbits_per_byte = 4; /* one byte stores 4 compbit pairs */
@@ -1657,7 +1657,7 @@ static int gk20a_buffer_convert_gpu_to_cde_v1(
 		goto out;
 
 	/* compbits generated, update state & fence */
-	gk20a_fence_put(state->fence);
+	nvgpu_fence_put(state->fence);
 	state->fence = new_fence;
 	state->valid_compbits |= consumer &
 		(NVGPU_GPU_COMPBITS_CDEH | NVGPU_GPU_COMPBITS_CDEV);
@@ -1704,7 +1704,7 @@ int gk20a_prepare_compressible_read(
 		u32 width, u32 height, u32 block_height_log2,
 		u32 submit_flags, struct nvgpu_channel_fence *fence,
 		u32 *valid_compbits, u32 *zbc_color,
-		struct gk20a_fence **fence_out)
+		struct nvgpu_fence_type **fence_out)
 {
 	struct gk20a *g = &l->g;
 	int err = 0;
@@ -1728,7 +1728,7 @@ int gk20a_prepare_compressible_read(
 
 	if (state->valid_compbits && request == NVGPU_GPU_COMPBITS_NONE) {
 
-		gk20a_fence_put(state->fence);
+		nvgpu_fence_put(state->fence);
 		state->fence = NULL;
 		/* state->fence = decompress();
 		state->valid_compbits = 0; */
@@ -1753,7 +1753,7 @@ int gk20a_prepare_compressible_read(
 	}
 
 	if (state->fence && fence_out)
-		*fence_out = gk20a_fence_get(state->fence);
+		*fence_out = nvgpu_fence_get(state->fence);
 
 	if (valid_compbits)
 		*valid_compbits = state->valid_compbits;
@@ -1794,7 +1794,7 @@ int gk20a_mark_compressible_write(struct gk20a *g, u32 buffer_fd,
 	state->zbc_color = zbc_color;
 
 	/* Discard previous compbit job fence. */
-	gk20a_fence_put(state->fence);
+	nvgpu_fence_put(state->fence);
 	state->fence = NULL;
 
 	nvgpu_mutex_release(&state->lock);

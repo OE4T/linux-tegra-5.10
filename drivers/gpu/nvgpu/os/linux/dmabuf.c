@@ -21,11 +21,9 @@
 #include <nvgpu/comptags.h>
 #include <nvgpu/enabled.h>
 #include <nvgpu/gk20a.h>
-
 #include <nvgpu/linux/vm.h>
 #include <nvgpu/bug.h>
-
-#include "gk20a/fence_gk20a.h"
+#include <nvgpu/fence.h>
 
 #include "platform_gk20a.h"
 #include "dmabuf.h"
@@ -53,7 +51,7 @@ static void gk20a_mm_delete_priv(void *_priv)
 	/* Free buffer states */
 	nvgpu_list_for_each_entry_safe(s, s_tmp, &priv->states,
 				gk20a_buffer_state, list) {
-		gk20a_fence_put(s->fence);
+		nvgpu_fence_put(s->fence);
 		nvgpu_list_del(&s->list);
 		nvgpu_kfree(g, s);
 	}

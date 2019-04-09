@@ -50,14 +50,14 @@
 #include <nvgpu/channel_sync_syncpt.h>
 #include <nvgpu/runlist.h>
 #include <nvgpu/fifo/userd.h>
+#include <nvgpu/fence.h>
 
-#include "gk20a/fence_gk20a.h"
 #include "gk20a/gr_gk20a.h"
 
 static void free_channel(struct fifo_gk20a *f, struct channel_gk20a *ch);
 static void gk20a_channel_dump_ref_actions(struct channel_gk20a *ch);
 
-static void channel_gk20a_free_priv_cmdbuf(struct channel_gk20a *c);
+static void channel_gk20a_free_priv_cmdbuf(struct channel_gk20a *ch);
 
 static void channel_gk20a_free_prealloc_resources(struct channel_gk20a *c);
 
@@ -767,18 +767,18 @@ clean_up:
 
 /* allocate private cmd buffer.
    used for inserting commands before/after user submitted buffers. */
-static int channel_gk20a_alloc_priv_cmdbuf(struct channel_gk20a *c,
+static int channel_gk20a_alloc_priv_cmdbuf(struct channel_gk20a *ch,
 	u32 num_in_flight)
 {
-	struct gk20a *g = c->g;
-	struct vm_gk20a *ch_vm = c->vm;
-	struct priv_cmd_queue *q = &c->priv_cmd_q;
+	struct gk20a *g = ch->g;
+	struct vm_gk20a *ch_vm = ch->vm;
+	struct priv_cmd_queue *q = &ch->priv_cmd_q;
 	u64 size, tmp_size;
 	int err = 0;
 	bool gpfifo_based = false;
 
 	if (num_in_flight == 0U) {
-		num_in_flight = c->gpfifo.entry_num;
+		num_in_flight = ch->gpfifo.entry_num;
 		gpfifo_based = true;
 	}
 
@@ -828,14 +828,14 @@ static int channel_gk20a_alloc_priv_cmdbuf(struct channel_gk20a *c,
 	return 0;
 
 clean_up:
-	channel_gk20a_free_priv_cmdbuf(c);
+	channel_gk20a_free_priv_cmdbuf(ch);
 	return err;
 }
 
-static void channel_gk20a_free_priv_cmdbuf(struct channel_gk20a *c)
+static void channel_gk20a_free_priv_cmdbuf(struct channel_gk20a *ch)
 {
-	struct vm_gk20a *ch_vm = c->vm;
-	struct priv_cmd_queue *q = &c->priv_cmd_q;
+	struct vm_gk20a *ch_vm = ch->vm;
+	struct priv_cmd_queue *q = &ch->priv_cmd_q;
 
 	if (q->size == 0U) {
 		return;
@@ -1053,7 +1053,7 @@ bool channel_gk20a_is_prealloc_enabled(struct channel_gk20a *c)
 	return pre_alloc_enabled;
 }
 
-static int channel_gk20a_prealloc_resources(struct channel_gk20a *c,
+static int channel_gk20a_prealloc_resources(struct channel_gk20a *ch,
 	       unsigned int num_jobs)
 {
 	unsigned int i;
@@ -1061,7 +1061,7 @@ static int channel_gk20a_prealloc_resources(struct channel_gk20a *c,
 	size_t size;
 	struct priv_cmd_entry *entries = NULL;
 
-	if ((channel_gk20a_is_prealloc_enabled(c)) || (num_jobs == 0U)) {
+	if ((channel_gk20a_is_prealloc_enabled(ch)) || (num_jobs == 0U)) {
 		return -EINVAL;
 	}
 
@@ -1072,10 +1072,10 @@ static int channel_gk20a_prealloc_resources(struct channel_gk20a *c,
 	 */
 	size = sizeof(struct channel_gk20a_job);
 	if (num_jobs <= ULONG_MAX / size) {
-		c->joblist.pre_alloc.jobs = nvgpu_vzalloc(c->g,
+		ch->joblist.pre_alloc.jobs = nvgpu_vzalloc(ch->g,
 							  num_jobs * size);
 	}
-	if (c->joblist.pre_alloc.jobs == NULL) {
+	if (ch->joblist.pre_alloc.jobs == NULL) {
 		err = -ENOMEM;
 		goto clean_up;
 	}
@@ -1087,7 +1087,7 @@ static int channel_gk20a_prealloc_resources(struct channel_gk20a *c,
 	 */
 	size = sizeof(struct priv_cmd_entry);
 	if (num_jobs <= ULONG_MAX / (size << 1)) {
-		entries = nvgpu_vzalloc(c->g,
+		entries = nvgpu_vzalloc(ch->g,
 					((unsigned long)num_jobs << 1UL) *
 					(unsigned long)size);
 	}
@@ -1097,20 +1097,20 @@ static int channel_gk20a_prealloc_resources(struct channel_gk20a *c,
 	}
 
 	for (i = 0; i < num_jobs; i++) {
-		c->joblist.pre_alloc.jobs[i].wait_cmd = &entries[i];
-		c->joblist.pre_alloc.jobs[i].incr_cmd =
+		ch->joblist.pre_alloc.jobs[i].wait_cmd = &entries[i];
+		ch->joblist.pre_alloc.jobs[i].incr_cmd =
 			&entries[i + num_jobs];
 	}
 
 	/* pre-allocate a fence pool */
-	err = gk20a_alloc_fence_pool(c, num_jobs);
+	err = nvgpu_fence_pool_alloc(ch, num_jobs);
 	if (err != 0) {
 		goto clean_up_priv_cmd;
 	}
 
-	c->joblist.pre_alloc.length = num_jobs;
-	c->joblist.pre_alloc.put = 0;
-	c->joblist.pre_alloc.get = 0;
+	ch->joblist.pre_alloc.length = num_jobs;
+	ch->joblist.pre_alloc.put = 0;
+	ch->joblist.pre_alloc.get = 0;
 
 	/*
 	 * commit the previous writes before setting the flag.
@@ -1118,16 +1118,16 @@ static int channel_gk20a_prealloc_resources(struct channel_gk20a *c,
 	 * channel_gk20a_is_prealloc_enabled()
 	 */
 	nvgpu_smp_wmb();
-	c->joblist.pre_alloc.enabled = true;
+	ch->joblist.pre_alloc.enabled = true;
 
 	return 0;
 
 clean_up_priv_cmd:
-	nvgpu_vfree(c->g, entries);
+	nvgpu_vfree(ch->g, entries);
 clean_up_joblist:
-	nvgpu_vfree(c->g, c->joblist.pre_alloc.jobs);
+	nvgpu_vfree(ch->g, ch->joblist.pre_alloc.jobs);
 clean_up:
-	(void) memset(&c->joblist.pre_alloc, 0, sizeof(c->joblist.pre_alloc));
+	(void) memset(&ch->joblist.pre_alloc, 0, sizeof(ch->joblist.pre_alloc));
 	return err;
 }
 
@@ -1135,7 +1135,7 @@ static void channel_gk20a_free_prealloc_resources(struct channel_gk20a *c)
 {
 	nvgpu_vfree(c->g, c->joblist.pre_alloc.jobs[0].wait_cmd);
 	nvgpu_vfree(c->g, c->joblist.pre_alloc.jobs);
-	gk20a_free_fence_pool(c);
+	nvgpu_fence_pool_free(c);
 
 	/*
 	 * commit the previous writes before disabling the flag.
@@ -2159,7 +2159,7 @@ void gk20a_channel_clean_up_jobs(struct channel_gk20a *c,
 		job = channel_gk20a_joblist_peek(c);
 		channel_gk20a_joblist_unlock(c);
 
-		completed = gk20a_fence_is_expired(job->post_fence);
+		completed = nvgpu_fence_is_expired(job->post_fence);
 		if (!completed) {
 			/*
 			 * The watchdog eventually sees an updated gp_get if
@@ -2209,7 +2209,7 @@ void gk20a_channel_clean_up_jobs(struct channel_gk20a *c,
 
 		/* Close the fence (this will unref the semaphore and release
 		 * it to the pool). */
-		gk20a_fence_put(job->post_fence);
+		nvgpu_fence_put(job->post_fence);
 
 		/* Free the private command buffers (wait_cmd first and
 		 * then incr_cmd i.e. order of allocation) */

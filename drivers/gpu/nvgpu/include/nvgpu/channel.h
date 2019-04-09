@@ -34,7 +34,7 @@
 
 struct gk20a;
 struct dbg_session_gk20a;
-struct gk20a_fence;
+struct nvgpu_fence_type;
 struct fifo_profile_gk20a;
 struct nvgpu_channel_sync;
 struct nvgpu_gpfifo_userdata;
@@ -175,7 +175,7 @@ struct priv_cmd_entry {
 struct channel_gk20a_job {
 	struct nvgpu_mapped_buf **mapped_buffers;
 	int num_mapped_buffers;
-	struct gk20a_fence *post_fence;
+	struct nvgpu_fence_type *post_fence;
 	struct priv_cmd_entry *wait_cmd;
 	struct priv_cmd_entry *incr_cmd;
 	struct nvgpu_list_node list;
@@ -507,7 +507,7 @@ int nvgpu_submit_channel_gpfifo_user(struct channel_gk20a *c,
 				u32 num_entries,
 				u32 flags,
 				struct nvgpu_channel_fence *fence,
-				struct gk20a_fence **fence_out,
+				struct nvgpu_fence_type **fence_out,
 				struct fifo_profile_gk20a *profile);
 
 int nvgpu_submit_channel_gpfifo_kernel(struct channel_gk20a *c,
@@ -515,7 +515,7 @@ int nvgpu_submit_channel_gpfifo_kernel(struct channel_gk20a *c,
 				u32 num_entries,
 				u32 flags,
 				struct nvgpu_channel_fence *fence,
-				struct gk20a_fence **fence_out);
+				struct nvgpu_fence_type **fence_out);
 
 #ifdef CONFIG_DEBUG_FS
 void trace_write_pushbuffers(struct channel_gk20a *c, u32 count);

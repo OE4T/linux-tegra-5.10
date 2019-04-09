@@ -480,6 +480,7 @@ nvgpu-y += \
 	common/fifo/engines.o \
 	common/fifo/pbdma_status.o \
 	common/fifo/userd.o \
+	common/fence/fence.o \
 	common/ecc.o \
 	common/ce2.o \
 	common/debugger.o \
@@ -487,7 +488,6 @@ nvgpu-y += \
 	gk20a/fifo_gk20a.o \
 	gk20a/gr_gk20a.o \
 	gk20a/mm_gk20a.o \
-	gk20a/fence_gk20a.o \
 	gm20b/hal_gm20b.o \
 	gm20b/gr_gm20b.o \
 	gm20b/clk_gm20b.o \
