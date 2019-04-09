@@ -25,6 +25,10 @@
 #ifndef NVGPU_FIFO_COMMON_H
 #define NVGPU_FIFO_COMMON_H
 
+#define ID_TYPE_CHANNEL			0U
+#define ID_TYPE_TSG			1U
+#define ID_TYPE_UNKNOWN			(~U32(0U))
+
 #define INVAL_ID			(~U32(0U))
 
 #define CTXSW_TIMEOUT_PERIOD_MS		100U

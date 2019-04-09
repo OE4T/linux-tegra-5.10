@@ -555,30 +555,6 @@ void gk20a_fifo_teardown_ch_tsg(struct gk20a *g, u32 __engine_ids,
 	nvgpu_mutex_release(&g->fifo.engines_reset_mutex);
 }
 
-void gk20a_fifo_recover(struct gk20a *g, u32 engine_ids,
-			u32 hw_id, bool id_is_tsg,
-			bool id_is_known, bool verbose, u32 rc_type)
-{
-	unsigned int id_type;
-
-	if (verbose) {
-		gk20a_debug_dump(g);
-	}
-
-	if (g->ops.ltc.flush != NULL) {
-		g->ops.ltc.flush(g);
-	}
-
-	if (id_is_known) {
-		id_type = id_is_tsg ? ID_TYPE_TSG : ID_TYPE_CHANNEL;
-	} else {
-		id_type = ID_TYPE_UNKNOWN;
-	}
-
-	g->ops.fifo.teardown_ch_tsg(g, engine_ids, hw_id, id_type,
-					 rc_type, NULL);
-}
-
 u32 gk20a_fifo_get_failing_engine_data(struct gk20a *g,
 			u32 *__id, bool *__is_tsg)
 {

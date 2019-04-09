@@ -48,10 +48,6 @@ struct tsg_gk20a;
 #define FIFO_INVAL_RUNLIST_ID		(~U32(0U))
 #define FIFO_INVAL_SYNCPT_ID		(~U32(0U))
 
-#define ID_TYPE_CHANNEL			0U
-#define ID_TYPE_TSG			1U
-#define ID_TYPE_UNKNOWN			(~U32(0U))
-
 #define RC_YES				1U
 #define RC_NO				0U
 
@@ -226,11 +222,6 @@ u32 gk20a_fifo_engines_on_ch(struct gk20a *g, u32 chid);
 
 int gk20a_fifo_suspend(struct gk20a *g);
 
-void gk20a_fifo_recover(struct gk20a *g,
-			u32 engine_ids, /* if zero, will be queried from HW */
-			u32 hw_id, /* if ~0, will be queried from HW */
-			bool id_is_tsg, /* ignored if hw_id == ~0 */
-			bool id_is_known, bool verbose, u32 rc_type);
 int gk20a_init_fifo_reset_enable_hw(struct gk20a *g);
 
 void fifo_gk20a_finish_mmu_fault_handling(struct gk20a *g,

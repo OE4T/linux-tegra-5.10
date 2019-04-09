@@ -30,9 +30,32 @@
 #include <nvgpu/error_notifier.h>
 #include <nvgpu/nvgpu_err.h>
 #include <nvgpu/pbdma_status.h>
+#include <nvgpu/debug.h>
 #include <nvgpu/rc.h>
 
-#include "gk20a/fifo_gk20a.h"
+void nvgpu_rc_fifo_recover(struct gk20a *g, u32 eng_bitmask,
+			u32 hw_id, bool id_is_tsg,
+			bool id_is_known, bool debug_dump, u32 rc_type)
+{
+	unsigned int id_type;
+
+	if (debug_dump) {
+		gk20a_debug_dump(g);
+	}
+
+	if (g->ops.ltc.flush != NULL) {
+		g->ops.ltc.flush(g);
+	}
+
+	if (id_is_known) {
+		id_type = id_is_tsg ? ID_TYPE_TSG : ID_TYPE_CHANNEL;
+	} else {
+		id_type = ID_TYPE_UNKNOWN;
+	}
+
+	g->ops.fifo.teardown_ch_tsg(g, eng_bitmask, hw_id, id_type,
+				 rc_type, NULL);
+}
 
 void nvgpu_rc_ctxsw_timeout(struct gk20a *g, u32 eng_bitmask,
 				struct tsg_gk20a *tsg, bool debug_dump)
@@ -44,7 +67,7 @@ void nvgpu_rc_ctxsw_timeout(struct gk20a *g, u32 eng_bitmask,
 	 * trigger multiple watchdogs at a time
 	 */
 	nvgpu_channel_wdt_restart_all_channels(g);
-	gk20a_fifo_recover(g, eng_bitmask, tsg->tsgid, true, true, debug_dump,
+	nvgpu_rc_fifo_recover(g, eng_bitmask, tsg->tsgid, true, true, debug_dump,
 			RC_TYPE_CTXSW_TIMEOUT);
 }
 
@@ -95,7 +118,7 @@ void nvgpu_rc_runlist_update(struct gk20a *g, u32 runlist_id)
 	u32 eng_bitmask = g->ops.fifo.runlist_busy_engines(g, runlist_id);
 
 	if (eng_bitmask != 0U) {
-		gk20a_fifo_recover(g, eng_bitmask, INVAL_ID, false, false, true,
+		nvgpu_rc_fifo_recover(g, eng_bitmask, INVAL_ID, false, false, true,
 				RC_TYPE_RUNLIST_UPDATE_TIMEOUT);
 	}
 }
@@ -122,14 +145,14 @@ void nvgpu_rc_gr_fault(struct gk20a *g, struct tsg_gk20a *tsg,
 	}
 
 	if (tsg != NULL) {
-		gk20a_fifo_recover(g, gr_eng_bitmask, tsg->tsgid,
+		nvgpu_rc_fifo_recover(g, gr_eng_bitmask, tsg->tsgid,
 				   true, true, true, RC_TYPE_GR_FAULT);
 	} else {
 		if (ch != NULL) {
 			nvgpu_err(g, "chid: %d referenceable but not "
 				"bound to tsg", ch->chid);
 		}
-		gk20a_fifo_recover(g, gr_eng_bitmask, INVAL_ID,
+		nvgpu_rc_fifo_recover(g, gr_eng_bitmask, INVAL_ID,
 				   false, false, true, RC_TYPE_GR_FAULT);
 	}
 }
@@ -137,7 +160,7 @@ void nvgpu_rc_gr_fault(struct gk20a *g, struct tsg_gk20a *tsg,
 void nvgpu_rc_sched_error_bad_tsg(struct gk20a *g)
 {
 	/* id is unknown, preempt all runlists and do recovery */
-	gk20a_fifo_recover(g, 0, INVAL_ID, false, false, false,
+	nvgpu_rc_fifo_recover(g, 0, INVAL_ID, false, false, false,
 		RC_TYPE_SCHED_ERR);
 }
 
@@ -193,7 +216,7 @@ void nvgpu_rc_tsg_and_related_engines(struct gk20a *g, struct tsg_gk20a *tsg,
 	nvgpu_mutex_release(&g->fifo.engines_reset_mutex);
 
 	if (eng_bitmask != 0U) {
-		gk20a_fifo_recover(g, eng_bitmask, tsg->tsgid, true, true,
+		nvgpu_rc_fifo_recover(g, eng_bitmask, tsg->tsgid, true, true,
 			debug_dump, rc_type);
 	} else {
 		if (nvgpu_tsg_mark_error(g, tsg) && debug_dump) {

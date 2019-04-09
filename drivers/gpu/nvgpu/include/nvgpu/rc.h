@@ -57,4 +57,9 @@ void nvgpu_rc_sched_error_bad_tsg(struct gk20a *g);
 void nvgpu_rc_tsg_and_related_engines(struct gk20a *g, struct tsg_gk20a *tsg,
 			 bool debug_dump, u32 rc_type);
 
+void nvgpu_rc_fifo_recover(struct gk20a *g,
+			u32 eng_bitmask, /* if zero, will be queried from HW */
+			u32 hw_id, /* if ~0, will be queried from HW */
+			bool id_is_tsg, /* ignored if hw_id == ~0 */
+			bool id_is_known, bool debug_dump, u32 rc_type);
 #endif /* NVGPU_RC_H */
