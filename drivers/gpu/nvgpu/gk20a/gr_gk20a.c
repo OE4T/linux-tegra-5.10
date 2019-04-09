@@ -685,7 +685,6 @@ int gk20a_gr_isr(struct gk20a *g)
 	struct channel_gk20a *fault_ch = NULL;
 	u32 tsgid = NVGPU_INVALID_TSG_ID;
 	struct tsg_gk20a *tsg = NULL;
-	u32 gr_engine_id;
 	u32 global_esr = 0;
 	u32 chid;
 	struct nvgpu_gr_config *gr_config = g->gr.config;
@@ -697,11 +696,6 @@ int gk20a_gr_isr(struct gk20a *g)
 
 	if (gr_intr == 0U) {
 		return 0;
-	}
-
-	gr_engine_id = nvgpu_engine_get_gr_id(g);
-	if (gr_engine_id != FIFO_INVAL_ENGINE_ID) {
-		gr_engine_id = BIT32(gr_engine_id);
 	}
 
 	/* Disable fifo access */
@@ -841,19 +835,7 @@ int gk20a_gr_isr(struct gk20a *g)
 	}
 
 	if (need_reset) {
-		if (tsg != NULL) {
-			gk20a_fifo_recover(g, gr_engine_id,
-					   tsgid, true, true, true,
-						RC_TYPE_GR_FAULT);
-		} else {
-			if (ch != NULL) {
-				nvgpu_err(g, "chid: %d referenceable but not "
-					"bound to tsg", chid);
-			}
-			gk20a_fifo_recover(g, gr_engine_id,
-					   0, false, false, true,
-						RC_TYPE_GR_FAULT);
-		}
+		nvgpu_rc_gr_fault(g, tsg, ch);
 	}
 
 	if (clear_intr != 0U) {

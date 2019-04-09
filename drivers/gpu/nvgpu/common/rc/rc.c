@@ -23,6 +23,7 @@
 #include <nvgpu/log.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/fifo.h>
+#include <nvgpu/engines.h>
 #include <nvgpu/channel.h>
 #include <nvgpu/tsg.h>
 #include <nvgpu/error_notifier.h>
@@ -102,4 +103,30 @@ void nvgpu_rc_preempt_timeout(struct gk20a *g, struct tsg_gk20a *tsg)
 		NVGPU_ERR_NOTIFIER_FIFO_ERROR_IDLE_TIMEOUT);
 
 	nvgpu_tsg_recover(g, tsg, true, RC_TYPE_PREEMPT_TIMEOUT);
+}
+
+void nvgpu_rc_gr_fault(struct gk20a *g, struct tsg_gk20a *tsg,
+		struct channel_gk20a *ch)
+{
+	u32 gr_engine_id;
+	u32 gr_eng_bitmask = 0U;
+
+	gr_engine_id = nvgpu_engine_get_gr_id(g);
+	if (gr_engine_id != FIFO_INVAL_ENGINE_ID) {
+		gr_eng_bitmask = BIT32(gr_engine_id);
+	} else {
+		nvgpu_warn(g, "gr_engine_id is invalid");
+	}
+
+	if (tsg != NULL) {
+		gk20a_fifo_recover(g, gr_eng_bitmask, tsg->tsgid,
+				   true, true, true, RC_TYPE_GR_FAULT);
+	} else {
+		if (ch != NULL) {
+			nvgpu_err(g, "chid: %d referenceable but not "
+				"bound to tsg", ch->chid);
+		}
+		gk20a_fifo_recover(g, gr_eng_bitmask, INVAL_ID,
+				   false, false, true, RC_TYPE_GR_FAULT);
+	}
 }
