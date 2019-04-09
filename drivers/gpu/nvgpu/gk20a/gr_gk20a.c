@@ -463,35 +463,15 @@ int gk20a_gr_handle_fecs_error(struct gk20a *g, struct channel_gk20a *ch,
 static int gk20a_gr_handle_class_error(struct gk20a *g,
 				       struct nvgpu_gr_isr_data *isr_data)
 {
-	u32 gr_class_error;
 	u32 chid = isr_data->ch != NULL ?
 		isr_data->ch->chid : FIFO_INVAL_CHANNEL_ID;
 
 	nvgpu_log_fn(g, " ");
 
-	gr_class_error =
-		gr_class_error_code_v(gk20a_readl(g, gr_class_error_r()));
+	g->ops.gr.intr.handle_class_error(g, chid, isr_data);
+
 	gk20a_gr_set_error_notifier(g, isr_data,
 			 NVGPU_ERR_NOTIFIER_GR_ERROR_SW_NOTIFY);
-	nvgpu_err(g, "class error 0x%08x, offset 0x%08x,"
-		"sub channel 0x%08x mme generated %d,"
-		" mme pc 0x%08xdata high %d priv status %d"
-		" unhandled intr 0x%08x for channel %u",
-		isr_data->class_num, (isr_data->offset << 2),
-		gr_trapped_addr_subch_v(isr_data->addr),
-		gr_trapped_addr_mme_generated_v(isr_data->addr),
-		gr_trapped_data_mme_pc_v(
-			gk20a_readl(g, gr_trapped_data_mme_r())),
-		gr_trapped_addr_datahigh_v(isr_data->addr),
-		gr_trapped_addr_priv_v(isr_data->addr),
-		gr_class_error, chid);
-
-	nvgpu_err(g, "trapped data low 0x%08x",
-		gk20a_readl(g, gr_trapped_data_lo_r()));
-	if (gr_trapped_addr_datahigh_v(isr_data->addr) != 0U) {
-		nvgpu_err(g, "trapped data high 0x%08x",
-		gk20a_readl(g, gr_trapped_data_hi_r()));
-	}
 
 	return -EINVAL;
 }

@@ -672,6 +672,8 @@ static const struct gpu_ops gv11b_ops = {
 				gv11b_gr_init_commit_gfxp_wfi_timeout,
 		},
 		.intr = {
+			.handle_class_error =
+					gm20b_gr_intr_handle_class_error,
 			.clear_pending_interrupts =
 					gm20b_gr_intr_clear_pending_interrupts,
 			.read_pending_interrupts =
