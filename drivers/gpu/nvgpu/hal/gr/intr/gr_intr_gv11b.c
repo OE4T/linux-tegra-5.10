@@ -95,7 +95,7 @@ void gv11b_gr_intr_handle_gcc_exception(struct gk20a *g, u32 gpc,
 			 );
 		}
 		*corrected_err += gcc_l15_corrected_err_count_delta;
-		nvgpu_gr_report_ecc_error(g, NVGPU_ERR_MODULE_GCC, gpc, tpc,
+		nvgpu_gr_report_ecc_error(g, NVGPU_ERR_MODULE_GCC, gpc, 0,
 				GPU_GCC_L15_ECC_CORRECTED,
 				0, *corrected_err);
 		nvgpu_writel(g,
@@ -117,7 +117,7 @@ void gv11b_gr_intr_handle_gcc_exception(struct gk20a *g, u32 gpc,
 			);
 		}
 		*uncorrected_err += gcc_l15_uncorrected_err_count_delta;
-		nvgpu_gr_report_ecc_error(g, NVGPU_ERR_MODULE_GCC, gpc, tpc,
+		nvgpu_gr_report_ecc_error(g, NVGPU_ERR_MODULE_GCC, gpc, 0,
 				GPU_GCC_L15_ECC_UNCORRECTED,
 				0, *uncorrected_err);
 		nvgpu_writel(g,
