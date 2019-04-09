@@ -30,51 +30,51 @@ struct nvgpu_mem;
 
 #ifdef CONFIG_TEGRA_GK20A_NVHOST
 
-void gk20a_add_syncpt_wait_cmd(struct gk20a *g,
+void gk20a_syncpt_add_wait_cmd(struct gk20a *g,
 		struct priv_cmd_entry *cmd, u32 off,
 		u32 id, u32 thresh, u64 gpu_va);
-u32 gk20a_get_syncpt_wait_cmd_size(void);
-u32 gk20a_get_syncpt_incr_per_release(void);
-void gk20a_add_syncpt_incr_cmd(struct gk20a *g,
+u32 gk20a_syncpt_get_wait_cmd_size(void);
+u32 gk20a_syncpt_get_incr_per_release(void);
+void gk20a_syncpt_add_incr_cmd(struct gk20a *g,
 		bool wfi_cmd, struct priv_cmd_entry *cmd,
 		u32 id, u64 gpu_va);
-u32 gk20a_get_syncpt_incr_cmd_size(bool wfi_cmd);
-void gk20a_free_syncpt_buf(struct channel_gk20a *c,
+u32 gk20a_syncpt_get_incr_cmd_size(bool wfi_cmd);
+void gk20a_syncpt_free_buf(struct channel_gk20a *c,
 		struct nvgpu_mem *syncpt_buf);
 
-int gk20a_alloc_syncpt_buf(struct channel_gk20a *c,
+int gk20a_syncpt_alloc_buf(struct channel_gk20a *c,
 		u32 syncpt_id, struct nvgpu_mem *syncpt_buf);
 
 #else
 
-static inline void gk20a_add_syncpt_wait_cmd(struct gk20a *g,
+static inline void gk20a_syncpt_add_wait_cmd(struct gk20a *g,
 		struct priv_cmd_entry *cmd, u32 off,
 		u32 id, u32 thresh, u64 gpu_va)
 {
 }
-static inline u32 gk20a_get_syncpt_wait_cmd_size(void)
+static inline u32 gk20a_syncpt_get_wait_cmd_size(void)
 {
 	return 0U;
 }
-static inline u32 gk20a_get_syncpt_incr_per_release(void)
+static inline u32 gk20a_syncpt_get_incr_per_release(void)
 {
 	return 0U;
 }
-static inline void gk20a_add_syncpt_incr_cmd(struct gk20a *g,
+static inline void gk20a_syncpt_add_incr_cmd(struct gk20a *g,
 		bool wfi_cmd, struct priv_cmd_entry *cmd,
 		u32 id, u64 gpu_va)
 {
 }
-static inline u32 gk20a_get_syncpt_incr_cmd_size(bool wfi_cmd)
+static inline u32 gk20a_syncpt_get_incr_cmd_size(bool wfi_cmd)
 {
 	return 0U;
 }
-static inline void gk20a_free_syncpt_buf(struct channel_gk20a *c,
+static inline void gk20a_syncpt_free_buf(struct channel_gk20a *c,
 		struct nvgpu_mem *syncpt_buf)
 {
 }
 
-static inline int gk20a_alloc_syncpt_buf(struct channel_gk20a *c,
+static inline int gk20a_syncpt_alloc_buf(struct channel_gk20a *c,
 		u32 syncpt_id, struct nvgpu_mem *syncpt_buf)
 {
 	return -ENOSYS;

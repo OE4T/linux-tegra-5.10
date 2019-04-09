@@ -941,23 +941,23 @@ static const struct gpu_ops gv11b_ops = {
 	.sync = {
 #ifdef CONFIG_TEGRA_GK20A_NVHOST
 		.syncpt = {
-			.alloc_syncpt_buf = gv11b_alloc_syncpt_buf,
-			.free_syncpt_buf = gv11b_free_syncpt_buf,
-			.add_syncpt_wait_cmd = gv11b_add_syncpt_wait_cmd,
-			.get_syncpt_wait_cmd_size =
-					gv11b_get_syncpt_wait_cmd_size,
-			.add_syncpt_incr_cmd = gv11b_add_syncpt_incr_cmd,
-			.get_syncpt_incr_cmd_size =
-					gv11b_get_syncpt_incr_cmd_size,
-			.get_syncpt_incr_per_release =
-					gv11b_get_syncpt_incr_per_release,
-			.get_sync_ro_map = gv11b_get_sync_ro_map,
+			.alloc_buf = gv11b_syncpt_alloc_buf,
+			.free_buf = gv11b_syncpt_free_buf,
+			.add_wait_cmd = gv11b_syncpt_add_wait_cmd,
+			.get_wait_cmd_size =
+					gv11b_syncpt_get_wait_cmd_size,
+			.add_incr_cmd = gv11b_syncpt_add_incr_cmd,
+			.get_incr_cmd_size =
+					gv11b_syncpt_get_incr_cmd_size,
+			.get_incr_per_release =
+					gv11b_syncpt_get_incr_per_release,
+			.get_sync_ro_map = gv11b_syncpt_get_sync_ro_map,
 		},
 #endif
 		.sema = {
-			.get_sema_wait_cmd_size = gv11b_get_sema_wait_cmd_size,
-			.get_sema_incr_cmd_size = gv11b_get_sema_incr_cmd_size,
-			.add_sema_cmd = gv11b_add_sema_cmd,
+			.get_wait_cmd_size = gv11b_sema_get_wait_cmd_size,
+			.get_incr_cmd_size = gv11b_sema_get_incr_cmd_size,
+			.add_cmd = gv11b_sema_add_cmd,
 		},
 	},
 	.engine_status = {

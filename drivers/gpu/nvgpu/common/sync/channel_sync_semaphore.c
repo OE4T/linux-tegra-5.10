@@ -81,7 +81,7 @@ static void add_sema_cmd(struct gk20a *g, struct channel_gk20a *c,
 		nvgpu_semaphore_prepare(s, c->hw_sema);
 	}
 
-	g->ops.sync.sema.add_sema_cmd(g, s, va, cmd, off, acquire, wfi);
+	g->ops.sync.sema.add_cmd(g, s, va, cmd, off, acquire, wfi);
 
 	if (acquire) {
 		gpu_sema_verbose_dbg(g, "(A) c=%d ACQ_GE %-4u pool=%-3llu"
@@ -154,7 +154,7 @@ static int channel_sync_semaphore_wait_fd(
 		goto cleanup;
 	}
 
-	wait_cmd_size = c->g->ops.sync.sema.get_sema_wait_cmd_size();
+	wait_cmd_size = c->g->ops.sync.sema.get_wait_cmd_size();
 	err = gk20a_channel_alloc_priv_cmdbuf(c,
 		wait_cmd_size * num_fences, entry);
 	if (err != 0) {
@@ -195,7 +195,7 @@ static int channel_sync_semaphore_incr_common(
 		return -ENOMEM;
 	}
 
-	incr_cmd_size = c->g->ops.sync.sema.get_sema_incr_cmd_size();
+	incr_cmd_size = c->g->ops.sync.sema.get_incr_cmd_size();
 	err = gk20a_channel_alloc_priv_cmdbuf(c, incr_cmd_size, incr_cmd);
 	if (err != 0) {
 		nvgpu_err(c->g,

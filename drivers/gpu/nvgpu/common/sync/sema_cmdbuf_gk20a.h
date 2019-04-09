@@ -28,9 +28,9 @@ struct gk20a;
 struct priv_cmd_entry;
 struct nvgpu_semaphore;
 
-u32 gk20a_get_sema_wait_cmd_size(void);
-u32 gk20a_get_sema_incr_cmd_size(void);
-void gk20a_add_sema_cmd(struct gk20a *g, struct nvgpu_semaphore *s,
+u32 gk20a_sema_get_wait_cmd_size(void);
+u32 gk20a_sema_get_incr_cmd_size(void);
+void gk20a_sema_add_cmd(struct gk20a *g, struct nvgpu_semaphore *s,
 		u64 sema_va, struct priv_cmd_entry *cmd,
 		u32 off, bool acquire, bool wfi);
 

@@ -54,7 +54,7 @@ static int set_syncpt_ro_map_gpu_va_locked(struct vm_gk20a *vm)
 	return 0;
 }
 
-int gv11b_alloc_syncpt_buf(struct channel_gk20a *c,
+int gv11b_syncpt_alloc_buf(struct channel_gk20a *c,
 		u32 syncpt_id, struct nvgpu_mem *syncpt_buf)
 {
 	u32 nr_pages;
@@ -90,14 +90,14 @@ int gv11b_alloc_syncpt_buf(struct channel_gk20a *c,
 	return err;
 }
 
-void gv11b_free_syncpt_buf(struct channel_gk20a *c,
+void gv11b_syncpt_free_buf(struct channel_gk20a *c,
 		struct nvgpu_mem *syncpt_buf)
 {
 	nvgpu_gmmu_unmap(c->vm, syncpt_buf, syncpt_buf->gpu_va);
 	nvgpu_dma_free(c->g, syncpt_buf);
 }
 
-int gv11b_get_sync_ro_map(struct vm_gk20a *vm,
+int gv11b_syncpt_get_sync_ro_map(struct vm_gk20a *vm,
 		u64 *base_gpuva, u32 *sync_size)
 {
 	struct gk20a *g = gk20a_from_vm(vm);
@@ -116,7 +116,7 @@ int gv11b_get_sync_ro_map(struct vm_gk20a *vm,
 	return 0;
 }
 
-void gv11b_add_syncpt_wait_cmd(struct gk20a *g,
+void gv11b_syncpt_add_wait_cmd(struct gk20a *g,
 		struct priv_cmd_entry *cmd, u32 off,
 		u32 id, u32 thresh, u64 gpu_va_base)
 {
@@ -148,17 +148,17 @@ void gv11b_add_syncpt_wait_cmd(struct gk20a *g,
 	nvgpu_mem_wr32(g, cmd->mem, off++, 0x2 | (1 << 12));
 }
 
-u32 gv11b_get_syncpt_wait_cmd_size(void)
+u32 gv11b_syncpt_get_wait_cmd_size(void)
 {
 	return 10U;
 }
 
-u32 gv11b_get_syncpt_incr_per_release(void)
+u32 gv11b_syncpt_get_incr_per_release(void)
 {
 	return 1U;
 }
 
-void gv11b_add_syncpt_incr_cmd(struct gk20a *g,
+void gv11b_syncpt_add_incr_cmd(struct gk20a *g,
 		bool wfi_cmd, struct priv_cmd_entry *cmd,
 		u32 id, u64 gpu_va)
 {
@@ -188,7 +188,7 @@ void gv11b_add_syncpt_incr_cmd(struct gk20a *g,
 		0x1 | ((wfi_cmd ? 0x1 : 0x0) << 20));
 }
 
-u32 gv11b_get_syncpt_incr_cmd_size(bool wfi_cmd)
+u32 gv11b_syncpt_get_incr_cmd_size(bool wfi_cmd)
 {
 	return 10U;
 }
