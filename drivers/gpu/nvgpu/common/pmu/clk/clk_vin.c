@@ -21,14 +21,14 @@
  */
 
 #include <nvgpu/bios.h>
-#include <nvgpu/pmuif/nvgpu_gpmu_cmdif.h>
+#include <nvgpu/pmu/pmuif/nvgpu_cmdif.h>
 #include <nvgpu/io.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/bug.h>
 #include <nvgpu/boardobjgrp.h>
 #include <nvgpu/boardobjgrp_e32.h>
 #include <nvgpu/string.h>
-#include <nvgpu/pmuif/ctrlvolt.h>
+#include <nvgpu/pmu/pmuif/ctrlvolt.h>
 #include <nvgpu/pmu/clk/clk.h>
 #include <nvgpu/pmu/cmd.h>
 

@@ -26,7 +26,7 @@
 #include <nvgpu/boardobjgrp.h>
 #include <nvgpu/boardobjgrp_e32.h>
 #include <nvgpu/boardobjgrp_e255.h>
-#include <nvgpu/pmuif/nvgpu_gpmu_cmdif.h>
+#include <nvgpu/pmu/pmuif/nvgpu_cmdif.h>
 
 #define VFE_VAR_GET(_pperf, _idx)                                              \
 	((struct vfe_var)BOARDOBJGRP_OBJ_GET_BY_IDX(                           \

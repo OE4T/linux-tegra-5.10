@@ -19,11 +19,11 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef NVGPU_PMUIF_GPMUIF_ACR_H
-#define NVGPU_PMUIF_GPMUIF_ACR_H
+#ifndef NVGPU_PMUIF_ACR_H
+#define NVGPU_PMUIF_ACR_H
 
 #include <nvgpu/types.h>
-#include <nvgpu/pmuif/gpmuif_cmn.h>
+#include "cmn.h"
 
 /* ACR Commands/Message structures */
 
@@ -159,4 +159,4 @@ struct nv_pmu_rpc_struct_acr_bootstrap_gr_falcons {
 	u32  scratch[1];
 };
 
-#endif /* NVGPU_PMUIF_GPMUIF_ACR_H */
+#endif /* NVGPU_PMUIF_ACR_H */

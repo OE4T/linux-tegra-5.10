@@ -21,10 +21,10 @@
  */
 
 #include <nvgpu/pmu.h>
-#include <nvgpu/pmuif/nvgpu_gpmu_cmdif.h>
+#include <nvgpu/pmu/pmuif/nvgpu_cmdif.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/timers.h>
-#include <nvgpu/pmuif/ctrlclk.h>
+#include <nvgpu/pmu/pmuif/ctrlclk.h>
 #include <nvgpu/pmu/pstate.h>
 #include <nvgpu/pmu/clk/clk.h>
 #include <nvgpu/pmu/clk/clk_domain.h>

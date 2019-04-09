@@ -29,7 +29,7 @@
 #include <nvgpu/kmem.h>
 #include <nvgpu/engine_queue.h>
 #include <nvgpu/engine_fb_queue.h>
-#include <nvgpu/pmuif/gpmuif_cmn.h>
+#include <nvgpu/pmu/pmuif/cmn.h>
 
 #include "engine_fb_queue_priv.h"
 

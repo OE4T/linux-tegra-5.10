@@ -29,7 +29,7 @@
 #include <nvgpu/pmu/cmd.h>
 #include <nvgpu/log.h>
 #include <nvgpu/bug.h>
-#include <nvgpu/pmuif/nvgpu_gpmu_cmdif.h>
+#include <nvgpu/pmu/pmuif/nvgpu_cmdif.h>
 #include <nvgpu/kmem.h>
 
 static u8 get_perfmon_id(struct nvgpu_pmu *pmu)

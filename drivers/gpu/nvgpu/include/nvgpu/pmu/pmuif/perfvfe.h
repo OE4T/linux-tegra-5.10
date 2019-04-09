@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -19,12 +19,12 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef NVGPU_PMUIF_GPMUIFPERFVFE_H
-#define NVGPU_PMUIF_GPMUIFPERFVFE_H
+#ifndef NVGPU_PMUIF_PERFVFE_H
+#define NVGPU_PMUIF_PERFVFE_H
 
-#include <nvgpu/pmuif/gpmuifbios.h>
-#include <nvgpu/pmuif/gpmuifboardobj.h>
-#include <nvgpu/pmuif/ctrlperf.h>
+#include "bios.h"
+#include "boardobj.h"
+#include "ctrlperf.h"
 
 #define CTRL_PERF_VFE_EQU_QUADRATIC_COEFF_COUNT                      0x03U
 #define NV_PMU_PERF_RPC_VFE_EQU_EVAL_VAR_COUNT_MAX                            2U
@@ -145,7 +145,8 @@ struct nv_pmu_vfe_var_single_sensed_fuse {
 	struct nv_pmu_vfe_var_single_sensed super;
 	struct ctrl_perf_vfe_var_single_sensed_fuse_override_info override_info;
 	struct ctrl_perf_vfe_var_single_sensed_fuse_vfield_info vfield_info;
-	struct ctrl_perf_vfe_var_single_sensed_fuse_ver_vfield_info vfield_ver_info;
+	struct ctrl_perf_vfe_var_single_sensed_fuse_ver_vfield_info
+								vfield_ver_info;
 	struct ctrl_perf_vfe_var_single_sensed_fuse_value fuse_val_default;
 	bool b_fuse_value_signed;
 };
@@ -179,7 +180,8 @@ union nv_pmu_perf_vfe_var_boardobj_set_union {
 	struct nv_pmu_vfe_var_single_sensed_fuse var_single_sensed_fuse;
 	struct nv_pmu_vfe_var_single_sensed_temp var_single_sensed_temp;
 	struct nv_pmu_vfe_var_single_voltage var_single_voltage;
-	struct nv_pmu_vfe_var_single_caller_specified var_single_caller_specified;
+	struct nv_pmu_vfe_var_single_caller_specified
+					var_single_caller_specified;
 };
 
 NV_PMU_BOARDOBJ_GRP_SET_MAKE_E32(perf, vfe_var);
@@ -243,4 +245,4 @@ struct nv_pmu_perf_vfe_equ_boardobj_grp_set_pack {
 	struct nv_pmu_perf_vfe_var_boardobj_grp_set rppm;
 };
 
-#endif  /* NVGPU_PMUIF_GPMUIFPERFVFE_H*/
+#endif /* NVGPU_PMUIF_PERFVFE_H */

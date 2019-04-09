@@ -21,12 +21,12 @@
  */
 
 #include <nvgpu/pmu.h>
-#include <nvgpu/pmuif/nvgpu_gpmu_cmdif.h>
+#include <nvgpu/pmu/pmuif/nvgpu_cmdif.h>
 #include <nvgpu/gk20a.h>
-#include <nvgpu/pmuif/ctrlclk.h>
-#include <nvgpu/pmuif/ctrlvolt.h>
+#include <nvgpu/pmu/pmuif/ctrlclk.h>
+#include <nvgpu/pmu/pmuif/ctrlvolt.h>
 #include <nvgpu/bug.h>
-#include <nvgpu/pmuif/ctrlperf.h>
+#include <nvgpu/pmu/pmuif/ctrlperf.h>
 #include <nvgpu/pmu/pstate.h>
 #include <nvgpu/pmu/volt.h>
 #include <nvgpu/pmu/perf.h>

@@ -27,7 +27,7 @@
 #define NVGPU_GK20A_PMU_GK20A_H
 
 #include <nvgpu/flcnif_cmn.h>
-#include <nvgpu/pmuif/nvgpu_gpmu_cmdif.h>
+#include <nvgpu/pmu/pmuif/nvgpu_cmdif.h>
 #include <nvgpu/pmu.h>
 
 struct nvgpu_firmware;

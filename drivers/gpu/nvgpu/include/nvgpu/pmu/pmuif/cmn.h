@@ -19,8 +19,8 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef NVGPU_PMUIF_GPMUIF_CMN_H
-#define NVGPU_PMUIF_GPMUIF_CMN_H
+#ifndef NVGPU_PMUIF_CMN_H
+#define NVGPU_PMUIF_CMN_H
 
 #include <nvgpu/types.h>
 
@@ -107,4 +107,4 @@ struct nv_pmu_rpc_header {
 	u32  exec_time_pmu_ns;
 };
 
-#endif /* NVGPU_PMUIF_GPMUIF_CMN_H*/
+#endif /* NVGPU_PMUIF_CMN_H */

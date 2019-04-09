@@ -24,10 +24,10 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/boardobjgrp.h>
 #include <nvgpu/boardobjgrp_e32.h>
-#include <nvgpu/pmuif/ctrlclk.h>
+#include <nvgpu/pmu/pmuif/ctrlclk.h>
 #include <nvgpu/bug.h>
-#include <nvgpu/pmuif/ctrlboardobj.h>
-#include <nvgpu/pmuif/nvgpu_gpmu_cmdif.h>
+#include <nvgpu/pmu/pmuif/ctrlboardobj.h>
+#include <nvgpu/pmu/pmuif/nvgpu_cmdif.h>
 #include <nvgpu/pmu/clk/clk_freq_domain.h>
 #include <nvgpu/pmu/clk/clk.h>
 

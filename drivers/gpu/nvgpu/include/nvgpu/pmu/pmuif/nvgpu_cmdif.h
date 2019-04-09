@@ -19,15 +19,15 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef NVGPU_PMUIF_NVGPU_GPMU_CMDIF_H
-#define NVGPU_PMUIF_NVGPU_GPMU_CMDIF_H
+#ifndef NVGPU_PMUIF_NVGPU_CMDIF_H
+#define NVGPU_PMUIF_NVGPU_CMDIF_H
 
-#include "gpmuif_cmn.h"
-#include "gpmuif_pmu.h"
-#include "gpmuif_ap.h"
-#include "gpmuifperfvfe.h"
-#include "gpmuifthermsensor.h"
-#include "gpmuifseq.h"
+#include "cmn.h"
+#include "pmu.h"
+#include "ap.h"
+#include "perfvfe.h"
+#include "thermsensor.h"
+#include "seq.h"
 
 #define PMU_UNIT_REWIND			U8(0x00)
 #define PMU_UNIT_PG			U8(0x03)
@@ -102,4 +102,4 @@ struct nv_pmu_fbq_msg_queue {
 	struct nv_pmu_fbq_msg_q_element element[NV_PMU_FBQ_MSG_NUM_ELEMENTS];
 };
 
-#endif /* NVGPU_PMUIF_NVGPU_GPMU_CMDIF_H*/
+#endif /* NVGPU_PMUIF_NVGPU_CMDIF_H */

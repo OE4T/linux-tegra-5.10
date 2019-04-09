@@ -19,8 +19,8 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef NVGPU_PMUIF_GPMUIF_RPC_H
-#define NVGPU_PMUIF_GPMUIF_RPC_H
+#ifndef NVGPU_PMUIF_RPC_H
+#define NVGPU_PMUIF_RPC_H
 
 /*
  * Command requesting execution of the RPC (Remote Procedure Call)
@@ -63,4 +63,4 @@ struct nv_pmu_rpc_msg {
 
 #define NV_PMU_RPC_MSG_ID 0x80U
 
-#endif /* NVGPU_PMUIF_GPMUIF_RPC_H*/
+#endif /* NVGPU_PMUIF_RPC_H */

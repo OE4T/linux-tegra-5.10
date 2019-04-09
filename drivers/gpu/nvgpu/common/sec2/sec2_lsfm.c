@@ -20,7 +20,7 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#include <nvgpu/pmuif/gpmuif_cmn.h>
+#include <nvgpu/pmu/pmuif/cmn.h>
 #include <nvgpu/sec2/lsfm.h>
 #include <nvgpu/sec2/msg.h>
 #include <nvgpu/gk20a.h>

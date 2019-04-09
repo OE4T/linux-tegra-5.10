@@ -25,7 +25,7 @@
 #include <nvgpu/firmware.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/acr.h>
-#include <nvgpu/pmuif/gpmuif_cmn.h>
+#include <nvgpu/pmu/pmuif/cmn.h>
 
 #include "acr_priv.h"
 #include "acr_sw_gm20b.h"

@@ -31,7 +31,7 @@
 #include <nvgpu/boardobjgrp_e32.h>
 #include <nvgpu/boardobjgrp_e255.h>
 #include <nvgpu/boardobjgrpmask.h>
-#include <nvgpu/pmuif/gpmuifperf.h>
+#include <nvgpu/pmu/pmuif/perf.h>
 
 struct gk20a;
 

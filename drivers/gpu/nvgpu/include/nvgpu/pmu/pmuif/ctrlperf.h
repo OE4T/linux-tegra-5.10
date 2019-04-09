@@ -1,7 +1,7 @@
 /*
  * general p state infrastructure
  *
- * Copyright (c) 2016-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -21,8 +21,8 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef NVGPU_CTRLPERF_H
-#define NVGPU_CTRLPERF_H
+#ifndef NVGPU_PMUIF_CTRLPERF_H
+#define NVGPU_PMUIF_CTRLPERF_H
 
 #include "ctrlvolt.h"
 #include "ctrlclk.h"
@@ -80,12 +80,13 @@ struct ctrl_bios_vfield_register_segment {
 
 struct ctrl_perf_vfe_var_single_sensed_fuse_info {
 	u8 segment_count;
-	struct ctrl_bios_vfield_register_segment segments[NV_PMU_VFE_VAR_SINGLE_SENSED_FUSE_SEGMENTS_MAX];
+	struct ctrl_bios_vfield_register_segment
+		segments[NV_PMU_VFE_VAR_SINGLE_SENSED_FUSE_SEGMENTS_MAX];
 };
 
 struct ctrl_perf_vfe_var_single_sensed_fuse_override_info {
 	u32 fuse_val_override;
-        u8 b_fuse_regkey_override;
+	u8 b_fuse_regkey_override;
 };
 
 struct ctrl_perf_vfe_var_single_sensed_fuse_vfield_info {
@@ -168,9 +169,11 @@ struct ctrl_perf_change_seq_change_input {
 	u32 flags;
 	u32 vf_points_cache_counter;
 	struct ctrl_boardobjgrp_mask_e32 clk_domains_mask;
-	struct ctrl_perf_chage_seq_input_clk clk[CTRL_CLK_CLK_DOMAIN_CLIENT_MAX_DOMAINS];
+	struct ctrl_perf_chage_seq_input_clk
+		clk[CTRL_CLK_CLK_DOMAIN_CLIENT_MAX_DOMAINS];
 	struct ctrl_boardobjgrp_mask_e32 volt_rails_mask;
-	struct ctrl_perf_chage_seq_input_volt volt[CTRL_VOLT_VOLT_RAIL_CLIENT_MAX_RAILS];
+	struct ctrl_perf_chage_seq_input_volt
+		volt[CTRL_VOLT_VOLT_RAIL_CLIENT_MAX_RAILS];
 };
 
 struct u64_align32 {
@@ -188,7 +191,7 @@ struct ctrl_perf_change_seq_script_profiling {
 	struct u64_align32 total_execution_timens;
 	u8 num_threads; /*number of threads required to process this script*/
 	struct ctrl_perf_change_seq_script_profiling_thread
-		nvgpu_threads[CTRL_PERF_CHANGE_SEQ_SCRIPT_MAX_PROFILING_THREADS];
+	    nvgpu_threads[CTRL_PERF_CHANGE_SEQ_SCRIPT_MAX_PROFILING_THREADS];
 };
 
 struct ctrl_perf_change_seq_pmu_script_header {
@@ -273,5 +276,4 @@ union ctrl_perf_change_seq_pmu_script_step_data {
 	struct ctrl_perf_change_seq_pmu_script_step_volt volt;
 };
 
-#endif /* NVGPU_CTRLPERF_H */
-
+#endif /* NVGPU_PMUIF_CTRLPERF_H */

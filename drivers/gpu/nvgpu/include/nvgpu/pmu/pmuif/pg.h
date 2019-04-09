@@ -19,20 +19,20 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef NVGPU_PMUIF_GPMUIF_PG_H
-#define NVGPU_PMUIF_GPMUIF_PG_H
+#ifndef NVGPU_PMUIF_PG_H
+#define NVGPU_PMUIF_PG_H
 
 #include <nvgpu/types.h>
 
-#include "gpmuif_ap.h"
-#include "gpmuif_pg_rppg.h"
+#include "ap.h"
+#include "pg_rppg.h"
 
 /*PG defines*/
 
 /* Identifier for each PG */
-#define PMU_PG_ELPG_ENGINE_ID_GRAPHICS 		(0x00000000U)
-#define PMU_PG_ELPG_ENGINE_ID_MS       		(0x00000004U)
-#define PMU_PG_ELPG_ENGINE_ID_INVALID_ENGINE 	(0x00000005U)
+#define PMU_PG_ELPG_ENGINE_ID_GRAPHICS		(0x00000000U)
+#define PMU_PG_ELPG_ENGINE_ID_MS		(0x00000004U)
+#define PMU_PG_ELPG_ENGINE_ID_INVALID_ENGINE	(0x00000005U)
 #define PMU_PG_ELPG_ENGINE_MAX    PMU_PG_ELPG_ENGINE_ID_INVALID_ENGINE
 
 /* PG message */
@@ -175,11 +175,11 @@ enum {
 	SLOWDOWN_FACTOR_FPDIV_BYMAX,
 };
 
-#define PMU_PG_PARAM_CMD_GR_INIT_PARAM  		0x0U
-#define PMU_PG_PARAM_CMD_MS_INIT_PARAM  		0x01U
-#define PMU_PG_PARAM_CMD_MCLK_CHANGE  			0x04U
-#define PMU_PG_PARAM_CMD_POST_INIT  			0x06U
-#define PMU_PG_PARAM_CMD_SUB_FEATURE_MASK_UPDATE  	0x07U
+#define PMU_PG_PARAM_CMD_GR_INIT_PARAM			0x0U
+#define PMU_PG_PARAM_CMD_MS_INIT_PARAM			0x01U
+#define PMU_PG_PARAM_CMD_MCLK_CHANGE			0x04U
+#define PMU_PG_PARAM_CMD_POST_INIT			0x06U
+#define PMU_PG_PARAM_CMD_SUB_FEATURE_MASK_UPDATE	0x07U
 
 #define NVGPU_PMU_GR_FEATURE_MASK_SDIV_SLOWDOWN     BIT32(0)
 #define NVGPU_PMU_GR_FEATURE_MASK_POWER_GATING      BIT32(2)
@@ -376,9 +376,9 @@ struct pmu_pg_stats_v1 {
 	/* Number of time PMU aborted in entry sequence */
 	u32 abort_count;
 	/*
-	* Time for which GPU was neither in Sleep state not
-	* executing sleep sequence.
-	*/
+	 * Time for which GPU was neither in Sleep state not
+	 * executing sleep sequence.
+	 */
 	u32 poweredup_timeus;
 	/* Entry and exit latency of current sleep cycle */
 	u32 entry_latency_us;
@@ -411,4 +411,4 @@ struct pmu_pg_stats {
 	u32 pg_gating_deny_cnt;
 };
 
-#endif /* NVGPU_PMUIF_GPMUIF_PG_H*/
+#endif /* NVGPU_PMUIF_PG_H */

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -20,8 +20,8 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NVGPU_CTRLCLKAVFS_H
-#define NVGPU_CTRLCLKAVFS_H
+#ifndef NVGPU_PMUIF_CTRLCLKAVFS_H
+#define NVGPU_PMUIF_CTRLCLKAVFS_H
 
 /*!
  * Valid global VIN ID values
@@ -63,7 +63,7 @@
 #define CTRL_CLK_FLL_REGIME_ID_FFR                         ((u8)0x00000001)
 #define CTRL_CLK_FLL_REGIME_ID_FR                          ((u8)0x00000002)
 
-#define CTRL_CLK_FLL_LUT_VSELECT_LOGIC  		   (0x00000000U)
-#define CTRL_CLK_FLL_LUT_VSELECT_MIN  	  		   (0x00000001U)
-#define CTRL_CLK_FLL_LUT_VSELECT_SRAM   		   (0x00000002U)
-#endif /* NVGPU_CTRLCLKAVFS_H */
+#define CTRL_CLK_FLL_LUT_VSELECT_LOGIC			   (0x00000000U)
+#define CTRL_CLK_FLL_LUT_VSELECT_MIN			   (0x00000001U)
+#define CTRL_CLK_FLL_LUT_VSELECT_SRAM			   (0x00000002U)
+#endif /* NVGPU_PMUIF_CTRLCLKAVFS_H */

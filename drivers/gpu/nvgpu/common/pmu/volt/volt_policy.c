@@ -25,7 +25,7 @@
 #include <nvgpu/boardobjgrp.h>
 #include <nvgpu/boardobjgrp_e32.h>
 #include <nvgpu/string.h>
-#include <nvgpu/pmuif/ctrlvolt.h>
+#include <nvgpu/pmu/pmuif/ctrlvolt.h>
 #include <nvgpu/pmu/perf.h>
 
 #include "volt_policy.h"

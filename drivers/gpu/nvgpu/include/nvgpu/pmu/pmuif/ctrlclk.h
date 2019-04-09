@@ -1,7 +1,7 @@
 /*
  * general p state infrastructure
  *
- * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -21,8 +21,8 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef NVGPU_CTRLCLK_H
-#define NVGPU_CTRLCLK_H
+#ifndef NVGPU_PMUIF_CTRLCLK_H
+#define NVGPU_PMUIF_CTRLCLK_H
 
 #include "ctrlboardobj.h"
 #include "ctrlclkavfs.h"
@@ -203,25 +203,25 @@ struct ctrl_clk_vf_pair {
 #define CTRL_CLK_CLK_VF_POINT_FREQ_TUPLE_MAX_SIZE		0x5U
 
 struct ctrl_clk_vf_point_freq_tuple {
-    u16   freqMHz;
+	u16 freqMHz;
 };
 
 struct ctrl_clk_vf_point_base_vf_tuple {
 	struct ctrl_clk_vf_point_freq_tuple
-        freqTuple[CTRL_CLK_CLK_VF_POINT_FREQ_TUPLE_MAX_SIZE];
-    u32   voltageuV;
+		freqTuple[CTRL_CLK_CLK_VF_POINT_FREQ_TUPLE_MAX_SIZE];
+	u32 voltageuV;
 };
 
 #define CTRL_CLK_CLK_VF_POINT_DVCO_OFFSET_CODE_INVALID   0xFFU
 
 struct ctrl_clk_vf_point_base_vf_tuple_sec {
 	struct ctrl_clk_vf_point_base_vf_tuple  super;
-    u8    dvco_offset_code;
+	u8 dvco_offset_code;
 };
 
 struct ctrl_clk_vf_point_vf_tuple {
-    u16   freqMHz;
-    u32   voltageuV;
+	u16 freqMHz;
+	u32 voltageuV;
 };
 
 struct ctrl_clk_vf_input {
@@ -282,4 +282,4 @@ struct ctrl_clk_clk_domain_list {
 #define CTRL_CLK_FREQ_DOMAIN_SCHEMA_STUB                             0x09U
 
 
-#endif /* NVGPU_CTRLCLK_H */
+#endif /* NVGPU_PMUIF_CTRLCLK_H */

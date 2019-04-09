@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -24,7 +24,7 @@
 #define NVGPU_BOARDOBJGRPMASK_H
 
 #include <nvgpu/types.h>
-#include <nvgpu/pmuif/ctrlboardobj.h>
+#include <nvgpu/pmu/pmuif/ctrlboardobj.h>
 
 struct ctrl_boardobjgrp_mask;
 

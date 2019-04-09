@@ -1,6 +1,6 @@
 /*
-* Copyright (c) 2016-2018, NVIDIA CORPORATION.  All rights reserved.
-*
+ * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
  * to deal in the Software without restriction, including without limitation
@@ -18,12 +18,13 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
-*/
-#ifndef NVGPU_PMUIF_GPMUIFBOARDOBJ_H
-#define NVGPU_PMUIF_GPMUIFBOARDOBJ_H
+ */
+#ifndef NVGPU_PMUIF_BOARDOBJ_H
+#define NVGPU_PMUIF_BOARDOBJ_H
 
 #include <nvgpu/flcnif_cmn.h>
-#include <nvgpu/pmuif/ctrlboardobj.h>
+
+#include "ctrlboardobj.h"
 
 /* board object group command id's. */
 #define NV_PMU_BOARDOBJGRP_CMD_SET			0x00U
@@ -124,58 +125,60 @@ struct nv_pmu_boardobj_msg {
 };
 
 /*
-* Macro generating structures describing classes which implement
-* NV_PMU_BOARDOBJGRP via the NV_PMU_BOARDBOBJ_CMD_GRP SET interface.
-*
-* @para    _eng    Name of implementing engine in which this structure is
-* found.
-* @param   _class  Class ID of Objects within Board Object Group.
-* @param   _slots  Max number of elements this group can contain.
-*/
+ * Macro generating structures describing classes which implement
+ * NV_PMU_BOARDOBJGRP via the NV_PMU_BOARDBOBJ_CMD_GRP SET interface.
+ *
+ * @para    _eng    Name of implementing engine in which this structure is
+ * found.
+ * @param   _class  Class ID of Objects within Board Object Group.
+ * @param   _slots  Max number of elements this group can contain.
+ */
 #define NV_PMU_BOARDOBJ_GRP_SET_MAKE(_eng, _class, _slots)                     \
 	NV_PMU_MAKE_ALIGNED_STRUCT(                                            \
 	nv_pmu_##_eng##_##_class##_boardobjgrp_set_header, one_structure);     \
 	NV_PMU_MAKE_ALIGNED_UNION(                                             \
 	nv_pmu_##_eng##_##_class##_boardobj_set_union, one_union);             \
 	struct nv_pmu_##_eng##_##_class##_boardobj_grp_set {                   \
-	union nv_pmu_##_eng##_##_class##_boardobjgrp_set_header_aligned  hdr;        \
-	union nv_pmu_##_eng##_##_class##_boardobj_set_union_aligned objects[(_slots)];\
+	union nv_pmu_##_eng##_##_class##_boardobjgrp_set_header_aligned	       \
+									hdr;   \
+	union nv_pmu_##_eng##_##_class##_boardobj_set_union_aligned	       \
+							objects[(_slots)];     \
 	}
 
 /*
-* Macro generating structures describing classes which implement
-* NV_PMU_BOARDOBJGRP_E32 via the NV_PMU_BOARDBOBJ_CMD_GRP SET interface.
-*
-* @para    _eng    Name of implementing engine in which this structure is
-* found.
-* @param   _class  Class ID of Objects within Board Object Group.
-*/
+ * Macro generating structures describing classes which implement
+ * NV_PMU_BOARDOBJGRP_E32 via the NV_PMU_BOARDBOBJ_CMD_GRP SET interface.
+ *
+ * @para    _eng    Name of implementing engine in which this structure is
+ * found.
+ * @param   _class  Class ID of Objects within Board Object Group.
+ */
 #define NV_PMU_BOARDOBJ_GRP_SET_MAKE_E32(_eng, _class)                         \
 	NV_PMU_BOARDOBJ_GRP_SET_MAKE(_eng, _class,                             \
 	CTRL_BOARDOBJGRP_E32_MAX_OBJECTS)
 
 /*
-* Macro generating structures describing classes which implement
-* NV_PMU_BOARDOBJGRP_E255 via the NV_PMU_BOARDBOBJ_CMD_GRP SET interface.
-*
-* @para    _eng    Name of implementing engine in which this structure is
-* found.
-* @param   _class  Class ID of Objects within Board Object Group.
-*/
+ * Macro generating structures describing classes which implement
+ * NV_PMU_BOARDOBJGRP_E255 via the NV_PMU_BOARDBOBJ_CMD_GRP SET interface.
+ *
+ * @para    _eng    Name of implementing engine in which this structure is
+ * found.
+ * @param   _class  Class ID of Objects within Board Object Group.
+ */
 #define NV_PMU_BOARDOBJ_GRP_SET_MAKE_E255(_eng, _class)                        \
 	NV_PMU_BOARDOBJ_GRP_SET_MAKE(_eng, _class,                             \
 	CTRL_BOARDOBJGRP_E255_MAX_OBJECTS)
 
 /*
-* Macro generating structures for querying dynamic state for classes which
-* implement NV_PMU_BOARDOBJGRP via the NV_PMU_BOARDOBJ_CMD_GRP GET_STATUS
-* interface.
-*
-* @para    _eng    Name of implementing engine in which this structure is
-* found.
-* @param   _class  Class ID of Objects within Board Object Group.
-* @param   _slots  Max number of elements this group can contain.
-*/
+ * Macro generating structures for querying dynamic state for classes which
+ * implement NV_PMU_BOARDOBJGRP via the NV_PMU_BOARDOBJ_CMD_GRP GET_STATUS
+ * interface.
+ *
+ * @para    _eng    Name of implementing engine in which this structure is
+ * found.
+ * @param   _class  Class ID of Objects within Board Object Group.
+ * @param   _slots  Max number of elements this group can contain.
+ */
 #define NV_PMU_BOARDOBJ_GRP_GET_STATUS_MAKE(_eng, _class, _slots)              \
 	NV_PMU_MAKE_ALIGNED_STRUCT(                                            \
 	nv_pmu_##_eng##_##_class##_boardobjgrp_get_status_header, struct);     \
@@ -189,27 +192,27 @@ struct nv_pmu_boardobj_msg {
 	}
 
 /*
-* Macro generating structures for querying dynamic state for classes which
-* implement NV_PMU_BOARDOBJGRP_E32  via the NV_PMU_BOARDOBJ_CMD_GRP GET_STATUS
-* interface.
-*
-* @para    _eng    Name of implementing engine in which this structure is
-* found.
-* @param   _class  Class ID of Objects within Board Object Group.
-*/
+ * Macro generating structures for querying dynamic state for classes which
+ * implement NV_PMU_BOARDOBJGRP_E32  via the NV_PMU_BOARDOBJ_CMD_GRP GET_STATUS
+ * interface.
+ *
+ * @para    _eng    Name of implementing engine in which this structure is
+ * found.
+ * @param   _class  Class ID of Objects within Board Object Group.
+ */
 #define NV_PMU_BOARDOBJ_GRP_GET_STATUS_MAKE_E32(_eng, _class)                  \
 	NV_PMU_BOARDOBJ_GRP_GET_STATUS_MAKE(_eng, _class,                      \
 	CTRL_BOARDOBJGRP_E32_MAX_OBJECTS)
 
 /*
-* Macro generating structures for querying dynamic state for classes which
-* implement NV_PMU_BOARDOBJGRP_E255 via the NV_PMU_BOARDOBJ_CMD_GRP GET_STATUS
-* interface.
-*
-* @para    _eng    Name of implementing engine in which this structure is
-* found.
-* @param   _class  Class ID of Objects within Board Object Group.
-*/
+ * Macro generating structures for querying dynamic state for classes which
+ * implement NV_PMU_BOARDOBJGRP_E255 via the NV_PMU_BOARDOBJ_CMD_GRP GET_STATUS
+ * interface.
+ *
+ * @para    _eng    Name of implementing engine in which this structure is
+ * found.
+ * @param   _class  Class ID of Objects within Board Object Group.
+ */
 #define NV_PMU_BOARDOBJ_GRP_GET_STATUS_MAKE_E255(_eng, _class)                 \
 	NV_PMU_BOARDOBJ_GRP_GET_STATUS_MAKE(_eng, _class,                      \
 	CTRL_BOARDOBJGRP_E255_MAX_OBJECTS)
@@ -220,15 +223,14 @@ struct nv_pmu_boardobj_msg {
  * structure that holds data used to
  * execute BOARD_OBJ_GRP_CMD RPC.
  */
-struct nv_pmu_rpc_struct_board_obj_grp_cmd
-{
-    /* [IN/OUT] Must be first field in RPC structure */
+struct nv_pmu_rpc_struct_board_obj_grp_cmd {
+	/* [IN/OUT] Must be first field in RPC structure */
 	struct nv_pmu_rpc_header hdr;
-    /* [IN] BOARDOBJGRP class IDs. */
-    u8  class_id;
-    /* [IN] Requested command ID (@ref NV_PMU_BOARDOBJGRP_CMD_***)*/
-    u8  command_id;
-    u32  scratch[1];
+	/* [IN] BOARDOBJGRP class IDs. */
+	u8  class_id;
+	/* [IN] Requested command ID (@ref NV_PMU_BOARDOBJGRP_CMD_***)*/
+	u8  command_id;
+	u32  scratch[1];
 };
 
-#endif /*  NVGPU_PMUIF_GPMUIFBOARDOBJ_H */
+#endif /* NVGPU_PMUIF_BOARDOBJ_H */

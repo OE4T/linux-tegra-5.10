@@ -1,6 +1,6 @@
 /*
-* Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
-*
+ * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
  * to deal in the Software without restriction, including without limitation
@@ -18,19 +18,19 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
-*/
+ */
 
-#ifndef NVGPU_PMUIF_GPMUIFCLK_H
-#define NVGPU_PMUIF_GPMUIFCLK_H
+#ifndef NVGPU_PMUIF_CLK_H
+#define NVGPU_PMUIF_CLK_H
 
-#include <nvgpu/pmuif/ctrlboardobj.h>
-#include <nvgpu/pmuif/ctrlvolt.h>
-#include <nvgpu/pmuif/ctrlperf.h>
-#include <nvgpu/pmuif/ctrlclk.h>
-#include <nvgpu/pmuif/gpmuifboardobj.h>
-#include <nvgpu/pmuif/gpmuifvolt.h>
 #include <nvgpu/flcnif_cmn.h>
 
+#include "ctrlboardobj.h"
+#include "ctrlvolt.h"
+#include "ctrlperf.h"
+#include "ctrlclk.h"
+#include "boardobj.h"
+#include "volt.h"
 
 /*
  *  Try to get gpc2clk, mclk, sys2clk, xbar2clk work for Pascal
@@ -72,10 +72,10 @@
 #define NV_PMU_CLK_BOARDOBJGRP_CLASS_ID_CLK_FREQ_CONTROLLER                0x05U
 #define NV_PMU_CLK_BOARDOBJGRP_CLASS_ID_CLK_FREQ_DOMAIN                    0x07U
 
-/*!
-* CLK_DOMAIN BOARDOBJGRP Header structure.  Describes global state about the
-* CLK_DOMAIN feature.
-*/
+/*
+ * CLK_DOMAIN BOARDOBJGRP Header structure.  Describes global state about the
+ * CLK_DOMAIN feature.
+ */
 struct nv_pmu_clk_clk_domain_boardobjgrp_set_header {
 	struct nv_pmu_boardobjgrp_e32 super;
 	u32 vbios_domains;
@@ -267,11 +267,15 @@ union nv_pmu_clk_clk_prog_boardobj_set_union {
 	struct nv_pmu_clk_clk_prog_boardobj_set super;
 	struct nv_pmu_clk_clk_prog_1x_boardobj_set v1x;
 	struct nv_pmu_clk_clk_prog_1x_master_boardobj_set v1x_master;
-	struct nv_pmu_clk_clk_prog_1x_master_ratio_boardobj_set v1x_master_ratio;
-	struct nv_pmu_clk_clk_prog_1x_master_table_boardobj_set v1x_master_table;
+	struct nv_pmu_clk_clk_prog_1x_master_ratio_boardobj_set
+							v1x_master_ratio;
+	struct nv_pmu_clk_clk_prog_1x_master_table_boardobj_set
+							v1x_master_table;
 	struct nv_pmu_clk_clk_prog_35_master_boardobj_set v35_master;
-	struct nv_pmu_clk_clk_prog_35_master_ratio_boardobj_set v35_master_ratio;
-	struct nv_pmu_clk_clk_prog_35_master_table_boardobj_set v35_master_table;
+	struct nv_pmu_clk_clk_prog_35_master_ratio_boardobj_set
+							v35_master_ratio;
+	struct nv_pmu_clk_clk_prog_35_master_table_boardobj_set
+							v35_master_table;
 };
 
 NV_PMU_BOARDOBJ_GRP_SET_MAKE_E255(clk, clk_prog);
@@ -436,8 +440,10 @@ union nv_pmu_clk_clk_vf_point_boardobj_get_status_union {
 	struct nv_pmu_clk_clk_vf_point_boardobj_get_status super;
 	struct nv_pmu_clk_clk_vf_point_volt_boardobj_get_status volt;
 	struct nv_pmu_clk_clk_vf_point_35_freq_boardobj_get_status v35_freq;
-	struct nv_pmu_clk_clk_vf_point_35_volt_pri_boardobj_get_status v35_volt_pri;
-	struct nv_pmu_clk_clk_vf_point_35_volt_sec_boardobj_get_status v35_volt_sec;
+	struct nv_pmu_clk_clk_vf_point_35_volt_pri_boardobj_get_status
+								v35_volt_pri;
+	struct nv_pmu_clk_clk_vf_point_35_volt_sec_boardobj_get_status
+								v35_volt_sec;
 };
 
 NV_PMU_BOARDOBJ_GRP_GET_STATUS_MAKE_E255(clk, clk_vf_point);
@@ -480,20 +486,21 @@ struct nv_pmu_clk_load {
 	u8 feature;
 	u32 action_mask;
 	union {
-		struct nv_pmu_clk_load_payload_freq_controllers freq_controllers;
+		struct nv_pmu_clk_load_payload_freq_controllers
+							freq_controllers;
 	} payload;
 };
 
 struct nv_pmu_clk_freq_effective_avg {
-    u32  clkDomainMask;
-    u32  freqkHz[CTRL_BOARDOBJ_MAX_BOARD_OBJECTS];
+	u32 clkDomainMask;
+	u32 freqkHz[CTRL_BOARDOBJ_MAX_BOARD_OBJECTS];
 };
 
 /* CLK_FREQ_CONTROLLER */
-#define NV_NV_PMU_CLK_LOAD_FEATURE_FREQ_CONTROLLER (0x00000003U)
+#define NV_PMU_CLK_LOAD_FEATURE_FREQ_CONTROLLER			 (0x00000003U)
 
-#define NV_NV_PMU_CLK_LOAD_ACTION_MASK_FREQ_CONTROLLER_CALLBACK_NO (0x00000000U)
-#define NV_NV_PMU_CLK_LOAD_ACTION_MASK_FREQ_CONTROLLER_CALLBACK_YES (0x00000002U)
+#define NV_PMU_CLK_LOAD_ACTION_MASK_FREQ_CONTROLLER_CALLBACK_NO	 (0x00000000U)
+#define NV_PMU_CLK_LOAD_ACTION_MASK_FREQ_CONTROLLER_CALLBACK_YES (0x00000002U)
 
 struct nv_pmu_clk_clk_freq_controller_boardobjgrp_set_header {
 	struct nv_pmu_boardobjgrp_e32  super;
@@ -532,9 +539,11 @@ union nv_pmu_clk_clk_freq_controller_boardobj_set_union {
 
 NV_PMU_BOARDOBJ_GRP_SET_MAKE_E32(clk, clk_freq_controller);
 
-#define NV_NV_PMU_CLK_LOAD_FEATURE_FREQ_EFFECTIVE_AVG              (0x00000004U)
-#define NV_NV_PMU_CLK_LOAD_ACTION_MASK_FREQ_EFFECTIVE_AVG_CALLBACK_NO  (0x00000000U)
-#define NV_NV_PMU_CLK_LOAD_ACTION_MASK_FREQ_EFFECTIVE_AVG_CALLBACK_YES (0x00000004U)
+#define NV_NV_PMU_CLK_LOAD_FEATURE_FREQ_EFFECTIVE_AVG		   (0x00000004U)
+#define NV_NV_PMU_CLK_LOAD_ACTION_MASK_FREQ_EFFECTIVE_AVG_CALLBACK_NO \
+								   (0x00000000U)
+#define NV_NV_PMU_CLK_LOAD_ACTION_MASK_FREQ_EFFECTIVE_AVG_CALLBACK_YES \
+								   (0x00000004U)
 
 /* CLK CMD ID definitions.  */
 #define NV_PMU_CLK_CMD_ID_BOARDOBJ_GRP_SET                         (0x00000001U)
@@ -598,7 +607,7 @@ struct nv_pmu_clk_msg_rpc {
 };
 
 #define NV_PMU_CLK_MSG_RPC_ALLOC_OFFSET       \
-	(u32)offsetof(struct nv_pmu_clk_msg_rpc, response)
+	((u32)offsetof(struct nv_pmu_clk_msg_rpc, response))
 
 struct nv_pmu_clk_msg {
 	union {
@@ -641,7 +650,9 @@ struct nv_pmu_clk_clk_fll_device_boardobj_get_status {
 	u8 current_regime_id;
 	bool b_dvco_min_reached;
 	u16 min_freq_mhz;
-	struct nv_pmu_clk_lut_vf_entry lut_vf_curve[NV_UNSIGNED_ROUNDED_DIV(CTRL_CLK_LUT_NUM_ENTRIES_MAX, 2)];
+	struct nv_pmu_clk_lut_vf_entry
+		lut_vf_curve[NV_UNSIGNED_ROUNDED_DIV(
+					CTRL_CLK_LUT_NUM_ENTRIES_MAX, 2)];
 };
 
 union nv_pmu_clk_clk_fll_device_boardobj_get_status_union {
@@ -670,13 +681,13 @@ NV_PMU_BOARDOBJ_GRP_SET_MAKE_E32(clk, clk_freq_domain);
 
 struct nv_pmu_rpc_clk_domain_35_prog_freq_to_volt {
 	/*[IN/OUT] Must be first field in RPC structure */
-    struct nv_pmu_rpc_header hdr;
-    u8 clk_domain_idx;
-    u8 volt_rail_idx;
-    u8 voltage_type;
-    struct ctrl_clk_vf_input input;
-    struct ctrl_clk_vf_output output;
-    u32  scratch[1];
+	struct nv_pmu_rpc_header hdr;
+	u8 clk_domain_idx;
+	u8 volt_rail_idx;
+	u8 voltage_type;
+	struct ctrl_clk_vf_input input;
+	struct ctrl_clk_vf_output output;
+	u32 scratch[1];
 };
 
-#endif /*NVGPU_PMUIF_GPMUIFCLK_H*/
+#endif /* NVGPU_PMUIF_CLK_H */

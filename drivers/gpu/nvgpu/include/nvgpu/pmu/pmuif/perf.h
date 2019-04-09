@@ -19,17 +19,17 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef NVGPU_PMUIF_GPMUIFPERF_H
-#define NVGPU_PMUIF_GPMUIFPERF_H
+#ifndef NVGPU_PMUIF_PERF_H
+#define NVGPU_PMUIF_PERF_H
 
-#include "gpmuifvolt.h"
-#include "gpmuifperfvfe.h"
+#include "volt.h"
+#include "perfvfe.h"
 
 /*
-* Enumeration of BOARDOBJGRP class IDs within OBJPERF.  Used as "classId"
-* argument for communications between Kernel and PMU via the various generic
-* BOARDOBJGRP interfaces.
-*/
+ * Enumeration of BOARDOBJGRP class IDs within OBJPERF.  Used as "classId"
+ * argument for communications between Kernel and PMU via the various generic
+ * BOARDOBJGRP interfaces.
+ */
 #define NV_PMU_PERF_BOARDOBJGRP_CLASS_ID_VFE_VAR                 0x00U
 #define NV_PMU_PERF_BOARDOBJGRP_CLASS_ID_VFE_EQU                 0x01U
 
@@ -60,9 +60,9 @@
  */
 struct nv_pmu_rpc_struct_perf_load {
 	/* [IN/OUT] Must be first field in RPC structure */
-    struct nv_pmu_rpc_header hdr;
-    bool b_load;
-	u32  scratch[1];
+	struct nv_pmu_rpc_header hdr;
+	bool b_load;
+	u32 scratch[1];
 };
 
 struct nv_pmu_perf_cmd_set_object {
@@ -78,9 +78,9 @@ struct nv_pmu_perf_cmd_set_object {
 /* RPC IDs */
 #define NV_PMU_PERF_RPC_ID_VFE_LOAD                              (0x00000001U)
 
-/*!
-* Command requesting execution of the perf RPC.
-*/
+/*
+ * Command requesting execution of the perf RPC.
+ */
 struct nv_pmu_perf_cmd_rpc {
 	u8 cmd_type;
 	u8 pad[3];
@@ -88,26 +88,26 @@ struct nv_pmu_perf_cmd_rpc {
 };
 
 #define NV_PMU_PERF_CMD_RPC_ALLOC_OFFSET       \
-	(u32)offsetof(struct nv_pmu_perf_cmd_rpc, request)
+	((u32)offsetof(struct nv_pmu_perf_cmd_rpc, request))
 
-/*!
-* Simply a union of all specific PERF commands. Forms the general packet
-* exchanged between the Kernel and PMU when sending and receiving PERF commands
-* (respectively).
-*/
+/*
+ * Simply a union of all specific PERF commands. Forms the general packet
+ * exchanged between the Kernel and PMU when sending and receiving PERF commands
+ * (respectively).
+ */
 struct nv_pmu_perf_cmd {
 	union {
-	u8 cmd_type;
-	struct nv_pmu_perf_cmd_set_object set_object;
-	struct nv_pmu_boardobj_cmd_grp grp_set;
-	struct nv_pmu_boardobj_cmd_grp grp_get_status;
+		u8 cmd_type;
+		struct nv_pmu_perf_cmd_set_object set_object;
+		struct nv_pmu_boardobj_cmd_grp grp_set;
+		struct nv_pmu_boardobj_cmd_grp grp_get_status;
 	};
 };
 
-/*!
-* Defines the data structure used to invoke PMU perf RPCs. Same structure is
-* used to return the result of the RPC execution.
-*/
+/*
+ * Defines the data structure used to invoke PMU perf RPCs. Same structure is
+ * used to return the result of the RPC execution.
+ */
 struct nv_pmu_perf_rpc {
 	u8 function;
 	bool b_supported;
@@ -127,9 +127,9 @@ struct nv_pmu_perf_rpc {
 #define NV_PMU_PERF_MSG_ID_VFE_CALLBACK                          (0x00000005U)
 #define NV_PMU_PERF_MSG_ID_CHANGE_SEQ_COMPLETION                 (0x00000007U)
 
-/*!
-* Message carrying the result of the perf RPC execution.
-*/
+/*
+ * Message carrying the result of the perf RPC execution.
+ */
 struct nv_pmu_perf_msg_rpc {
 	u8 msg_type;
 	u8 rsvd[3];
@@ -139,11 +139,11 @@ struct nv_pmu_perf_msg_rpc {
 #define NV_PMU_PERF_MSG_RPC_ALLOC_OFFSET       \
 	((u32)offsetof(struct nv_pmu_perf_msg_rpc, response))
 
-/*!
-* Simply a union of all specific PERF messages. Forms the general packet
-* exchanged between the Kernel and PMU when sending and receiving PERF messages
-* (respectively).
-*/
+/*
+ * Simply a union of all specific PERF messages. Forms the general packet
+ * exchanged between the Kernel and PMU when sending and receiving PERF messages
+ * (respectively).
+ */
 struct nv_pmu_perf_msg {
 	union {
 		u8 msg_type;
@@ -154,10 +154,10 @@ struct nv_pmu_perf_msg {
 
 struct nv_pmu_rpc_perf_change_seq_queue_change {
 	/*[IN/OUT] Must be first field in RPC structure */
-    struct nv_pmu_rpc_header hdr;
+	struct nv_pmu_rpc_header hdr;
 	struct ctrl_perf_change_seq_change_input change;
 	u32 seq_id;
-	u32  scratch[1];
+	u32 scratch[1];
 };
 
 struct nv_pmu_perf_change_seq_super_info_get {
@@ -184,18 +184,16 @@ struct nv_pmu_perf_change_seq_pmu_info_set {
 
 struct nv_pmu_rpc_perf_change_seq_info_get {
 	/*[IN/OUT] Must be first field in RPC structure */
-    struct nv_pmu_rpc_header hdr;
-    struct nv_pmu_perf_change_seq_pmu_info_get info_get;
-	u32  scratch[1];
-
+	struct nv_pmu_rpc_header hdr;
+	struct nv_pmu_perf_change_seq_pmu_info_get info_get;
+	u32 scratch[1];
 };
 
 struct nv_pmu_rpc_perf_change_seq_info_set {
 	/*[IN/OUT] Must be first field in RPC structure */
-    struct nv_pmu_rpc_header hdr;
-    struct nv_pmu_perf_change_seq_pmu_info_set info_set;
-	u32  scratch[1];
-
+	struct nv_pmu_rpc_header hdr;
+	struct nv_pmu_perf_change_seq_pmu_info_set info_set;
+	u32 scratch[1];
 };
 
 NV_PMU_MAKE_ALIGNED_STRUCT(ctrl_perf_change_seq_change,
@@ -222,4 +220,4 @@ struct nv_pmu_rpc_struct_perf_vfe_eval {
 	u32  scratch[1];
 };
 
-#endif  /* NVGPU_PMUIF_GPMUIFPERF_H*/
+#endif /* NVGPU_PMUIF_PERF_H */

@@ -1,7 +1,7 @@
 /*
  * general power channel structures & definitions
  *
- * Copyright (c) 2016-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -24,10 +24,10 @@
 #ifndef NVGPU_PMGR_PWRMONITOR_H
 #define NVGPU_PMGR_PWRMONITOR_H
 
-#include <nvgpu/pmuif/nvgpu_gpmu_cmdif.h>
+#include <nvgpu/pmu/pmuif/nvgpu_cmdif.h>
 #include <nvgpu/boardobjgrp.h>
 #include <nvgpu/boardobj.h>
-#include <nvgpu/pmuif/ctrlpmgr.h>
+#include <nvgpu/pmu/pmuif/ctrlpmgr.h>
 
 struct pwr_channel {
 	struct boardobj super;

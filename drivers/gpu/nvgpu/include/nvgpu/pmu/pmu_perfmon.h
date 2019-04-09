@@ -25,8 +25,8 @@
 #define NVGPU_PMU_PERFMON_H
 
 //#include <nvgpu/enabled.h>
-#include <nvgpu/pmuif/nvgpu_gpmu_cmdif.h>
-#include <nvgpu/pmuif/gpmuif_perfmon.h>
+#include <nvgpu/pmu/pmuif/nvgpu_cmdif.h>
+#include <nvgpu/pmu/pmuif/perfmon.h>
 
 struct gk20a;
 struct nvgpu_pmu;

@@ -19,8 +19,8 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef NVGPU_PMUIF_GPMUIF_AP_H
-#define NVGPU_PMUIF_GPMUIF_AP_H
+#ifndef NVGPU_PMUIF_AP_H
+#define NVGPU_PMUIF_AP_H
 
 #include <nvgpu/types.h>
 
@@ -255,4 +255,4 @@ struct pmu_ap {
 	struct ap_ctrl		ap_ctrl[PMU_AP_CTRL_ID_MAX];
 };
 
-#endif /* NVGPU_PMUIF_GPMUIF_AP_H*/
+#endif /* NVGPU_PMUIF_AP_H */

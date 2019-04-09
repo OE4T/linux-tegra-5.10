@@ -28,7 +28,7 @@
 #include <nvgpu/lock.h>
 #include <nvgpu/nvgpu_common.h>
 #include <nvgpu/flcnif_cmn.h>
-#include <nvgpu/pmuif/nvgpu_gpmu_cmdif.h>
+#include <nvgpu/pmu/pmuif/nvgpu_cmdif.h>
 #include <nvgpu/falcon.h>
 #include <nvgpu/timers.h>
 #include <nvgpu/pmu/pmu_pg.h>

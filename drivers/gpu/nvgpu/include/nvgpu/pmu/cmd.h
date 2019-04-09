@@ -23,16 +23,16 @@
 #define NVGPU_PMU_CMD_H
 
 #include <nvgpu/flcnif_cmn.h>
-#include <nvgpu/pmuif/gpmuif_perfmon.h>
-#include <nvgpu/pmuif/gpmuif_pg.h>
-#include <nvgpu/pmuif/gpmuif_acr.h>
-#include <nvgpu/pmuif/gpmuifboardobj.h>
-#include <nvgpu/pmuif/gpmuifperf.h>
-#include <nvgpu/pmuif/gpmuifvolt.h>
-#include <nvgpu/pmuif/gpmuifclk.h>
-#include <nvgpu/pmuif/gpmuifpmgr.h>
-#include <nvgpu/pmuif/gpmuiftherm.h>
-#include <nvgpu/pmuif/gpmuif_rpc.h>
+#include <nvgpu/pmu/pmuif/perfmon.h>
+#include <nvgpu/pmu/pmuif/pg.h>
+#include <nvgpu/pmu/pmuif/acr.h>
+#include <nvgpu/pmu/pmuif/boardobj.h>
+#include <nvgpu/pmu/pmuif/perf.h>
+#include <nvgpu/pmu/pmuif/volt.h>
+#include <nvgpu/pmu/pmuif/clk.h>
+#include <nvgpu/pmu/pmuif/pmgr.h>
+#include <nvgpu/pmu/pmuif/therm.h>
+#include <nvgpu/pmu/pmuif/rpc.h>
 
 struct gk20a;
 struct pmu_payload;

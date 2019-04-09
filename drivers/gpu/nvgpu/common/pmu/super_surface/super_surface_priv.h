@@ -23,12 +23,12 @@
 #ifndef SUPER_SURFACE_PRIV_H
 #define SUPER_SURFACE_PRIV_H
 
-#include <nvgpu/pmuif/nvgpu_gpmu_cmdif.h>
-#include <nvgpu/pmuif/gpmuifboardobj.h>
-#include <nvgpu/pmuif/gpmuifvolt.h>
-#include <nvgpu/pmuif/gpmuifclk.h>
-#include <nvgpu/pmuif/gpmuifperf.h>
-#include <nvgpu/pmuif/gpmuif_cmn.h>
+#include <nvgpu/pmu/pmuif/nvgpu_cmdif.h>
+#include <nvgpu/pmu/pmuif/boardobj.h>
+#include <nvgpu/pmu/pmuif/volt.h>
+#include <nvgpu/pmu/pmuif/clk.h>
+#include <nvgpu/pmu/pmuif/perf.h>
+#include <nvgpu/pmu/pmuif/cmn.h>
 #include <nvgpu/flcnif_cmn.h>
 
 struct nvgpu_mem;

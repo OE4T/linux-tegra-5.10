@@ -24,7 +24,7 @@
 #include <nvgpu/pmu/pmu_pg.h>
 #include <nvgpu/dma.h>
 #include <nvgpu/log.h>
-#include <nvgpu/pmuif/nvgpu_gpmu_cmdif.h>
+#include <nvgpu/pmu/pmuif/nvgpu_cmdif.h>
 #include <nvgpu/enabled.h>
 #include <nvgpu/engine_queue.h>
 #include <nvgpu/barrier.h>

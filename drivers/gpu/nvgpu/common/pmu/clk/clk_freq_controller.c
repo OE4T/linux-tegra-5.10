@@ -28,8 +28,8 @@
 #include <nvgpu/boardobjgrpmask.h>
 #include <nvgpu/boardobj.h>
 #include <nvgpu/string.h>
-#include <nvgpu/pmuif/ctrlclk.h>
-#include <nvgpu/pmuif/ctrlvolt.h>
+#include <nvgpu/pmu/pmuif/ctrlclk.h>
+#include <nvgpu/pmu/pmuif/ctrlvolt.h>
 #include <nvgpu/pmu/clk/clk.h>
 #include <nvgpu/pmu/clk/clk_fll.h>
 #include <nvgpu/pmu/clk/clk_domain.h>
@@ -510,10 +510,10 @@ int nvgpu_clk_pmu_freq_controller_load(struct gk20a *g, bool bload, u8 bit_idx)
 	pclk_freq_controllers = g->clk_pmu->clk_freq_controllers;
 	rpccall.function = NV_PMU_CLK_RPC_ID_LOAD;
 	clkload = &rpccall.params.clk_load;
-	clkload->feature = NV_NV_PMU_CLK_LOAD_FEATURE_FREQ_CONTROLLER;
+	clkload->feature = NV_PMU_CLK_LOAD_FEATURE_FREQ_CONTROLLER;
 	clkload->action_mask = bload ?
-		NV_NV_PMU_CLK_LOAD_ACTION_MASK_FREQ_CONTROLLER_CALLBACK_YES :
-		NV_NV_PMU_CLK_LOAD_ACTION_MASK_FREQ_CONTROLLER_CALLBACK_NO;
+		NV_PMU_CLK_LOAD_ACTION_MASK_FREQ_CONTROLLER_CALLBACK_YES :
+		NV_PMU_CLK_LOAD_ACTION_MASK_FREQ_CONTROLLER_CALLBACK_NO;
 
 	load_mask = &rpccall.params.clk_load.payload.freq_controllers.load_mask;
 

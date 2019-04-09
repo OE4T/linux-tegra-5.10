@@ -23,7 +23,7 @@
 #ifndef NVGPU_PMU_QUEUE_H
 #define NVGPU_PMU_QUEUE_H
 
-#include <nvgpu/pmuif/gpmuif_cmn.h>
+#include <nvgpu/pmu/pmuif/cmn.h>
 #include <nvgpu/types.h>
 
 union pmu_init_msg_pmu;

@@ -23,17 +23,17 @@
 #ifndef NVGPU_PMU_MSG_H
 #define NVGPU_PMU_MSG_H
 
-#include <nvgpu/pmuif/gpmuif_pmu.h>
-#include <nvgpu/pmuif/gpmuif_pg.h>
-#include <nvgpu/pmuif/gpmuif_perfmon.h>
-#include <nvgpu/pmuif/gpmuif_acr.h>
-#include <nvgpu/pmuif/gpmuif_rpc.h>
-#include <nvgpu/pmuif/gpmuifboardobj.h>
-#include <nvgpu/pmuif/gpmuifclk.h>
-#include <nvgpu/pmuif/gpmuifperf.h>
-#include <nvgpu/pmuif/gpmuifpmgr.h>
-#include <nvgpu/pmuif/gpmuifvolt.h>
-#include <nvgpu/pmuif/gpmuiftherm.h>
+#include <nvgpu/pmu/pmuif/pmu.h>
+#include <nvgpu/pmu/pmuif/pg.h>
+#include <nvgpu/pmu/pmuif/perfmon.h>
+#include <nvgpu/pmu/pmuif/acr.h>
+#include <nvgpu/pmu/pmuif/rpc.h>
+#include <nvgpu/pmu/pmuif/boardobj.h>
+#include <nvgpu/pmu/pmuif/clk.h>
+#include <nvgpu/pmu/pmuif/perf.h>
+#include <nvgpu/pmu/pmuif/pmgr.h>
+#include <nvgpu/pmu/pmuif/volt.h>
+#include <nvgpu/pmu/pmuif/therm.h>
 
 /* GPU ID */
 #define PMU_SHA1_GID_SIGNATURE		0xA7C66AD2U

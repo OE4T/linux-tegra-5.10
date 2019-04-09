@@ -1,7 +1,7 @@
 /*
  * general p state infrastructure
  *
- * Copyright (c) 2016-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -21,8 +21,8 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef NVGPU_CTRLVOLT_H
-#define NVGPU_CTRLVOLT_H
+#ifndef NVGPU_PMUIF_CTRLVOLT_H
+#define NVGPU_PMUIF_CTRLVOLT_H
 
 #define CTRL_VOLT_VOLT_RAIL_MAX_RAILS	\
 	CTRL_BOARDOBJGRP_E32_MAX_OBJECTS
@@ -142,4 +142,4 @@ struct ctrl_volt_volt_rail_list_v1 {
 		rails[CTRL_VOLT_VOLT_RAIL_MAX_RAILS];
 };
 
-#endif /* NVGPU_CTRLVOLT_H */
+#endif /* NVGPU_PMUIF_CTRLVOLT_H */

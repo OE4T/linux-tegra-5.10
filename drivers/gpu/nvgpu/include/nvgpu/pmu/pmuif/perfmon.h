@@ -19,11 +19,11 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef NVGPU_PMUIF_GPMUIF_PERFMON_H
-#define NVGPU_PMUIF_GPMUIF_PERFMON_H
+#ifndef NVGPU_PMUIF_PERFMON_H
+#define NVGPU_PMUIF_PERFMON_H
 
 #include <nvgpu/types.h>
-#include <nvgpu/pmuif/gpmuif_cmn.h>
+#include "cmn.h"
 
 /*perfmon task defines*/
 
@@ -241,4 +241,4 @@ struct nv_pmu_rpc_struct_perfmon_query {
 	u32 scratch[1];
 };
 
-#endif /* NVGPU_PMUIF_GPMUIF_PERFMON_H */
+#endif /* NVGPU_PMUIF_PERFMON_H */

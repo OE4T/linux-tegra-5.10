@@ -18,14 +18,15 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
-*/
-#ifndef NVGPU_PMUIF_GPMUIFVOLT_H
-#define NVGPU_PMUIF_GPMUIFVOLT_H
+ */
+#ifndef NVGPU_PMUIF_VOLT_H
+#define NVGPU_PMUIF_VOLT_H
 
-#include <nvgpu/pmuif/gpmuifboardobj.h>
 #include <nvgpu/flcnif_cmn.h>
-#include <nvgpu/pmuif/ctrlvolt.h>
-#include <nvgpu/pmuif/ctrlperf.h>
+
+#include "boardobj.h"
+#include "ctrlvolt.h"
+#include "ctrlperf.h"
 
 #define NV_PMU_VOLT_VALUE_0V_IN_UV	(0U)
 
@@ -254,9 +255,9 @@ struct nv_pmu_volt_volt_rail_set_noise_unaware_vmin {
 #define NV_PMU_VOLT_CMD_ID_BOARDOBJ_GRP_GET_STATUS		(0x00000002U)
 #define NV_PMU_VOLT_RPC_ID_VOLT_RAIL_SET_NOISE_UNAWARE_VMIN	(0x00000004U)
 
-/*!
-* PMU VOLT RPC calls.
-*/
+/*
+ * PMU VOLT RPC calls.
+ */
 #define NV_PMU_VOLT_RPC_ID_LOAD					(0x00000000U)
 #define NV_PMU_VOLT_RPC_ID_VOLT_POLICY_SET_VOLTAGE		(0x00000002U)
 #define NV_PMU_VOLT_RPC_ID_VOLT_RAIL_GET_VOLTAGE		(0x00000003U)
@@ -268,7 +269,7 @@ struct nv_pmu_volt_cmd_rpc {
 };
 
 #define NV_PMU_VOLT_CMD_RPC_ALLOC_OFFSET	\
-	(u32)offsetof(struct nv_pmu_volt_cmd_rpc, request)
+	((u32)offsetof(struct nv_pmu_volt_cmd_rpc, request))
 
 struct nv_pmu_volt_cmd {
 	union {
@@ -292,16 +293,16 @@ struct nv_pmu_volt_rpc {
 	} params;
 };
 
-/*!
-* VOLT MSG ID definitions
-*/
+/*
+ * VOLT MSG ID definitions
+ */
 #define NV_PMU_VOLT_MSG_ID_BOARDOBJ_GRP_SET			(0x00000000U)
 #define NV_PMU_VOLT_MSG_ID_RPC					(0x00000001U)
 #define NV_PMU_VOLT_MSG_ID_BOARDOBJ_GRP_GET_STATUS		(0x00000002U)
 
-/*!
-* Message carrying the result of the VOLT RPC execution.
-*/
+/*
+ * Message carrying the result of the VOLT RPC execution.
+ */
 struct nv_pmu_volt_msg_rpc {
 	u8 msg_type;
 	u8 rsvd[3];
@@ -309,7 +310,7 @@ struct nv_pmu_volt_msg_rpc {
 };
 
 #define NV_PMU_VOLT_MSG_RPC_ALLOC_OFFSET	\
-		(u32)offsetof(struct nv_pmu_volt_msg_rpc, response)
+		((u32)offsetof(struct nv_pmu_volt_msg_rpc, response))
 
 struct nv_pmu_volt_msg {
 	union {
@@ -384,4 +385,4 @@ struct nv_pmu_rpc_struct_volt_volt_rail_get_voltage {
 	u32  scratch[1];
 };
 
-#endif  /* NVGPU_PMUIF_GPMUIFVOLT_H*/
+#endif /* NVGPU_PMUIF_VOLT_H */

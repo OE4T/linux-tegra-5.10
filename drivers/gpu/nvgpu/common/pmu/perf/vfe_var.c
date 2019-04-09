@@ -25,9 +25,9 @@
 #include <nvgpu/boardobjgrp.h>
 #include <nvgpu/boardobjgrp_e32.h>
 #include <nvgpu/string.h>
-#include <nvgpu/pmuif/ctrlclk.h>
-#include <nvgpu/pmuif/ctrlvolt.h>
-#include <nvgpu/pmuif/ctrlperf.h>
+#include <nvgpu/pmu/pmuif/ctrlclk.h>
+#include <nvgpu/pmu/pmuif/ctrlvolt.h>
+#include <nvgpu/pmu/pmuif/ctrlperf.h>
 #include <nvgpu/pmu/perf.h>
 
 #include "pmu_perf.h"

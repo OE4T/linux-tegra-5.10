@@ -1,7 +1,7 @@
 /*
  * Control pmgr state infrastructure
  *
- * Copyright (c) 2016-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -21,8 +21,8 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef NVGPU_CTRLPMGR_H
-#define NVGPU_CTRLPMGR_H
+#ifndef NVGPU_PMUIF_CTRLPMGR_H
+#define NVGPU_PMUIF_CTRLPMGR_H
 
 #include "ctrlboardobj.h"
 
@@ -95,4 +95,4 @@ struct ctrl_pmgr_pwr_policy_limit_arbitration {
 		inputs[CTRL_PMGR_PWR_POLICY_MAX_LIMIT_INPUTS];
 };
 
-#endif /* NVGPU_CTRLPMGR_H */
+#endif /* NVGPU_PMUIF_CTRLPMGR_H */

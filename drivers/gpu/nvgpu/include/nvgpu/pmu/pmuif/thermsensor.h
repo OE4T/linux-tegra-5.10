@@ -1,6 +1,6 @@
 /*
-* Copyright (c) 2016-2018, NVIDIA CORPORATION.  All rights reserved.
-*
+ * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
  * to deal in the Software without restriction, including without limitation
@@ -18,14 +18,15 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
-*/
+ */
 
-#ifndef NVGPU_PMUIF_GPMUIFTHERMSENSOR_H
-#define NVGPU_PMUIF_GPMUIFTHERMSENSOR_H
+#ifndef NVGPU_PMUIF_THERMSENSOR_H
+#define NVGPU_PMUIF_THERMSENSOR_H
 
-#include <nvgpu/pmuif/ctrltherm.h>
-#include <nvgpu/pmuif/gpmuifboardobj.h>
 #include <nvgpu/flcnif_cmn.h>
+
+#include "ctrltherm.h"
+#include "boardobj.h"
 
 #define NV_PMU_THERM_BOARDOBJGRP_CLASS_ID_THERM_DEVICE      0x00
 #define NV_PMU_THERM_BOARDOBJGRP_CLASS_ID_THERM_CHANNEL     0x01
@@ -67,11 +68,13 @@ struct nv_pmu_therm_therm_device_hbm2_combined_boardobj_set {
 union nv_pmu_therm_therm_device_boardobj_set_union {
 	struct nv_pmu_boardobj board_obj;
 	struct nv_pmu_therm_therm_device_boardobj_set therm_device;
-	struct nv_pmu_therm_therm_device_gpu_gpc_tsosc_boardobj_set gpu_gpc_tsosc;
+	struct nv_pmu_therm_therm_device_gpu_gpc_tsosc_boardobj_set
+							gpu_gpc_tsosc;
 	struct nv_pmu_therm_therm_device_gpu_sci_boardobj_set gpu_sci;
 	struct nv_pmu_therm_therm_device_i2c_boardobj_set i2c;
 	struct nv_pmu_therm_therm_device_hbm2_site_boardobj_set hbm2_site;
-	struct nv_pmu_therm_therm_device_hbm2_combined_boardobj_set hbm2_combined;
+	struct nv_pmu_therm_therm_device_hbm2_combined_boardobj_set
+							hbm2_combined;
 };
 
 NV_PMU_BOARDOBJ_GRP_SET_MAKE_E32(therm, therm_device);
@@ -102,4 +105,4 @@ union nv_pmu_therm_therm_channel_boardobj_set_union {
 
 NV_PMU_BOARDOBJ_GRP_SET_MAKE_E32(therm, therm_channel);
 
-#endif /* NVGPU_PMUIF_GPMUIFTHERMSENSOR_H */
+#endif /* NVGPU_PMUIF_THERMSENSOR_H */

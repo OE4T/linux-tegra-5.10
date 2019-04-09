@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -20,8 +20,8 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NVGPU_CTRLBOARDOBJ_H
-#define NVGPU_CTRLBOARDOBJ_H
+#ifndef NVGPU_PMUIF_CTRLBOARDOBJ_H
+#define NVGPU_PMUIF_CTRLBOARDOBJ_H
 
 #include <nvgpu/types.h>
 
@@ -88,4 +88,4 @@ struct ctrl_boardobjgrp {
 	u32    obj_mask;
 };
 
-#endif /* NVGPU_CTRLBOARDOBJ_H */
+#endif /* NVGPU_PMUIF_CTRLBOARDOBJ_H */

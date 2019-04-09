@@ -1,7 +1,7 @@
 /*
  * general perf structures & definitions
  *
- * Copyright (c) 2016-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -26,7 +26,7 @@
 
 #include <nvgpu/boardobjgrp.h>
 #include "vfe_var.h"
-#include <nvgpu/pmuif/nvgpu_gpmu_cmdif.h>
+#include <nvgpu/pmu/pmuif/nvgpu_cmdif.h>
 
 #define VFE_EQU_GET(_pperf, _idx)                                              \
 	((struct vfe_equ *)BOARDOBJGRP_OBJ_GET_BY_IDX(                         \

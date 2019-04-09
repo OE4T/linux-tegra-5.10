@@ -1,6 +1,6 @@
 /*
-* Copyright (c) 2016-2018, NVIDIA CORPORATION.  All rights reserved.
-*
+ * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
  * to deal in the Software without restriction, including without limitation
@@ -18,14 +18,15 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
-*/
+ */
 
-#ifndef NVGPU_PMUIF_GPMUIFPMGR_H
-#define NVGPU_PMUIF_GPMUIFPMGR_H
+#ifndef NVGPU_PMUIF_PMGR_H
+#define NVGPU_PMUIF_PMGR_H
 
-#include <nvgpu/pmuif/ctrlpmgr.h>
-#include <nvgpu/pmuif/gpmuifboardobj.h>
 #include <nvgpu/flcnif_cmn.h>
+
+#include "ctrlpmgr.h"
+#include "boardobj.h"
 
 struct nv_pmu_pmgr_i2c_device_desc {
 	struct nv_pmu_boardobj super;
@@ -142,7 +143,8 @@ struct nv_pmu_pmgr_pwr_chrelationship_pmu_compactible {
 
 union nv_pmu_pmgr_pwr_chrelationship_union {
 	struct nv_pmu_boardobj board_obj;
-	struct nv_pmu_pmgr_pwr_chrelationship_pmu_compactible pmu_pwr_chrelationship;
+	struct nv_pmu_pmgr_pwr_chrelationship_pmu_compactible
+						pmu_pwr_chrelationship;
 };
 
 struct nv_pmu_pmgr_pwr_channel_header {
@@ -246,7 +248,8 @@ struct nv_pmu_pmgr_pwr_policy_relationship_pmu_compactible {
 
 union nv_pmu_pmgr_pwr_policy_relationship_union {
 	struct nv_pmu_boardobj board_obj;
-	struct nv_pmu_pmgr_pwr_policy_relationship_pmu_compactible pmu_pwr_relationship;
+	struct nv_pmu_pmgr_pwr_policy_relationship_pmu_compactible
+							pmu_pwr_relationship;
 };
 
 struct nv_pmu_pmgr_pwr_violation_pmu_compactible {
@@ -267,10 +270,9 @@ NV_PMU_MAKE_ALIGNED_UNION(nv_pmu_pmgr_pwr_policy_relationship_union,
 
 #define NV_PMU_PERF_DOMAIN_GROUP_MAX_GROUPS 2U
 
-struct nv_pmu_perf_domain_group_limits
-{
+struct nv_pmu_perf_domain_group_limits {
 	u32 values[NV_PMU_PERF_DOMAIN_GROUP_MAX_GROUPS];
-} ;
+};
 
 #define NV_PMU_PMGR_RESERVED_PWR_POLICY_MASK_COUNT                 0x6U
 
@@ -282,12 +284,13 @@ struct nv_pmu_pmgr_pwr_policy_desc_header {
 	u8 semantic_policy_tbl[CTRL_PMGR_PWR_POLICY_IDX_NUM_INDEXES];
 	u16 base_sample_period;
 	u16 min_client_sample_period;
-	u32 reserved_pmu_policy_mask[NV_PMU_PMGR_RESERVED_PWR_POLICY_MASK_COUNT];
+	u32 reserved_pmu_policy_mask[
+			NV_PMU_PMGR_RESERVED_PWR_POLICY_MASK_COUNT];
 	struct nv_pmu_perf_domain_group_limits global_ceiling;
 };
 
-NV_PMU_MAKE_ALIGNED_STRUCT(nv_pmu_pmgr_pwr_policy_desc_header ,
-		sizeof(struct nv_pmu_pmgr_pwr_policy_desc_header ));
+NV_PMU_MAKE_ALIGNED_STRUCT(nv_pmu_pmgr_pwr_policy_desc_header,
+		sizeof(struct nv_pmu_pmgr_pwr_policy_desc_header));
 
 struct nv_pmu_pmgr_pwr_policyrel_desc_header {
 	struct nv_pmu_boardobjgrp_e32 super;
@@ -440,4 +443,4 @@ struct nv_pmu_pmgr_msg {
 	};
 };
 
-#endif /* NVGPU_PMUIF_GPMUIFPMGR_H */
+#endif /* NVGPU_PMUIF_PMGR_H */

@@ -1,6 +1,6 @@
 /*
-* Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
-*
+ * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
  * to deal in the Software without restriction, including without limitation
@@ -18,10 +18,10 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
-*/
+ */
 
-#ifndef NVGPU_PMUIF_GPMUIFTHERM_H
-#define NVGPU_PMUIF_GPMUIFTHERM_H
+#ifndef NVGPU_PMUIF_THERM_H
+#define NVGPU_PMUIF_THERM_H
 
 #include <nvgpu/flcnif_cmn.h>
 
@@ -50,7 +50,8 @@ struct nv_pmu_therm_rpc {
 	bool b_supported;
 	union {
 		struct nv_pmu_therm_rpc_slct slct;
-		struct nv_pmu_therm_rpc_slct_event_temp_th_set slct_event_temp_th_set;
+		struct nv_pmu_therm_rpc_slct_event_temp_th_set
+						slct_event_temp_th_set;
 	} params;
 };
 
@@ -66,13 +67,14 @@ struct nv_pmu_therm_cmd_hw_slowdown_notification {
 };
 
 #define NV_PMU_THERM_CMD_RPC_ALLOC_OFFSET       \
-	(u32)offsetof(struct nv_pmu_therm_cmd_rpc, request)
+	((u32)offsetof(struct nv_pmu_therm_cmd_rpc, request))
 
 struct nv_pmu_therm_cmd {
 	union {
 		u8 cmd_type;
 		struct nv_pmu_therm_cmd_rpc rpc;
-		struct nv_pmu_therm_cmd_hw_slowdown_notification hw_slct_notification;
+		struct nv_pmu_therm_cmd_hw_slowdown_notification
+							hw_slct_notification;
 	};
 };
 
@@ -94,9 +96,9 @@ struct nv_pmu_therm_msg {
 	union {
 		u8 msg_type;
 		struct nv_pmu_therm_msg_rpc rpc;
-		struct nv_pmu_therm_msg_event_hw_slowdown_notification hw_slct_msg;
+		struct nv_pmu_therm_msg_event_hw_slowdown_notification
+								hw_slct_msg;
 	};
 };
 
-#endif /* NVGPU_PMUIF_GPMUIFTHERM_H */
-
+#endif /* NVGPU_PMUIF_THERM_H */

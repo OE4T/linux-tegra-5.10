@@ -19,12 +19,12 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef NVGPU_PMUIF_GPMUIF_PMU_H
-#define NVGPU_PMUIF_GPMUIF_PMU_H
+#ifndef NVGPU_PMUIF_PMU_H
+#define NVGPU_PMUIF_PMU_H
 
 #include <nvgpu/flcnif_cmn.h>
 #include <nvgpu/types.h>
-#include "gpmuif_cmn.h"
+#include "cmn.h"
 
 /* Make sure size of this structure is a multiple of 4 bytes */
 struct pmu_cmdline_args_v3 {
@@ -175,4 +175,4 @@ struct pmu_rc_msg {
 	struct pmu_rc_msg_unhandled_cmd unhandled_cmd;
 };
 
-#endif /* NVGPU_PMUIF_GPMUIF_PMU_H*/
+#endif /* NVGPU_PMUIF_PMU_H */

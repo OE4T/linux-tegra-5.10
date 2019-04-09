@@ -23,7 +23,7 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/boardobjgrp.h>
 #include <nvgpu/boardobj.h>
-#include <nvgpu/pmuif/ctrlboardobj.h>
+#include <nvgpu/pmu/pmuif/ctrlboardobj.h>
 #include <nvgpu/pmu/cmd.h>
 #include <nvgpu/pmu/super_surface.h>
 

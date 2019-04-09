@@ -22,7 +22,7 @@
 
 #include <nvgpu/pmu.h>
 #include <nvgpu/log.h>
-#include <nvgpu/pmuif/nvgpu_gpmu_cmdif.h>
+#include <nvgpu/pmu/pmuif/nvgpu_cmdif.h>
 #include <nvgpu/barrier.h>
 #include <nvgpu/bug.h>
 #include <nvgpu/utils.h>
