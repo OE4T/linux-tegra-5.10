@@ -361,10 +361,12 @@ static size_t nvdla_get_task_desc_size(void)
 	size += nvdla_get_max_preaction_size();
 	size += nvdla_get_max_postaction_size();
 
-	size = roundup(size, 8);
+	/* align addresslist to 256 */
+	size = roundup(size, 256);
 	size += MAX_NUM_NVDLA_BUFFERS_PER_TASK * sizeof(struct dla_mem_addr);
 
-	size = roundup(size, 8);
+	/* this also, ensure that, addresslist size aligned to 256 */
+	size = roundup(size, 256);
 	size += sizeof(struct nvhost_notification);
 
 	/* falcon requires IOVA addr to be 256 aligned */
@@ -455,7 +457,7 @@ static int nvdla_map_task_memory(struct nvdla_task *task)
 	offset = task_desc->postactions +
 	   sizeof(struct dla_action_list) + nvdla_get_max_preaction_size() +
 	   sizeof(struct dla_action_list) + nvdla_get_max_postaction_size();
-	offset = roundup(offset, 8);
+	offset = roundup(offset, 256);
 	nvdla_dbg_fn(pdev, "addresslist offset is[%zu]", offset);
 
 	/* get task desc address list to update list from kernel */
