@@ -75,4 +75,10 @@ u32 nvgpu_engine_mmu_fault_id_to_engine_id(struct gk20a *g, u32 fault_id);
 u32 nvgpu_engine_get_mask_on_id(struct gk20a *g, u32 id, bool is_tsg);
 int nvgpu_engine_init_info(struct fifo_gk20a *f);
 
+void nvgpu_engine_get_id_and_type(struct gk20a *g, u32 engine_id,
+					  u32 *id, u32 *type);
+u32 nvgpu_engine_find_busy_doing_ctxsw(struct gk20a *g,
+		u32 *id_ptr, bool *is_tsg_ptr);
+u32 nvgpu_engine_get_runlist_busy_engines(struct gk20a *g, u32 runlist_id);
+
 #endif /*NVGPU_ENGINE_H*/

@@ -754,7 +754,6 @@ static const struct gpu_ops gp10b_ops = {
 		.setup_sw = nvgpu_fifo_setup_sw,
 		.cleanup_sw = nvgpu_fifo_cleanup_sw,
 		.set_sm_exception_type_mask = gk20a_tsg_set_sm_exception_type_mask,
-		.runlist_busy_engines = gk20a_fifo_runlist_busy_engines,
 		.intr_0_enable = gk20a_fifo_intr_0_enable,
 		.intr_1_enable = gk20a_fifo_intr_1_enable,
 		.intr_0_isr = gk20a_fifo_intr_0_isr,

@@ -115,7 +115,7 @@ void nvgpu_rc_pbdma_fault(struct gk20a *g, struct fifo_gk20a *f,
 
 void nvgpu_rc_runlist_update(struct gk20a *g, u32 runlist_id)
 {
-	u32 eng_bitmask = g->ops.fifo.runlist_busy_engines(g, runlist_id);
+	u32 eng_bitmask = nvgpu_engine_get_runlist_busy_engines(g, runlist_id);
 
 	if (eng_bitmask != 0U) {
 		nvgpu_rc_fifo_recover(g, eng_bitmask, INVAL_ID, false, false, true,

@@ -226,8 +226,7 @@ int gk20a_init_fifo_reset_enable_hw(struct gk20a *g);
 
 void fifo_gk20a_finish_mmu_fault_handling(struct gk20a *g,
 		unsigned long fault_id);
-u32 gk20a_fifo_get_failing_engine_data(struct gk20a *g,
-		u32 *__id, bool *__is_tsg);
+
 void gk20a_fifo_issue_preempt(struct gk20a *g, u32 id, bool is_tsg);
 int gk20a_fifo_tsg_set_timeslice(struct tsg_gk20a *tsg, u32 timeslice);
 
@@ -258,7 +257,6 @@ int gk20a_fifo_is_preempt_pending(struct gk20a *g, u32 id,
 			unsigned int id_type);
 int __locked_fifo_preempt(struct gk20a *g, u32 id, bool is_tsg);
 
-u32 gk20a_fifo_runlist_busy_engines(struct gk20a *g, u32 runlist_id);
 bool gk20a_fifo_should_defer_engine_reset(struct gk20a *g, u32 engine_id,
 			u32 engine_subid, bool fake_fault);
 

@@ -31,6 +31,7 @@
 #include <nvgpu/nvgpu_err.h>
 #include <nvgpu/error_notifier.h>
 #include <nvgpu/pbdma_status.h>
+#include <nvgpu/engines.h>
 
 #include <hal/fifo/fifo_intr_gk20a.h>
 #include <hal/fifo/mmu_fault_gk20a.h>
@@ -131,7 +132,7 @@ bool gk20a_fifo_handle_sched_error(struct gk20a *g)
 	/* read the scheduler error register */
 	sched_error = nvgpu_readl(g, fifo_intr_sched_error_r());
 
-	engine_id = gk20a_fifo_get_failing_engine_data(g, &id, &is_tsg);
+	engine_id = nvgpu_engine_find_busy_doing_ctxsw(g, &id, &is_tsg);
 
 	if (fifo_intr_sched_error_code_f(sched_error) !=
 			fifo_intr_sched_error_code_ctxsw_timeout_v()) {

@@ -432,24 +432,6 @@ bool gk20a_fifo_handle_mmu_fault(
 	return verbose;
 }
 
-static void gk20a_fifo_get_faulty_id_type(struct gk20a *g, u32 engine_id,
-					  u32 *id, u32 *type)
-{
-	struct nvgpu_engine_status_info engine_status;
-
-	g->ops.engine_status.read_engine_status_info(g, engine_id, &engine_status);
-
-	/* use next_id if context load is failing */
-	if (nvgpu_engine_status_is_ctxsw_load(
-		&engine_status)) {
-		nvgpu_engine_status_get_next_ctx_id_type(
-			&engine_status, id, type);
-	} else {
-		nvgpu_engine_status_get_ctx_id_type(
-			&engine_status, id, type);
-	}
-}
-
 void gk20a_fifo_teardown_mask_intr(struct gk20a *g)
 {
 	u32 val;
@@ -511,7 +493,7 @@ void gk20a_fifo_teardown_ch_tsg(struct gk20a *g, u32 __engine_ids,
 	} else {
 		/* store faulted engines in advance */
 		for_each_set_bit(engine_id, &_engine_ids, 32U) {
-			gk20a_fifo_get_faulty_id_type(g, (u32)engine_id,
+			nvgpu_engine_get_id_and_type(g, (u32)engine_id,
 						      &ref_id, &ref_type);
 			if (ref_type == fifo_engine_status_id_type_tsgid_v()) {
 				ref_id_is_tsg = true;
@@ -525,7 +507,7 @@ void gk20a_fifo_teardown_ch_tsg(struct gk20a *g, u32 __engine_ids,
 				u32 type;
 				u32 id;
 
-				gk20a_fifo_get_faulty_id_type(g,
+				nvgpu_engine_get_id_and_type(g,
 					active_engine_id, &id, &type);
 				if (ref_type == type && ref_id == id) {
 					u32 mmu_id = nvgpu_engine_id_to_mmu_fault_id(g,
@@ -553,64 +535,6 @@ void gk20a_fifo_teardown_ch_tsg(struct gk20a *g, u32 __engine_ids,
 
 	nvgpu_log_info(g, "release engines_reset_mutex");
 	nvgpu_mutex_release(&g->fifo.engines_reset_mutex);
-}
-
-u32 gk20a_fifo_get_failing_engine_data(struct gk20a *g,
-			u32 *__id, bool *__is_tsg)
-{
-	u32 engine_id;
-	u32 id = U32_MAX;
-	bool is_tsg = false;
-	u32 mailbox2;
-	u32 active_engine_id = FIFO_INVAL_ENGINE_ID;
-	struct nvgpu_engine_status_info engine_status;
-
-	for (engine_id = 0; engine_id < g->fifo.num_engines; engine_id++) {
-		bool failing_engine;
-
-		active_engine_id = g->fifo.active_engines_list[engine_id];
-		g->ops.engine_status.read_engine_status_info(g, active_engine_id,
-			&engine_status);
-
-		/* we are interested in busy engines */
-		failing_engine = engine_status.is_busy;
-
-		/* ..that are doing context switch */
-		failing_engine = failing_engine &&
-			nvgpu_engine_status_is_ctxsw(&engine_status);
-
-		if (!failing_engine) {
-		    active_engine_id = FIFO_INVAL_ENGINE_ID;
-			continue;
-		}
-
-		if (nvgpu_engine_status_is_ctxsw_load(&engine_status)) {
-			id = engine_status.ctx_next_id;
-			is_tsg = nvgpu_engine_status_is_next_ctx_type_tsg(
-					&engine_status);
-		} else if (nvgpu_engine_status_is_ctxsw_switch(&engine_status)) {
-			mailbox2 = gk20a_readl(g, gr_fecs_ctxsw_mailbox_r(2));
-			if ((mailbox2 & FECS_METHOD_WFI_RESTORE) != 0U) {
-				id = engine_status.ctx_next_id;
-				is_tsg = nvgpu_engine_status_is_next_ctx_type_tsg(
-						&engine_status);
-			} else {
-				id = engine_status.ctx_id;
-				is_tsg = nvgpu_engine_status_is_ctx_type_tsg(
-						&engine_status);
-			}
-		} else {
-			id = engine_status.ctx_id;
-			is_tsg = nvgpu_engine_status_is_ctx_type_tsg(
-					&engine_status);
-		}
-		break;
-	}
-
-	*__id = id;
-	*__is_tsg = is_tsg;
-
-	return active_engine_id;
 }
 
 void gk20a_fifo_issue_preempt(struct gk20a *g, u32 id, bool is_tsg)
@@ -775,29 +699,6 @@ int gk20a_fifo_preempt(struct gk20a *g, struct channel_gk20a *ch)
 	}
 
 	return err;
-}
-
-u32 gk20a_fifo_runlist_busy_engines(struct gk20a *g, u32 runlist_id)
-{
-	struct fifo_gk20a *f = &g->fifo;
-	u32 engines = 0;
-	unsigned int i;
-	struct nvgpu_engine_status_info engine_status;
-
-	for (i = 0; i < f->num_engines; i++) {
-		u32 active_engine_id = f->active_engines_list[i];
-		u32 engine_runlist = f->engine_info[active_engine_id].runlist_id;
-		bool engine_busy;
-		g->ops.engine_status.read_engine_status_info(g, active_engine_id,
-			&engine_status);
-		engine_busy = engine_status.is_busy;
-
-		if (engine_busy && engine_runlist == runlist_id) {
-			engines |= BIT(active_engine_id);
-		}
-	}
-
-	return engines;
 }
 
 u32 gk20a_fifo_default_timeslice_us(struct gk20a *g)

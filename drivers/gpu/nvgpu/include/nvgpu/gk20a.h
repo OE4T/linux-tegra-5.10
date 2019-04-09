@@ -992,7 +992,6 @@ struct gpu_ops {
 		void (*deinit_pdb_cache_war)(struct gk20a *g);
 		int (*set_sm_exception_type_mask)(struct channel_gk20a *ch,
 				u32 exception_mask);
-		u32 (*runlist_busy_engines)(struct gk20a *g, u32 runlist_id);
 		struct {
 			int (*report_host_err)(struct gk20a *g,
 					u32 hw_id, u32 inst, u32 err_id,

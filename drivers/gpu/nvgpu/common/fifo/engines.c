@@ -35,8 +35,11 @@
 #include <nvgpu/channel.h>
 #include <nvgpu/soc.h>
 #include <nvgpu/top.h>
+#include <nvgpu/gr/gr_falcon.h>
 
 #include "gk20a/fifo_gk20a.h"
+
+#define FECS_METHOD_WFI_RESTORE	0x80000U
 
 enum nvgpu_fifo_engine nvgpu_engine_enum_from_type(struct gk20a *g,
 					u32 engine_type)
@@ -796,4 +799,105 @@ int nvgpu_engine_init_info(struct fifo_gk20a *f)
 	ret = g->ops.engine.init_ce_info(f);
 
 	return ret;
+}
+
+void nvgpu_engine_get_id_and_type(struct gk20a *g, u32 engine_id,
+					  u32 *id, u32 *type)
+{
+	struct nvgpu_engine_status_info engine_status;
+
+	g->ops.engine_status.read_engine_status_info(g, engine_id,
+		&engine_status);
+
+	/* use next_id if context load is failing */
+	if (nvgpu_engine_status_is_ctxsw_load(
+		&engine_status)) {
+		nvgpu_engine_status_get_next_ctx_id_type(
+			&engine_status, id, type);
+	} else {
+		nvgpu_engine_status_get_ctx_id_type(
+			&engine_status, id, type);
+	}
+}
+
+u32 nvgpu_engine_find_busy_doing_ctxsw(struct gk20a *g,
+			u32 *id_ptr, bool *is_tsg_ptr)
+{
+	u32 engine_id;
+	u32 id = U32_MAX;
+	bool is_tsg = false;
+	u32 mailbox2;
+	u32 act_eng_id = FIFO_INVAL_ENGINE_ID;
+	struct nvgpu_engine_status_info engine_status;
+
+	for (engine_id = 0U; engine_id < g->fifo.num_engines; engine_id++) {
+		bool failing_engine;
+
+		act_eng_id = g->fifo.active_engines_list[engine_id];
+		g->ops.engine_status.read_engine_status_info(g, act_eng_id,
+			&engine_status);
+
+		/* we are interested in busy engines */
+		failing_engine = engine_status.is_busy;
+
+		/* ..that are doing context switch */
+		failing_engine = failing_engine &&
+			nvgpu_engine_status_is_ctxsw(&engine_status);
+
+		if (!failing_engine) {
+			act_eng_id = FIFO_INVAL_ENGINE_ID;
+			continue;
+		}
+
+		if (nvgpu_engine_status_is_ctxsw_load(&engine_status)) {
+			id = engine_status.ctx_next_id;
+			is_tsg = nvgpu_engine_status_is_next_ctx_type_tsg(
+					&engine_status);
+		} else if (nvgpu_engine_status_is_ctxsw_switch(&engine_status)) {
+			mailbox2 = g->ops.gr.falcon.read_fecs_ctxsw_mailbox(g,
+					NVGPU_GR_FALCON_FECS_CTXSW_MAILBOX2);
+			if ((mailbox2 & FECS_METHOD_WFI_RESTORE) != 0U) {
+				id = engine_status.ctx_next_id;
+				is_tsg = nvgpu_engine_status_is_next_ctx_type_tsg(
+						&engine_status);
+			} else {
+				id = engine_status.ctx_id;
+				is_tsg = nvgpu_engine_status_is_ctx_type_tsg(
+						&engine_status);
+			}
+		} else {
+			id = engine_status.ctx_id;
+			is_tsg = nvgpu_engine_status_is_ctx_type_tsg(
+					&engine_status);
+		}
+		break;
+	}
+
+	*id_ptr = id;
+	*is_tsg_ptr = is_tsg;
+
+	return act_eng_id;
+}
+
+u32 nvgpu_engine_get_runlist_busy_engines(struct gk20a *g, u32 runlist_id)
+{
+	struct fifo_gk20a *f = &g->fifo;
+	u32 i, eng_bitmask = 0U;
+	struct nvgpu_engine_status_info engine_status;
+
+	for (i = 0U; i < f->num_engines; i++) {
+		u32 act_eng_id = f->active_engines_list[i];
+		u32 engine_runlist = f->engine_info[act_eng_id].runlist_id;
+		bool engine_busy;
+
+		g->ops.engine_status.read_engine_status_info(g, act_eng_id,
+			&engine_status);
+		engine_busy = engine_status.is_busy;
+
+		if (engine_busy && engine_runlist == runlist_id) {
+			eng_bitmask |= BIT(act_eng_id);
+		}
+	}
+
+	return eng_bitmask;
 }
