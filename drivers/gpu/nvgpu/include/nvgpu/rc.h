@@ -49,4 +49,5 @@ void nvgpu_rc_pbdma_fault(struct gk20a *g, struct fifo_gk20a *f,
 
 void nvgpu_rc_runlist_update(struct gk20a *g, u32 runlist_id);
 
+void nvgpu_rc_preempt_timeout(struct gk20a *g, struct tsg_gk20a *tsg);
 #endif /* NVGPU_RC_H */

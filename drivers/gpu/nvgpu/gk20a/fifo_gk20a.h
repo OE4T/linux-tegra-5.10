@@ -266,8 +266,6 @@ static inline void gk20a_fifo_profile_snapshot(
 int gk20a_fifo_is_preempt_pending(struct gk20a *g, u32 id,
 			unsigned int id_type);
 int __locked_fifo_preempt(struct gk20a *g, u32 id, bool is_tsg);
-void gk20a_fifo_preempt_timeout_rc_tsg(struct gk20a *g, struct tsg_gk20a *tsg);
-void gk20a_fifo_preempt_timeout_rc(struct gk20a *g, struct channel_gk20a *ch);
 
 u32 gk20a_fifo_runlist_busy_engines(struct gk20a *g, u32 runlist_id);
 bool gk20a_fifo_should_defer_engine_reset(struct gk20a *g, u32 engine_id,

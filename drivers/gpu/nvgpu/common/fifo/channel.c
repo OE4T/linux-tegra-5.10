@@ -1474,42 +1474,6 @@ bool nvgpu_channel_update_and_check_ctxsw_timeout(struct channel_gk20a *ch,
 		ch->ctxsw_timeout_accumulated_ms > ch->ctxsw_timeout_max_ms;
 }
 
-void nvgpu_channel_recover(struct gk20a *g, struct channel_gk20a *ch,
-	bool verbose, u32 rc_type)
-{
-	u32 engines;
-	int err;
-
-	/* stop context switching to prevent engine assignments from
-	   changing until channel is recovered */
-	nvgpu_mutex_acquire(&g->dbg_sessions_lock);
-	err = g->ops.gr.falcon.disable_ctxsw(g, g->gr.falcon);
-	if (err != 0) {
-		nvgpu_err(g, "failed to disable ctxsw");
-		goto fail;
-	}
-
-	engines = g->ops.engine.get_mask_on_id(g, ch->chid, false);
-
-	if (engines != 0U) {
-		gk20a_fifo_recover(g, engines, ch->chid, false, true, verbose,
-					rc_type);
-	} else {
-		gk20a_channel_abort(ch, false);
-
-		if (nvgpu_channel_mark_error(g, ch)) {
-			gk20a_debug_dump(g);
-		}
-	}
-
-	err = g->ops.gr.falcon.enable_ctxsw(g, g->gr.falcon);
-	if (err != 0) {
-		nvgpu_err(g, "failed to enable ctxsw");
-	}
-fail:
-	nvgpu_mutex_release(&g->dbg_sessions_lock);
-}
-
 u32 nvgpu_get_gp_free_count(struct channel_gk20a *c)
 {
 	update_gp_get(c->g, c);

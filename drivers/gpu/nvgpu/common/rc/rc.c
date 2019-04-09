@@ -95,3 +95,11 @@ void nvgpu_rc_runlist_update(struct gk20a *g, u32 runlist_id)
 				RC_TYPE_RUNLIST_UPDATE_TIMEOUT);
 	}
 }
+
+void nvgpu_rc_preempt_timeout(struct gk20a *g, struct tsg_gk20a *tsg)
+{
+	nvgpu_tsg_set_error_notifier(g, tsg,
+		NVGPU_ERR_NOTIFIER_FIFO_ERROR_IDLE_TIMEOUT);
+
+	nvgpu_tsg_recover(g, tsg, true, RC_TYPE_PREEMPT_TIMEOUT);
+}
