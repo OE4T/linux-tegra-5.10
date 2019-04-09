@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -86,11 +86,10 @@ void gk20a_get_comptags(struct nvgpu_os_buffer *buf,
  * These functions must be used to synchronize comptags clear. The usage:
  *
  *   if (gk20a_comptags_start_clear(os_buf)) {
- *           // we now hold the buffer lock for clearing
- *
+ *           COMMENT: we now hold the buffer lock for clearing
  *           bool successful = hw_clear_comptags();
  *
- *           // mark the buf cleared (or not) and release the buffer lock
+ *           COMMENT: mark the buf cleared (or not) and release the buffer lock
  *           gk20a_comptags_finish_clear(os_buf, successful);
  *   }
  *
