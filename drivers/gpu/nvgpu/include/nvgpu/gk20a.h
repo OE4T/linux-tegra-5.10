@@ -1118,28 +1118,34 @@ struct gpu_ops {
 
 	struct {
 #ifdef CONFIG_TEGRA_GK20A_NVHOST
-		int (*alloc_syncpt_buf)(struct channel_gk20a *c,
-				u32 syncpt_id, struct nvgpu_mem *syncpt_buf);
-		void (*free_syncpt_buf)(struct channel_gk20a *c,
-				struct nvgpu_mem *syncpt_buf);
-		void (*add_syncpt_wait_cmd)(struct gk20a *g,
+		struct {
+			int (*alloc_syncpt_buf)(struct channel_gk20a *c,
+					u32 syncpt_id,
+					struct nvgpu_mem *syncpt_buf);
+			void (*free_syncpt_buf)(struct channel_gk20a *c,
+					struct nvgpu_mem *syncpt_buf);
+			void (*add_syncpt_wait_cmd)(struct gk20a *g,
 					struct priv_cmd_entry *cmd, u32 off,
 					u32 id, u32 thresh, u64 gpu_va);
-		u32 (*get_syncpt_wait_cmd_size)(void);
-		void (*add_syncpt_incr_cmd)(struct gk20a *g,
-			bool wfi_cmd, struct priv_cmd_entry *cmd,
-			u32 id, u64 gpu_va);
-		u32 (*get_syncpt_incr_cmd_size)(bool wfi_cmd);
-		int (*get_sync_ro_map)(struct vm_gk20a *vm,
-				u64 *base_gpuva, u32 *sync_size);
-		u32 (*get_syncpt_incr_per_release)(void);
+			u32 (*get_syncpt_wait_cmd_size)(void);
+			void (*add_syncpt_incr_cmd)(struct gk20a *g,
+					bool wfi_cmd,
+					struct priv_cmd_entry *cmd,
+					u32 id, u64 gpu_va);
+			u32 (*get_syncpt_incr_cmd_size)(bool wfi_cmd);
+			int (*get_sync_ro_map)(struct vm_gk20a *vm,
+					u64 *base_gpuva, u32 *sync_size);
+			u32 (*get_syncpt_incr_per_release)(void);
+		} syncpt;
 #endif
-		u32 (*get_sema_wait_cmd_size)(void);
-		u32 (*get_sema_incr_cmd_size)(void);
-		void (*add_sema_cmd)(struct gk20a *g,
-			struct nvgpu_semaphore *s, u64 sema_va,
-			struct priv_cmd_entry *cmd,
-			u32 off, bool acquire, bool wfi);
+		struct {
+			u32 (*get_sema_wait_cmd_size)(void);
+			u32 (*get_sema_incr_cmd_size)(void);
+			void (*add_sema_cmd)(struct gk20a *g,
+				struct nvgpu_semaphore *s, u64 sema_va,
+				struct priv_cmd_entry *cmd,
+				u32 off, bool acquire, bool wfi);
+		} sema;
 	} sync;
 	struct {
 		int (*alloc_inst)(struct gk20a *g, struct channel_gk20a *ch);

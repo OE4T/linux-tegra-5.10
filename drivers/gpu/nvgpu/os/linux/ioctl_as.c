@@ -279,13 +279,13 @@ static int nvgpu_as_ioctl_get_sync_ro_map(
 	u32 sync_size;
 	int err = 0;
 
-	if (g->ops.sync.get_sync_ro_map == NULL)
+	if (g->ops.sync.syncpt.get_sync_ro_map == NULL)
 		return -EINVAL;
 
 	if (!nvgpu_has_syncpoints(g))
 		return -EINVAL;
 
-	err = g->ops.sync.get_sync_ro_map(vm, &base_gpuva, &sync_size);
+	err = g->ops.sync.syncpt.get_sync_ro_map(vm, &base_gpuva, &sync_size);
 	if (err)
 		return err;
 
