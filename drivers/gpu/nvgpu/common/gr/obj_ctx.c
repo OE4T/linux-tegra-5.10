@@ -393,7 +393,7 @@ int nvgpu_gr_obj_ctx_alloc_golden_ctx_image(struct gk20a *g,
 	struct nvgpu_mem *inst_block)
 {
 	u32 i;
-	u32 size;
+	u64 size;
 	struct nvgpu_mem *gr_mem;
 	int err = 0;
 	struct netlist_aiv_list *sw_ctx_load = &g->netlist_vars->sw_ctx_load;
@@ -544,13 +544,14 @@ static int nvgpu_gr_obj_ctx_gr_ctx_alloc(struct gk20a *g,
 	struct nvgpu_gr_ctx_desc *gr_ctx_desc, struct nvgpu_gr_ctx *gr_ctx,
 	struct vm_gk20a *vm)
 {
-	u32 size;
+	u64 size;
 	int err = 0;
 
 	nvgpu_log_fn(g, " ");
 
 	size = nvgpu_gr_obj_ctx_get_golden_image_size(golden_image);
-	nvgpu_gr_ctx_set_size(gr_ctx_desc, NVGPU_GR_CTX_CTX, size);
+	nvgpu_assert(size <= U64(U32_MAX));
+	nvgpu_gr_ctx_set_size(gr_ctx_desc, NVGPU_GR_CTX_CTX, U32(size));
 
 	err = nvgpu_gr_ctx_alloc(g, gr_ctx, gr_ctx_desc, vm);
 	if (err != 0) {

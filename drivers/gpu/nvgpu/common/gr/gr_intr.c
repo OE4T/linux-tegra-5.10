@@ -237,7 +237,7 @@ int nvgpu_gr_intr_handle_notify_pending(struct gk20a *g,
 			 ((char *)virtual_address + offset);
 
 		min_element_size =
-			(sh_hdr->operation == OP_END ?
+			U32(sh_hdr->operation == OP_END ?
 			 sizeof(struct share_buffer_head) :
 			 sizeof(struct gk20a_cyclestate_buffer_elem));
 
@@ -248,7 +248,7 @@ int nvgpu_gr_intr_handle_notify_pending(struct gk20a *g,
 			nvgpu_err(g,
 				  "bad cyclestate buffer header size at offset 0x%x",
 				  offset);
-			sh_hdr->failed = true;
+			sh_hdr->failed = U32(true);
 			break;
 		}
 
@@ -273,7 +273,8 @@ int nvgpu_gr_intr_handle_notify_pending(struct gk20a *g,
 					   "invalid cycletstats op offset: 0x%x",
 					   op_elem->offset_bar0);
 
-				sh_hdr->failed = exit = true;
+				exit = true;
+				sh_hdr->failed = U32(exit);
 				break;
 			}
 
@@ -314,7 +315,7 @@ int nvgpu_gr_intr_handle_notify_pending(struct gk20a *g,
 			exit = true;
 			break;
 		}
-		sh_hdr->completed = true;
+		sh_hdr->completed = U32(true);
 		offset += sh_hdr->size;
 	}
 	nvgpu_mutex_release(&ch->cyclestate.cyclestate_buffer_mutex);

@@ -859,9 +859,10 @@ void gv11b_gr_init_commit_ctxsw_spill(struct gk20a *g,
 
 	size /=	gr_gpc0_swdx_rm_spill_buffer_size_256b_byte_granularity_v();
 
+	nvgpu_assert(u64_hi32(addr) == 0U);
 	nvgpu_gr_ctx_patch_write(g, gr_ctx,
 			gr_gpc0_swdx_rm_spill_buffer_addr_r(),
-			gr_gpc0_swdx_rm_spill_buffer_addr_39_8_f(addr),
+			gr_gpc0_swdx_rm_spill_buffer_addr_39_8_f(U32(addr)),
 			patch);
 	nvgpu_gr_ctx_patch_write(g, gr_ctx,
 			gr_gpc0_swdx_rm_spill_buffer_size_r(),
