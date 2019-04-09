@@ -469,6 +469,7 @@ nvgpu-y += \
 	common/rc/rc.o \
 	common/fifo/fifo.o \
 	common/fifo/channel.o \
+	common/fifo/pbdma.o \
 	common/fifo/submit.o \
 	common/fifo/tsg.o \
 	common/fifo/runlist.o \

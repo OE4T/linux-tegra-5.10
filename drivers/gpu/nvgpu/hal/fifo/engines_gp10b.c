@@ -64,7 +64,7 @@ int gp10b_engine_init_ce_info(struct fifo_gk20a *f)
 		}
 
 		found_pbdma_for_runlist =
-				g->ops.fifo.find_pbdma_for_runlist(f,
+				g->ops.pbdma.find_for_runlist(g,
 						dev_info.runlist_id,
 						&pbdma_id);
 		if (!found_pbdma_for_runlist) {

@@ -30,6 +30,7 @@
 #include <nvgpu/debugger.h>
 #include <nvgpu/channel.h>
 #include <nvgpu/runlist.h>
+#include <nvgpu/pbdma.h>
 #include <nvgpu/tsg.h>
 #include <nvgpu/perfbuf.h>
 #include <nvgpu/cyclestats_snapshot.h>
@@ -627,7 +628,7 @@ static const struct gpu_ops gm20b_ops = {
 		.preempt_channel = gk20a_fifo_preempt_channel,
 		.preempt_tsg = gk20a_fifo_preempt_tsg,
 		.tsg_set_timeslice = gk20a_fifo_tsg_set_timeslice,
-		.init_pbdma_info = gk20a_fifo_init_pbdma_info,
+		.init_pbdma_map = gk20a_fifo_init_pbdma_map,
 		.is_preempt_pending = gk20a_fifo_is_preempt_pending,
 		.reset_enable_hw = gk20a_init_fifo_reset_enable_hw,
 		.teardown_ch_tsg = gk20a_fifo_teardown_ch_tsg,
@@ -637,7 +638,6 @@ static const struct gpu_ops gm20b_ops = {
 		.cleanup_sw = nvgpu_fifo_cleanup_sw,
 		.set_sm_exception_type_mask = gk20a_tsg_set_sm_exception_type_mask,
 		.runlist_busy_engines = gk20a_fifo_runlist_busy_engines,
-		.find_pbdma_for_runlist = gk20a_fifo_find_pbdma_for_runlist,
 		.intr_0_enable = gk20a_fifo_intr_0_enable,
 		.intr_1_enable = gk20a_fifo_intr_1_enable,
 		.intr_0_isr = gk20a_fifo_intr_0_isr,
@@ -660,6 +660,8 @@ static const struct gpu_ops gm20b_ops = {
 		.init_ce_info = gm20b_engine_init_ce_info,
 	},
 	.pbdma = {
+		.setup_sw = nvgpu_pbdma_setup_sw,
+		.cleanup_sw = nvgpu_pbdma_cleanup_sw,
 		.setup_hw = gm20b_pbdma_setup_hw,
 		.intr_enable = gm20b_pbdma_intr_enable,
 		.acquire_val = gm20b_pbdma_acquire_val,
@@ -676,6 +678,7 @@ static const struct gpu_ops gm20b_ops = {
 			gm20b_pbdma_channel_fatal_0_intr_descs,
 		.restartable_0_intr_descs =
 			gm20b_pbdma_restartable_0_intr_descs,
+		.find_for_runlist = nvgpu_pbdma_find_for_runlist,
 	},
 	.sync = {
 #ifdef CONFIG_TEGRA_GK20A_NVHOST

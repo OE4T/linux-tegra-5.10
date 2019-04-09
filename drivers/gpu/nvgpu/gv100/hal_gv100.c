@@ -167,6 +167,7 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/debugger.h>
 #include <nvgpu/channel.h>
+#include <nvgpu/pbdma.h>
 #include <nvgpu/runlist.h>
 #include <nvgpu/fifo/userd.h>
 #include <nvgpu/perfbuf.h>
@@ -898,7 +899,7 @@ static const struct gpu_ops gv100_ops = {
 		.preempt_channel = gv11b_fifo_preempt_channel,
 		.preempt_tsg = gv11b_fifo_preempt_tsg,
 		.tsg_set_timeslice = gk20a_fifo_tsg_set_timeslice,
-		.init_pbdma_info = gk20a_fifo_init_pbdma_info,
+		.init_pbdma_map = gk20a_fifo_init_pbdma_map,
 		.is_preempt_pending = gv11b_fifo_is_preempt_pending,
 		.reset_enable_hw = gk20a_init_fifo_reset_enable_hw,
 		.teardown_ch_tsg = gv11b_fifo_teardown_ch_tsg,
@@ -911,7 +912,6 @@ static const struct gpu_ops gv100_ops = {
 		.usermode_base = gv11b_fifo_usermode_base,
 		.doorbell_token = gv11b_fifo_doorbell_token,
 		.runlist_busy_engines = gk20a_fifo_runlist_busy_engines,
-		.find_pbdma_for_runlist = gk20a_fifo_find_pbdma_for_runlist,
 		.intr_0_enable = gk20a_fifo_intr_0_enable,
 		.intr_1_enable = gk20a_fifo_intr_1_enable,
 		.intr_0_isr = gv11b_fifo_intr_0_isr,
@@ -932,6 +932,8 @@ static const struct gpu_ops gv100_ops = {
 		.init_ce_info = gp10b_engine_init_ce_info,
 	},
 	.pbdma = {
+		.setup_sw = nvgpu_pbdma_setup_sw,
+		.cleanup_sw = nvgpu_pbdma_cleanup_sw,
 		.setup_hw = gm20b_pbdma_setup_hw,
 		.intr_enable = gv11b_pbdma_intr_enable,
 		.acquire_val = gm20b_pbdma_acquire_val,
@@ -948,6 +950,7 @@ static const struct gpu_ops gv100_ops = {
 			gv11b_pbdma_channel_fatal_0_intr_descs,
 		.restartable_0_intr_descs =
 			gm20b_pbdma_restartable_0_intr_descs,
+		.find_for_runlist = nvgpu_pbdma_find_for_runlist,
 	},
 	.sync = {
 #ifdef CONFIG_TEGRA_GK20A_NVHOST

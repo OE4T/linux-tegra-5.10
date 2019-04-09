@@ -177,6 +177,7 @@ srcs += common/sim.c \
 	common/fifo/channel.c \
 	common/rc/rc.c \
 	common/fifo/fifo.c \
+	common/fifo/pbdma.c \
 	common/fifo/submit.c \
 	common/fifo/tsg.c \
 	common/fifo/runlist.c \

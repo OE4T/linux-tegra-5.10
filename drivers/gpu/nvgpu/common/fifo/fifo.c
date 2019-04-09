@@ -29,36 +29,12 @@
 #include <nvgpu/runlist.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/channel.h>
+#include <nvgpu/pbdma.h>
 #include <nvgpu/tsg.h>
 #include <nvgpu/vm_area.h>
 #include <nvgpu/nvgpu_err.h>
 
 #include <gk20a/fifo_gk20a.h>
-
-/* TODO: move to pbdma and userd when available */
-static int nvgpu_pbdma_setup_sw(struct gk20a *g)
-{
-	struct fifo_gk20a *f = &g->fifo;
-	int err;
-
-	if (g->ops.fifo.init_pbdma_info != NULL) {
-		err = g->ops.fifo.init_pbdma_info(f);
-		if (err != 0) {
-			nvgpu_err(g, "failed to init pbdma support");
-			return err;
-		}
-	}
-
-	return 0;
-}
-
-static void nvgpu_pbdma_cleanup_sw(struct gk20a *g)
-{
-	struct fifo_gk20a *f = &g->fifo;
-
-	nvgpu_kfree(g, f->pbdma_map);
-	f->pbdma_map = NULL;
-}
 
 void nvgpu_fifo_cleanup_sw_common(struct gk20a *g)
 {
@@ -150,10 +126,12 @@ int nvgpu_fifo_setup_sw_common(struct gk20a *g)
 		goto clean_up_channel;
 	}
 
-	err = nvgpu_pbdma_setup_sw(g);
-	if (err != 0) {
-		nvgpu_err(g, "failed to init pbdma support");
-		goto clean_up_tsg;
+	if (g->ops.pbdma.setup_sw != NULL) {
+		err = g->ops.pbdma.setup_sw(g);
+		if (err != 0) {
+			nvgpu_err(g, "failed to init pbdma support");
+			goto clean_up_tsg;
+		}
 	}
 
 	err = nvgpu_engine_setup_sw(g);
@@ -186,7 +164,9 @@ clean_up_engine:
 	nvgpu_engine_cleanup_sw(g);
 
 clean_up_pbdma:
-	nvgpu_pbdma_cleanup_sw(g);
+	if (g->ops.pbdma.cleanup_sw != NULL) {
+		g->ops.pbdma.cleanup_sw(g);
+	}
 
 clean_up_tsg:
 	nvgpu_tsg_cleanup_sw(g);

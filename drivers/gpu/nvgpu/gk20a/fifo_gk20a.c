@@ -941,63 +941,13 @@ const char *gk20a_decode_pbdma_chan_eng_ctx_status(u32 index)
 	}
 }
 
-static void nvgpu_fifo_pbdma_init_intr_descs(struct fifo_gk20a *f)
+int gk20a_fifo_init_pbdma_map(struct gk20a *g, u32 *pbdma_map, u32 num_pbdma)
 {
-	struct gk20a *g = f->g;
-
-	if (g->ops.pbdma.device_fatal_0_intr_descs != NULL) {
-		f->intr.pbdma.device_fatal_0 =
-			g->ops.pbdma.device_fatal_0_intr_descs();
-	}
-
-	if (g->ops.pbdma.device_fatal_0_intr_descs != NULL) {
-		f->intr.pbdma.channel_fatal_0 =
-			g->ops.pbdma.channel_fatal_0_intr_descs();
-	}
-	if (g->ops.pbdma.restartable_0_intr_descs != NULL) {
-		f->intr.pbdma.restartable_0 =
-			g->ops.pbdma.restartable_0_intr_descs();
-	}
-}
-
-bool gk20a_fifo_find_pbdma_for_runlist(struct fifo_gk20a *f, u32 runlist_id,
-								u32 *pbdma_id)
-{
-	struct gk20a *g = f->g;
-	bool found_pbdma_for_runlist = false;
-	u32 runlist_bit;
 	u32 id;
 
-	runlist_bit = BIT32(runlist_id);
-	for (id = 0; id < f->num_pbdma; id++) {
-		if ((f->pbdma_map[id] & runlist_bit) != 0U) {
-			nvgpu_log_info(g, "gr info: pbdma_map[%d]=%d", id,
-							f->pbdma_map[id]);
-			found_pbdma_for_runlist = true;
-			break;
-		}
+	for (id = 0; id < num_pbdma; ++id) {
+		pbdma_map[id] = gk20a_readl(g, fifo_pbdma_map_r(id));
 	}
-	*pbdma_id = id;
-	return found_pbdma_for_runlist;
-}
-
-int gk20a_fifo_init_pbdma_info(struct fifo_gk20a *f)
-{
-	struct gk20a *g = f->g;
-	u32 id;
-
-	f->num_pbdma = nvgpu_get_litter_value(g, GPU_LIT_HOST_NUM_PBDMA);
-
-	f->pbdma_map = nvgpu_kzalloc(g, f->num_pbdma * sizeof(*f->pbdma_map));
-	if (f->pbdma_map == NULL) {
-		return -ENOMEM;
-	}
-
-	for (id = 0; id < f->num_pbdma; ++id) {
-		f->pbdma_map[id] = gk20a_readl(g, fifo_pbdma_map_r(id));
-	}
-
-	nvgpu_fifo_pbdma_init_intr_descs(f);
 
 	return 0;
 }

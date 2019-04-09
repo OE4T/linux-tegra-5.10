@@ -954,7 +954,8 @@ struct gpu_ops {
 		int (*preempt_tsg)(struct gk20a *g, struct tsg_gk20a *tsg);
 		int (*tsg_set_timeslice)(struct tsg_gk20a *tsg, u32 timeslice);
 		u32 (*default_timeslice_us)(struct gk20a *g);
-		int (*init_pbdma_info)(struct fifo_gk20a *f);
+		int (*init_pbdma_map)(struct gk20a *g,
+				u32 *pbdma_map, u32 num_pbdma);
 		int (*init_engine_info)(struct fifo_gk20a *f);
 		u32 (*get_engines_mask_on_id)(struct gk20a *g,
 			u32 id, bool is_tsg);
@@ -975,8 +976,6 @@ struct gpu_ops {
 		int (*set_sm_exception_type_mask)(struct channel_gk20a *ch,
 				u32 exception_mask);
 		u32 (*runlist_busy_engines)(struct gk20a *g, u32 runlist_id);
-		bool (*find_pbdma_for_runlist)(struct fifo_gk20a *f,
-				u32 runlist_id, u32 *pbdma_id);
 		struct {
 			int (*report_host_err)(struct gk20a *g,
 					u32 hw_id, u32 inst, u32 err_id,
@@ -1073,6 +1072,8 @@ struct gpu_ops {
 	} engine;
 
 	struct {
+		int (*setup_sw)(struct gk20a *g);
+		void (*cleanup_sw)(struct gk20a *g);
 		void (*setup_hw)(struct gk20a *g);
 		void (*intr_enable)(struct gk20a *g, bool enable);
 		bool (*handle_intr_0)(struct gk20a *g,
@@ -1093,6 +1094,8 @@ struct gpu_ops {
 		u32 (*device_fatal_0_intr_descs)(void);
 		u32 (*channel_fatal_0_intr_descs)(void);
 		u32 (*restartable_0_intr_descs)(void);
+		bool (*find_for_runlist)(struct gk20a *g,
+				u32 runlist_id, u32 *pbdma_id);
 	} pbdma;
 
 	struct {

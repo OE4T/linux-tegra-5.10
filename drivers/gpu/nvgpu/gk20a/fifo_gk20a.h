@@ -285,9 +285,7 @@ void gk20a_fifo_teardown_unmask_intr(struct gk20a *g);
 
 u32 gk20a_fifo_default_timeslice_us(struct gk20a *g);
 
-bool gk20a_fifo_find_pbdma_for_runlist(struct fifo_gk20a *f, u32 runlist_id,
-			u32 *pbdma_id);
-int gk20a_fifo_init_pbdma_info(struct fifo_gk20a *f);
+int gk20a_fifo_init_pbdma_map(struct gk20a *g, u32 *pbdma_map, u32 num_pbdma);
 bool gk20a_fifo_handle_mmu_fault(struct gk20a *g,
 	u32 mmu_fault_engines, u32 hw_id, bool id_is_tsg);
 

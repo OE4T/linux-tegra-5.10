@@ -756,7 +756,7 @@ int nvgpu_engine_init_info(struct fifo_gk20a *f)
 			return -EINVAL;
 		}
 
-		found_pbdma_for_runlist = g->ops.fifo.find_pbdma_for_runlist(f,
+		found_pbdma_for_runlist = g->ops.pbdma.find_for_runlist(g,
 							dev_info.runlist_id,
 							&pbdma_id);
 		if (!found_pbdma_for_runlist) {
