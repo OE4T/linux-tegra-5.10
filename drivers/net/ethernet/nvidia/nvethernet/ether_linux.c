@@ -391,7 +391,8 @@ static void ether_napi_enable(struct ether_priv_data *pdata)
 	}
 }
 
-static void ether_free_rx_skbs(struct osi_rx_swcx *rx_swcx, struct device *dev)
+static void ether_free_rx_skbs(struct osi_rx_swcx *rx_swcx, struct device *dev,
+			       unsigned int rx_buf_len)
 {
 	struct osi_rx_swcx *prx_swcx = NULL;
 	unsigned int i;
@@ -400,9 +401,8 @@ static void ether_free_rx_skbs(struct osi_rx_swcx *rx_swcx, struct device *dev)
 		prx_swcx = rx_swcx + i;
 
 		if (prx_swcx->buf_virt_addr != NULL) {
-			/* TODO: Need to get Rx buffer len */
 			dma_unmap_single(dev, prx_swcx->buf_phy_addr,
-					 1536, DMA_FROM_DEVICE);
+					 rx_buf_len, DMA_FROM_DEVICE);
 			dev_kfree_skb_any(prx_swcx->buf_virt_addr);
 			prx_swcx->buf_virt_addr = NULL;
 			prx_swcx->buf_phy_addr = 0;
@@ -435,7 +435,8 @@ static void free_rx_dma_resources(struct osi_dma_priv_data *osi_dma,
 
 		if (rx_ring != NULL) {
 			if (rx_ring->rx_swcx != NULL) {
-				ether_free_rx_skbs(rx_ring->rx_swcx, dev);
+				ether_free_rx_skbs(rx_ring->rx_swcx, dev,
+						   osi_dma->rx_buf_len);
 				kfree(rx_ring->rx_swcx);
 			}
 
@@ -517,6 +518,7 @@ err_rx_desc:
 static int ether_allocate_rx_buffers(struct ether_priv_data *pdata,
 				     struct osi_rx_ring *rx_ring)
 {
+	unsigned int rx_buf_len = pdata->osi_dma->rx_buf_len;
 	struct osi_rx_swcx *rx_swcx = NULL;
 	unsigned int i = 0;
 
@@ -526,15 +528,14 @@ static int ether_allocate_rx_buffers(struct ether_priv_data *pdata,
 
 		rx_swcx = rx_ring->rx_swcx + i;
 
-		/* FIXME: hardcoding Rx DMA buf len here */
-		skb = __netdev_alloc_skb_ip_align(pdata->ndev, 1536,
+		skb = __netdev_alloc_skb_ip_align(pdata->ndev, rx_buf_len,
 						  GFP_KERNEL);
 		if (unlikely(skb == NULL)) {
 			dev_err(pdata->dev, "RX skb allocation failed\n");
 			return -ENOMEM;
 		}
 
-		dma_addr = dma_map_single(pdata->dev, skb->data, 1536,
+		dma_addr = dma_map_single(pdata->dev, skb->data, rx_buf_len,
 					  DMA_FROM_DEVICE);
 		if (unlikely(dma_mapping_error(pdata->dev, dma_addr) != 0)) {
 			dev_err(pdata->dev, "RX skb dma map failed\n");
@@ -877,6 +878,8 @@ static int ether_open(struct net_device *dev)
 		goto err_r_irq;
 	}
 
+	osi_set_rx_buf_len(pdata->osi_dma);
+
 	ret = ether_allocate_dma_resources(pdata);
 	if (ret < 0) {
 		dev_err(pdata->dev, "failed to allocate DMA resources\n");
@@ -1157,12 +1160,48 @@ static int ether_set_mac_addr(struct net_device *ndev, void *addr)
 	return ret;
 }
 
+/**
+ *     ether_change_mtu - Change MAC MTU size
+ *     @ndev: Network device structure
+ *     @new_mtu: New MTU size to set.
+ *
+ *     Algorithm:
+ *     1) Check and return if interface is up.
+ *     2) Stores new MTU size set by user in OSI core data structure.
+ *
+ *     Dependencies: Ethernet interface need to be down to change MTU size
+ *
+ *     Protection: None.
+ *
+ *     Return: 0 - success, negative value - failure.
+ */
+static int ether_change_mtu(struct net_device *ndev, int new_mtu)
+{
+	struct ether_priv_data *pdata = netdev_priv(ndev);
+	struct osi_core_priv_data *osi_core = pdata->osi_core;
+	struct osi_dma_priv_data *osi_dma = pdata->osi_dma;
+
+	if (netif_running(ndev)) {
+		netdev_err(pdata->ndev, "must be stopped to change its MTU\n");
+		return -EBUSY;
+	}
+
+	ndev->mtu = new_mtu;
+	osi_core->mtu = new_mtu;
+	osi_dma->mtu = new_mtu;
+
+	netdev_update_features(ndev);
+
+	return 0;
+}
+
 static const struct net_device_ops ether_netdev_ops = {
 	.ndo_open = ether_open,
 	.ndo_stop = ether_close,
 	.ndo_start_xmit = ether_start_xmit,
 	.ndo_do_ioctl = ether_ioctl,
 	.ndo_set_mac_address = ether_set_mac_addr,
+	.ndo_change_mtu = ether_change_mtu,
 };
 
 /**
@@ -2135,6 +2174,10 @@ static int ether_probe(struct platform_device *pdev)
 
 	osi_core->mac = mac;
 	osi_dma->mac = mac;
+
+	osi_core->mtu = ndev->mtu;
+	osi_dma->mtu = ndev->mtu;
+	ndev->max_mtu = OSI_MAX_MTU_SIZE;
 
 	/* Initialize core and DMA ops based on MAC type */
 	osi_init_core_ops(osi_core);
