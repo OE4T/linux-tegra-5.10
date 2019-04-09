@@ -59,7 +59,7 @@ int gv11b_ramfc_setup(struct channel_gk20a *ch, u64 gpfifo_base,
 
 	nvgpu_mem_wr32(g, mem, ram_fc_gp_base_hi_w(),
 		pbdma_gp_base_hi_offset_f(u64_hi32(gpfifo_base)) |
-		pbdma_gp_base_hi_limit2_f(ilog2(gpfifo_entries)));
+		pbdma_gp_base_hi_limit2_f(U32(ilog2(gpfifo_entries))));
 
 	nvgpu_mem_wr32(g, mem, ram_fc_signature_w(),
 		ch->g->ops.pbdma.get_signature(ch->g));

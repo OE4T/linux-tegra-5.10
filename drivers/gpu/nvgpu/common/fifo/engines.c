@@ -726,7 +726,7 @@ u32 nvgpu_engine_get_mask_on_id(struct gk20a *g, u32 id, bool is_tsg)
 					ENGINE_STATUS_CTX_ID_TYPE_TSGID) ||
 					(!is_tsg && type ==
 					ENGINE_STATUS_CTX_ID_TYPE_CHID)) {
-				engines |= BIT(active_engine_id);
+				engines |= BIT32(active_engine_id);
 			}
 		}
 	}
