@@ -38,6 +38,7 @@
 #include <nvgpu/channel.h>
 #include <nvgpu/nvgpu_err.h>
 #include <nvgpu/ltc.h>
+#include <nvgpu/rc.h>
 
 #include "gk20a/mm_gk20a.h"
 

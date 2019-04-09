@@ -27,6 +27,7 @@
 #include <nvgpu/os_sched.h>
 #include <nvgpu/channel.h>
 #include <nvgpu/tsg.h>
+#include <nvgpu/rc.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/error_notifier.h>
 #include <nvgpu/gr/config.h>

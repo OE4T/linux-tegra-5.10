@@ -26,6 +26,7 @@
 #include <nvgpu/runlist.h>
 #include <nvgpu/bug.h>
 #include <nvgpu/dma.h>
+#include <nvgpu/rc.h>
 
 void nvgpu_fifo_lock_active_runlists(struct gk20a *g)
 {
@@ -466,16 +467,6 @@ int nvgpu_fifo_reschedule_runlist(struct channel_gk20a *ch, bool preempt_next,
 	return ret;
 }
 
-static void gk20a_fifo_runlist_reset_engines(struct gk20a *g, u32 runlist_id)
-{
-	u32 engines = g->ops.fifo.runlist_busy_engines(g, runlist_id);
-
-	if (engines != 0U) {
-		gk20a_fifo_recover(g, engines, ~(u32)0, false, false, true,
-				RC_TYPE_RUNLIST_UPDATE_TIMEOUT);
-	}
-}
-
 /* add/remove a channel from runlist
    special cases below: runlist->active_channels will NOT be changed.
    (ch == NULL && !add) means remove all active channels from runlist.
@@ -509,7 +500,7 @@ static int gk20a_runlist_update(struct gk20a *g, u32 runlist_id,
 	nvgpu_mutex_release(&runlist->runlist_lock);
 
 	if (ret == -ETIMEDOUT) {
-		gk20a_fifo_runlist_reset_engines(g, runlist_id);
+		nvgpu_rc_runlist_update(g, runlist_id);
 	}
 
 	return ret;

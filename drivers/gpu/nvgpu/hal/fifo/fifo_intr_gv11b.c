@@ -29,12 +29,12 @@
 #include <nvgpu/tsg.h>
 #include <nvgpu/nvgpu_err.h>
 #include <nvgpu/error_notifier.h>
+#include <nvgpu/rc.h>
 
 #include <hal/fifo/fifo_intr_gk20a.h>
 #include <hal/fifo/fifo_intr_gv11b.h>
 
 #include <nvgpu/hw/gv11b/hw_fifo_gv11b.h>
-#include <nvgpu/hw/gv11b/hw_pbdma_gv11b.h> /* TODO: remove */
 
 static const char *const gv11b_sched_error_str[] = {
 	"xxx-0",

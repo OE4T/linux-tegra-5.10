@@ -85,3 +85,13 @@ void nvgpu_rc_pbdma_fault(struct gk20a *g, struct fifo_gk20a *f,
 		nvgpu_err(g, "Invalid pbdma_status.id_type");
 	}
 }
+
+void nvgpu_rc_runlist_update(struct gk20a *g, u32 runlist_id)
+{
+	u32 eng_bitmask = g->ops.fifo.runlist_busy_engines(g, runlist_id);
+
+	if (eng_bitmask != 0U) {
+		gk20a_fifo_recover(g, eng_bitmask, INVAL_ID, false, false, true,
+				RC_TYPE_RUNLIST_UPDATE_TIMEOUT);
+	}
+}

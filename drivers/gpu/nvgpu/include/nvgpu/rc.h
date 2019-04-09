@@ -25,6 +25,18 @@
 
 #include <nvgpu/types.h>
 
+#define RC_TYPE_NO_RC			0U
+#define RC_TYPE_MMU_FAULT		1U
+#define RC_TYPE_PBDMA_FAULT		2U
+#define RC_TYPE_GR_FAULT		3U
+#define RC_TYPE_PREEMPT_TIMEOUT		4U
+#define RC_TYPE_CTXSW_TIMEOUT		5U
+#define RC_TYPE_RUNLIST_UPDATE_TIMEOUT	6U
+#define RC_TYPE_FORCE_RESET		7U
+#define RC_TYPE_SCHED_ERR		8U
+
+#define INVAL_ID			(~U32(0U))
+
 struct gk20a;
 struct tsg_gk20a;
 struct fifo_gk20a;
@@ -34,5 +46,7 @@ void nvgpu_rc_ctxsw_timeout(struct gk20a *g, u32 eng_bitmask,
 
 void nvgpu_rc_pbdma_fault(struct gk20a *g, struct fifo_gk20a *f,
 			u32 pbdma_id, u32 error_notifier);
+
+void nvgpu_rc_runlist_update(struct gk20a *g, u32 runlist_id);
 
 #endif /* NVGPU_RC_H */
