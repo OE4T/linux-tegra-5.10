@@ -427,7 +427,6 @@ struct gpu_ops {
 					u32 num_fbpas,
 					u32 *priv_addr_table,
 					u32 *priv_addr_table_index);
-		int (*alloc_global_ctx_buffers)(struct gk20a *g);
 		u32 (*get_nonpes_aware_tpc)(struct gk20a *g, u32 gpc, u32 tpc);
 		int (*get_offset_in_gpccs_segment)(struct gk20a *g,
 			enum ctxsw_addr_type addr_type, u32 num_tpcs,

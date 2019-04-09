@@ -34,6 +34,73 @@
 #include <nvgpu/gr/fs_state.h>
 #include <nvgpu/power_features/cg.h>
 
+static int gr_alloc_global_ctx_buffers(struct gk20a *g)
+{
+	struct gr_gk20a *gr = &g->gr;
+	int err;
+	u32 size;
+
+	nvgpu_log_fn(g, " ");
+
+	size = g->ops.gr.init.get_global_ctx_cb_buffer_size(g);
+	nvgpu_log_info(g, "cb_buffer_size : %d", size);
+
+	nvgpu_gr_global_ctx_set_size(gr->global_ctx_buffer,
+		NVGPU_GR_GLOBAL_CTX_CIRCULAR, size);
+	nvgpu_gr_global_ctx_set_size(gr->global_ctx_buffer,
+		NVGPU_GR_GLOBAL_CTX_CIRCULAR_VPR, size);
+
+	size = g->ops.gr.init.get_global_ctx_pagepool_buffer_size(g);
+	nvgpu_log_info(g, "pagepool_buffer_size : %d", size);
+
+	nvgpu_gr_global_ctx_set_size(gr->global_ctx_buffer,
+		NVGPU_GR_GLOBAL_CTX_PAGEPOOL, size);
+	nvgpu_gr_global_ctx_set_size(gr->global_ctx_buffer,
+		NVGPU_GR_GLOBAL_CTX_PAGEPOOL_VPR, size);
+
+	size = g->ops.gr.init.get_global_attr_cb_size(g,
+			nvgpu_gr_config_get_tpc_count(g->gr.config),
+			nvgpu_gr_config_get_max_tpc_count(g->gr.config));
+	nvgpu_log_info(g, "attr_buffer_size : %u", size);
+
+	nvgpu_gr_global_ctx_set_size(gr->global_ctx_buffer,
+		NVGPU_GR_GLOBAL_CTX_ATTRIBUTE, size);
+	nvgpu_gr_global_ctx_set_size(gr->global_ctx_buffer,
+		NVGPU_GR_GLOBAL_CTX_ATTRIBUTE_VPR, size);
+
+	nvgpu_log_info(g, "priv_access_map_size : %d",
+		   gr->ctx_vars.priv_access_map_size);
+
+	nvgpu_gr_global_ctx_set_size(gr->global_ctx_buffer,
+		NVGPU_GR_GLOBAL_CTX_PRIV_ACCESS_MAP,
+		gr->ctx_vars.priv_access_map_size);
+
+#ifdef CONFIG_GK20A_CTXSW_TRACE
+	nvgpu_log_info(g, "fecs_trace_buffer_size : %d",
+		   gr->ctx_vars.fecs_trace_buffer_size);
+
+	nvgpu_gr_global_ctx_set_size(gr->global_ctx_buffer,
+		NVGPU_GR_GLOBAL_CTX_FECS_TRACE_BUFFER,
+		gr->ctx_vars.fecs_trace_buffer_size);
+#endif
+
+	if (g->ops.gr.init.get_rtv_cb_size != NULL) {
+		size = g->ops.gr.init.get_rtv_cb_size(g);
+		nvgpu_log_info(g, "rtv_circular_buffer_size : %u", size);
+
+		nvgpu_gr_global_ctx_set_size(gr->global_ctx_buffer,
+			NVGPU_GR_GLOBAL_CTX_RTV_CIRCULAR_BUFFER, size);
+	}
+
+	err = nvgpu_gr_global_ctx_buffer_alloc(g, gr->global_ctx_buffer);
+	if (err != 0) {
+		return err;
+	}
+
+	nvgpu_log_fn(g, "done");
+	return 0;
+}
+
 u32 nvgpu_gr_gpc_offset(struct gk20a *g, u32 gpc)
 {
 	u32 gpc_stride = nvgpu_get_litter_value(g, GPU_LIT_GPC_STRIDE);
@@ -349,7 +416,7 @@ static int gr_init_setup_sw(struct gk20a *g)
 		goto clean_up;
 	}
 
-	err = g->ops.gr.alloc_global_ctx_buffers(g);
+	err = gr_alloc_global_ctx_buffers(g);
 	if (err != 0) {
 		goto clean_up;
 	}

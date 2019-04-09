@@ -359,8 +359,6 @@ void gk20a_gr_get_ovr_perf_regs(struct gk20a *g, u32 *num_ovr_perf_regs,
 					       u32 **ovr_perf_regs);
 u32 gr_gk20a_get_patch_slots(struct gk20a *g);
 
-int gr_gk20a_alloc_global_ctx_buffers(struct gk20a *g);
-
 int gk20a_init_sw_bundle(struct gk20a *g);
 int gr_gk20a_decode_priv_addr(struct gk20a *g, u32 addr,
 	enum ctxsw_addr_type *addr_type,
