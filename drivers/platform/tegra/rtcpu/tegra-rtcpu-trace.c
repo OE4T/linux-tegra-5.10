@@ -793,14 +793,79 @@ static void rtcpu_trace_vi_event(struct tegra_rtcpu_trace *tracer,
 #endif
 }
 
+const char * const g_trace_isp_falcon_task_strs[] = {
+	"UNUSED",
+	"SCHED_ERROR",
+	"SCHED_HANDLE_STAT",
+	"SCHED_FINISH_TILE",
+	"SCHED_FINISH_SLICE",
+	"HANDLE_EVENT",
+	"INPUT_ACTION",
+	"ISR"
+};
+
+const unsigned int g_trace_isp_falcon_task_str_count =
+	ARRAY_SIZE(g_trace_isp_falcon_task_strs);
+
+#define TRACE_ISP_FALCON_EVENT_TS         13U
+#define TRACE_ISP_FALCON_EVENT_TE         14U
+#define TRACE_ISP_FALCON_PROFILE_START    16U
+#define TRACE_ISP_FALCON_PROFILE_END      17U
+
+static void rtcpu_trace_isp_falcon_event(struct camrtc_event_struct *event)
+{
+	u8 ispfalcon_tag = (u8) ((event->data.data32[0] & 0xFF) >> 1U);
+	u8 ch = (u8) ((event->data.data32[0] & 0xFF00) >> 8U);
+	u8 seq = (u8) ((event->data.data32[0] & 0xFF0000) >> 16U);
+	u32 tstamp = event->data.data32[1];
+
+	switch (ispfalcon_tag) {
+	case TRACE_ISP_FALCON_EVENT_TS:
+		trace_rtcpu_isp_falcon_tile_start(
+			ch, seq, tstamp,
+			(u8) (event->data.data32[3] & 0xFF),
+			(u8) ((event->data.data32[3] & 0xFF00) >> 8U),
+			(u16) (event->data.data32[2] & 0xFFFF),
+			(u16) ((event->data.data32[2] & 0xFFFF0000) >> 16U));
+		break;
+	case TRACE_ISP_FALCON_EVENT_TE:
+		trace_rtcpu_isp_falcon_tile_end(
+			ch, seq, tstamp,
+			(u8) (event->data.data32[3] & 0xFF),
+			(u8) ((event->data.data32[3] & 0xFF00) >> 8U));
+		break;
+	case TRACE_ISP_FALCON_PROFILE_START:
+		trace_rtcpu_isp_falcon_task_start(
+			ch, tstamp,
+			event->data.data32[2]);
+		break;
+	case TRACE_ISP_FALCON_PROFILE_END:
+		trace_rtcpu_isp_falcon_task_end(
+			tstamp,
+			event->data.data32[2]);
+		break;
+	default:
+		trace_rtcpu_isp_falcon(
+			ispfalcon_tag, ch, seq, tstamp,
+			event->data.data32[2],
+			event->data.data32[3]);
+		break;
+	}
+
+}
+
 static void rtcpu_trace_isp_event(struct tegra_rtcpu_trace *tracer,
 	struct camrtc_event_struct *event)
 {
 #ifndef CONFIG_EVENTLIB
-	trace_rtcpu_unknown(event->header.tstamp,
-		event->header.id,
-		event->header.len - CAMRTC_TRACE_EVENT_HEADER_SIZE,
-		event->data.data8);
+	if (event->header.id == camrtc_trace_isp_falcon_traces_event) {
+		rtcpu_trace_isp_falcon_event(event);
+	} else {
+		trace_rtcpu_unknown(event->header.tstamp,
+			event->header.id,
+			event->header.len - CAMRTC_TRACE_EVENT_HEADER_SIZE,
+			event->data.data8);
+	}
 #else
 	struct nvhost_device_data *pdata = NULL;
 	struct nvhost_task_begin task_begin;
@@ -843,6 +908,9 @@ static void rtcpu_trace_isp_event(struct tegra_rtcpu_trace *tracer,
 			sizeof(task_end),
 			NVHOST_TASK_END,
 			event->header.tstamp);
+		break;
+	case camrtc_trace_isp_falcon_traces_event:
+		rtcpu_trace_isp_falcon_event(event);
 		break;
 	default:
 		pr_warn("%s event id %d cannot be found\n",

@@ -388,6 +388,141 @@ TRACE_EVENT(rtcpu_nvcsi_intr,
 		__entry->status)
 );
 
+/*
+ * ISP events
+ */
+
+TRACE_EVENT(rtcpu_isp_falcon,
+	TP_PROTO(u8 tag, u8 ch, u8 seq, u32 tstamp, u32 data, u32 ext_data),
+	TP_ARGS(tag, ch, seq, tstamp, data, ext_data),
+	TP_STRUCT__entry(
+		__field(u8, tag)
+		__field(u8, ch)
+		__field(u8, seq)
+		__field(u32, tstamp)
+		__field(u32, data)
+		__field(u32, ext_data)
+	),
+	TP_fast_assign(
+		__entry->tag = tag;
+		__entry->ch = ch;
+		__entry->seq = seq;
+		__entry->tstamp = tstamp;
+		__entry->data = data;
+		__entry->ext_data = ext_data;
+	),
+	TP_printk(
+		"tag:0x%x tstamp:%u ch:%u seq:%u data:0x%08x ext_data:0x%08x",
+		__entry->tag, __entry->tstamp, __entry->ch, __entry->seq,
+		__entry->data, __entry->ext_data
+	)
+);
+
+extern const char * const g_trace_isp_falcon_task_strs[];
+extern const unsigned int g_trace_isp_falcon_task_str_count;
+
+TRACE_EVENT(rtcpu_isp_falcon_task_start,
+	TP_PROTO(u8 ch, u32 tstamp, u32 task),
+	TP_ARGS(ch, tstamp, task),
+	TP_STRUCT__entry(
+		__field(u8, ch)
+		__field(u32, tstamp)
+		__field(u32, task)
+	),
+	TP_fast_assign(
+		__entry->ch = ch;
+		__entry->tstamp = tstamp;
+		__entry->task = task;
+	),
+	TP_printk(
+		"tstamp:%u ch:%u task:%s",
+		__entry->tstamp, __entry->ch,
+		(__entry->task < g_trace_isp_falcon_task_str_count) ?
+			g_trace_isp_falcon_task_strs[__entry->task] :
+			"UNKNOWN"
+	)
+);
+
+TRACE_EVENT(rtcpu_isp_falcon_task_end,
+	TP_PROTO(u32 tstamp, u32 task),
+	TP_ARGS(tstamp, task),
+	TP_STRUCT__entry(
+		__field(u32, tstamp)
+		__field(u32, task)
+	),
+	TP_fast_assign(
+		__entry->tstamp = tstamp;
+		__entry->task = task;
+	),
+	TP_printk(
+		"tstamp:%u task:%s",
+		__entry->tstamp,
+		(__entry->task < g_trace_isp_falcon_task_str_count) ?
+			g_trace_isp_falcon_task_strs[__entry->task] :
+			"UNKNOWN"
+	)
+);
+
+
+TRACE_EVENT(rtcpu_isp_falcon_tile_start,
+	TP_PROTO(
+		u8 ch, u8 seq, u32 tstamp,
+		u8 tile_x, u8 tile_y,
+		u16 tile_w, u16 tile_h),
+	TP_ARGS(ch, seq, tstamp, tile_x, tile_y, tile_w, tile_h),
+	TP_STRUCT__entry(
+		__field(u8, ch)
+		__field(u8, seq)
+		__field(u32, tstamp)
+		__field(u8, tile_x)
+		__field(u8, tile_y)
+		__field(u16, tile_w)
+		__field(u16, tile_h)
+
+	),
+	TP_fast_assign(
+		__entry->ch = ch;
+		__entry->seq = seq;
+		__entry->tstamp = tstamp;
+		__entry->tile_x = tile_x;
+		__entry->tile_y = tile_y;
+		__entry->tile_w = tile_w;
+		__entry->tile_h = tile_h;
+	),
+	TP_printk(
+		"tstamp:%u ch:%u seq:%u tile_x:%u tile_y:%u tile_w:%u tile_h:%u",
+		__entry->tstamp, __entry->ch, __entry->seq,
+		__entry->tile_x, __entry->tile_y,
+		__entry->tile_w, __entry->tile_h
+	)
+);
+
+TRACE_EVENT(rtcpu_isp_falcon_tile_end,
+	TP_PROTO(u8 ch, u8 seq, u32 tstamp, u8 tile_x, u8 tile_y),
+	TP_ARGS(ch, seq, tstamp, tile_x, tile_y),
+	TP_STRUCT__entry(
+		__field(u8, ch)
+		__field(u8, seq)
+		__field(u32, tstamp)
+		__field(u8, tile_x)
+		__field(u8, tile_y)
+
+	),
+	TP_fast_assign(
+		__entry->ch = ch;
+		__entry->seq = seq;
+		__entry->tstamp = tstamp;
+		__entry->tile_x = tile_x;
+		__entry->tile_y = tile_y;
+	),
+	TP_printk(
+		"tstamp:%u ch:%u seq:%u tile_x:%u tile_y:%u",
+		__entry->tstamp, __entry->ch, __entry->seq,
+		__entry->tile_x, __entry->tile_y
+	)
+);
+
+
 #endif /* _TRACE_TEGRA_RTCPU_H */
 
 #include <trace/define_trace.h>
