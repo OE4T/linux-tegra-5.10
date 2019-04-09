@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -215,6 +215,8 @@ void gv11b_gr_init_get_access_map(struct gk20a *g,
 		0x404468, /* gr_pri_mme_max_instructions       */
 		0x418300, /* gr_pri_gpcs_rasterarb_line_class  */
 		0x418800, /* gr_pri_gpcs_setup_debug           */
+		0x418830, /* gr_pri_gpcs_setup_debug_z_gamut_offset */
+		0x4188fc, /* gr_pri_gpcs_zcull_ctx_debug       */
 		0x418e00, /* gr_pri_gpcs_swdx_config           */
 		0x418e40, /* gr_pri_gpcs_swdx_tc_bundle_ctrl   */
 		0x418e44, /* gr_pri_gpcs_swdx_tc_bundle_ctrl   */
