@@ -49,13 +49,21 @@
 
 #include "gk20a/ce2_gk20a.h"
 
-void __nvgpu_check_gpu_state(struct gk20a *g)
+bool is_nvgpu_gpu_state_valid(struct gk20a *g)
 {
 	u32 boot_0 = 0xffffffffU;
 
 	boot_0 = nvgpu_mc_boot_0(g, NULL, NULL, NULL);
 	if (boot_0 == 0xffffffffU) {
 		nvgpu_err(g, "GPU has disappeared from bus!!");
+		return false;
+	}
+	return true;
+}
+
+void __nvgpu_check_gpu_state(struct gk20a *g)
+{
+	if (!is_nvgpu_gpu_state_valid(g)) {
 		nvgpu_err(g, "Rebooting system!!");
 		nvgpu_kernel_restart(NULL);
 	}

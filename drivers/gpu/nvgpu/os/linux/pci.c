@@ -747,8 +747,11 @@ void nvgpu_pci_shutdown(struct pci_dev *pdev)
 	if (gk20a_gpu_is_virtual(dev))
 		return;
 
-	err = nvgpu_nvlink_deinit(g);
-	WARN(err, "gpu failed to remove nvlink");
+	if (is_nvgpu_gpu_state_valid(g)) {
+		err = nvgpu_nvlink_deinit(g);
+		WARN(err, "gpu failed to remove nvlink");
+	} else
+		nvgpu_err(g, "skipped nvlink deinit");
 
 	nvgpu_info(g, "shut down complete");
 }

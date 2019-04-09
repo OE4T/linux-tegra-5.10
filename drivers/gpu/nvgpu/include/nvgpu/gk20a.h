@@ -2284,6 +2284,8 @@ struct gk20a_cyclestate_buffer_elem {
 void __nvgpu_check_gpu_state(struct gk20a *g);
 void __gk20a_warn_on_no_regs(void);
 
+bool is_nvgpu_gpu_state_valid(struct gk20a *g);
+
 /* classes that the device supports */
 /* TBD: get these from an open-sourced SDK? */
 enum {
