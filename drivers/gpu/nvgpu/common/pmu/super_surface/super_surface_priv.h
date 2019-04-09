@@ -32,7 +32,6 @@
 #include <nvgpu/flcnif_cmn.h>
 
 struct nvgpu_mem;
-struct nv_pmu_super_surface_member_descriptor;
 
 /* PMU super surface */
 /* 1MB Bytes for SUPER_SURFACE_SIZE */

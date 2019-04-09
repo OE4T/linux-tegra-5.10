@@ -26,10 +26,10 @@
 #define NVGPU_PMU_CLK_FREQ_CONTROLLER_H
 
 #include <nvgpu/types.h>
+#include <nvgpu/boardobjgrpmask.h>
 
 struct gk20a;
 struct boardobjgrp_e32;
-struct boardobjgrpmask_e32;
 
 struct nvgpu_clk_freq_controllers {
 	struct boardobjgrp_e32 super;

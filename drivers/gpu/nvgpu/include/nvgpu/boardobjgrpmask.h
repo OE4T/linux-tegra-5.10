@@ -26,9 +26,6 @@
 #include <nvgpu/types.h>
 #include <nvgpu/pmu/pmuif/ctrlboardobj.h>
 
-struct ctrl_boardobjgrp_mask;
-
-
 /*
 * Board Object Group Mask super-structure.
 * Used to unify access to all BOARDOBJGRPMASK_E** child classes

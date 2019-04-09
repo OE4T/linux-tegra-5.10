@@ -27,7 +27,6 @@
 #include "acr_blob_construct_v0.h"
 #include "acr_blob_construct_v1.h"
 
-struct nvgpu_firmware;
 struct gk20a;
 struct nvgpu_acr;
 struct wpr_carveout_info;

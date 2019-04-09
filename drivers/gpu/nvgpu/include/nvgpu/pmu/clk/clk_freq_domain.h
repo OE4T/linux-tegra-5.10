@@ -26,9 +26,9 @@
 #define NVGPU_PMU_CLK_FREQ_DOMAIN_H
 
 #include <nvgpu/types.h>
+#include <nvgpu/boardobj.h>
 
 struct gk20a;
-struct boardobj;
 struct boardobjgrp_e32;
 
 struct nvgpu_clk_freq_domain_grp {

@@ -46,7 +46,6 @@
 #define DLPL_REG_WR32(g, id, off, v) gk20a_writel(g, (g)->nvlink.links[(id)].dlpl_base + (off), (v))
 
 struct gk20a;
-struct nvgpu_firmware;
 
 struct nvgpu_nvlink_ioctrl_list {
 	bool valid;

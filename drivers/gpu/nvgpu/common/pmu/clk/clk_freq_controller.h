@@ -23,7 +23,7 @@
 #ifndef NVGPU_CLK_FREQ_CONTROLLER_H
 #define NVGPU_CLK_FREQ_CONTROLLER_H
 
-struct boardobj;
+#include <nvgpu/boardobj.h>
 
 #define CTRL_CLK_CLK_FREQ_CONTROLLER_ID_ALL  0xFFU
 #define CTRL_CLK_CLK_FREQ_CONTROLLER_ID_SYS  0x00U

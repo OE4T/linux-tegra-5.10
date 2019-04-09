@@ -30,8 +30,6 @@
 #include <nvgpu/pmu/pmuif/nvgpu_cmdif.h>
 #include <nvgpu/pmu.h>
 
-struct nvgpu_firmware;
-
 #define ZBC_MASK(i)			U16(~(~(0U) << ((i)+1U)) & 0xfffeU)
 
 bool gk20a_pmu_is_interrupted(struct nvgpu_pmu *pmu);

@@ -40,7 +40,6 @@ struct nvgpu_pmu;
 struct pmu_msg;
 struct pmu_sequence;
 struct falcon_payload_alloc;
-struct nvgpu_engine_fb_queue;
 
 typedef void (*pmu_callback)(struct gk20a *g, struct pmu_msg *msg, void *param,
 		u32 status);

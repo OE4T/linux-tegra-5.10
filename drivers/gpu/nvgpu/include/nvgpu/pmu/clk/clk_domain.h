@@ -30,7 +30,6 @@
 struct gk20a;
 struct nvgpu_clk_domain;
 struct nvgpu_clk_slave_freq;
-struct ctrl_perf_change_seq_change_input;
 struct nvgpu_clk_pmupstate;
 
 typedef int nvgpu_clkproglink(struct gk20a *g, struct nvgpu_clk_pmupstate *pclk,

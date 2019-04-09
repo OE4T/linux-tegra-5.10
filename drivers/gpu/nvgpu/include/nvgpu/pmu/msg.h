@@ -45,7 +45,6 @@ struct gk20a;
 struct nvgpu_pmu;
 struct nvgpu_allocator;
 struct pmu_sequences;
-struct pmu_queues;
 struct nvgpu_mem;
 struct nvgpu_falcon;
 

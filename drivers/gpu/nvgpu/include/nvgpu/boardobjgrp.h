@@ -26,7 +26,6 @@
 struct boardobjgrp;
 struct gk20a;
 struct nvgpu_list_node;
-struct pmu_surface;
 
 
 /* ------------------------ Includes ----------------------------------------*/

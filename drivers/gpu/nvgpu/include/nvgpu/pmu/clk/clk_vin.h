@@ -26,11 +26,11 @@
 #define NVGPU_PMU_CLK_VIN_H
 
 #include <nvgpu/types.h>
+#include <nvgpu/boardobj.h>
 
 struct gk20a;
 struct nvgpu_vin_device;
 struct nvgpu_clk_pmupstate;
-struct boardobj;
 struct boardobjgrp_e32;
 
 typedef u32 vin_device_state_load(struct gk20a *g,

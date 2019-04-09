@@ -26,11 +26,10 @@
 #define NVGPU_PMU_CLK_VF_POINT_H
 
 #include <nvgpu/types.h>
+#include <nvgpu/pmu/pmuif/ctrlclk.h>
 
 struct gk20a;
 struct boardobjgrp_e255;
-struct ctrl_clk_vf_pair;
-struct ctrl_clk_freq_delta;
 
 struct nvgpu_clk_vf_points {
 	struct boardobjgrp_e255 super;

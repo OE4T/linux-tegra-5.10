@@ -197,8 +197,12 @@ int nvgpu_pmu_init_perfmon(struct nvgpu_pmu *pmu)
 	}
 
 	nvgpu_pmu_dbg(g, "cmd post PMU_PERFMON_CMD_ID_INIT");
-	nvgpu_pmu_cmd_post(g, &cmd, &payload, PMU_COMMAND_QUEUE_LPQ,
+	status = nvgpu_pmu_cmd_post(g, &cmd, &payload, PMU_COMMAND_QUEUE_LPQ,
 			NULL, NULL);
+	if (status != 0) {
+		nvgpu_err(g, "failed cmd post PMU_PERFMON_CMD_ID_INIT");
+		return status;
+	}
 
 	return 0;
 }
@@ -256,8 +260,12 @@ int nvgpu_pmu_perfmon_start_sampling(struct nvgpu_pmu *pmu)
 	}
 
 	nvgpu_pmu_dbg(g, "cmd post PMU_PERFMON_CMD_ID_START");
-	nvgpu_pmu_cmd_post(g, &cmd, &payload, PMU_COMMAND_QUEUE_LPQ,
+	status = nvgpu_pmu_cmd_post(g, &cmd, &payload, PMU_COMMAND_QUEUE_LPQ,
 			NULL, NULL);
+	if (status != 0) {
+		nvgpu_err(g, "failed cmd post PMU_PERFMON_CMD_ID_START");
+		return status;
+	}
 
 	return 0;
 }
@@ -267,6 +275,7 @@ int nvgpu_pmu_perfmon_stop_sampling(struct nvgpu_pmu *pmu)
 	struct gk20a *g = pmu->g;
 	struct pmu_cmd cmd;
 	u64 tmp_size;
+	int status;
 
 	if (!nvgpu_is_enabled(g, NVGPU_PMU_PERFMON)) {
 		return 0;
@@ -285,8 +294,12 @@ int nvgpu_pmu_perfmon_stop_sampling(struct nvgpu_pmu *pmu)
 	cmd.cmd.perfmon.stop.cmd_type = PMU_PERFMON_CMD_ID_STOP;
 
 	nvgpu_pmu_dbg(g, "cmd post PMU_PERFMON_CMD_ID_STOP");
-	nvgpu_pmu_cmd_post(g, &cmd, NULL, PMU_COMMAND_QUEUE_LPQ,
+	status = nvgpu_pmu_cmd_post(g, &cmd, NULL, PMU_COMMAND_QUEUE_LPQ,
 			NULL, NULL);
+	if (status != 0) {
+		nvgpu_err(g, "failed cmd post PMU_PERFMON_CMD_ID_STOP");
+		return status;
+	}
 	return 0;
 }
 

@@ -27,7 +27,6 @@ struct gk20a;
 struct nvgpu_falcon;
 struct nvgpu_firmware;
 struct nvgpu_acr;
-struct nv_pmu_rpc_header;
 
 int nvgpu_acr_init(struct gk20a *g, struct nvgpu_acr **acr);
 int nvgpu_acr_alloc_blob_prerequisite(struct gk20a *g, struct nvgpu_acr *acr,

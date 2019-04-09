@@ -26,13 +26,12 @@
 #define NVGPU_PMU_CLK_FLL_H
 
 #include <nvgpu/types.h>
+#include <nvgpu/boardobjgrpmask.h>
+#include <nvgpu/pmu/pmuif/clk.h>
 
 struct gk20a;
 struct fll_device;
 struct boardobjgrp_e32;
-struct boardobjgrpmask_e32;
-struct nv_pmu_clk_lut_device_desc;
-struct nv_pmu_clk_regime_desc;
 
 struct nvgpu_avfsfllobjs {
 	struct boardobjgrp_e32 super;
