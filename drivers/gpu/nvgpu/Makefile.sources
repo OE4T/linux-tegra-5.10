@@ -258,7 +258,7 @@ srcs += common/sim.c \
 	common/nvlink/minion.c \
 	common/nvlink/link_mode_transitions.c \
 	common/nvlink/nvlink_gv100.c \
-	common/nvlink/nvlink_tu104.c	\
+	common/nvlink/nvlink_tu104.c \
 	common/nvlink/nvlink.c \
 	common/fence/fence.c \
 	gk20a/ce2_gk20a.c \
@@ -292,24 +292,24 @@ srcs += common/sim.c \
 	gv100/gr_gv100.c \
 	gv100/hal_gv100.c \
 	gv100/clk_gv100.c \
-	tu104/bios_tu104.c	\
-	tu104/ecc_tu104.c	\
-	tu104/fbpa_tu104.c	\
-	tu104/fifo_tu104.c	\
-	tu104/gr_tu104.c	\
-	tu104/mm_tu104.c	\
-	tu104/hal_tu104.c	\
-	tu104/func_tu104.c	\
+	tu104/bios_tu104.c \
+	tu104/ecc_tu104.c \
+	tu104/fbpa_tu104.c \
+	tu104/fifo_tu104.c \
+	tu104/gr_tu104.c \
+	tu104/mm_tu104.c \
+	tu104/hal_tu104.c \
+	tu104/func_tu104.c \
 	hal/mc/mc_gm20b.c  \
 	hal/mc/mc_gp10b.c  \
 	hal/mc/mc_gv11b.c  \
 	hal/mc/mc_gv100.c  \
 	hal/mc/mc_tu104.c  \
-	hal/bus/bus_gk20a.c	\
-	hal/bus/bus_gm20b.c	\
-	hal/bus/bus_gp10b.c	\
-	hal/bus/bus_gv100.c	\
-	hal/bus/bus_tu104.c	\
+	hal/bus/bus_gk20a.c \
+	hal/bus/bus_gm20b.c \
+	hal/bus/bus_gp10b.c \
+	hal/bus/bus_gv100.c \
+	hal/bus/bus_tu104.c \
 	hal/gr/fecs_trace/fecs_trace_gm20b.c \
 	hal/gr/fecs_trace/fecs_trace_gp10b.c \
 	hal/gr/fecs_trace/fecs_trace_gv11b.c \
@@ -362,11 +362,11 @@ srcs += common/sim.c \
 	hal/fb/fb_gp106.c \
 	hal/fb/fb_gv100.c \
 	hal/fb/fb_gv11b.c \
-	hal/fb/fb_tu104.c	\
-	hal/fb/intr/fb_intr_gv100.c	\
-	hal/fb/intr/fb_intr_gv11b.c	\
-	hal/fb/intr/fb_intr_tu104.c	\
-	hal/fb/intr/fb_intr_ecc_gv11b.c	\
+	hal/fb/fb_tu104.c \
+	hal/fb/intr/fb_intr_gv100.c \
+	hal/fb/intr/fb_intr_gv11b.c \
+	hal/fb/intr/fb_intr_tu104.c \
+	hal/fb/intr/fb_intr_ecc_gv11b.c \
 	hal/fuse/fuse_gm20b.c \
 	hal/fuse/fuse_gp10b.c \
 	hal/fuse/fuse_gp106.c \
