@@ -36,18 +36,18 @@
 #define GK20A_FECS_TRACE_FRAME_PERIOD_US	(1000000ULL/60ULL)
 #define GK20A_FECS_TRACE_PTIMER_SHIFT		5
 
-#define NVGPU_GPU_CTXSW_TAG_SOF                     0x00
-#define NVGPU_GPU_CTXSW_TAG_CTXSW_REQ_BY_HOST       0x01
-#define NVGPU_GPU_CTXSW_TAG_FE_ACK                  0x02
-#define NVGPU_GPU_CTXSW_TAG_FE_ACK_WFI              0x0a
-#define NVGPU_GPU_CTXSW_TAG_FE_ACK_GFXP             0x0b
-#define NVGPU_GPU_CTXSW_TAG_FE_ACK_CTAP             0x0c
-#define NVGPU_GPU_CTXSW_TAG_FE_ACK_CILP             0x0d
-#define NVGPU_GPU_CTXSW_TAG_SAVE_END                0x03
-#define NVGPU_GPU_CTXSW_TAG_RESTORE_START           0x04
-#define NVGPU_GPU_CTXSW_TAG_CONTEXT_START           0x05
-#define NVGPU_GPU_CTXSW_TAG_ENGINE_RESET            0xfe
-#define NVGPU_GPU_CTXSW_TAG_INVALID_TIMESTAMP       0xff
+#define NVGPU_GPU_CTXSW_TAG_SOF                     0x00U
+#define NVGPU_GPU_CTXSW_TAG_CTXSW_REQ_BY_HOST       0x01U
+#define NVGPU_GPU_CTXSW_TAG_FE_ACK                  0x02U
+#define NVGPU_GPU_CTXSW_TAG_FE_ACK_WFI              0x0aU
+#define NVGPU_GPU_CTXSW_TAG_FE_ACK_GFXP             0x0bU
+#define NVGPU_GPU_CTXSW_TAG_FE_ACK_CTAP             0x0cU
+#define NVGPU_GPU_CTXSW_TAG_FE_ACK_CILP             0x0dU
+#define NVGPU_GPU_CTXSW_TAG_SAVE_END                0x03U
+#define NVGPU_GPU_CTXSW_TAG_RESTORE_START           0x04U
+#define NVGPU_GPU_CTXSW_TAG_CONTEXT_START           0x05U
+#define NVGPU_GPU_CTXSW_TAG_ENGINE_RESET            0xfeU
+#define NVGPU_GPU_CTXSW_TAG_INVALID_TIMESTAMP       0xffU
 #define NVGPU_GPU_CTXSW_TAG_LAST                    \
 	NVGPU_GPU_CTXSW_TAG_INVALID_TIMESTAMP
 
