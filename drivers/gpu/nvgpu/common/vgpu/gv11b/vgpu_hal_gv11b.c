@@ -217,7 +217,6 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 		.decode_priv_addr = gr_gv11b_decode_priv_addr,
 		.create_priv_addr_table = gr_gv11b_create_priv_addr_table,
 		.split_fbpa_broadcast_addr = gr_gk20a_split_fbpa_broadcast_addr,
-		.get_nonpes_aware_tpc = gr_gv11b_get_nonpes_aware_tpc,
 		.get_offset_in_gpccs_segment =
 			gr_gk20a_get_offset_in_gpccs_segment,
 		.set_debug_mode = gm20b_gr_set_debug_mode,
@@ -359,6 +358,8 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 		},
 #endif /* CONFIG_GK20A_CTXSW_TRACE */
 		.init = {
+			.get_nonpes_aware_tpc =
+					gv11b_gr_init_get_nonpes_aware_tpc,
 			.get_fbp_en_mask = vgpu_gr_get_fbp_en_mask,
 			.fs_state = vgpu_gr_init_fs_state,
 			.get_bundle_cb_default_size =

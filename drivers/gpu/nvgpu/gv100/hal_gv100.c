@@ -461,7 +461,6 @@ static const struct gpu_ops gv100_ops = {
 		.decode_priv_addr = gr_gv11b_decode_priv_addr,
 		.create_priv_addr_table = gr_gv11b_create_priv_addr_table,
 		.split_fbpa_broadcast_addr = gr_gv100_split_fbpa_broadcast_addr,
-		.get_nonpes_aware_tpc = gr_gv11b_get_nonpes_aware_tpc,
 		.get_offset_in_gpccs_segment =
 			gr_gk20a_get_offset_in_gpccs_segment,
 		.set_debug_mode = gm20b_gr_set_debug_mode,
@@ -613,6 +612,8 @@ static const struct gpu_ops gv100_ops = {
 				gv100_gr_hwpm_map_get_active_fbpa_mask,
 		},
 		.init = {
+			.get_nonpes_aware_tpc =
+					gv11b_gr_init_get_nonpes_aware_tpc,
 			.wait_initialized = nvgpu_gr_wait_initialized,
 			.ecc_scrub_reg = NULL,
 			.get_fbp_en_mask = gm20b_gr_init_get_fbp_en_mask,

@@ -266,6 +266,32 @@ void gv11b_gr_init_ecc_scrub_reg(struct gk20a *g,
 
 }
 
+u32 gv11b_gr_init_get_nonpes_aware_tpc(struct gk20a *g, u32 gpc, u32 tpc,
+				       struct nvgpu_gr_config *gr_config)
+{
+	u32 tpc_new = 0;
+	u32 temp;
+	u32 pes;
+
+	for (pes = 0U;
+	     pes < nvgpu_gr_config_get_gpc_ppc_count(gr_config, gpc);
+	     pes++) {
+		if ((nvgpu_gr_config_get_pes_tpc_mask(gr_config, gpc, pes) &
+		    BIT32(tpc)) != 0U) {
+			break;
+		}
+		tpc_new += nvgpu_gr_config_get_pes_tpc_count(gr_config,
+				gpc, pes);
+	}
+	temp = (BIT32(tpc) - 1U) &
+		nvgpu_gr_config_get_pes_tpc_mask(gr_config, gpc, pes);
+	temp = (u32)hweight32(temp);
+	tpc_new += temp;
+
+	nvgpu_log_info(g, "tpc: %d -> new tpc: %d", tpc, tpc_new);
+	return tpc_new;
+}
+
 void gv11b_gr_init_gpc_mmu(struct gk20a *g)
 {
 	u32 temp;
@@ -339,8 +365,8 @@ void gv11b_gr_init_get_access_map(struct gk20a *g,
 	*num_entries = (int)array_size;
 }
 
-void gv11b_gr_init_sm_id_numbering(struct gk20a *g,
-					u32 gpc, u32 tpc, u32 smid)
+void gv11b_gr_init_sm_id_numbering(struct gk20a *g, u32 gpc, u32 tpc, u32 smid,
+				   struct nvgpu_gr_config *gr_config)
 {
 	u32 gpc_stride = nvgpu_get_litter_value(g, GPU_LIT_GPC_STRIDE);
 	u32 tpc_in_gpc_stride = nvgpu_get_litter_value(g,
@@ -349,12 +375,12 @@ void gv11b_gr_init_sm_id_numbering(struct gk20a *g,
 	u32 global_tpc_index;
 	u32 tpc_offset;
 	struct sm_info *sm_info =
-		nvgpu_gr_config_get_sm_info(g->gr.config, smid);
+		nvgpu_gr_config_get_sm_info(gr_config, smid);
 
 	global_tpc_index =
 		nvgpu_gr_config_get_sm_info_global_tpc_index(sm_info);
 
-	tpc = g->ops.gr.get_nonpes_aware_tpc(g, gpc, tpc);
+	tpc = g->ops.gr.init.get_nonpes_aware_tpc(g, gpc, tpc, gr_config);
 	tpc_offset = tpc_in_gpc_stride * tpc;
 
 	nvgpu_writel(g, gr_gpc0_tpc0_sm_cfg_r() + gpc_offset + tpc_offset,
@@ -372,7 +398,7 @@ int gv11b_gr_init_sm_id_config(struct gk20a *g, u32 *tpc_sm_id,
 	u32 tpc_index, gpc_index, tpc_id;
 	u32 sm_per_tpc = nvgpu_get_litter_value(g, GPU_LIT_NUM_SM_PER_TPC);
 	u32 num_gpcs = nvgpu_get_litter_value(g, GPU_LIT_NUM_GPCS);
-	u32 no_of_sm = nvgpu_gr_config_get_no_of_sm(g->gr.config);
+	u32 no_of_sm = nvgpu_gr_config_get_no_of_sm(gr_config);
 
 	/* Each NV_PGRAPH_PRI_CWD_GPC_TPC_ID can store 4 TPCs.*/
 	for (i = 0U;

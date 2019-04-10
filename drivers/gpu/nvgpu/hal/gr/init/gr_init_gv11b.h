@@ -30,13 +30,15 @@ struct nvgpu_gr_config;
 struct nvgpu_gr_ctx;
 struct netlist_av_list;
 
+u32 gv11b_gr_init_get_nonpes_aware_tpc(struct gk20a *g, u32 gpc, u32 tpc,
+				       struct nvgpu_gr_config *gr_config);
 void gv11b_gr_init_ecc_scrub_reg(struct gk20a *g,
 				 struct nvgpu_gr_config *gr_config);
 void gv11b_gr_init_gpc_mmu(struct gk20a *g);
 void gv11b_gr_init_get_access_map(struct gk20a *g,
 				   u32 **whitelist, int *num_entries);
-void gv11b_gr_init_sm_id_numbering(struct gk20a *g,
-					u32 gpc, u32 tpc, u32 smid);
+void gv11b_gr_init_sm_id_numbering(struct gk20a *g, u32 gpc, u32 tpc, u32 smid,
+				   struct nvgpu_gr_config *gr_config);
 int gv11b_gr_init_sm_id_config(struct gk20a *g, u32 *tpc_sm_id,
 			       struct nvgpu_gr_config *gr_config);
 void gv11b_gr_init_tpc_mask(struct gk20a *g, u32 gpc_index, u32 pes_tpc_mask);

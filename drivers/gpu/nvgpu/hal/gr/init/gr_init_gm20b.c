@@ -191,8 +191,8 @@ void gm20b_gr_init_get_access_map(struct gk20a *g,
 	*num_entries = (int)array_size;
 }
 
-void gm20b_gr_init_sm_id_numbering(struct gk20a *g,
-					     u32 gpc, u32 tpc, u32 smid)
+void gm20b_gr_init_sm_id_numbering(struct gk20a *g, u32 gpc, u32 tpc, u32 smid,
+				   struct nvgpu_gr_config *gr_config)
 {
 	u32 gpc_stride = nvgpu_get_litter_value(g, GPU_LIT_GPC_STRIDE);
 	u32 tpc_in_gpc_stride = nvgpu_get_litter_value(g,

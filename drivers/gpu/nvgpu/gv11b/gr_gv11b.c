@@ -1632,32 +1632,6 @@ void gr_gv11b_detect_sm_arch(struct gk20a *g)
 		gr_gpc0_tpc0_sm_arch_warp_count_v(v);
 }
 
-u32 gr_gv11b_get_nonpes_aware_tpc(struct gk20a *g, u32 gpc, u32 tpc)
-{
-	u32 tpc_new = 0;
-	u32 temp;
-	u32 pes;
-	struct gr_gk20a *gr = &g->gr;
-
-	for (pes = 0U;
-	     pes < nvgpu_gr_config_get_gpc_ppc_count(gr->config, gpc);
-	     pes++) {
-		if ((nvgpu_gr_config_get_pes_tpc_mask(gr->config, gpc, pes) &
-		    BIT32(tpc)) != 0U) {
-			break;
-		}
-		tpc_new += nvgpu_gr_config_get_pes_tpc_count(gr->config,
-				gpc, pes);
-	}
-	temp = (BIT32(tpc) - 1U) &
-		nvgpu_gr_config_get_pes_tpc_mask(gr->config, gpc, pes);
-	temp = (u32)hweight32(temp);
-	tpc_new += temp;
-
-	nvgpu_log_info(g, "tpc: %d -> new tpc: %d", tpc, tpc_new);
-	return tpc_new;
-}
-
 void gv11b_gr_get_esr_sm_sel(struct gk20a *g, u32 gpc, u32 tpc,
 				u32 *esr_sm_sel)
 {
@@ -1794,10 +1768,11 @@ int gv11b_gr_set_sm_debug_mode(struct gk20a *g,
 
 		sm_info = nvgpu_gr_config_get_sm_info(g->gr.config, sm_id);
 		gpc = nvgpu_gr_config_get_sm_info_gpc_index(sm_info);
-		if (g->ops.gr.get_nonpes_aware_tpc != NULL) {
-			tpc = g->ops.gr.get_nonpes_aware_tpc(g,
+		if (g->ops.gr.init.get_nonpes_aware_tpc != NULL) {
+			tpc = g->ops.gr.init.get_nonpes_aware_tpc(g,
 				nvgpu_gr_config_get_sm_info_gpc_index(sm_info),
-				nvgpu_gr_config_get_sm_info_tpc_index(sm_info));
+				nvgpu_gr_config_get_sm_info_tpc_index(sm_info),
+					g->gr.config);
 		} else {
 			tpc = nvgpu_gr_config_get_sm_info_tpc_index(sm_info);
 		}
@@ -3232,11 +3207,13 @@ int gv11b_gr_clear_sm_error_state(struct gk20a *g,
 	if (gk20a_is_channel_ctx_resident(ch)) {
 		struct sm_info *sm_info =
 			nvgpu_gr_config_get_sm_info(g->gr.config, sm_id);
+
 		gpc = nvgpu_gr_config_get_sm_info_gpc_index(sm_info);
-		if (g->ops.gr.get_nonpes_aware_tpc != NULL) {
-			tpc = g->ops.gr.get_nonpes_aware_tpc(g,
+		if (g->ops.gr.init.get_nonpes_aware_tpc != NULL) {
+			tpc = g->ops.gr.init.get_nonpes_aware_tpc(g,
 				nvgpu_gr_config_get_sm_info_gpc_index(sm_info),
-				nvgpu_gr_config_get_sm_info_tpc_index(sm_info));
+				nvgpu_gr_config_get_sm_info_tpc_index(sm_info),
+					g->gr.config);
 		} else {
 			tpc = nvgpu_gr_config_get_sm_info_tpc_index(sm_info);
 		}

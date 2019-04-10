@@ -423,7 +423,6 @@ struct gpu_ops {
 					u32 num_fbpas,
 					u32 *priv_addr_table,
 					u32 *priv_addr_table_index);
-		u32 (*get_nonpes_aware_tpc)(struct gk20a *g, u32 gpc, u32 tpc);
 		int (*get_offset_in_gpccs_segment)(struct gk20a *g,
 			enum ctxsw_addr_type addr_type, u32 num_tpcs,
 			u32 num_ppcs, u32 reg_list_ppc_count,
@@ -679,6 +678,8 @@ struct gpu_ops {
 		} hwpm_map;
 
 		struct {
+			u32 (*get_nonpes_aware_tpc)(struct gk20a *g, u32 gpc,
+				u32 tpc, struct nvgpu_gr_config *gr_config);
 			void (*wait_initialized)(struct gk20a *g);
 			void (*ecc_scrub_reg)(struct gk20a *g,
 				struct nvgpu_gr_config *gr_config);
@@ -693,8 +694,9 @@ struct gpu_ops {
 			u32 (*get_sm_id_size)(void);
 			int (*sm_id_config)(struct gk20a *g, u32 *tpc_sm_id,
 					    struct nvgpu_gr_config *gr_config);
-			void (*sm_id_numbering)(struct gk20a *g,
-						u32 gpc, u32 tpc, u32 smid);
+			void (*sm_id_numbering)(struct gk20a *g, u32 gpc,
+				   u32 tpc, u32 smid,
+				   struct nvgpu_gr_config *gr_config);
 			void (*tpc_mask)(struct gk20a *g,
 					 u32 gpc_index, u32 pes_tpc_mask);
 			int (*rop_mapping)(struct gk20a *g,

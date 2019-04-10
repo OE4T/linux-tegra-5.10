@@ -817,13 +817,15 @@ static int gk20a_ctrl_vsm_mapping(struct gk20a *g,
 	for (i = 0; i < no_of_sm; i++) {
 		struct sm_info *sm_info =
 			nvgpu_gr_config_get_sm_info(gr->config, i);
+
 		vsms_buf[i].gpc_index =
 			nvgpu_gr_config_get_sm_info_gpc_index(sm_info);
-		if (g->ops.gr.get_nonpes_aware_tpc)
+		if (g->ops.gr.init.get_nonpes_aware_tpc)
 			vsms_buf[i].tpc_index =
-				g->ops.gr.get_nonpes_aware_tpc(g,
+				g->ops.gr.init.get_nonpes_aware_tpc(g,
 				nvgpu_gr_config_get_sm_info_gpc_index(sm_info),
-				nvgpu_gr_config_get_sm_info_tpc_index(sm_info));
+				nvgpu_gr_config_get_sm_info_tpc_index(sm_info),
+					gr->config);
 		else
 			vsms_buf[i].tpc_index =
 				nvgpu_gr_config_get_sm_info_tpc_index(sm_info);

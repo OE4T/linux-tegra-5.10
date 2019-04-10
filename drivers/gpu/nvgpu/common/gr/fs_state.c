@@ -114,7 +114,8 @@ int nvgpu_gr_fs_state_init(struct gk20a *g)
 		tpc_index = nvgpu_gr_config_get_sm_info_tpc_index(sm_info);
 		gpc_index = nvgpu_gr_config_get_sm_info_gpc_index(sm_info);
 
-		g->ops.gr.init.sm_id_numbering(g, gpc_index, tpc_index, sm_id);
+		g->ops.gr.init.sm_id_numbering(g, gpc_index, tpc_index, sm_id,
+					       gr_config);
 	}
 
 	g->ops.gr.init.pd_tpc_per_gpc(g, gr_config);
