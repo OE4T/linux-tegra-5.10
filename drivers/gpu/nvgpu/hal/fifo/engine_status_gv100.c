@@ -66,7 +66,7 @@ void gv100_dump_engine_status(struct gk20a *g, struct gk20a_debug_output *o)
 			nvgpu_engine_status_is_next_ctx_type_tsg(
 				&engine_status) ?
 				"tsg" : "channel",
-			gk20a_decode_pbdma_chan_eng_ctx_status(
+			nvgpu_fifo_decode_pbdma_ch_eng_status(
 				engine_status.ctxsw_state));
 
 		if (engine_status.in_reload_status) {

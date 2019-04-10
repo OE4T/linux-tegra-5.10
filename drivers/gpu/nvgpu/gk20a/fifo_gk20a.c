@@ -890,30 +890,6 @@ int gk20a_fifo_suspend(struct gk20a *g)
 	return 0;
 }
 
-static const char * const pbdma_chan_eng_ctx_status_str[] = {
-	"invalid",
-	"valid",
-	"NA",
-	"NA",
-	"NA",
-	"load",
-	"save",
-	"switch",
-};
-
-static const char * const not_found_str[] = {
-	"NOT FOUND"
-};
-
-const char *gk20a_decode_pbdma_chan_eng_ctx_status(u32 index)
-{
-	if (index >= ARRAY_SIZE(pbdma_chan_eng_ctx_status_str)) {
-		return not_found_str[0];
-	} else {
-		return pbdma_chan_eng_ctx_status_str[index];
-	}
-}
-
 int gk20a_fifo_init_pbdma_map(struct gk20a *g, u32 *pbdma_map, u32 num_pbdma)
 {
 	u32 id;

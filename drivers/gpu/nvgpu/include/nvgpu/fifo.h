@@ -47,4 +47,6 @@ int nvgpu_fifo_setup_sw_common(struct gk20a *g);
 void nvgpu_fifo_cleanup_sw(struct gk20a *g);
 void nvgpu_fifo_cleanup_sw_common(struct gk20a *g);
 
+const char *nvgpu_fifo_decode_pbdma_ch_eng_status(u32 index);
+
 #endif /* NVGPU_FIFO_COMMON_H */

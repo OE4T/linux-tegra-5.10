@@ -256,3 +256,27 @@ void nvgpu_report_host_error(struct gk20a *g, u32 inst,
 				inst, err_id, intr_info, ret);
 	}
 }
+
+static const char * const pbdma_ch_eng_status_str[] = {
+	"invalid",
+	"valid",
+	"NA",
+	"NA",
+	"NA",
+	"load",
+	"save",
+	"switch",
+};
+
+static const char * const not_found_str[] = {
+	"NOT FOUND"
+};
+
+const char *nvgpu_fifo_decode_pbdma_ch_eng_status(u32 index)
+{
+	if (index >= ARRAY_SIZE(pbdma_ch_eng_status_str)) {
+		return not_found_str[0];
+	} else {
+		return pbdma_ch_eng_status_str[index];
+	}
+}

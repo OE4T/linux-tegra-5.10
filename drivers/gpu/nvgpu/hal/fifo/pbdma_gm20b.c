@@ -333,7 +333,7 @@ void gm20b_pbdma_dump_status(struct gk20a *g, struct gk20a_debug_output *o)
 			nvgpu_pbdma_status_is_next_id_type_tsg(
 				&pbdma_status) ?
 				   "[tsg]" : "[channel]",
-			gk20a_decode_pbdma_chan_eng_ctx_status(
+			nvgpu_fifo_decode_pbdma_ch_eng_status(
 				pbdma_status.pbdma_channel_status));
 		gk20a_debug_output(o,
 			"  PBDMA_PUT %016llx PBDMA_GET %016llx",
