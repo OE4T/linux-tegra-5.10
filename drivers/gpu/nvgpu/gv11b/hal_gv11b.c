@@ -134,7 +134,6 @@
 
 #include "gv11b/hal_gv11b.h"
 #include "gv11b/gr_gv11b.h"
-#include "gv11b/gv11b.h"
 #include "gv11b/ce_gv11b.h"
 #include "gv11b/mm_gv11b.h"
 #include "gv11b/fifo_gv11b.h"
@@ -162,6 +161,18 @@
 #include <nvgpu/hw/gv11b/hw_top_gv11b.h>
 #include <nvgpu/hw/gv11b/hw_pwr_gv11b.h>
 #include <nvgpu/hw/gv11b/hw_gr_gv11b.h>
+
+static void gv11b_init_gpu_characteristics(struct gk20a *g)
+{
+	gk20a_init_gpu_characteristics(g);
+	g->ops.gr.ecc.detect(g);
+	nvgpu_set_enabled(g, NVGPU_SUPPORT_TSG_SUBCONTEXTS, true);
+	nvgpu_set_enabled(g, NVGPU_SUPPORT_SCG, true);
+	nvgpu_set_enabled(g, NVGPU_SUPPORT_RESCHEDULE_RUNLIST, true);
+	nvgpu_set_enabled(g, NVGPU_SUPPORT_SYNCPOINT_ADDRESS, true);
+	nvgpu_set_enabled(g, NVGPU_SUPPORT_USER_SYNCPOINT, true);
+	nvgpu_set_enabled(g, NVGPU_SUPPORT_USERMODE_SUBMIT, true);
+}
 
 u32 gv11b_get_litter_value(struct gk20a *g, int value)
 {

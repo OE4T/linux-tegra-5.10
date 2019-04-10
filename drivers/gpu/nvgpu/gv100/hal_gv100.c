@@ -145,13 +145,11 @@
 
 #include "gv11b/hal_gv11b.h"
 #include "gv11b/gr_gv11b.h"
-#include "gv11b/gv11b.h"
 #include "gv11b/ce_gv11b.h"
 #include "gv11b/mm_gv11b.h"
 #include "gv11b/fifo_gv11b.h"
 #include "gv11b/subctx_gv11b.h"
 
-#include "gv100.h"
 #include "hal_gv100.h"
 #include "gv100/bios_gv100.h"
 #include "gv100/fifo_gv100.h"
@@ -337,7 +335,7 @@ static u32 gv100_get_litter_value(struct gk20a *g, int value)
 	return ret;
 }
 
-void gv100_init_gpu_characteristics(struct gk20a *g)
+static void gv100_init_gpu_characteristics(struct gk20a *g)
 {
 	gk20a_init_gpu_characteristics(g);
 

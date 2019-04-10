@@ -159,7 +159,6 @@
 
 #include "gv11b/hal_gv11b.h"
 #include "gv11b/gr_gv11b.h"
-#include "gv11b/gv11b.h"
 #include "gv11b/ce_gv11b.h"
 #include "gv11b/mm_gv11b.h"
 #include "gv11b/fifo_gv11b.h"

@@ -20,6 +20,17 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
+#include <nvgpu/gk20a.h>
+#include <nvgpu/debugger.h>
+#include <nvgpu/enabled.h>
+#include <nvgpu/vgpu/vgpu.h>
+#include <nvgpu/error_notifier.h>
+#include <nvgpu/channel.h>
+#include <nvgpu/gr/gr_falcon.h>
+
+#include <nvgpu/vgpu/ce_vgpu.h>
+#include <nvgpu/vgpu/vm_vgpu.h>
+
 #include "hal/bus/bus_gk20a.h"
 #include "hal/bus/bus_gm20b.h"
 #include "hal/regops/regops_gp10b.h"
@@ -67,7 +78,6 @@
 #include "common/vgpu/ptimer/ptimer_vgpu.h"
 #include "common/vgpu/init/init_vgpu.h"
 #include "vgpu_hal_gp10b.h"
-#include "gp10b/gp10b.h"
 #include "gp10b/hal_gp10b.h"
 
 #include "common/sync/syncpt_cmdbuf_gk20a.h"
@@ -79,16 +89,6 @@
 
 #include "gm20b/gr_gm20b.h"
 #include "gm20b/mm_gm20b.h"
-
-#include <nvgpu/debugger.h>
-#include <nvgpu/enabled.h>
-#include <nvgpu/vgpu/vgpu.h>
-#include <nvgpu/error_notifier.h>
-#include <nvgpu/channel.h>
-#include <nvgpu/gr/gr_falcon.h>
-
-#include <nvgpu/vgpu/ce_vgpu.h>
-#include <nvgpu/vgpu/vm_vgpu.h>
 
 #include <nvgpu/hw/gp10b/hw_pram_gp10b.h>
 #include <nvgpu/hw/gp10b/hw_pwr_gp10b.h>

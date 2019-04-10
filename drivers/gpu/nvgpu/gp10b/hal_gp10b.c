@@ -128,7 +128,6 @@
 #include "gm20b/clk_gm20b.h"
 #include "gm20b/mm_gm20b.h"
 
-#include "gp10b.h"
 #include "hal_gp10b.h"
 
 #include <nvgpu/hw/gp10b/hw_proj_gp10b.h>
@@ -136,6 +135,13 @@
 #include <nvgpu/hw/gp10b/hw_pram_gp10b.h>
 #include <nvgpu/hw/gp10b/hw_pwr_gp10b.h>
 #include <nvgpu/hw/gp10b/hw_gr_gp10b.h>
+
+static void gp10b_init_gpu_characteristics(struct gk20a *g)
+{
+	gk20a_init_gpu_characteristics(g);
+	g->ops.gr.ecc.detect(g);
+	nvgpu_set_enabled(g, NVGPU_SUPPORT_RESCHEDULE_RUNLIST, true);
+}
 
 u32 gp10b_get_litter_value(struct gk20a *g, int value)
 {
