@@ -31,6 +31,7 @@ struct nvgpu_gr_tpc_exception;
 struct nvgpu_gr_isr_data;
 struct nvgpu_gr_intr_info;
 
+void gm20b_gr_intr_set_shader_exceptions(struct gk20a *g, u32 data);
 void gm20b_gr_intr_handle_class_error(struct gk20a *g, u32 chid,
 				       struct nvgpu_gr_isr_data *isr_data);
 void gm20b_gr_intr_clear_pending_interrupts(struct gk20a *g, u32 gr_intr);

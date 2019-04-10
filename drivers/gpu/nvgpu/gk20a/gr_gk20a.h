@@ -282,7 +282,6 @@ int gr_gk20a_update_hwpm_ctxsw_mode(struct gk20a *g,
 				  u64 gpu_va,
 				  u32 mode);
 
-void gk20a_gr_set_shader_exceptions(struct gk20a *g, u32 data);
 void gk20a_gr_resume_single_sm(struct gk20a *g,
 		u32 gpc, u32 tpc, u32 sm);
 void gk20a_gr_resume_all_sms(struct gk20a *g);

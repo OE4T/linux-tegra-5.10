@@ -789,6 +789,8 @@ struct gpu_ops {
 		} init;
 
 		struct {
+			void (*set_shader_exceptions)(struct gk20a *g,
+						      u32 data);
 			void (*handle_class_error)(struct gk20a *g, u32 chid,
 				       struct nvgpu_gr_isr_data *isr_data);
 			void (*clear_pending_interrupts)(struct gk20a *g,

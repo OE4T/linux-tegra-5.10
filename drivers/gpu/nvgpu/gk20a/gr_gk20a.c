@@ -293,53 +293,6 @@ u32 gr_gk20a_get_patch_slots(struct gk20a *g)
 	return PATCH_CTX_SLOTS_PER_PAGE;
 }
 
-#define NVA297_SET_SHADER_EXCEPTIONS_ENABLE_FALSE	U32(0)
-
-void gk20a_gr_set_shader_exceptions(struct gk20a *g, u32 data)
-{
-	nvgpu_log_fn(g, " ");
-
-	if (data == NVA297_SET_SHADER_EXCEPTIONS_ENABLE_FALSE) {
-		gk20a_writel(g,
-			gr_gpcs_tpcs_sm_hww_warp_esr_report_mask_r(), 0);
-		gk20a_writel(g,
-			gr_gpcs_tpcs_sm_hww_global_esr_report_mask_r(), 0);
-	} else {
-		/* setup sm warp esr report masks */
-		gk20a_writel(g, gr_gpcs_tpcs_sm_hww_warp_esr_report_mask_r(),
-			gr_gpcs_tpcs_sm_hww_warp_esr_report_mask_stack_error_report_f()	|
-			gr_gpcs_tpcs_sm_hww_warp_esr_report_mask_api_stack_error_report_f() |
-			gr_gpcs_tpcs_sm_hww_warp_esr_report_mask_ret_empty_stack_error_report_f() |
-			gr_gpcs_tpcs_sm_hww_warp_esr_report_mask_pc_wrap_report_f() |
-			gr_gpcs_tpcs_sm_hww_warp_esr_report_mask_misaligned_pc_report_f() |
-			gr_gpcs_tpcs_sm_hww_warp_esr_report_mask_pc_overflow_report_f() |
-			gr_gpcs_tpcs_sm_hww_warp_esr_report_mask_misaligned_immc_addr_report_f() |
-			gr_gpcs_tpcs_sm_hww_warp_esr_report_mask_misaligned_reg_report_f() |
-			gr_gpcs_tpcs_sm_hww_warp_esr_report_mask_illegal_instr_encoding_report_f() |
-			gr_gpcs_tpcs_sm_hww_warp_esr_report_mask_illegal_sph_instr_combo_report_f() |
-			gr_gpcs_tpcs_sm_hww_warp_esr_report_mask_illegal_instr_param_report_f() |
-			gr_gpcs_tpcs_sm_hww_warp_esr_report_mask_invalid_const_addr_report_f() |
-			gr_gpcs_tpcs_sm_hww_warp_esr_report_mask_oor_reg_report_f() |
-			gr_gpcs_tpcs_sm_hww_warp_esr_report_mask_oor_addr_report_f() |
-			gr_gpcs_tpcs_sm_hww_warp_esr_report_mask_misaligned_addr_report_f() |
-			gr_gpcs_tpcs_sm_hww_warp_esr_report_mask_invalid_addr_space_report_f() |
-			gr_gpcs_tpcs_sm_hww_warp_esr_report_mask_illegal_instr_param2_report_f() |
-			gr_gpcs_tpcs_sm_hww_warp_esr_report_mask_invalid_const_addr_ldc_report_f() |
-			gr_gpcs_tpcs_sm_hww_warp_esr_report_mask_geometry_sm_error_report_f() |
-			gr_gpcs_tpcs_sm_hww_warp_esr_report_mask_divergent_report_f());
-
-		/* setup sm global esr report mask */
-		gk20a_writel(g, gr_gpcs_tpcs_sm_hww_global_esr_report_mask_r(),
-			gr_gpcs_tpcs_sm_hww_global_esr_report_mask_sm_to_sm_fault_report_f() |
-			gr_gpcs_tpcs_sm_hww_global_esr_report_mask_l1_error_report_f() |
-			gr_gpcs_tpcs_sm_hww_global_esr_report_mask_multiple_warp_errors_report_f() |
-			gr_gpcs_tpcs_sm_hww_global_esr_report_mask_physical_stack_overflow_error_report_f() |
-			gr_gpcs_tpcs_sm_hww_global_esr_report_mask_bpt_int_report_f() |
-			gr_gpcs_tpcs_sm_hww_global_esr_report_mask_bpt_pause_report_f() |
-			gr_gpcs_tpcs_sm_hww_global_esr_report_mask_single_step_complete_report_f());
-	}
-}
-
 static void gk20a_gr_set_error_notifier(struct gk20a *g,
 		  struct nvgpu_gr_isr_data *isr_data, u32 error_notifier)
 {

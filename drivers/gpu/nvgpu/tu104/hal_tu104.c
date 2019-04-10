@@ -731,6 +731,8 @@ static const struct gpu_ops tu104_ops = {
 				gv11b_gr_init_commit_gfxp_wfi_timeout,
 		},
 		.intr = {
+			.set_shader_exceptions =
+					gm20b_gr_intr_set_shader_exceptions,
 			.handle_class_error =
 					gm20b_gr_intr_handle_class_error,
 			.clear_pending_interrupts =
