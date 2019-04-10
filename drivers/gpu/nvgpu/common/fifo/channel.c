@@ -321,10 +321,6 @@ static void gk20a_free_channel(struct channel_gk20a *ch, bool force)
 
 	trace_gk20a_free_channel(ch->chid);
 
-	if (g->os_channel.close != NULL) {
-		g->os_channel.close(ch, force);
-	}
-
 	/*
 	 * Disable channel/TSG and unbind here. This should not be executed if
 	 * HW access is not available during shutdown/removal path as it will
@@ -353,6 +349,18 @@ static void gk20a_free_channel(struct channel_gk20a *ch, bool force)
 			 */
 		}
 	}
+
+	/*
+	 * OS channel close may require that syncpoint should be set to some
+	 * safe value before it is called. nvgpu_tsg_unbind_channel(above) is
+	 * internally doing that by calling nvgpu_nvhost_syncpt_set_safe_state
+	 * deep down in the stack. Otherwise os_channel close may block if the
+	 * app is killed abruptly (which was going to do the syncpoint signal).
+	 */
+	if (g->os_channel.close != NULL) {
+		g->os_channel.close(ch, force);
+	}
+
 	/* wait until there's only our ref to the channel */
 	if (!force) {
 		gk20a_wait_until_counter_is_N(
