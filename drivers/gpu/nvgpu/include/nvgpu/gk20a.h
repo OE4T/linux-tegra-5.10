@@ -977,9 +977,6 @@ struct gpu_ops {
 		u32 (*default_timeslice_us)(struct gk20a *g);
 		int (*init_pbdma_map)(struct gk20a *g,
 				u32 *pbdma_map, u32 num_pbdma);
-		int (*init_engine_info)(struct fifo_gk20a *f);
-		u32 (*get_engines_mask_on_id)(struct gk20a *g,
-			u32 id, bool is_tsg);
 		int (*is_preempt_pending)(struct gk20a *g, u32 id,
 			unsigned int id_type);
 		int (*reset_enable_hw)(struct gk20a *g);
