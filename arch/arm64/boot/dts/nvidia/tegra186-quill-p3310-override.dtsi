@@ -59,6 +59,10 @@
 		phy-handle = <&phy>;
 		phy-mode = "rgmii";
 
+		/delete-property/ pinctrl-names;
+		/delete-property/ pinctrl-0;
+		/delete-property/ pinctrl-1;
+
 		mdio {
 			#address-cells = <1>;
 			#size-cells = <0>;
