@@ -75,6 +75,7 @@
 #include "hal/fifo/ctxsw_timeout_gk20a.h"
 #include "hal/fifo/mmu_fault_gk20a.h"
 #include "hal/fifo/mmu_fault_gm20b.h"
+#include "hal/rc/rc_gk20a.h"
 #include "hal/gr/zbc/zbc_gm20b.h"
 #include "hal/gr/zcull/zcull_gm20b.h"
 #include "hal/gr/falcon/gr_falcon_gm20b.h"

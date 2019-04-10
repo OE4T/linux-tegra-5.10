@@ -29,7 +29,6 @@
 #include <nvgpu/engines.h>
 
 struct gk20a_debug_output;
-struct mmu_fault_info;
 struct nvgpu_semaphore;
 struct channel_gk20a;
 struct tsg_gk20a;
@@ -211,9 +210,6 @@ struct fifo_gk20a {
 
 int gk20a_init_fifo_setup_hw(struct gk20a *g);
 
-void gk20a_fifo_isr(struct gk20a *g);
-u32 gk20a_fifo_nonstall_isr(struct gk20a *g);
-
 int gk20a_fifo_preempt_channel(struct gk20a *g, struct channel_gk20a *ch);
 int gk20a_fifo_preempt_tsg(struct gk20a *g, struct tsg_gk20a *tsg);
 int gk20a_fifo_preempt(struct gk20a *g, struct channel_gk20a *ch);
@@ -255,14 +251,8 @@ int gk20a_fifo_is_preempt_pending(struct gk20a *g, u32 id,
 			unsigned int id_type);
 int __locked_fifo_preempt(struct gk20a *g, u32 id, bool is_tsg);
 
-void gk20a_fifo_teardown_ch_tsg(struct gk20a *g, u32 __engine_ids,
-			u32 hw_id, unsigned int id_type, unsigned int rc_type,
-			 struct mmu_fault_info *mmfault);
-
 u32 gk20a_fifo_default_timeslice_us(struct gk20a *g);
 
 int gk20a_fifo_init_pbdma_map(struct gk20a *g, u32 *pbdma_map, u32 num_pbdma);
-bool gk20a_fifo_handle_mmu_fault(struct gk20a *g,
-	u32 mmu_fault_engines, u32 hw_id, bool id_is_tsg);
 
 #endif /* FIFO_GK20A_H */

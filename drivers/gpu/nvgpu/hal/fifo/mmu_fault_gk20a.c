@@ -25,12 +25,23 @@
 #include <nvgpu/timers.h>
 #include <nvgpu/log.h>
 #include <nvgpu/io.h>
+#include <nvgpu/debug.h>
 #include <nvgpu/fifo.h>
+#include <nvgpu/runlist.h>
 #include <nvgpu/engines.h>
+#include <nvgpu/engine_status.h>
+#include <nvgpu/power_features/cg.h>
+#include <nvgpu/power_features/pg.h>
+#include <nvgpu/power_features/power_features.h>
+#include <nvgpu/gr/fecs_trace.h>
+#include <nvgpu/channel.h>
+#include <nvgpu/tsg.h>
 
 #include <hal/fifo/mmu_fault_gk20a.h>
 
 #include <nvgpu/hw/gk20a/hw_fifo_gk20a.h>
+/* TODO: remove gr_status_r */
+#include <nvgpu/hw/gk20a/hw_gr_gk20a.h>
 
 /* fault info/descriptions */
 
@@ -213,7 +224,220 @@ void gk20a_fifo_mmu_fault_info_dump(struct gk20a *g, u32 engine_id,
 
 void gk20a_fifo_handle_dropped_mmu_fault(struct gk20a *g)
 {
-	u32 fault_id = gk20a_readl(g, fifo_intr_mmu_fault_id_r());
+	u32 fault_id = nvgpu_readl(g, fifo_intr_mmu_fault_id_r());
 
 	nvgpu_err(g, "dropped mmu fault (0x%08x)", fault_id);
+}
+
+bool gk20a_fifo_handle_mmu_fault_locked(
+	struct gk20a *g,
+	u32 mmu_fault_engines, /* queried from HW if 0 */
+	u32 hw_id, /* queried from HW if ~(u32)0 OR mmu_fault_engines == 0*/
+	bool id_is_tsg)
+{
+	bool fake_fault;
+	unsigned long fault_id;
+	unsigned long engine_mmu_fault_id;
+	bool debug_dump = true;
+	struct nvgpu_engine_status_info engine_status;
+	bool deferred_reset_pending = false;
+	struct fifo_gk20a *f = &g->fifo;
+
+	nvgpu_log_fn(g, " ");
+
+	if (nvgpu_cg_pg_disable(g) != 0) {
+		nvgpu_warn(g, "fail to disable power mgmt");
+	}
+
+	/* Disable fifo access */
+	g->ops.gr.init.fifo_access(g, false);
+
+	if (mmu_fault_engines != 0U) {
+		fault_id = mmu_fault_engines;
+		fake_fault = true;
+	} else {
+		fault_id = nvgpu_readl(g, fifo_intr_mmu_fault_id_r());
+		fake_fault = false;
+	}
+	nvgpu_mutex_acquire(&f->deferred_reset_mutex);
+	g->fifo.deferred_reset_pending = false;
+	nvgpu_mutex_release(&f->deferred_reset_mutex);
+
+	/* go through all faulted engines */
+	for_each_set_bit(engine_mmu_fault_id, &fault_id, 32U) {
+		/*
+		 * bits in fifo_intr_mmu_fault_id_r do not correspond 1:1 to
+		 * engines. Convert engine_mmu_id to engine_id
+		 */
+		u32 engine_id = nvgpu_engine_mmu_fault_id_to_engine_id(g,
+					(u32)engine_mmu_fault_id);
+		struct mmu_fault_info mmfault_info;
+		struct channel_gk20a *ch = NULL;
+		struct tsg_gk20a *tsg = NULL;
+		struct channel_gk20a *refch = NULL;
+		bool ctxsw;
+
+		/* read and parse engine status */
+		g->ops.engine_status.read_engine_status_info(g, engine_id,
+			&engine_status);
+
+		ctxsw = nvgpu_engine_status_is_ctxsw(&engine_status);
+
+		gk20a_fifo_mmu_fault_info_dump(g, engine_id,
+				(u32)engine_mmu_fault_id,
+				fake_fault, &mmfault_info);
+
+		if (ctxsw) {
+			g->ops.gr.falcon.dump_stats(g);
+			nvgpu_err(g, "  gr_status_r: 0x%x",
+				  nvgpu_readl(g, gr_status_r()));
+		}
+
+		/* get the channel/TSG */
+		if (fake_fault) {
+			/* use next_id if context load is failing */
+			u32 id, type;
+
+			if (hw_id == ~(u32)0) {
+				if (nvgpu_engine_status_is_ctxsw_load(
+					&engine_status)) {
+					nvgpu_engine_status_get_next_ctx_id_type(
+						&engine_status, &id, &type);
+				} else {
+					nvgpu_engine_status_get_ctx_id_type(
+						&engine_status, &id, &type);
+				}
+			} else {
+				id = hw_id;
+				type = id_is_tsg ?
+					ENGINE_STATUS_CTX_ID_TYPE_TSGID :
+					ENGINE_STATUS_CTX_ID_TYPE_CHID;
+			}
+
+			if (type == ENGINE_STATUS_CTX_ID_TYPE_TSGID) {
+				tsg = &g->fifo.tsg[id];
+			} else if (type == ENGINE_STATUS_CTX_ID_TYPE_CHID) {
+				ch = &g->fifo.channel[id];
+				refch = gk20a_channel_get(ch);
+				if (refch != NULL) {
+					tsg = tsg_gk20a_from_ch(refch);
+				}
+			}
+		} else {
+			/* Look up channel from the inst block pointer. */
+			ch = nvgpu_channel_refch_from_inst_ptr(g,
+					mmfault_info.inst_ptr);
+			refch = ch;
+			if (refch != NULL) {
+				tsg = tsg_gk20a_from_ch(refch);
+			}
+		}
+
+		/* check if engine reset should be deferred */
+		if (engine_id != FIFO_INVAL_ENGINE_ID) {
+			bool defer = nvgpu_engine_should_defer_reset(g,
+					engine_id, mmfault_info.client_type,
+					fake_fault);
+			if (((ch != NULL) || (tsg != NULL)) && defer) {
+				g->fifo.deferred_fault_engines |= BIT(engine_id);
+
+				/* handled during channel free */
+				nvgpu_mutex_acquire(&f->deferred_reset_mutex);
+				g->fifo.deferred_reset_pending = true;
+				nvgpu_mutex_release(&f->deferred_reset_mutex);
+
+				deferred_reset_pending = true;
+
+				nvgpu_log(g, gpu_dbg_intr | gpu_dbg_gpu_dbg,
+					   "sm debugger attached,"
+					   " deferring channel recovery to channel free");
+			} else {
+				nvgpu_engine_reset(g, engine_id);
+			}
+		}
+
+#ifdef CONFIG_GK20A_CTXSW_TRACE
+		if (tsg != NULL) {
+			nvgpu_gr_fecs_trace_add_tsg_reset(g, tsg);
+		}
+#endif
+		/*
+		 * Disable the channel/TSG from hw and increment syncpoints.
+		 */
+		if (tsg != NULL) {
+			if (deferred_reset_pending) {
+				g->ops.tsg.disable(tsg);
+			} else {
+				if (!fake_fault) {
+					nvgpu_tsg_set_ctx_mmu_error(g, tsg);
+				}
+				debug_dump = nvgpu_tsg_mark_error(g, tsg);
+				nvgpu_tsg_abort(g, tsg, false);
+			}
+
+			/* put back the ref taken early above */
+			if (refch != NULL) {
+				gk20a_channel_put(ch);
+			}
+		} else if (refch != NULL) {
+			nvgpu_err(g, "mmu error in unbound channel %d",
+					  ch->chid);
+			gk20a_channel_put(ch);
+		} else if (mmfault_info.inst_ptr ==
+				nvgpu_inst_block_addr(g,
+					&g->mm.bar1.inst_block)) {
+			nvgpu_err(g, "mmu fault from bar1");
+		} else if (mmfault_info.inst_ptr ==
+				nvgpu_inst_block_addr(g,
+					&g->mm.pmu.inst_block)) {
+			nvgpu_err(g, "mmu fault from pmu");
+		} else {
+			nvgpu_err(g, "couldn't locate channel for mmu fault");
+		}
+	}
+
+	if (!fake_fault) {
+		gk20a_debug_dump(g);
+	}
+
+	/* clear interrupt */
+	nvgpu_writel(g, fifo_intr_mmu_fault_id_r(), (u32)fault_id);
+
+	/* resume scheduler */
+	nvgpu_writel(g, fifo_error_sched_disable_r(),
+		     nvgpu_readl(g, fifo_error_sched_disable_r()));
+
+	/* Re-enable fifo access */
+	g->ops.gr.init.fifo_access(g, true);
+
+	if (nvgpu_cg_pg_enable(g) != 0) {
+		nvgpu_warn(g, "fail to enable power mgmt");
+	}
+	return debug_dump;
+}
+
+bool gk20a_fifo_handle_mmu_fault(
+	struct gk20a *g,
+	u32 mmu_fault_engines, /* queried from HW if 0 */
+	u32 hw_id, /* queried from HW if ~(u32)0 OR mmu_fault_engines == 0*/
+	bool id_is_tsg)
+{
+	bool debug_dump;
+
+	nvgpu_log_fn(g, " ");
+
+	nvgpu_log_info(g, "acquire engines_reset_mutex");
+	nvgpu_mutex_acquire(&g->fifo.engines_reset_mutex);
+
+	nvgpu_fifo_lock_active_runlists(g);
+
+	debug_dump = gk20a_fifo_handle_mmu_fault_locked(g, mmu_fault_engines,
+			hw_id, id_is_tsg);
+
+	nvgpu_fifo_unlock_active_runlists(g);
+
+	nvgpu_log_info(g, "release engines_reset_mutex");
+	nvgpu_mutex_release(&g->fifo.engines_reset_mutex);
+
+	return debug_dump;
 }

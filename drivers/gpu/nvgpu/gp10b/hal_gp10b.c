@@ -88,6 +88,7 @@
 #include "hal/fifo/mmu_fault_gm20b.h"
 #include "hal/fifo/mmu_fault_gp10b.h"
 #include "hal/fifo/ctxsw_timeout_gk20a.h"
+#include "hal/rc/rc_gk20a.h"
 #include "hal/gr/ecc/ecc_gp10b.h"
 #include "hal/gr/fecs_trace/fecs_trace_gm20b.h"
 #include "hal/gr/fecs_trace/fecs_trace_gp10b.h"
