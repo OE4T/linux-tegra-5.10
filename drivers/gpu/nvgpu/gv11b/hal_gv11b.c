@@ -715,6 +715,12 @@ static const struct gpu_ops gv11b_ops = {
 				gm20ab_gr_intr_tpc_exception_sm_disable,
 		},
 		.falcon = {
+			.read_fecs_ctxsw_mailbox =
+				gm20b_gr_falcon_read_fecs_ctxsw_mailbox,
+			.fecs_host_clear_intr =
+				gm20b_gr_falcon_fecs_host_clear_intr,
+			.fecs_host_intr_status =
+				gm20b_gr_falcon_fecs_host_intr_status,
 			.fecs_base_addr = gm20b_gr_falcon_fecs_base_addr,
 			.gpccs_base_addr = gm20b_gr_falcon_gpccs_base_addr,
 			.set_current_ctx_invalid =

@@ -903,26 +903,32 @@ int gr_gp10b_handle_fecs_error(struct gk20a *g,
 				struct channel_gk20a *__ch,
 				struct nvgpu_gr_isr_data *isr_data)
 {
-	u32 gr_fecs_intr = gk20a_readl(g, gr_fecs_host_int_status_r());
 	struct channel_gk20a *ch;
 	u32 chid = FIFO_INVAL_CHANNEL_ID;
 	int ret = 0;
 	struct tsg_gk20a *tsg;
+	struct nvgpu_fecs_host_intr_status fecs_host_intr;
+	u32 gr_fecs_intr = g->ops.gr.falcon.fecs_host_intr_status(g,
+						&fecs_host_intr);
+
 
 	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gpu_dbg | gpu_dbg_intr, " ");
+
+	if (gr_fecs_intr == 0U) {
+		return 0;
+	}
 
 	/*
 	 * INTR1 (bit 1 of the HOST_INT_STATUS_CTXSW_INTR)
 	 * indicates that a CILP ctxsw save has finished
 	 */
-	if ((gr_fecs_intr &
-		gr_fecs_host_int_status_ctxsw_intr_f(CTXSW_INTR1)) != 0U) {
+	if (fecs_host_intr.ctxsw_intr1 != 0U) {
 		nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gpu_dbg | gpu_dbg_intr,
 				"CILP: ctxsw save completed!\n");
 
 		/* now clear the interrupt */
-		gk20a_writel(g, gr_fecs_host_int_clear_r(),
-				gr_fecs_host_int_clear_ctxsw_intr1_clear_f());
+		g->ops.gr.falcon.fecs_host_clear_intr(g,
+					fecs_host_intr.ctxsw_intr1);
 
 		ret = gr_gp10b_get_cilp_preempt_pending_chid(g, &chid);
 		if ((ret != 0) || (chid == FIFO_INVAL_CHANNEL_ID)) {

@@ -27,7 +27,12 @@
 
 struct gk20a;
 struct nvgpu_fecs_method_op;
+struct nvgpu_fecs_host_intr_status;
 
+u32 gm20b_gr_falcon_read_fecs_ctxsw_mailbox(struct gk20a *g, u32 reg_index);
+void gm20b_gr_falcon_fecs_host_clear_intr(struct gk20a *g, u32 fecs_intr);
+u32 gm20b_gr_falcon_fecs_host_intr_status(struct gk20a *g,
+			struct nvgpu_fecs_host_intr_status *fecs_host_intr);
 u32 gm20b_gr_falcon_fecs_base_addr(void);
 u32 gm20b_gr_falcon_gpccs_base_addr(void);
 void gm20b_gr_falcon_fecs_dump_stats(struct gk20a *g);

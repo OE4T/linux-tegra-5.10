@@ -44,9 +44,6 @@
 #define NVGPU_OBJ_CTX_FLAGS_SUPPORT_GFXP		BIT32(1)
 #define NVGPU_OBJ_CTX_FLAGS_SUPPORT_CILP		BIT32(2)
 
-#define CTXSW_INTR0				BIT32(0)
-#define CTXSW_INTR1				BIT32(1)
-
 struct tsg_gk20a;
 struct nvgpu_gr_ctx;
 struct channel_gk20a;

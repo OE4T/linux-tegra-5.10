@@ -83,6 +83,7 @@ struct nvgpu_dbg_reg_op;
 struct gk20a_cs_snapshot;
 struct nvgpu_preemption_modes_rec;
 struct nvgpu_gr_ctx;
+struct nvgpu_fecs_host_intr_status;
 typedef void (*global_ctx_mem_destroy_fn)(struct gk20a *g,
 					struct nvgpu_mem *mem);
 
@@ -537,6 +538,12 @@ struct gpu_ops {
 		} config;
 
 		struct {
+			u32 (*read_fecs_ctxsw_mailbox)(struct gk20a *g,
+							u32 reg_index);
+			void (*fecs_host_clear_intr)(struct gk20a *g,
+							u32 fecs_intr);
+			u32 (*fecs_host_intr_status)(struct gk20a *g,
+			   struct nvgpu_fecs_host_intr_status *fecs_host_intr);
 			u32 (*fecs_base_addr)(void);
 			u32 (*gpccs_base_addr)(void);
 			void (*set_current_ctx_invalid)(struct gk20a *g);

@@ -379,39 +379,42 @@ static int gk20a_gr_handle_illegal_method(struct gk20a *g,
 int gk20a_gr_handle_fecs_error(struct gk20a *g, struct channel_gk20a *ch,
 					  struct nvgpu_gr_isr_data *isr_data)
 {
-	u32 gr_fecs_intr = gk20a_readl(g, gr_fecs_host_int_status_r());
+	u32 gr_fecs_intr, mailbox_value;
 	int ret = 0;
+	struct nvgpu_fecs_host_intr_status fecs_host_intr;
 	u32 chid = isr_data->ch != NULL ?
 		isr_data->ch->chid : FIFO_INVAL_CHANNEL_ID;
+	u32 mailbox_id = NVGPU_GR_FALCON_FECS_CTXSW_MAILBOX6;
 
+	gr_fecs_intr = g->ops.gr.falcon.fecs_host_intr_status(g,
+						&fecs_host_intr);
 	if (gr_fecs_intr == 0U) {
 		return 0;
 	}
 
-	if ((gr_fecs_intr &
-	     gr_fecs_host_int_status_umimp_firmware_method_f(1)) != 0U) {
+	if (fecs_host_intr.unimp_fw_method_active) {
+		mailbox_value = g->ops.gr.falcon.read_fecs_ctxsw_mailbox(g,
+								mailbox_id);
 		gk20a_gr_set_error_notifier(g, isr_data,
 			 NVGPU_ERR_NOTIFIER_FECS_ERR_UNIMP_FIRMWARE_METHOD);
 		nvgpu_err(g,
 			  "firmware method error 0x%08x for offset 0x%04x",
-			  gk20a_readl(g, gr_fecs_ctxsw_mailbox_r(6)),
+			  mailbox_value,
 			  isr_data->data_lo);
 		ret = -1;
-	} else if ((gr_fecs_intr &
-			gr_fecs_host_int_status_watchdog_active_f()) != 0U) {
+	} else if (fecs_host_intr.watchdog_active) {
 		gr_report_ctxsw_error(g, GPU_FECS_CTXSW_WATCHDOG_TIMEOUT,
 				chid, 0);
 		/* currently, recovery is not initiated */
 		nvgpu_err(g, "fecs watchdog triggered for channel %u, "
 				"cannot ctxsw anymore !!", chid);
 		g->ops.gr.falcon.dump_stats(g);
-	} else if ((gr_fecs_intr &
-		    gr_fecs_host_int_status_ctxsw_intr_f(CTXSW_INTR0)) != 0U) {
-		u32 mailbox_value = gk20a_readl(g, gr_fecs_ctxsw_mailbox_r(6));
-
+	} else if (fecs_host_intr.ctxsw_intr0 != 0U) {
+		mailbox_value = g->ops.gr.falcon.read_fecs_ctxsw_mailbox(g,
+								mailbox_id);
 #ifdef CONFIG_GK20A_CTXSW_TRACE
 		if (mailbox_value ==
-			      g->ops.gr.fecs_trace.get_buffer_full_mailbox_val()) {
+			g->ops.gr.fecs_trace.get_buffer_full_mailbox_val()) {
 			nvgpu_info(g, "ctxsw intr0 set by ucode, "
 					"timestamp buffer full");
 			nvgpu_gr_fecs_trace_reset_buffer(g);
@@ -421,9 +424,9 @@ int gk20a_gr_handle_fecs_error(struct gk20a *g, struct channel_gk20a *ch,
 		 * The mailbox values may vary across chips hence keeping it
 		 * as a HAL.
 		 */
-		if (g->ops.gr.get_ctxsw_checksum_mismatch_mailbox_val
-				!= NULL && mailbox_value ==
-				g->ops.gr.get_ctxsw_checksum_mismatch_mailbox_val()) {
+		if ((g->ops.gr.get_ctxsw_checksum_mismatch_mailbox_val != NULL)
+			&& (mailbox_value ==
+			g->ops.gr.get_ctxsw_checksum_mismatch_mailbox_val())) {
 
 			gr_report_ctxsw_error(g, GPU_FECS_CTXSW_CRC_MISMATCH,
 					chid, mailbox_value);
@@ -443,8 +446,7 @@ int gk20a_gr_handle_fecs_error(struct gk20a *g, struct channel_gk20a *ch,
 				 mailbox_value);
 			ret = -1;
 		}
-	} else if ((gr_fecs_intr &
-			gr_fecs_host_int_status_fault_during_ctxsw_f(1)) != 0U) {
+	} else if (fecs_host_intr.fault_during_ctxsw_active) {
 		gr_report_ctxsw_error(g, GPU_FECS_FAULT_DURING_CTXSW,
 				chid, 0);
 		nvgpu_err(g, "fecs fault during ctxsw for channel %u", chid);
@@ -456,7 +458,8 @@ int gk20a_gr_handle_fecs_error(struct gk20a *g, struct channel_gk20a *ch,
 		g->ops.gr.falcon.dump_stats(g);
 	}
 
-	gk20a_writel(g, gr_fecs_host_int_clear_r(), gr_fecs_intr);
+	g->ops.gr.falcon.fecs_host_clear_intr(g, gr_fecs_intr);
+
 	return ret;
 }
 
