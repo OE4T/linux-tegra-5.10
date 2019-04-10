@@ -57,7 +57,7 @@ static unsigned long __find_next_bit(const unsigned long *addr,
 				     unsigned long start,
 				     bool invert)
 {
-	unsigned long idx;
+	unsigned long idx, idx_max;
 	unsigned long w;
 	unsigned long start_mask;
 
@@ -87,12 +87,18 @@ static unsigned long __find_next_bit(const unsigned long *addr,
 
 	start = round_up(start, BITS_PER_LONG);
 
+	idx_max = (n - 1) / BITS_PER_LONG;
+
 	/*
 	 * Find the first non-zero word taking into account start and
 	 * invert.
 	 */
 	while (!w) {
 		idx++;
+		if (idx > idx_max) {
+			return n;
+		}
+
 		start += BITS_PER_LONG;
 
 		w = addr[idx] ^ invert_mask;

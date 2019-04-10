@@ -199,7 +199,8 @@ static int test_find_first_bit(struct unit_module *m,
 	 * Now make sure that for full/empty bitmap find_next_*() returns
 	 * the size parameter.
 	 */
-	memset(words, args->find_zeros ? 0xff : 0x00, sizeof(words));
+	memset(words, args->find_zeros ? 0xff : 0x00,
+						NUM_WORDS * sizeof(words[0]));
 	result = finder_function(words, NUM_WORDS * BITS_PER_LONG);
 	if (result != NUM_WORDS * BITS_PER_LONG)
 		unit_return_fail(m, "find_first_%s() failed with empty map\n",
