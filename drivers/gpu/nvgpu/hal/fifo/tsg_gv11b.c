@@ -24,6 +24,7 @@
 #include <nvgpu/engines.h>
 #include <nvgpu/nvgpu_mem.h>
 #include <nvgpu/tsg.h>
+#include <nvgpu/dma.h>
 #include <nvgpu/gk20a.h>
 
 #include "hal/fifo/tsg_gv11b.h"
