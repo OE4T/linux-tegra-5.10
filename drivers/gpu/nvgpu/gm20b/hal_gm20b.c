@@ -56,6 +56,7 @@
 #include "hal/ltc/intr/ltc_intr_gm20b.h"
 #include "hal/fb/fb_gm20b.h"
 #include "hal/fuse/fuse_gm20b.h"
+#include "hal/regops/regops_gm20b.h"
 #include "hal/fifo/pbdma_gm20b.h"
 #include "hal/fifo/engines_gm20b.h"
 #include "hal/fifo/engine_status_gm20b.h"
@@ -88,7 +89,6 @@
 #include "common/top/top_gm20b.h"
 #include "common/sync/syncpt_cmdbuf_gk20a.h"
 #include "common/sync/sema_cmdbuf_gk20a.h"
-#include "common/regops/regops_gm20b.h"
 #include "common/fifo/channel_gk20a.h"
 #include "common/fifo/channel_gm20b.h"
 

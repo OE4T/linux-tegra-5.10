@@ -22,6 +22,7 @@
 
 #include "hal/bus/bus_gk20a.h"
 #include "hal/bus/bus_gm20b.h"
+#include "hal/regops/regops_gv11b.h"
 #include "hal/fifo/engines_gv11b.h"
 #include "hal/fifo/pbdma_gm20b.h"
 #include "hal/fifo/pbdma_gp10b.h"
@@ -62,7 +63,6 @@
 
 #include "common/sync/syncpt_cmdbuf_gv11b.h"
 #include "common/sync/sema_cmdbuf_gv11b.h"
-#include "common/regops/regops_gv11b.h"
 #include "common/fifo/channel_gv11b.h"
 #include "common/clk_arb/clk_arb_gp10b.h"
 

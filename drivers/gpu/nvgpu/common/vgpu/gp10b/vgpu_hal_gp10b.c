@@ -22,6 +22,7 @@
 
 #include "hal/bus/bus_gk20a.h"
 #include "hal/bus/bus_gm20b.h"
+#include "hal/regops/regops_gp10b.h"
 #include "hal/fifo/engines_gm20b.h"
 #include "hal/fifo/pbdma_gm20b.h"
 #include "hal/fifo/pbdma_gp10b.h"
@@ -47,7 +48,6 @@
 #include "hal/netlist/netlist_gp10b.h"
 #include "hal/perf/perf_gm20b.h"
 
-#include "common/regops/regops_gp10b.h"
 #include "common/fifo/channel_gm20b.h"
 #include "common/clk_arb/clk_arb_gp10b.h"
 

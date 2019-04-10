@@ -57,11 +57,6 @@ nvgpu-y += \
 	common/boardobj/boardobjgrp_e255.o \
 	common/boardobj/boardobjgrp_e32.o \
 	common/regops/regops.o \
-	common/regops/regops_gm20b.o \
-	common/regops/regops_gp10b.o \
-	common/regops/regops_gv100.o \
-	common/regops/regops_gv11b.o \
-	common/regops/regops_tu104.o \
 	common/ltc/ltc.o \
 	common/cbc/cbc.o \
 	common/gr/gr.o \
@@ -206,6 +201,11 @@ nvgpu-y += \
 	hal/cbc/cbc_gp10b.o \
 	hal/cbc/cbc_gv11b.o \
 	hal/cbc/cbc_tu104.o \
+	hal/regops/regops_gm20b.o \
+	hal/regops/regops_gp10b.o \
+	hal/regops/regops_gv100.o \
+	hal/regops/regops_gv11b.o \
+	hal/regops/regops_tu104.o \
 	hal/therm/therm_gm20b.o \
 	hal/therm/therm_gp10b.o \
 	hal/therm/therm_gp106.o \
