@@ -1985,7 +1985,7 @@ int gk20a_ctrl_dev_mmap(struct file *filp, struct vm_area_struct *vma)
 	struct nvgpu_os_linux *l = nvgpu_os_linux_from_gk20a(g);
 	int err;
 
-	if (g->ops.fifo.usermode_base == NULL)
+	if (g->ops.usermode.base == NULL)
 		return -ENOSYS;
 
 	if (priv->usermode_vma.vma != NULL)

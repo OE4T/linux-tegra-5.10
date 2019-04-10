@@ -36,6 +36,7 @@
 #include "hal/fifo/tsg_gv11b.h"
 #include "hal/fifo/userd_gk20a.h"
 #include "hal/fifo/userd_gv11b.h"
+#include "hal/fifo/usermode_gv11b.h"
 #include "hal/fifo/fifo_intr_gv11b.h"
 #include "hal/therm/therm_gm20b.h"
 #include "hal/therm/therm_gp10b.h"
@@ -508,10 +509,7 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 		.teardown_ch_tsg = NULL,
 		.setup_sw = vgpu_fifo_setup_sw,
 		.cleanup_sw = vgpu_fifo_cleanup_sw,
-		.ring_channel_doorbell = gv11b_ring_channel_doorbell,
 		.set_sm_exception_type_mask = vgpu_set_sm_exception_type_mask,
-		.usermode_base = gv11b_fifo_usermode_base,
-		.doorbell_token = gv11b_fifo_doorbell_token,
 		.intr_0_enable = NULL,
 		.intr_1_enable = NULL,
 		.intr_0_isr = NULL,
@@ -649,6 +647,13 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 		.check_ctxsw_timeout = nvgpu_tsg_check_ctxsw_timeout,
 		.force_reset = vgpu_tsg_force_reset_ch,
 		.post_event_id = nvgpu_tsg_post_event_id,
+	},
+	.usermode = {
+		.setup_hw = NULL,
+		.base = gv11b_usermode_base,
+		.bus_base = gv11b_usermode_bus_base,
+		.ring_doorbell = gv11b_usermode_ring_doorbell,
+		.doorbell_token = gv11b_usermode_doorbell_token,
 	},
 	.netlist = {
 		.get_netlist_name = gv11b_netlist_get_name,
@@ -870,6 +875,7 @@ int vgpu_gv11b_init_hal(struct gk20a *g)
 	gops->userd = vgpu_gv11b_ops.userd;
 	gops->channel = vgpu_gv11b_ops.channel;
 	gops->tsg = vgpu_gv11b_ops.tsg;
+	gops->usermode = vgpu_gv11b_ops.usermode;
 	gops->sync = vgpu_gv11b_ops.sync;
 	gops->engine_status = vgpu_gv11b_ops.engine_status;
 	gops->pbdma_status = vgpu_gv11b_ops.pbdma_status;

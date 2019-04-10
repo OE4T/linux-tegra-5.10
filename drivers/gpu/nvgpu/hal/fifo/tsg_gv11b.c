@@ -49,7 +49,7 @@ void gv11b_tsg_enable(struct tsg_gk20a *tsg)
 	nvgpu_rwsem_up_read(&tsg->ch_list_lock);
 
 	if (last_ch != NULL) {
-		g->ops.fifo.ring_channel_doorbell(last_ch);
+		g->ops.usermode.ring_doorbell(last_ch);
 	}
 }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2015-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -20,17 +20,39 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NVGPU_FIFO_TU104_H
-#define NVGPU_FIFO_TU104_H
+#include <nvgpu/log.h>
+#include <nvgpu/io_usermode.h>
+#include <nvgpu/gk20a.h>
+#include <nvgpu/channel.h>
+#include <nvgpu/fifo.h>
 
-#include <nvgpu/types.h>
+#include "usermode_gv11b.h"
 
-struct gk20a;
-struct channel_gk20a;
+#include <nvgpu/hw/gv11b/hw_usermode_gv11b.h>
 
-int tu104_init_fifo_setup_hw(struct gk20a *g);
+u64 gv11b_usermode_base(struct gk20a *g)
+{
+	return usermode_cfg0_r();
+}
 
-int tu104_init_pdb_cache_war(struct gk20a *g);
-void tu104_deinit_pdb_cache_war(struct gk20a *g);
+u64 gv11b_usermode_bus_base(struct gk20a *g)
+{
+	return usermode_cfg0_r();
+}
 
-#endif /* NVGPU_FIFO_TU104_H */
+u32 gv11b_usermode_doorbell_token(struct channel_gk20a *ch)
+{
+	struct gk20a *g = ch->g;
+	struct fifo_gk20a *f = &g->fifo;
+	u32 hw_chid = f->channel_base + ch->chid;
+
+	return usermode_notify_channel_pending_id_f(hw_chid);
+}
+
+void gv11b_usermode_ring_doorbell(struct channel_gk20a *ch)
+{
+	nvgpu_log_info(ch->g, "channel ring door bell %d", ch->chid);
+
+	nvgpu_usermode_writel(ch->g, usermode_notify_channel_pending_r(),
+		gv11b_usermode_doorbell_token(ch));
+}

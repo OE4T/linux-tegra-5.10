@@ -39,51 +39,14 @@
 #include <nvgpu/hw/tu104/hw_fifo_tu104.h>
 #include <nvgpu/hw/tu104/hw_pbdma_tu104.h>
 #include <nvgpu/hw/tu104/hw_ram_tu104.h>
-#include <nvgpu/hw/tu104/hw_func_tu104.h>
-#include <nvgpu/hw/tu104/hw_ctrl_tu104.h>
 
 int tu104_init_fifo_setup_hw(struct gk20a *g)
 {
-	u32 val;
-
 	nvgpu_log_fn(g, " ");
 
-	/*
-	 * Required settings for tu104_ring_channel_doorbell()
-	 */
-	val = nvgpu_readl(g, ctrl_virtual_channel_cfg_r(0));
-	val |= ctrl_virtual_channel_cfg_pending_enable_true_f();
-	nvgpu_writel(g, ctrl_virtual_channel_cfg_r(0), val);
+	g->ops.usermode.setup_hw(g);
 
 	return gv11b_init_fifo_setup_hw(g);
-}
-
-void tu104_ring_channel_doorbell(struct channel_gk20a *c)
-{
-	struct fifo_gk20a *f = &c->g->fifo;
-	u32 hw_chid = f->channel_base + c->chid;
-
-	nvgpu_log_info(c->g, "channel ring door bell %d, runlist %d",
-		c->chid, c->runlist_id);
-
-	nvgpu_func_writel(c->g, func_doorbell_r(),
-		ctrl_doorbell_vector_f(hw_chid) |
-		ctrl_doorbell_runlist_id_f(c->runlist_id));
-}
-
-u64 tu104_fifo_usermode_base(struct gk20a *g)
-{
-	return U64(func_full_phys_offset_v()) + func_cfg0_r();
-}
-
-u32 tu104_fifo_doorbell_token(struct channel_gk20a *c)
-{
-	struct gk20a *g = c->g;
-	struct fifo_gk20a *f = &g->fifo;
-	u32 hw_chid = f->channel_base + c->chid;
-
-	return ctrl_doorbell_vector_f(hw_chid) |
-		ctrl_doorbell_runlist_id_f(c->runlist_id);
 }
 
 int tu104_init_pdb_cache_war(struct gk20a *g)

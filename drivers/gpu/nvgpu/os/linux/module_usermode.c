@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -15,8 +15,6 @@
  */
 
 #include <nvgpu/types.h>
-
-#include <nvgpu/hw/gv11b/hw_usermode_gv11b.h>
 
 #include "os_linux.h"
 
@@ -57,6 +55,15 @@ void nvgpu_init_usermode_support(struct gk20a *g)
 {
 	struct nvgpu_os_linux *l = nvgpu_os_linux_from_gk20a(g);
 
-	l->usermode_regs = l->regs + usermode_cfg0_r();
-	l->usermode_regs_saved = l->usermode_regs;
+	if (g->ops.usermode.base == NULL) {
+		return;
+	}
+
+	if (l->usermode_regs == NULL) {
+		l->usermode_regs = l->regs + g->ops.usermode.base(g);
+		l->usermode_regs_saved = l->usermode_regs;
+	}
+
+	l->usermode_regs_bus_addr = l->regs_bus_addr +
+					g->ops.usermode.bus_base(g);
 }

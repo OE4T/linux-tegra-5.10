@@ -235,6 +235,8 @@ nvgpu-y += \
 	hal/fuse/fuse_gm20b.o \
 	hal/fuse/fuse_gp10b.o \
 	hal/fuse/fuse_gp106.o \
+	hal/fifo/usermode_gv11b.o \
+	hal/fifo/usermode_tu104.o \
 	hal/fifo/engines_gm20b.o \
 	hal/fifo/engines_gp10b.o \
 	hal/fifo/engines_gv11b.o \
@@ -392,8 +394,7 @@ endif
 
 nvgpu-$(CONFIG_GK20A_PCI) += \
 	os/linux/pci.o \
-	os/linux/pci_power.o \
-	os/linux/pci_usermode.o
+	os/linux/pci_power.o
 
 nvgpu-$(CONFIG_TEGRA_GK20A_NVHOST) += \
 	os/linux/nvhost.o \

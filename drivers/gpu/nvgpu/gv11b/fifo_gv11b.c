@@ -57,37 +57,11 @@
 #include <nvgpu/hw/gv11b/hw_pbdma_gv11b.h>
 #include <nvgpu/hw/gv11b/hw_fifo_gv11b.h>
 #include <nvgpu/hw/gv11b/hw_ram_gv11b.h>
-#include <nvgpu/hw/gv11b/hw_usermode_gv11b.h>
 #include <nvgpu/hw/gv11b/hw_top_gv11b.h>
 #include <nvgpu/hw/gv11b/hw_gmmu_gv11b.h>
 
 #include "fifo_gv11b.h"
 #include "gr_gv11b.h"
-
-u64 gv11b_fifo_usermode_base(struct gk20a *g)
-{
-	return usermode_cfg0_r();
-}
-
-u32 gv11b_fifo_doorbell_token(struct channel_gk20a *c)
-{
-	struct gk20a *g = c->g;
-	struct fifo_gk20a *f = &g->fifo;
-
-	return f->channel_base + c->chid;
-}
-
-void gv11b_ring_channel_doorbell(struct channel_gk20a *c)
-{
-	struct gk20a *g = c->g;
-	struct fifo_gk20a *f = &g->fifo;
-	u32 hw_chid = f->channel_base + c->chid;
-
-	nvgpu_log_info(g, "channel ring door bell %d\n", c->chid);
-
-	nvgpu_usermode_writel(c->g, usermode_notify_channel_pending_r(),
-		usermode_notify_channel_pending_id_f(hw_chid));
-}
 
 u32 gv11b_fifo_get_preempt_timeout(struct gk20a *g)
 {

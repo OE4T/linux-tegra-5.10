@@ -57,7 +57,4 @@ int gv11b_init_fifo_setup_hw(struct gk20a *g);
 
 u32 gv11b_fifo_get_preempt_timeout(struct gk20a *g);
 
-void gv11b_ring_channel_doorbell(struct channel_gk20a *c);
-u64 gv11b_fifo_usermode_base(struct gk20a *g);
-u32 gv11b_fifo_doorbell_token(struct channel_gk20a *c);
 #endif

@@ -60,5 +60,5 @@ void gv11b_userd_gp_put(struct gk20a *g, struct channel_gk20a *ch)
 	/* Commit everything to GPU. */
 	nvgpu_mb();
 
-	g->ops.fifo.ring_channel_doorbell(ch);
+	g->ops.usermode.ring_doorbell(ch);
 }

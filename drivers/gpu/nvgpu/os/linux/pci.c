@@ -39,7 +39,6 @@
 
 #include "pci.h"
 #include "pci_power.h"
-#include "pci_usermode.h"
 
 #include "driver_common.h"
 
@@ -411,8 +410,6 @@ static int nvgpu_pci_init_support(struct pci_dev *pdev)
 	err = nvgpu_init_sim_support_pci(g);
 	if (err)
 		goto fail_sim;
-
-	nvgpu_pci_init_usermode_support(l);
 
 	return 0;
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -20,17 +20,16 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NVGPU_FIFO_TU104_H
-#define NVGPU_FIFO_TU104_H
+#ifndef NVGPU_USERMODE_GV11B_H
+#define NVGPU_USERMODE_GV11B_H
 
 #include <nvgpu/types.h>
 
-struct gk20a;
 struct channel_gk20a;
 
-int tu104_init_fifo_setup_hw(struct gk20a *g);
+u64 gv11b_usermode_base(struct gk20a *g);
+u64 gv11b_usermode_bus_base(struct gk20a *g);
+u32 gv11b_usermode_doorbell_token(struct channel_gk20a *ch);
+void gv11b_usermode_ring_doorbell(struct channel_gk20a *ch);
 
-int tu104_init_pdb_cache_war(struct gk20a *g);
-void tu104_deinit_pdb_cache_war(struct gk20a *g);
-
-#endif /* NVGPU_FIFO_TU104_H */
+#endif /* NVGPU_USERMODE_GV11B_H */

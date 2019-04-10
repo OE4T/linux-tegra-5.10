@@ -20,17 +20,18 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NVGPU_FIFO_TU104_H
-#define NVGPU_FIFO_TU104_H
+#ifndef NVGPU_USERMODE_TU104_H
+#define NVGPU_USERMODE_TU104_H
 
 #include <nvgpu/types.h>
 
 struct gk20a;
 struct channel_gk20a;
 
-int tu104_init_fifo_setup_hw(struct gk20a *g);
+u64 tu104_usermode_base(struct gk20a *g);
+u64 tu104_usermode_bus_base(struct gk20a *g);
+void tu104_usermode_setup_hw(struct gk20a *g);
+u32 tu104_usermode_doorbell_token(struct channel_gk20a *ch);
+void tu104_usermode_ring_doorbell(struct channel_gk20a *ch);
 
-int tu104_init_pdb_cache_war(struct gk20a *g);
-void tu104_deinit_pdb_cache_war(struct gk20a *g);
-
-#endif /* NVGPU_FIFO_TU104_H */
+#endif /* NVGPU_USERMODE_TU104_H */

@@ -59,6 +59,8 @@
 #include "hal/fuse/fuse_gm20b.h"
 #include "hal/fuse/fuse_gp10b.h"
 #include "hal/fuse/fuse_gp106.h"
+#include "hal/fifo/usermode_gv11b.h"
+#include "hal/fifo/usermode_tu104.h"
 #include "hal/fifo/pbdma_gm20b.h"
 #include "hal/fifo/pbdma_gp10b.h"
 #include "hal/fifo/pbdma_gv11b.h"
@@ -954,9 +956,6 @@ static const struct gpu_ops tu104_ops = {
 		.teardown_unmask_intr = gv11b_fifo_teardown_unmask_intr,
 		.setup_sw = nvgpu_fifo_setup_sw,
 		.cleanup_sw = nvgpu_fifo_cleanup_sw,
-		.ring_channel_doorbell = tu104_ring_channel_doorbell,
-		.usermode_base = tu104_fifo_usermode_base,
-		.doorbell_token = tu104_fifo_doorbell_token,
 		.init_pdb_cache_war = tu104_init_pdb_cache_war,
 		.deinit_pdb_cache_war = tu104_deinit_pdb_cache_war,
 		.set_sm_exception_type_mask = gk20a_tsg_set_sm_exception_type_mask,
@@ -1111,6 +1110,13 @@ static const struct gpu_ops tu104_ops = {
 		.check_ctxsw_timeout = nvgpu_tsg_check_ctxsw_timeout,
 		.force_reset = nvgpu_tsg_force_reset_ch,
 		.post_event_id = nvgpu_tsg_post_event_id,
+	},
+	.usermode = {
+		.setup_hw = tu104_usermode_setup_hw,
+		.base = tu104_usermode_base,
+		.bus_base = tu104_usermode_bus_base,
+		.ring_doorbell = tu104_usermode_ring_doorbell,
+		.doorbell_token = tu104_usermode_doorbell_token,
 	},
 	.netlist = {
 		.get_netlist_name = tu104_netlist_get_name,
@@ -1496,6 +1502,7 @@ int tu104_init_hal(struct gk20a *g)
 	gops->userd = tu104_ops.userd;
 	gops->channel = tu104_ops.channel;
 	gops->tsg = tu104_ops.tsg;
+	gops->usermode = tu104_ops.usermode;
 	gops->sync = tu104_ops.sync;
 	gops->engine_status = tu104_ops.engine_status;
 	gops->pbdma_status = tu104_ops.pbdma_status;

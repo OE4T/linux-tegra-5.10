@@ -74,6 +74,7 @@
 #include "hal/fifo/tsg_gv11b.h"
 #include "hal/fifo/userd_gk20a.h"
 #include "hal/fifo/userd_gv11b.h"
+#include "hal/fifo/usermode_gv11b.h"
 #include "hal/fifo/fifo_intr_gk20a.h"
 #include "hal/fifo/fifo_intr_gv11b.h"
 #include "hal/fifo/ctxsw_timeout_gk20a.h"
@@ -919,10 +920,7 @@ static const struct gpu_ops gv100_ops = {
 		.teardown_unmask_intr = gv100_fifo_teardown_unmask_intr,
 		.setup_sw = nvgpu_fifo_setup_sw,
 		.cleanup_sw = nvgpu_fifo_cleanup_sw,
-		.ring_channel_doorbell = gv11b_ring_channel_doorbell,
 		.set_sm_exception_type_mask = gk20a_tsg_set_sm_exception_type_mask,
-		.usermode_base = gv11b_fifo_usermode_base,
-		.doorbell_token = gv11b_fifo_doorbell_token,
 		.runlist_busy_engines = gk20a_fifo_runlist_busy_engines,
 		.intr_0_enable = gk20a_fifo_intr_0_enable,
 		.intr_1_enable = gk20a_fifo_intr_1_enable,
@@ -1074,6 +1072,13 @@ static const struct gpu_ops gv100_ops = {
 		.check_ctxsw_timeout = nvgpu_tsg_check_ctxsw_timeout,
 		.force_reset = nvgpu_tsg_force_reset_ch,
 		.post_event_id = nvgpu_tsg_post_event_id,
+	},
+	.usermode = {
+		.setup_hw = NULL,
+		.base = gv11b_usermode_base,
+		.bus_base = gv11b_usermode_bus_base,
+		.ring_doorbell = gv11b_usermode_ring_doorbell,
+		.doorbell_token = gv11b_usermode_doorbell_token,
 	},
 	.netlist = {
 		.get_netlist_name = gv100_netlist_get_name,
@@ -1448,6 +1453,7 @@ int gv100_init_hal(struct gk20a *g)
 	gops->userd = gv100_ops.userd;
 	gops->channel = gv100_ops.channel;
 	gops->tsg = gv100_ops.tsg;
+	gops->usermode = gv100_ops.usermode;
 	gops->sync = gv100_ops.sync;
 	gops->engine_status = gv100_ops.engine_status;
 	gops->pbdma_status = gv100_ops.pbdma_status;
