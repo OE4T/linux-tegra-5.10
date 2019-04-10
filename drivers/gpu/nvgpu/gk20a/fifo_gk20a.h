@@ -230,8 +230,6 @@ void fifo_gk20a_finish_mmu_fault_handling(struct gk20a *g,
 void gk20a_fifo_issue_preempt(struct gk20a *g, u32 id, bool is_tsg);
 int gk20a_fifo_tsg_set_timeslice(struct tsg_gk20a *tsg, u32 timeslice);
 
-int gk20a_fifo_deferred_reset(struct gk20a *g, struct channel_gk20a *ch);
-
 #ifdef CONFIG_DEBUG_FS
 struct fifo_profile_gk20a *gk20a_fifo_profile_acquire(struct gk20a *g);
 void gk20a_fifo_profile_release(struct gk20a *g,
@@ -256,9 +254,6 @@ static inline void gk20a_fifo_profile_snapshot(
 int gk20a_fifo_is_preempt_pending(struct gk20a *g, u32 id,
 			unsigned int id_type);
 int __locked_fifo_preempt(struct gk20a *g, u32 id, bool is_tsg);
-
-bool gk20a_fifo_should_defer_engine_reset(struct gk20a *g, u32 engine_id,
-			u32 engine_subid, bool fake_fault);
 
 void gk20a_fifo_teardown_ch_tsg(struct gk20a *g, u32 __engine_ids,
 			u32 hw_id, unsigned int id_type, unsigned int rc_type,

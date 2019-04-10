@@ -397,7 +397,7 @@ static void gk20a_free_channel(struct channel_gk20a *ch, bool force)
 		nvgpu_log(g, gpu_dbg_intr | gpu_dbg_gpu_dbg, "engine reset was"
 				" deferred, running now");
 		nvgpu_mutex_acquire(&g->fifo.engines_reset_mutex);
-		gk20a_fifo_deferred_reset(g, ch);
+		nvgpu_channel_deferred_reset_engines(g, ch);
 		nvgpu_mutex_release(&g->fifo.engines_reset_mutex);
 	}
 
@@ -2764,4 +2764,69 @@ void nvgpu_channel_debug_dump_all(struct gk20a *g,
 	gk20a_debug_output(o, " ");
 
 	nvgpu_kfree(g, infos);
+}
+
+int nvgpu_channel_deferred_reset_engines(struct gk20a *g,
+		struct channel_gk20a *ch)
+{
+	unsigned long engine_id, engines = 0U;
+	struct tsg_gk20a *tsg;
+	bool deferred_reset_pending;
+	struct fifo_gk20a *f = &g->fifo;
+	int err = 0;
+
+	nvgpu_mutex_acquire(&g->dbg_sessions_lock);
+
+	nvgpu_mutex_acquire(&f->deferred_reset_mutex);
+	deferred_reset_pending = g->fifo.deferred_reset_pending;
+	nvgpu_mutex_release(&f->deferred_reset_mutex);
+
+	if (!deferred_reset_pending) {
+		nvgpu_mutex_release(&g->dbg_sessions_lock);
+		return 0;
+	}
+
+	err = g->ops.gr.falcon.disable_ctxsw(g, g->gr.falcon);
+	if (err != 0) {
+		nvgpu_err(g, "failed to disable ctxsw");
+		goto fail;
+	}
+
+	tsg = tsg_gk20a_from_ch(ch);
+	if (tsg != NULL) {
+		engines = g->ops.engine.get_mask_on_id(g,
+				tsg->tsgid, true);
+	} else {
+		nvgpu_err(g, "chid: %d is not bound to tsg", ch->chid);
+	}
+
+	if (engines == 0U) {
+		goto clean_up;
+	}
+
+	/*
+	 * If deferred reset is set for an engine, and channel is running
+	 * on that engine, reset it
+	 */
+
+	for_each_set_bit(engine_id, &g->fifo.deferred_fault_engines, 32UL) {
+		if ((BIT64(engine_id) & engines) != 0ULL) {
+			nvgpu_engine_reset(g, (u32)engine_id);
+		}
+	}
+
+	nvgpu_mutex_acquire(&f->deferred_reset_mutex);
+	g->fifo.deferred_fault_engines = 0;
+	g->fifo.deferred_reset_pending = false;
+	nvgpu_mutex_release(&f->deferred_reset_mutex);
+
+clean_up:
+	err = g->ops.gr.falcon.enable_ctxsw(g, g->gr.falcon);
+	if (err != 0) {
+		nvgpu_err(g, "failed to enable ctxsw");
+	}
+fail:
+	nvgpu_mutex_release(&g->dbg_sessions_lock);
+
+	return err;
 }

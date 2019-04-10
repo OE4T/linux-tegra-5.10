@@ -901,3 +901,44 @@ u32 nvgpu_engine_get_runlist_busy_engines(struct gk20a *g, u32 runlist_id)
 
 	return eng_bitmask;
 }
+
+bool nvgpu_engine_should_defer_reset(struct gk20a *g, u32 engine_id,
+		u32 engine_subid, bool fake_fault)
+{
+	enum nvgpu_fifo_engine engine_enum = NVGPU_ENGINE_INVAL_GK20A;
+	struct fifo_engine_info_gk20a *engine_info;
+
+	if (g == NULL) {
+		return false;
+	}
+
+	engine_info = nvgpu_engine_get_active_eng_info(g, engine_id);
+
+	if (engine_info != NULL) {
+		engine_enum = engine_info->engine_enum;
+	}
+
+	if (engine_enum == NVGPU_ENGINE_INVAL_GK20A) {
+		return false;
+	}
+
+	/*
+	 * channel recovery is only deferred if an sm debugger
+	 * is attached and has MMU debug mode is enabled
+	 */
+	if (!g->ops.gr.sm_debugger_attached(g) ||
+	    !g->ops.fb.is_debug_mode_enabled(g)) {
+		return false;
+	}
+
+	/* if this fault is fake (due to RC recovery), don't defer recovery */
+	if (fake_fault) {
+		return false;
+	}
+
+	if (engine_enum != NVGPU_ENGINE_GR_GK20A) {
+		return false;
+	}
+
+	return g->ops.engine.is_fault_engine_subid_gpc(g, engine_subid);
+}

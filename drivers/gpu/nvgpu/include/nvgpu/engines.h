@@ -81,4 +81,6 @@ u32 nvgpu_engine_find_busy_doing_ctxsw(struct gk20a *g,
 		u32 *id_ptr, bool *is_tsg_ptr);
 u32 nvgpu_engine_get_runlist_busy_engines(struct gk20a *g, u32 runlist_id);
 
+bool nvgpu_engine_should_defer_reset(struct gk20a *g, u32 engine_id,
+			u32 engine_subid, bool fake_fault);
 #endif /*NVGPU_ENGINE_H*/

@@ -119,109 +119,6 @@ int gk20a_init_fifo_setup_hw(struct gk20a *g)
 	return 0;
 }
 
-bool gk20a_fifo_should_defer_engine_reset(struct gk20a *g, u32 engine_id,
-		u32 engine_subid, bool fake_fault)
-{
-	enum nvgpu_fifo_engine engine_enum = NVGPU_ENGINE_INVAL_GK20A;
-	struct fifo_engine_info_gk20a *engine_info;
-
-	if (g == NULL) {
-		return false;
-	}
-
-	engine_info = nvgpu_engine_get_active_eng_info(g, engine_id);
-
-	if (engine_info != NULL) {
-		engine_enum = engine_info->engine_enum;
-	}
-
-	if (engine_enum == NVGPU_ENGINE_INVAL_GK20A) {
-		return false;
-	}
-
-	/* channel recovery is only deferred if an sm debugger
-	   is attached and has MMU debug mode is enabled */
-	if (!g->ops.gr.sm_debugger_attached(g) ||
-	    !g->ops.fb.is_debug_mode_enabled(g)) {
-		return false;
-	}
-
-	/* if this fault is fake (due to RC recovery), don't defer recovery */
-	if (fake_fault) {
-		return false;
-	}
-
-	if (engine_enum != NVGPU_ENGINE_GR_GK20A) {
-		return false;
-	}
-
-	return g->ops.engine.is_fault_engine_subid_gpc(g, engine_subid);
-}
-
-int gk20a_fifo_deferred_reset(struct gk20a *g, struct channel_gk20a *ch)
-{
-	unsigned long engine_id, engines = 0U;
-	struct tsg_gk20a *tsg;
-	bool deferred_reset_pending;
-	struct fifo_gk20a *f = &g->fifo;
-	int err = 0;
-
-	nvgpu_mutex_acquire(&g->dbg_sessions_lock);
-
-	nvgpu_mutex_acquire(&f->deferred_reset_mutex);
-	deferred_reset_pending = g->fifo.deferred_reset_pending;
-	nvgpu_mutex_release(&f->deferred_reset_mutex);
-
-	if (!deferred_reset_pending) {
-		nvgpu_mutex_release(&g->dbg_sessions_lock);
-		return 0;
-	}
-
-	err = g->ops.gr.falcon.disable_ctxsw(g, g->gr.falcon);
-	if (err != 0) {
-		nvgpu_err(g, "failed to disable ctxsw");
-		goto fail;
-	}
-
-	tsg = tsg_gk20a_from_ch(ch);
-	if (tsg != NULL) {
-		engines = g->ops.engine.get_mask_on_id(g,
-				tsg->tsgid, true);
-	} else {
-		nvgpu_err(g, "chid: %d is not bound to tsg", ch->chid);
-	}
-
-	if (engines == 0U) {
-		goto clean_up;
-	}
-
-	/*
-	 * If deferred reset is set for an engine, and channel is running
-	 * on that engine, reset it
-	 */
-
-	for_each_set_bit(engine_id, &g->fifo.deferred_fault_engines, 32UL) {
-		if ((BIT64(engine_id) & engines) != 0ULL) {
-			nvgpu_engine_reset(g, (u32)engine_id);
-		}
-	}
-
-	nvgpu_mutex_acquire(&f->deferred_reset_mutex);
-	g->fifo.deferred_fault_engines = 0;
-	g->fifo.deferred_reset_pending = false;
-	nvgpu_mutex_release(&f->deferred_reset_mutex);
-
-clean_up:
-	err = g->ops.gr.falcon.enable_ctxsw(g, g->gr.falcon);
-	if (err != 0) {
-		nvgpu_err(g, "failed to enable ctxsw");
-	}
-fail:
-	nvgpu_mutex_release(&g->dbg_sessions_lock);
-
-	return err;
-}
-
 static bool gk20a_fifo_handle_mmu_fault_locked(
 	struct gk20a *g,
 	u32 mmu_fault_engines, /* queried from HW if 0 */
@@ -325,7 +222,7 @@ static bool gk20a_fifo_handle_mmu_fault_locked(
 
 		/* check if engine reset should be deferred */
 		if (engine_id != FIFO_INVAL_ENGINE_ID) {
-			bool defer = gk20a_fifo_should_defer_engine_reset(g,
+			bool defer = nvgpu_engine_should_defer_reset(g,
 					engine_id, mmfault_info.client_type,
 					fake_fault);
 			if (((ch != NULL) || (tsg != NULL)) && defer) {

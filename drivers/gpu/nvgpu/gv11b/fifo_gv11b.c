@@ -813,7 +813,7 @@ void gv11b_fifo_teardown_ch_tsg(struct gk20a *g, u32 act_eng_bitmask,
 							g->fifo.max_engines) {
 				engine_id = U32(bit);
 				if ((tsg != NULL) &&
-					 gk20a_fifo_should_defer_engine_reset(g,
+					 nvgpu_engine_should_defer_reset(g,
 					engine_id, client_type, false)) {
 
 					g->fifo.deferred_fault_engines |=

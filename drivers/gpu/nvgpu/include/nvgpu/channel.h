@@ -547,4 +547,7 @@ struct channel_gk20a *nvgpu_channel_refch_from_inst_ptr(struct gk20a *g,
 			u64 inst_ptr);
 void nvgpu_channel_debug_dump_all(struct gk20a *g,
 		 struct gk20a_debug_output *o);
+int nvgpu_channel_deferred_reset_engines(struct gk20a *g,
+		struct channel_gk20a *ch);
+
 #endif
