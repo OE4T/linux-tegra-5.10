@@ -53,6 +53,7 @@
 #include "hal/fb/fb_gv100.h"
 #include "hal/fb/fb_tu104.h"
 #include "hal/fb/intr/fb_intr_tu104.h"
+#include "hal/ptimer/ptimer_gk20a.h"
 #include "hal/regops/regops_tu104.h"
 #include "hal/fuse/fuse_gm20b.h"
 #include "hal/fuse/fuse_gp10b.h"
@@ -109,7 +110,6 @@
 #include "hal/sec2/sec2_tu104.h"
 #include "hal/netlist/netlist_tu104.h"
 
-#include "common/ptimer/ptimer_gk20a.h"
 #include "common/xve/xve_gp106.h"
 #include "common/pmu/pmu_gk20a.h"
 #include "common/pmu/pmu_gm20b.h"

@@ -56,6 +56,7 @@
 #include "hal/ltc/intr/ltc_intr_gm20b.h"
 #include "hal/fb/fb_gm20b.h"
 #include "hal/fuse/fuse_gm20b.h"
+#include "hal/ptimer/ptimer_gk20a.h"
 #include "hal/regops/regops_gm20b.h"
 #include "hal/fifo/pbdma_gm20b.h"
 #include "hal/fifo/engines_gm20b.h"
@@ -83,7 +84,6 @@
 #include "hal/pmu/pmu_hal_gk20a.h"
 #include "hal/netlist/netlist_gm20b.h"
 
-#include "common/ptimer/ptimer_gk20a.h"
 #include "common/pmu/pmu_gk20a.h"
 #include "common/pmu/pmu_gm20b.h"
 #include "common/top/top_gm20b.h"

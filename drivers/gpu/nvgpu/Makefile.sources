@@ -232,7 +232,6 @@ srcs += common/sim.c \
 	common/pmu/pmgr/pwrpolicy.c \
 	common/pmu/lpwr/lpwr.c \
 	common/pmu/lpwr/rppg.c \
-	common/ptimer/ptimer_gk20a.c \
 	common/clk_arb/clk_arb.c \
 	common/clk_arb/clk_arb_gp10b.c \
 	common/clk_arb/clk_arb_gv100.c \
@@ -333,6 +332,7 @@ srcs += common/sim.c \
 	hal/cbc/cbc_gp10b.c \
 	hal/cbc/cbc_gv11b.c \
 	hal/cbc/cbc_tu104.c \
+	hal/ptimer/ptimer_gk20a.c \
 	hal/regops/regops_gm20b.c \
 	hal/regops/regops_gp10b.c \
 	hal/regops/regops_gv100.c \

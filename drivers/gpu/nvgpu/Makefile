@@ -35,7 +35,6 @@ obj-$(CONFIG_GK20A) := nvgpu.o
 
 nvgpu-y += \
 	common/ptimer/ptimer.o \
-	common/ptimer/ptimer_gk20a.o \
 	common/perf/perfbuf.o \
 	common/xve/xve_gp106.o \
 	common/therm/therm.o \
@@ -201,6 +200,7 @@ nvgpu-y += \
 	hal/cbc/cbc_gp10b.o \
 	hal/cbc/cbc_gv11b.o \
 	hal/cbc/cbc_tu104.o \
+	hal/ptimer/ptimer_gk20a.o \
 	hal/regops/regops_gm20b.o \
 	hal/regops/regops_gp10b.o \
 	hal/regops/regops_gv100.o \

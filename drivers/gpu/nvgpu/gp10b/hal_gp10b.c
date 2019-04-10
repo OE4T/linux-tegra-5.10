@@ -65,6 +65,7 @@
 #include "hal/fb/fb_gp10b.h"
 #include "hal/fuse/fuse_gm20b.h"
 #include "hal/fuse/fuse_gp10b.h"
+#include "hal/ptimer/ptimer_gk20a.h"
 #include "hal/regops/regops_gp10b.h"
 #include "hal/fifo/pbdma_gm20b.h"
 #include "hal/fifo/pbdma_gp10b.h"
@@ -102,7 +103,6 @@
 #include "hal/pmu/pmu_hal_gk20a.h"
 #include "hal/netlist/netlist_gp10b.h"
 
-#include "common/ptimer/ptimer_gk20a.h"
 #include "common/pmu/pmu_gk20a.h"
 #include "common/pmu/pmu_gm20b.h"
 #include "common/pmu/pmu_gp10b.h"
