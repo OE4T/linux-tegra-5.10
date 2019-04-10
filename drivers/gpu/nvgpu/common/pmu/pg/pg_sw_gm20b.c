@@ -47,7 +47,7 @@ static void pmu_handle_zbc_msg(struct gk20a *g, struct pmu_msg *msg,
 {
 	struct nvgpu_pmu *pmu = param;
 	nvgpu_pmu_dbg(g, "reply ZBC_TABLE_UPDATE");
-	pmu->pmu_pg.zbc_save_done = true;
+	pmu->pg->zbc_save_done = true;
 }
 
 void gm20b_pmu_save_zbc(struct gk20a *g, u32 entries)
@@ -58,7 +58,7 @@ void gm20b_pmu_save_zbc(struct gk20a *g, u32 entries)
 	int err = 0;
 
 	if (!nvgpu_pmu_get_fw_ready(g, pmu) ||
-		(entries == 0U) || !pmu->pmu_pg.zbc_ready) {
+		(entries == 0U) || !pmu->pg->zbc_ready) {
 		return;
 	}
 
@@ -70,7 +70,7 @@ void gm20b_pmu_save_zbc(struct gk20a *g, u32 entries)
 	cmd.cmd.zbc.cmd_type = g->pmu_ver_cmd_id_zbc_table_update;
 	cmd.cmd.zbc.entry_mask = ZBC_MASK(entries);
 
-	pmu->pmu_pg.zbc_save_done = false;
+	pmu->pg->zbc_save_done = false;
 
 	nvgpu_pmu_dbg(g, "cmd post ZBC_TABLE_UPDATE");
 	err = nvgpu_pmu_cmd_post(g, &cmd, NULL, PMU_COMMAND_QUEUE_HPQ,
@@ -80,8 +80,8 @@ void gm20b_pmu_save_zbc(struct gk20a *g, u32 entries)
 		return;
 	}
 	pmu_wait_message_cond(pmu, nvgpu_get_poll_timeout(g),
-			&pmu->pmu_pg.zbc_save_done, 1);
-	if (!pmu->pmu_pg.zbc_save_done) {
+			&pmu->pg->zbc_save_done, 1);
+	if (!pmu->pg->zbc_save_done) {
 		nvgpu_err(g, "ZBC save timeout");
 	}
 }
@@ -94,7 +94,7 @@ int gm20b_pmu_elpg_statistics(struct gk20a *g, u32 pg_engine_id,
 	int err;
 
 	err = nvgpu_falcon_copy_from_dmem(&pmu->flcn,
-		pmu->pmu_pg.stat_dmem_offset[pg_engine_id],
+		pmu->pg->stat_dmem_offset[pg_engine_id],
 		(u8 *)&stats, (u32)sizeof(struct pmu_pg_stats), 0);
 	if (err != 0) {
 		nvgpu_err(g, "PMU falcon DMEM copy failed");

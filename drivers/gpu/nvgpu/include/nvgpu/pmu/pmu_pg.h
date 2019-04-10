@@ -36,6 +36,28 @@
 struct nvgpu_pmu;
 struct vm_gk20a;
 
+/*PG defines used by nvpgu-pmu*/
+#define PMU_PG_IDLE_THRESHOLD_SIM		1000U
+#define PMU_PG_POST_POWERUP_IDLE_THRESHOLD_SIM	4000000U
+/* TBD: QT or else ? */
+#define PMU_PG_IDLE_THRESHOLD			15000U
+#define PMU_PG_POST_POWERUP_IDLE_THRESHOLD	1000000U
+
+#define PMU_PG_LPWR_FEATURE_RPPG 0x0U
+#define PMU_PG_LPWR_FEATURE_MSCG 0x1U
+
+#define PMU_MSCG_DISABLED 0U
+#define PMU_MSCG_ENABLED 1U
+
+/* Default Sampling Period of AELPG */
+#define APCTRL_SAMPLING_PERIOD_PG_DEFAULT_US                    (1000000U)
+
+/* Default values of APCTRL parameters */
+#define APCTRL_MINIMUM_IDLE_FILTER_DEFAULT_US                   (100U)
+#define APCTRL_MINIMUM_TARGET_SAVING_DEFAULT_US                 (10000U)
+#define APCTRL_POWER_BREAKEVEN_DEFAULT_US                       (2000U)
+#define APCTRL_CYCLES_PER_SAMPLE_MAX_DEFAULT                    (200U)
+
 struct nvgpu_pg_init {
 	bool state_change;
 	struct nvgpu_cond wq;
@@ -59,6 +81,8 @@ struct nvgpu_pmu_pg {
 	u32 stat_dmem_offset[PMU_PG_ELPG_ENGINE_ID_INVALID_ENGINE];
 	struct nvgpu_mem seq_buf;
 	bool golden_image_initialized;
+	u32 mscg_stat;
+	u32 mscg_transition_state;
 };
 
 /*PG defines used by nvpgu-pmu*/
@@ -71,11 +95,14 @@ struct pmu_pg_stats_data {
 };
 
 /* PG init*/
-int nvgpu_init_task_pg_init(struct gk20a *g);
-int nvgpu_pg_init_task(void *arg);
-int nvgpu_pmu_init_powergating(struct gk20a *g);
-int nvgpu_pmu_init_bind_fecs(struct gk20a *g);
-void nvgpu_pmu_setup_hw_load_zbc(struct gk20a *g);
+int nvgpu_pmu_pg_init(struct gk20a *g, struct nvgpu_pmu *pmu,
+	struct nvgpu_pmu_pg **pg);
+void nvgpu_pmu_pg_deinit(struct gk20a *g, struct nvgpu_pmu *pmu,
+	struct nvgpu_pmu_pg *pg);
+int nvgpu_pmu_pg_sw_setup(struct gk20a *g, struct nvgpu_pmu *pmu,
+	struct nvgpu_pmu_pg *pg);
+void nvgpu_pmu_pg_destroy(struct gk20a *g, struct nvgpu_pmu *pmu,
+	struct nvgpu_pmu_pg *pg);
 
 /* PG enable/disable */
 int nvgpu_pmu_enable_elpg(struct gk20a *g);
@@ -85,15 +112,11 @@ int nvgpu_pmu_pg_global_enable(struct gk20a *g, bool enable_pg);
 int nvgpu_pmu_get_pg_stats(struct gk20a *g, u32 pg_engine_id,
 	struct pmu_pg_stats_data *pg_stat_data);
 
-void nvgpu_kill_task_pg_init(struct gk20a *g);
-
 /* AELPG */
 int nvgpu_aelpg_init(struct gk20a *g);
 int nvgpu_aelpg_init_and_enable(struct gk20a *g, u8 ctrl_id);
 int nvgpu_pmu_ap_send_command(struct gk20a *g,
 		union pmu_ap_cmd *p_ap_cmd, bool b_block);
-int nvgpu_pmu_pg_init_seq_buf(struct nvgpu_pmu *pmu, struct vm_gk20a *vm);
-void nvgpu_pmu_pg_free_seq_buf(struct nvgpu_pmu *pmu, struct vm_gk20a *vm);
 
 void nvgpu_pmu_set_golden_image_initialized(struct gk20a *g, bool initialized);
 

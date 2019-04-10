@@ -38,16 +38,16 @@ static int lpwr_debug_show(struct seq_file *s, void *data)
 			"MSCG pstate state: %u\n"
 			"MSCG transition state: %u\n",
 			g->ops.clk_arb.get_current_pstate(g),
-			g->elpg_enabled, g->pmu.pmu_pg.elpg_refcnt,
-			g->pmu.pmu_pg.elpg_stat, g->mscg_enabled,
-			g->pmu.mscg_stat, g->pmu.mscg_transition_state);
+			g->elpg_enabled, g->pmu.pg->elpg_refcnt,
+			g->pmu.pg->elpg_stat, g->mscg_enabled,
+			g->pmu.pg->mscg_stat, g->pmu.pg->mscg_transition_state);
 
 	} else
 		seq_printf(s, "ELPG Enabled: %u\n"
 			"ELPG ref count: %u\n"
 			"ELPG state: %u\n",
-			g->elpg_enabled, g->pmu.pmu_pg.elpg_refcnt,
-			g->pmu.pmu_pg.elpg_stat);
+			g->elpg_enabled, g->pmu.pg->elpg_refcnt,
+			g->pmu.pg->elpg_stat);
 
 	return 0;
 

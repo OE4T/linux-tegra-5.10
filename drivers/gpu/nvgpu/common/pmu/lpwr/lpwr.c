@@ -379,15 +379,15 @@ int nvgpu_lpwr_enable_pg(struct gk20a *g, bool pstate_lock)
 	if (pstate_lock) {
 		nvgpu_clk_arb_pstate_change_lock(g, true);
 	}
-	nvgpu_mutex_acquire(&pmu->pmu_pg.pg_mutex);
+	nvgpu_mutex_acquire(&pmu->pg->pg_mutex);
 
 	present_pstate = nvgpu_clk_arb_get_current_pstate(g);
 
 	is_mscg_supported = nvgpu_lpwr_is_mscg_supported(g,
 			present_pstate);
 	if (is_mscg_supported && g->mscg_enabled) {
-		if (pmu->mscg_stat == 0U) {
-			pmu->mscg_stat = PMU_MSCG_ENABLED;
+		if (pmu->pg->mscg_stat == 0U) {
+			pmu->pg->mscg_stat = PMU_MSCG_ENABLED;
 		}
 	}
 
@@ -399,7 +399,7 @@ int nvgpu_lpwr_enable_pg(struct gk20a *g, bool pstate_lock)
 		}
 	}
 
-	nvgpu_mutex_release(&pmu->pmu_pg.pg_mutex);
+	nvgpu_mutex_release(&pmu->pg->pg_mutex);
 	if (pstate_lock) {
 		nvgpu_clk_arb_pstate_change_lock(g, false);
 	}
@@ -420,7 +420,7 @@ int nvgpu_lpwr_disable_pg(struct gk20a *g, bool pstate_lock)
 	if (pstate_lock) {
 		nvgpu_clk_arb_pstate_change_lock(g, true);
 	}
-	nvgpu_mutex_acquire(&pmu->pmu_pg.pg_mutex);
+	nvgpu_mutex_acquire(&pmu->pg->pg_mutex);
 
 	present_pstate = nvgpu_clk_arb_get_current_pstate(g);
 
@@ -438,13 +438,13 @@ int nvgpu_lpwr_disable_pg(struct gk20a *g, bool pstate_lock)
 	is_mscg_supported = nvgpu_lpwr_is_mscg_supported(g,
 			present_pstate);
 	if (is_mscg_supported && g->mscg_enabled) {
-		if (pmu->mscg_stat != 0U) {
-			pmu->mscg_stat = PMU_MSCG_DISABLED;
+		if (pmu->pg->mscg_stat != 0U) {
+			pmu->pg->mscg_stat = PMU_MSCG_DISABLED;
 		}
 	}
 
 exit_unlock:
-	nvgpu_mutex_release(&pmu->pmu_pg.pg_mutex);
+	nvgpu_mutex_release(&pmu->pg->pg_mutex);
 	if (pstate_lock) {
 		nvgpu_clk_arb_pstate_change_lock(g, false);
 	}

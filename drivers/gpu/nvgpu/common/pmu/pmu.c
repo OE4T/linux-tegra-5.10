@@ -154,11 +154,13 @@ static int nvgpu_init_pmu_setup_sw(struct gk20a *g)
 
 	nvgpu_log_fn(g, " ");
 
-	/* start with elpg disabled until first enable call */
-	pmu->pmu_pg.elpg_refcnt = 0;
+	if (g->can_elpg) {
+		err = nvgpu_pmu_pg_sw_setup(g, pmu, pmu->pg);
+		if (err != 0){
+			goto skip_init;
+		}
+	}
 
-	/* Create thread to handle PMU state machine */
-	nvgpu_init_task_pg_init(g);
 	if (pmu->sw_ready) {
 		nvgpu_pmu_mutexes_init(&pmu->mutexes);
 		nvgpu_pmu_sequences_init(&pmu->sequences);
@@ -181,8 +183,6 @@ static int nvgpu_init_pmu_setup_sw(struct gk20a *g)
 
 	nvgpu_pmu_sequences_init(&pmu->sequences);
 
-	err = nvgpu_pmu_pg_init_seq_buf(pmu, vm);
-
 	if (err != 0) {
 		nvgpu_err(g, "failed to allocate memory");
 		goto err_free_seq;
@@ -192,12 +192,12 @@ static int nvgpu_init_pmu_setup_sw(struct gk20a *g)
 		err = nvgpu_pmu_super_surface_buf_alloc(g,
 				pmu, pmu->super_surface);
 		if (err != 0) {
-			goto err_free_seq_buf;
+			goto err_free_seq;
 		}
 	}
 
 	err = nvgpu_dma_alloc_map(vm, GK20A_PMU_TRACE_BUFSIZE,
-			&pmu->trace_buf);
+				&pmu->trace_buf);
 	if (err != 0) {
 		nvgpu_err(g, "failed to allocate pmu trace buffer\n");
 		goto err_free_super_surface;
@@ -213,8 +213,6 @@ skip_init:
 		nvgpu_dma_unmap_free(vm, nvgpu_pmu_super_surface_mem(g,
 			pmu, pmu->super_surface));
 	}
- err_free_seq_buf:
-	nvgpu_pmu_pg_free_seq_buf(pmu, vm);
  err_free_seq:
 	nvgpu_pmu_sequences_free(g, &pmu->sequences);
  err_free_mutex:
@@ -230,10 +228,6 @@ int nvgpu_init_pmu_support(struct gk20a *g)
 	int err = 0;
 
 	nvgpu_log_fn(g, " ");
-
-	if (pmu->pmu_pg.initialized) {
-		return 0;
-	}
 
 	if (!g->support_ls_pmu) {
 		goto exit;
@@ -303,27 +297,16 @@ exit:
 int nvgpu_pmu_destroy(struct gk20a *g)
 {
 	struct nvgpu_pmu *pmu = &g->pmu;
-	struct pmu_pg_stats_data pg_stat_data = { 0 };
 
 	nvgpu_log_fn(g, " ");
 
 	if (!g->support_ls_pmu) {
 		return 0;
 	}
-	nvgpu_kill_task_pg_init(g);
 
-	nvgpu_pmu_get_pg_stats(g,
-		PMU_PG_ELPG_ENGINE_ID_GRAPHICS,	&pg_stat_data);
-
-	if (nvgpu_pmu_disable_elpg(g) != 0) {
-		nvgpu_err(g, "failed to set disable elpg");
+	if (g->can_elpg) {
+		nvgpu_pmu_pg_destroy(g, pmu, pmu->pg);
 	}
-	pmu->pmu_pg.initialized = false;
-
-	/* update the s/w ELPG residency counters */
-	g->pg_ingating_time_us += (u64)pg_stat_data.ingating_time;
-	g->pg_ungating_time_us += (u64)pg_stat_data.ungating_time;
-	g->pg_gating_cnt += pg_stat_data.gating_cnt;
 
 	nvgpu_mutex_acquire(&pmu->isr_mutex);
 	g->ops.pmu.pmu_enable_irq(pmu, false);
@@ -335,7 +318,7 @@ int nvgpu_pmu_destroy(struct gk20a *g)
 	nvgpu_pmu_fw_state_change(g, pmu, PMU_FW_STATE_OFF, false);
 	nvgpu_pmu_set_fw_ready(g, pmu, false);
 	pmu->pmu_perfmon->perfmon_ready = false;
-	pmu->pmu_pg.zbc_ready = false;
+
 	nvgpu_set_enabled(g, NVGPU_PMU_FECS_BOOTSTRAP_DONE, false);
 
 	nvgpu_log_fn(g, "done");
@@ -345,8 +328,6 @@ int nvgpu_pmu_destroy(struct gk20a *g)
 static void nvgpu_remove_pmu_support(struct nvgpu_pmu *pmu)
 {
 	struct gk20a *g = gk20a_from_pmu(pmu);
-	struct mm_gk20a *mm = &g->mm;
-	struct vm_gk20a *vm = mm->pmu.vm;
 	struct boardobj *pboardobj, *pboardobj_tmp;
 	struct boardobjgrp *pboardobjgrp, *pboardobjgrp_tmp;
 
@@ -371,18 +352,13 @@ static void nvgpu_remove_pmu_support(struct nvgpu_pmu *pmu)
 
 	nvgpu_pmu_fw_release(g, pmu);
 
-	if (nvgpu_mem_is_valid(&pmu->pmu_pg.seq_buf)) {
-		nvgpu_pmu_pg_free_seq_buf(pmu, vm);
-	}
-
 	if (nvgpu_is_enabled(g, NVGPU_SUPPORT_PMU_SUPER_SURFACE)) {
 		nvgpu_pmu_super_surface_deinit(g, pmu, pmu->super_surface);
 	}
 
 	nvgpu_pmu_lsfm_deinit(g, pmu, pmu->lsfm);
+	nvgpu_pmu_pg_deinit(g, pmu, pmu->pg);
 
-	nvgpu_mutex_destroy(&pmu->pmu_pg.elpg_mutex);
-	nvgpu_mutex_destroy(&pmu->pmu_pg.pg_mutex);
 	nvgpu_mutex_destroy(&pmu->isr_mutex);
 	nvgpu_pmu_sequences_free(g, &pmu->sequences);
 	nvgpu_pmu_mutexes_free(g, &pmu->mutexes);
@@ -411,16 +387,6 @@ int nvgpu_early_init_pmu_sw(struct gk20a *g, struct nvgpu_pmu *pmu)
 		goto exit;
 	}
 
-	err = nvgpu_mutex_init(&pmu->pmu_pg.elpg_mutex);
-	if (err != 0) {
-		return err;
-	}
-
-	err = nvgpu_mutex_init(&pmu->pmu_pg.pg_mutex);
-	if (err != 0) {
-		goto init_failed;
-	}
-
 	err = nvgpu_mutex_init(&pmu->isr_mutex);
 	if (err != 0) {
 		goto init_failed;
@@ -435,6 +401,12 @@ int nvgpu_early_init_pmu_sw(struct gk20a *g, struct nvgpu_pmu *pmu)
 	err = nvgpu_pmu_init_pmu_fw(g, pmu);
 	if (err != 0) {
 		goto init_failed;
+	}
+	if (g->can_elpg) {
+		err = nvgpu_pmu_pg_init(g, pmu, &pmu->pg);
+		if (err != 0) {
+			goto init_failed;
+		}
 	}
 
 	err = nvgpu_pmu_lsfm_init(g, &pmu->lsfm);
@@ -480,7 +452,11 @@ int nvgpu_pmu_lock_acquire(struct gk20a *g, struct nvgpu_pmu *pmu,
 		return 0;
 	}
 
-	if (!pmu->pmu_pg.initialized) {
+	if (!g->can_elpg) {
+		return 0;
+	}
+
+	if (!pmu->pg->initialized) {
 		return -EINVAL;
 	}
 
@@ -494,7 +470,11 @@ int nvgpu_pmu_lock_release(struct gk20a *g, struct nvgpu_pmu *pmu,
 		return 0;
 	}
 
-	if (!pmu->pmu_pg.initialized) {
+	if (!g->can_elpg) {
+		return 0;
+	}
+
+	if (!pmu->pg->initialized) {
 		return -EINVAL;
 	}
 

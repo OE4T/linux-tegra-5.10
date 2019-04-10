@@ -78,28 +78,6 @@
 #define	ACR_BOOT_TIMEDOUT		11U
 #define	ACR_BOOT_FAILED			12U
 
-/*PG defines used by nvpgu-pmu*/
-#define PMU_PG_IDLE_THRESHOLD_SIM		1000U
-#define PMU_PG_POST_POWERUP_IDLE_THRESHOLD_SIM	4000000U
-/* TBD: QT or else ? */
-#define PMU_PG_IDLE_THRESHOLD			15000U
-#define PMU_PG_POST_POWERUP_IDLE_THRESHOLD	1000000U
-
-#define PMU_PG_LPWR_FEATURE_RPPG 0x0U
-#define PMU_PG_LPWR_FEATURE_MSCG 0x1U
-
-#define PMU_MSCG_DISABLED 0U
-#define PMU_MSCG_ENABLED 1U
-
-/* Default Sampling Period of AELPG */
-#define APCTRL_SAMPLING_PERIOD_PG_DEFAULT_US                    (1000000U)
-
-/* Default values of APCTRL parameters */
-#define APCTRL_MINIMUM_IDLE_FILTER_DEFAULT_US                   (100U)
-#define APCTRL_MINIMUM_TARGET_SAVING_DEFAULT_US                 (10000U)
-#define APCTRL_POWER_BREAKEVEN_DEFAULT_US                       (2000U)
-#define APCTRL_CYCLES_PER_SAMPLE_MAX_DEFAULT                    (200U)
-
 /* pmu load const defines */
 #define PMU_BUSY_CYCLES_NORM_MAX		(1000U)
 
@@ -178,10 +156,7 @@ struct nvgpu_pmu {
 
 	struct nvgpu_allocator dmem;
 
-	u32 mscg_stat;
-	u32 mscg_transition_state;
-
-	struct nvgpu_pmu_pg pmu_pg;
+	struct nvgpu_pmu_pg *pg;
 	struct nvgpu_pmu_perfmon *pmu_perfmon;
 
 	void (*remove_support)(struct nvgpu_pmu *pmu);
@@ -222,7 +197,6 @@ int nvgpu_pmu_reset(struct gk20a *g);
 
 /* PMU debug */
 void nvgpu_pmu_dump_falcon_stats(struct nvgpu_pmu *pmu);
-void nvgpu_pmu_dump_elpg_stats(struct nvgpu_pmu *pmu);
 bool nvgpu_find_hex_in_string(char *strings, struct gk20a *g, u32 *hex_pos);
 
 struct gk20a *gk20a_from_pmu(struct nvgpu_pmu *pmu);

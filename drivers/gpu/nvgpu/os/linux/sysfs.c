@@ -538,8 +538,8 @@ static ssize_t mscg_enable_store(struct device *dev,
 			g->mscg_enabled = true;
 			if (g->ops.pmu.pmu_is_lpwr_feature_supported(g,
 					PMU_PG_LPWR_FEATURE_MSCG)) {
-				if (!ACCESS_ONCE(pmu->mscg_stat)) {
-					WRITE_ONCE(pmu->mscg_stat,
+				if (!ACCESS_ONCE(pmu->pg->mscg_stat)) {
+					WRITE_ONCE(pmu->pg->mscg_stat,
 						PMU_MSCG_ENABLED);
 					/* make status visible */
 					smp_mb();
@@ -550,7 +550,7 @@ static ssize_t mscg_enable_store(struct device *dev,
 			if (g->ops.pmu.pmu_is_lpwr_feature_supported(g,
 					PMU_PG_LPWR_FEATURE_MSCG)) {
 				nvgpu_pmu_pg_global_enable(g, false);
-				WRITE_ONCE(pmu->mscg_stat, PMU_MSCG_DISABLED);
+				WRITE_ONCE(pmu->pg->mscg_stat, PMU_MSCG_DISABLED);
 				/* make status visible */
 				smp_mb();
 				g->mscg_enabled = false;
@@ -584,7 +584,7 @@ static ssize_t aelpg_param_store(struct device *dev,
 	struct gk20a *g = get_gk20a(dev);
 	int status = 0;
 	union pmu_ap_cmd ap_cmd;
-	int *paramlist = (int *)g->pmu.pmu_pg.aelpg_param;
+	int *paramlist = (int *)g->pmu.pg->aelpg_param;
 	u32 defaultparam[5] = {
 			APCTRL_SAMPLING_PERIOD_PG_DEFAULT_US,
 			APCTRL_MINIMUM_IDLE_FILTER_DEFAULT_US,
@@ -627,9 +627,9 @@ static ssize_t aelpg_param_read(struct device *dev,
 	struct gk20a *g = get_gk20a(dev);
 
 	return snprintf(buf, PAGE_SIZE,
-		"%d %d %d %d %d\n", g->pmu.pmu_pg.aelpg_param[0],
-		g->pmu.pmu_pg.aelpg_param[1], g->pmu.pmu_pg.aelpg_param[2],
-		g->pmu.pmu_pg.aelpg_param[3], g->pmu.pmu_pg.aelpg_param[4]);
+		"%d %d %d %d %d\n", g->pmu.pg->aelpg_param[0],
+		g->pmu.pg->aelpg_param[1], g->pmu.pg->aelpg_param[2],
+		g->pmu.pg->aelpg_param[3], g->pmu.pg->aelpg_param[4]);
 }
 
 static DEVICE_ATTR(aelpg_param, ROOTRW,

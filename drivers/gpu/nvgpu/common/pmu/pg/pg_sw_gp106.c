@@ -106,7 +106,7 @@ int gp106_pmu_elpg_statistics(struct gk20a *g, u32 pg_engine_id,
 	int err;
 
 	err = nvgpu_falcon_copy_from_dmem(&pmu->flcn,
-		pmu->pmu_pg.stat_dmem_offset[pg_engine_id],
+		pmu->pg->stat_dmem_offset[pg_engine_id],
 			(u8 *)&stats, (u32)sizeof(struct pmu_pg_stats_v2), 0);
 	if (err != 0) {
 		nvgpu_err(g, "PMU falcon DMEM copy failed");
