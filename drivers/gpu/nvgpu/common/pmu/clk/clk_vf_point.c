@@ -627,6 +627,8 @@ int nvgpu_clk_vf_point_init_pmupstate(struct gk20a *g)
 		return -ENOMEM;
 	}
 
+	g->clk_pmu->nvgpu_clk_vf_point_cache = nvgpu_clk_vf_point_cache;
+
 	return 0;
 }
 

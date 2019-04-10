@@ -181,6 +181,7 @@
 #include <nvgpu/gr/gr.h>
 #include <nvgpu/pmu/pmu_perfmon.h>
 #include <nvgpu/gr/gr_intr.h>
+#include <nvgpu/pmu/lpwr.h>
 
 #include <nvgpu/hw/gv100/hw_proj_gv100.h>
 #include <nvgpu/hw/gv100/hw_top_gv100.h>

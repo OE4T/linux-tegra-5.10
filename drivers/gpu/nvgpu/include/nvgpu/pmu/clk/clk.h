@@ -100,6 +100,9 @@ struct nvgpu_clk_pmupstate {
 	u8 (*get_fll_lut_vf_num_entries)(struct nvgpu_clk_pmupstate *pclk);
 	u32 (*get_fll_lut_min_volt)(struct nvgpu_clk_pmupstate *pclk);
 	u32 (*get_fll_lut_step_size)(struct nvgpu_clk_pmupstate *pclk);
+
+	/* clk_vf_point functions */
+	int (*nvgpu_clk_vf_point_cache)(struct gk20a *g);
 };
 
 void nvgpu_clkrpc_pmucmdhandler(struct gk20a *g, struct pmu_msg *msg,
