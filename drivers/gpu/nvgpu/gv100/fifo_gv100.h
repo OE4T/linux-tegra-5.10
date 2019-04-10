@@ -29,6 +29,6 @@
 struct gk20a;
 
 u32 gv100_fifo_get_preempt_timeout(struct gk20a *g);
-void gv100_fifo_teardown_mask_intr(struct gk20a *g);
-void gv100_fifo_teardown_unmask_intr(struct gk20a *g);
+void gv100_fifo_intr_set_recover_mask(struct gk20a *g);
+void gv100_fifo_intr_unset_recover_mask(struct gk20a *g);
 #endif

@@ -49,8 +49,6 @@ int gv11b_fifo_preempt_tsg(struct gk20a *g, struct tsg_gk20a *tsg);
 void gv11b_fifo_teardown_ch_tsg(struct gk20a *g, u32 act_eng_bitmask,
 			u32 id, unsigned int id_type, unsigned int rc_type,
 			 struct mmu_fault_info *mmfault);
-void gv11b_fifo_teardown_mask_intr(struct gk20a *g);
-void gv11b_fifo_teardown_unmask_intr(struct gk20a *g);
 void gv11b_fifo_init_pbdma_intr_descs(struct fifo_gk20a *f);
 int gv11b_init_fifo_reset_enable_hw(struct gk20a *g);
 int gv11b_init_fifo_setup_hw(struct gk20a *g);

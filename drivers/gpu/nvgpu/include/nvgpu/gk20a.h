@@ -985,8 +985,8 @@ struct gpu_ops {
 		void (*teardown_ch_tsg)(struct gk20a *g, u32 act_eng_bitmask,
 			u32 id, unsigned int id_type, unsigned int rc_type,
 			 struct mmu_fault_info *mmfault);
-		void (*teardown_mask_intr)(struct gk20a *g);
-		void (*teardown_unmask_intr)(struct gk20a *g);
+		void (*intr_set_recover_mask)(struct gk20a *g);
+		void (*intr_unset_recover_mask)(struct gk20a *g);
 		u32 (*get_preempt_timeout)(struct gk20a *g);
 		int (*init_pdb_cache_war)(struct gk20a *g);
 		void (*deinit_pdb_cache_war)(struct gk20a *g);

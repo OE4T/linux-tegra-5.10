@@ -329,27 +329,6 @@ bool gk20a_fifo_handle_mmu_fault(
 	return verbose;
 }
 
-void gk20a_fifo_teardown_mask_intr(struct gk20a *g)
-{
-	u32 val;
-
-	val = gk20a_readl(g, fifo_intr_en_0_r());
-	val &= ~(fifo_intr_en_0_sched_error_m() |
-		fifo_intr_en_0_mmu_fault_m());
-	gk20a_writel(g, fifo_intr_en_0_r(), val);
-	gk20a_writel(g, fifo_intr_0_r(), fifo_intr_0_sched_error_reset_f());
-}
-
-void gk20a_fifo_teardown_unmask_intr(struct gk20a *g)
-{
-	u32 val;
-
-	val = gk20a_readl(g, fifo_intr_en_0_r());
-	val |= fifo_intr_en_0_mmu_fault_f(1) | fifo_intr_en_0_sched_error_f(1);
-	gk20a_writel(g, fifo_intr_en_0_r(), val);
-
-}
-
 void gk20a_fifo_teardown_ch_tsg(struct gk20a *g, u32 __engine_ids,
 			u32 hw_id, unsigned int id_type, unsigned int rc_type,
 			 struct mmu_fault_info *mmfault)
@@ -420,12 +399,13 @@ void gk20a_fifo_teardown_ch_tsg(struct gk20a *g, u32 __engine_ids,
 	}
 
 	if (mmu_fault_engines != 0U) {
-		g->ops.fifo.teardown_mask_intr(g);
+		g->ops.fifo.intr_set_recover_mask(g);
+
 		g->ops.fifo.trigger_mmu_fault(g, engine_ids);
 		gk20a_fifo_handle_mmu_fault_locked(g, mmu_fault_engines, ref_id,
 				ref_id_is_tsg);
 
-		g->ops.fifo.teardown_unmask_intr(g);
+		g->ops.fifo.intr_unset_recover_mask(g);
 	}
 
 	nvgpu_fifo_unlock_active_runlists(g);

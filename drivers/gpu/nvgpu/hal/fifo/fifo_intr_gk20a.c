@@ -290,3 +290,24 @@ bool gk20a_fifo_is_mmu_fault_pending(struct gk20a *g)
 		return false;
 	}
 }
+
+void gk20a_fifo_intr_set_recover_mask(struct gk20a *g)
+{
+	u32 val;
+
+	val = nvgpu_readl(g, fifo_intr_en_0_r());
+	val &= ~(fifo_intr_en_0_sched_error_m() |
+		fifo_intr_en_0_mmu_fault_m());
+	nvgpu_writel(g, fifo_intr_en_0_r(), val);
+	nvgpu_writel(g, fifo_intr_0_r(), fifo_intr_0_sched_error_reset_f());
+}
+
+void gk20a_fifo_intr_unset_recover_mask(struct gk20a *g)
+{
+	u32 val;
+
+	val = nvgpu_readl(g, fifo_intr_en_0_r());
+	val |= fifo_intr_en_0_mmu_fault_f(1) | fifo_intr_en_0_sched_error_f(1);
+	nvgpu_writel(g, fifo_intr_en_0_r(), val);
+
+}

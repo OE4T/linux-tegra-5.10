@@ -42,4 +42,7 @@ void gv11b_fifo_intr_0_isr(struct gk20a *g);
 
 bool gv11b_fifo_handle_sched_error(struct gk20a *g);
 
+void gv11b_fifo_intr_set_recover_mask(struct gk20a *g);
+void gv11b_fifo_intr_unset_recover_mask(struct gk20a *g);
+
 #endif /* NVGPU_FIFO_INTR_GV11B_H */

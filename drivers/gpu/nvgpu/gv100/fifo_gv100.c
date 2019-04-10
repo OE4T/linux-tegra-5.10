@@ -38,7 +38,7 @@ u32 gv100_fifo_get_preempt_timeout(struct gk20a *g)
 	return g->ctxsw_timeout_period_ms;
 }
 
-void gv100_fifo_teardown_mask_intr(struct gk20a *g)
+void gv100_fifo_intr_set_recover_mask(struct gk20a *g)
 {
 	u32 val;
 
@@ -48,7 +48,7 @@ void gv100_fifo_teardown_mask_intr(struct gk20a *g)
 	gk20a_writel(g, fifo_intr_0_r(), fifo_intr_0_sched_error_reset_f());
 }
 
-void gv100_fifo_teardown_unmask_intr(struct gk20a *g)
+void gv100_fifo_intr_unset_recover_mask(struct gk20a *g)
 {
 	u32 val;
 

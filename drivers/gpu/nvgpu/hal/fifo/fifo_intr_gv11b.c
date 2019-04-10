@@ -230,3 +230,29 @@ void gv11b_fifo_intr_0_isr(struct gk20a *g)
 
 	nvgpu_writel(g, fifo_intr_0_r(), clear_intr);
 }
+
+void gv11b_fifo_intr_set_recover_mask(struct gk20a *g)
+{
+	u32 val;
+
+	/*
+	 * ctxsw timeout error prevents recovery, and ctxsw error will retrigger
+	 * every 100ms. Disable ctxsw timeout error to allow recovery.
+	 */
+	val = nvgpu_readl(g, fifo_intr_en_0_r());
+	val &= ~fifo_intr_0_ctxsw_timeout_pending_f();
+	nvgpu_writel(g, fifo_intr_en_0_r(), val);
+	nvgpu_writel(g, fifo_intr_ctxsw_timeout_r(),
+			nvgpu_readl(g, fifo_intr_ctxsw_timeout_r()));
+
+}
+
+void gv11b_fifo_intr_unset_recover_mask(struct gk20a *g)
+{
+	u32 val;
+
+	/* enable ctxsw timeout interrupt */
+	val = nvgpu_readl(g, fifo_intr_en_0_r());
+	val |= fifo_intr_0_ctxsw_timeout_pending_f();
+	nvgpu_writel(g, fifo_intr_en_0_r(), val);
+}
