@@ -35,6 +35,7 @@
 #include <nvgpu/pmu/cmd.h>
 #include <nvgpu/pmu/msg.h>
 #include <nvgpu/pmu/fw.h>
+#include <nvgpu/pmu/allocator.h>
 
 static bool pmu_validate_cmd(struct nvgpu_pmu *pmu, struct pmu_cmd *cmd,
 			struct pmu_payload *payload, u32 queue_id)

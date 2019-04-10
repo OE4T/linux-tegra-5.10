@@ -260,15 +260,6 @@ int nvgpu_pmu_destroy(struct gk20a *g);
 int nvgpu_pmu_super_surface_alloc(struct gk20a *g,
 	struct nvgpu_mem *mem_surface, u32 size);
 
-/* NVGPU-PMU MEM alloc */
-void nvgpu_pmu_surface_free(struct gk20a *g, struct nvgpu_mem *mem);
-void nvgpu_pmu_surface_describe(struct gk20a *g, struct nvgpu_mem *mem,
-		struct flcn_mem_desc_v0 *fb);
-int nvgpu_pmu_vidmem_surface_alloc(struct gk20a *g, struct nvgpu_mem *mem,
-		u32 size);
-int nvgpu_pmu_sysmem_surface_alloc(struct gk20a *g, struct nvgpu_mem *mem,
-		u32 size);
-
 int nvgpu_early_init_pmu_sw(struct gk20a *g, struct nvgpu_pmu *pmu);
 
 /* PMU reset */

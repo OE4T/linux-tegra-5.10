@@ -23,13 +23,25 @@
 #ifndef NVGPU_PMU_ALLOCATOR_H
 #define NVGPU_PMU_ALLOCATOR_H
 
+#include <nvgpu/types.h>
+
 struct gk20a;
 struct nvgpu_pmu;
+struct nvgpu_mem;
 struct nvgpu_allocator;
 union pmu_init_msg_pmu;
+struct flcn_mem_desc_v0;
 
 void nvgpu_pmu_dmem_allocator_init(struct gk20a *g,
 	struct nvgpu_pmu *pmu, struct nvgpu_allocator *dmem,
 	union pmu_init_msg_pmu *init);
 void nvgpu_pmu_dmem_allocator_destroy(struct nvgpu_allocator *dmem);
+
+void nvgpu_pmu_surface_free(struct gk20a *g, struct nvgpu_mem *mem);
+void nvgpu_pmu_surface_describe(struct gk20a *g, struct nvgpu_mem *mem,
+		struct flcn_mem_desc_v0 *fb);
+int nvgpu_pmu_vidmem_surface_alloc(struct gk20a *g, struct nvgpu_mem *mem,
+		u32 size);
+int nvgpu_pmu_sysmem_surface_alloc(struct gk20a *g, struct nvgpu_mem *mem,
+		u32 size);
 #endif /* NVGPU_PMU_ALLOCATOR_H */

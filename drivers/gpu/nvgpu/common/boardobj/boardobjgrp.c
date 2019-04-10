@@ -26,6 +26,7 @@
 #include <nvgpu/pmu/pmuif/ctrlboardobj.h>
 #include <nvgpu/pmu/cmd.h>
 #include <nvgpu/pmu/super_surface.h>
+#include <nvgpu/pmu/allocator.h>
 
 /*
  * Inserts a previously constructed Board Object into a Board Object Group for
