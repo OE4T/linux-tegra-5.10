@@ -1413,9 +1413,9 @@ int gv11b_init_hal(struct gk20a *g)
 			nvgpu_gr_falcon_load_secure_ctxsw_ucode;
 	} else {
 		/* non-secure boot */
-		gops->pmu.pmu_nsbootstrap = gv11b_pmu_bootstrap;
-		gops->pmu.pmu_setup_hw_and_bootstrap =
-			gm20b_ns_pmu_setup_hw_and_bootstrap;
+		gops->pmu.pmu_ns_bootstrap = gv11b_pmu_bootstrap;
+		gops->pmu.setup_apertures =
+			gm20b_pmu_ns_setup_apertures;
 	}
 
 	nvgpu_set_enabled(g, NVGPU_PMU_FECS_BOOTSTRAP_DONE, false);

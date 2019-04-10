@@ -54,7 +54,8 @@ bool gk20a_pmu_is_interrupted(struct nvgpu_pmu *pmu);
 void gk20a_pmu_isr(struct gk20a *g);
 int gk20a_pmu_bar0_error_status(struct gk20a *g, u32 *bar0_status,
 	u32 *etype);
-int pmu_bootstrap(struct gk20a *g, struct nvgpu_pmu *pmu);
+int gk20a_pmu_ns_bootstrap(struct gk20a *g, struct nvgpu_pmu *pmu,
+	u32 args_offset);
 bool gk20a_pmu_is_engine_in_reset(struct gk20a *g);
 int gk20a_pmu_engine_reset(struct gk20a *g, bool do_reset);
 void gk20a_write_dmatrfbase(struct gk20a *g, u32 addr);

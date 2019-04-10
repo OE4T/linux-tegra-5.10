@@ -139,14 +139,15 @@ bool gv11b_is_pmu_supported(struct gk20a *g)
 #endif
 }
 
-int gv11b_pmu_bootstrap(struct gk20a *g, struct nvgpu_pmu *pmu)
+int gv11b_pmu_bootstrap(struct gk20a *g, struct nvgpu_pmu *pmu,
+	u32 args_offset)
 {
 	struct mm_gk20a *mm = &g->mm;
 	struct pmu_ucode_desc *desc =
 		(struct pmu_ucode_desc *)(void *)pmu->fw_image->data;
 	u32 addr_code_lo, addr_data_lo, addr_load_lo;
 	u32 addr_code_hi, addr_data_hi;
-	u32 i, blocks, addr_args;
+	u32 i, blocks;
 	int err;
 	u32 inst_block_ptr;
 
@@ -159,28 +160,10 @@ int gv11b_pmu_bootstrap(struct gk20a *g, struct nvgpu_pmu *pmu)
 	inst_block_ptr = nvgpu_inst_block_ptr(g, &mm->pmu.inst_block);
 	gk20a_writel(g, pwr_pmu_new_instblk_r(),
 		pwr_pmu_new_instblk_ptr_f(inst_block_ptr) |
-		     pwr_pmu_new_instblk_valid_f(1) |
-		     (nvgpu_is_enabled(g, NVGPU_USE_COHERENT_SYSMEM) ?
-		      pwr_pmu_new_instblk_target_sys_coh_f() :
-		      pwr_pmu_new_instblk_target_sys_ncoh_f()));
-
-	g->ops.pmu_ver.set_pmu_cmdline_args_trace_size(
-		pmu, GK20A_PMU_TRACE_BUFSIZE);
-	g->ops.pmu_ver.set_pmu_cmdline_args_trace_dma_base(pmu);
-	g->ops.pmu_ver.set_pmu_cmdline_args_trace_dma_idx(
-		pmu, GK20A_PMU_DMAIDX_VIRT);
-
-	g->ops.pmu_ver.set_pmu_cmdline_args_cpu_freq(pmu,
-		g->ops.clk.get_rate(g, CTRL_CLK_DOMAIN_PWRCLK));
-
-	addr_args = (pwr_falcon_hwcfg_dmem_size_v(
-		gk20a_readl(g, pwr_falcon_hwcfg_r()))
-			<< GK20A_PMU_DMEM_BLKSIZE2) -
-		g->ops.pmu_ver.get_pmu_cmdline_args_size(pmu);
-
-	nvgpu_falcon_copy_to_dmem(&pmu->flcn, addr_args,
-			(u8 *)(g->ops.pmu_ver.get_pmu_cmdline_args_ptr(pmu)),
-			g->ops.pmu_ver.get_pmu_cmdline_args_size(pmu), 0);
+		pwr_pmu_new_instblk_valid_f(1) |
+		(nvgpu_is_enabled(g, NVGPU_USE_COHERENT_SYSMEM) ?
+		pwr_pmu_new_instblk_target_sys_coh_f() :
+		pwr_pmu_new_instblk_target_sys_ncoh_f()));
 
 	gk20a_writel(g, pwr_falcon_dmemc_r(0),
 		pwr_falcon_dmemc_offs_f(0) |
@@ -223,7 +206,7 @@ int gv11b_pmu_bootstrap(struct gk20a *g, struct nvgpu_pmu *pmu)
 	gk20a_writel(g, pwr_falcon_dmemd_r(0), addr_data_hi);
 	gk20a_writel(g, pwr_falcon_dmemd_r(0), desc->app_resident_data_size);
 	gk20a_writel(g, pwr_falcon_dmemd_r(0), 0x1U);
-	gk20a_writel(g, pwr_falcon_dmemd_r(0), addr_args);
+	gk20a_writel(g, pwr_falcon_dmemd_r(0), args_offset);
 
 	g->ops.pmu.write_dmatrfbase(g,
 				addr_load_lo -

@@ -615,13 +615,14 @@ int gk20a_pmu_bar0_error_status(struct gk20a *g, u32 *bar0_status,
 }
 
 /* non-secure boot */
-int pmu_bootstrap(struct gk20a *g, struct nvgpu_pmu *pmu)
+int gk20a_pmu_ns_bootstrap(struct gk20a *g, struct nvgpu_pmu *pmu,
+	u32 args_offset)
 {
 	struct mm_gk20a *mm = &g->mm;
 	struct pmu_ucode_desc *desc =
 		(struct pmu_ucode_desc *)(void *)pmu->fw_image->data;
 	u32 addr_code, addr_data, addr_load;
-	u32 i, blocks, addr_args;
+	u32 i, blocks;
 	int err;
 	u64 tmp_addr;
 
@@ -636,25 +637,6 @@ int pmu_bootstrap(struct gk20a *g, struct nvgpu_pmu *pmu)
 		pwr_pmu_new_instblk_ptr_f((u32)tmp_addr) |
 		pwr_pmu_new_instblk_valid_f(1) |
 		pwr_pmu_new_instblk_target_sys_coh_f());
-
-	/* TBD: load all other surfaces */
-	g->ops.pmu_ver.set_pmu_cmdline_args_trace_size(
-		pmu, GK20A_PMU_TRACE_BUFSIZE);
-	g->ops.pmu_ver.set_pmu_cmdline_args_trace_dma_base(pmu);
-	g->ops.pmu_ver.set_pmu_cmdline_args_trace_dma_idx(
-		pmu, GK20A_PMU_DMAIDX_VIRT);
-
-	g->ops.pmu_ver.set_pmu_cmdline_args_cpu_freq(pmu,
-		g->ops.clk.get_rate(g, CTRL_CLK_DOMAIN_PWRCLK));
-
-	addr_args = (pwr_falcon_hwcfg_dmem_size_v(
-		gk20a_readl(g, pwr_falcon_hwcfg_r()))
-			<< GK20A_PMU_DMEM_BLKSIZE2) -
-		g->ops.pmu_ver.get_pmu_cmdline_args_size(pmu);
-
-	nvgpu_falcon_copy_to_dmem(&pmu->flcn, addr_args,
-			(u8 *)(g->ops.pmu_ver.get_pmu_cmdline_args_ptr(pmu)),
-			g->ops.pmu_ver.get_pmu_cmdline_args_size(pmu), 0);
 
 	gk20a_writel(g, pwr_falcon_dmemc_r(0),
 		pwr_falcon_dmemc_offs_f(0) |
@@ -679,7 +661,7 @@ int pmu_bootstrap(struct gk20a *g, struct nvgpu_pmu *pmu)
 	gk20a_writel(g, pwr_falcon_dmemd_r(0), desc->app_resident_data_size);
 	gk20a_writel(g, pwr_falcon_dmemd_r(0), addr_code);
 	gk20a_writel(g, pwr_falcon_dmemd_r(0), 0x1);
-	gk20a_writel(g, pwr_falcon_dmemd_r(0), addr_args);
+	gk20a_writel(g, pwr_falcon_dmemd_r(0), args_offset);
 
 	g->ops.pmu.write_dmatrfbase(g,
 			addr_load - (desc->bootloader_imem_offset >> U32(8)));

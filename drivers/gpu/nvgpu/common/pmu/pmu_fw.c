@@ -1819,7 +1819,7 @@ exit:
 	return err;
 }
 
-int nvgpu_pmu_prepare_ns_ucode_blob(struct gk20a *g)
+static int pmu_prepare_ns_ucode_blob(struct gk20a *g)
 {
 	struct nvgpu_pmu *pmu = &g->pmu;
 	struct mm_gk20a *mm = &g->mm;
@@ -1844,4 +1844,42 @@ int nvgpu_pmu_prepare_ns_ucode_blob(struct gk20a *g)
 
 exit:
 	return err;
+}
+
+int nvgpu_pmu_ns_fw_bootstrap(struct gk20a *g, struct nvgpu_pmu *pmu)
+{
+	int err;
+	u32 args_offset = 0;
+
+	/* prepare blob for non-secure PMU boot */
+	err = pmu_prepare_ns_ucode_blob(g);
+	if (err != 0) {
+		nvgpu_err(g, "non secure ucode blop consrtuct failed");
+		return err;
+	}
+
+	/* Do non-secure PMU boot */
+	nvgpu_mutex_acquire(&pmu->isr_mutex);
+	nvgpu_falcon_reset(&pmu->flcn);
+	pmu->isr_enabled = true;
+	nvgpu_mutex_release(&pmu->isr_mutex);
+
+	g->ops.pmu.setup_apertures(g);
+
+	g->ops.pmu_ver.set_pmu_cmdline_args_trace_size(
+		pmu, GK20A_PMU_TRACE_BUFSIZE);
+	g->ops.pmu_ver.set_pmu_cmdline_args_trace_dma_base(pmu);
+	g->ops.pmu_ver.set_pmu_cmdline_args_trace_dma_idx(
+		pmu, GK20A_PMU_DMAIDX_VIRT);
+
+	g->ops.pmu_ver.set_pmu_cmdline_args_cpu_freq(pmu,
+		g->ops.clk.get_rate(g, CTRL_CLK_DOMAIN_PWRCLK));
+
+	nvgpu_pmu_get_cmd_line_args_offset(g, &args_offset);
+
+	nvgpu_falcon_copy_to_dmem(&pmu->flcn, args_offset,
+		(u8 *)(g->ops.pmu_ver.get_pmu_cmdline_args_ptr(pmu)),
+		g->ops.pmu_ver.get_pmu_cmdline_args_size(pmu), 0);
+
+	return g->ops.pmu.pmu_ns_bootstrap(g, pmu, args_offset);
 }

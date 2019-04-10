@@ -140,15 +140,9 @@ bool gm20b_pmu_is_debug_mode_en(struct gk20a *g)
 	return pwr_pmu_scpctl_stat_debug_mode_v(ctl_stat) != 0U;
 }
 
-int gm20b_ns_pmu_setup_hw_and_bootstrap(struct gk20a *g,
-	struct nvgpu_pmu *pmu)
+void gm20b_pmu_ns_setup_apertures(struct gk20a *g)
 {
 	nvgpu_log_fn(g, " ");
-
-	nvgpu_mutex_acquire(&pmu->isr_mutex);
-	nvgpu_falcon_reset(&pmu->flcn);
-	pmu->isr_enabled = true;
-	nvgpu_mutex_release(&pmu->isr_mutex);
 
 	/* setup apertures - virtual */
 	gk20a_writel(g, pwr_fbif_transcfg_r(GK20A_PMU_DMAIDX_UCODE),
@@ -165,8 +159,6 @@ int gm20b_ns_pmu_setup_hw_and_bootstrap(struct gk20a *g,
 	gk20a_writel(g, pwr_fbif_transcfg_r(GK20A_PMU_DMAIDX_PHYS_SYS_NCOH),
 		pwr_fbif_transcfg_mem_type_physical_f() |
 		pwr_fbif_transcfg_target_noncoherent_sysmem_f());
-
-	return g->ops.pmu.pmu_nsbootstrap(g, pmu);
 }
 
 void gm20b_pmu_setup_apertures(struct gk20a *g)

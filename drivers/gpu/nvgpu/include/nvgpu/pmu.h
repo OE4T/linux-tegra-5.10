@@ -299,7 +299,7 @@ int nvgpu_pmu_sysmem_surface_alloc(struct gk20a *g, struct nvgpu_mem *mem,
 
 /* PMU F/W support */
 int nvgpu_early_init_pmu_sw(struct gk20a *g, struct nvgpu_pmu *pmu);
-int nvgpu_pmu_prepare_ns_ucode_blob(struct gk20a *g);
+int nvgpu_pmu_ns_fw_bootstrap(struct gk20a *g, struct nvgpu_pmu *pmu);
 
 /* PMU reset */
 int nvgpu_pmu_reset(struct gk20a *g);

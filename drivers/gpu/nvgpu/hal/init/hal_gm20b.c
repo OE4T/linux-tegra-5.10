@@ -1168,9 +1168,9 @@ int gm20b_init_hal(struct gk20a *g)
 			nvgpu_gr_falcon_load_secure_ctxsw_ucode;
 	} else {
 		/* Inherit from gk20a */
-		gops->pmu.pmu_setup_hw_and_bootstrap =
-			gm20b_ns_pmu_setup_hw_and_bootstrap;
-		gops->pmu.pmu_nsbootstrap = pmu_bootstrap;
+		gops->pmu.setup_apertures =
+				gm20b_pmu_ns_setup_apertures;
+		gops->pmu.pmu_ns_bootstrap = gk20a_pmu_ns_bootstrap;
 	}
 
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_ZBC_STENCIL, false);

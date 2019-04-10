@@ -1468,9 +1468,8 @@ struct gpu_ops {
 		void (*secured_pmu_start)(struct gk20a *g);
 		void (*flcn_setup_boot_config)(struct gk20a *g);
 		/* non-secure */
-		int (*pmu_setup_hw_and_bootstrap)(struct gk20a *g,
-			struct nvgpu_pmu *pmu);
-		int (*pmu_nsbootstrap)(struct gk20a *g, struct nvgpu_pmu *pmu);
+		int (*pmu_ns_bootstrap)(struct gk20a *g, struct nvgpu_pmu *pmu,
+			u32 args_offset);
 		/* queue */
 		u32 (*pmu_get_queue_head)(u32 i);
 		u32 (*pmu_get_queue_head_size)(void);
