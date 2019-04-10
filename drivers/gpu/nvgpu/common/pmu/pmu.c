@@ -39,6 +39,7 @@
 #include <nvgpu/sec2/lsfm.h>
 #include <nvgpu/pmu/super_surface.h>
 #include <nvgpu/pmu/pmu_perfmon.h>
+#include <nvgpu/pmu/pmu_pg.h>
 
 static void pmu_report_error(struct gk20a *g, u32 err_type,
 		u32 status, u32 pmu_err_type)
@@ -146,7 +147,6 @@ static int nvgpu_init_pmu_setup_sw(struct gk20a *g)
 	struct mm_gk20a *mm = &g->mm;
 	struct vm_gk20a *vm = mm->pmu.vm;
 	int err = 0;
-	u8 *ptr;
 
 	nvgpu_log_fn(g, " ");
 
@@ -177,23 +177,12 @@ static int nvgpu_init_pmu_setup_sw(struct gk20a *g)
 
 	nvgpu_pmu_sequences_init(&pmu->sequences);
 
-	err = nvgpu_dma_alloc_map_sys(vm, GK20A_PMU_SEQ_BUF_SIZE,
-			&pmu->seq_buf);
+	err = nvgpu_pmu_pg_init_seq_buf(pmu, vm);
+
 	if (err != 0) {
 		nvgpu_err(g, "failed to allocate memory");
 		goto err_free_seq;
 	}
-
-	ptr = (u8 *)pmu->seq_buf.cpu_va;
-
-	/* TBD: remove this if ZBC save/restore is handled by PMU
-	 * end an empty ZBC sequence for now
-	 */
-	ptr[0] = 0x16; /* opcode EXIT */
-	ptr[1] = 0; ptr[2] = 1; ptr[3] = 0;
-	ptr[4] = 0; ptr[5] = 0; ptr[6] = 0; ptr[7] = 0;
-
-	pmu->seq_buf.size = GK20A_PMU_SEQ_BUF_SIZE;
 
 	if (nvgpu_is_enabled(g, NVGPU_SUPPORT_PMU_SUPER_SURFACE)) {
 		err = nvgpu_pmu_super_surface_buf_alloc(g,
@@ -221,7 +210,7 @@ skip_init:
 			pmu, pmu->super_surface));
 	}
  err_free_seq_buf:
-	nvgpu_dma_unmap_free(vm, &pmu->seq_buf);
+	nvgpu_pmu_pg_free_seq_buf(pmu, vm);
  err_free_seq:
 	nvgpu_pmu_sequences_free(g, &pmu->sequences);
  err_free_mutex:

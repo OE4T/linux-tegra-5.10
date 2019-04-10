@@ -33,6 +33,9 @@
 #include <nvgpu/timers.h>
 #include <nvgpu/nvgpu_mem.h>
 
+struct nvgpu_pmu;
+struct vm_gk20a;
+
 struct nvgpu_pg_init {
 	bool state_change;
 	struct nvgpu_cond wq;
@@ -54,6 +57,7 @@ struct nvgpu_pmu_pg {
 	struct nvgpu_mem pg_buf;
 	bool initialized;
 	u32 stat_dmem_offset[PMU_PG_ELPG_ENGINE_ID_INVALID_ENGINE];
+	struct nvgpu_mem seq_buf;
 };
 
 /*PG defines used by nvpgu-pmu*/
@@ -87,5 +91,7 @@ int nvgpu_aelpg_init(struct gk20a *g);
 int nvgpu_aelpg_init_and_enable(struct gk20a *g, u8 ctrl_id);
 int nvgpu_pmu_ap_send_command(struct gk20a *g,
 		union pmu_ap_cmd *p_ap_cmd, bool b_block);
+int nvgpu_pmu_pg_init_seq_buf(struct nvgpu_pmu *pmu, struct vm_gk20a *vm);
+void nvgpu_pmu_pg_free_seq_buf(struct nvgpu_pmu *pmu, struct vm_gk20a *vm);
 
 #endif /* NVGPU_PMU_PG_H */

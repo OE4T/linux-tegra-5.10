@@ -214,7 +214,6 @@ struct nvgpu_pmu {
 
 	struct nvgpu_pmu_lsfm *lsfm;
 
-	struct nvgpu_mem seq_buf;
 	struct nvgpu_mem trace_buf;
 
 	struct pmu_super_surface *super_surface;
@@ -319,5 +318,6 @@ struct gk20a *gk20a_from_pmu(struct nvgpu_pmu *pmu);
 
 void nvgpu_pmu_report_bar0_pri_err_status(struct gk20a *g, u32 bar0_status,
 	u32 error_type);
+
 #endif /* NVGPU_PMU_H */
 

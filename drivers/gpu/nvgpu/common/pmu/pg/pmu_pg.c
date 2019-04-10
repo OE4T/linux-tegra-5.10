@@ -30,6 +30,7 @@
 #include <nvgpu/string.h>
 #include <nvgpu/engines.h>
 #include <nvgpu/pmu/cmd.h>
+#include <nvgpu/dma.h>
 
 /* state transition :
  * OFF => [OFF_ON_PENDING optional] => ON_PENDING => ON => OFF
@@ -695,11 +696,11 @@ void nvgpu_pmu_setup_hw_load_zbc(struct gk20a *g)
 	g->ops.pmu_ver.pg_cmd_eng_buf_load_set_buf_idx(&cmd.cmd.pg,
 			PMU_PGENG_GR_BUFFER_IDX_ZBC);
 	g->ops.pmu_ver.pg_cmd_eng_buf_load_set_buf_size(&cmd.cmd.pg,
-			pmu->seq_buf.size);
+			pmu->pmu_pg.seq_buf.size);
 	g->ops.pmu_ver.pg_cmd_eng_buf_load_set_dma_base(&cmd.cmd.pg,
-			u64_lo32(pmu->seq_buf.gpu_va));
+			u64_lo32(pmu->pmu_pg.seq_buf.gpu_va));
 	g->ops.pmu_ver.pg_cmd_eng_buf_load_set_dma_offset(&cmd.cmd.pg,
-			(u8)(pmu->seq_buf.gpu_va & 0xFFU));
+			(u8)(pmu->pmu_pg.seq_buf.gpu_va & 0xFFU));
 	g->ops.pmu_ver.pg_cmd_eng_buf_load_set_dma_idx(&cmd.cmd.pg,
 			PMU_DMAIDX_VIRT);
 
@@ -864,4 +865,32 @@ int nvgpu_pg_init_task(void *arg)
 	nvgpu_log_fn(g, "thread exit");
 
 	return err;
+}
+
+int nvgpu_pmu_pg_init_seq_buf(struct nvgpu_pmu *pmu, struct vm_gk20a *vm)
+{
+	int err;
+	u8 *ptr;
+
+	err = nvgpu_dma_alloc_map_sys(vm, GK20A_PMU_SEQ_BUF_SIZE,
+				&pmu->pmu_pg.seq_buf);
+	if (err != 0) {
+		return err;
+	}
+
+	ptr = (u8 *)pmu->pmu_pg.seq_buf.cpu_va;
+
+	ptr[0] = 0x16; /* opcode EXIT */
+	ptr[1] = 0; ptr[2] = 1; ptr[3] = 0;
+	ptr[4] = 0; ptr[5] = 0; ptr[6] = 0; ptr[7] = 0;
+
+	pmu->pmu_pg.seq_buf.size = GK20A_PMU_SEQ_BUF_SIZE;
+
+	return err;
+}
+
+void nvgpu_pmu_pg_free_seq_buf(struct nvgpu_pmu *pmu, struct vm_gk20a *vm)
+{
+	nvgpu_dma_unmap_free(vm, &pmu->pmu_pg.seq_buf);
+
 }

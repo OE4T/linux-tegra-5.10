@@ -38,6 +38,7 @@
 #include <nvgpu/pmu/allocator.h>
 #include <nvgpu/pmu/lsfm.h>
 #include <nvgpu/pmu/super_surface.h>
+#include <nvgpu/pmu/pmu_pg.h>
 
 /* PMU NS UCODE IMG */
 #define NVGPU_PMU_NS_UCODE_IMAGE	"gpmu_ucode.bin"
@@ -1650,8 +1651,8 @@ static void nvgpu_remove_pmu_support(struct nvgpu_pmu *pmu)
 		nvgpu_dma_unmap_free(vm, &pmu->ucode);
 	}
 
-	if (nvgpu_mem_is_valid(&pmu->seq_buf)) {
-		nvgpu_dma_unmap_free(vm, &pmu->seq_buf);
+	if (nvgpu_mem_is_valid(&pmu->pmu_pg.seq_buf)) {
+		nvgpu_pmu_pg_free_seq_buf(pmu, vm);
 	}
 
 	if (nvgpu_is_enabled(g, NVGPU_SUPPORT_PMU_SUPER_SURFACE)) {
