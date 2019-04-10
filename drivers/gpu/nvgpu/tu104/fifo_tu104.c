@@ -31,8 +31,6 @@
 
 #include "gk20a/fifo_gk20a.h"
 
-#include "gp10b/fifo_gp10b.h"
-
 #include "gv11b/fifo_gv11b.h"
 
 #include "tu104/fifo_tu104.h"

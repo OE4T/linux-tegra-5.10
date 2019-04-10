@@ -54,8 +54,6 @@
 
 #include "gk20a/fifo_gk20a.h"
 
-#include "gp10b/fifo_gp10b.h"
-
 #include <nvgpu/hw/gv11b/hw_pbdma_gv11b.h>
 #include <nvgpu/hw/gv11b/hw_fifo_gv11b.h>
 #include <nvgpu/hw/gv11b/hw_ram_gv11b.h>

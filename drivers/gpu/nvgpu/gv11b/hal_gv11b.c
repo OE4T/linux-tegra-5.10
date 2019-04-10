@@ -125,7 +125,6 @@
 #include "gm20b/mm_gm20b.h"
 
 #include "gp10b/ce_gp10b.h"
-#include "gp10b/fifo_gp10b.h"
 #include "gp10b/mm_gp10b.h"
 #include "gp10b/gr_gp10b.h"
 
