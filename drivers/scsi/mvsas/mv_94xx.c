@@ -77,7 +77,7 @@ static void set_phy_tuning(struct mvs_info *mvi, int phy_id,
 			setting_0 = GENERATION_2_3_SETTING;
 			setting_1 = GENERATION_3_4_SETTING;
 			phy_tuning.trans_emp_en = 0x1;
-			phy_tuning.trans_emp_amp = 0x6;
+			phy_tuning.trans_emp_amp = 0x4;
 			phy_tuning.trans_amp = 0x15;
 			phy_tuning.trans_amp_adj = 0x1;
 			break;
