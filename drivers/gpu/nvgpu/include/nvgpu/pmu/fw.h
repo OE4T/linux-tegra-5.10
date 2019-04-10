@@ -30,7 +30,6 @@
 struct nvgpu_pmu;
 struct pmu_sequence;
 struct pmu_super_surface;
-struct pmu_surface;
 struct pmu_pg_cmd;
 struct boardobjgrp;
 struct boardobjgrp_pmu_cmd;

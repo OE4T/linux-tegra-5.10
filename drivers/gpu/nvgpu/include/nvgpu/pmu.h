@@ -52,41 +52,6 @@
 #define PMU_MODE_MISMATCH_STATUS_MAILBOX_R  6U
 #define PMU_MODE_MISMATCH_STATUS_VAL        0xDEADDEADU
 
-/* Falcon Register index */
-#define PMU_FALCON_REG_R0		(0U)
-#define PMU_FALCON_REG_R1		(1U)
-#define PMU_FALCON_REG_R2		(2U)
-#define PMU_FALCON_REG_R3		(3U)
-#define PMU_FALCON_REG_R4		(4U)
-#define PMU_FALCON_REG_R5		(5U)
-#define PMU_FALCON_REG_R6		(6U)
-#define PMU_FALCON_REG_R7		(7U)
-#define PMU_FALCON_REG_R8		(8U)
-#define PMU_FALCON_REG_R9		(9U)
-#define PMU_FALCON_REG_R10		(10U)
-#define PMU_FALCON_REG_R11		(11U)
-#define PMU_FALCON_REG_R12		(12U)
-#define PMU_FALCON_REG_R13		(13U)
-#define PMU_FALCON_REG_R14		(14U)
-#define PMU_FALCON_REG_R15		(15U)
-#define PMU_FALCON_REG_IV0		(16U)
-#define PMU_FALCON_REG_IV1		(17U)
-#define PMU_FALCON_REG_UNDEFINED	(18U)
-#define PMU_FALCON_REG_EV		(19U)
-#define PMU_FALCON_REG_SP		(20U)
-#define PMU_FALCON_REG_PC		(21U)
-#define PMU_FALCON_REG_IMB		(22U)
-#define PMU_FALCON_REG_DMB		(23U)
-#define PMU_FALCON_REG_CSW		(24U)
-#define PMU_FALCON_REG_CCR		(25U)
-#define PMU_FALCON_REG_SEC		(26U)
-#define PMU_FALCON_REG_CTX		(27U)
-#define PMU_FALCON_REG_EXCI		(28U)
-#define PMU_FALCON_REG_RSVD0		(29U)
-#define PMU_FALCON_REG_RSVD1		(30U)
-#define PMU_FALCON_REG_RSVD2		(31U)
-#define PMU_FALCON_REG_SIZE		(32U)
-
 #define GK20A_PMU_UCODE_NB_MAX_OVERLAY	    32U
 #define GK20A_PMU_UCODE_NB_MAX_DATE_LENGTH  64U
 
@@ -211,8 +176,6 @@ struct nvgpu_pmu {
 
 	struct pmu_mutexes mutexes;
 
-	struct nvgpu_mutex pmu_copy_lock;
-
 	struct nvgpu_allocator dmem;
 
 	u32 mscg_stat;
@@ -230,14 +193,6 @@ struct nvgpu_pmu {
 
 	struct nvgpu_mutex isr_mutex;
 	bool isr_enabled;
-
-	u32 override_done;
-};
-
-struct pmu_surface {
-	struct nvgpu_mem vidmem_desc;
-	struct nvgpu_mem sysmem_desc;
-	struct flcn_mem_desc_v0 params;
 };
 
 /*!

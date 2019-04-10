@@ -384,7 +384,6 @@ static void nvgpu_remove_pmu_support(struct nvgpu_pmu *pmu)
 	nvgpu_mutex_destroy(&pmu->pmu_pg.elpg_mutex);
 	nvgpu_mutex_destroy(&pmu->pmu_pg.pg_mutex);
 	nvgpu_mutex_destroy(&pmu->isr_mutex);
-	nvgpu_mutex_destroy(&pmu->pmu_copy_lock);
 	nvgpu_pmu_sequences_free(g, &pmu->sequences);
 	nvgpu_pmu_mutexes_free(g, &pmu->mutexes);
 }
@@ -423,11 +422,6 @@ int nvgpu_early_init_pmu_sw(struct gk20a *g, struct nvgpu_pmu *pmu)
 	}
 
 	err = nvgpu_mutex_init(&pmu->isr_mutex);
-	if (err != 0) {
-		goto init_failed;
-	}
-
-	err = nvgpu_mutex_init(&pmu->pmu_copy_lock);
 	if (err != 0) {
 		goto init_failed;
 	}

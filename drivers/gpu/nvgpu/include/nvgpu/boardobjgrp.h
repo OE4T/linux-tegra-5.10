@@ -27,7 +27,6 @@ struct boardobjgrp;
 struct gk20a;
 struct nvgpu_list_node;
 
-
 /* ------------------------ Includes ----------------------------------------*/
 #include <nvgpu/boardobj.h>
 #include <nvgpu/boardobjgrpmask.h>
@@ -102,6 +101,12 @@ int boardobjgrp_pmugetstatus_impl_v1(struct gk20a *g,
 * Structure describing an PMU CMD for interacting with the representaition
 * of this BOARDOBJGRP within the PMU.
 */
+struct pmu_surface {
+	struct nvgpu_mem vidmem_desc;
+	struct nvgpu_mem sysmem_desc;
+	struct flcn_mem_desc_v0 params;
+};
+
 struct boardobjgrp_pmu_cmd {
 	u8   id;
 	u8   msgid;
