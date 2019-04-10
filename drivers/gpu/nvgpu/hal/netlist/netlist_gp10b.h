@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 - 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2015-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -19,16 +19,15 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef NVGPU_NETLIST_GV11B_H
-#define NVGPU_NETLIST_GV11B_H
+#ifndef NVGPU_NETLIST_GP10B_H
+#define NVGPU_NETLIST_GP10B_H
 
 #include <nvgpu/netlist.h>
 
-/* Define netlist for silicon only */
+/* production netlist, one and only one from below */
+#define GP10B_NETLIST_IMAGE_FW_NAME NVGPU_NETLIST_IMAGE_A
 
-#define GV11B_NETLIST_IMAGE_FW_NAME NVGPU_NETLIST_IMAGE_D
+int gp10b_netlist_get_name(struct gk20a *g, int index, char *name);
+bool gp10b_netlist_is_firmware_defined(void);
 
-int gv11b_netlist_get_name(struct gk20a *g, int index, char *name);
-bool gv11b_netlist_is_firmware_defined(void);
-
-#endif /* NVGPU_NETLIST_GV11B_H */
+#endif /* NVGPU_NETLIST_GP10B_H */

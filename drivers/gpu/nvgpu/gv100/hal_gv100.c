@@ -96,10 +96,10 @@
 #include "hal/gsp/gsp_gv100.h"
 #include "hal/pmu/pmu_hal_gk20a.h"
 #include "hal/sec2/sec2_gp106.h"
+#include "hal/netlist/netlist_gv100.h"
 
 #include "common/ptimer/ptimer_gk20a.h"
 #include "common/xve/xve_gp106.h"
-#include "common/netlist/netlist_gv100.h"
 #include "common/top/top_gm20b.h"
 #include "common/top/top_gp10b.h"
 #include "common/top/top_gv100.h"

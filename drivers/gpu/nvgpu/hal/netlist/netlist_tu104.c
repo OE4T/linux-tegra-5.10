@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -19,16 +19,28 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef NVGPU_NETLIST_GM20B_H
-#define NVGPU_NETLIST_GM20B_H
 
+#include <nvgpu/gk20a.h>
 #include <nvgpu/netlist.h>
 
-/* production netlist, one and only one from below */
-/*#undef GM20B_NETLIST_IMAGE_FW_NAME*/
-#define GM20B_NETLIST_IMAGE_FW_NAME NVGPU_NETLIST_IMAGE_B
+#include "netlist_tu104.h"
 
-int gm20b_netlist_get_name(struct gk20a *g, int index, char *name);
-bool gm20b_netlist_is_firmware_defined(void);
+int tu104_netlist_get_name(struct gk20a *g, int index, char *name)
+{
+	u32 ver = g->params.gpu_arch + g->params.gpu_impl;
 
-#endif /*NVGPU_NETLIST_GM20B_H*/
+	switch (ver) {
+	case NVGPU_GPUID_TU104:
+		(void) sprintf(name, "%s/%s", "tu104", "NETC_img.bin");
+		break;
+	default:
+		nvgpu_err(g, "no support for GPUID %x", ver);
+	}
+
+	return 0;
+}
+
+bool tu104_netlist_is_firmware_defined(void)
+{
+	return true;
+}

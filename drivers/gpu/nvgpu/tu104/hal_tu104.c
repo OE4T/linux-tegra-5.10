@@ -102,10 +102,10 @@
 #include "hal/gsp/gsp_gv100.h"
 #include "hal/pmu/pmu_hal_gk20a.h"
 #include "hal/sec2/sec2_tu104.h"
+#include "hal/netlist/netlist_tu104.h"
 
 #include "common/ptimer/ptimer_gk20a.h"
 #include "common/xve/xve_gp106.h"
-#include "common/netlist/netlist_tu104.h"
 #include "common/perf/perf_gv11b.h"
 #include "common/pmu/pmu_gk20a.h"
 #include "common/pmu/pmu_gm20b.h"

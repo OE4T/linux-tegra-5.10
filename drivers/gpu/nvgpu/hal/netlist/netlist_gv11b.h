@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016 - 2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -19,28 +19,16 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#include <nvgpu/gk20a.h>
+#ifndef NVGPU_NETLIST_GV11B_H
+#define NVGPU_NETLIST_GV11B_H
+
 #include <nvgpu/netlist.h>
 
-#include "netlist_gv100.h"
+/* Define netlist for silicon only */
 
-int gv100_netlist_get_name(struct gk20a *g, int index, char *name)
-{
-	u32 ver = g->params.gpu_arch + g->params.gpu_impl;
+#define GV11B_NETLIST_IMAGE_FW_NAME NVGPU_NETLIST_IMAGE_D
 
-	switch (ver) {
-		case NVGPU_GPUID_GV100:
-			(void) sprintf(name, "%s/%s", "gv100",
-					GV100_NETLIST_IMAGE_FW_NAME);
-			break;
-		default:
-			nvgpu_err(g, "no support for GPUID %x", ver);
-	}
+int gv11b_netlist_get_name(struct gk20a *g, int index, char *name);
+bool gv11b_netlist_is_firmware_defined(void);
 
-	return 0;
-}
-
-bool gv100_netlist_is_firmware_defined(void)
-{
-	return true;
-}
+#endif /* NVGPU_NETLIST_GV11B_H */
