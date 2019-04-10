@@ -548,7 +548,7 @@ static int test_nvgpu_gmmu_map_unmap(struct unit_module *m,
 static int test_nvgpu_gmmu_map_unmap_map_fail(struct unit_module *m,
 					struct gk20a *g, void *args)
 {
-	struct nvgpu_mem mem;
+	struct nvgpu_mem mem = { };
 	struct nvgpu_posix_fault_inj *kmem_fi =
 		nvgpu_kmem_get_fault_injection();
 	struct nvgpu_os_posix *p = nvgpu_os_posix_from_gk20a(g);
@@ -858,7 +858,7 @@ static int test_nvgpu_gmmu_map_unmap_batched(struct unit_module *m,
 {
 	struct nvgpu_mem mem = { }, mem2 = { };
 	u64 vaddr, vaddr2;
-	struct vm_gk20a_mapping_batch batch;
+	struct vm_gk20a_mapping_batch batch = { };
 	struct nvgpu_sgt *sgt;
 
 	struct test_parameters *params = (struct test_parameters *) args;
