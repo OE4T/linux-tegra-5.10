@@ -24,6 +24,7 @@
 #include <nvgpu/dma.h>
 #include <nvgpu/firmware.h>
 #include <nvgpu/gk20a.h>
+#include <nvgpu/acr.h>
 #include <nvgpu/pmuif/gpmuif_cmn.h>
 
 #include "acr_priv.h"

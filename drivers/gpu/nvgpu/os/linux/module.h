@@ -15,6 +15,7 @@
 
 struct gk20a;
 struct device;
+struct platform_device;
 struct nvgpu_os_linux;
 
 int gk20a_pm_finalize_poweron(struct device *dev);

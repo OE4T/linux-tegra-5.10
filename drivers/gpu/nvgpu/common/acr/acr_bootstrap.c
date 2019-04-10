@@ -28,6 +28,7 @@
 #include <nvgpu/pmu.h>
 #include <nvgpu/falcon.h>
 #include <nvgpu/gk20a.h>
+#include <nvgpu/acr.h>
 #include <nvgpu/bug.h>
 
 #include "acr_falcon_bl.h"

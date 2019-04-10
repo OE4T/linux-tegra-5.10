@@ -24,6 +24,7 @@
 #include <nvgpu/vm.h>
 #include <nvgpu/dma.h>
 #include <nvgpu/vm_area.h>
+#include <nvgpu/acr.h>
 #include <nvgpu/gmmu.h>
 #include <nvgpu/vidmem.h>
 #include <nvgpu/semaphore.h>

@@ -30,8 +30,6 @@ struct channel_gk20a;
 struct gr_gk20a;
 struct sim_nvgpu;
 struct gk20a_ce_app;
-struct gk20a_ctxsw_ucode_segments;
-struct gk20a_fecs_trace;
 struct gk20a_ctxsw_trace;
 struct nvgpu_mem_alloc_tracker;
 struct dbg_profiler_object_data;
@@ -40,14 +38,13 @@ struct nvgpu_clk_pll_debug_data;
 struct nvgpu_nvhost_dev;
 struct nvgpu_netlist_vars;
 struct netlist_av_list;
-struct nvgpu_gr_global_ctx_buffer_desc;
+struct netlist_aiv_list;
+struct netlist_av64_list;
 struct nvgpu_gr_fecs_trace;
 struct nvgpu_gr_isr_data;
 struct nvgpu_gpu_ctxsw_trace_entry;
 struct nvgpu_cpu_time_correlation_sample;
-struct nvgpu_mem_sgt;
 struct nvgpu_warpstate;
-struct nvgpu_clk_session;
 struct nvgpu_clk_arb;
 #ifdef CONFIG_GK20A_CTXSW_TRACE
 struct nvgpu_gpu_ctxsw_trace_filter;
@@ -56,9 +53,6 @@ struct priv_cmd_entry;
 struct nvgpu_setup_bind_args;
 struct nvgpu_clk_pmupstate;
 struct perf_pmupstate;
-struct vin_device_v20;
-struct nvgpu_avfsvinobjs;
-struct nvgpu_set_fll_clk;
 struct boardobjgrp;
 struct boardobjgrp_pmu_cmd;
 struct boardobjgrpmask;
@@ -69,6 +63,7 @@ struct nvgpu_gr_subctx;
 struct nvgpu_gr_zbc;
 struct nvgpu_gr_zbc_entry;
 struct nvgpu_gr_zbc_query_params;
+struct nvgpu_gr_zcull;
 struct nvgpu_gr_zcull_info;
 struct nvgpu_gr_tpc_exception;
 struct nvgpu_channel_hw_state;
@@ -79,6 +74,14 @@ struct nvgpu_fecs_method_op;
 enum nvgpu_nvlink_minion_dlcmd;
 struct nvgpu_cbc;
 struct nvgpu_mem;
+struct gk20a_cs_snapshot_client;
+struct dbg_session_gk20a;
+struct gk20a_ctxsw_ucode_info;
+struct ctxsw_buf_offset_map_entry;
+struct nvgpu_dbg_reg_op;
+struct gk20a_cs_snapshot;
+struct nvgpu_preemption_modes_rec;
+struct nvgpu_gr_ctx;
 typedef void (*global_ctx_mem_destroy_fn)(struct gk20a *g,
 					struct nvgpu_mem *mem);
 
@@ -88,16 +91,12 @@ typedef void (*global_ctx_mem_destroy_fn)(struct gk20a *g,
 #include <nvgpu/mm.h>
 #include <nvgpu/as.h>
 #include <nvgpu/log.h>
-#include <nvgpu/pramin.h>
-#include <nvgpu/acr.h>
 #include <nvgpu/kref.h>
-#include <nvgpu/falcon.h>
 #include <nvgpu/pmu.h>
 #include <nvgpu/atomic.h>
 #include <nvgpu/barrier.h>
 #include <nvgpu/rwsem.h>
 #include <nvgpu/nvlink.h>
-#include <nvgpu/sim.h>
 #include <nvgpu/ecc.h>
 #include <nvgpu/channel.h>
 #include <nvgpu/tsg.h>

@@ -26,6 +26,7 @@
 #include <nvgpu/gr/config.h>
 #include <nvgpu/gr/zbc.h>
 #include <nvgpu/gr/zcull.h>
+#include <nvgpu/netlist.h>
 #include <nvgpu/gr/gr_falcon.h>
 #include <nvgpu/gr/ctx.h>
 #include <nvgpu/unit.h>

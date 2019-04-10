@@ -29,6 +29,7 @@
 #include <nvgpu/soc.h>
 #include <nvgpu/enabled.h>
 #include <nvgpu/fifo.h>
+#include <nvgpu/acr.h>
 #include <nvgpu/pmu.h>
 #include <nvgpu/gmmu.h>
 #include <nvgpu/ltc.h>

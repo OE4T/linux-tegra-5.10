@@ -25,7 +25,6 @@
 #define GR_GK20A_H
 
 #include <nvgpu/types.h>
-#include <nvgpu/netlist.h>
 
 #include "mm_gk20a.h"
 
@@ -177,8 +176,6 @@ struct gr_gk20a {
 	void (*remove_support)(struct gr_gk20a *gr);
 	bool sw_ready;
 	bool skip_ucode_init;
-
-	struct nvgpu_preemption_modes_rec preemption_mode_rec;
 
 	u32 fecs_feature_override_ecc_val;
 

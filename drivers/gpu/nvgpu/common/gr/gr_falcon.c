@@ -21,6 +21,7 @@
  */
 
 #include <nvgpu/gk20a.h>
+#include <nvgpu/netlist.h>
 #include <nvgpu/gr/gr_falcon.h>
 #include <nvgpu/enabled.h>
 #include <nvgpu/debug.h>

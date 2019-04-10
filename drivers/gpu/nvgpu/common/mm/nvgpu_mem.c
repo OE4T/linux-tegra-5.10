@@ -27,6 +27,7 @@
 #include <nvgpu/dma.h>
 #include <nvgpu/vidmem.h>
 #include <nvgpu/gk20a.h>
+#include <nvgpu/pramin.h>
 #include <nvgpu/string.h>
 
 /*

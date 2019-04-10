@@ -27,6 +27,7 @@
 #include <nvgpu/bug.h>
 #include <nvgpu/gr/ctx.h>
 #include <nvgpu/ltc.h>
+#include <nvgpu/netlist.h>
 
 #include <nvgpu/gr/config.h>
 

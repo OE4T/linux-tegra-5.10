@@ -29,6 +29,7 @@
 #include <nvgpu/gr/global_ctx.h>
 #include <nvgpu/gr/obj_ctx.h>
 #include <nvgpu/gr/config.h>
+#include <nvgpu/netlist.h>
 #include <nvgpu/gr/gr_falcon.h>
 #include <nvgpu/gr/fs_state.h>
 #include <nvgpu/power_features/cg.h>
