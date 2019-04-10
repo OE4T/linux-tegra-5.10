@@ -754,10 +754,16 @@ struct channel_gk20a *gk20a_open_new_channel(struct gk20a *g,
 
 	/* Mark the channel alive, get-able, with 1 initial use
 	 * references. The initial reference will be decreased in
-	 * gk20a_free_channel() */
+	 * gk20a_free_channel().
+	 *
+	 * Use the lock, since an asynchronous thread could
+	 * try to access this channel while it's not fully
+	 * initialized.
+	 */
+	nvgpu_spinlock_acquire(&ch->ref_obtain_lock);
 	ch->referenceable = true;
 	nvgpu_atomic_set(&ch->ref_count, 1);
-	nvgpu_smp_wmb();
+	nvgpu_spinlock_release(&ch->ref_obtain_lock);
 
 	return ch;
 
