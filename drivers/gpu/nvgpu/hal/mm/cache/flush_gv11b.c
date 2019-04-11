@@ -1,6 +1,5 @@
 /*
- * GV11B MM
- * Copyright (c) 2016-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -21,20 +20,43 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef MM_GV11B_H
-#define MM_GV11B_H
+#include <nvgpu/gk20a.h>
 
-struct gk20a;
-struct nvgpu_mem;
-struct vm_gk20a;
+#include <nvgpu/hw/gv11b/hw_flush_gv11b.h>
 
-bool gv11b_mm_is_bar1_supported(struct gk20a *g);
-void gv11b_init_inst_block(struct nvgpu_mem *inst_block,
-		struct vm_gk20a *vm, u32 big_page_size);
-int gv11b_init_mm_setup_hw(struct gk20a *g);
-u64 gv11b_gpu_phys_addr(struct gk20a *g,
-			struct nvgpu_gmmu_attrs *attrs, u64 phys);
-void gv11b_mm_fault_info_mem_destroy(struct gk20a *g);
-void gv11b_mm_mmu_fault_disable_hw(struct gk20a *g);
+#include "flush_gk20a.h"
+#include "flush_gv11b.h"
 
-#endif
+int gv11b_mm_l2_flush(struct gk20a *g, bool invalidate)
+{
+	int err = 0;
+
+	nvgpu_log(g, gpu_dbg_fn, "gv11b_mm_l2_flush");
+
+	err = g->ops.mm.cache.fb_flush(g);
+	if (err != 0) {
+		nvgpu_err(g, "mm.cache.fb_flush()[1] failed err=%d", err);
+		return err;
+	}
+	err = gk20a_mm_l2_flush(g, invalidate);
+	if (err != 0) {
+		nvgpu_err(g, "gk20a_mm_l2_flush failed");
+		return err;
+	}
+	if (g->ops.bus.bar1_bind != NULL) {
+		err = g->ops.fb.tlb_invalidate(g, g->mm.bar1.vm->pdb.mem);
+		if (err != 0) {
+			nvgpu_err(g, "fb.tlb_invalidate() failed err=%d", err);
+			return err;
+		}
+	} else {
+		err = g->ops.mm.cache.fb_flush(g);
+		if (err != 0) {
+			nvgpu_err(g, "mm.cache.fb_flush()[2] failed err=%d",
+				  err);
+			return err;
+		}
+	}
+
+	return err;
+}

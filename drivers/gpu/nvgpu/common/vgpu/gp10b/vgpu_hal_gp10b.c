@@ -571,10 +571,6 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 		.gmmu_map = vgpu_locked_gmmu_map,
 		.gmmu_unmap = vgpu_locked_gmmu_unmap,
 		.vm_bind_channel = vgpu_vm_bind_channel,
-		.fb_flush = vgpu_mm_fb_flush,
-		.l2_invalidate = vgpu_mm_l2_invalidate,
-		.l2_flush = vgpu_mm_l2_flush,
-		.cbc_clean = NULL,
 		.get_big_page_sizes = gm20b_mm_get_big_page_sizes,
 		.get_default_big_page_size = gp10b_mm_get_default_big_page_size,
 		.gpu_phys_addr = gm20b_gpu_phys_addr,
@@ -590,6 +586,12 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 		.bar1_map_userd = vgpu_mm_bar1_map_userd,
 		.vm_as_alloc_share = vgpu_vm_as_alloc_share,
 		.vm_as_free_share = vgpu_vm_as_free_share,
+		.cache = {
+			.fb_flush = vgpu_mm_fb_flush,
+			.l2_invalidate = vgpu_mm_l2_invalidate,
+			.l2_flush = vgpu_mm_l2_flush,
+			.cbc_clean = NULL,
+		},
 	},
 	.pramin = {
 		.data032_r = NULL,

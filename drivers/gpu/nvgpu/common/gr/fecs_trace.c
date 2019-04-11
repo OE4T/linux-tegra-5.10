@@ -479,7 +479,7 @@ int nvgpu_gr_fecs_trace_poll(struct gk20a *g)
 		read, g->ops.gr.fecs_trace.get_read_index(g), write, cnt);
 
 	/* Ensure all FECS writes have made it to SYSMEM */
-	g->ops.mm.fb_flush(g);
+	g->ops.mm.cache.fb_flush(g);
 
 	while (read != write) {
 		cnt = nvgpu_gr_fecs_trace_ring_read(g, read, &vm_update_mask);

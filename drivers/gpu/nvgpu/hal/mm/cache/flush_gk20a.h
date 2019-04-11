@@ -1,6 +1,5 @@
 /*
- * GV11B MM
- * Copyright (c) 2016-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -21,20 +20,16 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef MM_GV11B_H
-#define MM_GV11B_H
+#ifndef HAL_MM_FLUSH_FLUSH_GK20A_H
+#define HAL_MM_FLUSH_FLUSH_GK20A_H
+
+#include <nvgpu/types.h>
 
 struct gk20a;
-struct nvgpu_mem;
-struct vm_gk20a;
 
-bool gv11b_mm_is_bar1_supported(struct gk20a *g);
-void gv11b_init_inst_block(struct nvgpu_mem *inst_block,
-		struct vm_gk20a *vm, u32 big_page_size);
-int gv11b_init_mm_setup_hw(struct gk20a *g);
-u64 gv11b_gpu_phys_addr(struct gk20a *g,
-			struct nvgpu_gmmu_attrs *attrs, u64 phys);
-void gv11b_mm_fault_info_mem_destroy(struct gk20a *g);
-void gv11b_mm_mmu_fault_disable_hw(struct gk20a *g);
+int gk20a_mm_fb_flush(struct gk20a *g);
+int gk20a_mm_l2_flush(struct gk20a *g, bool invalidate);
+void gk20a_mm_cbc_clean(struct gk20a *g);
+void gk20a_mm_l2_invalidate(struct gk20a *g);
 
 #endif

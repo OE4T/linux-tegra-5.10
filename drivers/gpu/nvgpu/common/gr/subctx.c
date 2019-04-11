@@ -88,7 +88,7 @@ void nvgpu_gr_subctx_load_ctx_header(struct gk20a *g,
 	struct nvgpu_mem *ctxheader = &subctx->ctx_header;
 	int err = 0;
 
-	err = g->ops.mm.l2_flush(g, true);
+	err = g->ops.mm.cache.l2_flush(g, true);
 	if (err != 0) {
 		nvgpu_err(g, "l2_flush failed");
 	}
@@ -154,4 +154,3 @@ struct nvgpu_mem *nvgpu_gr_subctx_get_ctx_header(struct gk20a *g,
 {
 	return &subctx->ctx_header;
 }
-

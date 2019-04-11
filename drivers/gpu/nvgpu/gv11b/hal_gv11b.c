@@ -30,6 +30,8 @@
 #include <nvgpu/gr/gr.h>
 #include <nvgpu/pmu/pmu_perfmon.h>
 
+#include "hal/mm/cache/flush_gk20a.h"
+#include "hal/mm/cache/flush_gv11b.h"
 #include "hal/mc/mc_gm20b.h"
 #include "hal/mc/mc_gp10b.h"
 #include "hal/mc/mc_gv11b.h"
@@ -1064,10 +1066,6 @@ static const struct gpu_ops gv11b_ops = {
 		.gmmu_map = gk20a_locked_gmmu_map,
 		.gmmu_unmap = gk20a_locked_gmmu_unmap,
 		.vm_bind_channel = gk20a_vm_bind_channel,
-		.fb_flush = gk20a_mm_fb_flush,
-		.l2_invalidate = gk20a_mm_l2_invalidate,
-		.l2_flush = gv11b_mm_l2_flush,
-		.cbc_clean = gk20a_mm_cbc_clean,
 		.get_big_page_sizes = gm20b_mm_get_big_page_sizes,
 		.get_default_big_page_size = gp10b_mm_get_default_big_page_size,
 		.gpu_phys_addr = gv11b_gpu_phys_addr,
@@ -1084,6 +1082,12 @@ static const struct gpu_ops gv11b_ops = {
 		.fault_info_mem_destroy = gv11b_mm_fault_info_mem_destroy,
 		.mmu_fault_disable_hw = gv11b_mm_mmu_fault_disable_hw,
 		.bar1_map_userd = NULL,
+		.cache = {
+			.fb_flush = gk20a_mm_fb_flush,
+			.l2_invalidate = gk20a_mm_l2_invalidate,
+			.l2_flush = gv11b_mm_l2_flush,
+			.cbc_clean = gk20a_mm_cbc_clean,
+		},
 	},
 	.therm = {
 		.init_therm_setup_hw = gv11b_init_therm_setup_hw,

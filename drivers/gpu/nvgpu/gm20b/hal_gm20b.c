@@ -46,6 +46,7 @@
 #include <nvgpu/gr/setup.h>
 #include <nvgpu/pmu/pmu_perfmon.h>
 
+#include "hal/mm/cache/flush_gk20a.h"
 #include "hal/mc/mc_gm20b.h"
 #include "hal/bus/bus_gm20b.h"
 #include "hal/bus/bus_gk20a.h"
@@ -806,10 +807,6 @@ static const struct gpu_ops gm20b_ops = {
 		.gmmu_map = gk20a_locked_gmmu_map,
 		.gmmu_unmap = gk20a_locked_gmmu_unmap,
 		.vm_bind_channel = gk20a_vm_bind_channel,
-		.fb_flush = gk20a_mm_fb_flush,
-		.l2_invalidate = gk20a_mm_l2_invalidate,
-		.l2_flush = gk20a_mm_l2_flush,
-		.cbc_clean = gk20a_mm_cbc_clean,
 		.get_big_page_sizes = gm20b_mm_get_big_page_sizes,
 		.get_default_big_page_size = gm20b_mm_get_default_big_page_size,
 		.gpu_phys_addr = gm20b_gpu_phys_addr,
@@ -822,6 +819,12 @@ static const struct gpu_ops gm20b_ops = {
 		.get_kind_invalid = gm20b_get_kind_invalid,
 		.get_kind_pitch = gm20b_get_kind_pitch,
 		.bar1_map_userd = gk20a_mm_bar1_map_userd,
+		.cache = {
+			.fb_flush = gk20a_mm_fb_flush,
+			.l2_invalidate = gk20a_mm_l2_invalidate,
+			.l2_flush = gk20a_mm_l2_flush,
+			.cbc_clean = gk20a_mm_cbc_clean,
+		},
 	},
 	.therm = {
 		.init_therm_setup_hw = gm20b_init_therm_setup_hw,

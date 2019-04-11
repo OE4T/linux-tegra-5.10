@@ -61,7 +61,7 @@ void gp10b_ltc_intr_handle_lts_interrupts(struct gk20a *g, u32 ltc, u32 slice)
 		nvgpu_writel_check(g,
 			ltc_ltc0_lts0_dstg_ecc_report_r() + offset,
 			ecc_stats_reg_val);
-		if (g->ops.mm.l2_flush(g, true) != 0) {
+		if (g->ops.mm.cache.l2_flush(g, true) != 0) {
 			nvgpu_err(g, "l2_flush failed");
 		}
 	}

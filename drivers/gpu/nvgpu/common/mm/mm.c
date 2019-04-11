@@ -124,8 +124,8 @@ int nvgpu_mm_suspend(struct gk20a *g)
 
 	nvgpu_vidmem_thread_pause_sync(&g->mm);
 
-	g->ops.mm.cbc_clean(g);
-	err = g->ops.mm.l2_flush(g, false);
+	g->ops.mm.cache.cbc_clean(g);
+	err = g->ops.mm.cache.l2_flush(g, false);
 	if (err != 0) {
 		nvgpu_err(g, "l2_flush failed");
 		return err;

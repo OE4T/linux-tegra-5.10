@@ -882,7 +882,7 @@ void gk20a_locked_gmmu_unmap(struct vm_gk20a *vm,
 	}
 
 	if (batch == NULL) {
-		if (gk20a_mm_l2_flush(g, true) != 0) {
+		if (g->ops.mm.cache.l2_flush(g, true) != 0) {
 			nvgpu_err(g, "gk20a_mm_l2_flush[1] failed");
 		}
 		err = g->ops.fb.tlb_invalidate(g, vm->pdb.mem);
@@ -891,7 +891,7 @@ void gk20a_locked_gmmu_unmap(struct vm_gk20a *vm,
 		}
 	} else {
 		if (!batch->gpu_l2_flushed) {
-			if (gk20a_mm_l2_flush(g, true) != 0) {
+			if (g->ops.mm.cache.l2_flush(g, true) != 0) {
 				nvgpu_err(g, "gk20a_mm_l2_flush[2] failed");
 			}
 			batch->gpu_l2_flushed = true;

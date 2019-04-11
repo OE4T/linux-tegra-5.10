@@ -51,7 +51,6 @@
 
 #include <nvgpu/hw/gk20a/hw_gmmu_gk20a.h>
 #include <nvgpu/hw/gk20a/hw_pram_gk20a.h>
-#include <nvgpu/hw/gk20a/hw_flush_gk20a.h>
 
 /*
  * GPU mapping life cycle
@@ -114,7 +113,8 @@ int gk20a_init_mm_setup_hw(struct gk20a *g)
 		}
 	}
 
-	if ((gk20a_mm_fb_flush(g) != 0) || (gk20a_mm_fb_flush(g) != 0)) {
+	if (g->ops.mm.cache.fb_flush(g) != 0 ||
+	    g->ops.mm.cache.fb_flush(g) != 0) {
 		return -EBUSY;
 	}
 
@@ -406,234 +406,6 @@ int gk20a_alloc_inst_block(struct gk20a *g, struct nvgpu_mem *inst_block)
 	return 0;
 }
 
-int gk20a_mm_fb_flush(struct gk20a *g)
-{
-	struct mm_gk20a *mm = &g->mm;
-	u32 data;
-	int ret = 0;
-	struct nvgpu_timeout timeout;
-	u32 retries;
-
-	nvgpu_log_fn(g, " ");
-
-	gk20a_busy_noresume(g);
-	if (!g->power_on) {
-		gk20a_idle_nosuspend(g);
-		return 0;
-	}
-
-	retries = 100;
-
-	if (g->ops.mm.get_flush_retries != NULL) {
-		retries = g->ops.mm.get_flush_retries(g, NVGPU_FLUSH_FB);
-	}
-
-	nvgpu_timeout_init(g, &timeout, retries, NVGPU_TIMER_RETRY_TIMER);
-
-	nvgpu_mutex_acquire(&mm->l2_op_lock);
-
-	/* Make sure all previous writes are committed to the L2. There's no
-	   guarantee that writes are to DRAM. This will be a sysmembar internal
-	   to the L2. */
-
-	trace_gk20a_mm_fb_flush(g->name);
-
-	gk20a_writel(g, flush_fb_flush_r(),
-		flush_fb_flush_pending_busy_f());
-
-	do {
-		data = gk20a_readl(g, flush_fb_flush_r());
-
-		if (flush_fb_flush_outstanding_v(data) ==
-			flush_fb_flush_outstanding_true_v() ||
-		    flush_fb_flush_pending_v(data) ==
-			flush_fb_flush_pending_busy_v()) {
-				nvgpu_log_info(g, "fb_flush 0x%x", data);
-				nvgpu_udelay(5);
-		} else {
-			break;
-		}
-	} while (nvgpu_timeout_expired(&timeout) == 0);
-
-	if (nvgpu_timeout_peek_expired(&timeout) != 0) {
-		if (g->ops.fb.dump_vpr_info != NULL) {
-			g->ops.fb.dump_vpr_info(g);
-		}
-		if (g->ops.fb.dump_wpr_info != NULL) {
-			g->ops.fb.dump_wpr_info(g);
-		}
-		ret = -EBUSY;
-	}
-
-	trace_gk20a_mm_fb_flush_done(g->name);
-
-	nvgpu_mutex_release(&mm->l2_op_lock);
-
-	gk20a_idle_nosuspend(g);
-
-	return ret;
-}
-
-static void gk20a_mm_l2_invalidate_locked(struct gk20a *g)
-{
-	u32 data;
-	struct nvgpu_timeout timeout;
-	u32 retries = 200;
-
-	trace_gk20a_mm_l2_invalidate(g->name);
-
-	if (g->ops.mm.get_flush_retries != NULL) {
-		retries = g->ops.mm.get_flush_retries(g, NVGPU_FLUSH_L2_INV);
-	}
-
-	nvgpu_timeout_init(g, &timeout, retries, NVGPU_TIMER_RETRY_TIMER);
-
-	/* Invalidate any clean lines from the L2 so subsequent reads go to
-	   DRAM. Dirty lines are not affected by this operation. */
-	gk20a_writel(g, flush_l2_system_invalidate_r(),
-		flush_l2_system_invalidate_pending_busy_f());
-
-	do {
-		data = gk20a_readl(g, flush_l2_system_invalidate_r());
-
-		if (flush_l2_system_invalidate_outstanding_v(data) ==
-			flush_l2_system_invalidate_outstanding_true_v() ||
-		    flush_l2_system_invalidate_pending_v(data) ==
-			flush_l2_system_invalidate_pending_busy_v()) {
-				nvgpu_log_info(g, "l2_system_invalidate 0x%x",
-						data);
-				nvgpu_udelay(5);
-		} else {
-			break;
-		}
-	} while (nvgpu_timeout_expired(&timeout) == 0);
-
-	if (nvgpu_timeout_peek_expired(&timeout) != 0) {
-		nvgpu_warn(g, "l2_system_invalidate too many retries");
-	}
-
-	trace_gk20a_mm_l2_invalidate_done(g->name);
-}
-
-void gk20a_mm_l2_invalidate(struct gk20a *g)
-{
-	struct mm_gk20a *mm = &g->mm;
-	gk20a_busy_noresume(g);
-	if (g->power_on) {
-		nvgpu_mutex_acquire(&mm->l2_op_lock);
-		gk20a_mm_l2_invalidate_locked(g);
-		nvgpu_mutex_release(&mm->l2_op_lock);
-	}
-	gk20a_idle_nosuspend(g);
-}
-
-int gk20a_mm_l2_flush(struct gk20a *g, bool invalidate)
-{
-	struct mm_gk20a *mm = &g->mm;
-	u32 data;
-	struct nvgpu_timeout timeout;
-	u32 retries = 2000;
-	int err = -ETIMEDOUT;
-
-	nvgpu_log_fn(g, " ");
-
-	gk20a_busy_noresume(g);
-	if (!g->power_on) {
-		goto hw_was_off;
-	}
-
-	if (g->ops.mm.get_flush_retries != NULL) {
-		retries = g->ops.mm.get_flush_retries(g, NVGPU_FLUSH_L2_FLUSH);
-	}
-
-	nvgpu_timeout_init(g, &timeout, retries, NVGPU_TIMER_RETRY_TIMER);
-
-	nvgpu_mutex_acquire(&mm->l2_op_lock);
-
-	trace_gk20a_mm_l2_flush(g->name);
-
-	/* Flush all dirty lines from the L2 to DRAM. Lines are left in the L2
-	   as clean, so subsequent reads might hit in the L2. */
-	gk20a_writel(g, flush_l2_flush_dirty_r(),
-		flush_l2_flush_dirty_pending_busy_f());
-
-	do {
-		data = gk20a_readl(g, flush_l2_flush_dirty_r());
-
-		if (flush_l2_flush_dirty_outstanding_v(data) ==
-			flush_l2_flush_dirty_outstanding_true_v() ||
-		    flush_l2_flush_dirty_pending_v(data) ==
-			flush_l2_flush_dirty_pending_busy_v()) {
-				nvgpu_log_info(g, "l2_flush_dirty 0x%x", data);
-				nvgpu_udelay(5);
-		} else {
-			err = 0;
-			break;
-		}
-	} while (nvgpu_timeout_expired_msg(&timeout,
-				"l2_flush_dirty too many retries") == 0);
-
-	trace_gk20a_mm_l2_flush_done(g->name);
-
-	if (invalidate) {
-		gk20a_mm_l2_invalidate_locked(g);
-	}
-
-	nvgpu_mutex_release(&mm->l2_op_lock);
-
-hw_was_off:
-	gk20a_idle_nosuspend(g);
-
-	return err;
-}
-
-void gk20a_mm_cbc_clean(struct gk20a *g)
-{
-	struct mm_gk20a *mm = &g->mm;
-	u32 data;
-	struct nvgpu_timeout timeout;
-	u32 retries = 200;
-
-	nvgpu_log_fn(g, " ");
-
-	gk20a_busy_noresume(g);
-	if (!g->power_on) {
-		goto hw_was_off;
-	}
-
-	if (g->ops.mm.get_flush_retries != NULL) {
-		retries = g->ops.mm.get_flush_retries(g, NVGPU_FLUSH_CBC_CLEAN);
-	}
-
-	nvgpu_timeout_init(g, &timeout, retries, NVGPU_TIMER_RETRY_TIMER);
-
-	nvgpu_mutex_acquire(&mm->l2_op_lock);
-
-	/* Flush all dirty lines from the CBC to L2 */
-	gk20a_writel(g, flush_l2_clean_comptags_r(),
-		flush_l2_clean_comptags_pending_busy_f());
-
-	do {
-		data = gk20a_readl(g, flush_l2_clean_comptags_r());
-
-		if (flush_l2_clean_comptags_outstanding_v(data) ==
-			flush_l2_clean_comptags_outstanding_true_v() ||
-		    flush_l2_clean_comptags_pending_v(data) ==
-			flush_l2_clean_comptags_pending_busy_v()) {
-				nvgpu_log_info(g, "l2_clean_comptags 0x%x", data);
-				nvgpu_udelay(5);
-		} else {
-			break;
-		}
-	} while (nvgpu_timeout_expired_msg(&timeout,
-				"l2_clean_comptags too many retries") == 0);
-
-	nvgpu_mutex_release(&mm->l2_op_lock);
-
-hw_was_off:
-	gk20a_idle_nosuspend(g);
-}
-
 u32 gk20a_mm_get_iommu_bit(struct gk20a *g)
 {
 	return 34;
@@ -656,4 +428,3 @@ u64 gk20a_mm_bar1_map_userd(struct gk20a *g, struct nvgpu_mem *mem, u32 offset)
 				    gk20a_mem_flag_none, false,
 				    mem->aperture);
 }
-

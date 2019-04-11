@@ -271,6 +271,8 @@ srcs += common/sim.c \
 	tu104/mm_tu104.c \
 	tu104/hal_tu104.c \
 	tu104/func_tu104.c \
+	hal/mm/cache/flush_gk20a.c \
+	hal/mm/cache/flush_gv11b.c \
 	hal/mc/mc_gm20b.c  \
 	hal/mc/mc_gp10b.c  \
 	hal/mc/mc_gv11b.c  \

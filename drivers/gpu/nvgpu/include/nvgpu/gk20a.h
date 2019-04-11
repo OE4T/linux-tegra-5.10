@@ -1363,10 +1363,6 @@ struct gpu_ops {
 				struct vm_gk20a_mapping_batch *batch);
 		int (*vm_bind_channel)(struct vm_gk20a *vm,
 				struct channel_gk20a *ch);
-		int (*fb_flush)(struct gk20a *g);
-		void (*l2_invalidate)(struct gk20a *g);
-		int (*l2_flush)(struct gk20a *g, bool invalidate);
-		void (*cbc_clean)(struct gk20a *g);
 		u32 (*get_big_page_sizes)(void);
 		u32 (*get_default_big_page_size)(void);
 		u32 (*get_iommu_bit)(struct gk20a *g);
@@ -1391,6 +1387,12 @@ struct gpu_ops {
 		u64 (*bar1_map_userd)(struct gk20a *g, struct nvgpu_mem *mem, u32 offset);
 		int (*vm_as_alloc_share)(struct gk20a *g, struct vm_gk20a *vm);
 		void (*vm_as_free_share)(struct vm_gk20a *vm);
+		struct {
+			int (*fb_flush)(struct gk20a *g);
+			void (*l2_invalidate)(struct gk20a *g);
+			int (*l2_flush)(struct gk20a *g, bool invalidate);
+			void (*cbc_clean)(struct gk20a *g);
+		} cache;
 	} mm;
 	/*
 	 * This function is called to allocate secure memory (memory

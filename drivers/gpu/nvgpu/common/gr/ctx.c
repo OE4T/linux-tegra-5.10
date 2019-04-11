@@ -689,7 +689,7 @@ u32 nvgpu_gr_ctx_get_ctx_id(struct gk20a *g, struct nvgpu_gr_ctx *gr_ctx)
 	if (!gr_ctx->ctx_id_valid) {
 		/* Channel gr_ctx buffer is gpu cacheable.
 		   Flush and invalidate before cpu update. */
-		if (g->ops.mm.l2_flush(g, true) != 0) {
+		if (g->ops.mm.cache.l2_flush(g, true) != 0) {
 			nvgpu_err(g, "l2_flush failed");
 		}
 
@@ -707,7 +707,7 @@ int nvgpu_gr_ctx_init_zcull(struct gk20a *g, struct nvgpu_gr_ctx *gr_ctx)
 {
 	int err;
 
-	err = g->ops.mm.l2_flush(g, true);
+	err = g->ops.mm.cache.l2_flush(g, true);
 	if (err != 0) {
 		nvgpu_err(g, "l2_flush failed");
 		return err;
@@ -753,7 +753,7 @@ int nvgpu_gr_ctx_set_smpc_mode(struct gk20a *g, struct nvgpu_gr_ctx *gr_ctx,
 
 	/* Channel gr_ctx buffer is gpu cacheable.
 	   Flush and invalidate before cpu update. */
-	err = g->ops.mm.l2_flush(g, true);
+	err = g->ops.mm.cache.l2_flush(g, true);
 	if (err != 0) {
 		nvgpu_err(g, "l2_flush failed");
 		return err;
@@ -828,7 +828,7 @@ int nvgpu_gr_ctx_set_hwpm_mode(struct gk20a *g, struct nvgpu_gr_ctx *gr_ctx,
 
 	/* Channel gr_ctx buffer is gpu cacheable.
 	   Flush and invalidate before cpu update. */
-	err = g->ops.mm.l2_flush(g, true);
+	err = g->ops.mm.cache.l2_flush(g, true);
 	if (err != 0) {
 		nvgpu_err(g, "l2_flush failed");
 		return err;

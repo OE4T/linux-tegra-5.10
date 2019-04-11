@@ -33,6 +33,8 @@
 #include <nvgpu/nvgpu_sgt.h>
 #include <nvgpu/vm_area.h>
 #include <gp10b/mm_gp10b.h>
+#include <hal/mm/cache/flush_gk20a.h>
+#include <hal/mm/cache/flush_gv11b.h>
 #include <hal/fb/fb_gp10b.h>
 #include <hal/fb/fb_gm20b.h>
 #include <gv11b/mm_gv11b.h>
@@ -137,6 +139,8 @@ static int init_test_env(struct unit_module *m, struct gk20a *g)
 	g->ops.mm.gmmu_map = gk20a_locked_gmmu_map;
 	g->ops.mm.gmmu_unmap = gk20a_locked_gmmu_unmap;
 	g->ops.mm.gpu_phys_addr = gv11b_gpu_phys_addr;
+	g->ops.mm.cache.l2_flush = gv11b_mm_l2_flush;
+	g->ops.mm.cache.fb_flush = gk20a_mm_fb_flush;
 
 	return UNIT_SUCCESS;
 }

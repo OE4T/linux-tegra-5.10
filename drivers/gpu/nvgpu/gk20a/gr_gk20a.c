@@ -2158,7 +2158,7 @@ int __gr_gk20a_exec_ctx_ops(struct channel_gk20a *ch,
 		goto cleanup;
 	}
 
-	err = g->ops.mm.l2_flush(g, true);
+	err = g->ops.mm.cache.l2_flush(g, true);
 	if (err != 0) {
 		nvgpu_err(g, "l2_flush failed");
 		goto cleanup;
