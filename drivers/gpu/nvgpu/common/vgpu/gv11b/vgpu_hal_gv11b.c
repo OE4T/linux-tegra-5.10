@@ -57,9 +57,9 @@
 #include "hal/gr/ctxsw_prog/ctxsw_prog_gm20b.h"
 #include "hal/gr/ctxsw_prog/ctxsw_prog_gp10b.h"
 #include "hal/gr/ctxsw_prog/ctxsw_prog_gv11b.h"
+#include "hal/perf/perf_gv11b.h"
 #include "hal/netlist/netlist_gv11b.h"
 
-#include "common/perf/perf_gv11b.h"
 #include "common/sync/syncpt_cmdbuf_gv11b.h"
 #include "common/sync/sema_cmdbuf_gv11b.h"
 #include "common/regops/regops_gv11b.h"

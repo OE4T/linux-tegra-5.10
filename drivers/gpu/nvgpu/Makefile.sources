@@ -80,8 +80,6 @@ srcs += common/sim.c \
 	common/init/hal_init.c \
 	common/xve/xve_gp106.c \
 	common/therm/therm.c \
-	common/perf/perf_gm20b.c \
-	common/perf/perf_gv11b.c \
 	common/perf/perfbuf.c \
 	common/perf/cyclestats_snapshot.c \
 	common/top/top_gm20b.c \
@@ -325,6 +323,8 @@ srcs += common/sim.c \
 	hal/gr/zbc/zbc_gm20b.c \
 	hal/gr/zbc/zbc_gp10b.c \
 	hal/gr/zbc/zbc_gv11b.c \
+	hal/perf/perf_gm20b.c \
+	hal/perf/perf_gv11b.c \
 	hal/priv_ring/priv_ring_gm20b.c \
 	hal/priv_ring/priv_ring_gp10b.c \
 	hal/power_features/cg/gm20b_gating_reglist.c \

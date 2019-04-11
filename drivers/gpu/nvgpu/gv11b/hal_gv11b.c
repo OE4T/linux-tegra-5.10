@@ -95,11 +95,11 @@
 #include "hal/gr/ctxsw_prog/ctxsw_prog_gp10b.h"
 #include "hal/gr/ctxsw_prog/ctxsw_prog_gv11b.h"
 #include "hal/falcon/falcon_gk20a.h"
+#include "hal/perf/perf_gv11b.h"
 #include "hal/pmu/pmu_hal_gk20a.h"
 #include "hal/netlist/netlist_gv11b.h"
 
 #include "common/ptimer/ptimer_gk20a.h"
-#include "common/perf/perf_gv11b.h"
 #include "common/pmu/pmu_gk20a.h"
 #include "common/pmu/pmu_gm20b.h"
 #include "common/pmu/pmu_gp10b.h"

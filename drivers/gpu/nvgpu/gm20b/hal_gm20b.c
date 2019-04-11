@@ -77,11 +77,11 @@
 #include "hal/gr/config/gr_config_gm20b.h"
 #include "hal/gr/ctxsw_prog/ctxsw_prog_gm20b.h"
 #include "hal/falcon/falcon_gk20a.h"
+#include "hal/perf/perf_gm20b.h"
 #include "hal/pmu/pmu_hal_gk20a.h"
 #include "hal/netlist/netlist_gm20b.h"
 
 #include "common/ptimer/ptimer_gk20a.h"
-#include "common/perf/perf_gm20b.h"
 #include "common/pmu/pmu_gk20a.h"
 #include "common/pmu/pmu_gm20b.h"
 #include "common/top/top_gm20b.h"

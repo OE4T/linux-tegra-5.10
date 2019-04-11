@@ -45,8 +45,8 @@
 #include "hal/gr/ctxsw_prog/ctxsw_prog_gm20b.h"
 #include "hal/gr/ctxsw_prog/ctxsw_prog_gp10b.h"
 #include "hal/netlist/netlist_gp10b.h"
+#include "hal/perf/perf_gm20b.h"
 
-#include "common/perf/perf_gm20b.h"
 #include "common/regops/regops_gp10b.h"
 #include "common/fifo/channel_gm20b.h"
 #include "common/clk_arb/clk_arb_gp10b.h"
