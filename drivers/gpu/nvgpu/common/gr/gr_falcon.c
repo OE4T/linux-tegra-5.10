@@ -26,7 +26,6 @@
 #include <nvgpu/enabled.h>
 #include <nvgpu/debug.h>
 #include <nvgpu/gr/hwpm_map.h>
-#include <nvgpu/gr/fecs_trace.h>
 #include <nvgpu/firmware.h>
 #include <nvgpu/sizes.h>
 #include <nvgpu/mm.h>
@@ -136,10 +135,6 @@ int nvgpu_gr_falcon_init_ctx_state(struct gk20a *g)
 		}
 
 		g->gr.ctx_vars.priv_access_map_size = 512 * 1024;
-#ifdef CONFIG_GK20A_CTXSW_TRACE
-		g->gr.ctx_vars.fecs_trace_buffer_size =
-			nvgpu_gr_fecs_trace_buffer_size(g);
-#endif
 	}
 
 out:

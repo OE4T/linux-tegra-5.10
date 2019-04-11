@@ -22,6 +22,7 @@
 
 #include <nvgpu/gk20a.h>
 #include <nvgpu/io.h>
+#include <nvgpu/unit.h>
 #include <nvgpu/gr/gr.h>
 #include <nvgpu/gr/config.h>
 #include <nvgpu/gr/zbc.h>
@@ -29,10 +30,10 @@
 #include <nvgpu/netlist.h>
 #include <nvgpu/gr/gr_falcon.h>
 #include <nvgpu/gr/ctx.h>
-#include <nvgpu/unit.h>
 #include <nvgpu/gr/hwpm_map.h>
 #include <nvgpu/gr/obj_ctx.h>
 #include <nvgpu/gr/fs_state.h>
+#include <nvgpu/gr/fecs_trace.h>
 #include <nvgpu/power_features/cg.h>
 
 static int gr_alloc_global_ctx_buffers(struct gk20a *g)
@@ -77,12 +78,11 @@ static int gr_alloc_global_ctx_buffers(struct gk20a *g)
 		gr->ctx_vars.priv_access_map_size);
 
 #ifdef CONFIG_GK20A_CTXSW_TRACE
-	nvgpu_log_info(g, "fecs_trace_buffer_size : %d",
-		   gr->ctx_vars.fecs_trace_buffer_size);
+	size = nvgpu_gr_fecs_trace_buffer_size(g);
+	nvgpu_log_info(g, "fecs_trace_buffer_size : %d", size);
 
 	nvgpu_gr_global_ctx_set_size(gr->global_ctx_buffer,
-		NVGPU_GR_GLOBAL_CTX_FECS_TRACE_BUFFER,
-		gr->ctx_vars.fecs_trace_buffer_size);
+		NVGPU_GR_GLOBAL_CTX_FECS_TRACE_BUFFER, size);
 #endif
 
 	if (g->ops.gr.init.get_rtv_cb_size != NULL) {

@@ -150,9 +150,6 @@ int vgpu_gr_init_ctx_state(struct gk20a *g)
 	}
 
 	g->gr.ctx_vars.priv_access_map_size = 512 * 1024;
-#ifdef CONFIG_GK20A_CTXSW_TRACE
-	g->gr.ctx_vars.fecs_trace_buffer_size = nvgpu_gr_fecs_trace_buffer_size(g);
-#endif
 
 	g->gr.ctx_vars.preempt_image_size =
 			priv->constants.preempt_ctx_size;
@@ -203,12 +200,11 @@ int vgpu_gr_alloc_global_ctx_buffers(struct gk20a *g)
 		gr->ctx_vars.priv_access_map_size);
 
 #ifdef CONFIG_GK20A_CTXSW_TRACE
-	nvgpu_log_info(g, "fecs_trace_buffer_size : %d",
-		   gr->ctx_vars.fecs_trace_buffer_size);
+	size = nvgpu_gr_fecs_trace_buffer_size(g);
+	nvgpu_log_info(g, "fecs_trace_buffer_size : %d", size);
 
 	nvgpu_gr_global_ctx_set_size(gr->global_ctx_buffer,
-		NVGPU_GR_GLOBAL_CTX_FECS_TRACE_BUFFER,
-		gr->ctx_vars.fecs_trace_buffer_size);
+		NVGPU_GR_GLOBAL_CTX_FECS_TRACE_BUFFER, size);
 #endif
 	return 0;
 }
