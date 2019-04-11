@@ -104,10 +104,6 @@ struct tegra_dc_out_ops {
 	/* callback before new mode is programmed.
 	 * dc clocks are on at this point */
 	void (*modeset_notifier)(struct tegra_dc *dc);
-	/* Set up interface and sink for partial frame update.
-	 */
-	int (*partial_update) (struct tegra_dc *dc, unsigned int *xoff,
-		unsigned int *yoff, unsigned int *width, unsigned int *height);
 	/* refcounted enable of pads and clocks before performing DDC/I2C. */
 	int (*ddc_enable)(struct tegra_dc *dc);
 	/* refcounted disable of pads and clocks after performing DDC/I2C. */

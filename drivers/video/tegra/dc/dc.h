@@ -975,10 +975,9 @@ static inline int tegra_fb_release_fbmem(struct tegra_fb_info *info)
 
 /* tegra_dc_update_windows and tegra_dc_sync_windows do not support windows
  * with differenct dcs in one call
- * dirty_rect is u16[4]: xoff, yoff, width, height
  */
 int tegra_dc_update_windows(struct tegra_dc_win *windows[], int n,
-	u16 *dirty_rect, bool wait_for_vblank, bool lock_flip);
+	bool wait_for_vblank, bool lock_flip);
 int tegra_dc_sync_windows(struct tegra_dc_win *windows[], int n);
 void tegra_dc_disable_window(struct tegra_dc *dc, unsigned win);
 int tegra_dc_attach_win(struct tegra_dc *dc, unsigned idx);

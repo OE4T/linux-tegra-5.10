@@ -4,7 +4,7 @@
  * Copyright (C) 2010 Google, Inc.
  * Author: Erik Gilling <konkers@android.com>
  *
- * Copyright (c) 2010-2018, NVIDIA CORPORATION, All rights reserved.
+ * Copyright (c) 2010-2019, NVIDIA CORPORATION, All rights reserved.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -248,9 +248,6 @@ int tegra_dc_cursor_set(struct tegra_dc *dc, bool enable, int x, int y);
 int tegra_dc_cursor_clip(struct tegra_dc *dc, unsigned clip);
 int tegra_dc_cursor_suspend(struct tegra_dc *dc);
 int tegra_dc_cursor_resume(struct tegra_dc *dc);
-void tegra_dc_win_partial_update(struct tegra_dc *dc, struct tegra_dc_win *win,
-	unsigned int xoff, unsigned int yoff, unsigned int width,
-	unsigned int height);
 void tegra_dc_set_background_color(struct tegra_dc *dc, u32 background_color);
 int tegra_dc_slgc_disp0(struct notifier_block *nb, unsigned long unused0,
 	void *unused1);
@@ -295,7 +292,7 @@ void tegra_nvdisp_bandwidth_unregister(void);
 int tegra_nvdisp_init(struct tegra_dc *dc);
 int tegra_nvdisp_update_windows(struct tegra_dc *dc,
 	struct tegra_dc_win *windows[], int n,
-	u16 *dirty_rect, bool wait_for_vblank, bool lock_flip);
+	bool wait_for_vblank, bool lock_flip);
 int tegra_nvdisp_assign_win(struct tegra_dc *dc, unsigned idx);
 int tegra_nvdisp_detach_win(struct tegra_dc *dc, unsigned idx);
 int tegra_nvdisp_disable_wins(struct tegra_dc *dc,

@@ -3,7 +3,7 @@
  *
  * Copyright (C) 2010 Google, Inc.
  *
- * Copyright (c) 2010-2018, NVIDIA CORPORATION, All rights reserved.
+ * Copyright (c) 2010-2019, NVIDIA CORPORATION, All rights reserved.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -475,67 +475,6 @@ void tegra_dc_set_background_color(struct tegra_dc *dc,
 	tegra_dc_writel(dc, background_color, DC_DISP_BLEND_BACKGROUND_COLOR);
 }
 
-void tegra_dc_win_partial_update(struct tegra_dc *dc, struct tegra_dc_win *win,
-	unsigned int xoff, unsigned int yoff, unsigned int width,
-	unsigned int height)
-{
-	if (!win->out_w || !win->out_h ||
-		(win->out_x >= (xoff + width)) ||
-		(win->out_y >= (yoff + height)) ||
-		(xoff >= (win->out_x + win->out_w)) ||
-		(yoff >= (win->out_y + win->out_h))) {
-		tegra_dc_writel(dc, 0, DC_WIN_WIN_OPTIONS);
-		return;
-	} else {
-		u64 tmp_64;
-		fixed20_12 fixed_tmp;
-		unsigned int xoff_2;
-		unsigned int yoff_2;
-		unsigned int width_2;
-		unsigned int height_2;
-
-		xoff_2 = (win->out_x < xoff) ? xoff : win->out_x;
-		yoff_2 = (win->out_y < yoff) ? yoff : win->out_y;
-		width_2 = ((win->out_x + win->out_w) > (xoff + width)) ?
-			(xoff + width - xoff_2) :
-			(win->out_x + win->out_w - xoff_2);
-		height_2 = ((win->out_y + win->out_h) > (yoff + height)) ?
-			(yoff + height - yoff_2) :
-			(win->out_y + win->out_h - yoff_2);
-
-		tmp_64 = (u64)(xoff_2 - win->out_x) * win->w.full;
-		do_div(tmp_64, win->out_w);
-		fixed_tmp.full = (u32)tmp_64;
-		win->x.full += dfixed_floor(fixed_tmp);
-
-		tmp_64 = (u64)(yoff_2 - win->out_y) * win->h.full;
-		do_div(tmp_64, win->out_h);
-		fixed_tmp.full = (u32)tmp_64;
-		win->y.full += dfixed_floor(fixed_tmp);
-
-		tmp_64 = (u64)(width_2) * win->w.full;
-		do_div(tmp_64, win->out_w);
-		fixed_tmp.full = (u32)tmp_64;
-		win->w.full = dfixed_floor(fixed_tmp);
-
-		tmp_64 = (u64)(height_2) * win->h.full;
-		do_div(tmp_64, win->out_h);
-		fixed_tmp.full = (u32)tmp_64;
-		win->h.full = dfixed_floor(fixed_tmp);
-
-		/* Move the partial region to the up-left corner
-		 * so dc can only scan out this region. */
-		win->out_x = xoff_2 - xoff;
-		win->out_y = yoff_2 - yoff;
-		win->out_w = width_2;
-		win->out_h = height_2;
-
-		/* Update shadow registers */
-		memcpy(&dc->shadow_windows[win->idx], win,
-			sizeof(struct tegra_dc_win));
-	}
-}
-
 static void tegra_dc_vrr_flip_time(struct tegra_dc *dc)
 {
 	struct timespec time_now;
@@ -590,7 +529,7 @@ static void tegra_dc_vrr_cancel_vfp(struct tegra_dc *dc)
 /* Program registers for each window. struct tegra_dc_win --> Assembly registers
  */
 static int _tegra_dc_program_windows(struct tegra_dc *dc,
-	struct tegra_dc_win *windows[], int n, u16 *dirty_rect,
+	struct tegra_dc_win *windows[], int n,
 	bool wait_for_vblank, bool lock_flip)
 {
 	unsigned long update_mask = GENERAL_ACT_REQ;
@@ -599,28 +538,7 @@ static int _tegra_dc_program_windows(struct tegra_dc *dc,
 	bool update_blend_par = false;
 	bool update_blend_seq = false;
 	int i;
-	bool do_partial_update = false;
-	unsigned int xoff;
-	unsigned int yoff;
-	unsigned int width;
-	unsigned int height;
 	enum tegra_revision rev;
-
-	if (dirty_rect) {
-		xoff = dirty_rect[0];
-		yoff = dirty_rect[1];
-		width = dirty_rect[2];
-		height = dirty_rect[3];
-		do_partial_update = !dc->out_ops->partial_update(dc,
-			&xoff, &yoff, &width, &height);
-
-		if (do_partial_update) {
-			tegra_dc_writel(dc, width | (height << 16),
-				DC_DISP_DISP_ACTIVE);
-
-			dc->disp_active_dirty = true;
-		}
-	}
 
 	/* If any of the window updates requires vsync to program the window
 	   update safely, vsync all windows in this flip.  Safety overrides both
@@ -628,9 +546,8 @@ static int _tegra_dc_program_windows(struct tegra_dc *dc,
 	for (i = 0; i < n; i++) {
 		struct tegra_dc_win *win = windows[i];
 
-		if ((!wait_for_vblank &&
-		    !update_is_hsync_safe(&dc->shadow_windows[win->idx],
-					  win)) || do_partial_update)
+		if (!wait_for_vblank &&
+		    !update_is_hsync_safe(&dc->shadow_windows[win->idx], win))
 			wait_for_vblank = 1;
 
 		memcpy(&dc->shadow_windows[win->idx], win,
@@ -746,11 +663,6 @@ static int _tegra_dc_program_windows(struct tegra_dc *dc,
 			DC_WIN_COLOR_DEPTH);
 		tegra_dc_writel(dc, tegra_dc_fmt_byteorder(win->fmt),
 			DC_WIN_BYTE_SWAP);
-
-
-		if (do_partial_update)
-			tegra_dc_win_partial_update(dc, win, xoff, yoff,
-				width, height);
 
 		tegra_dc_writel(dc,
 			V_POSITION(win->out_y) | H_POSITION(win->out_x),
@@ -1029,7 +941,7 @@ static int _tegra_dc_program_windows(struct tegra_dc *dc,
  * Requires a matching sync_windows to avoid leaking ref-count on clocks.
  */
 int tegra_dc_update_windows(struct tegra_dc_win *windows[], int n,
-	u16 *dirty_rect, bool wait_for_vblank, bool lock_flip)
+	bool wait_for_vblank, bool lock_flip)
 {
 	struct tegra_dc *dc;
 	int i;
@@ -1092,14 +1004,11 @@ int tegra_dc_update_windows(struct tegra_dc_win *windows[], int n,
 	if (no_vsync)
 		wait_for_vblank = 0;
 
-	WARN_ONCE((!wait_for_vblank && dirty_rect),
-		"Can't do partial window update without vsync!");
-
 	if (tegra_dc_is_nvdisplay())
-		e = tegra_nvdisp_update_windows(dc, windows, n, dirty_rect,
+		e = tegra_nvdisp_update_windows(dc, windows, n,
 			wait_for_vblank, (lock_flip & wait_for_vblank));
 	else
-		e = _tegra_dc_program_windows(dc, windows, n, dirty_rect,
+		e = _tegra_dc_program_windows(dc, windows, n,
 			wait_for_vblank, (lock_flip & wait_for_vblank));
 
 	if (lock_flip && wait_for_vblank) {

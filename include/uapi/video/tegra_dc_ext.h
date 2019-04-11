@@ -316,7 +316,7 @@ struct tegra_dc_ext_flip_2 {
 	__u16 reserved2; /* unused - must be 0 */
 	__u32 post_syncpt_id;
 	__u32 post_syncpt_val;
-	__u16 dirty_rect[4]; /* x,y,w,h for partial screen update. 0 ignores */
+	__u16 reserved[4];
 };
 
 enum tegra_dc_ext_flip_data_type {
@@ -625,7 +625,7 @@ struct tegra_dc_ext_flip_4 {
 	__u8 flags;
 	__u16 reserved;
 	__s32 post_syncpt_fd;
-	__u16 dirty_rect[4]; /* x,y,w,h for partial screen update. 0 ignores */
+	__u16 reserved2[4];
 	__u32 nr_elements; /* number of data entities pointed to by data */
 	__u64 __user data; /* pointer to struct tegra_dc_ext_flip_user_data*/
 };
