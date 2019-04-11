@@ -1195,7 +1195,8 @@ int gr_gk20a_get_ctx_buffer_offsets(struct gk20a *g,
 			  is_quad, quad,
 			  nvgpu_gr_obj_ctx_get_local_golden_image_ptr(
 				g->gr.golden_image),
-			  g->gr.ctx_vars.golden_image_size,
+			  nvgpu_gr_obj_ctx_get_golden_image_size(
+				g->gr.golden_image),
 			  &priv_offset);
 		if (err != 0) {
 			nvgpu_log_fn(g, "Could not determine priv_offset for addr:0x%x",
@@ -2247,7 +2248,9 @@ int __gr_gk20a_exec_ctx_ops(struct channel_gk20a *ch,
 				 * don't write outside, worst case
 				 */
 				if ((current_mem == nvgpu_gr_ctx_get_ctx_mem(gr_ctx)) &&
-					(offsets[j] >= g->gr.ctx_vars.golden_image_size)) {
+						(offsets[j] >=
+						 nvgpu_gr_obj_ctx_get_golden_image_size(
+							g->gr.golden_image))) {
 					continue;
 				}
 				if (pass == 0) { /* write pass */

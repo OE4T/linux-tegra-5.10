@@ -31,6 +31,7 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/gr/global_ctx.h>
 #include <nvgpu/gr/ctx.h>
+#include <nvgpu/gr/obj_ctx.h>
 #include <nvgpu/gr/hwpm_map.h>
 
 #include "common/gr/ctx_priv.h"
@@ -45,22 +46,25 @@ int vgpu_gr_alloc_gr_ctx(struct gk20a *g,
 	struct tegra_vgpu_cmd_msg msg = {0};
 	struct tegra_vgpu_gr_ctx_params *p = &msg.params.gr_ctx;
 	struct gr_gk20a *gr = &g->gr;
+	u32 golden_image_size;
 	int err;
 
 	nvgpu_log_fn(g, " ");
 
-	if (gr->ctx_vars.golden_image_size == 0) {
+	golden_image_size =
+		nvgpu_gr_obj_ctx_get_golden_image_size(gr->golden_image);
+	if (golden_image_size == 0) {
 		return -EINVAL;
 	}
 
 	gr_ctx->mem.gpu_va = nvgpu_vm_alloc_va(vm,
-				       gr->ctx_vars.golden_image_size,
+				       golden_image_size,
 				       GMMU_PAGE_SIZE_KERNEL);
 
 	if (!gr_ctx->mem.gpu_va) {
 		return -ENOMEM;
 	}
-	gr_ctx->mem.size = gr->ctx_vars.golden_image_size;
+	gr_ctx->mem.size = golden_image_size;
 	gr_ctx->mem.aperture = APERTURE_SYSMEM;
 
 	msg.cmd = TEGRA_VGPU_CMD_GR_CTX_ALLOC;

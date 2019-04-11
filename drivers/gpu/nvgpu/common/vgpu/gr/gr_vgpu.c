@@ -41,6 +41,7 @@
 #include <nvgpu/gr/zcull.h>
 #include <nvgpu/gr/fecs_trace.h>
 #include <nvgpu/gr/hwpm_map.h>
+#include <nvgpu/gr/obj_ctx.h>
 #include <nvgpu/cyclestats_snapshot.h>
 #include <nvgpu/power_features/pg.h>
 
@@ -706,8 +707,19 @@ static int vgpu_gr_init_gr_setup_sw(struct gk20a *g)
 	nvgpu_mutex_init(&g->gr.cs_lock);
 #endif
 
+	err = g->ops.gr.falcon.init_ctx_state(g);
+	if (err) {
+		goto clean_up;
+	}
+
 	err = vgpu_gr_init_gr_config(g, gr);
 	if (err) {
+		goto clean_up;
+	}
+
+	err = nvgpu_gr_obj_ctx_init(g, &gr->golden_image,
+			g->gr.ctx_vars.golden_image_size);
+	if (err != 0) {
 		goto clean_up;
 	}
 
@@ -719,11 +731,6 @@ static int vgpu_gr_init_gr_setup_sw(struct gk20a *g)
 	}
 
 	err = vgpu_gr_init_gr_zcull(g, gr);
-	if (err) {
-		goto clean_up;
-	}
-
-	err = g->ops.gr.falcon.init_ctx_state(g);
 	if (err) {
 		goto clean_up;
 	}

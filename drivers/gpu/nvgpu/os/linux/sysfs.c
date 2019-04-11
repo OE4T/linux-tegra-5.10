@@ -846,7 +846,7 @@ static ssize_t tpc_pg_mask_store(struct device *dev,
 		goto exit;
 	}
 
-	if (gr->ctx_vars.golden_image_size) {
+	if (nvgpu_gr_obj_ctx_get_golden_image_size(gr->golden_image) != 0) {
 		nvgpu_err(g, "golden image size already initialized");
 		nvgpu_mutex_release(&g->tpc_pg_lock);
 		return -ENODEV;
@@ -890,7 +890,7 @@ static ssize_t tpc_fs_mask_store(struct device *dev,
 		nvgpu_gr_obj_ctx_deinit(g, g->gr.golden_image);
 
 		g->gr.ctx_vars.golden_image_initialized = false;
-		g->gr.ctx_vars.golden_image_size = 0;
+		nvgpu_gr_obj_ctx_set_golden_image_size(g->gr.golden_image, 0);
 
 		nvgpu_gr_config_deinit(g, g->gr.config);
 		/* Cause next poweron to reinit just gr */
