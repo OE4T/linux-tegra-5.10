@@ -106,9 +106,6 @@ void nvgpu_tsg_unbind_channel_check_ctx_reload(struct tsg_gk20a *tsg,
 		struct nvgpu_channel_hw_state *hw_state);
 int nvgpu_tsg_force_reset_ch(struct channel_gk20a *ch,
 				u32 err_code, bool verbose);
-void nvgpu_tsg_recover(struct gk20a *g, struct tsg_gk20a *tsg,
-			 bool verbose, u32 rc_type);
-
 void nvgpu_tsg_set_ctx_mmu_error(struct gk20a *g,
 		struct tsg_gk20a *tsg);
 bool nvgpu_tsg_mark_error(struct gk20a *g, struct tsg_gk20a *tsg);
