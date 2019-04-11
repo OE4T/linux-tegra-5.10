@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -58,7 +58,8 @@ void nvgpu_nvhost_syncpt_set_safe_state(
 	struct nvgpu_nvhost_dev *nvhost_dev, u32 id);
 
 int nvgpu_nvhost_intr_register_notifier(struct nvgpu_nvhost_dev *nvhost_dev,
-	u32 id, u32 thresh, void (*callback)(void *, int), void *private_data);
+	u32 id, u32 thresh, void (*callback)(void *priv, int nr_completed),
+	void *private_data);
 
 const char *nvgpu_nvhost_syncpt_get_name(struct nvgpu_nvhost_dev *nvhost_dev,
 	int id);
