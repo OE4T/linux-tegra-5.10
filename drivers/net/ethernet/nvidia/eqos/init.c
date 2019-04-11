@@ -160,14 +160,16 @@ void get_dt_u32(struct eqos_prv_data *pdata, char *pdt_prop, u32 *pval,
 
 	ret = of_property_read_u32(pnode, pdt_prop, pval);
 
-	if (ret < 0)
-		dev_err(&pdata->pdev->dev,
-			"%s(): \"%s\" read failed %d. Using default\n",
+	if (ret < 0) {
+		dev_info(&pdata->pdev->dev,
+			 "%s(): \"%s\" read failed %d. Using default\n",
 			__func__, pdt_prop, ret);
+		*pval = val_def;
+	}
 
 	if (*pval > val_max) {
-		dev_err(&pdata->pdev->dev,
-			"%s(): %d is invalid value for \"%s\".  Using default.\n",
+		dev_info(&pdata->pdev->dev,
+			 "%s(): %d is invalid value for \"%s\".  Using default.\n",
 			__func__, *pval, pdt_prop);
 		*pval = val_def;
 	}
@@ -997,8 +999,10 @@ int eqos_probe(struct platform_device *pdev)
 
 	platform_set_drvdata(pdev, ndev);
 	pdata->pdev = pdev;
+	get_dt_u32(pdata, "nvidia,max-platform-mtu", &pdata->max_platform_mtu,
+		   EQOS_DEFAULT_PLATFORM_MTU, EQOS_MAX_HW_MTU);
 #if LINUX_VERSION_CODE > KERNEL_VERSION(4, 14, 0)
-	ndev->max_mtu = 9000;
+	ndev->max_mtu = pdata->max_platform_mtu;
 #endif
 
 	pdata->dev = ndev;

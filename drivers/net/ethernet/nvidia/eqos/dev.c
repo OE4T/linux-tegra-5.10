@@ -3714,7 +3714,7 @@ static INT configure_mac(struct eqos_prv_data *pdata)
 
 	if (pdata->dev->mtu > EQOS_ETH_FRAME_LEN) {
 		/* Configure for Jumbo frame in MAC */
-		if (pdata->dev->mtu <= EQOS_MAX_GPSL) {
+		if (pdata->dev->mtu <= EQOS_MAX_HW_MTU) {
 			MAC_MCR_JE_WR(0x1);
 			MAC_MCR_WD_WR(0x0);
 			MAC_MCR_GPSLCE_WR(0x0);
@@ -3723,7 +3723,7 @@ static INT configure_mac(struct eqos_prv_data *pdata)
 			MAC_MCR_JE_WR(0x0);
 			MAC_MCR_WD_WR(0x1);
 			MAC_MCR_GPSLCE_WR(0x1);
-			MAC_MECR_GPSL_WR(EQOS_MAX_SUPPORTED_MTU);
+			MAC_MECR_GPSL_WR(EQOS_DEFAULT_PLATFORM_MTU);
 			MAC_MCR_JD_WR(0x1);
 		}
 	} else {

@@ -29,7 +29,7 @@
  * DAMAGE.
  * ========================================================================= */
 /*
- * Copyright (c) 2015-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2015-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -374,8 +374,6 @@
 #define EQOS_MAX_DATA_PER_TX_BUF (1 << 12)	/* for testing purpose: 4 KB Maximum data per buffer pointer(in Bytes) */
 #define EQOS_MAX_DATA_PER_TXD (EQOS_MAX_DATA_PER_TX_BUF)
 
-#define EQOS_MAX_SUPPORTED_MTU 1500
-#define EQOS_MAX_GPSL 9000 /* Default maximum Gaint Packet Size Limit */
 #define EQOS_MIN_SUPPORTED_MTU (ETH_ZLEN + ETH_FCS_LEN + VLAN_HLEN)
 
 #define EQOS_RDESC3_OWN		0x80000000
@@ -1293,6 +1291,10 @@ typedef enum {
 #define ISO_BW_DEFAULT (80 * 1024)
 #define SLOT_INTVL_DEFAULT 124
 #define SLOT_INTVL_MAX 4095
+
+#define EQOS_MAX_HW_MTU 9000
+#define EQOS_DEFAULT_PLATFORM_MTU 1500
+
 struct eqos_cfg {
 	bool	use_multi_q;	/* 0=single queue, jumbo frames enabled */
 	rxq_ctrl_e	rxq_ctrl[MAX_CHANS];
@@ -1521,6 +1523,7 @@ struct eqos_prv_data {
 #endif
 	tegra_isomgr_handle isomgr_handle;
 	struct tegra_prod       *prod_list;
+	uint	max_platform_mtu; /* Max platform mtu supported */
 };
 
 typedef enum {
