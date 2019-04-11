@@ -826,7 +826,6 @@ static const struct gpu_ops gv100_ops = {
 		.read_mmu_fault_info = fb_gv11b_read_mmu_fault_info,
 		.read_mmu_fault_status = fb_gv11b_read_mmu_fault_status,
 		.mmu_invalidate_replay = gv11b_fb_mmu_invalidate_replay,
-		.mmu_fault_pending = gv11b_fb_mmu_fault_pending,
 		.is_fault_buf_enabled = gv11b_fb_is_fault_buf_enabled,
 		.fault_buf_set_state_hw = gv11b_fb_fault_buf_set_state_hw,
 		.fault_buf_configure_hw = gv11b_fb_fault_buf_configure_hw,
@@ -835,6 +834,8 @@ static const struct gpu_ops gv100_ops = {
 			.enable = gv100_fb_intr_enable,
 			.disable = gv100_fb_intr_disable,
 			.isr = gv11b_fb_intr_isr,
+			.is_mmu_fault_pending =
+				gv11b_fb_intr_is_mmu_fault_pending,
 		},
 	},
 	.nvdec = {
@@ -1073,7 +1074,6 @@ static const struct gpu_ops gv100_ops = {
 		.is_bar1_supported = gv11b_mm_is_bar1_supported,
 		.alloc_inst_block = gk20a_alloc_inst_block,
 		.init_inst_block = gv11b_init_inst_block,
-		.mmu_fault_pending = gv11b_mm_mmu_fault_pending,
 		.get_kind_invalid = gm20b_get_kind_invalid,
 		.get_kind_pitch = gm20b_get_kind_pitch,
 		.init_bar2_vm = gp10b_init_bar2_vm,
@@ -1198,6 +1198,7 @@ static const struct gpu_ops gv100_ops = {
 		.is_enabled = gm20b_mc_is_enabled,
 		.fb_reset = NULL,
 		.ltc_isr = mc_gp10b_ltc_isr,
+		.is_mmu_fault_pending = gv11b_mc_is_mmu_fault_pending,
 	},
 	.debug = {
 		.show_dump = gk20a_debug_show_dump,

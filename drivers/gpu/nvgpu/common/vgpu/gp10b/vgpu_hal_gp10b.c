@@ -434,6 +434,7 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 		.get_mmu_fault_client_desc =
 			gp10b_fifo_get_mmu_fault_client_desc,
 		.get_mmu_fault_gpc_desc = gm20b_fifo_get_mmu_fault_gpc_desc,
+		.is_mmu_fault_pending = NULL,
 	},
 	.engine = {
 		.is_fault_engine_subid_gpc = gm20b_is_fault_engine_subid_gpc,
@@ -571,7 +572,6 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 		.init_mm_setup_hw = NULL,
 		.is_bar1_supported = gm20b_mm_is_bar1_supported,
 		.init_inst_block = gk20a_init_inst_block,
-		.mmu_fault_pending = NULL,
 		.init_bar2_vm = gp10b_init_bar2_vm,
 		.remove_bar2_vm = gp10b_remove_bar2_vm,
 		.get_kind_invalid = gm20b_get_kind_invalid,
@@ -672,6 +672,7 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 		.reset_mask = NULL,
 		.is_enabled = NULL,
 		.fb_reset = NULL,
+		.is_mmu_fault_pending = NULL,
 	},
 	.debug = {
 		.show_dump = NULL,

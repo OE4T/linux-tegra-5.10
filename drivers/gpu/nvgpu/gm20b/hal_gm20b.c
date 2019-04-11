@@ -651,6 +651,7 @@ static const struct gpu_ops gm20b_ops = {
 		.get_mmu_fault_client_desc =
 			gk20a_fifo_get_mmu_fault_client_desc,
 		.get_mmu_fault_gpc_desc = gm20b_fifo_get_mmu_fault_gpc_desc,
+		.is_mmu_fault_pending = gk20a_fifo_is_mmu_fault_pending,
 	},
 	.engine = {
 		.is_fault_engine_subid_gpc = gm20b_is_fault_engine_subid_gpc,
@@ -794,7 +795,6 @@ static const struct gpu_ops gm20b_ops = {
 		.is_bar1_supported = gm20b_mm_is_bar1_supported,
 		.alloc_inst_block = gk20a_alloc_inst_block,
 		.init_inst_block = gk20a_init_inst_block,
-		.mmu_fault_pending = gk20a_fifo_mmu_fault_pending,
 		.get_kind_invalid = gm20b_get_kind_invalid,
 		.get_kind_pitch = gm20b_get_kind_pitch,
 		.bar1_map_userd = gk20a_mm_bar1_map_userd,
@@ -902,6 +902,7 @@ static const struct gpu_ops gm20b_ops = {
 		.is_enabled = gm20b_mc_is_enabled,
 		.fb_reset = gm20b_mc_fb_reset,
 		.ltc_isr = gm20b_mc_ltc_isr,
+		.is_mmu_fault_pending = gm20b_mc_is_mmu_fault_pending,
 	},
 	.debug = {
 		.show_dump = gk20a_debug_show_dump,

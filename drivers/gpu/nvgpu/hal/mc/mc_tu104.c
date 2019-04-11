@@ -341,7 +341,7 @@ u32 intr_tu104_stall(struct gk20a *g)
 /* Return true if HUB interrupt is pending */
 bool intr_tu104_is_intr_hub_pending(struct gk20a *g, u32 mc_intr_0)
 {
-	return g->ops.mm.mmu_fault_pending(g);
+	return g->ops.mc.is_mmu_fault_pending(g);
 }
 
 /* pause all stall interrupts */

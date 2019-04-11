@@ -463,6 +463,7 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 			.enable = gv11b_fb_intr_enable,
 			.disable = gv11b_fb_intr_disable,
 			.isr = gv11b_fb_intr_isr,
+			.is_mmu_fault_pending = NULL,
 		},
 	},
 	.cg = {
@@ -656,7 +657,6 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 		.init_mm_setup_hw = NULL,
 		.is_bar1_supported = gv11b_mm_is_bar1_supported,
 		.init_inst_block = gv11b_init_inst_block,
-		.mmu_fault_pending = NULL,
 		.get_kind_invalid = gm20b_get_kind_invalid,
 		.get_kind_pitch = gm20b_get_kind_pitch,
 		.init_bar2_vm = gp10b_init_bar2_vm,
@@ -760,6 +760,7 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 		.reset_mask = NULL,
 		.is_enabled = NULL,
 		.fb_reset = NULL,
+		.is_mmu_fault_pending = NULL,
 	},
 	.debug = {
 		.show_dump = NULL,

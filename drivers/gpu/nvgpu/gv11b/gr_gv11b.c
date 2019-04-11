@@ -2428,7 +2428,7 @@ int gv11b_gr_wait_for_sm_lock_down(struct gk20a *g,
 			/* if an mmu fault is pending and mmu debug mode is not
 			 * enabled, the sm will never lock down.
 			 */
-			if (g->ops.mm.mmu_fault_pending(g)) {
+			if (g->ops.mc.is_mmu_fault_pending(g)) {
 				nvgpu_err(g,
 					"GPC%d TPC%d: mmu fault pending,"
 					" SM%d will never lock down!",

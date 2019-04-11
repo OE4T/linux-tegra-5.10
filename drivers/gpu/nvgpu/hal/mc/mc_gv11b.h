@@ -31,4 +31,6 @@ void mc_gv11b_intr_enable(struct gk20a *g);
 bool gv11b_mc_is_intr_hub_pending(struct gk20a *g, u32 mc_intr_0);
 bool gv11b_mc_is_stall_and_eng_intr_pending(struct gk20a *g, u32 act_eng_id,
 			u32 *eng_intr_pending);
+bool gv11b_mc_is_mmu_fault_pending(struct gk20a *g);
+
 #endif

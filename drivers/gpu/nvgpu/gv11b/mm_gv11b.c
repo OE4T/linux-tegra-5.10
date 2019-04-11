@@ -65,11 +65,6 @@ void gv11b_init_inst_block(struct nvgpu_mem *inst_block,
 	}
 }
 
-bool gv11b_mm_mmu_fault_pending(struct gk20a *g)
-{
-	return g->ops.fb.mmu_fault_pending(g);
-}
-
 void gv11b_mm_mmu_fault_disable_hw(struct gk20a *g)
 {
 	nvgpu_mutex_acquire(&g->mm.hub_isr_mutex);

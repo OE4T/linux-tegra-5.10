@@ -898,7 +898,6 @@ struct gpu_ops {
 		u32 (*read_mmu_fault_status)(struct gk20a *g);
 		int (*mmu_invalidate_replay)(struct gk20a *g,
 			u32 invalidate_replay_val);
-		bool (*mmu_fault_pending)(struct gk20a *g);
 		bool (*is_fault_buf_enabled)(struct gk20a *g, u32 index);
 		void (*fault_buf_set_state_hw)(struct gk20a *g,
 				 u32 index, u32 state);
@@ -915,6 +914,7 @@ struct gpu_ops {
 			void (*enable)(struct gk20a *g);
 			void (*disable)(struct gk20a *g);
 			void (*isr)(struct gk20a *g);
+			bool (*is_mmu_fault_pending)(struct gk20a *g);
 		} intr;
 	} fb;
 	struct {
@@ -1000,6 +1000,7 @@ struct gpu_ops {
 		void (*get_mmu_fault_client_desc)(
 					struct mmu_fault_info *mmfault);
 		void (*get_mmu_fault_gpc_desc)(struct mmu_fault_info *mmfault);
+		bool (*is_mmu_fault_pending)(struct gk20a *g);
 
 	} fifo;
 	struct {
@@ -1351,7 +1352,6 @@ struct gpu_ops {
 					struct nvgpu_mem *inst_block);
 		void (*init_inst_block)(struct nvgpu_mem *inst_block,
 				struct vm_gk20a *vm, u32 big_page_size);
-		bool (*mmu_fault_pending)(struct gk20a *g);
 		void (*fault_info_mem_destroy)(struct gk20a *g);
 		void (*mmu_fault_disable_hw)(struct gk20a *g);
 		u32 (*get_kind_invalid)(void);
@@ -1578,6 +1578,7 @@ struct gpu_ops {
 		u32 (*reset_mask)(struct gk20a *g, enum nvgpu_unit unit);
 		void (*fb_reset)(struct gk20a *g);
 		void (*ltc_isr)(struct gk20a *g);
+		bool (*is_mmu_fault_pending)(struct gk20a *g);
 	} mc;
 	struct {
 		void (*show_dump)(struct gk20a *g,

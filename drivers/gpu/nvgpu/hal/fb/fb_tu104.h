@@ -31,7 +31,6 @@ struct nvgpu_mem;
 struct nvgpu_cbc;
 
 void tu104_fb_handle_mmu_fault(struct gk20a *g);
-bool tu104_fb_mmu_fault_pending(struct gk20a *g);
 
 void fb_tu104_write_mmu_fault_buffer_lo_hi(struct gk20a *g, u32 index,
 	u32 addr_lo, u32 addr_hi);

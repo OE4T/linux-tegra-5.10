@@ -42,33 +42,6 @@
 #include "nvgpu/hw/tu104/hw_fb_tu104.h"
 #include "nvgpu/hw/tu104/hw_func_tu104.h"
 
-bool tu104_fb_mmu_fault_pending(struct gk20a *g)
-{
-	u32 info_fault = nvgpu_readl(g, fb_mmu_int_vector_info_fault_r());
-	u32 nonreplay_fault = nvgpu_readl(g,
-		fb_mmu_int_vector_fault_r(NVGPU_FB_MMU_FAULT_NONREPLAY_REG_INDEX));
-	u32 replay_fault = nvgpu_readl(g,
-		fb_mmu_int_vector_fault_r(NVGPU_FB_MMU_FAULT_REPLAY_REG_INDEX));
-	u32 ecc_error = nvgpu_readl(g, fb_mmu_int_vector_ecc_error_r());
-
-	if (intr_tu104_vector_intr_pending(g,
-		fb_mmu_int_vector_fault_notify_v(replay_fault)) ||
-	    intr_tu104_vector_intr_pending(g,
-		fb_mmu_int_vector_fault_error_v(replay_fault)) ||
-	    intr_tu104_vector_intr_pending(g,
-		fb_mmu_int_vector_fault_notify_v(nonreplay_fault)) ||
-	    intr_tu104_vector_intr_pending(g,
-		fb_mmu_int_vector_fault_error_v(nonreplay_fault)) ||
-	    intr_tu104_vector_intr_pending(g,
-		fb_mmu_int_vector_info_fault_vector_v(info_fault)) ||
-	    intr_tu104_vector_intr_pending(g,
-		fb_mmu_int_vector_ecc_error_vector_v(ecc_error))) {
-		return true;
-	}
-
-	return false;
-}
-
 void tu104_fb_handle_mmu_fault(struct gk20a *g)
 {
 	u32 info_fault = nvgpu_readl(g, fb_mmu_int_vector_info_fault_r());

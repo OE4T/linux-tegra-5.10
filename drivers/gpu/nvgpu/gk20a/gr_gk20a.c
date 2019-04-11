@@ -2523,7 +2523,7 @@ int gk20a_gr_wait_for_sm_lock_down(struct gk20a *g, u32 gpc, u32 tpc, u32 sm,
 		/* if an mmu fault is pending and mmu debug mode is not
 		 * enabled, the sm will never lock down. */
 		if (!mmu_debug_mode_enabled &&
-		     (g->ops.mm.mmu_fault_pending(g))) {
+		     (g->ops.mc.is_mmu_fault_pending(g))) {
 			nvgpu_err(g,
 				"GPC%d TPC%d: mmu fault pending,"
 				" SM%d will never lock down!", gpc, tpc, sm);

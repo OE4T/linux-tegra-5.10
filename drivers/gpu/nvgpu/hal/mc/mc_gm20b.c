@@ -367,3 +367,8 @@ void gm20b_mc_ltc_isr(struct gk20a *g)
 		g->ops.ltc.intr.isr(g, ltc);
 	}
 }
+
+bool gm20b_mc_is_mmu_fault_pending(struct gk20a *g)
+{
+	return g->ops.fifo.is_mmu_fault_pending(g);
+}

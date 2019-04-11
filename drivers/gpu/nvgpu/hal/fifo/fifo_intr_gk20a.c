@@ -279,3 +279,13 @@ void gk20a_fifo_intr_0_isr(struct gk20a *g)
 
 	nvgpu_writel(g, fifo_intr_0_r(), clear_intr);
 }
+
+bool gk20a_fifo_is_mmu_fault_pending(struct gk20a *g)
+{
+	if ((nvgpu_readl(g, fifo_intr_0_r()) &
+	     fifo_intr_0_mmu_fault_pending_f()) != 0U) {
+		return true;
+	} else {
+		return false;
+	}
+}

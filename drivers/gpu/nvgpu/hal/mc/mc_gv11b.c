@@ -88,3 +88,8 @@ bool gv11b_mc_is_stall_and_eng_intr_pending(struct gk20a *g, u32 act_eng_id,
 
 	return (mc_intr_0 & (eng_intr_mask | stall_intr)) != 0U;
 }
+
+bool gv11b_mc_is_mmu_fault_pending(struct gk20a *g)
+{
+	return g->ops.fb.intr.is_mmu_fault_pending(g);
+}

@@ -43,6 +43,7 @@
 #include "nvgpu/hw/gv11b/hw_gmmu_gv11b.h"
 #include "nvgpu/hw/gv11b/hw_fb_gv11b.h"
 
+#include "hal/mc/mc_gv11b.h"
 #include "hal/fb/fb_gp10b.h"
 #include "hal/fb/fb_gm20b.h"
 #include "hal/fb/fb_gv11b.h"
@@ -128,7 +129,7 @@ static int init_mm(struct unit_module *m, struct gk20a *g)
 	g->ops.ramin.alloc_size = gk20a_ramin_alloc_size;
 
 	/* New HALs for fault testing */
-	g->ops.mm.mmu_fault_pending = gv11b_mm_mmu_fault_pending;
+	g->ops.mc.is_mmu_fault_pending = gv11b_mc_is_mmu_fault_pending;
 	g->ops.mm.fault_info_mem_destroy = gv11b_mm_fault_info_mem_destroy;
 	g->ops.mm.mmu_fault_disable_hw = gv11b_mm_mmu_fault_disable_hw;
 	g->ops.mm.init_mm_setup_hw = gv11b_init_mm_setup_hw;
@@ -143,7 +144,7 @@ static int init_mm(struct unit_module *m, struct gk20a *g)
 	g->ops.fb.read_mmu_fault_status = fb_gv11b_read_mmu_fault_status;
 	g->ops.fb.write_mmu_fault_buffer_lo_hi =
 		fb_gv11b_write_mmu_fault_buffer_lo_hi;
-	g->ops.fb.mmu_fault_pending = gv11b_fb_mmu_fault_pending;
+	g->ops.fb.intr.is_mmu_fault_pending = gv11b_fb_intr_is_mmu_fault_pending;
 	g->ops.fb.is_fault_buf_enabled = gv11b_fb_is_fault_buf_enabled;
 	g->ops.fb.fault_buf_set_state_hw = gv11b_fb_fault_buf_set_state_hw;
 	g->ops.ramin.set_big_page_size = gm20b_ramin_set_big_page_size;
@@ -264,14 +265,14 @@ static void write_error(struct unit_module *m, struct gk20a *g, u32 error)
 static int test_page_faults_pending(struct unit_module *m, struct gk20a *g,
 					void *args)
 {
-	if (g->ops.mm.mmu_fault_pending(g)) {
+	if (g->ops.mc.is_mmu_fault_pending(g)) {
 		unit_return_fail(m, "MMU fault already pending at init.\n");
 	}
 
 	/* Write a fault in the pending register */
 	write_error(m, g, fb_niso_intr_mmu_other_fault_notify_m());
 
-	if (!g->ops.mm.mmu_fault_pending(g)) {
+	if (!g->ops.mc.is_mmu_fault_pending(g)) {
 		unit_return_fail(m, "MMU fault not pending as expected.\n");
 	}
 

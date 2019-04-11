@@ -929,16 +929,6 @@ int gk20a_fifo_suspend(struct gk20a *g)
 	return 0;
 }
 
-bool gk20a_fifo_mmu_fault_pending(struct gk20a *g)
-{
-	if ((gk20a_readl(g, fifo_intr_0_r()) &
-	     fifo_intr_0_mmu_fault_pending_f()) != 0U) {
-		return true;
-	} else {
-		return false;
-	}
-}
-
 static const char * const pbdma_chan_eng_ctx_status_str[] = {
 	"invalid",
 	"valid",

@@ -37,4 +37,6 @@ void gk20a_fifo_intr_handle_runlist_event(struct gk20a *g);
 u32  gk20a_fifo_pbdma_isr(struct gk20a *g);
 bool gk20a_fifo_handle_sched_error(struct gk20a *g);
 
+bool gk20a_fifo_is_mmu_fault_pending(struct gk20a *g);
+
 #endif /* NVGPU_FIFO_INTR_GK20A_H */

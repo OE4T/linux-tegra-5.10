@@ -1173,21 +1173,6 @@ void gv11b_fb_handle_mmu_fault(struct gk20a *g, u32 niso_intr)
 			fb_mmu_fault_status_valid_clear_f());
 }
 
-bool gv11b_fb_mmu_fault_pending(struct gk20a *g)
-{
-	if ((gk20a_readl(g, fb_niso_intr_r()) &
-		(fb_niso_intr_mmu_other_fault_notify_m() |
-		 fb_niso_intr_mmu_ecc_uncorrected_error_notify_m() |
-		 fb_niso_intr_mmu_replayable_fault_notify_m() |
-		 fb_niso_intr_mmu_replayable_fault_overflow_m() |
-		 fb_niso_intr_mmu_nonreplayable_fault_notify_m() |
-		 fb_niso_intr_mmu_nonreplayable_fault_overflow_m())) != 0U) {
-		return true;
-	}
-
-	return false;
-}
-
 int gv11b_fb_mmu_invalidate_replay(struct gk20a *g,
 			 u32 invalidate_replay_val)
 {

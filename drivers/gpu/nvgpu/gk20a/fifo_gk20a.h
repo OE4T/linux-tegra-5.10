@@ -226,8 +226,6 @@ u32 gk20a_fifo_engines_on_ch(struct gk20a *g, u32 chid);
 
 int gk20a_fifo_suspend(struct gk20a *g);
 
-bool gk20a_fifo_mmu_fault_pending(struct gk20a *g);
-
 void gk20a_fifo_recover(struct gk20a *g,
 			u32 engine_ids, /* if zero, will be queried from HW */
 			u32 hw_id, /* if ~0, will be queried from HW */

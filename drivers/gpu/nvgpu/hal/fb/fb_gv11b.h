@@ -42,7 +42,6 @@ bool gv11b_fb_is_fault_buf_enabled(struct gk20a *g, u32 index	);
 void gv11b_fb_fault_buf_set_state_hw(struct gk20a *g,
 		 u32 index, u32 state);
 void gv11b_fb_fault_buf_configure_hw(struct gk20a *g, u32 index);
-bool gv11b_fb_mmu_fault_pending(struct gk20a *g);
 void gv11b_fb_handle_dropped_mmu_fault(struct gk20a *g, u32 fault_status);
 void gv11b_fb_handle_other_fault_notify(struct gk20a *g,
 			 u32 fault_status);
