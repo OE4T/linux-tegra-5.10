@@ -39,11 +39,6 @@ struct gr_ctx_desc;
 struct nvgpu_gr_isr_data;
 struct gk20a_debug_output;
 
-#define	VOLTA_CHANNEL_GPFIFO_A	0xC36FU
-#define	VOLTA_A			0xC397U
-#define	VOLTA_COMPUTE_A		0xC3C0U
-#define	VOLTA_DMA_COPY_A	0xC3B5U
-
 #define NVC397_SET_SHADER_EXCEPTIONS		0x1528U
 #define NVC397_SET_CIRCULAR_BUFFER_SIZE 	0x1280U
 #define NVC397_SET_ALPHA_CIRCULAR_BUFFER_SIZE 	0x02dcU
@@ -74,9 +69,7 @@ struct gk20a_debug_output;
 void gr_gv11b_create_sysfs(struct gk20a *g);
 void gr_gv11b_remove_sysfs(struct gk20a *g);
 u32 gr_gv11b_ctxsw_checksum_mismatch_mailbox_val(void);
-bool gr_gv11b_is_valid_class(struct gk20a *g, u32 class_num);
-bool gr_gv11b_is_valid_gfx_class(struct gk20a *g, u32 class_num);
-bool gr_gv11b_is_valid_compute_class(struct gk20a *g, u32 class_num);
+
 int gr_gv11b_handle_tpc_sm_ecc_exception(struct gk20a *g,
 		u32 gpc, u32 tpc,
 		bool *post_event, struct channel_gk20a *fault_ch,

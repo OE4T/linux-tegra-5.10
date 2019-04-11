@@ -28,11 +28,7 @@
 struct gk20a;
 struct nvgpu_warpstate;
 
-#define	MAXWELL_B			0xB197U
-#define	MAXWELL_COMPUTE_B		0xB1C0U
-#define	KEPLER_INLINE_TO_MEMORY_B	0xA140U
-#define	MAXWELL_DMA_COPY_A		0xB0B5U
-#define	MAXWELL_CHANNEL_GPFIFO_A	0xB06FU
+
 
 #define NVB197_SET_ALPHA_CIRCULAR_BUFFER_SIZE	0x02dc
 #define NVB197_SET_CIRCULAR_BUFFER_SIZE		0x1280
@@ -51,9 +47,6 @@ int gr_gm20b_handle_sw_method(struct gk20a *g, u32 addr,
 void gr_gm20b_set_alpha_circular_buffer_size(struct gk20a *g, u32 data);
 void gr_gm20b_set_circular_buffer_size(struct gk20a *g, u32 data);
 void gr_gm20b_set_hww_esr_report_mask(struct gk20a *g);
-bool gr_gm20b_is_valid_class(struct gk20a *g, u32 class_num);
-bool gr_gm20b_is_valid_gfx_class(struct gk20a *g, u32 class_num);
-bool gr_gm20b_is_valid_compute_class(struct gk20a *g, u32 class_num);
 void gr_gm20b_init_sm_dsm_reg_info(void);
 void gr_gm20b_get_sm_dsm_perf_regs(struct gk20a *g,
 					  u32 *num_sm_dsm_perf_regs,

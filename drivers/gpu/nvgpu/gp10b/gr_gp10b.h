@@ -33,12 +33,6 @@ struct nvgpu_gr_ctx;
 struct nvgpu_preemption_modes_rec;
 struct gk20a_debug_output;
 
-#define	PASCAL_CHANNEL_GPFIFO_A		0xC06FU
-#define	PASCAL_A			0xC097U
-#define	PASCAL_COMPUTE_A		0xC0C0U
-#define	PASCAL_DMA_COPY_A		0xC0B5U
-#define	PASCAL_DMA_COPY_B		0xC1B5U
-
 #define NVC097_SET_GO_IDLE_TIMEOUT		0x022cU
 #define NVC097_SET_ALPHA_CIRCULAR_BUFFER_SIZE	0x02dcU
 #define NVC097_SET_COALESCE_BUFFER_SIZE		0x1028U
@@ -61,9 +55,6 @@ int gr_gp10b_handle_fecs_error(struct gk20a *g,
 int gr_gp10b_set_cilp_preempt_pending(struct gk20a *g,
 		struct channel_gk20a *fault_ch);
 
-bool gr_gp10b_is_valid_class(struct gk20a *g, u32 class_num);
-bool gr_gp10b_is_valid_gfx_class(struct gk20a *g, u32 class_num);
-bool gr_gp10b_is_valid_compute_class(struct gk20a *g, u32 class_num);
 int gr_gp10b_handle_sm_exception(struct gk20a *g,
 			u32 gpc, u32 tpc, u32 sm,
 			bool *post_event, struct channel_gk20a *fault_ch,

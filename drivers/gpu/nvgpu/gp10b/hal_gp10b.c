@@ -23,6 +23,7 @@
  */
 #include <nvgpu/debug.h>
 #include <nvgpu/bug.h>
+#include <nvgpu/class.h>
 #include <nvgpu/enabled.h>
 #include <nvgpu/ptimer.h>
 #include <nvgpu/error_notifier.h>
@@ -51,6 +52,7 @@
 #include "hal/bus/bus_gk20a.h"
 #include "hal/bus/bus_gm20b.h"
 #include "hal/bus/bus_gp10b.h"
+#include "hal/class/class_gp10b.h"
 #include "hal/priv_ring/priv_ring_gm20b.h"
 #include "hal/priv_ring/priv_ring_gp10b.h"
 #include "hal/power_features/cg/gp10b_gating_reglist.h"
@@ -291,9 +293,6 @@ static const struct gpu_ops gp10b_ops = {
 		.set_alpha_circular_buffer_size =
 			gr_gp10b_set_alpha_circular_buffer_size,
 		.set_circular_buffer_size = gr_gp10b_set_circular_buffer_size,
-		.is_valid_class = gr_gp10b_is_valid_class,
-		.is_valid_gfx_class = gr_gp10b_is_valid_gfx_class,
-		.is_valid_compute_class = gr_gp10b_is_valid_compute_class,
 		.get_sm_dsm_perf_regs = gr_gm20b_get_sm_dsm_perf_regs,
 		.get_sm_dsm_perf_ctrl_regs = gr_gm20b_get_sm_dsm_perf_ctrl_regs,
 		.set_hww_esr_report_mask = gr_gm20b_set_hww_esr_report_mask,
@@ -648,6 +647,11 @@ static const struct gpu_ops gp10b_ops = {
 			.fecs_host_int_enable =
 				gm20b_gr_falcon_fecs_host_int_enable,
 		},
+	},
+	.class = {
+		.is_valid = gp10b_class_is_valid,
+		.is_valid_gfx = gp10b_class_is_valid_gfx,
+		.is_valid_compute = gp10b_class_is_valid_compute,
 	},
 	.fb = {
 		.init_hw = gm20b_fb_init_hw,
@@ -1139,6 +1143,7 @@ int gp10b_init_hal(struct gk20a *g)
 	gops->cbc = gp10b_ops.cbc;
 	gops->ce2 = gp10b_ops.ce2;
 	gops->gr = gp10b_ops.gr;
+	gops->class = gp10b_ops.class;
 	gops->gr.ctxsw_prog = gp10b_ops.gr.ctxsw_prog;
 	gops->gr.config = gp10b_ops.gr.config;
 	gops->fb = gp10b_ops.fb;

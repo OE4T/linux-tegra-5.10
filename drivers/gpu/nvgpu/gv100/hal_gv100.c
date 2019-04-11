@@ -29,6 +29,7 @@
 #include "hal/bus/bus_gk20a.h"
 #include "hal/bus/bus_gp10b.h"
 #include "hal/bus/bus_gv100.h"
+#include "hal/class/class_gv11b.h"
 #include "hal/priv_ring/priv_ring_gm20b.h"
 #include "hal/priv_ring/priv_ring_gp10b.h"
 #include "hal/power_features/cg/gv100_gating_reglist.h"
@@ -158,6 +159,7 @@
 #include "gv100/clk_gv100.h"
 
 #include <nvgpu/ptimer.h>
+#include <nvgpu/class.h>
 #include <nvgpu/debug.h>
 #include <nvgpu/enabled.h>
 #include <nvgpu/error_notifier.h>
@@ -396,9 +398,6 @@ static const struct gpu_ops gv100_ops = {
 		.set_alpha_circular_buffer_size =
 			gr_gv11b_set_alpha_circular_buffer_size,
 		.set_circular_buffer_size = gr_gv11b_set_circular_buffer_size,
-		.is_valid_class = gr_gv11b_is_valid_class,
-		.is_valid_gfx_class = gr_gv11b_is_valid_gfx_class,
-		.is_valid_compute_class = gr_gv11b_is_valid_compute_class,
 		.get_sm_dsm_perf_regs = gv11b_gr_get_sm_dsm_perf_regs,
 		.get_sm_dsm_perf_ctrl_regs = gv11b_gr_get_sm_dsm_perf_ctrl_regs,
 		.set_hww_esr_report_mask = gv11b_gr_set_hww_esr_report_mask,
@@ -785,6 +784,11 @@ static const struct gpu_ops gv100_ops = {
 			.fecs_host_int_enable =
 					gv11b_gr_falcon_fecs_host_int_enable,
 		},
+	},
+	.class = {
+		.is_valid = gv11b_class_is_valid,
+		.is_valid_gfx = gv11b_class_is_valid_gfx,
+		.is_valid_compute = gv11b_class_is_valid_compute,
 	},
 	.fb = {
 		.init_hw = gv11b_fb_init_hw,
@@ -1423,6 +1427,7 @@ int gv100_init_hal(struct gk20a *g)
 	gops->cbc = gv100_ops.cbc;
 	gops->ce2 = gv100_ops.ce2;
 	gops->gr = gv100_ops.gr;
+	gops->class = gv100_ops.class;
 	gops->gr.ctxsw_prog = gv100_ops.gr.ctxsw_prog;
 	gops->gr.config = gv100_ops.gr.config;
 	gops->fb = gv100_ops.fb;

@@ -1,7 +1,5 @@
 /*
- * GP106 GPU GR
- *
- * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019 NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -22,18 +20,51 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NVGPU_GR_GP106_H
-#define NVGPU_GR_GP106_H
+#include <nvgpu/class.h>
+#include <nvgpu/barrier.h>
 
-struct gk20a;
+#include "class_gp10b.h"
 
-u32 gr_gp106_pagepool_default_size(struct gk20a *g);
-int gr_gp106_handle_sw_method(struct gk20a *g, u32 addr,
-				     u32 class_num, u32 offset, u32 data);
-int gr_gp106_set_ctxsw_preemption_mode(struct gk20a *g,
-				struct nvgpu_gr_ctx *gr_ctx,
-				struct vm_gk20a *vm, u32 class,
-				u32 graphics_preempt_mode,
-				u32 compute_preempt_mode);
+bool gp10b_class_is_valid(u32 class_num)
+{
+	bool valid = false;
 
-#endif /* NVGPU_GR_GP106_H */
+	nvgpu_speculation_barrier();
+	switch (class_num) {
+	case PASCAL_COMPUTE_A:
+	case PASCAL_A:
+	case PASCAL_DMA_COPY_A:
+		valid = true;
+		break;
+
+	case MAXWELL_COMPUTE_B:
+	case MAXWELL_B:
+	case FERMI_TWOD_A:
+	case KEPLER_DMA_COPY_A:
+	case MAXWELL_DMA_COPY_A:
+		valid = true;
+		break;
+
+	default:
+		break;
+	}
+	return valid;
+}
+
+bool gp10b_class_is_valid_gfx(u32 class_num)
+{
+	if (class_num == PASCAL_A ||  class_num == MAXWELL_B) {
+		return true;
+	} else {
+		return false;
+	}
+}
+
+bool gp10b_class_is_valid_compute(u32 class_num)
+{
+	if (class_num == PASCAL_COMPUTE_A ||  class_num == MAXWELL_COMPUTE_B) {
+		return true;
+	} else {
+		return false;
+	}
+}

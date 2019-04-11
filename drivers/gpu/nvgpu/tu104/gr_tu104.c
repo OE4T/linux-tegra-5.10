@@ -21,6 +21,7 @@
  */
 
 #include <nvgpu/types.h>
+#include <nvgpu/class.h>
 #include <nvgpu/soc.h>
 #include <nvgpu/io.h>
 #include <nvgpu/utils.h>
@@ -42,48 +43,6 @@
 #include "tu104/gr_tu104.h"
 
 #include <nvgpu/hw/tu104/hw_gr_tu104.h>
-
-bool gr_tu104_is_valid_class(struct gk20a *g, u32 class_num)
-{
-	nvgpu_speculation_barrier();
-	switch (class_num) {
-	case TURING_CHANNEL_GPFIFO_A:
-	case TURING_A:
-	case TURING_COMPUTE_A:
-	case TURING_DMA_COPY_A:
-		return true;
-	default:
-		break;
-	}
-
-	return gr_gv11b_is_valid_class(g, class_num);
-};
-
-bool gr_tu104_is_valid_gfx_class(struct gk20a *g, u32 class_num)
-{
-	nvgpu_speculation_barrier();
-	switch (class_num) {
-	case TURING_A:
-		return true;
-	default:
-		break;
-	}
-
-	return gr_gv11b_is_valid_gfx_class(g, class_num);
-}
-
-bool gr_tu104_is_valid_compute_class(struct gk20a *g, u32 class_num)
-{
-	nvgpu_speculation_barrier();
-	switch (class_num) {
-	case TURING_COMPUTE_A:
-		return true;
-	default:
-		break;
-	}
-
-	return gr_gv11b_is_valid_compute_class(g, class_num);
-}
 
 int gr_tu104_get_offset_in_gpccs_segment(struct gk20a *g,
 					enum ctxsw_addr_type addr_type,

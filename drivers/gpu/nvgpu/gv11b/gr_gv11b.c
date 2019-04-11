@@ -23,6 +23,7 @@
  */
 
 #include <nvgpu/timers.h>
+#include <nvgpu/class.h>
 #include <nvgpu/gmmu.h>
 #include <nvgpu/dma.h>
 #include <nvgpu/log.h>
@@ -72,54 +73,6 @@ u32 gr_gv11b_ctxsw_checksum_mismatch_mailbox_val(void)
 	return gr_fecs_ctxsw_mailbox_value_ctxsw_checksum_mismatch_v();
 }
 
-bool gr_gv11b_is_valid_class(struct gk20a *g, u32 class_num)
-{
-	bool valid = false;
-
-	nvgpu_speculation_barrier();
-	switch (class_num) {
-	case VOLTA_COMPUTE_A:
-	case VOLTA_A:
-	case VOLTA_DMA_COPY_A:
-		valid = true;
-		break;
-
-	case MAXWELL_COMPUTE_B:
-	case MAXWELL_B:
-	case FERMI_TWOD_A:
-	case KEPLER_DMA_COPY_A:
-	case MAXWELL_DMA_COPY_A:
-	case PASCAL_COMPUTE_A:
-	case PASCAL_A:
-	case PASCAL_DMA_COPY_A:
-		valid = true;
-		break;
-
-	default:
-		break;
-	}
-	nvgpu_log_info(g, "class=0x%x valid=%d", class_num, valid);
-	return valid;
-}
-
-bool gr_gv11b_is_valid_gfx_class(struct gk20a *g, u32 class_num)
-{
-	bool valid = false;
-
-	nvgpu_speculation_barrier();
-	switch (class_num) {
-	case VOLTA_A:
-	case PASCAL_A:
-	case MAXWELL_B:
-		valid = true;
-		break;
-
-	default:
-		break;
-	}
-	return valid;
-}
-
 void gr_gv11b_powergate_tpc(struct gk20a *g)
 {
 	u32 tpc_pg_status = g->ops.fuse.fuse_status_opt_tpc_gpc(g, 0);
@@ -135,24 +88,6 @@ void gr_gv11b_powergate_tpc(struct gk20a *g)
 	} while (tpc_pg_status != g->tpc_pg_mask);
 
 	return;
-}
-
-bool gr_gv11b_is_valid_compute_class(struct gk20a *g, u32 class_num)
-{
-	bool valid = false;
-
-	nvgpu_speculation_barrier();
-	switch (class_num) {
-	case VOLTA_COMPUTE_A:
-	case PASCAL_COMPUTE_A:
-	case MAXWELL_COMPUTE_B:
-		valid = true;
-		break;
-
-	default:
-		break;
-	}
-	return valid;
 }
 
 u32 gv11b_gr_sm_offset(struct gk20a *g, u32 sm)

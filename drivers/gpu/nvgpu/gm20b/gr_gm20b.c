@@ -24,6 +24,7 @@
 
 #include <nvgpu/kmem.h>
 #include <nvgpu/log.h>
+#include <nvgpu/class.h>
 #include <nvgpu/enabled.h>
 #include <nvgpu/debug.h>
 #include <nvgpu/fuse.h>
@@ -239,44 +240,6 @@ void gr_gm20b_set_hww_esr_report_mask(struct gk20a *g)
 	gk20a_writel(g, gr_gpcs_tpcs_sm_hww_global_esr_report_mask_r(),
 		gr_gpcs_tpcs_sm_hww_global_esr_report_mask_sm_to_sm_fault_report_f() |
 		gr_gpcs_tpcs_sm_hww_global_esr_report_mask_multiple_warp_errors_report_f());
-}
-
-bool gr_gm20b_is_valid_class(struct gk20a *g, u32 class_num)
-{
-	bool valid = false;
-
-	switch (class_num) {
-	case MAXWELL_COMPUTE_B:
-	case MAXWELL_B:
-	case FERMI_TWOD_A:
-	case KEPLER_DMA_COPY_A:
-	case MAXWELL_DMA_COPY_A:
-		valid = true;
-		break;
-
-	default:
-		break;
-	}
-
-	return valid;
-}
-
-bool gr_gm20b_is_valid_gfx_class(struct gk20a *g, u32 class_num)
-{
-	if (class_num == MAXWELL_B) {
-		return true;
-	} else {
-		return false;
-	}
-}
-
-bool gr_gm20b_is_valid_compute_class(struct gk20a *g, u32 class_num)
-{
-	if (class_num == MAXWELL_COMPUTE_B) {
-		return true;
-	} else {
-		return false;
-	}
 }
 
 

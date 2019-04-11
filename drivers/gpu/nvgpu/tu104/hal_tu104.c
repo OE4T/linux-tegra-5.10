@@ -31,6 +31,7 @@
 #include "hal/bus/bus_gp10b.h"
 #include "hal/bus/bus_gv100.h"
 #include "hal/bus/bus_tu104.h"
+#include "hal/class/class_tu104.h"
 #include "hal/priv_ring/priv_ring_gm20b.h"
 #include "hal/priv_ring/priv_ring_gp10b.h"
 #include "hal/power_features/cg/tu104_gating_reglist.h"
@@ -181,6 +182,7 @@
 #include <nvgpu/error_notifier.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/clk_arb.h>
+#include <nvgpu/class.h>
 #include <nvgpu/debugger.h>
 #include <nvgpu/channel.h>
 #include <nvgpu/pbdma.h>
@@ -415,9 +417,6 @@ static const struct gpu_ops tu104_ops = {
 		.set_alpha_circular_buffer_size =
 			gr_gv11b_set_alpha_circular_buffer_size,
 		.set_circular_buffer_size = gr_gv11b_set_circular_buffer_size,
-		.is_valid_class = gr_tu104_is_valid_class,
-		.is_valid_gfx_class = gr_tu104_is_valid_gfx_class,
-		.is_valid_compute_class = gr_tu104_is_valid_compute_class,
 		.get_sm_dsm_perf_regs = gv11b_gr_get_sm_dsm_perf_regs,
 		.get_sm_dsm_perf_ctrl_regs = gr_tu104_get_sm_dsm_perf_ctrl_regs,
 		.set_hww_esr_report_mask = gv11b_gr_set_hww_esr_report_mask,
@@ -818,6 +817,11 @@ static const struct gpu_ops tu104_ops = {
 			.fecs_host_int_enable =
 					gv11b_gr_falcon_fecs_host_int_enable,
 		},
+	},
+	.class = {
+		.is_valid = tu104_class_is_valid,
+		.is_valid_gfx = tu104_class_is_valid_gfx,
+		.is_valid_compute = tu104_class_is_valid_compute,
 	},
 	.fb = {
 		.init_hw = gv11b_fb_init_hw,
@@ -1472,6 +1476,7 @@ int tu104_init_hal(struct gk20a *g)
 	gops->cbc = tu104_ops.cbc;
 	gops->ce2 = tu104_ops.ce2;
 	gops->gr = tu104_ops.gr;
+	gops->class = tu104_ops.class;
 	gops->gr.ctxsw_prog = tu104_ops.gr.ctxsw_prog;
 	gops->gr.config = tu104_ops.gr.config;
 	gops->fb = tu104_ops.fb;

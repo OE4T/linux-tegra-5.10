@@ -99,7 +99,7 @@ int nvgpu_gr_setup_alloc_obj_ctx(struct channel_gk20a *c, u32 class_num,
 		return -EINVAL;
 	}
 
-	if (!g->ops.gr.is_valid_class(g, class_num)) {
+	if (!g->ops.class.is_valid(class_num)) {
 		nvgpu_err(g,
 			   "invalid obj class 0x%x", class_num);
 		err = -EINVAL;

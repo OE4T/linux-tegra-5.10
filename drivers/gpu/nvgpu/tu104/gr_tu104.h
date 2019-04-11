@@ -29,11 +29,6 @@ struct gk20a;
 struct nvgpu_preemption_modes_rec;
 struct nvgpu_gr_ctx;
 
-#define	TURING_CHANNEL_GPFIFO_A	0xC46FU
-#define	TURING_A		0xC597U
-#define	TURING_COMPUTE_A	0xC5C0U
-#define	TURING_DMA_COPY_A	0xC5B5U
-
 #define NVC5C0_SET_SHADER_EXCEPTIONS            0x1528U
 #define NVC5C0_SET_SKEDCHECK                    0x23cU
 #define NVC5C0_SET_SHADER_CUT_COLLECTOR         0x254U
@@ -54,9 +49,7 @@ struct nvgpu_gr_ctx;
 #define NVC597_SET_SM_DISP_CTRL                 0x10c8U
 #define NVC597_SET_SHADER_CUT_COLLECTOR         0x10d0U
 
-bool gr_tu104_is_valid_class(struct gk20a *g, u32 class_num);
-bool gr_tu104_is_valid_gfx_class(struct gk20a *g, u32 class_num);
-bool gr_tu104_is_valid_compute_class(struct gk20a *g, u32 class_num);
+
 
 int gr_tu104_init_sw_bundle64(struct gk20a *g);
 

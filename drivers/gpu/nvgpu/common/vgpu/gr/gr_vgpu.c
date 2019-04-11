@@ -230,7 +230,7 @@ int vgpu_gr_alloc_obj_ctx(struct channel_gk20a  *c, u32 class_num, u32 flags)
 		return -EINVAL;
 	}
 
-	if (!g->ops.gr.is_valid_class(g, class_num)) {
+	if (!g->ops.class.is_valid(class_num)) {
 		nvgpu_err(g, "invalid obj class 0x%x", class_num);
 		err = -EINVAL;
 		goto out;
@@ -1248,10 +1248,10 @@ static int vgpu_gr_init_ctxsw_preemption_mode(struct gk20a *g,
 
 	if (priv->constants.force_preempt_mode && !graphics_preempt_mode &&
 		!compute_preempt_mode) {
-		graphics_preempt_mode = g->ops.gr.is_valid_gfx_class(g, class) ?
+		graphics_preempt_mode = g->ops.class.is_valid_gfx(class) ?
 					NVGPU_PREEMPTION_MODE_GRAPHICS_GFXP : 0;
 		compute_preempt_mode =
-			g->ops.gr.is_valid_compute_class(g, class) ?
+			g->ops.class.is_valid_compute(class) ?
 			NVGPU_PREEMPTION_MODE_COMPUTE_CTA : 0;
 	}
 
@@ -1280,12 +1280,12 @@ static int vgpu_gr_set_ctxsw_preemption_mode(struct gk20a *g,
 				&msg.params.gr_bind_ctxsw_buffers;
 	int err = 0;
 
-	if (g->ops.gr.is_valid_gfx_class(g, class) &&
+	if (g->ops.class.is_valid_gfx(class) &&
 			g->gr.ctx_vars.force_preemption_gfxp) {
 		graphics_preempt_mode = NVGPU_PREEMPTION_MODE_GRAPHICS_GFXP;
 	}
 
-	if (g->ops.gr.is_valid_compute_class(g, class) &&
+	if (g->ops.class.is_valid_compute(class) &&
 			g->gr.ctx_vars.force_preemption_cilp) {
 		compute_preempt_mode = NVGPU_PREEMPTION_MODE_COMPUTE_CILP;
 	}
@@ -1369,7 +1369,7 @@ static int vgpu_gr_set_ctxsw_preemption_mode(struct gk20a *g,
 		break;
 	}
 
-	if (g->ops.gr.is_valid_compute_class(g, class)) {
+	if (g->ops.class.is_valid_compute(class)) {
 		switch (compute_preempt_mode) {
 		case NVGPU_PREEMPTION_MODE_COMPUTE_WFI:
 			nvgpu_gr_ctx_init_compute_preemption_mode(gr_ctx,

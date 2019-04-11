@@ -165,6 +165,10 @@ nvgpu-y += \
 	hal/bus/bus_gp10b.o \
 	hal/bus/bus_gv100.o \
 	hal/bus/bus_tu104.o \
+	hal/class/class_gm20b.o \
+	hal/class/class_gp10b.o \
+	hal/class/class_gv11b.o \
+	hal/class/class_tu104.o \
 	hal/gr/ecc/ecc_gp10b.o \
 	hal/gr/ecc/ecc_gv11b.o \
 	hal/gr/ecc/ecc_tu104.o \

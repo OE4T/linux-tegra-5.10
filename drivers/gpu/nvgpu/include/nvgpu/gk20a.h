@@ -277,9 +277,6 @@ struct gpu_ops {
 		void (*set_circular_buffer_size)(struct gk20a *g, u32 data);
 		void (*set_bes_crop_debug3)(struct gk20a *g, u32 data);
 		void (*set_bes_crop_debug4)(struct gk20a *g, u32 data);
-		bool (*is_valid_class)(struct gk20a *g, u32 class_num);
-		bool (*is_valid_gfx_class)(struct gk20a *g, u32 class_num);
-		bool (*is_valid_compute_class)(struct gk20a *g, u32 class_num);
 		void (*get_sm_dsm_perf_regs)(struct gk20a *g,
 						  u32 *num_sm_dsm_perf_regs,
 						  u32 **sm_dsm_perf_regs,
@@ -842,6 +839,13 @@ struct gpu_ops {
 					void *data);
 		} err_ops;
 	} gr;
+
+	struct {
+		bool (*is_valid)(u32 class_num);
+		bool (*is_valid_gfx)(u32 class_num);
+		bool (*is_valid_compute)(u32 class_num);
+	} class;
+
 	struct {
 		void (*init_hw)(struct gk20a *g);
 		void (*cbc_configure)(struct gk20a *g, struct nvgpu_cbc *cbc);
@@ -2295,14 +2299,6 @@ void __nvgpu_check_gpu_state(struct gk20a *g);
 void __gk20a_warn_on_no_regs(void);
 
 bool is_nvgpu_gpu_state_valid(struct gk20a *g);
-
-/* classes that the device supports */
-/* TBD: get these from an open-sourced SDK? */
-enum {
-	FERMI_TWOD_A              = 0x902D,
-	KEPLER_INLINE_TO_MEMORY_A = 0xA040,
-	KEPLER_DMA_COPY_A         = 0xA0B5,
-};
 
 #define GK20A_BAR0_IORESOURCE_MEM	0U
 #define GK20A_BAR1_IORESOURCE_MEM	1U

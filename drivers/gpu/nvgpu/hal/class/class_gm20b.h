@@ -1,7 +1,5 @@
 /*
- * GP106 GPU GR
- *
- * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -22,18 +20,13 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NVGPU_GR_GP106_H
-#define NVGPU_GR_GP106_H
+#ifndef NVGPU_CLASS_GM20B
+#define NVGPU_CALSS_GM20B
 
-struct gk20a;
+#include <nvgpu/types.h>
 
-u32 gr_gp106_pagepool_default_size(struct gk20a *g);
-int gr_gp106_handle_sw_method(struct gk20a *g, u32 addr,
-				     u32 class_num, u32 offset, u32 data);
-int gr_gp106_set_ctxsw_preemption_mode(struct gk20a *g,
-				struct nvgpu_gr_ctx *gr_ctx,
-				struct vm_gk20a *vm, u32 class,
-				u32 graphics_preempt_mode,
-				u32 compute_preempt_mode);
+bool gm20b_class_is_valid(u32 class_num);
+bool gm20b_class_is_valid_gfx(u32 class_num);
+bool gm20b_class_is_valid_compute(u32 class_num);
 
-#endif /* NVGPU_GR_GP106_H */
+#endif

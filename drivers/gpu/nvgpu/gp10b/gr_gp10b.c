@@ -23,6 +23,7 @@
  */
 
 #include <nvgpu/timers.h>
+#include <nvgpu/class.h>
 #include <nvgpu/kmem.h>
 #include <nvgpu/gmmu.h>
 #include <nvgpu/dma.h>
@@ -56,50 +57,6 @@
 
 #define GFXP_WFI_TIMEOUT_COUNT_DEFAULT 100000U
 
-bool gr_gp10b_is_valid_class(struct gk20a *g, u32 class_num)
-{
-	bool valid = false;
-
-	nvgpu_speculation_barrier();
-	switch (class_num) {
-	case PASCAL_COMPUTE_A:
-	case PASCAL_A:
-	case PASCAL_DMA_COPY_A:
-		valid = true;
-		break;
-
-	case MAXWELL_COMPUTE_B:
-	case MAXWELL_B:
-	case FERMI_TWOD_A:
-	case KEPLER_DMA_COPY_A:
-	case MAXWELL_DMA_COPY_A:
-		valid = true;
-		break;
-
-	default:
-		break;
-	}
-	nvgpu_log_info(g, "class=0x%x valid=%d", class_num, valid);
-	return valid;
-}
-
-bool gr_gp10b_is_valid_gfx_class(struct gk20a *g, u32 class_num)
-{
-	if (class_num == PASCAL_A ||  class_num == MAXWELL_B) {
-		return true;
-	} else {
-		return false;
-	}
-}
-
-bool gr_gp10b_is_valid_compute_class(struct gk20a *g, u32 class_num)
-{
-	if (class_num == PASCAL_COMPUTE_A ||  class_num == MAXWELL_COMPUTE_B) {
-		return true;
-	} else {
-		return false;
-	}
-}
 
 
 static void gr_gp10b_sm_lrf_ecc_overcount_war(bool single_err,

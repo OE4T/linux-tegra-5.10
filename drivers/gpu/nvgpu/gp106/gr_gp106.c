@@ -22,6 +22,7 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
+#include <nvgpu/class.h>
 #include <nvgpu/dma.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/gr/ctx.h>
@@ -36,35 +37,6 @@
 #include "gr_gp106.h"
 
 #include <nvgpu/hw/gp106/hw_gr_gp106.h>
-
-bool gr_gp106_is_valid_class(struct gk20a *g, u32 class_num)
-{
-	bool valid = false;
-
-	switch (class_num) {
-	case PASCAL_COMPUTE_A:
-	case PASCAL_COMPUTE_B:
-	case PASCAL_A:
-	case PASCAL_B:
-	case PASCAL_DMA_COPY_A:
-	case PASCAL_DMA_COPY_B:
-		valid = true;
-		break;
-
-	case MAXWELL_COMPUTE_B:
-	case MAXWELL_B:
-	case FERMI_TWOD_A:
-	case KEPLER_DMA_COPY_A:
-	case MAXWELL_DMA_COPY_A:
-		valid = true;
-		break;
-
-	default:
-		break;
-	}
-	nvgpu_log_info(g, "class=0x%x valid=%d", class_num, valid);
-	return valid;
-}
 
 u32 gr_gp106_pagepool_default_size(struct gk20a *g)
 {

@@ -34,6 +34,7 @@
 #include "hal/bus/bus_gk20a.h"
 #include "hal/bus/bus_gm20b.h"
 #include "hal/regops/regops_gp10b.h"
+#include "hal/class/class_gp10b.h"
 #include "hal/fifo/engines_gm20b.h"
 #include "hal/fifo/pbdma_gm20b.h"
 #include "hal/fifo/pbdma_gp10b.h"
@@ -128,9 +129,6 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 		.handle_sw_method = NULL,
 		.set_alpha_circular_buffer_size = NULL,
 		.set_circular_buffer_size = NULL,
-		.is_valid_class = gr_gp10b_is_valid_class,
-		.is_valid_gfx_class = gr_gp10b_is_valid_gfx_class,
-		.is_valid_compute_class = gr_gp10b_is_valid_compute_class,
 		.get_sm_dsm_perf_regs = gr_gm20b_get_sm_dsm_perf_regs,
 		.get_sm_dsm_perf_ctrl_regs = gr_gm20b_get_sm_dsm_perf_ctrl_regs,
 		.set_hww_esr_report_mask = NULL,
@@ -361,6 +359,11 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 			.commit_cbes_reserve =
 				gp10b_gr_init_commit_cbes_reserve,
 		},
+	},
+	.class = {
+		.is_valid = gp10b_class_is_valid,
+		.is_valid_gfx = gp10b_class_is_valid_gfx,
+		.is_valid_compute = gp10b_class_is_valid_compute,
 	},
 	.perf = {
 		.get_pmm_per_chiplet_offset =
@@ -758,6 +761,7 @@ int vgpu_gp10b_init_hal(struct gk20a *g)
 	gops->cbc = vgpu_gp10b_ops.cbc;
 	gops->ce2 = vgpu_gp10b_ops.ce2;
 	gops->gr = vgpu_gp10b_ops.gr;
+	gops->class = vgpu_gp10b_ops.class;
 	gops->gr.ctxsw_prog = vgpu_gp10b_ops.gr.ctxsw_prog;
 	gops->gr.config = vgpu_gp10b_ops.gr.config;
 	gops->fb = vgpu_gp10b_ops.fb;
