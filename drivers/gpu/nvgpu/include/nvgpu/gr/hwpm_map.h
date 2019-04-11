@@ -42,6 +42,8 @@ int nvgpu_gr_hwpm_map_init(struct gk20a *g, struct nvgpu_gr_hwpm_map **hwpm_map,
 void nvgpu_gr_hwpm_map_deinit(struct gk20a *g,
 	struct nvgpu_gr_hwpm_map *hwpm_map);
 
+u32 nvgpu_gr_hwpm_map_get_size(struct nvgpu_gr_hwpm_map *hwpm_map);
+
 int nvgpu_gr_hwmp_map_find_priv_offset(struct gk20a *g,
 	struct nvgpu_gr_hwpm_map *hwpm_map,
 	u32 addr, u32 *priv_offset);

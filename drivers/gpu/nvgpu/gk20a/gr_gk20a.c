@@ -228,7 +228,7 @@ int gr_gk20a_update_hwpm_ctxsw_mode(struct gk20a *g,
 	if (mode != NVGPU_GR_CTX_HWPM_CTXSW_MODE_NO_CTXSW) {
 		nvgpu_gr_ctx_set_size(g->gr.gr_ctx_desc,
 			NVGPU_GR_CTX_PM_CTX,
-			g->gr.ctx_vars.pm_ctxsw_image_size);
+			nvgpu_gr_hwpm_map_get_size(g->gr.hwpm_map));
 
 		ret = nvgpu_gr_ctx_alloc_pm_ctx(g, gr_ctx,
 			g->gr.gr_ctx_desc, c->vm,

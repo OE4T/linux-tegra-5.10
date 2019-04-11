@@ -40,6 +40,7 @@
 #include <nvgpu/gr/zbc.h>
 #include <nvgpu/gr/zcull.h>
 #include <nvgpu/gr/fecs_trace.h>
+#include <nvgpu/gr/hwpm_map.h>
 #include <nvgpu/cyclestats_snapshot.h>
 #include <nvgpu/power_features/pg.h>
 
@@ -710,6 +711,13 @@ static int vgpu_gr_init_gr_setup_sw(struct gk20a *g)
 		goto clean_up;
 	}
 
+	err = nvgpu_gr_hwpm_map_init(g, &g->gr.hwpm_map,
+		g->gr.ctx_vars.pm_ctxsw_image_size);
+	if (err != 0) {
+		nvgpu_err(g, "hwpm_map init failed");
+		goto clean_up;
+	}
+
 	err = vgpu_gr_init_gr_zcull(g, gr);
 	if (err) {
 		goto clean_up;
@@ -920,8 +928,6 @@ int vgpu_gr_update_hwpm_ctxsw_mode(struct gk20a *g,
 				"failed to allocate pm ctxt buffer");
 			return err;
 		}
-		nvgpu_gr_ctx_get_pm_ctx_mem(gr_ctx)->size =
-			g->gr.ctx_vars.pm_ctxsw_image_size;
 	}
 
 	msg.cmd = TEGRA_VGPU_CMD_CHANNEL_SET_HWPM_CTXSW_MODE;

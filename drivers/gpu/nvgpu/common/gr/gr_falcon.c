@@ -171,15 +171,6 @@ int nvgpu_gr_falcon_init_ctx_state(struct gk20a *g)
 		if (err != 0) {
 			goto out;
 		}
-
-		if (g->gr.ctx_vars.pm_ctxsw_image_size != 0U) {
-			err = nvgpu_gr_hwpm_map_init(g, &g->gr.hwpm_map,
-				g->gr.ctx_vars.pm_ctxsw_image_size);
-			if (err != 0) {
-				nvgpu_err(g, "hwpm_map init failed");
-				goto out;
-			}
-		}
 	}
 
 out:

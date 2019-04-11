@@ -42,6 +42,10 @@ int nvgpu_gr_hwpm_map_init(struct gk20a *g, struct nvgpu_gr_hwpm_map **hwpm_map,
 {
 	struct nvgpu_gr_hwpm_map *tmp_map;
 
+	if (size == 0U) {
+		return -EINVAL;
+	}
+
 	tmp_map = nvgpu_kzalloc(g, sizeof(*tmp_map));
 	if (tmp_map == NULL) {
 		return -ENOMEM;
@@ -63,6 +67,11 @@ void nvgpu_gr_hwpm_map_deinit(struct gk20a *g,
 	}
 
 	nvgpu_kfree(g, hwpm_map);
+}
+
+u32 nvgpu_gr_hwpm_map_get_size(struct nvgpu_gr_hwpm_map *hwpm_map)
+{
+	return hwpm_map->pm_ctxsw_image_size;
 }
 
 static int map_cmp(const void *a, const void *b)

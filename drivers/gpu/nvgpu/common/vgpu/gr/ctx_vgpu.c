@@ -31,6 +31,7 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/gr/global_ctx.h>
 #include <nvgpu/gr/ctx.h>
+#include <nvgpu/gr/hwpm_map.h>
 
 #include "common/gr/ctx_priv.h"
 
@@ -173,7 +174,7 @@ int vgpu_gr_alloc_pm_ctx(struct gk20a *g, struct nvgpu_gr_ctx *gr_ctx,
 	}
 
 	pm_ctx->mem.gpu_va = nvgpu_vm_alloc_va(vm,
-			g->gr.ctx_vars.pm_ctxsw_image_size,
+			nvgpu_gr_hwpm_map_get_size(g->gr.hwpm_map),
 			GMMU_PAGE_SIZE_KERNEL);
 
 	if (!pm_ctx->mem.gpu_va) {
@@ -181,7 +182,7 @@ int vgpu_gr_alloc_pm_ctx(struct gk20a *g, struct nvgpu_gr_ctx *gr_ctx,
 		return -ENOMEM;
 	}
 
-	pm_ctx->mem.size = g->gr.ctx_vars.pm_ctxsw_image_size;
+	pm_ctx->mem.size = nvgpu_gr_hwpm_map_get_size(g->gr.hwpm_map);
 	return 0;
 }
 

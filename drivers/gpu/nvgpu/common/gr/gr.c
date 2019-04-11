@@ -399,6 +399,13 @@ static int gr_init_setup_sw(struct gk20a *g)
 		goto clean_up;
 	}
 
+	err = nvgpu_gr_hwpm_map_init(g, &g->gr.hwpm_map,
+		g->gr.ctx_vars.pm_ctxsw_image_size);
+	if (err != 0) {
+		nvgpu_err(g, "hwpm_map init failed");
+		goto clean_up;
+	}
+
 	err = nvgpu_gr_config_init_map_tiles(g, gr->config);
 	if (err != 0) {
 		goto clean_up;
