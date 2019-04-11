@@ -53,5 +53,6 @@ void nvgpu_rc_runlist_update(struct gk20a *g, u32 runlist_id);
 void nvgpu_rc_preempt_timeout(struct gk20a *g, struct tsg_gk20a *tsg);
 void nvgpu_rc_gr_fault(struct gk20a *g,
 			struct tsg_gk20a *tsg, struct channel_gk20a *ch);
+void nvgpu_rc_sched_error_bad_tsg(struct gk20a *g);
 
 #endif /* NVGPU_RC_H */

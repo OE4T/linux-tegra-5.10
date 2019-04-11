@@ -130,3 +130,10 @@ void nvgpu_rc_gr_fault(struct gk20a *g, struct tsg_gk20a *tsg,
 				   false, false, true, RC_TYPE_GR_FAULT);
 	}
 }
+
+void nvgpu_rc_sched_error_bad_tsg(struct gk20a *g)
+{
+	/* id is unknown, preempt all runlists and do recovery */
+	gk20a_fifo_recover(g, 0, INVAL_ID, false, false, false,
+			RC_TYPE_SCHED_ERR);
+}

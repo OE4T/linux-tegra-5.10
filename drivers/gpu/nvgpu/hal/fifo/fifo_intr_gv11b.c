@@ -140,8 +140,7 @@ bool gv11b_fifo_handle_sched_error(struct gk20a *g)
 
 	if (sched_error == SCHED_ERROR_CODE_BAD_TSG) {
 		/* id is unknown, preempt all runlists and do recovery */
-		gk20a_fifo_recover(g, 0, 0, false, false, false,
-				RC_TYPE_SCHED_ERR);
+		nvgpu_rc_sched_error_bad_tsg(g);
 	}
 
 	return false;
