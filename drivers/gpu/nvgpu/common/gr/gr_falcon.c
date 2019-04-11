@@ -133,8 +133,6 @@ int nvgpu_gr_falcon_init_ctx_state(struct gk20a *g)
 				goto out;
 			}
 		}
-
-		g->gr.ctx_vars.priv_access_map_size = 512 * 1024;
 	}
 
 out:

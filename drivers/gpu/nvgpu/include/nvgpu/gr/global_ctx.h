@@ -24,6 +24,8 @@
 
 #include <nvgpu/nvgpu_mem.h>
 
+#define NVGPU_GR_GLOBAL_CTX_PRIV_ACCESS_MAP_SIZE	(512U * 1024U)
+
 struct gk20a;
 struct nvgpu_mem;
 struct vm_gk20a;

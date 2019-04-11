@@ -70,12 +70,11 @@ static int gr_alloc_global_ctx_buffers(struct gk20a *g)
 	nvgpu_gr_global_ctx_set_size(gr->global_ctx_buffer,
 		NVGPU_GR_GLOBAL_CTX_ATTRIBUTE_VPR, size);
 
-	nvgpu_log_info(g, "priv_access_map_size : %d",
-		   gr->ctx_vars.priv_access_map_size);
+	size = NVGPU_GR_GLOBAL_CTX_PRIV_ACCESS_MAP_SIZE;
+	nvgpu_log_info(g, "priv_access_map_size : %d", size);
 
 	nvgpu_gr_global_ctx_set_size(gr->global_ctx_buffer,
-		NVGPU_GR_GLOBAL_CTX_PRIV_ACCESS_MAP,
-		gr->ctx_vars.priv_access_map_size);
+		NVGPU_GR_GLOBAL_CTX_PRIV_ACCESS_MAP, size);
 
 #ifdef CONFIG_GK20A_CTXSW_TRACE
 	size = nvgpu_gr_fecs_trace_buffer_size(g);
@@ -283,7 +282,7 @@ static int gr_init_access_map(struct gk20a *g, struct gr_gk20a *gr)
 {
 	struct nvgpu_mem *mem;
 	u32 nr_pages =
-		DIV_ROUND_UP(gr->ctx_vars.priv_access_map_size,
+		DIV_ROUND_UP(NVGPU_GR_GLOBAL_CTX_PRIV_ACCESS_MAP_SIZE,
 			     PAGE_SIZE);
 	u32 *whitelist = NULL;
 	int w, num_entries = 0;

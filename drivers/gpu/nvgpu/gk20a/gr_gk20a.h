@@ -128,8 +128,6 @@ struct gr_gk20a {
 
 		u32 pm_ctxsw_image_size;
 
-		u32 priv_access_map_size;
-
 		u32 preempt_image_size;
 		bool force_preemption_gfxp;
 		bool force_preemption_cilp;
