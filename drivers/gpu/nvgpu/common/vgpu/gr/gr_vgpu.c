@@ -146,8 +146,8 @@ int vgpu_gr_init_ctx_state(struct gk20a *g)
 		return -ENXIO;
 	}
 
-	g->gr.zcull->zcull_ctxsw_image_size = priv->constants.zcull_ctx_size;
-	if (g->gr.zcull->zcull_ctxsw_image_size == 0U) {
+	g->gr.ctx_vars.zcull_image_size = priv->constants.zcull_ctx_size;
+	if (g->gr.ctx_vars.zcull_image_size == 0U) {
 		return -ENXIO;
 	}
 
@@ -467,7 +467,8 @@ cleanup:
 	return err;
 }
 
-static int vgpu_gr_init_gr_zcull(struct gk20a *g, struct gr_gk20a *gr)
+static int vgpu_gr_init_gr_zcull(struct gk20a *g, struct gr_gk20a *gr,
+		u32 size)
 {
 	nvgpu_log_fn(g, " ");
 
@@ -475,6 +476,8 @@ static int vgpu_gr_init_gr_zcull(struct gk20a *g, struct gr_gk20a *gr)
 	if (gr->zcull == NULL) {
 		return -ENOMEM;
 	}
+
+	gr->zcull->zcull_ctxsw_image_size = size;
 
 	return 0;
 }
@@ -730,7 +733,7 @@ static int vgpu_gr_init_gr_setup_sw(struct gk20a *g)
 		goto clean_up;
 	}
 
-	err = vgpu_gr_init_gr_zcull(g, gr);
+	err = vgpu_gr_init_gr_zcull(g, gr, gr->ctx_vars.zcull_image_size);
 	if (err) {
 		goto clean_up;
 	}

@@ -411,7 +411,7 @@ static int gr_init_setup_sw(struct gk20a *g)
 		goto clean_up;
 	}
 
-	err = nvgpu_gr_zcull_init(g, &gr->zcull);
+	err = nvgpu_gr_zcull_init(g, &gr->zcull, gr->ctx_vars.zcull_image_size);
 	if (err != 0) {
 		goto clean_up;
 	}

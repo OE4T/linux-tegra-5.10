@@ -26,31 +26,12 @@
 #include <nvgpu/gr/subctx.h>
 #include <nvgpu/gr/ctx.h>
 #include <nvgpu/gr/zcull.h>
-#include <nvgpu/gr/gr_falcon.h>
 
 #include "common/gr/zcull_priv.h"
 
 #include "zcull_gm20b.h"
 
 #include <nvgpu/hw/gm20b/hw_gr_gm20b.h>
-
-static int gm20b_gr_init_zcull_ctxsw_image_size(struct gk20a *g,
-						struct nvgpu_gr_zcull *gr_zcull)
-{
-	int ret = 0;
-
-	if (!g->gr.ctx_vars.golden_image_initialized) {
-		ret = g->ops.gr.falcon.ctrl_ctxsw(g,
-			NVGPU_GR_FALCON_METHOD_CTXSW_DISCOVER_ZCULL_IMAGE_SIZE,
-			0, &gr_zcull->zcull_ctxsw_image_size);
-		if (ret != 0) {
-			nvgpu_err(g,
-				"query zcull ctx image size failed");
-			return ret;
-		}
-	}
-	return ret;
-}
 
 int gm20b_gr_init_zcull_hw(struct gk20a *g,
 			struct nvgpu_gr_zcull *gr_zcull,
@@ -61,16 +42,10 @@ int gm20b_gr_init_zcull_hw(struct gk20a *g,
 	bool floorsweep = false;
 	u32 rcp_conserv;
 	u32 offset;
-	int ret;
 
 	gr_zcull->total_aliquots =
 		gr_gpc0_zcull_total_ram_size_num_aliquots_f(
 			nvgpu_readl(g, gr_gpc0_zcull_total_ram_size_r()));
-
-	ret = gm20b_gr_init_zcull_ctxsw_image_size(g, gr_zcull);
-	if (ret != 0) {
-		return ret;
-	}
 
 	for (gpc_index = 0;
 	     gpc_index < nvgpu_gr_config_get_gpc_count(gr_config);

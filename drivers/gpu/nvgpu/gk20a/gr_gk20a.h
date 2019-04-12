@@ -104,8 +104,12 @@ struct gr_gk20a {
 		u32 pm_ctxsw_image_size;
 
 		u32 preempt_image_size;
+
+		u32 zcull_image_size;
+
 		bool force_preemption_gfxp;
 		bool force_preemption_cilp;
+
 		bool dump_ctxsw_stats_on_channel_close;
 	} ctx_vars;
 

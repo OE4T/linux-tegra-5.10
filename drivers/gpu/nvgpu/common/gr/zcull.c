@@ -30,7 +30,8 @@
 
 #include "zcull_priv.h"
 
-int nvgpu_gr_zcull_init(struct gk20a *g, struct nvgpu_gr_zcull **gr_zcull)
+int nvgpu_gr_zcull_init(struct gk20a *g, struct nvgpu_gr_zcull **gr_zcull,
+		u32 size)
 {
 	struct nvgpu_gr_config *gr_config = g->gr.config;
 	struct nvgpu_gr_zcull *zcull;
@@ -43,6 +44,8 @@ int nvgpu_gr_zcull_init(struct gk20a *g, struct nvgpu_gr_zcull **gr_zcull)
 	}
 
 	zcull->g = g;
+
+	zcull->zcull_ctxsw_image_size = size;
 
 	zcull->aliquot_width = nvgpu_gr_config_get_tpc_count(gr_config) * 16U;
 	zcull->aliquot_height = 16;

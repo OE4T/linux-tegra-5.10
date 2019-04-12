@@ -44,7 +44,8 @@ struct nvgpu_gr_zcull_info {
 	u32 subregion_count;
 };
 
-int nvgpu_gr_zcull_init(struct gk20a *g, struct nvgpu_gr_zcull **gr_zcull);
+int nvgpu_gr_zcull_init(struct gk20a *g, struct nvgpu_gr_zcull **gr_zcull,
+		u32 size);
 void nvgpu_gr_zcull_deinit(struct gk20a *g, struct nvgpu_gr_zcull *gr_zcull);
 
 u32 nvgpu_gr_get_ctxsw_zcull_size(struct gk20a *g,

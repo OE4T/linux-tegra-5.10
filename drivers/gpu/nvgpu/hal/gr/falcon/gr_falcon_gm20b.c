@@ -684,6 +684,14 @@ int gm20b_gr_falcon_init_ctx_state(struct gk20a *g)
 				   "query pm ctx image size failed");
 			return ret;
 		}
+		ret = gm20b_gr_falcon_ctrl_ctxsw(g,
+			NVGPU_GR_FALCON_METHOD_CTXSW_DISCOVER_ZCULL_IMAGE_SIZE,
+			0, &g->gr.ctx_vars.zcull_image_size);
+		if (ret != 0) {
+			nvgpu_err(g,
+				"query zcull ctx image size failed");
+			return ret;
+		}
 	}
 
 	nvgpu_log_fn(g, "done");
