@@ -40,6 +40,7 @@
 #include <nvgpu/channel_sync_syncpt.h>
 #include <nvgpu/runlist.h>
 #include <nvgpu/gr/ctx.h>
+#include <nvgpu/gr/obj_ctx.h>
 #include <nvgpu/fence.h>
 
 #include "platform_gk20a.h"

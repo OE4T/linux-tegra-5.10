@@ -35,10 +35,6 @@
 
 #define GK20A_TIMEOUT_FPGA		100000U /* 100 sec */
 
-/* Flags to be passed to g->ops.gr.alloc_obj_ctx() */
-#define NVGPU_OBJ_CTX_FLAGS_SUPPORT_GFXP		BIT32(1)
-#define NVGPU_OBJ_CTX_FLAGS_SUPPORT_CILP		BIT32(2)
-
 struct tsg_gk20a;
 struct nvgpu_gr_ctx;
 struct channel_gk20a;
