@@ -2142,9 +2142,7 @@ int __init nvadsp_os_probe(struct platform_device *pdev)
 {
 	struct nvadsp_drv_data *drv_data = platform_get_drvdata(pdev);
 	struct device *dev = &pdev->dev;
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 14, 0)
 	uint64_t dma_mask;
-#endif
 	uint16_t com_mid = ADSP_COM_MBOX_ID;
 	int ret = 0;
 
@@ -2162,7 +2160,6 @@ int __init nvadsp_os_probe(struct platform_device *pdev)
 		drv_data->deassert_adsp = __deassert_adsp;
 	}
 
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 14, 0)
 	ret = of_property_read_u64(dev->of_node, "dma-mask", &dma_mask);
 	if (ret) {
 		dev_err(&pdev->dev, "Missing property dma-mask\n");
@@ -2170,7 +2167,7 @@ int __init nvadsp_os_probe(struct platform_device *pdev)
 	} else {
 		dma_set_mask_and_coherent(&pdev->dev, dma_mask);
 	}
-#endif
+
 	ret = nvadsp_os_init(pdev);
 	if (ret) {
 		dev_err(dev, "failed to init os\n");
