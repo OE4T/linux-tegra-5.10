@@ -54,3 +54,4 @@ dtb-$(CONFIG_ARCH_TEGRA_194_SOC) += nvidia/tegra194-p2888-0001-p2822-0000.dtb
 dtb-$(CONFIG_ARCH_TEGRA_186_SOC) += nvidia/tegra186-quill-p3310-1000-c03-00-base.dtb
 dtb-$(CONFIG_ARCH_TEGRA_186_SOC) += nvidia/tegra186-quill-p3310-1000-a00-00-base.dtb
 dtb-$(CONFIG_ARCH_TEGRA_210_SOC) += nvidia/tegra210-jetson-tx1-p2597-2180-a01-devkit.dtb
+dtb-$(CONFIG_ARCH_TEGRA_210_SOC) += nvidia/tegra210-jetson-cv-base-p2597-2180-a00.dtb
