@@ -444,6 +444,169 @@ int osi_config_arp_offload(struct osi_core_priv_data *osi_core,
 	return ret;
 }
 
+int osi_config_mac_pkt_filter_reg(struct osi_core_priv_data *osi_core,
+				  struct osi_filter pfilter)
+{
+	int ret = -1;
+
+	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
+	    (osi_core->ops->config_mac_pkt_filter_reg != OSI_NULL)) {
+		osi_core->ops->config_mac_pkt_filter_reg(osi_core,
+							 pfilter);
+		ret = 0;
+	}
+
+	return ret;
+}
+
+int osi_update_mac_addr_low_high_reg(struct osi_core_priv_data *osi_core,
+				     unsigned int index, unsigned char value[])
+{
+	int ret = -1;
+
+	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
+	    (osi_core->ops->update_mac_addr_low_high_reg != OSI_NULL)) {
+		ret = osi_core->ops->update_mac_addr_low_high_reg(
+								  osi_core,
+								  index,
+								  value);
+	}
+
+	return ret;
+}
+
+int osi_config_l3_l4_filter_enable(struct osi_core_priv_data *osi_core,
+				   unsigned int enable)
+{
+	int ret = -1;
+
+	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
+	    (osi_core->ops->config_l3_l4_filter_enable != OSI_NULL)) {
+		ret = osi_core->ops->config_l3_l4_filter_enable(osi_core->base,
+								enable);
+	}
+
+	return ret;
+}
+
+int osi_config_l3_filters(struct osi_core_priv_data *osi_core,
+			  unsigned int filter_no,
+			  unsigned int enb_dis,
+			  unsigned int ipv4_ipv6_match,
+			  unsigned int src_dst_addr_match,
+			  unsigned int perfect_inverse_match)
+{
+	int ret = -1;
+
+	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
+	    (osi_core->ops->config_l3_filters != OSI_NULL)) {
+		ret = osi_core->ops->config_l3_filters(osi_core, filter_no,
+						       enb_dis, ipv4_ipv6_match,
+						       src_dst_addr_match,
+						       perfect_inverse_match);
+	}
+
+	return ret;
+}
+
+int osi_update_ip4_addr(struct osi_core_priv_data *osi_core,
+			unsigned int filter_no,
+			unsigned char addr[],
+			unsigned int src_dst_addr_match)
+{
+	int ret = -1;
+
+	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
+	    (osi_core->ops->update_ip4_addr != OSI_NULL)) {
+		ret = osi_core->ops->update_ip4_addr(osi_core, filter_no,
+						     addr, src_dst_addr_match);
+	}
+
+	return ret;
+}
+
+int osi_update_ip6_addr(struct osi_core_priv_data *osi_core,
+			unsigned int filter_no,
+			unsigned short addr[])
+{
+	int ret = -1;
+
+	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
+	    (osi_core->ops->update_ip6_addr != OSI_NULL)) {
+		ret = osi_core->ops->update_ip6_addr(osi_core, filter_no, addr);
+	}
+	return ret;
+}
+
+int osi_config_l4_filters(struct osi_core_priv_data *osi_core,
+			  unsigned int filter_no,
+			  unsigned int enb_dis,
+			  unsigned int tcp_udp_match,
+			  unsigned int src_dst_port_match,
+			  unsigned int perfect_inverse_match)
+{
+	int ret = -1;
+
+	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
+	    (osi_core->ops->config_l4_filters != OSI_NULL)) {
+		ret = osi_core->ops->config_l4_filters(osi_core, filter_no,
+						       enb_dis, tcp_udp_match,
+						       src_dst_port_match,
+						       perfect_inverse_match);
+	}
+
+	return ret;
+}
+
+int osi_update_l4_port_no(struct osi_core_priv_data *osi_core,
+			  unsigned int filter_no, unsigned short port_no,
+			  unsigned int src_dst_port_match)
+{
+	int ret = -1;
+
+	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
+	    (osi_core->ops->update_l4_port_no != OSI_NULL)) {
+		ret = osi_core->ops->update_l4_port_no(osi_core, filter_no,
+						       port_no,
+						       src_dst_port_match);
+	}
+
+	return ret;
+}
+
+int osi_config_vlan_filtering(struct osi_core_priv_data *osi_core,
+			      unsigned int filter_enb_dis,
+			      unsigned int perfect_hash_filtering,
+			      unsigned int perfect_inverse_match)
+{
+	int ret = -1;
+
+	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
+	    (osi_core->ops->config_vlan_filtering != OSI_NULL)) {
+		ret = osi_core->ops->config_vlan_filtering(osi_core,
+							   filter_enb_dis,
+							perfect_hash_filtering,
+							perfect_inverse_match);
+	}
+
+	return ret;
+}
+
+int  osi_config_l2_da_perfect_inverse_match(struct osi_core_priv_data *osi_core,
+					    unsigned int perfect_inverse_match)
+{
+	int ret = -1;
+
+	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
+	    (osi_core->ops->config_l2_da_perfect_inverse_match != OSI_NULL)) {
+		ret = osi_core->ops->config_l2_da_perfect_inverse_match(
+							osi_core->base,
+							perfect_inverse_match);
+	}
+
+	return ret;
+}
+
 int osi_config_rxcsum_offload(struct osi_core_priv_data *osi_core,
 			      unsigned int enable)
 {
@@ -453,6 +616,20 @@ int osi_config_rxcsum_offload(struct osi_core_priv_data *osi_core,
 	    osi_core->ops->config_rxcsum_offload != OSI_NULL) {
 		ret = osi_core->ops->config_rxcsum_offload(osi_core->base,
 							   enable);
+	}
+
+	return ret;
+}
+
+int  osi_update_vlan_id(struct osi_core_priv_data *osi_core,
+			unsigned int vid)
+{
+	int ret = -1;
+
+	if ((osi_core != OSI_NULL) && (osi_core->ops != OSI_NULL) &&
+	    (osi_core->ops->update_vlan_id != OSI_NULL && vid != 0U)) {
+		ret = osi_core->ops->update_vlan_id(osi_core->base,
+						    vid);
 	}
 
 	return ret;

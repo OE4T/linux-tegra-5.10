@@ -48,6 +48,10 @@
 #define EQOS_DMA_CHX_STATUS(x)		((0x0080U * (x)) + 0x1160U)
 #define EQOS_DMA_CHX_IER(x)		((0x0080U * (x)) + 0x1134U)
 
+/* FIXME add logic based on HW version */
+#define EQOS_MAX_MAC_ADDRESS_FILTER		128U
+#define EQOS_MAX_L3_L4_FILTER			8U
+
 #define MAC_VERSION		0x110
 #define MAC_VERSION_SNVER_MASK	0x7FU
 
@@ -57,6 +61,15 @@
 #define OSI_NULL                ((void *)0)
 #define OSI_ENABLE		1U
 #define OSI_DISABLE		0U
+
+#define OSI_HASH_FILTER_MODE	1U
+#define OSI_PERFECT_FILTER_MODE	0U
+
+#define OSI_L4_FILTER_TCP	0U
+#define OSI_L4_FILTER_UDP	1U
+
+#define OSI_IP4_FILTER		0U
+#define OSI_IP6_FILTER		1U
 
 #define OSI_EQOS_MAX_NUM_CHANS	4U
 
