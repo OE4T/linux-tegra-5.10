@@ -94,6 +94,7 @@ struct ether_rx_napi {
  *	@common_irq:	Common IRQ number for MAC
  *	@tx_irqs:	Array of DMA Transmit channel IRQ numbers
  *	@rx_irqs:	Array of DMA Receive channel IRQ numbers
+ *	dma_mask:	memory allocation mask
  */
 struct ether_priv_data {
 	struct osi_core_priv_data *osi_core;
@@ -130,6 +131,7 @@ struct ether_priv_data {
 	int common_irq;
 	int tx_irqs[ETHER_MAX_IRQS];
 	int rx_irqs[ETHER_MAX_IRQS];
+	unsigned long long dma_mask;
 };
 
 void ether_set_ethtool_ops(struct net_device *ndev);
