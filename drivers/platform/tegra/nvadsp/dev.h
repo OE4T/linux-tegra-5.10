@@ -22,7 +22,6 @@
 #include <linux/tegra_nvadsp.h>
 #include <linux/platform_device.h>
 #include <linux/ioport.h>
-#include <linux/iova.h>
 #include <linux/debugfs.h>
 
 #include <linux/platform/tegra/emc_bwmgr.h>
@@ -214,9 +213,6 @@ struct nvadsp_drv_data {
 
 	struct tegra_bwmgr_client *bwmgr;
 	u32 evp_base[ADSP_EVP_END];
-
-	/* Used to reserve iova */
-	struct iova_domain iovad;
 
 	const struct nvadsp_chipdata *chip_data;
 };
