@@ -92,7 +92,7 @@ fail:
 
 void gr_gm20b_set_alpha_circular_buffer_size(struct gk20a *g, u32 data)
 {
-	struct gr_gk20a *gr = &g->gr;
+	struct nvgpu_gr *gr = g->gr;
 	u32 gpc_index, ppc_index, stride, val;
 	u32 pd_ab_max_output;
 	u32 alpha_cb_size = data * 4U;
@@ -149,7 +149,7 @@ void gr_gm20b_set_alpha_circular_buffer_size(struct gk20a *g, u32 data)
 
 void gr_gm20b_set_circular_buffer_size(struct gk20a *g, u32 data)
 {
-	struct gr_gk20a *gr = &g->gr;
+	struct nvgpu_gr *gr = g->gr;
 	u32 gpc_index, ppc_index, stride, val;
 	u32 cb_size = data * 4U;
 	u32 gpc_stride = nvgpu_get_litter_value(g, GPU_LIT_GPC_STRIDE);
@@ -291,10 +291,10 @@ void gr_gm20b_set_gpc_tpc_mask(struct gk20a *g, u32 gpc_index)
 	nvgpu_tegra_fuse_write_bypass(g, 0x1);
 	nvgpu_tegra_fuse_write_access_sw(g, 0x0);
 
-	if (nvgpu_gr_config_get_gpc_tpc_mask(g->gr.config, gpc_index) == 0x1U) {
+	if (nvgpu_gr_config_get_gpc_tpc_mask(g->gr->config, gpc_index) == 0x1U) {
 		nvgpu_tegra_fuse_write_opt_gpu_tpc0_disable(g, 0x0);
 		nvgpu_tegra_fuse_write_opt_gpu_tpc1_disable(g, 0x1);
-	} else if (nvgpu_gr_config_get_gpc_tpc_mask(g->gr.config, gpc_index) ==
+	} else if (nvgpu_gr_config_get_gpc_tpc_mask(g->gr->config, gpc_index) ==
 			0x2U) {
 		nvgpu_tegra_fuse_write_opt_gpu_tpc0_disable(g, 0x1);
 		nvgpu_tegra_fuse_write_opt_gpu_tpc1_disable(g, 0x0);
@@ -344,7 +344,7 @@ u32 gr_gm20b_get_tpc_num(struct gk20a *g, u32 addr)
 int gr_gm20b_dump_gr_status_regs(struct gk20a *g,
 			   struct gk20a_debug_output *o)
 {
-	struct gr_gk20a *gr = &g->gr;
+	struct nvgpu_gr *gr = g->gr;
 	u32 gr_engine_id;
 	struct nvgpu_engine_status_info engine_status;
 
@@ -510,7 +510,7 @@ int gr_gm20b_update_pc_sampling(struct channel_gk20a *c,
 
 u32 *gr_gm20b_rop_l2_en_mask(struct gk20a *g)
 {
-	struct gr_gk20a *gr = &g->gr;
+	struct nvgpu_gr *gr = g->gr;
 	unsigned long i;
 	u32 tmp, max_fbps_count, max_ltc_per_fbp;
 	unsigned long fbp_en_mask;
@@ -535,7 +535,7 @@ void gr_gm20b_init_cyclestats(struct gk20a *g)
 #if defined(CONFIG_GK20A_CYCLE_STATS)
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_CYCLE_STATS, true);
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_CYCLE_STATS_SNAPSHOT, true);
-	g->gr.max_css_buffer_size = 0xffffffffU;
+	g->gr->max_css_buffer_size = 0xffffffffU;
 #else
 	(void)g;
 #endif
@@ -545,7 +545,7 @@ void gr_gm20b_bpt_reg_info(struct gk20a *g, struct nvgpu_warpstate *w_state)
 {
 	/* Check if we have at least one valid warp */
 	/* get paused state on maxwell */
-	struct gr_gk20a *gr = &g->gr;
+	struct nvgpu_gr *gr = g->gr;
 	u32 gpc, tpc, sm_id;
 	u32  tpc_offset, gpc_offset, reg_offset;
 	u64 warps_valid = 0, warps_paused = 0, warps_trapped = 0;
@@ -695,7 +695,7 @@ int gm20b_gr_clear_sm_error_state(struct gk20a *g,
 	(void) memset(&tsg->sm_error_states[sm_id], 0,
 		sizeof(*tsg->sm_error_states));
 
-	err = g->ops.gr.falcon.disable_ctxsw(g, g->gr.falcon);
+	err = g->ops.gr.falcon.disable_ctxsw(g, g->gr->falcon);
 	if (err != 0) {
 		nvgpu_err(g, "unable to stop gr ctxsw");
 		goto fail;
@@ -703,7 +703,7 @@ int gm20b_gr_clear_sm_error_state(struct gk20a *g,
 
 	if (gk20a_is_channel_ctx_resident(ch)) {
 		struct sm_info *sm_info =
-			nvgpu_gr_config_get_sm_info(g->gr.config, sm_id);
+			nvgpu_gr_config_get_sm_info(g->gr->config, sm_id);
 		gpc = nvgpu_gr_config_get_sm_info_gpc_index(sm_info);
 		tpc = nvgpu_gr_config_get_sm_info_tpc_index(sm_info);
 
@@ -716,7 +716,7 @@ int gm20b_gr_clear_sm_error_state(struct gk20a *g,
 				0);
 	}
 
-	err = g->ops.gr.falcon.enable_ctxsw(g, g->gr.falcon);
+	err = g->ops.gr.falcon.enable_ctxsw(g, g->gr->falcon);
 
 fail:
 	nvgpu_mutex_release(&g->dbg_sessions_lock);

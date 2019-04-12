@@ -34,7 +34,7 @@
 #define CSS_MIN_HW_SNAPSHOT_SIZE	(8 * 1024 * 1024)
 
 struct gk20a;
-struct gr_gk20a;
+struct nvgpu_gr;
 struct channel_gk20a;
 
 /* cycle stats fifo header (must match NvSnapshotBufferFifo) */
@@ -139,7 +139,7 @@ u32 nvgpu_css_get_pending_snapshots(struct gk20a *g);
 void nvgpu_css_set_handled_snapshots(struct gk20a *g, u32 done);
 int nvgpu_css_enable_snapshot(struct channel_gk20a *ch,
 				struct gk20a_cs_snapshot_client *cs_client);
-void nvgpu_css_disable_snapshot(struct gr_gk20a *gr);
+void nvgpu_css_disable_snapshot(struct nvgpu_gr *gr);
 u32 nvgpu_css_allocate_perfmon_ids(struct gk20a_cs_snapshot *data,
 				       u32 count);
 u32 nvgpu_css_release_perfmon_ids(struct gk20a_cs_snapshot *data,

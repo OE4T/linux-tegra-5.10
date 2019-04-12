@@ -128,9 +128,9 @@ int nvgpu_gr_setup_alloc_obj_ctx(struct channel_gk20a *c, u32 class_num,
 		tsg->vm = c->vm;
 		nvgpu_vm_get(tsg->vm);
 
-		err = nvgpu_gr_obj_ctx_alloc(g, g->gr.golden_image,
-				g->gr.global_ctx_buffer, g->gr.gr_ctx_desc,
-				g->gr.config, gr_ctx, c->subctx,
+		err = nvgpu_gr_obj_ctx_alloc(g, g->gr->golden_image,
+				g->gr->global_ctx_buffer, g->gr->gr_ctx_desc,
+				g->gr->config, gr_ctx, c->subctx,
 				tsg->vm, &c->inst_block, class_num, flags,
 				c->cde, c->vpr);
 		if (err != 0) {
@@ -181,12 +181,12 @@ void nvgpu_gr_setup_free_gr_ctx(struct gk20a *g,
 
 	if (gr_ctx != NULL) {
 		if ((g->ops.gr.ctxsw_prog.dump_ctxsw_stats != NULL) &&
-		     g->gr.ctx_vars.dump_ctxsw_stats_on_channel_close) {
+		     g->gr->ctx_vars.dump_ctxsw_stats_on_channel_close) {
 			g->ops.gr.ctxsw_prog.dump_ctxsw_stats(g,
 				 nvgpu_gr_ctx_get_ctx_mem(gr_ctx));
 		}
 
-		nvgpu_gr_ctx_free(g, gr_ctx, g->gr.global_ctx_buffer, vm);
+		nvgpu_gr_ctx_free(g, gr_ctx, g->gr->global_ctx_buffer, vm);
 	}
 }
 
@@ -251,8 +251,8 @@ int nvgpu_gr_setup_set_preemption_mode(struct channel_gk20a *ch,
 			ch->tgid,
 			graphics_preempt_mode,
 			compute_preempt_mode);
-	err = nvgpu_gr_obj_ctx_set_ctxsw_preemption_mode(g, g->gr.config,
-			g->gr.gr_ctx_desc, gr_ctx, vm, class,
+	err = nvgpu_gr_obj_ctx_set_ctxsw_preemption_mode(g, g->gr->config,
+			g->gr->gr_ctx_desc, gr_ctx, vm, class,
 			graphics_preempt_mode, compute_preempt_mode);
 	if (err != 0) {
 		nvgpu_err(g, "set_ctxsw_preemption_mode failed");
@@ -269,7 +269,7 @@ int nvgpu_gr_setup_set_preemption_mode(struct channel_gk20a *ch,
 		goto enable_ch;
 	}
 
-	nvgpu_gr_obj_ctx_update_ctxsw_preemption_mode(g, g->gr.config, gr_ctx,
+	nvgpu_gr_obj_ctx_update_ctxsw_preemption_mode(g, g->gr->config, gr_ctx,
 		ch->subctx);
 
 	err = nvgpu_gr_ctx_patch_write_begin(g, gr_ctx, true);
@@ -277,7 +277,7 @@ int nvgpu_gr_setup_set_preemption_mode(struct channel_gk20a *ch,
 		nvgpu_err(g, "can't map patch context");
 		goto enable_ch;
 	}
-	g->ops.gr.init.commit_global_cb_manager(g, g->gr.config, gr_ctx,
+	g->ops.gr.init.commit_global_cb_manager(g, g->gr->config, gr_ctx,
 		true);
 	nvgpu_gr_ctx_patch_write_end(g, gr_ctx, true);
 

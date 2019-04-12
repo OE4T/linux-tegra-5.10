@@ -757,9 +757,8 @@ static int gk20a_channel_zcull_bind(struct channel_gk20a *ch,
 			    struct nvgpu_zcull_bind_args *args)
 {
 	struct gk20a *g = ch->g;
-	struct gr_gk20a *gr = &g->gr;
 
-	nvgpu_log_fn(gr->g, " ");
+	nvgpu_log_fn(g, " ");
 
 	return g->ops.gr.setup.bind_ctxsw_zcull(g, ch,
 				args->gpu_va, args->mode);

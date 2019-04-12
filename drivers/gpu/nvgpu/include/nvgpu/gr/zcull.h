@@ -45,7 +45,7 @@ struct nvgpu_gr_zcull_info {
 };
 
 int nvgpu_gr_zcull_init(struct gk20a *g, struct nvgpu_gr_zcull **gr_zcull,
-		u32 size);
+		u32 size, struct nvgpu_gr_config *gr_config);
 void nvgpu_gr_zcull_deinit(struct gk20a *g, struct nvgpu_gr_zcull *gr_zcull);
 
 u32 nvgpu_gr_get_ctxsw_zcull_size(struct gk20a *g,

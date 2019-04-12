@@ -85,7 +85,7 @@ void nvgpu_css_set_handled_snapshots(struct gk20a *g, u32 done)
  * from locked context (protected by cs_lock)
  */
 
-static int css_gr_create_shared_data(struct gr_gk20a *gr)
+static int css_gr_create_shared_data(struct nvgpu_gr *gr)
 {
 	struct gk20a_cs_snapshot *data;
 
@@ -108,7 +108,7 @@ int nvgpu_css_enable_snapshot(struct channel_gk20a *ch,
 				struct gk20a_cs_snapshot_client *cs_client)
 {
 	struct gk20a *g = ch->g;
-	struct gr_gk20a *gr = &g->gr;
+	struct nvgpu_gr *gr = g->gr;
 	struct gk20a_cs_snapshot *data = gr->cs_data;
 	u32 snapshot_size = cs_client->snapshot_size;
 	int ret;
@@ -161,7 +161,7 @@ failed_allocation:
 	return ret;
 }
 
-void nvgpu_css_disable_snapshot(struct gr_gk20a *gr)
+void nvgpu_css_disable_snapshot(struct nvgpu_gr *gr)
 {
 	struct gk20a *g = gr->g;
 	struct gk20a_cs_snapshot *data = gr->cs_data;
@@ -180,7 +180,7 @@ void nvgpu_css_disable_snapshot(struct gr_gk20a *gr)
 	nvgpu_log_info(g, "cyclestats: buffer for hardware snapshots disabled\n");
 }
 
-static void css_gr_free_shared_data(struct gr_gk20a *gr)
+static void css_gr_free_shared_data(struct nvgpu_gr *gr)
 {
 	struct gk20a *g = gr->g;
 
@@ -213,7 +213,7 @@ nvgpu_css_gr_search_client(struct nvgpu_list_node *clients, u32 perfmon)
 static int css_gr_flush_snapshots(struct channel_gk20a *ch)
 {
 	struct gk20a *g = ch->g;
-	struct gr_gk20a *gr = &g->gr;
+	struct nvgpu_gr *gr = g->gr;
 	struct gk20a_cs_snapshot *css = gr->cs_data;
 	struct gk20a_cs_snapshot_client *cur;
 	u32 pending, completed;
@@ -471,7 +471,7 @@ int gr_gk20a_css_attach(struct channel_gk20a *ch,
 {
 	int ret = 0;
 	struct gk20a *g = ch->g;
-	struct gr_gk20a *gr;
+	struct nvgpu_gr *gr;
 
 	/* we must have a placeholder to store pointer to client structure */
 	if (!cs_client) {
@@ -485,7 +485,7 @@ int gr_gk20a_css_attach(struct channel_gk20a *ch,
 
 	nvgpu_speculation_barrier();
 
-	gr = &g->gr;
+	gr = g->gr;
 
 	nvgpu_mutex_acquire(&gr->cs_lock);
 
@@ -539,13 +539,13 @@ int gr_gk20a_css_detach(struct channel_gk20a *ch,
 {
 	int ret = 0;
 	struct gk20a *g = ch->g;
-	struct gr_gk20a *gr;
+	struct nvgpu_gr *gr;
 
 	if (!cs_client) {
 		return -EINVAL;
 	}
 
-	gr = &g->gr;
+	gr = g->gr;
 	nvgpu_mutex_acquire(&gr->cs_lock);
 	if (gr->cs_data) {
 		struct gk20a_cs_snapshot *data = gr->cs_data;
@@ -571,13 +571,13 @@ int gr_gk20a_css_flush(struct channel_gk20a *ch,
 {
 	int ret = 0;
 	struct gk20a *g = ch->g;
-	struct gr_gk20a *gr;
+	struct nvgpu_gr *gr;
 
 	if (!cs_client) {
 		return -EINVAL;
 	}
 
-	gr = &g->gr;
+	gr = g->gr;
 	nvgpu_mutex_acquire(&gr->cs_lock);
 	ret = css_gr_flush_snapshots(ch);
 	nvgpu_mutex_release(&gr->cs_lock);
@@ -588,7 +588,7 @@ int gr_gk20a_css_flush(struct channel_gk20a *ch,
 /* helper function with locking to cleanup snapshot code code in gr_gk20a.c */
 void gr_gk20a_free_cyclestats_snapshot_data(struct gk20a *g)
 {
-	struct gr_gk20a *gr = &g->gr;
+	struct nvgpu_gr *gr = g->gr;
 
 	nvgpu_mutex_acquire(&gr->cs_lock);
 	css_gr_free_shared_data(gr);
@@ -600,7 +600,7 @@ int nvgpu_css_check_data_available(struct channel_gk20a *ch, u32 *pending,
 					bool *hw_overflow)
 {
 	struct gk20a *g = ch->g;
-	struct gr_gk20a *gr = &g->gr;
+	struct nvgpu_gr *gr = g->gr;
 	struct gk20a_cs_snapshot *css = gr->cs_data;
 
 	if (!css->hw_snapshot) {

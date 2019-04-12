@@ -186,12 +186,12 @@ int gr_gk20a_update_hwpm_ctxsw_mode(struct gk20a *g,
 	gr_ctx = tsg->gr_ctx;
 
 	if (mode != NVGPU_GR_CTX_HWPM_CTXSW_MODE_NO_CTXSW) {
-		nvgpu_gr_ctx_set_size(g->gr.gr_ctx_desc,
+		nvgpu_gr_ctx_set_size(g->gr->gr_ctx_desc,
 			NVGPU_GR_CTX_PM_CTX,
-			nvgpu_gr_hwpm_map_get_size(g->gr.hwpm_map));
+			nvgpu_gr_hwpm_map_get_size(g->gr->hwpm_map));
 
 		ret = nvgpu_gr_ctx_alloc_pm_ctx(g, gr_ctx,
-			g->gr.gr_ctx_desc, c->vm,
+			g->gr->gr_ctx_desc, c->vm,
 			gpu_va);
 		if (ret != 0) {
 			nvgpu_err(g,
@@ -562,7 +562,7 @@ int gk20a_gr_isr(struct gk20a *g)
 	struct tsg_gk20a *tsg = NULL;
 	u32 global_esr = 0;
 	u32 chid;
-	struct nvgpu_gr_config *gr_config = g->gr.config;
+	struct nvgpu_gr_config *gr_config = g->gr->config;
 	u32 gr_intr = g->ops.gr.intr.read_pending_interrupts(g, &intr_info);
 	u32 clear_intr = gr_intr;
 
@@ -856,7 +856,7 @@ int gr_gk20a_split_ppc_broadcast_addr(struct gk20a *g, u32 addr,
 	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gpu_dbg, "addr=0x%x", addr);
 
 	for (ppc_num = 0;
-	     ppc_num < nvgpu_gr_config_get_gpc_ppc_count(g->gr.config, gpc_num);
+	     ppc_num < nvgpu_gr_config_get_gpc_ppc_count(g->gr->config, gpc_num);
 	     ppc_num++) {
 		priv_addr_table[(*t)++] = pri_ppc_addr(g, pri_ppccs_addr_mask(addr),
 		gpc_num, ppc_num);
@@ -883,6 +883,7 @@ int gr_gk20a_create_priv_addr_table(struct gk20a *g,
 	u32 broadcast_flags;
 	u32 t;
 	int err;
+	struct nvgpu_gr_config *gr_config = g->gr->config;
 
 	t = 0;
 	*num_registers = 0;
@@ -918,12 +919,12 @@ int gr_gk20a_create_priv_addr_table(struct gk20a *g,
 	 * that we can look up the offsets. */
 	if ((broadcast_flags & PRI_BROADCAST_FLAGS_GPC) != 0U) {
 		for (gpc_num = 0;
-		     gpc_num < nvgpu_gr_config_get_gpc_count(g->gr.config);
+		     gpc_num < nvgpu_gr_config_get_gpc_count(gr_config);
 		     gpc_num++) {
 
 			if ((broadcast_flags & PRI_BROADCAST_FLAGS_TPC) != 0U) {
 				for (tpc_num = 0;
-				     tpc_num < nvgpu_gr_config_get_gpc_tpc_count(g->gr.config, gpc_num);
+				     tpc_num < nvgpu_gr_config_get_gpc_tpc_count(gr_config, gpc_num);
 				     tpc_num++) {
 					priv_addr_table[t++] =
 						pri_tpc_addr(g, pri_tpccs_addr_mask(addr),
@@ -943,7 +944,7 @@ int gr_gk20a_create_priv_addr_table(struct gk20a *g,
 
 				gpc_addr = pri_gpccs_addr_mask(priv_addr);
 				tpc_num = g->ops.gr.get_tpc_num(g, gpc_addr);
-				if (tpc_num >= nvgpu_gr_config_get_gpc_tpc_count(g->gr.config, gpc_num)) {
+				if (tpc_num >= nvgpu_gr_config_get_gpc_tpc_count(gr_config, gpc_num)) {
 					continue;
 				}
 
@@ -969,7 +970,7 @@ int gr_gk20a_create_priv_addr_table(struct gk20a *g,
 	} else if ((broadcast_flags & PRI_BROADCAST_FLAGS_GPC) == 0U) {
 		if ((broadcast_flags & PRI_BROADCAST_FLAGS_TPC) != 0U) {
 			for (tpc_num = 0;
-			     tpc_num < nvgpu_gr_config_get_gpc_tpc_count(g->gr.config, gpc_num);
+			     tpc_num < nvgpu_gr_config_get_gpc_tpc_count(gr_config, gpc_num);
 			     tpc_num++) {
 				priv_addr_table[t++] =
 					pri_tpc_addr(g, pri_tpccs_addr_mask(addr),
@@ -999,7 +1000,7 @@ int gr_gk20a_get_ctx_buffer_offsets(struct gk20a *g,
 	u32 *priv_registers;
 	u32 num_registers = 0;
 	int err = 0;
-	struct gr_gk20a *gr = &g->gr;
+	struct nvgpu_gr *gr = g->gr;
 	u32 sm_per_tpc = nvgpu_get_litter_value(g, GPU_LIT_NUM_SM_PER_TPC);
 	u32 potential_offsets = nvgpu_gr_config_get_max_gpc_count(gr->config) *
 		nvgpu_gr_config_get_max_tpc_per_gpc_count(gr->config) *
@@ -1013,7 +1014,7 @@ int gr_gk20a_get_ctx_buffer_offsets(struct gk20a *g,
 		return -EINVAL;
 	}
 
-	if (!g->gr.ctx_vars.golden_image_initialized) {
+	if (!g->gr->ctx_vars.golden_image_initialized) {
 		return -ENODEV;
 	}
 
@@ -1041,7 +1042,7 @@ int gr_gk20a_get_ctx_buffer_offsets(struct gk20a *g,
 		num_registers = 1;
 	}
 
-	if (!g->gr.ctx_vars.golden_image_initialized) {
+	if (!g->gr->ctx_vars.golden_image_initialized) {
 		nvgpu_log_fn(g, "no context switch header info to work with");
 		err = -EINVAL;
 		goto cleanup;
@@ -1052,9 +1053,9 @@ int gr_gk20a_get_ctx_buffer_offsets(struct gk20a *g,
 			  priv_registers[i],
 			  is_quad, quad,
 			  nvgpu_gr_obj_ctx_get_local_golden_image_ptr(
-				g->gr.golden_image),
+				g->gr->golden_image),
 			  nvgpu_gr_obj_ctx_get_golden_image_size(
-				g->gr.golden_image),
+				g->gr->golden_image),
 			  &priv_offset);
 		if (err != 0) {
 			nvgpu_log_fn(g, "Could not determine priv_offset for addr:0x%x",
@@ -1086,7 +1087,7 @@ int gr_gk20a_get_pm_ctx_buffer_offsets(struct gk20a *g,
 	u32 *priv_registers;
 	u32 num_registers = 0;
 	int err = 0;
-	struct gr_gk20a *gr = &g->gr;
+	struct nvgpu_gr *gr = g->gr;
 	u32 sm_per_tpc = nvgpu_get_litter_value(g, GPU_LIT_NUM_SM_PER_TPC);
 	u32 potential_offsets = nvgpu_gr_config_get_max_gpc_count(gr->config) *
 		nvgpu_gr_config_get_max_tpc_per_gpc_count(gr->config) *
@@ -1099,7 +1100,7 @@ int gr_gk20a_get_pm_ctx_buffer_offsets(struct gk20a *g,
 		return -EINVAL;
 	}
 
-	if (!g->gr.ctx_vars.golden_image_initialized) {
+	if (!g->gr->ctx_vars.golden_image_initialized) {
 		return -ENODEV;
 	}
 
@@ -1124,14 +1125,14 @@ int gr_gk20a_get_pm_ctx_buffer_offsets(struct gk20a *g,
 		num_registers = 1;
 	}
 
-	if (!g->gr.ctx_vars.golden_image_initialized) {
+	if (!g->gr->ctx_vars.golden_image_initialized) {
 		nvgpu_log_fn(g, "no context switch header info to work with");
 		err = -EINVAL;
 		goto cleanup;
 	}
 
 	for (i = 0; i < num_registers; i++) {
-		err = nvgpu_gr_hwmp_map_find_priv_offset(g, g->gr.hwpm_map,
+		err = nvgpu_gr_hwmp_map_find_priv_offset(g, g->gr->hwpm_map,
 						  priv_registers[i],
 						  &priv_offset);
 		if (err != 0) {
@@ -1197,7 +1198,7 @@ static int gr_gk20a_ctx_patch_smpc(struct gk20a *g,
 			    u32 addr, u32 data,
 			    struct nvgpu_gr_ctx *gr_ctx)
 {
-	u32 num_gpc = nvgpu_gr_config_get_gpc_count(g->gr.config);
+	u32 num_gpc = nvgpu_gr_config_get_gpc_count(g->gr->config);
 	u32 num_tpc;
 	u32 tpc, gpc, reg;
 	u32 chk_addr;
@@ -1214,7 +1215,7 @@ static int gr_gk20a_ctx_patch_smpc(struct gk20a *g,
 
 	for (reg = 0; reg < num_ovr_perf_regs; reg++) {
 		for (gpc = 0; gpc < num_gpc; gpc++)  {
-			num_tpc = nvgpu_gr_config_get_gpc_tpc_count(g->gr.config, gpc);
+			num_tpc = nvgpu_gr_config_get_gpc_tpc_count(g->gr->config, gpc);
 			for (tpc = 0; tpc < num_tpc; tpc++) {
 				chk_addr = ((gpc_stride * gpc) +
 					    (tpc_in_gpc_stride * tpc) +
@@ -1286,7 +1287,7 @@ static int gr_gk20a_find_priv_offset_in_ext_buffer(struct gk20a *g,
 	u32 marker_size = 0;
 	u32 control_register_stride = 0;
 	u32 perf_register_stride = 0;
-	struct gr_gk20a *gr = &g->gr;
+	struct nvgpu_gr *gr = g->gr;
 	u32 gpc_base = nvgpu_get_litter_value(g, GPU_LIT_GPC_BASE);
 	u32 gpc_stride = nvgpu_get_litter_value(g, GPU_LIT_GPC_STRIDE);
 	u32 tpc_in_gpc_base = nvgpu_get_litter_value(g, GPU_LIT_TPC_IN_GPC_BASE);
@@ -1934,7 +1935,7 @@ int __gr_gk20a_exec_ctx_ops(struct channel_gk20a *ch,
 	bool pm_ctx_ready = false;
 	struct nvgpu_mem *current_mem = NULL;
 	u32 i, j, offset, v;
-	struct gr_gk20a *gr = &g->gr;
+	struct nvgpu_gr *gr = g->gr;
 	u32 sm_per_tpc = nvgpu_get_litter_value(g, GPU_LIT_NUM_SM_PER_TPC);
 	u32 max_offsets = nvgpu_gr_config_get_max_gpc_count(gr->config) *
 		nvgpu_gr_config_get_max_tpc_per_gpc_count(gr->config) *
@@ -2108,7 +2109,7 @@ int __gr_gk20a_exec_ctx_ops(struct channel_gk20a *ch,
 				if ((current_mem == nvgpu_gr_ctx_get_ctx_mem(gr_ctx)) &&
 						(offsets[j] >=
 						 nvgpu_gr_obj_ctx_get_golden_image_size(
-							g->gr.golden_image))) {
+							g->gr->golden_image))) {
 					continue;
 				}
 				if (pass == 0) { /* write pass */
@@ -2187,7 +2188,7 @@ int gr_gk20a_exec_ctx_ops(struct channel_gk20a *ch,
 	 * at that point the hardware state can be inspected to
 	 * determine if the context we're interested in is current.
 	 */
-	err = g->ops.gr.falcon.disable_ctxsw(g, g->gr.falcon);
+	err = g->ops.gr.falcon.disable_ctxsw(g, g->gr->falcon);
 	if (err != 0) {
 		nvgpu_err(g, "unable to stop gr ctxsw");
 		/* this should probably be ctx-fatal... */
@@ -2204,7 +2205,7 @@ int gr_gk20a_exec_ctx_ops(struct channel_gk20a *ch,
 	err = __gr_gk20a_exec_ctx_ops(ch, ctx_ops, num_ops, num_ctx_wr_ops,
 				      num_ctx_rd_ops, ch_is_curr_ctx);
 
-	tmp_err = g->ops.gr.falcon.enable_ctxsw(g, g->gr.falcon);
+	tmp_err = g->ops.gr.falcon.enable_ctxsw(g, g->gr->falcon);
 	if (tmp_err != 0) {
 		nvgpu_err(g, "unable to restart ctxsw!");
 		err = tmp_err;
@@ -2333,7 +2334,7 @@ void gk20a_gr_suspend_single_sm(struct gk20a *g,
 void gk20a_gr_suspend_all_sms(struct gk20a *g,
 		u32 global_esr_mask, bool check_errors)
 {
-	struct gr_gk20a *gr = &g->gr;
+	struct nvgpu_gr *gr = g->gr;
 	u32 gpc, tpc, sm;
 	int err;
 	u32 dbgr_control0;
@@ -2447,7 +2448,7 @@ int gr_gk20a_set_sm_debug_mode(struct gk20a *g,
 	int err;
 	u32 gpc_stride = nvgpu_get_litter_value(g, GPU_LIT_GPC_STRIDE);
 	u32 tpc_in_gpc_stride = nvgpu_get_litter_value(g, GPU_LIT_TPC_IN_GPC_STRIDE);
-	u32 no_of_sm = nvgpu_gr_config_get_no_of_sm(g->gr.config);
+	u32 no_of_sm = nvgpu_gr_config_get_no_of_sm(g->gr->config);
 
 	ops = nvgpu_kcalloc(g, no_of_sm, sizeof(*ops));
 	if (ops == NULL) {
@@ -2462,7 +2463,7 @@ int gr_gk20a_set_sm_debug_mode(struct gk20a *g,
 		if ((sms & BIT64(sm_id)) == 0ULL) {
 			continue;
 		}
-		sm_info = nvgpu_gr_config_get_sm_info(g->gr.config, sm_id);
+		sm_info = nvgpu_gr_config_get_sm_info(g->gr->config, sm_id);
 		gpc = nvgpu_gr_config_get_sm_info_gpc_index(sm_info);
 		tpc = nvgpu_gr_config_get_sm_info_tpc_index(sm_info);
 
@@ -2550,7 +2551,7 @@ int gr_gk20a_suspend_contexts(struct gk20a *g,
 
 	nvgpu_mutex_acquire(&g->dbg_sessions_lock);
 
-	err = g->ops.gr.falcon.disable_ctxsw(g, g->gr.falcon);
+	err = g->ops.gr.falcon.disable_ctxsw(g, g->gr->falcon);
 	if (err != 0) {
 		nvgpu_err(g, "unable to stop gr ctxsw");
 		goto clean_up;
@@ -2570,7 +2571,7 @@ int gr_gk20a_suspend_contexts(struct gk20a *g,
 
 	nvgpu_mutex_release(&dbg_s->ch_list_lock);
 
-	err = g->ops.gr.falcon.enable_ctxsw(g, g->gr.falcon);
+	err = g->ops.gr.falcon.enable_ctxsw(g, g->gr->falcon);
 	if (err != 0) {
 		nvgpu_err(g, "unable to restart ctxsw!");
 	}
@@ -2595,7 +2596,7 @@ int gr_gk20a_resume_contexts(struct gk20a *g,
 
 	nvgpu_mutex_acquire(&g->dbg_sessions_lock);
 
-	err = g->ops.gr.falcon.disable_ctxsw(g, g->gr.falcon);
+	err = g->ops.gr.falcon.disable_ctxsw(g, g->gr->falcon);
 	if (err != 0) {
 		nvgpu_err(g, "unable to stop gr ctxsw");
 		goto clean_up;
@@ -2611,7 +2612,7 @@ int gr_gk20a_resume_contexts(struct gk20a *g,
 		}
 	}
 
-	err = g->ops.gr.falcon.enable_ctxsw(g, g->gr.falcon);
+	err = g->ops.gr.falcon.enable_ctxsw(g, g->gr->falcon);
 	if (err != 0) {
 		nvgpu_err(g, "unable to restart ctxsw!");
 	}
@@ -2645,7 +2646,7 @@ int gr_gk20a_trigger_suspend(struct gk20a *g)
 int gr_gk20a_wait_for_pause(struct gk20a *g, struct nvgpu_warpstate *w_state)
 {
 	int err = 0;
-	struct gr_gk20a *gr = &g->gr;
+	struct nvgpu_gr *gr = g->gr;
 	u32 gpc, tpc, sm, sm_id;
 	u32 global_mask;
 	u32 no_of_sm = nvgpu_gr_config_get_no_of_sm(gr->config);
@@ -2660,7 +2661,7 @@ int gr_gk20a_wait_for_pause(struct gk20a *g, struct nvgpu_warpstate *w_state)
 	/* Lock down all SMs */
 	for (sm_id = 0; sm_id < no_of_sm; sm_id++) {
 		struct sm_info *sm_info =
-			nvgpu_gr_config_get_sm_info(g->gr.config, sm_id);
+			nvgpu_gr_config_get_sm_info(g->gr->config, sm_id);
 		gpc = nvgpu_gr_config_get_sm_info_gpc_index(sm_info);
 		tpc = nvgpu_gr_config_get_sm_info_tpc_index(sm_info);
 		sm = nvgpu_gr_config_get_sm_info_sm_index(sm_info);
@@ -2701,7 +2702,7 @@ int gr_gk20a_clear_sm_errors(struct gk20a *g)
 {
 	int ret = 0;
 	u32 gpc, tpc, sm;
-	struct gr_gk20a *gr = &g->gr;
+	struct nvgpu_gr *gr = g->gr;
 	u32 global_esr;
 	u32 sm_per_tpc = nvgpu_get_litter_value(g, GPU_LIT_NUM_SM_PER_TPC);
 
@@ -2730,7 +2731,7 @@ int gr_gk20a_clear_sm_errors(struct gk20a *g)
 
 u32 gr_gk20a_tpc_enabled_exceptions(struct gk20a *g)
 {
-	struct gr_gk20a *gr = &g->gr;
+	struct nvgpu_gr *gr = g->gr;
 	u32 sm_id, tpc_exception_en = 0;
 	u32 offset, regval, tpc_offset, gpc_offset;
 	u32 gpc_stride = nvgpu_get_litter_value(g, GPU_LIT_GPC_STRIDE);
@@ -2739,7 +2740,7 @@ u32 gr_gk20a_tpc_enabled_exceptions(struct gk20a *g)
 
 	for (sm_id = 0; sm_id < no_of_sm; sm_id++) {
 		struct sm_info *sm_info =
-			nvgpu_gr_config_get_sm_info(g->gr.config, sm_id);
+			nvgpu_gr_config_get_sm_info(g->gr->config, sm_id);
 		tpc_offset = tpc_in_gpc_stride *
 			nvgpu_gr_config_get_sm_info_tpc_index(sm_info);
 		gpc_offset = gpc_stride *

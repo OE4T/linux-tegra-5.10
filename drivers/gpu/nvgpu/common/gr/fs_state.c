@@ -84,7 +84,6 @@ int nvgpu_gr_fs_state_init(struct gk20a *g, struct nvgpu_gr_config *config)
 	u32 fuse_tpc_mask;
 	u32 gpc_cnt, tpc_cnt, max_tpc_cnt;
 	int err = 0;
-	struct nvgpu_gr_config *gr_config = config;
 
 	nvgpu_log_fn(g, " ");
 
@@ -94,39 +93,39 @@ int nvgpu_gr_fs_state_init(struct gk20a *g, struct nvgpu_gr_config *config)
 	}
 
 	if (g->ops.gr.config.init_sm_id_table != NULL) {
-		err = g->ops.gr.config.init_sm_id_table(g, gr_config);
+		err = g->ops.gr.config.init_sm_id_table(g, config);
 		if (err != 0) {
 			return err;
 		}
 
 		/* Is table empty ? */
-		if (nvgpu_gr_config_get_no_of_sm(gr_config) == 0U) {
+		if (nvgpu_gr_config_get_no_of_sm(config) == 0U) {
 			return -EINVAL;
 		}
 	}
 
-	for (sm_id = 0; sm_id < nvgpu_gr_config_get_no_of_sm(gr_config);
+	for (sm_id = 0; sm_id < nvgpu_gr_config_get_no_of_sm(config);
 	     sm_id++) {
 		struct sm_info *sm_info =
-			nvgpu_gr_config_get_sm_info(gr_config, sm_id);
+			nvgpu_gr_config_get_sm_info(config, sm_id);
 		tpc_index = nvgpu_gr_config_get_sm_info_tpc_index(sm_info);
 		gpc_index = nvgpu_gr_config_get_sm_info_gpc_index(sm_info);
 
 		g->ops.gr.init.sm_id_numbering(g, gpc_index, tpc_index, sm_id,
-					       gr_config);
+					       config);
 	}
 
-	g->ops.gr.init.pd_tpc_per_gpc(g, gr_config);
+	g->ops.gr.init.pd_tpc_per_gpc(g, config);
 
 	/* gr__setup_pd_mapping */
-	g->ops.gr.init.rop_mapping(g, gr_config);
+	g->ops.gr.init.rop_mapping(g, config);
 
-	g->ops.gr.init.pd_skip_table_gpc(g, gr_config);
+	g->ops.gr.init.pd_skip_table_gpc(g, config);
 
-	fuse_tpc_mask = g->ops.gr.config.get_gpc_tpc_mask(g, gr_config, 0);
-	gpc_cnt = nvgpu_gr_config_get_gpc_count(gr_config);
-	tpc_cnt = nvgpu_gr_config_get_tpc_count(gr_config);
-	max_tpc_cnt = nvgpu_gr_config_get_max_tpc_count(gr_config);
+	fuse_tpc_mask = g->ops.gr.config.get_gpc_tpc_mask(g, config, 0);
+	gpc_cnt = nvgpu_gr_config_get_gpc_count(config);
+	tpc_cnt = nvgpu_gr_config_get_tpc_count(config);
+	max_tpc_cnt = nvgpu_gr_config_get_max_tpc_count(config);
 
 	if ((g->tpc_fs_mask_user != 0U) &&
 		(fuse_tpc_mask == BIT32(max_tpc_cnt) - 1U)) {

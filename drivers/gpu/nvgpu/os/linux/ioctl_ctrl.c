@@ -285,11 +285,11 @@ gk20a_ctrl_ioctl_gpu_characteristics(
 	gpu.L2_cache_size = g->ops.ltc.determine_L2_size_bytes(g);
 	gpu.on_board_video_memory_size = 0; /* integrated GPU */
 
-	gpu.num_gpc = nvgpu_gr_config_get_gpc_count(g->gr.config);
-	gpu.max_gpc_count = nvgpu_gr_config_get_max_gpc_count(g->gr.config);
-	gpu.gpc_mask = nvgpu_gr_config_get_gpc_mask(g->gr.config);
+	gpu.num_gpc = nvgpu_gr_config_get_gpc_count(g->gr->config);
+	gpu.max_gpc_count = nvgpu_gr_config_get_max_gpc_count(g->gr->config);
+	gpu.gpc_mask = nvgpu_gr_config_get_gpc_mask(g->gr->config);
 
-	gpu.num_tpc_per_gpc = nvgpu_gr_config_get_max_tpc_per_gpc_count(g->gr.config);
+	gpu.num_tpc_per_gpc = nvgpu_gr_config_get_max_tpc_per_gpc_count(g->gr->config);
 
 	gpu.bus_type = NVGPU_GPU_BUS_TYPE_AXI; /* always AXI for now */
 
@@ -324,8 +324,8 @@ gk20a_ctrl_ioctl_gpu_characteristics(
 	gpu.sm_arch_spa_version = g->params.sm_arch_spa_version;
 	gpu.sm_arch_warp_count = g->params.sm_arch_warp_count;
 
-	gpu.max_css_buffer_size = g->gr.max_css_buffer_size;
-	gpu.max_ctxsw_ring_buffer_size = g->gr.max_ctxsw_ring_buffer_size;
+	gpu.max_css_buffer_size = g->gr->max_css_buffer_size;
+	gpu.max_ctxsw_ring_buffer_size = g->gr->max_ctxsw_ring_buffer_size;
 
 	gpu.gpu_ioctl_nr_last = NVGPU_GPU_IOCTL_LAST;
 	gpu.tsg_ioctl_nr_last = NVGPU_TSG_IOCTL_LAST;
@@ -550,7 +550,7 @@ clean_up:
 static int gk20a_ctrl_get_tpc_masks(struct gk20a *g,
 				    struct nvgpu_gpu_get_tpc_masks_args *args)
 {
-	struct gr_gk20a *gr = &g->gr;
+	struct nvgpu_gr *gr = g->gr;
 	int err = 0;
 	const u32 gpc_tpc_mask_size = sizeof(u32) *
 		nvgpu_gr_config_get_max_gpc_count(gr->config);
@@ -577,7 +577,7 @@ static int gk20a_ctrl_get_tpc_masks(struct gk20a *g,
 static int gk20a_ctrl_get_fbp_l2_masks(
 	struct gk20a *g, struct nvgpu_gpu_get_fbp_l2_masks_args *args)
 {
-	struct gr_gk20a *gr = &g->gr;
+	struct nvgpu_gr *gr = g->gr;
 	int err = 0;
 	const u32 fbp_l2_mask_size = sizeof(u32) * gr->max_fbps_count;
 
@@ -689,8 +689,8 @@ static int nvgpu_gpu_ioctl_wait_for_pause(struct gk20a *g,
 	struct nvgpu_warpstate *w_state = NULL;
 	u32 sm_count, ioctl_size, size, sm_id, no_of_sm;
 
-	sm_count = nvgpu_gr_config_get_gpc_count(g->gr.config) *
-		   nvgpu_gr_config_get_tpc_count(g->gr.config);
+	sm_count = nvgpu_gr_config_get_gpc_count(g->gr->config) *
+		   nvgpu_gr_config_get_tpc_count(g->gr->config);
 
 	ioctl_size = sm_count * sizeof(struct warpstate);
 	ioctl_w_state = nvgpu_kzalloc(g, ioctl_size);
@@ -711,7 +711,7 @@ static int nvgpu_gpu_ioctl_wait_for_pause(struct gk20a *g,
 	nvgpu_mutex_acquire(&g->dbg_sessions_lock);
 	g->ops.gr.wait_for_pause(g, w_state);
 
-	no_of_sm = nvgpu_gr_config_get_no_of_sm(g->gr.config);
+	no_of_sm = nvgpu_gr_config_get_no_of_sm(g->gr->config);
 
 	for (sm_id = 0; sm_id < no_of_sm; sm_id++) {
 		ioctl_w_state[sm_id].valid_warps[0] =
@@ -795,7 +795,7 @@ static int nvgpu_gpu_ioctl_has_any_exception(
 static int gk20a_ctrl_get_num_vsms(struct gk20a *g,
 				    struct nvgpu_gpu_num_vsms *args)
 {
-	struct gr_gk20a *gr = &g->gr;
+	struct nvgpu_gr *gr = g->gr;
 	args->num_vsms = nvgpu_gr_config_get_no_of_sm(gr->config);
 	return 0;
 }
@@ -804,7 +804,7 @@ static int gk20a_ctrl_vsm_mapping(struct gk20a *g,
 				    struct nvgpu_gpu_vsms_mapping *args)
 {
 	int err = 0;
-	struct gr_gk20a *gr = &g->gr;
+	struct nvgpu_gr *gr = g->gr;
 	u32 no_of_sm = nvgpu_gr_config_get_no_of_sm(gr->config);
 	size_t write_size = no_of_sm *
 		sizeof(struct nvgpu_gpu_vsms_mapping_entry);
@@ -1677,7 +1677,7 @@ long gk20a_ctrl_dev_ioctl(struct file *filp, unsigned int cmd, unsigned long arg
 	case NVGPU_GPU_IOCTL_ZCULL_GET_CTX_SIZE:
 		get_ctx_size_args = (struct nvgpu_gpu_zcull_get_ctx_size_args *)buf;
 
-		get_ctx_size_args->size = nvgpu_gr_get_ctxsw_zcull_size(g, g->gr.zcull);
+		get_ctx_size_args->size = nvgpu_gr_get_ctxsw_zcull_size(g, g->gr->zcull);
 
 		break;
 	case NVGPU_GPU_IOCTL_ZCULL_GET_INFO:
@@ -1690,8 +1690,8 @@ long gk20a_ctrl_dev_ioctl(struct file *filp, unsigned int cmd, unsigned long arg
 		if (zcull_info == NULL)
 			return -ENOMEM;
 
-		err = g->ops.gr.zcull.get_zcull_info(g, g->gr.config,
-					g->gr.zcull, zcull_info);
+		err = g->ops.gr.zcull.get_zcull_info(g, g->gr->config,
+					g->gr->zcull, zcull_info);
 		if (err) {
 			nvgpu_kfree(g, zcull_info);
 			break;
@@ -1742,7 +1742,7 @@ long gk20a_ctrl_dev_ioctl(struct file *filp, unsigned int cmd, unsigned long arg
 		if (!err) {
 			err = gk20a_busy(g);
 			if (!err) {
-				err = g->ops.gr.zbc.set_table(g, g->gr.zbc,
+				err = g->ops.gr.zbc.set_table(g, g->gr->zbc,
 							     zbc_val);
 				gk20a_idle(g);
 			}
@@ -1761,7 +1761,7 @@ long gk20a_ctrl_dev_ioctl(struct file *filp, unsigned int cmd, unsigned long arg
 		zbc_tbl->type = query_table_args->type;
 		zbc_tbl->index_size = query_table_args->index_size;
 
-		err = g->ops.gr.zbc.query_table(g, g->gr.zbc, zbc_tbl);
+		err = g->ops.gr.zbc.query_table(g, g->gr->zbc, zbc_tbl);
 
 		if (!err) {
 			switch (zbc_tbl->type) {

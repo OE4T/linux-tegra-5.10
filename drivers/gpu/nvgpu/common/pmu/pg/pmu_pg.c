@@ -246,7 +246,7 @@ static int pmu_enable_elpg_locked(struct gk20a *g, u8 pg_engine_id)
 int nvgpu_pmu_enable_elpg(struct gk20a *g)
 {
 	struct nvgpu_pmu *pmu = &g->pmu;
-	struct gr_gk20a *gr = &g->gr;
+	struct nvgpu_gr *gr = g->gr;
 	u8 pg_engine_id;
 	u32 pg_engine_id_list = 0;
 

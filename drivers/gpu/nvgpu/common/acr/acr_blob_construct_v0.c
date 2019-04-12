@@ -68,7 +68,7 @@ int nvgpu_acr_lsf_fecs_ucode_details_v0(struct gk20a *g, void *lsf_ucode_img)
 	struct nvgpu_firmware *fecs_sig;
 	struct flcn_ucode_img *p_img = (struct flcn_ucode_img *)lsf_ucode_img;
 	struct nvgpu_ctxsw_ucode_segments *fecs =
-			nvgpu_gr_falcon_get_fecs_ucode_segments(g->gr.falcon);
+			nvgpu_gr_falcon_get_fecs_ucode_segments(g->gr->falcon);
 	int err;
 
 	fecs_sig = nvgpu_request_firmware(g, GM20B_FECS_UCODE_SIG, 0);
@@ -110,7 +110,7 @@ int nvgpu_acr_lsf_fecs_ucode_details_v0(struct gk20a *g, void *lsf_ucode_img)
 	p_img->desc->app_resident_data_offset =
 				fecs->data.offset - fecs->code.offset;
 	p_img->desc->app_resident_data_size = fecs->data.size;
-	p_img->data = nvgpu_gr_falcon_get_surface_desc_cpu_va(g->gr.falcon);
+	p_img->data = nvgpu_gr_falcon_get_surface_desc_cpu_va(g->gr->falcon);
 	p_img->data_size = p_img->desc->image_size;
 
 	p_img->fw_ver = NULL;
@@ -132,7 +132,7 @@ int nvgpu_acr_lsf_gpccs_ucode_details_v0(struct gk20a *g, void *lsf_ucode_img)
 	struct nvgpu_firmware *gpccs_sig;
 	struct flcn_ucode_img *p_img = (struct flcn_ucode_img *)lsf_ucode_img;
 	struct nvgpu_ctxsw_ucode_segments *gpccs =
-			nvgpu_gr_falcon_get_gpccs_ucode_segments(g->gr.falcon);
+			nvgpu_gr_falcon_get_gpccs_ucode_segments(g->gr->falcon);
 	int err;
 
 	if (!nvgpu_is_enabled(g, NVGPU_SEC_SECUREGPCCS)) {
@@ -179,7 +179,7 @@ int nvgpu_acr_lsf_gpccs_ucode_details_v0(struct gk20a *g, void *lsf_ucode_img)
 						ALIGN(gpccs->code.offset, 256);
 	p_img->desc->app_resident_data_size = ALIGN(gpccs->data.size, 256);
 	p_img->data = (u32 *)
-		((u8 *)nvgpu_gr_falcon_get_surface_desc_cpu_va(g->gr.falcon) +
+		((u8 *)nvgpu_gr_falcon_get_surface_desc_cpu_va(g->gr->falcon) +
 							gpccs->boot.offset);
 	p_img->data_size = ALIGN(p_img->desc->image_size, 256);
 	p_img->fw_ver = NULL;
@@ -808,7 +808,7 @@ int nvgpu_acr_prepare_ucode_blob_v0(struct gk20a *g)
 		return err;
 	}
 
-	err = nvgpu_gr_falcon_init_ctxsw_ucode(g, g->gr.falcon);
+	err = nvgpu_gr_falcon_init_ctxsw_ucode(g, g->gr->falcon);
 	if (err != 0) {
 		nvgpu_err(g, "gr_falcon_init_ctxsw_ucode failed err=%d", err);
 		return err;

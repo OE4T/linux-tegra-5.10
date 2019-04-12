@@ -165,7 +165,7 @@ int nvgpu_gr_falcon_init_ctx_state(struct gk20a *g)
 
 	nvgpu_log_fn(g, " ");
 
-	if (!g->gr.ctx_vars.golden_image_initialized) {
+	if (!g->gr->ctx_vars.golden_image_initialized) {
 		/* fecs init ramchain */
 		err = g->ops.gr.falcon.init_ctx_state(g);
 		if (err != 0) {
@@ -465,7 +465,7 @@ int nvgpu_gr_falcon_load_ctxsw_ucode(struct gk20a *g,
 					struct nvgpu_gr_falcon *falcon)
 {
 	int err;
-	struct gr_gk20a *gr = &g->gr;
+	struct nvgpu_gr *gr = g->gr;
 
 	nvgpu_log_fn(g, " ");
 

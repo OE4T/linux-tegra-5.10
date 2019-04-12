@@ -29,6 +29,7 @@
 #include <nvgpu/sim.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/string.h>
+#include <nvgpu/gr/gr.h>
 
 #include "nvlink.h"
 #include "module.h"
@@ -411,6 +412,12 @@ static int nvgpu_pci_init_support(struct pci_dev *pdev)
 	if (err)
 		goto fail_sim;
 
+	err = nvgpu_gr_alloc(g);
+	if (err != 0) {
+		nvgpu_err(g, "couldn't allocate gr memory");
+		goto fail_sim;
+	}
+
 	return 0;
 
  fail_sim:
@@ -675,6 +682,7 @@ static int nvgpu_pci_probe(struct pci_dev *pdev,
 
 err_free_irq:
 	nvgpu_free_irq(g);
+	nvgpu_gr_free(g);
 err_disable_msi:
 #if defined(CONFIG_PCI_MSI)
 	if (g->msi_enabled)

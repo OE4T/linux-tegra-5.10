@@ -164,8 +164,8 @@ void gr_gv100_init_hwpm_pmm_register(struct gk20a *g)
 	g->ops.gr.set_pmm_register(g, perf_pmmsys_engine_sel_r(0),
 		0xFFFFFFFFU, 1U, num_sys_perfmon);
 	g->ops.gr.set_pmm_register(g, perf_pmmfbp_engine_sel_r(0),
-		0xFFFFFFFFU, g->gr.num_fbps, num_fbp_perfmon);
+		0xFFFFFFFFU, g->gr->num_fbps, num_fbp_perfmon);
 	g->ops.gr.set_pmm_register(g, perf_pmmgpc_engine_sel_r(0),
-		0xFFFFFFFFU, nvgpu_gr_config_get_gpc_count(g->gr.config),
+		0xFFFFFFFFU, nvgpu_gr_config_get_gpc_count(g->gr->config),
 		num_gpc_perfmon);
 }

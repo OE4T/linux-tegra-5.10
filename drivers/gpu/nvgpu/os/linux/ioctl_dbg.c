@@ -266,7 +266,7 @@ static int nvgpu_dbg_gpu_ioctl_read_single_sm_error_state(
 		struct nvgpu_dbg_gpu_read_single_sm_error_state_args *args)
 {
 	struct gk20a *g = dbg_s->g;
-	struct gr_gk20a *gr = &g->gr;
+	struct nvgpu_gr *gr = g->gr;
 	struct nvgpu_tsg_sm_error_state *sm_error_state;
 	struct nvgpu_dbg_gpu_sm_error_state_record sm_error_state_record;
 	struct channel_gk20a *ch;
@@ -1101,7 +1101,7 @@ static int nvgpu_dbg_gpu_ioctl_suspend_resume_sm(
 	nvgpu_mutex_acquire(&g->dbg_sessions_lock);
 
 	/* Suspend GPU context switching */
-	err = g->ops.gr.falcon.disable_ctxsw(g, g->gr.falcon);
+	err = g->ops.gr.falcon.disable_ctxsw(g, g->gr->falcon);
 	if (err) {
 		nvgpu_err(g, "unable to stop gr ctxsw");
 		/* this should probably be ctx-fatal... */
@@ -1119,7 +1119,7 @@ static int nvgpu_dbg_gpu_ioctl_suspend_resume_sm(
 		break;
 	}
 
-	err = g->ops.gr.falcon.enable_ctxsw(g, g->gr.falcon);
+	err = g->ops.gr.falcon.enable_ctxsw(g, g->gr->falcon);
 	if (err)
 		nvgpu_err(g, "unable to restart ctxsw!");
 
@@ -1451,7 +1451,7 @@ static int nvgpu_dbg_gpu_ioctl_clear_single_sm_error_state(
 		struct nvgpu_dbg_gpu_clear_single_sm_error_state_args *args)
 {
 	struct gk20a *g = dbg_s->g;
-	struct gr_gk20a *gr = &g->gr;
+	struct nvgpu_gr *gr = g->gr;
 	u32 sm_id;
 	struct channel_gk20a *ch;
 	int err = 0;

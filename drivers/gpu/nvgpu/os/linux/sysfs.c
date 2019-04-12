@@ -825,7 +825,7 @@ static ssize_t tpc_pg_mask_store(struct device *dev,
 	struct device_attribute *attr, const char *buf, size_t count)
 {
 	struct gk20a *g = get_gk20a(dev);
-	struct gr_gk20a *gr = &g->gr;
+	struct nvgpu_gr *gr = g->gr;
 	unsigned long val = 0;
 
 	nvgpu_mutex_acquire(&g->tpc_pg_lock);
@@ -871,7 +871,7 @@ static ssize_t tpc_fs_mask_store(struct device *dev,
 	struct device_attribute *attr, const char *buf, size_t count)
 {
 	struct gk20a *g = get_gk20a(dev);
-	struct nvgpu_gr_config *config = g->gr.config;
+	struct nvgpu_gr_config *config = g->gr->config;
 	unsigned long val = 0;
 
 	if (kstrtoul(buf, 10, &val) < 0)
@@ -887,14 +887,14 @@ static ssize_t tpc_fs_mask_store(struct device *dev,
 
 		g->ops.gr.set_gpc_tpc_mask(g, 0);
 
-		nvgpu_gr_obj_ctx_deinit(g, g->gr.golden_image);
+		nvgpu_gr_obj_ctx_deinit(g, g->gr->golden_image);
 
-		g->gr.ctx_vars.golden_image_initialized = false;
-		nvgpu_gr_obj_ctx_set_golden_image_size(g->gr.golden_image, 0);
+		g->gr->ctx_vars.golden_image_initialized = false;
+		nvgpu_gr_obj_ctx_set_golden_image_size(g->gr->golden_image, 0);
 
-		nvgpu_gr_config_deinit(g, g->gr.config);
+		nvgpu_gr_config_deinit(g, g->gr->config);
 		/* Cause next poweron to reinit just gr */
-		g->gr.sw_ready = false;
+		g->gr->sw_ready = false;
 	}
 
 	return count;
@@ -904,7 +904,7 @@ static ssize_t tpc_fs_mask_read(struct device *dev,
 	struct device_attribute *attr, char *buf)
 {
 	struct gk20a *g = get_gk20a(dev);
-	struct gr_gk20a *gr = &g->gr;
+	struct nvgpu_gr *gr = g->gr;
 	u32 gpc_index;
 	u32 tpc_fs_mask = 0;
 	int err = 0;
@@ -989,7 +989,7 @@ static ssize_t gfxp_wfi_timeout_count_store(struct device *dev,
 		struct device_attribute *attr, const char *buf, size_t count)
 {
 	struct gk20a *g = get_gk20a(dev);
-	struct gr_gk20a *gr = &g->gr;
+	struct nvgpu_gr *gr = g->gr;
 	unsigned long val = 0;
 	int err = -1;
 
@@ -1025,7 +1025,7 @@ static ssize_t gfxp_wfi_timeout_unit_store(struct device *dev,
 		struct device_attribute *attr, const char *buf, size_t count)
 {
 	struct gk20a *g = get_gk20a(dev);
-	struct gr_gk20a *gr = &g->gr;
+	struct nvgpu_gr *gr = g->gr;
 	int err = -1;
 
 	if (count > 0 && buf[0] == 's')
@@ -1058,7 +1058,7 @@ static ssize_t gfxp_wfi_timeout_count_read(struct device *dev,
 		struct device_attribute *attr, char *buf)
 {
 	struct gk20a *g = get_gk20a(dev);
-	struct gr_gk20a *gr = &g->gr;
+	struct nvgpu_gr *gr = g->gr;
 	u32 val = gr->gfxp_wfi_timeout_count;
 
 	return snprintf(buf, PAGE_SIZE, "%d\n", val);
@@ -1068,7 +1068,7 @@ static ssize_t gfxp_wfi_timeout_unit_read(struct device *dev,
 		struct device_attribute *attr, char *buf)
 {
 	struct gk20a *g = get_gk20a(dev);
-	struct gr_gk20a *gr = &g->gr;
+	struct nvgpu_gr *gr = g->gr;
 
 	if (gr->gfxp_wfi_timeout_unit_usec)
 		return snprintf(buf, PAGE_SIZE, "usec\n");

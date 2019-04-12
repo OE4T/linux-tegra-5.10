@@ -114,12 +114,12 @@ int nvgpu_gr_obj_ctx_set_ctxsw_preemption_mode(struct gk20a *g,
 	}
 
 	if (g->ops.class.is_valid_gfx(class) &&
-				g->gr.ctx_vars.force_preemption_gfxp) {
+				g->gr->ctx_vars.force_preemption_gfxp) {
 		graphics_preempt_mode = NVGPU_PREEMPTION_MODE_GRAPHICS_GFXP;
 	}
 
 	if (g->ops.class.is_valid_compute(class) &&
-			g->gr.ctx_vars.force_preemption_cilp) {
+			g->gr->ctx_vars.force_preemption_cilp) {
 		compute_preempt_mode = NVGPU_PREEMPTION_MODE_COMPUTE_CILP;
 	}
 
@@ -149,7 +149,7 @@ int nvgpu_gr_obj_ctx_set_ctxsw_preemption_mode(struct gk20a *g,
 
 		nvgpu_gr_ctx_set_size(gr_ctx_desc,
 			NVGPU_GR_CTX_PREEMPT_CTXSW,
-			g->gr.ctx_vars.preempt_image_size);
+			g->gr->ctx_vars.preempt_image_size);
 		nvgpu_gr_ctx_set_size(gr_ctx_desc,
 			NVGPU_GR_CTX_SPILL_CTXSW, spill_size);
 		nvgpu_gr_ctx_set_size(gr_ctx_desc,
@@ -264,7 +264,7 @@ void nvgpu_gr_obj_ctx_update_ctxsw_preemption_mode(struct gk20a *g,
 
 	if (g->ops.gr.init.gfxp_wfi_timeout != NULL) {
 		g->ops.gr.init.gfxp_wfi_timeout(g, gr_ctx,
-			g->gr.gfxp_wfi_timeout_count, true);
+			g->gr->gfxp_wfi_timeout_count, true);
 	}
 
 	if (g->ops.gr.init.commit_gfxp_rtv_cb != NULL) {
@@ -446,8 +446,8 @@ int nvgpu_gr_obj_ctx_alloc_golden_ctx_image(struct gk20a *g,
 
 	if (g->ops.gr.init.preemption_state != NULL) {
 		err = g->ops.gr.init.preemption_state(g,
-			g->gr.gfxp_wfi_timeout_count,
-			g->gr.gfxp_wfi_timeout_unit_usec);
+			g->gr->gfxp_wfi_timeout_count,
+			g->gr->gfxp_wfi_timeout_unit_usec);
 		if (err != 0) {
 			goto clean_up;
 		}
@@ -526,7 +526,7 @@ restore_fe_go_idle:
 	}
 
 	golden_image->ready = true;
-	g->gr.ctx_vars.golden_image_initialized = true;
+	g->gr->ctx_vars.golden_image_initialized = true;
 
 	g->ops.gr.falcon.set_current_ctx_invalid(g);
 

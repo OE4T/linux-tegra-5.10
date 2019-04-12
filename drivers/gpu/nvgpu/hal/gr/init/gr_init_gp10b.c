@@ -215,10 +215,10 @@ int gp10b_gr_init_fs_state(struct gk20a *g)
 			 gr_gpcs_tpcs_sm_disp_ctrl_re_suppress_disable_f());
 	nvgpu_writel(g, gr_gpcs_tpcs_sm_disp_ctrl_r(), data);
 
-	if (g->gr.fecs_feature_override_ecc_val != 0U) {
+	if (g->gr->fecs_feature_override_ecc_val != 0U) {
 		nvgpu_writel(g,
 			gr_fecs_feature_override_ecc_r(),
-			g->gr.fecs_feature_override_ecc_val);
+			g->gr->fecs_feature_override_ecc_val);
 	}
 
 	gm20b_gr_init_fs_state(g);

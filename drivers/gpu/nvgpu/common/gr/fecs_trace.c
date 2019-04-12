@@ -214,7 +214,7 @@ struct nvgpu_fecs_trace_record *nvgpu_gr_fecs_trace_get_record(
 	struct gk20a *g, int idx)
 {
 	struct nvgpu_mem *mem = nvgpu_gr_global_ctx_buffer_get_mem(
-					g->gr.global_ctx_buffer,
+					g->gr->global_ctx_buffer,
 					NVGPU_GR_GLOBAL_CTX_FECS_TRACE_BUFFER);
 	if (mem == NULL) {
 		return NULL;
@@ -573,7 +573,7 @@ int nvgpu_gr_fecs_trace_bind_channel(struct gk20a *g,
 			pid, context_ptr,
 			nvgpu_inst_block_addr(g, inst_block));
 
-	mem = nvgpu_gr_global_ctx_buffer_get_mem(g->gr.global_ctx_buffer,
+	mem = nvgpu_gr_global_ctx_buffer_get_mem(g->gr->global_ctx_buffer,
 					NVGPU_GR_GLOBAL_CTX_FECS_TRACE_BUFFER);
 	if (mem == NULL) {
 		return -EINVAL;

@@ -62,7 +62,7 @@ static int gk20a_tsg_ioctl_bind_channel_ex(struct gk20a *g,
 	struct nvgpu_os_linux *l = nvgpu_os_linux_from_gk20a(g);
 	struct gk20a_sched_ctrl *sched = &l->sched_ctrl;
 	struct channel_gk20a *ch;
-	struct gr_gk20a *gr = &g->gr;
+	struct nvgpu_gr *gr = g->gr;
 	int err = 0;
 
 	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_sched, "tsgid=%u", tsg->tsgid);
@@ -558,7 +558,7 @@ static int gk20a_tsg_ioctl_read_single_sm_error_state(struct gk20a *g,
 		struct tsg_gk20a *tsg,
 		struct nvgpu_tsg_read_single_sm_error_state_args *args)
 {
-	struct gr_gk20a *gr = &g->gr;
+	struct nvgpu_gr *gr = g->gr;
 	struct nvgpu_tsg_sm_error_state *sm_error_state;
 	struct nvgpu_tsg_sm_error_state_record sm_error_state_record;
 	u32 sm_id;

@@ -45,7 +45,7 @@ int vgpu_gr_alloc_gr_ctx(struct gk20a *g,
 {
 	struct tegra_vgpu_cmd_msg msg = {0};
 	struct tegra_vgpu_gr_ctx_params *p = &msg.params.gr_ctx;
-	struct gr_gk20a *gr = &g->gr;
+	struct nvgpu_gr *gr = g->gr;
 	u32 golden_image_size;
 	int err;
 
@@ -178,7 +178,7 @@ int vgpu_gr_alloc_pm_ctx(struct gk20a *g, struct nvgpu_gr_ctx *gr_ctx,
 	}
 
 	pm_ctx->mem.gpu_va = nvgpu_vm_alloc_va(vm,
-			nvgpu_gr_hwpm_map_get_size(g->gr.hwpm_map),
+			nvgpu_gr_hwpm_map_get_size(g->gr->hwpm_map),
 			GMMU_PAGE_SIZE_KERNEL);
 
 	if (!pm_ctx->mem.gpu_va) {
@@ -186,7 +186,7 @@ int vgpu_gr_alloc_pm_ctx(struct gk20a *g, struct nvgpu_gr_ctx *gr_ctx,
 		return -ENOMEM;
 	}
 
-	pm_ctx->mem.size = nvgpu_gr_hwpm_map_get_size(g->gr.hwpm_map);
+	pm_ctx->mem.size = nvgpu_gr_hwpm_map_get_size(g->gr->hwpm_map);
 	return 0;
 }
 

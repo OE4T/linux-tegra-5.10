@@ -45,7 +45,7 @@ static void nvgpu_ecc_init(struct gk20a *g)
 int nvgpu_ecc_counter_init_per_tpc(struct gk20a *g,
 		struct nvgpu_ecc_stat ***stat, const char *name)
 {
-	struct gr_gk20a *gr = &g->gr;
+	struct nvgpu_gr *gr = g->gr;
 	struct nvgpu_ecc_stat **stats;
 	u32 gpc_count = nvgpu_gr_config_get_gpc_count(gr->config);
 	u32 gpc, tpc;
@@ -91,7 +91,7 @@ int nvgpu_ecc_counter_init_per_tpc(struct gk20a *g,
 int nvgpu_ecc_counter_init_per_gpc(struct gk20a *g,
 		struct nvgpu_ecc_stat **stat, const char *name)
 {
-	struct gr_gk20a *gr = &g->gr;
+	struct nvgpu_gr *gr = g->gr;
 	struct nvgpu_ecc_stat *stats;
 	u32 gpc_count = nvgpu_gr_config_get_gpc_count(gr->config);
 	u32 gpc;
@@ -196,7 +196,7 @@ int nvgpu_ecc_counter_init_per_fbpa(struct gk20a *g,
 void nvgpu_ecc_free(struct gk20a *g)
 {
 	struct nvgpu_ecc *ecc = &g->ecc;
-	struct gr_gk20a *gr = &g->gr;
+	struct nvgpu_gr *gr = g->gr;
 	u32 gpc_count = nvgpu_gr_config_get_gpc_count(gr->config);
 	u32 i;
 

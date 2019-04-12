@@ -237,8 +237,8 @@ void vgpu_remove_support_common(struct gk20a *g)
 		g->pmu.remove_support(&g->pmu);
 	}
 
-	if (g->gr.remove_support) {
-		g->gr.remove_support(&g->gr);
+	if (g->gr->remove_support) {
+		g->gr->remove_support(g);
 	}
 
 	if (g->fifo.remove_support) {

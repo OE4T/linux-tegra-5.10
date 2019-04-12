@@ -48,6 +48,7 @@
 #include <nvgpu/timers.h>
 #include <nvgpu/engines.h>
 #include <nvgpu/channel.h>
+#include <nvgpu/gr/gr.h>
 
 #include "platform_gk20a.h"
 #include "sysfs.h"
@@ -755,8 +756,8 @@ void gk20a_remove_support(struct gk20a *g)
 		g->sec2.remove_support(&g->sec2);
 	}
 
-	if (g->gr.remove_support)
-		g->gr.remove_support(&g->gr);
+	if (g->gr->remove_support)
+		g->gr->remove_support(g);
 
 	if (g->mm.remove_ce_support)
 		g->mm.remove_ce_support(&g->mm);
@@ -823,6 +824,12 @@ static int gk20a_init_support(struct platform_device *pdev)
 	err = nvgpu_init_sim_support(g);
 	if (err)
 		goto fail_sim;
+
+	err = nvgpu_gr_alloc(g);
+	if (err != 0) {
+		nvgpu_err(g, "couldn't allocate gr memory");
+		goto fail_sim;
+	}
 
 	nvgpu_init_usermode_support(g);
 	return 0;
@@ -1221,7 +1228,7 @@ void gk20a_driver_start_unload(struct gk20a *g)
 	nvgpu_set_enabled(g, NVGPU_DRIVER_IS_DYING, true);
 	/* GR SW ready needs to be invalidated at this time with the busy lock
 	 * held to prevent a racing condition on the gr/mm code */
-	g->gr.sw_ready = false;
+	g->gr->sw_ready = false;
 	g->sw_ready = false;
 	up_write(&l->busy_lock);
 
@@ -1271,7 +1278,7 @@ static int nvgpu_read_fuse_overrides(struct gk20a *g)
 			g->tpc_fs_mask_user = ~value;
 			break;
 		case GP10B_FUSE_OPT_ECC_EN:
-			g->gr.fecs_feature_override_ecc_val = value;
+			g->gr->fecs_feature_override_ecc_val = value;
 			break;
 		default:
 			nvgpu_err(g, "ignore unknown fuse override %08x", fuse);
@@ -1412,7 +1419,7 @@ return_err:
 	 * Last since the above allocs may use data structures in here.
 	 */
 	nvgpu_kmem_fini(gk20a, NVGPU_KMEM_FINI_FORCE_CLEANUP);
-
+	nvgpu_gr_free(gk20a);
 	kfree(l);
 
 	return err;

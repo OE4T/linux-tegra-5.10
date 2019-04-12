@@ -225,7 +225,7 @@ static int add_ctxsw_buffer_map_entries_gpcs(struct gk20a *g,
 					struct ctxsw_buf_offset_map_entry *map,
 					u32 *count, u32 *offset, u32 max_cnt)
 {
-	u32 num_gpcs = nvgpu_gr_config_get_gpc_count(g->gr.config);
+	u32 num_gpcs = nvgpu_gr_config_get_gpc_count(g->gr->config);
 	u32 num_ppcs, num_tpcs, gpc_num, base;
 	u32 gpc_base = nvgpu_get_litter_value(g, GPU_LIT_GPC_BASE);
 	u32 gpc_stride = nvgpu_get_litter_value(g, GPU_LIT_GPC_STRIDE);
@@ -235,7 +235,7 @@ static int add_ctxsw_buffer_map_entries_gpcs(struct gk20a *g,
 	u32 tpc_in_gpc_stride = nvgpu_get_litter_value(g, GPU_LIT_TPC_IN_GPC_STRIDE);
 
 	for (gpc_num = 0; gpc_num < num_gpcs; gpc_num++) {
-		num_tpcs = nvgpu_gr_config_get_gpc_tpc_count(g->gr.config, gpc_num);
+		num_tpcs = nvgpu_gr_config_get_gpc_tpc_count(g->gr->config, gpc_num);
 		base = gpc_base + (gpc_stride * gpc_num) + tpc_in_gpc_base;
 		if (add_ctxsw_buffer_map_entries_subunits(map,
 					nvgpu_netlist_get_pm_tpc_ctxsw_regs(g),
@@ -245,7 +245,7 @@ static int add_ctxsw_buffer_map_entries_gpcs(struct gk20a *g,
 			return -EINVAL;
 		}
 
-		num_ppcs = nvgpu_gr_config_get_gpc_ppc_count(g->gr.config, gpc_num);
+		num_ppcs = nvgpu_gr_config_get_gpc_ppc_count(g->gr->config, gpc_num);
 		base = gpc_base + (gpc_stride * gpc_num) + ppc_in_gpc_base;
 		if (add_ctxsw_buffer_map_entries_subunits(map,
 					nvgpu_netlist_get_pm_ppc_ctxsw_regs(g),
@@ -436,7 +436,7 @@ static int nvgpu_gr_hwpm_map_create(struct gk20a *g,
 	/* Add entries from _LIST_nv_perf_fbp_ctx_regs */
 	if (add_ctxsw_buffer_map_entries_subunits(map,
 		nvgpu_netlist_get_fbp_ctxsw_regs(g), &count, &offset,
-			hwpm_ctxsw_reg_count_max, 0, g->gr.num_fbps, ~U32(0U),
+			hwpm_ctxsw_reg_count_max, 0, g->gr->num_fbps, ~U32(0U),
 			g->ops.perf.get_pmm_per_chiplet_offset(),
 			~U32(0U)) != 0) {
 		goto cleanup;
@@ -446,7 +446,7 @@ static int nvgpu_gr_hwpm_map_create(struct gk20a *g,
 	if (add_ctxsw_buffer_map_entries_subunits(map,
 			nvgpu_netlist_get_fbp_router_ctxsw_regs(g),
 			&count, &offset, hwpm_ctxsw_reg_count_max, 0,
-			g->gr.num_fbps, ~U32(0U), NV_PERF_PMM_FBP_ROUTER_STRIDE,
+			g->gr->num_fbps, ~U32(0U), NV_PERF_PMM_FBP_ROUTER_STRIDE,
 			~U32(0U)) != 0) {
 		goto cleanup;
 	}

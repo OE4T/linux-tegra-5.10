@@ -140,10 +140,16 @@ static int vgpu_init_support(struct platform_device *pdev)
 	g->dbg_regops_tmp_buf = nvgpu_kzalloc(g, SZ_4K);
 	if (!g->dbg_regops_tmp_buf) {
 		nvgpu_err(g, "couldn't allocate regops tmp buf");
-		return -ENOMEM;
+		err = -ENOMEM;
 	}
 	g->dbg_regops_tmp_buf_ops =
 		SZ_4K / sizeof(g->dbg_regops_tmp_buf[0]);
+
+	err = nvgpu_gr_alloc(g);
+	if (err != 0) {
+		nvgpu_err(g, "couldn't allocate gr memory");
+		goto fail;
+	}
 
 	g->remove_support = vgpu_remove_support;
 	return 0;
@@ -361,7 +367,11 @@ int vgpu_probe(struct platform_device *pdev)
 	if (err)
 		return err;
 
-	vgpu_init_support(pdev);
+	err = vgpu_init_support(pdev);
+	if (err != 0) {
+		kfree(l);
+		return -ENOMEM;
+	}
 
 	vgpu_init_vars(gk20a, platform);
 
@@ -374,6 +384,7 @@ int vgpu_probe(struct platform_device *pdev)
 	/* Initialize the platform interface. */
 	err = platform->probe(dev);
 	if (err) {
+		nvgpu_gr_free(gk20a);
 		if (err == -EPROBE_DEFER)
 			nvgpu_info(gk20a, "platform probe failed");
 		else
@@ -385,6 +396,7 @@ int vgpu_probe(struct platform_device *pdev)
 		err = platform->late_probe(dev);
 		if (err) {
 			nvgpu_err(gk20a, "late probe failed");
+			nvgpu_gr_free(gk20a);
 			return err;
 		}
 	}
@@ -392,12 +404,14 @@ int vgpu_probe(struct platform_device *pdev)
 	err = vgpu_comm_init(gk20a);
 	if (err) {
 		nvgpu_err(gk20a, "failed to init comm interface");
+		nvgpu_gr_free(gk20a);
 		return -ENOSYS;
 	}
 
 	priv->virt_handle = vgpu_connect();
 	if (!priv->virt_handle) {
 		nvgpu_err(gk20a, "failed to connect to server node");
+		nvgpu_gr_free(gk20a);
 		vgpu_comm_deinit();
 		return -ENOSYS;
 	}
@@ -405,19 +419,23 @@ int vgpu_probe(struct platform_device *pdev)
 	err = vgpu_get_constants(gk20a);
 	if (err) {
 		vgpu_comm_deinit();
+		nvgpu_gr_free(gk20a);
 		return err;
 	}
 
 	err = vgpu_pm_init(dev);
 	if (err) {
 		nvgpu_err(gk20a, "pm init failed");
+		nvgpu_gr_free(gk20a);
 		return err;
 	}
 
 	err = nvgpu_thread_create(&priv->intr_handler, gk20a,
 			vgpu_intr_thread, "gk20a");
-	if (err)
+	if (err) {
+		nvgpu_gr_free(gk20a);
 		return err;
+	}
 
 	gk20a_debug_init(gk20a, "gpu.0");
 

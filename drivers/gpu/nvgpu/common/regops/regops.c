@@ -66,7 +66,7 @@ static inline bool linear_search(u32 offset, const u32 *list, u64 size)
  * But note: while the dbg_gpu bind requires the a channel fd,
  * it doesn't require an allocated gr/compute obj at that point...
  */
-static bool gr_context_info_available(struct gr_gk20a *gr)
+static bool gr_context_info_available(struct nvgpu_gr *gr)
 {
 	bool initialized;
 
@@ -122,7 +122,7 @@ int exec_regops_gk20a(struct gk20a *g,
 
 	/* be sure that ctx info is in place if there are ctx ops */
 	if ((ctx_wr_count | ctx_rd_count) != 0U) {
-		if (!gr_context_info_available(&g->gr)) {
+		if (!gr_context_info_available(g->gr)) {
 			nvgpu_err(g, "gr context data not available");
 			return -ENODEV;
 		}

@@ -27,7 +27,7 @@
 struct gk20a;
 struct fifo_gk20a;
 struct channel_gk20a;
-struct gr_gk20a;
+struct nvgpu_gr;
 struct sim_nvgpu;
 struct gk20a_ce_app;
 struct gk20a_ctxsw_trace;
@@ -1703,7 +1703,7 @@ struct gpu_ops {
 	struct {
 		int (*enable_snapshot)(struct channel_gk20a *ch,
 				struct gk20a_cs_snapshot_client *client);
-		void (*disable_snapshot)(struct gr_gk20a *gr);
+		void (*disable_snapshot)(struct nvgpu_gr *gr);
 		int (*check_data_available)(struct channel_gk20a *ch,
 						u32 *pending,
 						bool *hw_overflow);
@@ -2036,7 +2036,7 @@ struct gk20a {
 	struct clk_gk20a clk;
 	struct fifo_gk20a fifo;
 	struct nvgpu_nvlink_dev nvlink;
-	struct gr_gk20a gr;
+	struct nvgpu_gr *gr;
 	struct sim_nvgpu *sim;
 	struct mm_gk20a mm;
 	struct nvgpu_pmu pmu;

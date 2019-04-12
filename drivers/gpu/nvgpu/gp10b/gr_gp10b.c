@@ -341,7 +341,7 @@ fail:
 
 void gr_gp10b_set_alpha_circular_buffer_size(struct gk20a *g, u32 data)
 {
-	struct gr_gk20a *gr = &g->gr;
+	struct nvgpu_gr *gr = g->gr;
 	u32 gpc_index, ppc_index, stride, val;
 	u32 pd_ab_max_output;
 	u32 alpha_cb_size = data * 4U;
@@ -396,7 +396,7 @@ void gr_gp10b_set_alpha_circular_buffer_size(struct gk20a *g, u32 data)
 
 void gr_gp10b_set_circular_buffer_size(struct gk20a *g, u32 data)
 {
-	struct gr_gk20a *gr = &g->gr;
+	struct nvgpu_gr *gr = g->gr;
 	u32 gpc_index, ppc_index, stride, val;
 	u32 cb_size_steady = data * 4U, cb_size;
 	u32 gpc_stride = nvgpu_get_litter_value(g, GPU_LIT_GPC_STRIDE);
@@ -472,7 +472,7 @@ void gr_gp10b_set_circular_buffer_size(struct gk20a *g, u32 data)
 int gr_gp10b_dump_gr_status_regs(struct gk20a *g,
 			   struct gk20a_debug_output *o)
 {
-	struct gr_gk20a *gr = &g->gr;
+	struct nvgpu_gr *gr = g->gr;
 	u32 gr_engine_id;
 	struct nvgpu_engine_status_info engine_status;
 
@@ -609,9 +609,9 @@ void gr_gp10b_set_gpc_tpc_mask(struct gk20a *g, u32 gpc_index)
 	nvgpu_tegra_fuse_write_bypass(g, 0x1);
 	nvgpu_tegra_fuse_write_access_sw(g, 0x0);
 
-	if (nvgpu_gr_config_get_gpc_tpc_mask(g->gr.config, gpc_index) == 0x1U) {
+	if (nvgpu_gr_config_get_gpc_tpc_mask(g->gr->config, gpc_index) == 0x1U) {
 		nvgpu_tegra_fuse_write_opt_gpu_tpc0_disable(g, 0x2);
-	} else if (nvgpu_gr_config_get_gpc_tpc_mask(g->gr.config, gpc_index) ==
+	} else if (nvgpu_gr_config_get_gpc_tpc_mask(g->gr->config, gpc_index) ==
 			0x2U) {
 		nvgpu_tegra_fuse_write_opt_gpu_tpc0_disable(g, 0x1);
 	} else {
@@ -709,7 +709,7 @@ int gr_gp10b_set_cilp_preempt_pending(struct gk20a *g,
 
 	/* set cilp_preempt_pending = true and record the channel */
 	nvgpu_gr_ctx_set_cilp_preempt_pending(gr_ctx, true);
-	g->gr.cilp_preempt_pending_chid = fault_ch->chid;
+	g->gr->cilp_preempt_pending_chid = fault_ch->chid;
 
 	g->ops.tsg.post_event_id(tsg, NVGPU_EVENT_ID_CILP_PREEMPTION_STARTED);
 
@@ -741,7 +741,7 @@ static int gr_gp10b_clear_cilp_preempt_pending(struct gk20a *g,
 	}
 
 	nvgpu_gr_ctx_set_cilp_preempt_pending(gr_ctx, false);
-	g->gr.cilp_preempt_pending_chid = FIFO_INVAL_CHANNEL_ID;
+	g->gr->cilp_preempt_pending_chid = FIFO_INVAL_CHANNEL_ID;
 
 	return 0;
 }
@@ -871,7 +871,7 @@ static int gr_gp10b_get_cilp_preempt_pending_chid(struct gk20a *g, u32 *__chid)
 	u32 chid;
 	int ret = -EINVAL;
 
-	chid = g->gr.cilp_preempt_pending_chid;
+	chid = g->gr->cilp_preempt_pending_chid;
 	if (chid == FIFO_INVAL_CHANNEL_ID) {
 		return ret;
 	}
@@ -1053,7 +1053,7 @@ int gr_gp10b_suspend_contexts(struct gk20a *g,
 
 	nvgpu_mutex_acquire(&g->dbg_sessions_lock);
 
-	err = g->ops.gr.falcon.disable_ctxsw(g, g->gr.falcon);
+	err = g->ops.gr.falcon.disable_ctxsw(g, g->gr->falcon);
 	if (err != 0) {
 		nvgpu_err(g, "unable to stop gr ctxsw");
 		nvgpu_mutex_release(&g->dbg_sessions_lock);
@@ -1078,7 +1078,7 @@ int gr_gp10b_suspend_contexts(struct gk20a *g,
 
 	nvgpu_mutex_release(&dbg_s->ch_list_lock);
 
-	err = g->ops.gr.falcon.enable_ctxsw(g, g->gr.falcon);
+	err = g->ops.gr.falcon.enable_ctxsw(g, g->gr->falcon);
 	if (err != 0) {
 		nvgpu_mutex_release(&g->dbg_sessions_lock);
 		goto clean_up;
@@ -1189,7 +1189,7 @@ int gr_gp10b_get_preemption_mode_flags(struct gk20a *g,
 
 void gr_gp10b_init_gfxp_wfi_timeout_count(struct gk20a *g)
 {
-	struct gr_gk20a *gr = &g->gr;
+	struct nvgpu_gr *gr = g->gr;
 
 	gr->gfxp_wfi_timeout_count = GFXP_WFI_TIMEOUT_COUNT_DEFAULT;
 }

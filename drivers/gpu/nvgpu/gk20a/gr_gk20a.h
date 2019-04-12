@@ -31,14 +31,12 @@
 
 #define GK20A_TIMEOUT_FPGA		100000U /* 100 sec */
 
-struct tsg_gk20a;
 struct nvgpu_gr_ctx;
 struct channel_gk20a;
 struct nvgpu_warpstate;
 struct nvgpu_gr_ctx_desc;
 struct nvgpu_gr_falcon;
 struct nvgpu_gr_global_ctx_buffer_desc;
-struct nvgpu_gr_global_ctx_local_golden_image;
 struct nvgpu_gr_zbc;
 struct nvgpu_gr_hwpm_map;
 struct nvgpu_gr_isr_data;
@@ -74,12 +72,6 @@ struct gk20a_cs_snapshot_client;
 struct gk20a_cs_snapshot;
 #endif
 
-struct gr_ctx_buffer_desc {
-	void (*destroy)(struct gk20a *g, struct gr_ctx_buffer_desc *desc);
-	struct nvgpu_mem mem;
-	void *priv;
-};
-
 struct nvgpu_preemption_modes_rec {
 	u32 graphics_preemption_mode_flags; /* supported preemption modes */
 	u32 compute_preemption_mode_flags; /* supported preemption modes */
@@ -88,7 +80,7 @@ struct nvgpu_preemption_modes_rec {
 	u32 default_compute_preempt_mode; /* default mode */
 };
 
-struct gr_gk20a {
+struct nvgpu_gr {
 	struct gk20a *g;
 	struct {
 		bool golden_image_initialized;
@@ -138,7 +130,7 @@ struct gr_gk20a {
 	u32 channel_tlb_flush_index;
 	struct nvgpu_spinlock ch_tlb_lock;
 
-	void (*remove_support)(struct gr_gk20a *gr);
+	void (*remove_support)(struct gk20a *g);
 	bool sw_ready;
 
 	u32 fecs_feature_override_ecc_val;
@@ -291,10 +283,5 @@ void gr_gk20a_split_fbpa_broadcast_addr(struct gk20a *g, u32 addr,
 int gr_gk20a_get_offset_in_gpccs_segment(struct gk20a *g,
 	enum ctxsw_addr_type addr_type, u32 num_tpcs, u32 num_ppcs,
 	u32 reg_list_ppc_count, u32 *__offset_in_segment);
-
-void gk20a_gr_destroy_ctx_buffer(struct gk20a *g,
-	struct gr_ctx_buffer_desc *desc);
-int gk20a_gr_alloc_ctx_buffer(struct gk20a *g,
-	struct gr_ctx_buffer_desc *desc, size_t size);
 
 #endif /*__GR_GK20A_H__*/

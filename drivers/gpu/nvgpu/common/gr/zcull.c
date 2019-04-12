@@ -31,9 +31,8 @@
 #include "zcull_priv.h"
 
 int nvgpu_gr_zcull_init(struct gk20a *g, struct nvgpu_gr_zcull **gr_zcull,
-		u32 size)
+			u32 size, struct nvgpu_gr_config *config)
 {
-	struct nvgpu_gr_config *gr_config = g->gr.config;
 	struct nvgpu_gr_zcull *zcull;
 	int err = 0;
 
@@ -47,11 +46,11 @@ int nvgpu_gr_zcull_init(struct gk20a *g, struct nvgpu_gr_zcull **gr_zcull,
 
 	zcull->zcull_ctxsw_image_size = size;
 
-	zcull->aliquot_width = nvgpu_gr_config_get_tpc_count(gr_config) * 16U;
+	zcull->aliquot_width = nvgpu_gr_config_get_tpc_count(config) * 16U;
 	zcull->aliquot_height = 16;
 
 	zcull->width_align_pixels =
-		nvgpu_gr_config_get_tpc_count(gr_config) * 16U;
+		nvgpu_gr_config_get_tpc_count(config) * 16U;
 	zcull->height_align_pixels = 32;
 
 	zcull->aliquot_size =
@@ -59,10 +58,10 @@ int nvgpu_gr_zcull_init(struct gk20a *g, struct nvgpu_gr_zcull **gr_zcull,
 
 	/* assume no floor sweeping since we only have 1 tpc in 1 gpc */
 	zcull->pixel_squares_by_aliquots =
-		nvgpu_gr_config_get_zcb_count(gr_config) * 16U * 16U *
-		nvgpu_gr_config_get_tpc_count(gr_config) /
-		(nvgpu_gr_config_get_gpc_count(gr_config) *
-		 nvgpu_gr_config_get_gpc_tpc_count(gr_config, 0U));
+		nvgpu_gr_config_get_zcb_count(config) * 16U * 16U *
+		nvgpu_gr_config_get_tpc_count(config) /
+		(nvgpu_gr_config_get_gpc_count(config) *
+		 nvgpu_gr_config_get_gpc_tpc_count(config, 0U));
 
 exit:
 	*gr_zcull = zcull;

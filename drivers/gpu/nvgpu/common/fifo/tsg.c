@@ -595,7 +595,7 @@ static struct tsg_gk20a *gk20a_tsg_acquire_unused_tsg(struct fifo_gk20a *f)
 
 int nvgpu_tsg_open_common(struct gk20a *g, struct tsg_gk20a *tsg, pid_t pid)
 {
-	u32 no_of_sm = nvgpu_gr_config_get_no_of_sm(g->gr.config);
+	u32 no_of_sm = nvgpu_gr_config_get_no_of_sm(g->gr->config);
 	int err;
 
 	/* we need to allocate this after g->ops.gr.init_fs_state() since

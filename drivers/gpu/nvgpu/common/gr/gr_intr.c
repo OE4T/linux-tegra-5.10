@@ -116,7 +116,7 @@ struct channel_gk20a *nvgpu_gr_intr_get_channel_from_ctx(struct gk20a *g,
 			u32 curr_ctx, u32 *curr_tsgid)
 {
 	struct fifo_gk20a *f = &g->fifo;
-	struct gr_gk20a *gr = &g->gr;
+	struct nvgpu_gr *gr = g->gr;
 	u32 chid;
 	u32 tsgid = NVGPU_INVALID_TSG_ID;
 	u32 i;

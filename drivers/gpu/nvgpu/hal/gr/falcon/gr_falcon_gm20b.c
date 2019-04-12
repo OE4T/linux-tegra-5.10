@@ -667,10 +667,10 @@ int gm20b_gr_falcon_init_ctx_state(struct gk20a *g)
 
 	nvgpu_log_fn(g, " ");
 	/* query ctxsw image sizes, if golden context is not created */
-	if (!g->gr.ctx_vars.golden_image_initialized) {
+	if (!g->gr->ctx_vars.golden_image_initialized) {
 		ret = gm20b_gr_falcon_ctrl_ctxsw(g,
 			NVGPU_GR_FALCON_METHOD_CTXSW_DISCOVER_IMAGE_SIZE,
-			0, &g->gr.ctx_vars.golden_image_size);
+			0, &g->gr->ctx_vars.golden_image_size);
 		if (ret != 0) {
 			nvgpu_err(g,
 				   "query golden image size failed");
@@ -678,7 +678,7 @@ int gm20b_gr_falcon_init_ctx_state(struct gk20a *g)
 		}
 		ret = gm20b_gr_falcon_ctrl_ctxsw(g,
 			NVGPU_GR_FALCON_METHOD_CTXSW_DISCOVER_PM_IMAGE_SIZE,
-			0, &g->gr.ctx_vars.pm_ctxsw_image_size);
+			0, &g->gr->ctx_vars.pm_ctxsw_image_size);
 		if (ret != 0) {
 			nvgpu_err(g,
 				   "query pm ctx image size failed");
@@ -686,7 +686,7 @@ int gm20b_gr_falcon_init_ctx_state(struct gk20a *g)
 		}
 		ret = gm20b_gr_falcon_ctrl_ctxsw(g,
 			NVGPU_GR_FALCON_METHOD_CTXSW_DISCOVER_ZCULL_IMAGE_SIZE,
-			0, &g->gr.ctx_vars.zcull_image_size);
+			0, &g->gr->ctx_vars.zcull_image_size);
 		if (ret != 0) {
 			nvgpu_err(g,
 				"query zcull ctx image size failed");
@@ -744,7 +744,7 @@ int gm20b_gr_falcon_submit_fecs_method_op(struct gk20a *g,
 				   bool sleepduringwait)
 {
 	int ret;
-	struct gr_gk20a *gr = &g->gr;
+	struct nvgpu_gr *gr = g->gr;
 
 	nvgpu_mutex_acquire(&gr->falcon->fecs_mutex);
 
@@ -786,7 +786,7 @@ int gm20b_gr_falcon_submit_fecs_sideband_method_op(struct gk20a *g,
 		struct nvgpu_fecs_method_op op)
 {
 	int ret;
-	struct gr_gk20a *gr = &g->gr;
+	struct nvgpu_gr *gr = g->gr;
 
 	nvgpu_mutex_acquire(&gr->falcon->fecs_mutex);
 

@@ -38,7 +38,7 @@
 
 static int gr_alloc_global_ctx_buffers(struct gk20a *g)
 {
-	struct gr_gk20a *gr = &g->gr;
+	struct nvgpu_gr *gr = g->gr;
 	int err;
 	u32 size;
 
@@ -61,8 +61,8 @@ static int gr_alloc_global_ctx_buffers(struct gk20a *g)
 		NVGPU_GR_GLOBAL_CTX_PAGEPOOL_VPR, size);
 
 	size = g->ops.gr.init.get_global_attr_cb_size(g,
-			nvgpu_gr_config_get_tpc_count(g->gr.config),
-			nvgpu_gr_config_get_max_tpc_count(g->gr.config));
+			nvgpu_gr_config_get_tpc_count(g->gr->config),
+			nvgpu_gr_config_get_max_tpc_count(g->gr->config));
 	nvgpu_log_info(g, "attr_buffer_size : %u", size);
 
 	nvgpu_gr_global_ctx_set_size(gr->global_ctx_buffer,
@@ -120,7 +120,7 @@ u32 nvgpu_gr_tpc_offset(struct gk20a *g, u32 tpc)
 
 void nvgpu_gr_init(struct gk20a *g)
 {
-	nvgpu_cond_init(&g->gr.init_wq);
+	nvgpu_cond_init(&g->gr->init_wq);
 }
 
 int nvgpu_gr_suspend(struct gk20a *g)
@@ -141,11 +141,11 @@ int nvgpu_gr_suspend(struct gk20a *g)
 	g->ops.gr.intr.enable_interrupts(g, false);
 
 	/* disable all exceptions */
-	g->ops.gr.intr.enable_exceptions(g, g->gr.config, false);
+	g->ops.gr.intr.enable_exceptions(g, g->gr->config, false);
 
 	nvgpu_gr_flush_channel_tlb(g);
 
-	g->gr.initialized = false;
+	g->gr->initialized = false;
 
 	nvgpu_log_fn(g, "done");
 	return ret;
@@ -154,16 +154,16 @@ int nvgpu_gr_suspend(struct gk20a *g)
 /* invalidate channel lookup tlb */
 void nvgpu_gr_flush_channel_tlb(struct gk20a *g)
 {
-	nvgpu_spinlock_acquire(&g->gr.ch_tlb_lock);
-	(void) memset(g->gr.chid_tlb, 0,
+	nvgpu_spinlock_acquire(&g->gr->ch_tlb_lock);
+	(void) memset(g->gr->chid_tlb, 0,
 		sizeof(struct gr_channel_map_tlb_entry) *
 		GR_CHANNEL_MAP_TLB_SIZE);
-	nvgpu_spinlock_release(&g->gr.ch_tlb_lock);
+	nvgpu_spinlock_release(&g->gr->ch_tlb_lock);
 }
 
 static int gr_init_setup_hw(struct gk20a *g)
 {
-	struct gr_gk20a *gr = &g->gr;
+	struct nvgpu_gr *gr = g->gr;
 	int err;
 
 	nvgpu_log_fn(g, " ");
@@ -249,9 +249,9 @@ out:
 	return err;
 }
 
-static void gr_remove_support(struct gr_gk20a *gr)
+static void gr_remove_support(struct gk20a *g)
 {
-	struct gk20a *g = gr->g;
+	struct nvgpu_gr *gr = g->gr;
 
 	nvgpu_log_fn(g, " ");
 
@@ -281,7 +281,7 @@ static void gr_remove_support(struct gr_gk20a *gr)
 	gr->ctx_vars.golden_image_initialized = false;
 }
 
-static int gr_init_access_map(struct gk20a *g, struct gr_gk20a *gr)
+static int gr_init_access_map(struct gk20a *g, struct nvgpu_gr *gr)
 {
 	struct nvgpu_mem *mem;
 	u32 nr_pages =
@@ -317,7 +317,7 @@ static int gr_init_access_map(struct gk20a *g, struct gr_gk20a *gr)
 	return 0;
 }
 
-static int gr_init_config(struct gk20a *g, struct gr_gk20a *gr)
+static int gr_init_config(struct gk20a *g, struct nvgpu_gr *gr)
 {
 	gr->config = nvgpu_gr_config_init(g);
 	if (gr->config == NULL) {
@@ -368,7 +368,7 @@ clean_up:
 
 static int gr_init_setup_sw(struct gk20a *g)
 {
-	struct gr_gk20a *gr = &g->gr;
+	struct nvgpu_gr *gr = g->gr;
 	int err = 0;
 
 	nvgpu_log_fn(g, " ");
@@ -381,7 +381,7 @@ static int gr_init_setup_sw(struct gk20a *g)
 	gr->g = g;
 
 #if defined(CONFIG_GK20A_CYCLE_STATS)
-	err = nvgpu_mutex_init(&g->gr.cs_lock);
+	err = nvgpu_mutex_init(&g->gr->cs_lock);
 	if (err != 0) {
 		nvgpu_err(g, "Error in gr.cs_lock mutex initialization");
 		return err;
@@ -389,7 +389,7 @@ static int gr_init_setup_sw(struct gk20a *g)
 #endif
 
 	err = nvgpu_gr_obj_ctx_init(g, &gr->golden_image,
-			g->gr.ctx_vars.golden_image_size);
+			g->gr->ctx_vars.golden_image_size);
 	if (err != 0) {
 		goto clean_up;
 	}
@@ -399,8 +399,8 @@ static int gr_init_setup_sw(struct gk20a *g)
 		goto clean_up;
 	}
 
-	err = nvgpu_gr_hwpm_map_init(g, &g->gr.hwpm_map,
-		g->gr.ctx_vars.pm_ctxsw_image_size);
+	err = nvgpu_gr_hwpm_map_init(g, &g->gr->hwpm_map,
+		g->gr->ctx_vars.pm_ctxsw_image_size);
 	if (err != 0) {
 		nvgpu_err(g, "hwpm_map init failed");
 		goto clean_up;
@@ -411,7 +411,8 @@ static int gr_init_setup_sw(struct gk20a *g)
 		goto clean_up;
 	}
 
-	err = nvgpu_gr_zcull_init(g, &gr->zcull, gr->ctx_vars.zcull_image_size);
+	err = nvgpu_gr_zcull_init(g, &gr->zcull,
+			gr->ctx_vars.zcull_image_size, gr->config);
 	if (err != 0) {
 		goto clean_up;
 	}
@@ -466,7 +467,7 @@ static int gr_init_setup_sw(struct gk20a *g)
 
 clean_up:
 	nvgpu_err(g, "fail");
-	gr_remove_support(gr);
+	gr_remove_support(g);
 	return err;
 }
 
@@ -510,7 +511,7 @@ out:
 
 int nvgpu_gr_prepare_sw(struct gk20a *g)
 {
-	struct gr_gk20a *gr = &g->gr;
+	struct nvgpu_gr *gr = g->gr;
 	int err = 0;
 
 	nvgpu_log_fn(g, " ");
@@ -526,7 +527,6 @@ int nvgpu_gr_prepare_sw(struct gk20a *g)
 		if (gr->falcon == NULL) {
 			nvgpu_err(g, "failed to init gr falcon");
 			err = -ENOMEM;
-			return err;
 		}
 	}
 	return err;
@@ -570,9 +570,9 @@ int nvgpu_gr_reset(struct gk20a *g)
 {
 	int err;
 	struct nvgpu_mutex *fecs_mutex =
-		nvgpu_gr_falcon_get_fecs_mutex(g->gr.falcon);
+		nvgpu_gr_falcon_get_fecs_mutex(g->gr->falcon);
 
-	g->gr.initialized = false;
+	g->gr->initialized = false;
 
 	nvgpu_mutex_acquire(fecs_mutex);
 
@@ -588,7 +588,7 @@ int nvgpu_gr_reset(struct gk20a *g)
 		return err;
 	}
 
-	err = nvgpu_gr_falcon_init_ctxsw(g, g->gr.falcon);
+	err = nvgpu_gr_falcon_init_ctxsw(g, g->gr->falcon);
 	if (err != 0) {
 		nvgpu_mutex_release(fecs_mutex);
 		return err;
@@ -615,8 +615,8 @@ int nvgpu_gr_reset(struct gk20a *g)
 	nvgpu_cg_elcg_enable_no_wait(g);
 
 	/* GR is inialized, signal possible waiters */
-	g->gr.initialized = true;
-	nvgpu_cond_signal(&g->gr.init_wq);
+	g->gr->initialized = true;
+	nvgpu_cond_signal(&g->gr->init_wq);
 	return err;
 }
 
@@ -626,9 +626,9 @@ int nvgpu_gr_init_support(struct gk20a *g)
 
 	nvgpu_log_fn(g, " ");
 
-	g->gr.initialized = false;
+	g->gr->initialized = false;
 
-	err = nvgpu_gr_falcon_init_ctxsw(g, g->gr.falcon);
+	err = nvgpu_gr_falcon_init_ctxsw(g, g->gr->falcon);
 	if (err != 0) {
 		return err;
 	}
@@ -660,8 +660,8 @@ int nvgpu_gr_init_support(struct gk20a *g)
 	nvgpu_cg_elcg_enable_no_wait(g);
 
 	/* GR is inialized, signal possible waiters */
-	g->gr.initialized = true;
-	nvgpu_cond_signal(&g->gr.init_wq);
+	g->gr->initialized = true;
+	nvgpu_cond_signal(&g->gr->init_wq);
 
 	return 0;
 }
@@ -669,5 +669,33 @@ int nvgpu_gr_init_support(struct gk20a *g)
 /* Wait until GR is initialized */
 void nvgpu_gr_wait_initialized(struct gk20a *g)
 {
-	NVGPU_COND_WAIT(&g->gr.init_wq, g->gr.initialized, 0U);
+	NVGPU_COND_WAIT(&g->gr->init_wq, g->gr->initialized, 0U);
+}
+
+int nvgpu_gr_alloc(struct gk20a *g)
+{
+	struct nvgpu_gr *gr = NULL;
+
+	/* if gr exists return */
+	if ((g != NULL) && (g->gr != NULL)) {
+		return 0;
+	}
+
+	/* Allocate memory for gr struct */
+	gr = nvgpu_kzalloc(g, sizeof(*gr));
+	if (gr == NULL) {
+		return -ENOMEM;
+	}
+	g->gr = gr;
+
+	return 0;
+}
+
+void nvgpu_gr_free(struct gk20a *g)
+{
+	/*Delete gr memory */
+	if (g->gr != NULL) {
+		nvgpu_kfree(g, g->gr);
+	}
+	g->gr = NULL;
 }

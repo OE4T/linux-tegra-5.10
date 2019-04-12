@@ -177,7 +177,7 @@ int gm20b_determine_L2_size_bytes(struct gk20a *g)
 		sets = 0U;
 	}
 
-	active_ltcs = g->gr.num_fbps;
+	active_ltcs = g->gr->num_fbps;
 
 	/* chip-specific values */
 	lts_per_ltc = 2U;
