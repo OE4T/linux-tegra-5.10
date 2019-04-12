@@ -547,7 +547,6 @@ nvgpu-y += \
 	gp10b/ce_gp10b.o \
 	gp10b/mm_gp10b.o \
 	gp10b/hal_gp10b.o \
-	gp106/gr_gp106.o \
 	gp106/bios_gp106.o \
 	gv11b/hal_gv11b.o \
 	gv11b/gr_gv11b.o \
