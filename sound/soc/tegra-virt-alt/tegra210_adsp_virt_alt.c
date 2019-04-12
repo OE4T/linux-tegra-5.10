@@ -4818,6 +4818,21 @@ start_playback:
 	return 0;
 }
 
+static int tegra210_adsp_get_param(struct snd_kcontrol *kcontrol,
+	struct snd_ctl_elem_value *ucontrol)
+{
+	struct soc_bytes *params = (void *)kcontrol->private_value;
+
+	if (params->mask == SNDRV_CTL_ELEM_TYPE_INTEGER)
+		memset(ucontrol->value.integer.value, 0,
+			params->num_regs * sizeof(long));
+	else
+		memset(ucontrol->value.bytes.data, 0,
+			params->num_regs);
+
+	return 0;
+}
+
 /* tegra210_adsp_set_param - sets plugin parameters
  * @default: byte_format
  * @byte_format: nvfx_call_params_t based structure
@@ -5118,8 +5133,8 @@ static int tegra210_adsp_apm_put(struct snd_kcontrol *kcontrol,
 #define SND_SOC_PARAM_EXT(xname, xbase)		\
 {	.iface = SNDRV_CTL_ELEM_IFACE_MIXER,	\
 	.name = xname,		\
-	.access = SNDRV_CTL_ELEM_ACCESS_WRITE,	\
 	.info = tegra210_adsp_param_info,		\
+	.get = tegra210_adsp_get_param,		\
 	.put = tegra210_adsp_set_param,		\
 	.private_value =		\
 		((unsigned long)&(struct soc_bytes)		\
