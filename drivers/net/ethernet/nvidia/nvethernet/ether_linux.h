@@ -20,6 +20,7 @@
 #include <linux/platform_device.h>
 #include <linux/etherdevice.h>
 #include <linux/interrupt.h>
+#include <linux/spinlock.h>
 #include <linux/of_gpio.h>
 #include <linux/of_mdio.h>
 #include <linux/if_vlan.h>
@@ -43,6 +44,20 @@
 #define ETHER_IRQ_NAME_SZ		32
 #define ETHER_QUEUE_PRIO_DEFAULT	0U
 #define ETHER_QUEUE_PRIO_MAX		7U
+#define ETHER_QUEUE_PRIO_INVALID	0xFFU
+
+#define EQOS_CONFIG_FAIL		-3
+#define EQOS_CONFIG_SUCCESS		0
+
+#define ETHER_ADDR_REG_CNT_128		128
+#define ETHER_ADDR_REG_CNT_64		64
+#define ETHER_ADDR_REG_CNT_32		32
+#define ETHER_ADDR_REG_CNT_1		1
+
+#define HW_HASH_TBL_SZ_3		3
+#define HW_HASH_TBL_SZ_2		2
+#define HW_HASH_TBL_SZ_1		1
+#define HW_HASH_TBL_SZ_0		0
 
 /* Map max. 4KB buffer per Tx descriptor */
 #define ETHER_MAX_DATA_LEN_PER_TXD_BUF BIT(12)
@@ -146,6 +161,17 @@ struct ether_rx_napi {
  *			is tripped.
  *	@therm_state:	Atomic variable to hold the current temperature zone
  *			which has triggered.
+ *	@lock:		Spin lock for filter code
+ *	@ioctl_lock:		Spin lock for filter code ioctl path
+ *	@max_hash_table_size:	hash table size; 0, 64,128 or 256
+ *	@num_mac_addr_regs:	max address register count, 2*mac_addr64_sel
+ *	@last_mc_filter_index:	Last Multicast address reg filter index, If 0,
+ *				no MC address added
+ *	@last_uc_filter_index:	Last Unicast address reg filter index, If 0, no
+ *				MC and UC address added.
+ *	@l3_l4_filter:		L3_l4 filter enabled 1: enabled
+ *	@vlan_hash_filtering:	vlan hash filter 1: hash, 0: perfect
+ *	@l2_filtering_mode:	l2 filter mode 1: hash 0: perfect
  */
 struct ether_priv_data {
 	struct osi_core_priv_data *osi_core;
@@ -194,6 +220,17 @@ struct ether_priv_data {
 	struct thermal_cooling_device *tcd;
 	atomic_t therm_state;
 #endif /* THERMAL_CAL */
+
+	/* for filtering */
+	spinlock_t lock;
+	/* spin lock for ioctl path */
+	spinlock_t ioctl_lock;
+	int num_mac_addr_regs;
+	int last_mc_filter_index;
+	int last_uc_filter_index;
+	unsigned int l3_l4_filter;
+	unsigned int vlan_hash_filtering;
+	unsigned int l2_filtering_mode;
 };
 
 void ether_set_ethtool_ops(struct net_device *ndev);

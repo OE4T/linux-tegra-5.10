@@ -1338,6 +1338,199 @@ static int ether_start_xmit(struct sk_buff *skb, struct net_device *ndev)
 }
 
 /**
+ *	ether_prepare_mc_list- function to configure the multicast
+ *	address in device.
+ *
+ *	@dev: Pointer to net_device structure.
+ *
+ *	Algorithm:
+ *	This function collects all the multicast addresses and updates the
+ *	device.
+ *
+ *	Dependencies: MAC and PHY need to be initialized.
+ *
+ *	Protection: None.
+ *
+ *	Return: OSI_PERFECT_FILTER_MODE - perfect filtering is seleted
+ *	OSI_HASH_FILTER_MODE - if hash filtering is seleted.
+ */
+static int ether_prepare_mc_list(struct net_device *dev)
+{
+	struct ether_priv_data *pdata = netdev_priv(dev);
+	struct osi_core_priv_data *osi_core = pdata->osi_core;
+	struct netdev_hw_addr *ha;
+	int ret = OSI_PERFECT_FILTER_MODE, i = 1;
+	int cnt;
+
+	if (pdata->l2_filtering_mode == OSI_HASH_FILTER_MODE) {
+		dev_err(pdata->dev,
+			"select HASH FILTERING for mc addresses is not supported in SW\n");
+		/* only perfect filter is supported */
+	} else {
+		dev_dbg(pdata->dev,
+			"select PERFECT FILTERING for mc addresses, mc_count = %d, num_mac_addr_regs = %d\n",
+			netdev_mc_count(dev),
+				pdata->num_mac_addr_regs);
+		/* Clear previously set filters */
+		for (cnt = 1; cnt <= pdata->last_uc_filter_index; cnt++) {
+			osi_update_mac_addr_low_high_reg(osi_core, cnt, NULL);
+		}
+
+		netdev_for_each_mc_addr(ha, dev) {
+			dev_dbg(pdata->dev,
+				"mc addr[%d] = %#x:%#x:%#x:%#x:%#x:%#x\n",
+				i,
+				ha->addr[0], ha->addr[1], ha->addr[2],
+				ha->addr[3], ha->addr[4], ha->addr[5]);
+			osi_update_mac_addr_low_high_reg(osi_core, i, ha->addr);
+			if (i == EQOS_MAX_MAC_ADDRESS_FILTER - 1) {
+				dev_err(pdata->dev, "Configured max number of supported MAC, ignoring it\n");
+				break;
+			}
+			i++;
+		}
+		/* preserve last MC filter index to passon to UC */
+		pdata->last_mc_filter_index = i - 1;
+	}
+
+	return ret;
+}
+
+/**
+ *	ether_prepare_uc_list- function to configure the unicast address
+ *	in device.
+ *
+ *	@dev - pointer to net_device structure.
+ *
+ *	Algorithm:
+ *	This function collects all the unicast addresses and updates the
+ *	device.
+ *
+ *	Dependencies: MAC and PHY need to be initialized.
+ *
+ *	Protection: None.
+ *
+ *	Return: OSI_PERFECT_FILTER_MODE - perfect filtering is seleted
+ *	OSI_HASH_FILTER_MODE - if hash filtering is seleted.
+ */
+static int ether_prepare_uc_list(struct net_device *dev)
+{
+	struct ether_priv_data *pdata = netdev_priv(dev);
+	struct osi_core_priv_data *osi_core = pdata->osi_core;
+	int i = pdata->last_mc_filter_index + 1;
+	int ret = OSI_PERFECT_FILTER_MODE;
+	struct netdev_hw_addr *ha;
+	int cnt;
+
+	if (pdata->l2_filtering_mode == OSI_HASH_FILTER_MODE) {
+		dev_err(pdata->dev,
+			"select HASH FILTERING for uc addresses not Supported in SW\n");
+		/* only perfect filter is supported */
+	} else {
+		dev_dbg(pdata->dev,
+			"select PERFECT FILTERING for uc addresses: uc_count = %d\n",
+			netdev_uc_count(dev));
+		/* Clear previously set filters */
+		for (cnt = pdata->last_mc_filter_index + 1;
+		     cnt <= pdata->last_uc_filter_index; cnt++) {
+			osi_update_mac_addr_low_high_reg(osi_core, cnt, NULL);
+		}
+
+		netdev_for_each_uc_addr(ha, dev) {
+			dev_dbg(pdata->dev,
+				"uc addr[%d] = %#x:%#x:%#x:%#x:%#x:%#x\n",
+				i, ha->addr[0], ha->addr[1], ha->addr[2],
+				ha->addr[3], ha->addr[4], ha->addr[5]);
+			osi_update_mac_addr_low_high_reg(osi_core, i, ha->addr);
+			if (i == EQOS_MAX_MAC_ADDRESS_FILTER - 1) {
+				dev_err(pdata->dev, "Already MAX MAC added\n");
+				break;
+			}
+			i++;
+		}
+		pdata->last_uc_filter_index  = i - 1;
+	}
+
+	return ret;
+}
+
+/**
+ *	ether_set_rx_mode - This function is used to set RX mode.
+ *
+ *	@dev - pointer to net_device structure.
+ *
+ *	Algorithm:
+ *	Based on Network interface flag, MAC registers are programmed to set
+ *	mode
+ *
+ *	Dependencies: MAC and PHY need to be initialized.
+ *
+ *	Protection: Spinlock is used for protection.
+ *
+ *	Return: None
+ */
+static void ether_set_rx_mode(struct net_device *dev)
+{
+	struct ether_priv_data *pdata = netdev_priv(dev);
+	struct osi_core_priv_data *osi_core = pdata->osi_core;
+	struct osi_filter filter = {0};
+	int mode, ret;
+
+	spin_lock_bh(&pdata->lock);
+
+	if ((dev->flags & IFF_PROMISC) == IFF_PROMISC) {
+		dev_dbg(pdata->dev, "enabling Promiscuous mode\n");
+		filter.pr_mode = OSI_ENABLE;
+	} else if ((dev->flags & IFF_ALLMULTI) == IFF_ALLMULTI) {
+		dev_dbg(pdata->dev, "pass all multicast pkt\n");
+		filter.pm_mode = OSI_ENABLE;
+	} else if (!netdev_mc_empty(dev)) {
+		dev_dbg(pdata->dev, "pass list of multicast pkt\n");
+		if (netdev_mc_count(dev) > (pdata->num_mac_addr_regs - 1)) {
+			/* switch to PROMISCUOUS mode */
+			filter.pr_mode = OSI_ENABLE;
+		} else {
+			mode = ether_prepare_mc_list(dev);
+			if (mode == OSI_HASH_FILTER_MODE) {
+				/* Hash filtering for multicast */
+				filter.hmc_mode = OSI_ENABLE;
+			} else {
+				/* Perfect filtering for multicast */
+				filter.hmc_mode = OSI_DISABLE;
+				filter.hpf_mode = OSI_ENABLE;
+			}
+		}
+	} else {
+		pdata->last_mc_filter_index = 0;
+	}
+
+	/* Handle multiple unicast addresses */
+	if (netdev_uc_count(dev) > (pdata->num_mac_addr_regs - 1)) {
+		/* switch to PROMISCUOUS mode */
+		filter.pr_mode = OSI_ENABLE;
+	} else if (!netdev_uc_empty(dev)) {
+		mode = ether_prepare_uc_list(dev);
+		if (mode == OSI_HASH_FILTER_MODE) {
+			/* Hash filtering for unicast */
+			filter.huc_mode = OSI_ENABLE;
+		} else {
+			/* Perfect filtering for unicast */
+			filter.huc_mode = OSI_DISABLE;
+			filter.hpf_mode = OSI_ENABLE;
+		}
+	} else {
+		pdata->last_uc_filter_index = pdata->last_mc_filter_index;
+	}
+
+	ret = osi_config_mac_pkt_filter_reg(osi_core, filter);
+	if (ret != 0) {
+		dev_err(pdata->dev, "osi_config_mac_pkt_filter_reg failed\n");
+	}
+
+	spin_unlock_bh(&pdata->lock);
+}
+
+/**
  *	ether_ioctl - network stack IOCTL hook to driver
  *	@ndev: network device structure
  *	@rq: Interface request structure used for socket
@@ -1356,12 +1549,15 @@ static int ether_start_xmit(struct sk_buff *skb, struct net_device *ndev)
 static int ether_ioctl(struct net_device *dev, struct ifreq *rq, int cmd)
 {
 	int ret = -EOPNOTSUPP;
+	struct ether_priv_data *pdata = netdev_priv(dev);
 
 	if (!dev || !rq) {
+		dev_err(pdata->dev, "%s: Invalid arg\n", __func__);
 		return -EINVAL;
 	}
 
 	if (!netif_running(dev)) {
+		dev_err(pdata->dev, "%s: Interface not up\n", __func__);
 		return -EINVAL;
 	}
 
@@ -1507,6 +1703,83 @@ static int ether_set_features(struct net_device *ndev, netdev_features_t feat)
 	return ret;
 }
 
+/**
+ *	ether_vlan_rx_add_vid- Add VLAN ID. This function is invoked by upper
+ *	layer when a new VLAN id is registered. This function updates the HW
+ *	filter with new VLAN id. New vlan id can be added with vconfig -
+ *	vconfig add <interface_name > <vlan_id>
+ *
+ *	@ndev: Network device structure
+ *	@proto: VLAN proto VLAN_PROTO_8021Q = 0 VLAN_PROTO_8021AD = 1
+ *	@vid: VLAN ID.
+ *
+ *	Algorithm:
+ *	1) Check for hash or perfect filtering.
+ *	2) invoke osi call accordingly.
+ *
+ *	Dependencies: Ethernet interface should be up
+ *
+ *	Protection: None.
+ *
+ *	Return: 0 - success Negative - failure
+ */
+static int ether_vlan_rx_add_vid(struct net_device *ndev, __be16 vlan_proto,
+				 u16 vid)
+{
+	struct ether_priv_data *pdata = netdev_priv(ndev);
+	struct osi_core_priv_data *osi_core = pdata->osi_core;
+	int ret = -1;
+
+	if (pdata->vlan_hash_filtering == OSI_HASH_FILTER_MODE) {
+		dev_err(pdata->dev,
+			"HASH FILTERING for VLAN tag is not supported in SW\n");
+	} else {
+		ret = osi_update_vlan_id(osi_core, vid);
+	}
+
+	return ret;
+}
+
+/**
+ *	ether_vlan_rx_kill_vid- Remove VLAN ID. This function is invoked by
+ *	upper layer when a new VALN id is removed. This function updates the HW
+ *	filter. vlan id can be removed with vconfig -
+ *	vconfig rem <interface_name > <vlan_id>
+ *
+ *	@ndev: Network device structure
+ *	@vlan_proto: VLAN proto VLAN_PROTO_8021Q = 0 VLAN_PROTO_8021AD = 1
+ *	@vid: VLAN ID.
+ *
+ *	Algorithm:
+ *	1) Check for hash or perfect filtering.
+ *	2) invoke osi call accordingly.
+ *
+ *	Dependencies: Ethernet interface should be up
+ *
+ *	Protection: None.
+ *
+ *	Return: 0 - success Negative - failure
+ */
+static int ether_vlan_rx_kill_vid(struct net_device *ndev, __be16 vlan_proto,
+				  u16 vid)
+{
+	struct ether_priv_data *pdata = netdev_priv(ndev);
+	struct osi_core_priv_data *osi_core = pdata->osi_core;
+	int ret = -1;
+
+	if (pdata->vlan_hash_filtering == OSI_HASH_FILTER_MODE) {
+		dev_err(pdata->dev,
+			"HASH FILTERING for VLAN tag is not supported in SW\n");
+	} else {
+		/* By default, receive only VLAN pkt with VID = 1 because
+		 * writing 0 will pass all VLAN pkt
+		 */
+		ret = osi_update_vlan_id(osi_core, 0x1U);
+	}
+
+	return ret;
+}
+
 static const struct net_device_ops ether_netdev_ops = {
 	.ndo_open = ether_open,
 	.ndo_stop = ether_close,
@@ -1516,6 +1789,9 @@ static const struct net_device_ops ether_netdev_ops = {
 	.ndo_change_mtu = ether_change_mtu,
 	.ndo_select_queue = ether_select_queue,
 	.ndo_set_features = ether_set_features,
+	.ndo_set_rx_mode = ether_set_rx_mode,
+	.ndo_vlan_rx_add_vid = ether_vlan_rx_add_vid,
+	.ndo_vlan_rx_kill_vid = ether_vlan_rx_kill_vid,
 };
 
 /**
@@ -2246,7 +2522,8 @@ static int ether_parse_phy_dt(struct ether_priv_data *pdata,
  *	Algorithm: Reads queue priority form DT. Updates
  *	data either by DT values or by default value.
  *
- *	Dependencies: None
+ *	Dependencies: All queue priorities should be different
+ *	from DT.
  *
  *	Protection: None
  *
@@ -2362,6 +2639,11 @@ static int ether_parse_dt(struct ether_priv_data *pdata)
 
 	ether_parse_queue_prio(pdata, "nvidia,queue_prio", pdata->q_prio,
 			       ETHER_QUEUE_PRIO_DEFAULT, ETHER_QUEUE_PRIO_MAX,
+			       osi_core->num_mtl_queues);
+
+	ether_parse_queue_prio(pdata, "nvidia,rx_queue_prio",
+			       osi_core->rxq_prio,
+			       ETHER_QUEUE_PRIO_INVALID, ETHER_QUEUE_PRIO_MAX,
 			       osi_core->num_mtl_queues);
 
 	ret = ether_parse_phy_dt(pdata, np);
@@ -2529,8 +2811,9 @@ static void ether_set_ndev_features(struct net_device *ndev,
 		features |= NETIF_F_HW_VLAN_CTAG_TX;
 	}
 
-	/* Rx VLAN tag detection enabled by default */
+	/* Rx VLAN tag stripping/filtering enabled by default */
 	features |= NETIF_F_HW_VLAN_CTAG_RX;
+	features |= NETIF_F_HW_VLAN_CTAG_FILTER;
 
 	/* Features available in HW */
 	ndev->hw_features = features;
@@ -2671,6 +2954,36 @@ static int ether_therm_init(struct ether_priv_data *pdata)
 #endif /* THERMAL_CAL */
 
 /**
+ *	init_filter_values- static function to initialize filter reg
+ *	count in private data structure
+ *
+ *	@ether_priv_data: ethernet private data structure
+ *
+ *	Algorithm:
+ *	1) update addr_reg_cnt based on HW feature
+ *
+ *	Dependencies: MAC_HW_Feature1 register need to read and store the
+ *	value of ADDR64.
+ *
+ *	Protection: None.
+ *
+ *	Return: None.
+ *
+ */
+static void init_filter_values(struct ether_priv_data *pdata)
+{
+	if (pdata->hw_feat.mac_addr64_sel == OSI_ENABLE) {
+		pdata->num_mac_addr_regs = ETHER_ADDR_REG_CNT_128;
+	} else if (pdata->hw_feat.mac_addr32_sel == OSI_ENABLE) {
+		pdata->num_mac_addr_regs = ETHER_ADDR_REG_CNT_64;
+	} else if (pdata->hw_feat.mac_addr16_sel == OSI_ENABLE) {
+		pdata->num_mac_addr_regs = ETHER_ADDR_REG_CNT_32;
+	} else {
+		pdata->num_mac_addr_regs = ETHER_ADDR_REG_CNT_1;
+	}
+}
+
+/**
  *	ether_probe - Ethernet platform driver probe.
  *	@pdev:	platform device associated with platform driver.
  *
@@ -2680,6 +2993,8 @@ static int ether_therm_init(struct ether_priv_data *pdata)
  *	3) Parse MAC and PHY DT.
  *	4) Get all required clks/reset/IRQ's
  *	5) Register MDIO bus and network device.
+ *      6) initialize spinlock
+ *      7) Update filter value based on HW feature
  *
  *	Dependencies: Device tree need to be updated with proper DT properties.
  *
@@ -2823,6 +3138,10 @@ static int ether_probe(struct platform_device *pdev)
 		dev_err(&pdev->dev, "failed to register netdev\n");
 		goto err_netdev;
 	}
+
+	spin_lock_init(&pdata->lock);
+	spin_lock_init(&pdata->ioctl_lock);
+	init_filter_values(pdata);
 
 	dev_info(&pdev->dev,
 		 "%s (HW ver: %02x) created with %u DMA channels\n",
