@@ -1893,7 +1893,19 @@ static int ether_parse_dt(struct ether_priv_data *pdata)
 	struct osi_dma_priv_data *osi_dma = pdata->osi_dma;
 	struct device *dev = pdata->dev;
 	struct device_node *np = dev->of_node;
-	int ret = 0;
+	struct platform_device *pdev = to_platform_device(dev);
+	int ret = -EINVAL;
+
+	/* Check if IOMMU is enabled */
+	if (pdev->dev.archdata.iommu != NULL) {
+		/* Read and set dma-mask from DT only if IOMMU is enabled*/
+		ret = of_property_read_u64(np, "dma-mask", &pdata->dma_mask);
+	}
+
+	if (ret != 0) {
+		dev_info(dev, "setting to default DMA bit mask\n");
+		pdata->dma_mask = DMA_MASK_NONE;
+	}
 
 	ret = of_property_read_u32_array(np, "nvidia,mtl-queues",
 					 osi_core->mtl_queues,
@@ -2004,6 +2016,54 @@ static void ether_get_num_dma_chan_mtl_q(struct platform_device *pdev,
 }
 
 /**
+ *	ether_set_dma_mask - set dma mask.
+ *	@pdata: OS dependent private data structure.
+ *
+ *	Algorithm:
+ *	Based on the value read from HW addressing mode is set accordingly
+ *
+ *	Dependencies: MAC_HW_Feature1 register need to read and store the
+ *	value of ADDR64.
+ *
+ *	Protection: None.
+ *
+ *	Return: 0 - success, negative value - failure.
+ *
+ */
+static int ether_set_dma_mask(struct ether_priv_data *pdata)
+{
+	int ret = 0;
+
+	/* Set DMA addressing limitations based on the value read from HW if
+	 * dma_mask is not defined in DT
+	 */
+	if (pdata->dma_mask == DMA_MASK_NONE) {
+		switch (pdata->hw_feat.addr_64) {
+		case OSI_ADDRESS_32BIT:
+			pdata->dma_mask = DMA_BIT_MASK(32);
+			break;
+		case OSI_ADDRESS_40BIT:
+			pdata->dma_mask = DMA_BIT_MASK(40);
+			break;
+		case OSI_ADDRESS_48BIT:
+			pdata->dma_mask = DMA_BIT_MASK(48);
+			break;
+		default:
+			pdata->dma_mask = DMA_BIT_MASK(40);
+			break;
+		}
+	}
+
+	ret = dma_set_mask_and_coherent(pdata->dev, pdata->dma_mask);
+	if (ret < 0) {
+		dev_err(pdata->dev, "dma_set_mask_and_coherent failed\n");
+		return ret;
+	}
+
+	return ret;
+}
+
+/**
  *	ether_probe - Ethernet platform driver probe.
  *	@pdev:	platform device associated with platform driver.
  *
@@ -2073,6 +2133,13 @@ static int ether_probe(struct platform_device *pdev)
 	osi_init_core_ops(osi_core);
 	osi_init_dma_ops(osi_dma);
 
+	/* Parse the ethernet DT node */
+	ret = ether_parse_dt(pdata);
+	if (ret < 0) {
+		dev_err(&pdev->dev, "failed to parse DT\n");
+		goto err_parse_dt;
+	}
+
 	/* get base address, clks, reset ID's and MAC address*/
 	ret = ether_init_plat_resources(pdev, pdata);
 	if (ret < 0) {
@@ -2083,31 +2150,31 @@ static int ether_probe(struct platform_device *pdev)
 	/* Assign core base to dma/common base, since we are using single VM */
 	osi_dma->base = osi_core->base;
 
-	ret = ether_parse_dt(pdata);
-	if (ret < 0) {
-		dev_err(&pdev->dev, "failed to parse DT\n");
-		goto err_parse_dt;
-	}
-
 	osi_get_hw_features(osi_core->base, &pdata->hw_feat);
+
+	ret = ether_set_dma_mask(pdata);
+	if (ret < 0) {
+		dev_err(&pdev->dev, "failed to set dma mask\n");
+		goto err_dma_mask;
+	}
 
 	ret = osi_get_mac_version(osi_core->base, &osi_core->mac_ver);
 	if (ret < 0) {
 		dev_err(&pdev->dev, "failed to get MAC version (%u)\n",
 			osi_core->mac_ver);
-		goto err_parse_dt;
+		goto err_dma_mask;
 	}
 
 	ret = ether_get_irqs(pdev, pdata, num_dma_chans);
 	if (ret < 0) {
 		dev_err(&pdev->dev, "failed to get IRQ's\n");
-		goto err_parse_dt;
+		goto err_dma_mask;
 	}
 
 	ret = ether_mdio_register(pdata);
 	if (ret < 0) {
 		dev_err(&pdev->dev, "failed to register MDIO bus\n");
-		goto err_parse_dt;
+		goto err_dma_mask;
 	}
 
 	ndev->netdev_ops = &ether_netdev_ops;
@@ -2141,9 +2208,10 @@ static int ether_probe(struct platform_device *pdev)
 err_netdev:
 err_napi:
 	mdiobus_unregister(pdata->mii);
-err_parse_dt:
+err_dma_mask:
 	ether_disable_clks(pdata);
 err_init_res:
+err_parse_dt:
 	free_netdev(ndev);
 	return ret;
 }
