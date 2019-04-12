@@ -870,6 +870,60 @@ static int eqos_config_rxcsum_offload(void *addr, unsigned int enabled)
 }
 
 /**
+ *	eqos_configure_rxq_priority - Configure RxQ priority
+ *	@osi_core: OSI private data structure.
+ *
+ *	Algorithm: This takes care of configuring the RxQ priority
+ *	based on the User priority field of the received packets.we
+ *	Don't have any fix mapping between RXQ and channel. We also don't
+ *	control MTL queue enable/disable in current SW.
+ *
+ *	Dependencies: MAC has to be out of reset.
+ *
+ *	Protection: None
+ *
+ *	Return: None
+ */
+static void eqos_configure_rxq_priority(struct osi_core_priv_data *osi_core)
+{
+	unsigned int qinx;
+	unsigned int val;
+	unsigned int temp;
+	/* to avoid Misra-C error */
+	unsigned int mybit = 0x1U;
+	unsigned int mfix_var1, mfix_var2;
+
+	for (qinx = 0; qinx < OSI_EQOS_MAX_NUM_CHANS; qinx++) {
+		/* check for invalid priority which is set when either rxq_prio
+		 * not defined or duplicate priority given
+		 */
+		if (osi_core->rxq_prio[qinx] != 0xFFU) {
+			temp = (mybit << osi_core->rxq_prio[qinx]);
+		} else {
+			osd_err(osi_core->osd,
+				"Invalid rxq Priority for Q(%d)\n",
+				qinx);
+			continue;
+		}
+
+		val = osi_readl((unsigned char *)osi_core->base +
+				EQOS_MAC_RQC2R);
+		mfix_var1 = qinx * (unsigned int)EQOS_MAC_RQC2_PSRQ_SHIFT;
+		mfix_var2 = (unsigned int)EQOS_MAC_RQC2_PSRQ_MASK;
+		mfix_var2 <<= mfix_var1;
+		val &= ~mfix_var2;
+		temp = temp << (qinx * EQOS_MAC_RQC2_PSRQ_SHIFT);
+		mfix_var1 = qinx * (unsigned int)EQOS_MAC_RQC2_PSRQ_SHIFT;
+		mfix_var2 = (unsigned int)EQOS_MAC_RQC2_PSRQ_MASK;
+		mfix_var2 <<= mfix_var1;
+		val |= (temp & mfix_var2);
+		/* Priorities Selected in the Receive Queue 0 */
+		osi_writel(val, (unsigned char *)osi_core->base +
+			   EQOS_MAC_RQC2R);
+	}
+}
+
+/**
  *	eqos_configure_mac - Configure MAC
  *	@osi_core: OSI private data structure.
  *
@@ -981,6 +1035,8 @@ static void eqos_configure_mac(struct osi_core_priv_data *osi_core)
 				" configuration\n");
 		}
 	}
+	/* USP (user Priority) to RxQ Mapping */
+	eqos_configure_rxq_priority(osi_core);
 }
 
 /**
@@ -1356,6 +1412,88 @@ static int eqos_set_avb_algorithm(struct osi_core_priv_data *osi_core,
 	return 0;
 }
 
+/*
+ *	eqos_config_mac_pkt_filter_reg - configure mac filter register.
+ *	@osi_core: OSI private data structure.
+ *	@filter: OSI filter structure.
+ *
+ *	Algorithm: This sequence is used to configure MAC in differnet pkt
+ *	processing modes like promiscuous, multicast, unicast,
+ *	hash unicast/multicast.
+ *
+ *	Dependencies: MAC IP should be out of reset
+ *	and need to be initialized as the requirements
+ *
+ *	Protection: None
+ *
+ *	Return: None
+ */
+static void eqos_config_mac_pkt_filter_reg(struct osi_core_priv_data *osi_core,
+					   struct osi_filter pfilter)
+{
+	unsigned int value = 0U;
+
+	value = osi_readl((unsigned char *)osi_core->base + EQOS_MAC_PFR);
+	/*Retain all other values */
+	value &= (EQOS_MAC_PFR_DAIF | EQOS_MAC_PFR_DBF | EQOS_MAC_PFR_SAIF |
+		  EQOS_MAC_PFR_SAF | EQOS_MAC_PFR_PCF | EQOS_MAC_PFR_VTFE |
+		  EQOS_MAC_PFR_IPFE | EQOS_MAC_PFR_DNTU | EQOS_MAC_PFR_RA);
+	value |= (pfilter.pr_mode & EQOS_MAC_PFR_PR) |
+		  ((pfilter.huc_mode << EQOS_MAC_PFR_HUC_SHIFT) &
+		   EQOS_MAC_PFR_HUC) |
+		  ((pfilter.hmc_mode << EQOS_MAC_PFR_HMC_SHIFT) &
+		   EQOS_MAC_PFR_HMC) |
+		  ((pfilter.pm_mode << EQOS_MAC_PFR_PM_SHIFT) &
+		   EQOS_MAC_PFR_PM) |
+		  ((pfilter.hpf_mode << EQOS_MAC_PFR_HPF_SHIFT) &
+		   EQOS_MAC_PFR_HPF);
+
+	osi_writel(value, (unsigned char *)osi_core->base + EQOS_MAC_PFR);
+}
+
+/**
+ *	eqos_update_mac_addr_low_high_reg- Update L2 address
+ *	in filter register
+ *
+ *	@osi_core: OSI private data structure.
+ *	@index: filter index
+ *	@value: MAC address to write
+ *
+ *	Algorithm: this routine update MAC address to register
+ *
+ *	Dependencies: MAC IP should be out of reset
+ *	and need to be initialized as the requirements
+ *
+ *	Protection: None
+ *
+ *	Return: 0 - success, -1 - failure.
+ */
+static int eqos_update_mac_addr_low_high_reg(
+				struct osi_core_priv_data *osi_core,
+				unsigned int idx, unsigned char addr[])
+{
+	if (idx > EQOS_MAX_MAC_ADDRESS_FILTER) {
+		osd_err(osi_core->osd, "invalid MAC filter index\n");
+		return -1;
+	}
+
+	if (idx >= 0x1U && addr == OSI_NULL) {
+		osi_writel((unsigned int)0x0, (unsigned char *)osi_core->base +
+			   EQOS_MAC_ADDRH((idx)));
+		return 0;
+	}
+
+	osi_writel(((unsigned int)addr[4] | ((unsigned int)addr[5] << 8) |
+		   OSI_BIT(31)), (unsigned char *)osi_core->base +
+		   EQOS_MAC_ADDRH((idx)));
+	osi_writel(((unsigned int)addr[0] | ((unsigned int)addr[1] << 8) |
+		   ((unsigned int)addr[2] << 16) |
+		   ((unsigned int)addr[3] << 24)),
+		   (unsigned char *)osi_core->base +  EQOS_MAC_ADDRL((idx)));
+
+	return 0;
+}
+
 /**
  *	eqos_get_avb_algorithm - Get TxQ/TC avb config
  *	@osi_core: osi core priv data structure
@@ -1378,7 +1516,6 @@ static int eqos_set_avb_algorithm(struct osi_core_priv_data *osi_core,
  *
  *	Return: 0: Success -1: Failure
  */
-
 static int eqos_get_avb_algorithm(struct osi_core_priv_data *osi_core,
 				  struct osi_core_avb_algorithm *avb)
 {
@@ -1499,6 +1636,540 @@ static int eqos_config_arp_offload(unsigned int mac_ver, void *addr,
 	return 0;
 }
 
+/*
+ *	eqos_config_l3_l4_filter_enable -  register write to eanble L3/L4
+ *	filters.
+ *
+ *	@base: Base address  from OSI private data structure.
+ *	@enable: enable/disable
+ *
+ *	Algorithm: This routine to enable/disable L4/l4 filter
+ *
+ *	Dependencies: MAC IP should be out of reset
+ *	and need to be initialized as the requirements
+ *
+ *	Protection: None
+ *
+ *	Return: 0 - success, -1 - failure.
+ */
+static int eqos_config_l3_l4_filter_enable(void *base,
+					   unsigned int filter_enb_dis)
+{
+	unsigned int value = 0U;
+
+	value = osi_readl((unsigned char *)base + EQOS_MAC_PFR);
+	value &= ~(EQOS_MAC_PFR_IPFE);
+	value |= ((filter_enb_dis << 20) & EQOS_MAC_PFR_IPFE);
+	osi_writel(value, (unsigned char *)base + EQOS_MAC_PFR);
+
+	return 0;
+}
+
+/**
+ *	eqos_config_l2_da_perfect_inverse_match - configure register for inverse
+ *	or perfect match.
+ *
+ *	@base: Base address  from OSI private data structure.
+ *	@perfect_inverse_match: 1 - inverse mode 0- normal mode
+ *
+ *	Algorithm: This sequence is used to select perfect/inverse matching
+ *	for L2 DA
+ *
+ *	Dependencies: MAC IP should be out of reset
+ *	and need to be initialized as the requirements
+ *
+ *	Protection: None
+ *
+ *	Return: 0 - success, -1 - failure.
+ */
+static int eqos_config_l2_da_perfect_inverse_match(void *base, unsigned int
+						   perfect_inverse_match)
+{
+	unsigned int value = 0U;
+
+	value = osi_readl((unsigned char *)base + EQOS_MAC_PFR);
+	value &= ~EQOS_MAC_PFR_DAIF;
+	value |= ((perfect_inverse_match << EQOS_MAC_PFR_DAIF_SHIFT) &
+		  EQOS_MAC_PFR_DAIF);
+	osi_writel(value, (unsigned char *)base + EQOS_MAC_PFR);
+
+	return 0;
+}
+
+/**
+ *	eqos_update_ip4_addr
+ *	@osi_core: OSI private data structure.
+ *	@filter_no: filter index
+ *	@addr: ipv4 address
+ *
+ *	Algorithm:  This sequence is used to update IPv4 source/destination
+ *	Address for L3 layer filtering
+ *
+ *	Dependencies: MAC IP should be out of reset
+ *	and need to be initialized as the requirements
+ *
+ *	Protection: None
+ *
+ *	Return: 0 - success, -1 - failure.
+ */
+static int eqos_update_ip4_addr(struct osi_core_priv_data *osi_core,
+				unsigned int filter_no,
+				unsigned char addr[],
+				unsigned int src_dst_addr_match)
+{
+	void *base = osi_core->base;
+	unsigned int value = 0U;
+	unsigned int temp = 0U;
+
+	if (filter_no > EQOS_MAX_L3_L4_FILTER) {
+		osd_err(osi_core->osd, "filter index %d > %d for L3/L4 filter\n"
+			, filter_no, EQOS_MAX_L3_L4_FILTER);
+		return -1;
+	}
+
+	if (src_dst_addr_match != 0U && src_dst_addr_match != 1U) {
+		osd_err(osi_core->osd, "invalid src_dst_addr_match %d parameter\n"
+			, src_dst_addr_match);
+		return -1;
+	}
+
+	value = addr[3];
+	temp = (unsigned int)addr[2] << 8;
+	value |= temp;
+	temp = (unsigned int)addr[1] << 16;
+	value |= temp;
+	temp = (unsigned int)addr[0] << 24;
+	value |= temp;
+	if (src_dst_addr_match == 0U) {
+		osi_writel(value, (unsigned char *)base +
+			   EQOS_MAC_L3_AD0R(filter_no));
+	} else {
+		osi_writel(value, (unsigned char *)base +
+			   EQOS_MAC_L3_AD1R(filter_no));
+	}
+
+	return 0;
+}
+
+/**
+ *	eqos_update_ip6_addr - add ipv6 address in register
+ *
+ *	@osi_core: OSI private data structure.
+ *	@filter_no: filter index
+ *	@addr: ipv6 adderss
+ *
+ *	Algorithm:  This sequence is used to update IPv6 source/destination
+ *	Address for L3 layer filtering
+ *
+ *	Dependencies: MAC IP should be out of reset
+ *	and need to be initialized as the requirements
+ *
+ *	Protection: None
+ *
+ *	Return: 0 - success, -1 - failure.
+ */
+static int eqos_update_ip6_addr(struct osi_core_priv_data *osi_core,
+				unsigned int filter_no, unsigned short addr[])
+{
+	void *base = osi_core->base;
+	unsigned int value = 0U;
+	unsigned int temp = 0U;
+
+	if (filter_no > EQOS_MAX_L3_L4_FILTER) {
+		osd_err(osi_core->osd, "filter index %d > %d for L3/L4 filter\n"
+			, filter_no, EQOS_MAX_L3_L4_FILTER);
+		return -1;
+	}
+
+	/* update Bits[31:0] of 128-bit IP addr */
+	value = addr[7];
+	temp = (unsigned int)addr[6] << 16;
+	value |= temp;
+	osi_writel(value, (unsigned char *)base +
+		    EQOS_MAC_L3_AD0R(filter_no));
+	/* update Bits[63:32] of 128-bit IP addr */
+	value = addr[5];
+	temp = (unsigned int)addr[4] << 16;
+	value |= temp;
+	osi_writel(value, (unsigned char *)base +
+		    EQOS_MAC_L3_AD1R(filter_no));
+	/* update Bits[95:64] of 128-bit IP addr */
+	value = addr[3];
+	temp = (unsigned int)addr[2] << 16;
+	value |= temp;
+	osi_writel(value, (unsigned char *)base +
+		   EQOS_MAC_L3_AD2R(filter_no));
+	/* update Bits[127:96] of 128-bit IP addr */
+	value = addr[1];
+	temp = (unsigned int)addr[0] << 16;
+	value |= temp;
+	osi_writel(value, (unsigned char *)base +
+		   EQOS_MAC_L3_AD3R(filter_no));
+
+	return 0;
+}
+
+/**
+ *	eqos_update_l4_port_no -program source  port no
+ *
+ *	@osi_core: OSI private data structure.
+ *	@filter_no: filter index
+ *	@port_no: port number
+ *	@src_dst_port_match: 0 - source port, otherwise - dest port
+ *
+ *	Algorithm: sequence is used to update Source Port Number for
+ *	L4(TCP/UDP) layer filtering.
+ *
+ *	Dependencies: MAC IP should be out of reset
+ *	and need to be initialized as the requirements
+ *
+ *	Protection: None
+ *
+ *	Return: 0 - success, -1 - failure.
+ */
+static int eqos_update_l4_port_no(struct osi_core_priv_data *osi_core,
+				  unsigned int filter_no,
+				  unsigned short port_no,
+				  unsigned int src_dst_port_match)
+{
+	void *base = osi_core->base;
+	unsigned int value = 0U;
+	unsigned int temp = 0U;
+
+	if (filter_no > EQOS_MAX_L3_L4_FILTER) {
+		osd_err(osi_core->osd, "filter index %d > %d for L3/L4 filter\n"
+			, filter_no, EQOS_MAX_L3_L4_FILTER);
+		return -1;
+	}
+
+	value = osi_readl((unsigned char *)base + EQOS_MAC_L4_ADR(filter_no));
+	if (src_dst_port_match == 0U) {
+		value &= ~EQOS_MAC_L4_SP_MASK;
+		value |= ((unsigned int)port_no  & EQOS_MAC_L4_SP_MASK);
+	} else {
+		value &= ~EQOS_MAC_L4_DP_MASK;
+		temp = port_no;
+		value |= ((temp << EQOS_MAC_L4_DP_SHIFT) & EQOS_MAC_L4_DP_MASK);
+	}
+	osi_writel(value, (unsigned char *)base +  EQOS_MAC_L4_ADR(filter_no));
+
+	return 0;
+}
+
+/**
+ *	eqos_config_l3_filters - config L3 filters.
+ *
+ *	@osi_core: OSI private data structure.
+ *	@filter_no: filter index
+ *	@enb_dis:  1 - enable otherwise - disable L3 filter
+ *	@ipv4_ipv6_match: 1 - IPv6, otherwise - IPv4
+ *	@src_dst_addr_match: 0 - source, otherwise - destination
+ *	@perfect_inverse_match: normal match(0) or inverse map(1)
+ *
+ *	Algorithm: This sequence is used to configure L3((IPv4/IPv6) filters for
+ *	address matching.
+ *
+ *	Dependencies: MAC IP should be out of reset
+ *	and need to be initialized as the requirements
+ *
+ *	Protection: None
+ *
+ *	Return: 0 - success, -1 - failure.
+ */
+static int eqos_config_l3_filters(struct osi_core_priv_data *osi_core,
+				  unsigned int filter_no,
+				  unsigned int enb_dis,
+				  unsigned int ipv4_ipv6_match,
+				  unsigned int src_dst_addr_match,
+				  unsigned int perfect_inverse_match)
+{
+	unsigned int value = 0U;
+	void *base = osi_core->base;
+
+	if (filter_no > EQOS_MAX_L3_L4_FILTER) {
+		osd_err(osi_core->osd, "filter index %d > %d for L3/L4 filter\n"
+			, filter_no, EQOS_MAX_L3_L4_FILTER);
+		return -1;
+	}
+
+	value = osi_readl((unsigned char *)base +
+			  EQOS_MAC_L3L4_CTR(filter_no));
+	value &= ~EQOS_MAC_L3L4_CTR_L3PEN0;
+	value |= (ipv4_ipv6_match  & EQOS_MAC_L3L4_CTR_L3PEN0);
+	osi_writel(value, (unsigned char *)base +
+		   EQOS_MAC_L3L4_CTR(filter_no));
+
+	/* For IPv6 either SA/DA can be checked not both */
+	if (ipv4_ipv6_match == 1U) {
+		if (enb_dis == 1U) {
+			if (src_dst_addr_match == 0U) {
+				/* Enable L3 filters for IPv6 SOURCE addr
+				 *  matching
+				 */
+				value = osi_readl((unsigned char *)base +
+						  EQOS_MAC_L3L4_CTR(filter_no));
+				value &= ~EQOS_MAC_L3_IP6_CTRL_CLEAR;
+				value |= ((EQOS_MAC_L3L4_CTR_L3SAM0 |
+					  perfect_inverse_match <<
+					  EQOS_MAC_L3L4_CTR_L3SAI_SHIFT) &
+					  ((EQOS_MAC_L3L4_CTR_L3SAM0 |
+					  EQOS_MAC_L3L4_CTR_L3SAIM0)));
+				osi_writel(value, (unsigned char *)base +
+					   EQOS_MAC_L3L4_CTR(filter_no));
+
+			} else {
+				/* Enable L3 filters for IPv6 DESTINATION addr
+				 * matching
+				 */
+				value = osi_readl((unsigned char *)base +
+						  EQOS_MAC_L3L4_CTR(filter_no));
+				value &= ~EQOS_MAC_L3_IP6_CTRL_CLEAR;
+				value |= ((EQOS_MAC_L3L4_CTR_L3DAM0 |
+					  perfect_inverse_match <<
+					  EQOS_MAC_L3L4_CTR_L3DAI_SHIFT) &
+					  ((EQOS_MAC_L3L4_CTR_L3DAM0 |
+					  EQOS_MAC_L3L4_CTR_L3DAIM0)));
+				osi_writel(value, (unsigned char *)base +
+					   EQOS_MAC_L3L4_CTR(filter_no));
+			}
+		} else {
+			/* Disable L3 filters for IPv6 SOURCE/DESTINATION addr
+			 * matching
+			 */
+			value = osi_readl((unsigned char *)base +
+					  EQOS_MAC_L3L4_CTR(filter_no));
+			value &= ~(EQOS_MAC_L3_IP6_CTRL_CLEAR |
+				   EQOS_MAC_L3L4_CTR_L3PEN0);
+			osi_writel(value, (unsigned char *)base +
+				   EQOS_MAC_L3L4_CTR(filter_no));
+		}
+	} else {
+		if (src_dst_addr_match == 0U) {
+			if (enb_dis == 1U) {
+				/* Enable L3 filters for IPv4 SOURCE addr
+				 * matching
+				 */
+				value = osi_readl((unsigned char *)base +
+						  EQOS_MAC_L3L4_CTR(filter_no));
+				value &= ~(EQOS_MAC_L3L4_CTR_L3SAM0 |
+					   EQOS_MAC_L3L4_CTR_L3SAIM0);
+				value |= ((EQOS_MAC_L3L4_CTR_L3SAM0 |
+					  perfect_inverse_match <<
+					  EQOS_MAC_L3L4_CTR_L3SAI_SHIFT) &
+					  ((EQOS_MAC_L3L4_CTR_L3SAM0 |
+					  EQOS_MAC_L3L4_CTR_L3SAIM0)));
+				osi_writel(value, (unsigned char *)base +
+					   EQOS_MAC_L3L4_CTR(filter_no));
+			} else {
+				/* Disable L3 filters for IPv4 SOURCE addr
+				 * matching
+				 */
+				value = osi_readl((unsigned char *)base +
+						  EQOS_MAC_L3L4_CTR(filter_no));
+				value &= ~(EQOS_MAC_L3L4_CTR_L3SAM0 |
+					   EQOS_MAC_L3L4_CTR_L3SAIM0);
+				osi_writel(value, (unsigned char *)base +
+					   EQOS_MAC_L3L4_CTR(filter_no));
+			}
+		} else {
+			if (enb_dis == 1U) {
+				/* Enable L3 filters for IPv4 DESTINATION addr
+				 * matching
+				 */
+				value = osi_readl((unsigned char *)base +
+						  EQOS_MAC_L3L4_CTR(filter_no));
+				value &= ~(EQOS_MAC_L3L4_CTR_L3DAM0 |
+					   EQOS_MAC_L3L4_CTR_L3DAIM0);
+				value |= ((EQOS_MAC_L3L4_CTR_L3DAM0 |
+					  perfect_inverse_match <<
+					  EQOS_MAC_L3L4_CTR_L3DAI_SHIFT) &
+					  ((EQOS_MAC_L3L4_CTR_L3DAM0 |
+					  EQOS_MAC_L3L4_CTR_L3DAIM0)));
+				osi_writel(value, (unsigned char *)base +
+					   EQOS_MAC_L3L4_CTR(filter_no));
+			} else {
+				/* Disable L3 filters for IPv4 DESTINATION addr
+				 * matching
+				 */
+				value = osi_readl((unsigned char *)base +
+						  EQOS_MAC_L3L4_CTR(filter_no));
+				value &= ~(EQOS_MAC_L3L4_CTR_L3DAM0 |
+					   EQOS_MAC_L3L4_CTR_L3DAIM0);
+				osi_writel(value, (unsigned char *)base +
+					   EQOS_MAC_L3L4_CTR(filter_no));
+			}
+		}
+	}
+
+	return 0;
+}
+
+/**
+ *	osi_config_l4_filters - Config L4 filters.
+ *
+ *	@osi_core: OSI private data structure.
+ *	@filter_no: filter index
+ *	@enb_dis: 1 - enable, otherwise - disable L4 filter
+ *	@tcp_udp_match: 1 - udp, 0 - tcp
+ *	@src_dst_port_match: 0 - source port, otherwise - dest port
+ *	@perfect_inverse_match: normal match(0) or inverse map(1)
+ *
+ *	Algorithm: This sequence is used to configure L4(TCP/UDP) filters for
+ *	SA and DA Port Number matching
+ *
+ *	Dependencies: MAC IP should be out of reset
+ *	and need to be initialized as the requirements
+ *
+ *	Protection: None
+ *
+ *	Return: 0 - success, -1 - failure.
+ */
+static int eqos_config_l4_filters(struct osi_core_priv_data *osi_core,
+				  unsigned int filter_no,
+				  unsigned int enb_dis,
+				  unsigned int tcp_udp_match,
+				  unsigned int src_dst_port_match,
+				  unsigned int perfect_inverse_match)
+{
+	void *base = osi_core->base;
+	unsigned int value = 0U;
+
+	if (filter_no > EQOS_MAX_L3_L4_FILTER) {
+		osd_err(osi_core->osd, "filter index %d > %d for L3/L4 filter\n"
+			, filter_no, EQOS_MAX_L3_L4_FILTER);
+		return -1;
+	}
+
+	value = osi_readl((unsigned char *)base + EQOS_MAC_L3L4_CTR(filter_no));
+	value &= ~EQOS_MAC_L3L4_CTR_L4PEN0;
+	value |= ((tcp_udp_match << 16) & EQOS_MAC_L3L4_CTR_L4PEN0);
+	osi_writel(value, (unsigned char *)base +
+		   EQOS_MAC_L3L4_CTR(filter_no));
+
+	if (src_dst_port_match == 0U) {
+		if (enb_dis == 1U) {
+			/* Enable L4 filters for SOURCE Port No matching */
+			value = osi_readl((unsigned char *)base +
+					  EQOS_MAC_L3L4_CTR(filter_no));
+			value &= ~(EQOS_MAC_L3L4_CTR_L4SPM0 |
+				   EQOS_MAC_L3L4_CTR_L4SPIM0);
+			value |= ((EQOS_MAC_L3L4_CTR_L4SPM0 |
+				  perfect_inverse_match <<
+				  EQOS_MAC_L3L4_CTR_L4SPI_SHIFT) &
+				  (EQOS_MAC_L3L4_CTR_L4SPM0 |
+				  EQOS_MAC_L3L4_CTR_L4SPIM0));
+			osi_writel(value, (unsigned char *)base +
+				   EQOS_MAC_L3L4_CTR(filter_no));
+		} else {
+			/* Disable L4 filters for SOURCE Port No matching  */
+			value = osi_readl((unsigned char *)base +
+					  EQOS_MAC_L3L4_CTR(filter_no));
+			value &= ~(EQOS_MAC_L3L4_CTR_L4SPM0 |
+				   EQOS_MAC_L3L4_CTR_L4SPIM0);
+			osi_writel(value, (unsigned char *)base +
+				   EQOS_MAC_L3L4_CTR(filter_no));
+		}
+	} else {
+		if (enb_dis == 1U) {
+			/* Enable L4 filters for DESTINATION port No
+			 * matching
+			 */
+			value = osi_readl((unsigned char *)base +
+					  EQOS_MAC_L3L4_CTR(filter_no));
+			value &= ~(EQOS_MAC_L3L4_CTR_L4DPM0 |
+				   EQOS_MAC_L3L4_CTR_L4DPIM0);
+			value |= ((EQOS_MAC_L3L4_CTR_L4DPM0 |
+				  perfect_inverse_match <<
+				  EQOS_MAC_L3L4_CTR_L4DPI_SHIFT) &
+				  (EQOS_MAC_L3L4_CTR_L4DPM0 |
+				  EQOS_MAC_L3L4_CTR_L4DPIM0));
+			osi_writel(value, (unsigned char *)base +
+				   EQOS_MAC_L3L4_CTR(filter_no));
+		} else {
+			/* Disable L4 filters for DESTINATION port No
+			 * matching
+			 */
+			value = osi_readl((unsigned char *)base +
+					  EQOS_MAC_L3L4_CTR(filter_no));
+			value &= ~(EQOS_MAC_L3L4_CTR_L4DPM0 |
+				   EQOS_MAC_L3L4_CTR_L4DPIM0);
+			osi_writel(value, (unsigned char *)base +
+				   EQOS_MAC_L3L4_CTR(filter_no));
+		}
+	}
+
+	return 0;
+}
+
+/**
+ *	eqos_config_vlan_filter_reg - config vlan filter register
+ *
+ *	@base: Base address  from OSI private data structure.
+ *	@filter_enb_dis: vlan filter enable/disable
+ *	@perfect_hash_filtering: perfect or hash filter
+ *	@perfect_inverse_match: normal or inverse filter
+ *
+ *	Algorithm: This sequence is used to enable/disable VLAN filtering and
+ *	also selects VLAN filtering mode- perfect/hash
+ *
+ *	Dependencies: MAC IP should be out of reset
+ *	and need to be initialized as the requirements
+ *
+ *	Protection: None
+ *
+ *	Return: 0 - success, -1 - failure.
+ */
+static int eqos_config_vlan_filtering(struct osi_core_priv_data *osi_core,
+				      unsigned int filter_enb_dis,
+				      unsigned int perfect_hash_filtering,
+				      unsigned int perfect_inverse_match)
+{
+	unsigned int value;
+	void *base = osi_core->base;
+
+	value = osi_readl((unsigned char *)base + EQOS_MAC_PFR);
+	value &= ~(EQOS_MAC_PFR_VTFE);
+	value |= ((filter_enb_dis << EQOS_MAC_PFR_SHIFT) & EQOS_MAC_PFR_VTFE);
+	osi_writel(value, (unsigned char *)base + EQOS_MAC_PFR);
+
+	value = osi_readl((unsigned char *)base + EQOS_MAC_VLAN_TR);
+	value &= ~(EQOS_MAC_VLAN_TR_VTIM | EQOS_MAC_VLAN_TR_VTHM);
+	value |= ((perfect_inverse_match << EQOS_MAC_VLAN_TR_VTIM_SHIFT) &
+		  EQOS_MAC_VLAN_TR_VTIM);
+	if (perfect_hash_filtering == OSI_HASH_FILTER_MODE) {
+		osd_err(osi_core->osd, "VLAN hash filter is not supported not updating VTHM\n");
+	}
+	osi_writel(value, (unsigned char *)base + EQOS_MAC_VLAN_TR);
+	return 0;
+}
+
+/**
+ *	eqos_update_vlan_id -
+ *
+ *	@base: Base address from OSI private data structure.
+ *
+ *	Algorithm: update vid at VLAN tag register
+ *
+ *	Dependencies: MAC IP should be out of reset and need to be initialized
+ *	as the requirements
+ *
+ *	Protection: None
+ *
+ *	Return: 0 - success, -1 - failure.
+ */
+static inline int  eqos_update_vlan_id(void *base, unsigned int vid)
+{
+	unsigned int value;
+
+	value = osi_readl((unsigned char *)base + EQOS_MAC_VLAN_TR);
+	/* 0:15 of register */
+	value &= ~EQOS_MAC_VLAN_TR_VL;
+	value |= vid & EQOS_MAC_VLAN_TR_VL;
+	osi_writel(value, (unsigned char *)base + EQOS_MAC_VLAN_TR);
+
+	return 0;
+}
+
 static struct osi_core_ops eqos_core_ops = {
 	.poll_for_swr = eqos_poll_for_swr,
 	.core_init = eqos_core_init,
@@ -1519,6 +2190,18 @@ static struct osi_core_ops eqos_core_ops = {
 	.config_flow_control = eqos_config_flow_control,
 	.config_arp_offload = eqos_config_arp_offload,
 	.config_rxcsum_offload = eqos_config_rxcsum_offload,
+	.config_mac_pkt_filter_reg = eqos_config_mac_pkt_filter_reg,
+	.update_mac_addr_low_high_reg = eqos_update_mac_addr_low_high_reg,
+	.config_l3_l4_filter_enable = eqos_config_l3_l4_filter_enable,
+	.config_l2_da_perfect_inverse_match =
+				eqos_config_l2_da_perfect_inverse_match,
+	.config_l3_filters = eqos_config_l3_filters,
+	.update_ip4_addr = eqos_update_ip4_addr,
+	.update_ip6_addr = eqos_update_ip6_addr,
+	.config_l4_filters = eqos_config_l4_filters,
+	.update_l4_port_no = eqos_update_l4_port_no,
+	.config_vlan_filtering = eqos_config_vlan_filtering,
+	.update_vlan_id = eqos_update_vlan_id,
 };
 
 struct osi_core_ops *eqos_get_hw_core_ops(void)
