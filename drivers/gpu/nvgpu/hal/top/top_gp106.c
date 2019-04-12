@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2017, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -20,14 +20,18 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NVGPU_BIOS_GP106_H
-#define NVGPU_BIOS_GP106_H
+#include <nvgpu/io.h>
 
-struct gk20a;
-struct gpu_ops;
+#include <nvgpu/hw/gp106/hw_top_gp106.h>
 
-int gp106_bios_init(struct gk20a *g);
-int gp106_bios_preos_wait_for_halt(struct gk20a *g);
-int gp106_bios_devinit(struct gk20a *g);
-int gp106_bios_preos(struct gk20a *g);
-#endif
+#include "top_gp106.h"
+
+u32 gp106_top_read_scratch1_reg(struct gk20a *g)
+{
+	return gk20a_readl(g, top_scratch1_r());
+}
+
+u32 gp106_top_scratch1_devinit_completed(struct gk20a *g, u32 value)
+{
+	return top_scratch1_devinit_completed_v(value);
+}

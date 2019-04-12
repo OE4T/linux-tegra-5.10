@@ -30,7 +30,7 @@
 #include <nvgpu/bug.h>
 #include <nvgpu/pmu/cmd.h>
 
-#include "gp106/bios_gp106.h"
+#include "common/vbios/bios_sw_gp106.h"
 
 #include "pwrdev.h"
 #include "pmgr.h"

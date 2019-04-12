@@ -1626,6 +1626,7 @@ struct gpu_ops {
 		int (*devinit)(struct gk20a *g);
 		int (*preos)(struct gk20a *g);
 		int (*verify_devinit)(struct gk20a *g);
+		u32 (*get_aon_secure_scratch_reg)(struct gk20a *g, u32 i);
 	} bios;
 
 #if defined(CONFIG_GK20A_CYCLE_STATS)
@@ -1829,6 +1830,9 @@ struct gpu_ops {
 		u32 (*get_max_ltc_per_fbp)(struct gk20a *g);
 		u32 (*get_max_lts_per_ltc)(struct gk20a *g);
 		u32 (*get_num_lce)(struct gk20a *g);
+		u32 (*read_top_scratch1_reg)(struct gk20a *g);
+		u32 (*top_scratch1_devinit_completed)(struct gk20a *g,
+						u32 value);
 	} top;
 	struct {
 		void (*secured_sec2_start)(struct gk20a *g);

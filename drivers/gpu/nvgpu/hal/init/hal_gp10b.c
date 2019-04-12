@@ -111,11 +111,11 @@
 #include "hal/falcon/falcon_gk20a.h"
 #include "hal/perf/perf_gm20b.h"
 #include "hal/netlist/netlist_gp10b.h"
+#include "hal/top/top_gm20b.h"
+#include "hal/top/top_gp10b.h"
 
 #include "common/pmu/pg/pg_sw_gm20b.h"
 #include "common/pmu/pg/pg_sw_gp10b.h"
-#include "common/top/top_gm20b.h"
-#include "common/top/top_gp10b.h"
 #include "common/fifo/channel_gk20a.h"
 #include "common/fifo/channel_gm20b.h"
 #include "common/clk_arb/clk_arb_gp10b.h"

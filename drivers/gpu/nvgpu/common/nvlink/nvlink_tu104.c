@@ -29,7 +29,7 @@
 #include <nvgpu/io.h>
 #include <nvgpu/timers.h>
 #include <nvgpu/gk20a.h>
-#include <nvgpu/bios.h>
+#include <nvgpu/nvlink_bios.h>
 #include <nvgpu/nvlink_minion.h>
 
 #include "nvlink_gv100.h"

@@ -135,12 +135,14 @@
 #include "hal/sync/syncpt_cmdbuf_gv11b.h"
 #include "hal/sync/sema_cmdbuf_gv11b.h"
 #include "hal/netlist/netlist_tu104.h"
+#include "hal/top/top_gm20b.h"
+#include "hal/top/top_gp10b.h"
+#include "hal/top/top_gv100.h"
+#include "hal/top/top_gv11b.h"
+#include "hal/bios/bios_tu104.h"
+
 
 #include "common/xve/xve_gp106.h"
-#include "common/top/top_gm20b.h"
-#include "common/top/top_gp10b.h"
-#include "common/top/top_gv100.h"
-#include "common/top/top_gv11b.h"
 #include "common/nvlink/init/device_reginit_gv100.h"
 #include "common/nvlink/intr_and_err_handling_gv100.h"
 #include "hal/nvlink/minion_gv100.h"
@@ -161,13 +163,15 @@
 
 #include "hal/clk/clk_gv100.h"
 
+#include "common/vbios/bios_sw_gp106.h"
+#include "common/vbios/bios_sw_tu104.h"
+
 #include "gp10b/mm_gp10b.h"
 
 #include "gv11b/mm_gv11b.h"
 
 #include "tu104/mm_tu104.h"
 #include "tu104/fifo_tu104.h"
-#include "tu104/bios_tu104.h"
 #include "hal/fbpa/fbpa_tu104.h"
 #include "hal_tu104.h"
 
@@ -367,6 +371,7 @@ static const struct gpu_ops tu104_ops = {
 		.devinit = NULL,
 		.preos = NULL,
 		.verify_devinit = tu104_bios_verify_devinit,
+		.get_aon_secure_scratch_reg = tu104_get_aon_secure_scratch_reg,
 	},
 	.ltc = {
 		.determine_L2_size_bytes = gp10b_determine_L2_size_bytes,

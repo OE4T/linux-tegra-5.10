@@ -38,10 +38,6 @@ nvgpu-y += \
 	common/perf/perfbuf.o \
 	common/xve/xve_gp106.o \
 	common/therm/therm.o \
-	common/top/top_gm20b.o \
-	common/top/top_gp10b.o \
-	common/top/top_gv100.o \
-	common/top/top_gv11b.o \
 	common/mc/mc.o \
 	common/worker.o \
 	common/sync/channel_sync.o \
@@ -325,7 +321,14 @@ nvgpu-y += \
 	hal/pmu/pmu_gp10b.o \
 	hal/pmu/pmu_gp106.o \
 	hal/pmu/pmu_gv11b.o \
-	hal/pmu/pmu_tu104.o
+	hal/pmu/pmu_tu104.o \
+	hal/bios/bios_tu104.o \
+	hal/top/top_gm20b.o \
+	hal/top/top_gp10b.o \
+	hal/top/top_gp106.o \
+	hal/top/top_gv100.o \
+	hal/top/top_gv11b.o \
+
 
 # Linux specific parts of nvgpu.
 nvgpu-y += \
@@ -484,6 +487,10 @@ nvgpu-y += \
 	common/pramin.o \
 	common/rbtree.o \
 	common/vbios/bios.o \
+	common/vbios/nvlink_bios.o \
+	common/vbios/bios_sw_gp106.o \
+	common/vbios/bios_sw_gv100.o \
+	common/vbios/bios_sw_tu104.o \
 	common/falcon/falcon.o \
 	common/falcon/falcon_sw_gk20a.o \
 	common/falcon/falcon_sw_gp106.o \
@@ -575,10 +582,7 @@ nvgpu-$(CONFIG_GK20A_CYCLE_STATS) += \
 
 nvgpu-y += \
 	gp10b/mm_gp10b.o \
-	gp106/bios_gp106.o \
 	gv11b/mm_gv11b.o \
 	gv100/mm_gv100.o \
-	gv100/bios_gv100.o \
 	tu104/mm_tu104.o \
 	tu104/fifo_tu104.o \
-	tu104/bios_tu104.o

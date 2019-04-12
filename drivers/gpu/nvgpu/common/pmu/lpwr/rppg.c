@@ -27,7 +27,7 @@
 #include <nvgpu/pmu/cmd.h>
 #include <nvgpu/pmu/pmu_pstate.h>
 
-#include "gp106/bios_gp106.h"
+#include "common/vbios/bios_sw_gp106.h"
 
 static void pmu_handle_rppg_init_msg(struct gk20a *g, struct pmu_msg *msg,
 	void *param, u32 status)

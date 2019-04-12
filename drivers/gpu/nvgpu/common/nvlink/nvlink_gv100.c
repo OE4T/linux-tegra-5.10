@@ -23,7 +23,7 @@
 #ifdef CONFIG_TEGRA_NVLINK
 
 #include <nvgpu/nvgpu_common.h>
-#include <nvgpu/bios.h>
+#include <nvgpu/nvlink_bios.h>
 #include <nvgpu/bitops.h>
 #include <nvgpu/nvlink.h>
 #include <nvgpu/enabled.h>

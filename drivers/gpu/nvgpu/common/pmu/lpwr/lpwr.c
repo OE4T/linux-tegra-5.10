@@ -29,7 +29,7 @@
 #include <nvgpu/pmu/cmd.h>
 #include <nvgpu/pmu/pmu_pstate.h>
 
-#include "gp106/bios_gp106.h"
+#include "common/vbios/bios_sw_gp106.h"
 #include "lpwr.h"
 
 static int get_lpwr_idx_table(struct gk20a *g)

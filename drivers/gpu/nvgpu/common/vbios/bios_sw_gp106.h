@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -20,12 +20,14 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NVGPU_BIOS_TU104_H
-#define NVGPU_BIOS_TU104_H
+#ifndef NVGPU_BIOS_SW_GP106_H
+#define NVGPU_BIOS_SW_GP106_H
 
 struct gk20a;
 
-int tu104_bios_verify_devinit(struct gk20a *g);
-int tu104_bios_init(struct gk20a *g);
+int gp106_bios_init(struct gk20a *g);
+int gp106_bios_preos_wait_for_halt(struct gk20a *g);
+int gp106_bios_devinit(struct gk20a *g);
+int gp106_bios_preos(struct gk20a *g);
 
-#endif /* NVGPU_BIOS_TU104_H */
+#endif /* NVGPU_BIOS_SW_GP106_H */

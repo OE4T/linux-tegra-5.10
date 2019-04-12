@@ -125,12 +125,14 @@
 #include "hal/sync/syncpt_cmdbuf_gv11b.h"
 #include "hal/sync/sema_cmdbuf_gv11b.h"
 #include "hal/netlist/netlist_gv100.h"
+#include "hal/top/top_gm20b.h"
+#include "hal/top/top_gp10b.h"
+#include "hal/top/top_gp106.h"
+#include "hal/top/top_gv100.h"
+#include "hal/top/top_gv11b.h"
+
 
 #include "common/xve/xve_gp106.h"
-#include "common/top/top_gm20b.h"
-#include "common/top/top_gp10b.h"
-#include "common/top/top_gv100.h"
-#include "common/top/top_gv11b.h"
 #include "common/nvlink/init/device_reginit_gv100.h"
 #include "common/nvlink/intr_and_err_handling_gv100.h"
 #include "hal/nvlink/minion_gv100.h"
@@ -141,17 +143,18 @@
 #include "common/fifo/channel_gm20b.h"
 #include "common/fifo/channel_gv11b.h"
 #include "common/fifo/channel_gv100.h"
+#include "common/vbios/bios_sw_gp106.h"
+#include "common/vbios/bios_sw_gv100.h"
+
 
 #include "gm20b/mm_gm20b.h"
-
-#include "gp106/bios_gp106.h"
 
 #include "gp10b/mm_gp10b.h"
 
 #include "gv11b/mm_gv11b.h"
 
 #include "hal_gv100.h"
-#include "gv100/bios_gv100.h"
+
 #include "gv100/mm_gv100.h"
 #include "hal/clk/clk_gv100.h"
 
@@ -1454,6 +1457,10 @@ static const struct gpu_ops gv100_ops = {
 		.get_max_ltc_per_fbp = gm20b_top_get_max_ltc_per_fbp,
 		.get_max_lts_per_ltc = gm20b_top_get_max_lts_per_ltc,
 		.get_num_lce = gv11b_top_get_num_lce,
+		.read_top_scratch1_reg = gp106_top_read_scratch1_reg,
+		.top_scratch1_devinit_completed =
+				gp106_top_scratch1_devinit_completed,
+
 	},
 	.sec2 = {
 		.falcon_base_addr = gp106_sec2_falcon_base_addr,

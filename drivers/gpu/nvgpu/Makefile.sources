@@ -83,10 +83,6 @@ srcs += common/sim/sim.c \
 	common/perf/perfbuf.c \
 	common/perf/cyclestats_snapshot.c \
 	common/cyclestats/cyclestats.c \
-	common/top/top_gm20b.c \
-	common/top/top_gp10b.c \
-	common/top/top_gv100.c \
-	common/top/top_gv11b.c \
 	common/enabled.c \
 	common/pramin.c \
 	common/string.c \
@@ -97,6 +93,10 @@ srcs += common/sim/sim.c \
 	common/ecc.c \
 	common/ce/ce.c \
 	common/vbios/bios.c \
+	common/vbios/nvlink_bios.c \
+	common/vbios/bios_sw_gp106.c \
+	common/vbios/bios_sw_gv100.c \
+	common/vbios/bios_sw_tu104.c \
 	common/falcon/falcon.c \
 	common/falcon/falcon_sw_gk20a.c \
 	common/falcon/falcon_sw_gp106.c \
@@ -247,10 +247,7 @@ srcs += common/sim/sim.c \
 	gm20b/mm_gm20b.c \
 	gp10b/mm_gp10b.c \
 	gv11b/mm_gv11b.c \
-	gp106/bios_gp106.c \
 	gv100/mm_gv100.c \
-	gv100/bios_gv100.c \
-	tu104/bios_tu104.c \
 	tu104/fifo_tu104.c \
 	tu104/mm_tu104.c \
 	hal/mm/cache/flush_gk20a.c \
@@ -428,7 +425,13 @@ srcs += common/sim/sim.c \
 	hal/pmu/pmu_gp10b.c \
 	hal/pmu/pmu_gp106.c \
 	hal/pmu/pmu_gv11b.c \
-	hal/pmu/pmu_tu104.c
+	hal/pmu/pmu_tu104.c \
+	hal/bios/bios_tu104.c \
+	hal/top/top_gm20b.c \
+	hal/top/top_gp10b.c \
+	hal/top/top_gp106.c \
+	hal/top/top_gv100.c \
+	hal/top/top_gv11b.c
 
 ifeq ($(NVGPU_DEBUGGER),1)
 srcs += common/debugger.c

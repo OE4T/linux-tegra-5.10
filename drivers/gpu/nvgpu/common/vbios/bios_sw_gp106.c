@@ -29,10 +29,9 @@
 #include <nvgpu/io.h>
 #include <nvgpu/gk20a.h>
 
-#include "bios_gp106.h"
+#include "hal/top/top_gp106.h"
 
-#include <nvgpu/hw/gp106/hw_pwr_gp106.h>
-#include <nvgpu/hw/gp106/hw_top_gp106.h>
+#include "bios_sw_gp106.h"
 
 #define PMU_BOOT_TIMEOUT_DEFAULT	100 /* usec */
 #define PMU_BOOT_TIMEOUT_MAX		2000000 /* usec */
@@ -41,42 +40,12 @@
 #define ROM_FILE_PAYLOAD_OFFSET 0xa00
 #define BIOS_SIZE 0x90000
 
-static void upload_code(struct gk20a *g, u32 dst,
-			u8 *src, u32 size, u8 port, bool sec)
-{
-	nvgpu_falcon_copy_to_imem(&g->pmu.flcn, dst, src, size, port, sec,
-		dst >> 8);
-}
-
-static void upload_data(struct gk20a *g, u32 dst, u8 *src, u32 size, u8 port)
-{
-	u32 i, words;
-	u32 *src_u32 = (u32 *)src;
-	u32 blk;
-
-	nvgpu_log_info(g, "upload %d bytes to %x", size, dst);
-
-	words = DIV_ROUND_UP(size, 4U);
-
-	blk = dst >> 8;
-
-	nvgpu_log_info(g, "upload %d words to %x blk %d",
-			words, dst, blk);
-	gk20a_writel(g, pwr_falcon_dmemc_r(port),
-		pwr_falcon_dmemc_offs_f(dst >> 2) |
-		pwr_falcon_dmemc_blk_f(blk) |
-		pwr_falcon_dmemc_aincw_f(1));
-
-	for (i = 0; i < words; i++) {
-		gk20a_writel(g, pwr_falcon_dmemd_r(port), src_u32[i]);
-	}
-}
-
 int gp106_bios_devinit(struct gk20a *g)
 {
 	int err = 0;
 	bool devinit_completed;
 	struct nvgpu_timeout timeout;
+	u32 top_scratch1_reg;
 
 	nvgpu_log_fn(g, " ");
 
@@ -85,26 +54,51 @@ int gp106_bios_devinit(struct gk20a *g)
 		goto out;
 	}
 
-	upload_code(g, g->bios.devinit.bootloader_phys_base,
+	err = nvgpu_falcon_copy_to_imem(&g->pmu.flcn,
+			g->bios.devinit.bootloader_phys_base,
 			g->bios.devinit.bootloader,
 			g->bios.devinit.bootloader_size,
-			0, 0);
-	upload_code(g, g->bios.devinit.phys_base,
+			0, 0, g->bios.devinit.bootloader_phys_base >> 8);
+	if (err != 0) {
+		nvgpu_err(g, "bios devinit bootloader copy failed %d", err);
+		goto out;
+	}
+
+	err = nvgpu_falcon_copy_to_imem(&g->pmu.flcn, g->bios.devinit.phys_base,
 			g->bios.devinit.ucode,
 			g->bios.devinit.size,
-			0, 1);
-	upload_data(g, g->bios.devinit.dmem_phys_base,
+			0, 1, g->bios.devinit.phys_base >> 8);
+	if (err != 0) {
+		nvgpu_err(g, "bios devinit ucode copy failed %d", err);
+		goto out;
+	}
+
+	err = nvgpu_falcon_copy_to_dmem(&g->pmu.flcn, g->bios.devinit.dmem_phys_base,
 			g->bios.devinit.dmem,
 			g->bios.devinit.dmem_size,
 			0);
-	upload_data(g, g->bios.devinit_tables_phys_base,
+	if (err != 0) {
+		nvgpu_err(g, "bios devinit dmem copy failed %d", err);
+		goto out;
+	}
+
+	err = nvgpu_falcon_copy_to_dmem(&g->pmu.flcn, g->bios.devinit_tables_phys_base,
 			g->bios.devinit_tables,
 			g->bios.devinit_tables_size,
 			0);
-	upload_data(g, g->bios.devinit_script_phys_base,
+	if (err != 0) {
+		nvgpu_err(g, "fbios devinit tables copy failed %d", err);
+		goto out;
+	}
+
+	err = nvgpu_falcon_copy_to_dmem(&g->pmu.flcn, g->bios.devinit_script_phys_base,
 			g->bios.bootscripts,
 			g->bios.bootscripts_size,
 			0);
+	if (err != 0) {
+		nvgpu_err(g, "bios devinit bootscripts copy failed %d", err);
+		goto out;
+	}
 
 	err = nvgpu_falcon_bootstrap(&g->pmu.flcn,
 					g->bios.devinit.code_entry_point);
@@ -118,10 +112,12 @@ int gp106_bios_devinit(struct gk20a *g)
 				PMU_BOOT_TIMEOUT_DEFAULT,
 			   NVGPU_TIMER_RETRY_TIMER);
 	do {
-		devinit_completed = (pwr_falcon_cpuctl_halt_intr_v(
-				gk20a_readl(g, pwr_falcon_cpuctl_r())) != 0U) &&
-				    (top_scratch1_devinit_completed_v(
-				gk20a_readl(g, top_scratch1_r())) != 0U);
+		top_scratch1_reg = g->ops.top.read_top_scratch1_reg(g);
+		devinit_completed = ((g->ops.falcon.is_falcon_cpu_halted(
+				&g->pmu.flcn) != 0U) &&
+				(g->ops.top.top_scratch1_devinit_completed(g,
+				top_scratch1_reg)) != 0U);
+
 		nvgpu_udelay(PMU_BOOT_TIMEOUT_DEFAULT);
 	} while (!devinit_completed && (nvgpu_timeout_expired(&timeout) == 0));
 
@@ -163,18 +159,33 @@ int gp106_bios_preos(struct gk20a *g)
 		g->ops.bios.preos_reload_check(g);
 	}
 
-	upload_code(g, g->bios.preos.bootloader_phys_base,
+	err = nvgpu_falcon_copy_to_imem(&g->pmu.flcn,
+			g->bios.preos.bootloader_phys_base,
 			g->bios.preos.bootloader,
 			g->bios.preos.bootloader_size,
-			0, 0);
-	upload_code(g, g->bios.preos.phys_base,
+			0, 0, g->bios.preos.bootloader_phys_base >> 8);
+	if (err != 0) {
+		nvgpu_err(g, "bios preos bootloader copy failed %d", err);
+		goto out;
+	}
+
+	err = nvgpu_falcon_copy_to_imem(&g->pmu.flcn, g->bios.preos.phys_base,
 			g->bios.preos.ucode,
 			g->bios.preos.size,
-			0, 1);
-	upload_data(g, g->bios.preos.dmem_phys_base,
+			0, 1, g->bios.preos.phys_base >> 8);
+	if (err != 0) {
+		nvgpu_err(g, "bios preos ucode copy failed %d", err);
+		goto out;
+	}
+
+	err = nvgpu_falcon_copy_to_dmem(&g->pmu.flcn, g->bios.preos.dmem_phys_base,
 			g->bios.preos.dmem,
 			g->bios.preos.dmem_size,
 			0);
+	if (err != 0) {
+		nvgpu_err(g, "bios preos dmem copy failed %d", err);
+		goto out;
+	}
 
 	err = nvgpu_falcon_bootstrap(&g->pmu.flcn,
 					g->bios.preos.code_entry_point);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -25,10 +25,8 @@
 #include <nvgpu/io.h>
 #include <nvgpu/gk20a.h>
 
-#include "tu104/bios_tu104.h"
-#include "gp106/bios_gp106.h"
-
-#include "nvgpu/hw/tu104/hw_gc6_tu104.h"
+#include "bios_sw_tu104.h"
+#include "bios_sw_gp106.h"
 
 #define NV_DEVINIT_VERIFY_TIMEOUT_MS		1000U
 #define NV_DEVINIT_VERIFY_TIMEOUT_DELAY_US	10U
@@ -42,6 +40,7 @@ int tu104_bios_verify_devinit(struct gk20a *g)
 {
 	struct nvgpu_timeout timeout;
 	u32 val;
+	u32 aon_secure_scratch_reg;
 	int err;
 
 	err = nvgpu_timeout_init(g, &timeout, NV_DEVINIT_VERIFY_TIMEOUT_MS,
@@ -51,7 +50,8 @@ int tu104_bios_verify_devinit(struct gk20a *g)
 	}
 
 	do {
-		val = nvgpu_readl(g, gc6_aon_secure_scratch_group_05_r(0));
+		aon_secure_scratch_reg = g->ops.bios.get_aon_secure_scratch_reg(g, 0);
+		val = nvgpu_readl(g, aon_secure_scratch_reg);
 		val &= NV_PGC6_AON_SECURE_SCRATCH_GROUP_05_0_GFW_BOOT_PROGRESS_MASK;
 
 		if (val == NV_PGC6_AON_SECURE_SCRATCH_GROUP_05_0_GFW_BOOT_PROGRESS_COMPLETED) {

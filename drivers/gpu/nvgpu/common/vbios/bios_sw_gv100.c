@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -26,10 +26,8 @@
 #include <nvgpu/io.h>
 #include <nvgpu/gk20a.h>
 
-#include "gp106/bios_gp106.h"
-#include "bios_gv100.h"
-
-#include <nvgpu/hw/gv100/hw_pwr_gv100.h>
+#include "bios_sw_gp106.h"
+#include "bios_sw_gv100.h"
 
 #define PMU_BOOT_TIMEOUT_DEFAULT	100U /* usec */
 #define PMU_BOOT_TIMEOUT_MAX		2000000U /* usec */
@@ -92,11 +90,13 @@ int gv100_bios_preos_wait_for_halt(struct gk20a *g)
 			   NVGPU_TIMER_RETRY_TIMER);
 
 		do {
-			progress = g->ops.bus.read_sw_scratch(g, SCRATCH_PREOS_PROGRESS);
-			preos_completed = (pwr_falcon_cpuctl_halt_intr_v(
-				gk20a_readl(g, pwr_falcon_cpuctl_r())) != 0U) &&
+			progress = g->ops.bus.read_sw_scratch(g,
+							SCRATCH_PREOS_PROGRESS);
+			preos_completed = (g->ops.falcon.is_falcon_cpu_halted(
+					&g->pmu.flcn) != 0U) &&
 					(PREOS_PROGRESS_MASK(progress) ==
 					PREOS_PROGRESS_EXIT);
+
 			nvgpu_udelay(PMU_BOOT_TIMEOUT_DEFAULT);
 		} while (!preos_completed &&
 			 (nvgpu_timeout_expired(&timeout) == 0));

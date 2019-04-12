@@ -1,7 +1,5 @@
 /*
- * GV100 TOP UNIT
- *
- * Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -22,18 +20,12 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef TOP_GV100_H
-#define TOP_GV100_H
-
-#include <nvgpu/types.h>
+#ifndef NVGPU_BIOS_SW_GV100_H
+#define NVGPU_BIOS_SW_GV100_H
 
 struct gk20a;
 
-u32 gv100_top_get_nvhsclk_ctrl_e_clk_nvl(struct gk20a *g);
-void gv100_top_set_nvhsclk_ctrl_e_clk_nvl(struct gk20a *g, u32 val);
-u32 gv100_top_get_nvhsclk_ctrl_swap_clk_nvl(struct gk20a *g);
-void gv100_top_set_nvhsclk_ctrl_swap_clk_nvl(struct gk20a *g, u32 val);
+void gv100_bios_preos_reload_check(struct gk20a *g);
+int gv100_bios_preos_wait_for_halt(struct gk20a *g);
 
-u32 gv100_top_get_max_fbpas_count(struct gk20a *g);
-
-#endif
+#endif /* NVGPU_BIOS_SW_GV100_H */

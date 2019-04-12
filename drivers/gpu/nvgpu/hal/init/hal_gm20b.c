@@ -92,9 +92,9 @@
 #include "hal/falcon/falcon_gk20a.h"
 #include "hal/perf/perf_gm20b.h"
 #include "hal/netlist/netlist_gm20b.h"
+#include "hal/top/top_gm20b.h"
 #include "hal/clk/clk_gm20b.h"
 
-#include "common/top/top_gm20b.h"
 #include "common/fifo/channel_gk20a.h"
 #include "common/fifo/channel_gm20b.h"
 #include "common/pmu/pg/pg_sw_gm20b.h"

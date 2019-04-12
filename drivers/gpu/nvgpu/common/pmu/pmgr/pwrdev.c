@@ -28,7 +28,7 @@
 
 #include "pwrdev.h"
 #include "pmgr.h"
-#include "gp106/bios_gp106.h"
+#include "common/vbios/bios_sw_gp106.h"
 
 static int _pwr_device_pmudata_instget(struct gk20a *g,
 			struct nv_pmu_boardobjgrp *pmuboardobjgrp,

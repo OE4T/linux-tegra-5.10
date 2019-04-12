@@ -1166,6 +1166,230 @@ struct nvgpu_bios_lpwr_gr_table_1x_entry {
 #define VBIOS_LPWR_NVLINK_TABLE_HDR_INITPLL_ORDINAL_MASK		0x07U
 #define VBIOS_LPWR_NVLINK_TABLE_HDR_INITPLL_ORDINAL_SHIFT		0x00U
 
+#define BIT_HEADER_ID                           0xb8ffU
+#define BIT_HEADER_SIGNATURE                    0x00544942U
+#define PCI_EXP_ROM_SIG                         0xaa55U
+#define PCI_EXP_ROM_SIG_NV                      0x4e56U
+
+#define INIT_DONE                               0x71U
+#define INIT_RESUME                             0x72U
+#define INIT_CONDITION                          0x75U
+#define INIT_XMEMSEL_ZM_NV_REG_ARRAY            0x8fU
+
+#define PCI_ROM_IMAGE_BLOCK_SIZE                512U
+#define PCI_DATA_STRUCTURE_CODE_TYPE_VBIOS_BASE 0x00U
+#define PCI_DATA_STRUCTURE_CODE_TYPE_VBIOS_UEFI 0x03U
+
+struct bios_bit {
+	u16 id;
+	u32 signature;
+	u16 bcd_version;
+	u8 header_size;
+	u8 token_size;
+	u8 token_entries;
+	u8 header_checksum;
+} __packed;
+
+#define TOKEN_ID_BIOSDATA                       0x42U
+#define TOKEN_ID_NVINIT_PTRS                    0x49U
+#define TOKEN_ID_FALCON_DATA                    0x70U
+#define TOKEN_ID_PERF_PTRS                      0x50U
+#define TOKEN_ID_CLOCK_PTRS                     0x43U
+#define TOKEN_ID_VIRT_PTRS                      0x56U
+#define TOKEN_ID_MEMORY_PTRS                    0x4DU
+#define MEMORY_PTRS_V1                          1U
+#define MEMORY_PTRS_V2                          2U
+
+struct memory_ptrs_v1 {
+	u8 rsvd0[2];
+	u8 mem_strap_data_count;
+	u16 mem_strap_xlat_tbl_ptr;
+	u8 rsvd1[8];
+} __packed;
+
+struct memory_ptrs_v2 {
+	u8 mem_strap_data_count;
+	u16 mem_strap_xlat_tbl_ptr;
+	u8 rsvd[14];
+} __packed;
+
+struct biosdata {
+	u32 version;
+	u8 oem_version;
+	u8 checksum;
+	u16 int15callbackspost;
+	u16 int16callbackssystem;
+	u16 boardid;
+	u16 framecount;
+	u8 biosmoddate[8];
+} __packed;
+
+struct nvinit_ptrs {
+	u16 initscript_table_ptr;
+	u16 macro_index_table_ptr;
+	u16 macro_table_ptr;
+	u16 condition_table_ptr;
+	u16 io_condition_table_ptr;
+	u16 io_flag_condition_table_ptr;
+	u16 init_function_table_ptr;
+	u16 vbios_private_table_ptr;
+	u16 data_arrays_table_ptr;
+	u16 pcie_settings_script_ptr;
+	u16 devinit_tables_ptr;
+	u16 devinit_tables_size;
+	u16 bootscripts_ptr;
+	u16 bootscripts_size;
+	u16 nvlink_config_data_ptr;
+} __packed;
+
+struct falcon_data_v2 {
+	u32 falcon_ucode_table_ptr;
+} __packed;
+
+struct falcon_ucode_table_hdr_v1 {
+	u8 version;
+	u8 header_size;
+	u8 entry_size;
+	u8 entry_count;
+	u8 desc_version;
+	u8 desc_size;
+} __packed;
+
+struct falcon_ucode_table_entry_v1 {
+	u8 application_id;
+	u8 target_id;
+	u32 desc_ptr;
+} __packed;
+
+#define TARGET_ID_PMU                           0x01U
+#define APPLICATION_ID_DEVINIT                  0x04U
+#define APPLICATION_ID_PRE_OS                   0x01U
+
+#define FALCON_UCODE_FLAGS_VERSION_AVAILABLE    0x1U
+#define FALCON_UCODE_IS_VERSION_AVAILABLE(hdr)           \
+	(((hdr).v2.v_desc & FALCON_UCODE_FLAGS_VERSION_AVAILABLE) == \
+	FALCON_UCODE_FLAGS_VERSION_AVAILABLE)
+
+/*
+ * version is embedded in bits 8:15 of the header on version 2+
+ * and the header length in bits 16:31
+ */
+
+#define FALCON_UCODE_GET_VERSION(hdr) \
+	U8(((hdr).v2.v_desc >> 8) & 0xffU)
+
+#define FALCON_UCODE_GET_DESC_SIZE(hdr) \
+	U16(((hdr).v2.v_desc >> 16) & 0xffffU)
+
+struct falcon_ucode_desc_v1 {
+	union {
+		u32 v_desc;
+		u32 stored_size;
+	} hdr_size;
+	u32 uncompressed_size;
+	u32 virtual_entry;
+	u32 interface_offset;
+	u32 imem_phys_base;
+	u32 imem_load_size;
+	u32 imem_virt_base;
+	u32 imem_sec_base;
+	u32 imem_sec_size;
+	u32 dmem_offset;
+	u32 dmem_phys_base;
+	u32 dmem_load_size;
+} __packed;
+
+struct falcon_ucode_desc_v2 {
+	u32 v_desc;
+	u32 stored_size;
+	u32 uncompressed_size;
+	u32 virtual_entry;
+	u32 interface_offset;
+	u32 imem_phys_base;
+	u32 imem_load_size;
+	u32 imem_virt_base;
+	u32 imem_sec_base;
+	u32 imem_sec_size;
+	u32 dmem_offset;
+	u32 dmem_phys_base;
+	u32 dmem_load_size;
+	u32 alt_imem_load_size;
+	u32 alt_dmem_load_size;
+} __packed;
+
+union falcon_ucode_desc {
+	struct falcon_ucode_desc_v1 v1;
+	struct falcon_ucode_desc_v2 v2;
+};
+
+struct application_interface_table_hdr_v1 {
+	u8 version;
+	u8 header_size;
+	u8 entry_size;
+	u8 entry_count;
+} __packed;
+
+struct application_interface_entry_v1 {
+	u32 id;
+	u32 dmem_offset;
+} __packed;
+
+#define APPINFO_ID_DEVINIT                      0x01U
+
+#define APPINFO_ID_DEVINIT                      0x01U
+
+struct devinit_engine_interface {
+	u16 version;
+	u16 size;
+	u16 application_version;
+	u16 application_features;
+	u32 tables_phys_base;
+	u32 tables_virt_base;
+	u32 script_phys_base;
+	u32 script_virt_base;
+	u32 script_virt_entry;
+	u16 script_size;
+	u8 memory_strap_count;
+	u8 reserved;
+	u32 memory_information_table_virt_base;
+	u32 empty_script_virt_base;
+	u32 cond_table_virt_base;
+	u32 io_cond_table_virt_base;
+	u32 data_arrays_table_virt_base;
+	u32 gpio_assignment_table_virt_base;
+} __packed;
+
+struct pci_exp_rom {
+	u16 sig;
+	u8 reserved[0x16];
+	u16 pci_data_struct_ptr;
+	u32 size_of_block;
+} __packed;
+
+struct pci_data_struct {
+	u32 sig;
+	u16 vendor_id;
+	u16 device_id;
+	u16 device_list_ptr;
+	u16 pci_data_struct_len;
+	u8 pci_data_struct_rev;
+	u8 class_code[3];
+	u16 image_len;
+	u16 vendor_rom_rev;
+	u8 code_type;
+	u8 last_image;
+	u16 max_runtime_image_len;
+} __packed;
+
+struct pci_ext_data_struct {
+	u32 sig;
+	u16 nv_pci_data_ext_rev;
+	u16 nv_pci_data_ext_len;
+	u16 sub_image_len;
+	u8 priv_last_image;
+	u8 flags;
+} __packed;
+
 int nvgpu_bios_parse_rom(struct gk20a *g);
 u8 nvgpu_bios_read_u8(struct gk20a *g, u32 offset);
 s8 nvgpu_bios_read_s8(struct gk20a *g, u32 offset);
@@ -1173,6 +1397,5 @@ u16 nvgpu_bios_read_u16(struct gk20a *g, u32 offset);
 u32 nvgpu_bios_read_u32(struct gk20a *g, u32 offset);
 void *nvgpu_bios_get_perf_table_ptrs(struct gk20a *g,
 		struct bit_token *ptoken, u8 table_id);
-int nvgpu_bios_get_nvlink_config_data(struct gk20a *g);
-int nvgpu_bios_get_lpwr_nvlink_table_hdr(struct gk20a *g);
+
 #endif
