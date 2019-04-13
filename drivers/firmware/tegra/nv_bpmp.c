@@ -15,6 +15,7 @@
  */
 
 #include <linux/clk.h>
+#include <linux/dma-iommu.h>
 #include <linux/dma-mapping.h>
 #include <linux/of.h>
 #include <linux/of_platform.h>
@@ -31,6 +32,8 @@
 
 static void *hv_virt_base;
 static struct device *device;
+static dma_addr_t carveout_addr;
+static size_t carveout_size;
 char firmware_tag[sizeof(struct mrq_query_fw_tag_response)];
 
 static int bpmp_get_fwtag(void)
@@ -262,11 +265,14 @@ static int bpmp_clk_init(struct platform_device *pdev)
 
 static int bpmp_linear_map_init(struct platform_device *pdev)
 {
+	struct iommu_domain *domain = iommu_get_domain_for_dev(&pdev->dev);
+	unsigned long pg_size = 1UL << __ffs(domain->pgsize_bitmap);
+	struct device *dev = &pdev->dev;
 	struct device_node *node;
 	uint32_t of_start;
 	uint32_t of_size;
+	dma_addr_t iova;
 	int ret;
-	unsigned long attrs;
 
 	node = pdev->dev.of_node;
 
@@ -278,12 +284,36 @@ static int bpmp_linear_map_init(struct platform_device *pdev)
 	if (ret)
 		return ret;
 
-	attrs = DMA_ATTR_SKIP_IOVA_GAP | DMA_ATTR_SKIP_CPU_SYNC;
-	ret = dma_map_linear_attrs(&pdev->dev, of_start, of_size, 0, attrs);
-	if (ret == DMA_ERROR_CODE)
+	carveout_addr = of_start;
+	carveout_size = of_size;
+
+	/* Reserve iova range */
+	iova = iommu_dma_alloc_iova(dev, of_size, of_start + of_size - pg_size);
+	if (iova != of_start) {
+		dev_err(dev, "failed to reserve iova at 0x%x size 0x%x\n",
+			of_start, of_size);
 		return -ENOMEM;
+	}
+
+	ret = iommu_map(domain, of_start, of_start, of_size,
+			IOMMU_READ | IOMMU_WRITE);
+	if (ret) {
+		dev_err(dev, "failed to map 0x%x linearly\n", of_start);
+		return ret;
+	}
 
 	return 0;
+}
+
+static void bpmp_linear_map_exit(struct platform_device *pdev)
+{
+	struct iommu_domain *domain = iommu_get_domain_for_dev(&pdev->dev);
+	unsigned long pg_size = 1UL << __ffs(domain->pgsize_bitmap);
+	struct device *dev = &pdev->dev;
+
+	iommu_unmap(domain, carveout_addr, carveout_size);
+	iommu_dma_free_iova(dev, carveout_size,
+			    carveout_addr + carveout_size - pg_size);
 }
 
 struct dentry * __weak bpmp_init_debug(struct platform_device *pdev)
@@ -334,7 +364,7 @@ static int bpmp_probe(struct platform_device *pdev)
 	if (cfg->clk) {
 		r = bpmp_clk_init(pdev);
 		if (r)
-			goto err_out;
+			goto err_clk;
 	}
 
 	root = bpmp_init_debug(pdev);
@@ -342,7 +372,7 @@ static int bpmp_probe(struct platform_device *pdev)
 	if (root && cfg->cpuidle) {
 		r = bpmp_init_cpuidle_debug(root);
 		if (r)
-			goto err_out;
+			goto err_clk;
 	}
 
 	bpmp_tty.dev.platform_data = root;
@@ -352,7 +382,7 @@ static int bpmp_probe(struct platform_device *pdev)
 	r = r ?: of_platform_populate(device->of_node, NULL, NULL, device);
 	r = r ?: platform_device_register(&bpmp_tty);
 	if (r)
-		goto err_out;
+		goto err_clk;
 
 	register_syscore_ops(&bpmp_syscore_ops);
 
@@ -361,13 +391,16 @@ static int bpmp_probe(struct platform_device *pdev)
 	r = bpmp_init_powergate(pdev);
 	if (r) {
 		dev_err(device, "powergating init failed (%d)\n", r);
-		goto err_out;
+		goto err_clk;
 	}
 
 	dev_info(device, "probe ok\n");
 
 	return 0;
 
+err_clk:
+	if (cfg->lin_map)
+		bpmp_linear_map_exit(pdev);
 err_out:
 	dev_err(device, "probe failed (%d)\n", r);
 
