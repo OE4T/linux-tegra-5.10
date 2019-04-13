@@ -30,6 +30,7 @@
 #include <nvgpu/error_notifier.h>
 #include <nvgpu/nvhost.h>
 #include <nvgpu/fifo.h>
+#include <nvgpu/ptimer.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/pbdma_status.h>
 

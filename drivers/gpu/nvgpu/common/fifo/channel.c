@@ -132,31 +132,6 @@ int channel_gk20a_commit_va(struct channel_gk20a *c)
 	return 0;
 }
 
-void gk20a_channel_get_timescale_from_timeslice(struct gk20a *g,
-		unsigned int timeslice_period,
-		unsigned int *__timeslice_timeout, unsigned int *__timeslice_scale)
-{
-	unsigned int value = scale_ptimer(timeslice_period,
-			ptimer_scalingfactor10x(g->ptimer_src_freq));
-	unsigned int shift = 0;
-
-	/* value field is 8 bits long */
-	while (value >= BIT32(8)) {
-		value >>= 1U;
-		shift++;
-	}
-
-	/* time slice register is only 18bits long */
-	if ((value << shift) >= BIT32(19)) {
-		nvgpu_err(g, "Requested timeslice value is clamped to 18 bits\n");
-		value = 255;
-		shift = 10;
-	}
-
-	*__timeslice_timeout = value;
-	*__timeslice_scale = shift;
-}
-
 int channel_gk20a_update_runlist(struct channel_gk20a *c, bool add)
 {
 	return c->g->ops.runlist.update_for_channel(c->g, c->runlist_id,

@@ -30,6 +30,7 @@
 #include <nvgpu/gk20a.h>
 
 #include "hal/fifo/runlist_gk20a.h"
+#include "hal/fifo/tsg_gk20a.h"
 
 static void setup_fifo(struct gk20a *g, unsigned long *tsg_map,
 		unsigned long *ch_map, struct tsg_gk20a *tsgs,
@@ -51,6 +52,12 @@ static void setup_fifo(struct gk20a *g, unsigned long *tsg_map,
 	/* to debug, change this to (u64)-1 */
 	g->log_mask = 0;
 
+	/*
+	 * set PTIMER src freq to its nominal frequency to avoid rounding
+	 * errors when scaling timeslice.
+	 */
+	g->ptimer_src_freq = 31250000;
+
 	f->tsg = tsgs;
 	f->channel = chs;
 	f->num_channels = num_channels;
@@ -63,6 +70,7 @@ static void setup_fifo(struct gk20a *g, unsigned long *tsg_map,
 	f->runlist_entry_size = 2 * sizeof(u32);
 	g->ops.runlist.get_tsg_entry = gk20a_runlist_get_tsg_entry;
 	g->ops.runlist.get_ch_entry = gk20a_runlist_get_ch_entry;
+	g->ops.tsg.default_timeslice_us = nvgpu_tsg_default_timeslice_us;
 
 	g->runlist_interleave = interleave;
 
@@ -123,6 +131,11 @@ static int run_format_test(struct unit_module *m, struct fifo_gk20a *f,
 		unit_return_fail(m, "number of entries mismatch %d\n", n);
 	}
 	if (memcmp(rl_data, expect_header, 2 * sizeof(u32)) != 0) {
+		unit_err(m, "rl_data[0]=%08x", rl_data[0]);
+		unit_err(m, "rl_data[1]=%08x", rl_data[1]);
+		unit_err(m, "expect_header[0]=%08x", expect_header[0]);
+		unit_err(m, "expect_header[1]=%08x", expect_header[1]);
+
 		unit_return_fail(m, "tsg header mismatch\n");
 	}
 	if (memcmp(rl_data + 2, expect_channel, 2 * n_ch * sizeof(u32)) != 0) {
@@ -147,7 +160,7 @@ static struct tsg_fmt_test_args {
 	/* priority 2, five channels */
 	{ 5, 0x1f, 2, 0, { 0x1600e000, 0 }, { 0, 0, 1, 0, 2, 0, 3, 0, 4, 0 } },
 	/* priority 0, one channel, nondefault timeslice timeout */
-	{ 1, 0x01, 0, 0xaa, { 0x06a8e000, 0 }, { 0, 0 } },
+	{ 1, 0x01, 0, 0xaa<<3, { 0x06a8e000, 0 }, { 0, 0 } },
 	/* priority 0, three channels with two inactives in the middle */
 	{ 3, 0x01 | 0x04 | 0x10, 0, 0, { 0x0e00e000, 0 }, { 0, 0, 2, 0, 4, 0 } },
 };
@@ -178,8 +191,11 @@ static int test_tsg_format_gen(struct unit_module *m, struct gk20a *g,
 
 	active_chs_map = test_args->chs_bitmap;
 
-	tsgs[0].timeslice_timeout = test_args->timeslice;
-	tsgs[0].timeslice_scale = NVGPU_FIFO_DEFAULT_TIMESLICE_SCALE;
+	if (test_args->timeslice == 0U) {
+		tsgs[0].timeslice_us = g->ops.tsg.default_timeslice_us(g);
+	} else {
+		tsgs[0].timeslice_us = test_args->timeslice;
+	}
 
 	ret = run_format_test(m, f, &tsgs[0], chs, test_args->level,
 			test_args->channels, rl_data,

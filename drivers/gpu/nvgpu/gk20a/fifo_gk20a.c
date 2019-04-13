@@ -85,35 +85,6 @@ int gk20a_init_fifo_setup_hw(struct gk20a *g)
 	return 0;
 }
 
-u32 gk20a_fifo_default_timeslice_us(struct gk20a *g)
-{
-	u64 slice = (((u64)(NVGPU_FIFO_DEFAULT_TIMESLICE_TIMEOUT <<
-				NVGPU_FIFO_DEFAULT_TIMESLICE_SCALE) *
-			(u64)g->ptimer_src_freq) /
-			(u64)PTIMER_REF_FREQ_HZ);
-
-	BUG_ON(slice > U64(U32_MAX));
-
-	return (u32)slice;
-}
-
-int gk20a_fifo_tsg_set_timeslice(struct tsg_gk20a *tsg, u32 timeslice)
-{
-	struct gk20a *g = tsg->g;
-
-	if (timeslice < g->min_timeslice_us ||
-		timeslice > g->max_timeslice_us) {
-		return -EINVAL;
-	}
-
-	gk20a_channel_get_timescale_from_timeslice(g, timeslice,
-			&tsg->timeslice_timeout, &tsg->timeslice_scale);
-
-	tsg->timeslice_us = timeslice;
-
-	return g->ops.runlist.reload(g, tsg->runlist_id, true, true);
-}
-
 int gk20a_fifo_suspend(struct gk20a *g)
 {
 	nvgpu_log_fn(g, " ");

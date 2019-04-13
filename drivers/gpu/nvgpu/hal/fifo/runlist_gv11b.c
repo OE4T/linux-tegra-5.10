@@ -29,6 +29,9 @@
 #include <nvgpu/hw/gv11b/hw_fifo_gv11b.h>
 #include <nvgpu/hw/gv11b/hw_ram_gv11b.h>
 
+#define RL_MAX_TIMESLICE_TIMEOUT ram_rl_entry_tsg_timeslice_timeout_v(U32_MAX)
+#define RL_MAX_TIMESLICE_SCALE ram_rl_entry_tsg_timeslice_scale_v(U32_MAX)
+
 int gv11b_runlist_reschedule(struct channel_gk20a *ch, bool preempt_next)
 {
 	/* gv11b allows multiple outstanding preempts,
@@ -46,24 +49,29 @@ u32 gv11b_runlist_entry_size(struct gk20a *g)
 	return ram_rl_entry_size_v();
 }
 
-void gv11b_runlist_get_tsg_entry(struct tsg_gk20a *tsg, u32 *runlist)
+void gv11b_runlist_get_tsg_entry(struct tsg_gk20a *tsg,
+		u32 *runlist, u32 timeslice)
 {
 	struct gk20a *g = tsg->g;
-	u32 runlist_entry_0 = ram_rl_entry_type_tsg_v();
+	u32 timeout = timeslice;
+	u32 scale = 0U;
 
-	if (tsg->timeslice_timeout != 0U) {
-		runlist_entry_0 |=
-		ram_rl_entry_tsg_timeslice_scale_f(tsg->timeslice_scale) |
-		ram_rl_entry_tsg_timeslice_timeout_f(tsg->timeslice_timeout);
-	} else {
-		runlist_entry_0 |=
-			ram_rl_entry_tsg_timeslice_scale_f(
-				ram_rl_entry_tsg_timeslice_scale_3_v()) |
-			ram_rl_entry_tsg_timeslice_timeout_f(
-				ram_rl_entry_tsg_timeslice_timeout_128_v());
+	WARN_ON(timeslice == 0U);
+
+	while (timeout > RL_MAX_TIMESLICE_TIMEOUT) {
+		timeout >>= 1U;
+		scale++;
 	}
 
-	runlist[0] = runlist_entry_0;
+	if (scale > RL_MAX_TIMESLICE_SCALE) {
+		nvgpu_err(g, "requested timeslice value is clamped\n");
+		timeout = RL_MAX_TIMESLICE_TIMEOUT;
+		scale = RL_MAX_TIMESLICE_SCALE;
+	}
+
+	runlist[0] = ram_rl_entry_type_tsg_v() |
+			ram_rl_entry_tsg_timeslice_scale_f(scale) |
+			ram_rl_entry_tsg_timeslice_timeout_f(timeout);
 	runlist[1] = ram_rl_entry_tsg_length_f(tsg->num_active_channels);
 	runlist[2] = ram_rl_entry_tsg_tsgid_f(tsg->tsgid);
 	runlist[3] = 0;

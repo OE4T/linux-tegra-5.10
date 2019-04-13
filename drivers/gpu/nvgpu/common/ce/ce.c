@@ -586,7 +586,7 @@ u32 nvgpu_ce_create_context(struct gk20a *g,
 
 	/* -1 means default channel timeslice value */
 	if (timeslice != -1) {
-		err = gk20a_fifo_tsg_set_timeslice(ce_ctx->tsg, timeslice);
+		err = g->ops.tsg.set_timeslice(ce_ctx->tsg, timeslice);
 		if (err != 0) {
 			nvgpu_err(g, "ce: set timesliced failed for CE context");
 			goto end;

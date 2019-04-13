@@ -388,21 +388,21 @@ void gk20a_debug_init(struct gk20a *g, const char *debugfs_symlink)
 					g,
 					&disable_bigpage_fops);
 
-	l->debugfs_timeslice_low_priority_us =
-			debugfs_create_u32("timeslice_low_priority_us",
+	l->debugfs_tsg_timeslice_low_priority_us =
+			debugfs_create_u32("tsg_timeslice_low_priority_us",
 					S_IRUGO|S_IWUSR,
 					l->debugfs,
-					&g->timeslice_low_priority_us);
-	l->debugfs_timeslice_medium_priority_us =
-			debugfs_create_u32("timeslice_medium_priority_us",
+					&g->tsg_timeslice_low_priority_us);
+	l->debugfs_tsg_timeslice_medium_priority_us =
+			debugfs_create_u32("tsg_timeslice_medium_priority_us",
 					S_IRUGO|S_IWUSR,
 					l->debugfs,
-					&g->timeslice_medium_priority_us);
-	l->debugfs_timeslice_high_priority_us =
-			debugfs_create_u32("timeslice_high_priority_us",
+					&g->tsg_timeslice_medium_priority_us);
+	l->debugfs_tsg_timeslice_high_priority_us =
+			debugfs_create_u32("tsg_timeslice_high_priority_us",
 					S_IRUGO|S_IWUSR,
 					l->debugfs,
-					&g->timeslice_high_priority_us);
+					&g->tsg_timeslice_high_priority_us);
 	l->debugfs_runlist_interleave =
 			debugfs_create_bool("runlist_interleave",
 					S_IRUGO|S_IWUSR,

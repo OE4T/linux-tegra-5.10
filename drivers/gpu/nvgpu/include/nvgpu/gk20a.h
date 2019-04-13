@@ -995,8 +995,6 @@ struct gpu_ops {
 				u32 id, unsigned int id_type);
 		int (*preempt_poll_pbdma)(struct gk20a *g, u32 tsgid,
 				 u32 pbdma_id);
-		int (*tsg_set_timeslice)(struct tsg_gk20a *tsg, u32 timeslice);
-		u32 (*default_timeslice_us)(struct gk20a *g);
 		int (*init_pbdma_map)(struct gk20a *g,
 				u32 *pbdma_map, u32 num_pbdma);
 		int (*is_preempt_pending)(struct gk20a *g, u32 id,
@@ -1083,7 +1081,8 @@ struct gpu_ops {
 		u32 (*count_max)(void);
 		u32 (*entry_size)(struct gk20a *g);
 		u32 (*length_max)(struct gk20a *g);
-		void (*get_tsg_entry)(struct tsg_gk20a *tsg, u32 *runlist);
+		void (*get_tsg_entry)(struct tsg_gk20a *tsg,
+				u32 *runlist, u32 timeslice);
 		void (*get_ch_entry)(struct channel_gk20a *ch, u32 *runlist);
 		void (*hw_submit)(struct gk20a *g, u32 runlist_id,
 			u32 count, u32 buffer_index);
@@ -1240,6 +1239,8 @@ struct gpu_ops {
 					u32 err_code, bool verbose);
 		void (*post_event_id)(struct tsg_gk20a *tsg,
 				      enum nvgpu_event_id_type event_id);
+		int (*set_timeslice)(struct tsg_gk20a *tsg, u32 timeslice_us);
+		u32 (*default_timeslice_us)(struct gk20a *g);
 	} tsg;
 	struct {
 		void (*setup_hw)(struct gk20a *g);
@@ -1991,11 +1992,11 @@ struct gk20a {
 	struct nvgpu_mutex power_lock;
 
 	/* Channel priorities */
-	u32 timeslice_low_priority_us;
-	u32 timeslice_medium_priority_us;
-	u32 timeslice_high_priority_us;
-	u32 min_timeslice_us;
-	u32 max_timeslice_us;
+	u32 tsg_timeslice_low_priority_us;
+	u32 tsg_timeslice_medium_priority_us;
+	u32 tsg_timeslice_high_priority_us;
+	u32 tsg_timeslice_min_us;
+	u32 tsg_timeslice_max_us;
 	bool runlist_interleave;
 
 	struct nvgpu_mutex cg_pg_lock;

@@ -411,10 +411,8 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 	},
 	.fifo = {
 		.init_fifo_setup_hw = vgpu_init_fifo_setup_hw,
-		.default_timeslice_us = vgpu_fifo_default_timeslice_us,
 		.preempt_channel = vgpu_fifo_preempt_channel,
 		.preempt_tsg = vgpu_fifo_preempt_tsg,
-		.tsg_set_timeslice = vgpu_tsg_set_timeslice,
 		.is_preempt_pending = NULL,
 		.reset_enable_hw = NULL,
 		.recover = NULL,
@@ -562,6 +560,8 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 		.check_ctxsw_timeout = nvgpu_tsg_check_ctxsw_timeout,
 		.force_reset = vgpu_tsg_force_reset_ch,
 		.post_event_id = nvgpu_tsg_post_event_id,
+		.set_timeslice = vgpu_tsg_set_timeslice,
+		.default_timeslice_us = vgpu_tsg_default_timeslice_us,
 	},
 	.netlist = {
 		.get_netlist_name = gp10b_netlist_get_name,

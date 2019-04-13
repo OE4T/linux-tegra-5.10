@@ -49,7 +49,7 @@ int vgpu_fifo_preempt_tsg(struct gk20a *g, struct tsg_gk20a *tsg);
 int vgpu_channel_set_timeslice(struct channel_gk20a *ch, u32 timeslice);
 int vgpu_tsg_force_reset_ch(struct channel_gk20a *ch,
 					u32 err_code, bool verbose);
-u32 vgpu_fifo_default_timeslice_us(struct gk20a *g);
+u32 vgpu_tsg_default_timeslice_us(struct gk20a *g);
 int vgpu_tsg_open(struct tsg_gk20a *tsg);
 void vgpu_tsg_release(struct tsg_gk20a *tsg);
 int vgpu_tsg_bind_channel(struct tsg_gk20a *tsg, struct channel_gk20a *ch);

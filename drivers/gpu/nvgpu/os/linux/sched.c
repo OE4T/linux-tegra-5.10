@@ -241,7 +241,7 @@ static int gk20a_sched_dev_ioctl_tsg_set_timeslice(
 	if (err)
 		goto done;
 
-	err = gk20a_tsg_set_timeslice(tsg, arg->timeslice);
+	err = g->ops.tsg.set_timeslice(tsg, arg->timeslice);
 
 	gk20a_idle(g);
 

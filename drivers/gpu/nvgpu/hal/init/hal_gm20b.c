@@ -668,11 +668,9 @@ static const struct gpu_ops gm20b_ops = {
 	},
 	.fifo = {
 		.init_fifo_setup_hw = gk20a_init_fifo_setup_hw,
-		.default_timeslice_us = gk20a_fifo_default_timeslice_us,
 		.preempt_channel = gk20a_fifo_preempt_channel,
 		.preempt_tsg = gk20a_fifo_preempt_tsg,
 		.preempt_trigger = gk20a_fifo_preempt_trigger,
-		.tsg_set_timeslice = gk20a_fifo_tsg_set_timeslice,
 		.init_pbdma_map = gk20a_fifo_init_pbdma_map,
 		.is_preempt_pending = gk20a_fifo_is_preempt_pending,
 		.reset_enable_hw = gk20a_init_fifo_reset_enable_hw,
@@ -842,6 +840,8 @@ static const struct gpu_ops gm20b_ops = {
 		.check_ctxsw_timeout = nvgpu_tsg_check_ctxsw_timeout,
 		.force_reset = nvgpu_tsg_force_reset_ch,
 		.post_event_id = nvgpu_tsg_post_event_id,
+		.set_timeslice = nvgpu_tsg_set_timeslice,
+		.default_timeslice_us = nvgpu_tsg_default_timeslice_us,
 	},
 	.netlist = {
 		.get_netlist_name = gm20b_netlist_get_name,

@@ -934,15 +934,15 @@ static ssize_t tpc_fs_mask_read(struct device *dev,
 
 static DEVICE_ATTR(tpc_fs_mask, ROOTRW, tpc_fs_mask_read, tpc_fs_mask_store);
 
-static ssize_t min_timeslice_us_read(struct device *dev,
+static ssize_t tsg_timeslice_min_us_read(struct device *dev,
 	struct device_attribute *attr, char *buf)
 {
 	struct gk20a *g = get_gk20a(dev);
 
-	return snprintf(buf, PAGE_SIZE, "%u\n", g->min_timeslice_us);
+	return snprintf(buf, PAGE_SIZE, "%u\n", g->tsg_timeslice_min_us);
 }
 
-static ssize_t min_timeslice_us_store(struct device *dev,
+static ssize_t tsg_timeslice_min_us_store(struct device *dev,
 	struct device_attribute *attr, const char *buf, size_t count)
 {
 	struct gk20a *g = get_gk20a(dev);
@@ -951,26 +951,26 @@ static ssize_t min_timeslice_us_store(struct device *dev,
 	if (kstrtoul(buf, 10, &val) < 0)
 		return -EINVAL;
 
-	if (val > g->max_timeslice_us)
+	if (val > g->tsg_timeslice_max_us)
 		return -EINVAL;
 
-	g->min_timeslice_us = val;
+	g->tsg_timeslice_min_us = val;
 
 	return count;
 }
 
-static DEVICE_ATTR(min_timeslice_us, ROOTRW, min_timeslice_us_read,
-		   min_timeslice_us_store);
+static DEVICE_ATTR(tsg_timeslice_min_us, ROOTRW, tsg_timeslice_min_us_read,
+		   tsg_timeslice_min_us_store);
 
-static ssize_t max_timeslice_us_read(struct device *dev,
+static ssize_t tsg_timeslice_max_us_read(struct device *dev,
 	struct device_attribute *attr, char *buf)
 {
 	struct gk20a *g = get_gk20a(dev);
 
-	return snprintf(buf, PAGE_SIZE, "%u\n", g->max_timeslice_us);
+	return snprintf(buf, PAGE_SIZE, "%u\n", g->tsg_timeslice_max_us);
 }
 
-static ssize_t max_timeslice_us_store(struct device *dev,
+static ssize_t tsg_timeslice_max_us_store(struct device *dev,
 	struct device_attribute *attr, const char *buf, size_t count)
 {
 	struct gk20a *g = get_gk20a(dev);
@@ -979,16 +979,16 @@ static ssize_t max_timeslice_us_store(struct device *dev,
 	if (kstrtoul(buf, 10, &val) < 0)
 		return -EINVAL;
 
-	if (val < g->min_timeslice_us)
+	if (val < g->tsg_timeslice_min_us)
 		return -EINVAL;
 
-	g->max_timeslice_us = val;
+	g->tsg_timeslice_max_us = val;
 
 	return count;
 }
 
-static DEVICE_ATTR(max_timeslice_us, ROOTRW, max_timeslice_us_read,
-		   max_timeslice_us_store);
+static DEVICE_ATTR(tsg_timeslice_max_us, ROOTRW, tsg_timeslice_max_us_read,
+		   tsg_timeslice_max_us_store);
 
 static ssize_t comptag_mem_deduct_store(struct device *dev,
 					struct device_attribute *attr,
@@ -1053,8 +1053,8 @@ void nvgpu_remove_sysfs(struct device *dev)
 	device_remove_file(dev, &dev_attr_allow_all);
 	device_remove_file(dev, &dev_attr_tpc_fs_mask);
 	device_remove_file(dev, &dev_attr_tpc_pg_mask);
-	device_remove_file(dev, &dev_attr_min_timeslice_us);
-	device_remove_file(dev, &dev_attr_max_timeslice_us);
+	device_remove_file(dev, &dev_attr_tsg_timeslice_min_us);
+	device_remove_file(dev, &dev_attr_tsg_timeslice_max_us);
 
 #ifdef CONFIG_TEGRA_GK20A_NVHOST
 	nvgpu_nvhost_remove_symlink(get_gk20a(dev));
@@ -1104,8 +1104,8 @@ int nvgpu_create_sysfs(struct device *dev)
 	error |= device_create_file(dev, &dev_attr_allow_all);
 	error |= device_create_file(dev, &dev_attr_tpc_fs_mask);
 	error |= device_create_file(dev, &dev_attr_tpc_pg_mask);
-	error |= device_create_file(dev, &dev_attr_min_timeslice_us);
-	error |= device_create_file(dev, &dev_attr_max_timeslice_us);
+	error |= device_create_file(dev, &dev_attr_tsg_timeslice_min_us);
+	error |= device_create_file(dev, &dev_attr_tsg_timeslice_max_us);
 
 #ifdef CONFIG_TEGRA_GK20A_NVHOST
 	error |= nvgpu_nvhost_create_symlink(g);

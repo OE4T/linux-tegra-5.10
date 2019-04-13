@@ -50,9 +50,6 @@ struct tsg_gk20a;
 #define RC_YES				1U
 #define RC_NO				0U
 
-#define NVGPU_FIFO_DEFAULT_TIMESLICE_TIMEOUT	128UL
-#define NVGPU_FIFO_DEFAULT_TIMESLICE_SCALE	3UL
-
 /*
  * Number of entries in the kickoff latency buffer, used to calculate
  * the profiling and histogram. This number is calculated to be statistically
@@ -219,8 +216,6 @@ int gk20a_init_fifo_reset_enable_hw(struct gk20a *g);
 void fifo_gk20a_finish_mmu_fault_handling(struct gk20a *g,
 		unsigned long fault_id);
 
-int gk20a_fifo_tsg_set_timeslice(struct tsg_gk20a *tsg, u32 timeslice);
-
 #ifdef CONFIG_DEBUG_FS
 struct fifo_profile_gk20a *gk20a_fifo_profile_acquire(struct gk20a *g);
 void gk20a_fifo_profile_release(struct gk20a *g,
@@ -241,8 +236,6 @@ static inline void gk20a_fifo_profile_snapshot(
 {
 }
 #endif
-
-u32 gk20a_fifo_default_timeslice_us(struct gk20a *g);
 
 int gk20a_fifo_init_pbdma_map(struct gk20a *g, u32 *pbdma_map, u32 num_pbdma);
 u32 gk20a_fifo_get_runlist_timeslice(struct gk20a *g);

@@ -37,6 +37,9 @@
 
 #define FECS_MAILBOX_0_ACK_RESTORE 0x4U
 
+#define RL_MAX_TIMESLICE_TIMEOUT ram_rl_entry_timeslice_timeout_v(U32_MAX)
+#define RL_MAX_TIMESLICE_SCALE ram_rl_entry_timeslice_scale_v(U32_MAX)
+
 int gk20a_runlist_reschedule(struct channel_gk20a *ch, bool preempt_next)
 {
 	return nvgpu_fifo_reschedule_runlist(ch, preempt_next, true);
@@ -142,35 +145,32 @@ u32 gk20a_runlist_length_max(struct gk20a *g)
 	return fifo_eng_runlist_length_max_v();
 }
 
-void gk20a_runlist_get_tsg_entry(struct tsg_gk20a *tsg, u32 *runlist)
+void gk20a_runlist_get_tsg_entry(struct tsg_gk20a *tsg,
+		u32 *runlist, u32 timeslice)
 {
+	struct gk20a *g = tsg->g;
+	u32 timeout = timeslice;
+	u32 scale = 0U;
 
-	u32 runlist_entry_0 = ram_rl_entry_id_f(tsg->tsgid) |
-			ram_rl_entry_type_tsg_f() |
-			ram_rl_entry_tsg_length_f(tsg->num_active_channels);
+	WARN_ON(timeslice == 0U);
 
-	if (tsg->timeslice_timeout != 0U) {
-		runlist_entry_0 |=
-			ram_rl_entry_timeslice_scale_f(tsg->timeslice_scale) |
-			ram_rl_entry_timeslice_timeout_f(tsg->timeslice_timeout);
-	} else {
-		/* safety check before casting */
-#if (NVGPU_FIFO_DEFAULT_TIMESLICE_SCALE & 0xffffffff00000000UL)
-#error NVGPU_FIFO_DEFAULT_TIMESLICE_SCALE too large for u32 cast
-#endif
-#if (NVGPU_FIFO_DEFAULT_TIMESLICE_TIMEOUT & 0xffffffff00000000UL)
-#error NVGPU_FIFO_DEFAULT_TIMESLICE_TIMEOUT too large for u32 cast
-#endif
-		runlist_entry_0 |=
-			ram_rl_entry_timeslice_scale_f(
-				(u32)NVGPU_FIFO_DEFAULT_TIMESLICE_SCALE) |
-			ram_rl_entry_timeslice_timeout_f(
-				(u32)NVGPU_FIFO_DEFAULT_TIMESLICE_TIMEOUT);
+	while (timeout > RL_MAX_TIMESLICE_TIMEOUT) {
+		timeout >>= 1U;
+		scale++;
 	}
 
-	runlist[0] = runlist_entry_0;
-	runlist[1] = 0;
+	if (scale > RL_MAX_TIMESLICE_SCALE) {
+		nvgpu_err(g, "requested timeslice value is clamped\n");
+		timeout = RL_MAX_TIMESLICE_TIMEOUT;
+		scale = RL_MAX_TIMESLICE_SCALE;
+	}
 
+	runlist[0] = ram_rl_entry_id_f(tsg->tsgid) |
+			ram_rl_entry_type_tsg_f() |
+			ram_rl_entry_tsg_length_f(tsg->num_active_channels) |
+			ram_rl_entry_timeslice_scale_f(scale) |
+			ram_rl_entry_timeslice_timeout_f(timeout);
+	runlist[1] = 0;
 }
 
 void gk20a_runlist_get_ch_entry(struct channel_gk20a *ch, u32 *runlist)
@@ -265,4 +265,3 @@ void gk20a_runlist_write_state(struct gk20a *g, u32 runlists_mask,
 	nvgpu_writel(g, fifo_sched_disable_r(), reg_val);
 
 }
-

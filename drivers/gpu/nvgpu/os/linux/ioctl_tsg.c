@@ -545,7 +545,7 @@ static int gk20a_tsg_ioctl_set_timeslice(struct gk20a *g,
 		nvgpu_err(g, "failed to power on gpu");
 		goto done;
 	}
-	err = gk20a_tsg_set_timeslice(tsg, arg->timeslice_us);
+	err = g->ops.tsg.set_timeslice(tsg, arg->timeslice_us);
 	gk20a_idle(g);
 done:
 	nvgpu_mutex_release(&sched->control_lock);
@@ -555,7 +555,7 @@ done:
 static int gk20a_tsg_ioctl_get_timeslice(struct gk20a *g,
 	struct tsg_gk20a *tsg, struct nvgpu_timeslice_args *arg)
 {
-	arg->timeslice_us = gk20a_tsg_get_timeslice(tsg);
+	arg->timeslice_us = nvgpu_tsg_get_timeslice(tsg);
 	return 0;
 }
 

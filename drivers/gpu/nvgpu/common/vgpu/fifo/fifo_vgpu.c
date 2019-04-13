@@ -478,7 +478,7 @@ int vgpu_fifo_isr(struct gk20a *g, struct tegra_vgpu_fifo_intr_info *info)
 	return 0;
 }
 
-u32 vgpu_fifo_default_timeslice_us(struct gk20a *g)
+u32 vgpu_tsg_default_timeslice_us(struct gk20a *g)
 {
 	struct vgpu_priv_data *priv = vgpu_get_priv_data(g);
 

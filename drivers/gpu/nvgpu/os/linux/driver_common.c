@@ -30,6 +30,7 @@
 #include <nvgpu/sizes.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/regops.h>
+#include <nvgpu/tsg.h>
 #include <nvgpu/gr/gr.h>
 
 #include "platform_gk20a.h"
@@ -133,12 +134,15 @@ static void nvgpu_init_timeslice(struct gk20a *g)
 {
 	g->runlist_interleave = true;
 
-	g->timeslice_low_priority_us = 1300;
-	g->timeslice_medium_priority_us = 2600;
-	g->timeslice_high_priority_us = 5200;
+	g->tsg_timeslice_low_priority_us =
+			NVGPU_TSG_TIMESLICE_LOW_PRIORITY_US;
+	g->tsg_timeslice_medium_priority_us =
+			NVGPU_TSG_TIMESLICE_MEDIUM_PRIORITY_US;
+	g->tsg_timeslice_high_priority_us =
+			NVGPU_TSG_TIMESLICE_HIGH_PRIORITY_US;
 
-	g->min_timeslice_us = 1000;
-	g->max_timeslice_us = 50000;
+	g->tsg_timeslice_min_us = NVGPU_TSG_TIMESLICE_MIN_US;
+	g->tsg_timeslice_max_us = NVGPU_TSG_TIMESLICE_MAX_US;
 }
 
 static void nvgpu_init_pm_vars(struct gk20a *g)

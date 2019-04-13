@@ -30,6 +30,13 @@
 
 #define NVGPU_INVALID_TSG_ID (U32_MAX)
 
+#define NVGPU_TSG_TIMESLICE_LOW_PRIORITY_US	1300U
+#define NVGPU_TSG_TIMESLICE_MEDIUM_PRIORITY_US	2600U
+#define NVGPU_TSG_TIMESLICE_HIGH_PRIORITY_US	5200U
+#define NVGPU_TSG_TIMESLICE_MIN_US		1000U
+#define NVGPU_TSG_TIMESLICE_MAX_US		50000U
+#define NVGPU_TSG_TIMESLICE_DEFAULT_US		(128U << 3U)
+
 struct gk20a;
 struct channel_gk20a;
 struct nvgpu_gr_ctx;
@@ -117,8 +124,9 @@ void nvgpu_tsg_post_event_id(struct tsg_gk20a *tsg,
 bool nvgpu_tsg_check_ctxsw_timeout(struct tsg_gk20a *tsg,
 		bool *debug_dump, u32 *ms);
 int gk20a_tsg_set_runlist_interleave(struct tsg_gk20a *tsg, u32 level);
-int gk20a_tsg_set_timeslice(struct tsg_gk20a *tsg, u32 timeslice);
-u32 gk20a_tsg_get_timeslice(struct tsg_gk20a *tsg);
+int nvgpu_tsg_set_timeslice(struct tsg_gk20a *tsg, u32 timeslice_us);
+u32 nvgpu_tsg_get_timeslice(struct tsg_gk20a *tsg);
+u32 nvgpu_tsg_default_timeslice_us(struct gk20a *g);
 void nvgpu_tsg_enable_sched(struct gk20a *g, struct tsg_gk20a *tsg);
 void nvgpu_tsg_disable_sched(struct gk20a *g, struct tsg_gk20a *tsg);
 int gk20a_tsg_set_priority(struct gk20a *g, struct tsg_gk20a *tsg,

@@ -535,24 +535,31 @@ int gk20a_tsg_set_runlist_interleave(struct tsg_gk20a *tsg, u32 level)
 	return ret;
 }
 
-int gk20a_tsg_set_timeslice(struct tsg_gk20a *tsg, u32 timeslice)
+int nvgpu_tsg_set_timeslice(struct tsg_gk20a *tsg, u32 timeslice_us)
 {
 	struct gk20a *g = tsg->g;
 
-	nvgpu_log(g, gpu_dbg_sched, "tsgid=%u timeslice=%u us", tsg->tsgid, timeslice);
+	nvgpu_log(g, gpu_dbg_sched, "tsgid=%u timeslice=%u us",
+			tsg->tsgid, timeslice_us);
 
-	return g->ops.fifo.tsg_set_timeslice(tsg, timeslice);
-}
-
-u32 gk20a_tsg_get_timeslice(struct tsg_gk20a *tsg)
-{
-	struct gk20a *g = tsg->g;
-
-	if (tsg->timeslice_us == 0U) {
-		return g->ops.fifo.default_timeslice_us(g);
+	if (timeslice_us < g->tsg_timeslice_min_us ||
+		timeslice_us > g->tsg_timeslice_max_us) {
+		return -EINVAL;
 	}
 
+	tsg->timeslice_us = timeslice_us;
+
+	return g->ops.runlist.reload(g, tsg->runlist_id, true, true);
+}
+
+u32 nvgpu_tsg_get_timeslice(struct tsg_gk20a *tsg)
+{
 	return tsg->timeslice_us;
+}
+
+u32 nvgpu_tsg_default_timeslice_us(struct gk20a *g)
+{
+	return NVGPU_TSG_TIMESLICE_DEFAULT_US;
 }
 
 void nvgpu_tsg_enable_sched(struct gk20a *g, struct tsg_gk20a *tsg)
@@ -618,9 +625,7 @@ int nvgpu_tsg_open_common(struct gk20a *g, struct tsg_gk20a *tsg, pid_t pid)
 
 	tsg->vm = NULL;
 	tsg->interleave_level = NVGPU_FIFO_RUNLIST_INTERLEAVE_LEVEL_LOW;
-	tsg->timeslice_us = 0U;
-	tsg->timeslice_timeout = 0U;
-	tsg->timeslice_scale = 0U;
+	tsg->timeslice_us = g->ops.tsg.default_timeslice_us(g);
 	tsg->runlist_id = FIFO_INVAL_TSG_ID;
 	tsg->sm_exception_mask_type = NVGPU_SM_EXCEPTION_TYPE_MASK_NONE;
 	tsg->gr_ctx = nvgpu_alloc_gr_ctx_struct(g);

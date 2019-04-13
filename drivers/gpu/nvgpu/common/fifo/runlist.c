@@ -24,6 +24,7 @@
 #include <nvgpu/channel.h>
 #include <nvgpu/fifo.h>
 #include <nvgpu/runlist.h>
+#include <nvgpu/ptimer.h>
 #include <nvgpu/bug.h>
 #include <nvgpu/dma.h>
 #include <nvgpu/rc.h>
@@ -64,6 +65,7 @@ static u32 nvgpu_runlist_append_tsg(struct gk20a *g,
 	u32 runlist_entry_words = f->runlist_entry_size / (u32)sizeof(u32);
 	struct channel_gk20a *ch;
 	u32 count = 0;
+	u32 timeslice;
 
 	nvgpu_log_fn(f->g, " ");
 
@@ -73,7 +75,16 @@ static u32 nvgpu_runlist_append_tsg(struct gk20a *g,
 
 	/* add TSG entry */
 	nvgpu_log_info(g, "add TSG %d to runlist", tsg->tsgid);
-	g->ops.runlist.get_tsg_entry(tsg, *runlist_entry);
+
+	/*
+	 * timeslice is measured with PTIMER.
+	 * On some platforms, PTIMER is lower than 1GHz.
+	 */
+	timeslice = scale_ptimer(tsg->timeslice_us,
+			ptimer_scalingfactor10x(g->ptimer_src_freq));
+
+	g->ops.runlist.get_tsg_entry(tsg, *runlist_entry, timeslice);
+
 	nvgpu_log_info(g, "tsg rl entries left %d runlist [0] %x [1] %x",
 			*entries_left,
 			(*runlist_entry)[0], (*runlist_entry)[1]);

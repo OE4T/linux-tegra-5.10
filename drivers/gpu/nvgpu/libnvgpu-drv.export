@@ -154,6 +154,7 @@ nvgpu_rbtree_enum_start
 nvgpu_readl
 nvgpu_runlist_construct_locked
 nvgpu_rwsem_init
+nvgpu_tsg_default_timeslice_us
 nvgpu_set_enabled
 nvgpu_sgt_alignment
 nvgpu_sgt_create_from_mem
