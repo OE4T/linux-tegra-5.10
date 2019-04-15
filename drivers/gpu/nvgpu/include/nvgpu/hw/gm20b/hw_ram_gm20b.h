@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -438,6 +438,10 @@ static inline u32 ram_rl_entry_timeslice_scale_f(u32 v)
 {
 	return (v & 0xfU) << 14U;
 }
+static inline u32 ram_rl_entry_timeslice_scale_v(u32 r)
+{
+	return (r >> 14U) & 0xfU;
+}
 static inline u32 ram_rl_entry_timeslice_scale_3_f(void)
 {
 	return 0xc000U;
@@ -445,6 +449,10 @@ static inline u32 ram_rl_entry_timeslice_scale_3_f(void)
 static inline u32 ram_rl_entry_timeslice_timeout_f(u32 v)
 {
 	return (v & 0xffU) << 18U;
+}
+static inline u32 ram_rl_entry_timeslice_timeout_v(u32 r)
+{
+	return (r >> 18U) & 0xffU;
 }
 static inline u32 ram_rl_entry_timeslice_timeout_128_f(void)
 {

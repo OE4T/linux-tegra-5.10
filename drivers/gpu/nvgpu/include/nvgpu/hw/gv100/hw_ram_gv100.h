@@ -762,6 +762,10 @@ static inline u32 ram_rl_entry_tsg_timeslice_scale_f(u32 v)
 {
 	return (v & 0xfU) << 16U;
 }
+static inline u32 ram_rl_entry_tsg_timeslice_scale_v(u32 r)
+{
+	return (r >> 16U) & 0xfU;
+}
 static inline u32 ram_rl_entry_tsg_timeslice_scale_3_v(void)
 {
 	return 0x00000003U;
@@ -769,6 +773,10 @@ static inline u32 ram_rl_entry_tsg_timeslice_scale_3_v(void)
 static inline u32 ram_rl_entry_tsg_timeslice_timeout_f(u32 v)
 {
 	return (v & 0xffU) << 24U;
+}
+static inline u32 ram_rl_entry_tsg_timeslice_timeout_v(u32 r)
+{
+	return (r >> 24U) & 0xffU;
 }
 static inline u32 ram_rl_entry_tsg_timeslice_timeout_128_v(void)
 {
