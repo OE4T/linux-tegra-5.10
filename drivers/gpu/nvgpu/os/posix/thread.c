@@ -169,19 +169,25 @@ int nvgpu_thread_create_priority(struct nvgpu_thread *thread,
 
 void nvgpu_thread_stop(struct nvgpu_thread *thread)
 {
-	nvgpu_atomic_set(&thread->running, 0);
-	nvgpu_thread_cancel_sync(thread);
-	nvgpu_thread_join(thread);
+	int old = nvgpu_atomic_cmpxchg(&thread->running, 1, 0);
+
+	if (old != 0) {
+		nvgpu_thread_cancel_sync(thread);
+		nvgpu_thread_join(thread);
+	}
 }
 
 void nvgpu_thread_stop_graceful(struct nvgpu_thread *thread,
 		void (*thread_stop_fn)(void *data), void *data)
 {
-	nvgpu_atomic_set(&thread->running, 0);
-	if (thread_stop_fn != NULL) {
-		thread_stop_fn(data);
+	int old = nvgpu_atomic_cmpxchg(&thread->running, 1, 0);
+
+	if (old != 0) {
+		if (thread_stop_fn != NULL) {
+			thread_stop_fn(data);
+		}
+		nvgpu_thread_join(thread);
 	}
-	nvgpu_thread_join(thread);
 }
 
 bool nvgpu_thread_should_stop(struct nvgpu_thread *thread)
