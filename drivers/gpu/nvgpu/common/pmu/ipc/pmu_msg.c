@@ -26,7 +26,6 @@
 #include <nvgpu/pmu/msg.h>
 #include <nvgpu/string.h>
 #include <nvgpu/gk20a.h>
-#include <nvgpu/pmu/volt.h>
 #include <nvgpu/pmu/lsfm.h>
 #include <nvgpu/pmu/super_surface.h>
 #include <nvgpu/pmu/pmu_perfmon.h>
@@ -561,7 +560,9 @@ void nvgpu_pmu_rpc_handler(struct gk20a *g, struct pmu_msg *msg,
 		nvgpu_pmu_perfmon_rpc_handler(g, pmu, &rpc, rpc_payload);
 		break;
 	case PMU_UNIT_VOLT:
-		nvgpu_pmu_volt_rpc_handler(g, &rpc);
+		if (pmu->volt_rpc_handler != NULL) {
+			pmu->volt_rpc_handler(g, &rpc);
+		}
 		break;
 	case PMU_UNIT_CLK:
 		nvgpu_pmu_dbg(g, "reply PMU_UNIT_CLK");
