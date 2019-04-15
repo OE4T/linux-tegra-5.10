@@ -138,8 +138,8 @@ static int test_buddy_allocator_with_big_pages(struct unit_module *m,
 	 * Initialize buddy allocator, base not pde aligned
 	 * Expect to fail
 	 */
-	if (nvgpu_buddy_allocator_init(g, na, vm_big_pages, "test", SZ_1K,
-				size, blk_size, max_order, flags) == 0) {
+	if (nvgpu_allocator_init(g, na, vm_big_pages, "test", SZ_1K, size,
+			blk_size, max_order, flags, BUDDY_ALLOCATOR) == 0) {
 		free_vm_env(m, g, vm_big_pages);
 		unit_return_fail(m, "ba inited with unaligned pde\n");
 	}
@@ -148,16 +148,16 @@ static int test_buddy_allocator_with_big_pages(struct unit_module *m,
 	 * Initialize buddy allocator, base = 0 and blk_size not pde aligned
 	 * Expect to fail
 	 */
-	if (nvgpu_buddy_allocator_init(g, na, vm_big_pages, "test", 0ULL,
-				size, blk_size, max_order, flags) == 0) {
+	if (nvgpu_allocator_init(g, na, vm_big_pages, "test", 0ULL, size,
+			blk_size, max_order, flags, BUDDY_ALLOCATOR) == 0) {
 		free_vm_env(m, g, vm_big_pages);
 		unit_return_fail(m, "ba_big_pages inited "
 			"despite base=0, blk_size not pde aligned\n");
 	}
 
 	/* Initialize buddy allocator with big pages for this test */
-	if (nvgpu_buddy_allocator_init(g, na, vm_big_pages, "test", base,
-				size, blk_size, max_order, flags) != 0) {
+	if (nvgpu_allocator_init(g, na, vm_big_pages, "test", base, size,
+			blk_size, max_order, flags, BUDDY_ALLOCATOR) != 0) {
 		free_vm_env(m, g, vm_big_pages);
 		unit_return_fail(m, "ba_big_pages init failed\n");
 	}
@@ -286,8 +286,8 @@ static int test_buddy_allocator_with_small_pages(struct unit_module *m,
 
 
 	/* Initialize buddy allocator with big page disabled for this test */
-	if (nvgpu_buddy_allocator_init(g, na, vm_small_pages, "test", base,
-				size, blk_size, max_order, flags) != 0) {
+	if (nvgpu_allocator_init(g, na, vm_small_pages, "test", base, size,
+			blk_size, max_order, flags, BUDDY_ALLOCATOR) != 0) {
 		free_vm_env(m, g, vm_small_pages);
 		unit_return_fail(m, "ba small pages init failed\n");
 	}
@@ -438,8 +438,8 @@ static int test_nvgpu_buddy_allocator_alloc(struct unit_module *m,
 	}
 
 	/* Initialize buddy allocator for this test */
-	if (nvgpu_buddy_allocator_init(g, na, NULL, "test_alloc", base,
-				size, blk_size, max_order, flags) != 0) {
+	if (nvgpu_allocator_init(g, na, NULL, "test_alloc", base, size,
+			blk_size, max_order, flags, BUDDY_ALLOCATOR) != 0) {
 		nvgpu_kfree(g, na);
 		unit_return_fail(m, "ba init for alloc failed\n");
 	}
@@ -834,27 +834,27 @@ static int test_nvgpu_buddy_allocator_init(struct unit_module *m,
 	}
 
 	/* blk_size = 0 */
-	if (nvgpu_buddy_allocator_init(g, na, NULL, "test_ba", base,
-				size, 0ULL, max_order, flags) == 0) {
+	if (nvgpu_allocator_init(g, na, NULL, "test_ba", base, size, 0ULL,
+				max_order, flags, BUDDY_ALLOCATOR) == 0) {
 		unit_return_fail(m, "ba inited despite blk_size=0\n");
 	}
 
 	/* Odd blk_size */
-	if (nvgpu_buddy_allocator_init(g, na, NULL, "test_ba", base,
-				size, 3ULL, max_order, flags) == 0) {
+	if (nvgpu_allocator_init(g, na, NULL, "test_ba", base, size, 3ULL,
+				max_order, flags, BUDDY_ALLOCATOR) == 0) {
 		unit_return_fail(m, "ba inited despite odd blk_size value\n");
 	}
 
 	/* max_order > (u64)GPU_BALLOC_MAX_ORDER */
-	if (nvgpu_buddy_allocator_init(g, na, NULL, "test_ba", base,
-		size, blk_size, (u64)GPU_BALLOC_MAX_ORDER + 1, flags) == 0) {
+	if (nvgpu_allocator_init(g, na, NULL, "test_ba", base, size, blk_size,
+		(u64)GPU_BALLOC_MAX_ORDER + 1, flags, BUDDY_ALLOCATOR) == 0) {
 		unit_return_fail(m,
 			"ba inited despite max_order > GPU_BALLOC_MAX_ORDER\n");
 	}
 
 	/* size = 0 */
-	if (nvgpu_buddy_allocator_init(g, na, NULL, "test_ba", base,
-				0ULL, blk_size, max_order, flags) == 0) {
+	if (nvgpu_allocator_init(g, na, NULL, "test_ba", base, 0ULL, blk_size,
+				max_order, flags, BUDDY_ALLOCATOR) == 0) {
 		/* If buddy allocator was created, check length */
 		ba = buddy_allocator(na);
 		if (ba->length == 0ULL) {
@@ -865,8 +865,8 @@ static int test_nvgpu_buddy_allocator_init(struct unit_module *m,
 	}
 
 	/* base = 0 */
-	if (nvgpu_buddy_allocator_init(g, na, NULL, "test_ba", 0ULL,
-				size, blk_size, max_order, flags) != 0) {
+	if (nvgpu_allocator_init(g, na, NULL, "test_ba", 0ULL, size, blk_size,
+				max_order, flags, BUDDY_ALLOCATOR) != 0) {
 		unit_return_fail(m, "ba init with base=0 failed\n");
 	} else {
 		/* If buddy allocator was created, check base */
@@ -883,24 +883,24 @@ static int test_nvgpu_buddy_allocator_init(struct unit_module *m,
 	 * base = 0x0101 (unaligned), GVA_space is disabled
 	 * adds base as offset
 	 */
-	if (nvgpu_buddy_allocator_init(g, na, NULL, "test_ba", 0x0101,
-				size, blk_size, max_order, flags) != 0) {
+	if (nvgpu_allocator_init(g, na, NULL, "test_ba", 0x0101, size,
+			blk_size, max_order, flags, BUDDY_ALLOCATOR) != 0) {
 		unit_return_fail(m, "ba init with unaligned base failed\n");
 	} else {
 		na->ops->fini(na);
 	}
 
 	/* ba init - GVA_space enabled, no vm */
-	if (nvgpu_buddy_allocator_init(g, na, NULL, "test_ba", base,
-			size, blk_size, max_order, GPU_ALLOC_GVA_SPACE) == 0) {
+	if (nvgpu_allocator_init(g, na, NULL, "test_ba", base, size, blk_size,
+			max_order, GPU_ALLOC_GVA_SPACE, BUDDY_ALLOCATOR) == 0) {
 		unit_return_fail(m, "ba inited "
 				"with GPU_ALLOC_GVA_SPACE & vm=NULL\n");
 	}
 
 	/* Fault injection at nvgpu_buddy_allocator alloc */
 	nvgpu_posix_enable_fault_injection(kmem_fi, true, 0);
-	if (nvgpu_buddy_allocator_init(g, na, NULL, "test_ba", base,
-				size, blk_size, max_order, flags) == 0) {
+	if (nvgpu_allocator_init(g, na, NULL, "test_ba", base, size, blk_size,
+				max_order, flags, BUDDY_ALLOCATOR) == 0) {
 		unit_return_fail(m,
 			"ba inited despite fault injection\n");
 	}
@@ -908,8 +908,8 @@ static int test_nvgpu_buddy_allocator_init(struct unit_module *m,
 
 	/* Fault injection at buddy_cache create */
 	nvgpu_posix_enable_fault_injection(kmem_fi, true, 1);
-	if (nvgpu_buddy_allocator_init(g, na, NULL, "test_ba", base,
-				size, blk_size, max_order, flags) == 0) {
+	if (nvgpu_allocator_init(g, na, NULL, "test_ba", base, size, blk_size,
+				max_order, flags, BUDDY_ALLOCATOR) == 0) {
 		unit_return_fail(m,
 			"ba inited despite fault injection\n");
 	}
@@ -917,8 +917,8 @@ static int test_nvgpu_buddy_allocator_init(struct unit_module *m,
 
 	/* Fault injection at balloc_new_buddy */
 	nvgpu_posix_enable_fault_injection(kmem_fi, true, 5);
-	if (nvgpu_buddy_allocator_init(g, na, NULL, "test_ba", 0ULL,
-				size, blk_size, max_order, flags) == 0) {
+	if (nvgpu_allocator_init(g, na, NULL, "test_ba", 0ULL, size, blk_size,
+				max_order, flags, BUDDY_ALLOCATOR) == 0) {
 		unit_return_fail(m,
 			"buddy_allocator inited despite fault injection\n");
 	}
@@ -929,8 +929,8 @@ static int test_nvgpu_buddy_allocator_init(struct unit_module *m,
 	 * vm un-initialized,
 	 * This doesn't complain as GPU_ALLOC_GVA_SPACE is disabled
 	 */
-	if (nvgpu_buddy_allocator_init(g, na, &vm1, "test_ba", base,
-				0x40000, blk_size, max_order, flags) != 0) {
+	if (nvgpu_allocator_init(g, na, &vm1, "test_ba", base, 0x40000,
+			blk_size, max_order, flags, BUDDY_ALLOCATOR) != 0) {
 		unit_return_fail(m, "buddy_allocator_init failed\n");
 	} else {
 		na->ops->fini(na);
@@ -940,8 +940,8 @@ static int test_nvgpu_buddy_allocator_init(struct unit_module *m,
 	 * Initialize buddy allocator
 	 * This ba will be used for further tests.
 	 */
-	if (nvgpu_buddy_allocator_init(g, na, NULL, "test_ba", base,
-				size, blk_size, max_order, flags) != 0) {
+	if (nvgpu_allocator_init(g, na, NULL, "test_ba", base, size, blk_size,
+				max_order, flags, BUDDY_ALLOCATOR) != 0) {
 		unit_return_fail(m, "buddy_allocator_init failed\n");
 	}
 

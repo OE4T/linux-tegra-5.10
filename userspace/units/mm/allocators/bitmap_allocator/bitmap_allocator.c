@@ -63,8 +63,8 @@ static int test_nvgpu_bitmap_allocator_critical(struct unit_module *m,
 	 * Initialize bitmap allocator
 	 * This ba will be used in this test.
 	 */
-	if (nvgpu_bitmap_allocator_init(g, na, "test_bitmap", base,
-					length, blk_size, flags) != 0) {
+	if (nvgpu_allocator_init(g, na, NULL, "test_bitmap", base, length,
+				blk_size, 0ULL, flags, BITMAP_ALLOCATOR) != 0) {
 		nvgpu_kfree(g, na);
 		unit_return_fail(m, "bitmap_allocator init failed\n");
 	}
@@ -303,8 +303,8 @@ static int test_nvgpu_bitmap_allocator_init(struct unit_module *m,
 	}
 
 	/* base = 0, length = 0, blk_size = 0 */
-	if (nvgpu_bitmap_allocator_init(g, na, "test_bitmap", 0ULL,
-					0ULL, 0ULL, flags) == 0) {
+	if (nvgpu_allocator_init(g, na, NULL, "test_bitmap", 0ULL, 0ULL, 0ULL,
+					0ULL, flags, BITMAP_ALLOCATOR) == 0) {
 		na->ops->fini(na);
 		unit_return_fail(m,
 			"bitmap inited despite blk_size = base = length = 0\n");
@@ -314,32 +314,32 @@ static int test_nvgpu_bitmap_allocator_init(struct unit_module *m,
 	 * blk_size = 0
 	 * Since base and length are not aligned with 0, init fails
 	 */
-	if (nvgpu_bitmap_allocator_init(g, na, "test_bitmap", base,
-					length, 0ULL, flags) == 0) {
+	if (nvgpu_allocator_init(g, na, NULL, "test_bitmap", base, length,
+				0ULL, 0ULL, flags, BITMAP_ALLOCATOR) == 0) {
 		unit_return_fail(m, "bitmap init failed for blk_size=0\n");
 	}
 
 	/* Odd blk_size */
-	if (!EXPECT_BUG(nvgpu_bitmap_allocator_init(g, na, "test_bitmap", base,
-					length, 3ULL, flags))) {
+	if (!EXPECT_BUG(nvgpu_allocator_init(g, na, NULL, "test_bitmap", base,
+				length, 3ULL, 0ULL, flags, BITMAP_ALLOCATOR))) {
 		unit_return_fail(m, "bitmap inited despite odd blk_size\n");
 	}
 
 	/* length unaligned */
-	if (nvgpu_bitmap_allocator_init(g, na, "test_bitmap", base,
-					0x0010, blk_size, flags) == 0) {
+	if (nvgpu_allocator_init(g, na, NULL, "test_bitmap", base, 0x0010,
+				blk_size, 0ULL, flags, BITMAP_ALLOCATOR) == 0) {
 		unit_return_fail(m, "bitmap init despite unaligned length\n");
 	}
 
 	/* base unaligned */
-	if (nvgpu_bitmap_allocator_init(g, na, "test_bitmap", 0x0100,
-					length, blk_size, flags) == 0) {
+	if (nvgpu_allocator_init(g, na, NULL, "test_bitmap", 0x0100, length,
+				blk_size, 0ULL, flags, BITMAP_ALLOCATOR) == 0) {
 		unit_return_fail(m, "bitmap init despite unaligned base\n");
 	}
 
 	/* base = 0 */
-	if (nvgpu_bitmap_allocator_init(g, na, "test_bitmap", 0ULL,
-					length, blk_size, flags) != 0) {
+	if (nvgpu_allocator_init(g, na, NULL, "test_bitmap", 0ULL, length,
+				blk_size, 0ULL, flags, BITMAP_ALLOCATOR) != 0) {
 		unit_return_fail(m, "bitmap init failed with base = 0\n");
 	} else {
 		ba = na->priv;
@@ -353,15 +353,15 @@ static int test_nvgpu_bitmap_allocator_init(struct unit_module *m,
 	}
 
 	/* length = 0 */
-	if (nvgpu_bitmap_allocator_init(g, na, "test_bitmap", 0ULL,
-					0ULL, blk_size, flags) == 0) {
+	if (nvgpu_allocator_init(g, na, NULL, "test_bitmap", 0ULL, 0ULL,
+				blk_size, 0ULL, flags, BITMAP_ALLOCATOR) == 0) {
 		unit_return_fail(m, "bitmap inited with length = 0\n");
 	}
 
 	/* Fault injection at nvgpu_bitmap_allocator alloc */
 	nvgpu_posix_enable_fault_injection(kmem_fi, true, 0);
-	if (nvgpu_bitmap_allocator_init(g, na, "test_bitmap", base,
-					length, blk_size, flags) == 0) {
+	if (nvgpu_allocator_init(g, na, NULL, "test_bitmap", base, length,
+				blk_size, 0ULL, flags, BITMAP_ALLOCATOR) == 0) {
 		unit_return_fail(m, "bitmap inited despite "
 			"fault injection at nvgpu_bitmap_allocator alloc\n");
 	}
@@ -369,8 +369,8 @@ static int test_nvgpu_bitmap_allocator_init(struct unit_module *m,
 
 	/* Fault injection at meta_data_cache create */
 	nvgpu_posix_enable_fault_injection(kmem_fi, true, 1);
-	if (nvgpu_bitmap_allocator_init(g, na, "test_bitmap", base,
-					length, blk_size, flags) == 0) {
+	if (nvgpu_allocator_init(g, na, NULL, "test_bitmap", base, length,
+				blk_size, 0ULL, flags, BITMAP_ALLOCATOR) == 0) {
 		unit_return_fail(m, "bitmap inited despite "
 			"fault injection at meta_data_cache\n");
 	}
@@ -378,8 +378,8 @@ static int test_nvgpu_bitmap_allocator_init(struct unit_module *m,
 
 	/* Fault injection at bitmap create */
 	nvgpu_posix_enable_fault_injection(kmem_fi, true, 2);
-	if (nvgpu_bitmap_allocator_init(g, na, "test_bitmap", base,
-					length, blk_size, flags) == 0) {
+	if (nvgpu_allocator_init(g, na, NULL, "test_bitmap", base, length,
+				blk_size, 0ULL, flags, BITMAP_ALLOCATOR) == 0) {
 		unit_return_fail(m, "bitmap inited despite "
 			"fault injection at bitmap create\n");
 	}
@@ -389,8 +389,8 @@ static int test_nvgpu_bitmap_allocator_init(struct unit_module *m,
 	 * Initialize bitmap allocator
 	 * This ba will be used for further tests.
 	 */
-	if (nvgpu_bitmap_allocator_init(g, na, "test_bitmap", base,
-					length, blk_size, flags) != 0) {
+	if (nvgpu_allocator_init(g, na, NULL, "test_bitmap", base, length,
+				blk_size, 0ULL, flags, BITMAP_ALLOCATOR) != 0) {
 		unit_return_fail(m, "bitmap_allocator init failed\n");
 	}
 

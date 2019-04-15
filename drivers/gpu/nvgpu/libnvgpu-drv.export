@@ -70,12 +70,11 @@ nvgpu_alloc_pte
 nvgpu_alloc_release_carveout
 nvgpu_alloc_reserve_carveout
 nvgpu_alloc_space
+nvgpu_allocator_init
 nvgpu_aperture_mask
 nvgpu_bar1_readl
 nvgpu_bar1_writel
-nvgpu_bitmap_allocator_init
 nvgpu_bsearch
-nvgpu_buddy_allocator_init
 nvgpu_dma_alloc
 nvgpu_dma_alloc_get_fault_injection
 nvgpu_dma_alloc_vid_at
