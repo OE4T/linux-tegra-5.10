@@ -840,3 +840,24 @@ void nvgpu_tsg_abort(struct gk20a *g, struct tsg_gk20a *tsg, bool preempt)
 	nvgpu_rwsem_up_read(&tsg->ch_list_lock);
 }
 
+void nvgpu_tsg_reset_faulted_eng_pbdma(struct gk20a *g, struct tsg_gk20a *tsg,
+		bool eng, bool pbdma)
+{
+	struct channel_gk20a *ch;
+
+	if (g->ops.channel.reset_faulted == NULL) {
+		return;
+	}
+
+	if (tsg == NULL) {
+		return;
+	}
+
+	nvgpu_log(g, gpu_dbg_info, "reset faulted eng and pbdma bits in ccsr");
+
+	nvgpu_rwsem_down_read(&tsg->ch_list_lock);
+	nvgpu_list_for_each_entry(ch, &tsg->ch_list, channel_gk20a, ch_entry) {
+		g->ops.channel.reset_faulted(g, ch, eng, pbdma);
+	}
+	nvgpu_rwsem_up_read(&tsg->ch_list_lock);
+}

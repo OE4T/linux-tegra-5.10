@@ -305,34 +305,6 @@ static int gv11b_fifo_poll_eng_ctx_status(struct gk20a *g, u32 id,
 	return ret;
 }
 
-static void gv11b_reset_faulted_tsg(struct tsg_gk20a *tsg, bool eng, bool pbdma)
-{
-	struct gk20a *g = tsg->g;
-	struct channel_gk20a *ch;
-
-	nvgpu_rwsem_down_read(&tsg->ch_list_lock);
-	nvgpu_list_for_each_entry(ch, &tsg->ch_list, channel_gk20a, ch_entry) {
-		g->ops.channel.reset_faulted(g, ch, eng, pbdma);
-	}
-	nvgpu_rwsem_up_read(&tsg->ch_list_lock);
-}
-
-void gv11b_fifo_reset_pbdma_and_eng_faulted(struct gk20a *g,
-			struct tsg_gk20a *tsg,
-			u32 faulted_pbdma, u32 faulted_engine)
-{
-	if (tsg == NULL) {
-		return;
-	}
-
-	nvgpu_log(g, gpu_dbg_intr, "reset faulted pbdma:0x%x eng:0x%x",
-				faulted_pbdma, faulted_engine);
-
-	gv11b_reset_faulted_tsg(tsg,
-			faulted_engine != FIFO_INVAL_ENGINE_ID,
-			faulted_pbdma != FIFO_INVAL_PBDMA_ID);
-}
-
 static u32 gv11b_fifo_get_runlists_mask(struct gk20a *g, u32 act_eng_bitmask,
 			u32 id, unsigned int id_type, unsigned int rc_type,
 			 struct mmu_fault_info *mmfault)
@@ -590,9 +562,7 @@ static void gv11b_fifo_locked_abort_runlist_active_tsgs(struct gk20a *g,
 
 			g->ops.tsg.disable(tsg);
 
-			/* assume all pbdma and eng faulted are set */
-			nvgpu_log(g, gpu_dbg_info, "reset pbdma and eng faulted");
-			gv11b_reset_faulted_tsg(tsg, true, true);
+			nvgpu_tsg_reset_faulted_eng_pbdma(g, tsg, true, true);
 
 #ifdef CONFIG_GK20A_CTXSW_TRACE
 			nvgpu_gr_fecs_trace_add_tsg_reset(g, tsg);
@@ -725,9 +695,7 @@ void gv11b_fifo_teardown_ch_tsg(struct gk20a *g, u32 act_eng_bitmask,
 	if (rc_type == RC_TYPE_MMU_FAULT) {
 		gk20a_debug_dump(g);
 		client_type = mmfault->client_type;
-		gv11b_fifo_reset_pbdma_and_eng_faulted(g, tsg,
-				mmfault->faulted_pbdma,
-				mmfault->faulted_engine);
+		nvgpu_tsg_reset_faulted_eng_pbdma(g, tsg, true, true);
 	}
 
 	if (tsg != NULL) {

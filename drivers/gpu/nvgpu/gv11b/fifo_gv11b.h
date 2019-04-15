@@ -36,9 +36,6 @@
 
 struct gpu_ops;
 
-void gv11b_fifo_reset_pbdma_and_eng_faulted(struct gk20a *g,
-			struct tsg_gk20a *tsg,
-			u32 faulted_pbdma, u32 faulted_engine);
 void gv11b_mmu_fault_id_to_eng_pbdma_id_and_veid(struct gk20a *g,
 	u32 mmu_fault_id, u32 *active_engine_id, u32 *veid, u32 *pbdma_id);
 

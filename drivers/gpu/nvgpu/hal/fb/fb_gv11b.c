@@ -36,6 +36,7 @@
 #include <nvgpu/fifo.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/channel.h>
+#include <nvgpu/tsg.h>
 #include <nvgpu/nvgpu_err.h>
 #include <nvgpu/ltc.h>
 #include <nvgpu/rc.h>
@@ -653,12 +654,10 @@ static void gv11b_fb_handle_mmu_fault_common(struct gk20a *g,
 		/* CE page faults are not reported as replayable */
 		nvgpu_log(g, gpu_dbg_intr, "CE Faulted");
 		err = gv11b_fb_fix_page_fault(g, mmfault);
-		if ((mmfault->refch != NULL) &&
-		    ((u32)mmfault->refch->tsgid != FIFO_INVAL_TSG_ID)) {
-			gv11b_fifo_reset_pbdma_and_eng_faulted(g,
-				&g->fifo.tsg[mmfault->refch->tsgid],
-				mmfault->faulted_pbdma,
-				mmfault->faulted_engine);
+
+		if (mmfault->refch != NULL) {
+			tsg = tsg_gk20a_from_ch(mmfault->refch);
+			nvgpu_tsg_reset_faulted_eng_pbdma(g, tsg, true, true);
 		}
 		if (err == 0) {
 			nvgpu_log(g, gpu_dbg_intr, "CE Page Fault Fixed");
