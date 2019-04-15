@@ -410,15 +410,6 @@ void gk20a_debug_init(struct gk20a *g, const char *debugfs_symlink)
 					S_IRUGO|S_IWUSR,
 					l->debugfs,
 					&g->runlist_interleave);
-	l->debugfs_force_preemption_gfxp =
-		debugfs_create_bool("force_preemption_gfxp", S_IRUGO|S_IWUSR,
-		l->debugfs,
-		&g->gr->ctx_vars.force_preemption_gfxp);
-
-	l->debugfs_force_preemption_cilp =
-		debugfs_create_bool("force_preemption_cilp", S_IRUGO|S_IWUSR,
-		l->debugfs,
-		&g->gr->ctx_vars.force_preemption_cilp);
 
 	l->debugfs_dump_ctxsw_stats =
 		debugfs_create_bool("dump_ctxsw_stats_on_channel_close",

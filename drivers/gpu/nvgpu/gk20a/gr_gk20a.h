@@ -92,9 +92,6 @@ struct nvgpu_gr {
 
 		u32 zcull_image_size;
 
-		bool force_preemption_gfxp;
-		bool force_preemption_cilp;
-
 		bool dump_ctxsw_stats_on_channel_close;
 	} ctx_vars;
 

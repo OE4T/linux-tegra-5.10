@@ -959,3 +959,13 @@ bool nvgpu_gr_ctx_get_boosted_ctx(struct nvgpu_gr_ctx *gr_ctx)
 {
 	return gr_ctx->boosted_ctx;
 }
+
+bool nvgpu_gr_ctx_desc_force_preemption_gfxp(struct nvgpu_gr_ctx_desc *gr_ctx_desc)
+{
+	return gr_ctx_desc->force_preemption_gfxp;
+}
+
+bool nvgpu_gr_ctx_desc_force_preemption_cilp(struct nvgpu_gr_ctx_desc *gr_ctx_desc)
+{
+	return gr_ctx_desc->force_preemption_cilp;
+}

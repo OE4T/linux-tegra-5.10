@@ -12,9 +12,14 @@
  *
  */
 
+#include <nvgpu/gr/ctx.h>
+
+#include "common/gr/ctx_priv.h"
+
 #include "debug_gr.h"
 #include "os_linux.h"
 
+#include <linux/uaccess.h>
 #include <linux/debugfs.h>
 
 static int gr_default_attrib_cb_size_show(struct seq_file *s, void *data)
@@ -40,6 +45,110 @@ static const struct file_operations gr_default_attrib_cb_size_fops= {
 	.release	= single_release,
 };
 
+static ssize_t force_preemption_gfxp_read(struct file *file,
+		char __user *user_buf, size_t count, loff_t *ppos)
+{
+	char buf[3];
+	struct gk20a *g = file->private_data;
+
+	if (g->gr->gr_ctx_desc == NULL) {
+		return -EFAULT;
+	}
+
+	if (g->gr->gr_ctx_desc->force_preemption_gfxp) {
+		buf[0] = 'Y';
+	} else {
+		buf[0] = 'N';
+	}
+
+	buf[1] = '\n';
+	buf[2] = 0x00;
+
+	return simple_read_from_buffer(user_buf, count, ppos, buf, 2);
+}
+
+static ssize_t force_preemption_gfxp_write(struct file *file,
+		const char __user *user_buf, size_t count, loff_t *ppos)
+{
+	char buf[32];
+	int buf_size;
+	bool val;
+	struct gk20a *g = file->private_data;
+
+	if (g->gr->gr_ctx_desc == NULL) {
+		return -EFAULT;
+	}
+
+	buf_size = min(count, (sizeof(buf)-1));
+	if (copy_from_user(buf, user_buf, buf_size)) {
+		return -EFAULT;
+	}
+
+	if (strtobool(buf, &val) == 0) {
+		g->gr->gr_ctx_desc->force_preemption_gfxp = val;
+	}
+
+	return count;
+}
+
+static struct file_operations force_preemption_gfxp_fops = {
+	.open =		simple_open,
+	.read =		force_preemption_gfxp_read,
+	.write =	force_preemption_gfxp_write,
+};
+
+static ssize_t force_preemption_cilp_read(struct file *file,
+		 char __user *user_buf, size_t count, loff_t *ppos)
+{
+	char buf[3];
+	struct gk20a *g = file->private_data;
+
+	if (g->gr->gr_ctx_desc == NULL) {
+		return -EFAULT;
+	}
+
+	if (g->gr->gr_ctx_desc->force_preemption_cilp) {
+		buf[0] = 'Y';
+	} else {
+		buf[0] = 'N';
+	}
+
+	buf[1] = '\n';
+	buf[2] = 0x00;
+
+	return simple_read_from_buffer(user_buf, count, ppos, buf, 2);
+}
+
+static ssize_t force_preemption_cilp_write(struct file *file,
+		const char __user *user_buf, size_t count, loff_t *ppos)
+{
+	char buf[32];
+	int buf_size;
+	bool val;
+	struct gk20a *g = file->private_data;
+
+	if (g->gr->gr_ctx_desc == NULL) {
+		return -EFAULT;
+	}
+
+	buf_size = min(count, (sizeof(buf)-1));
+	if (copy_from_user(buf, user_buf, buf_size)) {
+		return -EFAULT;
+	}
+
+	if (strtobool(buf, &val) == 0) {
+		g->gr->gr_ctx_desc->force_preemption_cilp = val;
+	}
+
+	return count;
+}
+
+static struct file_operations force_preemption_cilp_fops = {
+	.open =		simple_open,
+	.read =		force_preemption_cilp_read,
+	.write =	force_preemption_cilp_write,
+};
+
 int gr_gk20a_debugfs_init(struct gk20a *g)
 {
 	struct nvgpu_os_linux *l = nvgpu_os_linux_from_gk20a(g);
@@ -47,7 +156,19 @@ int gr_gk20a_debugfs_init(struct gk20a *g)
 
 	d = debugfs_create_file(
 		"gr_default_attrib_cb_size", S_IRUGO, l->debugfs, g,
-						&gr_default_attrib_cb_size_fops);
+				&gr_default_attrib_cb_size_fops);
+	if (!d)
+		return -ENOMEM;
+
+	d = debugfs_create_file(
+		"force_preemption_gfxp", S_IRUGO|S_IWUSR, l->debugfs, g,
+				&force_preemption_gfxp_fops);
+	if (!d)
+		return -ENOMEM;
+
+	d = debugfs_create_file(
+		"force_preemption_cilp", S_IRUGO|S_IWUSR, l->debugfs, g,
+				&force_preemption_cilp_fops);
 	if (!d)
 		return -ENOMEM;
 

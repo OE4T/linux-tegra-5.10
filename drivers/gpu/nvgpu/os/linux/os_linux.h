@@ -157,8 +157,6 @@ struct nvgpu_os_linux {
 	struct dentry *debugfs_hal;
 	struct dentry *debugfs_ltc;
 
-	struct dentry *debugfs_force_preemption_cilp;
-	struct dentry *debugfs_force_preemption_gfxp;
 	struct dentry *debugfs_dump_ctxsw_stats;
 #endif
 	DECLARE_HASHTABLE(ecc_sysfs_stats_htable, 5);

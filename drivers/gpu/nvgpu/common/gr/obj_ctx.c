@@ -114,12 +114,12 @@ int nvgpu_gr_obj_ctx_set_ctxsw_preemption_mode(struct gk20a *g,
 	}
 
 	if (g->ops.class.is_valid_gfx(class) &&
-				g->gr->ctx_vars.force_preemption_gfxp) {
+			nvgpu_gr_ctx_desc_force_preemption_gfxp(gr_ctx_desc)) {
 		graphics_preempt_mode = NVGPU_PREEMPTION_MODE_GRAPHICS_GFXP;
 	}
 
 	if (g->ops.class.is_valid_compute(class) &&
-			g->gr->ctx_vars.force_preemption_cilp) {
+			nvgpu_gr_ctx_desc_force_preemption_cilp(gr_ctx_desc)) {
 		compute_preempt_mode = NVGPU_PREEMPTION_MODE_COMPUTE_CILP;
 	}
 

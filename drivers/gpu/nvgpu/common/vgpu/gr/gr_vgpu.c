@@ -55,6 +55,7 @@
 #include "common/vgpu/ivc/comm_vgpu.h"
 
 #include "common/gr/gr_config_priv.h"
+#include "common/gr/ctx_priv.h"
 #include "common/gr/zcull_priv.h"
 #include "common/gr/zbc_priv.h"
 
@@ -1292,12 +1293,12 @@ static int vgpu_gr_set_ctxsw_preemption_mode(struct gk20a *g,
 	int err = 0;
 
 	if (g->ops.class.is_valid_gfx(class) &&
-			g->gr->ctx_vars.force_preemption_gfxp) {
+			g->gr->gr_ctx_desc->force_preemption_gfxp) {
 		graphics_preempt_mode = NVGPU_PREEMPTION_MODE_GRAPHICS_GFXP;
 	}
 
 	if (g->ops.class.is_valid_compute(class) &&
-			g->gr->ctx_vars.force_preemption_cilp) {
+			g->gr->gr_ctx_desc->force_preemption_cilp) {
 		compute_preempt_mode = NVGPU_PREEMPTION_MODE_COMPUTE_CILP;
 	}
 

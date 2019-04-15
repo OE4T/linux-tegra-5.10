@@ -44,6 +44,9 @@ struct pm_ctx_desc {
 
 struct nvgpu_gr_ctx_desc {
 	u32 size[NVGPU_GR_CTX_COUNT];
+
+	bool force_preemption_gfxp;
+	bool force_preemption_cilp;
 };
 
 struct nvgpu_gr_ctx {

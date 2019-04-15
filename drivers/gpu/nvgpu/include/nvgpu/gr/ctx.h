@@ -231,5 +231,9 @@ void nvgpu_gr_ctx_set_boosted_ctx(struct nvgpu_gr_ctx *gr_ctx, bool boost);
 
 bool nvgpu_gr_ctx_get_boosted_ctx(struct nvgpu_gr_ctx *gr_ctx);
 
+bool nvgpu_gr_ctx_desc_force_preemption_gfxp(
+		struct nvgpu_gr_ctx_desc *gr_ctx_desc);
+bool nvgpu_gr_ctx_desc_force_preemption_cilp(
+		struct nvgpu_gr_ctx_desc *gr_ctx_desc);
 
 #endif /* NVGPU_INCLUDE_GR_CTX_H */
