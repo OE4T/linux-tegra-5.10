@@ -30,8 +30,6 @@
 #include <nvgpu/rbtree.h>
 #include <nvgpu/kref.h>
 
-enum gk20a_mem_rw_flag;
-
 struct compbit_store_desc {
 	struct nvgpu_mem mem;
 
@@ -82,31 +80,6 @@ int gk20a_alloc_inst_block(struct gk20a *g, struct nvgpu_mem *inst_block);
 void gk20a_init_inst_block(struct nvgpu_mem *inst_block, struct vm_gk20a *vm,
 		u32 big_page_size);
 int gk20a_init_mm_setup_hw(struct gk20a *g);
-
-u64 gk20a_locked_gmmu_map(struct vm_gk20a *vm,
-			  u64 vaddr,
-			  struct nvgpu_sgt *sgt,
-			  u64 buffer_offset,
-			  u64 size,
-			  u32 pgsz_idx,
-			  u8 kind_v,
-			  u32 ctag_offset,
-			  u32 flags,
-			  enum gk20a_mem_rw_flag rw_flag,
-			  bool clear_ctags,
-			  bool sparse,
-			  bool priv,
-			  struct vm_gk20a_mapping_batch *batch,
-			  enum nvgpu_aperture aperture);
-
-void gk20a_locked_gmmu_unmap(struct vm_gk20a *vm,
-			     u64 vaddr,
-			     u64 size,
-			     u32 pgsz_idx,
-			     bool va_allocated,
-			     enum gk20a_mem_rw_flag rw_flag,
-			     bool sparse,
-			     struct vm_gk20a_mapping_batch *batch);
 
 /* vm-as interface */
 struct nvgpu_as_alloc_space_args;

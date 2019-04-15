@@ -909,8 +909,8 @@ static const struct gpu_ops gp10b_ops = {
 		.is_fw_defined = gp10b_netlist_is_firmware_defined,
 	},
 	.mm = {
-		.gmmu_map = gk20a_locked_gmmu_map,
-		.gmmu_unmap = gk20a_locked_gmmu_unmap,
+		.gmmu_map = nvgpu_gmmu_map_locked,
+		.gmmu_unmap = nvgpu_gmmu_unmap_locked,
 		.vm_bind_channel = gk20a_vm_bind_channel,
 		.get_big_page_sizes = gm20b_mm_get_big_page_sizes,
 		.get_default_big_page_size = gp10b_mm_get_default_big_page_size,

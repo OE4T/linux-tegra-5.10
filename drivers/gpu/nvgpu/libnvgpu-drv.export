@@ -28,8 +28,8 @@ gk20a_alloc_inst_block
 gk20a_bus_set_bar0_window
 gk20a_runlist_get_ch_entry
 gk20a_runlist_get_tsg_entry
-gk20a_locked_gmmu_map
-gk20a_locked_gmmu_unmap
+nvgpu_gmmu_map_locked
+nvgpu_gmmu_unmap_locked
 gk20a_ramin_alloc_size
 gk20a_mm_fb_flush
 gm20b_fb_tlb_invalidate

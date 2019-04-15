@@ -750,7 +750,7 @@ static int __nvgpu_gmmu_update_page_table(struct vm_gk20a *vm,
 }
 
 /**
- * gk20a_locked_gmmu_map - Map a buffer into the GMMU
+ * nvgpu_gmmu_map_locked - Map a buffer into the GMMU
  *
  * This is for non-vGPU chips. It's part of the HAL at the moment but really
  * should not be. Chip specific stuff is handled at the PTE/PDE programming
@@ -761,7 +761,7 @@ static int __nvgpu_gmmu_update_page_table(struct vm_gk20a *vm,
  * mm.gmmu_lock() HAL. So before calling the mm.gmmu_lock() HAL make sure you
  * have the update_gmmu_lock aquired.
  */
-u64 gk20a_locked_gmmu_map(struct vm_gk20a *vm,
+u64 nvgpu_gmmu_map_locked(struct vm_gk20a *vm,
 			  u64 vaddr,
 			  struct nvgpu_sgt *sgt,
 			  u64 buffer_offset,
@@ -847,7 +847,7 @@ fail_alloc:
 	return 0;
 }
 
-void gk20a_locked_gmmu_unmap(struct vm_gk20a *vm,
+void nvgpu_gmmu_unmap_locked(struct vm_gk20a *vm,
 			     u64 vaddr,
 			     u64 size,
 			     u32 pgsz_idx,

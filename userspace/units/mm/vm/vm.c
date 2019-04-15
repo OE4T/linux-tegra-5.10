@@ -136,8 +136,8 @@ static int init_test_env(struct unit_module *m, struct gk20a *g)
 	g->ops.mm.get_default_big_page_size =
 					gp10b_mm_get_default_big_page_size;
 	g->ops.mm.get_mmu_levels = gp10b_mm_get_mmu_levels;
-	g->ops.mm.gmmu_map = gk20a_locked_gmmu_map;
-	g->ops.mm.gmmu_unmap = gk20a_locked_gmmu_unmap;
+	g->ops.mm.gmmu_map = nvgpu_gmmu_map_locked;
+	g->ops.mm.gmmu_unmap = nvgpu_gmmu_unmap_locked;
 	g->ops.mm.gpu_phys_addr = gv11b_gpu_phys_addr;
 	g->ops.mm.cache.l2_flush = gv11b_mm_l2_flush;
 	g->ops.mm.cache.fb_flush = gk20a_mm_fb_flush;

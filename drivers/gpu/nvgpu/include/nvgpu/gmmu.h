@@ -38,6 +38,7 @@
 struct vm_gk20a;
 struct nvgpu_mem;
 struct nvgpu_gmmu_pd;
+struct vm_gk20a_mapping_batch;
 
 #define GMMU_PAGE_SIZE_SMALL	0U
 #define GMMU_PAGE_SIZE_BIG	1U
@@ -213,6 +214,32 @@ int __nvgpu_get_pte(struct gk20a *g, struct vm_gk20a *vm, u64 vaddr, u32 *pte);
  */
 int __nvgpu_set_pte(struct gk20a *g, struct vm_gk20a *vm, u64 vaddr, u32 *pte);
 
+/*
+ * Native GPU "HAL" functions.
+ */
+u64 nvgpu_gmmu_map_locked(struct vm_gk20a *vm,
+			  u64 vaddr,
+			  struct nvgpu_sgt *sgt,
+			  u64 buffer_offset,
+			  u64 size,
+			  u32 pgsz_idx,
+			  u8 kind_v,
+			  u32 ctag_offset,
+			  u32 flags,
+			  enum gk20a_mem_rw_flag rw_flag,
+			  bool clear_ctags,
+			  bool sparse,
+			  bool priv,
+			  struct vm_gk20a_mapping_batch *batch,
+			  enum nvgpu_aperture aperture);
+void nvgpu_gmmu_unmap_locked(struct vm_gk20a *vm,
+			     u64 vaddr,
+			     u64 size,
+			     u32 pgsz_idx,
+			     bool va_allocated,
+			     enum gk20a_mem_rw_flag rw_flag,
+			     bool sparse,
+			     struct vm_gk20a_mapping_batch *batch);
 
 /*
  * Internal debugging routines. Probably not something you want to use.
