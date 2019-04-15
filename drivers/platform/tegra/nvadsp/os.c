@@ -645,10 +645,6 @@ static void *nvadsp_dma_alloc_and_map_at(struct platform_device *pdev,
 	if (!cpu_va)
 		goto fail_dma_alloc;
 
-	/* Luckily hitting the target iova, no need to remap */
-	if (tmp_iova == iova)
-		return cpu_va;
-
 	/* Use tmp_iova to remap non-contiguous pages to the desired iova */
 	for (offset = 0; offset < size; offset += mp_size) {
 		dma_addr_t cur_iova = tmp_iova + offset;
