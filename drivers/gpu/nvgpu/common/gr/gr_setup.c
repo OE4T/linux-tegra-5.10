@@ -181,7 +181,8 @@ void nvgpu_gr_setup_free_gr_ctx(struct gk20a *g,
 
 	if (gr_ctx != NULL) {
 		if ((g->ops.gr.ctxsw_prog.dump_ctxsw_stats != NULL) &&
-		     g->gr->ctx_vars.dump_ctxsw_stats_on_channel_close) {
+		     nvgpu_gr_ctx_desc_dump_ctxsw_stats_on_channel_close(
+					g->gr->gr_ctx_desc)) {
 			g->ops.gr.ctxsw_prog.dump_ctxsw_stats(g,
 				 nvgpu_gr_ctx_get_ctx_mem(gr_ctx));
 		}

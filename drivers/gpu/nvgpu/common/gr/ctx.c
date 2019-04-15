@@ -969,3 +969,9 @@ bool nvgpu_gr_ctx_desc_force_preemption_cilp(struct nvgpu_gr_ctx_desc *gr_ctx_de
 {
 	return gr_ctx_desc->force_preemption_cilp;
 }
+
+bool nvgpu_gr_ctx_desc_dump_ctxsw_stats_on_channel_close(
+		struct nvgpu_gr_ctx_desc *gr_ctx_desc)
+{
+	return gr_ctx_desc->dump_ctxsw_stats_on_channel_close;
+}

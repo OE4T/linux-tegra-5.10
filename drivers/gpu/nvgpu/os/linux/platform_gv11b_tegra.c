@@ -86,11 +86,6 @@ static int gv11b_tegra_probe(struct device *dev)
 
 	platform->disable_bigpage = !dev->archdata.iommu;
 
-	platform->g->gr->ctx_vars.dump_ctxsw_stats_on_channel_close
-		= false;
-	platform->g->gr->ctx_vars.dump_ctxsw_stats_on_channel_close
-		= false;
-
 	gp10b_tegra_get_clocks(dev);
 	nvgpu_linux_init_clk_support(platform->g);
 

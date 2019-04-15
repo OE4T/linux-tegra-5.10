@@ -47,6 +47,8 @@ struct nvgpu_gr_ctx_desc {
 
 	bool force_preemption_gfxp;
 	bool force_preemption_cilp;
+
+	bool dump_ctxsw_stats_on_channel_close;
 };
 
 struct nvgpu_gr_ctx {

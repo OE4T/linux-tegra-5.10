@@ -411,11 +411,6 @@ void gk20a_debug_init(struct gk20a *g, const char *debugfs_symlink)
 					l->debugfs,
 					&g->runlist_interleave);
 
-	l->debugfs_dump_ctxsw_stats =
-		debugfs_create_bool("dump_ctxsw_stats_on_channel_close",
-			S_IRUGO|S_IWUSR, l->debugfs,
-			&g->gr->ctx_vars.dump_ctxsw_stats_on_channel_close);
-
 	gr_gk20a_debugfs_init(g);
 	gk20a_pmu_debugfs_init(g);
 	gk20a_railgating_debugfs_init(g);

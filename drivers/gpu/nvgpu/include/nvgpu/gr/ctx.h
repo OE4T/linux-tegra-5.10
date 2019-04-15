@@ -236,4 +236,7 @@ bool nvgpu_gr_ctx_desc_force_preemption_gfxp(
 bool nvgpu_gr_ctx_desc_force_preemption_cilp(
 		struct nvgpu_gr_ctx_desc *gr_ctx_desc);
 
+bool nvgpu_gr_ctx_desc_dump_ctxsw_stats_on_channel_close(
+		struct nvgpu_gr_ctx_desc *gr_ctx_desc);
+
 #endif /* NVGPU_INCLUDE_GR_CTX_H */
