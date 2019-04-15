@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -194,6 +194,12 @@ nvgpu_alloc_carveout_from_co_entry(struct nvgpu_list_node *node)
 #define GPU_ALLOC_FORCE_CONTIG		BIT64(3)
 #define GPU_ALLOC_NO_SCATTER_GATHER	BIT64(4)
 
+enum nvgpu_allocator_type {
+	BUDDY_ALLOCATOR = 0,
+	PAGE_ALLOCATOR,
+	BITMAP_ALLOCATOR
+};
+
 static inline void alloc_lock(struct nvgpu_allocator *a)
 {
 	nvgpu_mutex_acquire(&a->lock);
@@ -225,6 +231,28 @@ int nvgpu_bitmap_allocator_init(struct gk20a *g, struct nvgpu_allocator *na,
 int nvgpu_page_allocator_init(struct gk20a *g, struct nvgpu_allocator *na,
 			      const char *name, u64 base, u64 length,
 			      u64 blk_size, u64 flags);
+
+/*
+ * Common init function for any type of allocator.
+ * Returns 0 on success.
+ *
+ * @g: GPU pointer
+ * @na: Pointer to nvgpu_allocator struct
+ * @vm: VM to be associated with an allocator. Can be NULL.
+ *	Applicable to buddy allocator only.
+ * @name: Name of the allocator.
+ * @base: Base address of the allocator.
+ * @length: Size of the allocator.
+ * @blk_size: Lowest size of resources that can be allocated.
+ * @max_order: Max order of resource slices that can be allocated.
+ * 	Applicable to buddy allocator only.
+ * @flags: Additional required flags.
+ * @alloc_type: Allocator type.
+ */
+int nvgpu_allocator_init(struct gk20a *g, struct nvgpu_allocator *na,
+			      struct vm_gk20a *vm, const char *name,
+			      u64 base, u64 length, u64 blk_size, u64 max_order,
+			      u64 flags, enum nvgpu_allocator_type alloc_type);
 
 /*
  * Lockless allocatior initializers.

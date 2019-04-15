@@ -38,8 +38,9 @@ void nvgpu_sec2_dmem_allocator_init(struct gk20a *g,
 			~(PMU_DMEM_ALLOC_ALIGNMENT - 1U);
 		u32 size = end - start;
 
-		nvgpu_bitmap_allocator_init(g, dmem, "sec2_dmem",
-			start, size, PMU_DMEM_ALLOC_ALIGNMENT, 0U);
+		nvgpu_allocator_init(g, dmem, NULL, "sec2_dmem", start,
+				size, PMU_DMEM_ALLOC_ALIGNMENT, 0ULL, 0ULL,
+				BITMAP_ALLOCATOR);
 	}
 }
 

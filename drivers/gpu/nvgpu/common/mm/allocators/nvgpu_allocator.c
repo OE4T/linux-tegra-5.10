@@ -1,7 +1,7 @@
 /*
  * gk20a allocator
  *
- * Copyright (c) 2011-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -177,4 +177,35 @@ int nvgpu_alloc_common_init(struct nvgpu_allocator *a, struct gk20a *g,
 	a->name[sizeof(a->name) - 1U] = '\0';
 
 	return 0;
+}
+
+/*
+ * Initialize requested type of allocator
+ */
+
+int nvgpu_allocator_init(struct gk20a *g, struct nvgpu_allocator *na,
+			      struct vm_gk20a *vm, const char *name,
+			      u64 base, u64 length, u64 blk_size, u64 max_order,
+			      u64 flags, enum nvgpu_allocator_type alloc_type)
+{
+	int err = -EINVAL;
+
+	switch (alloc_type) {
+	case BUDDY_ALLOCATOR:
+		err = nvgpu_buddy_allocator_init(g, na, vm, name, base, length,
+						blk_size, max_order, flags);
+		break;
+	case PAGE_ALLOCATOR:
+		err = nvgpu_page_allocator_init(g, na, name, base, length,
+							blk_size, flags);
+		break;
+	case BITMAP_ALLOCATOR:
+		err = nvgpu_bitmap_allocator_init(g, na, name, base, length,
+							blk_size, flags);
+		break;
+	default:
+		nvgpu_err(g, "Incorrect allocator type, couldn't initialize");
+		break;
+	}
+	return err;
 }

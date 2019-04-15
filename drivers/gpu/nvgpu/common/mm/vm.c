@@ -441,14 +441,15 @@ int nvgpu_vm_do_init(struct mm_gk20a *mm,
 	if (user_vma_start < user_vma_limit) {
 		(void) snprintf(alloc_name, sizeof(alloc_name), "gk20a_%s",
 			name);
-		err = nvgpu_buddy_allocator_init(g, &vm->user,
+		err = nvgpu_allocator_init(g, &vm->user,
 						 vm, alloc_name,
 						 user_vma_start,
 						 user_vma_limit -
 						 user_vma_start,
 						 SZ_4K,
 						 GPU_BALLOC_MAX_ORDER,
-						 GPU_ALLOC_GVA_SPACE);
+						 GPU_ALLOC_GVA_SPACE,
+						 BUDDY_ALLOCATOR);
 		if (err != 0) {
 			goto clean_up_page_tables;
 		}
@@ -468,14 +469,15 @@ int nvgpu_vm_do_init(struct mm_gk20a *mm,
 	if (user_lp_vma_start < user_lp_vma_limit) {
 		(void) snprintf(alloc_name, sizeof(alloc_name), "gk20a_%s_lp",
 			name);
-		err = nvgpu_buddy_allocator_init(g, &vm->user_lp,
+		err = nvgpu_allocator_init(g, &vm->user_lp,
 						 vm, alloc_name,
 						 user_lp_vma_start,
 						 user_lp_vma_limit -
 						 user_lp_vma_start,
 						 vm->big_page_size,
 						 GPU_BALLOC_MAX_ORDER,
-						 GPU_ALLOC_GVA_SPACE);
+						 GPU_ALLOC_GVA_SPACE,
+						 BUDDY_ALLOCATOR);
 		if (err != 0) {
 			goto clean_up_allocators;
 		}
@@ -485,13 +487,14 @@ int nvgpu_vm_do_init(struct mm_gk20a *mm,
 	 * Kernel VMA. Must always exist for an address space.
 	 */
 	(void) snprintf(alloc_name, sizeof(alloc_name), "gk20a_%s-sys", name);
-	err = nvgpu_buddy_allocator_init(g, &vm->kernel,
+	err = nvgpu_allocator_init(g, &vm->kernel,
 					 vm, alloc_name,
 					 kernel_vma_start,
 					 kernel_vma_limit - kernel_vma_start,
 					 SZ_4K,
 					 GPU_BALLOC_MAX_ORDER,
-					 kernel_vma_flags);
+					 kernel_vma_flags,
+					 BUDDY_ALLOCATOR);
 	if (err != 0) {
 		goto clean_up_allocators;
 	}

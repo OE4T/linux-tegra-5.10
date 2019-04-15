@@ -339,16 +339,14 @@ int nvgpu_vidmem_init(struct mm_gk20a *mm)
 	 * initialization requires vidmem but we want to use the CE to zero
 	 * out vidmem before allocating it...
 	 */
-	err = nvgpu_page_allocator_init(g, &g->mm.vidmem.bootstrap_allocator,
-					"vidmem-bootstrap",
-					bootstrap_base, bootstrap_size,
-					SZ_4K, GPU_ALLOC_FORCE_CONTIG);
+	err = nvgpu_allocator_init(g, &g->mm.vidmem.bootstrap_allocator,
+				NULL, "vidmem-bootstrap", bootstrap_base,
+				bootstrap_size,	SZ_4K, 0ULL,
+				GPU_ALLOC_FORCE_CONTIG, PAGE_ALLOCATOR);
 
-	err = nvgpu_page_allocator_init(g, &g->mm.vidmem.allocator,
-					"vidmem",
-					base, size - base,
-					default_page_size,
-					GPU_ALLOC_4K_VIDMEM_PAGES);
+	err = nvgpu_allocator_init(g, &g->mm.vidmem.allocator, NULL,
+			"vidmem", base, size - base, default_page_size, 0ULL,
+			GPU_ALLOC_4K_VIDMEM_PAGES, PAGE_ALLOCATOR);
 	if (err != 0) {
 		nvgpu_err(g, "Failed to register vidmem for size %zu: %d",
 				size, err);
