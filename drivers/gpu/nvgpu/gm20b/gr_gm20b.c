@@ -41,6 +41,7 @@
 #include <nvgpu/engine_status.h>
 
 #include "gk20a/gr_gk20a.h"
+#include "common/gr/gr_priv.h"
 
 #include "gr_gm20b.h"
 

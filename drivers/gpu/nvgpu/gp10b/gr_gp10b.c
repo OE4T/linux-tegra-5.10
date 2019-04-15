@@ -48,9 +48,10 @@
 #include <nvgpu/engine_status.h>
 
 #include "gk20a/gr_gk20a.h"
-
 #include "gm20b/gr_gm20b.h"
 #include "gp10b/gr_gp10b.h"
+
+#include "common/gr/gr_priv.h"
 
 #include <nvgpu/hw/gp10b/hw_gr_gp10b.h>
 #include <nvgpu/hw/gp10b/hw_fifo_gp10b.h>

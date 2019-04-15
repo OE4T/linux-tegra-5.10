@@ -30,6 +30,8 @@
 #include <nvgpu/channel.h>
 #include <nvgpu/tsg.h>
 
+#include "common/gr/gr_priv.h"
+
 #include "gv11b/fifo_gv11b.h"
 #include "platform_gk20a.h"
 #include "ioctl_tsg.h"

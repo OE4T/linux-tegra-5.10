@@ -30,6 +30,7 @@
 #include <nvgpu/gr/gr.h>
 #include <nvgpu/gr/gr_intr.h>
 #include <nvgpu/gr/config.h>
+#include "common/gr/gr_priv.h"
 
 static int gr_intr_handle_tpc_exception(struct gk20a *g, u32 gpc, u32 tpc,
 		bool *post_event, struct channel_gk20a *fault_ch,

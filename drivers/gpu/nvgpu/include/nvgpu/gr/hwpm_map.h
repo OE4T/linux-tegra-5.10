@@ -27,6 +27,7 @@
 
 struct gk20a;
 struct ctxsw_buf_offset_map_entry;
+struct nvgpu_gr_config;
 
 struct nvgpu_gr_hwpm_map {
 	u32 pm_ctxsw_image_size;
@@ -46,6 +47,6 @@ u32 nvgpu_gr_hwpm_map_get_size(struct nvgpu_gr_hwpm_map *hwpm_map);
 
 int nvgpu_gr_hwmp_map_find_priv_offset(struct gk20a *g,
 	struct nvgpu_gr_hwpm_map *hwpm_map,
-	u32 addr, u32 *priv_offset);
+	u32 addr, u32 *priv_offset, struct nvgpu_gr_config *config);
 
 #endif /* NVGPU_GR_HWPM_MAP_H */

@@ -29,6 +29,8 @@
 #include <nvgpu/power_features/pg.h>
 #include <nvgpu/pmu/pmu_perfmon.h>
 
+#include "common/gr/gr_priv.h"
+
 #include "os_linux.h"
 #include "sysfs.h"
 #include "platform_gk20a.h"

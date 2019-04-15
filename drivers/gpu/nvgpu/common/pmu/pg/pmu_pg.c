@@ -32,6 +32,8 @@
 #include <nvgpu/pmu/cmd.h>
 #include <nvgpu/dma.h>
 
+#include "common/gr/gr_priv.h"
+
 /* state transition :
  * OFF => [OFF_ON_PENDING optional] => ON_PENDING => ON => OFF
  * ON => OFF is always synchronized

@@ -52,6 +52,7 @@
 #include <nvgpu/fifo/userd.h>
 #include <nvgpu/fence.h>
 
+#include "common/gr/gr_priv.h"
 #include "gk20a/gr_gk20a.h"
 
 static void free_channel(struct fifo_gk20a *f, struct channel_gk20a *ch);

@@ -27,6 +27,7 @@
 #include <nvgpu/string.h>
 #include <nvgpu/bug.h>
 #include <nvgpu/gr/gr_falcon.h>
+#include "common/gr/gr_priv.h"
 
 #include "acr_blob_construct_v0.h"
 #include "acr_falcon_bl.h"

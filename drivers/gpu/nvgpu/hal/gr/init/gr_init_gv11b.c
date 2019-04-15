@@ -30,6 +30,7 @@
 #include <nvgpu/netlist.h>
 
 #include <nvgpu/gr/config.h>
+#include "common/gr/gr_priv.h"
 
 #include "gr_init_gm20b.h"
 #include "gr_init_gv11b.h"

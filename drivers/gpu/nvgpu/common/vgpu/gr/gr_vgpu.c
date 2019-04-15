@@ -58,6 +58,7 @@
 #include "common/gr/ctx_priv.h"
 #include "common/gr/zcull_priv.h"
 #include "common/gr/zbc_priv.h"
+#include "common/gr/gr_priv.h"
 
 static int vgpu_gr_set_ctxsw_preemption_mode(struct gk20a *g,
 				struct nvgpu_gr_ctx *gr_ctx,

@@ -36,6 +36,8 @@
 #include <nvgpu/gr/fecs_trace.h>
 #include <nvgpu/power_features/cg.h>
 
+#include "gr_priv.h"
+
 static int gr_alloc_global_ctx_buffers(struct gk20a *g)
 {
 	struct nvgpu_gr *gr = g->gr;

@@ -50,6 +50,8 @@
 #include <nvgpu/channel.h>
 #include <nvgpu/gr/gr.h>
 
+#include "common/gr/gr_priv.h"
+
 #include "platform_gk20a.h"
 #include "sysfs.h"
 #include "vgpu/vgpu_linux.h"

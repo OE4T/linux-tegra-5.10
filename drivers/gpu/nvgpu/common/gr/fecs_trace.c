@@ -33,6 +33,8 @@
 #include <nvgpu/gr/subctx.h>
 #include <nvgpu/gr/fecs_trace.h>
 
+#include "common/gr/gr_priv.h"
+
 #ifdef CONFIG_GK20A_CTXSW_TRACE
 
 static int nvgpu_gr_fecs_trace_periodic_polling(void *arg);

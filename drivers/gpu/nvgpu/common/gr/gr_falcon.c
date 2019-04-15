@@ -36,6 +36,7 @@
 #include <nvgpu/dma.h>
 
 #include "gr_falcon_priv.h"
+#include "common/gr/gr_priv.h"
 
 #define NVGPU_FECS_UCODE_IMAGE	"fecs.bin"
 #define NVGPU_GPCCS_UCODE_IMAGE	"gpccs.bin"

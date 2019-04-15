@@ -23,6 +23,7 @@
  */
 
 #include "gk20a/gr_gk20a.h"
+#include "common/gr/gr_priv.h"
 
 #include <nvgpu/log.h>
 #include <nvgpu/bsearch.h>

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 NVIDIA Corporation.  All rights reserved.
+ * Copyright (C) 2017-2019 NVIDIA Corporation.  All rights reserved.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -12,9 +12,11 @@
  *
  */
 
+#include <nvgpu/gk20a.h>
 #include <nvgpu/gr/ctx.h>
 
 #include "common/gr/ctx_priv.h"
+#include "common/gr/gr_priv.h"
 
 #include "debug_gr.h"
 #include "os_linux.h"

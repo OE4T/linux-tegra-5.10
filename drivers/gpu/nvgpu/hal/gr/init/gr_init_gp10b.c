@@ -30,6 +30,8 @@
 #include <nvgpu/gr/config.h>
 #include <nvgpu/gr/gr.h>
 
+#include "common/gr/gr_priv.h"
+
 #include "gr_init_gm20b.h"
 #include "gr_init_gp10b.h"
 

@@ -29,6 +29,8 @@
 #include <nvgpu/gr/setup.h>
 #include <nvgpu/channel.h>
 
+#include "gr_priv.h"
+
 static int nvgpu_gr_setup_zcull(struct gk20a *g, struct channel_gk20a *c,
 				struct nvgpu_gr_ctx *gr_ctx)
 {

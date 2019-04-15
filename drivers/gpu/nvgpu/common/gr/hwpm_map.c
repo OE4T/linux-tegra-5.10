@@ -31,6 +31,7 @@
 
 /* needed for pri_is_ppc_addr_shared */
 #include "gk20a/gr_pri_gk20a.h"
+#include "gr_priv.h"
 
 #define NV_PCFG_BASE		0x00088000U
 #define NV_PERF_PMM_FBP_ROUTER_STRIDE 0x0200U
@@ -223,9 +224,10 @@ static int add_ctxsw_buffer_map_entries_subunits(
 
 static int add_ctxsw_buffer_map_entries_gpcs(struct gk20a *g,
 					struct ctxsw_buf_offset_map_entry *map,
-					u32 *count, u32 *offset, u32 max_cnt)
+					u32 *count, u32 *offset, u32 max_cnt,
+					struct nvgpu_gr_config *config)
 {
-	u32 num_gpcs = nvgpu_gr_config_get_gpc_count(g->gr->config);
+	u32 num_gpcs = nvgpu_gr_config_get_gpc_count(config);
 	u32 num_ppcs, num_tpcs, gpc_num, base;
 	u32 gpc_base = nvgpu_get_litter_value(g, GPU_LIT_GPC_BASE);
 	u32 gpc_stride = nvgpu_get_litter_value(g, GPU_LIT_GPC_STRIDE);
@@ -235,7 +237,7 @@ static int add_ctxsw_buffer_map_entries_gpcs(struct gk20a *g,
 	u32 tpc_in_gpc_stride = nvgpu_get_litter_value(g, GPU_LIT_TPC_IN_GPC_STRIDE);
 
 	for (gpc_num = 0; gpc_num < num_gpcs; gpc_num++) {
-		num_tpcs = nvgpu_gr_config_get_gpc_tpc_count(g->gr->config, gpc_num);
+		num_tpcs = nvgpu_gr_config_get_gpc_tpc_count(config, gpc_num);
 		base = gpc_base + (gpc_stride * gpc_num) + tpc_in_gpc_base;
 		if (add_ctxsw_buffer_map_entries_subunits(map,
 					nvgpu_netlist_get_pm_tpc_ctxsw_regs(g),
@@ -245,7 +247,7 @@ static int add_ctxsw_buffer_map_entries_gpcs(struct gk20a *g,
 			return -EINVAL;
 		}
 
-		num_ppcs = nvgpu_gr_config_get_gpc_ppc_count(g->gr->config, gpc_num);
+		num_ppcs = nvgpu_gr_config_get_gpc_ppc_count(config, gpc_num);
 		base = gpc_base + (gpc_stride * gpc_num) + ppc_in_gpc_base;
 		if (add_ctxsw_buffer_map_entries_subunits(map,
 					nvgpu_netlist_get_pm_ppc_ctxsw_regs(g),
@@ -368,7 +370,7 @@ static int add_ctxsw_buffer_map_entries_gpcs(struct gk20a *g,
  */
 
 static int nvgpu_gr_hwpm_map_create(struct gk20a *g,
-	struct nvgpu_gr_hwpm_map *hwpm_map)
+	struct nvgpu_gr_hwpm_map *hwpm_map, struct nvgpu_gr_config *config)
 {
 	u32 hwpm_ctxsw_buffer_size = hwpm_map->pm_ctxsw_image_size;
 	struct ctxsw_buf_offset_map_entry *map;
@@ -485,7 +487,7 @@ static int nvgpu_gr_hwpm_map_create(struct gk20a *g,
 
 	/* Add GPC entries */
 	if (add_ctxsw_buffer_map_entries_gpcs(g, map, &count, &offset,
-			hwpm_ctxsw_reg_count_max) != 0) {
+			hwpm_ctxsw_reg_count_max, config) != 0) {
 		goto cleanup;
 	}
 
@@ -520,7 +522,7 @@ cleanup:
  */
 int nvgpu_gr_hwmp_map_find_priv_offset(struct gk20a *g,
 	struct nvgpu_gr_hwpm_map *hwpm_map,
-	u32 addr, u32 *priv_offset)
+	u32 addr, u32 *priv_offset, struct nvgpu_gr_config *config)
 {
 	struct ctxsw_buf_offset_map_entry *map, *result, map_key;
 	int err = 0;
@@ -530,7 +532,7 @@ int nvgpu_gr_hwmp_map_find_priv_offset(struct gk20a *g,
 
 	/* Create map of pri address and pm offset if necessary */
 	if (!hwpm_map->init) {
-		err = nvgpu_gr_hwpm_map_create(g, hwpm_map);
+		err = nvgpu_gr_hwpm_map_create(g, hwpm_map, config);
 		if (err != 0) {
 			return err;
 		}

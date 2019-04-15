@@ -30,6 +30,7 @@
 #include <nvgpu/string.h>
 
 #include "gk20a/gr_gk20a.h"
+#include "common/gr/gr_priv.h"
 
 #include "platform_gk20a.h"
 #include "os_linux.h"

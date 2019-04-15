@@ -40,6 +40,7 @@
 #include "common/vgpu/mm/mm_vgpu.h"
 #include "common/vgpu/gr/gr_vgpu.h"
 #include "common/vgpu/ivc/comm_vgpu.h"
+#include "common/gr/gr_priv.h"
 
 u64 vgpu_connect(void)
 {

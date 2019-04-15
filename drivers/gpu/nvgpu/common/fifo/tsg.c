@@ -34,6 +34,8 @@
 #include <nvgpu/gr/ctx.h>
 #include <nvgpu/runlist.h>
 
+#include "common/gr/gr_priv.h"
+
 #include "gk20a/gr_gk20a.h"
 
 void nvgpu_tsg_disable(struct tsg_gk20a *tsg)

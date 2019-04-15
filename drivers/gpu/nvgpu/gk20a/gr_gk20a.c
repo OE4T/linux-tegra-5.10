@@ -64,6 +64,8 @@
 #include "gr_gk20a.h"
 #include "gr_pri_gk20a.h"
 
+#include "common/gr/gr_priv.h"
+
 #include <nvgpu/hw/gk20a/hw_fifo_gk20a.h>
 #include <nvgpu/hw/gk20a/hw_gr_gk20a.h>
 
@@ -870,7 +872,7 @@ int gr_gk20a_get_pm_ctx_buffer_offsets(struct gk20a *g,
 	for (i = 0; i < num_registers; i++) {
 		err = nvgpu_gr_hwmp_map_find_priv_offset(g, g->gr->hwpm_map,
 						  priv_registers[i],
-						  &priv_offset);
+						  &priv_offset, gr->config);
 		if (err != 0) {
 			nvgpu_log_fn(g, "Could not determine priv_offset for addr:0x%x",
 				      addr); /*, grPriRegStr(addr)));*/

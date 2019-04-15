@@ -40,6 +40,8 @@
 #include <nvgpu/power_features/pg.h>
 #include <nvgpu/fence.h>
 
+#include "common/gr/gr_priv.h"
+
 #include "ioctl_ctrl.h"
 #include "ioctl_dbg.h"
 #include "ioctl_as.h"

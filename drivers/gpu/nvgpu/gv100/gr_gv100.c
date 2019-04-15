@@ -32,6 +32,7 @@
 
 #include "gk20a/gr_gk20a.h"
 #include "gk20a/gr_pri_gk20a.h"
+#include "common/gr/gr_priv.h"
 
 #include "gv100/gr_gv100.h"
 

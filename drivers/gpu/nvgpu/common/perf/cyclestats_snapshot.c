@@ -39,6 +39,8 @@
 #include <nvgpu/gk20a.h>
 #include <nvgpu/cyclestats_snapshot.h>
 
+#include "common/gr/gr_priv.h"
+
 /* check client for pointed perfmon ownership */
 #define CONTAINS_PERFMON(cl, pm)				\
 		((cl)->perfmon_start <= (pm) &&			\
