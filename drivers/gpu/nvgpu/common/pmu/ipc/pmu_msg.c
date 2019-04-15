@@ -27,7 +27,6 @@
 #include <nvgpu/string.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/pmu/volt.h>
-#include <nvgpu/pmu/therm.h>
 #include <nvgpu/pmu/lsfm.h>
 #include <nvgpu/pmu/super_surface.h>
 #include <nvgpu/pmu/pmu_perfmon.h>
@@ -571,7 +570,9 @@ void nvgpu_pmu_rpc_handler(struct gk20a *g, struct pmu_msg *msg,
 		nvgpu_pmu_dbg(g, "reply PMU_UNIT_PERF");
 		break;
 	case PMU_UNIT_THERM:
-		nvgpu_pmu_therm_rpc_handler(g, &rpc);
+		if (pmu->therm_rpc_handler != NULL) {
+			pmu->therm_rpc_handler(g, &rpc);
+		}
 		break;
 	default:
 		nvgpu_err(g, " Invalid RPC response, stats 0x%x",

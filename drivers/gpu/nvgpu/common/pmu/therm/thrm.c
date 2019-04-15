@@ -46,6 +46,8 @@ int nvgpu_therm_domain_sw_setup(struct gk20a *g)
 		goto exit;
 	}
 
+	g->pmu.therm_rpc_handler = nvgpu_pmu_therm_rpc_handler;
+
 exit:
 	return status;
 }

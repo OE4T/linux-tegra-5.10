@@ -241,6 +241,8 @@ struct nvgpu_pmu {
 	struct nvgpu_pmu_perfmon *pmu_perfmon;
 
 	void (*remove_support)(struct nvgpu_pmu *pmu);
+	void (*therm_rpc_handler)(struct gk20a *g,
+			struct nv_pmu_rpc_header *rpc);
 	bool sw_ready;
 
 	struct nvgpu_mutex isr_mutex;
