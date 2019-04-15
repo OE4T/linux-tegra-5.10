@@ -63,6 +63,8 @@ struct atomic_thread_info {
 	long unless;
 };
 
+static pthread_barrier_t thread_barrier;
+
 /*
  * Define macros for atomic ops that have 32b and 64b versions so we can
  * keep the code cleaner.
@@ -328,6 +330,8 @@ static void *arithmetic_thread(void *__args)
 	struct atomic_thread_info *targs = (struct atomic_thread_info *)__args;
 	int i;
 
+	pthread_barrier_wait(&thread_barrier);
+
 	for (i = 0; i < targs->margs->loop_count; i++) {
 		if (targs->margs->op == op_inc) {
 			ATOMIC_INC(targs->margs->width, targs->atomic);
@@ -443,13 +447,16 @@ static int test_atomic_arithmetic_threaded(struct unit_module *m,
 	struct atomic_thread_info threads[num_threads];
 	int i;
 	long expected_val, val, expected_iterations;
+	int ret = UNIT_SUCCESS;
 
 	if (single_set_and_read(m, &atomic, args->width, args->start_val)
 							!= UNIT_SUCCESS) {
 		return UNIT_FAIL;
 	}
 
-	/* setup threads */
+	pthread_barrier_init(&thread_barrier, NULL, num_threads);
+
+	/* setup and start threads */
 	for (i = 0; i < num_threads; i++) {
 		threads[i].atomic = &atomic;
 		threads[i].margs = args;
@@ -458,14 +465,6 @@ static int test_atomic_arithmetic_threaded(struct unit_module *m,
 		/* For add_unless, add until we hit half the iterations */
 		threads[i].unless = args->start_val +
 				(num_threads * args->loop_count / 2);
-	}
-	/*
-	 * start threads - This is done separately to try to increase
-	 * parallelism of the threads by starting them as closely together
-	 * as possible. It is also done in reverse to avoid compiler
-	 * optimization.
-	 */
-	for (i = (num_threads - 1); i >= 0; i--) {
 		pthread_create(&threads[i].thread, NULL, arithmetic_thread,
 				&threads[i]);
 	}
@@ -490,7 +489,8 @@ static int test_atomic_arithmetic_threaded(struct unit_module *m,
 						args->value;
 			if (!correct_thread_iteration_count(m, threads,
 					num_threads, expected_iterations)) {
-				return  UNIT_FAIL;
+				ret = UNIT_FAIL;
+				goto exit;
 			}
 			expected_val = threads[0].unless;
 			break;
@@ -504,7 +504,8 @@ static int test_atomic_arithmetic_threaded(struct unit_module *m,
 			 */
 			if (!correct_thread_iteration_count(m, threads,
 				num_threads, 1)) {
-				return  UNIT_FAIL;
+				ret = UNIT_FAIL;
+				goto exit;
 			}
 			/* fall through! */
 
@@ -518,22 +519,25 @@ static int test_atomic_arithmetic_threaded(struct unit_module *m,
 			break;
 
 		default:
-			unit_return_fail(m, "Test error: invalid op in %s\n",
-					__func__);
-
+			unit_err(m, "Test error: invalid op in %s\n", __func__);
+			ret = UNIT_FAIL;
+			goto exit;
 	}
 
 	/* sanity check */
 	if ((args->width == WIDTH_32) &&
 	    ((expected_val > INT_MAX) || (expected_val < INT_MIN))) {
-		unit_return_fail(m, "Test error: invalid value in %s\n",
-				__func__);
+		unit_err(m, "Test error: invalid value in %s\n", __func__);
+		ret = UNIT_FAIL;
+		goto exit;
 	}
 
 	if (val != expected_val) {
-		unit_return_fail(m, "threaded value incorrect "
-				"expected: %ld result: %ld\n",
+		unit_err(m, "threaded value incorrect expected: %ld "
+				"result: %ld\n",
 				expected_val, val);
+		ret = UNIT_FAIL;
+		goto exit;
 	}
 
 	if (args->op == op_add) {
@@ -547,12 +551,16 @@ static int test_atomic_arithmetic_threaded(struct unit_module *m,
 			}
 		}
 		if (sequential) {
-			unit_return_fail(m, "threads appear to have run "
-					 "sequentially!\n");
+			unit_err(m, "threads appear to have run "
+					"sequentially!\n");
+			ret = UNIT_FAIL;
+			goto exit;
 		}
 	}
 
-	return UNIT_SUCCESS;
+exit:
+	pthread_barrier_destroy(&thread_barrier);
+	return ret;
 }
 
 /*
