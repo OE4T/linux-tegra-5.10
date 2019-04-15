@@ -348,7 +348,6 @@ nvgpu-$(CONFIG_DEBUG_FS) += \
 	os/linux/debug_allocator.o \
 	os/linux/debug_hal.o \
 	os/linux/debug_clk_gm20b.o \
-	os/linux/debug_clk_gp106.o \
 	os/linux/debug_therm_gp106.o \
 	os/linux/debug_bios.o \
 	os/linux/debug_ltc.o \
@@ -565,5 +564,4 @@ nvgpu-y += \
 	tu104/gr_tu104.o \
 	tu104/func_tu104.o \
 	tu104/bios_tu104.o \
-	tu104/fbpa_tu104.o \
-	gp106/clk_gp106.o
+	tu104/fbpa_tu104.o
