@@ -849,8 +849,7 @@ int nvadsp_os_load(void)
 
 	if (!priv.pdev) {
 		pr_err("ADSP Driver is not initialized\n");
-		ret = -EINVAL;
-		goto end;
+		return -EINVAL;
 	}
 
 	mutex_lock(&priv.fw_load_lock);
