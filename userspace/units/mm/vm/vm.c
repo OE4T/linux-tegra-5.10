@@ -133,12 +133,12 @@ static int init_test_env(struct unit_module *m, struct gk20a *g)
 	g->ops.fb.compression_page_size = gp10b_fb_compression_page_size;
 	g->ops.fb.tlb_invalidate = gm20b_fb_tlb_invalidate;
 
-	g->ops.mm.get_default_big_page_size =
+	g->ops.mm.gmmu.get_default_big_page_size =
 					gp10b_mm_get_default_big_page_size;
-	g->ops.mm.get_mmu_levels = gp10b_mm_get_mmu_levels;
-	g->ops.mm.gmmu_map = nvgpu_gmmu_map_locked;
-	g->ops.mm.gmmu_unmap = nvgpu_gmmu_unmap_locked;
-	g->ops.mm.gpu_phys_addr = gv11b_gpu_phys_addr;
+	g->ops.mm.gmmu.get_mmu_levels = gp10b_mm_get_mmu_levels;
+	g->ops.mm.gmmu.map = nvgpu_gmmu_map_locked;
+	g->ops.mm.gmmu.unmap = nvgpu_gmmu_unmap_locked;
+	g->ops.mm.gmmu.gpu_phys_addr = gv11b_gpu_phys_addr;
 	g->ops.mm.cache.l2_flush = gv11b_mm_l2_flush;
 	g->ops.mm.cache.fb_flush = gk20a_mm_fb_flush;
 
@@ -388,7 +388,7 @@ static int test_map_buf(struct unit_module *m, struct gk20a *g, void *__args)
 	unit_info(m, "   - Kernel Reserved Size = 0x%llx\n", kernel_reserved);
 	unit_info(m, "   - Total Aperture Size = 0x%llx\n", aperture_size);
 	vm = nvgpu_vm_init(g,
-			   g->ops.mm.get_default_big_page_size(),
+			   g->ops.mm.gmmu.get_default_big_page_size(),
 			   low_hole,
 			   kernel_reserved,
 			   aperture_size,
@@ -524,7 +524,7 @@ static int test_map_buf_gpu_va(struct unit_module *m,
 	unit_info(m, "   - Kernel Reserved Size = 0x%llx\n", kernel_reserved);
 	unit_info(m, "   - Total Aperture Size = 0x%llx\n", aperture_size);
 	vm = nvgpu_vm_init(g,
-			   g->ops.mm.get_default_big_page_size(),
+			   g->ops.mm.gmmu.get_default_big_page_size(),
 			   low_hole,
 			   kernel_reserved,
 			   aperture_size,

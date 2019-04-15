@@ -34,6 +34,8 @@
 #include "gm20b/mm_gm20b.h"
 #include "mm_gp10b.h"
 
+#include "hal/mm/gmmu/gmmu_gk20a.h"
+
 #include <nvgpu/hw/gp10b/hw_gmmu_gp10b.h>
 
 u32 gp10b_mm_get_default_big_page_size(void)
@@ -51,7 +53,7 @@ int gp10b_init_bar2_vm(struct gk20a *g)
 	int err;
 	struct mm_gk20a *mm = &g->mm;
 	struct nvgpu_mem *inst_block = &mm->bar2.inst_block;
-	u32 big_page_size = g->ops.mm.get_default_big_page_size();
+	u32 big_page_size = g->ops.mm.gmmu.get_default_big_page_size();
 
 	/* BAR2 aperture size is 32MB */
 	mm->bar2.aperture_size = U32(32) << 20U;

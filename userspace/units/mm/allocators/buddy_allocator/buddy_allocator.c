@@ -68,9 +68,9 @@ static struct vm_gk20a *init_vm_env(struct unit_module *m, struct gk20a *g,
 	/* Initialize vm */
 
 	/* Minimum HALs for vm_init */
-	g->ops.mm.get_default_big_page_size =
+	g->ops.mm.gmmu.get_default_big_page_size =
 		gp10b_mm_get_default_big_page_size;
-	g->ops.mm.get_mmu_levels = gp10b_mm_get_mmu_levels;
+	g->ops.mm.gmmu.get_mmu_levels = gp10b_mm_get_mmu_levels;
 
 	/* Minimum HAL init for PRAMIN */
 	g->ops.bus.set_bar0_window = gk20a_bus_set_bar0_window;
@@ -90,7 +90,7 @@ static struct vm_gk20a *init_vm_env(struct unit_module *m, struct gk20a *g,
 	flags |= GPU_ALLOC_GVA_SPACE;
 
 	/* Init vm with big_pages disabled */
-	test_vm = nvgpu_vm_init(g, g->ops.mm.get_default_big_page_size(),
+	test_vm = nvgpu_vm_init(g, g->ops.mm.gmmu.get_default_big_page_size(),
 				   low_hole,
 				   aperture_size - low_hole,
 				   aperture_size,

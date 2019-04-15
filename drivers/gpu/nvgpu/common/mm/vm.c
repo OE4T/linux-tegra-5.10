@@ -336,7 +336,8 @@ int nvgpu_vm_do_init(struct mm_gk20a *mm,
 	vm->big_page_size     = vm->gmmu_page_sizes[GMMU_PAGE_SIZE_BIG];
 	vm->userspace_managed = userspace_managed;
 	vm->unified_va        = unified_va;
-	vm->mmu_levels        = g->ops.mm.get_mmu_levels(g, vm->big_page_size);
+	vm->mmu_levels        =
+		g->ops.mm.gmmu.get_mmu_levels(g, vm->big_page_size);
 
 #ifdef CONFIG_TEGRA_GR_VIRTUALIZATION
 	if (g->is_virtual && userspace_managed) {
@@ -1068,7 +1069,7 @@ struct nvgpu_mapped_buf *nvgpu_vm_map(struct vm_gk20a *vm,
 		clear_ctags = gk20a_comptags_start_clear(os_buf);
 	}
 
-	map_addr = g->ops.mm.gmmu_map(vm,
+	map_addr = g->ops.mm.gmmu.map(vm,
 				      map_addr,
 				      sgt,
 				      phys_offset,
@@ -1123,7 +1124,7 @@ struct nvgpu_mapped_buf *nvgpu_vm_map(struct vm_gk20a *vm,
 
 clean_up:
 	if (mapped_buffer->addr != 0ULL) {
-		g->ops.mm.gmmu_unmap(vm,
+		g->ops.mm.gmmu.unmap(vm,
 				     mapped_buffer->addr,
 				     mapped_buffer->size,
 				     mapped_buffer->pgsz_idx,
@@ -1150,7 +1151,7 @@ static void nvgpu_vm_do_unmap(struct nvgpu_mapped_buf *mapped_buffer,
 	struct vm_gk20a *vm = mapped_buffer->vm;
 	struct gk20a *g = vm->mm->g;
 
-	g->ops.mm.gmmu_unmap(vm,
+	g->ops.mm.gmmu.unmap(vm,
 			     mapped_buffer->addr,
 			     mapped_buffer->size,
 			     mapped_buffer->pgsz_idx,

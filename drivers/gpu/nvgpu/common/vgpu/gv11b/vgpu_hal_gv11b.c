@@ -661,14 +661,7 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 		.is_fw_defined = gv11b_netlist_is_firmware_defined,
 	},
 	.mm = {
-		.gmmu_map = vgpu_locked_gmmu_map,
-		.gmmu_unmap = vgpu_locked_gmmu_unmap,
 		.vm_bind_channel = vgpu_vm_bind_channel,
-		.get_big_page_sizes = gm20b_mm_get_big_page_sizes,
-		.get_default_big_page_size = gp10b_mm_get_default_big_page_size,
-		.gpu_phys_addr = gm20b_gpu_phys_addr,
-		.get_iommu_bit = gk20a_mm_get_iommu_bit,
-		.get_mmu_levels = gp10b_mm_get_mmu_levels,
 		.init_mm_setup_hw = NULL,
 		.is_bar1_supported = gv11b_mm_is_bar1_supported,
 		.init_inst_block = gv11b_init_inst_block,
@@ -685,6 +678,16 @@ static const struct gpu_ops vgpu_gv11b_ops = {
 			.l2_invalidate = vgpu_mm_l2_invalidate,
 			.l2_flush = vgpu_mm_l2_flush,
 			.cbc_clean = NULL,
+		},
+		.gmmu = {
+			.map = vgpu_locked_gmmu_map,
+			.unmap = vgpu_locked_gmmu_unmap,
+			.get_big_page_sizes = gm20b_mm_get_big_page_sizes,
+			.get_default_big_page_size =
+				gp10b_mm_get_default_big_page_size,
+			.gpu_phys_addr = gm20b_gpu_phys_addr,
+			.get_iommu_bit = gk20a_mm_get_iommu_bit,
+			.get_mmu_levels = gp10b_mm_get_mmu_levels,
 		},
 	},
 	.therm = {

@@ -344,7 +344,7 @@ static int test_nvgpu_mem_iommu_translate(struct unit_module *m,
 	 * Case: mm is iommuable
 	 * Set HAL to enable iommu_translate
 	 */
-	g->ops.mm.get_iommu_bit = gp10b_mm_get_iommu_bit;
+	g->ops.mm.gmmu.get_iommu_bit = gp10b_mm_get_iommu_bit;
 
 	temp_phys = nvgpu_mem_iommu_translate(g, test_sgl->phys);
 	if (temp_phys == test_sgl->phys) {

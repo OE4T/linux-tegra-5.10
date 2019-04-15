@@ -237,7 +237,7 @@ static int nvgpu_init_system_vm(struct mm_gk20a *mm)
 	int err;
 	struct gk20a *g = gk20a_from_mm(mm);
 	struct nvgpu_mem *inst_block = &mm->pmu.inst_block;
-	u32 big_page_size = g->ops.mm.get_default_big_page_size();
+	u32 big_page_size = g->ops.mm.gmmu.get_default_big_page_size();
 	u64 low_hole, aperture_size;
 
 	/*
@@ -300,7 +300,7 @@ static int nvgpu_init_hwpm(struct mm_gk20a *mm)
 static int nvgpu_init_cde_vm(struct mm_gk20a *mm)
 {
 	struct gk20a *g = gk20a_from_mm(mm);
-	u32 big_page_size = g->ops.mm.get_default_big_page_size();
+	u32 big_page_size = g->ops.mm.gmmu.get_default_big_page_size();
 
 	mm->cde.vm = nvgpu_vm_init(g, big_page_size,
 				   U64(big_page_size) << U64(10),
@@ -316,7 +316,7 @@ static int nvgpu_init_cde_vm(struct mm_gk20a *mm)
 static int nvgpu_init_ce_vm(struct mm_gk20a *mm)
 {
 	struct gk20a *g = gk20a_from_mm(mm);
-	u32 big_page_size = g->ops.mm.get_default_big_page_size();
+	u32 big_page_size = g->ops.mm.gmmu.get_default_big_page_size();
 
 	mm->ce.vm = nvgpu_vm_init(g, big_page_size,
 				  U64(big_page_size) << U64(10),
@@ -396,7 +396,7 @@ static int nvgpu_init_bar1_vm(struct mm_gk20a *mm)
 	int err;
 	struct gk20a *g = gk20a_from_mm(mm);
 	struct nvgpu_mem *inst_block = &mm->bar1.inst_block;
-	u32 big_page_size = g->ops.mm.get_default_big_page_size();
+	u32 big_page_size = g->ops.mm.gmmu.get_default_big_page_size();
 
 	mm->bar1.aperture_size = bar1_aperture_size_mb_gk20a() << 20;
 	nvgpu_log_info(g, "bar1 vm size = 0x%x", mm->bar1.aperture_size);
@@ -429,7 +429,7 @@ static int nvgpu_init_engine_ucode_vm(struct gk20a *g,
 {
 	int err;
 	struct nvgpu_mem *inst_block = &ucode->inst_block;
-	u32 big_page_size = g->ops.mm.get_default_big_page_size();
+	u32 big_page_size = g->ops.mm.gmmu.get_default_big_page_size();
 
 	/* ucode aperture size is 32MB */
 	ucode->aperture_size = U32(32) << 20U;
@@ -621,7 +621,7 @@ u32 nvgpu_mm_get_default_big_page_size(struct gk20a *g)
 {
 	u32 big_page_size;
 
-	big_page_size = g->ops.mm.get_default_big_page_size();
+	big_page_size = g->ops.mm.gmmu.get_default_big_page_size();
 
 	if (g->mm.disable_bigpage) {
 		big_page_size = 0;
@@ -634,12 +634,12 @@ u32 nvgpu_mm_get_available_big_page_sizes(struct gk20a *g)
 {
 	u32 available_big_page_sizes = 0;
 
-	if (!g->mm.disable_bigpage) {
-		available_big_page_sizes =
-			g->ops.mm.get_default_big_page_size();
-		if (g->ops.mm.get_big_page_sizes != NULL) {
-			available_big_page_sizes |= g->ops.mm.get_big_page_sizes();
-		}
+	if (g->mm.disable_bigpage)
+		return available_big_page_sizes;
+
+	available_big_page_sizes = g->ops.mm.gmmu.get_default_big_page_size();
+	if (g->ops.mm.gmmu.get_big_page_sizes != NULL) {
+		available_big_page_sizes |= g->ops.mm.gmmu.get_big_page_sizes();
 	}
 
 	return available_big_page_sizes;

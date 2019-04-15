@@ -117,14 +117,14 @@ static int init_mm(struct unit_module *m, struct gk20a *g)
 	p->mm_is_iommuable = true;
 
 	/* Minimum HALs for page_table */
-	g->ops.mm.get_default_big_page_size =
+	g->ops.mm.gmmu.get_default_big_page_size =
 		gp10b_mm_get_default_big_page_size;
-	g->ops.mm.get_mmu_levels = gp10b_mm_get_mmu_levels;
+	g->ops.mm.gmmu.get_mmu_levels = gp10b_mm_get_mmu_levels;
 	g->ops.mm.alloc_inst_block = gk20a_alloc_inst_block;
 	g->ops.mm.init_inst_block = gv11b_init_inst_block;
-	g->ops.mm.gmmu_map = nvgpu_gmmu_map_locked;
-	g->ops.mm.gmmu_unmap = nvgpu_gmmu_unmap_locked;
-	g->ops.mm.gpu_phys_addr = gv11b_gpu_phys_addr;
+	g->ops.mm.gmmu.map = nvgpu_gmmu_map_locked;
+	g->ops.mm.gmmu.unmap = nvgpu_gmmu_unmap_locked;
+	g->ops.mm.gmmu.gpu_phys_addr = gv11b_gpu_phys_addr;
 	g->ops.fb.compression_page_size = gp10b_fb_compression_page_size;
 	g->ops.fb.tlb_invalidate = gm20b_fb_tlb_invalidate;
 	g->ops.ramin.init_pdb = gp10b_ramin_init_pdb;
@@ -179,7 +179,8 @@ static int init_mm(struct unit_module *m, struct gk20a *g)
 	aperture_size = GK20A_PMU_VA_SIZE;
 	mm->pmu.aperture_size = GK20A_PMU_VA_SIZE;
 
-	mm->pmu.vm = nvgpu_vm_init(g, g->ops.mm.get_default_big_page_size(),
+	mm->pmu.vm = nvgpu_vm_init(g,
+				   g->ops.mm.gmmu.get_default_big_page_size(),
 				   low_hole,
 				   aperture_size - low_hole,
 				   aperture_size,
@@ -193,7 +194,8 @@ static int init_mm(struct unit_module *m, struct gk20a *g)
 
 	/* BAR2 memory space */
 	mm->bar2.aperture_size = U32(32) << 20U;
-	mm->bar2.vm = nvgpu_vm_init(g, g->ops.mm.get_default_big_page_size(),
+	mm->bar2.vm = nvgpu_vm_init(g,
+		g->ops.mm.gmmu.get_default_big_page_size(),
 		SZ_4K, mm->bar2.aperture_size - SZ_4K,
 		mm->bar2.aperture_size, false, false, false, "bar2");
 	if (mm->bar2.vm == NULL) {
@@ -323,10 +325,10 @@ static int test_page_faults_inst_block(struct unit_module *m, struct gk20a *g,
 	/* Handle some corner cases */
 	if (scenario == 1) {
 		/* Init inst_block with large page size */
-		big_page_size = g->ops.mm.get_default_big_page_size();
+		big_page_size = g->ops.mm.gmmu.get_default_big_page_size();
 	} else if (scenario == 2) {
 		/* Handle branch case in gv11b_init_inst_block() */
-		big_page_size = g->ops.mm.get_default_big_page_size();
+		big_page_size = g->ops.mm.gmmu.get_default_big_page_size();
 		g->ops.ramin.set_big_page_size = NULL;
 	}
 

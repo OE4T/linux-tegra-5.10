@@ -169,7 +169,7 @@ int nvgpu_vm_area_alloc(struct vm_gk20a *vm, u32 pages, u32 page_size,
 	nvgpu_mutex_acquire(&vm->update_gmmu_lock);
 
 	if ((flags & NVGPU_VM_AREA_ALLOC_SPARSE) != 0U) {
-		u64 map_addr = g->ops.mm.gmmu_map(vm, vaddr_start,
+		u64 map_addr = g->ops.mm.gmmu.map(vm, vaddr_start,
 					 NULL,
 					 0,
 					 vm_area->size,
@@ -241,7 +241,7 @@ int nvgpu_vm_area_free(struct vm_gk20a *vm, u64 addr)
 
 	/* if this was a sparse mapping, free the va */
 	if (vm_area->sparse) {
-		g->ops.mm.gmmu_unmap(vm,
+		g->ops.mm.gmmu.unmap(vm,
 				     vm_area->addr,
 				     vm_area->size,
 				     vm_area->pgsz_idx,

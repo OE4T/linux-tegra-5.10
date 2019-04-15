@@ -327,7 +327,8 @@ gk20a_ctrl_ioctl_gpu_characteristics(
 
 	gpu.big_page_size = nvgpu_mm_get_default_big_page_size(g);
 	gpu.pde_coverage_bit_count =
-		g->ops.mm.get_mmu_levels(g, gpu.big_page_size)[0].lo_bit[0];
+		g->ops.mm.gmmu.get_mmu_levels(g,
+					gpu.big_page_size)[0].lo_bit[0];
 	gpu.available_big_page_sizes = nvgpu_mm_get_available_big_page_sizes(g);
 
 	gpu.sm_arch_sm_version = g->params.sm_arch_sm_version;

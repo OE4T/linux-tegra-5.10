@@ -91,15 +91,5 @@ void pde_range_from_vaddr_range(struct vm_gk20a *vm,
 					      u64 addr_lo, u64 addr_hi,
 					      u32 *pde_lo, u32 *pde_hi);
 u32 gk20a_mm_get_iommu_bit(struct gk20a *g);
-
-const struct gk20a_mmu_level *gk20a_mm_get_mmu_levels(struct gk20a *g,
-						      u32 big_page_size);
-extern const struct gk20a_mmu_level gk20a_mm_levels_64k[];
-extern const struct gk20a_mmu_level gk20a_mm_levels_128k[];
-
-u32 gk20a_get_pde_pgsz(struct gk20a *g, const struct gk20a_mmu_level *l,
-				struct nvgpu_gmmu_pd *pd, u32 pd_idx);
-u32 gk20a_get_pte_pgsz(struct gk20a *g, const struct gk20a_mmu_level *l,
-				struct nvgpu_gmmu_pd *pd, u32 pd_idx);
 u64 gk20a_mm_bar1_map_userd(struct gk20a *g, struct nvgpu_mem *mem, u32 offset);
 #endif /* MM_GK20A_H */

@@ -64,7 +64,7 @@ static int gk20a_vm_alloc_share(struct gk20a_as_share *as_share,
 	nvgpu_log_fn(g, " ");
 
 	if (big_page_size == 0U) {
-		big_page_size = g->ops.mm.get_default_big_page_size();
+		big_page_size = g->ops.mm.gmmu.get_default_big_page_size();
 	} else {
 		if (!is_power_of_2(big_page_size)) {
 			return -EINVAL;

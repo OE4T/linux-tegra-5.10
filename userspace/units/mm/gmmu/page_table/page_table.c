@@ -296,14 +296,14 @@ static int init_mm(struct unit_module *m, struct gk20a *g)
 
 	p->mm_is_iommuable = true;
 
-	g->ops.mm.get_default_big_page_size =
+	g->ops.mm.gmmu.get_default_big_page_size =
 		gp10b_mm_get_default_big_page_size;
-	g->ops.mm.get_mmu_levels = gp10b_mm_get_mmu_levels;
+	g->ops.mm.gmmu.get_mmu_levels = gp10b_mm_get_mmu_levels;
 	g->ops.mm.alloc_inst_block = gk20a_alloc_inst_block;
 	g->ops.mm.init_inst_block = gv11b_init_inst_block;
-	g->ops.mm.gmmu_map = nvgpu_gmmu_map_locked;
-	g->ops.mm.gmmu_unmap = nvgpu_gmmu_unmap_locked;
-	g->ops.mm.gpu_phys_addr = gv11b_gpu_phys_addr;
+	g->ops.mm.gmmu.map = nvgpu_gmmu_map_locked;
+	g->ops.mm.gmmu.unmap = nvgpu_gmmu_unmap_locked;
+	g->ops.mm.gmmu.gpu_phys_addr = gv11b_gpu_phys_addr;
 	g->ops.mm.is_bar1_supported = gv11b_mm_is_bar1_supported;
 	g->ops.mm.cache.l2_flush = gv11b_mm_l2_flush;
 	g->ops.mm.cache.fb_flush = gk20a_mm_fb_flush;
@@ -329,7 +329,8 @@ static int init_mm(struct unit_module *m, struct gk20a *g)
 	mm->channel.kernel_size = NV_MM_DEFAULT_KERNEL_SIZE;
 
 
-	mm->pmu.vm = nvgpu_vm_init(g, g->ops.mm.get_default_big_page_size(),
+	mm->pmu.vm = nvgpu_vm_init(g,
+				   g->ops.mm.gmmu.get_default_big_page_size(),
 				   low_hole,
 				   aperture_size - low_hole,
 				   aperture_size,
@@ -729,7 +730,7 @@ static struct nvgpu_sgt *custom_sgt_create(struct unit_module *m,
 }
 
 /*
- * Helper function to wrap calls to g->ops.mm.gmmu_map and thus giving
+ * Helper function to wrap calls to g->ops.mm.gmmu.map and thus giving
  * access to more parameters
  */
 static u64 gmmu_map_advanced(struct unit_module *m, struct gk20a *g,
@@ -755,7 +756,7 @@ static u64 gmmu_map_advanced(struct unit_module *m, struct gk20a *g,
 
 	nvgpu_mutex_acquire(&vm->update_gmmu_lock);
 
-	vaddr = g->ops.mm.gmmu_map(vm, (u64) mem->cpu_va,
+	vaddr = g->ops.mm.gmmu.map(vm, (u64) mem->cpu_va,
 				   sgt,
 				   offset,
 				   mem->size,
@@ -775,7 +776,7 @@ static u64 gmmu_map_advanced(struct unit_module *m, struct gk20a *g,
 }
 
 /*
- * Helper function to wrap calls to g->ops.mm.gmmu_unmap and thus giving
+ * Helper function to wrap calls to g->ops.mm.gmmu.unmap and thus giving
  * access to more parameters
  */
 static void gmmu_unmap_advanced(struct vm_gk20a *vm, struct nvgpu_mem *mem,
@@ -786,7 +787,7 @@ static void gmmu_unmap_advanced(struct vm_gk20a *vm, struct nvgpu_mem *mem,
 
 	nvgpu_mutex_acquire(&vm->update_gmmu_lock);
 
-	g->ops.mm.gmmu_unmap(vm,
+	g->ops.mm.gmmu.unmap(vm,
 			     gpu_va,
 			     mem->size,
 			     params->page_size,
@@ -973,9 +974,9 @@ static struct vm_gk20a *init_test_req_vm(struct gk20a *g)
 	/* 1.4. Have a 4GB kernel reserved space */
 	kernel_reserved = 4 * SZ_1G;
 
-	return nvgpu_vm_init(g, g->ops.mm.get_default_big_page_size(), low_hole,
-			kernel_reserved - low_hole, aperture_size, big_pages,
-			true, true, "testmem");
+	return nvgpu_vm_init(g, g->ops.mm.gmmu.get_default_big_page_size(),
+			     low_hole, kernel_reserved - low_hole,
+			     aperture_size, big_pages, true, true, "testmem");
 }
 
 /* Test case to cover NVGPU-RQCD-45 C1 */

@@ -1348,42 +1348,12 @@ struct gpu_ops {
 		bool (*is_fw_defined)(void);
 	} netlist;
 	struct {
-		u64 (*gmmu_map)(struct vm_gk20a *vm,
-				u64 map_offset,
-				struct nvgpu_sgt *sgt,
-				u64 buffer_offset,
-				u64 size,
-				u32 pgsz_idx,
-				u8 kind_v,
-				u32 ctag_offset,
-				u32 flags,
-				enum gk20a_mem_rw_flag rw_flag,
-				bool clear_ctags,
-				bool sparse,
-				bool priv,
-				struct vm_gk20a_mapping_batch *batch,
-				enum nvgpu_aperture aperture);
-		void (*gmmu_unmap)(struct vm_gk20a *vm,
-				u64 vaddr,
-				u64 size,
-				u32 pgsz_idx,
-				bool va_allocated,
-				enum gk20a_mem_rw_flag rw_flag,
-				bool sparse,
-				struct vm_gk20a_mapping_batch *batch);
 		int (*vm_bind_channel)(struct vm_gk20a *vm,
 				struct channel_gk20a *ch);
-		u32 (*get_big_page_sizes)(void);
-		u32 (*get_default_big_page_size)(void);
-		u32 (*get_iommu_bit)(struct gk20a *g);
 		int (*init_mm_setup_hw)(struct gk20a *g);
 		bool (*is_bar1_supported)(struct gk20a *g);
 		int (*init_bar2_vm)(struct gk20a *g);
 		void (*remove_bar2_vm)(struct gk20a *g);
-		const struct gk20a_mmu_level *
-			(*get_mmu_levels)(struct gk20a *g, u32 big_page_size);
-		u64 (*gpu_phys_addr)(struct gk20a *g,
-				     struct nvgpu_gmmu_attrs *attrs, u64 phys);
 		int (*alloc_inst_block)(struct gk20a *g,
 					struct nvgpu_mem *inst_block);
 		void (*init_inst_block)(struct nvgpu_mem *inst_block,
@@ -1403,6 +1373,40 @@ struct gpu_ops {
 			int (*l2_flush)(struct gk20a *g, bool invalidate);
 			void (*cbc_clean)(struct gk20a *g);
 		} cache;
+		struct {
+			const struct gk20a_mmu_level *
+				(*get_mmu_levels)(struct gk20a *g,
+						  u32 big_page_size);
+			u64 (*map)(struct vm_gk20a *vm,
+				   u64 map_offset,
+				   struct nvgpu_sgt *sgt,
+				   u64 buffer_offset,
+				   u64 size,
+				   u32 pgsz_idx,
+				   u8 kind_v,
+				   u32 ctag_offset,
+				   u32 flags,
+				   enum gk20a_mem_rw_flag rw_flag,
+				   bool clear_ctags,
+				   bool sparse,
+				   bool priv,
+				   struct vm_gk20a_mapping_batch *batch,
+				   enum nvgpu_aperture aperture);
+			void (*unmap)(struct vm_gk20a *vm,
+				      u64 vaddr,
+				      u64 size,
+				      u32 pgsz_idx,
+				      bool va_allocated,
+				      enum gk20a_mem_rw_flag rw_flag,
+				      bool sparse,
+				      struct vm_gk20a_mapping_batch *batch);
+			u32 (*get_big_page_sizes)(void);
+			u32 (*get_default_big_page_size)(void);
+			u32 (*get_iommu_bit)(struct gk20a *g);
+			u64 (*gpu_phys_addr)(struct gk20a *g,
+					     struct nvgpu_gmmu_attrs *attrs,
+					     u64 phys);
+		} gmmu;
 	} mm;
 	/*
 	 * This function is called to allocate secure memory (memory

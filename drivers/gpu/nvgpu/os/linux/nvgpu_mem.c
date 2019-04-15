@@ -64,11 +64,11 @@ u64 nvgpu_mem_get_addr_sgl(struct gk20a *g, struct scatterlist *sgl)
 {
 	if (nvgpu_is_enabled(g, NVGPU_MM_USE_PHYSICAL_SG) ||
 	    !nvgpu_iommuable(g))
-		return g->ops.mm.gpu_phys_addr(g, NULL,
+		return g->ops.mm.gmmu.gpu_phys_addr(g, NULL,
 			__nvgpu_sgl_phys(g, (struct nvgpu_sgl *)sgl));
 
 	if (sg_dma_address(sgl) == 0)
-		return g->ops.mm.gpu_phys_addr(g, NULL,
+		return g->ops.mm.gmmu.gpu_phys_addr(g, NULL,
 			__nvgpu_sgl_phys(g, (struct nvgpu_sgl *)sgl));
 
 	if (sg_dma_address(sgl) == DMA_ERROR_CODE)
@@ -230,7 +230,7 @@ static u64 nvgpu_mem_linux_sgl_gpu_addr(struct gk20a *g,
 					struct nvgpu_gmmu_attrs *attrs)
 {
 	if (sg_dma_address((struct scatterlist *)sgl) == 0)
-		return g->ops.mm.gpu_phys_addr(g, attrs,
+		return g->ops.mm.gmmu.gpu_phys_addr(g, attrs,
 				__nvgpu_sgl_phys(g, sgl));
 
 	if (sg_dma_address((struct scatterlist *)sgl) == DMA_ERROR_CODE)

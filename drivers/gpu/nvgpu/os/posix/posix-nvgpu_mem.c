@@ -85,7 +85,7 @@ u64 nvgpu_mem_sgl_gpu_addr(struct gk20a *g, struct nvgpu_sgl *sgl,
 	struct nvgpu_mem_sgl *mem = (struct nvgpu_mem_sgl *)sgl;
 
 	if (mem->dma == 0U) {
-		return g->ops.mm.gpu_phys_addr(g, attrs, mem->phys);
+		return g->ops.mm.gmmu.gpu_phys_addr(g, attrs, mem->phys);
 	}
 
 	if (mem->dma == DMA_ERROR_CODE) {

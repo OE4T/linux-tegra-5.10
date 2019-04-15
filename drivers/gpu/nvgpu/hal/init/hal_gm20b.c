@@ -42,6 +42,7 @@
 #include <nvgpu/gr/fecs_trace.h>
 
 #include "hal/mm/cache/flush_gk20a.h"
+#include "hal/mm/gmmu/gmmu_gk20a.h"
 #include "hal/mc/mc_gm20b.h"
 #include "hal/bus/bus_gm20b.h"
 #include "hal/bus/bus_gk20a.h"
@@ -831,14 +832,7 @@ static const struct gpu_ops gm20b_ops = {
 		.is_fw_defined = gm20b_netlist_is_firmware_defined,
 	},
 	.mm = {
-		.gmmu_map = nvgpu_gmmu_map_locked,
-		.gmmu_unmap = nvgpu_gmmu_unmap_locked,
 		.vm_bind_channel = gk20a_vm_bind_channel,
-		.get_big_page_sizes = gm20b_mm_get_big_page_sizes,
-		.get_default_big_page_size = gm20b_mm_get_default_big_page_size,
-		.gpu_phys_addr = gm20b_gpu_phys_addr,
-		.get_iommu_bit = gk20a_mm_get_iommu_bit,
-		.get_mmu_levels = gk20a_mm_get_mmu_levels,
 		.init_mm_setup_hw = gk20a_init_mm_setup_hw,
 		.is_bar1_supported = gm20b_mm_is_bar1_supported,
 		.alloc_inst_block = gk20a_alloc_inst_block,
@@ -852,6 +846,16 @@ static const struct gpu_ops gm20b_ops = {
 			.l2_flush = gk20a_mm_l2_flush,
 			.cbc_clean = gk20a_mm_cbc_clean,
 		},
+		.gmmu = {
+			.get_mmu_levels = gk20a_mm_get_mmu_levels,
+			.map = nvgpu_gmmu_map_locked,
+			.unmap = nvgpu_gmmu_unmap_locked,
+			.get_big_page_sizes = gm20b_mm_get_big_page_sizes,
+			.get_default_big_page_size =
+				gm20b_mm_get_default_big_page_size,
+			.get_iommu_bit = gk20a_mm_get_iommu_bit,
+			.gpu_phys_addr = gm20b_gpu_phys_addr,
+		}
 	},
 	.therm = {
 		.init_therm_setup_hw = gm20b_init_therm_setup_hw,

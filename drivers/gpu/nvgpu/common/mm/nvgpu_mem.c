@@ -92,8 +92,8 @@ u64 nvgpu_mem_iommu_translate(struct gk20a *g, u64 phys)
 	/* ensure it is not vidmem allocation */
 	WARN_ON(nvgpu_addr_is_vidmem_page_alloc(phys));
 
-	if (nvgpu_iommuable(g) && g->ops.mm.get_iommu_bit != NULL) {
-		return phys | 1ULL << g->ops.mm.get_iommu_bit(g);
+	if (nvgpu_iommuable(g) && g->ops.mm.gmmu.get_iommu_bit != NULL) {
+		return phys | 1ULL << g->ops.mm.gmmu.get_iommu_bit(g);
 	}
 
 	return phys;

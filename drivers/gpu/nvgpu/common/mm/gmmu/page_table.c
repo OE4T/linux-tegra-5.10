@@ -99,7 +99,7 @@ static u64 __nvgpu_gmmu_map(struct vm_gk20a *vm,
 	}
 
 	nvgpu_mutex_acquire(&vm->update_gmmu_lock);
-	vaddr = g->ops.mm.gmmu_map(vm, addr,
+	vaddr = g->ops.mm.gmmu.map(vm, addr,
 				   sgt,    /* sg list */
 				   0,      /* sg offset */
 				   size,
@@ -160,7 +160,7 @@ void nvgpu_gmmu_unmap(struct vm_gk20a *vm, struct nvgpu_mem *mem, u64 gpu_va)
 	struct gk20a *g = gk20a_from_vm(vm);
 
 	nvgpu_mutex_acquire(&vm->update_gmmu_lock);
-	g->ops.mm.gmmu_unmap(vm,
+	g->ops.mm.gmmu.unmap(vm,
 			     gpu_va,
 			     mem->size,
 			     GMMU_PAGE_SIZE_KERNEL,
@@ -618,7 +618,7 @@ static int __nvgpu_gmmu_do_update_page_table(struct vm_gk20a *vm,
 			 */
 			phys_addr = nvgpu_sgt_ipa_to_pa(g, sgt, sgl, ipa_addr,
 					&phys_length);
-			phys_addr = g->ops.mm.gpu_phys_addr(g, attrs, phys_addr)
+			phys_addr = g->ops.mm.gmmu.gpu_phys_addr(g, attrs, phys_addr)
 				+ space_to_skip;
 
 			/*
@@ -902,7 +902,8 @@ void nvgpu_gmmu_unmap_locked(struct vm_gk20a *vm,
 
 u32 __nvgpu_pte_words(struct gk20a *g)
 {
-	const struct gk20a_mmu_level *l = g->ops.mm.get_mmu_levels(g, SZ_64K);
+	const struct gk20a_mmu_level *l =
+		g->ops.mm.gmmu.get_mmu_levels(g, SZ_64K);
 	const struct gk20a_mmu_level *next_l;
 
 	/*
