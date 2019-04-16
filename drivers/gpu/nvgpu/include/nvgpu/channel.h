@@ -477,7 +477,7 @@ void channel_gk20a_joblist_unlock(struct channel_gk20a *c);
 bool channel_gk20a_joblist_is_empty(struct channel_gk20a *c);
 
 int channel_gk20a_update_runlist(struct channel_gk20a *c, bool add);
-int gk20a_channel_get_timescale_from_timeslice(struct gk20a *g,
+void gk20a_channel_get_timescale_from_timeslice(struct gk20a *g,
 		unsigned int timeslice_period,
 		unsigned int *__timeslice_timeout, unsigned int *__timeslice_scale);
 

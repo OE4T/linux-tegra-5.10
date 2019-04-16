@@ -132,7 +132,7 @@ int channel_gk20a_commit_va(struct channel_gk20a *c)
 	return 0;
 }
 
-int gk20a_channel_get_timescale_from_timeslice(struct gk20a *g,
+void gk20a_channel_get_timescale_from_timeslice(struct gk20a *g,
 		unsigned int timeslice_period,
 		unsigned int *__timeslice_timeout, unsigned int *__timeslice_scale)
 {
@@ -155,8 +155,6 @@ int gk20a_channel_get_timescale_from_timeslice(struct gk20a *g,
 
 	*__timeslice_timeout = value;
 	*__timeslice_scale = shift;
-
-	return 0;
 }
 
 int channel_gk20a_update_runlist(struct channel_gk20a *c, bool add)
