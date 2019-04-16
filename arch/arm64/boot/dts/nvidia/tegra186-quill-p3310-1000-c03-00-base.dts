@@ -4,4 +4,9 @@
 	gpio-keys {
 		status = "disabled";
 	};
+
+	tegra-cache {
+		compatible = "nvidia,t18x-cache";
+		status = "okay";
+	};
 };

@@ -124,4 +124,8 @@
 		/delete-node/ sor1;
 		/delete-node/ sor2;
 	};
+
+	tegra-cache {
+		status = "okay";
+	};
 };

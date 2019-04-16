@@ -1431,4 +1431,9 @@
 		interrupt-parent = <&gic>;
 		always-on;
 	};
+
+	tegra-cache {
+		compatible = "nvidia,t18x-cache";
+		status = "disabled";
+	};
 };
