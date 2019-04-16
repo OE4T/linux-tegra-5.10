@@ -28,8 +28,8 @@ struct gk20a;
 struct nvgpu_pmu;
 struct nv_pmu_therm_msg;
 
-int nvgpu_pmu_handle_therm_event(struct nvgpu_pmu *pmu,
-	struct nv_pmu_therm_msg *msg);
+void nvgpu_pmu_handle_therm_event(struct gk20a *g, struct nvgpu_pmu *pmu,
+	struct pmu_msg *msg, struct nv_pmu_rpc_header *rpc);
 int nvgpu_therm_domain_sw_setup(struct gk20a *g);
 int nvgpu_therm_domain_pmu_setup(struct gk20a *g);
 int nvgpu_therm_pmu_init_pmupstate(struct gk20a *g);

@@ -211,7 +211,9 @@ static int pmu_handle_event(struct nvgpu_pmu *pmu, struct pmu_msg *msg)
 		}
 		break;
 	case PMU_UNIT_THERM:
-		err = nvgpu_pmu_handle_therm_event(pmu, &msg->msg.therm);
+		if (pmu->therm_event_handler != NULL) {
+			pmu->therm_event_handler(g, pmu, msg, NULL);
+		}
 		break;
 	default:
 		break;
@@ -571,8 +573,8 @@ void nvgpu_pmu_rpc_handler(struct gk20a *g, struct pmu_msg *msg,
 		nvgpu_pmu_dbg(g, "reply PMU_UNIT_PERF");
 		break;
 	case PMU_UNIT_THERM:
-		if (pmu->therm_rpc_handler != NULL) {
-			pmu->therm_rpc_handler(g, &rpc);
+		if (pmu->therm_event_handler != NULL) {
+			pmu->therm_event_handler(g, pmu, msg, &rpc);
 		}
 		break;
 	default:
