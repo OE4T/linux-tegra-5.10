@@ -31,6 +31,7 @@
 #include <nvgpu/netlist.h>
 #include <nvgpu/string.h>
 
+#include "netlist_priv.h"
 #include "netlist_defs.h"
 
 /*
