@@ -118,7 +118,7 @@ static void nvgpu_init_timeout(struct gk20a *g)
 	if (nvgpu_platform_is_silicon(g)) {
 		g->poll_timeout_default = NVGPU_DEFAULT_POLL_TIMEOUT_MS;
 	} else if (nvgpu_platform_is_fpga(g)) {
-		g->poll_timeout_default = GK20A_TIMEOUT_FPGA;
+		g->poll_timeout_default = NVGPU_DEFAULT_FPGA_TIMEOUT_MS;
 	} else {
 		g->poll_timeout_default = (u32)ULONG_MAX;
 	}

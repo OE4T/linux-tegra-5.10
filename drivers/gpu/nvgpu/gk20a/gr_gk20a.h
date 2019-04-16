@@ -29,8 +29,6 @@
 
 #include "mm_gk20a.h"
 
-#define GK20A_TIMEOUT_FPGA		100000U /* 100 sec */
-
 struct nvgpu_gr_ctx;
 struct channel_gk20a;
 struct nvgpu_warpstate;
@@ -42,6 +40,7 @@ struct nvgpu_gr_hwpm_map;
 struct nvgpu_gr_isr_data;
 struct nvgpu_gr_ctx_desc;
 struct dbg_session_gk20a;
+struct nvgpu_dbg_reg_op;
 
 enum ctxsw_addr_type;
 
@@ -148,20 +147,12 @@ struct nvgpu_warpstate {
 	u64 paused_warps[2];
 };
 
-struct gpu_ops;
-int gr_gk20a_init_golden_ctx_image(struct gk20a *g,
-					  struct channel_gk20a *c,
-					  struct nvgpu_gr_ctx *gr_ctx);
-
 int gk20a_gr_isr(struct gk20a *g);
-
-void gr_gk20a_init_cg_mode(struct gk20a *g, u32 cgmode, u32 mode_config);
 
 /* sm */
 bool gk20a_gr_sm_debugger_attached(struct gk20a *g);
 u32 gk20a_gr_get_sm_no_lock_down_hww_global_esr_mask(struct gk20a *g);
 
-struct nvgpu_dbg_reg_op;
 int gr_gk20a_exec_ctx_ops(struct channel_gk20a *ch,
 			  struct nvgpu_dbg_reg_op *ctx_ops, u32 num_ops,
 			  u32 num_ctx_wr_ops, u32 num_ctx_rd_ops,
@@ -257,7 +248,6 @@ void gk20a_gr_init_ovr_sm_dsm_perf(void);
 void gk20a_gr_get_ovr_perf_regs(struct gk20a *g, u32 *num_ovr_perf_regs,
 					       u32 **ovr_perf_regs);
 
-int gk20a_init_sw_bundle(struct gk20a *g);
 int gr_gk20a_decode_priv_addr(struct gk20a *g, u32 addr,
 	enum ctxsw_addr_type *addr_type,
 	u32 *gpc_num, u32 *tpc_num, u32 *ppc_num, u32 *be_num,
