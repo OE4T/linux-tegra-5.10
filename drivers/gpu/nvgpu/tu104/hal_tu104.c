@@ -827,6 +827,10 @@ static const struct gpu_ops tu104_ops = {
 			.init_ctx_state = gp10b_gr_falcon_init_ctx_state,
 			.fecs_host_int_enable =
 					gv11b_gr_falcon_fecs_host_int_enable,
+			.read_fecs_ctxsw_status0 =
+				gm20b_gr_falcon_read_fecs_ctxsw_status0,
+			.read_fecs_ctxsw_status1 =
+				gm20b_gr_falcon_read_fecs_ctxsw_status1,
 		},
 	},
 	.class = {

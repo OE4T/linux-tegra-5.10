@@ -1008,3 +1008,13 @@ u32 gm20b_gr_falcon_fecs_host_intr_status(struct gk20a *g,
 
 	return gr_fecs_intr;
 }
+
+u32 gm20b_gr_falcon_read_fecs_ctxsw_status0(struct gk20a *g)
+{
+	return nvgpu_readl(g, gr_fecs_ctxsw_status_fe_0_r());
+}
+
+u32 gm20b_gr_falcon_read_fecs_ctxsw_status1(struct gk20a *g)
+{
+	return nvgpu_readl(g, gr_fecs_ctxsw_status_1_r());
+}

@@ -587,6 +587,8 @@ struct gpu_ops {
 					struct nvgpu_mem *inst_block);
 			int (*init_ctx_state)(struct gk20a *g);
 			void (*fecs_host_int_enable)(struct gk20a *g);
+			u32 (*read_fecs_ctxsw_status0)(struct gk20a *g);
+			u32 (*read_fecs_ctxsw_status1)(struct gk20a *g);
 		} falcon;
 
 #ifdef CONFIG_GK20A_CTXSW_TRACE

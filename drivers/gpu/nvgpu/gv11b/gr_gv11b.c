@@ -1121,9 +1121,9 @@ int gr_gv11b_dump_gr_status_regs(struct gk20a *g,
 	gk20a_debug_output(o, "NV_PGRAPH_PRI_CWD_SM_ID(0): 0x%x\n",
 		gk20a_readl(g, gr_cwd_sm_id_r(0)));
 	gk20a_debug_output(o, "NV_PGRAPH_PRI_FECS_CTXSW_STATUS_FE_0: 0x%x\n",
-		gk20a_readl(g, gr_fecs_ctxsw_status_fe_0_r()));
+		g->ops.gr.falcon.read_fecs_ctxsw_status0(g));
 	gk20a_debug_output(o, "NV_PGRAPH_PRI_FECS_CTXSW_STATUS_1: 0x%x\n",
-		gk20a_readl(g, gr_fecs_ctxsw_status_1_r()));
+		g->ops.gr.falcon.read_fecs_ctxsw_status1(g));
 	gk20a_debug_output(o, "NV_PGRAPH_PRI_GPC0_GPCCS_CTXSW_STATUS_GPC_0: 0x%x\n",
 		gk20a_readl(g, gr_gpc0_gpccs_ctxsw_status_gpc_0_r()));
 	gk20a_debug_output(o, "NV_PGRAPH_PRI_GPC0_GPCCS_CTXSW_STATUS_1: 0x%x\n",

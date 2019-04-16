@@ -67,15 +67,14 @@ int gm20b_gr_falcon_submit_fecs_sideband_method_op(struct gk20a *g,
 				struct nvgpu_fecs_method_op op);
 int gm20b_gr_falcon_ctrl_ctxsw(struct gk20a *g, u32 fecs_method,
 						u32 data, u32 *ret_val);
-
 void gm20b_gr_falcon_set_current_ctx_invalid(struct gk20a *g);
-
 u32 gm20b_gr_falcon_get_current_ctx(struct gk20a *g);
 u32 gm20b_gr_falcon_get_ctx_ptr(u32 ctx);
 u32 gm20b_gr_falcon_get_fecs_current_ctx_data(struct gk20a *g,
 						struct nvgpu_mem *inst_block);
-
 int gm20b_gr_falcon_init_ctx_state(struct gk20a *g);
 void gm20b_gr_falcon_fecs_host_int_enable(struct gk20a *g);
+u32 gm20b_gr_falcon_read_fecs_ctxsw_status0(struct gk20a *g);
+u32 gm20b_gr_falcon_read_fecs_ctxsw_status1(struct gk20a *g);
 
 #endif /* NVGPU_GR_FALCON_GM20B_H */

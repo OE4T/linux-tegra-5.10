@@ -560,6 +560,10 @@ static const struct gpu_ops gm20b_ops = {
 			.init_ctx_state = gm20b_gr_falcon_init_ctx_state,
 			.fecs_host_int_enable =
 				gm20b_gr_falcon_fecs_host_int_enable,
+			.read_fecs_ctxsw_status0 =
+				gm20b_gr_falcon_read_fecs_ctxsw_status0,
+			.read_fecs_ctxsw_status1 =
+				gm20b_gr_falcon_read_fecs_ctxsw_status1,
 		},
 	},
 	.class = {

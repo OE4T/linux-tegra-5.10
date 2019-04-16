@@ -117,8 +117,8 @@ static void gr_report_ctxsw_error(struct gk20a *g, u32 err_type, u32 chid,
 	struct ctxsw_err_info err_info;
 
 	err_info.curr_ctx = g->ops.gr.falcon.get_current_ctx(g);
-	err_info.ctxsw_status0 = gk20a_readl(g, gr_fecs_ctxsw_status_fe_0_r());
-	err_info.ctxsw_status1 = gk20a_readl(g, gr_fecs_ctxsw_status_1_r());
+	err_info.ctxsw_status0 = g->ops.gr.falcon.read_fecs_ctxsw_status0(g);
+	err_info.ctxsw_status1 = g->ops.gr.falcon.read_fecs_ctxsw_status1(g);
 	err_info.mailbox_value = mailbox_value;
 	err_info.chid = chid;
 
