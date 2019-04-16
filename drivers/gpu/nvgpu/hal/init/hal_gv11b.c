@@ -1,7 +1,7 @@
 /*
- * TU104 Tegra HAL interface
+ * GV11B Tegra HAL interface
  *
- * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -21,78 +21,75 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
+#include <nvgpu/gk20a.h>
+#include <nvgpu/class.h>
+#include <nvgpu/fuse.h>
+#include <nvgpu/pbdma.h>
+#include <nvgpu/regops.h>
+#include <nvgpu/gr/gr_falcon.h>
+#include <nvgpu/gr/gr.h>
+#include <nvgpu/pmu/pmu_perfmon.h>
 
 #include "hal/mm/cache/flush_gk20a.h"
 #include "hal/mm/cache/flush_gv11b.h"
 #include "hal/mc/mc_gm20b.h"
 #include "hal/mc/mc_gp10b.h"
 #include "hal/mc/mc_gv11b.h"
-#include "hal/mc/mc_gv100.h"
-#include "hal/mc/mc_tu104.h"
 #include "hal/bus/bus_gk20a.h"
 #include "hal/bus/bus_gp10b.h"
-#include "hal/bus/bus_gv100.h"
-#include "hal/bus/bus_tu104.h"
-#include "hal/class/class_tu104.h"
+#include "hal/bus/bus_gm20b.h"
+#include "hal/class/class_gv11b.h"
 #include "hal/priv_ring/priv_ring_gm20b.h"
 #include "hal/priv_ring/priv_ring_gp10b.h"
-#include "hal/power_features/cg/tu104_gating_reglist.h"
+#include "hal/gr/config/gr_config_gv100.h"
+#include "hal/power_features/cg/gv11b_gating_reglist.h"
 #include "hal/cbc/cbc_gm20b.h"
 #include "hal/cbc/cbc_gp10b.h"
-#include "hal/cbc/cbc_tu104.h"
+#include "hal/cbc/cbc_gv11b.h"
 #include "hal/therm/therm_gm20b.h"
 #include "hal/therm/therm_gp10b.h"
-#include "hal/therm/therm_gp106.h"
 #include "hal/therm/therm_gv11b.h"
 #include "hal/ltc/ltc_gm20b.h"
 #include "hal/ltc/ltc_gp10b.h"
 #include "hal/ltc/ltc_gv11b.h"
-#include "hal/ltc/ltc_tu104.h"
 #include "hal/ltc/intr/ltc_intr_gv11b.h"
 #include "hal/fb/fb_gm20b.h"
 #include "hal/fb/fb_gp10b.h"
-#include "hal/fb/fb_gp106.h"
 #include "hal/fb/fb_gv11b.h"
-#include "hal/fb/fb_gv100.h"
-#include "hal/fb/fb_tu104.h"
-#include "hal/fb/intr/fb_intr_tu104.h"
-#include "hal/ptimer/ptimer_gk20a.h"
-#include "hal/regops/regops_tu104.h"
+#include "hal/fb/intr/fb_intr_gv11b.h"
 #include "hal/fuse/fuse_gm20b.h"
 #include "hal/fuse/fuse_gp10b.h"
-#include "hal/fuse/fuse_gp106.h"
-#include "hal/fifo/usermode_gv11b.h"
-#include "hal/fifo/usermode_tu104.h"
+#include "hal/ptimer/ptimer_gk20a.h"
+#include "hal/regops/regops_gv11b.h"
 #include "hal/fifo/pbdma_gm20b.h"
 #include "hal/fifo/pbdma_gp10b.h"
 #include "hal/fifo/pbdma_gv11b.h"
-#include "hal/fifo/pbdma_tu104.h"
+#include "hal/fifo/engine_status_gv100.h"
+#include "hal/fifo/pbdma_status_gm20b.h"
 #include "hal/fifo/engines_gp10b.h"
 #include "hal/fifo/engines_gv11b.h"
 #include "hal/fifo/ramfc_gp10b.h"
 #include "hal/fifo/ramfc_gv11b.h"
-#include "hal/fifo/ramfc_tu104.h"
 #include "hal/fifo/ramin_gk20a.h"
 #include "hal/fifo/ramin_gm20b.h"
 #include "hal/fifo/ramin_gp10b.h"
 #include "hal/fifo/ramin_gv11b.h"
 #include "hal/fifo/runlist_gk20a.h"
 #include "hal/fifo/runlist_gv11b.h"
-#include "hal/fifo/runlist_tu104.h"
 #include "hal/fifo/tsg_gv11b.h"
 #include "hal/fifo/userd_gk20a.h"
 #include "hal/fifo/userd_gv11b.h"
+#include "hal/fifo/usermode_gv11b.h"
 #include "hal/fifo/fifo_intr_gk20a.h"
 #include "hal/fifo/fifo_intr_gv11b.h"
 #include "hal/fifo/ctxsw_timeout_gv11b.h"
-#include "hal/gr/ecc/ecc_tu104.h"
+#include "hal/gr/ecc/ecc_gv11b.h"
 #include "hal/gr/fecs_trace/fecs_trace_gm20b.h"
 #include "hal/gr/fecs_trace/fecs_trace_gv11b.h"
 #include "hal/gr/falcon/gr_falcon_gm20b.h"
 #include "hal/gr/falcon/gr_falcon_gp10b.h"
 #include "hal/gr/falcon/gr_falcon_gv11b.h"
 #include "hal/gr/config/gr_config_gm20b.h"
-#include "hal/gr/config/gr_config_gv100.h"
 #include "hal/gr/zbc/zbc_gp10b.h"
 #include "hal/gr/zbc/zbc_gv11b.h"
 #include "hal/gr/zcull/zcull_gm20b.h"
@@ -100,10 +97,8 @@
 #include "hal/gr/init/gr_init_gm20b.h"
 #include "hal/gr/init/gr_init_gp10b.h"
 #include "hal/gr/init/gr_init_gv11b.h"
-#include "hal/gr/init/gr_init_tu104.h"
 #include "hal/gr/intr/gr_intr_gm20b.h"
 #include "hal/gr/intr/gr_intr_gv11b.h"
-#include "hal/gr/intr/gr_intr_tu104.h"
 #include "hal/gr/hwpm_map/hwpm_map_gv100.h"
 #include "hal/gr/ctxsw_prog/ctxsw_prog_gm20b.h"
 #include "hal/gr/ctxsw_prog/ctxsw_prog_gp10b.h"
@@ -113,35 +108,21 @@
 #include "hal/pmu/pmu_gp106.h"
 #include "hal/pmu/pmu_gp10b.h"
 #include "hal/pmu/pmu_gv11b.h"
-#include "hal/pmu/pmu_tu104.h"
 #include "hal/falcon/falcon_gk20a.h"
-#include "hal/nvdec/nvdec_tu104.h"
-#include "hal/gsp/gsp_gv100.h"
 #include "hal/perf/perf_gv11b.h"
-#include "hal/sec2/sec2_tu104.h"
-#include "hal/netlist/netlist_tu104.h"
+#include "hal/netlist/netlist_gv11b.h"
 
-#include "common/xve/xve_gp106.h"
+#include "common/pmu/pg/pg_sw_gm20b.h"
+#include "common/pmu/pg/pg_sw_gp106.h"
+#include "common/pmu/pg/pg_sw_gv11b.h"
 #include "common/top/top_gm20b.h"
 #include "common/top/top_gp10b.h"
-#include "common/top/top_gv100.h"
-#include "common/nvlink/init/device_reginit_gv100.h"
-#include "common/nvlink/intr_and_err_handling_gv100.h"
-#include "hal/nvlink/minion_gv100.h"
-#include "hal/nvlink/minion_tu104.h"
-#include "hal/nvlink/link_mode_transitions_gv100.h"
-#include "hal/nvlink/link_mode_transitions_tu104.h"
-#include "common/nvlink/nvlink_gv100.h"
-#include "common/nvlink/nvlink_tu104.h"
 #include "common/sync/syncpt_cmdbuf_gv11b.h"
 #include "common/sync/sema_cmdbuf_gv11b.h"
 #include "common/fifo/channel_gk20a.h"
 #include "common/fifo/channel_gm20b.h"
 #include "common/fifo/channel_gv11b.h"
-#include "common/fifo/channel_gv100.h"
-#include "hal/fifo/engine_status_gv100.h"
-#include "hal/fifo/pbdma_status_gm20b.h"
-#include "common/clk_arb/clk_arb_gv100.h"
+#include "common/clk_arb/clk_arb_gp10b.h"
 
 #include "gk20a/fifo_gk20a.h"
 #include "gk20a/mm_gk20a.h"
@@ -150,62 +131,54 @@
 #include "gm20b/gr_gm20b.h"
 #include "gm20b/mm_gm20b.h"
 
-#include "gv100/clk_gv100.h"
-
-#include "gp106/bios_gp106.h"
-
-#include "gp10b/gr_gp10b.h"
 #include "gp10b/ce_gp10b.h"
 #include "gp10b/mm_gp10b.h"
+#include "gp10b/gr_gp10b.h"
 
-#include "gv11b/hal_gv11b.h"
+#include "gv100/gr_gv100.h"
+
+#include "hal_gv11b.h"
 #include "gv11b/gr_gv11b.h"
 #include "gv11b/ce_gv11b.h"
 #include "gv11b/mm_gv11b.h"
 #include "gv11b/fifo_gv11b.h"
 
-#include "gv100/bios_gv100.h"
-#include "gv100/fifo_gv100.h"
-#include "gv100/gr_gv100.h"
-
-#include "tu104/mm_tu104.h"
-#include "tu104/fifo_tu104.h"
-#include "tu104/gr_tu104.h"
-#include "tu104/bios_tu104.h"
-#include "tu104/fbpa_tu104.h"
-#include "tu104/hal_tu104.h"
-
 #include <nvgpu/ptimer.h>
 #include <nvgpu/debug.h>
 #include <nvgpu/enabled.h>
 #include <nvgpu/error_notifier.h>
-#include <nvgpu/gk20a.h>
-#include <nvgpu/clk_arb.h>
-#include <nvgpu/class.h>
+#include <nvgpu/bug.h>
 #include <nvgpu/debugger.h>
 #include <nvgpu/channel.h>
-#include <nvgpu/pbdma.h>
 #include <nvgpu/runlist.h>
 #include <nvgpu/fifo/userd.h>
 #include <nvgpu/perfbuf.h>
 #include <nvgpu/cyclestats_snapshot.h>
-#include <nvgpu/regops.h>
 #include <nvgpu/gr/zbc.h>
+#include <nvgpu/gr/zcull.h>
 #include <nvgpu/gr/setup.h>
 #include <nvgpu/gr/fecs_trace.h>
-#include <nvgpu/pmu/perf.h>
-#include <nvgpu/gr/gr_falcon.h>
 #include <nvgpu/gr/gr.h>
 #include <nvgpu/gr/gr_intr.h>
-#include <nvgpu/pmu/pmu_perfmon.h>
 
-#include <nvgpu/hw/tu104/hw_proj_tu104.h>
-#include <nvgpu/hw/tu104/hw_top_tu104.h>
-#include <nvgpu/hw/tu104/hw_pram_tu104.h>
-#include <nvgpu/hw/tu104/hw_pwr_tu104.h>
-#include <nvgpu/hw/tu104/hw_gr_tu104.h>
+#include <nvgpu/hw/gv11b/hw_proj_gv11b.h>
+#include <nvgpu/hw/gv11b/hw_top_gv11b.h>
+#include <nvgpu/hw/gv11b/hw_pwr_gv11b.h>
+#include <nvgpu/hw/gv11b/hw_gr_gv11b.h>
 
-static u32 tu104_get_litter_value(struct gk20a *g, int value)
+static void gv11b_init_gpu_characteristics(struct gk20a *g)
+{
+	gk20a_init_gpu_characteristics(g);
+	g->ops.gr.ecc.detect(g);
+	nvgpu_set_enabled(g, NVGPU_SUPPORT_TSG_SUBCONTEXTS, true);
+	nvgpu_set_enabled(g, NVGPU_SUPPORT_SCG, true);
+	nvgpu_set_enabled(g, NVGPU_SUPPORT_RESCHEDULE_RUNLIST, true);
+	nvgpu_set_enabled(g, NVGPU_SUPPORT_SYNCPOINT_ADDRESS, true);
+	nvgpu_set_enabled(g, NVGPU_SUPPORT_USER_SYNCPOINT, true);
+	nvgpu_set_enabled(g, NVGPU_SUPPORT_USERMODE_SUBMIT, true);
+}
+
+u32 gv11b_get_litter_value(struct gk20a *g, int value)
 {
 	u32 ret = 0;
 	switch (value) {
@@ -248,11 +221,11 @@ static u32 tu104_get_litter_value(struct gk20a *g, int value)
 	case GPU_LIT_PPC_IN_GPC_BASE:
 		ret = proj_ppc_in_gpc_base_v();
 		break;
-	case GPU_LIT_PPC_IN_GPC_STRIDE:
-		ret = proj_ppc_in_gpc_stride_v();
-		break;
 	case GPU_LIT_PPC_IN_GPC_SHARED_BASE:
 		ret = proj_ppc_in_gpc_shared_base_v();
+		break;
+	case GPU_LIT_PPC_IN_GPC_STRIDE:
+		ret = proj_ppc_in_gpc_stride_v();
 		break;
 	case GPU_LIT_ROP_BASE:
 		ret = proj_rop_base_v();
@@ -275,18 +248,6 @@ static u32 tu104_get_litter_value(struct gk20a *g, int value)
 	case GPU_LIT_LTS_STRIDE:
 		ret = proj_lts_stride_v();
 		break;
-	case GPU_LIT_NUM_FBPAS:
-		ret = proj_scal_litter_num_fbpas_v();
-		break;
-	case GPU_LIT_FBPA_SHARED_BASE:
-		ret = proj_fbpa_shared_base_v();
-		break;
-	case GPU_LIT_FBPA_BASE:
-		ret = proj_fbpa_base_v();
-		break;
-	case GPU_LIT_FBPA_STRIDE:
-		ret = proj_fbpa_stride_v();
-		break;
 	case GPU_LIT_SM_PRI_STRIDE:
 		ret = proj_sm_stride_v();
 		break;
@@ -302,23 +263,36 @@ static u32 tu104_get_litter_value(struct gk20a *g, int value)
 	case GPU_LIT_SMPC_PRI_STRIDE:
 		ret = proj_smpc_stride_v();
 		break;
+	/* Even though GV11B doesn't have an FBPA unit, the HW reports one,
+	 * and the microcode as a result leaves space in the context buffer
+	 * for one, so make sure SW accounts for this also.
+	 */
+	case GPU_LIT_NUM_FBPAS:
+		ret = proj_scal_litter_num_fbpas_v();
+		break;
+	/* Hardcode FBPA values other than NUM_FBPAS to 0. */
+	case GPU_LIT_FBPA_STRIDE:
+	case GPU_LIT_FBPA_BASE:
+	case GPU_LIT_FBPA_SHARED_BASE:
+		ret = 0;
+		break;
 	case GPU_LIT_TWOD_CLASS:
 		ret = FERMI_TWOD_A;
 		break;
 	case GPU_LIT_THREED_CLASS:
-		ret = TURING_A;
+		ret = VOLTA_A;
 		break;
 	case GPU_LIT_COMPUTE_CLASS:
-		ret = TURING_COMPUTE_A;
+		ret = VOLTA_COMPUTE_A;
 		break;
 	case GPU_LIT_GPFIFO_CLASS:
-		ret = TURING_CHANNEL_GPFIFO_A;
+		ret = VOLTA_CHANNEL_GPFIFO_A;
 		break;
 	case GPU_LIT_I2M_CLASS:
 		ret = KEPLER_INLINE_TO_MEMORY_B;
 		break;
 	case GPU_LIT_DMA_COPY_CLASS:
-		ret = TURING_DMA_COPY_A;
+		ret = VOLTA_DMA_COPY_A;
 		break;
 	case GPU_LIT_GPC_PRIV_STRIDE:
 		ret = proj_gpc_priv_stride_v();
@@ -327,19 +301,19 @@ static u32 tu104_get_litter_value(struct gk20a *g, int value)
 		ret = 2;
 		break;
 	case GPU_LIT_PERFMON_PMMGPCTPCB_DOMAIN_START:
-		ret = 8;
-		break;
-	case GPU_LIT_PERFMON_PMMGPCTPC_DOMAIN_COUNT:
 		ret = 6;
 		break;
+	case GPU_LIT_PERFMON_PMMGPCTPC_DOMAIN_COUNT:
+		ret = 4;
+		break;
 	case GPU_LIT_PERFMON_PMMFBP_LTC_DOMAIN_START:
-		ret = 2;
+		ret = 1;
 		break;
 	case GPU_LIT_PERFMON_PMMFBP_LTC_DOMAIN_COUNT:
-		ret = 8;
+		ret = 2;
 		break;
 	case GPU_LIT_PERFMON_PMMFBP_ROP_DOMAIN_START:
-		ret = 10;
+		ret = 3;
 		break;
 	case GPU_LIT_PERFMON_PMMFBP_ROP_DOMAIN_COUNT:
 		ret = 2;
@@ -353,37 +327,13 @@ static u32 tu104_get_litter_value(struct gk20a *g, int value)
 	return ret;
 }
 
-static void tu104_init_gpu_characteristics(struct gk20a *g)
-{
-	gk20a_init_gpu_characteristics(g);
-
-	nvgpu_set_enabled(g, NVGPU_SUPPORT_TSG_SUBCONTEXTS, true);
-	nvgpu_set_enabled(g, NVGPU_SUPPORT_GET_TEMPERATURE, true);
-	if (nvgpu_has_syncpoints(g)) {
-		nvgpu_set_enabled(g, NVGPU_SUPPORT_SYNCPOINT_ADDRESS, true);
-		nvgpu_set_enabled(g, NVGPU_SUPPORT_USER_SYNCPOINT, true);
-	}
-	nvgpu_set_enabled(g, NVGPU_SUPPORT_USERMODE_SUBMIT, true);
-	nvgpu_set_enabled(g, NVGPU_SUPPORT_DEVICE_EVENTS, true);
-}
-
-
-
-static const struct gpu_ops tu104_ops = {
-	.bios = {
-		.init = tu104_bios_init,
-		.preos_wait_for_halt = NULL,
-		.preos_reload_check = NULL,
-		.devinit = NULL,
-		.preos = NULL,
-		.verify_devinit = tu104_bios_verify_devinit,
-	},
+static const struct gpu_ops gv11b_ops = {
 	.ltc = {
 		.determine_L2_size_bytes = gp10b_determine_L2_size_bytes,
 		.set_zbc_s_entry = gv11b_ltc_set_zbc_stencil_entry,
 		.set_zbc_color_entry = gm20b_ltc_set_zbc_color_entry,
 		.set_zbc_depth_entry = gm20b_ltc_set_zbc_depth_entry,
-		.init_fs_state = ltc_tu104_init_fs_state,
+		.init_fs_state = gv11b_ltc_init_fs_state,
 		.flush = gm20b_flush_ltc,
 		.set_enabled = gp10b_ltc_set_enabled,
 		.pri_is_ltc_addr = gm20b_ltc_pri_is_ltc_addr,
@@ -399,32 +349,31 @@ static const struct gpu_ops tu104_ops = {
 		}
 	},
 	.cbc = {
-		.init = tu104_cbc_init,
-		.get_base_divisor = tu104_cbc_get_base_divisor,
-		.alloc_comptags = tu104_cbc_alloc_comptags,
-		.ctrl = tu104_cbc_ctrl,
-		.fix_config = NULL,
+		.init = gv11b_cbc_init,
+		.alloc_comptags = gp10b_cbc_alloc_comptags,
+		.ctrl = gp10b_cbc_ctrl,
 	},
 	.ce2 = {
 		.isr_stall = gv11b_ce_isr,
-		.isr_nonstall = NULL,
+		.isr_nonstall = gp10b_ce_nonstall_isr,
 		.get_num_pce = gv11b_ce_get_num_pce,
 	},
 	.gr = {
-		.handle_sw_method = gr_tu104_handle_sw_method,
+		.handle_sw_method = gr_gv11b_handle_sw_method,
 		.set_alpha_circular_buffer_size =
 			gr_gv11b_set_alpha_circular_buffer_size,
 		.set_circular_buffer_size = gr_gv11b_set_circular_buffer_size,
 		.get_sm_dsm_perf_regs = gv11b_gr_get_sm_dsm_perf_regs,
-		.get_sm_dsm_perf_ctrl_regs = gr_tu104_get_sm_dsm_perf_ctrl_regs,
+		.get_sm_dsm_perf_ctrl_regs = gv11b_gr_get_sm_dsm_perf_ctrl_regs,
 		.set_hww_esr_report_mask = gv11b_gr_set_hww_esr_report_mask,
-		.set_gpc_tpc_mask = gr_gv100_set_gpc_tpc_mask,
+		.set_gpc_tpc_mask = gr_gv11b_set_gpc_tpc_mask,
 		.is_tpc_addr = gr_gm20b_is_tpc_addr,
 		.get_tpc_num = gr_gm20b_get_tpc_num,
+		.powergate_tpc = gr_gv11b_powergate_tpc,
 		.dump_gr_regs = gr_gv11b_dump_gr_status_regs,
 		.update_pc_sampling = gr_gm20b_update_pc_sampling,
 		.get_rop_l2_en_mask = gr_gm20b_rop_l2_en_mask,
-		.init_sm_dsm_reg_info = gr_tu104_init_sm_dsm_reg_info,
+		.init_sm_dsm_reg_info = gv11b_gr_init_sm_dsm_reg_info,
 		.init_cyclestats = gr_gm20b_init_cyclestats,
 		.set_sm_debug_mode = gv11b_gr_set_sm_debug_mode,
 		.bpt_reg_info = gv11b_gr_bpt_reg_info,
@@ -482,15 +431,17 @@ static const struct gpu_ops tu104_ops = {
 		.handle_ssync_hww = gr_gv11b_handle_ssync_hww,
 		.decode_priv_addr = gr_gv11b_decode_priv_addr,
 		.create_priv_addr_table = gr_gv11b_create_priv_addr_table,
-		.split_fbpa_broadcast_addr = gr_gv100_split_fbpa_broadcast_addr,
+		.split_fbpa_broadcast_addr = gr_gk20a_split_fbpa_broadcast_addr,
 		.get_offset_in_gpccs_segment =
-			gr_tu104_get_offset_in_gpccs_segment,
+			gr_gk20a_get_offset_in_gpccs_segment,
 		.set_debug_mode = gm20b_gr_set_debug_mode,
-		.log_mme_exception = gr_tu104_log_mme_exception,
+		.log_mme_exception = NULL,
+		.get_ctxsw_checksum_mismatch_mailbox_val =
+				gr_gv11b_ctxsw_checksum_mismatch_mailbox_val,
 		.reset = nvgpu_gr_reset,
 		.ecc = {
-			.detect = NULL,
-			.init = tu104_ecc_init,
+			.detect = gv11b_ecc_detect_enabled_units,
+			.init = gv11b_ecc_init,
 		},
 		.ctxsw_prog = {
 			.hw_get_fecs_header_size =
@@ -524,12 +475,12 @@ static const struct gpu_ops tu104_ops = {
 				gv11b_ctxsw_prog_hw_get_pm_mode_stream_out_ctxsw,
 			.init_ctxsw_hdr_data = gp10b_ctxsw_prog_init_ctxsw_hdr_data,
 			.set_compute_preemption_mode_cta =
-				gm20b_ctxsw_prog_set_compute_preemption_mode_cta,
+				gp10b_ctxsw_prog_set_compute_preemption_mode_cta,
 			.set_compute_preemption_mode_cilp =
 				gp10b_ctxsw_prog_set_compute_preemption_mode_cilp,
 			.set_graphics_preemption_mode_gfxp =
 				gp10b_ctxsw_prog_set_graphics_preemption_mode_gfxp,
-			.set_cde_enabled = gm20b_ctxsw_prog_set_cde_enabled,
+			.set_cde_enabled = NULL,
 			.set_pc_sampling = gm20b_ctxsw_prog_set_pc_sampling,
 			.set_priv_access_map_config_mode =
 				gm20b_ctxsw_prog_set_priv_access_map_config_mode,
@@ -575,7 +526,6 @@ static const struct gpu_ops tu104_ops = {
 			.dump_ctxsw_stats = gp10b_ctxsw_prog_dump_ctxsw_stats,
 		},
 		.config = {
-			.get_gpc_mask = gm20b_gr_config_get_gpc_mask,
 			.get_gpc_tpc_mask = gm20b_gr_config_get_gpc_tpc_mask,
 			.get_tpc_count_in_gpc =
 				gm20b_gr_config_get_tpc_count_in_gpc,
@@ -636,14 +586,12 @@ static const struct gpu_ops tu104_ops = {
 		.hwpm_map = {
 			.align_regs_perf_pma =
 				gv100_gr_hwpm_map_align_regs_perf_pma,
-			.get_active_fbpa_mask =
-				gv100_gr_hwpm_map_get_active_fbpa_mask,
 		},
 		.init = {
 			.get_nonpes_aware_tpc =
 					gv11b_gr_init_get_nonpes_aware_tpc,
 			.wait_initialized = nvgpu_gr_wait_initialized,
-			.ecc_scrub_reg = NULL,
+			.ecc_scrub_reg = gv11b_gr_init_ecc_scrub_reg,
 			.get_fbp_en_mask = gm20b_gr_init_get_fbp_en_mask,
 			.lg_coalesce = gm20b_gr_init_lg_coalesce,
 			.su_coalesce = gm20b_gr_init_su_coalesce,
@@ -672,23 +620,20 @@ static const struct gpu_ops tu104_ops = {
 			.load_method_init = gm20b_gr_init_load_method_init,
 			.commit_global_timeslice =
 				gv11b_gr_init_commit_global_timeslice,
-			.get_rtv_cb_size = tu104_gr_init_get_rtv_cb_size,
-			.commit_rtv_cb = tu104_gr_init_commit_rtv_cb,
-			.commit_gfxp_rtv_cb = tu104_gr_init_commit_gfxp_rtv_cb,
 			.get_bundle_cb_default_size =
-				tu104_gr_init_get_bundle_cb_default_size,
+				gv11b_gr_init_get_bundle_cb_default_size,
 			.get_min_gpm_fifo_depth =
-				tu104_gr_init_get_min_gpm_fifo_depth,
+				gv11b_gr_init_get_min_gpm_fifo_depth,
 			.get_bundle_cb_token_limit =
-				tu104_gr_init_get_bundle_cb_token_limit,
+				gv11b_gr_init_get_bundle_cb_token_limit,
 			.get_attrib_cb_default_size =
-				tu104_gr_init_get_attrib_cb_default_size,
+				gv11b_gr_init_get_attrib_cb_default_size,
 			.get_alpha_cb_default_size =
-				tu104_gr_init_get_alpha_cb_default_size,
+				gv11b_gr_init_get_alpha_cb_default_size,
 			.get_attrib_cb_gfxp_default_size =
-				tu104_gr_init_get_attrib_cb_gfxp_default_size,
+				gv11b_gr_init_get_attrib_cb_gfxp_default_size,
 			.get_attrib_cb_gfxp_size =
-				tu104_gr_init_get_attrib_cb_gfxp_size,
+				gv11b_gr_init_get_attrib_cb_gfxp_size,
 			.get_attrib_cb_size =
 				gv11b_gr_init_get_attrib_cb_size,
 			.get_alpha_cb_size =
@@ -714,7 +659,6 @@ static const struct gpu_ops tu104_ops = {
 				gm20b_gr_init_load_sw_bundle_init,
 			.load_sw_veid_bundle =
 				gv11b_gr_init_load_sw_veid_bundle,
-			.load_sw_bundle64 = tu104_gr_init_load_sw_bundle64,
 			.get_ctx_spill_size = gv11b_gr_init_get_ctx_spill_size,
 			.get_ctx_pagepool_size =
 				gp10b_gr_init_get_ctx_pagepool_size,
@@ -722,7 +666,7 @@ static const struct gpu_ops tu104_ops = {
 				gv11b_gr_init_get_ctx_betacb_size,
 			.get_ctx_attrib_cb_size =
 				gp10b_gr_init_get_ctx_attrib_cb_size,
-			.get_gfxp_rtv_cb_size = tu104_gr_init_get_gfxp_rtv_cb_size,
+			.get_gfxp_rtv_cb_size = NULL,
 			.commit_ctxsw_spill = gv11b_gr_init_commit_ctxsw_spill,
 			.commit_cbes_reserve =
 				gv11b_gr_init_commit_cbes_reserve,
@@ -770,8 +714,9 @@ static const struct gpu_ops tu104_ops = {
 					gv11b_gr_intr_enable_hww_exceptions,
 			.enable_interrupts = gm20b_gr_intr_enable_interrupts,
 			.enable_gpc_exceptions =
-					tu104_gr_intr_enable_gpc_exceptions,
+					gv11b_gr_intr_enable_gpc_exceptions,
 			.enable_exceptions = gv11b_gr_intr_enable_exceptions,
+			.nonstall_isr = gm20b_gr_intr_nonstall_isr,
 			.tpc_exception_sm_enable =
 				gm20ab_gr_intr_tpc_exception_sm_enable,
 			.tpc_exception_sm_disable =
@@ -809,7 +754,7 @@ static const struct gpu_ops tu104_ops = {
 			.load_ctxsw_ucode_boot =
 				gm20b_gr_falcon_load_ctxsw_ucode_boot,
 			.load_ctxsw_ucode =
-				nvgpu_gr_falcon_load_secure_ctxsw_ucode,
+					nvgpu_gr_falcon_load_ctxsw_ucode,
 			.wait_mem_scrubbing =
 					gm20b_gr_falcon_wait_mem_scrubbing,
 			.wait_ctxsw_ready = gm20b_gr_falcon_wait_ctxsw_ready,
@@ -835,14 +780,14 @@ static const struct gpu_ops tu104_ops = {
 		},
 	},
 	.class = {
-		.is_valid = tu104_class_is_valid,
-		.is_valid_gfx = tu104_class_is_valid_gfx,
-		.is_valid_compute = tu104_class_is_valid_compute,
+		.is_valid = gv11b_class_is_valid,
+		.is_valid_gfx = gv11b_class_is_valid_gfx,
+		.is_valid_compute = gv11b_class_is_valid_compute,
 	},
 	.fb = {
 		.init_hw = gv11b_fb_init_hw,
-		.init_fs_state = gp106_fb_init_fs_state,
-		.cbc_configure = tu104_fb_cbc_configure,
+		.init_fs_state = gv11b_fb_init_fs_state,
+		.cbc_configure = gv11b_fb_cbc_configure,
 		.set_mmu_page_size = NULL,
 		.set_use_full_comp_tag_line =
 			gm20b_fb_set_use_full_comp_tag_line,
@@ -853,104 +798,97 @@ static const struct gpu_ops tu104_ops = {
 		.compression_page_size = gp10b_fb_compression_page_size,
 		.compressible_page_size = gp10b_fb_compressible_page_size,
 		.compression_align_mask = gm20b_fb_compression_align_mask,
-		.vpr_info_fetch = NULL,
-		.dump_vpr_info = NULL,
+		.vpr_info_fetch = gm20b_fb_vpr_info_fetch,
+		.dump_vpr_info = gm20b_fb_dump_vpr_info,
 		.dump_wpr_info = gm20b_fb_dump_wpr_info,
 		.read_wpr_info = gm20b_fb_read_wpr_info,
 		.is_debug_mode_enabled = gm20b_fb_debug_mode_enabled,
 		.set_debug_mode = gm20b_fb_set_debug_mode,
-		.tlb_invalidate = fb_tu104_tlb_invalidate,
+		.tlb_invalidate = gm20b_fb_tlb_invalidate,
 		.handle_replayable_fault = gv11b_fb_handle_replayable_mmu_fault,
-		.mem_unlock = gv100_fb_memory_unlock,
-		.init_nvlink = gv100_fb_init_nvlink,
-		.enable_nvlink = gv100_fb_enable_nvlink,
-		.init_fbpa = tu104_fbpa_init,
-		.handle_fbpa_intr = tu104_fbpa_handle_intr,
+		.mem_unlock = NULL,
 		.write_mmu_fault_buffer_lo_hi =
-				fb_tu104_write_mmu_fault_buffer_lo_hi,
+				fb_gv11b_write_mmu_fault_buffer_lo_hi,
 		.write_mmu_fault_buffer_get =
-				fb_tu104_write_mmu_fault_buffer_get,
+				fb_gv11b_write_mmu_fault_buffer_get,
 		.write_mmu_fault_buffer_size =
-				fb_tu104_write_mmu_fault_buffer_size,
-		.write_mmu_fault_status = fb_tu104_write_mmu_fault_status,
+				fb_gv11b_write_mmu_fault_buffer_size,
+		.write_mmu_fault_status = fb_gv11b_write_mmu_fault_status,
 		.read_mmu_fault_buffer_get =
-				fb_tu104_read_mmu_fault_buffer_get,
+				fb_gv11b_read_mmu_fault_buffer_get,
 		.read_mmu_fault_buffer_put =
-				fb_tu104_read_mmu_fault_buffer_put,
+				fb_gv11b_read_mmu_fault_buffer_put,
 		.read_mmu_fault_buffer_size =
-				fb_tu104_read_mmu_fault_buffer_size,
-		.read_mmu_fault_addr_lo_hi = fb_tu104_read_mmu_fault_addr_lo_hi,
-		.read_mmu_fault_inst_lo_hi = fb_tu104_read_mmu_fault_inst_lo_hi,
-		.read_mmu_fault_info = fb_tu104_read_mmu_fault_info,
-		.read_mmu_fault_status = fb_tu104_read_mmu_fault_status,
-		.mmu_invalidate_replay = fb_tu104_mmu_invalidate_replay,
+				fb_gv11b_read_mmu_fault_buffer_size,
+		.read_mmu_fault_addr_lo_hi = fb_gv11b_read_mmu_fault_addr_lo_hi,
+		.read_mmu_fault_inst_lo_hi = fb_gv11b_read_mmu_fault_inst_lo_hi,
+		.read_mmu_fault_info = fb_gv11b_read_mmu_fault_info,
+		.read_mmu_fault_status = fb_gv11b_read_mmu_fault_status,
+		.mmu_invalidate_replay = gv11b_fb_mmu_invalidate_replay,
 		.is_fault_buf_enabled = gv11b_fb_is_fault_buf_enabled,
 		.fault_buf_set_state_hw = gv11b_fb_fault_buf_set_state_hw,
 		.fault_buf_configure_hw = gv11b_fb_fault_buf_configure_hw,
-		.get_vidmem_size = tu104_fb_get_vidmem_size,
-		.apply_pdb_cache_war = tu104_fb_apply_pdb_cache_war,
 		.intr = {
-			.enable = tu104_fb_intr_enable,
-			.disable = tu104_fb_intr_disable,
-			.isr = tu104_fb_intr_isr,
+			.enable = gv11b_fb_intr_enable,
+			.disable = gv11b_fb_intr_disable,
+			.isr = gv11b_fb_intr_isr,
 			.is_mmu_fault_pending =
-				tu104_fb_intr_is_mmu_fault_pending,
-		}
-	},
-	.nvdec = {
-		.falcon_base_addr = tu104_nvdec_falcon_base_addr,
+				gv11b_fb_intr_is_mmu_fault_pending,
+		},
 	},
 	.cg = {
 		.slcg_bus_load_gating_prod =
-			tu104_slcg_bus_load_gating_prod,
+			gv11b_slcg_bus_load_gating_prod,
 		.slcg_ce2_load_gating_prod =
-			tu104_slcg_ce2_load_gating_prod,
+			gv11b_slcg_ce2_load_gating_prod,
 		.slcg_chiplet_load_gating_prod =
-			tu104_slcg_chiplet_load_gating_prod,
+			gv11b_slcg_chiplet_load_gating_prod,
 		.slcg_ctxsw_firmware_load_gating_prod =
-			tu104_slcg_ctxsw_firmware_load_gating_prod,
+			gv11b_slcg_ctxsw_firmware_load_gating_prod,
 		.slcg_fb_load_gating_prod =
-			tu104_slcg_fb_load_gating_prod,
+			gv11b_slcg_fb_load_gating_prod,
 		.slcg_fifo_load_gating_prod =
-			tu104_slcg_fifo_load_gating_prod,
+			gv11b_slcg_fifo_load_gating_prod,
 		.slcg_gr_load_gating_prod =
-			gr_tu104_slcg_gr_load_gating_prod,
+			gr_gv11b_slcg_gr_load_gating_prod,
 		.slcg_ltc_load_gating_prod =
-			ltc_tu104_slcg_ltc_load_gating_prod,
+			ltc_gv11b_slcg_ltc_load_gating_prod,
 		.slcg_perf_load_gating_prod =
-			tu104_slcg_perf_load_gating_prod,
+			gv11b_slcg_perf_load_gating_prod,
 		.slcg_priring_load_gating_prod =
-			tu104_slcg_priring_load_gating_prod,
+			gv11b_slcg_priring_load_gating_prod,
 		.slcg_pmu_load_gating_prod =
-			tu104_slcg_pmu_load_gating_prod,
+			gv11b_slcg_pmu_load_gating_prod,
 		.slcg_therm_load_gating_prod =
-			tu104_slcg_therm_load_gating_prod,
+			gv11b_slcg_therm_load_gating_prod,
 		.slcg_xbar_load_gating_prod =
-			tu104_slcg_xbar_load_gating_prod,
+			gv11b_slcg_xbar_load_gating_prod,
 		.blcg_bus_load_gating_prod =
-			tu104_blcg_bus_load_gating_prod,
+			gv11b_blcg_bus_load_gating_prod,
 		.blcg_ce_load_gating_prod =
-			tu104_blcg_ce_load_gating_prod,
+			gv11b_blcg_ce_load_gating_prod,
 		.blcg_ctxsw_firmware_load_gating_prod =
-			tu104_blcg_ctxsw_firmware_load_gating_prod,
+			gv11b_blcg_ctxsw_firmware_load_gating_prod,
 		.blcg_fb_load_gating_prod =
-			tu104_blcg_fb_load_gating_prod,
+			gv11b_blcg_fb_load_gating_prod,
 		.blcg_fifo_load_gating_prod =
-			tu104_blcg_fifo_load_gating_prod,
+			gv11b_blcg_fifo_load_gating_prod,
 		.blcg_gr_load_gating_prod =
-			tu104_blcg_gr_load_gating_prod,
+			gv11b_blcg_gr_load_gating_prod,
 		.blcg_ltc_load_gating_prod =
-			tu104_blcg_ltc_load_gating_prod,
+			gv11b_blcg_ltc_load_gating_prod,
 		.blcg_pwr_csb_load_gating_prod =
-			tu104_blcg_pwr_csb_load_gating_prod,
+			gv11b_blcg_pwr_csb_load_gating_prod,
 		.blcg_pmu_load_gating_prod =
-			tu104_blcg_pmu_load_gating_prod,
+			gv11b_blcg_pmu_load_gating_prod,
 		.blcg_xbar_load_gating_prod =
-			tu104_blcg_xbar_load_gating_prod,
+			gv11b_blcg_xbar_load_gating_prod,
+		.pg_gr_load_gating_prod =
+			gr_gv11b_pg_gr_load_gating_prod,
 	},
 	.fifo = {
-		.get_preempt_timeout = gv100_fifo_get_preempt_timeout,
-		.init_fifo_setup_hw = tu104_init_fifo_setup_hw,
+		.get_preempt_timeout = gv11b_fifo_get_preempt_timeout,
+		.init_fifo_setup_hw = gv11b_init_fifo_setup_hw,
 		.default_timeslice_us = gk20a_fifo_default_timeslice_us,
 		.preempt_channel = gv11b_fifo_preempt_channel,
 		.preempt_tsg = gv11b_fifo_preempt_tsg,
@@ -963,8 +901,6 @@ static const struct gpu_ops tu104_ops = {
 		.intr_unset_recover_mask = gv11b_fifo_intr_unset_recover_mask,
 		.setup_sw = nvgpu_fifo_setup_sw,
 		.cleanup_sw = nvgpu_fifo_cleanup_sw,
-		.init_pdb_cache_war = tu104_init_pdb_cache_war,
-		.deinit_pdb_cache_war = tu104_deinit_pdb_cache_war,
 		.set_sm_exception_type_mask = gk20a_tsg_set_sm_exception_type_mask,
 		.intr_0_enable = gv11b_fifo_intr_0_enable,
 		.intr_1_enable = gk20a_fifo_intr_1_enable,
@@ -993,11 +929,11 @@ static const struct gpu_ops tu104_ops = {
 		.acquire_val = gm20b_pbdma_acquire_val,
 		.get_signature = gp10b_pbdma_get_signature,
 		.dump_status = gm20b_pbdma_dump_status,
-		.handle_intr = gm20b_pbdma_handle_intr,
 		.handle_intr_0 = gv11b_pbdma_handle_intr_0,
 		.handle_intr_1 = gv11b_pbdma_handle_intr_1,
-		.read_data = tu104_pbdma_read_data,
-		.reset_header = tu104_pbdma_reset_header,
+		.handle_intr = gm20b_pbdma_handle_intr,
+		.read_data = gm20b_pbdma_read_data,
+		.reset_header = gm20b_pbdma_reset_header,
 		.device_fatal_0_intr_descs =
 			gm20b_pbdma_device_fatal_0_intr_descs,
 		.channel_fatal_0_intr_descs =
@@ -1038,7 +974,7 @@ static const struct gpu_ops tu104_ops = {
 			gm20b_read_pbdma_status_info,
 	},
 	.ramfc = {
-		.setup = tu104_ramfc_setup,
+		.setup = gv11b_ramfc_setup,
 		.capture_ram_dump = gv11b_ramfc_capture_ram_dump,
 		.commit_userd = gp10b_ramfc_commit_userd,
 		.get_syncpt = NULL,
@@ -1055,16 +991,18 @@ static const struct gpu_ops tu104_ops = {
 		.set_eng_method_buffer = gv11b_ramin_set_eng_method_buffer,
 	},
 	.runlist = {
+		.reschedule = gv11b_runlist_reschedule,
+		.reschedule_preempt_next_locked = gk20a_fifo_reschedule_preempt_next,
 		.update_for_channel = gk20a_runlist_update_for_channel,
 		.reload = gk20a_runlist_reload,
 		.set_interleave = gk20a_runlist_set_interleave,
-		.count_max = tu104_runlist_count_max,
-		.entry_size = tu104_runlist_entry_size,
+		.count_max = gv11b_runlist_count_max,
+		.entry_size = gv11b_runlist_entry_size,
 		.length_max = gk20a_runlist_length_max,
 		.get_tsg_entry = gv11b_runlist_get_tsg_entry,
 		.get_ch_entry = gv11b_runlist_get_ch_entry,
-		.hw_submit = tu104_runlist_hw_submit,
-		.wait_pending = tu104_runlist_wait_pending,
+		.hw_submit = gk20a_runlist_hw_submit,
+		.wait_pending = gk20a_runlist_wait_pending,
 		.write_state = gk20a_runlist_write_state,
 	},
 	.userd = {
@@ -1085,7 +1023,7 @@ static const struct gpu_ops tu104_ops = {
 		.unbind = gv11b_channel_unbind,
 		.enable = gk20a_channel_enable,
 		.disable = gk20a_channel_disable,
-		.count = gv100_channel_count,
+		.count = gv11b_channel_count,
 		.read_state = gv11b_channel_read_state,
 		.force_ctx_reload = gm20b_channel_force_ctx_reload,
 		.abort_clean_up = nvgpu_channel_abort_clean_up,
@@ -1118,15 +1056,15 @@ static const struct gpu_ops tu104_ops = {
 		.post_event_id = nvgpu_tsg_post_event_id,
 	},
 	.usermode = {
-		.setup_hw = tu104_usermode_setup_hw,
-		.base = tu104_usermode_base,
-		.bus_base = tu104_usermode_bus_base,
-		.ring_doorbell = tu104_usermode_ring_doorbell,
-		.doorbell_token = tu104_usermode_doorbell_token,
+		.setup_hw = NULL,
+		.base = gv11b_usermode_base,
+		.bus_base = gv11b_usermode_bus_base,
+		.ring_doorbell = gv11b_usermode_ring_doorbell,
+		.doorbell_token = gv11b_usermode_doorbell_token,
 	},
 	.netlist = {
-		.get_netlist_name = tu104_netlist_get_name,
-		.is_fw_defined = tu104_netlist_is_firmware_defined,
+		.get_netlist_name = gv11b_netlist_get_name,
+		.is_fw_defined = gv11b_netlist_is_firmware_defined,
 	},
 	.mm = {
 		.gmmu_map = nvgpu_gmmu_map_locked,
@@ -1135,6 +1073,7 @@ static const struct gpu_ops tu104_ops = {
 		.get_big_page_sizes = gm20b_mm_get_big_page_sizes,
 		.get_default_big_page_size = gp10b_mm_get_default_big_page_size,
 		.gpu_phys_addr = gv11b_gpu_phys_addr,
+		.get_iommu_bit = gp10b_mm_get_iommu_bit,
 		.get_mmu_levels = gp10b_mm_get_mmu_levels,
 		.init_mm_setup_hw = gv11b_init_mm_setup_hw,
 		.is_bar1_supported = gv11b_mm_is_bar1_supported,
@@ -1146,7 +1085,6 @@ static const struct gpu_ops tu104_ops = {
 		.remove_bar2_vm = gp10b_remove_bar2_vm,
 		.fault_info_mem_destroy = gv11b_mm_fault_info_mem_destroy,
 		.mmu_fault_disable_hw = gv11b_mm_mmu_fault_disable_hw,
-		.get_flush_retries = tu104_mm_get_flush_retries,
 		.bar1_map_userd = NULL,
 		.cache = {
 			.fb_flush = gk20a_mm_fb_flush,
@@ -1155,124 +1093,128 @@ static const struct gpu_ops tu104_ops = {
 			.cbc_clean = gk20a_mm_cbc_clean,
 		},
 	},
-	.pramin = {
-		.data032_r = pram_data032_r,
-	},
 	.therm = {
-		/* PROD values match with H/W INIT values */
+		.init_therm_setup_hw = gv11b_init_therm_setup_hw,
 		.init_elcg_mode = gv11b_therm_init_elcg_mode,
 		.init_blcg_mode = gm20b_therm_init_blcg_mode,
-		.elcg_init_idle_filters = NULL,
-		.get_internal_sensor_curr_temp =
-			gp106_get_internal_sensor_curr_temp,
-		.get_internal_sensor_limits =
-			gp106_get_internal_sensor_limits,
+		.elcg_init_idle_filters = gv11b_elcg_init_idle_filters,
 	},
 	.pmu = {
-		.falcon_base_addr = gp106_pmu_falcon_base_addr,
-		.pmu_queue_tail = gk20a_pmu_queue_tail,
-		.pmu_get_queue_head = pwr_pmu_queue_head_r,
-		.pmu_mutex_release = gk20a_pmu_mutex_release,
+		/*
+		 * Basic init ops are must, as PMU engine used by ACR to
+		 * load & bootstrap GR LS falcons without LS PMU, remaining
+		 * ops can be assigned/ignored as per build flag request
+		 */
+		/* Basic init ops */
+		.is_pmu_supported = gv11b_is_pmu_supported,
+		.falcon_base_addr = gk20a_pmu_falcon_base_addr,
+		.pmu_reset = nvgpu_pmu_reset,
+		.reset_engine = gp106_pmu_engine_reset,
+		.is_engine_in_reset = gp106_pmu_is_engine_in_reset,
+		.is_debug_mode_enabled = gm20b_pmu_is_debug_mode_en,
+		.setup_apertures = gv11b_setup_apertures,
+		.secured_pmu_start = gm20b_secured_pmu_start,
+		.write_dmatrfbase = gp10b_write_dmatrfbase,
+		/* ISR */
+		.pmu_enable_irq = gk20a_pmu_enable_irq,
+#ifdef NVGPU_LS_PMU
+		.get_irqdest = gv11b_pmu_get_irqdest,
+		.handle_ext_irq = gv11b_pmu_handle_ext_irq,
 		.pmu_is_interrupted = gk20a_pmu_is_interrupted,
 		.pmu_isr = gk20a_pmu_isr,
-		.pmu_init_perfmon_counter = gk20a_pmu_init_perfmon_counter,
-		.pmu_pg_idle_counter_config = gk20a_pmu_pg_idle_counter_config,
-		.pmu_read_idle_counter = gk20a_pmu_read_idle_counter,
-		.pmu_reset_idle_counter = gk20a_pmu_reset_idle_counter,
-		/* TODO: implement for tu104 */
-		.pmu_read_idle_intr_status = NULL,
-		.pmu_clear_idle_intr_status = NULL,
-		.pmu_dump_elpg_stats = gk20a_pmu_dump_elpg_stats,
-		.pmu_dump_falcon_stats = gk20a_pmu_dump_falcon_stats,
-		.pmu_enable_irq = gk20a_pmu_enable_irq,
-		.is_pmu_supported = tu104_is_pmu_supported,
-		.pmu_init_perfmon = nvgpu_pmu_init_perfmon,
-		.pmu_perfmon_start_sampling = nvgpu_pmu_perfmon_start_sampling,
-		.pmu_perfmon_stop_sampling = nvgpu_pmu_perfmon_stop_sampling,
+		/* queue */
+		.pmu_get_queue_head = pwr_pmu_queue_head_r,
+		.pmu_get_queue_head_size = pwr_pmu_queue_head__size_1_v,
+		.pmu_get_queue_tail = pwr_pmu_queue_tail_r,
+		.pmu_get_queue_tail_size = pwr_pmu_queue_tail__size_1_v,
+		.pmu_queue_head = gk20a_pmu_queue_head,
+		.pmu_queue_tail = gk20a_pmu_queue_tail,
+		.pmu_msgq_tail = gk20a_pmu_msgq_tail,
+		/* mutex */
+		.pmu_mutex_size = pwr_pmu_mutex__size_1_v,
 		.pmu_mutex_owner = gk20a_pmu_mutex_owner,
 		.pmu_mutex_acquire = gk20a_pmu_mutex_acquire,
-		.pmu_msgq_tail = gk20a_pmu_msgq_tail,
-		.pmu_get_queue_head_size = pwr_pmu_queue_head__size_1_v,
-		.pmu_reset = nvgpu_pmu_reset,
-		.pmu_queue_head = gk20a_pmu_queue_head,
-		.pmu_pg_param_post_init = nvgpu_lpwr_post_init,
-		.pmu_get_queue_tail_size = pwr_pmu_queue_tail__size_1_v,
-		.reset_engine = gp106_pmu_engine_reset,
-		.write_dmatrfbase = gp10b_write_dmatrfbase,
-		.pmu_mutex_size = pwr_pmu_mutex__size_1_v,
-		.is_engine_in_reset = gp106_pmu_is_engine_in_reset,
-		.pmu_get_queue_tail = pwr_pmu_queue_tail_r,
-		.get_irqdest = gk20a_pmu_get_irqdest,
-		.handle_ext_irq = gv11b_pmu_handle_ext_irq,
-		.is_debug_mode_enabled = gm20b_pmu_is_debug_mode_en,
-		.setup_apertures = gp106_pmu_setup_apertures,
-		.secured_pmu_start = gm20b_secured_pmu_start,
+		.pmu_mutex_release = gk20a_pmu_mutex_release,
+		/* power-gating */
+		.pmu_pg_init_param = gv11b_pg_gr_init,
+		.pmu_setup_elpg = gv11b_pmu_setup_elpg,
+		.pmu_pg_idle_counter_config = gk20a_pmu_pg_idle_counter_config,
+		.pmu_pg_supported_engines_list = gm20b_pmu_pg_engines_list,
+		.pmu_pg_engines_feature_list = gm20b_pmu_pg_feature_list,
+		.pmu_pg_set_sub_feature_mask = gv11b_pg_set_subfeature_mask,
+		.pmu_elpg_statistics = gp106_pmu_elpg_statistics,
+		.pmu_dump_elpg_stats = gk20a_pmu_dump_elpg_stats,
+		/* perfmon */
+		.pmu_init_perfmon_counter = gk20a_pmu_init_perfmon_counter,
+		.pmu_read_idle_counter = gk20a_pmu_read_idle_counter,
+		.pmu_reset_idle_counter = gk20a_pmu_reset_idle_counter,
+		.pmu_read_idle_intr_status = gk20a_pmu_read_idle_intr_status,
+		.pmu_clear_idle_intr_status = gk20a_pmu_clear_idle_intr_status,
+		.pmu_init_perfmon = nvgpu_pmu_init_perfmon_rpc,
+		.pmu_perfmon_start_sampling = nvgpu_pmu_perfmon_start_sampling_rpc,
+		.pmu_perfmon_stop_sampling = nvgpu_pmu_perfmon_stop_sampling_rpc,
+		.pmu_perfmon_get_samples_rpc = nvgpu_pmu_perfmon_get_samples_rpc,
+		/* debug */
+		.dump_secure_fuses = pmu_dump_security_fuses_gm20b,
+		.pmu_dump_falcon_stats = gk20a_pmu_dump_falcon_stats,
+		/* PMU uocde */
+		.save_zbc = gm20b_pmu_save_zbc,
 		.pmu_clear_bar0_host_err_status =
 			gm20b_clear_pmu_bar0_host_err_status,
-	},
-	.clk = {
-		.init_clk_support = gv100_init_clk_support,
-		.get_crystal_clk_hz = gv100_crystal_clk_hz,
-		.get_rate_cntr = gv100_get_rate_cntr,
-		.measure_freq = gv100_clk_measure_freq,
-		.suspend_clk_support = gv100_suspend_clk_support,
-		.perf_pmu_vfe_load = nvgpu_perf_pmu_vfe_load_ps35,
-		.clk_domain_get_f_points = gv100_clk_domain_get_f_points,
+		.bar0_error_status = gk20a_pmu_bar0_error_status,
+		.flcn_setup_boot_config = gm20b_pmu_flcn_setup_boot_config,
+#endif
 	},
 	.clk_arb = {
-		.check_clk_arb_support = gv100_check_clk_arb_support,
-		.get_arbiter_clk_domains = gv100_get_arbiter_clk_domains,
-		.get_arbiter_f_points = gv100_get_arbiter_f_points,
-		.get_arbiter_clk_range = gv100_get_arbiter_clk_range,
-		.get_arbiter_clk_default = gv100_get_arbiter_clk_default,
-		.get_current_pstate = nvgpu_clk_arb_get_current_pstate,
-		.arbiter_clk_init = gv100_init_clk_arbiter,
-		.clk_arb_run_arbiter_cb = gv100_clk_arb_run_arbiter_cb,
-		.clk_arb_cleanup = gv100_clk_arb_cleanup,
-		.stop_clk_arb_threads = gv100_stop_clk_arb_threads,
+		.check_clk_arb_support = gp10b_check_clk_arb_support,
+		.get_arbiter_clk_domains = gp10b_get_arbiter_clk_domains,
+		.get_arbiter_f_points = gp10b_get_arbiter_f_points,
+		.get_arbiter_clk_range = gp10b_get_arbiter_clk_range,
+		.get_arbiter_clk_default = gp10b_get_arbiter_clk_default,
+		.arbiter_clk_init = gp10b_init_clk_arbiter,
+		.clk_arb_run_arbiter_cb = gp10b_clk_arb_run_arbiter_cb,
+		.clk_arb_cleanup = gp10b_clk_arb_cleanup,
 	},
 	.regops = {
 		.exec_regops = exec_regops_gk20a,
 		.get_global_whitelist_ranges =
-			tu104_get_global_whitelist_ranges,
+			gv11b_get_global_whitelist_ranges,
 		.get_global_whitelist_ranges_count =
-			tu104_get_global_whitelist_ranges_count,
+			gv11b_get_global_whitelist_ranges_count,
 		.get_context_whitelist_ranges =
-			tu104_get_context_whitelist_ranges,
+			gv11b_get_context_whitelist_ranges,
 		.get_context_whitelist_ranges_count =
-			tu104_get_context_whitelist_ranges_count,
-		.get_runcontrol_whitelist = tu104_get_runcontrol_whitelist,
+			gv11b_get_context_whitelist_ranges_count,
+		.get_runcontrol_whitelist = gv11b_get_runcontrol_whitelist,
 		.get_runcontrol_whitelist_count =
-			tu104_get_runcontrol_whitelist_count,
-		.get_qctl_whitelist = tu104_get_qctl_whitelist,
-		.get_qctl_whitelist_count = tu104_get_qctl_whitelist_count,
+			gv11b_get_runcontrol_whitelist_count,
+		.get_qctl_whitelist = gv11b_get_qctl_whitelist,
+		.get_qctl_whitelist_count = gv11b_get_qctl_whitelist_count,
 	},
 	.mc = {
-		.intr_enable = intr_tu104_enable,
-		.intr_mask = intr_tu104_mask,
+		.intr_mask = mc_gp10b_intr_mask,
+		.intr_enable = mc_gv11b_intr_enable,
 		.intr_unit_config = mc_gp10b_intr_unit_config,
 		.isr_stall = mc_gp10b_isr_stall,
-		.intr_stall = intr_tu104_stall,
-		.intr_stall_pause = intr_tu104_stall_pause,
-		.intr_stall_resume = intr_tu104_stall_resume,
-		.intr_nonstall = intr_tu104_nonstall,
-		.intr_nonstall_pause = intr_tu104_nonstall_pause,
-		.intr_nonstall_resume = intr_tu104_nonstall_resume,
-		.isr_nonstall = intr_tu104_isr_nonstall,
+		.intr_stall = mc_gp10b_intr_stall,
+		.intr_stall_pause = mc_gp10b_intr_stall_pause,
+		.intr_stall_resume = mc_gp10b_intr_stall_resume,
+		.intr_nonstall = mc_gp10b_intr_nonstall,
+		.intr_nonstall_pause = mc_gp10b_intr_nonstall_pause,
+		.intr_nonstall_resume = mc_gp10b_intr_nonstall_resume,
+		.isr_nonstall = gm20b_mc_isr_nonstall,
 		.enable = gm20b_mc_enable,
 		.disable = gm20b_mc_disable,
 		.reset = gm20b_mc_reset,
-		.is_intr1_pending = NULL,
-		.log_pending_intrs = intr_tu104_log_pending_intrs,
-		.is_intr_hub_pending = intr_tu104_is_intr_hub_pending,
-		.is_intr_nvlink_pending = gv100_mc_is_intr_nvlink_pending,
+		.is_intr1_pending = mc_gp10b_is_intr1_pending,
+		.log_pending_intrs = mc_gp10b_log_pending_intrs,
+		.is_intr_hub_pending = gv11b_mc_is_intr_hub_pending,
 		.is_stall_and_eng_intr_pending =
-					gv100_mc_is_stall_and_eng_intr_pending,
-		.fbpa_isr = mc_tu104_fbpa_isr,
-		.reset_mask = gv100_mc_reset_mask,
+					gv11b_mc_is_stall_and_eng_intr_pending,
+		.reset_mask = gm20b_mc_reset_mask,
 		.is_enabled = gm20b_mc_is_enabled,
 		.fb_reset = NULL,
-		.ltc_isr = mc_tu104_ltc_isr,
+		.ltc_isr = mc_gp10b_ltc_isr,
 		.is_mmu_fault_pending = gv11b_mc_is_mmu_fault_pending,
 	},
 	.debug = {
@@ -1308,11 +1250,9 @@ static const struct gpu_ops tu104_ops = {
 	.bus = {
 		.init_hw = gk20a_bus_init_hw,
 		.isr = gk20a_bus_isr,
-		.bar1_bind = NULL,
-		.bar2_bind = bus_tu104_bar2_bind,
+		.bar1_bind = gm20b_bus_bar1_bind,
+		.bar2_bind = gp10b_bus_bar2_bind,
 		.set_bar0_window = gk20a_bus_set_bar0_window,
-		.read_sw_scratch = gv100_bus_read_sw_scratch,
-		.write_sw_scratch = gv100_bus_write_sw_scratch,
 	},
 	.ptimer = {
 		.isr = gk20a_ptimer_isr,
@@ -1331,18 +1271,6 @@ static const struct gpu_ops tu104_ops = {
 		.get_pending_snapshots = nvgpu_css_get_pending_snapshots,
 	},
 #endif
-	.xve = {
-		.get_speed        = xve_get_speed_gp106,
-		.xve_readl        = xve_xve_readl_gp106,
-		.xve_writel       = xve_xve_writel_gp106,
-		.disable_aspm     = xve_disable_aspm_gp106,
-		.reset_gpu        = xve_reset_gpu_gp106,
-#if defined(CONFIG_PCI_MSI)
-		.rearm_msi        = xve_rearm_msi_gp106,
-#endif
-		.enable_shadow_rom = NULL,
-		.disable_shadow_rom = NULL,
-	},
 	.falcon = {
 		.reset = gk20a_falcon_reset,
 		.set_irq = gk20a_falcon_set_irq,
@@ -1367,109 +1295,35 @@ static const struct gpu_ops tu104_ops = {
 		.enable_priv_ring = gm20b_priv_ring_enable,
 		.isr = gp10b_priv_ring_isr,
 		.decode_error_code = gp10b_priv_ring_decode_error_code,
-		.set_ppriv_timeout_settings = NULL,
+		.set_ppriv_timeout_settings =
+			gm20b_priv_set_timeout_settings,
 		.enum_ltc = gm20b_priv_ring_enum_ltc,
 		.get_gpc_count = gm20b_priv_ring_get_gpc_count,
 		.get_fbp_count = gm20b_priv_ring_get_fbp_count,
 	},
 	.fuse = {
+		.check_priv_security = gp10b_fuse_check_priv_security,
 		.is_opt_ecc_enable = gp10b_fuse_is_opt_ecc_enable,
 		.is_opt_feature_override_disable =
 			gp10b_fuse_is_opt_feature_override_disable,
 		.fuse_status_opt_fbio = gm20b_fuse_status_opt_fbio,
 		.fuse_status_opt_fbp = gm20b_fuse_status_opt_fbp,
 		.fuse_status_opt_rop_l2_fbp = gm20b_fuse_status_opt_rop_l2_fbp,
-		.fuse_status_opt_gpc = gm20b_fuse_status_opt_gpc,
 		.fuse_status_opt_tpc_gpc = gm20b_fuse_status_opt_tpc_gpc,
 		.fuse_ctrl_opt_tpc_gpc = gm20b_fuse_ctrl_opt_tpc_gpc,
 		.fuse_opt_sec_debug_en = gm20b_fuse_opt_sec_debug_en,
 		.fuse_opt_priv_sec_en = gm20b_fuse_opt_priv_sec_en,
-		.read_vin_cal_fuse_rev = gp106_fuse_read_vin_cal_fuse_rev,
-		.read_vin_cal_slope_intercept_fuse =
-			gp106_fuse_read_vin_cal_slope_intercept_fuse,
-		.read_vin_cal_gain_offset_fuse =
-			gp106_fuse_read_vin_cal_gain_offset_fuse,
-	},
-#if defined(CONFIG_TEGRA_NVLINK)
-	.nvlink = {
-		.get_link_reset_mask = gv100_nvlink_get_link_reset_mask,
-		.discover_ioctrl = gv100_nvlink_discover_ioctrl,
-		.discover_link = gv100_nvlink_discover_link,
-		.init = gv100_nvlink_init,
-		.rxdet = tu104_nvlink_rxdet,
-		.get_connected_link_mask = tu104_nvlink_get_connected_link_mask,
-		.set_sw_war = NULL,
-		.link_early_init = gv100_nvlink_link_early_init,
-		/* API */
-		.link_mode_transitions = {
-			.setup_pll = tu104_nvlink_setup_pll,
-			.data_ready_en = tu104_nvlink_data_ready_en,
-			.get_link_state = gv100_nvlink_get_link_state,
-			.get_link_mode = gv100_nvlink_get_link_mode,
-			.set_link_mode = gv100_nvlink_set_link_mode,
-			.get_tx_sublink_state = tu104_nvlink_link_get_tx_sublink_state,
-			.get_rx_sublink_state = tu104_nvlink_link_get_rx_sublink_state,
-			.get_sublink_mode = gv100_nvlink_link_get_sublink_mode,
-			.set_sublink_mode = gv100_nvlink_link_set_sublink_mode,
-		},
-		.interface_init = gv100_nvlink_interface_init,
-		.reg_init = gv100_nvlink_reg_init,
-		.shutdown = gv100_nvlink_shutdown,
-		.early_init = gv100_nvlink_early_init,
-		.speed_config = tu104_nvlink_speed_config,
-		.minion = {
-			.base_addr = gv100_nvlink_minion_base_addr,
-			.is_running = gv100_nvlink_minion_is_running,
-			.is_boot_complete =
-				gv100_nvlink_minion_is_boot_complete,
-			.get_dlcmd_ordinal =
-				tu104_nvlink_minion_get_dlcmd_ordinal,
-			.send_dlcmd = gv100_nvlink_minion_send_dlcmd,
-			.clear_intr = gv100_nvlink_minion_clear_intr,
-			.init_intr = gv100_nvlink_minion_init_intr,
-			.enable_link_intr = gv100_nvlink_minion_enable_link_intr,
-			.falcon_isr = gv100_nvlink_minion_falcon_isr,
-			.isr = gv100_nvlink_minion_isr,
-		},
-		.intr = {
-			.common_intr_enable = gv100_nvlink_common_intr_enable,
-			.init_nvlipt_intr = gv100_nvlink_init_nvlipt_intr,
-			.enable_link_intr = gv100_nvlink_enable_link_intr,
-			.init_mif_intr = gv100_nvlink_init_mif_intr,
-			.mif_intr_enable = gv100_nvlink_mif_intr_enable,
-			.dlpl_intr_enable = gv100_nvlink_dlpl_intr_enable,
-			.isr = gv100_nvlink_isr,
-		}
-	},
-#endif
-	.sec2 = {
-		.secured_sec2_start = tu104_start_sec2_secure,
-		.enable_irq = tu104_sec2_enable_irq,
-		.is_interrupted = tu104_sec2_is_interrupted,
-		.get_intr = tu104_sec2_get_intr,
-		.msg_intr_received = tu104_sec2_msg_intr_received,
-		.set_msg_intr = tu104_sec2_set_msg_intr,
-		.clr_intr = tu104_sec2_clr_intr,
-		.process_intr = tu104_sec2_process_intr,
-		.msgq_tail = tu104_sec2_msgq_tail,
-		.falcon_base_addr = tu104_sec2_falcon_base_addr,
-		.sec2_reset = tu104_sec2_reset,
-		.sec2_copy_to_emem = tu104_sec2_flcn_copy_to_emem,
-		.sec2_copy_from_emem = tu104_sec2_flcn_copy_from_emem,
-		.sec2_queue_head = tu104_sec2_queue_head,
-		.sec2_queue_tail = tu104_sec2_queue_tail,
-		.flcn_setup_boot_config = tu104_sec2_flcn_setup_boot_config,
-	},
-	.gsp = {
-		.falcon_base_addr = gv100_gsp_falcon_base_addr,
-		.falcon_setup_boot_config = gv100_gsp_flcn_setup_boot_config,
-		.gsp_reset = gv100_gsp_reset,
+		.read_vin_cal_fuse_rev = NULL,
+		.read_vin_cal_slope_intercept_fuse = NULL,
+		.read_vin_cal_gain_offset_fuse = NULL,
+		.read_gcplex_config_fuse =
+				nvgpu_tegra_fuse_read_gcplex_config_fuse,
 	},
 	.top = {
 		.device_info_parse_enum = gm20b_device_info_parse_enum,
 		.device_info_parse_data = gp10b_device_info_parse_data,
 		.get_num_engine_type_entries =
-					gp10b_get_num_engine_type_entries,
+				gp10b_get_num_engine_type_entries,
 		.get_device_info = gp10b_get_device_info,
 		.is_engine_gr = gm20b_is_engine_gr,
 		.is_engine_ce = gp10b_is_engine_ce,
@@ -1478,138 +1332,102 @@ static const struct gpu_ops tu104_ops = {
 		.get_max_tpc_per_gpc_count =
 			gm20b_top_get_max_tpc_per_gpc_count,
 		.get_max_fbps_count = gm20b_top_get_max_fbps_count,
-		.get_max_fbpas_count = gv100_top_get_max_fbpas_count,
 		.get_max_ltc_per_fbp = gm20b_top_get_max_ltc_per_fbp,
 		.get_max_lts_per_ltc = gm20b_top_get_max_lts_per_ltc,
 	},
-	.chip_init_gpu_characteristics = tu104_init_gpu_characteristics,
-	.get_litter_value = tu104_get_litter_value,
+	.chip_init_gpu_characteristics = gv11b_init_gpu_characteristics,
+	.get_litter_value = gv11b_get_litter_value,
 };
 
-int tu104_init_hal(struct gk20a *g)
+int gv11b_init_hal(struct gk20a *g)
 {
 	struct gpu_ops *gops = &g->ops;
 
-	gops->bios = tu104_ops.bios;
-	gops->ltc = tu104_ops.ltc;
-	gops->cbc = tu104_ops.cbc;
-	gops->ce2 = tu104_ops.ce2;
-	gops->gr = tu104_ops.gr;
-	gops->class = tu104_ops.class;
-	gops->gr.ctxsw_prog = tu104_ops.gr.ctxsw_prog;
-	gops->gr.config = tu104_ops.gr.config;
-	gops->fb = tu104_ops.fb;
-	gops->nvdec = tu104_ops.nvdec;
-	gops->cg = tu104_ops.cg;
-	gops->fifo = tu104_ops.fifo;
-	gops->engine = tu104_ops.engine;
-	gops->pbdma = tu104_ops.pbdma;
-	gops->ramfc = tu104_ops.ramfc;
-	gops->ramin = tu104_ops.ramin;
-	gops->runlist = tu104_ops.runlist;
-	gops->userd = tu104_ops.userd;
-	gops->channel = tu104_ops.channel;
-	gops->tsg = tu104_ops.tsg;
-	gops->usermode = tu104_ops.usermode;
-	gops->sync = tu104_ops.sync;
-	gops->engine_status = tu104_ops.engine_status;
-	gops->pbdma_status = tu104_ops.pbdma_status;
-	gops->netlist = tu104_ops.netlist;
-	gops->mm = tu104_ops.mm;
-	gops->pramin = tu104_ops.pramin;
-	gops->therm = tu104_ops.therm;
-	gops->pmu = tu104_ops.pmu;
-	gops->regops = tu104_ops.regops;
-	gops->mc = tu104_ops.mc;
-	gops->debug = tu104_ops.debug;
+	gops->ltc = gv11b_ops.ltc;
+	gops->cbc = gv11b_ops.cbc;
+	gops->ce2 = gv11b_ops.ce2;
+	gops->gr = gv11b_ops.gr;
+	gops->class = gv11b_ops.class;
+	gops->gr.ctxsw_prog = gv11b_ops.gr.ctxsw_prog;
+	gops->gr.config = gv11b_ops.gr.config;
+	gops->fb = gv11b_ops.fb;
+	gops->cg = gv11b_ops.cg;
+	gops->fifo = gv11b_ops.fifo;
+	gops->engine = gv11b_ops.engine;
+	gops->pbdma = gv11b_ops.pbdma;
+	gops->ramfc = gv11b_ops.ramfc;
+	gops->ramin = gv11b_ops.ramin;
+	gops->runlist = gv11b_ops.runlist;
+	gops->userd = gv11b_ops.userd;
+	gops->channel = gv11b_ops.channel;
+	gops->tsg = gv11b_ops.tsg;
+	gops->usermode = gv11b_ops.usermode;
+	gops->sync = gv11b_ops.sync;
+	gops->engine_status = gv11b_ops.engine_status;
+	gops->pbdma_status = gv11b_ops.pbdma_status;
+	gops->netlist = gv11b_ops.netlist;
+	gops->mm = gv11b_ops.mm;
+	gops->therm = gv11b_ops.therm;
+	gops->pmu = gv11b_ops.pmu;
+	gops->regops = gv11b_ops.regops;
+	gops->mc = gv11b_ops.mc;
+	gops->debug = gv11b_ops.debug;
 #ifdef NVGPU_DEBUGGER
-	gops->debugger = tu104_ops.debugger;
+	gops->debugger = gv11b_ops.debugger;
 #endif
-	gops->perf = tu104_ops.perf;
-	gops->perfbuf = tu104_ops.perfbuf;
-	gops->bus = tu104_ops.bus;
-	gops->ptimer = tu104_ops.ptimer;
+	gops->perf = gv11b_ops.perf;
+	gops->perfbuf = gv11b_ops.perfbuf;
+	gops->bus = gv11b_ops.bus;
+	gops->ptimer = gv11b_ops.ptimer;
 #if defined(CONFIG_GK20A_CYCLE_STATS)
-	gops->css = tu104_ops.css;
+	gops->css = gv11b_ops.css;
 #endif
-	gops->xve = tu104_ops.xve;
-	gops->falcon = tu104_ops.falcon;
-	gops->priv_ring = tu104_ops.priv_ring;
-	gops->fuse = tu104_ops.fuse;
-	gops->nvlink = tu104_ops.nvlink;
-	gops->sec2 = tu104_ops.sec2;
-	gops->gsp = tu104_ops.gsp;
-	gops->top = tu104_ops.top;
-
-	/* clocks */
-	gops->clk.init_clk_support = tu104_ops.clk.init_clk_support;
-	gops->clk.get_rate_cntr = tu104_ops.clk.get_rate_cntr;
-	gops->clk.get_crystal_clk_hz = tu104_ops.clk.get_crystal_clk_hz;
-	gops->clk.measure_freq = tu104_ops.clk.measure_freq;
-	gops->clk.suspend_clk_support = tu104_ops.clk.suspend_clk_support;
-	gops->clk_arb = tu104_ops.clk_arb;
-	gops->clk.clk_domain_get_f_points = tu104_ops.clk.clk_domain_get_f_points;
-	gops->clk = tu104_ops.clk;
+	gops->falcon = gv11b_ops.falcon;
+	gops->priv_ring = gv11b_ops.priv_ring;
+	gops->fuse = gv11b_ops.fuse;
+	gops->clk_arb = gv11b_ops.clk_arb;
+	gops->top = gv11b_ops.top;
 
 	/* Lone functions */
 	gops->chip_init_gpu_characteristics =
-		tu104_ops.chip_init_gpu_characteristics;
-	gops->get_litter_value = tu104_ops.get_litter_value;
+		gv11b_ops.chip_init_gpu_characteristics;
+	gops->get_litter_value = gv11b_ops.get_litter_value;
 	gops->semaphore_wakeup = gk20a_channel_semaphore_wakeup;
 
-	nvgpu_set_enabled(g, NVGPU_SEC_PRIVSECURITY, true);
-	nvgpu_set_enabled(g, NVGPU_SEC_SECUREGPCCS, true);
+	nvgpu_set_enabled(g, NVGPU_GR_USE_DMA_FOR_FW_BOOTSTRAP, false);
+
+	/* Read fuses to check if gpu needs to boot in secure/non-secure mode */
+	if (gops->fuse.check_priv_security(g) != 0) {
+		/* Do not boot gpu */
+		return -EINVAL;
+	}
+
+	/* priv security dependent ops */
+	if (nvgpu_is_enabled(g, NVGPU_SEC_PRIVSECURITY)) {
+		gops->gr.falcon.load_ctxsw_ucode =
+			nvgpu_gr_falcon_load_secure_ctxsw_ucode;
+	} else {
+		/* non-secure boot */
+		gops->pmu.pmu_nsbootstrap = gv11b_pmu_bootstrap;
+		gops->pmu.pmu_setup_hw_and_bootstrap =
+			gm20b_ns_pmu_setup_hw_and_bootstrap;
+	}
+
 	nvgpu_set_enabled(g, NVGPU_PMU_FECS_BOOTSTRAP_DONE, false);
-	nvgpu_set_enabled(g, NVGPU_SUPPORT_MULTIPLE_WPR, true);
 	nvgpu_set_enabled(g, NVGPU_FECS_TRACE_VA, true);
-	nvgpu_set_enabled(g, NVGPU_SUPPORT_SEC2_RTOS, true);
-	nvgpu_set_enabled(g, NVGPU_SUPPORT_PMU_RTOS_FBQ, true);
+
+	nvgpu_set_enabled(g, NVGPU_SUPPORT_MULTIPLE_WPR, false);
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_ZBC_STENCIL, true);
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_PREEMPTION_GFXP, true);
 	nvgpu_set_enabled(g, NVGPU_SUPPORT_PLATFORM_ATOMIC, true);
-	nvgpu_set_enabled(g, NVGPU_SUPPORT_SEC2_VM, true);
-	nvgpu_set_enabled(g, NVGPU_SUPPORT_GSP_VM, true);
-	nvgpu_set_enabled(g, NVGPU_SUPPORT_PMU_SUPER_SURFACE, true);
 
-	/* for now */
-	gops->clk.support_clk_freq_controller = false;
-	gops->clk.support_pmgr_domain = false;
-	gops->clk.support_lpwr_pg = false;
-	gops->clk.support_clk_freq_domain = true;
-	gops->pmu_perf.support_changeseq = true;
-	gops->pmu_perf.support_vfe = true;
-	gops->clk.support_vf_point = true;
-	gops->clk.lut_num_entries = CTRL_CLK_LUT_NUM_ENTRIES_GV10x;
-	gops->clk.perf_pmu_vfe_load = nvgpu_perf_pmu_vfe_load_ps35;
+	/*
+	 * gv11b bypasses the IOMMU since it uses a special nvlink path to
+	 * memory.
+	 */
+	nvgpu_set_enabled(g, NVGPU_MM_BYPASSES_IOMMU, true);
 
-	/* dGpu VDK support */
-	if (nvgpu_is_enabled(g, NVGPU_IS_FMODEL)){
-		/* Disable compression */
-		gops->cbc.init = NULL;
-		gops->cbc.ctrl = NULL;
-		gops->cbc.alloc_comptags = NULL;
-
-		gops->gr.falcon.load_ctxsw_ucode =
-			nvgpu_gr_falcon_load_ctxsw_ucode;
-
-		/* Disable pmu pstate, as there is no pmu support */
-		nvgpu_set_enabled(g, NVGPU_PMU_PSTATE, false);
-
-		nvgpu_set_enabled(g, NVGPU_GR_USE_DMA_FOR_FW_BOOTSTRAP,
-									false);
-		/* Disable fb mem_unlock */
-		gops->fb.mem_unlock = NULL;
-
-		/* Disable clock support */
-		gops->clk_arb.get_arbiter_clk_domains = NULL;
-		gops->clk.support_clk_freq_controller = false;
-
-	} else {
-		nvgpu_set_enabled(g, NVGPU_PMU_PSTATE, true);
-		nvgpu_set_enabled(g, NVGPU_GR_USE_DMA_FOR_FW_BOOTSTRAP, true);
-	}
-
-	g->name = "tu10x";
+	g->name = "gv11b";
 
 	return 0;
 }

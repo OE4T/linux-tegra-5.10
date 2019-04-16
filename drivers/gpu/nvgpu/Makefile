@@ -190,6 +190,12 @@ nvgpu-y += \
 	hal/gr/zbc/zbc_gm20b.o \
 	hal/gr/zbc/zbc_gp10b.o \
 	hal/gr/zbc/zbc_gv11b.o \
+	hal/init/hal_gm20b.o \
+	hal/init/hal_gp10b.o \
+	hal/init/hal_gv100.o \
+	hal/init/hal_gv11b.o \
+	hal/init/hal_tu104.o \
+	hal/init/hal_init.o \
 	hal/perf/perf_gm20b.o \
 	hal/perf/perf_gv11b.o \
 	hal/priv_ring/priv_ring_gm20b.o \
@@ -462,7 +468,6 @@ nvgpu-y += \
 	common/engine_queues/engine_dmem_queue.o \
 	common/engine_queues/engine_emem_queue.o \
 	common/engine_queues/engine_fb_queue.o \
-	common/init/hal_init.o \
 	common/sec2/sec2.o \
 	common/sec2/sec2_allocator.o \
 	common/sec2/sec2_lsfm.o \
@@ -499,7 +504,6 @@ nvgpu-y += \
 	gk20a/fifo_gk20a.o \
 	gk20a/gr_gk20a.o \
 	gk20a/mm_gk20a.o \
-	gm20b/hal_gm20b.o \
 	gm20b/gr_gm20b.o \
 	gm20b/clk_gm20b.o \
 	gm20b/mm_gm20b.o
@@ -549,9 +553,7 @@ nvgpu-y += \
 	gp10b/gr_gp10b.o  \
 	gp10b/ce_gp10b.o \
 	gp10b/mm_gp10b.o \
-	gp10b/hal_gp10b.o \
 	gp106/bios_gp106.o \
-	gv11b/hal_gv11b.o \
 	gv11b/gr_gv11b.o \
 	gv11b/fifo_gv11b.o \
 	gv11b/mm_gv11b.o \
@@ -560,10 +562,8 @@ nvgpu-y += \
 	gv100/bios_gv100.o \
 	gv100/fifo_gv100.o \
 	gv100/gr_gv100.o \
-	gv100/hal_gv100.o \
 	gv100/clk_gv100.o \
 	tu104/mm_tu104.o \
-	tu104/hal_tu104.o \
 	tu104/fifo_tu104.o \
 	tu104/gr_tu104.o \
 	tu104/func_tu104.o \

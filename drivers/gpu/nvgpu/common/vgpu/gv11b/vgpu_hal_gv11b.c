@@ -62,6 +62,7 @@
 #include "hal/gr/ctxsw_prog/ctxsw_prog_gv11b.h"
 #include "hal/perf/perf_gv11b.h"
 #include "hal/netlist/netlist_gv11b.h"
+#include "hal/init/hal_gv11b.h"
 
 #include "common/sync/syncpt_cmdbuf_gv11b.h"
 #include "common/sync/sema_cmdbuf_gv11b.h"
@@ -69,7 +70,6 @@
 #include "common/clk_arb/clk_arb_gp10b.h"
 
 #include <nvgpu/gk20a.h>
-#include <gv11b/hal_gv11b.h>
 #include <nvgpu/vgpu/vgpu.h>
 #include <nvgpu/error_notifier.h>
 

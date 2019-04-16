@@ -144,7 +144,7 @@
 #include "gp10b/ce_gp10b.h"
 #include "gp10b/mm_gp10b.h"
 
-#include "gv11b/hal_gv11b.h"
+#include "hal_gv11b.h"
 #include "gv11b/gr_gv11b.h"
 #include "gv11b/ce_gv11b.h"
 #include "gv11b/mm_gv11b.h"

@@ -44,7 +44,6 @@
 #include "common/vgpu/ivc/comm_vgpu.h"
 #include "common/vgpu/intr/intr_vgpu.h"
 #include "common/vgpu/init/init_vgpu.h"
-#include "gm20b/hal_gm20b.h"
 
 #include "os/linux/module.h"
 #include "os/linux/os_linux.h"

@@ -101,9 +101,9 @@
 #include "gk20a/mm_gk20a.h"
 #include "gk20a/gr_gk20a.h"
 
-#include "gr_gm20b.h"
-#include "mm_gm20b.h"
-#include "clk_gm20b.h"
+#include "gm20b/gr_gm20b.h"
+#include "gm20b/mm_gm20b.h"
+#include "gm20b/clk_gm20b.h"
 #include "hal_gm20b.h"
 
 #include <nvgpu/hw/gm20b/hw_proj_gm20b.h>

@@ -1,7 +1,7 @@
 /*
  * NVIDIA GPU HAL interface.
  *
- * Copyright (c) 2014-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -28,11 +28,11 @@
 #include <nvgpu/mc.h>
 #include <nvgpu/soc.h>
 
-#include "gm20b/hal_gm20b.h"
-#include "gp10b/hal_gp10b.h"
-#include "gv100/hal_gv100.h"
-#include "gv11b/hal_gv11b.h"
-#include "tu104/hal_tu104.h"
+#include "hal_gm20b.h"
+#include "hal_gp10b.h"
+#include "hal_gv100.h"
+#include "hal_gv11b.h"
+#include "hal_tu104.h"
 
 int nvgpu_init_hal(struct gk20a *g)
 {
