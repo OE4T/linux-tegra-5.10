@@ -238,7 +238,7 @@ static int add_ctxsw_buffer_map_entries_gpcs(struct gk20a *g,
 		num_tpcs = nvgpu_gr_config_get_gpc_tpc_count(g->gr.config, gpc_num);
 		base = gpc_base + (gpc_stride * gpc_num) + tpc_in_gpc_base;
 		if (add_ctxsw_buffer_map_entries_subunits(map,
-					&g->netlist_vars->ctxsw_regs.pm_tpc,
+					nvgpu_netlist_get_pm_tpc_ctxsw_regs(g),
 					count, offset, max_cnt, base,
 					num_tpcs, ~U32(0U), tpc_in_gpc_stride,
 					(tpc_in_gpc_stride - 1U)) != 0) {
@@ -248,7 +248,7 @@ static int add_ctxsw_buffer_map_entries_gpcs(struct gk20a *g,
 		num_ppcs = nvgpu_gr_config_get_gpc_ppc_count(g->gr.config, gpc_num);
 		base = gpc_base + (gpc_stride * gpc_num) + ppc_in_gpc_base;
 		if (add_ctxsw_buffer_map_entries_subunits(map,
-					&g->netlist_vars->ctxsw_regs.pm_ppc,
+					nvgpu_netlist_get_pm_ppc_ctxsw_regs(g),
 					count, offset, max_cnt, base, num_ppcs,
 					~U32(0U), ppc_in_gpc_stride,
 					(ppc_in_gpc_stride - 1U)) != 0) {
@@ -257,7 +257,7 @@ static int add_ctxsw_buffer_map_entries_gpcs(struct gk20a *g,
 
 		base = gpc_base + (gpc_stride * gpc_num);
 		if (add_ctxsw_buffer_map_entries_pmgpc(g, map,
-					&g->netlist_vars->ctxsw_regs.pm_gpc,
+					nvgpu_netlist_get_pm_gpc_ctxsw_regs(g),
 					count, offset, max_cnt, base,
 					(gpc_stride - 1U)) != 0) {
 			return -EINVAL;
@@ -265,31 +265,31 @@ static int add_ctxsw_buffer_map_entries_gpcs(struct gk20a *g,
 
 		base = NV_XBAR_MXBAR_PRI_GPC_GNIC_STRIDE * gpc_num;
 		if (add_ctxsw_buffer_map_entries(map,
-					&g->netlist_vars->ctxsw_regs.pm_ucgpc,
-					count, offset, max_cnt, base, ~U32(0U)) != 0) {
+				nvgpu_netlist_get_pm_ucgpc_ctxsw_regs(g),
+				count, offset, max_cnt, base, ~U32(0U)) != 0) {
 			return -EINVAL;
 		}
 
 		base = (g->ops.perf.get_pmm_per_chiplet_offset() * gpc_num);
 		if (add_ctxsw_buffer_map_entries(map,
-					&g->netlist_vars->ctxsw_regs.perf_gpc,
-					count, offset, max_cnt, base, ~U32(0U)) != 0) {
+				nvgpu_netlist_get_perf_gpc_ctxsw_regs(g),
+				count, offset, max_cnt, base, ~U32(0U)) != 0) {
 			return -EINVAL;
 		}
 
 		base = (NV_PERF_PMMGPCROUTER_STRIDE * gpc_num);
 		if (add_ctxsw_buffer_map_entries(map,
-					&g->netlist_vars->ctxsw_regs.gpc_router,
-					count, offset, max_cnt, base, ~U32(0U)) != 0) {
+				nvgpu_netlist_get_gpc_router_ctxsw_regs(g),
+				count, offset, max_cnt, base, ~U32(0U)) != 0) {
 			return -EINVAL;
 		}
 
 		/* Counter Aggregation Unit, if available */
-		if (g->netlist_vars->ctxsw_regs.pm_cau.count != 0U) {
+		if (nvgpu_netlist_get_pm_cau_ctxsw_regs(g)->count != 0U) {
 			base = gpc_base + (gpc_stride * gpc_num)
 					+ tpc_in_gpc_base;
 			if (add_ctxsw_buffer_map_entries_subunits(map,
-					&g->netlist_vars->ctxsw_regs.pm_cau,
+					nvgpu_netlist_get_pm_cau_ctxsw_regs(g),
 					count, offset, max_cnt, base, num_tpcs,
 					~U32(0U), tpc_in_gpc_stride,
 					(tpc_in_gpc_stride - 1U)) != 0) {
@@ -399,20 +399,23 @@ static int nvgpu_gr_hwpm_map_create(struct gk20a *g,
 	}
 
 	/* Add entries from _LIST_pm_ctx_reg_SYS */
-	if (add_ctxsw_buffer_map_entries_pmsys(map, &g->netlist_vars->ctxsw_regs.pm_sys,
-				&count, &offset, hwpm_ctxsw_reg_count_max, 0, ~U32(0U)) != 0) {
+	if (add_ctxsw_buffer_map_entries_pmsys(map,
+		nvgpu_netlist_get_pm_sys_ctxsw_regs(g),
+		&count, &offset, hwpm_ctxsw_reg_count_max, 0, ~U32(0U)) != 0) {
 		goto cleanup;
 	}
 
 	/* Add entries from _LIST_nv_perf_ctx_reg_SYS */
-	if (add_ctxsw_buffer_map_entries(map, &g->netlist_vars->ctxsw_regs.perf_sys,
-				&count, &offset, hwpm_ctxsw_reg_count_max, 0, ~U32(0U)) != 0) {
+	if (add_ctxsw_buffer_map_entries(map,
+		nvgpu_netlist_get_perf_sys_ctxsw_regs(g),
+		&count, &offset, hwpm_ctxsw_reg_count_max, 0, ~U32(0U)) != 0) {
 		goto cleanup;
 	}
 
 	/* Add entries from _LIST_nv_perf_sysrouter_ctx_reg*/
-	if (add_ctxsw_buffer_map_entries(map, &g->netlist_vars->ctxsw_regs.perf_sys_router,
-				&count, &offset, hwpm_ctxsw_reg_count_max, 0, ~U32(0U)) != 0) {
+	if (add_ctxsw_buffer_map_entries(map,
+		nvgpu_netlist_get_perf_sys_router_ctxsw_regs(g),
+		&count, &offset, hwpm_ctxsw_reg_count_max, 0, ~U32(0U)) != 0) {
 		goto cleanup;
 	}
 
@@ -422,7 +425,7 @@ static int nvgpu_gr_hwpm_map_create(struct gk20a *g,
 
 	/* Add entries from _LIST_nv_perf_pma_ctx_reg*/
 	ret = add_ctxsw_buffer_map_entries(map,
-			&g->netlist_vars->ctxsw_regs.perf_pma, &count, &offset,
+		nvgpu_netlist_get_perf_pma_ctxsw_regs(g), &count, &offset,
 			hwpm_ctxsw_reg_count_max, 0, ~U32(0U));
 	if (ret != 0) {
 		goto cleanup;
@@ -432,7 +435,7 @@ static int nvgpu_gr_hwpm_map_create(struct gk20a *g,
 
 	/* Add entries from _LIST_nv_perf_fbp_ctx_regs */
 	if (add_ctxsw_buffer_map_entries_subunits(map,
-			&g->netlist_vars->ctxsw_regs.fbp, &count, &offset,
+		nvgpu_netlist_get_fbp_ctxsw_regs(g), &count, &offset,
 			hwpm_ctxsw_reg_count_max, 0, g->gr.num_fbps, ~U32(0U),
 			g->ops.perf.get_pmm_per_chiplet_offset(),
 			~U32(0U)) != 0) {
@@ -441,7 +444,7 @@ static int nvgpu_gr_hwpm_map_create(struct gk20a *g,
 
 	/* Add entries from _LIST_nv_perf_fbprouter_ctx_regs */
 	if (add_ctxsw_buffer_map_entries_subunits(map,
-			&g->netlist_vars->ctxsw_regs.fbp_router,
+			nvgpu_netlist_get_fbp_router_ctxsw_regs(g),
 			&count, &offset, hwpm_ctxsw_reg_count_max, 0,
 			g->gr.num_fbps, ~U32(0U), NV_PERF_PMM_FBP_ROUTER_STRIDE,
 			~U32(0U)) != 0) {
@@ -456,7 +459,7 @@ static int nvgpu_gr_hwpm_map_create(struct gk20a *g,
 
 	/* Add entries from _LIST_nv_pm_fbpa_ctx_regs */
 	if (add_ctxsw_buffer_map_entries_subunits(map,
-			&g->netlist_vars->ctxsw_regs.pm_fbpa,
+			nvgpu_netlist_get_pm_fbpa_ctxsw_regs(g),
 			&count, &offset, hwpm_ctxsw_reg_count_max, 0,
 			num_fbpas, active_fbpa_mask, fbpa_stride, ~U32(0U))
 				!= 0) {
@@ -465,14 +468,14 @@ static int nvgpu_gr_hwpm_map_create(struct gk20a *g,
 
 	/* Add entries from _LIST_nv_pm_rop_ctx_regs */
 	if (add_ctxsw_buffer_map_entries(map,
-			&g->netlist_vars->ctxsw_regs.pm_rop, &count, &offset,
+		nvgpu_netlist_get_pm_rop_ctxsw_regs(g), &count, &offset,
 			hwpm_ctxsw_reg_count_max, 0, ~U32(0U)) != 0) {
 		goto cleanup;
 	}
 
 	/* Add entries from _LIST_compressed_nv_pm_ltc_ctx_regs */
 	if (add_ctxsw_buffer_map_entries_subunits(map,
-			&g->netlist_vars->ctxsw_regs.pm_ltc, &count, &offset,
+			nvgpu_netlist_get_pm_ltc_ctxsw_regs(g), &count, &offset,
 			hwpm_ctxsw_reg_count_max, 0, num_ltc, ~U32(0U),
 			ltc_stride, ~U32(0U)) != 0) {
 		goto cleanup;

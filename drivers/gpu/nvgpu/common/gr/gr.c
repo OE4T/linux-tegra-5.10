@@ -473,7 +473,7 @@ clean_up:
 static int gr_init_reset_enable_hw(struct gk20a *g)
 {
 	struct netlist_av_list *sw_non_ctx_load =
-			&g->netlist_vars->sw_non_ctx_load;
+		nvgpu_netlist_get_sw_non_ctx_load_av_list(g);
 	u32 i;
 	int err = 0;
 

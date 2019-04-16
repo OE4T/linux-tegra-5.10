@@ -30,13 +30,15 @@
 #include <nvgpu/netlist.h>
 #include <nvgpu/string.h>
 
-struct netlist_av *nvgpu_netlist_alloc_av_list(struct gk20a *g, struct netlist_av_list *avl)
+struct netlist_av *nvgpu_netlist_alloc_av_list(struct gk20a *g,
+						struct netlist_av_list *avl)
 {
 	avl->l = nvgpu_kzalloc(g, avl->count * sizeof(*avl->l));
 	return avl->l;
 }
 
-struct netlist_av64 *nvgpu_netlist_alloc_av64_list(struct gk20a *g, struct netlist_av64_list *avl)
+struct netlist_av64 *nvgpu_netlist_alloc_av64_list(struct gk20a *g,
+						struct netlist_av64_list *avl)
 {
 	avl->l = nvgpu_kzalloc(g, avl->count * sizeof(*avl->l));
 	return avl->l;
@@ -49,7 +51,8 @@ struct netlist_aiv *nvgpu_netlist_alloc_aiv_list(struct gk20a *g,
 	return aivl->l;
 }
 
-u32 *nvgpu_netlist_alloc_u32_list(struct gk20a *g, struct netlist_u32_list *u32l)
+u32 *nvgpu_netlist_alloc_u32_list(struct gk20a *g,
+					struct netlist_u32_list *u32l)
 {
 	u32l->l = nvgpu_kzalloc(g, u32l->count * sizeof(*u32l->l));
 	return u32l->l;
@@ -550,4 +553,193 @@ void nvgpu_netlist_deinit_ctx_vars(struct gk20a *g)
 
 	nvgpu_kfree(g, netlist_vars);
 	g->netlist_vars = NULL;
+}
+
+struct netlist_av_list *nvgpu_netlist_get_sw_non_ctx_load_av_list(
+							struct gk20a *g)
+{
+	return &g->netlist_vars->sw_non_ctx_load;
+}
+
+struct netlist_aiv_list *nvgpu_netlist_get_sw_ctx_load_aiv_list(
+							struct gk20a *g)
+{
+	return &g->netlist_vars->sw_ctx_load;
+}
+
+struct netlist_av_list *nvgpu_netlist_get_sw_method_init_av_list(
+							struct gk20a *g)
+{
+	return &g->netlist_vars->sw_method_init;
+}
+
+struct netlist_av_list *nvgpu_netlist_get_sw_bundle_init_av_list(
+							struct gk20a *g)
+{
+	return &g->netlist_vars->sw_bundle_init;
+}
+
+struct netlist_av_list *nvgpu_netlist_get_sw_veid_bundle_init_av_list(
+							struct gk20a *g)
+{
+	return &g->netlist_vars->sw_veid_bundle_init;
+}
+
+struct netlist_av64_list *nvgpu_netlist_get_sw_bundle64_init_av64_list(
+							struct gk20a *g)
+{
+	return &g->netlist_vars->sw_bundle64_init;
+}
+
+u32 nvgpu_netlist_get_fecs_inst_count(struct gk20a *g)
+{
+	return g->netlist_vars->ucode.fecs.inst.count;
+}
+
+u32 nvgpu_netlist_get_fecs_data_count(struct gk20a *g)
+{
+	return g->netlist_vars->ucode.fecs.data.count;
+}
+
+u32 nvgpu_netlist_get_gpccs_inst_count(struct gk20a *g)
+{
+	return g->netlist_vars->ucode.gpccs.inst.count;
+}
+
+u32 nvgpu_netlist_get_gpccs_data_count(struct gk20a *g)
+{
+	return g->netlist_vars->ucode.gpccs.data.count;
+}
+
+u32 *nvgpu_netlist_get_fecs_inst_list(struct gk20a *g)
+{
+	return g->netlist_vars->ucode.fecs.inst.l;
+}
+
+u32 *nvgpu_netlist_get_fecs_data_list(struct gk20a *g)
+{
+	return g->netlist_vars->ucode.fecs.data.l;
+}
+
+u32 *nvgpu_netlist_get_gpccs_inst_list(struct gk20a *g)
+{
+	return g->netlist_vars->ucode.gpccs.inst.l;
+}
+
+u32 *nvgpu_netlist_get_gpccs_data_list(struct gk20a *g)
+{
+	return g->netlist_vars->ucode.gpccs.data.l;
+}
+
+struct netlist_aiv_list *nvgpu_netlist_get_sys_ctxsw_regs(struct gk20a *g)
+{
+	return &g->netlist_vars->ctxsw_regs.sys;
+}
+
+struct netlist_aiv_list *nvgpu_netlist_get_gpc_ctxsw_regs(struct gk20a *g)
+{
+	return &g->netlist_vars->ctxsw_regs.gpc;
+}
+
+struct netlist_aiv_list *nvgpu_netlist_get_tpc_ctxsw_regs(struct gk20a *g)
+{
+	return &g->netlist_vars->ctxsw_regs.tpc;
+}
+
+struct netlist_aiv_list *nvgpu_netlist_get_zcull_gpc_ctxsw_regs(struct gk20a *g)
+{
+	return &g->netlist_vars->ctxsw_regs.zcull_gpc;
+}
+
+struct netlist_aiv_list *nvgpu_netlist_get_ppc_ctxsw_regs(struct gk20a *g)
+{
+	return &g->netlist_vars->ctxsw_regs.ppc;
+}
+
+struct netlist_aiv_list *nvgpu_netlist_get_pm_sys_ctxsw_regs(struct gk20a *g)
+{
+	return &g->netlist_vars->ctxsw_regs.pm_sys;
+}
+
+struct netlist_aiv_list *nvgpu_netlist_get_pm_gpc_ctxsw_regs(struct gk20a *g)
+{
+	return &g->netlist_vars->ctxsw_regs.pm_gpc;
+}
+
+struct netlist_aiv_list *nvgpu_netlist_get_pm_tpc_ctxsw_regs(struct gk20a *g)
+{
+	return &g->netlist_vars->ctxsw_regs.pm_tpc;
+}
+
+struct netlist_aiv_list *nvgpu_netlist_get_pm_ppc_ctxsw_regs(struct gk20a *g)
+{
+	return &g->netlist_vars->ctxsw_regs.pm_ppc;
+}
+
+struct netlist_aiv_list *nvgpu_netlist_get_perf_sys_ctxsw_regs(struct gk20a *g)
+{
+	return &g->netlist_vars->ctxsw_regs.perf_sys;
+}
+
+struct netlist_aiv_list *nvgpu_netlist_get_perf_gpc_ctxsw_regs(struct gk20a *g)
+{
+	return &g->netlist_vars->ctxsw_regs.perf_gpc;
+}
+
+struct netlist_aiv_list *nvgpu_netlist_get_fbp_ctxsw_regs(struct gk20a *g)
+{
+	return &g->netlist_vars->ctxsw_regs.fbp;
+}
+
+struct netlist_aiv_list *nvgpu_netlist_get_fbp_router_ctxsw_regs(
+							struct gk20a *g)
+{
+	return &g->netlist_vars->ctxsw_regs.fbp_router;
+}
+
+struct netlist_aiv_list *nvgpu_netlist_get_gpc_router_ctxsw_regs(
+							struct gk20a *g)
+{
+	return &g->netlist_vars->ctxsw_regs.gpc_router;
+}
+
+struct netlist_aiv_list *nvgpu_netlist_get_pm_ltc_ctxsw_regs(struct gk20a *g)
+{
+	return &g->netlist_vars->ctxsw_regs.pm_ltc;
+}
+
+struct netlist_aiv_list *nvgpu_netlist_get_pm_fbpa_ctxsw_regs(struct gk20a *g)
+{
+	return &g->netlist_vars->ctxsw_regs.pm_fbpa;
+}
+
+struct netlist_aiv_list *nvgpu_netlist_get_perf_sys_router_ctxsw_regs(
+							struct gk20a *g)
+{
+	return &g->netlist_vars->ctxsw_regs.perf_sys_router;
+}
+
+struct netlist_aiv_list *nvgpu_netlist_get_perf_pma_ctxsw_regs(struct gk20a *g)
+{
+	return &g->netlist_vars->ctxsw_regs.perf_pma;
+}
+
+struct netlist_aiv_list *nvgpu_netlist_get_pm_rop_ctxsw_regs(struct gk20a *g)
+{
+	return &g->netlist_vars->ctxsw_regs.pm_rop;
+}
+
+struct netlist_aiv_list *nvgpu_netlist_get_pm_ucgpc_ctxsw_regs(struct gk20a *g)
+{
+	return &g->netlist_vars->ctxsw_regs.pm_ucgpc;
+}
+
+struct netlist_aiv_list *nvgpu_netlist_get_etpc_ctxsw_regs(struct gk20a *g)
+{
+	return &g->netlist_vars->ctxsw_regs.etpc;
+}
+
+struct netlist_aiv_list *nvgpu_netlist_get_pm_cau_ctxsw_regs(struct gk20a *g)
+{
+	return &g->netlist_vars->ctxsw_regs.pm_cau;
 }

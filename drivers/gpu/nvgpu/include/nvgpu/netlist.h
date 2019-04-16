@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -211,5 +211,54 @@ struct nvgpu_netlist_vars {
 int nvgpu_netlist_init_ctx_vars(struct gk20a *g);
 int nvgpu_netlist_init_ctx_vars_sim(struct gk20a *g);
 void nvgpu_netlist_deinit_ctx_vars(struct gk20a *g);
+
+struct netlist_av_list *nvgpu_netlist_get_sw_non_ctx_load_av_list(
+							struct gk20a *g);
+struct netlist_aiv_list *nvgpu_netlist_get_sw_ctx_load_aiv_list(
+							struct gk20a *g);
+struct netlist_av_list *nvgpu_netlist_get_sw_method_init_av_list(
+							struct gk20a *g);
+struct netlist_av_list *nvgpu_netlist_get_sw_bundle_init_av_list(
+							struct gk20a *g);
+struct netlist_av_list *nvgpu_netlist_get_sw_veid_bundle_init_av_list(
+							struct gk20a *g);
+struct netlist_av64_list *nvgpu_netlist_get_sw_bundle64_init_av64_list(
+							struct gk20a *g);
+
+u32 nvgpu_netlist_get_fecs_inst_count(struct gk20a *g);
+u32 nvgpu_netlist_get_fecs_data_count(struct gk20a *g);
+u32 nvgpu_netlist_get_gpccs_inst_count(struct gk20a *g);
+u32 nvgpu_netlist_get_gpccs_data_count(struct gk20a *g);
+u32 *nvgpu_netlist_get_fecs_inst_list(struct gk20a *g);
+u32 *nvgpu_netlist_get_fecs_data_list(struct gk20a *g);
+u32 *nvgpu_netlist_get_gpccs_inst_list(struct gk20a *g);
+u32 *nvgpu_netlist_get_gpccs_data_list(struct gk20a *g);
+
+struct netlist_aiv_list *nvgpu_netlist_get_sys_ctxsw_regs(struct gk20a *g);
+struct netlist_aiv_list *nvgpu_netlist_get_gpc_ctxsw_regs(struct gk20a *g);
+struct netlist_aiv_list *nvgpu_netlist_get_tpc_ctxsw_regs(struct gk20a *g);
+struct netlist_aiv_list *nvgpu_netlist_get_zcull_gpc_ctxsw_regs(
+							struct gk20a *g);
+struct netlist_aiv_list *nvgpu_netlist_get_ppc_ctxsw_regs(struct gk20a *g);
+struct netlist_aiv_list *nvgpu_netlist_get_pm_sys_ctxsw_regs(struct gk20a *g);
+struct netlist_aiv_list *nvgpu_netlist_get_pm_gpc_ctxsw_regs(struct gk20a *g);
+struct netlist_aiv_list *nvgpu_netlist_get_pm_tpc_ctxsw_regs(struct gk20a *g);
+struct netlist_aiv_list *nvgpu_netlist_get_pm_ppc_ctxsw_regs(struct gk20a *g);
+struct netlist_aiv_list *nvgpu_netlist_get_perf_sys_ctxsw_regs(struct gk20a *g);
+struct netlist_aiv_list *nvgpu_netlist_get_perf_gpc_ctxsw_regs(struct gk20a *g);
+struct netlist_aiv_list *nvgpu_netlist_get_fbp_ctxsw_regs(struct gk20a *g);
+struct netlist_aiv_list *nvgpu_netlist_get_fbp_router_ctxsw_regs(
+							struct gk20a *g);
+struct netlist_aiv_list *nvgpu_netlist_get_gpc_router_ctxsw_regs(
+							struct gk20a *g);
+struct netlist_aiv_list *nvgpu_netlist_get_pm_ltc_ctxsw_regs(struct gk20a *g);
+struct netlist_aiv_list *nvgpu_netlist_get_pm_fbpa_ctxsw_regs(struct gk20a *g);
+struct netlist_aiv_list *nvgpu_netlist_get_perf_sys_router_ctxsw_regs(
+							struct gk20a *g);
+struct netlist_aiv_list *nvgpu_netlist_get_perf_pma_ctxsw_regs(struct gk20a *g);
+struct netlist_aiv_list *nvgpu_netlist_get_pm_rop_ctxsw_regs(struct gk20a *g);
+struct netlist_aiv_list *nvgpu_netlist_get_pm_ucgpc_ctxsw_regs(struct gk20a *g);
+struct netlist_aiv_list *nvgpu_netlist_get_etpc_ctxsw_regs(struct gk20a *g);
+struct netlist_aiv_list *nvgpu_netlist_get_pm_cau_ctxsw_regs(struct gk20a *g);
 
 #endif /* NVGPU_NETLIST_H */

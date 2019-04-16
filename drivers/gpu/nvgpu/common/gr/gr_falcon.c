@@ -303,12 +303,12 @@ int nvgpu_gr_falcon_init_ctxsw_ucode(struct gk20a *g,
 	ucode_size = 0;
 	nvgpu_gr_falcon_init_ctxsw_ucode_segments(&ucode_info->fecs,
 		&ucode_size, fecs_boot_desc,
-		g->netlist_vars->ucode.fecs.inst.count * (u32)sizeof(u32),
-		g->netlist_vars->ucode.fecs.data.count * (u32)sizeof(u32));
+		nvgpu_netlist_get_fecs_inst_count(g) * (u32)sizeof(u32),
+		nvgpu_netlist_get_fecs_data_count(g) * (u32)sizeof(u32));
 	nvgpu_gr_falcon_init_ctxsw_ucode_segments(&ucode_info->gpccs,
 		&ucode_size, gpccs_boot_desc,
-		g->netlist_vars->ucode.gpccs.inst.count * (u32)sizeof(u32),
-		g->netlist_vars->ucode.gpccs.data.count * (u32)sizeof(u32));
+		nvgpu_netlist_get_gpccs_inst_count(g) * (u32)sizeof(u32),
+		nvgpu_netlist_get_gpccs_data_count(g) * (u32)sizeof(u32));
 
 	err = nvgpu_dma_alloc_sys(g, ucode_size, &ucode_info->surface_desc);
 	if (err != 0) {
@@ -318,8 +318,8 @@ int nvgpu_gr_falcon_init_ctxsw_ucode(struct gk20a *g,
 	nvgpu_gr_falcon_copy_ctxsw_ucode_segments(g, &ucode_info->surface_desc,
 		&ucode_info->fecs,
 		fecs_boot_image,
-		g->netlist_vars->ucode.fecs.inst.l,
-		g->netlist_vars->ucode.fecs.data.l);
+		nvgpu_netlist_get_fecs_inst_list(g),
+		nvgpu_netlist_get_fecs_data_list(g));
 
 	nvgpu_release_firmware(g, fecs_fw);
 	fecs_fw = NULL;
@@ -327,8 +327,8 @@ int nvgpu_gr_falcon_init_ctxsw_ucode(struct gk20a *g,
 	nvgpu_gr_falcon_copy_ctxsw_ucode_segments(g, &ucode_info->surface_desc,
 		&ucode_info->gpccs,
 		gpccs_boot_image,
-		g->netlist_vars->ucode.gpccs.inst.l,
-		g->netlist_vars->ucode.gpccs.data.l);
+		nvgpu_netlist_get_gpccs_inst_list(g),
+		nvgpu_netlist_get_gpccs_data_list(g));
 
 	nvgpu_release_firmware(g, gpccs_fw);
 	gpccs_fw = NULL;
@@ -362,12 +362,12 @@ static void nvgpu_gr_falcon_load_dmem(struct gk20a *g)
 
 	nvgpu_log_fn(g, " ");
 
-	ucode_u32_size = g->netlist_vars->ucode.gpccs.data.count;
-	ucode_u32_data = (const u32 *)g->netlist_vars->ucode.gpccs.data.l;
+	ucode_u32_size = nvgpu_netlist_get_gpccs_data_count(g);
+	ucode_u32_data = (const u32 *)nvgpu_netlist_get_gpccs_data_list(g);
 	g->ops.gr.falcon.load_gpccs_dmem(g, ucode_u32_data, ucode_u32_size);
 
-	ucode_u32_size = g->netlist_vars->ucode.fecs.data.count;
-	ucode_u32_data = (const u32 *)g->netlist_vars->ucode.fecs.data.l;
+	ucode_u32_size = nvgpu_netlist_get_fecs_data_count(g);
+	ucode_u32_data = (const u32 *)nvgpu_netlist_get_fecs_data_list(g);
 	g->ops.gr.falcon.load_fecs_dmem(g, ucode_u32_data, ucode_u32_size);
 
 	nvgpu_log_fn(g, "done");
@@ -380,13 +380,13 @@ static void nvgpu_gr_falcon_load_imem(struct gk20a *g)
 
 	nvgpu_log_fn(g, " ");
 
-	ucode_u32_size = g->netlist_vars->ucode.gpccs.inst.count;
-	ucode_u32_data = (const u32 *)g->netlist_vars->ucode.gpccs.inst.l;
+	ucode_u32_size = nvgpu_netlist_get_gpccs_inst_count(g);
+	ucode_u32_data = (const u32 *)nvgpu_netlist_get_gpccs_inst_list(g);
 	g->ops.gr.falcon.load_gpccs_imem(g, ucode_u32_data, ucode_u32_size);
 
 
-	ucode_u32_size = g->netlist_vars->ucode.fecs.inst.count;
-	ucode_u32_data = (const u32 *)g->netlist_vars->ucode.fecs.inst.l;
+	ucode_u32_size = nvgpu_netlist_get_fecs_inst_count(g);
+	ucode_u32_data = (const u32 *)nvgpu_netlist_get_fecs_inst_list(g);
 	g->ops.gr.falcon.load_fecs_imem(g, ucode_u32_data, ucode_u32_size);
 
 	nvgpu_log_fn(g, "done");

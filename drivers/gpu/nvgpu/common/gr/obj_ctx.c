@@ -336,11 +336,11 @@ int nvgpu_gr_obj_ctx_commit_global_ctx_buffers(struct gk20a *g,
 static int nvgpu_gr_obj_ctx_alloc_sw_bundle(struct gk20a *g)
 {
 	struct netlist_av_list *sw_bundle_init =
-			&g->netlist_vars->sw_bundle_init;
+			nvgpu_netlist_get_sw_bundle_init_av_list(g);
 	struct netlist_av_list *sw_veid_bundle_init =
-			&g->netlist_vars->sw_veid_bundle_init;
+			nvgpu_netlist_get_sw_veid_bundle_init_av_list(g);
 	struct netlist_av64_list *sw_bundle64_init =
-			&g->netlist_vars->sw_bundle64_init;
+			nvgpu_netlist_get_sw_bundle64_init_av64_list(g);
 	int err = 0;
 
 	/* enable pipe mode override */
@@ -396,8 +396,10 @@ int nvgpu_gr_obj_ctx_alloc_golden_ctx_image(struct gk20a *g,
 	u64 size;
 	struct nvgpu_mem *gr_mem;
 	int err = 0;
-	struct netlist_aiv_list *sw_ctx_load = &g->netlist_vars->sw_ctx_load;
-	struct netlist_av_list *sw_method_init = &g->netlist_vars->sw_method_init;
+	struct netlist_aiv_list *sw_ctx_load =
+				nvgpu_netlist_get_sw_ctx_load_aiv_list(g);
+	struct netlist_av_list *sw_method_init =
+				nvgpu_netlist_get_sw_method_init_av_list(g);
 	u32 data;
 
 	nvgpu_log_fn(g, " ");

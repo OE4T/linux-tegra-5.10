@@ -54,10 +54,12 @@ int gr_tu104_get_offset_in_gpccs_segment(struct gk20a *g,
 	u32 offset_in_segment = 0;
 	u32 num_pes_per_gpc = nvgpu_get_litter_value(g,
 				GPU_LIT_NUM_PES_PER_GPC);
+	u32 tpc_count = nvgpu_netlist_get_tpc_ctxsw_regs(g)->count;
+	u32 gpc_count = nvgpu_netlist_get_gpc_ctxsw_regs(g)->count;
 
 	if (addr_type == CTXSW_ADDR_TYPE_TPC) {
 		/*
-		 * reg = g->netlist_vars->ctxsw_regs.tpc.l;
+		 * reg = nvgpu_netlist_get_tpc_ctxsw_regs(g)->l;
 		 * offset_in_segment = 0;
 		 */
 	} else if (addr_type == CTXSW_ADDR_TYPE_PPC) {
@@ -65,9 +67,7 @@ int gr_tu104_get_offset_in_gpccs_segment(struct gk20a *g,
 		 * The ucode stores TPC data before PPC data.
 		 * Advance offset past TPC data to PPC data.
 		 */
-		offset_in_segment =
-			((g->netlist_vars->ctxsw_regs.tpc.count *
-				num_tpcs) << 2);
+		offset_in_segment = ((tpc_count * num_tpcs) << 2);
 	} else if (addr_type == CTXSW_ADDR_TYPE_GPC) {
 		/*
 		 * The ucode stores TPC/PPC data before GPC data.
@@ -76,28 +76,22 @@ int gr_tu104_get_offset_in_gpccs_segment(struct gk20a *g,
 		 * Note 1 PES_PER_GPC case
 		 */
 		if (num_pes_per_gpc > 1U) {
-			offset_in_segment =
-				(((g->netlist_vars->ctxsw_regs.tpc.count *
-					num_tpcs) << 2) +
+			offset_in_segment = (((tpc_count * num_tpcs) << 2) +
 				((reg_list_ppc_count * num_ppcs) << 2));
 		} else {
-			offset_in_segment =
-				((g->netlist_vars->ctxsw_regs.tpc.count *
-					num_tpcs) << 2);
+			offset_in_segment = ((tpc_count * num_tpcs) << 2);
 		}
 	} else if ((addr_type == CTXSW_ADDR_TYPE_EGPC) ||
 			(addr_type == CTXSW_ADDR_TYPE_ETPC)) {
 		if (num_pes_per_gpc > 1U) {
 			offset_in_segment =
-				((g->netlist_vars->ctxsw_regs.tpc.count *
-					num_tpcs) << 2) +
+				((tpc_count * num_tpcs) << 2) +
 				((reg_list_ppc_count * num_ppcs) << 2) +
-				(g->netlist_vars->ctxsw_regs.gpc.count << 2);
+							(gpc_count << 2);
 		} else {
 			offset_in_segment =
-				((g->netlist_vars->ctxsw_regs.tpc.count *
-					num_tpcs) << 2) +
-				(g->netlist_vars->ctxsw_regs.gpc.count << 2);
+				((tpc_count * num_tpcs) << 2) +
+							(gpc_count << 2);
 		}
 
 		/* aligned to next 256 byte */
