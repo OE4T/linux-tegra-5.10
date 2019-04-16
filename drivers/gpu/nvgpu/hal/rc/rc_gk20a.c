@@ -118,8 +118,13 @@ void gk20a_fifo_teardown_ch_tsg(struct gk20a *g, u32 eng_bitmask,
 		g->ops.fifo.intr_set_recover_mask(g);
 
 		g->ops.fifo.trigger_mmu_fault(g, engine_ids);
-		gk20a_fifo_handle_mmu_fault_locked(g, mmu_fault_engines, ref_id,
-				ref_id_is_tsg);
+		/*
+		 * Ignore the "Verbose" flag from
+		 * gk20a_fifo_handle_mmu_fault_locked since it is not needed
+		 * here
+		 */
+		(void) gk20a_fifo_handle_mmu_fault_locked(g, mmu_fault_engines,
+				ref_id, ref_id_is_tsg);
 
 		g->ops.fifo.intr_unset_recover_mask(g);
 	}

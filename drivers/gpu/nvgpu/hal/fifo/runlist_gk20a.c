@@ -95,7 +95,16 @@ int gk20a_fifo_reschedule_preempt_next(struct channel_gk20a *ch,
 		nvgpu_readl(g, fifo_preempt_r()));
 #endif
 	if (wait_preempt) {
-		g->ops.fifo.is_preempt_pending(g, preempt_id, preempt_type);
+		if (g->ops.fifo.is_preempt_pending(g, preempt_id,
+			preempt_type) != 0) {
+				nvgpu_err(g, "fifo preempt timed out");
+				/*
+				 * This function does not care if preempt
+				 * times out since it is here only to improve
+				 * latency. If a timeout happens, it will be
+				 * handled by other fifo handling code.
+				 */
+		}
 	}
 #ifdef TRACEPOINTS_ENABLED
 	trace_gk20a_reschedule_preempted_next(ch->chid);

@@ -824,6 +824,11 @@ void nvgpu_tsg_abort(struct gk20a *g, struct tsg_gk20a *tsg, bool preempt)
 	g->ops.tsg.disable(tsg);
 
 	if (preempt) {
+		/*
+		 * Ignore the return value below. If preempt fails, preempt_tsg
+		 * operation will print the error and ctxsw timeout may trigger
+		 * a recovery if needed.
+		 */
 		(void)g->ops.fifo.preempt_tsg(g, tsg);
 	}
 
