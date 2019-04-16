@@ -178,9 +178,6 @@ struct gr_err_info {
 void nvgpu_report_host_error(struct gk20a *g,
 		u32 inst, u32 err_id, u32 intr_info);
 
-void nvgpu_report_gr_exception(struct gk20a *g, u32 inst,
-		u32 err_type, u32 status);
-
 void nvgpu_report_ce_error(struct gk20a *g, u32 inst,
 		u32 err_type, u32 status);
 

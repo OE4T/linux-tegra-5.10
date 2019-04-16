@@ -68,47 +68,6 @@
 #include <nvgpu/hw/gk20a/hw_fifo_gk20a.h>
 #include <nvgpu/hw/gk20a/hw_gr_gk20a.h>
 
-static struct channel_gk20a *gk20a_gr_get_channel_from_ctx(
-	struct gk20a *g, u32 curr_ctx, u32 *curr_tsgid);
-
-void nvgpu_report_gr_exception(struct gk20a *g, u32 inst,
-		u32 err_type, u32 status)
-{
-	int ret = 0;
-	struct channel_gk20a *ch;
-	struct gr_exception_info err_info;
-	struct gr_err_info info;
-	u32 tsgid, chid, curr_ctx;
-
-	if (g->ops.gr.err_ops.report_gr_err == NULL) {
-		return;
-	}
-
-	tsgid = NVGPU_INVALID_TSG_ID;
-	curr_ctx = g->ops.gr.falcon.get_current_ctx(g);
-	ch = gk20a_gr_get_channel_from_ctx(g, curr_ctx, &tsgid);
-	chid = ch != NULL ? ch->chid : FIFO_INVAL_CHANNEL_ID;
-	if (ch != NULL) {
-		gk20a_channel_put(ch);
-	}
-
-	(void) memset(&err_info, 0, sizeof(err_info));
-	(void) memset(&info, 0, sizeof(info));
-	err_info.curr_ctx = curr_ctx;
-	err_info.chid = chid;
-	err_info.tsgid = tsgid;
-	err_info.status = status;
-	info.exception_info = &err_info;
-	ret = g->ops.gr.err_ops.report_gr_err(g,
-			NVGPU_ERR_MODULE_PGRAPH, inst, err_type,
-			&info);
-	if (ret != 0) {
-		nvgpu_err(g, "Failed to report PGRAPH exception: "
-				"inst=%u, err_type=%u, status=%u",
-				inst, err_type, status);
-	}
-}
-
 static void nvgpu_report_gr_sm_exception(struct gk20a *g, u32 gpc, u32 tpc,
 		u32 sm, u32 hww_warp_esr_status, u64 hww_warp_esr_pc)
 {
@@ -124,7 +83,7 @@ static void nvgpu_report_gr_sm_exception(struct gk20a *g, u32 gpc, u32 tpc,
 
 	tsgid = NVGPU_INVALID_TSG_ID;
 	curr_ctx = g->ops.gr.falcon.get_current_ctx(g);
-	ch = gk20a_gr_get_channel_from_ctx(g, curr_ctx, &tsgid);
+	ch = nvgpu_gr_intr_get_channel_from_ctx(g, curr_ctx, &tsgid);
 	chid = ch != NULL ? ch->chid : FIFO_INVAL_CHANNEL_ID;
 	if (ch != NULL) {
 		gk20a_channel_put(ch);
@@ -428,90 +387,6 @@ static int gk20a_gr_handle_class_error(struct gk20a *g,
 	return -EINVAL;
 }
 
-/* Used by sw interrupt thread to translate current ctx to chid.
- * Also used by regops to translate current ctx to chid and tsgid.
- * For performance, we don't want to go through 128 channels every time.
- * curr_ctx should be the value read from gr falcon get_current_ctx op
- * A small tlb is used here to cache translation.
- *
- * Returned channel must be freed with gk20a_channel_put() */
-static struct channel_gk20a *gk20a_gr_get_channel_from_ctx(
-	struct gk20a *g, u32 curr_ctx, u32 *curr_tsgid)
-{
-	struct fifo_gk20a *f = &g->fifo;
-	struct gr_gk20a *gr = &g->gr;
-	u32 chid;
-	u32 tsgid = NVGPU_INVALID_TSG_ID;
-	u32 i;
-	struct channel_gk20a *ret = NULL;
-
-	/* when contexts are unloaded from GR, the valid bit is reset
-	 * but the instance pointer information remains intact.
-	 * This might be called from gr_isr where contexts might be
-	 * unloaded. No need to check ctx_valid bit
-	 */
-
-	nvgpu_spinlock_acquire(&gr->ch_tlb_lock);
-
-	/* check cache first */
-	for (i = 0; i < GR_CHANNEL_MAP_TLB_SIZE; i++) {
-		if (gr->chid_tlb[i].curr_ctx == curr_ctx) {
-			chid = gr->chid_tlb[i].chid;
-			tsgid = gr->chid_tlb[i].tsgid;
-			ret = gk20a_channel_from_id(g, chid);
-			goto unlock;
-		}
-	}
-
-	/* slow path */
-	for (chid = 0; chid < f->num_channels; chid++) {
-		struct channel_gk20a *ch = gk20a_channel_from_id(g, chid);
-
-		if (ch == NULL) {
-			continue;
-		}
-
-		if (nvgpu_inst_block_ptr(g, &ch->inst_block) ==
-				g->ops.gr.falcon.get_ctx_ptr(curr_ctx)) {
-			tsgid = ch->tsgid;
-			/* found it */
-			ret = ch;
-			break;
-		}
-		gk20a_channel_put(ch);
-	}
-
-	if (ret == NULL) {
-		goto unlock;
-	}
-
-	/* add to free tlb entry */
-	for (i = 0; i < GR_CHANNEL_MAP_TLB_SIZE; i++) {
-		if (gr->chid_tlb[i].curr_ctx == 0U) {
-			gr->chid_tlb[i].curr_ctx = curr_ctx;
-			gr->chid_tlb[i].chid = chid;
-			gr->chid_tlb[i].tsgid = tsgid;
-			goto unlock;
-		}
-	}
-
-	/* no free entry, flush one */
-	gr->chid_tlb[gr->channel_tlb_flush_index].curr_ctx = curr_ctx;
-	gr->chid_tlb[gr->channel_tlb_flush_index].chid = chid;
-	gr->chid_tlb[gr->channel_tlb_flush_index].tsgid = tsgid;
-
-	gr->channel_tlb_flush_index =
-		(gr->channel_tlb_flush_index + 1U) &
-		(GR_CHANNEL_MAP_TLB_SIZE - 1U);
-
-unlock:
-	nvgpu_spinlock_release(&gr->ch_tlb_lock);
-	if (curr_tsgid != NULL) {
-		*curr_tsgid = tsgid;
-	}
-	return ret;
-}
-
 int gk20a_gr_lock_down_sm(struct gk20a *g,
 			 u32 gpc, u32 tpc, u32 sm, u32 global_esr_mask,
 			 bool check_errors)
@@ -703,7 +578,7 @@ int gk20a_gr_isr(struct gk20a *g)
 
 	g->ops.gr.intr.trapped_method_info(g, &isr_data);
 
-	ch = gk20a_gr_get_channel_from_ctx(g, isr_data.curr_ctx, &tsgid);
+	ch = nvgpu_gr_intr_get_channel_from_ctx(g, isr_data.curr_ctx, &tsgid);
 	isr_data.ch = ch;
 	chid = ch != NULL ? ch->chid : FIFO_INVAL_CHANNEL_ID;
 
@@ -2019,7 +1894,7 @@ bool gk20a_is_channel_ctx_resident(struct channel_gk20a *ch)
 		return false;
 	}
 
-	curr_ch = gk20a_gr_get_channel_from_ctx(g, curr_gr_ctx,
+	curr_ch = nvgpu_gr_intr_get_channel_from_ctx(g, curr_gr_ctx,
 					      &curr_gr_tsgid);
 
 	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gpu_dbg,

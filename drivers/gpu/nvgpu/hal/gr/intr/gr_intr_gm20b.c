@@ -172,7 +172,7 @@ bool gm20b_gr_intr_handle_exceptions(struct gk20a *g, bool *is_gpc_exception)
 		u32 fe = nvgpu_readl(g, gr_fe_hww_esr_r());
 		u32 info = nvgpu_readl(g, gr_fe_hww_esr_info_r());
 
-		nvgpu_report_gr_exception(g, 0,
+		nvgpu_gr_intr_report_exception(g, 0,
 				GPU_PGRAPH_FE_EXCEPTION,
 				fe);
 		nvgpu_err(g, "fe exception: esr 0x%08x, info 0x%08x",
@@ -185,7 +185,7 @@ bool gm20b_gr_intr_handle_exceptions(struct gk20a *g, bool *is_gpc_exception)
 	if ((exception & gr_exception_memfmt_m()) != 0U) {
 		u32 memfmt = nvgpu_readl(g, gr_memfmt_hww_esr_r());
 
-		nvgpu_report_gr_exception(g, 0,
+		nvgpu_gr_intr_report_exception(g, 0,
 				GPU_PGRAPH_MEMFMT_EXCEPTION,
 				memfmt);
 		nvgpu_err(g, "memfmt exception: esr %08x", memfmt);
@@ -197,7 +197,7 @@ bool gm20b_gr_intr_handle_exceptions(struct gk20a *g, bool *is_gpc_exception)
 	if ((exception & gr_exception_pd_m()) != 0U) {
 		u32 pd = nvgpu_readl(g, gr_pd_hww_esr_r());
 
-		nvgpu_report_gr_exception(g, 0,
+		nvgpu_gr_intr_report_exception(g, 0,
 				GPU_PGRAPH_PD_EXCEPTION,
 				pd);
 		nvgpu_err(g, "pd exception: esr 0x%08x", pd);
@@ -209,7 +209,7 @@ bool gm20b_gr_intr_handle_exceptions(struct gk20a *g, bool *is_gpc_exception)
 	if ((exception & gr_exception_scc_m()) != 0U) {
 		u32 scc = nvgpu_readl(g, gr_scc_hww_esr_r());
 
-		nvgpu_report_gr_exception(g, 0,
+		nvgpu_gr_intr_report_exception(g, 0,
 				GPU_PGRAPH_SCC_EXCEPTION,
 				scc);
 		nvgpu_err(g, "scc exception: esr 0x%08x", scc);
@@ -221,7 +221,7 @@ bool gm20b_gr_intr_handle_exceptions(struct gk20a *g, bool *is_gpc_exception)
 	if ((exception & gr_exception_ds_m()) != 0U) {
 		u32 ds = nvgpu_readl(g, gr_ds_hww_esr_r());
 
-		nvgpu_report_gr_exception(g, 0,
+		nvgpu_gr_intr_report_exception(g, 0,
 				GPU_PGRAPH_DS_EXCEPTION,
 				ds);
 		nvgpu_err(g, "ds exception: esr: 0x%08x", ds);
@@ -241,7 +241,7 @@ bool gm20b_gr_intr_handle_exceptions(struct gk20a *g, bool *is_gpc_exception)
 		} else {
 			nvgpu_err(g, "unhandled ssync exception");
 		}
-		nvgpu_report_gr_exception(g, 0,
+		nvgpu_gr_intr_report_exception(g, 0,
 				GPU_PGRAPH_SSYNC_EXCEPTION,
 				ssync_esr);
 	}
@@ -250,7 +250,7 @@ bool gm20b_gr_intr_handle_exceptions(struct gk20a *g, bool *is_gpc_exception)
 		u32 mme = nvgpu_readl(g, gr_mme_hww_esr_r());
 		u32 info = nvgpu_readl(g, gr_mme_hww_esr_info_r());
 
-		nvgpu_report_gr_exception(g, 0,
+		nvgpu_gr_intr_report_exception(g, 0,
 				GPU_PGRAPH_MME_EXCEPTION,
 				mme);
 		nvgpu_err(g, "mme exception: esr 0x%08x info:0x%08x",
@@ -267,7 +267,7 @@ bool gm20b_gr_intr_handle_exceptions(struct gk20a *g, bool *is_gpc_exception)
 	if ((exception & gr_exception_sked_m()) != 0U) {
 		u32 sked = nvgpu_readl(g, gr_sked_hww_esr_r());
 
-		nvgpu_report_gr_exception(g, 0,
+		nvgpu_gr_intr_report_exception(g, 0,
 				GPU_PGRAPH_SKED_EXCEPTION,
 				sked);
 		nvgpu_err(g, "sked exception: esr 0x%08x", sked);

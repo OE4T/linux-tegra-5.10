@@ -63,4 +63,8 @@ int nvgpu_gr_intr_handle_notify_pending(struct gk20a *g,
 					struct nvgpu_gr_isr_data *isr_data);
 int nvgpu_gr_intr_handle_semaphore_pending(struct gk20a *g,
 					   struct nvgpu_gr_isr_data *isr_data);
+void nvgpu_gr_intr_report_exception(struct gk20a *g, u32 inst,
+				u32 err_type, u32 status);
+struct channel_gk20a *nvgpu_gr_intr_get_channel_from_ctx(struct gk20a *g,
+				u32 curr_ctx, u32 *curr_tsgid);
 #endif /* NVGPU_GR_INTR_H */

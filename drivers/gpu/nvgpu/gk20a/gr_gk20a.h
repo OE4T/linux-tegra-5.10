@@ -25,13 +25,9 @@
 #define GR_GK20A_H
 
 #include <nvgpu/types.h>
-
-#include "mm_gk20a.h"
-
-#include <nvgpu/comptags.h>
 #include <nvgpu/cond.h>
 
-#define INVALID_MAX_WAYS		0xFFFFFFFFU
+#include "mm_gk20a.h"
 
 #define GK20A_TIMEOUT_FPGA		100000U /* 100 sec */
 
@@ -47,6 +43,7 @@ struct nvgpu_gr_zbc;
 struct nvgpu_gr_hwpm_map;
 struct nvgpu_gr_isr_data;
 struct nvgpu_gr_ctx_desc;
+struct dbg_session_gk20a;
 
 enum ctxsw_addr_type;
 
@@ -255,8 +252,6 @@ int gk20a_gr_wait_for_sm_lock_down(struct gk20a *g, u32 gpc, u32 tpc, u32 sm,
 
 u32 gk20a_gr_get_sm_hww_warp_esr(struct gk20a *g, u32 gpc, u32 tpc, u32 sm);
 u32 gk20a_gr_get_sm_hww_global_esr(struct gk20a *g, u32 gpc, u32 tpc, u32 sm);
-
-struct dbg_session_gk20a;
 
 bool gr_gk20a_suspend_context(struct channel_gk20a *ch);
 bool gr_gk20a_resume_context(struct channel_gk20a *ch);

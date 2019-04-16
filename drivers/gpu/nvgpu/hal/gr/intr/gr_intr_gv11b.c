@@ -22,10 +22,10 @@
 
 #include <nvgpu/gk20a.h>
 #include <nvgpu/io.h>
-#include <nvgpu/nvgpu_err.h>
 
 #include <nvgpu/gr/config.h>
 #include <nvgpu/gr/gr.h>
+#include <nvgpu/gr/gr_intr.h>
 
 #include "gr_intr_gv11b.h"
 
@@ -355,7 +355,7 @@ void gv11b_gr_intr_handle_tpc_mpc_exception(struct gk20a *g, u32 gpc, u32 tpc)
 	esr = nvgpu_readl(g, gr_gpc0_tpc0_mpc_hww_esr_r() + offset);
 	nvgpu_log(g, gpu_dbg_intr | gpu_dbg_gpu_dbg, "mpc hww esr 0x%08x", esr);
 
-	nvgpu_report_gr_exception(g, ((gpc << 8U) | tpc),
+	nvgpu_gr_intr_report_exception(g, ((gpc << 8U) | tpc),
 			GPU_PGRAPH_MPC_EXCEPTION,
 			esr);
 
