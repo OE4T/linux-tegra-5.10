@@ -30,7 +30,6 @@
 #include "hal/mc/mc_gv100.h"
 #include "hal/mc/mc_tu104.h"
 #include "hal/bus/bus_gk20a.h"
-#include "hal/bus/bus_gp10b.h"
 #include "hal/bus/bus_gv100.h"
 #include "hal/bus/bus_tu104.h"
 #include "hal/class/class_tu104.h"
@@ -38,10 +37,8 @@
 #include "hal/priv_ring/priv_ring_gp10b.h"
 #include "hal/power_features/cg/tu104_gating_reglist.h"
 #include "hal/cbc/cbc_gm20b.h"
-#include "hal/cbc/cbc_gp10b.h"
 #include "hal/cbc/cbc_tu104.h"
 #include "hal/therm/therm_gm20b.h"
-#include "hal/therm/therm_gp10b.h"
 #include "hal/therm/therm_gp106.h"
 #include "hal/therm/therm_gv11b.h"
 #include "hal/ltc/ltc_gm20b.h"
@@ -143,28 +140,21 @@
 #include "hal/fifo/pbdma_status_gm20b.h"
 #include "common/clk_arb/clk_arb_gv100.h"
 
-#include "gk20a/fifo_gk20a.h"
-#include "gk20a/mm_gk20a.h"
-#include "gk20a/gr_gk20a.h"
 
 #include "gm20b/gr_gm20b.h"
 #include "gm20b/mm_gm20b.h"
 
 #include "gv100/clk_gv100.h"
 
-#include "gp106/bios_gp106.h"
 
 #include "gp10b/gr_gp10b.h"
-#include "gp10b/ce_gp10b.h"
 #include "gp10b/mm_gp10b.h"
 
-#include "hal_gv11b.h"
 #include "gv11b/gr_gv11b.h"
 #include "gv11b/ce_gv11b.h"
 #include "gv11b/mm_gv11b.h"
 #include "gv11b/fifo_gv11b.h"
 
-#include "gv100/bios_gv100.h"
 #include "gv100/fifo_gv100.h"
 #include "gv100/gr_gv100.h"
 
@@ -176,14 +166,10 @@
 #include "hal_tu104.h"
 
 #include <nvgpu/ptimer.h>
-#include <nvgpu/debug.h>
-#include <nvgpu/enabled.h>
 #include <nvgpu/error_notifier.h>
-#include <nvgpu/gk20a.h>
 #include <nvgpu/clk_arb.h>
 #include <nvgpu/class.h>
 #include <nvgpu/debugger.h>
-#include <nvgpu/channel.h>
 #include <nvgpu/pbdma.h>
 #include <nvgpu/runlist.h>
 #include <nvgpu/fifo/userd.h>
@@ -200,10 +186,8 @@
 #include <nvgpu/pmu/pmu_perfmon.h>
 
 #include <nvgpu/hw/tu104/hw_proj_tu104.h>
-#include <nvgpu/hw/tu104/hw_top_tu104.h>
 #include <nvgpu/hw/tu104/hw_pram_tu104.h>
 #include <nvgpu/hw/tu104/hw_pwr_tu104.h>
-#include <nvgpu/hw/tu104/hw_gr_tu104.h>
 
 static u32 tu104_get_litter_value(struct gk20a *g, int value)
 {

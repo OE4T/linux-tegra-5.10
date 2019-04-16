@@ -43,11 +43,9 @@
 #include "hal/priv_ring/priv_ring_gp10b.h"
 #include "hal/gr/config/gr_config_gv100.h"
 #include "hal/power_features/cg/gv11b_gating_reglist.h"
-#include "hal/cbc/cbc_gm20b.h"
 #include "hal/cbc/cbc_gp10b.h"
 #include "hal/cbc/cbc_gv11b.h"
 #include "hal/therm/therm_gm20b.h"
-#include "hal/therm/therm_gp10b.h"
 #include "hal/therm/therm_gv11b.h"
 #include "hal/ltc/ltc_gm20b.h"
 #include "hal/ltc/ltc_gp10b.h"
@@ -124,9 +122,6 @@
 #include "common/fifo/channel_gv11b.h"
 #include "common/clk_arb/clk_arb_gp10b.h"
 
-#include "gk20a/fifo_gk20a.h"
-#include "gk20a/mm_gk20a.h"
-#include "gk20a/gr_gk20a.h"
 
 #include "gm20b/gr_gm20b.h"
 #include "gm20b/mm_gm20b.h"
@@ -144,27 +139,19 @@
 #include "gv11b/fifo_gv11b.h"
 
 #include <nvgpu/ptimer.h>
-#include <nvgpu/debug.h>
-#include <nvgpu/enabled.h>
 #include <nvgpu/error_notifier.h>
-#include <nvgpu/bug.h>
 #include <nvgpu/debugger.h>
-#include <nvgpu/channel.h>
 #include <nvgpu/runlist.h>
 #include <nvgpu/fifo/userd.h>
 #include <nvgpu/perfbuf.h>
 #include <nvgpu/cyclestats_snapshot.h>
 #include <nvgpu/gr/zbc.h>
-#include <nvgpu/gr/zcull.h>
 #include <nvgpu/gr/setup.h>
 #include <nvgpu/gr/fecs_trace.h>
-#include <nvgpu/gr/gr.h>
 #include <nvgpu/gr/gr_intr.h>
 
 #include <nvgpu/hw/gv11b/hw_proj_gv11b.h>
-#include <nvgpu/hw/gv11b/hw_top_gv11b.h>
 #include <nvgpu/hw/gv11b/hw_pwr_gv11b.h>
-#include <nvgpu/hw/gv11b/hw_gr_gv11b.h>
 
 static void gv11b_init_gpu_characteristics(struct gk20a *g)
 {

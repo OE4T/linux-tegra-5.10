@@ -39,7 +39,6 @@
 #include "hal/cbc/cbc_gp10b.h"
 #include "hal/therm/therm_gm20b.h"
 #include "hal/therm/therm_gp106.h"
-#include "hal/therm/therm_gp10b.h"
 #include "hal/therm/therm_gv11b.h"
 #include "hal/ltc/ltc_gm20b.h"
 #include "hal/ltc/ltc_gp10b.h"
@@ -104,7 +103,6 @@
 #include "hal/pmu/pmu_gm20b.h"
 #include "hal/pmu/pmu_gp10b.h"
 #include "hal/pmu/pmu_gp106.h"
-#include "hal/pmu/pmu_gv11b.h"
 #include "hal/falcon/falcon_gk20a.h"
 #include "hal/nvdec/nvdec_gp106.h"
 #include "hal/gsp/gsp_gv100.h"
@@ -121,7 +119,6 @@
 #include "hal/nvlink/minion_gv100.h"
 #include "hal/nvlink/link_mode_transitions_gv100.h"
 #include "common/nvlink/nvlink_gv100.h"
-#include "common/nvlink/nvlink_tu104.h"
 #include "common/pmu/perf/perf_gv100.h"
 #include "common/sync/syncpt_cmdbuf_gv11b.h"
 #include "common/sync/sema_cmdbuf_gv11b.h"
@@ -129,11 +126,7 @@
 #include "common/fifo/channel_gm20b.h"
 #include "common/fifo/channel_gv11b.h"
 #include "common/fifo/channel_gv100.h"
-#include "common/clk_arb/clk_arb_gv100.h"
 
-#include "gk20a/fifo_gk20a.h"
-#include "gk20a/mm_gk20a.h"
-#include "gk20a/gr_gk20a.h"
 
 #include "gm20b/gr_gm20b.h"
 #include "gm20b/mm_gm20b.h"
@@ -144,7 +137,6 @@
 #include "gp10b/ce_gp10b.h"
 #include "gp10b/mm_gp10b.h"
 
-#include "hal_gv11b.h"
 #include "gv11b/gr_gv11b.h"
 #include "gv11b/ce_gv11b.h"
 #include "gv11b/mm_gv11b.h"
@@ -159,13 +151,8 @@
 
 #include <nvgpu/ptimer.h>
 #include <nvgpu/class.h>
-#include <nvgpu/debug.h>
-#include <nvgpu/enabled.h>
 #include <nvgpu/error_notifier.h>
-#include <nvgpu/clk_arb.h>
-#include <nvgpu/gk20a.h>
 #include <nvgpu/debugger.h>
-#include <nvgpu/channel.h>
 #include <nvgpu/pbdma.h>
 #include <nvgpu/runlist.h>
 #include <nvgpu/fifo/userd.h>
@@ -173,7 +160,6 @@
 #include <nvgpu/cyclestats_snapshot.h>
 #include <nvgpu/regops.h>
 #include <nvgpu/gr/zbc.h>
-#include <nvgpu/gr/zcull.h>
 #include <nvgpu/gr/gr_falcon.h>
 #include <nvgpu/gr/setup.h>
 #include <nvgpu/gr/fecs_trace.h>
@@ -183,10 +169,8 @@
 #include <nvgpu/pmu/lpwr.h>
 
 #include <nvgpu/hw/gv100/hw_proj_gv100.h>
-#include <nvgpu/hw/gv100/hw_top_gv100.h>
 #include <nvgpu/hw/gv100/hw_pram_gv100.h>
 #include <nvgpu/hw/gv100/hw_pwr_gv100.h>
-#include <nvgpu/hw/gv100/hw_gr_gv100.h>
 
 static u32 gv100_get_litter_value(struct gk20a *g, int value)
 {

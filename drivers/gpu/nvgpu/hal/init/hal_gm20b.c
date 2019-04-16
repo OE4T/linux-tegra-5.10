@@ -21,25 +21,19 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#include <nvgpu/debug.h>
-#include <nvgpu/bug.h>
 #include <nvgpu/class.h>
-#include <nvgpu/enabled.h>
 #include <nvgpu/ptimer.h>
 #include <nvgpu/error_notifier.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/debugger.h>
-#include <nvgpu/channel.h>
 #include <nvgpu/runlist.h>
 #include <nvgpu/pbdma.h>
-#include <nvgpu/tsg.h>
 #include <nvgpu/perfbuf.h>
 #include <nvgpu/cyclestats_snapshot.h>
 #include <nvgpu/fifo/userd.h>
 #include <nvgpu/fuse.h>
 #include <nvgpu/regops.h>
 #include <nvgpu/gr/zbc.h>
-#include <nvgpu/gr/zcull.h>
 #include <nvgpu/gr/gr.h>
 #include <nvgpu/gr/gr_intr.h>
 #include <nvgpu/gr/gr_falcon.h>
@@ -97,9 +91,6 @@
 #include "common/pmu/pg/pg_sw_gm20b.h"
 
 #include "gk20a/ce2_gk20a.h"
-#include "gk20a/fifo_gk20a.h"
-#include "gk20a/mm_gk20a.h"
-#include "gk20a/gr_gk20a.h"
 
 #include "gm20b/gr_gm20b.h"
 #include "gm20b/mm_gm20b.h"
@@ -107,8 +98,6 @@
 #include "hal_gm20b.h"
 
 #include <nvgpu/hw/gm20b/hw_proj_gm20b.h>
-#include <nvgpu/hw/gm20b/hw_top_gm20b.h>
-#include <nvgpu/hw/gm20b/hw_gr_gm20b.h>
 #include <nvgpu/hw/gm20b/hw_pwr_gm20b.h>
 
 #define PRIV_SECURITY_DISABLE 0x01

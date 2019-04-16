@@ -21,25 +21,19 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#include <nvgpu/debug.h>
-#include <nvgpu/bug.h>
 #include <nvgpu/class.h>
-#include <nvgpu/enabled.h>
 #include <nvgpu/ptimer.h>
 #include <nvgpu/error_notifier.h>
 #include <nvgpu/gk20a.h>
 #include <nvgpu/debugger.h>
-#include <nvgpu/channel.h>
 #include <nvgpu/pbdma.h>
 #include <nvgpu/runlist.h>
 #include <nvgpu/fifo/userd.h>
-#include <nvgpu/tsg.h>
 #include <nvgpu/perfbuf.h>
 #include <nvgpu/cyclestats_snapshot.h>
 #include <nvgpu/fuse.h>
 #include <nvgpu/regops.h>
 #include <nvgpu/gr/zbc.h>
-#include <nvgpu/gr/zcull.h>
 #include <nvgpu/gr/gr_falcon.h>
 #include <nvgpu/gr/setup.h>
 #include <nvgpu/gr/fecs_trace.h>
@@ -120,25 +114,19 @@
 #include "common/fifo/channel_gm20b.h"
 #include "common/clk_arb/clk_arb_gp10b.h"
 
-#include "gk20a/fifo_gk20a.h"
-#include "gk20a/mm_gk20a.h"
-#include "gk20a/gr_gk20a.h"
 
 #include "gp10b/gr_gp10b.h"
 #include "gp10b/mm_gp10b.h"
 #include "gp10b/ce_gp10b.h"
 
 #include "gm20b/gr_gm20b.h"
-#include "gm20b/clk_gm20b.h"
 #include "gm20b/mm_gm20b.h"
 
 #include "hal_gp10b.h"
 
 #include <nvgpu/hw/gp10b/hw_proj_gp10b.h>
-#include <nvgpu/hw/gp10b/hw_top_gp10b.h>
 #include <nvgpu/hw/gp10b/hw_pram_gp10b.h>
 #include <nvgpu/hw/gp10b/hw_pwr_gp10b.h>
-#include <nvgpu/hw/gp10b/hw_gr_gp10b.h>
 
 static void gp10b_init_gpu_characteristics(struct gk20a *g)
 {
