@@ -27,17 +27,13 @@
 
 #define PBDMA_SUBDEVICE_ID  1U
 
-#define FIFO_INVAL_PBDMA_ID	(~U32(0U))
-#define FIFO_INVAL_VEID		(~U32(0U))
-
 #define CHANNEL_INFO_VEID0		0U
 
 #define MAX_PRE_SI_RETRIES		200000U	/* 1G/500KHz * 100 */
 
 struct gpu_ops;
 
-void gv11b_mmu_fault_id_to_eng_pbdma_id_and_veid(struct gk20a *g,
-	u32 mmu_fault_id, u32 *active_engine_id, u32 *veid, u32 *pbdma_id);
+u32 gv11b_fifo_mmu_fault_id_to_pbdma_id(struct gk20a *g, u32 mmu_fault_id);
 
 int gv11b_fifo_is_preempt_pending(struct gk20a *g, u32 id,
 		 unsigned int id_type);

@@ -83,4 +83,10 @@ u32 nvgpu_engine_get_runlist_busy_engines(struct gk20a *g, u32 runlist_id);
 
 bool nvgpu_engine_should_defer_reset(struct gk20a *g, u32 engine_id,
 			u32 engine_subid, bool fake_fault);
+u32 nvgpu_engine_mmu_fault_id_to_veid(struct gk20a *g, u32 mmu_fault_id,
+			u32 gr_eng_fault_id);
+u32 nvgpu_engine_mmu_fault_id_to_eng_id_and_veid(struct gk20a *g,
+			 u32 mmu_fault_id, u32 *veid);
+void nvgpu_engine_mmu_fault_id_to_eng_ve_pbdma_id(struct gk20a *g,
+	u32 mmu_fault_id, u32 *act_eng_id, u32 *veid, u32 *pbdma_id);
 #endif /*NVGPU_ENGINE_H*/

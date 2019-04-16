@@ -590,7 +590,7 @@ static void gv11b_fb_copy_from_hw_fault_buf(struct gk20a *g,
 
 	mmfault->mmu_engine_id =
 		 gmmu_fault_buf_entry_engine_id_v(rd32_val);
-	gv11b_mmu_fault_id_to_eng_pbdma_id_and_veid(g, mmfault->mmu_engine_id,
+	nvgpu_engine_mmu_fault_id_to_eng_ve_pbdma_id(g, mmfault->mmu_engine_id,
 		 &mmfault->faulted_engine, &mmfault->faulted_subid,
 		 &mmfault->faulted_pbdma);
 
@@ -918,7 +918,7 @@ static void gv11b_mm_copy_from_fault_snap_reg(struct gk20a *g,
 	mmfault->inst_aperture = fb_mmu_fault_inst_lo_aperture_v(reg_val);
 	mmfault->mmu_engine_id = fb_mmu_fault_inst_lo_engine_id_v(reg_val);
 
-	gv11b_mmu_fault_id_to_eng_pbdma_id_and_veid(g, mmfault->mmu_engine_id,
+	nvgpu_engine_mmu_fault_id_to_eng_ve_pbdma_id(g, mmfault->mmu_engine_id,
 		 &mmfault->faulted_engine, &mmfault->faulted_subid,
 		 &mmfault->faulted_pbdma);
 

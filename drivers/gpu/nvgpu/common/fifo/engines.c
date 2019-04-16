@@ -942,3 +942,65 @@ bool nvgpu_engine_should_defer_reset(struct gk20a *g, u32 engine_id,
 
 	return g->ops.engine.is_fault_engine_subid_gpc(g, engine_subid);
 }
+
+u32 nvgpu_engine_mmu_fault_id_to_veid(struct gk20a *g, u32 mmu_fault_id,
+			u32 gr_eng_fault_id)
+{
+	struct fifo_gk20a *f = &g->fifo;
+	u32 num_subctx;
+	u32 veid = INVAL_ID;
+
+	num_subctx = f->max_subctx_count;
+
+	if (mmu_fault_id >= gr_eng_fault_id &&
+			mmu_fault_id < (gr_eng_fault_id + num_subctx)) {
+		veid = mmu_fault_id - gr_eng_fault_id;
+	}
+
+	return veid;
+}
+
+u32 nvgpu_engine_mmu_fault_id_to_eng_id_and_veid(struct gk20a *g,
+			 u32 mmu_fault_id, u32 *veid)
+{
+	u32 engine_id;
+	u32 act_eng_id;
+	struct fifo_engine_info_gk20a *engine_info;
+	struct fifo_gk20a *f = &g->fifo;
+
+
+	for (engine_id = 0U; engine_id < f->num_engines; engine_id++) {
+		act_eng_id = f->active_engines_list[engine_id];
+		engine_info = &g->fifo.engine_info[act_eng_id];
+
+		if (act_eng_id == NVGPU_ENGINE_GR_GK20A) {
+			/* get faulted subctx id */
+			*veid = nvgpu_engine_mmu_fault_id_to_veid(g,
+					mmu_fault_id, engine_info->fault_id);
+			if (*veid != INVAL_ID) {
+				break;
+			}
+		} else {
+			if (engine_info->fault_id == mmu_fault_id) {
+				break;
+			}
+		}
+
+		act_eng_id = INVAL_ID;
+	}
+	return act_eng_id;
+}
+
+void nvgpu_engine_mmu_fault_id_to_eng_ve_pbdma_id(struct gk20a *g,
+	u32 mmu_fault_id, u32 *act_eng_id, u32 *veid, u32 *pbdma_id)
+{
+	*act_eng_id = nvgpu_engine_mmu_fault_id_to_eng_id_and_veid(g,
+				 mmu_fault_id, veid);
+
+	if (*act_eng_id == INVAL_ID) {
+		*pbdma_id = g->ops.fifo.mmu_fault_id_to_pbdma_id(g,
+				mmu_fault_id);
+	} else {
+		*pbdma_id = INVAL_ID;
+	}
+}

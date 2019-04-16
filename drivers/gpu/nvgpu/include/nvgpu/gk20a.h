@@ -1010,6 +1010,8 @@ struct gpu_ops {
 					struct mmu_fault_info *mmfault);
 		void (*get_mmu_fault_gpc_desc)(struct mmu_fault_info *mmfault);
 		bool (*is_mmu_fault_pending)(struct gk20a *g);
+		u32  (*mmu_fault_id_to_pbdma_id)(struct gk20a *g,
+					u32 mmu_fault_id);
 
 	} fifo;
 	struct {
