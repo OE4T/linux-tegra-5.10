@@ -44,9 +44,6 @@
 
 #include "gv11b/fifo_gv11b.h"
 
-/* TODO: add hals for gv11b_ce_get_num_lce and gv11b_ce_mthd_buffer_fault_in_bar2_fault */
-#include "hal/ce/ce_gv11b.h"
-
 #include "fb_gm20b.h"
 #include "fb_gp10b.h"
 #include "fb_gv11b.h"
@@ -648,7 +645,7 @@ static void gv11b_fb_handle_mmu_fault_common(struct gk20a *g,
 
 	gv11b_fb_print_fault_info(g, mmfault);
 
-	num_lce = gv11b_ce_get_num_lce(g);
+	num_lce = g->ops.top.get_num_lce(g);
 	if ((mmfault->mmu_engine_id >=
 			gmmu_fault_mmu_eng_id_ce0_v()) &&
 			(mmfault->mmu_engine_id <
@@ -1050,7 +1047,7 @@ static void gv11b_fb_handle_bar2_fault(struct gk20a *g,
 				NVGPU_FB_MMU_FAULT_REPLAY_REG_INDEX);
 		}
 	}
-	gv11b_ce_mthd_buffer_fault_in_bar2_fault(g);
+	g->ops.ce.mthd_buffer_fault_in_bar2_fault(g);
 
 	err = g->ops.bus.bar2_bind(g, &g->mm.bar2.inst_block);
 	if (err != 0) {

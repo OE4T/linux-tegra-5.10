@@ -41,6 +41,7 @@ nvgpu-y += \
 	common/top/top_gm20b.o \
 	common/top/top_gp10b.o \
 	common/top/top_gv100.o \
+	common/top/top_gv11b.o \
 	common/mc/mc.o \
 	common/sync/channel_sync.o \
 	common/sync/channel_sync_semaphore.o \

@@ -117,6 +117,7 @@
 #include "common/pmu/pg/pg_sw_gv11b.h"
 #include "common/top/top_gm20b.h"
 #include "common/top/top_gp10b.h"
+#include "common/top/top_gv11b.h"
 #include "common/sync/syncpt_cmdbuf_gv11b.h"
 #include "common/sync/sema_cmdbuf_gv11b.h"
 #include "common/fifo/channel_gk20a.h"
@@ -344,6 +345,8 @@ static const struct gpu_ops gv11b_ops = {
 		.isr_stall = gv11b_ce_stall_isr,
 		.isr_nonstall = gp10b_ce_nonstall_isr,
 		.get_num_pce = gv11b_ce_get_num_pce,
+		.mthd_buffer_fault_in_bar2_fault =
+				gv11b_ce_mthd_buffer_fault_in_bar2_fault,
 	},
 	.gr = {
 		.handle_sw_method = gr_gv11b_handle_sw_method,
@@ -1319,6 +1322,7 @@ static const struct gpu_ops gv11b_ops = {
 		.get_max_fbps_count = gm20b_top_get_max_fbps_count,
 		.get_max_ltc_per_fbp = gm20b_top_get_max_ltc_per_fbp,
 		.get_max_lts_per_ltc = gm20b_top_get_max_lts_per_ltc,
+		.get_num_lce = gv11b_top_get_num_lce,
 	},
 	.chip_init_gpu_characteristics = gv11b_init_gpu_characteristics,
 	.get_litter_value = gv11b_get_litter_value,

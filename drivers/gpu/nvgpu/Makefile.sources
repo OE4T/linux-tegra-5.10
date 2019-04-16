@@ -84,6 +84,7 @@ srcs += common/sim.c \
 	common/top/top_gm20b.c \
 	common/top/top_gp10b.c \
 	common/top/top_gv100.c \
+	common/top/top_gv11b.c \
 	common/enabled.c \
 	common/pramin.c \
 	common/string.c \

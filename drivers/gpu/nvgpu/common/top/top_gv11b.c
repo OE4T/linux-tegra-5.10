@@ -1,8 +1,5 @@
 /*
- *
- * Volta GPU series copy engine
- *
- * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -22,13 +19,21 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef NVGPU_CE_GV11B_H
-#define NVGPU_CE_GV11B_H
 
-struct gk20a;
+#include <nvgpu/io.h>
+#include <nvgpu/gk20a.h>
 
-void gv11b_ce_mthd_buffer_fault_in_bar2_fault(struct gk20a *g);
-u32 gv11b_ce_get_num_pce(struct gk20a *g);
-void gv11b_ce_stall_isr(struct gk20a *g, u32 inst_id, u32 pri_base);
+#include "top_gv11b.h"
 
-#endif /* NVGPU_CE_GV11B_H */
+#include <nvgpu/hw/gv11b/hw_top_gv11b.h>
+
+u32 gv11b_top_get_num_lce(struct gk20a *g)
+{
+	u32 reg_val, num_lce;
+
+	reg_val = nvgpu_readl(g, top_num_ces_r());
+	num_lce = top_num_ces_value_v(reg_val);
+	nvgpu_log_info(g, "num LCE: %d", num_lce);
+
+	return num_lce;
+}

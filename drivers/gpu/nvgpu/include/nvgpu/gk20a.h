@@ -263,6 +263,7 @@ struct gpu_ops {
 		void (*isr_stall)(struct gk20a *g, u32 inst_id, u32 pri_base);
 		u32 (*isr_nonstall)(struct gk20a *g, u32 inst_id, u32 pri_base);
 		u32 (*get_num_pce)(struct gk20a *g);
+		void (*mthd_buffer_fault_in_bar2_fault)(struct gk20a *g);
 		struct {
 			int (*report_ce_err)(struct gk20a *g,
 					u32 hw_id, u32 inst, u32 err_id,
@@ -1895,6 +1896,7 @@ struct gpu_ops {
 		u32 (*get_max_fbpas_count)(struct gk20a *g);
 		u32 (*get_max_ltc_per_fbp)(struct gk20a *g);
 		u32 (*get_max_lts_per_ltc)(struct gk20a *g);
+		u32 (*get_num_lce)(struct gk20a *g);
 	} top;
 	struct {
 		void (*secured_sec2_start)(struct gk20a *g);
