@@ -735,7 +735,7 @@ static void deallocate_memory_for_adsp_os(struct device *dev)
 	struct iova_domain *iovad = &drv_data->iovad;
 	void *va = nvadsp_da_to_va_mappings(priv.adsp_os_addr,
 			priv.adsp_os_size);
-	dma_free_coherent(dev, priv.adsp_os_addr, va, priv.adsp_os_size);
+	dma_free_coherent(dev, priv.adsp_os_size, va, priv.adsp_os_addr);
 	free_iova(iovad, iova_pfn(iovad, priv.adsp_os_addr));
 	put_iova_domain(iovad);
 #endif
