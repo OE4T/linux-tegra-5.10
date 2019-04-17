@@ -492,6 +492,7 @@ void gk20a_pmu_isr(struct gk20a *g)
 	struct nvgpu_pmu *pmu = &g->pmu;
 	u32 intr, mask;
 	bool recheck = false;
+	int err = 0;
 
 	nvgpu_log_fn(g, " ");
 
@@ -542,7 +543,11 @@ void gk20a_pmu_isr(struct gk20a *g)
 	}
 
 	if ((intr & pwr_falcon_irqstat_swgen0_true_f()) != 0U) {
-		nvgpu_pmu_process_message(pmu);
+		err = nvgpu_pmu_process_message(pmu);
+		if (err != 0) {
+			nvgpu_err(g, "nvgpu_pmu_process_message failed err=%d",
+				err);
+		}
 		recheck = true;
 	}
 
