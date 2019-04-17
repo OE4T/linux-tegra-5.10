@@ -263,8 +263,7 @@ void nvgpu_gr_obj_ctx_update_ctxsw_preemption_mode(struct gk20a *g,
 	g->ops.gr.init.commit_cbes_reserve(g, gr_ctx, true);
 
 	if (g->ops.gr.init.gfxp_wfi_timeout != NULL) {
-		g->ops.gr.init.gfxp_wfi_timeout(g, gr_ctx,
-			g->gr->gfxp_wfi_timeout_count, true);
+		g->ops.gr.init.gfxp_wfi_timeout(g, gr_ctx, true);
 	}
 
 	if (g->ops.gr.init.commit_gfxp_rtv_cb != NULL) {
@@ -445,9 +444,7 @@ int nvgpu_gr_obj_ctx_alloc_golden_ctx_image(struct gk20a *g,
 	}
 
 	if (g->ops.gr.init.preemption_state != NULL) {
-		err = g->ops.gr.init.preemption_state(g,
-			g->gr->gfxp_wfi_timeout_count,
-			g->gr->gfxp_wfi_timeout_unit_usec);
+		err = g->ops.gr.init.preemption_state(g);
 		if (err != 0) {
 			goto clean_up;
 		}

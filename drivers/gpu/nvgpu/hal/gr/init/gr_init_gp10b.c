@@ -35,6 +35,8 @@
 
 #include <nvgpu/hw/gp10b/hw_gr_gp10b.h>
 
+#define GFXP_WFI_TIMEOUT_COUNT_DEFAULT 100000U
+
 void gp10b_gr_init_get_access_map(struct gk20a *g,
 				   u32 **whitelist, int *num_entries)
 {
@@ -226,10 +228,10 @@ int gp10b_gr_init_fs_state(struct gk20a *g)
 	return 0;
 }
 
-int gp10b_gr_init_preemption_state(struct gk20a *g, u32 gfxp_wfi_timeout_count,
-	bool gfxp_wfi_timeout_unit_usec)
+int gp10b_gr_init_preemption_state(struct gk20a *g)
 {
 	u32 debug_2;
+	u32 gfxp_wfi_timeout_count = GFXP_WFI_TIMEOUT_COUNT_DEFAULT;
 
 	nvgpu_writel(g, gr_fe_gfxp_wfi_timeout_r(),
 			gr_fe_gfxp_wfi_timeout_count_f(gfxp_wfi_timeout_count));

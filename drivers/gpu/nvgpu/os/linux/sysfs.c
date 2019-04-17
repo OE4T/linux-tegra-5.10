@@ -985,103 +985,6 @@ static ssize_t max_timeslice_us_store(struct device *dev,
 static DEVICE_ATTR(max_timeslice_us, ROOTRW, max_timeslice_us_read,
 		   max_timeslice_us_store);
 
-static ssize_t gfxp_wfi_timeout_count_store(struct device *dev,
-		struct device_attribute *attr, const char *buf, size_t count)
-{
-	struct gk20a *g = get_gk20a(dev);
-	struct nvgpu_gr *gr = g->gr;
-	unsigned long val = 0;
-	int err = -1;
-
-	if (kstrtoul(buf, 10, &val) < 0)
-		return -EINVAL;
-
-	if (g->ops.gr.get_max_gfxp_wfi_timeout_count) {
-		if (val >= g->ops.gr.get_max_gfxp_wfi_timeout_count(g))
-			return -EINVAL;
-	}
-
-	gr->gfxp_wfi_timeout_count = val;
-
-	if (g->ops.gr.init.preemption_state && g->power_on) {
-		err = gk20a_busy(g);
-		if (err)
-			return err;
-
-		err = nvgpu_pg_elpg_protected_call(g,
-			g->ops.gr.init.preemption_state(g,
-				gr->gfxp_wfi_timeout_count,
-				gr->gfxp_wfi_timeout_unit_usec));
-
-		gk20a_idle(g);
-
-		if (err)
-			return err;
-	}
-	return count;
-}
-
-static ssize_t gfxp_wfi_timeout_unit_store(struct device *dev,
-		struct device_attribute *attr, const char *buf, size_t count)
-{
-	struct gk20a *g = get_gk20a(dev);
-	struct nvgpu_gr *gr = g->gr;
-	int err = -1;
-
-	if (count > 0 && buf[0] == 's')
-		/* sysclk */
-		gr->gfxp_wfi_timeout_unit_usec = false;
-	else
-		/* usec */
-		gr->gfxp_wfi_timeout_unit_usec = true;
-
-	if (g->ops.gr.init.preemption_state && g->power_on) {
-		err = gk20a_busy(g);
-		if (err)
-			return err;
-
-		err = nvgpu_pg_elpg_protected_call(g,
-			g->ops.gr.init.preemption_state(g,
-				gr->gfxp_wfi_timeout_count,
-				gr->gfxp_wfi_timeout_unit_usec));
-
-		gk20a_idle(g);
-
-		if (err)
-			return err;
-	}
-
-	return count;
-}
-
-static ssize_t gfxp_wfi_timeout_count_read(struct device *dev,
-		struct device_attribute *attr, char *buf)
-{
-	struct gk20a *g = get_gk20a(dev);
-	struct nvgpu_gr *gr = g->gr;
-	u32 val = gr->gfxp_wfi_timeout_count;
-
-	return snprintf(buf, PAGE_SIZE, "%d\n", val);
-}
-
-static ssize_t gfxp_wfi_timeout_unit_read(struct device *dev,
-		struct device_attribute *attr, char *buf)
-{
-	struct gk20a *g = get_gk20a(dev);
-	struct nvgpu_gr *gr = g->gr;
-
-	if (gr->gfxp_wfi_timeout_unit_usec)
-		return snprintf(buf, PAGE_SIZE, "usec\n");
-	else
-		return snprintf(buf, PAGE_SIZE, "sysclk\n");
-}
-
-static DEVICE_ATTR(gfxp_wfi_timeout_count, (S_IRWXU|S_IRGRP|S_IROTH),
-		gfxp_wfi_timeout_count_read, gfxp_wfi_timeout_count_store);
-
-static DEVICE_ATTR(gfxp_wfi_timeout_unit, (S_IRWXU|S_IRGRP|S_IROTH),
-		gfxp_wfi_timeout_unit_read, gfxp_wfi_timeout_unit_store);
-
 static ssize_t comptag_mem_deduct_store(struct device *dev,
 					struct device_attribute *attr,
 					const char *buf, size_t count)
@@ -1152,8 +1055,6 @@ void nvgpu_remove_sysfs(struct device *dev)
 	nvgpu_nvhost_remove_symlink(get_gk20a(dev));
 #endif
 
-	device_remove_file(dev, &dev_attr_gfxp_wfi_timeout_count);
-	device_remove_file(dev, &dev_attr_gfxp_wfi_timeout_unit);
 	device_remove_file(dev, &dev_attr_gpu_powered_on);
 
 	device_remove_file(dev, &dev_attr_comptag_mem_deduct);
@@ -1205,8 +1106,6 @@ int nvgpu_create_sysfs(struct device *dev)
 	error |= nvgpu_nvhost_create_symlink(g);
 #endif
 
-	error |= device_create_file(dev, &dev_attr_gfxp_wfi_timeout_count);
-	error |= device_create_file(dev, &dev_attr_gfxp_wfi_timeout_unit);
 	error |= device_create_file(dev, &dev_attr_gpu_powered_on);
 
 	error |= device_create_file(dev, &dev_attr_comptag_mem_deduct);

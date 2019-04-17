@@ -55,10 +55,6 @@
 #include <nvgpu/hw/gp10b/hw_gr_gp10b.h>
 #include <nvgpu/hw/gp10b/hw_fifo_gp10b.h>
 
-#define GFXP_WFI_TIMEOUT_COUNT_DEFAULT 100000U
-
-
-
 static void gr_gp10b_sm_lrf_ecc_overcount_war(bool single_err,
 						u32 sed_status,
 						u32 ded_status,
@@ -1185,18 +1181,5 @@ int gr_gp10b_get_preemption_mode_flags(struct gk20a *g,
 			NVGPU_PREEMPTION_MODE_COMPUTE_WFI;
 
 	return 0;
-}
-
-void gr_gp10b_init_gfxp_wfi_timeout_count(struct gk20a *g)
-{
-	struct nvgpu_gr *gr = g->gr;
-
-	gr->gfxp_wfi_timeout_count = GFXP_WFI_TIMEOUT_COUNT_DEFAULT;
-}
-
-unsigned long gr_gp10b_get_max_gfxp_wfi_timeout_count(struct gk20a *g)
-{
-	/* 100msec @ 1GHZ */
-	return (100UL * 1000UL * 1000UL);
 }
 

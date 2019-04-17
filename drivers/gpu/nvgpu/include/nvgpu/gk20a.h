@@ -393,9 +393,6 @@ struct gpu_ops {
 		void (*resume_single_sm)(struct gk20a *g,
 				u32 gpc, u32 tpc, u32 sm);
 		void (*resume_all_sms)(struct gk20a *g);
-		void (*init_gfxp_wfi_timeout_count)(struct gk20a *g);
-		unsigned long (*get_max_gfxp_wfi_timeout_count)
-					(struct gk20a *g);
 		int (*handle_ssync_hww)(struct gk20a *g, u32 *ssync_esr);
 		int (*add_ctxsw_reg_pm_fbpa)(struct gk20a *g,
 				struct ctxsw_buf_offset_map_entry *map,
@@ -720,9 +717,7 @@ struct gpu_ops {
 			int (*fe_pwr_mode_force_on)(struct gk20a *g,
 				bool force_on);
 			void (*override_context_reset)(struct gk20a *g);
-			int (*preemption_state)(struct gk20a *g,
-				u32 gfxp_wfi_timeout_count,
-				bool gfxp_wfi_timeout_unit_usec);
+			int (*preemption_state)(struct gk20a *g);
 			void (*fe_go_idle_timeout)(struct gk20a *g,
 				bool enable);
 			void (*load_method_init)(struct gk20a *g,
@@ -782,8 +777,7 @@ struct gpu_ops {
 			void (*commit_cbes_reserve)(struct gk20a *g,
 				struct nvgpu_gr_ctx *gr_ctx, bool patch);
 			void (*gfxp_wfi_timeout)(struct gk20a *g,
-				struct nvgpu_gr_ctx *gr_ctx, u32 timeout,
-				bool patch);
+				struct nvgpu_gr_ctx *gr_ctx, bool patch);
 			u32 (*get_max_subctx_count)(void);
 			u32 (*get_patch_slots)(struct gk20a *g,
 				struct nvgpu_gr_config *config);

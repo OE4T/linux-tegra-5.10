@@ -45,8 +45,7 @@ void gv11b_gr_init_tpc_mask(struct gk20a *g, u32 gpc_index, u32 pes_tpc_mask);
 int gv11b_gr_init_rop_mapping(struct gk20a *g,
 			      struct nvgpu_gr_config *gr_config);
 int gv11b_gr_init_fs_state(struct gk20a *g);
-int gv11b_gr_init_preemption_state(struct gk20a *g, u32 gfxp_wfi_timeout_count,
-	bool gfxp_wfi_timeout_unit_usec);
+int gv11b_gr_init_preemption_state(struct gk20a *g);
 void gv11b_gr_init_commit_global_timeslice(struct gk20a *g);
 
 u32 gv11b_gr_init_get_bundle_cb_default_size(struct gk20a *g);
@@ -76,7 +75,7 @@ void gv11b_gr_init_commit_ctxsw_spill(struct gk20a *g,
 void gv11b_gr_init_commit_cbes_reserve(struct gk20a *g,
 	struct nvgpu_gr_ctx *gr_ctx, bool patch);
 void gv11b_gr_init_commit_gfxp_wfi_timeout(struct gk20a *g,
-	struct nvgpu_gr_ctx *gr_ctx, u32 timeout, bool patch);
+	struct nvgpu_gr_ctx *gr_ctx, bool patch);
 
 u32 gv11b_gr_init_get_max_subctx_count(void);
 u32 gv11b_gr_init_get_patch_slots(struct gk20a *g,

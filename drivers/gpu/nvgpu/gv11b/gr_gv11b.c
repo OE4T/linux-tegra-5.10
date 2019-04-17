@@ -65,8 +65,6 @@
 #include <nvgpu/hw/gv11b/hw_proj_gv11b.h>
 #include <nvgpu/hw/gv11b/hw_perf_gv11b.h>
 
-#define GFXP_WFI_TIMEOUT_COUNT_IN_USEC_DEFAULT 100U
-
 u32 gr_gv11b_ctxsw_checksum_mismatch_mailbox_val(void)
 {
 	return gr_fecs_ctxsw_mailbox_value_ctxsw_checksum_mismatch_v();
@@ -2800,24 +2798,6 @@ void gv11b_gr_egpc_etpc_priv_addr_table(struct gk20a *g, u32 addr,
 u32 gv11b_gr_get_egpc_base(struct gk20a *g)
 {
 	return EGPC_PRI_BASE;
-}
-
-void gr_gv11b_init_gfxp_wfi_timeout_count(struct gk20a *g)
-{
-	struct nvgpu_gr *gr = g->gr;
-	gr->gfxp_wfi_timeout_unit_usec = true;
-	gr->gfxp_wfi_timeout_count = GFXP_WFI_TIMEOUT_COUNT_IN_USEC_DEFAULT;
-}
-
-unsigned long gr_gv11b_get_max_gfxp_wfi_timeout_count(struct gk20a *g)
-{
-	if (g->gr->gfxp_wfi_timeout_unit_usec) {
-		/* 100 msec in usec count */
-		return (100UL * 1000UL);
-	} else {
-		/* 100 msec for 1GHz clock */
-		return (100UL * 1000UL * 1000UL);
-	}
 }
 
 int gr_gv11b_handle_ssync_hww(struct gk20a *g, u32 *ssync_esr)

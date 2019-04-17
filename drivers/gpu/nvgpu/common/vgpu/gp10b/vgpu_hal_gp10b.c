@@ -176,10 +176,6 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 		.pre_process_sm_exception = NULL,
 		.set_bes_crop_debug3 = NULL,
 		.set_bes_crop_debug4 = NULL,
-		.init_gfxp_wfi_timeout_count =
-			gr_gp10b_init_gfxp_wfi_timeout_count,
-		.get_max_gfxp_wfi_timeout_count =
-			gr_gp10b_get_max_gfxp_wfi_timeout_count,
 		.decode_priv_addr = gr_gk20a_decode_priv_addr,
 		.create_priv_addr_table = gr_gk20a_create_priv_addr_table,
 		.split_fbpa_broadcast_addr = gr_gk20a_split_fbpa_broadcast_addr,

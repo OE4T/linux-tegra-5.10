@@ -101,9 +101,6 @@ struct nvgpu_gr {
 	u32 num_fbps;
 	u32 max_fbps_count;
 
-	u32 gfxp_wfi_timeout_count;
-	bool gfxp_wfi_timeout_unit_usec;
-
 	struct nvgpu_gr_global_ctx_buffer_desc *global_ctx_buffer;
 
 	struct nvgpu_gr_obj_ctx_golden_image *golden_image;

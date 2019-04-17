@@ -230,8 +230,7 @@ static int gr_init_setup_hw(struct gk20a *g)
 	}
 
 	if (g->ops.gr.init.preemption_state != NULL) {
-		err = g->ops.gr.init.preemption_state(g, gr->gfxp_wfi_timeout_count,
-			gr->gfxp_wfi_timeout_unit_usec);
+		err = g->ops.gr.init.preemption_state(g);
 		if (err != 0) {
 			goto out;
 		}
@@ -440,10 +439,6 @@ static int gr_init_setup_sw(struct gk20a *g)
 	err = nvgpu_gr_zbc_init(g, &gr->zbc);
 	if (err != 0) {
 		goto clean_up;
-	}
-
-	if (g->ops.gr.init_gfxp_wfi_timeout_count != NULL) {
-		g->ops.gr.init_gfxp_wfi_timeout_count(g);
 	}
 
 	err = nvgpu_mutex_init(&gr->ctx_mutex);

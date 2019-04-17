@@ -46,6 +46,8 @@
  */
 #define GR_TPCS_INFO_FOR_MAPREGISTER 6U
 
+#define GFXP_WFI_TIMEOUT_COUNT_IN_USEC_DEFAULT 100U
+
 static int gr_gv11b_ecc_scrub_is_done(struct gk20a *g,
 			struct nvgpu_gr_config *gr_config,
 			u32 scrub_reg, u32 scrub_mask, u32 scrub_done)
@@ -615,24 +617,16 @@ int gv11b_gr_init_fs_state(struct gk20a *g)
 	return err;
 }
 
-int gv11b_gr_init_preemption_state(struct gk20a *g, u32 gfxp_wfi_timeout_count,
-	bool gfxp_wfi_timeout_unit_usec)
+int gv11b_gr_init_preemption_state(struct gk20a *g)
 {
 	u32 debug_2;
-	u32 unit;
 
 	nvgpu_log_fn(g, " ");
-
-	if (gfxp_wfi_timeout_unit_usec) {
-		unit = gr_debug_2_gfxp_wfi_timeout_unit_usec_f();
-	} else {
-		unit = gr_debug_2_gfxp_wfi_timeout_unit_sysclk_f();
-	}
 
 	debug_2 = nvgpu_readl(g, gr_debug_2_r());
 	debug_2 = set_field(debug_2,
 		gr_debug_2_gfxp_wfi_timeout_unit_m(),
-		unit);
+		gr_debug_2_gfxp_wfi_timeout_unit_usec_f());
 	nvgpu_writel(g, gr_debug_2_r(), debug_2);
 
 	return 0;
@@ -885,10 +879,10 @@ void gv11b_gr_init_commit_cbes_reserve(struct gk20a *g,
 }
 
 void gv11b_gr_init_commit_gfxp_wfi_timeout(struct gk20a *g,
-	struct nvgpu_gr_ctx *gr_ctx, u32 timeout, bool patch)
+	struct nvgpu_gr_ctx *gr_ctx, bool patch)
 {
 	nvgpu_gr_ctx_patch_write(g, gr_ctx, gr_fe_gfxp_wfi_timeout_r(),
-		timeout, patch);
+		GFXP_WFI_TIMEOUT_COUNT_IN_USEC_DEFAULT, patch);
 }
 
 u32 gv11b_gr_init_get_max_subctx_count(void)
