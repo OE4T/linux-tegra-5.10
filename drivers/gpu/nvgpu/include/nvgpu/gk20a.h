@@ -422,6 +422,9 @@ struct gpu_ops {
 		void (*log_mme_exception)(struct gk20a *g);
 		int (*reset)(struct gk20a *g);
 		bool (*esr_bpt_pending_events)(u32 global_esr, u32 bpt_event);
+		int (*halt_pipe)(struct gk20a *g);
+		int (*disable_ctxsw)(struct gk20a *g);
+		int (*enable_ctxsw)(struct gk20a *g);
 		struct {
 			void (*detect)(struct gk20a *g);
 			int (*init)(struct gk20a *g);
@@ -575,11 +578,6 @@ struct gpu_ops {
 				struct nvgpu_fecs_method_op op);
 			int (*ctrl_ctxsw)(struct gk20a *g, u32 fecs_method,
 				u32 fecs_data, u32 *ret_val);
-			int (*halt_pipe)(struct gk20a *g);
-			int (*disable_ctxsw)(struct gk20a *g,
-					struct nvgpu_gr_falcon *falcon);
-			int (*enable_ctxsw)(struct gk20a *g,
-					struct nvgpu_gr_falcon *falcon);
 			u32 (*get_current_ctx)(struct gk20a *g);
 			u32 (*get_ctx_ptr)(u32 ctx);
 			u32 (*get_fecs_current_ctx_data)(struct gk20a *g,

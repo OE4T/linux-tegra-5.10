@@ -37,5 +37,8 @@ void nvgpu_gr_wait_initialized(struct gk20a *g);
 void nvgpu_gr_init(struct gk20a *g);
 int nvgpu_gr_alloc(struct gk20a *g);
 void nvgpu_gr_free(struct gk20a *g);
+int nvgpu_gr_disable_ctxsw(struct gk20a *g);
+int nvgpu_gr_enable_ctxsw(struct gk20a *g);
+int nvgpu_gr_halt_pipe(struct gk20a *g);
 
 #endif /* NVGPU_GR_H */

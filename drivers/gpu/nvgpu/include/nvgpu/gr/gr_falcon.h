@@ -84,11 +84,6 @@ int nvgpu_gr_falcon_load_ctxsw_ucode(struct gk20a *g,
 					struct nvgpu_gr_falcon *falcon);
 int nvgpu_gr_falcon_load_secure_ctxsw_ucode(struct gk20a *g,
 					struct nvgpu_gr_falcon *falcon);
-int nvgpu_gr_falcon_disable_ctxsw(struct gk20a *g,
-					struct nvgpu_gr_falcon *falcon);
-int nvgpu_gr_falcon_enable_ctxsw(struct gk20a *g,
-					struct nvgpu_gr_falcon *falcon);
-int nvgpu_gr_falcon_halt_pipe(struct gk20a *g);
 
 struct nvgpu_mutex *nvgpu_gr_falcon_get_fecs_mutex(
 					struct nvgpu_gr_falcon *falcon);

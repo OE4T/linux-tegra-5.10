@@ -1052,7 +1052,7 @@ int gr_gp10b_suspend_contexts(struct gk20a *g,
 
 	nvgpu_mutex_acquire(&g->dbg_sessions_lock);
 
-	err = g->ops.gr.falcon.disable_ctxsw(g, g->gr->falcon);
+	err = g->ops.gr.disable_ctxsw(g);
 	if (err != 0) {
 		nvgpu_err(g, "unable to stop gr ctxsw");
 		nvgpu_mutex_release(&g->dbg_sessions_lock);
@@ -1077,7 +1077,7 @@ int gr_gp10b_suspend_contexts(struct gk20a *g,
 
 	nvgpu_mutex_release(&dbg_s->ch_list_lock);
 
-	err = g->ops.gr.falcon.enable_ctxsw(g, g->gr->falcon);
+	err = g->ops.gr.enable_ctxsw(g);
 	if (err != 0) {
 		nvgpu_mutex_release(&g->dbg_sessions_lock);
 		goto clean_up;

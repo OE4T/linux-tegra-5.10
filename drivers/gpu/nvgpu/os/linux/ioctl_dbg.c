@@ -1103,7 +1103,7 @@ static int nvgpu_dbg_gpu_ioctl_suspend_resume_sm(
 	nvgpu_mutex_acquire(&g->dbg_sessions_lock);
 
 	/* Suspend GPU context switching */
-	err = g->ops.gr.falcon.disable_ctxsw(g, g->gr->falcon);
+	err = g->ops.gr.disable_ctxsw(g);
 	if (err) {
 		nvgpu_err(g, "unable to stop gr ctxsw");
 		/* this should probably be ctx-fatal... */
@@ -1121,7 +1121,7 @@ static int nvgpu_dbg_gpu_ioctl_suspend_resume_sm(
 		break;
 	}
 
-	err = g->ops.gr.falcon.enable_ctxsw(g, g->gr->falcon);
+	err = g->ops.gr.enable_ctxsw(g);
 	if (err)
 		nvgpu_err(g, "unable to restart ctxsw!");
 

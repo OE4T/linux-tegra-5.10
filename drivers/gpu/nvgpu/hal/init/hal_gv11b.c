@@ -427,6 +427,9 @@ static const struct gpu_ops gv11b_ops = {
 				gr_gv11b_ctxsw_checksum_mismatch_mailbox_val,
 		.reset = nvgpu_gr_reset,
 		.esr_bpt_pending_events = gv11b_gr_esr_bpt_pending_events,
+		.halt_pipe = nvgpu_gr_halt_pipe,
+		.disable_ctxsw = nvgpu_gr_disable_ctxsw,
+		.enable_ctxsw = nvgpu_gr_enable_ctxsw,
 		.ecc = {
 			.detect = gv11b_ecc_detect_enabled_units,
 			.init = gv11b_ecc_init,
@@ -752,9 +755,6 @@ static const struct gpu_ops gv11b_ops = {
 			.submit_fecs_sideband_method_op =
 				gm20b_gr_falcon_submit_fecs_sideband_method_op,
 			.ctrl_ctxsw = gp10b_gr_falcon_ctrl_ctxsw,
-			.halt_pipe = nvgpu_gr_falcon_halt_pipe,
-			.disable_ctxsw = nvgpu_gr_falcon_disable_ctxsw,
-			.enable_ctxsw = nvgpu_gr_falcon_enable_ctxsw,
 			.get_current_ctx = gm20b_gr_falcon_get_current_ctx,
 			.get_ctx_ptr = gm20b_gr_falcon_get_ctx_ptr,
 			.get_fecs_current_ctx_data =

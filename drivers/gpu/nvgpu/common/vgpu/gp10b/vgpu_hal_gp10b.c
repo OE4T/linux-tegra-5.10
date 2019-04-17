@@ -26,7 +26,7 @@
 #include <nvgpu/vgpu/vgpu.h>
 #include <nvgpu/error_notifier.h>
 #include <nvgpu/channel.h>
-#include <nvgpu/gr/gr_falcon.h>
+#include <nvgpu/gr/gr.h>
 
 #include <nvgpu/vgpu/ce_vgpu.h>
 #include <nvgpu/vgpu/vm_vgpu.h>
@@ -181,6 +181,9 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 			gr_gk20a_get_offset_in_gpccs_segment,
 		.set_debug_mode = gm20b_gr_set_debug_mode,
 		.reset = NULL,
+		.halt_pipe = NULL,
+		.disable_ctxsw = nvgpu_gr_disable_ctxsw,
+		.enable_ctxsw = nvgpu_gr_enable_ctxsw,
 		.ctxsw_prog = {
 			.hw_get_fecs_header_size =
 				gm20b_ctxsw_prog_hw_get_fecs_header_size,
@@ -278,9 +281,6 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 		.falcon = {
 			.init_ctx_state = vgpu_gr_init_ctx_state,
 			.load_ctxsw_ucode = NULL,
-			.halt_pipe = NULL,
-			.disable_ctxsw = nvgpu_gr_falcon_disable_ctxsw,
-			.enable_ctxsw = nvgpu_gr_falcon_enable_ctxsw,
 		},
 #ifdef CONFIG_GK20A_CTXSW_TRACE
 		.fecs_trace = {

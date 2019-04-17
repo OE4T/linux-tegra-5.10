@@ -99,6 +99,9 @@ struct nvgpu_gr {
 #endif
 	u32 max_css_buffer_size;
 	u32 max_ctxsw_ring_buffer_size;
+
+	struct nvgpu_mutex ctxsw_disable_mutex;
+	int ctxsw_disable_count;
 };
 
 #endif /* NVGPU_GR_PRIV_H */

@@ -67,8 +67,6 @@ struct nvgpu_ctxsw_ucode_info {
 
 struct nvgpu_gr_falcon {
 	struct nvgpu_ctxsw_ucode_info ctxsw_ucode_info;
-	struct nvgpu_mutex ctxsw_disable_mutex;
-	int ctxsw_disable_count;
 	struct nvgpu_mutex fecs_mutex; /* protect fecs method */
 	bool skip_ucode_init;
 };

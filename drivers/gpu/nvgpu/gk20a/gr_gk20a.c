@@ -1927,7 +1927,7 @@ int gr_gk20a_exec_ctx_ops(struct channel_gk20a *ch,
 	 * at that point the hardware state can be inspected to
 	 * determine if the context we're interested in is current.
 	 */
-	err = g->ops.gr.falcon.disable_ctxsw(g, g->gr->falcon);
+	err = g->ops.gr.disable_ctxsw(g);
 	if (err != 0) {
 		nvgpu_err(g, "unable to stop gr ctxsw");
 		/* this should probably be ctx-fatal... */
@@ -1944,7 +1944,7 @@ int gr_gk20a_exec_ctx_ops(struct channel_gk20a *ch,
 	err = __gr_gk20a_exec_ctx_ops(ch, ctx_ops, num_ops, num_ctx_wr_ops,
 				      num_ctx_rd_ops, ch_is_curr_ctx);
 
-	tmp_err = g->ops.gr.falcon.enable_ctxsw(g, g->gr->falcon);
+	tmp_err = g->ops.gr.enable_ctxsw(g);
 	if (tmp_err != 0) {
 		nvgpu_err(g, "unable to restart ctxsw!");
 		err = tmp_err;
@@ -2290,7 +2290,7 @@ int gr_gk20a_suspend_contexts(struct gk20a *g,
 
 	nvgpu_mutex_acquire(&g->dbg_sessions_lock);
 
-	err = g->ops.gr.falcon.disable_ctxsw(g, g->gr->falcon);
+	err = g->ops.gr.disable_ctxsw(g);
 	if (err != 0) {
 		nvgpu_err(g, "unable to stop gr ctxsw");
 		goto clean_up;
@@ -2310,7 +2310,7 @@ int gr_gk20a_suspend_contexts(struct gk20a *g,
 
 	nvgpu_mutex_release(&dbg_s->ch_list_lock);
 
-	err = g->ops.gr.falcon.enable_ctxsw(g, g->gr->falcon);
+	err = g->ops.gr.enable_ctxsw(g);
 	if (err != 0) {
 		nvgpu_err(g, "unable to restart ctxsw!");
 	}
@@ -2335,7 +2335,7 @@ int gr_gk20a_resume_contexts(struct gk20a *g,
 
 	nvgpu_mutex_acquire(&g->dbg_sessions_lock);
 
-	err = g->ops.gr.falcon.disable_ctxsw(g, g->gr->falcon);
+	err = g->ops.gr.disable_ctxsw(g);
 	if (err != 0) {
 		nvgpu_err(g, "unable to stop gr ctxsw");
 		goto clean_up;
@@ -2351,7 +2351,7 @@ int gr_gk20a_resume_contexts(struct gk20a *g,
 		}
 	}
 
-	err = g->ops.gr.falcon.enable_ctxsw(g, g->gr->falcon);
+	err = g->ops.gr.enable_ctxsw(g);
 	if (err != 0) {
 		nvgpu_err(g, "unable to restart ctxsw!");
 	}
