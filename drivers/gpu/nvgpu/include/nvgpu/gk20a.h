@@ -1076,8 +1076,6 @@ struct gpu_ops {
 				bool wait_for_finish);
 		int (*reload)(struct gk20a *g, u32 runlist_id,
 				bool add, bool wait_for_finish);
-		int (*set_interleave)(struct gk20a *g, u32 id,
-					u32 runlist_id, u32 new_level);
 		u32 (*count_max)(void);
 		u32 (*entry_size)(struct gk20a *g);
 		u32 (*length_max)(struct gk20a *g);
@@ -1241,6 +1239,7 @@ struct gpu_ops {
 				      enum nvgpu_event_id_type event_id);
 		int (*set_timeslice)(struct tsg_gk20a *tsg, u32 timeslice_us);
 		u32 (*default_timeslice_us)(struct gk20a *g);
+		int (*set_interleave)(struct tsg_gk20a *tsg, u32 new_level);
 	} tsg;
 	struct {
 		void (*setup_hw)(struct gk20a *g);

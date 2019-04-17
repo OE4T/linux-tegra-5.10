@@ -595,8 +595,7 @@ u32 nvgpu_ce_create_context(struct gk20a *g,
 
 	/* -1 means default channel runlist level */
 	if (runlist_level != -1) {
-		err = gk20a_tsg_set_runlist_interleave(ce_ctx->tsg,
-						       runlist_level);
+		err = nvgpu_tsg_set_interleave(ce_ctx->tsg, runlist_level);
 		if (err != 0) {
 			nvgpu_err(g, "ce: set runlist interleave failed");
 			goto end;

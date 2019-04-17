@@ -31,8 +31,13 @@ struct tsg_gk20a;
 struct fifo_gk20a;
 struct channel_gk20a;
 
-#define RUNLIST_APPEND_FAILURE	U32_MAX
-#define RUNLIST_INVALID_ID	U32_MAX
+#define NVGPU_FIFO_RUNLIST_INTERLEAVE_LEVEL_LOW     0U
+#define NVGPU_FIFO_RUNLIST_INTERLEAVE_LEVEL_MEDIUM  1U
+#define NVGPU_FIFO_RUNLIST_INTERLEAVE_LEVEL_HIGH    2U
+#define NVGPU_FIFO_RUNLIST_INTERLEAVE_NUM_LEVELS    3U
+
+#define RUNLIST_APPEND_FAILURE U32_MAX
+#define RUNLIST_INVALID_ID U32_MAX
 
 u32 nvgpu_runlist_construct_locked(struct fifo_gk20a *f,
 				struct fifo_runlist_info_gk20a *runlist,

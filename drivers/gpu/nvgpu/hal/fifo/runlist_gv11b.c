@@ -64,7 +64,7 @@ void gv11b_runlist_get_tsg_entry(struct tsg_gk20a *tsg,
 	}
 
 	if (scale > RL_MAX_TIMESLICE_SCALE) {
-		nvgpu_err(g, "requested timeslice value is clamped\n");
+		nvgpu_err(g, "requested timeslice value is clamped");
 		timeout = RL_MAX_TIMESLICE_TIMEOUT;
 		scale = RL_MAX_TIMESLICE_SCALE;
 	}
@@ -76,7 +76,7 @@ void gv11b_runlist_get_tsg_entry(struct tsg_gk20a *tsg,
 	runlist[2] = ram_rl_entry_tsg_tsgid_f(tsg->tsgid);
 	runlist[3] = 0;
 
-	nvgpu_log_info(g, "gv11b tsg runlist [0] %x [1]  %x [2] %x [3] %x\n",
+	nvgpu_log_info(g, "gv11b tsg runlist [0] %x [1]  %x [2] %x [3] %x",
 		runlist[0], runlist[1], runlist[2], runlist[3]);
 
 }
@@ -116,7 +116,7 @@ void gv11b_runlist_get_ch_entry(struct channel_gk20a *ch, u32 *runlist)
 				ram_rl_entry_chid_f(ch->chid);
 	runlist[3] = ram_rl_entry_chan_inst_ptr_hi_f(addr_hi);
 
-	nvgpu_log_info(g, "gv11b channel runlist [0] %x [1]  %x [2] %x [3] %x\n",
+	nvgpu_log_info(g, "gv11b channel runlist [0] %x [1]  %x [2] %x [3] %x",
 			runlist[0], runlist[1], runlist[2], runlist[3]);
 }
 

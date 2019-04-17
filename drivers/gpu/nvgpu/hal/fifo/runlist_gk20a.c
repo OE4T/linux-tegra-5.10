@@ -118,18 +118,6 @@ int gk20a_fifo_reschedule_preempt_next(struct channel_gk20a *ch,
 	return ret;
 }
 
-int gk20a_runlist_set_interleave(struct gk20a *g,
-				u32 id,
-				u32 runlist_id,
-				u32 new_level)
-{
-	nvgpu_log_fn(g, " ");
-
-	g->fifo.tsg[id].interleave_level = new_level;
-
-	return 0;
-}
-
 u32 gk20a_runlist_count_max(void)
 {
 	return fifo_eng_runlist_base__size_1_v();
@@ -160,7 +148,7 @@ void gk20a_runlist_get_tsg_entry(struct tsg_gk20a *tsg,
 	}
 
 	if (scale > RL_MAX_TIMESLICE_SCALE) {
-		nvgpu_err(g, "requested timeslice value is clamped\n");
+		nvgpu_err(g, "requested timeslice value is clamped");
 		timeout = RL_MAX_TIMESLICE_TIMEOUT;
 		scale = RL_MAX_TIMESLICE_SCALE;
 	}

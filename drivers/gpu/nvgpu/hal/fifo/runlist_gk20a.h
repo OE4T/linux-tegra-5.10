@@ -31,10 +31,6 @@ struct gk20a;
 int gk20a_runlist_reschedule(struct channel_gk20a *ch, bool preempt_next);
 int gk20a_fifo_reschedule_preempt_next(struct channel_gk20a *ch,
 		bool wait_preempt);
-int gk20a_runlist_set_interleave(struct gk20a *g,
-		u32 id,
-		u32 runlist_id,
-		u32 new_level);
 u32 gk20a_runlist_count_max(void);
 u32 gk20a_runlist_entry_size(struct gk20a *g);
 u32 gk20a_runlist_length_max(struct gk20a *g);

@@ -129,6 +129,7 @@ u32 nvgpu_tsg_get_timeslice(struct tsg_gk20a *tsg);
 u32 nvgpu_tsg_default_timeslice_us(struct gk20a *g);
 void nvgpu_tsg_enable_sched(struct gk20a *g, struct tsg_gk20a *tsg);
 void nvgpu_tsg_disable_sched(struct gk20a *g, struct tsg_gk20a *tsg);
+int nvgpu_tsg_set_interleave(struct tsg_gk20a *tsg, u32 level);
 int gk20a_tsg_set_priority(struct gk20a *g, struct tsg_gk20a *tsg,
 				u32 priority);
 int gk20a_tsg_alloc_sm_error_states_mem(struct gk20a *g,

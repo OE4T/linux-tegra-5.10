@@ -276,7 +276,7 @@ static int gk20a_sched_dev_ioctl_tsg_set_runlist_interleave(
 	if (err)
 		goto done;
 
-	err = gk20a_tsg_set_runlist_interleave(tsg, arg->runlist_interleave);
+	err = nvgpu_tsg_set_interleave(tsg, arg->runlist_interleave);
 
 	gk20a_idle(g);
 

@@ -518,7 +518,7 @@ static int gk20a_tsg_ioctl_set_runlist_interleave(struct gk20a *g,
 	}
 
 	level = nvgpu_get_common_runlist_level(level);
-	err = gk20a_tsg_set_runlist_interleave(tsg, level);
+	err = nvgpu_tsg_set_interleave(tsg, level);
 
 	gk20a_idle(g);
 done:

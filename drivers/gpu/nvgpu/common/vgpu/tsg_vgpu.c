@@ -178,3 +178,21 @@ int vgpu_set_sm_exception_type_mask(struct channel_gk20a *ch,
 	return err;
 }
 
+int vgpu_tsg_set_interleave(struct tsg_gk20a *tsg, u32 new_level)
+{
+	struct tegra_vgpu_cmd_msg msg = {0};
+	struct tegra_vgpu_tsg_runlist_interleave_params *p =
+			&msg.params.tsg_interleave;
+	int err;
+	struct gk20a *g = tsg->g;
+
+	nvgpu_log_fn(g, " ");
+
+	msg.cmd = TEGRA_VGPU_CMD_TSG_SET_RUNLIST_INTERLEAVE;
+	msg.handle = vgpu_get_handle(g);
+	p->tsg_id = tsg->tsgid;
+	p->level = new_level;
+	err = vgpu_comm_sendrecv(&msg, sizeof(msg), sizeof(msg));
+	WARN_ON(err || msg.ret);
+	return err ? err : msg.ret;
+}

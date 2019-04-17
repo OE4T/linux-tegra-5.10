@@ -507,32 +507,34 @@ bool nvgpu_tsg_check_ctxsw_timeout(struct tsg_gk20a *tsg,
 	return recover;
 }
 
-int gk20a_tsg_set_runlist_interleave(struct tsg_gk20a *tsg, u32 level)
+int nvgpu_tsg_set_interleave(struct tsg_gk20a *tsg, u32 level)
 {
 	struct gk20a *g = tsg->g;
 	int ret;
 
-	nvgpu_log(g, gpu_dbg_sched, "tsgid=%u interleave=%u", tsg->tsgid, level);
+	nvgpu_log(g, gpu_dbg_sched,
+			"tsgid=%u interleave=%u", tsg->tsgid, level);
 
 	nvgpu_speculation_barrier();
-	switch (level) {
-	case NVGPU_FIFO_RUNLIST_INTERLEAVE_LEVEL_LOW:
-	case NVGPU_FIFO_RUNLIST_INTERLEAVE_LEVEL_MEDIUM:
-	case NVGPU_FIFO_RUNLIST_INTERLEAVE_LEVEL_HIGH:
-		ret = g->ops.runlist.set_interleave(g, tsg->tsgid,
-							0, level);
-		if (ret == 0) {
-			tsg->interleave_level = level;
-			ret = g->ops.runlist.reload(g, tsg->runlist_id,
-					true, true);
-		}
-		break;
-	default:
-		ret = -EINVAL;
-		break;
+
+	if ((level != NVGPU_FIFO_RUNLIST_INTERLEAVE_LEVEL_LOW) &&
+	    (level != NVGPU_FIFO_RUNLIST_INTERLEAVE_LEVEL_MEDIUM) &&
+	    (level != NVGPU_FIFO_RUNLIST_INTERLEAVE_LEVEL_HIGH)) {
+		return -EINVAL;
 	}
 
-	return ret;
+	if (g->ops.tsg.set_interleave != NULL) {
+		ret = g->ops.tsg.set_interleave(tsg, level);
+		if (ret != 0) {
+			nvgpu_err(g,
+				"set interleave failed tsgid=%u", tsg->tsgid);
+			return ret;
+		}
+	}
+
+	tsg->interleave_level = level;
+
+	return g->ops.runlist.reload(g, tsg->runlist_id, true, true);
 }
 
 int nvgpu_tsg_set_timeslice(struct tsg_gk20a *tsg, u32 timeslice_us)

@@ -199,27 +199,6 @@ int vgpu_runlist_reload(struct gk20a *g, u32 runlist_id,
 	return vgpu_runlist_update(g, runlist_id, NULL, add, wait_for_finish);
 }
 
-int vgpu_runlist_set_interleave(struct gk20a *g,
-					u32 id,
-					u32 runlist_id,
-					u32 new_level)
-{
-	struct tegra_vgpu_cmd_msg msg = {0};
-	struct tegra_vgpu_tsg_runlist_interleave_params *p =
-			&msg.params.tsg_interleave;
-	int err;
-
-	nvgpu_log_fn(g, " ");
-
-	msg.cmd = TEGRA_VGPU_CMD_TSG_SET_RUNLIST_INTERLEAVE;
-	msg.handle = vgpu_get_handle(g);
-	p->tsg_id = id;
-	p->level = new_level;
-	err = vgpu_comm_sendrecv(&msg, sizeof(msg), sizeof(msg));
-	WARN_ON(err || msg.ret);
-	return err ? err : msg.ret;
-}
-
 u32 vgpu_runlist_length_max(struct gk20a *g)
 {
 	struct vgpu_priv_data *priv = vgpu_get_priv_data(g);

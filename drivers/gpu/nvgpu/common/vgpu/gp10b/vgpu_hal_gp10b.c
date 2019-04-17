@@ -508,7 +508,6 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 		.reschedule = NULL,
 		.update_for_channel = vgpu_runlist_update_for_channel,
 		.reload = vgpu_runlist_reload,
-		.set_interleave = vgpu_runlist_set_interleave,
 		.count_max = gk20a_runlist_count_max,
 		.entry_size = vgpu_runlist_entry_size,
 		.length_max = vgpu_runlist_length_max,
@@ -562,6 +561,7 @@ static const struct gpu_ops vgpu_gp10b_ops = {
 		.post_event_id = nvgpu_tsg_post_event_id,
 		.set_timeslice = vgpu_tsg_set_timeslice,
 		.default_timeslice_us = vgpu_tsg_default_timeslice_us,
+		.set_interleave = vgpu_tsg_set_interleave,
 	},
 	.netlist = {
 		.get_netlist_name = gp10b_netlist_get_name,
