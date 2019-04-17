@@ -89,6 +89,8 @@ void osi_get_hw_features(void *base, struct osi_hw_features *hw_feat)
 		((mac_hfr1 >> 6U) & EQOS_MAC_HFR1_TXFIFOSIZE_MASK);
 	hw_feat->adv_ts_hword =
 		((mac_hfr1 >> 13U) & EQOS_MAC_HFR1_ADVTHWORD_MASK);
+	hw_feat->addr_64 =
+		((mac_hfr1 >> 14U) & EQOS_MAC_HFR1_ADDR64_MASK);
 	hw_feat->dcb_en =
 		((mac_hfr1 >> 16U) & EQOS_MAC_HFR1_DCBEN_MASK);
 	hw_feat->sph_en =
