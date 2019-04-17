@@ -57,6 +57,7 @@ struct boardobjgrp;
 struct boardobjgrp_pmu_cmd;
 struct boardobjgrpmask;
 struct nvgpu_gr_falcon;
+struct nvgpu_gr_falcon_query_sizes;
 struct nvgpu_sgt;
 struct nvgpu_sgl;
 struct nvgpu_device_info;
@@ -586,7 +587,8 @@ struct gpu_ops {
 			u32 (*get_ctx_ptr)(u32 ctx);
 			u32 (*get_fecs_current_ctx_data)(struct gk20a *g,
 					struct nvgpu_mem *inst_block);
-			int (*init_ctx_state)(struct gk20a *g);
+			int (*init_ctx_state)(struct gk20a *g,
+				struct nvgpu_gr_falcon_query_sizes *sizes);
 			void (*fecs_host_int_enable)(struct gk20a *g);
 			u32 (*read_fecs_ctxsw_status0)(struct gk20a *g);
 			u32 (*read_fecs_ctxsw_status1)(struct gk20a *g);

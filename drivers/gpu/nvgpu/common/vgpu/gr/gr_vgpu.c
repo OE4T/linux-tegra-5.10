@@ -37,6 +37,7 @@
 #include <nvgpu/gr/global_ctx.h>
 #include <nvgpu/gr/ctx.h>
 #include <nvgpu/gr/config.h>
+#include <nvgpu/gr/gr_falcon.h>
 #include <nvgpu/gr/zbc.h>
 #include <nvgpu/gr/zcull.h>
 #include <nvgpu/gr/fecs_trace.h>
@@ -55,6 +56,7 @@
 #include "common/vgpu/ivc/comm_vgpu.h"
 
 #include "common/gr/gr_config_priv.h"
+#include "common/gr/gr_falcon_priv.h"
 #include "common/gr/ctx_priv.h"
 #include "common/gr/zcull_priv.h"
 #include "common/gr/zbc_priv.h"
@@ -135,27 +137,28 @@ static int vgpu_gr_commit_global_ctx_buffers(struct gk20a *g,
 	return (err || msg.ret) ? -1 : 0;
 }
 
-int vgpu_gr_init_ctx_state(struct gk20a *g)
+int vgpu_gr_init_ctx_state(struct gk20a *g,
+		struct nvgpu_gr_falcon_query_sizes *sizes)
 {
 	struct vgpu_priv_data *priv = vgpu_get_priv_data(g);
 
 	nvgpu_log_fn(g, " ");
 
-	g->gr->ctx_vars.golden_image_size = priv->constants.golden_ctx_size;
-	g->gr->ctx_vars.pm_ctxsw_image_size = priv->constants.hwpm_ctx_size;
-	if (!g->gr->ctx_vars.golden_image_size ||
-		!g->gr->ctx_vars.pm_ctxsw_image_size) {
+	sizes->golden_image_size = priv->constants.golden_ctx_size;
+	sizes->pm_ctxsw_image_size = priv->constants.hwpm_ctx_size;
+	if (!sizes->golden_image_size ||
+		!sizes->pm_ctxsw_image_size) {
 		return -ENXIO;
 	}
 
-	g->gr->ctx_vars.zcull_image_size = priv->constants.zcull_ctx_size;
-	if (g->gr->ctx_vars.zcull_image_size == 0U) {
+	sizes->zcull_image_size = priv->constants.zcull_ctx_size;
+	if (sizes->zcull_image_size == 0U) {
 		return -ENXIO;
 	}
 
-	g->gr->ctx_vars.preempt_image_size =
+	sizes->preempt_image_size =
 			priv->constants.preempt_ctx_size;
-	if (!g->gr->ctx_vars.preempt_image_size) {
+	if (!sizes->preempt_image_size) {
 		return -EINVAL;
 	}
 
@@ -714,7 +717,15 @@ static int vgpu_gr_init_gr_setup_sw(struct gk20a *g)
 	nvgpu_mutex_init(&g->gr->cs_lock);
 #endif
 
-	err = g->ops.gr.falcon.init_ctx_state(g);
+	if (gr->falcon == NULL) {
+		gr->falcon = nvgpu_gr_falcon_init_support(g);
+		if (gr->falcon == NULL) {
+			err = -ENOMEM;
+			goto clean_up;
+		}
+	}
+
+	err = g->ops.gr.falcon.init_ctx_state(g, &gr->falcon->sizes);
 	if (err) {
 		goto clean_up;
 	}
@@ -725,19 +736,20 @@ static int vgpu_gr_init_gr_setup_sw(struct gk20a *g)
 	}
 
 	err = nvgpu_gr_obj_ctx_init(g, &gr->golden_image,
-			g->gr->ctx_vars.golden_image_size);
+			nvgpu_gr_falcon_get_golden_image_size(g->gr->falcon));
 	if (err != 0) {
 		goto clean_up;
 	}
 
 	err = nvgpu_gr_hwpm_map_init(g, &g->gr->hwpm_map,
-		g->gr->ctx_vars.pm_ctxsw_image_size);
+			nvgpu_gr_falcon_get_pm_ctxsw_image_size(g->gr->falcon));
 	if (err != 0) {
 		nvgpu_err(g, "hwpm_map init failed");
 		goto clean_up;
 	}
 
-	err = vgpu_gr_init_gr_zcull(g, gr, gr->ctx_vars.zcull_image_size);
+	err = vgpu_gr_init_gr_zcull(g, gr,
+			nvgpu_gr_falcon_get_zcull_image_size(g->gr->falcon));
 	if (err) {
 		goto clean_up;
 	}
@@ -751,6 +763,9 @@ static int vgpu_gr_init_gr_setup_sw(struct gk20a *g)
 	if (gr->gr_ctx_desc == NULL) {
 		goto clean_up;
 	}
+
+	nvgpu_gr_ctx_set_size(gr->gr_ctx_desc, NVGPU_GR_CTX_PREEMPT_CTXSW,
+			nvgpu_gr_falcon_get_preempt_image_size(g->gr->falcon));
 
 	nvgpu_spinlock_init(&gr->ch_tlb_lock);
 
@@ -1326,15 +1341,12 @@ static int vgpu_gr_set_ctxsw_preemption_mode(struct gk20a *g,
 		struct nvgpu_mem *desc;
 
 		nvgpu_log_info(g, "gfxp context preempt size=%d",
-			g->gr->ctx_vars.preempt_image_size);
+			g->gr->falcon->sizes.preempt_image_size);
 		nvgpu_log_info(g, "gfxp context spill size=%d", spill_size);
 		nvgpu_log_info(g, "gfxp context pagepool size=%d", pagepool_size);
 		nvgpu_log_info(g, "gfxp context attrib cb size=%d",
 			attrib_cb_size);
 
-		nvgpu_gr_ctx_set_size(g->gr->gr_ctx_desc,
-			NVGPU_GR_CTX_PREEMPT_CTXSW,
-			g->gr->ctx_vars.preempt_image_size);
 		nvgpu_gr_ctx_set_size(g->gr->gr_ctx_desc,
 			NVGPU_GR_CTX_SPILL_CTXSW, spill_size);
 		nvgpu_gr_ctx_set_size(g->gr->gr_ctx_desc,

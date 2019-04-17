@@ -374,7 +374,7 @@ static int nvgpu_gr_init_ctx_state(struct gk20a *g)
 		return 0;
 	}
 
-	return nvgpu_gr_falcon_init_ctx_state(g);
+	return nvgpu_gr_falcon_init_ctx_state(g, g->gr->falcon);
 }
 
 static int gr_init_setup_sw(struct gk20a *g)
@@ -407,7 +407,7 @@ static int gr_init_setup_sw(struct gk20a *g)
 #endif
 
 	err = nvgpu_gr_obj_ctx_init(g, &gr->golden_image,
-			g->gr->ctx_vars.golden_image_size);
+			nvgpu_gr_falcon_get_golden_image_size(g->gr->falcon));
 	if (err != 0) {
 		goto clean_up;
 	}
@@ -418,7 +418,7 @@ static int gr_init_setup_sw(struct gk20a *g)
 	}
 
 	err = nvgpu_gr_hwpm_map_init(g, &g->gr->hwpm_map,
-		g->gr->ctx_vars.pm_ctxsw_image_size);
+			nvgpu_gr_falcon_get_pm_ctxsw_image_size(g->gr->falcon));
 	if (err != 0) {
 		nvgpu_err(g, "hwpm_map init failed");
 		goto clean_up;
@@ -430,7 +430,8 @@ static int gr_init_setup_sw(struct gk20a *g)
 	}
 
 	err = nvgpu_gr_zcull_init(g, &gr->zcull,
-			gr->ctx_vars.zcull_image_size, gr->config);
+			nvgpu_gr_falcon_get_zcull_image_size(g->gr->falcon),
+			g->gr->config);
 	if (err != 0) {
 		goto clean_up;
 	}
@@ -439,6 +440,9 @@ static int gr_init_setup_sw(struct gk20a *g)
 	if (gr->gr_ctx_desc == NULL) {
 		goto clean_up;
 	}
+
+	nvgpu_gr_ctx_set_size(g->gr->gr_ctx_desc, NVGPU_GR_CTX_PREEMPT_CTXSW,
+			nvgpu_gr_falcon_get_preempt_image_size(g->gr->falcon));
 
 	gr->global_ctx_buffer = nvgpu_gr_global_ctx_desc_alloc(g);
 	if (gr->global_ctx_buffer == NULL) {

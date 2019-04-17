@@ -30,29 +30,27 @@
 
 #include <nvgpu/hw/gp10b/hw_gr_gp10b.h>
 
-int gp10b_gr_falcon_init_ctx_state(struct gk20a *g)
+int gp10b_gr_falcon_init_ctx_state(struct gk20a *g,
+		struct nvgpu_gr_falcon_query_sizes *sizes)
 {
 	int err;
 
 	nvgpu_log_fn(g, " ");
 
-	err = gm20b_gr_falcon_init_ctx_state(g);
+	err = gm20b_gr_falcon_init_ctx_state(g, sizes);
 	if (err != 0) {
 		return err;
 	}
 
-	if (g->gr->ctx_vars.preempt_image_size == 0U) {
-		err = g->ops.gr.falcon.ctrl_ctxsw(g,
-			NVGPU_GR_FALCON_METHOD_PREEMPT_IMAGE_SIZE, 0U,
-			&g->gr->ctx_vars.preempt_image_size);
-		if (err != 0) {
-			nvgpu_err(g, "query preempt image size failed");
-			return err;
-		}
+	err = g->ops.gr.falcon.ctrl_ctxsw(g,
+		NVGPU_GR_FALCON_METHOD_PREEMPT_IMAGE_SIZE, 0U,
+		&sizes->preempt_image_size);
+	if (err != 0) {
+		nvgpu_err(g, "query preempt image size failed");
+		return err;
 	}
 
-	nvgpu_log_info(g, "preempt image size: %u",
-		g->gr->ctx_vars.preempt_image_size);
+	nvgpu_log_info(g, "preempt image size: %u", sizes->preempt_image_size);
 
 	nvgpu_log_fn(g, "done");
 

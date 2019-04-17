@@ -151,15 +151,16 @@ out:
 	return err;
 }
 
-int nvgpu_gr_falcon_init_ctx_state(struct gk20a *g)
+int nvgpu_gr_falcon_init_ctx_state(struct gk20a *g,
+		struct nvgpu_gr_falcon *falcon)
 {
-
+	struct nvgpu_gr_falcon_query_sizes *sizes = &falcon->sizes;
 	int err = 0;
 
 	nvgpu_log_fn(g, " ");
 
 	/* fecs init ramchain */
-	err = g->ops.gr.falcon.init_ctx_state(g);
+	err = g->ops.gr.falcon.init_ctx_state(g, sizes);
 	if (err != 0) {
 		goto out;
 	}
@@ -172,6 +173,26 @@ out:
 	}
 
 	return err;
+}
+
+u32 nvgpu_gr_falcon_get_golden_image_size(struct nvgpu_gr_falcon *falcon)
+{
+	return falcon->sizes.golden_image_size;
+}
+
+u32 nvgpu_gr_falcon_get_pm_ctxsw_image_size(struct nvgpu_gr_falcon *falcon)
+{
+	return falcon->sizes.pm_ctxsw_image_size;
+}
+
+u32 nvgpu_gr_falcon_get_preempt_image_size(struct nvgpu_gr_falcon *falcon)
+{
+	return falcon->sizes.preempt_image_size;
+}
+
+u32 nvgpu_gr_falcon_get_zcull_image_size(struct nvgpu_gr_falcon *falcon)
+{
+	return falcon->sizes.zcull_image_size;
 }
 
 static int nvgpu_gr_falcon_init_ctxsw_ucode_vaspace(struct gk20a *g,

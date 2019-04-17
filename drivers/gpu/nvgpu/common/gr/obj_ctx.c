@@ -150,9 +150,6 @@ int nvgpu_gr_obj_ctx_set_ctxsw_preemption_mode(struct gk20a *g,
 				attrib_cb_size);
 
 		nvgpu_gr_ctx_set_size(gr_ctx_desc,
-			NVGPU_GR_CTX_PREEMPT_CTXSW,
-			g->gr->ctx_vars.preempt_image_size);
-		nvgpu_gr_ctx_set_size(gr_ctx_desc,
 			NVGPU_GR_CTX_SPILL_CTXSW, spill_size);
 		nvgpu_gr_ctx_set_size(gr_ctx_desc,
 			NVGPU_GR_CTX_BETACB_CTXSW, attrib_cb_size);

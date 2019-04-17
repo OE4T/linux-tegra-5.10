@@ -39,9 +39,11 @@ struct nvgpu_gr_ctx;
 struct nvgpu_gr_zcull;
 struct tegra_vgpu_gr_intr_info;
 struct tegra_vgpu_sm_esr_info;
+struct nvgpu_gr_falcon_query_sizes;
 
 void vgpu_gr_detect_sm_arch(struct gk20a *g);
-int vgpu_gr_init_ctx_state(struct gk20a *g);
+int vgpu_gr_init_ctx_state(struct gk20a *g,
+		struct nvgpu_gr_falcon_query_sizes *sizes);
 int vgpu_gr_alloc_global_ctx_buffers(struct gk20a *g);
 void vgpu_gr_free_channel_ctx(struct channel_gk20a *c, bool is_tsg);
 void vgpu_gr_free_tsg_ctx(struct tsg_gk20a *tsg);

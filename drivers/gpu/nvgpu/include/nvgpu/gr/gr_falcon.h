@@ -87,7 +87,8 @@ void nvgpu_gr_falcon_remove_support(struct gk20a *g,
 				struct nvgpu_gr_falcon *falcon);
 int nvgpu_gr_falcon_bind_fecs_elpg(struct gk20a *g);
 int nvgpu_gr_falcon_init_ctxsw(struct gk20a *g, struct nvgpu_gr_falcon *falcon);
-int nvgpu_gr_falcon_init_ctx_state(struct gk20a *g);
+int nvgpu_gr_falcon_init_ctx_state(struct gk20a *g,
+		struct nvgpu_gr_falcon *falcon);
 int nvgpu_gr_falcon_init_ctxsw_ucode(struct gk20a *g,
 					struct nvgpu_gr_falcon *falcon);
 int nvgpu_gr_falcon_load_ctxsw_ucode(struct gk20a *g,
@@ -103,5 +104,10 @@ struct nvgpu_ctxsw_ucode_segments *nvgpu_gr_falcon_get_gpccs_ucode_segments(
 					struct nvgpu_gr_falcon *falcon);
 void *nvgpu_gr_falcon_get_surface_desc_cpu_va(
 					struct nvgpu_gr_falcon *falcon);
+
+u32 nvgpu_gr_falcon_get_golden_image_size(struct nvgpu_gr_falcon *falcon);
+u32 nvgpu_gr_falcon_get_pm_ctxsw_image_size(struct nvgpu_gr_falcon *falcon);
+u32 nvgpu_gr_falcon_get_preempt_image_size(struct nvgpu_gr_falcon *falcon);
+u32 nvgpu_gr_falcon_get_zcull_image_size(struct nvgpu_gr_falcon *falcon);
 
 #endif /* NVGPU_GR_FALCON_H */

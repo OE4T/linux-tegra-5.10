@@ -43,15 +43,6 @@ struct gr_channel_map_tlb_entry {
 
 struct nvgpu_gr {
 	struct gk20a *g;
-	struct {
-		u32 golden_image_size;
-
-		u32 pm_ctxsw_image_size;
-
-		u32 preempt_image_size;
-
-		u32 zcull_image_size;
-	} ctx_vars;
 
 	struct nvgpu_cond init_wq;
 	bool initialized;

@@ -28,6 +28,7 @@
 struct gk20a;
 struct nvgpu_fecs_method_op;
 struct nvgpu_fecs_host_intr_status;
+struct nvgpu_gr_falcon_query_sizes;
 
 u32 gm20b_gr_falcon_read_fecs_ctxsw_mailbox(struct gk20a *g, u32 reg_index);
 void gm20b_gr_falcon_fecs_host_clear_intr(struct gk20a *g, u32 fecs_intr);
@@ -72,7 +73,8 @@ u32 gm20b_gr_falcon_get_current_ctx(struct gk20a *g);
 u32 gm20b_gr_falcon_get_ctx_ptr(u32 ctx);
 u32 gm20b_gr_falcon_get_fecs_current_ctx_data(struct gk20a *g,
 						struct nvgpu_mem *inst_block);
-int gm20b_gr_falcon_init_ctx_state(struct gk20a *g);
+int gm20b_gr_falcon_init_ctx_state(struct gk20a *g,
+		struct nvgpu_gr_falcon_query_sizes *sizes);
 void gm20b_gr_falcon_fecs_host_int_enable(struct gk20a *g);
 u32 gm20b_gr_falcon_read_fecs_ctxsw_status0(struct gk20a *g);
 u32 gm20b_gr_falcon_read_fecs_ctxsw_status1(struct gk20a *g);

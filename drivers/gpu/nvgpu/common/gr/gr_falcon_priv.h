@@ -65,10 +65,19 @@ struct nvgpu_ctxsw_ucode_info {
 	struct nvgpu_ctxsw_ucode_segments gpccs;
 };
 
+struct nvgpu_gr_falcon_query_sizes {
+	u32 golden_image_size;
+	u32 pm_ctxsw_image_size;
+	u32 preempt_image_size;
+	u32 zcull_image_size;
+};
+
 struct nvgpu_gr_falcon {
 	struct nvgpu_ctxsw_ucode_info ctxsw_ucode_info;
 	struct nvgpu_mutex fecs_mutex; /* protect fecs method */
 	bool skip_ucode_init;
+
+	struct nvgpu_gr_falcon_query_sizes sizes;
 };
 
 enum wait_ucode_status {
