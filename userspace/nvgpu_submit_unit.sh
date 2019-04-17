@@ -28,7 +28,7 @@
 
 this_script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" > /dev/null && pwd )"
 pushd $this_script_dir/nvgpu_unit
-./unit.sh
+./unit.sh $*
 rc=$?
 popd
 exit $rc
