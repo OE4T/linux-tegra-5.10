@@ -23,6 +23,10 @@
 #ifndef OSI_COMMON_H
 #define OSI_COMMON_H
 
+#define OSI_ADDRESS_32BIT 0
+#define OSI_ADDRESS_40BIT 1
+#define OSI_ADDRESS_48BIT 2
+
 #define EQOS_DMA_CHX_STATUS(x)		((0x0080U * (x)) + 0x1160U)
 #define EQOS_DMA_CHX_IER(x)		((0x0080U * (x)) + 0x1134U)
 
@@ -90,6 +94,7 @@
 #define EQOS_MAC_HFR1_RXFIFOSIZE_MASK	0x1fU
 #define EQOS_MAC_HFR1_TXFIFOSIZE_MASK	0x1fU
 #define EQOS_MAC_HFR1_ADVTHWORD_MASK	0x1U
+#define EQOS_MAC_HFR1_ADDR64_MASK	0x3U
 #define EQOS_MAC_HFR1_DCBEN_MASK	0x1U
 #define EQOS_MAC_HFR1_SPHEN_MASK	0x1U
 #define EQOS_MAC_HFR1_TSOEN_MASK	0x1U
@@ -192,6 +197,12 @@
  *			01010: 128 KB
  *			01011-11111: Reserved.
  *	@adv_ts_hword: It set to 1 when Advance timestamping High Word selected.
+ *	@addr_64: Address Width.
+ *		This field indicates the configured address width:
+ *			00: 32
+ *			01: 40
+ *			10: 48
+ *			11: Reserved
  *	@dcb_en: It sets to 1 when DCB Feature Enable.
  *	@sph_en: It sets to 1 when Split Header Feature Enable.
  *	@tso_en: It sets to 1 when TCP Segmentation Offload Enable.
@@ -259,6 +270,7 @@ struct osi_hw_features {
 	unsigned int rx_fifo_size;
 	unsigned int tx_fifo_size;
 	unsigned int adv_ts_hword;
+	unsigned int addr_64;
 	unsigned int dcb_en;
 	unsigned int sph_en;
 	unsigned int tso_en;
