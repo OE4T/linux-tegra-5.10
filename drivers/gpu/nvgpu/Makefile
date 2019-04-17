@@ -251,6 +251,7 @@ nvgpu-y += \
 	hal/fb/fb_gv100.o \
 	hal/fb/fb_tu104.o \
 	hal/fb/fb_mmu_fault_gv11b.o \
+	hal/fb/fb_mmu_fault_tu104.o \
 	hal/fb/intr/fb_intr_gv100.o \
 	hal/fb/intr/fb_intr_gv11b.o \
 	hal/fb/intr/fb_intr_tu104.o \

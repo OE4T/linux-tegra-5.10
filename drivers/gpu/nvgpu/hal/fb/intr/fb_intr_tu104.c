@@ -25,6 +25,7 @@
 #include <nvgpu/gk20a.h>
 
 #include "hal/fb/fb_tu104.h"
+#include "hal/fb/fb_mmu_fault_tu104.h"
 #include "hal/mc/mc_tu104.h"
 
 #include "fb_intr_ecc_gv11b.h"

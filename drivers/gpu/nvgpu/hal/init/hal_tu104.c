@@ -58,6 +58,7 @@
 #include "hal/fb/fb_gv100.h"
 #include "hal/fb/fb_tu104.h"
 #include "hal/fb/fb_mmu_fault_gv11b.h"
+#include "hal/fb/fb_mmu_fault_tu104.h"
 #include "hal/fb/intr/fb_intr_tu104.h"
 #include "hal/ptimer/ptimer_gk20a.h"
 #include "hal/regops/regops_tu104.h"
@@ -872,23 +873,23 @@ static const struct gpu_ops tu104_ops = {
 		.init_fbpa = tu104_fbpa_init,
 		.handle_fbpa_intr = tu104_fbpa_handle_intr,
 		.write_mmu_fault_buffer_lo_hi =
-				fb_tu104_write_mmu_fault_buffer_lo_hi,
+				tu104_fb_write_mmu_fault_buffer_lo_hi,
 		.write_mmu_fault_buffer_get =
-				fb_tu104_write_mmu_fault_buffer_get,
+				tu104_fb_write_mmu_fault_buffer_get,
 		.write_mmu_fault_buffer_size =
-				fb_tu104_write_mmu_fault_buffer_size,
-		.write_mmu_fault_status = fb_tu104_write_mmu_fault_status,
+				tu104_fb_write_mmu_fault_buffer_size,
+		.write_mmu_fault_status = tu104_fb_write_mmu_fault_status,
 		.read_mmu_fault_buffer_get =
-				fb_tu104_read_mmu_fault_buffer_get,
+				tu104_fb_read_mmu_fault_buffer_get,
 		.read_mmu_fault_buffer_put =
-				fb_tu104_read_mmu_fault_buffer_put,
+				tu104_fb_read_mmu_fault_buffer_put,
 		.read_mmu_fault_buffer_size =
-				fb_tu104_read_mmu_fault_buffer_size,
-		.read_mmu_fault_addr_lo_hi = fb_tu104_read_mmu_fault_addr_lo_hi,
-		.read_mmu_fault_inst_lo_hi = fb_tu104_read_mmu_fault_inst_lo_hi,
-		.read_mmu_fault_info = fb_tu104_read_mmu_fault_info,
-		.read_mmu_fault_status = fb_tu104_read_mmu_fault_status,
-		.mmu_invalidate_replay = fb_tu104_mmu_invalidate_replay,
+				tu104_fb_read_mmu_fault_buffer_size,
+		.read_mmu_fault_addr_lo_hi = tu104_fb_read_mmu_fault_addr_lo_hi,
+		.read_mmu_fault_inst_lo_hi = tu104_fb_read_mmu_fault_inst_lo_hi,
+		.read_mmu_fault_info = tu104_fb_read_mmu_fault_info,
+		.read_mmu_fault_status = tu104_fb_read_mmu_fault_status,
+		.mmu_invalidate_replay = tu104_fb_mmu_invalidate_replay,
 		.is_fault_buf_enabled = gv11b_fb_is_fault_buf_enabled,
 		.fault_buf_set_state_hw = gv11b_fb_fault_buf_set_state_hw,
 		.fault_buf_configure_hw = gv11b_fb_fault_buf_configure_hw,
