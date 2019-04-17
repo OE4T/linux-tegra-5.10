@@ -50,6 +50,7 @@
 #include "hal/fifo/ramin_gk20a.h"
 #include "hal/fifo/ramin_gm20b.h"
 #include "hal/fifo/ramin_gp10b.h"
+#include "hal/fb/fb_mmu_fault_gv11b.h"
 
 #include <nvgpu/hw/gv11b/hw_gmmu_gv11b.h>
 #include <nvgpu/hw/gv11b/hw_fb_gv11b.h>
@@ -141,13 +142,14 @@ static int init_mm(struct unit_module *m, struct gk20a *g)
 	g->ops.fb.intr.enable = gv11b_fb_intr_enable;
 	g->ops.fb.fault_buf_configure_hw = gv11b_fb_fault_buf_configure_hw;
 	g->ops.fb.read_mmu_fault_buffer_size =
-		fb_gv11b_read_mmu_fault_buffer_size;
+		gv11b_fb_read_mmu_fault_buffer_size;
 	g->ops.fb.write_mmu_fault_buffer_size =
-		fb_gv11b_write_mmu_fault_buffer_size;
-	g->ops.fb.read_mmu_fault_status = fb_gv11b_read_mmu_fault_status;
+		gv11b_fb_write_mmu_fault_buffer_size;
+	g->ops.fb.read_mmu_fault_status = gv11b_fb_read_mmu_fault_status;
 	g->ops.fb.write_mmu_fault_buffer_lo_hi =
-		fb_gv11b_write_mmu_fault_buffer_lo_hi;
-	g->ops.fb.intr.is_mmu_fault_pending = gv11b_fb_intr_is_mmu_fault_pending;
+		gv11b_fb_write_mmu_fault_buffer_lo_hi;
+	g->ops.fb.intr.is_mmu_fault_pending =
+		gv11b_fb_intr_is_mmu_fault_pending;
 	g->ops.fb.is_fault_buf_enabled = gv11b_fb_is_fault_buf_enabled;
 	g->ops.fb.fault_buf_set_state_hw = gv11b_fb_fault_buf_set_state_hw;
 	g->ops.ramin.set_big_page_size = gm20b_ramin_set_big_page_size;

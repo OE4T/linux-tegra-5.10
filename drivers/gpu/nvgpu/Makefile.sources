@@ -252,6 +252,7 @@ srcs += common/sim/sim.c \
 	tu104/mm_tu104.c \
 	hal/mm/cache/flush_gk20a.c \
 	hal/mm/cache/flush_gv11b.c \
+	hal/mm/gmmu/gmmu_mmu_fault_gv11b.c \
 	hal/mm/gmmu/gmmu_gk20a.c \
 	hal/mm/gmmu/gmmu_gm20b.c \
 	hal/mm/gmmu/gmmu_gp10b.c \
@@ -351,6 +352,7 @@ srcs += common/sim/sim.c \
 	hal/fb/fb_gv100.c \
 	hal/fb/fb_gv11b.c \
 	hal/fb/fb_tu104.c \
+	hal/fb/fb_mmu_fault_gv11b.c \
 	hal/fb/intr/fb_intr_gv100.c \
 	hal/fb/intr/fb_intr_gv11b.c \
 	hal/fb/intr/fb_intr_tu104.c \

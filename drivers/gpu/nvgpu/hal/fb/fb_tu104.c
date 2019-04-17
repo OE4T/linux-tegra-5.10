@@ -32,6 +32,8 @@
 #include <nvgpu/bug.h>
 
 #include "hal/fb/fb_gv11b.h"
+#include "hal/fb/fb_mmu_fault_gv11b.h"
+#include "hal/mm/gmmu/gmmu_mmu_fault_gv11b.h"
 #include "hal/fb/fb_gv100.h"
 #include "hal/mc/mc_tu104.h"
 
@@ -59,7 +61,7 @@ void tu104_fb_handle_mmu_fault(struct gk20a *g)
 			fb_mmu_int_vector_info_fault_vector_v(info_fault));
 
 		gv11b_fb_handle_dropped_mmu_fault(g, fault_status);
-		gv11b_fb_handle_other_fault_notify(g, fault_status);
+		gv11b_gmmu_handle_other_fault_notify(g, fault_status);
 	}
 
 	if (gv11b_fb_is_fault_buf_enabled(g,
@@ -69,7 +71,7 @@ void tu104_fb_handle_mmu_fault(struct gk20a *g)
 			intr_tu104_intr_clear_leaf_vector(g,
 				fb_mmu_int_vector_fault_notify_v(nonreplay_fault));
 
-			gv11b_fb_handle_mmu_nonreplay_replay_fault(g,
+			gv11b_gmmu_handle_mmu_nonreplay_replay_fault(g,
 					fault_status,
 					NVGPU_FB_MMU_FAULT_NONREPLAY_REG_INDEX);
 
@@ -97,7 +99,7 @@ void tu104_fb_handle_mmu_fault(struct gk20a *g)
 			intr_tu104_intr_clear_leaf_vector(g,
 				fb_mmu_int_vector_fault_notify_v(replay_fault));
 
-			gv11b_fb_handle_mmu_nonreplay_replay_fault(g,
+			gv11b_gmmu_handle_mmu_nonreplay_replay_fault(g,
 					fault_status,
 					NVGPU_FB_MMU_FAULT_REPLAY_REG_INDEX);
 		}

@@ -57,6 +57,7 @@
 #include "hal/fb/fb_gv11b.h"
 #include "hal/fb/fb_gv100.h"
 #include "hal/fb/fb_tu104.h"
+#include "hal/fb/fb_mmu_fault_gv11b.h"
 #include "hal/fb/intr/fb_intr_tu104.h"
 #include "hal/ptimer/ptimer_gk20a.h"
 #include "hal/regops/regops_tu104.h"

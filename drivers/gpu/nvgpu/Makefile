@@ -150,6 +150,7 @@ nvgpu-y += \
 	common/nvlink/nvlink_tu104.o \
 	hal/mm/cache/flush_gk20a.o \
 	hal/mm/cache/flush_gv11b.o \
+	hal/mm/gmmu/gmmu_mmu_fault_gv11b.o \
 	hal/mm/gmmu/gmmu_gk20a.o \
 	hal/mm/gmmu/gmmu_gm20b.o \
 	hal/mm/gmmu/gmmu_gp10b.o \
@@ -249,6 +250,7 @@ nvgpu-y += \
 	hal/fb/fb_gv11b.o \
 	hal/fb/fb_gv100.o \
 	hal/fb/fb_tu104.o \
+	hal/fb/fb_mmu_fault_gv11b.o \
 	hal/fb/intr/fb_intr_gv100.o \
 	hal/fb/intr/fb_intr_gv11b.o \
 	hal/fb/intr/fb_intr_tu104.o \

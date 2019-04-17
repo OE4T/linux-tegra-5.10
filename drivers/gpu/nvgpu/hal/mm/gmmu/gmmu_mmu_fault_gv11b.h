@@ -1,6 +1,4 @@
 /*
- * GV11B FB
- *
  * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
@@ -22,15 +20,18 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NVGPU_FB_GV11B_H
-#define NVGPU_FB_GV11B_H
+#ifndef NVGPU_MM_GMMU_MMU_FAULT_GV11B_H
+#define NVGPU_MM_GMMU_MMU_FAULT_GV11B_H
 
 struct gk20a;
-struct nvgpu_cbc;
+struct mmu_fault_info;
 
-void gv11b_fb_init_hw(struct gk20a *g);
-void gv11b_fb_init_fs_state(struct gk20a *g);
-void gv11b_fb_cbc_configure(struct gk20a *g, struct nvgpu_cbc *cbc);
-void gv11b_fb_reset(struct gk20a *g);
+void gv11b_gmmu_handle_mmu_nonreplay_replay_fault(struct gk20a *g,
+		 u32 fault_status, u32 index);
+void gv11b_gmmu_handle_mmu_fault_common(struct gk20a *g,
+		 struct mmu_fault_info *mmufault, u32 *invalidate_replay_val);
+void gv11b_gmmu_handle_other_fault_notify(struct gk20a *g, u32 fault_status);
 
-#endif /* NVGPU_FB_GV11B_H */
+void gv11b_gmmu_parse_mmu_fault_info(struct mmu_fault_info *mmufault);
+
+#endif /* NVGPU_MM_GMMU_MMU_FAULT_GV11B_H */

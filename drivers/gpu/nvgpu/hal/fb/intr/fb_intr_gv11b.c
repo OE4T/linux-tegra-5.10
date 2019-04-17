@@ -27,6 +27,7 @@
 #include <nvgpu/gk20a.h>
 
 #include "hal/fb/fb_gv11b.h"
+#include "hal/fb/fb_mmu_fault_gv11b.h"
 
 #include "fb_intr_gv11b.h"
 #include "fb_intr_ecc_gv11b.h"

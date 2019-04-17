@@ -54,6 +54,7 @@
 #include "hal/fb/fb_gp106.h"
 #include "hal/fb/fb_gv11b.h"
 #include "hal/fb/fb_gv100.h"
+#include "hal/fb/fb_mmu_fault_gv11b.h"
 #include "hal/fb/intr/fb_intr_gv100.h"
 #include "hal/fb/intr/fb_intr_gv11b.h"
 #include "hal/fuse/fuse_gm20b.h"
@@ -836,22 +837,22 @@ static const struct gpu_ops gv100_ops = {
 		.init_nvlink = gv100_fb_init_nvlink,
 		.enable_nvlink = gv100_fb_enable_nvlink,
 		.write_mmu_fault_buffer_lo_hi =
-				fb_gv11b_write_mmu_fault_buffer_lo_hi,
+				gv11b_fb_write_mmu_fault_buffer_lo_hi,
 		.write_mmu_fault_buffer_get =
 				fb_gv11b_write_mmu_fault_buffer_get,
 		.write_mmu_fault_buffer_size =
-				fb_gv11b_write_mmu_fault_buffer_size,
-		.write_mmu_fault_status = fb_gv11b_write_mmu_fault_status,
+				gv11b_fb_write_mmu_fault_buffer_size,
+		.write_mmu_fault_status = gv11b_fb_write_mmu_fault_status,
 		.read_mmu_fault_buffer_get =
-				fb_gv11b_read_mmu_fault_buffer_get,
+				gv11b_fb_read_mmu_fault_buffer_get,
 		.read_mmu_fault_buffer_put =
-				fb_gv11b_read_mmu_fault_buffer_put,
+				gv11b_fb_read_mmu_fault_buffer_put,
 		.read_mmu_fault_buffer_size =
-				fb_gv11b_read_mmu_fault_buffer_size,
-		.read_mmu_fault_addr_lo_hi = fb_gv11b_read_mmu_fault_addr_lo_hi,
-		.read_mmu_fault_inst_lo_hi = fb_gv11b_read_mmu_fault_inst_lo_hi,
-		.read_mmu_fault_info = fb_gv11b_read_mmu_fault_info,
-		.read_mmu_fault_status = fb_gv11b_read_mmu_fault_status,
+				gv11b_fb_read_mmu_fault_buffer_size,
+		.read_mmu_fault_addr_lo_hi = gv11b_fb_read_mmu_fault_addr_lo_hi,
+		.read_mmu_fault_inst_lo_hi = gv11b_fb_read_mmu_fault_inst_lo_hi,
+		.read_mmu_fault_info = gv11b_fb_read_mmu_fault_info,
+		.read_mmu_fault_status = gv11b_fb_read_mmu_fault_status,
 		.mmu_invalidate_replay = gv11b_fb_mmu_invalidate_replay,
 		.is_fault_buf_enabled = gv11b_fb_is_fault_buf_enabled,
 		.fault_buf_set_state_hw = gv11b_fb_fault_buf_set_state_hw,
