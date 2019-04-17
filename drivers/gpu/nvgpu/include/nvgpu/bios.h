@@ -564,11 +564,10 @@ struct vfield_entry {
 #define PERF_CLK_DOMAINS_IDX_MAX		(32U)
 #define PERF_CLK_DOMAINS_IDX_INVALID		PERF_CLK_DOMAINS_IDX_MAX
 
-#define VBIOS_PSTATE_TABLE_VERSION_5X		0x50U
 #define VBIOS_PSTATE_TABLE_VERSION_6X		0x60U
-#define VBIOS_PSTATE_HEADER_5X_SIZE_10		(10U)
+#define VBIOS_PSTATE_HEADER_6X_SIZE_10		(10U)
 
-struct vbios_pstate_header_5x {
+struct vbios_pstate_header_6x {
 	u8 version;
 	u8 header_size;
 	u8 base_entry_size;
@@ -578,36 +577,33 @@ struct vbios_pstate_header_5x {
 	u8 flags0;
 	u8 initial_pstate;
 	u8 cpi_support_level;
-u8 cpi_features;
+	u8 cpi_features;
 } __packed;
 
-#define VBIOS_PSTATE_CLOCK_ENTRY_5X_SIZE_6	6U
-
-#define VBIOS_PSTATE_BASE_ENTRY_5X_SIZE_2	0x2U
-#define VBIOS_PSTATE_BASE_ENTRY_5X_SIZE_3	0x3U
+#define VBIOS_PSTATE_CLOCK_ENTRY_6X_SIZE_6	6U
 #define VBIOS_PSTATE_BASE_ENTRY_6X_SIZE_5	0x5U
 
-struct vbios_pstate_entry_clock_5x {
+struct vbios_pstate_entry_clock_6x {
 	u16 param0;
 	u32 param1;
 } __packed;
 
-struct vbios_pstate_entry_5x {
+struct vbios_pstate_entry_6x {
 	u8 pstate_level;
 	u8 flags0;
 	u8 lpwr_entry_idx;
-	struct vbios_pstate_entry_clock_5x
+	struct vbios_pstate_entry_clock_6x
 		nvgpu_clockEntry[PERF_CLK_DOMAINS_IDX_MAX];
 } __packed;
 
-#define VBIOS_PSTATE_5X_CLOCK_PROG_PARAM0_NOM_FREQ_MHZ_SHIFT		      0U
-#define VBIOS_PSTATE_5X_CLOCK_PROG_PARAM0_NOM_FREQ_MHZ_MASK	     0x00003FFFU
+#define VBIOS_PSTATE_6X_CLOCK_PROG_PARAM0_NOM_FREQ_MHZ_SHIFT		      0U
+#define VBIOS_PSTATE_6X_CLOCK_PROG_PARAM0_NOM_FREQ_MHZ_MASK	     0x00003FFFU
 
-#define VBIOS_PSTATE_5X_CLOCK_PROG_PARAM1_MIN_FREQ_MHZ_SHIFT		      0U
-#define VBIOS_PSTATE_5X_CLOCK_PROG_PARAM1_MIN_FREQ_MHZ_MASK	     0x00003FFFU
+#define VBIOS_PSTATE_6X_CLOCK_PROG_PARAM1_MIN_FREQ_MHZ_SHIFT		      0U
+#define VBIOS_PSTATE_6X_CLOCK_PROG_PARAM1_MIN_FREQ_MHZ_MASK	     0x00003FFFU
 
-#define VBIOS_PSTATE_5X_CLOCK_PROG_PARAM1_MAX_FREQ_MHZ_SHIFT		     14U
-#define VBIOS_PSTATE_5X_CLOCK_PROG_PARAM1_MAX_FREQ_MHZ_MASK	     0x0FFFC000U
+#define VBIOS_PSTATE_6X_CLOCK_PROG_PARAM1_MAX_FREQ_MHZ_SHIFT		     14U
+#define VBIOS_PSTATE_6X_CLOCK_PROG_PARAM1_MAX_FREQ_MHZ_MASK	     0x0FFFC000U
 
 #define VBIOS_PERFLEVEL_SKIP_ENTRY					0xFFU
 

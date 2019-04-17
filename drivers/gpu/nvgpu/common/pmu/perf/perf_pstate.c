@@ -99,9 +99,9 @@ static int pstate_insert(struct gk20a *g, struct pstate *pstate, u8 index)
 	return err;
 }
 
-static int parse_pstate_entry_5x(struct gk20a *g,
-		struct vbios_pstate_header_5x *hdr,
-		struct vbios_pstate_entry_5x *entry,
+static int parse_pstate_entry_6x(struct gk20a *g,
+		struct vbios_pstate_header_6x *hdr,
+		struct vbios_pstate_entry_6x *entry,
 		struct pstate *pstate)
 {
 	u8 *p = (u8 *)entry;
@@ -119,7 +119,7 @@ static int parse_pstate_entry_5x(struct gk20a *g,
 
 	for (clkidx = 0; clkidx < hdr->clock_entry_count; clkidx++) {
 		struct clk_set_info *pclksetinfo;
-		struct vbios_pstate_entry_clock_5x *clk_entry;
+		struct vbios_pstate_entry_clock_6x *clk_entry;
 		struct nvgpu_clk_domain *clk_domain;
 
 		clk_domain = (struct nvgpu_clk_domain *)
@@ -127,18 +127,18 @@ static int parse_pstate_entry_5x(struct gk20a *g,
 			&g->clk_pmu->clk_domainobjs->super.super, clkidx);
 
 		pclksetinfo = &pstate->clklist.clksetinfo[clkidx];
-		clk_entry = (struct vbios_pstate_entry_clock_5x *)p;
+		clk_entry = (struct vbios_pstate_entry_clock_6x *)p;
 
 		pclksetinfo->clkwhich = clk_domain->domain;
 		pclksetinfo->nominal_mhz =
 			BIOS_GET_FIELD(u32, clk_entry->param0,
-				VBIOS_PSTATE_5X_CLOCK_PROG_PARAM0_NOM_FREQ_MHZ);
+				VBIOS_PSTATE_6X_CLOCK_PROG_PARAM0_NOM_FREQ_MHZ);
 		pclksetinfo->min_mhz =
 			BIOS_GET_FIELD(u16, clk_entry->param1,
-				VBIOS_PSTATE_5X_CLOCK_PROG_PARAM1_MIN_FREQ_MHZ);
+				VBIOS_PSTATE_6X_CLOCK_PROG_PARAM1_MIN_FREQ_MHZ);
 		pclksetinfo->max_mhz =
 			BIOS_GET_FIELD(u16, clk_entry->param1,
-				VBIOS_PSTATE_5X_CLOCK_PROG_PARAM1_MAX_FREQ_MHZ);
+				VBIOS_PSTATE_6X_CLOCK_PROG_PARAM1_MAX_FREQ_MHZ);
 
 		nvgpu_log_info(g,
 			"clk_domain=%u nominal_mhz=%u min_mhz=%u max_mhz=%u",
@@ -151,22 +151,19 @@ static int parse_pstate_entry_5x(struct gk20a *g,
 	return 0;
 }
 
-static int parse_pstate_table_5x(struct gk20a *g,
-		struct vbios_pstate_header_5x *hdr)
+static int parse_pstate_table_6x(struct gk20a *g,
+		struct vbios_pstate_header_6x *hdr)
 {
 	struct pstate _pstate, *pstate;
-	struct vbios_pstate_entry_5x *entry;
+	struct vbios_pstate_entry_6x *entry;
 	u32 entry_size;
 	u8 i;
 	u8 *p = (u8 *)hdr;
 	int err = 0;
 
-	if ((hdr->header_size != VBIOS_PSTATE_HEADER_5X_SIZE_10) ||
+	if ((hdr->header_size != VBIOS_PSTATE_HEADER_6X_SIZE_10) ||
 		(hdr->base_entry_count == 0U) ||
-		((hdr->base_entry_size != VBIOS_PSTATE_BASE_ENTRY_5X_SIZE_2) &&
-		 (hdr->base_entry_size != VBIOS_PSTATE_BASE_ENTRY_5X_SIZE_3) &&
-		 (hdr->base_entry_size != VBIOS_PSTATE_BASE_ENTRY_6X_SIZE_5)) ||
-		(hdr->clock_entry_size != VBIOS_PSTATE_CLOCK_ENTRY_5X_SIZE_6) ||
+		(hdr->clock_entry_size != VBIOS_PSTATE_CLOCK_ENTRY_6X_SIZE_6) ||
 		(hdr->clock_entry_count > CLK_SET_INFO_MAX_SIZE)) {
 		return -EINVAL;
 	}
@@ -178,13 +175,13 @@ static int parse_pstate_table_5x(struct gk20a *g,
 			U32(hdr->clock_entry_size);
 
 	for (i = 0; i < hdr->base_entry_count; i++, p += entry_size) {
-		entry = (struct vbios_pstate_entry_5x *)p;
+		entry = (struct vbios_pstate_entry_6x *)p;
 
 		if (entry->pstate_level == VBIOS_PERFLEVEL_SKIP_ENTRY) {
 			continue;
 		}
 
-		err = parse_pstate_entry_5x(g, hdr, entry, &_pstate);
+		err = parse_pstate_entry_6x(g, hdr, entry, &_pstate);
 		if (err != 0) {
 			goto done;
 		}
@@ -206,7 +203,7 @@ done:
 
 int nvgpu_pmu_perf_pstate_sw_setup(struct gk20a *g)
 {
-	struct vbios_pstate_header_5x *hdr = NULL;
+	struct vbios_pstate_header_6x *hdr = NULL;
 	int err = 0;
 
 	nvgpu_log_fn(g, " ");
@@ -226,7 +223,7 @@ int nvgpu_pmu_perf_pstate_sw_setup(struct gk20a *g)
 		goto done;
 	}
 
-	hdr = (struct vbios_pstate_header_5x *)
+	hdr = (struct vbios_pstate_header_6x *)
 			nvgpu_bios_get_perf_table_ptrs(g,
 			g->bios.perf_token, PERFORMANCE_TABLE);
 
@@ -236,15 +233,14 @@ int nvgpu_pmu_perf_pstate_sw_setup(struct gk20a *g)
 		goto done;
 	}
 
-	if (hdr->version != VBIOS_PSTATE_TABLE_VERSION_5X &&
-		hdr->version != VBIOS_PSTATE_TABLE_VERSION_6X) {
+	if (hdr->version != VBIOS_PSTATE_TABLE_VERSION_6X) {
 		nvgpu_err(g, "unknown/unsupported clocks table version=0x%02x",
 				hdr->version);
 		err = -EINVAL;
 		goto done;
 	}
 
-	err = parse_pstate_table_5x(g, hdr);
+	err = parse_pstate_table_6x(g, hdr);
 done:
 	if (err != 0) {
 		nvgpu_mutex_destroy(&g->perf_pmu->pstatesobjs.pstate_mutex);
