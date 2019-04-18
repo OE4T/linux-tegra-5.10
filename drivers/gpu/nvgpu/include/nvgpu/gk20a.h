@@ -802,9 +802,9 @@ struct gpu_ops {
 			u32 (*read_exception1)(struct gk20a *g);
 			void (*trapped_method_info)(struct gk20a *g,
 				    struct nvgpu_gr_isr_data *isr_data);
-			int (*handle_semaphore_pending)(struct gk20a *g,
+			void (*handle_semaphore_pending)(struct gk20a *g,
 				struct nvgpu_gr_isr_data *isr_data);
-			int (*handle_notify_pending)(struct gk20a *g,
+			void (*handle_notify_pending)(struct gk20a *g,
 				struct nvgpu_gr_isr_data *isr_data);
 			void (*handle_gcc_exception)(struct gk20a *g, u32 gpc,
 				u32 tpc, u32 gpc_exception,
@@ -832,6 +832,7 @@ struct gpu_ops {
 			void (*tpc_exception_sm_disable)(struct gk20a *g,
 							       u32 offset);
 			void (*tpc_exception_sm_enable)(struct gk20a *g);
+			int (*stall_isr)(struct gk20a *g);
 		} intr;
 
 		u32 (*get_ctxsw_checksum_mismatch_mailbox_val)(void);

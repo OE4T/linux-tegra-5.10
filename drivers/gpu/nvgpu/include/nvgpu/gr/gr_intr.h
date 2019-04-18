@@ -59,12 +59,15 @@ struct nvgpu_gr_isr_data {
 int nvgpu_gr_intr_handle_gpc_exception(struct gk20a *g, bool *post_event,
 	struct nvgpu_gr_config *gr_config, struct channel_gk20a *fault_ch,
 	u32 *hww_global_esr);
-int nvgpu_gr_intr_handle_notify_pending(struct gk20a *g,
+void nvgpu_gr_intr_handle_notify_pending(struct gk20a *g,
 					struct nvgpu_gr_isr_data *isr_data);
-int nvgpu_gr_intr_handle_semaphore_pending(struct gk20a *g,
+void nvgpu_gr_intr_handle_semaphore_pending(struct gk20a *g,
 					   struct nvgpu_gr_isr_data *isr_data);
 void nvgpu_gr_intr_report_exception(struct gk20a *g, u32 inst,
 				u32 err_type, u32 status);
 struct channel_gk20a *nvgpu_gr_intr_get_channel_from_ctx(struct gk20a *g,
 				u32 curr_ctx, u32 *curr_tsgid);
+void nvgpu_gr_intr_set_error_notifier(struct gk20a *g,
+		  struct nvgpu_gr_isr_data *isr_data, u32 error_notifier);
+int nvgpu_gr_intr_stall_isr(struct gk20a *g);
 #endif /* NVGPU_GR_INTR_H */

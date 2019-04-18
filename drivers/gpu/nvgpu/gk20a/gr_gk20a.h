@@ -147,8 +147,6 @@ struct nvgpu_warpstate {
 	u64 paused_warps[2];
 };
 
-int gk20a_gr_isr(struct gk20a *g);
-
 /* sm */
 bool gk20a_gr_sm_debugger_attached(struct gk20a *g);
 u32 gk20a_gr_get_sm_no_lock_down_hww_global_esr_mask(struct gk20a *g);

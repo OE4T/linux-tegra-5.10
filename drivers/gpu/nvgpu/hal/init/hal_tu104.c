@@ -761,6 +761,7 @@ static const struct gpu_ops tu104_ops = {
 				gm20ab_gr_intr_tpc_exception_sm_enable,
 			.tpc_exception_sm_disable =
 				gm20ab_gr_intr_tpc_exception_sm_disable,
+			.stall_isr = nvgpu_gr_intr_stall_isr,
 		},
 		.falcon = {
 			.read_fecs_ctxsw_mailbox =

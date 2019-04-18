@@ -111,7 +111,8 @@ void mc_gp10b_isr_stall(struct gk20a *g)
 		engine_enum = g->fifo.engine_info[act_eng_id].engine_enum;
 		/* GR Engine */
 		if (engine_enum == NVGPU_ENGINE_GR_GK20A) {
-			nvgpu_pg_elpg_protected_call(g, gk20a_gr_isr(g));
+			nvgpu_pg_elpg_protected_call(g,
+						g->ops.gr.intr.stall_isr(g));
 		}
 
 		/* CE Engine */
