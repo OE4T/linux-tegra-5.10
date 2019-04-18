@@ -48,7 +48,12 @@ int gm20b_bus_bar1_bind(struct gk20a *g, struct nvgpu_mem *bar1_inst)
 					 bus_bar1_block_target_vid_mem_f()) |
 		     bus_bar1_block_mode_virtual_f() |
 		     bus_bar1_block_ptr_f(ptr_v));
-	nvgpu_timeout_init(g, &timeout, 1000, NVGPU_TIMER_RETRY_TIMER);
+	err = nvgpu_timeout_init(g, &timeout, 1000, NVGPU_TIMER_RETRY_TIMER);
+	if (err != 0) {
+		nvgpu_err(g, "nvgpu_timeout_init failed err=%d", err);
+		return err;
+	}
+
 	do {
 		u32 val = gk20a_readl(g, bus_bind_status_r());
 		u32 pending = bus_bind_status_bar1_pending_v(val);

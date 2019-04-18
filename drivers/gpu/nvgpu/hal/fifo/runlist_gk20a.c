@@ -198,11 +198,16 @@ int gk20a_runlist_wait_pending(struct gk20a *g, u32 runlist_id)
 {
 	struct nvgpu_timeout timeout;
 	u32 delay = POLL_DELAY_MIN_US;
-	int ret = -ETIMEDOUT;
+	int ret = 0;
 
-	nvgpu_timeout_init(g, &timeout, nvgpu_get_poll_timeout(g),
+	ret = nvgpu_timeout_init(g, &timeout, nvgpu_get_poll_timeout(g),
 			   NVGPU_TIMER_CPU_TIMER);
+	if (ret != 0) {
+		nvgpu_err(g, "nvgpu_timeout_init failed err=%d", ret);
+		return ret;
+	}
 
+	ret = -ETIMEDOUT;
 	do {
 		if ((nvgpu_readl(g, fifo_eng_runlist_r(runlist_id)) &
 				fifo_eng_runlist_pending_true_f()) == 0U) {

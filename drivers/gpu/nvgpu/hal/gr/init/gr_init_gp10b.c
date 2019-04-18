@@ -223,9 +223,7 @@ int gp10b_gr_init_fs_state(struct gk20a *g)
 			g->gr->fecs_feature_override_ecc_val);
 	}
 
-	gm20b_gr_init_fs_state(g);
-
-	return 0;
+	return gm20b_gr_init_fs_state(g);
 }
 
 int gp10b_gr_init_preemption_state(struct gk20a *g)

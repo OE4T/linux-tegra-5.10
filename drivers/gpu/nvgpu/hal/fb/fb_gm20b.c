@@ -98,7 +98,12 @@ int gm20b_fb_tlb_invalidate(struct gk20a *g, struct nvgpu_mem *pdb)
 
 	trace_gk20a_mm_tlb_invalidate(g->name);
 
-	nvgpu_timeout_init(g, &timeout, 1000, NVGPU_TIMER_RETRY_TIMER);
+	err = nvgpu_timeout_init(g, &timeout, 1000, NVGPU_TIMER_RETRY_TIMER);
+	if (err != 0) {
+		nvgpu_err(g, "nvgpu_timeout_init(mmu fifo space) failed err=%d",
+			err);
+		goto out;
+	}
 
 	do {
 		data = gk20a_readl(g, fb_mmu_ctrl_r());
@@ -114,7 +119,12 @@ int gm20b_fb_tlb_invalidate(struct gk20a *g, struct nvgpu_mem *pdb)
 		goto out;
 	}
 
-	nvgpu_timeout_init(g, &timeout, 1000, NVGPU_TIMER_RETRY_TIMER);
+	err = nvgpu_timeout_init(g, &timeout, 1000, NVGPU_TIMER_RETRY_TIMER);
+	if (err != 0) {
+		nvgpu_err(g, "nvgpu_timeout_init(mmu invalidate) failed err=%d",
+			err);
+		goto out;
+	}
 
 	gk20a_writel(g, fb_mmu_invalidate_pdb_r(),
 		fb_mmu_invalidate_pdb_addr_f(addr_lo) |
@@ -249,8 +259,13 @@ static int gm20b_fb_vpr_info_fetch_wait(struct gk20a *g,
 					    unsigned int msec)
 {
 	struct nvgpu_timeout timeout;
+	int err = 0;
 
-	nvgpu_timeout_init(g, &timeout, msec, NVGPU_TIMER_CPU_TIMER);
+	err = nvgpu_timeout_init(g, &timeout, msec, NVGPU_TIMER_CPU_TIMER);
+	if (err != 0) {
+		nvgpu_err(g, "nvgpu_timeout_init failed err=%d", err);
+		return err;
+	}
 
 	do {
 		u32 val;

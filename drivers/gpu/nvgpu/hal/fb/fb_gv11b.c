@@ -345,6 +345,7 @@ void gv11b_fb_fault_buf_set_state_hw(struct gk20a *g,
 {
 	u32 fault_status;
 	u32 reg_val;
+	int err = 0;
 
 	nvgpu_log_fn(g, " ");
 
@@ -362,8 +363,11 @@ void gv11b_fb_fault_buf_set_state_hw(struct gk20a *g,
 		struct nvgpu_timeout timeout;
 		u32 delay = POLL_DELAY_MIN_US;
 
-		nvgpu_timeout_init(g, &timeout, nvgpu_get_poll_timeout(g),
+		err = nvgpu_timeout_init(g, &timeout, nvgpu_get_poll_timeout(g),
 			   NVGPU_TIMER_CPU_TIMER);
+		if (err != 0) {
+			nvgpu_err(g, "nvgpu_timeout_init failed err=%d", err);
+		}
 
 		reg_val &= (~(fb_mmu_fault_buffer_size_enable_m()));
 		g->ops.fb.write_mmu_fault_buffer_size(g, index, reg_val);
@@ -800,6 +804,7 @@ void gv11b_fb_handle_mmu_nonreplay_replay_fault(struct gk20a *g,
 	u32 invalidate_replay_val = 0;
 	u64 prev_fault_addr =  0ULL;
 	u64 next_fault_addr =  0ULL;
+	int err = 0;
 
 	if (gv11b_fb_is_fault_buffer_empty(g, index, &get_indx)) {
 		nvgpu_log(g, gpu_dbg_intr,
@@ -868,7 +873,12 @@ void gv11b_fb_handle_mmu_nonreplay_replay_fault(struct gk20a *g,
 	}
 	if (index == NVGPU_FB_MMU_FAULT_REPLAY_REG_INDEX &&
 	    invalidate_replay_val != 0U) {
-		gv11b_fb_replay_or_cancel_faults(g, invalidate_replay_val);
+		err = gv11b_fb_replay_or_cancel_faults(g,
+			invalidate_replay_val);
+		if (err != 0) {
+			nvgpu_err(g, "replay_or_cancel_faults failed err=%d",
+				err);
+		}
 	}
 }
 
@@ -1021,6 +1031,8 @@ void gv11b_fb_handle_nonreplay_fault_overflow(struct gk20a *g,
 static void gv11b_fb_handle_bar2_fault(struct gk20a *g,
 			struct mmu_fault_info *mmfault, u32 fault_status)
 {
+	int err = 0;
+
 	if ((fault_status &
 	     fb_mmu_fault_status_non_replayable_error_m()) != 0U) {
 		if (gv11b_fb_is_fault_buf_enabled(g,
@@ -1038,7 +1050,10 @@ static void gv11b_fb_handle_bar2_fault(struct gk20a *g,
 	}
 	gv11b_ce_mthd_buffer_fault_in_bar2_fault(g);
 
-	g->ops.bus.bar2_bind(g, &g->mm.bar2.inst_block);
+	err = g->ops.bus.bar2_bind(g, &g->mm.bar2.inst_block);
+	if (err != 0) {
+		nvgpu_err(g, "bar2_bind failed err=%d", err);
+	}
 
 	if (mmfault->refch != NULL) {
 		gk20a_channel_put(mmfault->refch);
@@ -1051,6 +1066,7 @@ void gv11b_fb_handle_other_fault_notify(struct gk20a *g,
 {
 	struct mmu_fault_info *mmfault;
 	u32 invalidate_replay_val = 0;
+	int err = 0;
 
 	mmfault = &g->mm.fault_info[NVGPU_MM_MMU_FAULT_TYPE_OTHER_AND_NONREPLAY];
 
@@ -1071,8 +1087,12 @@ void gv11b_fb_handle_other_fault_notify(struct gk20a *g,
 				 &invalidate_replay_val);
 
 		if (invalidate_replay_val != 0U) {
-			gv11b_fb_replay_or_cancel_faults(g,
+			err = gv11b_fb_replay_or_cancel_faults(g,
 					invalidate_replay_val);
+			if (err != 0) {
+				nvgpu_err(g, "replay_or_cancel_faults err=%d",
+					err);
+			}
 		}
 	}
 }
@@ -1177,7 +1197,7 @@ void gv11b_fb_handle_mmu_fault(struct gk20a *g, u32 niso_intr)
 int gv11b_fb_mmu_invalidate_replay(struct gk20a *g,
 			 u32 invalidate_replay_val)
 {
-	int err = -ETIMEDOUT;
+	int err = 0;
 	u32 reg_val;
 	struct nvgpu_timeout timeout;
 
@@ -1195,7 +1215,13 @@ int gv11b_fb_mmu_invalidate_replay(struct gk20a *g,
 	gk20a_writel(g, fb_mmu_invalidate_r(), reg_val);
 
 	/* retry 200 times */
-	nvgpu_timeout_init(g, &timeout, 200, NVGPU_TIMER_RETRY_TIMER);
+	err = nvgpu_timeout_init(g, &timeout, 200, NVGPU_TIMER_RETRY_TIMER);
+	if (err != 0) {
+		nvgpu_err(g, "nvgpu_timeout_init failed err=%d", err);
+		goto out;
+	}
+
+	err = -ETIMEDOUT;
 	do {
 		reg_val = gk20a_readl(g, fb_mmu_ctrl_r());
 		if (fb_mmu_ctrl_pri_fifo_empty_v(reg_val) !=
@@ -1210,8 +1236,8 @@ int gv11b_fb_mmu_invalidate_replay(struct gk20a *g,
 		nvgpu_err(g, "invalidate replay timedout");
 	}
 
+out:
 	nvgpu_mutex_release(&g->mm.tlb_lock);
-
 	return err;
 }
 
@@ -1260,7 +1286,11 @@ static int gv11b_fb_fix_page_fault(struct gk20a *g,
 		return err;
 	}
 	/* invalidate tlb so that GMMU does not use old cached translation */
-	g->ops.fb.tlb_invalidate(g, mmfault->refch->vm->pdb.mem);
+	err = g->ops.fb.tlb_invalidate(g, mmfault->refch->vm->pdb.mem);
+	if (err != 0) {
+		nvgpu_err(g, "tlb_invalidate failed err=%d", err);
+		return err;
+	}
 
 	err = __nvgpu_get_pte(g,
 			mmfault->refch->vm, mmfault->fault_addr, &pte[0]);
