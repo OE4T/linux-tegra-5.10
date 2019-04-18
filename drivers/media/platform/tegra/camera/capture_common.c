@@ -308,6 +308,7 @@ int capture_buffer_request(
 			dma_buf_put(buf);
 			goto end;
 		}
+		dma_buf_put(buf);
 	}
 
 	set_mapping_preservation(pin, add);
