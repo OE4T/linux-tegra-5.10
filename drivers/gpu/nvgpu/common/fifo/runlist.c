@@ -822,3 +822,21 @@ u32 nvgpu_fifo_get_runlists_mask(struct gk20a *g, u32 id,
 	nvgpu_log(g, gpu_dbg_info, "runlists_mask = 0x%08x", runlists_mask);
 	return runlists_mask;
 }
+
+void nvgpu_fifo_unlock_runlists(struct gk20a *g, u32 runlists_mask)
+{
+	struct fifo_gk20a *f = &g->fifo;
+	struct fifo_runlist_info_gk20a *runlist;
+	u32 i;
+
+	nvgpu_log_info(g, "release runlist_lock for runlists set in "
+				"runlists_mask: 0x%08x", runlists_mask);
+
+	for (i = 0U; i < f->num_runlists; i++) {
+		runlist = &f->active_runlist_info[i];
+
+		if ((BIT32(i) & runlists_mask) != 0U) {
+			nvgpu_mutex_release(&runlist->runlist_lock);
+		}
+	}
+}

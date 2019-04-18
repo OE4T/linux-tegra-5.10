@@ -161,67 +161,23 @@ void gv11b_fifo_teardown_ch_tsg(struct gk20a *g, u32 act_eng_bitmask,
 	u32 engine_id;
 	u32 client_type = ~U32(0U);
 	struct fifo_gk20a *f = &g->fifo;
-	u32 runlist_id = FIFO_INVAL_RUNLIST_ID;
-	u32 num_runlists = 0U;
 	bool deferred_reset_pending = false;
 
 	nvgpu_log_info(g, "acquire engines_reset_mutex");
 	nvgpu_mutex_acquire(&g->fifo.engines_reset_mutex);
 
+	/* acquire runlist_lock for num_runlists */
+	nvgpu_log_fn(g, "acquire runlist_lock for active runlists");
 	nvgpu_fifo_lock_active_runlists(g);
 
 	g->ops.fifo.intr_set_recover_mask(g);
 
 	/* get runlist id and tsg */
-	if (id_type == ID_TYPE_TSG) {
-		if (id != FIFO_INVAL_TSG_ID) {
-			tsg = &g->fifo.tsg[id];
-			runlist_id = tsg->runlist_id;
-			if (runlist_id != FIFO_INVAL_RUNLIST_ID) {
-				num_runlists++;
-			} else {
-				nvgpu_log_fn(g, "tsg runlist id is invalid");
-			}
-		} else {
-			nvgpu_log_fn(g, "id type is tsg but tsg id is inval");
-		}
-	} else {
-		/*
-		 * id type is unknown, get runlist_id if eng mask is such that
-		 * it corresponds to single runlist id. If eng mask corresponds
-		 * to multiple runlists, then abort all runlists
-		 */
-		for (i = 0U; i < f->num_runlists; i++) {
-			runlist = &f->active_runlist_info[i];
-
-			if ((runlist->eng_bitmask & act_eng_bitmask) != 0U) {
-				runlist_id = runlist->runlist_id;
-				num_runlists++;
-			}
-		}
-		if (num_runlists > 1U) {
-			/* abort all runlists */
-			runlist_id = FIFO_INVAL_RUNLIST_ID;
-		}
+	if (id != INVAL_ID && id_type == ID_TYPE_TSG) {
+		tsg = &g->fifo.tsg[id];
 	}
 
-	/* if runlist_id is valid and there is only single runlist to be
-	 * aborted, release runlist lock that are not
-	 * needed for this recovery
-	 */
-	if (runlist_id != FIFO_INVAL_RUNLIST_ID && num_runlists == 1U) {
-		for (i = 0U; i < f->num_runlists; i++) {
-			runlist = &f->active_runlist_info[i];
-
-			if (runlist->runlist_id != runlist_id) {
-				nvgpu_log_fn(g, "release runlist_lock for "
-						"unused runlist id: %d",
-						runlist->runlist_id);
-				nvgpu_mutex_release(&runlist->runlist_lock);
-			}
-		}
-	}
-
+	/* get runlists mask */
 	nvgpu_log(g, gpu_dbg_info, "id = %d, id_type = %d, rc_type = %d, "
 			"act_eng_bitmask = 0x%x, mmfault ptr = 0x%p",
 			 id, id_type, rc_type, act_eng_bitmask, mmfault);
@@ -233,6 +189,12 @@ void gv11b_fifo_teardown_ch_tsg(struct gk20a *g, u32 act_eng_bitmask,
 	}
 	runlists_mask = nvgpu_fifo_get_runlists_mask(g, id, id_type,
 				act_eng_bitmask, pbdma_bitmask);
+
+	/*
+	 * release runlist lock for the runlists that are not
+	 * being recovered
+	 */
+	nvgpu_fifo_unlock_runlists(g, ~runlists_mask);
 
 	/* Disable runlist scheduler */
 	nvgpu_fifo_runlist_set_state(g, runlists_mask, RUNLIST_DISABLED);
@@ -337,15 +299,8 @@ void gv11b_fifo_teardown_ch_tsg(struct gk20a *g, u32 act_eng_bitmask,
 
 	g->ops.fifo.intr_unset_recover_mask(g);
 
-	/* release runlist_lock */
-	if (runlist_id != FIFO_INVAL_RUNLIST_ID) {
-		nvgpu_log_fn(g, "release runlist_lock runlist_id = %d",
-				runlist_id);
-		runlist = f->runlist_info[runlist_id];
-		nvgpu_mutex_release(&runlist->runlist_lock);
-	} else {
-		nvgpu_fifo_unlock_active_runlists(g);
-	}
+	/* release runlist_lock for the recovered runlists */
+	nvgpu_fifo_unlock_runlists(g, runlists_mask);
 
 	nvgpu_log_info(g, "release engines_reset_mutex");
 	nvgpu_mutex_release(&g->fifo.engines_reset_mutex);
