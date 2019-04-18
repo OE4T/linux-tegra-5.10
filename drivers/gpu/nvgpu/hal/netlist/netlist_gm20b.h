@@ -22,7 +22,10 @@
 #ifndef NVGPU_NETLIST_GM20B_H
 #define NVGPU_NETLIST_GM20B_H
 
-#include <nvgpu/netlist.h>
+#include <nvgpu/types.h>
+#include "common/netlist/netlist_defs.h"
+
+struct gk20a;
 
 /* production netlist, one and only one from below */
 /*#undef GM20B_NETLIST_IMAGE_FW_NAME*/

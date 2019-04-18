@@ -20,7 +20,6 @@
  * DEALINGS IN THE SOFTWARE.
  */
 #include <nvgpu/gk20a.h>
-#include <nvgpu/netlist.h>
 
 #include "netlist_gv100.h"
 

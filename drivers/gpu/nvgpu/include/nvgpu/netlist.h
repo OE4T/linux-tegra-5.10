@@ -24,48 +24,6 @@
 
 struct gk20a;
 
-/* emulation netlists, match majorV with HW */
-#define NVGPU_NETLIST_IMAGE_A	"NETA_img.bin"
-#define NVGPU_NETLIST_IMAGE_B	"NETB_img.bin"
-#define NVGPU_NETLIST_IMAGE_C	"NETC_img.bin"
-#define NVGPU_NETLIST_IMAGE_D	"NETD_img.bin"
-
-/*
- * Need to support multiple ARCH in same GPU family
- * then need to provide path like ARCH/NETIMAGE to
- * point to correct netimage within GPU family,
- * Example, gm20x can support gm204 or gm206,so path
- * for netimage is gm204/NETC_img.bin, and '/' char
- * will inserted at null terminator char of "GAxxx"
- * to get complete path like gm204/NETC_img.bin
- */
-#define GPU_ARCH "GAxxx"
-
-union __max_name {
-#ifdef NVGPU_NETLIST_IMAGE_A
-	char __name_a[sizeof(NVGPU_NETLIST_IMAGE_A)];
-#endif
-#ifdef NVGPU_NETLIST_IMAGE_B
-	char __name_b[sizeof(NVGPU_NETLIST_IMAGE_B)];
-#endif
-#ifdef NVGPU_NETLIST_IMAGE_C
-	char __name_c[sizeof(NVGPU_NETLIST_IMAGE_C)];
-#endif
-#ifdef NVGPU_NETLIST_IMAGE_D
-	char __name_d[sizeof(NVGPU_NETLIST_IMAGE_D)];
-#endif
-};
-
-#define MAX_NETLIST_NAME (sizeof(GPU_ARCH) + sizeof(union __max_name))
-
-/* index for emulation netlists */
-#define NETLIST_FINAL		-1
-#define NETLIST_SLOT_A		0
-#define NETLIST_SLOT_B		1
-#define NETLIST_SLOT_C		2
-#define NETLIST_SLOT_D		3
-#define MAX_NETLIST		4
-
 /* netlist regions */
 #define NETLIST_REGIONID_FECS_UCODE_DATA	0
 #define NETLIST_REGIONID_FECS_UCODE_INST	1
@@ -103,6 +61,7 @@ union __max_name {
 #define NETLIST_REGIONID_CTXREG_ETPC            33
 #define NETLIST_REGIONID_SW_BUNDLE64_INIT	34
 #define NETLIST_REGIONID_NVPERF_PMCAU		35
+
 
 struct netlist_region {
 	u32 region_id;

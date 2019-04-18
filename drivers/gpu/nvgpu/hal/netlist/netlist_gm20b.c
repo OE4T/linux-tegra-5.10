@@ -21,7 +21,6 @@
  */
 
 #include <nvgpu/gk20a.h>
-#include <nvgpu/netlist.h>
 
 #include "netlist_gm20b.h"
 

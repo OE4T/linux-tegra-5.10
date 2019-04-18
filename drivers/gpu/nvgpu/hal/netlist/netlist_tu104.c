@@ -21,7 +21,6 @@
  */
 
 #include <nvgpu/gk20a.h>
-#include <nvgpu/netlist.h>
 
 #include "netlist_tu104.h"
 
@@ -31,7 +30,8 @@ int tu104_netlist_get_name(struct gk20a *g, int index, char *name)
 
 	switch (ver) {
 	case NVGPU_GPUID_TU104:
-		(void) sprintf(name, "%s/%s", "tu104", "NETC_img.bin");
+		(void) sprintf(name, "%s/%s", "tu104",
+					TU104_NETLIST_IMAGE_FW_NAME);
 		break;
 	default:
 		nvgpu_err(g, "no support for GPUID %x", ver);
@@ -42,5 +42,9 @@ int tu104_netlist_get_name(struct gk20a *g, int index, char *name)
 
 bool tu104_netlist_is_firmware_defined(void)
 {
+#ifdef TU104_NETLIST_IMAGE_FW_NAME
 	return true;
+#else
+	return false;
+#endif
 }

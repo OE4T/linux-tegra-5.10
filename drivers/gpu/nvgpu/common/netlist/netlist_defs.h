@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -19,17 +19,24 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef NVGPU_NETLIST_TU104_H
-#define NVGPU_NETLIST_TU104_H
+
+#ifndef NVGPU_NETLIST_DEFS_H
+#define NVGPU_NETLIST_DEFS_H
 
 #include <nvgpu/types.h>
-#include "common/netlist/netlist_defs.h"
 
-struct gk20a;
+/* emulation netlists, match majorV with HW */
+#define NVGPU_NETLIST_IMAGE_A	"NETA_img.bin"
+#define NVGPU_NETLIST_IMAGE_B	"NETB_img.bin"
+#define NVGPU_NETLIST_IMAGE_C	"NETC_img.bin"
+#define NVGPU_NETLIST_IMAGE_D	"NETD_img.bin"
 
-#define TU104_NETLIST_IMAGE_FW_NAME NVGPU_NETLIST_IMAGE_C
+/* index for emulation netlists */
+#define NETLIST_FINAL		-1
+#define NETLIST_SLOT_A		0
+#define NETLIST_SLOT_B		1
+#define NETLIST_SLOT_C		2
+#define NETLIST_SLOT_D		3
+#define MAX_NETLIST		4
 
-int tu104_netlist_get_name(struct gk20a *g, int index, char *name);
-bool tu104_netlist_is_firmware_defined(void);
-
-#endif /*NVGPU_NETLIST_TU104_H*/
+#endif /* NVGPU_NETLIST_DEFS_H */

@@ -22,7 +22,10 @@
 #ifndef NVGPU_NETLIST_GV11B_H
 #define NVGPU_NETLIST_GV11B_H
 
-#include <nvgpu/netlist.h>
+#include <nvgpu/types.h>
+#include "common/netlist/netlist_defs.h"
+
+struct gk20a;
 
 /* Define netlist for silicon only */
 

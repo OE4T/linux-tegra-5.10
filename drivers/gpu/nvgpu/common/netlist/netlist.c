@@ -31,6 +31,20 @@
 #include <nvgpu/netlist.h>
 #include <nvgpu/string.h>
 
+#include "netlist_defs.h"
+
+/*
+ * Need to support multiple ARCH in same GPU family
+ * then need to provide path like ARCH/NETIMAGE to
+ * point to correct netimage within GPU family,
+ * Example, gm20x can support gm204 or gm206,so path
+ * for netimage is gm204/NETC_img.bin, and '/' char
+ * will inserted at null terminator char of "GAxxx"
+ * to get complete path like gm204/NETC_img.bin
+ */
+
+#define MAX_NETLIST_NAME (sizeof("GAxxx/") + sizeof("NET?_img.bin"))
+
 struct netlist_av *nvgpu_netlist_alloc_av_list(struct gk20a *g,
 						struct netlist_av_list *avl)
 {
