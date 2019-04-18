@@ -79,7 +79,7 @@ static int gk20a_gr_dump_regs(struct gk20a *g,
 	return 0;
 }
 
-int gk20a_gr_debug_dump(struct gk20a *g)
+void gk20a_gr_debug_dump(struct gk20a *g)
 {
 	struct gk20a_debug_output o = {
 		.fn = gk20a_debug_write_printk,
@@ -87,8 +87,6 @@ int gk20a_gr_debug_dump(struct gk20a *g)
 	};
 
 	gk20a_gr_dump_regs(g, &o);
-
-	return 0;
 }
 
 static int gk20a_gr_debug_show(struct seq_file *s, void *unused)
