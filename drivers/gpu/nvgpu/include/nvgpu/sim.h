@@ -56,5 +56,6 @@ void nvgpu_free_sim_support(struct gk20a *g);
 void nvgpu_remove_sim_support(struct gk20a *g);
 void sim_writel(struct sim_nvgpu *sim, u32 r, u32 v);
 u32 sim_readl(struct sim_nvgpu *sim, u32 r);
+int nvgpu_init_sim_netlist_ctx_vars(struct gk20a *g);
 
 #endif /* NVGPU_SIM_H */

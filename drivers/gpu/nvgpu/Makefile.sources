@@ -58,8 +58,9 @@ srcs += os/posix/bug.c \
 	os/posix/os_sched.c \
 	os/posix/kmem.c
 
-srcs += common/sim.c \
-	common/sim_pci.c \
+srcs += common/sim/sim.c \
+	common/sim/sim_pci.c \
+	common/sim/sim_netlist.c \
 	common/init/nvgpu_init.c \
 	common/mm/allocators/nvgpu_allocator.c \
 	common/mm/allocators/bitmap_allocator.c \
@@ -119,7 +120,6 @@ srcs += common/sim.c \
 	common/gr/obj_ctx.c \
 	common/gr/fs_state.c \
 	common/netlist/netlist.c \
-	common/netlist/netlist_sim.c \
 	common/pmu/pmu.c \
 	common/pmu/pmu_allocator.c \
 	common/pmu/pmu_mutex.c \

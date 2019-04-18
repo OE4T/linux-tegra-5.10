@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2018, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -25,7 +25,7 @@
 #include <nvgpu/netlist.h>
 #include <nvgpu/log.h>
 
-int nvgpu_netlist_init_ctx_vars_sim(struct gk20a *g)
+int nvgpu_init_sim_netlist_ctx_vars(struct gk20a *g)
 {
 	struct nvgpu_netlist_vars *netlist_vars = g->netlist_vars;
 	int err = -ENOMEM;

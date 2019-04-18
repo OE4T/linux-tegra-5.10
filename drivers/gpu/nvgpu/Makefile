@@ -74,7 +74,6 @@ nvgpu-y += \
 	common/gr/obj_ctx.o \
 	common/gr/fs_state.o \
 	common/netlist/netlist.o \
-	common/netlist/netlist_sim.o \
 	common/init/nvgpu_init.o \
 	common/pmu/pmu.o \
 	common/pmu/pmu_allocator.o \
@@ -483,8 +482,9 @@ nvgpu-y += \
 	common/power_features/power_features.o \
 	common/power_features/cg/cg.o \
 	common/power_features/pg/pg.o \
-	common/sim.o \
-	common/sim_pci.o \
+	common/sim/sim.o \
+	common/sim/sim_pci.o \
+	common/sim/sim_netlist.o \
 	common/rc/rc.o \
 	common/fifo/fifo.o \
 	common/fifo/channel.o \

@@ -21,6 +21,7 @@
  */
 
 #include <nvgpu/nvgpu_common.h>
+#include <nvgpu/sim.h>
 #include <nvgpu/kmem.h>
 #include <nvgpu/log.h>
 #include <nvgpu/firmware.h>
@@ -512,7 +513,7 @@ int nvgpu_netlist_init_ctx_vars(struct gk20a *g)
 	}
 
 	if (nvgpu_is_enabled(g, NVGPU_IS_FMODEL)) {
-		return nvgpu_netlist_init_ctx_vars_sim(g);
+		return nvgpu_init_sim_netlist_ctx_vars(g);
 	} else {
 		return nvgpu_netlist_init_ctx_vars_fw(g);
 	}

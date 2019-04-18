@@ -209,7 +209,6 @@ struct nvgpu_netlist_vars {
 };
 
 int nvgpu_netlist_init_ctx_vars(struct gk20a *g);
-int nvgpu_netlist_init_ctx_vars_sim(struct gk20a *g);
 void nvgpu_netlist_deinit_ctx_vars(struct gk20a *g);
 
 struct netlist_av_list *nvgpu_netlist_get_sw_non_ctx_load_av_list(
