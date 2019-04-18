@@ -35,6 +35,7 @@
 #include <nvgpu/io.h>
 #include <nvgpu/utils.h>
 #include <nvgpu/gk20a.h>
+#include <nvgpu/fifo.h>
 #include <nvgpu/channel.h>
 #include <nvgpu/regops.h>
 #include <nvgpu/gr/subctx.h>
@@ -46,6 +47,7 @@
 #include <nvgpu/gr/obj_ctx.h>
 #include <nvgpu/engines.h>
 #include <nvgpu/engine_status.h>
+#include <nvgpu/preempt.h>
 
 #include "gk20a/gr_gk20a.h"
 #include "gm20b/gr_gm20b.h"
@@ -649,7 +651,7 @@ static int gr_gp10b_disable_channel_or_tsg(struct gk20a *g, struct channel_gk20a
 	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gpu_dbg | gpu_dbg_intr,
 			"CILP: tsgid: 0x%x", tsg->tsgid);
 
-	gk20a_fifo_issue_preempt(g, tsg->tsgid, true);
+	g->ops.fifo.preempt_trigger(g, tsg->tsgid, ID_TYPE_TSG);
 	nvgpu_log(g, gpu_dbg_fn | gpu_dbg_gpu_dbg | gpu_dbg_intr,
 			"CILP: preempted tsg");
 	return ret;
@@ -1146,7 +1148,7 @@ int gr_gp10b_set_boosted_ctx(struct channel_gk20a *ch,
 		return err;
 	}
 
-	err = gk20a_fifo_preempt(g, ch);
+	err = nvgpu_preempt_channel(g, ch);
 	if (err != 0) {
 		goto enable_ch;
 	}

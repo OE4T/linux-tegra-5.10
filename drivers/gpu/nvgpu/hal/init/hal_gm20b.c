@@ -57,6 +57,7 @@
 #include "hal/fuse/fuse_gm20b.h"
 #include "hal/ptimer/ptimer_gk20a.h"
 #include "hal/regops/regops_gm20b.h"
+#include "hal/fifo/preempt_gk20a.h"
 #include "hal/fifo/pbdma_gm20b.h"
 #include "hal/fifo/engines_gm20b.h"
 #include "hal/fifo/engine_status_gm20b.h"
@@ -663,6 +664,7 @@ static const struct gpu_ops gm20b_ops = {
 		.default_timeslice_us = gk20a_fifo_default_timeslice_us,
 		.preempt_channel = gk20a_fifo_preempt_channel,
 		.preempt_tsg = gk20a_fifo_preempt_tsg,
+		.preempt_trigger = gk20a_fifo_preempt_trigger,
 		.tsg_set_timeslice = gk20a_fifo_tsg_set_timeslice,
 		.init_pbdma_map = gk20a_fifo_init_pbdma_map,
 		.is_preempt_pending = gk20a_fifo_is_preempt_pending,

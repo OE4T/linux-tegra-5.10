@@ -24,6 +24,7 @@
 #include "hal/bus/bus_gm20b.h"
 #include "hal/regops/regops_gv11b.h"
 #include "hal/class/class_gv11b.h"
+#include "hal/fifo/preempt_gv11b.h"
 #include "hal/fifo/engines_gv11b.h"
 #include "hal/fifo/pbdma_gm20b.h"
 #include "hal/fifo/pbdma_gp10b.h"

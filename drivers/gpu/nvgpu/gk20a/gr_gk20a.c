@@ -60,6 +60,7 @@
 #include <nvgpu/nvgpu_err.h>
 #include <nvgpu/power_features/cg.h>
 #include <nvgpu/power_features/pg.h>
+#include <nvgpu/preempt.h>
 
 #include "gr_gk20a.h"
 #include "gr_pri_gk20a.h"
@@ -153,7 +154,7 @@ int gr_gk20a_update_smpc_ctxsw_mode(struct gk20a *g,
 		nvgpu_err(g, "failed to disable channel/TSG");
 		goto out;
 	}
-	ret = gk20a_fifo_preempt(g, c);
+	ret = nvgpu_preempt_channel(g, c);
 	if (ret != 0) {
 		gk20a_enable_channel_tsg(g, c);
 		nvgpu_err(g, "failed to preempt channel/TSG");
@@ -220,7 +221,7 @@ int gr_gk20a_update_hwpm_ctxsw_mode(struct gk20a *g,
 		return ret;
 	}
 
-	ret = gk20a_fifo_preempt(g, c);
+	ret = nvgpu_preempt_channel(g, c);
 	if (ret != 0) {
 		gk20a_enable_channel_tsg(g, c);
 		nvgpu_err(g, "failed to preempt channel/TSG");

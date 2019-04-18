@@ -28,6 +28,7 @@
 #include <nvgpu/gr/zcull.h>
 #include <nvgpu/gr/setup.h>
 #include <nvgpu/channel.h>
+#include <nvgpu/preempt.h>
 
 #include "gr_priv.h"
 
@@ -44,7 +45,7 @@ static int nvgpu_gr_setup_zcull(struct gk20a *g, struct channel_gk20a *c,
 		return ret;
 	}
 
-	ret = gk20a_fifo_preempt(g, c);
+	ret = nvgpu_preempt_channel(g, c);
 	if (ret != 0) {
 		if (gk20a_enable_channel_tsg(g, c) != 0) {
 			nvgpu_err(g, "failed to re-enable channel/TSG");
@@ -267,7 +268,7 @@ int nvgpu_gr_setup_set_preemption_mode(struct channel_gk20a *ch,
 		return err;
 	}
 
-	err = gk20a_fifo_preempt(g, ch);
+	err = nvgpu_preempt_channel(g, ch);
 	if (err != 0) {
 		goto enable_ch;
 	}

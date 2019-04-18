@@ -51,6 +51,7 @@
 #include <nvgpu/runlist.h>
 #include <nvgpu/fifo/userd.h>
 #include <nvgpu/fence.h>
+#include <nvgpu/preempt.h>
 
 #include "common/gr/gr_priv.h"
 #include "gk20a/gr_gk20a.h"
@@ -1175,7 +1176,7 @@ int nvgpu_channel_set_syncpt(struct channel_gk20a *ch)
 		gk20a_disable_channel_tsg(g, ch);
 
 		/* preempt the channel */
-		WARN_ON(gk20a_fifo_preempt(g, ch) != 0);
+		WARN_ON(nvgpu_preempt_channel(g, ch) != 0);
 
 		g->ops.ramfc.set_syncpt(ch, new_syncpt);
 	}
@@ -2516,7 +2517,7 @@ int nvgpu_channel_suspend_all_serviceable_ch(struct gk20a *g)
 			/* disable channel */
 			gk20a_disable_channel_tsg(g, ch);
 			/* preempt the channel */
-			gk20a_fifo_preempt(g, ch);
+			nvgpu_preempt_channel(g, ch);
 			/* wait for channel update notifiers */
 			if (g->os_channel.work_completion_cancel_sync != NULL) {
 				g->os_channel.work_completion_cancel_sync(ch);

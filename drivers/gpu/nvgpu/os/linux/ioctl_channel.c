@@ -42,6 +42,7 @@
 #include <nvgpu/gr/ctx.h>
 #include <nvgpu/gr/obj_ctx.h>
 #include <nvgpu/fence.h>
+#include <nvgpu/preempt.h>
 
 #include "platform_gk20a.h"
 #include "ioctl_channel.h"
@@ -1309,7 +1310,7 @@ long gk20a_channel_ioctl(struct file *filp,
 				__func__, cmd);
 			break;
 		}
-		err = gk20a_fifo_preempt(ch->g, ch);
+		err = nvgpu_preempt_channel(ch->g, ch);
 		gk20a_idle(ch->g);
 		break;
 	case NVGPU_IOCTL_CHANNEL_RESCHEDULE_RUNLIST:

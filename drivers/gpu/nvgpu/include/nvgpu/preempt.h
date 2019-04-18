@@ -1,7 +1,5 @@
 /*
- * GV100 fifo
- *
- * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -21,32 +19,18 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
+#ifndef NVGPU_PREEMPT_H
+#define NVGPU_PREEMPT_H
 
-#include <nvgpu/timers.h>
-#include <nvgpu/ptimer.h>
-#include <nvgpu/io.h>
-#include <nvgpu/gk20a.h>
+#include <nvgpu/types.h>
 
-#include "fifo_gv100.h"
+struct gk20a;
+struct channel_gk20a;
+struct tsg_gk20a;
 
-#include <nvgpu/hw/gk20a/hw_fifo_gk20a.h>
+u32 nvgpu_preempt_get_timeout(struct gk20a *g);
+int nvgpu_preempt_channel(struct gk20a *g, struct channel_gk20a *ch);
 
-
-void gv100_fifo_intr_set_recover_mask(struct gk20a *g)
-{
-	u32 val;
-
-	val = gk20a_readl(g, fifo_intr_en_0_r());
-	val &= ~(fifo_intr_en_0_sched_error_m());
-	gk20a_writel(g, fifo_intr_en_0_r(), val);
-	gk20a_writel(g, fifo_intr_0_r(), fifo_intr_0_sched_error_reset_f());
-}
-
-void gv100_fifo_intr_unset_recover_mask(struct gk20a *g)
-{
-	u32 val;
-
-	val = gk20a_readl(g, fifo_intr_en_0_r());
-	val |= fifo_intr_en_0_sched_error_f(1);
-	gk20a_writel(g, fifo_intr_en_0_r(), val);
-}
+void nvgpu_preempt_poll_tsg_on_pbdma(struct gk20a *g,
+		struct tsg_gk20a *tsg);
+#endif /* NVGPU_PREEMPT_H */

@@ -972,6 +972,12 @@ struct gpu_ops {
 		int (*init_fifo_setup_hw)(struct gk20a *g);
 		int (*preempt_channel)(struct gk20a *g, struct channel_gk20a *ch);
 		int (*preempt_tsg)(struct gk20a *g, struct tsg_gk20a *tsg);
+		void (*preempt_runlists_for_rc)(struct gk20a *g,
+				u32 runlists_bitmask);
+		void (*preempt_trigger)(struct gk20a *g,
+				u32 id, unsigned int id_type);
+		int (*preempt_poll_pbdma)(struct gk20a *g, u32 tsgid,
+				 u32 pbdma_id);
 		int (*tsg_set_timeslice)(struct tsg_gk20a *tsg, u32 timeslice);
 		u32 (*default_timeslice_us)(struct gk20a *g);
 		int (*init_pbdma_map)(struct gk20a *g,
@@ -984,7 +990,6 @@ struct gpu_ops {
 			 struct mmu_fault_info *mmfault);
 		void (*intr_set_recover_mask)(struct gk20a *g);
 		void (*intr_unset_recover_mask)(struct gk20a *g);
-		u32 (*get_preempt_timeout)(struct gk20a *g);
 		int (*init_pdb_cache_war)(struct gk20a *g);
 		void (*deinit_pdb_cache_war)(struct gk20a *g);
 		int (*set_sm_exception_type_mask)(struct channel_gk20a *ch,

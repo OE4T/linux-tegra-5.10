@@ -169,6 +169,7 @@ srcs += common/sim/sim.c \
 	common/power_features/power_features.c \
 	common/power_features/cg/cg.c \
 	common/power_features/pg/pg.c \
+	common/fifo/preempt.c \
 	common/fifo/channel.c \
 	common/rc/rc.c \
 	common/fifo/fifo.c \
@@ -359,6 +360,8 @@ srcs += common/sim/sim.c \
 	hal/fuse/fuse_gp10b.c \
 	hal/fuse/fuse_gp106.c \
 	hal/rc/rc_gk20a.c \
+	hal/fifo/preempt_gk20a.c \
+	hal/fifo/preempt_gv11b.c \
 	hal/fifo/usermode_gv11b.c \
 	hal/fifo/usermode_tu104.c \
 	hal/fifo/engines_gm20b.c \

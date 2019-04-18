@@ -60,6 +60,7 @@
 #include "hal/fuse/fuse_gm20b.h"
 #include "hal/fuse/fuse_gp10b.h"
 #include "hal/fuse/fuse_gp106.h"
+#include "hal/fifo/preempt_gv11b.h"
 #include "hal/fifo/usermode_gv11b.h"
 #include "hal/fifo/usermode_tu104.h"
 #include "hal/fifo/pbdma_gm20b.h"
@@ -935,11 +936,13 @@ static const struct gpu_ops tu104_ops = {
 			tu104_blcg_xbar_load_gating_prod,
 	},
 	.fifo = {
-		.get_preempt_timeout = gv100_fifo_get_preempt_timeout,
 		.init_fifo_setup_hw = tu104_init_fifo_setup_hw,
 		.default_timeslice_us = gk20a_fifo_default_timeslice_us,
 		.preempt_channel = gv11b_fifo_preempt_channel,
 		.preempt_tsg = gv11b_fifo_preempt_tsg,
+		.preempt_trigger = gv11b_fifo_preempt_trigger,
+		.preempt_runlists_for_rc = gv11b_fifo_preempt_runlists_for_rc,
+		.preempt_poll_pbdma = gv11b_fifo_preempt_poll_pbdma,
 		.tsg_set_timeslice = gk20a_fifo_tsg_set_timeslice,
 		.init_pbdma_map = gk20a_fifo_init_pbdma_map,
 		.is_preempt_pending = gv11b_fifo_is_preempt_pending,

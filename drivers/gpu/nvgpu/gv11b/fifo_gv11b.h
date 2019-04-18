@@ -29,23 +29,14 @@
 
 #define CHANNEL_INFO_VEID0		0U
 
-#define MAX_PRE_SI_RETRIES		200000U	/* 1G/500KHz * 100 */
-
 struct gpu_ops;
 
 u32 gv11b_fifo_mmu_fault_id_to_pbdma_id(struct gk20a *g, u32 mmu_fault_id);
 
-int gv11b_fifo_is_preempt_pending(struct gk20a *g, u32 id,
-		 unsigned int id_type);
-int gv11b_fifo_preempt_channel(struct gk20a *g, struct channel_gk20a *ch);
-int gv11b_fifo_preempt_tsg(struct gk20a *g, struct tsg_gk20a *tsg);
 void gv11b_fifo_teardown_ch_tsg(struct gk20a *g, u32 act_eng_bitmask,
 			u32 id, unsigned int id_type, unsigned int rc_type,
 			 struct mmu_fault_info *mmfault);
-void gv11b_fifo_init_pbdma_intr_descs(struct fifo_gk20a *f);
 int gv11b_init_fifo_reset_enable_hw(struct gk20a *g);
 int gv11b_init_fifo_setup_hw(struct gk20a *g);
-
-u32 gv11b_fifo_get_preempt_timeout(struct gk20a *g);
 
 #endif

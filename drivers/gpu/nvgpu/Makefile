@@ -248,6 +248,8 @@ nvgpu-y += \
 	hal/fuse/fuse_gp10b.o \
 	hal/fuse/fuse_gp106.o \
 	hal/rc/rc_gk20a.o \
+	hal/fifo/preempt_gk20a.o \
+	hal/fifo/preempt_gv11b.o \
 	hal/fifo/usermode_gv11b.o \
 	hal/fifo/usermode_tu104.o \
 	hal/fifo/engines_gm20b.o \
@@ -488,6 +490,7 @@ nvgpu-y += \
 	common/sim/sim_netlist.o \
 	common/rc/rc.o \
 	common/fifo/fifo.o \
+	common/fifo/preempt.o \
 	common/fifo/channel.o \
 	common/fifo/pbdma.o \
 	common/fifo/submit.o \

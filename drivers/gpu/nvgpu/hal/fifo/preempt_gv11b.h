@@ -1,7 +1,5 @@
 /*
- * GV100 fifo
- *
- * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -21,32 +19,24 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
+#ifndef FIFO_PREEMPT_GV11B_H
+#define FIFO_PREEMPT_GV11B_H
 
-#include <nvgpu/timers.h>
-#include <nvgpu/ptimer.h>
-#include <nvgpu/io.h>
-#include <nvgpu/gk20a.h>
+#include <nvgpu/types.h>
 
-#include "fifo_gv100.h"
+#define PREEMPT_PENDING_POLL_PRE_SI_RETRIES	200000U	/* 1G/500KHz * 100 */
 
-#include <nvgpu/hw/gk20a/hw_fifo_gk20a.h>
+struct gk20a;
+struct channel_gk20a;
+struct tsg_gk20a;
 
+void gv11b_fifo_preempt_trigger(struct gk20a *g, u32 id, unsigned int id_type);
+int  gv11b_fifo_preempt_channel(struct gk20a *g, struct channel_gk20a *ch);
+int  gv11b_fifo_preempt_tsg(struct gk20a *g, struct tsg_gk20a *tsg);
+int  gv11b_fifo_is_preempt_pending(struct gk20a *g, u32 id,
+			unsigned int id_type);
+void gv11b_fifo_preempt_runlists_for_rc(struct gk20a *g, u32 runlists_mask);
 
-void gv100_fifo_intr_set_recover_mask(struct gk20a *g)
-{
-	u32 val;
+int gv11b_fifo_preempt_poll_pbdma(struct gk20a *g, u32 tsgid, u32 pbdma_id);
 
-	val = gk20a_readl(g, fifo_intr_en_0_r());
-	val &= ~(fifo_intr_en_0_sched_error_m());
-	gk20a_writel(g, fifo_intr_en_0_r(), val);
-	gk20a_writel(g, fifo_intr_0_r(), fifo_intr_0_sched_error_reset_f());
-}
-
-void gv100_fifo_intr_unset_recover_mask(struct gk20a *g)
-{
-	u32 val;
-
-	val = gk20a_readl(g, fifo_intr_en_0_r());
-	val |= fifo_intr_en_0_sched_error_f(1);
-	gk20a_writel(g, fifo_intr_en_0_r(), val);
-}
+#endif /* FIFO_PREEMPT_GV11B_H */

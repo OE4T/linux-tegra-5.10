@@ -87,7 +87,7 @@ int gk20a_fifo_reschedule_preempt_next(struct channel_gk20a *ch,
 		return ret;
 	}
 
-	gk20a_fifo_issue_preempt(g, preempt_id, preempt_type != 0U);
+	g->ops.fifo.preempt_trigger(g, preempt_id, preempt_type != 0U);
 #ifdef TRACEPOINTS_ENABLED
 	trace_gk20a_reschedule_preempt_next(ch->chid, fecsstat0,
 		engine_status.reg_data,

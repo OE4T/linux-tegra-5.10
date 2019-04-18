@@ -62,6 +62,7 @@
 #include "hal/ptimer/ptimer_gk20a.h"
 #include "hal/regops/regops_gv11b.h"
 #include "hal/fifo/pbdma_gm20b.h"
+#include "hal/fifo/preempt_gv11b.h"
 #include "hal/fifo/pbdma_gp10b.h"
 #include "hal/fifo/pbdma_gv11b.h"
 #include "hal/fifo/engine_status_gv100.h"
@@ -875,11 +876,13 @@ static const struct gpu_ops gv11b_ops = {
 			gr_gv11b_pg_gr_load_gating_prod,
 	},
 	.fifo = {
-		.get_preempt_timeout = gv11b_fifo_get_preempt_timeout,
 		.init_fifo_setup_hw = gv11b_init_fifo_setup_hw,
 		.default_timeslice_us = gk20a_fifo_default_timeslice_us,
 		.preempt_channel = gv11b_fifo_preempt_channel,
 		.preempt_tsg = gv11b_fifo_preempt_tsg,
+		.preempt_trigger = gv11b_fifo_preempt_trigger,
+		.preempt_runlists_for_rc = gv11b_fifo_preempt_runlists_for_rc,
+		.preempt_poll_pbdma = gv11b_fifo_preempt_poll_pbdma,
 		.tsg_set_timeslice = gk20a_fifo_tsg_set_timeslice,
 		.init_pbdma_map = gk20a_fifo_init_pbdma_map,
 		.is_preempt_pending = gv11b_fifo_is_preempt_pending,
