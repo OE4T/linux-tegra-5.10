@@ -425,6 +425,7 @@ static const struct gpu_ops gv11b_ops = {
 		.get_ctxsw_checksum_mismatch_mailbox_val =
 				gr_gv11b_ctxsw_checksum_mismatch_mailbox_val,
 		.reset = nvgpu_gr_reset,
+		.esr_bpt_pending_events = gv11b_gr_esr_bpt_pending_events,
 		.ecc = {
 			.detect = gv11b_ecc_detect_enabled_units,
 			.init = gv11b_ecc_init,

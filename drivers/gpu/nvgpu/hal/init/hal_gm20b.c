@@ -300,6 +300,7 @@ static const struct gpu_ops gm20b_ops = {
 		.set_debug_mode = gm20b_gr_set_debug_mode,
 		.log_mme_exception = NULL,
 		.reset = nvgpu_gr_reset,
+		.esr_bpt_pending_events = gm20b_gr_esr_bpt_pending_events,
 		.ctxsw_prog = {
 			.hw_get_fecs_header_size =
 				gm20b_ctxsw_prog_hw_get_fecs_header_size,

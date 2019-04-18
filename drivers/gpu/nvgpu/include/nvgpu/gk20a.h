@@ -421,6 +421,7 @@ struct gpu_ops {
 		void (*set_debug_mode)(struct gk20a *g, bool enable);
 		void (*log_mme_exception)(struct gk20a *g);
 		int (*reset)(struct gk20a *g);
+		bool (*esr_bpt_pending_events)(u32 global_esr, u32 bpt_event);
 		struct {
 			void (*detect)(struct gk20a *g);
 			int (*init)(struct gk20a *g);

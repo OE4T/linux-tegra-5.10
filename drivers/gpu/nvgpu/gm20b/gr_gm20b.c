@@ -767,3 +767,24 @@ void gm20b_gr_set_debug_mode(struct gk20a *g, bool enable)
 			gr_gpcs_pri_mmu_debug_ctrl_debug_m(), gpc_debug_ctrl);
 	gk20a_writel(g, gr_gpcs_pri_mmu_debug_ctrl_r(), reg_val);
 }
+
+bool gm20b_gr_esr_bpt_pending_events(u32 global_esr, u32 bpt_event)
+{
+	bool ret = false;
+
+	if (bpt_event == NVGPU_EVENT_ID_BPT_INT) {
+		if ((global_esr &
+		 gr_gpc0_tpc0_sm_hww_global_esr_bpt_int_pending_f()) != 0U) {
+			ret = true;
+		}
+	}
+
+	if (bpt_event == NVGPU_EVENT_ID_BPT_PAUSE) {
+		if ((global_esr &
+		 gr_gpc0_tpc0_sm_hww_global_esr_bpt_pause_pending_f()) != 0U) {
+			ret = true;
+		}
+	}
+
+	return ret;
+}

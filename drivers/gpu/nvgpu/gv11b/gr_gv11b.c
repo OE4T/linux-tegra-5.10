@@ -3203,3 +3203,24 @@ fail:
 	nvgpu_mutex_release(&g->dbg_sessions_lock);
 	return err;
 }
+
+bool gv11b_gr_esr_bpt_pending_events(u32 global_esr, u32 bpt_event)
+{
+	bool ret = false;
+
+	if (bpt_event == NVGPU_EVENT_ID_BPT_INT) {
+		if ((global_esr &
+		 gr_gpc0_tpc0_sm0_hww_global_esr_bpt_int_pending_f()) != 0U) {
+			ret = true;
+		}
+	}
+
+	if (bpt_event == NVGPU_EVENT_ID_BPT_PAUSE) {
+		if ((global_esr &
+		 gr_gpc0_tpc0_sm0_hww_global_esr_bpt_pause_pending_f()) != 0U) {
+			ret = true;
+		}
+	}
+
+	return ret;
+}

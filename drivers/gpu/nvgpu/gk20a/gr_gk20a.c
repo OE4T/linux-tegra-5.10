@@ -492,8 +492,8 @@ int gr_gk20a_handle_sm_exception(struct gk20a *g, u32 gpc, u32 tpc, u32 sm,
 	 *
 	 * Do not disable exceptions if the only SM exception is BPT_INT
 	 */
-	if ((global_esr == gr_gpc0_tpc0_sm_hww_global_esr_bpt_int_pending_f())
-			&& (warp_esr == 0U)) {
+	if ((g->ops.gr.esr_bpt_pending_events(global_esr,
+			NVGPU_EVENT_ID_BPT_INT)) && (warp_esr == 0U)) {
 		disable_sm_exceptions = false;
 	}
 
@@ -535,20 +535,18 @@ void gk20a_gr_get_esr_sm_sel(struct gk20a *g, u32 gpc, u32 tpc,
 	*esr_sm_sel = 1;
 }
 
-static int gk20a_gr_post_bpt_events(struct gk20a *g, struct tsg_gk20a *tsg,
+void gr_intr_post_bpt_events(struct gk20a *g, struct tsg_gk20a *tsg,
 				    u32 global_esr)
 {
-	if ((global_esr &
-	     gr_gpc0_tpc0_sm_hww_global_esr_bpt_int_pending_f()) != 0U) {
+	if (g->ops.gr.esr_bpt_pending_events(global_esr,
+						NVGPU_EVENT_ID_BPT_INT)) {
 		g->ops.tsg.post_event_id(tsg, NVGPU_EVENT_ID_BPT_INT);
 	}
 
-	if ((global_esr &
-	     gr_gpc0_tpc0_sm_hww_global_esr_bpt_pause_pending_f()) != 0U) {
+	if (g->ops.gr.esr_bpt_pending_events(global_esr,
+						NVGPU_EVENT_ID_BPT_PAUSE)) {
 		g->ops.tsg.post_event_id(tsg, NVGPU_EVENT_ID_BPT_PAUSE);
 	}
-
-	return 0;
 }
 
 int gk20a_gr_isr(struct gk20a *g)
@@ -736,7 +734,7 @@ int gk20a_gr_isr(struct gk20a *g)
 
 	/* Posting of BPT events should be the last thing in this function */
 	if ((global_esr != 0U) && (tsg != NULL) && (need_reset == false)) {
-		gk20a_gr_post_bpt_events(g, tsg, global_esr);
+		gr_intr_post_bpt_events(g, tsg, global_esr);
 	}
 
 	if (ch != NULL) {

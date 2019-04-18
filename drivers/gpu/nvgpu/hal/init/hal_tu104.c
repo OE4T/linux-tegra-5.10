@@ -472,6 +472,7 @@ static const struct gpu_ops tu104_ops = {
 		.set_debug_mode = gm20b_gr_set_debug_mode,
 		.log_mme_exception = gr_tu104_log_mme_exception,
 		.reset = nvgpu_gr_reset,
+		.esr_bpt_pending_events = gv11b_gr_esr_bpt_pending_events,
 		.ecc = {
 			.detect = NULL,
 			.init = tu104_ecc_init,

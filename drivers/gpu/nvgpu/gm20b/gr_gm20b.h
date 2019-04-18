@@ -28,8 +28,6 @@
 struct gk20a;
 struct nvgpu_warpstate;
 
-
-
 #define NVB197_SET_ALPHA_CIRCULAR_BUFFER_SIZE	0x02dc
 #define NVB197_SET_CIRCULAR_BUFFER_SIZE		0x1280
 #define NVB197_SET_SHADER_EXCEPTIONS		0x1528
@@ -76,4 +74,5 @@ void gm20b_gr_clear_sm_hww(struct gk20a *g, u32 gpc, u32 tpc, u32 sm,
 			u32 global_esr);
 u32 gr_gm20b_get_pmm_per_chiplet_offset(void);
 void gm20b_gr_set_debug_mode(struct gk20a *g, bool enable);
+bool gm20b_gr_esr_bpt_pending_events(u32 global_esr, u32 bpt_event);
 #endif /* NVGPU_GM20B_GR_GM20B_H */
