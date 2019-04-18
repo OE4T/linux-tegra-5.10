@@ -47,6 +47,7 @@ enum atomic_op {
 	op_dec_and_test,
 	op_sub_and_test,
 	op_add_unless,
+	op_cmpxchg,
 };
 struct atomic_test_args {
 	enum atomic_op op;
@@ -558,6 +559,19 @@ static int test_atomic_arithmetic(struct unit_module *m,
 	return UNIT_SUCCESS;
 }
 
+static void cmpxchg_inc(enum atomic_type type, struct atomic_struct *ref)
+{
+	bool done = false;
+	long old;
+
+	while (!done) {
+		old = func_read(type, ref);
+		if (old == func_cmpxchg(type, ref, old, old + 1)) {
+			done = true;
+		}
+	}
+}
+
 /*
  * Support function that runs in the threads for the arithmetic threaded
  * test below
@@ -570,7 +584,10 @@ static void *arithmetic_thread(void *__args)
 	pthread_barrier_wait(&thread_barrier);
 
 	for (i = 0; i < targs->margs->loop_count; i++) {
-		if (targs->margs->op == op_inc) {
+		if (targs->margs->op == op_cmpxchg) {
+			/* special case with special function */
+			cmpxchg_inc(targs->margs->type, targs->atomic);
+		} else if (targs->margs->op == op_inc) {
 			func_inc(targs->margs->type, targs->atomic);
 		} else if (targs->margs->op == op_dec) {
 			func_dec(targs->margs->type, targs->atomic);
@@ -750,6 +767,7 @@ static int test_atomic_arithmetic_threaded(struct unit_module *m,
 		case op_sub:
 		case op_inc:
 		case op_dec:
+		case op_cmpxchg:
 			expected_val = args->start_val +
 				(args->loop_count * num_threads *
 					ATOMIC_OP_SIGN(args->op) * args->value);
@@ -797,7 +815,13 @@ static int test_atomic_arithmetic_threaded(struct unit_module *m,
 
 exit:
 	pthread_barrier_destroy(&thread_barrier);
-	return ret;
+
+	if (args->type == NOT_ATOMIC) {
+		/* For the non-atomics, pass is fail and fail is pass */
+		return INVERTED_RESULT(ret);
+	} else {
+		return ret;
+	}
 }
 
 /*
@@ -1386,20 +1410,26 @@ static struct atomic_test_args sub_and_test_64_arg = {
 	.repeat_count = 5000, /* for threaded test */
 };
 struct atomic_test_args xchg_not_atomic_arg = {
+	.op = op_cmpxchg,
 	.type = NOT_ATOMIC,
 	.start_val = 1,
+	.value = 1,
 	.loop_count = 10000,
-	.repeat_count = 2000, /* for threaded test */
+	.repeat_count = 10000, /* for threaded test */
 };
 struct atomic_test_args xchg_32_arg = {
+	.op = op_cmpxchg,
 	.type = ATOMIC_32,
 	.start_val = 1,
+	.value = 1,
 	.loop_count = 10000,
-	.repeat_count = 2000, /* for threaded test */
+	.repeat_count = 10000, /* for threaded test */
 };
 struct atomic_test_args xchg_64_arg = {
+	.op = op_cmpxchg,
 	.type = ATOMIC_64,
 	.start_val = INT_MAX,
+	.value = 1,
 	.loop_count = 10000,
 	.repeat_count = 2000, /* for threaded test */
 };
@@ -1452,6 +1482,9 @@ struct unit_module_test atomic_tests[] = {
 	UNIT_TEST(atomic_add_64_threaded,			test_atomic_arithmetic_threaded,		&add_64_arg, 0),
 	UNIT_TEST(atomic_sub_32_threaded,			test_atomic_arithmetic_threaded,		&sub_32_arg, 0),
 	UNIT_TEST(atomic_sub_64_threaded,			test_atomic_arithmetic_threaded,		&sub_64_arg, 0),
+	UNIT_TEST(atomic_cmpxchg_not_atomic_threaded,		test_atomic_arithmetic_threaded,		&xchg_not_atomic_arg, 0),
+	UNIT_TEST(atomic_cmpxchg_32_threaded,			test_atomic_arithmetic_threaded,		&xchg_32_arg, 0),
+	UNIT_TEST(atomic_cmpxchg_64_threaded,			test_atomic_arithmetic_threaded,		&xchg_64_arg, 0),
 
 	/* Level 1 tests */
 	UNIT_TEST(atomic_inc_and_test_not_atomic_threaded,	test_atomic_arithmetic_and_test_threaded,	&inc_and_test_not_atomic_arg, 1),

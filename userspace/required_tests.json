@@ -45,7 +45,22 @@
         "unit": "atomic"
     },
     {
+        "test": "atomic_cmpxchg_32_threaded",
+        "test_level": 0,
+        "unit": "atomic"
+    },
+    {
         "test": "atomic_cmpxchg_64",
+        "test_level": 0,
+        "unit": "atomic"
+    },
+    {
+        "test": "atomic_cmpxchg_64_threaded",
+        "test_level": 0,
+        "unit": "atomic"
+    },
+    {
+        "test": "atomic_cmpxchg_not_atomic_threaded",
         "test_level": 0,
         "unit": "atomic"
     },
