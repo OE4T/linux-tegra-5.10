@@ -572,7 +572,7 @@ const char *gk20a_fifo_interleave_level_name(u32 interleave_level)
 	return ret_string;
 }
 
-void gk20a_fifo_set_runlist_state(struct gk20a *g, u32 runlists_mask,
+void nvgpu_fifo_runlist_set_state(struct gk20a *g, u32 runlists_mask,
 		u32 runlist_state)
 {
 	u32 token = PMU_INVALID_MUTEX_OWNER_ID;
@@ -773,4 +773,52 @@ clean_up_runlist:
 	nvgpu_runlist_cleanup_sw(g);
 	nvgpu_log_fn(g, "fail");
 	return err;
+}
+
+u32 nvgpu_fifo_get_runlists_mask(struct gk20a *g, u32 id,
+	unsigned int id_type, u32 act_eng_bitmask, u32 pbdma_bitmask)
+{
+	u32 i, runlists_mask = 0;
+	struct fifo_gk20a *f = &g->fifo;
+	struct fifo_runlist_info_gk20a *runlist;
+
+	/* engine and/or pbdma ids are known */
+	if (act_eng_bitmask != 0U || pbdma_bitmask != 0U) {
+		for (i = 0U; i < f->num_runlists; i++) {
+			runlist = &f->active_runlist_info[i];
+
+			if ((runlist->eng_bitmask & act_eng_bitmask) != 0U) {
+				runlists_mask |= BIT32(runlist->runlist_id);
+			}
+
+			if ((runlist->pbdma_bitmask & pbdma_bitmask) != 0U) {
+				runlists_mask |= BIT32(runlist->runlist_id);
+			}
+		}
+	}
+
+	if (id_type != ID_TYPE_UNKNOWN) {
+		if (id_type == ID_TYPE_TSG) {
+			runlists_mask |= BIT32(f->tsg[id].runlist_id);
+		} else {
+			runlists_mask |= BIT32(f->channel[id].runlist_id);
+		}
+	} else {
+		if (act_eng_bitmask == 0U && pbdma_bitmask == 0U) {
+			nvgpu_log(g, gpu_dbg_info, "id_type_unknown, engine "
+				"and pbdma ids are unknown");
+
+			for (i = 0U; i < f->num_runlists; i++) {
+				runlist = &f->active_runlist_info[i];
+
+				runlists_mask |= BIT32(runlist->runlist_id);
+			}
+		} else {
+			nvgpu_log(g, gpu_dbg_info, "id_type_unknown, engine "
+				"and/or pbdma ids are known");
+		}
+	}
+
+	nvgpu_log(g, gpu_dbg_info, "runlists_mask = 0x%08x", runlists_mask);
+	return runlists_mask;
 }

@@ -65,59 +65,6 @@
 #include "fifo_gv11b.h"
 #include "gr_gv11b.h"
 
-static u32 gv11b_fifo_get_runlists_mask(struct gk20a *g, u32 act_eng_bitmask,
-			u32 id, unsigned int id_type, unsigned int rc_type,
-			 struct mmu_fault_info *mmfault)
-{
-	u32 runlists_mask = 0;
-	struct fifo_gk20a *f = &g->fifo;
-	struct fifo_runlist_info_gk20a *runlist;
-	u32 i, pbdma_bitmask = 0;
-
-	if (id_type != ID_TYPE_UNKNOWN) {
-		if (id_type == ID_TYPE_TSG) {
-			runlists_mask |= BIT32(f->tsg[id].runlist_id);
-		} else {
-			runlists_mask |= BIT32(f->channel[id].runlist_id);
-		}
-	}
-
-	if ((rc_type == RC_TYPE_MMU_FAULT) && (mmfault != NULL)) {
-		if (mmfault->faulted_pbdma != INVAL_ID) {
-			pbdma_bitmask = BIT32(mmfault->faulted_pbdma);
-		}
-
-		for (i = 0U; i < f->num_runlists; i++) {
-			runlist = &f->active_runlist_info[i];
-
-			if ((runlist->eng_bitmask & act_eng_bitmask) != 0U) {
-				runlists_mask |= BIT32(runlist->runlist_id);
-			}
-
-			if ((runlist->pbdma_bitmask & pbdma_bitmask) != 0U) {
-				runlists_mask |= BIT32(runlist->runlist_id);
-			}
-		}
-	}
-
-	if (id_type == ID_TYPE_UNKNOWN) {
-		for (i = 0U; i < f->num_runlists; i++) {
-			runlist = &f->active_runlist_info[i];
-
-			if (act_eng_bitmask != 0U) {
-				/* eng ids are known */
-				if ((runlist->eng_bitmask & act_eng_bitmask) != 0U) {
-					runlists_mask |= BIT32(runlist->runlist_id);
-				}
-			} else {
-				runlists_mask |= BIT32(runlist->runlist_id);
-			}
-		}
-	}
-	nvgpu_log(g, gpu_dbg_info, "runlists_mask = 0x%08x", runlists_mask);
-	return runlists_mask;
-}
-
 static void gv11b_fifo_locked_abort_runlist_active_tsgs(struct gk20a *g,
 			unsigned int rc_type,
 			u32 runlists_mask)
@@ -209,6 +156,7 @@ void gv11b_fifo_teardown_ch_tsg(struct gk20a *g, u32 act_eng_bitmask,
 	struct tsg_gk20a *tsg = NULL;
 	u32 runlists_mask, i;
 	unsigned long bit;
+	u32 pbdma_bitmask = 0U;
 	struct fifo_runlist_info_gk20a *runlist = NULL;
 	u32 engine_id;
 	u32 client_type = ~U32(0U);
@@ -278,11 +226,16 @@ void gv11b_fifo_teardown_ch_tsg(struct gk20a *g, u32 act_eng_bitmask,
 			"act_eng_bitmask = 0x%x, mmfault ptr = 0x%p",
 			 id, id_type, rc_type, act_eng_bitmask, mmfault);
 
-	runlists_mask =  gv11b_fifo_get_runlists_mask(g, act_eng_bitmask, id,
-					 id_type, rc_type, mmfault);
+	if (rc_type == RC_TYPE_MMU_FAULT && mmfault != NULL) {
+		if (mmfault->faulted_pbdma != INVAL_ID) {
+			pbdma_bitmask = BIT32(mmfault->faulted_pbdma);
+		}
+	}
+	runlists_mask = nvgpu_fifo_get_runlists_mask(g, id, id_type,
+				act_eng_bitmask, pbdma_bitmask);
 
 	/* Disable runlist scheduler */
-	gk20a_fifo_set_runlist_state(g, runlists_mask, RUNLIST_DISABLED);
+	nvgpu_fifo_runlist_set_state(g, runlists_mask, RUNLIST_DISABLED);
 
 	if (nvgpu_cg_pg_disable(g) != 0) {
 		nvgpu_warn(g, "fail to disable power mgmt");
@@ -376,7 +329,7 @@ void gv11b_fifo_teardown_ch_tsg(struct gk20a *g, u32 act_eng_bitmask,
 			runlists_mask);
 	}
 
-	gk20a_fifo_set_runlist_state(g, runlists_mask, RUNLIST_ENABLED);
+	nvgpu_fifo_runlist_set_state(g, runlists_mask, RUNLIST_ENABLED);
 
 	if (nvgpu_cg_pg_enable(g) != 0) {
 		nvgpu_warn(g, "fail to enable power mgmt");

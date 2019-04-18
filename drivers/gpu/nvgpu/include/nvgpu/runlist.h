@@ -54,7 +54,7 @@ int nvgpu_runlist_reload_ids(struct gk20a *g, u32 runlist_ids, bool add);
 
 const char *gk20a_fifo_interleave_level_name(u32 interleave_level);
 
-void gk20a_fifo_set_runlist_state(struct gk20a *g, u32 runlists_mask,
+void nvgpu_fifo_runlist_set_state(struct gk20a *g, u32 runlists_mask,
 		 u32 runlist_state);
 
 int nvgpu_runlist_setup_sw(struct gk20a *g);
@@ -63,4 +63,6 @@ void nvgpu_runlist_cleanup_sw(struct gk20a *g);
 void nvgpu_fifo_lock_active_runlists(struct gk20a *g);
 void nvgpu_fifo_unlock_active_runlists(struct gk20a *g);
 
+u32 nvgpu_fifo_get_runlists_mask(struct gk20a *g, u32 id,
+	unsigned int id_type, u32 act_eng_bitmask, u32 pbdma_bitmask);
 #endif /* NVGPU_RUNLIST_H */
