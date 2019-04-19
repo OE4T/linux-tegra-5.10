@@ -244,7 +244,6 @@ srcs += common/sim/sim.c \
 	gk20a/gr_gk20a.c \
 	gk20a/mm_gk20a.c \
 	gm20b/gr_gm20b.c \
-	gm20b/clk_gm20b.c \
 	gm20b/mm_gm20b.c \
 	gp10b/gr_gp10b.c  \
 	gp10b/mm_gp10b.c \
@@ -256,7 +255,6 @@ srcs += common/sim/sim.c \
 	gv100/bios_gv100.c \
 	gv100/fifo_gv100.c \
 	gv100/gr_gv100.c \
-	gv100/clk_gv100.c \
 	tu104/bios_tu104.c \
 	tu104/fbpa_tu104.c \
 	tu104/fifo_tu104.c \
@@ -279,6 +277,8 @@ srcs += common/sim/sim.c \
 	hal/class/class_gp10b.c \
 	hal/class/class_gv11b.c \
 	hal/class/class_tu104.c \
+	hal/clk/clk_gm20b.c \
+	hal/clk/clk_gv100.c \
 	hal/gr/ecc/ecc_gp10b.c \
 	hal/gr/ecc/ecc_gv11b.c \
 	hal/gr/ecc/ecc_tu104.c \

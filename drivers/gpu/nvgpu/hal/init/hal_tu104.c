@@ -147,7 +147,7 @@
 #include "gm20b/gr_gm20b.h"
 #include "gm20b/mm_gm20b.h"
 
-#include "gv100/clk_gv100.h"
+#include "hal/clk/clk_gv100.h"
 
 
 #include "gp10b/gr_gp10b.h"

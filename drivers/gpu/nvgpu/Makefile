@@ -166,6 +166,8 @@ nvgpu-y += \
 	hal/class/class_gp10b.o \
 	hal/class/class_gv11b.o \
 	hal/class/class_tu104.o \
+	hal/clk/clk_gm20b.o \
+	hal/clk/clk_gv100.o \
 	hal/gr/ecc/ecc_gp10b.o \
 	hal/gr/ecc/ecc_gv11b.o \
 	hal/gr/ecc/ecc_tu104.o \
@@ -507,7 +509,6 @@ nvgpu-y += \
 	gk20a/gr_gk20a.o \
 	gk20a/mm_gk20a.o \
 	gm20b/gr_gm20b.o \
-	gm20b/clk_gm20b.o \
 	gm20b/mm_gm20b.o
 
 nvgpu-$(CONFIG_GK20A_VIDMEM) += \
@@ -562,7 +563,6 @@ nvgpu-y += \
 	gv100/bios_gv100.o \
 	gv100/fifo_gv100.o \
 	gv100/gr_gv100.o \
-	gv100/clk_gv100.o \
 	tu104/mm_tu104.o \
 	tu104/fifo_tu104.o \
 	tu104/gr_tu104.o \

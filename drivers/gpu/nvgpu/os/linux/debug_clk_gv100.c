@@ -28,7 +28,7 @@
 #include <nvgpu/pmu/clk/clk_fll.h>
 #include <nvgpu/pmu/clk/clk.h>
 
-#include "gv100/clk_gv100.h"
+#include "hal/clk/clk_gv100.h"
 #include "common/pmu/clk/clk_freq_controller.h"
 
 void nvgpu_clk_arb_pstate_change_lock(struct gk20a *g, bool lock);

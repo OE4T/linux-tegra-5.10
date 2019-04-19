@@ -47,7 +47,7 @@
 #include <nvgpu/pmu/pmu_perfmon.h>
 #include <nvgpu/linux/dma.h>
 
-#include "gm20b/clk_gm20b.h"
+#include "hal/clk/clk_gm20b.h"
 
 #include "scale.h"
 #include "platform_gk20a.h"

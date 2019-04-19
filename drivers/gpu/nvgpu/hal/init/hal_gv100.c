@@ -148,7 +148,7 @@
 #include "gv100/fifo_gv100.h"
 #include "gv100/gr_gv100.h"
 #include "gv100/mm_gv100.h"
-#include "gv100/clk_gv100.h"
+#include "hal/clk/clk_gv100.h"
 
 #include <nvgpu/ptimer.h>
 #include <nvgpu/class.h>

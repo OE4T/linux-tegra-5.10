@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017-2018 NVIDIA Corporation.  All rights reserved.
+ * Copyright (C) 2017-2019 NVIDIA Corporation.  All rights reserved.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -19,7 +19,7 @@
 #include <nvgpu/io.h>
 #include <nvgpu/clk_arb.h>
 
-#include "gm20b/clk_gm20b.h"
+#include "hal/clk/clk_gm20b.h"
 #include "os_linux.h"
 #include "platform_gk20a.h"
 

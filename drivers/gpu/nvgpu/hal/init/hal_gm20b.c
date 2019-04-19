@@ -85,6 +85,7 @@
 #include "hal/falcon/falcon_gk20a.h"
 #include "hal/perf/perf_gm20b.h"
 #include "hal/netlist/netlist_gm20b.h"
+#include "hal/clk/clk_gm20b.h"
 
 #include "common/top/top_gm20b.h"
 #include "common/sync/syncpt_cmdbuf_gk20a.h"
@@ -95,7 +96,6 @@
 
 #include "gm20b/gr_gm20b.h"
 #include "gm20b/mm_gm20b.h"
-#include "gm20b/clk_gm20b.h"
 #include "hal_gm20b.h"
 
 #include <nvgpu/hw/gm20b/hw_proj_gm20b.h>
