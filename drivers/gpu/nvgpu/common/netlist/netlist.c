@@ -612,6 +612,26 @@ u32 nvgpu_netlist_get_gpccs_data_count(struct gk20a *g)
 	return g->netlist_vars->ucode.gpccs.data.count;
 }
 
+void nvgpu_netlist_set_fecs_inst_count(struct gk20a *g, u32 count)
+{
+	g->netlist_vars->ucode.fecs.inst.count = count;
+}
+
+void nvgpu_netlist_set_fecs_data_count(struct gk20a *g, u32 count)
+{
+	g->netlist_vars->ucode.fecs.data.count = count;
+}
+
+void nvgpu_netlist_set_gpccs_inst_count(struct gk20a *g, u32 count)
+{
+	g->netlist_vars->ucode.gpccs.inst.count = count;
+}
+
+void nvgpu_netlist_set_gpccs_data_count(struct gk20a *g, u32 count)
+{
+	g->netlist_vars->ucode.gpccs.data.count = count;
+}
+
 u32 *nvgpu_netlist_get_fecs_inst_list(struct gk20a *g)
 {
 	return g->netlist_vars->ucode.fecs.inst.l;
@@ -630,6 +650,26 @@ u32 *nvgpu_netlist_get_gpccs_inst_list(struct gk20a *g)
 u32 *nvgpu_netlist_get_gpccs_data_list(struct gk20a *g)
 {
 	return g->netlist_vars->ucode.gpccs.data.l;
+}
+
+struct netlist_u32_list *nvgpu_netlist_get_fecs_inst(struct gk20a *g)
+{
+	return &g->netlist_vars->ucode.fecs.inst;
+}
+
+struct netlist_u32_list *nvgpu_netlist_get_fecs_data(struct gk20a *g)
+{
+	return &g->netlist_vars->ucode.fecs.data;
+}
+
+struct netlist_u32_list *nvgpu_netlist_get_gpccs_inst(struct gk20a *g)
+{
+	return &g->netlist_vars->ucode.gpccs.inst;
+}
+
+struct netlist_u32_list *nvgpu_netlist_get_gpccs_data(struct gk20a *g)
+{
+	return &g->netlist_vars->ucode.gpccs.data;
 }
 
 struct netlist_aiv_list *nvgpu_netlist_get_sys_ctxsw_regs(struct gk20a *g)
@@ -743,4 +783,19 @@ struct netlist_aiv_list *nvgpu_netlist_get_etpc_ctxsw_regs(struct gk20a *g)
 struct netlist_aiv_list *nvgpu_netlist_get_pm_cau_ctxsw_regs(struct gk20a *g)
 {
 	return &g->netlist_vars->ctxsw_regs.pm_cau;
+}
+
+void nvgpu_netlist_vars_set_dynamic(struct gk20a *g, bool set)
+{
+	g->netlist_vars->dynamic = set;
+}
+
+void nvgpu_netlist_vars_set_buffer_size(struct gk20a *g, u32 size)
+{
+	g->netlist_vars->buffer_size = size;
+}
+
+void nvgpu_netlist_vars_set_regs_base_index(struct gk20a *g, u32 index)
+{
+	g->netlist_vars->regs_base_index = index;
 }
