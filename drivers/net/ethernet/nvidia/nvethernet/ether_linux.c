@@ -997,6 +997,59 @@ static int ether_close(struct net_device *dev)
 }
 
 /**
+ *	ether_handle_tso - Helper func to check if TSO is used in given skb.
+ *	@tx_pkt_cx: Pointer to packet context information structure.
+ *	@skb: socket buffer.
+ *
+ *	Algorithm:
+ *	1) Check if driver received a TSO/LSO/GSO packet
+ *	2) If so, store the packet details like MSS(Maximum Segment Size),
+ *	packet header length, packet payload length, tcp/udp header length.
+ *
+ *	Dependencies: None.
+ *
+ *	Protection: None.
+ *
+ *	Return: 0 - Not a TSO packet, 1 - success, -ve value - failure.
+ */
+static int ether_handle_tso(struct osi_tx_pkt_cx *tx_pkt_cx,
+			    struct sk_buff *skb)
+{
+	int ret = 1;
+
+	if (skb_is_gso(skb) == 0) {
+		return 0;
+	}
+
+	if (skb_header_cloned(skb)) {
+		ret = pskb_expand_head(skb, 0, 0, GFP_ATOMIC);
+		if (ret) {
+			return ret;
+		}
+	}
+
+	/* Start filling packet details in Tx_pkt_cx */
+	if (skb_shinfo(skb)->gso_type & (SKB_GSO_UDP)) {
+		tx_pkt_cx->tcp_udp_hdrlen = sizeof(struct udphdr);
+		tx_pkt_cx->mss = skb_shinfo(skb)->gso_size -
+			sizeof(struct udphdr);
+	} else {
+		tx_pkt_cx->tcp_udp_hdrlen = tcp_hdrlen(skb);
+		tx_pkt_cx->mss = skb_shinfo(skb)->gso_size;
+	}
+	tx_pkt_cx->total_hdrlen = skb_transport_offset(skb) +
+			tx_pkt_cx->tcp_udp_hdrlen;
+	tx_pkt_cx->payload_len = (skb->len - tx_pkt_cx->total_hdrlen);
+
+	netdev_dbg(skb->dev, "mss           =%u\n", tx_pkt_cx->mss);
+	netdev_dbg(skb->dev, "payload_len   =%u\n", tx_pkt_cx->payload_len);
+	netdev_dbg(skb->dev, "tcp_udp_hdrlen=%u\n", tx_pkt_cx->tcp_udp_hdrlen);
+	netdev_dbg(skb->dev, "total_hdrlen  =%u\n", tx_pkt_cx->total_hdrlen);
+
+	return ret;
+}
+
+/**
  *	ether_tx_swcx_alloc - Tx ring software context allocation.
  *	@dev: device instance associated with driver.
  *	@tx_ring: Tx ring instance associated with channel number.
@@ -1020,16 +1073,39 @@ static int ether_tx_swcx_alloc(struct device *dev,
 	struct osi_tx_pkt_cx *tx_pkt_cx = &tx_ring->tx_pkt_cx;
 	unsigned int cur_tx_idx = tx_ring->cur_tx_idx;
 	struct osi_tx_swcx *tx_swcx = NULL;
-	unsigned int len = 0;
-	int cnt = 0;
+	unsigned int len = 0, offset = 0, size = 0;
+	int cnt = 0, ret = 0, i, num_frags;
+	struct skb_frag_struct *frag;
+	unsigned int page_idx, page_offset;
+	unsigned int max_data_len_per_txd = (unsigned int)
+		ETHER_MAX_DATA_LEN_PER_TXD_BUF; // 4KB
 
 	memset(tx_pkt_cx, 0, sizeof(*tx_pkt_cx));
+
+	ret = ether_handle_tso(tx_pkt_cx, skb);
+	if (unlikely(ret < 0)) {
+		dev_err(dev, "Unable to handle TSO packet (%d)\n", ret);
+		/* Caller will take care of consuming skb */
+		return ret;
+	}
+
+	if (ret == 0) {
+		dev_dbg(dev, "Not a TSO packet\n");
+		if (skb->ip_summed == CHECKSUM_PARTIAL) {
+			tx_pkt_cx->flags |= OSI_PKT_CX_CSUM;
+		}
+	} else {
+		tx_pkt_cx->flags |= OSI_PKT_CX_TSO;
+	}
 
 	if (unlikely(skb_vlan_tag_present(skb))) {
 		tx_pkt_cx->vtag_id = skb_vlan_tag_get(skb);
 		tx_pkt_cx->vtag_id |= (skb->priority << VLAN_PRIO_SHIFT);
-		tx_pkt_cx->flags = OSI_PKT_CX_VLAN;
+		tx_pkt_cx->flags |= OSI_PKT_CX_VLAN;
+	}
 
+	if (((tx_pkt_cx->flags & OSI_PKT_CX_VLAN) == OSI_PKT_CX_VLAN) ||
+	    ((tx_pkt_cx->flags & OSI_PKT_CX_TSO) == OSI_PKT_CX_TSO)) {
 		tx_swcx = tx_ring->tx_swcx + cur_tx_idx;
 		if (tx_swcx->len) {
 			return 0;
@@ -1040,28 +1116,142 @@ static int ether_tx_swcx_alloc(struct device *dev,
 		INCR_TX_DESC_INDEX(cur_tx_idx, 1U);
 	}
 
-	len = skb_headlen(skb);
-
-	tx_swcx = tx_ring->tx_swcx + cur_tx_idx;
-	if (tx_swcx->len) {
-		return 0;
+	if ((tx_pkt_cx->flags & OSI_PKT_CX_TSO) == OSI_PKT_CX_TSO) {
+		/* For TSO map the header in separate desc. */
+		len = tx_pkt_cx->total_hdrlen;
+	} else {
+		len = skb_headlen(skb);
 	}
 
-	tx_swcx->buf_phy_addr = dma_map_single(dev, skb->data,
-					       len, DMA_TO_DEVICE);
-	if (unlikely(dma_mapping_error(dev, tx_swcx->buf_phy_addr))) {
-		dev_err(dev, "failed to map Tx buffer\n");
-		return -ENOMEM;
+	/* Map the linear buffers from the skb first.
+	 * For TSO only upto TCP header is filled in first desc.
+	 */
+	while (len) {
+		tx_swcx = tx_ring->tx_swcx + cur_tx_idx;
+		if (unlikely(tx_swcx->len)) {
+			goto desc_not_free;
+		}
+
+		size = min(len, max_data_len_per_txd);
+
+		tx_swcx->buf_phy_addr = dma_map_single(dev,
+						skb->data + offset,
+						size,
+						DMA_TO_DEVICE);
+		if (unlikely(dma_mapping_error(dev,
+			     tx_swcx->buf_phy_addr))) {
+			dev_err(dev, "failed to map Tx buffer\n");
+			ret = -ENOMEM;
+			goto dma_map_failed;
+		}
+		tx_swcx->is_paged_buf = 0;
+
+		tx_swcx->len = size;
+		len -= size;
+		offset += size;
+		cnt++;
+		INCR_TX_DESC_INDEX(cur_tx_idx, 1U);
 	}
 
-	tx_swcx->len = len;
+	/* Map remaining payload from linear buffer
+	 * to subsequent descriptors in case of TSO
+	 */
+	if ((tx_pkt_cx->flags & OSI_PKT_CX_TSO) == OSI_PKT_CX_TSO) {
+		len = skb_headlen(skb) - tx_pkt_cx->total_hdrlen;
+		while (len) {
+			tx_swcx = tx_ring->tx_swcx + cur_tx_idx;
+
+			if (unlikely(tx_swcx->len)) {
+				goto desc_not_free;
+			}
+
+			size = min(len, max_data_len_per_txd);
+			tx_swcx->buf_phy_addr = dma_map_single(dev,
+							skb->data + offset,
+							size,
+							DMA_TO_DEVICE);
+			if (unlikely(dma_mapping_error(dev,
+				     tx_swcx->buf_phy_addr))) {
+				dev_err(dev, "failed to map Tx buffer\n");
+				ret = -ENOMEM;
+				goto dma_map_failed;
+			}
+
+			tx_swcx->is_paged_buf = 0;
+			tx_swcx->len = size;
+			len -= size;
+			offset += size;
+			cnt++;
+			INCR_TX_DESC_INDEX(cur_tx_idx, 1U);
+		}
+	}
+
+	/* Process fragmented skb's */
+	num_frags = skb_shinfo(skb)->nr_frags;
+	for (i = 0; i < num_frags; i++) {
+		offset = 0;
+		frag = &skb_shinfo(skb)->frags[i];
+		len = frag->size;
+		while (len) {
+			tx_swcx = tx_ring->tx_swcx + cur_tx_idx;
+
+			if (unlikely(tx_swcx->len)) {
+				goto desc_not_free;
+			}
+
+			size = min(len, max_data_len_per_txd);
+
+			page_idx = (frag->page_offset + offset) >> PAGE_SHIFT;
+			page_offset = (frag->page_offset + offset) & ~PAGE_MASK;
+			tx_swcx->buf_phy_addr = dma_map_page(dev,
+						(frag->page.p + page_idx),
+						page_offset, size,
+						DMA_TO_DEVICE);
+			if (unlikely(dma_mapping_error(dev,
+				     tx_swcx->buf_phy_addr))) {
+				dev_err(dev, "failed to map Tx buffer\n");
+				ret = -ENOMEM;
+				goto dma_map_failed;
+			}
+			tx_swcx->is_paged_buf = 1;
+
+			tx_swcx->len = size;
+			len -= size;
+			offset += size;
+			cnt++;
+			INCR_TX_DESC_INDEX(cur_tx_idx, 1U);
+		}
+	}
+
 	tx_swcx->buf_virt_addr = skb;
-
-	cnt++;
-
 	tx_pkt_cx->desc_cnt = cnt;
 
 	return cnt;
+
+desc_not_free:
+	ret = 0;
+
+dma_map_failed:
+	/* Failed to fill current desc. Rollback previous desc's */
+	while (cnt) {
+		DECR_TX_DESC_INDEX(cur_tx_idx, 1U);
+		tx_swcx = tx_ring->tx_swcx + cur_tx_idx;
+		if (tx_swcx->buf_phy_addr) {
+			if (tx_swcx->is_paged_buf) {
+				dma_unmap_page(dev, tx_swcx->buf_phy_addr,
+					       tx_swcx->len, DMA_TO_DEVICE);
+			} else {
+				dma_unmap_single(dev, tx_swcx->buf_phy_addr,
+						 tx_swcx->len, DMA_TO_DEVICE);
+			}
+			tx_swcx->buf_phy_addr = 0;
+		}
+		tx_swcx->len = 0;
+
+		tx_swcx->is_paged_buf = 0;
+		cnt--;
+	}
+	return ret;
 }
 
 /**
@@ -1129,8 +1319,8 @@ static int ether_start_xmit(struct sk_buff *skb, struct net_device *ndev)
 	count = ether_tx_swcx_alloc(pdata->dev, tx_ring, skb);
 	if (count <= 0) {
 		if (count == 0) {
-			netif_stop_queue(ndev);
-			netdev_err(ndev, "Tx ring is full\n");
+			netif_stop_subqueue(ndev, chan);
+			netdev_err(ndev, "Tx ring[%d] is full\n", chan);
 			return NETDEV_TX_BUSY;
 		}
 		dev_kfree_skb_any(skb);
@@ -1138,6 +1328,11 @@ static int ether_start_xmit(struct sk_buff *skb, struct net_device *ndev)
 	}
 
 	osi_hw_transmit(osi_dma, chan);
+
+	if (ether_avail_txdesc_cnt(tx_ring) < TX_DESC_THRESHOLD) {
+		netif_stop_subqueue(ndev, chan);
+		netdev_dbg(ndev, "Tx ring[%d] insufficient desc.\n", chan);
+	}
 
 	return NETDEV_TX_OK;
 }
@@ -1162,15 +1357,21 @@ static int ether_ioctl(struct net_device *dev, struct ifreq *rq, int cmd)
 {
 	int ret = -EOPNOTSUPP;
 
-	if (!netif_running(dev))
+	if (!dev || !rq) {
 		return -EINVAL;
+	}
+
+	if (!netif_running(dev)) {
+		return -EINVAL;
+	}
 
 	switch (cmd) {
 	case SIOCGMIIPHY:
 	case SIOCGMIIREG:
 	case SIOCSMIIREG:
-		if (!dev->phydev)
+		if (!dev->phydev) {
 			return -EINVAL;
+		}
 
 		/* generic PHY MII ioctl interface */
 		ret = phy_mii_ioctl(dev->phydev, rq, cmd);
@@ -1181,6 +1382,8 @@ static int ether_ioctl(struct net_device *dev, struct ifreq *rq, int cmd)
 		break;
 
 	default:
+		netdev_err(dev, "%s: Unsupported ioctl %d\n",
+			   __func__, cmd);
 		break;
 	}
 
@@ -1255,6 +1458,55 @@ static int ether_change_mtu(struct net_device *ndev, int new_mtu)
 	return 0;
 }
 
+/**
+ *	ether_set_features - Change HW features for the given ndev
+ *	@ndev: Network device structure
+ *	@feat: New features to be updated
+ *
+ *	Algorithm:
+ *	1) Check if HW supports feature requested to be changed
+ *	2) If supported, check the current status of the feature and if it
+ *	needs to be toggled, do so.
+ *
+ *	Dependencies: Ethernet interface needs to be up. Stack will enforce
+ *	the check.
+ *
+ *	Protection: None.
+ *
+ *	Return: 0 - success, negative value - failure.
+ */
+static int ether_set_features(struct net_device *ndev, netdev_features_t feat)
+{
+	int ret = 0;
+	struct ether_priv_data *pdata = netdev_priv(ndev);
+	struct osi_core_priv_data *osi_core = pdata->osi_core;
+	netdev_features_t hw_feat_cur_state = pdata->hw_feat_cur_state;
+
+	if (pdata->hw_feat.rx_coe_sel == 0U) {
+		return ret;
+	}
+
+	if ((feat & NETIF_F_RXCSUM) == NETIF_F_RXCSUM) {
+		if (!(hw_feat_cur_state & NETIF_F_RXCSUM)) {
+			ret = osi_config_rxcsum_offload(osi_core,
+							OSI_ENABLE);
+			dev_info(pdata->dev, "Rx Csum offload: Enable: %s\n",
+				 ret ? "Failed" : "Success");
+			pdata->hw_feat_cur_state |= NETIF_F_RXCSUM;
+		}
+	} else {
+		if ((hw_feat_cur_state & NETIF_F_RXCSUM)) {
+			ret = osi_config_rxcsum_offload(osi_core,
+							OSI_DISABLE);
+			dev_info(pdata->dev, "Rx Csum offload: Disable: %s\n",
+				 ret ? "Failed" : "Success");
+			pdata->hw_feat_cur_state &= ~NETIF_F_RXCSUM;
+		}
+	}
+
+	return ret;
+}
+
 static const struct net_device_ops ether_netdev_ops = {
 	.ndo_open = ether_open,
 	.ndo_stop = ether_close,
@@ -1263,6 +1515,7 @@ static const struct net_device_ops ether_netdev_ops = {
 	.ndo_set_mac_address = ether_set_mac_addr,
 	.ndo_change_mtu = ether_change_mtu,
 	.ndo_select_queue = ether_select_queue,
+	.ndo_set_features = ether_set_features,
 };
 
 /**
@@ -2234,6 +2487,62 @@ static int ether_set_dma_mask(struct ether_priv_data *pdata)
 	return ret;
 }
 
+/**	ether_set_ndev_features - Set the network device feature flags
+ *	@ndev: Network device instance
+ *	@pdata: OS dependent private data structure.
+ *
+ *	Algorithm:
+ *	1) Check the HW features supported
+ *	2) Enable corresponding feature flag so that network subsystem of OS
+ *		is aware of device capabilities.
+ *	3) Update current enable/disable state of features currently enabled
+ *
+ *	Dependencies: Netdev allocated and HW features are already parsed.
+ *
+ *	Protection: None
+ *
+ *	Return: None.
+ */
+static void ether_set_ndev_features(struct net_device *ndev,
+				    struct ether_priv_data *pdata)
+{
+	netdev_features_t features = 0;
+
+	if (pdata->hw_feat.tso_en) {
+		features |= NETIF_F_TSO;
+		features |= NETIF_F_SG;
+	}
+
+	if (pdata->hw_feat.tx_coe_sel) {
+		features |= NETIF_F_IP_CSUM;
+		features |= NETIF_F_IPV6_CSUM;
+	}
+
+	if (pdata->hw_feat.rx_coe_sel) {
+		features |= NETIF_F_RXCSUM;
+	}
+
+	/* GRO is independent of HW features */
+	features |= NETIF_F_GRO;
+
+	if (pdata->hw_feat.sa_vlan_ins) {
+		features |= NETIF_F_HW_VLAN_CTAG_TX;
+	}
+
+	/* Rx VLAN tag detection enabled by default */
+	features |= NETIF_F_HW_VLAN_CTAG_RX;
+
+	/* Features available in HW */
+	ndev->hw_features = features;
+	/* Features that can be changed by user */
+	ndev->features = features;
+	/* Features that can be inherited by vlan devices */
+	ndev->vlan_features = features;
+
+	/* Set current state of features enabled by default in HW */
+	pdata->hw_feat_cur_state = features;
+}
+
 /**
  *	ether_probe - Ethernet platform driver probe.
  *	@pdev:	platform device associated with platform driver.
@@ -2333,6 +2642,9 @@ static int ether_probe(struct platform_device *pdev)
 		goto err_dma_mask;
 	}
 
+	/* Set netdev features based on hw features */
+	ether_set_ndev_features(ndev, pdata);
+
 	ret = osi_get_mac_version(osi_core->base, &osi_core->mac_ver);
 	if (ret < 0) {
 		dev_err(&pdev->dev, "failed to get MAC version (%u)\n",
@@ -2354,13 +2666,6 @@ static int ether_probe(struct platform_device *pdev)
 
 	ndev->netdev_ops = &ether_netdev_ops;
 	ether_set_ethtool_ops(ndev);
-
-	ndev->hw_features |= NETIF_F_HW_VLAN_CTAG_RX;
-	if (pdata->hw_feat.sa_vlan_ins) {
-		ndev->hw_features |= NETIF_F_HW_VLAN_CTAG_TX;
-	}
-
-	ndev->features |= ndev->hw_features;
 
 	ret = ether_alloc_napi(pdata);
 	if (ret < 0) {

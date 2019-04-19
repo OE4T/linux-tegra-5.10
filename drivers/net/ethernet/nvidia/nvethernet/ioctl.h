@@ -17,11 +17,15 @@
 #ifndef IOCTL_H
 #define IOCTL_H
 
+#define NUM_BYTES_IN_IPADDR	4
+#define MAX_IP_ADDR_BYTE	0xFF
 /* Remote wakeup filter */
 #define EQOS_RWK_FILTER_LENGTH	8
+
 /* private ioctl number*/
 #define ETHER_AVB_ALGORITHM	27
 #define ETHER_GET_AVB_ALGORITHM	46
+#define ETHER_CONFIG_ARP_OFFLOAD	36
 
 /**
  *	struct ether_ifr_data - Private data of struct ifreq
@@ -55,6 +59,19 @@ struct ether_ifr_data {
 	int command_error;
 	int test_done;
 	void *ptr;
+};
+
+/**
+ *	struct arp_offload_param - Parameter to support ARP offload.
+ *	@ip_addr: Byte array for decimal representation of IP address.
+ *	For example, 192.168.1.3 is represented as
+ *		ip_addr[0] = '192'
+ *		ip_addr[1] = '168'
+ *		ip_addr[2] = '1'
+ *		ip_addr[3] = '3'
+ */
+struct arp_offload_param {
+	unsigned char ip_addr[NUM_BYTES_IN_IPADDR];
 };
 
 /* Private ioctl handler function */

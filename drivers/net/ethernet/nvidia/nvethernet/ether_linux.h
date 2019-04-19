@@ -29,6 +29,8 @@
 #include <linux/slab.h>
 #include <linux/clk.h>
 #include <linux/err.h>
+#include <linux/tcp.h>
+#include <linux/udp.h>
 #include <linux/of.h>
 
 #include <osi_core.h>
@@ -40,6 +42,34 @@
 #define ETHER_IRQ_NAME_SZ		32
 #define ETHER_QUEUE_PRIO_DEFAULT	0U
 #define ETHER_QUEUE_PRIO_MAX		7U
+
+/* Map max. 4KB buffer per Tx descriptor */
+#define ETHER_MAX_DATA_LEN_PER_TXD_BUF BIT(12)
+
+/* Incase of TSO/GSO, Tx ring needs atmost MAX_SKB_FRAGS +
+ * one context descriptor +
+ * one descriptor for header/linear buffer payload
+ */
+#define TX_DESC_THRESHOLD	(MAX_SKB_FRAGS + 2)
+
+/**
+ *	ether_avail_txdesc_count - Return count of available tx desc.
+ *	@tx_ring: Tx ring instance associated with channel number
+ *
+ *	Algorithm: Check the difference between current desc index
+ *	and the desc. index to be cleaned.
+ *
+ *	Dependencies: MAC needs to be initialized and Tx ring allocated.
+ *
+ *	Protection: None.
+ *
+ *	Return: Number of available descriptors in the given Tx ring.
+ */
+static inline int ether_avail_txdesc_cnt(struct osi_tx_ring *tx_ring)
+{
+	return ((tx_ring->clean_idx - tx_ring->cur_tx_idx - 1) &
+		(TX_DESC_CNT - 1));
+}
 
 /**
  *	struct ether_tx_napi - DMA Transmit Channel NAPI
@@ -100,6 +130,7 @@ struct ether_rx_napi {
  *	@dma_mask:	memory allocation mask
  *	@mac_loopback_mode:	MAC loopback mode
  *	@q_prio:	Array of MTL queue TX priority
+ *	@hw_feat_cur_state:	Current state of features enabled in HW
  */
 struct ether_priv_data {
 	struct osi_core_priv_data *osi_core;
@@ -138,6 +169,7 @@ struct ether_priv_data {
 	int tx_irqs[ETHER_MAX_IRQS];
 	int rx_irqs[ETHER_MAX_IRQS];
 	unsigned long long dma_mask;
+	netdev_features_t hw_feat_cur_state;
 
 	/* for MAC loopback */
 	unsigned int mac_loopback_mode;

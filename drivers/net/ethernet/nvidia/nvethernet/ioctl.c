@@ -109,6 +109,59 @@ static int ether_get_avb_algo(struct net_device *ndev,
 	return ret;
 }
 
+/*
+ *	ether_config_arp_offload - Handle ioctl to enable/disable ARP offload
+ *	@pdata: OS dependent private data structure.
+ *	@ifrd_p: Interface request private data pointer.
+ *
+ *	Algorithm:
+ *	1) Copy the priv data from user space. This includes the IP address
+ *	to be updated in HW.
+ *	2) Check if IP address provided in priv data is valid.
+ *	3) If IP address is valid, invoke OSI API to update HW registers.
+ *
+ *	Dependencies: Interface should be running (enforced by caller).
+ *
+ *	Protection: None.
+ *
+ *	Return: 0 - success, -ve value - failure
+ */
+static int ether_config_arp_offload(struct ether_priv_data *pdata,
+				    struct ether_ifr_data *ifrd_p)
+{
+	int i, ret = -EINVAL;
+	struct arp_offload_param param;
+	/* TODO: Need Spin lock to prevent multiple apps from
+	 * requesting same ioctls to the same MAC instance
+	 */
+	if (!ifrd_p->ptr) {
+		dev_err(pdata->dev, "%s: Invalid data for priv ioctl %d\n",
+			__func__, ifrd_p->ifcmd);
+		return ret;
+	}
+
+	if (copy_from_user(&param, (struct arp_offload_param *)ifrd_p->ptr,
+			   sizeof(struct arp_offload_param))) {
+		dev_err(pdata->dev, "%s: copy_from_user failed\n", __func__);
+		return ret;
+	}
+
+	for (i = 0; i < NUM_BYTES_IN_IPADDR; i++) {
+		if (param.ip_addr[i] > MAX_IP_ADDR_BYTE) {
+			dev_err(pdata->dev, "%s: Invalid IP addr\n", __func__);
+			return ret;
+		}
+	}
+
+	ret = osi_config_arp_offload(pdata->osi_core, ifrd_p->if_flags,
+				     param.ip_addr);
+	dev_err(pdata->dev, "ARP offload: %s : %s\n",
+		ifrd_p->if_flags ? "Enable" : "Disable",
+		ret ? "Failed" : "Success");
+
+	return ret;
+}
+
 /**
  *	ether_priv_ioctl - Handle private IOCTLs
  *	@ndev: network device structure
@@ -145,6 +198,9 @@ int ether_handle_priv_ioctl(struct net_device *ndev,
 		break;
 	case ETHER_GET_AVB_ALGORITHM:
 		ret = ether_get_avb_algo(ndev, &ifdata);
+		break;
+	case ETHER_CONFIG_ARP_OFFLOAD:
+		ret = ether_config_arp_offload(pdata, &ifdata);
 		break;
 	default:
 		break;
