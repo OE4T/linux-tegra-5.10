@@ -43,3 +43,5 @@ osi_configure_txstatus
 osi_config_rx_crc_check
 osi_get_mac_version
 osi_get_hw_features
+osi_config_arp_offload
+osi_config_rxcsum_offload

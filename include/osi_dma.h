@@ -26,8 +26,21 @@
 #include "osi_common.h"
 #include "osi_dma_txrx.h"
 
-#define OSI_PKT_CX_VLAN	OSI_BIT(0)
-#define OSI_PKT_CX_VALID	OSI_BIT(10)
+#define OSI_PKT_CX_VLAN			OSI_BIT(0)
+#define OSI_PKT_CX_VALID		OSI_BIT(10)
+#define OSI_PKT_CX_CSUM			OSI_BIT(1)
+#define OSI_PKT_CX_TSO			OSI_BIT(2)
+
+/* Flag to indicate if buffer programmed in desc. is DMA map'd from
+ * linear/Paged buffer from OS layer.
+ */
+#define OSI_TXDONE_CX_PAGED_BUF		OSI_BIT(0)
+/* Flag to indicate if there was any tx error */
+#define OSI_TXDONE_CX_ERROR		OSI_BIT(1)
+
+/* Checksum offload result flags */
+#define OSI_CHECKSUM_NONE		0x0U
+#define OSI_CHECKSUM_UNNECESSARY	0x1U
 
 /**
  *	struct osi_pkt_err_stats: OSI packet error stats
@@ -88,11 +101,13 @@ struct osi_rx_swcx {
 /**
  *	struct osi_rx_pkt_cx - Received packet context.
  *	@flags: Bit map which holds the features that rx packets supports.
+ *	@rxcsum: Stores the Rx csum
  *	@vlan_tag: Stores the VLAN tag ID in received packet.
  *	@pkt_len: Length of received packet.
  */
 struct osi_rx_pkt_cx {
 	unsigned int flags;
+	unsigned int rxcsum;
 	unsigned int vlan_tag;
 	unsigned int pkt_len;
 };
@@ -116,15 +131,18 @@ struct osi_rx_ring {
 };
 
 /**
- *      struct osi_tx_swcx - Transmit descriptor software context
- *      @buf_phy_addr: Physical address of DMA mapped buffer.
- *      @buf_virt_addr: Virtual address of DMA buffer.
- *      @len: Length of buffer
+ *	struct osi_tx_swcx - Transmit descriptor software context
+ *	@buf_phy_addr: Physical address of DMA mapped buffer.
+ *	@buf_virt_addr: Virtual address of DMA buffer.
+ *	@len: Length of buffer
+ *	@is_paged_buf: Flag to keep track of whether buffer pointed
+ *	by buf_phy_addr is a paged buffer/linear buffer.
  */
 struct osi_tx_swcx {
 	unsigned long buf_phy_addr;
 	void *buf_virt_addr;
 	unsigned int len;
+	unsigned int is_paged_buf;
 };
 
 /**
@@ -146,11 +164,28 @@ struct osi_tx_desc {
  *	@flags: Holds the features which a Tx packets supports.
  *	@vtag_id: Stores the VLAN tag ID.
  *	@desc_cnt: Descriptor count
+ *	@mss: Max. segment size for TSO/USO/GSO/LSO packet
+ *	@payload_len: Length of application payload
+ *	@tcp_udp_hdrlen: Length of transport layer tcp/udp header
+ *	@total_hdrlen: Length of all headers (ethernet/ip/tcp/udp)
  */
 struct osi_tx_pkt_cx {
 	unsigned int flags;
 	unsigned int vtag_id;
 	unsigned int desc_cnt;
+	unsigned int mss;
+	unsigned int payload_len;
+	unsigned int tcp_udp_hdrlen;
+	unsigned int total_hdrlen;
+};
+
+/**
+ *	struct osi_txdone_pkt_cx - Transmit done packet context for a packet
+ *	@flags: Indicates status flags for Tx complete (tx error occured, or
+ *	indicate whether desc. had buf mapped from paged/linear memory etc.)
+ */
+struct osi_txdone_pkt_cx {
+	unsigned int flags;
 };
 
 /**
@@ -161,6 +196,7 @@ struct osi_tx_pkt_cx {
  *	@cur_tx_idx: Descriptor index current transmission.
  *	@clean_idx: Descriptor index for descriptor cleanup.
  *	@tx_pkt_cx: Transmit packet context.
+ *	@txdone_pkt_cx: Transmit complete packet context information.
  */
 struct osi_tx_ring {
 	struct osi_tx_desc *tx_desc;
@@ -169,6 +205,7 @@ struct osi_tx_ring {
 	unsigned int cur_tx_idx;
 	unsigned int clean_idx;
 	struct osi_tx_pkt_cx tx_pkt_cx;
+	struct osi_txdone_pkt_cx txdone_pkt_cx;
 };
 
 struct osi_dma_priv_data;

@@ -41,6 +41,41 @@ static inline void osi_memset(void *s, int c, unsigned long count)
 	}
 }
 
+/**
+ *	get_rx_csum - Get the Rx checksum from descriptor if valid
+ *	@rx_desc: Rx descriptor
+ *	@rx_pkt_cx: Per-Rx packet context structure
+ *
+ *	Algorithm:
+ *	1) Check if the descriptor has any checksum validation errors.
+ *	2) If none, set a per packet context flag indicating no err in
+ *		Rx checksum
+ *	3) The OSD layer will mark the packet appropriately to skip
+ *		IP/TCP/UDP checksum validation in software based on whether
+ *		COE is enabled for the device.
+ *
+ *	Dependencies: None
+ *
+ *	Protection: None
+ *
+ *	Return: None.
+ */
+static inline void get_rx_csum(struct osi_rx_desc *rx_desc,
+			       struct osi_rx_pkt_cx *rx_pkt_cx)
+{
+	/* Always include either checksum none/unnecessary
+	 * depending on status fields in desc.
+	 * Hence no need to explicitly add OSI_PKT_CX_CSUM flag.
+	 */
+	if ((rx_desc->rdes3 & RDES3_RS1V) == RDES3_RS1V) {
+		/* Check if no checksum errors reported in status */
+		if ((rx_desc->rdes1 &
+		    (RDES1_IPCE | RDES1_IPCB | RDES1_IPHE)) == 0U) {
+			rx_pkt_cx->rxcsum |= OSI_CHECKSUM_UNNECESSARY;
+		}
+	}
+}
+
 static inline void get_rx_vlan_from_desc(struct osi_rx_desc *rx_desc,
 					 struct osi_rx_pkt_cx *rx_pkt_cx)
 {
@@ -111,9 +146,8 @@ int osi_process_rx_completions(struct osi_dma_priv_data *osi,
 	struct osi_rx_desc *rx_desc = OSI_NULL;
 	int received = 0;
 
-	osi_memset(rx_pkt_cx, 0, sizeof(*rx_pkt_cx));
-
 	while (received < budget) {
+		osi_memset(rx_pkt_cx, 0, sizeof(*rx_pkt_cx));
 		rx_desc = rx_ring->rx_desc + rx_ring->cur_rx_idx;
 
 		/* check for data availability */
@@ -135,6 +169,10 @@ int osi_process_rx_completions(struct osi_dma_priv_data *osi,
 				rx_pkt_cx->flags &= ~OSI_PKT_CX_VALID;
 				get_rx_err_stats(rx_desc, osi->pkt_err_stats);
 			}
+
+			/* Check if COE Rx checksum is valid */
+			get_rx_csum(rx_desc, rx_pkt_cx);
+
 			get_rx_vlan_from_desc(rx_desc, rx_pkt_cx);
 			osd_receive_packet(osi->osd, rx_ring, chan,
 					   osi->rx_buf_len, rx_pkt_cx);
@@ -307,12 +345,15 @@ int osi_process_tx_completions(struct osi_dma_priv_data *osi,
 			       unsigned int chan)
 {
 	struct osi_tx_ring *tx_ring = osi->tx_ring[chan];
+	struct osi_txdone_pkt_cx *txdone_pkt_cx = &tx_ring->txdone_pkt_cx;
 	struct osi_tx_swcx *tx_swcx = OSI_NULL;
 	struct osi_tx_desc *tx_desc = OSI_NULL;
 	unsigned int entry = tx_ring->clean_idx;
-	int processed = 0, pkt_valid = 1;
+	int processed = 0;
 
 	while (entry != tx_ring->cur_tx_idx) {
+		osi_memset(txdone_pkt_cx, 0, sizeof(*txdone_pkt_cx));
+
 		tx_desc = tx_ring->tx_desc + entry;
 		tx_swcx = tx_ring->tx_swcx + entry;
 
@@ -323,15 +364,19 @@ int osi_process_tx_completions(struct osi_dma_priv_data *osi,
 		/* check for Last Descriptor */
 		if ((tx_desc->tdes3 & TDES3_LD) == TDES3_LD) {
 			if ((tx_desc->tdes3 & TDES3_ES_BITS) != 0U) {
-				pkt_valid = 0;
+				txdone_pkt_cx->flags |= OSI_TXDONE_CX_ERROR;
 				/* fill packet error stats */
 				get_tx_err_stats(tx_desc, osi->pkt_err_stats);
 			}
 		}
 
+		if (tx_swcx->is_paged_buf == 1U) {
+			txdone_pkt_cx->flags |= OSI_TXDONE_CX_PAGED_BUF;
+		}
+
 		osd_transmit_complete(osi->osd, tx_swcx->buf_virt_addr,
 				      tx_swcx->buf_phy_addr, tx_swcx->len,
-				      pkt_valid);
+				      txdone_pkt_cx);
 
 		tx_desc->tdes3 = 0;
 		tx_desc->tdes2 = 0;
@@ -341,13 +386,129 @@ int osi_process_tx_completions(struct osi_dma_priv_data *osi,
 
 		tx_swcx->buf_virt_addr = OSI_NULL;
 		tx_swcx->buf_phy_addr = 0;
+		tx_swcx->is_paged_buf = 0;
 		INCR_TX_DESC_INDEX(entry, 1U);
 		processed++;
+
+		/* Don't wait to update tx_ring->clean-idx. It will
+		 * be used by OSD layer to determine the num. of available
+		 * descriptors in the ring, which will inturn be used to
+		 * wake the corresponding transmit queue in OS layer.
+		 */
+		tx_ring->clean_idx = entry;
 	}
 
-	tx_ring->clean_idx = entry;
-
 	return processed;
+}
+
+/**
+ *	need_cntx_desc - Helper function to check if context desc is needed.
+ *	@tx_pkt_cx: Pointer to transmit packet context structure
+ *	@tx_desc: Pointer to tranmit descriptor to be filled.
+ *
+ *	Algorithm:
+ *	1) Check if transmit packet context flags are set
+ *	2) If set, set the context descriptor bit along
+ *	with other context information in the transmit descriptor.
+ *
+ *	Dependencies: None.
+ *
+ *	Protection: None
+ *
+ *	Return: 0 - cntx desc not used, 1 - cntx desc used.
+ */
+static inline int need_cntx_desc(struct osi_tx_pkt_cx *tx_pkt_cx,
+				 struct osi_tx_desc *tx_desc)
+{
+	int ret = 0;
+
+	if (((tx_pkt_cx->flags & OSI_PKT_CX_VLAN) == OSI_PKT_CX_VLAN) ||
+	    ((tx_pkt_cx->flags & OSI_PKT_CX_TSO) == OSI_PKT_CX_TSO)) {
+		/* Set context type */
+		tx_desc->tdes3 |= TDES3_CTXT;
+
+		if ((tx_pkt_cx->flags & OSI_PKT_CX_VLAN) == OSI_PKT_CX_VLAN) {
+			/* Remove any overflow bits. VT field is 16bit field */
+			tx_pkt_cx->vtag_id &= TDES3_VT_MASK;
+			/* Fill VLAN Tag ID */
+			tx_desc->tdes3 |= tx_pkt_cx->vtag_id;
+			/* Set VLAN TAG Valid */
+			tx_desc->tdes3 |= TDES3_VLTV;
+		}
+
+		if ((tx_pkt_cx->flags & OSI_PKT_CX_TSO) == OSI_PKT_CX_TSO) {
+			/* Remove any overflow bits. MSS is 13bit field */
+			tx_pkt_cx->mss &= TDES2_MSS_MASK;
+			/* Fill MSS */
+			tx_desc->tdes2 |= tx_pkt_cx->mss;
+			/* Set MSS valid */
+			tx_desc->tdes3 |= TDES3_TCMSSV;
+		}
+
+		ret = 1;
+	}
+
+	return ret;
+}
+
+/**
+ *	fill_first_desc - Helper function to fill the first transmit descriptor.
+ *	@tx_pkt_cx: Pointer to transmit packet context structure
+ *	@tx_desc: Pointer to tranmit descriptor to be filled.
+ *	@tx_swcx: Pointer to corresponding tranmit descriptor software context.
+ *
+ *	Algorithm:
+ *	1) Update the buffer address and length of buffer in first desc.
+ *	2) Check if any features like HW checksum offload, TSO, VLAN insertion
+ *	etc. are flagged in transmit packet context. If so, set the fiels in
+ *	first desc corresponding to those features.
+ *
+ *	Dependencies: None.
+ *
+ *	Protection: None
+ *
+ *	Return: None.
+ */
+static inline void fill_first_desc(struct osi_tx_pkt_cx *tx_pkt_cx,
+				   struct osi_tx_desc *tx_desc,
+				   struct osi_tx_swcx *tx_swcx)
+{
+	/* update the first buffer pointer and length */
+	tx_desc->tdes0 = (unsigned int)L32(tx_swcx->buf_phy_addr);
+	tx_desc->tdes1 = (unsigned int)H32(tx_swcx->buf_phy_addr);
+	tx_desc->tdes2 = tx_swcx->len;
+	/* Mark it as First descriptor */
+	tx_desc->tdes3 |= TDES3_FD;
+
+	/* If HW checksum offload enabled, mark CIC bits of FD */
+	if ((tx_pkt_cx->flags & OSI_PKT_CX_CSUM) == OSI_PKT_CX_CSUM) {
+		tx_desc->tdes3 |= TDES3_HW_CIC;
+	}
+
+	/* Enable VTIR in normal descriptor for VLAN packet */
+	if ((tx_pkt_cx->flags & OSI_PKT_CX_VLAN) == OSI_PKT_CX_VLAN) {
+		tx_desc->tdes2 |= TDES2_VTIR;
+	}
+
+	/* Enable TSE bit and update TCP hdr, payload len */
+	if ((tx_pkt_cx->flags & OSI_PKT_CX_TSO) == OSI_PKT_CX_TSO) {
+		tx_desc->tdes3 |= TDES3_TSE;
+
+		/* Minimum value for THL field is 5 for TSO
+		 * So divide L4 hdr len by 4
+		 * Typical TCP hdr len = 20B / 4 = 5
+		 */
+		tx_pkt_cx->tcp_udp_hdrlen /= OSI_TSO_HDR_LEN_DIVISOR;
+		/* Remove any overflow bits. THL field is only 4 bit wide */
+		tx_pkt_cx->tcp_udp_hdrlen &= TDES3_THL_MASK;
+		/* Update hdr len in desc */
+		tx_desc->tdes3 |= (tx_pkt_cx->tcp_udp_hdrlen <<
+				   TDES3_THL_SHIFT);
+		/* Remove any overflow bits. TPL field is 18 bit wide */
+		tx_pkt_cx->payload_len &= TDES3_TPL_MASK;
+		/* Update TCP payload len in desc */
+		tx_desc->tdes3 |= tx_pkt_cx->payload_len;
+	}
 }
 
 /**
@@ -380,16 +541,11 @@ void osi_hw_transmit(struct osi_dma_priv_data *osi, unsigned int chan)
 	struct osi_tx_desc *cx_desc = OSI_NULL;
 	unsigned long tailptr;
 	unsigned int i;
+	int cntx_desc_consumed;
 
-	/* Context decriptor for VLAN */
-	if ((tx_pkt_cx->flags & OSI_PKT_CX_VLAN) == OSI_PKT_CX_VLAN) {
-		/* Set context type */
-		tx_desc->tdes3 |= TDES3_CTXT;
-		/* Fill VLAN Tag ID */
-		tx_desc->tdes3 |= tx_pkt_cx->vtag_id;
-		/* Set VLAN TAG Valid */
-		tx_desc->tdes3 |= TDES3_VLTV;
-
+	/* Context decriptor for VLAN/TSO */
+	cntx_desc_consumed = need_cntx_desc(tx_pkt_cx, tx_desc);
+	if (cntx_desc_consumed == 1) {
 		INCR_TX_DESC_INDEX(entry, 1U);
 
 		/* Storing context descriptor to set DMA_OWN at last */
@@ -399,17 +555,9 @@ void osi_hw_transmit(struct osi_dma_priv_data *osi, unsigned int chan)
 		desc_cnt--;
 	}
 
-	/* update the first buffer pointer and length */
-	tx_desc->tdes0 = (unsigned int)L32(tx_swcx->buf_phy_addr);
-	tx_desc->tdes1 = (unsigned int)H32(tx_swcx->buf_phy_addr);
-	tx_desc->tdes2 = tx_swcx->len;
-	/* Mark it as First descriptor */
-	tx_desc->tdes3 |= TDES3_FD;
+	/* Fill first descriptor */
+	fill_first_desc(tx_pkt_cx, tx_desc, tx_swcx);
 
-	/* Enable VTIR in normal descriptor for VLAN packet */
-	if ((tx_pkt_cx->flags & OSI_PKT_CX_VLAN) == OSI_PKT_CX_VLAN) {
-		tx_desc->tdes2 |= TDES2_VTIR;
-	}
 
 	INCR_TX_DESC_INDEX(entry, 1U);
 
@@ -419,6 +567,7 @@ void osi_hw_transmit(struct osi_dma_priv_data *osi, unsigned int chan)
 	tx_swcx = tx_ring->tx_swcx + entry;
 	desc_cnt--;
 
+	/* Fill remaining descriptors */
 	for (i = 0; i < desc_cnt; i++) {
 		tx_desc->tdes0 = (unsigned int)L32(tx_swcx->buf_phy_addr);
 		tx_desc->tdes1 = (unsigned int)H32(tx_swcx->buf_phy_addr);
@@ -441,7 +590,7 @@ void osi_hw_transmit(struct osi_dma_priv_data *osi, unsigned int chan)
 	 * at the end to avoid race condition
 	 */
 	first_desc->tdes3 |= TDES3_OWN;
-	if ((tx_pkt_cx->flags & OSI_PKT_CX_VLAN) == OSI_PKT_CX_VLAN) {
+	if (cntx_desc_consumed == 1) {
 		cx_desc->tdes3 |= TDES3_OWN;
 	}
 

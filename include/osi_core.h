@@ -72,6 +72,8 @@ struct  osi_core_avb_algorithm {
  *	@config_tx_status: Called to configure the MTL to forward/drop tx status
  *	@config_rx_crc_check: Called to configure the MAC rx crc.
  *	@config_flow_control: Called to configure the MAC flow control.
+ *	@config_arp_offload: Called to enable/disable HW ARP offload feature.
+ *	@config_rxcsum_offload: Called to configure Rx Checksum offload engine.
  */
 struct osi_core_ops {
 	/* initialize MAC/MTL/DMA Common registers */
@@ -98,6 +100,9 @@ struct osi_core_ops {
 	int (*config_tx_status)(void *addr, unsigned int tx_status);
 	int (*config_rx_crc_check)(void *addr, unsigned int crc_chk);
 	int (*config_flow_control)(void *addr, unsigned int flw_ctrl);
+	int (*config_arp_offload)(unsigned int mac_ver, void *addr,
+				  unsigned int enable, unsigned char *ip_addr);
+	int (*config_rxcsum_offload)(void *addr, unsigned int enabled);
 };
 
 /**
@@ -320,8 +325,7 @@ int osi_config_mac_loopback(struct osi_core_priv_data *osi_core,
 int osi_set_avb(struct osi_core_priv_data *osi_core,
 		struct osi_core_avb_algorithm *avb);
 
-/**
- *	osi_get_avb - Set CBS algo and parameters
+/**	osi_get_avb - Get CBS algo and parameters
  *	@osi: OSI core private data structure.
  *	@avb: osi core avb data structure.
  *
@@ -409,6 +413,42 @@ int osi_config_rx_crc_check(struct osi_core_priv_data *osi_core,
  */
 int osi_configure_flow_control(struct osi_core_priv_data *osi_core,
 			       unsigned int flw_ctrl);
+
+/**	osi_config_arp_offload - Configure ARP offload in MAC.
+ *	@osi_core: OSI private data structure.
+ *	@flags: Enable/disable flag.
+ *	@ip_addr: Char array representation of IP address
+ *	to be set in HW to compare with ARP requests received.
+ *
+ *	Algorithm: Invokes EQOS config ARP offload routine.
+ *
+ *	Dependencies: MAC IP should be out of reset and initialized.
+ *	IP address passed to this function is not validated.
+ *	Caller has to perform IP address validation.
+ *
+ *	Protection: None
+ *
+ *	Return: 0 - success, -1 - failure
+ */
+int osi_config_arp_offload(struct osi_core_priv_data *osi_core,
+			   unsigned int flags,
+			   unsigned char *ip_addr);
+
+/*
+ *	osi_config_rxcsum_offload - Configure RX checksum offload in MAC.
+ *	@osi_core: OSI private data structure.
+ *	@enable: Enable/disable flag.
+ *
+ *	Algorithm: Invokes EQOS config RX checksum offload routine.
+ *
+ *	Dependencies: MAC IP should be out of reset and initialized.
+ *
+ *	Protection: None
+ *
+ *	Return: 0 - success, -1 - failure
+ */
+int osi_config_rxcsum_offload(struct osi_core_priv_data *osi_core,
+			      unsigned int enable);
 
 int osi_write_phy_reg(struct osi_core_priv_data *osi_core, unsigned int phyaddr,
 		      unsigned int phyreg, unsigned short phydata);

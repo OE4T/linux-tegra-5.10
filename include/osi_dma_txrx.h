@@ -26,7 +26,10 @@
 #define TX_DESC_CNT	256U
 #define RX_DESC_CNT	256U
 
+#define OSI_TSO_HDR_LEN_DIVISOR	4U
+
 #define INCR_TX_DESC_INDEX(idx, i) ((idx) = ((idx) + (i)) & (TX_DESC_CNT - 1U))
+#define DECR_TX_DESC_INDEX(idx, i) ((idx) = ((idx) - (i)) & (TX_DESC_CNT - 1U))
 #define INCR_RX_DESC_INDEX(idx, i) ((idx) = ((idx) + (i)) & (RX_DESC_CNT - 1U))
 #define DECR_RX_DESC_INDEX(idx, i) ((idx) = ((idx) - (i)) & (RX_DESC_CNT - 1U))
 
@@ -45,17 +48,30 @@
 #define RDES3_LT_VT		OSI_BIT(18)
 #define RDES3_LT_DVT		(OSI_BIT(16) | OSI_BIT(18))
 #define RDES3_RS0V		OSI_BIT(25)
+#define RDES3_RS1V		OSI_BIT(26)
 #define RDES0_OVT		0x0000FFFFU
+
+#define RDES1_IPCE		OSI_BIT(7)
+#define RDES1_IPCB		OSI_BIT(6)
+#define RDES1_IPHE		OSI_BIT(3)
 
 #define RDES3_ES_BITS \
 	(RDES3_ERR_CRC | RDES3_ERR_GP | RDES3_ERR_WD | \
 	RDES3_ERR_ORUN | RDES3_ERR_RE | RDES3_ERR_DRIB)
 
 #define TDES2_IOC		OSI_BIT(31)
+#define TDES2_MSS_MASK		0x3FFFU
 #define TDES3_OWN		OSI_BIT(31)
 #define TDES3_CTXT		OSI_BIT(30)
+#define TDES3_TCMSSV		OSI_BIT(26)
 #define TDES3_FD		OSI_BIT(29)
 #define TDES3_LD		OSI_BIT(28)
+#define TDES3_TSE		OSI_BIT(18)
+#define TDES3_HW_CIC		(OSI_BIT(16) | OSI_BIT(17))
+#define TDES3_VT_MASK		0xFFFFU
+#define TDES3_THL_MASK		0xFU
+#define TDES3_TPL_MASK		0x3FFFFU
+#define TDES3_THL_SHIFT		19U
 #define TDES3_VLTV		OSI_BIT(16)
 
 /* Tx Errors */
