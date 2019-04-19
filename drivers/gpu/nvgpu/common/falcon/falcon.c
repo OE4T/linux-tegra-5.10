@@ -34,21 +34,30 @@
 #define MEM_SCRUBBING_TIMEOUT_MAX 1000
 #define MEM_SCRUBBING_TIMEOUT_DEFAULT 10
 
+static bool is_falcon_valid(struct nvgpu_falcon *flcn)
+{
+	if (flcn == NULL) {
+		return false;
+	}
+
+	if (!flcn->is_falcon_supported) {
+		nvgpu_err(flcn->g, "Falcon %d not supported", flcn->flcn_id);
+		return false;
+	}
+
+	return true;
+}
+
 int nvgpu_falcon_wait_idle(struct nvgpu_falcon *flcn)
 {
 	struct nvgpu_timeout timeout;
 	struct gk20a *g;
 
-	if (flcn == NULL) {
+	if (!is_falcon_valid(flcn)) {
 		return -EINVAL;
 	}
 
 	g = flcn->g;
-
-	if (!flcn->is_falcon_supported) {
-		nvgpu_err(g, "Falcon %d not supported", flcn->flcn_id);
-		return -EINVAL;
-	}
 
 	nvgpu_timeout_init(g, &timeout, 2000, NVGPU_TIMER_RETRY_TIMER);
 
@@ -75,19 +84,14 @@ int nvgpu_falcon_mem_scrub_wait(struct nvgpu_falcon *flcn)
 	struct gk20a *g;
 	int status = 0;
 
-	if (flcn == NULL) {
+	if (!is_falcon_valid(flcn)) {
 		return -EINVAL;
 	}
 
 	g = flcn->g;
 
-	if (!flcn->is_falcon_supported) {
-		nvgpu_err(g, "Falcon %d not supported", flcn->flcn_id);
-		return -EINVAL;
-	}
-
 	/* check IMEM/DMEM scrubbing complete status */
-	nvgpu_timeout_init(flcn->g, &timeout,
+	nvgpu_timeout_init(g, &timeout,
 		MEM_SCRUBBING_TIMEOUT_MAX /
 		MEM_SCRUBBING_TIMEOUT_DEFAULT,
 		NVGPU_TIMER_RETRY_TIMER);
@@ -111,16 +115,11 @@ int nvgpu_falcon_reset(struct nvgpu_falcon *flcn)
 	struct gk20a *g;
 	int status = 0;
 
-	if (flcn == NULL) {
+	if (!is_falcon_valid(flcn)) {
 		return -EINVAL;
 	}
 
 	g = flcn->g;
-
-	if (!flcn->is_falcon_supported) {
-		nvgpu_err(g, "Falcon %d not supported", flcn->flcn_id);
-		return -EINVAL;
-	}
 
 	if (flcn->flcn_engine_dep_ops.reset_eng != NULL) {
 		/* falcon & engine reset */
@@ -141,16 +140,11 @@ void nvgpu_falcon_set_irq(struct nvgpu_falcon *flcn, bool enable,
 {
 	struct gk20a *g;
 
-	if (flcn == NULL) {
+	if (!is_falcon_valid(flcn)) {
 		return;
 	}
 
 	g = flcn->g;
-
-	if (!flcn->is_falcon_supported) {
-		nvgpu_err(g, "Falcon %d not supported", flcn->flcn_id);
-		return;
-	}
 
 	if (!flcn->is_interrupt_enabled) {
 		nvgpu_warn(g, "Interrupt not supported on flcn 0x%x ",
@@ -168,16 +162,11 @@ int nvgpu_falcon_wait_for_halt(struct nvgpu_falcon *flcn, unsigned int timeout)
 	struct gk20a *g;
 	int status = 0;
 
-	if (flcn == NULL) {
+	if (!is_falcon_valid(flcn)) {
 		return -EINVAL;
 	}
 
 	g = flcn->g;
-
-	if (!flcn->is_falcon_supported) {
-		nvgpu_err(g, "Falcon %d not supported", flcn->flcn_id);
-		return -EINVAL;
-	}
 
 	nvgpu_timeout_init(g, &to, timeout, NVGPU_TIMER_CPU_TIMER);
 	do {
@@ -202,16 +191,11 @@ int nvgpu_falcon_clear_halt_intr_status(struct nvgpu_falcon *flcn,
 	struct gk20a *g;
 	int status = 0;
 
-	if (flcn == NULL) {
+	if (!is_falcon_valid(flcn)) {
 		return -EINVAL;
 	}
 
 	g = flcn->g;
-
-	if (!flcn->is_falcon_supported) {
-		nvgpu_err(g, "Falcon %d not supported", flcn->flcn_id);
-		return -EINVAL;
-	}
 
 	nvgpu_timeout_init(g, &to, timeout, NVGPU_TIMER_CPU_TIMER);
 	do {
@@ -236,15 +220,8 @@ int nvgpu_falcon_copy_from_emem(struct nvgpu_falcon *flcn,
 	int status = -EINVAL;
 	struct gk20a *g;
 
-	if (flcn == NULL) {
-		goto exit;
-	}
-
-	g = flcn->g;
-
-	if (!flcn->is_falcon_supported) {
-		nvgpu_err(g, "Falcon %d not supported", flcn->flcn_id);
-		goto exit;
+	if (!is_falcon_valid(flcn)) {
+		return -EINVAL;
 	}
 
 	g = flcn->g;
@@ -271,15 +248,8 @@ int nvgpu_falcon_copy_to_emem(struct nvgpu_falcon *flcn,
 	int status = -EINVAL;
 	struct gk20a *g;
 
-	if (flcn == NULL) {
-		goto exit;
-	}
-
-	g = flcn->g;
-
-	if (!flcn->is_falcon_supported) {
-		nvgpu_err(g, "Falcon %d not supported", flcn->flcn_id);
-		goto exit;
+	if (!is_falcon_valid(flcn)) {
+		return -EINVAL;
 	}
 
 	g = flcn->g;
@@ -346,19 +316,14 @@ int nvgpu_falcon_copy_from_dmem(struct nvgpu_falcon *flcn,
 	int status = -EINVAL;
 	struct gk20a *g;
 
-	if (flcn == NULL) {
-		goto exit;
+	if (!is_falcon_valid(flcn)) {
+		return -EINVAL;
 	}
 
 	g = flcn->g;
 
-	if (!flcn->is_falcon_supported) {
-		nvgpu_err(g, "Falcon %d not supported", flcn->flcn_id);
-		goto exit;
-	}
-
 	if (falcon_memcpy_params_check(flcn, src, size, MEM_DMEM, port) != 0) {
-		nvgpu_err(flcn->g, "incorrect parameters");
+		nvgpu_err(g, "incorrect parameters");
 		goto exit;
 	}
 
@@ -376,19 +341,14 @@ int nvgpu_falcon_copy_to_dmem(struct nvgpu_falcon *flcn,
 	int status = -EINVAL;
 	struct gk20a *g;
 
-	if (flcn == NULL) {
-		goto exit;
+	if (!is_falcon_valid(flcn)) {
+		return -EINVAL;
 	}
 
 	g = flcn->g;
 
-	if (!flcn->is_falcon_supported) {
-		nvgpu_err(g, "Falcon %d not supported", flcn->flcn_id);
-		goto exit;
-	}
-
 	if (falcon_memcpy_params_check(flcn, dst, size, MEM_DMEM, port) != 0) {
-		nvgpu_err(flcn->g, "incorrect parameters");
+		nvgpu_err(g, "incorrect parameters");
 		goto exit;
 	}
 
@@ -406,19 +366,14 @@ int nvgpu_falcon_copy_from_imem(struct nvgpu_falcon *flcn,
 	int status = -EINVAL;
 	struct gk20a *g;
 
-	if (flcn == NULL) {
-		goto exit;
+	if (!is_falcon_valid(flcn)) {
+		return -EINVAL;
 	}
 
 	g = flcn->g;
 
-	if (!flcn->is_falcon_supported) {
-		nvgpu_err(g, "Falcon %d not supported", flcn->flcn_id);
-		goto exit;
-	}
-
 	if (falcon_memcpy_params_check(flcn, src, size, MEM_IMEM, port) != 0) {
-		nvgpu_err(flcn->g, "incorrect parameters");
+		nvgpu_err(g, "incorrect parameters");
 		goto exit;
 	}
 
@@ -436,19 +391,14 @@ int nvgpu_falcon_copy_to_imem(struct nvgpu_falcon *flcn,
 	int status = -EINVAL;
 	struct gk20a *g;
 
-	if (flcn == NULL) {
-		goto exit;
+	if (!is_falcon_valid(flcn)) {
+		return -EINVAL;
 	}
 
 	g = flcn->g;
 
-	if (!flcn->is_falcon_supported) {
-		nvgpu_err(g, "Falcon %d not supported", flcn->flcn_id);
-		goto exit;
-	}
-
 	if (falcon_memcpy_params_check(flcn, dst, size, MEM_IMEM, port) != 0) {
-		nvgpu_err(flcn->g, "incorrect parameters");
+		nvgpu_err(g, "incorrect parameters");
 		goto exit;
 	}
 
@@ -467,15 +417,18 @@ static void falcon_print_mem(struct nvgpu_falcon *flcn, u32 src,
 	u32 buff[64] = {0};
 	u32 total_block_read = 0;
 	u32 byte_read_count = 0;
+	struct gk20a *g;
 	u32 i = 0;
 	int status = 0;
 
+	g = flcn->g;
+
 	if (falcon_memcpy_params_check(flcn, src, size, mem_type, 0) != 0) {
-		nvgpu_err(flcn->g, "incorrect parameters");
+		nvgpu_err(g, "incorrect parameters");
 		return;
 	}
 
-	nvgpu_info(flcn->g, " offset 0x%x  size %d bytes", src, size);
+	nvgpu_info(g, " offset 0x%x  size %d bytes", src, size);
 
 	total_block_read = size >> 8;
 	do {
@@ -495,12 +448,12 @@ static void falcon_print_mem(struct nvgpu_falcon *flcn, u32 src,
 		}
 
 		if (status != 0) {
-			nvgpu_err(flcn->g, "MEM print failed");
+			nvgpu_err(g, "MEM print failed");
 			break;
 		}
 
 		for (i = 0U; i < (byte_read_count >> 2U); i += 4U) {
-			nvgpu_info(flcn->g, "%#06x: %#010x %#010x %#010x %#010x",
+			nvgpu_info(g, "%#06x: %#010x %#010x %#010x %#010x",
 				src + (i << 2U), buff[i], buff[i+1U],
 				buff[i+2U], buff[i+3U]);
 		}
@@ -512,12 +465,7 @@ static void falcon_print_mem(struct nvgpu_falcon *flcn, u32 src,
 
 void nvgpu_falcon_print_dmem(struct nvgpu_falcon *flcn, u32 src, u32 size)
 {
-	if (flcn == NULL) {
-		return;
-	}
-
-	if (!flcn->is_falcon_supported) {
-		nvgpu_err(flcn->g, "Falcon %d not supported", flcn->flcn_id);
+	if (!is_falcon_valid(flcn)) {
 		return;
 	}
 
@@ -527,12 +475,7 @@ void nvgpu_falcon_print_dmem(struct nvgpu_falcon *flcn, u32 src, u32 size)
 
 void nvgpu_falcon_print_imem(struct nvgpu_falcon *flcn, u32 src, u32 size)
 {
-	if (flcn == NULL) {
-		return;
-	}
-
-	if (!flcn->is_falcon_supported) {
-		nvgpu_err(flcn->g, "Falcon %d not supported", flcn->flcn_id);
+	if (!is_falcon_valid(flcn)) {
 		return;
 	}
 
@@ -542,20 +485,11 @@ void nvgpu_falcon_print_imem(struct nvgpu_falcon *flcn, u32 src, u32 size)
 
 int nvgpu_falcon_bootstrap(struct nvgpu_falcon *flcn, u32 boot_vector)
 {
-	struct gk20a *g;
-
-	if (flcn == NULL) {
+	if (!is_falcon_valid(flcn)) {
 		return -EINVAL;
 	}
 
-	g = flcn->g;
-
-	if (!flcn->is_falcon_supported) {
-		nvgpu_err(g, "Falcon %d not supported", flcn->flcn_id);
-		return -EINVAL;
-	}
-
-	return g->ops.falcon.bootstrap(flcn, boot_vector);
+	return flcn->g->ops.falcon.bootstrap(flcn, boot_vector);
 }
 
 u32 nvgpu_falcon_mailbox_read(struct nvgpu_falcon *flcn, u32 mailbox_index)
@@ -563,19 +497,14 @@ u32 nvgpu_falcon_mailbox_read(struct nvgpu_falcon *flcn, u32 mailbox_index)
 	struct gk20a *g;
 	u32 data = 0;
 
-	if (flcn == NULL) {
-		goto exit;
+	if (!is_falcon_valid(flcn)) {
+		return 0;
 	}
 
 	g = flcn->g;
 
-	if (!flcn->is_falcon_supported) {
-		nvgpu_err(g, "Falcon %d not supported", flcn->flcn_id);
-		goto exit;
-	}
-
 	if (mailbox_index >= FALCON_MAILBOX_COUNT) {
-		nvgpu_err(flcn->g, "incorrect mailbox id %d", mailbox_index);
+		nvgpu_err(g, "incorrect mailbox id %d", mailbox_index);
 		goto exit;
 	}
 
@@ -590,19 +519,14 @@ void nvgpu_falcon_mailbox_write(struct nvgpu_falcon *flcn, u32 mailbox_index,
 {
 	struct gk20a *g;
 
-	if (flcn == NULL) {
-		goto exit;
+	if (!is_falcon_valid(flcn)) {
+		return;
 	}
 
 	g = flcn->g;
 
-	if (!flcn->is_falcon_supported) {
-		nvgpu_err(g, "Falcon %d not supported", flcn->flcn_id);
-		goto exit;
-	}
-
 	if (mailbox_index >= FALCON_MAILBOX_COUNT) {
-		nvgpu_err(flcn->g, "incorrect mailbox id %d", mailbox_index);
+		nvgpu_err(g, "incorrect mailbox id %d", mailbox_index);
 		goto exit;
 	}
 
@@ -614,20 +538,11 @@ exit:
 
 void nvgpu_falcon_dump_stats(struct nvgpu_falcon *flcn)
 {
-	struct gk20a *g;
-
-	if (flcn == NULL) {
+	if (!is_falcon_valid(flcn)) {
 		return;
 	}
 
-	g = flcn->g;
-
-	if (!flcn->is_falcon_supported) {
-		nvgpu_err(g, "Falcon %d not supported", flcn->flcn_id);
-		return;
-	}
-
-	g->ops.falcon.dump_falcon_stats(flcn);
+	flcn->g->ops.falcon.dump_falcon_stats(flcn);
 }
 
 int nvgpu_falcon_bl_bootstrap(struct nvgpu_falcon *flcn,
@@ -639,16 +554,11 @@ int nvgpu_falcon_bl_bootstrap(struct nvgpu_falcon *flcn,
 	u32 dst = 0;
 	int err = 0;
 
-	if (flcn == NULL) {
+	if (!is_falcon_valid(flcn)) {
 		return -EINVAL;
 	}
 
 	g = flcn->g;
-
-	if (!flcn->is_falcon_supported) {
-		nvgpu_err(g, "Falcon %d not supported", flcn->flcn_id);
-		return -EINVAL;
-	}
 
 	err = nvgpu_falcon_get_mem_size(flcn, MEM_IMEM, &imem_size);
 	if (err != 0) {
@@ -656,7 +566,7 @@ int nvgpu_falcon_bl_bootstrap(struct nvgpu_falcon *flcn,
 	}
 
 	if (bl_info->bl_size > imem_size) {
-		nvgpu_err(flcn->g, "bootloader size greater than IMEM size");
+		nvgpu_err(g, "bootloader size greater than IMEM size");
 		goto exit;
 	}
 
@@ -690,39 +600,21 @@ exit:
 
 void nvgpu_falcon_get_ctls(struct nvgpu_falcon *flcn, u32 *sctl, u32 *cpuctl)
 {
-	struct gk20a *g;
-
-	if (flcn == NULL) {
+	if (!is_falcon_valid(flcn)) {
 		return;
 	}
 
-	g = flcn->g;
-
-	if (!flcn->is_falcon_supported) {
-		nvgpu_err(g, "Falcon %d not supported", flcn->flcn_id);
-		return;
-	}
-
-	g->ops.falcon.get_falcon_ctls(flcn, sctl, cpuctl);
+	flcn->g->ops.falcon.get_falcon_ctls(flcn, sctl, cpuctl);
 }
 
 int nvgpu_falcon_get_mem_size(struct nvgpu_falcon *flcn,
 			      enum falcon_mem_type type, u32 *size)
 {
-	struct gk20a *g;
-
-	if (flcn == NULL) {
+	if (!is_falcon_valid(flcn)) {
 		return -EINVAL;
 	}
 
-	g = flcn->g;
-
-	if (!flcn->is_falcon_supported) {
-		nvgpu_err(g, "Falcon %d not supported", flcn->flcn_id);
-		return -EINVAL;
-	}
-
-	*size = g->ops.falcon.get_mem_size(flcn, type);
+	*size = flcn->g->ops.falcon.get_mem_size(flcn, type);
 
 	return 0;
 }
@@ -766,21 +658,11 @@ static struct nvgpu_falcon *falcon_get_instance(struct gk20a *g, u32 flcn_id)
 	return flcn;
 }
 
-int nvgpu_falcon_sw_init(struct gk20a *g, u32 flcn_id)
+static int falcon_sw_init(struct gk20a *g, struct nvgpu_falcon *flcn)
 {
 	u32 ver = g->params.gpu_arch + g->params.gpu_impl;
-	struct nvgpu_falcon *flcn = NULL;
 	int err = 0;
 
-	flcn = falcon_get_instance(g, flcn_id);
-	if (flcn == NULL) {
-		return -ENODEV;
-	}
-
-	flcn->flcn_id = flcn_id;
-	flcn->g = g;
-
-	/* call SW init methods to assign flcn base & support of a falcon */
 	switch (ver) {
 	case GK20A_GPUID_GM20B:
 	case GK20A_GPUID_GM20B_B:
@@ -804,6 +686,24 @@ int nvgpu_falcon_sw_init(struct gk20a *g, u32 flcn_id)
 		break;
 	}
 
+	return err;
+}
+
+int nvgpu_falcon_sw_init(struct gk20a *g, u32 flcn_id)
+{
+	struct nvgpu_falcon *flcn = NULL;
+	int err = 0;
+
+	flcn = falcon_get_instance(g, flcn_id);
+	if (flcn == NULL) {
+		return -ENODEV;
+	}
+
+	flcn->flcn_id = flcn_id;
+	flcn->g = g;
+
+	/* call SW init methods to assign flcn base & support of a falcon */
+	err = falcon_sw_init(g, flcn);
 	if (err != 0) {
 		nvgpu_err(g, "Chip specific falcon sw init failed %d", err);
 		return err;
