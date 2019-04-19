@@ -833,6 +833,43 @@ static int eqos_configure_mtl_queue(unsigned int qinx,
 }
 
 /**
+ *	eqos_config_rxcsum_offload - Enable/Disale rx checksum offload in HW
+ *	@addr: EQOS virtual base address.
+ *	@enabled: Flag to indicate feature is to be enabled/disabled.
+ *
+ *	Algorithm:
+ *	1) Read the MAC configuration register.
+ *	2) Enable the IP checksum offload engine COE in MAC receiver.
+ *	3) Update the MAC configuration register.
+ *
+ *	Dependencies: MAC has to be out of reset.
+ *
+ *	Protection: None.
+ *
+ *	Return: 0 - success, -1 - failure.
+ */
+static int eqos_config_rxcsum_offload(void *addr, unsigned int enabled)
+{
+	unsigned int mac_mcr;
+
+	if (enabled != OSI_ENABLE && enabled != OSI_DISABLE) {
+		return -1;
+	}
+
+	mac_mcr = osi_readl((unsigned char *)addr + EQOS_MAC_MCR);
+
+	if (enabled == OSI_ENABLE) {
+		mac_mcr |= EQOS_MCR_IPC;
+	} else {
+		mac_mcr &= ~EQOS_MCR_IPC;
+	}
+
+	osi_writel(mac_mcr, (unsigned char *)addr + EQOS_MAC_MCR);
+
+	return 0;
+}
+
+/**
  *	eqos_configure_mac - Configure MAC
  *	@osi_core: OSI private data structure.
  *
@@ -870,7 +907,8 @@ static void eqos_configure_mac(struct osi_core_priv_data *osi_core)
 	/* Enable Automatic Pad or CRC Stripping */
 	/* Enable CRC stripping for Type packets */
 	/* Enable Full Duplex mode */
-	value |= EQOS_MCR_ACS | EQOS_MCR_CST | EQOS_MCR_DM;
+	/* Enable Rx checksum offload engine by default */
+	value |= EQOS_MCR_ACS | EQOS_MCR_CST | EQOS_MCR_DM | EQOS_MCR_IPC;
 
 	if (osi_core->mtu > OSI_DFLT_MTU_SIZE) {
 		value |= EQOS_MCR_S2KP;
@@ -1400,6 +1438,67 @@ static int eqos_get_avb_algorithm(struct osi_core_priv_data *osi_core,
 	return 0;
 }
 
+/**
+ *	eqos_config_arp_offload - Enable/Disable ARP offload
+ *	@mac_ver: MAC version number (different MAC HW version
+ *	need different register offset/fields for ARP offload.
+ *	@addr: EQOS virtual base address.
+ *	@enable: Flag variable to enable/disable ARP offload
+ *	@ip_addr: IP address of device to be programmed in HW.
+ *	HW will use this IP address to respond to ARP requests.
+ *
+ *	Algorithm:
+ *	1) Read the MAC configuration register
+ *	2) If ARP offload is to be enabled, program the IP address in
+ *	ARPPA register
+ *	3) Enable/disable the ARPEN bit in MCR and write back to the MCR.
+ *
+ *	Dependencies: None.
+ *
+ *	Protection: None.
+ *
+ *	Return: 0 - success, -1 - failure.
+ */
+static int eqos_config_arp_offload(unsigned int mac_ver, void *addr,
+				   unsigned int enable,
+				   unsigned char *ip_addr)
+{
+	unsigned int mac_mcr;
+	unsigned int val;
+
+	if (enable != OSI_ENABLE && enable != OSI_DISABLE) {
+		return -1;
+	}
+
+	mac_mcr = osi_readl((unsigned char *)addr + EQOS_MAC_MCR);
+
+	if (enable == OSI_ENABLE) {
+		val = (((unsigned int)ip_addr[0]) << 24) |
+		      (((unsigned int)ip_addr[1]) << 16) |
+		      (((unsigned int)ip_addr[2]) << 8) |
+		      (((unsigned int)ip_addr[3]));
+
+		if (mac_ver == OSI_EQOS_MAC_4_10) {
+			osi_writel(val, (unsigned char *)addr +
+				   EQOS_4_10_MAC_ARPPA);
+		} else if (mac_ver == OSI_EQOS_MAC_5_00) {
+			osi_writel(val, (unsigned char *)addr +
+				   EQOS_5_00_MAC_ARPPA);
+		} else {
+			/* Unsupported MAC ver */
+			return -1;
+		}
+
+		mac_mcr |= EQOS_MCR_ARPEN;
+	} else {
+		mac_mcr &= ~EQOS_MCR_ARPEN;
+	}
+
+	osi_writel(mac_mcr, (unsigned char *)addr + EQOS_MAC_MCR);
+
+	return 0;
+}
+
 static struct osi_core_ops eqos_core_ops = {
 	.poll_for_swr = eqos_poll_for_swr,
 	.core_init = eqos_core_init,
@@ -1418,6 +1517,8 @@ static struct osi_core_ops eqos_core_ops = {
 	.config_tx_status = eqos_config_tx_status,
 	.config_rx_crc_check = eqos_config_rx_crc_check,
 	.config_flow_control = eqos_config_flow_control,
+	.config_arp_offload = eqos_config_arp_offload,
+	.config_rxcsum_offload = eqos_config_rxcsum_offload,
 };
 
 struct osi_core_ops *eqos_get_hw_core_ops(void)

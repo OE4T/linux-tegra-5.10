@@ -83,9 +83,6 @@
 
 #define OSI_INVALID_CHAN_NUM    0xFFU
 
-#define TX_DESC_CNT     256U
-#define RX_DESC_CNT     256U
-
 #define EQOS_MAC_HFR0		0x11c
 #define EQOS_MAC_HFR1		0x120
 #define EQOS_MAC_HFR2		0x124

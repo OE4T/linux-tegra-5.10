@@ -427,3 +427,33 @@ int osi_configure_flow_control(struct osi_core_priv_data *osi_core,
 
 	return ret;
 }
+
+int osi_config_arp_offload(struct osi_core_priv_data *osi_core,
+			   unsigned int flags,
+			   unsigned char *ip_addr)
+{
+	int ret = -1;
+
+	if (osi_core != OSI_NULL && osi_core->ops != OSI_NULL &&
+	    osi_core->ops->config_arp_offload != OSI_NULL) {
+		ret = osi_core->ops->config_arp_offload(osi_core->mac_ver,
+							osi_core->base,
+							flags, ip_addr);
+	}
+
+	return ret;
+}
+
+int osi_config_rxcsum_offload(struct osi_core_priv_data *osi_core,
+			      unsigned int enable)
+{
+	int ret = -1;
+
+	if (osi_core != OSI_NULL && osi_core->ops != OSI_NULL &&
+	    osi_core->ops->config_rxcsum_offload != OSI_NULL) {
+		ret = osi_core->ops->config_rxcsum_offload(osi_core->base,
+							   enable);
+	}
+
+	return ret;
+}
