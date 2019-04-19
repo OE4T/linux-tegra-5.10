@@ -1,7 +1,7 @@
 /*
  * tegra210_virt_alt_admaif.c - Tegra ADMAIF component driver
  *
- * Copyright (c) 2014-2018 NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2014-2019 NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -837,7 +837,6 @@ int tegra210_virt_admaif_register_component(struct platform_device *pdev,
 			dev_dbg(&pdev->dev,
 				"Missing property nvidia,dma-buffer-size\n");
 		admaif->playback_dma_data[i].buffer_size = buffer_size;
-		admaif->playback_dma_data[i].wrap = 4;
 		admaif->playback_dma_data[i].width = 32;
 		admaif->playback_dma_data[i].req_sel = i + 1;
 
@@ -859,7 +858,6 @@ int tegra210_virt_admaif_register_component(struct platform_device *pdev,
 			dev_dbg(&pdev->dev,
 				"Missing property nvidia,dma-buffer-size\n");
 		admaif->capture_dma_data[i].buffer_size = buffer_size;
-		admaif->capture_dma_data[i].wrap = 4;
 		admaif->capture_dma_data[i].width = 32;
 		admaif->capture_dma_data[i].req_sel = i + 1;
 		if (of_property_read_string_index(pdev->dev.of_node,
